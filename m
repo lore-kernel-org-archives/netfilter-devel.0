@@ -1,41 +1,43 @@
-From: <gregkh@suse.de>
-Subject: patch nfnetlink-ip-ip6-_queue-fix-skb_over_panic-when-enlarging-packets.patch added to 2.6.25-stable tree
-Date: Tue, 13 May 2008 10:55:15 -0700
-Message-ID: <20080513175712.1CE8C1454476@imap.suse.de>
-References: <48297DE4.6070001@trash.net>
-Cc: <stable@kernel.org>, <stable-commits@vger.kernel.org>
-To: arno@natisbad.org, davem@davemloft.net,
-	netfilter-devel@vger.kernel.org
+From: Greg KH <gregkh@suse.de>
+Subject: [patch 20/37] {nfnetlink, ip, ip6}_queue: fix skb_over_panic when
+	enlarging packets
+Date: Tue, 13 May 2008 13:12:18 -0700
+Message-ID: <20080513201218.GU31167@suse.de>
+References: <20080513200453.064446337@mini.kroah.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Justin Forbes <jmforbes@linuxtx.org>,
+	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
+	Theodore Ts'o <tytso@mit.edu>,
+	Randy Dunlap <rdunlap@xenotime.net>,
+	Dave Jones <davej@redhat.com>,
+	Chuck Wolber <chuckw@quantumlinux.com>,
+	Chris Wedgwood <reviews@ml.cw.f00f.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Chuck Ebbert <cebbert@redhat.com>,
+	Domenico Andreoli <cavokz@gmail.com>,
+	torvalds@linux-foundation.org, akpm@linux-foundation.org,
+	alan@lxorguk.ukuu.org.uk,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Arnaud Ebalard <arno@natisbad.org>,
+	Patrick McHardy <kaber@trash.net>
+To: linux-kernel@vger.kernel.org, stable@kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.suse.de ([195.135.220.2]:59117 "EHLO mx1.suse.de"
+Received: from cantor2.suse.de ([195.135.220.15]:38440 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756564AbYEMR5O (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 May 2008 13:57:14 -0400
-In-Reply-To: <48297DE4.6070001@trash.net>
+	id S1761841AbYEMUPM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 13 May 2008 16:15:12 -0400
+Content-Disposition: inline; filename="nfnetlink-ip-ip6-_queue-fix-skb_over_panic-when-enlarging-packets.patch"
+In-Reply-To: <20080513201053.GA31167@suse.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+2.6.25-stable review patch.  If anyone has any objections, please let us
+know.
 
-This is a note to let you know that we have just queued up the patch titled
-
-     Subject: {nfnetlink, ip, ip6}_queue: fix skb_over_panic when enlarging packets
-
-to the 2.6.25-stable tree.  Its filename is
-
-     nfnetlink-ip-ip6-_queue-fix-skb_over_panic-when-enlarging-packets.patch
-
-A git repo of this tree can be found at 
-    http://www.kernel.org/git/?p=linux/kernel/git/stable/stable-queue.git;a=summary
-
-
->From stable-bounces@linux.kernel.org Tue May 13 05:11:11 2008
-From: Arnaud Ebalard <arno@natisbad.org>
-Date: Tue, 13 May 2008 13:39:16 +0200
-Subject: {nfnetlink, ip, ip6}_queue: fix skb_over_panic when enlarging packets
-To: stable@kernel.org
-Cc: Netfilter Development Mailinglist <netfilter-devel@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>
-Message-ID: <48297DE4.6070001@trash.net>
-
+------------------
 From: Arnaud Ebalard <arno@natisbad.org>
 
 [NETFILTER]: {nfnetlink,ip,ip6}_queue: fix skb_over_panic when enlarging packets
@@ -162,7 +164,4 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
  				printk(KERN_WARNING "nf_queue: OOM "
  				      "in mangle, dropping packet\n");
 
-
-Patches currently in stable-queue which might be from arno@natisbad.org are
-
-queue-2.6.25/nfnetlink-ip-ip6-_queue-fix-skb_over_panic-when-enlarging-packets.patch
+-- 
