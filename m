@@ -1,12 +1,11 @@
-From: arno@natisbad.org (Arnaud Ebalard)
-Subject: Re: [patch 20/37] {nfnetlink, ip, ip6}_queue: fix skb_over_panic when enlarging packets
-Date: Wed, 14 May 2008 01:45:15 +0200
-Message-ID: <877idxdb04.fsf@natisbad.org>
-References: <20080513200453.064446337@mini.kroah.org>
-	<20080513201218.GU31167@suse.de>
+From: Greg KH <gregkh@suse.de>
+Subject: Re: [patch 20/37] {nfnetlink, ip, ip6}_queue: fix skb_over_panic
+	when enlarging packets
+Date: Tue, 13 May 2008 15:06:29 -0700
+Message-ID: <20080513220627.GA18320@suse.de>
+References: <20080513200453.064446337@mini.kroah.org> <20080513201218.GU31167@suse.de> <877idxdb04.fsf@natisbad.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=us-ascii
 Cc: linux-kernel@vger.kernel.org, stable@kernel.org,
 	Justin Forbes <jmforbes@linuxtx.org>,
 	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
@@ -24,55 +23,31 @@ Cc: linux-kernel@vger.kernel.org, stable@kernel.org,
 	<netfilter-devel@vger.kernel.org>,
 	"David S. Miller" <davem@davemloft.net>,
 	Patrick McHardy <kaber@trash.net>
-To: Greg KH <gregkh@suse.de>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755455AbYEMWEX@vger.kernel.org>
-In-Reply-To: <20080513201218.GU31167@suse.de> (Greg KH's message of "Tue, 13
-	May 2008 13:12:18 -0700")
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: Arnaud Ebalard <arno@natisbad.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ns.suse.de ([195.135.220.2]:35586 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755823AbYEMWKY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 13 May 2008 18:10:24 -0400
+Content-Disposition: inline
+In-Reply-To: <877idxdb04.fsf@natisbad.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
---=-=-=
-Content-Transfer-Encoding: quoted-printable
+On Wed, May 14, 2008 at 01:45:15AM +0200, Arnaud Ebalard wrote:
+> Hi,
+> 
+> Greg KH <gregkh@suse.de> writes:
+> 
+> > 2.6.25-stable review patch.  If anyone has any objections, please let us
+> > know.
+> 
+> Sorry for the noise, but for those who missed one of the latest post on
+> the topic on netdev, I should add that the bug is also in 2.6.24.4 (even
+> if it's probably too late for that poor guy :-( ).  
 
-Hi,
+Sorry, yes, we are no longer doing 2.6.24-stable releases.
 
-Greg KH <gregkh@suse.de> writes:
+thanks,
 
-> 2.6.25-stable review patch.  If anyone has any objections, please let us
-> know.
-
-Sorry for the noise, but for those who missed one of the latest post on
-the topic on netdev, I should add that the bug is also in 2.6.24.4 (even
-if it's probably too late for that poor guy :-( ).=20=20
-
-> ------------------
-> From: Arnaud Ebalard <arno@natisbad.org>
->
-> [NETFILTER]: {nfnetlink,ip,ip6}_queue: fix skb_over_panic when enlarging =
-packets
->
-> From: Arnaud Ebalard <arno@natisbad.org>
->
-> Upstream commit 9a732ed6d:
->
-> While reinjecting *bigger* modified versions of IPv6 packets using
-> libnetfilter_queue, things work fine on a 2.6.24 kernel (2.6.22 too)
-                                            ^^^^^^
-                                  i.e. read 2.6.24.x with x<4
-
-Cheers,
-
-a+
-
-
---=-=-=
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFIKigUAlWVfAR6UCYRAlmLAKCfw31nXa8WIHc6eNsWfvxgtd7dkACfQLA7
-3ezUP5GEVtysDNo3mIa0cXw=
-=xMpa
------END PGP SIGNATURE-----
---=-=-=--
+greg k-h
