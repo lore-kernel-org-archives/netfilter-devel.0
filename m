@@ -1,53 +1,58 @@
-From: Greg KH <gregkh@suse.de>
-Subject: Re: [patch 20/37] {nfnetlink, ip, ip6}_queue: fix skb_over_panic
-	when enlarging packets
-Date: Tue, 13 May 2008 15:06:29 -0700
-Message-ID: <20080513220627.GA18320@suse.de>
-References: <20080513200453.064446337@mini.kroah.org> <20080513201218.GU31167@suse.de> <877idxdb04.fsf@natisbad.org>
+From: "james hough" <jameshough@bemac.com>
+Subject: Large packets received from the queue
+Date: Tue, 13 May 2008 13:56:23 +0100
+Message-ID: <001b01c8b4f8$bf9bb180$5c01a8c0@jimpc>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org, stable@kernel.org,
-	Justin Forbes <jmforbes@linuxtx.org>,
-	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
-	Theodore Ts'o <tytso@mit.edu>,
-	Randy Dunlap <rdunlap@xenotime.net>,
-	Dave Jones <davej@redhat.com>,
-	Chuck Wolber <chuckw@quantumlinux.com>,
-	Chris Wedgwood <reviews@ml.cw.f00f.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Chuck Ebbert <cebbert@redhat.com>,
-	Domenico Andreoli <cavokz@gmail.com>,
-	torvalds@linux-foundation.org, akpm@linux-foundation.org,
-	alan@lxorguk.ukuu.org.uk,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>
-To: Arnaud Ebalard <arno@natisbad.org>
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ns.suse.de ([195.135.220.2]:35586 "EHLO mx1.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755823AbYEMWKY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 May 2008 18:10:24 -0400
-Content-Disposition: inline
-In-Reply-To: <877idxdb04.fsf@natisbad.org>
+Received: from omega-smtp.bemac.com ([194.193.56.2]:33579 "EHLO
+	omega-real.bemac.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757085AbYENBKI (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 13 May 2008 21:10:08 -0400
+Received: from sigma.bemac.com (localhost [127.0.0.1])
+	by omega-real.bemac.com (8.9.3+Sun/8.9.3) with ESMTP id NAA15421
+	for <netfilter-devel@vger.kernel.org>; Tue, 13 May 2008 13:56:17 +0100 (BST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, May 14, 2008 at 01:45:15AM +0200, Arnaud Ebalard wrote:
-> Hi,
-> 
-> Greg KH <gregkh@suse.de> writes:
-> 
-> > 2.6.25-stable review patch.  If anyone has any objections, please let us
-> > know.
-> 
-> Sorry for the noise, but for those who missed one of the latest post on
-> the topic on netdev, I should add that the bug is also in 2.6.24.4 (even
-> if it's probably too late for that poor guy :-( ).  
+Hi
 
-Sorry, yes, we are no longer doing 2.6.24-stable releases.
+I am developing an app on redhat el5 using the NFQUEUE  target. However i 
+have hit a problem. first off the traffic i am queueing is TCP traffic only 
+and use the following rules to insert these into iptables.
 
-thanks,
+iptables -I INPUT 1 -p tcp -J NFQUEUE --queue-num 1
+iptables -I OUTPUT 1 -p tcp -J NFQUEUE --queue-num 0
 
-greg k-h
+the problem I have is that my app is receiving larger than MTU packets off 
+the queue, often in excess of 2000bytes. The MTU is set to 1500 and the 
+problem only seems to occur on outbound traffic when doing file uploads. in 
+this case I am doing an FTP put.
+
+At first i thought that the packets were made up of a good packet followed 
+by junk data but the ip header of the packet from the queue contains the 
+correct size (2000+).
+
+Since this problem became an issue I modified my app so that it simply 
+received the packet off the queue, printed the size then set a verdict of 
+accept. This showed the same issue that larger than MTU packets where 
+entering the queue. This test application is pretty much the same as the 
+test app provided with the source but with two queues.
+
+I have installed the latest iptables v1.4.0 and have compiled the latest 
+libnfnetlink and libnetfilter_queue but i still get this problem. My kernel 
+is 2.6.18.
+
+can anyone help or has experianced this problem before?
+
+Thank you
+
+James
+
+
