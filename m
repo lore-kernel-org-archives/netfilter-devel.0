@@ -1,74 +1,88 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: netfilter moving to git
-Date: Wed, 14 May 2008 20:24:44 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0805141935320.5292@fbirervta.pbzchgretzou.qr>
-References: <48299680.7020808@trash.net> <alpine.LNX.1.10.0805131614570.448@fbirervta.pbzchgretzou.qr> <4829A316.2080402@trash.net> <alpine.LNX.1.10.0805131620450.448@fbirervta.pbzchgretzou.qr> <4829B177.9000501@trash.net> <alpine.LNX.1.10.0805131734130.448@fbirervta.pbzchgretzou.qr>
- <482B1335.30200@trash.net>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Netfilter Core Team <coreteam@netfilter.org>
-To: Patrick McHardy <kaber@trash.net>
+From: Eric Leblond <eric@inl.fr>
+Subject: [ULOGD PATCH 3/4] Partially fill connection timestamp when hash is not used.
+Date: Thu, 15 May 2008 00:54:38 +0200
+Message-ID: <1210805679-11813-4-git-send-email-eric@inl.fr>
+Cc: Eric Leblond <eric@inl.fr>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:54923 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753452AbYENSYq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 14 May 2008 14:24:46 -0400
-In-Reply-To: <482B1335.30200@trash.net>
+Received: from bayen.regit.org ([81.57.69.189]:33857 "EHLO ice-age"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752951AbYENWy3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 14 May 2008 18:54:29 -0400
+In-Reply-To: <>
+References: <>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Ulogd2 maintain a hash table containing timestamp information on a connection.
 
-On Wednesday 2008-05-14 18:28, Patrick McHardy wrote:
->> > And anyways, I also don't see anything wrong with simply starting with
->> > a clean history by only importing the latest version, In that case I'd
->> > have no problem using your fixed-up repository as historical reference.
->> >
->> I think this idea came up back in February already (starting from a
->> new slate), I am fine with that.
->> 
->> Though, what's wrong with stitching the first version of the
->> new repository to the last version of the old one?
->
-> That would work, but Yasuyuki already provided me with the
-> information for properly tagging the tree, so I'll keep the
-> current iptables repository. Thanks anyway.
+This patch computes START or STOP timestamp depending on the type of
+the received message even if the has is not used.
 
-"The tags - they do nothing!"
+Signed-off-by: Eric Leblond <eric@inl.fr>
+---
+ input/flow/ulogd_inpflow_NFCT.c |   30 ++++++++++++++++++++++--------
+ 1 files changed, 22 insertions(+), 8 deletions(-)
 
-There was confusion (in the git layer) how to handle the svn path
-reordering that took place over time, which Yasuyuki did a great job
-of clearing up. But making it a good git repository does not stop
-after importing and, probably git-tagging the SVN branches^W tags^W
-twigs. I mean hey, try to work with it like with the standards that
-git and linux set, like
+diff --git a/input/flow/ulogd_inpflow_NFCT.c b/input/flow/ulogd_inpflow_NFCT.c
+index 5e5af87..cce06aa 100644
+--- a/input/flow/ulogd_inpflow_NFCT.c
++++ b/input/flow/ulogd_inpflow_NFCT.c
+@@ -576,14 +576,18 @@ static int propagate_ct(struct ulogd_pluginstance *upi,
+ 	ret[NFCT_CT_ID].flags |= ULOGD_RETF_VALID;
+ 
+ 	if (ts) {
+-		ret[NFCT_FLOW_START_SEC].u.value.ui32 = ts->time[START].tv_sec;
+-		ret[NFCT_FLOW_START_SEC].flags |= ULOGD_RETF_VALID;
+-		ret[NFCT_FLOW_START_USEC].u.value.ui32 = ts->time[START].tv_usec;
+-		ret[NFCT_FLOW_START_USEC].flags |= ULOGD_RETF_VALID;
+-		ret[NFCT_FLOW_END_SEC].u.value.ui32 = ts->time[STOP].tv_sec;
+-		ret[NFCT_FLOW_END_SEC].flags |= ULOGD_RETF_VALID;
+-		ret[NFCT_FLOW_END_USEC].u.value.ui32 = ts->time[STOP].tv_usec;
+-		ret[NFCT_FLOW_END_USEC].flags |= ULOGD_RETF_VALID;
++		if (ts->time[START].tv_sec) {
++			ret[NFCT_FLOW_START_SEC].u.value.ui32 = ts->time[START].tv_sec;
++			ret[NFCT_FLOW_START_SEC].flags |= ULOGD_RETF_VALID;
++			ret[NFCT_FLOW_START_USEC].u.value.ui32 = ts->time[START].tv_usec;
++			ret[NFCT_FLOW_START_USEC].flags |= ULOGD_RETF_VALID;
++		}
++		if (ts->time[STOP].tv_sec) {
++			ret[NFCT_FLOW_END_SEC].u.value.ui32 = ts->time[STOP].tv_sec;
++			ret[NFCT_FLOW_END_SEC].flags |= ULOGD_RETF_VALID;
++			ret[NFCT_FLOW_END_USEC].u.value.ui32 = ts->time[STOP].tv_usec;
++			ret[NFCT_FLOW_END_USEC].flags |= ULOGD_RETF_VALID;
++		}
+ 	}
+ 
+ 	ulogd_propagate_results(upi);
+@@ -600,6 +604,7 @@ static int event_handler(enum nf_conntrack_msg_type type,
+ 	struct nfct_pluginstance *cpi = 
+ 				(struct nfct_pluginstance *) upi->private;
+ 	struct ct_timestamp *ts = NULL;
++	struct ct_timestamp lts;
+ 	struct ulogd_pluginstance *npi = NULL;
+ 	int ret = 0;
+ 
+@@ -607,10 +612,19 @@ static int event_handler(enum nf_conntrack_msg_type type,
+ 		if (usehash_ce(upi->config_kset).u.value != 0) {
+ 			ct_hash_add(cpi->ct_active, nfct_get_attr_u32(ct, ATTR_ID));
+ 			return 0;
++		} else {
++			ts = &lts;
++			gettimeofday(&ts->time[START], NULL);
++			ts->time[STOP].tv_sec = 0;
+ 		}
+ 	} else if (type == NFCT_MSG_DESTROY) {
+ 		if (usehash_ce(upi->config_kset).u.value != 0)
+ 			ts = ct_hash_get(cpi->ct_active, nfct_get_attr_u32(ct, ATTR_ID));
++		else {
++			ts = &lts;
++			gettimeofday(&ts->time[STOP], NULL);
++			ts->time[START].tv_sec = 0;
++		}
+ 	}
+ 
+ 	/* since we support the re-use of one instance in
+-- 
+1.5.4.3
 
-$ git shortlog v1.4.0..HEAD --
-fatal: bad revision 'v1.4.0..HEAD'
-
-Oh shoot, the tags are not the usual ones. Well, deducting a point
-and continuing the quest:
-
-$ git shortlog svn_t_iptables_1_4_0..HEAD --
-fatal: bad revision 'svn_t_iptables_1_4_0..HEAD'
-
-Eats, shoot again, and leaves. Giving in on another deducted point:
-
-$ git shortlog svn_t_iptables_1_4_0rc1..HEAD -- | grep -v '^ '
-/C=EU/ST=EU/CN=Pablo Neira Ayuso/... (4):
-/C=EU/ST=EU/CN=Patrick McHardy/... (107):
-/C=JP/ST=JP/CN=Yasuyuki Kozakai/... (29):
-
-Hm yeah X.509, not exactly git but.. *sigh*. Even so, the
-contributors should get their share in the release shortlog which,
-ignoring that moving to git was just recent, would also happen too
-seldom if things continue their way in that 6 month cycle.
-
-$ git shortlog v1.4.0-rc1..HEAD | grep -v '^ ' | grep -v '^$' | wc -l
-23
-
-I am not saying you should take this repository, that is for you to
-decide. Just whether I should continue on that official iptables or
-not because obviously here is a difference in how to run things.
