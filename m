@@ -1,45 +1,42 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: netfilter moving to git
-Date: Wed, 14 May 2008 18:28:37 +0200
-Message-ID: <482B1335.30200@trash.net>
-References: <48299680.7020808@trash.net> <alpine.LNX.1.10.0805131614570.448@fbirervta.pbzchgretzou.qr> <4829A316.2080402@trash.net> <alpine.LNX.1.10.0805131620450.448@fbirervta.pbzchgretzou.qr> <4829B177.9000501@trash.net> <alpine.LNX.1.10.0805131734130.448@fbirervta.pbzchgretzou.qr>
+Subject: [ANNOUNCE]: Call for sponsors for the 6th netfilter developer workshop
+Date: Wed, 14 May 2008 19:34:38 +0200
+Message-ID: <482B22AE.50807@trash.net>
+References: <482B03DA.406@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
+To: Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>,
-	Netfilter Core Team <coreteam@netfilter.org>
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:46315 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751625AbYENQ2j (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 14 May 2008 12:28:39 -0400
-In-Reply-To: <alpine.LNX.1.10.0805131734130.448@fbirervta.pbzchgretzou.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+	"'netfilter@vger.kernel.org'" <netfilter@vger.kernel.org>,
+	Netfilter Core Team <coreteam@netfilter.org>,
+	netfilt
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <482B03DA.406@trash.net>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> On Tuesday 2008-05-13 17:19, Patrick McHardy wrote:
->>> Fact is there has been going a lot of work into keeping it in git-style
->>> shape. It's alright if you do not trust it, but then
->>> again, it would be a waste to run with a crippled-metadata repo
->>> or to do the conversion again.
->> True, but as a matter of principle, I can't use an untrusted repository.
->>
->> And anyways, I also don't see anything wrong with simply starting with
->> a clean history by only importing the latest version, In that case I'd
->> have no problem using your fixed-up repository as historical reference.
->>
-> I think this idea came up back in February already (starting from a
-> new slate), I am fine with that.
-> 
-> Though, what's wrong with stitching the first version of the
-> new repository to the last version of the old one?
+The netfilter project is looking for sponsors for the 6th netfilter
+developer workshop, which will take place in Paris, France from
+September, 29th to October, 3rd. For futher information about the
+workshop please consult [1] and [2].
 
+If your company is using netfilter and always wanted to give something
+back, now is a great opportunity. Sponsorship money will be used for
+travel and accomodation expenses to get the developers to the workshop.
+Perks include your company name and logo on the workshop page, an
+invitation for one or more of your own developers and a heartily
+thanks from the netfilter project.
 
-That would work, but Yasuyuki already provided me with the
-information for properly tagging the tree, so I'll keep the
-current iptables repository. Thanks anyway.
+If you are interested, please contact coreteam@netfilter.org for our
+sponsorship policy and further information. If you know of anyone who
+might be interested, please forward this email.
+
+Thanks!
+
+Patrick,
+on behalf of the Netfilter core team
+
+[1] http://workshop.netfilter.org/2008/
+[2] http://marc.info/?l=netfilter-devel&m=121077868519808&w=2
 
