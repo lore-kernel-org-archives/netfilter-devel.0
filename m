@@ -1,57 +1,45 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [ANNOUNCE]: Netfilter Workshop 2008
-Date: Wed, 14 May 2008 17:23:06 +0200
-Message-ID: <482B03DA.406@trash.net>
+Subject: Re: netfilter moving to git
+Date: Wed, 14 May 2008 18:28:37 +0200
+Message-ID: <482B1335.30200@trash.net>
+References: <48299680.7020808@trash.net> <alpine.LNX.1.10.0805131614570.448@fbirervta.pbzchgretzou.qr> <4829A316.2080402@trash.net> <alpine.LNX.1.10.0805131620450.448@fbirervta.pbzchgretzou.qr> <4829B177.9000501@trash.net> <alpine.LNX.1.10.0805131734130.448@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-To: Netfilter Development Mailinglist
+Cc: Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>,
-	"'netfilter@vger.kernel.org'" <netfilter@vger.kernel.org>,
-	Netfilter Core Team <coreteam@netfilter.org>,
-	netfilt
-Return-path: <netfilter-owner@vger.kernel.org>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+	Netfilter Core Team <coreteam@netfilter.org>
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:46315 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751625AbYENQ2j (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 14 May 2008 12:28:39 -0400
+In-Reply-To: <alpine.LNX.1.10.0805131734130.448@fbirervta.pbzchgretzou.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-= Overview =
-
-Following the lastest successful workshop in Karlsruhe, Germany,
-in October 2007. We are happy to announce the next edition in the
-workshop series. This year the event will be hosted in Paris, France
-from September 29th to October 3rd, 2008. For more information, please
-visit the official website of the workshop [1].
-
-= Attendance =
-
-The attendance of the developer workshop is free but requires an
-invitation. You may consider attending if you are involved in any
-aspect of the Netfilter development. Please, send us an email to
-coreteam@netfilter.org before July 7th, 2008 (strict deadline).
-We have a very limited number of invitations!
-
-The user days are open for everyone and don't require an invitation.
-
-= Call for Participants =
-
-Are you involved in any awesome third party Netfilter related project?
-If your answer is yes then you have a chance to come and show us your
-project during the workshop days.
-
-In case that you are interested, please send us an abstract before
-July 7th, 2008 (strict deadline) to coreteam@netfilter.org in latex,
-docbook or odt format. The abstract must have 1000 words maximum
-provinding an introduction, targets, solution proposed and experimental
-results if any. You must also provide the source code under a
-GPL-compatible free software license. The source code requirement is
-mandatory.
-
-The program committee will select two candidates from all applications
-received whose travel and accomodation expenses will be funded by our
-sponsors. 
+Jan Engelhardt wrote:
+> On Tuesday 2008-05-13 17:19, Patrick McHardy wrote:
+>>> Fact is there has been going a lot of work into keeping it in git-style
+>>> shape. It's alright if you do not trust it, but then
+>>> again, it would be a waste to run with a crippled-metadata repo
+>>> or to do the conversion again.
+>> True, but as a matter of principle, I can't use an untrusted repository.
+>>
+>> And anyways, I also don't see anything wrong with simply starting with
+>> a clean history by only importing the latest version, In that case I'd
+>> have no problem using your fixed-up repository as historical reference.
+>>
+> I think this idea came up back in February already (starting from a
+> new slate), I am fine with that.
+> 
+> Though, what's wrong with stitching the first version of the
+> new repository to the last version of the old one?
 
 
-Patrick,
-on behalf of the Netfilter core team
+That would work, but Yasuyuki already provided me with the
+information for properly tagging the tree, so I'll keep the
+current iptables repository. Thanks anyway.
 
-[1] http://workshop.netfilter.org/2008/
