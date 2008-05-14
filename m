@@ -1,51 +1,74 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: NFLOG - missing packets?
-Date: Wed, 14 May 2008 19:53:47 +0200
-Message-ID: <482B272B.3040906@trash.net>
-References: <200805101657.45111.anton.vazir@gmail.com> <200805101750.38472.anton.vazir@gmail.com> <20080511161837.GJ11778@ice-age> <200805121224.12073.anton.vazir@gmail.com> <482B2626.8080902@netfilter.org>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: netfilter moving to git
+Date: Wed, 14 May 2008 20:24:44 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0805141935320.5292@fbirervta.pbzchgretzou.qr>
+References: <48299680.7020808@trash.net> <alpine.LNX.1.10.0805131614570.448@fbirervta.pbzchgretzou.qr> <4829A316.2080402@trash.net> <alpine.LNX.1.10.0805131620450.448@fbirervta.pbzchgretzou.qr> <4829B177.9000501@trash.net> <alpine.LNX.1.10.0805131734130.448@fbirervta.pbzchgretzou.qr>
+ <482B1335.30200@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Anton <anton.vazir@gmail.com>, Eric Leblond <eric@inl.fr>,
-	netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Netfilter Core Team <coreteam@netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:48032 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753452AbYENRxt (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:54923 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753452AbYENSYq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 14 May 2008 13:53:49 -0400
-In-Reply-To: <482B2626.8080902@netfilter.org>
+	Wed, 14 May 2008 14:24:46 -0400
+In-Reply-To: <482B1335.30200@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> Anton wrote:
->> Just some extra results,
->>
->> seems DB drivers does such a difference, since while logging 
->> to LOGEMU (only) target - I've go result which looks true. 
->> But - If I enable DB logger - results in DB and LOGEMU - 
->> are the same. Looks like DB transfers makes ULOG to not 
->> accept packets from kernelspace
-> 
-> The problem is netlink that cannot back off. Netlink is the underlying
-> communication subsystem that we use to communicate kernel with usepace
-> space. Since Netlink is unreliable, some log messages can vanish under
-> heavy load. I guess that database insertions consumes lots of CPU
-> resouces. Thus, doing online database logging in a scalable manner turns
-> really hard. Instead, if you need scalability, I'd suggest to use logemu
-> or whatever plain text logging facility and then convert it to a
-> database *offline* if you really need advanced queries.
 
+On Wednesday 2008-05-14 18:28, Patrick McHardy wrote:
+>> > And anyways, I also don't see anything wrong with simply starting with
+>> > a clean history by only importing the latest version, In that case I'd
+>> > have no problem using your fixed-up repository as historical reference.
+>> >
+>> I think this idea came up back in February already (starting from a
+>> new slate), I am fine with that.
+>> 
+>> Though, what's wrong with stitching the first version of the
+>> new repository to the last version of the old one?
+>
+> That would work, but Yasuyuki already provided me with the
+> information for properly tagging the tree, so I'll keep the
+> current iptables repository. Thanks anyway.
 
-Yeah, but what we can do is check whether the message
-was successfully transmitted in the kernel and drop
-the packet in case it wasn't. That should catch 99.9%
-of all error cases since a slow databse effectively
-only causes the process to read less often from the
-netlink socket.
+"The tags - they do nothing!"
 
-I still have a very old and unfinished patch for this
-somewhere ...
+There was confusion (in the git layer) how to handle the svn path
+reordering that took place over time, which Yasuyuki did a great job
+of clearing up. But making it a good git repository does not stop
+after importing and, probably git-tagging the SVN branches^W tags^W
+twigs. I mean hey, try to work with it like with the standards that
+git and linux set, like
 
+$ git shortlog v1.4.0..HEAD --
+fatal: bad revision 'v1.4.0..HEAD'
+
+Oh shoot, the tags are not the usual ones. Well, deducting a point
+and continuing the quest:
+
+$ git shortlog svn_t_iptables_1_4_0..HEAD --
+fatal: bad revision 'svn_t_iptables_1_4_0..HEAD'
+
+Eats, shoot again, and leaves. Giving in on another deducted point:
+
+$ git shortlog svn_t_iptables_1_4_0rc1..HEAD -- | grep -v '^ '
+/C=EU/ST=EU/CN=Pablo Neira Ayuso/... (4):
+/C=EU/ST=EU/CN=Patrick McHardy/... (107):
+/C=JP/ST=JP/CN=Yasuyuki Kozakai/... (29):
+
+Hm yeah X.509, not exactly git but.. *sigh*. Even so, the
+contributors should get their share in the release shortlog which,
+ignoring that moving to git was just recent, would also happen too
+seldom if things continue their way in that 6 month cycle.
+
+$ git shortlog v1.4.0-rc1..HEAD | grep -v '^ ' | grep -v '^$' | wc -l
+23
+
+I am not saying you should take this repository, that is for you to
+decide. Just whether I should continue on that official iptables or
+not because obviously here is a difference in how to run things.
