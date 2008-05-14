@@ -1,109 +1,49 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: [ULOGD PATCH 1/4] Sync PGSQL schema with NFCT.
-Date: Thu, 15 May 2008 00:54:36 +0200
-Message-ID: <1210805679-11813-2-git-send-email-eric@inl.fr>
+Subject: [ULOGD PATCH 4/4] Suppress usage of deprecated enum
+Date: Thu, 15 May 2008 00:54:39 +0200
+Message-ID: <1210805679-11813-5-git-send-email-eric@inl.fr>
 Cc: Eric Leblond <eric@inl.fr>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:33852 "EHLO ice-age"
+Received: from bayen.regit.org ([81.57.69.189]:33856 "EHLO ice-age"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752311AbYENWy3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1752588AbYENWy3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Wed, 14 May 2008 18:54:29 -0400
 In-Reply-To: <>
 References: <>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Sync SQL fields with NFCT keys.
+This patch fixes a problem linked with the usage of a deprecated enum.
+This was causing the misdetection of DESTROY message.
 
 Signed-off-by: Eric Leblond <eric@inl.fr>
 ---
- doc/pgsql-ulogd2.sql |   28 ++++++++++++++--------------
- 1 files changed, 14 insertions(+), 14 deletions(-)
+ input/flow/ulogd_inpflow_NFCT.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/doc/pgsql-ulogd2.sql b/doc/pgsql-ulogd2.sql
-index cd2d911..d174d49 100644
---- a/doc/pgsql-ulogd2.sql
-+++ b/doc/pgsql-ulogd2.sql
-@@ -218,15 +218,15 @@ CREATE TABLE ulog2_ct (
-   orig_ip_protocol smallint default NULL,
-   orig_l4_sport integer default NULL,
-   orig_l4_dport integer default NULL,
--  orig_bytes bigint default 0,
--  orig_packets bigint default 0,
-+  orig_raw_pktlen bigint default 0,
-+  orig_raw_pktcount bigint default 0,
-   reply_ip_saddr_str inet default NULL,
-   reply_ip_daddr_str inet default NULL,
-   reply_ip_protocol smallint default NULL,
-   reply_l4_sport integer default NULL,
-   reply_l4_dport integer default NULL,
--  reply_bytes bigint default 0,
--  reply_packets bigint default 0,
-+  reply_raw_pktlen bigint default 0,
-+  reply_raw_pktcount bigint default 0,
-   icmp_code smallint default NULL,
-   icmp_type smallint default NULL,
-   ct_mark bigint default 0,
-@@ -234,7 +234,7 @@ CREATE TABLE ulog2_ct (
-   flow_start_usec bigint default 0,
-   flow_end_sec bigint default 0,
-   flow_end_usec bigint default 0,
--  state smallint default 0
-+  ct_event smallint default 0
- ) WITH (OIDS=FALSE);
+diff --git a/input/flow/ulogd_inpflow_NFCT.c b/input/flow/ulogd_inpflow_NFCT.c
+index cce06aa..ef6232e 100644
+--- a/input/flow/ulogd_inpflow_NFCT.c
++++ b/input/flow/ulogd_inpflow_NFCT.c
+@@ -608,7 +608,7 @@ static int event_handler(enum nf_conntrack_msg_type type,
+ 	struct ulogd_pluginstance *npi = NULL;
+ 	int ret = 0;
  
- CREATE INDEX ulog2_ct_oob_family ON ulog2_ct(oob_family);
-@@ -246,7 +246,7 @@ CREATE INDEX ulog2_ct_orig_l4_sport ON ulog2_ct(orig_l4_sport);
- CREATE INDEX ulog2_ct_orig_l4_dport ON ulog2_ct(orig_l4_dport);
- CREATE INDEX ulog2_ct_reply_l4_sport ON ulog2_ct(reply_l4_sport);
- CREATE INDEX ulog2_ct_reply_l4_dport ON ulog2_ct(reply_l4_dport);
--CREATE INDEX ulog2_ct_state ON ulog2_ct(state);
-+CREATE INDEX ulog2_ct_event ON ulog2_ct(ct_event);
- 
- ALTER TABLE ulog2_ct ADD CONSTRAINT orig_l4_sport CHECK(orig_l4_sport >= 0 AND orig_l4_sport <= 65536);
- ALTER TABLE ulog2_ct ADD CONSTRAINT orig_l4_dport CHECK(orig_l4_dport >= 0 AND orig_l4_dport <= 65536);
-@@ -529,15 +529,15 @@ CREATE OR REPLACE FUNCTION INSERT_CT(
-                 IN _orig_ip_protocol integer,
-                 IN _orig_l4_sport integer,
-                 IN _orig_l4_dport integer,
--                IN _orig_bytes bigint,
--                IN _orig_packets bigint,
-+                IN _orig_raw_pktlen bigint,
-+                IN _orig_raw_pktcount bigint,
-                 IN _reply_ip_saddr inet,
-                 IN _reply_ip_daddr inet,
-                 IN _reply_ip_protocol integer,
-                 IN _reply_l4_sport integer,
-                 IN _reply_l4_dport integer,
--                IN _reply_bytes bigint,
--                IN _reply_packets bigint,
-+                IN _reply_raw_pktlen bigint,
-+                IN _reply_raw_pktcount bigint,
-                 IN _icmp_code integer,
-                 IN _icmp_type integer,
-                 IN _ct_mark bigint,
-@@ -545,16 +545,16 @@ CREATE OR REPLACE FUNCTION INSERT_CT(
-                 IN _flow_start_usec bigint,
-                 IN _flow_end_sec bigint,
-                 IN _flow_end_usec bigint,
--                IN _state smallint
-+                IN _ct_event integer
-         )
- RETURNS bigint AS $$
-         INSERT INTO ulog2_ct (oob_family, orig_ip_saddr_str, orig_ip_daddr_str, orig_ip_protocol,
--                        orig_l4_sport, orig_l4_dport, orig_bytes, orig_packets,
-+                        orig_l4_sport, orig_l4_dport, orig_raw_pktlen, orig_raw_pktcount,
-                         reply_ip_saddr_str, reply_ip_daddr_str, reply_ip_protocol,
--                        reply_l4_sport, reply_l4_dport, reply_bytes, reply_packets,
-+                        reply_l4_sport, reply_l4_dport, reply_raw_pktlen, reply_raw_pktcount,
-                         icmp_code, icmp_type, ct_mark, 
-                         flow_start_sec, flow_start_usec,
--                        flow_end_sec, flow_end_usec, state)
-+                        flow_end_sec, flow_end_usec, ct_event)
-                 VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23);
-         SELECT currval('ulog2_ct__ct_id_seq');
- $$ LANGUAGE SQL SECURITY INVOKER;
+-	if (type == NFCT_MSG_NEW) {
++	if (type == NF_NETLINK_CONNTRACK_NEW) {
+ 		if (usehash_ce(upi->config_kset).u.value != 0) {
+ 			ct_hash_add(cpi->ct_active, nfct_get_attr_u32(ct, ATTR_ID));
+ 			return 0;
+@@ -617,7 +617,7 @@ static int event_handler(enum nf_conntrack_msg_type type,
+ 			gettimeofday(&ts->time[START], NULL);
+ 			ts->time[STOP].tv_sec = 0;
+ 		}
+-	} else if (type == NFCT_MSG_DESTROY) {
++	} else if (type == NF_NETLINK_CONNTRACK_DESTROY) {
+ 		if (usehash_ce(upi->config_kset).u.value != 0)
+ 			ts = ct_hash_get(cpi->ct_active, nfct_get_attr_u32(ct, ATTR_ID));
+ 		else {
 -- 
 1.5.4.3
 
