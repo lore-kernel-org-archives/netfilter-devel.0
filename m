@@ -1,99 +1,76 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: [ULOGD PATCH 2/4] Add INSERT_OR_REPLACE_CT pgsql function.
-Date: Thu, 15 May 2008 00:54:37 +0200
-Message-ID: <1210805679-11813-3-git-send-email-eric@inl.fr>
-Cc: Eric Leblond <eric@inl.fr>
-To: netfilter-devel@vger.kernel.org
+Subject: Re: NFLOG - missing packets?
+Date: Thu, 15 May 2008 01:01:27 +0200
+Message-ID: <20080514230127.GA7267@bayen.regit.org>
+References: <200805101657.45111.anton.vazir@gmail.com> <200805101750.38472.anton.vazir@gmail.com> <20080511161837.GJ11778@ice-age> <200805121224.12073.anton.vazir@gmail.com> <482B2626.8080902@netfilter.org>
+Mime-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="+QahgC5+KEYLbs62"
+Cc: Anton <anton.vazir@gmail.com>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:33854 "EHLO ice-age"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752582AbYENWy3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 14 May 2008 18:54:29 -0400
-In-Reply-To: <>
-References: <>
+Received: from fydelkass.inl.fr ([195.101.59.116]:43633 "EHLO fydelkass.inl.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752063AbYENXBX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 14 May 2008 19:01:23 -0400
+Content-Disposition: inline
+In-Reply-To: <482B2626.8080902@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds a new function which insert or update connection tracking
-entries depending on the event type parameter.
 
-Signed-off-by: Eric Leblond <eric@inl.fr>
----
- doc/pgsql-ulogd2.sql |   61 ++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 61 insertions(+), 0 deletions(-)
+--+QahgC5+KEYLbs62
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/doc/pgsql-ulogd2.sql b/doc/pgsql-ulogd2.sql
-index d174d49..20f5014 100644
---- a/doc/pgsql-ulogd2.sql
-+++ b/doc/pgsql-ulogd2.sql
-@@ -559,6 +559,67 @@ RETURNS bigint AS $$
-         SELECT currval('ulog2_ct__ct_id_seq');
- $$ LANGUAGE SQL SECURITY INVOKER;
- 
-+CREATE OR REPLACE FUNCTION INSERT_OR_REPLACE_CT(
-+                IN _oob_family integer,
-+                IN _orig_ip_saddr inet,
-+                IN _orig_ip_daddr inet,
-+                IN _orig_ip_protocol integer,
-+                IN _orig_l4_sport integer,
-+                IN _orig_l4_dport integer,
-+                IN _orig_raw_pktlen bigint,
-+                IN _orig_raw_pktcount bigint,
-+                IN _reply_ip_saddr inet,
-+                IN _reply_ip_daddr inet,
-+                IN _reply_ip_protocol integer,
-+                IN _reply_l4_sport integer,
-+                IN _reply_l4_dport integer,
-+                IN _reply_raw_pktlen bigint,
-+                IN _reply_raw_pktcount bigint,
-+                IN _icmp_code integer,
-+                IN _icmp_type integer,
-+                IN _ct_mark bigint,
-+                IN _flow_start_sec bigint,
-+                IN _flow_start_usec bigint,
-+                IN _flow_end_sec bigint,
-+                IN _flow_end_usec bigint,
-+                IN _ct_event integer
-+        )
-+RETURNS bigint AS $$
-+DECLARE
-+        _id bigint;
-+BEGIN
-+        IF (_ct_event = 4) THEN
-+          if (_orig_ip_protocol = 1) THEN
-+            UPDATE ulog2_ct SET (orig_raw_pktlen, orig_raw_pktcount,
-+                reply_raw_pktlen, reply_raw_pktcount,
-+                ct_mark, flow_end_sec, flow_end_usec, ct_event)
-+                = ($7,$8,$14,$15,$18,$21,$22,$23)
-+            WHERE oob_family=$1 AND orig_ip_saddr_str = $2
-+                AND orig_ip_daddr_str = $3 AND orig_ip_protocol = $4
-+                AND reply_ip_saddr_str = $9 AND reply_ip_daddr_str = $10
-+                AND reply_ip_protocol = $11
-+                AND icmp_code = $16 AND icmp_type = $17 
-+                AND ct_event < 4;
-+          ELSE
-+            UPDATE ulog2_ct SET (orig_raw_pktlen, orig_raw_pktcount,
-+                reply_raw_pktlen, reply_raw_pktcount,
-+                ct_mark, flow_end_sec, flow_end_usec, ct_event)
-+                = ($7,$8,$14,$15,$18,$21,$22,$23)
-+            WHERE oob_family=$1 AND orig_ip_saddr_str = $2
-+                AND orig_ip_daddr_str = $3 AND orig_ip_protocol = $4
-+                AND orig_l4_sport = $5 AND orig_l4_dport = $6
-+                AND reply_ip_saddr_str = $9 AND reply_ip_daddr_str = $10
-+                AND reply_ip_protocol = $11 AND reply_l4_sport = $12
-+                AND reply_l4_dport = $13 
-+                AND ct_event < 4;
-+          END IF;
-+        ELSE
-+          _id := INSERT_CT($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23);
-+        END IF;
-+        RETURN _id;
-+END
-+$$ LANGUAGE plpgsql SECURITY INVOKER;
-+
- 
- 
- 
--- 
-1.5.4.3
+Hello,
 
+On Wednesday, 2008 May 14 at 19:49:26 +0200, Pablo Neira Ayuso wrote:
+> Anton wrote:
+> > Just some extra results,
+> >=20
+> > seems DB drivers does such a difference, since while logging=20
+> > to LOGEMU (only) target - I've go result which looks true.=20
+> > But - If I enable DB logger - results in DB and LOGEMU -=20
+> > are the same. Looks like DB transfers makes ULOG to not=20
+> > accept packets from kernelspace
+>=20
+> The problem is netlink that cannot back off. Netlink is the underlying
+> communication subsystem that we use to communicate kernel with usepace
+> space. Since Netlink is unreliable, some log messages can vanish under
+> heavy load. I guess that database insertions consumes lots of CPU
+> resouces. Thus, doing online database logging in a scalable manner turns
+> really hard.
+
+IMHO, this problem is more linked with a treatment delay due to the
+database connection. I will try to switch the database plugin to=20
+non-blocking query and I will send you results and a patch (if results
+are good).
+
+> Instead, if you need scalability, I'd suggest to use logemu
+> or whatever plain text logging facility and then convert it to a
+> database *offline* if you really need advanced queries.
+
+It will be sad to do so ;)
+
+BR,
+--=20
+Eric Leblond
+INL: http://www.inl.fr/
+NuFW: http://www.nufw.org/
+
+--+QahgC5+KEYLbs62
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFIK29HnxA7CdMWjzIRAn0fAJ9WzcDw8iQjlk47i3rAMgV4z5ZysgCfYDDs
+rKNhUR51dZVf3HidLLHoINU=
+=Zg2L
+-----END PGP SIGNATURE-----
+
+--+QahgC5+KEYLbs62--
