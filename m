@@ -1,48 +1,49 @@
-From: Anton <anton.vazir@gmail.com>
+From: Krzysztof Oledzki <ole@ans.pl>
 Subject: Re: iptables performance and alternatives
-Date: Thu, 15 May 2008 16:29:22 +0500
-Message-ID: <200805151629.22785.anton.vazir@gmail.com>
-References: <200805151421.23862.anton.vazir@gmail.com> <200805151557.28368.anton.vazir@gmail.com> <alpine.LNX.1.10.0805151318020.16151@fbirervta.pbzchgretzou.qr>
+Date: Thu, 15 May 2008 13:18:45 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0805151214530.1358@bizon.gios.gov.pl>
+References: <200805151421.23862.anton.vazir@gmail.com> <20080515093413.GC3442@khasse.inl.fr>
+ <alpine.LNX.1.10.0805151156450.16151@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-1441837324-1210850325=:1358"
+Cc: Eric Leblond <eric@inl.fr>, Anton <anton.vazir@gmail.com>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.eastera.tj ([82.198.21.18]:48542 "EHLO mail.eastera.tj"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752255AbYEOL3T (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 May 2008 07:29:19 -0400
-In-Reply-To: <alpine.LNX.1.10.0805151318020.16151@fbirervta.pbzchgretzou.qr>
-Content-Disposition: inline
+Received: from bizon.gios.gov.pl ([212.244.124.8]:39961 "EHLO
+	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753303AbYEOLs0 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 15 May 2008 07:48:26 -0400
+In-Reply-To: <alpine.LNX.1.10.0805151156450.16151@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On Thursday 15 May 2008 16:18, Jan Engelhardt wrote:
-> On Thursday 2008-05-15 12:57, Anton wrote:
-> >Definitelly what my test shows - while rule-inserts - if
-> > you try to insert 10000 rules - after a several
-> > hundreds - it will be inserting like a 1 rule in 1
-> > second and slowness will progress :)
+---187430788-1441837324-1210850325=:1358
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+
+
+On Thu, 15 May 2008, Jan Engelhardt wrote:
+
 >
-> Your insertion slowness is probably due to incorrect use
-> of iptables.
+> On Thursday 2008-05-15 11:34, Eric Leblond wrote:
+>>
+>> One other thing to look at may be :
+>> http://www.netfilter.org/projects/patch-o-matic/pom-external.html#pom-ex=
+ternal-IPMARK
+>
+> That variant is as old as POM and broken.
 
-Possible too. 
+The second statement is not true as it shoudl work with all 2.6.x kernels=
+=20
+and both iptables-1.3 and iptables-1.4.
 
-But aside of use of IPMARK from xtables, if I have to match 
-80  (prio traffic)  22(realtime) port for every customer IP 
-and customer's ip too (bulk traffic) for another mark set 
-and all with different htb queues - IPMARK will not help 
-and in case of, say, 1000 matching IP's, it comes to 4 
-queues per , with 3 to use with lending/borrowing (main, 
-80, and 22) and 3000 queuses in total, plus POSTROUTING 
-mangle rule per park (3000 rules) + 3000 return rules 
-(6000) rules and so on. If this PC also do NAT for 
-matches - it will come with extra 1000 rules (or single 
-IPSET :)
+Best regards,
 
-If there is a better approach to this in relation to 
-IPTABLES - this would be just great...
+ =09=09=09Krzysztof Ol=EAdzki
+---187430788-1441837324-1210850325=:1358--
