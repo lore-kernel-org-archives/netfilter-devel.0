@@ -1,43 +1,45 @@
-From: Henrik Nordstrom <henrik@henriknordstrom.net>
+From: "Anton VG" <anton.vazir@gmail.com>
 Subject: Re: iptables performance and alternatives
-Date: Thu, 15 May 2008 14:28:54 +0200
-Message-ID: <1210854534.32691.11.camel@henriknordstrom.net>
+Date: Thu, 15 May 2008 17:34:16 +0500
+Message-ID: <c4b050a10805150534y776a2e3bnf75b5ffe8e3c320d@mail.gmail.com>
 References: <200805151421.23862.anton.vazir@gmail.com>
-	 <20080515093413.GC3442@khasse.inl.fr>
+	 <200805151535.31933.anton.vazir@gmail.com>
+	 <alpine.LNX.1.10.0805151242110.16151@fbirervta.pbzchgretzou.qr>
+	 <200805151557.28368.anton.vazir@gmail.com>
+	 <1210854755.32691.14.camel@henriknordstrom.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Anton <anton.vazir@gmail.com>,
+Cc: "Jan Engelhardt" <jengelh@medozas.de>,
 	netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Eric Leblond <eric@inl.fr>
+To: "Henrik Nordstrom" <henrik@henriknordstrom.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from vps1.henriknordstrom.net ([195.20.207.177]:35174 "EHLO
-	vps1.henriknordstrom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752789AbYEOMdO (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.153]:39668 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751763AbYEOMeU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 May 2008 08:33:14 -0400
-In-Reply-To: <20080515093413.GC3442@khasse.inl.fr>
+	Thu, 15 May 2008 08:34:20 -0400
+Received: by fg-out-1718.google.com with SMTP id 19so326204fgg.17
+        for <netfilter-devel@vger.kernel.org>; Thu, 15 May 2008 05:34:17 -0700 (PDT)
+In-Reply-To: <1210854755.32691.14.camel@henriknordstrom.net>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On tor, 2008-05-15 at 11:34 +0200, Eric Leblond wrote:
+Hm... I feel I've tried iptables-restore, but speed was about the same.
 
-> On Thursday, 2008 May 15 at 14:21:23 +0500, Anton wrote:
-> > Regarding the performance of the lookup of the iptables 
-> > rules for match inside the kernel, is there any plans to 
-> > improve the behaviour or no plans in this area yet?
-> 
-> Nf hipac is an alternative: http://www.hipac.org/
-
-Unfortunately a somewhat dead one as MARA Systems after all has selected
-to develop this privately in future, so it's quite unlikely NF-HiPAC
-will see any significant updates unless someone else picks up the
-project.
-
-Also it's insert performance is not the best in all cases (depends on
-the structure of your ruleset and what kind of rule you insert). But
-lookup speeds is always great.
-
-Regards
-Henrik
-
+2008/5/15 Henrik Nordstrom <henrik@henriknordstrom.net>:
+> On tor, 2008-05-15 at 15:57 +0500, Anton wrote:
+>> Definitelly what my test shows - while rule-inserts - if you
+>> try to insert 10000 rules - after a several hundreds - it
+>> will be inserting like a 1 rule in 1 second and slowness
+>> will progress :)
+>
+> If you need to change add many rules then iptables-restore is the tool
+> to use. Batches the updates in a single transaction, instead of one
+> transaction per rule...
+>
+> Regards
+> Henrik
+>
+>
