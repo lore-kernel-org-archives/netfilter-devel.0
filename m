@@ -1,46 +1,37 @@
-From: KOVACS Krisztian <hidden@sch.bme.hu>
-Subject: Re: TPROXY 4.1 patch?
-Date: Mon, 19 May 2008 16:00:05 +0200
-Message-ID: <20080519140004.GD19397@sch.bme.hu>
-References: <200805181950.24777.anton.vazir@gmail.com> <20080519133816.GC19397@sch.bme.hu> <200805191855.34123.anton.vazir@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: i don't know whether it is a bug?
+Date: Mon, 19 May 2008 18:00:56 +0200
+Message-ID: <4831A438.4030907@netfilter.org>
+References: <48316799.01FDFE.05405@m5-82.163.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: KOVACS Krisztian <hidden@sch.bme.hu>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Anton <anton.vazir@gmail.com>
+Content-Type: text/plain; charset=GB2312
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: fenglg <flg2932946@163.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from centaur.sch.bme.hu ([152.66.208.5]:41929 "EHLO
-	centaur.sch.bme.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756919AbYESOAG (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 19 May 2008 10:00:06 -0400
-Content-Disposition: inline
-In-Reply-To: <200805191855.34123.anton.vazir@gmail.com>
+Received: from mail.us.es ([193.147.175.20]:50835 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755472AbYESPxU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 19 May 2008 11:53:20 -0400
+In-Reply-To: <48316799.01FDFE.05405@m5-82.163.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Anton,
+fenglg wrote:
+> void build_netpld(struct nf_conntrack *ct, struct netpld *pld, int query)
+> {
+> 	if (nfct_attr_is_set(ct, ATTR_IPV4_SRC))
+> 		__build_pointer_be(ct, pld, ATTR_IPV4_SRC, sizeof(uint32_t));
+> 	........
+> 	/* setup the master conntrack */
+> 	if (nfct_attr_is_set(ct, ATTR_MASTER_IPV4_SRC))
+> 		__build_u32(ct, pld, ATTR_MASTER_IPV4_SRC);
+> 	........
+> }
+>     The __build_u32 will use get_attr_array[type](ct) which is in libnetfilter_conntrack-0.0.89/src/conntrack/api.c. But the defination of get_attr_array has not ATTR_MASTER_IPV4_SRC.
 
-On h, m=E1j 19, 2008 at 06:55:34 +0500, Anton wrote:
-> BALABIT patch applied cleanly to the 2.6.24, taken from -git=20
-> tree (should be equal to 2.6.24.7) - I've missed somehow=20
-> this before - while trying many found patches on different=20
-> kernels. Now trying to get squid-trunk (bzr) compile - to=20
-> test it
->=20
-> Sorry for offtopic, since it's a NETFILTER, not a TPROXY or=20
-> squid list.
+This bug was reported by Max Wilhelm some weeks ago. It is already fixed
+in Netfilter's git repository. I'll release a new version soon.
 
-Cool -- I hope you get it working. Feel free to ask either on the tprox=
-y
-list or even here on netfilter-devel.
-
---=20
-KOVACS Krisztian
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
