@@ -1,69 +1,55 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: [ULOGD PATCH 7/9] Add a lacking newline in buffer overrun messages.
-Date: Tue, 20 May 2008 00:31:33 +0200
-Message-ID: <1211236295-30207-8-git-send-email-eric@inl.fr>
+Subject: [ULOGD PATCH 5/9] Fix crash IP2BIN and IP2STR due to ui128 type introduction.
+Date: Tue, 20 May 2008 00:31:31 +0200
+Message-ID: <1211236295-30207-6-git-send-email-eric@inl.fr>
 Cc: Eric Leblond <eric@inl.fr>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:38772 "EHLO ice-age"
+Received: from bayen.regit.org ([81.57.69.189]:38770 "EHLO ice-age"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752835AbYESWah (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 19 May 2008 18:30:37 -0400
+	id S1757091AbYESWag (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 19 May 2008 18:30:36 -0400
 In-Reply-To: <>
 References: <>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+IP2BIN and IP2STR were using the ptr field of the value but the type used
+for IPv6 address is now ui128. This patch fix this problem by using ui128
+instead of ptr.
+
 Signed-off-by: Eric Leblond <eric@inl.fr>
 ---
- input/flow/ulogd_inpflow_NFCT.c   |    4 ++--
- input/packet/ulogd_inppkt_NFLOG.c |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
+ filter/ulogd_filter_IP2BIN.c |    2 +-
+ filter/ulogd_filter_IP2STR.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/input/flow/ulogd_inpflow_NFCT.c b/input/flow/ulogd_inpflow_NFCT.c
-index 20d0da1..e99f41a 100644
---- a/input/flow/ulogd_inpflow_NFCT.c
-+++ b/input/flow/ulogd_inpflow_NFCT.c
-@@ -699,7 +699,7 @@ static int setnlbufsiz(struct ulogd_pluginstance *upi, int size)
- 				"reached. Please, consider rising "
- 				"`netlink_socket_buffer_size` and "
- 				"`netlink_socket_buffer_maxsize` "
--				"clauses.", cpi->nlbufsiz);
-+				"clauses.\n", cpi->nlbufsiz);
- 	return 0;
- }
+diff --git a/filter/ulogd_filter_IP2BIN.c b/filter/ulogd_filter_IP2BIN.c
+index 33db6a2..7412e38 100644
+--- a/filter/ulogd_filter_IP2BIN.c
++++ b/filter/ulogd_filter_IP2BIN.c
+@@ -137,7 +137,7 @@ static char *ip2bin(struct ulogd_key* inp, int index, char family)
  
-@@ -730,7 +730,7 @@ static int read_cb_nfct(int fd, unsigned int what, void *param)
- 					  "We are losing events. Please, "
- 					  "consider using the clauses "
- 					  "`netlink_socket_buffer_size' and "
--					  "`netlink_socket_buffer_maxsize'");
-+					  "`netlink_socket_buffer_maxsize'\n");
- 			}
- 
- 			nfct_send(cpi->ovh, NFCT_Q_DUMP, &family);
-diff --git a/input/packet/ulogd_inppkt_NFLOG.c b/input/packet/ulogd_inppkt_NFLOG.c
-index 8d08bd8..8c2aab6 100644
---- a/input/packet/ulogd_inppkt_NFLOG.c
-+++ b/input/packet/ulogd_inppkt_NFLOG.c
-@@ -401,7 +401,7 @@ static int setnlbufsiz(struct ulogd_pluginstance *upi, int size)
- 				"reached. Please, consider rising "
- 				"`netlink_socket_buffer_size` and "
- 				"`netlink_socket_buffer_maxsize` "
--				"clauses.", ui->nlbufsiz);
-+				"clauses.\n", ui->nlbufsiz);
- 	return 0;
- }
- 
-@@ -434,7 +434,7 @@ static int nful_read_cb(int fd, unsigned int what, void *param)
- 					  "We are losing events. Please, "
- 					  "consider using the clauses "
- 					  "`netlink_socket_buffer_size' and "
--					  "`netlink_socket_buffer_maxsize'");
-+					  "`netlink_socket_buffer_maxsize'\n");
- 			}
- 		}
- 		return len;
+ 	switch (family) {
+ 		case AF_INET6:
+-			addr = GET_VALUE(inp, index).ptr;
++			addr = GET_VALUE(inp, index).ui128;
+ 			break;
+ 		case AF_INET:
+ 			/* Convert IPv4 to IPv4 in IPv6 */
+diff --git a/filter/ulogd_filter_IP2STR.c b/filter/ulogd_filter_IP2STR.c
+index e4ec06d..9ad3b81 100644
+--- a/filter/ulogd_filter_IP2STR.c
++++ b/filter/ulogd_filter_IP2STR.c
+@@ -174,7 +174,7 @@ static char *ip2str(struct ulogd_key *inp, int index)
+ 	switch (convfamily) {
+ 	case AF_INET6:
+ 		inet_ntop(AF_INET6,
+-			  GET_VALUE(inp, index).ptr,
++			  GET_VALUE(inp, index).ui128,
+ 			  tmp, sizeof(tmp));
+ 		break;
+ 	case AF_INET:
 -- 
 1.5.4.3
 
