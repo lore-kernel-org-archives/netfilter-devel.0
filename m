@@ -1,81 +1,99 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: [ULOGD PATCH 0/9] Misc work over Pablo's patchset
-Date: Tue, 20 May 2008 00:31:26 +0200
-Message-ID: <1211236295-30207-1-git-send-email-eric@inl.fr>
+Subject: [ULOGD PATCH 4/9] Add INSERT_OR_REPLACE_CT pgsql function.
+Date: Tue, 20 May 2008 00:31:30 +0200
+Message-ID: <1211236295-30207-5-git-send-email-eric@inl.fr>
+Cc: Eric Leblond <eric@inl.fr>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:38763 "EHLO ice-age"
+Received: from bayen.regit.org ([81.57.69.189]:38774 "EHLO ice-age"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752835AbYESWad (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 19 May 2008 18:30:33 -0400
-Received: from eric by ice-age with local (Exim 4.69)
-	(envelope-from <eric@bayen.regit.org>)
-	id 1JyDtI-0007w5-1k
-	for netfilter-devel@vger.kernel.org; Tue, 20 May 2008 00:31:36 +0200
+	id S1756767AbYESWah (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 19 May 2008 18:30:37 -0400
 In-Reply-To: <>
 References: <>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This patch adds a new function which insert or update connection tracking
+entries depending on the event type parameter.
 
-Hello,
+Signed-off-by: Eric Leblond <eric@inl.fr>
+---
+ doc/pgsql-ulogd2.sql |   61 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 61 insertions(+), 0 deletions(-)
 
-This patchset contains some modifications over latest Pablo's patchset as
-well as fix related to the last git migration or PGSQL improvement. This
-last part is a rework of my latest patchset.
+diff --git a/doc/pgsql-ulogd2.sql b/doc/pgsql-ulogd2.sql
+index d174d49..20f5014 100644
+--- a/doc/pgsql-ulogd2.sql
++++ b/doc/pgsql-ulogd2.sql
+@@ -559,6 +559,67 @@ RETURNS bigint AS $$
+         SELECT currval('ulog2_ct__ct_id_seq');
+ $$ LANGUAGE SQL SECURITY INVOKER;
+ 
++CREATE OR REPLACE FUNCTION INSERT_OR_REPLACE_CT(
++                IN _oob_family integer,
++                IN _orig_ip_saddr inet,
++                IN _orig_ip_daddr inet,
++                IN _orig_ip_protocol integer,
++                IN _orig_l4_sport integer,
++                IN _orig_l4_dport integer,
++                IN _orig_raw_pktlen bigint,
++                IN _orig_raw_pktcount bigint,
++                IN _reply_ip_saddr inet,
++                IN _reply_ip_daddr inet,
++                IN _reply_ip_protocol integer,
++                IN _reply_l4_sport integer,
++                IN _reply_l4_dport integer,
++                IN _reply_raw_pktlen bigint,
++                IN _reply_raw_pktcount bigint,
++                IN _icmp_code integer,
++                IN _icmp_type integer,
++                IN _ct_mark bigint,
++                IN _flow_start_sec bigint,
++                IN _flow_start_usec bigint,
++                IN _flow_end_sec bigint,
++                IN _flow_end_usec bigint,
++                IN _ct_event integer
++        )
++RETURNS bigint AS $$
++DECLARE
++        _id bigint;
++BEGIN
++        IF (_ct_event = 4) THEN
++          if (_orig_ip_protocol = 1) THEN
++            UPDATE ulog2_ct SET (orig_raw_pktlen, orig_raw_pktcount,
++                reply_raw_pktlen, reply_raw_pktcount,
++                ct_mark, flow_end_sec, flow_end_usec, ct_event)
++                = ($7,$8,$14,$15,$18,$21,$22,$23)
++            WHERE oob_family=$1 AND orig_ip_saddr_str = $2
++                AND orig_ip_daddr_str = $3 AND orig_ip_protocol = $4
++                AND reply_ip_saddr_str = $9 AND reply_ip_daddr_str = $10
++                AND reply_ip_protocol = $11
++                AND icmp_code = $16 AND icmp_type = $17 
++                AND ct_event < 4;
++          ELSE
++            UPDATE ulog2_ct SET (orig_raw_pktlen, orig_raw_pktcount,
++                reply_raw_pktlen, reply_raw_pktcount,
++                ct_mark, flow_end_sec, flow_end_usec, ct_event)
++                = ($7,$8,$14,$15,$18,$21,$22,$23)
++            WHERE oob_family=$1 AND orig_ip_saddr_str = $2
++                AND orig_ip_daddr_str = $3 AND orig_ip_protocol = $4
++                AND orig_l4_sport = $5 AND orig_l4_dport = $6
++                AND reply_ip_saddr_str = $9 AND reply_ip_daddr_str = $10
++                AND reply_ip_protocol = $11 AND reply_l4_sport = $12
++                AND reply_l4_dport = $13 
++                AND ct_event < 4;
++          END IF;
++        ELSE
++          _id := INSERT_CT($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19,$20,$21,$22,$23);
++        END IF;
++        RETURN _id;
++END
++$$ LANGUAGE plpgsql SECURITY INVOKER;
++
+ 
+ 
+ 
+-- 
+1.5.4.3
 
-I've tested Pablo's patchset and it seems to behave well (NFCT is working,
-NFLOG handling of stress is far better when using socket related options).
-The only problem was related to a crash in the module IP2STR due to the
-introduction of ui128 type.
-
-This is fixed by the patch:
- * Fix crash IP2BIN and IP2STR due to ui128 type introduction.
-
-I've also done a slight modification of overrun related messages to add a new
-line:
- * Add a lacking newline in buffer overrun messages.
-
-The main modification is brought by the patch:
- * Only use overrun handling if local hash is used.
-This modify the behaviour of NFCT overrrun handling to only dump the conntrack
-in case of overrun if the local hash is used. The goal of this modification is
-to avoid to flood output modules which are not able to interpret well this type
-of dump.
-
-Next patches aim at adding timestamp to some messages. NFCT without local hash
-did not fill the timestamp it was able to fill. On NFLOG side, INPUT and OUTPUT
-packet were logged without timestamp. The patch make ulogd compute the
-timestamp:
- * Set timestamp in NFLOG for INPUT and OUTPUT.
- * Fill the maximum of timestamp.
-
-The next patches improve PGSQL support:
- * Sync PGSQL schema with NFCT.
- * Add INSERT_OR_REPLACE_CT pgsql function.
-It is now possible to use PGSQL for NFCT in non hash mode. This can be used to
-have a SQL duplication of the connection tracking table.
-
-Switching to git seems to have cause the lost of some files. The following
-patch recover them:
- * Add some missing files to git repository.
-
-Last patch brings the configuration file in sync with latest change:
- * Update config file to be in sync with latest modifications.
-
-Here's the global stats:
- Rules.make.in                     |   43 +++++++++++++++
- doc/pgsql-ulogd2.sql              |   89 +++++++++++++++++++++++++-----
- filter/ulogd_filter_IP2BIN.c      |    2 +-
- filter/ulogd_filter_IP2STR.c      |    2 +-
- input/flow/ulogd_inpflow_NFCT.c   |  108 ++++++++++++++++++++++++------------
- input/packet/ulogd_inppkt_NFLOG.c |   19 ++++---
- ulogd.8                           |   64 ++++++++++++++++++++++
- ulogd.conf.in                     |   36 ++++++++++++
- 8 files changed, 302 insertions(+), 61 deletions(-)
-
-BR,
---
-Eric Leblond
-INL: http://www.inl.fr/
-NuFW: http://www.nufw.org/
