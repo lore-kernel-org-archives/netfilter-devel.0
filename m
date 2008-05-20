@@ -1,191 +1,367 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/4] add full support for SCTP to ctnetlink
-Date: Wed, 21 May 2008 00:38:51 +0200
-Message-ID: <483352FB.10808@netfilter.org>
-References: <483350CA.10202@netfilter.org> <4833529D.40807@netfilter.org>
+Subject: Re: [PATCH 4/4] deliver events for conntracks created/updated via
+ ctnetlink
+Date: Wed, 21 May 2008 00:39:53 +0200
+Message-ID: <48335339.2050007@netfilter.org>
+References: <483350D9.7010809@netfilter.org>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------060906050401040207070605"
+ boundary="------------010109060503010803080201"
 Cc: Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:44505 "EHLO us.es"
+Received: from mail.us.es ([193.147.175.20]:44942 "EHLO us.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S935173AbYETWi6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 20 May 2008 18:38:58 -0400
-In-Reply-To: <4833529D.40807@netfilter.org>
+	id S934554AbYETWkJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 20 May 2008 18:40:09 -0400
+In-Reply-To: <483350D9.7010809@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 This is a multi-part message in MIME format.
---------------060906050401040207070605
+--------------010109060503010803080201
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
 Pablo Neira Ayuso wrote:
-> Pablo Neira Ayuso wrote:
->> [PATCH] add full support for SCTP to ctnetlink
->>
->> This patch adds full support for SCTP to ctnetlink. This includes three
->> new attributes: state, original vtag and reply vtag.
->>
->> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> As for now, the creation and update of conntracks via ctnetlink do not
+> propagate an event to userspace. This can result in inconsistent
+> situations if several userspace processes modify the connection tracking
+> table by means of ctnetlink at the same time. Specifically, using the
+> conntrack-cli while running an instance of conntrackde unsynchronizes
+> the cache of conntrackd with the kernel conntrack table. Note that
+> deletions do not suffer from this problem.
 > 
-> I'm resending this patch because I've been working against an old kernel
-> tree. The patch attached should apply fine.
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Wrong again. Sorry. Attached the correct patch.
+Same problem, the previous patch rejects one chunk if you try to apply
+it to current davem's tree. The one attached should be fine.
 
 -- 
 "Los honestos son inadaptados sociales" -- Les Luthiers
 
---------------060906050401040207070605
+--------------010109060503010803080201
 Content-Type: text/x-patch;
- name="03.patch"
+ name="05.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="03.patch"
+ filename="05.patch"
 
-[PATCH] add full support for SCTP to ctnetlink
+[PATCH] deliver events for conntracks created via ctnetlink
 
-This patch adds full support for SCTP to ctnetlink. This includes three new
-attributes: state, original vtag and reply vtag.
+As for now, the creation and update of conntracks via ctnetlink do not
+propagate an event to userspace. This can result in inconsistent situations
+if several userspace processes modify the connection tracking table by means
+of ctnetlink at the same time. Specifically, using the conntrack command
+line tool and conntrackd at the same time can trigger unconsistencies. 
+
+This patch fixes this inconsistent situation. Note that the deletion does
+not suffer from this problem.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Index: net-2.6.git/include/linux/netfilter/nfnetlink_conntrack.h
+Index: net-2.6.git/net/netfilter/nf_conntrack_netlink.c
 ===================================================================
---- net-2.6.git.orig/include/linux/netfilter/nfnetlink_conntrack.h	2008-05-21 00:33:43.000000000 +0200
-+++ net-2.6.git/include/linux/netfilter/nfnetlink_conntrack.h	2008-05-21 00:33:51.000000000 +0200
-@@ -81,6 +81,7 @@ enum ctattr_protoinfo {
- 	CTA_PROTOINFO_UNSPEC,
- 	CTA_PROTOINFO_TCP,
- 	CTA_PROTOINFO_DCCP,
-+	CTA_PROTOINFO_SCTP,
- 	__CTA_PROTOINFO_MAX
- };
- #define CTA_PROTOINFO_MAX (__CTA_PROTOINFO_MAX - 1)
-@@ -103,6 +104,15 @@ enum ctattr_protoinfo_dccp {
- };
- #define CTA_PROTOINFO_DCCP_MAX (__CTA_PROTOINFO_DCCP_MAX - 1)
- 
-+enum ctattr_protoinfo_sctp {
-+	CTA_PROTOINFO_SCTP_UNSPEC,
-+	CTA_PROTOINFO_SCTP_STATE,
-+	CTA_PROTOINFO_SCTP_VTAG_ORIGINAL,
-+	CTA_PROTOINFO_SCTP_VTAG_REPLY,
-+	__CTA_PROTOINFO_SCTP_MAX
-+};
-+#define CTA_PROTOINFO_SCTP_MAX (__CTA_PROTOINFO_SCTP_MAX - 1)
+--- net-2.6.git.orig/net/netfilter/nf_conntrack_netlink.c	2008-05-21 00:34:15.000000000 +0200
++++ net-2.6.git/net/netfilter/nf_conntrack_netlink.c	2008-05-21 00:36:06.000000000 +0200
+@@ -529,6 +529,11 @@ nla_put_failure:
+ 	kfree_skb(skb);
+ 	return NOTIFY_DONE;
+ }
 +
- enum ctattr_counters {
- 	CTA_COUNTERS_UNSPEC,
- 	CTA_COUNTERS_PACKETS,		/* old 64bit counters */
-Index: net-2.6.git/net/netfilter/nf_conntrack_proto_sctp.c
-===================================================================
---- net-2.6.git.orig/net/netfilter/nf_conntrack_proto_sctp.c	2008-05-21 00:33:43.000000000 +0200
-+++ net-2.6.git/net/netfilter/nf_conntrack_proto_sctp.c	2008-05-21 00:33:51.000000000 +0200
-@@ -463,6 +463,82 @@ static bool sctp_new(struct nf_conn *ct,
- 	return true;
++static struct notifier_block ctnl_notifier = {
++	.notifier_call	= ctnetlink_conntrack_event,
++};
++
+ #endif /* CONFIG_NF_CONNTRACK_EVENTS */
+ 
+ static int ctnetlink_done(struct netlink_callback *cb)
+@@ -883,7 +888,7 @@ out:
  }
  
-+#if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
+ static int
+-ctnetlink_change_status(struct nf_conn *ct, struct nlattr *cda[])
++ctnetlink_change_status(struct nf_conn *ct, struct nlattr *cda[], int *events)
+ {
+ 	unsigned long d;
+ 	unsigned int status = ntohl(nla_get_be32(cda[CTA_STATUS]));
+@@ -930,12 +935,15 @@ ctnetlink_change_status(struct nf_conn *
+ 	 * so don't let users modify them directly if they don't pass
+ 	 * nf_nat_range. */
+ 	ct->status |= status & ~(IPS_NAT_DONE_MASK | IPS_NAT_MASK);
 +
-+#include <linux/netfilter/nfnetlink.h>
-+#include <linux/netfilter/nfnetlink_conntrack.h>
++	*events |= IPCT_STATUS;
 +
-+static int sctp_to_nlattr(struct sk_buff *skb, struct nlattr *nla,
-+			  const struct nf_conn *ct)
-+{
-+	struct nlattr *nest_parms;
+ 	return 0;
+ }
+ 
+ 
+ static inline int
+-ctnetlink_change_helper(struct nf_conn *ct, struct nlattr *cda[])
++ctnetlink_change_helper(struct nf_conn *ct, struct nlattr *cda[], int *events)
+ {
+ 	struct nf_conntrack_helper *helper;
+ 	struct nf_conn_help *help = nfct_help(ct);
+@@ -979,11 +987,13 @@ ctnetlink_change_helper(struct nf_conn *
+ 
+ 	rcu_assign_pointer(help->helper, helper);
+ 
++	*events |= IPCT_HELPER;
 +
-+	read_lock_bh(&sctp_lock);
-+	nest_parms = nla_nest_start(skb, CTA_PROTOINFO_SCTP | NLA_F_NESTED);
-+	if (!nest_parms)
-+		goto nla_put_failure;
+ 	return 0;
+ }
+ 
+ static inline int
+-ctnetlink_change_timeout(struct nf_conn *ct, struct nlattr *cda[])
++ctnetlink_change_timeout(struct nf_conn *ct, struct nlattr *cda[], int *events)
+ {
+ 	u_int32_t timeout = ntohl(nla_get_be32(cda[CTA_TIMEOUT]));
+ 
+@@ -993,11 +1003,15 @@ ctnetlink_change_timeout(struct nf_conn 
+ 	ct->timeout.expires = jiffies + timeout * HZ;
+ 	add_timer(&ct->timeout);
+ 
++	*events |= IPCT_REFRESH;
 +
-+	NLA_PUT_U8(skb, CTA_PROTOINFO_SCTP_STATE, ct->proto.sctp.state);
+ 	return 0;
+ }
+ 
+ static inline int
+-ctnetlink_change_protoinfo(struct nf_conn *ct, struct nlattr *cda[])
++ctnetlink_change_protoinfo(struct nf_conn *ct,
++			   struct nlattr *cda[],
++			   int *events)
+ {
+ 	struct nlattr *tb[CTA_PROTOINFO_MAX+1], *attr = cda[CTA_PROTOINFO];
+ 	struct nf_conntrack_l4proto *l4proto;
+@@ -1006,8 +1020,11 @@ ctnetlink_change_protoinfo(struct nf_con
+ 	nla_parse_nested(tb, CTA_PROTOINFO_MAX, attr, NULL);
+ 
+ 	l4proto = nf_ct_l4proto_find_get(nf_ct_l3num(ct), nf_ct_protonum(ct));
+-	if (l4proto->from_nlattr)
++	if (l4proto->from_nlattr) {
+ 		err = l4proto->from_nlattr(tb, ct);
++		if (err == 0)
++			*events |= IPCT_PROTOINFO;
++	}
+ 	nf_ct_l4proto_put(l4proto);
+ 
+ 	return err;
+@@ -1043,7 +1060,9 @@ change_nat_seq_adj(struct nf_nat_seq *na
+ }
+ 
+ static int
+-ctnetlink_change_nat_seq_adj(struct nf_conn *ct, struct nlattr *cda[])
++ctnetlink_change_nat_seq_adj(struct nf_conn *ct,
++			     struct nlattr *cda[],
++			     int *events)
+ {
+ 	int ret = 0;
+ 	struct nf_conn_nat *nat = nfct_nat(ct);
+@@ -1058,6 +1077,8 @@ ctnetlink_change_nat_seq_adj(struct nf_c
+ 			return ret;
+ 
+ 		ct->status |= IPS_SEQ_ADJUST;
 +
-+	NLA_PUT_BE32(skb,
-+		     CTA_PROTOINFO_SCTP_VTAG_ORIGINAL,
-+		     htonl(ct->proto.sctp.vtag[IP_CT_DIR_ORIGINAL]));
++		*events |= IPCT_NATSEQADJ;
+ 	}
+ 
+ 	if (cda[CTA_NAT_SEQ_ADJ_REPLY]) {
+@@ -1067,6 +1088,8 @@ ctnetlink_change_nat_seq_adj(struct nf_c
+ 			return ret;
+ 
+ 		ct->status |= IPS_SEQ_ADJUST;
 +
-+	NLA_PUT_BE32(skb,
-+		     CTA_PROTOINFO_SCTP_VTAG_REPLY,
-+		     htonl(ct->proto.sctp.vtag[IP_CT_DIR_REPLY]));
++		*events |= IPCT_NATSEQADJ;
+ 	}
+ 
+ 	return 0;
+@@ -1074,47 +1097,53 @@ ctnetlink_change_nat_seq_adj(struct nf_c
+ #endif
+ 
+ static int
+-ctnetlink_change_conntrack(struct nf_conn *ct, struct nlattr *cda[])
++ctnetlink_change_conntrack(struct nf_conn *ct,
++			   struct nlattr *cda[],
++			   unsigned int *events)
+ {
+ 	int err;
+ 
+ 	if (cda[CTA_HELP]) {
+-		err = ctnetlink_change_helper(ct, cda);
++		err = ctnetlink_change_helper(ct, cda, events);
+ 		if (err < 0)
+ 			return err;
+ 	}
+ 
+ 	if (cda[CTA_TIMEOUT]) {
+-		err = ctnetlink_change_timeout(ct, cda);
++		err = ctnetlink_change_timeout(ct, cda, events);
+ 		if (err < 0)
+ 			return err;
+ 	}
+ 
+ 	if (cda[CTA_STATUS]) {
+-		err = ctnetlink_change_status(ct, cda);
++		err = ctnetlink_change_status(ct, cda, events);
+ 		if (err < 0)
+ 			return err;
+ 	}
+ 
+ 	if (cda[CTA_PROTOINFO]) {
+-		err = ctnetlink_change_protoinfo(ct, cda);
++		err = ctnetlink_change_protoinfo(ct, cda, events);
+ 		if (err < 0)
+ 			return err;
+ 	}
+ 
+ #if defined(CONFIG_NF_CONNTRACK_MARK)
+-	if (cda[CTA_MARK])
++	if (cda[CTA_MARK]) {
+ 		ct->mark = ntohl(nla_get_be32(cda[CTA_MARK]));
++		*events |= IPCT_MARK;
++	}
+ #endif
+ 
+ #if defined(CONFIG_NF_CONNTRACK_SECMARK)
+-	if (cda[CTA_SECMARK])
++	if (cda[CTA_SECMARK]) {
+ 		ct->secmark = ntohl(nla_get_be32(cda[CTA_SECMARK]));
++		*events |= IPCT_SECMARK;
++	}
+ #endif
+ 
+ #ifdef CONFIG_NF_NAT_NEEDED
+ 	if (cda[CTA_NAT_SEQ_ADJ_ORIG] || cda[CTA_NAT_SEQ_ADJ_REPLY]) {
+-		err = ctnetlink_change_nat_seq_adj(ct, cda);
++		err = ctnetlink_change_nat_seq_adj(ct, cda, events);
+ 		if (err < 0)
+ 			return err;
+ 	}
+@@ -1133,6 +1162,7 @@ ctnetlink_create_conntrack(struct nlattr
+ 	int err = -EINVAL;
+ 	struct nf_conn_help *help;
+ 	struct nf_conntrack_helper *helper;
++	unsigned long events = IPCT_REFRESH;
+ 
+ 	ct = nf_conntrack_alloc(otuple, rtuple);
+ 	if (ct == NULL || IS_ERR(ct))
+@@ -1146,20 +1176,22 @@ ctnetlink_create_conntrack(struct nlattr
+ 	ct->status |= IPS_CONFIRMED;
+ 
+ 	if (cda[CTA_STATUS]) {
+-		err = ctnetlink_change_status(ct, cda);
++		err = ctnetlink_change_status(ct, cda, &events);
+ 		if (err < 0)
+ 			goto err;
+ 	}
+ 
+ 	if (cda[CTA_PROTOINFO]) {
+-		err = ctnetlink_change_protoinfo(ct, cda);
++		err = ctnetlink_change_protoinfo(ct, cda, &events);
+ 		if (err < 0)
+ 			goto err;
+ 	}
+ 
+ #if defined(CONFIG_NF_CONNTRACK_MARK)
+-	if (cda[CTA_MARK])
++	if (cda[CTA_MARK]) {
+ 		ct->mark = ntohl(nla_get_be32(cda[CTA_MARK]));
++		events |= IPCT_MARK;
++	}
+ #endif
+ 
+ 	rcu_read_lock();
+@@ -1173,18 +1205,28 @@ ctnetlink_create_conntrack(struct nlattr
+ 		}
+ 		/* not in hash table yet so not strictly necessary */
+ 		rcu_assign_pointer(help->helper, helper);
 +
-+	read_unlock_bh(&sctp_lock);
++		events |= IPCT_HELPER;
+ 	}
+ 
+ 	/* setup master conntrack: this is a confirmed expectation */
+ 	if (master_ct) {
+ 		__set_bit(IPS_EXPECTED_BIT, &ct->status);
+ 		ct->master = master_ct;
+-	}
++		events |= IPCT_RELATED;
++	} else
++		events |= IPCT_NEW;
 +
-+	nla_nest_end(skb, nest_parms);
++	atomic_inc(&ct->ct_general.use);
+ 
+ 	add_timer(&ct->timeout);
+ 	nf_conntrack_hash_insert(ct);
+ 	rcu_read_unlock();
+ 
++	ctnetlink_conntrack_event(&ctnl_notifier, events, ct);
 +
-+	return 0;
++	nf_ct_put(ct);
 +
-+nla_put_failure:
-+	read_unlock_bh(&sctp_lock);
-+	return -1;
-+}
+ 	return 0;
+ 
+ err:
+@@ -1260,6 +1302,9 @@ ctnetlink_new_conntrack(struct sock *ctn
+ 	 * so there's no need to increase the refcount */
+ 	err = -EEXIST;
+ 	if (!(nlh->nlmsg_flags & NLM_F_EXCL)) {
++		unsigned long events = 0;
++		struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
 +
-+static const struct nla_policy sctp_nla_policy[CTA_PROTOINFO_SCTP_MAX+1] = {
-+	[CTA_PROTOINFO_SCTP_STATE]	    = { .type = NLA_U8 },
-+	[CTA_PROTOINFO_SCTP_VTAG_ORIGINAL]  = { .type = NLA_U32 },
-+	[CTA_PROTOINFO_SCTP_VTAG_REPLY]     = { .type = NLA_U32 },
-+};
+ 		/* we only allow nat config for new conntracks */
+ 		if (cda[CTA_NAT_SRC] || cda[CTA_NAT_DST]) {
+ 			err = -EOPNOTSUPP;
+@@ -1270,8 +1315,17 @@ ctnetlink_new_conntrack(struct sock *ctn
+ 			err = -EOPNOTSUPP;
+ 			goto out_unlock;
+ 		}
+-		err = ctnetlink_change_conntrack(nf_ct_tuplehash_to_ctrack(h),
+-						 cda);
++		err = ctnetlink_change_conntrack(ct, cda, &events);
 +
-+static int nlattr_to_sctp(struct nlattr *cda[], struct nf_conn *ct)
-+{
-+	struct nlattr *attr = cda[CTA_PROTOINFO_SCTP];
-+	struct nlattr *tb[CTA_PROTOINFO_SCTP_MAX+1];
-+	int err;
++		spin_unlock_bh(&nf_conntrack_lock);
 +
-+	/* updates may not contain the internal protocol info, skip parsing */
-+	if (!attr)
-+		return 0;
++		if (err == 0) {
++			atomic_inc(&ct->ct_general.use);
++			ctnetlink_conntrack_event(&ctnl_notifier, &events, ct);
++			nf_ct_put(ct);
++		}
 +
-+	err = nla_parse_nested(tb,
-+			       CTA_PROTOINFO_SCTP_MAX,
-+			       attr,
-+			       sctp_nla_policy);
-+	if (err < 0)
 +		return err;
+ 	}
+ 
+ out_unlock:
+@@ -1450,7 +1504,12 @@ nla_put_failure:
+ 	kfree_skb(skb);
+ 	return NOTIFY_DONE;
+ }
 +
-+	if (!tb[CTA_PROTOINFO_SCTP_STATE] ||
-+	    !tb[CTA_PROTOINFO_SCTP_VTAG_ORIGINAL] ||
-+	    !tb[CTA_PROTOINFO_SCTP_VTAG_REPLY])
-+		return -EINVAL;
++static struct notifier_block ctnl_notifier_exp = {
++	.notifier_call	= ctnetlink_expect_event,
++};
+ #endif
 +
-+	write_lock_bh(&sctp_lock);
-+	ct->proto.sctp.state = nla_get_u8(tb[CTA_PROTOINFO_SCTP_STATE]);
-+	ct->proto.sctp.vtag[IP_CT_DIR_ORIGINAL] =
-+		ntohl(nla_get_be32(tb[CTA_PROTOINFO_SCTP_VTAG_ORIGINAL]));
-+	ct->proto.sctp.vtag[IP_CT_DIR_REPLY] =
-+		ntohl(nla_get_be32(tb[CTA_PROTOINFO_SCTP_VTAG_REPLY]));
-+	write_unlock_bh(&sctp_lock);
-+
-+	return 0;
-+}
-+#endif
-+
- #ifdef CONFIG_SYSCTL
- static unsigned int sctp_sysctl_table_users;
- static struct ctl_table_header *sctp_sysctl_header;
-@@ -591,6 +667,8 @@ static struct nf_conntrack_l4proto nf_co
- 	.new 			= sctp_new,
- 	.me 			= THIS_MODULE,
- #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
-+	.to_nlattr		= sctp_to_nlattr,
-+	.from_nlattr		= nlattr_to_sctp,
- 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
- 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
- 	.nla_policy		= nf_ct_port_nla_policy,
-@@ -617,6 +695,8 @@ static struct nf_conntrack_l4proto nf_co
- 	.new 			= sctp_new,
- 	.me 			= THIS_MODULE,
- #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
-+	.to_nlattr		= sctp_to_nlattr,
-+	.from_nlattr		= nlattr_to_sctp,
- 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
- 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
- 	.nla_policy		= nf_ct_port_nla_policy,
+ static int ctnetlink_exp_done(struct netlink_callback *cb)
+ {
+ 	if (cb->args[1])
+@@ -1745,16 +1804,6 @@ ctnetlink_new_expect(struct sock *ctnl, 
+ 	return err;
+ }
+ 
+-#ifdef CONFIG_NF_CONNTRACK_EVENTS
+-static struct notifier_block ctnl_notifier = {
+-	.notifier_call	= ctnetlink_conntrack_event,
+-};
+-
+-static struct notifier_block ctnl_notifier_exp = {
+-	.notifier_call	= ctnetlink_expect_event,
+-};
+-#endif
+-
+ static const struct nfnl_callback ctnl_cb[IPCTNL_MSG_MAX] = {
+ 	[IPCTNL_MSG_CT_NEW]		= { .call = ctnetlink_new_conntrack,
+ 					    .attr_count = CTA_MAX,
 
---------------060906050401040207070605--
+--------------010109060503010803080201--
