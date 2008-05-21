@@ -1,41 +1,51 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [RFC] masquerading/conntrack
-Date: Wed, 21 May 2008 11:53:29 +0200
-Message-ID: <4833F119.7080206@netfilter.org>
-References: <dd45289d0805210133o49d44292qf238b15fec66a0d2@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: include/linux/netfilter.h after make headers_install is incomplete
+Date: Wed, 21 May 2008 11:56:55 +0200
+Message-ID: <4833F1E7.5050700@trash.net>
+References: <a27c0c970805161521k332fba8cg808d52396b5cdce5@mail.gmail.com>	<a27c0c970805201139i38e12d15ue807fc0239b1c10e@mail.gmail.com>	<a27c0c970805201144j12189201g9567460d4d3d8361@mail.gmail.com> <20080520.142121.15017166.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: NICOLAS BOULIANE <nicboul@gmail.com>
+Cc: greg@nest.cx, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, Sam Ravnborg <sam@ravnborg.org>
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47462 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753729AbYEUJxj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 21 May 2008 05:53:39 -0400
-In-Reply-To: <dd45289d0805210133o49d44292qf238b15fec66a0d2@mail.gmail.com>
+Received: from stinky.trash.net ([213.144.137.162]:35228 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752004AbYEUJ45 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 21 May 2008 05:56:57 -0400
+In-Reply-To: <20080520.142121.15017166.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-NICOLAS BOULIANE wrote:
-> Since ppp0 always come up first, then these connections begin to flow
-> via ppp0 and with the MASQ IP of ppp0...
+David Miller wrote:
+> From: "Greg Steuck" <greg@nest.cx>
+> Date: Tue, 20 May 2008 11:44:56 -0700
 > 
-> Later, when the mangle-rules kick-in, these connections are being
-> router via ppp4 (which is what I want)...
-> So far no problem..
-> 
-> 
-> The only problem is that these packets now exit via ppp4 but they
-> continue to keep the source IP of ppp0
-> 
-> 
-> Ok, I tried to use the userspace conntrack-tool to search and remove
-> these entries, but this tool doesn't allow me to do something like this
-> 
-> $> conntrack -L conntrack -d IP
+>> I ran make headers_install in 2.6.25 tree and the installed netfilter.h is
+>> not complete. Namely, it declares
+>> union nf_inet_addr {
+>>       __u32           all[4];
+>>       __be32          ip;
+>>       __be32          ip6[4];
+>> ...
+>> }
+>>
+>> The __u32, __be32 types are declared in <linux/types.h> and the #include
+>> directive is removed by the installation process. This in turn makes some
+>> applications unbuildable against such an exported tree, e.g.
+>>
+>> busybox-1.10.1/networking/tcpudp.c:#include <linux/netfilter_ipv4.h>
+>>
+>> If I correctly understand the purpose of make headers_install, it is
+>> supposed to generate an API for applications. I could certainly
+>> make tcpudp.c include linux/types.h, but given that the application
+>> does not even use nf_inet_addr, this would be the wrong place for
+>> the fix.
 
-Check Git, next version (0.9.7) allows it.
+These types are used by countless header files. I don't know
+why types.h is stripped, I guess this question can be best
+answered by whoever maintains the header-install stuff (Sam?
+I don't know).
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
