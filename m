@@ -1,88 +1,74 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: [PATCH] linux-next: Tree for May 21 - build failure with
- netfilter on __nf_ct_helper_find()
-Date: Wed, 21 May 2008 22:52:14 +1000
-Message-ID: <20080521225214.507eb400.sfr@canb.auug.org.au>
-References: <20080521155936.466bbe86.sfr@canb.auug.org.au>
-	<20080521113230.GA10830@linux.vnet.ibm.com>
+From: "NICOLAS BOULIANE" <nicboul@gmail.com>
+Subject: Re: [RFC] masquerading/conntrack
+Date: Wed, 21 May 2008 09:23:50 -0400
+Message-ID: <dd45289d0805210623s29f69e45t6fb8ac5b01622d82@mail.gmail.com>
+References: <dd45289d0805210133o49d44292qf238b15fec66a0d2@mail.gmail.com>
+	 <4833F119.7080206@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Wed__21_May_2008_22_52_14_+1000_rBaH_X1/r62uLNH."
-Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org, apw@shadowen.org
-To: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: "Netfilter Developer Mailing List" <netfilter-devel@vger.kernel.org>
+To: "Pablo Neira Ayuso" <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from chilli.pcug.org.au ([203.10.76.44]:42018 "EHLO smtps.tip.net.au"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760847AbYEUMwX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 21 May 2008 08:52:23 -0400
-In-Reply-To: <20080521113230.GA10830@linux.vnet.ibm.com>
+Received: from rv-out-0506.google.com ([209.85.198.232]:36656 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755753AbYEUNXv (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 21 May 2008 09:23:51 -0400
+Received: by rv-out-0506.google.com with SMTP id l9so2584417rvb.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 21 May 2008 06:23:50 -0700 (PDT)
+In-Reply-To: <4833F119.7080206@netfilter.org>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
---Signature=_Wed__21_May_2008_22_52_14_+1000_rBaH_X1/r62uLNH.
-Content-Type: text/plain; charset=UTF-8
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi,
 
-Hi Kamalesh,
+thank you for your comments.
+---
 
-On Wed, 21 May 2008 17:02:30 +0530 Kamalesh Babulal <kamalesh@linux.vnet.ib=
-m.com> wrote:
+Pablo:
+
+cc1: warnings being treated as errors
+read_config_lex.l: In function 'yylex':
+read_config_lex.l:113: warning: incompatible implicit declaration of
+built-in function 'strdup'
+read_config_lex.l:114: warning: incompatible implicit declaration of
+built-in function 'strdup'
+read_config_lex.l:115: warning: incompatible implicit declaration of
+built-in function 'strdup'
+read_config_lex.l:126: warning: incompatible implicit declaration of
+built-in function 'strdup'
+read_config_lex.c:3845: warning: label 'find_rule' defined but not used
+make[1]: *** [read_config_lex.o] Error 1
+
+I get this while compiling the last git snapshot
+probably string.h is missing ?
+
+Thank you
+
+
+On Wed, May 21, 2008 at 5:53 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> NICOLAS BOULIANE wrote:
+>> Since ppp0 always come up first, then these connections begin to flow
+>> via ppp0 and with the MASQ IP of ppp0...
+>>
+>> Later, when the mangle-rules kick-in, these connections are being
+>> router via ppp4 (which is what I want)...
+>> So far no problem..
+>>
+>>
+>> The only problem is that these packets now exit via ppp4 but they
+>> continue to keep the source IP of ppp0
+>>
+>>
+>> Ok, I tried to use the userspace conntrack-tool to search and remove
+>> these entries, but this tool doesn't allow me to do something like this
+>>
+>> $> conntrack -L conntrack -d IP
 >
-> The next-20080521 kernel build fails, on x86_64 machine=20
->=20
-> CC net/netfilter/nf_conntrack_helper.o
-> net/netfilter/nf_conntrack_helper.c: In function =E2=80=98__nf_ct_helper_=
-find=E2=80=99:
-> net/netfilter/nf_conntrack_helper.c:58: error: implicit declaration of fu=
-nction =E2=80=98hlist_for_each_entry_rcu=E2=80=99
-> net/netfilter/nf_conntrack_helper.c:58: error: =E2=80=98hnode=E2=80=99 un=
-declared (first use in this function)
-> net/netfilter/nf_conntrack_helper.c:58: error: (Each undeclared identifie=
-r is reported only once
-> net/netfilter/nf_conntrack_helper.c:58: error: for each function it appea=
-rs in.)
-> net/netfilter/nf_conntrack_helper.c:58: error: expected =E2=80=98;=E2=80=
-=99 before =E2=80=98{=E2=80=99 token
-> net/netfilter/nf_conntrack_helper.c:50: warning: unused variable =E2=80=
-=98mask=E2=80=99
-> net/netfilter/nf_conntrack_helper.c: In function =E2=80=98__nf_conntrack_=
-helper_find_byname=E2=80=99:
-> net/netfilter/nf_conntrack_helper.c:74: error: =E2=80=98hnode=E2=80=99 un=
-declared (first use in this function)
-> net/netfilter/nf_conntrack_helper.c:74: error: expected =E2=80=98;=E2=80=
-=99 before =E2=80=98{=E2=80=99 token
-> net/netfilter/nf_conntrack_helper.c: In function =E2=80=98nf_conntrack_he=
-lper_register=E2=80=99:
-> net/netfilter/nf_conntrack_helper.c:117: error: implicit declaration of f=
-unction =E2=80=98hlist_add_head_rcu=E2=80=99
-> net/netfilter/nf_conntrack_helper.c: In function =E2=80=98nf_conntrack_he=
-lper_unregister=E2=80=99:
-> net/netfilter/nf_conntrack_helper.c:133: error: implicit declaration of f=
-unction =E2=80=98hlist_del_rcu=E2=80=99
-> make[2]: *** [net/netfilter/nf_conntrack_helper.o] Error 1
-> make[1]: *** [net/netfilter] Error 2
-> make: *** [net] Error 2
-
-Thanks for the report and patch.  This looks like it is probably broken in
-Linus' kernel.  What config did you use to get the error?
-
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
-
---Signature=_Wed__21_May_2008_22_52_14_+1000_rBaH_X1/r62uLNH.
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFINBsDTgG2atn1QN8RAhb2AJ4xGMMpLnPPLFeDJwmXYNi+snWeLwCfchDo
-nPxdtdMErTq6mJztE+lS2v4=
-=pl8f
------END PGP SIGNATURE-----
-
---Signature=_Wed__21_May_2008_22_52_14_+1000_rBaH_X1/r62uLNH.--
+> Check Git, next version (0.9.7) allows it.
+>
+> --
+> "Los honestos son inadaptados sociales" -- Les Luthiers
+>
