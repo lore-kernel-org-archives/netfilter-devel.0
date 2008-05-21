@@ -1,266 +1,107 @@
-From: James Morris <jmorris@namei.org>
-Subject: [PATCH 2/2] Security: Add ip6tables security table
-Date: Thu, 22 May 2008 00:19:33 +1000 (EST)
-Message-ID: <Xine.LNX.4.64.0805220018530.3033@us.intercode.com.au>
-References: <Xine.LNX.4.64.0805220008510.3033@us.intercode.com.au>
+From: "NICOLAS BOULIANE" <nicboul@gmail.com>
+Subject: Re: [RFC] masquerading/conntrack
+Date: Wed, 21 May 2008 10:25:51 -0400
+Message-ID: <dd45289d0805210725r4409b860if06bc8adb68059be@mail.gmail.com>
+References: <dd45289d0805210133o49d44292qf238b15fec66a0d2@mail.gmail.com>
+	 <4833F119.7080206@netfilter.org>
+	 <dd45289d0805210623s29f69e45t6fb8ac5b01622d82@mail.gmail.com>
+	 <48342C03.10204@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: linux-security-module@vger.kernel.org,
-	Paul Moore <paul.moore@hp.com>,
-	Stephen Smalley <sds@tycho.nsa.gov>
-To: netfilter-devel@vger.kernel.org
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <Xine.LNX.4.64.0805220008510.3033@us.intercode.com.au>
-Sender: linux-security-module-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: "Netfilter Developer Mailing List" <netfilter-devel@vger.kernel.org>
+To: "Pablo Neira Ayuso" <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from rv-out-0506.google.com ([209.85.198.238]:20652 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751515AbYEUOZx (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 21 May 2008 10:25:53 -0400
+Received: by rv-out-0506.google.com with SMTP id l9so2611074rvb.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 21 May 2008 07:25:51 -0700 (PDT)
+In-Reply-To: <48342C03.10204@netfilter.org>
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a port of the IPv4 security table for IPv6.
+Pablo,
 
-Signed-off-by: James Morris <jmorris@namei.org>
----
- include/linux/netfilter_ipv6.h         |    1 +
- include/net/netns/ipv6.h               |    1 +
- net/ipv6/netfilter/Kconfig             |   11 ++
- net/ipv6/netfilter/Makefile            |    1 +
- net/ipv6/netfilter/ip6table_security.c |  172 ++++++++++++++++++++++++++++++++
- 5 files changed, 186 insertions(+), 0 deletions(-)
- create mode 100644 net/ipv6/netfilter/ip6table_security.c
+It fixed the strdup(). But now:
 
-diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
-index 3475a65..fd50988 100644
---- a/include/linux/netfilter_ipv6.h
-+++ b/include/linux/netfilter_ipv6.h
-@@ -64,6 +64,7 @@ enum nf_ip6_hook_priorities {
- 	NF_IP6_PRI_MANGLE = -150,
- 	NF_IP6_PRI_NAT_DST = -100,
- 	NF_IP6_PRI_FILTER = 0,
-+	NF_IP6_PRI_SECURITY = 50,
- 	NF_IP6_PRI_NAT_SRC = 100,
- 	NF_IP6_PRI_SELINUX_LAST = 225,
- 	NF_IP6_PRI_LAST = INT_MAX,
-diff --git a/include/net/netns/ipv6.h b/include/net/netns/ipv6.h
-index ac053be..5bacd83 100644
---- a/include/net/netns/ipv6.h
-+++ b/include/net/netns/ipv6.h
-@@ -35,6 +35,7 @@ struct netns_ipv6 {
- 	struct xt_table		*ip6table_filter;
- 	struct xt_table		*ip6table_mangle;
- 	struct xt_table		*ip6table_raw;
-+	struct xt_table		*ip6table_security;
- #endif
- 	struct rt6_info         *ip6_null_entry;
- 	struct rt6_statistics   *rt6_stats;
-diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
-index 6cae547..353ee15 100644
---- a/net/ipv6/netfilter/Kconfig
-+++ b/net/ipv6/netfilter/Kconfig
-@@ -208,5 +208,16 @@ config IP6_NF_RAW
- 	  If you want to compile it as a module, say M here and read
- 	  <file:Documentation/kbuild/modules.txt>.  If unsure, say `N'.
- 
-+# security table for MAC policy
-+config IP6_NF_SECURITY
-+       tristate "Security table"
-+       depends on IP6_NF_IPTABLES
-+       default m if NETFILTER_ADVANCED=n
-+       help
-+         This option adds a `security' table to iptables, for use
-+         with Mandatory Access Control (MAC) policy.
-+         
-+         If unsure, say N.
-+
- endmenu
- 
-diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
-index fbf2c14..3f17c94 100644
---- a/net/ipv6/netfilter/Makefile
-+++ b/net/ipv6/netfilter/Makefile
-@@ -8,6 +8,7 @@ obj-$(CONFIG_IP6_NF_FILTER) += ip6table_filter.o
- obj-$(CONFIG_IP6_NF_MANGLE) += ip6table_mangle.o
- obj-$(CONFIG_IP6_NF_QUEUE) += ip6_queue.o
- obj-$(CONFIG_IP6_NF_RAW) += ip6table_raw.o
-+obj-$(CONFIG_IP6_NF_SECURITY) += ip6table_security.o
- 
- # objects for l3 independent conntrack
- nf_conntrack_ipv6-objs  :=  nf_conntrack_l3proto_ipv6.o nf_conntrack_proto_icmpv6.o nf_conntrack_reasm.o
-diff --git a/net/ipv6/netfilter/ip6table_security.c b/net/ipv6/netfilter/ip6table_security.c
-new file mode 100644
-index 0000000..2f509b3
---- /dev/null
-+++ b/net/ipv6/netfilter/ip6table_security.c
-@@ -0,0 +1,172 @@
-+/*
-+ * "security" table for IPv6
-+ *
-+ * This is for use by Mandatory Access Control (MAC) security models,
-+ * which need to be able to manage security policy in separate context
-+ * to DAC.
-+ *
-+ * Based on iptable_mangle.c
-+ *
-+ * Copyright (C) 1999 Paul `Rusty' Russell & Michael J. Neuling
-+ * Copyright (C) 2000-2004 Netfilter Core Team <coreteam <at> netfilter.org>
-+ * Copyright (C) 2008 Red Hat, Inc., James Morris <jmorris <at> redhat.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+#include <linux/module.h>
-+#include <linux/netfilter_ipv6/ip6_tables.h>
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("James Morris <jmorris <at> redhat.com>");
-+MODULE_DESCRIPTION("ip6tables security table, for MAC rules");
-+
-+#define SECURITY_VALID_HOOKS	(1 << NF_INET_LOCAL_IN) | \
-+				(1 << NF_INET_FORWARD) | \
-+				(1 << NF_INET_LOCAL_OUT)
-+
-+static struct
-+{
-+	struct ip6t_replace repl;
-+	struct ip6t_standard entries[3];
-+	struct ip6t_error term;
-+} initial_table __initdata = {
-+	.repl = {
-+		.name = "security",
-+		.valid_hooks = SECURITY_VALID_HOOKS,
-+		.num_entries = 4,
-+		.size = sizeof(struct ip6t_standard) * 3 + sizeof(struct ip6t_error),
-+		.hook_entry = {
-+			[NF_INET_LOCAL_IN] 	= 0,
-+			[NF_INET_FORWARD] 	= sizeof(struct ip6t_standard),
-+			[NF_INET_LOCAL_OUT] 	= sizeof(struct ip6t_standard) * 2,
-+		},
-+		.underflow = {
-+			[NF_INET_LOCAL_IN] 	= 0,
-+			[NF_INET_FORWARD] 	= sizeof(struct ip6t_standard),
-+			[NF_INET_LOCAL_OUT] 	= sizeof(struct ip6t_standard) * 2,
-+		},
-+	},
-+	.entries = {
-+		IP6T_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_IN */
-+		IP6T_STANDARD_INIT(NF_ACCEPT),	/* FORWARD */
-+		IP6T_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_OUT */
-+	},
-+	.term = IP6T_ERROR_INIT,		/* ERROR */
-+};
-+
-+static struct xt_table security_table = {
-+	.name		= "security",
-+	.valid_hooks	= SECURITY_VALID_HOOKS,
-+	.lock		= __RW_LOCK_UNLOCKED(security_table.lock),
-+	.me		= THIS_MODULE,
-+	.af		= AF_INET6,
-+};
-+
-+static unsigned int
-+ip6t_local_in_hook(unsigned int hook,
-+		   struct sk_buff *skb,
-+		   const struct net_device *in,
-+		   const struct net_device *out,
-+		   int (*okfn)(struct sk_buff *))
-+{
-+	return ip6t_do_table(skb, hook, in, out,
-+			     init_net.ipv6.ip6table_security);
-+}
-+
-+static unsigned int
-+ip6t_forward_hook(unsigned int hook,
-+		  struct sk_buff *skb,
-+		  const struct net_device *in,
-+		  const struct net_device *out,
-+		  int (*okfn)(struct sk_buff *))
-+{
-+	return ip6t_do_table(skb, hook, in, out,
-+		 	     init_net.ipv6.ip6table_security);
-+}
-+
-+static unsigned int
-+ip6t_local_out_hook(unsigned int hook,
-+		    struct sk_buff *skb,
-+		    const struct net_device *in,
-+		    const struct net_device *out,
-+		    int (*okfn)(struct sk_buff *))
-+{
-+	/* TBD: handle short packets via raw socket */
-+	return ip6t_do_table(skb, hook, in, out,
-+			     init_net.ipv6.ip6table_security);
-+}
-+
-+static struct nf_hook_ops ip6t_ops[] __read_mostly = {
-+	{
-+		.hook		= ip6t_local_in_hook,
-+		.owner		= THIS_MODULE,
-+		.pf		= PF_INET6,
-+		.hooknum	= NF_INET_LOCAL_IN,
-+		.priority	= NF_IP6_PRI_SECURITY,
-+	},
-+	{
-+		.hook		= ip6t_forward_hook,
-+		.owner		= THIS_MODULE,
-+		.pf		= PF_INET6,
-+		.hooknum	= NF_INET_FORWARD,
-+		.priority	= NF_IP6_PRI_SECURITY,
-+	},
-+	{
-+		.hook		= ip6t_local_out_hook,
-+		.owner		= THIS_MODULE,
-+		.pf		= PF_INET6,
-+		.hooknum	= NF_INET_LOCAL_OUT,
-+		.priority	= NF_IP6_PRI_SECURITY,
-+	},
-+};
-+
-+static int __net_init ip6table_security_net_init(struct net *net)
-+{
-+	net->ipv6.ip6table_security =
-+		ip6t_register_table(net, &security_table, &initial_table.repl);
-+		
-+	if (IS_ERR(net->ipv6.ip6table_security))
-+		return PTR_ERR(net->ipv6.ip6table_security);
-+		
-+	return 0;
-+}
-+
-+static void __net_exit ip6table_security_net_exit(struct net *net)
-+{
-+	ip6t_unregister_table(net->ipv6.ip6table_security);
-+}
-+
-+static struct pernet_operations ip6table_security_net_ops = {
-+	.init = ip6table_security_net_init,
-+	.exit = ip6table_security_net_exit,
-+};
-+
-+static int __init ip6table_security_init(void)
-+{
-+	int ret;
-+
-+	ret = register_pernet_subsys(&ip6table_security_net_ops);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = nf_register_hooks(ip6t_ops, ARRAY_SIZE(ip6t_ops));
-+	if (ret < 0)
-+		goto cleanup_table;
-+
-+	return ret;
-+
-+cleanup_table:
-+	unregister_pernet_subsys(&ip6table_security_net_ops);
-+	return ret;
-+}
-+
-+static void __exit ip6table_security_fini(void)
-+{
-+	nf_unregister_hooks(ip6t_ops, ARRAY_SIZE(ip6t_ops));
-+	unregister_pernet_subsys(&ip6table_security_net_ops);
-+}
-+
-+module_init(ip6table_security_init);
-+module_exit(ip6table_security_fini);
--- 
-1.5.5.1
+cc1: warnings being treated as errors
+read_config_lex.c: In function 'yylex':
+read_config_lex.c:3846: warning: label 'find_rule' defined but not used
+make[1]: *** [read_config_lex.o] Error 1
 
+
+if I strip this label (find_rule), then I get:
+
+read_config_lex.c:3593: warning: 'yy_full_match' defined but not used
+make[1]: *** [read_config_lex.o] Error 1
+make[1]: Leaving directory `/usr/local/src/conntrack-tools/src'
+make: *** [all-recursive] Error 1
+
+
+If I remove this function (yy_full_match), then I get:
+
+cc1: warnings being treated as errors
+read_config_lex.c: In function 'yylex':
+read_config_lex.c:3782: warning: 'yy_act' may be used uninitialized in
+this function
+make[1]: *** [read_config_lex.o] Error 1
+
+If I initialize this var (register int yy_act = 0;), then I get:
+
+everything compile now.
+
+I'm using a version I compiled without the -Werror flag, it was more clean.
+
+Nick
+
+
+
+On Wed, May 21, 2008 at 10:04 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> NICOLAS BOULIANE wrote:
+>> Hi,
+>>
+>> thank you for your comments.
+>> ---
+>>
+>> Pablo:
+>>
+>> cc1: warnings being treated as errors
+>> read_config_lex.l: In function 'yylex':
+>> read_config_lex.l:113: warning: incompatible implicit declaration of
+>> built-in function 'strdup'
+>> read_config_lex.l:114: warning: incompatible implicit declaration of
+>> built-in function 'strdup'
+>> read_config_lex.l:115: warning: incompatible implicit declaration of
+>> built-in function 'strdup'
+>> read_config_lex.l:126: warning: incompatible implicit declaration of
+>> built-in function 'strdup'
+>> read_config_lex.c:3845: warning: label 'find_rule' defined but not used
+>> make[1]: *** [read_config_lex.o] Error 1
+>>
+>> I get this while compiling the last git snapshot
+>> probably string.h is missing ?
+>
+> Does the patch attached fix it?
+>
+> --
+> "Los honestos son inadaptados sociales" -- Les Luthiers
+>
+> diff --git a/src/read_config_lex.l b/src/read_config_lex.l
+> index eb3368a..7daaeab 100644
+> --- a/src/read_config_lex.l
+> +++ b/src/read_config_lex.l
+> @@ -19,6 +19,8 @@
+>  * Description: configuration file syntax
+>  */
+>
+> +#include <string.h>
+> +
+>  #include "read_config_yy.h"
+>  %}
+>
+>
+>
