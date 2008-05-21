@@ -1,62 +1,55 @@
-From: "NICOLAS BOULIANE" <nicboul@gmail.com>
-Subject: [RFC] masquerading/conntrack
-Date: Wed, 21 May 2008 04:33:54 -0400
-Message-ID: <dd45289d0805210133o49d44292qf238b15fec66a0d2@mail.gmail.com>
+From: Henrik Nordstrom <henrik@henriknordstrom.net>
+Subject: Re: [RFC] masquerading/conntrack
+Date: Wed, 21 May 2008 10:48:43 +0200
+Message-ID: <1211359723.20992.8.camel@henriknordstrom.net>
+References: <dd45289d0805210133o49d44292qf238b15fec66a0d2@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-To: "Netfilter Developer Mailing List" <netfilter-devel@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-O/rEzsb2MbW0Wv5WDPFA"
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: NICOLAS BOULIANE <nicboul@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.234]:11425 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753559AbYEUIdz (ORCPT
+Received: from vps1.henriknordstrom.net ([195.20.207.177]:39874 "EHLO
+	vps1.henriknordstrom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751533AbYEUIst (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 21 May 2008 04:33:55 -0400
-Received: by rv-out-0506.google.com with SMTP id l9so2474545rvb.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 21 May 2008 01:33:54 -0700 (PDT)
-Content-Disposition: inline
+	Wed, 21 May 2008 04:48:49 -0400
+In-Reply-To: <dd45289d0805210133o49d44292qf238b15fec66a0d2@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
 
-Here is a problem which I used to have with MASQUERADE,
+--=-O/rEzsb2MbW0Wv5WDPFA
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-When the machine boots - naturally there are some connections which
+On ons, 2008-05-21 at 04:33 -0400, NICOLAS BOULIANE wrote:
 
-begin to flow as soon as the first ppp interface comes up...
-Some of these connections remain open for days - for example - openvpn
-and iax2 trunks...
+> Since ppp0 always come up first, then these connections begin to flow
+> via ppp0 and with the MASQ IP of ppp0...
+>=20
+> Later, when the mangle-rules kick-in, these connections are being
+> router via ppp4 (which is what I want)...
+> So far no problem..
 
+Don't enable forwarding until you have the routing (including policies,
+mangle etc) properly configured.
 
-Since ppp0 always come up first, then these connections begin to flow
-via ppp0 and with the MASQ IP of ppp0...
+Regards
+Henrik
 
-Later, when the mangle-rules kick-in, these connections are being
-router via ppp4 (which is what I want)...
-So far no problem..
+--=-O/rEzsb2MbW0Wv5WDPFA
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
 
-The only problem is that these packets now exit via ppp4 but they
-continue to keep the source IP of ppp0
+iQCVAwUASDPh50NPQ5Kbx8daAQKXzwP9HEPIOmEauHhjdRSzjMzJkd6piFSR/5U1
+PAtOEV7pS31XBkwWiqy42s1z/wh1HKuCBFrGu7HEyGMG+WWpqayfnHtAgc2YngTQ
+Fcq0jfwNUMFoqUa6y06lnoOJkOP9jJpsySApTAmoIlC8UBdOwe24iz2QUw5Q8+wy
+5dBm+FYqpXI=
+=DJYT
+-----END PGP SIGNATURE-----
 
+--=-O/rEzsb2MbW0Wv5WDPFA--
 
-Ok, I tried to use the userspace conntrack-tool to search and remove
-these entries, but this tool doesn't allow me to do something like this
-
-$> conntrack -L conntrack -d IP
-
-...without asking me the complete tuple-information. I can't delete every
-
-entry with a specific IP either without providing a complete tuple.
-
-
-Maybe we could add a parameter to the target masquerade, which could add
-a flag in the conntrack that would mean "don't use the conntrack entry, we
-
-want to go through the MASQUERADING code again".
-
-What you guys think it should be wise to do ?
-
-thank you
-Nick
