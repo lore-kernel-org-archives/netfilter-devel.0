@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH 1/2] Security: Add iptables security table for mandatory
  access control rules
-Date: Wed, 21 May 2008 19:18:04 +0200
-Message-ID: <4834594C.5030704@trash.net>
+Date: Wed, 21 May 2008 19:22:04 +0200
+Message-ID: <48345A3C.1080407@trash.net>
 References: <Xine.LNX.4.64.0805220008510.3033@us.intercode.com.au> <Xine.LNX.4.64.0805220017511.3033@us.intercode.com.au>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
@@ -12,10 +12,15 @@ Cc: netfilter-devel@vger.kernel.org,
 	Paul Moore <paul.moore@hp.com>,
 	Stephen Smalley <sds@tycho.nsa.gov>
 To: James Morris <jmorris@namei.org>
-Return-path: <linux-security-module-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:46834 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S936442AbYEURWI (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 21 May 2008 13:22:08 -0400
 In-Reply-To: <Xine.LNX.4.64.0805220017511.3033@us.intercode.com.au>
-Sender: linux-security-module-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
 James Morris wrote:
 > The following patch implements a new "security" table for iptables, so
@@ -31,20 +36,9 @@ James Morris wrote:
 > 
 > The SECMARK and CONNSECMARK targets will still be valid in the mangle
 > table to prevent breakage of existing users.
+> 
+> Signed-off-by: James Morris <jmorris@namei.org>
 
-Thanks James, just one question:
 
-> --- a/net/ipv4/netfilter/Kconfig
-> +++ b/net/ipv4/netfilter/Kconfig
-> @@ -365,6 +365,17 @@ config IP_NF_RAW
->  	  If you want to compile it as a module, say M here and read
->  	  <file:Documentation/kbuild/modules.txt>.  If unsure, say `N'.
->  
-> +# security table for MAC policy
-> +config IP_NF_SECURITY
-> +	tristate "Security table"
-> +	depends on IP_NF_IPTABLES
-> +	default m if NETFILTER_ADVANCED=n
+Applied, thanks. I'll add the dependency myself in case you agree.
 
-Is the table also useful without CONFIG_SECURITY? Otherwise
-I'd suggest to add a dependency.
