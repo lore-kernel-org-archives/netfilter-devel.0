@@ -1,51 +1,41 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: [PATCH] netfilter: conntrack_helper needs to include rculist.h
-Date: Wed, 21 May 2008 14:21:39 -0700
-Message-ID: <20080521142139.f0bc5698.randy.dunlap@oracle.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] netfilter: conntrack_helper needs to include rculist.h
+Date: Wed, 21 May 2008 14:45:50 -0700 (PDT)
+Message-ID: <20080521.144550.151762863.davem@davemloft.net>
+References: <20080521142139.f0bc5698.randy.dunlap@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org,
-	coreteam@netfilter.org, akpm <akpm@linux-foundation.org>
-To: netdev <netdev@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rgminet01.oracle.com ([148.87.113.118]:36701 "EHLO
-	rgminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755587AbYEUVWb (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 21 May 2008 17:22:31 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, akpm@linux-foundation.org
+To: randy.dunlap@oracle.com
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20080521142139.f0bc5698.randy.dunlap@oracle.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 From: Randy Dunlap <randy.dunlap@oracle.com>
+Date: Wed, 21 May 2008 14:21:39 -0700
 
-nf_conntrack_helper users rcu hlist functions so it needs to #include
-rculist.h.
+> From: Randy Dunlap <randy.dunlap@oracle.com>
+> 
+> nf_conntrack_helper users rcu hlist functions so it needs to #include
+> rculist.h.
+> 
+> linux-next-20080521/net/netfilter/nf_conntrack_helper.c:58: error: implicit declaration of function 'hlist_for_each_entry_rcu'
+> linux-next-20080521/net/netfilter/nf_conntrack_helper.c:58: error: 'hnode' undeclared (first use in this function)
+> linux-next-20080521/net/netfilter/nf_conntrack_helper.c:58: error: (Each undeclared identifier is reported only once
+> linux-next-20080521/net/netfilter/nf_conntrack_helper.c:58: error: for each function it appears in.)
+> linux-next-20080521/net/netfilter/nf_conntrack_helper.c:58: error: expected ';' before '{' token
+> linux-next-20080521/net/netfilter/nf_conntrack_helper.c:50: warning: unused variable 'mask'
+> linux-next-20080521/net/netfilter/nf_conntrack_helper.c:74: error: 'hnode' undeclared (first use in this function)
+> linux-next-20080521/net/netfilter/nf_conntrack_helper.c:74: error: expected ';' before '{' token
+> linux-next-20080521/net/netfilter/nf_conntrack_helper.c:117: error: implicit declaration of function 'hlist_add_head_rcu'
+> linux-next-20080521/net/netfilter/nf_conntrack_helper.c:133: error: implicit declaration of function 'hlist_del_rcu'
+> filter/nf_conntrack_helper.o] Error 1
+> 
+> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
 
-linux-next-20080521/net/netfilter/nf_conntrack_helper.c:58: error: implicit declaration of function 'hlist_for_each_entry_rcu'
-linux-next-20080521/net/netfilter/nf_conntrack_helper.c:58: error: 'hnode' undeclared (first use in this function)
-linux-next-20080521/net/netfilter/nf_conntrack_helper.c:58: error: (Each undeclared identifier is reported only once
-linux-next-20080521/net/netfilter/nf_conntrack_helper.c:58: error: for each function it appears in.)
-linux-next-20080521/net/netfilter/nf_conntrack_helper.c:58: error: expected ';' before '{' token
-linux-next-20080521/net/netfilter/nf_conntrack_helper.c:50: warning: unused variable 'mask'
-linux-next-20080521/net/netfilter/nf_conntrack_helper.c:74: error: 'hnode' undeclared (first use in this function)
-linux-next-20080521/net/netfilter/nf_conntrack_helper.c:74: error: expected ';' before '{' token
-linux-next-20080521/net/netfilter/nf_conntrack_helper.c:117: error: implicit declaration of function 'hlist_add_head_rcu'
-linux-next-20080521/net/netfilter/nf_conntrack_helper.c:133: error: implicit declaration of function 'hlist_del_rcu'
-filter/nf_conntrack_helper.o] Error 1
+This needs to go in via whatever tree adds the linux/rculist.h header file,
+which isn't net-next-2.6 as far as I can tell. :-)
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
----
- net/netfilter/nf_conntrack_helper.c |    1 +
- 1 file changed, 1 insertion(+)
-
---- linux-next-20080521.orig/net/netfilter/nf_conntrack_helper.c
-+++ linux-next-20080521/net/netfilter/nf_conntrack_helper.c
-@@ -10,6 +10,7 @@
-  */
- 
- #include <linux/types.h>
-+#include <linux/rculist.h>
- #include <linux/netfilter.h>
- #include <linux/module.h>
- #include <linux/skbuff.h>
