@@ -1,65 +1,32 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: [PATCH] netfilter: conntrack_helper needs to include rculist.h
-Date: Wed, 21 May 2008 14:55:32 -0700
-Message-ID: <20080521145532.8e779533.randy.dunlap@oracle.com>
-References: <20080521142139.f0bc5698.randy.dunlap@oracle.com>
-	<20080521.144550.151762863.davem@davemloft.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 0/2] Security: Add security tables for mandatory access
+ control
+Date: Thu, 22 May 2008 00:01:50 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0805212359590.15136@fbirervta.pbzchgretzou.qr>
+References: <Xine.LNX.4.64.0805220008510.3033@us.intercode.com.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, akpm@linux-foundation.org,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-To: David Miller <davem@davemloft.net>, mingo <mingo@redhat.com>,
-	lkml <linux-kernel@vger.kernel.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20080521.144550.151762863.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org,
+	linux-security-module@vger.kernel.org,
+	Paul Moore <paul.moore@hp.com>,
+	Stephen Smalley <sds@tycho.nsa.gov>
+To: James Morris <jmorris@namei.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:54039 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753317AbYEUWBv (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 21 May 2008 18:01:51 -0400
+In-Reply-To: <Xine.LNX.4.64.0805220008510.3033@us.intercode.com.au>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 21 May 2008 14:45:50 -0700 (PDT) David Miller wrote:
 
-> This needs to go in via whatever tree adds the linux/rculist.h header file,
-> which isn't net-next-2.6 as far as I can tell. :-)
+On Wednesday 2008-05-21 16:17, James Morris wrote:
+>
+>In a nutshell, the need for this arises from the fact that MAC labeling 
+>rules utilizing iptables via SECMARK and CONNSECMARK are not subject to 
+>discretionary security policy (i.e. not even "root" or a user with 
+>CAP_NET_ADMIN may be able to modify these rules).
 
-Sure, makes sense.
-
-Looks like it's some sched/auto-sched tree/branch if I'm reading
-correctly.
-
-Ingo, is there a sched tree that add rculist.h file?
-If so, one of its users needs to #include it.  Patch below.
-
----
-From: Randy Dunlap <randy.dunlap@oracle.com>
-
-nf_conntrack_helper users rcu hlist functions so it needs to #include
-rculist.h.
-
-linux-next-20080521/net/netfilter/nf_conntrack_helper.c:58: error: implicit declaration of function 'hlist_for_each_entry_rcu'
-linux-next-20080521/net/netfilter/nf_conntrack_helper.c:58: error: 'hnode' undeclared (first use in this function)
-linux-next-20080521/net/netfilter/nf_conntrack_helper.c:58: error: (Each undeclared identifier is reported only once
-linux-next-20080521/net/netfilter/nf_conntrack_helper.c:58: error: for each function it appears in.)
-linux-next-20080521/net/netfilter/nf_conntrack_helper.c:58: error: expected ';' before '{' token
-linux-next-20080521/net/netfilter/nf_conntrack_helper.c:50: warning: unused variable 'mask'
-linux-next-20080521/net/netfilter/nf_conntrack_helper.c:74: error: 'hnode' undeclared (first use in this function)
-linux-next-20080521/net/netfilter/nf_conntrack_helper.c:74: error: expected ';' before '{' token
-linux-next-20080521/net/netfilter/nf_conntrack_helper.c:117: error: implicit declaration of function 'hlist_add_head_rcu'
-linux-next-20080521/net/netfilter/nf_conntrack_helper.c:133: error: implicit declaration of function 'hlist_del_rcu'
-filter/nf_conntrack_helper.o] Error 1
-
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
----
- net/netfilter/nf_conntrack_helper.c |    1 +
- 1 file changed, 1 insertion(+)
-
---- linux-next-20080521.orig/net/netfilter/nf_conntrack_helper.c
-+++ linux-next-20080521/net/netfilter/nf_conntrack_helper.c
-@@ -10,6 +10,7 @@
-  */
- 
- #include <linux/types.h>
-+#include <linux/rculist.h>
- #include <linux/netfilter.h>
- #include <linux/module.h>
- #include <linux/skbuff.h>
-
+Yet I do not see any code to possibly prohibit changing the table.
