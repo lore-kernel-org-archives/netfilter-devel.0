@@ -1,35 +1,51 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: include/linux/netfilter.h after make headers_install is
- incomplete
-Date: Wed, 21 May 2008 14:08:49 -0700 (PDT)
-Message-ID: <20080521.140849.201705704.davem@davemloft.net>
-References: <20080520.142121.15017166.davem@davemloft.net>
-	<48340064.4090805@trash.net>
-	<a27c0c970805211356h4b13d001r6fa44bc36e74c3fd@mail.gmail.com>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: [PATCH] netfilter: conntrack_helper needs to include rculist.h
+Date: Wed, 21 May 2008 14:21:39 -0700
+Message-ID: <20080521142139.f0bc5698.randy.dunlap@oracle.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
-To: greg@nest.cx
+Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, akpm <akpm@linux-foundation.org>
+To: netdev <netdev@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:52885
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1757077AbYEUVIy (ORCPT
+Received: from rgminet01.oracle.com ([148.87.113.118]:36701 "EHLO
+	rgminet01.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755587AbYEUVWb (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 21 May 2008 17:08:54 -0400
-In-Reply-To: <a27c0c970805211356h4b13d001r6fa44bc36e74c3fd@mail.gmail.com>
+	Wed, 21 May 2008 17:22:31 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: "Greg Steuck" <greg@nest.cx>
-Date: Wed, 21 May 2008 13:56:32 -0700
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
-> On Wed, May 21, 2008 at 3:58 AM, Patrick McHardy <kaber@trash.net> wrote:
-> > Greg, does this fix the problem?
-> >
-> >
-> > commit 34d75b526704f4aa4d71f57a81cc15d8b18f5555
-> 
-> It sure does. Thank you very much for such an immediate fix!
+nf_conntrack_helper users rcu hlist functions so it needs to #include
+rculist.h.
 
-Thanks for testing, I've applied Patrick's patch.
+linux-next-20080521/net/netfilter/nf_conntrack_helper.c:58: error: implicit declaration of function 'hlist_for_each_entry_rcu'
+linux-next-20080521/net/netfilter/nf_conntrack_helper.c:58: error: 'hnode' undeclared (first use in this function)
+linux-next-20080521/net/netfilter/nf_conntrack_helper.c:58: error: (Each undeclared identifier is reported only once
+linux-next-20080521/net/netfilter/nf_conntrack_helper.c:58: error: for each function it appears in.)
+linux-next-20080521/net/netfilter/nf_conntrack_helper.c:58: error: expected ';' before '{' token
+linux-next-20080521/net/netfilter/nf_conntrack_helper.c:50: warning: unused variable 'mask'
+linux-next-20080521/net/netfilter/nf_conntrack_helper.c:74: error: 'hnode' undeclared (first use in this function)
+linux-next-20080521/net/netfilter/nf_conntrack_helper.c:74: error: expected ';' before '{' token
+linux-next-20080521/net/netfilter/nf_conntrack_helper.c:117: error: implicit declaration of function 'hlist_add_head_rcu'
+linux-next-20080521/net/netfilter/nf_conntrack_helper.c:133: error: implicit declaration of function 'hlist_del_rcu'
+filter/nf_conntrack_helper.o] Error 1
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+---
+ net/netfilter/nf_conntrack_helper.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+--- linux-next-20080521.orig/net/netfilter/nf_conntrack_helper.c
++++ linux-next-20080521/net/netfilter/nf_conntrack_helper.c
+@@ -10,6 +10,7 @@
+  */
+ 
+ #include <linux/types.h>
++#include <linux/rculist.h>
+ #include <linux/netfilter.h>
+ #include <linux/module.h>
+ #include <linux/skbuff.h>
