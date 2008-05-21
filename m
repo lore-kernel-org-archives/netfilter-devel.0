@@ -1,59 +1,62 @@
-From: Henrik Nordstrom <henrik@henriknordstrom.net>
-Subject: Re: iptables performance and alternatives
-Date: Wed, 21 May 2008 01:53:16 +0200
-Message-ID: <1211327596.589.65.camel@henriknordstrom.net>
-References: <200805151421.23862.anton.vazir@gmail.com>
-	 <20080515093413.GC3442@khasse.inl.fr>
-	 <1210854534.32691.11.camel@henriknordstrom.net>
-	 <20080520074209.GA25258@sch.bme.hu>
+From: "NICOLAS BOULIANE" <nicboul@gmail.com>
+Subject: [RFC] masquerading/conntrack
+Date: Wed, 21 May 2008 04:33:54 -0400
+Message-ID: <dd45289d0805210133o49d44292qf238b15fec66a0d2@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-MhwO3A93V/0aFifA4G6w"
-Cc: netfilter-devel@vger.kernel.org
-To: KOVACS Krisztian <hidden@sch.bme.hu>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: "Netfilter Developer Mailing List" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from vps1.henriknordstrom.net ([195.20.207.177]:37603 "EHLO
-	vps1.henriknordstrom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756027AbYETXxa (ORCPT
+Received: from rv-out-0506.google.com ([209.85.198.234]:11425 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753559AbYEUIdz (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 20 May 2008 19:53:30 -0400
-In-Reply-To: <20080520074209.GA25258@sch.bme.hu>
+	Wed, 21 May 2008 04:33:55 -0400
+Received: by rv-out-0506.google.com with SMTP id l9so2474545rvb.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 21 May 2008 01:33:54 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi,
 
---=-MhwO3A93V/0aFifA4G6w
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+Here is a problem which I used to have with MASQUERADE,
 
-On tis, 2008-05-20 at 09:42 +0200, KOVACS Krisztian wrote:
+When the machine boots - naturally there are some connections which
 
-> Really sad - although I can understand why they did this.
->=20
-> BTW, would there be any interest in at least getting the last published
-> version compile and work on recent kernels?
+begin to flow as soon as the first ppp interface comes up...
+Some of these connections remain open for days - for example - openvpn
+and iax2 trunks...
 
-I attempted doing so at the last workshop, but ran into some strange
-issues. May try again.
 
-The interface between hipac and netfilter/iptables is pretty simple
-however.
+Since ppp0 always come up first, then these connections begin to flow
+via ppp0 and with the MASQ IP of ppp0...
 
-Regards
-Henrik
+Later, when the mangle-rules kick-in, these connections are being
+router via ppp4 (which is what I want)...
+So far no problem..
 
---=-MhwO3A93V/0aFifA4G6w
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.7 (GNU/Linux)
+The only problem is that these packets now exit via ppp4 but they
+continue to keep the source IP of ppp0
 
-iQCVAwUASDNkakNPQ5Kbx8daAQInagP/W4ea81PL1A5Ha+zMXIcI6hN1U8C45maf
-M3ug3LHKczHf86TxYd77PKxeDzaEAr8e62b+mPykK2l0cLgT5mXXttW6d8z1CedO
-n6Ry6WpgYeVb0YUbS4UIeQJh83vMNyNdfsJv3BY7jtKFa0xuChOrjtRgZw1Y0Rzo
-SrNW1vmkHlM=
-=pzoh
------END PGP SIGNATURE-----
 
---=-MhwO3A93V/0aFifA4G6w--
+Ok, I tried to use the userspace conntrack-tool to search and remove
+these entries, but this tool doesn't allow me to do something like this
 
+$> conntrack -L conntrack -d IP
+
+...without asking me the complete tuple-information. I can't delete every
+
+entry with a specific IP either without providing a complete tuple.
+
+
+Maybe we could add a parameter to the target masquerade, which could add
+a flag in the conntrack that would mean "don't use the conntrack entry, we
+
+want to go through the MASQUERADING code again".
+
+What you guys think it should be wise to do ?
+
+thank you
+Nick
