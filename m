@@ -1,31 +1,35 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [ULOGD2] missing file Rules.make.in needed by configure.in
-Date: Wed, 21 May 2008 11:42:50 +0200
-Message-ID: <4833EE9A.3010507@trash.net>
-References: <200805211055.42278.Hugo.Mildenberger@t-online.de>
+Subject: Re: netfilter moving to git
+Date: Wed, 21 May 2008 11:43:35 +0200
+Message-ID: <4833EEC7.2080503@trash.net>
+References: <48299680.7020808@trash.net> <alpine.LNX.1.10.0805131614570.448@fbirervta.pbzchgretzou.qr> <4829A316.2080402@trash.net> <alpine.LNX.1.10.0805170930120.15590@fbirervta.pbzchgretzou.qr> <482F938D.3060405@trash.net> <alpine.LNX.1.10.0805210031520.15136@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Hugo Mildenberger <Hugo.Mildenberger@t-online.de>
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:34889 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:34910 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933677AbYEUJmv (ORCPT
+	with ESMTP id S1759952AbYEUJnf (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 21 May 2008 05:42:51 -0400
-In-Reply-To: <200805211055.42278.Hugo.Mildenberger@t-online.de>
+	Wed, 21 May 2008 05:43:35 -0400
+In-Reply-To: <alpine.LNX.1.10.0805210031520.15136@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hugo Mildenberger wrote:
-> Running autogen.sh from current ulogd2.git  results in the following error:
+Jan Engelhardt wrote:
+> On Sunday 2008-05-18 04:25, Patrick McHardy wrote:
+>> Jan Engelhardt wrote:
+>>> And the log difference you can see in
+>>> http://dev.medozas.de/files/.iptables-xtables.txt
+>>> I suggest you take a look.
+>> The committer and author name fixups certainly look nicer,
 > 
-> ~/git/ulogd2$ ./autogen.sh
-> configure.in: installing `./install-sh'
-> configure.in: installing `./missing'
-> filter/Makefile.am: installing `./depcomp'
-> configure.in:75: required file `Rules.make.in' not found
+> well would you accept a script that filters the repository
+> to put proper committer/author in place?
 
-Yes, the repository is broken currently. We're looking
-into it.
+Mhh .. I guess I would if its soon, before too many people
+have started using that tree.
+
