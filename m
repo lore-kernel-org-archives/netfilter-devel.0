@@ -1,39 +1,32 @@
 From: Thomas Jacob <jacob@internet24.de>
 Subject: Re: Plans for future iptables versions / jumpset feature
-Date: Thu, 22 May 2008 22:27:16 +0200
-Message-ID: <20080522202715.GA28875@internet24.de>
-References: <1211482843.28066.40.camel@enterprise.ims-firmen.de> <4835C6F0.5080604@trash.net> <alpine.LNX.1.10.0805222140160.9332@fbirervta.pbzchgretzou.qr>
+Date: Thu, 22 May 2008 22:47:16 +0200
+Message-ID: <20080522204716.GA29008@internet24.de>
+References: <1211482843.28066.40.camel@enterprise.ims-firmen.de> <4835C6F0.5080604@trash.net> <20080522201419.GA28832@internet24.de> <4835D511.7030503@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailout02.ims-firmen.de ([213.174.32.97]:60155 "EHLO
-	mailout02.ims-firmen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752234AbYEVU1R (ORCPT
+Received: from mailout01.ims-firmen.de ([213.174.32.96]:52467 "EHLO
+	mailout01.ims-firmen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755060AbYEVUrS (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 May 2008 16:27:17 -0400
+	Thu, 22 May 2008 16:47:18 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.LNX.1.10.0805222140160.9332@fbirervta.pbzchgretzou.qr>
+In-Reply-To: <4835D511.7030503@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> There have been a few changes regarding insertion speed. Even if one
-> has 500 rules (see that URL), they can probably be optimized using
-> IPMARK or chaintrees. 
+On Thu, May 22, 2008 at 10:18:25PM +0200, Patrick McHardy wrote:
+> Not implemented yet, but I'm probably going to add this as an option
+> (since it may affect the choice of data structure). For jumps its
+> tricky though because loop detection has to be performed.
 
-I was thinking more along the lines of >100k rules. Iptables
-can easily handles those numbers at the moment, it's just a bit
-awkward to deal with.
-
-By chaintrees I presume you mean trees of iptables chains and not
-some sort of tool named this way?
-
-> Also, one should use iptables-restore for
-> updates, at least when changing more than one rule in a go. Lots of
-> people fail to actually use it.
-
-To be sure, but I am also interested in improving the time required
-to find to correct chain given 1000s or 10000s of ip to chain mappings
-and of course the usability of a construct like that.
-
+I don't see why this always has to be performed. There so many ways
+to break your system when you're root, so being required to define a loop
+free rule sets after specifying some kind of "yes I really want to"-
+option should be that much of a burden. As far as I understand
+the code, the loop checking at the moment is done in userspace, so
+nobody stops you from simply removing that part from the iptables
+code.
