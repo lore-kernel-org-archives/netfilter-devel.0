@@ -1,64 +1,77 @@
-From: Pekka J Enberg <penberg@cs.helsinki.fi>
-Subject: [PATCH] netfilter: use krealloc() in nf_conntrack_extend.c V2
-Date: Thu, 22 May 2008 21:55:37 +0300 (EEST)
-Message-ID: <Pine.LNX.4.64.0805222155150.6294@sbz-30.cs.Helsinki.FI>
-References: <Pine.LNX.4.64.0805222145320.6071@sbz-30.cs.Helsinki.FI>
+From: Thomas Jacob <jacob@internet24.de>
+Subject: Plans for future iptables versions / jumpset feature
+Date: Thu, 22 May 2008 21:00:43 +0200
+Message-ID: <1211482843.28066.40.camel@enterprise.ims-firmen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, mpm@selenic.com, clameter@sgi.com
-To: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from courier.cs.helsinki.fi ([128.214.9.1]:53880 "EHLO
-	mail.cs.helsinki.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750994AbYEVSzi (ORCPT
+Received: from mailout02.ims-firmen.de ([213.174.32.97]:54152 "EHLO
+	mailout02.ims-firmen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751978AbYEVTAp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 May 2008 14:55:38 -0400
-In-Reply-To: <Pine.LNX.4.64.0805222145320.6071@sbz-30.cs.Helsinki.FI>
+	Thu, 22 May 2008 15:00:45 -0400
+Received: from mailin01.ims-firmen.de ([192.168.1.110])
+	by mailout02.ims-firmen.de with esmtp (Exim 4.67)
+	(envelope-from <jacob@internet24.de>)
+	id 1JzG1r-0001NL-Lw
+	for netfilter-devel@vger.kernel.org; Thu, 22 May 2008 21:00:43 +0200
+Received: from [213.174.32.254] (helo=[192.168.0.170])
+	by mailin01.ims-firmen.de with esmtpsa (TLSv1:DHE-RSA-AES256-SHA:256)
+	(Exim 4.69)
+	(envelope-from <jacob@internet24.de>)
+	id 1JzG1r-00034n-KK
+	for netfilter-devel@vger.kernel.org; Thu, 22 May 2008 21:00:43 +0200
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-To: kaber@trash.net
-[PATCH] netfilter: use krealloc() in nf_conntrack_extend.c V2
-From: Pekka Enberg <penberg@cs.helsinki.fi>
+Hello list,
 
-The ksize() API is going away because it is being abused and it doesn't even
-work consistenly across different allocators. Therefore, convert
-net/netfilter/nf_conntrack_extend.c to use krealloc().
+In a reply to a post last week about netfilter/iptables's performance
+(see below for link), Patrick McHardy wrote about him working 
+on a successor to iptables that would be able to manipulate
+single rules in a set without any need to replace the whole
+ruleset, and that would also include native support
+for match sets and the like:
 
-Cc: <netfilter-devel@vger.kernel.org>
-Cc: <netdev@vger.kernel.org>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Christoph Lameter <clameter@sgi.com>
-Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
----
-Patrick, please use this patch instead. The previous one did the moving
-unconditionally which is wrong. This one moves entries around only if
-krealloc() allocated a new buffer.
+http://marc.info/?l=netfilter-devel&m=121085934512644
 
- net/netfilter/nf_conntrack_extend.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+Are the plans for that online somewhere? Is there
+a envisioned time line?
 
-Index: slab-2.6/net/netfilter/nf_conntrack_extend.c
-===================================================================
---- slab-2.6.orig/net/netfilter/nf_conntrack_extend.c	2008-05-22 21:52:12.000000000 +0300
-+++ slab-2.6/net/netfilter/nf_conntrack_extend.c	2008-05-22 21:52:26.000000000 +0300
-@@ -88,13 +88,11 @@
- 	newlen = newoff + t->len;
- 	rcu_read_unlock();
- 
--	if (newlen >= ksize(ct->ext)) {
--		new = kmalloc(newlen, gfp);
--		if (!new)
--			return NULL;
--
--		memcpy(new, ct->ext, ct->ext->len);
-+	new = krealloc(ct->ext, newlen, gfp);
-+	if (!new)
-+		return NULL;
- 
-+	if (new != ct->ext) {
- 		for (i = 0; i < NF_CT_EXT_NUM; i++) {
- 			if (!nf_ct_ext_exist(ct, i))
- 				continue;
+I'm asking because I'm thinking about whether or not
+it's feasible and/or sensibly to write some kind
+of target module that I'm choosing to call "jumpset" for now, that
+would act as a fast (>O(log(n)) "jump diststribution point".
+
+The idea is to have a mapping between a a potentially large set of IP
+addresses and the chain/target space, so one could have a different
+"next chain" for each  different source/target IP or possibly
+source/target network. The internal implementation of the necessary
+data structures would be something along the lines of the ipset
+extension. 
+
+The application would be being able to provide customized
+rule sets for lots of different machines at just a few central netfilter
+boxen. Or perhaps to block traffic from different attack sources in
+completely different ways in an IDS/IPS system.
+
+In some cases one could of course achieve a similar functionality by
+constructing rule trees with the existing standard distribution but that
+could create a huge number of rules that simply link to the next chain
+and in general looks rather messy.
+
+But if iptables will be fundamentally different next year or if
+it will already contain something similar, it would probably not be very
+productive to work on such a module.
+
+Also if this whole idea is stupid, a waste of time, has already been
+done or whatever, I'd really like to know.
+
+Any thoughts on this would be very welcome.
+
+    Regards,
+        Thomas
+
+
