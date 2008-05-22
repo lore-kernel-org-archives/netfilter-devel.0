@@ -1,45 +1,85 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: netfilter moving to git
-Date: Thu, 22 May 2008 17:32:02 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0805221731350.9332@fbirervta.pbzchgretzou.qr>
-References: <48299680.7020808@trash.net> <alpine.LNX.1.10.0805131614570.448@fbirervta.pbzchgretzou.qr> <4829A316.2080402@trash.net> <alpine.LNX.1.10.0805170930120.15590@fbirervta.pbzchgretzou.qr> <482F938D.3060405@trash.net>
- <alpine.LNX.1.10.0805210031520.15136@fbirervta.pbzchgretzou.qr> <4833EEC7.2080503@trash.net> <alpine.LNX.1.10.0805211803020.15136@fbirervta.pbzchgretzou.qr> <48345095.8000601@trash.net> <alpine.LNX.1.10.0805211843260.15136@fbirervta.pbzchgretzou.qr>
- <4835815B.5060505@trash.net> <alpine.LNX.1.10.0805221639380.9332@fbirervta.pbzchgretzou.qr> <48358785.6010003@trash.net>
+From: "Kris Op de Beeck" <kris.op.de.beeck@newtec.eu>
+Subject: Re: DNAT sporadically doesn't replace destination IP address
+Date: Thu, 22 May 2008 17:34:20 +0200
+Message-ID: <4835AE9B.B932.00FE.0@newtec.eu>
+References: <4835A03D.B932.00FE.0@newtec.eu> <483589C0.4080006@trash.net>
+ <4835ABD2.B932.00FE.0@newtec.eu> <4835913A.4020909@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
+Cc: "Ulrik De Bie" <ulrik.debie@newtec.eu>, <netdev@vger.kernel.org>,
+	"Netfilter Development Mailinglist" <netfilter-devel@vger.kernel.org>
+To: "Patrick McHardy" <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:44149 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752647AbYEVPcD (ORCPT
+Received: from mail.newtec.eu ([62.58.98.194]:1864 "EHLO mail.newtec.eu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752732AbYEVPfK convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 May 2008 11:32:03 -0400
-In-Reply-To: <48358785.6010003@trash.net>
+	Thu, 22 May 2008 11:35:10 -0400
+In-Reply-To: <4835913A.4020909@trash.net>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Thursday 2008-05-22 16:47, Patrick McHardy wrote:
-> Jan Engelhardt wrote:
->> On Thursday 2008-05-22 16:21, Patrick McHardy wrote:
->> > > Whoops, needs /files/ in the middle:
->> > >  http://dev.medozas.de/files/iptables-rw.tar.bz2
->> > Thanks. It does a lot of rewrites, but then fails with:
->> >
->> > ../runme3: line 7: /tmp/ipt-log/iptables.aux/add-tags: No such file or
->> > directory
->> >
->> > That file seems to be missing from the archive.
->> >
->> I added it now. (I used selective wildcards because there are other rewrite
->> scripts in the original directory, like do_rewrite2 which is an interactive
->> rewrite.)
->
-> One thing I forgot - are you OK with putting your scripts
-> and files somewhere public on the netfilter servers?
-> I would like people to be able to recreate identical
-> SVN imports themselves for verification.
->
-Just push the tarball, I release it in the public domain.
+
+>>> On 22/05/2008 at 17:28, in message <4835913A.4020909@trash.net>, Patrick
+McHardy <kaber@trash.net> wrote:
+> Kris Op de Beeck wrote:
+>> 
+>>>>> On 22/05/2008 at 16:57, in message <483589C0.4080006@trash.net>, Patrick
+>> McHardy <kaber@trash.net> wrote:
+>>> Please try loading ipt_LOG and executing
+>>>
+>>> "echo 255 >/proc/sys/net/netfilter/nf_conntrack_log_invalid"
+>>>
+>>> and see if something shows up in the ringbuffer.
+>> 
+>> [  917.584000] nf_ct_tcp: invalid SYNIN= OUT= SRC=192.168.1.23 DST=10.9.9.22 
+> LEN=60 TOS=0x00 PREC=0x00 TTL=64 ID=3257 DF PROTO=TCP SPT=40018 DPT=80 
+> SEQ=1136088214 ACK=0 WINDOW=5840 RES=0x00 SYN URGP=0 OPT 
+> (020405B40402080A00025B1C0000000001030307) UID=1000
+>> [  918.800000] nf_ct_tcp: invalid SYNIN= OUT= SRC=192.168.1.22 DST=10.9.9.21 
+> LEN=60 TOS=0x00 PREC=0x00 TTL=64 ID=26411 DF PROTO=TCP SPT=47713 DPT=80 
+> SEQ=1041054567 ACK=0 WINDOW=5840 RES=0x00 SYN URGP=0 OPT 
+> (020405B40402080A00025C4C0000000001030307) UID=1000
+>> [  921.800000] nf_ct_tcp: invalid SYNIN= OUT= SRC=192.168.1.22 DST=10.9.9.21 
+> LEN=60 TOS=0x00 PREC=0x00 TTL=64 ID=26412 DF PROTO=TCP SPT=47713 DPT=80 
+> SEQ=1041054567 ACK=0 WINDOW=5840 RES=0x00 SYN URGP=0 OPT 
+> (020405B40402080A00025F3A0000000001030307) UID=1000
+>> [  924.204000] nf_ct_tcp: invalid SYNIN= OUT= SRC=192.168.1.30 DST=10.9.9.29 
+> LEN=60 TOS=0x00 PREC=0x00 TTL=64 ID=25744 DF PROTO=TCP SPT=52775 DPT=80 
+> SEQ=2154890499 ACK=0 WINDOW=5840 RES=0x00 SYN URGP=0 OPT 
+> (020405B40402080A000261930000000001030307) UID=1000
+>> [  927.204000] nf_ct_tcp: invalid SYNIN= OUT= SRC=192.168.1.30 DST=10.9.9.29 
+> LEN=60 TOS=0x00 PREC=0x00 TTL=64 ID=25745 DF PROTO=TCP SPT=52775 DPT=80 
+> SEQ=2154890499 ACK=0 WINDOW=5840 RES=0x00 SYN URGP=0 OPT 
+> (020405B40402080A000264810000000001030307) UID=1000
+>> 
+>> For those DST ip addresses I've got failures
+> 
+> Which kernel is this test running on? That message
+> is gone since 2.6.22.
+
+s3p@burnin:~$ uname -a
+Linux burnin 2.6.22-14-generic #1 SMP Sun Oct 14 23:05:12 GMT 2007 i686 GNU/Linux
+
+This was the config where I detected the problem. (Ubuntu 7.10)
+
+Newtec will be present at the following exhibitions :
+
+CommunicAsia, 17-20 June, Singapore, Booth 6B2-01
+
+*** e-mail confidentiality footer ***
+This message and any attachments thereto are confidential. They may also
+be privileged or otherwise protected by work product immunity or other
+legal rules. If you have received it by mistake, please let us know by
+e-mail reply and delete it from your system; you may not copy this
+message or disclose its contents to anyone.
+E-mail transmission cannot be guaranteed to be secure or error free as
+information could be intercepted, corrupted, lost, destroyed, arrive
+late or incomplete, or contain viruses. The sender therefore is in no
+way liable for any errors or omissions in the content of this message,
+which may arise as a result of e-mail transmission. If verification is
+required, please request a hard copy.
+
