@@ -1,28 +1,52 @@
-From: Pekka Enberg <penberg@cs.helsinki.fi>
-Subject: Re: [PATCH] netfilter: use krealloc() in nf_conntrack_extend.c V2
-Date: Thu, 22 May 2008 22:07:11 +0300
-Message-ID: <4835C45F.5030201@cs.helsinki.fi>
-References: <Pine.LNX.4.64.0805222145320.6071@sbz-30.cs.Helsinki.FI> <Pine.LNX.4.64.0805222155150.6294@sbz-30.cs.Helsinki.FI> <4835C41E.2010502@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 3/4] add support for modifying secmark via ctnetlink
+Date: Thu, 22 May 2008 21:08:03 +0200
+Message-ID: <4835C493.60804@trash.net>
+References: <483350D3.50103@netfilter.org>	 <Xine.LNX.4.64.0805212129150.19104@us.intercode.com.au>	 <48340EC9.3020507@trash.net>  <200805211246.07481.paul.moore@hp.com>	 <1211388856.7486.366.camel@moss-spartans.epoch.ncsc.mil>	 <4834582D.8090009@trash.net> <1211479919.7486.507.camel@moss-spartans.epoch.ncsc.mil>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, mpm@selenic.com, clameter@sgi.com
-To: Patrick McHardy <kaber@trash.net>
+Cc: Paul Moore <paul.moore@hp.com>, James Morris <jmorris@namei.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Stephen Smalley <sds@tycho.nsa.gov>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from courier.cs.helsinki.fi ([128.214.9.1]:47166 "EHLO
-	mail.cs.helsinki.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752006AbYEVTJV (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:44550 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753211AbYEVTJp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 May 2008 15:09:21 -0400
-In-Reply-To: <4835C41E.2010502@trash.net>
+	Thu, 22 May 2008 15:09:45 -0400
+In-Reply-To: <1211479919.7486.507.camel@moss-spartans.epoch.ncsc.mil>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy wrote:
-> Unfortunately this means we'll always have to reallocate, even
-> if there's still some room left from the previous allocation.
-> Any chance to avoid that?
+Stephen Smalley wrote:
+> On Wed, 2008-05-21 at 19:13 +0200, Patrick McHardy wrote:
+>   
+>> Stephen Smalley wrote:
+>>     
+>>> On Wed, 2008-05-21 at 12:46 -0400, Paul Moore wrote:
+>>>       
+>>>> I agree with James that we need to perform some access check before 
+>>>> setting the ct->secmark field, however, I don't think it is as simple 
+>>>> as calling selinux_secmark_relabel_packet_permission().  The problem is 
+>>>> that the selinux_secmark_relabel_packet_permission() function checks to 
+>>>> see if the currently running task can relabel packets; in this case we 
+>>>> don't want to check the currently running task we want to check the 
+>>>> sender of the netlink message which we can't really do currently.
+>>>>         
+>>> Sending task SID is saved in NETLINK_CB(skb).sid at send time, so the
+>>> information is available (but would need to be passed into the
+>>> function).
+>>>       
+>> This part can actually be removed from af_netlink, see the message
+>> I just sent to Paul for reference.
+>>     
+>
+> So eff_cap, loginuid, sessionid, and sid no longer need to be saved in
+> netlink_skb_parms?  Current users include security modules and audit.
+>   
 
-No, no, krealloc() avoids reallocation if there's enough room in the 
-buffer to fit newlen.
+Yes, these four members can be removed.
+
