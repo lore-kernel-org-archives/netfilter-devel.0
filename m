@@ -1,33 +1,29 @@
-From: Thomas Jacob <jacob@internet24.de>
-Subject: Re: Plans for future iptables versions / jumpset feature
-Date: Thu, 22 May 2008 23:43:41 +0200
-Message-ID: <20080522214341.GA29142@internet24.de>
-References: <1211482843.28066.40.camel@enterprise.ims-firmen.de> <4835C6F0.5080604@trash.net> <20080522201419.GA28832@internet24.de> <4835D511.7030503@trash.net> <20080522204716.GA29008@internet24.de> <4835DCEF.8060002@trash.net>
+From: "Torrez-Bowen Group" <louietorrez@gmail.com>
+Subject: Returning calls make $500 - $3,500......OR MORE
+Date: Thu, 22 May 2008 17:26:58 -0600
+Message-ID: <CHILKAT-MID-bfcce13f-9168-4532-bc0b-57231f45ffa7@rebecca-8b86a3d>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailout01.ims-firmen.de ([213.174.32.96]:56429 "EHLO
-	mailout01.ims-firmen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933741AbYEVVnn (ORCPT
+Received: from py-out-1112.google.com ([64.233.166.182]:53640 "EHLO
+	py-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757236AbYEVX1A convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 May 2008 17:43:43 -0400
-Content-Disposition: inline
-In-Reply-To: <4835DCEF.8060002@trash.net>
+	Thu, 22 May 2008 19:27:00 -0400
+Received: by py-out-1112.google.com with SMTP id p76so268958pyb.10
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 May 2008 16:27:00 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, May 22, 2008 at 10:51:59PM +0200, Patrick McHardy wrote:
-> No, its done in the kernel. I also don't buy this argument.
+I would to teach you how.... you can Generate $500, $1000, $2000 or
+More a day.
 
-Oh yes, mark_source_chains, sorry
+Just Call me.... Now!
 
-> Sure, you can wreck your system if you really want to, but
-> it should be prevented to do so accidentally. Additionally,
-> if you consider setups with limited root powers, this becomes
-> a serious bug.
+ask for louie
 
-Well if you can't wreck your system this way now, creating such
-a possibility wouldn't be so good... agreed.
+
+1-575-445-9382
 
