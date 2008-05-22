@@ -1,39 +1,41 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH] linux-next: Tree for May 21 - build failure with
-	netfilter on __nf_ct_helper_find()
-Date: Thu, 22 May 2008 10:15:46 +0200
-Message-ID: <20080522081546.GB7222@elte.hu>
-References: <20080521155936.466bbe86.sfr@canb.auug.org.au> <20080521113230.GA10830@linux.vnet.ibm.com> <20080521225214.507eb400.sfr@canb.auug.org.au> <4834239D.90500@linux.vnet.ibm.com> <20080522101148.fbabee96.sfr@canb.auug.org.au>
+From: Fabian Hugelshofer <hugelshofer2006@gmx.ch>
+Subject: [PATCH 2/3] set SEEN_REPLY before destroying conntrack on TCP RST
+Date: Thu, 22 May 2008 10:13:21 +0100
+Message-ID: <1211447601.6878.38.camel@pumper.lan.luxnet.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>,
-	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org, apw@shadowen.org,
-	Franck Bui-Huu <fbuihuu@gmail.com>,
-	Andrew Morton <akpm@linux-foundation.org>
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S934688AbYEVIQ2@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20080522101148.fbabee96.sfr@canb.auug.org.au>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.gmx.net ([213.165.64.20]:34020 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1761353AbYEVJNX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 22 May 2008 05:13:23 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
+
+=EF=BB=BFIf a connection fails with a TCP reset, the conntrack is destr=
+oyed=20
+immediately. This patch sets the SEEN_REPLY bit before destroying the=20
+conntrack.
+
+--- linux-2.6.25.4.orig/net/netfilter/nf_conntrack_proto_tcp.c	2008-05-=
+20 21:05:06.000000000 +0100
++++ linux-2.6.25.4/net/netfilter/nf_conntrack_proto_tcp.c	2008-05-21 09=
+:41:15.000000000 +0100
+@@ -962,6 +962,8 @@
+ 		   problem case, so we can delete the conntrack
+ 		   immediately.  --RR */
+ 		if (th->rst) {
++			if (ctinfo >=3D IP_CT_IS_REPLY)
++				set_bit(IPS_SEEN_REPLY_BIT, &ct->status);
+ 			if (del_timer(&ct->timeout))
+ 				ct->timeout.function((unsigned long)ct);
+ 			return NF_ACCEPT;
 
 
-* Stephen Rothwell <sfr@canb.auug.org.au> wrote:
-
-> Actually this is caused by the splitting out of the rcu stuff from 
-> list.h that is in linux-next, sorry.
-
-this bug has been fixed in the -tip tree 9 days ago:
-
-|  commit db3c7a9f07a212d1774e6b432a08b231340e984d
-|  Author: Ingo Molnar <mingo@elte.hu>
-|  Date:   Tue May 13 15:37:05 2008 +0200
-
-that commit was in intermediate testing phase in the 'scratch' branch, 
-and a few days ago linux-next stopped picking up the scratch branch.
-
-I've now cherry-picked this fix over into the rcu branch and everything 
-should be fine again in the next linux-next iteration.
-
-	Ingo
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
