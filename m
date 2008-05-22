@@ -1,53 +1,78 @@
-From: Stephen Smalley <sds@tycho.nsa.gov>
-Subject: Re: [PATCH 3/4] add support for modifying secmark via ctnetlink
-Date: Thu, 22 May 2008 14:11:59 -0400
-Message-ID: <1211479919.7486.507.camel@moss-spartans.epoch.ncsc.mil>
-References: <483350D3.50103@netfilter.org>
-	 <Xine.LNX.4.64.0805212129150.19104@us.intercode.com.au>
-	 <48340EC9.3020507@trash.net>  <200805211246.07481.paul.moore@hp.com>
-	 <1211388856.7486.366.camel@moss-spartans.epoch.ncsc.mil>
-	 <4834582D.8090009@trash.net>
+From: Pekka J Enberg <penberg@cs.helsinki.fi>
+Subject: [PATCH] netfilter: use krealloc() in nf_conntrack_extend.c
+Date: Thu, 22 May 2008 21:47:34 +0300 (EEST)
+Message-ID: <Pine.LNX.4.64.0805222145320.6071@sbz-30.cs.Helsinki.FI>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Paul Moore <paul.moore@hp.com>, James Morris <jmorris@namei.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, mpm@selenic.com, clameter@sgi.com
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from zombie.ncsc.mil ([144.51.88.131]:45378 "EHLO zombie.ncsc.mil"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752486AbYEVSM2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 May 2008 14:12:28 -0400
-In-Reply-To: <4834582D.8090009@trash.net>
+Received: from courier.cs.helsinki.fi ([128.214.9.1]:47353 "EHLO
+	mail.cs.helsinki.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751253AbYEVSrh (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 22 May 2008 14:47:37 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+From: Pekka Enberg <penberg@cs.helsinki.fi>
 
-On Wed, 2008-05-21 at 19:13 +0200, Patrick McHardy wrote:
-> Stephen Smalley wrote:
-> > On Wed, 2008-05-21 at 12:46 -0400, Paul Moore wrote:
-> >>
-> >> I agree with James that we need to perform some access check before 
-> >> setting the ct->secmark field, however, I don't think it is as simple 
-> >> as calling selinux_secmark_relabel_packet_permission().  The problem is 
-> >> that the selinux_secmark_relabel_packet_permission() function checks to 
-> >> see if the currently running task can relabel packets; in this case we 
-> >> don't want to check the currently running task we want to check the 
-> >> sender of the netlink message which we can't really do currently.
-> > 
-> > Sending task SID is saved in NETLINK_CB(skb).sid at send time, so the
-> > information is available (but would need to be passed into the
-> > function).
-> 
-> This part can actually be removed from af_netlink, see the message
-> I just sent to Paul for reference.
+The ksize() API is going away because it is being abused and it doesn't even
+work consistenly across different allocators. Therefore, convert the use 
+of ksize() in net/netfilter/nf_conntrack_extend.c to krealloc() that is 
+open-coded there.
 
-So eff_cap, loginuid, sessionid, and sid no longer need to be saved in
-netlink_skb_parms?  Current users include security modules and audit.
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
+---
+ net/netfilter/nf_conntrack_extend.c |   31 +++++++++++++------------------
+ 1 file changed, 13 insertions(+), 18 deletions(-)
 
--- 
-Stephen Smalley
-National Security Agency
-
+Index: slab-2.6/net/netfilter/nf_conntrack_extend.c
+===================================================================
+--- slab-2.6.orig/net/netfilter/nf_conntrack_extend.c	2008-05-22 21:38:14.000000000 +0300
++++ slab-2.6/net/netfilter/nf_conntrack_extend.c	2008-05-22 21:38:21.000000000 +0300
+@@ -88,27 +88,22 @@
+ 	newlen = newoff + t->len;
+ 	rcu_read_unlock();
+ 
+-	if (newlen >= ksize(ct->ext)) {
+-		new = kmalloc(newlen, gfp);
+-		if (!new)
+-			return NULL;
++	new = krealloc(ct->ext, newlen, gfp);
++	if (!new)
++		return NULL;
+ 
+-		memcpy(new, ct->ext, ct->ext->len);
+-
+-		for (i = 0; i < NF_CT_EXT_NUM; i++) {
+-			if (!nf_ct_ext_exist(ct, i))
+-				continue;
++	for (i = 0; i < NF_CT_EXT_NUM; i++) {
++		if (!nf_ct_ext_exist(ct, i))
++			continue;
+ 
+-			rcu_read_lock();
+-			t = rcu_dereference(nf_ct_ext_types[i]);
+-			if (t && t->move)
+-				t->move((void *)new + new->offset[i],
+-					(void *)ct->ext + ct->ext->offset[i]);
+-			rcu_read_unlock();
+-		}
+-		kfree(ct->ext);
+-		ct->ext = new;
++		rcu_read_lock();
++		t = rcu_dereference(nf_ct_ext_types[i]);
++		if (t && t->move)
++			t->move((void *)new + new->offset[i],
++				(void *)ct->ext + ct->ext->offset[i]);
++		rcu_read_unlock();
+ 	}
++	ct->ext = new;
+ 
+ 	ct->ext->offset[id] = newoff;
+ 	ct->ext->len = newlen;
