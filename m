@@ -1,37 +1,45 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: DNAT sporadically doesn't replace destination IP address
-Date: Thu, 22 May 2008 17:28:58 +0200
-Message-ID: <4835913A.4020909@trash.net>
-References: <4835A03D.B932.00FE.0@newtec.eu> <483589C0.4080006@trash.net> <4835ABD2.B932.00FE.0@newtec.eu>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: netfilter moving to git
+Date: Thu, 22 May 2008 17:32:02 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0805221731350.9332@fbirervta.pbzchgretzou.qr>
+References: <48299680.7020808@trash.net> <alpine.LNX.1.10.0805131614570.448@fbirervta.pbzchgretzou.qr> <4829A316.2080402@trash.net> <alpine.LNX.1.10.0805170930120.15590@fbirervta.pbzchgretzou.qr> <482F938D.3060405@trash.net>
+ <alpine.LNX.1.10.0805210031520.15136@fbirervta.pbzchgretzou.qr> <4833EEC7.2080503@trash.net> <alpine.LNX.1.10.0805211803020.15136@fbirervta.pbzchgretzou.qr> <48345095.8000601@trash.net> <alpine.LNX.1.10.0805211843260.15136@fbirervta.pbzchgretzou.qr>
+ <4835815B.5060505@trash.net> <alpine.LNX.1.10.0805221639380.9332@fbirervta.pbzchgretzou.qr> <48358785.6010003@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Ulrik De Bie <ulrik.debie@newtec.eu>, netdev@vger.kernel.org,
-	Netfilter Development Mailinglist
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
-To: Kris Op de Beeck <kris.op.de.beeck@newtec.eu>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4835ABD2.B932.00FE.0@newtec.eu>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:44149 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752647AbYEVPcD (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 22 May 2008 11:32:03 -0400
+In-Reply-To: <48358785.6010003@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Kris Op de Beeck wrote:
-> 
->>>> On 22/05/2008 at 16:57, in message <483589C0.4080006@trash.net>, Patrick
-> McHardy <kaber@trash.net> wrote:
->> Please try loading ipt_LOG and executing
->>
->> "echo 255 >/proc/sys/net/netfilter/nf_conntrack_log_invalid"
->>
->> and see if something shows up in the ringbuffer.
-> 
-> [  917.584000] nf_ct_tcp: invalid SYNIN= OUT= SRC=192.168.1.23 DST=10.9.9.22 LEN=60 TOS=0x00 PREC=0x00 TTL=64 ID=3257 DF PROTO=TCP SPT=40018 DPT=80 SEQ=1136088214 ACK=0 WINDOW=5840 RES=0x00 SYN URGP=0 OPT (020405B40402080A00025B1C0000000001030307) UID=1000
-> [  918.800000] nf_ct_tcp: invalid SYNIN= OUT= SRC=192.168.1.22 DST=10.9.9.21 LEN=60 TOS=0x00 PREC=0x00 TTL=64 ID=26411 DF PROTO=TCP SPT=47713 DPT=80 SEQ=1041054567 ACK=0 WINDOW=5840 RES=0x00 SYN URGP=0 OPT (020405B40402080A00025C4C0000000001030307) UID=1000
-> [  921.800000] nf_ct_tcp: invalid SYNIN= OUT= SRC=192.168.1.22 DST=10.9.9.21 LEN=60 TOS=0x00 PREC=0x00 TTL=64 ID=26412 DF PROTO=TCP SPT=47713 DPT=80 SEQ=1041054567 ACK=0 WINDOW=5840 RES=0x00 SYN URGP=0 OPT (020405B40402080A00025F3A0000000001030307) UID=1000
-> [  924.204000] nf_ct_tcp: invalid SYNIN= OUT= SRC=192.168.1.30 DST=10.9.9.29 LEN=60 TOS=0x00 PREC=0x00 TTL=64 ID=25744 DF PROTO=TCP SPT=52775 DPT=80 SEQ=2154890499 ACK=0 WINDOW=5840 RES=0x00 SYN URGP=0 OPT (020405B40402080A000261930000000001030307) UID=1000
-> [  927.204000] nf_ct_tcp: invalid SYNIN= OUT= SRC=192.168.1.30 DST=10.9.9.29 LEN=60 TOS=0x00 PREC=0x00 TTL=64 ID=25745 DF PROTO=TCP SPT=52775 DPT=80 SEQ=2154890499 ACK=0 WINDOW=5840 RES=0x00 SYN URGP=0 OPT (020405B40402080A000264810000000001030307) UID=1000
-> 
-> For those DST ip addresses I've got failures
 
-Which kernel is this test running on? That message
-is gone since 2.6.22.
+On Thursday 2008-05-22 16:47, Patrick McHardy wrote:
+> Jan Engelhardt wrote:
+>> On Thursday 2008-05-22 16:21, Patrick McHardy wrote:
+>> > > Whoops, needs /files/ in the middle:
+>> > >  http://dev.medozas.de/files/iptables-rw.tar.bz2
+>> > Thanks. It does a lot of rewrites, but then fails with:
+>> >
+>> > ../runme3: line 7: /tmp/ipt-log/iptables.aux/add-tags: No such file or
+>> > directory
+>> >
+>> > That file seems to be missing from the archive.
+>> >
+>> I added it now. (I used selective wildcards because there are other rewrite
+>> scripts in the original directory, like do_rewrite2 which is an interactive
+>> rewrite.)
+>
+> One thing I forgot - are you OK with putting your scripts
+> and files somewhere public on the netfilter servers?
+> I would like people to be able to recreate identical
+> SVN imports themselves for verification.
+>
+Just push the tarball, I release it in the public domain.
