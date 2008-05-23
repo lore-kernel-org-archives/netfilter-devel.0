@@ -1,76 +1,127 @@
-From: "Kris Op de Beeck" <kris.op.de.beeck@newtec.eu>
-Subject: Re: DNAT sporadically doesn't replace destination IP address
-Date: Fri, 23 May 2008 16:16:18 +0200
-Message-ID: <4836EDCE.B932.00FE.0@newtec.eu>
-References: <4835A03D.B932.00FE.0@newtec.eu> <483589C0.4080006@trash.net>
- <4835ABD2.B932.00FE.0@newtec.eu> <4835913A.4020909@trash.net>
- <4835AE9B.B932.00FE.0@newtec.eu> <48359F66.50503@trash.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
-Cc: "Ulrik De Bie" <ulrik.debie@newtec.eu>, <netdev@vger.kernel.org>,
-	"Netfilter Development Mailinglist" <netfilter-devel@vger.kernel.org>
-To: "Patrick McHardy" <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <48359F66.50503@trash.net>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Eric Leblond <eric@inl.fr>
+Subject: [ULOGD PATCH] FIX only use overrun handling if local hash is used.
+Date: Fri, 23 May 2008 22:10:39 +0200
+Message-ID: <1211573439-12356-1-git-send-email-eric@inl.fr>
+References: <1211236295-30207-9-git-send-email-eric@inl.fr>
+Cc: Eric Leblond <eric@inl.fr>
+To: pablo@netfilter.org, netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from bayen.regit.org ([81.57.69.189]:37018 "EHLO ice-age"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1758745AbYEWUJU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 23 May 2008 16:09:20 -0400
+In-Reply-To: <1211236295-30207-9-git-send-email-eric@inl.fr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
->>> On 22/05/2008 at 18:29, in message <48359F66.50503@trash.net>, Patrick McHardy
-<kaber@trash.net> wrote:
-> Kris Op de Beeck wrote:
->> 
->>>>> On 22/05/2008 at 17:28, in message <4835913A.4020909@trash.net>, Patrick
->> McHardy <kaber@trash.net> wrote:
->>>> [  927.204000] nf_ct_tcp: invalid SYNIN= OUT= SRC=192.168.1.30 DST=10.9.9.29 
-> 
->>> LEN=60 TOS=0x00 PREC=0x00 TTL=64 ID=25745 DF PROTO=TCP SPT=52775 DPT=80 
->>> SEQ=2154890499 ACK=0 WINDOW=5840 RES=0x00 SYN URGP=0 OPT 
->>> (020405B40402080A000264810000000001030307) UID=1000
->>>> For those DST ip addresses I've got failures
->>> Which kernel is this test running on? That message
->>> is gone since 2.6.22.
->> 
->> s3p@burnin:~$ uname -a
->> Linux burnin 2.6.22-14-generic #1 SMP Sun Oct 14 23:05:12 GMT 2007 i686 
-> GNU/Linux
->> 
->> This was the config where I detected the problem. (Ubuntu 7.10)
-> 
-> 
-> I didn't find the reason why your kernel even has that message
-> (didn't try to hard though). Could you rerun the test with a
-> more current kernel, like 2.6.24 or 2.6.25 please?
+This is a fix over my previous patch. It correct a problem when hash_enable
+is set to 0.
 
-Upgraded from Ubuntu 7.10 to 8.04
+Overrun handling work by dumping the whole connection tracking table after an
+overrun. This is correct if the local hash is used but could be really bad if
+it is not the case. All entries would be flushed through the stack and arrive
+to the output module. In the case of a syslog or logemu module this will cause
+massive and useless message printing.
 
-s3p@burnin:~$ uname -a
-Linux burnin 2.6.24-16-generic #1 SMP Thu Apr 10 13:23:42 UTC 2008 i686 GNU/Linux
+This patch modify the code by activating overrun handling if and only if the
+local hash is used (hash_enable=1 which is the default).
 
-[ 7651.979390] printk: 8 messages suppressed.
-[ 7651.979395] nf_ct_tcp: invalid packet ignored IN= OUT= SRC=192.168.1.24 DST=10.9.9.23 LEN=60 TOS=0x00 PREC=0x00 TTL=64 ID=47660 DF PROTO=TCP SPT=42451 DPT=80 SEQ=3352606539 ACK=0 WINDOW=5840 RES=0x00 SYN URGP=0 OPT (020405B40402080A001C104E0000000001030307) UID=1000
-[ 7656.667006] nf_ct_tcp: invalid packet ignored IN= OUT= SRC=192.168.1.15 DST=10.9.9.14 LEN=60 TOS=0x00 PREC=0x00 TTL=64 ID=59137 DF PROTO=TCP SPT=49734 DPT=80 SEQ=3327322852 ACK=0 WINDOW=5840 RES=0x00 SYN URGP=0 OPT (020405B40402080A001C14E50000000001030307) UID=1000
+Signed-off-by: Eric Leblond <eric@inl.fr>
+---
+ input/flow/ulogd_inpflow_NFCT.c |   49 +++++++++++++++++++++++----------------
+ 1 files changed, 29 insertions(+), 20 deletions(-)
 
-Nothing works now.  Can't even ping the modems...
-
-
-
-
-Newtec will be present at the following exhibitions :
-
-CommunicAsia, 17-20 June, Singapore, Booth 6B2-01
-
-*** e-mail confidentiality footer ***
-This message and any attachments thereto are confidential. They may also
-be privileged or otherwise protected by work product immunity or other
-legal rules. If you have received it by mistake, please let us know by
-e-mail reply and delete it from your system; you may not copy this
-message or disclose its contents to anyone.
-E-mail transmission cannot be guaranteed to be secure or error free as
-information could be intercepted, corrupted, lost, destroyed, arrive
-late or incomplete, or contain viruses. The sender therefore is in no
-way liable for any errors or omissions in the content of this message,
-which may arise as a result of e-mail transmission. If verification is
-required, please request a hard copy.
+diff --git a/input/flow/ulogd_inpflow_NFCT.c b/input/flow/ulogd_inpflow_NFCT.c
+index e99f41a..8e8254a 100644
+--- a/input/flow/ulogd_inpflow_NFCT.c
++++ b/input/flow/ulogd_inpflow_NFCT.c
+@@ -625,7 +625,7 @@ static int event_handler(enum nf_conntrack_msg_type type,
+ 		.ct = ct,
+ 	};
+ 
+-	if (!usehash_ce(upi->config_kset).u.value && type == NFCT_T_DESTROY) {
++	if (!usehash_ce(upi->config_kset).u.value) {
+ 		switch(type) {
+ 		case NFCT_T_NEW:
+ 			gettimeofday(&tmp.time[START], NULL);
+@@ -732,10 +732,13 @@ static int read_cb_nfct(int fd, unsigned int what, void *param)
+ 					  "`netlink_socket_buffer_size' and "
+ 					  "`netlink_socket_buffer_maxsize'\n");
+ 			}
+-
+-			nfct_send(cpi->ovh, NFCT_Q_DUMP, &family);
+-			/* TODO: configurable retry timer */
+-			ulogd_add_timer(&cpi->ov_timer, 2);
++			
++			/* internal hash can deal with refresh */
++			if (usehash_ce(upi->config_kset).u.value != 0) {
++				nfct_send(cpi->ovh, NFCT_Q_DUMP, &family);
++				/* TODO: configurable retry timer */
++				ulogd_add_timer(&cpi->ov_timer, 2);
++			}
+ 		}
+ 	}
+ 
+@@ -880,13 +883,16 @@ static int constructor_nfct(struct ulogd_pluginstance *upi)
+ 					"set to %d\n", cpi->nlbufsiz);
+ 	}
+ 
+-	cpi->ovh = nfct_open(NFNL_SUBSYS_CTNETLINK, 0);
+-	if (!cpi->ovh) {
+-		ulogd_log(ULOGD_FATAL, "error opening ctnetlink\n");
+-		return -1;
+-	}
++	if (usehash_ce(upi->config_kset).u.value != 0) {
++		cpi->ovh = nfct_open(NFNL_SUBSYS_CTNETLINK, 0);
++		if (!cpi->ovh) {
++			ulogd_log(ULOGD_FATAL, "error opening ctnetlink\n");
++			return -1;
++		}
+ 
+-	nfct_callback_register(cpi->ovh, NFCT_T_ALL, &overrun_handler, upi);
++		nfct_callback_register(cpi->ovh, NFCT_T_ALL,
++				       &overrun_handler, upi);
++	}
+ 
+ 	cpi->pgh = nfct_open(NFNL_SUBSYS_CTNETLINK, 0);
+ 	if (!cpi->pgh) {
+@@ -903,14 +909,14 @@ static int constructor_nfct(struct ulogd_pluginstance *upi)
+ 
+ 	ulogd_register_fd(&cpi->nfct_fd);
+ 
+-	cpi->nfct_ov.fd = nfct_fd(cpi->ovh);
+-	cpi->nfct_ov.cb = &read_cb_ovh;
+-	cpi->nfct_ov.data = cpi;
+-	cpi->nfct_ov.when = ULOGD_FD_READ;
++	if (usehash_ce(upi->config_kset).u.value != 0) {
++		cpi->nfct_ov.fd = nfct_fd(cpi->ovh);
++		cpi->nfct_ov.cb = &read_cb_ovh;
++		cpi->nfct_ov.data = cpi;
++		cpi->nfct_ov.when = ULOGD_FD_READ;
+ 
+-	ulogd_register_fd(&cpi->nfct_ov);
++		ulogd_register_fd(&cpi->nfct_ov);
+ 
+-	if (usehash_ce(upi->config_kset).u.value != 0) {
+ 		cpi->ct_active =
+ 		     hashtable_create(buckets_ce(upi->config_kset).u.value,
+ 		     		      maxentries_ce(upi->config_kset).u.value,
+@@ -940,9 +946,12 @@ static int destructor_nfct(struct ulogd_pluginstance *pi)
+ 	if (rc < 0)
+ 		return rc;
+ 
+-	rc = nfct_close(cpi->ovh);
+-	if (rc < 0)
+-		return rc;
++
++	if (usehash_ce(pi->config_kset).u.value != 0) {
++		rc = nfct_close(cpi->ovh);
++		if (rc < 0)
++			return rc;
++	}
+ 
+ 	rc = nfct_close(cpi->pgh);
+ 	if (rc < 0)
+-- 
+1.5.4.3
 
