@@ -1,43 +1,76 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Plans for future iptables versions / jumpset feature
-Date: Fri, 23 May 2008 15:28:37 +0200
-Message-ID: <4836C685.90207@trash.net>
-References: <1211482843.28066.40.camel@enterprise.ims-firmen.de>	 <4835C6F0.5080604@trash.net> <00d501c8bccb$d7922000$86b66000$@com>	 <4836B562.6000302@trash.net> <1211546846.32088.8.camel@enterprise.ims-firmen.de>
+From: "Kris Op de Beeck" <kris.op.de.beeck@newtec.eu>
+Subject: Re: DNAT sporadically doesn't replace destination IP address
+Date: Fri, 23 May 2008 16:16:18 +0200
+Message-ID: <4836EDCE.B932.00FE.0@newtec.eu>
+References: <4835A03D.B932.00FE.0@newtec.eu> <483589C0.4080006@trash.net>
+ <4835ABD2.B932.00FE.0@newtec.eu> <4835913A.4020909@trash.net>
+ <4835AE9B.B932.00FE.0@newtec.eu> <48359F66.50503@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Thomas Jacob <jacob@internet24.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:36367 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752849AbYEWN2k (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 23 May 2008 09:28:40 -0400
-In-Reply-To: <1211546846.32088.8.camel@enterprise.ims-firmen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
+Cc: "Ulrik De Bie" <ulrik.debie@newtec.eu>, <netdev@vger.kernel.org>,
+	"Netfilter Development Mailinglist" <netfilter-devel@vger.kernel.org>
+To: "Patrick McHardy" <kaber@trash.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <48359F66.50503@trash.net>
+Content-Disposition: inline
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Thomas Jacob wrote:
-> On Fri, 2008-05-23 at 14:15 +0200, Patrick McHardy wrote:
->> Basically, you'd change (in ipt_do_table):
->>
->>                                  int newpos = t->verdict; 
->>
->>
->> to get the new position from the target module. This probably
->> requires to change the target function signature. Alternatively
->> you could try to encode it in the verdict. Loop detection
->> needs some way to get all possible jumps from the target
->> and check each possible path. Maybe the easiest way is probably
->> a target built into ip_tables.c
+>>> On 22/05/2008 at 18:29, in message <48359F66.50503@trash.net>, Patrick McHardy
+<kaber@trash.net> wrote:
+> Kris Op de Beeck wrote:
+>> 
+>>>>> On 22/05/2008 at 17:28, in message <4835913A.4020909@trash.net>, Patrick
+>> McHardy <kaber@trash.net> wrote:
+>>>> [  927.204000] nf_ct_tcp: invalid SYNIN= OUT= SRC=192.168.1.30 DST=10.9.9.29 
 > 
-> Out of curiosity, if Nishit would actually do it (@Nishit: if you do,
-> maybe we could work together on this?) but there are really major
-> changes afoot for netfilter during the course of this year, wouldn't
-> those changes make such an extension obsolete and/or pretty
-> difficult to port to the new netfilter?
+>>> LEN=60 TOS=0x00 PREC=0x00 TTL=64 ID=25745 DF PROTO=TCP SPT=52775 DPT=80 
+>>> SEQ=2154890499 ACK=0 WINDOW=5840 RES=0x00 SYN URGP=0 OPT 
+>>> (020405B40402080A000264810000000001030307) UID=1000
+>>>> For those DST ip addresses I've got failures
+>>> Which kernel is this test running on? That message
+>>> is gone since 2.6.22.
+>> 
+>> s3p@burnin:~$ uname -a
+>> Linux burnin 2.6.22-14-generic #1 SMP Sun Oct 14 23:05:12 GMT 2007 i686 
+> GNU/Linux
+>> 
+>> This was the config where I detected the problem. (Ubuntu 7.10)
+> 
+> 
+> I didn't find the reason why your kernel even has that message
+> (didn't try to hard though). Could you rerun the test with a
+> more current kernel, like 2.6.24 or 2.6.25 please?
 
-If its sanely designed, there shouldn't be much trouble porting
-it, especially since this feature will be implemented anyways.
+Upgraded from Ubuntu 7.10 to 8.04
+
+s3p@burnin:~$ uname -a
+Linux burnin 2.6.24-16-generic #1 SMP Thu Apr 10 13:23:42 UTC 2008 i686 GNU/Linux
+
+[ 7651.979390] printk: 8 messages suppressed.
+[ 7651.979395] nf_ct_tcp: invalid packet ignored IN= OUT= SRC=192.168.1.24 DST=10.9.9.23 LEN=60 TOS=0x00 PREC=0x00 TTL=64 ID=47660 DF PROTO=TCP SPT=42451 DPT=80 SEQ=3352606539 ACK=0 WINDOW=5840 RES=0x00 SYN URGP=0 OPT (020405B40402080A001C104E0000000001030307) UID=1000
+[ 7656.667006] nf_ct_tcp: invalid packet ignored IN= OUT= SRC=192.168.1.15 DST=10.9.9.14 LEN=60 TOS=0x00 PREC=0x00 TTL=64 ID=59137 DF PROTO=TCP SPT=49734 DPT=80 SEQ=3327322852 ACK=0 WINDOW=5840 RES=0x00 SYN URGP=0 OPT (020405B40402080A001C14E50000000001030307) UID=1000
+
+Nothing works now.  Can't even ping the modems...
+
+
+
+
+Newtec will be present at the following exhibitions :
+
+CommunicAsia, 17-20 June, Singapore, Booth 6B2-01
+
+*** e-mail confidentiality footer ***
+This message and any attachments thereto are confidential. They may also
+be privileged or otherwise protected by work product immunity or other
+legal rules. If you have received it by mistake, please let us know by
+e-mail reply and delete it from your system; you may not copy this
+message or disclose its contents to anyone.
+E-mail transmission cannot be guaranteed to be secure or error free as
+information could be intercepted, corrupted, lost, destroyed, arrive
+late or incomplete, or contain viruses. The sender therefore is in no
+way liable for any errors or omissions in the content of this message,
+which may arise as a result of e-mail transmission. If verification is
+required, please request a hard copy.
 
