@@ -1,61 +1,41 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [0/3] conntrack event kernel issues
-Date: Fri, 23 May 2008 14:20:25 +0200
-Message-ID: <4836B689.3080501@netfilter.org>
-References: <1211447573.6878.36.camel@pumper.lan.luxnet.ch> <48369678.7000905@trash.net> <4836AB4C.8030304@gmx.ch> <4836ACA9.5040507@trash.net> <4836B43E.6060306@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Plans for future iptables versions / jumpset feature
+Date: Fri, 23 May 2008 14:15:30 +0200
+Message-ID: <4836B562.6000302@trash.net>
+References: <1211482843.28066.40.camel@enterprise.ims-firmen.de> <4835C6F0.5080604@trash.net> <00d501c8bccb$d7922000$86b66000$@com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Fabian Hugelshofer <hugelshofer2006@gmx.ch>,
+Cc: 'Thomas Jacob' <jacob@internet24.de>,
 	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+To: Nishit Shah <nishit@elitecore.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51673 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751170AbYEWMMy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 23 May 2008 08:12:54 -0400
-In-Reply-To: <4836B43E.6060306@netfilter.org>
+Received: from stinky.trash.net ([213.144.137.162]:33900 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751616AbYEWMPc (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 23 May 2008 08:15:32 -0400
+In-Reply-To: <00d501c8bccb$d7922000$86b66000$@com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> Patrick McHardy wrote:
->> Fabian Hugelshofer wrote:
->>> Patrick McHardy wrote:
->>>>> patch1: export ct->status on all conntrack events
->>>>> patch2: set SEEN_REPLY before destroying a conntrack on TCP RST
->>>>> patch3: new status flag SEEN_RELATED
->>>>
->>>> I can't imagine other uses for this than the one you described,
->>>> especially for 2 and 3. Patch 3 also adds code in a hot path,
->>>> so unless someone can present good arguments in favour of these
->>>> patches, I don't really want to apply them.
->>>
->>> This is what I had expected. Especially for patch 3 I know that it's 
->>> very unlikely to be integrated because of its limited use and the 
->>> changes it makes.
->>>
->>> For not exporting the connection status on a destroy event I see no 
->>> reason. The information is there and should be exported. Might also 
->>> be interesting to have the EXPECTED or ASSURED flags.
->>
->> Yes, that one I'm fine with.
-> 
-> Indeed. It makes sense.
-> 
->>> Then there is this thing with the TCP RST. I think, that the event 
->>> data should be accurate. If the status is returned (with patch 1), 
->>> then it should have the SEEN_REPLY flag set. Another issue is that 
->>> the accounting counters are not updated. IMHO this should be done as 
->>> well (is not in my patches).
->>
->> Fully agreed about the counters. About the SEEN_REPLY bit - that
->> depends on how you define its meaning. So far its only set if
->> a valid reply for the connection is seen - which a RST isn't.
-> 
-> I'm bit lost about the thing related with the counters, what do you mean?
+Nishit Shah wrote:
+> Hi,
+> 	I am also looking/working for same thing as something like
+> "jumpset", even discussed with Patrick in last workshop regarding how to do
+> it, but it looks difficult to me by just seeing at code or understanding the
+> code without the overall impact.
+> 	It would be nice if someone can share the idea of how to do it or
+> give a lead for how to proceed.
 
-Oh! I see the TCP RST.
+Basically, you'd change (in ipt_do_table):
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+                                 int newpos = t->verdict; 
+
+
+to get the new position from the target module. This probably
+requires to change the target function signature. Alternatively
+you could try to encode it in the verdict. Loop detection
+needs some way to get all possible jumps from the target
+and check each possible path. Maybe the easiest way is probably
+a target built into ip_tables.c
