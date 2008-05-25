@@ -1,45 +1,32 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: netfilter moving to git
-Date: Mon, 26 May 2008 00:03:54 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0805260003480.19084@fbirervta.pbzchgretzou.qr>
-References: <48299680.7020808@trash.net> <alpine.LNX.1.10.0805131614570.448@fbirervta.pbzchgretzou.qr> <4829A316.2080402@trash.net> <alpine.LNX.1.10.0805170930120.15590@fbirervta.pbzchgretzou.qr> <482F938D.3060405@trash.net>
- <alpine.LNX.1.10.0805210031520.15136@fbirervta.pbzchgretzou.qr> <4833EEC7.2080503@trash.net> <alpine.LNX.1.10.0805211803020.15136@fbirervta.pbzchgretzou.qr> <48345095.8000601@trash.net> <alpine.LNX.1.10.0805211843260.15136@fbirervta.pbzchgretzou.qr>
- <4835815B.5060505@trash.net> <alpine.LNX.1.10.0805221639380.9332@fbirervta.pbzchgretzou.qr> <48358785.6010003@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] Bugzilla 482: Allow symbolic port in REDIRECT --to-port
+Date: Mon, 26 May 2008 00:39:52 +0200
+Message-ID: <4839EAB8.40509@trash.net>
+References: <20080525194048.GB22406@nereid>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Kristof Provost <Kristof@sigsegv.be>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:36025 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751016AbYEYWDz (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:40236 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751633AbYEYW4m (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 25 May 2008 18:03:55 -0400
-In-Reply-To: <48358785.6010003@trash.net>
+	Sun, 25 May 2008 18:56:42 -0400
+In-Reply-To: <20080525194048.GB22406@nereid>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Kristof Provost wrote:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+>
+> Signed-off-by: Kristof Provost <kristof@sigsegv.be>
+> - ---
+>  extensions/libipt_REDIRECT.c |    3 +++
+>  1 files changed, 3 insertions(+), 0 deletions(-)
+>   
 
-On Thursday 2008-05-22 16:47, Patrick McHardy wrote:
-> Jan Engelhardt wrote:
->> On Thursday 2008-05-22 16:21, Patrick McHardy wrote:
->> > > Whoops, needs /files/ in the middle:
->> > >  http://dev.medozas.de/files/iptables-rw.tar.bz2
->> > Thanks. It does a lot of rewrites, but then fails with:
->> >
->> > ../runme3: line 7: /tmp/ipt-log/iptables.aux/add-tags: No such file or
->> > directory
->> >
->> > That file seems to be missing from the archive.
->> >
->> I added it now. (I used selective wildcards because there are other rewrite
->> scripts in the original directory, like do_rewrite2 which is an interactive
->> rewrite.)
->
-> One thing I forgot - are you OK with putting your scripts
-> and files somewhere public on the netfilter servers?
-> I would like people to be able to recreate identical
-> SVN imports themselves for verification.
->
-Nothing happened so far?
+Applied, thanks.
+
