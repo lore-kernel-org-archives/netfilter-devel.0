@@ -1,52 +1,45 @@
-From: Kristof Provost <Kristof@sigsegv.be>
-Subject: [PATCH] Bugzilla 482: Allow symbolic port in REDIRECT --to-port
-Date: Sun, 25 May 2008 19:40:48 +0000
-Message-ID: <20080525194048.GB22406@nereid>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: netfilter moving to git
+Date: Mon, 26 May 2008 00:03:54 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0805260003480.19084@fbirervta.pbzchgretzou.qr>
+References: <48299680.7020808@trash.net> <alpine.LNX.1.10.0805131614570.448@fbirervta.pbzchgretzou.qr> <4829A316.2080402@trash.net> <alpine.LNX.1.10.0805170930120.15590@fbirervta.pbzchgretzou.qr> <482F938D.3060405@trash.net>
+ <alpine.LNX.1.10.0805210031520.15136@fbirervta.pbzchgretzou.qr> <4833EEC7.2080503@trash.net> <alpine.LNX.1.10.0805211803020.15136@fbirervta.pbzchgretzou.qr> <48345095.8000601@trash.net> <alpine.LNX.1.10.0805211843260.15136@fbirervta.pbzchgretzou.qr>
+ <4835815B.5060505@trash.net> <alpine.LNX.1.10.0805221639380.9332@fbirervta.pbzchgretzou.qr> <48358785.6010003@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; x-action=pgp-signed
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rhineheart.priorweb.be ([213.193.229.215]:45513 "HELO
-	rhineheart.priorweb.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754580AbYEYTj0 (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:36025 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751016AbYEYWDz (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 25 May 2008 15:39:26 -0400
-Received: from triton.sigsegv.be (dD5769270.access.telenet.be [213.118.146.112])
-	by rhineheart.priorweb.be (Postfix) with ESMTP
-	for <netfilter-devel@vger.kernel.org>; Sun, 25 May 2008 21:39:20 +0200 (CEST)
-Received: from nereid (unknown [172.16.0.8])
-	by triton.sigsegv.be (Postfix) with SMTP id 8D67D1D964
-	for <netfilter-devel@vger.kernel.org>; Sun, 25 May 2008 19:39:44 +0000 (UTC)
-Content-Disposition: inline
+	Sun, 25 May 2008 18:03:55 -0400
+In-Reply-To: <48358785.6010003@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
------BEGIN PGP SIGNED MESSAGE-----
-Hash: SHA1
 
-Signed-off-by: Kristof Provost <kristof@sigsegv.be>
-- ---
- extensions/libipt_REDIRECT.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
-
-diff --git a/extensions/libipt_REDIRECT.c b/extensions/libipt_REDIRECT.c
-index b4c73bb..c03562b 100644
-- --- a/extensions/libipt_REDIRECT.c
-+++ b/extensions/libipt_REDIRECT.c
-@@ -49,6 +49,9 @@ parse_ports(const char *arg, struct ip_nat_multi_range *mr)
- 		exit_error(PARAMETER_PROBLEM, "IP address not permitted\n");
- 
- 	port = atoi(arg);
-+	if (port == 0)
-+		port = service_to_port(arg, NULL);
-+
- 	if (port == 0 || port > 65535)
- 		exit_error(PARAMETER_PROBLEM, "Port `%s' not valid\n", arg);
- 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFIOcDAUEZ9DhGwDugRAlRNAJ9pWRB+JNhJtNzCmtoioWeISdScPwCeJiCi
-b3D0yAzePmT52f37CM88MrA=
-=Vph2
------END PGP SIGNATURE-----
+On Thursday 2008-05-22 16:47, Patrick McHardy wrote:
+> Jan Engelhardt wrote:
+>> On Thursday 2008-05-22 16:21, Patrick McHardy wrote:
+>> > > Whoops, needs /files/ in the middle:
+>> > >  http://dev.medozas.de/files/iptables-rw.tar.bz2
+>> > Thanks. It does a lot of rewrites, but then fails with:
+>> >
+>> > ../runme3: line 7: /tmp/ipt-log/iptables.aux/add-tags: No such file or
+>> > directory
+>> >
+>> > That file seems to be missing from the archive.
+>> >
+>> I added it now. (I used selective wildcards because there are other rewrite
+>> scripts in the original directory, like do_rewrite2 which is an interactive
+>> rewrite.)
+>
+> One thing I forgot - are you OK with putting your scripts
+> and files somewhere public on the netfilter servers?
+> I would like people to be able to recreate identical
+> SVN imports themselves for verification.
+>
+Nothing happened so far?
