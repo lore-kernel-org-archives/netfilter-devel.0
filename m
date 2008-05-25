@@ -1,46 +1,48 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: [ULOGD PATCH] Fix IPv6 packet parsing.
-Date: Fri, 23 May 2008 22:34:07 +0200
-Message-ID: <1211574847-14768-1-git-send-email-eric@inl.fr>
-Cc: Eric Leblond <eric@inl.fr>
-To: netfilter-devel@vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [0/3] conntrack event kernel issues
+Date: Sun, 25 May 2008 16:57:11 +0200
+Message-ID: <48397E47.2020305@trash.net>
+References: <1211447573.6878.36.camel@pumper.lan.luxnet.ch> <48369678.7000905@trash.net> <4836AB4C.8030304@gmx.ch> <4836ACA9.5040507@trash.net> <4836C30C.8020305@gmx.ch>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Fabian Hugelshofer <hugelshofer2006@gmx.ch>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:55398 "EHLO ice-age"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755434AbYEWUcc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 23 May 2008 16:32:32 -0400
-In-Reply-To: <>
-References: <>
+Received: from stinky.trash.net ([213.144.137.162]:64095 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753423AbYEYO5P (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 25 May 2008 10:57:15 -0400
+In-Reply-To: <4836C30C.8020305@gmx.ch>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Source and destination addresses were put in ptr field of the target structure
-instead of being put in the new type ui128. The result was an improper value
-of the IPv6 source add destination addresses.
+Fabian Hugelshofer wrote:
+> Patrick McHardy wrote:
+>>> Then there is this thing with the TCP RST. I think, that the event 
+>>> data should be accurate. If the status is returned (with patch 1), 
+>>> then it should have the SEEN_REPLY flag set. Another issue is that 
+>>> the accounting counters are not updated. IMHO this should be done as 
+>>> well (is not in my patches).
+>>
+>> Fully agreed about the counters. About the SEEN_REPLY bit - that
+>> depends on how you define its meaning. So far its only set if
+>> a valid reply for the connection is seen - which a RST isn't.
+> 
+> I consider a RST as a valid reply for a connection. It matches the tuple 
+> and is in reply direction (ctinfo is set to IS_REPLY). Further the TCP 
+> protocol handler returns no error. The SEEN_REPLY bit is actually set at 
+> the end of nf_conntrack_in() but the destroy event is already triggered 
+> by the TCP handler.
+> 
+> Increasing the counters in reply direction without setting the 
+> SEEN_REPLY bit seems a bit weird to me.
 
-Signed-off-by: Eric Leblond <eric@inl.fr>
----
- filter/raw2packet/ulogd_raw2packet_BASE.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/filter/raw2packet/ulogd_raw2packet_BASE.c b/filter/raw2packet/ulogd_raw2packet_BASE.c
-index b1f4113..a5312e4 100644
---- a/filter/raw2packet/ulogd_raw2packet_BASE.c
-+++ b/filter/raw2packet/ulogd_raw2packet_BASE.c
-@@ -769,9 +769,11 @@ static int _interp_ipv6hdr(struct ulogd_pluginstance *pi, u_int32_t len)
- 	if (len < sizeof(struct ip6_hdr))
- 		return 0;
- 
--	ret[KEY_IP_SADDR].u.value.ptr = &ipv6h->ip6_src;
-+	memcpy(ret[KEY_IP_SADDR].u.value.ui128, &ipv6h->ip6_src,
-+	       sizeof(ipv6h->ip6_src));
- 	ret[KEY_IP_SADDR].flags |= ULOGD_RETF_VALID;
--	ret[KEY_IP_DADDR].u.value.ptr = &ipv6h->ip6_dst;
-+	memcpy(ret[KEY_IP_DADDR].u.value.ui128, &ipv6h->ip6_dst,
-+	       sizeof(ipv6h->ip6_dst));
- 	ret[KEY_IP_DADDR].flags |= ULOGD_RETF_VALID;
- 	ret[KEY_IP6_PAYLOAD_LEN].u.value.ui16 = ntohs(ipv6h->ip6_plen);
- 	ret[KEY_IP6_PAYLOAD_LEN].flags |= ULOGD_RETF_VALID;
--- 
-1.5.4.3
+OK, you've convinced me. If you send me a patch to update
+the counters properly and set the SEEN_REPLY bit, I'll
+apply it.
+
+
 
