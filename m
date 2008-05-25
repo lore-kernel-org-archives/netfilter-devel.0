@@ -1,48 +1,52 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [0/3] conntrack event kernel issues
-Date: Sun, 25 May 2008 16:57:11 +0200
-Message-ID: <48397E47.2020305@trash.net>
-References: <1211447573.6878.36.camel@pumper.lan.luxnet.ch> <48369678.7000905@trash.net> <4836AB4C.8030304@gmx.ch> <4836ACA9.5040507@trash.net> <4836C30C.8020305@gmx.ch>
+From: Kristof Provost <Kristof@sigsegv.be>
+Subject: [PATCH] Bugzilla 482: Allow symbolic port in REDIRECT --to-port
+Date: Sun, 25 May 2008 19:40:48 +0000
+Message-ID: <20080525194048.GB22406@nereid>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Fabian Hugelshofer <hugelshofer2006@gmx.ch>
+Content-Type: text/plain; charset=us-ascii; x-action=pgp-signed
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:64095 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753423AbYEYO5P (ORCPT
+Received: from rhineheart.priorweb.be ([213.193.229.215]:45513 "HELO
+	rhineheart.priorweb.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754580AbYEYTj0 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 25 May 2008 10:57:15 -0400
-In-Reply-To: <4836C30C.8020305@gmx.ch>
+	Sun, 25 May 2008 15:39:26 -0400
+Received: from triton.sigsegv.be (dD5769270.access.telenet.be [213.118.146.112])
+	by rhineheart.priorweb.be (Postfix) with ESMTP
+	for <netfilter-devel@vger.kernel.org>; Sun, 25 May 2008 21:39:20 +0200 (CEST)
+Received: from nereid (unknown [172.16.0.8])
+	by triton.sigsegv.be (Postfix) with SMTP id 8D67D1D964
+	for <netfilter-devel@vger.kernel.org>; Sun, 25 May 2008 19:39:44 +0000 (UTC)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Fabian Hugelshofer wrote:
-> Patrick McHardy wrote:
->>> Then there is this thing with the TCP RST. I think, that the event 
->>> data should be accurate. If the status is returned (with patch 1), 
->>> then it should have the SEEN_REPLY flag set. Another issue is that 
->>> the accounting counters are not updated. IMHO this should be done as 
->>> well (is not in my patches).
->>
->> Fully agreed about the counters. About the SEEN_REPLY bit - that
->> depends on how you define its meaning. So far its only set if
->> a valid reply for the connection is seen - which a RST isn't.
-> 
-> I consider a RST as a valid reply for a connection. It matches the tuple 
-> and is in reply direction (ctinfo is set to IS_REPLY). Further the TCP 
-> protocol handler returns no error. The SEEN_REPLY bit is actually set at 
-> the end of nf_conntrack_in() but the destroy event is already triggered 
-> by the TCP handler.
-> 
-> Increasing the counters in reply direction without setting the 
-> SEEN_REPLY bit seems a bit weird to me.
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
+Signed-off-by: Kristof Provost <kristof@sigsegv.be>
+- ---
+ extensions/libipt_REDIRECT.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
-OK, you've convinced me. If you send me a patch to update
-the counters properly and set the SEEN_REPLY bit, I'll
-apply it.
+diff --git a/extensions/libipt_REDIRECT.c b/extensions/libipt_REDIRECT.c
+index b4c73bb..c03562b 100644
+- --- a/extensions/libipt_REDIRECT.c
++++ b/extensions/libipt_REDIRECT.c
+@@ -49,6 +49,9 @@ parse_ports(const char *arg, struct ip_nat_multi_range *mr)
+ 		exit_error(PARAMETER_PROBLEM, "IP address not permitted\n");
+ 
+ 	port = atoi(arg);
++	if (port == 0)
++		port = service_to_port(arg, NULL);
++
+ 	if (port == 0 || port > 65535)
+ 		exit_error(PARAMETER_PROBLEM, "Port `%s' not valid\n", arg);
+ 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
 
-
-
+iD8DBQFIOcDAUEZ9DhGwDugRAlRNAJ9pWRB+JNhJtNzCmtoioWeISdScPwCeJiCi
+b3D0yAzePmT52f37CM88MrA=
+=Vph2
+-----END PGP SIGNATURE-----
