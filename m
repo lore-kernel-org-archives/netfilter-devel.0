@@ -1,63 +1,45 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [ANNOUNCE] Release of iptables 1.4.1-rc2
-Date: Mon, 26 May 2008 15:01:07 +0200
-Message-ID: <483AB493.6010503@trash.net>
+Subject: Re: DNAT sporadically doesn't replace destination IP address
+Date: Mon, 26 May 2008 16:21:59 +0200
+Message-ID: <483AC787.6030902@trash.net>
+References: <4835A03D.B932.00FE.0@newtec.eu> <483589C0.4080006@trash.net> <4835ABD2.B932.00FE.0@newtec.eu> <4835913A.4020909@trash.net> <4835AE9B.B932.00FE.0@newtec.eu> <48359F66.50503@trash.net> <4836EDCE.B932.00FE.0@newtec.eu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------060609030108080601030504"
-To: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	"'netfilter@vger.kernel.org'" <netfilter@vger.kernel.org>,
-	Netfilter Core Team <coreteam@netfilter.org>
-Return-path: <netfilter-owner@vger.kernel.org>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
-
-This is a multi-part message in MIME format.
---------------060609030108080601030504
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
+Cc: Ulrik De Bie <ulrik.debie@newtec.eu>, netdev@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Kris Op de Beeck <kris.op.de.beeck@newtec.eu>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:59095 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755236AbYEZOWE (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 26 May 2008 10:22:04 -0400
+In-Reply-To: <4836EDCE.B932.00FE.0@newtec.eu>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-The netfilter coreteam proudly presents:
+Kris Op de Beeck wrote:
+>>>> On 22/05/2008 at 18:29, in message <48359F66.50503@trash.net>, Patrick McHardy
+> <kaber@trash.net> wrote:
+ >>
+>> I didn't find the reason why your kernel even has that message
+>> (didn't try to hard though). Could you rerun the test with a
+>> more current kernel, like 2.6.24 or 2.6.25 please?
+> 
+> Upgraded from Ubuntu 7.10 to 8.04
+> 
+> s3p@burnin:~$ uname -a
+> Linux burnin 2.6.24-16-generic #1 SMP Thu Apr 10 13:23:42 UTC 2008 i686 GNU/Linux
+> 
+> [ 7651.979390] printk: 8 messages suppressed.
+> [ 7651.979395] nf_ct_tcp: invalid packet ignored IN= OUT= SRC=192.168.1.24 DST=10.9.9.23 LEN=60 TOS=0x00 PREC=0x00 TTL=64 ID=47660 DF PROTO=TCP SPT=42451 DPT=80 SEQ=3352606539 ACK=0 WINDOW=5840 RES=0x00 SYN URGP=0 OPT (020405B40402080A001C104E0000000001030307) UID=1000
+> [ 7656.667006] nf_ct_tcp: invalid packet ignored IN= OUT= SRC=192.168.1.15 DST=10.9.9.14 LEN=60 TOS=0x00 PREC=0x00 TTL=64 ID=59137 DF PROTO=TCP SPT=49734 DPT=80 SEQ=3327322852 ACK=0 WINDOW=5840 RES=0x00 SYN URGP=0 OPT (020405B40402080A001C14E50000000001030307) UID=1000
 
-     iptables version 1.4.1-rc2
+What does "grep <srcport from above> /proc/net/nf_conntrack" show
+when the problem occurs?
 
-This release candidate fixes an incorrect assumption about /bin/sh
-in the new build system and allows to specify the REDIRECT --to-port
-symbolically.
+> Nothing works now.  Can't even ping the modems...
 
-Version 1.4.1-rc2 can be obtained from (please note that the
-webpage hasn't been rebuilt yet, but will be shortly):
-
-http://www.netfilter.org/projects/iptables/downloads.html
-ftp://ftp.netfilter.org/pub/iptables/
-git://git.netfilter.org/iptables.git
-
-If nothing bad happens, I'll release the final 1.4.1 by next
-week.
-
-Please note: the iptables.git repository history has been
-cleaned up to remove the certificate mess from committer
-names and use correct author names. This unfortunately means
-that you have to reclone it completely. Sorry about this,
-in the future this shouldn't happen again.
-
-On behalf of the Netfilter Core Team.
-Happy testing!
-
-
---------------060609030108080601030504
-Content-Type: text/plain;
- name="changes-iptables-1.4.1-rc2.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="changes-iptables-1.4.1-rc2.txt"
-
-Kristof Provost (1):
-      REDIRECT: Allow symbolic port in REDIRECT --to-port
-
-Thomas Jacob (1):
-      Don't assume /bin/sh is bash
-
-
---------------060609030108080601030504--
+I can't say anything about this without further information.
