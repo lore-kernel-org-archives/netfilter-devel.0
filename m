@@ -1,45 +1,75 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: DNAT sporadically doesn't replace destination IP address
-Date: Tue, 27 May 2008 16:44:15 +0200
-Message-ID: <483C1E3F.4030802@trash.net>
-References: <4835A03D.B932.00FE.0@newtec.eu> <483589C0.4080006@trash.net> <4835ABD2.B932.00FE.0@newtec.eu> <4835913A.4020909@trash.net> <4835AE9B.B932.00FE.0@newtec.eu> <48359F66.50503@trash.net> <4836EDCE.B932.00FE.0@newtec.eu> <483AC787.6030902@trash.net> <483C365A.B932.00FE.0@newtec.eu>
+Subject: Re: [PATCH 2/3] set SEEN_REPLY before destroying conntrack on TCP
+ RST
+Date: Tue, 27 May 2008 16:48:52 +0200
+Message-ID: <483C1F54.6040505@trash.net>
+References: <1211447601.6878.38.camel@pumper.lan.luxnet.ch> <1211826305.19222.8.camel@pumper.lan.luxnet.ch> <483B93C2.1000905@trash.net> <483C1B9D.5060705@gmx.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Ulrik De Bie <ulrik.debie@newtec.eu>, netdev@vger.kernel.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Kris Op de Beeck <kris.op.de.beeck@newtec.eu>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <483C365A.B932.00FE.0@newtec.eu>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Fabian Hugelshofer <hugelshofer2006@gmx.ch>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:55777 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755932AbYE0Osy (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 27 May 2008 10:48:54 -0400
+In-Reply-To: <483C1B9D.5060705@gmx.ch>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Kris Op de Beeck wrote:
->> What does "grep <srcport from above> /proc/net/nf_conntrack" show
->> when the problem occurs?
+=46abian Hugelshofer wrote:
+> Patrick McHardy wrote:
+>> Fabian Hugelshofer wrote:
+>>> On Thu, 2008-05-22 at 10:13 +0100, Fabian Hugelshofer wrote:
+>>>> =EF=BB=BFIf a connection fails with a TCP reset, the conntrack is =
+destroyed=20
+>>>> immediately. This patch sets the SEEN_REPLY bit before destroying=20
+>>>> the conntrack.
+>>>
+>>> This updated version also increments the accounting counters.
 >>
-> [ 1976.495472] nf_ct_tcp: invalid packet ignored IN= OUT= SRC=192.168.1.29 DST=10.9.9.28 LEN=60 TOS=0x00 PREC=0x00 TTL=64 ID=58096 DF PROTO=TCP SPT=41675 DPT=80 SEQ=3967333855 ACK=0 WINDOW=5840 RES=0x00 SYN URGP=0 OPT (020405B40402080A00065A1E0000000001030305) UID=1000
-> 
->  sudo grep 41675 /proc/net/nf_conntrack
-> ipv4     2 tcp      6 43 SYN_RECV src=192.168.1.29 dst=10.9.9.28 sport=41675 dport=80 packets=1 bytes=60 src=192.168.1.1 dst=192.168.1.29 sport=80 dport=41675 packets=3 bytes=180 mark=0 secmark=0 use=1
+>> Thanks, but this needs to be changed slightly.
+> [...]
+>> I think a better way is to encapsulate the del_timer/timeout.functio=
+n
+>> calls in a nf_ct_kill() function and perform accounting there.
+>> Since all manual invocations of timeout.function are/should be
+>> performed only while handling packets (that are usually not
+>> accounted), this seems like the right way.
+>=20
+> Ok, I see. But for accounting ctinfo and skbuf are required. I'll=20
+> include them in the argument list of nf_ct_kill() and update the=20
+> function invocations, ok? Or should I introduce an nf_ct_kill_acct()?
 
-That looks like the client send a SYN, the server sent three
-SYN/ACKs that never reached the client and the client retransmits
-its SYN. The SYN should still be NATed, but conntrack thinks
-its out of sync because its already in SYN_RECV state, while the
-client is apparently still in SYN_SENT state.
+All callers in my patch want the accounting, so a seperate function
+would make this one useless. So I'd go with adding a struct sk_buff *
+argument, even though its not particulary pretty :)
 
-Looking back at your first mail:
+> I just did another test where my SEEN_REPLY patch was not applied.=20
+> Surprisingly the SEEN_REPLY bit was set in the destroy events. I am=20
+> afraid, but I have to assume, that I did not evaluate the bahavior=20
+> carefully enough. Probably I confused the accounting, no status and n=
+o=20
+> related packets issues.
+>=20
+> Unless a race condition might be thinkable, we should leave the=20
+> SEEN_REPLY patch. If it is possible, that the timeout function=20
+> immediately triggers the destroy event to be exported over netlink, t=
+hen=20
+> the patch is still necessary. I don't see things detailed enough to=20
+> judge this. If it is necessary, should it be included in nf_ct_kill()=
+?
 
->     print "iptables -t mangle -A VLAN$vlan -j MARK --set-mark $vlan\n";
->     print "iptables -t mangle -A OUTPUT -o eth2.$vlan -j VLAN$vlan\n";
->     print "ip ro add table $vlan default dev eth2.$vlan\n";
->     print "ip ru add fwmark $vlan table $vlan\n";
-
-This looks like a chicken-and-egg problem. You mark packets based
-on the output device, but use the mark to direct them to the output
-device.
-
-I guess if you use the source IP for routing table selection it
-will work. Not sure why it works at all currently.
+Right, I missed this as well. The connection killing only removes
+the timer, but the packet will still be handled as a valid packet.
+So nf_conntrack_core sets the SEEN_REPLY bit, before destroying it
+when the final refcount (from the packet) is released. Thanks for
+noticing this :)
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
