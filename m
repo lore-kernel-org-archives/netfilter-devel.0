@@ -1,72 +1,42 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: scrubbing support in Netfilter
-Date: Wed, 28 May 2008 06:38:47 +0200
-Message-ID: <483CE1D7.30408@trash.net>
-References: <87hccjdbm4.fsf@chdir.org> <alpine.LNX.1.10.0805271729350.12937@fbirervta.pbzchgretzou.qr>
+From: "Gabor Z. Papp" <gzp@papp.hu>
+Subject: Re: [netfilter-core] [ANNOUNCE] Release of iptables 1.4.1-rc2
+Date: Wed, 28 May 2008 08:40:03 +0200
+Message-ID: <x67idfq6d8@gzp>
+References: <483AB493.6010503@trash.net> <x6skw443x5@gzp>
+	<483BB9DE.6050003@trash.net> <x6y75w3q2j@gzp>
+	<483C088E.4020405@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Nicolas Bareil <nico@chdir.org>, netfilter-devel@vger.kernel.org,
-	Nicolas Bareil <nicolas.bareil@eads.net>
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:39062 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751185AbYE1Eiv (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 28 May 2008 00:38:51 -0400
-In-Reply-To: <alpine.LNX.1.10.0805271729350.12937@fbirervta.pbzchgretzou.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Netfilter Core Team <coreteam@netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> On Tuesday 2008-05-27 17:12, Nicolas Bareil wrote:
->>
->> I developped a Netfilter module which performs packet normalization, the
->> "scrubbing" feature of OpenBSD[1]. Normalized trafic offers the
->> following possibilities :
->
-> I seem to remember that Linux's TCP or nf_conntrack already does
-> some scrubbing.
+* Patrick McHardy <kaber@trash.net>:
 
-No, unless you're refering to the unwanted side-effects from
-defragmentation and refragmentation for IPv4. I also don't
-want to include something like this in netfilter, NAT is
-already bad enough and the threats it *might* protect against
-seem a bit vague. Better throw your broken IDS out if can
-be fooled by changing TTLs.
+| Your types.h doesn't seem to include the endian annotated
+| types at all. Does this patch work?
 
-I don't want to sound too discouraging though, I have no problem
-adding it to the pom-ng sources.list.
+Yes. Next problem:
 
->> The current patch achieves the following transformations :
->>
->> * IPv4
->>  - Random IP ID
->>  - Zeroify ToS
-> 
-> Zeroify? Clearing the TOS is probably not a good idea because
-> it defeats packet scheduling (if it uses TOS).
-
-Well .. ToS is only useful within your own administrative
-boundaries anyways, I've seen quite a few ISPs overwriting
-it during transit.
-
->>  - TTL normalization
->>
->> * TCP
->> - Random TCP Sequence
-> 
-> I wonder if Linux already has this.
-
-For forwarded traffic? No.
-
-> 
->> - TCP Options
->>   - Random Timestamp
-> 
-> Is this even RFC compatible?
-
-I assume its a random offset per connection, but still, no.
-You can also still distinguish different hosts by their clock
-rates.
+  CC       libxt_conntrack.oo
+In file included from libxt_conntrack.c:21:
+../include/linux/netfilter/xt_conntrack.h:38: error: expected specifier-qualifier-list before '__be32'
+../include/linux/netfilter/xt_conntrack.h:45: error: expected specifier-qualifier-list before '__be32'
+libxt_conntrack.c: In function 'conntrack_parse': libxt_conntrack.c:321: error: 'struct <anonymous>' has no member named 'protonum'
+libxt_conntrack.c:323: error: 'struct <anonymous>' has no member named 'protonum'
+libxt_conntrack.c:345: error: 'struct <anonymous>' has no member named 'ip'
+libxt_conntrack.c:365: error: 'struct <anonymous>' has no member named 'ip'
+libxt_conntrack.c:385: error: 'struct <anonymous>' has no member named 'ip'
+libxt_conntrack.c:405: error: 'struct <anonymous>' has no member named 'ip'
+libxt_conntrack.c: In function 'matchinfo_print': libxt_conntrack.c:812: error: 'struct <anonymous>' has no member named 'protonum'
+libxt_conntrack.c:821: error: 'struct <anonymous>' has no member named 'ip'
+libxt_conntrack.c:833: error: 'struct <anonymous>' has no member named 'ip'
+libxt_conntrack.c:845: error: 'struct <anonymous>' has no member named 'ip'
+libxt_conntrack.c:857: error: 'struct <anonymous>' has no member named 'ip'
+make[2]: *** [libxt_conntrack.oo] Error 1
+make[2]: Leaving directory `/home/gzp/src/iptables-1.4.1-rc2/extensions'
