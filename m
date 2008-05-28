@@ -1,41 +1,79 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [netfilter-core] [ANNOUNCE] Release of iptables 1.4.1-rc2
-Date: Wed, 28 May 2008 08:43:45 +0200
-Message-ID: <483CFF21.40608@trash.net>
-References: <483AB493.6010503@trash.net> <x6skw443x5@gzp>	<483BB9DE.6050003@trash.net> <x6y75w3q2j@gzp>	<483C088E.4020405@trash.net> <x67idfq6d8@gzp>
+From: Nicolas Bareil <nico@chdir.org>
+Subject: Re: scrubbing support in Netfilter
+Date: Wed, 28 May 2008 09:20:39 +0200
+Message-ID: <87hccinbco.fsf@chdir.org>
+References: <87hccjdbm4.fsf@chdir.org>
+	<alpine.LNX.1.10.0805271729350.12937@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter@vger.kernel.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Netfilter Core Team <coreteam@netfilter.org>
-To: "Gabor Z. Papp" <gzp@papp.hu>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:41524 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750833AbYE1Gns (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 28 May 2008 02:43:48 -0400
-In-Reply-To: <x67idfq6d8@gzp>
+Received: from moog.chdir.org ([88.191.42.160]:38288 "EHLO moog.chdir.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750979AbYE1HUo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 28 May 2008 03:20:44 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Gabor Z. Papp wrote:
-> * Patrick McHardy <kaber@trash.net>:
-> 
-> | Your types.h doesn't seem to include the endian annotated
-> | types at all. Does this patch work?
-> 
-> Yes. Next problem:
-> 
->   CC       libxt_conntrack.oo
-> In file included from libxt_conntrack.c:21:
-> ../include/linux/netfilter/xt_conntrack.h:38: error: expected specifier-qualifier-list before '__be32'
-> ../include/linux/netfilter/xt_conntrack.h:45: error: expected specifier-qualifier-list before '__be32'
-> libxt_conntrack.c: In function 'conntrack_parse': libxt_conntrack.c:321: error: 'struct <anonymous>' has no member named 'protonum'
 
-Yes, I also noticed a bunch of other problems with old
-kernel headers. I'll resync the headers and fix it up,
-but it might take until tommorrow since I'm not sure
-whether I'll get near an internet connection again today.
+Hello Jan,
+
+Thanks for your review!
+
+Jan Engelhardt <jengelh@medozas.de> writes:
+> I seem to remember that Linux's TCP or nf_conntrack already does
+> some scrubbing.
+
+That's right, that's the reason why it's not that hard to compete with
+the OpenBSD features. The hard work is already done : fragmentation, tcp
+sequence management, packet in the tcp window, sanity checks for invalid
+constructed packets.
+
+>>  - Random IP ID
+>>  - Zeroify ToS
+>
+> Zeroify? Clearing the TOS is probably not a good idea because
+> it defeats packet scheduling (if it uses TOS).
+
+Correct me if I'm wrong, but on Internet (I mean, just after the first
+ISP's router), the ToS is not used or even looked up.
+
+I tried to make the scrubbing modular : you can choose to scrub a field
+or not. I'm open to discuss the default flags for --scrub-everything 
+
+>>  - TTL normalization
+>>
+>>* TCP
+>> - Random TCP Sequence
+>
+> I wonder if Linux already has this.
+
+Don't think so, AFAIK, Linux only randomizes the TCP sequence for its own
+packet (in OUTPUT), not for the packet in transit.
+
+>> - TCP Options
+>>   - Random Timestamp
+>
+> Is this even RFC compatible?
+
+Yes I guess : I'm doing like for the TCP sequence stuff, when a
+conntrack is created, I randomize the timestamp, compute the difference
+(a substraction) between the original timestamp and mine that I store in
+the conntrack.
+
+Then, when I receive a packet, I apply the offset to reflect the change :
+the meaning is intact because we are not putting a random value at each
+packet. 
+
+> I suggest you have a look at "Writing your own Netfilter modules"
+> (abbreviated NFM in this reply) document from
+> http://jengelh.medozas.de/ , since I have seen a few outdated
+> constructs in your code.
+
+Ok, I noted your remarks and will submit tomorrow a new patch based on
+the feedbacks!
+
+-- 
+Nicolas Bareil                                  http://chdir.org/~nico/
+OpenPGP=0xAE4F7057 Fingerprint=34DB22091049FB2F33E6B71580F314DAAE4F7057
