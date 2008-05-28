@@ -1,58 +1,33 @@
-From: Nicolas Bareil <nico@chdir.org>
-Subject: Re: scrubbing support in Netfilter
-Date: Wed, 28 May 2008 09:33:31 +0200
-Message-ID: <87d4n6nar8.fsf@chdir.org>
-References: <87hccjdbm4.fsf@chdir.org>
-	<alpine.LNX.1.10.0805271729350.12937@fbirervta.pbzchgretzou.qr>
-	<483CE1D7.30408@trash.net>
+From: Fabian Hugelshofer <hugelshofer2006@gmx.ch>
+Subject: Re: [PATCH 2/3] accounting on ct kill
+Date: Wed, 28 May 2008 09:36:05 +0100
+Message-ID: <483D1975.3000601@gmx.ch>
+References: <1211447601.6878.38.camel@pumper.lan.luxnet.ch>	 <1211826305.19222.8.camel@pumper.lan.luxnet.ch>	 <483B93C2.1000905@trash.net> <483C1B9D.5060705@gmx.ch>	 <483C1F54.6040505@trash.net> <1211928920.14366.12.camel@pumper.lan.luxnet.ch> <483CDA82.8090802@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:33983 "EHLO ciao.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750854AbYE1HkH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 28 May 2008 03:40:07 -0400
-Received: from root by ciao.gmane.org with local (Exim 4.43)
-	id 1K1GGQ-0004Wv-GQ
-	for netfilter-devel@vger.kernel.org; Wed, 28 May 2008 07:40:02 +0000
-Received: from moog.chdir.org ([88.191.42.160])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Wed, 28 May 2008 07:40:02 +0000
-Received: from nico by moog.chdir.org with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Wed, 28 May 2008 07:40:02 +0000
+Received: from mail.gmx.net ([213.165.64.20]:37528 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751086AbYE1IgJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 28 May 2008 04:36:09 -0400
+In-Reply-To: <483CDA82.8090802@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy <kaber@trash.net> writes:
-> No, unless you're refering to the unwanted side-effects from
-> defragmentation and refragmentation for IPv4. I also don't
-> want to include something like this in netfilter, NAT is
-> already bad enough and the threats it *might* protect against
-> seem a bit vague. Better throw your broken IDS out if can
-> be fooled by changing TTLs.
+Patrick McHardy wrote:
+> Fabian Hugelshofer wrote:
+>> Introduces nf_ct_kill_acct() which increments the accounting counters on
+>> conntrack kill. The new function was necessary, because there are calls
+>> to nf_ct_kill() which don't need accounting:
+[...]
+> Good points. Applied, thanks Fabian.
+> 
+> I've also pulled in Dave's latest net-next-2.6.git tree and will
+> push it out now.
 
-Indeed, you're totally right : in an ideal world, it should be useless
-and avoided, but there are cases where you need "a workaround" because
-you have some legacy equipement, broken IDS, broken TCP/IP stack, etc.
-
-> I don't want to sound too discouraging though, I have no problem
-> adding it to the pom-ng sources.list.
-
-No problem, if you feel it better fits there, I'm ok with that.
-
-> I assume its a random offset per connection, but still, no.
-> You can also still distinguish different hosts by their clock
-> rates.
-
-What do you mean precisely ? Variation of the TCP Timestamp ?  TCP
-retransmission mechanisms ?
-
-Thanks
-
--- 
-Nicolas Bareil                                  http://chdir.org/~nico/
-OpenPGP=0xAE4F7057 Fingerprint=34DB22091049FB2F33E6B71580F314DAAE4F7057
-
+Thank you as well, Patrick. What about my patch 1 (status field on ct 
+destroy event)? I didn't see it in you git repository. Should I repost 
+it with a signed-of-by?
