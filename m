@@ -1,35 +1,77 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: About IPSec ALG
-Date: Thu, 29 May 2008 11:49:21 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0805291148210.19264@fbirervta.pbzchgretzou.qr>
-References: <182d06220805290231w314e2f16v4f38bfde69055e6f@mail.gmail.com>
+From: "Kris Op de Beeck" <kris.op.de.beeck@newtec.eu>
+Subject: Re: DNAT sporadically doesn't replace destination IP address
+Date: Thu, 29 May 2008 12:12:23 +0200
+Message-ID: <483E9DB9.B932.00FE.0@newtec.eu>
+References: <4835A03D.B932.00FE.0@newtec.eu> <483589C0.4080006@trash.net>
+ <4835ABD2.B932.00FE.0@newtec.eu> <4835913A.4020909@trash.net>
+ <4835AE9B.B932.00FE.0@newtec.eu> <48359F66.50503@trash.net>
+ <4836EDCE.B932.00FE.0@newtec.eu> <483AC787.6030902@trash.net>
+ <483C365A.B932.00FE.0@newtec.eu> <483C1E3F.4030802@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Sarge Gorden <metalblade@gmail.com>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
+Cc: "Ulrik De Bie" <ulrik.debie@newtec.eu>, <netdev@vger.kernel.org>,
+	"Netfilter Development Mailinglist" <netfilter-devel@vger.kernel.org>
+To: "Patrick McHardy" <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:42458 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751532AbYE2JtZ (ORCPT
+Received: from mail.newtec.eu ([62.58.98.194]:1372 "EHLO mail.newtec.eu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751102AbYE2KND convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 May 2008 05:49:25 -0400
-In-Reply-To: <182d06220805290231w314e2f16v4f38bfde69055e6f@mail.gmail.com>
+	Thu, 29 May 2008 06:13:03 -0400
+In-Reply-To: <483C1E3F.4030802@trash.net>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+>>> On 27/05/2008 at 16:44, in message <483C1E3F.4030802@trash.net>, Patrick
+McHardy <kaber@trash.net> wrote:
+>>     print "iptables -t mangle -A VLAN$vlan -j MARK --set-mark $vlan\n";
+>>     print "iptables -t mangle -A OUTPUT -o eth2.$vlan -j VLAN$vlan\n";
+>>     print "ip ro add table $vlan default dev eth2.$vlan\n";
+>>     print "ip ru add fwmark $vlan table $vlan\n";
+> 
+> This looks like a chicken-and-egg problem. You mark packets based
+> on the output device, but use the mark to direct them to the output
+> device.
+> 
+> I guess if you use the source IP for routing table selection it
+> will work. Not sure why it works at all currently.
 
-On Thursday 2008-05-29 11:31, Sarge Gorden wrote:
+We have found the problem why the IP addresses were not pingable anymore with Ubuntu 8.04.  It seems that with that release the rp_filter is default on.  If we put this off the modems are pingable again.  In the mean time I don't have my setup fully operational anymore. I've got 1 modem connected for the others I'm sending wget's which timeout since no modem is connected.  I nolonger see any tracing with dmesg, I will need to try again with the full setup to be sure but that will take some time.
 
->Hi all,
->
->Now I was using a Linux box as a gateway (Ver: 2.6.18). But without
->NAT-T there gona some problems when connecting a L2TP-over-IPSec VPN
->server.
+When changing the configuration like you suggested, you get something like this for every modem:
+vconfig add eth1 129
+ifconfig eth1.129 192.168.1.31
+route del -net 192.168.1.0/24
+route add -host 10.9.9.30 eth1.129
+iptables -t nat -A OUTPUT -o eth1.129 -j DNAT --to 192.168.1.1
+ip ro add table 129 default dev eth1.129
+ip rule add from 192.168.1.31 table 129
+ip ro fl ca
 
-What problem?
+Then it works also, and rp_filter can be on. This also still needs to be tested with the full setup.
 
->I wonder if there's a "IPSec ALG" could port into the kernel. (Just
->like ip_conntack_ipsec/ip_nat_ipsec)
->Is there is a patch availiable now?
+I think the problem is solved. Thanks for that in guiding me.
+If I should still encounter any problems I will let you know.
 
-AH and ESP is handled by nf_conntrack_proto_generic (always built-in).
+** Still wondering why there wasn't any problem with the old kernel ... maybe I just was lucky ...
+
+
+Newtec will be present at the following exhibitions :
+
+CommunicAsia, 17-20 June, Singapore, Booth 6B2-01
+
+*** e-mail confidentiality footer ***
+This message and any attachments thereto are confidential. They may also
+be privileged or otherwise protected by work product immunity or other
+legal rules. If you have received it by mistake, please let us know by
+e-mail reply and delete it from your system; you may not copy this
+message or disclose its contents to anyone.
+E-mail transmission cannot be guaranteed to be secure or error free as
+information could be intercepted, corrupted, lost, destroyed, arrive
+late or incomplete, or contain viruses. The sender therefore is in no
+way liable for any errors or omissions in the content of this message,
+which may arise as a result of e-mail transmission. If verification is
+required, please request a hard copy.
+
