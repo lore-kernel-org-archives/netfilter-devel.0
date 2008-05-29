@@ -1,43 +1,84 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: About IPSec ALG
-Date: Thu, 29 May 2008 16:27:13 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0805291515200.19264@fbirervta.pbzchgretzou.qr>
-References: <182d06220805290231w314e2f16v4f38bfde69055e6f@mail.gmail.com>  <alpine.LNX.1.10.0805291148210.19264@fbirervta.pbzchgretzou.qr> <182d06220805290453n2b637d32x417d52794cda9709@mail.gmail.com>
+From: Tom Eastep <teastep@shorewall.net>
+Subject: [patch] ipset 2.3.0 segfault on '-U :all: {:all:|:default:}
+Date: Thu, 29 May 2008 13:24:58 -0700
+Message-ID: <483F111A.40700@shorewall.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Sarge Gorden <metalblade@gmail.com>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enigCBFC0D22B4101D5309B3A68D"
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:51483 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754489AbYE2O1P (ORCPT
+Received: from lists.shorewall.net ([206.124.146.177]:50155 "EHLO
+	lists.shorewall.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751781AbYE2Ude (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 May 2008 10:27:15 -0400
-In-Reply-To: <182d06220805290453n2b637d32x417d52794cda9709@mail.gmail.com>
+	Thu, 29 May 2008 16:33:34 -0400
+Received: from [172.20.1.102] (wireless.shorewall.net [206.124.146.180])
+	by lists.shorewall.net (Postfix) with ESMTP id 0B0B92160D8
+	for <netfilter-devel@vger.kernel.org>; Thu, 29 May 2008 13:24:16 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 2008-05-29 13:53, Sarge Gorden wrote:
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enigCBFC0D22B4101D5309B3A68D
+Content-Type: multipart/mixed;
+ boundary="------------020005000804050607030209"
 
->If the VPN server or client doesn't support NAT-T.
->Then multiple hosts behind a single NAT address couldn't
->simultaneously establish and maintain tunnels to the multiple exterior
->hosts.
->Only one host could establish...
->
->But if both side support NAT-T, it works.
+This is a multi-part message in MIME format.
+--------------020005000804050607030209
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 
-(This is called udpencap in Linux.)
+Segfault occurs at line 1641 as a result of dereferencing a null pointer =
 
-That is the commonly-raised problem with NAT. (Suggestion:
-abandon NAT, get an IPv6 address.)
+while testing the set type for iptreemap.
 
-It is just not possible to have a conntracking ALG because when
-people designed ESP, they did so in a way that makes it virtually
-impossible to track it. ESP is unidirectional, which is quite bad
-since connection tracking uses a
-(source-information,destination-information) tuple. But ok, we could
-live with an unidirectional ESP *if* we knew the SPI it uses, but
-IKE was designed in a way so as to encrypt the SPIs used for the ESP
-stream, giving no way of knowing them beforehand. It is a perfect
-example of how to shoot oneself in the foot, multiple times.
+Patch attached.
+
+Disclaimer: I didn't research the consequences of this patch if there are=
+=20
+existing iptreemap sets.
+
+-Tom
+--=20
+Tom Eastep    \ Nothing is foolproof to a sufficiently talented fool
+Shoreline,     \ http://shorewall.net
+Washington USA  \ teastep@shorewall.net
+PGP Public Key   \ https://lists.shorewall.net/teastep.pgp.key
+
+--------------020005000804050607030209
+Content-Type: text/x-patch;
+ name="ipset.diff"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline;
+ filename="ipset.diff"
+
+--- ipset.c~	2007-08-27 23:53:14.000000000 -0700
++++ ipset.c	2008-05-29 13:10:02.000000000 -0700
+@@ -1638,7 +1638,7 @@
+ 	DP("(%s, %s) -> %s", set ? set->name : IPSET_TOKEN_ALL, adt, binding);
+=20
+ 	/* Ugly */
+-	if (strcmp(set->settype->typename, "iptreemap") =3D=3D 0)
++	if (set && strcmp(set->settype->typename, "iptreemap") =3D=3D 0)
+ 		exit_error(PARAMETER_PROBLEM,
+ 			"iptreemap type of sets cannot be used at binding operations\n");
+ 	/* Alloc memory for the data to send */
+
+--------------020005000804050607030209--
+
+--------------enigCBFC0D22B4101D5309B3A68D
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.4-svn0 (GNU/Linux)
+Comment: Using GnuPG with SUSE - http://enigmail.mozdev.org
+
+iD8DBQFIPxEfO/MAbZfjDLIRAkT/AJ9hfjaHq2gjdWJccKyp/iH9d+g0wwCfeght
++qDzTUpVooOfX7uN5qkyDFc=
+=uJjB
+-----END PGP SIGNATURE-----
+
+--------------enigCBFC0D22B4101D5309B3A68D--
