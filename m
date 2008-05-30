@@ -1,59 +1,53 @@
 From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: iptables version defines
-Date: Fri, 30 May 2008 10:16:02 +0200
-Message-ID: <200805301016.03130.thomas.jarosch@intra2net.com>
+Subject: Re: [ANNOUNCE] Release of iptables 1.4.1-rc2
+Date: Fri, 30 May 2008 10:26:54 +0200
+Message-ID: <200805301026.54905.thomas.jarosch@intra2net.com>
+References: <483AB493.6010503@trash.net> <200805300933.53869.thomas.jarosch@intra2net.com> <alpine.LNX.1.10.0805301007120.19264@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Cc: Jan Engelhardt <jengelh@medozas.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from re01.intra2net.com ([82.165.28.202]:42335 "EHLO
+Received: from re01.intra2net.com ([82.165.28.202]:47455 "EHLO
 	re01.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752323AbYE3I0b (ORCPT
+	with ESMTP id S1752101AbYE3I1A (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 30 May 2008 04:26:31 -0400
-Received: from intranator.m.i2n (unknown [172.16.1.99])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by re01.intra2net.com (Postfix) with ESMTP id 996B34EA3
-	for <netfilter-devel@vger.kernel.org>; Fri, 30 May 2008 10:16:08 +0200 (CEST)
-Received: from localhost (intranator.m.i2n [127.0.0.1])
-	by localhost (Postfix) with ESMTP id 9A7EF1F76
-	for <netfilter-devel@vger.kernel.org>; Fri, 30 May 2008 10:16:07 +0200 (CEST)
-Received: from storm.m.i2n (storm.m.i2n [172.16.1.2])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by intranator.m.i2n (Postfix) with ESMTP id 3683F19E0
-	for <netfilter-devel@vger.kernel.org>; Fri, 30 May 2008 10:16:04 +0200 (CEST)
+	Fri, 30 May 2008 04:27:00 -0400
+In-Reply-To: <alpine.LNX.1.10.0805301007120.19264@fbirervta.pbzchgretzou.qr>
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello netfilter coreteam,
+Hi Jan,
 
-I'm currently looking for a way to support ipt_ACCOUNT
-both for iptables 1.4.0 and iptables 1.4.1. Some function
-names changed (addr_to_dotted() -> ipaddr_to_numeric())
-and it would be easy to #ifdef around them.
+> Revision 1.72 - (view) (download) (as text) (annotate) - [select for diffs]
+> Mon Nov 19 13:23:29 2001 UTC (6 years, 6 months ago) by bero
+> Branch: MAIN
+> Changes since 1.71: +34 -1 lines
+> Diff to previous 1.71
+>
+> Add -o option
+>
+>
+> I think it is ok to assume -o is always there. Nov 2001, that's linux
+> 2.4.14 timeframe, and most of the now-ancient distros have gone at
+> least up to 2.4.20s, which should imply that they also updated their
+> greps.
 
-The linux kernel provides multiple defines for its version number,
-while iptables only supports a char* version string.
+Well, I run kernel 2.6.24 and never had a need to upgrade grep until now.
+But I'm fine with the new version, just wanted to report it.
 
-Would it make sense to add something like the kernel version defines
-so one could write code like this:
+> >Should ./configure detect that
+> >or is it even possible to transform the grep call into something else?
+>
+> I assume people would not be amused if we start requiring perl.
+> But you can use it as a workaround...
+> 	perl -ne 'print$&if/\b[A-Z0-9]+\b/'
 
-#if IPTABLES_VERSION_CODE < IPTABLES_VERSION(1,4,1)
-	abc
-#else
-	xyz
-#endif
+That's true, though I guess there is a "sed" wizard out there
+that can easily rewrite the call into a sed command,
+which should be available on most (ancient) systems ;-)
 
-?
-
-Another solution would be to have an "iptables" and "iptables-1.4.1"
-directory in the pom archive, though I don't know if that is supported.
-(and would lead to code duplication.)
-
-Thanks,
 Thomas
