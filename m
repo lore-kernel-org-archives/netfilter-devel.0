@@ -1,67 +1,40 @@
-From: Krzysztof Oledzki <ole@ans.pl>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
 Subject: Re: iptables version defines
-Date: Fri, 30 May 2008 12:05:07 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0805301204120.17471@bizon.gios.gov.pl>
-References: <200805301016.03130.thomas.jarosch@intra2net.com>
- <Pine.LNX.4.64.0805301140430.14733@bizon.gios.gov.pl>
+Date: Fri, 30 May 2008 12:06:45 +0200
+Message-ID: <200805301206.45428.thomas.jarosch@intra2net.com>
+References: <200805301016.03130.thomas.jarosch@intra2net.com> <Pine.LNX.4.64.0805301140430.14733@bizon.gios.gov.pl> <Pine.LNX.4.64.0805301155550.16963@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-1001008650-1212141907=:17471"
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Thomas Jarosch <thomas.jarosch@intra2net.com>
+To: Krzysztof Oledzki <ole@ans.pl>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bizon.gios.gov.pl ([212.244.124.8]:59887 "EHLO
-	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752882AbYE3KF5 (ORCPT
+Received: from rs02.intra2net.com ([81.169.173.116]:55334 "EHLO
+	rs02.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751386AbYE3KGw (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 30 May 2008 06:05:57 -0400
-In-Reply-To: <Pine.LNX.4.64.0805301140430.14733@bizon.gios.gov.pl>
+	Fri, 30 May 2008 06:06:52 -0400
+In-Reply-To: <Pine.LNX.4.64.0805301155550.16963@bizon.gios.gov.pl>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi Krzysztof,
 
----187430788-1001008650-1212141907=:17471
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-
-
-
-On Fri, 30 May 2008, Krzysztof Oledzki wrote:
-
+On Friday, 30. May 2008 11:56:28 you wrote:
+> > #ifdef _XTABLES_H
+> > init(struct xt_entry_target *t)
+> > #else
+> > init(struct ipt_entry_target *t, unsigned int *nfcache)
+> > #endif
 >
->
-> On Fri, 30 May 2008, Thomas Jarosch wrote:
->
->> Hello netfilter coreteam,
->>=20
->> I'm currently looking for a way to support ipt_ACCOUNT
->> both for iptables 1.4.0 and iptables 1.4.1. Some function
->> names changed (addr_to_dotted() -> ipaddr_to_numeric())
->> and it would be easy to #ifdef around them.
->>=20
->> The linux kernel provides multiple defines for its version number,
->> while iptables only supports a char* version string.
->>=20
->> Would it make sense to add something like the kernel version defines
->> so one could write code like this:
->>=20
->> #if IPTABLES_VERSION_CODE < IPTABLES_VERSION(1,4,1)
->> =09abc
->> #else
->> =09xyz
->> #endif
->
-> #ifdef _XTABLES_H
-> init(struct xt_entry_target *t)
-> #else
-> init(struct ipt_entry_target *t, unsigned int *nfcache)
-> #endif
+> Plese check the attached patch.
 
-Bzzz, sorry. Just noticed that you had asked about 1.4.0->1.4.1, not=20
-1.3->1.4.
+Thanks for the patch! I've developed something similar yesterday, though not 
+as elegant as your version. This will solve the issue for iptables < 1.4.0.
 
-Best regards,
+The differences between 1.4.0 and the upcoming 1.4.1 are still an issue as 
+some function names changed. The version defines could be of help here.
 
- =09=09=09Krzysztof Ol=EAdzki
----187430788-1001008650-1212141907=:17471--
+Thomas
