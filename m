@@ -1,35 +1,42 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [patch] ipset 2.3.0 segfault on '-U :all: {:all:|:default:}
-Date: Fri, 30 May 2008 09:18:40 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0805300917070.10875@blackhole.kfki.hu>
-References: <483F111A.40700@shorewall.net>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: Re: [ANNOUNCE] Release of iptables 1.4.1-rc2
+Date: Fri, 30 May 2008 09:33:53 +0200
+Message-ID: <200805300933.53869.thomas.jarosch@intra2net.com>
+References: <483AB493.6010503@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Tom Eastep <teastep@shorewall.net>
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Cc: Patrick McHardy <kaber@trash.net>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:46717 "EHLO smtp2.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754347AbYE3HSl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 30 May 2008 03:18:41 -0400
-In-Reply-To: <483F111A.40700@shorewall.net>
+Received: from rs02.intra2net.com ([81.169.173.116]:45382 "EHLO
+	rs02.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750853AbYE3HyJ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 30 May 2008 03:54:09 -0400
+In-Reply-To: <483AB493.6010503@trash.net>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 29 May 2008, Tom Eastep wrote:
+Hello Patrick,
 
-> Segfault occurs at line 1641 as a result of dereferencing a null pointer while
-> testing the set type for iptreemap.
-> 
-> Patch attached.
+On Monday, 26. May 2008 15:01:07 you wrote:
+> The netfilter coreteam proudly presents:
+>
+>      iptables version 1.4.1-rc2
 
-Thank you the report and the patch: I'll apply it as soon as the svn->git 
-migration of ipset source is ready.
+I just compiled the new version and noticed a minor
+error message during the build of the manpages:
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+  GEN      matches4.man
+grep: invalid option -- o
+Usage: grep [OPTION]... PATTERN [FILE]...
+Try `grep --help' for more information.
+
+Looks like my grep version is too old. Should ./configure detect that
+or is it even possible to transform the grep call into something else?
+
+Cheers,
+Thomas
