@@ -1,40 +1,42 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+From: Jan Engelhardt <jengelh@medozas.de>
 Subject: Re: iptables version defines
-Date: Fri, 30 May 2008 12:06:45 +0200
-Message-ID: <200805301206.45428.thomas.jarosch@intra2net.com>
-References: <200805301016.03130.thomas.jarosch@intra2net.com> <Pine.LNX.4.64.0805301140430.14733@bizon.gios.gov.pl> <Pine.LNX.4.64.0805301155550.16963@bizon.gios.gov.pl>
+Date: Fri, 30 May 2008 12:53:49 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0805301246450.11875@fbirervta.pbzchgretzou.qr>
+References: <200805301016.03130.thomas.jarosch@intra2net.com> <Pine.LNX.4.64.0805301140430.14733@bizon.gios.gov.pl> <Pine.LNX.4.64.0805301155550.16963@bizon.gios.gov.pl> <200805301206.45428.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Krzysztof Oledzki <ole@ans.pl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Krzysztof Oledzki <ole@ans.pl>, netfilter-devel@vger.kernel.org
+To: Thomas Jarosch <thomas.jarosch@intra2net.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rs02.intra2net.com ([81.169.173.116]:55334 "EHLO
-	rs02.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751386AbYE3KGw (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:57012 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753156AbYE3Kxv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 30 May 2008 06:06:52 -0400
-In-Reply-To: <Pine.LNX.4.64.0805301155550.16963@bizon.gios.gov.pl>
-Content-Disposition: inline
+	Fri, 30 May 2008 06:53:51 -0400
+In-Reply-To: <200805301206.45428.thomas.jarosch@intra2net.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Krzysztof,
 
-On Friday, 30. May 2008 11:56:28 you wrote:
-> > #ifdef _XTABLES_H
-> > init(struct xt_entry_target *t)
-> > #else
-> > init(struct ipt_entry_target *t, unsigned int *nfcache)
-> > #endif
+On Friday 2008-05-30 12:06, Thomas Jarosch wrote:
+>Hi Krzysztof,
 >
-> Plese check the attached patch.
+>On Friday, 30. May 2008 11:56:28 you wrote:
+>> > #ifdef _XTABLES_H
+>> > init(struct xt_entry_target *t)
+>> > #else
+>> > init(struct ipt_entry_target *t, unsigned int *nfcache)
+>> > #endif
 
-Thanks for the patch! I've developed something similar yesterday, though not 
-as elegant as your version. This will solve the issue for iptables < 1.4.0.
+Woah this is ridiculously ugly. (Remember, such constructs were
+just eliminated from the kernel in the past years.)
 
-The differences between 1.4.0 and the upcoming 1.4.1 are still an issue as 
-some function names changed. The version defines could be of help here.
+There is Xtables-addons which provides enough glue so that there is no reason
+to play dirty preprocessor tricks like these. xt-a uses a technique where an
+extra backwards-API layer is in place that translates the API (mostly
+parameter shuffling, etc) in an IMHO perfect fashion.
 
-Thomas
+That's for the kernel part; the same applies to the iptables glue --
+of which there is not any yet, because 1.4.0.77 is the minimum required
+version because of the newly exported xtables.h, and I had to start
+*somewhere*. My suggestion that you follow up on it ;-)
