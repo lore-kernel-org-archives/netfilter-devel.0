@@ -1,42 +1,62 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: iptables version defines
-Date: Fri, 30 May 2008 12:53:49 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0805301246450.11875@fbirervta.pbzchgretzou.qr>
-References: <200805301016.03130.thomas.jarosch@intra2net.com> <Pine.LNX.4.64.0805301140430.14733@bizon.gios.gov.pl> <Pine.LNX.4.64.0805301155550.16963@bizon.gios.gov.pl> <200805301206.45428.thomas.jarosch@intra2net.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [ANNOUNCE] libnfnetlink release 0.0.38
+Date: Sat, 31 May 2008 18:29:54 +0200
+Message-ID: <48417D02.8050907@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Krzysztof Oledzki <ole@ans.pl>, netfilter-devel@vger.kernel.org
-To: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:57012 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753156AbYE3Kxv (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 30 May 2008 06:53:51 -0400
-In-Reply-To: <200805301206.45428.thomas.jarosch@intra2net.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: multipart/mixed;
+ boundary="------------070704050907090802070508"
+Cc: netfilter-announce@lists.netfilter.org, lwn@lwn.net
+To: netfilter@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
+
+This is a multi-part message in MIME format.
+--------------070704050907090802070508
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+Hi!
+
+The netfilter project proudly presents libnfnetlink 0.0.38. This release
+includes minor bugfixes and updates. Changelog is attached.
+
+libnfnetlink is the low-level library for netfilter related
+kernel/userspace communication. It provides a generic messaging
+infrastructure for in-kernel netfilter subsystems (such as
+nfnetlink_log, nfnetlink_queue, nfnetlink_conntrack) and their
+respective users and/or management tools in userspace.
+
+This library requires a linux kernel >= 2.6.18.
+
+You can download it from:
+
+http://www.netfilter.org/projects/libnfnetlink/downloads.html
+
+Pablo (on behalf of the Netfilter Project)
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
 
 
-On Friday 2008-05-30 12:06, Thomas Jarosch wrote:
->Hi Krzysztof,
->
->On Friday, 30. May 2008 11:56:28 you wrote:
->> > #ifdef _XTABLES_H
->> > init(struct xt_entry_target *t)
->> > #else
->> > init(struct ipt_entry_target *t, unsigned int *nfcache)
->> > #endif
+--------------070704050907090802070508
+Content-Type: text/plain;
+ name="Changelog"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="Changelog"
 
-Woah this is ridiculously ugly. (Remember, such constructs were
-just eliminated from the kernel in the past years.)
+Jan Engelhardt (1):
+      The second, deprecated, form of `AM_INIT_AUTOMAKE' has two required
 
-There is Xtables-addons which provides enough glue so that there is no reason
-to play dirty preprocessor tricks like these. xt-a uses a technique where an
-extra backwards-API layer is in place that translates the API (mostly
-parameter shuffling, etc) in an IMHO perfect fashion.
+Pablo Neira Ayuso (5):
+      recover the nested bit as now it is fully supported in kernel space.
+      major cleanup of index2name infrastructure: use linux list (and fix leak in the nlif_close path)
+      update include files
+      fix warning, getsockname takes a socklen_t as third parameter
+      add conditional defition of NLA_F_NESTED for old includes
 
-That's for the kernel part; the same applies to the iptables glue --
-of which there is not any yet, because 1.4.0.77 is the minimum required
-version because of the newly exported xtables.h, and I had to start
-*somewhere*. My suggestion that you follow up on it ;-)
+
+--------------070704050907090802070508--
