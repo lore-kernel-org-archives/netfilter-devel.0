@@ -1,65 +1,110 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] libnetfilter_conntrack 0.0.94 release
-Date: Sat, 31 May 2008 18:30:36 +0200
-Message-ID: <48417D2C.7040002@netfilter.org>
+Subject: [ANNOUNCE] Release conntrack-tools 0.9.7
+Date: Sat, 31 May 2008 18:46:56 +0200
+Message-ID: <48418100.2080305@netfilter.org>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------010008090205090008040507"
-Cc: netfilter-announce@lists.netfilter.org,
-	netfilter-devel@vger.kernel.org, lwn@lwn.net
-To: netfilter@vger.kernel.org
+ boundary="------------020409010101010500060305"
+Cc: netfilter-announce@lists.netfilter.org, lwn@lwn.net
+To: netfilter@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-owner@vger.kernel.org>
 Sender: netfilter-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 This is a multi-part message in MIME format.
---------------010008090205090008040507
+--------------020409010101010500060305
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
 Hi!
 
-The netfilter project proudly presents libnetfilter_conntrack-0.0.94
+The netfilter project proudly presents another development release of
+the conntrack-tools. This release includes important improvements, new
+features and bugfixes:
 
-libnetfilter_conntrack is a userspace library providing a programming
-interface (API) to the in-kernel connection tracking state table.
+* add ICMPv6 support (Krzysztof Oledzki)
+* simplified conntrack update and deletion via command line
+* major improvements in the state synchronization code
+* add new best effort replication protocol
 
-This release includes new features and minor fixes. See ChangeLog for
-more details. Upgrade is recommended.
+Detailed changelog is attached.
 
-This library requires a linux kernel >= 2.6.18.
+What are the conntrack-tools?
 
-You can download it from:
+- The userspace daemon so-called conntrackd that covers the specific
+aspects of stateful Linux firewalls to enable high availability
+solutions. It can be used as statistics collector of the firewall use as
+well. The daemon is highly configurable and easily extensible.
 
-http://www.netfilter.org/projects/libnetfilter_conntrack/
-ftp://ftp.netfilter.org/pub/libnetfilter_conntrack/
+- The command line interface (CLI) conntrack that provides an interface
+to add, delete and update flow entries, list current active flows in
+plain text/XML, current IPv4 NAT'ed flows, reset counters, and flush the
+complete connection tracking table among many other.
 
-Pablo (on behalf of the Netfilter Project)
+Where can I download it from?
+
+http://www.netfilter.org/projects/conntrack-tools/downloads.html
+
+Where can I get more information about them?
+
+http://people.netfilter.org/pablo/conntrack-tools/
+
+Enjoy,
+	Pablo (on behalf of the Netfilter Project)
 
 -- 
 "Los honestos son inadaptados sociales" -- Les Luthiers
 
 
-
---------------010008090205090008040507
+--------------020409010101010500060305
 Content-Type: text/plain;
- name="Changelog-libnetfilter_conntrack"
+ name="Changelog-cttols"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="Changelog-libnetfilter_conntrack"
+ filename="Changelog-cttols"
 
-Krzysztof Oledzki (1):
-      add ICMPv6 support
-      fix "type", "code" and "id": in reply direction were always set to 0
+version 0.9.7 (2008/05/31)
+--------------------------
 
-Pablo Neira Ayuso (5):
-      add nfct_copy function
-      add nfct_cmp function (this function replaces nfct_compare)
-      fix __nfct_l4 structure layout (specifically, ICMP)
-      add full support of SCTP
-      fix segfault while getting the conntrack ID
-      add nfct_send function
-      check for pkg-config at configure stage
-      fix missing bitset in the autocomplete code
+o remove .svn directory from make distcheck tarballs (reported by B.Benjamini)
+o fix minor compilation issue in amd64 with gcc4.3 (reported by Daniel Schepler)
+o update manpages with the new URL: http://conntrack-tools.netfilter.org
+o check for pkg-config at configure stage
+o add flex version warning (better with >= 2.5.33)
 
---------------010008090205090008040507--
+= conntrack =
+o fix minor compilation warning (Krzysztof Oledzki)
+o add ICMPv6 (-p icmpv6) support (Krzysztof Oledzki)
+o distinguish between invalid (unknown) and empty proto (Krzysztof Oledzki)
+o simplify parameter-handling code
+o check for missing source/address IP/ports in creation and get operations
+o way more flexible conntrack updates and deletions
+o fix NAT filtering via --src-nat and --dst-nat (reported by K.Oledzki)
+o recover the ID support
+o only allow the use of --secmark for listing (filtering)
+o show display counters to stderr
+o enable filtering by status and ID
+o update manpage
+o minor cleanups
+
+= conntrackd =
+o fix asymmetric path support (reported by Gary Richards)
+o improve netlink overrun handling
+o add more verbose error notification when we fail to inject a conntrack
+o rework of the FT-FW approach
+o minor fix of the manpage (Max Wilhelm)
+o remove (misleading) counters and use information from the statistics mode
+o use generic nfct_copy() from libnetfilter_conntrack to update objects
+o use generic nfct_cmp() to compare objects
+o improve network message sanity checkings
+o add Mcast[Snd|Rcv]SocketBuffer clauses to tune multicast socket buffers
+o add missing string.h required by strdup in config parsing
+o add eventfd emulation to communicate receiver -> sender
+o add best effort replication protocol (aka NOTRACK)
+o rework the HELLO logic inside FT-FW
+o fix leak in cache_destroy(): release objects before destroying the cache
+o delay the closure of the dump descriptor to fix assertion with cache_wt
+
+--------------020409010101010500060305--
