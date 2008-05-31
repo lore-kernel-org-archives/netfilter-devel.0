@@ -1,110 +1,118 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] Release conntrack-tools 0.9.7
-Date: Sat, 31 May 2008 18:46:56 +0200
-Message-ID: <48418100.2080305@netfilter.org>
+Subject: Re: [PATCH 4/4] deliver events for conntracks created/updated via
+ ctnetlink
+Date: Sat, 31 May 2008 19:11:13 +0200
+Message-ID: <484186B1.80200@netfilter.org>
+References: <483350D9.7010809@netfilter.org> <48335339.2050007@netfilter.org> <48340BFA.2030307@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------020409010101010500060305"
-Cc: netfilter-announce@lists.netfilter.org, lwn@lwn.net
-To: netfilter@vger.kernel.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-owner@vger.kernel.org>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
-
-This is a multi-part message in MIME format.
---------------020409010101010500060305
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:54856 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751352AbYEaRLT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 31 May 2008 13:11:19 -0400
+In-Reply-To: <48340BFA.2030307@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi!
+Hi Patrick,
 
-The netfilter project proudly presents another development release of
-the conntrack-tools. This release includes important improvements, new
-features and bugfixes:
+Sorry for the delay, I couldn't manage to reply before.
 
-* add ICMPv6 support (Krzysztof Oledzki)
-* simplified conntrack update and deletion via command line
-* major improvements in the state synchronization code
-* add new best effort replication protocol
+Patrick McHardy wrote:
+> Pablo Neira Ayuso wrote:
+>> Pablo Neira Ayuso wrote:
+>>> As for now, the creation and update of conntracks via ctnetlink do not
+>>> propagate an event to userspace. This can result in inconsistent
+>>> situations if several userspace processes modify the connection tracking
+>>> table by means of ctnetlink at the same time. Specifically, using the
+>>> conntrack-cli while running an instance of conntrackde unsynchronizes
+>>> the cache of conntrackd with the kernel conntrack table. Note that
+>>> deletions do not suffer from this problem.
+>>>
+> 
+> Thanks for working on this. I have a couple of comments/questions
+> about the patch:
+> 
+>> @@ -529,6 +529,11 @@ nla_put_failure:
+>>      kfree_skb(skb);
+>>      return NOTIFY_DONE;
+>>  }
+>> +
+>> +static struct notifier_block ctnl_notifier = {
+>> +    .notifier_call    = ctnetlink_conntrack_event,
+>> +};
+> 
+> Why are the notifier blocks moved? It doesn't look necessary
+> for this patch.
 
-Detailed changelog is attached.
+I moved it there because of it is the first parameter of
+ctnetlink_conntrack_event() in ctnetlink_create_conntrack() and
+ctnetlink_new_conntrack(). However, we can just pass NULL as it is not used.
 
-What are the conntrack-tools?
+>>  static int
+>> -ctnetlink_change_status(struct nf_conn *ct, struct nlattr *cda[])
+>> +ctnetlink_change_status(struct nf_conn *ct, struct nlattr *cda[], int
+>> *events)
+>>  {
+>>      unsigned long d;
+>>      unsigned int status = ntohl(nla_get_be32(cda[CTA_STATUS]));
+>> @@ -930,12 +935,15 @@ ctnetlink_change_status(struct nf_conn *
+>>       * so don't let users modify them directly if they don't pass
+>>       * nf_nat_range. */
+>>      ct->status |= status & ~(IPS_NAT_DONE_MASK | IPS_NAT_MASK);
+>> +
+>> +    *events |= IPCT_STATUS;
+> 
+> I have some doubts whether we should really do this by
+> keeping track of the events outside of the cache.
+> 
+> Some changes are not performed manually, but by calling NAT
+> and conntrack functions, like nf_nat_setup_info(). These
+> might cache events for the conntrack, which will cause the
+> events to be delivered again some (unknown) time later.
+> For now things look fine, but for example nf_nat_setup_info()
+> should really cache the NAT event instead of
+> nf_conntrack_confirm(), at which point the above would happen.
 
-- The userspace daemon so-called conntrackd that covers the specific
-aspects of stateful Linux firewalls to enable high availability
-solutions. It can be used as statistics collector of the firewall use as
-well. The daemon is highly configurable and easily extensible.
+I forgot about the internal call of event_cache inside nf_setup_info().
+Well, my intention was to avoid doubled event notification that may
+arise if an interruption preempts an user process walking in the
+ctnetlink bits. However, as for now, the double notification may also
+occur if a local process sends a packet that triggers a conntrack event.
 
-- The command line interface (CLI) conntrack that provides an interface
-to add, delete and update flow entries, list current active flows in
-plain text/XML, current IPv4 NAT'ed flows, reset counters, and flush the
-complete connection tracking table among many other.
+> This makes me think that ctnetlink should simply use the
+> normal event caching functions and trigger delivery once
+> its done.
 
-Where can I download it from?
+I agree, thinking it well, the double notification that I was trying to
+avoid seems unlikely to happen.
 
-http://www.netfilter.org/projects/conntrack-tools/downloads.html
+>> +        spin_unlock_bh(&nf_conntrack_lock);
+>> +
+>> +        if (err == 0) {
+>> +            atomic_inc(&ct->ct_general.use);
+>> +            ctnetlink_conntrack_event(&ctnl_notifier, &events, ct);
+>> +            nf_ct_put(ct);
+>> +        }
+> 
+> This doesn't look right. The conntrack might already be gone,
+> no?
 
-Where can I get more information about them?
+Indeed. I'll fix it.
 
-http://people.netfilter.org/pablo/conntrack-tools/
+> One final thing: event messages generated after changes requested
+> by userspace should include the pid of the requesting socket
+> in nlmsg_pid. If a unicast report is requested, the socket should
+> be excluded from receiving the multicast message again.
+> 
+> Check out nlmsg_notify() and nlmsg_report() for reference.
 
-Enjoy,
-	Pablo (on behalf of the Netfilter Project)
+I'll have a look at those. I'll send you another patch this week.
 
 -- 
 "Los honestos son inadaptados sociales" -- Les Luthiers
-
-
---------------020409010101010500060305
-Content-Type: text/plain;
- name="Changelog-cttols"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="Changelog-cttols"
-
-version 0.9.7 (2008/05/31)
---------------------------
-
-o remove .svn directory from make distcheck tarballs (reported by B.Benjamini)
-o fix minor compilation issue in amd64 with gcc4.3 (reported by Daniel Schepler)
-o update manpages with the new URL: http://conntrack-tools.netfilter.org
-o check for pkg-config at configure stage
-o add flex version warning (better with >= 2.5.33)
-
-= conntrack =
-o fix minor compilation warning (Krzysztof Oledzki)
-o add ICMPv6 (-p icmpv6) support (Krzysztof Oledzki)
-o distinguish between invalid (unknown) and empty proto (Krzysztof Oledzki)
-o simplify parameter-handling code
-o check for missing source/address IP/ports in creation and get operations
-o way more flexible conntrack updates and deletions
-o fix NAT filtering via --src-nat and --dst-nat (reported by K.Oledzki)
-o recover the ID support
-o only allow the use of --secmark for listing (filtering)
-o show display counters to stderr
-o enable filtering by status and ID
-o update manpage
-o minor cleanups
-
-= conntrackd =
-o fix asymmetric path support (reported by Gary Richards)
-o improve netlink overrun handling
-o add more verbose error notification when we fail to inject a conntrack
-o rework of the FT-FW approach
-o minor fix of the manpage (Max Wilhelm)
-o remove (misleading) counters and use information from the statistics mode
-o use generic nfct_copy() from libnetfilter_conntrack to update objects
-o use generic nfct_cmp() to compare objects
-o improve network message sanity checkings
-o add Mcast[Snd|Rcv]SocketBuffer clauses to tune multicast socket buffers
-o add missing string.h required by strdup in config parsing
-o add eventfd emulation to communicate receiver -> sender
-o add best effort replication protocol (aka NOTRACK)
-o rework the HELLO logic inside FT-FW
-o fix leak in cache_destroy(): release objects before destroying the cache
-o delay the closure of the dump descriptor to fix assertion with cache_wt
-
---------------020409010101010500060305--
