@@ -1,35 +1,32 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Looking for mentor: NetFlow support for NetFilter
-Date: Sun, 01 Jun 2008 23:16:35 +0200
-Message-ID: <484311B3.70102@trash.net>
-References: <483E26A1.2010401@ez.pereslavl.ru>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [ANNOUNCE] Release of iptables 1.4.1-rc2
+Date: Mon, 2 Jun 2008 00:09:30 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0806012336000.4055@fbirervta.pbzchgretzou.qr>
+References: <483AB493.6010503@trash.net> <200805300933.53869.thomas.jarosch@intra2net.com> <alpine.LNX.1.10.0805301007120.19264@fbirervta.pbzchgretzou.qr> <48430FB5.3070302@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Alexey Mikhailov <karma@ez.pereslavl.ru>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Thomas Jarosch <thomas.jarosch@intra2net.com>,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:46420 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752220AbYFAVQk (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:52879 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751521AbYFAWJc (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 1 Jun 2008 17:16:40 -0400
-In-Reply-To: <483E26A1.2010401@ez.pereslavl.ru>
+	Sun, 1 Jun 2008 18:09:32 -0400
+In-Reply-To: <48430FB5.3070302@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Alexey Mikhailov wrote:
-> Greetings, NetFilter developers.
-> 
-> I was developing new efficient way of network accounting in Linux. It's 
-> based on generating
-> NetFlow packets in-kernel using conntrack system. I've got some 
-> progress, made some
-> decisions, some of them are very questionable. So I'm looking for a 
-> mentor from NetFilter
-> side to discuss my ideas and my code with him. It's too early to discuss 
-> it publically.
 
-Have you looked at ulogd2? It can generate netflow data from
-the conntrack accounting information.
-
+On Sunday 2008-06-01 23:08, Patrick McHardy wrote:
+>> 
+>> I assume people would not be amused if we start requiring perl.
+>> But you can use it as a workaround...
+>>  perl -ne 'print$&if/\b[A-Z0-9]+\b/'
+>
+> What exactly is that grep supposed to do? How about sed
+> or awk?
+>
+It should grep all uppercase-only names from the module name list.
+grep seems more lightweight, I would not bother with awk.
