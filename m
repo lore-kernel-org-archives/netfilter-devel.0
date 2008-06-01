@@ -1,39 +1,32 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: iptables version defines
-Date: Sun, 01 Jun 2008 23:13:58 +0200
-Message-ID: <48431116.8000607@trash.net>
-References: <200805301016.03130.thomas.jarosch@intra2net.com> <Pine.LNX.4.64.0805301140430.14733@bizon.gios.gov.pl> <Pine.LNX.4.64.0805301155550.16963@bizon.gios.gov.pl> <200805301206.45428.thomas.jarosch@intra2net.com> <alpine.LNX.1.10.0805301246450.11875@fbirervta.pbzchgretzou.qr>
+Subject: Re: [patch] ipset 2.3.0 segfault on '-U :all: {:all:|:default:}
+Date: Sun, 01 Jun 2008 23:14:42 +0200
+Message-ID: <48431142.5030106@trash.net>
+References: <483F111A.40700@shorewall.net> <Pine.LNX.4.64.0805300917070.10875@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Thomas Jarosch <thomas.jarosch@intra2net.com>,
-	Krzysztof Oledzki <ole@ans.pl>, netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: Tom Eastep <teastep@shorewall.net>, netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:46329 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:46365 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751736AbYFAVOD (ORCPT
+	with ESMTP id S1751967AbYFAVOr (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 1 Jun 2008 17:14:03 -0400
-In-Reply-To: <alpine.LNX.1.10.0805301246450.11875@fbirervta.pbzchgretzou.qr>
+	Sun, 1 Jun 2008 17:14:47 -0400
+In-Reply-To: <Pine.LNX.4.64.0805300917070.10875@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Friday 2008-05-30 12:06, Thomas Jarosch wrote:
->> Hi Krzysztof,
->>
->> On Friday, 30. May 2008 11:56:28 you wrote:
->>>> #ifdef _XTABLES_H
->>>> init(struct xt_entry_target *t)
->>>> #else
->>>> init(struct ipt_entry_target *t, unsigned int *nfcache)
->>>> #endif
+Jozsef Kadlecsik wrote:
+> On Thu, 29 May 2008, Tom Eastep wrote:
 > 
-> Woah this is ridiculously ugly. (Remember, such constructs were
-> just eliminated from the kernel in the past years.)
+>> Segfault occurs at line 1641 as a result of dereferencing a null pointer while
+>> testing the set type for iptreemap.
+>>
+>> Patch attached.
+> 
+> Thank you the report and the patch: I'll apply it as soon as the svn->git 
+> migration of ipset source is ready.
 
-I don't care about uglyness as long as it stays in external
-code. So if someone sends me a patch to add this version
-define, I'll add it.
-
+Don't let this stop you, doing a final resync is no problem.
