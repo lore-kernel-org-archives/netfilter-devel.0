@@ -1,32 +1,27 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [ANNOUNCE] Release of iptables 1.4.1-rc2
-Date: Mon, 2 Jun 2008 00:09:30 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0806012336000.4055@fbirervta.pbzchgretzou.qr>
-References: <483AB493.6010503@trash.net> <200805300933.53869.thomas.jarosch@intra2net.com> <alpine.LNX.1.10.0805301007120.19264@fbirervta.pbzchgretzou.qr> <48430FB5.3070302@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [ULOGD PATCH 1/9] Set timestamp in NFLOG for INPUT and OUTPUT.
+Date: Mon, 02 Jun 2008 01:57:48 +0200
+Message-ID: <4843377C.9030802@netfilter.org>
+References: <> <1211236295-30207-2-git-send-email-eric@inl.fr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Thomas Jarosch <thomas.jarosch@intra2net.com>,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@inl.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:52879 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751521AbYFAWJc (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 1 Jun 2008 18:09:32 -0400
-In-Reply-To: <48430FB5.3070302@trash.net>
+Received: from mail.us.es ([193.147.175.20]:39861 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752646AbYFAX6J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 1 Jun 2008 19:58:09 -0400
+In-Reply-To: <1211236295-30207-2-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Eric Leblond wrote:
+> Signed-off-by: Eric Leblond <eric@inl.fr>
 
-On Sunday 2008-06-01 23:08, Patrick McHardy wrote:
->> 
->> I assume people would not be amused if we start requiring perl.
->> But you can use it as a workaround...
->>  perl -ne 'print$&if/\b[A-Z0-9]+\b/'
->
-> What exactly is that grep supposed to do? How about sed
-> or awk?
->
-It should grep all uppercase-only names from the module name list.
-grep seems more lightweight, I would not bother with awk.
+Applied. Please add a short description (even if it is the same of the
+subject) in the body of the email.
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
