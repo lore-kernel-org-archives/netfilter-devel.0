@@ -1,40 +1,36 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] Fix connlimit bug when receive RST packet in ESTABLISHED
- state
-Date: Mon, 2 Jun 2008 16:35:52 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0806021634480.4055@fbirervta.pbzchgretzou.qr>
-References: <3104bfb60806020422s73c60a29kde8c896e1db901d6@mail.gmail.com> <4843E59C.1030808@trash.net> <alpine.LNX.1.10.0806021428440.4055@fbirervta.pbzchgretzou.qr> <4843EF22.9010207@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [ULOGD PATCH] Fix IPv6 packet parsing.
+Date: Mon, 02 Jun 2008 15:50:44 +0200
+Message-ID: <4843FAB4.2050109@netfilter.org>
+References: <1211574847-14768-1-git-send-email-eric@inl.fr> <484338FE.8070507@netfilter.org> <20080602123253.GD30308@khasse.inl.fr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Dong Wei <dwei.zh@gmail.com>, netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: Eric Leblond <eric@inl.fr>, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:44567 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751991AbYFBOfx (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Jun 2008 10:35:53 -0400
-In-Reply-To: <4843EF22.9010207@trash.net>
+Received: from mail.us.es ([193.147.175.20]:45112 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751837AbYFBOuw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 2 Jun 2008 10:50:52 -0400
+In-Reply-To: <20080602123253.GD30308@khasse.inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Eric Leblond wrote:
+>> I'll test this a bit along this week, any help appreciated. We can
+>> prepare the first release of 2.0.0-rc series soon. If my mind serves
+>> well, configuration file reload is still pending.
+> 
+> Yes, reload is still missing.
+> 
+> By the way, a new libnetfilter_conntrack release will be needed before
+> ulogd2 rc. Latest libnetfilter_conntrack git is needed to have ulogd2
+> compile.
 
-On Monday 2008-06-02 15:01, Patrick McHardy wrote:
-> Jan Engelhardt wrote:
->> On Monday 2008-06-02 14:20, Patrick McHardy wrote:
->> > Dong Wei wrote:
->> > > diff -ruN a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
->> > > --- a/net/netfilter/xt_connlimit.c      2008-06-02 18:48:38.000000000
->> > > +0800
->> > > +++ b/net/netfilter/xt_connlimit.c      2008-06-02 18:50:40.000000000
->> > > +0800
->> > > @@ -75,7 +75,8 @@
->> > >         u_int16_t proto = conn->tuplehash[0].tuple.dst.protonum;
->> > >
->> > >         if (proto == IPPROTO_TCP)
->> > > -               return conn->proto.tcp.state == TCP_CONNTRACK_TIME_WAIT;
->> > > +               return (conn->proto.tcp.state == TCP_CONNTRACK_TIME_WAIT
->> > > +                       || conn->proto.tcp.state == TCP_CONNTRACK_CLOSE);
->> > Looks fine to me. Jan?
+I think that you have missed the release that I have done two days ago
+[1] ? :-)
 
-Acked-by: Jan Engelhardt <jengelh@medozas.de>
+http://marc.info/?l=netfilter-devel&m=121225147116142&w=2
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
