@@ -1,79 +1,118 @@
-From: "Dong Wei" <dwei.zh@gmail.com>
-Subject: Re: [PATCH] Fix connlimit bug when receive RST packet in ESTABLISHED state
-Date: Mon, 2 Jun 2008 21:44:37 +0800
-Message-ID: <3104bfb60806020644w656bd8bte56ab8025b7119aa@mail.gmail.com>
-References: <3104bfb60806020422s73c60a29kde8c896e1db901d6@mail.gmail.com>
-	 <4843E59C.1030808@trash.net>
-	 <alpine.LNX.1.10.0806021428440.4055@fbirervta.pbzchgretzou.qr>
-	 <4843EF22.9010207@trash.net>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: [patch] iptables version defines
+Date: Mon, 2 Jun 2008 15:49:14 +0200
+Message-ID: <200806021549.15005.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: "Jan Engelhardt" <jengelh@medozas.de>,
-	netfilter-devel@vger.kernel.org
-To: "Patrick McHardy" <kaber@trash.net>
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_ap/QIeqlmuHzy4W"
+Cc: netfilter-devel@vger.kernel.org,
+	Jan Engelhardt <jengelh@medozas.de>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from gv-out-0910.google.com ([216.239.58.185]:9696 "EHLO
-	gv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753297AbYFBNoj (ORCPT
+Received: from rs02.intra2net.com ([81.169.173.116]:48107 "EHLO
+	rs02.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753152AbYFBNtx (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Jun 2008 09:44:39 -0400
-Received: by gv-out-0910.google.com with SMTP id e6so117696gvc.37
-        for <netfilter-devel@vger.kernel.org>; Mon, 02 Jun 2008 06:44:38 -0700 (PDT)
-In-Reply-To: <4843EF22.9010207@trash.net>
-Content-Disposition: inline
+	Mon, 2 Jun 2008 09:49:53 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi, Jan
+--Boundary-00=_ap/QIeqlmuHzy4W
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-  My Signed-off-by message is:
+Hi Patrick,
 
-Signed-off-by: Dong Wei <dwei.zh@gmail.com>
+[resent as I somehow sent an HTML email at first]
 
-Thanks
+> >>>> #ifdef _XTABLES_H
+> >>>> init(struct xt_entry_target *t)
+> >>>> #else
+> >>>> init(struct ipt_entry_target *t, unsigned int *nfcache)
+> >>>> #endif
+> >
+> > Woah this is ridiculously ugly. (Remember, such constructs were
+> > just eliminated from the kernel in the past years.)
+>
+> I don't care about uglyness as long as it stays in external
+> code. So if someone sends me a patch to add this version
+> define, I'll add it.
 
-On Mon, Jun 2, 2008 at 9:01 PM, Patrick McHardy <kaber@trash.net> wrote:
-> Jan Engelhardt wrote:
->>
->> On Monday 2008-06-02 14:20, Patrick McHardy wrote:
->>>
->>> Dong Wei wrote:
->>>>
->>>> diff -ruN a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
->>>> --- a/net/netfilter/xt_connlimit.c      2008-06-02 18:48:38.000000000
->>>> +0800
->>>> +++ b/net/netfilter/xt_connlimit.c      2008-06-02 18:50:40.000000000
->>>> +0800
->>>> @@ -75,7 +75,8 @@
->>>>        u_int16_t proto = conn->tuplehash[0].tuple.dst.protonum;
->>>>
->>>>        if (proto == IPPROTO_TCP)
->>>> -               return conn->proto.tcp.state == TCP_CONNTRACK_TIME_WAIT;
->>>> +               return (conn->proto.tcp.state == TCP_CONNTRACK_TIME_WAIT
->>>> +                       || conn->proto.tcp.state ==
->>>> TCP_CONNTRACK_CLOSE);
->>>
->>> Looks fine to me. Jan?
->>
->> The check for TCP_CONNTRACK_TIME_WAIT was introduced since there is
->> the 2*MSL delay before the TIME_WAIT->CLOSED transition, and not
->> counting a connection beginning with TIME_WAIT is common sense/what
->> people expect.
->
-> Yes, though the end-result might not be what people expect.
-> The connection can be reopened, exceeding the configured
-> limit, and lots of TIME_WAIT/CLOSE connections might linger
-> around.
->
->> Though the cleanup delay between TCP_CONNTRACK_CLOSE and (deallocated
->> state) is much less than 2*MSL, it makes sense to also add this case
->> per common sense.
->>
->> Patch is fine, yes, but you do not need the redundant
->> ( ) that were introduced.
->
-> I'll remove them when applying the patch.
->
-> Dong, I need a Signed-off-by: line from you before I can apply this.
->
+External code has to be "ugly" if you want to keep the user experience high.
+I don't feel like breaking ipt_ACCOUNT for older iptables versions without
+any real gain, it should work out of the box with iptables 1.4.0 and 1.4.1.
+
+Attached is a patch to add the new defines. The macro XTABLES_VERSION
+is already in use, so I named it XTABLES_VERSION_CHECK. I've also tested
+that an empty XTABLES_VERSION_EXTRA in configure.ac works.
+
+Now we can write code like this:
+
+#if XTABLES_VERSION_CODE < XTABLES_VERSION_CHECK(1,5,0)
+=A0 =A0 #warning You are obselete and will be assimilated.
+#endif
+
+Cheers,
+Thomas
+
+--Boundary-00=_ap/QIeqlmuHzy4W
+Content-Type: text/x-diff;
+  charset="us-ascii";
+  name="iptables-add-version.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="iptables-add-version.patch"
+
+Add xtables version defines.
+
+Signed-off-by: Thomas Jarosch <thomas.jarosch@intra2net.com>
+
+--- iptables-1.4.1-rc2/configure.ac	Mon May 26 14:23:58 2008
++++ iptables.version/configure.ac	Mon Jun  2 15:05:57 2008
+@@ -1,5 +1,11 @@
++define([_XTABLES_VERSION_MAJOR], 1)
++define([_XTABLES_VERSION_MINOR], 4)
++define([_XTABLES_VERSION_PATCH], 1)
++define([_XTABLES_VERSION_EXTRA], -rc2)
+ 
+-AC_INIT([iptables], [1.4.1-rc2])
++define([_XTABLES_VERSION],_XTABLES_VERSION_MAJOR._XTABLES_VERSION_MINOR._XTABLES_VERSION_PATCH[]_XTABLES_VERSION_EXTRA)
++
++AC_INIT([iptables], _XTABLES_VERSION)
+ AC_CONFIG_HEADERS([config.h])
+ AC_PROG_INSTALL
+ AM_INIT_AUTOMAKE
+@@ -56,4 +62,14 @@
+ AC_SUBST([kbuilddir])
+ AC_SUBST([ksourcedir])
+ AC_SUBST([xtlibdir])
++
++XTABLES_VERSION_MAJOR=_XTABLES_VERSION_MAJOR
++XTABLES_VERSION_MINOR=_XTABLES_VERSION_MINOR
++XTABLES_VERSION_PATCH=_XTABLES_VERSION_PATCH
++XTABLES_VERSION_EXTRA=_XTABLES_VERSION_EXTRA
++AC_SUBST([XTABLES_VERSION_MAJOR])
++AC_SUBST([XTABLES_VERSION_MINOR])
++AC_SUBST([XTABLES_VERSION_PATCH])
++AC_SUBST([XTABLES_VERSION_EXTRA])
++
+ AC_OUTPUT([Makefile extensions/GNUmakefile libipq/Makefile include/xtables.h])
+--- iptables-1.4.1-rc2/include/xtables.h.in	Mon May 26 14:15:40 2008
++++ iptables.version/include/xtables.h.in	Mon Jun  2 15:03:46 2008
+@@ -18,6 +18,12 @@
+ #endif
+ 
+ #define XTABLES_VERSION "@PACKAGE_VERSION@"
++#define XTABLES_VERSION_CODE (0x10000 * @XTABLES_VERSION_MAJOR@ + 0x100 * @XTABLES_VERSION_MINOR@ + @XTABLES_VERSION_PATCH@)
++
++#define XTABLES_VERSION_CHECK(x,y,z)    (0x10000*(x) + 0x100*(y) + z)
++#define XTABLES_VERSION_MAJOR(x)  (((x)>>16) & 0xFF)
++#define XTABLES_VERSION_MINOR(x)  (((x)>> 8) & 0xFF)
++#define XTABLES_VERSION_PATCH(x)  ( (x)      & 0xFF)
+ 
+ /* Include file for additions: new matches and targets. */
+ struct xtables_match
+
+--Boundary-00=_ap/QIeqlmuHzy4W--
