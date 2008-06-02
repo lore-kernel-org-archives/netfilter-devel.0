@@ -1,54 +1,64 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [patch] iptables version defines
-Date: Mon, 2 Jun 2008 19:03:02 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0806021809030.4055@fbirervta.pbzchgretzou.qr>
-References: <200806021549.15005.thomas.jarosch@intra2net.com> <alpine.LNX.1.10.0806021646350.4055@fbirervta.pbzchgretzou.qr> <200806021732.57124.thomas.jarosch@intra2net.com>
+From: Fabian Hugelshofer <hugelshofer2006@gmx.ch>
+Subject: [PATCH] netfilter ulog byte alignment problem
+Date: Mon, 02 Jun 2008 18:05:48 +0100
+Message-ID: <1212426348.31217.30.camel@pumper.lan.luxnet.ch>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
-To: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:55117 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751542AbYFBRDF (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Jun 2008 13:03:05 -0400
-In-Reply-To: <200806021732.57124.thomas.jarosch@intra2net.com>
+Received: from mail.gmx.net ([213.165.64.20]:45298 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752913AbYFBRFz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 2 Jun 2008 13:05:55 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+I am using libipulog on an XScale IXP422 processor (big endian ARM). I
+call ipulog_get_packet to decode the multipart message and then access
+the fields in the packet (ulog_packet_msg_t). Accessing fields 'mac' an=
+d
+'payload' does not give me the right data. The data is actually there,
+but an access to the arrays ends up at a wrong location. Manually addin=
+g
+an offset leads to the correct position (e.g. pkt->payload[-66] instead
+of pkt->payload[0] for the first byte of the IP packet).
 
-On Monday 2008-06-02 17:32, Thomas Jarosch wrote:
->Jan,
->>
->> #define XTABLES_API_VERSION(a,b,c) (((a) << 16) | ((b) << 8) | (c))
->
->As you already pointed out, it's a matter of taste and neither
->of both versions will hurt as it will be expanded at compile time.
->
->Infact, imagine we would add another version level like "(x) << 32",
->on x86 it is only valid to do a left shift operation for 0-31 bits
->and so it could fail...
+I tracked the issue down to a byte alignment problem in
+ulog_packet_msg_t (include/linux/netfilter_ipv4/ipt_ULOG.h). Setting
+attributes 'packed' or 'aligned' or using 'size_t' instead of 'unsigned
+char' for field 'mac_len' solved the problem. It seems necessary to hel=
+p
+the compiler doing things right.
 
-First, you would use << 24 not << 32 :-)
-Even so, << 32 is perfectly valid if you correctly declare it as a
-unsigned long long.
+This patch requires applications to be recompiled against the new heade=
+r
+file. Let me know what you think.
 
->> >+#define XTABLES_VERSION_MAJOR(x)  (((x)>>16) & 0xFF)
->> >+#define XTABLES_VERSION_MINOR(x)  (((x)>> 8) & 0xFF)
->> >+#define XTABLES_VERSION_PATCH(x)  ( (x)      & 0xFF)
->>
->> I do not see a need for these three. The linux kernel does not
->> have such either, so please don't overdesign :)
->
->Well, I've created the same macros as there are already in include/iptables.h.
+linux 2.6.25.4
+libipulog r6382
+=EF=BB=BFarmeb-linux-gcc 4.2.4
+CFLAGS -pipe -march=3Darmv5te -mtune=3Dxscale -funit-at-a-time
+-fhonour-copts -msoft-float
 
-That's just leftover, they are not used either.
+Signed-off-by: Fabian Hugelshofer <hugelshofer2006@gmx.ch>
 
->I'm alright with your proposed change to XTABLES_API_VERSION
->and the drop of _MAJOR, _MINOR and _PATCH macros as
->one can easily check for same thing via "xyz < XTABLES_API_VERSION(2,6,0)"
->
->Attached is an updated patch.
+--- linux-2.6.25.4/include/linux/netfilter_ipv4/ipt_ULOG.h.orig	2008-06=
+-02 15:39:22.000000000 +0100
++++ linux-2.6.25.4/include/linux/netfilter_ipv4/ipt_ULOG.h	2008-06-02 1=
+5:36:34.000000000 +0100
+@@ -44,6 +44,6 @@
+ 	unsigned char mac_len;
+ 	unsigned char mac[ULOG_MAC_LEN];
+ 	unsigned char payload[0];
+-} ulog_packet_msg_t;
++} ulog_packet_msg_t __attribute__ ((packed));
+=20
+ #endif /*_IPT_ULOG_H*/
 
-I approve.
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
