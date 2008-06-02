@@ -1,39 +1,54 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [ANNOUNCE] Release of iptables 1.4.1-rc2
-Date: Mon, 02 Jun 2008 11:09:37 +0200
-Message-ID: <4843B8D1.4070402@trash.net>
-References: <483AB493.6010503@trash.net> <200805300933.53869.thomas.jarosch@intra2net.com> <alpine.LNX.1.10.0805301007120.19264@fbirervta.pbzchgretzou.qr> <48430FB5.3070302@trash.net> <alpine.LNX.1.10.0806012336000.4055@fbirervta.pbzchgretzou.qr>
+Subject: Re: Fw: [PATCH net-2.6 1/2] [IPV4] [NETFILTER] Misc Cleanups.
+Date: Mon, 02 Jun 2008 11:46:43 +0200
+Message-ID: <4843C183.4060008@trash.net>
+References: <20080601.234549.229050768.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Thomas Jarosch <thomas.jarosch@intra2net.com>,
-	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org, ramirose@gmail.com
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:61525 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:62720 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750866AbYFBJJn (ORCPT
+	with ESMTP id S1750735AbYFBJqt (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Jun 2008 05:09:43 -0400
-In-Reply-To: <alpine.LNX.1.10.0806012336000.4055@fbirervta.pbzchgretzou.qr>
+	Mon, 2 Jun 2008 05:46:49 -0400
+In-Reply-To: <20080601.234549.229050768.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Sunday 2008-06-01 23:08, Patrick McHardy wrote:
->>> I assume people would not be amused if we start requiring perl.
->>> But you can use it as a workaround...
->>>  perl -ne 'print$&if/\b[A-Z0-9]+\b/'
->> What exactly is that grep supposed to do? How about sed
->> or awk?
->>
-> It should grep all uppercase-only names from the module name list.
-> grep seems more lightweight, I would not bother with awk.
+David Miller wrote:
+> Forwarding to netfilter-devel where this belongs...
 
+Thanks.
 
-Well, working properly takes precendence in my opinion.
-I don't want to mess with this myself, but I'd apply a
-patch to either use awk as fallback or unconditionally
-if that works better.
+> 	In this patch, these three fixes were made in net/ipv4/netfilter/ip_queue.c:
+> 	
+> 	1) No need to perform data_len = 0 in the switch command, since data_len
+> 	   is initialized to 0 in the beginning of the method
+> ,ipq_build_packet_message().
+> 		
+> 	2) We can reach nlmsg_failure only from one place; skb is sure to be NULL
+> 	   when getting there; since skb is NULL, there is no need to check this fact
+> 	   and call kfree_skb().
+> 	
+> 	3) Add #ifdef CONFIG_PROC_FS when removing the VFS entry,
+>  		 proc_net_remove(&init_net, IPQ_PROC_FS_NAME);
+> 	
+> 
+> Regards,
+> Rami Rosen
+> 
+> 
+> Signed-off-by: Rami Rosen <ramirose@gmail.com>
+
+1) also affects ip6_queue and nfnetlink_queue
+2) also affects ip6_queue
+3) is unnecessary since proc_net_remove is a NOP without
+    CONFIG_PROC_FS
+
+Please update your patch to also change ip6_queue and
+nfnetlink_queue where applicable. Thanks.
 
 
