@@ -1,56 +1,60 @@
 From: Fabian Hugelshofer <hugelshofer2006@gmx.ch>
-Subject: [PATCH 2/3] libnetlink-log byte alignment
-Date: Tue, 03 Jun 2008 11:21:12 +0100
-Message-ID: <1212488472.29489.41.camel@pumper.lan.luxnet.ch>
+Subject: [PATCH 3/3] libnetfilter-conntrack byte alignment
+Date: Tue, 03 Jun 2008 11:21:23 +0100
+Message-ID: <1212488483.29489.42.camel@pumper.lan.luxnet.ch>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:49069 "HELO mail.gmx.net"
+Received: from mail.gmx.net ([213.165.64.20]:56726 "HELO mail.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751762AbYFCKVO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 3 Jun 2008 06:21:14 -0400
+	id S1751950AbYFCKVZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 3 Jun 2008 06:21:25 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Aligns buffers to maximum alignment of architecture to make the cast of
-char pointers to struct pointers more portable. Packet decoding is still
-broken on particular platforms.
+=EF=BB=BFAligns buffers to maximum alignment of architecture to make th=
+e cast of
+char pointers to struct pointers more portable.
 
 Signed-off-by: Fabian Hugelshofer <hugelshofer2006@gmx.ch>
 
 
-diff -ruN libnfnetlink-0.0.38.orig/src/libnfnetlink.c libnfnetlink-0.0.38/src/libnfnetlink.c
---- libnfnetlink-0.0.38.orig/src/libnfnetlink.c	2008-06-02 18:54:18.000000000 +0100
-+++ libnfnetlink-0.0.38/src/libnfnetlink.c	2008-06-02 18:57:32.000000000 +0100
-@@ -528,7 +528,7 @@
- 			       void *), void *jarg)
+diff -ruN libnetfilter_conntrack-0.0.89.orig/src/conntrack/api.c libnet=
+filter_conntrack-0.0.89/src/conntrack/api.c
+--- libnetfilter_conntrack-0.0.89.orig/src/conntrack/api.c	2008-06-02 1=
+9:35:12.000000000 +0100
++++ libnetfilter_conntrack-0.0.89/src/conntrack/api.c	2008-06-02 19:38:=
+07.000000000 +0100
+@@ -561,7 +561,7 @@
+ 	       const void *data)
  {
- 	struct sockaddr_nl nladdr;
--	char buf[NFNL_BUFFSIZE];
-+	char buf[NFNL_BUFFSIZE] __attribute__ ((aligned));
- 	struct iovec iov;
- 	int remain;
- 	struct nlmsghdr *h;
-@@ -637,7 +637,7 @@
- 	      int (*junk)(struct sockaddr_nl *, struct nlmsghdr *n, void *),
- 	      void *jarg)
+ 	size_t size =3D 4096;	/* enough for now */
+-	char buffer[4096];
++	char buffer[4096] __attribute__ ((aligned));
+ 	struct nfnlhdr *req =3D (struct nfnlhdr *) buffer;
+=20
+ 	assert(h !=3D NULL);
+diff -ruN libnetfilter_conntrack-0.0.89.orig/src/expect/api.c libnetfil=
+ter_conntrack-0.0.89/src/expect/api.c
+--- libnetfilter_conntrack-0.0.89.orig/src/expect/api.c	2008-06-02 19:3=
+5:12.000000000 +0100
++++ libnetfilter_conntrack-0.0.89/src/expect/api.c	2008-06-02 19:39:59.=
+000000000 +0100
+@@ -507,7 +507,7 @@
+ 	        const void *data)
  {
--	char buf[NFNL_BUFFSIZE];
-+	char buf[NFNL_BUFFSIZE] __attribute__ ((aligned));
- 	struct sockaddr_nl nladdr;
- 	struct nlmsghdr *h;
- 	unsigned int seq;
-@@ -1474,7 +1474,8 @@
- 	assert(h);
- 
- 	while (1) {
--		unsigned char buf[h->rcv_buffer_size];
-+		unsigned char buf[h->rcv_buffer_size]
-+			__attribute__ ((aligned));
- 
- 		ret = nfnl_recv(h, buf, sizeof(buf));
- 		if (ret == -1) {
+ 	size_t size =3D 4096;	/* enough for now */
+-	char buffer[4096];
++	char buffer[4096] __attribute__ ((aligned));
+ 	struct nfnlhdr *req =3D (struct nfnlhdr *) buffer;
+=20
+ 	assert(h !=3D NULL);
 
 
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
