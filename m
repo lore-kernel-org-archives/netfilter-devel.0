@@ -1,63 +1,86 @@
 From: Fabian Hugelshofer <hugelshofer2006@gmx.ch>
-Subject: [0/3] libnfnetlink and libnetfilter-(conntrack|log): byte
-	alignment issues
-Date: Tue, 03 Jun 2008 11:20:10 +0100
-Message-ID: <1212488410.29489.39.camel@pumper.lan.luxnet.ch>
+Subject: [PATCH 1/3] libnfnetlink byte alignment
+Date: Tue, 03 Jun 2008 11:20:48 +0100
+Message-ID: <1212488448.29489.40.camel@pumper.lan.luxnet.ch>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:33660 "HELO mail.gmx.net"
+Received: from mail.gmx.net ([213.165.64.20]:57685 "HELO mail.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750825AbYFCKUW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 3 Jun 2008 06:20:22 -0400
+	id S1751895AbYFCKUu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 3 Jun 2008 06:20:50 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-I am using libnfnetlink, libnetfilter-conntrack and libnetfilter-log on
-an XScale IXP422 processor (big endian ARM) and discovered byte
-alignment bugs in these libraries.
+Aligns buffers to maximum alignment of architecture to make the cast of
+char pointers to struct pointers more portable.
 
-An example from libnetfilter_log.c:
-char buf[NFNL_HEADER_LEN + ...];
-struct nlmsghdr *nmh = (struct nlmsghdr *) buf;
+Signed-off-by: Fabian Hugelshofer <hugelshofer2006@gmx.ch>
 
-Casting a pointer to a byte array to an arbitrary struct without
-checking byte alignment is not portable. If buf starts at an odd memory
-address and the struct has to be aligned, this results in
-non-deterministic behavior. No problems occur on i386, whereas it breaks
-e.g. on my platform. See my posting "libnfnetlink: Strange behaviour in
-nfnl_fill_hdr" from 05/13/2008.
 
-I wrote three patches, which properly align the used buffers. I did not
-analyze the code further. There are definitely more issues:
+--- libnetfilter_log-0.0.13.orig/src/libnetfilter_log.c	2008-06-02 09:50:47.000000000 +0100
++++ libnetfilter_log-0.0.13/src/libnetfilter_log.c	2008-06-02 18:22:14.000000000 +0100
+@@ -107,7 +107,8 @@
+ 		     u_int16_t queuenum, u_int8_t pf)
+ {
+ 	char buf[NFNL_HEADER_LEN
+-		+NFA_LENGTH(sizeof(struct nfulnl_msg_config_cmd))];
++		+NFA_LENGTH(sizeof(struct nfulnl_msg_config_cmd))]
++		__attribute__ ((aligned));
+ 	struct nfulnl_msg_config_cmd cmd;
+ 	struct nlmsghdr *nmh = (struct nlmsghdr *) buf;
+ 
+@@ -292,7 +293,8 @@
+ 		   u_int8_t mode, u_int32_t range)
+ {
+ 	char buf[NFNL_HEADER_LEN
+-		+NFA_LENGTH(sizeof(struct nfulnl_msg_config_mode))];
++		+NFA_LENGTH(sizeof(struct nfulnl_msg_config_mode))]
++		__attribute__ ((aligned));
+ 	struct nfulnl_msg_config_mode params;
+ 	struct nlmsghdr *nmh = (struct nlmsghdr *) buf;
+ 
+@@ -309,7 +311,8 @@
+ 
+ int nflog_set_timeout(struct nflog_g_handle *gh, u_int32_t timeout)
+ {
+-	char buf[NFNL_HEADER_LEN+NFA_LENGTH(sizeof(u_int32_t))];
++	char buf[NFNL_HEADER_LEN+NFA_LENGTH(sizeof(u_int32_t))]
++		__attribute__ ((aligned));
+ 	struct nlmsghdr *nmh = (struct nlmsghdr *) buf;
+ 
+ 	nfnl_fill_hdr(gh->h->nfnlssh, nmh, 0, AF_UNSPEC, gh->id,
+@@ -322,7 +325,8 @@
+ 
+ int nflog_set_qthresh(struct nflog_g_handle *gh, u_int32_t qthresh)
+ {
+-	char buf[NFNL_HEADER_LEN+NFA_LENGTH(sizeof(u_int32_t))];
++	char buf[NFNL_HEADER_LEN+NFA_LENGTH(sizeof(u_int32_t))]
++		__attribute__ ((aligned));
+ 	struct nlmsghdr *nmh = (struct nlmsghdr *) buf;
+ 
+ 	nfnl_fill_hdr(gh->h->nfnlssh, nmh, 0, AF_UNSPEC, gh->id,
+@@ -335,7 +339,8 @@
+ 
+ int nflog_set_nlbufsiz(struct nflog_g_handle *gh, u_int32_t nlbufsiz)
+ {
+-	char buf[NFNL_HEADER_LEN+NFA_LENGTH(sizeof(u_int32_t))];
++	char buf[NFNL_HEADER_LEN+NFA_LENGTH(sizeof(u_int32_t))]
++		__attribute__ ((aligned));
+ 	struct nlmsghdr *nmh = (struct nlmsghdr *) buf;
+ 	int status;
+ 
+@@ -355,7 +360,8 @@
+ 
+ int nflog_set_flags(struct nflog_g_handle *gh, u_int16_t flags)
+ {
+-	char buf[NFNL_HEADER_LEN+NFA_LENGTH(sizeof(u_int16_t))];
++	char buf[NFNL_HEADER_LEN+NFA_LENGTH(sizeof(u_int16_t))]
++		__attribute__ ((aligned));
+ 	struct nlmsghdr *nmh = (struct nlmsghdr *) buf;
+ 
+ 	nfnl_fill_hdr(gh->h->nfnlssh, nmh, 0, AF_UNSPEC, gh->id,
 
-libnetfilter-log is still broken. To test I used nfulnl_test. With my
-patches it reaches at least the main loop (without it breaks at
-nflog_unbind_pf()). Decoding the packet from the byte buffer still
-suffers from alignment problems, because again the char* is casted to a
-struct* without alignment checking. A segfault occurs while calling
-nflog_get_payload(ldata, payload) but the other calls are suspicious as
-well. I did not elaborate further on this and don't plan to so for the
-moment.
-
-# nfulnl_test
-unbinding existing nf_log handler for AF_INET (if any)
-binding nfnetlink_log to AF_INET
-binding this socket to group 0
-binding this socket to group 100
-setting copy_packet mode
-registering callback for group 0
-going into main loop
-pkt received (len=176)
-Segmentation fault
-
-Versions:
-libnfnetlink-0.0.38
-libnetfilter_log 0.0.13
-libnetfilter_conntrack-0.0.89
-armeb-linux-gcc 4.2.4
-CFLAGS -pipe -march=armv5te -mtune=xscale -funit-at-a-time
--fhonour-copts -msoft-float
 
