@@ -1,68 +1,44 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: ulogd2 patch
-Date: Fri, 06 Jun 2008 01:29:34 +0200
-Message-ID: <484876DE.8070807@netfilter.org>
-References: <200803221533.35790.Hugo.Mildenberger@t-online.de>
+From: Krzysztof Oledzki <ole@ans.pl>
+Subject: Re: [PATCH]  Accounting rework: ct_extend + 64bit counters (ver. 2)
+Date: Fri, 6 Jun 2008 01:49:13 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0806060147300.20559@bizon.gios.gov.pl>
+References: <48459e3f./WXq2WozcVtGh1Si%ole@ans.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Hugo Mildenberger <Hugo.Mildenberger@t-online.de>
+Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-1477137619-1212709753=:20559"
+Cc: Patrick McHardy <kaber@trash.net>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40228 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1760100AbYFEX3k (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Jun 2008 19:29:40 -0400
-In-Reply-To: <200803221533.35790.Hugo.Mildenberger@t-online.de>
+Received: from bizon.gios.gov.pl ([212.244.124.8]:50953 "EHLO
+	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754850AbYFEXtT (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 5 Jun 2008 19:49:19 -0400
+In-Reply-To: <48459e3f./WXq2WozcVtGh1Si%ole@ans.pl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Hugo,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Hugo Mildenberger wrote:
-> Pablo,
-> 
-> is the ulogd2 project maintained anymore? Or is it a 
-> dead project? I have a big patch ready.
+---187430788-1477137619-1212709753=:20559
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-It's alive, still under development. We plan to release a new beta soon.
 
-> *fix a number heap corruption issues in ulogd2
-> 
-> *provide a module invariant checking function which 
-> warns e.g. about issues like possible heap corruption 
-> by suspect module implementations
-> 
-> *provide rewritten, state driven config file parser 
-> based on flex capable of detecting wrongly spelled or 
-> obsoleted parameters in config sections.
-> 
-> *provide named stacks as an optional feature (which may 
-> be used as a stem for generating output filenames, 
-> while it is already used for more clear error messages)
-> 
-> *add SIGUSR1 (reconfigure) support for all existing 
-> modules
-> 
-> *corrected some SIGUSR1 logfile reopen issues
-> 
-> *introduce gcc printf-style argument checking on 
-> ulogd_log function
-> 
-> *include lineno and filename information in ulogd 
-> messages
 
-Such a patchset would be great to have before releasing 2.0beta2 (we're
-on the way to do it).
+On Tue, 3 Jun 2008, Krzysztof Oledzki wrote:
 
-> I waited for the patches provided by eric Leblond in 
-> netfilter-devel to be included in svn, but there are 
-> none until today. So, what is the correct way to send a 
-> patch upstream? 
+> From 19d31955fff8216fbdf2c5068c3c362ee746f281 Mon Sep 17 00:00:00 2001
+> From: Krzysztof Oledzki <ole@scorpion1.lan>
+> Date: Tue, 3 Jun 2008 21:26:42 +0200
+> Subject: [NETFILTER] Accounting rework: ct_extend + 64bit counters (ver. =
+2)
 
-Any plan to post it to the netfilter-devel ML?
+<CUT>
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+Ping. :) Is it too ugly or just perfect? ;)
 
+Best regards,
+
+ =09=09=09Krzysztof Ol=EAdzki
+---187430788-1477137619-1212709753=:20559--
