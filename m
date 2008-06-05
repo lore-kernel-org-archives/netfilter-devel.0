@@ -1,46 +1,88 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: manpages: consistent syntax
-Date: Thu, 05 Jun 2008 16:51:36 +0200
-Message-ID: <4847FD78.5020906@trash.net>
-References: <20080528150425.20290.58521.stgit@woodpecker.roonstrasse.net> <alpine.LNX.1.10.0805281841380.16560@fbirervta.pbzchgretzou.qr> <alpine.LNX.1.10.0805281844480.16560@fbirervta.pbzchgretzou.qr> <4843D047.40103@trash.net> <alpine.LNX.1.10.0806051647590.29055@fbirervta.pbzchgretzou.qr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Update .gitignore
+Date: Thu, 5 Jun 2008 16:54:38 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0806051649230.29055@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Max Kellermann <max@duempel.org>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: kaber@trash.net
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45214 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753330AbYFEOvi (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:35835 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752432AbYFEOyj (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Jun 2008 10:51:38 -0400
-In-Reply-To: <alpine.LNX.1.10.0806051647590.29055@fbirervta.pbzchgretzou.qr>
+	Thu, 5 Jun 2008 10:54:39 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Monday 2008-06-02 12:49, Patrick McHardy wrote:
->> Jan Engelhardt wrote:
->>> commit 314cc5f0dd48c047e660f45aaaf4e86675ab5d74
->>> Author: Jan Engelhardt <jengelh@medozas.de>
->>> Date:   Tue May 6 19:47:33 2008 +0200
->>>
->>>     manpages: consistent syntax
->>>     
->>>     In the manpages, bold is used to denote characters the user has to
->>>     enter verbatim, italic denotes placeholders and non-highlighted
->>>     pieces are used as a structure: "[]" specifying an optional part,
->>>     "{}" a mandatory part, with "|" used for alternations. The "!" for
->>>     negation is better supported before the option than after it, too.
->>>     The patch makes a few files consistent with this style already used
->>>     in manpages.
->> Applied, thanks. Please remember to sign off iptables patches in the
->> future.
-> 
-> I guess that's why it says Author: Patrick McHardy for this one in git.. :-)
 
-Probably. I usually use a correct authorname anyway, but seems
-I forgot this time.
+
+Please pull  git://dev.medozas.de/xtables master  to receive:
+
+commit 9e986688873d18b652f0e6116a9629f3639bac2f
+parent 5a2208c3e62a150e6f6297abbfa63056ab4a8066
+Author: Jan Engelhardt <jengelh@computergmbh.de>
+Date:   Mon Feb 11 02:12:55 2008 +0100
+
+    Update .gitignore
+
+    Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ .gitignore |   47 +++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 47 insertions(+), 0 deletions(-)
+ create mode 100644 .gitignore
+
+diff --git a/.gitignore b/.gitignore
+new file mode 100644
+index 0000000..9ebe15c
+--- /dev/null
++++ b/.gitignore
+@@ -0,0 +1,47 @@
++.*.d
++.*.dd
++*.a
++*.oo
++*.so
++*.o
++.deps
++.dirstamp
++Makefile
++Makefile.in
++
++/extensions/GNUmakefile
++/extensions/initext?.c
++/extensions/matches?.man
++/extensions/targets?.man
++
++/include/xtables.h
++
++/aclocal.m4
++/autom4te*.cache
++/compile
++/config.guess
++/config.h*
++/config.log
++/config.status
++/config.sub
++/configure
++/depcomp
++/install-sh
++/libtool
++/ltmain.sh
++/missing
++/stamp-h1
++
++/ip6tables
++/ip6tables.8
++/ip6tables-multi
++/ip6tables-save
++/ip6tables-restore
++/ip6tables-static
++/iptables
++/iptables.8
++/iptables-multi
++/iptables-save
++/iptables-restore
++/iptables-static
++/iptables-xml
 
