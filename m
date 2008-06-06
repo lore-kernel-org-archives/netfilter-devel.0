@@ -1,46 +1,80 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Git author cleanup?
-Date: Fri, 6 Jun 2008 12:43:05 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0806061241580.11044@fbirervta.pbzchgretzou.qr>
-References: <1212738005.27106.31.camel@localhost.localdomain> <484911ED.5010005@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH]  Accounting rework: ct_extend + 64bit counters (ver.
+ 2)
+Date: Fri, 06 Jun 2008 12:52:18 +0200
+Message-ID: <484916E2.3090200@trash.net>
+References: <48459c0c.4MdiVlMLZBmNAw6M%olel@ans.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: jdb@comx.dk, Netfilter Developers <netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Krzysztof Oledzki <olel@ans.pl>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:59760 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752558AbYFFKnI (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:40527 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751963AbYFFKwW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 6 Jun 2008 06:43:08 -0400
-In-Reply-To: <484911ED.5010005@trash.net>
+	Fri, 6 Jun 2008 06:52:22 -0400
+In-Reply-To: <48459c0c.4MdiVlMLZBmNAw6M%olel@ans.pl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Looks pretty good, just one or two minor things below. What would
+be nice though is to reduce patch size a bit, two suggestions for
+this are:
 
-On Friday 2008-06-06 12:31, Patrick McHardy wrote:
-> Jesper Dangaard Brouer wrote:
->> Hi Patrick and Jan
->> 
->> You did come author cleanup during the SVN -> GIT conversion.  But you
->> only did it for the "iptables" git repository.  
->> The reason I like correct author information is due to "ohloh.net".  As
->> we give credit to the right people and our project looks more mature, we
->> get the ohloh statement "Very large, active development team".
->> 
->>  http://www.ohloh.net/projects/iptables
->> 
->> If you cleanup the other repositories, then I'll create the seperate
->> projects on ohloh.net. 
->
->
-> Rewriting the history requires people to reclone/rebase.
-> If someone sends me a script for this I'll do it, but
-> only if it soon so we don't cause to much disturbance.
->
+- move seq_print_acct() changes to seperate cleanup patch
+- keep counters as packets/bytes struct to reduce rename
+   noise in connlimit
+- maybe (hardly worth it) pull out the netlink.h change
 
-You already have the scripts! :-)
-Just run "do_rewrite" (not do_rewrite2) from the tarball I posted within
-the specific (checkouted) repository.
-If there are any X.509 names left, you may need to adjust
-the translation in do_rewrite/envfilter.
+Krzysztof Oledzki wrote:
+> +int nf_conntrack_acct_init(void)
+> +{
+> +	int ret;
+> +
+> +#ifdef CONFIG_NF_CT_ACCT
+> +	printk(KERN_ERR "CONFIG_NF_CT_ACCT is deprecated and will be removed soon.\n");
+> +#endif
+
+This should point out what people are supposed to do
+(use the new runtime option). KERN_WARN or NOTICE
+seems more appropriate.
+
+> +
+> +	ret = nf_ct_extend_register(&acct_extend);
+> +	if (ret < 0) {
+> +		printk(KERN_ERR "nf_conntrack_acct: Unable to register extension\n");
+> +		return ret;
+> +	}
+> +
+> +#ifdef CONFIG_SYSCTL
+> +	acct_sysctl_header = register_sysctl_paths(nf_net_netfilter_sysctl_path, acct_sysctl_table);
+> +#endif
+
+Please stay under the 80 character limit. Also should check whether
+registration succeeded.
+
+>  struct hlist_head *nf_ct_alloc_hashtable(unsigned int *sizep, int *vmalloced)
+> @@ -1165,6 +1174,10 @@ int __init nf_conntrack_init(void)
+>  	if (ret < 0)
+>  		goto out_fini_expect;
+>  
+> +	ret = nf_conntrack_acct_init();
+> +	if (ret < 0)
+> +		goto out_fini_acct;
+> +
+>  	/* For use by REJECT target */
+>  	rcu_assign_pointer(ip_ct_attach, nf_conntrack_attach);
+>  	rcu_assign_pointer(nf_ct_destroy, destroy_conntrack);
+> @@ -1177,6 +1190,7 @@ int __init nf_conntrack_init(void)
+>  
+>  	return ret;
+>  
+> +out_fini_acct:
+
+nf_conntrack_helper_fini(); ?
+
+>  out_fini_expect:
+>  	nf_conntrack_expect_fini();
+>  out_fini_proto:
