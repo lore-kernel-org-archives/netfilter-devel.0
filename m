@@ -1,44 +1,42 @@
-From: Krzysztof Oledzki <ole@ans.pl>
-Subject: Re: [PATCH]  Accounting rework: ct_extend + 64bit counters (ver. 2)
-Date: Fri, 6 Jun 2008 01:49:13 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0806060147300.20559@bizon.gios.gov.pl>
-References: <48459e3f./WXq2WozcVtGh1Si%ole@ans.pl>
+From: Jesper Dangaard Brouer <jdb@comx.dk>
+Subject: Git author cleanup?
+Date: Fri, 06 Jun 2008 09:40:05 +0200
+Message-ID: <1212738005.27106.31.camel@localhost.localdomain>
+Reply-To: jdb@comx.dk
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-1477137619-1212709753=:20559"
-Cc: Patrick McHardy <kaber@trash.net>
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Developers <netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>,
+	Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bizon.gios.gov.pl ([212.244.124.8]:50953 "EHLO
-	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754850AbYFEXtT (ORCPT
+Received: from lanfw001a.cxnet.dk ([87.72.215.196]:44905 "EHLO
+	lanfw001a.cxnet.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752943AbYFFIEe (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Jun 2008 19:49:19 -0400
-In-Reply-To: <48459e3f./WXq2WozcVtGh1Si%ole@ans.pl>
+	Fri, 6 Jun 2008 04:04:34 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Hi Patrick and Jan
 
----187430788-1477137619-1212709753=:20559
-Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+You did come author cleanup during the SVN -> GIT conversion.  But you
+only did it for the "iptables" git repository.  
 
+The reason I like correct author information is due to "ohloh.net".  As
+we give credit to the right people and our project looks more mature, we
+get the ohloh statement "Very large, active development team".
 
+ http://www.ohloh.net/projects/iptables
 
-On Tue, 3 Jun 2008, Krzysztof Oledzki wrote:
+If you cleanup the other repositories, then I'll create the seperate
+projects on ohloh.net. 
 
-> From 19d31955fff8216fbdf2c5068c3c362ee746f281 Mon Sep 17 00:00:00 2001
-> From: Krzysztof Oledzki <ole@scorpion1.lan>
-> Date: Tue, 3 Jun 2008 21:26:42 +0200
-> Subject: [NETFILTER] Accounting rework: ct_extend + 64bit counters (ver. =
-2)
-
-<CUT>
-
-Ping. :) Is it too ugly or just perfect? ;)
-
-Best regards,
-
- =09=09=09Krzysztof Ol=EAdzki
----187430788-1477137619-1212709753=:20559--
+-- 
+Med venlig hilsen / Best regards
+  Jesper Brouer
+  ComX Networks A/S
+  Linux Network developer
+  Cand. Scient Datalog / MSc.
+  Author of http://adsl-optimizer.dk
+  LinkedIn: http://www.linkedin.com/in/brouer
