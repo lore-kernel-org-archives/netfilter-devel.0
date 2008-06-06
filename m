@@ -1,181 +1,509 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: [ULOGD PATCH 2/5] New MARK filtering module.
-Date: Fri,  6 Jun 2008 15:13:52 +0200
-Message-ID: <1212758035-19538-3-git-send-email-eric@inl.fr>
+Subject: [ULOGD PATCH 4/5] Use ULOGD_IRET_* as return for all interp functions.
+Date: Fri,  6 Jun 2008 15:13:54 +0200
+Message-ID: <1212758035-19538-5-git-send-email-eric@inl.fr>
 References: <>
  <1212758035-19538-1-git-send-email-eric@inl.fr>
  <1212758035-19538-2-git-send-email-eric@inl.fr>
+ <1212758035-19538-3-git-send-email-eric@inl.fr>
+ <1212758035-19538-4-git-send-email-eric@inl.fr>
 Cc: Eric Leblond <eric@inl.fr>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:43249 "EHLO ice-age"
+Received: from bayen.regit.org ([81.57.69.189]:43255 "EHLO ice-age"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754022AbYFFNME (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1752016AbYFFNME (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Fri, 6 Jun 2008 09:12:04 -0400
-In-Reply-To: <1212758035-19538-2-git-send-email-eric@inl.fr>
+In-Reply-To: <1212758035-19538-4-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This module filters message by using the mark to decide wether or not a
-packet or a flow has to be logged. It takes a mark and a mask option. It
-demonstrates the usage of ULOGD_IRET_STOP which can be used to abort iteration
-through the stack.
+This patch modifies plugins to use the already defined but not used
+define. This also fixes some weird behaviours in error treatment (like
+not stopping after OOM).
 
 Signed-off-by: Eric Leblond <eric@inl.fr>
 ---
- filter/Makefile.am         |    5 ++-
- filter/ulogd_filter_MARK.c |  119 ++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 123 insertions(+), 1 deletions(-)
- create mode 100644 filter/ulogd_filter_MARK.c
+ filter/raw2packet/ulogd_raw2packet_BASE.c |   50 ++++++++++++++--------------
+ filter/ulogd_filter_IFINDEX.c             |    2 +-
+ filter/ulogd_filter_IP2BIN.c              |    2 +-
+ filter/ulogd_filter_IP2STR.c              |    2 +-
+ filter/ulogd_filter_MAC2STR.c             |    4 +-
+ filter/ulogd_filter_PRINTFLOW.c           |    2 +-
+ filter/ulogd_filter_PRINTPKT.c            |    2 +-
+ filter/ulogd_filter_PWSNIFF.c             |   12 +++---
+ output/pcap/ulogd_output_PCAP.c           |    6 ++--
+ output/ulogd_output_IPFIX.c               |    4 +-
+ output/ulogd_output_LOGEMU.c              |    2 +-
+ output/ulogd_output_NACCT.c               |    2 +-
+ output/ulogd_output_OPRINT.c              |    2 +-
+ output/ulogd_output_SYSLOG.c              |    2 +-
+ 14 files changed, 47 insertions(+), 47 deletions(-)
 
-diff --git a/filter/Makefile.am b/filter/Makefile.am
-index 958a5de..cbeb5bc 100644
---- a/filter/Makefile.am
-+++ b/filter/Makefile.am
-@@ -5,7 +5,7 @@ INCLUDES = $(all_includes) -I$(top_srcdir)/include
- pkglib_LTLIBRARIES = ulogd_filter_IFINDEX.la ulogd_filter_PWSNIFF.la \
- 		     ulogd_filter_PRINTPKT.la ulogd_filter_PRINTFLOW.la \
- 		     ulogd_filter_IP2STR.la ulogd_filter_IP2BIN.la \
--		     ulogd_filter_MAC2STR.la
-+		     ulogd_filter_MAC2STR.la ulogd_filter_MARK.la
+diff --git a/filter/raw2packet/ulogd_raw2packet_BASE.c b/filter/raw2packet/ulogd_raw2packet_BASE.c
+index a5312e4..dde1cf3 100644
+--- a/filter/raw2packet/ulogd_raw2packet_BASE.c
++++ b/filter/raw2packet/ulogd_raw2packet_BASE.c
+@@ -519,7 +519,7 @@ static int _interp_tcp(struct ulogd_pluginstance *pi, struct tcphdr *tcph,
+ 	struct ulogd_key *ret = pi->output.keys;
  
- ulogd_filter_IFINDEX_la_SOURCES = ulogd_filter_IFINDEX.c
- ulogd_filter_IFINDEX_la_LDFLAGS = -module -lnfnetlink
-@@ -22,6 +22,9 @@ ulogd_filter_IP2BIN_la_LDFLAGS = -module
- ulogd_filter_MAC2STR_la_SOURCES = ulogd_filter_MAC2STR.c
- ulogd_filter_MAC2STR_la_LDFLAGS = -module
+ 	if (len < sizeof(struct tcphdr))
+-		return 0;
++		return ULOGD_IRET_OK;
+ 	
+ 	ret[KEY_TCP_SPORT].u.value.ui16 = ntohs(tcph->source);
+ 	ret[KEY_TCP_SPORT].flags |= ULOGD_RETF_VALID;
+@@ -559,7 +559,7 @@ static int _interp_tcp(struct ulogd_pluginstance *pi, struct tcphdr *tcph,
+ 	ret[KEY_TCP_CSUM].u.value.ui16 = ntohs(tcph->check);
+ 	ret[KEY_TCP_CSUM].u.value.ui16 = ULOGD_RETF_VALID;
+ 	
+-	return 0;
++	return ULOGD_IRET_OK;
+ }
  
-+ulogd_filter_MARK_la_SOURCES = ulogd_filter_MARK.c
-+ulogd_filter_MARK_la_LDFLAGS = -module
-+
- ulogd_filter_PRINTPKT_la_SOURCES = ulogd_filter_PRINTPKT.c ../util/printpkt.c
- ulogd_filter_PRINTPKT_la_LDFLAGS = -module
+ /***********************************************************************
+@@ -573,7 +573,7 @@ static int _interp_udp(struct ulogd_pluginstance *pi, struct udphdr *udph,
+ 	struct ulogd_key *ret = pi->output.keys;
  
-diff --git a/filter/ulogd_filter_MARK.c b/filter/ulogd_filter_MARK.c
-new file mode 100644
-index 0000000..e338b5f
---- /dev/null
-+++ b/filter/ulogd_filter_MARK.c
-@@ -0,0 +1,119 @@
-+/* ulogd_filter_MARK.c, Version $Revision: 1500 $
-+ *
-+ * ulogd interpreter plugin for internal IP storage format to string conversion
-+ *
-+ * (C) 2008 by Eric Leblond <eric@inl.fr>
-+ *
-+ * Based on ulogd_filter_IFINDEX.c Harald Welte <laforge@gnumonks.org>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License version 2
-+ *  as published by the Free Software Foundation
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ *
-+ * $Id: ulogd_filter_IFINDEX.c 1500 2005-10-03 16:54:02Z laforge $
-+ */
-+
-+#include <stdio.h>
-+#include <ulogd/ulogd.h>
-+
-+static struct config_keyset libulog_kset = {
-+	.num_ces = 2,
-+	.ces = {
-+		{
-+			.key 	 = "mark",
-+			.type 	 = CONFIG_TYPE_INT,
-+			.options = CONFIG_OPT_NONE,
-+			.u.value = 0,
-+		},
-+		{
-+			.key 	 = "mask",
-+			.type 	 = CONFIG_TYPE_INT,
-+			.options = CONFIG_OPT_NONE,
-+			.u.value = 0xffffffff,
-+		},
-+
-+	}
-+};
-+	
-+#define mark_ce(x)	(x->ces[0])
-+#define mask_ce(x)	(x->ces[1])
-+
-+enum input_keys {
-+	KEY_CT_MARK,
-+	KEY_OOB_MARK,
-+	MAX_KEY = KEY_OOB_MARK,
-+};
-+
-+static struct ulogd_key mark_inp[] = {
-+	[KEY_CT_MARK] = {
-+		.type = ULOGD_RET_UINT32,
-+		.flags = ULOGD_RETF_NONE|ULOGD_KEYF_OPTIONAL,
-+		.name = "ct.mark",
-+	},
-+	[KEY_OOB_MARK] = {
-+		.type = ULOGD_RET_UINT32,
-+		.flags = ULOGD_RETF_NONE|ULOGD_KEYF_OPTIONAL,
-+		.name = "oob.mark",
-+	},
-+};
-+
-+static int interp_mark(struct ulogd_pluginstance *pi)
-+{
-+	struct ulogd_key *inp = pi->input.keys;
-+	if (pp_is_valid(inp, KEY_CT_MARK)) {
-+		if ((GET_VALUE(inp, KEY_CT_MARK).ui32 & mask_ce(pi->config_kset).u.value) !=
-+				mark_ce(pi->config_kset).u.value
-+		   ) {
-+			return ULOGD_IRET_STOP;
-+		}
-+	} else if (pp_is_valid(inp, KEY_OOB_MARK)) {
-+		if ((GET_VALUE(inp, KEY_OOB_MARK).ui32 & mask_ce(pi->config_kset).u.value) !=
-+				mark_ce(pi->config_kset).u.value
-+		   ) {
-+			return ULOGD_IRET_STOP;
-+		}
-+	}
-+	return ULOGD_IRET_OK;	
-+}
-+
-+static int configure(struct ulogd_pluginstance *upi,
-+		     struct ulogd_pluginstance_stack *stack)
-+{
-+	ulogd_log(ULOGD_DEBUG, "parsing config file section `%s', "
-+		  "plugin `%s'\n", upi->id, upi->plugin->name);
-+
-+	config_parse_file(upi->id, upi->config_kset);
-+	return 0;
-+}
-+
-+static struct ulogd_plugin mark_pluging = {
-+	.name = "MARK",
-+	.input = {
-+		.keys = mark_inp,
-+		.num_keys = ARRAY_SIZE(mark_inp),
-+		.type = ULOGD_DTYPE_PACKET | ULOGD_DTYPE_FLOW,
-+		},
-+	.output = {
-+		.type = ULOGD_DTYPE_PACKET | ULOGD_DTYPE_FLOW,
-+		},
-+	.interp = &interp_mark,
-+	.config_kset = &libulog_kset,
-+	.configure = &configure,
-+	.version = ULOGD_VERSION,
-+};
-+
-+void __attribute__ ((constructor)) init(void);
-+
-+void init(void)
-+{
-+	ulogd_register_plugin(&mark_pluging);
-+}
+ 	if (len < sizeof(struct udphdr))
+-		return 0;
++		return ULOGD_IRET_OK;
+ 
+ 	ret[KEY_UDP_SPORT].u.value.ui16 = ntohs(udph->source);
+ 	ret[KEY_UDP_SPORT].flags |= ULOGD_RETF_VALID;
+@@ -584,7 +584,7 @@ static int _interp_udp(struct ulogd_pluginstance *pi, struct udphdr *udph,
+ 	ret[KEY_UDP_CSUM].u.value.ui16 = ntohs(udph->check);
+ 	ret[KEY_UDP_CSUM].flags |= ULOGD_RETF_VALID;
+ 	
+-	return 0;
++	return ULOGD_IRET_OK;
+ }
+ 
+ /***********************************************************************
+@@ -597,7 +597,7 @@ static int _interp_icmp(struct ulogd_pluginstance *pi, struct icmphdr *icmph,
+ 	struct ulogd_key *ret = pi->output.keys;
+ 
+ 	if (len < sizeof(struct icmphdr))
+-		return 0;
++		return ULOGD_IRET_OK;
+ 
+ 	ret[KEY_ICMP_TYPE].u.value.ui8 = icmph->type;
+ 	ret[KEY_ICMP_TYPE].flags |= ULOGD_RETF_VALID;
+@@ -627,7 +627,7 @@ static int _interp_icmp(struct ulogd_pluginstance *pi, struct icmphdr *icmph,
+ 	ret[KEY_ICMP_CSUM].u.value.ui16 = icmph->checksum;
+ 	ret[KEY_ICMP_CSUM].flags |= ULOGD_RETF_VALID;
+ 
+-	return 0;
++	return ULOGD_IRET_OK;
+ }
+ 
+ /***********************************************************************
+@@ -640,7 +640,7 @@ static int _interp_icmpv6(struct ulogd_pluginstance *pi, struct icmp6_hdr *icmph
+ 	struct ulogd_key *ret = pi->output.keys;
+ 
+ 	if (len < sizeof(struct icmp6_hdr))
+-		return 0;
++		return ULOGD_IRET_OK;
+ 
+ 	ret[KEY_ICMPV6_TYPE].u.value.ui8 = icmph->icmp6_type;
+ 	ret[KEY_ICMPV6_TYPE].flags |= ULOGD_RETF_VALID;
+@@ -659,7 +659,7 @@ static int _interp_icmpv6(struct ulogd_pluginstance *pi, struct icmp6_hdr *icmph
+ 	ret[KEY_ICMPV6_CSUM].u.value.ui16 = icmph->icmp6_cksum;
+ 	ret[KEY_ICMPV6_CSUM].flags |= ULOGD_RETF_VALID;
+ 
+-	return 0;
++	return ULOGD_IRET_OK;
+ }
+ 
+ 
+@@ -680,7 +680,7 @@ static int _interp_ahesp(struct ulogd_pluginstance *pi, void *protoh,
+ 	ret[KEY_AHESP_SPI].flags |= ULOGD_RETF_VALID;
+ #endif
+ 
+-	return 0;
++	return ULOGD_IRET_OK;
+ }
+ 
+ /***********************************************************************
+@@ -695,7 +695,7 @@ static int _interp_iphdr(struct ulogd_pluginstance *pi, u_int32_t len)
+ 	void *nexthdr = (u_int32_t *)iph + iph->ihl;
+ 
+ 	if (len < sizeof(struct iphdr) || len <= iph->ihl * 4)
+-		return 0;
++		return ULOGD_IRET_OK;
+ 	len -= iph->ihl * 4;
+ 
+ 	ret[KEY_IP_SADDR].u.value.ui32 = iph->saddr;
+@@ -735,7 +735,7 @@ static int _interp_iphdr(struct ulogd_pluginstance *pi, u_int32_t len)
+ 		break;
+ 	}
+ 
+-	return 0;
++	return ULOGD_IRET_OK;
+ }
+ 
+ /***********************************************************************
+@@ -751,9 +751,9 @@ static int ip6_ext_hdr(u_int8_t nexthdr)
+ 	case IPPROTO_ESP:
+ 	case IPPROTO_AH:
+ 	case IPPROTO_DSTOPTS:
+-		return 1;
++		return ULOGD_IRET_OK;
+ 	default:
+-		return 0;
++		return ULOGD_IRET_STOP;
+ 	}
+ }
+ 
+@@ -767,7 +767,7 @@ static int _interp_ipv6hdr(struct ulogd_pluginstance *pi, u_int32_t len)
+ 	int fragment = 0;
+ 
+ 	if (len < sizeof(struct ip6_hdr))
+-		return 0;
++		return ULOGD_IRET_OK;
+ 
+ 	memcpy(ret[KEY_IP_SADDR].u.value.ui128, &ipv6h->ip6_src,
+ 	       sizeof(ipv6h->ip6_src));
+@@ -792,7 +792,7 @@ static int _interp_ipv6hdr(struct ulogd_pluginstance *pi, u_int32_t len)
+ 		struct ip6_ext *ext = (void *)ipv6h + ptr;
+ 
+ 		if (len < sizeof(struct ip6_ext))
+-			return 0;
++			return ULOGD_IRET_OK;
+ 
+ 		switch (curhdr) {
+ 		case IPPROTO_FRAGMENT: {
+@@ -800,7 +800,7 @@ static int _interp_ipv6hdr(struct ulogd_pluginstance *pi, u_int32_t len)
+ 
+ 			hdrlen = sizeof(struct ip6_frag);
+ 			if (len < hdrlen)
+-				return 0;
++				return ULOGD_IRET_OK;
+ 			len -= hdrlen;
+ 
+ 			ret[KEY_IP6_FRAG_OFF].u.value.ui16 = ntohs(fh->ip6f_offlg & IP6F_OFF_MASK);
+@@ -820,7 +820,7 @@ static int _interp_ipv6hdr(struct ulogd_pluginstance *pi, u_int32_t len)
+ 
+ 			hdrlen = (ext->ip6e_len + 1) << 3;
+ 			if (len < hdrlen)
+-				return 0;
++				return ULOGD_IRET_OK;
+ 			len -= hdrlen;
+ 			break;
+ 		case IPPROTO_AH:
+@@ -829,7 +829,7 @@ static int _interp_ipv6hdr(struct ulogd_pluginstance *pi, u_int32_t len)
+ 
+ 			hdrlen = (ext->ip6e_len + 2) << 2;
+ 			if (len < hdrlen)
+-				return 0;
++				return ULOGD_IRET_OK;
+ 			len -= hdrlen;
+ 
+ 			_interp_ahesp(pi, (void *)ext, len);
+@@ -840,13 +840,13 @@ static int _interp_ipv6hdr(struct ulogd_pluginstance *pi, u_int32_t len)
+ 
+ 			hdrlen = (ext->ip6e_len + 2) << 2;
+ 			if (len < hdrlen)
+-				return 0;
++				return ULOGD_IRET_OK;
+ 			len -= hdrlen;
+ 
+ 			_interp_ahesp(pi, (void *)ext, len);
+ 			goto out;
+ 		default:
+-			return 0;
++			return ULOGD_IRET_OK;
+ 		}
+ 
+ 		curhdr = ext->ip6e_nxt;
+@@ -875,7 +875,7 @@ static int _interp_ipv6hdr(struct ulogd_pluginstance *pi, u_int32_t len)
+ out:
+ 	ret[KEY_IP6_NEXTHDR].u.value.ui8 = curhdr;
+ 	ret[KEY_IP6_NEXTHDR].flags |= ULOGD_RETF_VALID;
+-	return 0;
++	return ULOGD_IRET_OK;
+ }
+ 
+ /***********************************************************************
+@@ -888,7 +888,7 @@ static int _interp_arp(struct ulogd_pluginstance *pi, u_int32_t len)
+ 		GET_VALUE(pi->input.keys, INKEY_RAW_PCKT).ptr;
+ 
+ 	if (len < sizeof(struct ether_arp))
+-		return 0;
++		return ULOGD_IRET_OK;
+ 
+ 	ret[KEY_ARP_HTYPE].u.value.ui16 = ntohs(arph->arp_hrd);
+ 	SET_VALID(ret[KEY_ARP_HTYPE]);
+@@ -911,7 +911,7 @@ static int _interp_arp(struct ulogd_pluginstance *pi, u_int32_t len)
+ 	       sizeof(u_int32_t));
+ 	SET_VALID(ret[KEY_ARP_TPA]);
+ 
+-	return 0;
++	return ULOGD_IRET_OK;
+ }
+ 
+ /***********************************************************************
+@@ -939,7 +939,7 @@ static int _interp_bridge(struct ulogd_pluginstance *pi, u_int32_t len)
+ 	/* ETH_P_8021Q ?? others? */
+ 	};
+ 
+-	return 0;
++	return ULOGD_IRET_OK;
+ }
+ 
+ 
+@@ -961,7 +961,7 @@ static int _interp_pkt(struct ulogd_pluginstance *pi)
+ 	case AF_BRIDGE:
+ 		return _interp_bridge(pi, len);
+ 	}
+-	return 0;
++	return ULOGD_IRET_OK;
+ }
+ 
+ static struct ulogd_key base_inp[] = {
+diff --git a/filter/ulogd_filter_IFINDEX.c b/filter/ulogd_filter_IFINDEX.c
+index 468a4c4..6491127 100644
+--- a/filter/ulogd_filter_IFINDEX.c
++++ b/filter/ulogd_filter_IFINDEX.c
+@@ -76,7 +76,7 @@ static int interp_ifindex(struct ulogd_pluginstance *pi)
+ 		((char *)(ret[1].u.value.ptr))[0] = 0; 
+ 	ret[1].flags |= ULOGD_RETF_VALID;
+ 
+-	return 0;
++	return ULOGD_IRET_OK;
+ }
+ 
+ static int nlif_read_cb(int fd, unsigned int what, void *param)
+diff --git a/filter/ulogd_filter_IP2BIN.c b/filter/ulogd_filter_IP2BIN.c
+index 7412e38..d1b3c47 100644
+--- a/filter/ulogd_filter_IP2BIN.c
++++ b/filter/ulogd_filter_IP2BIN.c
+@@ -186,7 +186,7 @@ static int interp_ip2bin(struct ulogd_pluginstance *pi)
+ 		}
+ 	}
+ 
+-	return 0;
++	return ULOGD_IRET_OK;
+ }
+ 
+ static struct ulogd_plugin ip2bin_pluging = {
+diff --git a/filter/ulogd_filter_IP2STR.c b/filter/ulogd_filter_IP2STR.c
+index 9ad3b81..a1c1e87 100644
+--- a/filter/ulogd_filter_IP2STR.c
++++ b/filter/ulogd_filter_IP2STR.c
+@@ -204,7 +204,7 @@ static int interp_ip2str(struct ulogd_pluginstance *pi)
+ 		}
+ 	}
+ 
+-	return 0;
++	return ULOGD_IRET_OK;
+ }
+ 
+ static struct ulogd_plugin ip2str_pluging = {
+diff --git a/filter/ulogd_filter_MAC2STR.c b/filter/ulogd_filter_MAC2STR.c
+index 38d0565..0035886 100644
+--- a/filter/ulogd_filter_MAC2STR.c
++++ b/filter/ulogd_filter_MAC2STR.c
+@@ -74,7 +74,7 @@ static int interp_mac2str(struct ulogd_pluginstance *pi)
+ 		int i;
+ 		
+ 		if (mac_str == NULL)
+-			return -1;
++			return ULOGD_IRET_ERR;
+ 
+ 		for (i = 0; i < len; i++)
+ 			buf_cur += sprintf(buf_cur, "%02x%c", mac[i],
+@@ -84,7 +84,7 @@ static int interp_mac2str(struct ulogd_pluginstance *pi)
+ 		ret[KEY_MAC_SADDR].flags |= ULOGD_RETF_VALID;
+ 	}
+ 
+-	return 0;
++	return ULOGD_IRET_OK;
+ }
+ 
+ static struct ulogd_plugin mac2str_pluging = {
+diff --git a/filter/ulogd_filter_PRINTFLOW.c b/filter/ulogd_filter_PRINTFLOW.c
+index 181c09e..b78c37b 100644
+--- a/filter/ulogd_filter_PRINTFLOW.c
++++ b/filter/ulogd_filter_PRINTFLOW.c
+@@ -39,7 +39,7 @@ static int printflow_interp(struct ulogd_pluginstance *upi)
+ 	printflow_print(inp, buf);
+ 	ret[0].u.value.ptr = buf;
+ 	ret[0].flags |= ULOGD_RETF_VALID;
+-	return 0;
++	return ULOGD_IRET_OK;
+ }
+ 
+ static struct ulogd_plugin printflow_plugin = {
+diff --git a/filter/ulogd_filter_PRINTPKT.c b/filter/ulogd_filter_PRINTPKT.c
+index 09f0fdf..62a3cf7 100644
+--- a/filter/ulogd_filter_PRINTPKT.c
++++ b/filter/ulogd_filter_PRINTPKT.c
+@@ -39,7 +39,7 @@ static int printpkt_interp(struct ulogd_pluginstance *upi)
+ 	printpkt_print(inp, buf);
+ 	ret[0].u.value.ptr = buf;
+ 	ret[0].flags |= ULOGD_RETF_VALID;
+-	return 0;
++	return ULOGD_IRET_OK;
+ }
+ 
+ static struct ulogd_plugin printpkt_plugin = {
+diff --git a/filter/ulogd_filter_PWSNIFF.c b/filter/ulogd_filter_PWSNIFF.c
+index 2efc07d..95d92b5 100644
+--- a/filter/ulogd_filter_PWSNIFF.c
++++ b/filter/ulogd_filter_PWSNIFF.c
+@@ -70,7 +70,7 @@ static int interp_pwsniff(struct ulogd_pluginstance *pi)
+ 	int len, pw_len, i, cont = 0;
+ 
+ 	if (!IS_VALID(pi->input.keys[0]))
+-		return 0;
++		return ULOGD_IRET_STOP;
+ 	
+ 	iph = (struct iphdr *) pi->input.keys[0].u.value.ptr;
+ 	protoh = (u_int32_t *)iph + iph->ihl;
+@@ -81,7 +81,7 @@ static int interp_pwsniff(struct ulogd_pluginstance *pi)
+ 	begp = pw_begp = NULL;
+ 
+ 	if (iph->protocol != IPPROTO_TCP)
+-		return 0;
++		return ULOGD_IRET_STOP;
+ 	
+ 	for (i = 0; i < ARRAY_SIZE(pwsniff_ports); i++)
+ 	{
+@@ -91,7 +91,7 @@ static int interp_pwsniff(struct ulogd_pluginstance *pi)
+ 		}
+ 	}
+ 	if (!cont)
+-		return 0;
++		return ULOGD_IRET_STOP;
+ 
+ 	DEBUGP("----> pwsniff detected, tcplen=%d, struct=%d, iphtotlen=%d, "
+ 		"ihl=%d\n", tcplen, sizeof(struct tcphdr), ntohs(iph->tot_len),
+@@ -120,7 +120,7 @@ static int interp_pwsniff(struct ulogd_pluginstance *pi)
+ 		ret[0].flags |= ULOGD_RETF_VALID;
+ 		if (!ret[0].u.value.ptr) {
+ 			ulogd_log(ULOGD_ERROR, "OOM (size=%u)\n", len);
+-			return 0;
++			return ULOGD_IRET_ERR;
+ 		}
+ 		strncpy((char *) ret[0].u.value.ptr, (char *)begp, len);
+ 		*((char *)ret[0].u.value.ptr + len) = '\0';
+@@ -130,13 +130,13 @@ static int interp_pwsniff(struct ulogd_pluginstance *pi)
+ 		ret[1].flags |= ULOGD_RETF_VALID;
+ 		if (!ret[1].u.value.ptr){
+ 			ulogd_log(ULOGD_ERROR, "OOM (size=%u)\n", pw_len);
+-			return 0;
++			return ULOGD_IRET_ERR;
+ 		}
+ 		strncpy((char *)ret[1].u.value.ptr, (char *)pw_begp, pw_len);
+ 		*((char *)ret[1].u.value.ptr + pw_len) = '\0';
+ 
+ 	}
+-	return 0;
++	return ULOGD_IRET_OK;
+ }
+ 
+ static struct ulogd_key pwsniff_inp[] = {
+diff --git a/output/pcap/ulogd_output_PCAP.c b/output/pcap/ulogd_output_PCAP.c
+index 69656b1..0a714e6 100644
+--- a/output/pcap/ulogd_output_PCAP.c
++++ b/output/pcap/ulogd_output_PCAP.c
+@@ -154,18 +154,18 @@ static int interp_pcap(struct ulogd_pluginstance *upi)
+ 	if (fwrite(&pchdr, sizeof(pchdr), 1, pi->of) != 1) {
+ 		ulogd_log(ULOGD_ERROR, "Error during write: %s\n",
+ 			  strerror(errno));
+-		return 1;
++		return ULOGD_IRET_ERR;
+ 	}
+ 	if (fwrite(GET_VALUE(res, 0).ptr, pchdr.caplen, 1, pi->of) != 1) {
+ 		ulogd_log(ULOGD_ERROR, "Error during write: %s\n",
+ 			  strerror(errno));
+-		return 1;
++		return ULOGD_IRET_ERR;
+ 	}
+ 
+ 	if (upi->config_kset->ces[1].u.value)
+ 		fflush(pi->of);
+ 
+-	return 0;
++	return ULOGD_IRET_OK;
+ }
+ 
+ /* stolen from libpcap savefile.c */
+diff --git a/output/ulogd_output_IPFIX.c b/output/ulogd_output_IPFIX.c
+index 71913eb..9004e4d 100644
+--- a/output/ulogd_output_IPFIX.c
++++ b/output/ulogd_output_IPFIX.c
+@@ -328,7 +328,7 @@ static int output_ipfix(struct ulogd_pluginstance *upi)
+ 		template = build_template_for_bitmask(upi, ii->valid_bitmask);
+ 		if (!template) {
+ 			ulogd_log(ULOGD_ERROR, "can't build new template!\n");
+-			return -1;
++			return ULOGD_IRET_ERR;
+ 		}
+ 		/* FIXME: prepend? */
+ 		list_add(&ii->template_list, &template->list);
+@@ -344,7 +344,7 @@ static int output_ipfix(struct ulogd_pluginstance *upi)
+ 		total_size += sizeof(template->tmpl);
+ 	}
+ 
+-	return 0;
++	return ULOGD_IRET_OK;
+ }
+ 
+ static int open_connect_socket(struct ulogd_pluginstance *pi)
+diff --git a/output/ulogd_output_LOGEMU.c b/output/ulogd_output_LOGEMU.c
+index b8d3903..cab3b0c 100644
+--- a/output/ulogd_output_LOGEMU.c
++++ b/output/ulogd_output_LOGEMU.c
+@@ -108,7 +108,7 @@ static int _output_logemu(struct ulogd_pluginstance *upi)
+ 			fflush(li->of);
+ 	}
+ 
+-	return 0;
++	return ULOGD_IRET_OK;
+ }
+ 
+ static void signal_handler_logemu(struct ulogd_pluginstance *pi, int signal)
+diff --git a/output/ulogd_output_NACCT.c b/output/ulogd_output_NACCT.c
+index 278df36..4897959 100644
+--- a/output/ulogd_output_NACCT.c
++++ b/output/ulogd_output_NACCT.c
+@@ -154,7 +154,7 @@ nacct_interp(struct ulogd_pluginstance *pi)
+ 	if (NACCT_CFG_SYNC(pi) != 0)
+ 		fflush(priv->of);
+ 
+-	return 0;
++	return ULOGD_IRET_OK;
+ }
+ 
+ static struct config_keyset nacct_kset = {
+diff --git a/output/ulogd_output_OPRINT.c b/output/ulogd_output_OPRINT.c
+index 6990f8c..c2fce38 100644
+--- a/output/ulogd_output_OPRINT.c
++++ b/output/ulogd_output_OPRINT.c
+@@ -94,7 +94,7 @@ static int oprint_interp(struct ulogd_pluginstance *upi)
+ 	if (upi->config_kset->ces[1].u.value != 0)
+ 		fflush(opi->of);
+ 
+-	return 0;
++	return ULOGD_IRET_OK;
+ }
+ 
+ static struct config_keyset oprint_kset = {
+diff --git a/output/ulogd_output_SYSLOG.c b/output/ulogd_output_SYSLOG.c
+index e6c05bd..8982e7e 100644
+--- a/output/ulogd_output_SYSLOG.c
++++ b/output/ulogd_output_SYSLOG.c
+@@ -79,7 +79,7 @@ static int _output_syslog(struct ulogd_pluginstance *upi)
+ 		syslog(li->syslog_level | li->syslog_facility, "%s",
+ 				res[0].u.source->u.value.ptr);
+ 
+-	return 0;
++	return ULOGD_IRET_OK;
+ }
+ 		
+ static int syslog_configure(struct ulogd_pluginstance *pi,
 -- 
 1.5.4.3
 
