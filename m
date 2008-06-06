@@ -1,62 +1,124 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 06/11: nf_conntrack_extend: use krealloc() in nf_conntrack_extend.c V2
-Date: Fri,  6 Jun 2008 17:17:54 +0200 (MEST)
-Message-ID: <20080606151752.25286.35255.sendpatchset@localhost.localdomain>
+Subject: netfilter 02/11: ctnetlink: group errors into logical errno sets
+Date: Fri,  6 Jun 2008 17:17:46 +0200 (MEST)
+Message-ID: <20080606151744.25286.101.sendpatchset@localhost.localdomain>
 References: <20080606151737.25286.54547.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:48146 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:48135 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758045AbYFFPR4 (ORCPT
+	with ESMTP id S1758028AbYFFPRt (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 6 Jun 2008 11:17:56 -0400
+	Fri, 6 Jun 2008 11:17:49 -0400
 In-Reply-To: <20080606151737.25286.54547.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-netfilter: nf_conntrack_extend: use krealloc() in nf_conntrack_extend.c V2
+netfilter: ctnetlink: group errors into logical errno sets
 
-The ksize() API is going away because it is being abused and it doesn't even
-work consistenly across different allocators. Therefore, convert
-net/netfilter/nf_conntrack_extend.c to use krealloc().
+This patch groups ctnetlink errors into three logical sets:
 
-Cc: <netfilter-devel@vger.kernel.org>
-Cc: <netdev@vger.kernel.org>
-Cc: Matt Mackall <mpm@selenic.com>
-Cc: Christoph Lameter <clameter@sgi.com>
-Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
+* Malformed messages: if ctnetlink receives a message without some mandatory
+attribute, then it returns EINVAL.
+* Unsupported operations: if userspace tries to perform an unsupported
+operation, then it returns EOPNOTSUPP.
+* Unchangeable: if userspace tries to change some attribute of the
+conntrack object that can only be set once, then it returns EBUSY.
+
+This patch reduces the number of -EINVAL from 23 to 14 and it results in
+5 -EBUSY and 6 -EOPNOTSUPP.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit c6bf7199df1514a3f82c2c6a3d925c5966798141
-tree 64365998231e0ae71aa95ff478bd185ea22af3d5
-parent 90faf09757063e4e45aba7124977ef5b82cd5223
-author Pekka Enberg <penberg@cs.helsinki.fi> Fri, 06 Jun 2008 17:11:04 +0200
-committer Patrick McHardy <kaber@trash.net> Fri, 06 Jun 2008 17:11:04 +0200
+commit aed5c546c63f757b44cd55d279b88a118a5cc485
+tree 696cc590645bde00e74341241795575c7769b25d
+parent b6e858ce9cfbf1779380ba9bb1b3e27b3b4db8b7
+author Pablo Neira Ayuso <pablo@netfilter.org> Fri, 06 Jun 2008 17:08:16 +0200
+committer Patrick McHardy <kaber@trash.net> Fri, 06 Jun 2008 17:08:16 +0200
 
- net/netfilter/nf_conntrack_extend.c |   10 ++++------
- 1 files changed, 4 insertions(+), 6 deletions(-)
+ net/netfilter/nf_conntrack_netlink.c |   21 ++++++++++-----------
+ 1 files changed, 10 insertions(+), 11 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
-index bcc19fa..ba1c491 100644
---- a/net/netfilter/nf_conntrack_extend.c
-+++ b/net/netfilter/nf_conntrack_extend.c
-@@ -88,13 +88,11 @@ void *__nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
- 	newlen = newoff + t->len;
- 	rcu_read_unlock();
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 0edefcf..13918c1 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -4,7 +4,7 @@
+  * (C) 2001 by Jay Schulist <jschlst@samba.org>
+  * (C) 2002-2006 by Harald Welte <laforge@gnumonks.org>
+  * (C) 2003 by Patrick Mchardy <kaber@trash.net>
+- * (C) 2005-2007 by Pablo Neira Ayuso <pablo@netfilter.org>
++ * (C) 2005-2008 by Pablo Neira Ayuso <pablo@netfilter.org>
+  *
+  * Initial connection tracking via netlink development funded and
+  * generally made possible by Network Robots, Inc. (www.networkrobots.com)
+@@ -891,20 +891,19 @@ ctnetlink_change_status(struct nf_conn *ct, struct nlattr *cda[])
  
--	if (newlen >= ksize(ct->ext)) {
--		new = kmalloc(newlen, gfp);
--		if (!new)
--			return NULL;
+ 	if (d & (IPS_EXPECTED|IPS_CONFIRMED|IPS_DYING))
+ 		/* unchangeable */
+-		return -EINVAL;
++		return -EBUSY;
+ 
+ 	if (d & IPS_SEEN_REPLY && !(status & IPS_SEEN_REPLY))
+ 		/* SEEN_REPLY bit can only be set */
+-		return -EINVAL;
 -
--		memcpy(new, ct->ext, ct->ext->len);
-+	new = krealloc(ct->ext, newlen, gfp);
-+	if (!new)
-+		return NULL;
++		return -EBUSY;
  
-+	if (new != ct->ext) {
- 		for (i = 0; i < NF_CT_EXT_NUM; i++) {
- 			if (!nf_ct_ext_exist(ct, i))
- 				continue;
+ 	if (d & IPS_ASSURED && !(status & IPS_ASSURED))
+ 		/* ASSURED bit can only be set */
+-		return -EINVAL;
++		return -EBUSY;
+ 
+ 	if (cda[CTA_NAT_SRC] || cda[CTA_NAT_DST]) {
+ #ifndef CONFIG_NF_NAT_NEEDED
+-		return -EINVAL;
++		return -EOPNOTSUPP;
+ #else
+ 		struct nf_nat_range range;
+ 
+@@ -945,7 +944,7 @@ ctnetlink_change_helper(struct nf_conn *ct, struct nlattr *cda[])
+ 
+ 	/* don't change helper of sibling connections */
+ 	if (ct->master)
+-		return -EINVAL;
++		return -EBUSY;
+ 
+ 	err = ctnetlink_parse_help(cda[CTA_HELP], &helpname);
+ 	if (err < 0)
+@@ -963,7 +962,7 @@ ctnetlink_change_helper(struct nf_conn *ct, struct nlattr *cda[])
+ 
+ 	helper = __nf_conntrack_helper_find_byname(helpname);
+ 	if (helper == NULL)
+-		return -EINVAL;
++		return -EOPNOTSUPP;
+ 
+ 	if (help) {
+ 		if (help->helper == helper)
+@@ -1258,12 +1257,12 @@ ctnetlink_new_conntrack(struct sock *ctnl, struct sk_buff *skb,
+ 	if (!(nlh->nlmsg_flags & NLM_F_EXCL)) {
+ 		/* we only allow nat config for new conntracks */
+ 		if (cda[CTA_NAT_SRC] || cda[CTA_NAT_DST]) {
+-			err = -EINVAL;
++			err = -EOPNOTSUPP;
+ 			goto out_unlock;
+ 		}
+ 		/* can't link an existing conntrack to a master */
+ 		if (cda[CTA_TUPLE_MASTER]) {
+-			err = -EINVAL;
++			err = -EOPNOTSUPP;
+ 			goto out_unlock;
+ 		}
+ 		err = ctnetlink_change_conntrack(nf_ct_tuplehash_to_ctrack(h),
+@@ -1608,7 +1607,7 @@ ctnetlink_del_expect(struct sock *ctnl, struct sk_buff *skb,
+ 		h = __nf_conntrack_helper_find_byname(name);
+ 		if (!h) {
+ 			spin_unlock_bh(&nf_conntrack_lock);
+-			return -EINVAL;
++			return -EOPNOTSUPP;
+ 		}
+ 		for (i = 0; i < nf_ct_expect_hsize; i++) {
+ 			hlist_for_each_entry_safe(exp, n, next,
