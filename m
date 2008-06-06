@@ -1,80 +1,75 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH]  Accounting rework: ct_extend + 64bit counters (ver.
- 2)
-Date: Fri, 06 Jun 2008 12:52:18 +0200
-Message-ID: <484916E2.3090200@trash.net>
-References: <48459c0c.4MdiVlMLZBmNAw6M%olel@ans.pl>
+Subject: [ANNOUNCE] Release of iptables 1.4.1-rc3
+Date: Fri, 06 Jun 2008 13:37:13 +0200
+Message-ID: <48492169.6060300@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Krzysztof Oledzki <olel@ans.pl>
+Content-Type: multipart/mixed;
+ boundary="------------080807070005090605060807"
+To: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	"'netfilter@vger.kernel.org'" <netfilter@vger.kernel.org>,
+	netfilter-announce@lists.netfilter.org,
+	netfilter-cor
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:40527 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:41901 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751963AbYFFKwW (ORCPT
+	with ESMTP id S1753852AbYFFLhS (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 6 Jun 2008 06:52:22 -0400
-In-Reply-To: <48459c0c.4MdiVlMLZBmNAw6M%olel@ans.pl>
+	Fri, 6 Jun 2008 07:37:18 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Looks pretty good, just one or two minor things below. What would
-be nice though is to reduce patch size a bit, two suggestions for
-this are:
+This is a multi-part message in MIME format.
+--------------080807070005090605060807
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-- move seq_print_acct() changes to seperate cleanup patch
-- keep counters as packets/bytes struct to reduce rename
-   noise in connlimit
-- maybe (hardly worth it) pull out the netlink.h change
+The netfilter coreteam proudly presents:
 
-Krzysztof Oledzki wrote:
-> +int nf_conntrack_acct_init(void)
-> +{
-> +	int ret;
-> +
-> +#ifdef CONFIG_NF_CT_ACCT
-> +	printk(KERN_ERR "CONFIG_NF_CT_ACCT is deprecated and will be removed soon.\n");
-> +#endif
+     iptables version 1.4.1-rc3
 
-This should point out what people are supposed to do
-(use the new runtime option). KERN_WARN or NOTICE
-seems more appropriate.
+The hopefully final release candidate for 1.4.1. Actually I already
+wanted to have released 1.4.1 by now, but my notebook broke last
+week during travel, which caused some delays.
 
-> +
-> +	ret = nf_ct_extend_register(&acct_extend);
-> +	if (ret < 0) {
-> +		printk(KERN_ERR "nf_conntrack_acct: Unable to register extension\n");
-> +		return ret;
-> +	}
-> +
-> +#ifdef CONFIG_SYSCTL
-> +	acct_sysctl_header = register_sysctl_paths(nf_net_netfilter_sysctl_path, acct_sysctl_table);
-> +#endif
+This release candidate includes some minor fixes, manpage updates
+and a full resync of the kernel header files to fix the build on
+old systems that don't have all headers or miss the endian annotated
+types. The header resync is the main reason for having this release
+candidate since it has some risk of introducing new compilation
+breakage. So even if you can't do real functional testing, please
+verify whether it compiles cleanly for you.
 
-Please stay under the 80 character limit. Also should check whether
-registration succeeded.
+Version 1.4.1-rc3 can be obtained from (please note that the
+webpage hasn't been rebuilt yet, but will be shortly):
 
->  struct hlist_head *nf_ct_alloc_hashtable(unsigned int *sizep, int *vmalloced)
-> @@ -1165,6 +1174,10 @@ int __init nf_conntrack_init(void)
->  	if (ret < 0)
->  		goto out_fini_expect;
->  
-> +	ret = nf_conntrack_acct_init();
-> +	if (ret < 0)
-> +		goto out_fini_acct;
-> +
->  	/* For use by REJECT target */
->  	rcu_assign_pointer(ip_ct_attach, nf_conntrack_attach);
->  	rcu_assign_pointer(nf_ct_destroy, destroy_conntrack);
-> @@ -1177,6 +1190,7 @@ int __init nf_conntrack_init(void)
->  
->  	return ret;
->  
-> +out_fini_acct:
+http://www.netfilter.org/projects/iptables/downloads.html
+ftp://ftp.netfilter.org/pub/iptables/
+git://git.netfilter.org/iptables.git
 
-nf_conntrack_helper_fini(); ?
+On behalf of the Netfilter Core Team.
+Happy testing!
 
->  out_fini_expect:
->  	nf_conntrack_expect_fini();
->  out_fini_proto:
+--------------080807070005090605060807
+Content-Type: text/plain;
+ name="changes-iptables-1.4.1-rc3.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="changes-iptables-1.4.1-rc3.txt"
+
+Jan Engelhardt (2):
+      Update .gitignore
+      build: check for missing feature files
+
+Patrick McHardy (2):
+      manpages: consistent syntax
+      Resync header files with kernel
+
+Thomas Jarosch (1):
+      Add xtables version defines.
+
+Yasuyuki Kozakai (1):
+      Use s6_addr32 to access bits in int6_addr instead of incompatible name
+
+
+--------------080807070005090605060807--
