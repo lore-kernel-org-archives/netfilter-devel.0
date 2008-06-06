@@ -1,57 +1,80 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 02/03: xt_connlimit: fix accouning when receive RST packet in ESTABLISHED state
-Date: Fri,  6 Jun 2008 19:18:43 +0200 (MEST)
-Message-ID: <20080606171841.28097.93005.sendpatchset@localhost.localdomain>
-References: <20080606171839.28097.47793.sendpatchset@localhost.localdomain>
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org,
-	davem@davemloft.net
-To: stable@kernel.org
+From: Krzysztof Oledzki <ole@ans.pl>
+Subject: [Bug 10875] Oops in nf_nat_setup_info
+Date: Fri, 6 Jun 2008 20:05:49 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0806061931140.12641@bizon.gios.gov.pl>
+Mime-Version: 1.0
+Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-1014687766-1212775549=:12641"
+Cc: bugme-daemon@bugzilla.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:51321 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753241AbYFFRSo (ORCPT
+Received: from bizon.gios.gov.pl ([212.244.124.8]:38826 "EHLO
+	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754205AbYFFSGG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 6 Jun 2008 13:18:44 -0400
-In-Reply-To: <20080606171839.28097.47793.sendpatchset@localhost.localdomain>
+	Fri, 6 Jun 2008 14:06:06 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-netfilter: xt_connlimit: fix accouning when receive RST packet in ESTABLISHED state
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Upstream commit d2ee3f2c4b1db1320c1efb4dcaceeaf6c7e6c2d3:
+---187430788-1014687766-1212775549=:12641
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-In xt_connlimit match module, the counter of an IP is decreased when
-the TCP packet is go through the chain with ip_conntrack state TW.
-Well, it's very natural that the server and client close the socket
-with FIN packet. But when the client/server close the socket with RST
-packet(using so_linger), the counter for this connection still exsit.
-The following patch can fix it which is based on linux-2.6.25.4
+Hello,
 
-Signed-off-by: Dong Wei <dwei.zh@gmail.com>
-Acked-by: Jan Engelhardt <jengelh@medozas.de>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+Today I have been plaing with the conntrackd utility and noticed it is=20
+very easy to trigger a kernel oops just by:
 
----
-commit 8a39ae5d24374801df08b7aa634ca03080e6b72a
-tree 66e43bc28fbc61a0f8a39ca848dfe19d20eb930f
-parent d025d91021895314ce10cc0ab8e0f627dc1a12fa
-author Dong Wei <dwei.zh@gmail.com> Fri, 06 Jun 2008 19:07:37 +0200
-committer Patrick McHardy <kaber@trash.net> Fri, 06 Jun 2008 19:07:37 +0200
+conntrackd -d
+conntrackd -n
+conntrackd -c
+conntrackd -c
 
- net/netfilter/xt_connlimit.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+The oops is here: http://bugzilla.kernel.org/attachment.cgi?id=3D16414
 
-diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
-index 3b01119..1692338 100644
---- a/net/netfilter/xt_connlimit.c
-+++ b/net/netfilter/xt_connlimit.c
-@@ -75,7 +75,8 @@ static inline bool already_closed(const struct nf_conn *conn)
- 	u_int16_t proto = conn->tuplehash[0].tuple.dst.protonum;
- 
- 	if (proto == IPPROTO_TCP)
--		return conn->proto.tcp.state == TCP_CONNTRACK_TIME_WAIT;
-+		return conn->proto.tcp.state == TCP_CONNTRACK_TIME_WAIT ||
-+		       conn->proto.tcp.state == TCP_CONNTRACK_CLOSE;
- 	else
- 		return 0;
- }
+I was trying to fix it with:
+
+--- nf_nat_core.c=092008-06-06 19:55:25.000000000 +0200
++++ nf_nat_core.c=092008-05-07 01:22:34.000000000 +0200
+@@ -153,7 +153,7 @@
+         read_lock_bh(&nf_nat_lock);
+         hlist_for_each_entry(nat, n, &bysource[h], bysource) {
+                 ct =3D nat->ct;
+-               if (ct && same_src(ct, tuple)) {
++               if (same_src(ct, tuple)) {
+                         /* Copy source part from reply tuple. */
+                         nf_ct_invert_tuplepr(result,
+                                        &ct->tuplehash[IP_CT_DIR_REPLY].tup=
+le);
+
+
+However and I'm not able to find how nat->ct may become NULL in here and=20
+unfortutunatelly this patch does not help too much as with above fix I get=
+=20
+a different Oops: http://bugzilla.kernel.org/attachment.cgi?id=3D16415
+
+(gdb) l *nf_nat_setup_info+0x223
+0x783e30de is in nf_nat_setup_info (net/ipv4/netfilter/nf_nat_core.c:154).
+149             struct nf_conn_nat *nat;
+150             struct nf_conn *ct;
+151             struct hlist_node *n;
+152
+153             read_lock_bh(&nf_nat_lock);
+154             hlist_for_each_entry(nat, n, &bysource[h], bysource) {     =
+   <- here
+155                     ct =3D nat->ct;
+156                     if (ct && same_src(ct, tuple)) {
+157                             /* Copy source part from reply tuple. */
+158                             nf_ct_invert_tuplepr(result,
+
+All accesses to bysource seem to be protected by the lock_bh so I have no=
+=20
+concept where to dig next. :( Any idea?
+
+Best regards,
+
+
+ =09=09=09=09Krzysztof Ol=EAdzki
+---187430788-1014687766-1212775549=:12641--
