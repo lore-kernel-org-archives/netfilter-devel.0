@@ -1,375 +1,274 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 01/11: ebtables: add IPv6 support
-Date: Fri,  6 Jun 2008 17:17:44 +0200 (MEST)
-Message-ID: <20080606151743.25286.71157.sendpatchset@localhost.localdomain>
+Subject: netfilter 05/11: ip6_tables: add ip6tables security table
+Date: Fri,  6 Jun 2008 17:17:52 +0200 (MEST)
+Message-ID: <20080606151750.25286.59330.sendpatchset@localhost.localdomain>
 References: <20080606151737.25286.54547.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:48131 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:48143 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757492AbYFFPRr (ORCPT
+	with ESMTP id S1758174AbYFFPRy (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 6 Jun 2008 11:17:47 -0400
+	Fri, 6 Jun 2008 11:17:54 -0400
 In-Reply-To: <20080606151737.25286.54547.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-netfilter: ebtables: add IPv6 support
+netfilter: ip6_tables: add ip6tables security table
 
-It implements matching functions for IPv6 address & traffic class
-(merged from the patch sent by Jan Engelhardt [jengelh@computergmbh.de]
-http://marc.info/?l=netfilter-devel&m=120182168424052&w=2), protocol,
-and layer-4 port id. Corresponding watcher logging function is also
-added for IPv6.
+This is a port of the IPv4 security table for IPv6.
 
-Signed-off-by: Kuo-lang Tseng <kuo-lang.tseng@intel.com>
+Signed-off-by: James Morris <jmorris@namei.org>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit b6e858ce9cfbf1779380ba9bb1b3e27b3b4db8b7
-tree 19f9efc52596f3aa05ddc75efaddb4c20ba74808
-parent 40aecb1b13f50d96616abb612c17e59457f54263
-author Kuo-lang Tseng <kuo-lang.tseng@intel.com> Fri, 06 Jun 2008 17:08:08 +0200
-committer Patrick McHardy <kaber@trash.net> Fri, 06 Jun 2008 17:08:08 +0200
+commit 90faf09757063e4e45aba7124977ef5b82cd5223
+tree a7e7a39d81e48803d3fdd4007cd9bafbd425e770
+parent 9ca9e6f29c9a45b477de6f6ec63bc39331c384a2
+author James Morris <jmorris@namei.org> Fri, 06 Jun 2008 17:11:00 +0200
+committer Patrick McHardy <kaber@trash.net> Fri, 06 Jun 2008 17:11:00 +0200
 
- include/linux/netfilter_bridge/ebt_ip6.h |   40 ++++++++
- include/linux/netfilter_bridge/ebt_log.h |    3 -
- net/bridge/netfilter/Kconfig             |    9 ++
- net/bridge/netfilter/Makefile            |    1 
- net/bridge/netfilter/ebt_ip6.c           |  144 ++++++++++++++++++++++++++++++
- net/bridge/netfilter/ebt_log.c           |   64 ++++++++++---
- 6 files changed, 244 insertions(+), 17 deletions(-)
+ include/linux/netfilter_ipv6.h         |    1 
+ include/net/netns/ipv6.h               |    1 
+ net/ipv6/netfilter/Kconfig             |   12 ++
+ net/ipv6/netfilter/Makefile            |    1 
+ net/ipv6/netfilter/ip6table_security.c |  172 ++++++++++++++++++++++++++++++++
+ 5 files changed, 187 insertions(+), 0 deletions(-)
 
-diff --git a/include/linux/netfilter_bridge/ebt_ip6.h b/include/linux/netfilter_bridge/ebt_ip6.h
+diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
+index 3475a65..fd50988 100644
+--- a/include/linux/netfilter_ipv6.h
++++ b/include/linux/netfilter_ipv6.h
+@@ -64,6 +64,7 @@ enum nf_ip6_hook_priorities {
+ 	NF_IP6_PRI_MANGLE = -150,
+ 	NF_IP6_PRI_NAT_DST = -100,
+ 	NF_IP6_PRI_FILTER = 0,
++	NF_IP6_PRI_SECURITY = 50,
+ 	NF_IP6_PRI_NAT_SRC = 100,
+ 	NF_IP6_PRI_SELINUX_LAST = 225,
+ 	NF_IP6_PRI_LAST = INT_MAX,
+diff --git a/include/net/netns/ipv6.h b/include/net/netns/ipv6.h
+index ac053be..5bacd83 100644
+--- a/include/net/netns/ipv6.h
++++ b/include/net/netns/ipv6.h
+@@ -35,6 +35,7 @@ struct netns_ipv6 {
+ 	struct xt_table		*ip6table_filter;
+ 	struct xt_table		*ip6table_mangle;
+ 	struct xt_table		*ip6table_raw;
++	struct xt_table		*ip6table_security;
+ #endif
+ 	struct rt6_info         *ip6_null_entry;
+ 	struct rt6_statistics   *rt6_stats;
+diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
+index 6cae547..30e54f6 100644
+--- a/net/ipv6/netfilter/Kconfig
++++ b/net/ipv6/netfilter/Kconfig
+@@ -208,5 +208,17 @@ config IP6_NF_RAW
+ 	  If you want to compile it as a module, say M here and read
+ 	  <file:Documentation/kbuild/modules.txt>.  If unsure, say `N'.
+ 
++# security table for MAC policy
++config IP6_NF_SECURITY
++       tristate "Security table"
++       depends on IP6_NF_IPTABLES
++       depends on SECURITY
++       default m if NETFILTER_ADVANCED=n
++       help
++         This option adds a `security' table to iptables, for use
++         with Mandatory Access Control (MAC) policy.
++        
++         If unsure, say N.
++
+ endmenu
+ 
+diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
+index fbf2c14..3f17c94 100644
+--- a/net/ipv6/netfilter/Makefile
++++ b/net/ipv6/netfilter/Makefile
+@@ -8,6 +8,7 @@ obj-$(CONFIG_IP6_NF_FILTER) += ip6table_filter.o
+ obj-$(CONFIG_IP6_NF_MANGLE) += ip6table_mangle.o
+ obj-$(CONFIG_IP6_NF_QUEUE) += ip6_queue.o
+ obj-$(CONFIG_IP6_NF_RAW) += ip6table_raw.o
++obj-$(CONFIG_IP6_NF_SECURITY) += ip6table_security.o
+ 
+ # objects for l3 independent conntrack
+ nf_conntrack_ipv6-objs  :=  nf_conntrack_l3proto_ipv6.o nf_conntrack_proto_icmpv6.o nf_conntrack_reasm.o
+diff --git a/net/ipv6/netfilter/ip6table_security.c b/net/ipv6/netfilter/ip6table_security.c
 new file mode 100644
-index 0000000..2273c3a
+index 0000000..4ce0148
 --- /dev/null
-+++ b/include/linux/netfilter_bridge/ebt_ip6.h
-@@ -0,0 +1,40 @@
++++ b/net/ipv6/netfilter/ip6table_security.c
+@@ -0,0 +1,172 @@
 +/*
-+ *  ebt_ip6
++ * "security" table for IPv6
 + *
-+ *	Authors:
-+ * Kuo-Lang Tseng <kuo-lang.tseng@intel.com>
-+ * Manohar Castelino <manohar.r.castelino@intel.com>
++ * This is for use by Mandatory Access Control (MAC) security models,
++ * which need to be able to manage security policy in separate context
++ * to DAC.
 + *
-+ *  Jan 11, 2008
++ * Based on iptable_mangle.c
 + *
++ * Copyright (C) 1999 Paul `Rusty' Russell & Michael J. Neuling
++ * Copyright (C) 2000-2004 Netfilter Core Team <coreteam <at> netfilter.org>
++ * Copyright (C) 2008 Red Hat, Inc., James Morris <jmorris <at> redhat.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + */
-+
-+#ifndef __LINUX_BRIDGE_EBT_IP6_H
-+#define __LINUX_BRIDGE_EBT_IP6_H
-+
-+#define EBT_IP6_SOURCE 0x01
-+#define EBT_IP6_DEST 0x02
-+#define EBT_IP6_TCLASS 0x04
-+#define EBT_IP6_PROTO 0x08
-+#define EBT_IP6_SPORT 0x10
-+#define EBT_IP6_DPORT 0x20
-+#define EBT_IP6_MASK (EBT_IP6_SOURCE | EBT_IP6_DEST | EBT_IP6_TCLASS |\
-+		      EBT_IP6_PROTO | EBT_IP6_SPORT | EBT_IP6_DPORT)
-+#define EBT_IP6_MATCH "ip6"
-+
-+/* the same values are used for the invflags */
-+struct ebt_ip6_info
-+{
-+	struct in6_addr saddr;
-+	struct in6_addr daddr;
-+	struct in6_addr smsk;
-+	struct in6_addr dmsk;
-+	uint8_t  tclass;
-+	uint8_t  protocol;
-+	uint8_t  bitmask;
-+	uint8_t  invflags;
-+	uint16_t sport[2];
-+	uint16_t dport[2];
-+};
-+
-+#endif
-diff --git a/include/linux/netfilter_bridge/ebt_log.h b/include/linux/netfilter_bridge/ebt_log.h
-index 96e231a..b76e653 100644
---- a/include/linux/netfilter_bridge/ebt_log.h
-+++ b/include/linux/netfilter_bridge/ebt_log.h
-@@ -4,7 +4,8 @@
- #define EBT_LOG_IP 0x01 /* if the frame is made by ip, log the ip information */
- #define EBT_LOG_ARP 0x02
- #define EBT_LOG_NFLOG 0x04
--#define EBT_LOG_MASK (EBT_LOG_IP | EBT_LOG_ARP)
-+#define EBT_LOG_IP6 0x08
-+#define EBT_LOG_MASK (EBT_LOG_IP | EBT_LOG_ARP | EBT_LOG_IP6)
- #define EBT_LOG_PREFIX_SIZE 30
- #define EBT_LOG_WATCHER "log"
- 
-diff --git a/net/bridge/netfilter/Kconfig b/net/bridge/netfilter/Kconfig
-index 7beeefa..fb684c2 100644
---- a/net/bridge/netfilter/Kconfig
-+++ b/net/bridge/netfilter/Kconfig
-@@ -83,6 +83,15 @@ config BRIDGE_EBT_IP
- 
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
-+config BRIDGE_EBT_IP6
-+	tristate "ebt: IP6 filter support"
-+	depends on BRIDGE_NF_EBTABLES
-+	help
-+	  This option adds the IP6 match, which allows basic IPV6 header field
-+	  filtering.
-+
-+	  To compile it as a module, choose M here.  If unsure, say N.
-+
- config BRIDGE_EBT_LIMIT
- 	tristate "ebt: limit match support"
- 	depends on BRIDGE_NF_EBTABLES
-diff --git a/net/bridge/netfilter/Makefile b/net/bridge/netfilter/Makefile
-index 83715d7..dd96064 100644
---- a/net/bridge/netfilter/Makefile
-+++ b/net/bridge/netfilter/Makefile
-@@ -14,6 +14,7 @@ obj-$(CONFIG_BRIDGE_EBT_802_3) += ebt_802_3.o
- obj-$(CONFIG_BRIDGE_EBT_AMONG) += ebt_among.o
- obj-$(CONFIG_BRIDGE_EBT_ARP) += ebt_arp.o
- obj-$(CONFIG_BRIDGE_EBT_IP) += ebt_ip.o
-+obj-$(CONFIG_BRIDGE_EBT_IP) += ebt_ip6.o
- obj-$(CONFIG_BRIDGE_EBT_LIMIT) += ebt_limit.o
- obj-$(CONFIG_BRIDGE_EBT_MARK) += ebt_mark_m.o
- obj-$(CONFIG_BRIDGE_EBT_PKTTYPE) += ebt_pkttype.o
-diff --git a/net/bridge/netfilter/ebt_ip6.c b/net/bridge/netfilter/ebt_ip6.c
-new file mode 100644
-index 0000000..36efb3a
---- /dev/null
-+++ b/net/bridge/netfilter/ebt_ip6.c
-@@ -0,0 +1,144 @@
-+/*
-+ *  ebt_ip6
-+ *
-+ *	Authors:
-+ *	Manohar Castelino <manohar.r.castelino@intel.com>
-+ *	Kuo-Lang Tseng <kuo-lang.tseng@intel.com>
-+ *	Jan Engelhardt <jengelh@computergmbh.de>
-+ *
-+ * Summary:
-+ * This is just a modification of the IPv4 code written by
-+ * Bart De Schuymer <bdschuym@pandora.be>
-+ * with the changes required to support IPv6
-+ *
-+ *  Jan, 2008
-+ */
-+
-+#include <linux/netfilter_bridge/ebtables.h>
-+#include <linux/netfilter_bridge/ebt_ip6.h>
-+#include <linux/ipv6.h>
-+#include <net/ipv6.h>
-+#include <linux/in.h>
 +#include <linux/module.h>
-+#include <net/dsfield.h>
++#include <linux/netfilter_ipv6/ip6_tables.h>
 +
-+struct tcpudphdr {
-+	__be16 src;
-+	__be16 dst;
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("James Morris <jmorris <at> redhat.com>");
++MODULE_DESCRIPTION("ip6tables security table, for MAC rules");
++
++#define SECURITY_VALID_HOOKS	(1 << NF_INET_LOCAL_IN) | \
++				(1 << NF_INET_FORWARD) | \
++				(1 << NF_INET_LOCAL_OUT)
++
++static struct
++{
++	struct ip6t_replace repl;
++	struct ip6t_standard entries[3];
++	struct ip6t_error term;
++} initial_table __initdata = {
++	.repl = {
++		.name = "security",
++		.valid_hooks = SECURITY_VALID_HOOKS,
++		.num_entries = 4,
++		.size = sizeof(struct ip6t_standard) * 3 + sizeof(struct ip6t_error),
++		.hook_entry = {
++			[NF_INET_LOCAL_IN] 	= 0,
++			[NF_INET_FORWARD] 	= sizeof(struct ip6t_standard),
++			[NF_INET_LOCAL_OUT] 	= sizeof(struct ip6t_standard) * 2,
++		},
++		.underflow = {
++			[NF_INET_LOCAL_IN] 	= 0,
++			[NF_INET_FORWARD] 	= sizeof(struct ip6t_standard),
++			[NF_INET_LOCAL_OUT] 	= sizeof(struct ip6t_standard) * 2,
++		},
++	},
++	.entries = {
++		IP6T_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_IN */
++		IP6T_STANDARD_INIT(NF_ACCEPT),	/* FORWARD */
++		IP6T_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_OUT */
++	},
++	.term = IP6T_ERROR_INIT,		/* ERROR */
 +};
 +
-+static int ebt_filter_ip6(const struct sk_buff *skb,
-+   const struct net_device *in,
-+   const struct net_device *out, const void *data,
-+   unsigned int datalen)
++static struct xt_table security_table = {
++	.name		= "security",
++	.valid_hooks	= SECURITY_VALID_HOOKS,
++	.lock		= __RW_LOCK_UNLOCKED(security_table.lock),
++	.me		= THIS_MODULE,
++	.af		= AF_INET6,
++};
++
++static unsigned int
++ip6t_local_in_hook(unsigned int hook,
++		   struct sk_buff *skb,
++		   const struct net_device *in,
++		   const struct net_device *out,
++		   int (*okfn)(struct sk_buff *))
 +{
-+	const struct ebt_ip6_info *info = (struct ebt_ip6_info *)data;
-+	const struct ipv6hdr *ih6;
-+	struct ipv6hdr _ip6h;
-+	const struct tcpudphdr *pptr;
-+	struct tcpudphdr _ports;
-+	struct in6_addr tmp_addr;
-+	int i;
-+
-+	ih6 = skb_header_pointer(skb, 0, sizeof(_ip6h), &_ip6h);
-+	if (ih6 == NULL)
-+		return EBT_NOMATCH;
-+	if (info->bitmask & EBT_IP6_TCLASS &&
-+	   FWINV(info->tclass != ipv6_get_dsfield(ih6), EBT_IP6_TCLASS))
-+		return EBT_NOMATCH;
-+	for (i = 0; i < 4; i++)
-+		tmp_addr.in6_u.u6_addr32[i] = ih6->saddr.in6_u.u6_addr32[i] &
-+			info->smsk.in6_u.u6_addr32[i];
-+	if (info->bitmask & EBT_IP6_SOURCE &&
-+		FWINV((ipv6_addr_cmp(&tmp_addr, &info->saddr) != 0),
-+			EBT_IP6_SOURCE))
-+		return EBT_NOMATCH;
-+	for (i = 0; i < 4; i++)
-+		tmp_addr.in6_u.u6_addr32[i] = ih6->daddr.in6_u.u6_addr32[i] &
-+			info->dmsk.in6_u.u6_addr32[i];
-+	if (info->bitmask & EBT_IP6_DEST &&
-+	   FWINV((ipv6_addr_cmp(&tmp_addr, &info->daddr) != 0), EBT_IP6_DEST))
-+		return EBT_NOMATCH;
-+	if (info->bitmask & EBT_IP6_PROTO) {
-+		uint8_t nexthdr = ih6->nexthdr;
-+		int offset_ph;
-+
-+		offset_ph = ipv6_skip_exthdr(skb, sizeof(_ip6h), &nexthdr);
-+		if (offset_ph == -1)
-+			return EBT_NOMATCH;
-+		if (FWINV(info->protocol != nexthdr, EBT_IP6_PROTO))
-+			return EBT_NOMATCH;
-+		if (!(info->bitmask & EBT_IP6_DPORT) &&
-+		    !(info->bitmask & EBT_IP6_SPORT))
-+			return EBT_MATCH;
-+		pptr = skb_header_pointer(skb, offset_ph, sizeof(_ports),
-+					  &_ports);
-+		if (pptr == NULL)
-+			return EBT_NOMATCH;
-+		if (info->bitmask & EBT_IP6_DPORT) {
-+			u32 dst = ntohs(pptr->dst);
-+			if (FWINV(dst < info->dport[0] ||
-+				  dst > info->dport[1], EBT_IP6_DPORT))
-+				return EBT_NOMATCH;
-+		}
-+		if (info->bitmask & EBT_IP6_SPORT) {
-+			u32 src = ntohs(pptr->src);
-+			if (FWINV(src < info->sport[0] ||
-+				  src > info->sport[1], EBT_IP6_SPORT))
-+			return EBT_NOMATCH;
-+		}
-+		return EBT_MATCH;
-+	}
-+	return EBT_MATCH;
++	return ip6t_do_table(skb, hook, in, out,
++			     init_net.ipv6.ip6table_security);
 +}
 +
-+static int ebt_ip6_check(const char *tablename, unsigned int hookmask,
-+   const struct ebt_entry *e, void *data, unsigned int datalen)
++static unsigned int
++ip6t_forward_hook(unsigned int hook,
++		  struct sk_buff *skb,
++		  const struct net_device *in,
++		  const struct net_device *out,
++		  int (*okfn)(struct sk_buff *))
 +{
-+	struct ebt_ip6_info *info = (struct ebt_ip6_info *)data;
++	return ip6t_do_table(skb, hook, in, out,
++		 	     init_net.ipv6.ip6table_security);
++}
 +
-+	if (datalen != EBT_ALIGN(sizeof(struct ebt_ip6_info)))
-+		return -EINVAL;
-+	if (e->ethproto != htons(ETH_P_IPV6) || e->invflags & EBT_IPROTO)
-+		return -EINVAL;
-+	if (info->bitmask & ~EBT_IP6_MASK || info->invflags & ~EBT_IP6_MASK)
-+		return -EINVAL;
-+	if (info->bitmask & (EBT_IP6_DPORT | EBT_IP6_SPORT)) {
-+		if (info->invflags & EBT_IP6_PROTO)
-+			return -EINVAL;
-+		if (info->protocol != IPPROTO_TCP &&
-+		    info->protocol != IPPROTO_UDP &&
-+		    info->protocol != IPPROTO_UDPLITE &&
-+		    info->protocol != IPPROTO_SCTP &&
-+		    info->protocol != IPPROTO_DCCP)
-+			 return -EINVAL;
-+	}
-+	if (info->bitmask & EBT_IP6_DPORT && info->dport[0] > info->dport[1])
-+		return -EINVAL;
-+	if (info->bitmask & EBT_IP6_SPORT && info->sport[0] > info->sport[1])
-+		return -EINVAL;
++static unsigned int
++ip6t_local_out_hook(unsigned int hook,
++		    struct sk_buff *skb,
++		    const struct net_device *in,
++		    const struct net_device *out,
++		    int (*okfn)(struct sk_buff *))
++{
++	/* TBD: handle short packets via raw socket */
++	return ip6t_do_table(skb, hook, in, out,
++			     init_net.ipv6.ip6table_security);
++}
++
++static struct nf_hook_ops ip6t_ops[] __read_mostly = {
++	{
++		.hook		= ip6t_local_in_hook,
++		.owner		= THIS_MODULE,
++		.pf		= PF_INET6,
++		.hooknum	= NF_INET_LOCAL_IN,
++		.priority	= NF_IP6_PRI_SECURITY,
++	},
++	{
++		.hook		= ip6t_forward_hook,
++		.owner		= THIS_MODULE,
++		.pf		= PF_INET6,
++		.hooknum	= NF_INET_FORWARD,
++		.priority	= NF_IP6_PRI_SECURITY,
++	},
++	{
++		.hook		= ip6t_local_out_hook,
++		.owner		= THIS_MODULE,
++		.pf		= PF_INET6,
++		.hooknum	= NF_INET_LOCAL_OUT,
++		.priority	= NF_IP6_PRI_SECURITY,
++	},
++};
++
++static int __net_init ip6table_security_net_init(struct net *net)
++{
++	net->ipv6.ip6table_security =
++		ip6t_register_table(net, &security_table, &initial_table.repl);
++
++	if (IS_ERR(net->ipv6.ip6table_security))
++		return PTR_ERR(net->ipv6.ip6table_security);
++
 +	return 0;
 +}
 +
-+static struct ebt_match filter_ip6 =
++static void __net_exit ip6table_security_net_exit(struct net *net)
 +{
-+	.name		= EBT_IP6_MATCH,
-+	.match		= ebt_filter_ip6,
-+	.check		= ebt_ip6_check,
-+	.me		= THIS_MODULE,
++	ip6t_unregister_table(net->ipv6.ip6table_security);
++}
++
++static struct pernet_operations ip6table_security_net_ops = {
++	.init = ip6table_security_net_init,
++	.exit = ip6table_security_net_exit,
 +};
 +
-+static int __init ebt_ip6_init(void)
++static int __init ip6table_security_init(void)
 +{
-+	return ebt_register_match(&filter_ip6);
++	int ret;
++
++	ret = register_pernet_subsys(&ip6table_security_net_ops);
++	if (ret < 0)
++		return ret;
++
++	ret = nf_register_hooks(ip6t_ops, ARRAY_SIZE(ip6t_ops));
++	if (ret < 0)
++		goto cleanup_table;
++
++	return ret;
++
++cleanup_table:
++	unregister_pernet_subsys(&ip6table_security_net_ops);
++	return ret;
 +}
 +
-+static void __exit ebt_ip6_fini(void)
++static void __exit ip6table_security_fini(void)
 +{
-+	ebt_unregister_match(&filter_ip6);
++	nf_unregister_hooks(ip6t_ops, ARRAY_SIZE(ip6t_ops));
++	unregister_pernet_subsys(&ip6table_security_net_ops);
 +}
 +
-+module_init(ebt_ip6_init);
-+module_exit(ebt_ip6_fini);
-+MODULE_DESCRIPTION("Ebtables: IPv6 protocol packet match");
-+MODULE_LICENSE("GPL");
-diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
-index 0b209e4..c883ec8 100644
---- a/net/bridge/netfilter/ebt_log.c
-+++ b/net/bridge/netfilter/ebt_log.c
-@@ -18,6 +18,9 @@
- #include <linux/if_arp.h>
- #include <linux/spinlock.h>
- #include <net/netfilter/nf_log.h>
-+#include <linux/ipv6.h>
-+#include <net/ipv6.h>
-+#include <linux/in6.h>
- 
- static DEFINE_SPINLOCK(ebt_log_lock);
- 
-@@ -58,6 +61,27 @@ static void print_MAC(const unsigned char *p)
- 		printk("%02x%c", *p, i == ETH_ALEN - 1 ? ' ':':');
- }
- 
-+static void
-+print_ports(const struct sk_buff *skb, uint8_t protocol, int offset)
-+{
-+	if (protocol == IPPROTO_TCP ||
-+	    protocol == IPPROTO_UDP ||
-+	    protocol == IPPROTO_UDPLITE ||
-+	    protocol == IPPROTO_SCTP ||
-+	    protocol == IPPROTO_DCCP) {
-+		const struct tcpudphdr *pptr;
-+		struct tcpudphdr _ports;
-+
-+		pptr = skb_header_pointer(skb, offset,
-+					  sizeof(_ports), &_ports);
-+		if (pptr == NULL) {
-+			printk(" INCOMPLETE TCP/UDP header");
-+			return;
-+		}
-+		printk(" SPT=%u DPT=%u", ntohs(pptr->src), ntohs(pptr->dst));
-+	}
-+}
-+
- #define myNIPQUAD(a) a[0], a[1], a[2], a[3]
- static void
- ebt_log_packet(unsigned int pf, unsigned int hooknum,
-@@ -95,23 +119,31 @@ ebt_log_packet(unsigned int pf, unsigned int hooknum,
- 		printk(" IP SRC=%u.%u.%u.%u IP DST=%u.%u.%u.%u, IP "
- 		       "tos=0x%02X, IP proto=%d", NIPQUAD(ih->saddr),
- 		       NIPQUAD(ih->daddr), ih->tos, ih->protocol);
--		if (ih->protocol == IPPROTO_TCP ||
--		    ih->protocol == IPPROTO_UDP ||
--		    ih->protocol == IPPROTO_UDPLITE ||
--		    ih->protocol == IPPROTO_SCTP ||
--		    ih->protocol == IPPROTO_DCCP) {
--			const struct tcpudphdr *pptr;
--			struct tcpudphdr _ports;
--
--			pptr = skb_header_pointer(skb, ih->ihl*4,
--						  sizeof(_ports), &_ports);
--			if (pptr == NULL) {
--				printk(" INCOMPLETE TCP/UDP header");
--				goto out;
--			}
--			printk(" SPT=%u DPT=%u", ntohs(pptr->src),
--			   ntohs(pptr->dst));
-+		print_ports(skb, ih->protocol, ih->ihl*4);
-+		goto out;
-+	}
-+
-+	if ((bitmask & EBT_LOG_IP6) && eth_hdr(skb)->h_proto ==
-+	   htons(ETH_P_IPV6)) {
-+		const struct ipv6hdr *ih;
-+		struct ipv6hdr _iph;
-+		uint8_t nexthdr;
-+		int offset_ph;
-+
-+		ih = skb_header_pointer(skb, 0, sizeof(_iph), &_iph);
-+		if (ih == NULL) {
-+			printk(" INCOMPLETE IPv6 header");
-+			goto out;
- 		}
-+		printk(" IPv6 SRC=%x:%x:%x:%x:%x:%x:%x:%x "
-+		       "IPv6 DST=%x:%x:%x:%x:%x:%x:%x:%x, IPv6 "
-+		       "priority=0x%01X, Next Header=%d", NIP6(ih->saddr),
-+		       NIP6(ih->daddr), ih->priority, ih->nexthdr);
-+		nexthdr = ih->nexthdr;
-+		offset_ph = ipv6_skip_exthdr(skb, sizeof(_iph), &nexthdr);
-+		if (offset_ph == -1)
-+			goto out;
-+		print_ports(skb, nexthdr, offset_ph);
- 		goto out;
- 	}
- 
++module_init(ip6table_security_init);
++module_exit(ip6table_security_fini);
