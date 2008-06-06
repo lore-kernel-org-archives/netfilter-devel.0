@@ -1,169 +1,375 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 03/11: ctnetlink: add full support for SCTP to ctnetlink
-Date: Fri,  6 Jun 2008 17:17:47 +0200 (MEST)
-Message-ID: <20080606151746.25286.16991.sendpatchset@localhost.localdomain>
+Subject: netfilter 01/11: ebtables: add IPv6 support
+Date: Fri,  6 Jun 2008 17:17:44 +0200 (MEST)
+Message-ID: <20080606151743.25286.71157.sendpatchset@localhost.localdomain>
 References: <20080606151737.25286.54547.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:48137 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:48131 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757961AbYFFPRu (ORCPT
+	with ESMTP id S1757492AbYFFPRr (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 6 Jun 2008 11:17:50 -0400
+	Fri, 6 Jun 2008 11:17:47 -0400
 In-Reply-To: <20080606151737.25286.54547.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-netfilter: ctnetlink: add full support for SCTP to ctnetlink
+netfilter: ebtables: add IPv6 support
 
-This patch adds full support for SCTP to ctnetlink. This includes three
-new attributes: state, original vtag and reply vtag.
+It implements matching functions for IPv6 address & traffic class
+(merged from the patch sent by Jan Engelhardt [jengelh@computergmbh.de]
+http://marc.info/?l=netfilter-devel&m=120182168424052&w=2), protocol,
+and layer-4 port id. Corresponding watcher logging function is also
+added for IPv6.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Kuo-lang Tseng <kuo-lang.tseng@intel.com>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit f3cca975999eb8009c2e912cd11948e0208a2de7
-tree 4cbc50244dd073e8230d078817cccedc833181e2
-parent aed5c546c63f757b44cd55d279b88a118a5cc485
-author Pablo Neira Ayuso <pablo@netfilter.org> Fri, 06 Jun 2008 17:08:24 +0200
-committer Patrick McHardy <kaber@trash.net> Fri, 06 Jun 2008 17:08:24 +0200
+commit b6e858ce9cfbf1779380ba9bb1b3e27b3b4db8b7
+tree 19f9efc52596f3aa05ddc75efaddb4c20ba74808
+parent 40aecb1b13f50d96616abb612c17e59457f54263
+author Kuo-lang Tseng <kuo-lang.tseng@intel.com> Fri, 06 Jun 2008 17:08:08 +0200
+committer Patrick McHardy <kaber@trash.net> Fri, 06 Jun 2008 17:08:08 +0200
 
- include/linux/netfilter/nfnetlink_conntrack.h |   10 +++
- net/netfilter/nf_conntrack_proto_sctp.c       |   80 +++++++++++++++++++++++++
- 2 files changed, 90 insertions(+), 0 deletions(-)
+ include/linux/netfilter_bridge/ebt_ip6.h |   40 ++++++++
+ include/linux/netfilter_bridge/ebt_log.h |    3 -
+ net/bridge/netfilter/Kconfig             |    9 ++
+ net/bridge/netfilter/Makefile            |    1 
+ net/bridge/netfilter/ebt_ip6.c           |  144 ++++++++++++++++++++++++++++++
+ net/bridge/netfilter/ebt_log.c           |   64 ++++++++++---
+ 6 files changed, 244 insertions(+), 17 deletions(-)
 
-diff --git a/include/linux/netfilter/nfnetlink_conntrack.h b/include/linux/netfilter/nfnetlink_conntrack.h
-index 0a383ac..759bc04 100644
---- a/include/linux/netfilter/nfnetlink_conntrack.h
-+++ b/include/linux/netfilter/nfnetlink_conntrack.h
-@@ -81,6 +81,7 @@ enum ctattr_protoinfo {
- 	CTA_PROTOINFO_UNSPEC,
- 	CTA_PROTOINFO_TCP,
- 	CTA_PROTOINFO_DCCP,
-+	CTA_PROTOINFO_SCTP,
- 	__CTA_PROTOINFO_MAX
- };
- #define CTA_PROTOINFO_MAX (__CTA_PROTOINFO_MAX - 1)
-@@ -103,6 +104,15 @@ enum ctattr_protoinfo_dccp {
- };
- #define CTA_PROTOINFO_DCCP_MAX (__CTA_PROTOINFO_DCCP_MAX - 1)
- 
-+enum ctattr_protoinfo_sctp {
-+	CTA_PROTOINFO_SCTP_UNSPEC,
-+	CTA_PROTOINFO_SCTP_STATE,
-+	CTA_PROTOINFO_SCTP_VTAG_ORIGINAL,
-+	CTA_PROTOINFO_SCTP_VTAG_REPLY,
-+	__CTA_PROTOINFO_SCTP_MAX
-+};
-+#define CTA_PROTOINFO_SCTP_MAX (__CTA_PROTOINFO_SCTP_MAX - 1)
+diff --git a/include/linux/netfilter_bridge/ebt_ip6.h b/include/linux/netfilter_bridge/ebt_ip6.h
+new file mode 100644
+index 0000000..2273c3a
+--- /dev/null
++++ b/include/linux/netfilter_bridge/ebt_ip6.h
+@@ -0,0 +1,40 @@
++/*
++ *  ebt_ip6
++ *
++ *	Authors:
++ * Kuo-Lang Tseng <kuo-lang.tseng@intel.com>
++ * Manohar Castelino <manohar.r.castelino@intel.com>
++ *
++ *  Jan 11, 2008
++ *
++ */
 +
- enum ctattr_counters {
- 	CTA_COUNTERS_UNSPEC,
- 	CTA_COUNTERS_PACKETS,		/* old 64bit counters */
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index cbf2e27..41183a4 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -463,6 +463,82 @@ static bool sctp_new(struct nf_conn *ct, const struct sk_buff *skb,
- 	return true;
++#ifndef __LINUX_BRIDGE_EBT_IP6_H
++#define __LINUX_BRIDGE_EBT_IP6_H
++
++#define EBT_IP6_SOURCE 0x01
++#define EBT_IP6_DEST 0x02
++#define EBT_IP6_TCLASS 0x04
++#define EBT_IP6_PROTO 0x08
++#define EBT_IP6_SPORT 0x10
++#define EBT_IP6_DPORT 0x20
++#define EBT_IP6_MASK (EBT_IP6_SOURCE | EBT_IP6_DEST | EBT_IP6_TCLASS |\
++		      EBT_IP6_PROTO | EBT_IP6_SPORT | EBT_IP6_DPORT)
++#define EBT_IP6_MATCH "ip6"
++
++/* the same values are used for the invflags */
++struct ebt_ip6_info
++{
++	struct in6_addr saddr;
++	struct in6_addr daddr;
++	struct in6_addr smsk;
++	struct in6_addr dmsk;
++	uint8_t  tclass;
++	uint8_t  protocol;
++	uint8_t  bitmask;
++	uint8_t  invflags;
++	uint16_t sport[2];
++	uint16_t dport[2];
++};
++
++#endif
+diff --git a/include/linux/netfilter_bridge/ebt_log.h b/include/linux/netfilter_bridge/ebt_log.h
+index 96e231a..b76e653 100644
+--- a/include/linux/netfilter_bridge/ebt_log.h
++++ b/include/linux/netfilter_bridge/ebt_log.h
+@@ -4,7 +4,8 @@
+ #define EBT_LOG_IP 0x01 /* if the frame is made by ip, log the ip information */
+ #define EBT_LOG_ARP 0x02
+ #define EBT_LOG_NFLOG 0x04
+-#define EBT_LOG_MASK (EBT_LOG_IP | EBT_LOG_ARP)
++#define EBT_LOG_IP6 0x08
++#define EBT_LOG_MASK (EBT_LOG_IP | EBT_LOG_ARP | EBT_LOG_IP6)
+ #define EBT_LOG_PREFIX_SIZE 30
+ #define EBT_LOG_WATCHER "log"
+ 
+diff --git a/net/bridge/netfilter/Kconfig b/net/bridge/netfilter/Kconfig
+index 7beeefa..fb684c2 100644
+--- a/net/bridge/netfilter/Kconfig
++++ b/net/bridge/netfilter/Kconfig
+@@ -83,6 +83,15 @@ config BRIDGE_EBT_IP
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
++config BRIDGE_EBT_IP6
++	tristate "ebt: IP6 filter support"
++	depends on BRIDGE_NF_EBTABLES
++	help
++	  This option adds the IP6 match, which allows basic IPV6 header field
++	  filtering.
++
++	  To compile it as a module, choose M here.  If unsure, say N.
++
+ config BRIDGE_EBT_LIMIT
+ 	tristate "ebt: limit match support"
+ 	depends on BRIDGE_NF_EBTABLES
+diff --git a/net/bridge/netfilter/Makefile b/net/bridge/netfilter/Makefile
+index 83715d7..dd96064 100644
+--- a/net/bridge/netfilter/Makefile
++++ b/net/bridge/netfilter/Makefile
+@@ -14,6 +14,7 @@ obj-$(CONFIG_BRIDGE_EBT_802_3) += ebt_802_3.o
+ obj-$(CONFIG_BRIDGE_EBT_AMONG) += ebt_among.o
+ obj-$(CONFIG_BRIDGE_EBT_ARP) += ebt_arp.o
+ obj-$(CONFIG_BRIDGE_EBT_IP) += ebt_ip.o
++obj-$(CONFIG_BRIDGE_EBT_IP) += ebt_ip6.o
+ obj-$(CONFIG_BRIDGE_EBT_LIMIT) += ebt_limit.o
+ obj-$(CONFIG_BRIDGE_EBT_MARK) += ebt_mark_m.o
+ obj-$(CONFIG_BRIDGE_EBT_PKTTYPE) += ebt_pkttype.o
+diff --git a/net/bridge/netfilter/ebt_ip6.c b/net/bridge/netfilter/ebt_ip6.c
+new file mode 100644
+index 0000000..36efb3a
+--- /dev/null
++++ b/net/bridge/netfilter/ebt_ip6.c
+@@ -0,0 +1,144 @@
++/*
++ *  ebt_ip6
++ *
++ *	Authors:
++ *	Manohar Castelino <manohar.r.castelino@intel.com>
++ *	Kuo-Lang Tseng <kuo-lang.tseng@intel.com>
++ *	Jan Engelhardt <jengelh@computergmbh.de>
++ *
++ * Summary:
++ * This is just a modification of the IPv4 code written by
++ * Bart De Schuymer <bdschuym@pandora.be>
++ * with the changes required to support IPv6
++ *
++ *  Jan, 2008
++ */
++
++#include <linux/netfilter_bridge/ebtables.h>
++#include <linux/netfilter_bridge/ebt_ip6.h>
++#include <linux/ipv6.h>
++#include <net/ipv6.h>
++#include <linux/in.h>
++#include <linux/module.h>
++#include <net/dsfield.h>
++
++struct tcpudphdr {
++	__be16 src;
++	__be16 dst;
++};
++
++static int ebt_filter_ip6(const struct sk_buff *skb,
++   const struct net_device *in,
++   const struct net_device *out, const void *data,
++   unsigned int datalen)
++{
++	const struct ebt_ip6_info *info = (struct ebt_ip6_info *)data;
++	const struct ipv6hdr *ih6;
++	struct ipv6hdr _ip6h;
++	const struct tcpudphdr *pptr;
++	struct tcpudphdr _ports;
++	struct in6_addr tmp_addr;
++	int i;
++
++	ih6 = skb_header_pointer(skb, 0, sizeof(_ip6h), &_ip6h);
++	if (ih6 == NULL)
++		return EBT_NOMATCH;
++	if (info->bitmask & EBT_IP6_TCLASS &&
++	   FWINV(info->tclass != ipv6_get_dsfield(ih6), EBT_IP6_TCLASS))
++		return EBT_NOMATCH;
++	for (i = 0; i < 4; i++)
++		tmp_addr.in6_u.u6_addr32[i] = ih6->saddr.in6_u.u6_addr32[i] &
++			info->smsk.in6_u.u6_addr32[i];
++	if (info->bitmask & EBT_IP6_SOURCE &&
++		FWINV((ipv6_addr_cmp(&tmp_addr, &info->saddr) != 0),
++			EBT_IP6_SOURCE))
++		return EBT_NOMATCH;
++	for (i = 0; i < 4; i++)
++		tmp_addr.in6_u.u6_addr32[i] = ih6->daddr.in6_u.u6_addr32[i] &
++			info->dmsk.in6_u.u6_addr32[i];
++	if (info->bitmask & EBT_IP6_DEST &&
++	   FWINV((ipv6_addr_cmp(&tmp_addr, &info->daddr) != 0), EBT_IP6_DEST))
++		return EBT_NOMATCH;
++	if (info->bitmask & EBT_IP6_PROTO) {
++		uint8_t nexthdr = ih6->nexthdr;
++		int offset_ph;
++
++		offset_ph = ipv6_skip_exthdr(skb, sizeof(_ip6h), &nexthdr);
++		if (offset_ph == -1)
++			return EBT_NOMATCH;
++		if (FWINV(info->protocol != nexthdr, EBT_IP6_PROTO))
++			return EBT_NOMATCH;
++		if (!(info->bitmask & EBT_IP6_DPORT) &&
++		    !(info->bitmask & EBT_IP6_SPORT))
++			return EBT_MATCH;
++		pptr = skb_header_pointer(skb, offset_ph, sizeof(_ports),
++					  &_ports);
++		if (pptr == NULL)
++			return EBT_NOMATCH;
++		if (info->bitmask & EBT_IP6_DPORT) {
++			u32 dst = ntohs(pptr->dst);
++			if (FWINV(dst < info->dport[0] ||
++				  dst > info->dport[1], EBT_IP6_DPORT))
++				return EBT_NOMATCH;
++		}
++		if (info->bitmask & EBT_IP6_SPORT) {
++			u32 src = ntohs(pptr->src);
++			if (FWINV(src < info->sport[0] ||
++				  src > info->sport[1], EBT_IP6_SPORT))
++			return EBT_NOMATCH;
++		}
++		return EBT_MATCH;
++	}
++	return EBT_MATCH;
++}
++
++static int ebt_ip6_check(const char *tablename, unsigned int hookmask,
++   const struct ebt_entry *e, void *data, unsigned int datalen)
++{
++	struct ebt_ip6_info *info = (struct ebt_ip6_info *)data;
++
++	if (datalen != EBT_ALIGN(sizeof(struct ebt_ip6_info)))
++		return -EINVAL;
++	if (e->ethproto != htons(ETH_P_IPV6) || e->invflags & EBT_IPROTO)
++		return -EINVAL;
++	if (info->bitmask & ~EBT_IP6_MASK || info->invflags & ~EBT_IP6_MASK)
++		return -EINVAL;
++	if (info->bitmask & (EBT_IP6_DPORT | EBT_IP6_SPORT)) {
++		if (info->invflags & EBT_IP6_PROTO)
++			return -EINVAL;
++		if (info->protocol != IPPROTO_TCP &&
++		    info->protocol != IPPROTO_UDP &&
++		    info->protocol != IPPROTO_UDPLITE &&
++		    info->protocol != IPPROTO_SCTP &&
++		    info->protocol != IPPROTO_DCCP)
++			 return -EINVAL;
++	}
++	if (info->bitmask & EBT_IP6_DPORT && info->dport[0] > info->dport[1])
++		return -EINVAL;
++	if (info->bitmask & EBT_IP6_SPORT && info->sport[0] > info->sport[1])
++		return -EINVAL;
++	return 0;
++}
++
++static struct ebt_match filter_ip6 =
++{
++	.name		= EBT_IP6_MATCH,
++	.match		= ebt_filter_ip6,
++	.check		= ebt_ip6_check,
++	.me		= THIS_MODULE,
++};
++
++static int __init ebt_ip6_init(void)
++{
++	return ebt_register_match(&filter_ip6);
++}
++
++static void __exit ebt_ip6_fini(void)
++{
++	ebt_unregister_match(&filter_ip6);
++}
++
++module_init(ebt_ip6_init);
++module_exit(ebt_ip6_fini);
++MODULE_DESCRIPTION("Ebtables: IPv6 protocol packet match");
++MODULE_LICENSE("GPL");
+diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
+index 0b209e4..c883ec8 100644
+--- a/net/bridge/netfilter/ebt_log.c
++++ b/net/bridge/netfilter/ebt_log.c
+@@ -18,6 +18,9 @@
+ #include <linux/if_arp.h>
+ #include <linux/spinlock.h>
+ #include <net/netfilter/nf_log.h>
++#include <linux/ipv6.h>
++#include <net/ipv6.h>
++#include <linux/in6.h>
+ 
+ static DEFINE_SPINLOCK(ebt_log_lock);
+ 
+@@ -58,6 +61,27 @@ static void print_MAC(const unsigned char *p)
+ 		printk("%02x%c", *p, i == ETH_ALEN - 1 ? ' ':':');
  }
  
-+#if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
-+
-+#include <linux/netfilter/nfnetlink.h>
-+#include <linux/netfilter/nfnetlink_conntrack.h>
-+
-+static int sctp_to_nlattr(struct sk_buff *skb, struct nlattr *nla,
-+			  const struct nf_conn *ct)
++static void
++print_ports(const struct sk_buff *skb, uint8_t protocol, int offset)
 +{
-+	struct nlattr *nest_parms;
++	if (protocol == IPPROTO_TCP ||
++	    protocol == IPPROTO_UDP ||
++	    protocol == IPPROTO_UDPLITE ||
++	    protocol == IPPROTO_SCTP ||
++	    protocol == IPPROTO_DCCP) {
++		const struct tcpudphdr *pptr;
++		struct tcpudphdr _ports;
 +
-+	read_lock_bh(&sctp_lock);
-+	nest_parms = nla_nest_start(skb, CTA_PROTOINFO_SCTP | NLA_F_NESTED);
-+	if (!nest_parms)
-+		goto nla_put_failure;
-+
-+	NLA_PUT_U8(skb, CTA_PROTOINFO_SCTP_STATE, ct->proto.sctp.state);
-+
-+	NLA_PUT_BE32(skb,
-+		     CTA_PROTOINFO_SCTP_VTAG_ORIGINAL,
-+		     htonl(ct->proto.sctp.vtag[IP_CT_DIR_ORIGINAL]));
-+
-+	NLA_PUT_BE32(skb,
-+		     CTA_PROTOINFO_SCTP_VTAG_REPLY,
-+		     htonl(ct->proto.sctp.vtag[IP_CT_DIR_REPLY]));
-+
-+	read_unlock_bh(&sctp_lock);
-+
-+	nla_nest_end(skb, nest_parms);
-+
-+	return 0;
-+
-+nla_put_failure:
-+	read_unlock_bh(&sctp_lock);
-+	return -1;
++		pptr = skb_header_pointer(skb, offset,
++					  sizeof(_ports), &_ports);
++		if (pptr == NULL) {
++			printk(" INCOMPLETE TCP/UDP header");
++			return;
++		}
++		printk(" SPT=%u DPT=%u", ntohs(pptr->src), ntohs(pptr->dst));
++	}
 +}
 +
-+static const struct nla_policy sctp_nla_policy[CTA_PROTOINFO_SCTP_MAX+1] = {
-+	[CTA_PROTOINFO_SCTP_STATE]	    = { .type = NLA_U8 },
-+	[CTA_PROTOINFO_SCTP_VTAG_ORIGINAL]  = { .type = NLA_U32 },
-+	[CTA_PROTOINFO_SCTP_VTAG_REPLY]     = { .type = NLA_U32 },
-+};
+ #define myNIPQUAD(a) a[0], a[1], a[2], a[3]
+ static void
+ ebt_log_packet(unsigned int pf, unsigned int hooknum,
+@@ -95,23 +119,31 @@ ebt_log_packet(unsigned int pf, unsigned int hooknum,
+ 		printk(" IP SRC=%u.%u.%u.%u IP DST=%u.%u.%u.%u, IP "
+ 		       "tos=0x%02X, IP proto=%d", NIPQUAD(ih->saddr),
+ 		       NIPQUAD(ih->daddr), ih->tos, ih->protocol);
+-		if (ih->protocol == IPPROTO_TCP ||
+-		    ih->protocol == IPPROTO_UDP ||
+-		    ih->protocol == IPPROTO_UDPLITE ||
+-		    ih->protocol == IPPROTO_SCTP ||
+-		    ih->protocol == IPPROTO_DCCP) {
+-			const struct tcpudphdr *pptr;
+-			struct tcpudphdr _ports;
+-
+-			pptr = skb_header_pointer(skb, ih->ihl*4,
+-						  sizeof(_ports), &_ports);
+-			if (pptr == NULL) {
+-				printk(" INCOMPLETE TCP/UDP header");
+-				goto out;
+-			}
+-			printk(" SPT=%u DPT=%u", ntohs(pptr->src),
+-			   ntohs(pptr->dst));
++		print_ports(skb, ih->protocol, ih->ihl*4);
++		goto out;
++	}
 +
-+static int nlattr_to_sctp(struct nlattr *cda[], struct nf_conn *ct)
-+{
-+	struct nlattr *attr = cda[CTA_PROTOINFO_SCTP];
-+	struct nlattr *tb[CTA_PROTOINFO_SCTP_MAX+1];
-+	int err;
++	if ((bitmask & EBT_LOG_IP6) && eth_hdr(skb)->h_proto ==
++	   htons(ETH_P_IPV6)) {
++		const struct ipv6hdr *ih;
++		struct ipv6hdr _iph;
++		uint8_t nexthdr;
++		int offset_ph;
 +
-+	/* updates may not contain the internal protocol info, skip parsing */
-+	if (!attr)
-+		return 0;
-+
-+	err = nla_parse_nested(tb,
-+			       CTA_PROTOINFO_SCTP_MAX,
-+			       attr,
-+			       sctp_nla_policy);
-+	if (err < 0)
-+		return err;
-+
-+	if (!tb[CTA_PROTOINFO_SCTP_STATE] ||
-+	    !tb[CTA_PROTOINFO_SCTP_VTAG_ORIGINAL] ||
-+	    !tb[CTA_PROTOINFO_SCTP_VTAG_REPLY])
-+		return -EINVAL;
-+
-+	write_lock_bh(&sctp_lock);
-+	ct->proto.sctp.state = nla_get_u8(tb[CTA_PROTOINFO_SCTP_STATE]);
-+	ct->proto.sctp.vtag[IP_CT_DIR_ORIGINAL] =
-+		ntohl(nla_get_be32(tb[CTA_PROTOINFO_SCTP_VTAG_ORIGINAL]));
-+	ct->proto.sctp.vtag[IP_CT_DIR_REPLY] =
-+		ntohl(nla_get_be32(tb[CTA_PROTOINFO_SCTP_VTAG_REPLY]));
-+	write_unlock_bh(&sctp_lock);
-+
-+	return 0;
-+}
-+#endif
-+
- #ifdef CONFIG_SYSCTL
- static unsigned int sctp_sysctl_table_users;
- static struct ctl_table_header *sctp_sysctl_header;
-@@ -591,6 +667,8 @@ static struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp4 __read_mostly = {
- 	.new 			= sctp_new,
- 	.me 			= THIS_MODULE,
- #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
-+	.to_nlattr		= sctp_to_nlattr,
-+	.from_nlattr		= nlattr_to_sctp,
- 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
- 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
- 	.nla_policy		= nf_ct_port_nla_policy,
-@@ -617,6 +695,8 @@ static struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp6 __read_mostly = {
- 	.new 			= sctp_new,
- 	.me 			= THIS_MODULE,
- #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
-+	.to_nlattr		= sctp_to_nlattr,
-+	.from_nlattr		= nlattr_to_sctp,
- 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
- 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
- 	.nla_policy		= nf_ct_port_nla_policy,
++		ih = skb_header_pointer(skb, 0, sizeof(_iph), &_iph);
++		if (ih == NULL) {
++			printk(" INCOMPLETE IPv6 header");
++			goto out;
+ 		}
++		printk(" IPv6 SRC=%x:%x:%x:%x:%x:%x:%x:%x "
++		       "IPv6 DST=%x:%x:%x:%x:%x:%x:%x:%x, IPv6 "
++		       "priority=0x%01X, Next Header=%d", NIP6(ih->saddr),
++		       NIP6(ih->daddr), ih->priority, ih->nexthdr);
++		nexthdr = ih->nexthdr;
++		offset_ph = ipv6_skip_exthdr(skb, sizeof(_iph), &nexthdr);
++		if (offset_ph == -1)
++			goto out;
++		print_ports(skb, nexthdr, offset_ph);
+ 		goto out;
+ 	}
+ 
