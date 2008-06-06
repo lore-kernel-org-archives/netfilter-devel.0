@@ -1,91 +1,62 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 00/11: netfilter -next update
-Date: Fri,  6 Jun 2008 17:17:40 +0200 (MEST)
-Message-ID: <20080606151737.25286.54547.sendpatchset@localhost.localdomain>
+Subject: netfilter 06/11: nf_conntrack_extend: use krealloc() in nf_conntrack_extend.c V2
+Date: Fri,  6 Jun 2008 17:17:54 +0200 (MEST)
+Message-ID: <20080606151752.25286.35255.sendpatchset@localhost.localdomain>
+References: <20080606151737.25286.54547.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:48130 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:48146 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757861AbYFFPRq (ORCPT
+	with ESMTP id S1758045AbYFFPR4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 6 Jun 2008 11:17:46 -0400
+	Fri, 6 Jun 2008 11:17:56 -0400
+In-Reply-To: <20080606151737.25286.54547.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Dave,
+netfilter: nf_conntrack_extend: use krealloc() in nf_conntrack_extend.c V2
 
-following is a first netfilter update for net-next-2.6.git, including:
+The ksize() API is going away because it is being abused and it doesn't even
+work consistenly across different allocators. Therefore, convert
+net/netfilter/nf_conntrack_extend.c to use krealloc().
 
-- conntrack accounting fixes
-- a new IPv4/IPv6 security table for SELinux
-- IPv6 support for ebtables
-- ctnetlink cleanups and SCTP support
-- removal of ksize "abuse" in ct_extend
-- minor queuing cleanups
+Cc: <netfilter-devel@vger.kernel.org>
+Cc: <netdev@vger.kernel.org>
+Cc: Matt Mackall <mpm@selenic.com>
+Cc: Christoph Lameter <clameter@sgi.com>
+Signed-off-by: Pekka Enberg <penberg@cs.helsinki.fi>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-Please apply, thanks.
+---
+commit c6bf7199df1514a3f82c2c6a3d925c5966798141
+tree 64365998231e0ae71aa95ff478bd185ea22af3d5
+parent 90faf09757063e4e45aba7124977ef5b82cd5223
+author Pekka Enberg <penberg@cs.helsinki.fi> Fri, 06 Jun 2008 17:11:04 +0200
+committer Patrick McHardy <kaber@trash.net> Fri, 06 Jun 2008 17:11:04 +0200
 
+ net/netfilter/nf_conntrack_extend.c |   10 ++++------
+ 1 files changed, 4 insertions(+), 6 deletions(-)
 
- include/linux/netfilter/nfnetlink_conntrack.h  |   10 ++
- include/linux/netfilter_bridge/ebt_ip6.h       |   40 ++++++
- include/linux/netfilter_bridge/ebt_log.h       |    3 +-
- include/linux/netfilter_ipv4.h                 |    1 +
- include/linux/netfilter_ipv6.h                 |    1 +
- include/net/netfilter/ipv4/nf_conntrack_ipv4.h |    2 -
- include/net/netfilter/nf_conntrack.h           |   19 +++
- include/net/netns/ipv4.h                       |    1 +
- include/net/netns/ipv6.h                       |    1 +
- net/bridge/netfilter/Kconfig                   |    9 ++
- net/bridge/netfilter/Makefile                  |    1 +
- net/bridge/netfilter/ebt_ip6.c                 |  144 +++++++++++++++++++
- net/bridge/netfilter/ebt_log.c                 |   64 +++++++--
- net/ipv4/netfilter/Kconfig                     |   12 ++
- net/ipv4/netfilter/Makefile                    |    1 +
- net/ipv4/netfilter/ip_queue.c                  |    3 -
- net/ipv4/netfilter/iptable_security.c          |  180 ++++++++++++++++++++++++
- net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |    5 +-
- net/ipv6/netfilter/Kconfig                     |   12 ++
- net/ipv6/netfilter/Makefile                    |    1 +
- net/ipv6/netfilter/ip6_queue.c                 |    3 -
- net/ipv6/netfilter/ip6table_security.c         |  172 ++++++++++++++++++++++
- net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |    5 +-
- net/netfilter/nf_conntrack_core.c              |   19 +++
- net/netfilter/nf_conntrack_extend.c            |   10 +-
- net/netfilter/nf_conntrack_netlink.c           |   30 ++--
- net/netfilter/nf_conntrack_proto_dccp.c        |    3 +-
- net/netfilter/nf_conntrack_proto_sctp.c        |   80 +++++++++++
- net/netfilter/nf_conntrack_proto_tcp.c         |    9 +-
- net/netfilter/nfnetlink_queue.c                |    1 -
- net/netfilter/xt_CONNSECMARK.c                 |   10 +-
- net/netfilter/xt_SECMARK.c                     |   10 +-
- 32 files changed, 794 insertions(+), 68 deletions(-)
- create mode 100644 include/linux/netfilter_bridge/ebt_ip6.h
- create mode 100644 net/bridge/netfilter/ebt_ip6.c
- create mode 100644 net/ipv4/netfilter/iptable_security.c
- create mode 100644 net/ipv6/netfilter/ip6table_security.c
-
-Fabian Hugelshofer (2):
-      netfilter: nf_conntrack: properly account terminating packets
-      netfilter: ctnetlink: include conntrack status in destroy event message
-
-James Morris (2):
-      netfilter: ip_tables: add iptables security table for mandatory access control rules
-      netfilter: ip6_tables: add ip6tables security table
-
-Kuo-lang Tseng (1):
-      netfilter: ebtables: add IPv6 support
-
-Pablo Neira Ayuso (2):
-      netfilter: ctnetlink: group errors into logical errno sets
-      netfilter: ctnetlink: add full support for SCTP to ctnetlink
-
-Patrick McHardy (1):
-      netfilter: nf_conntrack: add nf_ct_kill()
-
-Pekka Enberg (1):
-      netfilter: nf_conntrack_extend: use krealloc() in nf_conntrack_extend.c V2
-
-Rami Rosen (2):
-      netfilter: nf_conntrack: remove unnecessary function declaration
-      netfilter: {ip,ip6,nfnetlink}_queue: misc cleanups
+diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
+index bcc19fa..ba1c491 100644
+--- a/net/netfilter/nf_conntrack_extend.c
++++ b/net/netfilter/nf_conntrack_extend.c
+@@ -88,13 +88,11 @@ void *__nf_ct_ext_add(struct nf_conn *ct, enum nf_ct_ext_id id, gfp_t gfp)
+ 	newlen = newoff + t->len;
+ 	rcu_read_unlock();
+ 
+-	if (newlen >= ksize(ct->ext)) {
+-		new = kmalloc(newlen, gfp);
+-		if (!new)
+-			return NULL;
+-
+-		memcpy(new, ct->ext, ct->ext->len);
++	new = krealloc(ct->ext, newlen, gfp);
++	if (!new)
++		return NULL;
+ 
++	if (new != ct->ext) {
+ 		for (i = 0; i < NF_CT_EXT_NUM; i++) {
+ 			if (!nf_ct_ext_exist(ct, i))
+ 				continue;
