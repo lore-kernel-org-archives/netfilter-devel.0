@@ -1,33 +1,30 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: manpage updates
-Date: Sun, 08 Jun 2008 19:12:28 +0200
-Message-ID: <484C12FC.8000805@trash.net>
-References: <alpine.LNX.1.10.0806081158110.20733@fbirervta.pbzchgretzou.qr>
+Subject: Re: netfilter: Make nflog quiet when no one listen in userspace.
+Date: Sun, 08 Jun 2008 20:30:44 +0200
+Message-ID: <484C2554.9020301@trash.net>
+References: <> <1212919510-6499-1-git-send-email-eric@inl.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@inl.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:41900 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:43431 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752596AbYFHRMd (ORCPT
+	with ESMTP id S1753909AbYFHSay (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 8 Jun 2008 13:12:33 -0400
-In-Reply-To: <alpine.LNX.1.10.0806081158110.20733@fbirervta.pbzchgretzou.qr>
+	Sun, 8 Jun 2008 14:30:54 -0400
+In-Reply-To: <1212919510-6499-1-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> commit 1f81341483544759db0d5255ecd6f49de984993a
-> Author: Jan Engelhardt <jengelh@medozas.de>
-> Date:   Sun Jun 8 11:57:41 2008 +0200
-> 
-> manpage updates
->     
-> A number of options support negation, but the manpage did not reflect
-> this ("[!]" was absent). Also fix a few [] (optional arguments) to {}
-> (required arguments) in the option-BNF.
+Eric Leblond wrote:
+> The message "nf_log_packet: can't log since no backend logging module loaded
+> in! Please either load one, or disable logging explicitly" was displayed for
+> each logged packet when no userspace application is listening to nflog events.
+> The message seems to warn for a problem with a kernel module missing but as
+> said before this is not the case. I thus propose to suppress the message (I
+> don't see any reason to flood the log because a user application has crashed.)
 
-
-Applied, thanks Jan.
+Yes, that message has annoyed me on multiple occasions as well.
+Applied, thanks Eric.
