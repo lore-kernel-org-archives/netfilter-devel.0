@@ -1,30 +1,37 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: netfilter: Make nflog quiet when no one listen in userspace.
-Date: Sun, 08 Jun 2008 20:30:44 +0200
-Message-ID: <484C2554.9020301@trash.net>
-References: <> <1212919510-6499-1-git-send-email-eric@inl.fr>
+From: David Miller <davem@davemloft.net>
+Subject: Re: netfilter 00/11: netfilter -next update
+Date: Mon, 09 Jun 2008 16:09:00 -0700 (PDT)
+Message-ID: <20080609.160900.72824722.davem@davemloft.net>
+References: <20080606151737.25286.54547.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@inl.fr>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:43431 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753909AbYFHSay (ORCPT
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:53952
+	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1752841AbYFIXJA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 8 Jun 2008 14:30:54 -0400
-In-Reply-To: <1212919510-6499-1-git-send-email-eric@inl.fr>
+	Mon, 9 Jun 2008 19:09:00 -0400
+In-Reply-To: <20080606151737.25286.54547.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Leblond wrote:
-> The message "nf_log_packet: can't log since no backend logging module loaded
-> in! Please either load one, or disable logging explicitly" was displayed for
-> each logged packet when no userspace application is listening to nflog events.
-> The message seems to warn for a problem with a kernel module missing but as
-> said before this is not the case. I thus propose to suppress the message (I
-> don't see any reason to flood the log because a user application has crashed.)
+From: Patrick McHardy <kaber@trash.net>
+Date: Fri,  6 Jun 2008 17:17:40 +0200 (MEST)
 
-Yes, that message has annoyed me on multiple occasions as well.
-Applied, thanks Eric.
+> Hi Dave,
+> 
+> following is a first netfilter update for net-next-2.6.git, including:
+> 
+> - conntrack accounting fixes
+> - a new IPv4/IPv6 security table for SELinux
+> - IPv6 support for ebtables
+> - ctnetlink cleanups and SCTP support
+> - removal of ksize "abuse" in ct_extend
+> - minor queuing cleanups
+> 
+> Please apply, thanks.
+
+All applied and pushed out to net-next-2.6, thanks!
