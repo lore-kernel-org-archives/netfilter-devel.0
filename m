@@ -1,48 +1,50 @@
 From: Krzysztof Oledzki <ole@ans.pl>
-Subject: Re: [SPAM?] Re: conntrackd causes kernel panic
-Date: Tue, 10 Jun 2008 19:01:45 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0806101858080.12641@bizon.gios.gov.pl>
-References: <200806101343.12607.sabelka@iue.tuwien.ac.at> <484E8FC8.4000402@trash.net>
- <200806101706.52341.sabelka@iue.tuwien.ac.at>
+Subject: Re: Oops in nf_nat_core.c:find_appropriate_src(), kernel 2.6.25.4
+Date: Tue, 10 Jun 2008 19:07:01 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0806101906120.12641@bizon.gios.gov.pl>
+References: <484A9E75.8000601@redhat.com> <484AA276.9090407@trash.net>
+ <484AA5D5.10404@trash.net> <Pine.LNX.4.64.0806071742180.13503@bizon.gios.gov.pl>
+ <484E4343.5090606@trash.net> <Pine.LNX.4.64.0806101545460.12641@bizon.gios.gov.pl>
+ <484E88FD.3000908@trash.net>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-39537897-1213117305=:12641"
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
-To: Rainer Sabelka <sabelka@iue.tuwien.ac.at>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bizon.gios.gov.pl ([212.244.124.8]:51479 "EHLO
-	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752984AbYFJRCI (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Jun 2008 13:02:08 -0400
-In-Reply-To: <200806101706.52341.sabelka@iue.tuwien.ac.at>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-442060285-1213117621=:12641"
+Cc: Chuck Ebbert <cebbert@redhat.com>, Netdev <netdev@vger.kernel.org>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <484E88FD.3000908@trash.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
   This message is in MIME format.  The first part should be readable text,
   while the remaining parts are likely unreadable without MIME-aware tools.
 
----187430788-39537897-1213117305=:12641
+---187430788-442060285-1213117621=:12641
 Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 
 
 
-On Tue, 10 Jun 2008, Rainer Sabelka wrote:
+On Tue, 10 Jun 2008, Patrick McHardy wrote:
+<CUT>
 
-> On Tuesday 10 June 2008 16:29, Patrick McHardy wrote:
->> Do these two patches help?
+>> As you can see we still check if nat->ct is NULL here. So, or the check =
+is=20
+>> now unnecessary, or it is still possible that nat->ct may become NULL. I=
+f=20
+>> the second statement is true than we may need to check ct before calling=
+=20
+>> same_src in the find_appropriate_src function.
 >
-> Patrick, I tried to apply those patches to the Ubuntu kernel sources
-> (2.6.24-18) but they failed, so I guess I should try to use a vanilla ker=
-nel
-> instead.
-> Which version should I try?
+> No, the nf_nat_cleanup_nat function can be called for a NAT extension
+> that isn't in the hash yet (and thus has nat->ct =3D=3D NULL) when the
+> nf_conntrack_alter_reply() call in nf_nat_setup_info() allocates a
+> helper extension and need to realloc the NAT extension space.
 
-Those patches are for nf-next-2.6. I have a backport of this patches for=20
-2.6.24.x and 2.6.25.x kernels, but I need to make sure there were no=20
-changes in the latest version.
+OK, thank you for the explanation.
 
 Best regards,
 
  =09=09=09=09Krzysztof Ol=EAdzki
----187430788-39537897-1213117305=:12641--
+---187430788-442060285-1213117621=:12641--
