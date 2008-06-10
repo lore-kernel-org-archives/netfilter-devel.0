@@ -1,71 +1,63 @@
-From: Alexey Dobriyan <adobriyan@parallels.com>
-Subject: unlock iptables in netns
-Date: Tue, 10 Jun 2008 21:27:20 +0400
-Message-ID: <200806102127.21093.adobriyan@parallels.com>
+From: Krzysztof Oledzki <ole@ans.pl>
+Subject: Re: [SPAM?] Re: conntrackd causes kernel panic
+Date: Tue, 10 Jun 2008 20:12:48 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0806102008000.20559@bizon.gios.gov.pl>
+References: <200806101343.12607.sabelka@iue.tuwien.ac.at> <484E8FC8.4000402@trash.net>
+ <200806101706.52341.sabelka@iue.tuwien.ac.at> <Pine.LNX.4.64.0806101858080.12641@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	devel@openvz.org, den@openvz.org, xemul@openvz.org,
-	adobriyan@gmail.com
-To: kaber@trash.net
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-1752680014-1213121568=:20559"
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: Rainer Sabelka <sabelka@iue.tuwien.ac.at>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from bizon.gios.gov.pl ([212.244.124.8]:45711 "EHLO
+	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752218AbYFJSNE (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 10 Jun 2008 14:13:04 -0400
+In-Reply-To: <Pine.LNX.4.64.0806101858080.12641@bizon.gios.gov.pl>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Den basically banned iptables in netns via this patch
+---187430788-1752680014-1213121568=:20559
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -165,14 +165,6 @@ int nf_hook_slow(int pf, unsigned int hook, struct sk_buff *skb,
- 	unsigned int verdict;
- 	int ret = 0;
- 
--#ifdef CONFIG_NET_NS
--	struct net *net;
--
--	net = indev == NULL ? dev_net(outdev) : dev_net(indev);
--	if (net != &init_net)
--		return 1;
--#endif
--
- 	/* We may already have this, but read-locks nest anyway */
- 	rcu_read_lock();
- 
---- a/net/netfilter/nf_sockopt.c
-+++ b/net/netfilter/nf_sockopt.c
-@@ -65,9 +65,6 @@ static struct nf_sockopt_ops *nf_sockopt_find(struct sock *sk, int pf,
- {
- 	struct nf_sockopt_ops *ops;
- 
--	if (sock_net(sk) != &init_net)
--		return ERR_PTR(-ENOPROTOOPT);
--
- 	if (mutex_lock_interruptible(&nf_sockopt_mutex) != 0)
- 		return ERR_PTR(-EINTR);
- 
-, however, at least some of netfilter pieces are ready for usage in netns
-and it would be nice to unlock them before release.
 
-If I'm deciphering chengelog correctly it's all about code which does
-nf_register_hook{,s} but not netns-ready itself:
 
-	br_netfilter.c
-	iptable_mangle (via ip_route_me_harder)
-	conntracking (both IPv4 and IPv6)
-	NAT
-	arptable_filter
-	selinux
-	decnet
-	ebtable_filter
-	ebtable_nat
-	ipt_CLUSTERIP
+On Tue, 10 Jun 2008, Krzysztof Oledzki wrote:
 
-Patch above can be applied and we can mark above list as "depends !NET_NS"
-and move on.
+>
+>
+> On Tue, 10 Jun 2008, Rainer Sabelka wrote:
+>
+>> On Tuesday 10 June 2008 16:29, Patrick McHardy wrote:
+>>> Do these two patches help?
+>>=20
+>> Patrick, I tried to apply those patches to the Ubuntu kernel sources
+>> (2.6.24-18) but they failed, so I guess I should try to use a vanilla=20
+>> kernel
+>> instead.
+>> Which version should I try?
+>
+> Those patches are for nf-next-2.6. I have a backport of this patches for=
+=20
+> 2.6.24.x and 2.6.25.x kernels, but I need to make sure there were no chan=
+ges=20
+> in the latest version.
 
-Comments? Den, was there something else you're afraid of?
+OK, here it is (for 2.6.24.7):
+  ftp://ftp.ans.pl/pub/patches/patch-ole-2.6.24-o4.gz
+
+Not sure what changes are in ubuntu 2.6.24-18 and probably you may not=20
+like to take all of my patches so:
+  ftp://ftp.ans.pl/pub/patches/broken-out/2.6.24-o4/
+
+You need patches 0750, 0760, 0840 and 0850.
+
+Best regards,
+
+ =09=09=09=09Krzysztof Ol=EAdzki
+---187430788-1752680014-1213121568=:20559--
