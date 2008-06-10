@@ -1,56 +1,48 @@
-From: Alexey Dobriyan <adobriyan@parallels.com>
-Subject: [PATCH] netfilter: netnsize ip6table_security
-Date: Tue, 10 Jun 2008 20:48:34 +0400
-Message-ID: <200806102048.34447.adobriyan@parallels.com>
+From: Krzysztof Oledzki <ole@ans.pl>
+Subject: Re: [SPAM?] Re: conntrackd causes kernel panic
+Date: Tue, 10 Jun 2008 19:01:45 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0806101858080.12641@bizon.gios.gov.pl>
+References: <200806101343.12607.sabelka@iue.tuwien.ac.at> <484E8FC8.4000402@trash.net>
+ <200806101706.52341.sabelka@iue.tuwien.ac.at>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, James Morris <jmorris@namei.org>
-To: kaber@trash.net
+Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-39537897-1213117305=:12641"
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: Rainer Sabelka <sabelka@iue.tuwien.ac.at>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailhub.sw.ru ([195.214.232.25]:29956 "EHLO relay.sw.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751669AbYFJQsx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Jun 2008 12:48:53 -0400
-Content-Disposition: inline
+Received: from bizon.gios.gov.pl ([212.244.124.8]:51479 "EHLO
+	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752984AbYFJRCI (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 10 Jun 2008 13:02:08 -0400
+In-Reply-To: <200806101706.52341.sabelka@iue.tuwien.ac.at>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Alexey Dobriyan <adobriyan@parallels.com>
----
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
- not sure why this code in IPv4 version but not in IPv6
+---187430788-39537897-1213117305=:12641
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
- net/ipv6/netfilter/ip6table_security.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
 
---- a/net/ipv6/netfilter/ip6table_security.c
-+++ b/net/ipv6/netfilter/ip6table_security.c
-@@ -72,7 +72,7 @@ ip6t_local_in_hook(unsigned int hook,
- 		   int (*okfn)(struct sk_buff *))
- {
- 	return ip6t_do_table(skb, hook, in, out,
--			     init_net.ipv6.ip6table_security);
-+			     nf_local_in_net(in, out)->ipv6.ip6table_security);
- }
- 
- static unsigned int
-@@ -83,7 +83,7 @@ ip6t_forward_hook(unsigned int hook,
- 		  int (*okfn)(struct sk_buff *))
- {
- 	return ip6t_do_table(skb, hook, in, out,
--			     init_net.ipv6.ip6table_security);
-+			     nf_forward_net(in, out)->ipv6.ip6table_security);
- }
- 
- static unsigned int
-@@ -95,7 +95,7 @@ ip6t_local_out_hook(unsigned int hook,
- {
- 	/* TBD: handle short packets via raw socket */
- 	return ip6t_do_table(skb, hook, in, out,
--			     init_net.ipv6.ip6table_security);
-+			     nf_local_out_net(in, out)->ipv6.ip6table_security);
- }
- 
- static struct nf_hook_ops ip6t_ops[] __read_mostly = {
+
+On Tue, 10 Jun 2008, Rainer Sabelka wrote:
+
+> On Tuesday 10 June 2008 16:29, Patrick McHardy wrote:
+>> Do these two patches help?
+>
+> Patrick, I tried to apply those patches to the Ubuntu kernel sources
+> (2.6.24-18) but they failed, so I guess I should try to use a vanilla ker=
+nel
+> instead.
+> Which version should I try?
+
+Those patches are for nf-next-2.6. I have a backport of this patches for=20
+2.6.24.x and 2.6.25.x kernels, but I need to make sure there were no=20
+changes in the latest version.
+
+Best regards,
+
+ =09=09=09=09Krzysztof Ol=EAdzki
+---187430788-39537897-1213117305=:12641--
