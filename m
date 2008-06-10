@@ -1,31 +1,41 @@
-From: Rainer Sabelka <sabelka@iue.tuwien.ac.at>
-Subject: Re: [SPAM?] Re: conntrackd causes kernel panic
-Date: Tue, 10 Jun 2008 17:06:51 +0200
-Message-ID: <200806101706.52341.sabelka@iue.tuwien.ac.at>
-References: <200806101343.12607.sabelka@iue.tuwien.ac.at> <484E8FC8.4000402@trash.net>
+From: Ben Gamsa <ben@somanetworks.com>
+Subject: arptables issue with user-defined chains and -j RETURN
+Date: Tue, 10 Jun 2008 12:40:14 -0400
+Message-ID: <484EAE6E.30206@somanetworks.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mr1-n.kom.tuwien.ac.at ([128.130.2.109]:20929 "EHLO
-	mr.tuwien.ac.at" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752158AbYFJPG6 (ORCPT
+Received: from mail.somanetworks.com ([216.126.67.42]:47973 "EHLO
+	mail.somanetworks.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753602AbYFJQq5 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Jun 2008 11:06:58 -0400
-In-Reply-To: <484E8FC8.4000402@trash.net>
-Content-Disposition: inline
+	Tue, 10 Jun 2008 12:46:57 -0400
+Received: from odo.yyz.somanetworks.com (HELO [10.11.11.50]) (ben@[10.11.11.50])
+          (envelope-sender <ben@somanetworks.com>)
+          by mail.somanetworks.com (qmail-ldap-1.03) with RC4-MD5 encrypted SMTP
+          for <netfilter-devel@vger.kernel.org>; 10 Jun 2008 16:40:14 -0000
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tuesday 10 June 2008 16:29, Patrick McHardy wrote:
-> Do these two patches help?
+I'm using version 0.0.3-3 of arptables (curently with a 2.6.20 kernel, soon
+to be upgraded) and it seems like explicit and implicit RETURNs are not working.
+What I believe is happening is that arptables includes its own version of
+arp_tables.h (actually, two identical copies), with a definition for ARPT_RETURN.
+Specifically, it defines it as:
 
-Patrick, I tried to apply those patches to the Ubuntu kernel sources 
-(2.6.24-18) but they failed, so I guess I should try to use a vanilla kernel 
-instead.
-Which version should I try?
+#define ARPT_RETURN (-NF_MAX_VERDICT - 1)
 
--Rainer
+while the kernel defines it as XT_RETURN, which in turn defines it as
+
+#define XT_RETURN (-NF_REPEAT - 1)
+
+The end result seems to be that rules that explicitly or implicitly use the
+target RETURN actually end up with the target STOP, and so returns from
+chains don't work.  Changing the definition of ARPT_RETURN in arptables to
+match the definition of XT_RETURN appears to fix the problem.
+
+-- 
+Ben Gamsa             ben@somanetworks.com
+SOMA Networks, Inc.   312 Adelaide St. W. Suite 600 Toronto, Ontario, M5V1R2
