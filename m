@@ -1,109 +1,130 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 02/02: nf_conntrack: fix ctnetlink related crash in nf_nat_setup_info()
-Date: Wed, 11 Jun 2008 14:42:17 +0200
-Message-ID: <484FC829.1090709@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: conntrackd [ERROR] commit: Invalid argument
+Date: Wed, 11 Jun 2008 15:25:51 +0200
+Message-ID: <484FD25F.2010800@netfilter.org>
+References: <e1aa27e00806090621r3fa83ac0s7bb89d903de3be41@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------010407000103000103000009"
-Cc: Netfilter Development Mailinglist
+ boundary="------------080306020909070006040404"
+Cc: netfilter@vger.kernel.org, sabelka@iue.tuwien.ac.at,
+	Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
-To: "David S. Miller" <davem@davemloft.net>
+To: Marco Barbero <marco.barbero@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:40133 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752254AbYFKMmT (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Jun 2008 08:42:19 -0400
+Received: from mail.us.es ([193.147.175.20]:47558 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754172AbYFKNTE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 11 Jun 2008 09:19:04 -0400
+In-Reply-To: <e1aa27e00806090621r3fa83ac0s7bb89d903de3be41@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 This is a multi-part message in MIME format.
---------------010407000103000103000009
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+--------------080306020909070006040404
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
+Hi Marco,
 
---------------010407000103000103000009
-Content-Type: text/x-diff;
- name="02.diff"
+Marco Barbero wrote:
+> conntrack-tools-0.9.7
+> libnetfilter_conntrack-0.0.94
+> libnfnetlink-0.0.38
+> 
+> kernel 2.6.25.5
+> Mode ALARM
+> 
+> conntrackd -c from node master:
+> 
+> looking logs:
+> 
+> a lot of  [ERROR] commit: Invalid argument
+> Mon Jun  9 15:01:26 2008        tcp      6 180 TIME_WAIT
+> src=192.168.200.14 dst=62.149.195.137 sport=47144 dport=80 src=x.x.x.x
+> dst=192.168.200.14 sport=80 dport=47144 [ASSURED] mark=0
+> 
+> and at the end:
+> 
+> [Mon Jun  9 15:01:26 2008] (pid=13176) [notice] Committed 1172 new entries
+> [Mon Jun  9 15:01:26 2008] (pid=13176) [notice] 3294 entries can't be committed
+> 
+> Any hints?
+
+Are your scripts committing the entries twice (ie. invoking conntrackd 
+-c several times)? The only way to reproduce this that I have found is 
+to double insert an existing conntrack with some NAT handling. In the 
+upcoming 2.6.26 you'll get a EBUSY instead of EINVAL which sounds more 
+reasonable.
+
+Anyhow, does the patch attached fix this behaviour? The idea behind it 
+is to check if there is a conntrack present in kernel, if so, just 
+update the attributes of the conntrack object that are changeable to 
+avoid the error. Would you mind testing it?
+
+> [...]
+> solved kernel panic issues but still I got 'entries can't be committed'
+> [ERROR] commit: Invalid argument
+
+Patrick posted a patch to netfilter-devel to fix the kernel panics. He 
+has also passed it to -stable.
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
+
+--------------080306020909070006040404
+Content-Type: text/plain;
+ name="x"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="02.diff"
+ filename="x"
 
-netfilter: nf_conntrack: fix ctnetlink related crash in nf_nat_setup_info()
-
-When creation of a new conntrack entry in ctnetlink fails after having
-set up the NAT mappings, the conntrack has an extension area allocated
-that is not getting properly destroyed when freeing the conntrack again.
-This means the NAT extension is still in the bysource hash, causing a
-crash when walking over the hash chain the next time:
-
-BUG: unable to handle kernel paging request at 00120fbd
-IP: [<c03d394b>] nf_nat_setup_info+0x221/0x58a
-*pde = 00000000
-Oops: 0000 [#1] PREEMPT SMP
-
-Pid: 2795, comm: conntrackd Not tainted (2.6.26-rc5 #1)
-EIP: 0060:[<c03d394b>] EFLAGS: 00010206 CPU: 1
-EIP is at nf_nat_setup_info+0x221/0x58a
-EAX: 00120fbd EBX: 00120fbd ECX: 00000001 EDX: 00000000
-ESI: 0000019e EDI: e853bbb4 EBP: e853bbc8 ESP: e853bb78
- DS: 007b ES: 007b FS: 00d8 GS: 0033 SS: 0068
-Process conntrackd (pid: 2795, ti=e853a000 task=f7de10f0 task.ti=e853a000)
-Stack: 00000000 e853bc2c e85672ec 00000008 c0561084 63c1db4a 00000000 00000000
-       00000000 0002e109 61d2b1c3 00000000 00000000 00000000 01114e22 61d2b1c3
-       00000000 00000000 f7444674 e853bc04 00000008 c038e728 0000000a f7444674
-Call Trace:
- [<c038e728>] nla_parse+0x5c/0xb0
- [<c0397c1b>] ctnetlink_change_status+0x190/0x1c6
- [<c0397eec>] ctnetlink_new_conntrack+0x189/0x61f
- [<c0119aee>] update_curr+0x3d/0x52
- [<c03902d1>] nfnetlink_rcv_msg+0xc1/0xd8
- [<c0390228>] nfnetlink_rcv_msg+0x18/0xd8
- [<c0390210>] nfnetlink_rcv_msg+0x0/0xd8
- [<c038d2ce>] netlink_rcv_skb+0x2d/0x71
- [<c0390205>] nfnetlink_rcv+0x19/0x24
- [<c038d0f5>] netlink_unicast+0x1b3/0x216
- ...
-
-Move invocation of the extension destructors to nf_conntrack_free()
-to fix this problem.
-
-Fixes http://bugzilla.kernel.org/show_bug.cgi?id=10875
-
-Reported-and-Tested-by: Krzysztof Piotr Oledzki <ole@ans.pl>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-
----
-commit 8a3d245effe6e699e587133a3f8ea700bd47842d
-tree 38676f126c592455747598b6d56bccf9550d0214
-parent 21fa91adce646ad0449e898a64edaa828ca131e7
-author Patrick McHardy <kaber@trash.net> Tue, 10 Jun 2008 10:56:29 +0200
-committer Patrick McHardy <kaber@trash.net> Tue, 10 Jun 2008 10:56:29 +0200
-
- net/netfilter/nf_conntrack_core.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index c4b1799..662c1cc 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -196,8 +196,6 @@ destroy_conntrack(struct nf_conntrack *nfct)
- 	if (l4proto && l4proto->destroy)
- 		l4proto->destroy(ct);
+diff --git a/src/cache_iterators.c b/src/cache_iterators.c
+index c26d349..2fe7278 100644
+--- a/src/cache_iterators.c
++++ b/src/cache_iterators.c
+@@ -91,20 +91,29 @@ static int do_commit(void *data1, void *
+ 	 */
+ 	nfct_set_attr_u32(ct, ATTR_TIMEOUT, CONFIG(commit_timeout));
  
--	nf_ct_ext_destroy(ct);
--
- 	rcu_read_unlock();
+-	ret = nl_create_conntrack(ct);
+-	if (ret == -1) {
+-		switch(errno) {
+-			case EEXIST:
+-				c->commit_exist++;
+-				break;
+-			default:
+-				dlog(LOG_ERR, "commit: %s", strerror(errno));
+-				dlog_ct(STATE(log), u->ct, NFCT_O_PLAIN);
+-				c->commit_fail++;
+-				break;
+-		}
+-	} else {
+-		c->commit_ok++;
++	ret = nl_exist_conntrack(ct);
++	switch (ret) {
++	case -1:
++		dlog(LOG_ERR, "commit-exist: %s", strerror(errno));
++		dlog_ct(STATE(log), ct, NFCT_O_PLAIN);
++		break;
++	case 0:
++		if (nl_create_conntrack(ct) == -1) {
++			dlog(LOG_ERR, "commit-create: %s", strerror(errno));
++			dlog_ct(STATE(log), ct, NFCT_O_PLAIN);
++			c->commit_fail++;
++		} else
++			c->commit_ok++;
++		break;
++	case 1:
++		c->commit_exist++;
++		if (nl_update_conntrack(ct) == -1) {
++			dlog(LOG_ERR, "commit-update: %s", strerror(errno));
++			dlog_ct(STATE(log), ct, NFCT_O_PLAIN);
++			c->commit_fail++;
++		} else
++			c->commit_ok++;
++		break;
+ 	}
  
- 	spin_lock_bh(&nf_conntrack_lock);
-@@ -520,6 +518,7 @@ static void nf_conntrack_free_rcu(struct rcu_head *head)
- 
- void nf_conntrack_free(struct nf_conn *ct)
- {
-+	nf_ct_ext_destroy(ct);
- 	call_rcu(&ct->rcu, nf_conntrack_free_rcu);
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_free);
+ 	/* keep iterating even if we have found errors */
 
---------------010407000103000103000009--
+--------------080306020909070006040404--
