@@ -1,41 +1,36 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: netfilter 01/02: Make nflog quiet when no one listen in
- userspace.
-Date: Wed, 11 Jun 2008 17:51:24 -0700 (PDT)
-Message-ID: <20080611.175124.76343987.davem@davemloft.net>
-References: <484FC81C.9080904@trash.net>
+From: michael <mteicher@gmail.com>
+Subject: iptables 1,4,1 install error
+Date: Wed, 11 Jun 2008 22:12:46 -0700
+Message-ID: <66c5208e0806112212o47bc2c54l87be5d49b4548834@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:55674
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1755211AbYFLAvY (ORCPT
+Received: from rv-out-0506.google.com ([209.85.198.230]:2351 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750869AbYFLFMq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Jun 2008 20:51:24 -0400
-In-Reply-To: <484FC81C.9080904@trash.net>
+	Thu, 12 Jun 2008 01:12:46 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so1829193rvb.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 11 Jun 2008 22:12:46 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Wed, 11 Jun 2008 14:42:04 +0200
+Hello,
 
-> following are two fixes for netfilter:
-> 
-> - silence a noisy warning when no logging backend is active
-> 
-> - fix a ctnetlink related crash in nf_nat_setup_info()
-> 
-> The second one is a regression present since 2.6.23, I'll
-> also send that one to -stable.
-> 
-> I have another patch queued to fix a NAT crash probably caused
-> by a RCU race, but I'd like to get confirmation that it actually
-> fixes the problem before sending it upstream, so I'll hold on
-> to it for a few more days.
-> 
-> Please apply, thanks.
+Can anyone shed some light on installing iptables1.4.1 on a linux kernel 2.4.34.
+make install fails with the following:
+Making install in extensions
+make[1]: Entering directory `/home/src/iptables-1.4.1/extensions'
+install -pm0755 "usr/local/libexec/xtables/";
+install: too few arguments
+Try `install --help' for more information
+make[1]: *** [install] error 1
+make[1]: Leaving directory `home/src/iptables-1.4.1/extensions'
+make; *** [install-reecursive] Error 1
 
-Both fixes applied, thanks Patrick!
+Thanks,
+
+Michael...
