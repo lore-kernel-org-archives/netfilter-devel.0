@@ -1,36 +1,32 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: conntrackd [ERROR] commit: Invalid argument
-Date: Thu, 12 Jun 2008 17:04:06 +0200
-Message-ID: <48513AE6.5080808@trash.net>
-References: <e1aa27e00806090621r3fa83ac0s7bb89d903de3be41@mail.gmail.com> <200806111545.18856.sabelka@iue.tuwien.ac.at> <484FFCA2.1090500@netfilter.org> <200806111915.32313.sabelka@iue.tuwien.ac.at> <48513A30.1020908@netfilter.org>
+From: Krzysztof Oledzki <ole@ans.pl>
+Subject: [PATCH] (resent) ipset: make checkentry static
+Date: Thu, 12 Jun 2008 22:19:37 +0200
+Message-ID: <485184d9.5gAEw5xIpkNjuDn/%ole@ans.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Rainer Sabelka <sabelka@iue.tuwien.ac.at>,
-	Marco Barbero <marco.barbero@gmail.com>,
-	netfilter@vger.kernel.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:42283 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752525AbYFLPEK (ORCPT
+Received: from bizon.gios.gov.pl ([212.244.124.8]:33723 "EHLO
+	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751007AbYFLVTr (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Jun 2008 11:04:10 -0400
-In-Reply-To: <48513A30.1020908@netfilter.org>
+	Thu, 12 Jun 2008 17:19:47 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> Rainer Sabelka wrote:
->>
->> This is a vitual machine (i686) which 128 MByte of memory running 
->> under VMware server 1.0.4.
-> 
-> Would you try this patch?
-> 
- > [PATCH] add allocation flag to nf_conntrack_alloc
+This function should be static also for >= 2.6.23
 
-Even if it doesn't help in this case, it makes sense, so if you
-don't mind I'll queue it for 2.6.27.
+Signed-off-by: Krzysztof Piotr Oledzki <ole@ans.pl>
+
+--- ipt_set.c	2007-08-28 13:29:12.000000000 +0200
++++ ipt_set.c-1	2008-05-30 11:58:02.000000000 +0200
+@@ -57,7 +57,7 @@
+ }
+ 
+ #if LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,23)
+-bool
++static bool
+ #else
+ static int
+ #endif
