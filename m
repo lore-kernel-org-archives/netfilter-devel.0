@@ -1,30 +1,42 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [ULOGD PATCH] Store only one copy of mac address in SQL DB (resend)
-Date: Thu, 12 Jun 2008 11:45:54 +0200
-Message-ID: <4850F052.1050804@netfilter.org>
-References: <20080612093820.GB23435@piche.inl.fr>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [ANNOUNCEMENT] ipset-2.3.1 released
+Date: Thu, 12 Jun 2008 12:01:21 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0806121135040.2250@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pierre Chifflier <chifflier@inl.fr>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:55479 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752976AbYFLJqH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Jun 2008 05:46:07 -0400
-In-Reply-To: <20080612093820.GB23435@piche.inl.fr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Pierre Chifflier wrote:
-> This patch modifies the SQL schema for MySQL and PostgreSQL to store
-> the mac address only once (instead of duplicating the mac address for
-> each packet).
-> This is done by using a shared reference to the entry containing the
-> tuple (mac_address,mac_protocol).
+Hello,
 
-Applied. Thanks Pierre.
+I'm happy to release a new version of ipset. This is a bugfix release, no 
+new features added. The list of the fixes:
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+- kernel part: a nasty typo which can lead to kernel crash when 
+  creating a set is fixed in the macipmap type
+- userspace tool:
+  - segfault on --unbind :all: :all: fixed (reported by cheetah and Tom 
+    Eastep)
+  - User input parameters are sanitized everywhere
+  - Initial testsuite added: few bugs discovered and fixed
+    - typo in macipmap type prevented to use max size set of this type
+    - *map types are made sure to allow and use max size of sets
+
+You can download the ipset-1.3.1 source tree and the patch-o-matic-ng 
+snapshot from http://ipset.netfilter.org/.
+
+The sources can be downloaded directly from the git and svn repositories
+as well:
+
+- patch-o-matic-ng from git: git://git.netfilter.org/patch-o-matic-ng.git
+- ipset from svn: https://svn.netfilter.org/netfilter/trunk/ipset
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
