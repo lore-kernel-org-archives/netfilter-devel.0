@@ -1,81 +1,86 @@
-From: Maxim Britov <maxim.britov@gmail.com>
-Subject: Re: iptables 1.4.1 + iprange fails for me
-Date: Fri, 13 Jun 2008 13:24:04 +0300
-Message-ID: <20080613132404.3c7e2543@maxim.office.modum.by>
-References: <20080613090236.417411cd@maxim.office.modum.by>
-	<alpine.LNX.1.10.0806131047070.23098@fbirervta.pbzchgretzou.qr>
+From: Henrik Nordstrom <henrik@henriknordstrom.net>
+Subject: [Patch] Re: Line numbering broken since bb34082d
+Date: Fri, 13 Jun 2008 12:59:13 +0200
+Message-ID: <1213354753.30942.7.camel@henriknordstrom.net>
+References: <alpine.LNX.1.10.0806131107340.23098@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="Sig_/EN=vX8SaKJFhvbhr+rCLfpW";
- protocol="application/pgp-signature"; micalg=PGP-SHA1
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-92yqcYB6zLWCscU8Y0In"
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, kaber@trash.net
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.office.modum.by ([212.98.173.82]:54514 "EHLO
-	mail.office.modum.by" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752500AbYFMKYk (ORCPT
+Received: from vps1.henriknordstrom.net ([195.20.207.177]:39533 "EHLO
+	vps1.henriknordstrom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753513AbYFMK7X (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 13 Jun 2008 06:24:40 -0400
-In-Reply-To: <alpine.LNX.1.10.0806131047070.23098@fbirervta.pbzchgretzou.qr>
+	Fri, 13 Jun 2008 06:59:23 -0400
+In-Reply-To: <alpine.LNX.1.10.0806131107340.23098@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
---Sig_/EN=vX8SaKJFhvbhr+rCLfpW
-Content-Type: text/plain; charset=US-ASCII
+
+--=-92yqcYB6zLWCscU8Y0In
+Content-Type: multipart/mixed; boundary="=-Mzwdp4nZ/mmN01cBlDQG"
+
+
+--=-Mzwdp4nZ/mmN01cBlDQG
+Content-Type: text/plain
 Content-Transfer-Encoding: quoted-printable
 
-On Fri, 13 Jun 2008 10:47:40 +0200 (CEST)
- Jan Engelhardt wrote:
+On fre, 2008-06-13 at 11:14 +0200, Jan Engelhardt wrote:
 
-> On Friday 2008-06-13 08:02, Maxim Britov wrote:
+> `iptables -nvL --lin`, starting with bb34082de, gives a wrong count:
 >=20
-> >I updated yesterday kernel + iptables on my router (into Internet) box.
-> >Kernel from kernel.org 2.6.25.6 + iptables 1.4.1-1 from fedora rawhide.
-> >I'm use kernel without modules on that box.
-> >
-> >I found troubles with iprange:
-> ># iptables -A INPUT -m iprange --src-range 1.1.1.1-2.2.2.2 -j DROP
-> ># iptables-save |fgrep range
-> >-A INPUT -m iprange -j DROP
-> >
-> >iptables -L -n show it as:
-> >DROP       all  --  0.0.0.0/0            0.0.0.0/0          =20
-> >
->=20
-> commit 5aba9d57d07b3f5474f3c0e71e9309a841e932ae
-> Author: Jan Engelhardt <jengelh@medozas.de>
-> Date:   Fri Jun 13 10:43:01 2008 +0200
+> Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
+> num   pkts bytes target     prot opt in     out     source              =20
+> destination        =20
+> 2        0     0 LOG        all  --  *      *       0.0.0.0/0           =20
+> 0.0.0.0/0           LOG flags 0 level 4=20
 
-Thanks. Seems fixed for me.
+Sorry about that. Never tested --line-numbers.
+
+I think the best fix is to drop the +1 from print_firewall(). Patch attache=
+d.
+
+Regards
+Henrik
+
+--=-Mzwdp4nZ/mmN01cBlDQG
+Content-Disposition: attachment; filename=linenumbers.patch
+Content-Type: text/x-patch; name=linenumbers.patch; charset=utf-8
+Content-Transfer-Encoding: base64
+
+SW5kZXg6IGlwdGFibGVzLmMNCj09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PT09PT09PT0NCi0tLSBpcHRhYmxlcy5jCShyZXZpc2lvbiA3
+NTQzKQ0KKysrIGlwdGFibGVzLmMJKHdvcmtpbmcgY29weSkNCkBAIC03MzcsNyArNzM3LDcgQEAN
+CiAJZmxhZ3MgPSBmdy0+aXAuZmxhZ3M7DQogDQogCWlmIChmb3JtYXQgJiBGTVRfTElORU5VTUJF
+UlMpDQotCQlwcmludGYoRk1UKCIlLTR1ICIsICIldSAiKSwgbnVtKzEpOw0KKwkJcHJpbnRmKEZN
+VCgiJS00dSAiLCAiJXUgIiksIG51bSk7DQogDQogCWlmICghKGZvcm1hdCAmIEZNVF9OT0NPVU5U
+UykpIHsNCiAJCXByaW50X251bShmdy0+Y291bnRlcnMucGNudCwgZm9ybWF0KTsNCkluZGV4OiBp
+cDZ0YWJsZXMuYw0KPT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09PT09
+PT09PT09PT09PT09PT09PT09PT09PQ0KLS0tIGlwNnRhYmxlcy5jCShyZXZpc2lvbiA3NTQzKQ0K
+KysrIGlwNnRhYmxlcy5jCSh3b3JraW5nIGNvcHkpDQpAQCAtNzM3LDcgKzczNyw3IEBADQogCWZs
+YWdzID0gZnctPmlwdjYuZmxhZ3M7DQogDQogCWlmIChmb3JtYXQgJiBGTVRfTElORU5VTUJFUlMp
+DQotCQlwcmludGYoRk1UKCIlLTR1ICIsICIldSAiKSwgbnVtKzEpOw0KKwkJcHJpbnRmKEZNVCgi
+JS00dSAiLCAiJXUgIiksIG51bSk7DQogDQogCWlmICghKGZvcm1hdCAmIEZNVF9OT0NPVU5UUykp
+IHsNCiAJCXByaW50X251bShmdy0+Y291bnRlcnMucGNudCwgZm9ybWF0KTsNCg==
 
 
---=20
-Maxim Britov
+--=-Mzwdp4nZ/mmN01cBlDQG--
 
-GnuPG KeyID 0x4580A6D66F3DB1FB              xmpp:maxim@modum.by
-Fingerprint:  4059 B5C5 8985 5A47 8F5A 8623 4580 A6D6 6F3D B1FB
-GnuPG-ru Team (http://lists.gnupg.org/mailman/listinfo/gnupg-ru
-               xmpp:gnupg-ru@conference.jabber.ru)
-
---Sig_/EN=vX8SaKJFhvbhr+rCLfpW
+--=-92yqcYB6zLWCscU8Y0In
 Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
+Content-Description: This is a digitally signed message part
 
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.9 (GNU/Linux)
+Version: GnuPG v1.4.7 (GNU/Linux)
 
-iQIcBAEBAgAGBQJIUkrNAAoJEOS1BTjOtE8G2WcP/jSqXTcxRRoiBe71N69+2cse
-tGmAHpH1JOS99H48Csso3HW6q2KFefpeQ41Z39wHrYnyowqGRzpynip5EoUEbWwi
-wC38CXPqVj13gIC2wEkSZ/UNEk7SKO2n1DdqXsB3EkoE09CJKJcnkDEHy9+qqmj4
-Lz1oEqdBHE9aOEX4kj1N06ws7YxJsF7IdLHkV2ABFda9GN+oKMRonh2BoQrogj3J
-KHMcqjAv8DaQYu90K29kO8UwNfNuXXfhY1MODWceKoKX8MmoqxJWprZ9ehGz6YIt
-mrv6gige43ftO1Ybj/GDvcEcY0AQrwB7Sv1SvveYzVItf10+4cQ6fntxbmD/7/Sz
-cWZTm+IdY+Q/l9oqxEL+LDq74xnF0Nf35FD9oMMN2W2SLL7vSwzo5MnFtPw2L5rB
-lDsIM1W98sgXSFiUqbA1k7H/ule28jZO8ATehgSvniCoynsRRRrEH+wljVg0x+WA
-t35+9OGmsRemmnQlEb3csL3JuAtnniRVSY3F35YgrU/ez7FDlidUkcWVCwwsDfBJ
-c1B1asXpNB+I/xM7FvQdYhXfBqHB+ROFvYDpJfWrFk3BdteOeTx4fwuZYiYNhG/S
-zpqL/hJJEqspExnU64G+AtDwv50LVSxOicH/CwWFDddxXj3XXT9OuvKdDucvmWW3
-c8zTJZYoba1tyJd4k8hf
-=fHSN
+iQCVAwUASFJS+0NPQ5Kbx8daAQLQeQQAqK4Cfk8YATBTNtrLtX3ItByLhEbQVP5D
+1/2BTiHHlVRh1RSWNlqOxgAUiYvlVMls/FdpQMVB0Eeglz5KLVszZCqSM0l4ijnQ
+t6TeB3rDXA7aBtEqS4LNsqIZ/Ybyrmhwjd+QuPNjrfFQLf3E4AOLPQ4s30kHMW5J
+2YdXgIXhtfA=
+=sYbk
 -----END PGP SIGNATURE-----
 
---Sig_/EN=vX8SaKJFhvbhr+rCLfpW--
+--=-92yqcYB6zLWCscU8Y0In--
+
