@@ -1,72 +1,39 @@
-From: Rainer Sabelka <sabelka@iue.tuwien.ac.at>
-Subject: Re: conntrackd [ERROR] commit: Invalid argument
-Date: Fri, 13 Jun 2008 01:22:15 +0200
-Message-ID: <200806130122.16216.sabelka@iue.tuwien.ac.at>
-References: <e1aa27e00806090621r3fa83ac0s7bb89d903de3be41@mail.gmail.com> <200806111915.32313.sabelka@iue.tuwien.ac.at> <48513A30.1020908@netfilter.org>
+From: Maxim Britov <maxim.britov@gmail.com>
+Subject: iptables 1.4.1 + iprange fails for me
+Date: Fri, 13 Jun 2008 09:02:36 +0300
+Message-ID: <20080613090236.417411cd@maxim.office.modum.by>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="utf-8"
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Cc: Marco Barbero <marco.barbero@gmail.com>, netfilter@vger.kernel.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org
+To: netfilter@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mr2-n.kom.tuwien.ac.at ([128.130.2.110]:4624 "EHLO
-	mr.tuwien.ac.at" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1760313AbYFLXW1 (ORCPT
+Received: from mail.office.modum.by ([212.98.173.82]:57896 "EHLO
+	mail.office.modum.by" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752835AbYFMGJZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Jun 2008 19:22:27 -0400
-In-Reply-To: <48513A30.1020908@netfilter.org>
-Content-Disposition: inline
+	Fri, 13 Jun 2008 02:09:25 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 12 June 2008 17:01:04 Pablo Neira Ayuso wrote:
-> >> Yes, very strange. ctnetlink is hitting ENOMEM, ie. it cannot create the
-> >> conntrack because there's no memory available. As for now ctnetlink is
-> >> allocating conntracks via nf_conntrack_alloc() which uses GFP_ATOMIC.
-> >> I'll send you a patch to relax this to check if that is the problem,
-> >> otherwise I think that the error is bogus.
-> >>
-> >>> Jun 11 15:40:07 fw1b conntrack-tools[13383]: committing external cache
-> >>> Jun 11 15:40:07 fw1b conntrack-tools[13383]: commit-create: Cannot
-> >>> allocate memory
-> >>> Jun 11 15:40:07 fw1b conntrack-tools[13383]: Committed 33 new entries
-> >>> Jun 11 15:40:07 fw1b conntrack-tools[13383]: 25 entries ignored,
-> >>> already exist Jun 11 15:40:07 fw1b conntrack-tools[13383]: 1 entries
-> >>> can't be committed
-> >>
-> >> What it is really annoying is the fact that you hit error with that less
-> >> entries. I cannot reproduce that in my testbed with ~20000 entries. Are
-> >> you using some kind of embedded device? Architecture?
-> >
-> > This is a vitual machine (i686) which 128 MByte of memory running under
-> > VMware server 1.0.4.
->
-> Would you try this patch?
+I updated yesterday kernel + iptables on my router (into Internet) box.
+Kernel from kernel.org 2.6.25.6 + iptables 1.4.1-1 from fedora rawhide.
+I'm use kernel without modules on that box.
 
-Pablo,
+I found troubles with iprange:
+# iptables -A INPUT -m iprange --src-range 1.1.1.1-2.2.2.2 -j DROP
+# iptables-save |fgrep range
+-A INPUT -m iprange -j DROP
 
-I tried to debug this a bit and added some printk()s in the 
-ctnetlink_create_conntrack() function to find out where the ENOMEM is coming 
-from:
-So, now I see that nf_conntrack_alloc() is not returning this error, but it is 
-coming from a couple of lines below in the same function:
+iptables -L -n show it as:
+DROP       all  --  0.0.0.0/0            0.0.0.0/0           
 
-        helper = nf_ct_helper_find_get(rtuple);
-        if (helper) {
-                help = nf_ct_helper_ext_add(ct, GFP_KERNEL);
-                if (help == NULL) {
-                        nf_ct_helper_put(helper);
-                        err = -ENOMEM;
-                        goto err;
-                }
 
-There, nf_ct_helper_ext_add() returns NULL, which causes ENOMEM to be 
-returned.
 
-I didn't debug this further because I'm rather lost in the code. But maybe 
-this gives you some hint what's wrong.
+-- 
+Maxim Britov
 
--Rainer
+GnuPG KeyID 0x4580A6D66F3DB1FB              xmpp:maxim@modum.by
+Fingerprint:  4059 B5C5 8985 5A47 8F5A 8623 4580 A6D6 6F3D B1FB
+GnuPG-ru Team (http://lists.gnupg.org/mailman/listinfo/gnupg-ru
+               xmpp:gnupg-ru@conference.jabber.ru)
