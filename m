@@ -1,42 +1,31 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [Patch] Re: Line numbering broken since bb34082d
-Date: Fri, 13 Jun 2008 17:58:36 +0200
-Message-ID: <4852992C.5050106@trash.net>
-References: <alpine.LNX.1.10.0806131107340.23098@fbirervta.pbzchgretzou.qr> <1213354753.30942.7.camel@henriknordstrom.net> <alpine.LNX.1.10.0806131418320.23098@fbirervta.pbzchgretzou.qr>
+Subject: Re: iptables 1.4.1 + iprange fails for me
+Date: Fri, 13 Jun 2008 18:00:06 +0200
+Message-ID: <48529986.1020204@trash.net>
+References: <20080613090236.417411cd@maxim.office.modum.by> <alpine.LNX.1.10.0806131047070.23098@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Henrik Nordstrom <henrik@henriknordstrom.net>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
+Cc: Maxim Britov <maxim.britov@gmail.com>, netfilter@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:44888 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:44922 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753023AbYFMP6j (ORCPT
+	with ESMTP id S1755694AbYFMQAJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 13 Jun 2008 11:58:39 -0400
-In-Reply-To: <alpine.LNX.1.10.0806131418320.23098@fbirervta.pbzchgretzou.qr>
+	Fri, 13 Jun 2008 12:00:09 -0400
+In-Reply-To: <alpine.LNX.1.10.0806131047070.23098@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Jan Engelhardt wrote:
-> On Friday 2008-06-13 12:59, Henrik Nordstrom wrote:
->> On fre, 2008-06-13 at 11:14 +0200, Jan Engelhardt wrote:
->>
->>> `iptables -nvL --lin`, starting with bb34082de, gives a wrong count:
->>>
->>> Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
->>> num   pkts bytes target     prot opt in     out     source               
->>> destination         
->>> 2        0     0 LOG        all  --  *      *       0.0.0.0/0            
->>> 0.0.0.0/0           LOG flags 0 level 4 
->> Sorry about that. Never tested --line-numbers.
->>
->> I think the best fix is to drop the +1 from print_firewall(). Patch attached.
-> 
-> Indeed, that is the right thing to do, since with my patch,
-> iptables -nvL INPUT 1  would still show the 2nd rule.
+> iprange: kernel flags were not set
+>     
+> The --src-range and --dst-range parameters did not set the IPRANGE_*
+> flags in struct xt_iprange_mtinfo.
+>     
+> Reported-by: Maxim Britov <maxim.britov@gmail.com>
+> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 
-
-Thanks, I applied Henrik's patch with your description.
+Applied, thanks Jan.
