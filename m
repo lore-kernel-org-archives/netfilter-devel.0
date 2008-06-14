@@ -1,31 +1,63 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: iptables 1.4.1 + iprange fails for me
-Date: Fri, 13 Jun 2008 18:00:06 +0200
-Message-ID: <48529986.1020204@trash.net>
-References: <20080613090236.417411cd@maxim.office.modum.by> <alpine.LNX.1.10.0806131047070.23098@fbirervta.pbzchgretzou.qr>
+From: Russ Dill <russ.dill@gmail.com>
+Subject: [PATCH] Get rid of refrences to no longer existant Fast NAT.
+Date: Fri, 13 Jun 2008 17:24:18 -0700
+Message-ID: <1213403058.28235.1.camel@russ-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: Maxim Britov <maxim.britov@gmail.com>, netfilter@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:44922 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755694AbYFMQAJ (ORCPT
+Received: from rv-out-0506.google.com ([209.85.198.229]:56982 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1764088AbYFNAYz (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 13 Jun 2008 12:00:09 -0400
-In-Reply-To: <alpine.LNX.1.10.0806131047070.23098@fbirervta.pbzchgretzou.qr>
+	Fri, 13 Jun 2008 20:24:55 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so2783174rvb.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 13 Jun 2008 17:24:55 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> iprange: kernel flags were not set
->     
-> The --src-range and --dst-range parameters did not set the IPRANGE_*
-> flags in struct xt_iprange_mtinfo.
->     
-> Reported-by: Maxim Britov <maxim.britov@gmail.com>
-> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+IP_ROUTE_NAT support was removed in August of 2004, but references to Fast
+NAT were left in a couple of config options.
 
-Applied, thanks Jan.
+Signed-off-by: Russ Dill <Russ.Dill@gmail.com>
+---
+ net/ipv4/netfilter/Kconfig |    3 +--
+ net/netfilter/Kconfig      |    5 ++---
+ 2 files changed, 3 insertions(+), 5 deletions(-)
+
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index 2767841..3d566a0 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -213,8 +213,7 @@ config IP_NF_TARGET_NETMAP
+ 	help
+ 	  NETMAP is an implementation of static 1:1 NAT mapping of network
+ 	  addresses. It maps the network address part, while keeping the host
+-	  address part intact. It is similar to Fast NAT, except that
+-	  Netfilter's connection tracking doesn't work well with Fast NAT.
++	  address part intact.
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index aa8d80c..316c7af 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -33,9 +33,8 @@ config NF_CONNTRACK
+ 	  into connections.
+ 
+ 	  This is required to do Masquerading or other kinds of Network
+-	  Address Translation (except for Fast NAT).  It can also be used to
+-	  enhance packet filtering (see `Connection state match support'
+-	  below).
++	  Address Translation.  It can also be used to enhance packet
++	  filtering (see `Connection state match support' below).
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+-- 
+1.5.4.3
+
+
+
