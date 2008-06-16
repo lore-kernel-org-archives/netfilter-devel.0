@@ -1,225 +1,236 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: H323 cause kernel panic when release the connection
-Date: Mon, 16 Jun 2008 11:07:02 +0200
-Message-ID: <48562D36.6040607@trash.net>
-References: <200806141025007657504@twsz.com> <5e81daf20806152309j2dcb6798g7e398d91e31c8e0a@mail.gmail.com>
+Subject: Re: unlock iptables in netns
+Date: Mon, 16 Jun 2008 12:26:03 +0200
+Message-ID: <48563FBB.4080303@trash.net>
+References: <200806102127.21093.adobriyan@parallels.com> <484F7663.1080408@trash.net>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------040002060203050205000301"
-Cc: liannan <liannan@twsz.com>, netfilter-devel@vger.kernel.org,
-	Jing Min Zhao <zhaojingmin@users.sourceforge.net>
-To: madbug <gdmadbug@gmail.com>
+ boundary="------------080404080404010606020002"
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	devel@openvz.org, den@openvz.org, xemul@openvz.org,
+	adobriyan@gmail.com
+To: Alexey Dobriyan <adobriyan@parallels.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:57420 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:60022 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754451AbYFPJHJ (ORCPT
+	with ESMTP id S1751104AbYFPK0J (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Jun 2008 05:07:09 -0400
-In-Reply-To: <5e81daf20806152309j2dcb6798g7e398d91e31c8e0a@mail.gmail.com>
+	Mon, 16 Jun 2008 06:26:09 -0400
+In-Reply-To: <484F7663.1080408@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 This is a multi-part message in MIME format.
---------------040002060203050205000301
+--------------080404080404010606020002
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 
-[Please don't trim CC lists]
+Patrick McHardy wrote:
+> Alexey Dobriyan wrote:
+>> Hi,
+>>
+>> Den basically banned iptables in netns via this patch
+>>
+>> --- a/net/netfilter/core.c
+>> +++ b/net/netfilter/core.c
+>> ...
+>> , however, at least some of netfilter pieces are ready for usage in netns
+>> and it would be nice to unlock them before release.
+>>
+>> If I'm deciphering chengelog correctly it's all about code which does
+>> nf_register_hook{,s} but not netns-ready itself:
+>>
+>>     br_netfilter.c
+>>     iptable_mangle (via ip_route_me_harder)
+>>     conntracking (both IPv4 and IPv6)
+>>     NAT
+>> ...
+>> Patch above can be applied and we can mark above list as "depends 
+>> !NET_NS"
+>> and move on.
+>>
+>> Comments? Den, was there something else you're afraid of?
+> 
+> 
+> That might result in some bad surprises for people how have already
+> turned on NET_NS. I'd prefer a way that doesn't potentially disable
+> half the netfilter options in existing configs.
 
-madbug wrote:
-> --- ip_conntrack_helper_h323.c
-> +++ ip_conntrack_helper_h323.c
-> @@ -1814,6 +1814,7 @@
-> {
->         ip_conntrack_helper_unregister(&ip_conntrack_helper_ras);
->         ip_conntrack_helper_unregister(&ip_conntrack_helper_q931);
-> +       ip_conntrack_helper_unregister(&ip_conntrack_helper_h245);
->         kfree(h323_buffer);
->         DEBUGP("ip_ct_h323: fini\n");
-> }
-> @@ -1828,7 +1829,8 @@
->         if (!h323_buffer)
->                 return -ENOMEM;
->         if ((ret = ip_conntrack_helper_register(&ip_conntrack_helper_q931)) ||
-> -           (ret = ip_conntrack_helper_register(&ip_conntrack_helper_ras))) {
-> +           (ret = ip_conntrack_helper_register(&ip_conntrack_helper_ras)) ||
-> +           (ret = ip_conntrack_helper_register(&ip_conntrack_helper_h245)))  {
->                 fini();
->                 return ret;
->         }
 
-You can't simply register the ip_conntrack version of the H.245
-helper since it doesn't initialize the tuples and thus tracks
-every connection.
-
-For nf_conntrack this works fine and is actually also needed for
-ctnetlink, so I've queued these two patches to fix it.
+By the way, is there already work done for conntrack/NAT namespace
+support? I have this patch that uses marks for something very similar
+that should be easy to adjust.
 
 
---------------040002060203050205000301
-Content-Type: text/x-diff;
- name="02.diff"
+
+
+--------------080404080404010606020002
+Content-Type: text/plain;
+ name="x"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="02.diff"
+ filename="x"
 
-netfilter: nf_conntrack_h323: fix memory leak in module initialization error path
-
-Properly free h323_buffer when helper registration fails.
-
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-
----
-commit 973caf66ba1d6cd6769cef5cd61cd85f160b35a3
-tree 3448e5f2aff4024f0472c5a2d8d5c66319d79820
-parent 8d4c178a5e17c19cf7a781b0e5e416c4e22b1ff2
-author Patrick McHardy <kaber@trash.net> Mon, 16 Jun 2008 10:24:21 +0200
-committer Patrick McHardy <kaber@trash.net> Mon, 16 Jun 2008 10:24:21 +0200
-
- net/netfilter/nf_conntrack_h323_main.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
-index 95da1a2..99e385d 100644
---- a/net/netfilter/nf_conntrack_h323_main.c
-+++ b/net/netfilter/nf_conntrack_h323_main.c
-@@ -1799,6 +1799,7 @@ err3:
- err2:
- 	nf_conntrack_helper_unregister(&nf_conntrack_helper_q931[0]);
- err1:
-+	kfree(h323_buffer);
- 	return ret;
+diff --git a/include/net/netfilter/nf_conntrack_tuple.h b/include/net/netfilter/nf_conntrack_tuple.h
+index e69ab2e..49c4d0c 100644
+--- a/include/net/netfilter/nf_conntrack_tuple.h
++++ b/include/net/netfilter/nf_conntrack_tuple.h
+@@ -91,6 +91,8 @@ struct nf_conntrack_tuple
+ 		/* The direction (for tuplehash) */
+ 		u_int8_t dir;
+ 	} dst;
++
++	u_int32_t	mark;
+ };
+ 
+ struct nf_conntrack_tuple_mask
+@@ -140,7 +142,8 @@ static inline int __nf_ct_tuple_src_equal(const struct nf_conntrack_tuple *t1,
+ 		t1->src.u3.all[2] == t2->src.u3.all[2] &&
+ 		t1->src.u3.all[3] == t2->src.u3.all[3] &&
+ 		t1->src.u.all == t2->src.u.all &&
+-		t1->src.l3num == t2->src.l3num);
++		t1->src.l3num == t2->src.l3num &&
++		t1->mark == t2->mark);
  }
  
-
---------------040002060203050205000301
-Content-Type: text/x-diff;
- name="03.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="03.diff"
-
-netfilter: nf_conntrack_h323: fix module unload crash
-
-The H.245 helper is not registered/unregistered, but assigned to
-connections manually from the Q.931 helper. This means on unload
-existing expectations and connections using the helper are not
-cleaned up, leading to the following oops on module unload:
-
-CPU 0 Unable to handle kernel paging request at virtual address c00a6828, epc == 802224dc, ra == 801d4e7c
-Oops[#1]:
-Cpu 0
-$ 0   : 00000000 00000000 00000004 c00a67f0
-$ 4   : 802a5ad0 81657e00 00000000 00000000
-$ 8   : 00000008 801461c8 00000000 80570050
-$12   : 819b0280 819b04b0 00000006 00000000
-$16   : 802a5a60 80000000 80b46000 80321010
-$20   : 00000000 00000004 802a5ad0 00000001
-$24   : 00000000 802257a8
-$28   : 802a4000 802a59e8 00000004 801d4e7c
-Hi    : 0000000b
-Lo    : 00506320
-epc   : 802224dc ip_conntrack_help+0x38/0x74     Tainted: P
-ra    : 801d4e7c nf_iterate+0xbc/0x130
-Status: 1000f403    KERNEL EXL IE
-Cause : 00800008
-BadVA : c00a6828
-PrId  : 00019374
-Modules linked in: ip_nat_pptp ip_conntrack_pptp ath_pktlog wlan_acl wlan_wep wlan_tkip wlan_ccmp wlan_xauth ath_pci ath_dev ath_dfs ath_rate_atheros wlan ath_hal ip_nat_tftp ip_conntrack_tftp ip_nat_ftp ip_conntrack_ftp pppoe ppp_async ppp_deflate ppp_mppe pppox ppp_generic slhc
-Process swapper (pid: 0, threadinfo=802a4000, task=802a6000)
-Stack : 801e7d98 00000004 802a5a60 80000000 801d4e7c 801d4e7c 802a5ad0 00000004
-        00000000 00000000 801e7d98 00000000 00000004 802a5ad0 00000000 00000010
-        801e7d98 80b46000 802a5a60 80320000 80000000 801d4f8c 802a5b00 00000002
-        80063834 00000000 80b46000 802a5a60 801e7d98 80000000 802ba854 00000000
-        81a02180 80b7e260 81a021b0 819b0000 819b0000 80570056 00000000 00000001
-        ...
-Call Trace:
- [<801e7d98>] ip_finish_output+0x0/0x23c
- [<801d4e7c>] nf_iterate+0xbc/0x130
- [<801d4e7c>] nf_iterate+0xbc/0x130
- [<801e7d98>] ip_finish_output+0x0/0x23c
- [<801e7d98>] ip_finish_output+0x0/0x23c
- [<801d4f8c>] nf_hook_slow+0x9c/0x1a4
-
-One way to fix this would be to split helper cleanup from the unregistration
-function and invoke it for the H.245 helper, but since ctnetlink needs to be
-able to find the helper for synchonization purposes, a better fix is to
-register it normally and make sure its not assigned to connections during
-helper lookup. The missing l3num initialization is enough for this, this
-patch changes it to use AF_UNSPEC to make it more explicit though.
-
-Reported-by: liannan <liannan@twsz.com>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-
----
-commit f8d17df6a7904814fd8ce0573e78c3804f9ce8a2
-tree b1f13d03f8ad075385353c1d9c11de5001694e69
-parent 973caf66ba1d6cd6769cef5cd61cd85f160b35a3
-author Patrick McHardy <kaber@trash.net> Mon, 16 Jun 2008 11:04:56 +0200
-committer Patrick McHardy <kaber@trash.net> Mon, 16 Jun 2008 11:04:56 +0200
-
- net/netfilter/nf_conntrack_h323_main.c |   21 ++++++++++++++-------
- 1 files changed, 14 insertions(+), 7 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
-index 99e385d..2f83c15 100644
---- a/net/netfilter/nf_conntrack_h323_main.c
-+++ b/net/netfilter/nf_conntrack_h323_main.c
-@@ -619,6 +619,7 @@ static const struct nf_conntrack_expect_policy h245_exp_policy = {
- static struct nf_conntrack_helper nf_conntrack_helper_h245 __read_mostly = {
- 	.name			= "H.245",
- 	.me			= THIS_MODULE,
-+	.tuple.src.l3num	= AF_UNSPEC,
- 	.tuple.dst.protonum	= IPPROTO_UDP,
- 	.help			= h245_help,
- 	.expect_policy		= &h245_exp_policy,
-@@ -1765,6 +1766,7 @@ static void __exit nf_conntrack_h323_fini(void)
- 	nf_conntrack_helper_unregister(&nf_conntrack_helper_ras[0]);
- 	nf_conntrack_helper_unregister(&nf_conntrack_helper_q931[1]);
- 	nf_conntrack_helper_unregister(&nf_conntrack_helper_q931[0]);
-+	nf_conntrack_helper_unregister(&nf_conntrack_helper_h245);
- 	kfree(h323_buffer);
- 	pr_debug("nf_ct_h323: fini\n");
+ static inline int __nf_ct_tuple_dst_equal(const struct nf_conntrack_tuple *t1,
+@@ -151,7 +154,8 @@ static inline int __nf_ct_tuple_dst_equal(const struct nf_conntrack_tuple *t1,
+ 		t1->dst.u3.all[2] == t2->dst.u3.all[2] &&
+ 		t1->dst.u3.all[3] == t2->dst.u3.all[3] &&
+ 		t1->dst.u.all == t2->dst.u.all &&
+-		t1->dst.protonum == t2->dst.protonum);
++		t1->dst.protonum == t2->dst.protonum &&
++		t1->mark == t2->mark);
  }
-@@ -1777,27 +1779,32 @@ static int __init nf_conntrack_h323_init(void)
- 	h323_buffer = kmalloc(65536, GFP_KERNEL);
- 	if (!h323_buffer)
- 		return -ENOMEM;
--	ret = nf_conntrack_helper_register(&nf_conntrack_helper_q931[0]);
-+	ret = nf_conntrack_helper_register(&nf_conntrack_helper_h245);
- 	if (ret < 0)
- 		goto err1;
--	ret = nf_conntrack_helper_register(&nf_conntrack_helper_q931[1]);
-+	ret = nf_conntrack_helper_register(&nf_conntrack_helper_q931[0]);
- 	if (ret < 0)
- 		goto err2;
--	ret = nf_conntrack_helper_register(&nf_conntrack_helper_ras[0]);
-+	ret = nf_conntrack_helper_register(&nf_conntrack_helper_q931[1]);
- 	if (ret < 0)
- 		goto err3;
--	ret = nf_conntrack_helper_register(&nf_conntrack_helper_ras[1]);
-+	ret = nf_conntrack_helper_register(&nf_conntrack_helper_ras[0]);
- 	if (ret < 0)
- 		goto err4;
-+	ret = nf_conntrack_helper_register(&nf_conntrack_helper_ras[1]);
-+	if (ret < 0)
-+		goto err5;
- 	pr_debug("nf_ct_h323: init success\n");
- 	return 0;
  
--err4:
-+err5:
- 	nf_conntrack_helper_unregister(&nf_conntrack_helper_ras[0]);
--err3:
-+err4:
- 	nf_conntrack_helper_unregister(&nf_conntrack_helper_q931[1]);
--err2:
-+err3:
- 	nf_conntrack_helper_unregister(&nf_conntrack_helper_q931[0]);
-+err2:
-+	nf_conntrack_helper_unregister(&nf_conntrack_helper_h245);
- err1:
- 	kfree(h323_buffer);
- 	return ret;
+ static inline int nf_ct_tuple_equal(const struct nf_conntrack_tuple *t1,
+@@ -187,7 +191,8 @@ static inline int nf_ct_tuple_src_mask_cmp(const struct nf_conntrack_tuple *t1,
+ 		return 0;
+ 
+ 	if (t1->src.l3num != t2->src.l3num ||
+-	    t1->dst.protonum != t2->dst.protonum)
++	    t1->dst.protonum != t2->dst.protonum ||
++	    t1->mark != t2->mark)
+ 		return 0;
+ 
+ 	return 1;
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+index a65b845..7b50593 100644
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+@@ -52,9 +52,10 @@ static int ipv4_invert_tuple(struct nf_conntrack_tuple *tuple,
+ static int ipv4_print_tuple(struct seq_file *s,
+ 			    const struct nf_conntrack_tuple *tuple)
+ {
+-	return seq_printf(s, "src=%u.%u.%u.%u dst=%u.%u.%u.%u ",
++	return seq_printf(s, "src=%u.%u.%u.%u dst=%u.%u.%u.%u mark=%u ",
+ 			  NIPQUAD(tuple->src.u3.ip),
+-			  NIPQUAD(tuple->dst.u3.ip));
++			  NIPQUAD(tuple->dst.u3.ip),
++			  tuple->mark);
+ }
+ 
+ /* Returns new sk_buff, or NULL */
+diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
+index 36b4e3b..a2e76dc 100644
+--- a/net/ipv4/netfilter/nf_nat_core.c
++++ b/net/ipv4/netfilter/nf_nat_core.c
+@@ -82,7 +82,7 @@ hash_by_src(const struct nf_conntrack_tuple *tuple)
+ 	/* Original src, to ensure we map it consistently if poss. */
+ 	hash = jhash_3words((__force u32)tuple->src.u3.ip,
+ 			    (__force u32)tuple->src.u.all,
+-			    tuple->dst.protonum, 0);
++			    tuple->dst.protonum ^ tuple->mark, 0);
+ 	return ((u64)hash * nf_nat_htable_size) >> 32;
+ }
+ 
+@@ -140,7 +140,8 @@ same_src(const struct nf_conn *ct,
+ 	t = &ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
+ 	return (t->dst.protonum == tuple->dst.protonum &&
+ 		t->src.u3.ip == tuple->src.u3.ip &&
+-		t->src.u.all == tuple->src.u.all);
++		t->src.u.all == tuple->src.u.all &&
++		t->mark == tuple->mark);
+ }
+ 
+ /* Only called for SRC manip */
+@@ -213,7 +214,7 @@ find_best_ips_proto(struct nf_conntrack_tuple *tuple,
+ 	minip = ntohl(range->min_ip);
+ 	maxip = ntohl(range->max_ip);
+ 	j = jhash_2words((__force u32)tuple->src.u3.ip,
+-			 (__force u32)tuple->dst.u3.ip, 0);
++			 (__force u32)tuple->dst.u3.ip ^ tuple->mark, 0);
+ 	j = ((u64)j * (maxip - minip + 1)) >> 32;
+ 	*var_ipp = htonl(minip + j);
+ }
+diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+index 3717bdf..633b7bc 100644
+--- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+@@ -56,9 +56,10 @@ static int ipv6_invert_tuple(struct nf_conntrack_tuple *tuple,
+ static int ipv6_print_tuple(struct seq_file *s,
+ 			    const struct nf_conntrack_tuple *tuple)
+ {
+-	return seq_printf(s, "src=" NIP6_FMT " dst=" NIP6_FMT " ",
++	return seq_printf(s, "src=" NIP6_FMT " dst=" NIP6_FMT " mark=%u ",
+ 			  NIP6(*((struct in6_addr *)tuple->src.u3.ip6)),
+-			  NIP6(*((struct in6_addr *)tuple->dst.u3.ip6)));
++			  NIP6(*((struct in6_addr *)tuple->dst.u3.ip6)),
++			  tuple->mark);
+ }
+ 
+ /*
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index b77eb56..f515a06 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -83,7 +83,7 @@ static u_int32_t __hash_conntrack(const struct nf_conntrack_tuple *tuple,
+ 	n = (sizeof(tuple->src) + sizeof(tuple->dst.u3)) / sizeof(u32);
+ 	h = jhash2((u32 *)tuple, n,
+ 		   rnd ^ (((__force __u16)tuple->dst.u.all << 16) |
+-			  tuple->dst.protonum));
++			  (tuple->dst.protonum ^ tuple->mark)));
+ 
+ 	return ((u64)h * size) >> 32;
+ }
+@@ -112,6 +112,7 @@ nf_ct_get_tuple(const struct sk_buff *skb,
+ 
+ 	tuple->dst.protonum = protonum;
+ 	tuple->dst.dir = IP_CT_DIR_ORIGINAL;
++	tuple->mark = skb->mark;
+ 
+ 	return l4proto->pkt_to_tuple(skb, dataoff, tuple);
+ }
+@@ -160,8 +161,8 @@ nf_ct_invert_tuple(struct nf_conntrack_tuple *inverse,
+ 		return 0;
+ 
+ 	inverse->dst.dir = !orig->dst.dir;
+-
+ 	inverse->dst.protonum = orig->dst.protonum;
++	inverse->mark = orig->mark;
+ 	return l4proto->invert_tuple(inverse, orig);
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_invert_tuple);
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index 684ec9c..19791a3 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -81,7 +81,7 @@ static unsigned int nf_ct_expect_dst_hash(const struct nf_conntrack_tuple *tuple
+ 	}
+ 
+ 	hash = jhash2(tuple->dst.u3.all, ARRAY_SIZE(tuple->dst.u3.all),
+-		      (((tuple->dst.protonum ^ tuple->src.l3num) << 16) |
++		      (((tuple->dst.protonum ^ tuple->src.l3num ^ tuple->mark) << 16) |
+ 		       (__force __u16)tuple->dst.u.all) ^ nf_ct_expect_hash_rnd);
+ 	return ((u64)hash * nf_ct_expect_hsize) >> 32;
+ }
+@@ -222,6 +222,7 @@ struct nf_conntrack_expect *nf_ct_expect_alloc(struct nf_conn *me)
+ 		return NULL;
+ 
+ 	new->master = me;
++	new->tuple.mark = me->tuplehash[IP_CT_DIR_ORIGINAL].tuple.mark;
+ 	atomic_set(&new->use, 1);
+ 	INIT_RCU_HEAD(&new->rcu);
+ 	return new;
 
---------------040002060203050205000301--
+--------------080404080404010606020002--
