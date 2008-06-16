@@ -1,70 +1,73 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Support NAT-ed expect entries from user space
-Date: Mon, 16 Jun 2008 22:10:46 +0200
-Message-ID: <4856C8C6.3070309@netfilter.org>
-References: <20080616092148.GB2860@phoenix.home>
+From: Rainer Sabelka <sabelka@iue.tuwien.ac.at>
+Subject: Re: conntrackd [ERROR] commit: Invalid argument
+Date: Mon, 16 Jun 2008 22:28:16 +0200
+Message-ID: <200806162228.17436.sabelka@iue.tuwien.ac.at>
+References: <e1aa27e00806090621r3fa83ac0s7bb89d903de3be41@mail.gmail.com> <200806130122.16216.sabelka@iue.tuwien.ac.at> <4855B44B.5030504@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
+Cc: Marco Barbero <marco.barbero@gmail.com>, netfilter@vger.kernel.org,
+	Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
-To: BORBELY Zoltan <bozo@andrews.hu>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from relay-bm.club-internet.fr ([194.158.104.68]:59572 "EHLO
-	relay-bm.club-internet.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752834AbYFPUKy (ORCPT
+Received: from mr1-n.kom.tuwien.ac.at ([128.130.2.109]:37305 "EHLO
+	mr.tuwien.ac.at" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753509AbYFPU2k (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Jun 2008 16:10:54 -0400
-In-Reply-To: <20080616092148.GB2860@phoenix.home>
+	Mon, 16 Jun 2008 16:28:40 -0400
+In-Reply-To: <4855B44B.5030504@netfilter.org>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-BORBELY Zoltan wrote:
-> Hi,
-> 
-> I'm developing a transparent user space ftp proxy, and I'm using expect
-> entries to accept incoming data connections. It works quite well, but I
-> had to patch the kernel to get it work. It's quite small, so I put it
-> inline:
+On Monday 16 June 2008 02:31:07 Pablo Neira Ayuso wrote:
+> Rainer Sabelka wrote:
+> > I tried to debug this a bit and added some printk()s in the
+> > ctnetlink_create_conntrack() function to find out where the ENOMEM is
+> > coming from:
+> > So, now I see that nf_conntrack_alloc() is not returning this error, but
+> > it is coming from a couple of lines below in the same function:
+> >
+> >         helper = nf_ct_helper_find_get(rtuple);
+> >         if (helper) {
+> >                 help = nf_ct_helper_ext_add(ct, GFP_KERNEL);
+> >                 if (help == NULL) {
+> >                         nf_ct_helper_put(helper);
+> >                         err = -ENOMEM;
+> >                         goto err;
+> >                 }
+> >
+> > There, nf_ct_helper_ext_add() returns NULL, which causes ENOMEM to be
+> > returned.
+> >
+> > I didn't debug this further because I'm rather lost in the code. But
+> > maybe this gives you some hint what's wrong.
+>
+> I just noticed a bug that may be the reason for EINVAL while injecting
+> connections that have a helper. The messages that contained connections
+> with helpers were malformed (one attribute was missing). Attached a
+> patch to fix this problem in libnetfilter_conntrack (already applied to
+> git, so probably it is better if you check out a working copy). With
+> regards to ENOMEM, probably we're hitting it because of some malformed
+> message.
+>
+> The other patch is not directly related but it reduces the size of the
+> messages that are sent to kernel space to check for the existence of a
+> conntrack.
+>
+> I have put a lot effort on the synchronization protocols in this release
+> but it seems that the commit still need one spin. As always, any help
+> testing and reporting problems is appreciated.
 
-Just a wild thought. What if you create a new conntrack (instead of an
-expectation) using a small timeout in state TCP SYN_SENT that represents
-the new flow that it is expected to arrive? The first packet would seen
-as a resent by the connection tracking so it would accept it. However,
-the TCP sequence tracking may complain about it. Nevertheles, we can
-also access to the internal TCP flags to enable   IP_CT_TCP_FLAG_BE_LIBERAL.
+Thanks Pablo. I've tested your patches but unfortunately I still get "Cannot 
+allocate memory" sometimes.
 
-> --- nf_conntrack_netlink-orig-2.6.22.9.c        2007-09-26 20:03:01.000000000 +0
-> +++ nf_conntrack_netlink-new-2.6.22.9.c 2008-06-13 17:14:17.000000000 +0200
-> @@ -39,6 +39,7 @@
->  #ifdef CONFIG_NF_NAT_NEEDED
->  #include <net/netfilter/nf_nat_core.h>
->  #include <net/netfilter/nf_nat_protocol.h>
-> +#include <net/netfilter/nf_nat_helper.h>
->  #endif
-> 
->  #include <linux/netfilter/nfnetlink.h>
-> @@ -1439,7 +1440,11 @@
->                 goto out;
->         }
-> 
-> -       exp->expectfn = NULL;
-> +       exp->expectfn = nf_nat_follow_master;
-> +#ifdef CONFIG_NF_NAT_NEEDED
-> +       exp->saved_proto.tcp.port = tuple.dst.u.tcp.port;       //!!!FIXME
-> +       exp->dir = IP_CT_DIR_ORIGINAL;
-> +#endif
->         exp->flags = 0;
->         exp->master = ct;
->         exp->helper = NULL;
-> 
-> It's ugly as hell in the current form, but I have some ideas how to
-> improve it to integrate it into the main kernel tree. Maybe we can add a
-> new CTA_EXPECT_SAVED_PROTO attribute and get it from user space. What
-> is your opinion?
+Jun 16 22:24:45 fw1b conntrack-tools[5599]: committing external cache
+Jun 16 22:24:45 fw1b conntrack-tools[5599]: commit-create: Cannot allocate 
+memory
+Jun 16 22:24:45 fw1b conntrack-tools[5599]: Committed 623 new entries
+Jun 16 22:24:45 fw1b conntrack-tools[5599]: 1 entries can't be committed
 
-Would this change be generic enough for userspace transparent proxies or
-only for FTP?
-
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+-Rainer
