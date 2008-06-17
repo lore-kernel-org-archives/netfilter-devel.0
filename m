@@ -1,68 +1,36 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [ANNOUNCE] Release of iptables 1.4.1.1
-Date: Tue, 17 Jun 2008 17:22:10 +0200
-Message-ID: <4857D6A2.104@trash.net>
+From: David Miller <davem@davemloft.net>
+Subject: Re: netfilter 00/03: netfilter fixes
+Date: Tue, 17 Jun 2008 15:53:21 -0700 (PDT)
+Message-ID: <20080617.155321.221734712.davem@davemloft.net>
+References: <20080617140351.1355.59710.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------040308050806070008040603"
-To: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	"'netfilter@vger.kernel.org'" <netfilter@vger.kernel.org>,
-	Netfilter Core Team <coreteam@netfilter.org>,
-	netfilt
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:34608 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755730AbYFQPWN (ORCPT
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:38999
+	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1759335AbYFQWxX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 Jun 2008 11:22:13 -0400
+	Tue, 17 Jun 2008 18:53:23 -0400
+In-Reply-To: <20080617140351.1355.59710.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------040308050806070008040603
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Patrick McHardy <kaber@trash.net>
+Date: Tue, 17 Jun 2008 16:03:51 +0200 (MEST)
 
-The netfilter coreteam presents:
+> following are three fixes for netfilter:
+> 
+> - fix for NAT RCU races related to ct_extend
+> - fix for a memory leak in a H.323 module init error path
+> - fix for a crash when unloading the H.323 module while H.245 expectation
+>   or connections are active
+> 
+> Please apply, thanks.
 
-     iptables version 1.4.1.1
+Applied to net-2.6, and I'll push back out to kernel.org after some
+build sanity checks.
 
-This release is a pure bugfix release for regressions reported
-against 1.4.1, fixing some mainly cosmetic problems in the
-ruleset listing, installation problems with --disable-shared
-and non-working --src-range/--dst-range parameters in the
-iprange match.
-
-Version 1.4.1.1 can be obtained from (please note that as
-usual, the webpage hasn't been rebuilt yet, but will hopefully
-be shortly):
-
-http://www.netfilter.org/projects/iptables/downloads.html
-ftp://ftp.netfilter.org/pub/iptables/
-git://git.netfilter.org/iptables.git
-
-On behalf of the Netfilter Core Team.
-Happy firewalling!
-
-
---------------040308050806070008040603
-Content-Type: text/plain;
- name="changes-iptables-1.4.1-1.4.1.1"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="changes-iptables-1.4.1-1.4.1.1"
-
-Henrik Nordstrom (1):
-      iptables: fix printing of line numbers with --line-numbers arg
-
-Jan Engelhardt (3):
-      ip6tables: fix printing of ipv6 network masks
-      build: fix `make install` when --disable-shared is used
-      iprange: kernel flags were not set
-
-Patrick McHardy (1):
-      v1.4.1.1
-
-
---------------040308050806070008040603--
+Thanks!
