@@ -1,61 +1,88 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Support NAT-ed expect entries from user space
-Date: Tue, 17 Jun 2008 00:43:37 +0200
-Message-ID: <4856EC99.6070903@trash.net>
-References: <20080616092148.GB2860@phoenix.home> <4856C8C6.3070309@netfilter.org> <4856D28C.3030302@trash.net> <20080616221759.GM2860@phoenix.home>
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: [PATCH] netfilter: ip6table_filter in netns for real
+Date: Tue, 17 Jun 2008 06:30:57 +0400
+Message-ID: <20080617023057.GA22003@martell.zuzino.mipt.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: BORBELY Zoltan <bozo@andrews.hu>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, den@openvz.org, xemul@openvz.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45038 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754171AbYFPW7f (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.156]:62824 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751035AbYFQCe6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Jun 2008 18:59:35 -0400
-In-Reply-To: <20080616221759.GM2860@phoenix.home>
+	Mon, 16 Jun 2008 22:34:58 -0400
+Received: by fg-out-1718.google.com with SMTP id 19so3434943fgg.17
+        for <netfilter-devel@vger.kernel.org>; Mon, 16 Jun 2008 19:34:56 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-BORBELY Zoltan wrote:
-> Hi,
->
-> On Mon, Jun 16, 2008 at 10:52:28PM +0200, Patrick McHardy wrote:
->   
->> I'm wondering, how is this expectation creation working at all?
->> The NULL expectfn makes me think it will crash as soon as the
->> expectation arrives. This *needs* support from the helpers to
->> properly set the expectfn.
->>     
->
-> The nf_nat_follow_master did the trick for me if I set the expectation
-> entry from user space. With NULL expectfn it didn't work.
->   
+One still needs to remove checks in nf_hook_slow() and nf_sockopt_find()
+to test this, though.
 
-Yes, so the kernel is broken.
->   
->> And more specific to this problem: back when Harald was working
->> on userspace helpers, the idea was to add a dummy helper specifically
->> so we have one to assign to the connection. The helper would (IIRC)
->> just queue the expected packets and userspace could take it from
->> there. Of course queuing could be made optional and (f.i.) it could
->> just use nf_nat_follow_master.
->>     
->
-> I'd like to create a cross-platform user space ftp proxy, not a nf
-> conntrack+nat helper module, so my goals are a bit different. The
-> netfilter code contains everything I need, and the netlink interface
-> is quite good to instruct the kernel code to do as the proxy wants.
->   
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+---
 
-I understand that, the expectation part looks like a subset of what
-a helper module does though, with the only differences that a helper
-might want to queue the packet. And since expectfn setup also doesn't
-belong in nf_conntrack_netlink.c (especially not NAT related expectfns),
-this is how I think it should be done.
+ net/ipv6/netfilter/ip6table_filter.c |   31 ++++++++++++++++++++++---------
+ 1 file changed, 22 insertions(+), 9 deletions(-)
 
-
+--- a/net/ipv6/netfilter/ip6table_filter.c
++++ b/net/ipv6/netfilter/ip6table_filter.c
+@@ -61,13 +61,25 @@ static struct xt_table packet_filter = {
+ 
+ /* The work comes in here from netfilter.c. */
+ static unsigned int
+-ip6t_hook(unsigned int hook,
+-	 struct sk_buff *skb,
+-	 const struct net_device *in,
+-	 const struct net_device *out,
+-	 int (*okfn)(struct sk_buff *))
++ip6t_local_in_hook(unsigned int hook,
++		   struct sk_buff *skb,
++		   const struct net_device *in,
++		   const struct net_device *out,
++		   int (*okfn)(struct sk_buff *))
++{
++	return ip6t_do_table(skb, hook, in, out,
++			     nf_local_in_net(in, out)->ipv6.ip6table_filter);
++}
++
++static unsigned int
++ip6t_forward_hook(unsigned int hook,
++		  struct sk_buff *skb,
++		  const struct net_device *in,
++		  const struct net_device *out,
++		  int (*okfn)(struct sk_buff *))
+ {
+-	return ip6t_do_table(skb, hook, in, out, init_net.ipv6.ip6table_filter);
++	return ip6t_do_table(skb, hook, in, out,
++			     nf_forward_net(in, out)->ipv6.ip6table_filter);
+ }
+ 
+ static unsigned int
+@@ -87,19 +99,20 @@ ip6t_local_out_hook(unsigned int hook,
+ 	}
+ #endif
+ 
+-	return ip6t_do_table(skb, hook, in, out, init_net.ipv6.ip6table_filter);
++	return ip6t_do_table(skb, hook, in, out,
++			     nf_local_out_net(in, out)->ipv6.ip6table_filter);
+ }
+ 
+ static struct nf_hook_ops ip6t_ops[] __read_mostly = {
+ 	{
+-		.hook		= ip6t_hook,
++		.hook		= ip6t_local_in_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= PF_INET6,
+ 		.hooknum	= NF_INET_LOCAL_IN,
+ 		.priority	= NF_IP6_PRI_FILTER,
+ 	},
+ 	{
+-		.hook		= ip6t_hook,
++		.hook		= ip6t_forward_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= PF_INET6,
+ 		.hooknum	= NF_INET_FORWARD,
 
