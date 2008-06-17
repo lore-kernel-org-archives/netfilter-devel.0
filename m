@@ -1,41 +1,68 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Support NAT-ed expect entries from user space
-Date: Tue, 17 Jun 2008 17:05:47 +0200
-Message-ID: <4857D2CB.6070909@trash.net>
-References: <20080616092148.GB2860@phoenix.home> <4856C8C6.3070309@netfilter.org> <4856D28C.3030302@trash.net> <20080616221759.GM2860@phoenix.home> <4856EC99.6070903@trash.net>
+Subject: [ANNOUNCE] Release of iptables 1.4.1.1
+Date: Tue, 17 Jun 2008 17:22:10 +0200
+Message-ID: <4857D6A2.104@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: BORBELY Zoltan <bozo@andrews.hu>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: multipart/mixed;
+ boundary="------------040308050806070008040603"
 To: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
+	<netfilter-devel@vger.kernel.org>,
+	"'netfilter@vger.kernel.org'" <netfilter@vger.kernel.org>,
+	Netfilter Core Team <coreteam@netfilter.org>,
+	netfilt
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:34080 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:34608 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757381AbYFQPFu (ORCPT
+	with ESMTP id S1755730AbYFQPWN (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 Jun 2008 11:05:50 -0400
-In-Reply-To: <4856EC99.6070903@trash.net>
+	Tue, 17 Jun 2008 11:22:13 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy wrote:
-> BORBELY Zoltan wrote:
->> On Mon, Jun 16, 2008 at 10:52:28PM +0200, Patrick McHardy wrote:
->>  
->>> I'm wondering, how is this expectation creation working at all?
->>> The NULL expectfn makes me think it will crash as soon as the
->>> expectation arrives. This *needs* support from the helpers to
->>> properly set the expectfn.
->>>     
->>
->> The nf_nat_follow_master did the trick for me if I set the expectation
->> entry from user space. With NULL expectfn it didn't work.
->>   
-> 
-> Yes, so the kernel is broken.
+This is a multi-part message in MIME format.
+--------------040308050806070008040603
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+
+The netfilter coreteam presents:
+
+     iptables version 1.4.1.1
+
+This release is a pure bugfix release for regressions reported
+against 1.4.1, fixing some mainly cosmetic problems in the
+ruleset listing, installation problems with --disable-shared
+and non-working --src-range/--dst-range parameters in the
+iprange match.
+
+Version 1.4.1.1 can be obtained from (please note that as
+usual, the webpage hasn't been rebuilt yet, but will hopefully
+be shortly):
+
+http://www.netfilter.org/projects/iptables/downloads.html
+ftp://ftp.netfilter.org/pub/iptables/
+git://git.netfilter.org/iptables.git
+
+On behalf of the Netfilter Core Team.
+Happy firewalling!
 
 
-This turned out to be wrong, the expectfn is optional.
+--------------040308050806070008040603
+Content-Type: text/plain;
+ name="changes-iptables-1.4.1-1.4.1.1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="changes-iptables-1.4.1-1.4.1.1"
 
+Henrik Nordstrom (1):
+      iptables: fix printing of line numbers with --line-numbers arg
+
+Jan Engelhardt (3):
+      ip6tables: fix printing of ipv6 network masks
+      build: fix `make install` when --disable-shared is used
+      iprange: kernel flags were not set
+
+Patrick McHardy (1):
+      v1.4.1.1
+
+
+--------------040308050806070008040603--
