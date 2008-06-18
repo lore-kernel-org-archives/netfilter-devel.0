@@ -1,36 +1,27 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: netfilter 00/03: netfilter fixes
-Date: Tue, 17 Jun 2008 15:53:21 -0700 (PDT)
-Message-ID: <20080617.155321.221734712.davem@davemloft.net>
-References: <20080617140351.1355.59710.sendpatchset@localhost.localdomain>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/3] libnfnetlink byte alignment
+Date: Wed, 18 Jun 2008 14:39:29 +0200
+Message-ID: <48590201.8040902@netfilter.org>
+References: <1212488448.29489.40.camel@pumper.lan.luxnet.ch>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+To: Fabian Hugelshofer <hugelshofer2006@gmx.ch>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:38999
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1759335AbYFQWxX (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 Jun 2008 18:53:23 -0400
-In-Reply-To: <20080617140351.1355.59710.sendpatchset@localhost.localdomain>
+Received: from mail.us.es ([193.147.175.20]:59496 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752392AbYFRMj6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 18 Jun 2008 08:39:58 -0400
+In-Reply-To: <1212488448.29489.40.camel@pumper.lan.luxnet.ch>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Tue, 17 Jun 2008 16:03:51 +0200 (MEST)
+Fabian Hugelshofer wrote:
+> Aligns buffers to maximum alignment of architecture to make the cast of
+> char pointers to struct pointers more portable.
 
-> following are three fixes for netfilter:
-> 
-> - fix for NAT RCU races related to ct_extend
-> - fix for a memory leak in a H.323 module init error path
-> - fix for a crash when unloading the H.323 module while H.245 expectation
->   or connections are active
-> 
-> Please apply, thanks.
+Applied. Thanks Fabian.
 
-Applied to net-2.6, and I'll push back out to kernel.org after some
-build sanity checks.
-
-Thanks!
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
