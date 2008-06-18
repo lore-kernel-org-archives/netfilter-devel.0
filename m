@@ -1,33 +1,38 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/3] libnetlink-log byte alignment
-Date: Wed, 18 Jun 2008 15:13:46 +0200
-Message-ID: <48590A0A.3020102@netfilter.org>
-References: <1212488472.29489.41.camel@pumper.lan.luxnet.ch> <1213648356.29727.12.camel@pumper.lan.luxnet.ch>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Fabian Hugelshofer <hugelshofer2006@gmx.ch>
+From: Eric Leblond <eric@inl.fr>
+Subject: [ULOGD1 PATCH] Fix PCAP len (Jaap Keuter)
+Date: Wed, 18 Jun 2008 16:58:11 +0200
+Message-ID: <1213801091-25885-1-git-send-email-eric@inl.fr>
+Cc: Eric Leblond <eric@inl.fr>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40793 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753425AbYFRNOD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Jun 2008 09:14:03 -0400
-In-Reply-To: <1213648356.29727.12.camel@pumper.lan.luxnet.ch>
+Received: from fydelkass.inl.fr ([195.101.59.116]:51813 "EHLO fydelkass.inl.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751383AbYFRO6O (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 18 Jun 2008 10:58:14 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Fabian Hugelshofer wrote:
-> Use union of char buffer and message header to ensure proper byte
-> alignment.
+This is a application of patch provided by Jaap Keuter. Application will close
+bugzilla 535. pcap len was set to value of the pointer to raw data.
 
-Applied. Thanks.
+Signed-off-by: Eric Leblond <eric@inl.fr>
+---
+ pcap/ulogd_PCAP.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-> This patch increases portability, but alignment is still not respected
-> in nflog_get_*() which still leaves libnetfilter_log unusable on
-> particular platforms.
-
-Sorry, I lost track of this alignment issues, what's problem?
-
+diff --git a/pcap/ulogd_PCAP.c b/pcap/ulogd_PCAP.c
+index 686fe47..7d67c28 100644
+--- a/pcap/ulogd_PCAP.c
++++ b/pcap/ulogd_PCAP.c
+@@ -131,7 +131,7 @@ static int pcap_output(ulog_iret_t *res)
+ {
+ 	struct pcap_sf_pkthdr pchdr;
+ 
+-	pchdr.caplen = GET_VALUE(1).ui32;
++	pchdr.caplen = GET_VALUE(2).ui32;
+ 	pchdr.len = GET_VALUE(2).ui32;
+ 
+ 	if (GET_FLAGS(3) & ULOGD_RETF_VALID
 -- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+1.5.5.3
+
