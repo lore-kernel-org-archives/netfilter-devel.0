@@ -1,36 +1,40 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [ULOGD PATCH 0/3] Misc fixes
-Date: Wed, 18 Jun 2008 17:41:47 +0200
-Message-ID: <48592CBB.5000202@netfilter.org>
-References: <1213803013-19433-1-git-send-email-eric@inl.fr>
+From: "Adelson O. Junior" <jroliv@gmail.com>
+Subject: NFNETLINK answers: No such file or directory
+Date: Wed, 18 Jun 2008 19:38:24 -0300
+Message-ID: <7b0a40830806181538s40efbd70s66aec17d5c04933@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@inl.fr>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60865 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752881AbYFRPno (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Jun 2008 11:43:44 -0400
-In-Reply-To: <1213803013-19433-1-git-send-email-eric@inl.fr>
+Received: from an-out-0708.google.com ([209.85.132.246]:19836 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754187AbYFRWiZ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 18 Jun 2008 18:38:25 -0400
+Received: by an-out-0708.google.com with SMTP id d40so110845and.103
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Jun 2008 15:38:25 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Leblond wrote:
-> This patchset contains three patches:
->  1. Fix compilation of input plugin when libnetfilter library are non globally available.
->  2. Fix warning about undeclared function.
->  3. Backport of bugzilla 535: PCAP fix
-> 
-> Patchset statistics:
->  input/flow/Makefile.am           |    3 ++-
->  input/packet/Makefile.am         |    3 ++-
->  input/packet/ulogd_inppkt_ULOG.c |    1 +
->  output/pcap/ulogd_output_PCAP.c  |    2 +-
-> 4 files changed, 6 insertions(+), 3 deletions(-)
+Hi netfiltel mail list,
+it's my first time here.
 
-All applied. Thanks Eric.
+My question is:
+I'm trying to delete a entry in the conntrack and an Error is shown:
+
+"NFNETLINK answers: No such file or directory"
+
+I did a "small" search on the Internet, mail list and I saw that this
+is a bug and is already fixed.
+Can you tell if this is true, and if is, what the version of
+libnfnetlink, libnetfilter_conntrack or
+conntrack packets (and witch of them have a problem) that the bug is fixed?
+
+Thanks.
+
+Sorry for the Bad English.
 
 -- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+[]'s
