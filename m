@@ -1,67 +1,65 @@
-From: "Adelson O. Junior" <jroliv@gmail.com>
-Subject: Re: NFNETLINK answers: No such file or directory
-Date: Thu, 19 Jun 2008 15:32:08 -0300
-Message-ID: <7b0a40830806191132o2ac8beao16b0526dff6cf976@mail.gmail.com>
-References: <7b0a40830806181538s40efbd70s66aec17d5c04933@mail.gmail.com>
-	 <485A3E81.5070100@netfilter.org>
-	 <7b0a40830806190650g6ccacd5br3bc3c9088c73dd2c@mail.gmail.com>
-	 <485A6744.9060607@netfilter.org>
+From: Greg KH <gregkh@suse.de>
+Subject: [patch 13/15] nf_conntrack_h323: fix memory leak in module
+	initialization error path
+Date: Thu, 19 Jun 2008 14:30:09 -0700
+Message-ID: <20080619213009.GN20267@suse.de>
+References: <20080619211313.834170620@mini.kroah.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: "Pablo Neira Ayuso" <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Justin Forbes <jmforbes@linuxtx.org>,
+	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
+	Theodore Ts'o <tytso@mit.edu>,
+	Randy Dunlap <rdunlap@xenotime.net>,
+	Dave Jones <davej@redhat.com>,
+	Chuck Wolber <chuckw@quantumlinux.com>,
+	Chris Wedgwood <reviews@ml.cw.f00f.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Chuck Ebbert <cebbert@redhat.com>,
+	Domenico Andreoli <cavokz@gmail.com>, Willy Tarreau <w@1wt.eu>,
+	Rodrigo Rubira Branco <rbranco@la.checkpoint.com>,
+	torvalds@linux-foundation.org, akpm@linux-foundation.org,
+	alan@lxorguk.ukuu.org.uk, netfilter-devel@vger.kernel.org,
+	Patrick McHardy <kaber@trash.net>, davem@davemloft.net
+To: linux-kernel@vger.kernel.org, stable@kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from wx-out-0506.google.com ([66.249.82.232]:43969 "EHLO
-	wx-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751929AbYFSScM (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 19 Jun 2008 14:32:12 -0400
-Received: by wx-out-0506.google.com with SMTP id h29so259906wxd.4
-        for <netfilter-devel@vger.kernel.org>; Thu, 19 Jun 2008 11:32:09 -0700 (PDT)
-In-Reply-To: <485A6744.9060607@netfilter.org>
-Content-Disposition: inline
+Received: from cantor2.suse.de ([195.135.220.15]:42766 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752798AbYFSVce (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 19 Jun 2008 17:32:34 -0400
+Content-Disposition: inline; filename="nf_conntrack_h323-fix-memory-leak-in-module-initialization-error-path.patch"
+In-Reply-To: <20080619212621.GA20267@suse.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hey Pablo, thanks.
-Really, as you said, we use a very old version, but these versions was
-approved with the app.
-I tried to find any report of this problem in the netfilter's
-bugzilla, without success.
-We will test the most recent versions with our app, but I would just
-to understand the bug, if really is a bug this problem, to know the
-impact on the system.
-I never used git before, but I will learn to try see the changes on
-the releases.
+2.6.25-stable review patch.  If anyone has any objections, please let us
+know.
 
-[]'s
+------------------
+From: Patrick McHardy <kaber@trash.net>
 
-On Thu, Jun 19, 2008 at 11:03 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->
-> Adelson O. Junior wrote:
-> > Hi, thanks for reply
-> >
-> > I'm using the versions:
-> >
-> > libnfnetlink-0.0.25-1
-> > libnetfilter_conntrack-0.0.50-2
-> > conntrack-1.0-0.1.beta2
-> >
-> > We have an application Java based that uses this tools, and uses these versions.
-> > I need to know which of this packets is causing the problem, and which
-> > version is fixing it, before a apply new versions on the Java App.
-> > There are any place thats show the problems fixed in each version?
->
-> Yes, you can look for the changes on Netfilter's git [1] and the
-> website. However, those versions are from the caveman era and the amount
-> of changes is cumbersome. I strongly recommend you to upgrade. Make sure
-> you use a Linux kernel version >= 2.6.18.
->
-> --
-> "Los honestos son inadaptados sociales" -- Les Luthiers
+netfilter: nf_conntrack_h323: fix memory leak in module initialization error path
 
+Upstream commit 8a548868db62422113104ebc658065e3fe976951
 
+Properly free h323_buffer when helper registration fails.
 
---
-[]'s
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+
+---
+ net/netfilter/nf_conntrack_h323_main.c |    1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/net/netfilter/nf_conntrack_h323_main.c
++++ b/net/netfilter/nf_conntrack_h323_main.c
+@@ -1799,6 +1799,7 @@ err3:
+ err2:
+ 	nf_conntrack_helper_unregister(&nf_conntrack_helper_h245);
+ err1:
++	kfree(h323_buffer);
+ 	return ret;
+ }
+ 
+
+-- 
