@@ -1,40 +1,39 @@
-From: "Adelson O. Junior" <jroliv@gmail.com>
-Subject: NFNETLINK answers: No such file or directory
-Date: Wed, 18 Jun 2008 19:38:24 -0300
-Message-ID: <7b0a40830806181538s40efbd70s66aec17d5c04933@mail.gmail.com>
+From: michael <mteicher@gmail.com>
+Subject: iptables-1.4.1.1 but no iptables file
+Date: Wed, 18 Jun 2008 21:31:41 -0700
+Message-ID: <66c5208e0806182131n581a29bbhcc02d6c3f1b9215@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.246]:19836 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754187AbYFRWiZ (ORCPT
+Received: from rv-out-0506.google.com ([209.85.198.226]:23218 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750726AbYFSEbm (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Jun 2008 18:38:25 -0400
-Received: by an-out-0708.google.com with SMTP id d40so110845and.103
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Jun 2008 15:38:25 -0700 (PDT)
+	Thu, 19 Jun 2008 00:31:42 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so4969058rvb.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Jun 2008 21:31:41 -0700 (PDT)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi netfiltel mail list,
-it's my first time here.
+Hello,
 
-My question is:
-I'm trying to delete a entry in the conntrack and an Error is shown:
+Sorry for the cross post.  I mistakenly posted to the users mailing list.
 
-"NFNETLINK answers: No such file or directory"
+On linux 2.4.34
+ran configure && make && make install
+Everything looks good but I cannot see where iptables was installed.
+The only new file I can see installed is /usr/local/bin/iptables-xml ,
+/usr/local/libexec/xtables (no files in there), and several man pages
+in /usr/local/share/man/man8.
 
-I did a "small" search on the Internet, mail list and I saw that this
-is a bug and is already fixed.
-Can you tell if this is true, and if is, what the version of
-libnfnetlink, libnetfilter_conntrack or
-conntrack packets (and witch of them have a problem) that the bug is fixed?
+The install exited cleanly.
 
-Thanks.
+I have been running iptables 1.3.37 for awhile.  I have done a cursory
+search and have yet to understand what I am missing.
 
-Sorry for the Bad English.
+Any help/pointers/suggestions are appreciated.
 
--- 
-[]'s
+Thanks,
