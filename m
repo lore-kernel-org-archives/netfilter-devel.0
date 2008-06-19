@@ -1,37 +1,44 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: netfilter: Make NFLOG dump all hardware header.
-Date: Thu, 19 Jun 2008 14:30:21 +0200
-Message-ID: <485A515D.10200@trash.net>
-References: <1213878187-909-1-git-send-email-eric@inl.fr> <1213878331-1074-1-git-send-email-eric@inl.fr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, chifflier@inl.fr
-To: Eric Leblond <eric@inl.fr>
+From: Eric Leblond <eric@inl.fr>
+Subject: [PATCH] Change packet hw header struct accordingly to NFLOG update.
+Date: Thu, 19 Jun 2008 14:55:46 +0200
+Message-ID: <1213880146-1476-1-git-send-email-eric@inl.fr>
+References: <1213878331-1074-1-git-send-email-eric@inl.fr>
+Cc: Eric Leblond <eric@inl.fr>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:64404 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754622AbYFSMaa (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 19 Jun 2008 08:30:30 -0400
+Received: from fydelkass.inl.fr ([195.101.59.116]:54436 "EHLO fydelkass.inl.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756069AbYFSMzt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 19 Jun 2008 08:55:49 -0400
 In-Reply-To: <1213878331-1074-1-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Leblond wrote:
-> This patch synchronises behaviour of ULOG and NFLOG relatively to the
-> hardware header:
->  * NFLOG sends MAC address to userspace (dev_parse_header content)
->  * ULOG sends complete link header (skb_mac_header content)
-> This patch double the size of hardware header for NFLOG and fill it
-> with the complete hardware header.
+This patch synchronizes libnetfilter_log with my last patch.
 
-This looks like an API breaking patch. It would be better to use
-a new attribute for this. Also this structure encapsulation is a
-bad idea IMO, it should just use a NLA_BINARY attribute.
+Sent for completeness: kernel patch will need rework.
+---
+ include/libnetfilter_log/linux_nfnetlink_log.h |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-> +	if (indev && indev->hard_header_len > 0
-> +	    && skb->mac_header != skb->network_header
-> +	    && indev->hard_header_len <= MAX_HWHEADER_LEN * sizeof(char)) {
+diff --git a/include/libnetfilter_log/linux_nfnetlink_log.h b/include/libnetfilter_log/linux_nfnetlink_log.h
+index f8e174d..83beb2d 100644
+--- a/include/libnetfilter_log/linux_nfnetlink_log.h
++++ b/include/libnetfilter_log/linux_nfnetlink_log.h
+@@ -25,10 +25,12 @@ struct nfulnl_msg_packet_hdr {
+ 	u_int8_t	_pad;
+ } __attribute__ ((packed));
+ 
++#define MAX_HWHEADER_LEN 16
++
+ struct nfulnl_msg_packet_hw {
+ 	u_int16_t	hw_addrlen;
+ 	u_int16_t	_pad;
+-	u_int8_t	hw_addr[8];
++	u_int8_t	hw_addr[MAX_HWHEADER_LEN];
+ } __attribute__ ((packed));
+ 
+ struct nfulnl_msg_packet_timestamp {
+-- 
+1.5.5.3
 
-skb_mac_header_was_set()?
