@@ -1,441 +1,225 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: [ULOGD PATCH 1/6] Suppress spaces at end of line.
-Date: Thu, 19 Jun 2008 14:23:02 +0200
-Message-ID: <1213878187-909-2-git-send-email-eric@inl.fr>
+Subject: [ULOGD PATCH 4/6] Introduce datatype and hwaddrlen param to MAC2STR plugin.
+Date: Thu, 19 Jun 2008 14:23:05 +0200
+Message-ID: <1213878187-909-5-git-send-email-eric@inl.fr>
 References: <1213878187-909-1-git-send-email-eric@inl.fr>
 Cc: chifflier@inl.fr, Eric Leblond <eric@inl.fr>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fydelkass.inl.fr ([195.101.59.116]:60866 "EHLO fydelkass.inl.fr"
+Received: from fydelkass.inl.fr ([195.101.59.116]:60869 "EHLO fydelkass.inl.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756338AbYFSMXd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1756448AbYFSMXd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Thu, 19 Jun 2008 08:23:33 -0400
 In-Reply-To: <1213878187-909-1-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The following patch suppress useless spaces at end of lines.
+This patch introduces a hwaddrlen and datatype parameters in
+MAC2STR configuration. This is a workaround differences between
+ULOG and NFLOG:
+ * NFLOG sends MAC address in userspace (dev_parse_header content)
+ * ULOG sends complete link header (skb_mac_header content)
+And they use the same field (raw.mac) for that. Database schema
+needs mac.saddr.str and/or mac.daddr.str fields. With datatype set
+0 only mac.daddr is logged. Both fields are filled when datatype is
+set to 1. hwaddrlen param can be used to change the length of
+link header address (default is 6 which is used by ethernet header).
 
 Signed-off-by: Eric Leblond <eric@inl.fr>
 ---
- input/flow/ulogd_inpflow_NFCT.c   |   38 +++++++++++++-------------
- input/packet/ulogd_inppkt_NFLOG.c |   52 ++++++++++++++++++------------------
- input/packet/ulogd_inppkt_ULOG.c  |   46 ++++++++++++++++----------------
- 3 files changed, 68 insertions(+), 68 deletions(-)
+ filter/ulogd_filter_MAC2STR.c |  117 ++++++++++++++++++++++++++++++++++------
+ ulogd.conf.in                 |    9 +++
+ 2 files changed, 108 insertions(+), 18 deletions(-)
 
-diff --git a/input/flow/ulogd_inpflow_NFCT.c b/input/flow/ulogd_inpflow_NFCT.c
-index f28e3fa..58bb0e2 100644
---- a/input/flow/ulogd_inpflow_NFCT.c
-+++ b/input/flow/ulogd_inpflow_NFCT.c
-@@ -156,7 +156,7 @@ static struct ulogd_key nfct_okeys[] = {
- 		.type 	= ULOGD_RET_IPADDR,
- 		.flags 	= ULOGD_RETF_NONE,
- 		.name	= "orig.ip.saddr",
--		.ipfix	= { 
-+		.ipfix	= {
- 			.vendor = IPFIX_VENDOR_IETF,
- 			.field_id = IPFIX_sourceIPv4Address,
- 		},
-@@ -174,7 +174,7 @@ static struct ulogd_key nfct_okeys[] = {
- 		.type	= ULOGD_RET_UINT8,
- 		.flags	= ULOGD_RETF_NONE,
- 		.name	= "orig.ip.protocol",
--		.ipfix	= { 
-+		.ipfix	= {
- 			.vendor = IPFIX_VENDOR_IETF,
- 			.field_id = IPFIX_protocolIdentifier,
- 		},
-@@ -201,7 +201,7 @@ static struct ulogd_key nfct_okeys[] = {
- 		.type	= ULOGD_RET_UINT32,
- 		.flags	= ULOGD_RETF_NONE,
- 		.name	= "orig.raw.pktlen",
--		.ipfix	= { 
-+		.ipfix	= {
- 			.vendor 	= IPFIX_VENDOR_IETF,
- 			.field_id 	= IPFIX_octetTotalCount,
- 			/* FIXME: this could also be octetDeltaCount */
-@@ -211,7 +211,7 @@ static struct ulogd_key nfct_okeys[] = {
- 		.type	= ULOGD_RET_UINT32,
- 		.flags	= ULOGD_RETF_NONE,
- 		.name	= "orig.raw.pktcount",
--		.ipfix	= { 
-+		.ipfix	= {
- 			.vendor 	= IPFIX_VENDOR_IETF,
- 			.field_id 	= IPFIX_packetTotalCount,
- 			/* FIXME: this could also be packetDeltaCount */
-@@ -221,7 +221,7 @@ static struct ulogd_key nfct_okeys[] = {
- 		.type 	= ULOGD_RET_IPADDR,
- 		.flags 	= ULOGD_RETF_NONE,
- 		.name	= "reply.ip.saddr",
--		.ipfix	= { 
-+		.ipfix	= {
- 			.vendor = IPFIX_VENDOR_IETF,
- 			.field_id = IPFIX_sourceIPv4Address,
- 		},
-@@ -239,7 +239,7 @@ static struct ulogd_key nfct_okeys[] = {
- 		.type	= ULOGD_RET_UINT8,
- 		.flags	= ULOGD_RETF_NONE,
- 		.name	= "reply.ip.protocol",
--		.ipfix	= { 
-+		.ipfix	= {
- 			.vendor = IPFIX_VENDOR_IETF,
- 			.field_id = IPFIX_protocolIdentifier,
- 		},
-@@ -266,7 +266,7 @@ static struct ulogd_key nfct_okeys[] = {
- 		.type	= ULOGD_RET_UINT32,
- 		.flags	= ULOGD_RETF_NONE,
- 		.name	= "reply.raw.pktlen",
--		.ipfix	= { 
-+		.ipfix	= {
- 			.vendor 	= IPFIX_VENDOR_IETF,
- 			.field_id 	= IPFIX_octetTotalCount,
- 			/* FIXME: this could also be octetDeltaCount */
-@@ -276,7 +276,7 @@ static struct ulogd_key nfct_okeys[] = {
- 		.type	= ULOGD_RET_UINT32,
- 		.flags	= ULOGD_RETF_NONE,
- 		.name	= "reply.raw.pktcount",
--		.ipfix	= { 
-+		.ipfix	= {
- 			.vendor 	= IPFIX_VENDOR_IETF,
- 			.field_id 	= IPFIX_packetTotalCount,
- 			/* FIXME: this could also be packetDeltaCount */
-@@ -442,7 +442,7 @@ static int propagate_ct(struct ulogd_pluginstance *upi,
- 			struct ct_timestamp *ts)
- {
- 	struct ulogd_key *ret = upi->output.keys;
--	
+diff --git a/filter/ulogd_filter_MAC2STR.c b/filter/ulogd_filter_MAC2STR.c
+index 0035886..0d09baa 100644
+--- a/filter/ulogd_filter_MAC2STR.c
++++ b/filter/ulogd_filter_MAC2STR.c
+@@ -30,6 +30,34 @@
+ 
+ #define IPADDR_LENGTH 128
+ 
++enum mac2str_kset {
++	MAC2STR_LEN,
++	MAC2STR_TYPE,
++};
 +
- 	ret[NFCT_CT_EVENT].u.value.ui32 = type;
- 	ret[NFCT_CT_EVENT].flags |= ULOGD_RETF_VALID;
- 
-@@ -569,7 +569,7 @@ static int propagate_ct(struct ulogd_pluginstance *upi,
- 
- 	if (ts) {
- 		if (ts->time[START].tv_sec) {
--			ret[NFCT_FLOW_START_SEC].u.value.ui32 = 
-+			ret[NFCT_FLOW_START_SEC].u.value.ui32 =
- 				ts->time[START].tv_sec;
- 			ret[NFCT_FLOW_START_SEC].flags |= ULOGD_RETF_VALID;
- 
-@@ -618,7 +618,7 @@ static int event_handler(enum nf_conntrack_msg_type type,
- 			 void *data)
- {
- 	struct ulogd_pluginstance *upi = data;
--	struct nfct_pluginstance *cpi = 
-+	struct nfct_pluginstance *cpi =
- 				(struct nfct_pluginstance *) upi->private;
- 	struct ct_timestamp *ts = NULL;
- 	struct ct_timestamp tmp = {
-@@ -732,7 +732,7 @@ static int read_cb_nfct(int fd, unsigned int what, void *param)
- 					  "`netlink_socket_buffer_size' and "
- 					  "`netlink_socket_buffer_maxsize'\n");
- 			}
--			
++enum mac2str_datatype {
++	MAC2STR_ONLY_SMAC,
++	MAC2STR_FULL_MAC,
++};
 +
- 			/* internal hash can deal with refresh */
- 			if (usehash_ce(upi->config_kset).u.value != 0) {
- 				nfct_send(cpi->ovh, NFCT_Q_DUMP, &family);
-@@ -816,7 +816,7 @@ static int read_cb_ovh(int fd, unsigned int what, void *param)
- static int get_ctr_zero(struct ulogd_pluginstance *upi)
- {
- 	int family = 0; /* any */
--	struct nfct_pluginstance *cpi = 
-+	struct nfct_pluginstance *cpi =
- 			(struct nfct_pluginstance *)upi->private;
- 
- 	return nfct_query(cpi->cth, NFCT_Q_DUMP_RESET, &family);
-@@ -825,7 +825,7 @@ static int get_ctr_zero(struct ulogd_pluginstance *upi)
- static void getctr_timer_cb(struct ulogd_timer *t, void *data)
- {
- 	struct ulogd_pluginstance *upi = data;
--	struct nfct_pluginstance *cpi = 
-+	struct nfct_pluginstance *cpi =
- 			(struct nfct_pluginstance *)upi->private;
- 
- 	get_ctr_zero(upi);
-@@ -835,10 +835,10 @@ static void getctr_timer_cb(struct ulogd_timer *t, void *data)
- static int configure_nfct(struct ulogd_pluginstance *upi,
- 			  struct ulogd_pluginstance_stack *stack)
- {
--	struct nfct_pluginstance *cpi = 
-+	struct nfct_pluginstance *cpi =
- 			(struct nfct_pluginstance *)upi->private;
- 	int ret;
--	
++static struct config_keyset libulog_kset = {
++	.num_ces = 2,
++	.ces = {
++		[MAC2STR_LEN] = {
++			.key 	 = "hwaddrlen",
++			.type 	 = CONFIG_TYPE_INT,
++			.options = CONFIG_OPT_NONE,
++			.u.value = 6,
++		},
++		[MAC2STR_TYPE] = {
++			.key 	 = "datatype",
++			.type 	 = CONFIG_TYPE_INT,
++			.options = CONFIG_OPT_NONE,
++			.u.value = MAC2STR_ONLY_SMAC,
++		}
++	}
++};
 +
- 	ret = config_parse_file(upi->id, upi->config_kset);
- 	if (ret < 0)
- 		return ret;
-@@ -865,7 +865,7 @@ static void overrun_timeout(struct ulogd_timer *a, void *data)
+ enum input_keys {
+ 	KEY_RAW_MAC,
+ 	KEY_RAW_MACLEN,
+@@ -37,6 +65,7 @@ enum input_keys {
  
- static int constructor_nfct(struct ulogd_pluginstance *upi)
+ enum output_keys {
+ 	KEY_MAC_SADDR,
++	KEY_MAC_DADDR,
+ };
+ 
+ static struct ulogd_key mac2str_inp[] = {
+@@ -45,22 +74,48 @@ static struct ulogd_key mac2str_inp[] = {
+ 		.flags = ULOGD_RETF_NONE,
+ 		.name = "raw.mac",
+ 	},
+-	[KEY_RAW_MACLEN] = { 
+-		.type = ULOGD_RET_UINT16, 
+-		.flags = ULOGD_RETF_NONE, 
+-		.name = "raw.mac_len", 
++	[KEY_RAW_MACLEN] = {
++		.type = ULOGD_RET_UINT16,
++		.flags = ULOGD_RETF_NONE,
++		.name = "raw.mac_len",
+ 	},
+ 
+ };
+ 
+ static struct ulogd_key mac2str_keys[] = {
+-	{
++	[KEY_MAC_SADDR] = {
+ 		.type = ULOGD_RET_STRING,
+ 		.flags = ULOGD_RETF_FREE,
+ 		.name = "mac.saddr.str",
+ 	},
++	[KEY_MAC_DADDR] = {
++		.type = ULOGD_RET_STRING,
++		.flags = ULOGD_RETF_FREE,
++		.name = "mac.daddr.str",
++	},
+ };
+ 
++static int parse_header(struct ulogd_key *ret, unsigned char *mac, int hwlen, int type)
++{
++	char *mac_str = NULL;
++	char *buf_cur = NULL;
++	mac_str = calloc(hwlen/sizeof(char)*3, sizeof(char));
++	buf_cur = mac_str;
++	int i;
++
++	if (mac_str == NULL)
++		return ULOGD_IRET_ERR;
++
++	for (i = 0; i < hwlen; i++)
++		buf_cur += sprintf(buf_cur, "%02x%c", mac[i],
++				i == hwlen - 1 ? 0 : ':');
++
++	ret[type].u.value.ptr = mac_str;
++	ret[type].flags |= ULOGD_RETF_VALID;
++
++	return ULOGD_IRET_OK;
++}
++
+ static int interp_mac2str(struct ulogd_pluginstance *pi)
  {
--	struct nfct_pluginstance *cpi = 
-+	struct nfct_pluginstance *cpi =
- 			(struct nfct_pluginstance *)upi->private;
- 
- 	cpi->cth = nfct_open(NFNL_SUBSYS_CTNETLINK,
-@@ -931,7 +931,7 @@ static int constructor_nfct(struct ulogd_pluginstance *upi)
- 			return -1;
- 		}
+ 	struct ulogd_key *ret = pi->output.keys;
+@@ -69,24 +124,48 @@ static int interp_mac2str(struct ulogd_pluginstance *pi)
+ 	if (pp_is_valid(inp, KEY_RAW_MAC)) {
+ 		unsigned char *mac = (unsigned char *) GET_VALUE(inp, KEY_RAW_MAC).ptr;
+ 		int len = GET_VALUE(inp, KEY_RAW_MACLEN).ui16;
+-		char *mac_str = calloc(len/sizeof(char)*3, sizeof(char));
+-		char *buf_cur = mac_str;
+-		int i;
+-		
+-		if (mac_str == NULL)
+-			return ULOGD_IRET_ERR;
+-
+-		for (i = 0; i < len; i++)
+-			buf_cur += sprintf(buf_cur, "%02x%c", mac[i],
+-					   i == len - 1 ? 0 : ':');
+-
+-		ret[KEY_MAC_SADDR].u.value.ptr = mac_str;
+-		ret[KEY_MAC_SADDR].flags |= ULOGD_RETF_VALID;
++		int hwlen = pi->config_kset->ces[MAC2STR_LEN].u.value;
++		int retp;
++
++		if (hwlen) {
++			if (len < hwlen)
++				return ULOGD_IRET_ERR;
++		} else {
++			hwlen = len;
++		}
++
++		switch (pi->config_kset->ces[MAC2STR_TYPE].u.value) {
++		case MAC2STR_ONLY_SMAC:
++			retp = parse_header(ret, mac, hwlen, KEY_MAC_SADDR);
++			if (retp != ULOGD_IRET_OK)
++				return retp;
++			break;
++		case MAC2STR_FULL_MAC:
++			retp = parse_header(ret, mac, hwlen, KEY_MAC_DADDR);
++			if (retp != ULOGD_IRET_OK)
++				return retp;
++			retp = parse_header(ret, mac + hwlen, hwlen, KEY_MAC_SADDR);
++			if (retp != ULOGD_IRET_OK)
++				return retp;
++			break;
++		default:
++			break;
++		}
  	}
--	
-+
- 	return 0;
+ 
+ 	return ULOGD_IRET_OK;
  }
  
-@@ -939,7 +939,7 @@ static int destructor_nfct(struct ulogd_pluginstance *pi)
- {
- 	struct nfct_pluginstance *cpi = (void *) pi;
- 	int rc;
--	
++static int configure(struct ulogd_pluginstance *upi,
++		     struct ulogd_pluginstance_stack *stack)
++{
++	ulogd_log(ULOGD_DEBUG, "parsing config file section `%s', "
++		  "plugin `%s'\n", upi->id, upi->plugin->name);
 +
- 	hashtable_destroy(cpi->ct_active);
- 
- 	rc = nfct_close(cpi->cth);
-diff --git a/input/packet/ulogd_inppkt_NFLOG.c b/input/packet/ulogd_inppkt_NFLOG.c
-index 8c2aab6..95a2956 100644
---- a/input/packet/ulogd_inppkt_NFLOG.c
-+++ b/input/packet/ulogd_inppkt_NFLOG.c
-@@ -136,10 +136,10 @@ enum nflog_keys {
- };
- 
- static struct ulogd_key output_keys[] = {
--	{ 
--		.type = ULOGD_RET_RAW, 
-+	{
-+		.type = ULOGD_RET_RAW,
- 		.flags = ULOGD_RETF_NONE,
--		.name = "raw.mac", 
-+		.name = "raw.mac",
- 		.ipfix = {
- 			.vendor = IPFIX_VENDOR_IETF,
- 			.field_id = IPFIX_sourceMacAddress,
-@@ -158,7 +158,7 @@ static struct ulogd_key output_keys[] = {
- 		.type = ULOGD_RET_UINT32,
- 		.flags = ULOGD_RETF_NONE,
- 		.name = "raw.pktlen",
--		.ipfix = { 
-+		.ipfix = {
- 			.vendor = IPFIX_VENDOR_NETFILTER,
- 			.field_id = IPFIX_NF_rawpacket_length,
- 		},
-@@ -167,32 +167,32 @@ static struct ulogd_key output_keys[] = {
- 		.type = ULOGD_RET_UINT32,
- 		.flags = ULOGD_RETF_NONE,
- 		.name = "raw.pktcount",
--		.ipfix = { 
-+		.ipfix = {
- 			.vendor = IPFIX_VENDOR_IETF,
- 			.field_id = IPFIX_packetDeltaCount,
- 		},
- 	},
- 	{
- 		.type = ULOGD_RET_STRING,
--		.flags = ULOGD_RETF_NONE, 
--		.name = "oob.prefix", 
-+		.flags = ULOGD_RETF_NONE,
-+		.name = "oob.prefix",
- 		.ipfix = {
- 			.vendor = IPFIX_VENDOR_NETFILTER,
--			.field_id = IPFIX_NF_prefix,  
-+			.field_id = IPFIX_NF_prefix,
- 		},
- 	},
--	{ 	.type = ULOGD_RET_UINT32, 
--		.flags = ULOGD_RETF_NONE, 
--		.name = "oob.time.sec", 
--		.ipfix = { 
--			.vendor = IPFIX_VENDOR_IETF, 
--			.field_id = IPFIX_flowStartSeconds, 
-+	{ 	.type = ULOGD_RET_UINT32,
-+		.flags = ULOGD_RETF_NONE,
-+		.name = "oob.time.sec",
-+		.ipfix = {
-+			.vendor = IPFIX_VENDOR_IETF,
-+			.field_id = IPFIX_flowStartSeconds,
- 		},
- 	},
- 	{
- 		.type = ULOGD_RET_UINT32,
- 		.flags = ULOGD_RETF_NONE,
--		.name = "oob.time.usec", 
-+		.name = "oob.time.usec",
- 		.ipfix = {
- 			.vendor = IPFIX_VENDOR_IETF,
- 			.field_id = IPFIX_flowStartMicroSeconds,
-@@ -201,7 +201,7 @@ static struct ulogd_key output_keys[] = {
- 	{
- 		.type = ULOGD_RET_UINT32,
- 		.flags = ULOGD_RETF_NONE,
--		.name = "oob.mark", 
-+		.name = "oob.mark",
- 		.ipfix = {
- 			.vendor = IPFIX_VENDOR_NETFILTER,
- 			.field_id = IPFIX_NF_mark,
-@@ -210,7 +210,7 @@ static struct ulogd_key output_keys[] = {
- 	{
- 		.type = ULOGD_RET_UINT32,
- 		.flags = ULOGD_RETF_NONE,
--		.name = "oob.ifindex_in", 
-+		.name = "oob.ifindex_in",
- 		.ipfix = {
- 			.vendor = IPFIX_VENDOR_IETF,
- 			.field_id = IPFIX_ingressInterface,
-@@ -219,7 +219,7 @@ static struct ulogd_key output_keys[] = {
- 	{
- 		.type = ULOGD_RET_UINT32,
- 		.flags = ULOGD_RETF_NONE,
--		.name = "oob.ifindex_out", 
-+		.name = "oob.ifindex_out",
- 		.ipfix = {
- 			.vendor = IPFIX_VENDOR_IETF,
- 			.field_id = IPFIX_egressInterface,
-@@ -234,10 +234,10 @@ static struct ulogd_key output_keys[] = {
- 			.field_id = IPFIX_NF_hook,
- 		},
- 	},
--	{ 
--		.type = ULOGD_RET_UINT16, 
--		.flags = ULOGD_RETF_NONE, 
--		.name = "raw.mac_len", 
-+	{
-+		.type = ULOGD_RET_UINT16,
-+		.flags = ULOGD_RETF_NONE,
-+		.name = "raw.mac_len",
- 	},
- 	{
- 		.type = ULOGD_RET_UINT32,
-@@ -285,7 +285,7 @@ static struct ulogd_key output_keys[] = {
- 
- };
- 
--static inline int 
-+static inline int
- interp_packet(struct ulogd_pluginstance *upi, struct nflog_data *ldata)
- {
- 	struct ulogd_key *ret = upi->output.keys;
-@@ -489,9 +489,9 @@ static int start(struct ulogd_pluginstance *upi)
- 
- 	if (unbind_ce(upi->config_kset).u.value > 0) {
- 		ulogd_log(ULOGD_NOTICE, "forcing unbind of existing log "
--			  "handler for protocol %d\n", 
-+			  "handler for protocol %d\n",
- 			  af_ce(upi->config_kset).u.value);
--		if (nflog_unbind_pf(ui->nful_h, 
-+		if (nflog_unbind_pf(ui->nful_h,
- 				    af_ce(upi->config_kset).u.value) < 0) {
- 			ulogd_log(ULOGD_ERROR, "unable to force-unbind "
- 				  "existing log handler for protocol %d\n",
-@@ -537,7 +537,7 @@ static int start(struct ulogd_pluginstance *upi)
- 			ulogd_log(ULOGD_ERROR, "unable to set flags 0x%x\n",
- 				  flags);
- 	}
--	
++	config_parse_file(upi->id, upi->config_kset);
++	return 0;
++}
 +
- 	nflog_callback_register(ui->nful_gh, &msg_cb, upi);
- 
- 	ui->nful_fd.fd = nflog_fd(ui->nful_h);
-diff --git a/input/packet/ulogd_inppkt_ULOG.c b/input/packet/ulogd_inppkt_ULOG.c
-index 0b58393..2f65813 100644
---- a/input/packet/ulogd_inppkt_ULOG.c
-+++ b/input/packet/ulogd_inppkt_ULOG.c
-@@ -83,10 +83,10 @@ enum ulog_keys {
+ static struct ulogd_plugin mac2str_pluging = {
+ 	.name = "MAC2STR",
+ 	.input = {
+@@ -100,6 +179,8 @@ static struct ulogd_plugin mac2str_pluging = {
+ 		.type = ULOGD_DTYPE_PACKET,
+ 		},
+ 	.interp = &interp_mac2str,
++	.config_kset = &libulog_kset,
++	.configure = &configure,
+ 	.version = ULOGD_VERSION,
  };
  
- static struct ulogd_key output_keys[] = {
--	{ 
--		.type = ULOGD_RET_RAW, 
--		.flags = ULOGD_RETF_NONE, 
--		.name = "raw.mac", 
-+	{
-+		.type = ULOGD_RET_RAW,
-+		.flags = ULOGD_RETF_NONE,
-+		.name = "raw.mac",
- 		.ipfix = {
- 			.vendor = IPFIX_VENDOR_IETF,
- 			.field_id = IPFIX_sourceMacAddress,
-@@ -105,7 +105,7 @@ static struct ulogd_key output_keys[] = {
- 		.type = ULOGD_RET_UINT32,
- 		.flags = ULOGD_RETF_NONE,
- 		.name = "raw.pktlen",
--		.ipfix = { 
-+		.ipfix = {
- 			.vendor = IPFIX_VENDOR_IETF,
- 			.field_id = 1
- 		},
-@@ -114,43 +114,43 @@ static struct ulogd_key output_keys[] = {
- 		.type = ULOGD_RET_UINT32,
- 		.flags = ULOGD_RETF_NONE,
- 		.name = "raw.pktcount",
--		.ipfix = { 
-+		.ipfix = {
- 			.vendor = IPFIX_VENDOR_IETF,
- 			.field_id = 2
- 		},
- 	},
- 	{
- 		.type = ULOGD_RET_STRING,
--		.flags = ULOGD_RETF_NONE, 
--		.name = "oob.prefix", 
-+		.flags = ULOGD_RETF_NONE,
-+		.name = "oob.prefix",
- 	},
--	{ 	.type = ULOGD_RET_UINT32, 
--		.flags = ULOGD_RETF_NONE, 
--		.name = "oob.time.sec", 
--		.ipfix = { 
--			.vendor = IPFIX_VENDOR_IETF, 
--			.field_id = 22 
-+	{ 	.type = ULOGD_RET_UINT32,
-+		.flags = ULOGD_RETF_NONE,
-+		.name = "oob.time.sec",
-+		.ipfix = {
-+			.vendor = IPFIX_VENDOR_IETF,
-+			.field_id = 22
- 		},
- 	},
- 	{
- 		.type = ULOGD_RET_UINT32,
- 		.flags = ULOGD_RETF_NONE,
--		.name = "oob.time.usec", 
-+		.name = "oob.time.usec",
- 	},
- 	{
- 		.type = ULOGD_RET_UINT32,
- 		.flags = ULOGD_RETF_NONE,
--		.name = "oob.mark", 
-+		.name = "oob.mark",
- 	},
- 	{
- 		.type = ULOGD_RET_STRING,
- 		.flags = ULOGD_RETF_NONE,
--		.name = "oob.in", 
-+		.name = "oob.in",
- 	},
- 	{
- 		.type = ULOGD_RET_STRING,
- 		.flags = ULOGD_RETF_NONE,
--		.name = "oob.out", 
-+		.name = "oob.out",
- 	},
- 	{
- 		.type = ULOGD_RET_UINT8,
-@@ -161,10 +161,10 @@ static struct ulogd_key output_keys[] = {
- 			.field_id = IPFIX_NF_hook,
- 		},
- 	},
--	{ 
--		.type = ULOGD_RET_UINT16, 
--		.flags = ULOGD_RETF_NONE, 
--		.name = "raw.mac_len", 
-+	{
-+		.type = ULOGD_RET_UINT16,
-+		.flags = ULOGD_RETF_NONE,
-+		.name = "raw.mac_len",
- 	},
- 	{
- 		.type = ULOGD_RET_UINT8,
+diff --git a/ulogd.conf.in b/ulogd.conf.in
+index a32234d..c7714ee 100644
+--- a/ulogd.conf.in
++++ b/ulogd.conf.in
+@@ -188,3 +188,12 @@ sync = 1
+ 
+ [mark1]
+ mark = 1
++
++[mac2str1]
++# datatype:
++#  * Set to 0 for NFLOG version with saddr log only
++#  * set to 1 for ULOG and NFLOG version with full header log
++datatype = 0
++# Set hwaddrlen to length of hardware address (default 6 for ethernet)
++#hwaddrlen = 6
++
 -- 
 1.5.5.3
 
