@@ -1,42 +1,38 @@
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: Re: unlock iptables in netns
-Date: Fri, 20 Jun 2008 21:54:51 +0400
-Message-ID: <20080620175107.GA5085@martell.zuzino.mipt.ru>
-References: <200806102127.21093.adobriyan@parallels.com> <484F7663.1080408@trash.net> <48563FBB.4080303@trash.net> <20080616110434.GA5103@martell.zuzino.mipt.ru> <48564B70.2020400@trash.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: ip6tables doesn't support --goto option
+Date: Fri, 20 Jun 2008 20:10:49 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0806202010030.25478@fbirervta.pbzchgretzou.qr>
+References: <1213980307.5485.5.camel@enterprise.ims-firmen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	devel@openvz.org, den@openvz.org, xemul@openvz.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Thomas Jacob <jacob@internet24.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.249]:42506 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752344AbYFTR73 (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:51073 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750833AbYFTSKu (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 Jun 2008 13:59:29 -0400
-Received: by an-out-0708.google.com with SMTP id d40so306587and.103
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Jun 2008 10:59:27 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <48564B70.2020400@trash.net>
+	Fri, 20 Jun 2008 14:10:50 -0400
+In-Reply-To: <1213980307.5485.5.camel@enterprise.ims-firmen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jun 16, 2008 at 01:16:00PM +0200, Patrick McHardy wrote:
-> Alexey Dobriyan wrote:
->> On Mon, Jun 16, 2008 at 12:26:03PM +0200, Patrick McHardy wrote:
->>>
->>> By the way, is there already work done for conntrack/NAT namespace
->>> support? I have this patch that uses marks for something very similar
->>> that should be easy to adjust.
->> Yes, right now I'm fighting something which looks like double free
->> of conntrack during clone(CLONE_NEWNET)/exit test despite none created
->> in netns. And unknown to me dimensions of input and output packet 
->> codepaths.
->> :^)
->> Preliminaty details:
->> 	struct nf_conn::ct_net which pins netns
 
-Ouch, now that I have converted conntracking code, "pins netns" part is
-really stupid, just background traffic on network will prevent netns from
-destroying.
+On Friday 2008-06-20 18:45, Thomas Jacob wrote:
 
+>Hello list,
+>
+>The ip6tables frontend in 1.4.1.1 doesn't seem to support the --goto
+>option but the code for handling it seems to be in the kernel:
+>
+>ip6_tables.c/ip6t_do_table
+>  if (table_base + v != (void *)e + e->next_offset
+>     && !(e->ipv6.flags & IP6T_F_GOTO)) {
+>       .....
+>
+>Is there some sort of technical/political reason for this, or has the
+>feature simply not been implemented yet (and hence a patch would
+>probably be welcome)?
+
+I suppose it was just forgotten, as the original commit (17fc163b) only
+touched iptables.c, not ip6tables.c.
