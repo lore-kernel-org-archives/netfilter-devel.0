@@ -1,55 +1,86 @@
-From: Henrik Nordstrom <henrik@henriknordstrom.net>
-Subject: Re: ip6tables doesn't support --goto option
-Date: Fri, 20 Jun 2008 20:54:36 +0200
-Message-ID: <1213988076.2466.2.camel@henriknordstrom.net>
-References: <1213980307.5485.5.camel@enterprise.ims-firmen.de>
-	 <alpine.LNX.1.10.0806202010030.25478@fbirervta.pbzchgretzou.qr>
+From: "Adelson O. Junior" <jroliv@gmail.com>
+Subject: Re: NFNETLINK answers: No such file or directory
+Date: Fri, 20 Jun 2008 18:12:26 -0300
+Message-ID: <7b0a40830806201412i1c9353cas696982909cf25781@mail.gmail.com>
+References: <7b0a40830806181538s40efbd70s66aec17d5c04933@mail.gmail.com>
+	 <485B97E7.4000501@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-fm03sgnUg1apjSz3AKdA"
-Cc: Thomas Jacob <jacob@internet24.de>, netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: "Pablo Neira Ayuso" <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from vps1.henriknordstrom.net ([195.20.207.177]:50218 "EHLO
-	vps1.henriknordstrom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751504AbYFTSyo (ORCPT
+Received: from an-out-0708.google.com ([209.85.132.244]:10329 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755140AbYFTVM5 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 Jun 2008 14:54:44 -0400
-In-Reply-To: <alpine.LNX.1.10.0806202010030.25478@fbirervta.pbzchgretzou.qr>
+	Fri, 20 Jun 2008 17:12:57 -0400
+Received: by an-out-0708.google.com with SMTP id d40so322176and.103
+        for <netfilter-devel@vger.kernel.org>; Fri, 20 Jun 2008 14:12:56 -0700 (PDT)
+In-Reply-To: <485B97E7.4000501@netfilter.org>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+The command sounds like this:
 
---=-fm03sgnUg1apjSz3AKdA
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+/usr/sbin/conntrack -D --p udp --orig-src 202.x.x.47 --orig-port-src
+14276 --orig-dst 202.x.x.155 --orig-port-dst 20000 --reply-src
+202.x.x.89 --reply-port-src 28246 --reply-dst 202.x.x.155
+--reply-port-dst 20002
 
-On fre, 2008-06-20 at 20:10 +0200, Jan Engelhardt wrote:
+but, I think that there's no bug. Simply there's no conntrack entry.
 
-> I suppose it was just forgotten, as the original commit (17fc163b) only
-> touched iptables.c, not ip6tables.c.
+Error: NFNETLINK answers: No such file or directory
+Error: Operation failed: such conntrack doesn't exist
+No contrack entry where found on from->to way trying to->from
 
-Quite likely my fault as I only use iptables, not yet ip6tables..
+I think that don't came packets that match with the iptables rule and
+conntrack was not created. And can't be deleted.
+I will search for bug in the application.
 
-Here is a really good project lurking for someone looking for a starter
-iptables project: eleminate all the duplicated code between iptables and
-ip6tables..
+Thanks Pablo.
+Adelson
 
-Regards
-Henrik
 
---=-fm03sgnUg1apjSz3AKdA
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
+On Fri, Jun 20, 2008 at 8:43 AM, Pablo Neira Ayuso <pablo@netfilter.org> wrote:
+> Adelson O. Junior wrote:
+>> Hi netfiltel mail list,
+>> it's my first time here.
+>>
+>> My question is:
+>> I'm trying to delete a entry in the conntrack and an Error is shown:
+>>
+>> "NFNETLINK answers: No such file or directory"
+>>
+>> I did a "small" search on the Internet, mail list and I saw that this
+>> is a bug and is already fixed.
+>> Can you tell if this is true, and if is, what the version of
+>> libnfnetlink, libnetfilter_conntrack or
+>> conntrack packets (and witch of them have a problem) that the bug is fixed?
+>
+> Could you post the command line invocation of `conntrack' that you're
+> using? It seems to me that you're omitting some required values. Old
+> versions require source and destination IP plus port source and
+> destination to work, ie.
+>
+> conntrack -D -s 140.x.x.90 -d 213.x.x.117 -p tcp --sport 34075 --dport 993
+>
+> As said, probably you're omitting any of those parameters. Some old
+> versions of the tool do not perform strict checking on the input
+> parameters. Thus, leading to this sort of errors.
+>
+> The current version (0.9.7) supports more flexible conntrack deletion, eg.
+>
+> conntrack -D -d 213.x.x.117
+>
+> This invocation destroys all entries that match that.
+>
+> --
+> "Los honestos son inadaptados sociales" -- Les Luthiers
+>
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.7 (GNU/Linux)
 
-iQCVAwUASFv86UNPQ5Kbx8daAQJ4uQP9EIZoYYsC4uLBgJJSq0ld/oOCZ7ay1HsV
-OW0oF4Ovst94EDDe6L3lkb5OPdU0//5PrdtIhZGR+N1VPTGJhuzI7RihqBx1hTM2
-EP4cufgQ+DtqPyYY8XH2ufkwTHc4D8H4dCn4lxVwNngGc7MNiQcw70T2y1VtV3ZF
-n84Rj7YGlZE=
-=2ped
------END PGP SIGNATURE-----
 
---=-fm03sgnUg1apjSz3AKdA--
-
+-- 
+[]'s
