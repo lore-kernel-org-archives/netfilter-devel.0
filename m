@@ -1,38 +1,63 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [conntrack-tools] XML output is invalid
-Date: Fri, 20 Jun 2008 16:03:04 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0806201548540.11250@fbirervta.pbzchgretzou.qr>
-References: <F7825499-A8F5-4F41-B3DD-2E13807954E2@rotsen.be> <485BAF8B.1050502@netfilter.org>
+Date: Fri, 20 Jun 2008 16:05:15 +0200
+Message-ID: <485BB91B.7010303@trash.net>
+References: <F7825499-A8F5-4F41-B3DD-2E13807954E2@rotsen.be> <485BAF8B.1050502@netfilter.org> <485BB110.60307@trash.net> <485BB63A.6000404@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: Sen Haerens <sen@rotsen.be>,
 	Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:58371 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754832AbYFTODG (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:63825 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754314AbYFTOFS (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 Jun 2008 10:03:06 -0400
-In-Reply-To: <485BAF8B.1050502@netfilter.org>
+	Fri, 20 Jun 2008 10:05:18 -0400
+In-Reply-To: <485BB63A.6000404@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Pablo Neira Ayuso wrote:
+> Patrick McHardy wrote:
+>> Pablo Neira Ayuso wrote:
+>>> Does this patch help?
+>>>
+>>>
+>>> +    if (output_mask & _O_XML) {
+>>>          op_type = NFCT_O_XML;
+>>> +        if (dump_xml_header_done) {
+>>> +            dump_xml_header_done = 0;
+>>> +            len = snprintf(buf, 1024, "<?xml version=\"1.0\"?>\n"
+>>> +                          "<conntrack>\n");
+>>> +        }
+>>> +    }
+>>>      if (output_mask & _O_EXT)
+>>>          op_flags = NFCT_OF_SHOW_LAYER3;
+>>>      if (output_mask & _O_ID)
+>>>          op_flags |= NFCT_OF_ID;
+>>>  
+>>> -    nfct_snprintf(buf, 1024, ct, NFCT_T_UNKNOWN, op_type, op_flags);
+>>> +    nfct_snprintf(buf+len, 1024-len, ct, NFCT_T_UNKNOWN, op_type,
+>>> op_flags);
+>>
+>> It doesn't seem to matter here, but that looks buggy (combined
+>> with the snprintf above). When the buffer size is exceed, snprintf
+>> returns the amount of characters it *would have written* if
+>> enough space was available. So when this really happens above,
+>> you have a buffer overflow in the second snprintf.
+> 
+> The string above has a fixed size and the buffer is big enough to print
+> the flow entry, so the buffer overflow is very unlikely.
 
-On Friday 2008-06-20 15:24, Pablo Neira Ayuso wrote:
->> 
->> * The XML declaration is missing: <?xml version="1.0"?>
->> * There can only be one root element. We have to wrap all the flow
->> elements into a single root element:
->> <conntrack>
->> <flow>[...]</flow>
->> <flow>[...]</flow>
->> [...]
->> </conntrack>
->> 
->> My version: conntrack v0.9.7 (conntrack-tools)
->
->Does this patch help?
+Yeah, its more a correctness thing. And it might lead to
+problems later on.
 
-Also specify the encoding: <?xml version="1.0" encoding="utf-8" ?>
+> Anyhow, I think that the following patch perform more strict and robust
+> checkings regarding the buffer size. I hope that you like better :).
+
+Probably, but its missing from this mail :)
+
+
