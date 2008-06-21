@@ -1,34 +1,66 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ip6tables doesn't support --goto option
-Date: Sat, 21 Jun 2008 10:27:34 +0200
-Message-ID: <485CBB76.4020206@trash.net>
-References: <1213980307.5485.5.camel@enterprise.ims-firmen.de>	 <alpine.LNX.1.10.0806202010030.25478@fbirervta.pbzchgretzou.qr> <1213988076.2466.2.camel@henriknordstrom.net>
+From: "Joonwoo Park" <joonwpark81@gmail.com>
+Subject: Re: [PATCH 3/8] textsearch: fix Boyer-Moore algorithm for case insensitive searching
+Date: Sat, 21 Jun 2008 02:17:26 -0700
+Message-ID: <b25c3fa70806210217w48658acewc2f987414bd312c3@mail.gmail.com>
+References: <1214034845-1316-1-git-send-email-joonwpark81@gmail.com>
+	 <485CBAE4.4030307@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	Thomas Jacob <jacob@internet24.de>,
-	netfilter-devel@vger.kernel.org
-To: Henrik Nordstrom <henrik@henriknordstrom.net>
+Cc: "Pablo Neira Ayuso" <pablo@netfilter.org>,
+	netdev <netdev@vger.kernel.org>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>
+To: "Patrick McHardy" <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:52696 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751375AbYFUI1j (ORCPT
+Received: from ag-out-0708.google.com ([72.14.246.250]:33259 "EHLO
+	ag-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751522AbYFUJR1 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 21 Jun 2008 04:27:39 -0400
-In-Reply-To: <1213988076.2466.2.camel@henriknordstrom.net>
+	Sat, 21 Jun 2008 05:17:27 -0400
+Received: by ag-out-0708.google.com with SMTP id 31so5957192agc.10
+        for <netfilter-devel@vger.kernel.org>; Sat, 21 Jun 2008 02:17:26 -0700 (PDT)
+In-Reply-To: <485CBAE4.4030307@trash.net>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Henrik Nordstrom wrote:
-> On fre, 2008-06-20 at 20:10 +0200, Jan Engelhardt wrote:
-> 
->> I suppose it was just forgotten, as the original commit (17fc163b) only
->> touched iptables.c, not ip6tables.c.
-> 
-> Quite likely my fault as I only use iptables, not yet ip6tables..
+2008/6/21 Patrick McHardy <kaber@trash.net>:
+> Joonwoo Park wrote:
+>>
+>> @@ -75,7 +77,9 @@ static unsigned int bm_find(struct ts_config *conf,
+>> struct ts_state *state)
+>>                        DEBUGP("Searching in position %d (%c)\n",
+>>                      shift, text[shift]);
+>>                        for (i = 0; i < bm->patlen; i++) -
+>>            if (text[shift-i] != bm->pattern[bm->patlen-1-i])
+>> +                               if ((icase ? toupper(text[shift-i])
+>> +                                   : text[shift-i])
+>> +                                       != bm->pattern[bm->patlen-1-i])
+>>                                     goto next;
+>>                          /* London calling... */
+>> @@ -111,14 +115,18 @@ static int subpattern(u8 *pattern, int i, int j, int
+>> g)
+>>        return ret;
+>>  }
+>>  -static void compute_prefix_tbl(struct ts_bm *bm)
+>> +static void compute_prefix_tbl(struct ts_bm *bm, u8 icase)
+>>  {
+>>        int i, j, g;
+>>          for (i = 0; i < ASIZE; i++)
+>>                bm->bad_shift[i] = bm->patlen;
+>> -       for (i = 0; i < bm->patlen - 1; i++)
+>> +       for (i = 0; i < bm->patlen - 1; i++) {
+>>                bm->bad_shift[bm->pattern[i]] = bm->patlen - 1 - i;
+>> +               if (icase)
+>> +                       bm->bad_shift[tolower(bm->pattern[i])]
+>> +                           = bm->patlen - 1 - i;
+>> +       }
+>
+> You use toupper() above and tolower() here, is that correct?
+>
 
-I think it was me, I added the ip6_tables support, for seem to
-have forgotten about userspace.
-
-Does anyone wants to send a patch for this?
+It should be, bm->pattern's characters are all upper case since It was
+altered before.
+So we should use toupper() for target string character to compare.
+And to ignore case, we should prepare one more bad_shift array
+calculation, opposite tolower() should be used for it.
