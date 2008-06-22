@@ -1,7 +1,7 @@
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: [PATCH 16/25] netns ct: undo helper in all netns
-Date: Sun, 22 Jun 2008 05:14:28 +0400
-Message-ID: <20080622011428.GQ5392@martell.zuzino.mipt.ru>
+Subject: [PATCH 17/25] netns ct: undo protocol in all netns
+Date: Sun, 22 Jun 2008 05:15:14 +0400
+Message-ID: <20080622011514.GS5392@martell.zuzino.mipt.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
@@ -9,95 +9,65 @@ Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
 	benjamin.thery@bull.net, dlezcano@fr.ibm.com
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.159]:39847 "EHLO
+Received: from fg-out-1718.google.com ([72.14.220.157]:40234 "EHLO
 	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752591AbYFVBSh (ORCPT
+	with ESMTP id S1752622AbYFVBTW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 21 Jun 2008 21:18:37 -0400
-Received: by fg-out-1718.google.com with SMTP id 19so898114fgg.17
-        for <netfilter-devel@vger.kernel.org>; Sat, 21 Jun 2008 18:18:35 -0700 (PDT)
+	Sat, 21 Jun 2008 21:19:22 -0400
+Received: by fg-out-1718.google.com with SMTP id 19so898154fgg.17
+        for <netfilter-devel@vger.kernel.org>; Sat, 21 Jun 2008 18:19:21 -0700 (PDT)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-When conntrack helper is unregistered, unhelp in every netns.
-This for sure needs proper locking, but haven't looked closely.
+Again, locking aroung netns list is most certainly broken.
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 ---
 
- net/netfilter/nf_conntrack_helper.c |   40 +++++++++++++++++++++---------------
- 1 file changed, 24 insertions(+), 16 deletions(-)
+ net/netfilter/nf_conntrack_proto.c |   10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -122,29 +122,18 @@ int nf_conntrack_helper_register(struct nf_conntrack_helper *me)
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_helper_register);
+--- a/net/netfilter/nf_conntrack_proto.c
++++ b/net/netfilter/nf_conntrack_proto.c
+@@ -207,6 +207,8 @@ EXPORT_SYMBOL_GPL(nf_conntrack_l3proto_register);
  
--void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
-+static void __nf_conntrack_helper_unregister(struct nf_conntrack_helper *me,
-+					     struct net *net)
+ void nf_conntrack_l3proto_unregister(struct nf_conntrack_l3proto *proto)
  {
- 	struct nf_conntrack_tuple_hash *h;
- 	struct nf_conntrack_expect *exp;
- 	const struct hlist_node *n, *next;
- 	unsigned int i;
- 
--	mutex_lock(&nf_ct_helper_mutex);
--	hlist_del_rcu(&me->hnode);
--	nf_ct_helper_count--;
--	mutex_unlock(&nf_ct_helper_mutex);
--
--	/* Make sure every nothing is still using the helper unless its a
--	 * connection in the hash.
--	 */
--	synchronize_rcu();
--
--	spin_lock_bh(&nf_conntrack_lock);
--
- 	/* Get rid of expectations */
- 	for (i = 0; i < nf_ct_expect_hsize; i++) {
- 		hlist_for_each_entry_safe(exp, n, next,
--					  &init_net.ct.expect_hash[i], hnode) {
-+					  &net->ct.expect_hash[i], hnode) {
- 			struct nf_conn_help *help = nfct_help(exp->master);
- 			if ((help->helper == me || exp->helper == me) &&
- 			    del_timer(&exp->timeout)) {
-@@ -155,12 +144,31 @@ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
- 	}
- 
- 	/* Get rid of expecteds, set helpers to NULL. */
--	hlist_for_each_entry(h, n, &init_net.ct.unconfirmed, hnode)
-+	hlist_for_each_entry(h, n, &net->ct.unconfirmed, hnode)
- 		unhelp(h, me);
- 	for (i = 0; i < nf_conntrack_htable_size; i++) {
--		hlist_for_each_entry(h, n, &init_net.ct.hash[i], hnode)
-+		hlist_for_each_entry(h, n, &net->ct.hash[i], hnode)
- 			unhelp(h, me);
- 	}
-+}
-+
-+void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
-+{
 +	struct net *net;
 +
-+	mutex_lock(&nf_ct_helper_mutex);
-+	hlist_del_rcu(&me->hnode);
-+	nf_ct_helper_count--;
-+	mutex_unlock(&nf_ct_helper_mutex);
-+
-+	/* Make sure every nothing is still using the helper unless its a
-+	 * connection in the hash.
-+	 */
-+	synchronize_rcu();
-+
-+	spin_lock_bh(&nf_conntrack_lock);
+ 	BUG_ON(proto->l3proto >= AF_MAX);
+ 
+ 	mutex_lock(&nf_ct_proto_mutex);
+@@ -219,7 +221,8 @@ void nf_conntrack_l3proto_unregister(struct nf_conntrack_l3proto *proto)
+ 	synchronize_rcu();
+ 
+ 	/* Remove all contrack entries for this protocol */
+-	nf_ct_iterate_cleanup(&init_net, kill_l3proto, proto);
 +	for_each_net(net)
-+		__nf_conntrack_helper_unregister(me, net);
- 	spin_unlock_bh(&nf_conntrack_lock);
++		nf_ct_iterate_cleanup(net, kill_l3proto, proto);
  }
- EXPORT_SYMBOL_GPL(nf_conntrack_helper_unregister);
+ EXPORT_SYMBOL_GPL(nf_conntrack_l3proto_unregister);
+ 
+@@ -316,6 +319,8 @@ EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_register);
+ 
+ void nf_conntrack_l4proto_unregister(struct nf_conntrack_l4proto *l4proto)
+ {
++	struct net *net;
++
+ 	BUG_ON(l4proto->l3proto >= PF_MAX);
+ 
+ 	mutex_lock(&nf_ct_proto_mutex);
+@@ -328,7 +333,8 @@ void nf_conntrack_l4proto_unregister(struct nf_conntrack_l4proto *l4proto)
+ 	synchronize_rcu();
+ 
+ 	/* Remove all contrack entries for this protocol */
+-	nf_ct_iterate_cleanup(&init_net, kill_l4proto, l4proto);
++	for_each_net(net)
++		nf_ct_iterate_cleanup(net, kill_l4proto, l4proto);
+ }
+ EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_unregister);
+ 
 -- 
 1.5.4.5
 
