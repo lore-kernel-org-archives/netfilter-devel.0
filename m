@@ -1,38 +1,54 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: How to add a new table?
-Date: Mon, 23 Jun 2008 14:12:48 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0806231410590.26570@fbirervta.pbzchgretzou.qr>
-References: <94ce93aa0806230458qb7e6982o6e31b4bba084ac1a@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 3/8] textsearch: fix Boyer-Moore algorithm for case insensitive
+ searching
+Date: Mon, 23 Jun 2008 14:27:18 +0200
+Message-ID: <485F96A6.20904@netfilter.org>
+References: <1214034845-1316-1-git-send-email-joonwpark81@gmail.com>	 <485CBAE4.4030307@trash.net> <b25c3fa70806210217w48658acewc2f987414bd312c3@mail.gmail.com> <485F8A13.90808@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Juan Pablo Nelson <juanpablonelson@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Patrick McHardy <kaber@trash.net>, netdev <netdev@vger.kernel.org>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>,
+	Thomas Graf <tgraf@suug.ch>
+To: Joonwoo Park <joonwpark81@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:51436 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752507AbYFWMMt (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Jun 2008 08:12:49 -0400
-In-Reply-To: <94ce93aa0806230458qb7e6982o6e31b4bba084ac1a@mail.gmail.com>
+Received: from mail.us.es ([193.147.175.20]:57061 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753059AbYFWM11 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 23 Jun 2008 08:27:27 -0400
+In-Reply-To: <485F8A13.90808@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Monday 2008-06-23 13:58, Juan Pablo Nelson wrote:
+Patrick McHardy wrote:
+> Joonwoo Park wrote:
+>> 2008/6/21 Patrick McHardy <kaber@trash.net>:
+>>>> +static void compute_prefix_tbl(struct ts_bm *bm, u8 icase)
+>>>>  {
+>>>>        int i, j, g;
+>>>>          for (i = 0; i < ASIZE; i++)
+>>>>                bm->bad_shift[i] = bm->patlen;
+>>>> -       for (i = 0; i < bm->patlen - 1; i++)
+>>>> +       for (i = 0; i < bm->patlen - 1; i++) {
+>>>>                bm->bad_shift[bm->pattern[i]] = bm->patlen - 1 - i;
+>>>> +               if (icase)
+>>>> +                       bm->bad_shift[tolower(bm->pattern[i])]
+>>>> +                           = bm->patlen - 1 - i;
+>>>> +       }
+>>> You use toupper() above and tolower() here, is that correct?
+>>>
+>>
+>> It should be, bm->pattern's characters are all upper case since It was
+>> altered before.
+>> So we should use toupper() for target string character to compare.
+>> And to ignore case, we should prepare one more bad_shift array
+>> calculation, opposite tolower() should be used for it.
+> 
+> OK thanks. I'll wait for an ACK from Thomas before applying
+> them though.
 
->Hi all,
->
->I=C2=B4m trying to add a new table to netfilter/iptables framework. I =
-read
->iptables and netfilter kernel code but didn=C2=B4t realize how to do i=
-t.
+This is rather confusing. Why not set both the pattern and the bad_shift
+to lower or upper case?
 
-
-http://dev.medozas.de/gitweb.cgi?p=3Dxtables-addons;a=3Dcommitdiff;h=3D=
-ce6179dba7f284b5ffecfc9c5d2843264e5134a9
-as a random jump-in starting point.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
