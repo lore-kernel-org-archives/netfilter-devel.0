@@ -1,68 +1,31 @@
-From: "Joonwoo Park" <joonwpark81@gmail.com>
-Subject: Re: [PATCH 3/8] textsearch: fix Boyer-Moore algorithm for case insensitive searching
-Date: Mon, 23 Jun 2008 13:41:54 -0700
-Message-ID: <b25c3fa70806231341u5ccb39f1n53af4c05bea92027@mail.gmail.com>
-References: <1214034845-1316-1-git-send-email-joonwpark81@gmail.com>
-	 <485CBAE4.4030307@trash.net>
-	 <b25c3fa70806210217w48658acewc2f987414bd312c3@mail.gmail.com>
-	 <485F8A13.90808@trash.net> <485F96A6.20904@netfilter.org>
+From: Thomas Graf <tgraf@suug.ch>
+Subject: Re: [PATCH 1/8] textsearch: fix textsearch for case insensitive searching
+Date: Tue, 24 Jun 2008 01:22:24 +0200
+Message-ID: <20080623232224.GG20815@postel.suug.ch>
+References: <1214034838-1270-1-git-send-email-joonwpark81@gmail.com> <485CB9F6.6050601@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: "Patrick McHardy" <kaber@trash.net>,
+Content-Type: text/plain; charset=us-ascii
+Cc: Joonwoo Park <joonwpark81@gmail.com>,
 	netdev <netdev@vger.kernel.org>,
 	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	"Thomas Graf" <tgraf@suug.ch>
-To: "Pablo Neira Ayuso" <pablo@netfilter.org>
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <485F96A6.20904@netfilter.org>
 Content-Disposition: inline
+In-Reply-To: <485CB9F6.6050601@trash.net>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-2008/6/23 Pablo Neira Ayuso <pablo@netfilter.org>:
-> Patrick McHardy wrote:
->> Joonwoo Park wrote:
->>> 2008/6/21 Patrick McHardy <kaber@trash.net>:
->>>>> +static void compute_prefix_tbl(struct ts_bm *bm, u8 icase)
->>>>>  {
->>>>>        int i, j, g;
->>>>>          for (i = 0; i < ASIZE; i++)
->>>>>                bm->bad_shift[i] = bm->patlen;
->>>>> -       for (i = 0; i < bm->patlen - 1; i++)
->>>>> +       for (i = 0; i < bm->patlen - 1; i++) {
->>>>>                bm->bad_shift[bm->pattern[i]] = bm->patlen - 1 - i;
->>>>> +               if (icase)
->>>>> +                       bm->bad_shift[tolower(bm->pattern[i])]
->>>>> +                           = bm->patlen - 1 - i;
->>>>> +       }
->>>> You use toupper() above and tolower() here, is that correct?
->>>>
->>>
->>> It should be, bm->pattern's characters are all upper case since It was
->>> altered before.
->>> So we should use toupper() for target string character to compare.
->>> And to ignore case, we should prepare one more bad_shift array
->>> calculation, opposite tolower() should be used for it.
->>
->> OK thanks. I'll wait for an ACK from Thomas before applying
->> them though.
->
-> This is rather confusing. Why not set both the pattern and the bad_shift
-> to lower or upper case?
->
+* Patrick McHardy <kaber@trash.net> 2008-06-21 10:21
+> This looks fine to me, although a generic flags argument
+> would prevent changing all users again next time someone
+> wants to add a feature. But I'll leave that decision to
+> Thomas.
 
-To be honest, pattern can be set to lower or upper case, it doesn't matter.
-But for bad_shift, we should add one more array for diffrence of case.
-So bad_shift array should have both of lower and upper.
+I agree, I'd favour a general flag for this as well.
 
->>>>> +       for (i = 0; i < bm->patlen - 1; i++) {
->>>>>                bm->bad_shift[bm->pattern[i]] = bm->patlen - 1 - i;
+> Thomas, since there are some netfilter patches that depend
+> on the textsearch patches, do you want me to apply those as
+> well (haven't reviewed them yet though)?
 
-Therefore, at here, this makes bad_shift for upper case,
-
->>>>> +               if (icase)
->>>>> +                       bm->bad_shift[tolower(bm->pattern[i])]
->>>>> +                           = bm->patlen - 1 - i;
-
-At here, this makes bad_shift for lower case.
+Sure.
