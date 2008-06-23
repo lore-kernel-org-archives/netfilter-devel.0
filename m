@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 05/25] netns ct: per-netns conntrack count
-Date: Mon, 23 Jun 2008 12:12:14 +0200
-Message-ID: <485F76FE.8030602@trash.net>
-References: <20080622010411.GF5392@martell.zuzino.mipt.ru>
+Subject: Re: [PATCH 06/25] netns ct: per-netns conntrack hash
+Date: Mon, 23 Jun 2008 12:22:17 +0200
+Message-ID: <485F7959.9000901@trash.net>
+References: <20080622010605.GG5392@martell.zuzino.mipt.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
@@ -11,34 +11,53 @@ Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
 	benjamin.thery@bull.net, dlezcano@fr.ibm.com
 To: Alexey Dobriyan <adobriyan@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:43977 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:44180 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752120AbYFWKMT (ORCPT
+	with ESMTP id S1753340AbYFWKWW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Jun 2008 06:12:19 -0400
-In-Reply-To: <20080622010411.GF5392@martell.zuzino.mipt.ru>
+	Mon, 23 Jun 2008 06:22:22 -0400
+In-Reply-To: <20080622010605.GG5392@martell.zuzino.mipt.ru>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Alexey Dobriyan wrote:
-> proc and sysctl are stubbed to init_net's value, that's for later.
-> 
-> Note: conntracks are recycled RCU-way, netns as well.
-> During destruction, conntrack count of netns is decremented.
-> I'm not sure it's not racy and it will not decrement in freed netns
-> since conntrack doesn't pin netns (and pinning it is out of question).
-> Probably, decrement should be moved earlier.
-> 
-> FWIW, I haven't seen this race (if it exists at all). But my cloning
-> proggie sucks big way, so don't count on me. :^)
+> netns is given personal conntrack hash. Another way is to have one hash
+> and give tuplehashes ->ct_net pointer. I tried that at some point, it's
+> more ugly and more non-obvious.
 
+I think is makes more sense your way, otherwise eviction becomes much
+more complicated or people can easily DoS other namespaces.
 
-Since conntrack cleanup is invoken from netns cleanup while
-the namespace still exists, this shouldn't happen. The
-conntrack cleanup doesn't return until all entries are
-freed, creation of new entries is prevented by unregistering
-the hooks previously, at least without namespaces. Mhh ok,
-actually this can happen since the hooks don't seem to be
-per namespace. In that case, making sure that all devices
-from that namespace are unregistered previously should
-have the same effect.
+> Functions that search by tuple (numerical data) get netns argument
+> to know where to search as well as conntrack flush functions gets netns
+> argument propagated.
+> 
+> Everybody is stubbed to init_net, except trivial places.
+> 
+> --- a/include/net/netns/conntrack.h
+> +++ b/include/net/netns/conntrack.h
+> @@ -5,5 +5,7 @@
+>  
+>  struct netns_ct {
+>  	atomic_t	count;
+> +	struct hlist_head	*hash;
+> +	int			hash_vmalloc;
+
+Shouldn't the lock also be per namespace?
+
+> --- a/net/netfilter/nf_conntrack_core.c
+> +++ b/net/netfilter/nf_conntrack_core.c
+> @@ -49,15 +49,11 @@ EXPORT_SYMBOL_GPL(nf_conntrack_htable_size);
+>  int nf_conntrack_max __read_mostly;
+>  EXPORT_SYMBOL_GPL(nf_conntrack_max);
+>  
+> -struct hlist_head *nf_conntrack_hash __read_mostly;
+> -EXPORT_SYMBOL_GPL(nf_conntrack_hash);
+> -
+>  struct nf_conn nf_conntrack_untracked __read_mostly;
+>  EXPORT_SYMBOL_GPL(nf_conntrack_untracked);
+
+Just a general comments, maybe its done in a later patch. But
+for nf_conntrack_cleanup(), you also need to put the untrack
+entry in a namespace, otherwise different use in different
+namespaces will prevent cleanup from completing.
