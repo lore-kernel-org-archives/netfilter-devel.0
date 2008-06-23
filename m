@@ -1,83 +1,58 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: libnfq: mark functions as extern C
-Date: Mon, 23 Jun 2008 09:56:36 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0806230955540.22994@fbirervta.pbzchgretzou.qr>
+Subject: libnfnetlink: mark functions as extern C
+Date: Mon, 23 Jun 2008 09:59:33 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0806230959020.22994@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:41359 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:41375 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751051AbYFWH4i (ORCPT
+	with ESMTP id S1752105AbYFWH7e (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Jun 2008 03:56:38 -0400
+	Mon, 23 Jun 2008 03:59:34 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 7f2678a05bd590f18fa6688785ba11ec6845007b
+commit 079ff9c9c82629115711410d52bc88b84bbc3a8e
 Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Mon Jun 23 09:54:14 2008 +0200
+Date:   Mon Jun 23 09:58:34 2008 +0200
 
 mark functions as extern C
-    
+
 This is needed when #included from C++.
-    
+
 Reported-by: Simon <turner25@gmail.com>
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/libnetfilter_queue/libipq.h             |    8 ++++++++
- include/libnetfilter_queue/libnetfilter_queue.h |    8 +++++++-
- 2 files changed, 15 insertions(+), 1 deletions(-)
+ include/libnfnetlink/libnfnetlink.h |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
 
-diff --git a/include/libnetfilter_queue/libipq.h b/include/libnetfilter_queue/libipq.h
-index c33f7e4..0f0df22 100644
---- a/include/libnetfilter_queue/libipq.h
-+++ b/include/libnetfilter_queue/libipq.h
-@@ -50,6 +50,10 @@ typedef unsigned long ipq_id_t;
- #define MSG_TRUNC 0x20
- #endif
+diff --git a/include/libnfnetlink/libnfnetlink.h b/include/libnfnetlink/libnfnetlink.h
+index 3c64aac..83874e3 100644
+--- a/include/libnfnetlink/libnfnetlink.h
++++ b/include/libnfnetlink/libnfnetlink.h
+@@ -31,6 +31,10 @@
+ 
+ #define NFNL_BUFFSIZE		8192
  
 +#ifdef __cplusplus
 +extern "C" {
 +#endif
 +
- struct ipq_handle
- {
- 	struct nfq_handle *nfqnlh;
-@@ -84,5 +88,9 @@ int ipq_ctl(const struct ipq_handle *h, int request, ...);
- char *ipq_errstr(void);
- void ipq_perror(const char *s);
+ struct nfnlhdr {
+ 	struct nlmsghdr nlh;
+ 	struct nfgenmsg nfmsg;
+@@ -202,6 +206,10 @@ int nlif_index2name(struct nlif_handle *nlif_handle,
+ 		    unsigned int if_index, 
+ 		    char *name);
  
 +#ifdef __cplusplus
 +} /* extern "C" */
 +#endif
 +
- #endif	/* _LIBIPQ_H */
- 
-diff --git a/include/libnetfilter_queue/libnetfilter_queue.h b/include/libnetfilter_queue/libnetfilter_queue.h
-index 6695c3d..1a72c51 100644
---- a/include/libnetfilter_queue/libnetfilter_queue.h
-+++ b/include/libnetfilter_queue/libnetfilter_queue.h
-@@ -18,6 +18,10 @@
- 
- #include <libnetfilter_queue/linux_nfnetlink_queue.h>
- 
-+#ifdef __cplusplus
-+extern "C" {
-+#endif
-+
- struct nfq_handle;
- struct nfq_q_handle;
- struct nfq_data;
-@@ -94,6 +98,8 @@ extern struct nfqnl_msg_packet_hw *nfq_get_packet_hw(struct nfq_data *nfad);
- /* return -1 if problem, length otherwise */
- extern int nfq_get_payload(struct nfq_data *nfad, char **data);
- 
--
-+#ifdef __cplusplus
-+} /* extern "C" */
-+#endif
- 
- #endif	/* __LIBNFQNETLINK_H */
+ /* Pablo: What is the equivalence of be64_to_cpu in userspace?
+  * 
+  * Harald: Good question.  I don't think there's a standard way [yet?], 
 
