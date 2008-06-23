@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 06/25] netns ct: per-netns conntrack hash
-Date: Mon, 23 Jun 2008 12:22:17 +0200
-Message-ID: <485F7959.9000901@trash.net>
-References: <20080622010605.GG5392@martell.zuzino.mipt.ru>
+Subject: Re: [PATCH 07/25] netns ct: per-netns expectations
+Date: Mon, 23 Jun 2008 12:27:53 +0200
+Message-ID: <485F7AA9.7000308@trash.net>
+References: <20080622010643.GH5392@martell.zuzino.mipt.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
@@ -10,54 +10,41 @@ Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
 	den@openvz.org, xemul@openvz.org, ebiederm@xmission.com,
 	benjamin.thery@bull.net, dlezcano@fr.ibm.com
 To: Alexey Dobriyan <adobriyan@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:44180 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753340AbYFWKWW (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Jun 2008 06:22:22 -0400
-In-Reply-To: <20080622010605.GG5392@martell.zuzino.mipt.ru>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20080622010643.GH5392@martell.zuzino.mipt.ru>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 Alexey Dobriyan wrote:
-> netns is given personal conntrack hash. Another way is to have one hash
-> and give tuplehashes ->ct_net pointer. I tried that at some point, it's
-> more ugly and more non-obvious.
-
-I think is makes more sense your way, otherwise eviction becomes much
-more complicated or people can easily DoS other namespaces.
-
-> Functions that search by tuple (numerical data) get netns argument
-> to know where to search as well as conntrack flush functions gets netns
-> argument propagated.
+> Make per-netns expectation count, expectation hash.
 > 
-> Everybody is stubbed to init_net, except trivial places.
+> netns of expectations is netns of its master conntrack.
+> This way expectation is not bloated with netns pointer and something
+> is seriously wrong anyway if those two differ.
 > 
-> --- a/include/net/netns/conntrack.h
-> +++ b/include/net/netns/conntrack.h
-> @@ -5,5 +5,7 @@
->  
->  struct netns_ct {
->  	atomic_t	count;
-> +	struct hlist_head	*hash;
-> +	int			hash_vmalloc;
+> +static inline struct net *exp_net(struct nf_conntrack_expect *exp)
+> +{
+> +#ifdef CONFIG_NET_NS
+> +	return exp->master->ct_net;	/* by definition */
+> +#else
+> +	return &init_net;
+> +#endif
+> +}
 
-Shouldn't the lock also be per namespace?
+nf_ct_exp_net() or nf_ct_expect_net() please.
 
-> --- a/net/netfilter/nf_conntrack_core.c
-> +++ b/net/netfilter/nf_conntrack_core.c
-> @@ -49,15 +49,11 @@ EXPORT_SYMBOL_GPL(nf_conntrack_htable_size);
->  int nf_conntrack_max __read_mostly;
->  EXPORT_SYMBOL_GPL(nf_conntrack_max);
+> --- a/net/netfilter/nf_conntrack_expect.c
+> +++ b/net/netfilter/nf_conntrack_expect.c
+> @@ -28,17 +28,12 @@
+>  #include <net/netfilter/nf_conntrack_helper.h>
+>  #include <net/netfilter/nf_conntrack_tuple.h>
 >  
-> -struct hlist_head *nf_conntrack_hash __read_mostly;
-> -EXPORT_SYMBOL_GPL(nf_conntrack_hash);
+> -struct hlist_head *nf_ct_expect_hash __read_mostly;
+> -EXPORT_SYMBOL_GPL(nf_ct_expect_hash);
 > -
->  struct nf_conn nf_conntrack_untracked __read_mostly;
->  EXPORT_SYMBOL_GPL(nf_conntrack_untracked);
+>  unsigned int nf_ct_expect_hsize __read_mostly;
+>  EXPORT_SYMBOL_GPL(nf_ct_expect_hsize);
 
-Just a general comments, maybe its done in a later patch. But
-for nf_conntrack_cleanup(), you also need to put the untrack
-entry in a namespace, otherwise different use in different
-namespaces will prevent cleanup from completing.
+This one also needs to be in the namespace I think. BTW, are
+module parameters also per namespace?
+
