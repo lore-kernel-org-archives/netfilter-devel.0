@@ -1,45 +1,35 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 3/8] textsearch: fix Boyer-Moore algorithm for case insensitive
- searching
-Date: Mon, 23 Jun 2008 13:33:39 +0200
-Message-ID: <485F8A13.90808@trash.net>
-References: <1214034845-1316-1-git-send-email-joonwpark81@gmail.com>	 <485CBAE4.4030307@trash.net> <b25c3fa70806210217w48658acewc2f987414bd312c3@mail.gmail.com>
+From: "Juan Pablo Nelson" <juanpablonelson@gmail.com>
+Subject: How to add a new table?
+Date: Mon, 23 Jun 2008 08:58:57 -0300
+Message-ID: <94ce93aa0806230458qb7e6982o6e31b4bba084ac1a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netdev <netdev@vger.kernel.org>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	Thomas Graf <tgraf@suug.ch>
-To: Joonwoo Park <joonwpark81@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <b25c3fa70806210217w48658acewc2f987414bd312c3@mail.gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from qb-out-0506.google.com ([72.14.204.237]:43174 "EHLO
+	qb-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752440AbYFWL67 convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 23 Jun 2008 07:58:59 -0400
+Received: by qb-out-0506.google.com with SMTP id p36so6955610qba.17
+        for <netfilter-devel@vger.kernel.org>; Mon, 23 Jun 2008 04:58:59 -0700 (PDT)
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Joonwoo Park wrote:
-> 2008/6/21 Patrick McHardy <kaber@trash.net>:
->>> +static void compute_prefix_tbl(struct ts_bm *bm, u8 icase)
->>>  {
->>>        int i, j, g;
->>>          for (i = 0; i < ASIZE; i++)
->>>                bm->bad_shift[i] = bm->patlen;
->>> -       for (i = 0; i < bm->patlen - 1; i++)
->>> +       for (i = 0; i < bm->patlen - 1; i++) {
->>>                bm->bad_shift[bm->pattern[i]] = bm->patlen - 1 - i;
->>> +               if (icase)
->>> +                       bm->bad_shift[tolower(bm->pattern[i])]
->>> +                           = bm->patlen - 1 - i;
->>> +       }
->> You use toupper() above and tolower() here, is that correct?
->>
-> 
-> It should be, bm->pattern's characters are all upper case since It was
-> altered before.
-> So we should use toupper() for target string character to compare.
-> And to ignore case, we should prepare one more bad_shift array
-> calculation, opposite tolower() should be used for it.
+Hi all,
 
-OK thanks. I'll wait for an ACK from Thomas before applying
-them though.
+I=B4m trying to add a new table to netfilter/iptables framework. I read
+iptables and netfilter kernel code but didn=B4t realize how to do it.
 
+Another related question: where is located the code that set up filter =
+table?
+
+Thanks in advance,
+Juan Pablo
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
