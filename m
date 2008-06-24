@@ -1,40 +1,29 @@
-From: "Joonwoo Park" <joonwpark81@gmail.com>
-Subject: Re: [PATCH 1/8] textsearch: fix textsearch for case insensitive searching
-Date: Tue, 24 Jun 2008 07:56:34 -0700
-Message-ID: <b25c3fa70806240756g299f845l905761f77f35068c@mail.gmail.com>
-References: <1214034838-1270-1-git-send-email-joonwpark81@gmail.com>
-	 <485CB9F6.6050601@trash.net> <20080623232224.GG20815@postel.suug.ch>
-	 <4860E838.6090508@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 1/2] Netlink: add NLA_PUT_BE64 macro
+Date: Tue, 24 Jun 2008 17:23:42 +0200
+Message-ID: <4861117E.5040502@trash.net>
+References: <485a3c46.olkruYb9LvrAfxtt%ole@ans.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netdev <netdev@vger.kernel.org>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	"Pablo Neira Ayuso" <pablo@netfilter.org>
-To: "Patrick McHardy" <kaber@trash.net>, "Thomas Graf" <tgraf@suug.ch>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4860E838.6090508@trash.net>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Krzysztof Piotr Oledzki <ole@ans.pl>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:56283 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755735AbYFXPXq (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 Jun 2008 11:23:46 -0400
+In-Reply-To: <485a3c46.olkruYb9LvrAfxtt%ole@ans.pl>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-2008/6/24 Patrick McHardy <kaber@trash.net>:
-> Thomas Graf wrote:
->>
->> * Patrick McHardy <kaber@trash.net> 2008-06-21 10:21
->>>
->>> This looks fine to me, although a generic flags argument
->>> would prevent changing all users again next time someone
->>> wants to add a feature. But I'll leave that decision to
->>> Thomas.
->>
->> I agree, I'd favour a general flag for this as well.
->
->
-> Joonwoo, if you send me a replacement patch that uses a flag
-> instead I'm going to apply the entire series.
->
+Krzysztof Piotr Oledzki wrote:
+>>From bb5c78816df6d9506f5e0aa1c1e7432dcd6efc0d Mon Sep 17 00:00:00 2001
+> From: Krzysztof Piotr Oledzki <ole@ans.pl>
+> Date: Mon, 16 Jun 2008 22:48:49 +0200
+> Subject: Netlink: add NLA_PUT_BE64 macro
+> 
+> Add NLA_PUT_BE64 macro required for 64bit counters in netfilter
 
-Patrick, I'll resubmit the patch (maybe tonight) with some comments
-which are Thomas mentioned about
-Thanks.
+Applied, thanks.
