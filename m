@@ -1,63 +1,50 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCHv2] deliver events for conntracks created via ctnetlink
-Date: Tue, 24 Jun 2008 18:51:01 +0200
-Message-ID: <486125F5.3090806@netfilter.org>
-References: <4857A939.6050701@netfilter.org> <486118A9.5030808@trash.net>
+From: Krzysztof Oledzki <ole@ans.pl>
+Subject: Re: [PATCH 2/2] Netfilter: Accounting rework: ct_extend + 64bit
+ counters (v3)
+Date: Tue, 24 Jun 2008 19:13:53 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0806241910120.24680@bizon.gios.gov.pl>
+References: <485a3c49.C0A/tC0/U7AaZp3V%ole@ans.pl> <486114E9.9000809@trash.net>
+ <Pine.LNX.4.64.0806241804340.24680@bizon.gios.gov.pl> <486124C0.5070104@trash.net>
+ <alpine.LNX.1.10.0806241849200.31898@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-2076618532-1214327633=:24680"
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51378 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754087AbYFXQvG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Jun 2008 12:51:06 -0400
-In-Reply-To: <486118A9.5030808@trash.net>
+Received: from bizon.gios.gov.pl ([212.244.124.8]:39894 "EHLO
+	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754640AbYFXROA (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 Jun 2008 13:14:00 -0400
+In-Reply-To: <alpine.LNX.1.10.0806241849200.31898@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy wrote:
-> Pablo Neira Ayuso wrote:
->> As for now, the creation and update of conntracks via ctnetlink do not
->> propagate an event to userspace. This can result in inconsistent
->> situations if several userspace processes modify the connection tracking
->> table by means of ctnetlink at the same time. Specifically, using the
->> conntrack command line tool and conntrackd at the same time can trigger
->> unconsistencies.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+---187430788-2076618532-1214327633=:24680
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+
+
+On Tue, 24 Jun 2008, Jan Engelhardt wrote:
+
+>
+> On Tuesday 2008-06-24 18:45, Patrick McHardy wrote:
 >>
->> This patch fixes this inconsistent situation. Note that the deletion
->> does not suffer from this problem.
->>
->> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-> 
-> Unfortunately all the change functions are deadlock prone,
-> they are called while holding the conntrack lock and
-> event delivery might trigger destruction of the conntrack
-> entry already in the cache, which takes the lock again.
+>> sysctls using the sysctl() syscall are deprecated if I'm
+>> not mistaken. sysfs also allows to change module parameters
+>> at runtime, but sure, keep it, it will be gone soon enough.
+>
+> The entire sysctl(2) mechanism is deprecated.
 
-Indeed. I didn't notice the nf_ct_event_cache_init path.
+That's why I used CTL_UNNUMBERED here.
 
-> Perhaps we can do all this much easier. Conntrack updates
-> over netlink are a lot more rare than events triggered
-> by packet processing. What do you think about just sending
-> the full entry on successful changes over ctnetlink?
+http://www.kernel.org/doc/Documentation/sysctl/ctl_unnumbered.txt
 
-Yes, that is simple.
+Best regards,
 
-> A few minor nits:
-> 
->> +            atomic_inc(&ct->ct_general.use);
-> 
-> Should be using nf_conntrack_get().
-
-OK
-
-> Also the patch adds newlines excessively, to a file already
-> containing about 20% empty lines.
-
-OK, I'll fix those.
-
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+ =09=09=09=09Krzysztof Ol=EAdzki
+---187430788-2076618532-1214327633=:24680--
