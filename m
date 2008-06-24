@@ -1,30 +1,33 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/8] textsearch: fix textsearch for case insensitive searching
-Date: Tue, 24 Jun 2008 14:27:36 +0200
-Message-ID: <4860E838.6090508@trash.net>
-References: <1214034838-1270-1-git-send-email-joonwpark81@gmail.com> <485CB9F6.6050601@trash.net> <20080623232224.GG20815@postel.suug.ch>
+From: Thomas Graf <tgraf@suug.ch>
+Subject: Re: [PATCH 0/8] textsearch: case insensitive pattern matching for netfilter
+Date: Tue, 24 Jun 2008 16:00:04 +0200
+Message-ID: <20080624140004.GI20815@postel.suug.ch>
+References: <b25c3fa70806210054o74a46068ifa3b396662080265@mail.gmail.com> <20080623232756.GH20815@postel.suug.ch> <b25c3fa70806231825q21144461jdcc20cc77aff8c80@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Joonwoo Park <joonwpark81@gmail.com>,
-	netdev <netdev@vger.kernel.org>,
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>,
 	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Thomas Graf <tgraf@suug.ch>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20080623232224.GG20815@postel.suug.ch>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+	netdev <netdev@vger.kernel.org>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	David Miller <davem@davemloft.net>
+To: Joonwoo Park <joonwpark81@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from postel.suug.ch ([194.88.212.233]:50763 "EHLO postel.suug.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760085AbYFXN7o (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 Jun 2008 09:59:44 -0400
+Content-Disposition: inline
+In-Reply-To: <b25c3fa70806231825q21144461jdcc20cc77aff8c80@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Thomas Graf wrote:
-> * Patrick McHardy <kaber@trash.net> 2008-06-21 10:21
->> This looks fine to me, although a generic flags argument
->> would prevent changing all users again next time someone
->> wants to add a feature. But I'll leave that decision to
->> Thomas.
+* Joonwoo Park <joonwpark81@gmail.com> 2008-06-23 18:25
+> 2008/6/23 Thomas Graf <tgraf@suug.ch>:
+> > It should be noted that this may slow down the algorithms noticeable for
+> > very large strings such as skb data buffers.
+> >
 > 
-> I agree, I'd favour a general flag for this as well.
+> Do you mean a note by commenting on the code? or any message to user?
 
-
-Joonwoo, if you send me a replacement patch that uses a flag
-instead I'm going to apply the entire series.
+It would be a useful comment in the documentation as users may not
+expect it.
