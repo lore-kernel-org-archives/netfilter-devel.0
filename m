@@ -1,68 +1,120 @@
-From: "Joonwoo Park" <joonwpark81@gmail.com>
-Subject: Re: [PATCH 6/8 v2] netfilter: fix string extension for case insensitive pattern matching
-Date: Fri, 27 Jun 2008 02:49:34 -0700
-Message-ID: <b25c3fa70806270249m2a6e8962r6e8e1fd3c18d82a0@mail.gmail.com>
-References: <1214389505-21405-1-git-send-email-joonwpark81@gmail.com>
-	 <4862260A.9060304@trash.net> <20080626021241.GA26212@tp64>
-	 <48637EBA.6080003@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [ANNOUNCE] libnfnetlink and libnetfilter_* libraries release
+Date: Fri, 27 Jun 2008 15:52:50 +0200
+Message-ID: <4864F0B2.5060002@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netdev <netdev@vger.kernel.org>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	"Thomas Graf" <tgraf@suug.ch>,
-	"Pablo Neira Ayuso" <pablo@netfilter.org>
-To: "Patrick McHardy" <kaber@trash.net>
+Content-Type: multipart/mixed;
+ boundary="------------000309000103060805090106"
+Cc: netfilter-announce@lists.netfilter.org,
+	netfilter-devel@vger.kernel.org, lwn@lwn.net
+To: netfilter@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.235]:41311 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752001AbYF0Jtf (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Jun 2008 05:49:35 -0400
-Received: by rv-out-0506.google.com with SMTP id k40so481731rvb.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 27 Jun 2008 02:49:35 -0700 (PDT)
-In-Reply-To: <48637EBA.6080003@trash.net>
-Content-Disposition: inline
+Received: from mail.us.es ([193.147.175.20]:48757 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751147AbYF0Nw4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 27 Jun 2008 09:52:56 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-2008/6/26 Patrick McHardy <kaber@trash.net>:
-> Joonwoo Park wrote:
->>
->> netfilter: fix string extension for case insensitive pattern matching
->>
->> The flag XT_STRING_FLAG_IGNORECASE indicates case insensitive string
->> matching.
->> netfilter can find cmd.exe, Cmd.exe, cMd.exe and etc easily.
->>
->> Also this patch won't break compatibility since we have 2 bytes space
->> between invert and config, due to config was 8 bytes aligned.
->> So we can put a new value 'flags' in xt_string_info between invert and
->> config safely.
->> If previous version of iptables interact with this kernel, to kernel
->> side, flags will be set to zero and to user side, flags will be ignored.
->
-> This makes it hard for userspace to know whether insensitive
-> search is supported or not, similar for possible future flag
-> additions.
->
-> Please
->
-> - add a new revision for userspace to know whether flags are
->  supported at all. You don't need to duplicate the checkentry
->  function for this since the structure layout didn't change,
->  you can simply parse flags dependant on match->revision.
->  Userspace can use the existance of the new revision as
->  indication that flags are supported.
->
-> - check for unknown flags and return an error
->
+This is a multi-part message in MIME format.
+--------------000309000103060805090106
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Hi Patrick,
-Thanks for your advice.
-Since I'm traveling America, so maybe I could catch up these things
-you've asked next weekend.
-I don't need to rush, do I?
+Hi!
 
-Thanks again,
-Joonwoo
+The netfilter project proudly presents:
+
+  * libnfnetlink-0.0.39
+  * libnetfilter_conntrack-0.0.95
+  * libnetfilter_queue-0.0.16
+  * libnetfilter_log-0.0.14
+
+This release set includes bugfixes for the userspace netfilter
+libraries. See ChangeLog for more details. Upgrade is recommended.
+
+You can download them from:
+
+http://www.netfilter.org
+ftp://ftp.netfilter.org
+
+Enjoy,
+Pablo - on behalf of the Netfilter Project.
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
+
+
+
+
+--------------000309000103060805090106
+Content-Type: text/plain;
+ name="changelog-libnetfilter_conntrack"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="changelog-libnetfilter_conntrack"
+
+Fabian Hugelshofer (1):
+      Use union of char buffer and message header to ensure proper byte
+
+Pablo Neira Ayuso (2):
+      fix wrong ATTR_*_L3PROTO handling in the message building
+      bump version to 0.0.95
+
+
+--------------000309000103060805090106
+Content-Type: text/plain;
+ name="changelog-libnetfilter_log"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="changelog-libnetfilter_log"
+
+KOVACS Krisztian (1):
+      libnetfilter_log pkt-config changes 
+
+Patrick McHardy (1):
+      Add NFULA_GID support
+
+Fabian Hugelshofer (1):
+      Use union to ensure proper alignment
+
+Pablo Neira Ayuso (1):
+      bump version to 0.0.14
+
+--------------000309000103060805090106
+Content-Type: text/plain;
+ name="changelog-libnetfilter_queue"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="changelog-libnetfilter_queue"
+
+Paul P. Komkoff (1):
+      fix compilation issues on newer toolchains
+
+Fabian Hugelshofer (1):
+      fix alignment issues
+
+Jan Engelhardt (1):
+      libnfq: mark functions as extern C
+
+Pablo Neira Ayuso (2):
+      bump version to 0.0.16 and bump libnfnetlink dependencies
+
+--------------000309000103060805090106
+Content-Type: text/plain;
+ name="changelog-libnfnetlink"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="changelog-libnfnetlink"
+
+Fabian Hugelshofer (1):
+      Aligns buffers to maximum alignment of architecture
+
+Jan Engelhardt (1):
+      libnfnetlink: mark functions as extern C
+
+Pablo Neira Ayuso (1):
+      bump version to 0.0.39
+
+
+--------------000309000103060805090106--
