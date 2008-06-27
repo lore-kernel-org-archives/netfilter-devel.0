@@ -1,120 +1,73 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] libnfnetlink and libnetfilter_* libraries release
-Date: Fri, 27 Jun 2008 15:52:50 +0200
-Message-ID: <4864F0B2.5060002@netfilter.org>
+From: Eric Leblond <eric@inl.fr>
+Subject: Re: [ULOGD PATCH 3/6] Fix warning about unused variable if
+	NFLOG_GID is not available.
+Date: Fri, 27 Jun 2008 21:41:33 +0200
+Message-ID: <20080627194133.GA6761@bayen.regit.org>
+References: <1213878187-909-1-git-send-email-eric@inl.fr> <1213878187-909-4-git-send-email-eric@inl.fr> <485FB260.3020004@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------000309000103060805090106"
-Cc: netfilter-announce@lists.netfilter.org,
-	netfilter-devel@vger.kernel.org, lwn@lwn.net
-To: netfilter@vger.kernel.org
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="VS++wcV0S1rZb1Fb"
+Cc: netfilter-devel@vger.kernel.org, chifflier@inl.fr
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48757 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751147AbYF0Nw4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Jun 2008 09:52:56 -0400
+Received: from fydelkass.inl.fr ([195.101.59.116]:42926 "EHLO fydelkass.inl.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755454AbYF0Tga (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 27 Jun 2008 15:36:30 -0400
+Content-Disposition: inline
+In-Reply-To: <485FB260.3020004@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------000309000103060805090106
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 
-Hi!
+--VS++wcV0S1rZb1Fb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The netfilter project proudly presents:
+Hello,
 
-  * libnfnetlink-0.0.39
-  * libnetfilter_conntrack-0.0.95
-  * libnetfilter_queue-0.0.16
-  * libnetfilter_log-0.0.14
-
-This release set includes bugfixes for the userspace netfilter
-libraries. See ChangeLog for more details. Upgrade is recommended.
-
-You can download them from:
-
-http://www.netfilter.org
-ftp://ftp.netfilter.org
-
-Enjoy,
-Pablo - on behalf of the Netfilter Project.
-
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+On Monday, 2008 June 23 at 16:25:36 +0200, Pablo Neira Ayuso wrote:
+> Eric Leblond wrote:
+> > This patch fixes a warning about an unused variable if NFLOG_GID is not=
+ available
+> > in libnetfilter_log.
+>=20
+> AFAIK, this warning happens if we use an old version of the library, righ=
+t?
 
 
+Yes.
 
+> As I'm about to conclude a massive release of libraries and the tools, I
+> think that forcing the use of a recent library version is better as it
+> also contains several bugfixes.
 
---------------000309000103060805090106
-Content-Type: text/plain;
- name="changelog-libnetfilter_conntrack"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="changelog-libnetfilter_conntrack"
+Users prefer to use the library packaged in their system and it will
+take some time before every distribution includes the required
+libnfnetlink_log. This patch finishes to provide a clean backward
+compatibility at a really low cost.
 
-Fabian Hugelshofer (1):
-      Use union of char buffer and message header to ensure proper byte
+Furthermore, I don't think a gcc warning about "unused variable" will
+force a lot of people to upgrade ;)
 
-Pablo Neira Ayuso (2):
-      fix wrong ATTR_*_L3PROTO handling in the message building
-      bump version to 0.0.95
+BR,
+--=20
+Eric Leblond
+INL: http://www.inl.fr/
+NuFW: http://www.nufw.org/
 
+--VS++wcV0S1rZb1Fb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
 
---------------000309000103060805090106
-Content-Type: text/plain;
- name="changelog-libnetfilter_log"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="changelog-libnetfilter_log"
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
 
-KOVACS Krisztian (1):
-      libnetfilter_log pkt-config changes 
+iD8DBQFIZUJtnxA7CdMWjzIRAtKpAJ90lhNX/kviPXA8fcgZabWc5qPCeQCfZwCS
+Wuze6UBUGkRjlClH2iTi4Dc=
+=PEWt
+-----END PGP SIGNATURE-----
 
-Patrick McHardy (1):
-      Add NFULA_GID support
-
-Fabian Hugelshofer (1):
-      Use union to ensure proper alignment
-
-Pablo Neira Ayuso (1):
-      bump version to 0.0.14
-
---------------000309000103060805090106
-Content-Type: text/plain;
- name="changelog-libnetfilter_queue"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="changelog-libnetfilter_queue"
-
-Paul P. Komkoff (1):
-      fix compilation issues on newer toolchains
-
-Fabian Hugelshofer (1):
-      fix alignment issues
-
-Jan Engelhardt (1):
-      libnfq: mark functions as extern C
-
-Pablo Neira Ayuso (2):
-      bump version to 0.0.16 and bump libnfnetlink dependencies
-
---------------000309000103060805090106
-Content-Type: text/plain;
- name="changelog-libnfnetlink"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="changelog-libnfnetlink"
-
-Fabian Hugelshofer (1):
-      Aligns buffers to maximum alignment of architecture
-
-Jan Engelhardt (1):
-      libnfnetlink: mark functions as extern C
-
-Pablo Neira Ayuso (1):
-      bump version to 0.0.39
-
-
---------------000309000103060805090106--
+--VS++wcV0S1rZb1Fb--
