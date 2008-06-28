@@ -1,21 +1,20 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: [ULOGD PATCH 3/6] Fix warning about unused variable if	NFLOG_GID
   is not available.
-Date: Sat, 28 Jun 2008 12:45:48 +0200
-Message-ID: <4866165C.8000903@netfilter.org>
+Date: Sat, 28 Jun 2008 12:45:52 +0200
+Message-ID: <48661660.9030303@netfilter.org>
 References: <1213878187-909-1-git-send-email-eric@inl.fr> <1213878187-909-4-git-send-email-eric@inl.fr> <485FB260.3020004@netfilter.org> <20080627194133.GA6761@bayen.regit.org> <20080627202908.GB6761@bayen.regit.org> <48660A46.8090805@netfilter.org> <20080628102559.GC6761@bayen.regit.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-To: Eric Leblond <eric@inl.fr>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org, chifflier@inl.fr
+To: Eric Leblond <eric@inl.fr>, netfilter-devel@vger.kernel.org,
+	chifflier@inl.fr
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from relay-av.club-internet.fr ([194.158.96.107]:57896 "EHLO
+Received: from relay-av.club-internet.fr ([194.158.96.107]:57900 "EHLO
 	relay-av.club-internet.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754484AbYF1Kpv (ORCPT
+	with ESMTP id S1754447AbYF1Kpx (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 28 Jun 2008 06:45:51 -0400
+	Sat, 28 Jun 2008 06:45:53 -0400
 In-Reply-To: <20080628102559.GC6761@bayen.regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
