@@ -1,93 +1,37 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: [ULOGD PATCH 6/6] Sync PRINTPKT with mac modification.
-Date: Sat, 28 Jun 2008 01:03:00 +0200
-Message-ID: <1214607780-31389-7-git-send-email-eric@inl.fr>
-References: <485FB66A.1090601@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@inl.fr>
-To: pablo@netfilter.org
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 2/2] Netfilter: Accounting rework: ct_extend + 64bit
+ counters (v3)
+Date: Sat, 28 Jun 2008 11:09:46 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0806281109160.12725@fbirervta.pbzchgretzou.qr>
+References: <485a3c49.C0A/tC0/U7AaZp3V%ole@ans.pl> <486114E9.9000809@trash.net> <Pine.LNX.4.64.0806241804340.24680@bizon.gios.gov.pl> <486124C0.5070104@trash.net> <alpine.LNX.1.10.0806241849200.31898@fbirervta.pbzchgretzou.qr>
+ <Pine.LNX.4.64.0806241910120.24680@bizon.gios.gov.pl>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: Krzysztof Oledzki <ole@ans.pl>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:56484 "EHLO ice-age"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1764366AbYF0W5u (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Jun 2008 18:57:50 -0400
-In-Reply-To: <485FB66A.1090601@netfilter.org>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:35495 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751289AbYF1JJs (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 28 Jun 2008 05:09:48 -0400
+In-Reply-To: <Pine.LNX.4.64.0806241910120.24680@bizon.gios.gov.pl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch synchronizes the PRINTPKT plugin with the replacement
-of raw.mac by raw.mac.saddr and raw.mac.daddr. It now displays
-a SMAC and a DMAC field in the message.
 
-Signed-off-by: Eric Leblond <eric@inl.fr>
----
- include/ulogd/printpkt.h |    3 ++-
- util/printpkt.c          |   26 +++++++++++++++++++++-----
- 2 files changed, 23 insertions(+), 6 deletions(-)
+On Tuesday 2008-06-24 19:13, Krzysztof Oledzki wrote:
+>> On Tuesday 2008-06-24 18:45, Patrick McHardy wrote:
+>> >
+>> > sysctls using the sysctl() syscall are deprecated if I'm
+>> > not mistaken. sysfs also allows to change module parameters
+>> > at runtime, but sure, keep it, it will be gone soon enough.
+>>
+>> The entire sysctl(2) mechanism is deprecated.
+>
+> That's why I used CTL_UNNUMBERED here.
+>
+> http://www.kernel.org/doc/Documentation/sysctl/ctl_unnumbered.txt
 
-diff --git a/include/ulogd/printpkt.h b/include/ulogd/printpkt.h
-index 6207d5b..7294743 100644
---- a/include/ulogd/printpkt.h
-+++ b/include/ulogd/printpkt.h
-@@ -10,7 +10,8 @@ enum pkt_keys {
- 	KEY_OOB_UID,
- 	KEY_OOB_GID,
- 	KEY_OOB_MARK,
--	KEY_RAW_MAC,
-+	KEY_RAW_MAC_SADDR,
-+	KEY_RAW_MAC_DADDR,
- 	KEY_RAW_MACLEN,
- 	KEY_IP_SADDR,
- 	KEY_IP_DADDR,
-diff --git a/util/printpkt.c b/util/printpkt.c
-index 90fec0e..d08ec92 100644
---- a/util/printpkt.c
-+++ b/util/printpkt.c
-@@ -52,7 +52,12 @@ struct ulogd_key printpkt_keys[] = {
- 				    .flags = ULOGD_KEYF_OPTIONAL
- 				  },
- 	[KEY_OOB_MARK]		= { .name = "oob.mark", },
--	[KEY_RAW_MAC]		= { .name = "raw.mac", },
-+	[KEY_RAW_MAC_SADDR]	= { .name = "raw.mac.saddr",
-+				    .flags = ULOGD_KEYF_OPTIONAL
-+				  },
-+	[KEY_RAW_MAC_DADDR]	= { .name = "raw.mac.daddr", 
-+				    .flags = ULOGD_KEYF_OPTIONAL
-+				  },
- 	[KEY_RAW_MACLEN]	= { .name = "raw.mac_len", },
- 	[KEY_IP_SADDR]		= { .name = "ip.saddr.str", },
- 	[KEY_IP_DADDR]		= { .name = "ip.daddr.str", },
-@@ -430,16 +435,27 @@ int printpkt_print(struct ulogd_key *res, char *buf)
- 				   (char *) GET_VALUE(res, KEY_OOB_OUT).ptr);
- 
- 	/* FIXME: configurable */
--	if (pp_is_valid(res, KEY_RAW_MAC)) {
--		unsigned char *mac = (unsigned char *) GET_VALUE(res, KEY_RAW_MAC).ptr;
-+	if (pp_is_valid(res, KEY_RAW_MAC_SADDR)) {
-+		unsigned char *mac = (unsigned char *) GET_VALUE(res, KEY_RAW_MAC_SADDR).ptr;
-+		int i, len = GET_VALUE(res, KEY_RAW_MACLEN).ui16;
-+
-+		buf_cur += sprintf(buf_cur, "SMAC=");
-+		for (i = 0; i < len; i++)
-+			buf_cur += sprintf(buf_cur, "%02x%c", mac[i],
-+					   i == len - 1 ? ' ' : ':');
-+	} else
-+		buf_cur += sprintf(buf_cur, "SMAC= ");
-+
-+	if (pp_is_valid(res, KEY_RAW_MAC_DADDR)) {
-+		unsigned char *mac = (unsigned char *) GET_VALUE(res, KEY_RAW_MAC_DADDR).ptr;
- 		int i, len = GET_VALUE(res, KEY_RAW_MACLEN).ui16;
- 
--		buf_cur += sprintf(buf_cur, "MAC=");
-+		buf_cur += sprintf(buf_cur, "DMAC=");
- 		for (i = 0; i < len; i++)
- 			buf_cur += sprintf(buf_cur, "%02x%c", mac[i],
- 					   i == len - 1 ? ' ' : ':');
- 	} else
--		buf_cur += sprintf(buf_cur, "MAC= ");
-+		buf_cur += sprintf(buf_cur, "DMAC= ");
- 
- 	switch (GET_VALUE(res, KEY_OOB_FAMILY).ui8) {
- 	case AF_INET:
--- 
-1.5.4.3
-
+But still, if a module_param suffices, I do not see a need for
+providing an additional user-visible api via sysctl.
