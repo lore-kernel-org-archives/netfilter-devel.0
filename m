@@ -1,176 +1,89 @@
 From: Sven Wegener <sven.wegener@stealer.net>
-Subject: [PATCH 1/6] ipset/iptreemap: Remove needless casts of void pointers
-Date: Sun, 29 Jun 2008 19:44:58 +0200
-Message-ID: <1214761503-1713-2-git-send-email-sven.wegener@stealer.net>
+Subject: [PATCH 3/6] ipset/iptreemap: Use non-atomic bit operations
+Date: Sun, 29 Jun 2008 19:45:00 +0200
+Message-ID: <1214761503-1713-4-git-send-email-sven.wegener@stealer.net>
 References: <1214761503-1713-1-git-send-email-sven.wegener@stealer.net>
 Cc: netfilter-devel@vger.kernel.org
 To: kadlec@blackhole.kfki.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.stealer.net ([88.198.224.204]:44947 "EHLO
+Received: from smtp1.stealer.net ([88.198.224.204]:44954 "EHLO
 	smtp1.stealer.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754082AbYF2RpP (ORCPT
+	with ESMTP id S1754158AbYF2RpR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 29 Jun 2008 13:45:15 -0400
+	Sun, 29 Jun 2008 13:45:17 -0400
 In-Reply-To: <1214761503-1713-1-git-send-email-sven.wegener@stealer.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Remove needless casts from and to void pointers.
+We can use the non-atomic bit operations, because we are already protected by a
+per set rw spinlock.
 
 Signed-off-by: Sven Wegener <sven.wegener@stealer.net>
 ---
- .../net/ipv4/netfilter/ip_set_iptreemap.c          |   34 ++++++++++----------
- 1 files changed, 17 insertions(+), 17 deletions(-)
+ .../net/ipv4/netfilter/ip_set_iptreemap.c          |   18 +++++++++---------
+ 1 files changed, 9 insertions(+), 9 deletions(-)
 
 diff --git a/patchlets/set/linux-2.6/net/ipv4/netfilter/ip_set_iptreemap.c b/patchlets/set/linux-2.6/net/ipv4/netfilter/ip_set_iptreemap.c
-index 3825055..fcf882e 100644
+index dfd486a..6045741 100644
 --- a/patchlets/set/linux-2.6/net/ipv4/netfilter/ip_set_iptreemap.c
 +++ b/patchlets/set/linux-2.6/net/ipv4/netfilter/ip_set_iptreemap.c
-@@ -260,7 +260,7 @@ free_b(struct ip_set_iptreemap_b *map)
- static inline int
- __testip(struct ip_set *set, ip_set_ip_t ip, ip_set_ip_t *hash_ip)
- {
--	struct ip_set_iptreemap *map = (struct ip_set_iptreemap *) set->data;
-+	struct ip_set_iptreemap *map = set->data;
- 	struct ip_set_iptreemap_b *btree;
- 	struct ip_set_iptreemap_c *ctree;
- 	struct ip_set_iptreemap_d *dtree;
-@@ -280,7 +280,7 @@ __testip(struct ip_set *set, ip_set_ip_t ip, ip_set_ip_t *hash_ip)
- static int
- testip(struct ip_set *set, const void *data, size_t size, ip_set_ip_t *hash_ip)
- {
--	struct ip_set_req_iptreemap *req = (struct ip_set_req_iptreemap *) data;
-+	const struct ip_set_req_iptreemap *req = data;
+@@ -324,10 +324,10 @@ __addip_single(struct ip_set *set, ip_set_ip_t ip, ip_set_ip_t *hash_ip)
+ 	ADDIP_WALK(btree, b, ctree, struct ip_set_iptreemap_c, cachep_c, fullbitmap_c);
+ 	ADDIP_WALK(ctree, c, dtree, struct ip_set_iptreemap_d, cachep_d, fullbitmap_d);
  
- 	if (size != sizeof(struct ip_set_req_iptreemap)) {
- 		ip_set_printk("data length wrong (want %zu, have %zu)", sizeof(struct ip_set_req_iptreemap), size);
-@@ -337,7 +337,7 @@ __addip_single(struct ip_set *set, ip_set_ip_t ip, ip_set_ip_t *hash_ip)
- static inline int
- __addip_range(struct ip_set *set, ip_set_ip_t start, ip_set_ip_t end, ip_set_ip_t *hash_ip)
- {
--	struct ip_set_iptreemap *map = (struct ip_set_iptreemap *) set->data;
-+	struct ip_set_iptreemap *map = set->data;
- 	struct ip_set_iptreemap_b *btree;
- 	struct ip_set_iptreemap_c *ctree;
- 	struct ip_set_iptreemap_d *dtree;
-@@ -370,7 +370,7 @@ __addip_range(struct ip_set *set, ip_set_ip_t start, ip_set_ip_t end, ip_set_ip_
- static int
- addip(struct ip_set *set, const void *data, size_t size, ip_set_ip_t *hash_ip)
- {
--	struct ip_set_req_iptreemap *req = (struct ip_set_req_iptreemap *) data;
-+	const struct ip_set_req_iptreemap *req = data;
+-	if (test_and_set_bit(d, (void *) dtree->bitmap))
++	if (__test_and_set_bit(d, (void *) dtree->bitmap))
+ 		return -EEXIST;
  
- 	if (size != sizeof(struct ip_set_req_iptreemap)) {
- 		ip_set_printk("data length wrong (want %zu, have %zu)", sizeof(struct ip_set_req_iptreemap), size);
-@@ -399,7 +399,7 @@ addip_kernel(struct ip_set *set, const struct sk_buff *skb, ip_set_ip_t *hash_ip
- static inline int
- __delip_single(struct ip_set *set, ip_set_ip_t ip, ip_set_ip_t *hash_ip, unsigned int __nocast flags)
- {
--	struct ip_set_iptreemap *map = (struct ip_set_iptreemap *) set->data;
-+	struct ip_set_iptreemap *map = set->data;
- 	struct ip_set_iptreemap_b *btree;
- 	struct ip_set_iptreemap_c *ctree;
- 	struct ip_set_iptreemap_d *dtree;
-@@ -424,7 +424,7 @@ __delip_single(struct ip_set *set, ip_set_ip_t ip, ip_set_ip_t *hash_ip, unsigne
- static inline int
- __delip_range(struct ip_set *set, ip_set_ip_t start, ip_set_ip_t end, ip_set_ip_t *hash_ip, unsigned int __nocast flags)
- {
--	struct ip_set_iptreemap *map = (struct ip_set_iptreemap *) set->data;
-+	struct ip_set_iptreemap *map = set->data;
- 	struct ip_set_iptreemap_b *btree;
- 	struct ip_set_iptreemap_c *ctree;
- 	struct ip_set_iptreemap_d *dtree;
-@@ -457,7 +457,7 @@ __delip_range(struct ip_set *set, ip_set_ip_t start, ip_set_ip_t end, ip_set_ip_
- static int
- delip(struct ip_set *set, const void *data, size_t size, ip_set_ip_t *hash_ip)
- {
--	struct ip_set_req_iptreemap *req = (struct ip_set_req_iptreemap *) data;
-+	const struct ip_set_req_iptreemap *req = data;
+-	set_bit(b, (void *) btree->dirty);
++	__set_bit(b, (void *) btree->dirty);
  
- 	if (size != sizeof(struct ip_set_req_iptreemap)) {
- 		ip_set_printk("data length wrong (want %zu, have %zu)", sizeof(struct ip_set_req_iptreemap), size);
-@@ -505,7 +505,7 @@ static void
- gc(unsigned long addr)
- {
- 	struct ip_set *set = (struct ip_set *) addr;
--	struct ip_set_iptreemap *map = (struct ip_set_iptreemap *) set->data;
-+	struct ip_set_iptreemap *map = set->data;
- 	struct ip_set_iptreemap_b *btree;
- 	struct ip_set_iptreemap_c *ctree;
- 	struct ip_set_iptreemap_d *dtree;
-@@ -544,7 +544,7 @@ gc(unsigned long addr)
- static inline void
- init_gc_timer(struct ip_set *set)
- {
--	struct ip_set_iptreemap *map = (struct ip_set_iptreemap *) set->data;
-+	struct ip_set_iptreemap *map = set->data;
- 
- 	init_timer(&map->gc);
- 	map->gc.data = (unsigned long) set;
-@@ -555,7 +555,7 @@ init_gc_timer(struct ip_set *set)
- 
- static int create(struct ip_set *set, const void *data, size_t size)
- {
--	struct ip_set_req_iptreemap_create *req = (struct ip_set_req_iptreemap_create *) data;
-+	const struct ip_set_req_iptreemap_create *req = data;
- 	struct ip_set_iptreemap *map;
- 
- 	if (size != sizeof(struct ip_set_req_iptreemap_create)) {
-@@ -588,7 +588,7 @@ static inline void __flush(struct ip_set_iptreemap *map)
- 
- static void destroy(struct ip_set *set)
- {
--	struct ip_set_iptreemap *map = (struct ip_set_iptreemap *) set->data;
-+	struct ip_set_iptreemap *map = set->data;
- 
- 	while (!del_timer(&map->gc))
- 		msleep(IPTREEMAP_DESTROY_SLEEP);
-@@ -601,7 +601,7 @@ static void destroy(struct ip_set *set)
- 
- static void flush(struct ip_set *set)
- {
--	struct ip_set_iptreemap *map = (struct ip_set_iptreemap *) set->data;
-+	struct ip_set_iptreemap *map = set->data;
- 
- 	while (!del_timer(&map->gc))
- 		msleep(IPTREEMAP_DESTROY_SLEEP);
-@@ -615,15 +615,15 @@ static void flush(struct ip_set *set)
- 
- static void list_header(const struct ip_set *set, void *data)
- {
--	struct ip_set_iptreemap *map = (struct ip_set_iptreemap *) set->data;
--	struct ip_set_req_iptreemap_create *header = (struct ip_set_req_iptreemap_create *) data;
-+	struct ip_set_iptreemap *map = set->data;
-+	struct ip_set_req_iptreemap_create *header = data;
- 
- 	header->gc_interval = map->gc_interval;
+ 	return 0;
  }
+@@ -356,8 +356,8 @@ __addip_range(struct ip_set *set, ip_set_ip_t start, ip_set_ip_t end, ip_set_ip_
+ 		ADDIP_RANGE_LOOP(btree, b, GETVALUE1(a, a1, b1, 0), GETVALUE1(a, a2, b2, 255), CHECK2(a, b, a1, a2, b1, b2, c1, c2, d1, d2), ctree, fullbitmap_c, cachep_c, free_c) {
+ 			ADDIP_RANGE_LOOP(ctree, c, GETVALUE2(a, b, a1, b1, c1, 0), GETVALUE2(a, b, a2, b2, c2, 255), CHECK3(a, b, c, a1, a2, b1, b2, c1, c2, d1, d2), dtree, fullbitmap_d, cachep_d, free_d) {
+ 				for (d = GETVALUE3(a, b, c, a1, b1, c1, d1, 0); d <= GETVALUE3(a, b, c, a2, b2, c2, d2, 255); d++)
+-					set_bit(d, (void *) dtree->bitmap);
+-				set_bit(b, (void *) btree->dirty);
++					__set_bit(d, (void *) dtree->bitmap);
++				__set_bit(b, (void *) btree->dirty);
+ 			} ADDIP_RANGE_LOOP_END();
+ 		} ADDIP_RANGE_LOOP_END();
+ 	} ADDIP_RANGE_LOOP_END();
+@@ -411,10 +411,10 @@ __delip_single(struct ip_set *set, ip_set_ip_t ip, ip_set_ip_t *hash_ip, unsigne
+ 	DELIP_WALK(btree, b, ctree, cachep_c, fullbitmap_c, flags);
+ 	DELIP_WALK(ctree, c, dtree, cachep_d, fullbitmap_d, flags);
  
- static int list_members_size(const struct ip_set *set)
- {
--	struct ip_set_iptreemap *map = (struct ip_set_iptreemap *) set->data;
-+	struct ip_set_iptreemap *map = set->data;
- 	struct ip_set_iptreemap_b *btree;
- 	struct ip_set_iptreemap_c *ctree;
- 	struct ip_set_iptreemap_d *dtree;
-@@ -652,7 +652,7 @@ static int list_members_size(const struct ip_set *set)
+-	if (!test_and_clear_bit(d, (void *) dtree->bitmap))
++	if (!__test_and_clear_bit(d, (void *) dtree->bitmap))
+ 		return -EEXIST;
  
- static inline size_t add_member(void *data, size_t offset, ip_set_ip_t start, ip_set_ip_t end)
- {
--	struct ip_set_req_iptreemap *entry = (struct ip_set_req_iptreemap *) (data + offset);
-+	struct ip_set_req_iptreemap *entry = data + offset;
+-	set_bit(b, (void *) btree->dirty);
++	__set_bit(b, (void *) btree->dirty);
  
- 	entry->start = start;
- 	entry->end = end;
-@@ -662,7 +662,7 @@ static inline size_t add_member(void *data, size_t offset, ip_set_ip_t start, ip
+ 	return 0;
+ }
+@@ -443,8 +443,8 @@ __delip_range(struct ip_set *set, ip_set_ip_t start, ip_set_ip_t end, ip_set_ip_
+ 		DELIP_RANGE_LOOP(btree, b, GETVALUE1(a, a1, b1, 0), GETVALUE1(a, a2, b2, 255), CHECK2(a, b, a1, a2, b1, b2, c1, c2, d1, d2), ctree, fullbitmap_c, cachep_c, free_c, flags) {
+ 			DELIP_RANGE_LOOP(ctree, c, GETVALUE2(a, b, a1, b1, c1, 0), GETVALUE2(a, b, a2, b2, c2, 255), CHECK3(a, b, c, a1, a2, b1, b2, c1, c2, d1, d2), dtree, fullbitmap_d, cachep_d, free_d, flags) {
+ 				for (d = GETVALUE3(a, b, c, a1, b1, c1, d1, 0); d <= GETVALUE3(a, b, c, a2, b2, c2, d2, 255); d++)
+-					clear_bit(d, (void *) dtree->bitmap);
+-				set_bit(b, (void *) btree->dirty);
++					__clear_bit(d, (void *) dtree->bitmap);
++				__set_bit(b, (void *) btree->dirty);
+ 			} DELIP_RANGE_LOOP_END();
+ 		} DELIP_RANGE_LOOP_END();
+ 	} DELIP_RANGE_LOOP_END();
+@@ -514,7 +514,7 @@ gc(unsigned long addr)
  
- static void list_members(const struct ip_set *set, void *data)
- {
--	struct ip_set_iptreemap *map = (struct ip_set_iptreemap *) set->data;
-+	struct ip_set_iptreemap *map = set->data;
- 	struct ip_set_iptreemap_b *btree;
- 	struct ip_set_iptreemap_c *ctree;
- 	struct ip_set_iptreemap_d *dtree;
+ 	LOOP_WALK_BEGIN_GC(map, a, btree, fullbitmap_b, cachep_b, i) {
+ 		LOOP_WALK_BEGIN_GC(btree, b, ctree, fullbitmap_c, cachep_c, j) {
+-			if (!test_and_clear_bit(b, (void *) btree->dirty))
++			if (!__test_and_clear_bit(b, (void *) btree->dirty))
+ 				continue;
+ 			LOOP_WALK_BEGIN_GC(ctree, c, dtree, fullbitmap_d, cachep_d, k) {
+ 				switch (bitmap_status(dtree)) {
 -- 
 1.5.6.1
 
