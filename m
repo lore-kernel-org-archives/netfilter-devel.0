@@ -1,53 +1,52 @@
-From: "Changli Gao" <xiaosuo@gmail.com>
-Subject: Re: Fwd: [PATCH] nf_nat_core: eliminate find_appropriate_src call if range is set IP_NAT_RANGE_PROTO_RANDOM bit on
-Date: Mon, 30 Jun 2008 21:34:02 +0800
-Message-ID: <412e6f7f0806300634g1d82ffcewd3ba7ef0b951cd1a@mail.gmail.com>
-References: <412e6f7f0806292132l18c747d6h982c64ce7c9d9c85@mail.gmail.com>
-	 <412e6f7f0806300100t6bc37635pc922405705f1784d@mail.gmail.com>
-	 <4868D76D.6050008@trash.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: "Patrick McHardy" <kaber@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: textsearch: fix Boyer-Moore text search bug
+Date: Mon, 30 Jun 2008 17:56:11 +0200 (MEST)
+Message-ID: <20080630155611.24326.60153.sendpatchset@localhost.localdomain>
+References: <20080630155609.24326.34250.sendpatchset@localhost.localdomain>
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.187]:17620 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756029AbYF3NeE (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:39800 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753436AbYF3P4N (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 30 Jun 2008 09:34:04 -0400
-Received: by ti-out-0910.google.com with SMTP id b6so786620tic.23
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Jun 2008 06:34:02 -0700 (PDT)
-In-Reply-To: <4868D76D.6050008@trash.net>
-Content-Disposition: inline
+	Mon, 30 Jun 2008 11:56:13 -0400
+In-Reply-To: <20080630155609.24326.34250.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jun 30, 2008 at 8:54 PM, Patrick McHardy <kaber@trash.net> wrote:
-> Changli Gao wrote:
->>
->> ---------- Forwarded message ----------
->> From: Changli Gao <xiaosuo@gmail.com>
->> Date: 2008/6/30
->> Subject: [PATCH] nf_nat_core: eliminate find_appropriate_src call if
->> range is set IP_NAT_RANGE_PROTO_RANDOM bit on
->> To: netfilter-devel@lists.netfilter.org
->> Cc: Changli Gao <xiaosuo@gmail.com>
->>
->>
->> Eliminate find_appropriate_src call if range is set
->> IP_NAT_RANGE_PROTO_RANDOM bit on.
->
-> Please explain why the call isn't necessary.
->
-In fact, my patch doesn't change the logic of the code, it just
-eliminates the uesless call find_appropriate_src. Because the tuple
-returned by find_appropriate is only useful when the
-IP_NAT_RANGE_PROTO_RANDOM isn't set on.  instead of testing the bit
-IP_NAT_RANGE_PROTO_RANDOM after calling find_appropriate_src, I do
-that before it to eliminate the cost of calling find_appropriate_src.
+textsearch: fix Boyer-Moore text search bug
 
+The current logic has a bug which cannot find matching pattern, if the
+pattern is matched from the first character of target string.
+for example:
+	pattern=abc, string=abcdefg
+	pattern=a,   string=abcdefg
+Searching algorithm should return 0 for those things.
 
--- 
-Regards，
-Changli Gao(xiaosuo@gmail.com)
+Signed-off-by: Joonwoo Park <joonwpark81@gmail.com>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+---
+commit cf07ecdeb187d567890ade083f0c1fa298085dee
+tree 6a7cf5c6bdc80c75ec843d8ee44cd98039ca6fd7
+parent 5c61a61f0df27eba716646da0b7371bf49f13d89
+author Joonwoo Park <joonwpark81@gmail.com> Mon, 30 Jun 2008 17:40:34 +0200
+committer Patrick McHardy <kaber@trash.net> Mon, 30 Jun 2008 17:40:34 +0200
+
+ lib/ts_bm.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/lib/ts_bm.c b/lib/ts_bm.c
+index d90822c..4a7fce7 100644
+--- a/lib/ts_bm.c
++++ b/lib/ts_bm.c
+@@ -63,7 +63,7 @@ static unsigned int bm_find(struct ts_config *conf, struct ts_state *state)
+ 	struct ts_bm *bm = ts_config_priv(conf);
+ 	unsigned int i, text_len, consumed = state->offset;
+ 	const u8 *text;
+-	int shift = bm->patlen, bs;
++	int shift = bm->patlen - 1, bs;
+ 
+ 	for (;;) {
+ 		text_len = conf->get_next_block(consumed, &text, conf, state);
