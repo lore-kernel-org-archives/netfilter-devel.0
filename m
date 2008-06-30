@@ -1,98 +1,68 @@
-From: Sven Wegener <sven.wegener@stealer.net>
-Subject: [PATCH] ipset/iptreemap: Remove needless casts of void pointers
-Date: Sun, 29 Jun 2008 19:40:42 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0806291939290.14884@titan.stealer.net>
+From: "Changli Gao" <xiaosuo@gmail.com>
+Subject: Fwd: [PATCH] nf_nat_core: eliminate find_appropriate_src call if range is set IP_NAT_RANGE_PROTO_RANDOM bit on
+Date: Mon, 30 Jun 2008 16:00:43 +0800
+Message-ID: <412e6f7f0806300100t6bc37635pc922405705f1784d@mail.gmail.com>
+References: <412e6f7f0806292132l18c747d6h982c64ce7c9d9c85@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=ISO-2022-JP
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.stealer.net ([88.198.224.204]:44926 "EHLO
-	smtp1.stealer.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754443AbYF2Rta (ORCPT
+Received: from ti-out-0910.google.com ([209.85.142.184]:48203 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752216AbYF3IAp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 29 Jun 2008 13:49:30 -0400
+	Mon, 30 Jun 2008 04:00:45 -0400
+Received: by ti-out-0910.google.com with SMTP id b6so734204tic.23
+        for <netfilter-devel@vger.kernel.org>; Mon, 30 Jun 2008 01:00:43 -0700 (PDT)
+In-Reply-To: <412e6f7f0806292132l18c747d6h982c64ce7c9d9c85@mail.gmail.com>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Remove needless casts from and to void pointers.
----
- ipset_iptreemap.c |   18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+---------- Forwarded message ----------
+From: Changli Gao <xiaosuo@gmail.com>
+Date: 2008/6/30
+Subject: [PATCH] nf_nat_core: eliminate find_appropriate_src call if
+range is set IP_NAT_RANGE_PROTO_RANDOM bit on
+To: netfilter-devel@lists.netfilter.org
+Cc: Changli Gao <xiaosuo@gmail.com>
 
---- ipset.orig/ipset_iptreemap.c
-+++ ipset/ipset_iptreemap.c
-@@ -31,7 +31,7 @@
- void
- create_init(void *data)
- {
--	struct ip_set_req_iptreemap_create *mydata = (struct ip_set_req_iptreemap_create *) data;
-+	struct ip_set_req_iptreemap_create *mydata = data;
- 
- 	mydata->gc_interval = 0;
- }
-@@ -39,7 +39,7 @@
- int
- create_parse(int c, char *argv[], void *data, unsigned int *flags)
- {
--	struct ip_set_req_iptreemap_create *mydata = (struct ip_set_req_iptreemap_create *) data;
-+	struct ip_set_req_iptreemap_create *mydata = data;
- 
- 	switch (c) {
- 		case 'g':
-@@ -68,7 +68,7 @@
- ip_set_ip_t
- adt_parser(unsigned int cmd, const char *optarg, void *data)
- {
--	struct ip_set_req_iptreemap *mydata = (struct ip_set_req_iptreemap *) data;
-+	struct ip_set_req_iptreemap *mydata = data;
- 	ip_set_ip_t mask;
- 
- 	char *saved = ipset_strdup(optarg);
-@@ -94,8 +94,8 @@
- void
- initheader(struct set *set, const void *data)
- {
--	struct ip_set_req_iptreemap_create *header = (struct ip_set_req_iptreemap_create *) data;
--	struct ip_set_iptreemap *map = (struct ip_set_iptreemap *) set->settype->header;
-+	const struct ip_set_req_iptreemap_create *header = data;
-+	struct ip_set_iptreemap *map = set->settype->header;
- 
- 	map->gc_interval = header->gc_interval;
- }
-@@ -103,7 +103,7 @@
- void
- printheader(struct set *set, unsigned int options)
- {
--	struct ip_set_iptreemap *mysetdata = (struct ip_set_iptreemap *) set->settype->header;
-+	struct ip_set_iptreemap *mysetdata = set->settype->header;
- 
- 	if (mysetdata->gc_interval)
- 		printf(" gc: %u", mysetdata->gc_interval);
-@@ -118,7 +118,7 @@
- 	size_t offset = 0;
- 
- 	while (len >= offset + sizeof(struct ip_set_req_iptreemap)) {
--		req = (struct ip_set_req_iptreemap *) (data + offset);
-+		req = data + offset;
- 
- 		printf("%s", ip_tostring(req->start, options));
- 		if (req->start != req->end)
-@@ -132,7 +132,7 @@
- void
- saveheader(struct set *set, unsigned int options)
- {
--	struct ip_set_iptreemap *mysetdata = (struct ip_set_iptreemap *) set->settype->header;
-+	struct ip_set_iptreemap *mysetdata = set->settype->header;
- 
- 	printf("-N %s %s", set->name, set->settype->typename);
- 
-@@ -149,7 +149,7 @@
- 	size_t offset = 0;
- 
- 	while (len >= offset + sizeof(struct ip_set_req_iptreemap)) {
--		req = (struct ip_set_req_iptreemap *) (data + offset);
-+		req = data + offset;
- 
- 		printf("-A %s %s", set->name, ip_tostring(req->start, options));
- 
+
+Eliminate find_appropriate_src call if range is set
+IP_NAT_RANGE_PROTO_RANDOM bit on.
+
+Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+---
+ nf_nat_core.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+--- net/ipv4/netfilter/nf_nat_core.c.orig       2008-06-30
+11:12:26.000000000 +0800
++++ net/ipv4/netfilter/nf_nat_core.c    2008-06-30 12:22:23.000000000 +0800
+@@ -240,12 +240,12 @@
+          This is only required for source (ie. NAT/masq) mappings.
+          So far, we don't do local source mappings, so multiple
+          manips not an issue.  */
+-       if (maniptype == IP_NAT_MANIP_SRC) {
++       if (maniptype == IP_NAT_MANIP_SRC &&
++           !(range->flags & IP_NAT_RANGE_PROTO_RANDOM)) {
+               if (find_appropriate_src(orig_tuple, tuple, range)) {
+                       pr_debug("get_unique_tuple: Found current src map\n");
+-                       if (!(range->flags & IP_NAT_RANGE_PROTO_RANDOM))
+-                               if (!nf_nat_used_tuple(tuple, ct))
+-                                       return;
++                       if (!nf_nat_used_tuple(tuple, ct))
++                               return;
+               }
+       }
+
+--
+Regards，
+Changli Gao(xiaosuo@gmail.com)
+
+
+
+-- 
+Regards，
+Changli Gao(xiaosuo@gmail.com)
