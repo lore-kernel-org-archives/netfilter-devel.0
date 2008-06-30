@@ -1,55 +1,36 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 6/8] netfilter: fix string extension for case insensitive
- pattern matching
-Date: Mon, 30 Jun 2008 21:09:12 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0806302108290.30639@fbirervta.pbzchgretzou.qr>
-References: <1214034858-1378-1-git-send-email-joonwpark81@gmail.com>  <alpine.LNX.1.10.0806210957140.28924@fbirervta.pbzchgretzou.qr> <b25c3fa70806301144x4cd521dfpdd8bb6ef13b8466@mail.gmail.com>
+From: "Joonwoo Park" <joonwpark81@gmail.com>
+Subject: Re: [PATCH 6/8] netfilter: fix string extension for case insensitive pattern matching
+Date: Mon, 30 Jun 2008 12:32:18 -0700
+Message-ID: <b25c3fa70806301232w41617d02qa53292f5982c25d0@mail.gmail.com>
+References: <1214034858-1378-1-git-send-email-joonwpark81@gmail.com>
+	 <alpine.LNX.1.10.0806210957140.28924@fbirervta.pbzchgretzou.qr>
+	 <b25c3fa70806301144x4cd521dfpdd8bb6ef13b8466@mail.gmail.com>
+	 <alpine.LNX.1.10.0806302108290.30639@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>, netdev <netdev@vger.kernel.org>,
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netdev <netdev@vger.kernel.org>,
 	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	Thomas Graf <tgraf@suug.ch>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Joonwoo Park <joonwpark81@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:53664 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755382AbYF3TJN (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 30 Jun 2008 15:09:13 -0400
-In-Reply-To: <b25c3fa70806301144x4cd521dfpdd8bb6ef13b8466@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+	"Pablo Neira Ayuso" <pablo@netfilter.org>
+To: "Jan Engelhardt" <jengelh@medozas.de>,
+	"Patrick McHardy" <kaber@trash.net>, "Thomas Graf" <tgraf@suug.ch>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <alpine.LNX.1.10.0806302108290.30639@fbirervta.pbzchgretzou.qr>
+Content-Disposition: inline
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+2008/6/30 Jan Engelhardt <jengelh@medozas.de>:
+> Right, since we copy eader files anyway, we can just make it uint8_t flags
+> without the union.
 
-On Monday 2008-06-30 20:44, Joonwoo Park wrote:
->> Why not just doing it this way?
->>
->>
->> enum {
->>        XT_STRING_INVERT = 1 << 0,
->>        XT_STRING_ICASE  = 1 << 1,
->> };
->>
->> struct xt_string_info {
->>        ...
->>        union {
->>                uint8_t invert;
->>                uint8_t flags;
->>        };
->>        ...
->> };
->>
->>
+I like it :-)
+Patrick, Thomas, If you want I'll send this fix with version checking patch.
+
 >
->Not bad for me,
->I think invert might be removed and flags can contain XT_STRING_INVERT as well.
-
-Right, since we copy eader files anyway, we can just make it uint8_t flags
-without the union.
-
->But I guess we should do version checking between user-space and
->kernel more strictly whatever.
-
-That is what we have '.revision' in xt_match/xt_target for.
-In this case however it should be fine with just flags.
+>>But I guess we should do version checking between user-space and
+>>kernel more strictly whatever.
+>
+> That is what we have '.revision' in xt_match/xt_target for.
+> In this case however it should be fine with just flags.
+>
