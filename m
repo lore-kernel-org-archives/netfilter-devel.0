@@ -1,63 +1,54 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Passive OS fingerprinting.
-Date: Tue, 01 Jul 2008 13:53:43 +0200
-Message-ID: <486A1AC7.9020706@trash.net>
-References: <20080701113927.GA16343@2ka.mipt.ru>
+Subject: Re: POM Xtables???
+Date: Tue, 01 Jul 2008 13:57:40 +0200
+Message-ID: <486A1BB4.10905@trash.net>
+References: <935fab200806271054oa7c340evbf465b7a9984498b@mail.gmail.com>  <alpine.LNX.1.10.0806272003170.12725@fbirervta.pbzchgretzou.qr>  <4866F152.7030109@riverviewtech.net> <935fab200806300904rc7dc7b2kf58ab7893c3ef20a@mail.gmail.com> <486907EA.60105@trash.net> <alpine.LNX.1.10.0806302218500.30639@fbirervta.pbzchgretzou.qr> <48694787.3080906@trash.net> <Pine.LNX.4.64.0807011135120.30394@blackhole.kfki.hu> <4869FCE7.9000404@trash.net> <alpine.LNX.1.10.0807011326351.12878@fbirervta.pbzchgretzou.qr> <486A1865.40106@trash.net> <alpine.LNX.1.10.0807011346590.12878@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Dave <finalglide@gmail.com>, netfilter@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:34090 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:34169 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755010AbYGALxr (ORCPT
+	with ESMTP id S1753344AbYGAL5m (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Jul 2008 07:53:47 -0400
-In-Reply-To: <20080701113927.GA16343@2ka.mipt.ru>
+	Tue, 1 Jul 2008 07:57:42 -0400
+In-Reply-To: <alpine.LNX.1.10.0807011346590.12878@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Evgeniy Polyakov wrote:
-> Passive OS fingerprinting iptables (xtables) allows to match incoming
-> packets by different sets of SYN-packet and determine, which remote
-> system is on the remote end, so you can make decisions based on OS
-> type and even version at some degreee and perform various netfilter
-> actions based on that knowledge.
-> 
-> This module compares some data (WS, MSS, options and it's order, ttl, df
-> and others) from packets with SYN bit set with dynamically loaded OS
-> fingerprints.
+Added netfilter-devel to CC.
 
-[Only some general comments without having looked at the
-code in detail]
+Jan Engelhardt wrote:
+> On Tuesday 2008-07-01 13:43, Patrick McHardy wrote:
+>>> You only added the nfmark, and it is printed unconditionally at that,
+>>> the latter of which I do not see as thrilling. Seems like it is time
+>>> for a new revision? Also I think the two modules should be unified
+>>> first.
+>> It doesn't need a new revision, it doesn't affect the userspace
+>> API in any way. As for the argument of parsers that might not
+>> handle this: any parser needs to expect new things to be added
+>> at the end of the line, otherwise its giving us no possibility
+>> of ever extending the output, which is not reasonable.
+>>
+> That is why LOGMARK has been LOGMARK so far, where the (undocumented)
+> requirement is that parsers have to split at whitespace and may not
+> assume any particular order of fields. This allows to selectively log
+> things by means of flags passed in from userspace and thus sparing
+> syslog from being spammed with unwanted fields.
 
-My two main objections are that this only works for TCP and
-can be trivially evaded. What use cases does it have?
-I'm also wondering whether this couldn't be implemented
-using the u32 match.
+Spammed with unwanted fields in a huge exaggeration. And nobody
+sane is using LOG for anything but debugging anyway due to the
+unreliable nature of the ringbuffer and the huge slowdown this
+might cause when using serial console.
 
-> This version existed quite for a while in patch-o-matic(-ng), but
-> suddenly was dropped and then only was updated on its own repo:
-> http://tservice.net.ru/~s0mbre/old/?section=projects&item=osf
-> 
-> I've updated OSF to match new iptables standards (namely xtables
-> support) and present new kernelspace and userspace library files in
-> attach.
-> 
-> To setup single rule, which will drop and log all Linux incoming
-> access one needs to do following steps:
-> # insmod ./ipt_osf.ko
-> # ./load ./pf.os /proc/sys/net/ipv4/osf
-> # iptables -I INPUT -j DROP -p tcp -m osf --genre Linux --log 2 \
-> --ttl 2 --connector
+> So the only way is to introduce a LOG2 target?
 
-And I don't think it should be using connector. AFAIK we
-only have a single user in the tree currently and new
-stuff usually uses genetlink (which is pretty similar),
-so we might be able to remove connection in the future
-unless we add new users. But netfilter modules should
-use nfnetlink anyway.
-
+Only way for what? As I stated, you're free to add new fields
+at the end.
 
 
