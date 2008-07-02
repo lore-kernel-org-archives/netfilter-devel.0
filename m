@@ -1,31 +1,50 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [ANNOUNCE] ipset-2.3.2
-Date: Wed, 2 Jul 2008 14:56:49 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0807021449020.32444@blackhole.kfki.hu>
+From: Krzysztof Oledzki <ole@ans.pl>
+Subject: Re: [PATCH 2/2] Netfilter: Accounting rework: ct_extend + 64bit
+ counters (v3)
+Date: Wed, 2 Jul 2008 15:03:53 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0807021358370.4958@bizon.gios.gov.pl>
+References: <485a3c49.C0A/tC0/U7AaZp3V%ole@ans.pl> <486114E9.9000809@trash.net>
+ <Pine.LNX.4.64.0806241804340.24680@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-Return-path: <netfilter-owner@vger.kernel.org>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-709627489-1215003833=:4958"
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from bizon.gios.gov.pl ([212.244.124.8]:58205 "EHLO
+	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751541AbYGBNEA (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 2 Jul 2008 09:04:00 -0400
+In-Reply-To: <Pine.LNX.4.64.0806241804340.24680@bizon.gios.gov.pl>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-I'm happy to announce ipset-2.3.2. Besides cosmetic changes and cleanups, 
-this release includes the sources of both the userspace tool and the 
-kernel modules: you can install ipset wihtout patch-o-matic-ng. Please 
-read the README file for the instructions on how to install ipset without 
-pom-ng.
+---187430788-709627489-1215003833=:4958
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-You can download ipset from the home page or from the svn repository
 
-	http://ipset.netfilter.org/
-	https://svn.netfilter.org/netfilter/trunk/ipset
+
+On Tue, 24 Jun 2008, Krzysztof Oledzki wrote:
+
+<CUT>
+
+>>> +static unsigned int nf_ct_acct __read_mostly =3D NF_CT_ACCT_DEFAULT;
+>>=20
+>> Perhaps this should be bool instead?
+>
+> Yep.
+
+It seems that it has to stay as unsigned int - if I change it to bool I=20
+get:
+  net/netfilter/nf_conntrack_acct.c: In function '__check_acct':
+  net/netfilter/nf_conntrack_acct.c:27: warning: return from incompatible p=
+ointer type
 
 Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+
+ =09=09=09=09Krzysztof Ol=EAdzki
+---187430788-709627489-1215003833=:4958--
