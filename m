@@ -1,37 +1,45 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 2/2] Netfilter: Accounting rework: ct_extend + 64bit
- counters (v3)
-Date: Wed, 2 Jul 2008 15:57:20 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0807021556310.20393@fbirervta.pbzchgretzou.qr>
-References: <485a3c49.C0A/tC0/U7AaZp3V%ole@ans.pl> <486114E9.9000809@trash.net> <Pine.LNX.4.64.0806241804340.24680@bizon.gios.gov.pl> <Pine.LNX.4.64.0807021358370.4958@bizon.gios.gov.pl> <486B7D9C.4070501@trash.net> <Pine.LNX.4.64.0807021519330.4958@bizon.gios.gov.pl>
- <486B80F5.7050801@trash.net> <Pine.LNX.4.64.0807021522520.4958@bizon.gios.gov.pl> <486B853A.205@trash.net> <Pine.LNX.4.64.0807021542420.4958@bizon.gios.gov.pl> <486B87FE.90909@trash.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [ANNOUNCE] ipset-2.3.2
+Date: Wed, 2 Jul 2008 16:01:53 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0807021559170.32444@blackhole.kfki.hu>
+References: <Pine.LNX.4.64.0807021449020.32444@blackhole.kfki.hu>
+ <Pine.LNX.4.64.0807021536140.4958@bizon.gios.gov.pl>
+ <Pine.LNX.4.64.0807021545290.32444@blackhole.kfki.hu>
+ <Pine.LNX.4.64.0807021547090.4958@bizon.gios.gov.pl>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Krzysztof Oledzki <ole@ans.pl>, netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Krzysztof Oledzki <ole@ans.pl>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:50433 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751404AbYGBN5V (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Jul 2008 09:57:21 -0400
-In-Reply-To: <486B87FE.90909@trash.net>
+Received: from smtp2.kfki.hu ([148.6.0.28]:33526 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752746AbYGBOBy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 2 Jul 2008 10:01:54 -0400
+In-Reply-To: <Pine.LNX.4.64.0807021547090.4958@bizon.gios.gov.pl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Wed, 2 Jul 2008, Krzysztof Oledzki wrote:
 
-On Wednesday 2008-07-02 15:51, Patrick McHardy wrote:
->> >
->> > Seems you're the first to try module_param_named with a bool :)
->> > Does this help?
->> 
->> It helps but produces a lot of warnings in other places:
->> 
->> kernel/printk.c: In function '__check_time':
->> kernel/printk.c:570: warning: return from incompatible pointer type
->
-> Ah I see. You're supposed to use an int for the variable and
-> bool only for module_param_named.
+> > > Is statically linking still supported?
+> > 
+> > No, it has never been supported. (Probaly you mean iptables?)
+> 
+> No, I mean kernel.
+> 
+> I ask because http://ipset.netfilter.org/install.html no longer points to a
+> pom-ng file and it seems that
+> ftp://ftp.netfilter.org/pub/patch-o-matic-ng/snapshot/ is currently abandoned
+> - there have been no new files created since 2008-05-21.
 
-Yes but since we have 'bool' type (though only since recently),
-module_param_bool should also *take* a bool.
+Oh, I see. I'll add back a pom-ng snapshot to ipset.netfilter.org. The 
+pom-ng repository is available from svn - the snapshot creation was 
+probably stopped when most of the repositories were moved to git.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
