@@ -1,67 +1,68 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH,RFC] Route match
-Date: Thu, 3 Jul 2008 09:18:18 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0807030913510.20393@fbirervta.pbzchgretzou.qr>
-References: <20080703003942.GA2012@linuxace.com>
+From: Jesper Dangaard Brouer <hawk@diku.dk>
+Subject: Re: Patches solving the same issue!?
+Date: Thu, 3 Jul 2008 12:53:07 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0807031224330.3656@tyr.diku.dk>
+References: <1215021635-28691-1-git-send-email-jacob@internet24.de>
+ <1215021635-28691-2-git-send-email-jacob@internet24.de>
+ <1215032251.9467.11.camel@localhost.localdomain> <20080702214736.GA13134@internet24.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Phil Oester <kernel@linuxace.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Jesper Dangaard Brouer <jdb@comx.dk>,
+	Netfilter Developers <netfilter-devel@vger.kernel.org>,
+	Patrick McHardy <kaber@trash.net>
+To: Thomas Jacob <jacob@internet24.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:34638 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936994AbYGCHSU (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Jul 2008 03:18:20 -0400
-In-Reply-To: <20080703003942.GA2012@linuxace.com>
+Received: from mgw2.diku.dk ([130.225.96.92]:45196 "EHLO mgw2.diku.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751069AbYGCLxx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 3 Jul 2008 07:53:53 -0400
+In-Reply-To: <20080702214736.GA13134@internet24.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Thursday 2008-07-03 02:39, Phil Oester wrote:
+On Wed, 2 Jul 2008, Thomas Jacob wrote:
 
->Attached is a new "route" match, which matches against entries
->in the kernel routing table.  I've had a need for this functionality
->for quite some time, and finally decided to code it up.  
+> I am not familiar enough with the iptables code to decide
+> whether or not chains are always sorted by name in the kernel,
+> and thus will be sorted if you read them back, but if that's
+> the case, of course your method is better, as long as that's
+> always the case...
 
-There is also the 'realm' match..
+It _is_ always the case that chains are sorted by name in the kernel, as 
+libiptc puts them in sorted.
 
-ip route replace 10.10.96.0/20 dev sis0 realm 5 src 10.10.106.161
-iptables -t mangle -A POSTROUTING -m realm 5 -j dowhateveryouwant
+Thats also what the chain_index code depends upon (although I have build 
+in a safe guard that sorts them if they are not).  There is also a safe 
+guard for the offset binary search, but that simply reverts to the old 
+(_slow_) search scheme.
 
->
->TODO: add IPv6 support to kernel side
->
->Options
->
->[!] --route-src-exists      Route for src exists
->    --route-src-eq value    Route for src exists with prefix-length == value
->    --route-src-gt value    Route for src exists with prefix-length  > value
->    --route-src-lt value    Route for src exists with prefix-length  < value
->[!] --route-dst-exists      Route for dst exists
->    --route-dst-eq value    Route for dst exists with prefix-length == value
->    --route-dst-gt value    Route for dst exists with prefix-length  > value
->    --route-dst-lt value    Route for dst exists with prefix-length  < value
->
->Examples:
->
->	Egress filtering:
->		iptables -A FORWARD -m route ! --route-src-exists -j DROP
+If Patrick might want to change this in the future, he should consider 
+your solution over mine.
 
-That's what rp_filter is for.
 
->	Ingress filtering:
->		iptables -A FORWARD -i $EXTERNAL_IF -m route --route-src-exists -j DROP
+> To be honest, I didn't really understand the chain_index code ;)
 
-rp_filter again.
+It actually some what resembels your idea, with arrays of chain_head 
+pointers.  That points to the original chain list.  I don't build "chunks" 
+as I don't want to find an exact match, just a place in the chain list to 
+start the list search. This is choosen because I need to support chains 
+deletes and creates.
 
->	Allow a user to only browse internal websites:
->		iptables -A FORWARD -p tcp --dport 80 -m route --route-dst-exists -j ACCEPT
+Its more complicated because it needs to support chain deletes and 
+creates.  And needs to scale, when many chains are added, which requires 
+rebuilding the chain_index, but not too often...
 
-If there was no fitting dst route, the packet would never get to FORWARD in
-the first place.
 
->	Allow an SNMP collector to reach all internal routers (/30 or /32 interfaces)
->		iptables -A FORWARD -p udp --dport 161 -m route --route-dst-gt 29 -j ACCEPT
+BTW, I like your coding style, although it more compact that I would 
+choose to write it...
 
-And this could be modeled with -s xxx/30 -d xxx/30 maybe.
+Hilsen
+   Jesper Brouer
+
+--
+-------------------------------------------------------------------
+MSc. Master of Computer Science
+Dept. of Computer Science, University of Copenhagen
+Author of http://www.adsl-optimizer.dk
+-------------------------------------------------------------------
