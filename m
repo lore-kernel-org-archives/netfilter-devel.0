@@ -1,66 +1,60 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH,RFC] Route match
-Date: Thu, 3 Jul 2008 16:15:06 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0807031612330.23294@fbirervta.pbzchgretzou.qr>
-References: <20080703003942.GA2012@linuxace.com> <alpine.LNX.1.10.0807030913510.20393@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0807031140480.1816@blackhole.kfki.hu> <alpine.LNX.1.10.0807031317090.23294@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0807031425530.1816@blackhole.kfki.hu>
- <alpine.LNX.1.10.0807031511310.23294@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0807031517350.1816@blackhole.kfki.hu>
+From: Thomas Jacob <jacob@internet24.de>
+Subject: Re: Patches solving the same issue!?
+Date: Thu, 03 Jul 2008 16:30:03 +0200
+Message-ID: <1215095403.26474.103.camel@enterprise.ims-firmen.de>
+References: <> <1215021635-28691-1-git-send-email-jacob@internet24.de>
+	 <1215021635-28691-2-git-send-email-jacob@internet24.de>
+	 <1215032251.9467.11.camel@localhost.localdomain>
+	 <486CC931.2010703@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Phil Oester <kernel@linuxace.com>, netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: jdb@comx.dk, netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:42093 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753730AbYGCOPI (ORCPT
+Received: from mailout02.ims-firmen.de ([213.174.32.97]:51294 "EHLO
+	mailout02.ims-firmen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753342AbYGCOaH (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Jul 2008 10:15:08 -0400
-In-Reply-To: <Pine.LNX.4.64.0807031517350.1816@blackhole.kfki.hu>
+	Thu, 3 Jul 2008 10:30:07 -0400
+In-Reply-To: <486CC931.2010703@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Thu, 2008-07-03 at 14:42 +0200, Patrick McHardy wrote:
+> Please work this out among yourselves. I think we should just pick
+> the faster one since both don't look very intrusive.
 
-On Thursday 2008-07-03 15:31, Jozsef Kadlecsik wrote:
->On Thu, 3 Jul 2008, Jan Engelhardt wrote:
->> On Thursday 2008-07-03 14:39, Jozsef Kadlecsik wrote:
->> >
->> >One can find a lot of smaller and bigger missing pieces, like a new table, 
->> >new hook, if we'd associate a 'routing table' to a 'chain in the iptables 
->> >route table', then we'd need a default policy support (i.e. default route) 
->> >for the user defined chains too, etc.
->> 
->> User-defined chains always have an implicit policy of 'RETURN',
->> and I would not turn a knob on that property anytime.
->
->Routing cannot be replaced by netfilter 'route' table without supporting a 
->'default policy' (as default route) in the user defined chains (as routing 
->tables).
+Well, Jesper's version doesn't build any extra data-structures,
+so you save time&space there, and the offsets stuff is really
+only needed once, so the chain_index rebuilding penalty
+doesn't play a role.
 
-User-defines chains return to the main chain once control runs off their end.
-Since the main chain has a default policy, I do not see aproblem.
+And since about 2/3s of time it takes to load my 50k Chains now
+is system time, it's probably irrelevant whether
+ 0 + O(n * (log(n/40)+40)) is sometimes larger than O(n+n/1024) +
+O(log(n)).
 
->> The default policy for the main chain is of course 'UNREACHABLE'.
->
->Hm, I don't understand you: if we want to replace routing with a 'route'
->table, then the default policy (i.e. the default route) cannot be 
->'UNREACHABLE'.
+Mine vs. Jesper's:
 
-It can (well, we'd have to make UNREACHABLE an acceptable
-default policy). This is what routing does today. For example:
+iptables-restore  (50k chains, 120k rules), average for 10 runs:
+
+User: 2.558 s - System: 8.672 s - Total : 11.222 s
+vs
+User: 2.622 s - System: 8.520 s - Total : 11.140 s
 
 
-$ ip r g 2001::1
-unreachable 2001::1 from :: dev lo  table unspec  proto none  src ::1  metric
--1  error -101 hoplimit 255
+iptables -vnL SOMECHAIN (2 entries, with the above ruleset in kernel),
+ average for 20 runs
+
+User: .094 s - System: .363 s - Total : .455 s
+vs
+User: .085 s - System: .389 s - Total : .472 s
+
+Those numbers are all within the standard deviations of each other,
+so there is no difference for practical purposes, I think :-)
+
+I would use Jesper's patch.
 
 
->Unless you intend to define the 'default route' as the last rule in any 
->chain...
 
-No, default route would be
-
-	iptables -t route -A ROUTING <no further conditions> -j ROUTE --via
-my-default-gw-ip
-
-
-Because traditional routing tables can have no default route,
-xtables should not be forced to have one either.
