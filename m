@@ -1,57 +1,50 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [ANNOUNCE] ipset-2.3.2
-Date: Thu, 3 Jul 2008 15:15:52 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0807031504180.1816@blackhole.kfki.hu>
-References: <Pine.LNX.4.64.0807021449020.32444@blackhole.kfki.hu>
- <200807031044.37410.ludwig.nussel@suse.de>
+Subject: Re: [PATCH,RFC] Route match
+Date: Thu, 3 Jul 2008 15:31:01 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0807031517350.1816@blackhole.kfki.hu>
+References: <20080703003942.GA2012@linuxace.com>
+ <alpine.LNX.1.10.0807030913510.20393@fbirervta.pbzchgretzou.qr>
+ <Pine.LNX.4.64.0807031140480.1816@blackhole.kfki.hu>
+ <alpine.LNX.1.10.0807031317090.23294@fbirervta.pbzchgretzou.qr>
+ <Pine.LNX.4.64.0807031425530.1816@blackhole.kfki.hu>
+ <alpine.LNX.1.10.0807031511310.23294@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Ludwig Nussel <ludwig.nussel@suse.de>
+Cc: Phil Oester <kernel@linuxace.com>, netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:59612 "EHLO smtp1.kfki.hu"
+Received: from smtp0.kfki.hu ([148.6.0.25]:58234 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752723AbYGCNPy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Jul 2008 09:15:54 -0400
-In-Reply-To: <200807031044.37410.ludwig.nussel@suse.de>
+	id S1753263AbYGCNbE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 3 Jul 2008 09:31:04 -0400
+In-Reply-To: <alpine.LNX.1.10.0807031511310.23294@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+On Thu, 3 Jul 2008, Jan Engelhardt wrote:
 
-On Thu, 3 Jul 2008, Ludwig Nussel wrote:
-
-> Jozsef Kadlecsik wrote:
-> > I'm happy to announce ipset-2.3.2. Besides cosmetic changes and cleanups, 
+> On Thursday 2008-07-03 14:39, Jozsef Kadlecsik wrote:
+> >
+> >One can find a lot of smaller and bigger missing pieces, like a new table, 
+> >new hook, if we'd associate a 'routing table' to a 'chain in the iptables 
+> >route table', then we'd need a default policy support (i.e. default route) 
+> >for the user defined chains too, etc.
 > 
-> Ah, nice. I'd like to suggest to add the following patch. It
-> separates building the kernel modules and the user space parts. That
-> eases packaging for distributions as the kernel part has to be
-> compiled several times for different kernel flavors so the
-> integrated way is not really useful there :-)
+> User-defined chains always have an implicit policy of 'RETURN',
+> and I would not turn a knob on that property anytime.
 
-Please check out ipset-2.3.2a, which has got 'binaries', 
-'binaries_install' targets for the userspace part and 'modules', 
-'modules_install' for the kernel modules.
+Routing cannot be replaced by netfilter 'route' table without supporting a 
+'default policy' (as default route) in the user defined chains (as routing 
+tables).
 
-> Additionally IP_NF_SET_MAX and IP_NF_SET_HASHSIZE should be moved to
-> kernel/Kbuild for that purpose. Atm one has to extract them from the
-> Makefile and define them manually for the kernel module build pass.
+> The default policy for the main chain is of course 'UNREACHABLE'.
 
-I wanted one "toplevel" Makefile which makes possible to compile and 
-install the whole bunch in one "step". 
+Hm, I don't understand you: if we want to replace routing with a 'route'
+table, then the default policy (i.e. the default route) cannot be 
+'UNREACHABLE'.
 
-The defaults for IP_NF_SET_MAX and IP_NF_SET_HASHSIZE should be moved to 
-kernel/Kbuild, yes.
- 
-> btw is there a reason why the tarball has a date appended to the
-> release number? I just wonder whether the package version should be
-> 2.3.2_20080702 or whether 2.3.2 suffices.
-
-At the first glace it looks like a redundant information, but there should 
-be a version number for the 'ipset' binary and a "version number" for the 
-kernel modules. As the second one does not exist, the release date helps 
-to distinguis releases where the kernel part changed alone.
+Unless you intend to define the 'default route' as the last rule in any 
+chain...
 
 Best regards,
 Jozsef
