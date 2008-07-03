@@ -1,57 +1,72 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Patches solving the same issue!?
-Date: Thu, 03 Jul 2008 16:33:32 +0200
-Message-ID: <486CE33C.7080804@trash.net>
-References: <> <1215021635-28691-1-git-send-email-jacob@internet24.de>	 <1215021635-28691-2-git-send-email-jacob@internet24.de>	 <1215032251.9467.11.camel@localhost.localdomain>	 <486CC931.2010703@trash.net> <1215095403.26474.103.camel@enterprise.ims-firmen.de>
+From: Krzysztof Oledzki <ole@ans.pl>
+Subject: Re: [ANNOUNCE] ipset-2.3.2
+Date: Thu, 3 Jul 2008 17:49:30 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0807031747500.4958@bizon.gios.gov.pl>
+References: <Pine.LNX.4.64.0807021449020.32444@blackhole.kfki.hu>
+ <Pine.LNX.4.64.0807021536140.4958@bizon.gios.gov.pl>
+ <Pine.LNX.4.64.0807021545290.32444@blackhole.kfki.hu>
+ <Pine.LNX.4.64.0807021547090.4958@bizon.gios.gov.pl>
+ <Pine.LNX.4.64.0807021559170.32444@blackhole.kfki.hu>
+ <Pine.LNX.4.64.0807031150290.1816@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: jdb@comx.dk, netfilter-devel@vger.kernel.org
-To: Thomas Jacob <jacob@internet24.de>
+Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-1420603205-1215100170=:4958"
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:38915 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757949AbYGCOdf (ORCPT
+Received: from bizon.gios.gov.pl ([212.244.124.8]:55803 "EHLO
+	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751691AbYGCPth (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Jul 2008 10:33:35 -0400
-In-Reply-To: <1215095403.26474.103.camel@enterprise.ims-firmen.de>
+	Thu, 3 Jul 2008 11:49:37 -0400
+In-Reply-To: <Pine.LNX.4.64.0807031150290.1816@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Thomas Jacob wrote:
-> On Thu, 2008-07-03 at 14:42 +0200, Patrick McHardy wrote:
->> Please work this out among yourselves. I think we should just pick
->> the faster one since both don't look very intrusive.
-> 
-> Well, Jesper's version doesn't build any extra data-structures,
-> so you save time&space there, and the offsets stuff is really
-> only needed once, so the chain_index rebuilding penalty
-> doesn't play a role.
-> 
-> And since about 2/3s of time it takes to load my 50k Chains now
-> is system time, it's probably irrelevant whether
->  0 + O(n * (log(n/40)+40)) is sometimes larger than O(n+n/1024) +
-> O(log(n)).
-> 
-> Mine vs. Jesper's:
-> 
-> iptables-restore  (50k chains, 120k rules), average for 10 runs:
-> 
-> User: 2.558 s - System: 8.672 s - Total : 11.222 s
-> vs
-> User: 2.622 s - System: 8.520 s - Total : 11.140 s
-> 
-> 
-> iptables -vnL SOMECHAIN (2 entries, with the above ruleset in kernel),
->  average for 20 runs
-> 
-> User: .094 s - System: .363 s - Total : .455 s
-> vs
-> User: .085 s - System: .389 s - Total : .472 s
-> 
-> Those numbers are all within the standard deviations of each other,
-> so there is no difference for practical purposes, I think :-)
-> 
-> I would use Jesper's patch.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-OK, thanks for the numbers and sorting this out so peacefully :)
+---187430788-1420603205-1215100170=:4958
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+
+
+On Thu, 3 Jul 2008, Jozsef Kadlecsik wrote:
+
+> On Wed, 2 Jul 2008, Jozsef Kadlecsik wrote:
+>
+>> On Wed, 2 Jul 2008, Krzysztof Oledzki wrote:
+>>
+>>>>> Is statically linking still supported?
+>>>>
+>>>> No, it has never been supported. (Probaly you mean iptables?)
+>>>
+>>> No, I mean kernel.
+>>>
+>>> I ask because http://ipset.netfilter.org/install.html no longer points =
+to a
+>>> pom-ng file and it seems that
+>>> ftp://ftp.netfilter.org/pub/patch-o-matic-ng/snapshot/ is currently aba=
+ndoned
+>>> - there have been no new files created since 2008-05-21.
+>>
+>> Oh, I see. I'll add back a pom-ng snapshot to ipset.netfilter.org. The
+>> pom-ng repository is available from svn - the snapshot creation was
+>> probably stopped when most of the repositories were moved to git.
+>
+> In ordert to cut the last ropes tying ipset to pom-ng, I added support to
+> "patch" the kernel directly to the ipset package.
+>
+> So I have just released ipset-2.3.2a, which includes the required bits an=
+d
+> files with and updated README file on how to compile modular and
+> non-modular kernels with ipset support. Please give it a try and report m=
+e
+> if something would be missing.
+
+Works For Me, thank you.
+
+Best regards,
+
+ =09=09=09=09Krzysztof Ol=EAdzki
+---187430788-1420603205-1215100170=:4958--
