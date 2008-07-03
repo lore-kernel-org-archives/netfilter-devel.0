@@ -1,58 +1,67 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH,RFC] Route match, user
-Date: Thu, 3 Jul 2008 09:26:04 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0807030922040.20393@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH,RFC] Route match
+Date: Thu, 3 Jul 2008 09:18:18 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0807030913510.20393@fbirervta.pbzchgretzou.qr>
 References: <20080703003942.GA2012@linuxace.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
 To: Phil Oester <kernel@linuxace.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:57873 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:34638 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S937005AbYGCH0G (ORCPT
+	with ESMTP id S936994AbYGCHSU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Jul 2008 03:26:06 -0400
+	Thu, 3 Jul 2008 03:18:20 -0400
 In-Reply-To: <20080703003942.GA2012@linuxace.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
->+static const struct option route_opts[] = {
->+	{ "route-src-exists", 0, NULL, '1' },
->+	{ "route-src-eq", 1, NULL, '2' },
->+	{ "route-src-gt", 1, NULL, '3' },
->+	{ "route-src-lt", 1, NULL, '4' },
->+	{ "route-dst-exists", 0, NULL, '5' },
->+	{ "route-dst-eq", 1, NULL, '6' },
->+	{ "route-dst-gt", 1, NULL, '7' },
->+	{ "route-dst-lt", 1, NULL, '8' },
->+	{ .name = NULL }
->+};
+On Thursday 2008-07-03 02:39, Phil Oester wrote:
 
-You are mixing non-C99 and C99 style.
+>Attached is a new "route" match, which matches against entries
+>in the kernel routing table.  I've had a need for this functionality
+>for quite some time, and finally decided to code it up.  
 
->+static int route_parse(int c, char **argv, int invert, unsigned int *flags,
->+                       const void *entry, struct xt_entry_match **match)
->+{
->+	struct xt_route_info *info = (struct xt_route_info *) (*match)->data;
->+	unsigned int value;
->+
->+	check_inverse(optarg, &invert, &optind, 0);
+There is also the 'realm' match..
 
-I would not bother supporting intraplaced ! at all. Just remove that line.
+ip route replace 10.10.96.0/20 dev sis0 realm 5 src 10.10.106.161
+iptables -t mangle -A POSTROUTING -m realm 5 -j dowhateveryouwant
 
->+		case '6':
->+			if (invert) 
->+				exit_error(PARAMETER_PROBLEM,
->+						"route: unexpected `!'");
->+
->+			if (string_to_number(optarg, 1, 128, &value) == -1)
->+				exit_error(PARAMETER_PROBLEM,
->+				           "route: Expected prefix between 1 and 128");
->+
->+			info->mode = XT_ROUTE_DST_EQ;
->+			info->value = value;
->+			break;
+>
+>TODO: add IPv6 support to kernel side
+>
+>Options
+>
+>[!] --route-src-exists      Route for src exists
+>    --route-src-eq value    Route for src exists with prefix-length == value
+>    --route-src-gt value    Route for src exists with prefix-length  > value
+>    --route-src-lt value    Route for src exists with prefix-length  < value
+>[!] --route-dst-exists      Route for dst exists
+>    --route-dst-eq value    Route for dst exists with prefix-length == value
+>    --route-dst-gt value    Route for dst exists with prefix-length  > value
+>    --route-dst-lt value    Route for dst exists with prefix-length  < value
+>
+>Examples:
+>
+>	Egress filtering:
+>		iptables -A FORWARD -m route ! --route-src-exists -j DROP
 
-There is a lot of code to unify between route_mt_parse and route_mt6_parse.
+That's what rp_filter is for.
+
+>	Ingress filtering:
+>		iptables -A FORWARD -i $EXTERNAL_IF -m route --route-src-exists -j DROP
+
+rp_filter again.
+
+>	Allow a user to only browse internal websites:
+>		iptables -A FORWARD -p tcp --dport 80 -m route --route-dst-exists -j ACCEPT
+
+If there was no fitting dst route, the packet would never get to FORWARD in
+the first place.
+
+>	Allow an SNMP collector to reach all internal routers (/30 or /32 interfaces)
+>		iptables -A FORWARD -p udp --dport 161 -m route --route-dst-gt 29 -j ACCEPT
+
+And this could be modeled with -s xxx/30 -d xxx/30 maybe.
