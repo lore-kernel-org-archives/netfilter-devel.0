@@ -1,47 +1,59 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: Krzysztof Oledzki <ole@ans.pl>
 Subject: Re: [PATCH,RFC] Route match
-Date: Thu, 3 Jul 2008 18:14:11 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0807031808550.23294@fbirervta.pbzchgretzou.qr>
-References: <20080703003942.GA2012@linuxace.com> <alpine.LNX.1.10.0807030913510.20393@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0807031140480.1816@blackhole.kfki.hu> <alpine.LNX.1.10.0807031317090.23294@fbirervta.pbzchgretzou.qr>
+Date: Thu, 3 Jul 2008 18:14:50 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0807031810210.4958@bizon.gios.gov.pl>
+References: <20080703003942.GA2012@linuxace.com>
+ <alpine.LNX.1.10.0807030913510.20393@fbirervta.pbzchgretzou.qr>
+ <Pine.LNX.4.64.0807031140480.1816@blackhole.kfki.hu>
+ <alpine.LNX.1.10.0807031317090.23294@fbirervta.pbzchgretzou.qr>
  <Pine.LNX.4.64.0807031749501.4958@bizon.gios.gov.pl>
+ <alpine.LNX.1.10.0807031806310.23294@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: MULTIPART/MIXED; BOUNDARY="-187430788-1735749197-1215101690=:4958"
 Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
 	Phil Oester <kernel@linuxace.com>,
 	netfilter-devel@vger.kernel.org
-To: Krzysztof Oledzki <ole@ans.pl>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:55648 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751726AbYGCQOM (ORCPT
+Received: from bizon.gios.gov.pl ([212.244.124.8]:50409 "EHLO
+	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752721AbYGCQP2 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Jul 2008 12:14:12 -0400
-In-Reply-To: <Pine.LNX.4.64.0807031749501.4958@bizon.gios.gov.pl>
+	Thu, 3 Jul 2008 12:15:28 -0400
+In-Reply-To: <alpine.LNX.1.10.0807031806310.23294@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On Thursday 2008-07-03 17:51, Krzysztof Oledzki wrote:
->> >
->> > Quick and not good examples, I'd say. The main problem with rp_filter is
->> > that it drops the packets >silently<. The real benefit of such a match is
->> > the possibility to log (and drop) faked packets. If the patch had IPv6
->> > support, one could add that additionally (as far as I know) there's no
->> > rp_filter for IPv6 at all.
->>
->> You know what's been bugging me... why don't we replace the entire
->> routing infrastructure by an xtables "route" table, with something like
+---187430788-1735749197-1215101690=:4958
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+
+
+On Thu, 3 Jul 2008, Jan Engelhardt wrote:
+
 >
-> Because routing in a firewall is slow and too complicated?
-                                                     [Citation needed]
+> On Thursday 2008-07-03 17:51, Krzysztof Oledzki wrote:
+>>>
+>>> You know what's been bugging me... why don't we replace the entire
+>>> routing infrastructure by an xtables "route" table, with something like
+>>
+>> Because routing in a firewall is slow and too complicated?
+>
+> Proof?
 
-I fail to see why Xtables (not just a firewall) should be slower
-than the routing table (without routing cache, to make it fair).
+Proof of what? Of a performance penalty?
 
-Iterating over an IPv4 table compares, at a minimum,
-interface name(s), src/dst address and an L4 protocol, plus extra
-flags like inversion.
+http://people.netfilter.org/kadlec/nftest.pdf
 
-Routing? Well, let's see, it can match src address, src interface,
-out interface, dst address, and so on. Sounds pretty much like
-the same.
+# ip route show table all|wc -l
+456292
+
+
+Best regards,
+
+ =09=09=09=09Krzysztof Ol=EAdzki
+---187430788-1735749197-1215101690=:4958--
