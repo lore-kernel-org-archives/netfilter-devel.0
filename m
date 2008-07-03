@@ -1,65 +1,69 @@
 From: Phil Oester <kernel@linuxace.com>
-Subject: Re: [PATCH,RFC] Route match, kernel
-Date: Thu, 3 Jul 2008 09:27:29 -0700
-Message-ID: <20080703162729.GA19256@linuxace.com>
-References: <20080703003942.GA2012@linuxace.com> <alpine.LNX.1.10.0807030920280.20393@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH,RFC] Route match, user
+Date: Thu, 3 Jul 2008 09:29:46 -0700
+Message-ID: <20080703162946.GB19256@linuxace.com>
+References: <20080703003942.GA2012@linuxace.com> <alpine.LNX.1.10.0807030922040.20393@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from adsl-67-120-171-161.dsl.lsan03.pacbell.net ([67.120.171.161]:39453
+Received: from adsl-67-120-171-161.dsl.lsan03.pacbell.net ([67.120.171.161]:55167
 	"HELO linuxace.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750721AbYGCQ1a (ORCPT
+	with SMTP id S1750703AbYGCQ3r (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Jul 2008 12:27:30 -0400
+	Thu, 3 Jul 2008 12:29:47 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.LNX.1.10.0807030920280.20393@fbirervta.pbzchgretzou.qr>
+In-Reply-To: <alpine.LNX.1.10.0807030922040.20393@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jul 03, 2008 at 09:22:03AM +0200, Jan Engelhardt wrote:
+On Thu, Jul 03, 2008 at 09:26:04AM +0200, Jan Engelhardt wrote:
 > 
-> >+	case XT_ROUTE_SRC_EXISTS:
-> >+		fl.nl_u.ip4_u.daddr = iph->saddr;
-> >+		ret = fib_lookup(dev_net(in), &fl, &res);
-> >+		if (ret == 0 && res.prefixlen != 0) {
-> >+			fib_res_put(&res);
-> >+			return true ^ info->invert;
-> >+		}
-> >+	case XT_ROUTE_SRC_EQ:
-> >+		fl.nl_u.ip4_u.daddr = iph->saddr;
-> >+		ret = fib_lookup(dev_net(in), &fl, &res);
-> >+		if (ret == 0 && res.prefixlen == info->prefixlen) {
-> >+			fib_res_put(&res);
-> >+			return true;
-> >+		}
-> >+		break;
+> >+static const struct option route_opts[] = {
+> >+	{ "route-src-exists", 0, NULL, '1' },
+> >+	{ "route-src-eq", 1, NULL, '2' },
+> >+	{ "route-src-gt", 1, NULL, '3' },
+> >+	{ "route-src-lt", 1, NULL, '4' },
+> >+	{ "route-dst-exists", 0, NULL, '5' },
+> >+	{ "route-dst-eq", 1, NULL, '6' },
+> >+	{ "route-dst-gt", 1, NULL, '7' },
+> >+	{ "route-dst-lt", 1, NULL, '8' },
+> >+	{ .name = NULL }
+> >+};
 > 
-> Should not these be true ^ info->invert too?
+> You are mixing non-C99 and C99 style.
 
-No - invert is only supported on the *_EXISTS case.  Didn't see any point
-in supporting invert on gt/lt, but now that I think of it perhaps supporting
-it on _EQ may be useful.  But can you see a point on gt/lt?
-
-> I would probably combine mode and invert, to save a byte.
-
-Possible.
-
-> >+static bool
-> >+route_mt6(const struct sk_buff *skb, const struct net_device *in,
-> >+           const struct net_device *out, const struct xt_match *match,
-> >+           const void *matchinfo, int offset, unsigned int protoff,
-> >+           bool *hotdrop)
+Copy/paste from other iptables code.  Guess a new match should remain
+consistent.
+ 
+> >+static int route_parse(int c, char **argv, int invert, unsigned int *flags,
+> >+                       const void *entry, struct xt_entry_match **match)
 > >+{
-> >+	return 1;
-> >+}
+> >+	struct xt_route_info *info = (struct xt_route_info *) (*match)->data;
+> >+	unsigned int value;
+> >+
+> >+	check_inverse(optarg, &invert, &optind, 0);
 > 
-> If you do not support IPv6, do not write a function for it ;-)
+> I would not bother supporting intraplaced ! at all. Just remove that line.
 
-OK, so I should have #if 0 it...but this is just an RFC and that was
-listed in the TODO ;-)
+Sorry..."intraplaced"?
+ 
+> >+		case '6':
+> >+			if (invert) 
+> >+				exit_error(PARAMETER_PROBLEM,
+> >+						"route: unexpected `!'");
+> >+
+> >+			if (string_to_number(optarg, 1, 128, &value) == -1)
+> >+				exit_error(PARAMETER_PROBLEM,
+> >+				           "route: Expected prefix between 1 and 128");
+> >+
+> >+			info->mode = XT_ROUTE_DST_EQ;
+> >+			info->value = value;
+> >+			break;
+> 
+> There is a lot of code to unify between route_mt_parse and route_mt6_parse.
 
-Thanks for the review BTW.
+I suppose I could pass a 32 or 128 to a common function, yes.
 
 Phil
