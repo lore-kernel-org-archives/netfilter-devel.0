@@ -1,56 +1,55 @@
-From: Ludwig Nussel <ludwig.nussel@suse.de>
-Subject: Re: [ANNOUNCE] ipset-2.3.2
-Date: Fri, 4 Jul 2008 16:14:35 +0200
-Message-ID: <200807041614.35900.ludwig.nussel@suse.de>
-References: <Pine.LNX.4.64.0807021449020.32444@blackhole.kfki.hu> <200807041553.41535.ludwig.nussel@suse.de> <alpine.LNX.1.10.0807041600150.1890@fbirervta.pbzchgretzou.qr>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: TCP connection stalls under 2.6.24.7
+Date: Fri, 4 Jul 2008 16:54:14 +0200
+Message-ID: <200807041654.15591.thomas.jarosch@intra2net.com>
+References: <47EA0DAB.7080205@securenet.de> <Pine.LNX.4.64.0803261941460.1905@blackhole.kfki.hu> <47F08A52.9070802@securenet.de>
 Mime-Version: 1.0
 Content-Type: text/plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Cc: Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Sven Riedel <sr@securenet.de>
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:48800 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751746AbYGDOOh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 4 Jul 2008 10:14:37 -0400
-Received: from Relay2.suse.de (mail2.suse.de [195.135.221.8])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mx2.suse.de (Postfix) with ESMTP id 8A64645A86
-	for <netfilter-devel@vger.kernel.org>; Fri,  4 Jul 2008 16:14:36 +0200 (CEST)
-In-Reply-To: <alpine.LNX.1.10.0807041600150.1890@fbirervta.pbzchgretzou.qr>
+Received: from rs02.intra2net.com ([81.169.173.116]:59873 "EHLO
+	rs02.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753468AbYGDOyT (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 4 Jul 2008 10:54:19 -0400
+In-Reply-To: <47F08A52.9070802@securenet.de>
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Friday 2008-07-04 15:53, Ludwig Nussel wrote:
-> >
-> >AFAICS one has to manually add PF_EXT_SLIB+=set SET to
-> 
-> Not in 1.4.1 and up, which is what you should be using.
+Hello together,
 
-Ah, the build system was changed. We still have 1.4.0 in the repo.
-Needs to be updated.
+we upgraded from kernel 2.6.23.16 to 2.6.24.7 and are now seeing
+stalling (smtp) TCP connections on two boxes. We still have the old kernel
+on a "rescue" partition. If I boot it up, the connections work immediately.
 
-> Also, since you come from @suse.de, I might infer that ipset
-> is a candidate for the distro kernel in which case one would
-> rather want it as additional modules.
+The connection work fine if the transmitted data is smaller than ~220kb,
+so you still can send small messages. I've sent a tcpdump to Patrick in 
+private as it contained sensitive information. The picture is similar to 
+Sven's issue reported backed in march: Some ACK packets
+are missing (as if the remote side never sent them).
 
-So far there has been no request to include ipset support in any
-SUSE distribution. I've just created ipset add-on packages in the
-openSUSE build service for personal interest.
+I downgraded the box to 2.6.24 to make sure it was
+not caused by any -stable patch. Same thing.
 
-cu
-Ludwig
+Did any default TCP settings change from 2.6.23.16 to 2.6.24?
 
--- 
- (o_   Ludwig Nussel
- //\   
- V_/_  http://www.suse.de/
-SUSE LINUX Products GmbH, GF: Markus Rex, HRB 16746 (AG Nuernberg)
+I also tried to disable path MTU discovery, TCP window scaling and
+lowered the MTU of the ppp0 interface to 1400 (DSL connection).
+This had no visible effect.
 
+@Sven: Were you able to test 2.6.24.2?
 
+Patrick suggested to enable nf_conntrack_log_invalid.
+I enabled it via "echo 255 > /proc/sys/net/netfilter/nf_conntrack_log_invalid"
+but that change didn't print anything to syslog.
 
+Any ideas?
 
-
+Have a nice weekend,
+Thomas
