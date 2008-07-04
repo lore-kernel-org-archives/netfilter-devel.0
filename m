@@ -1,35 +1,37 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH,RFC] Route match
-Date: Fri, 4 Jul 2008 22:26:55 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0807042222120.4142@blackhole.kfki.hu>
-References: <20080703003942.GA2012@linuxace.com>
- <alpine.LNX.1.10.0807030913510.20393@fbirervta.pbzchgretzou.qr>
- <Pine.LNX.4.64.0807031140480.1816@blackhole.kfki.hu> <486D2044.3090108@trash.net>
- <Pine.LNX.4.64.0807040004270.3107@blackhole.kfki.hu>
+Subject: Re: [ANNOUNCE] ipset-2.3.2
+Date: Fri, 4 Jul 2008 22:49:23 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0807042236340.4142@blackhole.kfki.hu>
+References: <Pine.LNX.4.64.0807021449020.32444@blackhole.kfki.hu>
+ <200807031044.37410.ludwig.nussel@suse.de> <Pine.LNX.4.64.0807031504180.1816@blackhole.kfki.hu>
+ <200807041553.41535.ludwig.nussel@suse.de>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	Phil Oester <kernel@linuxace.com>,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org
+To: Ludwig Nussel <ludwig.nussel@suse.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:35436 "EHLO smtp0.kfki.hu"
+Received: from smtp2.kfki.hu ([148.6.0.28]:48538 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751974AbYGDU05 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 4 Jul 2008 16:26:57 -0400
-In-Reply-To: <Pine.LNX.4.64.0807040004270.3107@blackhole.kfki.hu>
+	id S1752816AbYGDUtZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 4 Jul 2008 16:49:25 -0400
+In-Reply-To: <200807041553.41535.ludwig.nussel@suse.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 4 Jul 2008, Jozsef Kadlecsik wrote:
+On Fri, 4 Jul 2008, Ludwig Nussel wrote:
 
-> If there's dynamic routing (say OSPF), then sometimes it's not so easy at 
-> all to write (static) iptables rules for egress/ingress filtering. That is 
-> also a case where the route match can be important (besides the 
-> possibility to log nasty packets when the routing is trivial).
+> Do you have any plans to also support ipv6?
 
-I have to correct myself: when rp_filter produces false results then the 
-route match does also at egress/ingress filtering.
+Yes! A major rewriting of ipset is ongoing, with the following goals:
+
++ (nf)netlink as communication channel instead of sockopt
++ library-based userspace tool with flexible input and output interfaces
++ IPv6 support
++ besides single (IP address) and double (IP+port) data storage,
+  new set types with triples (IP+port+IP)
++ linear set type with other sets as elements ("union" of sets)
++ timeout support, possibly for every set type
+- bindings as a dead end will be dropped
 
 Best regards,
 Jozsef
