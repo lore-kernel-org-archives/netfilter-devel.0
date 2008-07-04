@@ -1,69 +1,72 @@
-From: "James King" <t.james.king@gmail.com>
+From: Jan Engelhardt <jengelh@medozas.de>
 Subject: Re: [PATCH,RFC] Route match
-Date: Thu, 3 Jul 2008 17:19:36 -0700
-Message-ID: <38bcb3ec0807031719n6cdc3233m605271c638b5716f@mail.gmail.com>
-References: <20080703003942.GA2012@linuxace.com>
-	 <alpine.LNX.1.10.0807030913510.20393@fbirervta.pbzchgretzou.qr>
-	 <Pine.LNX.4.64.0807031140480.1816@blackhole.kfki.hu>
-	 <alpine.LNX.1.10.0807031317090.23294@fbirervta.pbzchgretzou.qr>
-	 <Pine.LNX.4.64.0807031425530.1816@blackhole.kfki.hu>
-	 <alpine.LNX.1.10.0807031511310.23294@fbirervta.pbzchgretzou.qr>
-	 <Pine.LNX.4.64.0807031517350.1816@blackhole.kfki.hu>
-	 <alpine.LNX.1.10.0807031612330.23294@fbirervta.pbzchgretzou.qr>
-	 <Pine.LNX.4.64.0807032348310.3107@blackhole.kfki.hu>
-	 <alpine.LNX.1.10.0807040054120.1890@fbirervta.pbzchgretzou.qr>
+Date: Fri, 4 Jul 2008 02:37:29 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0807040228180.1890@fbirervta.pbzchgretzou.qr>
+References: <20080703003942.GA2012@linuxace.com>  <alpine.LNX.1.10.0807030913510.20393@fbirervta.pbzchgretzou.qr>  <Pine.LNX.4.64.0807031140480.1816@blackhole.kfki.hu>  <alpine.LNX.1.10.0807031317090.23294@fbirervta.pbzchgretzou.qr>
+ <Pine.LNX.4.64.0807031425530.1816@blackhole.kfki.hu>  <alpine.LNX.1.10.0807031511310.23294@fbirervta.pbzchgretzou.qr>  <Pine.LNX.4.64.0807031517350.1816@blackhole.kfki.hu>  <alpine.LNX.1.10.0807031612330.23294@fbirervta.pbzchgretzou.qr>
+ <Pine.LNX.4.64.0807032348310.3107@blackhole.kfki.hu>  <alpine.LNX.1.10.0807040054120.1890@fbirervta.pbzchgretzou.qr> <38bcb3ec0807031719n6cdc3233m605271c638b5716f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: "Jozsef Kadlecsik" <kadlec@blackhole.kfki.hu>,
-	"Phil Oester" <kernel@linuxace.com>,
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Phil Oester <kernel@linuxace.com>,
 	netfilter-devel@vger.kernel.org
-To: "Jan Engelhardt" <jengelh@medozas.de>
+To: James King <t.james.king@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.190]:40740 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753628AbYGDATk (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:34492 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753922AbYGDAhb (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Jul 2008 20:19:40 -0400
-Received: by nf-out-0910.google.com with SMTP id d3so317805nfc.21
-        for <netfilter-devel@vger.kernel.org>; Thu, 03 Jul 2008 17:19:36 -0700 (PDT)
-In-Reply-To: <alpine.LNX.1.10.0807040054120.1890@fbirervta.pbzchgretzou.qr>
-Content-Disposition: inline
+	Thu, 3 Jul 2008 20:37:31 -0400
+In-Reply-To: <38bcb3ec0807031719n6cdc3233m605271c638b5716f@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jul 3, 2008 at 4:02 PM, Jan Engelhardt <jengelh@medozas.de> wrote:
 
-> Routing tables become xtables chains. We would not lose anything.
-> In fact, you would gain the possibilty to jump to further chains,
-> something not possible in routing today.
+On Friday 2008-07-04 02:19, James King wrote:
+>>
+>> -N table5
+>> -N table6
+>> -A table5 -d 10.10.96.2 -j ROUTE --dev eth2
+>> -A table5 -j ROUTE --via 10.10.96.1 --dev eth0  # default route!
+>> -A table6 -j ROUTE --via 10.11.96.1 --dev eth1  # also a default
+>> -A ROUTING -m mark --mark 5 -j table5
+>> -A ROUTING -m mark --mark 6 -j table6
 >
-> rt input:
->
-> ip rule fwmark 5 table 5
-> ip rule fwmark 6 table 6
-> ip route add 10.10.96.2/32 dev eth2 table 5
-> ip route add via 10.10.96.1 dev eth0 table 5 # default route
-> ip route add via 10.11.96.1 dev eth1 table 6 # default orute
->
-> in xtables (ROUTE is a terminating target):
->
-> -N table5
-> -N table6
-> -A table5 -d 10.10.96.2 -j ROUTE --dev eth2
-> -A table5 -j ROUTE --via 10.10.96.1 --dev eth0  # default route!
-> -A table6 -j ROUTE --via 10.11.96.1 --dev eth1  # also a default
-> -A ROUTING -m mark --mark 5 -j table5
-> -A ROUTING -m mark --mark 6 -j table6
+>Wouldn't this break with normal routing concepts, since xtables
+>traverses the chain linearly, while routing lookups use longest prefix
+>match (most specific route wins)?
 
-Wouldn't this break with normal routing concepts, since xtables
-traverses the chain linearly, while routing lookups use longest prefix
-match (most specific route wins)?  IOW, unless xtables automatically
-inserted the rule into the correct spot in the chain (as opposed to
-just appending to the end of the chain like -A implies), you could run
-into situations where specifying the rules out of order would send the
-packet to the wrong next-hop.
+Very well observed. However,
+
+- the kernel is likely to do a linear rule list search (in `ip ru l`)
+  too, because I would not imagine how you could optimize _that_
+  more than Xtables when it has to compare src/dst addresses, fwmarks,
+  etc.
+
+- you are right, the *routing* table is sorted by longest prefix,
+  and that is probably why people tout it as "optimized for the case".
+  But I would not see anything wrong with the user doing the sorting
+  (or even Xtables).
+
+ (Maybe I just want a new command-line interface for routing instead
+  of a new in-core architecture...)
 
 
-Regards,
-James
+> IOW, unless xtables automatically
+>inserted the rule into the correct spot in the chain (as opposed to
+>just appending to the end of the chain like -A implies), you could run
+>into situations where specifying the rules out of order would send the
+>packet to the wrong next-hop.
+
+Or you could actually optimize it. If, say 95% of all your packets
+go out on eth0, the following route table (which is dependent
+upon cabling), with its ordering, is suboptimal:
+
+	192.168.1.1/32 dev isp0
+	192.168.1.0/24 dev eth0
+
+Relaxing the longest-prefix ordering would mean less traversal
+time through the chains (i.e. minimizing the time taken
+for routing table traversal for randomly distributed packets,
+but weighted according to network situation, over a given
+time period.)
