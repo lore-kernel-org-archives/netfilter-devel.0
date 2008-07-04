@@ -1,61 +1,46 @@
-From: Henrik Nordstrom <henrik@henriknordstrom.net>
-Subject: Re: [PATCH,RFC] Route match
-Date: Fri, 04 Jul 2008 17:15:44 +0200
-Message-ID: <1215184544.32053.61.camel@henriknordstrom.net>
-References: <20080703003942.GA2012@linuxace.com>
-	 <alpine.LNX.1.10.0807030913510.20393@fbirervta.pbzchgretzou.qr>
-	 <Pine.LNX.4.64.0807031140480.1816@blackhole.kfki.hu>
-	 <alpine.LNX.1.10.0807031317090.23294@fbirervta.pbzchgretzou.qr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [ANNOUNCE] ipset-2.3.2
+Date: Fri, 4 Jul 2008 19:01:27 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0807041814270.1890@fbirervta.pbzchgretzou.qr>
+References: <Pine.LNX.4.64.0807021449020.32444@blackhole.kfki.hu> <200807041553.41535.ludwig.nussel@suse.de> <alpine.LNX.1.10.0807041600150.1890@fbirervta.pbzchgretzou.qr> <200807041614.35900.ludwig.nussel@suse.de>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-DdGcrxFVBJi42BfTbtF3"
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Phil Oester <kernel@linuxace.com>,
-	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Ludwig Nussel <ludwig.nussel@suse.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from vps1.henriknordstrom.net ([195.20.207.177]:57646 "EHLO
-	vps1.henriknordstrom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753745AbYGDPPv (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:38999 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761030AbYGDRB3 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 4 Jul 2008 11:15:51 -0400
-In-Reply-To: <alpine.LNX.1.10.0807031317090.23294@fbirervta.pbzchgretzou.qr>
+	Fri, 4 Jul 2008 13:01:29 -0400
+In-Reply-To: <200807041614.35900.ludwig.nussel@suse.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---=-DdGcrxFVBJi42BfTbtF3
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+On Friday 2008-07-04 16:14, Ludwig Nussel wrote:
 
-On tor, 2008-07-03 at 13:22 +0200, Jan Engelhardt wrote:
+>> >AFAICS one has to manually add PF_EXT_SLIB+=set SET to
+>> Not in 1.4.1 and up, which is what you should be using.
+>Ah, the build system was changed. We still have 1.4.0 in the repo.
+>Needs to be updated.
 
-> You know what's been bugging me... why don't we replace the entire
-> routing infrastructure by an xtables "route" table, with something like
+It is a bit unfortunate that opensuse 11 got out before 1.4.1..
+(/me eyes Patrick ;-)
 
-It's been discussed off-list many times.=20
+>> Also, since you come from @suse.de, I might infer that ipset
+>> is a candidate for the distro kernel in which case one would
+>> rather want it as additional modules.
+>
+>So far there has been no request to include ipset support in any
+>SUSE distribution. I've just created ipset add-on packages in the
+>openSUSE build service for personal interest.
 
-The problem with the routing table is that it's more to that table than
-what's visible. It's heavily cached and annotated by the kernel beyond
-just the plain routing table, and used in a number of different ways
-such as when assigning the source address on outgoing connections, way
-before there even is a packet.
+I have completed importing ipset and wiring up the Makefile logic
+in xtables-addons (ipset branch). As such, there is also a SUSE rpm
+in my repo (/suser-jengelh/SUSE-11.0/*/xtables-addons-*-1.5.4.2).
 
-Regards
-Henrik
 
---=-DdGcrxFVBJi42BfTbtF3
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.7 (GNU/Linux)
-
-iQCVAwUASG4+nUNPQ5Kbx8daAQIxpwP/WJ+eB9fJesNlCRG9SZ7Ym0g0cpuGXpFM
-HnneqLDgl/pdjP9/pSUY9x3r6fWamQZgTT826fj0gIvtvP/mYMMdIuR+gVw+514q
-JaLxalrTadvjjpXBkQX+RBvXzYZV1GVNYHsPZly8Sq1CKNmKQstJeAPl9xGBTbyF
-27lieWxBStU=
-=JYbn
------END PGP SIGNATURE-----
-
---=-DdGcrxFVBJi42BfTbtF3--
-
+Jozsef, where do we go from here? ipset in xt-a, ACCEPT or DROP?
