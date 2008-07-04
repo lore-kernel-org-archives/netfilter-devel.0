@@ -1,38 +1,44 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: build: quote variables in release.sh
-Date: Fri, 4 Jul 2008 12:27:57 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0807041227510.1890@fbirervta.pbzchgretzou.qr>
-References: <alpine.LNX.1.10.0807032015430.23294@fbirervta.pbzchgretzou.qr> <486DD32C.6040903@netfilter.org> <486DD3AF.6040909@netfilter.org>
+From: Benny Amorsen <benny+usenet@amorsen.dk>
+Subject: Re: [PATCH,RFC] Route match
+Date: Fri, 04 Jul 2008 15:47:56 +0200
+Message-ID: <m3mykxoj5f.fsf@ursa.amorsen.dk>
+References: <20080703003942.GA2012@linuxace.com> <alpine.LNX.1.10.0807030913510.20393@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0807031140480.1816@blackhole.kfki.hu> <alpine.LNX.1.10.0807031317090.23294@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0807031749501.4958@bizon.gios.gov.pl> <alpine.LNX.1.10.0807031808550.23294@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: kaber@trash.net,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:57956 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752020AbYGDK17 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 4 Jul 2008 06:27:59 -0400
-In-Reply-To: <486DD3AF.6040909@netfilter.org>
+Received: from main.gmane.org ([80.91.229.2]:51668 "EHLO ciao.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753516AbYGDNsH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 4 Jul 2008 09:48:07 -0400
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1KEldr-0007ol-UY
+	for netfilter-devel@vger.kernel.org; Fri, 04 Jul 2008 13:48:03 +0000
+Received: from hd5b9080a.c45-01-12.sta.perspektivbredband.net ([213.185.8.10])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Fri, 04 Jul 2008 13:48:03 +0000
+Received: from benny+usenet by hd5b9080a.c45-01-12.sta.perspektivbredband.net with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Fri, 04 Jul 2008 13:48:03 +0000
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Jan Engelhardt <jengelh@medozas.de> writes:
 
-On Friday 2008-07-04 09:39, Pablo Neira Ayuso wrote:
+> I fail to see why Xtables (not just a firewall) should be slower
+> than the routing table (without routing cache, to make it fair).
 
->Pablo Neira Ayuso wrote:
->> Jan Engelhardt wrote:
->>> commit 68a69d9fbf610899aa95457cdd5c38dcfa447c02
->>> Author: Jan Engelhardt <jengelh@medozas.de>
->>> Date:   Thu Jul 3 19:23:39 2008 +0200
->>>
->>>     build: quote variables in release.sh
->> 
->> Actually, instead of fixing release.sh, we should have the `make
->> distcheck' magic working. Currently it is broken.
->
->I mean the magic to build the tarball, of course.
+What about the routing cache, though?
 
-make tarball
+Our Linux-based routers handle considerably less than 1Gbps peak, and
+they drop packets when the cache is flushed. (So I had to set the
+automatic flush to 86400 seconds instead of 10).
+
+It would be necessary to either reinvent the route cache or come up
+with something better. Preferably the latter, of course.
+
+
+/Benny
+
+
