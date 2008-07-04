@@ -1,32 +1,38 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: TCP connection stalls under 2.6.24.7
-Date: Fri, 4 Jul 2008 23:04:34 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0807042303090.4142@blackhole.kfki.hu>
-References: <47EA0DAB.7080205@securenet.de> <Pine.LNX.4.64.0803261941460.1905@blackhole.kfki.hu>
- <47F08A52.9070802@securenet.de> <200807041654.15591.thomas.jarosch@intra2net.com>
- <Pine.LNX.4.64.0807042251500.4142@blackhole.kfki.hu>
+Subject: Re: [ANNOUNCE] ipset-2.3.2
+Date: Sat, 5 Jul 2008 01:09:51 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0807050050510.4142@blackhole.kfki.hu>
+References: <Pine.LNX.4.64.0807021449020.32444@blackhole.kfki.hu>
+ <200807041553.41535.ludwig.nussel@suse.de> <alpine.LNX.1.10.0807041600150.1890@fbirervta.pbzchgretzou.qr>
+ <200807041614.35900.ludwig.nussel@suse.de> <alpine.LNX.1.10.0807041814270.1890@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Sven Riedel <sr@securenet.de>
-To: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Cc: Ludwig Nussel <ludwig.nussel@suse.de>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:52988 "EHLO smtp1.kfki.hu"
+Received: from smtp0.kfki.hu ([148.6.0.25]:42384 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752314AbYGDVEg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 4 Jul 2008 17:04:36 -0400
-In-Reply-To: <Pine.LNX.4.64.0807042251500.4142@blackhole.kfki.hu>
+	id S1750839AbYGDXJx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 4 Jul 2008 19:09:53 -0400
+In-Reply-To: <alpine.LNX.1.10.0807041814270.1890@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 4 Jul 2008, Jozsef Kadlecsik wrote:
+On Fri, 4 Jul 2008, Jan Engelhardt wrote:
 
-> Have you got SACK enabled? If yes, try to disable it: TCP connection 
-> tracking has got some trouble with SACK support. :-(
+> I have completed importing ipset and wiring up the Makefile logic
+> in xtables-addons (ipset branch). As such, there is also a SUSE rpm
+> in my repo (/suser-jengelh/SUSE-11.0/*/xtables-addons-*-1.5.4.2).
+> 
+> Jozsef, where do we go from here? ipset in xt-a, ACCEPT or DROP?
 
-s/has/had/ as we are speaking of 2.6.24.
+As xtables-addons works with kernel 2.6.18.5 or above I cannot depend on 
+it. Even supporting 2.4 kernels is still required - and if there's a 
+single user who needs it, I do support the 2.4 series in ipset.
+
+If you want to maintain a copy of ipset in xtables-addons, just go ahead.
 
 Best regards,
 Jozsef
