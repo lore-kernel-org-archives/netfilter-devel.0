@@ -1,42 +1,34 @@
-From: Jesper Dangaard Brouer <hawk@diku.dk>
-Subject: Re: Patches solving the same issue!?
-Date: Fri, 4 Jul 2008 09:09:03 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0807040907500.8785@tyr.diku.dk>
-References: <> <1215021635-28691-1-git-send-email-jacob@internet24.de>
- <1215021635-28691-2-git-send-email-jacob@internet24.de>
- <1215032251.9467.11.camel@localhost.localdomain>  <486CC931.2010703@trash.net>
- <1215095403.26474.103.camel@enterprise.ims-firmen.de> <486CE33C.7080804@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: build: quote variables in release.sh
+Date: Fri, 04 Jul 2008 09:37:16 +0200
+Message-ID: <486DD32C.6040903@netfilter.org>
+References: <alpine.LNX.1.10.0807032015430.23294@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: Thomas Jacob <jacob@internet24.de>, jdb@comx.dk,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mgw1.diku.dk ([130.225.96.91]:43913 "EHLO mgw1.diku.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753963AbYGDHJG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 4 Jul 2008 03:09:06 -0400
-In-Reply-To: <486CE33C.7080804@trash.net>
+Received: from relay-ev.club-internet.fr ([194.158.96.209]:52442 "EHLO
+	relay-ev.club-internet.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750983AbYGDHhT (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 4 Jul 2008 03:37:19 -0400
+In-Reply-To: <alpine.LNX.1.10.0807032015430.23294@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Jan Engelhardt wrote:
+> commit 68a69d9fbf610899aa95457cdd5c38dcfa447c02
+> Author: Jan Engelhardt <jengelh@medozas.de>
+> Date:   Thu Jul 3 19:23:39 2008 +0200
+> 
+>     build: quote variables in release.sh
 
-On Thu, 3 Jul 2008, Patrick McHardy wrote:
+Actually, instead of fixing release.sh, we should have the `make
+distcheck' magic working. Currently it is broken.
 
-> Thomas Jacob wrote:
->>
->>  I would use Jesper's patch.
->
-> OK, thanks for the numbers and sorting this out so peacefully :)
-
-Thanks, Thomas! :-)
-
-Cheers,
-   Jesper Brouer
-
---
--------------------------------------------------------------------
-MSc. Master of Computer Science
-Dept. of Computer Science, University of Copenhagen
-Author of http://www.adsl-optimizer.dk
--------------------------------------------------------------------
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
