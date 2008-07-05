@@ -1,43 +1,34 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [ANNOUNCE] ipset-2.3.2
-Date: Sat, 5 Jul 2008 01:09:51 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0807050050510.4142@blackhole.kfki.hu>
-References: <Pine.LNX.4.64.0807021449020.32444@blackhole.kfki.hu>
- <200807041553.41535.ludwig.nussel@suse.de> <alpine.LNX.1.10.0807041600150.1890@fbirervta.pbzchgretzou.qr>
- <200807041614.35900.ludwig.nussel@suse.de> <alpine.LNX.1.10.0807041814270.1890@fbirervta.pbzchgretzou.qr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: build: quote variables in release.sh
+Date: Sat, 5 Jul 2008 22:36:04 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0807052235560.28765@fbirervta.pbzchgretzou.qr>
+References: <alpine.LNX.1.10.0807032015430.23294@fbirervta.pbzchgretzou.qr> <486DD32C.6040903@netfilter.org> <486DD3AF.6040909@netfilter.org> <alpine.LNX.1.10.0807041227510.1890@fbirervta.pbzchgretzou.qr> <486E3025.9030106@netfilter.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Ludwig Nussel <ludwig.nussel@suse.de>,
+Cc: kaber@trash.net,
 	Netfilter Developer Mailing List
 	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:42384 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750839AbYGDXJx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 4 Jul 2008 19:09:53 -0400
-In-Reply-To: <alpine.LNX.1.10.0807041814270.1890@fbirervta.pbzchgretzou.qr>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:46571 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751363AbYGEUgH (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 5 Jul 2008 16:36:07 -0400
+In-Reply-To: <486E3025.9030106@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 4 Jul 2008, Jan Engelhardt wrote:
 
-> I have completed importing ipset and wiring up the Makefile logic
-> in xtables-addons (ipset branch). As such, there is also a SUSE rpm
-> in my repo (/suser-jengelh/SUSE-11.0/*/xtables-addons-*-1.5.4.2).
-> 
-> Jozsef, where do we go from here? ipset in xt-a, ACCEPT or DROP?
+On Friday 2008-07-04 16:13, Pablo Neira Ayuso wrote:
+>>>>>     build: quote variables in release.sh
+>>>> Actually, instead of fixing release.sh, we should have the `make
+>>>> distcheck' magic working. Currently it is broken.
+>>> I mean the magic to build the tarball, of course.
+>> 
+>> make tarball
+>
+>That works but it is doing far less checkings that `make distcheck' in
+>other packages.
 
-As xtables-addons works with kernel 2.6.18.5 or above I cannot depend on 
-it. Even supporting 2.4 kernels is still required - and if there's a 
-single user who needs it, I do support the 2.4 series in ipset.
-
-If you want to maintain a copy of ipset in xtables-addons, just go ahead.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+What checks do we need?
