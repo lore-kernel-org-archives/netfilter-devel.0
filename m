@@ -1,47 +1,51 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 06/13: ebt_nflog: fix Kconfig typo
-Date: Mon,  7 Jul 2008 14:05:23 +0200 (MEST)
-Message-ID: <20080707120522.4975.22620.sendpatchset@localhost.localdomain>
+Subject: textsearch 12/13: convert kmalloc + memset to kzalloc
+Date: Mon,  7 Jul 2008 14:05:31 +0200 (MEST)
+Message-ID: <20080707120530.4975.73891.sendpatchset@localhost.localdomain>
 References: <20080707120514.4975.88670.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:58381 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:58403 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753629AbYGGMFY (ORCPT
+	with ESMTP id S1753728AbYGGMFc (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 7 Jul 2008 08:05:24 -0400
+	Mon, 7 Jul 2008 08:05:32 -0400
 In-Reply-To: <20080707120514.4975.88670.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-netfilter: ebt_nflog: fix Kconfig typo
+textsearch: convert kmalloc + memset to kzalloc
 
-The help text should refer to nflog instead of ulog. Noticed by
-Krzysztof Halasa <khc@pm.waw.pl>.
+convert kmalloc + memset to kzalloc for alloc_ts_config
 
+Signed-off-by: Joonwoo Park <joonwpark81@gmail.com>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 48d88486554c27296e6f0e4b37aae3bbb37af5d2
-tree 5e381318cdc2c46ed9d7e4afa58815c125d441f2
-parent fa30a357f95a548526ffe578a57ff55fb2646674
-author Patrick McHardy <kaber@trash.net> Mon, 07 Jul 2008 13:00:16 +0200
-committer Patrick McHardy <kaber@trash.net> Mon, 07 Jul 2008 13:00:16 +0200
+commit 1dca522180f8a6f882cdef795f49595c05467bb2
+tree 857aaaea2e4ec8266bf6fc06d75ef9eee349fb43
+parent 9506e421d3283116e5c0648be7a6233b7b841e35
+author Joonwoo Park <joonwpark81@gmail.com> Mon, 07 Jul 2008 13:00:18 +0200
+committer Patrick McHardy <kaber@trash.net> Mon, 07 Jul 2008 13:00:18 +0200
 
- net/bridge/netfilter/Kconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ include/linux/textsearch.h |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-diff --git a/net/bridge/netfilter/Kconfig b/net/bridge/netfilter/Kconfig
-index 540df41..9094797 100644
---- a/net/bridge/netfilter/Kconfig
-+++ b/net/bridge/netfilter/Kconfig
-@@ -230,7 +230,7 @@ config BRIDGE_EBT_NFLOG
- 	  either the old LOG target, the old ULOG target or nfnetlink_log
- 	  as backend.
+diff --git a/include/linux/textsearch.h b/include/linux/textsearch.h
+index 6c34cf2..d9a85d6 100644
+--- a/include/linux/textsearch.h
++++ b/include/linux/textsearch.h
+@@ -162,11 +162,10 @@ static inline struct ts_config *alloc_ts_config(size_t payload,
+ {
+ 	struct ts_config *conf;
  
--	  This option adds the ulog watcher, that you can use in any rule
-+	  This option adds the nflog watcher, that you can use in any rule
- 	  in any ebtables table.
+-	conf = kmalloc(TS_PRIV_ALIGN(sizeof(*conf)) + payload, gfp_mask);
++	conf = kzalloc(TS_PRIV_ALIGN(sizeof(*conf)) + payload, gfp_mask);
+ 	if (conf == NULL)
+ 		return ERR_PTR(-ENOMEM);
  
- 	  To compile it as a module, choose M here.  If unsure, say N.
+-	memset(conf, 0, TS_PRIV_ALIGN(sizeof(*conf)) + payload);
+ 	return conf;
+ }
+ 
