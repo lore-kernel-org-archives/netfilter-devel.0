@@ -1,67 +1,47 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 00/13: netfilter update
-Date: Mon,  7 Jul 2008 14:05:15 +0200 (MEST)
-Message-ID: <20080707120514.4975.88670.sendpatchset@localhost.localdomain>
+Subject: netfilter 06/13: ebt_nflog: fix Kconfig typo
+Date: Mon,  7 Jul 2008 14:05:23 +0200 (MEST)
+Message-ID: <20080707120522.4975.22620.sendpatchset@localhost.localdomain>
+References: <20080707120514.4975.88670.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:58364 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:58381 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753400AbYGGMFR (ORCPT
+	with ESMTP id S1753629AbYGGMFY (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 7 Jul 2008 08:05:17 -0400
+	Mon, 7 Jul 2008 08:05:24 -0400
+In-Reply-To: <20080707120514.4975.88670.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Dave,
+netfilter: ebt_nflog: fix Kconfig typo
 
-following is a small netfilter update for net-next-2.6, containing some
-minor cleanups and typo fixes, the case insensitive search support for the
-textsearch API and xtables string match from Joonwoo Park and some net-ns
-fixes from Alexey Dobriyan.
+The help text should refer to nflog instead of ulog. Noticed by
+Krzysztof Halasa <khc@pm.waw.pl>.
 
-Please apply, thanks.
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 
+---
+commit 48d88486554c27296e6f0e4b37aae3bbb37af5d2
+tree 5e381318cdc2c46ed9d7e4afa58815c125d441f2
+parent fa30a357f95a548526ffe578a57ff55fb2646674
+author Patrick McHardy <kaber@trash.net> Mon, 07 Jul 2008 13:00:16 +0200
+committer Patrick McHardy <kaber@trash.net> Mon, 07 Jul 2008 13:00:16 +0200
 
- include/linux/netfilter/xt_string.h    |   15 +++++++++++-
- include/linux/netfilter_ipv6.h         |    4 +++
- include/linux/textsearch.h             |   13 +++++------
- include/net/netfilter/nf_conntrack.h   |    3 +-
- lib/textsearch.c                       |   14 ++++++-----
- lib/ts_bm.c                            |   26 ++++++++++++++++-----
- lib/ts_fsm.c                           |    6 ++++-
- lib/ts_kmp.c                           |   29 +++++++++++++++++------
- net/bridge/netfilter/Kconfig           |    2 +-
- net/ipv4/netfilter/Kconfig             |    3 +-
- net/ipv6/netfilter/ip6table_filter.c   |   31 ++++++++++++++++++-------
- net/ipv6/netfilter/ip6table_security.c |    6 ++--
- net/netfilter/Kconfig                  |    5 +--
- net/netfilter/nf_conntrack_core.c      |    7 +++--
- net/netfilter/nf_conntrack_netlink.c   |    2 +-
- net/netfilter/xt_string.c              |   38 ++++++++++++++++++++++++++++++-
- 16 files changed, 150 insertions(+), 54 deletions(-)
+ net/bridge/netfilter/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Adrian Bunk (1):
-      netfilter: cleanup netfilter_ipv6.h userspace header
-
-Alexey Dobriyan (2):
-      netfilter: use correct namespace in ip6table_security
-      netfilter: ip6table_filter in netns for real
-
-Joonwoo Park (7):
-      textsearch: support for case insensitive searching
-      textsearch: fix Boyer-Moore text search bug
-      textsearch: ts_bm: support case insensitive searching in Boyer-Moore algorithm
-      textsearch: ts_kmp: support case insensitive searching in Knuth-Morris-Pratt algorithm
-      textsearch: ts_fsm: return error on request for case insensitive search
-      textsearch: convert kmalloc + memset to kzalloc
-      netfilter: fix string extension for case insensitive pattern matching
-
-Pablo Neira Ayuso (1):
-      netfilter: nf_conntrack: add allocation flag to nf_conntrack_alloc
-
-Patrick McHardy (1):
-      netfilter: ebt_nflog: fix Kconfig typo
-
-Russ Dill (1):
-      Get rid of refrences to no longer existant Fast NAT.
+diff --git a/net/bridge/netfilter/Kconfig b/net/bridge/netfilter/Kconfig
+index 540df41..9094797 100644
+--- a/net/bridge/netfilter/Kconfig
++++ b/net/bridge/netfilter/Kconfig
+@@ -230,7 +230,7 @@ config BRIDGE_EBT_NFLOG
+ 	  either the old LOG target, the old ULOG target or nfnetlink_log
+ 	  as backend.
+ 
+-	  This option adds the ulog watcher, that you can use in any rule
++	  This option adds the nflog watcher, that you can use in any rule
+ 	  in any ebtables table.
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
