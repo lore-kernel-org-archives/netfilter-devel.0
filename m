@@ -1,118 +1,66 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: textsearch 09/13: ts_bm: support case insensitive searching in Boyer-Moore algorithm
-Date: Mon,  7 Jul 2008 14:05:27 +0200 (MEST)
-Message-ID: <20080707120526.4975.57912.sendpatchset@localhost.localdomain>
+Subject: Get rid of refrences to no longer existant Fast NAT.
+Date: Mon,  7 Jul 2008 14:05:17 +0200 (MEST)
+Message-ID: <20080707120516.4975.88905.sendpatchset@localhost.localdomain>
 References: <20080707120514.4975.88670.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:58391 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:58370 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753693AbYGGMF2 (ORCPT
+	with ESMTP id S1753531AbYGGMFT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 7 Jul 2008 08:05:28 -0400
+	Mon, 7 Jul 2008 08:05:19 -0400
 In-Reply-To: <20080707120514.4975.88670.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-textsearch: ts_bm: support case insensitive searching in Boyer-Moore algorithm
+Get rid of refrences to no longer existant Fast NAT.
 
-Add support for case insensitive search to Boyer-Moore algorithm.
+IP_ROUTE_NAT support was removed in August of 2004, but references to Fast
+NAT were left in a couple of config options.
 
-Signed-off-by: Joonwoo Park <joonwpark81@gmail.com>
+Signed-off-by: Russ Dill <Russ.Dill@gmail.com>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 457ff20e4a6f48e8ff049ad9323b76b9a4e110a7
-tree a777e8054a470dcc262b32653e1fe795d8d66d62
-parent ad089136c547ef33e2375e64dd13a0f09825d4d0
-author Joonwoo Park <joonwpark81@gmail.com> Mon, 07 Jul 2008 13:00:17 +0200
-committer Patrick McHardy <kaber@trash.net> Mon, 07 Jul 2008 13:00:17 +0200
+commit 8b373c6315ac2b28c32ba26fd24a47b28d489b0b
+tree 718165eb921842684bba4015726fa485d263bb18
+parent 1efb97e64956296424507f66dd8af9861f98ad89
+author Russ Dill <russ.dill@gmail.com> Mon, 07 Jul 2008 13:00:15 +0200
+committer Patrick McHardy <kaber@trash.net> Mon, 07 Jul 2008 13:00:15 +0200
 
- lib/ts_bm.c |   26 ++++++++++++++++++++------
- 1 files changed, 20 insertions(+), 6 deletions(-)
+ net/ipv4/netfilter/Kconfig |    3 +--
+ net/netfilter/Kconfig      |    5 ++---
+ 2 files changed, 3 insertions(+), 5 deletions(-)
 
-diff --git a/lib/ts_bm.c b/lib/ts_bm.c
-index 4a7fce7..9e66ee4 100644
---- a/lib/ts_bm.c
-+++ b/lib/ts_bm.c
-@@ -39,6 +39,7 @@
- #include <linux/module.h>
- #include <linux/types.h>
- #include <linux/string.h>
-+#include <linux/ctype.h>
- #include <linux/textsearch.h>
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index 6e25140..f23e60c 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -213,8 +213,7 @@ config IP_NF_TARGET_NETMAP
+ 	help
+ 	  NETMAP is an implementation of static 1:1 NAT mapping of network
+ 	  addresses. It maps the network address part, while keeping the host
+-	  address part intact. It is similar to Fast NAT, except that
+-	  Netfilter's connection tracking doesn't work well with Fast NAT.
++	  address part intact.
  
- /* Alphabet size, use ASCII */
-@@ -64,6 +65,7 @@ static unsigned int bm_find(struct ts_config *conf, struct ts_state *state)
- 	unsigned int i, text_len, consumed = state->offset;
- 	const u8 *text;
- 	int shift = bm->patlen - 1, bs;
-+	const u8 icase = conf->flags & TS_IGNORECASE;
+ 	  To compile it as a module, choose M here.  If unsure, say N.
  
- 	for (;;) {
- 		text_len = conf->get_next_block(consumed, &text, conf, state);
-@@ -75,7 +77,9 @@ static unsigned int bm_find(struct ts_config *conf, struct ts_state *state)
- 			DEBUGP("Searching in position %d (%c)\n", 
- 				shift, text[shift]);
- 			for (i = 0; i < bm->patlen; i++) 
--			     if (text[shift-i] != bm->pattern[bm->patlen-1-i])
-+				if ((icase ? toupper(text[shift-i])
-+				    : text[shift-i])
-+					!= bm->pattern[bm->patlen-1-i])
- 				     goto next;
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index aa8d80c..316c7af 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -33,9 +33,8 @@ config NF_CONNTRACK
+ 	  into connections.
  
- 			/* London calling... */
-@@ -111,14 +115,18 @@ static int subpattern(u8 *pattern, int i, int j, int g)
- 	return ret;
- }
+ 	  This is required to do Masquerading or other kinds of Network
+-	  Address Translation (except for Fast NAT).  It can also be used to
+-	  enhance packet filtering (see `Connection state match support'
+-	  below).
++	  Address Translation.  It can also be used to enhance packet
++	  filtering (see `Connection state match support' below).
  
--static void compute_prefix_tbl(struct ts_bm *bm)
-+static void compute_prefix_tbl(struct ts_bm *bm, int flags)
- {
- 	int i, j, g;
+ 	  To compile it as a module, choose M here.  If unsure, say N.
  
- 	for (i = 0; i < ASIZE; i++)
- 		bm->bad_shift[i] = bm->patlen;
--	for (i = 0; i < bm->patlen - 1; i++)
-+	for (i = 0; i < bm->patlen - 1; i++) {
- 		bm->bad_shift[bm->pattern[i]] = bm->patlen - 1 - i;
-+		if (flags & TS_IGNORECASE)
-+			bm->bad_shift[tolower(bm->pattern[i])]
-+			    = bm->patlen - 1 - i;
-+	}
- 
- 	/* Compute the good shift array, used to match reocurrences 
- 	 * of a subpattern */
-@@ -135,10 +143,11 @@ static void compute_prefix_tbl(struct ts_bm *bm)
- }
- 
- static struct ts_config *bm_init(const void *pattern, unsigned int len,
--				 gfp_t gfp_mask)
-+				 gfp_t gfp_mask, int flags)
- {
- 	struct ts_config *conf;
- 	struct ts_bm *bm;
-+	int i;
- 	unsigned int prefix_tbl_len = len * sizeof(unsigned int);
- 	size_t priv_size = sizeof(*bm) + len + prefix_tbl_len;
- 
-@@ -146,11 +155,16 @@ static struct ts_config *bm_init(const void *pattern, unsigned int len,
- 	if (IS_ERR(conf))
- 		return conf;
- 
-+	conf->flags = flags;
- 	bm = ts_config_priv(conf);
- 	bm->patlen = len;
- 	bm->pattern = (u8 *) bm->good_shift + prefix_tbl_len;
--	memcpy(bm->pattern, pattern, len);
--	compute_prefix_tbl(bm);
-+	if (flags & TS_IGNORECASE)
-+		for (i = 0; i < len; i++)
-+			bm->pattern[i] = toupper(((u8 *)pattern)[i]);
-+	else
-+		memcpy(bm->pattern, pattern, len);
-+	compute_prefix_tbl(bm, flags);
- 
- 	return conf;
- }
