@@ -1,42 +1,46 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [ANNOUNCE] ipset-2.3.2
-Date: Mon, 7 Jul 2008 11:28:50 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0807051710240.28765@fbirervta.pbzchgretzou.qr>
-References: <Pine.LNX.4.64.0807021449020.32444@blackhole.kfki.hu> <200807041553.41535.ludwig.nussel@suse.de> <alpine.LNX.1.10.0807041600150.1890@fbirervta.pbzchgretzou.qr> <200807041614.35900.ludwig.nussel@suse.de> <alpine.LNX.1.10.0807041814270.1890@fbirervta.pbzchgretzou.qr>
- <Pine.LNX.4.64.0807050050510.4142@blackhole.kfki.hu>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Fwd: [PATCH] nf_nat_core: eliminate find_appropriate_src call
+ if range is set IP_NAT_RANGE_PROTO_RANDOM bit on
+Date: Mon, 07 Jul 2008 13:24:46 +0200
+Message-ID: <4871FCFE.1020202@trash.net>
+References: <412e6f7f0806292132l18c747d6h982c64ce7c9d9c85@mail.gmail.com>	 <412e6f7f0806300100t6bc37635pc922405705f1784d@mail.gmail.com>	 <4868D76D.6050008@trash.net> <412e6f7f0806300634g1d82ffcewd3ba7ef0b951cd1a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Ludwig Nussel <ludwig.nussel@suse.de>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Changli Gao <xiaosuo@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:58397 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751905AbYGGJ2v (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:57316 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752598AbYGGLYt (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 7 Jul 2008 05:28:51 -0400
-In-Reply-To: <Pine.LNX.4.64.0807050050510.4142@blackhole.kfki.hu>
+	Mon, 7 Jul 2008 07:24:49 -0400
+In-Reply-To: <412e6f7f0806300634g1d82ffcewd3ba7ef0b951cd1a@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Changli Gao wrote:
+> On Mon, Jun 30, 2008 at 8:54 PM, Patrick McHardy <kaber@trash.net> wrote:
+>> Changli Gao wrote:
+>>> ---------- Forwarded message ----------
+>>> From: Changli Gao <xiaosuo@gmail.com>
+>>> Date: 2008/6/30
+>>> Subject: [PATCH] nf_nat_core: eliminate find_appropriate_src call if
+>>> range is set IP_NAT_RANGE_PROTO_RANDOM bit on
+>>> To: netfilter-devel@lists.netfilter.org
+>>> Cc: Changli Gao <xiaosuo@gmail.com>
+>>>
+>>>
+>>> Eliminate find_appropriate_src call if range is set
+>>> IP_NAT_RANGE_PROTO_RANDOM bit on.
+>> Please explain why the call isn't necessary.
+>>
+> In fact, my patch doesn't change the logic of the code, it just
+> eliminates the uesless call find_appropriate_src. Because the tuple
+> returned by find_appropriate is only useful when the
+> IP_NAT_RANGE_PROTO_RANDOM isn't set on.  instead of testing the bit
+> IP_NAT_RANGE_PROTO_RANDOM after calling find_appropriate_src, I do
+> that before it to eliminate the cost of calling find_appropriate_src.
 
-On Saturday 2008-07-05 01:09, Jozsef Kadlecsik wrote:
->On Fri, 4 Jul 2008, Jan Engelhardt wrote:
->
->> I have completed importing ipset and wiring up the Makefile logic
->> in xtables-addons (ipset branch). As such, there is also a SUSE rpm
->> in my repo (/suser-jengelh/SUSE-11.0/*/xtables-addons-*-1.5.4.2).
->> 
->> Jozsef, where do we go from here? ipset in xt-a, ACCEPT or DROP?
->
->As xtables-addons works with kernel 2.6.18.5 or above I cannot depend on 
->it. Even supporting 2.4 kernels is still required - and if there's a 
->single user who needs it, I do support the 2.4 series in ipset.
-
-That is the existing code that depends on it --
-there is probably a way to make it work with < 2.6.17
-but I had not yet looked into it.
-
-ipset still uses its own glue code, so is exempt from the
-2.6.18.5 rule.
+OK, but it does not apply cleanly because of whitespace mangling.
+Please resend as attachment.
