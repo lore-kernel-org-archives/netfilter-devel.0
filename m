@@ -1,75 +1,92 @@
-From: "hamid jafarian" <hamid.jafarian@gmail.com>
-Subject: Re: New Version of IPtables (iptables-tng) Ver2.0
-Date: Tue, 8 Jul 2008 07:13:39 +0430
-Message-ID: <464293e60807071943v63c22006p17838c3d88c58234@mail.gmail.com>
-References: <464293e60807062032q6c7fd622h6e364eae33018dc1@mail.gmail.com>
-	 <alpine.LNX.1.10.0807071002180.28765@fbirervta.pbzchgretzou.qr>
-	 <1215420426.16930.46.camel@henriknordstrom.net>
+From: "Changli Gao" <xiaosuo@gmail.com>
+Subject: Re: Fwd: [PATCH] nf_nat_core: eliminate find_appropriate_src call if range is set IP_NAT_RANGE_PROTO_RANDOM bit on
+Date: Tue, 8 Jul 2008 10:50:59 +0800
+Message-ID: <412e6f7f0807071950r1d64ad4dn1fd1cc3065e27a5c@mail.gmail.com>
+References: <412e6f7f0806292132l18c747d6h982c64ce7c9d9c85@mail.gmail.com>
+	 <412e6f7f0806300100t6bc37635pc922405705f1784d@mail.gmail.com>
+	 <4868D76D.6050008@trash.net>
+	 <412e6f7f0806300634g1d82ffcewd3ba7ef0b951cd1a@mail.gmail.com>
+	 <4871FCFE.1020202@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: "Henrik Nordstrom" <henrik@henriknordstrom.net>,
-	"Jan Engelhardt" <jengelh@medozas.de>
+Content-Type: multipart/mixed;
+	boundary="----=_Part_6241_21872235.1215485459504"
+Cc: netfilter-devel@vger.kernel.org
+To: "Patrick McHardy" <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.224]:12963 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755218AbYGHCnm (ORCPT
+Received: from ti-out-0910.google.com ([209.85.142.190]:63518 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755452AbYGHCvD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 7 Jul 2008 22:43:42 -0400
-Received: by rv-out-0506.google.com with SMTP id k40so2952436rvb.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 07 Jul 2008 19:43:39 -0700 (PDT)
-In-Reply-To: <1215420426.16930.46.camel@henriknordstrom.net>
-Content-Disposition: inline
+	Mon, 7 Jul 2008 22:51:03 -0400
+Received: by ti-out-0910.google.com with SMTP id b6so656252tic.23
+        for <netfilter-devel@vger.kernel.org>; Mon, 07 Jul 2008 19:50:59 -0700 (PDT)
+In-Reply-To: <4871FCFE.1020202@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-hi,
+------=_Part_6241_21872235.1215485459504
+Content-Type: text/plain; charset=ISO-2022-JP
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-This tests are done about 3 years ago, with one P3 system and in the
-graphical environment of Fedor C4.
+The attachment is the patch.
 
- I redo this tests in CentOS with DualCore 2Ghz Processor..
-      New version take about 18s- user: 4s kernel: 14s
-      Current version take about 2m
-but..
-
->> # time iptables-restore 10000.rules
+On Mon, Jul 7, 2008 at 7:24 PM, Patrick McHardy <kaber@trash.net> wrote:
+> Changli Gao wrote:
 >>
->> real    0m0.120s
->> user    0m0.079s
->> sys     0m0.039s
+>> On Mon, Jun 30, 2008 at 8:54 PM, Patrick McHardy <kaber@trash.net> wrote:
+>>>
+>>> Changli Gao wrote:
+>>>>
+>>>> ---------- Forwarded message ----------
+>>>> From: Changli Gao <xiaosuo@gmail.com>
+>>>> Date: 2008/6/30
+>>>> Subject: [PATCH] nf_nat_core: eliminate find_appropriate_src call if
+>>>> range is set IP_NAT_RANGE_PROTO_RANDOM bit on
+>>>> To: netfilter-devel@lists.netfilter.org
+>>>> Cc: Changli Gao <xiaosuo@gmail.com>
+>>>>
+>>>>
+>>>> Eliminate find_appropriate_src call if range is set
+>>>> IP_NAT_RANGE_PROTO_RANDOM bit on.
+>>>
+>>> Please explain why the call isn't necessary.
+>>>
+>> In fact, my patch doesn't change the logic of the code, it just
+>> eliminates the uesless call find_appropriate_src. Because the tuple
+>> returned by find_appropriate is only useful when the
+>> IP_NAT_RANGE_PROTO_RANDOM isn't set on.  instead of testing the bit
+>> IP_NAT_RANGE_PROTO_RANDOM after calling find_appropriate_src, I do
+>> that before it to eliminate the cost of calling find_appropriate_src.
 >
-> Comparing iptables-restore batches isn't that interesting as a
-> performance point, other than when testing libiptc for stupidities..
-
-yes, iptables-restore and iptables-save commands are batch mode
-commands (because of the coding style of the current version but not
-in this new version) , and not good checks for performance in the
-interactive environment..
-in the real world, they may be used at the system startup&shutdown..
-
-> I'd say there is something wrong in the time measurements presented on
-> the web site
+> OK, but it does not apply cleanly because of whitespace mangling.
+> Please resend as attachment.
 >
-> real (total) time: 5m11.622s
-> user space time: 0m12.242s
-> kernel space time: 0m17.609s
->
-> 12s user + 17s kernel is nowhere near 5m real time..
-may be, i don't remember that days well but it may be the waiting
-times because of system load..
 
->
-> A more interesting test is to show the iptables time for single rule
-> modifications as a function of the ruleset size.
->
-yes, e.g. when we have 10,000 rule and we want to Replace one.. i will
-test this..
 
-i think, the best feature of this version is the classification algorithms..
-
-be happy
 
 -- 
-Ya Ali. H.T.
+Regards，
+Changli Gao(xiaosuo@gmail.com)
+
+------=_Part_6241_21872235.1215485459504
+Content-Type: application/octet-stream; name=nf_nat_core_opt.diff
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fidwm7uk0
+Content-Disposition: attachment; filename=nf_nat_core_opt.diff
+
+LS0tIGxpbnV4L25ldC9pcHY0L25ldGZpbHRlci9uZl9uYXRfY29yZS5jCTIwMDgtMDYtMzAgMTE6
+MTI6MjYuMDAwMDAwMDAwICswODAwCisrKyBsaW51eC1uZXcvbmV0L2lwdjQvbmV0ZmlsdGVyL25m
+X25hdF9jb3JlLmMJMjAwOC0wNi0zMCAxMjoyMjoyMy4wMDAwMDAwMDAgKzA4MDAKQEAgLTI0MCwx
+MiArMjQwLDEyIEBACiAJICAgVGhpcyBpcyBvbmx5IHJlcXVpcmVkIGZvciBzb3VyY2UgKGllLiBO
+QVQvbWFzcSkgbWFwcGluZ3MuCiAJICAgU28gZmFyLCB3ZSBkb24ndCBkbyBsb2NhbCBzb3VyY2Ug
+bWFwcGluZ3MsIHNvIG11bHRpcGxlCiAJICAgbWFuaXBzIG5vdCBhbiBpc3N1ZS4gICovCi0JaWYg
+KG1hbmlwdHlwZSA9PSBJUF9OQVRfTUFOSVBfU1JDKSB7CisJaWYgKG1hbmlwdHlwZSA9PSBJUF9O
+QVRfTUFOSVBfU1JDICYmCisJICAgICEocmFuZ2UtPmZsYWdzICYgSVBfTkFUX1JBTkdFX1BST1RP
+X1JBTkRPTSkpIHsKIAkJaWYgKGZpbmRfYXBwcm9wcmlhdGVfc3JjKG9yaWdfdHVwbGUsIHR1cGxl
+LCByYW5nZSkpIHsKIAkJCXByX2RlYnVnKCJnZXRfdW5pcXVlX3R1cGxlOiBGb3VuZCBjdXJyZW50
+IHNyYyBtYXBcbiIpOwotCQkJaWYgKCEocmFuZ2UtPmZsYWdzICYgSVBfTkFUX1JBTkdFX1BST1RP
+X1JBTkRPTSkpCi0JCQkJaWYgKCFuZl9uYXRfdXNlZF90dXBsZSh0dXBsZSwgY3QpKQotCQkJCQly
+ZXR1cm47CisJCQlpZiAoIW5mX25hdF91c2VkX3R1cGxlKHR1cGxlLCBjdCkpCisJCQkJcmV0dXJu
+OwogCQl9CiAJfQogCg==
+------=_Part_6241_21872235.1215485459504--
