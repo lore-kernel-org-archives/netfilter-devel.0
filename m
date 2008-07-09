@@ -1,102 +1,25 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 01/02: nf_conntrack_tcp: fix endless loop
-Date: Wed, 09 Jul 2008 18:46:27 +0200
-Message-ID: <4874EB63.6090304@trash.net>
+Subject: Re: Fwd: [PATCH] nf_nat_core: eliminate find_appropriate_src call
+ if range is set IP_NAT_RANGE_PROTO_RANDOM bit on
+Date: Wed, 09 Jul 2008 18:54:42 +0200
+Message-ID: <4874ED52.8040707@trash.net>
+References: <412e6f7f0806292132l18c747d6h982c64ce7c9d9c85@mail.gmail.com>	 <412e6f7f0806300100t6bc37635pc922405705f1784d@mail.gmail.com>	 <4868D76D.6050008@trash.net>	 <412e6f7f0806300634g1d82ffcewd3ba7ef0b951cd1a@mail.gmail.com>	 <4871FCFE.1020202@trash.net> <412e6f7f0807071950r1d64ad4dn1fd1cc3065e27a5c@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------040308020109040600040008"
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: "David S. Miller" <davem@davemloft.net>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Changli Gao <xiaosuo@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:33213 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:33382 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753826AbYGIQq3 (ORCPT
+	with ESMTP id S1756032AbYGIQyo (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Jul 2008 12:46:29 -0400
+	Wed, 9 Jul 2008 12:54:44 -0400
+In-Reply-To: <412e6f7f0807071950r1d64ad4dn1fd1cc3065e27a5c@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------040308020109040600040008
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Changli Gao wrote:
+> The attachment is the patch.
 
-Hi Dave,
-
-following is a bugfix for an endless loop in TCP conntrack triggered
-by a rare race condition, as well as a fix for a warning introduced
-by the SNMP ASN.1 parser fixes. The first one is of course also a
--stable candidate.
-
-Please apply, thanks.
-
-
-  net/ipv4/netfilter/nf_nat_snmp_basic.c |    2 +-
-  net/netfilter/nf_conntrack_proto_tcp.c |   10 ++++++++--
-  2 files changed, 9 insertions(+), 3 deletions(-)
-
-David Howells (1):
-       netfilter: nf_nat_snmp_basic: fix a range check in NAT for SNMP
-
-Patrick McHardy (1):
-       netfilter: nf_conntrack_tcp: fix endless loop
-
---------------040308020109040600040008
-Content-Type: text/x-diff;
- name="01.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="01.diff"
-
-netfilter: nf_conntrack_tcp: fix endless loop
-
-When a conntrack entry is destroyed in process context and destruction
-is interrupted by packet processing and the packet is an attempt to
-reopen a closed connection, TCP conntrack tries to kill the old entry
-itself and returns NF_REPEAT to pass the packet through the hook
-again. This may lead to an endless loop: TCP conntrack repeatedly
-finds the old entry, but can not kill it itself since destruction
-is already in progress, but destruction in process context can not
-complete since TCP conntrack is keeping the CPU busy.
-
-Drop the packet in TCP conntrack if we can't kill the connection
-ourselves to avoid this.
-
-Reported by: hemao77@gmail.com [ Kernel bugzilla #11058 ]
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-
----
-commit baa04a1fb3dbef550ed1dc5acd15e21e7dde3b85
-tree 94334a28c9db60981a72478b18d54fccd353f7ff
-parent 32e8d4948bb0b5f3f0ac5cdb71d0ac8e305b29a5
-author Patrick McHardy <kaber@trash.net> Wed, 09 Jul 2008 18:32:29 +0200
-committer Patrick McHardy <kaber@trash.net> Wed, 09 Jul 2008 18:32:29 +0200
-
- net/netfilter/nf_conntrack_proto_tcp.c |   10 ++++++++--
- 1 files changed, 8 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 271cd01..dd28fb2 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -844,9 +844,15 @@ static int tcp_packet(struct nf_conn *ct,
- 			/* Attempt to reopen a closed/aborted connection.
- 			 * Delete this connection and look up again. */
- 			write_unlock_bh(&tcp_lock);
--			if (del_timer(&ct->timeout))
-+			/* Only repeat if we can actually remove the timer.
-+			 * Destruction may already be in progress in process
-+			 * context and we must give it a chance to terminate.
-+			 */
-+			if (del_timer(&ct->timeout)) {
- 				ct->timeout.function((unsigned long)ct);
--			return -NF_REPEAT;
-+				return -NF_REPEAT;
-+			}
-+			return -NF_DROP;
- 		}
- 		/* Fall through */
- 	case TCP_CONNTRACK_IGNORE:
-
---------------040308020109040600040008--
+Applied, thanks.
