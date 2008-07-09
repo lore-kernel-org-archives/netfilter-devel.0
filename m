@@ -1,57 +1,34 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] libnetfilter_conntrack 0.0.96 release
-Date: Wed, 09 Jul 2008 16:41:30 +0200
-Message-ID: <4874CE1A.7060407@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [Bugme-new] [Bug 11058] New: DEADLOOP in kernel network module
+Date: Wed, 09 Jul 2008 17:00:33 +0200
+Message-ID: <4874D291.1010707@trash.net>
+References: <bug-11058-10286@http.bugzilla.kernel.org/> <20080708210014.a1d3baf8.akpm@linux-foundation.org> <4874B2DC.2070305@trash.net> <Pine.LNX.4.64.0807091519380.11391@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------000401080706020002070504"
-Cc: netfilter-announce@lists.netfilter.org,
-	netfilter-devel@vger.kernel.org, lwn@lwn.net
-To: netfilter@vger.kernel.org
-Return-path: <netfilter-owner@vger.kernel.org>
-Sender: netfilter-owner@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Andrew Morton <akpm@linux-foundation.org>, hemao77@gmail.com,
+	bugme-daemon@bugzilla.kernel.org, netdev@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.64.0807091519380.11391@blackhole.kfki.hu>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------000401080706020002070504
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Jozsef Kadlecsik wrote:
+> On Wed, 9 Jul 2008, Patrick McHardy wrote:
+> 
+>> Good catch, thanks. Basically all del_timer()/timeout.function calls
+>> in conntrack can happen in process context, so we'd have to disable
+>> BHs every time we do this. I think this fix should also work. The
+>> only spot where we return NF_REPEAT is in TCP conntrack, so we can
+>> simply make sure we only do this if we actually managed to kill the
+>> connection.
+>>
+>> Jozsef, what do you think?
+> 
+> I agree with you completely - and nice catch, indeed! Your proposed patch 
+> looks just fine.
 
-Hi!
-
-The netfilter project proudly presents libnetfilter_conntrack-0.0.96
-
-libnetfilter_conntrack is a userspace library providing a programming
-interface (API) to the in-kernel connection tracking state table.
-
-This library requires a linux kernel >= 2.6.18.
-
-This release includes a compilation fix in debian systems. See ChangeLog
-for more details.
-
-You can download it from:
-
-http://www.netfilter.org/projects/libnetfilter_conntrack/
-ftp://ftp.netfilter.org/pub/libnetfilter_conntrack/
-
-Pablo (on behalf of the Netfilter Project)
-
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
-
-
-
-
---------------000401080706020002070504
-Content-Type: text/plain;
- name="ChangeLog"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="ChangeLog"
-
-Pablo Neira Ayuso (2):
-      conditional compilation of testsuite utils
-      bump version to 0.0.96
-
-
---------------000401080706020002070504--
+Thanks, I'll send a backport for 2.6.26 to Dave tonight.
