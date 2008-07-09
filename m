@@ -1,34 +1,29 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [RFC] removing debian/ directories in the git tree
-Date: Wed, 9 Jul 2008 19:59:38 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0807091959210.27323@fbirervta.pbzchgretzou.qr>
-References: <4874CA1D.7090500@netfilter.org>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Harald Welte <laforge@netfilter.org>,
-	Max Kellermann <max@duempel.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Eric Leblond <eric@inl.fr>
+Subject: [ULOGD2 PATCH 0/2] Misc cleaning
+Date: Wed,  9 Jul 2008 22:56:43 +0200
+Message-ID: <1215637005-3102-1-git-send-email-eric@inl.fr>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:55387 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752171AbYGIR7j (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Jul 2008 13:59:39 -0400
-In-Reply-To: <4874CA1D.7090500@netfilter.org>
+Received: from bayen.regit.org ([81.57.69.189]:44148 "EHLO ice-age"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756947AbYGIU4r (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 9 Jul 2008 16:56:47 -0400
+Received: from eric by ice-age with local (Exim 4.69)
+	(envelope-from <eric@bayen.regit.org>)
+	id 1KGgiT-0000pH-Ac
+	for netfilter-devel@vger.kernel.org; Wed, 09 Jul 2008 22:56:45 +0200
+In-Reply-To: <>
+References: <>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hello,
 
-On Wednesday 2008-07-09 16:24, Pablo Neira Ayuso wrote:
+This small patchset features some cleaning. The main patch is relative
+to a wrong computation of a buffer size in the databases plugins.
 
->Hi everyone,
->
->I'm planning to remove the debian/ directories under the git trees
->(tools and libraries). The debian project is supposed to supply these
->packages. Moreover, as for now, they are pretty outdated. Are you OK
->with this?
-
-Yes.
+BR,
+--
+Eric Leblond
+INL: http://www.inl.fr/
+NuFW: http://www.nufw.org/
