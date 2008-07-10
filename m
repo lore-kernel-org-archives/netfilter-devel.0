@@ -1,143 +1,424 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: 05/13 [NETFILTER]: xt_recent: make old proc interface configurable
-Date: Thu, 10 Jul 2008 15:25:33 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0807101525190.27323@fbirervta.pbzchgretzou.qr>
+Subject: 06/13 [NETFILTER]: xt_length match, revision 1
+Date: Thu, 10 Jul 2008 15:26:04 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0807101525450.27323@fbirervta.pbzchgretzou.qr>
 References: <alpine.LNX.1.10.0807101522400.27323@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:42770 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:42772 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754255AbYGJNZf (ORCPT
+	with ESMTP id S1754539AbYGJN0F (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Jul 2008 09:25:35 -0400
+	Thu, 10 Jul 2008 09:26:05 -0400
 In-Reply-To: <alpine.LNX.1.10.0807101522400.27323@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 commit ffffffffffffffffffffffffffffffffffffffff
 Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Wed Apr 9 15:43:58 2008 +0200
+Date:   Sat Mar 22 16:12:58 2008 +0100
 
-[NETFILTER]: xt_recent: make old proc interface configurable
+[NETFILTER]: xt_length match, revision 1
+
+Introduce xt_length match revision 1. It adds support for layer-4,
+layer-5 and layer-7 length matching. It is much easier than writing
+up the according xt_u32 magic.
+
+This can be used for packet scheduling; specific example are online
+games where all data is transferred over the same port, but the
+regular gameplay has a characteristically lower packet size than bulk
+downloads of game maps. (Tested with Unreal Tournament 99.)
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- net/netfilter/Kconfig     |    7 +++++++
- net/netfilter/xt_recent.c |   18 +++++++++++++++++-
- 2 files changed, 24 insertions(+), 1 deletions(-)
+ Documentation/feature-removal-schedule.txt |    3 +
+ include/linux/netfilter/xt_length.h        |   21 ++
+ net/netfilter/xt_length.c                  |  267 ++++++++++++++++++--
+ 3 files changed, 273 insertions(+), 18 deletions(-)
 
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 1b66097..61fd6d3 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -734,6 +734,13 @@ config NETFILTER_XT_MATCH_RECENT
- 	Short options are available by using 'iptables -m recent -h'
- 	Official Website: <http://snowman.net/projects/ipt_recent/>
- 
-+config NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
-+	bool 'Enable obsolete /proc/net/ipt_recent'
-+	depends on NETFILTER_XT_MATCH_RECENT && PROC_FS
-+	---help---
-+	This option enables the old /proc/net/ipt_recent interface,
-+	which has been obsoleted by /proc/net/xt_recent.
+diff --git a/Documentation/feature-removal-schedule.txt b/Documentation=
+/feature-removal-schedule.txt
+index de98b98..0488d2b 100644
+--- a/Documentation/feature-removal-schedule.txt
++++ b/Documentation/feature-removal-schedule.txt
+@@ -252,6 +252,9 @@ What (Why):
+ 	  include/linux/netfilter_ipv4/ipt_iprange.h
+ 	  (superseded by xt_iprange match revision 1)
+=20
++	- xt_length match revision 0
++	  (superseded by xt_length match revision 1)
 +
- config NETFILTER_XT_MATCH_SCTP
- 	tristate  '"sctp" protocol match support (EXPERIMENTAL)'
- 	depends on NETFILTER_XTABLES && EXPERIMENTAL
-diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
-index 382691d..43d9926 100644
---- a/net/netfilter/xt_recent.c
-+++ b/net/netfilter/xt_recent.c
-@@ -31,6 +31,9 @@
- 
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/xt_recent.h>
-+#ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
-+#	define OLDPROC 1
-+#endif
- 
- MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
- MODULE_AUTHOR("Jan Engelhardt <jengelh@computergmbh.de>");
-@@ -86,7 +89,10 @@ static DEFINE_SPINLOCK(recent_lock);
- static DEFINE_MUTEX(recent_mutex);
- 
- #ifdef CONFIG_PROC_FS
--static struct proc_dir_entry *proc_old_dir, *recent_proc_dir;
-+#ifdef OLDPROC
-+static struct proc_dir_entry *proc_old_dir;
-+#endif
-+static struct proc_dir_entry *recent_proc_dir;
- static const struct file_operations recent_old_fops, recent_mt_fops;
- #endif
- 
-@@ -327,6 +333,7 @@ recent_mt_check(const char *tablename, const void *ip,
- 		kfree(t);
- 		goto out;
- 	}
-+#ifdef OLDPROC
- 	t->proc_old = proc_create(t->name, ip_list_perms, proc_old_dir,
- 		      &recent_old_fops);
- 	if (t->proc_old == NULL) {
-@@ -337,6 +344,7 @@ recent_mt_check(const char *tablename, const void *ip,
- 	t->proc_old->uid   = ip_list_uid;
- 	t->proc_old->gid   = ip_list_gid;
- 	t->proc_old->data  = t;
-+#endif
- 	t->proc->uid       = ip_list_uid;
- 	t->proc->gid       = ip_list_gid;
- 	t->proc->data      = t;
-@@ -363,7 +371,9 @@ static void recent_mt_destroy(const struct xt_match *match, void *matchinfo)
- 		spin_unlock_bh(&recent_lock);
- 		recent_table_flush(t);
- #ifdef CONFIG_PROC_FS
-+#ifdef OLDPROC
- 		remove_proc_entry(t->name, proc_old_dir);
-+#endif
- 		remove_proc_entry(t->name, recent_proc_dir);
- #endif
- 		kfree(t);
-@@ -456,6 +466,7 @@ static int recent_seq_open(struct inode *inode, struct file *file)
- 	return 0;
- }
- 
-+#ifdef OLDPROC
- static int recent_old_seq_open(struct inode *inode, struct file *filp)
- {
- 	static bool warned_of_old;
-@@ -532,6 +543,7 @@ static const struct file_operations recent_old_fops = {
- 	.release	= seq_release_private,
- 	.owner		= THIS_MODULE,
+ 	- xt_mark match revision 0
+ 	  (superseded by xt_mark match revision 1)
+=20
+diff --git a/include/linux/netfilter/xt_length.h b/include/linux/netfil=
+ter/xt_length.h
+index 7c2b439..4e70268 100644
+--- a/include/linux/netfilter/xt_length.h
++++ b/include/linux/netfilter/xt_length.h
+@@ -6,4 +6,25 @@ struct xt_length_info {
+     u_int8_t	invert;
  };
-+#endif
- 
- static ssize_t
- recent_mt_proc_write(struct file *file, const char __user *input,
-@@ -655,6 +667,7 @@ static int __init recent_mt_init(void)
- 		xt_unregister_matches(recent_mt_reg, ARRAY_SIZE(recent_mt_reg));
- 		err = -ENOMEM;
- 	}
-+#ifdef OLDPROC
- 	if (err < 0)
- 		return err;
- 	proc_old_dir = proc_mkdir("ipt_recent", init_net.proc_net);
-@@ -664,6 +677,7 @@ static int __init recent_mt_init(void)
- 		err = -ENOMEM;
- 	}
- #endif
-+#endif
- 	return err;
+=20
++enum {
++	XT_LENGTH_INVERT =3D 1 << 0,
++
++	/* IP header plus payload */
++	XT_LENGTH_LAYER3 =3D 1 << 1,
++
++	/* TCP/UDP/etc. header plus payload */
++	XT_LENGTH_LAYER4 =3D 1 << 2,
++
++	/* TCP/UDP/etc. payload */
++	XT_LENGTH_LAYER5 =3D 1 << 3,
++
++	/* SCTP payload */
++	XT_LENGTH_LAYER7 =3D 1 << 4,
++};
++
++struct xt_length_mtinfo1 {
++	__u32 min, max;
++	__u16 flags;
++};
++
+ #endif /*_XT_LENGTH_H*/
+diff --git a/net/netfilter/xt_length.c b/net/netfilter/xt_length.c
+index b8640f9..d874fa2 100644
+--- a/net/netfilter/xt_length.c
++++ b/net/netfilter/xt_length.c
+@@ -1,30 +1,40 @@
+-/* Kernel module to match packet length. */
+-/* (C) 1999-2001 James Morris <jmorros@intercode.com.au>
++/*
++ *	xt_length - Netfilter module to match packet length
+  *
+- * This program is free software; you can redistribute it and/or modif=
+y
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
++ *	(C) 1999-2001 James Morris <jmorros@intercode.com.au>
++ *	Copyright =C2=A9 Jan Engelhardt, 2007-2008
++ *
++ *	This program is free software; you can redistribute it and/or modif=
+y
++ *	it under the terms of the GNU General Public License version 2 as
++ *	published by the Free Software Foundation.
+  */
+-
++#include <linux/dccp.h>
+ #include <linux/module.h>
++#include <linux/sctp.h>
+ #include <linux/skbuff.h>
++#include <linux/icmp.h>
++#include <linux/ip.h>
+ #include <linux/ipv6.h>
++#include <linux/tcp.h>
++#include <linux/udp.h>
+ #include <net/ip.h>
+-
+-#include <linux/netfilter/xt_length.h>
++#include <net/ipv6.h>
+ #include <linux/netfilter/x_tables.h>
++#include <linux/netfilter/xt_length.h>
++#include <linux/netfilter_ipv6/ip6_tables.h>
+=20
+ MODULE_AUTHOR("James Morris <jmorris@intercode.com.au>");
++MODULE_AUTHOR("Jan Engelhardt <jengelh@medozas.de>");
+ MODULE_DESCRIPTION("Xtables: Packet length (Layer3,4,5) match");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ipt_length");
+ MODULE_ALIAS("ip6t_length");
+=20
+ static bool
+-length_mt(const struct sk_buff *skb, const struct net_device *in,
+-          const struct net_device *out, const struct xt_match *match,
+-          const void *matchinfo, int offset, unsigned int protoff,
+-          bool *hotdrop)
++length_mt_v0(const struct sk_buff *skb, const struct net_device *in,
++	     const struct net_device *out, const struct xt_match *match,
++	     const void *matchinfo, int offset, unsigned int protoff,
++	     bool *hotdrop)
+ {
+ 	const struct xt_length_info *info =3D matchinfo;
+ 	u_int16_t pktlen =3D ntohs(ip_hdr(skb)->tot_len);
+@@ -33,10 +43,10 @@ length_mt(const struct sk_buff *skb, const struct n=
+et_device *in,
  }
- 
-@@ -672,7 +686,9 @@ static void __exit recent_mt_exit(void)
- 	BUG_ON(!list_empty(&tables));
- 	xt_unregister_matches(recent_mt_reg, ARRAY_SIZE(recent_mt_reg));
- #ifdef CONFIG_PROC_FS
-+#ifdef OLDPROC
- 	remove_proc_entry("ipt_recent", init_net.proc_net);
-+#endif
- 	remove_proc_entry("xt_recent", init_net.proc_net);
- #endif
+=20
+ static bool
+-length_mt6(const struct sk_buff *skb, const struct net_device *in,
+-           const struct net_device *out, const struct xt_match *match,
+-           const void *matchinfo, int offset, unsigned int protoff,
+-           bool *hotdrop)
++length_mt6_v0(const struct sk_buff *skb, const struct net_device *in,
++	      const struct net_device *out, const struct xt_match *match,
++	      const void *matchinfo, int offset, unsigned int protoff,
++	      bool *hotdrop)
+ {
+ 	const struct xt_length_info *info =3D matchinfo;
+ 	const u_int16_t pktlen =3D ntohs(ipv6_hdr(skb)->payload_len) +
+@@ -45,21 +55,242 @@ length_mt6(const struct sk_buff *skb, const struct=
+ net_device *in,
+ 	return (pktlen >=3D info->min && pktlen <=3D info->max) ^ info->inver=
+t;
  }
+=20
++/*
++ * GCC will decide if these functions (xtlength_layer?_*) are
++ * good enough for inlining, we should not act overly smart about
++ * these decisions.
++ */
++
++static bool xtlength_layer5_tcp(unsigned int *length, const struct sk_=
+buff *skb,
++				unsigned int offset)
++{
++	const struct tcphdr *tcph;
++	struct tcphdr buf;
++
++	tcph =3D skb_header_pointer(skb, offset, sizeof(buf), &buf);
++	if (tcph =3D=3D NULL)
++		return false;
++
++	*length =3D skb->len - offset;
++	if (*length >=3D 4 * tcph->doff)
++		*length -=3D 4 * tcph->doff;
++	return true;
++}
++
++static bool
++xtlength_layer5_dccp(unsigned int *length, const struct sk_buff *skb,
++		     unsigned int offset)
++{
++	const struct dccp_hdr *dh;
++	struct dccp_hdr dhbuf;
++
++	dh =3D skb_header_pointer(skb, offset, sizeof(dhbuf), &dhbuf);
++	if (dh =3D=3D NULL)
++		return false;
++
++	*length =3D skb->len - offset;
++	if (*length >=3D 4 * dh->dccph_doff)
++		*length -=3D 4 * dh->dccph_doff;
++	return true;
++}
++
++static bool xtlength_layer5(unsigned int *length, const struct sk_buff=
+ *skb,
++			    unsigned int proto, unsigned int offset)
++{
++	switch (proto) {
++	case IPPROTO_TCP:
++		return xtlength_layer5_tcp(length, skb, offset);
++	case IPPROTO_UDP:
++	case IPPROTO_UDPLITE:
++		*length =3D skb->len - offset - sizeof(struct udphdr);
++		return true;
++	case IPPROTO_SCTP:
++		*length =3D skb->len - offset - sizeof(struct sctphdr);
++		return true;
++	case IPPROTO_DCCP:
++		return xtlength_layer5_dccp(length, skb, offset);
++	case IPPROTO_ICMP:
++		*length =3D skb->len - offset - sizeof(struct icmphdr);
++		return true;
++	case IPPROTO_ICMPV6:
++		*length =3D skb->len - offset -
++			  offsetof(struct icmp6hdr, icmp6_dataun);
++		return true;
++	case IPPROTO_AH:
++		*length =3D skb->len - offset - sizeof(struct ip_auth_hdr);
++		return true;
++	case IPPROTO_ESP:
++		*length =3D skb->len - offset - sizeof(struct ip_esp_hdr);
++		return true;
++	default:
++		return false;
++	}
++}
++
++static bool
++xtlength_layer7_sctp(unsigned int *length, const struct sk_buff *skb,
++		     unsigned int offset)
++{
++	const struct sctp_chunkhdr *ch;
++	struct sctp_chunkhdr chbuf;
++	unsigned int pos;
++
++	*length =3D 0;
++	for (pos =3D sizeof(struct sctphdr); pos < skb->len;
++	     pos +=3D ntohs(ch->length)) {
++		ch =3D skb_header_pointer(skb, offset + pos,
++		     sizeof(chbuf), &chbuf);
++		if (ch =3D=3D NULL)
++			return false;
++		if (ch->type !=3D SCTP_CID_DATA)
++			continue;
++		*length +=3D ntohs(ch->length);
++	}
++	return true;
++}
++
++static bool xtlength_layer7(unsigned int *length, const struct sk_buff=
+ *skb,
++			    unsigned int proto, unsigned int offset)
++{
++	switch (proto) {
++	case IPPROTO_SCTP:
++		return xtlength_layer7_sctp(length, skb, offset);
++	default:
++		return xtlength_layer5(length, skb, proto, offset);
++	}
++}
++
++/*
++ * llayer4_proto - figure out the L4 protocol in an IPv6 packet
++ * @skb:	skb pointer
++ * @offset:	position at which L4 starts (equal to 'protoff' in IPv4 co=
+de)
++ * @hotdrop:	hotdrop pointer
++ *
++ * Searches for a recognized L4 header. On success, fills in @offset a=
+nd
++ * returns the protocol number. If not found, %NEXTHDR_MAX is returned=
+=2E
++ * On error, @hotdrop is set.
++ */
++static unsigned int
++llayer4_proto(const struct sk_buff *skb, unsigned int *offset, bool *h=
+otdrop)
++{
++	/*
++	 * Do encapsulation first so that %IPPROTO_TCP does not hit the TCP
++	 * part in an IPv6-in-IPv6 encapsulation, for example.
++	 */
++	static const unsigned int types[] =3D
++		{IPPROTO_IPV6, IPPROTO_IPIP, IPPROTO_ESP, IPPROTO_AH,
++		IPPROTO_ICMP, IPPROTO_TCP, IPPROTO_UDP, IPPROTO_UDPLITE,
++		IPPROTO_SCTP, IPPROTO_DCCP};
++	unsigned int i;
++	int err;
++
++	for (i =3D 0; i < ARRAY_SIZE(types); ++i) {
++		err =3D ipv6_find_hdr(skb, offset, types[i], NULL);
++		if (err >=3D 0)
++			return types[i];
++		if (err !=3D -ENOENT) {
++			*hotdrop =3D true;
++			break;
++		}
++	}
++
++	return NEXTHDR_MAX;
++}
++
++static bool
++length_mt4(const struct sk_buff *skb, const struct net_device *in,
++	   const struct net_device *out, const struct xt_match *match,
++	   const void *matchinfo, int offset, unsigned int protoff,
++	   bool *hotdrop)
++{
++	const struct xt_length_mtinfo1 *info =3D matchinfo;
++	const struct iphdr *iph =3D ip_hdr(skb);
++	unsigned int len =3D 0;
++	bool hit =3D true;
++
++	if (info->flags & XT_LENGTH_LAYER3)
++		len =3D ntohs(iph->tot_len);
++	else if (info->flags & XT_LENGTH_LAYER4)
++		len =3D ntohs(iph->tot_len) - protoff;
++	else if (info->flags & XT_LENGTH_LAYER5)
++		hit =3D xtlength_layer5(&len, skb, iph->protocol, protoff);
++	else if (info->flags & XT_LENGTH_LAYER7)
++		hit =3D xtlength_layer7(&len, skb, iph->protocol, protoff);
++	if (!hit)
++		return false;
++
++	return (len >=3D info->min && len <=3D info->max) ^
++	       !!(info->flags & XT_LENGTH_INVERT);
++}
++
++#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_=
+MODULE)
++static bool
++length_mt6(const struct sk_buff *skb, const struct net_device *in,
++	   const struct net_device *out, const struct xt_match *match,
++	   const void *matchinfo, int offset, unsigned int protoff,
++	   bool *hotdrop)
++{
++	const struct xt_length_mtinfo1 *info =3D matchinfo;
++	const struct ipv6hdr *iph =3D ipv6_hdr(skb);
++	unsigned int len =3D 0, l4proto;
++	bool hit =3D true;
++
++	if (info->flags & XT_LENGTH_LAYER3) {
++		len =3D sizeof(struct ipv6hdr) + ntohs(iph->payload_len);
++	} else {
++		l4proto =3D llayer4_proto(skb, &protoff, hotdrop);
++		if (l4proto =3D=3D NEXTHDR_MAX)
++			return false;
++		if (info->flags & XT_LENGTH_LAYER4)
++			len =3D skb->len - protoff;
++		else if (info->flags & XT_LENGTH_LAYER5)
++			hit =3D xtlength_layer5(&len, skb, l4proto, protoff);
++		else if (info->flags & XT_LENGTH_LAYER7)
++			hit =3D xtlength_layer7(&len, skb, l4proto, protoff);
++	}
++	if (!hit)
++		return false;
++
++	return (len >=3D info->min && len <=3D info->max) ^
++	       !!(info->flags & XT_LENGTH_INVERT);
++}
++#endif
++
+ static struct xt_match length_mt_reg[] __read_mostly =3D {
+ 	{
+ 		.name		=3D "length",
++		.revision	=3D 0,
+ 		.family		=3D AF_INET,
+-		.match		=3D length_mt,
++		.match		=3D length_mt_v0,
+ 		.matchsize	=3D sizeof(struct xt_length_info),
+ 		.me		=3D THIS_MODULE,
+ 	},
+ 	{
+ 		.name		=3D "length",
++		.revision	=3D 0,
+ 		.family		=3D AF_INET6,
+-		.match		=3D length_mt6,
++		.match		=3D length_mt6_v0,
+ 		.matchsize	=3D sizeof(struct xt_length_info),
+ 		.me		=3D THIS_MODULE,
+ 	},
++	{
++		.name           =3D "length",
++		.revision       =3D 1,
++		.family         =3D AF_INET,
++		.match          =3D length_mt4,
++		.matchsize      =3D sizeof(struct xt_length_mtinfo1),
++		.me             =3D THIS_MODULE,
++	},
++#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_=
+MODULE)
++	{
++		.name           =3D "length",
++		.revision       =3D 1,
++		.family         =3D AF_INET6,
++		.match          =3D length_mt6,
++		.matchsize      =3D sizeof(struct xt_length_mtinfo1),
++		.me             =3D THIS_MODULE,
++	},
++#endif
+ };
+=20
+ static int __init length_mt_init(void)
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
