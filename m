@@ -1,151 +1,67 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: 10/13 [NETFILTER]: Give AF-independent extensions an arpt_ aliases
-Date: Thu, 10 Jul 2008 15:29:53 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0807101528480.27323@fbirervta.pbzchgretzou.qr>
-References: <alpine.LNX.1.10.0807101522400.27323@fbirervta.pbzchgretzou.qr>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: Re: TCP connection stalls under 2.6.24.7
+Date: Thu, 10 Jul 2008 16:12:58 +0200
+Message-ID: <200807101612.59380.thomas.jarosch@intra2net.com>
+References: <47EA0DAB.7080205@securenet.de> <200807071518.10912.thomas.jarosch@intra2net.com> <Pine.LNX.4.64.0807101457380.13027@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	Sven Riedel <sr@securenet.de>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:37179 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757504AbYGJN3y (ORCPT
+Received: from rs02.intra2net.com ([81.169.173.116]:56424 "EHLO
+	rs02.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753551AbYGJONE (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Jul 2008 09:29:54 -0400
-In-Reply-To: <alpine.LNX.1.10.0807101522400.27323@fbirervta.pbzchgretzou.qr>
+	Thu, 10 Jul 2008 10:13:04 -0400
+In-Reply-To: <Pine.LNX.4.64.0807101457380.13027@blackhole.kfki.hu>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit ffffffffffffffffffffffffffffffffffffffff
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Tue Jul 8 00:39:24 2008 +0200
+On Thursday, 10. July 2008 15:17:53 you wrote:
+> It looks as the smtp server receives the packets slowly and it's just
+> behind the client. There's no more packet to/from port 53132 in the
+> tcpdump.
 
-[NETFILTER]: Give AF-independent extensions an arpt_ aliases
+Thanks for looking into this, Jozsef. If you take a look at the timing 
+information, the connection was already running ~270 seconds without real 
+data transfer. The mailserver then aborts the SMTP connection with the error 
+msg: "421 mailbackup.webpage.t-com.de Lost connection to [217.85.147.6]"
+Only after that the port is "changed" to the wrong one.
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- net/netfilter/xt_CLASSIFY.c  |    1 +
- net/netfilter/xt_MARK.c      |    1 +
- net/netfilter/xt_RATEEST.c   |    1 +
- net/netfilter/xt_limit.c     |    1 +
- net/netfilter/xt_mark.c      |    1 +
- net/netfilter/xt_quota.c     |    1 +
- net/netfilter/xt_rateest.c   |    1 +
- net/netfilter/xt_statistic.c |    1 +
- net/netfilter/xt_time.c      |    1 +
- net/netfilter/xt_u32.c       |    1 +
- 10 files changed, 10 insertions(+), 0 deletions(-)
+The time ranges between the retransmissions seem
+to really go downhill after the first retransmission.
 
-diff --git a/net/netfilter/xt_CLASSIFY.c b/net/netfilter/xt_CLASSIFY.c
-index 8cffa29..37093e0 100644
---- a/net/netfilter/xt_CLASSIFY.c
-+++ b/net/netfilter/xt_CLASSIFY.c
-@@ -25,6 +25,7 @@ MODULE_LICENSE("GPL");
- MODULE_DESCRIPTION("Xtables: Qdisc classification");
- MODULE_ALIAS("ipt_CLASSIFY");
- MODULE_ALIAS("ip6t_CLASSIFY");
-+MODULE_ALIAS("arpt_CLASSIFY");
- 
- static unsigned int
- classify_tg(struct sk_buff *skb, const struct net_device *in,
-diff --git a/net/netfilter/xt_MARK.c b/net/netfilter/xt_MARK.c
-index c8ea7a8..d1ef197 100644
---- a/net/netfilter/xt_MARK.c
-+++ b/net/netfilter/xt_MARK.c
-@@ -23,6 +23,7 @@ MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
- MODULE_DESCRIPTION("Xtables: packet mark modification");
- MODULE_ALIAS("ipt_MARK");
- MODULE_ALIAS("ip6t_MARK");
-+MODULE_ALIAS("arpt_MARK");
- 
- static unsigned int
- mark_tg_v0(struct sk_buff *skb, const struct net_device *in,
-diff --git a/net/netfilter/xt_RATEEST.c b/net/netfilter/xt_RATEEST.c
-index da7946e..d717131 100644
---- a/net/netfilter/xt_RATEEST.c
-+++ b/net/netfilter/xt_RATEEST.c
-@@ -190,5 +190,6 @@ MODULE_LICENSE("GPL");
- MODULE_DESCRIPTION("Xtables: packet rate estimator");
- MODULE_ALIAS("ipt_RATEEST");
- MODULE_ALIAS("ip6t_RATEEST");
-+MODULE_ALIAS("arpt_RATEEST");
- module_init(xt_rateest_tg_init);
- module_exit(xt_rateest_tg_fini);
-diff --git a/net/netfilter/xt_limit.c b/net/netfilter/xt_limit.c
-index 00247bd..d776a8a 100644
---- a/net/netfilter/xt_limit.c
-+++ b/net/netfilter/xt_limit.c
-@@ -19,6 +19,7 @@ MODULE_AUTHOR("Herve Eychenne <rv@wallfire.org>");
- MODULE_DESCRIPTION("Xtables: rate-limit match");
- MODULE_ALIAS("ipt_limit");
- MODULE_ALIAS("ip6t_limit");
-+MODULE_ALIAS("arpt_limit");
- 
- /* The algorithm used is the Simple Token Bucket Filter (TBF)
-  * see net/sched/sch_tbf.c in the linux source tree
-diff --git a/net/netfilter/xt_mark.c b/net/netfilter/xt_mark.c
-index 96dd2b6..ec4e8ad 100644
---- a/net/netfilter/xt_mark.c
-+++ b/net/netfilter/xt_mark.c
-@@ -21,6 +21,7 @@ MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
- MODULE_DESCRIPTION("Xtables: packet mark match");
- MODULE_ALIAS("ipt_mark");
- MODULE_ALIAS("ip6t_mark");
-+MODULE_ALIAS("arpt_mark");
- 
- static bool
- mark_mt_v0(const struct sk_buff *skb, const struct net_device *in,
-diff --git a/net/netfilter/xt_quota.c b/net/netfilter/xt_quota.c
-index a3c8798..91016f7 100644
---- a/net/netfilter/xt_quota.c
-+++ b/net/netfilter/xt_quota.c
-@@ -14,6 +14,7 @@ MODULE_AUTHOR("Sam Johnston <samj@samj.net>");
- MODULE_DESCRIPTION("Xtables: countdown quota match");
- MODULE_ALIAS("ipt_quota");
- MODULE_ALIAS("ip6t_quota");
-+MODULE_ALIAS("arpt_quota");
- 
- static DEFINE_SPINLOCK(quota_lock);
- 
-diff --git a/net/netfilter/xt_rateest.c b/net/netfilter/xt_rateest.c
-index 4dcfd73..2b304f7 100644
---- a/net/netfilter/xt_rateest.c
-+++ b/net/netfilter/xt_rateest.c
-@@ -163,5 +163,6 @@ MODULE_LICENSE("GPL");
- MODULE_DESCRIPTION("xtables rate estimator match");
- MODULE_ALIAS("ipt_rateest");
- MODULE_ALIAS("ip6t_rateest");
-+MODULE_ALIAS("arpt_rateest");
- module_init(xt_rateest_mt_init);
- module_exit(xt_rateest_mt_fini);
-diff --git a/net/netfilter/xt_statistic.c b/net/netfilter/xt_statistic.c
-index f41a923..1dfb8e5 100644
---- a/net/netfilter/xt_statistic.c
-+++ b/net/netfilter/xt_statistic.c
-@@ -21,6 +21,7 @@ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
- MODULE_DESCRIPTION("Xtables: statistics-based matching (\"Nth\", random)");
- MODULE_ALIAS("ipt_statistic");
- MODULE_ALIAS("ip6t_statistic");
-+MODULE_ALIAS("arpt_statistic");
- 
- static DEFINE_SPINLOCK(nth_lock);
- 
-diff --git a/net/netfilter/xt_time.c b/net/netfilter/xt_time.c
-index 26648a1..2d9cb6f 100644
---- a/net/netfilter/xt_time.c
-+++ b/net/netfilter/xt_time.c
-@@ -261,3 +261,4 @@ MODULE_DESCRIPTION("Xtables: time-based matching");
- MODULE_LICENSE("GPL");
- MODULE_ALIAS("ipt_time");
- MODULE_ALIAS("ip6t_time");
-+MODULE_ALIAS("arpt_time");
-diff --git a/net/netfilter/xt_u32.c b/net/netfilter/xt_u32.c
-index a6b971d..3c2f02d 100644
---- a/net/netfilter/xt_u32.c
-+++ b/net/netfilter/xt_u32.c
-@@ -125,3 +125,4 @@ MODULE_DESCRIPTION("Xtables: arbitrary byte matching");
- MODULE_LICENSE("GPL");
- MODULE_ALIAS("ipt_u32");
- MODULE_ALIAS("ip6t_u32");
-+MODULE_ALIAS("arpt_u32");
+The linux box is connected via a mostly idle 2 mbit SDSL line, the mailserver
+is located at the provider. So theoretically this shouldn't be slow at all.
+This is also proved as 2.6.23.17 works without trouble.
+
+As noted before, small mails below ~220kb always seem to get through.
+Is there any feature in TCP that could trigger such a behaviour?
+This smells like some queue getting full. I'll double check
+there is not some kind of traffic shaping in place.
+
+> > 13:44:51.681540 IP mailserver.smtp > linux.41085: P
+> ...
+>
+> But the first packet above from the server looks just wrong in the
+> context: the port of the client "changed". This is why the client sends
+> the RST packet back as there's no such TCP connection there.
+>
+> Makes no sense at all...
+>
+> [Wild guessing: broken virtualized SMTP server migration?]
+
+Oh, that really looks strange. Maybe the error handling
+of the server/load balancer/whatever is broken.
+
+The Fritz!box router-in-between worked fine for a day, but now we just had 
+another mail stuck in the queue. So it seems to soften the problem a bit,
+but does not solve it.
+
+Thomas
