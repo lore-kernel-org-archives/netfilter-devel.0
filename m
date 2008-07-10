@@ -1,67 +1,44 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: Re: TCP connection stalls under 2.6.24.7
-Date: Thu, 10 Jul 2008 16:12:58 +0200
-Message-ID: <200807101612.59380.thomas.jarosch@intra2net.com>
-References: <47EA0DAB.7080205@securenet.de> <200807071518.10912.thomas.jarosch@intra2net.com> <Pine.LNX.4.64.0807101457380.13027@blackhole.kfki.hu>
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: 11/13 [NETFILTER]: Make Ebtables use Xtables infrastructure
+Date: Thu, 10 Jul 2008 18:28:22 +0200
+Message-ID: <1215707302.3262.1.camel@localhost.localdomain>
+References: <alpine.LNX.1.10.0807101522400.27323@fbirervta.pbzchgretzou.qr>
+	 <alpine.LNX.1.10.0807101526530.27323@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	Sven Riedel <sr@securenet.de>,
+Cc: kaber@trash.net,
 	Netfilter Developer Mailing List
 	<netfilter-devel@vger.kernel.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rs02.intra2net.com ([81.169.173.116]:56424 "EHLO
-	rs02.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753551AbYGJONE (ORCPT
+Received: from yergi.telenet-ops.be ([195.130.132.36]:35421 "EHLO
+	yergi.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751875AbYGJQ2x (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Jul 2008 10:13:04 -0400
-In-Reply-To: <Pine.LNX.4.64.0807101457380.13027@blackhole.kfki.hu>
-Content-Disposition: inline
+	Thu, 10 Jul 2008 12:28:53 -0400
+Received: from wilson.telenet-ops.be (unknown [195.130.132.42])
+	by yergi.telenet-ops.be (Postfix) with ESMTP id 58A147109C9
+	for <netfilter-devel@vger.kernel.org>; Thu, 10 Jul 2008 18:29:14 +0200 (CEST)
+In-Reply-To: <alpine.LNX.1.10.0807101526530.27323@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday, 10. July 2008 15:17:53 you wrote:
-> It looks as the smtp server receives the packets slowly and it's just
-> behind the client. There's no more packet to/from port 53132 in the
-> tcpdump.
+Hi,
 
-Thanks for looking into this, Jozsef. If you take a look at the timing 
-information, the connection was already running ~270 seconds without real 
-data transfer. The mailserver then aborts the SMTP connection with the error 
-msg: "421 mailbackup.webpage.t-com.de Lost connection to [217.85.147.6]"
-Only after that the port is "changed" to the wrong one.
+Looks fine to me, one typo: no need to replace "/*" by "/*e" in
+ebtables.c
 
-The time ranges between the retransmissions seem
-to really go downhill after the first retransmission.
+Thanks,
+Bart
+
+Op do, 10-07-2008 te 15:28 +0200, schreef Jan Engelhardt:
+> commit ffffffffffffffffffffffffffffffffffffffff
+> Author: Jan Engelhardt <jengelh@medozas.de>
+> Date:   Tue Jul 8 00:42:41 2008 +0200
+> 
+> [NETFILTER]: Make Ebtables use Xtables infrastructure
+> 
+> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 
-The linux box is connected via a mostly idle 2 mbit SDSL line, the mailserver
-is located at the provider. So theoretically this shouldn't be slow at all.
-This is also proved as 2.6.23.17 works without trouble.
 
-As noted before, small mails below ~220kb always seem to get through.
-Is there any feature in TCP that could trigger such a behaviour?
-This smells like some queue getting full. I'll double check
-there is not some kind of traffic shaping in place.
-
-> > 13:44:51.681540 IP mailserver.smtp > linux.41085: P
-> ...
->
-> But the first packet above from the server looks just wrong in the
-> context: the port of the client "changed". This is why the client sends
-> the RST packet back as there's no such TCP connection there.
->
-> Makes no sense at all...
->
-> [Wild guessing: broken virtualized SMTP server migration?]
-
-Oh, that really looks strange. Maybe the error handling
-of the server/load balancer/whatever is broken.
-
-The Fritz!box router-in-between worked fine for a day, but now we just had 
-another mail stuck in the queue. So it seems to soften the problem a bit,
-but does not solve it.
-
-Thomas
