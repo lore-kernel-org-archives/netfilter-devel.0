@@ -1,53 +1,64 @@
-From: "tung tran" <tunghack@gmail.com>
-Subject: Re: Netfilter module help
-Date: Wed, 9 Jul 2008 19:54:27 -0500
-Message-ID: <13f1ba4c0807091754oca9211dxd4166c1b56c0c66@mail.gmail.com>
-References: <13f1ba4c0807091558m5fff70ear7515557278001922@mail.gmail.com>
-	 <alpine.LNX.1.10.0807100127040.27323@fbirervta.pbzchgretzou.qr>
-	 <13f1ba4c0807091641j33a9ebe0ocbe6c0cb95883159@mail.gmail.com>
-	 <1215648362.11885.5.camel@henriknordstrom.net>
+From: Laurent Licour <laurent@licour.com>
+Subject: [PATCH] netfilter : nfmark routing in OUTPUT, mangle, NFQUEUE
+Date: Thu, 10 Jul 2008 07:45:32 +0200
+Message-ID: <4875A1FC.8050705@licour.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: "Henrik Nordstrom" <henrik@henriknordstrom.net>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.28]:57715 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752047AbYGJAyd (ORCPT
+Received: from 27.mail-out.ovh.net ([91.121.30.210]:47908 "HELO
+	27.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751354AbYGJFwW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Jul 2008 20:54:33 -0400
-Received: by yx-out-2324.google.com with SMTP id 8so951333yxm.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 09 Jul 2008 17:54:32 -0700 (PDT)
-In-Reply-To: <1215648362.11885.5.camel@henriknordstrom.net>
-Content-Disposition: inline
+	Thu, 10 Jul 2008 01:52:22 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Henrik,
-Thank you very much. I really appreciate your help.
-Tung.
 
-On Wed, Jul 9, 2008 at 7:06 PM, Henrik Nordstrom
-<henrik@henriknordstrom.net> wrote:
-> On ons, 2008-07-09 at 18:41 -0500, tung tran wrote:
->> Hi Jan,
->> Thanks for your quick reply. Could you please give me some advices to
->> accomplish the task? I need to pass the packet from kernel to a user
->> space process to decide if the packet is accepted or denied.
->
-> For that the existing NF_QUEUE mechanism should be used. If a hook
-> returns NF_QUEUE then the kernel suspends the packet and submits it to a
-> queue handler for querying the userspace. When the userspace responds
-> the packet is either rejected or allowed to continue processing at the
-> next hook handler.
->
-> The normal ip_queue handler uses netlink to talk to userspace.
->
-> There can only be one queue handler in the system.
->
-> iptables has support for this via the QUEUE psuedo-target.
->
-> Regards
-> Henrik
->
+This patch let nfmark to be evaluated for routing decision for OUTPUT 
+packet, in mangle
+table, when process paquet in NFQUEUE
+Until now, only change (in NFQUEUE process) on fields src_addr, 
+dest_addr and tos
+could make netfilter to reevalute the routing.
+Similar code could also be applied to ipv6 code...
+
+
+--- linux-2.6.18.i386.ori/net/ipv4/netfilter.c  2006-09-20 
+05:42:06.000000000 +0200
++++ linux-2.6.18.i386/net/ipv4/netfilter.c      2008-07-07 
+02:04:34.000000000 +0200
+@@ -131,6 +131,9 @@
+       u_int32_t daddr;
+       u_int32_t saddr;
+       u_int8_t tos;
++#ifdef CONFIG_IP_ROUTE_FWMARK
++       __u32 nfmark;
++#endif
+};
+
+static void nf_ip_saveroute(const struct sk_buff *skb, struct nf_info 
+*info)
+@@ -143,6 +146,9 @@
+               rt_info->tos = iph->tos;
+               rt_info->daddr = iph->daddr;
+               rt_info->saddr = iph->saddr;
++#ifdef CONFIG_IP_ROUTE_FWMARK
++               rt_info->nfmark = skb->nfmark;
++#endif
+       }
+}
+
+@@ -154,6 +160,9 @@
+               struct iphdr *iph = (*pskb)->nh.iph;
+
+               if (!(iph->tos == rt_info->tos
++#ifdef CONFIG_IP_ROUTE_FWMARK
++                     && (*pskb)->nfmark == rt_info->nfmark
++#endif
+                     && iph->daddr == rt_info->daddr
+                     && iph->saddr == rt_info->saddr))
+                       return ip_route_me_harder(pskb);
+
+
