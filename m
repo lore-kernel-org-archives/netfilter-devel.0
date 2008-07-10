@@ -1,87 +1,110 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: TCP connection stalls under 2.6.24.7
-Date: Thu, 10 Jul 2008 15:17:53 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0807101457380.13027@blackhole.kfki.hu>
-References: <47EA0DAB.7080205@securenet.de> <Pine.LNX.4.64.0807042251500.4142@blackhole.kfki.hu>
- <200807071118.32988.thomas.jarosch@intra2net.com>
- <200807071518.10912.thomas.jarosch@intra2net.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: [NETFILTER 01/13]: Collapse tcpmss_reverse_mtu{4,6} into one
+ function
+Date: Thu, 10 Jul 2008 15:24:04 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0807101522400.27323@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	Sven Riedel <sr@securenet.de>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:38985 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754026AbYGJNR5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Jul 2008 09:17:57 -0400
-In-Reply-To: <200807071518.10912.thomas.jarosch@intra2net.com>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:37519 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754113AbYGJNYG (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Jul 2008 09:24:06 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 7 Jul 2008, Thomas Jarosch wrote:
+commit ffffffffffffffffffffffffffffffffffffffff
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Sat Mar 29 16:20:13 2008 +0100
 
-> On Monday, 7. July 2008 11:18:32 you wrote:
-> > I'll upgrade to 2.6.25.10 and see if it helps,
-> > there is a TCP connection timeout fix in there:
-> > http://kerneltrap.org/mailarchive/linux-kernel/2008/6/14/2122714
-> 
-> After upgrading to 2.6.25.10, the TCP connection still stalls.
-> 
-> I temporarily disabled PMTU discovery, TCP window scaling, TCP SACK
-> and manually forced the MTU to 1400 with no noticable effect.
-> 
-> I also added a "iptables -I INPUT -s IP.OF.MAIL.RELAY -j ACCEPT"
-> to make sure it's not related to conntrack on the double.
-> 
-> So here are the current results:
-> - 2.6.23.16: Working
-> - 2.6.24: Stalling connection
-> - 2.6.24.7: Stalling connection
-> - 2.6.25.10: Stalling connection
-> 
-> Attached is a tcpdump of a stalling connection with the
-> sensitive information replaced by "xxxxx", so please ignore the broken
-> checkums at the beginning. The dump was created using 2.6.24.7.
-> 
-> Jozsef Kadlecsik suggested this is not related to netfilter,
-> so I'm now asking for help on netdev.
-> 
-> Here's the text output from tcpdump:
-> -----------------------------------------------------------
-> 13:40:14.140625 IP linux.53132 > mailserver.smtp: S 943411848:943411848(0) win 5808 <mss 1452,sackOK,timestamp 5386646 0,nop,wscale 2>
-> 13:40:14.206523 IP mailserver.smtp > linux.53132: S 4213328541:4213328541(0) ack 943411849 win 65535 <mss 1400>
-[...]
-> 13:42:04.198938 IP linux.53132 > mailserver.smtp: . 214152:215552(1400) ack 553 win 7504
-> 13:42:04.198970 IP linux.53132 > mailserver.smtp: . 215552:216952(1400) ack 553 win 7504
-> 13:43:50.437541 IP linux.53132 > mailserver.smtp: . 155928:157328(1400) ack 553 win 7504
-> 13:43:50.696615 IP mailserver.smtp > linux.53132: . ack 157328 win 65535
-> 13:43:50.696641 IP linux.53132 > mailserver.smtp: . 216952:218352(1400) ack 553 win 7504
-> 13:43:50.696671 IP linux.53132 > mailserver.smtp: . 218352:219752(1400) ack 553 win 7504
+[NETFILTER]: Collapse tcpmss_reverse_mtu{4,6} into one function
+    
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ net/netfilter/xt_TCPMSS.c |   42 +++++++++++-------------------------
+ 1 files changed, 13 insertions(+), 29 deletions(-)
 
-It looks as the smtp server receives the packets slowly and it's just 
-behind the client. There's no more packet to/from port 53132 in the 
-tcpdump.
-
-> 13:44:51.681540 IP mailserver.smtp > linux.41085: P 3630759848:3630759915(67) ack 1371960018 win 65535
-> 13:44:51.681568 IP linux.41085 > mailserver.smtp: R 1371960018:1371960018(0) win 0
-> 13:44:51.681583 IP mailserver.smtp > linux.41085: F 67:67(0) ack 1 win 65535
-> 13:44:51.681594 IP linux.41085 > mailserver.smtp: R 1371960018:1371960018(0) win 0
-
-But the first packet above from the server looks just wrong in the 
-context: the port of the client "changed". This is why the client sends 
-the RST packet back as there's no such TCP connection there.
-
-Makes no sense at all...
-
-[Wild guessing: broken virtualized SMTP server migration?]
-
-Best regards,
-Jozsef
+diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
+index 217e2b6..beede49 100644
+--- a/net/netfilter/xt_TCPMSS.c
++++ b/net/netfilter/xt_TCPMSS.c
+@@ -147,17 +147,21 @@ tcpmss_mangle_packet(struct sk_buff *skb,
+ 	return TCPOLEN_MSS;
+ }
+ 
+-static u_int32_t tcpmss_reverse_mtu4(const struct iphdr *iph)
++static u_int32_t tcpmss_reverse_mtu(const struct sk_buff *skb,
++				    unsigned int family)
+ {
+-	struct flowi fl = {
+-		.fl4_dst = iph->saddr,
+-	};
++	struct flowi fl = {};
+ 	const struct nf_afinfo *ai;
+ 	struct rtable *rt = NULL;
+ 	u_int32_t mtu     = ~0U;
+ 
++	if (family == PF_INET)
++		fl.fl4_dst = ip_hdr(skb)->saddr;
++	else
++		fl.fl6_dst = ipv6_hdr(skb)->saddr;
++
+ 	rcu_read_lock();
+-	ai = nf_get_afinfo(AF_INET);
++	ai = nf_get_afinfo(family);
+ 	if (ai != NULL)
+ 		ai->route((struct dst_entry **)&rt, &fl);
+ 	rcu_read_unlock();
+@@ -178,7 +182,8 @@ tcpmss_tg4(struct sk_buff *skb, const struct net_device *in,
+ 	__be16 newlen;
+ 	int ret;
+ 
+-	ret = tcpmss_mangle_packet(skb, targinfo, tcpmss_reverse_mtu4(iph),
++	ret = tcpmss_mangle_packet(skb, targinfo,
++				   tcpmss_reverse_mtu(skb, PF_INET),
+ 				   iph->ihl * 4,
+ 				   sizeof(*iph) + sizeof(struct tcphdr));
+ 	if (ret < 0)
+@@ -193,28 +198,6 @@ tcpmss_tg4(struct sk_buff *skb, const struct net_device *in,
+ }
+ 
+ #if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
+-static u_int32_t tcpmss_reverse_mtu6(const struct ipv6hdr *iph)
+-{
+-	struct flowi fl = {
+-		.fl6_dst = iph->saddr,
+-	};
+-	const struct nf_afinfo *ai;
+-	struct rtable *rt = NULL;
+-	u_int32_t mtu     = ~0U;
 -
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+-	rcu_read_lock();
+-	ai = nf_get_afinfo(AF_INET6);
+-	if (ai != NULL)
+-		ai->route((struct dst_entry **)&rt, &fl);
+-	rcu_read_unlock();
+-
+-	if (rt != NULL) {
+-		mtu = dst_mtu(&rt->u.dst);
+-		dst_release(&rt->u.dst);
+-	}
+-	return mtu;
+-}
+-
+ static unsigned int
+ tcpmss_tg6(struct sk_buff *skb, const struct net_device *in,
+            const struct net_device *out, unsigned int hooknum,
+@@ -229,7 +212,8 @@ tcpmss_tg6(struct sk_buff *skb, const struct net_device *in,
+ 	tcphoff = ipv6_skip_exthdr(skb, sizeof(*ipv6h), &nexthdr);
+ 	if (tcphoff < 0)
+ 		return NF_DROP;
+-	ret = tcpmss_mangle_packet(skb, targinfo, tcpmss_reverse_mtu6(ipv6h),
++	ret = tcpmss_mangle_packet(skb, targinfo,
++				   tcpmss_reverse_mtu(skb, PF_INET6),
+ 				   tcphoff,
+ 				   sizeof(*ipv6h) + sizeof(struct tcphdr));
+ 	if (ret < 0)
+
