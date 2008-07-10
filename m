@@ -1,55 +1,54 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: Re: [ULOGD PATCH] rework, fill MAC address in ULOG for ethernet.
-Date: Thu, 10 Jul 2008 22:39:32 +0200
-Message-ID: <20080710203931.GB4000@bayen.regit.org>
-References: <486B88F4.7060704@trash.net> <1215554219-13763-1-git-send-email-eric@inl.fr> <487497F4.8070004@netfilter.org> <48749899.7070505@trash.net> <48749AF1.60900@netfilter.org> <48749CAA.3030306@trash.net> <20080709210454.GA4461@ghlodit.inl.fr> <48752B26.3010404@trash.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: TCP connection stalls under 2.6.24.7
+Date: Thu, 10 Jul 2008 23:21:37 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0807102314440.14321@blackhole.kfki.hu>
+References: <47EA0DAB.7080205@securenet.de> <200807071518.10912.thomas.jarosch@intra2net.com>
+ <Pine.LNX.4.64.0807101457380.13027@blackhole.kfki.hu>
+ <200807101612.59380.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	Sven Riedel <sr@securenet.de>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Thomas Jarosch <thomas.jarosch@intra2net.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fydelkass.inl.fr ([195.101.59.116]:60044 "EHLO fydelkass.inl.fr"
+Received: from smtp1.kfki.hu ([148.6.0.26]:54287 "EHLO smtp1.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751344AbYGJUjf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Jul 2008 16:39:35 -0400
-Content-Disposition: inline
-In-Reply-To: <48752B26.3010404@trash.net>
+	id S1750712AbYGJVVk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Jul 2008 17:21:40 -0400
+In-Reply-To: <200807101612.59380.thomas.jarosch@intra2net.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+On Thu, 10 Jul 2008, Thomas Jarosch wrote:
 
-On Wednesday, 2008 July  9 at 23:18:30 +0200, Patrick McHardy wrote:
-> Eric Leblond wrote:
->> I think the proposed patch is a best effort work. It should be enough
->> for most users as ethernet headers are the more common. But I agree, we
->> can't have a full working solution with ULOG.
->>
->> I will try to find some time to rework my NFLOG patch to see if it is
->> possible to cleanly send the source and destination hardware address to
->> userspace via NFLOG.
-
-I don't see any other mean but to get hardware address from device and
-not from skb. I really don't like it, as this can be done from userspace
-directly. I will thus stop working on adding destination address to
-NFLOG messages.
-
->> IMHO, this patch is not harmfull and will help some people. It may worth
->> to be push in the git tree.
+> On Thursday, 10. July 2008 15:17:53 you wrote:
+> > It looks as the smtp server receives the packets slowly and it's just
+> > behind the client. There's no more packet to/from port 53132 in the
+> > tcpdump.
+> 
+> Thanks for looking into this, Jozsef. If you take a look at the timing 
+> information, the connection was already running ~270 seconds without real 
+> data transfer. The mailserver then aborts the SMTP connection with the error 
+> msg: "421 mailbackup.webpage.t-com.de Lost connection to [217.85.147.6]"
+> Only after that the port is "changed" to the wrong one.
 >
->> +			ulogd_log(ULOGD_DEBUG, "Unknown mac_len (%d), "
->> +					"rejecting packet", pkt->mac_len);
->
-> This comment made me believe that it would break header
-> printing for non-ethernet packets. If that is not true,
-> I have no objections.
+> The time ranges between the retransmissions seem
+> to really go downhill after the first retransmission.
+> 
+> The linux box is connected via a mostly idle 2 mbit SDSL line, the mailserver
+> is located at the provider. So theoretically this shouldn't be slow at all.
+> This is also proved as 2.6.23.17 works without trouble.
 
-Hmm, you're right but user using non-ethernet packets can upgrade to
-NFLOG ;)
+You did not mention the type of your driver. Isn't there some changes in 
+the driver code between 2.6.23.17 and 2.6.24 which could cause such 
+stallings?
 
-BR,
--- 
-Eric Leblond
-INL: http://www.inl.fr/
-NuFW: http://www.nufw.org/
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
