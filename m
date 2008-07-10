@@ -1,76 +1,92 @@
-From: Manu <manuprivat@gmx.de>
-Subject: Re: RAWNAT kernel crash
-Date: Thu, 10 Jul 2008 13:23:26 +0200
-Message-ID: <4875F12E.3010709@gmx.de>
-References: <4875D2DC.9040107@gmx.de> <alpine.LNX.1.10.0807101119180.27323@fbirervta.pbzchgretzou.qr> <4875DCD0.9070107@gmx.de> <alpine.LNX.1.10.0807101209050.27323@fbirervta.pbzchgretzou.qr> <4875EF77.8060700@gmx.de>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] netfilter: accounting rework: ct_extend + 64bit counters
+ (v4)
+Date: Thu, 10 Jul 2008 13:54:45 +0200
+Message-ID: <4875F885.8020408@trash.net>
+References: <48727680.0v5JqC/twBGv06/n%ole@ans.pl> <4874EFED.5080001@trash.net> <Pine.LNX.4.64.0807092349490.1999@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: Krzysztof Oledzki <ole@ans.pl>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:40558 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1752310AbYGJLXR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Jul 2008 07:23:17 -0400
-In-Reply-To: <4875EF77.8060700@gmx.de>
+Received: from stinky.trash.net ([213.144.137.162]:58428 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752489AbYGJLyu (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Jul 2008 07:54:50 -0400
+In-Reply-To: <Pine.LNX.4.64.0807092349490.1999@bizon.gios.gov.pl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Manu schrieb:
-> Jan Engelhardt schrieb:
->> (and don't strip the mailing list from cc)
+Krzysztof Oledzki wrote:
+> 
+> 
+> On Wed, 9 Jul 2008, Patrick McHardy wrote:
+> 
+>> Krzysztof Piotr Oledzki wrote:
+>>>> From 187703b8bfc30048c3a973fea6d3b3ce9bcbb49a Mon Sep 17 00:00:00 2001
+>>> From: Krzysztof Piotr Oledzki <ole@ans.pl>
+>>> Date: Mon, 7 Jul 2008 21:49:57 +0200
+>>> Subject: netfilter: accounting rework: ct_extend + 64bit counters (v4)
+>>>
+>>> Initially netfilter has had 64bit counters for conntrack-based 
+>>> accounting, but
+>>> it was changed in 2.6.14 to save memory. Unfortunately in-kernel 
+>>> 64bit counters are
+>>> still required, for example for "connbytes" extension. However, 64bit 
+>>> counters
+>>> waste a lot of memory and it was not possible to enable/disable it 
+>>> runtime.
+>>>
+>>> This patch:
+>>>  - reimplements accounting with respect to the extension infrastructure,
+>>>  - makes one global version of seq_print_acct() instead of two 
+>>> seq_print_counters(),
+>>>  - makes it possible to enable it at boot time (for 
+>>> CONFIG_SYSCTL/CONFIG_SYSFS=n),
+>>>  - makes it possible to enable/disable it at runtime by sysctl or sysfs,
+>>>  - extends counters from 32bit to 64bit,
+>>>  - renames ip_conntrack_counter -> nf_conn_counter,
+>>>  - enables accounting code unconditionally (no longer depends on 
+>>> CONFIG_NF_CT_ACCT),
+>>>  - set initial accounting enable state based on CONFIG_NF_CT_ACCT
+>>>  - removes buggy IPCT_COUNTER_FILLING event handling.
+>>>
+>>> If accounting is enabled newly created connections get additional 
+>>> acct extend.
+>>> Old connections are not changed as it is not possible to add a 
+>>> ct_extend area
+>>> to confirmed conntrack. Accounting is performed for all connections with
+>>> acct extend regardless of a current state of 
+>>> "net.netfilter.nf_conntrack_acct".
 >>
->> On Thursday 2008-07-10 11:56, Manu wrote:
->>   
->>>>> I can set the rules but everytime I want to send traffic through the rules
->>>>> I got a system crash!?
->>>>>         
->>>> I will investigate... I assume you do have dcd0c66 at least?
->>>>   
->>>>       
->>> I don't know what you mean with dcd0c66. I downloaded the snapshot of
->>> 2008-04-28
->>>     
+>> Applied with the attached minor cleanups. Thanks Krzysztof!
 >>
->> Ah ok, if you click on that you will see "commit
->> dcd0c661355bc5ff95d3a587c49fa59d8c4a8fef"
+>> There is one things I think needs fixing however:
 >>
->>   
->>>> Posting the crash would be helpful.
->>>>       
->>> What exactly do you mean with posting the crash?
->>>     
+>>>              if (NFNL_MSG_TYPE(cb->nlh->nlmsg_type) ==
+>>> -                        IPCTNL_MSG_CT_GET_CTRZERO)
+>>> -                memset(&ct->counters, 0, sizeof(ct->counters));
+>>> -#endif
+>>> +                        IPCTNL_MSG_CT_GET_CTRZERO) {
+>>> +                struct nf_conn_counter *acct;
+>>> +
+>>> +                acct = nf_conn_acct_find(ct);
+>>> +                if (acct)
+>>> +                    memset(acct, 0, sizeof(struct 
+>>> nf_conn_counter[IP_CT_DIR_MAX]));
 >>
->> Kernel log, oops dump. If you just say "crash", then that could be
->> anything, with cosmic rays to begin.
->>
->>   
-> maybe this is already helpful - i will work on further informations 
-> about the "crash"
->
->
-> <3>compat_xtables: compat layer limits reached 
-> (xtnu_skb_make_writable) - dropping packets
-> <3>compat_xtables: compat layer limits reached 
-> (xtnu_skb_make_writable) - dropping packets
-> <1>BUG: unable to handle kernel NULL pointer dereference at virtual 
-> address 00000004
-> <1> printing eip:
-> <4>c02acd98
-> <1>*pde = 00000000
-> <0>Oops: 0002 [#1]
-> <0>PREEMPT
-> <4>Modules linked in: iptable_rawpost xt_RAWNAT compat_xtables ebt_ip 
-> ebtable_nat ebtables sch_sfq cls_fw cls_u32 sch_htb tun 8021q 8139too 
-> cramfs
-> <0>CPU:    0
-> <0>EIP:    0060:[<c02acd98>]    Not tainted VLI
-> <0>EFLAGS: 00010047   (2.6.23.9-default #26)
-> <0>EIP is at skb_dequeue+0x21/0x4d
-> <0>eax: 00000000   ebx: c4cf93c0   ecx: 00000246   edx: c5a06c60
-> <0>esi: c5a06c00   edi: 00000000   ebp: c512fe2c   esp: c512fdfc
-> <0>ds: 007b   es: 007b   fs: 0000  gs: 0000  ss: 0068
->
->
+>> This needs locking.
+> 
+> Thanks, I'll look at it. Is it enough to place it between 
+> spin_lock_bh/spin_unlock_bh, like this?
+> 
+> spin_lock_bh(&nf_conntrack_lock);
+> 
+> memset()
+> 
+> spin_unlock_bh(&nf_conntrack_lock);
 
+Probably better to grab it outside the loop to avoid repeatedly
+taking and releasing it again.
