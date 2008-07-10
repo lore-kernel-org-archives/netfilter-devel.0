@@ -1,211 +1,151 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: 13/13 [NETFILTER]: Make BRIDGE_NF_EBTABLES a menuconfig option
-Date: Thu, 10 Jul 2008 15:28:47 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0807101528340.27323@fbirervta.pbzchgretzou.qr>
+Subject: 10/13 [NETFILTER]: Give AF-independent extensions an arpt_ aliases
+Date: Thu, 10 Jul 2008 15:29:53 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0807101528480.27323@fbirervta.pbzchgretzou.qr>
 References: <alpine.LNX.1.10.0807101522400.27323@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:42797 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:37179 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754712AbYGJN2s (ORCPT
+	with ESMTP id S1757504AbYGJN3y (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Jul 2008 09:28:48 -0400
+	Thu, 10 Jul 2008 09:29:54 -0400
 In-Reply-To: <alpine.LNX.1.10.0807101522400.27323@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 commit ffffffffffffffffffffffffffffffffffffffff
 Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Tue Jul 8 00:53:14 2008 +0200
+Date:   Tue Jul 8 00:39:24 2008 +0200
 
-[NETFILTER]: Make BRIDGE_NF_EBTABLES a menuconfig option
+[NETFILTER]: Give AF-independent extensions an arpt_ aliases
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- net/bridge/netfilter/Kconfig |   29 +++++------------------------
- 1 files changed, 5 insertions(+), 24 deletions(-)
+ net/netfilter/xt_CLASSIFY.c  |    1 +
+ net/netfilter/xt_MARK.c      |    1 +
+ net/netfilter/xt_RATEEST.c   |    1 +
+ net/netfilter/xt_limit.c     |    1 +
+ net/netfilter/xt_mark.c      |    1 +
+ net/netfilter/xt_quota.c     |    1 +
+ net/netfilter/xt_rateest.c   |    1 +
+ net/netfilter/xt_statistic.c |    1 +
+ net/netfilter/xt_time.c      |    1 +
+ net/netfilter/xt_u32.c       |    1 +
+ 10 files changed, 10 insertions(+), 0 deletions(-)
 
-diff --git a/net/bridge/netfilter/Kconfig b/net/bridge/netfilter/Kconfig
-index e339421..e14f56d 100644
---- a/net/bridge/netfilter/Kconfig
-+++ b/net/bridge/netfilter/Kconfig
-@@ -2,22 +2,21 @@
- # Bridge netfilter configuration
- #
+diff --git a/net/netfilter/xt_CLASSIFY.c b/net/netfilter/xt_CLASSIFY.c
+index 8cffa29..37093e0 100644
+--- a/net/netfilter/xt_CLASSIFY.c
++++ b/net/netfilter/xt_CLASSIFY.c
+@@ -25,6 +25,7 @@ MODULE_LICENSE("GPL");
+ MODULE_DESCRIPTION("Xtables: Qdisc classification");
+ MODULE_ALIAS("ipt_CLASSIFY");
+ MODULE_ALIAS("ip6t_CLASSIFY");
++MODULE_ALIAS("arpt_CLASSIFY");
  
--menu "Bridge: Netfilter Configuration"
--	depends on BRIDGE && BRIDGE_NETFILTER
--
--config BRIDGE_NF_EBTABLES
-+menuconfig BRIDGE_NF_EBTABLES
- 	tristate "Ethernet Bridge tables (ebtables) support"
- 	select NETFILTER_XTABLES
- 	help
- 	  ebtables is a general, extensible frame/packet identification
- 	  framework. Say 'Y' or 'M' here if you want to do Ethernet
- 	  filtering/NAT/brouting on the Ethernet bridge.
-+
-+if BRIDGE_NF_EBTABLES
-+
- #
- # tables
- #
- config BRIDGE_EBT_BROUTE
- 	tristate "ebt: broute table support"
--	depends on BRIDGE_NF_EBTABLES
- 	help
- 	  The ebtables broute table is used to define rules that decide between
- 	  bridging and routing frames, giving Linux the functionality of a
-@@ -28,7 +27,6 @@ config BRIDGE_EBT_BROUTE
+ static unsigned int
+ classify_tg(struct sk_buff *skb, const struct net_device *in,
+diff --git a/net/netfilter/xt_MARK.c b/net/netfilter/xt_MARK.c
+index c8ea7a8..d1ef197 100644
+--- a/net/netfilter/xt_MARK.c
++++ b/net/netfilter/xt_MARK.c
+@@ -23,6 +23,7 @@ MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
+ MODULE_DESCRIPTION("Xtables: packet mark modification");
+ MODULE_ALIAS("ipt_MARK");
+ MODULE_ALIAS("ip6t_MARK");
++MODULE_ALIAS("arpt_MARK");
  
- config BRIDGE_EBT_T_FILTER
- 	tristate "ebt: filter table support"
--	depends on BRIDGE_NF_EBTABLES
- 	help
- 	  The ebtables filter table is used to define frame filtering rules at
- 	  local input, forwarding and local output. See the man page for
-@@ -38,7 +36,6 @@ config BRIDGE_EBT_T_FILTER
+ static unsigned int
+ mark_tg_v0(struct sk_buff *skb, const struct net_device *in,
+diff --git a/net/netfilter/xt_RATEEST.c b/net/netfilter/xt_RATEEST.c
+index da7946e..d717131 100644
+--- a/net/netfilter/xt_RATEEST.c
++++ b/net/netfilter/xt_RATEEST.c
+@@ -190,5 +190,6 @@ MODULE_LICENSE("GPL");
+ MODULE_DESCRIPTION("Xtables: packet rate estimator");
+ MODULE_ALIAS("ipt_RATEEST");
+ MODULE_ALIAS("ip6t_RATEEST");
++MODULE_ALIAS("arpt_RATEEST");
+ module_init(xt_rateest_tg_init);
+ module_exit(xt_rateest_tg_fini);
+diff --git a/net/netfilter/xt_limit.c b/net/netfilter/xt_limit.c
+index 00247bd..d776a8a 100644
+--- a/net/netfilter/xt_limit.c
++++ b/net/netfilter/xt_limit.c
+@@ -19,6 +19,7 @@ MODULE_AUTHOR("Herve Eychenne <rv@wallfire.org>");
+ MODULE_DESCRIPTION("Xtables: rate-limit match");
+ MODULE_ALIAS("ipt_limit");
+ MODULE_ALIAS("ip6t_limit");
++MODULE_ALIAS("arpt_limit");
  
- config BRIDGE_EBT_T_NAT
- 	tristate "ebt: nat table support"
--	depends on BRIDGE_NF_EBTABLES
- 	help
- 	  The ebtables nat table is used to define rules that alter the MAC
- 	  source address (MAC SNAT) or the MAC destination address (MAC DNAT).
-@@ -53,7 +50,6 @@ if NETFILTER_XTABLES
- #
- config BRIDGE_EBT_802_3
- 	tristate "ebt: 802.3 filter support"
--	depends on BRIDGE_NF_EBTABLES
- 	help
- 	  This option adds matching support for 802.3 Ethernet frames.
+ /* The algorithm used is the Simple Token Bucket Filter (TBF)
+  * see net/sched/sch_tbf.c in the linux source tree
+diff --git a/net/netfilter/xt_mark.c b/net/netfilter/xt_mark.c
+index 96dd2b6..ec4e8ad 100644
+--- a/net/netfilter/xt_mark.c
++++ b/net/netfilter/xt_mark.c
+@@ -21,6 +21,7 @@ MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
+ MODULE_DESCRIPTION("Xtables: packet mark match");
+ MODULE_ALIAS("ipt_mark");
+ MODULE_ALIAS("ip6t_mark");
++MODULE_ALIAS("arpt_mark");
  
-@@ -61,7 +57,6 @@ config BRIDGE_EBT_802_3
+ static bool
+ mark_mt_v0(const struct sk_buff *skb, const struct net_device *in,
+diff --git a/net/netfilter/xt_quota.c b/net/netfilter/xt_quota.c
+index a3c8798..91016f7 100644
+--- a/net/netfilter/xt_quota.c
++++ b/net/netfilter/xt_quota.c
+@@ -14,6 +14,7 @@ MODULE_AUTHOR("Sam Johnston <samj@samj.net>");
+ MODULE_DESCRIPTION("Xtables: countdown quota match");
+ MODULE_ALIAS("ipt_quota");
+ MODULE_ALIAS("ip6t_quota");
++MODULE_ALIAS("arpt_quota");
  
- config BRIDGE_EBT_AMONG
- 	tristate "ebt: among filter support"
--	depends on BRIDGE_NF_EBTABLES
- 	help
- 	  This option adds the among match, which allows matching the MAC source
- 	  and/or destination address on a list of addresses. Optionally,
-@@ -71,7 +66,6 @@ config BRIDGE_EBT_AMONG
+ static DEFINE_SPINLOCK(quota_lock);
  
- config BRIDGE_EBT_ARP
- 	tristate "ebt: ARP filter support"
--	depends on BRIDGE_NF_EBTABLES
- 	help
- 	  This option adds the ARP match, which allows ARP and RARP header field
- 	  filtering.
-@@ -80,7 +74,6 @@ config BRIDGE_EBT_ARP
+diff --git a/net/netfilter/xt_rateest.c b/net/netfilter/xt_rateest.c
+index 4dcfd73..2b304f7 100644
+--- a/net/netfilter/xt_rateest.c
++++ b/net/netfilter/xt_rateest.c
+@@ -163,5 +163,6 @@ MODULE_LICENSE("GPL");
+ MODULE_DESCRIPTION("xtables rate estimator match");
+ MODULE_ALIAS("ipt_rateest");
+ MODULE_ALIAS("ip6t_rateest");
++MODULE_ALIAS("arpt_rateest");
+ module_init(xt_rateest_mt_init);
+ module_exit(xt_rateest_mt_fini);
+diff --git a/net/netfilter/xt_statistic.c b/net/netfilter/xt_statistic.c
+index f41a923..1dfb8e5 100644
+--- a/net/netfilter/xt_statistic.c
++++ b/net/netfilter/xt_statistic.c
+@@ -21,6 +21,7 @@ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+ MODULE_DESCRIPTION("Xtables: statistics-based matching (\"Nth\", random)");
+ MODULE_ALIAS("ipt_statistic");
+ MODULE_ALIAS("ip6t_statistic");
++MODULE_ALIAS("arpt_statistic");
  
- config BRIDGE_EBT_IP
- 	tristate "ebt: IP filter support"
--	depends on BRIDGE_NF_EBTABLES
- 	help
- 	  This option adds the IP match, which allows basic IP header field
- 	  filtering.
-@@ -98,7 +91,6 @@ config BRIDGE_EBT_IP6
+ static DEFINE_SPINLOCK(nth_lock);
  
- config BRIDGE_EBT_LIMIT
- 	tristate "ebt: limit match support"
--	depends on BRIDGE_NF_EBTABLES
- 	help
- 	  This option adds the limit match, which allows you to control
- 	  the rate at which a rule can be matched. This match is the
-@@ -109,7 +101,6 @@ config BRIDGE_EBT_LIMIT
- 
- config BRIDGE_EBT_MARK
- 	tristate "ebt: mark filter support"
--	depends on BRIDGE_NF_EBTABLES
- 	help
- 	  This option adds the mark match, which allows matching frames based on
- 	  the 'nfmark' value in the frame. This can be set by the mark target.
-@@ -120,7 +111,6 @@ config BRIDGE_EBT_MARK
- 
- config BRIDGE_EBT_PKTTYPE
- 	tristate "ebt: packet type filter support"
--	depends on BRIDGE_NF_EBTABLES
- 	help
- 	  This option adds the packet type match, which allows matching on the
- 	  type of packet based on its Ethernet "class" (as determined by
-@@ -131,7 +121,6 @@ config BRIDGE_EBT_PKTTYPE
- 
- config BRIDGE_EBT_STP
- 	tristate "ebt: STP filter support"
--	depends on BRIDGE_NF_EBTABLES
- 	help
- 	  This option adds the Spanning Tree Protocol match, which
- 	  allows STP header field filtering.
-@@ -140,7 +129,6 @@ config BRIDGE_EBT_STP
- 
- config BRIDGE_EBT_VLAN
- 	tristate "ebt: 802.1Q VLAN filter support"
--	depends on BRIDGE_NF_EBTABLES
- 	help
- 	  This option adds the 802.1Q vlan match, which allows the filtering of
- 	  802.1Q vlan fields.
-@@ -151,7 +139,6 @@ config BRIDGE_EBT_VLAN
- #
- config BRIDGE_EBT_DNAT
- 	tristate "ebt: dnat target support"
--	depends on BRIDGE_NF_EBTABLES
- 	help
- 	  This option adds the MAC DNAT target, which allows altering the MAC
- 	  destination address of frames.
-@@ -160,7 +147,6 @@ config BRIDGE_EBT_DNAT
- 
- config BRIDGE_EBT_MARK_T
- 	tristate "ebt: mark target support"
--	depends on BRIDGE_NF_EBTABLES
- 	help
- 	  This option adds the mark target, which allows marking frames by
- 	  setting the 'nfmark' value in the frame.
-@@ -171,7 +157,6 @@ config BRIDGE_EBT_MARK_T
- 
- config BRIDGE_EBT_REDIRECT
- 	tristate "ebt: redirect target support"
--	depends on BRIDGE_NF_EBTABLES
- 	help
- 	  This option adds the MAC redirect target, which allows altering the MAC
- 	  destination address of a frame to that of the device it arrived on.
-@@ -180,7 +165,6 @@ config BRIDGE_EBT_REDIRECT
- 
- config BRIDGE_EBT_SNAT
- 	tristate "ebt: snat target support"
--	depends on BRIDGE_NF_EBTABLES
- 	help
- 	  This option adds the MAC SNAT target, which allows altering the MAC
- 	  source address of frames.
-@@ -191,7 +175,6 @@ config BRIDGE_EBT_SNAT
- #
- config BRIDGE_EBT_LOG
- 	tristate "ebt: log support"
--	depends on BRIDGE_NF_EBTABLES
- 	help
- 	  This option adds the log watcher, that you can use in any rule
- 	  in any ebtables table. It records info about the frame header
-@@ -201,7 +184,6 @@ config BRIDGE_EBT_LOG
- 
- config BRIDGE_EBT_ULOG
- 	tristate "ebt: ulog support (OBSOLETE)"
--	depends on BRIDGE_NF_EBTABLES
- 	help
- 	  This option enables the old bridge-specific "ebt_ulog" implementation
- 	  which has been obsoleted by the new "nfnetlink_log" code (see
-@@ -218,7 +200,6 @@ config BRIDGE_EBT_ULOG
- 
- config BRIDGE_EBT_NFLOG
- 	tristate "ebt: nflog support"
--	depends on BRIDGE_NF_EBTABLES
- 	help
- 	  This option enables the nflog watcher, which allows to LOG
- 	  messages through the netfilter logging API, which can use
-@@ -232,4 +213,4 @@ config BRIDGE_EBT_NFLOG
- 
- endif # NETFILTER_XTABLES
- 
--endmenu
-+endif # BRIDGE_NF_EBTABLES
+diff --git a/net/netfilter/xt_time.c b/net/netfilter/xt_time.c
+index 26648a1..2d9cb6f 100644
+--- a/net/netfilter/xt_time.c
++++ b/net/netfilter/xt_time.c
+@@ -261,3 +261,4 @@ MODULE_DESCRIPTION("Xtables: time-based matching");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ipt_time");
+ MODULE_ALIAS("ip6t_time");
++MODULE_ALIAS("arpt_time");
+diff --git a/net/netfilter/xt_u32.c b/net/netfilter/xt_u32.c
+index a6b971d..3c2f02d 100644
+--- a/net/netfilter/xt_u32.c
++++ b/net/netfilter/xt_u32.c
+@@ -125,3 +125,4 @@ MODULE_DESCRIPTION("Xtables: arbitrary byte matching");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ipt_u32");
+ MODULE_ALIAS("ip6t_u32");
++MODULE_ALIAS("arpt_u32");
