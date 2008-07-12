@@ -1,37 +1,66 @@
-From: Denys Fedoryshchenko <denys@visp.net.lb>
-Subject: Re: REDIRECT in nat OUTPUT
-Date: Sat, 12 Jul 2008 17:40:25 +0300
-Message-ID: <200807121740.25789.denys@visp.net.lb>
-References: <200807120424.56462.denys@visp.net.lb> <20080712062812.GA7609@2ka.mipt.ru> <200807121655.44547.denys@visp.net.lb>
+From: "tung tran" <tunghack@gmail.com>
+Subject: Re: Netfilter module help
+Date: Sat, 12 Jul 2008 16:28:00 -0400
+Message-ID: <13f1ba4c0807121328m527a4fclcf5df079cf7cc836@mail.gmail.com>
+References: <13f1ba4c0807091558m5fff70ear7515557278001922@mail.gmail.com>
+	 <alpine.LNX.1.10.0807100127040.27323@fbirervta.pbzchgretzou.qr>
+	 <13f1ba4c0807091641j33a9ebe0ocbe6c0cb95883159@mail.gmail.com>
+	 <1215648362.11885.5.camel@henriknordstrom.net>
+	 <13f1ba4c0807091754oca9211dxd4166c1b56c0c66@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	David Miller <davem@davemloft.net>,
-	Eric Dumazet <dada1@cosmosbay.com>
-To: Evgeniy Polyakov <johnpol@2ka.mipt.ru>
+Cc: netfilter-devel@vger.kernel.org
+To: "Henrik Nordstrom" <henrik@henriknordstrom.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from relay2.globalproof.net ([194.146.153.25]:44145 "EHLO
-	relay2.globalproof.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753115AbYGLOkd (ORCPT
+Received: from yw-out-2324.google.com ([74.125.46.28]:1675 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751982AbYGLU2I (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 12 Jul 2008 10:40:33 -0400
-In-Reply-To: <200807121655.44547.denys@visp.net.lb>
+	Sat, 12 Jul 2008 16:28:08 -0400
+Received: by yw-out-2324.google.com with SMTP id 9so2139743ywe.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 12 Jul 2008 13:28:01 -0700 (PDT)
+In-Reply-To: <13f1ba4c0807091754oca9211dxd4166c1b56c0c66@mail.gmail.com>
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Seems i found something. After issuing ethtool -K lo tso on i got significant performance improvement.
-Why it is not on by default?
-Without it performance is VERY poor.
+Hi again,
+I have another question, if I use QUEUE, is there any way  that I can
+pass a packet back to a chain after processing it? For example, I use
+libipq to receive a packet from kernel (through the special QUEUE
+chain) and process the packet.  After processing the packet, I do not
+want to ACCEPT or REJECT the packet, but pass it back to a different
+chain, for example INPUT. Can I do this?
+Thanks,
+Tung.
 
-On Saturday 12 July 2008, Denys Fedoryshchenko wrote:
-> There is nothing unusual on oprofile. And seems it is not CPU bottleneck, while i am doing tests it is not loaded 100% (i am using mpstat 1 -P ALL to measure that).
-> But i will show first significant lines, if you want i can give full oprofile output, but i dont think it's matter.
-
--- 
-------
-Technical Manager
-Virtual ISP S.A.L.
-Lebanon
+On Wed, Jul 9, 2008 at 8:54 PM, tung tran <tunghack@gmail.com> wrote:
+> Hi Henrik,
+> Thank you very much. I really appreciate your help.
+> Tung.
+>
+> On Wed, Jul 9, 2008 at 7:06 PM, Henrik Nordstrom
+> <henrik@henriknordstrom.net> wrote:
+>> On ons, 2008-07-09 at 18:41 -0500, tung tran wrote:
+>>> Hi Jan,
+>>> Thanks for your quick reply. Could you please give me some advices to
+>>> accomplish the task? I need to pass the packet from kernel to a user
+>>> space process to decide if the packet is accepted or denied.
+>>
+>> For that the existing NF_QUEUE mechanism should be used. If a hook
+>> returns NF_QUEUE then the kernel suspends the packet and submits it to a
+>> queue handler for querying the userspace. When the userspace responds
+>> the packet is either rejected or allowed to continue processing at the
+>> next hook handler.
+>>
+>> The normal ip_queue handler uses netlink to talk to userspace.
+>>
+>> There can only be one queue handler in the system.
+>>
+>> iptables has support for this via the QUEUE psuedo-target.
+>>
+>> Regards
+>> Henrik
+>>
+>
