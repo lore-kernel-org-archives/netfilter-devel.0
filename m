@@ -1,42 +1,37 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: 10/13 [NETFILTER]: Give AF-independent extensions an arpt_ aliases
-Date: Mon, 14 Jul 2008 15:38:43 +0200
-Message-ID: <487B56E3.5060203@trash.net>
-References: <alpine.LNX.1.10.0807101522400.27323@fbirervta.pbzchgretzou.qr> <alpine.LNX.1.10.0807101528480.27323@fbirervta.pbzchgretzou.qr>
+From: "Kevin Sookocheff" <kevin.sookocheff@gmail.com>
+Subject: Invalid size of target
+Date: Mon, 14 Jul 2008 15:26:31 -0400
+Message-ID: <48bd37870807141226n4a5a8b8fwf1b5284d42b5a7b5@mail.gmail.com>
+References: <48bd37870807141225k7c8ed4c2o747bff281792b13f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45217 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753442AbYGNNkM (ORCPT
+Received: from nf-out-0910.google.com ([64.233.182.189]:17286 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754527AbYGNT0d (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Jul 2008 09:40:12 -0400
-In-Reply-To: <alpine.LNX.1.10.0807101528480.27323@fbirervta.pbzchgretzou.qr>
+	Mon, 14 Jul 2008 15:26:33 -0400
+Received: by nf-out-0910.google.com with SMTP id d3so1551681nfc.21
+        for <netfilter-devel@vger.kernel.org>; Mon, 14 Jul 2008 12:26:32 -0700 (PDT)
+In-Reply-To: <48bd37870807141225k7c8ed4c2o747bff281792b13f@mail.gmail.com>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> commit ffffffffffffffffffffffffffffffffffffffff
-> Author: Jan Engelhardt <jengelh@medozas.de>
-> Date:   Tue Jul 8 00:39:24 2008 +0200
-> 
-> [NETFILTER]: Give AF-independent extensions an arpt_ aliases
-> 
-> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
-> ---
->  net/netfilter/xt_CLASSIFY.c  |    1 +
->  net/netfilter/xt_MARK.c      |    1 +
->  net/netfilter/xt_RATEEST.c   |    1 +
->  net/netfilter/xt_limit.c     |    1 +
->  net/netfilter/xt_mark.c      |    1 +
->  net/netfilter/xt_quota.c     |    1 +
->  net/netfilter/xt_rateest.c   |    1 +
->  net/netfilter/xt_statistic.c |    1 +
->  net/netfilter/xt_time.c      |    1 +
->  net/netfilter/xt_u32.c       |    1 +
+Hi everyone,
 
-arp_tables doesn't support external matches, so the match
-aliases don't make much sense.
+I am having a problem developing an IPTables module.
+
+I get the following error (CSUM is the name of my module):
+
+ip_tables: CSUM target: invalid size 0 != 12
+
+The first question is why this error appears, and why does it only
+appear for SMP kernels?
+
+
+Thank you,
+
+Kevin Sookocheff
