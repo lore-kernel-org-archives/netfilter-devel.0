@@ -1,47 +1,53 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: 02/13 [NETFILTER]: Use unsigned types for hooknum and pf vars
-Date: Tue, 15 Jul 2008 11:55:58 +0200
-Message-ID: <487C742E.7030208@trash.net>
-References: <alpine.LNX.1.10.0807101522400.27323@fbirervta.pbzchgretzou.qr> <alpine.LNX.1.10.0807101524070.27323@fbirervta.pbzchgretzou.qr> <487B53F8.5080006@trash.net> <alpine.LNX.1.10.0807151010030.13215@fbirervta.pbzchgretzou.qr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: wrong result with conntrack_create, expect_create
+Date: Tue, 15 Jul 2008 12:18:41 +0200
+Message-ID: <487C7981.2030906@netfilter.org>
+References: <6cb26d8b0807150129m30c71f89o4def08f1623d287d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: wang feng <feng.wangs@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:52782 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754646AbYGOJ4B (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Jul 2008 05:56:01 -0400
-In-Reply-To: <alpine.LNX.1.10.0807151010030.13215@fbirervta.pbzchgretzou.qr>
+Received: from mail.us.es ([193.147.175.20]:59591 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753654AbYGOKS5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 15 Jul 2008 06:18:57 -0400
+In-Reply-To: <6cb26d8b0807150129m30c71f89o4def08f1623d287d@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Monday 2008-07-14 15:26, Patrick McHardy wrote:
+wang feng wrote:
+> Hello,
+> I have done some test based on the libnetfilter_conntrack-0.0.96,something is
+> wrong with the samples under utils:
 > 
->> Jan Engelhardt wrote:
->>> commit ffffffffffffffffffffffffffffffffffffffff
->>> Author: Jan Engelhardt <jengelh@medozas.de>
->>> Date:   Sat Apr 12 08:24:12 2008 +0200
->>>
->>> [NETFILTER]: Use unsigned types for hooknum and pf vars
->>>     and (try to) consistently use u_int8_t for the L3 family.
->>>
->>> +extern struct xt_match *xt_find_match(u_int8_t af, const char *name,
->>> +				      u8 revision);
->> It would have been cleaner to at least consistently use u_int8_t/u8
->> within one function. Alternatively I'd prefer the u8 type since
->> people usually use that in new patches, so over time we'd get rid
->> of the type inconsistencies.
+> conntrack_create:
+>  TEST: create conntrack (0)(Success)
+> it should create a conntrack with src:1.1.1.1, dst:2.2.2.2
+> but: conntrack_get:
+> ipv4     2 tcp      6 98 src=0.0.0.0 dst=0.0.0.0 sport=0 dport=0 packets=0
+> bytes=0 [UNREPLIED] src=0.0.0.0 dst=0.0.0.0 sport=0 dport=0 packets=0 bytes=0
+> mark=0 use=2
 > 
-> If you really want to get rid of type inconsistencies in the source,
-> the C99 stdint types should be used. In retrospect, defining our own
-> types like [us](8|16|32) are not really needed, much less for new code.
+> expect_create:
+> TEST: add master conntrack (0)(Success)
+> TEST: create expectation (-1)(Invalid argument)
 
-Thats what netfilter used initially. But as I said, people
-usually use the u{8,16,32} types for networking and there's
-little point in fighting against that. So please either use
-u8 everywhere or at least don't mix the types in the same
-function.
+You probably forgot to insmod:
+
+* nf_conntrack_ipv4
+* nf_conntrack_ftp, which is required to run the expect_create test.
+
+I'm going to add a note in the sources of the test now.
+
+> I have debugged, the parameters passed to the api are not wrong, something in
+> nflink(nfnl_query) perhaps not works...
+> 
+> see also bug#548,someone can help me to debug to see what happen with
+> it? thanks...
+
+Please, confirm that this fixes your problem.
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
