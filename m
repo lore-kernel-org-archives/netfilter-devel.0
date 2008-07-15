@@ -1,88 +1,96 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Invalid size of target
-Date: Mon, 14 Jul 2008 23:15:18 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0807142313290.13215@fbirervta.pbzchgretzou.qr>
-References: <48bd37870807141225k7c8ed4c2o747bff281792b13f@mail.gmail.com>  <48bd37870807141226n4a5a8b8fwf1b5284d42b5a7b5@mail.gmail.com>  <alpine.LNX.1.10.0807142204050.13215@fbirervta.pbzchgretzou.qr>
- <48bd37870807141336u3f821c32s5f9cb9ee0fe94370@mail.gmail.com>
+Subject: Re: 02/13 [NETFILTER]: Use unsigned types for hooknum and pf vars
+Date: Tue, 15 Jul 2008 10:17:32 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0807151010030.13215@fbirervta.pbzchgretzou.qr>
+References: <alpine.LNX.1.10.0807101522400.27323@fbirervta.pbzchgretzou.qr> <alpine.LNX.1.10.0807101524070.27323@fbirervta.pbzchgretzou.qr> <487B53F8.5080006@trash.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Kevin Sookocheff <kevin.sookocheff@gmail.com>
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:57661 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:38942 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753352AbYGNVPU (ORCPT
+	with ESMTP id S1752960AbYGOIRd (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Jul 2008 17:15:20 -0400
-In-Reply-To: <48bd37870807141336u3f821c32s5f9cb9ee0fe94370@mail.gmail.com>
+	Tue, 15 Jul 2008 04:17:33 -0400
+In-Reply-To: <487B53F8.5080006@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Monday 2008-07-14 22:36, Kevin Sookocheff wrote:
+On Monday 2008-07-14 15:26, Patrick McHardy wrote:
 
->OK.  That makes sense for what I'm seeing.
+> Jan Engelhardt wrote:
+>> commit ffffffffffffffffffffffffffffffffffffffff
+>> Author: Jan Engelhardt <jengelh@medozas.de>
+>> Date:   Sat Apr 12 08:24:12 2008 +0200
+>> 
+>> [NETFILTER]: Use unsigned types for hooknum and pf vars
+>>     and (try to) consistently use u_int8_t for the L3 family.
+>> 
 >
->What I have is the following struct:
+>> +extern struct xt_match *xt_find_match(u_int8_t af, const char *name,
+>> +				      u8 revision);
 >
->struct ipt_CSUM_info {
->    u_int32_t       address;
->    u_int8_t        addressCount;
->    u_int16_t       port;
->    u_int8_t        portCount;
->    u_int8_t        interval;
->    u_int8_t        maxFailures;
->};
+> It would have been cleaner to at least consistently use u_int8_t/u8
+> within one function. Alternatively I'd prefer the u8 type since
+> people usually use that in new patches, so over time we'd get rid
+> of the type inconsistencies.
 
-There's padding involved between the 8/16.
+If you really want to get rid of type inconsistencies in the source,
+the C99 stdint types should be used. In retrospect, defining our own
+types like [us](8|16|32) are not really needed, much less for new code.
 
->and I register the following target in lib*.c:
+>> --- a/include/net/netfilter/nf_conntrack_tuple.h
+>> +++ b/include/net/netfilter/nf_conntrack_tuple.h
+>> @@ -37,7 +37,12 @@ union nf_conntrack_man_proto
+>>   	__be16 port;
+>>   } udp;
+>>   struct {
+>> -		__be16 id;
+>> +		union {
+>> +			__be16 id;
+>> +			struct {
+>> +				__u8 type, code;
 >
->static struct iptables_target CSUM = {
->    .next       = NULL,
-
-This line not needed.
-
->    .name       = "CSUM",
->    .version    = NETFILTER_VERSION,
-
-NETFILTER_VERSION?
-
->    .size       = IPT_ALIGN(sizeof(struct ipt_CSUM_info)),
->    .userspacesize  = IPT_ALIGN(sizeof(struct ipt_CSUM_info)),
->    .help       = &help,
->    .parse      = &parse,
->    .final_check    = &final_check,
->    .print      = &print,
->    .save       = &save,
->    .extra_opts = opts
->};
-
-Seems like a really old module.
-
->void _init(void)
->{
->    register_target(&CSUM);
->}
+> This is not exposed to userspace, so there's no need to
+> use the __ types.
 >
->Then I try and register the target in the kernel C file which is where
->it seems to fail:
+>>   /* These are the parts of the tuple which are fixed. */
+>>   struct {
+>> 		union nf_inet_addr u3;
+>> -		union {
+>> -			/* Add other protocols here. */
+>> -			__be16 all;
+>> -
+>> -			struct {
+>> -				__be16 port;
+>> -			} tcp;
+>> -			struct {
+>> -				__be16 port;
+>> -			} udp;
+>> -			struct {
+>> -				u_int8_t type, code;
+>> -			} icmp;
+>> -			struct {
+>> -				__be16 port;
+>> -			} dccp;
+>> -			struct {
+>> -				__be16 port;
+>> -			} sctp;
+>> -			struct {
+>> -				__be16 key;
+>> -			} gre;
+>> -		} u;
+>> +		union nf_conntrack_man_proto u;
 >
->static struct ipt_target ipt_CSUM = {
->    .name       = "CSUM",
->    .target     = ipt_csum_target,
->    .checkentry = ipt_csum_checkentry,
->};
+> This is an unrelated change that doesn't belong in this patch.
 
-Well well, where is .targetsize? No wonder it prints 0 != 12 ;-)
+Oops,
 
->static int __init init(void)
->{
->    ipt_char_major = register_chrdev(0,"ipt_CSUM_char",&char_fops);
->    init_timer(&csum_timer);
->    csum_timer.function = timer_callback;
->    init_waitqueue_head(&inqMSG);
->    printk("register target\n");
->    return ipt_register_target(&ipt_CSUM);
->}
->
+> Not that I'm opposed to the change, but the "man" part in the
+> name stands for manipulable, which doesn't fit here.
+
+I was just using existing names, aiming for a minimal patch,
+since people are so sensitive to having names changed and 'wrong'
+types being used.
