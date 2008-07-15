@@ -1,96 +1,56 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: 02/13 [NETFILTER]: Use unsigned types for hooknum and pf vars
-Date: Tue, 15 Jul 2008 10:17:32 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0807151010030.13215@fbirervta.pbzchgretzou.qr>
-References: <alpine.LNX.1.10.0807101522400.27323@fbirervta.pbzchgretzou.qr> <alpine.LNX.1.10.0807101524070.27323@fbirervta.pbzchgretzou.qr> <487B53F8.5080006@trash.net>
+From: "wang feng" <feng.wangs@gmail.com>
+Subject: wrong result with conntrack_create, expect_create
+Date: Tue, 15 Jul 2008 10:29:01 +0200
+Message-ID: <6cb26d8b0807150129m30c71f89o4def08f1623d287d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:38942 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752960AbYGOIRd (ORCPT
+Received: from rv-out-0506.google.com ([209.85.198.239]:55857 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754461AbYGOI3C convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Jul 2008 04:17:33 -0400
-In-Reply-To: <487B53F8.5080006@trash.net>
+	Tue, 15 Jul 2008 04:29:02 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so5882118rvb.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 15 Jul 2008 01:29:01 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hello,
+I have done some test based on the libnetfilter_conntrack-0.0.96,someth=
+ing is
+wrong with the samples under utils:
 
-On Monday 2008-07-14 15:26, Patrick McHardy wrote:
+conntrack_create:
+ TEST: create conntrack (0)(Success)
+it should create a conntrack with src:1.1.1.1, dst:2.2.2.2
+but: conntrack_get:
+ipv4     2 tcp      6 98 src=3D0.0.0.0 dst=3D0.0.0.0 sport=3D0 dport=3D=
+0 packets=3D0
+bytes=3D0 [UNREPLIED] src=3D0.0.0.0 dst=3D0.0.0.0 sport=3D0 dport=3D0 p=
+ackets=3D0 bytes=3D0
+mark=3D0 use=3D2
 
-> Jan Engelhardt wrote:
->> commit ffffffffffffffffffffffffffffffffffffffff
->> Author: Jan Engelhardt <jengelh@medozas.de>
->> Date:   Sat Apr 12 08:24:12 2008 +0200
->> 
->> [NETFILTER]: Use unsigned types for hooknum and pf vars
->>     and (try to) consistently use u_int8_t for the L3 family.
->> 
->
->> +extern struct xt_match *xt_find_match(u_int8_t af, const char *name,
->> +				      u8 revision);
->
-> It would have been cleaner to at least consistently use u_int8_t/u8
-> within one function. Alternatively I'd prefer the u8 type since
-> people usually use that in new patches, so over time we'd get rid
-> of the type inconsistencies.
+expect_create:
+TEST: add master conntrack (0)(Success)
+TEST: create expectation (-1)(Invalid argument)
 
-If you really want to get rid of type inconsistencies in the source,
-the C99 stdint types should be used. In retrospect, defining our own
-types like [us](8|16|32) are not really needed, much less for new code.
+I have debugged, the parameters passed to the api are not wrong, someth=
+ing in
+nflink(nfnl_query) perhaps not works...
 
->> --- a/include/net/netfilter/nf_conntrack_tuple.h
->> +++ b/include/net/netfilter/nf_conntrack_tuple.h
->> @@ -37,7 +37,12 @@ union nf_conntrack_man_proto
->>   	__be16 port;
->>   } udp;
->>   struct {
->> -		__be16 id;
->> +		union {
->> +			__be16 id;
->> +			struct {
->> +				__u8 type, code;
->
-> This is not exposed to userspace, so there's no need to
-> use the __ types.
->
->>   /* These are the parts of the tuple which are fixed. */
->>   struct {
->> 		union nf_inet_addr u3;
->> -		union {
->> -			/* Add other protocols here. */
->> -			__be16 all;
->> -
->> -			struct {
->> -				__be16 port;
->> -			} tcp;
->> -			struct {
->> -				__be16 port;
->> -			} udp;
->> -			struct {
->> -				u_int8_t type, code;
->> -			} icmp;
->> -			struct {
->> -				__be16 port;
->> -			} dccp;
->> -			struct {
->> -				__be16 port;
->> -			} sctp;
->> -			struct {
->> -				__be16 key;
->> -			} gre;
->> -		} u;
->> +		union nf_conntrack_man_proto u;
->
-> This is an unrelated change that doesn't belong in this patch.
+see also bug#548,someone can help me to debug to see what happen with
+it? thanks...
 
-Oops,
-
-> Not that I'm opposed to the change, but the "man" part in the
-> name stands for manipulable, which doesn't fit here.
-
-I was just using existing names, aiming for a minimal patch,
-since people are so sensitive to having names changed and 'wrong'
-types being used.
+--=20
+=46eng Wang
+=46akult=E4t 5: Informatik, Elektrotechnik und Informationstechnik
+Universit=E4t Stuttgart
+Handy: +49 179 1403215
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
