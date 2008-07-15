@@ -1,75 +1,41 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [ULOGD PATCH] rework, fill MAC address in ULOG for ethernet.
-Date: Tue, 15 Jul 2008 15:26:28 +0200
-Message-ID: <487CA584.3030200@trash.net>
-References: <486B88F4.7060704@trash.net> <1215554219-13763-1-git-send-email-eric@inl.fr> <487497F4.8070004@netfilter.org> <48749899.7070505@trash.net> <48749AF1.60900@netfilter.org> <48749CAA.3030306@trash.net> <20080709210454.GA4461@ghlodit.inl.fr> <48752B26.3010404@trash.net> <20080710203931.GB4000@bayen.regit.org> <48776972.8080305@trash.net> <20080715124924.GA7175@khasse.inl.fr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: Invalid size of target
+Date: Tue, 15 Jul 2008 16:52:15 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0807151650130.2212@fbirervta.pbzchgretzou.qr>
+References: <48bd37870807141225k7c8ed4c2o747bff281792b13f@mail.gmail.com>  <48bd37870807141226n4a5a8b8fwf1b5284d42b5a7b5@mail.gmail.com>  <alpine.LNX.1.10.0807142204050.13215@fbirervta.pbzchgretzou.qr>  <48bd37870807141336u3f821c32s5f9cb9ee0fe94370@mail.gmail.com>
+  <alpine.LNX.1.10.0807142313290.13215@fbirervta.pbzchgretzou.qr> <48bd37870807150547r6211bb9bp74c1d3490c019000@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-To: Eric Leblond <eric@inl.fr>, Patrick McHardy <kaber@trash.net>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Kevin Sookocheff <kevin.sookocheff@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:57582 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759748AbYGON0b (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:35316 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751911AbYGOOwR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Jul 2008 09:26:31 -0400
-In-Reply-To: <20080715124924.GA7175@khasse.inl.fr>
+	Tue, 15 Jul 2008 10:52:17 -0400
+In-Reply-To: <48bd37870807150547r6211bb9bp74c1d3490c019000@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Leblond wrote:
-> Hello,
-> 
-> On Friday, 2008 July 11 at 16:08:50 +0200, Patrick McHardy wrote:
->>>> This comment made me believe that it would break header
->>>> printing for non-ethernet packets. If that is not true,
->>>> I have no objections.
->>> Hmm, you're right but user using non-ethernet packets can upgrade to
->>> NFLOG ;)
->> I assume thats not meant seriously :) But we should integrate
->> new features into the new things, not break old things and
->> expect users to upgrade :)
-> 
-> Well, we still have a problem here:
->  * ULOG logs raw hardware header
->  * NFLOG logs source hardware address only
->  * SQL output module only support real MAC address (at least for PGSQL which
->  has a dedicated type)
-> 
-> I'm not able to find a clean and easy way to fix this.
-> 
-> Here's some possible solutions:
->  * Modify mac type in database to support everything:
->   * Performance impact
->   * Different datatypes in same field :(
 
-It seems we already have a problem here since we can't put
-other link layer headers in the database.
+On Tuesday 2008-07-15 14:47, Kevin Sookocheff wrote:
 
->  * NFLOG modification to log full hardware header:
->   * Will revert to a non parsable field :(
+>Great, that worked wonderfully!
+>
+>So, just out of curiosity and for completeness, do you know why this
+>error would present itself only on SMP kernels?  I'm presuming it has
+>something to do with what version of IPTables is compiled in the
+>kernel.
 
-How about extending nfnetlink_log to include the full MAC header
-and link layer type? That will make it a superset of ULOG.
-
->  * ULOG header parsing:
->   * Incomplete and untrustable by design
->   * May be able to retrieve source HW address info in most cases
->   * ULOG could output fields raw.mac and raw.mac.saddr to ensure
->   compatibility with older applications
-
-Why don't you do something similar to your previous patch,
-but instead of refusing unknown header lengths, treat
-them as before?
-
-> IMHO last solution is the less worst one. If it seems ok for you, I will
-> provide a patchset implementing this solution.
-
-I don't think I understand the problem well enough yet
-to make that decision. Generally, I'm fine with anything
-that doesn't break existing features and doesn't stand
-in the way of correctly handling non-ethernet headers.
-
-
+The kernel-level iptables component has no version number (it uses
+the kernel version). For best interoperability (and chance to get an
+answer to a bugreport), 2.6.18 or any kernel more recent than that,
+specifically its latest stable versions, and userspace
+iptables=C2=A0>=3D=C2=A01.4.1.1 are strongly recommended.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
