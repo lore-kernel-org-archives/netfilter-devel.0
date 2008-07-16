@@ -1,31 +1,124 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: some way to use NF_CT_EXPECT_PERMANENT in userspace
-Date: Wed, 16 Jul 2008 14:46:59 +0200
-Message-ID: <487DEDC3.2010702@trash.net>
-References: <6cb26d8b0807150934u14798afaj9c4be6472091b116@mail.gmail.com>
+From: Manu <manuprivat@gmx.de>
+Subject: Re: RAWNAT kernel crash
+Date: Wed, 16 Jul 2008 18:21:44 +0200
+Message-ID: <487E2018.1010305@gmx.de>
+References: <4875D2DC.9040107@gmx.de> <alpine.LNX.1.10.0807101119180.27323@fbirervta.pbzchgretzou.qr> <4875DCD0.9070107@gmx.de> <alpine.LNX.1.10.0807101209050.27323@fbirervta.pbzchgretzou.qr> <4875EF77.8060700@gmx.de> <4875F12E.3010709@gmx.de> <487C8D4D.7080907@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: wang feng <feng.wangs@gmail.com>
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55086 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754382AbYGPMrE (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 16 Jul 2008 08:47:04 -0400
-In-Reply-To: <6cb26d8b0807150934u14798afaj9c4be6472091b116@mail.gmail.com>
+Received: from mail.gmx.net ([213.165.64.20]:59522 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1756927AbYGPQVe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 16 Jul 2008 12:21:34 -0400
+In-Reply-To: <487C8D4D.7080907@gmx.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-wang feng wrote:
-> Hello,
-> from api the attributes we can set for expectation only inclusive
-> src,dst ip,port, and timeout, but from the kernel code like infunction
-> "nf_ct_find_expectation" there is  also a structure named
-> "nf_conntrac_expect" with flags settings with NF_CT_EXPECT_PERMANENT
-> which enable a permanent expectation, can the userland api in some
-> ways to enable this feature too?
+Manu schrieb:
+> Manu schrieb:
+>> Manu schrieb:
+>>> Jan Engelhardt schrieb:
+>>>> (and don't strip the mailing list from cc)
+>>>>
+>>>> On Thursday 2008-07-10 11:56, Manu wrote:
+>>>>  
+>>>>>>> I can set the rules but everytime I want to send traffic through 
+>>>>>>> the rules
+>>>>>>> I got a system crash!?
+>>>>>>>         
+>>>>>> I will investigate... I assume you do have dcd0c66 at least?
+>>>>>>         
+>>>>> I don't know what you mean with dcd0c66. I downloaded the snapshot of
+>>>>> 2008-04-28
+>>>>>     
+>>>>
+>>>> Ah ok, if you click on that you will see "commit
+>>>> dcd0c661355bc5ff95d3a587c49fa59d8c4a8fef"
+>>>>
+>>>>  
+>>>>>> Posting the crash would be helpful.
+>>>>>>       
+>>>>> What exactly do you mean with posting the crash?
+>>>>>     
+>>>>
+>>>> Kernel log, oops dump. If you just say "crash", then that could be
+>>>> anything, with cosmic rays to begin.
+>>>>
+>>>>   
+>>> maybe this is already helpful - i will work on further informations 
+>>> about the "crash"
+>>>
+>>>
+>>> <3>compat_xtables: compat layer limits reached 
+>>> (xtnu_skb_make_writable) - dropping packets
+>>> <3>compat_xtables: compat layer limits reached 
+>>> (xtnu_skb_make_writable) - dropping packets
+>>> <1>BUG: unable to handle kernel NULL pointer dereference at virtual 
+>>> address 00000004
+>>> <1> printing eip:
+>>> <4>c02acd98
+>>> <1>*pde = 00000000
+>>> <0>Oops: 0002 [#1]
+>>> <0>PREEMPT
+>>> <4>Modules linked in: iptable_rawpost xt_RAWNAT compat_xtables 
+>>> ebt_ip ebtable_nat ebtables sch_sfq cls_fw cls_u32 sch_htb tun 8021q 
+>>> 8139too cramfs
+>>> <0>CPU:    0
+>>> <0>EIP:    0060:[<c02acd98>]    Not tainted VLI
+>>> <0>EFLAGS: 00010047   (2.6.23.9-default #26)
+>>> <0>EIP is at skb_dequeue+0x21/0x4d
+>>> <0>eax: 00000000   ebx: c4cf93c0   ecx: 00000246   edx: c5a06c60
+>>> <0>esi: c5a06c00   edi: 00000000   ebp: c512fe2c   esp: c512fdfc
+>>> <0>ds: 007b   es: 007b   fs: 0000  gs: 0000  ss: 0068
+>>>
+> I have got further informations about the "crash". I activated the 
+> kernel debug and I adjusted the "crash" 3 times -> I got everytime 
+> different log-messages?!
+> see attachment!
+> I think the "crash" happens after a paket passes the table of the 
+> iptable rule "-t raw -I PREROUTING -s x.x.x.x -j RAWSNAT --to-source 
+> x.x.x.x"
+> I can see that the table "-t rawpost -I POSTROUTING -d x.x.x.x -j 
+> RAWDNAT --to-destination x.x.x.x" can be passed by a few pakets 
+> withour a "crash".
+> I don't know how to collect more informations about the crash? What 
+> else can I do to provide more informations about it to you?
+>
+> Regards,
+> Manu
+>
+Hello Jan,
 
-No, we currently don't have the necessary attribute to set expectation
-flags. Should be trivial to add though.
+I updated my sources with your new releases 4 days ago, but I get still 
+"crashes" if a paket passed the table "-t raw -I PREROUTING -s x.x.x.x 
+-j RAWSNAT --to-source x.x.x.x"?!
+Still the same message:
+<3>compat_xtables: compat layer limits reached (xtnu_skb_make_writable) 
+- dropping packets
+
+Table rawpost can be passed by pakets without a crash!
+
+For testing I commented out the following two lines of the sources in 
+compat_xtables.c:
+        ...
+        ret = skb_make_writable(&skb, len);
+        /*if (nskb != skb)
+                return unable(__func__) <= 0 ? false : true;*/
+        return ret;
+       ...
+
+Without those lines I got:
+<3>KERNEL: assertion (!atomic_read(&sk->sk_rmem_alloc)) failed at 
+net/packet/af_packet.c (230)
+
+If I can do anything further to help, please let me know? Is there a 
+kernel version that I can work with the RAWNAT-module?
+Any help would be greatly appreciated!
+
+Regards,
+manu
+
+
