@@ -1,60 +1,31 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: Re: TCP connection stalls under 2.6.24.7
-Date: Wed, 16 Jul 2008 11:03:06 +0200
-Message-ID: <200807161103.07821.thomas.jarosch@intra2net.com>
-References: <47EA0DAB.7080205@securenet.de> <200807151810.45942.thomas.jarosch@intra2net.com> <Pine.LNX.4.64.0807152312080.6254@wrl-59.cs.helsinki.fi>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: some way to use NF_CT_EXPECT_PERMANENT in userspace
+Date: Wed, 16 Jul 2008 14:46:59 +0200
+Message-ID: <487DEDC3.2010702@trash.net>
+References: <6cb26d8b0807150934u14798afaj9c4be6472091b116@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	Sven Riedel <sr@securenet.de>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	"=?iso-8859-15?q?D=E2niel?= Fraga" <fragabr@gmail.com>
-To: "Ilpo =?iso-8859-15?q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: wang feng <feng.wangs@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from re01.intra2net.com ([82.165.28.202]:53983 "EHLO
-	re01.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753674AbYGPJDM convert rfc822-to-8bit (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:55086 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754382AbYGPMrE (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 16 Jul 2008 05:03:12 -0400
-In-Reply-To: <Pine.LNX.4.64.0807152312080.6254@wrl-59.cs.helsinki.fi>
-Content-Disposition: inline
+	Wed, 16 Jul 2008 08:47:04 -0400
+In-Reply-To: <6cb26d8b0807150934u14798afaj9c4be6472091b116@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tuesday, 15. July 2008 22:17:47 Ilpo J=E4rvinen wrote:
-> FRTO in 2.6.24.y is broken, I recently fixed couple of things in FRTO=
-,
-> late 2.6.25.y or 2.6.26 should be used to have all the fixes. If you =
-can
-> reproce with either one, please tcpdump it
+wang feng wrote:
+> Hello,
+> from api the attributes we can set for expectation only inclusive
+> src,dst ip,port, and timeout, but from the kernel code like infunction
+> "nf_ct_find_expectation" there is  also a structure named
+> "nf_conntrac_expect" with flags settings with NF_CT_EXPECT_PERMANENT
+> which enable a permanent expectation, can the userland api in some
+> ways to enable this feature too?
 
-As the dumps are really big, I uploaded them to a temporary space.
-Included are two tcpdumps of stalling connections using git "master".
-The first one stalls around ~1.3mb, the second one around ~4mb.
-
-Get it from here:
-http://www.intra2net.com/de/download/tcpdump/tcp_frto_tcpdumps.tar.bz2
-
-There is another box in front of my test system doing NAT
-which is running 2.6.24.7. I've tested with and without tcp_frto
-on that box to make sure it's not FRTO related.
-
-I've also included a tcpdump with FRTO disabled, so you can see
-the connection is actually working. Just by looking at the packet flow
-while tracing the connection looks much smoother without FRTO
-and doesn't stall for seconds here and there.
-
-Cheers,
-Thomas
-
---=20
-Address (better: trap) for people I really don't want to get mail from:
-jessica.hope@cactusamerica.com
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+No, we currently don't have the necessary attribute to set expectation
+flags. Should be trivial to add though.
