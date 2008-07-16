@@ -1,67 +1,56 @@
-From: "=?ISO-8859-1?Q?Ilpo_J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
 Subject: Re: TCP connection stalls under 2.6.24.7
-Date: Tue, 15 Jul 2008 23:17:47 +0300 (EEST)
-Message-ID: <Pine.LNX.4.64.0807152312080.6254@wrl-59.cs.helsinki.fi>
-References: <47EA0DAB.7080205@securenet.de> <200807111633.42514.thomas.jarosch@intra2net.com>
- <200807151347.23598.thomas.jarosch@intra2net.com>
- <200807151810.45942.thomas.jarosch@intra2net.com>
+Date: Wed, 16 Jul 2008 10:07:56 +0200
+Message-ID: <200807161007.57367.thomas.jarosch@intra2net.com>
+References: <47EA0DAB.7080205@securenet.de> <200807151810.45942.thomas.jarosch@intra2net.com> <Pine.LNX.4.64.0807152312080.6254@wrl-59.cs.helsinki.fi>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; boundary="-696208474-1587228578-1216153000=:6254"
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
 	netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
 	Sven Riedel <sr@securenet.de>,
 	Netfilter Developer Mailing List
 	<netfilter-devel@vger.kernel.org>,
-	"=?iso-8859-15?q?D=E2niel_Fraga?=" <fragabr@gmail.com>
-To: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <200807151810.45942.thomas.jarosch@intra2net.com>
-Content-ID: <Pine.LNX.4.64.0807152316470.6254@wrl-59.cs.helsinki.fi>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+	"=?iso-8859-15?q?D=E2niel?= Fraga" <fragabr@gmail.com>
+To: "Ilpo =?iso-8859-15?q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from re01.intra2net.com ([82.165.28.202]:55801 "EHLO
+	re01.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758701AbYGPIIE convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 16 Jul 2008 04:08:04 -0400
+In-Reply-To: <Pine.LNX.4.64.0807152312080.6254@wrl-59.cs.helsinki.fi>
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Terve Ilpo,
 
----696208474-1587228578-1216153000=:6254
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
-Content-ID: <Pine.LNX.4.64.0807152316471.6254@wrl-59.cs.helsinki.fi>
+On Tuesday, 15. July 2008 22:17:47 Ilpo J=E4rvinen wrote:
+> > I can easily reproduce the problem, so how do we go from here?
+>
+> FRTO in 2.6.24.y is broken, I recently fixed couple of things in FRTO=
+,
+> late 2.6.25.y or 2.6.26 should be used to have all the fixes. If you =
+can
+> reproce with either one, please tcpdump it (I just returned, was coup=
+le of
+> weeks away, so I'm slowly catching up what has happened in between he=
+re).
+> ...I guess somebody had dumped at least 2.6.24.y but that's not
+> interesting due to known (and fixed) bugs with FRTO.
 
-On Tue, 15 Jul 2008, Thomas Jarosch wrote:
+I tried 2.6.25.10 without luck. I have a git "master" tree from yesterd=
+ay=20
+which is also stalling for some seconds around ~220kb and then recoveri=
+ng.=20
+The connection completly stalls at around ~1.3mb. I'll send you a tcpdu=
+mp
+in private soon as it's going to be rather big for the mailinglist.
 
-> > Luckily I'm able to reproduce the problem locally using an ADSL line from
-> > the same provider, so I'll now bisect the kernel from 2.6.23.17 to 2.6.24.
-> 
-> After bisecting for hours, l only had ten revisions left to test.
-> There was this commit that caught my eye:
-> 
-> ------------------------------
-> commit c96fd3d461fa495400df24be3b3b66f0e0b152f9
-> Author: Ilpo Järvinen <ilpo.jarvinen@helsinki.fi>
-> Date:   Thu Sep 20 11:36:37 2007 -0700
-> 
->     [TCP]: Enable SACK enhanced FRTO (RFC4138) by default
-> ------------------------------
-> 
-> This change sets the value of "tcp_frto" to 2 by default.
-> If I reset it to zero, the connection works immediately.
-> @Dâniel Fraga: Does disabling tcp_frto work for you, too?
-> 
-> Disabling tcp_sack makes no difference. To summarize the situation,
-> I had two different cases of stalling TCP connections, both connecting
-> to busy SMTP relays servers which probably drop some packets here and there.
-> 
-> I can easily reproduce the problem, so how do we go from here?
-
-FRTO in 2.6.24.y is broken, I recently fixed couple of things in FRTO, 
-late 2.6.25.y or 2.6.26 should be used to have all the fixes. If you can 
-reproce with either one, please tcpdump it (I just returned, was couple of 
-weeks away, so I'm slowly catching up what has happened in between here). 
-...I guess somebody had dumped at least 2.6.24.y but that's not 
-interesting due to known (and fixed) bugs with FRTO.
-
-
--- 
- i.
----696208474-1587228578-1216153000=:6254--
+Thomas
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
