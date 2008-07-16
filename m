@@ -1,45 +1,63 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Invalid size of target
-Date: Wed, 16 Jul 2008 22:37:34 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0807162232360.32031@fbirervta.pbzchgretzou.qr>
-References: <48bd37870807141225k7c8ed4c2o747bff281792b13f@mail.gmail.com>  <48bd37870807141226n4a5a8b8fwf1b5284d42b5a7b5@mail.gmail.com>  <alpine.LNX.1.10.0807142204050.13215@fbirervta.pbzchgretzou.qr>  <48bd37870807141336u3f821c32s5f9cb9ee0fe94370@mail.gmail.com>
-  <alpine.LNX.1.10.0807142313290.13215@fbirervta.pbzchgretzou.qr>  <48bd37870807150547r6211bb9bp74c1d3490c019000@mail.gmail.com>  <alpine.LNX.1.10.0807151650130.2212@fbirervta.pbzchgretzou.qr> <48bd37870807161115u1cf3eca2jf5e649fbd78a729e@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Kevin Sookocheff <kevin.sookocheff@gmail.com>
+From: Eric Leblond <eric@inl.fr>
+Subject: netfilter: Send complete hardware header in NFLOG.
+Date: Thu, 17 Jul 2008 00:24:54 +0200
+Message-ID: <1216247094-21285-1-git-send-email-eric@inl.fr>
+References: <487CA584.3030200@trash.net>
+Cc: Eric Leblond <eric@inl.fr>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:35577 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753157AbYGPUhf (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 16 Jul 2008 16:37:35 -0400
-In-Reply-To: <48bd37870807161115u1cf3eca2jf5e649fbd78a729e@mail.gmail.com>
+Received: from bayen.regit.org ([81.57.69.189]:36669 "EHLO ice-age"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1757203AbYGPWY5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 16 Jul 2008 18:24:57 -0400
+In-Reply-To: <487CA584.3030200@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This patch adds some fields to NFLOG to be able to send the complete
+hardware header with all necessary informations.
+It sends to userspace:
+ * the type of hardware link
+ * the lenght of hardware header
+ * the hardware header
+---
+ include/linux/netfilter/nfnetlink_log.h |    3 +++
+ net/netfilter/nfnetlink_log.c           |    8 ++++++++
+ 2 files changed, 11 insertions(+), 0 deletions(-)
 
-On Wednesday 2008-07-16 20:15, Kevin Sookocheff wrote:
+diff --git a/include/linux/netfilter/nfnetlink_log.h b/include/linux/netfilter/nfnetlink_log.h
+index a857213..f661731 100644
+--- a/include/linux/netfilter/nfnetlink_log.h
++++ b/include/linux/netfilter/nfnetlink_log.h
+@@ -48,6 +48,9 @@ enum nfulnl_attr_type {
+ 	NFULA_SEQ,			/* instance-local sequence number */
+ 	NFULA_SEQ_GLOBAL,		/* global sequence number */
+ 	NFULA_GID,			/* group id of socket */
++	NFULA_HWTYPE,			/* hardware type */
++	NFULA_HWHEADER,			/* hardware header */
++	NFULA_HWLEN,			/* hardware header length */
+ 
+ 	__NFULA_MAX
+ };
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index b8173af..204dcae 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -453,6 +453,14 @@ __build_packet_message(struct nfulnl_instance *inst,
+ 		}
+ 	}
+ 
++	if (indev && skb_mac_header_was_set(skb)) {
++		NLA_PUT_U16(inst->skb, NFULA_HWTYPE, htons(skb->dev->type));
++		NLA_PUT_U16(inst->skb, NFULA_HWLEN,
++			    htons(skb->dev->hard_header_len));
++		NLA_PUT(inst->skb, NFULA_HWHEADER, skb->dev->hard_header_len,
++			skb_mac_header(skb));
++	}
++
+ 	if (skb->tstamp.tv64) {
+ 		struct nfulnl_msg_packet_timestamp ts;
+ 		struct timeval tv = ktime_to_timeval(skb->tstamp);
+-- 
+1.5.6
 
->Hi Jan,
->
->Simplifying my iptables private struct in ipt_CSUM.h down to
->
->struct ipt_CSUM_info {
->   u_int32_t    count;
->};
->
->and calculating .size .userspacesize (in libiptCSUM.c) and .targetsize
->(in ipt_CSUM.c) all with IPT_ALIGN(sizeof(struct ipt_CSUM_info) gives
->me an error stating:
->
->iptables: CSUM target: invalid size 12 != 4
-
-It's impossible to figure out if there is no code to have a look at.
-
->In what way should I be creating this struct so that it aligns
->correctly in user and kernel space?
-
-With the above struct, you fulfilled all alignment requirements.
-It's a brown paper bag to me, and only compiling it myself
-here will yield more information.
