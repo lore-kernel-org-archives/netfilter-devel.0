@@ -1,75 +1,86 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Conntrack Events Performance - Multipart Messages?
-Date: Thu, 17 Jul 2008 12:03:06 +0200
-Message-ID: <487F18DA.7030208@netfilter.org>
-References: <487E24FC.60700@gmx.ch>
+From: Patrick McHardy <kaber@trash.net>
+Subject: netfilter -stable: nf_conntrack_tcp: fix endless loop
+Date: Thu, 17 Jul 2008 14:07:47 +0200
+Message-ID: <487F3613.6040708@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Fabian Hugelshofer <hugelshofer2006@gmx.ch>
+Content-Type: multipart/mixed;
+ boundary="------------070607070706090102090103"
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: stable@kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52765 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754725AbYGQKDN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Jul 2008 06:03:13 -0400
-In-Reply-To: <487E24FC.60700@gmx.ch>
+Received: from stinky.trash.net ([213.144.137.162]:54226 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753658AbYGQMH4 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 17 Jul 2008 08:07:56 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Fabian Hugelshofer wrote:
-> I am writing a network application for a genuine wireless router (266Mhz
-> IXP4XX). I am capturing packets with ULOG and need connection tracking.
-> For performance reasons I planned to use connection tracking events
-> (NEW/DESTROY) to avoid doing the same work twice.
+This is a multi-part message in MIME format.
+--------------070607070706090102090103
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Did you write your own application to handle ctevents and ULOG messages?
-Are you using any library? What does your application do?
+This patch for 2.6.25.x fixes a race condition between TCP conntrack
+and ctnetlink that can lead to an endless loop.
 
-We now have the berkeley socket filtering facilities for netlink, you
-may use it to filter only the events that you need. I have a patch here
-for libnetfilter_conntrack that introduces a high-level API to
-autogenerate simple BSF code for filtering. As soon as I finish testing
-it, I'll commit it.
+Please apply, thanks.
 
-Also, you may periodically dump the connection tracking table (polling),
-but, of course, this depends on the nature of your application. Assuming
-that your application is a logger, this is not a choice as you'll lose
-information.
 
-> In a high load test case I stress the router with UDP packets with
-> random source ports (1000B payload, 1800pps). CPU usage is 100%, 10% of
-> packets and 80% ctevents are dropped. If I disable ctevents, the CPU
-> usage is just 24% and no packet drops occur.
+--------------070607070706090102090103
+Content-Type: text/x-diff;
+ name="01.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="01.diff"
 
-I have a similar testbed here. You did not mention the threshold that
-you're using in ULOG. If you provide more information on your
-application I'll try to reproduce those numbers.
+commit e85c8c076640e9cd42fb52f27fea16f74b236626
+Author: Patrick McHardy <kaber@trash.net>
+Date:   Thu Jul 17 14:06:16 2008 +0200
 
-> My application is not very heavy and I expect most of the ctevent
-> overhead to be caused by passing events from kernel to user space. I
-> expect that performance could be increased by using multipart messages
-> for ctevents like it is done in ULOG/NFLOG.
-> 
-> Do you share my opinion, that multipart messages would lead to
-> significant performance improvements? (Actually, I doubt that I will be
-> more efficient than performing connection tracking in user space)
+    netfilter: nf_conntrack_tcp: fix endless loop
+    
+    Upstream commit 6b69fe0:
+    
+    When a conntrack entry is destroyed in process context and destruction
+    is interrupted by packet processing and the packet is an attempt to
+    reopen a closed connection, TCP conntrack tries to kill the old entry
+    itself and returns NF_REPEAT to pass the packet through the hook
+    again. This may lead to an endless loop: TCP conntrack repeatedly
+    finds the old entry, but can not kill it itself since destruction
+    is already in progress, but destruction in process context can not
+    complete since TCP conntrack is keeping the CPU busy.
+    
+    Drop the packet in TCP conntrack if we can't kill the connection
+    ourselves to avoid this.
+    
+    Reported by: hemao77@gmail.com [ Kernel bugzilla #11058 ]
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
 
-Yes, I think that batching could help here.
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 6256795..73cef18 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -844,9 +844,15 @@ static int tcp_packet(struct nf_conn *ct,
+ 			/* Attempt to reopen a closed/aborted connection.
+ 			 * Delete this connection and look up again. */
+ 			write_unlock_bh(&tcp_lock);
+-			if (del_timer(&ct->timeout))
++			/* Only repeat if we can actually remove the timer.
++			 * Destruction may already be in progress in process
++			 * context and we must give it a chance to terminate.
++			 */
++			if (del_timer(&ct->timeout)) {
+ 				ct->timeout.function((unsigned long)ct);
+-			return -NF_REPEAT;
++				return -NF_REPEAT;
++			}
++			return -NF_DROP;
+ 		}
+ 		/* Fall through */
+ 	case TCP_CONNTRACK_IGNORE:
 
-> Do you think introducing multipart messages for connection tracking
-> events is feasible without breaking existing applications? Maybe with a
-> default setting of 1 bundled events, which can be increased by a
-> function call?
-
-AFAIK, libnfnetlink and other netlink-based libraries should handle the
-multipart messages appropriately so that should not be a problem.
-
-> Is someone intending to implement multipart messages for ctevents? ;-)
-
-The problem here is that batching should be a per-socket parameter. We
-will not accept a patch that changes the behaviour for all the ctevent
-users. And I don't see an obvious way to do this now.
-
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+--------------070607070706090102090103--
