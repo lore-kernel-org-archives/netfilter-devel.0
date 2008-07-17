@@ -1,73 +1,103 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: Re: TCP connection stalls under 2.6.24.7
-Date: Thu, 17 Jul 2008 17:15:14 +0200
-Message-ID: <200807171715.16265.thomas.jarosch@intra2net.com>
-References: <47EA0DAB.7080205@securenet.de> <200807161103.07821.thomas.jarosch@intra2net.com> <Pine.LNX.4.64.0807171537560.13775@wrl-59.cs.helsinki.fi>
+From: Fabian Hugelshofer <hugelshofer2006@gmx.ch>
+Subject: Re: Conntrack Events Performance - Multipart Messages?
+Date: Thu, 17 Jul 2008 16:15:10 +0100
+Message-ID: <487F61FE.1050508@gmx.ch>
+References: <487E24FC.60700@gmx.ch> <487F18DA.7030208@netfilter.org> <487F5874.3000905@gmx.ch>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Netdev <netdev@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Sven Riedel <sr@securenet.de>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	"=?iso-8859-15?q?D=E2niel?= Fraga" <fragabr@gmail.com>,
-	David Miller <davem@davemloft.net>
-To: "Ilpo =?iso-8859-15?q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
+Content-Type: multipart/mixed;
+ boundary="------------000001090603090903030205"
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from re01.intra2net.com ([82.165.28.202]:52469 "EHLO
-	re01.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754652AbYGQPPV convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Jul 2008 11:15:21 -0400
-In-Reply-To: <Pine.LNX.4.64.0807171537560.13775@wrl-59.cs.helsinki.fi>
-Content-Disposition: inline
+Received: from mail.gmx.net ([213.165.64.20]:36134 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1756220AbYGQPPM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 17 Jul 2008 11:15:12 -0400
+In-Reply-To: <487F5874.3000905@gmx.ch>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday, 17. July 2008 15:55:25 Ilpo J=E4rvinen wrote:
-> It would quite interesting to know more details about the mail server=
- and
-> why the duplicate ACKs are not generated or don't ever reach the send=
-er
-> but I guess the details are out of reach?
+This is a multi-part message in MIME format.
+--------------000001090603090903030205
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-It will be quite difficult to get more details as it's the SMTP relay s=
-ever
-of Germany's biggest ISP. There's a comment about them
-in Patrick's blog from 2008-06-23 if you are curious ;-)
+Fabian Hugelshofer wrote:
+> To reduce any side effects I wrote a small test application which just 
+> reads the ctevent socket and does nothing else. You find it attached to 
+> this email.
 
-We see the same issue with a MX server from "United Internet".
-Normally they are pretty accurate about standards (they run GMX),
-so I guess this must be a problem of a router in between.
+Forgot to attach, you find it in this email...
 
-This is also supported by the fact that 935 of our boxes already update=
-d
-to kernel 2.6.24.7, yet the problem occured only at three sites and I g=
-uess
-there are more people out there using that SMTP relay server.
+--------------000001090603090903030205
+Content-Type: text/x-csrc;
+ name="ctevtest.c"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ctevtest.c"
 
-Could you somehow "probe" the servers to see if they normally
-send duplicated ACKs by faking/forcing a retransmission?
-Though I guess this would invole writing some TCP "test" code.
+#include <stdlib.h>
+#include <stdio.h>
+#include <errno.h>
+#include <signal.h>
 
-> One option would be to disable reentry to FRTO when some progress was
-> made... Please try with the patch below...
+#include <libnfnetlink/libnfnetlink.h>
+#include <libnetfilter_conntrack/libnetfilter_conntrack.h>
 
-Thanks for the patch. It seemed to help a bit. Here are two more traces=
-:
-http://www.intra2net.com/de/download/tcpdump/tcp_frto_with_patch.tar.bz=
-2
 
-The first connection somehow made it after 400 seconds,
-the second one stalled and timed out :-(
-Hope they dumps are useful to you.
+volatile sig_atomic_t terminate;
 
-Chers,
-Thomas
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+static void __sig_handler(int sig)
+{
+	switch (sig) {
+		case SIGTERM:
+		case SIGINT:
+			terminate = 1;
+			break;
+	}
+}
+
+int main(int argc, char* argv[])
+{
+	struct nfct_handle *h;
+	struct sigaction sigact;
+	char buf[NFNL_BUFFSIZE] __attribute__ ((aligned));
+	int len;
+	int events = 0;
+	int overflows = 0;
+
+	terminate = 0;
+	sigact.sa_handler = &__sig_handler;
+	sigaction(SIGINT, &sigact, NULL);
+	sigaction(SIGTERM, &sigact, NULL);
+
+	h = nfct_open(NFNL_SUBSYS_CTNETLINK,
+			NF_NETLINK_CONNTRACK_NEW | NF_NETLINK_CONNTRACK_DESTROY);
+	if (h == NULL) {
+		perror("opening ctnetlink failed");
+		exit(EXIT_FAILURE);
+	}
+	
+	while (!terminate) {
+		len = recv(nfct_fd(h), buf, sizeof(buf), 0);
+		if (len < 0) {
+			if (errno == ENOBUFS) {
+				overflows++;
+			} else if (errno != EINTR) {
+				perror("recv failed");
+				nfct_close(h);
+				exit(EXIT_FAILURE);
+			}
+		} else {
+			events++;
+		}
+	}
+
+	printf("%d events received (%d overflows)\n", events, overflows);
+
+	nfct_close(h);
+
+	exit(EXIT_SUCCESS);
+}
+
+--------------000001090603090903030205--
