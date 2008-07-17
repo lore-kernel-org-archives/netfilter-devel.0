@@ -1,48 +1,65 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [ANNOUNCE]: 2nd call for sponsors for the 6th netfilter developer
- workshop
-Date: Thu, 17 Jul 2008 10:51:34 +0200
-Message-ID: <487F0816.8060900@trash.net>
-References: <482B03DA.406@trash.net> <482B22AE.50807@trash.net>
+Subject: Re: netfilter: Send complete hardware header in NFLOG.
+Date: Thu, 17 Jul 2008 11:01:08 +0200
+Message-ID: <487F0A54.5090002@trash.net>
+References: <487CA584.3030200@trash.net> <1216247094-21285-1-git-send-email-eric@inl.fr>
 Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------000504070802010904090703"
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@inl.fr>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:49595 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753742AbYGQJBL (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 17 Jul 2008 05:01:11 -0400
+In-Reply-To: <1216247094-21285-1-git-send-email-eric@inl.fr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
+
+This is a multi-part message in MIME format.
+--------------000504070802010904090703
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-To: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	"'netfilter@vger.kernel.org'" <netfilter@vger.kernel.org>,
-	Netfilter Core Team <coreteam@netfilter.org>,
-	netfilt
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <482B22AE.50807@trash.net>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
 
-The netfilter project is looking for sponsors for the 6th netfilter
-developer workshop, which will take place in Paris, France from
-September, 29th to October, 3rd. For futher information about the
-workshop please consult [1] and [2].
+Eric Leblond wrote:
+> This patch adds some fields to NFLOG to be able to send the complete
+> hardware header with all necessary informations.
+> It sends to userspace:
+>  * the type of hardware link
+>  * the lenght of hardware header
+>  * the hardware header
 
-Since our first call for sponsors, we found four companies willing
-to support the event, but costs in Paris are higher than expected
-and we haven't raised the necessary money yet.
+Looks good. I've applied it with a minor change to use the endian
+aware netlink macros.
 
-If your company is using netfilter and always wanted to give something
-back, now is a great opportunity. Sponsorship money will be used for
-travel and accomodation expenses to get the developers to the workshop.
-Perks include your company name and logo on the workshop page, an
-invitation for one or more of your own developers and a heartily
-thanks from the netfilter project.
-
-If you are interested, please contact coreteam@netfilter.org for our
-sponsorship policy and further information. If you know of anyone who
-might be interested, please forward this email.
-
-Thanks!
-
-Patrick,
-on behalf of the Netfilter core team
-
-[1] http://workshop.netfilter.org/2008/
-[2] http://marc.info/?l=netfilter-devel&m=121077868519808&w=2
+I need a Signed-off-by: line from you though.
 
 
+--------------000504070802010904090703
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index 204dcae..9a35b57 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -454,9 +454,9 @@ __build_packet_message(struct nfulnl_instance *inst,
+ 	}
+ 
+ 	if (indev && skb_mac_header_was_set(skb)) {
+-		NLA_PUT_U16(inst->skb, NFULA_HWTYPE, htons(skb->dev->type));
+-		NLA_PUT_U16(inst->skb, NFULA_HWLEN,
+-			    htons(skb->dev->hard_header_len));
++		NLA_PUT_BE16(inst->skb, NFULA_HWTYPE, htons(skb->dev->type));
++		NLA_PUT_BE16(inst->skb, NFULA_HWLEN,
++			     htons(skb->dev->hard_header_len));
+ 		NLA_PUT(inst->skb, NFULA_HWHEADER, skb->dev->hard_header_len,
+ 			skb_mac_header(skb));
+ 	}
+
+--------------000504070802010904090703--
