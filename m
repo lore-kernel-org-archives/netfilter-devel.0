@@ -1,37 +1,48 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/2] Security: Add iptables security table for mandatory
- access control rules
-Date: Thu, 17 Jul 2008 10:25:33 +0200
-Message-ID: <487F01FD.9050609@trash.net>
-References: <Xine.LNX.4.64.0805220008510.3033@us.intercode.com.au> <Xine.LNX.4.64.0805220017511.3033@us.intercode.com.au> <48345A3C.1080407@trash.net> <Xine.LNX.4.64.0805220843571.8393@us.intercode.com.au> <Xine.LNX.4.64.0807171340360.17859@us.intercode.com.au>
+Subject: [ANNOUNCE]: 2nd call for sponsors for the 6th netfilter developer
+ workshop
+Date: Thu, 17 Jul 2008 10:51:34 +0200
+Message-ID: <487F0816.8060900@trash.net>
+References: <482B03DA.406@trash.net> <482B22AE.50807@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	linux-security-module@vger.kernel.org,
-	Paul Moore <paul.moore@hp.com>,
-	Stephen Smalley <sds@tycho.nsa.gov>
-To: James Morris <jmorris@namei.org>
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <Xine.LNX.4.64.0807171340360.17859@us.intercode.com.au>
-Sender: linux-security-module-owner@vger.kernel.org
+To: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	"'netfilter@vger.kernel.org'" <netfilter@vger.kernel.org>,
+	Netfilter Core Team <coreteam@netfilter.org>,
+	netfilt
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <482B22AE.50807@trash.net>
+Sender: netfilter-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-James Morris wrote:
-> On Thu, 22 May 2008, James Morris wrote:
-> 
->> On Wed, 21 May 2008, Patrick McHardy wrote:
->>
->>> Applied, thanks. I'll add the dependency myself in case you agree.
->> Ok, I can't really see a use for the table without CONFIG_SECURITY, so 
->> please go ahead.
-> 
-> Patrick,
-> 
-> Do you intend to push this into 2.6.27 ?
-> 
-> (It would be appreciated).
+The netfilter project is looking for sponsors for the 6th netfilter
+developer workshop, which will take place in Paris, France from
+September, 29th to October, 3rd. For futher information about the
+workshop please consult [1] and [2].
+
+Since our first call for sponsors, we found four companies willing
+to support the event, but costs in Paris are higher than expected
+and we haven't raised the necessary money yet.
+
+If your company is using netfilter and always wanted to give something
+back, now is a great opportunity. Sponsorship money will be used for
+travel and accomodation expenses to get the developers to the workshop.
+Perks include your company name and logo on the workshop page, an
+invitation for one or more of your own developers and a heartily
+thanks from the netfilter project.
+
+If you are interested, please contact coreteam@netfilter.org for our
+sponsorship policy and further information. If you know of anyone who
+might be interested, please forward this email.
+
+Thanks!
+
+Patrick,
+on behalf of the Netfilter core team
+
+[1] http://workshop.netfilter.org/2008/
+[2] http://marc.info/?l=netfilter-devel&m=121077868519808&w=2
 
 
-Its currently in net-next-2.6.git, afaik Dave intends to send a
-pull request this Sunday.
