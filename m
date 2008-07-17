@@ -1,60 +1,44 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: [ULOGD2 PATCH] Sync NFLOG input plugin with NFLOG modification related to hardware header.
-Date: Thu, 17 Jul 2008 00:31:46 +0200
-Message-ID: <1216247506-21802-1-git-send-email-eric@inl.fr>
-References: <487CA584.3030200@trash.net>
-Cc: Eric Leblond <eric@inl.fr>
-To: netfilter-devel@vger.kernel.org
+From: James Morris <jmorris@namei.org>
+Subject: Re: [PATCH 1/2] Security: Add iptables security table for mandatory
+ access control rules
+Date: Thu, 17 Jul 2008 13:41:10 +1000 (EST)
+Message-ID: <Xine.LNX.4.64.0807171340360.17859@us.intercode.com.au>
+References: <Xine.LNX.4.64.0805220008510.3033@us.intercode.com.au>
+ <Xine.LNX.4.64.0805220017511.3033@us.intercode.com.au> <48345A3C.1080407@trash.net>
+ <Xine.LNX.4.64.0805220843571.8393@us.intercode.com.au>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org,
+	linux-security-module@vger.kernel.org,
+	Paul Moore <paul.moore@hp.com>,
+	Stephen Smalley <sds@tycho.nsa.gov>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:34501 "EHLO ice-age"
+Received: from namei.org ([69.55.235.186]:49084 "EHLO us.intercode.com.au"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751972AbYGPWbt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 16 Jul 2008 18:31:49 -0400
-In-Reply-To: <487CA584.3030200@trash.net>
+	id S1752767AbYGQDlX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 16 Jul 2008 23:41:23 -0400
+In-Reply-To: <Xine.LNX.4.64.0805220843571.8393@us.intercode.com.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch modifies ulogd2 to synchronize NFLOG with ULOG relatively to the
-definition of raw.mac. It fills the field with the complete hardware header
-instead of simply using the source hardware header.
+On Thu, 22 May 2008, James Morris wrote:
 
-This is a preliminary work for an implementation of an hardware header parsing.
+> On Wed, 21 May 2008, Patrick McHardy wrote:
+> 
+> > Applied, thanks. I'll add the dependency myself in case you agree.
+> 
+> Ok, I can't really see a use for the table without CONFIG_SECURITY, so 
+> please go ahead.
 
-Signed-off-by: Eric Leblond <eric@inl.fr>
----
- input/packet/ulogd_inppkt_NFLOG.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+Patrick,
 
-diff --git a/input/packet/ulogd_inppkt_NFLOG.c b/input/packet/ulogd_inppkt_NFLOG.c
-index cb58661..b69a99f 100644
---- a/input/packet/ulogd_inppkt_NFLOG.c
-+++ b/input/packet/ulogd_inppkt_NFLOG.c
-@@ -290,9 +290,8 @@ static inline int
- interp_packet(struct ulogd_pluginstance *upi, struct nflog_data *ldata)
- {
- 	struct ulogd_key *ret = upi->output.keys;
--
-+	
- 	struct nfulnl_msg_packet_hdr *ph = nflog_get_msg_packet_hdr(ldata);
--	struct nfulnl_msg_packet_hw *hw = nflog_get_packet_hw(ldata);
- 	char *payload;
- 	int payload_len = nflog_get_payload(ldata, &payload);
- 	char *prefix = nflog_get_prefix(ldata);
-@@ -318,10 +317,11 @@ interp_packet(struct ulogd_pluginstance *upi, struct nflog_data *ldata)
- 		ret[NFLOG_KEY_OOB_PROTOCOL].flags |= ULOGD_RETF_VALID;
- 	}
- 
--	if (hw) {
--		ret[NFLOG_KEY_RAW_MAC].u.value.ptr = hw->hw_addr;
-+	if (nflog_get_msg_packet_hwhdrlen(ldata)) {
-+		ret[NFLOG_KEY_RAW_MAC].u.value.ptr = nflog_get_msg_packet_hwhdr(ldata);
- 		ret[NFLOG_KEY_RAW_MAC].flags |= ULOGD_RETF_VALID;
--		ret[NFLOG_KEY_RAW_MAC_LEN].u.value.ui16 = ntohs(hw->hw_addrlen);
-+		ret[NFLOG_KEY_RAW_MAC_LEN].u.value.ui16 =
-+			nflog_get_msg_packet_hwhdrlen(ldata);
- 		ret[NFLOG_KEY_RAW_MAC_LEN].flags |= ULOGD_RETF_VALID;
- 	}
- 
+Do you intend to push this into 2.6.27 ?
+
+(It would be appreciated).
+
+
+- James
 -- 
-1.5.4.3
-
+James Morris
+<jmorris@namei.org>
