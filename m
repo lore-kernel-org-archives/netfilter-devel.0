@@ -1,70 +1,37 @@
-From: Laurent Licour <laurent@licour.com>
-Subject: Re: [PATCH] netfilter : nfmark routing in OUTPUT, mangle, NFQUEUE
-Date: Thu, 17 Jul 2008 10:00:56 +0200
-Message-ID: <487EFC38.4030709@licour.com>
-References: <4875A1FC.8050705@licour.com> <487C7B6F.8010802@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 1/2] Security: Add iptables security table for mandatory
+ access control rules
+Date: Thu, 17 Jul 2008 10:25:33 +0200
+Message-ID: <487F01FD.9050609@trash.net>
+References: <Xine.LNX.4.64.0805220008510.3033@us.intercode.com.au> <Xine.LNX.4.64.0805220017511.3033@us.intercode.com.au> <48345A3C.1080407@trash.net> <Xine.LNX.4.64.0805220843571.8393@us.intercode.com.au> <Xine.LNX.4.64.0807171340360.17859@us.intercode.com.au>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------010402010700070804090700"
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 30.mail-out.ovh.net ([213.186.62.213]:55350 "HELO
-	30.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752798AbYGQIIC (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Jul 2008 04:08:02 -0400
-In-Reply-To: <487C7B6F.8010802@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
-
-This is a multi-part message in MIME format.
---------------010402010700070804090700
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org,
+	linux-security-module@vger.kernel.org,
+	Paul Moore <paul.moore@hp.com>,
+	Stephen Smalley <sds@tycho.nsa.gov>
+To: James Morris <jmorris@namei.org>
+Return-path: <linux-security-module-owner@vger.kernel.org>
+In-Reply-To: <Xine.LNX.4.64.0807171340360.17859@us.intercode.com.au>
+Sender: linux-security-module-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
+
+James Morris wrote:
+> On Thu, 22 May 2008, James Morris wrote:
+> 
+>> On Wed, 21 May 2008, Patrick McHardy wrote:
+>>
+>>> Applied, thanks. I'll add the dependency myself in case you agree.
+>> Ok, I can't really see a use for the table without CONFIG_SECURITY, so 
+>> please go ahead.
+> 
+> Patrick,
+> 
+> Do you intend to push this into 2.6.27 ?
+> 
+> (It would be appreciated).
 
 
-> Please resend against the current kernel tree if you want me to
-> apply this. Also it appears the patch is whitespace damaged,
-> please make sure you'll send it in a way that doesn't corrupt
-> it (f.i. as attachment).
-
-Here is the patch against the 2.6.26-stable
-
-
-
---------------010402010700070804090700
-Content-Type: text/plain;
- name="netfilter.nfmark.output.mangle.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="netfilter.nfmark.output.mangle.patch"
-
---- linux-2.6.26/net/ipv4/netfilter.c.ori	2008-07-15 22:39:02.000000000 +0200
-+++ linux-2.6.26/net/ipv4/netfilter.c	2008-07-16 18:10:14.000000000 +0200
-@@ -121,6 +121,7 @@
- 	__be32 daddr;
- 	__be32 saddr;
- 	u_int8_t tos;
-+	__u32 mark;
- };
- 
- static void nf_ip_saveroute(const struct sk_buff *skb,
-@@ -134,6 +135,7 @@
- 		rt_info->tos = iph->tos;
- 		rt_info->daddr = iph->daddr;
- 		rt_info->saddr = iph->saddr;
-+		rt_info->mark = skb->mark;
- 	}
- }
- 
-@@ -146,6 +148,7 @@
- 		const struct iphdr *iph = ip_hdr(skb);
- 
- 		if (!(iph->tos == rt_info->tos
-+		      && skb->mark == rt_info->mark
- 		      && iph->daddr == rt_info->daddr
- 		      && iph->saddr == rt_info->saddr))
- 			return ip_route_me_harder(skb, RTN_UNSPEC);
-
---------------010402010700070804090700--
+Its currently in net-next-2.6.git, afaik Dave intends to send a
+pull request this Sunday.
