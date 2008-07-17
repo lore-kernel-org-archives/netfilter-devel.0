@@ -1,73 +1,70 @@
-From: <gregkh@suse.de>
-Subject: patch textsearch-fix-boyer-moore-text-search-bug.patch added to 2.6.25-stable tree
-Date: Wed, 16 Jul 2008 22:42:41 -0700
-Message-ID: <20080717054700.912041454459@imap.suse.de>
-References: <487220A9.7000606@trash.net>
-Cc: <stable@kernel.org>, <stable-commits@vger.kernel.org>
-To: joonwpark81@gmail.com, davem@davemloft.net, kaber@trash.net,
-	netfilter-devel@vger.kernel.org
+From: Laurent Licour <laurent@licour.com>
+Subject: Re: [PATCH] netfilter : nfmark routing in OUTPUT, mangle, NFQUEUE
+Date: Thu, 17 Jul 2008 10:00:56 +0200
+Message-ID: <487EFC38.4030709@licour.com>
+References: <4875A1FC.8050705@licour.com> <487C7B6F.8010802@trash.net>
+Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------010402010700070804090700"
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:50222 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751756AbYGQFrD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Jul 2008 01:47:03 -0400
-In-Reply-To: <487220A9.7000606@trash.net>
+Received: from 30.mail-out.ovh.net ([213.186.62.213]:55350 "HELO
+	30.mail-out.ovh.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752798AbYGQIIC (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 17 Jul 2008 04:08:02 -0400
+In-Reply-To: <487C7B6F.8010802@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-This is a note to let you know that we have just queued up the patch titled
-
-     Subject: textsearch: fix Boyer-Moore text search bug
-
-to the 2.6.25-stable tree.  Its filename is
-
-     textsearch-fix-boyer-moore-text-search-bug.patch
-
-A git repo of this tree can be found at 
-    http://www.kernel.org/git/?p=linux/kernel/git/stable/stable-queue.git;a=summary
+This is a multi-part message in MIME format.
+--------------010402010700070804090700
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
 
->From stable-bounces@linux.kernel.org  Wed Jul 16 22:27:41 2008
-From: Joonwoo Park <joonwpark81@gmail.com>
-Date: Mon, 07 Jul 2008 15:56:57 +0200
-Subject: textsearch: fix Boyer-Moore text search bug
-To: stable@kernel.org
-Cc: Netfilter Development Mailinglist <netfilter-devel@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>
-Message-ID: <487220A9.7000606@trash.net>
+> Please resend against the current kernel tree if you want me to
+> apply this. Also it appears the patch is whitespace damaged,
+> please make sure you'll send it in a way that doesn't corrupt
+> it (f.i. as attachment).
 
-From: Joonwoo Park <joonwpark81@gmail.com>
+Here is the patch against the 2.6.26-stable
 
-Upstream commit aebb6a849cfe7d89bcacaaecc20a480dfc1180e7
 
-The current logic has a bug which cannot find matching pattern, if the
-pattern is matched from the first character of target string.
-for example:
-	pattern=abc, string=abcdefg
-	pattern=a,   string=abcdefg
-Searching algorithm should return 0 for those things.
 
-Signed-off-by: Joonwoo Park <joonwpark81@gmail.com>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: David S. Miller <davem@davemloft.net>
+--------------010402010700070804090700
+Content-Type: text/plain;
+ name="netfilter.nfmark.output.mangle.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="netfilter.nfmark.output.mangle.patch"
 
----
- lib/ts_bm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/lib/ts_bm.c
-+++ b/lib/ts_bm.c
-@@ -63,7 +63,7 @@ static unsigned int bm_find(struct ts_co
- 	struct ts_bm *bm = ts_config_priv(conf);
- 	unsigned int i, text_len, consumed = state->offset;
- 	const u8 *text;
--	int shift = bm->patlen, bs;
-+	int shift = bm->patlen - 1, bs;
+--- linux-2.6.26/net/ipv4/netfilter.c.ori	2008-07-15 22:39:02.000000000 +0200
++++ linux-2.6.26/net/ipv4/netfilter.c	2008-07-16 18:10:14.000000000 +0200
+@@ -121,6 +121,7 @@
+ 	__be32 daddr;
+ 	__be32 saddr;
+ 	u_int8_t tos;
++	__u32 mark;
+ };
  
- 	for (;;) {
- 		text_len = conf->get_next_block(consumed, &text, conf, state);
+ static void nf_ip_saveroute(const struct sk_buff *skb,
+@@ -134,6 +135,7 @@
+ 		rt_info->tos = iph->tos;
+ 		rt_info->daddr = iph->daddr;
+ 		rt_info->saddr = iph->saddr;
++		rt_info->mark = skb->mark;
+ 	}
+ }
+ 
+@@ -146,6 +148,7 @@
+ 		const struct iphdr *iph = ip_hdr(skb);
+ 
+ 		if (!(iph->tos == rt_info->tos
++		      && skb->mark == rt_info->mark
+ 		      && iph->daddr == rt_info->daddr
+ 		      && iph->saddr == rt_info->saddr))
+ 			return ip_route_me_harder(skb, RTN_UNSPEC);
 
-
-Patches currently in stable-queue which might be from joonwpark81@gmail.com are
-
-queue-2.6.25/textsearch-fix-boyer-moore-text-search-bug.patch
+--------------010402010700070804090700--
