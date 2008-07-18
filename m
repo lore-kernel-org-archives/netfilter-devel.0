@@ -1,61 +1,37 @@
-From: Fabian Hugelshofer <hugelshofer2006@gmx.ch>
-Subject: Re: Conntrack Events Performance - Multipart Messages?
-Date: Fri, 18 Jul 2008 16:56:14 +0100
-Message-ID: <1216396574.3568.6.camel@pumper.lan.luxnet.ch>
-References: <487E24FC.60700@gmx.ch> <487F18DA.7030208@netfilter.org>
-	 <487F5874.3000905@gmx.ch>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] nf_nat_snmp_basic: fix compiler warning on 64-bit	arch-s
+Date: Fri, 18 Jul 2008 19:57:41 +0200
+Message-ID: <4880D995.4010606@trash.net>
+References: <4880A611.76E4.0078.0@novell.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Jan Beulich <jbeulich@novell.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:42003 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1758921AbYGRP4X (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 18 Jul 2008 11:56:23 -0400
-In-Reply-To: <487F5874.3000905@gmx.ch>
+Received: from stinky.trash.net ([213.144.137.162]:59301 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753903AbYGRR5k (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 18 Jul 2008 13:57:40 -0400
+In-Reply-To: <4880A611.76E4.0078.0@novell.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The last message I accidentially first sent to Pablo only. He replied
-without noticing that the list was missing. You find his reply included
-in this message. (And I got it wrong with this message again, sorry for that.)
-
-Pablo Neira Ayuso wrote:
-> Fabian Hugelshofer wrote:
->> I started the application, sent 102'313 UDP packets with random source
->> ports and 1000B UDP payload in 57s (1795pps) and then waited until all
->> entries have been removed from the connection table. The CPU usage was
->> measured with top every 10s while sending and then averaged over 5
->> intervals. It was 56%, which seems quite high to me. Without any
->> applications running it is 11% to route this UDP traffic.
->>
->> The test application reports 113699 received events and 140 overflows.
->> The events are NEW and DESTROY events. Generally I would roughly expect
->> the double number of events than packets. Under this assumption 44% of
->> events have been dropped.
+Jan Beulich wrote:
+> Signed-off-by: Jan Beulich <jbeulich@novell.com>
 > 
-> I guess that your device has little memory so the default socket buffer
-> must be pretty small. I suggest you to increase the socket buffer size
-> via nfnl_rcvbufsiz(), that will delay the ENOBUFS. I'd like to see the
-> results with my suggestion.
+> ---
+>  net/ipv4/netfilter/nf_nat_snmp_basic.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> --- linux-2.6.26/net/ipv4/netfilter/nf_nat_snmp_basic.c	2008-07-13 23:51:29.000000000 +0200
+> +++ 2.6.26-netfilter-warning/net/ipv4/netfilter/nf_nat_snmp_basic.c	2008-07-15 14:51:28.000000000 +0200
+> @@ -445,7 +445,7 @@ static unsigned char asn1_oid_decode(str
+>  	size = eoc - ctx->pointer + 1;
+>  
+>  	/* first subid actually encodes first two subids */
+> -	if (size < 2 || size > ULONG_MAX/sizeof(unsigned long))
+> +	if (size < 2 || size > UINT_MAX/sizeof(unsigned long))
 
-The system has only 32MB of RAM. The default socket buffer size is
-110592 bytes which applies to ctevtest. My real application increases
-the socket buffer to 430080 bytes.
-
-> Of course, this suggestion is not directly related with the message
-> batching that you're proposing that can be useful to reduce CPU
-> consumption - if someone wants to use ctevents for logging purposes
-> which is what you want.
-
-I increased the socket buffer size of ctevtest to 2MB. With this setting
-no more overruns occur and all events can be logged (same test as
-before). The CPU usage is now 84%.
-
-I did not retest my real application yet, but the CPU usage will hit
-100% again and the bigger buffer size will not help to prevent losses
-anymore.
-
-
-
+Thanks, I already have a similar fix queued.
