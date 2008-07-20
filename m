@@ -1,48 +1,72 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [ANNOUNCE] ipset-2.3.3
-Date: Sun, 20 Jul 2008 21:48:49 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0807202147180.25564@blackhole.kfki.hu>
-References: <Pine.LNX.4.64.0807192259320.24664@blackhole.kfki.hu>
- <Pine.LNX.4.58.0807201524360.8513@mail3.jubileegroup.co.uk>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [ULOGD2 PATCH] Sync NFLOG input plugin with NFLOG modification
+ related to hardware header.
+Date: Mon, 21 Jul 2008 01:51:23 +0200
+Message-ID: <4883CF7B.9000105@netfilter.org>
+References: <487CA584.3030200@trash.net> <1216247506-21802-1-git-send-email-eric@inl.fr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: "G.W. Haywood" <ged@jubileegroup.co.uk>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.58.0807201524360.8513@mail3.jubileegroup.co.uk>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
+To: Eric Leblond <eric@inl.fr>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:58952 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753560AbYGTXvc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 20 Jul 2008 19:51:32 -0400
+In-Reply-To: <1216247506-21802-1-git-send-email-eric@inl.fr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Greg,
-
-On Sun, 20 Jul 2008, G.W. Haywood wrote:
-
-> On Sat, 19 Jul 2008, Jozsef Kadlecsik wrote:
+Eric Leblond wrote:
+> This patch modifies ulogd2 to synchronize NFLOG with ULOG relatively to the
+> definition of raw.mac. It fills the field with the complete hardware header
+> instead of simply using the source hardware header.
 > 
-> > This is a compatibility fix release of ipset which supports kernel
-> > versions >= 2.6.16 and 2.4.36.x [snip]
-> > If you run ipset on a 2.4 kernel, please upgrade as you'll get all the
-> > bugfixes (which had been forgotten to backport) and iptreemap support.
+> This is a preliminary work for an implementation of an hardware header parsing.
 > 
-> Currently running 2.4.35.1 patched for ipsets by hand using the old
-> POM sources.  No problems with that at all.
+> Signed-off-by: Eric Leblond <eric@inl.fr>
+> ---
+>  input/packet/ulogd_inppkt_NFLOG.c |   10 +++++-----
+>  1 files changed, 5 insertions(+), 5 deletions(-)
 > 
-> Using fresh kernel 2.36.6 source and the ipsets source download from
-> http://ipset.netfilter.org/ I can't seem to get past this failure to
-> build the kernel, no matter how I permute the building and patching
-> instructions, although I've put no time into actually debugging it:
-> 
-> ip_set.c: In function `ip_set_register_set_type':
-> ip_set.c:329: parse error before ',' token
-> ip_set.c: In function `ip_set_create':
-> ip_set.c:840: parse error before ',' token
+> diff --git a/input/packet/ulogd_inppkt_NFLOG.c b/input/packet/ulogd_inppkt_NFLOG.c
+> index cb58661..b69a99f 100644
+> --- a/input/packet/ulogd_inppkt_NFLOG.c
+> +++ b/input/packet/ulogd_inppkt_NFLOG.c
+> @@ -290,9 +290,8 @@ static inline int
+>  interp_packet(struct ulogd_pluginstance *upi, struct nflog_data *ldata)
+>  {
+>  	struct ulogd_key *ret = upi->output.keys;
+> -
+> +	
+>  	struct nfulnl_msg_packet_hdr *ph = nflog_get_msg_packet_hdr(ldata);
+> -	struct nfulnl_msg_packet_hw *hw = nflog_get_packet_hw(ldata);
+>  	char *payload;
+>  	int payload_len = nflog_get_payload(ldata, &payload);
+>  	char *prefix = nflog_get_prefix(ldata);
+> @@ -318,10 +317,11 @@ interp_packet(struct ulogd_pluginstance *upi, struct nflog_data *ldata)
+>  		ret[NFLOG_KEY_OOB_PROTOCOL].flags |= ULOGD_RETF_VALID;
+>  	}
+>  
+> -	if (hw) {
+> -		ret[NFLOG_KEY_RAW_MAC].u.value.ptr = hw->hw_addr;
+> +	if (nflog_get_msg_packet_hwhdrlen(ldata)) {
+> +		ret[NFLOG_KEY_RAW_MAC].u.value.ptr = nflog_get_msg_packet_hwhdr(ldata);
+>  		ret[NFLOG_KEY_RAW_MAC].flags |= ULOGD_RETF_VALID;
+> -		ret[NFLOG_KEY_RAW_MAC_LEN].u.value.ui16 = ntohs(hw->hw_addrlen);
+> +		ret[NFLOG_KEY_RAW_MAC_LEN].u.value.ui16 =
+> +			nflog_get_msg_packet_hwhdrlen(ldata);
+>  		ret[NFLOG_KEY_RAW_MAC_LEN].flags |= ULOGD_RETF_VALID;
 
-I have just released 2.3.3a which should fix it. Please give it a try.
+OK, but we also need a key for the hw header type here to fix the
+MAC2STR plugin - and probably rename it by ETHERNET2STR or HWADDR2STR if
+we want to enable generic link layer header parsing.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Anyhow, the main problem is the database back-end. I think that we'll
+have to log the whole hardware header again together with the hardware
+type. But then, the MAC2STR plugin would not be useful for the database
+output - still it may be for the plain text output.
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
