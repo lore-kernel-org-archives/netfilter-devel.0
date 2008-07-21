@@ -1,32 +1,48 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: netlink 02/08: add NLA_PUT_BE64 macro
-Date: Mon, 21 Jul 2008 10:05:04 -0700 (PDT)
-Message-ID: <20080721.100504.20503802.davem@davemloft.net>
-References: <20080721161722.28572.97957.sendpatchset@localhost.localdomain>
-	<20080721161725.28572.50686.sendpatchset@localhost.localdomain>
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: Re: [PATCH] arptables in netns for real
+Date: Mon, 21 Jul 2008 21:03:21 +0400
+Message-ID: <20080721170321.GA13486@martell.zuzino.mipt.ru>
+References: <20080721162920.GD13264@martell.zuzino.mipt.ru> <alpine.LNX.1.10.0807211846210.21244@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+Content-Type: text/plain; charset=us-ascii
+Cc: kaber@trash.net, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, xemul@openvz.org, den@openvz.org,
+	ebiederm@xmission.com, dlezcano@fr.ibm.com, benjamin.thery@bull.net
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:58542
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1751189AbYGURFE (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.153]:42304 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751207AbYGURFI (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Jul 2008 13:05:04 -0400
-In-Reply-To: <20080721161725.28572.50686.sendpatchset@localhost.localdomain>
+	Mon, 21 Jul 2008 13:05:08 -0400
+Received: by fg-out-1718.google.com with SMTP id 19so692721fgg.17
+        for <netfilter-devel@vger.kernel.org>; Mon, 21 Jul 2008 10:05:07 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <alpine.LNX.1.10.0807211846210.21244@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Mon, 21 Jul 2008 18:17:25 +0200 (MEST)
-
-> netlink: add NLA_PUT_BE64 macro
+On Mon, Jul 21, 2008 at 06:47:22PM +0200, Jan Engelhardt wrote:
+> On Monday 2008-07-21 18:29, Alexey Dobriyan wrote:
+> >-			      int (*okfn)(struct sk_buff *))
+> >+static unsigned int arpt_in_hook(unsigned int hook,
+> >+				 struct sk_buff *skb,
+> >+				 const struct net_device *in,
+> >+				 const struct net_device *out,
+> >+				 int (*okfn)(struct sk_buff *))
+> > {
+> >-	return arpt_do_table(skb, hook, in, out, init_net.ipv4.arptable_filter);
+> >+	return arpt_do_table(skb, hook, in, out,
+> >+			     dev_net(in)->ipv4.arptable_filter);
+> >+}
 > 
-> Add NLA_PUT_BE64 macro required for 64bit counters in netfilter
-> 
-> Signed-off-by: Krzysztof Piotr Oledzki <ole@ans.pl>
-> Signed-off-by: Patrick McHardy <kaber@trash.net>
+> What I dislike with this netns stuff is that you need to touch
+> the ->ipv4. structure if you want to add new tables and there is
+> no more way to dynamically add tables from 3rd party modules unless
+> the admin loading them is fine with having them register against
+> &init_net only.
 
-Applied.
+Not exactly sure, if it's sufficient for you, you can use
+net_assign_generic() infrastructure from module and not touch "struct net"
+at all.
+
