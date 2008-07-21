@@ -1,42 +1,34 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 04/31 DO NOT APPLY] enable netfilter in netns
-Date: Mon, 21 Jul 2008 10:07:22 -0700 (PDT)
-Message-ID: <20080721.100722.106020469.davem@davemloft.net>
-References: <20080721163358.GH13264@martell.zuzino.mipt.ru>
-	<4884C0EC.80204@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 20/31] netns ct: NOTRACK in netns
+Date: Mon, 21 Jul 2008 19:08:43 +0200
+Message-ID: <4884C29B.7060107@trash.net>
+References: <20080721165028.GF13390@martell.zuzino.mipt.ru> <alpine.LNX.1.10.0807211901220.21244@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: adobriyan@gmail.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, xemul@openvz.org, den@openvz.org,
+Cc: Alexey Dobriyan <adobriyan@gmail.com>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, dev@openvz.org, xemul@openvz.org,
 	ebiederm@xmission.com, dlezcano@fr.ibm.com, benjamin.thery@bull.net
-To: kaber@trash.net
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4884C0EC.80204@trash.net>
+In-Reply-To: <alpine.LNX.1.10.0807211901220.21244@fbirervta.pbzchgretzou.qr>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Mon, 21 Jul 2008 19:01:32 +0200
-
-> Alexey Dobriyan wrote:
-> > 	Only for testing.
+Jan Engelhardt wrote:
+> On Monday 2008-07-21 18:50, Alexey Dobriyan wrote:
 > 
-> Thanks for posting this, I'll try to get this reviewed and
-> merged before the merge window closes.
+>> +++ b/net/netfilter/xt_state.c
+>> @@ -30,7 +31,7 @@ state_mt(const struct sk_buff *skb, const struct net_device *in,
+>> 	enum ip_conntrack_info ctinfo;
+>> 	unsigned int statebit;
+>>
+>> -	if (nf_ct_is_untracked(skb))
+>> +	if (nf_ct_is_untracked(dev_net(in ? in : out), skb))
+> 
+> Does this even do the right thing? Given the forward path, where
+> both in!=NULL and out!=NULL, why should it specifically be 'in'
+> that is selected?
 
-For networking it closed yesterday:
-
---------------------
-Subject: net-2.6 merged to Linus...
-From: David Miller <davem@davemloft.net>
-To: netdev@vger.kernel.org
-Date: Sun, 20 Jul 2008 22:05:06 -0700 (PDT)
-X-Mailer: Mew version 5.2 on Emacs 22.1 / Mule 5.0 (SAKAKI)
-
-
-I would like to thank everyone for their work and I ask that folks
-concentrate on bug fixing now.
-
-Thanks a lot!
---------------------
+It doesn't matter, the namespace during forwaring is always
+equal for the input and output devices.
