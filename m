@@ -1,24 +1,17 @@
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: [PATCH 17/31] netns ct: per-netns ip_conntrack et al
-Date: Mon, 21 Jul 2008 20:45:30 +0400
-Message-ID: <20080721164530.GC13390@martell.zuzino.mipt.ru>
+Subject: [PATCH 18/31] netns ct: unregister conntrack helper everywhere
+Date: Mon, 21 Jul 2008 20:46:02 +0400
+Message-ID: <20080721164602.GD13390@martell.zuzino.mipt.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
 	dev@openvz.org, xemul@openvz.org, ebiederm@xmission.com,
 	dlezcano@fr.ibm.com, benjamin.thery@bull.net
 To: kaber@trash.net
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.175]:9771 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752348AbYGUQrR (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Jul 2008 12:47:17 -0400
-Received: by ug-out-1314.google.com with SMTP id h2so275974ugf.16
-        for <netfilter-devel@vger.kernel.org>; Mon, 21 Jul 2008 09:47:17 -0700 (PDT)
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 ---
