@@ -1,85 +1,122 @@
-From: Krzysztof Piotr Oledzki <ole@ans.pl>
-Subject: [PATCH] netfilter: add locking for counters zeroing
-Date: Mon, 21 Jul 2008 18:46:58 +0200
-Message-ID: <4884bd82.Dh41l9jJY8sI8ajg%ole@ans.pl>
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: [PATCH 16/31] netns ct: per-netns /proc/net/nf_conntrack_expect
+Date: Mon, 21 Jul 2008 20:45:08 +0400
+Message-ID: <20080721164508.GB13390@martell.zuzino.mipt.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bizon.gios.gov.pl ([212.244.124.8]:35143 "EHLO
-	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753454AbYGUQrE (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Jul 2008 12:47:04 -0400
-Received: from bizon.gios.gov.pl (ole@localhost6 [IPv6:::1])
-	by bizon.gios.gov.pl (8.14.3/8.14.3) with ESMTP id m6LGkwQJ002228
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <netfilter-devel@vger.kernel.org>; Mon, 21 Jul 2008 18:47:00 +0200
-Received: (from ole@localhost)
-	by bizon.gios.gov.pl (8.14.3/8.14.3/Submit) id m6LGkw46002227
-	for netfilter-devel@vger.kernel.org; Mon, 21 Jul 2008 18:46:58 +0200
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	dev@openvz.org, xemul@openvz.org, ebiederm@xmission.com,
+	dlezcano@fr.ibm.com, benjamin.thery@bull.net
+To: kaber@trash.net
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
->From 4407c0b11dde5235b1141ef63bc29f322a73c873 Mon Sep 17 00:00:00 2001
-From: Krzysztof Piotr Oledzki <ole@ans.pl>
-Date: Mon, 21 Jul 2008 17:20:45 +0200
-Subject: netfilter: add locking for counters zeroing
-
-The memset inside ctnetlink_dump_table() fuction needs locking.
-The lock shoud be grabbed outside the loop to avoid repeatedly
-taking and releasing it again.
-
-Also add similar locking inside xt_connbytes match where
-the counters get read.
-
-Signed-off-by: Krzysztof Piotr Oledzki <ole@ans.pl>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 ---
- net/netfilter/nf_conntrack_netlink.c |    2 ++
- net/netfilter/xt_connbytes.c         |    2 ++
- 2 files changed, 4 insertions(+), 0 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 9432da4..ff1bbb0 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -545,6 +545,7 @@ ctnetlink_dump_table(struct sk_buff *skb, struct netlink_callback *cb)
- 	u_int8_t l3proto = nfmsg->nfgen_family;
+ net/netfilter/nf_conntrack_expect.c |   23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
+
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -423,16 +423,18 @@ EXPORT_SYMBOL_GPL(nf_ct_expect_related);
  
- 	rcu_read_lock();
-+	spin_lock_bh(&nf_conntrack_lock);
- 	last = (struct nf_conn *)cb->args[1];
- 	for (; cb->args[0] < nf_conntrack_htable_size; cb->args[0]++) {
- restart:
-@@ -588,6 +589,7 @@ restart:
- 		}
+ #ifdef CONFIG_PROC_FS
+ struct ct_expect_iter_state {
++	struct seq_net_private p;
+ 	unsigned int bucket;
+ };
+ 
+ static struct hlist_node *ct_expect_get_first(struct seq_file *seq)
+ {
++	struct net *net = seq_file_net(seq);
+ 	struct ct_expect_iter_state *st = seq->private;
+ 	struct hlist_node *n;
+ 
+ 	for (st->bucket = 0; st->bucket < nf_ct_expect_hsize; st->bucket++) {
+-		n = rcu_dereference(init_net.ct.expect_hash[st->bucket].first);
++		n = rcu_dereference(net->ct.expect_hash[st->bucket].first);
+ 		if (n)
+ 			return n;
  	}
- out:
-+	spin_unlock_bh(&nf_conntrack_lock);
- 	rcu_read_unlock();
- 	if (last)
- 		nf_ct_put(last);
-diff --git a/net/netfilter/xt_connbytes.c b/net/netfilter/xt_connbytes.c
-index 3e39c4f..9d0253a 100644
---- a/net/netfilter/xt_connbytes.c
-+++ b/net/netfilter/xt_connbytes.c
-@@ -38,6 +38,7 @@ connbytes_mt(const struct sk_buff *skb, const struct net_device *in,
- 	if (!counters)
- 		return false;
+@@ -442,13 +444,14 @@ static struct hlist_node *ct_expect_get_first(struct seq_file *seq)
+ static struct hlist_node *ct_expect_get_next(struct seq_file *seq,
+ 					     struct hlist_node *head)
+ {
++	struct net *net = seq_file_net(seq);
+ 	struct ct_expect_iter_state *st = seq->private;
  
-+	spin_lock_bh(&nf_conntrack_lock);
- 	switch (sinfo->what) {
- 	case XT_CONNBYTES_PKTS:
- 		switch (sinfo->direction) {
-@@ -88,6 +89,7 @@ connbytes_mt(const struct sk_buff *skb, const struct net_device *in,
- 			what = div64_u64(bytes, pkts);
- 		break;
+ 	head = rcu_dereference(head->next);
+ 	while (head == NULL) {
+ 		if (++st->bucket >= nf_ct_expect_hsize)
+ 			return NULL;
+-		head = rcu_dereference(init_net.ct.expect_hash[st->bucket].first);
++		head = rcu_dereference(net->ct.expect_hash[st->bucket].first);
  	}
-+	spin_unlock_bh(&nf_conntrack_lock);
+ 	return head;
+ }
+@@ -522,7 +525,7 @@ static const struct seq_operations exp_seq_ops = {
  
- 	if (sinfo->count.to)
- 		return what <= sinfo->count.to && what >= sinfo->count.from;
+ static int exp_open(struct inode *inode, struct file *file)
+ {
+-	return seq_open_private(file, &exp_seq_ops,
++	return seq_open_net(inode, file, &exp_seq_ops,
+ 			sizeof(struct ct_expect_iter_state));
+ }
+ 
+@@ -531,26 +534,26 @@ static const struct file_operations exp_file_ops = {
+ 	.open    = exp_open,
+ 	.read    = seq_read,
+ 	.llseek  = seq_lseek,
+-	.release = seq_release_private,
++	.release = seq_release_net,
+ };
+ #endif /* CONFIG_PROC_FS */
+ 
+-static int exp_proc_init(void)
++static int exp_proc_init(struct net *net)
+ {
+ #ifdef CONFIG_PROC_FS
+ 	struct proc_dir_entry *proc;
+ 
+-	proc = proc_net_fops_create(&init_net, "nf_conntrack_expect", 0440, &exp_file_ops);
++	proc = proc_net_fops_create(net, "nf_conntrack_expect", 0440, &exp_file_ops);
+ 	if (!proc)
+ 		return -ENOMEM;
+ #endif /* CONFIG_PROC_FS */
+ 	return 0;
+ }
+ 
+-static void exp_proc_remove(void)
++static void exp_proc_remove(struct net *net)
+ {
+ #ifdef CONFIG_PROC_FS
+-	proc_net_remove(&init_net, "nf_conntrack_expect");
++	proc_net_remove(net, "nf_conntrack_expect");
+ #endif /* CONFIG_PROC_FS */
+ }
+ 
+@@ -579,7 +582,7 @@ int nf_conntrack_expect_init(struct net *net)
+ 	if (!nf_ct_expect_cachep)
+ 		goto err2;
+ 
+-	err = exp_proc_init();
++	err = exp_proc_init(net);
+ 	if (err < 0)
+ 		goto err3;
+ 
+@@ -596,7 +599,7 @@ err1:
+ 
+ void nf_conntrack_expect_fini(struct net *net)
+ {
+-	exp_proc_remove();
++	exp_proc_remove(net);
+ 	kmem_cache_destroy(nf_ct_expect_cachep);
+ 	nf_ct_free_hashtable(net->ct.expect_hash, net->ct.expect_vmalloc,
+ 			     nf_ct_expect_hsize);
 -- 
-1.5.6.1
+1.5.4.5
+
 
