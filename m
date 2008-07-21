@@ -1,53 +1,103 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 01/08: nf_nat_core: eliminate useless find_appropriate_src for IP_NAT_RANGE_PROTO_RANDOM
-Date: Mon, 21 Jul 2008 18:17:24 +0200 (MEST)
-Message-ID: <20080721161724.28572.91589.sendpatchset@localhost.localdomain>
-References: <20080721161722.28572.97957.sendpatchset@localhost.localdomain>
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
-To: davem@davemloft.net
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: [PATCH] ebtables: use nf_register_hooks()
+Date: Mon, 21 Jul 2008 20:23:49 +0400
+Message-ID: <20080721162349.GA13264@martell.zuzino.mipt.ru>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:41609 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751027AbYGUQRZ (ORCPT
+Received: from ug-out-1314.google.com ([66.249.92.174]:5275 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751775AbYGUQZl (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Jul 2008 12:17:25 -0400
-In-Reply-To: <20080721161722.28572.97957.sendpatchset@localhost.localdomain>
+	Mon, 21 Jul 2008 12:25:41 -0400
+Received: by ug-out-1314.google.com with SMTP id h2so272765ugf.16
+        for <netfilter-devel@vger.kernel.org>; Mon, 21 Jul 2008 09:25:36 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-netfilter: nf_nat_core: eliminate useless find_appropriate_src for IP_NAT_RANGE_PROTO_RANDOM
-
-Signed-off-by: Changli Gao <xiaosuo@gmail.com>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 ---
-commit 7af3d4eb70fd3a310c56c7080d7d09fc64ddd6a7
-tree 4c1d98c3e69cad567b624f8fde71bf0cc6d358e1
-parent 3a682fbd732d3d27bec722a923952b0938e8a404
-author Changli Gao <xiaosuo@gmail.com> Mon, 21 Jul 2008 16:25:17 +0200
-committer Patrick McHardy <kaber@trash.net> Mon, 21 Jul 2008 16:25:17 +0200
 
- net/ipv4/netfilter/nf_nat_core.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ net/bridge/netfilter/ebtable_filter.c |   18 +++++-------------
+ net/bridge/netfilter/ebtable_nat.c    |   18 +++++-------------
+ 2 files changed, 10 insertions(+), 26 deletions(-)
 
-diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
-index d2a887f..6c6a3cb 100644
---- a/net/ipv4/netfilter/nf_nat_core.c
-+++ b/net/ipv4/netfilter/nf_nat_core.c
-@@ -240,12 +240,12 @@ get_unique_tuple(struct nf_conntrack_tuple *tuple,
- 	   This is only required for source (ie. NAT/masq) mappings.
- 	   So far, we don't do local source mappings, so multiple
- 	   manips not an issue.  */
--	if (maniptype == IP_NAT_MANIP_SRC) {
-+	if (maniptype == IP_NAT_MANIP_SRC &&
-+	    !(range->flags & IP_NAT_RANGE_PROTO_RANDOM)) {
- 		if (find_appropriate_src(orig_tuple, tuple, range)) {
- 			pr_debug("get_unique_tuple: Found current src map\n");
--			if (!(range->flags & IP_NAT_RANGE_PROTO_RANDOM))
--				if (!nf_nat_used_tuple(tuple, ct))
--					return;
-+			if (!nf_nat_used_tuple(tuple, ct))
-+				return;
- 		}
- 	}
+--- a/net/bridge/netfilter/ebtable_filter.c
++++ b/net/bridge/netfilter/ebtable_filter.c
+@@ -93,28 +93,20 @@ static struct nf_hook_ops ebt_ops_filter[] __read_mostly = {
  
+ static int __init ebtable_filter_init(void)
+ {
+-	int i, j, ret;
++	int ret;
+ 
+ 	ret = ebt_register_table(&frame_filter);
+ 	if (ret < 0)
+ 		return ret;
+-	for (i = 0; i < ARRAY_SIZE(ebt_ops_filter); i++)
+-		if ((ret = nf_register_hook(&ebt_ops_filter[i])) < 0)
+-			goto cleanup;
+-	return ret;
+-cleanup:
+-	for (j = 0; j < i; j++)
+-		nf_unregister_hook(&ebt_ops_filter[j]);
+-	ebt_unregister_table(&frame_filter);
++	ret = nf_register_hooks(ebt_ops_filter, ARRAY_SIZE(ebt_ops_filter));
++	if (ret < 0)
++		ebt_unregister_table(&frame_filter);
+ 	return ret;
+ }
+ 
+ static void __exit ebtable_filter_fini(void)
+ {
+-	int i;
+-
+-	for (i = 0; i < ARRAY_SIZE(ebt_ops_filter); i++)
+-		nf_unregister_hook(&ebt_ops_filter[i]);
++	nf_unregister_hooks(ebt_ops_filter, ARRAY_SIZE(ebt_ops_filter));
+ 	ebt_unregister_table(&frame_filter);
+ }
+ 
+--- a/net/bridge/netfilter/ebtable_nat.c
++++ b/net/bridge/netfilter/ebtable_nat.c
+@@ -100,28 +100,20 @@ static struct nf_hook_ops ebt_ops_nat[] __read_mostly = {
+ 
+ static int __init ebtable_nat_init(void)
+ {
+-	int i, ret, j;
++	int ret;
+ 
+ 	ret = ebt_register_table(&frame_nat);
+ 	if (ret < 0)
+ 		return ret;
+-	for (i = 0; i < ARRAY_SIZE(ebt_ops_nat); i++)
+-		if ((ret = nf_register_hook(&ebt_ops_nat[i])) < 0)
+-			goto cleanup;
+-	return ret;
+-cleanup:
+-	for (j = 0; j < i; j++)
+-		nf_unregister_hook(&ebt_ops_nat[j]);
+-	ebt_unregister_table(&frame_nat);
++	ret = nf_register_hooks(ebt_ops_nat, ARRAY_SIZE(ebt_ops_nat));
++	if (ret < 0)
++		ebt_unregister_table(&frame_nat);
+ 	return ret;
+ }
+ 
+ static void __exit ebtable_nat_fini(void)
+ {
+-	int i;
+-
+-	for (i = 0; i < ARRAY_SIZE(ebt_ops_nat); i++)
+-		nf_unregister_hook(&ebt_ops_nat[i]);
++	nf_unregister_hooks(ebt_ops_nat, ARRAY_SIZE(ebt_ops_nat));
+ 	ebt_unregister_table(&frame_nat);
+ }
+ 
+-- 
+1.5.4.5
+
+
