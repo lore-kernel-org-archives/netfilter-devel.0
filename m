@@ -1,50 +1,53 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 04/08: xt_time: fix time's time_mt()'s use of do_div()
-Date: Mon, 21 Jul 2008 18:17:28 +0200 (MEST)
-Message-ID: <20080721161728.28572.17464.sendpatchset@localhost.localdomain>
+Subject: netfilter 01/08: nf_nat_core: eliminate useless find_appropriate_src for IP_NAT_RANGE_PROTO_RANDOM
+Date: Mon, 21 Jul 2008 18:17:24 +0200 (MEST)
+Message-ID: <20080721161724.28572.91589.sendpatchset@localhost.localdomain>
 References: <20080721161722.28572.97957.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:41621 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:41609 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751754AbYGUQR3 (ORCPT
+	with ESMTP id S1751027AbYGUQRZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Jul 2008 12:17:29 -0400
+	Mon, 21 Jul 2008 12:17:25 -0400
 In-Reply-To: <20080721161722.28572.97957.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-netfilter: xt_time: fix time's time_mt()'s use of do_div()
+netfilter: nf_nat_core: eliminate useless find_appropriate_src for IP_NAT_RANGE_PROTO_RANDOM
 
-Fix netfilter xt_time's time_mt()'s use of do_div() on an s64 by using
-div_s64() instead.
-
-This was introduced by patch ee4411a1b1e0b679c99686629b5eab5a072ce49f.
-
-Signed-off-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Changli Gao <xiaosuo@gmail.com>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 281de5230fde71e8799f18c4df1fa35f61b023d1
-tree 108e7df333f946eb6d7c45249991ee072ab1f8a7
-parent af2f44cbf0bc523048ff20b21dc83b5b4d305baf
-author David Howells <dhowells@redhat.com> Mon, 21 Jul 2008 18:05:57 +0200
-committer Patrick McHardy <kaber@trash.net> Mon, 21 Jul 2008 18:05:57 +0200
+commit 7af3d4eb70fd3a310c56c7080d7d09fc64ddd6a7
+tree 4c1d98c3e69cad567b624f8fde71bf0cc6d358e1
+parent 3a682fbd732d3d27bec722a923952b0938e8a404
+author Changli Gao <xiaosuo@gmail.com> Mon, 21 Jul 2008 16:25:17 +0200
+committer Patrick McHardy <kaber@trash.net> Mon, 21 Jul 2008 16:25:17 +0200
 
- net/netfilter/xt_time.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ net/ipv4/netfilter/nf_nat_core.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/xt_time.c b/net/netfilter/xt_time.c
-index ed76baa..9f32859 100644
---- a/net/netfilter/xt_time.c
-+++ b/net/netfilter/xt_time.c
-@@ -173,7 +173,7 @@ time_mt(const struct sk_buff *skb, const struct net_device *in,
- 		__net_timestamp((struct sk_buff *)skb);
+diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
+index d2a887f..6c6a3cb 100644
+--- a/net/ipv4/netfilter/nf_nat_core.c
++++ b/net/ipv4/netfilter/nf_nat_core.c
+@@ -240,12 +240,12 @@ get_unique_tuple(struct nf_conntrack_tuple *tuple,
+ 	   This is only required for source (ie. NAT/masq) mappings.
+ 	   So far, we don't do local source mappings, so multiple
+ 	   manips not an issue.  */
+-	if (maniptype == IP_NAT_MANIP_SRC) {
++	if (maniptype == IP_NAT_MANIP_SRC &&
++	    !(range->flags & IP_NAT_RANGE_PROTO_RANDOM)) {
+ 		if (find_appropriate_src(orig_tuple, tuple, range)) {
+ 			pr_debug("get_unique_tuple: Found current src map\n");
+-			if (!(range->flags & IP_NAT_RANGE_PROTO_RANDOM))
+-				if (!nf_nat_used_tuple(tuple, ct))
+-					return;
++			if (!nf_nat_used_tuple(tuple, ct))
++				return;
+ 		}
+ 	}
  
- 	stamp = ktime_to_ns(skb->tstamp);
--	do_div(stamp, NSEC_PER_SEC);
-+	stamp = div_s64(stamp, NSEC_PER_SEC);
- 
- 	if (info->flags & XT_TIME_LOCAL_TZ)
- 		/* Adjust for local timezone */
