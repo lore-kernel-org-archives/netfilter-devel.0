@@ -1,76 +1,100 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Conntrack Events Performance - Multipart Messages?
-Date: Mon, 21 Jul 2008 17:59:44 +0200
-Message-ID: <4884B270.5010104@trash.net>
-References: <487E24FC.60700@gmx.ch> <487F18DA.7030208@netfilter.org> <487FFBEE.90409@trash.net> <4884B068.4050306@gmx.ch>
+Subject: netfilter: nf_conntrack_sctp: fix sparse warnings
+Date: Mon, 21 Jul 2008 18:11:36 +0200
+Message-ID: <4884B538.4060908@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-To: Fabian Hugelshofer <hugelshofer2006@gmx.ch>
+Content-Type: multipart/mixed;
+ boundary="------------090706070605060709020206"
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:41174 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:41465 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750736AbYGUP7s (ORCPT
+	with ESMTP id S1750881AbYGUQLl (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Jul 2008 11:59:48 -0400
-In-Reply-To: <4884B068.4050306@gmx.ch>
+	Mon, 21 Jul 2008 12:11:41 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Fabian Hugelshofer wrote:
-> It took me some time to set up profiling on the router. I am using 
-> oprofile. nf_conntrack and nfnetlink are built into the kernel. Most of 
-> the time is probably spent in nfnetlink.
-> 
-> If you need other data than the one provided here, just let me know. I'm 
-> not very familiar with oprofile, so providing the needed arguments would 
-> be helpful.
+This is a multi-part message in MIME format.
+--------------090706070605060709020206
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Thanks.
+I just queued this fix. Please *always* run sparse endianess
+checks before sending netfilter patches.
 
-> opreport --symbols (first 20, full file attached):
-> CPU: ARM/XScale PMU2, speed 0 MHz (estimated)
-> Counted CPU_CYCLES events (clock cycles counter) with a unit mask of 
-> 0x00 (No unit mask) count 100000
-> samples  %        app name                 symbol name
-> 20018     9.6520  vmlinux                  memcpy
 
-Callgraph information would be useful since its unclear whether
-this is the memcpy triggered by netlink message trimming in
-af_netlink.c or something different. Unfortunately according
-to the documentation this is only supported on x86. I think
-selecting the netfilter options as modules should provide
-slightly more detail though.
+--------------090706070605060709020206
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
 
-> 19493     9.3988  ath_pci.ko               ath_sysctl_register
+commit dacf259f58aa88a90bbd35990a97a3ce92c4163b
+Author: Patrick McHardy <kaber@trash.net>
+Date:   Mon Jul 21 18:10:24 2008 +0200
 
-This looks odd. I couldn't find this function in the current
-kernel tree, which version are you using?
+    netfilter: nf_conntrack_sctp: fix sparse warnings
+    
+    Introduced by a258860e (netfilter: ctnetlink: add full support for SCTP to ctnetlink):
+    
+    net/netfilter/nf_conntrack_proto_sctp.c:483:2: warning: cast from restricted type
+    net/netfilter/nf_conntrack_proto_sctp.c:483:2: warning: incorrect type in argument 1 (different base types)
+    net/netfilter/nf_conntrack_proto_sctp.c:483:2:    expected unsigned int [unsigned] [usertype] x
+    net/netfilter/nf_conntrack_proto_sctp.c:483:2:    got restricted unsigned int const <noident>
+    net/netfilter/nf_conntrack_proto_sctp.c:483:2: warning: cast from restricted type
+    net/netfilter/nf_conntrack_proto_sctp.c:483:2: warning: cast from restricted type
+    net/netfilter/nf_conntrack_proto_sctp.c:483:2: warning: cast from restricted type
+    net/netfilter/nf_conntrack_proto_sctp.c:483:2: warning: cast from restricted type
+    net/netfilter/nf_conntrack_proto_sctp.c:487:2: warning: cast from restricted type
+    net/netfilter/nf_conntrack_proto_sctp.c:487:2: warning: incorrect type in argument 1 (different base types)
+    net/netfilter/nf_conntrack_proto_sctp.c:487:2:    expected unsigned int [unsigned] [usertype] x
+    net/netfilter/nf_conntrack_proto_sctp.c:487:2:    got restricted unsigned int const <noident>
+    net/netfilter/nf_conntrack_proto_sctp.c:487:2: warning: cast from restricted type
+    net/netfilter/nf_conntrack_proto_sctp.c:487:2: warning: cast from restricted type
+    net/netfilter/nf_conntrack_proto_sctp.c:487:2: warning: cast from restricted type
+    net/netfilter/nf_conntrack_proto_sctp.c:487:2: warning: cast from restricted type
+    net/netfilter/nf_conntrack_proto_sctp.c:532:42: warning: incorrect type in assignment (different base types)
+    net/netfilter/nf_conntrack_proto_sctp.c:532:42:    expected restricted unsigned int <noident>
+    net/netfilter/nf_conntrack_proto_sctp.c:532:42:    got unsigned int
+    net/netfilter/nf_conntrack_proto_sctp.c:534:39: warning: incorrect type in assignment (different base types)
+    net/netfilter/nf_conntrack_proto_sctp.c:534:39:    expected restricted unsigned int <noident>
+    net/netfilter/nf_conntrack_proto_sctp.c:534:39:    got unsigned int
+    
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-> 6676      3.2189  vmlinux                  __nf_conntrack_find
-> 6098      2.9402  vmlinux                  ipt_do_table
-> 5858      2.8245  wlan.ko                  ieee80211_input
-> 5383      2.5955  nf_conntrack_netlink.ko  .text
-> 4567      2.2020  vmlinux                  __memzero
-> 4225      2.0371  vmlinux                  __kmalloc
-> 4091      1.9725  vmlinux                  csum_partial
+diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+index 41183a4..30aa5b9 100644
+--- a/net/netfilter/nf_conntrack_proto_sctp.c
++++ b/net/netfilter/nf_conntrack_proto_sctp.c
+@@ -482,11 +482,11 @@ static int sctp_to_nlattr(struct sk_buff *skb, struct nlattr *nla,
+ 
+ 	NLA_PUT_BE32(skb,
+ 		     CTA_PROTOINFO_SCTP_VTAG_ORIGINAL,
+-		     htonl(ct->proto.sctp.vtag[IP_CT_DIR_ORIGINAL]));
++		     ct->proto.sctp.vtag[IP_CT_DIR_ORIGINAL]);
+ 
+ 	NLA_PUT_BE32(skb,
+ 		     CTA_PROTOINFO_SCTP_VTAG_REPLY,
+-		     htonl(ct->proto.sctp.vtag[IP_CT_DIR_REPLY]));
++		     ct->proto.sctp.vtag[IP_CT_DIR_REPLY]);
+ 
+ 	read_unlock_bh(&sctp_lock);
+ 
+@@ -530,9 +530,9 @@ static int nlattr_to_sctp(struct nlattr *cda[], struct nf_conn *ct)
+ 	write_lock_bh(&sctp_lock);
+ 	ct->proto.sctp.state = nla_get_u8(tb[CTA_PROTOINFO_SCTP_STATE]);
+ 	ct->proto.sctp.vtag[IP_CT_DIR_ORIGINAL] =
+-		ntohl(nla_get_be32(tb[CTA_PROTOINFO_SCTP_VTAG_ORIGINAL]));
++		nla_get_be32(tb[CTA_PROTOINFO_SCTP_VTAG_ORIGINAL]);
+ 	ct->proto.sctp.vtag[IP_CT_DIR_REPLY] =
+-		ntohl(nla_get_be32(tb[CTA_PROTOINFO_SCTP_VTAG_REPLY]));
++		nla_get_be32(tb[CTA_PROTOINFO_SCTP_VTAG_REPLY]);
+ 	write_unlock_bh(&sctp_lock);
+ 
+ 	return 0;
 
-You can disable conntrack checksumming by executing:
-
-echo 0 >/proc/sys/net/netfilter/nf_conntrack_checksum
-
-> 3469      1.6726  vmlinux                  nf_nat_setup_info
-> 3468      1.6721  vmlinux                  netlink_broadcast
-> 3376      1.6278  vmlinux                  __hash_conntrack
-> 3304      1.5931  vmlinux                  nla_put
-> 2992      1.4426  vmlinux                  __nla_reserve
-> 2933      1.4142  vmlinux                  __nf_conntrack_confirm
-> 2926      1.4108  oprofiled                /jffs/usr/bin/oprofiled
-> 2847      1.3727  ath_pci.ko               ath_intr
-> 2698      1.3009  vmlinux                  kfree
-> 2655      1.2801  vmlinux                  __nla_put
-> 2563      1.2358  vmlinux                  nf_conntrack_in
-> 
-
+--------------090706070605060709020206--
