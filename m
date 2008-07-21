@@ -1,86 +1,118 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 08/08: nf_conntrack_sctp: fix sparse warnings
-Date: Mon, 21 Jul 2008 18:17:33 +0200 (MEST)
-Message-ID: <20080721161733.28572.21079.sendpatchset@localhost.localdomain>
+Subject: netfilter 07/08: nf_nat_sip: c= is optional for session
+Date: Mon, 21 Jul 2008 18:17:32 +0200 (MEST)
+Message-ID: <20080721161732.28572.1919.sendpatchset@localhost.localdomain>
 References: <20080721161722.28572.97957.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:41643 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:41640 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751783AbYGUQRf (ORCPT
+	with ESMTP id S1751748AbYGUQRd (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Jul 2008 12:17:35 -0400
+	Mon, 21 Jul 2008 12:17:33 -0400
 In-Reply-To: <20080721161722.28572.97957.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-netfilter: nf_conntrack_sctp: fix sparse warnings
+netfilter: nf_nat_sip: c= is optional for session
 
-Introduced by a258860e (netfilter: ctnetlink: add full support for SCTP to ctnetlink):
+According to RFC2327, the connection information is optional
+in the session description since it can be specified in the
+media description instead.
 
-net/netfilter/nf_conntrack_proto_sctp.c:483:2: warning: cast from restricted type
-net/netfilter/nf_conntrack_proto_sctp.c:483:2: warning: incorrect type in argument 1 (different base types)
-net/netfilter/nf_conntrack_proto_sctp.c:483:2:    expected unsigned int [unsigned] [usertype] x
-net/netfilter/nf_conntrack_proto_sctp.c:483:2:    got restricted unsigned int const <noident>
-net/netfilter/nf_conntrack_proto_sctp.c:483:2: warning: cast from restricted type
-net/netfilter/nf_conntrack_proto_sctp.c:483:2: warning: cast from restricted type
-net/netfilter/nf_conntrack_proto_sctp.c:483:2: warning: cast from restricted type
-net/netfilter/nf_conntrack_proto_sctp.c:483:2: warning: cast from restricted type
-net/netfilter/nf_conntrack_proto_sctp.c:487:2: warning: cast from restricted type
-net/netfilter/nf_conntrack_proto_sctp.c:487:2: warning: incorrect type in argument 1 (different base types)
-net/netfilter/nf_conntrack_proto_sctp.c:487:2:    expected unsigned int [unsigned] [usertype] x
-net/netfilter/nf_conntrack_proto_sctp.c:487:2:    got restricted unsigned int const <noident>
-net/netfilter/nf_conntrack_proto_sctp.c:487:2: warning: cast from restricted type
-net/netfilter/nf_conntrack_proto_sctp.c:487:2: warning: cast from restricted type
-net/netfilter/nf_conntrack_proto_sctp.c:487:2: warning: cast from restricted type
-net/netfilter/nf_conntrack_proto_sctp.c:487:2: warning: cast from restricted type
-net/netfilter/nf_conntrack_proto_sctp.c:532:42: warning: incorrect type in assignment (different base types)
-net/netfilter/nf_conntrack_proto_sctp.c:532:42:    expected restricted unsigned int <noident>
-net/netfilter/nf_conntrack_proto_sctp.c:532:42:    got unsigned int
-net/netfilter/nf_conntrack_proto_sctp.c:534:39: warning: incorrect type in assignment (different base types)
-net/netfilter/nf_conntrack_proto_sctp.c:534:39:    expected restricted unsigned int <noident>
-net/netfilter/nf_conntrack_proto_sctp.c:534:39:    got unsigned int
+My provider does exactly that and does not provide any connection
+information in the session description.  As a result the new
+kernel drops all invite responses.
 
+This patch makes it optional as documented.
+
+Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit dacf259f58aa88a90bbd35990a97a3ce92c4163b
-tree 9e4cd810d7db2a492d57672507b683d9a25ab723
-parent 414c518048d54280034629edba63b5930cae945c
-author Patrick McHardy <kaber@trash.net> Mon, 21 Jul 2008 18:10:24 +0200
-committer Patrick McHardy <kaber@trash.net> Mon, 21 Jul 2008 18:10:24 +0200
+commit 414c518048d54280034629edba63b5930cae945c
+tree 40fb8fcae32417aa4c114c7fc958069f9b391322
+parent 373729398480d3132bb04f8cea368bf4746eee79
+author Herbert Xu <herbert@gondor.apana.org.au> Mon, 21 Jul 2008 18:05:58 +0200
+committer Patrick McHardy <kaber@trash.net> Mon, 21 Jul 2008 18:05:58 +0200
 
- net/netfilter/nf_conntrack_proto_sctp.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ net/ipv4/netfilter/nf_nat_sip.c |   38 +++++++++++++++++++++++++-------------
+ 1 files changed, 25 insertions(+), 13 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index 41183a4..30aa5b9 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -482,11 +482,11 @@ static int sctp_to_nlattr(struct sk_buff *skb, struct nlattr *nla,
+diff --git a/net/ipv4/netfilter/nf_nat_sip.c b/net/ipv4/netfilter/nf_nat_sip.c
+index 4334d5c..1454432 100644
+--- a/net/ipv4/netfilter/nf_nat_sip.c
++++ b/net/ipv4/netfilter/nf_nat_sip.c
+@@ -318,11 +318,11 @@ static int mangle_content_len(struct sk_buff *skb,
+ 			     buffer, buflen);
+ }
  
- 	NLA_PUT_BE32(skb,
- 		     CTA_PROTOINFO_SCTP_VTAG_ORIGINAL,
--		     htonl(ct->proto.sctp.vtag[IP_CT_DIR_ORIGINAL]));
-+		     ct->proto.sctp.vtag[IP_CT_DIR_ORIGINAL]);
+-static unsigned mangle_sdp_packet(struct sk_buff *skb, const char **dptr,
+-				  unsigned int dataoff, unsigned int *datalen,
+-				  enum sdp_header_types type,
+-				  enum sdp_header_types term,
+-				  char *buffer, int buflen)
++static int mangle_sdp_packet(struct sk_buff *skb, const char **dptr,
++			     unsigned int dataoff, unsigned int *datalen,
++			     enum sdp_header_types type,
++			     enum sdp_header_types term,
++			     char *buffer, int buflen)
+ {
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+@@ -330,9 +330,9 @@ static unsigned mangle_sdp_packet(struct sk_buff *skb, const char **dptr,
  
- 	NLA_PUT_BE32(skb,
- 		     CTA_PROTOINFO_SCTP_VTAG_REPLY,
--		     htonl(ct->proto.sctp.vtag[IP_CT_DIR_REPLY]));
-+		     ct->proto.sctp.vtag[IP_CT_DIR_REPLY]);
+ 	if (ct_sip_get_sdp_header(ct, *dptr, dataoff, *datalen, type, term,
+ 				  &matchoff, &matchlen) <= 0)
+-		return 0;
++		return -ENOENT;
+ 	return mangle_packet(skb, dptr, datalen, matchoff, matchlen,
+-			     buffer, buflen);
++			     buffer, buflen) ? 0 : -EINVAL;
+ }
  
- 	read_unlock_bh(&sctp_lock);
+ static unsigned int ip_nat_sdp_addr(struct sk_buff *skb, const char **dptr,
+@@ -346,8 +346,8 @@ static unsigned int ip_nat_sdp_addr(struct sk_buff *skb, const char **dptr,
+ 	unsigned int buflen;
  
-@@ -530,9 +530,9 @@ static int nlattr_to_sctp(struct nlattr *cda[], struct nf_conn *ct)
- 	write_lock_bh(&sctp_lock);
- 	ct->proto.sctp.state = nla_get_u8(tb[CTA_PROTOINFO_SCTP_STATE]);
- 	ct->proto.sctp.vtag[IP_CT_DIR_ORIGINAL] =
--		ntohl(nla_get_be32(tb[CTA_PROTOINFO_SCTP_VTAG_ORIGINAL]));
-+		nla_get_be32(tb[CTA_PROTOINFO_SCTP_VTAG_ORIGINAL]);
- 	ct->proto.sctp.vtag[IP_CT_DIR_REPLY] =
--		ntohl(nla_get_be32(tb[CTA_PROTOINFO_SCTP_VTAG_REPLY]));
-+		nla_get_be32(tb[CTA_PROTOINFO_SCTP_VTAG_REPLY]);
- 	write_unlock_bh(&sctp_lock);
+ 	buflen = sprintf(buffer, NIPQUAD_FMT, NIPQUAD(addr->ip));
+-	if (!mangle_sdp_packet(skb, dptr, dataoff, datalen, type, term,
+-			       buffer, buflen))
++	if (mangle_sdp_packet(skb, dptr, dataoff, datalen, type, term,
++			      buffer, buflen))
+ 		return 0;
  
- 	return 0;
+ 	return mangle_content_len(skb, dptr, datalen);
+@@ -381,15 +381,27 @@ static unsigned int ip_nat_sdp_session(struct sk_buff *skb, const char **dptr,
+ 
+ 	/* Mangle session description owner and contact addresses */
+ 	buflen = sprintf(buffer, "%u.%u.%u.%u", NIPQUAD(addr->ip));
+-	if (!mangle_sdp_packet(skb, dptr, dataoff, datalen,
++	if (mangle_sdp_packet(skb, dptr, dataoff, datalen,
+ 			       SDP_HDR_OWNER_IP4, SDP_HDR_MEDIA,
+ 			       buffer, buflen))
+ 		return 0;
+ 
+-	if (!mangle_sdp_packet(skb, dptr, dataoff, datalen,
+-			       SDP_HDR_CONNECTION_IP4, SDP_HDR_MEDIA,
+-			       buffer, buflen))
++	switch (mangle_sdp_packet(skb, dptr, dataoff, datalen,
++				  SDP_HDR_CONNECTION_IP4, SDP_HDR_MEDIA,
++				  buffer, buflen)) {
++	case 0:
++	/*
++	 * RFC 2327:
++	 *
++	 * Session description
++	 *
++	 * c=* (connection information - not required if included in all media)
++	 */
++	case -ENOENT:
++		break;
++	default:
+ 		return 0;
++	}
+ 
+ 	return mangle_content_len(skb, dptr, datalen);
+ }
