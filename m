@@ -1,43 +1,33 @@
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: [PATCH 31/31] netns nat: PPTP NAT in netns
-Date: Mon, 21 Jul 2008 20:57:28 +0400
-Message-ID: <20080721165728.GQ13390@martell.zuzino.mipt.ru>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 04/31 DO NOT APPLY] enable netfilter in netns
+Date: Mon, 21 Jul 2008 19:01:32 +0200
+Message-ID: <4884C0EC.80204@trash.net>
+References: <20080721163358.GH13264@martell.zuzino.mipt.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	dev@openvz.org, xemul@openvz.org, ebiederm@xmission.com,
+	xemul@openvz.org, den@openvz.org, ebiederm@xmission.com,
 	dlezcano@fr.ibm.com, benjamin.thery@bull.net
-To: kaber@trash.net
+To: Alexey Dobriyan <adobriyan@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.159]:30031 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752028AbYGUQ7O (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:42658 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750778AbYGURBk (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Jul 2008 12:59:14 -0400
-Received: by fg-out-1718.google.com with SMTP id 19so691519fgg.17
-        for <netfilter-devel@vger.kernel.org>; Mon, 21 Jul 2008 09:59:14 -0700 (PDT)
-Content-Disposition: inline
+	Mon, 21 Jul 2008 13:01:40 -0400
+In-Reply-To: <20080721163358.GH13264@martell.zuzino.mipt.ru>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
----
+Alexey Dobriyan wrote:
+> 	Only for testing.
 
- net/ipv4/netfilter/nf_nat_pptp.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thanks for posting this, I'll try to get this reviewed and
+merged before the merge window closes.
 
---- a/net/ipv4/netfilter/nf_nat_pptp.c
-+++ b/net/ipv4/netfilter/nf_nat_pptp.c
-@@ -73,7 +73,7 @@ static void pptp_nat_expected(struct nf_conn *ct,
- 
- 	pr_debug("trying to unexpect other dir: ");
- 	nf_ct_dump_tuple_ip(&t);
--	other_exp = nf_ct_expect_find_get(&init_net, &t);
-+	other_exp = nf_ct_expect_find_get(nf_ct_net(ct), &t);
- 	if (other_exp) {
- 		nf_ct_unexpect_related(other_exp);
- 		nf_ct_expect_put(other_exp);
--- 
-1.5.4.5
-
+Just one question since this patch is marked DO NO APPLY -
+are the remaining patches meant for applying? Is there
+any further work left until netfilter is fully namespace
+aware?
 
