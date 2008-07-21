@@ -1,26 +1,100 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] ip{,6}tables_security: fix future section mismatch
-Date: Mon, 21 Jul 2008 18:31:01 +0200
-Message-ID: <4884B9C5.9060904@trash.net>
-References: <20080721162546.GC13264@martell.zuzino.mipt.ru>
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: [PATCH] arptables in netns for real
+Date: Mon, 21 Jul 2008 20:29:20 +0400
+Message-ID: <20080721162920.GD13264@martell.zuzino.mipt.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, sds@tycho.nsa.gov,
-	jmorris@namei.org, eparis@parisplace.org
-To: Alexey Dobriyan <adobriyan@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	xemul@openvz.org, den@openvz.org, ebiederm@xmission.com,
+	dlezcano@fr.ibm.com, benjamin.thery@bull.net
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:41955 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750996AbYGUQbD (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.155]:44229 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751490AbYGUQbJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Jul 2008 12:31:03 -0400
-In-Reply-To: <20080721162546.GC13264@martell.zuzino.mipt.ru>
+	Mon, 21 Jul 2008 12:31:09 -0400
+Received: by fg-out-1718.google.com with SMTP id 19so685907fgg.17
+        for <netfilter-devel@vger.kernel.org>; Mon, 21 Jul 2008 09:31:07 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Alexey Dobriyan wrote:
-> Currently not visible, because NET_NS is mutually exclusive with SYSFS
-> which is required by SECURITY.
+IN, FORWARD -- grab netns from in device,
+OUT -- from out device.
 
-Applied, thanks.
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+---
+
+ net/ipv4/netfilter/arptable_filter.c |   39 ++++++++++++++++++++++++++---------
+ 1 file changed, 30 insertions(+), 9 deletions(-)
+
+--- a/net/ipv4/netfilter/arptable_filter.c
++++ b/net/ipv4/netfilter/arptable_filter.c
+@@ -55,32 +55,53 @@ static struct xt_table packet_filter = {
+ };
+ 
+ /* The work comes in here from netfilter.c */
+-static unsigned int arpt_hook(unsigned int hook,
+-			      struct sk_buff *skb,
+-			      const struct net_device *in,
+-			      const struct net_device *out,
+-			      int (*okfn)(struct sk_buff *))
++static unsigned int arpt_in_hook(unsigned int hook,
++				 struct sk_buff *skb,
++				 const struct net_device *in,
++				 const struct net_device *out,
++				 int (*okfn)(struct sk_buff *))
+ {
+-	return arpt_do_table(skb, hook, in, out, init_net.ipv4.arptable_filter);
++	return arpt_do_table(skb, hook, in, out,
++			     dev_net(in)->ipv4.arptable_filter);
++}
++
++static unsigned int arpt_out_hook(unsigned int hook,
++				  struct sk_buff *skb,
++				  const struct net_device *in,
++				  const struct net_device *out,
++				  int (*okfn)(struct sk_buff *))
++{
++	return arpt_do_table(skb, hook, in, out,
++			     dev_net(out)->ipv4.arptable_filter);
++}
++
++static unsigned int arpt_forward_hook(unsigned int hook,
++				      struct sk_buff *skb,
++				      const struct net_device *in,
++				      const struct net_device *out,
++				      int (*okfn)(struct sk_buff *))
++{
++	return arpt_do_table(skb, hook, in, out,
++			     dev_net(in)->ipv4.arptable_filter);
+ }
+ 
+ static struct nf_hook_ops arpt_ops[] __read_mostly = {
+ 	{
+-		.hook		= arpt_hook,
++		.hook		= arpt_in_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NF_ARP,
+ 		.hooknum	= NF_ARP_IN,
+ 		.priority	= NF_IP_PRI_FILTER,
+ 	},
+ 	{
+-		.hook		= arpt_hook,
++		.hook		= arpt_out_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NF_ARP,
+ 		.hooknum	= NF_ARP_OUT,
+ 		.priority	= NF_IP_PRI_FILTER,
+ 	},
+ 	{
+-		.hook		= arpt_hook,
++		.hook		= arpt_forward_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NF_ARP,
+ 		.hooknum	= NF_ARP_FORWARD,
+-- 
+1.5.4.5
+
+
