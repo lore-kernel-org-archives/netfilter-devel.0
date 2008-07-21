@@ -1,48 +1,51 @@
-From: Tim Gardner <tim.gardner@canonical.com>
-Subject: [PATCH 1/7] netfilter: Export ip6t_mh.h and xt_quota.h for iptables build
-Date: Wed, 2 Jan 2008 08:57:35 -0700
-Message-ID: <E1KKl4I-00068B-LW@swissweb.swissdisk.com>
-References: <24762.90.138.930.038.1036103001.ben.collins@canonical.com>
-Cc: netfilter-devel@vger.kernel.org
-To: linux-kernel@vger.kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1760553AbYGUEgW@vger.kernel.org>
-In-Reply-To: <24762.90.138.930.038.1036103001.ben.collins@canonical.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: "G.W. Haywood" <ged@jubileegroup.co.uk>
+Subject: Re: [ANNOUNCE] ipset-2.3.3
+Date: Mon, 21 Jul 2008 08:21:18 +0100 (BST)
+Message-ID: <Pine.LNX.4.58.0807210815530.30128@mail3.jubileegroup.co.uk>
+References: <Pine.LNX.4.64.0807192259320.24664@blackhole.kfki.hu>
+ <Pine.LNX.4.58.0807201524360.8513@mail3.jubileegroup.co.uk>
+ <Pine.LNX.4.64.0807201824590.25442@blackhole.kfki.hu>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from jubileegroup.co.uk ([217.147.177.250]:36133 "EHLO
+	mail3.jubileegroup.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752801AbYGUHVV (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 21 Jul 2008 03:21:21 -0400
+In-Reply-To: <Pine.LNX.4.64.0807201824590.25442@blackhole.kfki.hu>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-CC: netfilter-devel@vger.kernel.org
-Signed-off-by: Soren Hansen <soren@ubuntu.com>
-Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
-Signed-off-by: Ben Collins <ben.lcollins@canonical.com>
----
- include/linux/netfilter/Kbuild      |    2 ++
- include/linux/netfilter_ipv6/Kbuild |    1 +
- 2 files changed, 3 insertions(+), 0 deletions(-)
+Hi Jozsef,
 
-diff --git a/include/linux/netfilter/Kbuild b/include/linux/netfilter/Kbuild
-index 3aff513..3a04da3 100644
---- a/include/linux/netfilter/Kbuild
-+++ b/include/linux/netfilter/Kbuild
-@@ -31,6 +31,8 @@ header-y += xt_multiport.h
- header-y += xt_owner.h
- header-y += xt_pkttype.h
- header-y += xt_rateest.h
-+header-y += xt_policy.h
-+header-y += xt_quota.h
- header-y += xt_realm.h
- header-y += xt_sctp.h
- header-y += xt_state.h
-diff --git a/include/linux/netfilter_ipv6/Kbuild b/include/linux/netfilter_ipv6/Kbuild
-index 8887a5f..aca4bd1 100644
---- a/include/linux/netfilter_ipv6/Kbuild
-+++ b/include/linux/netfilter_ipv6/Kbuild
-@@ -11,6 +11,7 @@ header-y += ip6t_length.h
- header-y += ip6t_limit.h
- header-y += ip6t_mac.h
- header-y += ip6t_mark.h
-+header-y += ip6t_mh.h
- header-y += ip6t_multiport.h
- header-y += ip6t_opts.h
- header-y += ip6t_owner.h
--- 
-1.5.4.3
+Thanks for the very quick replies.
+
+On Sun, 20 Jul 2008, Jozsef Kadlecsik wrote:
+>
+> On Sun, 20 Jul 2008, G.W. Haywood wrote:
+>
+> > ip_set.c: In function `ip_set_register_set_type':
+> > ip_set.c:329: parse error before ',' token
+> > ip_set.c: In function `ip_set_create':
+> > ip_set.c:840: parse error before ',' token
+>
+> Do you compile your kernel without modules?
+
+All my production kernels are compiled without modules, but in this
+case I had enabled modules in the kernel .config file - otherwise I
+could not have expected it to build.  (Obviously:)
+
+> I have just released 2.3.3a which should fix it. Please give it a try.
+
+That's fine now.
+
+Is there any chance of being able to compile a non-modular 2.4 kernel
+with the released ipsets, or am I on my own with that?
+
+--
+
+73,
+Ged.
