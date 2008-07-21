@@ -1,34 +1,56 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 20/31] netns ct: NOTRACK in netns
-Date: Mon, 21 Jul 2008 19:08:43 +0200
-Message-ID: <4884C29B.7060107@trash.net>
-References: <20080721165028.GF13390@martell.zuzino.mipt.ru> <alpine.LNX.1.10.0807211901220.21244@fbirervta.pbzchgretzou.qr>
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: Re: [PATCH 04/31 DO NOT APPLY] enable netfilter in netns
+Date: Mon, 21 Jul 2008 21:14:16 +0400
+Message-ID: <20080721171416.GA13507@martell.zuzino.mipt.ru>
+References: <20080721163358.GH13264@martell.zuzino.mipt.ru> <4884C0EC.80204@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Alexey Dobriyan <adobriyan@gmail.com>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, dev@openvz.org, xemul@openvz.org,
-	ebiederm@xmission.com, dlezcano@fr.ibm.com, benjamin.thery@bull.net
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	xemul@openvz.org, den@openvz.org, ebiederm@xmission.com,
+	dlezcano@fr.ibm.com, benjamin.thery@bull.net
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <alpine.LNX.1.10.0807211901220.21244@fbirervta.pbzchgretzou.qr>
+Content-Disposition: inline
+In-Reply-To: <4884C0EC.80204@trash.net>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> On Monday 2008-07-21 18:50, Alexey Dobriyan wrote:
-> 
->> +++ b/net/netfilter/xt_state.c
->> @@ -30,7 +31,7 @@ state_mt(const struct sk_buff *skb, const struct net_device *in,
->> 	enum ip_conntrack_info ctinfo;
->> 	unsigned int statebit;
->>
->> -	if (nf_ct_is_untracked(skb))
->> +	if (nf_ct_is_untracked(dev_net(in ? in : out), skb))
-> 
-> Does this even do the right thing? Given the forward path, where
-> both in!=NULL and out!=NULL, why should it specifically be 'in'
-> that is selected?
+On Mon, Jul 21, 2008 at 07:01:32PM +0200, Patrick McHardy wrote:
+> Alexey Dobriyan wrote:
+>> 	Only for testing.
+>
+> Thanks for posting this, I'll try to get this reviewed and
+> merged before the merge window closes.
+>
+> Just one question since this patch is marked DO NO APPLY -
+> are the remaining patches meant for applying?
 
-It doesn't matter, the namespace during forwaring is always
-equal for the input and output devices.
+Yes!
+
+Let's ask Den about this particular patch, though. :-)
+
+> Is there any further work left until netfilter is fully namespace aware?
+
+We discussed this in "unlock iptables in netns" thread
+http://marc.info/?l=linux-netdev&m=121311890005554&w=2
+
+With this patchset conntracking and NAT are largely netns-ready (I hope),
+the list shrinks.
+
+	ebtable_filter
+	ebtable_nat
+	selinux
+	decnet
+	IPv6 REJECT
+	+ several individual matches/etc 
+
+As for other stuff,
+	conntrack statistics (trivial)
+	ctnetlink (stubbed to init_net, dunno what it is)
+	NF_LOG, NF_QUEUE (deprecated? don't bother at all?)
+
+
+
+grep init_net -w -n -r net/netfilter/ net/ipv4/netfilter/ net/ipv6/netfilter/
+shows more or less what works, and what doesn't.
+
