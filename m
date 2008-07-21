@@ -1,38 +1,42 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: netfilter 03/08: accounting rework: ct_extend + 64bit counters
- (v4)
-Date: Mon, 21 Jul 2008 19:07:04 +0200
-Message-ID: <4884C238.8070507@trash.net>
-References: <20080721161722.28572.97957.sendpatchset@localhost.localdomain>	<20080721161726.28572.67629.sendpatchset@localhost.localdomain> <20080721.100529.79622637.davem@davemloft.net>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 04/31 DO NOT APPLY] enable netfilter in netns
+Date: Mon, 21 Jul 2008 10:07:22 -0700 (PDT)
+Message-ID: <20080721.100722.106020469.davem@davemloft.net>
+References: <20080721163358.GH13264@martell.zuzino.mipt.ru>
+	<4884C0EC.80204@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	Alexey Dobriyan <adobriyan@gmail.com>
-To: David Miller <davem@davemloft.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:42767 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751604AbYGURHG (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Jul 2008 13:07:06 -0400
-In-Reply-To: <20080721.100529.79622637.davem@davemloft.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: adobriyan@gmail.com, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, xemul@openvz.org, den@openvz.org,
+	ebiederm@xmission.com, dlezcano@fr.ibm.com, benjamin.thery@bull.net
+To: kaber@trash.net
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <4884C0EC.80204@trash.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-David Miller wrote:
-> From: Patrick McHardy <kaber@trash.net>
-> Date: Mon, 21 Jul 2008 18:17:27 +0200 (MEST)
-> 
->> netfilter: accounting rework: ct_extend + 64bit counters (v4)
-> 
-> This is testing the limits of what I'm willing to apply
-> now, but today was your lucky day :-)
-> 
-> Please don't test me any more for this merge window, thanks.
+From: Patrick McHardy <kaber@trash.net>
+Date: Mon, 21 Jul 2008 19:01:32 +0200
 
-OK, I guess that means netfilter netns is off the table :)
+> Alexey Dobriyan wrote:
+> > 	Only for testing.
+> 
+> Thanks for posting this, I'll try to get this reviewed and
+> merged before the merge window closes.
 
-Alexey, I'll review your patches, but for now I'd prefer
-if you carry them yourself until I'll start merging patches
-for the next merge window.
+For networking it closed yesterday:
+
+--------------------
+Subject: net-2.6 merged to Linus...
+From: David Miller <davem@davemloft.net>
+To: netdev@vger.kernel.org
+Date: Sun, 20 Jul 2008 22:05:06 -0700 (PDT)
+X-Mailer: Mew version 5.2 on Emacs 22.1 / Mule 5.0 (SAKAKI)
+
+
+I would like to thank everyone for their work and I ask that folks
+concentrate on bug fixing now.
+
+Thanks a lot!
+--------------------
