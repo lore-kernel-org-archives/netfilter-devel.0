@@ -1,86 +1,86 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 00/08: Netfilter Update
-Date: Mon, 21 Jul 2008 18:17:23 +0200 (MEST)
-Message-ID: <20080721161722.28572.97957.sendpatchset@localhost.localdomain>
+Subject: netfilter 08/08: nf_conntrack_sctp: fix sparse warnings
+Date: Mon, 21 Jul 2008 18:17:33 +0200 (MEST)
+Message-ID: <20080721161733.28572.21079.sendpatchset@localhost.localdomain>
+References: <20080721161722.28572.97957.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:41604 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:41643 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750917AbYGUQRY (ORCPT
+	with ESMTP id S1751783AbYGUQRf (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Jul 2008 12:17:24 -0400
+	Mon, 21 Jul 2008 12:17:35 -0400
+In-Reply-To: <20080721161722.28572.97957.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Dave,
+netfilter: nf_conntrack_sctp: fix sparse warnings
 
-following are a few netfilter fixes and some late comer patches
-for the merge window, containing:
+Introduced by a258860e (netfilter: ctnetlink: add full support for SCTP to ctnetlink):
 
-- a patch to convert conntrack accounting to ct_extend and make it
-  run-time selectable by Krzysztof Oledzki
+net/netfilter/nf_conntrack_proto_sctp.c:483:2: warning: cast from restricted type
+net/netfilter/nf_conntrack_proto_sctp.c:483:2: warning: incorrect type in argument 1 (different base types)
+net/netfilter/nf_conntrack_proto_sctp.c:483:2:    expected unsigned int [unsigned] [usertype] x
+net/netfilter/nf_conntrack_proto_sctp.c:483:2:    got restricted unsigned int const <noident>
+net/netfilter/nf_conntrack_proto_sctp.c:483:2: warning: cast from restricted type
+net/netfilter/nf_conntrack_proto_sctp.c:483:2: warning: cast from restricted type
+net/netfilter/nf_conntrack_proto_sctp.c:483:2: warning: cast from restricted type
+net/netfilter/nf_conntrack_proto_sctp.c:483:2: warning: cast from restricted type
+net/netfilter/nf_conntrack_proto_sctp.c:487:2: warning: cast from restricted type
+net/netfilter/nf_conntrack_proto_sctp.c:487:2: warning: incorrect type in argument 1 (different base types)
+net/netfilter/nf_conntrack_proto_sctp.c:487:2:    expected unsigned int [unsigned] [usertype] x
+net/netfilter/nf_conntrack_proto_sctp.c:487:2:    got restricted unsigned int const <noident>
+net/netfilter/nf_conntrack_proto_sctp.c:487:2: warning: cast from restricted type
+net/netfilter/nf_conntrack_proto_sctp.c:487:2: warning: cast from restricted type
+net/netfilter/nf_conntrack_proto_sctp.c:487:2: warning: cast from restricted type
+net/netfilter/nf_conntrack_proto_sctp.c:487:2: warning: cast from restricted type
+net/netfilter/nf_conntrack_proto_sctp.c:532:42: warning: incorrect type in assignment (different base types)
+net/netfilter/nf_conntrack_proto_sctp.c:532:42:    expected restricted unsigned int <noident>
+net/netfilter/nf_conntrack_proto_sctp.c:532:42:    got unsigned int
+net/netfilter/nf_conntrack_proto_sctp.c:534:39: warning: incorrect type in assignment (different base types)
+net/netfilter/nf_conntrack_proto_sctp.c:534:39:    expected restricted unsigned int <noident>
+net/netfilter/nf_conntrack_proto_sctp.c:534:39:    got unsigned int
 
-- a patch to send the complete hardware header and all necessary
-  information to interpret it to userspace in nfnetlink_log by
-  Eric Leblond
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-- Herbert's fix for SIP NAT SDP parsing
+---
+commit dacf259f58aa88a90bbd35990a97a3ce92c4163b
+tree 9e4cd810d7db2a492d57672507b683d9a25ab723
+parent 414c518048d54280034629edba63b5930cae945c
+author Patrick McHardy <kaber@trash.net> Mon, 21 Jul 2008 18:10:24 +0200
+committer Patrick McHardy <kaber@trash.net> Mon, 21 Jul 2008 18:10:24 +0200
 
-- fixes for some SCTP sparse warnings that were introduced recently
+ net/netfilter/nf_conntrack_proto_sctp.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-- a fix for xt_time's use of do_div()
-
-- minor cleanups
-
-Please apply, thanks.
-
-
- Documentation/feature-removal-schedule.txt         |   10 ++
- Documentation/kernel-parameters.txt                |    7 ++
- include/linux/netfilter/nf_conntrack_common.h      |    8 +--
- include/linux/netfilter/nfnetlink_conntrack.h      |    8 +-
- include/linux/netfilter/nfnetlink_log.h            |    3 +
- include/net/netfilter/nf_conntrack.h               |    6 -
- include/net/netfilter/nf_conntrack_acct.h          |   51 ++++++++++
- include/net/netfilter/nf_conntrack_extend.h        |    2 +
- include/net/netlink.h                              |    3 +
- .../netfilter/nf_conntrack_l3proto_ipv4_compat.c   |   18 +---
- net/ipv4/netfilter/nf_nat_core.c                   |    8 +-
- net/ipv4/netfilter/nf_nat_sip.c                    |   38 +++++---
- net/netfilter/Kconfig                              |    9 ++
- net/netfilter/Makefile                             |    2 +-
- net/netfilter/nf_conntrack_acct.c                  |  104 ++++++++++++++++++++
- net/netfilter/nf_conntrack_core.c                  |   39 +++++---
- net/netfilter/nf_conntrack_netlink.c               |   44 ++++-----
- net/netfilter/nf_conntrack_proto_sctp.c            |    8 +-
- net/netfilter/nf_conntrack_standalone.c            |   18 +---
- net/netfilter/nfnetlink_log.c                      |    8 ++
- net/netfilter/xt_TCPMSS.c                          |   42 +++------
- net/netfilter/xt_connbytes.c                       |    8 +-
- net/netfilter/xt_time.c                            |    2 +-
- 23 files changed, 309 insertions(+), 137 deletions(-)
- create mode 100644 include/net/netfilter/nf_conntrack_acct.h
- create mode 100644 net/netfilter/nf_conntrack_acct.c
-
-Changli Gao (1):
-      netfilter: nf_nat_core: eliminate useless find_appropriate_src for IP_NAT_RANGE_PROTO_RANDOM
-
-David Howells (1):
-      netfilter: xt_time: fix time's time_mt()'s use of do_div()
-
-Eric Leblond (1):
-      netfilter: nfnetlink_log: send complete hardware header
-
-Herbert Xu (1):
-      netfilter: nf_nat_sip: c= is optional for session
-
-Jan Engelhardt (1):
-      netfilter: xt_TCPMSS: collapse tcpmss_reverse_mtu{4,6} into one function
-
-Krzysztof Piotr Oledzki (2):
-      netlink: add NLA_PUT_BE64 macro
-      netfilter: accounting rework: ct_extend + 64bit counters (v4)
-
-Patrick McHardy (1):
-      netfilter: nf_conntrack_sctp: fix sparse warnings
+diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+index 41183a4..30aa5b9 100644
+--- a/net/netfilter/nf_conntrack_proto_sctp.c
++++ b/net/netfilter/nf_conntrack_proto_sctp.c
+@@ -482,11 +482,11 @@ static int sctp_to_nlattr(struct sk_buff *skb, struct nlattr *nla,
+ 
+ 	NLA_PUT_BE32(skb,
+ 		     CTA_PROTOINFO_SCTP_VTAG_ORIGINAL,
+-		     htonl(ct->proto.sctp.vtag[IP_CT_DIR_ORIGINAL]));
++		     ct->proto.sctp.vtag[IP_CT_DIR_ORIGINAL]);
+ 
+ 	NLA_PUT_BE32(skb,
+ 		     CTA_PROTOINFO_SCTP_VTAG_REPLY,
+-		     htonl(ct->proto.sctp.vtag[IP_CT_DIR_REPLY]));
++		     ct->proto.sctp.vtag[IP_CT_DIR_REPLY]);
+ 
+ 	read_unlock_bh(&sctp_lock);
+ 
+@@ -530,9 +530,9 @@ static int nlattr_to_sctp(struct nlattr *cda[], struct nf_conn *ct)
+ 	write_lock_bh(&sctp_lock);
+ 	ct->proto.sctp.state = nla_get_u8(tb[CTA_PROTOINFO_SCTP_STATE]);
+ 	ct->proto.sctp.vtag[IP_CT_DIR_ORIGINAL] =
+-		ntohl(nla_get_be32(tb[CTA_PROTOINFO_SCTP_VTAG_ORIGINAL]));
++		nla_get_be32(tb[CTA_PROTOINFO_SCTP_VTAG_ORIGINAL]);
+ 	ct->proto.sctp.vtag[IP_CT_DIR_REPLY] =
+-		ntohl(nla_get_be32(tb[CTA_PROTOINFO_SCTP_VTAG_REPLY]));
++		nla_get_be32(tb[CTA_PROTOINFO_SCTP_VTAG_REPLY]);
+ 	write_unlock_bh(&sctp_lock);
+ 
+ 	return 0;
