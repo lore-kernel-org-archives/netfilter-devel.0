@@ -1,84 +1,56 @@
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: [PATCH] selinux: use nf_register_hooks()
-Date: Mon, 21 Jul 2008 20:25:03 +0400
-Message-ID: <20080721162503.GB13264@martell.zuzino.mipt.ru>
+Subject: [PATCH] ip{,6}tables_security: fix future section mismatch
+Date: Mon, 21 Jul 2008 20:25:46 +0400
+Message-ID: <20080721162546.GC13264@martell.zuzino.mipt.ru>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org, sds@tycho.nsa.gov,
 	jmorris@namei.org, eparis@parisplace.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.168]:4970 "EHLO
+Received: from ug-out-1314.google.com ([66.249.92.174]:5632 "EHLO
 	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750917AbYGUQ0v (ORCPT
+	with ESMTP id S1751169AbYGUQ1f (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Jul 2008 12:26:51 -0400
-Received: by ug-out-1314.google.com with SMTP id h2so272935ugf.16
-        for <netfilter-devel@vger.kernel.org>; Mon, 21 Jul 2008 09:26:50 -0700 (PDT)
+	Mon, 21 Jul 2008 12:27:35 -0400
+Received: by ug-out-1314.google.com with SMTP id h2so273040ugf.16
+        for <netfilter-devel@vger.kernel.org>; Mon, 21 Jul 2008 09:27:33 -0700 (PDT)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Currently not visible, because NET_NS is mutually exclusive with SYSFS
+which is required by SECURITY.
+
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 ---
 
- security/selinux/hooks.c |   27 ++++++++-------------------
- 1 file changed, 8 insertions(+), 19 deletions(-)
+ net/ipv4/netfilter/iptable_security.c  |    2 +-
+ net/ipv6/netfilter/ip6table_security.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
---- a/security/selinux/hooks.c
-+++ b/security/selinux/hooks.c
-@@ -5670,27 +5670,20 @@ static struct nf_hook_ops selinux_ipv6_ops[] = {
- static int __init selinux_nf_ip_init(void)
- {
- 	int err = 0;
--	u32 iter;
- 
- 	if (!selinux_enabled)
- 		goto out;
- 
- 	printk(KERN_DEBUG "SELinux:  Registering netfilter hooks\n");
- 
--	for (iter = 0; iter < ARRAY_SIZE(selinux_ipv4_ops); iter++) {
--		err = nf_register_hook(&selinux_ipv4_ops[iter]);
--		if (err)
--			panic("SELinux: nf_register_hook for IPv4: error %d\n",
--			      err);
--	}
-+	err = nf_register_hooks(selinux_ipv4_ops, ARRAY_SIZE(selinux_ipv4_ops));
-+	if (err)
-+		panic("SELinux: nf_register_hooks for IPv4: error %d\n", err);
- 
- #if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
--	for (iter = 0; iter < ARRAY_SIZE(selinux_ipv6_ops); iter++) {
--		err = nf_register_hook(&selinux_ipv6_ops[iter]);
--		if (err)
--			panic("SELinux: nf_register_hook for IPv6: error %d\n",
--			      err);
--	}
-+	err = nf_register_hooks(selinux_ipv6_ops, ARRAY_SIZE(selinux_ipv6_ops));
-+	if (err)
-+		panic("SELinux: nf_register_hooks for IPv6: error %d\n", err);
- #endif	/* IPV6 */
- 
- out:
-@@ -5702,15 +5695,11 @@ __initcall(selinux_nf_ip_init);
- #ifdef CONFIG_SECURITY_SELINUX_DISABLE
- static void selinux_nf_ip_exit(void)
- {
--	u32 iter;
--
- 	printk(KERN_DEBUG "SELinux:  Unregistering netfilter hooks\n");
- 
--	for (iter = 0; iter < ARRAY_SIZE(selinux_ipv4_ops); iter++)
--		nf_unregister_hook(&selinux_ipv4_ops[iter]);
-+	nf_unregister_hooks(selinux_ipv4_ops, ARRAY_SIZE(selinux_ipv4_ops));
- #if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
--	for (iter = 0; iter < ARRAY_SIZE(selinux_ipv6_ops); iter++)
--		nf_unregister_hook(&selinux_ipv6_ops[iter]);
-+	nf_unregister_hooks(selinux_ipv6_ops, ARRAY_SIZE(selinux_ipv6_ops));
- #endif	/* IPV6 */
- }
- #endif
+--- a/net/ipv4/netfilter/iptable_security.c
++++ b/net/ipv4/netfilter/iptable_security.c
+@@ -32,7 +32,7 @@ static struct
+ 	struct ipt_replace repl;
+ 	struct ipt_standard entries[3];
+ 	struct ipt_error term;
+-} initial_table __initdata = {
++} initial_table __net_initdata = {
+ 	.repl = {
+ 		.name = "security",
+ 		.valid_hooks = SECURITY_VALID_HOOKS,
+--- a/net/ipv6/netfilter/ip6table_security.c
++++ b/net/ipv6/netfilter/ip6table_security.c
+@@ -31,7 +31,7 @@ static struct
+ 	struct ip6t_replace repl;
+ 	struct ip6t_standard entries[3];
+ 	struct ip6t_error term;
+-} initial_table __initdata = {
++} initial_table __net_initdata = {
+ 	.repl = {
+ 		.name = "security",
+ 		.valid_hooks = SECURITY_VALID_HOOKS,
 -- 
 1.5.4.5
 
