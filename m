@@ -1,53 +1,47 @@
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: Re: [PATCH 04/31 DO NOT APPLY] enable netfilter in netns
-Date: Mon, 21 Jul 2008 21:17:15 +0400
-Message-ID: <20080721171715.GA13541@martell.zuzino.mipt.ru>
-References: <20080721163358.GH13264@martell.zuzino.mipt.ru> <4884C0EC.80204@trash.net> <20080721.100722.106020469.davem@davemloft.net>
+From: "G.W. Haywood" <ged@jubileegroup.co.uk>
+Subject: Re: [ANNOUNCE] ipset-2.3.3
+Date: Mon, 21 Jul 2008 18:35:25 +0100 (BST)
+Message-ID: <Pine.LNX.4.58.0807211828380.17282@mail3.jubileegroup.co.uk>
+References: <Pine.LNX.4.64.0807192259320.24664@blackhole.kfki.hu>
+ <Pine.LNX.4.58.0807201524360.8513@mail3.jubileegroup.co.uk>
+ <Pine.LNX.4.64.0807201824590.25442@blackhole.kfki.hu>
+ <Pine.LNX.4.58.0807210815530.30128@mail3.jubileegroup.co.uk>
+ <Pine.LNX.4.64.0807211633550.26314@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: kaber@trash.net, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, xemul@openvz.org, den@openvz.org,
-	ebiederm@xmission.com, dlezcano@fr.ibm.com, benjamin.thery@bull.net
-To: David Miller <davem@davemloft.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.170]:15452 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750736AbYGURTD (ORCPT
+Received: from jubileegroup.co.uk ([217.147.177.250]:40807 "EHLO
+	mail3.jubileegroup.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751027AbYGURf1 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Jul 2008 13:19:03 -0400
-Received: by ug-out-1314.google.com with SMTP id h2so281500ugf.16
-        for <netfilter-devel@vger.kernel.org>; Mon, 21 Jul 2008 10:19:01 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20080721.100722.106020469.davem@davemloft.net>
+	Mon, 21 Jul 2008 13:35:27 -0400
+In-Reply-To: <Pine.LNX.4.64.0807211633550.26314@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jul 21, 2008 at 10:07:22AM -0700, David Miller wrote:
-> From: Patrick McHardy <kaber@trash.net>
-> Date: Mon, 21 Jul 2008 19:01:32 +0200
-> 
-> > Alexey Dobriyan wrote:
-> > > 	Only for testing.
-> > 
-> > Thanks for posting this, I'll try to get this reviewed and
-> > merged before the merge window closes.
-> 
-> For networking it closed yesterday:
+Hi Jozsef,
 
-That's fine, if it waits for next one.
-As they say in Russia, who understood life, doesn't hurry. :^)
+On Mon, 21 Jul 2008, Jozsef Kadlecsik wrote:
 
-> --------------------
-> Subject: net-2.6 merged to Linus...
-> From: David Miller <davem@davemloft.net>
-> To: netdev@vger.kernel.org
-> Date: Sun, 20 Jul 2008 22:05:06 -0700 (PDT)
-> X-Mailer: Mew version 5.2 on Emacs 22.1 / Mule 5.0 (SAKAKI)
-> 
-> 
-> I would like to thank everyone for their work and I ask that folks
-> concentrate on bug fixing now.
-> 
-> Thanks a lot!
-> --------------------
+> On Mon, 21 Jul 2008, G.W. Haywood wrote:
+>
+> > Is there any chance of being able to compile a non-modular 2.4 kernel
+> > with the released ipsets, or am I on my own with that?
+>
+> With ipset-2.3.3a you should be able to compile a non-modular kernel.
+> I.e. you can configure the features of the patched kernel as you want and
+> it should be compiled cleanly.
 
+Bless my soul, so it does!  It might be worth making an adjustment in the
+README, it seems to imply that only 2.6 kernels can be compiled non-modular.
+I had tried anyway, with 2.4.36.6 and 2.3.3, but of course it failed - and I
+didn't try again with 2.3.3a. :(
+
+Thanks very much. :)
+
+--
+
+73,
+Ged.
