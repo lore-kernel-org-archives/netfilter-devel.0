@@ -1,10 +1,12 @@
 From: Greg KH <gregkh@suse.de>
-Subject: [patch 27/47] textsearch: fix Boyer-Moore text search bug
-Date: Tue, 22 Jul 2008 16:16:24 -0700
-Message-ID: <20080722231624.GB8282@suse.de>
+Subject: [patch 28/47] netfilter: nf_conntrack_tcp: fixing to check the
+	lower bound of valid ACK
+Date: Tue, 22 Jul 2008 16:16:29 -0700
+Message-ID: <20080722231629.GC8282@suse.de>
 References: <20080722230208.148102983@mini.kroah.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Justin Forbes <jmforbes@linuxtx.org>,
 	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
 	Theodore Ts'o <tytso@mit.edu>,
@@ -21,52 +23,101 @@ Cc: Justin Forbes <jmforbes@linuxtx.org>,
 	Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>,
 	"David S. Miller" <davem@davemloft.net>,
-	Joonwoo Park <joonwpark81@gmail.com>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
 	Patrick McHardy <kaber@trash.net>
 To: linux-kernel@vger.kernel.org, stable@kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:57835 "EHLO mx2.suse.de"
+Received: from mx2.suse.de ([195.135.220.15]:57866 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757178AbYGVXTr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Jul 2008 19:19:47 -0400
-Content-Disposition: inline; filename="textsearch-fix-boyer-moore-text-search-bug.patch"
+	id S1757212AbYGVXTw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 22 Jul 2008 19:19:52 -0400
+Content-Disposition: inline; filename="netfilter-nf_conntrack_tcp-fixing-to-check-the-lower-bound-of-valid-ack.patch"
 In-Reply-To: <20080722231342.GA8282@suse.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-2.6.25-stable review patch.  If anyone has any objections, please let us
+2.6.25-stable review patch.  If anyone has any objections, please let u=
+s
 know.
 
 ------------------
-From: Joonwoo Park <joonwpark81@gmail.com>
+=46rom: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 
-Upstream commit aebb6a849cfe7d89bcacaaecc20a480dfc1180e7
+Upstream commit 84ebe1c:
 
-The current logic has a bug which cannot find matching pattern, if the
-pattern is matched from the first character of target string.
-for example:
-	pattern=abc, string=abcdefg
-	pattern=a,   string=abcdefg
-Searching algorithm should return 0 for those things.
+Lost connections was reported by Thomas B=E4tzler (running 2.6.25 kerne=
+l) on
+the netfilter mailing list (see the thread "Weird nat/conntrack Problem
+with PASV FTP upload"). He provided tcpdump recordings which helped to
+find a long lingering bug in conntrack.
 
-Signed-off-by: Joonwoo Park <joonwpark81@gmail.com>
+In TCP connection tracking, checking the lower bound of valid ACK could
+lead to mark valid packets as INVALID because:
+
+ - We have got a "higher or equal" inequality, but the test checked
+   the "higher" condition only; fixed.
+ - If the packet contains a SACK option, it could occur that the ACK
+   value was before the left edge of our (S)ACK "window": if a previous
+   packet from the other party intersected the right edge of the window
+   of the receiver, we could move forward the window parameters beyond
+   accepting a valid ack. Therefore in this patch we check the rightmos=
+t
+   SACK edge instead of the ACK value in the lower bound of valid (S)AC=
+K
+   test.
+
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 Signed-off-by: David S. Miller <davem@davemloft.net>
 
 ---
- lib/ts_bm.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ net/netfilter/nf_conntrack_proto_tcp.c |   13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
 
---- a/lib/ts_bm.c
-+++ b/lib/ts_bm.c
-@@ -63,7 +63,7 @@ static unsigned int bm_find(struct ts_co
- 	struct ts_bm *bm = ts_config_priv(conf);
- 	unsigned int i, text_len, consumed = state->offset;
- 	const u8 *text;
--	int shift = bm->patlen, bs;
-+	int shift = bm->patlen - 1, bs;
- 
- 	for (;;) {
- 		text_len = conf->get_next_block(consumed, &text, conf, state);
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -332,12 +332,13 @@ static unsigned int get_conntrack_index(
+=20
+    I.   Upper bound for valid data:	seq <=3D sender.td_maxend
+    II.  Lower bound for valid data:	seq + len >=3D sender.td_end - rec=
+eiver.td_maxwin
+-   III.	Upper bound for valid ack:      sack <=3D receiver.td_end
+-   IV.	Lower bound for valid ack:	ack >=3D receiver.td_end - MAXACKWIN=
+DOW
++   III.	Upper bound for valid (s)ack:   sack <=3D receiver.td_end
++   IV.	Lower bound for valid (s)ack:	sack >=3D receiver.td_end - MAXAC=
+KWINDOW
+=20
+-   where sack is the highest right edge of sack block found in the pac=
+ket.
++   where sack is the highest right edge of sack block found in the pac=
+ket
++   or ack in the case of packet without SACK option.
+=20
+-   The upper bound limit for a valid ack is not ignored -
++   The upper bound limit for a valid (s)ack is not ignored -
+    we doesn't have to deal with fragments.
+ */
+=20
+@@ -607,12 +608,12 @@ static int tcp_in_window(const struct nf
+ 		 before(seq, sender->td_maxend + 1),
+ 		 after(end, sender->td_end - receiver->td_maxwin - 1),
+ 		 before(sack, receiver->td_end + 1),
+-		 after(ack, receiver->td_end - MAXACKWINDOW(sender)));
++		 after(sack, receiver->td_end - MAXACKWINDOW(sender) - 1));
+=20
+ 	if (before(seq, sender->td_maxend + 1) &&
+ 	    after(end, sender->td_end - receiver->td_maxwin - 1) &&
+ 	    before(sack, receiver->td_end + 1) &&
+-	    after(ack, receiver->td_end - MAXACKWINDOW(sender))) {
++	    after(sack, receiver->td_end - MAXACKWINDOW(sender) - 1)) {
+ 		/*
+ 		 * Take into account window scaling (RFC 1323).
+ 		 */
 
--- 
+--=20
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
