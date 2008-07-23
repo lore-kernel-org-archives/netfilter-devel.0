@@ -1,54 +1,79 @@
-From: Pavel Emelyanov <xemul@openvz.org>
-Subject: [PATCH] ipt_recent: fix race between recent_mt_destroy and proc manipulations
-Date: Thu, 24 Jul 2008 01:29:10 +0400
-Message-ID: <4887A2A6.1010704@openvz.org>
+From: Eric Leblond <eric@inl.fr>
+Subject: [ULOGD PATCH 0/4] Hardware header parsing in NFLOG and ULOG
+Date: Wed, 23 Jul 2008 23:31:10 +0200
+Message-ID: <20080723213110.GG31572@bayen.regit.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Linux Netdev List <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: David Miller <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="cQXOx3fnlpmgJsTP"
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sacred.ru ([62.205.161.221]:55210 "EHLO sacred.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754564AbYGWV1G (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Jul 2008 17:27:06 -0400
+Received: from ks301150.kimsufi.com ([91.121.73.151]:57628 "EHLO
+	ks301150.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754132AbYGWVbO (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 23 Jul 2008 17:31:14 -0400
+Received: from bayen.regit.org ([81.57.69.189])
+	by ks301150.kimsufi.com with esmtpsa (TLS-1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.63)
+	(envelope-from <eric@inl.fr>)
+	id 1KLlvU-0006c1-Qu
+	for netfilter-devel@vger.kernel.org; Wed, 23 Jul 2008 23:31:13 +0200
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The thing is that recent_mt_destroy first flushes the entries
-from table with the recent_table_flush and only *after* this
-removes the proc file, corresponding to that table.
 
-Thus, if we manage to write to this file the '+XXX' command we
-will leak some entries. If we manage to write there a 'clean'
-command we'll race in two recent_table_flush flows, since the
-recent_mt_destroy calls this outside the recent_lock.
+--cQXOx3fnlpmgJsTP
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The proper solution as I see it is to remove the proc file first
-and then go on with flushing the table. This flushing becomes
-safe w/o the lock, since the table is already inaccessible from
-the outside.
+Hello,
 
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+This patchset is aiming at:
+ * solving the conflict between ULOG and NFLOG=20
+ * using the latest NFLOG capability relatively to hardware header
 
----
+First patch modifies the NFLOG plugin to add raw.mac and raw.type (hardware
+type) to output keys.
+Second patch introduces a new plugin which has to be used to parse the
+packet hardware header and extract source and destination hardware
+address.
+Third patch updates the MAC2STR plugin to convert to string the hardware
+related fields.
+Finally, last patch adds support for this new fields in mysql and pgsql.
 
-diff --git a/net/ipv4/netfilter/ipt_recent.c b/net/ipv4/netfilter/ipt_recent.c
-index 21cb053..3974d7c 100644
---- a/net/ipv4/netfilter/ipt_recent.c
-+++ b/net/ipv4/netfilter/ipt_recent.c
-@@ -305,10 +305,10 @@ static void recent_mt_destroy(const struct xt_match *match, void *matchinfo)
- 		spin_lock_bh(&recent_lock);
- 		list_del(&t->list);
- 		spin_unlock_bh(&recent_lock);
--		recent_table_flush(t);
- #ifdef CONFIG_PROC_FS
- 		remove_proc_entry(t->name, proc_dir);
- #endif
-+		recent_table_flush(t);
- 		kfree(t);
- 	}
- 	mutex_unlock(&recent_mutex);
+Patchset statistics:
+ configure.in                      |    4 +-
+ doc/mysql-ulogd2.sql              |   68 +++++++++---
+ doc/pgsql-ulogd2.sql              |   49 ++++++++-
+ filter/Makefile.am                |    6 +-
+ filter/ulogd_filter_MAC2STR.c     |   92 +++++++++++++----
+ filter/ulogd_filter_RAWMAC.c      |  214
+ +++++++++++++++++++++++++++++++++++++
+ input/packet/ulogd_inppkt_NFLOG.c |   43 +++++++-
+ 7 files changed, 427 insertions(+), 49 deletions(-)
+
+PS: I run git-send-email without --compose and send the patchset before
+the introduction mail. Sorry for that.
+
+BR,
+--=20
+Eric Leblond
+INL: http://www.inl.fr/
+NuFW: http://www.nufw.org/
+
+--cQXOx3fnlpmgJsTP
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
+
+iD8DBQFIh6MenxA7CdMWjzIRApQ9AJ9//MqDHRIkdgsgOgAEH1l1YlJNtACeNXcQ
+oOKgpceOxOYBj5Zh20DMxK0=
+=s0Rj
+-----END PGP SIGNATURE-----
+
+--cQXOx3fnlpmgJsTP--
