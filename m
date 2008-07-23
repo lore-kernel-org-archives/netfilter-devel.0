@@ -1,79 +1,51 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: [ULOGD PATCH 0/4] Hardware header parsing in NFLOG and ULOG
-Date: Wed, 23 Jul 2008 23:31:10 +0200
-Message-ID: <20080723213110.GG31572@bayen.regit.org>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="cQXOx3fnlpmgJsTP"
+Subject: [ULOGD2 PATCH] Add RAWMAC plugin information to configuration file.
+Date: Wed, 23 Jul 2008 23:36:44 +0200
+Message-ID: <1216849004-13777-1-git-send-email-eric@inl.fr>
+References: <20080723213110.GG31572@bayen.regit.org>
+Cc: Eric Leblond <eric@inl.fr>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks301150.kimsufi.com ([91.121.73.151]:57628 "EHLO
-	ks301150.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754132AbYGWVbO (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Jul 2008 17:31:14 -0400
-Received: from bayen.regit.org ([81.57.69.189])
-	by ks301150.kimsufi.com with esmtpsa (TLS-1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.63)
-	(envelope-from <eric@inl.fr>)
-	id 1KLlvU-0006c1-Qu
-	for netfilter-devel@vger.kernel.org; Wed, 23 Jul 2008 23:31:13 +0200
-Content-Disposition: inline
+Received: from bayen.regit.org ([81.57.69.189]:33906 "EHLO ice-age"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754858AbYGWVgq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 23 Jul 2008 17:36:46 -0400
+In-Reply-To: <20080723213110.GG31572@bayen.regit.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This patch modifies the stacks to use the RAWMAC plugin where it is necessary.
 
---cQXOx3fnlpmgJsTP
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Eric Leblond <eric@inl.fr>
+---
+ ulogd.conf.in |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-Hello,
+diff --git a/ulogd.conf.in b/ulogd.conf.in
+index a32234d..dc9cdf2 100644
+--- a/ulogd.conf.in
++++ b/ulogd.conf.in
+@@ -39,6 +39,7 @@ plugin="@libdir@/ulogd/ulogd_filter_IFINDEX.so"
+ plugin="@libdir@/ulogd/ulogd_filter_IP2STR.so"
+ plugin="@libdir@/ulogd/ulogd_filter_IP2BIN.so"
+ plugin="@libdir@/ulogd/ulogd_filter_PRINTPKT.so"
++plugin="@libdir@/ulogd/ulogd_filter_RAWMAC.so"
+ plugin="@libdir@/ulogd/ulogd_filter_MAC2STR.so"
+ plugin="@libdir@/ulogd/ulogd_filter_PRINTFLOW.so"
+ #plugin="@libdir@/ulogd/ulogd_filter_MARK.so"
+@@ -76,10 +77,10 @@ plugin="@libdir@/ulogd/ulogd_raw2packet_BASE.so"
+ #stack=log1:NFLOG,base1:BASE,pcap1:PCAP
+ 
+ # this is a stack for logging packet to MySQL
+-#stack=log1:NFLOG,base1:BASE,ifi1:IFINDEX,ip2bin1:IP2BIN,mac2str1:MAC2STR,mysql1:MYSQL
++#stack=log1:NFLOG,base1:BASE,ifi1:IFINDEX,ip2bin1:IP2BIN,rawmac1:RAWMAC,mac2str1:MAC2STR,mysql1:MYSQL
+ 
+ # this is a stack for logging IPv6 packet to PGsql after a collect via NFLOG
+-#stack=log2:NFLOG,base1:BASE,ifi1:IFINDEX,ip2str1:IP2STR,mac2str1:MAC2STR,pgsql1:PGSQL
++#stack=log2:NFLOG,base1:BASE,ifi1:IFINDEX,ip2str1:IP2STR,rawmac1:RAWMAC,mac2str1:MAC2STR,pgsql1:PGSQL
+ 
+ # this is a stack for logging ebtables packets to syslog after a collect via NFLOG
+ #stack=log3:NFLOG,base1:BASE,ifi1:IFINDEX,ip2str1:IP2STR,print1:PRINTPKT,sys1:SYSLOG
+-- 
+1.5.4.3
 
-This patchset is aiming at:
- * solving the conflict between ULOG and NFLOG=20
- * using the latest NFLOG capability relatively to hardware header
-
-First patch modifies the NFLOG plugin to add raw.mac and raw.type (hardware
-type) to output keys.
-Second patch introduces a new plugin which has to be used to parse the
-packet hardware header and extract source and destination hardware
-address.
-Third patch updates the MAC2STR plugin to convert to string the hardware
-related fields.
-Finally, last patch adds support for this new fields in mysql and pgsql.
-
-Patchset statistics:
- configure.in                      |    4 +-
- doc/mysql-ulogd2.sql              |   68 +++++++++---
- doc/pgsql-ulogd2.sql              |   49 ++++++++-
- filter/Makefile.am                |    6 +-
- filter/ulogd_filter_MAC2STR.c     |   92 +++++++++++++----
- filter/ulogd_filter_RAWMAC.c      |  214
- +++++++++++++++++++++++++++++++++++++
- input/packet/ulogd_inppkt_NFLOG.c |   43 +++++++-
- 7 files changed, 427 insertions(+), 49 deletions(-)
-
-PS: I run git-send-email without --compose and send the patchset before
-the introduction mail. Sorry for that.
-
-BR,
---=20
-Eric Leblond
-INL: http://www.inl.fr/
-NuFW: http://www.nufw.org/
-
---cQXOx3fnlpmgJsTP
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFIh6MenxA7CdMWjzIRApQ9AJ9//MqDHRIkdgsgOgAEH1l1YlJNtACeNXcQ
-oOKgpceOxOYBj5Zh20DMxK0=
-=s0Rj
------END PGP SIGNATURE-----
-
---cQXOx3fnlpmgJsTP--
