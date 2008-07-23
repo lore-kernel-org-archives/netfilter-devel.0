@@ -1,296 +1,150 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: [ULOGD2 PATCH 4/4] Add destination mac_addr and raw header to database
-Date: Wed, 23 Jul 2008 23:20:48 +0200
-Message-ID: <1216848048-13516-4-git-send-email-eric@inl.fr>
-Cc: Eric Leblond <eric@inl.fr>, Pierre Chifflier <chifflier@inl.fr>
+Subject: [ULOGD2 PATCH 1/4] Make NFLOG export raw header and source raw address.
+Date: Wed, 23 Jul 2008 23:20:45 +0200
+Message-ID: <1216848048-13516-1-git-send-email-eric@inl.fr>
+Cc: Eric Leblond <eric@inl.fr>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:39933 "EHLO ice-age"
+Received: from bayen.regit.org ([81.57.69.189]:39929 "EHLO ice-age"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754116AbYGWVUv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Jul 2008 17:20:51 -0400
+	id S1754591AbYGWVUu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 23 Jul 2008 17:20:50 -0400
 In-Reply-To: <>
 References: <>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds support for logging the destination mac address and raw header
-in the SQL databases.
-In case of an ethernet header, a tuple (mac_saddr,mac_daddr,mac_proto) is
-logged only once.
+This patch modifies the key structure of NFLOG. It solves the conflict
+between ULOG and NFLOG by ensuring that keys have the same meaning:
+ * raw.mac is the full hardware header
+ * raw.mac.saddr is the source hardware address
+Following Patrick suggestion, it adds a new key "raw.type" which is used
+to store the type of hardware.
+
+The configure.in file has been modified to autodetect the existence of the
+required NFLOG functions.
 
 Signed-off-by: Eric Leblond <eric@inl.fr>
-Signed-off-by: Pierre Chifflier <chifflier@inl.fr>
 ---
- doc/mysql-ulogd2.sql |   68 +++++++++++++++++++++++++++++++++++++------------
- doc/pgsql-ulogd2.sql |   49 +++++++++++++++++++++++++++++++----
- 2 files changed, 94 insertions(+), 23 deletions(-)
+ configure.in                      |    4 ++-
+ input/packet/ulogd_inppkt_NFLOG.c |   43 ++++++++++++++++++++++++++++++++----
+ 2 files changed, 41 insertions(+), 6 deletions(-)
 
-diff --git a/doc/mysql-ulogd2.sql b/doc/mysql-ulogd2.sql
-index 8659c38..f1fc710 100644
---- a/doc/mysql-ulogd2.sql
-+++ b/doc/mysql-ulogd2.sql
-@@ -28,6 +28,7 @@ CREATE TABLE `_extensions` (
- ) ENGINE=INNODB;
+diff --git a/configure.in b/configure.in
+index 8e0f6a3..c25bbdb 100644
+--- a/configure.in
++++ b/configure.in
+@@ -41,8 +41,10 @@ PKG_CHECK_MODULES(LIBNFNETLINK, libnfnetlink >= $LIBNFNETLINK_REQUIRED,, AC_MSG_
  
- DROP TABLE IF EXISTS `mac`;
-+DROP TABLE IF EXISTS `hwhdr`;
- DROP TABLE IF EXISTS `tcp`;
- DROP TABLE IF EXISTS `udp`;
- DROP TABLE IF EXISTS `icmp`;
-@@ -75,13 +76,24 @@ ALTER TABLE ulog2 ADD KEY `timestamp` (`timestamp`);
- CREATE TABLE `mac` (
-   `_mac_id` bigint unsigned NOT NULL auto_increment,
-   `mac_saddr` varchar(32) default NULL,
-+  `mac_daddr` varchar(32) default NULL,
-   `mac_protocol` smallint(5) default NULL,
-   UNIQUE KEY `key_id` (`_mac_id`)
- ) ENGINE=INNODB;
+ PKG_CHECK_MODULES(LIBNETFILTER_CONNTRACK, libnetfilter_conntrack >= $LIBNETFILTER_CONNTRACK_REQUIRED,, AC_MSG_ERROR(Cannot find libnetfilter_conntrack >= $LIBNETFILTER_CONNTRACK_REQUIRED))
  
--ALTER TABLE mac ADD UNIQUE KEY `mac_saddr` (`mac_saddr`,`mac_protocol`);
-+ALTER TABLE mac ADD UNIQUE KEY `mac_addr` (`mac_saddr`,`mac_daddr`,`mac_protocol`);
- ALTER TABLE mac ADD KEY `index_mac_id` (`_mac_id`);
+-PKG_CHECK_MODULES(LIBNETFILTER_LOG, libnetfilter_log >= $LIBNETFILTER_LOG_REQUIRED,, AC_MSG_ERROR(Cannot find libnetfilter_log >= $LIBNETFILTER_LOG_REQUIRED))
++PKG_CHECK_MODULES(LIBNETFILTER_LOG, libnetfilter_log >= $LIBNETFILTER_LOG_REQUIRED,, AC_MSG_NOTICE(Cannot find libnetfilter_log >= $LIBNETFILTER_LOG_REQUIRED))
  
-+CREATE TABLE `hwhdr` (
-+  `_hw_id` bigint unsigned NOT NULL,
-+  `raw_type` int(10) unsigned default NULL,
-+  `raw_header` varchar(255) default NULL
-+) ENGINE=INNODB;
++AC_CHECK_LIB([netfilter_log],[nflog_get_msg_packet_hwhdrlen],
++                        AC_DEFINE_UNQUOTED([HAVE_NFLOG_RAWHEADER],[1],[NFLOG userspace has raw header support]),,[-lnfnetlink])
+ 
+ CT_CHECK_POSTGRES_DB()
+ AM_CONDITIONAL(HAVE_PGSQL, test "x$PQLIBPATH" != "x")
+diff --git a/input/packet/ulogd_inppkt_NFLOG.c b/input/packet/ulogd_inppkt_NFLOG.c
+index cb58661..c2de88c 100644
+--- a/input/packet/ulogd_inppkt_NFLOG.c
++++ b/input/packet/ulogd_inppkt_NFLOG.c
+@@ -9,6 +9,8 @@
+ #include <errno.h>
+ 
+ #include <ulogd/ulogd.h>
++#include <config.h>
 +
-+ALTER TABLE hwhdr ADD UNIQUE KEY `_hw_id` (`_hw_id`);
-+ALTER TABLE hwhdr ADD KEY `raw_type` (`raw_type`);
-+ALTER TABLE hwhdr ADD KEY `raw_header` (`raw_header`);
+ #include <libnfnetlink/libnfnetlink.h>
+ #include <libnetfilter_log/libnetfilter_log.h>
+ 
+@@ -133,6 +135,9 @@ enum nflog_keys {
+ 	NFLOG_KEY_OOB_UID,
+ 	NFLOG_KEY_OOB_GID,
+ 	NFLOG_KEY_RAW_LABEL,
++	NFLOG_KEY_RAW_TYPE,
++	NFLOG_KEY_RAW_MAC_SADDR,
++	NFLOG_KEY_RAW_MAC_ADDRLEN,
+ };
+ 
+ static struct ulogd_key output_keys[] = {
+@@ -140,6 +145,11 @@ static struct ulogd_key output_keys[] = {
+ 		.type = ULOGD_RET_RAW,
+ 		.flags = ULOGD_RETF_NONE,
+ 		.name = "raw.mac",
++	},
++	[NFLOG_KEY_RAW_MAC_SADDR] = {
++		.type = ULOGD_RET_RAW,
++		.flags = ULOGD_RETF_NONE,
++		.name = "raw.mac.saddr",
+ 		.ipfix = {
+ 			.vendor = IPFIX_VENDOR_IETF,
+ 			.field_id = IPFIX_sourceMacAddress,
+@@ -240,6 +250,12 @@ static struct ulogd_key output_keys[] = {
+ 		.flags = ULOGD_RETF_NONE,
+ 		.name = "raw.mac_len",
+ 	},
++	[NFLOG_KEY_RAW_MAC_ADDRLEN] = {
++		.type = ULOGD_RET_UINT16,
++		.flags = ULOGD_RETF_NONE,
++		.name = "raw.mac.addrlen",
++	},
 +
- CREATE TABLE `tcp` (
-   `_tcp_id` bigint unsigned NOT NULL,
-   `tcp_sport` int(5) unsigned default NULL,
-@@ -176,8 +188,8 @@ CREATE SQL SECURITY INVOKER VIEW `ulog` AS
-         oob_prefix,
-         oob_mark,
-         oob_in,
--	oob_out,
--	oob_family,
-+        oob_out,
-+        oob_family,
-         ip_saddr AS ip_saddr_bin,
-         ip_daddr AS ip_daddr_bin,
-         ip_protocol,
-@@ -209,17 +221,20 @@ CREATE SQL SECURITY INVOKER VIEW `ulog` AS
-         icmp_echoseq,
-         icmp_gateway,
-         icmp_fragmtu,
--	icmpv6_type,
--	icmpv6_code,
--	icmpv6_echoid,
--	icmpv6_echoseq,
--	icmpv6_csum,
--	mac_saddr as mac_saddr_str,
--	mac_protocol as oob_protocol,
--	label as raw_label
-+        icmpv6_type,
-+        icmpv6_code,
-+        icmpv6_echoid,
-+        icmpv6_echoseq,
-+        icmpv6_csum,
-+        raw_type,
-+        raw_header AS mac_str,
-+        mac_saddr as mac_saddr_str,
-+        mac_daddr as mac_daddr_str,
-+        mac_protocol as oob_protocol,
-+        label as raw_label
-         FROM ulog2 LEFT JOIN tcp ON ulog2._id = tcp._tcp_id LEFT JOIN udp ON ulog2._id = udp._udp_id
--                LEFT JOIN icmp ON ulog2._id = icmp._icmp_id LEFT JOIN mac ON ulog2._id = mac._mac_id
--                LEFT JOIN icmpv6 ON ulog2._id = icmpv6._icmpv6_id;
-+                LEFT JOIN icmp ON ulog2._id = icmp._icmp_id LEFT JOIN mac ON ulog2.mac_id = mac._mac_id
-+		LEFT JOIN hwhdr ON ulog2._id = hwhdr._hw_id LEFT JOIN icmpv6 ON ulog2._id = icmpv6._icmpv6_id;
+ 	[NFLOG_KEY_OOB_SEQ_LOCAL] = {
+ 		.type = ULOGD_RET_UINT32,
+ 		.flags = ULOGD_RETF_NONE,
+@@ -283,6 +299,11 @@ static struct ulogd_key output_keys[] = {
+ 		.flags = ULOGD_RETF_NONE,
+ 		.name = "raw.label",
+ 	},
++	[NFLOG_KEY_RAW_TYPE] = {
++		.type = ULOGD_RET_UINT16,
++		.flags = ULOGD_RETF_NONE,
++		.name = "raw.type",
++	},
  
+ };
  
- -- shortcuts
-@@ -607,18 +622,32 @@ delimiter $$
- DROP FUNCTION IF EXISTS INSERT_OR_SELECT_MAC;
- CREATE FUNCTION INSERT_OR_SELECT_MAC(
- 		`_saddr` varchar(32),
-+		`_daddr` varchar(32),
- 		`_protocol` smallint(5)
- 		) RETURNS bigint unsigned
- NOT DETERMINISTIC
- READS SQL DATA
- BEGIN
--	INSERT IGNORE INTO mac (mac_saddr, mac_protocol) VALUES (_saddr, _protocol);
--	SELECT _mac_id FROM mac WHERE mac_saddr = _saddr AND mac_protocol = _protocol INTO @last_id;
-+	INSERT IGNORE INTO mac (mac_saddr, mac_daddr, mac_protocol) VALUES (_saddr, _daddr, _protocol);
-+	SELECT _mac_id FROM mac WHERE mac_saddr = _saddr AND mac_daddr = _daddr AND mac_protocol = _protocol INTO @last_id;
- 	RETURN @last_id;
- END
- $$
+@@ -290,9 +311,8 @@ static inline int
+ interp_packet(struct ulogd_pluginstance *upi, struct nflog_data *ldata)
+ {
+ 	struct ulogd_key *ret = upi->output.keys;
+-
+-	struct nfulnl_msg_packet_hdr *ph = nflog_get_msg_packet_hdr(ldata);
+ 	struct nfulnl_msg_packet_hw *hw = nflog_get_packet_hw(ldata);
++	struct nfulnl_msg_packet_hdr *ph = nflog_get_msg_packet_hdr(ldata);
+ 	char *payload;
+ 	int payload_len = nflog_get_payload(ldata, &payload);
+ 	char *prefix = nflog_get_prefix(ldata);
+@@ -318,11 +338,24 @@ interp_packet(struct ulogd_pluginstance *upi, struct nflog_data *ldata)
+ 		ret[NFLOG_KEY_OOB_PROTOCOL].flags |= ULOGD_RETF_VALID;
+ 	}
  
- delimiter $$
-+DROP PROCEDURE IF EXISTS PACKET_ADD_HARDWARE_HEADER;
-+CREATE PROCEDURE PACKET_ADD_HARDWARE_HEADER(
-+		IN `id` int(10) unsigned,
-+		IN `_hw_type` integer,
-+		IN `_hw_addr` varchar(256)
-+		)
-+BEGIN
-+	INSERT INTO hwhdr (_hw_id, raw_type, raw_header) VALUES
-+	(id, _hw_type, _hw_addr);
-+END
-+$$
+-	if (hw) {
+-		ret[NFLOG_KEY_RAW_MAC].u.value.ptr = hw->hw_addr;
++#ifdef HAVE_NFLOG_RAWHEADER
++	if (nflog_get_msg_packet_hwhdrlen(ldata)) {
++		ret[NFLOG_KEY_RAW_MAC].u.value.ptr = nflog_get_msg_packet_hwhdr(ldata);
+ 		ret[NFLOG_KEY_RAW_MAC].flags |= ULOGD_RETF_VALID;
+-		ret[NFLOG_KEY_RAW_MAC_LEN].u.value.ui16 = ntohs(hw->hw_addrlen);
++		ret[NFLOG_KEY_RAW_MAC_LEN].u.value.ui16 =
++			nflog_get_msg_packet_hwhdrlen(ldata);
+ 		ret[NFLOG_KEY_RAW_MAC_LEN].flags |= ULOGD_RETF_VALID;
++		ret[NFLOG_KEY_RAW_TYPE].u.value.ui16 =
++			nflog_get_hwtype(ldata);
++		ret[NFLOG_KEY_RAW_TYPE].flags |= ULOGD_RETF_VALID;
++	}
++#endif
 +
-+delimiter $$
- DROP FUNCTION IF EXISTS INSERT_PACKET_FULL;
- CREATE FUNCTION INSERT_PACKET_FULL(
- 		_oob_time_sec int(10) unsigned,
-@@ -665,7 +694,10 @@ CREATE FUNCTION INSERT_PACKET_FULL(
- 		icmpv6_echoid smallint(5) unsigned,
- 		icmpv6_echoseq smallint(5) unsigned,
- 		icmpv6_csum int(10) unsigned,
-+                raw_type integer,
-+                raw_header varchar(256),
- 		mac_saddr varchar(32),
-+		mac_daddr varchar(32),
- 		mac_protocol smallint(5),
- 		_label tinyint(4) unsigned
- 		) RETURNS bigint unsigned
-@@ -689,11 +721,13 @@ BEGIN
- 		CALL PACKET_ADD_ICMPV6(@lastid, icmpv6_type, icmpv6_code, icmpv6_echoid,
- 				       icmpv6_echoseq, icmpv6_csum);
- 	END IF;
--	IF mac_protocol IS NOT NULL THEN
--		SET @mac_id = INSERT_OR_SELECT_MAC(mac_saddr, mac_protocol);
-+	IF raw_type = 1 THEN
-+		SET @mac_id = INSERT_OR_SELECT_MAC(mac_saddr, mac_daddr, mac_protocol);
- 		IF @mac_id IS NOT NULL THEN
- 			UPDATE ulog2 SET mac_id = @mac_id WHERE _id = @lastid;
- 		END IF;
-+	ELSE
-+		CALL PACKET_ADD_HARDWARE_HEADER(@lastid, raw_type, raw_header);
- 	END IF;
- 	RETURN @lastid;
- END
-diff --git a/doc/pgsql-ulogd2.sql b/doc/pgsql-ulogd2.sql
-index b7e0038..78c06b5 100644
---- a/doc/pgsql-ulogd2.sql
-+++ b/doc/pgsql-ulogd2.sql
-@@ -26,6 +26,7 @@ CREATE TABLE _extensions (
- ) WITH (OIDS=FALSE);
++	if (hw) {
++		ret[NFLOG_KEY_RAW_MAC_SADDR].u.value.ptr = hw->hw_addr;
++		ret[NFLOG_KEY_RAW_MAC_SADDR].flags |= ULOGD_RETF_VALID;
++		ret[NFLOG_KEY_RAW_MAC_ADDRLEN].u.value.ui16 = ntohs(hw->hw_addrlen);
++		ret[NFLOG_KEY_RAW_MAC_ADDRLEN].flags |= ULOGD_RETF_VALID;
+ 	}
  
- DROP TABLE IF EXISTS mac CASCADE;
-+DROP TABLE IF EXISTS hwhdr CASCADE;
- DROP TABLE IF EXISTS tcp CASCADE;
- DROP TABLE IF EXISTS udp CASCADE;
- DROP TABLE IF EXISTS icmp CASCADE;
-@@ -72,11 +73,22 @@ CREATE SEQUENCE mac__id_seq;
- CREATE TABLE mac (
-   _mac_id bigint PRIMARY KEY UNIQUE NOT NULL DEFAULT nextval('mac__id_seq'),
-   mac_saddr macaddr NOT NULL,
-+  mac_daddr macaddr default NULL,
-   mac_protocol smallint default NULL
- ) WITH (OIDS=FALSE);
- 
- CREATE INDEX mac_saddr ON mac(mac_saddr);
--CREATE UNIQUE INDEX unique_mac ON mac(mac_saddr,mac_protocol);
-+CREATE INDEX mac_daddr ON mac(mac_daddr);
-+CREATE UNIQUE INDEX unique_mac ON mac(mac_saddr,mac_daddr,mac_protocol);
-+
-+CREATE TABLE hwhdr (
-+  _hw_id bigint PRIMARY KEY UNIQUE NOT NULL,
-+  raw_type integer default NULL,
-+  raw_header varchar(256) default NULL
-+) WITH (OIDS=FALSE);
-+
-+CREATE INDEX raw_type ON hwhdr(raw_type);
-+CREATE INDEX raw_header ON hwhdr(raw_header);
- 
- CREATE TABLE tcp (
-   _tcp_id bigint PRIMARY KEY UNIQUE NOT NULL,
-@@ -195,12 +207,16 @@ CREATE OR REPLACE VIEW ulog AS
-         icmpv6_echoid,
-         icmpv6_echoseq,
-         icmpv6_csum,
-+        raw_type,
-+        raw_header AS mac_str,
-         mac_saddr AS mac_saddr_str,
-+        mac_daddr AS mac_daddr_str,
-         mac_protocol AS oob_protocol,
-         label AS raw_label
-         FROM ulog2 LEFT JOIN tcp ON ulog2._id = tcp._tcp_id LEFT JOIN udp ON ulog2._id = udp._udp_id
-                 LEFT JOIN icmp ON ulog2._id = icmp._icmp_id
-                 LEFT JOIN mac ON ulog2.mac_id = mac._mac_id
-+                LEFT JOIN hwhdr ON ulog2._id = hwhdr._hw_id
-                 LEFT JOIN icmpv6 ON ulog2._id = icmpv6._icmpv6_id;
- 
- -- shortcuts
-@@ -443,17 +459,33 @@ RETURNS bigint AS $$
-         SELECT currval('ulog2__id_seq');
- $$ LANGUAGE SQL SECURITY INVOKER;
- 
-+CREATE OR REPLACE FUNCTION INSERT_HARDWARE_HEADER(
-+                IN hw_id bigint,
-+                IN hw_type integer,
-+                IN hw_addr varchar(256)
-+        )
-+RETURNS bigint AS $$
-+        INSERT INTO hwhdr (_hw_id,raw_type,raw_header)
-+                VALUES ($1,$2,$3);
-+        SELECT currval('ulog2__id_seq');
-+$$ LANGUAGE SQL SECURITY INVOKER;
-+
- CREATE OR REPLACE FUNCTION INSERT_OR_SELECT_MAC(
-                 IN in_mac_saddr macaddr,
-+                IN in_mac_daddr macaddr,
-                 IN in_mac_protocol integer
-         )
- RETURNS bigint AS $$
- DECLARE
-         _id bigint;
- BEGIN
--        SELECT INTO _id _mac_id FROM mac WHERE mac_saddr = $1 AND mac_protocol = $2;
-+        IF $2 IS NULL THEN
-+                SELECT INTO _id _mac_id FROM mac WHERE mac_saddr = $1 AND mac_daddr IS NULL AND mac_protocol = $3;
-+        ELSE
-+                SELECT INTO _id _mac_id FROM mac WHERE mac_saddr = $1 AND mac_daddr = $2 AND mac_protocol = $3;
-+        END IF;
-         IF NOT FOUND THEN
--                INSERT INTO mac (mac_saddr,mac_protocol) VALUES ($1,$2) RETURNING _mac_id INTO _id;
-+                INSERT INTO mac (mac_saddr,mac_daddr,mac_protocol) VALUES ($1,$2,$3) RETURNING _mac_id INTO _id;
-                 RETURN _id;
-         END IF;
-         RETURN _id;
-@@ -507,7 +539,10 @@ CREATE OR REPLACE FUNCTION INSERT_PACKET_FULL(
-                 IN icmpv6_echoid integer,
-                 IN icmpv6_echoseq integer,
-                 IN icmpv6_csum integer,
-+                IN raw_type integer,
-+                IN raw_header varchar(256),
-                 IN mac_saddr varchar(32),
-+                IN mac_daddr varchar(32),
-                 IN mac_protocol integer,
-                 IN label integer
-         )
-@@ -516,7 +551,7 @@ DECLARE
-         t_id bigint;
-         t_mac_id bigint;
- BEGIN
--        t_id := INSERT_IP_PACKET_FULL($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$47);
-+        t_id := INSERT_IP_PACKET_FULL($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$50);
-         IF (ip_protocol = 6) THEN
-                 PERFORM INSERT_TCP_FULL(t_id,$19,$20,$21,$22,$23,$24,$25,$26,$27,$28,$29,$30);
-         ELSIF (ip_protocol = 17) THEN
-@@ -526,9 +561,11 @@ BEGIN
-         ELSIF (ip_protocol = 58) THEN
-                 PERFORM INSERT_ICMPV6(t_id,$40,$41,$42,$43,$44);
-         END IF;
--        IF (mac_saddr IS NOT NULL) THEN
--                t_mac_id = INSERT_OR_SELECT_MAC($45::macaddr,$46);
-+        IF (raw_type = 1) THEN
-+                t_mac_id = INSERT_OR_SELECT_MAC($47::macaddr,$48::macaddr,$49);
-                 UPDATE ulog2 SET mac_id = t_mac_id WHERE _id = t_id;
-+        ELSE
-+                PERFORM INSERT_HARDWARE_HEADER(t_id,$45,$46);
-         END IF;
-         RETURN t_id;
- END
+ 	if (payload_len >= 0) {
 -- 
 1.5.4.3
 
