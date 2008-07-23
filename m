@@ -1,82 +1,47 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: Re: [ULOGD2 PATCH 0/4] Misc cleaning
-Date: Wed, 23 Jul 2008 18:27:46 +0200
-Message-ID: <20080723162746.GB31572@bayen.regit.org>
-References: <1216812835-9851-1-git-send-email-eric@inl.fr> <48873F55.2000706@netfilter.org> <488743AC.4040909@trash.net>
+From: Fabian Hugelshofer <hugelshofer2006@gmx.ch>
+Subject: Re: Conntrack Events Performance - Multipart Messages?
+Date: Wed, 23 Jul 2008 18:15:17 +0100
+Message-ID: <48876725.8010404@gmx.ch>
+References: <487E24FC.60700@gmx.ch> <487F18DA.7030208@netfilter.org> <487FFBEE.90409@trash.net> <4884B068.4050306@gmx.ch> <4884B270.5010104@trash.net> <4884CC17.3020905@gmx.ch> <488740E7.3040005@gmx.ch> <48874272.1020503@trash.net> <48875887.8040209@gmx.ch> <488763F3.5020506@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="vtzGhvizbBRQ85DL"
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org,
+	Pablo Neira Ayuso <pablo@netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks301150.kimsufi.com ([91.121.73.151]:45584 "EHLO
-	ks301150.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751012AbYGWRNo (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Jul 2008 13:13:44 -0400
-Content-Disposition: inline
-In-Reply-To: <488743AC.4040909@trash.net>
+Received: from mail.gmx.net ([213.165.64.20]:48611 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1753426AbYGWRPS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 23 Jul 2008 13:15:18 -0400
+In-Reply-To: <488763F3.5020506@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
---vtzGhvizbBRQ85DL
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
-
-Hello,
-
-On Wednesday, 2008 July 23 at 16:43:56 +0200, Patrick McHardy wrote:
-> Pablo Neira Ayuso wrote:
->> Eric Leblond wrote:
->>> The main concern here is about IPFIX which is in really bad shape. I've=
- fix
->>> some major error in one of the patch but it remains untested for now an=
-d I
->>> don't think it can work properly.
+Patrick McHardy wrote:
+> Fabian Hugelshofer wrote:
+>> Patrick McHardy wrote:
+>>> The first thing to try would be to use sane allocation sizes
+>>> for the event messages. This patch doesn't implement it properly
+>>> (uses probing), but should be enough to test whether it helps.
 >>
->> Indeed. It's broken Do you plan to look into this?
+>> Thanks a lot. This patch already decreased the CPU usage for ctevtest 
+>> from 85% to 44%. Sweet...
+> 
+> Nice. Now we just need to do it properly :)
 
-No, I've got enough work with other modules ;) I will soon send a
-complete a patchset about the hardware header issue.
+What do you mean with properly? Put some kind of cap? Or eliminate the 
+guessing by allocating a reasonable small fixed amount?
 
->> If not, I'll fix it
->> myself. Please, let me know since I don't want to duplicate work. Do you
->> also plan to send me a patch to fix all those warnings?
+>> nf_conntrack_event is now one of the first functions listed. Do you 
+>> see other ways of improving performance?
+> 
+> For some members doing in-place message construction instead of
+> copying the data might help, but I couldn only spot few only
+> used rarely.
+> 
+> The module reference stuff (module_put/nf_ct_*_find_get etc)
+> is clearly superfluous, this runs in packet processing context
+> and shouldn't use module references but RCU.
 
-Yes.
-
-> I think would prefer to enable the warnings that make sense
-> individually, -Wextra includes lots if crap like "%s expects
-> type char *, but argument is void *" or signedness warnings
-> that are compiler-detectable irrelevant 50% of the time.
->
-> OTOH a lot of the warnings in the current -git version indicate
-> that the code really needs more love, like missing return values
-> etc, so it seems we really want *some* of the new warnings.
-
-That's right, I plan to do some warning hunting and code cleaning
-when I will have finish my current work.
-
-BR,
---=20
-Eric Leblond
-INL: http://www.inl.fr/
-NuFW: http://www.nufw.org/
-
---vtzGhvizbBRQ85DL
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
-
-iD8DBQFIh1wCnxA7CdMWjzIRAg0FAJoCMUGb2kdYlqUaCk6Z+ikVaZfx2ACfVuvb
-vgCmsA823ayC32jYQHKD7e8=
-=29ce
------END PGP SIGNATURE-----
-
---vtzGhvizbBRQ85DL--
+This goes too deep, that I could help you on this.
