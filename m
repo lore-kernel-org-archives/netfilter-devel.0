@@ -1,51 +1,50 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: [ULOGD2 PATCH] Add RAWMAC plugin information to configuration file.
-Date: Wed, 23 Jul 2008 23:36:44 +0200
-Message-ID: <1216849004-13777-1-git-send-email-eric@inl.fr>
-References: <20080723213110.GG31572@bayen.regit.org>
-Cc: Eric Leblond <eric@inl.fr>
-To: netfilter-devel@vger.kernel.org
+From: Pavel Emelyanov <xemul@openvz.org>
+Subject: [PATCH] xt_hashlimit: fix race between htable_destroy and htable_gc
+Date: Thu, 24 Jul 2008 01:51:23 +0400
+Message-ID: <4887A7DB.4030305@openvz.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Linux Netdev List <netdev@vger.kernel.org>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: David Miller <davem@davemloft.net>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:33906 "EHLO ice-age"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754858AbYGWVgq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Jul 2008 17:36:46 -0400
-In-Reply-To: <20080723213110.GG31572@bayen.regit.org>
+Received: from sacred.ru ([62.205.161.221]:57962 "EHLO sacred.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753174AbYGWVtP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 23 Jul 2008 17:49:15 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch modifies the stacks to use the RAWMAC plugin where it is necessary.
+Deleting a timer with del_timer doesn't guarantee, that the
+timer function is not running at the moment of deletion. Thus
+in the xt_hashlimit case we can get into a ticklish situation
+when the htable_gc rearms the timer back and we'll actually
+delete an entry with a pending timer.
 
-Signed-off-by: Eric Leblond <eric@inl.fr>
+Fix it with using del_timer_sync().
+
+AFAIK del_timer_sync checks for the timer to be pending by
+itself, so I remove the check.
+
+Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+
 ---
- ulogd.conf.in |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/ulogd.conf.in b/ulogd.conf.in
-index a32234d..dc9cdf2 100644
---- a/ulogd.conf.in
-+++ b/ulogd.conf.in
-@@ -39,6 +39,7 @@ plugin="@libdir@/ulogd/ulogd_filter_IFINDEX.so"
- plugin="@libdir@/ulogd/ulogd_filter_IP2STR.so"
- plugin="@libdir@/ulogd/ulogd_filter_IP2BIN.so"
- plugin="@libdir@/ulogd/ulogd_filter_PRINTPKT.so"
-+plugin="@libdir@/ulogd/ulogd_filter_RAWMAC.so"
- plugin="@libdir@/ulogd/ulogd_filter_MAC2STR.so"
- plugin="@libdir@/ulogd/ulogd_filter_PRINTFLOW.so"
- #plugin="@libdir@/ulogd/ulogd_filter_MARK.so"
-@@ -76,10 +77,10 @@ plugin="@libdir@/ulogd/ulogd_raw2packet_BASE.so"
- #stack=log1:NFLOG,base1:BASE,pcap1:PCAP
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index 6809af5..d9418a2 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -367,9 +367,7 @@ static void htable_gc(unsigned long htlong)
  
- # this is a stack for logging packet to MySQL
--#stack=log1:NFLOG,base1:BASE,ifi1:IFINDEX,ip2bin1:IP2BIN,mac2str1:MAC2STR,mysql1:MYSQL
-+#stack=log1:NFLOG,base1:BASE,ifi1:IFINDEX,ip2bin1:IP2BIN,rawmac1:RAWMAC,mac2str1:MAC2STR,mysql1:MYSQL
+ static void htable_destroy(struct xt_hashlimit_htable *hinfo)
+ {
+-	/* remove timer, if it is pending */
+-	if (timer_pending(&hinfo->timer))
+-		del_timer(&hinfo->timer);
++	del_timer_sync(&hinfo->timer);
  
- # this is a stack for logging IPv6 packet to PGsql after a collect via NFLOG
--#stack=log2:NFLOG,base1:BASE,ifi1:IFINDEX,ip2str1:IP2STR,mac2str1:MAC2STR,pgsql1:PGSQL
-+#stack=log2:NFLOG,base1:BASE,ifi1:IFINDEX,ip2str1:IP2STR,rawmac1:RAWMAC,mac2str1:MAC2STR,pgsql1:PGSQL
- 
- # this is a stack for logging ebtables packets to syslog after a collect via NFLOG
- #stack=log3:NFLOG,base1:BASE,ifi1:IFINDEX,ip2str1:IP2STR,print1:PRINTPKT,sys1:SYSLOG
--- 
-1.5.4.3
-
+ 	/* remove proc entry */
+ 	remove_proc_entry(hinfo->pde->name,
