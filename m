@@ -1,138 +1,166 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: manpages: name and markup fixes
-Date: Wed, 23 Jul 2008 22:20:50 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0807232220090.23410@fbirervta.pbzchgretzou.qr>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
+From: Eric Leblond <eric@inl.fr>
+Subject: [ULOGD2 PATCH 3/4] Add source and destination address convertion in MAC2STR.
+Date: Wed, 23 Jul 2008 23:20:47 +0200
+Message-ID: <1216848048-13516-3-git-send-email-eric@inl.fr>
+Cc: Eric Leblond <eric@inl.fr>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:48711 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754537AbYGWUUw (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Jul 2008 16:20:52 -0400
+Received: from bayen.regit.org ([81.57.69.189]:39935 "EHLO ice-age"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754676AbYGWVUu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 23 Jul 2008 17:20:50 -0400
+In-Reply-To: <>
+References: <>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit b0d57fe19c66184b3ad317290131cadd4f045786
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Thu Jul 3 20:33:19 2008 +0200
+This patch modifies the MAC2STR plugin to be able convert hardware
+address related fields to string:
+ * raw.mac -> mac.str
+ * raw.mac.saddr -> mac.saddr.str
+ * raw.mac.daddr -> mac.daddr.str
+Each field is optional and is converted if present.
 
-manpages: name and markup fixes
-
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+Signed-off-by: Eric Leblond <eric@inl.fr>
 ---
- ip6tables.8.in |   28 ++++++++++++++--------------
- iptables.8.in  |   20 ++++++++++----------
- 2 files changed, 24 insertions(+), 24 deletions(-)
+ filter/ulogd_filter_MAC2STR.c |   92 ++++++++++++++++++++++++++++++++--------
+ 1 files changed, 73 insertions(+), 19 deletions(-)
 
-diff --git a/ip6tables.8.in b/ip6tables.8.in
-index 666616d..7142b4a 100644
---- a/ip6tables.8.in
-+++ b/ip6tables.8.in
-@@ -27,25 +27,25 @@
- .SH NAME
- ip6tables \- IPv6 packet filter administration
- .SH SYNOPSIS
--\fBip6tables\fP [\fB-t\fP \fItable\fP\fB]\fP {\fB-A\fP|\fB-D\fP} \fIchain rule-specification\fP [\fIoptions...\fP]
-+\fBip6tables\fP [\fB-t\fP \fItable\fP] {\fB-A\fP|\fB-D\fP} \fIchain rule-specification\fP [\fIoptions...\fP]
- .br
--\fBip6tables\fP [\fB-t\fP \fItable\fP\fB] -I\fP [\fIrulenum\fP] \fIrule-specification\fP [\fIoptions...\fP]
-+\fBip6tables\fP [\fB-t\fP \fItable\fP] \fB-I\fP [\fIrulenum\fP] \fIrule-specification\fP [\fIoptions...\fP]
- .br
--\fBip6tables\fP [\fB-t\fP \fItable\fP\fB] -R\fP \fIrulenum rule-specification\fP [\fIoptions...\fP]
-+\fBip6tables\fP [\fB-t\fP \fItable\fP] \fB-R\fP \fIrulenum rule-specification\fP [\fIoptions...\fP]
- .br
--\fBip6tables\fP [\fB-t\fP \fItable\fP\fB] -D\fP \fIchain rulenum\fP [\fIoptions...\fP]
-+\fBip6tables\fP [\fB-t\fP \fItable\fP] \fB-D\fP \fIchain rulenum\fP [\fIoptions...\fP]
- .br
--\fBip6tables\fP [\fB-t\fP \fItable\fP\fB] -S\fP [\fIchain\fP]
-+\fBip6tables\fP [\fB-t\fP \fItable\fP] \fB-S\fP [\fIchain\fP]
- .br
--\fBip6tables\fP [\fB-t\fP \fItable\fP\fB]\fP {\fB-F\fP|\fB-L\fP|\fB-Z\fP} [\fIchain\fP] [\fIoptions...\fP]
-+\fBip6tables\fP [\fB-t\fP \fItable\fP] {\fB-F\fP|\fB-L\fP|\fB-Z\fP} [\fIchain\fP] [\fIoptions...\fP]
- .br
--\fBip6tables\fP [\fB-t\fP \fItable\fP\fB] -N\fP \fIchain\fP
-+\fBip6tables\fP [\fB-t\fP \fItable\fP] \fB-N\fP \fIchain\fP
- .br
--\fBip6tables\fP [\fB-t\fP \fItable\fP\fB] -X\fP [\fIchain\fP]
-+\fBip6tables\fP [\fB-t\fP \fItable\fP] \fB-X\fP [\fIchain\fP]
- .br
--\fBip6tables\fP [\fB-t\fP \fItable\fP\fB] -P\fP \fIchain target\fP [\fIoptions...\fP]
-+\fBip6tables\fP [\fB-t\fP \fItable\fP] \fB-P\fP \fIchain target\fP [\fIoptions...\fP]
- .br
--\fBip6tables\fP [\fB-t\fP \fItable\fP\fB] -E\fP \fIold-chain-name new-chain-name\fP
-+\fBip6tables\fP [\fB-t\fP \fItable\fP] \fB-E\fP \fIold-chain-name new-chain-name\fP
- .SH DESCRIPTION
- \fBIp6tables\fP is used to set up, maintain, and inspect the
- tables of IPv6 packet
-@@ -155,10 +155,10 @@ fail.  Rules are numbered starting at 1.
- .TP
- \fB-L\fP, \fB--list\fP [\fIchain\fP]
- List all rules in the selected chain.  If no chain is selected, all
--chains are listed. Like every other iptables command, it applies to the
-+chains are listed. Like every other ip6tables command, it applies to the
- specified table (filter is the default), so NAT rules get listed by
- .nf
-- iptables -t nat -n -L
-+ ip6tables -t nat -n -L
- .fi
- Please note that it is often used with the \fB-n\fP
- option, in order to avoid long reverse DNS lookups.
-@@ -167,12 +167,12 @@ It is legal to specify the \fB-Z\fP
- listed and zeroed.  The exact output is affected by the other
- arguments given. The exact rules are suppressed until you use
- .nf
-- iptables -L -v
-+ ip6tables -L -v
- .fi
- .TP
- \fB-S\fP, \fB--list-rules\fP [\fIchain\fP]
- Print all rules in the selected chain.  If no chain is selected, all
--chains are printed like iptables-save. Like every other iptables command,
-+chains are printed like ip6tables-save. Like every other ip6tables command,
- it applies to the specified table (filter is the default).
- .TP
- \fB-F\fP, \fB--flush\fP [\fIchain\fP]
-diff --git a/iptables.8.in b/iptables.8.in
-index c08d27d..9decfe7 100644
---- a/iptables.8.in
-+++ b/iptables.8.in
-@@ -25,25 +25,25 @@
- .SH NAME
- iptables \- administration tool for IPv4 packet filtering and NAT
- .SH SYNOPSIS
--\fBiptables\fP [\fB-t\fP \fItable\fP\fB]\fP {\fB-A\fP|\fB-D\fP} \fIchain rule-specification\fP [\fIoptions...\fP]
-+\fBiptables\fP [\fB-t\fP \fItable\fP] {\fB-A\fP|\fB-D\fP} \fIchain rule-specification\fP [\fIoptions...\fP]
- .br
--\fBiptables\fP [\fB-t\fP \fItable\fP\fB] -I\fP [\fIrulenum\fP] \fIrule-specification\fP [\fIoptions...\fP]
-+\fBiptables\fP [\fB-t\fP \fItable\fP] \fB-I\fP [\fIrulenum\fP] \fIrule-specification\fP [\fIoptions...\fP]
- .br
--\fBiptables\fP [\fB-t\fP \fItable\fP\fB] -R\fP \fIrulenum rule-specification\fP [\fIoptions...\fP]
-+\fBiptables\fP [\fB-t\fP \fItable\fP] \fB-R\fP \fIrulenum rule-specification\fP [\fIoptions...\fP]
- .br
--\fBiptables\fP [\fB-t\fP \fItable\fP\fB] -D\fP \fIchain rulenum\fP [\fIoptions...\fP]
-+\fBiptables\fP [\fB-t\fP \fItable\fP] \fB-D\fP \fIchain rulenum\fP [\fIoptions...\fP]
- .br
--\fBiptables\fP [\fB-t\fP \fItable\fP\fB] -S\fP [\fIchain\fP]
-+\fBiptables\fP [\fB-t\fP \fItable\fP] \fB-S\fP [\fIchain\fP]
- .br
--\fBiptables\fP [\fB-t\fP \fItable\fP\fB]\fP {\fB-F\fP|\fB-L\fP|\fB-Z\fP} [\fIchain\fP] [\fIoptions...\fP]
-+\fBiptables\fP [\fB-t\fP \fItable\fP] {\fB-F\fP|\fB-L\fP|\fB-Z\fP} [\fIchain\fP] [\fIoptions...\fP]
- .br
--\fBiptables\fP [\fB-t\fP \fItable\fP\fB] -N\fP \fIchain\fP
-+\fBiptables\fP [\fB-t\fP \fItable\fP] \fB-N\fP \fIchain\fP
- .br
--\fBiptables\fP [\fB-t\fP \fItable\fP\fB] -X\fP [\fIchain\fP]
-+\fBiptables\fP [\fB-t\fP \fItable\fP] \fB-X\fP [\fIchain\fP]
- .br
--\fBiptables\fP [\fB-t\fP \fItable\fP\fB] -P\fP \fIchain target\fP [\fIoptions...\fP]
-+\fBiptables\fP [\fB-t\fP \fItable\fP] \fB-P\fP \fIchain target\fP [\fIoptions...\fP]
- .br
--\fBiptables\fP [\fB-t\fP \fItable\fP\fB] -E\fP \fIold-chain-name new-chain-name\fP
-+\fBiptables\fP [\fB-t\fP \fItable\fP] \fB-E\fP \fIold-chain-name new-chain-name\fP
- .SH DESCRIPTION
- \fBIptables\fP is used to set up, maintain, and inspect the
- tables of IPv4 packet
+diff --git a/filter/ulogd_filter_MAC2STR.c b/filter/ulogd_filter_MAC2STR.c
+index 0035886..05f9de9 100644
+--- a/filter/ulogd_filter_MAC2STR.c
++++ b/filter/ulogd_filter_MAC2STR.c
+@@ -31,57 +31,111 @@
+ #define IPADDR_LENGTH 128
+ 
+ enum input_keys {
++	KEY_RAW_MAC_SADDR,
++	KEY_RAW_MAC_DADDR,
++	KEY_RAW_MACADDRLEN,
+ 	KEY_RAW_MAC,
+ 	KEY_RAW_MACLEN,
+ };
+ 
+ enum output_keys {
+ 	KEY_MAC_SADDR,
++	KEY_MAC_DADDR,
++	KEY_MAC_ADDR,
+ };
+ 
+ static struct ulogd_key mac2str_inp[] = {
++	[KEY_RAW_MAC_SADDR] = {
++		.type = ULOGD_RET_RAW,
++		.flags = ULOGD_RETF_NONE|ULOGD_KEYF_OPTIONAL,
++		.name = "raw.mac.saddr",
++	},
++	[KEY_RAW_MAC_DADDR] = {
++		.type = ULOGD_RET_RAW,
++		.flags = ULOGD_RETF_NONE|ULOGD_KEYF_OPTIONAL,
++		.name = "raw.mac.daddr",
++	},
++	[KEY_RAW_MACADDRLEN] = {
++		.type = ULOGD_RET_UINT16,
++		.flags = ULOGD_RETF_NONE|ULOGD_KEYF_OPTIONAL,
++		.name = "raw.mac.addrlen",
++	},
+ 	[KEY_RAW_MAC] = {
+ 		.type = ULOGD_RET_RAW,
+-		.flags = ULOGD_RETF_NONE,
++		.flags = ULOGD_RETF_NONE|ULOGD_KEYF_OPTIONAL,
+ 		.name = "raw.mac",
+ 	},
+ 	[KEY_RAW_MACLEN] = { 
+ 		.type = ULOGD_RET_UINT16, 
+-		.flags = ULOGD_RETF_NONE, 
++		.flags = ULOGD_RETF_NONE|ULOGD_KEYF_OPTIONAL,
+ 		.name = "raw.mac_len", 
+ 	},
+-
+ };
+ 
+ static struct ulogd_key mac2str_keys[] = {
+-	{
++	[KEY_MAC_SADDR] = {
+ 		.type = ULOGD_RET_STRING,
+ 		.flags = ULOGD_RETF_FREE,
+ 		.name = "mac.saddr.str",
+ 	},
++	[KEY_MAC_DADDR] = {
++		.type = ULOGD_RET_STRING,
++		.flags = ULOGD_RETF_FREE,
++		.name = "mac.daddr.str",
++	},
++	[KEY_MAC_ADDR] = {
++		.type = ULOGD_RET_STRING,
++		.flags = ULOGD_RETF_FREE,
++		.name = "mac.str",
++	},
+ };
+ 
++static int parse_mac2str(struct ulogd_key *ret, struct ulogd_key *inp,
++			 int ikey, int okey, int key_size)
++{
++	unsigned char *mac = (unsigned char *) GET_VALUE(inp, ikey).ptr;
++	int len = GET_VALUE(inp, key_size).ui16;
++	char *mac_str = calloc(len/sizeof(char)*3, sizeof(char));
++	char *buf_cur = mac_str;
++	int i;
++
++	if (mac_str == NULL)
++		return ULOGD_IRET_ERR;
++
++	for (i = 0; i < len; i++)
++		buf_cur += sprintf(buf_cur, "%02x%c", mac[i],
++				i == len - 1 ? 0 : ':');
++
++	ret[okey].u.value.ptr = mac_str;
++	ret[okey].flags |= ULOGD_RETF_VALID;
++
++	return ULOGD_IRET_OK;
++}
++
+ static int interp_mac2str(struct ulogd_pluginstance *pi)
+ {
+ 	struct ulogd_key *ret = pi->output.keys;
+ 	struct ulogd_key *inp = pi->input.keys;
++	int retc;
++
++	if (pp_is_valid(inp, KEY_RAW_MAC_SADDR)) {
++		retc = parse_mac2str(ret, inp, KEY_RAW_MAC_SADDR,
++				     KEY_MAC_SADDR, KEY_RAW_MACADDRLEN);
++		if (retc != ULOGD_IRET_OK)
++			return retc;
++	}
++	if (pp_is_valid(inp, KEY_RAW_MAC_DADDR)) {
++		retc = parse_mac2str(ret, inp, KEY_RAW_MAC_DADDR,
++				     KEY_MAC_DADDR, KEY_RAW_MACADDRLEN);
++		if (retc != ULOGD_IRET_OK)
++			return retc;
++	}
+ 
+ 	if (pp_is_valid(inp, KEY_RAW_MAC)) {
+-		unsigned char *mac = (unsigned char *) GET_VALUE(inp, KEY_RAW_MAC).ptr;
+-		int len = GET_VALUE(inp, KEY_RAW_MACLEN).ui16;
+-		char *mac_str = calloc(len/sizeof(char)*3, sizeof(char));
+-		char *buf_cur = mac_str;
+-		int i;
+-		
+-		if (mac_str == NULL)
+-			return ULOGD_IRET_ERR;
+-
+-		for (i = 0; i < len; i++)
+-			buf_cur += sprintf(buf_cur, "%02x%c", mac[i],
+-					   i == len - 1 ? 0 : ':');
+-
+-		ret[KEY_MAC_SADDR].u.value.ptr = mac_str;
+-		ret[KEY_MAC_SADDR].flags |= ULOGD_RETF_VALID;
++		retc = parse_mac2str(ret, inp, KEY_RAW_MAC,
++				     KEY_MAC_ADDR, KEY_RAW_MACLEN);
++		if (retc != ULOGD_IRET_OK)
++			return retc;
+ 	}
+ 
+ 	return ULOGD_IRET_OK;
+-- 
+1.5.4.3
 
