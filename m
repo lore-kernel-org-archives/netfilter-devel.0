@@ -1,37 +1,84 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [ULOGD2 PATCH 0/4] Misc cleaning
-Date: Wed, 23 Jul 2008 15:00:12 +0200
-Message-ID: <48872B5C.2080503@netfilter.org>
-References: <> <1216812835-9851-1-git-send-email-eric@inl.fr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [ANNOUNCE] Release of iptables 1.4.2-rc1
+Date: Wed, 23 Jul 2008 15:39:47 +0200
+Message-ID: <488734A3.3090401@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@inl.fr>
+Content-Type: multipart/mixed;
+ boundary="------------060108020405080504090006"
+To: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	netfilter <netfilter@vger.kernel.org>,
+	netfilter-announce@lists.netfilter.org,
+	Netfilter Core Team <coreteam@net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46112 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751140AbYGWNAV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Jul 2008 09:00:21 -0400
-In-Reply-To: <1216812835-9851-1-git-send-email-eric@inl.fr>
+Received: from stinky.trash.net ([213.144.137.162]:34836 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751400AbYGWNjw (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 23 Jul 2008 09:39:52 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Leblond wrote:
-> Hello,
-> 
-> This small patchset fixes some problems. The main issue is a fix of my previous
-> patch where I've made a stupid type on a function name.
-> To avoid this kind of error, I propose an other patch which adds
-> "-Wall -Wextra" to gcc options.
-> 
-> The main concern here is about IPFIX which is in really bad shape. I've fix
-> some major error in one of the patch but it remains untested for now and I
-> don't think it can work properly.
+This is a multi-part message in MIME format.
+--------------060108020405080504090006
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-All applied. Thanks. Eric, I'd like to resolve the remaining issues
-related with the link layer logging before getting into the IPFIX
-problems. Please, have a look at my previous email.
+The netfilter coreteam presents:
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+     iptables version 1.4.2-rc1
+
+The first release candidate for iptables 1.4.2.
+
+The major change in this release are some scalability improvements
+from Jesper Dangaard Brouer that should greatly increase ruleset
+parsing performance with many chains. Besides that we have some
+minor bugfixes, manpage updates, case insensitive string match
+support (requires current -git kernel) and --goto support for
+ip6tables.
+
+Version 1.4.2-rc1 can be obtained from (please note that the
+webpage hasn't been rebuilt yet, but will be sometime soon):
+
+http://www.netfilter.org/projects/iptables/downloads.html
+ftp://ftp.netfilter.org/pub/iptables/
+git://git.netfilter.org/iptables.git
+
+The plan is to have a final 1.4.2 release shortly before 2.6.27
+is released.
+
+On behalf of the Netfilter Core Team.
+Happy testing!
+
+--------------060108020405080504090006
+Content-Type: text/plain;
+ name="changes-iptables-1.4.1.1-1.4.2-rc1.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="changes-iptables-1.4.1.1-1.4.2-rc1.txt"
+
+Jan Engelhardt (6):
+      build: change equailty test for old bash
+      build: ip6.h is not required
+      libxt_TOS: make sure --set-tos value/mask is recognized
+      build: quote variables in release.sh
+      build: various changes to release.sh
+      manpages: various updates
+
+Jesper Dangaard Brouer (2):
+      libiptc: minor bugfix
+      libiptc: fix scalability performance issue during initial ruleset parsing
+
+Joonwoo Park (1):
+      xt_string: string extension case insensitive matching
+
+Patrick McHardy (3):
+      Add simple release script
+      release.sh: fix changelog filename
+      v1.4.2-rc1
+
+Thomas Jacob (1):
+      ip6tables: add --goto support
+
+
+--------------060108020405080504090006--
