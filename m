@@ -1,50 +1,43 @@
-From: Pavel Emelyanov <xemul@openvz.org>
-Subject: [PATCH] xt_hashlimit: fix race between htable_destroy and htable_gc
-Date: Thu, 24 Jul 2008 01:51:23 +0400
-Message-ID: <4887A7DB.4030305@openvz.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [ULOGD2 PATCH 2/4] Add parsing module for raw.mac.
+Date: Thu, 24 Jul 2008 09:10:59 +0200
+Message-ID: <48882B03.2030806@netfilter.org>
+References: <> <1216848048-13516-2-git-send-email-eric@inl.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Linux Netdev List <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: David Miller <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@inl.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sacred.ru ([62.205.161.221]:57962 "EHLO sacred.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753174AbYGWVtP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Jul 2008 17:49:15 -0400
+Received: from mail.us.es ([193.147.175.20]:60093 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750808AbYGXHLG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 24 Jul 2008 03:11:06 -0400
+In-Reply-To: <1216848048-13516-2-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Deleting a timer with del_timer doesn't guarantee, that the
-timer function is not running at the moment of deletion. Thus
-in the xt_hashlimit case we can get into a ticklish situation
-when the htable_gc rearms the timer back and we'll actually
-delete an entry with a pending timer.
+Eric Leblond wrote:
+> This patch adds a module named RAWMAC which is in charge of parsing the
+> hardware header to extract source and destination hardware address.
 
-Fix it with using del_timer_sync().
+I think that this should be merged with MAC2STR, can you see any other
+potential user of this information apart from the string converter?
+Also, it would be nice to rename it to HW2STR instead.
 
-AFAIK del_timer_sync checks for the timer to be pending by
-itself, so I remove the check.
+Minor glitch below:
 
-Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
+> +static int parse_rawmac(struct ulogd_key *ret, struct ulogd_key *inp, int type)
+> +{
+> +	switch (type) {
+> +		case ARPHRD_ETHER:
+> +			return parse_ethernet(ret, inp);
+> +		default:
+> +			ulogd_log(ULOGD_NOTICE, "Unsupported hardware type (%d), "
+> +				  "unable to parse.\n", GET_VALUE(ret, KEY_RAW_TYPE).ui16);
 
----
+This can generate lots of log messages. I prefer to remove this and
+document that only ethernet is supported at the moment.
 
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index 6809af5..d9418a2 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -367,9 +367,7 @@ static void htable_gc(unsigned long htlong)
- 
- static void htable_destroy(struct xt_hashlimit_htable *hinfo)
- {
--	/* remove timer, if it is pending */
--	if (timer_pending(&hinfo->timer))
--		del_timer(&hinfo->timer);
-+	del_timer_sync(&hinfo->timer);
- 
- 	/* remove proc entry */
- 	remove_proc_entry(hinfo->pde->name,
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
