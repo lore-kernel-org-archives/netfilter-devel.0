@@ -1,56 +1,80 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: Re: [ULOGD2 PATCH 2/4] Add parsing module for raw.mac.
-Date: Thu, 24 Jul 2008 09:37:34 +0200
-Message-ID: <20080724073733.GD2250@khasse.inl.fr>
-References: <1216848048-13516-2-git-send-email-eric@inl.fr> <48882B03.2030806@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: POM Xtables???
+Date: Thu, 24 Jul 2008 11:43:47 +0200
+Message-ID: <48884ED3.8080901@trash.net>
+References: <935fab200806271054oa7c340evbf465b7a9984498b@mail.gmail.com>	 <alpine.LNX.1.10.0806272003170.12725@fbirervta.pbzchgretzou.qr>	 <4866F152.7030109@riverviewtech.net>	 <935fab200806300904rc7dc7b2kf58ab7893c3ef20a@mail.gmail.com>	 <486907EA.60105@trash.net>	 <alpine.LNX.1.10.0806302218500.30639@fbirervta.pbzchgretzou.qr>	 <48694787.3080906@trash.net>	 <alpine.LNX.1.10.0807010907040.26892@fbirervta.pbzchgretzou.qr>	 <4887BCE0.2050902@trash.net> <38bcb3ec0807240131n1f5d4051k9e89731aa2fcb6c9@mail.gmail.com> <488849A5.6050401@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: James King <t.james.king@gmail.com>,
+	Jan Engelhardt <jengelh@medozas.de>,
+	Dave <finalglide@gmail.com>, netfilter@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fydelkass.inl.fr ([195.101.59.116]:46434 "EHLO fydelkass.inl.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751838AbYGXHhg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 24 Jul 2008 03:37:36 -0400
-Content-Disposition: inline
-In-Reply-To: <48882B03.2030806@netfilter.org>
+Received: from stinky.trash.net ([213.144.137.162]:62316 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751696AbYGXJnw (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 24 Jul 2008 05:43:52 -0400
+In-Reply-To: <488849A5.6050401@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+Pablo Neira Ayuso wrote:
+> James King wrote:
+>> On Wed, Jul 23, 2008 at 4:21 PM, Patrick McHardy wrote:
+>>
+>>> Just send it to netfilter-devel. If its the thing with lots
+>>> of hard-coded binary matches full of magic values I'm not
+>>> interested :) I'd be more interested in a discussion what
+>>> would be necessary to represent all those matches through
+>>> the FSM textsearch match or something similar.
+ >>
+>> ipp2p is the one with hard coded magic values.
+>>
+>> What are your feelings on the kernel version of l7filter (regex
+>> patterns loaded from the filesystem)?  Currently it requires a patch
+>> to add a structure to nf_conn, but I've been meaning to rewrite it to
+>> use ct_extend so that it could at least be included into xtables-addon
+>> and used with a stock kernel, although if there's interest in having
+>> it merged into mainline I'd be willing to focus on that.
 
-On Thursday, 2008 July 24 at  9:10:59 +0200, Pablo Neira Ayuso wrote:
-> Eric Leblond wrote:
-> > This patch adds a module named RAWMAC which is in charge of parsing the
-> > hardware header to extract source and destination hardware address.
-> 
-> I think that this should be merged with MAC2STR, can you see any other
-> potential user of this information apart from the string converter?
+That is definitely a much better way than to hardcode the
+matches. I think there is some interest in having this in
+the kernel, yes.
 
-No, this was also my conclusion before falling asleep yesterday ;)
+>> One thing
+>> I'm not sure of is whether the license used by the Henry Spencer regex
+>> library it depends on is acceptable by kernel standards (or whether
+>> it's permissive enough to relicense under GPL, as IANAL).
 
-> Also, it would be nice to rename it to HW2STR instead.
+I know of the regexp.old.zip library, which IIRC used a GPL
+compatible license (and a non-POSIX conform interface).
 
-Ok.
- 
-> Minor glitch below:
-> 
-> > +static int parse_rawmac(struct ulogd_key *ret, struct ulogd_key *inp, int type)
-> > +{
-> > +	switch (type) {
-> > +		case ARPHRD_ETHER:
-> > +			return parse_ethernet(ret, inp);
-> > +		default:
-> > +			ulogd_log(ULOGD_NOTICE, "Unsupported hardware type (%d), "
-> > +				  "unable to parse.\n", GET_VALUE(ret, KEY_RAW_TYPE).ui16);
-> 
-> This can generate lots of log messages. I prefer to remove this and
-> document that only ethernet is supported at the moment.
+> If we want to do this in-kernel I think that it's better if it must use
+> the textsearch infrastructure. Probably it would require some patches to
+> extend the existing infrastructure.
 
-Ok, good idea.
+I'd also prefer that over adding a regex library to the kernel.
+I think one of the bigger problems is that there are dependencies
+in the match that can't be easily expressed, like "byte 4 has
+skb->len - 10". At least ipp2p does something like that. But
+maybe thats not necessary, since l7filter already uses regexes
+there's apparently a different method for doing this.
 
-BR,
--- 
-Eric Leblond
-INL: http://www.inl.fr/
-NuFW: http://www.nufw.org/
+It would be useful if someone could post an excerpt from the
+l7filter expressions or simply the entire patch.
+
+> The other choise is userspace by means NFQUEUE. If we use some
+> heuristics, we may try to classify the traffic by means of the initial
+> data packets and then mark the connection. Thus, the number of packets
+> that go to userspace would be small and the classification logic is
+> implemented in userspace using whatever regex
+> engine/aho-corasick/bit-wise/boyer-moore/bayes whatsoever...
+
+Yes, thats another possibilty (and a lot of people are doing
+that), but it would still be nice to have a mechanism for
+doing this in the kernel.
+
