@@ -1,44 +1,58 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Conntrack Events Performance - Multipart Messages?
-Date: Fri, 25 Jul 2008 13:15:09 +0200
-Message-ID: <4889B5BD.5070004@netfilter.org>
-References: <487E24FC.60700@gmx.ch> <487F18DA.7030208@netfilter.org>	 <487FFBEE.90409@trash.net> <4884B068.4050306@gmx.ch>	 <4884B270.5010104@trash.net> <4884CC17.3020905@gmx.ch>	 <488740E7.3040005@gmx.ch> <48874272.1020503@trash.net>	 <48875887.8040209@gmx.ch> <488763F3.5020506@trash.net>	 <48876725.8010404@gmx.ch>  <48876876.6010006@trash.net> <1216905683.31465.10.camel@pumper.lan.luxnet.ch> <48899DBE.5080005@netfilter.org>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [ANNOUNCE] Release of iptables 1.4.2-rc1
+Date: Fri, 25 Jul 2008 14:22:45 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0807251357210.30751@blackhole.kfki.hu>
+References: <488734A3.3090401@trash.net> <Pine.LNX.4.58.0807241231520.30125@mail3.jubileegroup.co.uk>
+ <48886ABA.8020200@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Fabian Hugelshofer <hugelshofer2006@gmx.ch>,
-	Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: "G.W. Haywood" <ged@jubileegroup.co.uk>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	netfilter <netfilter@vger.kernel.org>,
+	Netfilter Core Team <coreteam@netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57013 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750706AbYGYLPn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 25 Jul 2008 07:15:43 -0400
-In-Reply-To: <48899DBE.5080005@netfilter.org>
+Received: from smtp-in.kfki.hu ([148.6.0.26]:41624 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752457AbYGYMWr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 25 Jul 2008 08:22:47 -0400
+In-Reply-To: <48886ABA.8020200@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> Or much simpler, just call read_rcu_unlock() before the first
-> nla_nest_start() so that this results in much smaller patch:
+On Thu, 24 Jul 2008, Patrick McHardy wrote:
+
+> G.W. Haywood wrote:
 > 
-> nlmsg_failure:
-> nla_put_failure:
->         read_rcu_unlock(); <---
->         nlmsg_trim(skb, b);
->         return -1;
+> > I'm curious about the ipset userspace tool - will it eventually find
+> > its way to the iptables tarball?  Right now it seems that you get it
+> > kind of incidentally when you apply the kernel patch, which seems to
+> > me a little odd.
+> 
+> Jozsef should be able to answer that.
 
-As said, if you do this in ctnetlink_conntrack_event, I think that you
-can also remove the rcu_read_lock in ctnetlink_dump_helpinfo, as then
-all dump functions will be invoked under rcu_read_lock.
+With the iptables source you already get the userspace part of the set 
+match and target. The (new) ipset source tarball contains both the ipset 
+userspace tool and the kernel modules, including the netfilter match and 
+target. There's no need for patch-o-matic-ng for ipset anymore, so the 
+life is easier to get the complete ipset functionality.
 
-In ctnetlink_get_conntrack, I think that ctnetlink_fill_info needs to be
-protected with rcu_read_lock.
+As I stated several times, I do not want to submit the kernel part of 
+ipset for inclusion: there's no point to waste the resources of the 
+maintainers as I have been working on a complete rewriting of ipset.
+By the next netfilter development workshop I want to release the first 
+version of it, so it's not in the indefinite future anymore.
 
-BTW, why do we need such a big read-side critical section in
-ctnetlink_create_conntrack? I think that we only need for the helper
-assignation, right?
+I'd not like the ipset userspace tool to be included into the iptables 
+source either. That'd be an even stranger situation and then there'd come 
+even bigger pressure to submit the kernel part of the present version of 
+ipset.
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
