@@ -1,89 +1,109 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: selinux 02/06: use nf_register_hooks()
-Date: Sun, 27 Jul 2008 01:37:09 +0200 (MEST)
-Message-ID: <20080726233708.15283.61416.sendpatchset@localhost.localdomain>
+Subject: netfilter 01/06: ebtables: use nf_register_hooks()
+Date: Sun, 27 Jul 2008 01:37:08 +0200 (MEST)
+Message-ID: <20080726233707.15283.96360.sendpatchset@localhost.localdomain>
 References: <20080726233705.15283.38364.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:43532 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:43529 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756012AbYGZXhK (ORCPT
+	with ESMTP id S1753821AbYGZXhJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 26 Jul 2008 19:37:10 -0400
+	Sat, 26 Jul 2008 19:37:09 -0400
 In-Reply-To: <20080726233705.15283.38364.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-selinux: use nf_register_hooks()
+netfilter: ebtables: use nf_register_hooks()
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
-Acked-by: James Morris <jmorris@namei.org>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 0b2ece9450ccf5ab814cc8d3520f6977db184e28
-tree 3d55f92f34e54fb29885979946c1cc9350e09620
-parent 1560ab44b64937c854fedbfedc80a7f2ae491436
-author Alexey Dobriyan <adobriyan@gmail.com> Sun, 27 Jul 2008 00:40:02 +0200
-committer Patrick McHardy <kaber@trash.net> Sun, 27 Jul 2008 00:40:02 +0200
+commit 1560ab44b64937c854fedbfedc80a7f2ae491436
+tree 530ee8dd17ba9685ab9c9aa8a54ed257e90d233c
+parent 7d7e5a60c62e88cb8782760bb6c4d3bd1577a6c6
+author Alexey Dobriyan <adobriyan@gmail.com> Sun, 27 Jul 2008 00:37:24 +0200
+committer Patrick McHardy <kaber@trash.net> Sun, 27 Jul 2008 00:37:24 +0200
 
- security/selinux/hooks.c |   27 ++++++++-------------------
- 1 files changed, 8 insertions(+), 19 deletions(-)
+ net/bridge/netfilter/ebtable_filter.c |   18 +++++-------------
+ net/bridge/netfilter/ebtable_nat.c    |   18 +++++-------------
+ 2 files changed, 10 insertions(+), 26 deletions(-)
 
-diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
-index 63f131f..df0515d 100644
---- a/security/selinux/hooks.c
-+++ b/security/selinux/hooks.c
-@@ -5670,27 +5670,20 @@ static struct nf_hook_ops selinux_ipv6_ops[] = {
- static int __init selinux_nf_ip_init(void)
+diff --git a/net/bridge/netfilter/ebtable_filter.c b/net/bridge/netfilter/ebtable_filter.c
+index 690bc3a..1a58af5 100644
+--- a/net/bridge/netfilter/ebtable_filter.c
++++ b/net/bridge/netfilter/ebtable_filter.c
+@@ -93,28 +93,20 @@ static struct nf_hook_ops ebt_ops_filter[] __read_mostly = {
+ 
+ static int __init ebtable_filter_init(void)
  {
- 	int err = 0;
--	u32 iter;
+-	int i, j, ret;
++	int ret;
  
- 	if (!selinux_enabled)
- 		goto out;
- 
- 	printk(KERN_DEBUG "SELinux:  Registering netfilter hooks\n");
- 
--	for (iter = 0; iter < ARRAY_SIZE(selinux_ipv4_ops); iter++) {
--		err = nf_register_hook(&selinux_ipv4_ops[iter]);
--		if (err)
--			panic("SELinux: nf_register_hook for IPv4: error %d\n",
--			      err);
--	}
-+	err = nf_register_hooks(selinux_ipv4_ops, ARRAY_SIZE(selinux_ipv4_ops));
-+	if (err)
-+		panic("SELinux: nf_register_hooks for IPv4: error %d\n", err);
- 
- #if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
--	for (iter = 0; iter < ARRAY_SIZE(selinux_ipv6_ops); iter++) {
--		err = nf_register_hook(&selinux_ipv6_ops[iter]);
--		if (err)
--			panic("SELinux: nf_register_hook for IPv6: error %d\n",
--			      err);
--	}
-+	err = nf_register_hooks(selinux_ipv6_ops, ARRAY_SIZE(selinux_ipv6_ops));
-+	if (err)
-+		panic("SELinux: nf_register_hooks for IPv6: error %d\n", err);
- #endif	/* IPV6 */
- 
- out:
-@@ -5702,15 +5695,11 @@ __initcall(selinux_nf_ip_init);
- #ifdef CONFIG_SECURITY_SELINUX_DISABLE
- static void selinux_nf_ip_exit(void)
- {
--	u32 iter;
--
- 	printk(KERN_DEBUG "SELinux:  Unregistering netfilter hooks\n");
- 
--	for (iter = 0; iter < ARRAY_SIZE(selinux_ipv4_ops); iter++)
--		nf_unregister_hook(&selinux_ipv4_ops[iter]);
-+	nf_unregister_hooks(selinux_ipv4_ops, ARRAY_SIZE(selinux_ipv4_ops));
- #if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
--	for (iter = 0; iter < ARRAY_SIZE(selinux_ipv6_ops); iter++)
--		nf_unregister_hook(&selinux_ipv6_ops[iter]);
-+	nf_unregister_hooks(selinux_ipv6_ops, ARRAY_SIZE(selinux_ipv6_ops));
- #endif	/* IPV6 */
+ 	ret = ebt_register_table(&frame_filter);
+ 	if (ret < 0)
+ 		return ret;
+-	for (i = 0; i < ARRAY_SIZE(ebt_ops_filter); i++)
+-		if ((ret = nf_register_hook(&ebt_ops_filter[i])) < 0)
+-			goto cleanup;
+-	return ret;
+-cleanup:
+-	for (j = 0; j < i; j++)
+-		nf_unregister_hook(&ebt_ops_filter[j]);
+-	ebt_unregister_table(&frame_filter);
++	ret = nf_register_hooks(ebt_ops_filter, ARRAY_SIZE(ebt_ops_filter));
++	if (ret < 0)
++		ebt_unregister_table(&frame_filter);
+ 	return ret;
  }
- #endif
+ 
+ static void __exit ebtable_filter_fini(void)
+ {
+-	int i;
+-
+-	for (i = 0; i < ARRAY_SIZE(ebt_ops_filter); i++)
+-		nf_unregister_hook(&ebt_ops_filter[i]);
++	nf_unregister_hooks(ebt_ops_filter, ARRAY_SIZE(ebt_ops_filter));
+ 	ebt_unregister_table(&frame_filter);
+ }
+ 
+diff --git a/net/bridge/netfilter/ebtable_nat.c b/net/bridge/netfilter/ebtable_nat.c
+index 5b495fe..f60c1e7 100644
+--- a/net/bridge/netfilter/ebtable_nat.c
++++ b/net/bridge/netfilter/ebtable_nat.c
+@@ -100,28 +100,20 @@ static struct nf_hook_ops ebt_ops_nat[] __read_mostly = {
+ 
+ static int __init ebtable_nat_init(void)
+ {
+-	int i, ret, j;
++	int ret;
+ 
+ 	ret = ebt_register_table(&frame_nat);
+ 	if (ret < 0)
+ 		return ret;
+-	for (i = 0; i < ARRAY_SIZE(ebt_ops_nat); i++)
+-		if ((ret = nf_register_hook(&ebt_ops_nat[i])) < 0)
+-			goto cleanup;
+-	return ret;
+-cleanup:
+-	for (j = 0; j < i; j++)
+-		nf_unregister_hook(&ebt_ops_nat[j]);
+-	ebt_unregister_table(&frame_nat);
++	ret = nf_register_hooks(ebt_ops_nat, ARRAY_SIZE(ebt_ops_nat));
++	if (ret < 0)
++		ebt_unregister_table(&frame_nat);
+ 	return ret;
+ }
+ 
+ static void __exit ebtable_nat_fini(void)
+ {
+-	int i;
+-
+-	for (i = 0; i < ARRAY_SIZE(ebt_ops_nat); i++)
+-		nf_unregister_hook(&ebt_ops_nat[i]);
++	nf_unregister_hooks(ebt_ops_nat, ARRAY_SIZE(ebt_ops_nat));
+ 	ebt_unregister_table(&frame_nat);
+ }
+ 
