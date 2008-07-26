@@ -1,56 +1,89 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 00/06: netfilter update
-Date: Sun, 27 Jul 2008 01:37:06 +0200 (MEST)
-Message-ID: <20080726233705.15283.38364.sendpatchset@localhost.localdomain>
+Subject: selinux 02/06: use nf_register_hooks()
+Date: Sun, 27 Jul 2008 01:37:09 +0200 (MEST)
+Message-ID: <20080726233708.15283.61416.sendpatchset@localhost.localdomain>
+References: <20080726233705.15283.38364.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:43526 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:43532 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753821AbYGZXhI (ORCPT
+	with ESMTP id S1756012AbYGZXhK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 26 Jul 2008 19:37:08 -0400
+	Sat, 26 Jul 2008 19:37:10 -0400
+In-Reply-To: <20080726233705.15283.38364.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Dave,
+selinux: use nf_register_hooks()
 
-the following patchset contains a small netfilter update, consisting of:
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Acked-by: James Morris <jmorris@namei.org>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-- the nf_iterate bugfix from Pekka
+---
+commit 0b2ece9450ccf5ab814cc8d3520f6977db184e28
+tree 3d55f92f34e54fb29885979946c1cc9350e09620
+parent 1560ab44b64937c854fedbfedc80a7f2ae491436
+author Alexey Dobriyan <adobriyan@gmail.com> Sun, 27 Jul 2008 00:40:02 +0200
+committer Patrick McHardy <kaber@trash.net> Sun, 27 Jul 2008 00:40:02 +0200
 
-- minor ct_extend cleanups for issues pointed out by Linus
+ security/selinux/hooks.c |   27 ++++++++-------------------
+ 1 files changed, 8 insertions(+), 19 deletions(-)
 
-- two cleanup patches from Alexey to make use of nf_register_hooks where possible
-
-- a bugfix from Alexey for a section mismatch in the security tables that will
-  be noticable once NET_NS and SECURITY won't be mutually exclusive anymore
-
-- a patch to make arp_tables net_ns aware. I already had this one queued and
-  it doesn't seem worth postponing.
-
-Please apply, thanks.
-
-
- include/linux/slab.h                   |    1 +
- mm/util.c                              |   44 ++++++++++++++++++++++++-------
- net/bridge/netfilter/ebtable_filter.c  |   18 +++---------
- net/bridge/netfilter/ebtable_nat.c     |   18 +++---------
- net/ipv4/netfilter/arptable_filter.c   |   39 +++++++++++++++++++++------
- net/ipv4/netfilter/iptable_security.c  |    2 +-
- net/ipv6/netfilter/ip6table_security.c |    2 +-
- net/netfilter/nf_conntrack_extend.c    |   10 +++---
- security/selinux/hooks.c               |   27 ++++++-------------
- 9 files changed, 90 insertions(+), 71 deletions(-)
-
-Alexey Dobriyan (4):
-      netfilter: ebtables: use nf_register_hooks()
-      selinux: use nf_register_hooks()
-      netfilter: ip{,6}tables_security: fix future section mismatch
-      netfilter: arptables in netns for real
-
-Patrick McHardy (1):
-      netfilter: nf_conntrack_extend: avoid unnecessary "ct->ext" dereferences
-
-Pekka Enberg (1):
-      netfilter: fix double-free and use-after free
+diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
+index 63f131f..df0515d 100644
+--- a/security/selinux/hooks.c
++++ b/security/selinux/hooks.c
+@@ -5670,27 +5670,20 @@ static struct nf_hook_ops selinux_ipv6_ops[] = {
+ static int __init selinux_nf_ip_init(void)
+ {
+ 	int err = 0;
+-	u32 iter;
+ 
+ 	if (!selinux_enabled)
+ 		goto out;
+ 
+ 	printk(KERN_DEBUG "SELinux:  Registering netfilter hooks\n");
+ 
+-	for (iter = 0; iter < ARRAY_SIZE(selinux_ipv4_ops); iter++) {
+-		err = nf_register_hook(&selinux_ipv4_ops[iter]);
+-		if (err)
+-			panic("SELinux: nf_register_hook for IPv4: error %d\n",
+-			      err);
+-	}
++	err = nf_register_hooks(selinux_ipv4_ops, ARRAY_SIZE(selinux_ipv4_ops));
++	if (err)
++		panic("SELinux: nf_register_hooks for IPv4: error %d\n", err);
+ 
+ #if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
+-	for (iter = 0; iter < ARRAY_SIZE(selinux_ipv6_ops); iter++) {
+-		err = nf_register_hook(&selinux_ipv6_ops[iter]);
+-		if (err)
+-			panic("SELinux: nf_register_hook for IPv6: error %d\n",
+-			      err);
+-	}
++	err = nf_register_hooks(selinux_ipv6_ops, ARRAY_SIZE(selinux_ipv6_ops));
++	if (err)
++		panic("SELinux: nf_register_hooks for IPv6: error %d\n", err);
+ #endif	/* IPV6 */
+ 
+ out:
+@@ -5702,15 +5695,11 @@ __initcall(selinux_nf_ip_init);
+ #ifdef CONFIG_SECURITY_SELINUX_DISABLE
+ static void selinux_nf_ip_exit(void)
+ {
+-	u32 iter;
+-
+ 	printk(KERN_DEBUG "SELinux:  Unregistering netfilter hooks\n");
+ 
+-	for (iter = 0; iter < ARRAY_SIZE(selinux_ipv4_ops); iter++)
+-		nf_unregister_hook(&selinux_ipv4_ops[iter]);
++	nf_unregister_hooks(selinux_ipv4_ops, ARRAY_SIZE(selinux_ipv4_ops));
+ #if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
+-	for (iter = 0; iter < ARRAY_SIZE(selinux_ipv6_ops); iter++)
+-		nf_unregister_hook(&selinux_ipv6_ops[iter]);
++	nf_unregister_hooks(selinux_ipv6_ops, ARRAY_SIZE(selinux_ipv6_ops));
+ #endif	/* IPV6 */
+ }
+ #endif
