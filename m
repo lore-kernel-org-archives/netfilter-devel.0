@@ -1,179 +1,171 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: [ULOGD2 PATCH 05/11] Suppress some warnings in format string usage.
-Date: Sun, 27 Jul 2008 15:51:20 +0200
-Message-ID: <1217166686-28508-6-git-send-email-eric@inl.fr>
-References: <20080723162746.GB31572@bayen.regit.org>
-Cc: Eric Leblond <eric@inl.fr>
-To: netfilter-devel@vger.kernel.org
+From: Fabian Hugelshofer <hugelshofer2006@gmx.ch>
+Subject: Re: Conntrack Events Performance - Multipart Messages?
+Date: Sun, 27 Jul 2008 18:23:48 +0100
+Message-ID: <1217179428.11538.6.camel@pumper.lan.luxnet.ch>
+References: <487E24FC.60700@gmx.ch> <487F18DA.7030208@netfilter.org>
+	 <487FFBEE.90409@trash.net> <4884B068.4050306@gmx.ch>
+	 <4884B270.5010104@trash.net> <4884CC17.3020905@gmx.ch>
+	 <488740E7.3040005@gmx.ch> <48874272.1020503@trash.net>
+	 <48875887.8040209@gmx.ch> <488763F3.5020506@trash.net>
+	 <48876725.8010404@gmx.ch>  <48876876.6010006@trash.net>
+	 <1216905683.31465.10.camel@pumper.lan.luxnet.ch>
+	 <48899DBE.5080005@netfilter.org>  <4889B5BD.5070004@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:43800 "EHLO ice-age"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751866AbYG0Nv3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 27 Jul 2008 09:51:29 -0400
-In-Reply-To: <20080723162746.GB31572@bayen.regit.org>
+Received: from mail.gmx.net ([213.165.64.20]:60164 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1750790AbYG0RX5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 27 Jul 2008 13:23:57 -0400
+In-Reply-To: <4889B5BD.5070004@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch cast to (char *) some (void *) to avoid a gcc warning in string
-format parsing.
+Pablo Neira Ayuso wrote:
+> Pablo Neira Ayuso wrote:
+> > Or much simpler, just call read_rcu_unlock() before the first
+> > nla_nest_start() so that this results in much smaller patch:
+> > 
+> > nlmsg_failure:
+> > nla_put_failure:
+> >         read_rcu_unlock(); <---
+> >         nlmsg_trim(skb, b);
+> >         return -1;
+> 
+> As said, if you do this in ctnetlink_conntrack_event, I think that you
+> can also remove the rcu_read_lock in ctnetlink_dump_helpinfo, as then
+> all dump functions will be invoked under rcu_read_lock.
 
-Signed-off-by: Eric Leblond <eric@inl.fr>
----
- output/ulogd_output_LOGEMU.c |    2 +-
- output/ulogd_output_NACCT.c  |    8 ++++----
- output/ulogd_output_SYSLOG.c |    2 +-
- util/db.c                    |    2 +-
- util/printflow.c             |    8 ++++----
- util/printpkt.c              |   12 ++++++------
- 6 files changed, 17 insertions(+), 17 deletions(-)
+I modified the patch with your suggestions. Read locks have been removed
+from all dump functions.
 
-diff --git a/output/ulogd_output_LOGEMU.c b/output/ulogd_output_LOGEMU.c
-index cab3b0c..edee86f 100644
---- a/output/ulogd_output_LOGEMU.c
-+++ b/output/ulogd_output_LOGEMU.c
-@@ -102,7 +102,7 @@ static int _output_logemu(struct ulogd_pluginstance *upi)
- 			*tmp = '\0';
+> In ctnetlink_get_conntrack, I think that ctnetlink_fill_info needs to be
+> protected with rcu_read_lock.
+
+ctnetlink_get_conntrack now contains a read lock to protect the dump
+functions. Protecting it outside is therefore not necessary.
+
+
+nf_ctnetlink: Remove read locks from dump functions to increase
+performance in the event notification path
+
+Signed-off-by: Fabian Hugelshofer <hugelshofer2006@gmx.ch>
+
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 95a7967..696649e 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -104,16 +104,14 @@ ctnetlink_dump_tuples(struct sk_buff *skb,
+ 	struct nf_conntrack_l3proto *l3proto;
+ 	struct nf_conntrack_l4proto *l4proto;
  
- 		fprintf(li->of, "%.15s %s %s", timestr, hostname,
--				res[0].u.source->u.value.ptr);
-+				(char *) res[0].u.source->u.value.ptr);
+-	l3proto = nf_ct_l3proto_find_get(tuple->src.l3num);
++	l3proto = __nf_ct_l3proto_find(tuple->src.l3num);
+ 	ret = ctnetlink_dump_tuples_ip(skb, tuple, l3proto);
+-	nf_ct_l3proto_put(l3proto);
  
- 		if (upi->config_kset->ces[1].u.value)
- 			fflush(li->of);
-diff --git a/output/ulogd_output_NACCT.c b/output/ulogd_output_NACCT.c
-index 4897959..0ab2be4 100644
---- a/output/ulogd_output_NACCT.c
-+++ b/output/ulogd_output_NACCT.c
-@@ -130,9 +130,9 @@ nacct_interp(struct ulogd_pluginstance *pi)
- 				 "%u\t%u\t%s\t%u\t%s\t%u\t%u\t%u",
- 				 GET_VALUE(inp, KEY_FLOW_END).ui32,
- 				 GET_VALUE(inp, KEY_IP_PROTO).ui8,
--				 GET_VALUE(inp, KEY_IP_SADDR).ptr,
-+				 (char *) GET_VALUE(inp, KEY_IP_SADDR).ptr,
- 				 GET_VALUE(inp, KEY_ICMP_TYPE).ui8,
--				 GET_VALUE(inp, KEY_IP_DADDR).ptr,
-+				 (char *) GET_VALUE(inp, KEY_IP_DADDR).ptr,
- 				 GET_VALUE(inp, KEY_ICMP_CODE).ui8,
- 				 GET_VALUE(inp, KEY_RAW_PKTCNT).ui32,
- 				 GET_VALUE(inp, KEY_RAW_PKTLEN).ui32);
-@@ -141,9 +141,9 @@ nacct_interp(struct ulogd_pluginstance *pi)
- 				 "%u\t%u\t%s\t%u\t%s\t%u\t%u\t%u",
- 				 GET_VALUE(inp, KEY_FLOW_END).ui32,
- 				 GET_VALUE(inp, KEY_IP_PROTO).ui8,
--				 GET_VALUE(inp, KEY_IP_SADDR).ptr,
-+				 (char *) GET_VALUE(inp, KEY_IP_SADDR).ptr,
- 				 GET_VALUE(inp, KEY_L4_SPORT).ui16,
--				 GET_VALUE(inp, KEY_IP_DADDR).ptr,
-+				 (char *) GET_VALUE(inp, KEY_IP_DADDR).ptr,
- 				 GET_VALUE(inp, KEY_L4_DPORT).ui16,
- 				 GET_VALUE(inp, KEY_RAW_PKTCNT).ui32,
- 				 GET_VALUE(inp, KEY_RAW_PKTLEN).ui32);
-diff --git a/output/ulogd_output_SYSLOG.c b/output/ulogd_output_SYSLOG.c
-index 8dd93f3..1812cb0 100644
---- a/output/ulogd_output_SYSLOG.c
-+++ b/output/ulogd_output_SYSLOG.c
-@@ -77,7 +77,7 @@ static int _output_syslog(struct ulogd_pluginstance *upi)
+ 	if (unlikely(ret < 0))
+ 		return ret;
  
- 	if (res[0].u.source->flags & ULOGD_RETF_VALID)
- 		syslog(li->syslog_level | li->syslog_facility, "%s",
--				res[0].u.source->u.value.ptr);
-+				(char *) res[0].u.source->u.value.ptr);
+-	l4proto = nf_ct_l4proto_find_get(tuple->src.l3num, tuple->dst.protonum);
++	l4proto = __nf_ct_l4proto_find(tuple->src.l3num, tuple->dst.protonum);
+ 	ret = ctnetlink_dump_tuples_proto(skb, tuple, l4proto);
+-	nf_ct_l4proto_put(l4proto);
  
- 	return ULOGD_IRET_OK;
+ 	return ret;
  }
-diff --git a/util/db.c b/util/db.c
-index 8e9dde6..68dcc31 100644
---- a/util/db.c
-+++ b/util/db.c
-@@ -284,7 +284,7 @@ static int __interp_db(struct ulogd_pluginstance *upi)
- 			sprintf(di->stmt_ins, "',");
- 			break;
- 		case ULOGD_RET_RAWSTR:
--			sprintf(di->stmt_ins, "%s,", res->u.value.ptr);
-+			sprintf(di->stmt_ins, "%s,", (char *) res->u.value.ptr);
- 			break;
- 		case ULOGD_RET_RAW:
- 			ulogd_log(ULOGD_NOTICE,
-diff --git a/util/printflow.c b/util/printflow.c
-index 73d2969..bb3c2c4 100644
---- a/util/printflow.c
-+++ b/util/printflow.c
-@@ -164,12 +164,12 @@ int printflow_print(struct ulogd_key *res, char *buf)
- 	if (pp_is_valid(res, PRINTFLOW_ORIG_IP_SADDR))
- 		buf_cur += sprintf(buf_cur,
- 				   "SRC=%s ", 
--				   GET_VALUE(res, PRINTFLOW_ORIG_IP_SADDR).ptr);
-+				   (char *) GET_VALUE(res, PRINTFLOW_ORIG_IP_SADDR).ptr);
+@@ -150,9 +148,8 @@ ctnetlink_dump_protoinfo(struct sk_buff *skb, const struct nf_conn *ct)
+ 	struct nlattr *nest_proto;
+ 	int ret;
  
- 	if (pp_is_valid(res, PRINTFLOW_ORIG_IP_DADDR))
- 		buf_cur += sprintf(buf_cur,
- 				   "DST=%s ",
--				   GET_VALUE(res, PRINTFLOW_ORIG_IP_DADDR).ptr);
-+				   (char *) GET_VALUE(res, PRINTFLOW_ORIG_IP_DADDR).ptr);
+-	l4proto = nf_ct_l4proto_find_get(nf_ct_l3num(ct), nf_ct_protonum(ct));
++	l4proto = __nf_ct_l4proto_find(nf_ct_l3num(ct), nf_ct_protonum(ct));
+ 	if (!l4proto->to_nlattr) {
+-		nf_ct_l4proto_put(l4proto);
+ 		return 0;
+ 	}
  
- 	if (!pp_is_valid(res, PRINTFLOW_ORIG_IP_PROTOCOL))
- 		goto orig_out;
-@@ -215,12 +215,12 @@ orig_out:
- 	if (pp_is_valid(res, PRINTFLOW_REPLY_IP_SADDR))
- 		buf_cur += sprintf(buf_cur,
- 				   "SRC=%s ",
--				   GET_VALUE(res,PRINTFLOW_REPLY_IP_SADDR).ptr);
-+				   (char *) GET_VALUE(res,PRINTFLOW_REPLY_IP_SADDR).ptr);
+@@ -162,14 +159,11 @@ ctnetlink_dump_protoinfo(struct sk_buff *skb, const struct nf_conn *ct)
  
- 	if (pp_is_valid(res, PRINTFLOW_REPLY_IP_DADDR))
- 		buf_cur += sprintf(buf_cur,
- 				   "DST=%s ",
--				   GET_VALUE(res,PRINTFLOW_REPLY_IP_DADDR).ptr);
-+				   (char *) GET_VALUE(res,PRINTFLOW_REPLY_IP_DADDR).ptr);
+ 	ret = l4proto->to_nlattr(skb, nest_proto, ct);
  
- 	if (!pp_is_valid(res, PRINTFLOW_REPLY_IP_PROTOCOL))
- 		goto reply_out;
-diff --git a/util/printpkt.c b/util/printpkt.c
-index c64a4cb..5359b8b 100644
---- a/util/printpkt.c
-+++ b/util/printpkt.c
-@@ -193,11 +193,11 @@ static int printpkt_ipv4(struct ulogd_key *res, char *buf)
+-	nf_ct_l4proto_put(l4proto);
+-
+ 	nla_nest_end(skb, nest_proto);
  
- 	if (pp_is_valid(res, KEY_IP_SADDR))
- 		buf_cur += sprintf(buf_cur, "SRC=%s ",
--				   GET_VALUE(res, KEY_IP_SADDR).ptr);
-+				   (char *) GET_VALUE(res, KEY_IP_SADDR).ptr);
+ 	return ret;
  
- 	if (pp_is_valid(res, KEY_IP_DADDR))
- 		buf_cur += sprintf(buf_cur, "DST=%s ",
--				   GET_VALUE(res, KEY_IP_DADDR).ptr);
-+				   (char *) GET_VALUE(res, KEY_IP_DADDR).ptr);
+ nla_put_failure:
+-	nf_ct_l4proto_put(l4proto);
+ 	return -1;
+ }
  
- 	/* FIXME: add pp_is_valid calls to remainder of file */
- 	buf_cur += sprintf(buf_cur,"LEN=%u TOS=%02X PREC=0x%02X TTL=%u ID=%u ", 
-@@ -279,11 +279,11 @@ static int printpkt_ipv6(struct ulogd_key *res, char *buf)
+@@ -183,7 +177,6 @@ ctnetlink_dump_helpinfo(struct sk_buff *skb, const struct nf_conn *ct)
+ 	if (!help)
+ 		return 0;
  
- 	if (pp_is_valid(res, KEY_IP_SADDR))
- 		buf_cur += sprintf(buf_cur, "SRC=%s ",
--				   GET_VALUE(res, KEY_IP_SADDR).ptr);
-+				   (char *) GET_VALUE(res, KEY_IP_SADDR).ptr);
+-	rcu_read_lock();
+ 	helper = rcu_dereference(help->helper);
+ 	if (!helper)
+ 		goto out;
+@@ -198,11 +191,9 @@ ctnetlink_dump_helpinfo(struct sk_buff *skb, const struct nf_conn *ct)
  
- 	if (pp_is_valid(res, KEY_IP_DADDR))
- 		buf_cur += sprintf(buf_cur, "DST=%s ",
--				   GET_VALUE(res, KEY_IP_DADDR).ptr);
-+				   (char *) GET_VALUE(res, KEY_IP_DADDR).ptr);
+ 	nla_nest_end(skb, nest_helper);
+ out:
+-	rcu_read_unlock();
+ 	return 0;
  
- 	if (pp_is_valid(res, KEY_IP6_PAYLOAD_LEN))
- 		buf_cur += sprintf(buf_cur, "LEN=%Zu ",
-@@ -355,11 +355,11 @@ int printpkt_arp(struct ulogd_key *res, char *buf)
+ nla_put_failure:
+-	rcu_read_unlock();
+ 	return -1;
+ }
  
- 	if (pp_is_valid(res, KEY_ARP_SPA))
- 		buf_cur += sprintf(buf_cur, "SRC=%s ",
--				   GET_VALUE(res, KEY_ARP_SPA).ptr);
-+				   (char *) GET_VALUE(res, KEY_ARP_SPA).ptr);
+@@ -374,6 +365,8 @@ ctnetlink_fill_info(struct sk_buff *skb, u32 pid, u32 seq,
+ 	nfmsg->version      = NFNETLINK_V0;
+ 	nfmsg->res_id	    = 0;
  
- 	if (pp_is_valid(res, KEY_ARP_TPA))
- 		buf_cur += sprintf(buf_cur, "DST=%s ",
--				   GET_VALUE(res, KEY_ARP_TPA).ptr);
-+				   (char *) GET_VALUE(res, KEY_ARP_TPA).ptr);
++	rcu_read_lock();
++
+ 	nest_parms = nla_nest_start(skb, CTA_TUPLE_ORIG | NLA_F_NESTED);
+ 	if (!nest_parms)
+ 		goto nla_put_failure;
+@@ -402,11 +395,14 @@ ctnetlink_fill_info(struct sk_buff *skb, u32 pid, u32 seq,
+ 	    ctnetlink_dump_nat_seq_adj(skb, ct) < 0)
+ 		goto nla_put_failure;
  
- 	buf_cur += sprintf(buf_cur, "PROTO=ARP ");
++	rcu_read_unlock();
++
+ 	nlh->nlmsg_len = skb_tail_pointer(skb) - b;
+ 	return skb->len;
  
--- 
-1.5.4.3
+ nlmsg_failure:
+ nla_put_failure:
++	rcu_read_unlock();
+ 	nlmsg_trim(skb, b);
+ 	return -1;
+ }
+@@ -1285,16 +1281,19 @@ ctnetlink_exp_dump_tuple(struct sk_buff *skb,
+ {
+ 	struct nlattr *nest_parms;
+ 
++	rcu_read_lock();
+ 	nest_parms = nla_nest_start(skb, type | NLA_F_NESTED);
+ 	if (!nest_parms)
+ 		goto nla_put_failure;
+ 	if (ctnetlink_dump_tuples(skb, tuple) < 0)
+ 		goto nla_put_failure;
+ 	nla_nest_end(skb, nest_parms);
++	rcu_read_unlock();
+ 
+ 	return 0;
+ 
+ nla_put_failure:
++	rcu_read_unlock();
+ 	return -1;
+ }
+ 
+
 
