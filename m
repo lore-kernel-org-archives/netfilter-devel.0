@@ -1,171 +1,112 @@
-From: Fabian Hugelshofer <hugelshofer2006@gmx.ch>
-Subject: Re: Conntrack Events Performance - Multipart Messages?
-Date: Sun, 27 Jul 2008 18:23:48 +0100
-Message-ID: <1217179428.11538.6.camel@pumper.lan.luxnet.ch>
-References: <487E24FC.60700@gmx.ch> <487F18DA.7030208@netfilter.org>
-	 <487FFBEE.90409@trash.net> <4884B068.4050306@gmx.ch>
-	 <4884B270.5010104@trash.net> <4884CC17.3020905@gmx.ch>
-	 <488740E7.3040005@gmx.ch> <48874272.1020503@trash.net>
-	 <48875887.8040209@gmx.ch> <488763F3.5020506@trash.net>
-	 <48876725.8010404@gmx.ch>  <48876876.6010006@trash.net>
-	 <1216905683.31465.10.camel@pumper.lan.luxnet.ch>
-	 <48899DBE.5080005@netfilter.org>  <4889B5BD.5070004@netfilter.org>
+From: Manu <manuprivat@gmx.de>
+Subject: RAWNAT kernel crash
+Date: Mon, 28 Jul 2008 13:01:52 +0200
+Message-ID: <488DA720.9060303@gmx.de>
+References: <4875D2DC.9040107@gmx.de> <alpine.LNX.1.10.0807101119180.27323@fbirervta.pbzchgretzou.qr> <4875DCD0.9070107@gmx.de> <alpine.LNX.1.10.0807101209050.27323@fbirervta.pbzchgretzou.qr> <4875EF77.8060700@gmx.de> <4875F12E.3010709@gmx.de> <487C8D4D.7080907@gmx.de> <487E2018.1010305@gmx.de>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:60164 "HELO mail.gmx.net"
+Received: from mail.gmx.net ([213.165.64.20]:56319 "HELO mail.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1750790AbYG0RX5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 27 Jul 2008 13:23:57 -0400
-In-Reply-To: <4889B5BD.5070004@netfilter.org>
+	id S1754036AbYG1LBy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Jul 2008 07:01:54 -0400
+In-Reply-To: <487E2018.1010305@gmx.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> Pablo Neira Ayuso wrote:
-> > Or much simpler, just call read_rcu_unlock() before the first
-> > nla_nest_start() so that this results in much smaller patch:
-> > 
-> > nlmsg_failure:
-> > nla_put_failure:
-> >         read_rcu_unlock(); <---
-> >         nlmsg_trim(skb, b);
-> >         return -1;
-> 
-> As said, if you do this in ctnetlink_conntrack_event, I think that you
-> can also remove the rcu_read_lock in ctnetlink_dump_helpinfo, as then
-> all dump functions will be invoked under rcu_read_lock.
+Hello,
 
-I modified the patch with your suggestions. Read locks have been removed
-from all dump functions.
+my issue is to connect 2 pc's with different fix IP addresses!
+PC1: 10.0.0.1 and 10.0.17.1
+PC2: 192.168.0.123 with gateway: 192.168.0.1
+I modified the sources of actual RAWNAT (xtables-addons-6e918514b752.... 
+) module from  http://dev.computergmbh.de/. See attachement!
+I modified the sources of my kernel-2.6.23, as well. See attachment.
 
-> In ctnetlink_get_conntrack, I think that ctnetlink_fill_info needs to be
-> protected with rcu_read_lock.
+Interfaces on PC1:
+eth0: 10.0.0.1
+eth0:2 10.0.17.1
 
-ctnetlink_get_conntrack now contains a read lock to protect the dump
-functions. Protecting it outside is therefore not necessary.
+My arptables rules are:
+arptables -A OUTPUT -d 10.0.17.2 -j mangle --mangle-ip-d 192.168.0.123 
+--mangle-ip-s 10.0.17.1
+arptables -A INPUT -s 192.168.0.123 -j mangle --mangle-ip-s 10.0.17.2 
+--mangle-ip-d 10.0.0.1
+
+My iptables rules are:
+iptables -t raw -I PREROUTING -s 192.168.0.123 -j RAWSNAT --to-source 
+10.0.17.2
+iptables -t rawpost -I POSTROUTING -d 10.0.17.2 -j RAWDNAT 
+--to-destination 192.168.0.123
+
+Iptables: 1.4.1.2
+Kernel: 2.6.23
+gcc: 3.3
+
+With "iptables -t rawpost -I POSTROUTING -d 10.0.17.2 -j RAWDNAT 
+--to-destination 192.168.0.123", I can succesfully ping PC2 from PC1 
+with command "ping 10.0.17.2"!
+tcpdump says:
+17:54:41.897864 10.0.17.1 > 192.168.0.123: icmp: echo request (DF) (ttl 
+64, id 1, len 84)
+17:54:41.898156 192.168.0.123 > 10.0.17.1: icmp: echo reply (DF) (ttl 
+128, id 4526, len 84)
+
+But If I want to ping PC1 from PC2 with command "ping 10.0.17.1" and 
+with "iptables -t raw -I PREROUTING -s 192.168.0.123 -j RAWSNAT 
+--to-source 10.0.17.2" I got a system "crash" (complete hang up) like 
+descriped in my former postings?!
+It seems that the modified paket with source address replacement is in 
+improper format?!! maybe the checksum?
+The system "crashed" everytime, if a paket comes from 192.168.0.123 and 
+entered the rule from iptables!?! If I set a rule e.g. "iptables -t raw 
+-I PREROUTING -s 192.168.0.123 -j DROP" - it works fine!
+
+klogd says:
+<3>compat_xtables: compat layer limits reached (xtnu_skb_make_writable) 
+- dropping packets
+
+one time I get this immediately before the crash:
+# iptables -nvL -t raw
+Chain PREROUTING (policy ACCEPT 16562 packets, 13M bytes)
+ pkts bytes target     prot opt in     out     source               
+destination
+   15  1461 DROP       all  --  eth2   *       0.0.0.0/0            
+224.0.0.251
+    0     0 RAWSNAT    all  --  eth2   *       192.168.0.123        
+0.0.0.0/0           to-source 10.0.17.2/32
+
+Chain OUTPUT (policy ACCEPT 10293 packets, 1584K bytes)
+ pkts bytes target     prot opt in     out     source               
+destination
+# iptables -nvL -t raw
+Chain PREROUTING (policy ACCEPT 16575 packets, 13M bytes)
+ pkts bytes target     prot opt in     out     source               
+destination
+Segmentation fault
+
+happens when (tcpdump-trace): passierte bei:
+
+13:41:39.810642 0:14:b:30:d0:2 0:30:18:49:f3:2a 0800 86: 
+192.168.0.123.1025 > 192.168.0.1.53: [udp sum ok]  51493+ PTR? 
+123.0.168.192.in-addr.arpa. (44) (ttl 255, id 7738, len 72)
+0x0000   4500 0048 1e3a 0000 ff11 1b9e c0a8 007b        E..H.:.........{
+0x0010   c0a8 0001 0401 0035 0034 efaf c925 0100        .......5.4...%..
+0x0020   0001 0000 0000 0000 0331 3233 0130 0331        .........123.0.1
+0x0030   3638 0331 3932 0769 6e2d 6164 6472 0461        68.192.in-addr.a
+0x0040   7270 6100 000c 0001                            rpa.....
 
 
-nf_ctnetlink: Remove read locks from dump functions to increase
-performance in the event notification path
+Any help would be so much appreciated!
+Thank you very much in advance!
 
-Signed-off-by: Fabian Hugelshofer <hugelshofer2006@gmx.ch>
+Regards,
+Manu
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 95a7967..696649e 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -104,16 +104,14 @@ ctnetlink_dump_tuples(struct sk_buff *skb,
- 	struct nf_conntrack_l3proto *l3proto;
- 	struct nf_conntrack_l4proto *l4proto;
- 
--	l3proto = nf_ct_l3proto_find_get(tuple->src.l3num);
-+	l3proto = __nf_ct_l3proto_find(tuple->src.l3num);
- 	ret = ctnetlink_dump_tuples_ip(skb, tuple, l3proto);
--	nf_ct_l3proto_put(l3proto);
- 
- 	if (unlikely(ret < 0))
- 		return ret;
- 
--	l4proto = nf_ct_l4proto_find_get(tuple->src.l3num, tuple->dst.protonum);
-+	l4proto = __nf_ct_l4proto_find(tuple->src.l3num, tuple->dst.protonum);
- 	ret = ctnetlink_dump_tuples_proto(skb, tuple, l4proto);
--	nf_ct_l4proto_put(l4proto);
- 
- 	return ret;
- }
-@@ -150,9 +148,8 @@ ctnetlink_dump_protoinfo(struct sk_buff *skb, const struct nf_conn *ct)
- 	struct nlattr *nest_proto;
- 	int ret;
- 
--	l4proto = nf_ct_l4proto_find_get(nf_ct_l3num(ct), nf_ct_protonum(ct));
-+	l4proto = __nf_ct_l4proto_find(nf_ct_l3num(ct), nf_ct_protonum(ct));
- 	if (!l4proto->to_nlattr) {
--		nf_ct_l4proto_put(l4proto);
- 		return 0;
- 	}
- 
-@@ -162,14 +159,11 @@ ctnetlink_dump_protoinfo(struct sk_buff *skb, const struct nf_conn *ct)
- 
- 	ret = l4proto->to_nlattr(skb, nest_proto, ct);
- 
--	nf_ct_l4proto_put(l4proto);
--
- 	nla_nest_end(skb, nest_proto);
- 
- 	return ret;
- 
- nla_put_failure:
--	nf_ct_l4proto_put(l4proto);
- 	return -1;
- }
- 
-@@ -183,7 +177,6 @@ ctnetlink_dump_helpinfo(struct sk_buff *skb, const struct nf_conn *ct)
- 	if (!help)
- 		return 0;
- 
--	rcu_read_lock();
- 	helper = rcu_dereference(help->helper);
- 	if (!helper)
- 		goto out;
-@@ -198,11 +191,9 @@ ctnetlink_dump_helpinfo(struct sk_buff *skb, const struct nf_conn *ct)
- 
- 	nla_nest_end(skb, nest_helper);
- out:
--	rcu_read_unlock();
- 	return 0;
- 
- nla_put_failure:
--	rcu_read_unlock();
- 	return -1;
- }
- 
-@@ -374,6 +365,8 @@ ctnetlink_fill_info(struct sk_buff *skb, u32 pid, u32 seq,
- 	nfmsg->version      = NFNETLINK_V0;
- 	nfmsg->res_id	    = 0;
- 
-+	rcu_read_lock();
-+
- 	nest_parms = nla_nest_start(skb, CTA_TUPLE_ORIG | NLA_F_NESTED);
- 	if (!nest_parms)
- 		goto nla_put_failure;
-@@ -402,11 +395,14 @@ ctnetlink_fill_info(struct sk_buff *skb, u32 pid, u32 seq,
- 	    ctnetlink_dump_nat_seq_adj(skb, ct) < 0)
- 		goto nla_put_failure;
- 
-+	rcu_read_unlock();
-+
- 	nlh->nlmsg_len = skb_tail_pointer(skb) - b;
- 	return skb->len;
- 
- nlmsg_failure:
- nla_put_failure:
-+	rcu_read_unlock();
- 	nlmsg_trim(skb, b);
- 	return -1;
- }
-@@ -1285,16 +1281,19 @@ ctnetlink_exp_dump_tuple(struct sk_buff *skb,
- {
- 	struct nlattr *nest_parms;
- 
-+	rcu_read_lock();
- 	nest_parms = nla_nest_start(skb, type | NLA_F_NESTED);
- 	if (!nest_parms)
- 		goto nla_put_failure;
- 	if (ctnetlink_dump_tuples(skb, tuple) < 0)
- 		goto nla_put_failure;
- 	nla_nest_end(skb, nest_parms);
-+	rcu_read_unlock();
- 
- 	return 0;
- 
- nla_put_failure:
-+	rcu_read_unlock();
- 	return -1;
- }
- 
+
+
 
 
