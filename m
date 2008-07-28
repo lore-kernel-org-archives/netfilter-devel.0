@@ -1,40 +1,45 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Conntrack Events Performance - Multipart Messages?
-Date: Mon, 28 Jul 2008 20:31:39 +0200
-Message-ID: <488E108B.4080505@netfilter.org>
-References: <487E24FC.60700@gmx.ch> <487F18DA.7030208@netfilter.org>	 <487FFBEE.90409@trash.net> <4884B068.4050306@gmx.ch>	 <4884B270.5010104@trash.net> <4884CC17.3020905@gmx.ch>	 <488740E7.3040005@gmx.ch> <48874272.1020503@trash.net>	 <48875887.8040209@gmx.ch> <488763F3.5020506@trash.net>	 <48876725.8010404@gmx.ch>  <48876876.6010006@trash.net> <1216905683.31465.10.camel@pumper.lan.luxnet.ch> <48899DBE.5080005@netfilter.org> <4889B5BD.5070004@netfilter.org>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: build: do not install ip{,6}tables.h
+Date: Mon, 28 Jul 2008 18:51:34 -0400 (EDT)
+Message-ID: <alpine.LNX.1.10.0807281851030.15902@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
-To: Fabian Hugelshofer <hugelshofer2006@gmx.ch>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58607 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750838AbYG1Sbq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Jul 2008 14:31:46 -0400
-In-Reply-To: <4889B5BD.5070004@netfilter.org>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:42912 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752224AbYG1Wvg (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Jul 2008 18:51:36 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> Pablo Neira Ayuso wrote:
->> Or much simpler, just call read_rcu_unlock() before the first
->> nla_nest_start() so that this results in much smaller patch:
->>
->> nlmsg_failure:
->> nla_put_failure:
->>         read_rcu_unlock(); <---
->>         nlmsg_trim(skb, b);
->>         return -1;
+commit 9fbe00d1a9c1977233011690e00bab26c9cd4798
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Mon Jul 28 18:50:28 2008 -0400
 
-Sorry, this is wrong. It should be:
+    build: do not install ip{,6}tables.h
+    
+    These files do not contain anything that 3rd party modules could
+    reasonably use.
+    
+    Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ Makefile.am |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-nla_put_failure:
-         read_rcu_unlock();
-nlmsg_failure:
-         nlmsg_trim(skb, b);
-         return -1;
+diff --git a/Makefile.am b/Makefile.am
+index 49edbf8..48561b7 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -72,7 +72,7 @@ man_MANS         := iptables.8 iptables-restore.8 iptables-save.8 \
+                     ip6tables-save.8
+ CLEANFILES       := iptables.8 ip6tables.8
+ if ENABLE_DEVEL
+-include_HEADERS  := include/xtables.h include/iptables.h include/ip6tables.h
++include_HEADERS  := include/xtables.h
+ iptcdir           = ${includedir}/libiptc
+ iptc_HEADERS     := include/libiptc/libxtc.h \
+                     include/libiptc/ipt_kernel_headers.h
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
