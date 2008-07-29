@@ -1,64 +1,47 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: build: do not install ip{,6}tables.h
-Date: Tue, 29 Jul 2008 15:32:56 +0200
-Message-ID: <488F1C08.1090403@netfilter.org>
-References: <alpine.LNX.1.10.0807281851030.15902@fbirervta.pbzchgretzou.qr> <488F0598.40202@netfilter.org>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: Re: TCP connection tracking timeout
+Date: Tue, 29 Jul 2008 21:34:44 +0800
+Message-ID: <20080729133444.GA19876@gondor.apana.org.au>
+References: <20080729030104.GA15915@gondor.apana.org.au> <488EA0F1.2050906@trash.net> <488EA3FE.7050503@trash.net> <20080729060105.GA16797@gondor.apana.org.au> <488EB4F1.60806@trash.net> <20080729090737.GA18046@gondor.apana.org.au> <Pine.LNX.4.64.0807291420590.1378@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net,
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>,
 	Netfilter Developer Mailing List
 	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39133 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753865AbYG2NdG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Jul 2008 09:33:06 -0400
-In-Reply-To: <488F0598.40202@netfilter.org>
+Received: from rhun.apana.org.au ([64.62.148.172]:49880 "EHLO
+	arnor.apana.org.au" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1758576AbYG2New (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 29 Jul 2008 09:34:52 -0400
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0807291420590.1378@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> Jan Engelhardt wrote:
->> commit 9fbe00d1a9c1977233011690e00bab26c9cd4798
->> Author: Jan Engelhardt <jengelh@medozas.de>
->> Date:   Mon Jul 28 18:50:28 2008 -0400
->>
->>     build: do not install ip{,6}tables.h
->>     
->>     These files do not contain anything that 3rd party modules could
->>     reasonably use.
->>     
->>     Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
->> ---
->>  Makefile.am |    2 +-
->>  1 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/Makefile.am b/Makefile.am
->> index 49edbf8..48561b7 100644
->> --- a/Makefile.am
->> +++ b/Makefile.am
->> @@ -72,7 +72,7 @@ man_MANS         := iptables.8 iptables-restore.8 iptables-save.8 \
->>                      ip6tables-save.8
->>  CLEANFILES       := iptables.8 ip6tables.8
->>  if ENABLE_DEVEL
->> -include_HEADERS  := include/xtables.h include/iptables.h include/ip6tables.h
->> +include_HEADERS  := include/xtables.h
-> 
-> Well, the same thing should apply for xtables.h. The iptables plugin API
-> has not been stable over the time. If we export that header file, we'll
-> have to get stuck to that API.
+On Tue, Jul 29, 2008 at 02:30:14PM +0200, Jozsef Kadlecsik wrote:
+>
+> We always approximate the state of the sender from the packet it sends. As 
+> packets can be lost in transit (i.e we see a packet but it'll be lost), we 
+> cannot say for sure every time which is the actual state of *both* of the 
+> parties. Therefore we do not even attempt to track both states.
 
-I just realized that iproute may use this, however, it does not since it
-keeps their own internal copy of the header files. Anyway, we should not
-break the ABI because that would break iproute's ipt - actually, I
-remember that such thing happened long time ago.
+No I'm not suggesting that your state must be equal to that of
+each side, what I'm saying is that the TCP state machine is
+fundamentally divided into two directions.  If you're going
+to track state at all you need to track both directions separately.
+Otherwise the state transitions are simply bogus.
 
-So, apart from your addon thing, I don't see any other client for the
-xtables.h and you can also keep an internal copy of it. The main point
-of the discussion is that neither this header nor any other in iptables
-- apart from libipq, of course - was designed to be exported.
+For example, TIME_WAIT is a state that only makes sense if
+you look at a given direction.  The other direction may well
+still be ESTABLISHED.  As it is netfilter will lower the timeout
+when only a single direction has been shut down, thus causing
+the connection to be prematurely killed.
 
+Cheers,
 -- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+Visit Openswan at http://www.openswan.org/
+Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
