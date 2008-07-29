@@ -1,63 +1,64 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: TCP connection tracking timeout
-Date: Tue, 29 Jul 2008 14:30:14 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0807291420590.1378@blackhole.kfki.hu>
-References: <20080729030104.GA15915@gondor.apana.org.au> <488EA0F1.2050906@trash.net>
- <488EA3FE.7050503@trash.net> <20080729060105.GA16797@gondor.apana.org.au>
- <488EB4F1.60806@trash.net> <20080729090737.GA18046@gondor.apana.org.au>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: build: do not install ip{,6}tables.h
+Date: Tue, 29 Jul 2008 15:32:56 +0200
+Message-ID: <488F1C08.1090403@netfilter.org>
+References: <alpine.LNX.1.10.0807281851030.15902@fbirervta.pbzchgretzou.qr> <488F0598.40202@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>,
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net,
 	Netfilter Developer Mailing List
 	<netfilter-devel@vger.kernel.org>
-To: Herbert Xu <herbert@gondor.apana.org.au>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:35306 "EHLO smtp2.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752479AbYG2MaP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Jul 2008 08:30:15 -0400
-In-Reply-To: <20080729090737.GA18046@gondor.apana.org.au>
+Received: from mail.us.es ([193.147.175.20]:39133 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753865AbYG2NdG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 29 Jul 2008 09:33:06 -0400
+In-Reply-To: <488F0598.40202@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Pablo Neira Ayuso wrote:
+> Jan Engelhardt wrote:
+>> commit 9fbe00d1a9c1977233011690e00bab26c9cd4798
+>> Author: Jan Engelhardt <jengelh@medozas.de>
+>> Date:   Mon Jul 28 18:50:28 2008 -0400
+>>
+>>     build: do not install ip{,6}tables.h
+>>     
+>>     These files do not contain anything that 3rd party modules could
+>>     reasonably use.
+>>     
+>>     Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+>> ---
+>>  Makefile.am |    2 +-
+>>  1 files changed, 1 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/Makefile.am b/Makefile.am
+>> index 49edbf8..48561b7 100644
+>> --- a/Makefile.am
+>> +++ b/Makefile.am
+>> @@ -72,7 +72,7 @@ man_MANS         := iptables.8 iptables-restore.8 iptables-save.8 \
+>>                      ip6tables-save.8
+>>  CLEANFILES       := iptables.8 ip6tables.8
+>>  if ENABLE_DEVEL
+>> -include_HEADERS  := include/xtables.h include/iptables.h include/ip6tables.h
+>> +include_HEADERS  := include/xtables.h
+> 
+> Well, the same thing should apply for xtables.h. The iptables plugin API
+> has not been stable over the time. If we export that header file, we'll
+> have to get stuck to that API.
 
-On Tue, 29 Jul 2008, Herbert Xu wrote:
+I just realized that iproute may use this, however, it does not since it
+keeps their own internal copy of the header files. Anyway, we should not
+break the ABI because that would break iproute's ipt - actually, I
+remember that such thing happened long time ago.
 
-> On Tue, Jul 29, 2008 at 08:13:05AM +0200, Patrick McHardy wrote:
-> > 
-> > Thanks for this explanation. Unless Jozsef sees something wrong with this
-> > patch, I'll queue it with a proper changelog. Its small enough, so perhaps
-> > we can even put this in 2.6.27.
-> 
-> It killed 95% of the ghosts (if you can do such a thing :)
-> 
-> I've tried to determine the cause of the remaining spirits:
-> 
-> 1) Zero-window receivers.  This is like not acking without actually
-> doing it.  So we should treat zero windows in the same way as an
-> unacknowledged packet (with each probe/zero-window extending its
-> life time).
-> 
-> 2) We've got a single state for each connection.  This doesn't
-> work because each TCP connection really consists of two disparate
-> streams.  Their states need to be tracked separately.
-> 
-> Otherwise we can for example enter TIME_WAIT when only one direction
-> has been shut down.  This then causes the tracked connection to be
-> pruned quickly, after which the other direction may reinstall
-> it in the ESTABLISHED state with a pure ack and it could remain
-> forever should that direction then die.
+So, apart from your addon thing, I don't see any other client for the
+xtables.h and you can also keep an internal copy of it. The main point
+of the discussion is that neither this header nor any other in iptables
+- apart from libipq, of course - was designed to be exported.
 
-We always approximate the state of the sender from the packet it sends. As 
-packets can be lost in transit (i.e we see a packet but it'll be lost), we 
-cannot say for sure every time which is the actual state of *both* of the 
-parties. Therefore we do not even attempt to track both states.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
