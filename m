@@ -1,50 +1,53 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: libnetfilter_conntrack endian issue
-Date: Tue, 29 Jul 2008 13:52:46 +0200
-Message-ID: <488F048E.5020202@netfilter.org>
-References: <4e0fd89b0807290324v6f771a79q80dcafc6b03dae54@mail.gmail.com>
+Subject: Re: build: do not install ip{,6}tables.h
+Date: Tue, 29 Jul 2008 13:57:12 +0200
+Message-ID: <488F0598.40202@netfilter.org>
+References: <alpine.LNX.1.10.0807281851030.15902@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Albert Veli <albert.veli@gmail.com>
+Cc: kaber@trash.net,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50264 "EHLO us.es"
+Received: from mail.us.es ([193.147.175.20]:41488 "EHLO us.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755002AbYG2Lwx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Jul 2008 07:52:53 -0400
-In-Reply-To: <4e0fd89b0807290324v6f771a79q80dcafc6b03dae54@mail.gmail.com>
+	id S1753350AbYG2L5U (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 29 Jul 2008 07:57:20 -0400
+In-Reply-To: <alpine.LNX.1.10.0807281851030.15902@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Albert Veli wrote:
-> Hi!
+Jan Engelhardt wrote:
+> commit 9fbe00d1a9c1977233011690e00bab26c9cd4798
+> Author: Jan Engelhardt <jengelh@medozas.de>
+> Date:   Mon Jul 28 18:50:28 2008 -0400
 > 
-> I run contrack-tools on a big-endian arm machine and had a problem:
+>     build: do not install ip{,6}tables.h
+>     
+>     These files do not contain anything that 3rd party modules could
+>     reasonably use.
+>     
+>     Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+> ---
+>  Makefile.am |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
 > 
-> $ conntrack -L
-> conntrack v0.9.7: Operation failed: Address family not supported by protocol
-> 
-> The problem was in libnetfilter_conntrack-0.0.96/src/conntrack/api.c.
-> See attached endian.patch. In nfct_build_query() the *data argument is
-> converted into a u_int8_t*. This works for little-endian but not for
-> big-endian. The fix is a one-liner. Replace
-> 
->  const u_int8_t *family = data;
-> 
-> with
-> 
->  const u_int32_t *family = data;
-> 
-> After the patch it works:
-> 
-> $ conntrack -L
-> conntrack v0.9.7: 0 flow entries has been shown.
-> 
-> I also tested the patch on my little-endian laptop and it doesn't seem
-> to cause any regression there. Just wanted to let you guys know.
+> diff --git a/Makefile.am b/Makefile.am
+> index 49edbf8..48561b7 100644
+> --- a/Makefile.am
+> +++ b/Makefile.am
+> @@ -72,7 +72,7 @@ man_MANS         := iptables.8 iptables-restore.8 iptables-save.8 \
+>                      ip6tables-save.8
+>  CLEANFILES       := iptables.8 ip6tables.8
+>  if ENABLE_DEVEL
+> -include_HEADERS  := include/xtables.h include/iptables.h include/ip6tables.h
+> +include_HEADERS  := include/xtables.h
 
-Applied. Thanks Albert.
+Well, the same thing should apply for xtables.h. The iptables plugin API
+has not been stable over the time. If we export that header file, we'll
+have to get stuck to that API.
 
 -- 
 "Los honestos son inadaptados sociales" -- Les Luthiers
