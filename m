@@ -1,235 +1,75 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Conntrack Events Performance - Multipart Messages?
-Date: Tue, 29 Jul 2008 19:11:53 +0200
-Message-ID: <488F4F59.1010003@netfilter.org>
-References: <487E24FC.60700@gmx.ch> <487F18DA.7030208@netfilter.org>	 <487FFBEE.90409@trash.net> <4884B068.4050306@gmx.ch>	 <4884B270.5010104@trash.net> <4884CC17.3020905@gmx.ch>	 <488740E7.3040005@gmx.ch> <48874272.1020503@trash.net>	 <48875887.8040209@gmx.ch> <488763F3.5020506@trash.net>	 <48876725.8010404@gmx.ch>  <48876876.6010006@trash.net>	 <1216905683.31465.10.camel@pumper.lan.luxnet.ch>	 <48899DBE.5080005@netfilter.org> <4889B5BD.5070004@netfilter.org>	 <488E108B.4080505@netfilter.org> <1217286763.8495.2.camel@pumper.lan.luxnet.ch>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: TCP connection tracking timeout
+Date: Tue, 29 Jul 2008 22:34:51 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0807292135290.1679@blackhole.kfki.hu>
+References: <20080729030104.GA15915@gondor.apana.org.au> <488EA0F1.2050906@trash.net>
+ <488EA3FE.7050503@trash.net> <20080729060105.GA16797@gondor.apana.org.au>
+ <488EB4F1.60806@trash.net> <20080729090737.GA18046@gondor.apana.org.au>
+ <Pine.LNX.4.64.0807291420590.1378@blackhole.kfki.hu>
+ <20080729133444.GA19876@gondor.apana.org.au>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------050106090403020700050208"
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
-To: Fabian Hugelshofer <hugelshofer2006@gmx.ch>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Patrick McHardy <kaber@trash.net>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Herbert Xu <herbert@gondor.apana.org.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43960 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751340AbYG2RMD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Jul 2008 13:12:03 -0400
-In-Reply-To: <1217286763.8495.2.camel@pumper.lan.luxnet.ch>
+Received: from smtp1.kfki.hu ([148.6.0.26]:44008 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752765AbYG2Uex (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 29 Jul 2008 16:34:53 -0400
+In-Reply-To: <20080729133444.GA19876@gondor.apana.org.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------050106090403020700050208
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+On Tue, 29 Jul 2008, Herbert Xu wrote:
 
-Fabian Hugelshofer wrote:
-> On Mon, 2008-07-28 at 20:31 +0200, Pablo Neira Ayuso wrote:
->> Pablo Neira Ayuso wrote:
->>> Pablo Neira Ayuso wrote:
->>>> Or much simpler, just call read_rcu_unlock() before the first
->>>> nla_nest_start() so that this results in much smaller patch:
->>>>
->>>> nlmsg_failure:
->>>> nla_put_failure:
->>>>         read_rcu_unlock(); <---
->>>>         nlmsg_trim(skb, b);
->>>>         return -1;
->> Sorry, this is wrong. It should be:
->>
->> nla_put_failure:
->>          read_rcu_unlock();
->> nlmsg_failure:
->>          nlmsg_trim(skb, b);
->>          return -1;
+> On Tue, Jul 29, 2008 at 02:30:14PM +0200, Jozsef Kadlecsik wrote:
+> >
+> > We always approximate the state of the sender from the packet it sends. As 
+> > packets can be lost in transit (i.e we see a packet but it'll be lost), we 
+> > cannot say for sure every time which is the actual state of *both* of the 
+> > parties. Therefore we do not even attempt to track both states.
 > 
-> Very true indeed. Thanks for noticing. The nlmsg_failure is kinda hidden
-> in the macro and the jump targets were in the wrong order. You find the
-> corrected version below.
-> 
-> nf_ctnetlink: Remove read locks from dump functions to increase
-> performance in the event notification path
+> No I'm not suggesting that your state must be equal to that of each 
+> side, what I'm saying is that the TCP state machine is fundamentally 
+> divided into two directions. If you're going to track state at all you 
+> need to track both directions separately. Otherwise the state 
+> transitions are simply bogus.
 
-I have six patches for ctnetlink here, one of them is based on your
-patch. I hope to post them tomorrow for review.
+Completely true - but the states in netfilter do no correspond one-to-one 
+to the real TCP states. From nf_conntrack_proto_tcp.c:
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+ * The meaning of the states are:
+ *
+ * NONE:        initial state
+ * SYN_SENT:    SYN-only packet seen
+ * SYN_RECV:    SYN-ACK packet seen
+ * ESTABLISHED: ACK packet seen
+ * FIN_WAIT:    FIN packet seen
+ * CLOSE_WAIT:  ACK seen (after FIN)
+ * LAST_ACK:    FIN seen (after FIN)
+ * TIME_WAIT:   last ACK seen
+ * CLOSE:       closed connection
 
---------------050106090403020700050208
-Content-Type: text/x-diff;
- name="00.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="00.patch"
+We try to get a general view of the connection. It is not rocket science 
+what we are doing.
 
-[PATCH] get rid of module refcounting in ctnetlink
+> For example, TIME_WAIT is a state that only makes sense if
+> you look at a given direction.  The other direction may well
+> still be ESTABLISHED.  As it is netfilter will lower the timeout
+> when only a single direction has been shut down, thus causing
+> the connection to be prematurely killed.
 
-This patch replaces the unnecessary module refcounting with
-the read-side locks. With this patch, all the dump and fill_info
-function are called under the RCU read lock.
+Hm, I might be completely outdated: how come that in one direction the 
+state is TIME_WAIT and the other's ESTABLISHED? If one side is in the 
+TIME_WAIT state, the other one cannot be in the ESTABLISHED state - at 
+least according to RFC793, RFC1122. What do I miss here?
 
-Based on a patch from Fabien Hugelshofer.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-
-Index: net-next-2.6.git/net/netfilter/nf_conntrack_netlink.c
-===================================================================
---- net-next-2.6.git.orig/net/netfilter/nf_conntrack_netlink.c	2008-07-29 14:24:39.000000000 +0200
-+++ net-next-2.6.git/net/netfilter/nf_conntrack_netlink.c	2008-07-29 14:24:41.000000000 +0200
-@@ -103,16 +103,14 @@ ctnetlink_dump_tuples(struct sk_buff *sk
- 	struct nf_conntrack_l3proto *l3proto;
- 	struct nf_conntrack_l4proto *l4proto;
- 
--	l3proto = nf_ct_l3proto_find_get(tuple->src.l3num);
-+	l3proto = __nf_ct_l3proto_find(tuple->src.l3num);
- 	ret = ctnetlink_dump_tuples_ip(skb, tuple, l3proto);
--	nf_ct_l3proto_put(l3proto);
- 
- 	if (unlikely(ret < 0))
- 		return ret;
- 
--	l4proto = nf_ct_l4proto_find_get(tuple->src.l3num, tuple->dst.protonum);
-+	l4proto = __nf_ct_l4proto_find(tuple->src.l3num, tuple->dst.protonum);
- 	ret = ctnetlink_dump_tuples_proto(skb, tuple, l4proto);
--	nf_ct_l4proto_put(l4proto);
- 
- 	return ret;
- }
-@@ -149,11 +147,9 @@ ctnetlink_dump_protoinfo(struct sk_buff 
- 	struct nlattr *nest_proto;
- 	int ret;
- 
--	l4proto = nf_ct_l4proto_find_get(nf_ct_l3num(ct), nf_ct_protonum(ct));
--	if (!l4proto->to_nlattr) {
--		nf_ct_l4proto_put(l4proto);
-+	l4proto = __nf_ct_l4proto_find(nf_ct_l3num(ct), nf_ct_protonum(ct));
-+	if (!l4proto->to_nlattr)
- 		return 0;
--	}
- 
- 	nest_proto = nla_nest_start(skb, CTA_PROTOINFO | NLA_F_NESTED);
- 	if (!nest_proto)
-@@ -161,14 +157,11 @@ ctnetlink_dump_protoinfo(struct sk_buff 
- 
- 	ret = l4proto->to_nlattr(skb, nest_proto, ct);
- 
--	nf_ct_l4proto_put(l4proto);
+Best regards,
+Jozsef
 -
- 	nla_nest_end(skb, nest_proto);
- 
- 	return ret;
- 
- nla_put_failure:
--	nf_ct_l4proto_put(l4proto);
- 	return -1;
- }
- 
-@@ -182,7 +175,6 @@ ctnetlink_dump_helpinfo(struct sk_buff *
- 	if (!help)
- 		return 0;
- 
--	rcu_read_lock();
- 	helper = rcu_dereference(help->helper);
- 	if (!helper)
- 		goto out;
-@@ -197,11 +189,9 @@ ctnetlink_dump_helpinfo(struct sk_buff *
- 
- 	nla_nest_end(skb, nest_helper);
- out:
--	rcu_read_unlock();
- 	return 0;
- 
- nla_put_failure:
--	rcu_read_unlock();
- 	return -1;
- }
- 
-@@ -458,6 +448,7 @@ static int ctnetlink_conntrack_event(str
- 	nfmsg->version	= NFNETLINK_V0;
- 	nfmsg->res_id	= 0;
- 
-+	rcu_read_lock();
- 	nest_parms = nla_nest_start(skb, CTA_TUPLE_ORIG | NLA_F_NESTED);
- 	if (!nest_parms)
- 		goto nla_put_failure;
-@@ -519,13 +510,15 @@ static int ctnetlink_conntrack_event(str
- 	    && ctnetlink_dump_mark(skb, ct) < 0)
- 		goto nla_put_failure;
- #endif
-+	rcu_read_unlock();
- 
- 	nlh->nlmsg_len = skb->tail - b;
- 	nfnetlink_send(skb, 0, group, 0);
- 	return NOTIFY_DONE;
- 
--nlmsg_failure:
- nla_put_failure:
-+	rcu_read_unlock();
-+nlmsg_failure:
- 	kfree_skb(skb);
- 	return NOTIFY_DONE;
- }
-@@ -863,8 +856,10 @@ ctnetlink_get_conntrack(struct sock *ctn
- 		return -ENOMEM;
- 	}
- 
-+	rcu_read_lock();
- 	err = ctnetlink_fill_info(skb2, NETLINK_CB(skb).pid, nlh->nlmsg_seq,
- 				  IPCTNL_MSG_CT_NEW, 1, ct);
-+	rcu_read_unlock();
- 	nf_ct_put(ct);
- 	if (err <= 0)
- 		goto free;
-@@ -1316,16 +1311,14 @@ ctnetlink_exp_dump_mask(struct sk_buff *
- 	if (!nest_parms)
- 		goto nla_put_failure;
- 
--	l3proto = nf_ct_l3proto_find_get(tuple->src.l3num);
-+	l3proto = __nf_ct_l3proto_find(tuple->src.l3num);
- 	ret = ctnetlink_dump_tuples_ip(skb, &m, l3proto);
--	nf_ct_l3proto_put(l3proto);
- 
- 	if (unlikely(ret < 0))
- 		goto nla_put_failure;
- 
--	l4proto = nf_ct_l4proto_find_get(tuple->src.l3num, tuple->dst.protonum);
-+	l4proto = __nf_ct_l4proto_find(tuple->src.l3num, tuple->dst.protonum);
- 	ret = ctnetlink_dump_tuples_proto(skb, &m, l4proto);
--	nf_ct_l4proto_put(l4proto);
- 	if (unlikely(ret < 0))
- 		goto nla_put_failure;
- 
-@@ -1432,15 +1425,18 @@ static int ctnetlink_expect_event(struct
- 	nfmsg->version	    = NFNETLINK_V0;
- 	nfmsg->res_id	    = 0;
- 
-+	rcu_read_lock();
- 	if (ctnetlink_exp_dump_expect(skb, exp) < 0)
- 		goto nla_put_failure;
-+	rcu_read_unlock();
- 
- 	nlh->nlmsg_len = skb->tail - b;
- 	nfnetlink_send(skb, 0, NFNLGRP_CONNTRACK_EXP_NEW, 0);
- 	return NOTIFY_DONE;
- 
--nlmsg_failure:
- nla_put_failure:
-+	rcu_read_unlock();
-+nlmsg_failure:
- 	kfree_skb(skb);
- 	return NOTIFY_DONE;
- }
-@@ -1543,9 +1539,11 @@ ctnetlink_get_expect(struct sock *ctnl, 
- 	if (!skb2)
- 		goto out;
- 
-+	rcu_read_lock();
- 	err = ctnetlink_exp_fill_info(skb2, NETLINK_CB(skb).pid,
- 				      nlh->nlmsg_seq, IPCTNL_MSG_EXP_NEW,
- 				      1, exp);
-+	rcu_read_unlock();
- 	if (err <= 0)
- 		goto free;
- 
-
---------------050106090403020700050208--
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
