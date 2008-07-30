@@ -1,36 +1,34 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] xt_hashlimit: fix race between htable_destroy and htable_gc
-Date: Wed, 30 Jul 2008 12:53:44 +0200
-Message-ID: <48904838.303@trash.net>
-References: <4887A7DB.4030305@openvz.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 0/7] ctnetlink updates
+Date: Wed, 30 Jul 2008 13:02:56 +0200
+Message-ID: <48904A60.2070308@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: David Miller <davem@davemloft.net>,
-	Linux Netdev List <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist
+Cc: Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
-To: Pavel Emelyanov <xemul@openvz.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:44910 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753205AbYG3Kxq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jul 2008 06:53:46 -0400
-In-Reply-To: <4887A7DB.4030305@openvz.org>
+Received: from mail.us.es ([193.147.175.20]:39064 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755291AbYG3LDQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 30 Jul 2008 07:03:16 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pavel Emelyanov wrote:
-> Deleting a timer with del_timer doesn't guarantee, that the
-> timer function is not running at the moment of deletion. Thus
-> in the xt_hashlimit case we can get into a ticklish situation
-> when the htable_gc rearms the timer back and we'll actually
-> delete an entry with a pending timer.
-> 
-> Fix it with using del_timer_sync().
-> 
-> AFAIK del_timer_sync checks for the timer to be pending by
-> itself, so I remove the check.
+Hi Patrick,
 
-Also applied, thanks.
+The following patchset includes several updates for ctnetlink. Its
+purpose is to resolve the remaining issues so that we can unlabel it as
+experimental in the near future. I'd like to release the first 1.0 of
+the conntrack-tools by the end of the year and it would be great if we
+can have this marked as a stable feature before doing so.
+
+AFAIK, another remaining issues are the removal of the notifier call
+chain and the NAT dependency. Could you point out the preferred way to
+do this?
+
+Thanks.
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
