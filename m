@@ -1,57 +1,277 @@
-From: "Filka Michal" <Michal.Filka@sitronicsts.com>
-Subject: performance questions
-Date: Wed, 30 Jul 2008 13:07:54 +0200
-Message-ID: <4474723F928CA640ADB2172099AEAB111E89D3@exalfa.stromtelecom.cz>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 4/7] Helper modules load on-demand support for ctnetlink
+Date: Wed, 30 Jul 2008 13:29:07 +0200
+Message-ID: <48905083.1040002@netfilter.org>
+References: <48904A9F.8010509@netfilter.org> <48904C3B.7060004@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-To: <netfilter-devel@vger.kernel.org>
+Content-Type: multipart/mixed;
+ boundary="------------090300050202030506050201"
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.strom.cz ([80.95.102.231]:58640 "EHLO mail.strom.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753965AbYG3LVR convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jul 2008 07:21:17 -0400
-Content-class: urn:content-classes:message
+Received: from mail.us.es ([193.147.175.20]:46026 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752104AbYG3L3b (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 30 Jul 2008 07:29:31 -0400
+In-Reply-To: <48904C3B.7060004@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi all,
+This is a multi-part message in MIME format.
+--------------090300050202030506050201
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-I did some performance tests focused on routing.
+Patrick McHardy wrote:
+>> @@ -1152,17 +1150,7 @@ ctnetlink_create_conntrack(struct nlattr
+>>  #endif
+>>  
+>>      rcu_read_lock();
+>> -    helper = __nf_ct_helper_find(rtuple);
+>> -    if (helper) {
+>> -        help = nf_ct_helper_ext_add(ct, GFP_KERNEL);
+>> -        if (help == NULL) {
+>> -            rcu_read_unlock();
+>> -            err = -ENOMEM;
+>> -            goto err;
+>> -        }
+>> -        /* not in hash table yet so not strictly necessary */
+>> -        rcu_assign_pointer(help->helper, helper);
+>> -    }
+>> +    __nf_ct_set_helper(ct, GFP_KERNEL);
+> 
+> This one should be checking the return value.
 
-Traffic is generated using a traffic generator which has two interfaces
-connected to two different switches. Router is connected to those
-switches and routes traffic from one generator's IP to other one.
-Everything works over 1Gbps Ethernet using metallic and optical
-interconnection.
+Attached a new version.
 
-Case A:
-The Generator created two flows. First was icmp traffic (echo request)
-with packet size 64B. Average performance with zero packet loss was 28%
-(cca 400.000 tx fps). Second flow was udp traffic with packet size 64B.
-Traffic decreased to average performance round 23% (cca 340.000 tx fps).
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
 
-Case B:
-Then I decided to create a module which allows bypassing nefilter for
-some traffic and study changes in performance. The module registers
-netfilter callbacks at the beginning of PREROUTING and POSTROUTING
-chains. It stops executing of other netfilter hooks for particular
-traffic (returns NF_STOLEN (in this case runs okfn too) or NF_STOP - I
-tried both). I run both tests as described earlier. First test (icmp
-traffic) increased performance to 30% but the second (udp traffic)
-decreased to 20%.
+--------------090300050202030506050201
+Content-Type: text/x-diff;
+ name="03.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="03.patch"
 
-I need a help in explaining following questions.
-1) Does anyone have any idea why is there such difference in performance
-in case A? In my opinion protocol above ip (icmp or udp in this case)
-shouldn't make difference and the performance should be almost
-identical.
+[PATCHv2] Helper modules load on-demand support for ctnetlink
 
-2) What could cause performance decrease of udp traffic in case B? the
-result is worst than in Case A for udp traffic but better for icmp
-traffic and it looks strange to me.
+This patch adds helper load on-demand support for ctnetlink. This patch
+also refactorizes the code to provide a couple of functions to look up 
+and set the connection tracking helper. The function removes the exported
+symbol __nf_ct_helper_find as it has not clients anymore.
 
-Thanks for your help.
-Michal Filka
+This patch uses the persistent helper aliasing defined in the previous 
+patch.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+
+Index: net-next-2.6.git/net/netfilter/nf_conntrack_core.c
+===================================================================
+--- net-next-2.6.git.orig/net/netfilter/nf_conntrack_core.c	2008-07-30 13:19:39.000000000 +0200
++++ net-next-2.6.git/net/netfilter/nf_conntrack_core.c	2008-07-30 13:19:42.000000000 +0200
+@@ -578,14 +578,7 @@ init_conntrack(const struct nf_conntrack
+ 		nf_conntrack_get(&ct->master->ct_general);
+ 		NF_CT_STAT_INC(expect_new);
+ 	} else {
+-		struct nf_conntrack_helper *helper;
+-
+-		helper = __nf_ct_helper_find(&repl_tuple);
+-		if (helper) {
+-			help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
+-			if (help)
+-				rcu_assign_pointer(help->helper, helper);
+-		}
++		__nf_ct_set_helper(ct, GFP_ATOMIC);
+ 		NF_CT_STAT_INC(new);
+ 	}
+ 
+@@ -757,7 +750,6 @@ void nf_conntrack_alter_reply(struct nf_
+ 			      const struct nf_conntrack_tuple *newreply)
+ {
+ 	struct nf_conn_help *help = nfct_help(ct);
+-	struct nf_conntrack_helper *helper;
+ 
+ 	/* Should be unconfirmed, so not in hash table yet */
+ 	NF_CT_ASSERT(!nf_ct_is_confirmed(ct));
+@@ -769,25 +761,7 @@ void nf_conntrack_alter_reply(struct nf_
+ 	if (ct->master || (help && !hlist_empty(&help->expectations)))
+ 		return;
+ 
+-	rcu_read_lock();
+-	helper = __nf_ct_helper_find(newreply);
+-	if (helper == NULL) {
+-		if (help)
+-			rcu_assign_pointer(help->helper, NULL);
+-		goto out;
+-	}
+-
+-	if (help == NULL) {
+-		help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
+-		if (help == NULL)
+-			goto out;
+-	} else {
+-		memset(&help->help, 0, sizeof(help->help));
+-	}
+-
+-	rcu_assign_pointer(help->helper, helper);
+-out:
+-	rcu_read_unlock();
++	nf_ct_set_helper(ct, GFP_ATOMIC);
+ }
+ EXPORT_SYMBOL_GPL(nf_conntrack_alter_reply);
+ 
+Index: net-next-2.6.git/net/netfilter/nf_conntrack_netlink.c
+===================================================================
+--- net-next-2.6.git.orig/net/netfilter/nf_conntrack_netlink.c	2008-07-30 13:19:39.000000000 +0200
++++ net-next-2.6.git/net/netfilter/nf_conntrack_netlink.c	2008-07-30 13:25:07.000000000 +0200
+@@ -1120,8 +1120,6 @@ ctnetlink_create_conntrack(struct nlattr
+ {
+ 	struct nf_conn *ct;
+ 	int err = -EINVAL;
+-	struct nf_conn_help *help;
+-	struct nf_conntrack_helper *helper;
+ 
+ 	ct = nf_conntrack_alloc(otuple, rtuple, GFP_KERNEL);
+ 	if (ct == NULL || IS_ERR(ct))
+@@ -1152,16 +1150,9 @@ ctnetlink_create_conntrack(struct nlattr
+ #endif
+ 
+ 	rcu_read_lock();
+-	helper = __nf_ct_helper_find(rtuple);
+-	if (helper) {
+-		help = nf_ct_helper_ext_add(ct, GFP_KERNEL);
+-		if (help == NULL) {
+-			rcu_read_unlock();
+-			err = -ENOMEM;
+-			goto err;
+-		}
+-		/* not in hash table yet so not strictly necessary */
+-		rcu_assign_pointer(help->helper, helper);
++	if (__nf_ct_set_helper(ct, GFP_KERNEL) == -ENOMEM) {
++		rcu_read_unlock();
++		goto err;
+ 	}
+ 
+ 	/* setup master conntrack: this is a confirmed expectation */
+@@ -1672,9 +1663,24 @@ ctnetlink_create_expect(struct nlattr *c
+ 	help = nfct_help(ct);
+ 
+ 	if (!help || !help->helper) {
+-		/* such conntrack hasn't got any helper, abort */
++#ifdef CONFIG_KMOD
++		char *name;
++
+ 		err = -EINVAL;
++		if (!cda[CTA_EXPECT_HELP_NAME])
++			goto out;
++
++		err = -ENOTSUPP;
++		name = nla_data(cda[CTA_EXPECT_HELP_NAME]);
++		if (request_module("nfct-helper-%s", name) < 0)
++			goto out;
++
++		if (nf_ct_set_helper(ct, GFP_KERNEL) < 0)
++			goto out;
++#else
++		err = -ENOTSUPP;
+ 		goto out;
++#endif
+ 	}
+ 
+ 	exp = nf_ct_expect_alloc(ct);
+Index: net-next-2.6.git/include/net/netfilter/nf_conntrack_helper.h
+===================================================================
+--- net-next-2.6.git.orig/include/net/netfilter/nf_conntrack_helper.h	2008-07-30 13:19:39.000000000 +0200
++++ net-next-2.6.git/include/net/netfilter/nf_conntrack_helper.h	2008-07-30 13:19:42.000000000 +0200
+@@ -39,9 +39,6 @@ struct nf_conntrack_helper
+ };
+ 
+ extern struct nf_conntrack_helper *
+-__nf_ct_helper_find(const struct nf_conntrack_tuple *tuple);
+-
+-extern struct nf_conntrack_helper *
+ __nf_conntrack_helper_find_byname(const char *name);
+ 
+ extern int nf_conntrack_helper_register(struct nf_conntrack_helper *);
+@@ -49,6 +46,19 @@ extern void nf_conntrack_helper_unregist
+ 
+ extern struct nf_conn_help *nf_ct_helper_ext_add(struct nf_conn *ct, gfp_t gfp);
+ 
++extern int __nf_ct_set_helper(struct nf_conn *ct, gfp_t flags);
++
++static inline int nf_ct_set_helper(struct nf_conn *ct, gfp_t flags)
++{
++	int ret;
++
++	rcu_read_lock();
++	ret = __nf_ct_set_helper(ct, flags);
++	rcu_read_unlock();
++
++	return ret;
++}
++
+ static inline struct nf_conn_help *nfct_help(const struct nf_conn *ct)
+ {
+ 	return nf_ct_ext_find(ct, NF_CT_EXT_HELPER);
+Index: net-next-2.6.git/net/netfilter/nf_conntrack_helper.c
+===================================================================
+--- net-next-2.6.git.orig/net/netfilter/nf_conntrack_helper.c	2008-07-30 13:19:39.000000000 +0200
++++ net-next-2.6.git/net/netfilter/nf_conntrack_helper.c	2008-07-30 13:19:42.000000000 +0200
+@@ -43,7 +43,7 @@ static unsigned int helper_hash(const st
+ 		(__force __u16)tuple->src.u.all) % nf_ct_helper_hsize;
+ }
+ 
+-struct nf_conntrack_helper *
++static struct nf_conntrack_helper *
+ __nf_ct_helper_find(const struct nf_conntrack_tuple *tuple)
+ {
+ 	struct nf_conntrack_helper *helper;
+@@ -61,7 +61,6 @@ __nf_ct_helper_find(const struct nf_conn
+ 	}
+ 	return NULL;
+ }
+-EXPORT_SYMBOL_GPL(__nf_ct_helper_find);
+ 
+ struct nf_conntrack_helper *
+ __nf_conntrack_helper_find_byname(const char *name)
+@@ -93,6 +92,36 @@ struct nf_conn_help *nf_ct_helper_ext_ad
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_helper_ext_add);
+ 
++int __nf_ct_set_helper(struct nf_conn *ct, gfp_t flags)
++{
++	int ret = 0;
++	struct nf_conntrack_helper *helper;
++	struct nf_conn_help *help = nfct_help(ct);
++
++	helper = __nf_ct_helper_find(&ct->tuplehash[IP_CT_DIR_REPLY].tuple);
++	if (helper == NULL) {
++		if (help)
++			rcu_assign_pointer(help->helper, NULL);
++		ret = -ENOENT;
++		goto out;
++	}
++
++	if (help == NULL) {
++		help = nf_ct_helper_ext_add(ct, flags);
++		if (help == NULL) {
++			ret = -ENOMEM;
++			goto out;
++		}
++	} else {
++		memset(&help->help, 0, sizeof(help->help));
++	}
++
++	rcu_assign_pointer(help->helper, helper);
++out:
++	return ret;
++}
++EXPORT_SYMBOL_GPL(__nf_ct_set_helper);
++
+ static inline int unhelp(struct nf_conntrack_tuple_hash *i,
+ 			 const struct nf_conntrack_helper *me)
+ {
+
+--------------090300050202030506050201--
