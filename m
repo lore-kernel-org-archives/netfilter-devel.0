@@ -1,215 +1,173 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 1/7] get rid of module refcounting in ctnetlink
-Date: Wed, 30 Jul 2008 13:03:09 +0200
-Message-ID: <48904A6D.3010404@netfilter.org>
+Subject: [PATCH 3/7] connection tracking helper name persistent aliases
+Date: Wed, 30 Jul 2008 13:03:28 +0200
+Message-ID: <48904A80.4040006@netfilter.org>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------050800080302090707080204"
+ boundary="------------000604060003030802070409"
 Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Fabian Hugelshofer <hugelshofer2006@gmx.ch>
+	<netfilter-devel@vger.kernel.org>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:57705 "EHLO us.es"
+Received: from mail.us.es ([193.147.175.20]:57741 "EHLO us.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1759795AbYG3LDa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jul 2008 07:03:30 -0400
+	id S1753551AbYG3LDe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 30 Jul 2008 07:03:34 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 This is a multi-part message in MIME format.
---------------050800080302090707080204
+--------------000604060003030802070409
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
-[PATCH] get rid of module refcounting in ctnetlink
+[PATCH] connection tracking helper name persistent aliases
 
-This patch replaces the unnecessary module refcounting with
-the read-side locks. With this patch, all the dump and fill_info
-function are called under the RCU read lock.
+This patch adds the macro MODULE_ALIAS_NFCT_HELPER that defines a
+way to provide generic and persistent aliases for the connection
+tracking helpers.
 
-Based on a patch from Fabian Hugelshofer.
+This next patch requires this patch.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
 -- 
 "Los honestos son inadaptados sociales" -- Les Luthiers
 
---------------050800080302090707080204
+--------------000604060003030802070409
 Content-Type: text/x-diff;
- name="00.patch"
+ name="02.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="00.patch"
+ filename="02.patch"
 
-[PATCH] get rid of module refcounting in ctnetlink
+[PATCH] connection tracking helper name persistent aliases
 
-This patch replaces the unnecessary module refcounting with
-the read-side locks. With this patch, all the dump and fill_info
-function are called under the RCU read lock.
+This patch adds the macro MODULE_ALIAS_NFCT_HELPER that defines a
+way to provide generic and persistent aliases for the connection
+tracking helpers.
 
-Based on a patch from Fabian Hugelshofer.
+This next patch requires this patch.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
-Index: net-next-2.6.git/net/netfilter/nf_conntrack_netlink.c
+Index: net-next-2.6.git/include/net/netfilter/nf_conntrack.h
 ===================================================================
---- net-next-2.6.git.orig/net/netfilter/nf_conntrack_netlink.c	2008-07-29 14:24:39.000000000 +0200
-+++ net-next-2.6.git/net/netfilter/nf_conntrack_netlink.c	2008-07-29 14:24:41.000000000 +0200
-@@ -103,16 +103,14 @@ ctnetlink_dump_tuples(struct sk_buff *sk
- 	struct nf_conntrack_l3proto *l3proto;
- 	struct nf_conntrack_l4proto *l4proto;
+--- net-next-2.6.git.orig/include/net/netfilter/nf_conntrack.h	2008-07-29 14:30:10.000000000 +0200
++++ net-next-2.6.git/include/net/netfilter/nf_conntrack.h	2008-07-29 14:30:12.000000000 +0200
+@@ -292,5 +292,8 @@ do {							\
+ 	local_bh_enable();				\
+ } while (0)
  
--	l3proto = nf_ct_l3proto_find_get(tuple->src.l3num);
-+	l3proto = __nf_ct_l3proto_find(tuple->src.l3num);
- 	ret = ctnetlink_dump_tuples_ip(skb, tuple, l3proto);
--	nf_ct_l3proto_put(l3proto);
++#define MODULE_ALIAS_NFCT_HELPER(helper) \
++        MODULE_ALIAS("nfct-helper-" helper)
++
+ #endif /* __KERNEL__ */
+ #endif /* _NF_CONNTRACK_H */
+Index: net-next-2.6.git/net/netfilter/nf_conntrack_amanda.c
+===================================================================
+--- net-next-2.6.git.orig/net/netfilter/nf_conntrack_amanda.c	2008-07-29 14:30:10.000000000 +0200
++++ net-next-2.6.git/net/netfilter/nf_conntrack_amanda.c	2008-07-29 14:30:12.000000000 +0200
+@@ -30,6 +30,7 @@ MODULE_AUTHOR("Brian J. Murrell <netfilt
+ MODULE_DESCRIPTION("Amanda connection tracking module");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ip_conntrack_amanda");
++MODULE_ALIAS_NFCT_HELPER("amanda");
  
- 	if (unlikely(ret < 0))
- 		return ret;
+ module_param(master_timeout, uint, 0600);
+ MODULE_PARM_DESC(master_timeout, "timeout for the master connection");
+Index: net-next-2.6.git/net/netfilter/nf_conntrack_ftp.c
+===================================================================
+--- net-next-2.6.git.orig/net/netfilter/nf_conntrack_ftp.c	2008-07-29 14:30:10.000000000 +0200
++++ net-next-2.6.git/net/netfilter/nf_conntrack_ftp.c	2008-07-29 14:30:12.000000000 +0200
+@@ -29,6 +29,7 @@ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Rusty Russell <rusty@rustcorp.com.au>");
+ MODULE_DESCRIPTION("ftp connection tracking helper");
+ MODULE_ALIAS("ip_conntrack_ftp");
++MODULE_ALIAS_NFCT_HELPER("ftp");
  
--	l4proto = nf_ct_l4proto_find_get(tuple->src.l3num, tuple->dst.protonum);
-+	l4proto = __nf_ct_l4proto_find(tuple->src.l3num, tuple->dst.protonum);
- 	ret = ctnetlink_dump_tuples_proto(skb, tuple, l4proto);
--	nf_ct_l4proto_put(l4proto);
+ /* This is slow, but it's simple. --RR */
+ static char *ftp_buffer;
+Index: net-next-2.6.git/net/netfilter/nf_conntrack_h323_main.c
+===================================================================
+--- net-next-2.6.git.orig/net/netfilter/nf_conntrack_h323_main.c	2008-07-29 14:30:10.000000000 +0200
++++ net-next-2.6.git/net/netfilter/nf_conntrack_h323_main.c	2008-07-29 14:30:12.000000000 +0200
+@@ -1829,3 +1829,4 @@ MODULE_AUTHOR("Jing Min Zhao <zhaojingmi
+ MODULE_DESCRIPTION("H.323 connection tracking helper");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ip_conntrack_h323");
++MODULE_ALIAS_NFCT_HELPER("h323");
+Index: net-next-2.6.git/net/netfilter/nf_conntrack_irc.c
+===================================================================
+--- net-next-2.6.git.orig/net/netfilter/nf_conntrack_irc.c	2008-07-29 14:30:10.000000000 +0200
++++ net-next-2.6.git/net/netfilter/nf_conntrack_irc.c	2008-07-29 14:30:12.000000000 +0200
+@@ -41,6 +41,7 @@ MODULE_AUTHOR("Harald Welte <laforge@net
+ MODULE_DESCRIPTION("IRC (DCC) connection tracking helper");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ip_conntrack_irc");
++MODULE_ALIAS_NFCT_HELPER("irc");
  
- 	return ret;
- }
-@@ -149,11 +147,9 @@ ctnetlink_dump_protoinfo(struct sk_buff 
- 	struct nlattr *nest_proto;
- 	int ret;
+ module_param_array(ports, ushort, &ports_c, 0400);
+ MODULE_PARM_DESC(ports, "port numbers of IRC servers");
+Index: net-next-2.6.git/net/netfilter/nf_conntrack_netbios_ns.c
+===================================================================
+--- net-next-2.6.git.orig/net/netfilter/nf_conntrack_netbios_ns.c	2008-07-29 14:30:10.000000000 +0200
++++ net-next-2.6.git/net/netfilter/nf_conntrack_netbios_ns.c	2008-07-29 14:30:12.000000000 +0200
+@@ -37,6 +37,7 @@ MODULE_AUTHOR("Patrick McHardy <kaber@tr
+ MODULE_DESCRIPTION("NetBIOS name service broadcast connection tracking helper");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ip_conntrack_netbios_ns");
++MODULE_ALIAS_NFCT_HELPER("netbios_ns");
  
--	l4proto = nf_ct_l4proto_find_get(nf_ct_l3num(ct), nf_ct_protonum(ct));
--	if (!l4proto->to_nlattr) {
--		nf_ct_l4proto_put(l4proto);
-+	l4proto = __nf_ct_l4proto_find(nf_ct_l3num(ct), nf_ct_protonum(ct));
-+	if (!l4proto->to_nlattr)
- 		return 0;
--	}
+ static unsigned int timeout __read_mostly = 3;
+ module_param(timeout, uint, 0400);
+Index: net-next-2.6.git/net/netfilter/nf_conntrack_pptp.c
+===================================================================
+--- net-next-2.6.git.orig/net/netfilter/nf_conntrack_pptp.c	2008-07-29 14:30:10.000000000 +0200
++++ net-next-2.6.git/net/netfilter/nf_conntrack_pptp.c	2008-07-29 14:30:12.000000000 +0200
+@@ -37,6 +37,7 @@ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Harald Welte <laforge@gnumonks.org>");
+ MODULE_DESCRIPTION("Netfilter connection tracking helper module for PPTP");
+ MODULE_ALIAS("ip_conntrack_pptp");
++MODULE_ALIAS_NFCT_HELPER("pptp");
  
- 	nest_proto = nla_nest_start(skb, CTA_PROTOINFO | NLA_F_NESTED);
- 	if (!nest_proto)
-@@ -161,14 +157,11 @@ ctnetlink_dump_protoinfo(struct sk_buff 
+ static DEFINE_SPINLOCK(nf_pptp_lock);
  
- 	ret = l4proto->to_nlattr(skb, nest_proto, ct);
+Index: net-next-2.6.git/net/netfilter/nf_conntrack_sip.c
+===================================================================
+--- net-next-2.6.git.orig/net/netfilter/nf_conntrack_sip.c	2008-07-29 14:30:10.000000000 +0200
++++ net-next-2.6.git/net/netfilter/nf_conntrack_sip.c	2008-07-29 14:30:12.000000000 +0200
+@@ -28,6 +28,7 @@ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Christian Hentschel <chentschel@arnet.com.ar>");
+ MODULE_DESCRIPTION("SIP connection tracking helper");
+ MODULE_ALIAS("ip_conntrack_sip");
++MODULE_ALIAS_NFCT_HELPER("sip");
  
--	nf_ct_l4proto_put(l4proto);
--
- 	nla_nest_end(skb, nest_proto);
+ #define MAX_PORTS	8
+ static unsigned short ports[MAX_PORTS];
+Index: net-next-2.6.git/net/netfilter/nf_conntrack_tftp.c
+===================================================================
+--- net-next-2.6.git.orig/net/netfilter/nf_conntrack_tftp.c	2008-07-29 14:30:10.000000000 +0200
++++ net-next-2.6.git/net/netfilter/nf_conntrack_tftp.c	2008-07-29 14:30:12.000000000 +0200
+@@ -22,6 +22,7 @@ MODULE_AUTHOR("Magnus Boden <mb@ozaba.mi
+ MODULE_DESCRIPTION("TFTP connection tracking helper");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ip_conntrack_tftp");
++MODULE_ALIAS_NFCT_HELPER("tftp");
  
- 	return ret;
+ #define MAX_PORTS 8
+ static unsigned short ports[MAX_PORTS];
+Index: net-next-2.6.git/net/netfilter/nf_conntrack_sane.c
+===================================================================
+--- net-next-2.6.git.orig/net/netfilter/nf_conntrack_sane.c	2008-07-30 08:50:29.000000000 +0200
++++ net-next-2.6.git/net/netfilter/nf_conntrack_sane.c	2008-07-30 08:51:02.000000000 +0200
+@@ -30,6 +30,7 @@
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Michal Schmidt <mschmidt@redhat.com>");
+ MODULE_DESCRIPTION("SANE connection tracking helper");
++MODULE_ALIAS_NFCT_HELPER("sane");
  
- nla_put_failure:
--	nf_ct_l4proto_put(l4proto);
- 	return -1;
- }
- 
-@@ -182,7 +175,6 @@ ctnetlink_dump_helpinfo(struct sk_buff *
- 	if (!help)
- 		return 0;
- 
--	rcu_read_lock();
- 	helper = rcu_dereference(help->helper);
- 	if (!helper)
- 		goto out;
-@@ -197,11 +189,9 @@ ctnetlink_dump_helpinfo(struct sk_buff *
- 
- 	nla_nest_end(skb, nest_helper);
- out:
--	rcu_read_unlock();
- 	return 0;
- 
- nla_put_failure:
--	rcu_read_unlock();
- 	return -1;
- }
- 
-@@ -458,6 +448,7 @@ static int ctnetlink_conntrack_event(str
- 	nfmsg->version	= NFNETLINK_V0;
- 	nfmsg->res_id	= 0;
- 
-+	rcu_read_lock();
- 	nest_parms = nla_nest_start(skb, CTA_TUPLE_ORIG | NLA_F_NESTED);
- 	if (!nest_parms)
- 		goto nla_put_failure;
-@@ -519,13 +510,15 @@ static int ctnetlink_conntrack_event(str
- 	    && ctnetlink_dump_mark(skb, ct) < 0)
- 		goto nla_put_failure;
- #endif
-+	rcu_read_unlock();
- 
- 	nlh->nlmsg_len = skb->tail - b;
- 	nfnetlink_send(skb, 0, group, 0);
- 	return NOTIFY_DONE;
- 
--nlmsg_failure:
- nla_put_failure:
-+	rcu_read_unlock();
-+nlmsg_failure:
- 	kfree_skb(skb);
- 	return NOTIFY_DONE;
- }
-@@ -863,8 +856,10 @@ ctnetlink_get_conntrack(struct sock *ctn
- 		return -ENOMEM;
- 	}
- 
-+	rcu_read_lock();
- 	err = ctnetlink_fill_info(skb2, NETLINK_CB(skb).pid, nlh->nlmsg_seq,
- 				  IPCTNL_MSG_CT_NEW, 1, ct);
-+	rcu_read_unlock();
- 	nf_ct_put(ct);
- 	if (err <= 0)
- 		goto free;
-@@ -1316,16 +1311,14 @@ ctnetlink_exp_dump_mask(struct sk_buff *
- 	if (!nest_parms)
- 		goto nla_put_failure;
- 
--	l3proto = nf_ct_l3proto_find_get(tuple->src.l3num);
-+	l3proto = __nf_ct_l3proto_find(tuple->src.l3num);
- 	ret = ctnetlink_dump_tuples_ip(skb, &m, l3proto);
--	nf_ct_l3proto_put(l3proto);
- 
- 	if (unlikely(ret < 0))
- 		goto nla_put_failure;
- 
--	l4proto = nf_ct_l4proto_find_get(tuple->src.l3num, tuple->dst.protonum);
-+	l4proto = __nf_ct_l4proto_find(tuple->src.l3num, tuple->dst.protonum);
- 	ret = ctnetlink_dump_tuples_proto(skb, &m, l4proto);
--	nf_ct_l4proto_put(l4proto);
- 	if (unlikely(ret < 0))
- 		goto nla_put_failure;
- 
-@@ -1432,15 +1425,18 @@ static int ctnetlink_expect_event(struct
- 	nfmsg->version	    = NFNETLINK_V0;
- 	nfmsg->res_id	    = 0;
- 
-+	rcu_read_lock();
- 	if (ctnetlink_exp_dump_expect(skb, exp) < 0)
- 		goto nla_put_failure;
-+	rcu_read_unlock();
- 
- 	nlh->nlmsg_len = skb->tail - b;
- 	nfnetlink_send(skb, 0, NFNLGRP_CONNTRACK_EXP_NEW, 0);
- 	return NOTIFY_DONE;
- 
--nlmsg_failure:
- nla_put_failure:
-+	rcu_read_unlock();
-+nlmsg_failure:
- 	kfree_skb(skb);
- 	return NOTIFY_DONE;
- }
-@@ -1543,9 +1539,11 @@ ctnetlink_get_expect(struct sock *ctnl, 
- 	if (!skb2)
- 		goto out;
- 
-+	rcu_read_lock();
- 	err = ctnetlink_exp_fill_info(skb2, NETLINK_CB(skb).pid,
- 				      nlh->nlmsg_seq, IPCTNL_MSG_EXP_NEW,
- 				      1, exp);
-+	rcu_read_unlock();
- 	if (err <= 0)
- 		goto free;
+ static char *sane_buffer;
  
 
---------------050800080302090707080204--
+--------------000604060003030802070409--
