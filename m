@@ -1,120 +1,59 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [NETFILTER]: Change IFNAMSIZ to 16
-Date: Wed, 30 Jul 2008 08:34:58 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0807300834080.5659@fbirervta.pbzchgretzou.qr>
+Subject: Re: build: do not install ip{,6}tables.h
+Date: Wed, 30 Jul 2008 08:35:18 -0400 (EDT)
+Message-ID: <alpine.LNX.1.10.0807291551530.21011@fbirervta.pbzchgretzou.qr>
+References: <alpine.LNX.1.10.0807281851030.15902@fbirervta.pbzchgretzou.qr> <488F0598.40202@netfilter.org> <488F1C08.1090403@netfilter.org> <alpine.LNX.1.10.0807291137150.21011@fbirervta.pbzchgretzou.qr> <488F4E11.8020106@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: kaber@trash.net,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:48230 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:48233 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752852AbYG3MfA (ORCPT
+	with ESMTP id S1754380AbYG3MfT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jul 2008 08:35:00 -0400
+	Wed, 30 Jul 2008 08:35:19 -0400
+In-Reply-To: <488F4E11.8020106@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 280d718a7686c0b709cebd18328f9a85d447eb9a
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Tue Jul 29 17:01:51 2008 -0400
 
-[NETFILTER]: Change IFNAMSIZ to 16
+On Tuesday 2008-07-29 13:06, Pablo Neira Ayuso wrote:
+>
+>xtables.h also requires libiptc/libxtc.h which is, AFAIK, a header of
+>the internal iptables' library - not initially intended for external u=
+se.
 
-The protocol for communication with userspace is fixed; using
-IFNAMSIZ would indicate this was changable, which it is not.
+Right, that's because the code is ugly too (patches follow).
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- include/linux/netfilter/xt_RATEEST.h    |    2 +-
- include/linux/netfilter/xt_hashlimit.h  |    4 ++--
- include/linux/netfilter/xt_physdev.h    |    8 ++++----
- include/linux/netfilter/xt_rateest.h    |    4 ++--
- include/linux/netfilter_ipv4/ipt_ULOG.h |    4 ++--
- 5 files changed, 11 insertions(+), 11 deletions(-)
+>Well, after all, it's ugly but it's not that bad as it only allows
+>people use the extension plugin API. I have committed your patch.
 
-diff --git a/include/linux/netfilter/xt_RATEEST.h b/include/linux/netfilter/xt_RATEEST.h
-index f79e313..969e219 100644
---- a/include/linux/netfilter/xt_RATEEST.h
-+++ b/include/linux/netfilter/xt_RATEEST.h
-@@ -2,7 +2,7 @@
- #define _XT_RATEEST_TARGET_H
- 
- struct xt_rateest_target_info {
--	char			name[IFNAMSIZ];
-+	char			name[16];
- 	int8_t			interval;
- 	u_int8_t		ewma_log;
- 
-diff --git a/include/linux/netfilter/xt_hashlimit.h b/include/linux/netfilter/xt_hashlimit.h
-index 51b18d8..dcca2db 100644
---- a/include/linux/netfilter/xt_hashlimit.h
-+++ b/include/linux/netfilter/xt_hashlimit.h
-@@ -30,7 +30,7 @@ struct hashlimit_cfg {
- };
- 
- struct xt_hashlimit_info {
--	char name [IFNAMSIZ];		/* name */
-+	char name [16];		/* name */
- 	struct hashlimit_cfg cfg;
- 
- 	/* Used internally by the kernel */
-@@ -56,7 +56,7 @@ struct hashlimit_cfg1 {
- };
- 
- struct xt_hashlimit_mtinfo1 {
--	char name[IFNAMSIZ];
-+	char name[16];
- 	struct hashlimit_cfg1 cfg;
- 
- 	/* Used internally by the kernel */
-diff --git a/include/linux/netfilter/xt_physdev.h b/include/linux/netfilter/xt_physdev.h
-index 25a7a18..1cceb14 100644
---- a/include/linux/netfilter/xt_physdev.h
-+++ b/include/linux/netfilter/xt_physdev.h
-@@ -13,10 +13,10 @@
- #define XT_PHYSDEV_OP_MASK		(0x20 - 1)
- 
- struct xt_physdev_info {
--	char physindev[IFNAMSIZ];
--	char in_mask[IFNAMSIZ];
--	char physoutdev[IFNAMSIZ];
--	char out_mask[IFNAMSIZ];
-+	char physindev[16];
-+	char in_mask[16];
-+	char physoutdev[16];
-+	char out_mask[16];
- 	u_int8_t invert;
- 	u_int8_t bitmask;
- };
-diff --git a/include/linux/netfilter/xt_rateest.h b/include/linux/netfilter/xt_rateest.h
-index 2010cb7..4f7c071 100644
---- a/include/linux/netfilter/xt_rateest.h
-+++ b/include/linux/netfilter/xt_rateest.h
-@@ -18,8 +18,8 @@ enum xt_rateest_match_mode {
- };
- 
- struct xt_rateest_match_info {
--	char			name1[IFNAMSIZ];
--	char			name2[IFNAMSIZ];
-+	char			name1[16];
-+	char			name2[16];
- 	u_int16_t		flags;
- 	u_int16_t		mode;
- 	u_int32_t		bps1;
-diff --git a/include/linux/netfilter_ipv4/ipt_ULOG.h b/include/linux/netfilter_ipv4/ipt_ULOG.h
-index 417aad2..4c0776f 100644
---- a/include/linux/netfilter_ipv4/ipt_ULOG.h
-+++ b/include/linux/netfilter_ipv4/ipt_ULOG.h
-@@ -37,8 +37,8 @@ typedef struct ulog_packet_msg {
- 	long timestamp_sec;
- 	long timestamp_usec;
- 	unsigned int hook;
--	char indev_name[IFNAMSIZ];
--	char outdev_name[IFNAMSIZ];
-+	char indev_name[16];
-+	char outdev_name[16];
- 	size_t data_len;
- 	char prefix[ULOG_PREFIX_LEN];
- 	unsigned char mac_len;
+But in a strange way -- you did not have to create a new branch just fo=
+r
+that.
 
+=E2=94=8C=E2=94=80[HEAD]=E2=94=80=E2=94=80[master]=E2=94=80=E2=94=80[re=
+motes/origin/HEAD]=E2=94=80=E2=94=80[remotes/origin/master]=E2=94=80=E2=
+=94=80Merge branch
+=E2=94=9C=E2=94=80=E2=94=90
+=E2=94=9C =E2=94=82 build: do not install ip{,6}tables.h=E2=94=80=E2=94=
+=80(72ed4ff)
+=E2=94=82 =E2=94=9C=E2=94=80[v1.4.2-rc1]=E2=94=80=E2=94=80v1.4.2-rc1=E2=
+=94=80=E2=94=80(675e30f)
+=E2=94=82 =E2=94=9C xt_string: string extension case insensitive matchi=
+ng=E2=94=80=E2=94=80(78d2d14)
+
+>BTW, do we support C++ extensions for iptables? Hm, really?
+
+We are not explicitly trying to go against them, like some linux
+kernel APIs.
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
