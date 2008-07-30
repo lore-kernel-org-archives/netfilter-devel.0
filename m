@@ -1,49 +1,138 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 4/7] Helper modules load on-demand support for ctnetlink
-Date: Wed, 30 Jul 2008 15:35:12 +0200
-Message-ID: <48906E10.9020902@trash.net>
-References: <48904A9F.8010509@netfilter.org> <48904C3B.7060004@trash.net> <48905083.1040002@netfilter.org> <4890519C.80407@netfilter.org>
+Subject: netfilter -stable: nf_nat_sip: c= is optional for session
+Date: Wed, 30 Jul 2008 15:42:34 +0200
+Message-ID: <48906FCA.1060503@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed;
+ boundary="------------070702040408040204030208"
 Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+	<netfilter-devel@vger.kernel.org>,
+	"David S. Miller" <davem@davemloft.net>
+To: stable@kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:48334 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:48469 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752314AbYG3NfU (ORCPT
+	with ESMTP id S1753308AbYG3Nmg (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jul 2008 09:35:20 -0400
-In-Reply-To: <4890519C.80407@netfilter.org>
+	Wed, 30 Jul 2008 09:42:36 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> Sorry, it's wrong. Please, take this.
+This is a multi-part message in MIME format.
+--------------070702040408040204030208
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> @@ -1672,9 +1660,24 @@ ctnetlink_create_expect(struct nlattr *c
->  	help = nfct_help(ct);
->  
->  	if (!help || !help->helper) {
-> -		/* such conntrack hasn't got any helper, abort */
-> +#ifdef CONFIG_KMOD
-> +		char *name;
-> +
->  		err = -EINVAL;
-> +		if (!cda[CTA_EXPECT_HELP_NAME])
-> +			goto out;
-> +
-> +		err = -ENOTSUPP;
-> +		name = nla_data(cda[CTA_EXPECT_HELP_NAME]);
-> +		if (request_module("nfct-helper-%s", name) < 0)
-> +			goto out;
-> +
-> +		if (nf_ct_set_helper(ct, GFP_KERNEL) < 0)
-> +			goto out;
+This patch fixes a regression in 2.6.26 in the SIP conntrack
+helper.
 
-This strikes me as quite inconsistent. First, we only perform
-autoloading for expectation creation, but not for conntracks.
-Second, this implicit helper assignment is also a bit unusual,
-why don't we simply insist that the conntrack has a helper
-assigned through the ctnetlink conntrack interface?
+Please apply, thanks.
+
+
+--------------070702040408040204030208
+Content-Type: text/x-diff;
+ name="01.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="01.diff"
+
+commit 3ce2313ead6e9d2e2f25be32d80c3930b894cf61
+Author: Herbert Xu <herbert@gondor.apana.org.au>
+Date:   Wed Jul 30 15:40:36 2008 +0200
+
+    netfilter: nf_nat_sip: c= is optional for session
+    
+    Upstream commit c71529e4:
+    
+    According to RFC2327, the connection information is optional
+    in the session description since it can be specified in the
+    media description instead.
+    
+    My provider does exactly that and does not provide any connection
+    information in the session description.  As a result the new
+    kernel drops all invite responses.
+    
+    This patch makes it optional as documented.
+    
+    Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+diff --git a/net/ipv4/netfilter/nf_nat_sip.c b/net/ipv4/netfilter/nf_nat_sip.c
+index 4334d5c..1454432 100644
+--- a/net/ipv4/netfilter/nf_nat_sip.c
++++ b/net/ipv4/netfilter/nf_nat_sip.c
+@@ -318,11 +318,11 @@ static int mangle_content_len(struct sk_buff *skb,
+ 			     buffer, buflen);
+ }
+ 
+-static unsigned mangle_sdp_packet(struct sk_buff *skb, const char **dptr,
+-				  unsigned int dataoff, unsigned int *datalen,
+-				  enum sdp_header_types type,
+-				  enum sdp_header_types term,
+-				  char *buffer, int buflen)
++static int mangle_sdp_packet(struct sk_buff *skb, const char **dptr,
++			     unsigned int dataoff, unsigned int *datalen,
++			     enum sdp_header_types type,
++			     enum sdp_header_types term,
++			     char *buffer, int buflen)
+ {
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+@@ -330,9 +330,9 @@ static unsigned mangle_sdp_packet(struct sk_buff *skb, const char **dptr,
+ 
+ 	if (ct_sip_get_sdp_header(ct, *dptr, dataoff, *datalen, type, term,
+ 				  &matchoff, &matchlen) <= 0)
+-		return 0;
++		return -ENOENT;
+ 	return mangle_packet(skb, dptr, datalen, matchoff, matchlen,
+-			     buffer, buflen);
++			     buffer, buflen) ? 0 : -EINVAL;
+ }
+ 
+ static unsigned int ip_nat_sdp_addr(struct sk_buff *skb, const char **dptr,
+@@ -346,8 +346,8 @@ static unsigned int ip_nat_sdp_addr(struct sk_buff *skb, const char **dptr,
+ 	unsigned int buflen;
+ 
+ 	buflen = sprintf(buffer, NIPQUAD_FMT, NIPQUAD(addr->ip));
+-	if (!mangle_sdp_packet(skb, dptr, dataoff, datalen, type, term,
+-			       buffer, buflen))
++	if (mangle_sdp_packet(skb, dptr, dataoff, datalen, type, term,
++			      buffer, buflen))
+ 		return 0;
+ 
+ 	return mangle_content_len(skb, dptr, datalen);
+@@ -381,15 +381,27 @@ static unsigned int ip_nat_sdp_session(struct sk_buff *skb, const char **dptr,
+ 
+ 	/* Mangle session description owner and contact addresses */
+ 	buflen = sprintf(buffer, "%u.%u.%u.%u", NIPQUAD(addr->ip));
+-	if (!mangle_sdp_packet(skb, dptr, dataoff, datalen,
++	if (mangle_sdp_packet(skb, dptr, dataoff, datalen,
+ 			       SDP_HDR_OWNER_IP4, SDP_HDR_MEDIA,
+ 			       buffer, buflen))
+ 		return 0;
+ 
+-	if (!mangle_sdp_packet(skb, dptr, dataoff, datalen,
+-			       SDP_HDR_CONNECTION_IP4, SDP_HDR_MEDIA,
+-			       buffer, buflen))
++	switch (mangle_sdp_packet(skb, dptr, dataoff, datalen,
++				  SDP_HDR_CONNECTION_IP4, SDP_HDR_MEDIA,
++				  buffer, buflen)) {
++	case 0:
++	/*
++	 * RFC 2327:
++	 *
++	 * Session description
++	 *
++	 * c=* (connection information - not required if included in all media)
++	 */
++	case -ENOENT:
++		break;
++	default:
+ 		return 0;
++	}
+ 
+ 	return mangle_content_len(skb, dptr, datalen);
+ }
+
+--------------070702040408040204030208--
