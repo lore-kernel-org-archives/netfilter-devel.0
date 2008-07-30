@@ -1,9 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] ipt_recent: fix race between recent_mt_destroy and proc
- manipulations
-Date: Wed, 30 Jul 2008 12:52:53 +0200
-Message-ID: <48904805.7050009@trash.net>
-References: <4887A2A6.1010704@openvz.org>
+Subject: Re: [PATCH] xt_hashlimit: fix race between htable_destroy and htable_gc
+Date: Wed, 30 Jul 2008 12:53:44 +0200
+Message-ID: <48904838.303@trash.net>
+References: <4887A7DB.4030305@openvz.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
@@ -13,28 +12,25 @@ Cc: David Miller <davem@davemloft.net>,
 	<netfilter-devel@vger.kernel.org>
 To: Pavel Emelyanov <xemul@openvz.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:44887 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:44910 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751812AbYG3Kwy (ORCPT
+	with ESMTP id S1753205AbYG3Kxq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jul 2008 06:52:54 -0400
-In-Reply-To: <4887A2A6.1010704@openvz.org>
+	Wed, 30 Jul 2008 06:53:46 -0400
+In-Reply-To: <4887A7DB.4030305@openvz.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Pavel Emelyanov wrote:
-> The thing is that recent_mt_destroy first flushes the entries
-> from table with the recent_table_flush and only *after* this
-> removes the proc file, corresponding to that table.
+> Deleting a timer with del_timer doesn't guarantee, that the
+> timer function is not running at the moment of deletion. Thus
+> in the xt_hashlimit case we can get into a ticklish situation
+> when the htable_gc rearms the timer back and we'll actually
+> delete an entry with a pending timer.
 > 
-> Thus, if we manage to write to this file the '+XXX' command we
-> will leak some entries. If we manage to write there a 'clean'
-> command we'll race in two recent_table_flush flows, since the
-> recent_mt_destroy calls this outside the recent_lock.
+> Fix it with using del_timer_sync().
 > 
-> The proper solution as I see it is to remove the proc file first
-> and then go on with flushing the table. This flushing becomes
-> safe w/o the lock, since the table is already inaccessible from
-> the outside.
+> AFAIK del_timer_sync checks for the timer to be pending by
+> itself, so I remove the check.
 
-Applied, thanks.
+Also applied, thanks.
