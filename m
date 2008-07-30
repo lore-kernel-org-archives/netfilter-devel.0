@@ -1,138 +1,47 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter -stable: nf_nat_sip: c= is optional for session
-Date: Wed, 30 Jul 2008 15:42:34 +0200
-Message-ID: <48906FCA.1060503@trash.net>
+Subject: Re: src: remove dependency on libiptc headers
+Date: Wed, 30 Jul 2008 15:45:36 +0200
+Message-ID: <48907080.8020207@trash.net>
+References: <alpine.LNX.1.10.0807300839010.6568@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------070702040408040204030208"
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	"David S. Miller" <davem@davemloft.net>
-To: stable@kernel.org
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:48469 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:48532 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753308AbYG3Nmg (ORCPT
+	with ESMTP id S1752858AbYG3Npi (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jul 2008 09:42:36 -0400
+	Wed, 30 Jul 2008 09:45:38 -0400
+In-Reply-To: <alpine.LNX.1.10.0807300839010.6568@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------070702040408040204030208
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Jan Engelhardt wrote:
+> commit 8219a9d65fe583de06c2ff4e84d1ea299955184b
+> Author: Jan Engelhardt <jengelh@medozas.de>
+> Date:   Wed Jul 30 08:36:33 2008 -0400
+> 
+> src: remove dependency on libiptc headers
+> 
+>  struct xt_rateest_match_info {
+> -	char			name1[IFNAMSIZ];
+> -	char			name2[IFNAMSIZ];
+> +	char			name1[16];
+> +	char			name2[16];
 
-This patch fixes a regression in 2.6.26 in the SIP conntrack
-helper.
+Seems unrelated and I don't want to apply this change.
+Please remove the IFNAMSIZ changes.
 
-Please apply, thanks.
+>  struct xtables_match
+>  {
+>  	struct xtables_match *next;
+>  
+> -	xt_chainlabel name;
+> +	char name[32];
+>  
 
-
---------------070702040408040204030208
-Content-Type: text/x-diff;
- name="01.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="01.diff"
-
-commit 3ce2313ead6e9d2e2f25be32d80c3930b894cf61
-Author: Herbert Xu <herbert@gondor.apana.org.au>
-Date:   Wed Jul 30 15:40:36 2008 +0200
-
-    netfilter: nf_nat_sip: c= is optional for session
-    
-    Upstream commit c71529e4:
-    
-    According to RFC2327, the connection information is optional
-    in the session description since it can be specified in the
-    media description instead.
-    
-    My provider does exactly that and does not provide any connection
-    information in the session description.  As a result the new
-    kernel drops all invite responses.
-    
-    This patch makes it optional as documented.
-    
-    Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
-    Signed-off-by: Patrick McHardy <kaber@trash.net>
-    Signed-off-by: David S. Miller <davem@davemloft.net>
-
-diff --git a/net/ipv4/netfilter/nf_nat_sip.c b/net/ipv4/netfilter/nf_nat_sip.c
-index 4334d5c..1454432 100644
---- a/net/ipv4/netfilter/nf_nat_sip.c
-+++ b/net/ipv4/netfilter/nf_nat_sip.c
-@@ -318,11 +318,11 @@ static int mangle_content_len(struct sk_buff *skb,
- 			     buffer, buflen);
- }
- 
--static unsigned mangle_sdp_packet(struct sk_buff *skb, const char **dptr,
--				  unsigned int dataoff, unsigned int *datalen,
--				  enum sdp_header_types type,
--				  enum sdp_header_types term,
--				  char *buffer, int buflen)
-+static int mangle_sdp_packet(struct sk_buff *skb, const char **dptr,
-+			     unsigned int dataoff, unsigned int *datalen,
-+			     enum sdp_header_types type,
-+			     enum sdp_header_types term,
-+			     char *buffer, int buflen)
- {
- 	enum ip_conntrack_info ctinfo;
- 	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
-@@ -330,9 +330,9 @@ static unsigned mangle_sdp_packet(struct sk_buff *skb, const char **dptr,
- 
- 	if (ct_sip_get_sdp_header(ct, *dptr, dataoff, *datalen, type, term,
- 				  &matchoff, &matchlen) <= 0)
--		return 0;
-+		return -ENOENT;
- 	return mangle_packet(skb, dptr, datalen, matchoff, matchlen,
--			     buffer, buflen);
-+			     buffer, buflen) ? 0 : -EINVAL;
- }
- 
- static unsigned int ip_nat_sdp_addr(struct sk_buff *skb, const char **dptr,
-@@ -346,8 +346,8 @@ static unsigned int ip_nat_sdp_addr(struct sk_buff *skb, const char **dptr,
- 	unsigned int buflen;
- 
- 	buflen = sprintf(buffer, NIPQUAD_FMT, NIPQUAD(addr->ip));
--	if (!mangle_sdp_packet(skb, dptr, dataoff, datalen, type, term,
--			       buffer, buflen))
-+	if (mangle_sdp_packet(skb, dptr, dataoff, datalen, type, term,
-+			      buffer, buflen))
- 		return 0;
- 
- 	return mangle_content_len(skb, dptr, datalen);
-@@ -381,15 +381,27 @@ static unsigned int ip_nat_sdp_session(struct sk_buff *skb, const char **dptr,
- 
- 	/* Mangle session description owner and contact addresses */
- 	buflen = sprintf(buffer, "%u.%u.%u.%u", NIPQUAD(addr->ip));
--	if (!mangle_sdp_packet(skb, dptr, dataoff, datalen,
-+	if (mangle_sdp_packet(skb, dptr, dataoff, datalen,
- 			       SDP_HDR_OWNER_IP4, SDP_HDR_MEDIA,
- 			       buffer, buflen))
- 		return 0;
- 
--	if (!mangle_sdp_packet(skb, dptr, dataoff, datalen,
--			       SDP_HDR_CONNECTION_IP4, SDP_HDR_MEDIA,
--			       buffer, buflen))
-+	switch (mangle_sdp_packet(skb, dptr, dataoff, datalen,
-+				  SDP_HDR_CONNECTION_IP4, SDP_HDR_MEDIA,
-+				  buffer, buflen)) {
-+	case 0:
-+	/*
-+	 * RFC 2327:
-+	 *
-+	 * Session description
-+	 *
-+	 * c=* (connection information - not required if included in all media)
-+	 */
-+	case -ENOENT:
-+		break;
-+	default:
- 		return 0;
-+	}
- 
- 	return mangle_content_len(skb, dptr, datalen);
- }
-
---------------070702040408040204030208--
+Why 32?
