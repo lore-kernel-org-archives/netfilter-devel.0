@@ -1,42 +1,44 @@
-From: <gregkh@suse.de>
-Subject: patch netfilter-stable-nf_conntrack_tcp-fix-endless-loop.patch added to 2.6.25-stable tree
-Date: Wed, 30 Jul 2008 15:09:42 -0700
-Message-ID: <20080730221309.8AC931454459@imap.suse.de>
-References: <487F3613.6040708@trash.net>
-Cc: <stable@kernel.org>, <stable-commits@vger.kernel.org>
-To: kaber@trash.net, davem@davemloft.net, gregkh@suse.de,
-	netfilter-devel@vger.kernel.org
+From: Greg KH <gregkh@suse.de>
+Subject: [patch 28/29] netfilter -stable: nf_conntrack_tcp: fix endless loop
+Date: Wed, 30 Jul 2008 16:27:45 -0700
+Message-ID: <20080730232745.GC30670@suse.de>
+References: <20080730231003.655833364@mini.kroah.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Justin Forbes <jmforbes@linuxtx.org>,
+	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
+	Theodore Ts'o <tytso@mit.edu>,
+	Randy Dunlap <rdunlap@xenotime.net>,
+	Dave Jones <davej@redhat.com>,
+	Chuck Wolber <chuckw@quantumlinux.com>,
+	Chris Wedgwood <reviews@ml.cw.f00f.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Chuck Ebbert <cebbert@redhat.com>,
+	Domenico Andreoli <cavokz@gmail.com>, Willy Tarreau <w@1wt.eu>,
+	Rodrigo Rubira Branco <rbranco@la.checkpoint.com>,
+	Jake Edge <jake@lwn.net>, Eugene Teo <eteo@redhat.com>,
+	torvalds@linux-foundation.org, akpm@linux-foundation.org,
+	alan@lxorguk.ukuu.org.uk,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	Patrick McHardy <kaber@trash.net>
+To: linux-kernel@vger.kernel.org, stable@kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ns1.suse.de ([195.135.220.2]:58447 "EHLO mx1.suse.de"
+Received: from mx2.suse.de ([195.135.220.15]:34761 "EHLO mx2.suse.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753252AbYG3WNL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jul 2008 18:13:11 -0400
-In-Reply-To: <487F3613.6040708@trash.net>
+	id S1761878AbYG3XnG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 30 Jul 2008 19:43:06 -0400
+Content-Disposition: inline; filename="netfilter-stable-nf_conntrack_tcp-fix-endless-loop.patch"
+In-Reply-To: <20080730232451.GA30670@suse.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-This is a note to let you know that we have just queued up the patch titled
+2.6.25-stable review patch.  If anyone has any objections, please let us 
+know.
 
-    Subject: netfilter -stable: nf_conntrack_tcp: fix endless loop
-
-to the 2.6.25-stable tree.  Its filename is
-
-    netfilter-stable-nf_conntrack_tcp-fix-endless-loop.patch
-
-A git repo of this tree can be found at 
-    http://www.kernel.org/git/?p=linux/kernel/git/stable/stable-queue.git;a=summary
-
-
->From stable-bounces@linux.kernel.org Thu Jul 17 05:08:03 2008
-From: Patrick McHardy <kaber@trash.net>
-Date: Thu, 17 Jul 2008 14:07:47 +0200
-Subject: netfilter -stable: nf_conntrack_tcp: fix endless loop
-To: stable@kernel.org
-Cc: Netfilter Development Mailinglist <netfilter-devel@vger.kernel.org>, "David S. Miller" <davem@davemloft.net>
-Message-ID: <487F3613.6040708@trash.net>
-
-
+------------------
 From: Patrick McHardy <kaber@trash.net>
 
 netfilter: nf_conntrack_tcp: fix endless loop
@@ -85,7 +87,4 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
  		/* Fall through */
  	case TCP_CONNTRACK_IGNORE:
 
-
-Patches currently in stable-queue which might be from kaber@trash.net are
-
-queue-2.6.25/netfilter-stable-nf_conntrack_tcp-fix-endless-loop.patch
+-- 
