@@ -1,28 +1,40 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: manpages: name and markup fixes
-Date: Wed, 30 Jul 2008 12:50:16 +0200
-Message-ID: <48904768.4090908@trash.net>
-References: <alpine.LNX.1.10.0807232220090.23410@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH] ipt_recent: fix race between recent_mt_destroy and proc
+ manipulations
+Date: Wed, 30 Jul 2008 12:52:53 +0200
+Message-ID: <48904805.7050009@trash.net>
+References: <4887A2A6.1010704@openvz.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: David Miller <davem@davemloft.net>,
+	Linux Netdev List <netdev@vger.kernel.org>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Pavel Emelyanov <xemul@openvz.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:44845 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:44887 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752384AbYG3KuV (ORCPT
+	with ESMTP id S1751812AbYG3Kwy (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jul 2008 06:50:21 -0400
-In-Reply-To: <alpine.LNX.1.10.0807232220090.23410@fbirervta.pbzchgretzou.qr>
+	Wed, 30 Jul 2008 06:52:54 -0400
+In-Reply-To: <4887A2A6.1010704@openvz.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> commit b0d57fe19c66184b3ad317290131cadd4f045786
-> Author: Jan Engelhardt <jengelh@medozas.de>
-> Date:   Thu Jul 3 20:33:19 2008 +0200
+Pavel Emelyanov wrote:
+> The thing is that recent_mt_destroy first flushes the entries
+> from table with the recent_table_flush and only *after* this
+> removes the proc file, corresponding to that table.
 > 
-> manpages: name and markup fixes
+> Thus, if we manage to write to this file the '+XXX' command we
+> will leak some entries. If we manage to write there a 'clean'
+> command we'll race in two recent_table_flush flows, since the
+> recent_mt_destroy calls this outside the recent_lock.
+> 
+> The proper solution as I see it is to remove the proc file first
+> and then go on with flushing the table. This flushing becomes
+> safe w/o the lock, since the table is already inaccessible from
+> the outside.
 
 Applied, thanks.
