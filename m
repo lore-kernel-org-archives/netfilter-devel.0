@@ -1,48 +1,32 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: src: drop libiptc from installation
-Date: Wed, 30 Jul 2008 09:20:52 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0807300920001.28509@fbirervta.pbzchgretzou.qr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 1/7] get rid of module refcounting in ctnetlink
+Date: Wed, 30 Jul 2008 15:24:24 +0200
+Message-ID: <48906B88.20208@trash.net>
+References: <48904A6D.3010404@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: pablo@netfilter.org,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Fabian Hugelshofer <hugelshofer2006@gmx.ch>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:33914 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751777AbYG3NUx (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:48098 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750848AbYG3NY0 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jul 2008 09:20:53 -0400
+	Wed, 30 Jul 2008 09:24:26 -0400
+In-Reply-To: <48904A6D.3010404@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit ef5d689411a64356ef26e56d7c82835e113b6d87
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Wed Jul 30 08:38:37 2008 -0400
+Pablo Neira Ayuso wrote:
+> [PATCH] get rid of module refcounting in ctnetlink
+> 
+> This patch replaces the unnecessary module refcounting with
+> the read-side locks. With this patch, all the dump and fill_info
+> function are called under the RCU read lock.
+> 
+> Based on a patch from Fabian Hugelshofer.
 
-src: drop libiptc from installation
-
-libiptc is for iptables only, and was only previously exported because 
-of the xt_chainlabel typedef. This is resolved by this patch.
-
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- Makefile.am |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
-
-diff --git a/Makefile.am b/Makefile.am
-index 48561b7..b714b97 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -73,9 +73,6 @@ man_MANS         := iptables.8 iptables-restore.8 iptables-save.8 \
- CLEANFILES       := iptables.8 ip6tables.8
- if ENABLE_DEVEL
- include_HEADERS  := include/xtables.h
--iptcdir           = ${includedir}/libiptc
--iptc_HEADERS     := include/libiptc/libxtc.h \
--                    include/libiptc/ipt_kernel_headers.h
- endif
- 
- if ENABLE_STATIC
-
+Looks good. Queued for 2.6.28, thanks.
