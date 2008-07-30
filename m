@@ -1,61 +1,64 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: [PATCH 4/7] Helper modules load on-demand support for ctnetlink
-Date: Wed, 30 Jul 2008 13:29:07 +0200
-Message-ID: <48905083.1040002@netfilter.org>
-References: <48904A9F.8010509@netfilter.org> <48904C3B.7060004@trash.net>
+Date: Wed, 30 Jul 2008 13:33:48 +0200
+Message-ID: <4890519C.80407@netfilter.org>
+References: <48904A9F.8010509@netfilter.org> <48904C3B.7060004@trash.net> <48905083.1040002@netfilter.org>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------090300050202030506050201"
-Cc: Netfilter Development Mailinglist
+ boundary="------------060903060708060100020701"
+Cc: Patrick McHardy <kaber@trash.net>,
+	Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46026 "EHLO us.es"
+Received: from mail.us.es ([193.147.175.20]:58462 "EHLO us.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752104AbYG3L3b (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jul 2008 07:29:31 -0400
-In-Reply-To: <48904C3B.7060004@trash.net>
+	id S1752104AbYG3Ldx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 30 Jul 2008 07:33:53 -0400
+In-Reply-To: <48905083.1040002@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 This is a multi-part message in MIME format.
---------------090300050202030506050201
+--------------060903060708060100020701
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
-Patrick McHardy wrote:
->> @@ -1152,17 +1150,7 @@ ctnetlink_create_conntrack(struct nlattr
->>  #endif
->>  
->>      rcu_read_lock();
->> -    helper = __nf_ct_helper_find(rtuple);
->> -    if (helper) {
->> -        help = nf_ct_helper_ext_add(ct, GFP_KERNEL);
->> -        if (help == NULL) {
->> -            rcu_read_unlock();
->> -            err = -ENOMEM;
->> -            goto err;
->> -        }
->> -        /* not in hash table yet so not strictly necessary */
->> -        rcu_assign_pointer(help->helper, helper);
->> -    }
->> +    __nf_ct_set_helper(ct, GFP_KERNEL);
+Pablo Neira Ayuso wrote:
+> Patrick McHardy wrote:
+>>> @@ -1152,17 +1150,7 @@ ctnetlink_create_conntrack(struct nlattr
+>>>  #endif
+>>>  
+>>>      rcu_read_lock();
+>>> -    helper = __nf_ct_helper_find(rtuple);
+>>> -    if (helper) {
+>>> -        help = nf_ct_helper_ext_add(ct, GFP_KERNEL);
+>>> -        if (help == NULL) {
+>>> -            rcu_read_unlock();
+>>> -            err = -ENOMEM;
+>>> -            goto err;
+>>> -        }
+>>> -        /* not in hash table yet so not strictly necessary */
+>>> -        rcu_assign_pointer(help->helper, helper);
+>>> -    }
+>>> +    __nf_ct_set_helper(ct, GFP_KERNEL);
+>> This one should be checking the return value.
 > 
-> This one should be checking the return value.
+> Attached a new version.
 
-Attached a new version.
+Sorry, it's wrong. Please, take this.
 
 -- 
 "Los honestos son inadaptados sociales" -- Les Luthiers
 
---------------090300050202030506050201
+--------------060903060708060100020701
 Content-Type: text/x-diff;
  name="03.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
  filename="03.patch"
 
-[PATCHv2] Helper modules load on-demand support for ctnetlink
+[PATCHv3] Helper modules load on-demand support for ctnetlink
 
 This patch adds helper load on-demand support for ctnetlink. This patch
 also refactorizes the code to provide a couple of functions to look up 
@@ -69,8 +72,8 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
 Index: net-next-2.6.git/net/netfilter/nf_conntrack_core.c
 ===================================================================
---- net-next-2.6.git.orig/net/netfilter/nf_conntrack_core.c	2008-07-30 13:19:39.000000000 +0200
-+++ net-next-2.6.git/net/netfilter/nf_conntrack_core.c	2008-07-30 13:19:42.000000000 +0200
+--- net-next-2.6.git.orig/net/netfilter/nf_conntrack_core.c	2008-07-30 13:32:31.000000000 +0200
++++ net-next-2.6.git/net/netfilter/nf_conntrack_core.c	2008-07-30 13:32:34.000000000 +0200
 @@ -578,14 +578,7 @@ init_conntrack(const struct nf_conntrack
  		nf_conntrack_get(&ct->master->ct_general);
  		NF_CT_STAT_INC(expect_new);
@@ -124,8 +127,8 @@ Index: net-next-2.6.git/net/netfilter/nf_conntrack_core.c
  
 Index: net-next-2.6.git/net/netfilter/nf_conntrack_netlink.c
 ===================================================================
---- net-next-2.6.git.orig/net/netfilter/nf_conntrack_netlink.c	2008-07-30 13:19:39.000000000 +0200
-+++ net-next-2.6.git/net/netfilter/nf_conntrack_netlink.c	2008-07-30 13:25:07.000000000 +0200
+--- net-next-2.6.git.orig/net/netfilter/nf_conntrack_netlink.c	2008-07-30 13:32:31.000000000 +0200
++++ net-next-2.6.git/net/netfilter/nf_conntrack_netlink.c	2008-07-30 13:33:13.000000000 +0200
 @@ -1120,8 +1120,6 @@ ctnetlink_create_conntrack(struct nlattr
  {
  	struct nf_conn *ct;
@@ -135,7 +138,7 @@ Index: net-next-2.6.git/net/netfilter/nf_conntrack_netlink.c
  
  	ct = nf_conntrack_alloc(otuple, rtuple, GFP_KERNEL);
  	if (ct == NULL || IS_ERR(ct))
-@@ -1152,16 +1150,9 @@ ctnetlink_create_conntrack(struct nlattr
+@@ -1152,16 +1150,10 @@ ctnetlink_create_conntrack(struct nlattr
  #endif
  
  	rcu_read_lock();
@@ -151,11 +154,12 @@ Index: net-next-2.6.git/net/netfilter/nf_conntrack_netlink.c
 -		rcu_assign_pointer(help->helper, helper);
 +	if (__nf_ct_set_helper(ct, GFP_KERNEL) == -ENOMEM) {
 +		rcu_read_unlock();
++		err = -ENOMEM;
 +		goto err;
  	}
  
  	/* setup master conntrack: this is a confirmed expectation */
-@@ -1672,9 +1663,24 @@ ctnetlink_create_expect(struct nlattr *c
+@@ -1672,9 +1664,24 @@ ctnetlink_create_expect(struct nlattr *c
  	help = nfct_help(ct);
  
  	if (!help || !help->helper) {
@@ -183,8 +187,8 @@ Index: net-next-2.6.git/net/netfilter/nf_conntrack_netlink.c
  	exp = nf_ct_expect_alloc(ct);
 Index: net-next-2.6.git/include/net/netfilter/nf_conntrack_helper.h
 ===================================================================
---- net-next-2.6.git.orig/include/net/netfilter/nf_conntrack_helper.h	2008-07-30 13:19:39.000000000 +0200
-+++ net-next-2.6.git/include/net/netfilter/nf_conntrack_helper.h	2008-07-30 13:19:42.000000000 +0200
+--- net-next-2.6.git.orig/include/net/netfilter/nf_conntrack_helper.h	2008-07-30 13:32:31.000000000 +0200
++++ net-next-2.6.git/include/net/netfilter/nf_conntrack_helper.h	2008-07-30 13:32:34.000000000 +0200
 @@ -39,9 +39,6 @@ struct nf_conntrack_helper
  };
  
@@ -217,8 +221,8 @@ Index: net-next-2.6.git/include/net/netfilter/nf_conntrack_helper.h
  	return nf_ct_ext_find(ct, NF_CT_EXT_HELPER);
 Index: net-next-2.6.git/net/netfilter/nf_conntrack_helper.c
 ===================================================================
---- net-next-2.6.git.orig/net/netfilter/nf_conntrack_helper.c	2008-07-30 13:19:39.000000000 +0200
-+++ net-next-2.6.git/net/netfilter/nf_conntrack_helper.c	2008-07-30 13:19:42.000000000 +0200
+--- net-next-2.6.git.orig/net/netfilter/nf_conntrack_helper.c	2008-07-30 13:32:31.000000000 +0200
++++ net-next-2.6.git/net/netfilter/nf_conntrack_helper.c	2008-07-30 13:32:34.000000000 +0200
 @@ -43,7 +43,7 @@ static unsigned int helper_hash(const st
  		(__force __u16)tuple->src.u.all) % nf_ct_helper_hsize;
  }
@@ -274,4 +278,4 @@ Index: net-next-2.6.git/net/netfilter/nf_conntrack_helper.c
  			 const struct nf_conntrack_helper *me)
  {
 
---------------090300050202030506050201--
+--------------060903060708060100020701--
