@@ -1,42 +1,45 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: netfilter 03/03: xt_hashlimit: fix race between htable_destroy
- and htable_gc
-Date: Thu, 31 Jul 2008 00:39:01 -0700 (PDT)
-Message-ID: <20080731.003901.55306768.davem@davemloft.net>
-References: <20080731063312.18150.49494.sendpatchset@localhost.localdomain>
-	<20080731063316.18150.32852.sendpatchset@localhost.localdomain>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: Re: TCP connection stalls under 2.6.24.7
+Date: Thu, 31 Jul 2008 09:39:40 +0200
+Message-ID: <200807310939.42406.thomas.jarosch@intra2net.com>
+References: <47EA0DAB.7080205@securenet.de> <Pine.LNX.4.64.0807251613230.11302@wrl-59.cs.helsinki.fi> <200807251734.27743.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:54651
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1753694AbYGaHjC (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 31 Jul 2008 03:39:02 -0400
-In-Reply-To: <20080731063316.18150.32852.sendpatchset@localhost.localdomain>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: "Ilpo =?iso-8859-15?q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>,
+	Netdev <netdev@vger.kernel.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Sven Riedel <sr@securenet.de>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	David Miller <davem@davemloft.net>
+To: "=?iso-8859-15?q?D=E2niel?= Fraga" <fragabr@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <200807251734.27743.thomas.jarosch@intra2net.com>
+Content-Disposition: inline
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Thu, 31 Jul 2008 08:33:16 +0200 (MEST)
+Hi D=E2niel,
 
-> netfilter: xt_hashlimit: fix race between htable_destroy and htable_gc
-> 
-> Deleting a timer with del_timer doesn't guarantee, that the
-> timer function is not running at the moment of deletion. Thus
-> in the xt_hashlimit case we can get into a ticklish situation
-> when the htable_gc rearms the timer back and we'll actually
-> delete an entry with a pending timer.
-> 
-> Fix it with using del_timer_sync().
-> 
-> AFAIK del_timer_sync checks for the timer to be pending by
-> itself, so I remove the check.
-> 
-> Signed-off-by: Pavel Emelyanov <xemul@openvz.org>
-> Signed-off-by: Patrick McHardy <kaber@trash.net>
+On Thursday, 31. July 2008 06:47:38 you wrote:
+> On Tue, 15 Jul 2008 15:30:45 -0300
+>
+> D=E2niel Fraga <fragabr@gmail.com> wrote:
+> > 	I'm using kernel 2.6.26 and the problem has gone. No stalled
+> > connections anymore. The problem was with 2.6.25 kernel only.
+>
+> 	Sorry, I was wrong. In 2.6.26 the problem remains.
+>
+> 	Everyday my connection stalls to my NNTP server using 2.6.26
+> too. Before I just used a "nmap -sS server" and the connection would
+> come back, but now it doesn't work.
 
-Also applied, thanks.
+Ok. Please try the latest patch Ilpo CC:ed you. Here's a link to the po=
+st:
+http://marc.info/?l=3Dlinux-netdev&m=3D121699478406378&w=3D2
+
+Where is the NNTP server located? At your provider?
+
+Thomas
