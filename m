@@ -1,38 +1,33 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: concurrency problems in a netfilter target extension?
-Date: Thu, 31 Jul 2008 10:39:56 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0807311039180.6855@fbirervta.pbzchgretzou.qr>
-References: <4891C96A.20004@googlemail.com>
+From: "Filka Michal" <Michal.Filka@sitronicsts.com>
+Subject: Copying sk_buffer
+Date: Thu, 31 Jul 2008 16:40:35 +0200
+Message-ID: <4474723F928CA640ADB2172099AEAB111E8BF8@exalfa.stromtelecom.cz>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Tobias Koeck <tobias.koeck@gmail.com>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:54763 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753391AbYGaOj7 (ORCPT
+Received: from mail.strom.cz ([80.95.102.231]:13858 "EHLO mail.strom.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754385AbYGaOkd convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 31 Jul 2008 10:39:59 -0400
-In-Reply-To: <4891C96A.20004@googlemail.com>
+	Thu, 31 Jul 2008 10:40:33 -0400
+Content-class: urn:content-classes:message
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi all,
 
-On Thursday 2008-07-31 10:17, Tobias Koeck wrote:
+I try to duplicate an incoming packet(s) in netfilter's prerouting hook.
+I create a copy using pskb_copy, then I call netif_rx for new skb
+(trying to simulate next incoming packet). netif_rx returns
+NET_RX_SUCCESS, however the copy doesn't leave the computer (it is copy
+of a "non local" packet, so it should be routed to final destination) -
+I cannot see it in tcpdump (I can see original packet)
 
-> I=C2=B4m writing on a netfilter target extension.
->
-> Are there some possible concurrency problems (means is it possible th=
-at my
-> target extension modules is loaded several times or could it be used =
-with
-> several cpu cores simultaniously)?
+Does anyone can suggest an idea? What's wrong?
 
-Yes, see "Writing your own Netfilter modules" at=20
-http://jengelh.medozas.de/ , chapter "tricks and traps"
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks for your help.
+
+Michal Filka
