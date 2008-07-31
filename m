@@ -1,54 +1,54 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [ULOGD2 PATCH 11/11] Add option to CFLAGS to avoid useless warning.
-Date: Thu, 31 Jul 2008 12:09:49 +0200
-Message-ID: <48918F6D.8040307@trash.net>
-References: <20080723162746.GB31572@bayen.regit.org> <1217166686-28508-12-git-send-email-eric@inl.fr> <48918A9D.5040204@netfilter.org>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: Re: TCP connection tracking timeout
+Date: Thu, 31 Jul 2008 20:19:35 +0800
+Message-ID: <20080731121935.GA8324@gondor.apana.org.au>
+References: <488EA0F1.2050906@trash.net> <488EA3FE.7050503@trash.net> <20080729060105.GA16797@gondor.apana.org.au> <488EB4F1.60806@trash.net> <20080729090737.GA18046@gondor.apana.org.au> <Pine.LNX.4.64.0807291420590.1378@blackhole.kfki.hu> <20080729133444.GA19876@gondor.apana.org.au> <Pine.LNX.4.64.0807292135290.1679@blackhole.kfki.hu> <20080730013554.GA25736@gondor.apana.org.au> <Pine.LNX.4.64.0807302208030.3210@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Eric Leblond <eric@inl.fr>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:39471 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751106AbYGaKJx (ORCPT
+Received: from rhun.apana.org.au ([64.62.148.172]:38030 "EHLO
+	arnor.apana.org.au" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750828AbYGaMTq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 31 Jul 2008 06:09:53 -0400
-In-Reply-To: <48918A9D.5040204@netfilter.org>
+	Thu, 31 Jul 2008 08:19:46 -0400
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0807302208030.3210@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> Eric Leblond wrote:
->> This patch adds the "-Wno-unused-parameter" option to CFLAGS. This suppress
->> gcc warning that can not be fixed due to the usage of generic system like
->> callback where function definition has to be standardized.
->>
->> Signed-off-by: Eric Leblond <eric@inl.fr>
->> ---
->>  configure.in |    2 +-
->>  1 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/configure.in b/configure.in
->> index 96cc2d0..8889575 100644
->> --- a/configure.in
->> +++ b/configure.in
->> @@ -30,7 +30,7 @@ dnl Checks for library functions.
->>  AC_FUNC_VPRINTF
->>  AC_CHECK_FUNCS(socket strerror)
->>  
->> -CFLAGS="$CFLAGS -Wall -Wextra"
->> +CFLAGS="$CFLAGS -Wall -Wextra -Wno-unused-parameter"
-> 
-> Applied from 1 to 10. Thanks Eric.
-> 
-> With regards to this patch. This warning vanishes is we remove -Wextra.
-> 
-> We are not using this flag in any other userspace tools and IIRC Patrick
-> said that -Wextra did not provide very useful warning. Any comment on this?
+On Wed, Jul 30, 2008 at 11:18:42PM +0200, Jozsef Kadlecsik wrote:
+>
+> diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+> index 6f61261..a9b3b8f 100644
+> --- a/net/netfilter/nf_conntrack_proto_tcp.c
+> +++ b/net/netfilter/nf_conntrack_proto_tcp.c
+> @@ -911,6 +911,15 @@ static int tcp_packet(struct nf_conn *ct,
+>  			nf_log_packet(pf, 0, skb, NULL, NULL, NULL,
+>  				  "nf_ct_tcp: invalid state ");
+>  		return -NF_ACCEPT;
+> +	case TCP_CONNTRACK_LAST_ACK:
+> +	case TCP_CONNTRACK_CLOSE_WAIT:
+> +		/* Check and compensate retransmitted FIN or
+> +		 * reordered ACK packets */
+> +		if (old_state == TCP_CONNTRACK_FIN_WAIT
+> +		    && (ct->proto.tcp.seen[dir].flags
+> +		        & IP_CT_TCP_FLAG_CLOSE_INIT))
+> +		        new_state = TCP_CONNTRACK_FIN_WAIT;
 
+This is slightly better but it is still fundamentally broken.
+Do we really need to establish a committee just to add a new
+state? :)
 
-It includes some useful warnings, but also some that tend to
-produce lots of false positives. We could enable the useful
-ones manually, or simply wait and see how much false positives
-we'll actually get.
+We can squeeze out the requisite number of bits (4) from the
+existing state variable.
+
+Cheers,
+-- 
+Visit Openswan at http://www.openswan.org/
+Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
