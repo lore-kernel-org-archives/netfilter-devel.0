@@ -1,90 +1,54 @@
-From: Greg KH <gregkh@suse.de>
-Subject: [patch 28/29] netfilter -stable: nf_conntrack_tcp: fix endless loop
-Date: Wed, 30 Jul 2008 16:27:45 -0700
-Message-ID: <20080730232745.GC30670@suse.de>
-References: <20080730231003.655833364@mini.kroah.org>
+From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
+Subject: Re: TCP connection stalls under 2.6.24.7
+Date: Thu, 31 Jul 2008 01:47:38 -0300
+Message-ID: <55u7m5-i63.ln1@tux.abusar.org.br>
+References: <47EA0DAB.7080205@securenet.de>
+	<200807111633.42514.thomas.jarosch@intra2net.com>
+	<200807151347.23598.thomas.jarosch@intra2net.com>
+	<200807151810.45942.thomas.jarosch@intra2net.com>
+	<20080715153045.12efaea4@tux>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Justin Forbes <jmforbes@linuxtx.org>,
-	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
-	Theodore Ts'o <tytso@mit.edu>,
-	Randy Dunlap <rdunlap@xenotime.net>,
-	Dave Jones <davej@redhat.com>,
-	Chuck Wolber <chuckw@quantumlinux.com>,
-	Chris Wedgwood <reviews@ml.cw.f00f.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Chuck Ebbert <cebbert@redhat.com>,
-	Domenico Andreoli <cavokz@gmail.com>, Willy Tarreau <w@1wt.eu>,
-	Rodrigo Rubira Branco <rbranco@la.checkpoint.com>,
-	Jake Edge <jake@lwn.net>, Eugene Teo <eteo@redhat.com>,
-	torvalds@linux-foundation.org, akpm@linux-foundation.org,
-	alan@lxorguk.ukuu.org.uk,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>
-To: linux-kernel@vger.kernel.org, stable@kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx2.suse.de ([195.135.220.15]:34761 "EHLO mx2.suse.de"
+Received: from main.gmane.org ([80.91.229.2]:33961 "EHLO ciao.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761878AbYG3XnG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jul 2008 19:43:06 -0400
-Content-Disposition: inline; filename="netfilter-stable-nf_conntrack_tcp-fix-endless-loop.patch"
-In-Reply-To: <20080730232451.GA30670@suse.de>
+	id S1751806AbYGaFNK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 31 Jul 2008 01:13:10 -0400
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1KOQTN-0004IN-2z
+	for netfilter-devel@vger.kernel.org; Thu, 31 Jul 2008 05:13:09 +0000
+Received: from c934d6e6.virtua.com.br ([201.52.214.230])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Thu, 31 Jul 2008 05:13:09 +0000
+Received: from fragabr by c934d6e6.virtua.com.br with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Thu, 31 Jul 2008 05:13:09 +0000
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Tue, 15 Jul 2008 15:30:45 -0300
+D=E2niel Fraga <fragabr@gmail.com> wrote:
 
-2.6.25-stable review patch.  If anyone has any objections, please let us 
-know.
+> 	I'm using kernel 2.6.26 and the problem has gone. No stalled
+> connections anymore. The problem was with 2.6.25 kernel only.
+=09
+	Sorry, I was wrong. In 2.6.26 the problem remains.
 
-------------------
-From: Patrick McHardy <kaber@trash.net>
+	Everyday my connection stalls to my NNTP server using 2.6.26
+too. Before I just used a "nmap -sS server" and the connection would
+come back, but now it doesn't work.
 
-netfilter: nf_conntrack_tcp: fix endless loop
+--=20
+Linux 2.6.26: Rotary Wombat
+http://u-br.net
 
-Upstream commit 6b69fe0:
 
-When a conntrack entry is destroyed in process context and destruction
-is interrupted by packet processing and the packet is an attempt to
-reopen a closed connection, TCP conntrack tries to kill the old entry
-itself and returns NF_REPEAT to pass the packet through the hook
-again. This may lead to an endless loop: TCP conntrack repeatedly
-finds the old entry, but can not kill it itself since destruction
-is already in progress, but destruction in process context can not
-complete since TCP conntrack is keeping the CPU busy.
-
-Drop the packet in TCP conntrack if we can't kill the connection
-ourselves to avoid this.
-
-Reported by: hemao77@gmail.com [ Kernel bugzilla #11058 ]
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
-
----
- net/netfilter/nf_conntrack_proto_tcp.c |   10 ++++++++--
- 1 file changed, 8 insertions(+), 2 deletions(-)
-
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -845,9 +845,15 @@ static int tcp_packet(struct nf_conn *ct
- 			/* Attempt to reopen a closed/aborted connection.
- 			 * Delete this connection and look up again. */
- 			write_unlock_bh(&tcp_lock);
--			if (del_timer(&ct->timeout))
-+			/* Only repeat if we can actually remove the timer.
-+			 * Destruction may already be in progress in process
-+			 * context and we must give it a chance to terminate.
-+			 */
-+			if (del_timer(&ct->timeout)) {
- 				ct->timeout.function((unsigned long)ct);
--			return -NF_REPEAT;
-+				return -NF_REPEAT;
-+			}
-+			return -NF_DROP;
- 		}
- 		/* Fall through */
- 	case TCP_CONNTRACK_IGNORE:
-
--- 
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
