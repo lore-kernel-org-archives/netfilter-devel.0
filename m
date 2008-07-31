@@ -1,49 +1,38 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: Re: [ULOGD2 PATCH] Use attribute to avoid warning about unused
-	parameter.
-Date: Thu, 31 Jul 2008 17:11:54 +0200
-Message-ID: <20080731151153.GH30655@khasse.inl.fr>
-References: <48918F6D.8040307@trash.net> <1217512238-26173-1-git-send-email-eric@inl.fr> <4891D029.9090702@netfilter.org>
+From: Fabian Hugelshofer <hugelshofer2006@gmx.ch>
+Subject: Re: [PATCH 7/7] dynamic calculation of event message size for ctnetlin
+Date: Thu, 31 Jul 2008 17:26:41 +0100
+Message-ID: <4891E7C1.2060203@gmx.ch>
+References: <48904B37.7090108@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Patrick McHardy <kaber@trash.net>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fydelkass.inl.fr ([195.101.59.116]:44303 "EHLO fydelkass.inl.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752447AbYGaPL4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 31 Jul 2008 11:11:56 -0400
-Content-Disposition: inline
-In-Reply-To: <4891D029.9090702@netfilter.org>
+Received: from mail.gmx.net ([213.165.64.20]:58653 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1751601AbYGaQ0n (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 31 Jul 2008 12:26:43 -0400
+In-Reply-To: <48904B37.7090108@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
-
-On Thursday, 2008 July 31 at 16:46:01 +0200, Pablo Neira Ayuso wrote:
-> Eric Leblond wrote:
-> > Following live discussion with Pierre Chifflier, it appears that the flag
-> > -Wno-unused-parameter is deprecated in gcc and has to be replaced by an
-> > attribute: __attribute__ ((unused)).
-> > 
-> > The following patch fixes all warnings related to unused parameters by
-> > correctly settings the attribute in all unused function parameters. This
-> > is mainly the case for callback functions. It uses a macro named UNUSED
-> > which is simply defined as __attribute__((unused)).
+Pablo Neira Ayuso wrote:
+> [PATCH] dynamic calculation of event message size for ctnetlink
 > 
-> I don't like polluting the code with tons of UNUSED flags, sorry.
+> This patch adds dynamic message size calculation for ctnetlink. This
+> reduces CPU consumption since the overhead in the message trimming
+> is removed.
 
-I don't like that too.
+Thanks for the patch.
 
-> I prefer if we use several -Wxyz options that may be report useful
-> warnings instead of -Wextra.
+Just did some performance tests. On average it saves 5% CPU usage at 
+~1600pps (UDP packets, 1000B payload, random source ports) on my router 
+(IXP4XX, 266Mhz).
 
-But, the fact is that globally switching the flag can be a way to
-miss some really useful warning. Patch 03/11 of this patchset
-was done after seing a gcc warning.
-
-BR,
--- 
-Eric Leblond
-INL: http://www.inl.fr/
-NuFW: http://www.nufw.org/
+With the unclean patch the performance gain was slightly higher. I have 
+posted it was 10%, but as far as I remember it was actually a bit less 
+then that. The remaining difference can be explained by the length 
+calculation overhead and measuring inaccuracy.
