@@ -1,54 +1,62 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
-Subject: Re: TCP connection tracking timeout
-Date: Thu, 31 Jul 2008 20:19:35 +0800
-Message-ID: <20080731121935.GA8324@gondor.apana.org.au>
-References: <488EA0F1.2050906@trash.net> <488EA3FE.7050503@trash.net> <20080729060105.GA16797@gondor.apana.org.au> <488EB4F1.60806@trash.net> <20080729090737.GA18046@gondor.apana.org.au> <Pine.LNX.4.64.0807291420590.1378@blackhole.kfki.hu> <20080729133444.GA19876@gondor.apana.org.au> <Pine.LNX.4.64.0807292135290.1679@blackhole.kfki.hu> <20080730013554.GA25736@gondor.apana.org.au> <Pine.LNX.4.64.0807302208030.3210@blackhole.kfki.hu>
+From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
+Subject: Re: TCP connection stalls under 2.6.24.7
+Date: Thu, 31 Jul 2008 09:44:36 -0300
+Message-ID: <20080731094436.12ec99ae@tux>
+References: <47EA0DAB.7080205@securenet.de>
+	<Pine.LNX.4.64.0807251613230.11302@wrl-59.cs.helsinki.fi>
+	<200807251734.27743.thomas.jarosch@intra2net.com>
+	<200807310939.42406.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>,
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
+Cc: "Ilpo =?ISO-8859-1?Q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>,
+	Netdev <netdev@vger.kernel.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Sven Riedel <sr@securenet.de>,
 	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rhun.apana.org.au ([64.62.148.172]:38030 "EHLO
-	arnor.apana.org.au" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750828AbYGaMTq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 31 Jul 2008 08:19:46 -0400
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0807302208030.3210@blackhole.kfki.hu>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+	<netfilter-devel@vger.kernel.org>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	David Miller <davem@davemloft.net>
+To: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <200807310939.42406.thomas.jarosch@intra2net.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Jul 30, 2008 at 11:18:42PM +0200, Jozsef Kadlecsik wrote:
->
-> diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-> index 6f61261..a9b3b8f 100644
-> --- a/net/netfilter/nf_conntrack_proto_tcp.c
-> +++ b/net/netfilter/nf_conntrack_proto_tcp.c
-> @@ -911,6 +911,15 @@ static int tcp_packet(struct nf_conn *ct,
->  			nf_log_packet(pf, 0, skb, NULL, NULL, NULL,
->  				  "nf_ct_tcp: invalid state ");
->  		return -NF_ACCEPT;
-> +	case TCP_CONNTRACK_LAST_ACK:
-> +	case TCP_CONNTRACK_CLOSE_WAIT:
-> +		/* Check and compensate retransmitted FIN or
-> +		 * reordered ACK packets */
-> +		if (old_state == TCP_CONNTRACK_FIN_WAIT
-> +		    && (ct->proto.tcp.seen[dir].flags
-> +		        & IP_CT_TCP_FLAG_CLOSE_INIT))
-> +		        new_state = TCP_CONNTRACK_FIN_WAIT;
+On Thu, 31 Jul 2008 09:39:40 +0200
+Thomas Jarosch <thomas.jarosch@intra2net.com> wrote:
 
-This is slightly better but it is still fundamentally broken.
-Do we really need to establish a committee just to add a new
-state? :)
+> Ok. Please try the latest patch Ilpo CC:ed you. Here's a link to the post:
+> http://marc.info/?l=linux-netdev&m=121699478406378&w=2
 
-We can squeeze out the requisite number of bits (4) from the
-existing state variable.
+	Before I try could this issue be related to some of these
+kernel parameters?
 
-Cheers,
+echo 1 > /proc/sys/net/ipv4/icmp_echo_ignore_broadcasts
+
+echo 0 > /proc/sys/net/ipv4/conf/all/accept_source_route 
+
+echo 0 > /proc/sys/net/ipv4/conf/all/accept_redirects 
+
+echo 1 > /proc/sys/net/ipv4/icmp_ignore_bogus_error_responses 
+
+	I ask it because I decided to comment these lines (on my
+NATted desktop and on the server) and until now I don't have the problem
+anymore. But I'll keep testing all day and if the problem comes back
+I'll try the patch ok?
+
+> Where is the NNTP server located? At your provider?
+
+	It's my nntp server:
+
+nntp://news.abusar.org
+
+	You can post test messages on grupo "u-br.teste".
+
+	But there's an issue. My connection was stalled mainly when I
+ran some application with sudo (for example fetchnews etc). Then I'd do
+an nmap -sS and the connection would come back alive. Sometimes it
+would be necessary a nmap on my desktop (local machine) and sometimes
+on the server (news.abusar.org).
+
 -- 
-Visit Openswan at http://www.openswan.org/
-Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
