@@ -1,44 +1,48 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: src: drop libiptc from installation
-Date: Fri, 1 Aug 2008 09:04:54 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0808010904340.31124@fbirervta.pbzchgretzou.qr>
+From: =?ISO-8859-1?Q?Anders_Grafstr=F6m?= <grfstrm@users.sourceforge.net>
+Subject: [PATCH] ipt_addrtype: Fix matching of inverted destination address
+ type
+Date: Fri, 01 Aug 2008 23:36:59 +0200
+Message-ID: <489381FB.8080502@users.sourceforge.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
+Content-Type: text/plain; charset=ISO-8859-1;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:38577 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753410AbYHANEz (ORCPT
+Received: from ernst.netinsight.se ([194.16.221.21]:14638 "HELO
+	ernst.netinsight.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755996AbYHAVrL (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 1 Aug 2008 09:04:55 -0400
+	Fri, 1 Aug 2008 17:47:11 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-(patch 2/2)
-commit 2457d8f06e9e6f9929379494240e4ec503962590
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Fri Aug 1 09:02:42 2008 -0400
+This patch fixes matching of inverted destination address type.
 
-src: drop libiptc from installation
-
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+Signed-off-by: Anders Grafstr=F6m <grfstrm@users.sourceforge.net>
 ---
- Makefile.am |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+  net/ipv4/netfilter/ipt_addrtype.c |    2 +-
+  1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/Makefile.am b/Makefile.am
-index 48561b7..b714b97 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -73,9 +73,6 @@ man_MANS         := iptables.8 iptables-restore.8 iptables-save.8 \
- CLEANFILES       := iptables.8 ip6tables.8
- if ENABLE_DEVEL
- include_HEADERS  := include/xtables.h
--iptcdir           = ${includedir}/libiptc
--iptc_HEADERS     := include/libiptc/libxtc.h \
--                    include/libiptc/ipt_kernel_headers.h
- endif
- 
- if ENABLE_STATIC
+diff --git a/net/ipv4/netfilter/ipt_addrtype.c b/net/ipv4/netfilter/ipt=
+_addrtype.c
+index 49587a4..1f7e005 100644
+--- a/net/ipv4/netfilter/ipt_addrtype.c
++++ b/net/ipv4/netfilter/ipt_addrtype.c
+@@ -70,7 +70,7 @@ addrtype_mt_v1(const struct sk_buff *skb, const struc=
+t net_device *in,
+  		       (info->flags & IPT_ADDRTYPE_INVERT_SOURCE);
+  	if (ret && info->dest)
+  		ret &=3D match_type(dev, iph->daddr, info->dest) ^
+-		       (info->flags & IPT_ADDRTYPE_INVERT_DEST);
++		       (info->flags & IPT_ADDRTYPE_INVERT_DEST) >> 1;
+  	return ret;
+  }
 
+--=20
+1.5.6.3
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
