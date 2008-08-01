@@ -1,29 +1,43 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [ULOGD2 PATCH 11/11] Add option to CFLAGS to avoid useless warning.
-Date: Fri, 01 Aug 2008 10:34:54 +0200
-Message-ID: <4892CAAE.9030408@netfilter.org>
-References: <20080723162746.GB31572@bayen.regit.org> <1217166686-28508-12-git-send-email-eric@inl.fr>
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: Re: TCP connection tracking timeout
+Date: Fri, 1 Aug 2008 19:58:19 +0800
+Message-ID: <20080801115819.GA19375@gondor.apana.org.au>
+References: <20080729060105.GA16797@gondor.apana.org.au> <488EB4F1.60806@trash.net> <20080729090737.GA18046@gondor.apana.org.au> <Pine.LNX.4.64.0807291420590.1378@blackhole.kfki.hu> <20080729133444.GA19876@gondor.apana.org.au> <Pine.LNX.4.64.0807292135290.1679@blackhole.kfki.hu> <20080730013554.GA25736@gondor.apana.org.au> <Pine.LNX.4.64.0807302208030.3210@blackhole.kfki.hu> <20080731121935.GA8324@gondor.apana.org.au> <Pine.LNX.4.64.0807312124240.4318@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@inl.fr>
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35448 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750834AbYHAIfD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 1 Aug 2008 04:35:03 -0400
-In-Reply-To: <1217166686-28508-12-git-send-email-eric@inl.fr>
+Received: from rhun.apana.org.au ([64.62.148.172]:41110 "EHLO
+	arnor.apana.org.au" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753955AbYHAL60 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 1 Aug 2008 07:58:26 -0400
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.0807312124240.4318@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Leblond wrote:
-> This patch adds the "-Wno-unused-parameter" option to CFLAGS. This suppress
-> gcc warning that can not be fixed due to the usage of generic system like
-> callback where function definition has to be standardized.
+On Thu, Jul 31, 2008 at 09:26:40PM +0200, Jozsef Kadlecsik wrote:
+>
+> So what do you suggest ;-)?
 
-I have applied this, at least until we find a better way to get the
-useful warnings that -Wextra reports.
+Out of a nutshell, let's divide the existing u8 state into two
+separate states, each 4 bits wide.  They should be used to track
+the two directions separately using the same logic that we currently
+have.
 
+The timout should then be computed as the maximum of that of each
+state.  However, the overall timeout should be the minimum of this
+and that given by the retransmit logic (This is because the logic
+for retransmits is to detect the death of the connection at the
+sender, in which case both directions evaporate).
+
+Cheers,
 -- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+Visit Openswan at http://www.openswan.org/
+Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
