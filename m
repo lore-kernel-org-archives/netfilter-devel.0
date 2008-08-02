@@ -1,92 +1,44 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: src: remove dependency on libiptc headers
-Date: Sat, 02 Aug 2008 13:52:56 +0200
-Message-ID: <48944A98.8050202@netfilter.org>
-References: <alpine.LNX.1.10.0808010903020.31124@fbirervta.pbzchgretzou.qr> <489444E1.8060303@netfilter.org>
+From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
+Subject: Re: TCP connection stalls under 2.6.24.7
+Date: Sat, 2 Aug 2008 09:24:55 -0300
+Message-ID: <20080802092455.4e6a8b84@tux>
+References: <47EA0DAB.7080205@securenet.de>
+	<200807111633.42514.thomas.jarosch@intra2net.com>
+	<200807151347.23598.thomas.jarosch@intra2net.com>
+	<200807151810.45942.thomas.jarosch@intra2net.com>
+	<20080715153045.12efaea4@tux>
+	<55u7m5-i63.ln1@tux.abusar.org.br>
+	<Pine.LNX.4.64.0807311035350.4551@wrl-59.cs.helsinki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53258 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752796AbYHBLxO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 2 Aug 2008 07:53:14 -0400
-In-Reply-To: <489444E1.8060303@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: "Ilpo =?ISO-8859-1?Q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.64.0807311035350.4551@wrl-59.cs.helsinki.fi>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso wrote:
-> Jan Engelhardt wrote:
->> --- a/include/libiptc/libxtc.h
->> +++ b/include/libiptc/libxtc.h
->> @@ -20,8 +20,6 @@ extern "C" {
->>  #define XT_ALIGN(s) (((s) + ((XT_MIN_ALIGN)-1)) & ~((XT_MIN_ALIGN)-1))
->>  #endif
->>  
->> -typedef char xt_chainlabel[32];
->> -
->>  #define XTC_LABEL_ACCEPT  "ACCEPT"
->>  #define XTC_LABEL_DROP    "DROP"
->>  #define XTC_LABEL_QUEUE   "QUEUE"
->> diff --git a/include/xtables.h.in b/include/xtables.h.in
->> index 4ce73e9..51cb67d 100644
->> --- a/include/xtables.h.in
->> +++ b/include/xtables.h.in
->> @@ -1,11 +1,12 @@
->>  #ifndef _XTABLES_H
->>  #define _XTABLES_H
->>  
->> +#include <sys/socket.h> /* PF_* */
->>  #include <sys/types.h>
->> +#include <stdbool.h>
->> +#include <net/if.h>
->>  #include <linux/types.h>
->>  #include <linux/netfilter/x_tables.h>
->> -#include <libiptc/libxtc.h>
->> -#include <stdbool.h>
->>  
->>  #ifndef IPPROTO_SCTP
->>  #define IPPROTO_SCTP 132
->> @@ -22,12 +23,14 @@
->>  
->>  #define XTABLES_API_VERSION(x,y,z)    (0x10000*(x) + 0x100*(y) + z)
->>  
->> +struct in_addr;
->> +
->>  /* Include file for additions: new matches and targets. */
->>  struct xtables_match
->>  {
->>  	struct xtables_match *next;
->>  
->> -	xt_chainlabel name;
->> +	const char *name;
->>  
->>  	/* Revision of match (0 by default). */
->>  	u_int8_t revision;
->> @@ -83,7 +86,7 @@ struct xtables_target
->>  {
->>  	struct xtables_target *next;
->>  
->> -	xt_chainlabel name;
->> +	const char *name;
-> 
-> This is breaking the ABI. You're replacing at field of 32 bytes by one
-> of 4 bytes.
-> 
-> As we discussed in your previous patch, if your intention is to export
-> the xtables.h file and make it a public API for other external clients,
-> you must understand that you should not change a single line of headers
-> otherwise you may end up breaking backward compatibility (compilation
-> and binary) for others.
+On Thu, 31 Jul 2008 10:39:56 +0300 (EEST)
+"Ilpo J=E4rvinen" <ilpo.jarvinen@helsinki.fi> wrote:
 
-Well, let's try to fix this and hope that nobody's is including libxtc.h
-directly.
+> Tcpdumping it would help some... :-) Can you try the suggested patch =
+if it=20
+> changes any (though would I have a tcpdump showing the problem, I cou=
+ld=20
+> probably tell right away if the patch would help or not, and also com=
+e up=20
+> with something else if necessary :-)):
+>=20
+>   http://marc.info/?l=3Dlinux-netdev&m=3D121699478406378&w=3D2
 
-Please, resend the two patches using char name[32] instead of char *.
+	Hi, I'm using the patch and I can confirm it solved my problem.
+No more stalled connections :).
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+	Is there any chance this patch can be merged in the kernel?
+Thank you.
+
+--=20
+
+
+--=20
