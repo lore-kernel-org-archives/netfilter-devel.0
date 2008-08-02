@@ -1,44 +1,37 @@
-From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
-Subject: Re: TCP connection stalls under 2.6.24.7
-Date: Sat, 2 Aug 2008 09:24:55 -0300
-Message-ID: <20080802092455.4e6a8b84@tux>
-References: <47EA0DAB.7080205@securenet.de>
-	<200807111633.42514.thomas.jarosch@intra2net.com>
-	<200807151347.23598.thomas.jarosch@intra2net.com>
-	<200807151810.45942.thomas.jarosch@intra2net.com>
-	<20080715153045.12efaea4@tux>
-	<55u7m5-i63.ln1@tux.abusar.org.br>
-	<Pine.LNX.4.64.0807311035350.4551@wrl-59.cs.helsinki.fi>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: src: remove dependency on libiptc headers
+Date: Sat, 2 Aug 2008 12:24:14 -0400 (EDT)
+Message-ID: <alpine.LNX.1.10.0808021220320.12119@fbirervta.pbzchgretzou.qr>
+References: <alpine.LNX.1.10.0808010903020.31124@fbirervta.pbzchgretzou.qr> <489444E1.8060303@netfilter.org> <48944A98.8050202@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: "Ilpo =?ISO-8859-1?Q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.0807311035350.4551@wrl-59.cs.helsinki.fi>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
-
-On Thu, 31 Jul 2008 10:39:56 +0300 (EEST)
-"Ilpo J=E4rvinen" <ilpo.jarvinen@helsinki.fi> wrote:
-
-> Tcpdumping it would help some... :-) Can you try the suggested patch =
-if it=20
-> changes any (though would I have a tcpdump showing the problem, I cou=
-ld=20
-> probably tell right away if the patch would help or not, and also com=
-e up=20
-> with something else if necessary :-)):
->=20
->   http://marc.info/?l=3Dlinux-netdev&m=3D121699478406378&w=3D2
-
-	Hi, I'm using the patch and I can confirm it solved my problem.
-No more stalled connections :).
-
-	Is there any chance this patch can be merged in the kernel?
-Thank you.
-
---=20
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: kaber@trash.net,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:34875 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753804AbYHBQYQ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 2 Aug 2008 12:24:16 -0400
+In-Reply-To: <48944A98.8050202@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
 
---=20
+On Saturday 2008-08-02 07:52, Pablo Neira Ayuso wrote:
+>>>  
+#define XTABLES_VERSION "@PACKAGE_VERSION@"                                     
+>>>  #define XTABLES_API_VERSION(x,y,z)    (0x10000*(x) + 0x100*(y) + z)
+>>>  
+>>> -	xt_chainlabel name;
+>>> +	const char *name;
+>>>  
+>> This is breaking the ABI. You're replacing at field of 32 bytes by one
+>> of 4 bytes.
+
+The API actually remains the same, due to the nature of char[]
+decaying into char* (and .name is also only used in the registrator);
+the ABI (indicated by XTABLES_VERSION) changes yes, and that is fine
+because we moved from 1.4.1 to 1.4.2-rc1.
