@@ -1,57 +1,49 @@
-From: =?UTF-8?B?QW5kZXJzIEdyYWZzdHLDtm0=?=
-	<grfstrm@users.sourceforge.net>
-Subject: Re: [PATCH] ipt_addrtype: Fix matching of inverted destination address
- type
-Date: Sun, 03 Aug 2008 16:58:57 +0200
-Message-ID: <4895C7B1.5060609@users.sourceforge.net>
-References: <489381FB.8080502@users.sourceforge.net> <alpine.LNX.1.10.0808012234170.6855@fbirervta.pbzchgretzou.qr>
+From: Phil Oester <kernel@linuxace.com>
+Subject: [PATCH] Fix save of negated dscp match rules
+Date: Sun, 3 Aug 2008 08:31:32 -0700
+Message-ID: <20080803153132.GA10808@linuxace.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: multipart/mixed; boundary="n8g4imXOkfNTN/H1"
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ernst.netinsight.se ([194.16.221.21]:48143 "HELO
-	ernst.netinsight.se" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755390AbYHCO7H (ORCPT
+Received: from adsl-67-120-171-161.dsl.lsan03.pacbell.net ([67.120.171.161]:44843
+	"HELO linuxace.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755915AbYHCPbd (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 3 Aug 2008 10:59:07 -0400
-In-Reply-To: <alpine.LNX.1.10.0808012234170.6855@fbirervta.pbzchgretzou.qr>
+	Sun, 3 Aug 2008 11:31:33 -0400
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[PATCH] ipt_addrtype: Fix matching of inverted destination address type
 
-This patch fixes matching of inverted destination address type.
+--n8g4imXOkfNTN/H1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Anders Grafstr=C3=B6m <grfstrm@users.sourceforge.net>
----
-Ok, here's the revised patch.
+As pointed out by Vyacheslav Garashchenko, iptables-save does not
+save negated dscp matches properly.  Fix below.
 
-  net/ipv4/netfilter/ipt_addrtype.c |    2 +-
-  1 files changed, 1 insertions(+), 1 deletions(-)
+This closes bugzilla #533.
 
-diff --git a/net/ipv4/netfilter/ipt_addrtype.c b/net/ipv4/netfilter/ipt=
-_addrtype.c
-index 49587a4..462a22c 100644
---- a/net/ipv4/netfilter/ipt_addrtype.c
-+++ b/net/ipv4/netfilter/ipt_addrtype.c
-@@ -70,7 +70,7 @@ addrtype_mt_v1(const struct sk_buff *skb, const struc=
-t net_device *in,
-  		       (info->flags & IPT_ADDRTYPE_INVERT_SOURCE);
-  	if (ret && info->dest)
-  		ret &=3D match_type(dev, iph->daddr, info->dest) ^
--		       (info->flags & IPT_ADDRTYPE_INVERT_DEST);
-+		       !!(info->flags & IPT_ADDRTYPE_INVERT_DEST);
-  	return ret;
-  }
+Phil
 
---=20
-1.5.6.3
+Signed-off-by: Phil Oester <kernel@linuxace.com>
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--n8g4imXOkfNTN/H1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: attachment; filename=patch-dscp-save
+
+--- iptables/extensions/libxt_dscp.c	2008-06-24 13:58:46.000000000 -0700
++++ iptables-1.4.1.1/extensions/libxt_dscp.c	2008-08-03 08:26:36.000000000 -0700
+@@ -119,7 +119,7 @@
+ print_dscp(u_int8_t dscp, int invert, int numeric)
+ {
+ 	if (invert)
+-		fputc('!', stdout);
++		printf("! ");
+ 
+  	printf("0x%02x ", dscp);
+ }
+
+--n8g4imXOkfNTN/H1--
