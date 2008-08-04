@@ -1,133 +1,27 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: libxt_recent: do not allow both --set and --rttl
-Date: Sun, 3 Aug 2008 15:04:03 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0808031503320.6502@fbirervta.pbzchgretzou.qr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: src: remove dependency on libiptc headers
+Date: Mon, 04 Aug 2008 12:48:20 +0200
+Message-ID: <4896DE74.7080100@trash.net>
+References: <alpine.LNX.1.10.0808010903020.31124@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:50179 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752730AbYHCTEF (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:51322 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753028AbYHDKsW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 3 Aug 2008 15:04:05 -0400
+	Mon, 4 Aug 2008 06:48:22 -0400
+In-Reply-To: <alpine.LNX.1.10.0808010903020.31124@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit a49a4695616dd8c467360af5447869e3a68c4f4d
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Sun Aug 3 15:03:27 2008 -0400
+Jan Engelhardt wrote:
+> src: remove dependency on libiptc headers
+> 
+> xtables.h does not need really need libxtc.h, and we can drop it from 
+> the install as it is internal-only.
 
-libxt_recent: do not allow both --set and --rttl
-
-Reported-by: Erich Schubert <erich@debian.org>
-Reference: Debian bug #346034
-
-"I was using the --rttl option in my --set line; this caused all
-incoming ssh connections to be rejected; --rttl is only to be used
-with --rcheck and --update."
-
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- extensions/libipt_recent.c |   33 +++++++++++++++++++++++----------
- 1 files changed, 23 insertions(+), 10 deletions(-)
-
-diff --git a/extensions/libipt_recent.c b/extensions/libipt_recent.c
-index 51b0d15..108de2f 100644
---- a/extensions/libipt_recent.c
-+++ b/extensions/libipt_recent.c
-@@ -75,6 +75,10 @@ static void recent_init(struct xt_entry_match *match)
- 	info->side = IPT_RECENT_SOURCE;
- }
- 
-+#define RECENT_CMDS \
-+	(IPT_RECENT_SET | IPT_RECENT_CHECK | \
-+	IPT_RECENT_UPDATE | IPT_RECENT_REMOVE)
-+
- /* Function which parses command options; returns true if it
-    ate an option */
- static int recent_parse(int c, char **argv, int invert, unsigned int *flags,
-@@ -83,43 +87,47 @@ static int recent_parse(int c, char **argv, int invert, unsigned int *flags,
- 	struct ipt_recent_info *info = (struct ipt_recent_info *)(*match)->data;
- 	switch (c) {
- 		case 201:
--			if (*flags) exit_error(PARAMETER_PROBLEM,
-+			if (*flags & RECENT_CMDS)
-+				exit_error(PARAMETER_PROBLEM,
- 					"recent: only one of `--set', `--rcheck' "
- 					"`--update' or `--remove' may be set");
- 			check_inverse(optarg, &invert, &optind, 0);
- 			info->check_set |= IPT_RECENT_SET;
- 			if (invert) info->invert = 1;
--			*flags = 1;
-+			*flags |= IPT_RECENT_SET;
- 			break;
- 			
- 		case 202:
--			if (*flags) exit_error(PARAMETER_PROBLEM,
-+			if (*flags & RECENT_CMDS)
-+				exit_error(PARAMETER_PROBLEM,
- 					"recent: only one of `--set', `--rcheck' "
- 					"`--update' or `--remove' may be set");
- 			check_inverse(optarg, &invert, &optind, 0);
- 			info->check_set |= IPT_RECENT_CHECK;
- 			if(invert) info->invert = 1;
--			*flags = 1;
-+			*flags |= IPT_RECENT_CHECK;
- 			break;
- 
- 		case 203:
--			if (*flags) exit_error(PARAMETER_PROBLEM,
-+			if (*flags & RECENT_CMDS)
-+				exit_error(PARAMETER_PROBLEM,
- 					"recent: only one of `--set', `--rcheck' "
- 					"`--update' or `--remove' may be set");
- 			check_inverse(optarg, &invert, &optind, 0);
- 			info->check_set |= IPT_RECENT_UPDATE;
- 			if (invert) info->invert = 1;
--			*flags = 1;
-+			*flags |= IPT_RECENT_UPDATE;
- 			break;
- 
- 		case 206:
--			if (*flags) exit_error(PARAMETER_PROBLEM,
-+			if (*flags & RECENT_CMDS)
-+				exit_error(PARAMETER_PROBLEM,
- 					"recent: only one of `--set', `--rcheck' "
- 					"`--update' or `--remove' may be set");
- 			check_inverse(optarg, &invert, &optind, 0);
- 			info->check_set |= IPT_RECENT_REMOVE;
- 			if (invert) info->invert = 1;
--			*flags = 1;
-+			*flags |= IPT_RECENT_REMOVE;
- 			break;
- 
- 		case 204:
-@@ -132,6 +140,7 @@ static int recent_parse(int c, char **argv, int invert, unsigned int *flags,
- 
- 		case 207:
- 			info->check_set |= IPT_RECENT_TTL;
-+			*flags |= IPT_RECENT_TTL;
- 			break;
- 
- 		case 208:
-@@ -157,11 +166,15 @@ static int recent_parse(int c, char **argv, int invert, unsigned int *flags,
- /* Final check; must have specified a specific option. */
- static void recent_check(unsigned int flags)
- {
--
--	if (!flags)
-+	if (!(flags & RECENT_CMDS))
- 		exit_error(PARAMETER_PROBLEM,
- 			"recent: you must specify one of `--set', `--rcheck' "
- 			"`--update' or `--remove'");
-+	if ((flags & IPT_RECENT_TTL) &&
-+	    (flags & (IPT_RECENT_SET | IPT_RECENT_REMOVE | IPT_RECENT_UPDATE)))
-+		exit_error(PARAMETER_PROBLEM,
-+		           "recent: --rttl may only be used with --rcheck or "
-+		           "--update");
- }
- 
- /* Prints out the matchinfo. */
-
+Applied, thanks.
