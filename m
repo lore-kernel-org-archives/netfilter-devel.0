@@ -1,36 +1,36 @@
-From: Al Viro <viro@ZenIV.linux.org.uk>
-Subject: Re: [PATCH] netfilter: fix two recent sysctl problems
-Date: Wed, 6 Aug 2008 04:22:01 +0100
-Message-ID: <20080806032201.GN28946@ZenIV.linux.org.uk>
-References: <489915af.VNn/ufBuUNr78bc1%ole@ans.pl>
+From: "=?BIG5?B?pP2uy7tU?=" <sxn2cp3197k@gmail.com>
+Subject: =?BIG5?B?sXrB2ahTprOkQK3TsU3E3aq6pfi3frr0r7i23KFI?=
+Date: Wed, 6 Aug 2008 15:10:29 +0800
+Message-ID: <bb16fd8a0808060010k2f49f99s79a10f50948ea050@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Krzysztof Piotr Oledzki <ole@ans.pl>
+Content-Type: text/plain; charset=BIG5
+Content-Transfer-Encoding: base64
+To: netme@tp.edu.tw
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from zeniv.linux.org.uk ([195.92.253.2]:35638 "EHLO
-	ZenIV.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750944AbYHFDWD (ORCPT
+Received: from mail-gx0-f29.google.com ([209.85.217.29]:50236 "EHLO
+	mail-gx0-f29.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754658AbYHFHKh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 5 Aug 2008 23:22:03 -0400
+	Wed, 6 Aug 2008 03:10:37 -0400
+Received: by mail-gx0-f29.google.com with SMTP id 10so4582927gxk.13
+        for <netfilter-devel@vger.kernel.org>; Wed, 06 Aug 2008 00:10:37 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <489915af.VNn/ufBuUNr78bc1%ole@ans.pl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Aug 06, 2008 at 05:08:31AM +0200, Krzysztof Piotr Oledzki wrote:
-> netfilter: fix two recent sysctl problems
-> 
-> Starting with 9043476f726802f4b00c96d0c4f418dde48d1304 we have two
-> netfilter releated problems:
-> 
->  - WARNING: at kernel/sysctl.c:1966 unregister_sysctl_table+0xcc/0x103(),
->    caused by wrong order of ini/fini calls
-> 
->  - net.netfilter is duplicated and has truncated set of records
-> 
-> Thanks to very useful guidelines from Al Viro, this patch fixes both of them.
-> 
-> Signed-off-by: Krzysztof Piotr Oledzki <ole@ans.pl>
-
-ACKed-by: Al Viro <viro@zeniv.linux.org.uk>
+pHPgvqzsp9669K22s12tcAoKp9qtzKq6qXamrqFHq8ik4aq6qEOjuKXzpHCoxrGhoUGzo6xPpHPg
+vqq6pGqoxrGhCgqn2q3MpmKxwKVYpfi3fqfOtki69K+4pV2ndKtlpXi69K22rPykdSur4aV4ut6y
+erV7pqEKCq2trsmtrbZxsU2u17v5IKV1rW4kMjksOTAwCgoopmKwZaO4pn4xMDBNQqSjra2sebZx
+uvSvuKrFtqEpCgqn2q3MsLWquqSjpXWsT7r0r7ihQabTrE+xeqX4t36quqRKpGYKCqO4rdOmbqq6
+pfi3frr0r7i46q7Gp1muyafzt3OqurN0q9esT6vcrautbqq6Cgql+Ld+ou2kxqq6sKqrfr3ouc62
+pKFBpbSzebF6qrq69Lj0qvmtsQoKv+++3KRz4L6mqLROsXqqurnat1EKCqHjoeOh46HjoeOh46Hj
+oeOh46HjoeOh46HjoeOh46HjoeOh46HjoeOh46HjoeOh46HjoeMKUFM6IL11pFfByqqruvSvuKfa
+rczB2aVptKOo0ajqpWS+96juoUEKoUChQLtQvXWkV6ZDpkyxYrPmpf6s2bZXsNMrtmynvcO6tk8u
+Li4uLi61par3rHmqQbDIvveo7gqh46HjoeOh46HjoeOh46HjoeOh46HjoeOh46HjoeOh46HjoeOh
+46HjoeOh46HjoeOh46HjCgrFd6rvqNO5cayiuN+2wLFNrfuhXVNhbaFeoUcwOTgwMTE5ODEyIC8g
+MDkzODc2NDM5NQoKpFe69LdqtE2heaFApHPgvqzsp96kvaVxuvSvuKFAoXqnWaVpp+So7KfarcwK
+CqHjoeOh46HjoeOh46HjoeOh46HjoeOh46HjoeOh46HjoeOh46HjoeOh46HjoeOh46HjoeMKpbuk
+vaVxpXSlfrSjqNHD9sHkpnJTRU+xxqfHqkGwyAqrT8PSsU6xeqq6uvSvuKZiWXggLyBHeCAuLi6x
+xqZissSkQK22CqFAoUChQKFAoUChQKFAoUChQKFAoUChQKFAoUChQKFAoUChQCDFd6rvqNO5cbjf
+sN0hISEKoeOh46HjoeOh46HjoeOh46HjoeOh46HjoeOh46HjoeOh46HjoeOh46HjoeOh46HjoeOh
+4wo=
