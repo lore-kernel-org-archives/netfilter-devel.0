@@ -1,44 +1,108 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: src: remove dependency on libiptc headers
-Date: Tue, 05 Aug 2008 08:58:52 +0200
-Message-ID: <4897FA2C.30705@netfilter.org>
-References: <alpine.LNX.1.10.0808010903020.31124@fbirervta.pbzchgretzou.qr> <489444E1.8060303@netfilter.org> <48944A98.8050202@netfilter.org> <alpine.LNX.1.10.0808021220320.12119@fbirervta.pbzchgretzou.qr> <489713B7.10909@netfilter.org> <alpine.LNX.1.10.0808041943350.29809@fbirervta.pbzchgretzou.qr>
+From: Krzysztof Piotr Oledzki <ole@ans.pl>
+Subject: [PATCH] netfilter: fix two recent sysctl problems
+Date: Wed, 06 Aug 2008 05:08:31 +0200
+Message-ID: <489915af.VNn/ufBuUNr78bc1%ole@ans.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+To: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	viro@zeniv.linux.org.uk
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51684 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751608AbYHFB6t (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 5 Aug 2008 21:58:49 -0400
-In-Reply-To: <alpine.LNX.1.10.0808041943350.29809@fbirervta.pbzchgretzou.qr>
+Received: from bizon.gios.gov.pl ([212.244.124.8]:53714 "EHLO
+	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1763638AbYHFDIe (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 5 Aug 2008 23:08:34 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Monday 2008-08-04 10:35, Pablo Neira Ayuso wrote:
->>> The API actually remains the same, due to the nature of char[]
->>> decaying into char* (and .name is also only used in the registrator);
->>> the ABI (indicated by XTABLES_VERSION) changes yes, and that is fine
->>> because we moved from 1.4.1 to 1.4.2-rc1.
->> Sure, but say that someone uses whatever iproute2 version <=
->> iproute2-2.6.26 - which does not check for any ABI version numbering
->> AFAICS - and then it compiles whatever >= 1.4.2-rc1 by hand, then
->> jamal's ipt thing will not work as they use different ABIs.
->>
->> I'm not talking on how to solve future interdependecy problems - which
->> you seems to have it done by exporting xtables as library - but the
->> problems that the size change of .name will trigger for some time.
-> 
-> If the ABI changes, the libxtables.so ABI version number just get
-> bumped, that is what they are there for.
+netfilter: fix two recent sysctl problems
 
-Great. You're breaking previous backward compatibility with old iproute2
-versions since they are not checking that number.
+Starting with 9043476f726802f4b00c96d0c4f418dde48d1304 we have two
+netfilter releated problems:
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+ - WARNING: at kernel/sysctl.c:1966 unregister_sysctl_table+0xcc/0x103(),
+   caused by wrong order of ini/fini calls
+
+ - net.netfilter is duplicated and has truncated set of records
+
+Thanks to very useful guidelines from Al Viro, this patch fixes both of them.
+
+Signed-off-by: Krzysztof Piotr Oledzki <ole@ans.pl>
+
+diff -Nur linux-2.6.27-rc1-orig/net/netfilter/nf_conntrack_core.c linux-2.6.27-rc1/net/netfilter/nf_conntrack_core.c
+--- linux-2.6.27-rc1-orig/net/netfilter/nf_conntrack_core.c	2008-07-29 04:40:31.000000000 +0200
++++ linux-2.6.27-rc1/net/netfilter/nf_conntrack_core.c	2008-08-06 04:06:48.000000000 +0200
+@@ -1032,10 +1032,10 @@
+ 	nf_ct_free_hashtable(nf_conntrack_hash, nf_conntrack_vmalloc,
+ 			     nf_conntrack_htable_size);
+ 
+-	nf_conntrack_proto_fini();
+-	nf_conntrack_helper_fini();
+-	nf_conntrack_expect_fini();
+ 	nf_conntrack_acct_fini();
++	nf_conntrack_expect_fini();
++	nf_conntrack_helper_fini();
++	nf_conntrack_proto_fini();
+ }
+ 
+ struct hlist_head *nf_ct_alloc_hashtable(unsigned int *sizep, int *vmalloced)
+diff -Nur linux-2.6.27-rc1-orig/net/netfilter/nf_conntrack_standalone.c linux-2.6.27-rc1/net/netfilter/nf_conntrack_standalone.c
+--- linux-2.6.27-rc1-orig/net/netfilter/nf_conntrack_standalone.c	2008-07-29 04:40:31.000000000 +0200
++++ linux-2.6.27-rc1/net/netfilter/nf_conntrack_standalone.c	2008-08-06 04:44:13.000000000 +0200
+@@ -324,6 +324,7 @@
+ static int log_invalid_proto_max = 255;
+ 
+ static struct ctl_table_header *nf_ct_sysctl_header;
++static struct ctl_table_header *nf_ct_netfilter_header;
+ 
+ static ctl_table nf_ct_sysctl_table[] = {
+ 	{
+@@ -384,12 +385,6 @@
+ 
+ static ctl_table nf_ct_netfilter_table[] = {
+ 	{
+-		.ctl_name	= NET_NETFILTER,
+-		.procname	= "netfilter",
+-		.mode		= 0555,
+-		.child		= nf_ct_sysctl_table,
+-	},
+-	{
+ 		.ctl_name	= NET_NF_CONNTRACK_MAX,
+ 		.procname	= "nf_conntrack_max",
+ 		.data		= &nf_conntrack_max,
+@@ -409,18 +404,29 @@
+ 
+ static int nf_conntrack_standalone_init_sysctl(void)
+ {
+-	nf_ct_sysctl_header =
++	nf_ct_netfilter_header =
+ 		register_sysctl_paths(nf_ct_path, nf_ct_netfilter_table);
+-	if (nf_ct_sysctl_header == NULL) {
+-		printk("nf_conntrack: can't register to sysctl.\n");
+-		return -ENOMEM;
+-	}
++	if (!nf_ct_netfilter_header)
++		goto out;
++
++	nf_ct_sysctl_header =
++		 register_sysctl_paths(nf_net_netfilter_sysctl_path,
++					nf_ct_sysctl_table);
++	if (!nf_ct_sysctl_header)
++		goto out_unregister_netfilter;
++
+ 	return 0;
+ 
++out_unregister_netfilter:
++	unregister_sysctl_table(nf_ct_netfilter_header);
++out:
++	printk("nf_conntrack: can't register to sysctl.\n");
++	return -ENOMEM;
+ }
+ 
+ static void nf_conntrack_standalone_fini_sysctl(void)
+ {
++	unregister_sysctl_table(nf_ct_netfilter_header);
+ 	unregister_sysctl_table(nf_ct_sysctl_header);
+ }
+ #else
