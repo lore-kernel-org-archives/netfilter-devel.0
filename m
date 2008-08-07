@@ -1,71 +1,57 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: physdev: remove extra space in output
-Date: Wed, 6 Aug 2008 17:32:19 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0808061732050.3527@fbirervta.pbzchgretzou.qr>
+From: "=?ISO-8859-1?Q?Ilpo_J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
+Subject: Re: TCP connection stalls under 2.6.24.7
+Date: Thu, 7 Aug 2008 09:54:22 +0300 (EEST)
+Message-ID: <Pine.LNX.4.64.0808070950260.3859@wrl-59.cs.helsinki.fi>
+References: <47EA0DAB.7080205@securenet.de> <200807310939.42406.thomas.jarosch@intra2net.com>
+ <20080731094436.12ec99ae@tux> <200807311547.57189.thomas.jarosch@intra2net.com>
+ <20080806155306.72039010@tux>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
+Content-Type: MULTIPART/MIXED; BOUNDARY="-696208474-1591372491-1218092062=:3859"
+Cc: Thomas Jarosch <thomas.jarosch@intra2net.com>,
+	Netdev <netdev@vger.kernel.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Sven Riedel <sr@securenet.de>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	David Miller <davem@davemloft.net>
+To: "=?ISO-8859-1?Q?D=E2niel?= Fraga" <fragabr@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:56325 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751499AbYHFVcV (ORCPT
+Received: from courier.cs.helsinki.fi ([128.214.9.1]:60930 "EHLO
+	mail.cs.helsinki.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750994AbYHGGyY (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 6 Aug 2008 17:32:21 -0400
+	Thu, 7 Aug 2008 02:54:24 -0400
+In-Reply-To: <20080806155306.72039010@tux>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 99f9a7790de1f94d0d8a46c5699f2beb32ac193e
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Wed Aug 6 17:31:08 2008 -0400
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-physdev: remove extra space in output
+---696208474-1591372491-1218092062=:3859
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 
-Just a cosmetic fix for `iptables -S` and `iptables-save` printing
-two spaces between arguments in the physdev match.
+On Wed, 6 Aug 2008, Dâniel Fraga wrote:
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- extensions/libxt_physdev.c |   23 ++++++++++++-----------
- 1 files changed, 12 insertions(+), 11 deletions(-)
+> On Thu, 31 Jul 2008 15:47:55 +0200
+> Thomas Jarosch <thomas.jarosch@intra2net.com> wrote:
+> 
+> > If your problem is really FRTO related (that what the patch is for),
+> > you could try to disable FRTO temporarily:
+> 
+> 	Hi, the patch helped, but what's the conclusion? Is the problem
+> "solved"? Will this patch be merged in the next kernel? This thread
+> seems to be forgotten.
 
-diff --git a/extensions/libxt_physdev.c b/extensions/libxt_physdev.c
-index 34547c8..0a937ea 100644
---- a/extensions/libxt_physdev.c
-+++ b/extensions/libxt_physdev.c
-@@ -143,22 +143,23 @@ static void physdev_save(const void *ip, const struct xt_entry_match *match)
- 		(struct xt_physdev_info*)match->data;
- 
- 	if (info->bitmask & XT_PHYSDEV_OP_ISIN)
--		printf("%s --physdev-is-in",
--		       info->invert & XT_PHYSDEV_OP_ISIN ? " !":"");
-+		printf("%s--physdev-is-in ",
-+		       (info->invert & XT_PHYSDEV_OP_ISIN) ? "! " : "");
- 	if (info->bitmask & XT_PHYSDEV_OP_IN)
--		printf("%s --physdev-in %s",
--		(info->invert & XT_PHYSDEV_OP_IN) ? " !":"", info->physindev);
-+		printf("%s--physdev-in %s ",
-+		       (info->invert & XT_PHYSDEV_OP_IN) ? "! " : "",
-+		       info->physindev);
- 
- 	if (info->bitmask & XT_PHYSDEV_OP_ISOUT)
--		printf("%s --physdev-is-out",
--		       info->invert & XT_PHYSDEV_OP_ISOUT ? " !":"");
-+		printf("%s--physdev-is-out ",
-+		       (info->invert & XT_PHYSDEV_OP_ISOUT) ? "! " : "");
- 	if (info->bitmask & XT_PHYSDEV_OP_OUT)
--		printf("%s --physdev-out %s",
--		(info->invert & XT_PHYSDEV_OP_OUT) ? " !":"", info->physoutdev);
-+		printf("%s--physdev-out %s ",
-+		       (info->invert & XT_PHYSDEV_OP_OUT) ? "! " : "",
-+		       info->physoutdev);
- 	if (info->bitmask & XT_PHYSDEV_OP_BRIDGED)
--		printf("%s --physdev-is-bridged",
--		       info->invert & XT_PHYSDEV_OP_BRIDGED ? " !":"");
--	printf(" ");
-+		printf("%s--physdev-is-bridged ",
-+		       (info->invert & XT_PHYSDEV_OP_BRIDGED) ? "! " : "");
- }
- 
- static struct xtables_match physdev_match = {
+I was yesterday preparing the patch description by adding some more 
+thoughts to it (as if there weren't enough already) but didn't yet send it 
+with new cover (to sort of notify davem).
 
+I give no guarantees about the _next_ kernel but some 2.6.26.y and 2.6.27
+is more likely bet.
+
+-- 
+ i.
+---696208474-1591372491-1218092062=:3859--
