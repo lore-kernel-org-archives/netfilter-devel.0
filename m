@@ -1,57 +1,68 @@
-From: "=?ISO-8859-1?Q?Ilpo_J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
-Subject: Re: TCP connection stalls under 2.6.24.7
-Date: Thu, 7 Aug 2008 09:54:22 +0300 (EEST)
-Message-ID: <Pine.LNX.4.64.0808070950260.3859@wrl-59.cs.helsinki.fi>
-References: <47EA0DAB.7080205@securenet.de> <200807310939.42406.thomas.jarosch@intra2net.com>
- <20080731094436.12ec99ae@tux> <200807311547.57189.thomas.jarosch@intra2net.com>
- <20080806155306.72039010@tux>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: conntrack -L shows an entry, conntrack -G doesn't
+Date: Thu, 07 Aug 2008 10:36:13 +0200
+Message-ID: <489AB3FD.5010206@netfilter.org>
+References: <55990.80.98.202.103.1218034911.squirrel@hippy.csoma.elte.hu>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-696208474-1591372491-1218092062=:3859"
-Cc: Thomas Jarosch <thomas.jarosch@intra2net.com>,
-	Netdev <netdev@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Sven Riedel <sr@securenet.de>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	David Miller <davem@davemloft.net>
-To: "=?ISO-8859-1?Q?D=E2niel?= Fraga" <fragabr@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: synapse@hippy.csoma.elte.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from courier.cs.helsinki.fi ([128.214.9.1]:60930 "EHLO
-	mail.cs.helsinki.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750994AbYHGGyY (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 Aug 2008 02:54:24 -0400
-In-Reply-To: <20080806155306.72039010@tux>
+Received: from mail.us.es ([193.147.175.20]:49395 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751738AbYHGIgb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 7 Aug 2008 04:36:31 -0400
+In-Reply-To: <55990.80.98.202.103.1218034911.squirrel@hippy.csoma.elte.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
----696208474-1591372491-1218092062=:3859
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
-
-On Wed, 6 Aug 2008, Dâniel Fraga wrote:
-
-> On Thu, 31 Jul 2008 15:47:55 +0200
-> Thomas Jarosch <thomas.jarosch@intra2net.com> wrote:
+synapse@hippy.csoma.elte.hu wrote:
+> root@test:~# conntrack -L -s 192.168.13.12 -q 192.168.13.12 -p tcp
+> --orig-port-src
+> 49939 --reply-port-src 12345
+>     tcp      6 431950 ESTABLISHED src=192.168.13.12 dst=217.20.131.2
+> sport=49939
+> dport=22 packets=2 bytes=112 src=127.0.0.1
+>     dst=192.168.13.12     sport=12345 dport=49939 packets=1 bytes=60
+> [ASSURED]
+> mark=0 use=1
 > 
-> > If your problem is really FRTO related (that what the patch is for),
-> > you could try to disable FRTO temporarily:
+> root@test:~# conntrack -G -s 192.168.13.12 -q 192.168.13.12 -p tcp
+> --orig-port-src
+> 49939 --reply-port-src 12345
+>     Operation failed: such conntrack doesn't exist
+
+My git snapshot fails as there are missing parameters:
+conntrack v0.9.7: missing IP address
+Try `conntrack -h' or 'conntrack --help' for more information.
+
+> The redirection is done as:
 > 
-> 	Hi, the patch helped, but what's the conclusion? Is the problem
-> "solved"? Will this patch be merged in the next kernel? This thread
-> seems to be forgotten.
+>     iptables -t nat -F
+>     iptables -t nat -X
+>     iptables -t nat -Z
+> 
+>     iptables -t nat -A OUTPUT -p tcp --destination-port 22 -j REDIRECT
+> --to-ports 1234
+> 
+> I am using the latest ubuntu btw (upgraded fully), with versions:
+>     conntrack                           1.00~beta2-1
 
-I was yesterday preparing the patch description by adding some more 
-thoughts to it (as if there weren't enough already) but didn't yet send it 
-with new cover (to sort of notify davem).
+This version is very old. The conntrack package was superseded by the
+conntrack-tools. Please, check http://conntrack-tools.netfilter.org to
+get the latest.
 
-I give no guarantees about the _next_ kernel but some 2.6.26.y and 2.6.27
-is more likely bet.
+> Basically I am clueless here as to why -L shows the connection and -G
+> doesn't. My goal is to
+> transparently proxy outgoing connections through my program. Therefore I
+> need to detect
+> what its' original destination would be from the information seen by the
+> program on
+> 12345.
+
+As for now, the -G command requires the tuple {source, destination,
+source port, destination port, protocol}.
 
 -- 
- i.
----696208474-1591372491-1218092062=:3859--
+"Los honestos son inadaptados sociales" -- Les Luthiers
