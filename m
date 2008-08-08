@@ -1,37 +1,41 @@
-From: Denys Fedoryshchenko <denys@visp.net.lb>
-Subject: Re: TCP connection stalls under 2.6.24.7
-Date: Fri, 8 Aug 2008 13:32:30 +0300
-Message-ID: <200808081332.31284.denys@visp.net.lb>
-References: <47EA0DAB.7080205@securenet.de> <200808071523.04586.denys@visp.net.lb> <Pine.LNX.4.64.0808081005440.4378@wrl-59.cs.helsinki.fi>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: conntrackd [ERROR] commit: Invalid argument
+Date: Fri, 08 Aug 2008 10:27:19 +0200
+Message-ID: <489C0367.1010408@netfilter.org>
+References: <e1aa27e00806090621r3fa83ac0s7bb89d903de3be41@mail.gmail.com> <200806130122.16216.sabelka@iue.tuwien.ac.at> <4855B44B.5030504@netfilter.org> <200806162228.17436.sabelka@iue.tuwien.ac.at>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: "=?iso-8859-1?q?D=E2niel?= Fraga" <fragabr@gmail.com>,
-	Thomas Jarosch <thomas.jarosch@intra2net.com>,
-	Netdev <netdev@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Sven Riedel <sr@securenet.de>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	David Miller <davem@davemloft.net>
-To: "Ilpo =?iso-8859-1?q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.0808081005440.4378@wrl-59.cs.helsinki.fi>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Cc: Marco Barbero <marco.barbero@gmail.com>, netfilter@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Rainer Sabelka <sabelka@iue.tuwien.ac.at>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:55942 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754494AbYHHLhs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 8 Aug 2008 07:37:48 -0400
+In-Reply-To: <200806162228.17436.sabelka@iue.tuwien.ac.at>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Friday 08 August 2008, Ilpo J=E4rvinen wrote:
+Hi Rainer,
 
-> I thought it was "trivial to reproduce"... :-) Perhaps it was then ju=
-st
-> related to pre-2.6.25.7 kernels?
-Trivial to reproduce, but it is production systems with 600-700 req/s, =
-i=20
-cannot take much risk with them, and it semi-embedded distro running on=
- USB=20
-flash.
-I am just trying now to use them, if i will have failures, i will buy P=
-C and=20
-build something on my table.
+Rainer Sabelka wrote:
+> Thanks Pablo. I've tested your patches but unfortunately I still get "Cannot 
+> allocate memory" sometimes.
+> 
+> Jun 16 22:24:45 fw1b conntrack-tools[5599]: committing external cache
+> Jun 16 22:24:45 fw1b conntrack-tools[5599]: commit-create: Cannot allocate 
+> memory
+> Jun 16 22:24:45 fw1b conntrack-tools[5599]: Committed 623 new entries
+> Jun 16 22:24:45 fw1b conntrack-tools[5599]: 1 entries can't be committed
+
+Sorry for the late reply. The problem seems to be in the kernel side. It
+was introduced in 2.6.23. I have posted a patch that fixes it [1]. It
+applies to 2.6.27-rc but it should be easy to backport it.
+
+[1] http://marc.info/?l=netfilter-devel&m=121812264402131&w=2
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
