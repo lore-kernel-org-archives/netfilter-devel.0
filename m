@@ -1,44 +1,72 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/3] [PATCH] fix sleep in read-side lock section
-Date: Thu, 07 Aug 2008 12:08:25 +0200
-Message-ID: <20080807100825.8036.88782.stgit@Decadence>
-References: <20080807100803.8036.8684.stgit@Decadence>
+From: Bill Fink <billfink@mindspring.com>
+Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility
+ workaround
+Date: Fri, 8 Aug 2008 00:42:31 -0400
+Message-ID: <20080808004231.10dd7356.billfink@mindspring.com>
+References: <47EA0DAB.7080205@securenet.de>
+	<200807310939.42406.thomas.jarosch@intra2net.com>
+	<20080731094436.12ec99ae@tux>
+	<200807311547.57189.thomas.jarosch@intra2net.com>
+	<20080806155306.72039010@tux>
+	<Pine.LNX.4.64.0808071422360.4551@wrl-59.cs.helsinki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: =?ISO-8859-1?Q? "D=E2niel_Fraga" ?= <fragabr@gmail.com>,
+	Thomas Jarosch <thomas.jarosch@intra2net.com>,
+	David Miller <davem@davemloft.net>,
+	Netdev <netdev@vger.kernel.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Sven Riedel <sr@securenet.de>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: =?ISO-8859-1?Q? "Ilpo_J=E4rvinen" ?= <ilpo.jarvinen@helsinki.fi>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38843 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752257AbYHGPZW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 7 Aug 2008 11:25:22 -0400
-In-Reply-To: <20080807100803.8036.8684.stgit@Decadence>
+Received: from elasmtp-spurfowl.atl.sa.earthlink.net ([209.86.89.66]:33519
+	"EHLO elasmtp-spurfowl.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750849AbYHHEmi convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 8 Aug 2008 00:42:38 -0400
+In-Reply-To: <Pine.LNX.4.64.0808071422360.4551@wrl-59.cs.helsinki.fi>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Fix allocation with GFP_KERNEL in ctnetlink_create_conntrack() under
-read-side lock sections.
+On Thu, 7 Aug 2008, Ilpo J=E4rvinen wrote:
 
-This problem was introduced in 2.6.25.
+> On Wed, 6 Aug 2008, D=E2niel Fraga wrote:
+>=20
+> > On Thu, 31 Jul 2008 15:47:55 +0200
+> > Thomas Jarosch <thomas.jarosch@intra2net.com> wrote:
+> >=20
+> > > If your problem is really FRTO related (that what the patch is fo=
+r),
+> > > you could try to disable FRTO temporarily:
+> >=20
+> > 	Hi, the patch helped, but what's the conclusion? Is the problem
+> > "solved"? Will this patch be merged in the next kernel? This thread
+> > seems to be forgotten.
+>=20
+> ...Dave, I think we should probably put this FRTO work-around to net-=
+2.6=20
+> and -stable to remain somewhat robust (it's currently worked around o=
+nly=20
+> for newreno anyway). ...But I leave the final decision up to you.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
+Since you suspect the problem is being caused by a broken middlebox,
+would it perhaps be a better approach to add a per-route option to
+allow disabling of FRTO for the given destination.  This would be
+similar to Stephen Hemminger's fix for broken middleboxes that don't
+handle window scaling properly.  It seems this would be better than
+modifying FRTO behavior for everyone else that is being compliant.
 
- net/netfilter/nf_conntrack_netlink.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+A question then arises is if the bogus scenario has a TCP signature
+that could be used to print a warning message for the unsuspecting
+user so they could then take necessary corrective action.
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index a984b1c..7707cbb 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1142,7 +1142,7 @@ ctnetlink_create_conntrack(struct nlattr *cda[],
- 	rcu_read_lock();
- 	helper = __nf_ct_helper_find(rtuple);
- 	if (helper) {
--		help = nf_ct_helper_ext_add(ct, GFP_KERNEL);
-+		help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
- 		if (help == NULL) {
- 			rcu_read_unlock();
- 			err = -ENOMEM;
-
+						-Bill
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
