@@ -1,36 +1,45 @@
-From: Pavol Rusnak <prusnak@suse.cz>
-Subject: NAT - randomize the port selection
-Date: Mon, 11 Aug 2008 16:15:24 +0200
-Message-ID: <48A0497C.9060607@suse.cz>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility
+ workaround
+Date: Mon, 11 Aug 2008 14:41:03 -0700 (PDT)
+Message-ID: <20080811.144103.192682287.davem@davemloft.net>
+References: <20080806155306.72039010@tux>
+	<Pine.LNX.4.64.0808071422360.4551@wrl-59.cs.helsinki.fi>
+	<20080808004231.10dd7356.billfink@mindspring.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Cc: ilpo.jarvinen@helsinki.fi, fragabr@gmail.com,
+	thomas.jarosch@intra2net.com, netdev@vger.kernel.org,
+	kaber@trash.net, sr@securenet.de, netfilter-devel@vger.kernel.org,
+	kadlec@blackhole.kfki.hu
+To: billfink@mindspring.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from styx.suse.cz ([82.119.242.94]:57337 "EHLO mail.suse.cz"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751564AbYHKOLL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 11 Aug 2008 10:11:11 -0400
-Received: from [10.20.1.132] (leira.suse.cz [10.20.1.132])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	(Authenticated sender: prusnak)
-	by mail.suse.cz (Postfix) with ESMTP id 8A6276280E2
-	for <netfilter-devel@vger.kernel.org>; Mon, 11 Aug 2008 16:11:23 +0200 (CEST)
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:59262
+	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1751492AbYHKVlC (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 11 Aug 2008 17:41:02 -0400
+In-Reply-To: <20080808004231.10dd7356.billfink@mindspring.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello!
+From: Bill Fink <billfink@mindspring.com>
+Date: Fri, 8 Aug 2008 00:42:31 -0400
 
-Recently there was an issue identified on DNS module about the need to 
-randomize the port selection.  I'd like to know if this is already taken 
-care in NAT modules in iptables? Could you please let me know if port 
-selection is already randomized in these modules ?
+> Since you suspect the problem is being caused by a broken middlebox,
+> would it perhaps be a better approach to add a per-route option to
+> allow disabling of FRTO for the given destination.  This would be
+> similar to Stephen Hemminger's fix for broken middleboxes that don't
+> handle window scaling properly.  It seems this would be better than
+> modifying FRTO behavior for everyone else that is being compliant.
 
--- 
-Best Regards / S pozdravom,
+This is the kind of direction I'm leaning towards as well.
 
-Pavol RUSNAK                                       SUSE LINUX, s.r.o
-Package Maintainer                                Lihovarska 1060/12
-PGP 0xA6917144                                     19000 Praha 9, CR
-prusnak[at]suse.cz                                http://www.suse.cz
+The behavior of these middleboxes borders on unbelievable.  And there
+comes a point where catering to these various busted boxes stops to
+make sense.  At some point we have to say "sorry, someone has to get
+that box fixed."
+
+You can't reorder packets like that, on purpose, and not expect some
+new, yet reasonable, TCP algorithm to fall flat on it's face.
