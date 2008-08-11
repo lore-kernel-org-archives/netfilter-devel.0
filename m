@@ -1,45 +1,67 @@
 From: David Miller <davem@davemloft.net>
 Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility
  workaround
-Date: Mon, 11 Aug 2008 14:41:03 -0700 (PDT)
-Message-ID: <20080811.144103.192682287.davem@davemloft.net>
-References: <20080806155306.72039010@tux>
-	<Pine.LNX.4.64.0808071422360.4551@wrl-59.cs.helsinki.fi>
+Date: Mon, 11 Aug 2008 14:44:21 -0700 (PDT)
+Message-ID: <20080811.144421.234396007.davem@davemloft.net>
+References: <Pine.LNX.4.64.0808071422360.4551@wrl-59.cs.helsinki.fi>
 	<20080808004231.10dd7356.billfink@mindspring.com>
+	<Pine.LNX.4.64.0808081256560.4551@wrl-59.cs.helsinki.fi>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: ilpo.jarvinen@helsinki.fi, fragabr@gmail.com,
+Content-Type: Text/Plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: billfink@mindspring.com, fragabr@gmail.com,
 	thomas.jarosch@intra2net.com, netdev@vger.kernel.org,
 	kaber@trash.net, sr@securenet.de, netfilter-devel@vger.kernel.org,
 	kadlec@blackhole.kfki.hu
-To: billfink@mindspring.com
+To: ilpo.jarvinen@helsinki.fi
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:59262
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:44665
 	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1751492AbYHKVlC (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 11 Aug 2008 17:41:02 -0400
-In-Reply-To: <20080808004231.10dd7356.billfink@mindspring.com>
+	by vger.kernel.org with ESMTP id S1751857AbYHKVoV convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 11 Aug 2008 17:44:21 -0400
+In-Reply-To: <Pine.LNX.4.64.0808081256560.4551@wrl-59.cs.helsinki.fi>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Bill Fink <billfink@mindspring.com>
-Date: Fri, 8 Aug 2008 00:42:31 -0400
+=46rom: "Ilpo_J=E4rvinen" <ilpo.jarvinen@helsinki.fi>
+Date: Fri, 8 Aug 2008 13:32:14 +0300 (EEST)
 
-> Since you suspect the problem is being caused by a broken middlebox,
-> would it perhaps be a better approach to add a per-route option to
-> allow disabling of FRTO for the given destination.  This would be
-> similar to Stephen Hemminger's fix for broken middleboxes that don't
-> handle window scaling properly.  It seems this would be better than
-> modifying FRTO behavior for everyone else that is being compliant.
+> On Fri, 8 Aug 2008, Bill Fink wrote:
+> > A question then arises is if the bogus scenario has a TCP signature
+> > that could be used to print a warning message for the unsuspecting
+> > user so they could then take necessary corrective action.
+>=20
+> Probably yes, but I need to add some state. I could probably also mak=
+e it=20
+> to switch per flow to more robust approach on-demand when enough evid=
+ence=20
+> is gathered. ...I think I'll add 1-bit history counter per flow so th=
+at=20
+> it's possible to do print the warning and switch when there's third R=
+TO in=20
+> a single window (while two first were found spurious). IMHO it's unli=
+kely=20
+> enough that there will be three latency spikes (each longer than the=20
+> previous) within a single window to make the decision, I wouldn't tru=
+st=20
+> two enough because hand-overs can take time and have non-trivial effe=
+cts.
 
-This is the kind of direction I'm leaning towards as well.
+Trying to come up with a signature for this bogus stuff is both time
+consuming and having a risk of false positives.  And I really question
+whether this thing is worth it.
 
-The behavior of these middleboxes borders on unbelievable.  And there
-comes a point where catering to these various busted boxes stops to
-make sense.  At some point we have to say "sorry, someone has to get
-that box fixed."
+The sane thing to do in this case is to declare the box inoperative
+and that it needs to be fixed to avoid this behavior.
 
-You can't reorder packets like that, on purpose, and not expect some
-new, yet reasonable, TCP algorithm to fall flat on it's face.
+Any reasonable congestion control scheme is going to run into problems
+trying to react to the packet patterns this thing creates.  It is
+therefore not really limited to FRTO so it really shouldn't be treated
+like an FRTO problem even though it shows up more pronounced when
+=46RTO is enabled.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
