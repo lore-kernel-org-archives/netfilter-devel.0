@@ -1,35 +1,45 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: manpages: correct erroneous markup
-Date: Tue, 12 Aug 2008 11:42:49 +0200
-Message-ID: <48A15B19.6030500@netfilter.org>
-References: <alpine.LNX.1.10.0808092314560.14334@fbirervta.pbzchgretzou.qr>
+From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
+Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility
+ workaround
+Date: Tue, 12 Aug 2008 14:43:09 -0300
+Message-ID: <20080812144309.7d62fd86@tux>
+References: <Pine.LNX.4.64.0808081256560.4551@wrl-59.cs.helsinki.fi>
+	<20080811.144421.234396007.davem@davemloft.net>
+	<200808120946.19459.thomas.jarosch@intra2net.com>
+	<20080812.011822.155249871.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
+Cc: thomas.jarosch@intra2net.com, ilpo.jarvinen@helsinki.fi,
+	billfink@mindspring.com, netdev@vger.kernel.org, kaber@trash.net,
+	sr@securenet.de, netfilter-devel@vger.kernel.org,
+	kadlec@blackhole.kfki.hu
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59472 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751516AbYHLJm5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Aug 2008 05:42:57 -0400
-In-Reply-To: <alpine.LNX.1.10.0808092314560.14334@fbirervta.pbzchgretzou.qr>
+Received: from yx-out-2324.google.com ([74.125.44.29]:43597 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751832AbYHLRnT (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 12 Aug 2008 13:43:19 -0400
+Received: by yx-out-2324.google.com with SMTP id 8so965301yxm.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 12 Aug 2008 10:43:18 -0700 (PDT)
+In-Reply-To: <20080812.011822.155249871.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> commit xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-> Author: Jan Engelhardt <jengelh@medozas.de>
-> Date:   Sat Aug 9 23:11:43 2008 -0400
-> 
-> manpages: correct erroneous markup
-> 
-> Text paragraphs should use .PP, since .TP makes it a list item with
-> indented description.
+On Tue, 12 Aug 2008 01:18:22 -0700 (PDT)
+David Miller <davem@davemloft.net> wrote:
 
-Applied. Thanks.
+> We had the same situation with ECN and window scaling, and my proposal
+> is the same as how we handled those situations involving broken
+> middleware boxes.
+
+	Sorry for my ignorance (I'm just an user), but if the problem
+is not with Linux, why this problem appeared just on 2.6.25 kernel? I
+mean, with 2.6.24 and before I never had stalled connections. Just a
+coincidence? Or something has changed in 2.6.25 which caused this?
+
+	Thank you!
+
 
 -- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
