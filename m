@@ -1,34 +1,35 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility
- workaround
-Date: Tue, 12 Aug 2008 01:18:22 -0700 (PDT)
-Message-ID: <20080812.011822.155249871.davem@davemloft.net>
-References: <Pine.LNX.4.64.0808081256560.4551@wrl-59.cs.helsinki.fi>
-	<20080811.144421.234396007.davem@davemloft.net>
-	<200808120946.19459.thomas.jarosch@intra2net.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: manpages: correct erroneous markup
+Date: Tue, 12 Aug 2008 11:42:49 +0200
+Message-ID: <48A15B19.6030500@netfilter.org>
+References: <alpine.LNX.1.10.0808092314560.14334@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: ilpo.jarvinen@helsinki.fi, billfink@mindspring.com,
-	fragabr@gmail.com, netdev@vger.kernel.org, kaber@trash.net,
-	sr@securenet.de, netfilter-devel@vger.kernel.org,
-	kadlec@blackhole.kfki.hu
-To: thomas.jarosch@intra2net.com
+Cc: kaber@trash.net,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:57360
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1751481AbYHLISV (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Aug 2008 04:18:21 -0400
-In-Reply-To: <200808120946.19459.thomas.jarosch@intra2net.com>
+Received: from mail.us.es ([193.147.175.20]:59472 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751516AbYHLJm5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 12 Aug 2008 05:42:57 -0400
+In-Reply-To: <alpine.LNX.1.10.0808092314560.14334@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Date: Tue, 12 Aug 2008 09:46:17 +0200
+Jan Engelhardt wrote:
+> commit xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+> Author: Jan Engelhardt <jengelh@medozas.de>
+> Date:   Sat Aug 9 23:11:43 2008 -0400
+> 
+> manpages: correct erroneous markup
+> 
+> Text paragraphs should use .PP, since .TP makes it a list item with
+> indented description.
 
-> David, I agree with you, though I'm not sure about the end user experience:
+Applied. Thanks.
 
-We had the same situation with ECN and window scaling, and my proposal
-is the same as how we handled those situations involving broken
-middleware boxes.
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
