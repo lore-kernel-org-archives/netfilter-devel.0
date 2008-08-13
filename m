@@ -1,59 +1,44 @@
-From: "=?ISO-8859-1?Q?Ilpo_J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
-Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility workaround
-Date: Wed, 13 Aug 2008 21:34:10 +0300 (EEST)
-Message-ID: <Pine.LNX.4.64.0808132108480.18807@wrl-59.cs.helsinki.fi>
-References: <Pine.LNX.4.64.0808081256560.4551@wrl-59.cs.helsinki.fi>
- <20080811.144421.234396007.davem@davemloft.net> <200808120946.19459.thomas.jarosch@intra2net.com>
- <20080812.011822.155249871.davem@davemloft.net> <20080812144309.7d62fd86@tux>
- <Pine.LNX.4.64.0808122044450.16105@wrl-59.cs.helsinki.fi> <20080813145310.0c1e534c@tux>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: Netfilter development project
+Date: Wed, 13 Aug 2008 20:13:59 +0200
+Message-ID: <48A32467.80703@netfilter.org>
+References: <000501c8fd68$da840390$8f8c0ab0$@com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-696208474-1465421246-1218652450=:18807"
-Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
-	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
-	Patrick Hardy <kaber@trash.net>, sr@securenet.de,
-	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
-To: "=?ISO-8859-1?Q?D=E2niel?= Fraga" <fragabr@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Andy Loukes <andy@loukes.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from courier.cs.helsinki.fi ([128.214.9.1]:49226 "EHLO
-	mail.cs.helsinki.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751373AbYHMSeN (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 13 Aug 2008 14:34:13 -0400
-In-Reply-To: <20080813145310.0c1e534c@tux>
+Received: from mail.us.es ([193.147.175.20]:52676 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751993AbYHMSjZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 13 Aug 2008 14:39:25 -0400
+In-Reply-To: <000501c8fd68$da840390$8f8c0ab0$@com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
----696208474-1465421246-1218652450=:18807
-Content-Type: TEXT/PLAIN; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
-
-On Wed, 13 Aug 2008, Dâniel Fraga wrote:
-
-> On Tue, 12 Aug 2008 20:52:37 +0300 (EEST)
-> "Ilpo Järvinen" <ilpo.jarvinen@helsinki.fi> wrote:
+Andy Loukes wrote:
+> My company needs to develop two netfilter applications.
 > 
-> > I still propose that you tcpdump it, then I can tell you (I know
-> > enough about Thomas' case but yours has a large number of
-> > unknowns)... :-) I don't know why 2.6.24 didn't suffer from the
-> > problem as FRTO was enabled already in it. The command you need
-> > to create dump.log file:
-> > 
-> > # tcpdump -w dump.log -i <iface> host <peerip>
-> > 
-> > ...you need root rights (or sudo) to do the capturing.
-> 
-> 	Ok, but the problem is that the bug doesn't happen
-> frequently... yesterday I waited for it to happen and nothing
-> happened :). I'll keep watching it... if I can get the dump, I send it.
+> First a simple daemon which listens on a tcp socket for messages which
+> inform it to add or remove specific iptables rules. It needs to be
+> secure, very high performance and deal with multiple concurrent
+> requests. We currently use iptables rules, but when I get time I'm going
+> to try out using IPSet as it seems more appropriate.
 
-Ok, thanks for your efforts... These are often hard to reproduce because
-some not that likely pattern needs to happen and such things is often not
-easily controllable (if it is at all possible to influence the 
-likelyhoods).
+I don't know if there exists something similar so far, but it should not
+be hard to implement this.
+
+> Second an accounting daemon, it needs to connect to another server using
+> a to-be-defined protocol to update the packet and byte counts, in and
+> out per source ip address.
+
+I can extend ulogd [1] or the conntrack-tools [2] to do this, it should
+not be hard either. Probably your company can sponsor this extension. We
+can discuss the details in private.
+
+[1] http://www.netfilter.org/projects/ulogd/index.html
+[2] http://conntrack-tools.netfilter.org
 
 -- 
- i.
----696208474-1465421246-1218652450=:18807--
+"Los honestos son inadaptados sociales" -- Les Luthiers
