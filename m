@@ -1,63 +1,56 @@
-From: "Andy Loukes" <andy@loukes.com>
-Subject: Netfilter development project
-Date: Wed, 13 Aug 2008 18:20:15 +0100
-Message-ID: <000501c8fd68$da840390$8f8c0ab0$@com>
+From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
+Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility
+ workaround
+Date: Wed, 13 Aug 2008 14:53:10 -0300
+Message-ID: <20080813145310.0c1e534c@tux>
+References: <Pine.LNX.4.64.0808081256560.4551@wrl-59.cs.helsinki.fi>
+	<20080811.144421.234396007.davem@davemloft.net>
+	<200808120946.19459.thomas.jarosch@intra2net.com>
+	<20080812.011822.155249871.davem@davemloft.net>
+	<20080812144309.7d62fd86@tux>
+	<Pine.LNX.4.64.0808122044450.16105@wrl-59.cs.helsinki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	format=flowed;
-	charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
+	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
+	Patrick Hardy <kaber@trash.net>, sr@securenet.de,
+	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
+To: "Ilpo =?ISO-8859-1?Q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from milford.g2t.co.uk ([84.234.16.49]:46890 "EHLO milford.g2t.co.uk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751583AbYHMRdk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 13 Aug 2008 13:33:40 -0400
-Received: from [82.132.136.205] (port=34471 helo=TC000142)
-	by milford.g2t.co.uk with asmtp (Exim 4.41)
-	id 1KTK1h-0001Lj-Bf
-	for netfilter-devel@vger.kernel.org; Wed, 13 Aug 2008 18:20:50 +0100
-Content-Language: en-gb
+Received: from yx-out-2324.google.com ([74.125.44.29]:32961 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756927AbYHMRxa (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 13 Aug 2008 13:53:30 -0400
+Received: by yx-out-2324.google.com with SMTP id 8so58781yxm.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 13 Aug 2008 10:53:28 -0700 (PDT)
+In-Reply-To: <Pine.LNX.4.64.0808122044450.16105@wrl-59.cs.helsinki.fi>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-My company needs to develop two netfilter applications.
+On Tue, 12 Aug 2008 20:52:37 +0300 (EEST)
+"Ilpo J=E4rvinen" <ilpo.jarvinen@helsinki.fi> wrote:
 
-First a simple daemon which listens on a tcp socket for messages which
-inform it to add or remove specific iptables rules. It needs to be
-secure, very high performance and deal with multiple concurrent 
-requests. We currently use iptables rules, but when I get time I'm going
-to try out using IPSet as it seems more appropriate.
+> I still propose that you tcpdump it, then I can tell you (I know
+> enough about Thomas' case but yours has a large number of
+> unknowns)... :-) I don't know why 2.6.24 didn't suffer from the
+> problem as FRTO was enabled already in it. The command you need
+> to create dump.log file:
+>=20
+> # tcpdump -w dump.log -i <iface> host <peerip>
+>=20
+> ...you need root rights (or sudo) to do the capturing.
 
-Second an accounting daemon, it needs to connect to another server using
-a to-be-defined protocol to update the packet and byte counts, in and
-out per source ip address.
-
-I have proposed to my company that I send this out to the netfilter-dev 
-list because we don't have the resource available at the moment and our 
-dev team aren't particularly familiar with netfilter.
-
-We are obviously prepared to pay!
-
-The company is based in London although geography doesn't need to be 
-particularly relevant.
-
-Please contact me with a brief CV, any examples of code and why you 
-think you should do it!
-
-Clearly if these applications could be made useful to the wider 
-community then it would be better for everyone.
-
-I hope this is an appropriate list for this request, I did check the rules!
-
-Regards
-
-Andy
+	Ok, but the problem is that the bug doesn't happen
+frequently... yesterday I waited for it to happen and nothing
+happened :). I'll keep watching it... if I can get the dump, I send it.
+Thanks.
 
 
-
-
-
-
-
-
+--=20
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
