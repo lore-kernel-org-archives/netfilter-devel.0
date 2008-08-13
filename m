@@ -1,424 +1,289 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: 4/7 [NETFILTER]: xt_length match, revision 1
-Date: Wed, 13 Aug 2008 19:27:58 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0808131927360.13154@fbirervta.pbzchgretzou.qr>
+Subject: 5/7 [NETFILTER]: Introduce NFPROTO_* constants
+Date: Wed, 13 Aug 2008 19:42:57 -0400 (EDT)
+Message-ID: <alpine.LNX.1.10.0808131935220.13154@fbirervta.pbzchgretzou.qr>
 References: <alpine.LNX.1.10.0808131925160.13154@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:53836 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:57159 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752346AbYHMX2A (ORCPT
+	with ESMTP id S1752663AbYHMXm7 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 13 Aug 2008 19:28:00 -0400
+	Wed, 13 Aug 2008 19:42:59 -0400
 In-Reply-To: <alpine.LNX.1.10.0808131925160.13154@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 60425bec17c83f58e5ef1e833898a65af292cf64
+
+Patrick McHardy wrote, I remember:
+
+>What about PF_DECnet?
+
+Good spot. Netfilter would have crashed when trying to access 
+nf_hooks[PF_DECnet], because the array was not big enough. Added 
+NFPROTO_DECNET which implies an increased NFPROTO_NUMPROTO so that the 
+out-of-bounds access is gone.
+
+commit e3666c7f73328a3762136f07e29e52386d05d21e
 Author: Jan Engelhardt <jengelh@computergmbh.de>
-Date:   Sun Aug 10 17:46:28 2008 -0400
+Date:   Wed Aug 13 19:38:42 2008 -0400
 
-[NETFILTER]: xt_length match, revision 1
+[NETFILTER]: Introduce NFPROTO_* constants
 
-Introduce xt_length match revision 1. It adds support for layer-4,
-layer-5 and layer-7 length matching. It is much easier than writing
-up the according xt_u32 magic.
-
-This can be used for packet scheduling; specific example are online
-games where all data is transferred over the same port, but the
-regular gameplay has a characteristically lower packet size than bulk
-downloads of game maps. (Tested with Unreal Tournament 99.)
+The netfilter subsystem only supports a handful of protocols (much
+less than PF_*) and even non-PF protocols like ARP and
+pseudo-protocols like PF_BRIDGE. By creating NFPROTO_*, we can earn a
+few memory savings on arrays that previously were always PF_MAX-sized
+and keep the pseudo-protocols to ourselves.
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- Documentation/feature-removal-schedule.txt |    3 +
- include/linux/netfilter/xt_length.h        |   21 ++
- net/netfilter/xt_length.c                  |  267 ++++++++++++++++++--
- 3 files changed, 273 insertions(+), 18 deletions(-)
+ include/linux/netfilter.h |   14 ++++++++++++--
+ net/netfilter/core.c      |    6 +++---
+ net/netfilter/nf_log.c    |   12 ++++++------
+ net/netfilter/nf_queue.c  |   12 ++++++------
+ net/netfilter/x_tables.c  |   18 ++++++++++--------
+ 5 files changed, 37 insertions(+), 25 deletions(-)
 
-diff --git a/Documentation/feature-removal-schedule.txt b/Documentation=
-/feature-removal-schedule.txt
-index e342596..bfd742f 100644
---- a/Documentation/feature-removal-schedule.txt
-+++ b/Documentation/feature-removal-schedule.txt
-@@ -245,6 +245,9 @@ What (Why):
- 	  include/linux/netfilter_ipv4/ipt_iprange.h
- 	  (superseded by xt_iprange match revision 1)
-=20
-+	- xt_length match revision 0
-+	  (superseded by xt_length match revision 1)
-+
- 	- xt_mark match revision 0
- 	  (superseded by xt_mark match revision 1)
-=20
-diff --git a/include/linux/netfilter/xt_length.h b/include/linux/netfil=
-ter/xt_length.h
-index 7c2b439..4e70268 100644
---- a/include/linux/netfilter/xt_length.h
-+++ b/include/linux/netfilter/xt_length.h
-@@ -6,4 +6,25 @@ struct xt_length_info {
-     u_int8_t	invert;
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index 8c83d2e..bf3afb0 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -52,6 +52,16 @@ enum nf_inet_hooks {
+ 	NF_INET_NUMHOOKS
  };
-=20
+ 
 +enum {
-+	XT_LENGTH_INVERT =3D 1 << 0,
-+
-+	/* IP header plus payload */
-+	XT_LENGTH_LAYER3 =3D 1 << 1,
-+
-+	/* TCP/UDP/etc. header plus payload */
-+	XT_LENGTH_LAYER4 =3D 1 << 2,
-+
-+	/* TCP/UDP/etc. payload */
-+	XT_LENGTH_LAYER5 =3D 1 << 3,
-+
-+	/* SCTP payload */
-+	XT_LENGTH_LAYER7 =3D 1 << 4,
++	NFPROTO_UNSPEC =  0,
++	NFPROTO_IPV4   =  2,
++	NFPROTO_ARP    =  3,
++	NFPROTO_BRIDGE =  7,
++	NFPROTO_IPV6   = 10,
++	NFPROTO_DECNET = 12,
++	NFPROTO_NUMPROTO,
 +};
 +
-+struct xt_length_mtinfo1 {
-+	__u32 min, max;
-+	__u16 flags;
-+};
-+
- #endif /*_XT_LENGTH_H*/
-diff --git a/net/netfilter/xt_length.c b/net/netfilter/xt_length.c
-index b8640f9..d874fa2 100644
---- a/net/netfilter/xt_length.c
-+++ b/net/netfilter/xt_length.c
-@@ -1,30 +1,40 @@
--/* Kernel module to match packet length. */
--/* (C) 1999-2001 James Morris <jmorros@intercode.com.au>
-+/*
-+ *	xt_length - Netfilter module to match packet length
-  *
-- * This program is free software; you can redistribute it and/or modif=
-y
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-+ *	(C) 1999-2001 James Morris <jmorros@intercode.com.au>
-+ *	Copyright =C2=A9 CC Computer Consultants GmbH, 2007-2008
-+ *
-+ *	This program is free software; you can redistribute it and/or modif=
-y
-+ *	it under the terms of the GNU General Public License version 2 as
-+ *	published by the Free Software Foundation.
-  */
--
-+#include <linux/dccp.h>
- #include <linux/module.h>
-+#include <linux/sctp.h>
- #include <linux/skbuff.h>
-+#include <linux/icmp.h>
-+#include <linux/ip.h>
- #include <linux/ipv6.h>
-+#include <linux/tcp.h>
-+#include <linux/udp.h>
- #include <net/ip.h>
--
--#include <linux/netfilter/xt_length.h>
-+#include <net/ipv6.h>
- #include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter/xt_length.h>
-+#include <linux/netfilter_ipv6/ip6_tables.h>
-=20
- MODULE_AUTHOR("James Morris <jmorris@intercode.com.au>");
-+MODULE_AUTHOR("Jan Engelhardt <jengelh@computergmbh.de>");
- MODULE_DESCRIPTION("Xtables: Packet length (Layer3,4,5) match");
- MODULE_LICENSE("GPL");
- MODULE_ALIAS("ipt_length");
- MODULE_ALIAS("ip6t_length");
-=20
- static bool
--length_mt(const struct sk_buff *skb, const struct net_device *in,
--          const struct net_device *out, const struct xt_match *match,
--          const void *matchinfo, int offset, unsigned int protoff,
--          bool *hotdrop)
-+length_mt_v0(const struct sk_buff *skb, const struct net_device *in,
-+	     const struct net_device *out, const struct xt_match *match,
-+	     const void *matchinfo, int offset, unsigned int protoff,
-+	     bool *hotdrop)
- {
- 	const struct xt_length_info *info =3D matchinfo;
- 	u_int16_t pktlen =3D ntohs(ip_hdr(skb)->tot_len);
-@@ -33,10 +43,10 @@ length_mt(const struct sk_buff *skb, const struct n=
-et_device *in,
- }
-=20
- static bool
--length_mt6(const struct sk_buff *skb, const struct net_device *in,
--           const struct net_device *out, const struct xt_match *match,
--           const void *matchinfo, int offset, unsigned int protoff,
--           bool *hotdrop)
-+length_mt6_v0(const struct sk_buff *skb, const struct net_device *in,
-+	      const struct net_device *out, const struct xt_match *match,
-+	      const void *matchinfo, int offset, unsigned int protoff,
-+	      bool *hotdrop)
- {
- 	const struct xt_length_info *info =3D matchinfo;
- 	const u_int16_t pktlen =3D ntohs(ipv6_hdr(skb)->payload_len) +
-@@ -45,21 +55,242 @@ length_mt6(const struct sk_buff *skb, const struct=
- net_device *in,
- 	return (pktlen >=3D info->min && pktlen <=3D info->max) ^ info->inver=
-t;
- }
-=20
-+/*
-+ * GCC will decide if these functions (xtlength_layer?_*) are
-+ * good enough for inlining, we should not act overly smart about
-+ * these decisions.
-+ */
-+
-+static bool xtlength_layer5_tcp(unsigned int *length, const struct sk_=
-buff *skb,
-+				unsigned int offset)
-+{
-+	const struct tcphdr *tcph;
-+	struct tcphdr buf;
-+
-+	tcph =3D skb_header_pointer(skb, offset, sizeof(buf), &buf);
-+	if (tcph =3D=3D NULL)
-+		return false;
-+
-+	*length =3D skb->len - offset;
-+	if (*length >=3D 4 * tcph->doff)
-+		*length -=3D 4 * tcph->doff;
-+	return true;
-+}
-+
-+static bool
-+xtlength_layer5_dccp(unsigned int *length, const struct sk_buff *skb,
-+		     unsigned int offset)
-+{
-+	const struct dccp_hdr *dh;
-+	struct dccp_hdr dhbuf;
-+
-+	dh =3D skb_header_pointer(skb, offset, sizeof(dhbuf), &dhbuf);
-+	if (dh =3D=3D NULL)
-+		return false;
-+
-+	*length =3D skb->len - offset;
-+	if (*length >=3D 4 * dh->dccph_doff)
-+		*length -=3D 4 * dh->dccph_doff;
-+	return true;
-+}
-+
-+static bool xtlength_layer5(unsigned int *length, const struct sk_buff=
- *skb,
-+			    unsigned int proto, unsigned int offset)
-+{
-+	switch (proto) {
-+	case IPPROTO_TCP:
-+		return xtlength_layer5_tcp(length, skb, offset);
-+	case IPPROTO_UDP:
-+	case IPPROTO_UDPLITE:
-+		*length =3D skb->len - offset - sizeof(struct udphdr);
-+		return true;
-+	case IPPROTO_SCTP:
-+		*length =3D skb->len - offset - sizeof(struct sctphdr);
-+		return true;
-+	case IPPROTO_DCCP:
-+		return xtlength_layer5_dccp(length, skb, offset);
-+	case IPPROTO_ICMP:
-+		*length =3D skb->len - offset - sizeof(struct icmphdr);
-+		return true;
-+	case IPPROTO_ICMPV6:
-+		*length =3D skb->len - offset -
-+			  offsetof(struct icmp6hdr, icmp6_dataun);
-+		return true;
-+	case IPPROTO_AH:
-+		*length =3D skb->len - offset - sizeof(struct ip_auth_hdr);
-+		return true;
-+	case IPPROTO_ESP:
-+		*length =3D skb->len - offset - sizeof(struct ip_esp_hdr);
-+		return true;
-+	default:
-+		return false;
-+	}
-+}
-+
-+static bool
-+xtlength_layer7_sctp(unsigned int *length, const struct sk_buff *skb,
-+		     unsigned int offset)
-+{
-+	const struct sctp_chunkhdr *ch;
-+	struct sctp_chunkhdr chbuf;
-+	unsigned int pos;
-+
-+	*length =3D 0;
-+	for (pos =3D sizeof(struct sctphdr); pos < skb->len;
-+	     pos +=3D ntohs(ch->length)) {
-+		ch =3D skb_header_pointer(skb, offset + pos,
-+		     sizeof(chbuf), &chbuf);
-+		if (ch =3D=3D NULL)
-+			return false;
-+		if (ch->type !=3D SCTP_CID_DATA)
-+			continue;
-+		*length +=3D ntohs(ch->length);
-+	}
-+	return true;
-+}
-+
-+static bool xtlength_layer7(unsigned int *length, const struct sk_buff=
- *skb,
-+			    unsigned int proto, unsigned int offset)
-+{
-+	switch (proto) {
-+	case IPPROTO_SCTP:
-+		return xtlength_layer7_sctp(length, skb, offset);
-+	default:
-+		return xtlength_layer5(length, skb, proto, offset);
-+	}
-+}
-+
-+/*
-+ * llayer4_proto - figure out the L4 protocol in an IPv6 packet
-+ * @skb:	skb pointer
-+ * @offset:	position at which L4 starts (equal to 'protoff' in IPv4 co=
-de)
-+ * @hotdrop:	hotdrop pointer
-+ *
-+ * Searches for a recognized L4 header. On success, fills in @offset a=
-nd
-+ * returns the protocol number. If not found, %NEXTHDR_MAX is returned=
-=2E
-+ * On error, @hotdrop is set.
-+ */
-+static unsigned int
-+llayer4_proto(const struct sk_buff *skb, unsigned int *offset, bool *h=
-otdrop)
-+{
-+	/*
-+	 * Do encapsulation first so that %IPPROTO_TCP does not hit the TCP
-+	 * part in an IPv6-in-IPv6 encapsulation, for example.
-+	 */
-+	static const unsigned int types[] =3D
-+		{IPPROTO_IPV6, IPPROTO_IPIP, IPPROTO_ESP, IPPROTO_AH,
-+		IPPROTO_ICMP, IPPROTO_TCP, IPPROTO_UDP, IPPROTO_UDPLITE,
-+		IPPROTO_SCTP, IPPROTO_DCCP};
-+	unsigned int i;
-+	int err;
-+
-+	for (i =3D 0; i < ARRAY_SIZE(types); ++i) {
-+		err =3D ipv6_find_hdr(skb, offset, types[i], NULL);
-+		if (err >=3D 0)
-+			return types[i];
-+		if (err !=3D -ENOENT) {
-+			*hotdrop =3D true;
-+			break;
-+		}
-+	}
-+
-+	return NEXTHDR_MAX;
-+}
-+
-+static bool
-+length_mt4(const struct sk_buff *skb, const struct net_device *in,
-+	   const struct net_device *out, const struct xt_match *match,
-+	   const void *matchinfo, int offset, unsigned int protoff,
-+	   bool *hotdrop)
-+{
-+	const struct xt_length_mtinfo1 *info =3D matchinfo;
-+	const struct iphdr *iph =3D ip_hdr(skb);
-+	unsigned int len =3D 0;
-+	bool hit =3D true;
-+
-+	if (info->flags & XT_LENGTH_LAYER3)
-+		len =3D ntohs(iph->tot_len);
-+	else if (info->flags & XT_LENGTH_LAYER4)
-+		len =3D ntohs(iph->tot_len) - protoff;
-+	else if (info->flags & XT_LENGTH_LAYER5)
-+		hit =3D xtlength_layer5(&len, skb, iph->protocol, protoff);
-+	else if (info->flags & XT_LENGTH_LAYER7)
-+		hit =3D xtlength_layer7(&len, skb, iph->protocol, protoff);
-+	if (!hit)
-+		return false;
-+
-+	return (len >=3D info->min && len <=3D info->max) ^
-+	       !!(info->flags & XT_LENGTH_INVERT);
-+}
-+
-+#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_=
-MODULE)
-+static bool
-+length_mt6(const struct sk_buff *skb, const struct net_device *in,
-+	   const struct net_device *out, const struct xt_match *match,
-+	   const void *matchinfo, int offset, unsigned int protoff,
-+	   bool *hotdrop)
-+{
-+	const struct xt_length_mtinfo1 *info =3D matchinfo;
-+	const struct ipv6hdr *iph =3D ipv6_hdr(skb);
-+	unsigned int len =3D 0, l4proto;
-+	bool hit =3D true;
-+
-+	if (info->flags & XT_LENGTH_LAYER3) {
-+		len =3D sizeof(struct ipv6hdr) + ntohs(iph->payload_len);
-+	} else {
-+		l4proto =3D llayer4_proto(skb, &protoff, hotdrop);
-+		if (l4proto =3D=3D NEXTHDR_MAX)
-+			return false;
-+		if (info->flags & XT_LENGTH_LAYER4)
-+			len =3D skb->len - protoff;
-+		else if (info->flags & XT_LENGTH_LAYER5)
-+			hit =3D xtlength_layer5(&len, skb, l4proto, protoff);
-+		else if (info->flags & XT_LENGTH_LAYER7)
-+			hit =3D xtlength_layer7(&len, skb, l4proto, protoff);
-+	}
-+	if (!hit)
-+		return false;
-+
-+	return (len >=3D info->min && len <=3D info->max) ^
-+	       !!(info->flags & XT_LENGTH_INVERT);
-+}
-+#endif
-+
- static struct xt_match length_mt_reg[] __read_mostly =3D {
- 	{
- 		.name		=3D "length",
-+		.revision	=3D 0,
- 		.family		=3D AF_INET,
--		.match		=3D length_mt,
-+		.match		=3D length_mt_v0,
- 		.matchsize	=3D sizeof(struct xt_length_info),
- 		.me		=3D THIS_MODULE,
- 	},
- 	{
- 		.name		=3D "length",
-+		.revision	=3D 0,
- 		.family		=3D AF_INET6,
--		.match		=3D length_mt6,
-+		.match		=3D length_mt6_v0,
- 		.matchsize	=3D sizeof(struct xt_length_info),
- 		.me		=3D THIS_MODULE,
- 	},
-+	{
-+		.name           =3D "length",
-+		.revision       =3D 1,
-+		.family         =3D AF_INET,
-+		.match          =3D length_mt4,
-+		.matchsize      =3D sizeof(struct xt_length_mtinfo1),
-+		.me             =3D THIS_MODULE,
-+	},
-+#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_=
-MODULE)
-+	{
-+		.name           =3D "length",
-+		.revision       =3D 1,
-+		.family         =3D AF_INET6,
-+		.match          =3D length_mt6,
-+		.matchsize      =3D sizeof(struct xt_length_mtinfo1),
-+		.me             =3D THIS_MODULE,
-+	},
-+#endif
+ union nf_inet_addr {
+ 	__u32		all[4];
+ 	__be32		ip;
+@@ -138,7 +148,7 @@ extern struct ctl_path nf_net_netfilter_sysctl_path[];
+ extern struct ctl_path nf_net_ipv4_netfilter_sysctl_path[];
+ #endif /* CONFIG_SYSCTL */
+ 
+-extern struct list_head nf_hooks[NPROTO][NF_MAX_HOOKS];
++extern struct list_head nf_hooks[NFPROTO_NUMPROTO][NF_MAX_HOOKS];
+ 
+ int nf_hook_slow(u_int8_t pf, unsigned int hook, struct sk_buff *skb,
+ 		 struct net_device *indev, struct net_device *outdev,
+@@ -247,7 +257,7 @@ struct nf_afinfo {
+ 	int		route_key_size;
  };
-=20
- static int __init length_mt_init(void)
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ 
+-extern const struct nf_afinfo *nf_afinfo[NPROTO];
++extern const struct nf_afinfo *nf_afinfo[NFPROTO_NUMPROTO];
+ static inline const struct nf_afinfo *nf_get_afinfo(unsigned short family)
+ {
+ 	return rcu_dereference(nf_afinfo[family]);
+diff --git a/net/netfilter/core.c b/net/netfilter/core.c
+index 26b8f48..b16cd79 100644
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -26,7 +26,7 @@
+ 
+ static DEFINE_MUTEX(afinfo_mutex);
+ 
+-const struct nf_afinfo *nf_afinfo[NPROTO] __read_mostly;
++const struct nf_afinfo *nf_afinfo[NFPROTO_NUMPROTO] __read_mostly;
+ EXPORT_SYMBOL(nf_afinfo);
+ 
+ int nf_register_afinfo(const struct nf_afinfo *afinfo)
+@@ -51,7 +51,7 @@ void nf_unregister_afinfo(const struct nf_afinfo *afinfo)
+ }
+ EXPORT_SYMBOL_GPL(nf_unregister_afinfo);
+ 
+-struct list_head nf_hooks[NPROTO][NF_MAX_HOOKS] __read_mostly;
++struct list_head nf_hooks[NFPROTO_NUMPROTO][NF_MAX_HOOKS] __read_mostly;
+ EXPORT_SYMBOL(nf_hooks);
+ static DEFINE_MUTEX(nf_hook_mutex);
+ 
+@@ -264,7 +264,7 @@ EXPORT_SYMBOL(proc_net_netfilter);
+ void __init netfilter_init(void)
+ {
+ 	int i, h;
+-	for (i = 0; i < NPROTO; i++) {
++	for (i = 0; i < ARRAY_SIZE(nf_hooks); i++) {
+ 		for (h = 0; h < NF_MAX_HOOKS; h++)
+ 			INIT_LIST_HEAD(&nf_hooks[i][h]);
+ 	}
+diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
+index 5c2f733..fa8ae5d 100644
+--- a/net/netfilter/nf_log.c
++++ b/net/netfilter/nf_log.c
+@@ -15,7 +15,7 @@
+ 
+ #define NF_LOG_PREFIXLEN		128
+ 
+-static const struct nf_logger *nf_loggers[NPROTO] __read_mostly;
++static const struct nf_logger *nf_loggers[NFPROTO_NUMPROTO] __read_mostly;
+ static DEFINE_MUTEX(nf_log_mutex);
+ 
+ /* return EBUSY if somebody else is registered, EEXIST if the same logger
+@@ -24,7 +24,7 @@ int nf_log_register(u_int8_t pf, const struct nf_logger *logger)
+ {
+ 	int ret;
+ 
+-	if (pf >= NPROTO)
++	if (pf >= ARRAY_SIZE(nf_loggers))
+ 		return -EINVAL;
+ 
+ 	/* Any setup of logging members must be done before
+@@ -47,7 +47,7 @@ EXPORT_SYMBOL(nf_log_register);
+ 
+ void nf_log_unregister_pf(u_int8_t pf)
+ {
+-	if (pf >= NPROTO)
++	if (pf >= ARRAY_SIZE(nf_loggers))
+ 		return;
+ 	mutex_lock(&nf_log_mutex);
+ 	rcu_assign_pointer(nf_loggers[pf], NULL);
+@@ -63,7 +63,7 @@ void nf_log_unregister(const struct nf_logger *logger)
+ 	int i;
+ 
+ 	mutex_lock(&nf_log_mutex);
+-	for (i = 0; i < NPROTO; i++) {
++	for (i = 0; i < ARRAY_SIZE(nf_loggers); i++) {
+ 		if (nf_loggers[i] == logger)
+ 			rcu_assign_pointer(nf_loggers[i], NULL);
+ 	}
+@@ -103,7 +103,7 @@ static void *seq_start(struct seq_file *seq, loff_t *pos)
+ {
+ 	rcu_read_lock();
+ 
+-	if (*pos >= NPROTO)
++	if (*pos >= ARRAY_SIZE(nf_loggers))
+ 		return NULL;
+ 
+ 	return pos;
+@@ -113,7 +113,7 @@ static void *seq_next(struct seq_file *s, void *v, loff_t *pos)
+ {
+ 	(*pos)++;
+ 
+-	if (*pos >= NPROTO)
++	if (*pos >= ARRAY_SIZE(nf_loggers))
+ 		return NULL;
+ 
+ 	return pos;
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index f285086..4f2310c 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -16,7 +16,7 @@
+  * long term mutex.  The handler must provide an an outfn() to accept packets
+  * for queueing and must reinject all packets it receives, no matter what.
+  */
+-static const struct nf_queue_handler *queue_handler[NPROTO];
++static const struct nf_queue_handler *queue_handler[NFPROTO_NUMPROTO] __read_mostly;
+ 
+ static DEFINE_MUTEX(queue_handler_mutex);
+ 
+@@ -26,7 +26,7 @@ int nf_register_queue_handler(u_int8_t pf, const struct nf_queue_handler *qh)
+ {
+ 	int ret;
+ 
+-	if (pf >= NPROTO)
++	if (pf >= ARRAY_SIZE(queue_handler))
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&queue_handler_mutex);
+@@ -47,7 +47,7 @@ EXPORT_SYMBOL(nf_register_queue_handler);
+ /* The caller must flush their queue before this */
+ int nf_unregister_queue_handler(u_int8_t pf, const struct nf_queue_handler *qh)
+ {
+-	if (pf >= NPROTO)
++	if (pf >= ARRAY_SIZE(queue_handler))
+ 		return -EINVAL;
+ 
+ 	mutex_lock(&queue_handler_mutex);
+@@ -70,7 +70,7 @@ void nf_unregister_queue_handlers(const struct nf_queue_handler *qh)
+ 	u_int8_t pf;
+ 
+ 	mutex_lock(&queue_handler_mutex);
+-	for (pf = 0; pf < NPROTO; pf++)  {
++	for (pf = 0; pf < ARRAY_SIZE(queue_handler); pf++)  {
+ 		if (queue_handler[pf] == qh)
+ 			rcu_assign_pointer(queue_handler[pf], NULL);
+ 	}
+@@ -285,7 +285,7 @@ EXPORT_SYMBOL(nf_reinject);
+ #ifdef CONFIG_PROC_FS
+ static void *seq_start(struct seq_file *seq, loff_t *pos)
+ {
+-	if (*pos >= NPROTO)
++	if (*pos >= ARRAY_SIZE(queue_handler))
+ 		return NULL;
+ 
+ 	return pos;
+@@ -295,7 +295,7 @@ static void *seq_next(struct seq_file *s, void *v, loff_t *pos)
+ {
+ 	(*pos)++;
+ 
+-	if (*pos >= NPROTO)
++	if (*pos >= ARRAY_SIZE(queue_handler))
+ 		return NULL;
+ 
+ 	return pos;
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index cf2f3e9..2a7eb1d 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -58,10 +58,12 @@ static struct xt_af *xt;
+ #define duprintf(format, args...)
+ #endif
+ 
+-static const char *const xt_prefix[NPROTO] = {
+-	[AF_INET]	= "ip",
+-	[AF_INET6]	= "ip6",
+-	[NF_ARP]	= "arp",
++static const char *const xt_prefix[NFPROTO_NUMPROTO] = {
++	[NFPROTO_UNSPEC] = "x",
++	[NFPROTO_IPV4]   = "ip",
++	[NFPROTO_ARP]    = "arp",
++	[NFPROTO_BRIDGE] = "eb",
++	[NFPROTO_IPV6]   = "ip6",
+ };
+ 
+ /* Registration hooks for targets. */
+@@ -932,7 +934,7 @@ int xt_proto_init(struct net *net, u_int8_t af)
+ 	struct proc_dir_entry *proc;
+ #endif
+ 
+-	if (af >= NPROTO)
++	if (af >= ARRAY_SIZE(xt_prefix))
+ 		return -EINVAL;
+ 
+ 
+@@ -1001,7 +1003,7 @@ static int __net_init xt_net_init(struct net *net)
+ {
+ 	int i;
+ 
+-	for (i = 0; i < NPROTO; i++)
++	for (i = 0; i < NFPROTO_NUMPROTO; i++)
+ 		INIT_LIST_HEAD(&net->xt.tables[i]);
+ 	return 0;
+ }
+@@ -1014,11 +1016,11 @@ static int __init xt_init(void)
+ {
+ 	int i, rv;
+ 
+-	xt = kmalloc(sizeof(struct xt_af) * NPROTO, GFP_KERNEL);
++	xt = kmalloc(sizeof(struct xt_af) * NFPROTO_NUMPROTO, GFP_KERNEL);
+ 	if (!xt)
+ 		return -ENOMEM;
+ 
+-	for (i = 0; i < NPROTO; i++) {
++	for (i = 0; i < NFPROTO_NUMPROTO; i++) {
+ 		mutex_init(&xt[i].mutex);
+ #ifdef CONFIG_COMPAT
+ 		mutex_init(&xt[i].compat_mutex);
