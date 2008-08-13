@@ -1,7 +1,7 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: 3/7 [NETFILTER]: xt_recent: IPv6 support
-Date: Wed, 13 Aug 2008 19:27:35 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0808131927170.13154@fbirervta.pbzchgretzou.qr>
+Subject: 4/7 [NETFILTER]: xt_length match, revision 1
+Date: Wed, 13 Aug 2008 19:27:58 -0400 (EDT)
+Message-ID: <alpine.LNX.1.10.0808131927360.13154@fbirervta.pbzchgretzou.qr>
 References: <alpine.LNX.1.10.0808131925160.13154@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=UTF-8
@@ -9,596 +9,414 @@ Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:53834 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:53836 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752462AbYHMX1h (ORCPT
+	with ESMTP id S1752346AbYHMX2A (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 13 Aug 2008 19:27:37 -0400
+	Wed, 13 Aug 2008 19:28:00 -0400
 In-Reply-To: <alpine.LNX.1.10.0808131925160.13154@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit e1b7f341d24cd5555a64924f78bcd5fc4af50bfc
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Sun Aug 10 17:40:23 2008 -0400
+commit 60425bec17c83f58e5ef1e833898a65af292cf64
+Author: Jan Engelhardt <jengelh@computergmbh.de>
+Date:   Sun Aug 10 17:46:28 2008 -0400
 
-[NETFILTER]: xt_recent: IPv6 support
+[NETFILTER]: xt_length match, revision 1
 
-This updates xt_recent to support the IPv6 address family.
-The new /proc/net/xt_recent directory must be used for this.
-The old proc interface can also be configured out.
+Introduce xt_length match revision 1. It adds support for layer-4,
+layer-5 and layer-7 length matching. It is much easier than writing
+up the according xt_u32 magic.
+
+This can be used for packet scheduling; specific example are online
+games where all data is transferred over the same port, but the
+regular gameplay has a characteristically lower packet size than bulk
+downloads of game maps. (Tested with Unreal Tournament 99.)
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
  Documentation/feature-removal-schedule.txt |    3 +
- net/netfilter/Kconfig                      |    7 +
- net/netfilter/xt_recent.c                  |  300 ++++++++++++++++----
- 3 files changed, 256 insertions(+), 54 deletions(-)
+ include/linux/netfilter/xt_length.h        |   21 ++
+ net/netfilter/xt_length.c                  |  267 ++++++++++++++++++--
+ 3 files changed, 273 insertions(+), 18 deletions(-)
 
 diff --git a/Documentation/feature-removal-schedule.txt b/Documentation=
 /feature-removal-schedule.txt
-index 86334b6..e342596 100644
+index e342596..bfd742f 100644
 --- a/Documentation/feature-removal-schedule.txt
 +++ b/Documentation/feature-removal-schedule.txt
-@@ -248,6 +248,9 @@ What (Why):
+@@ -245,6 +245,9 @@ What (Why):
+ 	  include/linux/netfilter_ipv4/ipt_iprange.h
+ 	  (superseded by xt_iprange match revision 1)
+=20
++	- xt_length match revision 0
++	  (superseded by xt_length match revision 1)
++
  	- xt_mark match revision 0
  	  (superseded by xt_mark match revision 1)
 =20
-+	- xt_recent: the old ipt_recent proc dir
-+	  (superseded by /proc/net/xt_recent)
-+
- When:	January 2009 or Linux 2.7.0, whichever comes first
- Why:	Superseded by newer revisions or modules
- Who:	Jan Engelhardt <jengelh@computergmbh.de>
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 1b66097..61fd6d3 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -734,6 +734,13 @@ config NETFILTER_XT_MATCH_RECENT
- 	Short options are available by using 'iptables -m recent -h'
- 	Official Website: <http://snowman.net/projects/ipt_recent/>
-=20
-+config NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
-+	bool 'Enable obsolete /proc/net/ipt_recent'
-+	depends on NETFILTER_XT_MATCH_RECENT && PROC_FS
-+	---help---
-+	This option enables the old /proc/net/ipt_recent interface,
-+	which has been obsoleted by /proc/net/xt_recent.
-+
- config NETFILTER_XT_MATCH_SCTP
- 	tristate  '"sctp" protocol match support (EXPERIMENTAL)'
- 	depends on NETFILTER_XTABLES && EXPERIMENTAL
-diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
-index 15ddb6c..89ea85f 100644
---- a/net/netfilter/xt_recent.c
-+++ b/net/netfilter/xt_recent.c
-@@ -1,5 +1,6 @@
- /*
-  * Copyright (c) 2006 Patrick McHardy <kaber@trash.net>
-+ * Copyright =C2=A9 CC Computer Consultants GmbH, 2007 - 2008
-  *
-  * This program is free software; you can redistribute it and/or modif=
-y
-  * it under the terms of the GNU General Public License version 2 as
-@@ -13,6 +14,8 @@
-  */
- #include <linux/init.h>
- #include <linux/ip.h>
-+#include <linux/ipv6.h>
-+#include <linux/module.h>
- #include <linux/moduleparam.h>
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
-@@ -30,9 +33,11 @@
- #include <linux/netfilter/xt_recent.h>
-=20
- MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
-+MODULE_AUTHOR("Jan Engelhardt <jengelh@computergmbh.de>");
- MODULE_DESCRIPTION("Xtables: \"recently-seen\" host matching for IPv4"=
-);
- MODULE_LICENSE("GPL");
- MODULE_ALIAS("ipt_recent");
-+MODULE_ALIAS("ip6t_recent");
-=20
- static unsigned int ip_list_tot =3D 100;
- static unsigned int ip_pkt_list_tot =3D 20;
-@@ -49,14 +54,15 @@ module_param(ip_list_gid, uint, 0400);
- MODULE_PARM_DESC(ip_list_tot, "number of IPs to remember per list");
- MODULE_PARM_DESC(ip_pkt_list_tot, "number of packets per IP to remembe=
-r (max. 255)");
- MODULE_PARM_DESC(ip_list_hash_size, "size of hash table used to look u=
-p IPs");
--MODULE_PARM_DESC(ip_list_perms, "permissions on /proc/net/ipt_recent/*=
- files");
--MODULE_PARM_DESC(ip_list_uid,"owner of /proc/net/ipt_recent/* files");
--MODULE_PARM_DESC(ip_list_gid,"owning group of /proc/net/ipt_recent/* f=
-iles");
-+MODULE_PARM_DESC(ip_list_perms, "permissions on /proc/net/xt_recent/* =
-files");
-+MODULE_PARM_DESC(ip_list_uid,"owner of /proc/net/xt_recent/* files");
-+MODULE_PARM_DESC(ip_list_gid,"owning group of /proc/net/xt_recent/* fi=
-les");
-=20
- struct recent_entry {
- 	struct list_head	list;
- 	struct list_head	lru_list;
--	__be32			addr;
-+	union nf_inet_addr	addr;
-+	u_int16_t		family;
- 	u_int8_t		ttl;
- 	u_int8_t		index;
- 	u_int16_t		nstamps;
-@@ -67,7 +73,7 @@ struct recent_table {
- 	struct list_head	list;
- 	char			name[XT_RECENT_NAME_LEN];
- #ifdef CONFIG_PROC_FS
--	struct proc_dir_entry	*proc;
-+	struct proc_dir_entry	*proc_old, *proc;
- #endif
- 	unsigned int		refcnt;
- 	unsigned int		entries;
-@@ -80,31 +86,53 @@ static DEFINE_SPINLOCK(recent_lock);
- static DEFINE_MUTEX(recent_mutex);
-=20
- #ifdef CONFIG_PROC_FS
--static struct proc_dir_entry	*proc_dir;
--static const struct file_operations	recent_fops;
-+#ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
-+static struct proc_dir_entry *proc_old_dir;
-+#endif
-+static struct proc_dir_entry *recent_proc_dir;
-+static const struct file_operations recent_old_fops, recent_mt_fops;
- #endif
-=20
- static u_int32_t hash_rnd;
--static int hash_rnd_initted;
-+static bool hash_rnd_initted;
-+
-+static unsigned int recent_entry_hash4(const union nf_inet_addr *addr)
-+{
-+	if (!hash_rnd_initted) {
-+		get_random_bytes(&hash_rnd, sizeof(hash_rnd));
-+		hash_rnd_initted =3D true;
-+	}
-+	return jhash_1word((__force u32)addr->ip, hash_rnd) &
-+	       (ip_list_hash_size - 1);
-+}
-=20
--static unsigned int recent_entry_hash(__be32 addr)
-+static unsigned int recent_entry_hash6(const union nf_inet_addr *addr)
- {
- 	if (!hash_rnd_initted) {
--		get_random_bytes(&hash_rnd, 4);
--		hash_rnd_initted =3D 1;
-+		get_random_bytes(&hash_rnd, sizeof(hash_rnd));
-+		hash_rnd_initted =3D true;
- 	}
--	return jhash_1word((__force u32)addr, hash_rnd) & (ip_list_hash_size =
-- 1);
-+	return jhash2((u32 *)addr->ip6, ARRAY_SIZE(addr->ip6), hash_rnd) &
-+	       (ip_list_hash_size - 1);
- }
-=20
- static struct recent_entry *
--recent_entry_lookup(const struct recent_table *table, __be32 addr, u_i=
-nt8_t ttl)
-+recent_entry_lookup(const struct recent_table *table,
-+		    const union nf_inet_addr *addrp, u_int16_t family,
-+		    u_int8_t ttl)
- {
- 	struct recent_entry *e;
- 	unsigned int h;
-=20
--	h =3D recent_entry_hash(addr);
-+	if (family =3D=3D AF_INET)
-+		h =3D recent_entry_hash4(addrp);
-+	else
-+		h =3D recent_entry_hash6(addrp);
-+
- 	list_for_each_entry(e, &table->iphash[h], list)
--		if (e->addr =3D=3D addr && (ttl =3D=3D e->ttl || !ttl || !e->ttl))
-+		if (e->family =3D=3D family &&
-+		    memcmp(&e->addr, addrp, sizeof(e->addr)) =3D=3D 0 &&
-+		    (ttl =3D=3D e->ttl || ttl =3D=3D 0 || e->ttl =3D=3D 0))
- 			return e;
- 	return NULL;
- }
-@@ -118,7 +146,8 @@ static void recent_entry_remove(struct recent_table=
- *t, struct recent_entry *e)
- }
-=20
- static struct recent_entry *
--recent_entry_init(struct recent_table *t, __be32 addr, u_int8_t ttl)
-+recent_entry_init(struct recent_table *t, const union nf_inet_addr *ad=
-dr,
-+		  u_int16_t family, u_int8_t ttl)
- {
- 	struct recent_entry *e;
-=20
-@@ -130,12 +159,16 @@ recent_entry_init(struct recent_table *t, __be32 =
-addr, u_int8_t ttl)
- 		    GFP_ATOMIC);
- 	if (e =3D=3D NULL)
- 		return NULL;
--	e->addr      =3D addr;
-+	memcpy(&e->addr, addr, sizeof(e->addr));
- 	e->ttl       =3D ttl;
- 	e->stamps[0] =3D jiffies;
- 	e->nstamps   =3D 1;
- 	e->index     =3D 1;
--	list_add_tail(&e->list, &t->iphash[recent_entry_hash(addr)]);
-+	e->family    =3D family;
-+	if (family =3D=3D AF_INET)
-+		list_add_tail(&e->list, &t->iphash[recent_entry_hash4(addr)]);
-+	else
-+		list_add_tail(&e->list, &t->iphash[recent_entry_hash6(addr)]);
- 	list_add_tail(&e->lru_list, &t->lru_list);
- 	t->entries++;
- 	return e;
-@@ -179,28 +212,42 @@ recent_mt(const struct sk_buff *skb, const struct=
- net_device *in,
- 	const struct xt_recent_mtinfo *info =3D matchinfo;
- 	struct recent_table *t;
- 	struct recent_entry *e;
--	__be32 addr;
-+	union nf_inet_addr addr =3D {};
- 	u_int8_t ttl;
- 	bool ret =3D info->invert;
-=20
--	if (info->side =3D=3D XT_RECENT_DEST)
--		addr =3D ip_hdr(skb)->daddr;
--	else
--		addr =3D ip_hdr(skb)->saddr;
-+	if (match->family =3D=3D AF_INET) {
-+		const struct iphdr *iph =3D ip_hdr(skb);
-+
-+		if (info->side =3D=3D XT_RECENT_DEST)
-+			addr.ip =3D iph->daddr;
-+		else
-+			addr.ip =3D iph->saddr;
-+
-+		ttl =3D iph->ttl;
-+	} else {
-+		const struct ipv6hdr *iph =3D ipv6_hdr(skb);
-+
-+		if (info->side =3D=3D XT_RECENT_DEST)
-+			memcpy(&addr.in6, &iph->daddr, sizeof(addr.in6));
-+		else
-+			memcpy(&addr.in6, &iph->saddr, sizeof(addr.in6));
-+
-+		ttl =3D iph->hop_limit;
-+	}
-=20
--	ttl =3D ip_hdr(skb)->ttl;
- 	/* use TTL as seen before forwarding */
- 	if (out && !skb->sk)
- 		ttl++;
-=20
- 	spin_lock_bh(&recent_lock);
- 	t =3D recent_table_lookup(info->name);
--	e =3D recent_entry_lookup(t, addr,
--				info->check_set & XT_RECENT_TTL ? ttl : 0);
-+	e =3D recent_entry_lookup(t, &addr, match->family,
-+				(info->check_set & XT_RECENT_TTL) ? ttl : 0);
- 	if (e =3D=3D NULL) {
- 		if (!(info->check_set & XT_RECENT_SET))
- 			goto out;
--		e =3D recent_entry_init(t, addr, ttl);
-+		e =3D recent_entry_init(t, &addr, match->family, ttl);
- 		if (e =3D=3D NULL)
- 			*hotdrop =3D true;
- 		ret =3D !ret;
-@@ -277,11 +324,24 @@ recent_mt_check(const char *tablename, const void=
- *ip,
- 	for (i =3D 0; i < ip_list_hash_size; i++)
- 		INIT_LIST_HEAD(&t->iphash[i]);
- #ifdef CONFIG_PROC_FS
--	t->proc =3D proc_create(t->name, ip_list_perms, proc_dir, &recent_fop=
-s);
-+	t->proc =3D proc_create(t->name, ip_list_perms, recent_proc_dir,
-+		  &recent_mt_fops);
- 	if (t->proc =3D=3D NULL) {
- 		kfree(t);
- 		goto out;
- 	}
-+#ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
-+	t->proc_old =3D proc_create(t->name, ip_list_perms, proc_old_dir,
-+		      &recent_old_fops);
-+	if (t->proc_old =3D=3D NULL) {
-+		remove_proc_entry(t->name, proc_old_dir);
-+		kfree(t);
-+		goto out;
-+	}
-+	t->proc_old->uid   =3D ip_list_uid;
-+	t->proc_old->gid   =3D ip_list_gid;
-+	t->proc_old->data  =3D t;
-+#endif
- 	t->proc->uid       =3D ip_list_uid;
- 	t->proc->gid       =3D ip_list_gid;
- 	t->proc->data      =3D t;
-@@ -308,7 +368,10 @@ static void recent_mt_destroy(const struct xt_matc=
-h *match, void *matchinfo)
- 		spin_unlock_bh(&recent_lock);
- 		recent_table_flush(t);
- #ifdef CONFIG_PROC_FS
--		remove_proc_entry(t->name, proc_dir);
-+#ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
-+		remove_proc_entry(t->name, proc_old_dir);
-+#endif
-+		remove_proc_entry(t->name, recent_proc_dir);
- #endif
- 		kfree(t);
- 	}
-@@ -317,7 +380,7 @@ static void recent_mt_destroy(const struct xt_match=
- *match, void *matchinfo)
-=20
- #ifdef CONFIG_PROC_FS
- struct recent_iter_state {
--	struct recent_table	*table;
-+	const struct recent_table *table;
- 	unsigned int		bucket;
+diff --git a/include/linux/netfilter/xt_length.h b/include/linux/netfil=
+ter/xt_length.h
+index 7c2b439..4e70268 100644
+--- a/include/linux/netfilter/xt_length.h
++++ b/include/linux/netfilter/xt_length.h
+@@ -6,4 +6,25 @@ struct xt_length_info {
+     u_int8_t	invert;
  };
 =20
-@@ -342,8 +405,8 @@ static void *recent_seq_next(struct seq_file *seq, =
-void *v, loff_t *pos)
- {
- 	struct recent_iter_state *st =3D seq->private;
- 	const struct recent_table *t =3D st->table;
--	struct recent_entry *e =3D v;
--	struct list_head *head =3D e->list.next;
-+	const struct recent_entry *e =3D v;
-+	const struct list_head *head =3D e->list.next;
-=20
- 	while (head =3D=3D &t->iphash[st->bucket]) {
- 		if (++st->bucket >=3D ip_list_hash_size)
-@@ -366,8 +429,14 @@ static int recent_seq_show(struct seq_file *seq, v=
-oid *v)
- 	unsigned int i;
-=20
- 	i =3D (e->index - 1) % ip_pkt_list_tot;
--	seq_printf(seq, "src=3D%u.%u.%u.%u ttl: %u last_seen: %lu oldest_pkt:=
- %u",
--		   NIPQUAD(e->addr), e->ttl, e->stamps[i], e->index);
-+	if (e->family =3D=3D AF_INET)
-+		seq_printf(seq, "src=3D" NIPQUAD_FMT " ttl: %u last_seen: %lu "
-+			   "oldest_pkt: %u", NIPQUAD(e->addr.ip), e->ttl,
-+			   e->stamps[i], e->index);
-+	else
-+		seq_printf(seq, "src=3D" NIP6_FMT " ttl: %u last_seen: %lu "
-+			   "oldest_pkt: %u", NIP6(e->addr.in6), e->ttl,
-+			   e->stamps[i], e->index);
- 	for (i =3D 0; i < e->nstamps; i++)
- 		seq_printf(seq, "%s %lu", i ? "," : "", e->stamps[i]);
- 	seq_printf(seq, "\n");
-@@ -394,8 +463,22 @@ static int recent_seq_open(struct inode *inode, st=
-ruct file *file)
- 	return 0;
- }
-=20
--static ssize_t recent_proc_write(struct file *file, const char __user =
-*input,
--				 size_t size, loff_t *loff)
-+#ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
-+static int recent_old_seq_open(struct inode *inode, struct file *filp)
-+{
-+	static bool warned_of_old;
++enum {
++	XT_LENGTH_INVERT =3D 1 << 0,
 +
-+	if (unlikely(!warned_of_old)) {
-+		printk(KERN_INFO KBUILD_MODNAME ": Use of /proc/net/ipt_recent"
-+		       " is deprecated; use /proc/net/xt_recent.\n");
-+		warned_of_old =3D true;
-+	}
-+	return recent_seq_open(inode, filp);
-+}
++	/* IP header plus payload */
++	XT_LENGTH_LAYER3 =3D 1 << 1,
 +
-+static ssize_t recent_old_proc_write(struct file *file,
-+				     const char __user *input,
-+				     size_t size, loff_t *loff)
- {
- 	const struct proc_dir_entry *pde =3D PDE(file->f_path.dentry->d_inode=
-);
- 	struct recent_table *t =3D pde->data;
-@@ -408,6 +491,7 @@ static ssize_t recent_proc_write(struct file *file,=
- const char __user *input,
- 		size =3D sizeof(buf);
- 	if (copy_from_user(buf, input, size))
- 		return -EFAULT;
++	/* TCP/UDP/etc. header plus payload */
++	XT_LENGTH_LAYER4 =3D 1 << 2,
 +
- 	while (isspace(*c))
- 		c++;
-=20
-@@ -435,10 +519,10 @@ static ssize_t recent_proc_write(struct file *fil=
-e, const char __user *input,
- 	addr =3D in_aton(c);
-=20
- 	spin_lock_bh(&recent_lock);
--	e =3D recent_entry_lookup(t, addr, 0);
-+	e =3D recent_entry_lookup(t, (const void *)&addr, PF_INET, 0);
- 	if (e =3D=3D NULL) {
- 		if (add)
--			recent_entry_init(t, addr, 0);
-+			recent_entry_init(t, (const void *)&addr, PF_INET, 0);
- 	} else {
- 		if (add)
- 			recent_entry_update(t, e);
-@@ -449,23 +533,118 @@ static ssize_t recent_proc_write(struct file *fi=
-le, const char __user *input,
- 	return size;
- }
-=20
--static const struct file_operations recent_fops =3D {
--	.open		=3D recent_seq_open,
-+static const struct file_operations recent_old_fops =3D {
-+	.open		=3D recent_old_seq_open,
- 	.read		=3D seq_read,
--	.write		=3D recent_proc_write,
-+	.write		=3D recent_old_proc_write,
- 	.release	=3D seq_release_private,
- 	.owner		=3D THIS_MODULE,
- };
-+#endif
++	/* TCP/UDP/etc. payload */
++	XT_LENGTH_LAYER5 =3D 1 << 3,
 +
-+static ssize_t
-+recent_mt_proc_write(struct file *file, const char __user *input,
-+		     size_t size, loff_t *loff)
-+{
-+	const struct proc_dir_entry *pde =3D PDE(file->f_path.dentry->d_inode=
-);
-+	struct recent_table *t =3D pde->data;
-+	struct recent_entry *e;
-+	char buf[sizeof("+b335:1d35:1e55:dead:c0de:1715:5afe:c0de")];
-+	const char *c =3D buf;
-+	union nf_inet_addr addr;
-+	u_int16_t family;
-+	bool add, succ;
-+
-+	if (size =3D=3D 0)
-+		return 0;
-+	if (size > sizeof(buf))
-+		size =3D sizeof(buf);
-+	if (copy_from_user(buf, input, size) !=3D 0)
-+		return -EFAULT;
-+
-+	/* Strict protocol! */
-+	if (*loff !=3D 0)
-+		return -ESPIPE;
-+	switch (*c) {
-+	case '/': /* flush table */
-+		spin_lock_bh(&recent_lock);
-+		recent_table_flush(t);
-+		spin_unlock_bh(&recent_lock);
-+		return size;
-+	case '-': /* remove address */
-+		add =3D false;
-+		break;
-+	case '+': /* add address */
-+		add =3D true;
-+		break;
-+	default:
-+		printk(KERN_INFO KBUILD_MODNAME ": Need +ip, -ip or /\n");
-+		return -EINVAL;
-+	}
-+
-+	++c;
-+	--size;
-+	if (strnchr(c, size, ':') !=3D NULL) {
-+		family =3D AF_INET6;
-+		succ   =3D in6_pton(c, size, (void *)&addr, '\n', NULL);
-+	} else {
-+		family =3D AF_INET;
-+		succ   =3D in4_pton(c, size, (void *)&addr, '\n', NULL);
-+	}
-+
-+	if (!succ) {
-+		printk(KERN_INFO KBUILD_MODNAME ": illegal address written "
-+		       "to procfs\n");
-+		return -EINVAL;
-+	}
-+
-+	spin_lock_bh(&recent_lock);
-+	e =3D recent_entry_lookup(t, &addr, family, 0);
-+	if (e =3D=3D NULL) {
-+		if (add)
-+			recent_entry_init(t, &addr, family, 0);
-+	} else {
-+		if (add)
-+			recent_entry_update(t, e);
-+		else
-+			recent_entry_remove(t, e);
-+	}
-+	spin_unlock_bh(&recent_lock);
-+	/* Note we removed one above */
-+	*loff +=3D size + 1;
-+	return size + 1;
-+}
-+
-+static const struct file_operations recent_mt_fops =3D {
-+	.open    =3D recent_seq_open,
-+	.read    =3D seq_read,
-+	.write   =3D recent_mt_proc_write,
-+	.release =3D seq_release_private,
-+	.owner   =3D THIS_MODULE,
++	/* SCTP payload */
++	XT_LENGTH_LAYER7 =3D 1 << 4,
 +};
- #endif /* CONFIG_PROC_FS */
++
++struct xt_length_mtinfo1 {
++	__u32 min, max;
++	__u16 flags;
++};
++
+ #endif /*_XT_LENGTH_H*/
+diff --git a/net/netfilter/xt_length.c b/net/netfilter/xt_length.c
+index b8640f9..d874fa2 100644
+--- a/net/netfilter/xt_length.c
++++ b/net/netfilter/xt_length.c
+@@ -1,30 +1,40 @@
+-/* Kernel module to match packet length. */
+-/* (C) 1999-2001 James Morris <jmorros@intercode.com.au>
++/*
++ *	xt_length - Netfilter module to match packet length
+  *
+- * This program is free software; you can redistribute it and/or modif=
+y
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
++ *	(C) 1999-2001 James Morris <jmorros@intercode.com.au>
++ *	Copyright =C2=A9 CC Computer Consultants GmbH, 2007-2008
++ *
++ *	This program is free software; you can redistribute it and/or modif=
+y
++ *	it under the terms of the GNU General Public License version 2 as
++ *	published by the Free Software Foundation.
+  */
+-
++#include <linux/dccp.h>
+ #include <linux/module.h>
++#include <linux/sctp.h>
+ #include <linux/skbuff.h>
++#include <linux/icmp.h>
++#include <linux/ip.h>
+ #include <linux/ipv6.h>
++#include <linux/tcp.h>
++#include <linux/udp.h>
+ #include <net/ip.h>
+-
+-#include <linux/netfilter/xt_length.h>
++#include <net/ipv6.h>
+ #include <linux/netfilter/x_tables.h>
++#include <linux/netfilter/xt_length.h>
++#include <linux/netfilter_ipv6/ip6_tables.h>
 =20
--static struct xt_match recent_mt_reg __read_mostly =3D {
--	.name		=3D "recent",
--	.family		=3D AF_INET,
--	.match		=3D recent_mt,
--	.matchsize	=3D sizeof(struct xt_recent_mtinfo),
--	.checkentry	=3D recent_mt_check,
--	.destroy	=3D recent_mt_destroy,
--	.me		=3D THIS_MODULE,
-+static struct xt_match recent_mt_reg[] __read_mostly =3D {
+ MODULE_AUTHOR("James Morris <jmorris@intercode.com.au>");
++MODULE_AUTHOR("Jan Engelhardt <jengelh@computergmbh.de>");
+ MODULE_DESCRIPTION("Xtables: Packet length (Layer3,4,5) match");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ipt_length");
+ MODULE_ALIAS("ip6t_length");
+=20
+ static bool
+-length_mt(const struct sk_buff *skb, const struct net_device *in,
+-          const struct net_device *out, const struct xt_match *match,
+-          const void *matchinfo, int offset, unsigned int protoff,
+-          bool *hotdrop)
++length_mt_v0(const struct sk_buff *skb, const struct net_device *in,
++	     const struct net_device *out, const struct xt_match *match,
++	     const void *matchinfo, int offset, unsigned int protoff,
++	     bool *hotdrop)
+ {
+ 	const struct xt_length_info *info =3D matchinfo;
+ 	u_int16_t pktlen =3D ntohs(ip_hdr(skb)->tot_len);
+@@ -33,10 +43,10 @@ length_mt(const struct sk_buff *skb, const struct n=
+et_device *in,
+ }
+=20
+ static bool
+-length_mt6(const struct sk_buff *skb, const struct net_device *in,
+-           const struct net_device *out, const struct xt_match *match,
+-           const void *matchinfo, int offset, unsigned int protoff,
+-           bool *hotdrop)
++length_mt6_v0(const struct sk_buff *skb, const struct net_device *in,
++	      const struct net_device *out, const struct xt_match *match,
++	      const void *matchinfo, int offset, unsigned int protoff,
++	      bool *hotdrop)
+ {
+ 	const struct xt_length_info *info =3D matchinfo;
+ 	const u_int16_t pktlen =3D ntohs(ipv6_hdr(skb)->payload_len) +
+@@ -45,21 +55,242 @@ length_mt6(const struct sk_buff *skb, const struct=
+ net_device *in,
+ 	return (pktlen >=3D info->min && pktlen <=3D info->max) ^ info->inver=
+t;
+ }
+=20
++/*
++ * GCC will decide if these functions (xtlength_layer?_*) are
++ * good enough for inlining, we should not act overly smart about
++ * these decisions.
++ */
++
++static bool xtlength_layer5_tcp(unsigned int *length, const struct sk_=
+buff *skb,
++				unsigned int offset)
++{
++	const struct tcphdr *tcph;
++	struct tcphdr buf;
++
++	tcph =3D skb_header_pointer(skb, offset, sizeof(buf), &buf);
++	if (tcph =3D=3D NULL)
++		return false;
++
++	*length =3D skb->len - offset;
++	if (*length >=3D 4 * tcph->doff)
++		*length -=3D 4 * tcph->doff;
++	return true;
++}
++
++static bool
++xtlength_layer5_dccp(unsigned int *length, const struct sk_buff *skb,
++		     unsigned int offset)
++{
++	const struct dccp_hdr *dh;
++	struct dccp_hdr dhbuf;
++
++	dh =3D skb_header_pointer(skb, offset, sizeof(dhbuf), &dhbuf);
++	if (dh =3D=3D NULL)
++		return false;
++
++	*length =3D skb->len - offset;
++	if (*length >=3D 4 * dh->dccph_doff)
++		*length -=3D 4 * dh->dccph_doff;
++	return true;
++}
++
++static bool xtlength_layer5(unsigned int *length, const struct sk_buff=
+ *skb,
++			    unsigned int proto, unsigned int offset)
++{
++	switch (proto) {
++	case IPPROTO_TCP:
++		return xtlength_layer5_tcp(length, skb, offset);
++	case IPPROTO_UDP:
++	case IPPROTO_UDPLITE:
++		*length =3D skb->len - offset - sizeof(struct udphdr);
++		return true;
++	case IPPROTO_SCTP:
++		*length =3D skb->len - offset - sizeof(struct sctphdr);
++		return true;
++	case IPPROTO_DCCP:
++		return xtlength_layer5_dccp(length, skb, offset);
++	case IPPROTO_ICMP:
++		*length =3D skb->len - offset - sizeof(struct icmphdr);
++		return true;
++	case IPPROTO_ICMPV6:
++		*length =3D skb->len - offset -
++			  offsetof(struct icmp6hdr, icmp6_dataun);
++		return true;
++	case IPPROTO_AH:
++		*length =3D skb->len - offset - sizeof(struct ip_auth_hdr);
++		return true;
++	case IPPROTO_ESP:
++		*length =3D skb->len - offset - sizeof(struct ip_esp_hdr);
++		return true;
++	default:
++		return false;
++	}
++}
++
++static bool
++xtlength_layer7_sctp(unsigned int *length, const struct sk_buff *skb,
++		     unsigned int offset)
++{
++	const struct sctp_chunkhdr *ch;
++	struct sctp_chunkhdr chbuf;
++	unsigned int pos;
++
++	*length =3D 0;
++	for (pos =3D sizeof(struct sctphdr); pos < skb->len;
++	     pos +=3D ntohs(ch->length)) {
++		ch =3D skb_header_pointer(skb, offset + pos,
++		     sizeof(chbuf), &chbuf);
++		if (ch =3D=3D NULL)
++			return false;
++		if (ch->type !=3D SCTP_CID_DATA)
++			continue;
++		*length +=3D ntohs(ch->length);
++	}
++	return true;
++}
++
++static bool xtlength_layer7(unsigned int *length, const struct sk_buff=
+ *skb,
++			    unsigned int proto, unsigned int offset)
++{
++	switch (proto) {
++	case IPPROTO_SCTP:
++		return xtlength_layer7_sctp(length, skb, offset);
++	default:
++		return xtlength_layer5(length, skb, proto, offset);
++	}
++}
++
++/*
++ * llayer4_proto - figure out the L4 protocol in an IPv6 packet
++ * @skb:	skb pointer
++ * @offset:	position at which L4 starts (equal to 'protoff' in IPv4 co=
+de)
++ * @hotdrop:	hotdrop pointer
++ *
++ * Searches for a recognized L4 header. On success, fills in @offset a=
+nd
++ * returns the protocol number. If not found, %NEXTHDR_MAX is returned=
+=2E
++ * On error, @hotdrop is set.
++ */
++static unsigned int
++llayer4_proto(const struct sk_buff *skb, unsigned int *offset, bool *h=
+otdrop)
++{
++	/*
++	 * Do encapsulation first so that %IPPROTO_TCP does not hit the TCP
++	 * part in an IPv6-in-IPv6 encapsulation, for example.
++	 */
++	static const unsigned int types[] =3D
++		{IPPROTO_IPV6, IPPROTO_IPIP, IPPROTO_ESP, IPPROTO_AH,
++		IPPROTO_ICMP, IPPROTO_TCP, IPPROTO_UDP, IPPROTO_UDPLITE,
++		IPPROTO_SCTP, IPPROTO_DCCP};
++	unsigned int i;
++	int err;
++
++	for (i =3D 0; i < ARRAY_SIZE(types); ++i) {
++		err =3D ipv6_find_hdr(skb, offset, types[i], NULL);
++		if (err >=3D 0)
++			return types[i];
++		if (err !=3D -ENOENT) {
++			*hotdrop =3D true;
++			break;
++		}
++	}
++
++	return NEXTHDR_MAX;
++}
++
++static bool
++length_mt4(const struct sk_buff *skb, const struct net_device *in,
++	   const struct net_device *out, const struct xt_match *match,
++	   const void *matchinfo, int offset, unsigned int protoff,
++	   bool *hotdrop)
++{
++	const struct xt_length_mtinfo1 *info =3D matchinfo;
++	const struct iphdr *iph =3D ip_hdr(skb);
++	unsigned int len =3D 0;
++	bool hit =3D true;
++
++	if (info->flags & XT_LENGTH_LAYER3)
++		len =3D ntohs(iph->tot_len);
++	else if (info->flags & XT_LENGTH_LAYER4)
++		len =3D ntohs(iph->tot_len) - protoff;
++	else if (info->flags & XT_LENGTH_LAYER5)
++		hit =3D xtlength_layer5(&len, skb, iph->protocol, protoff);
++	else if (info->flags & XT_LENGTH_LAYER7)
++		hit =3D xtlength_layer7(&len, skb, iph->protocol, protoff);
++	if (!hit)
++		return false;
++
++	return (len >=3D info->min && len <=3D info->max) ^
++	       !!(info->flags & XT_LENGTH_INVERT);
++}
++
++#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_=
+MODULE)
++static bool
++length_mt6(const struct sk_buff *skb, const struct net_device *in,
++	   const struct net_device *out, const struct xt_match *match,
++	   const void *matchinfo, int offset, unsigned int protoff,
++	   bool *hotdrop)
++{
++	const struct xt_length_mtinfo1 *info =3D matchinfo;
++	const struct ipv6hdr *iph =3D ipv6_hdr(skb);
++	unsigned int len =3D 0, l4proto;
++	bool hit =3D true;
++
++	if (info->flags & XT_LENGTH_LAYER3) {
++		len =3D sizeof(struct ipv6hdr) + ntohs(iph->payload_len);
++	} else {
++		l4proto =3D llayer4_proto(skb, &protoff, hotdrop);
++		if (l4proto =3D=3D NEXTHDR_MAX)
++			return false;
++		if (info->flags & XT_LENGTH_LAYER4)
++			len =3D skb->len - protoff;
++		else if (info->flags & XT_LENGTH_LAYER5)
++			hit =3D xtlength_layer5(&len, skb, l4proto, protoff);
++		else if (info->flags & XT_LENGTH_LAYER7)
++			hit =3D xtlength_layer7(&len, skb, l4proto, protoff);
++	}
++	if (!hit)
++		return false;
++
++	return (len >=3D info->min && len <=3D info->max) ^
++	       !!(info->flags & XT_LENGTH_INVERT);
++}
++#endif
++
+ static struct xt_match length_mt_reg[] __read_mostly =3D {
+ 	{
+ 		.name		=3D "length",
++		.revision	=3D 0,
+ 		.family		=3D AF_INET,
+-		.match		=3D length_mt,
++		.match		=3D length_mt_v0,
+ 		.matchsize	=3D sizeof(struct xt_length_info),
+ 		.me		=3D THIS_MODULE,
+ 	},
+ 	{
+ 		.name		=3D "length",
++		.revision	=3D 0,
+ 		.family		=3D AF_INET6,
+-		.match		=3D length_mt6,
++		.match		=3D length_mt6_v0,
+ 		.matchsize	=3D sizeof(struct xt_length_info),
+ 		.me		=3D THIS_MODULE,
+ 	},
 +	{
-+		.name       =3D "recent",
-+		.revision   =3D 0,
-+		.family     =3D AF_INET,
-+		.match      =3D recent_mt,
-+		.matchsize  =3D sizeof(struct xt_recent_mtinfo),
-+		.checkentry =3D recent_mt_check,
-+		.destroy    =3D recent_mt_destroy,
-+		.me         =3D THIS_MODULE,
++		.name           =3D "length",
++		.revision       =3D 1,
++		.family         =3D AF_INET,
++		.match          =3D length_mt4,
++		.matchsize      =3D sizeof(struct xt_length_mtinfo1),
++		.me             =3D THIS_MODULE,
 +	},
++#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_=
+MODULE)
 +	{
-+		.name       =3D "recent",
-+		.revision   =3D 0,
-+		.family     =3D AF_INET6,
-+		.match      =3D recent_mt,
-+		.matchsize  =3D sizeof(struct xt_recent_mtinfo),
-+		.checkentry =3D recent_mt_check,
-+		.destroy    =3D recent_mt_destroy,
-+		.me         =3D THIS_MODULE,
++		.name           =3D "length",
++		.revision       =3D 1,
++		.family         =3D AF_INET6,
++		.match          =3D length_mt6,
++		.matchsize      =3D sizeof(struct xt_length_mtinfo1),
++		.me             =3D THIS_MODULE,
 +	},
++#endif
  };
 =20
- static int __init recent_mt_init(void)
-@@ -476,26 +655,39 @@ static int __init recent_mt_init(void)
- 		return -EINVAL;
- 	ip_list_hash_size =3D 1 << fls(ip_list_tot);
-=20
--	err =3D xt_register_match(&recent_mt_reg);
-+	err =3D xt_register_matches(recent_mt_reg, ARRAY_SIZE(recent_mt_reg))=
-;
- #ifdef CONFIG_PROC_FS
- 	if (err)
- 		return err;
--	proc_dir =3D proc_mkdir("ipt_recent", init_net.proc_net);
--	if (proc_dir =3D=3D NULL) {
--		xt_unregister_match(&recent_mt_reg);
-+	recent_proc_dir =3D proc_mkdir("xt_recent", init_net.proc_net);
-+	if (recent_proc_dir =3D=3D NULL) {
-+		xt_unregister_matches(recent_mt_reg, ARRAY_SIZE(recent_mt_reg));
-+		err =3D -ENOMEM;
-+	}
-+#ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
-+	if (err < 0)
-+		return err;
-+	proc_old_dir =3D proc_mkdir("ipt_recent", init_net.proc_net);
-+	if (proc_old_dir =3D=3D NULL) {
-+		remove_proc_entry("xt_recent", init_net.proc_net);
-+		xt_unregister_matches(recent_mt_reg, ARRAY_SIZE(recent_mt_reg));
- 		err =3D -ENOMEM;
- 	}
- #endif
-+#endif
- 	return err;
- }
-=20
- static void __exit recent_mt_exit(void)
- {
- 	BUG_ON(!list_empty(&tables));
--	xt_unregister_match(&recent_mt_reg);
-+	xt_unregister_matches(recent_mt_reg, ARRAY_SIZE(recent_mt_reg));
- #ifdef CONFIG_PROC_FS
-+#ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
- 	remove_proc_entry("ipt_recent", init_net.proc_net);
- #endif
-+	remove_proc_entry("xt_recent", init_net.proc_net);
-+#endif
- }
-=20
- module_init(recent_mt_init);
+ static int __init length_mt_init(void)
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
