@@ -1,48 +1,47 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: manpages: add missing --rsource,--rdest options to
- libxt_recent.man
-Date: Tue, 12 Aug 2008 19:36:53 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0808121935410.22804@fbirervta.pbzchgretzou.qr>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility workaround
+Date: Wed, 13 Aug 2008 10:00:28 +0200
+Message-ID: <200808131000.29788.thomas.jarosch@intra2net.com>
+References: <Pine.LNX.4.64.0808081256560.4551@wrl-59.cs.helsinki.fi> <200808120946.19459.thomas.jarosch@intra2net.com> <20080812.011822.155249871.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: ilpo.jarvinen@helsinki.fi, billfink@mindspring.com,
+	fragabr@gmail.com, netdev@vger.kernel.org, kaber@trash.net,
+	sr@securenet.de, netfilter-devel@vger.kernel.org,
+	kadlec@blackhole.kfki.hu
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:40294 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752305AbYHLXgy (ORCPT
+Received: from re01.intra2net.com ([82.165.28.202]:37128 "EHLO
+	re01.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751825AbYHMIAd (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Aug 2008 19:36:54 -0400
+	Wed, 13 Aug 2008 04:00:33 -0400
+In-Reply-To: <20080812.011822.155249871.davem@davemloft.net>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit ffffffffffffffffffffffffffffffffffffffff
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Mon Mar 10 17:37:34 2008 +0100
+On Tuesday, 12. August 2008 10:18:22 David Miller wrote:
+> From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+> Date: Tue, 12 Aug 2008 09:46:17 +0200
+>
+> > David, I agree with you, though I'm not sure about the end user
+> > experience:
+>
+> We had the same situation with ECN and window scaling, and my proposal
+> is the same as how we handled those situations involving broken
+> middleware boxes.
 
-manpages: add missing --rsource,--rdest options to libxt_recent.man
-    
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- extensions/libipt_recent.man |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+Yes, that is true. IMHO there's a slight difference with FRTO trouble
+compared to ECN/window scaling issues:
 
-diff --git a/extensions/libipt_recent.man b/extensions/libipt_recent.man
-index bf5d710..02432ba 100644
---- a/extensions/libipt_recent.man
-+++ b/extensions/libipt_recent.man
-@@ -15,6 +15,13 @@ source address is already in the list, this will update the existing
- entry. This will always return success (or failure if `!' is passed
- in).
- .TP
-+\fB--rsource\fP
-+Match/save the source address of each packet in the recent list table. This
-+is the default.
-+.TP
-+\fB--rdest\fP
-+Match/save the destination address of each packet in the recent list table.
-+.TP
- [\fB!\fR] \fB--rcheck\fR
- Check if the source address of the packet is currently in
- the list.
+ECN trouble -> No access at all
+Broken window scaling -> Large transfers don't work
+MTU issues -> No access at all / large transfers don't work
 
+FRTO problems -> Hard to spot as they only happen when packet loss occurs.
+Though I guess Ilpo knows best if there's an "easy" way to detect this or not.
+
+Thomas
