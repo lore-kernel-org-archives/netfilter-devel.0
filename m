@@ -1,55 +1,91 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [IPTABLES] the same options for different kinds of matches don't
- work
-Date: Fri, 15 Aug 2008 22:48:47 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0808152243280.20098@blackhole.kfki.hu>
-References: <412e6f7f0808150951u2f2d58afn8340c64fed9de2a2@mail.gmail.com>
- <48A5CEFE.5090407@netfilter.org> <alpine.LNX.1.10.0808151633500.10478@fbirervta.pbzchgretzou.qr>
+From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
+Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility
+ workaround
+Date: Fri, 15 Aug 2008 18:35:11 -0300
+Message-ID: <20080815183511.1c81be23@tux>
+References: <Pine.LNX.4.64.0808081256560.4551@wrl-59.cs.helsinki.fi>
+	<20080811.144421.234396007.davem@davemloft.net>
+	<200808120946.19459.thomas.jarosch@intra2net.com>
+	<20080812.011822.155249871.davem@davemloft.net>
+	<20080812144309.7d62fd86@tux>
+	<Pine.LNX.4.64.0808122044450.16105@wrl-59.cs.helsinki.fi>
+	<20080813145310.0c1e534c@tux>
+	<Pine.LNX.4.64.0808132108480.18807@wrl-59.cs.helsinki.fi>
+	<20080815013407.4a594288@tux>
+	<Pine.LNX.4.64.0808150939270.23522@wrl-59.cs.helsinki.fi>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Changli Gao <xiaosuo@gmail.com>,
-	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
+	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
+	Patrick Hardy <kaber@trash.net>, sr@securenet.de,
+	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
+To: "Ilpo =?ISO-8859-1?Q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:46496 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751670AbYHOUss (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Aug 2008 16:48:48 -0400
-In-Reply-To: <alpine.LNX.1.10.0808151633500.10478@fbirervta.pbzchgretzou.qr>
+Received: from yx-out-2324.google.com ([74.125.44.30]:52113 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752178AbYHOVfS (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 15 Aug 2008 17:35:18 -0400
+Received: by yx-out-2324.google.com with SMTP id 8so860835yxm.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 15 Aug 2008 14:35:17 -0700 (PDT)
+In-Reply-To: <Pine.LNX.4.64.0808150939270.23522@wrl-59.cs.helsinki.fi>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 15 Aug 2008, Jan Engelhardt wrote:
+On Fri, 15 Aug 2008 10:06:39 +0300 (EEST)
+"Ilpo J=E4rvinen" <ilpo.jarvinen@helsinki.fi> wrote:
 
-> On Friday 2008-08-15 14:46, Pablo Neira Ayuso wrote:
-> >I see, it's worth to know this issue. However, my main objection with
-> >this patch is: is there any match in iptables mainline that actually
-> >uses two options with clashing names?
-> 
-> - mark, connmark, realm
+> I would be better to have tcpdump running at least a bit back (2-3 wi=
+ndows=20
+> back is long enough for me), but obviously that might not be possible=
+=20
+> option because it occurs so rarely. ...It should be possible to have=20
+> tcpdump restarted once in a while to avoid a one huge log if you'd ju=
+st=20
+> keep running tcpdump from beginning.
 
-mark and connmark do clash, so I was wrong in my previous reply about 
-non-clashing in mainline. There might be cases when one would want to 
-check the mark value of a packet and a conntrack entry, which is currently 
-not possible in a single rule due to the clashing option name.
+	Ok.
 
-Reading the manpage, realm does not clash with either mark or connmark.
+> What do you mean by "come back alive"...? ...In eth0 log I found this=
+=20
 
-> - ecn and ECN
+	I mean, it isn't stalled anymore. When it stalls, fetchnews
+stops and stay stalled forever. When it come back alive, it resumes
+(but it will only do that if I do something to restore the connection).
 
-The options of the ecn match and the ECN target are not clashing.
+> connection 189.38.18.122.995 > 192.168.0.2.35477, the ip matches with=
+=20
+> abusar's. But I'm not sure if the connection in the tunnel is the=20
+> interesting one, since it's going to/from port 119 but the ip address=
+es=20
+> (10.195.195.2 and 10.195.195.1) don't tell anything to me, I guess yo=
+u=20
+> know their meaning (ie., if 10.195.195.2 is the one with which the=20
+> connection stalls)? ...You're probably right that this wasn't very us=
+eful=20
+> log, the longest "stall" I find is only 1.111328 seconds long (and it=
+=20
+> might be due to some processing that is made by 10.195.195.2).
 
-> - multiport and tcp/udp/sctp/dccp.
+	Ok:
 
-They are ortogonal.
- 
-> (There was a reason to my post after all ;-)
+10.195.195.1 is my local VPN IP (tun1)
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+10.195.195.2 is the remote VPN IP (on the server)
+
+192.168.0.2 is my local IP (eth0)
+
+189.38.18.122 is the server's IP
+
+	Should I use tcpdump on the server too or is it sufficient to
+use on my client machine?
+
+	Thank you very much again.
+
+--=20
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
