@@ -1,61 +1,38 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] libnetfilter_log 0.0.15 release
-Date: Fri, 15 Aug 2008 22:24:43 +0200
-Message-ID: <48A5E60B.2000306@netfilter.org>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [IPTABLES] the same options for different kinds of matches don't
+ work
+Date: Fri, 15 Aug 2008 17:45:29 -0400 (EDT)
+Message-ID: <alpine.LNX.1.10.0808151743310.10478@fbirervta.pbzchgretzou.qr>
+References: <412e6f7f0808150951u2f2d58afn8340c64fed9de2a2@mail.gmail.com> <48A5CEFE.5090407@netfilter.org> <alpine.LNX.1.10.0808151633500.10478@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0808152243280.20098@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------040801090901060601070509"
-Cc: netfilter-announce@lists.netfilter.org,
-	netfilter-devel@vger.kernel.org, lwn@lwn.net
-To: netfilter@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Changli Gao <xiaosuo@gmail.com>,
+	netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:51968 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754121AbYHOVna (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Aug 2008 17:43:30 -0400
+Received: from sovereign.computergmbh.de ([85.214.69.204]:42075 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753020AbYHOVpb (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 15 Aug 2008 17:45:31 -0400
+In-Reply-To: <Pine.LNX.4.64.0808152243280.20098@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------040801090901060601070509
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 
-Hi!
+On Friday 2008-08-15 16:48, Jozsef Kadlecsik wrote:
+>
+>Reading the manpage, realm does not clash with either mark or connmark.
 
-The netfilter project proudly presents:
+Right you are. My grep-fu turned up wrong comments! (See libxt_realm.c
+for --mark!)
 
-  * libnetfilter_log-0.0.15
+>> - ecn and ECN
+>
+>The options of the ecn match and the ECN target are not clashing.
 
-libnetfilter_log is a userspace library providing interface to packets
-that have been logged by the kernel packet filter. It is is part of a
-system that deprecates the old syslog/dmesg based packet logging. See
-ChangeLog for more details.
+They do. Both libipt_ecn.c and libipt_ECN.c have --ecn-ip-ect,
+--ecn-tcp-cwr and --ecn-tcp-ece even if they are not documented
+(what, more of these? Patch follows).
 
-You can download them from:
-
-http://www.netfilter.org
-ftp://ftp.netfilter.org
-
-Enjoy,
-Pablo - on behalf of the Netfilter Project.
-
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
-
---------------040801090901060601070509
-Content-Type: text/plain;
- name="ChangeLog"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="ChangeLog"
-
-Eric Leblond (1):
-      Add parsing function for raw hardware header
-
-Pablo Neira Ayuso (2):
-      conditional compilation of testsuite utils
-      bump version to 0.0.15
-
-
---------------040801090901060601070509--
