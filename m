@@ -1,49 +1,87 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] ulogd 2.0.0beta2
-Date: Fri, 15 Aug 2008 22:34:10 +0200
-Message-ID: <48A5E842.8030407@netfilter.org>
+From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
+Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility
+ workaround
+Date: Fri, 15 Aug 2008 18:59:40 -0300
+Message-ID: <20080815185940.1170e415@tux>
+References: <Pine.LNX.4.64.0808081256560.4551@wrl-59.cs.helsinki.fi>
+	<20080811.144421.234396007.davem@davemloft.net>
+	<200808120946.19459.thomas.jarosch@intra2net.com>
+	<20080812.011822.155249871.davem@davemloft.net>
+	<20080812144309.7d62fd86@tux>
+	<Pine.LNX.4.64.0808122044450.16105@wrl-59.cs.helsinki.fi>
+	<20080813145310.0c1e534c@tux>
+	<Pine.LNX.4.64.0808132108480.18807@wrl-59.cs.helsinki.fi>
+	<20080815013407.4a594288@tux>
+	<Pine.LNX.4.64.0808150939270.23522@wrl-59.cs.helsinki.fi>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-announce@lists.netfilter.org,
-	netfilter-devel@vger.kernel.org, lwn@lwn.net
-To: netfilter@vger.kernel.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
+	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
+	Patrick Hardy <kaber@trash.net>, sr@securenet.de,
+	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
+To: "Ilpo =?ISO-8859-1?Q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:54649 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1757573AbYHOVuB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Aug 2008 17:50:01 -0400
+Received: from yx-out-2324.google.com ([74.125.44.30]:59596 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752903AbYHOV7r (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 15 Aug 2008 17:59:47 -0400
+Received: by yx-out-2324.google.com with SMTP id 8so867552yxm.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 15 Aug 2008 14:59:46 -0700 (PDT)
+In-Reply-To: <Pine.LNX.4.64.0808150939270.23522@wrl-59.cs.helsinki.fi>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi!
+On Fri, 15 Aug 2008 10:06:39 +0300 (EEST)
+"Ilpo J=E4rvinen" <ilpo.jarvinen@helsinki.fi> wrote:
 
-The netfilter project proudly presents:
+> I would be better to have tcpdump running at least a bit back (2-3 wi=
+ndows=20
+> back is long enough for me), but obviously that might not be possible=
+=20
+> option because it occurs so rarely. ...It should be possible to have=20
+> tcpdump restarted once in a while to avoid a one huge log if you'd ju=
+st=20
+> keep running tcpdump from beginning.
 
-  * ulogd 2.0.0beta2
+	Ok.
 
-ulogd is a userspace logging daemon for netfilter/iptables related
-logging. This includes per-packet logging of security violations,
-per-packet logging for accounting purpose as well as per-flow logging.
+> What do you mean by "come back alive"...? ...In eth0 log I found this=
+=20
+> connection 189.38.18.122.995 > 192.168.0.2.35477, the ip matches with=
+=20
+> abusar's. But I'm not sure if the connection in the tunnel is the=20
+> interesting one, since it's going to/from port 119 but the ip address=
+es=20
+> (10.195.195.2 and 10.195.195.1) don't tell anything to me, I guess yo=
+u=20
+> know their meaning (ie., if 10.195.195.2 is the one with which the=20
+> connection stalls)? ...You're probably right that this wasn't very us=
+eful=20
+> log, the longest "stall" I find is only 1.111328 seconds long (and it=
+=20
+> might be due to some processing that is made by 10.195.195.2).
 
-ulogd comes in two flavours: ulogd-1.x has been around since 2000 and is
-the stable series. All production systems should use the stable series
-at this time. The 1.x series are frozen, do not expect new features into
-this line. ulogd-2.x is currently in beta stage.
+	By "come back alive" I mean when the connection isn't stalled
+anymore.
 
-You can download them from:
+189.38.18.122 -> server
 
-http://www.netfilter.org
-ftp://ftp.netfilter.org
+10.195.195.1 -> my local VPN ip (tun1)
 
-Enjoy,
-Pablo - on behalf of the Netfilter Project.
+10.195.195.2 -> remote VPN ip (on the server)
 
-Note: Sorry, this release does not include changelog, you can browse the
-changes in the git tree, we expect to provide the changelog in the
-upcoming releases. It is worth mention than most of the changeset comes
-from Harald Welte and Eric Leblond.
+192.168.0.2 -> my local ip (eth0)
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+	Should I run tcpdump on the server too, or is it sufficient to
+dump just on my client machine?
 
+	Thank you very much again.
+
+--=20
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
