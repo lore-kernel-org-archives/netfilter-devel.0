@@ -1,77 +1,74 @@
-From: "=?ISO-8859-1?Q?Ilpo_J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
-Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility workaround
-Date: Sat, 16 Aug 2008 10:10:27 +0300 (EEST)
-Message-ID: <Pine.LNX.4.64.0808161002500.7264@wrl-59.cs.helsinki.fi>
-References: <Pine.LNX.4.64.0808081256560.4551@wrl-59.cs.helsinki.fi>
- <20080811.144421.234396007.davem@davemloft.net> <200808120946.19459.thomas.jarosch@intra2net.com>
- <20080812.011822.155249871.davem@davemloft.net> <20080812144309.7d62fd86@tux>
- <Pine.LNX.4.64.0808122044450.16105@wrl-59.cs.helsinki.fi> <20080813145310.0c1e534c@tux>
- <Pine.LNX.4.64.0808132108480.18807@wrl-59.cs.helsinki.fi> <20080815013407.4a594288@tux>
- <Pine.LNX.4.64.0808150939270.23522@wrl-59.cs.helsinki.fi> <20080815183511.1c81be23@tux>
- <Pine.LNX.4.64.0808160039230.6911@wrl-59.cs.helsinki.fi> <20080815231538.7999c017@tux>
+From: =?UTF-8?B?UMSTdGVyaXMgS8S8YXZpxYbFoQ==?= <klavins@netspace.net.au>
+Subject: [RFC] netfilter: Rename ipt_ECN.h to ipt_ecn_target.h (and similar)
+ to avoid file name clash
+Date: Sat, 16 Aug 2008 00:03:23 +0200
+Message-ID: <g84ufs$l66$1@ger.gmane.org>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-696208474-170825244-1218870627=:7264"
-Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
-	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
-	Patrick Hardy <kaber@trash.net>, sr@securenet.de,
-	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
-To: "=?ISO-8859-1?Q?D=E2niel?= Fraga" <fragabr@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20080815231538.7999c017@tux>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from main.gmane.org ([80.91.229.2]:42076 "EHLO ciao.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752142AbYHPJaI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 16 Aug 2008 05:30:08 -0400
+Received: from root by ciao.gmane.org with local (Exim 4.43)
+	id 1KUI6k-0000d2-Lc
+	for netfilter-devel@vger.kernel.org; Sat, 16 Aug 2008 09:30:02 +0000
+Received: from 217-133-15-180.b2b.tiscali.it ([217.133.15.180])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Sat, 16 Aug 2008 09:30:02 +0000
+Received: from klavins by 217-133-15-180.b2b.tiscali.it with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Sat, 16 Aug 2008 09:30:02 +0000
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+This is a request for comments on the proposal that the following 
+filename changes (indicative at this point) be made in the netfilter 
+source code tree, together with correcting the corresponding references 
+to the files in both source code, the build system, and wherever else 
+necessary.
 
----696208474-170825244-1218870627=:7264
-Content-Type: TEXT/PLAIN; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+The changes are proposed in order to avoid file name clashes on 
+filesystems that do not allow two files to have names that differ only 
+in the case of their letters:
 
-On Fri, 15 Aug 2008, Dâniel Fraga wrote:
+include/linux/netfilter/xt_CONNMARK.h => xt_connmark_target.h
+include/linux/netfilter/xt_DSCP.h => xt_dscp_target.h
+include/linux/netfilter/xt_MARK.h => xt_mark_target.h
+include/linux/netfilter/xt_RATEEST.h => xt_rateest_target.h
+include/linux/netfilter/xt_TCPMSS.h => xt_tcpmss_target.h
+include/linux/netfilter_ipv4/ipt_CONNMARK.h => ipt_connmark_target.h
+include/linux/netfilter_ipv4/ipt_DSCP.h => ipt_dscp_target.h
+include/linux/netfilter_ipv4/ipt_ECN.h => ipt_ecn_target.h
+include/linux/netfilter_ipv4/ipt_MARK.h => ipt_mark_target.h
+include/linux/netfilter_ipv4/ipt_TCPMSS.h => ipt_tcpmss_target.h
+include/linux/netfilter_ipv4/ipt_TOS.h => ipt_tos_target.h
+include/linux/netfilter_ipv4/ipt_TTL.h => ipt_ttl_target.h
+include/linux/netfilter_ipv6/ip6t_HL.h => ip6t_hl_target.h
+include/linux/netfilter_ipv6/ip6t_MARK.h => ip6t_mark_target.h
+net/ipv4/netfilter/ipt_ECN.c => ipt_ecn_target.c
+net/ipv4/netfilter/ipt_TTL.c => ipt_ttl_target.c
+net/ipv6/netfilter/ip6t_HL.c => ip6t_hl_target.c
+net/netfilter/xt_CONNMARK.c => xt_connmark_target.c
+net/netfilter/xt_DSCP.c => xt_dscp_target.c
+net/netfilter/xt_MARK.c => xt_mark_target.c
+net/netfilter/xt_RATEEST.c => xt_rateest_target.c
+net/netfilter/xt_TCPMSS.c => xt_tcpmss_target.c
 
-> On Sat, 16 Aug 2008 01:06:55 +0300 (EEST)
-> "Ilpo Järvinen" <ilpo.jarvinen@helsinki.fi> wrote:
-> 
-> > Ok. I hope it will still reproduce with tcpdump running... Btw, doing cat 
-> > /proc/net/tcp during the stall wouldn't be a bad idea (in addition to 
-> > tcpdumping it). Also please let the tcpdumps run long enough if the stall 
-> > persists, something like 15mins doesn't hurt because there are large 
-> > timer values possibly involved.
-> 
-> 	Hi, I did the following:
-> 
-> fraga@tux ~/src$ cat /proc/net/tcp 
+This has been discussed before on the git mailing list (see thread 
+http://article.gmane.org/gmane.comp.version-control.git/38612 ), and I 
+believe it to be a problem that will start to crop up more often than 
+not, given the proliferation of open source code onto a variety of 
+platforms that have this type of filename intolerance.
 
-...snip...
-
-> 	And I can't use host and port at the same time with tcpdump (or
-> I did something wrong) so I used (I need to update this, can't find
-> the manpage... I tried to download a newer version but the link form
-> the site seems broken):
-> 
-> sudo tcpdump -w dump-mail.log -i eth0 port 995
-
-Hmm, sudo /usr/sbin/tcpdump -i eth1 host 192.168.1.1 and port 22 works for 
-me, perhaps you forgot the and-operator in between them? Anyway, it seems 
-quite fine.
-
-> 	to capture mail traffic that was stuck (usually it only happens
-> with mail or nntp, interesting no?). All the other services (http,
-> ssh, ftp always work fine).
-> 
-> http://www.abusar.org/dump-mail.log
-> 
-> 	But the file is small. I don't know if it will help.
-> 
-> 	If not, no problem, just tell me and I'll try harder next time.
-> Thanks.
-
-This seems to be a valid sample, thanks. I'll return once I have figured 
-something out (it might be that our state machine is somehow broken since 
-there's traffic in both ways (rexmitted), yet neither party seems to be 
-very willing to make progress).
+The reason for posting to this list is to hear your considered opinion 
+on the impact of these proposed file name changes on the netfilter and 
+linux kernel development communities.  If you prefer I submit complete 
+patches before discussion, I could try to do that.
 
 -- 
- i.
----696208474-170825244-1218870627=:7264--
+  Peter Klavins
+
