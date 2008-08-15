@@ -1,91 +1,44 @@
-From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
-Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility
- workaround
-Date: Fri, 15 Aug 2008 18:35:11 -0300
-Message-ID: <20080815183511.1c81be23@tux>
-References: <Pine.LNX.4.64.0808081256560.4551@wrl-59.cs.helsinki.fi>
-	<20080811.144421.234396007.davem@davemloft.net>
-	<200808120946.19459.thomas.jarosch@intra2net.com>
-	<20080812.011822.155249871.davem@davemloft.net>
-	<20080812144309.7d62fd86@tux>
-	<Pine.LNX.4.64.0808122044450.16105@wrl-59.cs.helsinki.fi>
-	<20080813145310.0c1e534c@tux>
-	<Pine.LNX.4.64.0808132108480.18807@wrl-59.cs.helsinki.fi>
-	<20080815013407.4a594288@tux>
-	<Pine.LNX.4.64.0808150939270.23522@wrl-59.cs.helsinki.fi>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: manpages: add missing rateest documentation
+Date: Fri, 15 Aug 2008 22:14:44 +0200
+Message-ID: <48A5E3B4.1010702@netfilter.org>
+References: <alpine.LNX.1.10.0808142030200.32487@fbirervta.pbzchgretzou.qr> <48A5745C.90407@netfilter.org> <alpine.LNX.1.10.0808150924430.27140@fbirervta.pbzchgretzou.qr> <48A5BEF4.4020201@netfilter.org> <alpine.LNX.1.10.0808151552380.10478@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
-	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
-	Patrick Hardy <kaber@trash.net>, sr@securenet.de,
-	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
-To: "Ilpo =?ISO-8859-1?Q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.30]:52113 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752178AbYHOVfS (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Aug 2008 17:35:18 -0400
-Received: by yx-out-2324.google.com with SMTP id 8so860835yxm.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 15 Aug 2008 14:35:17 -0700 (PDT)
-In-Reply-To: <Pine.LNX.4.64.0808150939270.23522@wrl-59.cs.helsinki.fi>
+Received: from mail.us.es ([193.147.175.20]:37623 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753983AbYHOVku (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 15 Aug 2008 17:40:50 -0400
+In-Reply-To: <alpine.LNX.1.10.0808151552380.10478@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 15 Aug 2008 10:06:39 +0300 (EEST)
-"Ilpo J=E4rvinen" <ilpo.jarvinen@helsinki.fi> wrote:
+Jan Engelhardt wrote:
+> On Friday 2008-08-15 13:37, Pablo Neira Ayuso wrote:
+> 
+>> Jan Engelhardt wrote:
+>>> On Friday 2008-08-15 08:19, Pablo Neira Ayuso wrote:
+>>>> Jan Engelhardt wrote:
+>>>>> commit c918302a6d769055da8627bcf189f9e64d3073f9
+>>>>> Author: Jan Engelhardt <jengelh@medozas.de>
+>>>>> Date:   Thu Aug 14 20:24:58 2008 -0400
+>>>>>
+>>>>> manpages: add missing rateest documentation
+>>>> This looks good to me but, since Patrick is the author of this
+>>>> target/match, I'll leave it to him to apply this patch.
+>>> The changelog had some nice usage notes, see linux kernel commit
+>>> 50c164a81f1c0dfad056f99e5685537fdd0f07dd.
+>> Make sense. Applied, thanks.
+> 
+> The libxt_rateest.man patch is missing. Forgot to git-add? :)
 
-> I would be better to have tcpdump running at least a bit back (2-3 wi=
-ndows=20
-> back is long enough for me), but obviously that might not be possible=
-=20
-> option because it occurs so rarely. ...It should be possible to have=20
-> tcpdump restarted once in a while to avoid a one huge log if you'd ju=
-st=20
-> keep running tcpdump from beginning.
+Indeed. Fixed, thanks.
 
-	Ok.
-
-> What do you mean by "come back alive"...? ...In eth0 log I found this=
-=20
-
-	I mean, it isn't stalled anymore. When it stalls, fetchnews
-stops and stay stalled forever. When it come back alive, it resumes
-(but it will only do that if I do something to restore the connection).
-
-> connection 189.38.18.122.995 > 192.168.0.2.35477, the ip matches with=
-=20
-> abusar's. But I'm not sure if the connection in the tunnel is the=20
-> interesting one, since it's going to/from port 119 but the ip address=
-es=20
-> (10.195.195.2 and 10.195.195.1) don't tell anything to me, I guess yo=
-u=20
-> know their meaning (ie., if 10.195.195.2 is the one with which the=20
-> connection stalls)? ...You're probably right that this wasn't very us=
-eful=20
-> log, the longest "stall" I find is only 1.111328 seconds long (and it=
-=20
-> might be due to some processing that is made by 10.195.195.2).
-
-	Ok:
-
-10.195.195.1 is my local VPN IP (tun1)
-
-10.195.195.2 is the remote VPN IP (on the server)
-
-192.168.0.2 is my local IP (eth0)
-
-189.38.18.122 is the server's IP
-
-	Should I use tcpdump on the server too or is it sufficient to
-use on my client machine?
-
-	Thank you very much again.
-
---=20
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
