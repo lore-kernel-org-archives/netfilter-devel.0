@@ -1,56 +1,58 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: build: fix iptables-static build
-Date: Thu, 14 Aug 2008 21:21:18 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0808142120510.24200@fbirervta.pbzchgretzou.qr>
+From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
+Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility
+ workaround
+Date: Fri, 15 Aug 2008 01:34:07 -0300
+Message-ID: <20080815013407.4a594288@tux>
+References: <Pine.LNX.4.64.0808081256560.4551@wrl-59.cs.helsinki.fi>
+	<20080811.144421.234396007.davem@davemloft.net>
+	<200808120946.19459.thomas.jarosch@intra2net.com>
+	<20080812.011822.155249871.davem@davemloft.net>
+	<20080812144309.7d62fd86@tux>
+	<Pine.LNX.4.64.0808122044450.16105@wrl-59.cs.helsinki.fi>
+	<20080813145310.0c1e534c@tux>
+	<Pine.LNX.4.64.0808132108480.18807@wrl-59.cs.helsinki.fi>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: pablo@netfilter.org,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:37787 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751052AbYHOBVT (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 Aug 2008 21:21:19 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
+	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
+	Patrick Hardy <kaber@trash.net>, sr@securenet.de,
+	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
+To: "Ilpo =?ISO-8859-1?Q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.64.0808132108480.18807@wrl-59.cs.helsinki.fi>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-commit 1c9158d35e415d6983b3e9b0c67345d566940425
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Thu Aug 14 20:59:49 2008 -0400
+On Wed, 13 Aug 2008 21:34:10 +0300 (EEST)
+"Ilpo J=E4rvinen" <ilpo.jarvinen@helsinki.fi> wrote:
 
-build: fix iptables-static build
+> Ok, thanks for your efforts... These are often hard to reproduce beca=
+use
+> some not that likely pattern needs to happen and such things is often=
+ not
+> easily controllable (if it is at all possible to influence the=20
+> likelyhoods).
 
-Commit 126c1361ad5201973e6ebc761b3e38a67915de29 unfortunately broke
-building iptables-static due to listing iptables.c twice. Fix this.
+	Hi Ilpo, I don't know if the dumps are correct, but I did when
+the connection was stalled. The problem is, when I dumped "eth0", the
+connection suddenly come back alive again... so, I don't know if it's
+useless or not:
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- Makefile.am |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+	For tun1 interface (which I use for my vpn):
 
-diff --git a/Makefile.am b/Makefile.am
-index 0355e2e..066dc56 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -36,7 +36,7 @@ iptables_save_LDFLAGS     = ${iptables_LDFLAGS}
- iptables_save_LDADD       = ${iptables_LDADD}
- 
- # iptables-multi, semi-static
--iptables_static_SOURCES   = ${iptables_multi_SOURCES} iptables.c xtables.c
-+iptables_static_SOURCES   = ${iptables_multi_SOURCES} xtables.c
- iptables_static_CFLAGS    = ${iptables_multi_CFLAGS} -DNO_SHARED_LIBS=1
- iptables_static_LDADD     = -lm libiptc/libiptc.a extensions/libext4.a
- 
-@@ -63,7 +63,7 @@ ip6tables_save_LDFLAGS    = ${ip6tables_LDFLAGS}
- ip6tables_save_LDADD      = ${ip6tables_LDADD}
- 
- # iptables-multi, semi-static
--ip6tables_static_SOURCES    = ${ip6tables_multi_SOURCES} ip6tables.c xtables.c
-+ip6tables_static_SOURCES    = ${ip6tables_multi_SOURCES} xtables.c
- ip6tables_static_CFLAGS     = ${ip6tables_multi_CFLAGS} -DNO_SHARED_LIBS=1
- ip6tables_static_LDADD      = -lm libiptc/libiptc.a extensions/libext6.a
- 
+http://www.abusar.org/dump-tun1.log
 
+	local loopback interface:
+
+http://www.abusar.org/dump-lo.log
+
+	eth0, if it matters:
+
+http://www.abusar.org/dump-eth0.log
+
+	Thanks.
+
+
+
+--=20
