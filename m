@@ -1,38 +1,49 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [IPTABLES] the same options for different kinds of matches don't
- work
-Date: Fri, 15 Aug 2008 17:45:29 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0808151743310.10478@fbirervta.pbzchgretzou.qr>
-References: <412e6f7f0808150951u2f2d58afn8340c64fed9de2a2@mail.gmail.com> <48A5CEFE.5090407@netfilter.org> <alpine.LNX.1.10.0808151633500.10478@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0808152243280.20098@blackhole.kfki.hu>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [ANNOUNCE] ulogd 2.0.0beta2
+Date: Fri, 15 Aug 2008 22:34:10 +0200
+Message-ID: <48A5E842.8030407@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Changli Gao <xiaosuo@gmail.com>,
-	netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-announce@lists.netfilter.org,
+	netfilter-devel@vger.kernel.org, lwn@lwn.net
+To: netfilter@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:42075 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753020AbYHOVpb (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Aug 2008 17:45:31 -0400
-In-Reply-To: <Pine.LNX.4.64.0808152243280.20098@blackhole.kfki.hu>
+Received: from mail.us.es ([193.147.175.20]:54649 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1757573AbYHOVuB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 15 Aug 2008 17:50:01 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi!
 
-On Friday 2008-08-15 16:48, Jozsef Kadlecsik wrote:
->
->Reading the manpage, realm does not clash with either mark or connmark.
+The netfilter project proudly presents:
 
-Right you are. My grep-fu turned up wrong comments! (See libxt_realm.c
-for --mark!)
+  * ulogd 2.0.0beta2
 
->> - ecn and ECN
->
->The options of the ecn match and the ECN target are not clashing.
+ulogd is a userspace logging daemon for netfilter/iptables related
+logging. This includes per-packet logging of security violations,
+per-packet logging for accounting purpose as well as per-flow logging.
 
-They do. Both libipt_ecn.c and libipt_ECN.c have --ecn-ip-ect,
---ecn-tcp-cwr and --ecn-tcp-ece even if they are not documented
-(what, more of these? Patch follows).
+ulogd comes in two flavours: ulogd-1.x has been around since 2000 and is
+the stable series. All production systems should use the stable series
+at this time. The 1.x series are frozen, do not expect new features into
+this line. ulogd-2.x is currently in beta stage.
+
+You can download them from:
+
+http://www.netfilter.org
+ftp://ftp.netfilter.org
+
+Enjoy,
+Pablo - on behalf of the Netfilter Project.
+
+Note: Sorry, this release does not include changelog, you can browse the
+changes in the git tree, we expect to provide the changelog in the
+upcoming releases. It is worth mention than most of the changeset comes
+from Harald Welte and Eric Leblond.
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
 
