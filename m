@@ -1,40 +1,39 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [IPTABLES] the same options for different kinds of matches don't
- work
-Date: Fri, 15 Aug 2008 15:36:48 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0808151535100.10478@fbirervta.pbzchgretzou.qr>
-References: <412e6f7f0808150951u2f2d58afn8340c64fed9de2a2@mail.gmail.com> <Pine.LNX.4.64.0808152127180.20054@blackhole.kfki.hu>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: manpages: add missing rateest documentation
+Date: Fri, 15 Aug 2008 19:37:56 +0200
+Message-ID: <48A5BEF4.4020201@netfilter.org>
+References: <alpine.LNX.1.10.0808142030200.32487@fbirervta.pbzchgretzou.qr> <48A5745C.90407@netfilter.org> <alpine.LNX.1.10.0808150924430.27140@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Changli Gao <xiaosuo@gmail.com>, netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:47192 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759872AbYHOTgt (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Aug 2008 15:36:49 -0400
-In-Reply-To: <Pine.LNX.4.64.0808152127180.20054@blackhole.kfki.hu>
+Received: from mail.us.es ([193.147.175.20]:44863 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755886AbYHOTh4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 15 Aug 2008 15:37:56 -0400
+In-Reply-To: <alpine.LNX.1.10.0808150924430.27140@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Jan Engelhardt wrote:
+> On Friday 2008-08-15 08:19, Pablo Neira Ayuso wrote:
+>> Jan Engelhardt wrote:
+>>> commit c918302a6d769055da8627bcf189f9e64d3073f9
+>>> Author: Jan Engelhardt <jengelh@medozas.de>
+>>> Date:   Thu Aug 14 20:24:58 2008 -0400
+>>>
+>>> manpages: add missing rateest documentation
+>> This looks good to me but, since Patrick is the author of this
+>> target/match, I'll leave it to him to apply this patch.
+> 
+> The changelog had some nice usage notes, see linux kernel commit
+> 50c164a81f1c0dfad056f99e5685537fdd0f07dd.
 
-On Friday 2008-08-15 15:31, Jozsef Kadlecsik wrote:
->> For example:
->> 
->> iptables -t mangle -A PREROUTING -m a --mac-source 00:11:22:33:44:55
->> -m b --mac-source 00:11:22:33:44:55 -j ACCEPT
->> 
->> the above command will fail due to the later match.
->
->Yes: you should use match-specific options, like
->
->iptables -t mangle -A PREROUTING -m a --a-mac-source 00:11:22:33:44:55
->-m b --b-mac-source 00:11:22:33:44:55 -j ACCEPT
+Make sense. Applied, thanks.
 
-I disagree. If you chain multiple matches, e.g.
-
--m condition --name FOO -m conidtion --name BAR
-
-you can't choose a different option name naturally. Hence I am of the opinion
-that different matches should also support this syntax.
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
