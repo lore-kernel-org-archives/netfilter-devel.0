@@ -1,44 +1,61 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: manpages: add missing rateest documentation
-Date: Fri, 15 Aug 2008 22:14:44 +0200
-Message-ID: <48A5E3B4.1010702@netfilter.org>
-References: <alpine.LNX.1.10.0808142030200.32487@fbirervta.pbzchgretzou.qr> <48A5745C.90407@netfilter.org> <alpine.LNX.1.10.0808150924430.27140@fbirervta.pbzchgretzou.qr> <48A5BEF4.4020201@netfilter.org> <alpine.LNX.1.10.0808151552380.10478@fbirervta.pbzchgretzou.qr>
+Subject: [ANNOUNCE] libnetfilter_log 0.0.15 release
+Date: Fri, 15 Aug 2008 22:24:43 +0200
+Message-ID: <48A5E60B.2000306@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: multipart/mixed;
+ boundary="------------040801090901060601070509"
+Cc: netfilter-announce@lists.netfilter.org,
+	netfilter-devel@vger.kernel.org, lwn@lwn.net
+To: netfilter@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37623 "EHLO us.es"
+Received: from mail.us.es ([193.147.175.20]:51968 "EHLO us.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753983AbYHOVku (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Aug 2008 17:40:50 -0400
-In-Reply-To: <alpine.LNX.1.10.0808151552380.10478@fbirervta.pbzchgretzou.qr>
+	id S1754121AbYHOVna (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 15 Aug 2008 17:43:30 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Friday 2008-08-15 13:37, Pablo Neira Ayuso wrote:
-> 
->> Jan Engelhardt wrote:
->>> On Friday 2008-08-15 08:19, Pablo Neira Ayuso wrote:
->>>> Jan Engelhardt wrote:
->>>>> commit c918302a6d769055da8627bcf189f9e64d3073f9
->>>>> Author: Jan Engelhardt <jengelh@medozas.de>
->>>>> Date:   Thu Aug 14 20:24:58 2008 -0400
->>>>>
->>>>> manpages: add missing rateest documentation
->>>> This looks good to me but, since Patrick is the author of this
->>>> target/match, I'll leave it to him to apply this patch.
->>> The changelog had some nice usage notes, see linux kernel commit
->>> 50c164a81f1c0dfad056f99e5685537fdd0f07dd.
->> Make sense. Applied, thanks.
-> 
-> The libxt_rateest.man patch is missing. Forgot to git-add? :)
+This is a multi-part message in MIME format.
+--------------040801090901060601070509
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Indeed. Fixed, thanks.
+Hi!
+
+The netfilter project proudly presents:
+
+  * libnetfilter_log-0.0.15
+
+libnetfilter_log is a userspace library providing interface to packets
+that have been logged by the kernel packet filter. It is is part of a
+system that deprecates the old syslog/dmesg based packet logging. See
+ChangeLog for more details.
+
+You can download them from:
+
+http://www.netfilter.org
+ftp://ftp.netfilter.org
+
+Enjoy,
+Pablo - on behalf of the Netfilter Project.
 
 -- 
 "Los honestos son inadaptados sociales" -- Les Luthiers
+
+--------------040801090901060601070509
+Content-Type: text/plain;
+ name="ChangeLog"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ChangeLog"
+
+Eric Leblond (1):
+      Add parsing function for raw hardware header
+
+Pablo Neira Ayuso (2):
+      conditional compilation of testsuite utils
+      bump version to 0.0.15
+
+
+--------------040801090901060601070509--
