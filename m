@@ -1,67 +1,61 @@
-From: "=?ISO-8859-1?Q?Ilpo_J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
-Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility workaround
-Date: Sat, 16 Aug 2008 22:18:50 +0300 (EEST)
-Message-ID: <Pine.LNX.4.64.0808162210390.7443@wrl-59.cs.helsinki.fi>
-References: <Pine.LNX.4.64.0808081256560.4551@wrl-59.cs.helsinki.fi>
- <20080811.144421.234396007.davem@davemloft.net> <200808120946.19459.thomas.jarosch@intra2net.com>
- <20080812.011822.155249871.davem@davemloft.net> <20080812144309.7d62fd86@tux>
- <Pine.LNX.4.64.0808122044450.16105@wrl-59.cs.helsinki.fi> <20080813145310.0c1e534c@tux>
- <Pine.LNX.4.64.0808132108480.18807@wrl-59.cs.helsinki.fi> <20080815013407.4a594288@tux>
- <Pine.LNX.4.64.0808150939270.23522@wrl-59.cs.helsinki.fi> <20080815183511.1c81be23@tux>
- <Pine.LNX.4.64.0808160039230.6911@wrl-59.cs.helsinki.fi> <20080815231538.7999c017@tux>
- <Pine.LNX.4.64.0808161002500.7264@wrl-59.cs.helsinki.fi>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [RFC] netfilter: Rename ipt_ECN.h to ipt_ecn_target.h (and
+ similar) to avoid file name clash
+Date: Sat, 16 Aug 2008 15:22:47 -0400 (EDT)
+Message-ID: <alpine.LNX.1.10.0808161520430.27260@fbirervta.pbzchgretzou.qr>
+References: <g84ufs$l66$1@ger.gmane.org> <alpine.LNX.1.10.0808160958570.30044@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0808162057270.20963@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: MULTIPART/Mixed; boundary="-696208474-170825244-1218870627=:7264"
-Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
-	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
-	Patrick Hardy <kaber@trash.net>, sr@securenet.de,
-	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
-To: "=?ISO-8859-1?Q?D=E2niel_Fraga?=" <fragabr@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.0808161002500.7264@wrl-59.cs.helsinki.fi>
-Content-ID: <Pine.LNX.4.64.0808162210391.7443@wrl-59.cs.helsinki.fi>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: =?UTF-8?Q?Pteris_Kavi=C5=A1?= <klavins@netspace.net.au>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Patrick McHardy <kaber@trash.net>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:60724 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754032AbYHPTWt (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 16 Aug 2008 15:22:49 -0400
+In-Reply-To: <Pine.LNX.4.64.0808162057270.20963@blackhole.kfki.hu>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
 
----696208474-170825244-1218870627=:7264
-Content-Type: TEXT/PLAIN; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
-Content-ID: <Pine.LNX.4.64.0808162210392.7443@wrl-59.cs.helsinki.fi>
+On Saturday 2008-08-16 15:14, Jozsef Kadlecsik wrote:
+>On Sat, 16 Aug 2008, Jan Engelhardt wrote:
+>> On Friday 2008-08-15 18:03, P=CB=99=CB=99teris K=CB=99=CB=99avi=CB=99=
+=CB=99=C5=A1 wrote:
+>>=20
+>> > The changes are proposed in order to avoid file name clashes on
+>> > filesystems that do not allow two files to have names that differ
+>> > only in the case of their letters:
+>> >
+>> > include/linux/netfilter/xt_CONNMARK.h =3D> xt_connmark_target.h
+>> [...]
+>>=20
+>> As I see it, this will already be addressed by merging complementary
+>> code into one source file (e.g. MARK, mark, CONNMARK, connmark
+>> all into a big new xt_mark.c), to reduce (a) amount of files
+>> and (b) build time.
+>[...]
+>
+>That is half of the story: we encode the functionality (match/target) =
+in=20
+>the case of the (file)name and there are targets which have got no mat=
+ch=20
+>counterpart and thus no natural lowercase filename to merge into it. S=
+o=20
+>the directory tree still will be broken on case-insensitive filesystem=
+s.=20
 
-On Sat, 16 Aug 2008, Ilpo Järvinen wrote:
-
-> On Fri, 15 Aug 2008, Dâniel Fraga wrote:
-> 
-> > with mail or nntp, interesting no?). All the other services (http,
-> > ssh, ftp always work fine).
-> >
-> > 	But the file is small. I don't know if it will help.
-> > 
-> > 	If not, no problem, just tell me and I'll try harder next time.
-> 
-> This seems to be a valid sample, thanks. I'll return once I have figured 
-> something out (it might be that our state machine is somehow broken since 
-> there's traffic in both ways (rexmitted), yet neither party seems to be 
-> very willing to make progress).
-
-Some thoughts, nothing very earth-shattering yet...
-
-It seems that the server (port 995) never leaves SYN-RECV state because it 
-keeps retransmitting SYNACKs. While the other end (the client) is doing 
-it's best to ACK them (correctly) and it also tries to send some data 
-which never gets through and retransmissions are attempted for it (those 
-packets also contain a ACK seqno that should be enough to end the 
-SYN-RECV but for some reason that never happens). Eventually the 
-connection is RSTed.
-
-I'll look through 2.6.24..25 history once I have some time to see if 
-there are some clues about the cause. I'm also having a problem in 
-figurin out why would the frto patch you tested solve this issue (unless 
-there are two issues in the picture).
-
--- 
- i.
----696208474-170825244-1218870627=:7264--
+We have not decided on filenames yet, just that matches/targets that
+are commonly used together should go into a single file for the two
+above-mentioned reasons, and lower-casing does not appear in (a) or (b)=
+=2E
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
