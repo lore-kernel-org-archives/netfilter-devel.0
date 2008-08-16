@@ -1,88 +1,143 @@
-From: "Changli Gao" <xiaosuo@gmail.com>
-Subject: Re: [IPTABLES] the same options for different kinds of matches don't work
-Date: Sat, 16 Aug 2008 09:29:14 +0800
-Message-ID: <412e6f7f0808151829v2150c9f9v31241115b6dd4717@mail.gmail.com>
-References: <412e6f7f0808150951u2f2d58afn8340c64fed9de2a2@mail.gmail.com>
-	 <48A5CEFE.5090407@netfilter.org>
-	 <alpine.LNX.1.10.0808151633500.10478@fbirervta.pbzchgretzou.qr>
-	 <Pine.LNX.4.64.0808152243280.20098@blackhole.kfki.hu>
-	 <alpine.LNX.1.10.0808151743310.10478@fbirervta.pbzchgretzou.qr>
-	 <Pine.LNX.4.64.0808160037390.20328@blackhole.kfki.hu>
-	 <412e6f7f0808151738k3b03cafax900b01f45726051e@mail.gmail.com>
-	 <alpine.LNX.1.10.0808152104380.30044@fbirervta.pbzchgretzou.qr>
+From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
+Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility
+ workaround
+Date: Fri, 15 Aug 2008 23:15:38 -0300
+Message-ID: <20080815231538.7999c017@tux>
+References: <Pine.LNX.4.64.0808081256560.4551@wrl-59.cs.helsinki.fi>
+	<20080811.144421.234396007.davem@davemloft.net>
+	<200808120946.19459.thomas.jarosch@intra2net.com>
+	<20080812.011822.155249871.davem@davemloft.net>
+	<20080812144309.7d62fd86@tux>
+	<Pine.LNX.4.64.0808122044450.16105@wrl-59.cs.helsinki.fi>
+	<20080813145310.0c1e534c@tux>
+	<Pine.LNX.4.64.0808132108480.18807@wrl-59.cs.helsinki.fi>
+	<20080815013407.4a594288@tux>
+	<Pine.LNX.4.64.0808150939270.23522@wrl-59.cs.helsinki.fi>
+	<20080815183511.1c81be23@tux>
+	<Pine.LNX.4.64.0808160039230.6911@wrl-59.cs.helsinki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
-Cc: "Jozsef Kadlecsik" <kadlec@blackhole.kfki.hu>,
-	"Pablo Neira Ayuso" <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-To: "Jan Engelhardt" <jengelh@medozas.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
+	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
+	Patrick Hardy <kaber@trash.net>, sr@securenet.de,
+	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
+To: "Ilpo =?ISO-8859-1?Q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ti-out-0910.google.com ([209.85.142.186]:5317 "EHLO
-	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752894AbYHPB3Q (ORCPT
+Received: from yx-out-2324.google.com ([74.125.44.30]:59251 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751723AbYHPCPt (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Aug 2008 21:29:16 -0400
-Received: by ti-out-0910.google.com with SMTP id b6so503501tic.23
-        for <netfilter-devel@vger.kernel.org>; Fri, 15 Aug 2008 18:29:14 -0700 (PDT)
-In-Reply-To: <alpine.LNX.1.10.0808152104380.30044@fbirervta.pbzchgretzou.qr>
-Content-Disposition: inline
+	Fri, 15 Aug 2008 22:15:49 -0400
+Received: by yx-out-2324.google.com with SMTP id 8so916079yxm.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 15 Aug 2008 19:15:48 -0700 (PDT)
+In-Reply-To: <Pine.LNX.4.64.0808160039230.6911@wrl-59.cs.helsinki.fi>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Aug 16, 2008 at 9:09 AM, Jan Engelhardt <jengelh@medozas.de> wrote:
->
->>I encountered this issue when I debugging a match. Its parse function
->>is like this:
->>
->>parse(...)
->>{
->>        if (*flags)
->>                error...;
->>        switch (c) {
->>        case 'a':
->>                ....
->>                break;
->>        default:
->>                return 0;
->>        }
->>       *flags = 1;
->>
->>        return 1;
->>}
->>
->>it will fail if there is another kinds of match after it, as all the
->>options not belong to it are parsed to its parse function. I think it
->>is the reason why default branch in switch exists. I make things a
->>little different from my original thought.
->
-> Why should it fail?
-> Once you gave -m secondmatch, you OBVIOUSLY want options
-> from the second one, and rarely from the first.
->
-The match mentioned above applies one option only. When the option is
-got, *flags will be set to 1, to avoid being set second time. Before
-checking c, I check the value of *flags first, if it is set, report an
-error and exit directly. However, if there is another kind of match
-after it, iptables will pass the new options to every matches one by
-one until one eats it. When the parse function gets a option doesn't
-belong to it, it finds *flags is set, then error is reported.
+On Sat, 16 Aug 2008 01:06:55 +0300 (EEST)
+"Ilpo J=E4rvinen" <ilpo.jarvinen@helsinki.fi> wrote:
 
-                                for (matchp = matches; matchp; matchp = matchp->
-next) {
-                                        if (matchp->completed)
-                                                continue;
-                                        if (matchp->match->parse(c - matchp->mat
-ch->option_offset,
-                                                     argv, invert,
-                                                     &matchp->match->mflags,
-                                                     &fw,
-                                                     &fw.nfcache,
-                                                     &matchp->match->m))
-                                                break;
-                                }
+> Ok. I hope it will still reproduce with tcpdump running... Btw, doing=
+ cat=20
+> /proc/net/tcp during the stall wouldn't be a bad idea (in addition to=
+=20
+> tcpdumping it). Also please let the tcpdumps run long enough if the s=
+tall=20
+> persists, something like 15mins doesn't hurt because there are large=20
+> timer values possibly involved.
 
+	Hi, I did the following:
 
--- 
-Regards，
-Changli Gao(xiaosuo@gmail.com)
+fraga@tux ~/src$ cat /proc/net/tcp=20
+  sl  local_address rem_address   st tx_queue rx_queue tr tm->when
+retrnsmt   uid  timeout inode 0: 00000000:0DA5 00000000:0000 0A
+00000000:00000000 00:00000000 00000000     0        0 2912 1
+ffff81007ea28000 299 0 0 2 -1 1: 00000000:23AA 00000000:0000 0A
+00000000:00000000 00:00000000 00000000   501        0 6586 1
+ffff8100614e1e00 299 0 0 2 -1 2: 00000000:1F4A 00000000:0000 0A
+00000000:00000000 00:00000000 00000000   501        0 6164 1
+ffff8100614e2400 299 0 0 2 -1 3: 00000000:0CEA 00000000:0000 0A
+00000000:00000000 00:00000000 00000000 12347        0 3205 1
+ffff81007ea29800 299 0 0 2 -1 4: 00000000:008B 00000000:0000 0A
+00000000:00000000 00:00000000 00000000     0        0 3191 1
+ffff81007e921800 299 0 0 2 -1 5: 00000000:1770 00000000:0000 0A
+00000000:00000000 00:00000000 00000000     0        0 3454 1
+ffff81007ea29e00 299 0 0 2 -1 6: 00000000:0015 00000000:0000 0A
+00000000:00000000 00:00000000 00000000     0        0 2860 1
+ffff81007e920600 299 0 0 2 -1 7: 00000000:0016 00000000:0000 0A
+00000000:00000000 00:00000000 00000000     0        0 2507 1
+ffff81007e920000 299 0 0 2 -1 8: 00000000:0077 00000000:0000 0A
+00000000:00000000 00:00000000 00000000     0        0 2861 1
+ffff81007e920c00 299 0 0 2 -1 9: 00000000:0019 00000000:0000 0A
+00000000:00000000 00:00000000 00000000     0        0 3029 1
+ffff81007ea29200 299 0 0 2 -1 10: 00000000:01BD 00000000:0000 0A
+00000000:00000000 00:00000000 00000000     0        0 3190 1
+ffff81007e921200 299 0 0 2 -1 11: 0200A8C0:D8B5 4009BCCD:1446 01
+00000000:00000000 00:00000000 00000000   501        0 6187 1
+ffff8100614e4200 36 3 20 4 3 12: 0200A8C0:C77C D4E133C9:C5CF 01
+00000000:00000000 00:00000000 00000000   501        0 7593 1
+ffff810049008c00 39 3 24 4 -1 13: 0200A8C0:DD6A 21250440:0747 01
+00000000:00000000 00:00000000 00000000   501        0 17613 1
+ffff81007e927200 71 3 0 4 -1 14: 0200A8C0:9D7D B9B5A342:13BA 01
+00000000:00000000 00:00000000 00000000   501        0 6183 1
+ffff8100614e2a00 49 3 0 4 2 15: 0200A8C0:807C 7A1226BD:03E3 01
+0000007C:00000000 01:00000089 00000003   501        0 24919 2
+ffff81007ea2b600 183 0 0 2 2 16: 0200A8C0:8C07 7DA355D1:1467 01
+00000000:00000000 00:00000000 00000000   501        0 6186 1
+ffff8100614e3c00 41 3 26 4 -1 17: 0100007F:0077 0100007F:BED7 01
+00000000:00000000 00:00000000 00000000     0        0 21883 1
+ffff8100614e1800 21 3 1 6 -1 18: 0200A8C0:852D 7A1226BD:0016 01
+00000000:00000000 02:0000E189 00000000   501        0 5975 2
+ffff81007ea2ce00 23 3 10 2 2 19: 0100007F:B4C6 0100007F:0DA5 01
+00000000:00000000 00:00000000 00000000   501        0 3815 1
+ffff81007ea2a400 20 3 18 5 -1 20: 0200A8C0:EBFC B81B2ECF:0747 01
+00000000:00000000 00:00000000 00000000   501        0 11878 1
+ffff81004900c800 74 3 0 4 3 21: 0100007F:0DA5 0100007F:B4C5 01
+00000000:00000000 00:00000000 00000000     0        0 2930 1
+ffff81007ea28c00 20 3 31 3 -1 22: 0100007F:BED7 0100007F:0077 01
+00000000:00000000 00:00000000 00000000   501        0 21881 1
+ffff8100614e3000 20 3 0 5 -1 23: 0200A8C0:839B 141B2ECF:0747 01
+00000000:00000000 00:00000000 00000000   501        0 6331 1
+ffff8100614e0c00 83 3 0 4 3 24: 0100007F:0DA5 0100007F:B4C6 01
+00000000:00000000 00:00000000 00000000     0        0 3816 1
+ffff81007ea2aa00 21 3 23 5 -1 25: 0100007F:B4C5 0100007F:0DA5 01
+00000000:00000000 00:00000000 00000000 65534        0 2929 1
+ffff81007ea28600 20 3 30 3 -1 26: 0200A8C0:DBE6 63C155D1:0050 01
+00000000:00000000 00:00000000 00000000   501        0 23988 1
+ffff81007e922400 21 3 8 4 -1 27: 0200A8C0:8CDA 26E43641:0747 01
+00000000:00000000 00:00000000 00000000   501        0 21604 1
+ffff8100614e6000 60 3 0 4 -1 28: 0200A8C0:C2F5 8D1A2ECF:0747 01
+00000000:00000000 00:00000000 00000000   501        0 6328 1
+ffff81007e924200 110 3 0 4 3 29: 0200A8C0:8806 2D6C2ECF:0747 01
+00000000:00000000 00:00000000 00000000   501        0 17566 1
+ffff81004900ce00 46 3 30 4 -1 30: 0200A8C0:96FF 27F9F03F:0050 01
+00000000:00000000 00:00000000 00000000   501        0 23953 1
+ffff81007ea2c800 55 3 8 3 -1 31: 0200A8C0:8078 7A1226BD:03E3 04
+0000007D:00000000 01:000009BD 00000006     0        0 0 2
+ffff81007ea2c200 6718 3 6 2 2                        =20
+
+	And I can't use host and port at the same time with tcpdump (or
+I did something wrong) so I used (I need to update this, can't find
+the manpage... I tried to download a newer version but the link form
+the site seems broken):
+
+sudo tcpdump -w dump-mail.log -i eth0 port 995
+
+	to capture mail traffic that was stuck (usually it only happens
+with mail or nntp, interesting no?). All the other services (http,
+ssh, ftp always work fine).
+
+http://www.abusar.org/dump-mail.log
+
+	But the file is small. I don't know if it will help.
+
+	If not, no problem, just tell me and I'll try harder next time.
+Thanks.
+
+--=20
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
