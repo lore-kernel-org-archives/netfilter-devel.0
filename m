@@ -1,47 +1,55 @@
-From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
-Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility
- workaround
-Date: Fri, 15 Aug 2008 20:57:59 -0300
-Message-ID: <20080815205759.12f64aad@tux>
-References: <Pine.LNX.4.64.0808081256560.4551@wrl-59.cs.helsinki.fi>
-	<20080811.144421.234396007.davem@davemloft.net>
-	<200808120946.19459.thomas.jarosch@intra2net.com>
-	<20080812.011822.155249871.davem@davemloft.net>
-	<20080812144309.7d62fd86@tux>
-	<Pine.LNX.4.64.0808122044450.16105@wrl-59.cs.helsinki.fi>
-	<20080813145310.0c1e534c@tux>
-	<Pine.LNX.4.64.0808132108480.18807@wrl-59.cs.helsinki.fi>
-	<20080815013407.4a594288@tux>
-	<Pine.LNX.4.64.0808150939270.23522@wrl-59.cs.helsinki.fi>
-	<20080815183511.1c81be23@tux>
-	<Pine.LNX.4.64.0808160039230.6911@wrl-59.cs.helsinki.fi>
+From: "Changli Gao" <xiaosuo@gmail.com>
+Subject: Re: [IPTABLES] the same options for different kinds of matches don't work
+Date: Sat, 16 Aug 2008 08:05:00 +0800
+Message-ID: <412e6f7f0808151705j58845461y952805d122bcf2a7@mail.gmail.com>
+References: <412e6f7f0808150951u2f2d58afn8340c64fed9de2a2@mail.gmail.com>
+	 <Pine.LNX.4.64.0808152127180.20054@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
-	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
-	Patrick Hardy <kaber@trash.net>, sr@securenet.de,
-	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
-To: "Ilpo =?ISO-8859-1?Q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.0808160039230.6911@wrl-59.cs.helsinki.fi>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-2022-JP
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: "Jozsef Kadlecsik" <kadlec@blackhole.kfki.hu>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ti-out-0910.google.com ([209.85.142.191]:60241 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754202AbYHPAFC (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 15 Aug 2008 20:05:02 -0400
+Received: by ti-out-0910.google.com with SMTP id b6so495992tic.23
+        for <netfilter-devel@vger.kernel.org>; Fri, 15 Aug 2008 17:05:01 -0700 (PDT)
+In-Reply-To: <Pine.LNX.4.64.0808152127180.20054@blackhole.kfki.hu>
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, 16 Aug 2008 01:06:55 +0300 (EEST)
-"Ilpo J=E4rvinen" <ilpo.jarvinen@helsinki.fi> wrote:
+On Sat, Aug 16, 2008 at 3:31 AM, Jozsef Kadlecsik
+<kadlec@blackhole.kfki.hu> wrote:
+>> Then I checked the source code of iptables. It seems that the extra
+>> options for each match are global for each individual command. It is
+>> out of my exception. I used to think that options are only available
+>> for that match. So I "fixed" this issues quickly. After patching, the
+>> command options contain the default global options and the last match
+>> or the target extra options.
+>
+> With your patch applied we'd loose supporting multiple matches of the same
+> type.
+>
 
-> You might have mentioned it but I would like you to confirm which ker=
-nel=20
-> version the server is running (at least 2.6.25.7 or 2.6.26 is new eno=
-ugh=20
-> to have all bug fixes)?
+No we don't loose that function. Look at this example:
 
-	Yes, 2.6.26.=20
+ iptables -t mangle -A PREROUTING --match a --mac-source
+00:11:22:33:44:55 --match a --mac-source 00:11:22:33:44:55 -j ACCEPT
+a: 0x60e5e0
+a: 0x60eb10
 
-	Thank you very much for your excellent explanation. You helped
-a lot. I'll try to do my "home work" and as soon as I have the data,
-I'll return.
+a and b are both the modified match mac. To identify them, I output
+their name and option address in their match function. As you see, it
+works well without any error.
 
+        switch (c) {
+        case '1':
+                printf("a: %p\n", macinfo);
 
---=20
+-- 
+Regards，
+Changli Gao(xiaosuo@gmail.com)
