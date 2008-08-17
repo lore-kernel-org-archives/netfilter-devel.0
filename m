@@ -1,50 +1,78 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [IPTABLES] the same options for different kinds of matches don't
- work
-Date: Sat, 16 Aug 2008 19:59:18 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0808161958431.27260@fbirervta.pbzchgretzou.qr>
-References: <412e6f7f0808150951u2f2d58afn8340c64fed9de2a2@mail.gmail.com>  <48A5CEFE.5090407@netfilter.org>  <alpine.LNX.1.10.0808151633500.10478@fbirervta.pbzchgretzou.qr>  <Pine.LNX.4.64.0808152243280.20098@blackhole.kfki.hu>
- <alpine.LNX.1.10.0808151743310.10478@fbirervta.pbzchgretzou.qr>  <Pine.LNX.4.64.0808160037390.20328@blackhole.kfki.hu>  <412e6f7f0808151738k3b03cafax900b01f45726051e@mail.gmail.com>  <Pine.LNX.4.64.0808161947450.20963@blackhole.kfki.hu>
- <412e6f7f0808161648g428b0717u237afb6a7c2874b8@mail.gmail.com>
+From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
+Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility
+ workaround
+Date: Sat, 16 Aug 2008 21:36:15 -0300
+Message-ID: <20080816213615.689ddf8f@tux>
+References: <Pine.LNX.4.64.0808081256560.4551@wrl-59.cs.helsinki.fi>
+	<20080811.144421.234396007.davem@davemloft.net>
+	<200808120946.19459.thomas.jarosch@intra2net.com>
+	<20080812.011822.155249871.davem@davemloft.net>
+	<20080812144309.7d62fd86@tux>
+	<Pine.LNX.4.64.0808122044450.16105@wrl-59.cs.helsinki.fi>
+	<20080813145310.0c1e534c@tux>
+	<Pine.LNX.4.64.0808132108480.18807@wrl-59.cs.helsinki.fi>
+	<20080815013407.4a594288@tux>
+	<Pine.LNX.4.64.0808150939270.23522@wrl-59.cs.helsinki.fi>
+	<20080815183511.1c81be23@tux>
+	<Pine.LNX.4.64.0808160039230.6911@wrl-59.cs.helsinki.fi>
+	<20080815231538.7999c017@tux>
+	<Pine.LNX.4.64.0808161002500.7264@wrl-59.cs.helsinki.fi>
+	<Pine.LNX.4.64.0808162210390.7443@wrl-59.cs.helsinki.fi>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-To: Changli Gao <xiaosuo@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
+	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
+	Patrick Hardy <kaber@trash.net>, sr@securenet.de,
+	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
+To: "Ilpo =?ISO-8859-1?Q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:44041 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752389AbYHPX7U (ORCPT
+Received: from yx-out-2324.google.com ([74.125.44.30]:40798 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751155AbYHQAgW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 16 Aug 2008 19:59:20 -0400
-In-Reply-To: <412e6f7f0808161648g428b0717u237afb6a7c2874b8@mail.gmail.com>
+	Sat, 16 Aug 2008 20:36:22 -0400
+Received: by yx-out-2324.google.com with SMTP id 8so1058871yxm.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 16 Aug 2008 17:36:22 -0700 (PDT)
+In-Reply-To: <Pine.LNX.4.64.0808162210390.7443@wrl-59.cs.helsinki.fi>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Sat, 16 Aug 2008 22:18:50 +0300 (EEST)
+"Ilpo J=E4rvinen" <ilpo.jarvinen@helsinki.fi> wrote:
 
-On Saturday 2008-08-16 19:48, Changli Gao wrote:
->>
->>> > But as the ECN options has not been documented so far, I think it'd be
->>> > better to rename them at the same time to something like
->>> >
->>> > --ecn-tcp-cwr-remove
->>> > --ecn-tcp-ece-remove
->>> > --ecn-ip-ect-set
->>> >
->>> > and clashing with the ecn options were resolved.
->>>
->>> It sounds a good idae. But in order to avoid clashing, we'd better
->>> change all the options for all matches in this way:
->>>
->>> match: foo
->>> match-options: --foo-bar
->>
->> I think changing the existing clashing option names (with keeping the old
->> ones for backward compatibility) is just enough - we can use the "rule"
->> above for future new matches.
->
->Well, If so, we'd better make this rule well documented to let more
->people know the issue we talked here if they don't obey it.
+> I'll look through 2.6.24..25 history once I have some time to see if=20
+> there are some clues about the cause. I'm also having a problem in=20
+> figurin out why would the frto patch you tested solve this issue (unl=
+ess=20
+> there are two issues in the picture).
 
-I would not make this a hard requirement. (NAKing the NAK.)
+	Ok, surely some patch between .24 and .25 caused this. Or it's
+some bug that only "appeared" in .25 :)
+
+	In fact, the frto patch helped, but not prevented the problem.
+I mean, it seems that with the frto patch, the problem doesn't happen
+frequently. And if I disable frto, the problem doesn't occur either.
+
+	But, maybe, we could be talking about another bug, completely
+unrelated to frto... I don't know. i'm just guessing ;). Anyway, we
+talk about stalled connections ;)
+
+	What I know is:
+
+1) what you wrote is right: 2.6.24 is fine, 2.6.25 and 2.6.26 not
+
+2) nmap -sS <server> seems to reset the connection (it's my workaround
+until now ;). Maybe the ping probe help in some way? I don't know.
+
+	I want to help you as much as I can. So, ask anything you need.
+
+	Thanks!
+
+
+--=20
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
