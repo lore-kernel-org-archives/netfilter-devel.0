@@ -1,78 +1,102 @@
-From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
-Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility
- workaround
-Date: Sat, 16 Aug 2008 21:36:15 -0300
-Message-ID: <20080816213615.689ddf8f@tux>
-References: <Pine.LNX.4.64.0808081256560.4551@wrl-59.cs.helsinki.fi>
-	<20080811.144421.234396007.davem@davemloft.net>
-	<200808120946.19459.thomas.jarosch@intra2net.com>
-	<20080812.011822.155249871.davem@davemloft.net>
-	<20080812144309.7d62fd86@tux>
-	<Pine.LNX.4.64.0808122044450.16105@wrl-59.cs.helsinki.fi>
-	<20080813145310.0c1e534c@tux>
-	<Pine.LNX.4.64.0808132108480.18807@wrl-59.cs.helsinki.fi>
-	<20080815013407.4a594288@tux>
-	<Pine.LNX.4.64.0808150939270.23522@wrl-59.cs.helsinki.fi>
-	<20080815183511.1c81be23@tux>
-	<Pine.LNX.4.64.0808160039230.6911@wrl-59.cs.helsinki.fi>
-	<20080815231538.7999c017@tux>
-	<Pine.LNX.4.64.0808161002500.7264@wrl-59.cs.helsinki.fi>
-	<Pine.LNX.4.64.0808162210390.7443@wrl-59.cs.helsinki.fi>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [RFC] netfilter: Rename ipt_ECN.h to ipt_ecn_target.h (and  
+ similar) to avoid file name clash
+Date: Mon, 18 Aug 2008 00:04:22 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0808172211180.21894@blackhole.kfki.hu>
+References: <g84ufs$l66$1@ger.gmane.org> <alpine.LNX.1.10.0808160958570.30044@fbirervta.pbzchgretzou.qr>
+ <Pine.LNX.4.64.0808162057270.20963@blackhole.kfki.hu>
+ <alpine.LNX.1.10.0808161520430.27260@fbirervta.pbzchgretzou.qr>
+ <Pine.LNX.4.64.0808162127200.21025@blackhole.kfki.hu> <g87cp8$bfa$1@ger.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
-	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
-	Patrick Hardy <kaber@trash.net>, sr@securenet.de,
-	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
-To: "Ilpo =?ISO-8859-1?Q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
+Content-Type: MULTIPART/MIXED; BOUNDARY="110391808-1033657189-1219006955=:21894"
+Cc: netfilter-devel@vger.kernel.org
+To: =?UTF-8?B?UMSTdGVyaXMgS8S8YXZpxYbFoQ==?= <klavins@netspace.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.30]:40798 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751155AbYHQAgW (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 16 Aug 2008 20:36:22 -0400
-Received: by yx-out-2324.google.com with SMTP id 8so1058871yxm.1
-        for <netfilter-devel@vger.kernel.org>; Sat, 16 Aug 2008 17:36:22 -0700 (PDT)
-In-Reply-To: <Pine.LNX.4.64.0808162210390.7443@wrl-59.cs.helsinki.fi>
+Received: from smtp2.kfki.hu ([148.6.0.28]:48665 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752343AbYHQWEY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 17 Aug 2008 18:04:24 -0400
+In-Reply-To: <g87cp8$bfa$1@ger.gmane.org>
+Content-ID: <Pine.LNX.4.64.0808172302570.21894@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, 16 Aug 2008 22:18:50 +0300 (EEST)
-"Ilpo J=E4rvinen" <ilpo.jarvinen@helsinki.fi> wrote:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-> I'll look through 2.6.24..25 history once I have some time to see if=20
-> there are some clues about the cause. I'm also having a problem in=20
-> figurin out why would the frto patch you tested solve this issue (unl=
-ess=20
-> there are two issues in the picture).
+--110391808-1033657189-1219006955=:21894
+Content-Type: TEXT/PLAIN; CHARSET=ISO-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-ID: <Pine.LNX.4.64.0808172302571.21894@blackhole.kfki.hu>
 
-	Ok, surely some patch between .24 and .25 caused this. Or it's
-some bug that only "appeared" in .25 :)
+On Sat, 16 Aug 2008, Pteris Kavi=B9 wrote:
 
-	In fact, the frto patch helped, but not prevented the problem.
-I mean, it seems that with the frto patch, the problem doesn't happen
-frequently. And if I disable frto, the problem doesn't occur either.
+> Jozsef Kadlecsik wrote:
+> > On Sat, 16 Aug 2008, Jan Engelhardt wrote:
+> >=20
+> > > On Saturday 2008-08-16 15:14, Jozsef Kadlecsik wrote:
+> > > > On Sat, 16 Aug 2008, Jan Engelhardt wrote:
+> > > > > On Friday 2008-08-15 18:03, Pteris Kavi=B9 wrote:
+> > > > >=20
+> > > > > > The changes are proposed in order to avoid file name clashes on
+> > > > > > filesystems that do not allow two files to have names that diff=
+er
+> > > > > > only in the case of their letters:
+> > > > > >=20
+> > > > > > include/linux/netfilter/xt_CONNMARK.h =3D> xt_connmark_target.h
+> > > > > [...]
+> > > > >=20
+> > > > > As I see it, this will already be addressed by merging complement=
+ary
+> > > > > code into one source file (e.g. MARK, mark, CONNMARK, connmark
+> > > > > all into a big new xt_mark.c), to reduce (a) amount of files
+> > > > > and (b) build time.
+> > > > [...]
+> > > >=20
+> > > > That is half of the story: we encode the functionality (match/targe=
+t) in
+> > > > the case of the (file)name and there are targets which have got no =
+match
+> > > > counterpart and thus no natural lowercase filename to merge into it=
+=2E So
+> > > > the directory tree still will be broken on case-insensitive filesys=
+tems.=20
+> > > We have not decided on filenames yet, just that matches/targets that
+> > > are commonly used together should go into a single file for the two
+> > > above-mentioned reasons, and lower-casing does not appear in (a) or (=
+b).
+> >=20
+> > You wrote: "by merging into ... a big new xt_mark.c". Pteris also sugge=
+sted
+> > fully lowercased names, e.g. xt_connmark_target.h. Or are you just pull=
+ing
+> > my leg by pointing to the possibility to >capitalize< all the filenames=
+ in
+> > netfilter, to achieve case-insensitive filenames?
+>=20
+> My suggested names were taken from within the files themselves.  Note=20
+> that the standard #ifdef multiple inclusion guards in the existing files=
+=20
+> could not follow normal practice and had to be modified in some way,=20
+> because by tradition they are simply uppercase transformations of the=20
+> filename itself (but that would end up in a clash!), and so the=20
+> xt_CONNMARK.h include guard is "_XT_CONNMARK_H_target".  By natural=20
+> extension, my proposal was to rename the existing uppercase file to=20
+> xt_connmark_target.h.  However, for the typical case-insensitive=20
+> filesystems out there, it is fine for the file to be called=20
+> xt_CONNMARK_target.h, and I have no objection to that, so long as that=20
+> doesn't clash with another filename differing only in the case of the=20
+> letters:
+[...]
 
-	But, maybe, we could be talking about another bug, completely
-unrelated to frto... I don't know. i'm just guessing ;). Anyway, we
-talk about stalled connections ;)
+I should have looked up the old thread at the first place:
+http://marc.info/?l=3Dnetfilter-devel&m=3D109795874701112&w=3D2
 
-	What I know is:
-
-1) what you wrote is right: 2.6.24 is fine, 2.6.25 and 2.6.26 not
-
-2) nmap -sS <server> seems to reset the connection (it's my workaround
-until now ;). Maybe the ping probe help in some way? I don't know.
-
-	I want to help you as much as I can. So, ask anything you need.
-
-	Thanks!
-
-
---=20
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
+--110391808-1033657189-1219006955=:21894--
