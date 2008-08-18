@@ -1,60 +1,58 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 02/06: ipt_addrtype: fix matching of inverted destination address type
-Date: Mon, 18 Aug 2008 18:51:51 +0200 (MEST)
-Message-ID: <20080818165150.18978.60746.sendpatchset@localhost.localdomain>
+Subject: netfilter 01/06: Move linux/in.h and linux/in6.h inclusions outside of
+Date: Mon, 18 Aug 2008 18:51:50 +0200 (MEST)
+Message-ID: <20080818165149.18978.80469.sendpatchset@localhost.localdomain>
 References: <20080818165147.18978.92208.sendpatchset@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59345 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:59341 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753565AbYHRQvw (ORCPT
+	with ESMTP id S1753565AbYHRQvv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Aug 2008 12:51:52 -0400
+	Mon, 18 Aug 2008 12:51:51 -0400
 In-Reply-To: <20080818165147.18978.92208.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-netfilter: ipt_addrtype: Fix matching of inverted destination address t=
-ype
+netfilter: Move linux/in.h and linux/in6.h inclusions outside of #ifdef __KERNEL__
 
-This patch fixes matching of inverted destination address type.
+netfilter.h can't be used in userspace without including linux/in.h
+and linux/in6.h first. netfilter.h includes its own linux/in.h and
+linux/in6.h include statements, these are stripped by make
+headers-install because they are inside #ifdef __KERNEL__ however.
+Move them out to fix this.
 
-Signed-off-by: Anders Grafstr=F6m <grfstrm@users.sourceforge.net>
+Signed-off-by: Matt Kraai <kraai@ftbfs.org>
 Signed-off-by: Patrick McHardy <kaber@trash.net>
 
 ---
-commit 132fbda27191848d809ac4c4e5841581371aafd8
-tree 173c192bca62e2e89ba6a2e54fa85e6d2aa69b02
-parent 4f5e031a4fb1872eb30d473fef4706eddf58aa8f
-author Anders Grafstr=F6m <grfstrm@users.sourceforge.net> Mon, 18 Aug 2=
-008 13:17:03 +0200
-committer Patrick McHardy <kaber@trash.net> Mon, 18 Aug 2008 13:17:03 +=
-0200
+commit 4f5e031a4fb1872eb30d473fef4706eddf58aa8f
+tree 935aaca025e96dafbd80e80f2d482e519e9a2edb
+parent 08013fa353fdcfc0a03cae805393abfc56722387
+author Matt Kraai <kraai@ftbfs.org> Mon, 18 Aug 2008 13:17:03 +0200
+committer Patrick McHardy <kaber@trash.net> Mon, 18 Aug 2008 13:17:03 +0200
 
- net/ipv4/netfilter/ipt_addrtype.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ include/linux/netfilter.h |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ipt_addrtype.c b/net/ipv4/netfilter/ipt=
-_addrtype.c
-index 49587a4..462a22c 100644
---- a/net/ipv4/netfilter/ipt_addrtype.c
-+++ b/net/ipv4/netfilter/ipt_addrtype.c
-@@ -70,7 +70,7 @@ addrtype_mt_v1(const struct sk_buff *skb, const struc=
-t net_device *in,
- 		       (info->flags & IPT_ADDRTYPE_INVERT_SOURCE);
- 	if (ret && info->dest)
- 		ret &=3D match_type(dev, iph->daddr, info->dest) ^
--		       (info->flags & IPT_ADDRTYPE_INVERT_DEST);
-+		       !!(info->flags & IPT_ADDRTYPE_INVERT_DEST);
- 	return ret;
- }
-=20
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+index 0c5eb7e..6060e56 100644
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -7,13 +7,13 @@
+ #include <linux/net.h>
+ #include <linux/netdevice.h>
+ #include <linux/if.h>
+-#include <linux/in.h>
+-#include <linux/in6.h>
+ #include <linux/wait.h>
+ #include <linux/list.h>
+ #include <net/net_namespace.h>
+ #endif
+ #include <linux/types.h>
++#include <linux/in.h>
++#include <linux/in6.h>
+ #include <linux/compiler.h>
+ 
+ /* Responses from hook functions. */
