@@ -1,71 +1,66 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC] netfilter: Rename ipt_ECN.h to ipt_ecn_target.h (and similar)
- to avoid file name clash
-Date: Mon, 18 Aug 2008 13:17:10 +0200
-Message-ID: <48A95A36.7090505@trash.net>
-References: <g84ufs$l66$1@ger.gmane.org> <alpine.LNX.1.10.0808160958570.30044@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0808162057270.20963@blackhole.kfki.hu>
+Subject: netfilter 00/06: netfilter fixes
+Date: Mon, 18 Aug 2008 18:51:48 +0200 (MEST)
+Message-ID: <20080818165147.18978.92208.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	=?UTF-8?B?UHRlcmlzIEthdmnCuQ==?= <klavins@netspace.net.au>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:51831 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:59339 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751484AbYHRLRR (ORCPT
+	with ESMTP id S1753389AbYHRQvu (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Aug 2008 07:17:17 -0400
-In-Reply-To: <Pine.LNX.4.64.0808162057270.20963@blackhole.kfki.hu>
+	Mon, 18 Aug 2008 12:51:50 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jozsef Kadlecsik wrote:
-> On Sat, 16 Aug 2008, Jan Engelhardt wrote:
->=20
->> On Friday 2008-08-15 18:03, P=CB=99=CB=99teris K=CB=99=CB=99avi=CB=99=
-=CB=99=C5=A1 wrote:
->>
->>> This is a request for comments on the proposal that the following
->>> filename changes (indicative at this point) be made in the
->>> netfilter source code tree, together with correcting the
->>> corresponding references to the files in both source code, the
->>> build system, and wherever else necessary.
->>>
->>> The changes are proposed in order to avoid file name clashes on
->>> filesystems that do not allow two files to have names that differ
->>> only in the case of their letters:
->>>
->>> include/linux/netfilter/xt_CONNMARK.h =3D> xt_connmark_target.h
->> [...]
->>
->> As I see it, this will already be addressed by merging complementary
->> code into one source file (e.g. MARK, mark, CONNMARK, connmark
->> all into a big new xt_mark.c), to reduce (a) amount of files
->> and (b) build time.
-> [...]
->=20
-> That is half of the story: we encode the functionality (match/target)=
- in=20
-> the case of the (file)name and there are targets which have got no ma=
-tch=20
-> counterpart and thus no natural lowercase filename to merge into it. =
-So=20
-> the directory tree still will be broken on case-insensitive filesyste=
-ms.=20
->=20
-> If as a side effect of some real internal changes netfilter becomes=20
-> compatible with case-insensitive filesystems, that's fine. However, I=
-=20
-> object changes just for the sake to be compatible with such horrid=20
-> filesystems.
+Hi Dave,
 
-I agree. Without compat files this would also break compilation
-of old userspace, so this is not an option anyways.
+the following patches for 2.6.27 contain fixes for some netfilter issue=
+s:
 
+- a fix for inverted destination address matching in the addrtype match
+
+- a fix to make linux/netfilter.h directly includable in userspace by
+  moving necessary includes outside of #ifdef __KERNEL__
+
+- three ctnetlink fixes for sleep inside locked section and double
+  helper assignment
+
+- a change to use secure_ipv4_port_ephemeral() for NAT port randomizati=
+on
+  to avoid concerns about leaking prng state
+
+Please apply, thanks.
+
+
+ drivers/char/random.c                    |    1 +
+ include/linux/netfilter.h                |    4 +-
+ net/ipv4/netfilter/ipt_addrtype.c        |    2 +-
+ net/ipv4/netfilter/nf_nat_proto_common.c |    8 +++++-
+ net/netfilter/nf_conntrack_netlink.c     |   36 ++++++++++++++++------=
+-------
+ 5 files changed, 30 insertions(+), 21 deletions(-)
+
+Anders Grafstr=F6m (1):
+      netfilter: ipt_addrtype: Fix matching of inverted destination add=
+ress type
+
+Matt Kraai (1):
+      netfilter: Move linux/in.h and linux/in6.h inclusions outside of =
+#ifdef __KERNEL__
+
+Pablo Neira Ayuso (3):
+      netfilter: ctnetlink: fix double helper assignation for NAT'ed co=
+nntracks
+      netfilter: ctnetlink: fix sleep in read-side lock section
+      netfilter: ctnetlink: sleepable allocation with spin lock bh
+
+Stephen Hemminger (1):
+      nf_nat: use secure_ipv4_port_ephemeral() for NAT port randomizati=
+on
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
