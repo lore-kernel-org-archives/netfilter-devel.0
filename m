@@ -1,29 +1,73 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [RFC] netfilter: Rename ipt_ECN.h to ipt_ecn_target.h (and  
- similar) to avoid file name clash
-Date: Sun, 17 Aug 2008 18:18:14 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0808171817460.8056@fbirervta.pbzchgretzou.qr>
-References: <g84ufs$l66$1@ger.gmane.org> <alpine.LNX.1.10.0808160958570.30044@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0808162057270.20963@blackhole.kfki.hu> <alpine.LNX.1.10.0808161520430.27260@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0808162127200.21025@blackhole.kfki.hu>
- <g87cp8$bfa$1@ger.gmane.org> <Pine.LNX.4.64.0808172211180.21894@blackhole.kfki.hu>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [RFC] netfilter: Rename ipt_ECN.h to ipt_ecn_target.h (and similar)
+ to avoid file name clash
+Date: Mon, 18 Aug 2008 13:17:10 +0200
+Message-ID: <48A95A36.7090505@trash.net>
+References: <g84ufs$l66$1@ger.gmane.org> <alpine.LNX.1.10.0808160958570.30044@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0808162057270.20963@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: =?UTF-8?Q?P=C4=93teris_K=C4=BCavi=C5=86=C5=A1?=
-	<klavins@netspace.net.au>, netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	=?UTF-8?B?UHRlcmlzIEthdmnCuQ==?= <klavins@netspace.net.au>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
 To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:33809 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751887AbYHQWSQ (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:51831 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751484AbYHRLRR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 17 Aug 2008 18:18:16 -0400
-In-Reply-To: <Pine.LNX.4.64.0808172211180.21894@blackhole.kfki.hu>
+	Mon, 18 Aug 2008 07:17:17 -0400
+In-Reply-To: <Pine.LNX.4.64.0808162057270.20963@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Jozsef Kadlecsik wrote:
+> On Sat, 16 Aug 2008, Jan Engelhardt wrote:
+>=20
+>> On Friday 2008-08-15 18:03, P=CB=99=CB=99teris K=CB=99=CB=99avi=CB=99=
+=CB=99=C5=A1 wrote:
+>>
+>>> This is a request for comments on the proposal that the following
+>>> filename changes (indicative at this point) be made in the
+>>> netfilter source code tree, together with correcting the
+>>> corresponding references to the files in both source code, the
+>>> build system, and wherever else necessary.
+>>>
+>>> The changes are proposed in order to avoid file name clashes on
+>>> filesystems that do not allow two files to have names that differ
+>>> only in the case of their letters:
+>>>
+>>> include/linux/netfilter/xt_CONNMARK.h =3D> xt_connmark_target.h
+>> [...]
+>>
+>> As I see it, this will already be addressed by merging complementary
+>> code into one source file (e.g. MARK, mark, CONNMARK, connmark
+>> all into a big new xt_mark.c), to reduce (a) amount of files
+>> and (b) build time.
+> [...]
+>=20
+> That is half of the story: we encode the functionality (match/target)=
+ in=20
+> the case of the (file)name and there are targets which have got no ma=
+tch=20
+> counterpart and thus no natural lowercase filename to merge into it. =
+So=20
+> the directory tree still will be broken on case-insensitive filesyste=
+ms.=20
+>=20
+> If as a side effect of some real internal changes netfilter becomes=20
+> compatible with case-insensitive filesystems, that's fine. However, I=
+=20
+> object changes just for the sake to be compatible with such horrid=20
+> filesystems.
 
-On Sunday 2008-08-17 18:04, Jozsef Kadlecsik wrote:
->
->I should have looked up the old thread at the first place:
->http://marc.info/?l=netfilter-devel&m=109795874701112&w=2
->
-Hey that just shows we have been fine for over four years now! :D
+I agree. Without compat files this would also break compilation
+of old userspace, so this is not an option anyways.
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
