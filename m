@@ -1,51 +1,66 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 05/06: ctnetlink: sleepable allocation with spin lock bh
-Date: Mon, 18 Aug 2008 18:51:55 +0200 (MEST)
-Message-ID: <20080818165154.18978.78109.sendpatchset@localhost.localdomain>
-References: <20080818165147.18978.92208.sendpatchset@localhost.localdomain>
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
-To: davem@davemloft.net
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: netfilter 01/06: Move linux/in.h and linux/in6.h inclusions
+ outside of
+Date: Mon, 18 Aug 2008 12:57:13 -0400 (EDT)
+Message-ID: <alpine.LNX.1.10.0808181253010.3180@fbirervta.pbzchgretzou.qr>
+References: <20080818165147.18978.92208.sendpatchset@localhost.localdomain> <20080818165149.18978.80469.sendpatchset@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59355 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754507AbYHRQv4 (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:51078 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752398AbYHRQ5O (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Aug 2008 12:51:56 -0400
-In-Reply-To: <20080818165147.18978.92208.sendpatchset@localhost.localdomain>
+	Mon, 18 Aug 2008 12:57:14 -0400
+In-Reply-To: <20080818165149.18978.80469.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-netfilter: ctnetlink: sleepable allocation with spin lock bh
 
-This patch removes a GFP_KERNEL allocation while holding a spin lock with
-bottom halves disabled in ctnetlink_change_helper().
+On Monday 2008-08-18 12:51, Patrick McHardy wrote:
 
-This problem was introduced in 2.6.23 with the netfilter extension
-infrastructure.
+>netfilter: Move linux/in.h and linux/in6.h inclusions outside of #ifde=
+f __KERNEL__
+>
+>netfilter.h can't be used in userspace without including linux/in.h
+>and linux/in6.h first. netfilter.h includes its own linux/in.h and
+>linux/in6.h include statements, these are stripped by make
+>headers-install because they are inside #ifdef __KERNEL__ however.
+>Move them out to fix this.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
+Humm - no, I do not think this is right.
 
----
-commit be6e3721aa813e40f20d84d7925f9cf5cd8eef2d
-tree ef2d78c9f5567c3a060b1d19f0b366726f6adf74
-parent 3b198ff714ffc62115554f821e80f22d817b2b17
-author Pablo Neira Ayuso <pablo@netfilter.org> Mon, 18 Aug 2008 13:17:04 +0200
-committer Patrick McHardy <kaber@trash.net> Mon, 18 Aug 2008 13:17:04 +0200
 
- net/netfilter/nf_conntrack_netlink.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+$ cat test2.c=20
+#include <netinet/in.h>
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index a5b95cc..a875203 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -968,7 +968,7 @@ ctnetlink_change_helper(struct nf_conn *ct, struct nlattr *cda[])
- 		/* need to zero data of old helper */
- 		memset(&help->help, 0, sizeof(help->help));
- 	} else {
--		help = nf_ct_helper_ext_add(ct, GFP_KERNEL);
-+		help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
- 		if (help == NULL)
- 			return -ENOMEM;
- 	}
+/* simulate netfilter.h as proposed */
+#include <linux/in.h>
+struct nf_inet_addr {
+        struct in_addr inet4;
+};
+/* end simul */
+
+int main(void)
+{
+}
+
+yields:
+
+In file included from test2.c:2:
+/usr/include/linux/in.h:26: error: redeclaration of enumerator =E2=80=98=
+IPPROTO_IP=E2=80=99
+/usr/include/netinet/in.h:34: error: previous definition of =E2=80=98IP=
+PROTO_IP=E2=80=99 was
+/here
+[...many more...]
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
