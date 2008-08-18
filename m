@@ -1,68 +1,105 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 00/06: netfilter fixes
-Date: Mon, 18 Aug 2008 18:51:48 +0200 (MEST)
-Message-ID: <20080818165147.18978.92208.sendpatchset@localhost.localdomain>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Subject: netfilter 03/06: ctnetlink: fix double helper assignation for NAT'ed conntracks
+Date: Mon, 18 Aug 2008 18:51:52 +0200 (MEST)
+Message-ID: <20080818165151.18978.90816.sendpatchset@localhost.localdomain>
+References: <20080818165147.18978.92208.sendpatchset@localhost.localdomain>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59339 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:59349 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753389AbYHRQvu (ORCPT
+	with ESMTP id S1753565AbYHRQvy (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Aug 2008 12:51:50 -0400
+	Mon, 18 Aug 2008 12:51:54 -0400
+In-Reply-To: <20080818165147.18978.92208.sendpatchset@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Dave,
+netfilter: ctnetlink: fix double helper assignation for NAT'ed conntracks
 
-the following patches for 2.6.27 contain fixes for some netfilter issue=
-s:
+If we create a conntrack that has NAT handlings and a helper, the helper
+is assigned twice. This happens because nf_nat_setup_info() - via
+nf_conntrack_alter_reply() - sets the helper before ctnetlink, which
+indeed does not check if the conntrack already has a helper as it thinks that
+it is a brand new conntrack.
 
-- a fix for inverted destination address matching in the addrtype match
+The fix moves the helper assignation before the set of the status flags.
+This avoids a bogus assertion in __nf_ct_ext_add (if netfilter assertions are
+enabled) which checks that the conntrack must not be confirmed.
 
-- a fix to make linux/netfilter.h directly includable in userspace by
-  moving necessary includes outside of #ifdef __KERNEL__
+This problem was introduced in 2.6.23 with the netfilter extension
+infrastructure.
 
-- three ctnetlink fixes for sleep inside locked section and double
-  helper assignment
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-- a change to use secure_ipv4_port_ephemeral() for NAT port randomizati=
-on
-  to avoid concerns about leaking prng state
+---
+commit 4a58ff2a369c6020ece596812f819641f9d19820
+tree 7c640e1ffb18d61e9ef3a097e2b2ab00eb529c52
+parent 132fbda27191848d809ac4c4e5841581371aafd8
+author Pablo Neira Ayuso <pablo@netfilter.org> Mon, 18 Aug 2008 13:17:03 +0200
+committer Patrick McHardy <kaber@trash.net> Mon, 18 Aug 2008 13:17:03 +0200
 
-Please apply, thanks.
+ net/netfilter/nf_conntrack_netlink.c |   34 +++++++++++++++++++---------------
+ 1 files changed, 19 insertions(+), 15 deletions(-)
 
-
- drivers/char/random.c                    |    1 +
- include/linux/netfilter.h                |    4 +-
- net/ipv4/netfilter/ipt_addrtype.c        |    2 +-
- net/ipv4/netfilter/nf_nat_proto_common.c |    8 +++++-
- net/netfilter/nf_conntrack_netlink.c     |   36 ++++++++++++++++------=
--------
- 5 files changed, 30 insertions(+), 21 deletions(-)
-
-Anders Grafstr=F6m (1):
-      netfilter: ipt_addrtype: Fix matching of inverted destination add=
-ress type
-
-Matt Kraai (1):
-      netfilter: Move linux/in.h and linux/in6.h inclusions outside of =
-#ifdef __KERNEL__
-
-Pablo Neira Ayuso (3):
-      netfilter: ctnetlink: fix double helper assignation for NAT'ed co=
-nntracks
-      netfilter: ctnetlink: fix sleep in read-side lock section
-      netfilter: ctnetlink: sleepable allocation with spin lock bh
-
-Stephen Hemminger (1):
-      nf_nat: use secure_ipv4_port_ephemeral() for NAT port randomizati=
-on
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 105a616..d1fb2f8 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -1136,16 +1136,33 @@ ctnetlink_create_conntrack(struct nlattr *cda[],
+ 	ct->timeout.expires = jiffies + ct->timeout.expires * HZ;
+ 	ct->status |= IPS_CONFIRMED;
+ 
++	rcu_read_lock();
++	helper = __nf_ct_helper_find(rtuple);
++	if (helper) {
++		help = nf_ct_helper_ext_add(ct, GFP_KERNEL);
++		if (help == NULL) {
++			rcu_read_unlock();
++			err = -ENOMEM;
++			goto err;
++		}
++		/* not in hash table yet so not strictly necessary */
++		rcu_assign_pointer(help->helper, helper);
++	}
++
+ 	if (cda[CTA_STATUS]) {
+ 		err = ctnetlink_change_status(ct, cda);
+-		if (err < 0)
++		if (err < 0) {
++			rcu_read_unlock();
+ 			goto err;
++		}
+ 	}
+ 
+ 	if (cda[CTA_PROTOINFO]) {
+ 		err = ctnetlink_change_protoinfo(ct, cda);
+-		if (err < 0)
++		if (err < 0) {
++			rcu_read_unlock();
+ 			goto err;
++		}
+ 	}
+ 
+ 	nf_ct_acct_ext_add(ct, GFP_KERNEL);
+@@ -1155,19 +1172,6 @@ ctnetlink_create_conntrack(struct nlattr *cda[],
+ 		ct->mark = ntohl(nla_get_be32(cda[CTA_MARK]));
+ #endif
+ 
+-	rcu_read_lock();
+-	helper = __nf_ct_helper_find(rtuple);
+-	if (helper) {
+-		help = nf_ct_helper_ext_add(ct, GFP_KERNEL);
+-		if (help == NULL) {
+-			rcu_read_unlock();
+-			err = -ENOMEM;
+-			goto err;
+-		}
+-		/* not in hash table yet so not strictly necessary */
+-		rcu_assign_pointer(help->helper, helper);
+-	}
+-
+ 	/* setup master conntrack: this is a confirmed expectation */
+ 	if (master_ct) {
+ 		__set_bit(IPS_EXPECTED_BIT, &ct->status);
