@@ -1,123 +1,76 @@
-From: "=?ISO-8859-1?Q?Ilpo_J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
-Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility workaround
-Date: Tue, 19 Aug 2008 13:38:35 +0300 (EEST)
-Message-ID: <Pine.LNX.4.64.0808181042290.23854@wrl-59.cs.helsinki.fi>
-References: <Pine.LNX.4.64.0808081256560.4551@wrl-59.cs.helsinki.fi>
- <20080811.144421.234396007.davem@davemloft.net> <200808120946.19459.thomas.jarosch@intra2net.com>
- <20080812.011822.155249871.davem@davemloft.net> <20080812144309.7d62fd86@tux>
- <Pine.LNX.4.64.0808122044450.16105@wrl-59.cs.helsinki.fi> <20080813145310.0c1e534c@tux>
- <Pine.LNX.4.64.0808132108480.18807@wrl-59.cs.helsinki.fi> <20080815013407.4a594288@tux>
- <Pine.LNX.4.64.0808150939270.23522@wrl-59.cs.helsinki.fi> <20080815183511.1c81be23@tux>
- <Pine.LNX.4.64.0808160039230.6911@wrl-59.cs.helsinki.fi> <20080815231538.7999c017@tux>
- <Pine.LNX.4.64.0808161002500.7264@wrl-59.cs.helsinki.fi>
- <Pine.LNX.4.64.0808162210390.7443@wrl-59.cs.helsinki.fi> <20080816213615.689ddf8f@tux>
+From: Brent Clark <brentgclarklist@gmail.com>
+Subject: Re: POM Xtables???
+Date: Tue, 19 Aug 2008 13:35:01 +0200
+Message-ID: <48AAAFE5.10201@gmail.com>
+References: <935fab200806271054oa7c340evbf465b7a9984498b@mail.gmail.com>	 <935fab200806300904rc7dc7b2kf58ab7893c3ef20a@mail.gmail.com>	 <486907EA.60105@trash.net>	 <alpine.LNX.1.10.0806302218500.30639@fbirervta.pbzchgretzou.qr>	 <48694787.3080906@trash.net>	 <alpine.LNX.1.10.0807010907040.26892@fbirervta.pbzchgretzou.qr>	 <4887BCE0.2050902@trash.net>	 <38bcb3ec0807240131n1f5d4051k9e89731aa2fcb6c9@mail.gmail.com>	 <488849A5.6050401@netfilter.org> <48884ED3.8080901@trash.net> <38bcb3ec0808150117n729cb7b1yadcfa9018b9714be@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; boundary="-696208474-650319758-1219045458=:23854"
-Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
-	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
-	Patrick Hardy <kaber@trash.net>, sr@securenet.de,
-	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
-To: "=?ISO-8859-1?Q?D=E2niel?= Fraga" <fragabr@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from courier.cs.helsinki.fi ([128.214.9.1]:36227 "EHLO
-	mail.cs.helsinki.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750851AbYHSKi7 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 19 Aug 2008 06:38:59 -0400
-In-Reply-To: <20080816213615.689ddf8f@tux>
-Content-ID: <Pine.LNX.4.64.0808191331010.4551@wrl-59.cs.helsinki.fi>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Patrick McHardy <kaber@trash.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jan Engelhardt <jengelh@medozas.de>,
+	Dave <finalglide@gmail.com>, netfilter@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: James King <t.james.king@gmail.com>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <38bcb3ec0808150117n729cb7b1yadcfa9018b9714be@mail.gmail.com>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+James King wrote:
+> ipp2p and l7filter both use different strategies for DPI
+> classification, each having their own pros and cons.
+You know most people, groups etc look for the next best thing. Take a 
+look at Firefox and apple ( *pod), they continuously announcing whats 
+hip and new, what they doing etc, and looking at ways to keep a captive 
+audience.
 
----696208474-650319758-1219045458=:23854
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
-Content-ID: <Pine.LNX.4.64.0808191028171.4551@wrl-59.cs.helsinki.fi>
+My question is what netfilters next best thing?
 
-On Sat, 16 Aug 2008, Dâniel Fraga wrote:
+Having used and using Xtables, I thinking it FSCKING brilliant (excuse 
+slander, hope I did not offend, but there was not other way to explain). 
+I dont have to struggle and my turn around time is minutes.
+I continuously thank Jan for the work his doing.
 
-> On Sat, 16 Aug 2008 22:18:50 +0300 (EEST)
-> "Ilpo Järvinen" <ilpo.jarvinen@helsinki.fi> wrote:
-> 
-> > I'll look through 2.6.24..25 history once I have some time to see if 
-> > there are some clues about the cause. I'm also having a problem in 
-> > figurin out why would the frto patch you tested solve this issue (unless 
-> > there are two issues in the picture).
-> 
-> 	Ok, surely some patch between .24 and .25 caused this. Or it's
-> some bug that only "appeared" in .25 :)
-> 
-> 	In fact, the frto patch helped, but not prevented the problem.
-> I mean, it seems that with the frto patch, the problem doesn't happen
-> frequently. And if I disable frto, the problem doesn't occur either.
-> 
-> 	But, maybe, we could be talking about another bug, completely
-> unrelated to frto... I don't know. i'm just guessing ;). Anyway, we
-> talk about stalled connections ;)
->
-> 	What I know is:
-> 
-> 1) what you wrote is right: 2.6.24 is fine, 2.6.25 and 2.6.26 not
-> 
-> 2) nmap -sS <server> seems to reset the connection (it's my workaround
-> until now ;). Maybe the ping probe help in some way? I don't know.
+I suggest forget POM. its old and the process is slow and laborious (and 
+thats hoping you can get it compiled in the kernel).
 
-Perhaps, though it's not at all clear how it could do that...
+Getting back to iptables.
 
-> 	I want to help you as much as I can. So, ask anything you need.
+Its great to see others stepping forward and wanting to implement a 
+Layer 7 filtering, and I say go for it and work on it, but in the mean 
+time and to the netfilter team, my question is, how long will that take 
+till its able to get off the ground to too hope that it gets accepted by 
+the teams (netfilter and kernel).
 
-I went through TCP related and inet_connection_sock related things, 
-nothing obvious I could notice in there...
+To be constructive, and looking for a solid way forward (even if 
+interim), would it not be better to implement l7 in xtables or better 
+iptables.
+Yes the L7 code may suck now or incorrectly thoughtout, but getting it 
+working will help people. People understand that its not perfect or bug 
+less, the fact they have option and it being worked on, helps.
 
-Do you have net namespaces enabled CONFIG_NET_NS in .config?
+Im of the opinion that Netfilter really needs to look and think out the 
+box and realize ppl want *now*, troubleless (less not free), shiny and 
+new (this goes hand in hand with promoting, marketing etc).
+Google for pf vs iptables, and you will find a plethora of links 
+promoting either / or. Netfilter needs that "shiny" that will set it 
+apart from the rest that will and have the bells and whistles.
 
-Any netfilter (iptables) rules on server which could cause those packets 
-to not reach TCP layer?
+My aim it to not offend anyone, but let the powers that be know, that 
+there is a demand for more. Ill probably get flamed, but I hope this 
+email gets taken in the light of constructive criticism and for the 
+greater of the user community that like quick install, all in one solution.
 
-MIBs might give some clue why those segments didn't get accepted. Most 
-interesting ones are PAWSEstab, TCPAbortOnSyn and InErrs. One can use 
-/bin/cut to read those from the one-line files if one wants to (however,
-I attached a script which transposes them to get them somewhat 
-human-readable). Also having the /proc/net/tcp output from the server 
-while stalling would be (have been) useful to reveal state info (but I 
-should have remembered to ask you to run it on both of them :-)). 
+Kind Regards
+Brent Clark
 
-Also, I wonder what that [|tcp] hides, e.g., "<nop,nop,timestamp 
-15980976 70381399,nop,nop,[|tcp]>" in tcpdump (and that was for an ACK 
-which doesn't make too much sense to me there). It occurs because 
-snaplen which was given for tcpdump is small enough to make TCP header 
-partial.
+P.s. James, I hope you get your solution off the ground  and working.
 
 
--- 
- i.
----696208474-650319758-1219045458=:23854
-Content-Type: APPLICATION/X-SH; name=readmibs.sh
-Content-Transfer-Encoding: BASE64
-Content-ID: <Pine.LNX.4.64.0808191251200.4551@wrl-59.cs.helsinki.fi>
-Content-Description: 
-Content-Disposition: attachment; filename=readmibs.sh
 
-IyEvYmluL3NoCgplY2hvICJNSUJzIChuZXRzdGF0KSBvbiAkSE9TVE5BTUU6
-ICIKYXdrICd7Zm9yKGk9MTtpPD1ORjtpKyspIGJha1tpXSA9ICRpOyBnZXRs
-aW5lOyBmb3IoaSA9IDE7IGkgPD0gTkY7IGkrKykgcHJpbnRmKCIlMzJzICVz
-XG4iLCAgYmFrW2ldLCRpKX0nIDwgL3Byb2MvbmV0L25ldHN0YXQKZWNobyAi
-IgoKZWNobyAiTUlCcyAoc25tcCkgb24gJEhPU1ROQU1FOiAiCmdyZXAgIklw
-OiAiIC9wcm9jL25ldC9zbm1wIHwgYXdrICd7Zm9yKGk9MTtpPD1ORjtpKysp
-IGJha1tpXSA9ICRpOyBnZXRsaW5lOyBmb3IoaSA9IDE7IGkgPD0gTkY7IGkr
-KykgcHJpbnRmKCIlMzJzICVzXG4iLCAgYmFrW2ldLCRpKX0nCmdyZXAgIklj
-bXA6ICIgL3Byb2MvbmV0L3NubXAgfCBhd2sgJ3tmb3IoaT0xO2k8PU5GO2kr
-KykgYmFrW2ldID0gJGk7IGdldGxpbmU7IGZvcihpID0gMTsgaSA8PSBORjsg
-aSsrKSBwcmludGYoIiUzMnMgJXNcbiIsICBiYWtbaV0sJGkpfScKZ3JlcCAi
-VGNwOiAiIC9wcm9jL25ldC9zbm1wIHwgYXdrICd7Zm9yKGk9MTtpPD1ORjtp
-KyspIGJha1tpXSA9ICRpOyBnZXRsaW5lOyBmb3IoaSA9IDE7IGkgPD0gTkY7
-IGkrKykgcHJpbnRmKCIlMzJzICVzXG4iLCAgYmFrW2ldLCRpKX0nCiNncmVw
-ICJVZHA6ICIgL3Byb2MvbmV0L3NubXAgfCBhd2sgJ3tmb3IoaT0xO2k8PU5G
-O2krKykgYmFrW2ldID0gJGk7IGdldGxpbmU7IGZvcihpID0gMTsgaSA8PSBO
-RjsgaSsrKSBwcmludGYoIiUzMnMgJXNcbiIsICBiYWtbaV0sJGkpfScKZWNo
-byAiIgoKIyBjYXQgL3Byb2MvbmV0L3NubXA2Cg==
 
----696208474-650319758-1219045458=:23854--
+
+
+
