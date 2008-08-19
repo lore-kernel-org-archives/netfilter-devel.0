@@ -1,321 +1,123 @@
-From: Marek Becka <beckam2@fel.cvut.cz>
-Subject: Packet marking based on IP header
-Date: Tue, 19 Aug 2008 10:12:44 +0200
-Message-ID: <48AA807C.5020108@fel.cvut.cz>
+From: "=?ISO-8859-1?Q?Ilpo_J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
+Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility workaround
+Date: Tue, 19 Aug 2008 13:38:35 +0300 (EEST)
+Message-ID: <Pine.LNX.4.64.0808181042290.23854@wrl-59.cs.helsinki.fi>
+References: <Pine.LNX.4.64.0808081256560.4551@wrl-59.cs.helsinki.fi>
+ <20080811.144421.234396007.davem@davemloft.net> <200808120946.19459.thomas.jarosch@intra2net.com>
+ <20080812.011822.155249871.davem@davemloft.net> <20080812144309.7d62fd86@tux>
+ <Pine.LNX.4.64.0808122044450.16105@wrl-59.cs.helsinki.fi> <20080813145310.0c1e534c@tux>
+ <Pine.LNX.4.64.0808132108480.18807@wrl-59.cs.helsinki.fi> <20080815013407.4a594288@tux>
+ <Pine.LNX.4.64.0808150939270.23522@wrl-59.cs.helsinki.fi> <20080815183511.1c81be23@tux>
+ <Pine.LNX.4.64.0808160039230.6911@wrl-59.cs.helsinki.fi> <20080815231538.7999c017@tux>
+ <Pine.LNX.4.64.0808161002500.7264@wrl-59.cs.helsinki.fi>
+ <Pine.LNX.4.64.0808162210390.7443@wrl-59.cs.helsinki.fi> <20080816213615.689ddf8f@tux>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------090800040509080405080702"
-To: netfilter-devel@vger.kernel.org
+Content-Type: MULTIPART/MIXED; boundary="-696208474-650319758-1219045458=:23854"
+Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
+	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
+	Patrick Hardy <kaber@trash.net>, sr@securenet.de,
+	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
+To: "=?ISO-8859-1?Q?D=E2niel?= Fraga" <fragabr@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from max.feld.cvut.cz ([147.32.192.36]:50331 "EHLO max.feld.cvut.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752774AbYHSITd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 19 Aug 2008 04:19:33 -0400
-Received: from localhost (unknown [192.168.200.4])
-	by max.feld.cvut.cz (Postfix) with ESMTP id 4444C19F3872
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 Aug 2008 10:12:56 +0200 (CEST)
-Received: from max.feld.cvut.cz ([192.168.200.1])
-	by localhost (styx.feld.cvut.cz [192.168.200.4]) (amavisd-new, port 10044)
-	with ESMTP id RA0-sGlL+Aji for <netfilter-devel@vger.kernel.org>;
-	Tue, 19 Aug 2008 10:12:54 +0200 (CEST)
-Received: from imap.feld.cvut.cz (imap.feld.cvut.cz [147.32.192.34])
-	by max.feld.cvut.cz (Postfix) with ESMTP id AFFE519F3838
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 Aug 2008 10:12:54 +0200 (CEST)
-Received: from [10.125.50.141] (proxy.klacno.sk [213.215.100.225])
-	by imap.feld.cvut.cz (Postfix) with ESMTP id 8C141404C
-	for <netfilter-devel@vger.kernel.org>; Tue, 19 Aug 2008 10:12:54 +0200 (CEST)
+Received: from courier.cs.helsinki.fi ([128.214.9.1]:36227 "EHLO
+	mail.cs.helsinki.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750851AbYHSKi7 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 19 Aug 2008 06:38:59 -0400
+In-Reply-To: <20080816213615.689ddf8f@tux>
+Content-ID: <Pine.LNX.4.64.0808191331010.4551@wrl-59.cs.helsinki.fi>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------090800040509080405080702
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: 7bit
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Hi, I'm working on iptables target, that enables marking ipv4/6 packet 
-based on their headers. I need this for high performance gateway that 
-marks packet by part of source address. Marks are used with tc filter. 
-Because there is also nat on outgoing device, tc u32 filter is not 
-usable here. It may be also useful for someone other, so suggestions nad 
-commens are welcome.
+---696208474-650319758-1219045458=:23854
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
+Content-ID: <Pine.LNX.4.64.0808191028171.4551@wrl-59.cs.helsinki.fi>
 
---------------090800040509080405080702
-Content-Type: text/plain;
- name="libxt_IPHMARK.c"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="libxt_IPHMARK.c"
+On Sat, 16 Aug 2008, Dâniel Fraga wrote:
 
-#include <stdbool.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <getopt.h>
+> On Sat, 16 Aug 2008 22:18:50 +0300 (EEST)
+> "Ilpo Järvinen" <ilpo.jarvinen@helsinki.fi> wrote:
+> 
+> > I'll look through 2.6.24..25 history once I have some time to see if 
+> > there are some clues about the cause. I'm also having a problem in 
+> > figurin out why would the frto patch you tested solve this issue (unless 
+> > there are two issues in the picture).
+> 
+> 	Ok, surely some patch between .24 and .25 caused this. Or it's
+> some bug that only "appeared" in .25 :)
+> 
+> 	In fact, the frto patch helped, but not prevented the problem.
+> I mean, it seems that with the frto patch, the problem doesn't happen
+> frequently. And if I disable frto, the problem doesn't occur either.
+> 
+> 	But, maybe, we could be talking about another bug, completely
+> unrelated to frto... I don't know. i'm just guessing ;). Anyway, we
+> talk about stalled connections ;)
+>
+> 	What I know is:
+> 
+> 1) what you wrote is right: 2.6.24 is fine, 2.6.25 and 2.6.26 not
+> 
+> 2) nmap -sS <server> seems to reset the connection (it's my workaround
+> until now ;). Maybe the ping probe help in some way? I don't know.
 
-#include <xtables.h>
-#include <linux/netfilter/x_tables.h>
-#include <linux/netfilter/xt_IPHMARK.h>
+Perhaps, though it's not at all clear how it could do that...
 
-enum {
-	IPH_OFFSET 	= 1 << 0,
-};
+> 	I want to help you as much as I can. So, ask anything you need.
 
-static void help(void)
-{
-	printf(
-"IPHMARK target options:\n"
-"	--offset value[/mask]	Data offset from beggining of IP header\n"
-"	  		        with optional mask\n"
-"\n"
-);
-}
+I went through TCP related and inet_connection_sock related things, 
+nothing obvious I could notice in there...
 
-static const struct option opts[] = {
-	{ "offset", 1, NULL, '1' },
-	{ .name = NULL }
-};
+Do you have net namespaces enabled CONFIG_NET_NS in .config?
 
-static void init(struct xt_entry_target *target)
-{
-	struct xt_iphmark_target_info *iphinfo = (void *)target->data;
+Any netfilter (iptables) rules on server which could cause those packets 
+to not reach TCP layer?
 
-	iphinfo->mask = ~0U;
-}
+MIBs might give some clue why those segments didn't get accepted. Most 
+interesting ones are PAWSEstab, TCPAbortOnSyn and InErrs. One can use 
+/bin/cut to read those from the one-line files if one wants to (however,
+I attached a script which transposes them to get them somewhat 
+human-readable). Also having the /proc/net/tcp output from the server 
+while stalling would be (have been) useful to reveal state info (but I 
+should have remembered to ask you to run it on both of them :-)). 
 
-static int parse(int c, int invert, unsigned int *flags,
-                 struct xt_entry_target **target, const int max)
-{
-	struct xt_iphmark_target_info *iphminfo = (void *)(*target)->data;
-	char *end;
-
-	switch (c) {
-	case '1':
-		param_act(P_ONLY_ONCE, "IPHMARK", "--offset", *flags & IPH_OFFSET);
-		param_act(P_NO_INVERT, "IPHMARK", "--offset", invert);
-		if (strtonum(optarg, &end, &(iphminfo->offset), 0, max))
-			exit_error(PARAMETER_PROBLEM, "IPMHARK invalid offset");
-		if (*end == '/' && end[1] != '\0')
-			iphminfo->mask = strtoul(end + 1, &end, 0);
-		if (*end != '\0')
-			exit_error(PARAMETER_PROBLEM, "IPHMARK bad syntax");
-		*flags |= IPH_OFFSET;
-		break;
-	default:
-		return 0;
-	}
-
-	return 1;
-}
-
-static int parse4(int c, char **argv, int invert, unsigned int *flags,
-                  const void *entry, struct xt_entry_target **target)
-{
-	return parse(c, invert, flags, target, IP4_MAX_IPHOFFSET);
-}
-
-static int parse6(int c, char **argv, int invert, unsigned int *flags,
-                  const void *entry, struct xt_entry_target **target)
-{
-	return parse(c, invert, flags, target, IP6_MAX_IPHOFFSET);
-}
-
-static void final_check(unsigned int flags)
-{
-	if (flags == 0)
-		exit_error(PARAMETER_PROBLEM, 
-                           "IPHMARK --offset parameter required");
-}
-
-static void print(const void *ip, const struct xt_entry_target *target, 
-                  int numeric)
-{
-	const struct xt_iphmark_target_info *iphminfo = (void *)target->data;
-
-	if (iphminfo->mask != 0xffffffffU) 
-		printf("IPHMARK offset %d", iphminfo->offset);
-	else
-		printf("IPHMARK offset %d  mask 0x%x",
-		       iphminfo->offset, iphminfo->mask);
-}
-
-static void save(const void *ip, const struct xt_entry_target *target)
-{
-	const struct xt_iphmark_target_info *iphminfo = (void *)target->data;
-
-	printf("--offset %d/0x%x", iphminfo->offset, iphminfo->mask);
-}
-
-static struct xtables_target iphmark = {
-	.family		= AF_INET,
-	.name		= "IPHMARK",
-	.version	= XTABLES_VERSION,
-	.size		= XT_ALIGN(sizeof(struct xt_iphmark_target_info)),
-	.userspacesize	= XT_ALIGN(sizeof(struct xt_iphmark_target_info)),
-	.help		= help,
-	.init		= init,
-	.parse		= parse4,
-	.final_check	= final_check,
-	.print		= print,
-	.save		= save,
-	.extra_opts	= opts,
-};
-
-static struct xtables_target iphmark6 = {
-	.family		= AF_INET6,
-	.name		= "IPHMARK",
-	.version	= XTABLES_VERSION,
-	.size		= XT_ALIGN(sizeof(struct xt_iphmark_target_info)),
-	.userspacesize	= XT_ALIGN(sizeof(struct xt_iphmark_target_info)),
-	.help		= help,
-	.init		= init,
-	.parse		= parse6,
-	.final_check	= final_check,
-	.print		= print,
-	.save		= save,
-	.extra_opts	= opts,
-};
-
-void _init(void)
-{
-	xtables_register_target(&iphmark);
-	xtables_register_target(&iphmark6);
-}
+Also, I wonder what that [|tcp] hides, e.g., "<nop,nop,timestamp 
+15980976 70381399,nop,nop,[|tcp]>" in tcpdump (and that was for an ACK 
+which doesn't make too much sense to me there). It occurs because 
+snaplen which was given for tcpdump is small enough to make TCP header 
+partial.
 
 
---------------090800040509080405080702
-Content-Type: text/plain;
- name="xt_IPHMARK.c"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="xt_IPHMARK.c"
+-- 
+ i.
+---696208474-650319758-1219045458=:23854
+Content-Type: APPLICATION/X-SH; name=readmibs.sh
+Content-Transfer-Encoding: BASE64
+Content-ID: <Pine.LNX.4.64.0808191251200.4551@wrl-59.cs.helsinki.fi>
+Content-Description: 
+Content-Disposition: attachment; filename=readmibs.sh
 
-/*
- * net/netfilter/xt_IPHMARK.c   Internet protocol header packet marker
- *
- *              This program is free software; you can redistribute it and/or
- *              modify it under the terms of the GNU General Public License
- *              as published by the Free Software Foundation; either version
- *              2 of the License, or (at your option) any later version.
- *
- * Authors:	Marek Becka <beckam2@fel.cvut.cz>
- *
- * Based on ipt_IPCLASSIFY
- */
+IyEvYmluL3NoCgplY2hvICJNSUJzIChuZXRzdGF0KSBvbiAkSE9TVE5BTUU6
+ICIKYXdrICd7Zm9yKGk9MTtpPD1ORjtpKyspIGJha1tpXSA9ICRpOyBnZXRs
+aW5lOyBmb3IoaSA9IDE7IGkgPD0gTkY7IGkrKykgcHJpbnRmKCIlMzJzICVz
+XG4iLCAgYmFrW2ldLCRpKX0nIDwgL3Byb2MvbmV0L25ldHN0YXQKZWNobyAi
+IgoKZWNobyAiTUlCcyAoc25tcCkgb24gJEhPU1ROQU1FOiAiCmdyZXAgIklw
+OiAiIC9wcm9jL25ldC9zbm1wIHwgYXdrICd7Zm9yKGk9MTtpPD1ORjtpKysp
+IGJha1tpXSA9ICRpOyBnZXRsaW5lOyBmb3IoaSA9IDE7IGkgPD0gTkY7IGkr
+KykgcHJpbnRmKCIlMzJzICVzXG4iLCAgYmFrW2ldLCRpKX0nCmdyZXAgIklj
+bXA6ICIgL3Byb2MvbmV0L3NubXAgfCBhd2sgJ3tmb3IoaT0xO2k8PU5GO2kr
+KykgYmFrW2ldID0gJGk7IGdldGxpbmU7IGZvcihpID0gMTsgaSA8PSBORjsg
+aSsrKSBwcmludGYoIiUzMnMgJXNcbiIsICBiYWtbaV0sJGkpfScKZ3JlcCAi
+VGNwOiAiIC9wcm9jL25ldC9zbm1wIHwgYXdrICd7Zm9yKGk9MTtpPD1ORjtp
+KyspIGJha1tpXSA9ICRpOyBnZXRsaW5lOyBmb3IoaSA9IDE7IGkgPD0gTkY7
+IGkrKykgcHJpbnRmKCIlMzJzICVzXG4iLCAgYmFrW2ldLCRpKX0nCiNncmVw
+ICJVZHA6ICIgL3Byb2MvbmV0L3NubXAgfCBhd2sgJ3tmb3IoaT0xO2k8PU5G
+O2krKykgYmFrW2ldID0gJGk7IGdldGxpbmU7IGZvcihpID0gMTsgaSA8PSBO
+RjsgaSsrKSBwcmludGYoIiUzMnMgJXNcbiIsICBiYWtbaV0sJGkpfScKZWNo
+byAiIgoKIyBjYXQgL3Byb2MvbmV0L3NubXA2Cg==
 
-#include <linux/module.h>
-#include <linux/skbuff.h>
-#include <linux/types.h>
-#include <linux/netfilter/x_tables.h>
-#include <linux/netfilter/xt_IPHMARK.h>
-
-MODULE_LICENCE("GPL");
-MODULE_AUTHOR("Marek Becka <beckam2@fel.cvut.cz");
-MODULE_DESCRIPTION("Xtables: mark packet with IP header bits");
-MODULE_ALIAS("ipt_IPHMARK");
-MODULE_ALIAS("ip6t_IPHMARK");
-
-static unsigned int iphmark_tg(struct sk_buff *skb,
-                               const struct net_device *in, 
-			       const struct net_device *out, 
-			       unsigned int hooknum,                        
-			       const struct xt_target *target, 
-			       const void *targinfo)
-{
-	const struct xt_iphmark_target_info *iphminfo = targinfo;
-	int pos = iphminfo->offset + skb_network_offset(skb);
-	u32 mark;
-
-	if (unlikely(skb_copy_bits(skb, pos, &mark, sizeof(mark)))) 
-		BUG();
-		
-	mark = ntohl(mark);
-	mark &= iphminfo->mask;
-	
-	skb->mark = mark;
-	return XT_CONTINUE;
-}
-
-static bool check_offset(const int offset, const int maximum_offset)
-{
-	if (offset > maximum_offset) {
-		printk(KERN_WARNING "IPHMARK: invalid offset %d\n", offset);
-		return false;
-	}
-	return true;
-}
-
-static bool iphmark_tg_check4(const char *tablename, const void *entry,
-                              const struct xt_target *target, void *targinfo,
-		              unsigned int hook_mask)
-{
-	const struct xt_iphmark_target_info *iphminfo = targinfo;
-
-	return check_offset(iphminfo->offset, IP4_MAX_IPHOFFSET);
-}
-
-static bool iphmark_tg_check6(const char *tablename, const void *entry,
-                              const struct xt_target *target, void *targinfo,
-			      unsigned int hook_mask)
-{
-	const struct xt_iphmark_target_info *iphminfo = targinfo;
-
-	return check_offset(iphminfo->offset, IP6_MAX_IPHOFFSET);
-}
-
-static struct xt_target iphmark_tg_reg[] __read_mostly = {
-	{
-		.name		= "IPHMARK",
-		.family		= AF_INET,
-		.checkentry	= iphmark_tg_check4,
-		.target		= iphmark_tg,		
-		.targetsize	= sizeof(struct xt_iphmark_target_info),
-		.table 		= "mangle",
-		.me		= THIS_MODULE,
-	},
-	{
-		.name		= "IPHMARK",
-		.family		= AF_INET6,
-		.checkentry	= iphmark_tg_check6,
-		.target		= iphmark_tg,
-		.targetsize	= sizeof(struct xt_iphmark_target_info),
-		.table		= "mangle",
-		.me		= THIS_MODULE,
-	},
-};
-
-static int __init iphmark_tg_init(void)
-{
-	return xt_register_targets(iphmark_tg_reg, ARRAY_SIZE(iphmark_tg_reg));
-}
-
-static void __exit iphmark_tg_exit(void)
-{
-	xt_unregister_targets(iphmark_tg_reg, ARRAY_SIZE(iphmark_tg_reg));
-}
-
-module_init(iphmark_tg_init);
-module_exit(iphmark_tg_exit);
-
-
---------------090800040509080405080702
-Content-Type: text/plain;
- name="xt_IPHMARK.h"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="xt_IPHMARK.h"
-
-#ifndef _XT_IPHMARK_H
-#define _XT_IPHMARK_H
-
-#define IP4_MAX_IPHOFFSET (20 - 4)
-#define IP6_MAX_IPHOFFSET (40 - 4) 
-
-struct xt_iphmark_target_info {
-	unsigned int offset;
-	u_int32_t mask;
-};
-
-#endif /* _XT_IPHMARK_H */
-
-
---------------090800040509080405080702--
+---696208474-650319758-1219045458=:23854--
