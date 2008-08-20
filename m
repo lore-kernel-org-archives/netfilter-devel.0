@@ -1,61 +1,74 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: libxt_recent: do allow --rttl for --update
-Date: Wed, 20 Aug 2008 13:49:49 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0808201343340.26080@fbirervta.pbzchgretzou.qr>
-References: <alpine.LNX.1.10.0808031503320.6502@fbirervta.pbzchgretzou.qr> <48AC5002.2070401@iblink.com.cn>
+From: adobriyan@gmail.com
+Subject: [PATCH] nf_conntrack_sip: fix by making helper pointers thread-local
+Date: Thu, 21 Aug 2008 00:09:00 +0400
+Message-ID: <20080820200900.GA32237@x200.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, iptables@iblink.com.cn
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:51329 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751811AbYHTRtx (ORCPT
+Received: from yx-out-2324.google.com ([74.125.44.29]:14976 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752233AbYHTUHl (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 Aug 2008 13:49:53 -0400
-In-Reply-To: <48AC5002.2070401@iblink.com.cn>
+	Wed, 20 Aug 2008 16:07:41 -0400
+Received: by yx-out-2324.google.com with SMTP id 8so287070yxm.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 20 Aug 2008 13:07:40 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 5c395d782e97ce7218acebc8c8bb950808adde97
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Wed Aug 20 13:36:45 2008 -0400
+Patrick, do I read correctly that ->help hook can run concurrently with itself?
 
-libxt_recent: do allow --rttl for --update
+If yes, apply this patch to fix potential crashes and all sorts of
+nasties.
 
-Tony Ho noticed a too-strict check in xt_recent, so here is a fix.
 
-Reported-by: Tony Ho <iptables@iblink.com.cn>
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+
+[PATCH] nf_conntrack_sip: de-static helper pointers
+
+Helper's ->help hook can run concurrently with itself, so iterating over
+SIP helpers with static pointer won't work reliably.
+
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 ---
- extensions/libipt_recent.c   |    2 +-
- extensions/libipt_recent.man |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/extensions/libipt_recent.c b/extensions/libipt_recent.c
-index 94f246a..7281fe5 100644
---- a/extensions/libipt_recent.c
-+++ b/extensions/libipt_recent.c
-@@ -165,7 +165,7 @@ static void recent_check(unsigned int flags)
- 			"recent: you must specify one of `--set', `--rcheck' "
- 			"`--update' or `--remove'");
- 	if ((flags & IPT_RECENT_TTL) &&
--	    (flags & (IPT_RECENT_SET | IPT_RECENT_REMOVE | IPT_RECENT_UPDATE)))
-+	    (flags & (IPT_RECENT_SET | IPT_RECENT_REMOVE)))
- 		exit_error(PARAMETER_PROBLEM,
- 		           "recent: --rttl may only be used with --rcheck or "
- 		           "--update");
-diff --git a/extensions/libipt_recent.man b/extensions/libipt_recent.man
-index 02432ba..d5bdaa0 100644
---- a/extensions/libipt_recent.man
-+++ b/extensions/libipt_recent.man
-@@ -50,7 +50,7 @@ than or equal to the given value. This option may be used along with
- number of hits within a specific time frame.
- .TP
- \fB--rttl\fR
--This option must be used in conjunction with one of \fB--rcheck\fR or
-+This option may only be used in conjunction with one of \fB--rcheck\fR or
- \fB--update\fR. When used, this will narrow the match to only happen
- when the address is in the list and the TTL of the current packet
- matches that of the packet which hit the \fB--set\fR rule. This may be
+ net/netfilter/nf_conntrack_sip.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -1193,7 +1193,6 @@ static const struct sip_handler sip_handlers[] = {
+ static int process_sip_response(struct sk_buff *skb,
+ 				const char **dptr, unsigned int *datalen)
+ {
+-	static const struct sip_handler *handler;
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ 	unsigned int matchoff, matchlen;
+@@ -1214,6 +1213,8 @@ static int process_sip_response(struct sk_buff *skb,
+ 	dataoff = matchoff + matchlen + 1;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(sip_handlers); i++) {
++		const struct sip_handler *handler;
++
+ 		handler = &sip_handlers[i];
+ 		if (handler->response == NULL)
+ 			continue;
+@@ -1228,13 +1229,14 @@ static int process_sip_response(struct sk_buff *skb,
+ static int process_sip_request(struct sk_buff *skb,
+ 			       const char **dptr, unsigned int *datalen)
+ {
+-	static const struct sip_handler *handler;
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ 	unsigned int matchoff, matchlen;
+ 	unsigned int cseq, i;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(sip_handlers); i++) {
++		const struct sip_handler *handler;
++
+ 		handler = &sip_handlers[i];
+ 		if (handler->request == NULL)
+ 			continue;
+
