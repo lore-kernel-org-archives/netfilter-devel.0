@@ -1,155 +1,61 @@
-From: "Tony.Ho" <iptables@iblink.com.cn>
-Subject: Re: libxt_recent: do not allow both --set and --rttl
-Date: Thu, 21 Aug 2008 01:10:26 +0800
-Message-ID: <48AC5002.2070401@iblink.com.cn>
-References: <alpine.LNX.1.10.0808031503320.6502@fbirervta.pbzchgretzou.qr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: libxt_recent: do allow --rttl for --update
+Date: Wed, 20 Aug 2008 13:49:49 -0400 (EDT)
+Message-ID: <alpine.LNX.1.10.0808201343340.26080@fbirervta.pbzchgretzou.qr>
+References: <alpine.LNX.1.10.0808031503320.6502@fbirervta.pbzchgretzou.qr> <48AC5002.2070401@iblink.com.cn>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: Jan Engelhardt <jengelh@medozas.de>,
-	netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, iptables@iblink.com.cn
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from [61.128.196.5] ([61.128.196.5]:6900 "EHLO mail.iblink.com.cn"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1752005AbYHTRSI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 Aug 2008 13:18:08 -0400
-In-Reply-To: <alpine.LNX.1.10.0808031503320.6502@fbirervta.pbzchgretzou.qr>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:51329 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751811AbYHTRtx (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 20 Aug 2008 13:49:53 -0400
+In-Reply-To: <48AC5002.2070401@iblink.com.cn>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-+	if ((flags & IPT_RECENT_TTL) &&
-+	    (flags & (IPT_RECENT_SET | IPT_RECENT_REMOVE | IPT_RECENT_UPDATE)))
+commit 5c395d782e97ce7218acebc8c8bb950808adde97
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Wed Aug 20 13:36:45 2008 -0400
 
-I think there should be:
+libxt_recent: do allow --rttl for --update
 
-+	if ((flags & IPT_RECENT_TTL) &&
+Tony Ho noticed a too-strict check in xt_recent, so here is a fix.
+
+Reported-by: Tony Ho <iptables@iblink.com.cn>
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ extensions/libipt_recent.c   |    2 +-
+ extensions/libipt_recent.man |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/extensions/libipt_recent.c b/extensions/libipt_recent.c
+index 94f246a..7281fe5 100644
+--- a/extensions/libipt_recent.c
++++ b/extensions/libipt_recent.c
+@@ -165,7 +165,7 @@ static void recent_check(unsigned int flags)
+ 			"recent: you must specify one of `--set', `--rcheck' "
+ 			"`--update' or `--remove'");
+ 	if ((flags & IPT_RECENT_TTL) &&
+-	    (flags & (IPT_RECENT_SET | IPT_RECENT_REMOVE | IPT_RECENT_UPDATE)))
 +	    (flags & (IPT_RECENT_SET | IPT_RECENT_REMOVE)))
-
-Is it rhght? 
-
-
-
-Jan Engelhardt wrote:
-> commit a49a4695616dd8c467360af5447869e3a68c4f4d
-> Author: Jan Engelhardt <jengelh@medozas.de>
-> Date:   Sun Aug 3 15:03:27 2008 -0400
->
-> libxt_recent: do not allow both --set and --rttl
->
-> Reported-by: Erich Schubert <erich@debian.org>
-> Reference: Debian bug #346034
->
-> "I was using the --rttl option in my --set line; this caused all
-> incoming ssh connections to be rejected; --rttl is only to be used
-> with --rcheck and --update."
->
-> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
-> ---
->  extensions/libipt_recent.c |   33 +++++++++++++++++++++++----------
->  1 files changed, 23 insertions(+), 10 deletions(-)
->
-> diff --git a/extensions/libipt_recent.c b/extensions/libipt_recent.c
-> index 51b0d15..108de2f 100644
-> --- a/extensions/libipt_recent.c
-> +++ b/extensions/libipt_recent.c
-> @@ -75,6 +75,10 @@ static void recent_init(struct xt_entry_match *match)
->  	info->side = IPT_RECENT_SOURCE;
->  }
->  
-> +#define RECENT_CMDS \
-> +	(IPT_RECENT_SET | IPT_RECENT_CHECK | \
-> +	IPT_RECENT_UPDATE | IPT_RECENT_REMOVE)
-> +
->  /* Function which parses command options; returns true if it
->     ate an option */
->  static int recent_parse(int c, char **argv, int invert, unsigned int *flags,
-> @@ -83,43 +87,47 @@ static int recent_parse(int c, char **argv, int invert, unsigned int *flags,
->  	struct ipt_recent_info *info = (struct ipt_recent_info *)(*match)->data;
->  	switch (c) {
->  		case 201:
-> -			if (*flags) exit_error(PARAMETER_PROBLEM,
-> +			if (*flags & RECENT_CMDS)
-> +				exit_error(PARAMETER_PROBLEM,
->  					"recent: only one of `--set', `--rcheck' "
->  					"`--update' or `--remove' may be set");
->  			check_inverse(optarg, &invert, &optind, 0);
->  			info->check_set |= IPT_RECENT_SET;
->  			if (invert) info->invert = 1;
-> -			*flags = 1;
-> +			*flags |= IPT_RECENT_SET;
->  			break;
->  			
->  		case 202:
-> -			if (*flags) exit_error(PARAMETER_PROBLEM,
-> +			if (*flags & RECENT_CMDS)
-> +				exit_error(PARAMETER_PROBLEM,
->  					"recent: only one of `--set', `--rcheck' "
->  					"`--update' or `--remove' may be set");
->  			check_inverse(optarg, &invert, &optind, 0);
->  			info->check_set |= IPT_RECENT_CHECK;
->  			if(invert) info->invert = 1;
-> -			*flags = 1;
-> +			*flags |= IPT_RECENT_CHECK;
->  			break;
->  
->  		case 203:
-> -			if (*flags) exit_error(PARAMETER_PROBLEM,
-> +			if (*flags & RECENT_CMDS)
-> +				exit_error(PARAMETER_PROBLEM,
->  					"recent: only one of `--set', `--rcheck' "
->  					"`--update' or `--remove' may be set");
->  			check_inverse(optarg, &invert, &optind, 0);
->  			info->check_set |= IPT_RECENT_UPDATE;
->  			if (invert) info->invert = 1;
-> -			*flags = 1;
-> +			*flags |= IPT_RECENT_UPDATE;
->  			break;
->  
->  		case 206:
-> -			if (*flags) exit_error(PARAMETER_PROBLEM,
-> +			if (*flags & RECENT_CMDS)
-> +				exit_error(PARAMETER_PROBLEM,
->  					"recent: only one of `--set', `--rcheck' "
->  					"`--update' or `--remove' may be set");
->  			check_inverse(optarg, &invert, &optind, 0);
->  			info->check_set |= IPT_RECENT_REMOVE;
->  			if (invert) info->invert = 1;
-> -			*flags = 1;
-> +			*flags |= IPT_RECENT_REMOVE;
->  			break;
->  
->  		case 204:
-> @@ -132,6 +140,7 @@ static int recent_parse(int c, char **argv, int invert, unsigned int *flags,
->  
->  		case 207:
->  			info->check_set |= IPT_RECENT_TTL;
-> +			*flags |= IPT_RECENT_TTL;
->  			break;
->  
->  		case 208:
-> @@ -157,11 +166,15 @@ static int recent_parse(int c, char **argv, int invert, unsigned int *flags,
->  /* Final check; must have specified a specific option. */
->  static void recent_check(unsigned int flags)
->  {
-> -
-> -	if (!flags)
-> +	if (!(flags & RECENT_CMDS))
->  		exit_error(PARAMETER_PROBLEM,
->  			"recent: you must specify one of `--set', `--rcheck' "
->  			"`--update' or `--remove'");
-> +	if ((flags & IPT_RECENT_TTL) &&
-> +	    (flags & (IPT_RECENT_SET | IPT_RECENT_REMOVE | IPT_RECENT_UPDATE)))
-> +		exit_error(PARAMETER_PROBLEM,
-> +		           "recent: --rttl may only be used with --rcheck or "
-> +		           "--update");
->  }
->  
->  /* Prints out the matchinfo. */
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->   
-
+ 		exit_error(PARAMETER_PROBLEM,
+ 		           "recent: --rttl may only be used with --rcheck or "
+ 		           "--update");
+diff --git a/extensions/libipt_recent.man b/extensions/libipt_recent.man
+index 02432ba..d5bdaa0 100644
+--- a/extensions/libipt_recent.man
++++ b/extensions/libipt_recent.man
+@@ -50,7 +50,7 @@ than or equal to the given value. This option may be used along with
+ number of hits within a specific time frame.
+ .TP
+ \fB--rttl\fR
+-This option must be used in conjunction with one of \fB--rcheck\fR or
++This option may only be used in conjunction with one of \fB--rcheck\fR or
+ \fB--update\fR. When used, this will narrow the match to only happen
+ when the address is in the list and the TTL of the current packet
+ matches that of the packet which hit the \fB--set\fR rule. This may be
