@@ -1,38 +1,199 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: xtables-addons git repo inaccessible
-Date: Tue, 19 Aug 2008 17:13:15 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0808191711210.28534@fbirervta.pbzchgretzou.qr>
-References: <38bcb3ec0808191343m5052813fsfc7b798ea5f84252@mail.gmail.com>
+From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
+Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility
+ workaround
+Date: Tue, 19 Aug 2008 21:34:17 -0300
+Message-ID: <20080819213417.45133573@tux>
+References: <Pine.LNX.4.64.0808081256560.4551@wrl-59.cs.helsinki.fi>
+	<20080811.144421.234396007.davem@davemloft.net>
+	<200808120946.19459.thomas.jarosch@intra2net.com>
+	<20080812.011822.155249871.davem@davemloft.net>
+	<20080812144309.7d62fd86@tux>
+	<Pine.LNX.4.64.0808122044450.16105@wrl-59.cs.helsinki.fi>
+	<20080813145310.0c1e534c@tux>
+	<Pine.LNX.4.64.0808132108480.18807@wrl-59.cs.helsinki.fi>
+	<20080815013407.4a594288@tux>
+	<Pine.LNX.4.64.0808150939270.23522@wrl-59.cs.helsinki.fi>
+	<20080815183511.1c81be23@tux>
+	<Pine.LNX.4.64.0808160039230.6911@wrl-59.cs.helsinki.fi>
+	<20080815231538.7999c017@tux>
+	<Pine.LNX.4.64.0808161002500.7264@wrl-59.cs.helsinki.fi>
+	<Pine.LNX.4.64.0808162210390.7443@wrl-59.cs.helsinki.fi>
+	<20080816213615.689ddf8f@tux>
+	<Pine.LNX.4.64.0808181042290.23854@wrl-59.cs.helsinki.fi>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: James King <t.james.king@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
+	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
+	Patrick Hardy <kaber@trash.net>, sr@securenet.de,
+	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
+To: "Ilpo =?ISO-8859-1?Q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:42720 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753366AbYHSVNR (ORCPT
+Received: from mail-gx0-f16.google.com ([209.85.217.16]:49772 "EHLO
+	mail-gx0-f16.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752933AbYHTAe0 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 19 Aug 2008 17:13:17 -0400
-In-Reply-To: <38bcb3ec0808191343m5052813fsfc7b798ea5f84252@mail.gmail.com>
+	Tue, 19 Aug 2008 20:34:26 -0400
+Received: by gxk9 with SMTP id 9so5943976gxk.13
+        for <netfilter-devel@vger.kernel.org>; Tue, 19 Aug 2008 17:34:25 -0700 (PDT)
+In-Reply-To: <Pine.LNX.4.64.0808181042290.23854@wrl-59.cs.helsinki.fi>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Tue, 19 Aug 2008 13:38:35 +0300 (EEST)
+"Ilpo J=E4rvinen" <ilpo.jarvinen@helsinki.fi> wrote:
 
-On Tuesday 2008-08-19 16:43, James King wrote:
->
->Attempting to pull or clone off of your xtables-addons repo (indeed
->any repo on git://dev.medozas.de) is currently failing:
->
->$ git pull
->fatal: The remote end hung up unexpectedly
->
->$ git clone git://dev.medozas.de/xtables-addons
->Initialized empty Git repository in /usr/src/git/a/xtables-addons/.git/
->fatal: read error (Connection reset by peer)
->fetch-pack from 'git://dev.medozas.de/xtables-addons' failed.
+> Perhaps, though it's not at all clear how it could do that...
 
-Git 1.6.0 update -- hooray! *snicker* forgot to update /etc/xinetd.d/git 
-to use the new path /usr/libexec/git-core, works now again. Thanks for 
-noticing!
+	I was thinking here of of some specific configuration I use.
+=46or example, I always used the wonder shaper htb script:
 
+http://lartc.org/howto/lartc.cookbook.ultimate-tc.html#AEN2241
+
+	Could HTB mess with frto or cause this problem? Would it be
+useful to disable completely HTB and use just the default scheduler?
+
+> Do you have net namespaces enabled CONFIG_NET_NS in .config?
+
+	I couldn't find this specific option:
+
+fraga@tux /usr/src/linux$ grep CONFIG_NET_NS .config
+fraga@tux /usr/src/linux$=20
+
+	But I have those:
+
+fraga@tux /usr/src/linux$ grep CONFIG_NET_ .config
+# CONFIG_NET_KEY is not set
+# CONFIG_NET_IPIP is not set
+# CONFIG_NET_IPGRE is not set
+CONFIG_NET_SCHED=3Dy
+# CONFIG_NET_SCH_CBQ is not set
+CONFIG_NET_SCH_HTB=3Dm
+# CONFIG_NET_SCH_HFSC is not set
+CONFIG_NET_SCH_PRIO=3Dm
+CONFIG_NET_SCH_RED=3Dm
+CONFIG_NET_SCH_SFQ=3Dm
+# CONFIG_NET_SCH_TEQL is not set
+CONFIG_NET_SCH_TBF=3Dm
+CONFIG_NET_SCH_GRED=3Dm
+CONFIG_NET_SCH_DSMARK=3Dm
+# CONFIG_NET_SCH_NETEM is not set
+CONFIG_NET_SCH_INGRESS=3Dm
+CONFIG_NET_CLS=3Dy
+# CONFIG_NET_CLS_BASIC is not set
+CONFIG_NET_CLS_TCINDEX=3Dm
+CONFIG_NET_CLS_ROUTE4=3Dm
+CONFIG_NET_CLS_ROUTE=3Dy
+CONFIG_NET_CLS_FW=3Dm
+CONFIG_NET_CLS_U32=3Dm
+CONFIG_NET_CLS_RSVP=3Dm
+# CONFIG_NET_CLS_RSVP6 is not set
+# CONFIG_NET_CLS_FLOW is not set
+# CONFIG_NET_EMATCH is not set
+CONFIG_NET_CLS_ACT=3Dy
+CONFIG_NET_ACT_POLICE=3Dy
+# CONFIG_NET_ACT_GACT is not set
+# CONFIG_NET_ACT_MIRRED is not set
+# CONFIG_NET_ACT_IPT is not set
+# CONFIG_NET_ACT_NAT is not set
+# CONFIG_NET_ACT_PEDIT is not set
+# CONFIG_NET_ACT_SIMP is not set
+# CONFIG_NET_CLS_IND is not set
+CONFIG_NET_SCH_FIFO=3Dy
+# CONFIG_NET_PKTGEN is not set
+# CONFIG_NET_9P is not set
+# CONFIG_NET_SB1000 is not set
+CONFIG_NET_ETHERNET=3Dy
+# CONFIG_NET_VENDOR_3COM is not set
+# CONFIG_NET_TULIP is not set
+CONFIG_NET_PCI=3Dy
+# CONFIG_NET_POCKET is not set
+# CONFIG_NET_FC is not set
+# CONFIG_NET_POLL_CONTROLLER is not set
+
+	And that:
+
+fraga@tux /usr/src/linux$ grep NAMESPACE .config
+CONFIG_NAMESPACES=3Dy
+
+	but this one, I think, isn't related to what you asked me.
+
+> Any netfilter (iptables) rules on server which could cause those pack=
+ets=20
+> to not reach TCP layer?
+
+	Here are the complete rules:
+
+# Generated by iptables-save v1.3.8 on Tue Aug 19 21:28:12 2008
+*filter
+:INPUT DROP [627:34387]
+:FORWARD DROP [0:0]
+:OUTPUT ACCEPT [58771289:83128359870]
+:DROP_INPUT - [0:0]
+:FLDR - [0:0]
+:LDR - [0:0]
+-A INPUT -i lo -j ACCEPT=20
+-A INPUT -j DROP_INPUT=20
+-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT=20
+-A INPUT -p tcp -m multiport --dports 80,21,25,53,119,443,873,993,995
+-A INPUT -s 192.168.102.1 -p tcp -m tcp --dport 3493 -j ACCEPT=20
+-A INPUT -p tcp -m tcp --dport 22 -j ACCEPT=20
+-A INPUT -p udp -m udp --dport 53 -j ACCEPT=20
+-A INPUT -p tcp -m tcp --dport 113 -j REJECT --reject-with tcp-reset=20
+-A INPUT -p udp -m udp --dport 1194:1196 -j ACCEPT=20
+-A INPUT -p icmp -m icmp --icmp-type 8 -j ACCEPT=20
+-A INPUT -j LDR=20
+-A FORWARD -j FLDR=20
+-A DROP_INPUT -s 216.201.112.111 -m comment --comment "deborahsafe Spam=
+" -j DROP=20
+-A DROP_INPUT -s 200.49.247.241 -p tcp -m tcp --dport 22 -j DROP=20
+-A DROP_INPUT -s 189.70.204.3 -p tcp -m tcp --dport 21 -j DROP=20
+-A DROP_INPUT -s 189.70.204.3 -p tcp -m tcp --dport 21 -j DROP=20
+-A DROP_INPUT -s 189.70.204.3 -p tcp -m tcp --dport 21 -j DROP=20
+-A FLDR -j LOG --log-prefix "DROP [FORWARD]: " --log-level 6 --log-ip-o=
+ptions=20
+-A FLDR -j DROP=20
+-A LDR -j LOG --log-prefix "DROP [INPUT]: " --log-level 6 --log-ip-opti=
+ons=20
+-A LDR -j DROP=20
+COMMIT
+# Completed on Tue Aug 19 21:28:13 2008
+
+	As you can see, it's a preetty simple set of rules, nothing exotic her=
+e.
+
+> MIBs might give some clue why those segments didn't get accepted. Mos=
+t=20
+> interesting ones are PAWSEstab, TCPAbortOnSyn and InErrs. One can use=
+=20
+> /bin/cut to read those from the one-line files if one wants to (howev=
+er,
+> I attached a script which transposes them to get them somewhat=20
+> human-readable). Also having the /proc/net/tcp output from the server=
+=20
+> while stalling would be (have been) useful to reveal state info (but =
+I=20
+> should have remembered to ask you to run it on both of them :-)).=20
+
+	Ok ;) No problem, when I get the problem, I'll provide you the request=
+ed=20
+information.
+
+> Also, I wonder what that [|tcp] hides, e.g., "<nop,nop,timestamp=20
+> 15980976 70381399,nop,nop,[|tcp]>" in tcpdump (and that was for an AC=
+K=20
+> which doesn't make too much sense to me there). It occurs because=20
+> snaplen which was given for tcpdump is small enough to make TCP heade=
+r=20
+> partial.
+
+	Hmmm, I don't know. This is complex to me, but I'll apply your script.
+
+	Thank you!
+
+--=20
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
