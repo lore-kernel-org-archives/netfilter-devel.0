@@ -1,7 +1,7 @@
 From: "=?ISO-8859-1?Q?Ilpo_J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
 Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility workaround
-Date: Wed, 20 Aug 2008 10:57:44 +0300 (EEST)
-Message-ID: <Pine.LNX.4.64.0808201053100.20621@wrl-59.cs.helsinki.fi>
+Date: Wed, 20 Aug 2008 15:37:13 +0300 (EEST)
+Message-ID: <Pine.LNX.4.64.0808201358490.4551@wrl-59.cs.helsinki.fi>
 References: <Pine.LNX.4.64.0808081256560.4551@wrl-59.cs.helsinki.fi>
  <20080811.144421.234396007.davem@davemloft.net> <200808120946.19459.thomas.jarosch@intra2net.com>
  <20080812.011822.155249871.davem@davemloft.net> <20080812144309.7d62fd86@tux>
@@ -13,28 +13,30 @@ References: <Pine.LNX.4.64.0808081256560.4551@wrl-59.cs.helsinki.fi>
  <Pine.LNX.4.64.0808162210390.7443@wrl-59.cs.helsinki.fi> <20080816213615.689ddf8f@tux>
  <Pine.LNX.4.64.0808181042290.23854@wrl-59.cs.helsinki.fi> <20080819213417.45133573@tux>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-696208474-1316780446-1219219064=:20621"
+Content-Type: MULTIPART/MIXED; boundary="-696208474-776036675-1219231476=:4551"
 Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
 	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
-	Patrick Hardy <kaber@trash.net>, sr@securenet.de,
+	Patrick Hardy <kaber@trash.net>,
 	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
 To: "=?ISO-8859-1?Q?D=E2niel?= Fraga" <fragabr@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from courier.cs.helsinki.fi ([128.214.9.1]:40213 "EHLO
+Received: from courier.cs.helsinki.fi ([128.214.9.1]:38199 "EHLO
 	mail.cs.helsinki.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751617AbYHTH5r (ORCPT
+	with ESMTP id S1753243AbYHTMhR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 Aug 2008 03:57:47 -0400
+	Wed, 20 Aug 2008 08:37:17 -0400
 In-Reply-To: <20080819213417.45133573@tux>
+Content-ID: <Pine.LNX.4.64.0808201510100.4551@wrl-59.cs.helsinki.fi>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
   This message is in MIME format.  The first part should be readable text,
   while the remaining parts are likely unreadable without MIME-aware tools.
 
----696208474-1316780446-1219219064=:20621
-Content-Type: TEXT/PLAIN; charset=iso-8859-1
+---696208474-776036675-1219231476=:4551
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
+Content-ID: <Pine.LNX.4.64.0808201424521.4551@wrl-59.cs.helsinki.fi>
 
 On Tue, 19 Aug 2008, Dâniel Fraga wrote:
 
@@ -50,7 +52,22 @@ On Tue, 19 Aug 2008, Dâniel Fraga wrote:
 > 
 > 	Could HTB mess with frto or cause this problem? Would it be
 > useful to disable completely HTB and use just the default scheduler?
-> 
+
+Based on irc discussion with davem, there is a htb bug which can cause 
+corruption of the retransmitted TCP packets (and then a discard due to 
+checksum mismatch). That would also explain the strange headers I noticed 
+earlier. There's a patch below (should apply to 2.6.26), please put it at 
+least on the host(s) which use htb (I don't know if both server and the 
+client do use wondershaper script or just the client). An different 
+failure symptoms (one could be somehow frto related as FRTO is used while 
+retransmitting) are also quite well explainable.
+
+But FRTO is mostly not a suspect based on the tcpdump you provided (no 
+FRTO workaround would help in that).
+
+If you tcpdump with -s0 at receiver, you get full payload and therefore 
+it is possible to verify checksum correctness.
+
 > > Do you have net namespaces enabled CONFIG_NET_NS in .config?
 > 
 > 	I couldn't find this specific option:
@@ -59,135 +76,99 @@ On Tue, 19 Aug 2008, Dâniel Fraga wrote:
 > fraga@tux /usr/src/linux$ 
 > 
 > 	But I have those:
-> 
-> fraga@tux /usr/src/linux$ grep CONFIG_NET_ .config
-> # CONFIG_NET_KEY is not set
-> # CONFIG_NET_IPIP is not set
-> # CONFIG_NET_IPGRE is not set
-> CONFIG_NET_SCHED=y
-> # CONFIG_NET_SCH_CBQ is not set
-> CONFIG_NET_SCH_HTB=m
-> # CONFIG_NET_SCH_HFSC is not set
-> CONFIG_NET_SCH_PRIO=m
-> CONFIG_NET_SCH_RED=m
-> CONFIG_NET_SCH_SFQ=m
-> # CONFIG_NET_SCH_TEQL is not set
-> CONFIG_NET_SCH_TBF=m
-> CONFIG_NET_SCH_GRED=m
-> CONFIG_NET_SCH_DSMARK=m
-> # CONFIG_NET_SCH_NETEM is not set
-> CONFIG_NET_SCH_INGRESS=m
-> CONFIG_NET_CLS=y
-> # CONFIG_NET_CLS_BASIC is not set
-> CONFIG_NET_CLS_TCINDEX=m
-> CONFIG_NET_CLS_ROUTE4=m
-> CONFIG_NET_CLS_ROUTE=y
-> CONFIG_NET_CLS_FW=m
-> CONFIG_NET_CLS_U32=m
-> CONFIG_NET_CLS_RSVP=m
-> # CONFIG_NET_CLS_RSVP6 is not set
-> # CONFIG_NET_CLS_FLOW is not set
-> # CONFIG_NET_EMATCH is not set
-> CONFIG_NET_CLS_ACT=y
-> CONFIG_NET_ACT_POLICE=y
-> # CONFIG_NET_ACT_GACT is not set
-> # CONFIG_NET_ACT_MIRRED is not set
-> # CONFIG_NET_ACT_IPT is not set
-> # CONFIG_NET_ACT_NAT is not set
-> # CONFIG_NET_ACT_PEDIT is not set
-> # CONFIG_NET_ACT_SIMP is not set
-> # CONFIG_NET_CLS_IND is not set
-> CONFIG_NET_SCH_FIFO=y
-> # CONFIG_NET_PKTGEN is not set
-> # CONFIG_NET_9P is not set
-> # CONFIG_NET_SB1000 is not set
-> CONFIG_NET_ETHERNET=y
-> # CONFIG_NET_VENDOR_3COM is not set
-> # CONFIG_NET_TULIP is not set
-> CONFIG_NET_PCI=y
-> # CONFIG_NET_POCKET is not set
-> # CONFIG_NET_FC is not set
-> # CONFIG_NET_POLL_CONTROLLER is not set
-> 
-> 	And that:
-> 
-> fraga@tux /usr/src/linux$ grep NAMESPACE .config
-> CONFIG_NAMESPACES=y
-> 
-> 	but this one, I think, isn't related to what you asked me.
-> 
+
+I wasn't in error :-), it took some time also for me to figure out the 
+right one, it's quite expected to be off (and even that missing) since 
+it's currently !SYSFS depending.
+
 > > Any netfilter (iptables) rules on server which could cause those packets 
 > > to not reach TCP layer?
 > 
 > 	Here are the complete rules:
-> 
-> # Generated by iptables-save v1.3.8 on Tue Aug 19 21:28:12 2008
-> *filter
-> :INPUT DROP [627:34387]
-> :FORWARD DROP [0:0]
-> :OUTPUT ACCEPT [58771289:83128359870]
-> :DROP_INPUT - [0:0]
-> :FLDR - [0:0]
-> :LDR - [0:0]
-> -A INPUT -i lo -j ACCEPT 
-> -A INPUT -j DROP_INPUT 
-> -A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT 
-> -A INPUT -p tcp -m multiport --dports 80,21,25,53,119,443,873,993,995
-> -A INPUT -s 192.168.102.1 -p tcp -m tcp --dport 3493 -j ACCEPT 
-> -A INPUT -p tcp -m tcp --dport 22 -j ACCEPT 
-> -A INPUT -p udp -m udp --dport 53 -j ACCEPT 
-> -A INPUT -p tcp -m tcp --dport 113 -j REJECT --reject-with tcp-reset 
-> -A INPUT -p udp -m udp --dport 1194:1196 -j ACCEPT 
-> -A INPUT -p icmp -m icmp --icmp-type 8 -j ACCEPT 
-> -A INPUT -j LDR 
-> -A FORWARD -j FLDR 
-> -A DROP_INPUT -s 216.201.112.111 -m comment --comment "deborahsafe Spam" -j DROP 
-> -A DROP_INPUT -s 200.49.247.241 -p tcp -m tcp --dport 22 -j DROP 
-> -A DROP_INPUT -s 189.70.204.3 -p tcp -m tcp --dport 21 -j DROP 
-> -A DROP_INPUT -s 189.70.204.3 -p tcp -m tcp --dport 21 -j DROP 
-> -A DROP_INPUT -s 189.70.204.3 -p tcp -m tcp --dport 21 -j DROP 
-> -A FLDR -j LOG --log-prefix "DROP [FORWARD]: " --log-level 6 --log-ip-options 
-> -A FLDR -j DROP 
-> -A LDR -j LOG --log-prefix "DROP [INPUT]: " --log-level 6 --log-ip-options 
-> -A LDR -j DROP 
-> COMMIT
-> # Completed on Tue Aug 19 21:28:13 2008
-> 
+
+...snip...
+
 > 	As you can see, it's a preetty simple set of rules, nothing exotic here.
-> 
-> > MIBs might give some clue why those segments didn't get accepted. Most 
-> > interesting ones are PAWSEstab, TCPAbortOnSyn and InErrs. One can use 
-> > /bin/cut to read those from the one-line files if one wants to (however,
-> > I attached a script which transposes them to get them somewhat 
-> > human-readable). Also having the /proc/net/tcp output from the server 
-> > while stalling would be (have been) useful to reveal state info (but I 
-> > should have remembered to ask you to run it on both of them :-)). 
-> 
->  Ok ;) No problem, when I get the problem, I'll provide you the 
->  requested information.
 
-It would be nice to "watch" them for a while (take snapshots with 
-timestamps) during the event, so that it's easy to see increments.
-
-> > Also, I wonder what that [|tcp] hides, e.g., "<nop,nop,timestamp 
-> > 15980976 70381399,nop,nop,[|tcp]>" in tcpdump (and that was for an ACK 
-> > which doesn't make too much sense to me there). It occurs because 
-> > snaplen which was given for tcpdump is small enough to make TCP header 
-> > partial.
-> 
-> 	Hmmm, I don't know. This is complex to me, but I'll apply your script.
-
-Try giving -s<number> among tcpdump parameters, where number is at least 
-100 or so.
-
-Also, it is very useful to have full set of logs about it to see what 
-corresponds to what, so that also the tcpdump and /proc/net/tcp from both 
-ends would be included (one started during the problem is better than 
-nothing but if you can get it from earlier point too it would be quite 
-nice).
-
-I'll comment the rest of this mail later on...
+...agreed.
 
 -- 
  i.
----696208474-1316780446-1219219064=:20621--
+
+
+---
+From: David Miller <davem@davemloft.net>
+
+pkt_sched: Fix return value corruption in HTB and TBF.
+
+Packet schedulers should only return NET_XMIT_DROP iff
+the packet really was dropped.  If the packet does reach
+the device after we return NET_XMIT_DROP then TCP can
+crash because it depends upon the enqueue path return
+values being accurate.
+
+Signed-off-by: David S. Miller <davem@davemloft.net>
+
+diff --git a/net/sched/sch_htb.c b/net/sched/sch_htb.c
+index 3fb58f4..51c3f68 100644
+--- a/net/sched/sch_htb.c
++++ b/net/sched/sch_htb.c
+@@ -595,11 +595,13 @@ static int htb_enqueue(struct sk_buff *skb, struct Qdisc *sch)
+ 		kfree_skb(skb);
+ 		return ret;
+ #endif
+-	} else if (cl->un.leaf.q->enqueue(skb, cl->un.leaf.q) !=
++	} else if ((ret = cl->un.leaf.q->enqueue(skb, cl->un.leaf.q)) !=
+ 		   NET_XMIT_SUCCESS) {
+-		sch->qstats.drops++;
+-		cl->qstats.drops++;
+-		return NET_XMIT_DROP;
++		if (ret == NET_XMIT_DROP) {
++			sch->qstats.drops++;
++			cl->qstats.drops++;
++		}
++		return ret;
+ 	} else {
+ 		cl->bstats.packets +=
+ 			skb_is_gso(skb)?skb_shinfo(skb)->gso_segs:1;
+@@ -639,11 +641,13 @@ static int htb_requeue(struct sk_buff *skb, struct Qdisc *sch)
+ 		kfree_skb(skb);
+ 		return ret;
+ #endif
+-	} else if (cl->un.leaf.q->ops->requeue(skb, cl->un.leaf.q) !=
++	} else if ((ret = cl->un.leaf.q->ops->requeue(skb, cl->un.leaf.q)) !=
+ 		   NET_XMIT_SUCCESS) {
+-		sch->qstats.drops++;
+-		cl->qstats.drops++;
+-		return NET_XMIT_DROP;
++		if (ret == NET_XMIT_DROP) {
++			sch->qstats.drops++;
++			cl->qstats.drops++;
++		}
++		return ret;
+ 	} else
+ 		htb_activate(q, cl);
+ 
+diff --git a/net/sched/sch_tbf.c b/net/sched/sch_tbf.c
+index 0b7d78f..fc6f8f3 100644
+--- a/net/sched/sch_tbf.c
++++ b/net/sched/sch_tbf.c
+@@ -123,15 +123,8 @@ static int tbf_enqueue(struct sk_buff *skb, struct Qdisc* sch)
+ 	struct tbf_sched_data *q = qdisc_priv(sch);
+ 	int ret;
+ 
+-	if (skb->len > q->max_size) {
+-		sch->qstats.drops++;
+-#ifdef CONFIG_NET_CLS_ACT
+-		if (sch->reshape_fail == NULL || sch->reshape_fail(skb, sch))
+-#endif
+-			kfree_skb(skb);
+-
+-		return NET_XMIT_DROP;
+-	}
++	if (skb->len > q->max_size)
++		return qdisc_reshape_fail(skb, sch);
+ 
+ 	if ((ret = q->qdisc->enqueue(skb, q->qdisc)) != 0) {
+ 		sch->qstats.drops++;
+---696208474-776036675-1219231476=:4551--
