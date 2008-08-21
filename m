@@ -1,111 +1,77 @@
 From: adobriyan@gmail.com
-Subject: [PATCH 11/38] netns ct: per-netns unconfirmed hash
-Date: Fri, 22 Aug 2008 02:40:30 +0400
-Message-ID: <20080821224030.GB31601@x200.localdomain>
-References: <20080821220059.GK31136@x200.localdomain>
+Subject: [PATCH] Enable netfilter in netns
+Date: Fri, 22 Aug 2008 02:43:45 +0400
+Message-ID: <20080821224345.GD31601@x200.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-To: kaber@trash.net, containers@lists.linux-foundation.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: shemminger@linux-foundation.org, netdev@vger.kernel.org,
+	containers@lists.linux-foundation.org, kaber@trash.net,
+	netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.28]:10132 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757856AbYHUWjH (ORCPT
+Received: from gv-out-0910.google.com ([216.239.58.184]:4640 "EHLO
+	gv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760158AbYHUWmW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Aug 2008 18:39:07 -0400
-Received: by yw-out-2324.google.com with SMTP id 9so11240ywe.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 21 Aug 2008 15:39:06 -0700 (PDT)
+	Thu, 21 Aug 2008 18:42:22 -0400
+Received: by gv-out-0910.google.com with SMTP id e6so83253gvc.37
+        for <netfilter-devel@vger.kernel.org>; Thu, 21 Aug 2008 15:42:20 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <20080821220059.GK31136@x200.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-What is unconfirmed connection in one netns can very well be confirmed
-in another.
+>From kernel perspective, allow entrance in nf_hook_slow().
+
+Stuff which uses nf_register_hook/nf_register_hooks, but otherwise not netns-ready:
+
+	DECnet netfilter
+	ipt_CLUSTERIP
+	nf_nat_standalone.c together with XFRM (?)
+	IPVS
+	several individual match modules (like hashlimit)
+	ctnetlink
+	all sorts of queueing and reporting to userspace
+	L3 and L4 protocol sysctls, bridge sysctls
+	probably something else
+
+Anyway critical mass has been achieved, there is no reason to hide netfilter any longer.
+
+>From userspace perspective, allow to manipulate all sorts of
+iptables/ip6tables/arptables/ebtables rules.
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 ---
 
- include/net/netfilter/nf_conntrack_core.h |    1 -
- include/net/netns/conntrack.h             |    2 ++
- net/netfilter/nf_conntrack_core.c         |    6 +++---
- net/netfilter/nf_conntrack_helper.c       |    3 +--
- 4 files changed, 6 insertions(+), 6 deletions(-)
+ net/netfilter/core.c       |    8 --------
+ net/netfilter/nf_sockopt.c |    3 ---
+ 2 files changed, 11 deletions(-)
 
---- a/include/net/netfilter/nf_conntrack_core.h
-+++ b/include/net/netfilter/nf_conntrack_core.h
-@@ -72,6 +72,5 @@ print_tuple(struct seq_file *s, const struct nf_conntrack_tuple *tuple,
-             const struct nf_conntrack_l4proto *proto);
+--- a/net/netfilter/core.c
++++ b/net/netfilter/core.c
+@@ -165,14 +165,6 @@ int nf_hook_slow(int pf, unsigned int hook, struct sk_buff *skb,
+ 	unsigned int verdict;
+ 	int ret = 0;
  
- extern spinlock_t nf_conntrack_lock ;
--extern struct hlist_head unconfirmed;
+-#ifdef CONFIG_NET_NS
+-	struct net *net;
+-
+-	net = indev == NULL ? dev_net(outdev) : dev_net(indev);
+-	if (net != &init_net)
+-		return 1;
+-#endif
+-
+ 	/* We may already have this, but read-locks nest anyway */
+ 	rcu_read_lock();
  
- #endif /* _NF_CONNTRACK_CORE_H */
---- a/include/net/netns/conntrack.h
-+++ b/include/net/netns/conntrack.h
-@@ -1,6 +1,7 @@
- #ifndef __NETNS_CONNTRACK_H
- #define __NETNS_CONNTRACK_H
+--- a/net/netfilter/nf_sockopt.c
++++ b/net/netfilter/nf_sockopt.c
+@@ -65,9 +65,6 @@ static struct nf_sockopt_ops *nf_sockopt_find(struct sock *sk, int pf,
+ {
+ 	struct nf_sockopt_ops *ops;
  
-+#include <linux/list.h>
- #include <asm/atomic.h>
+-	if (!net_eq(sock_net(sk), &init_net))
+-		return ERR_PTR(-ENOPROTOOPT);
+-
+ 	if (mutex_lock_interruptible(&nf_sockopt_mutex) != 0)
+ 		return ERR_PTR(-EINTR);
  
- struct netns_ct {
-@@ -10,5 +11,6 @@ struct netns_ct {
- 	unsigned int		expect_count;
- 	struct hlist_head	*expect_hash;
- 	int			expect_vmalloc;
-+	struct hlist_head	unconfirmed;
- };
- #endif
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -54,7 +54,6 @@ struct nf_conn nf_conntrack_untracked __read_mostly;
- EXPORT_SYMBOL_GPL(nf_conntrack_untracked);
- 
- unsigned int nf_ct_log_invalid __read_mostly;
--HLIST_HEAD(unconfirmed);
- static struct kmem_cache *nf_conntrack_cachep __read_mostly;
- 
- DEFINE_PER_CPU(struct ip_conntrack_stat, nf_conntrack_stat);
-@@ -596,7 +595,7 @@ init_conntrack(struct net *net,
- 	}
- 
- 	/* Overload tuple linked list to put us in unconfirmed list. */
--	hlist_add_head(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnode, &unconfirmed);
-+	hlist_add_head(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnode, &net->ct.unconfirmed);
- 
- 	spin_unlock_bh(&nf_conntrack_lock);
- 
-@@ -956,7 +955,7 @@ get_next_corpse(struct net *net, int (*iter)(struct nf_conn *i, void *data),
- 				goto found;
- 		}
- 	}
--	hlist_for_each_entry(h, n, &unconfirmed, hnode) {
-+	hlist_for_each_entry(h, n, &net->ct.unconfirmed, hnode) {
- 		ct = nf_ct_tuplehash_to_ctrack(h);
- 		if (iter(ct, data))
- 			set_bit(IPS_DYING_BIT, &ct->status);
-@@ -1152,6 +1151,7 @@ int nf_conntrack_init(struct net *net)
- 		printk(KERN_ERR "Unable to create nf_conntrack_hash\n");
- 		goto err_out;
- 	}
-+	INIT_HLIST_HEAD(&net->ct.unconfirmed);
- 
- 	nf_conntrack_max = max_factor * nf_conntrack_htable_size;
- 
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -156,7 +156,7 @@ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
- 	}
- 
- 	/* Get rid of expecteds, set helpers to NULL. */
--	hlist_for_each_entry(h, n, &unconfirmed, hnode)
-+	hlist_for_each_entry(h, n, &init_net.ct.unconfirmed, hnode)
- 		unhelp(h, me);
- 	for (i = 0; i < nf_conntrack_htable_size; i++) {
- 		hlist_for_each_entry(h, n, &init_net.ct.hash[i], hnode)
--- 
-1.5.6.3
-
 
