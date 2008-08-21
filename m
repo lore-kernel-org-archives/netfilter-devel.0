@@ -1,203 +1,43 @@
 From: adobriyan@gmail.com
-Subject: [PATCH 16/38] netns ct: per-netns proc ip_conntrack
-Date: Fri, 22 Aug 2008 02:03:03 +0400
-Message-ID: <20080821220303.GP31136@x200.localdomain>
+Subject: [PATCH 17/38] netns ct: export netns list
+Date: Fri, 22 Aug 2008 02:03:22 +0400
+Message-ID: <20080821220322.GQ31136@x200.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 To: kaber@trash.net, netfilter-devel@vger.kernel.org,
 	netdev@vger.kernel.org, containers@lists.linux-foundation.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.29]:37306 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757314AbYHUWBk (ORCPT
+Received: from yw-out-2324.google.com ([74.125.46.31]:8388 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758805AbYHUWB7 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Aug 2008 18:01:40 -0400
-Received: by yx-out-2324.google.com with SMTP id 8so101772yxm.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 21 Aug 2008 15:01:39 -0700 (PDT)
+	Thu, 21 Aug 2008 18:01:59 -0400
+Received: by yw-out-2324.google.com with SMTP id 9so10068ywe.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 21 Aug 2008 15:01:59 -0700 (PDT)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Conntrack code will use it for
+a) removing expectations and helpers when corresponding module is removed, and
+b) removing conntracks when L3 protocol conntrack module is removed.
+
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 ---
 
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c |   60 ++++++++++++------
- 1 file changed, 40 insertions(+), 20 deletions(-)
+ net/core/net_namespace.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
-@@ -21,18 +21,20 @@
- #include <net/netfilter/nf_conntrack_acct.h>
+--- a/net/core/net_namespace.c
++++ b/net/core/net_namespace.c
+@@ -18,6 +18,7 @@ static struct list_head *first_device = &pernet_list;
+ static DEFINE_MUTEX(net_mutex);
  
- struct ct_iter_state {
-+	struct seq_net_private p;
- 	unsigned int bucket;
- };
+ LIST_HEAD(net_namespace_list);
++EXPORT_SYMBOL_GPL(net_namespace_list);
  
- static struct hlist_node *ct_get_first(struct seq_file *seq)
- {
-+	struct net *net = seq_file_net(seq);
- 	struct ct_iter_state *st = seq->private;
- 	struct hlist_node *n;
- 
- 	for (st->bucket = 0;
- 	     st->bucket < nf_conntrack_htable_size;
- 	     st->bucket++) {
--		n = rcu_dereference(init_net.ct.hash[st->bucket].first);
-+		n = rcu_dereference(net->ct.hash[st->bucket].first);
- 		if (n)
- 			return n;
- 	}
-@@ -42,13 +44,14 @@ static struct hlist_node *ct_get_first(struct seq_file *seq)
- static struct hlist_node *ct_get_next(struct seq_file *seq,
- 				      struct hlist_node *head)
- {
-+	struct net *net = seq_file_net(seq);
- 	struct ct_iter_state *st = seq->private;
- 
- 	head = rcu_dereference(head->next);
- 	while (head == NULL) {
- 		if (++st->bucket >= nf_conntrack_htable_size)
- 			return NULL;
--		head = rcu_dereference(init_net.ct.hash[st->bucket].first);
-+		head = rcu_dereference(net->ct.hash[st->bucket].first);
- 	}
- 	return head;
- }
-@@ -158,8 +161,8 @@ static const struct seq_operations ct_seq_ops = {
- 
- static int ct_open(struct inode *inode, struct file *file)
- {
--	return seq_open_private(file, &ct_seq_ops,
--			sizeof(struct ct_iter_state));
-+	return seq_open_net(inode, file, &ct_seq_ops,
-+			    sizeof(struct ct_iter_state));
- }
- 
- static const struct file_operations ct_file_ops = {
-@@ -167,21 +170,23 @@ static const struct file_operations ct_file_ops = {
- 	.open    = ct_open,
- 	.read    = seq_read,
- 	.llseek  = seq_lseek,
--	.release = seq_release_private,
-+	.release = seq_release_net,
- };
- 
- /* expects */
- struct ct_expect_iter_state {
-+	struct seq_net_private p;
- 	unsigned int bucket;
- };
- 
- static struct hlist_node *ct_expect_get_first(struct seq_file *seq)
- {
-+	struct net *net = seq_file_net(seq);
- 	struct ct_expect_iter_state *st = seq->private;
- 	struct hlist_node *n;
- 
- 	for (st->bucket = 0; st->bucket < nf_ct_expect_hsize; st->bucket++) {
--		n = rcu_dereference(init_net.ct.expect_hash[st->bucket].first);
-+		n = rcu_dereference(net->ct.expect_hash[st->bucket].first);
- 		if (n)
- 			return n;
- 	}
-@@ -191,13 +196,14 @@ static struct hlist_node *ct_expect_get_first(struct seq_file *seq)
- static struct hlist_node *ct_expect_get_next(struct seq_file *seq,
- 					     struct hlist_node *head)
- {
-+	struct net *net = seq_file_net(seq);
- 	struct ct_expect_iter_state *st = seq->private;
- 
- 	head = rcu_dereference(head->next);
- 	while (head == NULL) {
- 		if (++st->bucket >= nf_ct_expect_hsize)
- 			return NULL;
--		head = rcu_dereference(init_net.ct.expect_hash[st->bucket].first);
-+		head = rcu_dereference(net->ct.expect_hash[st->bucket].first);
- 	}
- 	return head;
- }
-@@ -265,8 +271,8 @@ static const struct seq_operations exp_seq_ops = {
- 
- static int exp_open(struct inode *inode, struct file *file)
- {
--	return seq_open_private(file, &exp_seq_ops,
--			sizeof(struct ct_expect_iter_state));
-+	return seq_open_net(inode, file, &exp_seq_ops,
-+			    sizeof(struct ct_expect_iter_state));
- }
- 
- static const struct file_operations ip_exp_file_ops = {
-@@ -274,7 +280,7 @@ static const struct file_operations ip_exp_file_ops = {
- 	.open    = exp_open,
- 	.read    = seq_read,
- 	.llseek  = seq_lseek,
--	.release = seq_release_private,
-+	.release = seq_release_net,
- };
- 
- static void *ct_cpu_seq_start(struct seq_file *seq, loff_t *pos)
-@@ -365,36 +371,51 @@ static const struct file_operations ct_cpu_seq_fops = {
- 	.release = seq_release,
- };
- 
--int __init nf_conntrack_ipv4_compat_init(void)
-+static int __net_init ip_conntrack_net_init(struct net *net)
- {
- 	struct proc_dir_entry *proc, *proc_exp, *proc_stat;
- 
--	proc = proc_net_fops_create(&init_net, "ip_conntrack", 0440, &ct_file_ops);
-+	proc = proc_net_fops_create(net, "ip_conntrack", 0440, &ct_file_ops);
- 	if (!proc)
- 		goto err1;
- 
--	proc_exp = proc_net_fops_create(&init_net, "ip_conntrack_expect", 0440,
-+	proc_exp = proc_net_fops_create(net, "ip_conntrack_expect", 0440,
- 					&ip_exp_file_ops);
- 	if (!proc_exp)
- 		goto err2;
- 
- 	proc_stat = proc_create("ip_conntrack", S_IRUGO,
--				init_net.proc_net_stat, &ct_cpu_seq_fops);
-+				net->proc_net_stat, &ct_cpu_seq_fops);
- 	if (!proc_stat)
- 		goto err3;
- 	return 0;
- 
- err3:
--	proc_net_remove(&init_net, "ip_conntrack_expect");
-+	proc_net_remove(net, "ip_conntrack_expect");
- err2:
--	proc_net_remove(&init_net, "ip_conntrack");
-+	proc_net_remove(net, "ip_conntrack");
- err1:
- 	return -ENOMEM;
- }
- 
-+static void __net_exit ip_conntrack_net_exit(struct net *net)
-+{
-+	remove_proc_entry("ip_conntrack", net->proc_net_stat);
-+	proc_net_remove(net, "ip_conntrack_expect");
-+	proc_net_remove(net, "ip_conntrack");
-+}
-+
-+static struct pernet_operations ip_conntrack_net_ops = {
-+	.init = ip_conntrack_net_init,
-+	.exit = ip_conntrack_net_exit,
-+};
-+
-+int __init nf_conntrack_ipv4_compat_init(void)
-+{
-+	return register_pernet_subsys(&ip_conntrack_net_ops);
-+}
-+
- void __exit nf_conntrack_ipv4_compat_fini(void)
- {
--	remove_proc_entry("ip_conntrack", init_net.proc_net_stat);
--	proc_net_remove(&init_net, "ip_conntrack_expect");
--	proc_net_remove(&init_net, "ip_conntrack");
-+	unregister_pernet_subsys(&ip_conntrack_net_ops);
- }
+ struct net init_net;
+ EXPORT_SYMBOL(init_net);
 -- 
 1.5.6.3
 
