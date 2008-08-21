@@ -1,72 +1,109 @@
 From: adobriyan@gmail.com
-Subject: [PATCH 02/38] netns nf: ip6table_raw in netns for real
-Date: Fri, 22 Aug 2008 01:57:19 +0400
-Message-ID: <20080821215719.GB31136@x200.localdomain>
+Subject: [PATCH 03/38] netns nf: ip6table_mangle in netns for real
+Date: Fri, 22 Aug 2008 01:57:39 +0400
+Message-ID: <20080821215739.GC31136@x200.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
 	containers@lists.linux-foundation.org
 To: kaber@trash.net
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.30]:36301 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755770AbYHUVz4 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Aug 2008 17:55:56 -0400
-Received: by yx-out-2324.google.com with SMTP id 8so100589yxm.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 21 Aug 2008 14:55:56 -0700 (PDT)
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 ---
 
- net/ipv6/netfilter/ip6table_raw.c |   20 ++++++++++++++++----
- 1 file changed, 16 insertions(+), 4 deletions(-)
+ net/ipv6/netfilter/ip6table_mangle.c |   31 +++++++++++++++++++++----------
+ 1 file changed, 21 insertions(+), 10 deletions(-)
 
---- a/net/ipv6/netfilter/ip6table_raw.c
-+++ b/net/ipv6/netfilter/ip6table_raw.c
-@@ -45,25 +45,37 @@ static struct xt_table packet_raw = {
+--- a/net/ipv6/netfilter/ip6table_mangle.c
++++ b/net/ipv6/netfilter/ip6table_mangle.c
+@@ -67,17 +67,29 @@ static struct xt_table packet_mangler = {
  
  /* The work comes in here from netfilter.c. */
  static unsigned int
--ip6t_hook(unsigned int hook,
-+ip6t_pre_routing_hook(unsigned int hook,
+-ip6t_route_hook(unsigned int hook,
++ip6t_in_hook(unsigned int hook,
  	 struct sk_buff *skb,
  	 const struct net_device *in,
  	 const struct net_device *out,
  	 int (*okfn)(struct sk_buff *))
  {
--	return ip6t_do_table(skb, hook, in, out, init_net.ipv6.ip6table_raw);
+-	return ip6t_do_table(skb, hook, in, out, init_net.ipv6.ip6table_mangle);
 +	return ip6t_do_table(skb, hook, in, out,
-+			     dev_net(in)->ipv6.ip6table_raw);
++			     dev_net(in)->ipv6.ip6table_mangle);
+ }
+ 
+ static unsigned int
+-ip6t_local_hook(unsigned int hook,
++ip6t_post_routing_hook(unsigned int hook,
++		struct sk_buff *skb,
++		const struct net_device *in,
++		const struct net_device *out,
++		int (*okfn)(struct sk_buff *))
++{
++	return ip6t_do_table(skb, hook, in, out,
++			     dev_net(out)->ipv6.ip6table_mangle);
 +}
 +
 +static unsigned int
 +ip6t_local_out_hook(unsigned int hook,
-+	 struct sk_buff *skb,
-+	 const struct net_device *in,
-+	 const struct net_device *out,
-+	 int (*okfn)(struct sk_buff *))
-+{
-+	return ip6t_do_table(skb, hook, in, out,
-+			     dev_net(out)->ipv6.ip6table_raw);
- }
+ 		   struct sk_buff *skb,
+ 		   const struct net_device *in,
+ 		   const struct net_device *out,
+@@ -108,7 +120,7 @@ ip6t_local_hook(unsigned int hook,
+ 	/* flowlabel and prio (includes version, which shouldn't change either */
+ 	flowlabel = *((u_int32_t *)ipv6_hdr(skb));
+ 
+-	ret = ip6t_do_table(skb, hook, in, out, init_net.ipv6.ip6table_mangle);
++	ret = ip6t_do_table(skb, hook, in, out, dev_net(out)->ipv6.ip6table_mangle);
+ 
+ 	if (ret != NF_DROP && ret != NF_STOLEN
+ 		&& (memcmp(&ipv6_hdr(skb)->saddr, &saddr, sizeof(saddr))
+@@ -122,35 +134,35 @@ ip6t_local_hook(unsigned int hook,
  
  static struct nf_hook_ops ip6t_ops[] __read_mostly = {
  	{
--	  .hook = ip6t_hook,
-+	  .hook = ip6t_pre_routing_hook,
- 	  .pf = PF_INET6,
- 	  .hooknum = NF_INET_PRE_ROUTING,
- 	  .priority = NF_IP6_PRI_FIRST,
- 	  .owner = THIS_MODULE,
+-		.hook		= ip6t_route_hook,
++		.hook		= ip6t_in_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= PF_INET6,
+ 		.hooknum	= NF_INET_PRE_ROUTING,
+ 		.priority	= NF_IP6_PRI_MANGLE,
  	},
  	{
--	  .hook = ip6t_hook,
-+	  .hook = ip6t_local_out_hook,
- 	  .pf = PF_INET6,
- 	  .hooknum = NF_INET_LOCAL_OUT,
- 	  .priority = NF_IP6_PRI_FIRST,
+-		.hook		= ip6t_route_hook,
++		.hook		= ip6t_in_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= PF_INET6,
+ 		.hooknum	= NF_INET_LOCAL_IN,
+ 		.priority	= NF_IP6_PRI_MANGLE,
+ 	},
+ 	{
+-		.hook		= ip6t_route_hook,
++		.hook		= ip6t_in_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= PF_INET6,
+ 		.hooknum	= NF_INET_FORWARD,
+ 		.priority	= NF_IP6_PRI_MANGLE,
+ 	},
+ 	{
+-		.hook		= ip6t_local_hook,
++		.hook		= ip6t_local_out_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= PF_INET6,
+ 		.hooknum	= NF_INET_LOCAL_OUT,
+ 		.priority	= NF_IP6_PRI_MANGLE,
+ 	},
+ 	{
+-		.hook		= ip6t_route_hook,
++		.hook		= ip6t_post_routing_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= PF_INET6,
+ 		.hooknum	= NF_INET_POST_ROUTING,
+-- 
+1.5.6.3
+
 
