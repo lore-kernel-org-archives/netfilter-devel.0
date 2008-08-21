@@ -1,19 +1,19 @@
 From: adobriyan@gmail.com
-Subject: [PATCH 36/38] netns nat: skip every NOTRACKed connection
-Date: Fri, 22 Aug 2008 02:10:25 +0400
-Message-ID: <20080821221025.GJ31136@x200.localdomain>
+Subject: [PATCH 37/38] netns nat: fixup DNAT in netns
+Date: Fri, 22 Aug 2008 02:10:40 +0400
+Message-ID: <20080821221040.GK31136@x200.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 To: kaber@trash.net, netfilter-devel@vger.kernel.org,
 	netdev@vger.kernel.org, containers@lists.linux-foundation.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from gv-out-0910.google.com ([216.239.58.191]:3723 "EHLO
-	gv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758083AbYHUWJC (ORCPT
+Received: from yx-out-2324.google.com ([74.125.44.29]:39836 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760428AbYHUWJT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Aug 2008 18:09:02 -0400
-Received: by gv-out-0910.google.com with SMTP id e6so78595gvc.37
-        for <netfilter-devel@vger.kernel.org>; Thu, 21 Aug 2008 15:09:01 -0700 (PDT)
+	Thu, 21 Aug 2008 18:09:19 -0400
+Received: by yx-out-2324.google.com with SMTP id 8so103380yxm.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 21 Aug 2008 15:09:18 -0700 (PDT)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -21,32 +21,36 @@ List-ID: <netfilter-devel.vger.kernel.org>
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 ---
 
- net/ipv4/netfilter/nf_nat_core.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ net/ipv4/netfilter/nf_nat_rule.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
---- a/net/ipv4/netfilter/nf_nat_core.c
-+++ b/net/ipv4/netfilter/nf_nat_core.c
-@@ -588,6 +588,10 @@ static int __net_init nf_nat_net_init(struct net *net)
- 						      &net->ipv4.nat_vmalloced);
- 	if (!net->ipv4.nat_bysource)
- 		return -ENOMEM;
-+
-+	/* Initialize fake conntrack so that NAT will skip it */
-+	net->ct.untracked.status |= IPS_NAT_DONE_MASK;
-+
- 	return 0;
+--- a/net/ipv4/netfilter/nf_nat_rule.c
++++ b/net/ipv4/netfilter/nf_nat_rule.c
+@@ -91,13 +91,13 @@ static unsigned int ipt_snat_target(struct sk_buff *skb,
  }
  
-@@ -645,9 +649,6 @@ static int __init nf_nat_init(void)
- 	rcu_assign_pointer(nf_nat_protos[IPPROTO_ICMP], &nf_nat_protocol_icmp);
- 	spin_unlock_bh(&nf_nat_lock);
+ /* Before 2.6.11 we did implicit source NAT if required. Warn about change. */
+-static void warn_if_extra_mangle(__be32 dstip, __be32 srcip)
++static void warn_if_extra_mangle(struct net *net, __be32 dstip, __be32 srcip)
+ {
+ 	static int warned = 0;
+ 	struct flowi fl = { .nl_u = { .ip4_u = { .daddr = dstip } } };
+ 	struct rtable *rt;
  
--	/* Initialize fake conntrack so that NAT will skip it */
--	init_net.ct.untracked.status |= IPS_NAT_DONE_MASK;
--
- 	l3proto = nf_ct_l3proto_find_get((u_int16_t)AF_INET);
+-	if (ip_route_output_key(&init_net, &rt, &fl) != 0)
++	if (ip_route_output_key(net, &rt, &fl) != 0)
+ 		return;
  
- 	BUG_ON(nf_nat_seq_adjust_hook != NULL);
+ 	if (rt->rt_src != srcip && !warned) {
+@@ -130,7 +130,7 @@ static unsigned int ipt_dnat_target(struct sk_buff *skb,
+ 
+ 	if (hooknum == NF_INET_LOCAL_OUT &&
+ 	    mr->range[0].flags & IP_NAT_RANGE_MAP_IPS)
+-		warn_if_extra_mangle(ip_hdr(skb)->daddr,
++		warn_if_extra_mangle(dev_net(out), ip_hdr(skb)->daddr,
+ 				     mr->range[0].min_ip);
+ 
+ 	return nf_nat_setup_info(ct, &mr->range[0], IP_NAT_MANIP_DST);
 -- 
 1.5.6.3
 
