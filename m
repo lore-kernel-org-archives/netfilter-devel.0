@@ -1,52 +1,30 @@
-From: adobriyan@gmail.com
-Subject: [PATCH] nf_conntrack_gre: nf_ct_gre_keymap_flush() fixlet
-Date: Thu, 21 Aug 2008 00:56:46 +0400
-Message-ID: <20080820205646.GB16405@x200.localdomain>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] nf_conntrack_sip: fix by making helper pointers thread-local
+Date: Thu, 21 Aug 2008 13:28:56 +0200
+Message-ID: <48AD5178.4040101@trash.net>
+References: <20080820200900.GA32237@x200.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: kaber@trash.net
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.30]:29551 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752038AbYHTUz1 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 Aug 2008 16:55:27 -0400
-Received: by yx-out-2324.google.com with SMTP id 8so296086yxm.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 20 Aug 2008 13:55:25 -0700 (PDT)
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: adobriyan@gmail.com
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20080820200900.GA32237@x200.localdomain>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-It does "kfree(list_head)" which looks wrong because entity that was
-allocated is definitely not list_head.
+adobriyan@gmail.com wrote:
+> Patrick, do I read correctly that ->help hook can run concurrently with itself?
+> 
+> If yes, apply this patch to fix potential crashes and all sorts of
+> nasties.
+> 
+> 
+> 
+> [PATCH] nf_conntrack_sip: de-static helper pointers
+> 
+> Helper's ->help hook can run concurrently with itself, so iterating over
+> SIP helpers with static pointer won't work reliably.
 
-However, this all works because list_head is first item in
-struct nf_ct_gre_keymap.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
----
-
- net/netfilter/nf_conntrack_proto_gre.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
---- a/net/netfilter/nf_conntrack_proto_gre.c
-+++ b/net/netfilter/nf_conntrack_proto_gre.c
-@@ -45,12 +45,12 @@ static LIST_HEAD(gre_keymap_list);
- 
- void nf_ct_gre_keymap_flush(void)
- {
--	struct list_head *pos, *n;
-+	struct nf_ct_gre_keymap *km, *tmp;
- 
- 	write_lock_bh(&nf_ct_gre_lock);
--	list_for_each_safe(pos, n, &gre_keymap_list) {
--		list_del(pos);
--		kfree(pos);
-+	list_for_each_entry_safe(km, tmp, &gre_keymap_list, list) {
-+		list_del(&km->list);
-+		kfree(km);
- 	}
- 	write_unlock_bh(&nf_ct_gre_lock);
- }
-
+Crap. Good catch, thanks a lot. Applied and I'll push it to -stable.
