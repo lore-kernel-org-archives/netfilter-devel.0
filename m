@@ -1,53 +1,39 @@
-From: adobriyan@gmail.com
-Subject: Re: [PATCH 20/38] netns ct: NOTRACK in netns
-Date: Fri, 22 Aug 2008 15:30:28 +0400
-Message-ID: <20080822113028.GB2321@x200.localdomain>
-References: <20080821220432.GT31136@x200.localdomain> <alpine.LNX.1.10.0808211903000.20596@fbirervta.pbzchgretzou.qr>
+From: WANG Cong <xiyou.wangcong@gmail.com>
+Subject: [Patch] fix one typo
+Date: Fri, 22 Aug 2008 17:32:40 +0100
+Message-ID: <20080822163240.GH3053@hack.voiplan.pt>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: kaber@trash.net, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, containers@lists.linux-foundation.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mu-out-0910.google.com ([209.85.134.184]:55116 "EHLO
-	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752655AbYHVL3H (ORCPT
+Received: from ik-out-1112.google.com ([66.249.90.176]:11567 "EHLO
+	ik-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750801AbYHVQeX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 22 Aug 2008 07:29:07 -0400
-Received: by mu-out-0910.google.com with SMTP id w8so636620mue.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 22 Aug 2008 04:29:05 -0700 (PDT)
+	Fri, 22 Aug 2008 12:34:23 -0400
+Received: by ik-out-1112.google.com with SMTP id c28so371917ika.5
+        for <netfilter-devel@vger.kernel.org>; Fri, 22 Aug 2008 09:34:22 -0700 (PDT)
 Content-Disposition: inline
-In-Reply-To: <alpine.LNX.1.10.0808211903000.20596@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Aug 21, 2008 at 07:06:37PM -0400, Jan Engelhardt wrote:
-> On Thursday 2008-08-21 18:04, adobriyan@gmail.com wrote:
-> 
-> >Make untracked conntrack per-netns.
-> 
-> Why? It does not store any useful information per se, it is
-> merely used to add a third type of ct, iow:
-> 
-> (a) ct==NULL
-> (b) ct!=NULL
-> (c) ct==&untracked
-> 
-> mmap(2)'s return value for example has something similar:
-> 
-> (a) mmap(...)==NULL
-> (b) mmap(...)==MMAP_FAILED
-> (c) otherwise
-> 
-> The untracked ct is a singleton, and should stay one, unless
-> there are further reasons not to do so.
 
-We wait for untracked ct refcount to drop to 1 back:
+Fix a typo in a man page.
 
-	/* wait until all references to nf_conntrack_untracked are dropped */
-	while (atomic_read(&nf_conntrack_untracked.ct_general.use) > 1)
-		schedule();
+Signed-off-by: WANG Cong <wangcong@zeuux.org>
 
-Consequently it should be one per netns, otherwise netns A can prevent
-netns B from stopping.
+---
+diff --git a/extensions/libxt_tcp.man b/extensions/libxt_tcp.man
+index b087fc9..4b7b2d1 100644
+--- a/extensions/libxt_tcp.man
++++ b/extensions/libxt_tcp.man
+@@ -7,7 +7,7 @@ name or a port number. An inclusive range can also be specified,
+ using the format \fIport\fP\fB:\fP\fIport\fP.
+ If the first port is omitted, "0" is assumed; if the last is omitted,
+ "65535" is assumed.
+-If the second port greater then the first they will be swapped.
++If the second port greater than the first they will be swapped.
+ The flag
+ .B --sport
+ is a convenient alias for this option.
 
