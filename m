@@ -1,117 +1,53 @@
-From: Tux <gentuu@gmail.com>
-Subject: Re: PATCH: NATed replies support in cls_flow
-Date: Fri, 22 Aug 2008 05:13:27 +0300
-Message-ID: <200808220513.27432.gentuu@gmail.com>
-References: <200808192005.16752.gentuu@gmail.com> <48AD53F7.4020407@trash.net>
+From: adobriyan@gmail.com
+Subject: Re: [PATCH 20/38] netns ct: NOTRACK in netns
+Date: Fri, 22 Aug 2008 15:30:28 +0400
+Message-ID: <20080822113028.GB2321@x200.localdomain>
+References: <20080821220432.GT31136@x200.localdomain> <alpine.LNX.1.10.0808211903000.20596@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <48AD53F7.4020407@trash.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: kaber@trash.net, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, containers@lists.linux-foundation.org
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mu-out-0910.google.com ([209.85.134.184]:55116 "EHLO
+	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752655AbYHVL3H (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 22 Aug 2008 07:29:07 -0400
+Received: by mu-out-0910.google.com with SMTP id w8so636620mue.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 22 Aug 2008 04:29:05 -0700 (PDT)
 Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <alpine.LNX.1.10.0808211903000.20596@fbirervta.pbzchgretzou.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Patrick and all,
+On Thu, Aug 21, 2008 at 07:06:37PM -0400, Jan Engelhardt wrote:
+> On Thursday 2008-08-21 18:04, adobriyan@gmail.com wrote:
+> 
+> >Make untracked conntrack per-netns.
+> 
+> Why? It does not store any useful information per se, it is
+> merely used to add a third type of ct, iow:
+> 
+> (a) ct==NULL
+> (b) ct!=NULL
+> (c) ct==&untracked
+> 
+> mmap(2)'s return value for example has something similar:
+> 
+> (a) mmap(...)==NULL
+> (b) mmap(...)==MMAP_FAILED
+> (c) otherwise
+> 
+> The untracked ct is a singleton, and should stay one, unless
+> there are further reasons not to do so.
 
-Thursday 21 August 2008 14:39:35 Patrick wrote:
-> Nick wrote:
-> > Hi Patrick!
-> >
-> > This patch adds ability to classify reply packets of NAT'ed connections
-> > entering _into_ an interface (for the actual entering I'm using mirring).
-> >
-> > @@ -197,7 +198,23 @@ static u32 flow_get_nfct(const struct sk_buff *skb)
-> >  #define CTTUPLE(skb, member)                                           \
-> >  ({                                                                     \
-> >         enum ip_conntrack_info ctinfo;                                  \
-> > +       struct nf_conntrack_tuple tuple;                                \
-> > +       struct nf_conntrack_tuple_hash *h;                              \
-> >         struct nf_conn *ct = nf_ct_get(skb, &ctinfo);                   \
-> > +       /* Check if this is reply for a NAT'ed connection. */           \
-> > +       if (!ct) {                                                      \
-> > +               if (nf_ct_get_tuplepr(skb, skb_network_offset(skb),     \
-> > +                   skb->protocol==htons(ETH_P_IP)?AF_INET:AF_INET6,    \
-> > +                   &tuple)) {                                          \
-> > +                       rcu_read_lock();                                \
-> > +                       h = __nf_conntrack_find(&tuple);                \
-> > +                       if (h) {                                        \
-> > +                               ct = nf_ct_tuplehash_to_ctrack(h);      \
-> > +                               ctinfo = IP_CT_NEW;                     \
-> > +                       }                                               \
-> > +                       rcu_read_unlock();                              \
-> > +               }                                                       \
->
-> I agree that this would be useful. Adding a dependency on the conntrack
-> module is not an option however.
-Why don't you think adding configurable dependency (#ifdef/#endif) on the 
-conntrack is not a right way?
-1. This is correct (as for me): we are trying to search for some info that is 
-stored in the conntrack module - so we may add dependency on it (sure, 
-optional)
-2. cls_flow.c module already has the dependency (optional, with #ifdef/#endif)
+We wait for untracked ct refcount to drop to 1 back:
 
+	/* wait until all references to nf_conntrack_untracked are dropped */
+	while (atomic_read(&nf_conntrack_untracked.ct_general.use) > 1)
+		schedule();
 
-> Its also not valid to call the header 
-> parsing functions in this context since they rely on a couple of
-> validations performed by ip_rcv()/ip6_rcv().
-Yes, I didn't dig so deep - so didn't see such requirements.
-We surely can start using the validation and even don't add additional 
-dependencies to cls_flow (IPv4 proto shaper is impossible without IPv4 proto 
-support ;)
+Consequently it should be one per netns, otherwise netns A can prevent
+netns B from stopping.
 
-But, guess I have a better idea...
-
-
-> I can't see a clean way to do this right now, but I'm open to
-> suggestions (please CC netfilter-devel and netdev though).
-
-All I see here - is the "initial" limitation of the shaper: it can 
-shape/schedule only outgoing packets (on egress).
-
-But here we need (well, at least I need ;) shaping/scheduling and on ingress 
-too, which is impossible for now.
-
-As we are starting to add needed crutches to achieve the things at ingress - 
-we are starting to use 'mirring' (yes, we have HTB and HFSC qdiscs with 
-this!). But we still unable to track connections - so we add another 
-functionality to classifying subsystem. As we doing something 
-_already_existing_ (like finding the packet's tuple hash) we are coping the 
-functionality from other subsystems (causing duplications...). If we need 
-anything else to be done on ingress - we are _copying_ some kernel parts 
-again and again...
-
-That's a wrong way as for me.
-
-I see two ways for this:
-1. (the hard one) I see no a real reason _not_ to have on ingress just the 
-same functionality as on egress. It doesn't matter that a packet already 
-entered system and "we have no reasons to shape it now when it's here!". 
-Possible there were no reasons in 90's. But now we do need to have such 
-possibility. As a packet entered an interface - it doesn't mean it's already 
-at the destination system.
-But this way needs either:
-- to copy every action done to validate/track/etc a packet from ingress to 
-PREROUTING iptables chain (figuratively) - to a place before calling QoS by 
-an interface on entered packet
-- or to move the ingress processing _after_ these all checks
-
-
-2. (the flexible one) To create an iptables target (for example: "SHAPE") to 
-pass a packet to a shaper entity (ie tc rules hierarchy of ifb0 .. ifbN) 
-wherever we need to.
-This could be pretty like "CLASSIFY" target, but should do the actual shaping 
-work here. Immediately we have a question here: should the target be 
-terminating (it's easier as for me: we accept a packet and forwarding it to 
-the selected ifbN's egress) or not? In the last case we will have to inject 
-the shaped packet back to the firewall at the next rule after our "SHAPE" 
-target. Not sure what is easier though.
-
-So, I will be thankful for any thoughts about all this.
-
-Thanks
-Nick
