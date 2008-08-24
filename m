@@ -1,43 +1,30 @@
-From: "=?ISO-8859-1?Q?Ilpo_J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
-Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility workaround
-Date: Sat, 23 Aug 2008 17:38:32 +0300 (EEST)
-Message-ID: <Pine.LNX.4.64.0808231736490.10712@wrl-59.cs.helsinki.fi>
-References: <20080819213417.45133573@tux> <Pine.LNX.4.64.0808201358490.4551@wrl-59.cs.helsinki.fi>
- <20080822183224.2d52f16c@tux> <20080822.143709.65615512.davem@davemloft.net>
- <20080823111446.06a350a2@tux>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 20/38] netns ct: NOTRACK in netns
+Date: Sat, 23 Aug 2008 20:35:07 -0400 (EDT)
+Message-ID: <alpine.LNX.1.10.0808232034380.8996@fbirervta.pbzchgretzou.qr>
+References: <20080821220432.GT31136@x200.localdomain> <alpine.LNX.1.10.0808211903000.20596@fbirervta.pbzchgretzou.qr> <20080822113028.GB2321@x200.localdomain>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-696208474-49703739-1219502312=:10712"
-Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
-	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
-	Patrick Hardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
-To: "=?ISO-8859-1?Q?D=E2niel?= Fraga" <fragabr@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: kaber@trash.net, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, containers@lists.linux-foundation.org
+To: adobriyan@gmail.com
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20080823111446.06a350a2@tux>
+In-Reply-To: <20080822113028.GB2321@x200.localdomain>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
 
----696208474-49703739-1219502312=:10712
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+On Friday 2008-08-22 07:30, adobriyan@gmail.com wrote:
+>
+>We wait for untracked ct refcount to drop to 1 back:
+>
+>	/* wait until all references to nf_conntrack_untracked are dropped */
+>	while (atomic_read(&nf_conntrack_untracked.ct_general.use) > 1)
+>		schedule();
+>
+>Consequently it should be one per netns, otherwise netns A can prevent
+>netns B from stopping.
+>
 
-On Sat, 23 Aug 2008, Dâniel Fraga wrote:
-
-> On Fri, 22 Aug 2008 14:37:09 -0700 (PDT)
-> David Miller <davem@davemloft.net> wrote:
-> 
-> > Yes, but it's important that you verify that the patch makes the
-> > problem go away when HTB is enabled.  Please make this test if you
-> > can.
-> 
-> 	Correct! I tested with the HTB patches and the problem was
-> solved. ;) Thank you very much.
-
-Thanks for verifying it!
-
--- 
- i.
----696208474-49703739-1219502312=:10712--
+But nf_conntrack_cleanup is not per netns, is it?
+At least I do not think it should be.
