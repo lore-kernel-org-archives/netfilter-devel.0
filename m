@@ -1,100 +1,75 @@
-From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
-Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility
- workaround
-Date: Sun, 24 Aug 2008 16:38:43 -0300
-Message-ID: <20080824163843.33b4f890@tux>
-References: <20080819213417.45133573@tux>
- <Pine.LNX.4.64.0808201358490.4551@wrl-59.cs.helsinki.fi>
- <20080822183224.2d52f16c@tux>
- <20080822.143709.65615512.davem@davemloft.net>
- <20080823111446.06a350a2@tux>
- <Pine.LNX.4.64.0808231736490.10712@wrl-59.cs.helsinki.fi>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Unexpected source address selection in routing
+Date: Sun, 24 Aug 2008 19:39:52 -0400 (EDT)
+Message-ID: <alpine.LNX.1.10.0808241936410.22921@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
-	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
-	Patrick Hardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
-To: "Ilpo =?ISO-8859-1?Q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-gx0-f16.google.com ([209.85.217.16]:64721 "EHLO
-	mail-gx0-f16.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753044AbYHXTix (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:41194 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752903AbYHXXjy (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 24 Aug 2008 15:38:53 -0400
-Received: by gxk9 with SMTP id 9so1737238gxk.13
-        for <netfilter-devel@vger.kernel.org>; Sun, 24 Aug 2008 12:38:52 -0700 (PDT)
-In-Reply-To: <Pine.LNX.4.64.0808231736490.10712@wrl-59.cs.helsinki.fi>
+	Sun, 24 Aug 2008 19:39:54 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, 23 Aug 2008 17:38:32 +0300 (EEST)
-"Ilpo J=E4rvinen" <ilpo.jarvinen@helsinki.fi> wrote:
+Hi,
 
-> Thanks for verifying it!
 
-	Ops! i replied too fast! I just got a stalled connection again!
+It appears that the routing code selects the outgoing source address to 
+use for packets is chosen when the socket is established instead of
+at routing time.
 
-	Important: these files were generated with the HTB patches applied.
+The following presents a test case for "unexpected" (from a user's 
+perspective) behavior.
 
-	Here are botch tcpdump files:
+Is there any way to make it behave as a user would expect?
 
-http://www.abusar.org/htb/dump-mail-server.log
-http://www.abusar.org/htb/dump-mail-client.log
 
-	Both readmibs:
+thanks,
+Jan
 
-http://www.abusar.org/htb/readmibs-server.txt
-http://www.abusar.org/htb/readmibs-client.txt
 
-	Here are both cat /proc/net/tcp:
+#
+#	Setup
+#
+modprobe dummy
+ip a a 1.3.3.7/24 dev dummy0
+iptables -t mangle -A OUTPUT -p tcp --dport 99 -j MARK --set-mark 99
+ip ru a fwmark 99 table 99
+ip r a default via 1.3.3.8 dev dummy0 table 99
 
-http://www.abusar.org/htb/tcp-server.txt
-http://www.abusar.org/htb/tcp-client.txt
+#
+# How things look now:
+# ip a; ip r l;
+#
+# 3: sis0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast qlen 1000
+#     inet 10.10.106.161/20 brd 10.10.111.255 scope global sis0
+# 8: dummy0: <BROADCAST,NOARP,UP,LOWER_UP> mtu 1500 qdisc noqueue 
+#     inet 1.3.3.7/24 scope global dummy0
+#
+# 1.3.3.0/24 dev dummy0  proto kernel  scope link  src 1.3.3.7
+# 10.10.96.0/20 dev sis0  proto kernel  scope link  src 10.10.106.161 
+# default via 10.10.96.1 dev sis0 
+# 
 
-	I use the following to generate those dumps:
+#
+#	Test
+#
+tcpdump -lni dummy0 &
+telnet 134.76.13.21 99
 
-	1) on the server:
 
-tcpdump -s 0 -w dump-mail-server.log -i eth0 host 201.52.214.230
+#
+#	Tcpdump will say something like:
+#
+IP 10.10.106.161.57962 > 134.76.13.21.99: S 2153063224:2153063224(0) win 5840 <mss 1460,nop,nop,timestamp 3052479 0,nop,wscale 6>
 
-	2) on the client:
 
-tcpdump -s 0 -w dump-mail-client.log -i eth0 host teleporto.abusar.org =
-and port 995
+#
+#	What I would have expected:
+#
+IP 1.3.3.7.57962 > 134.76.13.21.99: S ...
 
-	What happened?
-
-1) the connection was stalled
-
-2) these tcpdumps are the *best ones* I got because although I started =
-them with
-the connection already stalled, the connection suddenly is not stalled =
-anymore,
-and a few minutes later was stalled again...
-
-3) I keep tcpdump running for more time
-=09
-	Ps: anyway I could notice that the only two services that
-remain stalled is nntp, ftp, pop3 and smtp... http is never stalled,
-neither ssh. It seems to affect only "old" protocols :)
-
-	Ps2: anyway, the htb patch seems to help, because the problem
-took much longer to happen. With htb patches the problem happens one ti=
-me a day.=20
-Without the htb patches the problem happens more than one time a day.
-
-	Ps3: I really doesn't understand why "nmap -sS server"
-"solves" the stalled connection issue.
-
-	Ps4: sorry for my hurry feedback before. I thought the problem had gon=
-e. Anyway,=20
-I hope this time I provided the best data for you. Thanks.
-
---=20
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
