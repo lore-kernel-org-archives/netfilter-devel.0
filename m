@@ -1,30 +1,27 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 20/38] netns ct: NOTRACK in netns
-Date: Sat, 23 Aug 2008 20:35:07 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0808232034380.8996@fbirervta.pbzchgretzou.qr>
-References: <20080821220432.GT31136@x200.localdomain> <alpine.LNX.1.10.0808211903000.20596@fbirervta.pbzchgretzou.qr> <20080822113028.GB2321@x200.localdomain>
+Subject: Re: Packet marking based on IP header
+Date: Sat, 23 Aug 2008 20:41:00 -0400 (EDT)
+Message-ID: <alpine.LNX.1.10.0808232040390.8996@fbirervta.pbzchgretzou.qr>
+References: <48AA807C.5020108@fel.cvut.cz>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: kaber@trash.net, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, containers@lists.linux-foundation.org
-To: adobriyan@gmail.com
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20080822113028.GB2321@x200.localdomain>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Marek Becka <beckam2@fel.cvut.cz>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:54274 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751157AbYHXAlB (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 23 Aug 2008 20:41:01 -0400
+In-Reply-To: <48AA807C.5020108@fel.cvut.cz>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Friday 2008-08-22 07:30, adobriyan@gmail.com wrote:
->
->We wait for untracked ct refcount to drop to 1 back:
->
->	/* wait until all references to nf_conntrack_untracked are dropped */
->	while (atomic_read(&nf_conntrack_untracked.ct_general.use) > 1)
->		schedule();
->
->Consequently it should be one per netns, otherwise netns A can prevent
->netns B from stopping.
->
+On Tuesday 2008-08-19 04:12, Marek Becka wrote:
 
-But nf_conntrack_cleanup is not per netns, is it?
-At least I do not think it should be.
+> Hi, I'm working on iptables target, that enables marking ipv4/6
+> packet based on their headers. I need this for high performance
+> gateway that marks packet by part of source address.
+
+For that purpose, there is IPMARK in Xtables-addons.
