@@ -1,27 +1,47 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Packet marking based on IP header
-Date: Sat, 23 Aug 2008 20:41:00 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0808232040390.8996@fbirervta.pbzchgretzou.qr>
-References: <48AA807C.5020108@fel.cvut.cz>
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: Re: [PATCH 20/38] netns ct: NOTRACK in netns
+Date: Sun, 24 Aug 2008 14:43:13 +0400
+Message-ID: <20080824104313.GA3010@x200.localdomain>
+References: <20080821220432.GT31136@x200.localdomain> <alpine.LNX.1.10.0808211903000.20596@fbirervta.pbzchgretzou.qr> <20080822113028.GB2321@x200.localdomain> <alpine.LNX.1.10.0808232034380.8996@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Marek Becka <beckam2@fel.cvut.cz>
+Content-Type: text/plain; charset=us-ascii
+Cc: kaber@trash.net, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, containers@lists.linux-foundation.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:54274 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751157AbYHXAlB (ORCPT
+Received: from mu-out-0910.google.com ([209.85.134.186]:27414 "EHLO
+	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751850AbYHXKlr (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 23 Aug 2008 20:41:01 -0400
-In-Reply-To: <48AA807C.5020108@fel.cvut.cz>
+	Sun, 24 Aug 2008 06:41:47 -0400
+Received: by mu-out-0910.google.com with SMTP id w8so1374656mue.1
+        for <netfilter-devel@vger.kernel.org>; Sun, 24 Aug 2008 03:41:45 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <alpine.LNX.1.10.0808232034380.8996@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Sat, Aug 23, 2008 at 08:35:07PM -0400, Jan Engelhardt wrote:
+> 
+> On Friday 2008-08-22 07:30, adobriyan@gmail.com wrote:
+> >
+> >We wait for untracked ct refcount to drop to 1 back:
+> >
+> >	/* wait until all references to nf_conntrack_untracked are dropped */
+> >	while (atomic_read(&nf_conntrack_untracked.ct_general.use) > 1)
+> >		schedule();
+> >
+> >Consequently it should be one per netns, otherwise netns A can prevent
+> >netns B from stopping.
+> >
+> 
+> But nf_conntrack_cleanup is not per netns, is it?
 
-On Tuesday 2008-08-19 04:12, Marek Becka wrote:
+That's because nf_conntrack_cleanup() is _code_.
 
-> Hi, I'm working on iptables target, that enables marking ipv4/6
-> packet based on their headers. I need this for high performance
-> gateway that marks packet by part of source address.
+If netns A actively uses NOTRACK, untracked ct refcount will be bumped.
+And netns B which haven't used NOTRACK at all will wait for netns A to
+stop using NOTRACK potentially indefinitely.
 
-For that purpose, there is IPMARK in Xtables-addons.
+> At least I do not think it should be.
+
