@@ -1,75 +1,45 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Unexpected source address selection in routing
-Date: Sun, 24 Aug 2008 19:39:52 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0808241936410.22921@fbirervta.pbzchgretzou.qr>
+From: David Miller <davem@davemloft.net>
+Subject: Re: Unexpected source address selection in routing
+Date: Sun, 24 Aug 2008 17:31:46 -0700 (PDT)
+Message-ID: <20080824.173146.28446297.davem@davemloft.net>
+References: <alpine.LNX.1.10.0808241936410.22921@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: netdev@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: jengelh@medozas.de
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:41194 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752903AbYHXXjy (ORCPT
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:57388
+	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1751747AbYHYAbu (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 24 Aug 2008 19:39:54 -0400
+	Sun, 24 Aug 2008 20:31:50 -0400
+In-Reply-To: <alpine.LNX.1.10.0808241936410.22921@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+From: Jan Engelhardt <jengelh@medozas.de>
+Date: Sun, 24 Aug 2008 19:39:52 -0400 (EDT)
 
+> It appears that the routing code selects the outgoing source address to 
+> use for packets is chosen when the socket is established instead of
+> at routing time.
+> 
+> The following presents a test case for "unexpected" (from a user's 
+> perspective) behavior.
+> 
+> Is there any way to make it behave as a user would expect?
 
-It appears that the routing code selects the outgoing source address to 
-use for packets is chosen when the socket is established instead of
-at routing time.
+No matter when we had made the routing lookup, we would
+have ended up with what you see the kernel doing.
 
-The following presents a test case for "unexpected" (from a user's 
-perspective) behavior.
+The route is looked up long before netfilter even sees
+the packets.
 
-Is there any way to make it behave as a user would expect?
+The source address selection at the socket level can only "see" the
+original destination address and therefore makes the source address
+selection using that original destination address.
 
-
-thanks,
-Jan
-
-
-#
-#	Setup
-#
-modprobe dummy
-ip a a 1.3.3.7/24 dev dummy0
-iptables -t mangle -A OUTPUT -p tcp --dport 99 -j MARK --set-mark 99
-ip ru a fwmark 99 table 99
-ip r a default via 1.3.3.8 dev dummy0 table 99
-
-#
-# How things look now:
-# ip a; ip r l;
-#
-# 3: sis0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc pfifo_fast qlen 1000
-#     inet 10.10.106.161/20 brd 10.10.111.255 scope global sis0
-# 8: dummy0: <BROADCAST,NOARP,UP,LOWER_UP> mtu 1500 qdisc noqueue 
-#     inet 1.3.3.7/24 scope global dummy0
-#
-# 1.3.3.0/24 dev dummy0  proto kernel  scope link  src 1.3.3.7
-# 10.10.96.0/20 dev sis0  proto kernel  scope link  src 10.10.106.161 
-# default via 10.10.96.1 dev sis0 
-# 
-
-#
-#	Test
-#
-tcpdump -lni dummy0 &
-telnet 134.76.13.21 99
-
-
-#
-#	Tcpdump will say something like:
-#
-IP 10.10.106.161.57962 > 134.76.13.21.99: S 2153063224:2153063224(0) win 5840 <mss 1460,nop,nop,timestamp 3052479 0,nop,wscale 6>
-
-
-#
-#	What I would have expected:
-#
-IP 1.3.3.7.57962 > 134.76.13.21.99: S ...
-
+After iptables mangles things, the packet is rerouted but source
+address selection and IP header source address mangling are not going
+to occur.
