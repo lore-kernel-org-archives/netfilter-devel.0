@@ -1,43 +1,21 @@
-From: "Marco Berizzi" <pupilla@hotmail.com>
-Subject: Re: Unexpected source address selection in routing
-Date: Mon, 25 Aug 2008 08:37:50 +0200
-Message-ID: <BAY103-DAV12061EF45C1BD09C570A4B2670@phx.gbl>
-References: <alpine.LNX.1.10.0808241936410.22921@fbirervta.pbzchgretzou.qr> <20080824.173146.28446297.davem@davemloft.net> <alpine.LNX.1.10.0808242126540.22921@fbirervta.pbzchgretzou.qr>
-Cc: <netdev@vger.kernel.org>, <netfilter-devel@vger.kernel.org>
-To: "Jan Engelhardt" <jengelh@medozas.de>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: "luo kaih" <kaih.luo@gmail.com>
+Subject: can i send a mail to mailing list
+Date: Mon, 25 Aug 2008 22:21:05 +0800
+Message-ID: <c0ff893e0808250721v2f1d99d3o95317cdb8477b4b0@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from qb-out-0506.google.com ([72.14.204.237]:26336 "EHLO
+	qb-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753336AbYHYOVH (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 25 Aug 2008 10:21:07 -0400
+Received: by qb-out-0506.google.com with SMTP id a16so2638411qbd.17
+        for <netfilter-devel@vger.kernel.org>; Mon, 25 Aug 2008 07:21:05 -0700 (PDT)
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-
->
-> On Sunday 2008-08-24 20:31, David Miller wrote:
-> >
-> >> It appears that the routing code selects the outgoing source
-address to
-> >> use for packets is chosen when the socket is established instead of
-> >> at routing time.
-> >>
-> >> The following presents a test case for "unexpected" (from a user's
-> >> perspective) behavior.
-> >>
-> >> Is there any way to make it behave as a user would expect?
-> >
-> >No matter when we had made the routing lookup, we would have ended
-> >up with what you see the kernel doing.
-> >
-> >The route is looked up long before netfilter even sees the packets.
-> >
-> >The source address selection at the socket level can only "see" the
-> >original destination address and therefore makes the source address
-> >selection using that original destination address.
->
-> That's what I thought. With IPv4, one can cheat and use
-> SNAT/MASQUERADE, but what about IPv6? (Other than using the RAWNAT
-> extension, which bypasses netfilter connection tracking.)
-
-Just for records, I opened a bug report (a feature request) about
-this at http://bugzilla.kernel.org/show_bug.cgi?id=9767
-
-
+??
