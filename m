@@ -1,43 +1,50 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Unexpected source address selection in routing
-Date: Sun, 24 Aug 2008 21:28:10 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0808242126540.22921@fbirervta.pbzchgretzou.qr>
-References: <alpine.LNX.1.10.0808241936410.22921@fbirervta.pbzchgretzou.qr> <20080824.173146.28446297.davem@davemloft.net>
+From: "luo kaih" <kaih.luo@gmail.com>
+Subject: [PATCH] xt_time gives a wrong monthday in a leap year
+Date: Mon, 25 Aug 2008 12:32:09 +0800
+Message-ID: <c0ff893e0808242132v473129a8o3e70d182c2717170@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:32855 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752727AbYHYB2M (ORCPT
+Received: from qb-out-0506.google.com ([72.14.204.230]:47533 "EHLO
+	qb-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750701AbYHYEcK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 24 Aug 2008 21:28:12 -0400
-In-Reply-To: <20080824.173146.28446297.davem@davemloft.net>
+	Mon, 25 Aug 2008 00:32:10 -0400
+Received: by qb-out-0506.google.com with SMTP id a16so2282458qbd.17
+        for <netfilter-devel@vger.kernel.org>; Sun, 24 Aug 2008 21:32:10 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+the function localtime_3 in xt_time.c would give a wrong monthday in a
+leap year after 28th 2 . calculating monthday should use the array
+days_since_leapyear[] not
+days_since_year[]  in a leap year . I fixed it in the below patch.
+Signed-off-by: Kaihui Luo <kaih.luo@gmail.com>
+---
+--- linux-2.6.26/net/netfilter/xt_time.c.orig	2008-08-25
+11:59:46.000000000 +0800
++++ linux-2.6.26/net/netfilter/xt_time.c	2008-08-25 12:16:12.000000000 +0800
+@@ -136,17 +136,19 @@ static void localtime_3(struct xtm *r, t
+ 	 * from w repeatedly while counting.)
+ 	 */
+ 	if (is_leap(year)) {
++		/* use days_since_leapyear[] in a leap year */
+ 		for (i = ARRAY_SIZE(days_since_leapyear) - 1;
+-		    i > 0 && days_since_year[i] > w; --i)
++		    i > 0 && days_since_leapyear[i] > w; --i)
+ 			/* just loop */;
++ 		r->monthday = w - days_since_leapyear[i] + 1;
+ 	} else {
+ 		for (i = ARRAY_SIZE(days_since_year) - 1;
+ 		    i > 0 && days_since_year[i] > w; --i)
+ 			/* just loop */;
++ 		r->monthday = w - days_since_year[i] + 1;
+ 	}
 
-On Sunday 2008-08-24 20:31, David Miller wrote:
->
->> It appears that the routing code selects the outgoing source address to 
->> use for packets is chosen when the socket is established instead of
->> at routing time.
->> 
->> The following presents a test case for "unexpected" (from a user's 
->> perspective) behavior.
->> 
->> Is there any way to make it behave as a user would expect?
->
->No matter when we had made the routing lookup, we would have ended
->up with what you see the kernel doing.
->
->The route is looked up long before netfilter even sees the packets.
->
->The source address selection at the socket level can only "see" the
->original destination address and therefore makes the source address
->selection using that original destination address.
-
-That's what I thought. With IPv4, one can cheat and use
-SNAT/MASQUERADE, but what about IPv6? (Other than using the RAWNAT
-extension, which bypasses netfilter connection tracking.)
+ 	r->month    = i + 1;
+-	r->monthday = w - days_since_year[i] + 1;
+ 	return;
+ }
