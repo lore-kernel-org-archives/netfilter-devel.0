@@ -1,46 +1,36 @@
-From: fender <frozenspot@gmail.com>
-Subject: [update] port knocking match extension
-Date: Thu, 28 Aug 2008 01:28:01 -0300
-Message-ID: <7e36c7130808272128l22aa701by97169ca79312dc82@mail.gmail.com>
+From: Brent Clark <brentgclarklist@gmail.com>
+Subject: Re: [update] port knocking match extension
+Date: Thu, 28 Aug 2008 08:39:40 +0200
+Message-ID: <48B6482C.2010408@gmail.com>
+References: <7e36c7130808272128l22aa701by97169ca79312dc82@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter@vger.kernel.org, lucholaf@gmail.com
-To: netfilter-devel@vger.kernel.org
+To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.28]:33430 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750990AbYH1E2E (ORCPT
+Received: from mail.eccotours.biz ([196.36.10.114]:33617 "EHLO
+	mail.eccotours.biz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751887AbYH1Gjp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 Aug 2008 00:28:04 -0400
-Received: by yw-out-2324.google.com with SMTP id 9so15304ywe.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Aug 2008 21:28:02 -0700 (PDT)
-Content-Disposition: inline
+	Thu, 28 Aug 2008 02:39:45 -0400
+In-Reply-To: <7e36c7130808272128l22aa701by97169ca79312dc82@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi people,
+fender wrote:
+> Any feedback or suggestion will be welcome.
 
-We've applied some patches to add support for kernel 2.6.26 and iptables 1.4.x.
+Hi
 
-You can download the tarball "pknock-0.5.tar.gz" from the web site and
-compile the match extension and the iptables extension, but without
-the need of recompiling the kernel.
+Thank you for your work.
+Would you not be interested in submitting and adding it to Jan 
+Engelhardt's xtable.
 
-Any feedback or suggestion will be welcome.
+It would beat having to install iptables/xtable and then you work.
 
-Regards,
+An all in one solution would be nice and appreciated.
 
-(*) The ipt_pknock match module implements Port Knocking and SPA
-(Simple Packet Authentication) as a netfilter match extension.
+Kind Regards and hope you will give my suggestion some thought.
+Brent Clark
 
-(*) More information at http://portknocko.berlios.de/
 
---
-Federico
-
-/*
- *  J. Federico Hernandez Scarso (fender) {frozenspot at gmail dot com}
- *  GPG PubKey: wwwkeys.eu.pgp.net key 6AE78BF2
- *  FP: 26AB 7A1B C2C4 70F8 0E7D  C3F4 9736 5CE2 6AE7 8BF2
- */
