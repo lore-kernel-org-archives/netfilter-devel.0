@@ -1,36 +1,78 @@
-From: Brent Clark <brentgclarklist@gmail.com>
-Subject: Re: [update] port knocking match extension
-Date: Thu, 28 Aug 2008 08:39:40 +0200
-Message-ID: <48B6482C.2010408@gmail.com>
-References: <7e36c7130808272128l22aa701by97169ca79312dc82@mail.gmail.com>
+From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
+Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility
+ workaround
+Date: Thu, 28 Aug 2008 18:49:19 -0300
+Message-ID: <20080828184919.611dd578@tux>
+References: <20080819213417.45133573@tux>
+ <Pine.LNX.4.64.0808201358490.4551@wrl-59.cs.helsinki.fi>
+ <20080822183224.2d52f16c@tux>
+ <20080822.143709.65615512.davem@davemloft.net>
+ <20080823111446.06a350a2@tux>
+ <Pine.LNX.4.64.0808231736490.10712@wrl-59.cs.helsinki.fi>
+ <20080824163843.33b4f890@tux>
+ <Pine.LNX.4.64.0808250948420.27330@wrl-59.cs.helsinki.fi>
+ <20080826141812.589848a0@tux>
+ <Pine.LNX.4.64.0808262034001.1168@wrl-59.cs.helsinki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.eccotours.biz ([196.36.10.114]:33617 "EHLO
-	mail.eccotours.biz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751887AbYH1Gjp (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 Aug 2008 02:39:45 -0400
-In-Reply-To: <7e36c7130808272128l22aa701by97169ca79312dc82@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
+	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
+	Patrick Hardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
+To: "Ilpo =?ISO-8859-1?Q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.64.0808262034001.1168@wrl-59.cs.helsinki.fi>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-fender wrote:
-> Any feedback or suggestion will be welcome.
+On Tue, 26 Aug 2008 23:40:58 +0300 (EEST)
+"Ilpo J=E4rvinen" <ilpo.jarvinen@helsinki.fi> wrote:
 
-Hi
+> while [ : ]; do
+> 	date "+%s.%N"
+> 	cat /proc/net/{netstat,snmp,tcp}
+> 	sleep 1
+> done
 
-Thank you for your work.
-Would you not be interested in submitting and adding it to Jan 
-Engelhardt's xtable.
+	Ok; Let's try again, now with more data (I hope):
 
-It would beat having to install iptables/xtable and then you work.
+	1) tcpdump (just port 995):
 
-An all in one solution would be nice and appreciated.
+http://www.abusar.org/stall/dump-client
+http://www.abusar.org/stall/dump-server
 
-Kind Regards and hope you will give my suggestion some thought.
-Brent Clark
+http://www.abusar.org/stall/dump-server-loopback
 
+	I don't know if loopback is useful, just in case...
 
+	2) the above script :
+
+http://www.abusar.org/stall/script-client-log.txt
+http://www.abusar.org/stall/script-server-log.txt
+
+	3) and strace from the client Claws Mail:
+
+http://www.abusar.org/stall/strace-client-claws-mail.txt
+
+	I forgot to use the -r option in strace. But when Claws-mail
+stalls, it gives the following multiple times:
+
+read(4, 0xf48704, 4096)                 =3D -1 EAGAIN (Resource tempora=
+rily unavailable)
+select(5, [4], [4], NULL, NULL)         =3D 1 (out [4])
+writev(4, [{"xxxxxxxxxxxxxxx"..., 108}], 1) =3D 108
+select(5, [4], [], NULL, NULL)          =3D 1 (in [4])
+read(4, "xxxxxxxxxxxxxxxxxxxxxx"..., 4096) =3D 108
+
+	Well, I hope this time you have more information and I hope I didn't f=
+orget anything.=20
+If not, let's keep trying.
+
+	Important: these data were collected with frto disabled (0) and htb di=
+sabled too. So
+it isn't related to frto, neither htb.
+
+	Thank you!
+
+--=20
