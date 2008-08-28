@@ -1,66 +1,46 @@
-From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
-Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility
- workaround
-Date: Wed, 27 Aug 2008 19:24:50 -0300
-Message-ID: <20080827192450.31032464@tux>
-References: <20080819213417.45133573@tux>
-	<Pine.LNX.4.64.0808201358490.4551@wrl-59.cs.helsinki.fi>
-	<20080822183224.2d52f16c@tux>
-	<20080822.143709.65615512.davem@davemloft.net>
-	<20080823111446.06a350a2@tux>
-	<Pine.LNX.4.64.0808231736490.10712@wrl-59.cs.helsinki.fi>
-	<20080824163843.33b4f890@tux>
-	<Pine.LNX.4.64.0808250948420.27330@wrl-59.cs.helsinki.fi>
-	<20080826141812.589848a0@tux>
-	<Pine.LNX.4.64.0808262034001.1168@wrl-59.cs.helsinki.fi>
-	<20080826181731.4581fd2c@tux>
-	<Pine.LNX.4.64.0808271236080.1034@wrl-59.cs.helsinki.fi>
-	<20080827165142.4bc7b70f@tux>
-	<Pine.LNX.4.64.0808272319520.4693@wrl-59.cs.helsinki.fi>
-	<20080827175012.580efae1@tux>
-	<Pine.LNX.4.64.0808272358230.4759@wrl-59.cs.helsinki.fi>
-	<20080827184205.225a1b06@tux>
+From: fender <frozenspot@gmail.com>
+Subject: [update] port knocking match extension
+Date: Thu, 28 Aug 2008 01:28:01 -0300
+Message-ID: <7e36c7130808272128l22aa701by97169ca79312dc82@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
-	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
-	Patrick Hardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
-To: "Ilpo =?ISO-8859-1?Q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
+Content-Transfer-Encoding: 7bit
+Cc: netfilter@vger.kernel.org, lucholaf@gmail.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.245]:6083 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753158AbYH0WY7 (ORCPT
+Received: from yw-out-2324.google.com ([74.125.46.28]:33430 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750990AbYH1E2E (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 27 Aug 2008 18:24:59 -0400
-Received: by an-out-0708.google.com with SMTP id d40so14323and.103
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 Aug 2008 15:24:57 -0700 (PDT)
-In-Reply-To: <20080827184205.225a1b06@tux>
+	Thu, 28 Aug 2008 00:28:04 -0400
+Received: by yw-out-2324.google.com with SMTP id 9so15304ywe.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 27 Aug 2008 21:28:02 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 27 Aug 2008 18:42:05 -0300
-D=E2niel Fraga <fragabr@gmail.com> wrote:
+Hi people,
 
-> 	If it's really this old Mulitpath misconfiguration, I apologize
-> for my error and the length discussion. Anyway, it's good to register=
-,
-> in the case someone do the same error as me.
->=20
-> 	Well, let's wait to see if the problem has gone.
->=20
-> 	Thank you very much.
+We've applied some patches to add support for kernel 2.6.26 and iptables 1.4.x.
 
-	Well, you can ignore my previous message. Just got a stalled
-connection. Since I do not have time to collect data now, I need to use
-nmap to restablish the connection.
+You can download the tarball "pknock-0.5.tar.gz" from the web site and
+compile the match extension and the iptables extension, but without
+the need of recompiling the kernel.
 
-	Ok. So there's nothing to do with multipath.
+Any feedback or suggestion will be welcome.
 
---=20
+Regards,
+
+(*) The ipt_pknock match module implements Port Knocking and SPA
+(Simple Packet Authentication) as a netfilter match extension.
+
+(*) More information at http://portknocko.berlios.de/
+
 --
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Federico
+
+/*
+ *  J. Federico Hernandez Scarso (fender) {frozenspot at gmail dot com}
+ *  GPG PubKey: wwwkeys.eu.pgp.net key 6AE78BF2
+ *  FP: 26AB 7A1B C2C4 70F8 0E7D  C3F4 9736 5CE2 6AE7 8BF2
+ */
