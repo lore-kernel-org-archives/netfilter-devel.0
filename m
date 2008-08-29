@@ -1,78 +1,54 @@
-From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
-Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility
- workaround
-Date: Thu, 28 Aug 2008 18:49:19 -0300
-Message-ID: <20080828184919.611dd578@tux>
-References: <20080819213417.45133573@tux>
- <Pine.LNX.4.64.0808201358490.4551@wrl-59.cs.helsinki.fi>
- <20080822183224.2d52f16c@tux>
- <20080822.143709.65615512.davem@davemloft.net>
- <20080823111446.06a350a2@tux>
- <Pine.LNX.4.64.0808231736490.10712@wrl-59.cs.helsinki.fi>
- <20080824163843.33b4f890@tux>
- <Pine.LNX.4.64.0808250948420.27330@wrl-59.cs.helsinki.fi>
- <20080826141812.589848a0@tux>
- <Pine.LNX.4.64.0808262034001.1168@wrl-59.cs.helsinki.fi>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH] xtables-addons: ipset: fix semaphore.h include
+Date: Thu, 28 Aug 2008 20:24:54 -0400 (EDT)
+Message-ID: <alpine.LNX.1.10.0808282023080.3581@fbirervta.pbzchgretzou.qr>
+References: <38bcb3ec0808261812g423694eds19463f14c4997de2@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
-	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
-	Patrick Hardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
-To: "Ilpo =?ISO-8859-1?Q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.0808262034001.1168@wrl-59.cs.helsinki.fi>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	James King <t.james.king@gmail.com>
+To: kadlec@blackhole.kfki.hu
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:46538 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753194AbYH2AY4 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 28 Aug 2008 20:24:56 -0400
+In-Reply-To: <38bcb3ec0808261812g423694eds19463f14c4997de2@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 26 Aug 2008 23:40:58 +0300 (EEST)
-"Ilpo J=E4rvinen" <ilpo.jarvinen@helsinki.fi> wrote:
+On Tuesday 2008-08-26 21:12, James King wrote:
 
-> while [ : ]; do
-> 	date "+%s.%N"
-> 	cat /proc/net/{netstat,snmp,tcp}
-> 	sleep 1
-> done
+>As of 2351ec533ed0dd56052ab96988d2161d5ecc8ed9 semaphore.h was moved
+>from asm/ to linux/, which breaks building of ipset.  Add compat
+>glue to ip_set.c to fix building on 2.6.27+
 
-	Ok; Let's try again, now with more data (I hope):
+Ok, applied.
+Let Jozsef know of this one so he can integrate it too.
 
-	1) tcpdump (just port 995):
+>diff --git a/extensions/ipset/ip_set.c b/extensions/ipset/ip_set.c
+>index 8be9274..21e62bd 100644
+>--- a/extensions/ipset/ip_set.c
+>+++ b/extensions/ipset/ip_set.c
+>@@ -24,7 +24,11 @@
+> #include <linux/errno.h>
+> #include <asm/uaccess.h>
+> #include <asm/bitops.h>
+>+#if LINUX_VERSION_CODE < KERNEL_VERSION(2,6,27)
+> #include <asm/semaphore.h>
+>+#else
+>+#include <linux/semaphore.h>
+>+#endif
+> #include <linux/spinlock.h>
+> #include <linux/vmalloc.h>
+>
+>-- 
+>1.5.5.1
+>--
+>To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-http://www.abusar.org/stall/dump-client
-http://www.abusar.org/stall/dump-server
-
-http://www.abusar.org/stall/dump-server-loopback
-
-	I don't know if loopback is useful, just in case...
-
-	2) the above script :
-
-http://www.abusar.org/stall/script-client-log.txt
-http://www.abusar.org/stall/script-server-log.txt
-
-	3) and strace from the client Claws Mail:
-
-http://www.abusar.org/stall/strace-client-claws-mail.txt
-
-	I forgot to use the -r option in strace. But when Claws-mail
-stalls, it gives the following multiple times:
-
-read(4, 0xf48704, 4096)                 =3D -1 EAGAIN (Resource tempora=
-rily unavailable)
-select(5, [4], [4], NULL, NULL)         =3D 1 (out [4])
-writev(4, [{"xxxxxxxxxxxxxxx"..., 108}], 1) =3D 108
-select(5, [4], [], NULL, NULL)          =3D 1 (in [4])
-read(4, "xxxxxxxxxxxxxxxxxxxxxx"..., 4096) =3D 108
-
-	Well, I hope this time you have more information and I hope I didn't f=
-orget anything.=20
-If not, let's keep trying.
-
-	Important: these data were collected with frto disabled (0) and htb di=
-sabled too. So
-it isn't related to frto, neither htb.
-
-	Thank you!
-
---=20
