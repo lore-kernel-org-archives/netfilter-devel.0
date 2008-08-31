@@ -1,46 +1,67 @@
-From: "Nishit Shah" <nishit@elitecore.com>
-Subject: iptables error
-Date: Sat, 30 Aug 2008 18:30:16 +0530
-Message-ID: <003501c90aa0$59d583a0$0d808ae0$@com>
+From: fender <frozenspot@gmail.com>
+Subject: Re: [update] port knocking match extension
+Date: Sun, 31 Aug 2008 14:57:02 -0300
+Message-ID: <7e36c7130808311057u7993e5b1q870a7f37cfa95b68@mail.gmail.com>
+References: <7e36c7130808272128l22aa701by97169ca79312dc82@mail.gmail.com>
+	 <48B6482C.2010408@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-To: <netfilter-devel@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+To: "Brent Clark" <brentgclarklist@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailhost.elitecore.com ([203.88.135.194]:56842 "EHLO
-	elitecore.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1752005AbYH3M7X (ORCPT
+Received: from yx-out-2324.google.com ([74.125.44.29]:1124 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755531AbYHaR5E (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 30 Aug 2008 08:59:23 -0400
-Received: from ice.140.client116.youtele.com (HELO elitecore3) ([203.88.140.116])
-          (envelope-sender <nishit@elitecore.com>)
-          by elitecore.com (qmail-ldap-1.03) with SMTP
-          for <netfilter-devel@vger.kernel.org>; 30 Aug 2008 12:35:27 -0000
-Content-Language: en-us
+	Sun, 31 Aug 2008 13:57:04 -0400
+Received: by yx-out-2324.google.com with SMTP id 8so964672yxm.1
+        for <netfilter-devel@vger.kernel.org>; Sun, 31 Aug 2008 10:57:03 -0700 (PDT)
+In-Reply-To: <48B6482C.2010408@gmail.com>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Hi,
-	I am using 2.6.16.13 kernel in smp configuration. Machine is working
-as a gateway and frequent iptables commands are fired as users logged in and
-logged out.
 
-      I got following error in between
+On Thu, Aug 28, 2008 at 3:39 AM, Brent Clark <brentgclarklist@gmail.com> wrote:
+> fender wrote:
+>>
+>> Any feedback or suggestion will be welcome.
+>
+> Hi
+>
+> Thank you for your work.
+> Would you not be interested in submitting and adding it to Jan Engelhardt's
+> xtable.
+>
+> It would beat having to install iptables/xtable and then you work.
+>
+> An all in one solution would be nice and appreciated.
+>
+> Kind Regards and hope you will give my suggestion some thought.
+> Brent Clark
 
-[root@manage /root]# iptables -nvx -L INPUT
-ERROR: 7 not a valid target)
-Aborted (core dumped)
+Thank you for your suggestion. I don't know what xtable is, but I'll
+check it out.
 
-So, I tried to flush INPUT and got following
+Regards,
 
-[root@manage /root]# iptables -F INPUT 
-iptables: Too many levels of symbolic links
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel"
+> in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
-following is a message I got in /var/log/messages
 
-Aug 26 14:38:30 1219741710 kernel: iptables: loop hook 1 pos 0 00000022.
 
-Rgds,
-Nishit Shah.        
+-- 
+Federico
 
+/*
+ * J. Federico Hernandez Scarso (fender) {frozenspot; at; gmail; dot; com;}
+ * GPG PubKey: wwwkeys.eu.pgp.net key 6AE78BF2
+ * FP: 26AB 7A1B C2C4 70F8 0E7D C3F4 9736 5CE2 6AE7 8BF2
+ */
