@@ -1,35 +1,48 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: Bugzilla mails not working
-Date: Mon, 1 Sep 2008 10:50:13 -0700
-Message-ID: <20080901175013.GA27500@linuxace.com>
-References: <20080901150950.GA24543@linuxace.com> <48BC07E4.4010102@trash.net> <48BC12B3.7050902@netfilter.org>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Xtables-addons 1.5.7 released
+Date: Mon, 1 Sep 2008 17:49:25 -0400 (EDT)
+Message-ID: <alpine.LNX.1.10.0809011748160.8643@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from adsl-67-120-171-161.dsl.lsan03.pacbell.net ([67.120.171.161]:40212
-	"HELO linuxace.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753551AbYIARuQ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Sep 2008 13:50:16 -0400
-Content-Disposition: inline
-In-Reply-To: <48BC12B3.7050902@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: netfilter@vger.kernel.org,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Sep 01, 2008 at 06:05:07PM +0200, Pablo Neira Ayuso wrote:
-> Patrick McHardy wrote:
-> > Phil Oester wrote:
-> >> Email out of bugzilla doesn't seem to be working.  Can someone
-> >> take a look?
-> > 
-> > There are no mails visible in the mailman interface. Pablo, you seem
-> > to be familiar with the bugzilla setup, could you have a look please?
-> 
-> exim was rejecting emails for user bugzilla-daemon as unroutable, I have
-> added it to /etc/aliases. It should work now.
 
-Sorry, still doesn't seem to be working.
 
-Phil
+URL:
+http://dev.medozas.de/files/xtables/xtables-addons-1.5.7.tar.bz2
+
+Changes from v1.5.5:
+
+James King (1):
+      ipset: adjust semaphore.h include for kernel >= 2.6.27
+
+Jan Engelhardt (17):
+      build: prepare make tarball for git 1.6.0
+      libxt_geoip: reorder option parsing code
+      Clear hotdrop before use
+      xt_SYSRQ: fix compilation for Linux kernel version <= 2.6.19
+      Automatically run `depmod -a`
+      fuzzy: import 20050627 code base
+      fuzzy: remove unneeded spinlock
+      fuzzy: misc cleanup
+      fuzzy: IPv6 support
+      xt_condition: ues glue-provided init_net__proc_net
+      src: move to a pskb-based API
+      DHCP address match and mangler
+      build: remove dependency on netinet/in6.h
+      src: remove redundant return statements
+      xt_portscan: IPv6 support
+      xt_SYSRQ: add missing aliases
+      Xtables-addons 1.5.7
+
+
+About:
+Xtables-addons is a package that mostly supersedes the old patch-o-matic 
+repository for the Linux kernel and iptables. Instead of patching the 
+kernel source, extensions are built as modules and thus allow extending 
+kernels without recompilation.
