@@ -1,32 +1,35 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Phil Oester <kernel@linuxace.com>
 Subject: Re: Bugzilla mails not working
-Date: Mon, 01 Sep 2008 18:05:07 +0200
-Message-ID: <48BC12B3.7050902@netfilter.org>
-References: <20080901150950.GA24543@linuxace.com> <48BC07E4.4010102@trash.net>
+Date: Mon, 1 Sep 2008 10:50:13 -0700
+Message-ID: <20080901175013.GA27500@linuxace.com>
+References: <20080901150950.GA24543@linuxace.com> <48BC07E4.4010102@trash.net> <48BC12B3.7050902@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Phil Oester <kernel@linuxace.com>, netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56058 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751360AbYIAQqL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Sep 2008 12:46:11 -0400
-In-Reply-To: <48BC07E4.4010102@trash.net>
+Received: from adsl-67-120-171-161.dsl.lsan03.pacbell.net ([67.120.171.161]:40212
+	"HELO linuxace.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753551AbYIARuQ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 1 Sep 2008 13:50:16 -0400
+Content-Disposition: inline
+In-Reply-To: <48BC12B3.7050902@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy wrote:
-> Phil Oester wrote:
->> Email out of bugzilla doesn't seem to be working.  Can someone
->> take a look?
+On Mon, Sep 01, 2008 at 06:05:07PM +0200, Pablo Neira Ayuso wrote:
+> Patrick McHardy wrote:
+> > Phil Oester wrote:
+> >> Email out of bugzilla doesn't seem to be working.  Can someone
+> >> take a look?
+> > 
+> > There are no mails visible in the mailman interface. Pablo, you seem
+> > to be familiar with the bugzilla setup, could you have a look please?
 > 
-> There are no mails visible in the mailman interface. Pablo, you seem
-> to be familiar with the bugzilla setup, could you have a look please?
+> exim was rejecting emails for user bugzilla-daemon as unroutable, I have
+> added it to /etc/aliases. It should work now.
 
-exim was rejecting emails for user bugzilla-daemon as unroutable, I have
-added it to /etc/aliases. It should work now.
+Sorry, still doesn't seem to be working.
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+Phil
