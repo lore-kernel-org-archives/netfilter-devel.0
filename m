@@ -1,35 +1,43 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Does policy routing based on owner-gid really work?
-Date: Mon, 01 Sep 2008 15:14:43 +0200
-Message-ID: <48BBEAC3.8040801@trash.net>
-References: <abe9c56e0808221638m35d2af7bu3535099e55e6c786@mail.gmail.com>
+Subject: Re: iptables error
+Date: Mon, 01 Sep 2008 15:38:01 +0200
+Message-ID: <48BBF039.6090501@trash.net>
+References: <003501c90aa0$59d583a0$0d808ae0$@com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: jon hale <jon.h.hale@gmail.com>
+To: Nishit Shah <nishit@elitecore.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:34850 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:35376 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751061AbYIANOp (ORCPT
+	with ESMTP id S1751164AbYIANiL (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Sep 2008 09:14:45 -0400
-In-Reply-To: <abe9c56e0808221638m35d2af7bu3535099e55e6c786@mail.gmail.com>
+	Mon, 1 Sep 2008 09:38:11 -0400
+In-Reply-To: <003501c90aa0$59d583a0$0d808ae0$@com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-jon hale wrote:
-> I have a problem when I combine owner-gid, fwmark, and iproute2.
-> I am starting to wonder if I can really get there from here.
+Nishit Shah wrote:
+> Hi,
+> 	I am using 2.6.16.13 kernel in smp configuration. Machine is working
+> as a gateway and frequent iptables commands are fired as users logged in and
+> logged out.
 > 
-> Synopsis:
->        I have been trying to set up policy routing based upon the group id
->        of the process sending the packets.
+>       I got following error in between
 > 
->        It works for most packets, but there is some scenario that happens at
->        the end of every ftp upload, where the packet goes out the wrong
->        interface and gums up the works.
+> [root@manage /root]# iptables -nvx -L INPUT
+> ERROR: 7 not a valid target)
+> Aborted (core dumped)
+> 
+> So, I tried to flush INPUT and got following
+> 
+> [root@manage /root]# iptables -F INPUT 
+> iptables: Too many levels of symbolic links
+> 
+> following is a message I got in /var/log/messages
+> 
+> Aug 26 14:38:30 1219741710 kernel: iptables: loop hook 1 pos 0 00000022.
 
-The stack may send packets that don't belong to the original socket.
-You need to use CONNMARK to make sure all packets of a connection
-are marked similar.
+That kernel version has an iptables locking bug that might
+lead to corruption. Latest 2.6.16 version has this fixed.
