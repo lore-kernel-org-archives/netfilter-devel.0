@@ -1,52 +1,68 @@
-From: fender <frozenspot@gmail.com>
-Subject: Re: [update] port knocking match extension
-Date: Tue, 2 Sep 2008 15:58:53 -0300
-Message-ID: <7e36c7130809021158x522c6c41o8530a8721a90a5d9@mail.gmail.com>
-References: <7e36c7130808272128l22aa701by97169ca79312dc82@mail.gmail.com>
-	 <48B6482C.2010408@gmail.com>
-	 <7e36c7130808311057u7993e5b1q870a7f37cfa95b68@mail.gmail.com>
-	 <hpeob4lg94q4b9dcuhostiogl93lddelgv@4ax.com>
+From: David P Olshefski <olshef@us.ibm.com>
+Subject: Re: crash in ebtables 2.0.8-2
+Date: Tue, 2 Sep 2008 16:01:48 -0400
+Message-ID: <OFDA147441.03CF7CC2-ON852574B8.006DD446-852574B8.006E0312@us.ibm.com>
+References: <OFFFED554A.21EFA010-ON852574AA.004C56D5-852574AA.004C7C94@us.ibm.com> <48BBE8DD.6000909@trash.net> <OF3C594B6C.8BB42C38-ON852574B8.005B1042-852574B8.005B2AB3@us.ibm.com> <48BD7B39.3070700@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-To: "Andrew Schulman" <andrex@alumni.utexas.net>
+Content-Type: text/plain; charset="US-ASCII"
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-gx0-f16.google.com ([209.85.217.16]:64974 "EHLO
-	mail-gx0-f16.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751763AbYIBS6y (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Sep 2008 14:58:54 -0400
-Received: by gxk9 with SMTP id 9so5587679gxk.13
-        for <netfilter-devel@vger.kernel.org>; Tue, 02 Sep 2008 11:58:53 -0700 (PDT)
-In-Reply-To: <hpeob4lg94q4b9dcuhostiogl93lddelgv@4ax.com>
-Content-Disposition: inline
+Received: from e6.ny.us.ibm.com ([32.97.182.146]:55240 "EHLO e6.ny.us.ibm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751364AbYIBUCV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Sep 2008 16:02:21 -0400
+Received: from d01relay04.pok.ibm.com (d01relay04.pok.ibm.com [9.56.227.236])
+	by e6.ny.us.ibm.com (8.13.8/8.13.8) with ESMTP id m82K4lle012877
+	for <netfilter-devel@vger.kernel.org>; Tue, 2 Sep 2008 16:04:47 -0400
+Received: from d01av04.pok.ibm.com (d01av04.pok.ibm.com [9.56.224.64])
+	by d01relay04.pok.ibm.com (8.13.8/8.13.8/NCO v9.0) with ESMTP id m82K22oH224738
+	for <netfilter-devel@vger.kernel.org>; Tue, 2 Sep 2008 16:02:02 -0400
+Received: from d01av04.pok.ibm.com (loopback [127.0.0.1])
+	by d01av04.pok.ibm.com (8.12.11.20060308/8.13.3) with ESMTP id m82K22AO004692
+	for <netfilter-devel@vger.kernel.org>; Tue, 2 Sep 2008 16:02:02 -0400
+In-Reply-To: <48BD7B39.3070700@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Good question, but I am sorry to say I don't  know....I noticed in the 
+latest version it was fixed...the fix was very simple so I just did it by 
+hand, without applying a patch.
 
-On Mon, Sep 1, 2008 at 3:58 PM, Andrew Schulman
-<andrex@alumni.utexas.net> wrote:
->> Thank you for your suggestion. I don't know what xtable is, but I'll
->> check it out.
->
-> xtables-addons, actually.  http://jengelh.medozas.de/projects/xtables/
 
-I took a look at xtables-addons, and I think that we don't need it for
-now. In fact, you don't need to recompile kernel and iptables to get
-our extension working. The Makefile of this port knocking extension
-allows you to compile and install without any extra steps. You need to
-download the kernel and iptables sources, and after that you have to
-do "make and make install".
+David O.
 
-Regards,
 
--- 
-Federico
 
-/*
- * J. Federico Hernandez Scarso (fender) {frozenspot; at; gmail; dot; com;}
- * GPG PubKey: wwwkeys.eu.pgp.net key 6AE78BF2
- * FP: 26AB 7A1B C2C4 70F8 0E7D C3F4 9736 5CE2 6AE7 8BF2
- */
+Patrick McHardy <kaber@trash.net> 
+09/02/2008 01:43 PM
+
+To
+David P Olshefski/Watson/IBM@IBMUS
+cc
+netfilter-devel@vger.kernel.org
+Subject
+Re: crash in ebtables 2.0.8-2
+
+
+
+
+
+
+David P Olshefski wrote:
+> Yep, I found the bug, and discovered it was fixed in a newer release.
+
+Just in case someone runs into this again, which patch fixed it
+exactly? Thanks.
+
+> 
+>> [<ffffffff88288d2a>] :ebtables:translate_table+0x62a/0x1060 
+> 
+> 
+> This appears to be an ancient kernel. Could you retry with 2.6.26
+> please?
+> 
+> 
+
+
+
