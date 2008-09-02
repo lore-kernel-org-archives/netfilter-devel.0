@@ -1,35 +1,50 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: crash in ebtables 2.0.8-2
-Date: Tue, 02 Sep 2008 19:43:21 +0200
-Message-ID: <48BD7B39.3070700@trash.net>
-References: <OFFFED554A.21EFA010-ON852574AA.004C56D5-852574AA.004C7C94@us.ibm.com> <48BBE8DD.6000909@trash.net> <OF3C594B6C.8BB42C38-ON852574B8.005B1042-852574B8.005B2AB3@us.ibm.com>
+From: "jon hale" <jon.h.hale@gmail.com>
+Subject: Re: Does policy routing based on owner-gid really work?
+Date: Tue, 2 Sep 2008 11:44:18 -0700
+Message-ID: <abe9c56e0809021144g12be20fcue4c6c336dc47eea8@mail.gmail.com>
+References: <abe9c56e0808221638m35d2af7bu3535099e55e6c786@mail.gmail.com>
+	 <48BBEAC3.8040801@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: David P Olshefski <olshef@us.ibm.com>
+To: "Patrick McHardy" <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:38067 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751360AbYIBRnY (ORCPT
+Received: from rv-out-0506.google.com ([209.85.198.225]:36661 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754011AbYIBSoT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Sep 2008 13:43:24 -0400
-In-Reply-To: <OF3C594B6C.8BB42C38-ON852574B8.005B1042-852574B8.005B2AB3@us.ibm.com>
+	Tue, 2 Sep 2008 14:44:19 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so2385497rvb.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 02 Sep 2008 11:44:18 -0700 (PDT)
+In-Reply-To: <48BBEAC3.8040801@trash.net>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-David P Olshefski wrote:
-> Yep, I found the bug, and discovered it was fixed in a newer release.
+On Mon, Sep 1, 2008 at 6:14 AM, Patrick McHardy <kaber@trash.net> wrote:
+> jon hale wrote:
+>>
+>> I have a problem when I combine owner-gid, fwmark, and iproute2.
+>> I am starting to wonder if I can really get there from here.
+>>
+>> Synopsis:
+>>       I have been trying to set up policy routing based upon the group id
+>>       of the process sending the packets.
+>>
+>>       It works for most packets, but there is some scenario that happens
+>> at
+>>       the end of every ftp upload, where the packet goes out the wrong
+>>       interface and gums up the works.
+>
+> The stack may send packets that don't belong to the original socket.
+> You need to use CONNMARK to make sure all packets of a connection
+> are marked similar.
+>
+Hmm, I thought I was using CONNMARK
+I do have the iptables command:
+      iptables -t mangle -A OUTPUT -j CONNMARK --save-mark
 
-Just in case someone runs into this again, which patch fixed it
-exactly? Thanks.
-
-> 
->> [<ffffffff88288d2a>] :ebtables:translate_table+0x62a/0x1060 
-> 
-> 
-> This appears to be an ancient kernel. Could you retry with 2.6.26
-> please?
-> 
-> 
-
+Is there something else I need as well?
+Thank you for responding,
+-jon
