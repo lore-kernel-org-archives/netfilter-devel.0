@@ -1,89 +1,69 @@
-From: Phil Oester <kernel@linuxace.com>
-Subject: Re: [PATCH] Pkttype match mismatches in OUTPUT chain
-Date: Wed, 3 Sep 2008 09:06:08 -0700
-Message-ID: <20080903160608.GB8460@linuxace.com>
-References: <20080810221835.GA28761@linuxace.com> <20080810225353.GA31138@linuxace.com> <48A2E268.6010808@trash.net> <20080814120240.GA30222@linuxace.com>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="DocE+STaALJfprDB"
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+From: Eric Leblond <eric@inl.fr>
+Subject: [ULOGD2 2/4] Suppress unused configuration variable.
+Date: Wed,  3 Sep 2008 22:19:01 +0200
+Message-ID: <1220473143-17957-3-git-send-email-eric@inl.fr>
+References: <>
+ <1220473143-17957-1-git-send-email-eric@inl.fr>
+ <1220473143-17957-2-git-send-email-eric@inl.fr>
+Cc: Eric Leblond <eric@inl.fr>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from adsl-67-120-171-161.dsl.lsan03.pacbell.net ([67.120.171.161]:46378
-	"HELO linuxace.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751189AbYICQGI (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 3 Sep 2008 12:06:08 -0400
-Content-Disposition: inline
-In-Reply-To: <20080814120240.GA30222@linuxace.com>
+Received: from bayen.regit.org ([81.57.69.189]:46787 "EHLO ice-age"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753321AbYICUsu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 3 Sep 2008 16:48:50 -0400
+In-Reply-To: <1220473143-17957-2-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This patch suppresses the "rmem" configuration variable which was
+inherited from the original ULOG plugin and which is unused in the
+NFLOG plugin.
 
---DocE+STaALJfprDB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Signed-off-by: Eric Leblond <eric@inl.fr>
+---
+ input/packet/ulogd_inppkt_NFLOG.c |   21 +++++++--------------
+ 1 files changed, 7 insertions(+), 14 deletions(-)
 
-On Thu, Aug 14, 2008 at 05:02:40AM -0700, Phil Oester wrote:
-> On Wed, Aug 13, 2008 at 03:32:24PM +0200, Patrick McHardy wrote:
-> > This is getting more and more kludgy, wouldn't it make more sense
-> > to move the pkt_type initialisation from the device layer to the
-> > protocol layer?
-> 
-> It would, but that's a large-ish change, and unknown if DaveM would
-> support it just to make an iptables match less kludgy.  
-> 
-> Unfortunately, it doesn't appear this match was tested very thoroughly
-> prior to being added to the tree...
-> 
-> Phil
-
-Any further thoughts on this Patrick?  Longer-term, your plan would help,
-but perhaps in the interim we should get this queued up for 2.6.27 so
-we have a working match for OUTPUT packets?
-
-Original patch included below.
-
-Phil
-
-
---DocE+STaALJfprDB
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename=patch-pkttype-output
-
-diff --git a/net/netfilter/xt_pkttype.c b/net/netfilter/xt_pkttype.c
-index 7936f7e..7036d43 100644
---- a/net/netfilter/xt_pkttype.c
-+++ b/net/netfilter/xt_pkttype.c
-@@ -29,18 +29,21 @@ pkttype_mt(const struct sk_buff *skb, const struct net_device *in,
-            bool *hotdrop)
- {
- 	const struct xt_pkttype_info *info = matchinfo;
--	u_int8_t type;
-+	u_int8_t type = 0; 
+diff --git a/input/packet/ulogd_inppkt_NFLOG.c b/input/packet/ulogd_inppkt_NFLOG.c
+index ed01f04..200aab7 100644
+--- a/input/packet/ulogd_inppkt_NFLOG.c
++++ b/input/packet/ulogd_inppkt_NFLOG.c
+@@ -52,12 +52,6 @@ static struct config_keyset libulog_kset = {
+ 			.u.value = NFLOG_GROUP_DEFAULT,
+ 		},
+ 		{
+-			.key	 = "rmem",
+-			.type	 = CONFIG_TYPE_INT,
+-			.options = CONFIG_OPT_NONE,
+-			.u.value = NFLOG_RMEM_DEFAULT,
+-		},
+-		{
+ 			.key 	 = "addressfamily",
+ 			.type	 = CONFIG_TYPE_INT,
+ 			.options = CONFIG_OPT_NONE,
+@@ -104,14 +98,13 @@ static struct config_keyset libulog_kset = {
  
--	if (skb->pkt_type != PACKET_LOOPBACK)
--		type = skb->pkt_type;
--	else if (match->family == AF_INET &&
--	    ipv4_is_multicast(ip_hdr(skb)->daddr))
--		type = PACKET_MULTICAST;
--	else if (match->family == AF_INET6 &&
-+	if (match->family == AF_INET) {
-+		struct net *net = dev_net(skb->dst->dev);
-+		const struct iphdr *iph = ip_hdr(skb);
-+		if (ipv4_is_multicast(iph->daddr))
-+			type = PACKET_MULTICAST;
-+		else if (inet_addr_type(net, iph->daddr) == RTN_BROADCAST)
-+			type = PACKET_BROADCAST;
-+	} else if (match->family == AF_INET6 &&
- 	    ipv6_hdr(skb)->daddr.s6_addr[0] == 0xFF)
- 		type = PACKET_MULTICAST;
--	else
--		type = PACKET_BROADCAST;
-+
-+	if (!type)
-+		type = skb->pkt_type;
+ #define bufsiz_ce(x)	(x->ces[0])
+ #define group_ce(x)	(x->ces[1])
+-#define rmem_ce(x)	(x->ces[2])
+-#define af_ce(x)	(x->ces[3])
+-#define unbind_ce(x)	(x->ces[4])
+-#define seq_ce(x)	(x->ces[5])
+-#define seq_global_ce(x)	(x->ces[6])
+-#define label_ce(x)	(x->ces[7])
+-#define nlsockbufsize_ce(x) (x->ces[8])
+-#define nlsockbufmaxsize_ce(x) (x->ces[9])
++#define af_ce(x)	(x->ces[2])
++#define unbind_ce(x)	(x->ces[3])
++#define seq_ce(x)	(x->ces[4])
++#define seq_global_ce(x)	(x->ces[5])
++#define label_ce(x)	(x->ces[6])
++#define nlsockbufsize_ce(x) (x->ces[7])
++#define nlsockbufmaxsize_ce(x) (x->ces[8])
  
- 	return (type == info->pkttype) ^ info->invert;
- }
+ enum nflog_keys {
+ 	NFLOG_KEY_RAW_MAC = 0,
+-- 
+1.5.4.3
 
---DocE+STaALJfprDB--
