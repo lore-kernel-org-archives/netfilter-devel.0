@@ -1,35 +1,56 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Request: Remove duplicate file names in the kernel source
-Date: Wed, 3 Sep 2008 09:40:55 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0809030940470.29016@fbirervta.pbzchgretzou.qr>
-References: <BLU122-W19B435CA307A7ED8A80E18DA5F0@phx.gbl> <20080902.160601.109446139.davem@davemloft.net>
+From: Eric Leblond <eric@inl.fr>
+Subject: Re: Does policy routing based on owner-gid really work?
+Date: Wed, 3 Sep 2008 16:22:25 +0200
+Message-ID: <20080903142225.GA28695@khasse.inl.fr>
+References: <abe9c56e0808221638m35d2af7bu3535099e55e6c786@mail.gmail.com> <48BBEAC3.8040801@trash.net> <abe9c56e0809021144g12be20fcue4c6c336dc47eea8@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: hallberg68@hotmail.com, netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: jon hale <jon.h.hale@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:33375 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752280AbYICNk5 (ORCPT
+Received: from 141-53.206-83.static-ip.oleane.fr ([83.206.53.141]:49473 "EHLO
+	fydelkass.inl.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754607AbYICOXk (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 3 Sep 2008 09:40:57 -0400
-In-Reply-To: <20080902.160601.109446139.davem@davemloft.net>
+	Wed, 3 Sep 2008 10:23:40 -0400
+Content-Disposition: inline
+In-Reply-To: <abe9c56e0809021144g12be20fcue4c6c336dc47eea8@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hello,
 
-On Tuesday 2008-09-02 19:06, David Miller wrote:
->
->> The netfilter sources in the Linux Kernel contains a number of files
->> that is duplicates expect for the case, like foo.c and FOO.c, this
->> creates a problem when untaring the kernel source on a filesystem
->> that doesn't support it like the common Windows file systems,
->> sometimes you have the need to study the kernel source on other
->> systems and it really is unecessary and confusing to have this
->> naming so I would like to ask you to change it, below is a list of
->> the files:
->
->We can't change these, especially the ones under include/linux,
->without breaking userspace as userspace includes these files.
+On Tuesday, 2008 September  2 at 11:44:18 -0700, jon hale wrote:
+> On Mon, Sep 1, 2008 at 6:14 AM, Patrick McHardy <kaber@trash.net> wrote:
+> > jon hale wrote:
+> >>
+> >> I have a problem when I combine owner-gid, fwmark, and iproute2.
+> >> I am starting to wonder if I can really get there from here.
+> >>
+> >> Synopsis:
+> >>       I have been trying to set up policy routing based upon the group id
+> >>       of the process sending the packets.
+> >>
+> >>       It works for most packets, but there is some scenario that happens
+> >> at
+> >>       the end of every ftp upload, where the packet goes out the wrong
+> >>       interface and gums up the works.
+> >
+> > The stack may send packets that don't belong to the original socket.
+> > You need to use CONNMARK to make sure all packets of a connection
+> > are marked similar.
+> >
+> Hmm, I thought I was using CONNMARK
+> I do have the iptables command:
+>       iptables -t mangle -A OUTPUT -j CONNMARK --save-mark
+> 
+> Is there something else I need as well?
 
--> http://thread.gmane.org/gmane.comp.security.firewalls.netfilter.devel/25930
+maybe:
+iptables -t mangle -A PREROUTING -j CONNMARK --restore-mark 
+
+BR,
+-- 
+Eric Leblond
+INL: http://www.inl.fr/
+NuFW: http://www.nufw.org/
