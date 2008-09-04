@@ -1,69 +1,49 @@
-From: Jesper Dangaard Brouer <hawk@diku.dk>
-Subject: Re: high number of rule changes per second (was Re: Netfilter
- development project)
-Date: Thu, 4 Sep 2008 09:40:56 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0809040924010.23053@tyr.diku.dk>
-References: <000501c8fd68$da840390$8f8c0ab0$@com> <48A32467.80703@netfilter.org>
- <002101c90c64$f40dae50$dc290af0$@com> <48BCFD81.3070005@netfilter.org>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: Andy Loukes <andy@loukes.com>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH 02/04]: netfilter: nf_conntrack_gre: more locking around keymap list
+Date: Thu,  4 Sep 2008 16:15:56 +0200 (MEST)
+Message-ID: <20080904141556.6414.7786.sendpatchset@x2.localnet>
+References: <20080904141553.6414.87829.sendpatchset@x2.localnet>
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mgw2.diku.dk ([130.225.96.92]:47523 "EHLO mgw2.diku.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751050AbYIDHlA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Sep 2008 03:41:00 -0400
-In-Reply-To: <48BCFD81.3070005@netfilter.org>
+Received: from stinky.trash.net ([213.144.137.162]:62495 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752000AbYIDOP5 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 4 Sep 2008 10:15:57 -0400
+In-Reply-To: <20080904141553.6414.87829.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 2 Sep 2008, Pablo Neira Ayuso wrote:
+commit f36591226052551244397113ddccb7677c9f3dbf
+Author: Alexey Dobriyan <adobriyan@gmail.com>
+Date:   Thu Sep 4 14:22:06 2008 +0200
 
-> Andy Loukes wrote:
->> I should clarify the problem we have a little more. I realised we shouldn't
->> be to be too hasty in throwing away our current system, which is currently
->> perl (not ideal but it does work and isn't a bottleneck) handling the
->> network connection which then just calls iptables to add and remove rules.
+    netfilter: nf_conntrack_gre: more locking around keymap list
+    
+    gre_keymap_list should be protected in all places.
+    (unless I'm misreading something)
+    
+    Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-I have written a iptables system in Perl that scales to 5000 customers, 
-and I can perform 77965 rule changes in 2.28 sec.
-
-I have published my low-level iptables-to-perl library on CPAN called 
-IPTables::libiptc.
-
-  http://search.cpan.org/~hawk/IPTables-libiptc-0.11/
-
-I have some extra modules that I have not published yet... but you can get 
-them offlist if you like...
-
-
->> The problem we have is two-fold. First the application that is controlling
->> the firewall is load balanced, so often the daemon gets two concurrent
->> requests and it appears that only one iptables command can be executed at
->> once so one fails. We can fix that with locking but it would be interesting
->> to understand what is happening. Is this a kernel thing?
-
-This is because iptables work by copying the entire ruleset to userspace 
-and commiting it back... thus, there is a race-condition if two userspace 
-iptables calls are performed at the same time.
-
-
->> Secondly it can take up to 0.5s to execute an iptables (1.3.8) add and this
->> is causing a bottleneck and making the first problem more significant.
->
-> Use iptables-restore instead with -n. You can pipe iptables commands to
-> it. And upgrade to iptables >= 1.4, there was a major rewrite to resolve
-> scalability problems in iptables-restore.
-
-Yep! -- my changes and experiences has gone into mainline ;-)
-
-Hilsen
-   Jesper Brouer
-
---
--------------------------------------------------------------------
-MSc. Master of Computer Science
-Dept. of Computer Science, University of Copenhagen
-Author of http://www.adsl-optimizer.dk
--------------------------------------------------------------------
+diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
+index 654a4f7..b308bb4 100644
+--- a/net/netfilter/nf_conntrack_proto_gre.c
++++ b/net/netfilter/nf_conntrack_proto_gre.c
+@@ -97,10 +97,14 @@ int nf_ct_gre_keymap_add(struct nf_conn *ct, enum ip_conntrack_dir dir,
+ 	kmp = &help->help.ct_pptp_info.keymap[dir];
+ 	if (*kmp) {
+ 		/* check whether it's a retransmission */
++		read_lock_bh(&nf_ct_gre_lock);
+ 		list_for_each_entry(km, &gre_keymap_list, list) {
+-			if (gre_key_cmpfn(km, t) && km == *kmp)
++			if (gre_key_cmpfn(km, t) && km == *kmp) {
++				read_unlock_bh(&nf_ct_gre_lock);
+ 				return 0;
++			}
+ 		}
++		read_unlock_bh(&nf_ct_gre_lock);
+ 		pr_debug("trying to override keymap_%s for ct %p\n",
+ 			 dir == IP_CT_DIR_REPLY ? "reply" : "orig", ct);
+ 		return -EEXIST;
