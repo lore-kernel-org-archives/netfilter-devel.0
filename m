@@ -1,38 +1,25 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: 6/7 [NETFILTER]: Use NFPROTO_* in extensions
-Date: Thu, 04 Sep 2008 18:01:36 +0200
-Message-ID: <48C00660.1090108@trash.net>
-References: <alpine.LNX.1.10.0808131925160.13154@fbirervta.pbzchgretzou.qr> <alpine.LNX.1.10.0808131943000.13154@fbirervta.pbzchgretzou.qr> <48BFF947.5070201@trash.net>
+Subject: Re: [PATCH 02/38] netns nf: ip6table_raw in netns for real
+Date: Thu, 04 Sep 2008 18:01:55 +0200
+Message-ID: <48C00673.8010901@trash.net>
+References: <20080821215719.GB31136@x200.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	containers@lists.linux-foundation.org
+To: adobriyan@gmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:65215 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:65218 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751913AbYIDQBi (ORCPT
+	with ESMTP id S1752136AbYIDQB5 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Sep 2008 12:01:38 -0400
-In-Reply-To: <48BFF947.5070201@trash.net>
+	Thu, 4 Sep 2008 12:01:57 -0400
+In-Reply-To: <20080821215719.GB31136@x200.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy wrote:
-> Jan Engelhardt wrote:
->> commit 13b7a78eb14ed69f0dcd2af48d39b2284a2c9aed
->> Author: Jan Engelhardt <jengelh@computergmbh.de>
->> Date:   Sun Aug 10 17:46:39 2008 -0400
->>
->> [NETFILTER]: Use NFPROTO_* in extensions
-> 
-> Applied with two minor fixups, one for the reject resulting
-> from not applying the xt_length patch, one in arptable_filter
-> for unknown reasons.
+adobriyan@gmail.com wrote:
+> Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 
-BTW, there are a few occurences left, f.i. in the tables.
-I'm applying Alexey's netns patches now, so if you want
-to fix this up, please wait a few hours until I've uploaded
-my current tree to kernel.org.
-
-
+Applied, thanks.
