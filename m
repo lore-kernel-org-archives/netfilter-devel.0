@@ -1,39 +1,45 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: 7/7 [NETFILTER]: Implement NFPROTO_UNSPEC as a wildcard for
- extensions
-Date: Thu, 4 Sep 2008 11:41:39 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0809041139000.7250@fbirervta.pbzchgretzou.qr>
-References: <alpine.LNX.1.10.0808131925160.13154@fbirervta.pbzchgretzou.qr> <alpine.LNX.1.10.0808131943180.13154@fbirervta.pbzchgretzou.qr> <48BFFA79.701@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Update comments
+Date: Thu, 04 Sep 2008 17:49:47 +0200
+Message-ID: <48C0039B.3020501@trash.net>
+References: <alpine.LNX.1.10.0808151856510.26696@fbirervta.pbzchgretzou.qr> <alpine.LNX.1.10.0808151857110.26696@fbirervta.pbzchgretzou.qr> <48BBDE9C.10608@trash.net> <alpine.LNX.1.10.0809011242240.3450@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:37165 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751340AbYIDPll (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:64964 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751340AbYIDPtt (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Sep 2008 11:41:41 -0400
-In-Reply-To: <48BFFA79.701@trash.net>
+	Thu, 4 Sep 2008 11:49:49 -0400
+In-Reply-To: <alpine.LNX.1.10.0809011242240.3450@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Jan Engelhardt wrote:
+> On Monday 2008-09-01 08:22, Patrick McHardy wrote:
+>> Jan Engelhardt wrote:
+>>> commit 6ca22c9d159540a558acb21bf80fe4960b656b59
+>>> Author: Jan Engelhardt <jengelh@medozas.de>
+>>> Date:   Fri Aug 15 18:41:08 2008 -0400
+>>>
+>>> Update comments
+>>>
+>>> A number of comments are redundant, some outdated and others outright
+>>> wrong in their own way. Remove and fixup.
+>> Applied, thanks. I got two rejects though, so these parts are
+>> missing:
+>>
+>> Hunk #1 FAILED at 5.
+>> 1 out of 7 hunks FAILED -- saving rejects to file
+>> extensions/libxt_hashlimit.c.rej
+>>
+>> Hunk #1 FAILED at 1.
+>> 1 out of 6 hunks FAILED -- saving rejects to file extensions/libxt_limit.c.rej
+> 
+> Hm. Attached as binary to avoid MUA mangling.
 
-On Thursday 2008-09-04 11:10, Patrick McHardy wrote:
-> Jan Engelhardt wrote:
->> [NETFILTER]: Implement NFPROTO_UNSPEC as a wildcard for extensions
->> 
->> When a match or target is looked up using xt_find_{match,target},
->> Xtables will also search the NFPROTO_UNSPEC module list. This allows
->> for protocol-independent extensions (like xt_time) to be reused from
->> other components (e.g. arptables, ebtables).
->> 
->> Extensions that take different codepaths depending on match->family
->> or target->family of course cannot use NFPROTO_UNSPEC within the
->> registration structure (e.g. xt_pkttype).
->
-> Nice work. You should have compile tested it though.
+Applied.
 
-I sure did. But somehow, this one with xt_string somehow crept in,
-reappeared several times in my own tree(s), mostly due to unsynchronized
-clone/rebase/push -f.
