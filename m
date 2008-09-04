@@ -1,49 +1,66 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 02/04]: netfilter: nf_conntrack_gre: more locking around keymap list
-Date: Thu,  4 Sep 2008 16:15:56 +0200 (MEST)
-Message-ID: <20080904141556.6414.7786.sendpatchset@x2.localnet>
+Subject: [PATCH 01/04]: netfilter: nf_conntrack_sip: de-static helper pointers
+Date: Thu,  4 Sep 2008 16:15:54 +0200 (MEST)
+Message-ID: <20080904141554.6414.14525.sendpatchset@x2.localnet>
 References: <20080904141553.6414.87829.sendpatchset@x2.localnet>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:62495 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:62491 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752000AbYIDOP5 (ORCPT
+	with ESMTP id S1751751AbYIDOP4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Sep 2008 10:15:57 -0400
+	Thu, 4 Sep 2008 10:15:56 -0400
 In-Reply-To: <20080904141553.6414.87829.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit f36591226052551244397113ddccb7677c9f3dbf
+commit db38a4d83523e816a26a33eef5f7e98262699c90
 Author: Alexey Dobriyan <adobriyan@gmail.com>
-Date:   Thu Sep 4 14:22:06 2008 +0200
+Date:   Thu Sep 4 14:22:05 2008 +0200
 
-    netfilter: nf_conntrack_gre: more locking around keymap list
+    netfilter: nf_conntrack_sip: de-static helper pointers
     
-    gre_keymap_list should be protected in all places.
-    (unless I'm misreading something)
+    Helper's ->help hook can run concurrently with itself, so iterating over
+    SIP helpers with static pointer won't work reliably.
     
     Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
     Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
-index 654a4f7..b308bb4 100644
---- a/net/netfilter/nf_conntrack_proto_gre.c
-+++ b/net/netfilter/nf_conntrack_proto_gre.c
-@@ -97,10 +97,14 @@ int nf_ct_gre_keymap_add(struct nf_conn *ct, enum ip_conntrack_dir dir,
- 	kmp = &help->help.ct_pptp_info.keymap[dir];
- 	if (*kmp) {
- 		/* check whether it's a retransmission */
-+		read_lock_bh(&nf_ct_gre_lock);
- 		list_for_each_entry(km, &gre_keymap_list, list) {
--			if (gre_key_cmpfn(km, t) && km == *kmp)
-+			if (gre_key_cmpfn(km, t) && km == *kmp) {
-+				read_unlock_bh(&nf_ct_gre_lock);
- 				return 0;
-+			}
- 		}
-+		read_unlock_bh(&nf_ct_gre_lock);
- 		pr_debug("trying to override keymap_%s for ct %p\n",
- 			 dir == IP_CT_DIR_REPLY ? "reply" : "orig", ct);
- 		return -EEXIST;
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index 2f9bbc0..1fa306b 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -1193,7 +1193,6 @@ static const struct sip_handler sip_handlers[] = {
+ static int process_sip_response(struct sk_buff *skb,
+ 				const char **dptr, unsigned int *datalen)
+ {
+-	static const struct sip_handler *handler;
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ 	unsigned int matchoff, matchlen;
+@@ -1214,6 +1213,8 @@ static int process_sip_response(struct sk_buff *skb,
+ 	dataoff = matchoff + matchlen + 1;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(sip_handlers); i++) {
++		const struct sip_handler *handler;
++
+ 		handler = &sip_handlers[i];
+ 		if (handler->response == NULL)
+ 			continue;
+@@ -1228,13 +1229,14 @@ static int process_sip_response(struct sk_buff *skb,
+ static int process_sip_request(struct sk_buff *skb,
+ 			       const char **dptr, unsigned int *datalen)
+ {
+-	static const struct sip_handler *handler;
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ 	unsigned int matchoff, matchlen;
+ 	unsigned int cseq, i;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(sip_handlers); i++) {
++		const struct sip_handler *handler;
++
+ 		handler = &sip_handlers[i];
+ 		if (handler->request == NULL)
+ 			continue;
