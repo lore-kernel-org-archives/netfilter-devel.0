@@ -1,45 +1,27 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Update comments
-Date: Thu, 04 Sep 2008 17:49:47 +0200
-Message-ID: <48C0039B.3020501@trash.net>
-References: <alpine.LNX.1.10.0808151856510.26696@fbirervta.pbzchgretzou.qr> <alpine.LNX.1.10.0808151857110.26696@fbirervta.pbzchgretzou.qr> <48BBDE9C.10608@trash.net> <alpine.LNX.1.10.0809011242240.3450@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH 01/38] netns nf: remove nf_*_net() wrappers
+Date: Thu, 04 Sep 2008 17:56:37 +0200
+Message-ID: <48C00535.60909@trash.net>
+References: <20080821215657.GA31136@x200.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	containers@lists.linux-foundation.org
+To: adobriyan@gmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:64964 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:65099 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751340AbYIDPtt (ORCPT
+	with ESMTP id S1751193AbYIDP4i (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Sep 2008 11:49:49 -0400
-In-Reply-To: <alpine.LNX.1.10.0809011242240.3450@fbirervta.pbzchgretzou.qr>
+	Thu, 4 Sep 2008 11:56:38 -0400
+In-Reply-To: <20080821215657.GA31136@x200.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Monday 2008-09-01 08:22, Patrick McHardy wrote:
->> Jan Engelhardt wrote:
->>> commit 6ca22c9d159540a558acb21bf80fe4960b656b59
->>> Author: Jan Engelhardt <jengelh@medozas.de>
->>> Date:   Fri Aug 15 18:41:08 2008 -0400
->>>
->>> Update comments
->>>
->>> A number of comments are redundant, some outdated and others outright
->>> wrong in their own way. Remove and fixup.
->> Applied, thanks. I got two rejects though, so these parts are
->> missing:
->>
->> Hunk #1 FAILED at 5.
->> 1 out of 7 hunks FAILED -- saving rejects to file
->> extensions/libxt_hashlimit.c.rej
->>
->> Hunk #1 FAILED at 1.
->> 1 out of 6 hunks FAILED -- saving rejects to file extensions/libxt_limit.c.rej
-> 
-> Hm. Attached as binary to avoid MUA mangling.
+adobriyan@gmail.com wrote:
+> Now that dev_net() exists, the usefullness of them is even less. Also they're
+> a big problem in resolving circular header dependencies necessary for
+> NOTRACK-in-netns patch. See below.
 
-Applied.
-
+Applied, thanks.
