@@ -1,52 +1,38 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: 4/7 [NETFILTER]: xt_length match, revision 1
-Date: Thu, 04 Sep 2008 17:58:22 +0200
-Message-ID: <48C0059E.1080602@trash.net>
-References: <alpine.LNX.1.10.0808131925160.13154@fbirervta.pbzchgretzou.qr> <alpine.LNX.1.10.0808131927360.13154@fbirervta.pbzchgretzou.qr> <48BFF712.3020301@trash.net> <alpine.LNX.1.10.0809041154090.7250@fbirervta.pbzchgretzou.qr>
+Subject: Re: 6/7 [NETFILTER]: Use NFPROTO_* in extensions
+Date: Thu, 04 Sep 2008 18:01:36 +0200
+Message-ID: <48C00660.1090108@trash.net>
+References: <alpine.LNX.1.10.0808131925160.13154@fbirervta.pbzchgretzou.qr> <alpine.LNX.1.10.0808131943000.13154@fbirervta.pbzchgretzou.qr> <48BFF947.5070201@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:65139 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:65215 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751388AbYIDP6Y (ORCPT
+	with ESMTP id S1751913AbYIDQBi (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Sep 2008 11:58:24 -0400
-In-Reply-To: <alpine.LNX.1.10.0809041154090.7250@fbirervta.pbzchgretzou.qr>
+	Thu, 4 Sep 2008 12:01:38 -0400
+In-Reply-To: <48BFF947.5070201@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Thursday 2008-09-04 10:56, Patrick McHardy wrote:
->>> [NETFILTER]: xt_length match, revision 1
->>>
->>> Introduce xt_length match revision 1. It adds support for layer-4,
->>> layer-5 and layer-7 length matching. It is much easier than writing
->>> up the according xt_u32 magic.
->> I still think this is too ugly to live
+Patrick McHardy wrote:
+> Jan Engelhardt wrote:
+>> commit 13b7a78eb14ed69f0dcd2af48d39b2284a2c9aed
+>> Author: Jan Engelhardt <jengelh@computergmbh.de>
+>> Date:   Sun Aug 10 17:46:39 2008 -0400
+>>
+>> [NETFILTER]: Use NFPROTO_* in extensions
 > 
-> Do you have a better suggestion?
+> Applied with two minor fixups, one for the reject resulting
+> from not applying the xt_length patch, one in arptable_filter
+> for unknown reasons.
 
-Not currently, too busy catching up. Lets revisit this later.
+BTW, there are a few occurences left, f.i. in the tables.
+I'm applying Alexey's netns patches now, so if you want
+to fix this up, please wait a few hours until I've uploaded
+my current tree to kernel.org.
 
-> 
->>> +static bool
->>> +xtlength_layer7_sctp(unsigned int *length, const struct sk_buff *skb,
->>> +		     unsigned int offset)
->>> +{
->>> +	const struct sctp_chunkhdr *ch;
->>> +	struct sctp_chunkhdr chbuf;
->>> +	unsigned int pos;
->>> +
->>> +	*length = 0;
->>> +	for (pos = sizeof(struct sctphdr); pos < skb->len;
->>> +	     pos += ntohs(ch->length)) {
->> Endless loop
-> 
-> It should have been
-> 	pos = offset + sizeof(struct sctphdr)
-> right? If not, where is the endless loop?
 
-ch->length may be zero. It should round up to multiples of four.
