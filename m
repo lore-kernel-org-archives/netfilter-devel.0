@@ -1,51 +1,69 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: Re: Does policy routing based on owner-gid really work?
-Date: Thu, 4 Sep 2008 08:59:04 +0200
-Message-ID: <20080904065903.GA3361@khasse.inl.fr>
-References: <abe9c56e0808221638m35d2af7bu3535099e55e6c786@mail.gmail.com> <48BBEAC3.8040801@trash.net> <abe9c56e0809021144g12be20fcue4c6c336dc47eea8@mail.gmail.com> <20080903142225.GA28695@khasse.inl.fr> <abe9c56e0809031552o11f1bb8ctccc5aac5bbc9d6e@mail.gmail.com>
+From: Jesper Dangaard Brouer <hawk@diku.dk>
+Subject: Re: high number of rule changes per second (was Re: Netfilter
+ development project)
+Date: Thu, 4 Sep 2008 09:40:56 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0809040924010.23053@tyr.diku.dk>
+References: <000501c8fd68$da840390$8f8c0ab0$@com> <48A32467.80703@netfilter.org>
+ <002101c90c64$f40dae50$dc290af0$@com> <48BCFD81.3070005@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
-To: jon hale <jon.h.hale@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Andy Loukes <andy@loukes.com>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 141-53.206-83.static-ip.oleane.fr ([83.206.53.141]:33494 "EHLO
-	fydelkass.inl.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750950AbYIDG7M (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Sep 2008 02:59:12 -0400
-Content-Disposition: inline
-In-Reply-To: <abe9c56e0809031552o11f1bb8ctccc5aac5bbc9d6e@mail.gmail.com>
+Received: from mgw2.diku.dk ([130.225.96.92]:47523 "EHLO mgw2.diku.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751050AbYIDHlA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 4 Sep 2008 03:41:00 -0400
+In-Reply-To: <48BCFD81.3070005@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+On Tue, 2 Sep 2008, Pablo Neira Ayuso wrote:
 
-On Wednesday, 2008 September  3 at 15:52:37 -0700, jon hale wrote:
-> Hi,
-> Well I tried adding the CONNMARK line that you suggest.
-> I then try a simple ftp from here to there of a 2 byte file.
-> 
-> I run tcpdumps on both the ppp0 and eth0 interfaces catching all of
-> the packets that are going out to "there".
-> 
-> What I see is that when my machine (here) is responding to the Fin
-> packet sent by the server that this goes out eth0. When I thought that
-> I had configured it otherwise.
-> All other packets until that point seem happy to go out ppp0.
-> 
-> Any ideas on why this packet would go out the "wrong" interface?
-> Suggestions on how I may continue to debug this?
+> Andy Loukes wrote:
+>> I should clarify the problem we have a little more. I realised we shouldn't
+>> be to be too hasty in throwing away our current system, which is currently
+>> perl (not ideal but it does work and isn't a bottleneck) handling the
+>> network connection which then just calls iptables to add and remove rules.
 
-You may try to log every packet marked 0x1 in INPUT and OUTPUT filter
-chain to see it the mark is correclty propagated through the connection.
-By doing this, you will be able to check if your conditionnal routing
-can occur correctly.
+I have written a iptables system in Perl that scales to 5000 customers, 
+and I can perform 77965 rule changes in 2.28 sec.
 
-Just to be sure: Is nf_conntrack_ftp loaded ? It is necessary to have
-RELATED connection detected.
+I have published my low-level iptables-to-perl library on CPAN called 
+IPTables::libiptc.
 
-BR,
--- 
-Eric Leblond
-INL: http://www.inl.fr/
-NuFW: http://www.nufw.org/
+  http://search.cpan.org/~hawk/IPTables-libiptc-0.11/
+
+I have some extra modules that I have not published yet... but you can get 
+them offlist if you like...
+
+
+>> The problem we have is two-fold. First the application that is controlling
+>> the firewall is load balanced, so often the daemon gets two concurrent
+>> requests and it appears that only one iptables command can be executed at
+>> once so one fails. We can fix that with locking but it would be interesting
+>> to understand what is happening. Is this a kernel thing?
+
+This is because iptables work by copying the entire ruleset to userspace 
+and commiting it back... thus, there is a race-condition if two userspace 
+iptables calls are performed at the same time.
+
+
+>> Secondly it can take up to 0.5s to execute an iptables (1.3.8) add and this
+>> is causing a bottleneck and making the first problem more significant.
+>
+> Use iptables-restore instead with -n. You can pipe iptables commands to
+> it. And upgrade to iptables >= 1.4, there was a major rewrite to resolve
+> scalability problems in iptables-restore.
+
+Yep! -- my changes and experiences has gone into mainline ;-)
+
+Hilsen
+   Jesper Brouer
+
+--
+-------------------------------------------------------------------
+MSc. Master of Computer Science
+Dept. of Computer Science, University of Copenhagen
+Author of http://www.adsl-optimizer.dk
+-------------------------------------------------------------------
