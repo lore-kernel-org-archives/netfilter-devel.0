@@ -1,34 +1,65 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH 20/38] netns ct: NOTRACK in netns
-Date: Fri, 5 Sep 2008 00:18:06 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0809050012400.17569@fbirervta.pbzchgretzou.qr>
+Date: Fri, 05 Sep 2008 13:33:44 +0200
+Message-ID: <48C11918.8020508@trash.net>
 References: <20080821220432.GT31136@x200.localdomain> <48C012B8.10606@trash.net> <20080905025838.GA2789@x200.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, containers@lists.linux-foundation.org
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	containers@lists.linux-foundation.org
 To: Alexey Dobriyan <adobriyan@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:39492 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750720AbYIEESI (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:55635 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751859AbYIELdr (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Sep 2008 00:18:08 -0400
+	Fri, 5 Sep 2008 07:33:47 -0400
 In-Reply-To: <20080905025838.GA2789@x200.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Alexey Dobriyan wrote:
+> On Thu, Sep 04, 2008 at 06:54:16PM +0200, Patrick McHardy wrote:
+>> adobriyan@gmail.com wrote:
+>>> Make untracked conntrack per-netns. Compare conntracks with relevant
+>>> untracked one.
+>>>
+>>> The following code you'll start laughing at this code:
+>>>
+>>> 	if (ct == ct->ct_net->ct.untracked)
+>>> 		...
+>>>
+>>> let me remind you that ->ct_net is set in only one place, and never
+>>> overwritten later.
+>>>
+>>> All of this requires some surgery with headers, otherwise horrible circular
+>>> dependencies. And we lost nf_ct_is_untracked() as function, it became macro.
+>> I think you could avoid this mess by using a struct nf_conntrack
+>> for the untracked conntrack instead of struct nf_conn. It shouldn't
+>> make any difference since its ignored anyways.
+> 
+> Ewww, can I?
 
-On Thursday 2008-09-04 22:58, Alexey Dobriyan wrote:
+I hope so :) A different possiblity suggest by Pablo some time ago
+would be to mark untracked packets in skb->nfctinfo and not
+attach a conntrack at all.
 
->In conntrack_mt_v0() "ct->status" can be used even for untracked connection,
->is this right?
+> Regardless of netns, switching to
+> 
+> 	struct nf_conntrack nf_conntrack_untracked;
+> 
+> means we must be absolutely sure that every place which uses, say,
+> ct->status won't get untracked conntrack.
+> 
+> For example, does setting IPS_NAT_DONE_MASK and IPS_CONFIRMED_BIT on
+> untracked conntracked really necessary?
 
-Yes.
+I don't think so, untracked conntracks are skipped early in the NAT
+table.
 
->For example, does setting IPS_NAT_DONE_MASK and IPS_CONFIRMED_BIT on
->untracked conntracked really necessary?
+> In conntrack_mt_v0() "ct->status" can be used even for untracked connection,
+> is this right?
 
-Does it even happen? Something smells afoul if ct->status is anything
-but zero/unset for the untracked entry.
-
+It looks that way, but its not right. I think it should return false
+for every match except on (untracked) state.
