@@ -1,55 +1,63 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: poc: link modules into one .ko
-Date: Sat, 6 Sep 2008 18:29:19 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0809061436440.22690@fbirervta.pbzchgretzou.qr>
+From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
+Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility
+ workaround
+Date: Sun, 7 Sep 2008 05:17:18 -0300
+Message-ID: <20080907051718.58bf133d@tux>
+References: <20080819213417.45133573@tux>
+	<Pine.LNX.4.64.0808201358490.4551@wrl-59.cs.helsinki.fi>
+	<20080822183224.2d52f16c@tux>
+	<20080822.143709.65615512.davem@davemloft.net>
+	<20080823111446.06a350a2@tux>
+	<Pine.LNX.4.64.0808231736490.10712@wrl-59.cs.helsinki.fi>
+	<20080824163843.33b4f890@tux>
+	<Pine.LNX.4.64.0808250948420.27330@wrl-59.cs.helsinki.fi>
+	<20080826141812.589848a0@tux>
+	<Pine.LNX.4.64.0808262034001.1168@wrl-59.cs.helsinki.fi>
+	<20080828184919.611dd578@tux>
+	<Pine.LNX.4.64.0808291045430.7971@wrl-59.cs.helsinki.fi>
+	<20080830035650.42be37d7@tux>
+	<Pine.LNX.4.64.0808301000180.12388@wrl-59.cs.helsinki.fi>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
+	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
+	Patrick Hardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
+To: "Ilpo =?ISO-8859-1?Q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:43369 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753748AbYIFW3W (ORCPT
+Received: from an-out-0708.google.com ([209.85.132.243]:8432 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752445AbYIGIRZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 6 Sep 2008 18:29:22 -0400
+	Sun, 7 Sep 2008 04:17:25 -0400
+Received: by an-out-0708.google.com with SMTP id d40so175476and.103
+        for <netfilter-devel@vger.kernel.org>; Sun, 07 Sep 2008 01:17:24 -0700 (PDT)
+In-Reply-To: <Pine.LNX.4.64.0808301000180.12388@wrl-59.cs.helsinki.fi>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Mon, 1 Sep 2008 10:11:25 +0300 (EEST)
+"Ilpo J=E4rvinen" <ilpo.jarvinen@helsinki.fi> wrote:
 
-I went over the suggestion of collapsing module files again [1]. For 
-fun and research, instead of combining specific modules, I have set out 
-to combine everything into a single module.
+> That's one option. If you do that, you could try catching two flies a=
+t the=20
+> same time by selecting something else than tickless.
 
-[1] http://marc.info/?l=netfilter-devel&m=121148631320895&w=2
+	Hi Ilpo. I *think* I discovered the source of the problem. It's
+not related to gcc, neither dynticks.
 
-All .ko modules together clock in at 1037772 bytes of diskspace, and 
-they are likely to use just as much kernel memory when loaded (strip a 
-few ELF stuff, and then round up to the next PAGE_SIZE again).
+	I'm almost sure it's related to *High Resolution Timer*. I
+simply disabled this option and the problems disappeared.
 
-After the patch, the stats are much different:
--rw-r--r-- 1 jengelh 160910 2008-09-06 18:15 xtables_ext.ko
--rw-r--r-- 1 jengelh  57967 2008-09-06 18:15 xtables_xct.ko
--rw-r--r-- 1 jengelh  27295 2008-09-06 18:15 xtables_xnat.ko
--rw-r--r-- 1 jengelh  47550 2008-09-06 18:15 xtables_xv6.ko
+	I'd like to ask you if it does make sense, based on the
+problem we've being discussing over these weeks. What's your opinion?
 
-293722 bytes, that is approximately a 70% reduction in disk and memory 
-usage. (There are three modules not in this POC xtables_*.ko.) However, 
-as a result, currently *all* extensions are loaded, which might incur 
-extra memory being used.
+	Thank you.
 
-The proof-of-concept patch is not too pretty, but it extrapolates one 
-way to deal with the module flood (which has been inflating compile 
-times and whatnot), and it does so without moving tons of code around. I 
-think the only way to shove off more bytes is to revamp the API a bit 
-and even try to reduce the amount of .o files during build.
-
-The four xtables_*.ko files represent (no dependencies), (dependency on 
-conntrack), (dependency on NAT) and (dependency on IPv6). Of course we 
-should be keeping an eye on users who want a tiny system and not pull in 
-unneeded dependencies - hence the split into actually four .ko files.
-
-Interested parties are directed to the top commit of the koredux 
-("reduction of number of .ko files") branch:
-
-  git://dev.medozas.de/linux koredux
-  http://dev.medozas.de/gitweb.cgi?p=linux;h=koredux;a=shortlog
+--=20
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
