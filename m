@@ -1,45 +1,62 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/04]: Netfilter fixes
-Date: Sun, 07 Sep 2008 18:23:30 -0700 (PDT)
-Message-ID: <20080907.182330.201693956.davem@davemloft.net>
-References: <20080904141553.6414.87829.sendpatchset@x2.localnet>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: [PATCH 01/33] nf_conntrack_sip: de-static helper pointers
+Date: Mon,  8 Sep 2008 07:02:38 +0400
+Message-ID: <1220842990-30500-1-git-send-email-adobriyan@gmail.com>
+References: <48C01046.2070704@trash.net>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	containers@lists.linux-foundation.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:46273
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1751504AbYIHBXh (ORCPT
+Received: from gv-out-0910.google.com ([216.239.58.184]:64074 "EHLO
+	gv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750969AbYIHDBZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 7 Sep 2008 21:23:37 -0400
-In-Reply-To: <20080904141553.6414.87829.sendpatchset@x2.localnet>
+	Sun, 7 Sep 2008 23:01:25 -0400
+Received: by gv-out-0910.google.com with SMTP id e6so91840gvc.37
+        for <netfilter-devel@vger.kernel.org>; Sun, 07 Sep 2008 20:01:23 -0700 (PDT)
+In-Reply-To: <48C01046.2070704@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Thu,  4 Sep 2008 16:15:53 +0200 (MEST)
+->help hook can run concurrently with itself, so iterating over SIP helpers
+with static pointer can't work reliably.
 
-> following are four netfilter fixes for 2.6.27, containing:
-> 
-> - fix for a accidentally introduced static variable in the SIP helper
->   that was intended to be local from Alexey
-> 
-> - a GRE helper keymap locking and list iteration fix from Alexey
-> 
-> - a patch to make the IRC helpers' port parsing more robust against the
->   issues pointed out by Alexey
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 
-I applied all of this.
-
-Please limit the scope of anything you send in the future outside of
-the merge window.  The "kfree the list head instead of the object itself"
-doesn't fix anything, the code worked in it's current form.
-
-These are mostly just cleanups due to code inspection rather than
-fixes for bugs that users are actually hitting and reporting.  The
-latter (as well as cures for fully exploitable DoS things, obviously)
-is the only thing I want to be seeing outside of the merge window.
-
-Thanks.
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index 2f9bbc0..1fa306b 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -1193,7 +1193,6 @@ static const struct sip_handler sip_handlers[] = {
+ static int process_sip_response(struct sk_buff *skb,
+ 				const char **dptr, unsigned int *datalen)
+ {
+-	static const struct sip_handler *handler;
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ 	unsigned int matchoff, matchlen;
+@@ -1214,6 +1213,8 @@ static int process_sip_response(struct sk_buff *skb,
+ 	dataoff = matchoff + matchlen + 1;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(sip_handlers); i++) {
++		const struct sip_handler *handler;
++
+ 		handler = &sip_handlers[i];
+ 		if (handler->response == NULL)
+ 			continue;
+@@ -1228,13 +1229,14 @@ static int process_sip_response(struct sk_buff *skb,
+ static int process_sip_request(struct sk_buff *skb,
+ 			       const char **dptr, unsigned int *datalen)
+ {
+-	static const struct sip_handler *handler;
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+ 	unsigned int matchoff, matchlen;
+ 	unsigned int cseq, i;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(sip_handlers); i++) {
++		const struct sip_handler *handler;
++
+ 		handler = &sip_handlers[i];
+ 		if (handler->request == NULL)
+ 			continue;
