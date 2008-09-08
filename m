@@ -1,61 +1,42 @@
-From: "=?ISO-8859-1?Q?Ilpo_J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
-Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility workaround
-Date: Mon, 8 Sep 2008 13:27:43 +0300 (EEST)
-Message-ID: <Pine.LNX.4.64.0809071341310.8991@wrl-59.cs.helsinki.fi>
-References: <20080819213417.45133573@tux> <Pine.LNX.4.64.0808201358490.4551@wrl-59.cs.helsinki.fi>
- <20080822183224.2d52f16c@tux> <20080822.143709.65615512.davem@davemloft.net>
- <20080823111446.06a350a2@tux> <Pine.LNX.4.64.0808231736490.10712@wrl-59.cs.helsinki.fi>
- <20080824163843.33b4f890@tux> <Pine.LNX.4.64.0808250948420.27330@wrl-59.cs.helsinki.fi>
- <20080826141812.589848a0@tux> <Pine.LNX.4.64.0808262034001.1168@wrl-59.cs.helsinki.fi>
- <20080828184919.611dd578@tux> <Pine.LNX.4.64.0808291045430.7971@wrl-59.cs.helsinki.fi>
- <20080830035650.42be37d7@tux> <Pine.LNX.4.64.0808301000180.12388@wrl-59.cs.helsinki.fi>
- <20080907051718.58bf133d@tux>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 00/04]: Netfilter fixes
+Date: Mon, 08 Sep 2008 14:44:16 +0200
+Message-ID: <48C51E20.2040503@trash.net>
+References: <20080904141553.6414.87829.sendpatchset@x2.localnet> <20080907.182330.201693956.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; boundary="-696208474-129813521-1220784120=:8991"
-Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
-	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
-	Patrick Hardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
-To: "=?ISO-8859-1?Q?D=E2niel?= Fraga" <fragabr@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20080907051718.58bf133d@tux>
-Content-ID: <Pine.LNX.4.64.0809081257380.1034@wrl-59.cs.helsinki.fi>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:41073 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751724AbYIHMoU (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 8 Sep 2008 08:44:20 -0400
+In-Reply-To: <20080907.182330.201693956.davem@davemloft.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
-
----696208474-129813521-1220784120=:8991
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
-Content-ID: <Pine.LNX.4.64.0809081257381.1034@wrl-59.cs.helsinki.fi>
-
-On Sun, 7 Sep 2008, Dâniel Fraga wrote:
-
-> On Mon, 1 Sep 2008 10:11:25 +0300 (EEST)
-> "Ilpo Järvinen" <ilpo.jarvinen@helsinki.fi> wrote:
+David Miller wrote:
+> From: Patrick McHardy <kaber@trash.net>
+> Date: Thu,  4 Sep 2008 16:15:53 +0200 (MEST)
 > 
-> > That's one option. If you do that, you could try catching two flies at the 
-> > same time by selecting something else than tickless.
+>> following are four netfilter fixes for 2.6.27, containing:
+>>
+>> - fix for a accidentally introduced static variable in the SIP helper
+>>   that was intended to be local from Alexey
+>>
+>> - a GRE helper keymap locking and list iteration fix from Alexey
+>>
+>> - a patch to make the IRC helpers' port parsing more robust against the
+>>   issues pointed out by Alexey
 > 
-> 	Hi Ilpo. I *think* I discovered the source of the problem. It's
-> not related to gcc, neither dynticks.
+> I applied all of this.
 > 
-> 	I'm almost sure it's related to *High Resolution Timer*. I
-> simply disabled this option and the problems disappeared.
-> 
-> 	I'd like to ask you if it does make sense, based on the
-> problem we've being discussing over these weeks. What's your opinion?
+> Please limit the scope of anything you send in the future outside of
+> the merge window.  The "kfree the list head instead of the object itself"
+> doesn't fix anything, the code worked in it's current form.
 
-It could well be possible, accept seems to call schedule_timeout if 
-nothing is immediately available (but I don't know well enough what 
-end up being hrtimer'ed when you enable them and what will not)... 
-Anyway, how long did you test for that to confirm it?
-
-Does this explain the 2.6.24->2.6.25 change in behavior as well (ie., 
-did they got enabled there)?
-
--- 
- i.
----696208474-129813521-1220784120=:8991--
+Indeed, sorry. I was in catch-up mode and apparently didn't think
+very much :)
