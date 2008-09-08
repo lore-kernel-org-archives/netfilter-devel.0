@@ -1,94 +1,61 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: [PATCH 2.6]: ip6t_{hbh,dst}: Rejects not-strict mode on rule
- insersion
-Date: Mon, 08 Sep 2008 15:13:49 +0900 (JST)
-Message-ID: <200809080613.m886DnGY021233@toshiba.co.jp>
+From: "=?ISO-8859-1?Q?Ilpo_J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
+Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility workaround
+Date: Mon, 8 Sep 2008 13:27:43 +0300 (EEST)
+Message-ID: <Pine.LNX.4.64.0809071341310.8991@wrl-59.cs.helsinki.fi>
+References: <20080819213417.45133573@tux> <Pine.LNX.4.64.0808201358490.4551@wrl-59.cs.helsinki.fi>
+ <20080822183224.2d52f16c@tux> <20080822.143709.65615512.davem@davemloft.net>
+ <20080823111446.06a350a2@tux> <Pine.LNX.4.64.0808231736490.10712@wrl-59.cs.helsinki.fi>
+ <20080824163843.33b4f890@tux> <Pine.LNX.4.64.0808250948420.27330@wrl-59.cs.helsinki.fi>
+ <20080826141812.589848a0@tux> <Pine.LNX.4.64.0808262034001.1168@wrl-59.cs.helsinki.fi>
+ <20080828184919.611dd578@tux> <Pine.LNX.4.64.0808291045430.7971@wrl-59.cs.helsinki.fi>
+ <20080830035650.42be37d7@tux> <Pine.LNX.4.64.0808301000180.12388@wrl-59.cs.helsinki.fi>
+ <20080907051718.58bf133d@tux>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from imx9.toshiba.co.jp ([202.33.96.51]:53390 "EHLO
-	imx9.toshiba.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752930AbYIHGqC (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 8 Sep 2008 02:46:02 -0400
-Received: from imx12.toshiba.co.jp (imx12 [61.202.160.132])
-	by imx9.toshiba.co.jp  with ESMTP id m886Jrs4007791
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <netfilter-devel@vger.kernel.org>; Mon, 8 Sep 2008 15:19:54 +0900 (JST)
-Received: from arc11.toshiba.co.jp ([133.199.90.127])
-	by imx12.toshiba.co.jp  with ESMTP id m886DobO013598
-	for <netfilter-devel@vger.kernel.org>; Mon, 8 Sep 2008 15:13:50 +0900 (JST)
-Received: (from root@localhost)
-	by arc11.toshiba.co.jp  id m886Dofl007102
-	for netfilter-devel@vger.kernel.org; Mon, 8 Sep 2008 15:13:50 +0900 (JST)
-Received: from mx.toshiba.co.jp (localhost [127.0.0.1])
-	by ovp11.toshiba.co.jp  with ESMTP id m886DoK2003936
-	for <netfilter-devel@vger.kernel.org>; Mon, 8 Sep 2008 15:13:50 +0900 (JST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: MULTIPART/MIXED; boundary="-696208474-129813521-1220784120=:8991"
+Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
+	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
+	Patrick Hardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
+To: "=?ISO-8859-1?Q?D=E2niel?= Fraga" <fragabr@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20080907051718.58bf133d@tux>
+Content-ID: <Pine.LNX.4.64.0809081257380.1034@wrl-59.cs.helsinki.fi>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Hi Patrick,
+---696208474-129813521-1220784120=:8991
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
+Content-ID: <Pine.LNX.4.64.0809081257381.1034@wrl-59.cs.helsinki.fi>
 
-Please apply the following patch. The option IP6T_OPTS_NSTRICT causes to
-ignore rules for options in HBH/DST header.
+On Sun, 7 Sep 2008, Dâniel Fraga wrote:
 
-I think this issue affects few users. Because fortunately (?) man page and
-'ip6tables -m hbh --help' does not show --hbh-not-strict option, and
-'ip6tables ... --hbh-not-strict' does not work due to incorrect has_arg
-value in userland libip6t_hbh.c ;)
+> On Mon, 1 Sep 2008 10:11:25 +0300 (EEST)
+> "Ilpo Järvinen" <ilpo.jarvinen@helsinki.fi> wrote:
+> 
+> > That's one option. If you do that, you could try catching two flies at the 
+> > same time by selecting something else than tickless.
+> 
+> 	Hi Ilpo. I *think* I discovered the source of the problem. It's
+> not related to gcc, neither dynticks.
+> 
+> 	I'm almost sure it's related to *High Resolution Timer*. I
+> simply disabled this option and the problems disappeared.
+> 
+> 	I'd like to ask you if it does make sense, based on the
+> problem we've being discussing over these weeks. What's your opinion?
 
-I will implement not-strict mode, so the patch leaves the definition of
-IP6T_OPTS_NSTRICT. The strict mode is too strict (the specified options
-have to be included in order in HBH/DST header) and would be useless
-in most senarios.
+It could well be possible, accept seems to call schedule_timeout if 
+nothing is immediately available (but I don't know well enough what 
+end up being hrtimer'ed when you enable them and what will not)... 
+Anyway, how long did you test for that to confirm it?
 
-Regards,
+Does this explain the 2.6.24->2.6.25 change in behavior as well (ie., 
+did they got enabled there)?
 
-
-[NETFILTER]: ip6t_{hbh,dst}: Rejects not-strict mode on rule insertion
-
-The current code ignores rules for internal options in HBH/DST options
-header in packet processing if 'Not strict' mode is specified (which is not
-implemented). Clearly it is not expected by user.
-
-Kernel should reject HBH/DST rule insertion with 'Not strict' mode
-in the first place.
-
-Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
----
- net/ipv6/netfilter/ip6t_hbh.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
-
-diff --git a/net/ipv6/netfilter/ip6t_hbh.c b/net/ipv6/netfilter/ip6t_hbh.c
-index 62e39ac..26654b2 100644
---- a/net/ipv6/netfilter/ip6t_hbh.c
-+++ b/net/ipv6/netfilter/ip6t_hbh.c
-@@ -97,8 +97,6 @@ hbh_mt6(const struct sk_buff *skb, const struct net_device *in,
- 	hdrlen -= 2;
- 	if (!(optinfo->flags & IP6T_OPTS_OPTS)) {
- 		return ret;
--	} else if (optinfo->flags & IP6T_OPTS_NSTRICT) {
--		pr_debug("Not strict - not implemented");
- 	} else {
- 		pr_debug("Strict ");
- 		pr_debug("#%d ", optinfo->optsnr);
-@@ -177,6 +175,12 @@ hbh_mt6_check(const char *tablename, const void *entry,
- 		pr_debug("ip6t_opts: unknown flags %X\n", optsinfo->invflags);
- 		return false;
- 	}
-+
-+	if (optsinfo->flags & IP6T_OPTS_NSTRICT) {
-+		pr_debug("ip6t_opts: Not strict - not implemented");
-+		return false;
-+	}
-+
- 	return true;
- }
- 
 -- 
-1.5.3.6
-
+ i.
+---696208474-129813521-1220784120=:8991--
