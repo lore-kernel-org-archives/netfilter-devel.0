@@ -1,68 +1,102 @@
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: [PATCH 33/33] Enable netfilter in netns
-Date: Mon,  8 Sep 2008 07:03:10 +0400
-Message-ID: <1220842990-30500-33-git-send-email-adobriyan@gmail.com>
-References: <48C01046.2070704@trash.net>
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	containers@lists.linux-foundation.org
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: [PATCH 2.4]: ip6t_{hbh,dst}: Rejects not-strict mode on rule
+ insersion
+Date: Mon, 08 Sep 2008 15:32:34 +0900 (JST)
+Message-ID: <200809080632.m886WYtt016710@toshiba.co.jp>
+References: <20080908.151349.84890575.kozakai@isl.rdc.toshiba.co.jp>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <48C01046.2070704@trash.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from inet-tsb5.toshiba.co.jp ([202.33.96.24]:63475 "EHLO
+	imx2.toshiba.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752752AbYIHGci (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 8 Sep 2008 02:32:38 -0400
+Received: from arc1.toshiba.co.jp ([133.199.194.235])
+	by imx2.toshiba.co.jp  with ESMTP id m886WZWX029570
+	for <netfilter-devel@vger.kernel.org>; Mon, 8 Sep 2008 15:32:35 +0900 (JST)
+Received: (from root@localhost)
+	by arc1.toshiba.co.jp  id m886WZ4P001947
+	for netfilter-devel@vger.kernel.org; Mon, 8 Sep 2008 15:32:35 +0900 (JST)
+Received: from mx.toshiba.co.jp (localhost [127.0.0.1])
+	by ovp2.toshiba.co.jp  with ESMTP id m886WZiK008456
+	for <netfilter-devel@vger.kernel.org>; Mon, 8 Sep 2008 15:32:35 +0900 (JST)
+In-Reply-To: <20080908.151349.84890575.kozakai@isl.rdc.toshiba.co.jp>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
->From kernel perspective, allow entrance in nf_hook_slow().
 
-Stuff which uses nf_register_hook/nf_register_hooks, but otherwise not netns-ready:
+This is for 2.4 kernel (build test with 2.4.37-rc1, I have no environment
+to run 2.4, sorry).
 
-	DECnet netfilter
-	ipt_CLUSTERIP
-	nf_nat_standalone.c together with XFRM (?)
-	IPVS
-	several individual match modules (like hashlimit)
-	ctnetlink
-	NOTRACK
-	all sorts of queueing and reporting to userspace
-	L3 and L4 protocol sysctls, bridge sysctls
-	probably something else
 
-Anyway critical mass has been achieved, there is no reason to hide netfilter any longer.
 
->From userspace perspective, allow to manipulate all sorts of                                                                                                                                                                                   
-iptables/ip6tables/arptables rules.
+[NETFILTER]: ip6t_{hbh,dst}: Rejects not-strict mode on rule insertion
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+The current code ignores rules for internal options in HBH/DST options
+header in packet processing if 'Not strict' mode is specified (which is not
+implemented). Clearly it is not expected by user.
 
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index b16cd79..a90ac83 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -165,14 +165,6 @@ int nf_hook_slow(u_int8_t pf, unsigned int hook, struct sk_buff *skb,
- 	unsigned int verdict;
- 	int ret = 0;
+Kernel should reject HBH/DST rule insertion with 'Not strict' mode
+in the first place.
+
+Signed-off-by: Yasuyuki Kozakai <yasuyuki.kozakai@toshiba.co.jp>
+---
+ net/ipv6/netfilter/ip6t_dst.c |    6 ++++--
+ net/ipv6/netfilter/ip6t_hbh.c |    6 ++++--
+ 2 files changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/net/ipv6/netfilter/ip6t_dst.c b/net/ipv6/netfilter/ip6t_dst.c
+index 65213e9..35ba724 100644
+--- a/net/ipv6/netfilter/ip6t_dst.c
++++ b/net/ipv6/netfilter/ip6t_dst.c
+@@ -172,8 +172,6 @@ match(const struct sk_buff *skb,
+        hdrlen -= 2;
+        if ( !(optinfo->flags & IP6T_OPTS_OPTS) ){
+ 	       return ret;
+-	} else if (optinfo->flags & IP6T_OPTS_NSTRICT) {
+-		DEBUGP("Not strict - not implemented");
+ 	} else {
+ 		DEBUGP("Strict ");
+ 		DEBUGP("#%d ",optinfo->optsnr);
+@@ -253,6 +251,10 @@ checkentry(const char *tablename,
+                       optsinfo->invflags);
+               return 0;
+        }
++	if (optsinfo->flags & IP6T_OPTS_NSTRICT) {
++		DEBUGP("ip6t_opts: Not strict - not implemented");
++		return 0;
++	}
  
--#ifdef CONFIG_NET_NS
--	struct net *net;
--
--	net = indev == NULL ? dev_net(outdev) : dev_net(indev);
--	if (net != &init_net)
--		return 1;
--#endif
--
- 	/* We may already have this, but read-locks nest anyway */
- 	rcu_read_lock();
+        return 1;
+ }
+diff --git a/net/ipv6/netfilter/ip6t_hbh.c b/net/ipv6/netfilter/ip6t_hbh.c
+index b37e4ce..720cb8d 100644
+--- a/net/ipv6/netfilter/ip6t_hbh.c
++++ b/net/ipv6/netfilter/ip6t_hbh.c
+@@ -172,8 +172,6 @@ match(const struct sk_buff *skb,
+        hdrlen -= 2;
+        if ( !(optinfo->flags & IP6T_OPTS_OPTS) ){
+ 	       return ret;
+-	} else if (optinfo->flags & IP6T_OPTS_NSTRICT) {
+-		DEBUGP("Not strict - not implemented");
+ 	} else {
+ 		DEBUGP("Strict ");
+ 		DEBUGP("#%d ",optinfo->optsnr);
+@@ -253,6 +251,10 @@ checkentry(const char *tablename,
+                       optsinfo->invflags);
+               return 0;
+        }
++	if (optsinfo->flags & IP6T_OPTS_NSTRICT) {
++		DEBUGP("ip6t_opts: Not strict - not implemented");
++		return 0;
++	}
  
-diff --git a/net/netfilter/nf_sockopt.c b/net/netfilter/nf_sockopt.c
-index f9b46de..8ab829f 100644
---- a/net/netfilter/nf_sockopt.c
-+++ b/net/netfilter/nf_sockopt.c
-@@ -65,9 +65,6 @@ static struct nf_sockopt_ops *nf_sockopt_find(struct sock *sk, u_int8_t pf,
- {
- 	struct nf_sockopt_ops *ops;
- 
--	if (!net_eq(sock_net(sk), &init_net))
--		return ERR_PTR(-ENOPROTOOPT);
--
- 	if (mutex_lock_interruptible(&nf_sockopt_mutex) != 0)
- 		return ERR_PTR(-EINTR);
- 
+        return 1;
+ }
+-- 
+1.5.3.6
+
