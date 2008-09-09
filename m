@@ -1,42 +1,42 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: rfc: DROP returns error
-Date: Tue, 09 Sep 2008 08:27:04 +0200
-Message-ID: <48C61738.8040903@trash.net>
-References: <alpine.LNX.1.10.0809061338180.20668@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH 2.6]: ip6t_{hbh,dst}: Rejects not-strict mode on rule
+ insersion
+Date: Tue, 09 Sep 2008 08:54:00 +0200
+Message-ID: <48C61D88.6050703@trash.net>
+References: <200809080613.m886DnGY021233@toshiba.co.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:63043 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:63712 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753743AbYIIG1H (ORCPT
+	with ESMTP id S1751785AbYIIGyD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 9 Sep 2008 02:27:07 -0400
-In-Reply-To: <alpine.LNX.1.10.0809061338180.20668@fbirervta.pbzchgretzou.qr>
+	Tue, 9 Sep 2008 02:54:03 -0400
+In-Reply-To: <200809080613.m886DnGY021233@toshiba.co.jp>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> Time and again I notice users complaining about DROP returning an error 
-> when used in the OUTPUT chain:
+Yasuyuki KOZAKAI wrote:
+> Hi Patrick,
 > 
-> root@nuqneh:~# iptables -A OUTPUT -o lo -p icmp -j DROP
-> root@nuqneh:~# ping -c1 localhost
-> PING localhost (127.0.0.1) 56(84) bytes of data.
-> ping: sendmsg: Operation not permitted
-> --- localhost ping statistics ---
-> 1 packets transmitted, 0 received, 100% packet loss, time 0ms
+> Please apply the following patch. The option IP6T_OPTS_NSTRICT causes to
+> ignore rules for options in HBH/DST header.
 > 
-> I am wondering whether we should either add a new verdict to
-> accomodate for this, or do the following:
+> I think this issue affects few users. Because fortunately (?) man page and
+> 'ip6tables -m hbh --help' does not show --hbh-not-strict option, and
+> 'ip6tables ... --hbh-not-strict' does not work due to incorrect has_arg
+> value in userland libip6t_hbh.c ;)
+> 
+> I will implement not-strict mode, so the patch leaves the definition of
+> IP6T_OPTS_NSTRICT. The strict mode is too strict (the specified options
+> have to be included in order in HBH/DST header) and would be useless
+> in most senarios.
 
-I've been thinking about this myself. EPERM for packets dropped by
-an explicit DROP seems fine in general. There are other cases where
-this is not correct though, for example when rerouting in mangle
-and we don't have a route anymore.
+Since my knowledge of this quite limited - is this fix important
+enough so it should go in 2.6.27, or is queuing it for 2.6.28 OK
+too?
 
-I think what we should do instead of adding new verdicts is something
-similar to how NF_QUEUE works, encode the error code in the upper 16
-bits and return it from nf_hook_slow.
+
