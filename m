@@ -1,42 +1,58 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2.6]: ip6t_{hbh,dst}: Rejects not-strict mode on rule
- insersion
-Date: Tue, 09 Sep 2008 08:54:00 +0200
-Message-ID: <48C61D88.6050703@trash.net>
-References: <200809080613.m886DnGY021233@toshiba.co.jp>
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: Re: [PATCH 05/33] netns ct: per-netns expectations
+Date: Tue, 9 Sep 2008 11:07:26 +0400
+Message-ID: <20080909070726.GD5786@x200.localdomain>
+References: <48C01046.2070704@trash.net> <1220842990-30500-5-git-send-email-adobriyan@gmail.com> <48C60E6E.5080905@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	containers@lists.linux-foundation.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:63712 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751785AbYIIGyD (ORCPT
+Received: from yx-out-2324.google.com ([74.125.44.28]:49306 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756365AbYIIHFk (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 9 Sep 2008 02:54:03 -0400
-In-Reply-To: <200809080613.m886DnGY021233@toshiba.co.jp>
+	Tue, 9 Sep 2008 03:05:40 -0400
+Received: by yx-out-2324.google.com with SMTP id 8so1055456yxm.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 09 Sep 2008 00:05:39 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <48C60E6E.5080905@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Yasuyuki KOZAKAI wrote:
-> Hi Patrick,
-> 
-> Please apply the following patch. The option IP6T_OPTS_NSTRICT causes to
-> ignore rules for options in HBH/DST header.
-> 
-> I think this issue affects few users. Because fortunately (?) man page and
-> 'ip6tables -m hbh --help' does not show --hbh-not-strict option, and
-> 'ip6tables ... --hbh-not-strict' does not work due to incorrect has_arg
-> value in userland libip6t_hbh.c ;)
-> 
-> I will implement not-strict mode, so the patch leaves the definition of
-> IP6T_OPTS_NSTRICT. The strict mode is too strict (the specified options
-> have to be included in order in HBH/DST header) and would be useless
-> in most senarios.
+On Tue, Sep 09, 2008 at 07:49:34AM +0200, Patrick McHardy wrote:
+> Alexey Dobriyan wrote:
+>> Make per-netns a) expectation hash and b) expectations count.
+>>
+>> Expectations always belongs to netns to which it's master conntrack belong.
+>> This is natural and doesn't bloat expectation.
+>>
+>> Proc files and leaf users are stubbed to init_net, this is temporary.
+>
+> Looks fine, applied.
+>
+>> @@ -406,7 +404,7 @@ int nf_ct_expect_related(struct nf_conntrack_expect *expect)
+>>  		}
+>>  	}
+>>  -	if (nf_ct_expect_count >= nf_ct_expect_max) {
+>> +	if (net->ct.expect_count >= nf_ct_expect_max) {
+>>  		if (net_ratelimit())
+>>  			printk(KERN_WARNING
+>>  			       "nf_conntrack: expectation table full\n");
+>
+> I assume these message are globally visible even with namespaces?
+> Can we make this (and the corresponding ct hash message) refer to
+> the namespace? Otherwise it might be a bit confusing.
 
-Since my knowledge of this quite limited - is this fix important
-enough so it should go in 2.6.27, or is queuing it for 2.6.28 OK
-too?
+This is somewhat peculiar situation.
 
+netns doesn't have unique ID like, say, ifindex.
 
+The only number related to netns is "struct net *". They can be
+distinguised by pointer value, but userspace when does clone(CLONE_NEWNET)
+do not, obviously, control it and after creation doesn't have a way to find
+it out.
+
+And if we print with "%p, net" kernelspace pointer get exposed which is
+not nice.
