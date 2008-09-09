@@ -1,62 +1,71 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [PATCH 2.6]: ip6t_{hbh,dst}: Rejects not-strict mode on rule
- insersion
-Date: Tue, 09 Sep 2008 19:19:48 +0900 (JST)
-Message-ID: <200809091019.m89AJnvE027205@toshiba.co.jp>
-References: <200809080613.m886DnGY021233@toshiba.co.jp>
-	<48C61D88.6050703@trash.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [NETFILTER]: Make Ebtables use Xtables infrastructure
+Date: Tue, 9 Sep 2008 09:16:36 -0400 (EDT)
+Message-ID: <alpine.LNX.1.10.0809090906300.30845@fbirervta.pbzchgretzou.qr>
+References: <alpine.LNX.1.10.0809061209150.14936@fbirervta.pbzchgretzou.qr> <48C615DF.4090009@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: yasuyuki.kozakai@toshiba.co.jp, netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Bart De Schuymer <bdschuym@pandora.be>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from inet-tsb5.toshiba.co.jp ([202.33.96.24]:47396 "EHLO
-	imx2.toshiba.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750860AbYIIKTw (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:51350 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751176AbYIINQi (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 9 Sep 2008 06:19:52 -0400
-Received: from arc1.toshiba.co.jp ([133.199.194.235])
-	by imx2.toshiba.co.jp  with ESMTP id m89AJo3H024425
-	for <netfilter-devel@vger.kernel.org>; Tue, 9 Sep 2008 19:19:50 +0900 (JST)
-Received: (from root@localhost)
-	by arc1.toshiba.co.jp  id m89AJo0c013724
-	for netfilter-devel@vger.kernel.org; Tue, 9 Sep 2008 19:19:50 +0900 (JST)
-Received: from mx.toshiba.co.jp (localhost [127.0.0.1])
-	by ovp2.toshiba.co.jp  with ESMTP id m89AJor4026930
-	for <netfilter-devel@vger.kernel.org>; Tue, 9 Sep 2008 19:19:50 +0900 (JST)
-In-Reply-To: <48C61D88.6050703@trash.net>
+	Tue, 9 Sep 2008 09:16:38 -0400
+In-Reply-To: <48C615DF.4090009@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Tue, 09 Sep 2008 08:54:00 +0200
+On Tuesday 2008-09-09 02:21, Patrick McHardy wrote:
+> Jan Engelhardt wrote:
+>> commit bf161deb157ce95ac28b534a86fc1b18fe4d9aa4
+>> Author: Jan Engelhardt <jengelh@medozas.de>
+>> Date:   Sun Aug 10 22:16:14 2008 -0400
+>> 
+>> [NETFILTER]: Make Ebtables use Xtables infrastructure
+>> ...
+>> 22 files changed, 620 insertions(+), 593 deletions(-)
+>
+> Nice work, thanks. The patch is really huge though and I would
+> prefer a slightly more gradual conversion, like first adjust
+> the return conventions (and only those), than convert to x_tables.
 
-> Yasuyuki KOZAKAI wrote:
-> > Hi Patrick,
-> > 
-> > Please apply the following patch. The option IP6T_OPTS_NSTRICT causes to
-> > ignore rules for options in HBH/DST header.
-> > 
-> > I think this issue affects few users. Because fortunately (?) man page and
-> > 'ip6tables -m hbh --help' does not show --hbh-not-strict option, and
-> > 'ip6tables ... --hbh-not-strict' does not work due to incorrect has_arg
-> > value in userland libip6t_hbh.c ;)
-> > 
-> > I will implement not-strict mode, so the patch leaves the definition of
-> > IP6T_OPTS_NSTRICT. The strict mode is too strict (the specified options
-> > have to be included in order in HBH/DST header) and would be useless
-> > in most senarios.
-> 
-> Since my knowledge of this quite limited - is this fix important
-> enough so it should go in 2.6.27, or is queuing it for 2.6.28 OK
-> too?
+The change of function signature must come in lockstep with moving
+to Xtables. I can't just change it in Ebtables because that would
+surely break semantics, even if it's just a commit.
 
-Actually I am torn between them. I think this is security issue, like that
-'iptables -p tcp -j DROP' does not drop TCP packets.
-But no ip6tables user meet this issue because of has_arg bug.
+>> @@ -325,7 +325,8 @@ int xt_check_match(const struct xt_match *match, unsigned
+>> short family,
+>>       unsigned int size, const char *table, unsigned int hook_mask,
+>>       unsigned short proto, int inv_proto)
+>> {
+>> -	if (XT_ALIGN(match->matchsize) != size) {
+>> +	/* testing for -1 is temporary until ebtables is fixed up */
+>> +	if (match->matchsize != -1 && XT_ALIGN(match->matchsize) != size) {
+>
+> What exactly is the problem here (and when will ebtables be fixed up)?
+>
+Well first of all, just for reminder, Ebtables mimics the pre-2.6.18
+Netfilter API. That is when there was no ->matchsize and no
+->targetsize inside (what is now) xt_match/xt_target. As such,
+extensions were left to do their own checking, leaving room for
+(ab)use of a dynamic targetsize.
 
-I prefer 2.6.27 so that I don't need to fear rare case in several months :)
+The "offending" extension is ebt_among. Using a dynamic size is ok if
+it is done right (and it seems to be done right), but the centralized
+error checking introduced in commit 1d5cd909 left no way for
+userspace to send anything but one size.
 
--- Yasuyuki Kozakai
+The best way I can come up for ebt_among is to rewrite ebt_among in a
+new revision so that it uses a fixed size and indirect pointer
+grabbing, in other words, something like xt_geoip uses currently
+( http://tinyurl.com/6hpfke , function geoip_add_node()), where the
+kernel-side module uses extra copy_from_user() calls to read in
+additional data that could not have been passed over the
+struct xt_match xt_geoip_match.
+
+I hope this does not delay this patch..
