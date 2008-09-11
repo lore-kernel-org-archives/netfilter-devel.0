@@ -1,67 +1,77 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: Re: [ULOGD2 PATCH 2/3] Make NFLOG and NFCT build conditionnal
-Date: Fri, 12 Sep 2008 00:15:04 +0200
-Message-ID: <20080911221504.GC20985@ice-age>
-References: <1221166085-23435-3-git-send-email-eric@inl.fr> <48C99429.2020406@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [ULOGD2 PATCH 0/3] cleaning and build feature
+Date: Fri, 12 Sep 2008 01:49:40 +0200
+Message-ID: <48C9AE94.1000208@netfilter.org>
+References: <> <1221166085-23435-1-git-send-email-eric@inl.fr>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="5/uDoXvLw7AC5HRs"
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Eric Leblond <eric@inl.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ks301150.kimsufi.com ([91.121.73.151]:45446 "EHLO
-	ks301150.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753780AbYIKWvf (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Sep 2008 18:51:35 -0400
-Content-Disposition: inline
-In-Reply-To: <48C99429.2020406@netfilter.org>
+Received: from mail.us.es ([193.147.175.20]:52920 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753839AbYIKX4J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 11 Sep 2008 19:56:09 -0400
+In-Reply-To: <1221166085-23435-1-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Eric Leblond wrote:
+> Hello,
+> 
+> This small patchset contains some cleaning and implement conditionnal compilation
+> of NFLOG and NFCT input plugins. This feature was contained in the TODO list and I
+> think it could be useful on system where one of the NFCT or NFLOG plugin can not
+> be used.
+> 
+> Las tpatch update the TODO list.  The remaining item in this TODO list are:
+>  - add support for capabilities to run as non-root: It could be interesting but
+>  I don't know if we could achieve it with libnetfilter_log or libnetfilter_conntrack.
 
---5/uDoXvLw7AC5HRs
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+The binding and the sending requires CAP_NET_ADMIN, so we can initially
+bind as root and them change to a non-root user to receiver messages,
+this seem feasiable with libnetfilter_log. However, the problem here is
+the resynchronize routine that I have introduced in NFCT: we request a
+dump when we hit ENOBUFS and that's a sending.
 
-Hello,
+Let me think about, maybe we can do something with a fork and a pipe.
 
-On Thursday, 2008 September 11 at 23:56:57 +0200, Pablo Neira Ayuso wrote:
-> Eric Leblond wrote:
-> > This patch modifies the build system behaviour to be able to compile
-> > ulogd on system without recent release of libnetfilter library. If
-> > a library is absent or too old, it will simply not compile the concerned
-> > input module.
->=20
-> I don't see any gain from this patch. We had this sort of conditional
-> compilation in iptables - that we finally removed - and it was source of
-> user-side problems.
+>  - support for static linking: As ulogd2 is plugin based, it may be strange but some
+>  embedded system could use it.
+>  - issues with ulogd_BASE and partially copied packets (--ulog-cprange): Has somebody
+>  encounter the problem ?
+>  - problem with ulogd_BASE and fragments:  same remark
 
-Hmm, even if you think autodetection is a mistake, it is useful to
-be able to compile ulogd on system where NFLOG or NFCT is not installed
-or not usable (too old kernel).
+Probably outdated comment? We can ask Harald during workshop days.
 
-What do you think about a --without flag to be able to manually disable
-the compilation ?
+>  - port SQLITE3 plugin: Holger's work could be reused but the code was not really clean.
 
-BR,
---=20
-Eric Leblond
-INL: http://www.inl.fr/
-NuFW: http://www.nufw.org/
+We can recover that work. We also have to add a change to db.c since
+SQLITE3 has no procedures IIRC.
 
---5/uDoXvLw7AC5HRs
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+>  - convert db layer and pgsql + mysql plugin to a 'parameter bind' scheme for efficiency:
+>  I don't understand the point.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.6 (GNU/Linux)
+Probably Harald can put some light on it.
 
-iD8DBQFIyZhonxA7CdMWjzIRAoXLAJ9PRQ7QpHEGHTOv/O8u9PoZCtpLDgCfbGYx
-aoI3AnzPhwfUK0XE5KfG/vs=
-=eTXC
------END PGP SIGNATURE-----
+>  - autoconf detection of SCTP / DCCP support: Well, why not ;)
+> 
+> From my point of view, there is no other thing in the TODO list before a RC release.
+> 
+> Am I missing something ?
 
---5/uDoXvLw7AC5HRs--
+I have added BSF support to libnetfilter_conntrack. This could be
+interesting to filter ctnetlink event messages from kernel-space. You
+can find an example in the configuration file of conntrackd, see the
+Filter clause.
+
+The problem is the current configuration file format which is quite
+cryptic. Using something flex/bison-based would be more flexible, but we
+have to think about the file format before.
+
+I have other concerns, I'm willing to schedule some time for ulogd to
+make a new TODO list, we can probably discuss them during the workshop.
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
