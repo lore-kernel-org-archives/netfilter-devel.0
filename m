@@ -1,74 +1,93 @@
-From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
-Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility
- workaround
-Date: Thu, 11 Sep 2008 15:12:22 -0300
-Message-ID: <20080911151222.0ce12158@tux>
-References: <20080819213417.45133573@tux>
-	<Pine.LNX.4.64.0808201358490.4551@wrl-59.cs.helsinki.fi>
-	<20080822183224.2d52f16c@tux>
-	<20080822.143709.65615512.davem@davemloft.net>
-	<20080823111446.06a350a2@tux>
-	<Pine.LNX.4.64.0808231736490.10712@wrl-59.cs.helsinki.fi>
-	<20080824163843.33b4f890@tux>
-	<Pine.LNX.4.64.0808250948420.27330@wrl-59.cs.helsinki.fi>
-	<20080826141812.589848a0@tux>
-	<Pine.LNX.4.64.0808262034001.1168@wrl-59.cs.helsinki.fi>
-	<20080828184919.611dd578@tux>
-	<Pine.LNX.4.64.0808291045430.7971@wrl-59.cs.helsinki.fi>
-	<20080830035650.42be37d7@tux>
-	<Pine.LNX.4.64.0808301000180.12388@wrl-59.cs.helsinki.fi>
-	<20080907051718.58bf133d@tux>
-	<Pine.LNX.4.64.0809071341310.8991@wrl-59.cs.helsinki.fi>
-	<20080908172043.0d25a427@tux>
-	<Pine.LNX.4.64.0809100942370.24708@wrl-59.cs.helsinki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
-	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
-	Patrick Hardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
-To: "Ilpo =?ISO-8859-1?Q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
+From: Eric Leblond <eric@inl.fr>
+Subject: [ULOGD2 PATCH 2/3] Make NFLOG and NFCT build conditionnal
+Date: Thu, 11 Sep 2008 22:48:04 +0200
+Message-ID: <1221166085-23435-3-git-send-email-eric@inl.fr>
+Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@inl.fr>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.249]:60321 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752298AbYIKSMc (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Sep 2008 14:12:32 -0400
-Received: by an-out-0708.google.com with SMTP id d40so53729and.103
-        for <netfilter-devel@vger.kernel.org>; Thu, 11 Sep 2008 11:12:31 -0700 (PDT)
-In-Reply-To: <Pine.LNX.4.64.0809100942370.24708@wrl-59.cs.helsinki.fi>
+Received: from bayen.regit.org ([81.57.69.189]:47377 "EHLO ice-age"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752015AbYIKUsK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 11 Sep 2008 16:48:10 -0400
+In-Reply-To: <>
+References: <>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 11 Sep 2008 16:44:20 +0300 (EEST)
-"Ilpo J=E4rvinen" <ilpo.jarvinen@helsinki.fi> wrote:
+This patch modifies the build system behaviour to be able to compile
+ulogd on system without recent release of libnetfilter library. If
+a library is absent or too old, it will simply not compile the concerned
+input module.
 
-> ...I guess it would be possible to remove SCHED_FEAT_HRTICK from
-> /proc/sys/kernel/sched_features then while keeping the hrtimers
-> otherwise enabled to test this.
->=20
-> It's possible that hrtimers just affect on how easy it is to trigger
-> but at least it seems an useful lead until proven otherwise.
+Signed-off-by: Eric Leblond <eric@inl.fr>
+---
+ configure.in             |    9 ++++++---
+ input/flow/Makefile.am   |    2 ++
+ input/packet/Makefile.am |    5 +++++
+ 3 files changed, 13 insertions(+), 3 deletions(-)
 
-	Well, I have a new suspect now: ntpd. It seems that when ntpd
-syncs the clock, the problem happens (just a guess):
+diff --git a/configure.in b/configure.in
+index 0e173a3..3ddcae5 100644
+--- a/configure.in
++++ b/configure.in
+@@ -37,12 +37,15 @@ LIBNFNETLINK_REQUIRED=0.0.39
+ LIBNETFILTER_CONNTRACK_REQUIRED=0.0.95
+ LIBNETFILTER_LOG_REQUIRED=0.0.15
+ 
+-PKG_CHECK_MODULES(LIBNFNETLINK, libnfnetlink >= $LIBNFNETLINK_REQUIRED,, AC_MSG_ERROR(Cannot find libnfnetlink >= $LIBNFNETLINK_REQUIRED))
++PKG_CHECK_MODULES(LIBNFNETLINK, libnfnetlink >= $LIBNFNETLINK_REQUIRED, nfnetlink="yes", AC_MSG_WARN(Cannot find libnfnetlink >= $LIBNFNETLINK_REQUIRED to build NFLOG and NFCT plugin))
+ 
+-PKG_CHECK_MODULES(LIBNETFILTER_CONNTRACK, libnetfilter_conntrack >= $LIBNETFILTER_CONNTRACK_REQUIRED,, AC_MSG_ERROR(Cannot find libnetfilter_conntrack >= $LIBNETFILTER_CONNTRACK_REQUIRED))
++PKG_CHECK_MODULES(LIBNETFILTER_CONNTRACK, libnetfilter_conntrack >= $LIBNETFILTER_CONNTRACK_REQUIRED, nfconntrack="yes", AC_MSG_WARN(Cannot find libnetfilter_conntrack >= $LIBNETFILTER_CONNTRACK_REQUIRED to build NFCT plugin))
+ 
+-PKG_CHECK_MODULES(LIBNETFILTER_LOG, libnetfilter_log >= $LIBNETFILTER_LOG_REQUIRED,, AC_MSG_ERROR(Cannot find libnetfilter_log >= $LIBNETFILTER_LOG_REQUIRED))
++AM_CONDITIONAL(HAVE_LIBNFCONNTRACK, test "x$nfnetlink" != "x" -a "x$nfconntrack" != "x")
+ 
++PKG_CHECK_MODULES(LIBNETFILTER_LOG, libnetfilter_log >= $LIBNETFILTER_LOG_REQUIRED, nflog="yes", AC_MSG_WARN(Cannot find libnetfilter_log >= $LIBNETFILTER_LOG_REQUIRED to build NFLOG plugin))
++
++AM_CONDITIONAL(HAVE_LIBNFLOG, test "x$nfnetlink" != "x" -a "x$nflog" != "x")
+ 
+ CT_CHECK_POSTGRES_DB()
+ AM_CONDITIONAL(HAVE_PGSQL, test "x$PQLIBPATH" != "x")
+diff --git a/input/flow/Makefile.am b/input/flow/Makefile.am
+index 288d335..0751807 100644
+--- a/input/flow/Makefile.am
++++ b/input/flow/Makefile.am
+@@ -2,11 +2,13 @@
+ INCLUDES = $(all_includes) -I$(top_srcdir)/include
+ AM_CFLAGS=-fPIC -Wall
+ 
++if HAVE_LIBNFCONNTRACK
+ pkglib_LTLIBRARIES = ulogd_inpflow_NFCT.la # ulogd_inpflow_IPFIX.la
+ 
+ ulogd_inpflow_NFCT_la_SOURCES = ulogd_inpflow_NFCT.c
+ ulogd_inpflow_NFCT_la_LDFLAGS = -module $(LIBNETFILTER_CONNTRACK_LIBS)
+ ulogd_inpflow_NFCT_la_CFLAGS = $(AM_CFLAGS) $(LIBNETFILTER_CONNTRACK_CFLAGS)
++endif
+ 
+ #ulogd_inpflow_IPFIX_la_SOURCES = ulogd_inpflow_IPFIX.c
+ #ulogd_inpflow_IPFIX_la_LDFLAGS = -module
+diff --git a/input/packet/Makefile.am b/input/packet/Makefile.am
+index a07f724..9f9a89c 100644
+--- a/input/packet/Makefile.am
++++ b/input/packet/Makefile.am
+@@ -3,11 +3,16 @@ INCLUDES = $(all_includes) -I$(top_srcdir)/include
+ AM_CFLAGS=-fPIC -Wall
+ LIBS=
+ 
++if HAVE_LIBNFLOG
+ pkglib_LTLIBRARIES = ulogd_inppkt_NFLOG.la ulogd_inppkt_ULOG.la
+ 
+ ulogd_inppkt_NFLOG_la_SOURCES = ulogd_inppkt_NFLOG.c
+ ulogd_inppkt_NFLOG_la_LDFLAGS = -module $(LIBNETFILTER_LOG_LIBS)
+ ulogd_inppkt_NFLOG_la_CFLAGS = $(AM_CFLAGS) $(LIBNETFILTER_LOG_CFLAGS)
++else
++pkglib_LTLIBRARIES = ulogd_inppkt_ULOG.la
++endif
++
+ 
+ ulogd_inppkt_ULOG_la_SOURCES = ulogd_inppkt_ULOG.c
+ ulogd_inppkt_ULOG_la_LDFLAGS = -module
+-- 
+1.5.4.3
 
-Sep 11 13:55:31 tux ntpd[2652]: synchronized to 143.107.255.15, stratum=
- 2=20
-Sep 11 13:55:31 tux ntpd[2652]: kernel time sync enabled 0001
-
-	I disabled ntpd (and I'll just sync the clock with ntpdate just one=20
-time at the boot) and see what happens. I think the problem could be re=
-lated
-to this, since "sudo" is affected too and as far as I know, sudo is ver=
-y=20
-sensible to timer.
-
-
---=20
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
