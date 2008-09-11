@@ -1,188 +1,103 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: 10/11 [NETFILTER]: Remove unused Ebtables functions
-Date: Wed, 10 Sep 2008 22:46:07 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0809102245590.8838@fbirervta.pbzchgretzou.qr>
+Subject: 11/11 [NETFILTER]: Remove redundant casts from Ebtables extensions
+Date: Wed, 10 Sep 2008 22:46:21 -0400 (EDT)
+Message-ID: <alpine.LNX.1.10.0809102246080.8838@fbirervta.pbzchgretzou.qr>
 References: <alpine.LNX.1.10.0809102242180.8838@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:36415 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:36417 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752560AbYIKCqI (ORCPT
+	with ESMTP id S1752519AbYIKCqW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Sep 2008 22:46:08 -0400
+	Wed, 10 Sep 2008 22:46:22 -0400
 In-Reply-To: <alpine.LNX.1.10.0809102242180.8838@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 6175105283ba3549c8dd986a0721fbc8f4ccf9fe
+commit 07f89c4687ada3347c454fc8ff2d078256019eb6
 Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Wed Sep 10 22:35:31 2008 -0400
+Date:   Wed Sep 10 22:39:32 2008 -0400
 
-[NETFILTER]: Remove unused Ebtables functions
+[NETFILTER]: Remove redundant casts from Ebtables extensions
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/linux/netfilter_bridge/ebtables.h |    6 -
- net/bridge/netfilter/ebtables.c           |  108 ---------------------
- 2 files changed, 0 insertions(+), 114 deletions(-)
+ net/bridge/netfilter/ebt_arpreply.c |    2 +-
+ net/bridge/netfilter/ebt_ip6.c      |    4 ++--
+ net/bridge/netfilter/ebt_limit.c    |    2 +-
+ net/bridge/netfilter/ebt_nflog.c    |    4 ++--
+ 4 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/include/linux/netfilter_bridge/ebtables.h b/include/linux/netfilter_bridge/ebtables.h
-index d3f9243..568a690 100644
---- a/include/linux/netfilter_bridge/ebtables.h
-+++ b/include/linux/netfilter_bridge/ebtables.h
-@@ -302,12 +302,6 @@ struct ebt_table
- 		     ~(__alignof__(struct ebt_replace)-1))
- extern int ebt_register_table(struct ebt_table *table);
- extern void ebt_unregister_table(struct ebt_table *table);
--extern int ebt_register_match(struct ebt_match *match);
--extern void ebt_unregister_match(struct ebt_match *match);
--extern int ebt_register_watcher(struct ebt_watcher *watcher);
--extern void ebt_unregister_watcher(struct ebt_watcher *watcher);
--extern int ebt_register_target(struct ebt_target *target);
--extern void ebt_unregister_target(struct ebt_target *target);
- extern unsigned int ebt_do_table(unsigned int hook, struct sk_buff *skb,
-    const struct net_device *in, const struct net_device *out,
-    struct ebt_table *table);
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 2bf098a..e3c0f37 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -56,9 +56,6 @@
- 
- static DEFINE_MUTEX(ebt_mutex);
- static LIST_HEAD(ebt_tables);
--static LIST_HEAD(ebt_targets);
--static LIST_HEAD(ebt_matches);
--static LIST_HEAD(ebt_watchers);
- 
- static struct xt_target ebt_standard_target = {
- 	.name       = "standard",
-@@ -321,24 +318,6 @@ find_table_lock(const char *name, int *error, struct mutex *mutex)
- 	return find_inlist_lock(&ebt_tables, name, "ebtable_", error, mutex);
- }
- 
--static inline struct ebt_match *
--find_match_lock(const char *name, int *error, struct mutex *mutex)
--{
--	return find_inlist_lock(&ebt_matches, name, "ebt_", error, mutex);
--}
--
--static inline struct ebt_watcher *
--find_watcher_lock(const char *name, int *error, struct mutex *mutex)
--{
--	return find_inlist_lock(&ebt_watchers, name, "ebt_", error, mutex);
--}
--
--static inline struct ebt_target *
--find_target_lock(const char *name, int *error, struct mutex *mutex)
--{
--	return find_inlist_lock(&ebt_targets, name, "ebt_", error, mutex);
--}
--
- static inline int
- ebt_check_match(struct ebt_entry_match *m, struct ebt_entry *e,
-    const char *name, unsigned int hookmask, unsigned int *cnt)
-@@ -1080,87 +1059,6 @@ free_newinfo:
- 	return ret;
- }
- 
--int ebt_register_target(struct ebt_target *target)
--{
--	struct ebt_target *t;
--	int ret;
--
--	ret = mutex_lock_interruptible(&ebt_mutex);
--	if (ret != 0)
--		return ret;
--	list_for_each_entry(t, &ebt_targets, list) {
--		if (strcmp(t->name, target->name) == 0) {
--			mutex_unlock(&ebt_mutex);
--			return -EEXIST;
--		}
--	}
--	list_add(&target->list, &ebt_targets);
--	mutex_unlock(&ebt_mutex);
--
--	return 0;
--}
--
--void ebt_unregister_target(struct ebt_target *target)
--{
--	mutex_lock(&ebt_mutex);
--	list_del(&target->list);
--	mutex_unlock(&ebt_mutex);
--}
--
--int ebt_register_match(struct ebt_match *match)
--{
--	struct ebt_match *m;
--	int ret;
--
--	ret = mutex_lock_interruptible(&ebt_mutex);
--	if (ret != 0)
--		return ret;
--	list_for_each_entry(m, &ebt_matches, list) {
--		if (strcmp(m->name, match->name) == 0) {
--			mutex_unlock(&ebt_mutex);
--			return -EEXIST;
--		}
--	}
--	list_add(&match->list, &ebt_matches);
--	mutex_unlock(&ebt_mutex);
--
--	return 0;
--}
--
--void ebt_unregister_match(struct ebt_match *match)
--{
--	mutex_lock(&ebt_mutex);
--	list_del(&match->list);
--	mutex_unlock(&ebt_mutex);
--}
--
--int ebt_register_watcher(struct ebt_watcher *watcher)
--{
--	struct ebt_watcher *w;
--	int ret;
--
--	ret = mutex_lock_interruptible(&ebt_mutex);
--	if (ret != 0)
--		return ret;
--	list_for_each_entry(w, &ebt_watchers, list) {
--		if (strcmp(w->name, watcher->name) == 0) {
--			mutex_unlock(&ebt_mutex);
--			return -EEXIST;
--		}
--	}
--	list_add(&watcher->list, &ebt_watchers);
--	mutex_unlock(&ebt_mutex);
--
--	return 0;
--}
--
--void ebt_unregister_watcher(struct ebt_watcher *watcher)
--{
--	mutex_lock(&ebt_mutex);
--	list_del(&watcher->list);
--	mutex_unlock(&ebt_mutex);
--}
--
- int ebt_register_table(struct ebt_table *table)
+diff --git a/net/bridge/netfilter/ebt_arpreply.c b/net/bridge/netfilter/ebt_arpreply.c
+index 8071b64..732a126 100644
+--- a/net/bridge/netfilter/ebt_arpreply.c
++++ b/net/bridge/netfilter/ebt_arpreply.c
+@@ -20,7 +20,7 @@ ebt_arpreply_tg(struct sk_buff *skb, const struct net_device *in,
+ 		const struct net_device *out, unsigned int hook_nr,
+ 		const struct xt_target *target, const void *data)
  {
- 	struct ebt_table_info *newinfo;
-@@ -1552,12 +1450,6 @@ static void __exit ebtables_fini(void)
+-	struct ebt_arpreply_info *info = (void *)data;
++	struct ebt_arpreply_info *info = data;
+ 	const __be32 *siptr, *diptr;
+ 	__be32 _sip, _dip;
+ 	const struct arphdr *ap;
+diff --git a/net/bridge/netfilter/ebt_ip6.c b/net/bridge/netfilter/ebt_ip6.c
+index 317e624..7bd9831 100644
+--- a/net/bridge/netfilter/ebt_ip6.c
++++ b/net/bridge/netfilter/ebt_ip6.c
+@@ -32,7 +32,7 @@ ebt_ip6_mt(const struct sk_buff *skb, const struct net_device *in,
+ 	   const struct net_device *out, const struct xt_match *match,
+ 	   const void *data, int offset, unsigned int protoff, bool *hotdrop)
+ {
+-	const struct ebt_ip6_info *info = (struct ebt_ip6_info *)data;
++	const struct ebt_ip6_info *info = data;
+ 	const struct ipv6hdr *ih6;
+ 	struct ipv6hdr _ip6h;
+ 	const struct tcpudphdr *pptr;
+@@ -98,7 +98,7 @@ ebt_ip6_mt_check(const char *table, const void *entry,
+ 		 unsigned int hook_mask)
+ {
+ 	const struct ebt_entry *e = entry;
+-	struct ebt_ip6_info *info = (struct ebt_ip6_info *)data;
++	struct ebt_ip6_info *info = data;
  
- EXPORT_SYMBOL(ebt_register_table);
- EXPORT_SYMBOL(ebt_unregister_table);
--EXPORT_SYMBOL(ebt_register_match);
--EXPORT_SYMBOL(ebt_unregister_match);
--EXPORT_SYMBOL(ebt_register_watcher);
--EXPORT_SYMBOL(ebt_unregister_watcher);
--EXPORT_SYMBOL(ebt_register_target);
--EXPORT_SYMBOL(ebt_unregister_target);
- EXPORT_SYMBOL(ebt_do_table);
- module_init(ebtables_init);
- module_exit(ebtables_fini);
+ 	if (e->ethproto != htons(ETH_P_IPV6) || e->invflags & EBT_IPROTO)
+ 		return false;
+diff --git a/net/bridge/netfilter/ebt_limit.c b/net/bridge/netfilter/ebt_limit.c
+index 43d9a50..e67b679 100644
+--- a/net/bridge/netfilter/ebt_limit.c
++++ b/net/bridge/netfilter/ebt_limit.c
+@@ -35,7 +35,7 @@ ebt_limit_mt(const struct sk_buff *skb, const struct net_device *in,
+ 	     const struct net_device *out, const struct xt_match *match,
+ 	     const void *data, int offset, unsigned int protoff, bool *hotdrop)
+ {
+-	struct ebt_limit_info *info = (struct ebt_limit_info *)data;
++	struct ebt_limit_info *info = data;
+ 	unsigned long now = jiffies;
+ 
+ 	spin_lock_bh(&limit_lock);
+diff --git a/net/bridge/netfilter/ebt_nflog.c b/net/bridge/netfilter/ebt_nflog.c
+index 917ac36..34bc619 100644
+--- a/net/bridge/netfilter/ebt_nflog.c
++++ b/net/bridge/netfilter/ebt_nflog.c
+@@ -24,7 +24,7 @@ ebt_nflog_tg(struct sk_buff *skb, const struct net_device *in,
+ 	     const struct net_device *out, unsigned int hooknr,
+ 	     const struct xt_target *target, const void *data)
+ {
+-	struct ebt_nflog_info *info = (struct ebt_nflog_info *)data;
++	struct ebt_nflog_info *info = data;
+ 	struct nf_loginfo li;
+ 
+ 	li.type = NF_LOG_TYPE_ULOG;
+@@ -41,7 +41,7 @@ ebt_nflog_tg_check(const char *table, const void *e,
+ 		   const struct xt_target *target, void *data,
+ 		   unsigned int hookmask)
+ {
+-	struct ebt_nflog_info *info = (struct ebt_nflog_info *)data;
++	struct ebt_nflog_info *info = data;
+ 
+ 	if (info->flags & ~EBT_NFLOG_MASK)
+ 		return false;
