@@ -1,8 +1,8 @@
 From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
 Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility
  workaround
-Date: Thu, 11 Sep 2008 14:30:06 -0300
-Message-ID: <20080911143006.2f516569@tux>
+Date: Thu, 11 Sep 2008 15:12:22 -0300
+Message-ID: <20080911151222.0ce12158@tux>
 References: <20080819213417.45133573@tux>
 	<Pine.LNX.4.64.0808201358490.4551@wrl-59.cs.helsinki.fi>
 	<20080822183224.2d52f16c@tux>
@@ -30,13 +30,13 @@ Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
 	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
 To: "Ilpo =?ISO-8859-1?Q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-gx0-f16.google.com ([209.85.217.16]:51805 "EHLO
-	mail-gx0-f16.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751731AbYIKRaQ (ORCPT
+Received: from an-out-0708.google.com ([209.85.132.249]:60321 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752298AbYIKSMc (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Sep 2008 13:30:16 -0400
-Received: by gxk9 with SMTP id 9so16995097gxk.13
-        for <netfilter-devel@vger.kernel.org>; Thu, 11 Sep 2008 10:30:14 -0700 (PDT)
+	Thu, 11 Sep 2008 14:12:32 -0400
+Received: by an-out-0708.google.com with SMTP id d40so53729and.103
+        for <netfilter-devel@vger.kernel.org>; Thu, 11 Sep 2008 11:12:31 -0700 (PDT)
 In-Reply-To: <Pine.LNX.4.64.0809100942370.24708@wrl-59.cs.helsinki.fi>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -51,23 +51,19 @@ On Thu, 11 Sep 2008 16:44:20 +0300 (EEST)
 > It's possible that hrtimers just affect on how easy it is to trigger
 > but at least it seems an useful lead until proven otherwise.
 
-	You're right Ilpo. After days and days without the problem,
-today it triggered (but I wasn't online at the time, so I couldn't grab
-any data).
+	Well, I have a new suspect now: ntpd. It seems that when ntpd
+syncs the clock, the problem happens (just a guess):
 
-	So, you're correct. HRtimers just affect on how easy it is to
-trigger the issue. In other words: with high resolution timer enabled,
-the problem appears more frequently.
+Sep 11 13:55:31 tux ntpd[2652]: synchronized to 143.107.255.15, stratum=
+ 2=20
+Sep 11 13:55:31 tux ntpd[2652]: kernel time sync enabled 0001
 
-	At least if we discovered a way how to trigger this, we could
-test it more easily. The problem is to wait a long time for it to
-happen.
-
-	Just a curiosity: on your servers, do you use x86_64? It seems
-this problem is very specific to x86_64 or appear more often on x86_64
-than x86_32. It never happens on my x86_32 bit servers.
-
-=09
+	I disabled ntpd (and I'll just sync the clock with ntpdate just one=20
+time at the boot) and see what happens. I think the problem could be re=
+lated
+to this, since "sudo" is affected too and as far as I know, sudo is ver=
+y=20
+sensible to timer.
 
 
 --=20
