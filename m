@@ -1,46 +1,46 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: [ULOGD2 PATCH 0/3] cleaning and build feature
-Date: Thu, 11 Sep 2008 22:48:02 +0200
-Message-ID: <1221166085-23435-1-git-send-email-eric@inl.fr>
-Cc: netfilter-devel@vger.kernel.org
+Subject: [ULOGD2 PATCH 1/3] Suppress references to ulogd1 only variable.
+Date: Thu, 11 Sep 2008 22:48:03 +0200
+Message-ID: <1221166085-23435-2-git-send-email-eric@inl.fr>
+Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@inl.fr>
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:47374 "EHLO ice-age"
+Received: from bayen.regit.org ([81.57.69.189]:47378 "EHLO ice-age"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751935AbYIKUsK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1752163AbYIKUsK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Thu, 11 Sep 2008 16:48:10 -0400
 In-Reply-To: <>
 References: <>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+'rmem' and 'bufsize' global variables are unherited from ulogd1
+and are not used anymore. This patch suppresses them from the
+example configuration file.
 
-This small patchset contains some cleaning and implement conditionnal compilation
-of NFLOG and NFCT input plugins. This feature was contained in the TODO list and I
-think it could be useful on system where one of the NFCT or NFLOG plugin can not
-be used.
+Signed-off-by: Eric Leblond <eric@inl.fr>
+---
+ ulogd.conf.in |    7 -------
+ 1 files changed, 0 insertions(+), 7 deletions(-)
 
+diff --git a/ulogd.conf.in b/ulogd.conf.in
+index a32234d..d2b18d4 100644
+--- a/ulogd.conf.in
++++ b/ulogd.conf.in
+@@ -14,13 +14,6 @@ logfile="/var/log/ulogd.log"
+ # loglevel: debug(1), info(3), notice(5), error(7) or fatal(8)
+ loglevel=1
+ 
+-# socket receive buffer size (should be at least the size of the
+-# in-kernel buffer (ipt_ULOG.o 'nlbufsiz' parameter)
+-rmem=131071
+-
+-# libipulog/ulogd receive buffer size, should be > rmem
+-bufsize=150000
+-
+ ######################################################################
+ # PLUGIN OPTIONS
+ ######################################################################
+-- 
+1.5.4.3
 
-Las tpatch update the TODO list.  The remaining item in this TODO list are:
- - add support for capabilities to run as non-root: It could be interesting but
- I don't know if we could achieve it with libnetfilter_log or libnetfilter_conntrack.
- - support for static linking: As ulogd2 is plugin based, it may be strange but some
- embedded system could use it.
- - issues with ulogd_BASE and partially copied packets (--ulog-cprange): Has somebody
- encounter the problem ?
- - problem with ulogd_BASE and fragments:  same remark
- - port SQLITE3 plugin: Holger's work could be reused but the code was not really clean.
- - convert db layer and pgsql + mysql plugin to a 'parameter bind' scheme for efficiency:
- I don't understand the point.
- - autoconf detection of SCTP / DCCP support: Well, why not ;)
-
->From my point of view, there is no other thing in the TODO list before a RC release.
-
-Am I missing something ?
-
-BR,
---
-Eric Leblond
-INL: http://www.inl.fr/
-NuFW: http://www.nufw.org/
