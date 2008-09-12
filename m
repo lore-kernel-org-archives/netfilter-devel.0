@@ -1,41 +1,48 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [ULOGD2 PATCH 2/3] Make NFLOG and NFCT build conditionnal
-Date: Thu, 11 Sep 2008 22:39:33 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0809112238520.17877@fbirervta.pbzchgretzou.qr>
-References: <1221166085-23435-3-git-send-email-eric@inl.fr> <48C99429.2020406@netfilter.org> <20080911221504.GC20985@ice-age>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [stable] regression in iptables: recent filter
+Date: Thu, 11 Sep 2008 20:04:38 -0700 (PDT)
+Message-ID: <20080911.200438.01253897.davem@davemloft.net>
+References: <ejijc4dc92n75s2el334e7dgdanngs7qv3@4ax.com>
+	<20080911200133.48be32fa.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: gcoady.lk@gmail.com, grant_lkml@dodo.com.au,
+	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@inl.fr>
+To: akpm@linux-foundation.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:40663 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754213AbYILCjf (ORCPT
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:50969
+	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1755892AbYILDEo (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Sep 2008 22:39:35 -0400
-In-Reply-To: <20080911221504.GC20985@ice-age>
+	Thu, 11 Sep 2008 23:04:44 -0400
+In-Reply-To: <20080911200133.48be32fa.akpm@linux-foundation.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+From: Andrew Morton <akpm@linux-foundation.org>
+Date: Thu, 11 Sep 2008 20:01:33 -0700
 
-On Thursday 2008-09-11 18:15, Eric Leblond wrote:
->Hello,
->On Thursday, 2008 September 11 at 23:56:57 +0200, Pablo Neira Ayuso wrote:
->> Eric Leblond wrote:
->> > This patch modifies the build system behaviour to be able to compile
->> > ulogd on system without recent release of libnetfilter library. If
->> > a library is absent or too old, it will simply not compile the concerned
->> > input module.
->> 
->> I don't see any gain from this patch. We had this sort of conditional
->> compilation in iptables - that we finally removed - and it was source of
->> user-side problems.
->
->Hmm, even if you think autodetection is a mistake, it is useful to
->be able to compile ulogd on system where NFLOG or NFCT is not installed
->or not usable (too old kernel).
+> On Fri, 12 Sep 2008 11:53:35 +1000 Grant Coady <grant_lkml@dodo.com.au> wrote:
+> 
+> > Hi there,
+> > 
+> > Last known good kernel: 2.6.24.7
+> > 
+> > # iptables -N calmrate
+> > # iptables -A calmrate -p tcp -m state --state NEW \
+> > 	-m recent --name listrate --update --rttl \
+> > 	--seconds 60 --hitcount 60 -j DROP
+> > iptables: Unknown error 4294967295
+> > 
+> > Fails for 2.6.25.17 and 2.6.26.5
+> > 
+> > dmesg + config: http://bugsplatter.id.au/kernel/boxen/deltree/
+> > 
+> 
+> (cc netdev)
 
-That's just what iptables does. It ships the necessary header files
-to compile even if things are not present in the kernel.
-...And then autodetection becomes useless.
+(cc netfilter-devel)
+
+For those playing at home, 4294967295 is 32-bit -1.
