@@ -1,43 +1,35 @@
-From: "Partha Majumdar" <pmajumdar.kernel@gmail.com>
-Subject: Changing IP destination in NF_IP_PRE_ROUTING hook
-Date: Fri, 12 Sep 2008 16:58:33 +0530
-Message-ID: <f4a980250809120428l14a26a31j1a08725404470fc4@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [ULOGD2 PATCH 2/3] Make NFLOG and NFCT build conditionnal
+Date: Fri, 12 Sep 2008 13:02:15 +0200
+Message-ID: <48CA4C37.5000306@netfilter.org>
+References: <1221166085-23435-3-git-send-email-eric@inl.fr> <48C99429.2020406@netfilter.org> <20080911221504.GC20985@ice-age> <48C99D1E.3010506@netfilter.org> <20080912065322.GD20985@ice-age>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@inl.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from qb-out-0506.google.com ([72.14.204.233]:17035 "EHLO
-	qb-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752819AbYILL2f (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 12 Sep 2008 07:28:35 -0400
-Received: by qb-out-0506.google.com with SMTP id f11so1602604qba.17
-        for <netfilter-devel@vger.kernel.org>; Fri, 12 Sep 2008 04:28:34 -0700 (PDT)
-Content-Disposition: inline
+Received: from mail.us.es ([193.147.175.20]:51901 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752083AbYILLhU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 12 Sep 2008 07:37:20 -0400
+In-Reply-To: <20080912065322.GD20985@ice-age>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Eric Leblond wrote:
+> But, my point was not really intendend to address legacy systems. I just
+> want to have something clean for people who for example want only to use NFLOG.
+> That will be stupid for them to compile and install libnetfilter_conntrack
+> on their system and not to use it.
 
-I am not very familiar with Linux kernel internals. I am trying to
-write a simple netfilter hook but facing some issues and did not find
-any clear answer in available docs on packet filter or netfilter
-hacking.
+Think about iptables. It has tons of matches/targets but most people 
+uses very few of them. And most users use generic distro-based packaged 
+versions.
 
-I am writing an experimental kernel module that will register a
-NF_IP_PRE_ROUTING hook. This hook will change the destination address
-of the IP header. After that I'll update the checksum of the IP header
-by calling ip_nat_cheat_check as it is done in manip_pkt. Do I need to
-update the TCP checksum as well (if it is a TCP packet) since the
-pseudo header of the packet has changed? If I need to do update the
-tcp checksum as well then why isn't it being done  mainp_pkt after
-changing the source or destination IP address?
+Well, I'll be fine with adding an option like "--without-thing" to skip 
+the compilation of NFCT, but I will not rely upon suppositions like "you 
+did not installed this library, therefore I will not compile this"
 
-I also want to do similar modification for IPv6 packets. For IPv4 I
-have seen that skb_ip_make_writable is being called before modifying
-the IPv4 headers. I did not find anything similar for IPv6. What is
-the logic I should follow for IPv6?
-
-Regards,
-Partha
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
