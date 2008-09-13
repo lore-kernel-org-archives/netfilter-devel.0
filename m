@@ -1,101 +1,90 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: [ULOGD2 PATCH] Add flags to disable NFLOG or NFCT at configure time.
-Date: Sat, 13 Sep 2008 13:13:13 +0200
-Message-ID: <1221304393-30931-1-git-send-email-eric@inl.fr>
-References: <48CA4C37.5000306@netfilter.org>
-Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@inl.fr>
-To: pablo@netfilter.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:37081 "EHLO ice-age"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753137AbYIMLNT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 13 Sep 2008 07:13:19 -0400
-In-Reply-To: <48CA4C37.5000306@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
+Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility
+ workaround
+Date: Sat, 13 Sep 2008 20:31:17 -0300
+Message-ID: <20080913203117.2a55ea2c@tux>
+References: <20080819213417.45133573@tux>
+	<Pine.LNX.4.64.0808201358490.4551@wrl-59.cs.helsinki.fi>
+	<20080822183224.2d52f16c@tux>
+	<20080822.143709.65615512.davem@davemloft.net>
+	<20080823111446.06a350a2@tux>
+	<Pine.LNX.4.64.0808231736490.10712@wrl-59.cs.helsinki.fi>
+	<20080824163843.33b4f890@tux>
+	<Pine.LNX.4.64.0808250948420.27330@wrl-59.cs.helsinki.fi>
+	<20080826141812.589848a0@tux>
+	<Pine.LNX.4.64.0808262034001.1168@wrl-59.cs.helsinki.fi>
+	<20080828184919.611dd578@tux>
+	<Pine.LNX.4.64.0808291045430.7971@wrl-59.cs.helsinki.fi>
+	<20080830035650.42be37d7@tux>
+	<Pine.LNX.4.64.0808301000180.12388@wrl-59.cs.helsinki.fi>
+	<20080907051718.58bf133d@tux>
+	<Pine.LNX.4.64.0809071341310.8991@wrl-59.cs.helsinki.fi>
+	<20080908172043.0d25a427@tux>
+	<Pine.LNX.4.64.0809100942370.24708@wrl-59.cs.helsinki.fi>
+	<20080911143006.2f516569@tux>
+	<Pine.LNX.4.64.0809112140250.26799@wrl-59.cs.helsinki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
+	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
+	Patrick Hardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
+To: "Ilpo =?ISO-8859-1?Q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.64.0809112140250.26799@wrl-59.cs.helsinki.fi>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-This patch adds some --without options to configure script that
-can be used to disable compilation of some nfnetlink related modules.
+On Fri, 12 Sep 2008 13:16:19 +0300 (EEST)
+"Ilpo J=E4rvinen" <ilpo.jarvinen@helsinki.fi> wrote:
 
-Signed-off-by: Eric Leblond <eric@inl.fr>
----
- configure.in             |   19 ++++++++++++++++---
- input/flow/Makefile.am   |    2 ++
- input/packet/Makefile.am |    5 +++++
- 3 files changed, 23 insertions(+), 3 deletions(-)
+> Ok.
 
-diff --git a/configure.in b/configure.in
-index 0e173a3..129b95a 100644
---- a/configure.in
-+++ b/configure.in
-@@ -37,12 +37,25 @@ LIBNFNETLINK_REQUIRED=0.0.39
- LIBNETFILTER_CONNTRACK_REQUIRED=0.0.95
- LIBNETFILTER_LOG_REQUIRED=0.0.15
- 
--PKG_CHECK_MODULES(LIBNFNETLINK, libnfnetlink >= $LIBNFNETLINK_REQUIRED,, AC_MSG_ERROR(Cannot find libnfnetlink >= $LIBNFNETLINK_REQUIRED))
- 
--PKG_CHECK_MODULES(LIBNETFILTER_CONNTRACK, libnetfilter_conntrack >= $LIBNETFILTER_CONNTRACK_REQUIRED,, AC_MSG_ERROR(Cannot find libnetfilter_conntrack >= $LIBNETFILTER_CONNTRACK_REQUIRED))
-+AC_ARG_WITH(nfnetlink, [AC_HELP_STRING(--without-nfnetlink,  Disable NFLOG and NFCT)], enable_nfnetlink=$withval, enable_nfnetlink="yes")
-+AC_ARG_WITH(nfconntrack, [AC_HELP_STRING(--without-nfconntrack,  Disable NFCT input plugin)], enable_nfconntrack=$withval, enable_nfconntrack="yes")
-+AC_ARG_WITH(nflog, [AC_HELP_STRING(--without-nflog,  Disable NFLOG input plugin)], enable_nflog=$withval, enable_nflog="yes")
- 
--PKG_CHECK_MODULES(LIBNETFILTER_LOG, libnetfilter_log >= $LIBNETFILTER_LOG_REQUIRED,, AC_MSG_ERROR(Cannot find libnetfilter_log >= $LIBNETFILTER_LOG_REQUIRED))
-+if test "$enable_nfnetlink" = "yes"; then
-+	PKG_CHECK_MODULES(LIBNFNETLINK, libnfnetlink >= $LIBNFNETLINK_REQUIRED, nfnetlink="yes", AC_MSG_ERROR(Cannot find libnfnetlink >= $LIBNFNETLINK_REQUIRED to build NFLOG and NFCT plugin))
- 
-+	if test "$enable_nfconntrack" = "yes"; then
-+		PKG_CHECK_MODULES(LIBNETFILTER_CONNTRACK, libnetfilter_conntrack >= $LIBNETFILTER_CONNTRACK_REQUIRED, nfconntrack="yes", AC_MSG_ERROR(Cannot find libnetfilter_conntrack >= $LIBNETFILTER_CONNTRACK_REQUIRED to build NFCT plugin))
-+	fi
-+
-+	if test "$enable_nflog" = "yes"; then
-+		PKG_CHECK_MODULES(LIBNETFILTER_LOG, libnetfilter_log >= $LIBNETFILTER_LOG_REQUIRED, nflog="yes", AC_MSG_ERROR(Cannot find libnetfilter_log >= $LIBNETFILTER_LOG_REQUIRED to build NFLOG plugin))
-+	fi
-+fi
-+
-+AM_CONDITIONAL(HAVE_LIBNFCONNTRACK, test "x$nfnetlink" != "x" -a "x$nfconntrack" != "x")
-+AM_CONDITIONAL(HAVE_LIBNFLOG, test "x$nfnetlink" != "x" -a "x$nflog" != "x")
- 
- CT_CHECK_POSTGRES_DB()
- AM_CONDITIONAL(HAVE_PGSQL, test "x$PQLIBPATH" != "x")
-diff --git a/input/flow/Makefile.am b/input/flow/Makefile.am
-index 288d335..0751807 100644
---- a/input/flow/Makefile.am
-+++ b/input/flow/Makefile.am
-@@ -2,11 +2,13 @@
- INCLUDES = $(all_includes) -I$(top_srcdir)/include
- AM_CFLAGS=-fPIC -Wall
- 
-+if HAVE_LIBNFCONNTRACK
- pkglib_LTLIBRARIES = ulogd_inpflow_NFCT.la # ulogd_inpflow_IPFIX.la
- 
- ulogd_inpflow_NFCT_la_SOURCES = ulogd_inpflow_NFCT.c
- ulogd_inpflow_NFCT_la_LDFLAGS = -module $(LIBNETFILTER_CONNTRACK_LIBS)
- ulogd_inpflow_NFCT_la_CFLAGS = $(AM_CFLAGS) $(LIBNETFILTER_CONNTRACK_CFLAGS)
-+endif
- 
- #ulogd_inpflow_IPFIX_la_SOURCES = ulogd_inpflow_IPFIX.c
- #ulogd_inpflow_IPFIX_la_LDFLAGS = -module
-diff --git a/input/packet/Makefile.am b/input/packet/Makefile.am
-index a07f724..9f9a89c 100644
---- a/input/packet/Makefile.am
-+++ b/input/packet/Makefile.am
-@@ -3,11 +3,16 @@ INCLUDES = $(all_includes) -I$(top_srcdir)/include
- AM_CFLAGS=-fPIC -Wall
- LIBS=
- 
-+if HAVE_LIBNFLOG
- pkglib_LTLIBRARIES = ulogd_inppkt_NFLOG.la ulogd_inppkt_ULOG.la
- 
- ulogd_inppkt_NFLOG_la_SOURCES = ulogd_inppkt_NFLOG.c
- ulogd_inppkt_NFLOG_la_LDFLAGS = -module $(LIBNETFILTER_LOG_LIBS)
- ulogd_inppkt_NFLOG_la_CFLAGS = $(AM_CFLAGS) $(LIBNETFILTER_LOG_CFLAGS)
-+else
-+pkglib_LTLIBRARIES = ulogd_inppkt_ULOG.la
-+endif
-+
- 
- ulogd_inppkt_ULOG_la_SOURCES = ulogd_inppkt_ULOG.c
- ulogd_inppkt_ULOG_la_LDFLAGS = -module
--- 
-1.5.4.3
+	Ilpo, except for DROP [INPUT] lines, does the log below means somethin=
+g to you?
 
+Sep 13 20:01:21 teleporto vmunix: DROP [INPUT]: IN=3Deth0 OUT=3D MAC=3D=
+ff:ff:ff:ff:ff:ff:00:50:73:6c:4b:e5:08:00 SRC=3D189.31.180.2 DST=3D255.=
+255.255.255 LEN=3D48 TOS=3D0x00 PREC=3D0x00 TTL=3D116 ID=3D20607 DF PRO=
+TO=3DTCP SPT=3D4038 DPT=3D4899 WINDOW=3D65535 RES=3D0x00 SYN URGP=3D0=20
+Sep 13 20:01:21 teleporto vmunix: DROP [INPUT]: IN=3Deth0 OUT=3D MAC=3D=
+ff:ff:ff:ff:ff:ff:00:50:73:6c:4b:e5:08:00 SRC=3D189.31.180.2 DST=3D255.=
+255.255.255 LEN=3D48 TOS=3D0x00 PREC=3D0x00 TTL=3D116 ID=3D20616 DF PRO=
+TO=3DTCP SPT=3D4054 DPT=3D4899 WINDOW=3D65535 RES=3D0x00 SYN URGP=3D0=20
+Sep 13 20:01:21 teleporto vmunix: C193.8. S=3D5.5.5.5 E=3D8TS00 RC00 T=3D=
+1 D262DF PROTO=3DTCP SPT=3D4146 DPT=3D4899 WINDOW=3D65535 RES=3D0x00 SY=
+N URGP=3D0=20
+Sep 13 20:01:22 teleporto vmunix: DROP [INPUT]: IN=3Deth0 OUT=3D MAC=3D=
+ff:ff:ff:ff:ff:ff:00:50:73:6c:4b:e5:08:00 SRC=3D189.31.180.2 DST=3D255.=
+255.255.255 LEN=3D48 TOS=3D0x00 PREC=3D0x00 TTL=3D116 ID=3D20690 DF PRO=
+TO=3DTCP SPT=3D4179 DPT=3D4899 WINDOW=3D65535 RES=3D0x00 SYN URGP=3D0=20
+Sep 13 20:01:22 teleporto vmunix: DROP [INPUT]: IN=3Deth0 OUT=3D MAC=3D=
+ff:ff:ff:ff:ff:ff:00:50:73:6c:4b:e5:08:00 SRC=3D189.31.180.2 DST=3D255.=
+255.255.255 LEN=3D48 TOS=3D0x00 PREC=3D0x00 TTL=3D116 ID=3D20698 DF PRO=
+TO=3DTCP SPT=3D4201 DPT=3D4899 WINDOW=3D65535 RES=3D0x00 SYN URGP=3D0=20
+Sep 13 20:01:22 teleporto vmunix: DROP [INPUT]: IN=3Deth0 OUT=3D MAC=3D=
+ff:ff:ff:ff:ff:ff:00:50:73:6c:4b:e5:08:00 SRC=3D189.31.180.2 DST=3D255.=
+255.255.255 LEN=3D48 TOS=3D0x00 PREC=3D0x00 TTL=3D116 ID=3D20707 DF PRO=
+TO=3DTCP SPT=3D4231 DPT=3D4899 WINDOW=3D65535 RES=3D0x00 SYN URGP=3D0=20
+Sep 13 20:01:22 teleporto vmunix: DROP [INPUT]: IN=3Deth0 OUT=3D MAC=3D=
+ff:ff:ff:ff:ff:ff:00:50:73:6c:4b:e5:08:00 SRC=3D189.31.180.2 DST=3D255.=
+255.255.255 LEN=3D48 TOS=3D0x00 PREC=3D0x00 TTL=3D116 ID=3D20725 DF PRO=
+TO=3DTCP SPT=3D4294 DPT=3D4899 WINDOW=3D65535 RES=3D0x00 SYN URGP=3D0=20
+Sep 13 20:01:22 teleporto vmunix: OOTPST45 P=3D89WNO=3D53 E=3Dx0SNUG=3D=
+=20
+
+	I mean these lines:
+
+Sep 13 20:01:21 teleporto vmunix: C193.8. S=3D5.5.5.5 E=3D8TS00 RC00 T=3D=
+1 D262DF PROTO=3DTCP SPT=3D4146 DPT=3D4899 WINDOW=3D65535 RES=3D0x00 SY=
+N URGP=3D0=20
+Sep 13 20:01:22 teleporto vmunix: OOTPST45 P=3D89WNO=3D53 E=3Dx0SNUG=3D=
+=20
+
+	This was registered during a stall. I didn't collect more data because=
+ I had to restore the server as fast as I can.
+
+	If it doesn't help or doen't mean anything useful, please ignore.
+
+--=20
