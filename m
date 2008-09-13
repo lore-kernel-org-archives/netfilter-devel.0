@@ -1,46 +1,60 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Changing IP destination in NF_IP_PRE_ROUTING hook
-Date: Fri, 12 Sep 2008 09:25:41 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0809120918320.14464@fbirervta.pbzchgretzou.qr>
-References: <f4a980250809120428l14a26a31j1a08725404470fc4@mail.gmail.com>
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: Re: [PATCH 17/33] netns ct: final init_net tweaks
+Date: Sat, 13 Sep 2008 14:45:15 +0400
+Message-ID: <20080913104515.GA7440@x200.localdomain>
+References: <48C01046.2070704@trash.net> <1220842990-30500-17-git-send-email-adobriyan@gmail.com> <48C623CA.9060803@trash.net> <20080909073245.GA7307@x200.localdomain> <48C62B1C.7070104@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Partha Majumdar <pmajumdar.kernel@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	containers@lists.linux-foundation.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:45143 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752478AbYILNZo (ORCPT
+Received: from ey-out-2122.google.com ([74.125.78.25]:34976 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752779AbYIMKnV (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 12 Sep 2008 09:25:44 -0400
-In-Reply-To: <f4a980250809120428l14a26a31j1a08725404470fc4@mail.gmail.com>
+	Sat, 13 Sep 2008 06:43:21 -0400
+Received: by ey-out-2122.google.com with SMTP id 6so535823eyi.37
+        for <netfilter-devel@vger.kernel.org>; Sat, 13 Sep 2008 03:43:19 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <48C62B1C.7070104@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-On Friday 2008-09-12 07:28, Partha Majumdar wrote:
+On Tue, Sep 09, 2008 at 09:51:56AM +0200, Patrick McHardy wrote:
+> Alexey Dobriyan wrote:
+>> On Tue, Sep 09, 2008 at 09:20:42AM +0200, Patrick McHardy wrote:
+>>> Having multiple of these net_eq checks per function (14 total) is
+>>> not a very nice way to do this.
+>>
+>> Yep, I was just afraid of some subtle ordering rules and to keep
+>> potential init_net breakage to minimum.
 >
->I am not very familiar with Linux kernel internals. I am trying to
->write a simple netfilter hook but facing some issues and did not find
->any clear answer in available docs on packet filter or netfilter
->hacking.
+> Me too, but I still prefer to do it properly once.
 >
->I am writing an experimental kernel module that will register a
->NF_IP_PRE_ROUTING hook. This hook will change the destination address
->of the IP header. After that I'll update the checksum of the IP header
->by calling ip_nat_cheat_check as it is done in manip_pkt. Do I need to
->update the TCP checksum as well (if it is a TCP packet) since the
->pseudo header of the packet has changed? If I need to do update the
->tcp checksum as well then why isn't it being done  mainp_pkt after
->changing the source or destination IP address?
+>>> How about splitting the code into a netns and a global part instead?
+>>
+>> Prebably they aren't strict at all.
+>
+> Not particulary. For cleanup a three stage approach with
+>
+> 1. init_net deactivation (ip_ct_attach = NULL)
+> 2. generic netns cleanup
+> 3. init_net specific final cleanup (slab cache, nf_conntrack_cachep,
+>    accounting, helpers, protocols, ...)
+>
+> should work fine.
+>
+> The initialization should be OK with just a init_net part
+> and a generic netns part.
 
-What you want to achieve sounds pretty much like the RAWNAT
-extension:
-http://dev.medozas.de/gitweb.cgi?p=xtables-addons;a=summary
+Ugh, I'm still finding the least ugly way to put init_net checks, and
+it's better to do it at the very end.
 
->I also want to do similar modification for IPv6 packets. For IPv4 I
->have seen that skb_ip_make_writable is being called before modifying
->the IPv4 headers. I did not find anything similar for IPv6. What is
->the logic I should follow for IPv6?
+So, slight reordering.
 
-It is always skb_make_writable().
+See per-netns statistics, nf_conntrack_count, nf_conntrack_checksum,
+nf_conntrack_log_invalid and accounting.
+
+The rest (SIP, H323, GRE, PPTP, per-netns NAT) remains the same and can
+be applied independently of init_net checks.
