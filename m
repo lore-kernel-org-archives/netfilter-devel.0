@@ -1,244 +1,101 @@
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: [PATCH v2 6/6] netns ct: per-netns conntrack accounting
-Date: Sat, 13 Sep 2008 14:55:09 +0400
-Message-ID: <20080913105509.GG7440@x200.localdomain>
-References: <48C01046.2070704@trash.net> <1220842990-30500-17-git-send-email-adobriyan@gmail.com> <48C623CA.9060803@trash.net> <20080909073245.GA7307@x200.localdomain> <48C62B1C.7070104@trash.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	containers@lists.linux-foundation.org
-To: Patrick McHardy <kaber@trash.net>
+From: Eric Leblond <eric@inl.fr>
+Subject: [ULOGD2 PATCH] Add flags to disable NFLOG or NFCT at configure time.
+Date: Sat, 13 Sep 2008 13:13:13 +0200
+Message-ID: <1221304393-30931-1-git-send-email-eric@inl.fr>
+References: <48CA4C37.5000306@netfilter.org>
+Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@inl.fr>
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.24]:38884 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755781AbYIMKxO (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 13 Sep 2008 06:53:14 -0400
-Received: by ey-out-2122.google.com with SMTP id 6so537274eyi.37
-        for <netfilter-devel@vger.kernel.org>; Sat, 13 Sep 2008 03:53:12 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <48C62B1C.7070104@trash.net>
+Received: from bayen.regit.org ([81.57.69.189]:37081 "EHLO ice-age"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753137AbYIMLNT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 13 Sep 2008 07:13:19 -0400
+In-Reply-To: <48CA4C37.5000306@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+This patch adds some --without options to configure script that
+can be used to disable compilation of some nfnetlink related modules.
+
+Signed-off-by: Eric Leblond <eric@inl.fr>
 ---
+ configure.in             |   19 ++++++++++++++++---
+ input/flow/Makefile.am   |    2 ++
+ input/packet/Makefile.am |    5 +++++
+ 3 files changed, 23 insertions(+), 3 deletions(-)
 
- include/net/netfilter/nf_conntrack_acct.h |   10 +--
- include/net/netns/conntrack.h             |    2 
- net/netfilter/nf_conntrack_acct.c         |  100 +++++++++++++++++++++---------
- net/netfilter/nf_conntrack_core.c         |    4 -
- 4 files changed, 81 insertions(+), 35 deletions(-)
+diff --git a/configure.in b/configure.in
+index 0e173a3..129b95a 100644
+--- a/configure.in
++++ b/configure.in
+@@ -37,12 +37,25 @@ LIBNFNETLINK_REQUIRED=0.0.39
+ LIBNETFILTER_CONNTRACK_REQUIRED=0.0.95
+ LIBNETFILTER_LOG_REQUIRED=0.0.15
+ 
+-PKG_CHECK_MODULES(LIBNFNETLINK, libnfnetlink >= $LIBNFNETLINK_REQUIRED,, AC_MSG_ERROR(Cannot find libnfnetlink >= $LIBNFNETLINK_REQUIRED))
+ 
+-PKG_CHECK_MODULES(LIBNETFILTER_CONNTRACK, libnetfilter_conntrack >= $LIBNETFILTER_CONNTRACK_REQUIRED,, AC_MSG_ERROR(Cannot find libnetfilter_conntrack >= $LIBNETFILTER_CONNTRACK_REQUIRED))
++AC_ARG_WITH(nfnetlink, [AC_HELP_STRING(--without-nfnetlink,  Disable NFLOG and NFCT)], enable_nfnetlink=$withval, enable_nfnetlink="yes")
++AC_ARG_WITH(nfconntrack, [AC_HELP_STRING(--without-nfconntrack,  Disable NFCT input plugin)], enable_nfconntrack=$withval, enable_nfconntrack="yes")
++AC_ARG_WITH(nflog, [AC_HELP_STRING(--without-nflog,  Disable NFLOG input plugin)], enable_nflog=$withval, enable_nflog="yes")
+ 
+-PKG_CHECK_MODULES(LIBNETFILTER_LOG, libnetfilter_log >= $LIBNETFILTER_LOG_REQUIRED,, AC_MSG_ERROR(Cannot find libnetfilter_log >= $LIBNETFILTER_LOG_REQUIRED))
++if test "$enable_nfnetlink" = "yes"; then
++	PKG_CHECK_MODULES(LIBNFNETLINK, libnfnetlink >= $LIBNFNETLINK_REQUIRED, nfnetlink="yes", AC_MSG_ERROR(Cannot find libnfnetlink >= $LIBNFNETLINK_REQUIRED to build NFLOG and NFCT plugin))
+ 
++	if test "$enable_nfconntrack" = "yes"; then
++		PKG_CHECK_MODULES(LIBNETFILTER_CONNTRACK, libnetfilter_conntrack >= $LIBNETFILTER_CONNTRACK_REQUIRED, nfconntrack="yes", AC_MSG_ERROR(Cannot find libnetfilter_conntrack >= $LIBNETFILTER_CONNTRACK_REQUIRED to build NFCT plugin))
++	fi
++
++	if test "$enable_nflog" = "yes"; then
++		PKG_CHECK_MODULES(LIBNETFILTER_LOG, libnetfilter_log >= $LIBNETFILTER_LOG_REQUIRED, nflog="yes", AC_MSG_ERROR(Cannot find libnetfilter_log >= $LIBNETFILTER_LOG_REQUIRED to build NFLOG plugin))
++	fi
++fi
++
++AM_CONDITIONAL(HAVE_LIBNFCONNTRACK, test "x$nfnetlink" != "x" -a "x$nfconntrack" != "x")
++AM_CONDITIONAL(HAVE_LIBNFLOG, test "x$nfnetlink" != "x" -a "x$nflog" != "x")
+ 
+ CT_CHECK_POSTGRES_DB()
+ AM_CONDITIONAL(HAVE_PGSQL, test "x$PQLIBPATH" != "x")
+diff --git a/input/flow/Makefile.am b/input/flow/Makefile.am
+index 288d335..0751807 100644
+--- a/input/flow/Makefile.am
++++ b/input/flow/Makefile.am
+@@ -2,11 +2,13 @@
+ INCLUDES = $(all_includes) -I$(top_srcdir)/include
+ AM_CFLAGS=-fPIC -Wall
+ 
++if HAVE_LIBNFCONNTRACK
+ pkglib_LTLIBRARIES = ulogd_inpflow_NFCT.la # ulogd_inpflow_IPFIX.la
+ 
+ ulogd_inpflow_NFCT_la_SOURCES = ulogd_inpflow_NFCT.c
+ ulogd_inpflow_NFCT_la_LDFLAGS = -module $(LIBNETFILTER_CONNTRACK_LIBS)
+ ulogd_inpflow_NFCT_la_CFLAGS = $(AM_CFLAGS) $(LIBNETFILTER_CONNTRACK_CFLAGS)
++endif
+ 
+ #ulogd_inpflow_IPFIX_la_SOURCES = ulogd_inpflow_IPFIX.c
+ #ulogd_inpflow_IPFIX_la_LDFLAGS = -module
+diff --git a/input/packet/Makefile.am b/input/packet/Makefile.am
+index a07f724..9f9a89c 100644
+--- a/input/packet/Makefile.am
++++ b/input/packet/Makefile.am
+@@ -3,11 +3,16 @@ INCLUDES = $(all_includes) -I$(top_srcdir)/include
+ AM_CFLAGS=-fPIC -Wall
+ LIBS=
+ 
++if HAVE_LIBNFLOG
+ pkglib_LTLIBRARIES = ulogd_inppkt_NFLOG.la ulogd_inppkt_ULOG.la
+ 
+ ulogd_inppkt_NFLOG_la_SOURCES = ulogd_inppkt_NFLOG.c
+ ulogd_inppkt_NFLOG_la_LDFLAGS = -module $(LIBNETFILTER_LOG_LIBS)
+ ulogd_inppkt_NFLOG_la_CFLAGS = $(AM_CFLAGS) $(LIBNETFILTER_LOG_CFLAGS)
++else
++pkglib_LTLIBRARIES = ulogd_inppkt_ULOG.la
++endif
++
+ 
+ ulogd_inppkt_ULOG_la_SOURCES = ulogd_inppkt_ULOG.c
+ ulogd_inppkt_ULOG_la_LDFLAGS = -module
+-- 
+1.5.4.3
 
---- a/include/net/netfilter/nf_conntrack_acct.h
-+++ b/include/net/netfilter/nf_conntrack_acct.h
-@@ -8,6 +8,7 @@
- 
- #ifndef _NF_CONNTRACK_ACCT_H
- #define _NF_CONNTRACK_ACCT_H
-+#include <net/net_namespace.h>
- #include <linux/netfilter/nf_conntrack_common.h>
- #include <linux/netfilter/nf_conntrack_tuple_common.h>
- #include <net/netfilter/nf_conntrack.h>
-@@ -18,8 +19,6 @@ struct nf_conn_counter {
- 	u_int64_t bytes;
- };
- 
--extern int nf_ct_acct;
--
- static inline
- struct nf_conn_counter *nf_conn_acct_find(const struct nf_conn *ct)
- {
-@@ -29,9 +28,10 @@ struct nf_conn_counter *nf_conn_acct_find(const struct nf_conn *ct)
- static inline
- struct nf_conn_counter *nf_ct_acct_ext_add(struct nf_conn *ct, gfp_t gfp)
- {
-+	struct net *net = nf_ct_net(ct);
- 	struct nf_conn_counter *acct;
- 
--	if (!nf_ct_acct)
-+	if (!net->ct.sysctl_acct)
- 		return NULL;
- 
- 	acct = nf_ct_ext_add(ct, NF_CT_EXT_ACCT, gfp);
-@@ -45,7 +45,7 @@ struct nf_conn_counter *nf_ct_acct_ext_add(struct nf_conn *ct, gfp_t gfp)
- extern unsigned int
- seq_print_acct(struct seq_file *s, const struct nf_conn *ct, int dir);
- 
--extern int nf_conntrack_acct_init(void);
--extern void nf_conntrack_acct_fini(void);
-+extern int nf_conntrack_acct_init(struct net *net);
-+extern void nf_conntrack_acct_fini(struct net *net);
- 
- #endif /* _NF_CONNTRACK_ACCT_H */
---- a/include/net/netns/conntrack.h
-+++ b/include/net/netns/conntrack.h
-@@ -17,10 +17,12 @@ struct netns_ct {
- #ifdef CONFIG_NF_CONNTRACK_EVENTS
- 	struct nf_conntrack_ecache *ecache;
- #endif
-+	int			sysctl_acct;
- 	int			sysctl_checksum;
- 	unsigned int		sysctl_log_invalid; /* Log invalid packets */
- #ifdef CONFIG_SYSCTL
- 	struct ctl_table_header	*sysctl_header;
-+	struct ctl_table_header	*acct_sysctl_header;
- #endif
- 	int			hash_vmalloc;
- 	int			expect_vmalloc;
---- a/net/netfilter/nf_conntrack_acct.c
-+++ b/net/netfilter/nf_conntrack_acct.c
-@@ -22,19 +22,17 @@
- #define NF_CT_ACCT_DEFAULT 0
- #endif
- 
--int nf_ct_acct __read_mostly = NF_CT_ACCT_DEFAULT;
--EXPORT_SYMBOL_GPL(nf_ct_acct);
-+static int nf_ct_acct __read_mostly = NF_CT_ACCT_DEFAULT;
- 
- module_param_named(acct, nf_ct_acct, bool, 0644);
- MODULE_PARM_DESC(acct, "Enable connection tracking flow accounting.");
- 
- #ifdef CONFIG_SYSCTL
--static struct ctl_table_header *acct_sysctl_header;
- static struct ctl_table acct_sysctl_table[] = {
- 	{
- 		.ctl_name	= CTL_UNNUMBERED,
- 		.procname	= "nf_conntrack_acct",
--		.data		= &nf_ct_acct,
-+		.data		= &init_net.ct.sysctl_acct,
- 		.maxlen		= sizeof(unsigned int),
- 		.mode		= 0644,
- 		.proc_handler	= &proc_dointvec,
-@@ -64,41 +62,87 @@ static struct nf_ct_ext_type acct_extend __read_mostly = {
- 	.id	= NF_CT_EXT_ACCT,
- };
- 
--int nf_conntrack_acct_init(void)
-+#ifdef CONFIG_SYSCTL
-+static int nf_conntrack_acct_init_sysctl(struct net *net)
- {
--	int ret;
-+	struct ctl_table *table;
- 
--#ifdef CONFIG_NF_CT_ACCT
--	printk(KERN_WARNING "CONFIG_NF_CT_ACCT is deprecated and will be removed soon. Plase use\n");
--	printk(KERN_WARNING "nf_conntrack.acct=1 kernel paramater, acct=1 nf_conntrack module option or\n");
--	printk(KERN_WARNING "sysctl net.netfilter.nf_conntrack_acct=1 to enable it.\n");
--#endif
-+	table = kmemdup(acct_sysctl_table, sizeof(acct_sysctl_table),
-+			GFP_KERNEL);
-+	if (!table)
-+		goto out;
-+
-+	table[0].data = &net->ct.sysctl_acct;
- 
--	ret = nf_ct_extend_register(&acct_extend);
--	if (ret < 0) {
--		printk(KERN_ERR "nf_conntrack_acct: Unable to register extension\n");
--		return ret;
-+	net->ct.acct_sysctl_header = register_net_sysctl_table(net,
-+			nf_net_netfilter_sysctl_path, table);
-+	if (!net->ct.acct_sysctl_header) {
-+		printk(KERN_ERR "nf_conntrack_acct: can't register to sysctl.\n");
-+		goto out_register;
- 	}
-+	return 0;
- 
--#ifdef CONFIG_SYSCTL
--	acct_sysctl_header = register_sysctl_paths(nf_net_netfilter_sysctl_path,
--				acct_sysctl_table);
-+out_register:
-+	kfree(table);
-+out:
-+	return -ENOMEM;
-+}
- 
--	if (!acct_sysctl_header) {
--		nf_ct_extend_unregister(&acct_extend);
-+static void nf_conntrack_acct_fini_sysctl(struct net *net)
-+{
-+	struct ctl_table *table;
- 
--		printk(KERN_ERR "nf_conntrack_acct: can't register to sysctl.\n");
--		return -ENOMEM;
--	}
-+	table = net->ct.acct_sysctl_header->ctl_table_arg;
-+	unregister_net_sysctl_table(net->ct.acct_sysctl_header);
-+	kfree(table);
-+}
-+#else
-+static int nf_conntrack_acct_init_sysctl(struct net *net)
-+{
-+	return 0;
-+}
-+
-+static void nf_conntrack_acct_fini_sysctl(struct net *net)
-+{
-+}
-+#endif
-+
-+int nf_conntrack_acct_init(struct net *net)
-+{
-+	int ret;
-+
-+	net->ct.sysctl_acct = nf_ct_acct;
-+
-+	if (net_eq(net, &init_net)) {
-+#ifdef CONFIG_NF_CT_ACCT
-+		printk(KERN_WARNING "CONFIG_NF_CT_ACCT is deprecated and will be removed soon. Plase use\n");
-+		printk(KERN_WARNING "nf_conntrack.acct=1 kernel paramater, acct=1 nf_conntrack module option or\n");
-+		printk(KERN_WARNING "sysctl net.netfilter.nf_conntrack_acct=1 to enable it.\n");
- #endif
- 
-+		ret = nf_ct_extend_register(&acct_extend);
-+		if (ret < 0) {
-+			printk(KERN_ERR "nf_conntrack_acct: Unable to register extension\n");
-+			goto out_extend_register;
-+		}
-+	}
-+
-+	ret = nf_conntrack_acct_init_sysctl(net);
-+	if (ret < 0)
-+		goto out_sysctl;
-+
- 	return 0;
-+
-+out_sysctl:
-+	if (net_eq(net, &init_net))
-+		nf_ct_extend_unregister(&acct_extend);
-+out_extend_register:
-+	return ret;
- }
- 
--void nf_conntrack_acct_fini(void)
-+void nf_conntrack_acct_fini(struct net *net)
- {
--#ifdef CONFIG_SYSCTL
--	unregister_sysctl_table(acct_sysctl_header);
--#endif
--	nf_ct_extend_unregister(&acct_extend);
-+	nf_conntrack_acct_fini_sysctl(net);
-+	if (net_eq(net, &init_net))
-+		nf_ct_extend_unregister(&acct_extend);
- }
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1039,7 +1039,7 @@ void nf_conntrack_cleanup(struct net *net)
- 	nf_ct_free_hashtable(net->ct.hash, net->ct.hash_vmalloc,
- 			     nf_conntrack_htable_size);
- 
--	nf_conntrack_acct_fini();
-+	nf_conntrack_acct_fini(net);
- 	nf_conntrack_expect_fini(net);
- 	free_percpu(net->ct.stat);
- 	nf_conntrack_helper_fini();
-@@ -1191,7 +1191,7 @@ int nf_conntrack_init(struct net *net)
- 	if (ret < 0)
- 		goto out_fini_expect;
- 
--	ret = nf_conntrack_acct_init();
-+	ret = nf_conntrack_acct_init(net);
- 	if (ret < 0)
- 		goto out_fini_helper;
- 
