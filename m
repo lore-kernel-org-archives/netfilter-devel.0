@@ -1,103 +1,104 @@
-From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
-Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility
- workaround
-Date: Tue, 16 Sep 2008 11:24:11 -0300
-Message-ID: <20080916112411.062fa615@tux>
-References: <20080819213417.45133573@tux>
-	<Pine.LNX.4.64.0808201358490.4551@wrl-59.cs.helsinki.fi>
-	<20080822183224.2d52f16c@tux>
-	<20080822.143709.65615512.davem@davemloft.net>
-	<20080823111446.06a350a2@tux>
-	<Pine.LNX.4.64.0808231736490.10712@wrl-59.cs.helsinki.fi>
-	<20080824163843.33b4f890@tux>
-	<Pine.LNX.4.64.0808250948420.27330@wrl-59.cs.helsinki.fi>
-	<20080826141812.589848a0@tux>
-	<Pine.LNX.4.64.0808262034001.1168@wrl-59.cs.helsinki.fi>
-	<20080828184919.611dd578@tux>
-	<Pine.LNX.4.64.0808291045430.7971@wrl-59.cs.helsinki.fi>
-	<20080830035650.42be37d7@tux>
-	<Pine.LNX.4.64.0808301000180.12388@wrl-59.cs.helsinki.fi>
-	<20080907051718.58bf133d@tux>
-	<Pine.LNX.4.64.0809071341310.8991@wrl-59.cs.helsinki.fi>
-	<20080908172043.0d25a427@tux>
-	<Pine.LNX.4.64.0809100942370.24708@wrl-59.cs.helsinki.fi>
-	<20080911143006.2f516569@tux>
-	<Pine.LNX.4.64.0809112140250.26799@wrl-59.cs.helsinki.fi>
-	<20080913203117.2a55ea2c@tux>
-	<Pine.LNX.4.64.0809140722460.17271@wrl-59.cs.helsinki.fi>
+From: Manu <manuprivat@gmx.de>
+Subject: Re: RAWNAT problem
+Date: Tue, 16 Sep 2008 17:05:25 +0200
+Message-ID: <48CFCB35.3070007@gmx.de>
+References: <48C91C06.4050201@gmx.de> <alpine.LNX.1.10.0809110925360.16098@fbirervta.pbzchgretzou.qr> <48CE870A.6020500@gmx.de> <alpine.LNX.1.10.0809151246130.13892@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
-	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
-	Patrick Hardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
-To: "Ilpo =?ISO-8859-1?Q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.0809140722460.17271@wrl-59.cs.helsinki.fi>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.gmx.net ([213.165.64.20]:40317 "HELO mail.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1752631AbYIPPE6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 16 Sep 2008 11:04:58 -0400
+In-Reply-To: <alpine.LNX.1.10.0809151246130.13892@fbirervta.pbzchgretzou.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 16 Sep 2008 15:10:33 +0300 (EEST)
-"Ilpo J=E4rvinen" <ilpo.jarvinen@helsinki.fi> wrote:
+Jan Engelhardt schrieb:
+> On Monday 2008-09-15 12:02, Manu wrote:
+>   
+>> With an additional rule [at PREROUTING 3]:
+>> # iptables -nvL -t raw
+>> Chain PREROUTING (policy ACCEPT 18821 packets, 7969K bytes)
+>>  pkts bytes target     prot opt in     out     source               destination
+>> 11194  677K TRACE      all  --  *      *       0.0.0.0/0            0.0.0.0/0
+>>   353 28929 RAWSNAT    all  --  eth2   *       192.168.150.111      0.0.0.0/0 to-source 10.0.17.2/32
+>>     3   204 RAWDNAT    all  --  eth2   *       10.0.17.2            0.0.0.0/0 to-destination 10.0.17.1/32
+>>
+>> Chain OUTPUT (policy ACCEPT 21579 packets, 6930K bytes)
+>>  pkts bytes target     prot opt in     out     source               destination
+>>     0     0 RAWDNAT    udp  --  *      eth2    0.0.0.0/0            10.0.17.2 udp dpt:53 to-destination 192.168.150.111/32
+>> 16610 6550K TRACE      all  --  *      *       0.0.0.0/0            0.0.0.0/0
+>>
+>> I'm getting this result. If I'm doing the RAWDNAT operation in
+>> PREROUTING the pakets losts the destination-port? Or how do I
+>> have to read that!
+>>
+>> <4>TRACE: raw:PREROUTING:rule:2   SRC=192.168.150.111 DST=192.168.150.1
+>>    LEN=59 ID=5833 PROTO=UDP SPT=61014 DPT=53 LEN=39
+>> <4>TRACE: raw:PREROUTING:rule:3   SRC=10.0.17.2       DST=192.168.150.1
+>>    LEN=59 ID=5833 PROTO=UDP SPT=61014 DPT=53 LEN=39
+>> <4>TRACE: raw:PREROUTING:policy:4 SRC=10.0.17.2       DST=10.0.17.1
+>>    LEN=59 ID=5833 CE FRAG:7000 PROTO=UDP
+>>
+>> I'm feeling there is not much more to solve. A little bit help would be so
+>> greatly appreciated!
+>>
+>>     
+> True true, something is not quite right yet.
+>
+> I updated the branch with the latest commit ("updating checksumming 
+> code"), can you try that please? Thanks for keeping me on my toes ;-)
+>
+>   
+Jan,
 
-> Only thing I know to ask is, do you have any idea if your ntpd is=20
-> hard-stepping the time instead of adjusting the clock's rate a bit (t=
-he=20
-> latter should keep the clock monotonious besides potential bugs)?
+some more informations:
 
-	I assume it's adjusting the clock's rate a bit. Anyway, it's a
-pretty simple config:
+If I only set these rules I can also sucessfully ping each other but the 
+DNS-request enters the mangle:FORWARD after the mangle:PREROUTING.
 
-fraga@teleporto ~$ cat /etc/ntp.conf=20
-server ntp.usp.br
-server ntp.nasa.gov
-driftfile /etc/ntp.drift
+# iptables -nvL -t raw
+Chain PREROUTING (policy ACCEPT 21972 packets, 10M bytes)
+ pkts bytes target     prot opt in     out     source               
+destination
+  535 57863 TRACE      all  --  *      *       0.0.0.0/0            
+0.0.0.0/0
+   11   860 RAWSNAT    all  --  eth2   *       192.168.150.111      
+0.0.0.0/0           to-source 10.0.17.2/32
 
-	And ntpd is running without any special parameters.
+Chain OUTPUT (policy ACCEPT 12897 packets, 5591K bytes)
+ pkts bytes target     prot opt in     out     source               
+destination
+  168 30512 TRACE      all  --  *      *       0.0.0.0/0            
+0.0.0.0/0
+    7   588 RAWDNAT    all  --  *      eth2    0.0.0.0/0            
+10.0.17.2           to-destination 192.168.150.111/32
 
-	The log messages are as simple as:
 
-Sep 15 03:56:04 teleporto ntpd[2301]: frequency initialized 5.891 PPM f=
-rom /etc/ntp.drift
-Sep 15 03:59:25 teleporto ntpd[2304]: frequency initialized 5.891 PPM f=
-rom /etc/ntp.drift
-Sep 15 04:03:49 teleporto ntpd[2304]: synchronized to 143.107.255.15, s=
-tratum 2
-Sep 15 04:03:49 teleporto ntpd[2304]: kernel time sync status change 00=
-01
-Sep 15 04:10:16 teleporto ntpd[2304]: synchronized to 198.123.30.132, s=
-tratum 1
-Sep 15 04:11:58 teleporto ntpd[2301]: frequency initialized 5.891 PPM f=
-rom /etc/ntp.drift
-Sep 15 04:16:18 teleporto ntpd[2301]: synchronized to 198.123.30.132, s=
-tratum 1
-Sep 15 04:16:18 teleporto ntpd[2301]: kernel time sync status change 00=
-01
-Sep 15 12:08:53 teleporto ntpd[2301]: kernel time sync status change 40=
-01
-Sep 15 12:34:31 teleporto ntpd[2301]: kernel time sync status change 00=
-01
-Sep 15 14:34:06 teleporto ntpd[2301]: kernel time sync status change 40=
-01
-Sep 15 14:51:12 teleporto ntpd[2301]: kernel time sync status change 00=
-01=20
+<4>TRACE: raw:PREROUTING:policy:3 IN=eth2 OUT= 
+MAC=00:30:18:49:f3:2a:00:14:0b:30:d0:02:08:00 SRC=10.0.17.2 
+DST=192.168.150.1 LEN=58 TOS=0x00 PREC=0x00 TTL=128 ID=16945 PROTO=UDP 
+SPT=56929 DPT=53 LEN=38
+<4>TRACE: mangle:PREROUTING:policy:1 IN=eth2 OUT= 
+MAC=00:30:18:49:f3:2a:00:14:0b:30:d0:02:08:00 SRC=10.0.17.2 
+DST=192.168.150.1 LEN=58 TOS=0x00 PREC=0x00 TTL=128 ID=16945 PROTO=UDP 
+SPT=56929 DPT=53 LEN=38
+<4>TRACE: mangle:FORWARD:policy:1 IN=eth2 OUT=eth0 SRC=10.0.17.2 
+DST=192.168.150.1 LEN=58 TOS=0x00 PREC=0x00 TTL=127 ID=16945 PROTO=UDP 
+SPT=56929 DPT=53 LEN=38
+<4>TRACE: filter:FORWARD:rule:3 IN=eth2 OUT=eth0 SRC=10.0.17.2 
+DST=192.168.150.1 LEN=58 TOS=0x00 PREC=0x00 TTL=127 ID=16945 PROTO=UDP 
+SPT=56929 DPT=53 LEN=38
 
-	If I understood correctly what do you mean, ntpd adjusts nicely the ti=
-me to not=20
-cause huge differences in the time.
 
-	And we're reaching the conclusion that the timer code from 2.6.25 and =
-above=20
-have something wrong, since 2.6.24 and below is ok, which causes those =
-stalls.
+Like described in my former postings, this stuff already worked in an 
+earlier version of kernel and iptables. I posted the sources as well. In 
+the former version I only have to set these rules above, but there was 
+no raw-table support integrated and the rules were set in the PREROUTING 
+and POSTROUTING chain in mangle table!
 
-	But I'll wait some more time to confirm this, although I'm almost sure=
- it's a timer
-related bug which has this colateral effect of stalling connections.
-
-	And just a question: do you use ntpd on your own desktop?
-=09
-	Thank you!
-
---=20
+If I can do something else, please let me know!
