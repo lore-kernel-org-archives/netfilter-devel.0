@@ -1,77 +1,48 @@
-From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
-Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility
- workaround
-Date: Mon, 15 Sep 2008 16:42:46 -0300
-Message-ID: <20080915164246.6ea1698d@tux>
-References: <20080819213417.45133573@tux>
-	<Pine.LNX.4.64.0808201358490.4551@wrl-59.cs.helsinki.fi>
-	<20080822183224.2d52f16c@tux>
-	<20080822.143709.65615512.davem@davemloft.net>
-	<20080823111446.06a350a2@tux>
-	<Pine.LNX.4.64.0808231736490.10712@wrl-59.cs.helsinki.fi>
-	<20080824163843.33b4f890@tux>
-	<Pine.LNX.4.64.0808250948420.27330@wrl-59.cs.helsinki.fi>
-	<20080826141812.589848a0@tux>
-	<Pine.LNX.4.64.0808262034001.1168@wrl-59.cs.helsinki.fi>
-	<20080828184919.611dd578@tux>
-	<Pine.LNX.4.64.0808291045430.7971@wrl-59.cs.helsinki.fi>
-	<20080830035650.42be37d7@tux>
-	<Pine.LNX.4.64.0808301000180.12388@wrl-59.cs.helsinki.fi>
-	<20080907051718.58bf133d@tux>
-	<Pine.LNX.4.64.0809071341310.8991@wrl-59.cs.helsinki.fi>
-	<20080908172043.0d25a427@tux>
-	<Pine.LNX.4.64.0809100942370.24708@wrl-59.cs.helsinki.fi>
-	<20080911143006.2f516569@tux>
-	<Pine.LNX.4.64.0809112140250.26799@wrl-59.cs.helsinki.fi>
+From: Pasi =?iso-8859-1?Q?K=E4rkk=E4inen?= <pasik-X3B1VOXEql0@public.gmane.org>
+Subject: netfilter kernel crash in ip_ct_refresh_acct /
+	ip_conntrack with centos 5.x
+Date: Tue, 16 Sep 2008 10:38:21 +0300
+Message-ID: <20080916073821.GL13941@edu.joroinen.fi>
+Reply-To: CentOS mailing list <centos-IFYaIzF+flcdnm+yROfE0A@public.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
-	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
-	Patrick Hardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
-To: "Ilpo =?ISO-8859-1?Q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.245]:3070 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754132AbYIOVxz (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Sep 2008 17:53:55 -0400
-Received: by an-out-0708.google.com with SMTP id d40so238268and.103
-        for <netfilter-devel@vger.kernel.org>; Mon, 15 Sep 2008 14:53:54 -0700 (PDT)
-In-Reply-To: <Pine.LNX.4.64.0809112140250.26799@wrl-59.cs.helsinki.fi>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: centos-IFYaIzF+flcdnm+yROfE0A@public.gmane.org
+Return-path: <centos-bounces-IFYaIzF+flcdnm+yROfE0A@public.gmane.org>
+Content-Disposition: inline
+List-Unsubscribe: <http://lists.centos.org/mailman/listinfo/centos>,
+	<mailto:centos-request-IFYaIzF+flcdnm+yROfE0A@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.centos.org/pipermail/centos>
+List-Post: <mailto:centos-IFYaIzF+flcdnm+yROfE0A@public.gmane.org>
+List-Help: <mailto:centos-request-IFYaIzF+flcdnm+yROfE0A@public.gmane.org?subject=help>
+List-Subscribe: <http://lists.centos.org/mailman/listinfo/centos>,
+	<mailto:centos-request-IFYaIzF+flcdnm+yROfE0A@public.gmane.org?subject=subscribe>
+Sender: centos-bounces-IFYaIzF+flcdnm+yROfE0A@public.gmane.org
+Errors-To: centos-bounces-IFYaIzF+flcdnm+yROfE0A@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 12 Sep 2008 13:16:19 +0300 (EEST)
-"Ilpo J=E4rvinen" <ilpo.jarvinen@helsinki.fi> wrote:
+Hello!
 
-> Ok.
+Has anyone seen this netfilter kernel crash? 
 
-Sep 15 09:22:38 teleporto vmunix: 600 RC00 T=3D4 D337POOIM YE3CD=3D3[R=3D=
-93.812DT1210624LN4 O=3Dx0PE=3Dx0TL5 D0D RT=3DC NOPEE[ ye]]
-Sep 15 09:53:49 teleporto vmunix: 6DO IPT:I=3Dt0OT A=3Dff:ff:ff:05:36:b=
-50:0SC13192522DT25252525LN4 O=3Dx0PE=3Dx0TL12I=3D
-=46POOTPST51 P=3D31 IDW650RS00 C Y RP0
+Images from the console of the crashed firewall:
+http://pasik.reaktio.net/centos5-kernel-crash/
 
-	This strange kernel messages are normal or is this clearly something b=
-uggy? This is logged whenever the connection=20
-is stalled.
+Firewall is HP DL360 G4 server running CentOS 5.x 32 bit. 
 
-	Anyway, I'm 50% almost sure that it's something related to ntpd adjust=
-ing time. I do not mean that whenever ntpd syncs=20
-the time, the connection is stalled but I need a few more weeks to assu=
-re this.
+I've seen this firewall crashing multiple times, but I only started investigating it lately..
 
-	Basically without ntpd, everything is fine, but when ntpd is running, =
-the stall happens. Maybe the kernel gets confused when=20
-ntpd changes the time? It shouldn't happen of course. I'll reply in a f=
-ew weeks. Thanks.
+It has happened using CentOS 5.0, 5.1 and now also with 5.2. I'm not sure if
+it was the same bug earlier, but at least the last two times (with CentOS 5.2) 
+it has been the same, see screenshots.
 
+Last lines of the console output:
 
---=20
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+EIP: [<f8af2c5c>] __ip_ct_refresh_acct+0xa1/0x129 [ip_conntrack] SS:ESP 0068:c0724e4c
+ <0>Kernel panic - not syncing: Fatal exception in interrupt
+
+At the moment firewall is running CentOS 5.2, Linux kernel 2.6.18-92.1.10.el5.centos.plus.
+
+Any tips how to resolve this? 
+
+-- Pasi
