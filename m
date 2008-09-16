@@ -1,325 +1,103 @@
-From: Manu <manuprivat@gmx.de>
-Subject: Re: RAWNAT problem
-Date: Tue, 16 Sep 2008 15:55:12 +0200
-Message-ID: <48CFBAC0.4070004@gmx.de>
-References: <48C91C06.4050201@gmx.de> <alpine.LNX.1.10.0809110925360.16098@fbirervta.pbzchgretzou.qr> <48CE870A.6020500@gmx.de> <alpine.LNX.1.10.0809151246130.13892@fbirervta.pbzchgretzou.qr>
+From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
+Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility
+ workaround
+Date: Tue, 16 Sep 2008 11:24:11 -0300
+Message-ID: <20080916112411.062fa615@tux>
+References: <20080819213417.45133573@tux>
+	<Pine.LNX.4.64.0808201358490.4551@wrl-59.cs.helsinki.fi>
+	<20080822183224.2d52f16c@tux>
+	<20080822.143709.65615512.davem@davemloft.net>
+	<20080823111446.06a350a2@tux>
+	<Pine.LNX.4.64.0808231736490.10712@wrl-59.cs.helsinki.fi>
+	<20080824163843.33b4f890@tux>
+	<Pine.LNX.4.64.0808250948420.27330@wrl-59.cs.helsinki.fi>
+	<20080826141812.589848a0@tux>
+	<Pine.LNX.4.64.0808262034001.1168@wrl-59.cs.helsinki.fi>
+	<20080828184919.611dd578@tux>
+	<Pine.LNX.4.64.0808291045430.7971@wrl-59.cs.helsinki.fi>
+	<20080830035650.42be37d7@tux>
+	<Pine.LNX.4.64.0808301000180.12388@wrl-59.cs.helsinki.fi>
+	<20080907051718.58bf133d@tux>
+	<Pine.LNX.4.64.0809071341310.8991@wrl-59.cs.helsinki.fi>
+	<20080908172043.0d25a427@tux>
+	<Pine.LNX.4.64.0809100942370.24708@wrl-59.cs.helsinki.fi>
+	<20080911143006.2f516569@tux>
+	<Pine.LNX.4.64.0809112140250.26799@wrl-59.cs.helsinki.fi>
+	<20080913203117.2a55ea2c@tux>
+	<Pine.LNX.4.64.0809140722460.17271@wrl-59.cs.helsinki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:60367 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751428AbYIPNzI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 16 Sep 2008 09:55:08 -0400
-In-Reply-To: <alpine.LNX.1.10.0809151246130.13892@fbirervta.pbzchgretzou.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
+	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
+	Patrick Hardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
+To: "Ilpo =?ISO-8859-1?Q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.64.0809140722460.17271@wrl-59.cs.helsinki.fi>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt schrieb:
-> On Monday 2008-09-15 12:02, Manu wrote:
->   
->> With an additional rule [at PREROUTING 3]:
->> # iptables -nvL -t raw
->> Chain PREROUTING (policy ACCEPT 18821 packets, 7969K bytes)
->>  pkts bytes target     prot opt in     out     source               destination
->> 11194  677K TRACE      all  --  *      *       0.0.0.0/0            0.0.0.0/0
->>   353 28929 RAWSNAT    all  --  eth2   *       192.168.150.111      0.0.0.0/0 to-source 10.0.17.2/32
->>     3   204 RAWDNAT    all  --  eth2   *       10.0.17.2            0.0.0.0/0 to-destination 10.0.17.1/32
->>
->> Chain OUTPUT (policy ACCEPT 21579 packets, 6930K bytes)
->>  pkts bytes target     prot opt in     out     source               destination
->>     0     0 RAWDNAT    udp  --  *      eth2    0.0.0.0/0            10.0.17.2 udp dpt:53 to-destination 192.168.150.111/32
->> 16610 6550K TRACE      all  --  *      *       0.0.0.0/0            0.0.0.0/0
->>
->> I'm getting this result. If I'm doing the RAWDNAT operation in
->> PREROUTING the pakets losts the destination-port? Or how do I
->> have to read that!
->>
->> <4>TRACE: raw:PREROUTING:rule:2   SRC=192.168.150.111 DST=192.168.150.1
->>    LEN=59 ID=5833 PROTO=UDP SPT=61014 DPT=53 LEN=39
->> <4>TRACE: raw:PREROUTING:rule:3   SRC=10.0.17.2       DST=192.168.150.1
->>    LEN=59 ID=5833 PROTO=UDP SPT=61014 DPT=53 LEN=39
->> <4>TRACE: raw:PREROUTING:policy:4 SRC=10.0.17.2       DST=10.0.17.1
->>    LEN=59 ID=5833 CE FRAG:7000 PROTO=UDP
->>
->> I'm feeling there is not much more to solve. A little bit help would be so
->> greatly appreciated!
->>
->>     
-> True true, something is not quite right yet.
->
-> I updated the branch with the latest commit ("updating checksumming 
-> code"), can you try that please? Thanks for keeping me on my toes ;-)
->
->   
-my results with your latest commit:
+On Tue, 16 Sep 2008 15:10:33 +0300 (EEST)
+"Ilpo J=E4rvinen" <ilpo.jarvinen@helsinki.fi> wrote:
 
-to remember:
-PC1: eth2=10.0.0.1; eth2:1=10.0.16.1;eth2:2=10.0.17.1;...
-PC2: eth0=192.168.150.111 gw=192.168.150.1
-PC3 receive DHCP address from PC1: eth0=10.0.16.2; gw=10.0.16.1
+> Only thing I know to ask is, do you have any idea if your ntpd is=20
+> hard-stepping the time instead of adjusting the clock's rate a bit (t=
+he=20
+> latter should keep the clock monotonious besides potential bugs)?
 
-DNS-Request from PC2 with iptables-rules:
-# iptables -nvL -t raw
-Chain PREROUTING (policy ACCEPT 8762 packets, 7355K bytes)
- pkts bytes target     prot opt in     out     source               
-destination
- 1464  103K TRACE      all  --  *      *       0.0.0.0/0            
-0.0.0.0/0
-  395 32775 RAWDNAT    all  --  eth2   *       192.168.150.111      
-0.0.0.0/0           to-destination 10.0.17.1/32
-  395 32775 RAWSNAT    all  --  eth2   *       192.168.150.111      
-0.0.0.0/0           to-source 10.0.17.2/32
+	I assume it's adjusting the clock's rate a bit. Anyway, it's a
+pretty simple config:
 
-Chain OUTPUT (policy ACCEPT 7243 packets, 4047K bytes)
- pkts bytes target     prot opt in     out     source               
-destination
- 3227 3743K TRACE      all  --  *      *       0.0.0.0/0            
-0.0.0.0/0
-  353 29652 RAWSNAT    all  --  *      eth2    0.0.0.0/0            
-10.0.17.2           to-source 192.168.150.1/32
-  353 29652 RAWDNAT    all  --  *      eth2    0.0.0.0/0            
-10.0.17.2           to-destination 192.168.150.111/32
+fraga@teleporto ~$ cat /etc/ntp.conf=20
+server ntp.usp.br
+server ntp.nasa.gov
+driftfile /etc/ntp.drift
 
+	And ntpd is running without any special parameters.
 
-4>TRACE: raw:PREROUTING:rule:1 IN=eth2 OUT= 
-MAC=00:30:18:49:f3:2a:00:14:0b:30:d0:02:08:00 SRC=192.168.150.111 
-DST=192.168.150.1 LEN=89 TOS=0x00 PREC=0x00 TTL=255 ID=13923 PROTO=UDP 
-SPT=1026 DPT=53 LEN=69
-<4>TRACE: raw:PREROUTING:rule:2 IN=eth2 OUT= 
-MAC=00:30:18:49:f3:2a:00:14:0b:30:d0:02:08:00 SRC=192.168.150.111 
-DST=10.0.17.1 LEN=89 TOS=0x00 PREC=0x00 TTL=255 ID=13923 PROTO=UDP 
-SPT=1026 DPT=53 LEN=69
-<4>TRACE: raw:PREROUTING:rule:3 IN=eth2 OUT= 
-MAC=00:30:18:49:f3:2a:00:14:0b:30:d0:02:08:00 SRC=10.0.17.2 
-DST=10.0.17.1 LEN=89 TOS=0x00 PREC=0x00 TTL=255 ID=13923 PROTO=UDP 
-SPT=1026 DPT=53 LEN=69
-<4>TRACE: mangle:PREROUTING:policy:1 IN=eth2 OUT= 
-MAC=00:30:18:49:f3:2a:00:14:0b:30:d0:02:08:00 SRC=10.0.17.2 
-DST=10.0.17.1 LEN=89 TOS=0x00 PREC=0x00 TTL=255 ID=13923 PROTO=UDP 
-SPT=1026 DPT=53 LEN=69
-<4>TRACE: mangle:INPUT:policy:1 IN=eth2 OUT= 
-MAC=00:30:18:49:f3:2a:00:14:0b:30:d0:02:08:00 SRC=10.0.17.2 
-DST=10.0.17.1 LEN=89 TOS=0x00 PREC=0x00 TTL=255 ID=13923 PROTO=UDP 
-SPT=1026 DPT=53 LEN=69
-<4>TRACE: filter:INPUT:rule:11 IN=eth2 OUT= 
-MAC=00:30:18:49:f3:2a:00:14:0b:30:d0:02:08:00 SRC=10.0.17.2 
-DST=10.0.17.1 LEN=89 TOS=0x00 PREC=0x00 TTL=255 ID=13923 PROTO=UDP 
-SPT=1026 DPT=53 LEN=69
+	The log messages are as simple as:
 
+Sep 15 03:56:04 teleporto ntpd[2301]: frequency initialized 5.891 PPM f=
+rom /etc/ntp.drift
+Sep 15 03:59:25 teleporto ntpd[2304]: frequency initialized 5.891 PPM f=
+rom /etc/ntp.drift
+Sep 15 04:03:49 teleporto ntpd[2304]: synchronized to 143.107.255.15, s=
+tratum 2
+Sep 15 04:03:49 teleporto ntpd[2304]: kernel time sync status change 00=
+01
+Sep 15 04:10:16 teleporto ntpd[2304]: synchronized to 198.123.30.132, s=
+tratum 1
+Sep 15 04:11:58 teleporto ntpd[2301]: frequency initialized 5.891 PPM f=
+rom /etc/ntp.drift
+Sep 15 04:16:18 teleporto ntpd[2301]: synchronized to 198.123.30.132, s=
+tratum 1
+Sep 15 04:16:18 teleporto ntpd[2301]: kernel time sync status change 00=
+01
+Sep 15 12:08:53 teleporto ntpd[2301]: kernel time sync status change 40=
+01
+Sep 15 12:34:31 teleporto ntpd[2301]: kernel time sync status change 00=
+01
+Sep 15 14:34:06 teleporto ntpd[2301]: kernel time sync status change 40=
+01
+Sep 15 14:51:12 teleporto ntpd[2301]: kernel time sync status change 00=
+01=20
 
-same request from PC3, that gots a dhcp address from PC1:
+	If I understood correctly what do you mean, ntpd adjusts nicely the ti=
+me to not=20
+cause huge differences in the time.
 
-<4>TRACE: raw:PREROUTING:policy:4 IN=eth2 OUT= 
-MAC=00:30:18:49:f3:2a:00:40:ca:d0:a9:89:08:00 SRC=10.0.16.2 
-DST=10.0.16.1 LEN=59 TOS=0x00 PREC=0x00 TTL=64 ID=3212 DF PROTO=UDP 
-SPT=32908 DPT=53 LEN=39
-<4>TRACE: mangle:PREROUTING:policy:1 IN=eth2 OUT= 
-MAC=00:30:18:49:f3:2a:00:40:ca:d0:a9:89:08:00 SRC=10.0.16.2 
-DST=10.0.16.1 LEN=59 TOS=0x00 PREC=0x00 TTL=64 ID=3212 DF PROTO=UDP 
-SPT=32908 DPT=53 LEN=39
-<4>TRACE: nat:PREROUTING:rule:2 IN=eth2 OUT= 
-MAC=00:30:18:49:f3:2a:00:40:ca:d0:a9:89:08:00 SRC=10.0.16.2 
-DST=10.0.16.1 LEN=59 TOS=0x00 PREC=0x00 TTL=64 ID=3212 DF PROTO=UDP 
-SPT=32908 DPT=53 LEN=39
-<4>TRACE: mangle:INPUT:policy:1 IN=eth2 OUT= 
-MAC=00:30:18:49:f3:2a:00:40:ca:d0:a9:89:08:00 SRC=10.0.16.2 DST=10.0.0.1 
-LEN=59 TOS=0x00 PREC=0x00 TTL=64 ID=3212 DF PROTO=UDP SPT=32908 DPT=53 
-LEN=39
-<4>TRACE: filter:INPUT:rule:11 IN=eth2 OUT= 
-MAC=00:30:18:49:f3:2a:00:40:ca:d0:a9:89:08:00 SRC=10.0.16.2 DST=10.0.0.1 
-LEN=59 TOS=0x00 PREC=0x00 TTL=64 ID=3212 DF PROTO=UDP SPT=32908 DPT=53 
-LEN=39
+	And we're reaching the conclusion that the timer code from 2.6.25 and =
+above=20
+have something wrong, since 2.6.24 and below is ok, which causes those =
+stalls.
 
-<4>TRACE: raw:OUTPUT:policy:4 IN= OUT=eth2 SRC=10.0.0.1 DST=10.0.16.2 
-LEN=126 TOS=0x00 PREC=0x00 TTL=64 ID=0 DF PROTO=UDP SPT=53 DPT=32908 
-LEN=106 UID=0
-<4>TRACE: mangle:OUTPUT:policy:1 IN= OUT=eth2 SRC=10.0.0.1 DST=10.0.16.2 
-LEN=126 TOS=0x00 PREC=0x00 TTL=64 ID=0 DF PROTO=UDP SPT=53 DPT=32908 
-LEN=106 UID=0
-<4>TRACE: filter:OUTPUT:rule:6 IN= OUT=eth2 SRC=10.0.0.1 DST=10.0.16.2 
-LEN=126 TOS=0x00 PREC=0x00 TTL=64 ID=0 DF PROTO=UDP SPT=53 DPT=32908 
-LEN=106 UID=0
-<4>TRACE: mangle:POSTROUTING:policy:1 IN= OUT=eth2 SRC=10.0.0.1 
-DST=10.0.16.2 LEN=126 TOS=0x00 PREC=0x00 TTL=64 ID=0 DF PROTO=UDP SPT=53 
-DPT=32908 LEN=106 UID=0
-<4>TRACE: rawpost:POSTROUTING:policy:1 IN= OUT=eth2 SRC=10.0.16.1 
-DST=10.0.16.2 LEN=126 TOS=0x00 PREC=0x00 TTL=64 ID=0 DF PROTO=UDP SPT=53 
-DPT=32908 LEN=106 UID=0
+	But I'll wait some more time to confirm this, although I'm almost sure=
+ it's a timer
+related bug which has this colateral effect of stalling connections.
 
-That DNS-request from dhcp-lease 10.0.16.2 enters nat: PREROUTING after 
-passes mangle:PREROUTING
-The DNS-Request from FIX-IP 192.168.150.111 doesn't enter the 
-nat:PREROUTING after passes mangle:PREROUTING?!??
+	And just a question: do you use ntpd on your own desktop?
+=09
+	Thank you!
 
-tcpdump from both requests:
-
-15:08:45.583020 0:40:ca:d0:a9:89 0:30:18:49:f3:2a 0800 71: 
-10.0.16.2.32913 > 10.0.16.1.53: [udp sum ok]  25886+ A? pop3.web.de. 
-(29) (DF) (ttl 64, id 30581, len 57)
-0x0000   4500 0039 7775 4000 4011 8f3c 0a00 1002        E..9wu@.@..<....
-0x0010   0a00 1001 8091 0035 0025 fe0a 651e 0100        .......5.%..e...
-0x0020   0001 0000 0000 0000 0470 6f70 3303 7765        .........pop3.we
-0x0030   6202 6465 0000 0100 01                         b.de.....
-15:08:45.586782 0:30:18:49:f3:2a 0:40:ca:d0:a9:89 0800 125: 10.0.16.1.53 
- > 10.0.16.2.32913:  25886 q: A? pop3.web.de. 1/2/0 pop3.web.de. A 
-217.72.192.134 ns: web.de.[|domain] (DF) (ttl 64, id 0, len 111)
-0x0000   4500 006f 0000 4000 4011 067c 0a00 1001        E..o..@.@..|....
-0x0010   0a00 1002 0035 8091 005b 346f 651e 8180        .....5...[4oe...
-0x0020   0001 0001 0002 0000 0470 6f70 3303 7765        .........pop3.we
-0x0030   6202 6465 0000 0100 01c0 0c00 0100 0100        b.de............
-0x0040   0090 5f00 04d9 48c0 86c0 1100 0200 0100        .._...H.........
-0x0050   0145                                           .E
-15:08:45.825461 0:14:b:30:d0:2 0:30:18:49:f3:2a 0800 71: 
-192.168.150.111.62901 > 192.168.150.1.53: [udp sum ok]  36608+ A? 
-www.test.de. (29) (ttl 128, id 14021, len 57)
-0x0000   4500 0039 36c5 0000 8011 562d c0a8 966f        E..96.....V-...o
-0x0010   c0a8 9601 f5b5 0035 0025 0cb8 8f00 0100        .......5.%......
-0x0020   0001 0000 0000 0000 0377 7777 0474 6573        .........www.tes
-0x0030   7402 6465 0000 0100 01                         t.de.....
-15:08:47.825169 0:14:b:30:d0:2 0:30:18:49:f3:2a 0800 71: 
-192.168.150.111.62901 > 192.168.150.1.53: [udp sum ok]  36608+ A? 
-www.test.de. (29) (ttl 128, id 14024, len 57)
-0x0000   4500 0039 36c8 0000 8011 562a c0a8 966f        E..96.....V*...o
-0x0010   c0a8 9601 f5b5 0035 0025 0cb8 8f00 0100        .......5.%......
-0x0020   0001 0000 0000 0000 0377 7777 0474 6573        .........www.tes
-0x0030   7402 6465 0000 0100 01                         t.de.....
-
-
-maybe the successful ping command gives some advice!?
-ping from PC1 to PC2 (command: ping 10.0.17.2):
-
-<4>TRACE: raw:OUTPUT:rule:2 IN= OUT=eth2 SRC=10.0.17.1 DST=10.0.17.2 
-LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=0 DF PROTO=ICMP TYPE=8 CODE=0 
-ID=25956 SEQ=4352 UID=0
-<4>TRACE: raw:OUTPUT:rule:3 IN= OUT=eth2 SRC=192.168.150.1 DST=10.0.17.2 
-LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=0 DF PROTO=ICMP TYPE=8 CODE=0 
-ID=25956 SEQ=4352 UID=0
-<4>TRACE: raw:OUTPUT:policy:4 IN= OUT=eth2 SRC=192.168.150.1 
-DST=192.168.150.111 LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=0 DF PROTO=ICMP 
-TYPE=8 CODE=0 ID=25956 SEQ=4352 UID=0
-<4>TRACE: mangle:OUTPUT:policy:1 IN= OUT=eth2 SRC=192.168.150.1 
-DST=192.168.150.111 LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=0 DF PROTO=ICMP 
-TYPE=8 CODE=0 ID=25956 SEQ=4352 UID=0
-<4>TRACE: filter:OUTPUT:rule:2 IN= OUT=eth2 SRC=192.168.150.1 
-DST=192.168.150.111 LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=0 DF PROTO=ICMP 
-TYPE=8 CODE=0 ID=25956 SEQ=4352 UID=0
-<4>TRACE: mangle:POSTROUTING:policy:1 IN= OUT=eth2 SRC=192.168.150.1 
-DST=192.168.150.111 LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=0 DF PROTO=ICMP 
-TYPE=8 CODE=0 ID=25956 SEQ=4352 UID=0
-<4>TRACE: raw:PREROUTING:rule:2 IN=eth2 OUT= 
-MAC=00:30:18:49:f3:2a:00:14:0b:30:d0:02:08:00 SRC=192.168.150.111 
-DST=192.168.150.1 LEN=84 TOS=0x00 PREC=0x00 TTL=128 ID=14473 DF 
-PROTO=ICMP TYPE=0 CODE=0 ID=25956 SEQ=4352
-<4>TRACE: raw:PREROUTING:rule:3 IN=eth2 OUT= 
-MAC=00:30:18:49:f3:2a:00:14:0b:30:d0:02:08:00 SRC=192.168.150.111 
-DST=10.0.17.1 LEN=84 TOS=0x00 PREC=0x00 TTL=128 ID=14473 DF PROTO=ICMP 
-TYPE=0 CODE=0 ID=25956 SEQ=4352
-<4>TRACE: raw:PREROUTING:policy:4 IN=eth2 OUT= 
-MAC=00:30:18:49:f3:2a:00:14:0b:30:d0:02:08:00 SRC=10.0.17.2 
-DST=10.0.17.1 LEN=84 TOS=0x00 PREC=0x00 TTL=128 ID=14473 DF PROTO=ICMP 
-TYPE=0 CODE=0 ID=25956 SEQ=4352
-<4>TRACE: mangle:PREROUTING:policy:1 IN=eth2 OUT= 
-MAC=00:30:18:49:f3:2a:00:14:0b:30:d0:02:08:00 SRC=10.0.17.2 
-DST=10.0.17.1 LEN=84 TOS=0x00 PREC=0x00 TTL=128 ID=14473 DF PROTO=ICMP 
-TYPE=0 CODE=0 ID=25956 SEQ=4352
-<4>TRACE: mangle:INPUT:policy:1 IN=eth2 OUT= 
-MAC=00:30:18:49:f3:2a:00:14:0b:30:d0:02:08:00 SRC=10.0.17.2 
-DST=10.0.17.1 LEN=84 TOS=0x00 PREC=0x00 TTL=128 ID=14473 DF PROTO=ICMP 
-TYPE=0 CODE=0 ID=25956 SEQ=4352
-<4>TRACE: filter:INPUT:rule:2 IN=eth2 OUT= 
-MAC=00:30:18:49:f3:2a:00:14:0b:30:d0:02:08:00 SRC=10.0.17.2 
-DST=10.0.17.1 LEN=84 TOS=0x00 PREC=0x00 TTL=128 ID=14473 DF PROTO=ICMP 
-TYPE=0 CODE=0 ID=25956 SEQ=4352
-
-ping from pc2 to pc1 (command: ping 192.168.150.1)
-<4>TRACE: raw:PREROUTING:rule:2 IN=eth2 OUT= 
-MAC=00:30:18:49:f3:2a:00:14:0b:30:d0:02:08:00 SRC=192.168.150.111 
-DST=192.168.150.1 LEN=84 TOS=0x00 PREC=0x00 TTL=128 ID=14544 PROTO=ICMP 
-TYPE=8 CODE=0 ID=2051 SEQ=768
-<4>TRACE: raw:PREROUTING:rule:3 IN=eth2 OUT= 
-MAC=00:30:18:49:f3:2a:00:14:0b:30:d0:02:08:00 SRC=192.168.150.111 
-DST=10.0.17.1 LEN=84 TOS=0x00 PREC=0x00 TTL=128 ID=14544 PROTO=ICMP 
-TYPE=8 CODE=0 ID=2051 SEQ=768
-<4>TRACE: raw:PREROUTING:policy:4 IN=eth2 OUT= 
-MAC=00:30:18:49:f3:2a:00:14:0b:30:d0:02:08:00 SRC=10.0.17.2 
-DST=10.0.17.1 LEN=84 TOS=0x00 PREC=0x00 TTL=128 ID=14544 PROTO=ICMP 
-TYPE=8 CODE=0 ID=2051 SEQ=768
-<4>TRACE: mangle:PREROUTING:policy:1 IN=eth2 OUT= 
-MAC=00:30:18:49:f3:2a:00:14:0b:30:d0:02:08:00 SRC=10.0.17.2 
-DST=10.0.17.1 LEN=84 TOS=0x00 PREC=0x00 TTL=128 ID=14544 PROTO=ICMP 
-TYPE=8 CODE=0 ID=2051 SEQ=768
-<4>TRACE: mangle:INPUT:policy:1 IN=eth2 OUT= 
-MAC=00:30:18:49:f3:2a:00:14:0b:30:d0:02:08:00 SRC=10.0.17.2 
-DST=10.0.17.1 LEN=84 TOS=0x00 PREC=0x00 TTL=128 ID=14544 PROTO=ICMP 
-TYPE=8 CODE=0 ID=2051 SEQ=768
-<4>TRACE: filter:INPUT:rule:2 IN=eth2 OUT= 
-MAC=00:30:18:49:f3:2a:00:14:0b:30:d0:02:08:00 SRC=10.0.17.2 
-DST=10.0.17.1 LEN=84 TOS=0x00 PREC=0x00 TTL=128 ID=14544 PROTO=ICMP 
-TYPE=8 CODE=0 ID=2051 SEQ=768
-<4>TRACE: raw:OUTPUT:rule:2 IN= OUT=eth2 SRC=10.0.17.1 DST=10.0.17.2 
-LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=60388 PROTO=ICMP TYPE=0 CODE=0 
-ID=2051 SEQ=768
-<4>TRACE: raw:OUTPUT:rule:3 IN= OUT=eth2 SRC=192.168.150.1 DST=10.0.17.2 
-LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=60388 PROTO=ICMP TYPE=0 CODE=0 
-ID=2051 SEQ=768
-<4>TRACE: raw:OUTPUT:policy:4 IN= OUT=eth2 SRC=192.168.150.1 
-DST=192.168.150.111 LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=60388 PROTO=ICMP 
-TYPE=0 CODE=0 ID=2051 SEQ=768
-<4>TRACE: mangle:OUTPUT:policy:1 IN= OUT=eth2 SRC=192.168.150.1 
-DST=192.168.150.111 LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=60388 PROTO=ICMP 
-TYPE=0 CODE=0 ID=2051 SEQ=768
-<4>TRACE: filter:OUTPUT:rule:2 IN= OUT=eth2 SRC=192.168.150.1 
-DST=192.168.150.111 LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=60388 PROTO=ICMP 
-TYPE=0 CODE=0 ID=2051 SEQ=768
-<4>TRACE: mangle:POSTROUTING:policy:1 IN= OUT=eth2 SRC=192.168.150.1 
-DST=192.168.150.111 LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=60388 PROTO=ICMP 
-TYPE=0 CODE=0 ID=2051 SEQ=768
-
-
-ping from pc2 to pc1 (command ping 10.0.17.1)
-<4>TRACE: raw:PREROUTING:rule:2 IN=eth2 OUT= 
-MAC=00:30:18:49:f3:2a:00:14:0b:30:d0:02:08:00 SRC=192.168.150.111 
-DST=10.0.17.1 LEN=84 TOS=0x00 PREC=0x00 TTL=128 ID=14657 PROTO=ICMP 
-TYPE=8 CODE=0 ID=59404 SEQ=1024
-<4>TRACE: raw:PREROUTING:rule:3 IN=eth2 OUT= 
-MAC=00:30:18:49:f3:2a:00:14:0b:30:d0:02:08:00 SRC=192.168.150.111 
-DST=10.0.17.1 LEN=84 TOS=0x00 PREC=0x00 TTL=128 ID=14657 PROTO=ICMP 
-TYPE=8 CODE=0 ID=59404 SEQ=1024
-<4>TRACE: raw:PREROUTING:policy:4 IN=eth2 OUT= 
-MAC=00:30:18:49:f3:2a:00:14:0b:30:d0:02:08:00 SRC=10.0.17.2 
-DST=10.0.17.1 LEN=84 TOS=0x00 PREC=0x00 TTL=128 ID=14657 PROTO=ICMP 
-TYPE=8 CODE=0 ID=59404 SEQ=1024
-<4>TRACE: mangle:PREROUTING:policy:1 IN=eth2 OUT= 
-MAC=00:30:18:49:f3:2a:00:14:0b:30:d0:02:08:00 SRC=10.0.17.2 
-DST=10.0.17.1 LEN=84 TOS=0x00 PREC=0x00 TTL=128 ID=14657 PROTO=ICMP 
-TYPE=8 CODE=0 ID=59404 SEQ=1024
-<4>TRACE: mangle:INPUT:policy:1 IN=eth2 OUT= 
-MAC=00:30:18:49:f3:2a:00:14:0b:30:d0:02:08:00 SRC=10.0.17.2 
-DST=10.0.17.1 LEN=84 TOS=0x00 PREC=0x00 TTL=128 ID=14657 PROTO=ICMP 
-TYPE=8 CODE=0 ID=59404 SEQ=1024
-<4>TRACE: filter:INPUT:rule:2 IN=eth2 OUT= 
-MAC=00:30:18:49:f3:2a:00:14:0b:30:d0:02:08:00 SRC=10.0.17.2 
-DST=10.0.17.1 LEN=84 TOS=0x00 PREC=0x00 TTL=128 ID=14657 PROTO=ICMP 
-TYPE=8 CODE=0 ID=59404 SEQ=1024
-<4>TRACE: raw:OUTPUT:rule:2 IN= OUT=eth2 SRC=10.0.17.1 DST=10.0.17.2 
-LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=60466 PROTO=ICMP TYPE=0 CODE=0 
-ID=59404 SEQ=1024
-<4>TRACE: raw:OUTPUT:rule:3 IN= OUT=eth2 SRC=192.168.150.1 DST=10.0.17.2 
-LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=60466 PROTO=ICMP TYPE=0 CODE=0 
-ID=59404 SEQ=1024
-<4>TRACE: raw:OUTPUT:policy:4 IN= OUT=eth2 SRC=192.168.150.1 
-DST=192.168.150.111 LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=60466 PROTO=ICMP 
-TYPE=0 CODE=0 ID=59404 SEQ=1024
-<4>TRACE: mangle:OUTPUT:policy:1 IN= OUT=eth2 SRC=192.168.150.1 
-DST=192.168.150.111 LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=60466 PROTO=ICMP 
-TYPE=0 CODE=0 ID=59404 SEQ=1024
-<4>TRACE: filter:OUTPUT:rule:2 IN= OUT=eth2 SRC=192.168.150.1 
-DST=192.168.150.111 LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=60466 PROTO=ICMP 
-TYPE=0 CODE=0 ID=59404 SEQ=1024
-<4>TRACE: mangle:POSTROUTING:policy:1 IN= OUT=eth2 SRC=192.168.150.1 
-DST=192.168.150.111 LEN=84 TOS=0x00 PREC=0x00 TTL=64 ID=60466 PROTO=ICMP 
-TYPE=0 CODE=0 ID=59404 SEQ=1024
-
+--=20
