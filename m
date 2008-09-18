@@ -1,75 +1,56 @@
-From: Sven Wegener <sven.wegener@stealer.net>
-Subject: [PATCHv2] ipset: Fix multiple compiler warnings
-Date: Thu, 18 Sep 2008 15:30:47 +0200 (CEST)
-Message-ID: <alpine.LNX.2.00.0809181528400.22510@titan.stealer.net>
-References: <alpine.LNX.2.00.0809181511450.22510@titan.stealer.net>
+From: d i <navilein@hotmail.com>
+Subject: RE: loopback forwarding not working (aka implicit source local NAT)
+Date: Thu, 18 Sep 2008 15:56:34 +0000
+Message-ID: <BLU144-W65E390B10D162E55F8657D14F0@phx.gbl>
+References: <BLU144-W44C48F9DBE68BEE223EE6FD14C0@phx.gbl>
+ <alpine.LNX.1.10.0809171309130.14575@fbirervta.pbzchgretzou.qr>
+ <BLU144-W62E5044D0CD5A32D3132FD14C0@phx.gbl>
+ <alpine.LNX.1.10.0809171934190.1817@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-967258400-699067006-1221744647=:22510"
-Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: <netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.stealer.net ([88.198.224.204]:42615 "EHLO
-	smtp1.stealer.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752106AbYIRNa4 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Sep 2008 09:30:56 -0400
-In-Reply-To: <alpine.LNX.2.00.0809181511450.22510@titan.stealer.net>
+Received: from blu0-omc1-s29.blu0.hotmail.com ([65.55.116.40]:27733 "EHLO
+	blu0-omc1-s29.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754613AbYIRP4f convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Sep 2008 11:56:35 -0400
+In-Reply-To: <alpine.LNX.1.10.0809171934190.1817@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
 
----967258400-699067006-1221744647=:22510
-Content-Type: TEXT/PLAIN; charset=ISO-8859-7
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+>>any commercial application is likely to create extra unnecessary
+>>overhead and complications. a kernel based solution is much cleaner
+>>and lighter.  yes, i have the ssh on top of it, but i can live with
+>>that. i'm using the tunnel for other things as well.
+>=20
+> Then openswan is probably your best bet.
 
-This fixes the following warnings:
 
-ipset.c: In function =A1kernel_getfrom_handleerrno=A2:
-ipset.c:434: warning: passing argument 2 of =A1wrapped_getsockopt=A2 from i=
-ncompatible pointer type
-ipset.c: In function =A1load_set_list=A2:
-ipset.c:1085: warning: passing argument 3 of =A1kernel_getfrom_handleerrno=
-=A2 from incompatible pointer type
-ipset.c: In function =A1try_save_sets=A2:
-ipset.c:1237: warning: passing argument 3 of =A1kernel_getfrom_handleerrno=
-=A2 from incompatible pointer type
-ipset.c: In function =A1set_restore=A2:
-ipset.c:1513: warning: passing argument 3 of =A1kernel_getfrom_handleerrno=
-=A2 from incompatible pointer type
-ipset.c: In function =A1try_list_sets=A2:
-ipset.c:1811: warning: passing argument 3 of =A1kernel_getfrom_handleerrno=
-=A2 from incompatible pointer type
+you know, i have 2 machines in my subnet, and my router is a 20 years o=
+ld thing, with 64MB Ram, and 166 MHz...
+this openswan and vpn in general, seem to me dedicate for larger and mo=
+re .... professional environments. I will look into your suggestion of =
+using openswan, but (based on my knowledge so far) i would really prefe=
+r something more basic, light and simple=20
 
-Signed-off-by: Sven Wegener <sven.wegener@stealer.net>
----
- ipset.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+searching more on the net I found some references to the RAWDNET and RA=
+WSNET targets for the RAW table. but neither work with my iptables (ver=
+=2E 1.4.0)
 
-There's another size_t, that should be socklen_t. This one doesn't=20
-generate a warning, but let's be consistent.
+is there any information available about this by any chance ? could you=
+ tell me anything more about the RAW table, that is not in the man page=
+l (there isn't much in the man page about this)?
 
---- ipset.orig/ipset.c
-+++ ipset/ipset.c
-@@ -421,7 +421,7 @@
- =09return 0; /* all ok */
- }
-=20
--static void kernel_sendto(unsigned cmd, void *data, size_t size)
-+static void kernel_sendto(unsigned cmd, void *data, socklen_t size)
- {
- =09int res =3D wrapped_setsockopt(data, size);
-=20
-@@ -429,7 +429,7 @@
- =09=09kernel_error(cmd, errno);
- }
-=20
--static int kernel_getfrom_handleerrno(unsigned cmd, void *data, size_t * s=
-ize)
-+static int kernel_getfrom_handleerrno(unsigned cmd, void *data, socklen_t =
-*size)
- {
- =09int res =3D wrapped_getsockopt(data, size);
-=20
----967258400-699067006-1221744647=:22510--
+thanks!
+_________________________________________________________________
+Connect to the next generation of MSN Messenger=A0
+http://imagine-msn.com/messenger/launch80/default.aspx?locale=3Den-us&s=
+ource=3Dwlmailtagline--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
