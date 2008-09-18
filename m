@@ -1,32 +1,57 @@
-From: d i <navilein@hotmail.com>
-Subject: RE: loopback forwarding not working (aka implicit source local NAT)
-Date: Thu, 18 Sep 2008 16:18:15 +0000
-Message-ID: <BLU144-W267F2012B6E9561E4A7E6CD14F0@phx.gbl>
-References: <BLU144-W44C48F9DBE68BEE223EE6FD14C0@phx.gbl>
- <alpine.LNX.1.10.0809171309130.14575@fbirervta.pbzchgretzou.qr>
-  <BLU144-W62E5044D0CD5A32D3132FD14C0@phx.gbl>
-  <alpine.LNX.1.10.0809171934190.1817@fbirervta.pbzchgretzou.qr>
+From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
+Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility
+ workaround
+Date: Thu, 18 Sep 2008 17:35:54 -0300
+Message-ID: <20080918173554.1f874238@tux>
+References: <20080819213417.45133573@tux>
+	<20080822.143709.65615512.davem@davemloft.net>
+	<20080823111446.06a350a2@tux>
+	<Pine.LNX.4.64.0808231736490.10712@wrl-59.cs.helsinki.fi>
+	<20080824163843.33b4f890@tux>
+	<Pine.LNX.4.64.0808250948420.27330@wrl-59.cs.helsinki.fi>
+	<20080826141812.589848a0@tux>
+	<Pine.LNX.4.64.0808262034001.1168@wrl-59.cs.helsinki.fi>
+	<20080828184919.611dd578@tux>
+	<Pine.LNX.4.64.0808291045430.7971@wrl-59.cs.helsinki.fi>
+	<20080830035650.42be37d7@tux>
+	<Pine.LNX.4.64.0808301000180.12388@wrl-59.cs.helsinki.fi>
+	<20080907051718.58bf133d@tux>
+	<Pine.LNX.4.64.0809071341310.8991@wrl-59.cs.helsinki.fi>
+	<20080908172043.0d25a427@tux>
+	<Pine.LNX.4.64.0809100942370.24708@wrl-59.cs.helsinki.fi>
+	<20080911143006.2f516569@tux>
+	<Pine.LNX.4.64.0809112140250.26799@wrl-59.cs.helsinki.fi>
+	<20080913203117.2a55ea2c@tux>
+	<Pine.LNX.4.64.0809140722460.17271@wrl-59.cs.helsinki.fi>
+	<20080916112411.062fa615@tux>
+	<Pine.LNX.4.64.0809161726250.1034@wrl-59.cs.helsinki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Cc: <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from blu0-omc1-s29.blu0.hotmail.com ([65.55.116.40]:64575 "EHLO
-	blu0-omc1-s29.blu0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755358AbYIRQSP convert rfc822-to-8bit
-	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Sep 2008 12:18:15 -0400
-In-Reply-To: <alpine.LNX.1.10.0809171934190.1817@fbirervta.pbzchgretzou.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
+	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
+	Patrick Hardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
+To: "Ilpo =?ISO-8859-1?Q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <Pine.LNX.4.64.0809161726250.1034@wrl-59.cs.helsinki.fi>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+On Wed, 17 Sep 2008 13:23:28 +0300 (EEST)
+"Ilpo J=E4rvinen" <ilpo.jarvinen@helsinki.fi> wrote:
 
-> searching more on the net I found some references to the RAWDNET and RAWSNET targets for the RAW table. but neither work with my iptables (ver. 1.4.0)
+> There were some other timer related complications in 2.6.25 but it's =
+so=20
+> long time ago that I hardly remember anything about those anymore (an=
+d=20
+> I'm not an expert on those things anyway). And it's still very open i=
+ssue=20
+> how that would cause the problem you're seeing.
 
+	I opened a bug report to timer developers...
+let's see if they can help:
 
-i meant RAWDNAT and RAWSNAT above.
- 
-_________________________________________________________________
-Explore the seven wonders of the world
-http://search.msn.com/results.aspx?q=7+wonders+world&mkt=en-US&form=QBRE
+http://bugzilla.kernel.org/show_bug.cgi?id=3D11588
+
+--=20
