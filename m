@@ -1,8 +1,8 @@
 From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
 Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility
  workaround
-Date: Sun, 21 Sep 2008 00:02:31 -0300
-Message-ID: <20080921000231.7ab3c7aa@tux>
+Date: Mon, 22 Sep 2008 01:23:38 -0300
+Message-ID: <20080922012338.694d30b0@tux>
 References: <20080819213417.45133573@tux>
 	<20080824163843.33b4f890@tux>
 	<Pine.LNX.4.64.0808250948420.27330@wrl-59.cs.helsinki.fi>
@@ -33,13 +33,13 @@ Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
 	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
 To: "Ilpo =?ISO-8859-1?Q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.31]:6277 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752425AbYIUDCj (ORCPT
+Received: from an-out-0708.google.com ([209.85.132.243]:46818 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750764AbYIVEXq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 20 Sep 2008 23:02:39 -0400
-Received: by yw-out-2324.google.com with SMTP id 9so156650ywe.1
-        for <netfilter-devel@vger.kernel.org>; Sat, 20 Sep 2008 20:02:38 -0700 (PDT)
+	Mon, 22 Sep 2008 00:23:46 -0400
+Received: by an-out-0708.google.com with SMTP id d40so120457and.103
+        for <netfilter-devel@vger.kernel.org>; Sun, 21 Sep 2008 21:23:44 -0700 (PDT)
 In-Reply-To: <Pine.LNX.4.64.0809182349410.4742@wrl-59.cs.helsinki.fi>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -62,14 +62,19 @@ ves=20
 =20
 > waiting in accept() or not, and if not, where they were.
 
-	I got a stall, tried to use strace but even strace couldn't
-trace nothing. Everything which uses some kind of network connection is
-stalled (or because everything is stalled, strace couldn't trace
-anything).
-=09
-	I'll try to leave strace running all the time, but I'm afraid
-it could prevent the stall. Anyway, I'll test and return soon.
+	Hi again Ilpo, I waited the whole day for a stall, and
+fortunatelly it happened while I was stracing dovecot and child
+processes. The stall happened at 01:11 (at the end). I hope that it
+has something useful.
 
+http://www.abusar.org/strace/dovecot.txt.bz2
+
+	I then nmap'ed the server and killed strace.
+
+	I used the following:
+
+strace -t -p 2315 -f -e trace=3Daccept,listen,close,shutdown,select -o =
+dovecot.txt
 
 --=20
 --
