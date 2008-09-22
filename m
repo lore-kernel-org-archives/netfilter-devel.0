@@ -1,84 +1,87 @@
-From: Pasi =?iso-8859-1?Q?K=E4rkk=E4inen?= <pasik-X3B1VOXEql0@public.gmane.org>
-Subject: Re: netfilter kernel crash in ip_ct_refresh_acct /
-	ip_conntrack with centos 5.x
-Date: Mon, 22 Sep 2008 13:46:51 +0300
-Message-ID: <20080922104651.GF13941@edu.joroinen.fi>
-References: <012c01c91a91$a6962e50$4f0e3d95@DDQ3KCF1JDH>
-	<20080922085336.GD13941@edu.joroinen.fi>
-Reply-To: CentOS mailing list <centos-IFYaIzF+flcdnm+yROfE0A@public.gmane.org>
+From: "=?ISO-8859-1?Q?Ilpo_J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
+Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility workaround
+Date: Mon, 22 Sep 2008 14:22:12 +0300 (EEST)
+Message-ID: <Pine.LNX.4.64.0809221112140.1950@wrl-59.cs.helsinki.fi>
+References: <20080819213417.45133573@tux> <20080824163843.33b4f890@tux>
+ <Pine.LNX.4.64.0808250948420.27330@wrl-59.cs.helsinki.fi> <20080826141812.589848a0@tux>
+ <Pine.LNX.4.64.0808262034001.1168@wrl-59.cs.helsinki.fi> <20080828184919.611dd578@tux>
+ <Pine.LNX.4.64.0808291045430.7971@wrl-59.cs.helsinki.fi> <20080830035650.42be37d7@tux>
+ <Pine.LNX.4.64.0808301000180.12388@wrl-59.cs.helsinki.fi> <20080907051718.58bf133d@tux>
+ <Pine.LNX.4.64.0809071341310.8991@wrl-59.cs.helsinki.fi> <20080908172043.0d25a427@tux>
+ <Pine.LNX.4.64.0809100942370.24708@wrl-59.cs.helsinki.fi> <20080911143006.2f516569@tux>
+ <Pine.LNX.4.64.0809112140250.26799@wrl-59.cs.helsinki.fi> <20080913203117.2a55ea2c@tux>
+ <Pine.LNX.4.64.0809140722460.17271@wrl-59.cs.helsinki.fi> <20080916112411.062fa615@tux>
+ <Pine.LNX.4.64.0809161726250.1034@wrl-59.cs.helsinki.fi> <20080918173554.1f874238@tux>
+ <Pine.LNX.4.64.0809182349410.4742@wrl-59.cs.helsinki.fi> <20080922012338.694d30b0@tux>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: quoted-printable
-Cc: netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: CentOS mailing list <centos-IFYaIzF+flcdnm+yROfE0A@public.gmane.org>
-Return-path: <centos-bounces-IFYaIzF+flcdnm+yROfE0A@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20080922085336.GD13941-IaEqojUT1geFMl4oFT7ALQ@public.gmane.org>
-List-Unsubscribe: <http://lists.centos.org/mailman/listinfo/centos>,
-	<mailto:centos-request-IFYaIzF+flcdnm+yROfE0A@public.gmane.org?subject=unsubscribe>
-List-Archive: <http://lists.centos.org/pipermail/centos>
-List-Post: <mailto:centos-IFYaIzF+flcdnm+yROfE0A@public.gmane.org>
-List-Help: <mailto:centos-request-IFYaIzF+flcdnm+yROfE0A@public.gmane.org?subject=help>
-List-Subscribe: <http://lists.centos.org/mailman/listinfo/centos>,
-	<mailto:centos-request-IFYaIzF+flcdnm+yROfE0A@public.gmane.org?subject=subscribe>
-Sender: centos-bounces-IFYaIzF+flcdnm+yROfE0A@public.gmane.org
-Errors-To: centos-bounces-IFYaIzF+flcdnm+yROfE0A@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: MULTIPART/MIXED; boundary="-696208474-632985311-1222071466=:1950"
+Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
+	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
+	Patrick Hardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
+To: "=?ISO-8859-1?Q?D=E2niel?= Fraga" <fragabr@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from courier.cs.helsinki.fi ([128.214.9.1]:59103 "EHLO
+	mail.cs.helsinki.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751486AbYIVLWS (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 22 Sep 2008 07:22:18 -0400
+In-Reply-To: <20080922012338.694d30b0@tux>
+Content-ID: <Pine.LNX.4.64.0809221408150.1034@wrl-59.cs.helsinki.fi>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Sep 22, 2008 at 11:53:36AM +0300, Pasi K=E4rkk=E4inen wrote:
-> On Fri, Sep 19, 2008 at 03:55:22PM -0400, Jake Holmquist wrote:
-> > > Hello!
-> > >
-> > > Has anyone seen this netfilter kernel crash?
-> > >
-> > > Images from the console of the crashed firewall:
-> > > http://pasik.reaktio.net/centos5-kernel-crash/
-> > >
-> > > Firewall is HP DL360 G4 server running CentOS 5.x 32 bit.
-> > >
-> > > I've seen this firewall crashing multiple times, but I only started
-> > investigating it lately..
-> > >
-> > > It has happened using CentOS 5.0, 5.1 and now also with 5.2. I'm no=
-t sure
-> > if
-> > > it was the same bug earlier, but at least the last two times (with =
-CentOS
-> > 5.2)
-> > > it has been the same, see screenshots.
-> > >
-> > > Last lines of the console output:
-> > >
-> > > EIP: [<f8af2c5c>] __ip_ct_refresh_acct+0xa1/0x129 [ip_conntrack] SS=
-:ESP
-> > 0068:c0724e4c
-> > >  <0>Kernel panic - not syncing: Fatal exception in interrupt
-> > >
-> > > At the moment firewall is running CentOS 5.2, Linux kernel
-> > 2.6.18-92.1.10.el5.centos.plus.
-> > >
-> > > Any tips how to resolve this?
-> >=20
-> >=20
-> > Take a look here:
-> > https://bugzilla.redhat.com/show_bug.cgi?id=3D433661
-> >=20
-> > Looks like a test kernel is available....
-> >=20
-> >=20
-> > We've been having this problem for quite some time - actually moved o=
-ur
-> > production box to RHEL 4.x
-> >=20
->=20
-> Thanks! This looks like a same bug I'm seeing..=20
->=20
-> I think I'll try latest RHEL 5.3 test kernel on that fw box..
->=20
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Just a followup to netfilter-devel too.. as it was missing from CC field.
+---696208474-632985311-1222071466=:1950
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
+Content-ID: <Pine.LNX.4.64.0809221352081.1034@wrl-59.cs.helsinki.fi>
 
-So this seems to be Redhat/RHEL bug: https://bugzilla.redhat.com/show_bug=
-.cgi?id=3D433661
+On Mon, 22 Sep 2008, Dâniel Fraga wrote:
 
--- Pasi
+> On Fri, 19 Sep 2008 00:04:23 +0300 (EEST)
+> "Ilpo Järvinen" <ilpo.jarvinen@helsinki.fi> wrote:
+> 
+> > Anyway, if/when you succeed collecting some strace of the server 
+> > processes, please let me know (though putting a full one available might 
+> > not be wise thing like I said earlier). After I thought it a bit, it might 
+> > be enough the start the strace with -p for all server processes of a 
+> > service during a stall and then resolve it after some amount of waiting 
+> > with nmap (and hope that strace doesn't resolve it by interfering 
+> > something relevant :-), you will see that from the fact that it resolves 
+> > without nmap then). That would probably reveal if the processes where 
+> > waiting in accept() or not, and if not, where they were.
+> 
+> 	Hi again Ilpo, I waited the whole day for a stall, and
+> fortunatelly it happened while I was stracing dovecot and child
+> processes. The stall happened at 01:11 (at the end). I hope that it
+> has something useful.
+
+It definately shows a stall, there are _no_ events between 0:53 and 1:11 
+while there isn't any other period like that, every other minute since the 
+start has some activity going on :-). So this might not be related to 
+networking at all like we've kind of already figured out (definately 
+accept() has very little to do here). There weren't close()'es there 
+either so it looks very stuck on something that's outside of the syscalls 
+we listed in -e, I suppose...
+
+It seems that next sensible step is to just obtain a full strace to see 
+what actually took place during those long minutes if anything (it's 
+better that you keep that log private and just use grep over it on 
+request). ...A full strace might grow huge though. Also, for strace use 
+-tt instead of -t to get more accurate timestamps and add -T.
+
+When you get the stall next time, please also check that the processes are 
+actually sleeping instead of looping like crazy in some buggy userspace 
+code :-) (obviously before resolving it with nmap).
+
+When using nmap to resolve, take note on exact timestamp (including 
+seconds). E.g., 
+$ date > nmap.ts; nmap ...
+
+
+-- 
+ i.
+---696208474-632985311-1222071466=:1950--
