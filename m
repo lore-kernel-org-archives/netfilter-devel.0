@@ -1,59 +1,56 @@
-From: "Julius Volz" <juliusv@google.com>
-Subject: Re: Getting IPVS and Netfilter SNAT to play together
-Date: Tue, 23 Sep 2008 15:54:09 +0200
-Message-ID: <f4845fc0809230654o159334d6p76952663f00cb881@mail.gmail.com>
-References: <f4845fc0809230313y14e69dc6s7b5e3e2f33f6beae@mail.gmail.com>
-	 <alpine.LNX.1.10.0809230827410.29878@fbirervta.pbzchgretzou.qr>
-	 <f4845fc0809230545n6c879a7eg7214b0a3b3db61a3@mail.gmail.com>
-	 <f4845fc0809230613l68c1ba90s16e5482479bd3c9c@mail.gmail.com>
-	 <alpine.LNX.1.10.0809230920330.29878@fbirervta.pbzchgretzou.qr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: Kernel netfilter and iptables gateway extension patch
+Date: Tue, 23 Sep 2008 11:01:32 -0400 (EDT)
+Message-ID: <alpine.LNX.1.10.0809231057550.22542@fbirervta.pbzchgretzou.qr>
+References: <48D8F008.7040602@astrocorp.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	"Simon Horman" <horms@verge.net.au>,
-	"Joseph Mack NA3T" <jmack@wm7d.net>
-To: "Jan Engelhardt" <jengelh@medozas.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Bryan Duff <bduff@astrocorp.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.33.17]:32828 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755192AbYIWNyS (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:45175 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752139AbYIWPBe (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Sep 2008 09:54:18 -0400
-Received: from spaceape9.eur.corp.google.com (spaceape9.eur.corp.google.com [172.28.16.143])
-	by smtp-out.google.com with ESMTP id m8NDsB1j027541
-	for <netfilter-devel@vger.kernel.org>; Tue, 23 Sep 2008 14:54:11 +0100
-Received: from ug-out-1314.google.com (ugfk3.prod.google.com [10.66.187.3])
-	by spaceape9.eur.corp.google.com with ESMTP id m8NDs9Z2017754
-	for <netfilter-devel@vger.kernel.org>; Tue, 23 Sep 2008 06:54:10 -0700
-Received: by ug-out-1314.google.com with SMTP id k3so2000627ugf.5
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 Sep 2008 06:54:09 -0700 (PDT)
-In-Reply-To: <alpine.LNX.1.10.0809230920330.29878@fbirervta.pbzchgretzou.qr>
-Content-Disposition: inline
+	Tue, 23 Sep 2008 11:01:34 -0400
+In-Reply-To: <48D8F008.7040602@astrocorp.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Sep 23, 2008 at 3:21 PM, Jan Engelhardt <jengelh@medozas.de> wrote:
+
+On Tuesday 2008-09-23 09:32, Bryan Duff wrote:
+
+> From the manpage:
 >
-> On Tuesday 2008-09-23 09:13, Julius Volz wrote:
->>
->>Ok, the SYN/ACK from the backend is logged as --cstate INVALID in
->>PREROUTING and INPUT. This means that Netfilter thinks it doesn't
->>belong to any connection, although it just SNATed the SYN to the
->>backend correctly? Hmm... how can this be?
+> +This matches the gateway by IP address on routed packets.
+> +It does not match packets that are not routed, or which
+> +are directly addresses to the gateway.
 >
-> That probably means skb->nfct is lost (set to NULL, which is what INVALID
-> indicates) after SNAT (PREROUTING), when IPVS kicks in.
+> With this patch it doesn't work quite like that.  It now matches 
+> packets that are "directly addresses to the gateway".  Because 
+> frankly, why not?  Otherwise those addresses are missed, and it 
+> requires more rules.  It also changes the iptables interface to allow 
+> the specifying of a mask on the cli.
+>
+> //e.g. (assume my interface is 192.168.1.100, gateway 192.168.1.1):
+> iptables -t mangle -A POSTROUTING -o eth0 -m gateway --gateway 192.168.1.1/24
+> //end e.g.
+>
+> Now any packets routed out eth0 to gateway 192.168.1.1 (or anything on that
+> subnet - if I send to 192.168.1.2 - then that is the gateway, and also
+> matches).  This is most useful for multi-homed ports.  The gateway and nexthop
+> options do the same thing.
 
-But at PREROUTING, the skb hasn't seen any part of IPVS yet. And the
-prior SNAT for the SYN packet happened in POSTROUTING after all of
-IPVS was finished. Basically, there should be no IPVS involved from
-the time that the SYN is correctly SNATed and the time that the
-SYN/ACK is not. Please correct me if I'm missing something here...
+It should not. Assuming you have a route "192.168.1.0/24 dev eth0", then 
+gateway should be 0.0.0.0 for any packets to 192.168.1.2 and the 
+nexthop shoul dbe 192.168.1.2.
 
-Julius
+For packets going to 123.45.67.89, gateway and nexthop would be 
+192.168.1.1.
 
--- 
-Julius Volz - Corporate Operations - SysOps
+> I'm not sure if this is useful to anyone but me.  I can clean up the patches
+> (fix the man page and whatever else).
 
-Google Switzerland GmbH - Identification No.: CH-020.4.028.116-1
+No, xt_gateway (you're even using the even-older ipt_gateway) has been 
+deprecated a few days after the patch was posted, as you can use routing 
+realms to mark based on gateway/nexthop.
