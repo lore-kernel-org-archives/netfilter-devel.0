@@ -1,76 +1,104 @@
-From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
-Subject: Re: [PATCH] tcp FRTO: in-order-only "TCP proxy" fragility
- workaround
-Date: Mon, 22 Sep 2008 13:13:39 -0300
-Message-ID: <20080922131339.79abf28a@tux>
-References: <20080819213417.45133573@tux>
-	<20080826141812.589848a0@tux>
-	<Pine.LNX.4.64.0808262034001.1168@wrl-59.cs.helsinki.fi>
-	<20080828184919.611dd578@tux>
-	<Pine.LNX.4.64.0808291045430.7971@wrl-59.cs.helsinki.fi>
-	<20080830035650.42be37d7@tux>
-	<Pine.LNX.4.64.0808301000180.12388@wrl-59.cs.helsinki.fi>
-	<20080907051718.58bf133d@tux>
-	<Pine.LNX.4.64.0809071341310.8991@wrl-59.cs.helsinki.fi>
-	<20080908172043.0d25a427@tux>
-	<Pine.LNX.4.64.0809100942370.24708@wrl-59.cs.helsinki.fi>
-	<20080911143006.2f516569@tux>
-	<Pine.LNX.4.64.0809112140250.26799@wrl-59.cs.helsinki.fi>
-	<20080913203117.2a55ea2c@tux>
-	<Pine.LNX.4.64.0809140722460.17271@wrl-59.cs.helsinki.fi>
-	<20080916112411.062fa615@tux>
-	<Pine.LNX.4.64.0809161726250.1034@wrl-59.cs.helsinki.fi>
-	<20080918173554.1f874238@tux>
-	<Pine.LNX.4.64.0809182349410.4742@wrl-59.cs.helsinki.fi>
-	<20080922012338.694d30b0@tux>
-	<Pine.LNX.4.64.0809221112140.1950@wrl-59.cs.helsinki.fi>
+From: "Julius Volz" <juliusv@google.com>
+Subject: Getting IPVS and Netfilter SNAT to play together
+Date: Tue, 23 Sep 2008 12:13:51 +0200
+Message-ID: <f4845fc0809230313y14e69dc6s7b5e3e2f33f6beae@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=WINDOWS-1252
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: David Miller <davem@davemloft.net>, thomas.jarosch@intra2net.com,
-	billfink@mindspring.com, Netdev <netdev@vger.kernel.org>,
-	Patrick Hardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org, kadlec@blackhole.kfki.hu
-To: "Ilpo =?ISO-8859-1?Q?J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
+Cc: "Simon Horman" <horms@verge.net.au>,
+	"Joseph Mack NA3T" <jmack@wm7d.net>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.29]:64875 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750774AbYIVQNr (ORCPT
+Received: from smtp-out.google.com ([216.239.33.17]:8080 "EHLO
+	smtp-out3.google.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750869AbYIWKN6 convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 22 Sep 2008 12:13:47 -0400
-Received: by yw-out-2324.google.com with SMTP id 9so239690ywe.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 22 Sep 2008 09:13:46 -0700 (PDT)
-In-Reply-To: <Pine.LNX.4.64.0809221112140.1950@wrl-59.cs.helsinki.fi>
+	Tue, 23 Sep 2008 06:13:58 -0400
+Received: from wpaz37.hot.corp.google.com (wpaz37.hot.corp.google.com [172.24.198.101])
+	by smtp-out.google.com with ESMTP id m8NADrDj001524
+	for <netfilter-devel@vger.kernel.org>; Tue, 23 Sep 2008 11:13:53 +0100
+Received: from mu-out-0910.google.com (mufg7.prod.google.com [10.102.183.7])
+	by wpaz37.hot.corp.google.com with ESMTP id m8NADJ5E012086
+	for <netfilter-devel@vger.kernel.org>; Tue, 23 Sep 2008 03:13:51 -0700
+Received: by mu-out-0910.google.com with SMTP id g7so1702180muf.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 23 Sep 2008 03:13:51 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 22 Sep 2008 14:22:12 +0300 (EEST)
-"Ilpo J=E4rvinen" <ilpo.jarvinen@helsinki.fi> wrote:
+Hi,
 
-> It seems that next sensible step is to just obtain a full strace to s=
-ee=20
-> what actually took place during those long minutes if anything (it's=20
-> better that you keep that log private and just use grep over it on=20
-> request). ...A full strace might grow huge though. Also, for strace u=
-se=20
-> -tt instead of -t to get more accurate timestamps and add -T.
->=20
-> When you get the stall next time, please also check that the processe=
-s are=20
-> actually sleeping instead of looping like crazy in some buggy userspa=
-ce=20
-> code :-) (obviously before resolving it with nmap).
->=20
-> When using nmap to resolve, take note on exact timestamp (including=20
-> seconds). E.g.,=20
-> $ date > nmap.ts; nmap ...
+I already mentioned this on netdev and lvs-devel a while ago, but it's
+a pretty specifc Netfilter-internals question, so I might have better
+luck getting an answer here.
 
-	Thanks! Today I'm lucky. I got the stall fast. It seems that it
-happens more frequently as more connections are made.
+Generally, I was trying to get IPVS to work together with netfilter
+SNAT. Currently, IPVS actively prevents the packets it manipulates
+from being processed by Netfilter NAT in POSTROUTING by returning
+NF_STOP from a POSTROUTING hook.
 
-	What should I grep?
+So I just removed this IPVS hook function that stops the further
+POSTROUTING processing. I then added a normal SNAT rule to POSTROUTING
+like this:
+
+$ iptables =96t nat =96A POSTROUTING =96o eth1 =96j SNAT =96-to <snat_i=
+p>
+
+Without any IPVS, SNAT works without any problems. As expected, only
+the first (SYN) packet of a connection appears on the POSTROUTING
+chain.
+
+However, with packets passing first through IPVS, the behavior gets wei=
+rd:
+
+The first SYN and the SYN/ACK of a TCP connection through IPVS do
+_not_ traverse the NAT chain in POSTROUTING at all (verified by LOG
+target, which produces no output), so their source is not rewritten
+(resulting just in normal IPVS DNAT). However, the client's ACK
+response to the SYN/ACK _does_ finally appear in this table and only
+this third packet is SNATed correctly. The backend server then replies
+with an RST, since it doesn't know a connection from the SNATed
+source. The packet trace on the director looks like this:
+
+CIP: client IP
+VIP: virtual service IP
+DIP: director (load balancer) IP
+RIP: real server (backend) IP
+
+Packet 1:
+=3D=3D=3D=3D=3D=3D=3D
+CIP =3D> VIP SYN (eth0, before IPVS)
+CIP =3D> RIP SYN (eth1, after IPVS)
+
+Packet 2:
+=3D=3D=3D=3D=3D=3D=3D
+RIP =3D> CIP SYN/ACK (eth1, before IPVS)
+VIP =3D> CIP SYN/ACK (eth0, after IPVS)
+
+Packet 3:
+=3D=3D=3D=3D=3D=3D=3D
+CIP =3D> VIP ACK (eth0, before IPVS)
+DIP =3D> RIP ACK (eth1, after IPVS) - this is the first successfully
+SNATed packet! Why?
+
+Packet 4:
+=3D=3D=3D=3D=3D=3D=3D
+RIP =3D> DIP RST - real server doesn't know this connection from the DI=
+P
+
+Any ideas why the first packets never appear in the POSTROUTING chain
+but the ACK does? I do not understand this, since IPVS injects all
+handled packets into the OUTPUT chain, whereafter they should traverse
+POSTROUTING... maybe someone with more understanding of Netfilter can
+shed some light on this?
+
+Thanks,
+Julius
 
 --=20
+Julius Volz - Corporate Operations - SysOps
+
+Google Switzerland GmbH - Identification No.: CH-020.4.028.116-1
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
