@@ -1,56 +1,48 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Kernel netfilter and iptables gateway extension patch
-Date: Tue, 23 Sep 2008 11:01:32 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0809231057550.22542@fbirervta.pbzchgretzou.qr>
-References: <48D8F008.7040602@astrocorp.com>
+From: Alexey Mikhailov <karma@galois.botik.ru>
+Subject: Conntrack flow expirations
+Date: Wed, 24 Sep 2008 10:38:57 +0400
+Message-ID: <877i929hfi.fsf@galois.botik.ru>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
-To: Bryan Duff <bduff@astrocorp.com>
+To: netfilter@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:45175 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752139AbYIWPBe (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Sep 2008 11:01:34 -0400
-In-Reply-To: <48D8F008.7040602@astrocorp.com>
+Received: from pier.botik.ru ([193.232.174.1]:60995 "EHLO pier.botik.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751436AbYIXH3q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 24 Sep 2008 03:29:46 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hello!
 
-On Tuesday 2008-09-23 09:32, Bryan Duff wrote:
+I'm working on some accounting application based on connection tracking
+subsytem. Basically, i just gather information from expired flows. But
+there's problem, any TCP flow can live for 4 or 5 days for example, and
+I need to get more or less real-time processing. So I want to have some
+expiration mechanism. I need to:
 
-> From the manpage:
->
-> +This matches the gateway by IP address on routed packets.
-> +It does not match packets that are not routed, or which
-> +are directly addresses to the gateway.
->
-> With this patch it doesn't work quite like that.  It now matches 
-> packets that are "directly addresses to the gateway".  Because 
-> frankly, why not?  Otherwise those addresses are missed, and it 
-> requires more rules.  It also changes the iptables interface to allow 
-> the specifying of a mask on the cli.
->
-> //e.g. (assume my interface is 192.168.1.100, gateway 192.168.1.1):
-> iptables -t mangle -A POSTROUTING -o eth0 -m gateway --gateway 192.168.1.1/24
-> //end e.g.
->
-> Now any packets routed out eth0 to gateway 192.168.1.1 (or anything on that
-> subnet - if I send to 192.168.1.2 - then that is the gateway, and also
-> matches).  This is most useful for multi-homed ports.  The gateway and nexthop
-> options do the same thing.
+ a) I don't want flows to live more than 30 minutes
+ b) If flow is inactive for 15 secs I want to get it expired as well
 
-It should not. Assuming you have a route "192.168.1.0/24 dev eth0", then 
-gateway should be 0.0.0.0 for any packets to 192.168.1.2 and the 
-nexthop shoul dbe 192.168.1.2.
+So here comes my question, how do I specify expiration time-out for
+long lived flows? I have found 
 
-For packets going to 123.45.67.89, gateway and nexthop would be 
-192.168.1.1.
+net.ipv4.netfilter.ip_conntrack_tcp_timeout_established = 5 DAYS
 
-> I'm not sure if this is useful to anyone but me.  I can clean up the patches
-> (fix the man page and whatever else).
+If I will change it to 30 MINS will it make trick? But there're
+other protocols like UDP: how can I specify active timeout for
+it? Another question, if it will affect underlying packet
+converstation (i want it to remain undisturbed)? And last
+question is how do I specify inactive timeout? I'm not sure that
+it's possible but I can write it. And if so, can you please advice
+me how I better done it: nf_ct_extend.. for example.
 
-No, xt_gateway (you're even using the even-older ipt_gateway) has been 
-deprecated a few days after the patch was posted, as you can use routing 
-realms to mark based on gateway/nexthop.
+So many questions in so little message but I really looking forward
+for your support.
+
+Thank you in advance,
+-- Alexey
+
+P.S.: I'm not subscribed to list so please CC me your replies.
+
