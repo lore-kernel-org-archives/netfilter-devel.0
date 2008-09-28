@@ -1,60 +1,33 @@
-From: Alexey Dobriyan <adobriyan@gmail.com>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH 17/33] netns ct: final init_net tweaks
-Date: Sat, 27 Sep 2008 04:00:00 +0400
-Message-ID: <20080927000000.GB10489@x200.localdomain>
-References: <48C01046.2070704@trash.net> <1220842990-30500-17-git-send-email-adobriyan@gmail.com> <48C623CA.9060803@trash.net> <20080909073245.GA7307@x200.localdomain> <48C62B1C.7070104@trash.net> <20080913104515.GA7440@x200.localdomain>
+Date: Sun, 28 Sep 2008 12:31:55 +0200
+Message-ID: <48DF5D1B.30406@trash.net>
+References: <48C01046.2070704@trash.net> <1220842990-30500-17-git-send-email-adobriyan@gmail.com> <48C623CA.9060803@trash.net> <20080909073245.GA7307@x200.localdomain> <48C62B1C.7070104@trash.net> <20080913104515.GA7440@x200.localdomain> <20080927000000.GB10489@x200.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
 	containers@lists.linux-foundation.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20080913104515.GA7440@x200.localdomain>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: Alexey Dobriyan <adobriyan@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:61655 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750897AbYI1KcA (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 28 Sep 2008 06:32:00 -0400
+In-Reply-To: <20080927000000.GB10489@x200.localdomain>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Sep 13, 2008 at 02:45:15PM +0400, Alexey Dobriyan wrote:
-> On Tue, Sep 09, 2008 at 09:51:56AM +0200, Patrick McHardy wrote:
-> > Alexey Dobriyan wrote:
-> >> On Tue, Sep 09, 2008 at 09:20:42AM +0200, Patrick McHardy wrote:
-> >>> Having multiple of these net_eq checks per function (14 total) is
-> >>> not a very nice way to do this.
-> >>
-> >> Yep, I was just afraid of some subtle ordering rules and to keep
-> >> potential init_net breakage to minimum.
-> >
-> > Me too, but I still prefer to do it properly once.
-> >
-> >>> How about splitting the code into a netns and a global part instead?
-> >>
-> >> Prebably they aren't strict at all.
-> >
-> > Not particulary. For cleanup a three stage approach with
-> >
-> > 1. init_net deactivation (ip_ct_attach = NULL)
-> > 2. generic netns cleanup
-> > 3. init_net specific final cleanup (slab cache, nf_conntrack_cachep,
-> >    accounting, helpers, protocols, ...)
-> >
-> > should work fine.
-> >
-> > The initialization should be OK with just a init_net part
-> > and a generic netns part.
+Alexey Dobriyan wrote:
+> Ping!
 > 
-> Ugh, I'm still finding the least ugly way to put init_net checks, and
-> it's better to do it at the very end.
-> 
-> So, slight reordering.
-> 
-> See per-netns statistics, nf_conntrack_count, nf_conntrack_checksum,
-> nf_conntrack_log_invalid and accounting.
-> 
-> The rest (SIP, H323, GRE, PPTP, per-netns NAT) remains the same and can
-> be applied independently of init_net checks.
+> I've just sent patch which adds init_net checks in somewhat nicer way.
 
-Ping!
+Thanks.
 
-I've just sent patch which adds init_net checks in somewhat nicer way.
+> Please, review and apply the rest.
 
-Please, review and apply the rest.
+I'll do that this week during the netfilter workshop.
+
+
