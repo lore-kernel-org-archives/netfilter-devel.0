@@ -1,80 +1,128 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Netfilter bugzilla
-Date: Mon, 29 Sep 2008 08:54:59 +0200
-Message-ID: <48E07BC3.9020107@netfilter.org>
-References: <09095012B8574F16A942F01268EA7D3D@pgreco>
+From: juliusv@google.com (Julius Volz)
+Subject: Making conntrack like packets DNATed by IPVS
+Date: Tue, 30 Sep 2008 14:21:59 +0200
+Message-ID: <20080930122158.GA31253@google.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------090801000400020302070403"
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: =?ISO-8859-1?Q?Pablo_Sebasti=E1n_Greco?= <pablo@fliagreco.com.ar>
+Content-Type: text/plain; charset=us-ascii
+Cc: vbusam@google.com, jengelh@medozas.de, horms@verge.net.au,
+	lvs-devel@vger.kernel.org, ja@ssi.bg
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35103 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750801AbYI2GzJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 29 Sep 2008 02:55:09 -0400
-In-Reply-To: <09095012B8574F16A942F01268EA7D3D@pgreco>
+Received: from smtp-out.google.com ([216.239.33.17]:61832 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751446AbYI3MWX (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 30 Sep 2008 08:22:23 -0400
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------090801000400020302070403
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Hi,
 
-Hi Pablo,
+I'm still stuck trying to get IPVS/NAT to work together with Netfilter
+conntrack/Netfilter SNAT. First, I removed the Netfilter hook function
+in IPVS that prevented further processing in POSTROUTING. Then, I made
+IPVS reflect its own DNAT changes in the skb->nfct tuples just before
+IPVS injects the packet back into LOCAL_OUT:
 
-Pablo Sebastián Greco wrote:
-> Pablo, a few days ago, i filed bug
-> http://bugzilla.netfilter.org/show_bug.cgi?id=556 , but I had a problem
-> creating the attachment patch, and a message appeared saying that I
-> should contact you about this.
+======================
+diff --git a/net/ipv4/ipvs/ip_vs_core.c b/net/ipv4/ipvs/ip_vs_core.c
+index 958abf3..96d24b5 100644
+--- a/net/ipv4/ipvs/ip_vs_core.c
++++ b/net/ipv4/ipvs/ip_vs_core.c
+@@ -1429,13 +1429,13 @@ static struct nf_hook_ops ip_vs_ops[] __read_mostly = {
+ 		.priority       = 99,
+ 	},
+ 	/* Before the netfilter connection tracking, exit from POST_ROUTING */
+-	{
++	/*{
+ 		.hook		= ip_vs_post_routing,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= PF_INET,
+ 		.hooknum        = NF_INET_POST_ROUTING,
+ 		.priority       = NF_IP_PRI_NAT_SRC-1,
+-	},
++	},*/
+ #ifdef CONFIG_IP_VS_IPV6
+ 	/* After packet filtering, forward packet through VS/DR, VS/TUN,
+ 	 * or VS/NAT(change destination), so that filtering rules can be
+diff --git a/net/ipv4/ipvs/ip_vs_xmit.c b/net/ipv4/ipvs/ip_vs_xmit.c
+index 02ddc2b..de7feb5 100644
+--- a/net/ipv4/ipvs/ip_vs_xmit.c
++++ b/net/ipv4/ipvs/ip_vs_xmit.c
+@@ -24,6 +24,7 @@
+ #include <net/ip6_route.h>
+ #include <linux/icmpv6.h>
+ #include <linux/netfilter.h>
++#include <net/netfilter/nf_conntrack.h>
+ #include <linux/netfilter_ipv4.h>
+ 
+ #include <net/ip_vs.h>
+@@ -360,6 +361,21 @@ ip_vs_nat_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ 
+ 	EnterFunction(10);
+ 
++	if (skb->nfct) {
++		struct nf_conn *ct = (struct nf_conn*)skb->nfct;
++
++		ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.u3.ip = cp->daddr.ip;
++		ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.u.tcp.port = cp->dport;
++
++		ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.u3.ip = cp->daddr.ip;
++		ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.u.tcp.port = cp->dport;
++
++		/* Netfilter SNAT was already marked done in LOCAL_IN, but
++		 * somehow, the packet still contains the original source IP,
++		 * so we want it to be done again in POSTROUTING */
++		clear_bit(IPS_SRC_NAT_DONE_BIT, &ct->status);
++	}
++
+ 	/* check if it is a connection of no-client-port */
+ 	if (unlikely(cp->flags & IP_VS_CONN_F_NO_CPORT)) {
+ 		__be16 _pt, *p;
 
-Hm, without the specific error there's nothing I can do, I'll check this
-anyway to try to guess what's wrong.
+======================
 
-> OTOH, do you know what should I do to make this bug fixed?
+The Netfilter SNAT rule is simply:
 
-I have applied the following  patch to the iptables git tree.
+$ iptables -t -nat -A POSTROUTING -o eth1 -j SNAT -to <director IP>
 
-http://git.netfilter.org/cgi-bin/gitweb.cgi?p=iptables.git;a=summary
+The SYN and SYN/ACK packets of a new connection get handled correctly by
+IPVS and even get SNATed correctly. The ACK to the SYN/ACK still gets
+handled correctly by IPVS but is NF_DROPed in POSTROUTING in
+__nf_conntrack_confirm() as a result of a check finding the associated
+conntrack tuple already in the nf_conntrack_hash (meaning, the
+connection has already been confirmed). If I understand it correctly, we
+shouldn't be entering that function for the ACK packet anyways, so
+I'm doing something very wrong...
+
+A packet trace on the director looks like this:
+
+CIP: client IP
+VIP: virtual service IP
+DIP: director (load balancer) IP
+RIP: real server (backend) IP
+
+11:28:51.431221 IP <CIP>.49988 > <VIP>.80: S 1151908514:1151908514(0) win 5840 <mss 1460,sackOK,timestamp 74963354 0,nop,wscale 7>
+11:28:51.432294 IP <DIP>.49988 > <RIP>.80: S 1151908514:1151908514(0) win 5840 <mss 1460,sackOK,timestamp 74963354 0,nop,wscale 7>
+11:28:51.432822 IP <RIP>.80 > <DIP>.49988: S 1508888076:1508888076(0) ack 1151908515 win 5792 <sackOK,timestamp 7468557 74963354,mss 1460,nop,wscale 4>
+11:28:51.434159 IP <VIP>.80 > <CIP>.49988: S 1508888076:1508888076(0) ack 1151908515 win 5792 <sackOK,timestamp 7468557 74963354,mss 1460,nop,wscale 4>
+11:28:51.434253 IP <CIP>.49988 > <VIP>.80: . ack 1 win 46 <nop,nop,timestamp 74963362 7468557>
+(the above packet is dropped in POSTROUTING...)
+11:28:52.029604 IP <CIP>.49988 > <VIP>.80: P 1:3(2) ack 1 win 46 <nop,nop,timestamp 74963957 7468557>
+11:28:52.237975 IP <CIP>.49988 > <VIP>.80: P 1:3(2) ack 1 win 46 <nop,nop,timestamp 74964165 7468557>
+...
+
+The various places in Netfilter at which tuples are created, modified,
+checked, inserted, etc. are kind of confusing to me and I'm missing the
+necessary Netfilter internals knowledge to understand and handle this
+correctly. I'd be glad if someone could give me a pointer into the right
+direction or help out in any other way!
+
+Thanks,
+Julius
 
 -- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+Julius Volz - Corporate Operations - SysOps
 
---------------090801000400020302070403
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
-
-commit 8c8c1c8096570d94d13539c4928ddb3650642763
-Author: Pablo Sebastian Greco <pablo@fliagreco.com.ar>
-Date:   Mon Sep 29 08:47:39 2008 +0200
-
-    mark: fix invalid iptables-save output
-    
-    When a neg mark is saved via iptables-save it is saved as !--mark,
-    but this is not recognized by iptables-restore, just adding a space
-    to the saved file to make it look like "! --mark" makes
-    iptables-restore accept the file.
-    
-    Signed-off-by: Pablo Sebastian Greco <pablo@fliagreco.com.ar>
-    Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
-diff --git a/extensions/libxt_mark.c b/extensions/libxt_mark.c
-index 811cc77..4ee29e7 100644
---- a/extensions/libxt_mark.c
-+++ b/extensions/libxt_mark.c
-@@ -125,7 +125,7 @@ static void mark_mt_save(const void *ip, const struct xt_entry_match *match)
- 	const struct xt_mark_mtinfo1 *info = (const void *)match->data;
- 
- 	if (info->invert)
--		printf("! ");
-+		printf("!");
- 
- 	printf("--mark ");
- 	print_mark(info->mark, info->mask);
-
---------------090801000400020302070403--
+Google Switzerland GmbH - Identification No.: CH-020.4.028.116-1
