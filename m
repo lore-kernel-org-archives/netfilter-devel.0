@@ -1,128 +1,210 @@
-From: juliusv@google.com (Julius Volz)
-Subject: Making conntrack like packets DNATed by IPVS
-Date: Tue, 30 Sep 2008 14:21:59 +0200
-Message-ID: <20080930122158.GA31253@google.com>
+From: "=?ISO-8859-1?Q?Ilpo_J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
+Subject: [PATCH net-next] ipv6: almost identical frag hashing funcs combined
+Date: Wed, 1 Oct 2008 01:57:47 +0300 (EEST)
+Message-ID: <Pine.LNX.4.64.0810010146001.27688@wrl-59.cs.helsinki.fi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: vbusam@google.com, jengelh@medozas.de, horms@verge.net.au,
-	lvs-devel@vger.kernel.org, ja@ssi.bg
-To: netfilter-devel@vger.kernel.org
+Content-Type: MULTIPART/MIXED; BOUNDARY="-696208474-766920371-1222815467=:27688"
+Cc: Netdev <netdev@vger.kernel.org>, Patrick Hardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.33.17]:61832 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751446AbYI3MWX (ORCPT
+Received: from courier.cs.helsinki.fi ([128.214.9.1]:34927 "EHLO
+	mail.cs.helsinki.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751489AbYI3W5u (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 30 Sep 2008 08:22:23 -0400
-Content-Disposition: inline
+	Tue, 30 Sep 2008 18:57:50 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-I'm still stuck trying to get IPVS/NAT to work together with Netfilter
-conntrack/Netfilter SNAT. First, I removed the Netfilter hook function
-in IPVS that prevented further processing in POSTROUTING. Then, I made
-IPVS reflect its own DNAT changes in the skb->nfct tuples just before
-IPVS injects the packet back into LOCAL_OUT:
+---696208474-766920371-1222815467=:27688
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 
-======================
-diff --git a/net/ipv4/ipvs/ip_vs_core.c b/net/ipv4/ipvs/ip_vs_core.c
-index 958abf3..96d24b5 100644
---- a/net/ipv4/ipvs/ip_vs_core.c
-+++ b/net/ipv4/ipvs/ip_vs_core.c
-@@ -1429,13 +1429,13 @@ static struct nf_hook_ops ip_vs_ops[] __read_mostly = {
- 		.priority       = 99,
- 	},
- 	/* Before the netfilter connection tracking, exit from POST_ROUTING */
--	{
-+	/*{
- 		.hook		= ip_vs_post_routing,
- 		.owner		= THIS_MODULE,
- 		.pf		= PF_INET,
- 		.hooknum        = NF_INET_POST_ROUTING,
- 		.priority       = NF_IP_PRI_NAT_SRC-1,
--	},
-+	},*/
- #ifdef CONFIG_IP_VS_IPV6
- 	/* After packet filtering, forward packet through VS/DR, VS/TUN,
- 	 * or VS/NAT(change destination), so that filtering rules can be
-diff --git a/net/ipv4/ipvs/ip_vs_xmit.c b/net/ipv4/ipvs/ip_vs_xmit.c
-index 02ddc2b..de7feb5 100644
---- a/net/ipv4/ipvs/ip_vs_xmit.c
-+++ b/net/ipv4/ipvs/ip_vs_xmit.c
-@@ -24,6 +24,7 @@
- #include <net/ip6_route.h>
+
+$ diff-funcs ip6qhashfn reassembly.c netfilter/nf_conntrack_reasm.c
+ --- reassembly.c:ip6qhashfn()
+ +++ netfilter/nf_conntrack_reasm.c:ip6qhashfn()
+@@ -1,5 +1,5 @@
+-static unsigned int ip6qhashfn(__be32 id, struct in6_addr *saddr,
+-			       struct in6_addr *daddr)
++static unsigned int ip6qhashfn(__be32 id, const struct in6_addr *saddr,
++			       const struct in6_addr *daddr)
+ {
+ 	u32 a, b, c;
+
+@@ -9,7 +9,7 @@
+
+ 	a += JHASH_GOLDEN_RATIO;
+ 	b += JHASH_GOLDEN_RATIO;
+-	c += ip6_frags.rnd;
++	c += nf_frags.rnd;
+ 	__jhash_mix(a, b, c);
+
+ 	a += (__force u32)saddr->s6_addr32[3];
+
+And codiff xx.o.old xx.o.new:
+
+net/ipv6/netfilter/nf_conntrack_reasm.c:
+  ip6qhashfn         | -512
+  nf_hashfn          |   +6
+  nf_ct_frag6_gather |  +36
+ 3 functions changed, 42 bytes added, 512 bytes removed, diff: -470
+net/ipv6/reassembly.c:
+  ip6qhashfn    | -512
+  ip6_hashfn    |   +7
+  ipv6_frag_rcv |  +89
+ 3 functions changed, 96 bytes added, 512 bytes removed, diff: -416
+
+net/ipv6/reassembly.c:
+  inet6_hash_frag | +510
+ 1 function changed, 510 bytes added, diff: +510
+
+Total: -376
+
+Compile tested.
+
+Signed-off-by: Ilpo Järvinen <ilpo.jarvinen@helsinki.fi>
+---
+
+Hmm, here came across git email format's limitation as it's stupid enough 
+to make it impossible to have --- starting lines in the message part 
+(disallowing direct quoting from anything that looks like a diff), I fixed 
+(and tested with git-am) this for you already by adding space before the 
+must-not-be-found line prefixes :-).
+
+ include/net/ipv6.h                      |    2 +
+ net/ipv6/netfilter/nf_conntrack_reasm.c |   32 +-----------------------------
+ net/ipv6/reassembly.c                   |   11 +++++----
+ 3 files changed, 10 insertions(+), 35 deletions(-)
+
+diff --git a/include/net/ipv6.h b/include/net/ipv6.h
+index 113028f..dfa7ae3 100644
+--- a/include/net/ipv6.h
++++ b/include/net/ipv6.h
+@@ -576,6 +576,8 @@ extern int ip6_mc_msfilter(struct sock *sk, struct group_filter *gsf);
+ extern int ip6_mc_msfget(struct sock *sk, struct group_filter *gsf,
+ 			 struct group_filter __user *optval,
+ 			 int __user *optlen);
++extern unsigned int inet6_hash_frag(__be32 id, const struct in6_addr *saddr,
++				    const struct in6_addr *daddr, u32 rnd);
+ 
+ #ifdef CONFIG_PROC_FS
+ extern int  ac6_proc_init(struct net *net);
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index 52d06dd..9967ac7 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -27,7 +27,6 @@
+ #include <linux/ipv6.h>
  #include <linux/icmpv6.h>
- #include <linux/netfilter.h>
-+#include <net/netfilter/nf_conntrack.h>
- #include <linux/netfilter_ipv4.h>
+ #include <linux/random.h>
+-#include <linux/jhash.h>
  
- #include <net/ip_vs.h>
-@@ -360,6 +361,21 @@ ip_vs_nat_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+ #include <net/sock.h>
+ #include <net/snmp.h>
+@@ -103,39 +102,12 @@ struct ctl_table nf_ct_ipv6_sysctl_table[] = {
+ };
+ #endif
  
- 	EnterFunction(10);
+-static unsigned int ip6qhashfn(__be32 id, const struct in6_addr *saddr,
+-			       const struct in6_addr *daddr)
+-{
+-	u32 a, b, c;
+-
+-	a = (__force u32)saddr->s6_addr32[0];
+-	b = (__force u32)saddr->s6_addr32[1];
+-	c = (__force u32)saddr->s6_addr32[2];
+-
+-	a += JHASH_GOLDEN_RATIO;
+-	b += JHASH_GOLDEN_RATIO;
+-	c += nf_frags.rnd;
+-	__jhash_mix(a, b, c);
+-
+-	a += (__force u32)saddr->s6_addr32[3];
+-	b += (__force u32)daddr->s6_addr32[0];
+-	c += (__force u32)daddr->s6_addr32[1];
+-	__jhash_mix(a, b, c);
+-
+-	a += (__force u32)daddr->s6_addr32[2];
+-	b += (__force u32)daddr->s6_addr32[3];
+-	c += (__force u32)id;
+-	__jhash_mix(a, b, c);
+-
+-	return c & (INETFRAGS_HASHSZ - 1);
+-}
+-
+ static unsigned int nf_hashfn(struct inet_frag_queue *q)
+ {
+ 	const struct nf_ct_frag6_queue *nq;
  
-+	if (skb->nfct) {
-+		struct nf_conn *ct = (struct nf_conn*)skb->nfct;
-+
-+		ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.u3.ip = cp->daddr.ip;
-+		ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.u.tcp.port = cp->dport;
-+
-+		ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.u3.ip = cp->daddr.ip;
-+		ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.u.tcp.port = cp->dport;
-+
-+		/* Netfilter SNAT was already marked done in LOCAL_IN, but
-+		 * somehow, the packet still contains the original source IP,
-+		 * so we want it to be done again in POSTROUTING */
-+		clear_bit(IPS_SRC_NAT_DONE_BIT, &ct->status);
-+	}
-+
- 	/* check if it is a connection of no-client-port */
- 	if (unlikely(cp->flags & IP_VS_CONN_F_NO_CPORT)) {
- 		__be16 _pt, *p;
-
-======================
-
-The Netfilter SNAT rule is simply:
-
-$ iptables -t -nat -A POSTROUTING -o eth1 -j SNAT -to <director IP>
-
-The SYN and SYN/ACK packets of a new connection get handled correctly by
-IPVS and even get SNATed correctly. The ACK to the SYN/ACK still gets
-handled correctly by IPVS but is NF_DROPed in POSTROUTING in
-__nf_conntrack_confirm() as a result of a check finding the associated
-conntrack tuple already in the nf_conntrack_hash (meaning, the
-connection has already been confirmed). If I understand it correctly, we
-shouldn't be entering that function for the ACK packet anyways, so
-I'm doing something very wrong...
-
-A packet trace on the director looks like this:
-
-CIP: client IP
-VIP: virtual service IP
-DIP: director (load balancer) IP
-RIP: real server (backend) IP
-
-11:28:51.431221 IP <CIP>.49988 > <VIP>.80: S 1151908514:1151908514(0) win 5840 <mss 1460,sackOK,timestamp 74963354 0,nop,wscale 7>
-11:28:51.432294 IP <DIP>.49988 > <RIP>.80: S 1151908514:1151908514(0) win 5840 <mss 1460,sackOK,timestamp 74963354 0,nop,wscale 7>
-11:28:51.432822 IP <RIP>.80 > <DIP>.49988: S 1508888076:1508888076(0) ack 1151908515 win 5792 <sackOK,timestamp 7468557 74963354,mss 1460,nop,wscale 4>
-11:28:51.434159 IP <VIP>.80 > <CIP>.49988: S 1508888076:1508888076(0) ack 1151908515 win 5792 <sackOK,timestamp 7468557 74963354,mss 1460,nop,wscale 4>
-11:28:51.434253 IP <CIP>.49988 > <VIP>.80: . ack 1 win 46 <nop,nop,timestamp 74963362 7468557>
-(the above packet is dropped in POSTROUTING...)
-11:28:52.029604 IP <CIP>.49988 > <VIP>.80: P 1:3(2) ack 1 win 46 <nop,nop,timestamp 74963957 7468557>
-11:28:52.237975 IP <CIP>.49988 > <VIP>.80: P 1:3(2) ack 1 win 46 <nop,nop,timestamp 74964165 7468557>
-...
-
-The various places in Netfilter at which tuples are created, modified,
-checked, inserted, etc. are kind of confusing to me and I'm missing the
-necessary Netfilter internals knowledge to understand and handle this
-correctly. I'd be glad if someone could give me a pointer into the right
-direction or help out in any other way!
-
-Thanks,
-Julius
-
+ 	nq = container_of(q, struct nf_ct_frag6_queue, q);
+-	return ip6qhashfn(nq->id, &nq->saddr, &nq->daddr);
++	return inet6_hash_frag(nq->id, &nq->saddr, &nq->daddr, nf_frags.rnd);
+ }
+ 
+ static void nf_skb_free(struct sk_buff *skb)
+@@ -209,7 +181,7 @@ fq_find(__be32 id, struct in6_addr *src, struct in6_addr *dst)
+ 	arg.dst = dst;
+ 
+ 	read_lock_bh(&nf_frags.lock);
+-	hash = ip6qhashfn(id, src, dst);
++	hash = inet6_hash_frag(id, src, dst, nf_frags.rnd);
+ 
+ 	q = inet_frag_find(&nf_init_frags, &nf_frags, &arg, hash);
+ 	local_bh_enable();
+diff --git a/net/ipv6/reassembly.c b/net/ipv6/reassembly.c
+index 89184b5..2eeadfa 100644
+--- a/net/ipv6/reassembly.c
++++ b/net/ipv6/reassembly.c
+@@ -99,8 +99,8 @@ static int ip6_frag_reasm(struct frag_queue *fq, struct sk_buff *prev,
+  * callers should be careful not to use the hash value outside the ipfrag_lock
+  * as doing so could race with ipfrag_hash_rnd being recalculated.
+  */
+-static unsigned int ip6qhashfn(__be32 id, struct in6_addr *saddr,
+-			       struct in6_addr *daddr)
++unsigned int inet6_hash_frag(__be32 id, const struct in6_addr *saddr,
++			     const struct in6_addr *daddr, u32 rnd)
+ {
+ 	u32 a, b, c;
+ 
+@@ -110,7 +110,7 @@ static unsigned int ip6qhashfn(__be32 id, struct in6_addr *saddr,
+ 
+ 	a += JHASH_GOLDEN_RATIO;
+ 	b += JHASH_GOLDEN_RATIO;
+-	c += ip6_frags.rnd;
++	c += rnd;
+ 	__jhash_mix(a, b, c);
+ 
+ 	a += (__force u32)saddr->s6_addr32[3];
+@@ -125,13 +125,14 @@ static unsigned int ip6qhashfn(__be32 id, struct in6_addr *saddr,
+ 
+ 	return c & (INETFRAGS_HASHSZ - 1);
+ }
++EXPORT_SYMBOL_GPL(inet6_hash_frag);
+ 
+ static unsigned int ip6_hashfn(struct inet_frag_queue *q)
+ {
+ 	struct frag_queue *fq;
+ 
+ 	fq = container_of(q, struct frag_queue, q);
+-	return ip6qhashfn(fq->id, &fq->saddr, &fq->daddr);
++	return inet6_hash_frag(fq->id, &fq->saddr, &fq->daddr, ip6_frags.rnd);
+ }
+ 
+ int ip6_frag_match(struct inet_frag_queue *q, void *a)
+@@ -247,7 +248,7 @@ fq_find(struct net *net, __be32 id, struct in6_addr *src, struct in6_addr *dst,
+ 	arg.dst = dst;
+ 
+ 	read_lock(&ip6_frags.lock);
+-	hash = ip6qhashfn(id, src, dst);
++	hash = inet6_hash_frag(id, src, dst, ip6_frags.rnd);
+ 
+ 	q = inet_frag_find(&net->ipv6.frags, &ip6_frags, &arg, hash);
+ 	if (q == NULL)
 -- 
-Julius Volz - Corporate Operations - SysOps
+1.5.2.2
 
-Google Switzerland GmbH - Identification No.: CH-020.4.028.116-1
+---696208474-766920371-1222815467=:27688--
