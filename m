@@ -1,27 +1,33 @@
-From: Brian Haley <brian.haley@hp.com>
-Subject: Re: [PATCH net-next] ipv6: almost identical frag hashing funcs combined
-Date: Wed, 01 Oct 2008 10:18:08 -0400
-Message-ID: <48E386A0.5070107@hp.com>
-References: <Pine.LNX.4.64.0810010146001.27688@wrl-59.cs.helsinki.fi> <20081001011838.GB970@ghostprotocols.net> <20081001.025426.33354887.davem@davemloft.net> <Pine.LNX.4.64.0810011309480.1034@wrl-59.cs.helsinki.fi>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [net-next PATCH 01/16] Loosen source address check on IPv4
+ output
+Date: Wed, 01 Oct 2008 07:28:56 -0700 (PDT)
+Message-ID: <20081001.072856.11593975.davem@davemloft.net>
+References: <20081001142431.4893.48078.stgit@este>
+	<20081001142431.4893.61466.stgit@este>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: David Miller <davem@davemloft.net>,
-	Arnaldo Carvalho de Melo <acme@redhat.com>,
-	Netdev <netdev@vger.kernel.org>, Patrick Hardy <kaber@trash.net>,
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
-To: =?ISO-8859-1?Q?Ilpo_J=E4rvinen?= <ilpo.jarvinen@helsinki.fi>
+To: hidden@sch.bme.hu
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.0810011309480.1034@wrl-59.cs.helsinki.fi>
+In-Reply-To: <20081001142431.4893.61466.stgit@este>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Ilpo J=E4rvinen wrote:
-> Btw, does somebody know a tool which can "diff" --side-by-side like a=
-ny=20
-> number of inputs? I'd be interested...
+From: KOVACS Krisztian <hidden@sch.bme.hu>
+Date: Wed, 01 Oct 2008 16:24:31 +0200
 
-vimdiff/gvimdiff
+> ip_route_output() contains a check to make sure that no flows with
+> non-local source IP addresses are routed. This obviously makes using
+> such addresses impossible.
+> 
+> This patch introduces a flowi flag which makes omitting this check
+> possible. The new flag provides a way of handling transparent and
+> non-transparent connections differently.
+> 
+> Signed-off-by: Julian Anastasov <ja@ssi.bg>
+> Signed-off-by: KOVACS Krisztian <hidden@sch.bme.hu>
 
--Brian
+Applied to net-next-2.6
