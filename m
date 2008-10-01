@@ -1,47 +1,52 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [net-next PATCH 10/16] Don't lookup the socket if there's a
- socket attached to the skb
-Date: Wed, 01 Oct 2008 07:50:40 -0700 (PDT)
-Message-ID: <20081001.075040.135314845.davem@davemloft.net>
-References: <20081001142431.4893.48078.stgit@este>
-	<20081001142431.4893.69772.stgit@este>
+From: KOVACS Krisztian <hidden@sch.bme.hu>
+Subject: Re: [net-next PATCH 06/16] Handle TCP SYN+ACK/ACK/RST transparency
+Date: Wed, 1 Oct 2008 16:46:22 +0200
+Message-ID: <20081001144622.GC25672@sch.bme.hu>
+References: <20081001142431.4893.48078.stgit@este> <20081001142431.4893.64737.stgit@este> <20081001.074250.261632354.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, netdev@vger.kernel.org,
+Content-Type: text/plain; charset=us-ascii
+Cc: hidden@sch.bme.hu, kaber@trash.net, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
-To: hidden@sch.bme.hu
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:48156
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1753152AbYJAOuv (ORCPT
+Received: from centaur.sch.bme.hu ([152.66.208.5]:42219 "EHLO
+	centaur.sch.bme.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751660AbYJAPHK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 1 Oct 2008 10:50:51 -0400
-In-Reply-To: <20081001142431.4893.69772.stgit@este>
+	Wed, 1 Oct 2008 11:07:10 -0400
+Content-Disposition: inline
+In-Reply-To: <20081001.074250.261632354.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: KOVACS Krisztian <hidden@sch.bme.hu>
-Date: Wed, 01 Oct 2008 16:24:31 +0200
+Hi,
 
-> Use the socket cached in the TPROXY target if it's present.
+On Wed, Oct 01, 2008 at 07:42:50AM -0700, David Miller wrote:
+> From: KOVACS Krisztian <hidden@sch.bme.hu>
+> Date: Wed, 01 Oct 2008 16:24:31 +0200
 > 
-> Signed-off-by: KOVACS Krisztian <hidden@sch.bme.hu>
+> > The TCP stack sends out SYN+ACK/ACK/RST reply packets in response to
+> > incoming packets. The non-local source address check on output bites
+> > us again, as replies for transparently redirected traffic won't have a
+> > chance to leave the node.
+> > 
+> > This patch selectively sets the FLOWI_FLAG_ANYSRC flag when doing
+> > the route lookup for those replies. Transparent replies are enabled if
+> > the listening socket has the transparent socket flag set.
+> > 
+> > Signed-off-by: KOVACS Krisztian <hidden@sch.bme.hu>
+> 
+> I had to make some modifications to make this build.
+> 
+> I took two include/net/ip.h modifications from patch 7:
+> 
+> 1) Adding flags to ip_reply_arg struct
+> 2) definition of IP_REPLY_ARG_NOSRCCHECK
+> 
+> and the result is included below and added to net-next-2.6
 
-Ok, this starts to get into controversial territory.
-:-)
+Oops, my fault, sorry. Should have been more careful when juggling around
+with patches yesterday...
 
-At the very least I think:
-
-1) We should do this unconditionally, and even put
-   a "unlikely" there in the test.
-
-2) Actually, the whole operation belongs in a generic
-   net/sock.h helper function, and this includes the
-   leading if() test.
-
-In the resubmitted patch you can include both UDP
-and TCP and the change adding the generic helper all
-at once.
-
-Thanks.
+-- 
+KOVACS Krisztian
