@@ -1,37 +1,35 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [net-next PATCH 14/16] iptables socket match
-Date: Fri, 3 Oct 2008 10:04:23 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0810031002460.3893@fbirervta.pbzchgretzou.qr>
-References: <20081001142431.4893.48078.stgit@este> <20081001142431.4893.56954.stgit@este> <48E493CC.9020502@trash.net>
+Subject: Re: Connection Protocol in the state?
+Date: Fri, 3 Oct 2008 10:05:26 -0400 (EDT)
+Message-ID: <alpine.LNX.1.10.0810031004350.3893@fbirervta.pbzchgretzou.qr>
+References: <200810012206.52512.christoph.paasch@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: KOVACS Krisztian <hidden@sch.bme.hu>,
-	David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <48E493CC.9020502@trash.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Christoph Paasch <christoph.paasch@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:42401 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751941AbYJCOF1 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 3 Oct 2008 10:05:27 -0400
+In-Reply-To: <200810012206.52512.christoph.paasch@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Thursday 2008-10-02 05:26, Patrick McHardy wrote:
-
-> KOVACS Krisztian wrote:
->> Add iptables 'socket' match, which matches packets for which a TCP/U=
-DP
->> socket lookup succeeds.
+On Wednesday 2008-10-01 16:06, Christoph Paasch wrote:
 >
-> It seems sufficiently different from what xt_owner does to justify a =
-separate
-> module.
+>I would like to know, that if I have a filter like the one shown below 
+>(allowing outgoing connections of every protocol-type), does netfilter stores 
+>in the state of the established outgoing connection also the protocol which 
+>established the connection? (TCP, UDP, ....) Or does it opens the connection 
+>for any protocol?
+>
+>iptables -A FORWARD -i eth0 --ctstate NEW, RELATED, ESTABLISHED -j ACCEPT
 
-I am with you on that. However, I would have had liked=C2=A0=E2=80=94 a=
-lready last year=C2=A0=E2=80=94
-to have xt_owner revision 1 be called socket, because it is much more t=
-han just
-ownage that xt_owner currently plays with, and because it could have sa=
-ved now
-running around with yet another module.
-Well, xt_socket at last! ;-)
+Read the really-really-really-nice manpage (which has gotten so much care
+from me). I mean, hey, it's directly below --ctstate! :-)
+
+       [!] --ctproto l4proto
+              Layer-4 protocol to match (by number or name)
