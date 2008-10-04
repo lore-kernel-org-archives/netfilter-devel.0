@@ -1,204 +1,208 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 01/16] [NETFILTER]: Re-add missing checkentry calls
-Date: Sat,  4 Oct 2008 15:41:15 -0400
-Message-ID: <67e1140a1db2e8aa9a4b6c80289039487c5445cb.1223149287.git.jengelh@medozas.de>
+Subject: [PATCH 03/16] [NETFILTER]: Make BRIDGE_NF_EBTABLES a menuconfig option
+Date: Sat,  4 Oct 2008 15:41:17 -0400
+Message-ID: <8d02050eff1e34f787b92ef419d6b25f4dde8a5a.1223149287.git.jengelh@medozas.de>
+References: <67e1140a1db2e8aa9a4b6c80289039487c5445cb.1223149287.git.jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:34298 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:34300 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752516AbYJDTld (ORCPT
+	with ESMTP id S1753309AbYJDTld (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Sat, 4 Oct 2008 15:41:33 -0400
+In-Reply-To: <67e1140a1db2e8aa9a4b6c80289039487c5445cb.1223149287.git.jengelh@medozas.de>
+In-Reply-To: <67e1140a1db2e8aa9a4b6c80289039487c5445cb.1223149287.git.jengelh@medozas.de>
+References: <67e1140a1db2e8aa9a4b6c80289039487c5445cb.1223149287.git.jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-A previous commit ("Move Ebtables to use Xtables") unfortunately
-removed match and target checks in Ebtables. Add it back. Some checks
-go into xtables.c as part of consolidation work.
-
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/linux/netfilter/x_tables.h |    6 ++++--
- net/bridge/netfilter/ebtables.c    |   13 +++++++++++--
- net/ipv4/netfilter/arp_tables.c    |    2 +-
- net/ipv4/netfilter/ip_tables.c     |    4 ++--
- net/ipv6/netfilter/ip6_tables.c    |    4 ++--
- net/netfilter/x_tables.c           |   12 ++++++++++--
- net/sched/act_ipt.c                |    2 +-
- 7 files changed, 31 insertions(+), 12 deletions(-)
+ net/bridge/netfilter/Kconfig |   29 +++++------------------------
+ 1 files changed, 5 insertions(+), 24 deletions(-)
 
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index 6989b22..85aa427 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -330,10 +330,12 @@ extern void xt_unregister_matches(struct xt_match *match, unsigned int n);
+diff --git a/net/bridge/netfilter/Kconfig b/net/bridge/netfilter/Kconfig
+index e7c197f..366d3e9 100644
+--- a/net/bridge/netfilter/Kconfig
++++ b/net/bridge/netfilter/Kconfig
+@@ -2,22 +2,21 @@
+ # Bridge netfilter configuration
+ #
  
- extern int xt_check_match(const struct xt_match *match, unsigned short family,
- 			  unsigned int size, const char *table, unsigned int hook,
--			  unsigned short proto, int inv_proto);
-+			  unsigned short proto, int inv_proto,
-+			  const void *entry, void *matchinfo);
- extern int xt_check_target(const struct xt_target *target, unsigned short family,
- 			   unsigned int size, const char *table, unsigned int hook,
--			   unsigned short proto, int inv_proto);
-+			   unsigned short proto, int inv_proto,
-+			   const void *entry, void *targinfo);
- 
- extern struct xt_table *xt_register_table(struct net *net,
- 					  struct xt_table *table,
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index e3c0f37..94b12ab 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -339,7 +339,8 @@ ebt_check_match(struct ebt_entry_match *m, struct ebt_entry *e,
- 	m->u.match = match;
- 
- 	ret = xt_check_match(match, NFPROTO_BRIDGE, m->match_size,
--	      name, hookmask, e->ethproto, e->invflags & EBT_IPROTO);
-+	      name, hookmask, e->ethproto, e->invflags & EBT_IPROTO,
-+	      e, m->data);
- 	if (ret < 0) {
- 		module_put(match->me);
- 		return ret;
-@@ -371,7 +372,8 @@ ebt_check_watcher(struct ebt_entry_watcher *w, struct ebt_entry *e,
- 	w->u.watcher = watcher;
- 
- 	ret = xt_check_target(watcher, NFPROTO_BRIDGE, w->watcher_size,
--	      name, hookmask, e->ethproto, e->invflags & EBT_IPROTO);
-+	      name, hookmask, e->ethproto, e->invflags & EBT_IPROTO,
-+	      e, w->data);
- 	if (ret < 0) {
- 		module_put(watcher->me);
- 		return ret;
-@@ -679,6 +681,13 @@ ebt_check_entry(struct ebt_entry *e, struct ebt_table_info *newinfo,
- 		ret = -EFAULT;
- 		goto cleanup_watchers;
- 	}
+-menu "Bridge: Netfilter Configuration"
+-	depends on BRIDGE && BRIDGE_NETFILTER
+-
+-config BRIDGE_NF_EBTABLES
++menuconfig BRIDGE_NF_EBTABLES
+ 	tristate "Ethernet Bridge tables (ebtables) support"
+ 	select NETFILTER_XTABLES
+ 	help
+ 	  ebtables is a general, extensible frame/packet identification
+ 	  framework. Say 'Y' or 'M' here if you want to do Ethernet
+ 	  filtering/NAT/brouting on the Ethernet bridge.
 +
-+	ret = xt_check_target(target, NFPROTO_BRIDGE, t->target_size,
-+	      name, hookmask, e->ethproto, e->invflags & EBT_IPROTO,
-+	      e, t->data);
-+	if (ret < 0)
-+		goto cleanup_watchers;
++if BRIDGE_NF_EBTABLES
 +
- 	(*cnt)++;
- 	return 0;
- cleanup_watchers:
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index b4a9a17..19bebe2 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -465,7 +465,7 @@ static inline int check_target(struct arpt_entry *e, const char *name)
+ #
+ # tables
+ #
+ config BRIDGE_EBT_BROUTE
+ 	tristate "ebt: broute table support"
+-	depends on BRIDGE_NF_EBTABLES
+ 	help
+ 	  The ebtables broute table is used to define rules that decide between
+ 	  bridging and routing frames, giving Linux the functionality of a
+@@ -28,7 +27,6 @@ config BRIDGE_EBT_BROUTE
  
- 	ret = xt_check_target(target, NFPROTO_ARP,
- 			      t->u.target_size - sizeof(*t),
--			      name, e->comefrom, 0, 0);
-+			      name, e->comefrom, 0, 0, e, t->data);
- 	if (!ret && t->u.kernel.target->checkentry
- 	    && !t->u.kernel.target->checkentry(name, e, target, t->data,
- 					       e->comefrom)) {
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 4e7c719..e4003de 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -616,7 +616,7 @@ check_match(struct ipt_entry_match *m, const char *name,
- 	match = m->u.kernel.match;
- 	ret = xt_check_match(match, AF_INET, m->u.match_size - sizeof(*m),
- 			     name, hookmask, ip->proto,
--			     ip->invflags & IPT_INV_PROTO);
-+			     ip->invflags & IPT_INV_PROTO, ip, m->data);
- 	if (!ret && m->u.kernel.match->checkentry
- 	    && !m->u.kernel.match->checkentry(name, ip, match, m->data,
- 					      hookmask)) {
-@@ -668,7 +668,7 @@ static int check_target(struct ipt_entry *e, const char *name)
- 	target = t->u.kernel.target;
- 	ret = xt_check_target(target, AF_INET, t->u.target_size - sizeof(*t),
- 			      name, e->comefrom, e->ip.proto,
--			      e->ip.invflags & IPT_INV_PROTO);
-+			      e->ip.invflags & IPT_INV_PROTO, e, t->data);
- 	if (!ret && t->u.kernel.target->checkentry
- 	    && !t->u.kernel.target->checkentry(name, e, target, t->data,
- 					       e->comefrom)) {
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 0b4557e..79c4965 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -642,7 +642,7 @@ static int check_match(struct ip6t_entry_match *m, const char *name,
- 	match = m->u.kernel.match;
- 	ret = xt_check_match(match, AF_INET6, m->u.match_size - sizeof(*m),
- 			     name, hookmask, ipv6->proto,
--			     ipv6->invflags & IP6T_INV_PROTO);
-+			     ipv6->invflags & IP6T_INV_PROTO, ipv6, m->data);
- 	if (!ret && m->u.kernel.match->checkentry
- 	    && !m->u.kernel.match->checkentry(name, ipv6, match, m->data,
- 					      hookmask)) {
-@@ -694,7 +694,7 @@ static int check_target(struct ip6t_entry *e, const char *name)
- 	target = t->u.kernel.target;
- 	ret = xt_check_target(target, AF_INET6, t->u.target_size - sizeof(*t),
- 			      name, e->comefrom, e->ipv6.proto,
--			      e->ipv6.invflags & IP6T_INV_PROTO);
-+			      e->ipv6.invflags & IP6T_INV_PROTO, e, t->data);
- 	if (!ret && t->u.kernel.target->checkentry
- 	    && !t->u.kernel.target->checkentry(name, e, target, t->data,
- 					       e->comefrom)) {
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 0e23f42..aeb3e43 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -323,7 +323,8 @@ EXPORT_SYMBOL_GPL(xt_find_revision);
+ config BRIDGE_EBT_T_FILTER
+ 	tristate "ebt: filter table support"
+-	depends on BRIDGE_NF_EBTABLES
+ 	help
+ 	  The ebtables filter table is used to define frame filtering rules at
+ 	  local input, forwarding and local output. See the man page for
+@@ -38,7 +36,6 @@ config BRIDGE_EBT_T_FILTER
  
- int xt_check_match(const struct xt_match *match, unsigned short family,
- 		   unsigned int size, const char *table, unsigned int hook_mask,
--		   unsigned short proto, int inv_proto)
-+		   unsigned short proto, int inv_proto, const void *entry,
-+		   void *matchinfo)
- {
- 	if (XT_ALIGN(match->matchsize) != size &&
- 	    match->matchsize != -1) {
-@@ -351,6 +352,9 @@ int xt_check_match(const struct xt_match *match, unsigned short family,
- 		       xt_prefix[family], match->name, match->proto);
- 		return -EINVAL;
- 	}
-+	if (match->checkentry != NULL &&
-+	    !match->checkentry(table, entry, match, matchinfo, hook_mask))
-+		return -EINVAL;
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(xt_check_match);
-@@ -469,7 +473,8 @@ EXPORT_SYMBOL_GPL(xt_compat_match_to_user);
+ config BRIDGE_EBT_T_NAT
+ 	tristate "ebt: nat table support"
+-	depends on BRIDGE_NF_EBTABLES
+ 	help
+ 	  The ebtables nat table is used to define rules that alter the MAC
+ 	  source address (MAC SNAT) or the MAC destination address (MAC DNAT).
+@@ -50,7 +47,6 @@ config BRIDGE_EBT_T_NAT
+ #
+ config BRIDGE_EBT_802_3
+ 	tristate "ebt: 802.3 filter support"
+-	depends on BRIDGE_NF_EBTABLES
+ 	help
+ 	  This option adds matching support for 802.3 Ethernet frames.
  
- int xt_check_target(const struct xt_target *target, unsigned short family,
- 		    unsigned int size, const char *table, unsigned int hook_mask,
--		    unsigned short proto, int inv_proto)
-+		    unsigned short proto, int inv_proto, const void *entry,
-+		    void *targinfo)
- {
- 	if (XT_ALIGN(target->targetsize) != size) {
- 		printk("%s_tables: %s target: invalid size %Zu != %u\n",
-@@ -493,6 +498,9 @@ int xt_check_target(const struct xt_target *target, unsigned short family,
- 		       xt_prefix[family], target->name, target->proto);
- 		return -EINVAL;
- 	}
-+	if (target->checkentry != NULL &&
-+	    !target->checkentry(table, entry, target, targinfo, hook_mask))
-+		return -EINVAL;
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(xt_check_target);
-diff --git a/net/sched/act_ipt.c b/net/sched/act_ipt.c
-index d1263b3..ca5d72b 100644
---- a/net/sched/act_ipt.c
-+++ b/net/sched/act_ipt.c
-@@ -51,7 +51,7 @@ static int ipt_init_target(struct ipt_entry_target *t, char *table, unsigned int
- 	t->u.kernel.target = target;
+@@ -58,7 +54,6 @@ config BRIDGE_EBT_802_3
  
- 	ret = xt_check_target(target, AF_INET, t->u.target_size - sizeof(*t),
--			      table, hook, 0, 0);
-+			      table, hook, 0, 0, NULL, t->data);
- 	if (ret) {
- 		module_put(t->u.kernel.target->me);
- 		return ret;
+ config BRIDGE_EBT_AMONG
+ 	tristate "ebt: among filter support"
+-	depends on BRIDGE_NF_EBTABLES
+ 	help
+ 	  This option adds the among match, which allows matching the MAC source
+ 	  and/or destination address on a list of addresses. Optionally,
+@@ -68,7 +63,6 @@ config BRIDGE_EBT_AMONG
+ 
+ config BRIDGE_EBT_ARP
+ 	tristate "ebt: ARP filter support"
+-	depends on BRIDGE_NF_EBTABLES
+ 	help
+ 	  This option adds the ARP match, which allows ARP and RARP header field
+ 	  filtering.
+@@ -77,7 +71,6 @@ config BRIDGE_EBT_ARP
+ 
+ config BRIDGE_EBT_IP
+ 	tristate "ebt: IP filter support"
+-	depends on BRIDGE_NF_EBTABLES
+ 	help
+ 	  This option adds the IP match, which allows basic IP header field
+ 	  filtering.
+@@ -95,7 +88,6 @@ config BRIDGE_EBT_IP6
+ 
+ config BRIDGE_EBT_LIMIT
+ 	tristate "ebt: limit match support"
+-	depends on BRIDGE_NF_EBTABLES
+ 	help
+ 	  This option adds the limit match, which allows you to control
+ 	  the rate at which a rule can be matched. This match is the
+@@ -106,7 +98,6 @@ config BRIDGE_EBT_LIMIT
+ 
+ config BRIDGE_EBT_MARK
+ 	tristate "ebt: mark filter support"
+-	depends on BRIDGE_NF_EBTABLES
+ 	help
+ 	  This option adds the mark match, which allows matching frames based on
+ 	  the 'nfmark' value in the frame. This can be set by the mark target.
+@@ -117,7 +108,6 @@ config BRIDGE_EBT_MARK
+ 
+ config BRIDGE_EBT_PKTTYPE
+ 	tristate "ebt: packet type filter support"
+-	depends on BRIDGE_NF_EBTABLES
+ 	help
+ 	  This option adds the packet type match, which allows matching on the
+ 	  type of packet based on its Ethernet "class" (as determined by
+@@ -128,7 +118,6 @@ config BRIDGE_EBT_PKTTYPE
+ 
+ config BRIDGE_EBT_STP
+ 	tristate "ebt: STP filter support"
+-	depends on BRIDGE_NF_EBTABLES
+ 	help
+ 	  This option adds the Spanning Tree Protocol match, which
+ 	  allows STP header field filtering.
+@@ -137,7 +126,6 @@ config BRIDGE_EBT_STP
+ 
+ config BRIDGE_EBT_VLAN
+ 	tristate "ebt: 802.1Q VLAN filter support"
+-	depends on BRIDGE_NF_EBTABLES
+ 	help
+ 	  This option adds the 802.1Q vlan match, which allows the filtering of
+ 	  802.1Q vlan fields.
+@@ -157,7 +145,6 @@ config BRIDGE_EBT_ARPREPLY
+ 
+ config BRIDGE_EBT_DNAT
+ 	tristate "ebt: dnat target support"
+-	depends on BRIDGE_NF_EBTABLES
+ 	help
+ 	  This option adds the MAC DNAT target, which allows altering the MAC
+ 	  destination address of frames.
+@@ -166,7 +153,6 @@ config BRIDGE_EBT_DNAT
+ 
+ config BRIDGE_EBT_MARK_T
+ 	tristate "ebt: mark target support"
+-	depends on BRIDGE_NF_EBTABLES
+ 	help
+ 	  This option adds the mark target, which allows marking frames by
+ 	  setting the 'nfmark' value in the frame.
+@@ -177,7 +163,6 @@ config BRIDGE_EBT_MARK_T
+ 
+ config BRIDGE_EBT_REDIRECT
+ 	tristate "ebt: redirect target support"
+-	depends on BRIDGE_NF_EBTABLES
+ 	help
+ 	  This option adds the MAC redirect target, which allows altering the MAC
+ 	  destination address of a frame to that of the device it arrived on.
+@@ -186,7 +171,6 @@ config BRIDGE_EBT_REDIRECT
+ 
+ config BRIDGE_EBT_SNAT
+ 	tristate "ebt: snat target support"
+-	depends on BRIDGE_NF_EBTABLES
+ 	help
+ 	  This option adds the MAC SNAT target, which allows altering the MAC
+ 	  source address of frames.
+@@ -197,7 +181,6 @@ config BRIDGE_EBT_SNAT
+ #
+ config BRIDGE_EBT_LOG
+ 	tristate "ebt: log support"
+-	depends on BRIDGE_NF_EBTABLES
+ 	help
+ 	  This option adds the log watcher, that you can use in any rule
+ 	  in any ebtables table. It records info about the frame header
+@@ -207,7 +190,6 @@ config BRIDGE_EBT_LOG
+ 
+ config BRIDGE_EBT_ULOG
+ 	tristate "ebt: ulog support (OBSOLETE)"
+-	depends on BRIDGE_NF_EBTABLES
+ 	help
+ 	  This option enables the old bridge-specific "ebt_ulog" implementation
+ 	  which has been obsoleted by the new "nfnetlink_log" code (see
+@@ -224,7 +206,6 @@ config BRIDGE_EBT_ULOG
+ 
+ config BRIDGE_EBT_NFLOG
+ 	tristate "ebt: nflog support"
+-	depends on BRIDGE_NF_EBTABLES
+ 	help
+ 	  This option enables the nflog watcher, which allows to LOG
+ 	  messages through the netfilter logging API, which can use
+@@ -236,4 +217,4 @@ config BRIDGE_EBT_NFLOG
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+-endmenu
++endif # BRIDGE_NF_EBTABLES
 -- 
 1.6.0.1
 
