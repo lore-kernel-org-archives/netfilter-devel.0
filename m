@@ -1,65 +1,53 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: iptables not working with monolithic 2.6.26.5 kernel on ARM
-Date: Sat, 4 Oct 2008 07:49:06 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0810040724110.19954@fbirervta.pbzchgretzou.qr>
-References: <18661.41641.113458.932029@martins.ozlabs.org> <48E6166F.40607@trash.net> <alpine.LNX.1.10.0810031006260.3893@fbirervta.pbzchgretzou.qr> <18662.61266.69230.675687@martins.ozlabs.org>
+Subject: Re: [PATCH RFC] xt_layer7
+Date: Sat, 4 Oct 2008 07:58:31 -0400 (EDT)
+Message-ID: <alpine.LNX.1.10.0810040750300.19954@fbirervta.pbzchgretzou.qr>
+References: <38bcb3ec0810040022w79ccea3dk134c3f03d375a601@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
-To: Martin Schwenke <martin@meltin.net>
+Cc: Patrick McHardy <kaber@trash.net>,
+	Matthew Strait <quadong@users.sourceforge.net>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: James King <t.james.king@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:41759 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:53137 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751301AbYJDLtI (ORCPT
+	with ESMTP id S1751700AbYJDL6c (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 4 Oct 2008 07:49:08 -0400
-In-Reply-To: <18662.61266.69230.675687@martins.ozlabs.org>
+	Sat, 4 Oct 2008 07:58:32 -0400
+In-Reply-To: <38bcb3ec0810040022w79ccea3dk134c3f03d375a601@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Saturday 2008-10-04 00:21, Martin Schwenke wrote:
+On Saturday 2008-10-04 03:22, James King wrote:
 
->    Jan> 	#include <stdio.h>
->    Jan> 	/* userspace program here */
->    Jan> 	printf("%Zu\n", __alignof__(uint64_t));
->
->    Jan> give on ARM?
->
->If I compile using the native Debian etch gcc:
->
->  gcc (GCC) 4.1.2 20061115 (prerelease) (Debian 4.1.1-21)
->
->then it prints 4.
+>I've re-written xt_layer7 (l7-filter) so that it not longer requires
+>patching of the nf_conn structure for data storage, using ct_extend
+>instead, with the goal that it can eventually be used against a
+>vanilla kernel with an unpatched iptables.
 
-It's what I thought. There lies the reason for all those strange issues on
-embedded devices ;-)
+I had the same idea too a while back but put off on it - busy with
+other iptables things :)
 
-You can change the XT_ALIGN macro in the
-kernel/include/linux/netfilter/x_tables.h and
-iptables/include/linux/netfilter/x_tables.h to read
+Right now, you still cannot use it with a vanilla kernel because
+patches like #3 you attached enlarges the allocated region (remember,
+NF_CT_EXT_NUM just increased by one!), which is going to be a big
+impact {for users not using all the extensions} {if every imaginable
+extensions adds itself a NF_CT_EXT_ number}.
 
-	#ifndef roundup
-	#define roundup(x, y) ((((x) + ((y) - 1)) / (y)) * (y))
-	#endif
-	#define XT_ALIGN(s) roundup(s, sizeof(uint64_t))
+Can someone think of a way to nicely fix this up? Like, a linked
+list instead of the ct_extend[] array perhaps? Yes yes, that's not O(1),
+but how many extensions at a time are you using anyway!
 
-and try again. There might be more alignment issues hiding, so
-don't expect it to fix it all in a magic whizz.
+>One thing I haven't worked out is the following warning that results
+>during a kernel compile now, any pointers on how to fix would be
+>great:
+>include/net/netfilter/nf_conntrack_acct.h:31: warning:
+>nf_ct_acct_ext_add defined but not used
 
->If I use the cross-compiler that I use to compile kernels (and use
->--static) then it prints 8.  The version is:
->
->  arm-none-linux-gnueabi-gcc (Sourcery G++ Lite 2008q1-126) 4.2.3
->
->So there does seem to be a mismatch.
->
->However, compiling iptables statically with the cross-compiler results
->in:
->
->  # ./iptables -L
->  getsockopt failed strangely: No such file or directory
->
->Of course, I can't strace it because it is static.
+Add the "inline" keyword to the function header:
 
-stracing is independent of staticness/dynamicness.
+static inline
+void *nf_ct_acct_ext_add( .....
