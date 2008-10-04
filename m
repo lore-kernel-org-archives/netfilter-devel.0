@@ -1,169 +1,416 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 02/16] [NETFILTER]: Remove left-over checks
-Date: Sat,  4 Oct 2008 15:41:16 -0400
-Message-ID: <4dd5adf66e567948d6c27876a246fcd806dc0cd5.1223149287.git.jengelh@medozas.de>
+Subject: [PATCH 06/16] [NETFILTER]: Sort extensions alphabetically in Netfilter Kconfig
+Date: Sat,  4 Oct 2008 15:41:20 -0400
+Message-ID: <b94ed7ba58e7d484bd7d357c9328f081e4b4a066.1223149287.git.jengelh@medozas.de>
 References: <67e1140a1db2e8aa9a4b6c80289039487c5445cb.1223149287.git.jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:34299 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:34314 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753241AbYJDTld (ORCPT
+	with ESMTP id S1753326AbYJDTlf (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 4 Oct 2008 15:41:33 -0400
+	Sat, 4 Oct 2008 15:41:35 -0400
 In-Reply-To: <67e1140a1db2e8aa9a4b6c80289039487c5445cb.1223149287.git.jengelh@medozas.de>
 In-Reply-To: <67e1140a1db2e8aa9a4b6c80289039487c5445cb.1223149287.git.jengelh@medozas.de>
 References: <67e1140a1db2e8aa9a4b6c80289039487c5445cb.1223149287.git.jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-With the previous patch moving checks into xtables.c, checks exist
-twice in {ip,ip6,arp}_tables. Clean it up. Also propagate the error
-code from xt_{match,target}_check in the error case instead of always
-using -EINVAL.
-
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- net/ipv4/netfilter/arp_tables.c |    8 +++-----
- net/ipv4/netfilter/ip_tables.c  |   19 +++++++------------
- net/ipv6/netfilter/ip6_tables.c |   19 +++++++------------
- net/sched/act_ipt.c             |   12 ++----------
- 4 files changed, 19 insertions(+), 39 deletions(-)
+ net/ipv4/netfilter/Kconfig |   78 +++++++++++++++++-----------------
+ net/ipv6/netfilter/Kconfig |   44 ++++++++++----------
+ net/netfilter/Kconfig      |  100 ++++++++++++++++++++++----------------------
+ 3 files changed, 111 insertions(+), 111 deletions(-)
 
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 19bebe2..ae525a9 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -466,14 +466,12 @@ static inline int check_target(struct arpt_entry *e, const char *name)
- 	ret = xt_check_target(target, NFPROTO_ARP,
- 			      t->u.target_size - sizeof(*t),
- 			      name, e->comefrom, 0, 0, e, t->data);
--	if (!ret && t->u.kernel.target->checkentry
--	    && !t->u.kernel.target->checkentry(name, e, target, t->data,
--					       e->comefrom)) {
-+	if (ret < 0) {
- 		duprintf("arp_tables: check failed for `%s'.\n",
- 			 t->u.kernel.target->name);
--		ret = -EINVAL;
-+		return ret;
- 	}
--	return ret;
-+	return 0;
- }
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index 4e842d5..a8de392 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -57,15 +57,16 @@ config IP_NF_IPTABLES
+ 	  To compile it as a module, choose M here.  If unsure, say N.
  
- static inline int
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index e4003de..b4c74a7 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -617,16 +617,13 @@ check_match(struct ipt_entry_match *m, const char *name,
- 	ret = xt_check_match(match, AF_INET, m->u.match_size - sizeof(*m),
- 			     name, hookmask, ip->proto,
- 			     ip->invflags & IPT_INV_PROTO, ip, m->data);
--	if (!ret && m->u.kernel.match->checkentry
--	    && !m->u.kernel.match->checkentry(name, ip, match, m->data,
--					      hookmask)) {
-+	if (ret < 0) {
- 		duprintf("ip_tables: check failed for `%s'.\n",
- 			 m->u.kernel.match->name);
--		ret = -EINVAL;
-+		return ret;
- 	}
--	if (!ret)
--		(*i)++;
--	return ret;
-+	++*i;
-+	return 0;
- }
+ # The matches.
+-config IP_NF_MATCH_ECN
+-	tristate '"ecn" match support'
++config IP_NF_MATCH_ADDRTYPE
++	tristate '"addrtype" address type match support'
+ 	depends on IP_NF_IPTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+-	  This option adds a `ECN' match, which allows you to match against
+-	  the IPv4 and TCP header ECN fields.
++	  This option allows you to match what routing thinks of an address,
++	  eg. UNICAST, LOCAL, BROADCAST, ...
  
- static int
-@@ -669,14 +666,12 @@ static int check_target(struct ipt_entry *e, const char *name)
- 	ret = xt_check_target(target, AF_INET, t->u.target_size - sizeof(*t),
- 			      name, e->comefrom, e->ip.proto,
- 			      e->ip.invflags & IPT_INV_PROTO, e, t->data);
--	if (!ret && t->u.kernel.target->checkentry
--	    && !t->u.kernel.target->checkentry(name, e, target, t->data,
--					       e->comefrom)) {
-+	if (ret < 0) {
- 		duprintf("ip_tables: check failed for `%s'.\n",
- 			 t->u.kernel.target->name);
--		ret = -EINVAL;
-+		return ret;
- 	}
--	return ret;
-+	return 0;
- }
+-	  To compile it as a module, choose M here.  If unsure, say N.
++	  If you want to compile it as a module, say M here and read
++	  <file:Documentation/kbuild/modules.txt>.  If unsure, say `N'.
  
- static int
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 79c4965..12c41b8 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -643,16 +643,13 @@ static int check_match(struct ip6t_entry_match *m, const char *name,
- 	ret = xt_check_match(match, AF_INET6, m->u.match_size - sizeof(*m),
- 			     name, hookmask, ipv6->proto,
- 			     ipv6->invflags & IP6T_INV_PROTO, ipv6, m->data);
--	if (!ret && m->u.kernel.match->checkentry
--	    && !m->u.kernel.match->checkentry(name, ipv6, match, m->data,
--					      hookmask)) {
-+	if (ret < 0) {
- 		duprintf("ip_tables: check failed for `%s'.\n",
- 			 m->u.kernel.match->name);
--		ret = -EINVAL;
-+		return ret;
- 	}
--	if (!ret)
--		(*i)++;
--	return ret;
-+	++*i;
-+	return 0;
- }
+ config IP_NF_MATCH_AH
+ 	tristate '"ah" match support'
+@@ -77,26 +78,25 @@ config IP_NF_MATCH_AH
  
- static int
-@@ -695,14 +692,12 @@ static int check_target(struct ip6t_entry *e, const char *name)
- 	ret = xt_check_target(target, AF_INET6, t->u.target_size - sizeof(*t),
- 			      name, e->comefrom, e->ipv6.proto,
- 			      e->ipv6.invflags & IP6T_INV_PROTO, e, t->data);
--	if (!ret && t->u.kernel.target->checkentry
--	    && !t->u.kernel.target->checkentry(name, e, target, t->data,
--					       e->comefrom)) {
-+	if (ret < 0) {
- 		duprintf("ip_tables: check failed for `%s'.\n",
- 			 t->u.kernel.target->name);
--		ret = -EINVAL;
-+		return ret;
- 	}
--	return ret;
-+	return 0;
- }
+ 	  To compile it as a module, choose M here.  If unsure, say N.
  
- static int
-diff --git a/net/sched/act_ipt.c b/net/sched/act_ipt.c
-index ca5d72b..79ea193 100644
---- a/net/sched/act_ipt.c
-+++ b/net/sched/act_ipt.c
-@@ -52,19 +52,11 @@ static int ipt_init_target(struct ipt_entry_target *t, char *table, unsigned int
+-config IP_NF_MATCH_TTL
+-	tristate '"ttl" match support'
++config IP_NF_MATCH_ECN
++	tristate '"ecn" match support'
+ 	depends on IP_NF_IPTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+-	  This adds CONFIG_IP_NF_MATCH_TTL option, which enabled the user
+-	  to match packets by their TTL value.
++	  This option adds a `ECN' match, which allows you to match against
++	  the IPv4 and TCP header ECN fields.
  
- 	ret = xt_check_target(target, AF_INET, t->u.target_size - sizeof(*t),
- 			      table, hook, 0, 0, NULL, t->data);
--	if (ret) {
-+	if (ret < 0) {
- 		module_put(t->u.kernel.target->me);
- 		return ret;
- 	}
--	if (t->u.kernel.target->checkentry
--	    && !t->u.kernel.target->checkentry(table, NULL,
--					       t->u.kernel.target, t->data,
--					       hook)) {
--		module_put(t->u.kernel.target->me);
--		ret = -EINVAL;
--	}
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+-config IP_NF_MATCH_ADDRTYPE
+-	tristate '"addrtype" address type match support'
++config IP_NF_MATCH_TTL
++	tristate '"ttl" match support'
+ 	depends on IP_NF_IPTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+-	  This option allows you to match what routing thinks of an address,
+-	  eg. UNICAST, LOCAL, BROADCAST, ...
++	  This adds CONFIG_IP_NF_MATCH_TTL option, which enabled the user
++	  to match packets by their TTL value.
+ 
+-	  If you want to compile it as a module, say M here and read
+-	  <file:Documentation/kbuild/modules.txt>.  If unsure, say `N'.
++	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+ # `filter', generic and specific targets
+ config IP_NF_FILTER
+@@ -181,26 +181,26 @@ config IP_NF_TARGET_MASQUERADE
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+-config IP_NF_TARGET_REDIRECT
+-	tristate "REDIRECT target support"
++config IP_NF_TARGET_NETMAP
++	tristate "NETMAP target support"
+ 	depends on NF_NAT
+ 	depends on NETFILTER_ADVANCED
+ 	help
+-	  REDIRECT is a special case of NAT: all incoming connections are
+-	  mapped onto the incoming interface's address, causing the packets to
+-	  come to the local machine instead of passing through.  This is
+-	  useful for transparent proxies.
++	  NETMAP is an implementation of static 1:1 NAT mapping of network
++	  addresses. It maps the network address part, while keeping the host
++	  address part intact.
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+-config IP_NF_TARGET_NETMAP
+-	tristate "NETMAP target support"
++config IP_NF_TARGET_REDIRECT
++	tristate "REDIRECT target support"
+ 	depends on NF_NAT
+ 	depends on NETFILTER_ADVANCED
+ 	help
+-	  NETMAP is an implementation of static 1:1 NAT mapping of network
+-	  addresses. It maps the network address part, while keeping the host
+-	  address part intact.
++	  REDIRECT is a special case of NAT: all incoming connections are
++	  mapped onto the incoming interface's address, causing the packets to
++	  come to the local machine instead of passing through.  This is
++	  useful for transparent proxies.
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+@@ -295,6 +295,19 @@ config IP_NF_MANGLE
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
++config IP_NF_TARGET_CLUSTERIP
++	tristate "CLUSTERIP target support (EXPERIMENTAL)"
++	depends on IP_NF_MANGLE && EXPERIMENTAL
++	depends on NF_CONNTRACK_IPV4
++	depends on NETFILTER_ADVANCED
++	select NF_CONNTRACK_MARK
++	help
++	  The CLUSTERIP target allows you to build load-balancing clusters of
++	  network servers without having a dedicated load-balancing
++	  router/server/switch.
++	
++	  To compile it as a module, choose M here.  If unsure, say N.
++
+ config IP_NF_TARGET_ECN
+ 	tristate "ECN target support"
+ 	depends on IP_NF_MANGLE
+@@ -325,19 +338,6 @@ config IP_NF_TARGET_TTL
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+-config IP_NF_TARGET_CLUSTERIP
+-	tristate "CLUSTERIP target support (EXPERIMENTAL)"
+-	depends on IP_NF_MANGLE && EXPERIMENTAL
+-	depends on NF_CONNTRACK_IPV4
+-	depends on NETFILTER_ADVANCED
+-	select NF_CONNTRACK_MARK
+-	help
+-	  The CLUSTERIP target allows you to build load-balancing clusters of
+-	  network servers without having a dedicated load-balancing
+-	  router/server/switch.
+-	
+-	  To compile it as a module, choose M here.  If unsure, say N.
 -
--	return ret;
-+	return 0;
- }
+ # raw + specific targets
+ config IP_NF_RAW
+ 	tristate  'raw table support (required for NOTRACK/TRACE)'
+diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
+index fee881b..91ffba0 100644
+--- a/net/ipv6/netfilter/Kconfig
++++ b/net/ipv6/netfilter/Kconfig
+@@ -56,23 +56,23 @@ config IP6_NF_IPTABLES
+ 	  To compile it as a module, choose M here.  If unsure, say N.
  
- static void ipt_destroy_target(struct ipt_entry_target *t)
+ # The simple matches.
+-config IP6_NF_MATCH_RT
+-	tristate '"rt" Routing header match support'
++config IP6_NF_MATCH_AH
++	tristate '"ah" match support'
+ 	depends on IP6_NF_IPTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+-	  rt matching allows you to match packets based on the routing
+-	  header of the packet.
++	  This module allows one to match AH packets.
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+-config IP6_NF_MATCH_OPTS
+-	tristate '"hbh" hop-by-hop and "dst" opts header match support'
++config IP6_NF_MATCH_EUI64
++	tristate '"eui64" address check'
+ 	depends on IP6_NF_IPTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+-	  This allows one to match packets based on the hop-by-hop
+-	  and destination options headers of a packet.
++	  This module performs checking on the IPv6 source address
++	  Compares the last 64 bits with the EUI64 (delivered
++	  from the MAC address) address
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+@@ -86,6 +86,16 @@ config IP6_NF_MATCH_FRAG
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
++config IP6_NF_MATCH_OPTS
++	tristate '"hbh" hop-by-hop and "dst" opts header match support'
++	depends on IP6_NF_IPTABLES
++	depends on NETFILTER_ADVANCED
++	help
++	  This allows one to match packets based on the hop-by-hop
++	  and destination options headers of a packet.
++
++	  To compile it as a module, choose M here.  If unsure, say N.
++
+ config IP6_NF_MATCH_HL
+ 	tristate '"hl" match support'
+ 	depends on IP6_NF_IPTABLES
+@@ -106,15 +116,6 @@ config IP6_NF_MATCH_IPV6HEADER
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+-config IP6_NF_MATCH_AH
+-	tristate '"ah" match support'
+-	depends on IP6_NF_IPTABLES
+-	depends on NETFILTER_ADVANCED
+-	help
+-	  This module allows one to match AH packets.
+-
+-	  To compile it as a module, choose M here.  If unsure, say N.
+-
+ config IP6_NF_MATCH_MH
+ 	tristate '"mh" match support'
+ 	depends on IP6_NF_IPTABLES
+@@ -124,14 +125,13 @@ config IP6_NF_MATCH_MH
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+-config IP6_NF_MATCH_EUI64
+-	tristate '"eui64" address check'
++config IP6_NF_MATCH_RT
++	tristate '"rt" Routing header match support'
+ 	depends on IP6_NF_IPTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+-	  This module performs checking on the IPv6 source address
+-	  Compares the last 64 bits with the EUI64 (delivered
+-	  from the MAC address) address
++	  rt matching allows you to match packets based on the routing
++	  header of the packet.
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 4a46485..a6e12be 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -325,6 +325,18 @@ config NETFILTER_XT_TARGET_CONNMARK
+ 	  <file:Documentation/kbuild/modules.txt>.  The module will be called
+ 	  ipt_CONNMARK.ko.  If unsure, say `N'.
+ 
++config NETFILTER_XT_TARGET_CONNSECMARK
++	tristate '"CONNSECMARK" target support'
++	depends on NETFILTER_XTABLES && NF_CONNTRACK && NF_CONNTRACK_SECMARK
++	default m if NETFILTER_ADVANCED=n
++	help
++	  The CONNSECMARK target copies security markings from packets
++	  to connections, and restores security markings from connections
++	  to packets (if the packets are not already marked).  This would
++	  normally be used in conjunction with the SECMARK target.
++
++	  To compile it as a module, choose M here.  If unsure, say N.
++
+ config NETFILTER_XT_TARGET_DSCP
+ 	tristate '"DSCP" and "TOS" target support'
+ 	depends on NETFILTER_XTABLES
+@@ -356,18 +368,6 @@ config NETFILTER_XT_TARGET_MARK
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+-config NETFILTER_XT_TARGET_NFQUEUE
+-	tristate '"NFQUEUE" target Support'
+-	depends on NETFILTER_XTABLES
+-	depends on NETFILTER_ADVANCED
+-	help
+-	  This target replaced the old obsolete QUEUE target.
+-
+-	  As opposed to QUEUE, it supports 65535 different queues,
+-	  not just one.
+-
+-	  To compile it as a module, choose M here.  If unsure, say N.
+-
+ config NETFILTER_XT_TARGET_NFLOG
+ 	tristate '"NFLOG" target support'
+ 	depends on NETFILTER_XTABLES
+@@ -380,6 +380,18 @@ config NETFILTER_XT_TARGET_NFLOG
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
++config NETFILTER_XT_TARGET_NFQUEUE
++	tristate '"NFQUEUE" target Support'
++	depends on NETFILTER_XTABLES
++	depends on NETFILTER_ADVANCED
++	help
++	  This target replaced the old obsolete QUEUE target.
++
++	  As opposed to QUEUE, it supports 65535 different queues,
++	  not just one.
++
++	  To compile it as a module, choose M here.  If unsure, say N.
++
+ config NETFILTER_XT_TARGET_NOTRACK
+ 	tristate  '"NOTRACK" target support'
+ 	depends on NETFILTER_XTABLES
+@@ -429,18 +441,6 @@ config NETFILTER_XT_TARGET_SECMARK
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+-config NETFILTER_XT_TARGET_CONNSECMARK
+-	tristate '"CONNSECMARK" target support'
+-	depends on NETFILTER_XTABLES && NF_CONNTRACK && NF_CONNTRACK_SECMARK
+-	default m if NETFILTER_ADVANCED=n
+-	help
+-	  The CONNSECMARK target copies security markings from packets
+-	  to connections, and restores security markings from connections
+-	  to packets (if the packets are not already marked).  This would
+-	  normally be used in conjunction with the SECMARK target.
+-
+-	  To compile it as a module, choose M here.  If unsure, say N.
+-
+ config NETFILTER_XT_TARGET_TCPMSS
+ 	tristate '"TCPMSS" target support'
+ 	depends on NETFILTER_XTABLES && (IPV6 || IPV6=n)
+@@ -577,6 +577,21 @@ config NETFILTER_XT_MATCH_ESP
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
++config NETFILTER_XT_MATCH_HASHLIMIT
++	tristate '"hashlimit" match support'
++	depends on NETFILTER_XTABLES && (IP6_NF_IPTABLES || IP6_NF_IPTABLES=n)
++	depends on NETFILTER_ADVANCED
++	help
++	  This option adds a `hashlimit' match.
++
++	  As opposed to `limit', this match dynamically creates a hash table
++	  of limit buckets, based on your selection of source/destination
++	  addresses and/or ports.
++
++	  It enables you to express policies like `10kpps for any given
++	  destination address' or `500pps from any given source address'
++	  with a single rule.
++
+ config NETFILTER_XT_MATCH_HELPER
+ 	tristate '"helper" match support'
+ 	depends on NETFILTER_XTABLES
+@@ -641,6 +656,17 @@ config NETFILTER_XT_MATCH_MARK
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
++config NETFILTER_XT_MATCH_MULTIPORT
++	tristate '"multiport" Multiple port match support'
++	depends on NETFILTER_XTABLES
++	depends on NETFILTER_ADVANCED
++	help
++	  Multiport matching allows you to match TCP or UDP packets based on
++	  a series of source or destination ports: normally a rule can only
++	  match a single range of ports.
++
++	  To compile it as a module, choose M here.  If unsure, say N.
++
+ config NETFILTER_XT_MATCH_OWNER
+ 	tristate '"owner" match support'
+ 	depends on NETFILTER_XTABLES
+@@ -661,17 +687,6 @@ config NETFILTER_XT_MATCH_POLICY
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+-config NETFILTER_XT_MATCH_MULTIPORT
+-	tristate '"multiport" Multiple port match support'
+-	depends on NETFILTER_XTABLES
+-	depends on NETFILTER_ADVANCED
+-	help
+-	  Multiport matching allows you to match TCP or UDP packets based on
+-	  a series of source or destination ports: normally a rule can only
+-	  match a single range of ports.
+-
+-	  To compile it as a module, choose M here.  If unsure, say N.
+-
+ config NETFILTER_XT_MATCH_PHYSDEV
+ 	tristate '"physdev" match support'
+ 	depends on NETFILTER_XTABLES && BRIDGE && BRIDGE_NETFILTER
+@@ -839,20 +854,5 @@ config NETFILTER_XT_MATCH_U32
+ 
+ 	  Details and examples are in the kernel module source.
+ 
+-config NETFILTER_XT_MATCH_HASHLIMIT
+-	tristate '"hashlimit" match support'
+-	depends on NETFILTER_XTABLES && (IP6_NF_IPTABLES || IP6_NF_IPTABLES=n)
+-	depends on NETFILTER_ADVANCED
+-	help
+-	  This option adds a `hashlimit' match.
+-
+-	  As opposed to `limit', this match dynamically creates a hash table
+-	  of limit buckets, based on your selection of source/destination
+-	  addresses and/or ports.
+-
+-	  It enables you to express policies like `10kpps for any given
+-	  destination address' or `500pps from any given source address'
+-	  with a single rule.
+-
+ endmenu
+ 
 -- 
 1.6.0.1
 
