@@ -1,53 +1,51 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: David Miller <davem@davemloft.net>
 Subject: Re: RFC: net/netfilter reorganization
-Date: Sun, 5 Oct 2008 12:15:24 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0810051212060.21891@fbirervta.pbzchgretzou.qr>
-References: <48E8C90D.10202@trash.net> <alpine.LNX.1.10.0810051004230.21891@fbirervta.pbzchgretzou.qr> <48E8D3C4.60306@trash.net> <20081005.090202.143862823.davem@davemloft.net> <48E8E736.8060800@trash.net>
+Date: Sun, 05 Oct 2008 09:17:39 -0700 (PDT)
+Message-ID: <20081005.091739.131587847.davem@davemloft.net>
+References: <48E8D3C4.60306@trash.net>
+	<20081005.090202.143862823.davem@davemloft.net>
+	<48E8E736.8060800@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: David Miller <davem@davemloft.net>, netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: jengelh@medozas.de, netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:46946 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756965AbYJEQP0 (ORCPT
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:50164
+	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1757613AbYJEQSE (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 5 Oct 2008 12:15:26 -0400
+	Sun, 5 Oct 2008 12:18:04 -0400
 In-Reply-To: <48E8E736.8060800@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+From: Patrick McHardy <kaber@trash.net>
+Date: Sun, 05 Oct 2008 18:11:34 +0200
 
-On Sunday 2008-10-05 12:11, Patrick McHardy wrote:
->> 
->> One thing I'm looking forward to is the elimination of all of
->> the xt_* prefixes, and in general better TAB completion
->> friendliness when I try to open netfilter source files under
->> emacs or grep things from the command line with tab completed
->> paths.
->
+> David Miller wrote:
+> > From: Patrick McHardy <kaber@trash.net>
+> > Date: Sun, 05 Oct 2008 16:48:36 +0200
+> > 
+> >> The main goal is to get the directory contents to a more reasonable
+> >> level and group related stuff together; using just net/netfilter/ct
+> >> is still a bit too coarse in my opinion. Under that aspect, what
+> >> would your proposed structure be?
+> > One thing I'm looking forward to is the elimination of all of
+> > the xt_* prefixes, and in general better TAB completion
+> > friendliness when I try to open netfilter source files under
+> > emacs or grep things from the command line with tab completed
+> > paths.
+> 
 > I'm not sure how emacs handles completion, would using different
 > prefixes for matches and targets help? Otherwise I guess we can
 > just get rid of the prefixes entirely.
 
-Allow me to speak generally for humans.. we are lazy to type, so
-usually it's just the first three or four characters (or less,
-of course) we want to type before hitting TAB the first time.
-By eliminating prefixes, you already start typing on the "real"
-name, which means your chances that TAB completion returns just
-a single file is much higher.
+Putting them in different sub-directories would help.
 
 > The main problem with these renames is that it module aliases
 > don't work for "rmmod", which is a pretty common thing with
 > these modules. I guess we'd need to fix up module-init-tools
 > first.
 
-When was the last time you used tab completion on .ko files?
-I think this is sufficient:
-
-obj-$(config_foo) += nfct_ftp.o
-nfct_ftp-objs := ftp.c
-
-That way, Mr Developer can use ft<TAB> to get ftp.c, but the
-final module that we will be using with modprobe/rmmod still
-has the prefix (and we should really have one!)
+I see.
