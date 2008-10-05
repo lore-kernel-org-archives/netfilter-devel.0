@@ -1,44 +1,63 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [NETFILTER]: Move extensions' arguments into compound structure
- (1/2)
-Date: Sun, 5 Oct 2008 12:19:05 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0810051216090.21891@fbirervta.pbzchgretzou.qr>
-References: <alpine.LNX.1.10.0810031851430.13861@fbirervta.pbzchgretzou.qr> <48E8CF70.9090309@trash.net> <alpine.LNX.1.10.0810051036170.21891@fbirervta.pbzchgretzou.qr> <48E8D493.5@trash.net> <alpine.LNX.1.10.0810051054460.21891@fbirervta.pbzchgretzou.qr>
- <48E8D957.3000803@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: RFC: net/netfilter reorganization
+Date: Sun, 05 Oct 2008 18:21:24 +0200
+Message-ID: <48E8E984.8090807@trash.net>
+References: <48E8C90D.10202@trash.net> <alpine.LNX.1.10.0810051004230.21891@fbirervta.pbzchgretzou.qr> <48E8D3C4.60306@trash.net> <20081005.090202.143862823.davem@davemloft.net> <48E8E736.8060800@trash.net> <alpine.LNX.1.10.0810051212060.21891@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: David Miller <davem@davemloft.net>, netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:46953 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757405AbYJEQTG (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:48591 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758768AbYJEQVa (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 5 Oct 2008 12:19:06 -0400
-In-Reply-To: <48E8D957.3000803@trash.net>
+	Sun, 5 Oct 2008 12:21:30 -0400
+In-Reply-To: <alpine.LNX.1.10.0810051212060.21891@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Jan Engelhardt wrote:
+> On Sunday 2008-10-05 12:11, Patrick McHardy wrote:
+>>> One thing I'm looking forward to is the elimination of all of
+>>> the xt_* prefixes, and in general better TAB completion
+>>> friendliness when I try to open netfilter source files under
+>>> emacs or grep things from the command line with tab completed
+>>> paths.
+>> I'm not sure how emacs handles completion, would using different
+>> prefixes for matches and targets help? Otherwise I guess we can
+>> just get rid of the prefixes entirely.
+> 
+> Allow me to speak generally for humans.. we are lazy to type, so
+> usually it's just the first three or four characters (or less,
+> of course) we want to type before hitting TAB the first time.
+> By eliminating prefixes, you already start typing on the "real"
+> name, which means your chances that TAB completion returns just
+> a single file is much higher.
 
-On Sunday 2008-10-05 11:12, Patrick McHardy wrote:
->
-> Thanks. As an added explanation - the benchmarking I did for nftables
-> indicated that we're somewhere between 50 and 110 cycles for a "usual"
-> rule on my x2. So its really easy to degrade performance significantly
-> by just requiring a few more cycles. The upside is that it works in both
-> directions :)
+Thats true. Not using any prefixes requires keeping the
+upper letter naming convention for targets though (which
+I don't really mind).
 
-Hm there is actually a reason I did it this way.
+>> The main problem with these renames is that it module aliases
+>> don't work for "rmmod", which is a pretty common thing with
+>> these modules. I guess we'd need to fix up module-init-tools
+>> first.
+> 
+> When was the last time you used tab completion on .ko files?
 
-I did not want to make the struct xt_match_param constant that
-extensions receive, so they can tamper with the arguments just like
-they were able to before. (Actually, just a single outoftree
-extension does this right now.)
+I don't use tab-completion above file-level at all, its takes
+way to long to initialize all the more fancy stuff.
 
-Constructing the xt_match_param for example in ipt_do_table() instead
-of do_match() would mean that iff some extension trashed, say,
-par->in, then all future extensions would get that new value, which
-is of course not what we wanted.
+> I think this is sufficient:
+> 
+> obj-$(config_foo) += nfct_ftp.o
+> nfct_ftp-objs := ftp.c
+> 
+> That way, Mr Developer can use ft<TAB> to get ftp.c, but the
+> final module that we will be using with modprobe/rmmod still
+> has the prefix (and we should really have one!)
 
-Requesting verdict from you. :)
-Make it const so that extensions don't tamper with it?
+A lot of people are unloading modules in their firewall scripts
+and that will break.
