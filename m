@@ -1,51 +1,44 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: RFC: net/netfilter reorganization
-Date: Sun, 05 Oct 2008 09:17:39 -0700 (PDT)
-Message-ID: <20081005.091739.131587847.davem@davemloft.net>
-References: <48E8D3C4.60306@trash.net>
-	<20081005.090202.143862823.davem@davemloft.net>
-	<48E8E736.8060800@trash.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [NETFILTER]: Move extensions' arguments into compound structure
+ (1/2)
+Date: Sun, 5 Oct 2008 12:19:05 -0400 (EDT)
+Message-ID: <alpine.LNX.1.10.0810051216090.21891@fbirervta.pbzchgretzou.qr>
+References: <alpine.LNX.1.10.0810031851430.13861@fbirervta.pbzchgretzou.qr> <48E8CF70.9090309@trash.net> <alpine.LNX.1.10.0810051036170.21891@fbirervta.pbzchgretzou.qr> <48E8D493.5@trash.net> <alpine.LNX.1.10.0810051054460.21891@fbirervta.pbzchgretzou.qr>
+ <48E8D957.3000803@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: jengelh@medozas.de, netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:50164
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1757613AbYJEQSE (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:46953 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757405AbYJEQTG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 5 Oct 2008 12:18:04 -0400
-In-Reply-To: <48E8E736.8060800@trash.net>
+	Sun, 5 Oct 2008 12:19:06 -0400
+In-Reply-To: <48E8D957.3000803@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Sun, 05 Oct 2008 18:11:34 +0200
 
-> David Miller wrote:
-> > From: Patrick McHardy <kaber@trash.net>
-> > Date: Sun, 05 Oct 2008 16:48:36 +0200
-> > 
-> >> The main goal is to get the directory contents to a more reasonable
-> >> level and group related stuff together; using just net/netfilter/ct
-> >> is still a bit too coarse in my opinion. Under that aspect, what
-> >> would your proposed structure be?
-> > One thing I'm looking forward to is the elimination of all of
-> > the xt_* prefixes, and in general better TAB completion
-> > friendliness when I try to open netfilter source files under
-> > emacs or grep things from the command line with tab completed
-> > paths.
-> 
-> I'm not sure how emacs handles completion, would using different
-> prefixes for matches and targets help? Otherwise I guess we can
-> just get rid of the prefixes entirely.
+On Sunday 2008-10-05 11:12, Patrick McHardy wrote:
+>
+> Thanks. As an added explanation - the benchmarking I did for nftables
+> indicated that we're somewhere between 50 and 110 cycles for a "usual"
+> rule on my x2. So its really easy to degrade performance significantly
+> by just requiring a few more cycles. The upside is that it works in both
+> directions :)
 
-Putting them in different sub-directories would help.
+Hm there is actually a reason I did it this way.
 
-> The main problem with these renames is that it module aliases
-> don't work for "rmmod", which is a pretty common thing with
-> these modules. I guess we'd need to fix up module-init-tools
-> first.
+I did not want to make the struct xt_match_param constant that
+extensions receive, so they can tamper with the arguments just like
+they were able to before. (Actually, just a single outoftree
+extension does this right now.)
 
-I see.
+Constructing the xt_match_param for example in ipt_do_table() instead
+of do_match() would mean that iff some extension trashed, say,
+par->in, then all future extensions would get that new value, which
+is of course not what we wanted.
+
+Requesting verdict from you. :)
+Make it const so that extensions don't tamper with it?
