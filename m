@@ -1,115 +1,52 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: RFC: net/netfilter reorganization
-Date: Sun, 5 Oct 2008 09:47:51 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0810050925350.21891@fbirervta.pbzchgretzou.qr>
-References: <48E8B439.6030608@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH RFC] xt_layer7
+Date: Sun, 05 Oct 2008 15:50:47 +0200
+Message-ID: <48E8C637.5060700@trash.net>
+References: <38bcb3ec0810040022w79ccea3dk134c3f03d375a601@mail.gmail.com> <alpine.LNX.1.10.0810040750300.19954@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailinglist
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: James King <t.james.king@gmail.com>,
+	Matthew Strait <quadong@users.sourceforge.net>,
+	Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:55775 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753645AbYJENrx (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:45224 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753691AbYJENuy (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 5 Oct 2008 09:47:53 -0400
-In-Reply-To: <48E8B439.6030608@trash.net>
+	Sun, 5 Oct 2008 09:50:54 -0400
+In-Reply-To: <alpine.LNX.1.10.0810040750300.19954@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Jan Engelhardt wrote:
+> On Saturday 2008-10-04 03:22, James King wrote:
+> 
+>> I've re-written xt_layer7 (l7-filter) so that it not longer requires
+>> patching of the nf_conn structure for data storage, using ct_extend
+>> instead, with the goal that it can eventually be used against a
+>> vanilla kernel with an unpatched iptables.
+> 
+> I had the same idea too a while back but put off on it - busy with
+> other iptables things :)
+> 
+> Right now, you still cannot use it with a vanilla kernel because
+> patches like #3 you attached enlarges the allocated region (remember,
+> NF_CT_EXT_NUM just increased by one!), which is going to be a big
+> impact {for users not using all the extensions} {if every imaginable
+> extensions adds itself a NF_CT_EXT_ number}.
+> 
+> Can someone think of a way to nicely fix this up? Like, a linked
+> list instead of the ct_extend[] array perhaps? Yes yes, that's not O(1),
+> but how many extensions at a time are you using anyway!
 
-On Sunday 2008-10-05 08:34, Patrick McHardy wrote:
+That would have a pretty big storage and runtime impact, I
+don't think its a good idea.
 
-> We've talked about reorganizing net/netfilter in a smaller group
-> during the workshop. Its currently quite crowded in there,
-> additionally the IPVS guys are moving their code under
-> net/netfilter/ipvs in 2.6.28.
->
-> Some suggestions for a new directory structure:
->
-> net/netfilter/xtables
-> net/netfilter/{ct, conntrack, nfct, ...}
-> net/netfilter/nftables for my new stuff
-
-Yes definitely welcomed.
-
-> We could go further by splitting up xtables and conntrack,
-
-That's just what you proposed! Or at least that is what I think of
-Netfilter. Xtables and Conntrack are already separated, simply
-because each one can be used without the other. (Minus things like
-xt_conntrack, which I think belong to Xtables.)
-
-> parts of this structure would be mirrored in net/ipv4/netfilter
-> and net/ipv6/netfilter:
->
-> net/netfilter/xtables/matches
-> net/netfilter/xtables/targets
-> net/netfilter/ct/protocols
-> net/netfilter/ct/helpers
->
-> I'm not sure whether this is too much since 4 directory
-> levels seem a bit extreme.
-
-If you take that structure _and_ mirror it in ipv4, you get:
-net/ipv4/netfilter/xtables/matches/ which is already 5 :-)
-
-> Since the amount of core code is increasing too, one more
-> thought was
->
-> net/netfilter/core
->
-> containing core.c, netfilter.c, logging and queuing stuff and
-> everything netlink related that doesn't fall in a more specific
-> area.
-
-I think the core stuff can remain in net/netfilter/. Not because
-it is growing, but because other subsystems do just that.
-Like, there is fs/ (with the core code) and fs/<component>/ for
-anything not-so-core-y.
-
-What I really certainly would like to see is that we somehow get rid
-of the oddness of naming L3 trackers and L4 trackers. Right now we
-have (two examples)
-
--rw-r--r-- 1 15924 2008-09-09 20:34 nf_conntrack_ftp.c
--rw-r--r-- 1 43369 2008-09-09 20:33 nf_conntrack_proto_tcp.c
-
-and in everybody's mind, FTP is a protocol too of course, =E2=80=9Cso w=
-hy
-does not ftp have a _proto part, and why does TCP?=E2=80=9D one might a=
-sk.
-We could just remove the _proto part (also helpful to reduce the
-name length), as there is no clash between L3 and L4 trackers
-except perhaps for proto_generic and l3proto_generic. Hm?
-
-One thing I have done in my git realms is just call my branches
-"nfct_foo" simply because I was too lazy to type "nf_conntrack_foo".
-Maybe we could do the same for our files? Maybe we can even get rid
-of the nf_conntrack_/nfct_ prefix at all when they are moved into
-net/netfilter/conntrack/, but still have it in their .ko files. IOW:
-net/netfilter/conntrack/ftp.c produces
-net/netfilter/conntrack/nfct_ftp.ko. How about it?
-
-core.c (remains)
-nf_conntrack_acct.c            -> conntrack/acct.c    =20
-nf_conntrack_amanda.c          -> conntrack/amanda.c
-nf_conntrack_core.c            -> conntrack/core.c
-=2E..
-nf_log.c (remains)
-nfnetlink.c (remains)
-nfnetlink_log.c (remains)
-nfnetlink_queue.c (...)
-nf_queue.c
-nf_sockopt.c
-x_tables.c              -> xtables/x_tables.c
-xt_CLASSIFY.c           -> xtables/CLASSIFY.c (or just keep xt_ prefix?=
-)
-xt_comment.c            -> ...
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I think I could agree to add something like a NF_CT_EXT_LIST
+extensions that wouldn't be used by mainline, but you could
+use it for xtables-addons. There's some padding in nf_ct_ext
+so it would (currently) not have any negative impact on mainline.
+I haven't spent much though on this so it might not work though.
