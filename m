@@ -1,40 +1,32 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: iptables not working with monolithic 2.6.26.5 kernel on ARM
-Date: Sun, 05 Oct 2008 15:24:55 +0200
-Message-ID: <48E8C027.6040209@trash.net>
-References: <18661.41641.113458.932029@martins.ozlabs.org> <48E6166F.40607@trash.net> <alpine.LNX.1.10.0810031006260.3893@fbirervta.pbzchgretzou.qr> <18662.61266.69230.675687@martins.ozlabs.org> <alpine.LNX.1.10.0810040724110.19954@fbirervta.pbzchgretzou.qr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 01/16] [NETFILTER]: Re-add missing checkentry calls
+Date: Sun, 5 Oct 2008 09:25:09 -0400 (EDT)
+Message-ID: <alpine.LNX.1.10.0810050922510.21891@fbirervta.pbzchgretzou.qr>
+References: <67e1140a1db2e8aa9a4b6c80289039487c5445cb.1223149287.git.jengelh@medozas.de> <48E8B831.7020609@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Martin Schwenke <martin@meltin.net>,
-	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:44678 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752968AbYJENZB (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:58509 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752968AbYJENZL (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 5 Oct 2008 09:25:01 -0400
-In-Reply-To: <alpine.LNX.1.10.0810040724110.19954@fbirervta.pbzchgretzou.qr>
+	Sun, 5 Oct 2008 09:25:11 -0400
+In-Reply-To: <48E8B831.7020609@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> You can change the XT_ALIGN macro in the
-> kernel/include/linux/netfilter/x_tables.h and
-> iptables/include/linux/netfilter/x_tables.h to read
-> 
-> 	#ifndef roundup
-> 	#define roundup(x, y) ((((x) + ((y) - 1)) / (y)) * (y))
-> 	#endif
-> 	#define XT_ALIGN(s) roundup(s, sizeof(uint64_t))
-> 
-> and try again. There might be more alignment issues hiding, so
-> don't expect it to fix it all in a magic whizz.
 
-An idea to avoid these problems in the future would be to change
-the kernel so it accepts stricter alignment than what we currently
-use and after a grace period (maybe 1-2 years) change XT_ALIGN in
-userspace so it starts using u64 or simply 8 byte alignment
-everywhere.
-
+On Sunday 2008-10-05 08:50, Patrick McHardy wrote:
+> Jan Engelhardt wrote:
+>> A previous commit ("Move Ebtables to use Xtables") unfortunately
+>> removed match and target checks in Ebtables. Add it back. Some checks
+>> go into xtables.c as part of consolidation work.
+>
+> Should I fold this one into the patch that removed them?
+>
+I am not always sure of your procedure. When you say "applied, thanks", 
+I have to assume it is already in a non-resettable git tree where 
+folding is impossible. Hence these patches are generally designed for 
+on-top-please.
