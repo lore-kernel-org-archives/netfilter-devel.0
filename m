@@ -1,26 +1,31 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 01/16] [NETFILTER]: Re-add missing checkentry calls
-Date: Sun, 05 Oct 2008 14:50:57 +0200
-Message-ID: <48E8B831.7020609@trash.net>
-References: <67e1140a1db2e8aa9a4b6c80289039487c5445cb.1223149287.git.jengelh@medozas.de>
+Subject: Re: nf-next-2.6.git tree updated
+Date: Sun, 05 Oct 2008 15:02:54 +0200
+Message-ID: <48E8BAFE.2010907@trash.net>
+References: <48E8B028.1020701@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Jan Engelhardt <jengelh@computergmbh.de>
+To: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:44040 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:44272 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753748AbYJEMvC (ORCPT
+	with ESMTP id S1753903AbYJENDA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 5 Oct 2008 08:51:02 -0400
-In-Reply-To: <67e1140a1db2e8aa9a4b6c80289039487c5445cb.1223149287.git.jengelh@medozas.de>
+	Sun, 5 Oct 2008 09:03:00 -0400
+In-Reply-To: <48E8B028.1020701@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> A previous commit ("Move Ebtables to use Xtables") unfortunately
-> removed match and target checks in Ebtables. Add it back. Some checks
-> go into xtables.c as part of consolidation work.
+Patrick McHardy wrote:
+> I've uploaded my current tree containing the patches applied during
+> the netfilter workshop to kernel.org. It should show up on the public
+> servers shortly.
 
-Should I fold this one into the patch that removed them?
+One note - since I'm using stacked git and had to clean up a bit
+of the history, the tree has to be recloned. Sorry about that,
+I'll try to reduce this in the future and will add a warning in
+case it happens.
