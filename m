@@ -1,44 +1,51 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: nf-next-2.6.git tree updated
-Date: Sun, 05 Oct 2008 16:00:37 +0200
-Message-ID: <48E8C885.5020209@trash.net>
-References: <48E8B028.1020701@trash.net> <48E8BAFE.2010907@trash.net> <alpine.LNX.1.10.0810050953300.21891@fbirervta.pbzchgretzou.qr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: iptables not working with monolithic 2.6.26.5 kernel on ARM
+Date: Sun, 5 Oct 2008 10:01:37 -0400 (EDT)
+Message-ID: <alpine.LNX.1.10.0810050955560.21891@fbirervta.pbzchgretzou.qr>
+References: <18661.41641.113458.932029@martins.ozlabs.org> <48E6166F.40607@trash.net> <alpine.LNX.1.10.0810031006260.3893@fbirervta.pbzchgretzou.qr> <18662.61266.69230.675687@martins.ozlabs.org> <alpine.LNX.1.10.0810040724110.19954@fbirervta.pbzchgretzou.qr>
+ <48E8C027.6040209@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Martin Schwenke <martin@meltin.net>,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45410 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753645AbYJEOAn (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:33559 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753691AbYJEOBj (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 5 Oct 2008 10:00:43 -0400
-In-Reply-To: <alpine.LNX.1.10.0810050953300.21891@fbirervta.pbzchgretzou.qr>
+	Sun, 5 Oct 2008 10:01:39 -0400
+In-Reply-To: <48E8C027.6040209@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Sunday 2008-10-05 09:02, Patrick McHardy wrote:
->> Patrick McHardy wrote:
->>> I've uploaded my current tree containing the patches applied during
->>> the netfilter workshop to kernel.org. It should show up on the public
->>> servers shortly.
->> One note - since I'm using stacked git and had to clean up a bit
->> of the history, the tree has to be recloned. Sorry about that,
->> I'll try to reduce this in the future and will add a warning in
->> case it happens.
-> 
-> Just declare the tree as "may change anytime without notice".
-> linux-next is just the same, as is my git.medozas.de/linux. As long
-> as people are aware, they write their history accordingly (i.e. not
-> using merge points) and hence can use rebase.
 
+On Sunday 2008-10-05 09:24, Patrick McHardy wrote:
+> Jan Engelhardt wrote:
+>> You can change the XT_ALIGN macro in the
+>> kernel/include/linux/netfilter/x_tables.h and
+>> iptables/include/linux/netfilter/x_tables.h to read
+>>=20
+>>  #ifndef roundup
+>>  #define roundup(x, y) ((((x) + ((y) - 1)) / (y)) * (y))
+>>  #endif
+>>  #define XT_ALIGN(s) roundup(s, sizeof(uint64_t))
+>>=20
+>> and try again. There might be more alignment issues hiding, so
+>> don't expect it to fix it all in a magic whizz.
+>
+> An idea to avoid these problems in the future would be to change
+> the kernel so it accepts stricter alignment than what we currently
+> use and after a grace period (maybe 1-2 years) change XT_ALIGN in
+> userspace so it starts using u64 or simply 8 byte alignment
+> everywhere.
 
-Yes, but its more complicated and I would like to provide a more
-stable base since at some point patches have to be diffed against
-my tree. Dave's net trees are very good at this and the extra
-effort really pays of for the consumers of them.
-
+I'd rather be interested in what architectures actually have
+alignof(uint64_t)=C2=A0=3D=3D=C2=A04, besides the native ARM gcc that's=
+ used here.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
