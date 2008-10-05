@@ -1,47 +1,61 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: iptables not working with monolithic 2.6.26.5 kernel on ARM
-Date: Sun, 05 Oct 2008 16:05:55 +0200
-Message-ID: <48E8C9C3.8080303@trash.net>
-References: <18661.41641.113458.932029@martins.ozlabs.org> <48E6166F.40607@trash.net> <alpine.LNX.1.10.0810031006260.3893@fbirervta.pbzchgretzou.qr> <18662.61266.69230.675687@martins.ozlabs.org> <alpine.LNX.1.10.0810040724110.19954@fbirervta.pbzchgretzou.qr> <48E8C027.6040209@trash.net> <alpine.LNX.1.10.0810050955560.21891@fbirervta.pbzchgretzou.qr>
+Subject: Re: [NETFILTER]: Move extensions' arguments into compound structure
+ (1/2)
+Date: Sun, 05 Oct 2008 16:30:08 +0200
+Message-ID: <48E8CF70.9090309@trash.net>
+References: <alpine.LNX.1.10.0810031851430.13861@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Martin Schwenke <martin@meltin.net>,
-	netfilter-devel@vger.kernel.org
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45521 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:46026 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753903AbYJEOGA (ORCPT
+	with ESMTP id S1753964AbYJEOaO (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 5 Oct 2008 10:06:00 -0400
-In-Reply-To: <alpine.LNX.1.10.0810050955560.21891@fbirervta.pbzchgretzou.qr>
+	Sun, 5 Oct 2008 10:30:14 -0400
+In-Reply-To: <alpine.LNX.1.10.0810031851430.13861@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Jan Engelhardt wrote:
-> On Sunday 2008-10-05 09:24, Patrick McHardy wrote:
->> Jan Engelhardt wrote:
->>> You can change the XT_ALIGN macro in the
->>> kernel/include/linux/netfilter/x_tables.h and
->>> iptables/include/linux/netfilter/x_tables.h to read
->>>
->>>  #ifndef roundup
->>>  #define roundup(x, y) ((((x) + ((y) - 1)) / (y)) * (y))
->>>  #endif
->>>  #define XT_ALIGN(s) roundup(s, sizeof(uint64_t))
->>>
->>> and try again. There might be more alignment issues hiding, so
->>> don't expect it to fix it all in a magic whizz.
->> An idea to avoid these problems in the future would be to change
->> the kernel so it accepts stricter alignment than what we currently
->> use and after a grace period (maybe 1-2 years) change XT_ALIGN in
->> userspace so it starts using u64 or simply 8 byte alignment
->> everywhere.
+> [NETFILTER]: Move extensions' arguments into compound structure (1/2)
 > 
-> I'd rather be interested in what architectures actually have
-> alignof(uint64_t) == 4, besides the native ARM gcc that's used here.
+> The function signatures for Xtables extensions have grown over time.
+> It involves a lot of typing/replication, and also a bit of stack space
+> even if they are not used. Realize an NFWS2008 idea and pack them into
+> structs. The skb remains outside of the struct so gcc can continue to
+> apply its optimizations.
+> 
+> This patch does this for matches (only).
 
-CRIS isn't requiring any alignment AFAIK, so everything is just
-byte aligned. I don't know about any other architectures not
-using 8 byte alignment.
+This looks good to me, it will reduce the maintenance overhead
+considerably when doing changes in this area.
+
+> @@ -223,9 +223,18 @@ do_match(struct ip6t_entry_match *m,
+>  	      unsigned int protoff,
+>  	      bool *hotdrop)
+>  {
+> +	struct xt_match_param par = {
+> +		.in        = in,
+> +		.out       = out,
+> +		.match     = m->u.kernel.match,
+> +		.matchinfo = m->data,
+> +		.fragoff   = offset,
+> +		.thoff     = protoff,
+> +		.hotdrop   = hotdrop,
+> +	};
+
+Some of these members are constant during evaluation, so it would save
+some overhead to initialize the structure on a higher level and only
+fill in the match specific bits in do_match(). Alternatively you could
+use two structures, one for the fixes bits related to the packet, one
+for the match specific bits.
+
+BTW, networking is using the same patch headline scheme as most of
+the other subsystems nowadays, so please use "netfilter: " instead
+of [NETFILTER]: in future patches. I also usually add the netfilter
+internal subsystem, so this one would probably be
+"netfilter: x_tables: move extensions' arguments ...".
+
