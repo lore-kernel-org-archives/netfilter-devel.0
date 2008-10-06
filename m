@@ -1,444 +1,1426 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 20/23] netfilter: xtables: provide invoked family value to extensions
-Date: Mon,  6 Oct 2008 08:15:23 -0400
-Message-ID: <79f8fcf64eb5718d8597cee7007121bd70f28496.1223294924.git.jengelh@medozas.de>
+Subject: [PATCH 17/23] netfilter: xtables: move extension arguments into compound structure (4/6)
+Date: Mon,  6 Oct 2008 08:15:20 -0400
+Message-ID: <c2062246ef9ad50a29588c01472de25b604d1f08.1223294924.git.jengelh@medozas.de>
 References: <1223295326-10890-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:57114 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:57095 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753080AbYJFMPd (ORCPT
+	with ESMTP id S1752974AbYJFMPc (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Oct 2008 08:15:33 -0400
+	Mon, 6 Oct 2008 08:15:32 -0400
 In-Reply-To: <1223295326-10890-1-git-send-email-jengelh@medozas.de>
 In-Reply-To: <0a71cdb22ae4ae9ad9c49cab82cc41ccdd5653a1.1223294924.git.jengelh@medozas.de>
 References: <0a71cdb22ae4ae9ad9c49cab82cc41ccdd5653a1.1223294924.git.jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-By passing in the family through which extensions were invoked, a bit
-of data space can be reclaimed. The "family" member will be added to
-the parameter structures and the check functions be adjusted.
+This patch does this for target extensions' target functions.
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/linux/netfilter/x_tables.h |   12 ++++++++++--
- net/bridge/netfilter/ebtables.c    |   11 ++++++++---
- net/ipv4/netfilter/arp_tables.c    |    6 ++++--
- net/ipv4/netfilter/ip_tables.c     |   10 ++++++++--
- net/ipv6/netfilter/ip6_tables.c    |   10 ++++++++--
- net/netfilter/x_tables.c           |   23 ++++++++++++-----------
- net/sched/act_ipt.c                |    4 ++--
- 7 files changed, 52 insertions(+), 24 deletions(-)
+ include/linux/netfilter/x_tables.h  |   22 +++++++++++++++++-----
+ net/bridge/netfilter/ebt_arpreply.c |    8 +++-----
+ net/bridge/netfilter/ebt_dnat.c     |    6 ++----
+ net/bridge/netfilter/ebt_log.c      |   14 ++++++--------
+ net/bridge/netfilter/ebt_mark.c     |    6 ++----
+ net/bridge/netfilter/ebt_nflog.c    |    9 ++++-----
+ net/bridge/netfilter/ebt_redirect.c |   12 +++++-------
+ net/bridge/netfilter/ebt_snat.c     |    6 ++----
+ net/bridge/netfilter/ebt_ulog.c     |    9 +++------
+ net/bridge/netfilter/ebtables.c     |   27 ++++++++++++++++-----------
+ net/ipv4/netfilter/arp_tables.c     |   23 ++++++++++++-----------
+ net/ipv4/netfilter/arpt_mangle.c    |    7 ++-----
+ net/ipv4/netfilter/ip_tables.c      |   24 ++++++++++--------------
+ net/ipv4/netfilter/ipt_CLUSTERIP.c  |    6 ++----
+ net/ipv4/netfilter/ipt_ECN.c        |    6 ++----
+ net/ipv4/netfilter/ipt_LOG.c        |    8 +++-----
+ net/ipv4/netfilter/ipt_MASQUERADE.c |   14 ++++++--------
+ net/ipv4/netfilter/ipt_NETMAP.c     |   17 ++++++++---------
+ net/ipv4/netfilter/ipt_REDIRECT.c   |   12 +++++-------
+ net/ipv4/netfilter/ipt_REJECT.c     |    8 +++-----
+ net/ipv4/netfilter/ipt_TTL.c        |    6 ++----
+ net/ipv4/netfilter/ipt_ULOG.c       |   10 +++-------
+ net/ipv4/netfilter/nf_nat_rule.c    |   32 ++++++++++++--------------------
+ net/ipv6/netfilter/ip6_tables.c     |   24 +++++++++++-------------
+ net/ipv6/netfilter/ip6t_HL.c        |    6 ++----
+ net/ipv6/netfilter/ip6t_LOG.c       |    8 +++-----
+ net/ipv6/netfilter/ip6t_REJECT.c    |   18 ++++++++----------
+ net/netfilter/xt_CLASSIFY.c         |    6 ++----
+ net/netfilter/xt_CONNMARK.c         |   12 ++++--------
+ net/netfilter/xt_CONNSECMARK.c      |    6 ++----
+ net/netfilter/xt_DSCP.c             |   30 ++++++++++--------------------
+ net/netfilter/xt_MARK.c             |   18 ++++++------------
+ net/netfilter/xt_NFLOG.c            |   10 ++++------
+ net/netfilter/xt_NFQUEUE.c          |    6 ++----
+ net/netfilter/xt_NOTRACK.c          |    4 +---
+ net/netfilter/xt_RATEEST.c          |    9 ++-------
+ net/netfilter/xt_SECMARK.c          |    6 ++----
+ net/netfilter/xt_TCPMSS.c           |   12 ++++--------
+ net/netfilter/xt_TCPOPTSTRIP.c      |   12 ++++--------
+ net/netfilter/xt_TPROXY.c           |   11 +++--------
+ net/netfilter/xt_TRACE.c            |    4 +---
+ net/sched/act_ipt.c                 |   12 ++++++++----
+ 42 files changed, 209 insertions(+), 297 deletions(-)
 
 diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index e3b3b66..be41b60 100644
+index c79c883..46d0cb1 100644
 --- a/include/linux/netfilter/x_tables.h
 +++ b/include/linux/netfilter/x_tables.h
-@@ -183,6 +183,8 @@ struct xt_counters_info
-  * @fragoff:	packet is a fragment, this is the data offset
-  * @thoff:	position of transport header relative to skb->data
-  * @hotdrop:	drop packet if we had inspection problems
-+ * @family:	Actual NFPROTO_* through which the function is invoked
-+ * 		(helpful when match->family == NFPROTO_UNSPEC)
-  */
- struct xt_match_param {
- 	const struct net_device *in, *out;
-@@ -191,6 +193,7 @@ struct xt_match_param {
- 	int fragoff;
- 	unsigned int thoff;
- 	bool *hotdrop;
-+	u_int8_t family;
- };
- 
- /**
-@@ -210,12 +213,14 @@ struct xt_mtchk_param {
- 	const struct xt_match *match;
+@@ -218,6 +218,22 @@ struct xt_mtdtor_param {
  	void *matchinfo;
- 	unsigned int hook_mask;
-+	u_int8_t family;
  };
  
- /* Match destructor parameters */
- struct xt_mtdtor_param {
- 	const struct xt_match *match;
- 	void *matchinfo;
-+	u_int8_t family;
- };
- 
- /**
-@@ -232,6 +237,7 @@ struct xt_target_param {
- 	unsigned int hooknum;
- 	const struct xt_target *target;
- 	const void *targinfo;
-+	u_int8_t family;
- };
- 
- /**
-@@ -249,12 +255,14 @@ struct xt_tgchk_param {
- 	const struct xt_target *target;
- 	void *targinfo;
- 	unsigned int hook_mask;
-+	u_int8_t family;
- };
- 
- /* Target destructor parameters */
- struct xt_tgdtor_param {
- 	const struct xt_target *target;
- 	void *targinfo;
-+	u_int8_t family;
- };
- 
++/**
++ * struct xt_target_param - parameters for target extensions' target functions
++ *
++ * @hooknum:	hook through which this target was invoked
++ * @target:	struct xt_target through which this function was invoked
++ * @targinfo:	per-target data
++ *
++ * Other fields see above.
++ */
++struct xt_target_param {
++	const struct net_device *in, *out;
++	unsigned int hooknum;
++	const struct xt_target *target;
++	const void *targinfo;
++};
++
  struct xt_match
-@@ -393,9 +401,9 @@ extern void xt_unregister_match(struct xt_match *target);
- extern int xt_register_matches(struct xt_match *match, unsigned int n);
- extern void xt_unregister_matches(struct xt_match *match, unsigned int n);
+ {
+ 	struct list_head list;
+@@ -269,11 +285,7 @@ struct xt_target
+ 	   must now handle non-linear skbs, using skb_copy_bits and
+ 	   skb_ip_make_writable. */
+ 	unsigned int (*target)(struct sk_buff *skb,
+-			       const struct net_device *in,
+-			       const struct net_device *out,
+-			       unsigned int hooknum,
+-			       const struct xt_target *target,
+-			       const void *targinfo);
++			       const struct xt_target_param *);
  
--extern int xt_check_match(struct xt_mtchk_param *, u_int8_t family,
-+extern int xt_check_match(struct xt_mtchk_param *,
- 			  unsigned int size, u_int8_t proto, bool inv_proto);
--extern int xt_check_target(struct xt_tgchk_param *, u_int8_t family,
-+extern int xt_check_target(struct xt_tgchk_param *,
- 			   unsigned int size, u_int8_t proto, bool inv_proto);
+ 	/* Called when user tries to insert an entry of this type:
+            hook_mask is a bitmask of hooks from which it can be
+diff --git a/net/bridge/netfilter/ebt_arpreply.c b/net/bridge/netfilter/ebt_arpreply.c
+index baf5510..fc94699 100644
+--- a/net/bridge/netfilter/ebt_arpreply.c
++++ b/net/bridge/netfilter/ebt_arpreply.c
+@@ -16,11 +16,9 @@
+ #include <linux/netfilter_bridge/ebt_arpreply.h>
  
- extern struct xt_table *xt_register_table(struct net *net,
+ static unsigned int
+-ebt_arpreply_tg(struct sk_buff *skb, const struct net_device *in,
+-		const struct net_device *out, unsigned int hook_nr,
+-		const struct xt_target *target, const void *data)
++ebt_arpreply_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+-	const struct ebt_arpreply_info *info = data;
++	const struct ebt_arpreply_info *info = par->targinfo;
+ 	const __be32 *siptr, *diptr;
+ 	__be32 _sip, _dip;
+ 	const struct arphdr *ap;
+@@ -53,7 +51,7 @@ ebt_arpreply_tg(struct sk_buff *skb, const struct net_device *in,
+ 	if (diptr == NULL)
+ 		return EBT_DROP;
+ 
+-	arp_send(ARPOP_REPLY, ETH_P_ARP, *siptr, (struct net_device *)in,
++	arp_send(ARPOP_REPLY, ETH_P_ARP, *siptr, (struct net_device *)par->in,
+ 		 *diptr, shp, info->mac, shp);
+ 
+ 	return info->target;
+diff --git a/net/bridge/netfilter/ebt_dnat.c b/net/bridge/netfilter/ebt_dnat.c
+index cb80101..bb5d79e 100644
+--- a/net/bridge/netfilter/ebt_dnat.c
++++ b/net/bridge/netfilter/ebt_dnat.c
+@@ -15,11 +15,9 @@
+ #include <linux/netfilter_bridge/ebt_nat.h>
+ 
+ static unsigned int
+-ebt_dnat_tg(struct sk_buff *skb, const struct net_device *in,
+-	    const struct net_device *out, unsigned int hook_nr,
+-	    const struct xt_target *target, const void *data)
++ebt_dnat_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+-	const struct ebt_nat_info *info = data;
++	const struct ebt_nat_info *info = par->targinfo;
+ 
+ 	if (!skb_make_writable(skb, 0))
+ 		return EBT_DROP;
+diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
+index b40f9ed..87de5fc 100644
+--- a/net/bridge/netfilter/ebt_log.c
++++ b/net/bridge/netfilter/ebt_log.c
+@@ -195,11 +195,9 @@ out:
+ }
+ 
+ static unsigned int
+-ebt_log_tg(struct sk_buff *skb, const struct net_device *in,
+-	   const struct net_device *out, unsigned int hooknr,
+-	   const struct xt_target *target, const void *data)
++ebt_log_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+-	const struct ebt_log_info *info = data;
++	const struct ebt_log_info *info = par->targinfo;
+ 	struct nf_loginfo li;
+ 
+ 	li.type = NF_LOG_TYPE_LOG;
+@@ -207,11 +205,11 @@ ebt_log_tg(struct sk_buff *skb, const struct net_device *in,
+ 	li.u.log.logflags = info->bitmask;
+ 
+ 	if (info->bitmask & EBT_LOG_NFLOG)
+-		nf_log_packet(NFPROTO_BRIDGE, hooknr, skb, in, out, &li,
+-			      "%s", info->prefix);
++		nf_log_packet(NFPROTO_BRIDGE, par->hooknum, skb, par->in,
++		              par->out, &li, "%s", info->prefix);
+ 	else
+-		ebt_log_packet(NFPROTO_BRIDGE, hooknr, skb, in, out, &li,
+-			       info->prefix);
++		ebt_log_packet(NFPROTO_BRIDGE, par->hooknum, skb, par->in,
++		               par->out, &li, info->prefix);
+ 	return EBT_CONTINUE;
+ }
+ 
+diff --git a/net/bridge/netfilter/ebt_mark.c b/net/bridge/netfilter/ebt_mark.c
+index dff19fc..aafc456 100644
+--- a/net/bridge/netfilter/ebt_mark.c
++++ b/net/bridge/netfilter/ebt_mark.c
+@@ -19,11 +19,9 @@
+ #include <linux/netfilter_bridge/ebt_mark_t.h>
+ 
+ static unsigned int
+-ebt_mark_tg(struct sk_buff *skb, const struct net_device *in,
+-	    const struct net_device *out, unsigned int hook_nr,
+-	    const struct xt_target *target, const void *data)
++ebt_mark_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+-	const struct ebt_mark_t_info *info = data;
++	const struct ebt_mark_t_info *info = par->targinfo;
+ 	int action = info->target & -16;
+ 
+ 	if (action == MARK_SET_VALUE)
+diff --git a/net/bridge/netfilter/ebt_nflog.c b/net/bridge/netfilter/ebt_nflog.c
+index 74b4fa0..6a28d99 100644
+--- a/net/bridge/netfilter/ebt_nflog.c
++++ b/net/bridge/netfilter/ebt_nflog.c
+@@ -20,11 +20,9 @@
+ #include <net/netfilter/nf_log.h>
+ 
+ static unsigned int
+-ebt_nflog_tg(struct sk_buff *skb, const struct net_device *in,
+-	     const struct net_device *out, unsigned int hooknr,
+-	     const struct xt_target *target, const void *data)
++ebt_nflog_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+-	const struct ebt_nflog_info *info = data;
++	const struct ebt_nflog_info *info = par->targinfo;
+ 	struct nf_loginfo li;
+ 
+ 	li.type = NF_LOG_TYPE_ULOG;
+@@ -32,7 +30,8 @@ ebt_nflog_tg(struct sk_buff *skb, const struct net_device *in,
+ 	li.u.ulog.group = info->group;
+ 	li.u.ulog.qthreshold = info->threshold;
+ 
+-	nf_log_packet(PF_BRIDGE, hooknr, skb, in, out, &li, "%s", info->prefix);
++	nf_log_packet(PF_BRIDGE, par->hooknum, skb, par->in, par->out,
++	              &li, "%s", info->prefix);
+ 	return EBT_CONTINUE;
+ }
+ 
+diff --git a/net/bridge/netfilter/ebt_redirect.c b/net/bridge/netfilter/ebt_redirect.c
+index a50ffbe..0cfe2fa 100644
+--- a/net/bridge/netfilter/ebt_redirect.c
++++ b/net/bridge/netfilter/ebt_redirect.c
+@@ -16,20 +16,18 @@
+ #include <linux/netfilter_bridge/ebt_redirect.h>
+ 
+ static unsigned int
+-ebt_redirect_tg(struct sk_buff *skb, const struct net_device *in,
+-		const struct net_device *out, unsigned int hooknr,
+-		const struct xt_target *target, const void *data)
++ebt_redirect_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+-	const struct ebt_redirect_info *info = data;
++	const struct ebt_redirect_info *info = par->targinfo;
+ 
+ 	if (!skb_make_writable(skb, 0))
+ 		return EBT_DROP;
+ 
+-	if (hooknr != NF_BR_BROUTING)
++	if (par->hooknum != NF_BR_BROUTING)
+ 		memcpy(eth_hdr(skb)->h_dest,
+-		       in->br_port->br->dev->dev_addr, ETH_ALEN);
++		       par->in->br_port->br->dev->dev_addr, ETH_ALEN);
+ 	else
+-		memcpy(eth_hdr(skb)->h_dest, in->dev_addr, ETH_ALEN);
++		memcpy(eth_hdr(skb)->h_dest, par->in->dev_addr, ETH_ALEN);
+ 	skb->pkt_type = PACKET_HOST;
+ 	return info->target;
+ }
+diff --git a/net/bridge/netfilter/ebt_snat.c b/net/bridge/netfilter/ebt_snat.c
+index 8a55c7d..f55960e 100644
+--- a/net/bridge/netfilter/ebt_snat.c
++++ b/net/bridge/netfilter/ebt_snat.c
+@@ -17,11 +17,9 @@
+ #include <linux/netfilter_bridge/ebt_nat.h>
+ 
+ static unsigned int
+-ebt_snat_tg(struct sk_buff *skb, const struct net_device *in,
+-	    const struct net_device *out, unsigned int hook_nr,
+-	    const struct xt_target *target, const void *data)
++ebt_snat_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+-	const struct ebt_nat_info *info = data;
++	const struct ebt_nat_info *info = par->targinfo;
+ 
+ 	if (!skb_make_writable(skb, 0))
+ 		return EBT_DROP;
+diff --git a/net/bridge/netfilter/ebt_ulog.c b/net/bridge/netfilter/ebt_ulog.c
+index 25ca646..bfedf12 100644
+--- a/net/bridge/netfilter/ebt_ulog.c
++++ b/net/bridge/netfilter/ebt_ulog.c
+@@ -247,13 +247,10 @@ static void ebt_log_packet(u_int8_t pf, unsigned int hooknum,
+ }
+ 
+ static unsigned int
+-ebt_ulog_tg(struct sk_buff *skb, const struct net_device *in,
+-	    const struct net_device *out, unsigned int hooknr,
+-	    const struct xt_target *target, const void *data)
++ebt_ulog_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+-	const struct ebt_ulog_info *uloginfo = data;
+-
+-	ebt_ulog_packet(hooknr, skb, in, out, uloginfo, NULL);
++	ebt_ulog_packet(par->hooknum, skb, par->in, par->out,
++	                par->targinfo, NULL);
+ 	return EBT_CONTINUE;
+ }
+ 
 diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 29d8061..5bb88eb 100644
+index 0320b52..a1156ba 100644
 --- a/net/bridge/netfilter/ebtables.c
 +++ b/net/bridge/netfilter/ebtables.c
-@@ -160,6 +160,7 @@ unsigned int ebt_do_table (unsigned int hook, struct sk_buff *skb,
+@@ -64,11 +64,13 @@ static struct xt_target ebt_standard_target = {
+ 	.targetsize = sizeof(int),
+ };
+ 
+-static inline int ebt_do_watcher (struct ebt_entry_watcher *w,
+-   struct sk_buff *skb, unsigned int hooknr, const struct net_device *in,
+-   const struct net_device *out)
++static inline int
++ebt_do_watcher(const struct ebt_entry_watcher *w, struct sk_buff *skb,
++	       struct xt_target_param *par)
+ {
+-	w->u.watcher->target(skb, in, out, hooknr, w->u.watcher, w->data);
++	par->target   = w->u.watcher;
++	par->targinfo = w->data;
++	w->u.watcher->target(skb, par);
+ 	/* watchers don't give a verdict */
+ 	return 0;
+ }
+@@ -156,10 +158,12 @@ unsigned int ebt_do_table (unsigned int hook, struct sk_buff *skb,
+ 	struct ebt_table_info *private;
+ 	bool hotdrop = false;
  	struct xt_match_param mtpar;
- 	struct xt_target_param tgpar;
++	struct xt_target_param tgpar;
  
-+	mtpar.family  = tgpar.family = NFPROTO_BRIDGE;
- 	mtpar.in      = tgpar.in  = in;
- 	mtpar.out     = tgpar.out = out;
+-	mtpar.in      = in;
+-	mtpar.out     = out;
++	mtpar.in      = tgpar.in  = in;
++	mtpar.out     = tgpar.out = out;
  	mtpar.hotdrop = &hotdrop;
-@@ -351,7 +352,7 @@ ebt_check_match(struct ebt_entry_match *m, struct xt_mtchk_param *par,
++	tgpar.hooknum = hook;
  
- 	par->match     = match;
- 	par->matchinfo = m->data;
--	ret = xt_check_match(par, NFPROTO_BRIDGE, m->match_size,
-+	ret = xt_check_match(par, m->match_size,
- 	      e->ethproto, e->invflags & EBT_IPROTO);
- 	if (ret < 0) {
- 		module_put(match->me);
-@@ -386,7 +387,7 @@ ebt_check_watcher(struct ebt_entry_watcher *w, struct xt_tgchk_param *par,
+ 	read_lock_bh(&table->lock);
+ 	private = table->private;
+@@ -193,17 +197,18 @@ unsigned int ebt_do_table (unsigned int hook, struct sk_buff *skb,
  
- 	par->target   = watcher;
- 	par->targinfo = w->data;
--	ret = xt_check_target(par, NFPROTO_BRIDGE, w->watcher_size,
-+	ret = xt_check_target(par, w->watcher_size,
- 	      e->ethproto, e->invflags & EBT_IPROTO);
- 	if (ret < 0) {
- 		module_put(watcher->me);
-@@ -572,6 +573,7 @@ ebt_cleanup_match(struct ebt_entry_match *m, unsigned int *i)
+ 		/* these should only watch: not modify, nor tell us
+ 		   what to do with the packet */
+-		EBT_WATCHER_ITERATE(point, ebt_do_watcher, skb, hook, in,
+-		   out);
++		EBT_WATCHER_ITERATE(point, ebt_do_watcher, skb, &tgpar);
  
- 	par.match     = m->u.match;
- 	par.matchinfo = m->data;
-+	par.family    = NFPROTO_BRIDGE;
- 	if (par.match->destroy != NULL)
- 		par.match->destroy(&par);
- 	module_put(par.match->me);
-@@ -588,6 +590,7 @@ ebt_cleanup_watcher(struct ebt_entry_watcher *w, unsigned int *i)
- 
- 	par.target   = w->u.watcher;
- 	par.targinfo = w->data;
-+	par.family   = NFPROTO_BRIDGE;
- 	if (par.target->destroy != NULL)
- 		par.target->destroy(&par);
- 	module_put(par.target->me);
-@@ -611,6 +614,7 @@ ebt_cleanup_entry(struct ebt_entry *e, unsigned int *cnt)
- 
- 	par.target   = t->u.target;
- 	par.targinfo = t->data;
-+	par.family   = NFPROTO_BRIDGE;
- 	if (par.target->destroy != NULL)
- 		par.target->destroy(&par);
- 	module_put(par.target->me);
-@@ -673,6 +677,7 @@ ebt_check_entry(struct ebt_entry *e, struct ebt_table_info *newinfo,
- 	mtpar.table     = tgpar.table     = name;
- 	mtpar.entryinfo = tgpar.entryinfo = e;
- 	mtpar.hook_mask = tgpar.hook_mask = hookmask;
-+	mtpar.family    = tgpar.family    = NFPROTO_BRIDGE;
- 	ret = EBT_MATCH_ITERATE(e, ebt_check_match, &mtpar, &i);
- 	if (ret != 0)
- 		goto cleanup_matches;
-@@ -715,7 +720,7 @@ ebt_check_entry(struct ebt_entry *e, struct ebt_table_info *newinfo,
- 
- 	tgpar.target   = target;
- 	tgpar.targinfo = t->data;
--	ret = xt_check_target(&tgpar, NFPROTO_BRIDGE, t->target_size,
-+	ret = xt_check_target(&tgpar, t->target_size,
- 	      e->ethproto, e->invflags & EBT_IPROTO);
- 	if (ret < 0) {
- 		module_put(target->me);
+ 		t = (struct ebt_entry_target *)
+ 		   (((char *)point) + point->target_offset);
+ 		/* standard target */
+ 		if (!t->u.target->target)
+ 			verdict = ((struct ebt_standard_target *)t)->verdict;
+-		else
+-			verdict = t->u.target->target(skb, in, out, hook,
+-				  t->u.target, t->data);
++		else {
++			tgpar.target   = t->u.target;
++			tgpar.targinfo = t->data;
++			verdict = t->u.target->target(skb, &tgpar);
++		}
+ 		if (verdict == EBT_ACCEPT) {
+ 			read_unlock_bh(&table->lock);
+ 			return NF_ACCEPT;
 diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 3bab783..8d70d29 100644
+index ae525a9..5b631ad 100644
 --- a/net/ipv4/netfilter/arp_tables.c
 +++ b/net/ipv4/netfilter/arp_tables.c
-@@ -246,6 +246,7 @@ unsigned int arpt_do_table(struct sk_buff *skb,
- 	tgpar.in      = in;
- 	tgpar.out     = out;
- 	tgpar.hooknum = hook;
-+	tgpar.family  = NFPROTO_ARP;
+@@ -200,15 +200,12 @@ static inline int arp_checkentry(const struct arpt_arp *arp)
+ 	return 1;
+ }
  
+-static unsigned int arpt_error(struct sk_buff *skb,
+-			       const struct net_device *in,
+-			       const struct net_device *out,
+-			       unsigned int hooknum,
+-			       const struct xt_target *target,
+-			       const void *targinfo)
++static unsigned int
++arpt_error(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+ 	if (net_ratelimit())
+-		printk("arp_tables: error: '%s'\n", (char *)targinfo);
++		printk("arp_tables: error: '%s'\n",
++		       (const char *)par->targinfo);
+ 
+ 	return NF_DROP;
+ }
+@@ -232,6 +229,7 @@ unsigned int arpt_do_table(struct sk_buff *skb,
+ 	const char *indev, *outdev;
+ 	void *table_base;
+ 	const struct xt_table_info *private;
++	struct xt_target_param tgpar;
+ 
+ 	if (!pskb_may_pull(skb, arp_hdr_len(skb->dev)))
+ 		return NF_DROP;
+@@ -245,6 +243,10 @@ unsigned int arpt_do_table(struct sk_buff *skb,
+ 	e = get_entry(table_base, private->hook_entry[hook]);
+ 	back = get_entry(table_base, private->underflow[hook]);
+ 
++	tgpar.in      = in;
++	tgpar.out     = out;
++	tgpar.hooknum = hook;
++
  	arp = arp_hdr(skb);
  	do {
-@@ -465,10 +466,10 @@ static inline int check_target(struct arpt_entry *e, const char *name)
- 		.target    = t->u.kernel.target,
- 		.targinfo  = t->data,
- 		.hook_mask = e->comefrom,
-+		.family    = NFPROTO_ARP,
- 	};
+ 		if (arp_packet_match(arp, skb->dev, indev, outdev, &e->arp)) {
+@@ -290,11 +292,10 @@ unsigned int arpt_do_table(struct sk_buff *skb,
+ 				/* Targets which reenter must return
+ 				 * abs. verdicts
+ 				 */
++				tgpar.target   = t->u.kernel.target;
++				tgpar.targinfo = t->data;
+ 				verdict = t->u.kernel.target->target(skb,
+-								     in, out,
+-								     hook,
+-								     t->u.kernel.target,
+-								     t->data);
++								     &tgpar);
  
--	ret = xt_check_target(&par, NFPROTO_ARP,
--	      t->u.target_size - sizeof(*t), 0, false);
-+	ret = xt_check_target(&par, t->u.target_size - sizeof(*t), 0, false);
- 	if (ret < 0) {
- 		duprintf("arp_tables: check failed for `%s'.\n",
- 			 t->u.kernel.target->name);
-@@ -566,6 +567,7 @@ static inline int cleanup_entry(struct arpt_entry *e, unsigned int *i)
- 	t = arpt_get_target(e);
- 	par.target   = t->u.kernel.target;
- 	par.targinfo = t->data;
-+	par.family   = NFPROTO_ARP;
- 	if (par.target->destroy != NULL)
- 		par.target->destroy(&par);
- 	module_put(par.target->me);
+ 				/* Target might have changed stuff. */
+ 				arp = arp_hdr(skb);
+diff --git a/net/ipv4/netfilter/arpt_mangle.c b/net/ipv4/netfilter/arpt_mangle.c
+index 3f9e4cc..0bf81b3 100644
+--- a/net/ipv4/netfilter/arpt_mangle.c
++++ b/net/ipv4/netfilter/arpt_mangle.c
+@@ -9,12 +9,9 @@ MODULE_AUTHOR("Bart De Schuymer <bdschuym@pandora.be>");
+ MODULE_DESCRIPTION("arptables arp payload mangle target");
+ 
+ static unsigned int
+-target(struct sk_buff *skb,
+-       const struct net_device *in, const struct net_device *out,
+-       unsigned int hooknum, const struct xt_target *target,
+-       const void *targinfo)
++target(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+-	const struct arpt_mangle *mangle = targinfo;
++	const struct arpt_mangle *mangle = par->targinfo;
+ 	const struct arphdr *arp;
+ 	unsigned char *arpptr;
+ 	int pln, hln;
 diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 50b9a6c..213fb27 100644
+index 12ad4d5..0f8ecf3 100644
 --- a/net/ipv4/netfilter/ip_tables.c
 +++ b/net/ipv4/netfilter/ip_tables.c
-@@ -348,6 +348,7 @@ ipt_do_table(struct sk_buff *skb,
+@@ -171,15 +171,11 @@ ip_checkentry(const struct ipt_ip *ip)
+ }
+ 
+ static unsigned int
+-ipt_error(struct sk_buff *skb,
+-	  const struct net_device *in,
+-	  const struct net_device *out,
+-	  unsigned int hooknum,
+-	  const struct xt_target *target,
+-	  const void *targinfo)
++ipt_error(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+ 	if (net_ratelimit())
+-		printk("ip_tables: error: `%s'\n", (char *)targinfo);
++		printk("ip_tables: error: `%s'\n",
++		       (const char *)par->targinfo);
+ 
+ 	return NF_DROP;
+ }
+@@ -334,6 +330,7 @@ ipt_do_table(struct sk_buff *skb,
+ 	struct ipt_entry *e, *back;
+ 	struct xt_table_info *private;
+ 	struct xt_match_param mtpar;
++	struct xt_target_param tgpar;
+ 
+ 	/* Initialization */
+ 	ip = ip_hdr(skb);
+@@ -349,8 +346,9 @@ ipt_do_table(struct sk_buff *skb,
+ 	mtpar.fragoff = ntohs(ip->frag_off) & IP_OFFSET;
+ 	mtpar.thoff   = ip_hdrlen(skb);
  	mtpar.hotdrop = &hotdrop;
- 	mtpar.in      = tgpar.in  = in;
- 	mtpar.out     = tgpar.out = out;
-+	mtpar.family  = tgpar.family = NFPROTO_IPV4;
- 	tgpar.hooknum = hook;
+-	mtpar.in      = in;
+-	mtpar.out     = out;
++	mtpar.in      = tgpar.in  = in;
++	mtpar.out     = tgpar.out = out;
++	tgpar.hooknum = hook;
  
  	read_lock_bh(&table->lock);
-@@ -579,6 +580,7 @@ cleanup_match(struct ipt_entry_match *m, unsigned int *i)
+ 	IP_NF_ASSERT(table->valid_hooks & (1 << hook));
+@@ -414,16 +412,14 @@ ipt_do_table(struct sk_buff *skb,
+ 			} else {
+ 				/* Targets which reenter must return
+ 				   abs. verdicts */
++				tgpar.target   = t->u.kernel.target;
++				tgpar.targinfo = t->data;
+ #ifdef CONFIG_NETFILTER_DEBUG
+ 				((struct ipt_entry *)table_base)->comefrom
+ 					= 0xeeeeeeec;
+ #endif
+ 				verdict = t->u.kernel.target->target(skb,
+-								     in, out,
+-								     hook,
+-								     t->u.kernel.target,
+-								     t->data);
+-
++								     &tgpar);
+ #ifdef CONFIG_NETFILTER_DEBUG
+ 				if (((struct ipt_entry *)table_base)->comefrom
+ 				    != 0xeeeeeeec
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+index 63faddc..67e8aa8 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -281,11 +281,9 @@ clusterip_responsible(const struct clusterip_config *config, u_int32_t hash)
+  ***********************************************************************/
  
- 	par.match     = m->u.kernel.match;
- 	par.matchinfo = m->data;
-+	par.family    = NFPROTO_IPV4;
- 	if (par.match->destroy != NULL)
- 		par.match->destroy(&par);
- 	module_put(par.match->me);
-@@ -616,7 +618,7 @@ check_match(struct ipt_entry_match *m, struct xt_mtchk_param *par,
- 	par->match     = m->u.kernel.match;
- 	par->matchinfo = m->data;
+ static unsigned int
+-clusterip_tg(struct sk_buff *skb, const struct net_device *in,
+-             const struct net_device *out, unsigned int hooknum,
+-             const struct xt_target *target, const void *targinfo)
++clusterip_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+-	const struct ipt_clusterip_tgt_info *cipinfo = targinfo;
++	const struct ipt_clusterip_tgt_info *cipinfo = par->targinfo;
+ 	struct nf_conn *ct;
+ 	enum ip_conntrack_info ctinfo;
+ 	u_int32_t hash;
+diff --git a/net/ipv4/netfilter/ipt_ECN.c b/net/ipv4/netfilter/ipt_ECN.c
+index aee2364..e37f181 100644
+--- a/net/ipv4/netfilter/ipt_ECN.c
++++ b/net/ipv4/netfilter/ipt_ECN.c
+@@ -77,11 +77,9 @@ set_ect_tcp(struct sk_buff *skb, const struct ipt_ECN_info *einfo)
+ }
  
--	ret = xt_check_match(par, NFPROTO_IPV4, m->u.match_size - sizeof(*m),
-+	ret = xt_check_match(par, m->u.match_size - sizeof(*m),
- 	      ip->proto, ip->invflags & IPT_INV_PROTO);
- 	if (ret < 0) {
- 		duprintf("ip_tables: check failed for `%s'.\n",
-@@ -662,10 +664,11 @@ static int check_target(struct ipt_entry *e, const char *name)
- 		.target    = t->u.kernel.target,
- 		.targinfo  = t->data,
- 		.hook_mask = e->comefrom,
-+		.family    = NFPROTO_IPV4,
- 	};
- 	int ret;
+ static unsigned int
+-ecn_tg(struct sk_buff *skb, const struct net_device *in,
+-       const struct net_device *out, unsigned int hooknum,
+-       const struct xt_target *target, const void *targinfo)
++ecn_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+-	const struct ipt_ECN_info *einfo = targinfo;
++	const struct ipt_ECN_info *einfo = par->targinfo;
  
--	ret = xt_check_target(&par, NFPROTO_IPV4, t->u.target_size - sizeof(*t),
-+	ret = xt_check_target(&par, t->u.target_size - sizeof(*t),
- 	      e->ip.proto, e->ip.invflags & IPT_INV_PROTO);
- 	if (ret < 0) {
- 		duprintf("ip_tables: check failed for `%s'.\n",
-@@ -693,6 +696,7 @@ find_check_entry(struct ipt_entry *e, const char *name, unsigned int size,
- 	mtpar.table     = name;
- 	mtpar.entryinfo = &e->ip;
- 	mtpar.hook_mask = e->comefrom;
-+	mtpar.family    = NFPROTO_IPV4;
- 	ret = IPT_MATCH_ITERATE(e, find_check_match, &mtpar, &j);
- 	if (ret != 0)
- 		goto cleanup_matches;
-@@ -780,6 +784,7 @@ cleanup_entry(struct ipt_entry *e, unsigned int *i)
+ 	if (einfo->operation & IPT_ECN_OP_SET_IP)
+ 		if (!set_ect_ip(skb, einfo))
+diff --git a/net/ipv4/netfilter/ipt_LOG.c b/net/ipv4/netfilter/ipt_LOG.c
+index 1c9785d..e9942ae 100644
+--- a/net/ipv4/netfilter/ipt_LOG.c
++++ b/net/ipv4/netfilter/ipt_LOG.c
+@@ -426,18 +426,16 @@ ipt_log_packet(u_int8_t pf,
+ }
  
- 	par.target   = t->u.kernel.target;
- 	par.targinfo = t->data;
-+	par.family   = NFPROTO_IPV4;
- 	if (par.target->destroy != NULL)
- 		par.target->destroy(&par);
- 	module_put(par.target->me);
-@@ -1659,6 +1664,7 @@ compat_check_entry(struct ipt_entry *e, const char *name,
- 	mtpar.table     = name;
- 	mtpar.entryinfo = &e->ip;
- 	mtpar.hook_mask = e->comefrom;
-+	mtpar.family    = NFPROTO_IPV4;
- 	ret = IPT_MATCH_ITERATE(e, check_match, &mtpar, &j);
- 	if (ret)
- 		goto cleanup_matches;
+ static unsigned int
+-log_tg(struct sk_buff *skb, const struct net_device *in,
+-       const struct net_device *out, unsigned int hooknum,
+-       const struct xt_target *target, const void *targinfo)
++log_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+-	const struct ipt_log_info *loginfo = targinfo;
++	const struct ipt_log_info *loginfo = par->targinfo;
+ 	struct nf_loginfo li;
+ 
+ 	li.type = NF_LOG_TYPE_LOG;
+ 	li.u.log.level = loginfo->level;
+ 	li.u.log.logflags = loginfo->logflags;
+ 
+-	ipt_log_packet(NFPROTO_IPV4, hooknum, skb, in, out, &li,
++	ipt_log_packet(NFPROTO_IPV4, par->hooknum, skb, par->in, par->out, &li,
+ 		       loginfo->prefix);
+ 	return XT_CONTINUE;
+ }
+diff --git a/net/ipv4/netfilter/ipt_MASQUERADE.c b/net/ipv4/netfilter/ipt_MASQUERADE.c
+index 65c811b..e0d9d49 100644
+--- a/net/ipv4/netfilter/ipt_MASQUERADE.c
++++ b/net/ipv4/netfilter/ipt_MASQUERADE.c
+@@ -50,9 +50,7 @@ masquerade_tg_check(const char *tablename, const void *e,
+ }
+ 
+ static unsigned int
+-masquerade_tg(struct sk_buff *skb, const struct net_device *in,
+-              const struct net_device *out, unsigned int hooknum,
+-              const struct xt_target *target, const void *targinfo)
++masquerade_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+ 	struct nf_conn *ct;
+ 	struct nf_conn_nat *nat;
+@@ -62,7 +60,7 @@ masquerade_tg(struct sk_buff *skb, const struct net_device *in,
+ 	const struct rtable *rt;
+ 	__be32 newsrc;
+ 
+-	NF_CT_ASSERT(hooknum == NF_INET_POST_ROUTING);
++	NF_CT_ASSERT(par->hooknum == NF_INET_POST_ROUTING);
+ 
+ 	ct = nf_ct_get(skb, &ctinfo);
+ 	nat = nfct_nat(ct);
+@@ -76,16 +74,16 @@ masquerade_tg(struct sk_buff *skb, const struct net_device *in,
+ 	if (ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u3.ip == 0)
+ 		return NF_ACCEPT;
+ 
+-	mr = targinfo;
++	mr = par->targinfo;
+ 	rt = skb->rtable;
+-	newsrc = inet_select_addr(out, rt->rt_gateway, RT_SCOPE_UNIVERSE);
++	newsrc = inet_select_addr(par->out, rt->rt_gateway, RT_SCOPE_UNIVERSE);
+ 	if (!newsrc) {
+-		printk("MASQUERADE: %s ate my IP address\n", out->name);
++		printk("MASQUERADE: %s ate my IP address\n", par->out->name);
+ 		return NF_DROP;
+ 	}
+ 
+ 	write_lock_bh(&masq_lock);
+-	nat->masq_index = out->ifindex;
++	nat->masq_index = par->out->ifindex;
+ 	write_unlock_bh(&masq_lock);
+ 
+ 	/* Transfer from original range. */
+diff --git a/net/ipv4/netfilter/ipt_NETMAP.c b/net/ipv4/netfilter/ipt_NETMAP.c
+index f281500..cf18f23 100644
+--- a/net/ipv4/netfilter/ipt_NETMAP.c
++++ b/net/ipv4/netfilter/ipt_NETMAP.c
+@@ -41,24 +41,23 @@ netmap_tg_check(const char *tablename, const void *e,
+ }
+ 
+ static unsigned int
+-netmap_tg(struct sk_buff *skb, const struct net_device *in,
+-          const struct net_device *out, unsigned int hooknum,
+-          const struct xt_target *target, const void *targinfo)
++netmap_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+ 	struct nf_conn *ct;
+ 	enum ip_conntrack_info ctinfo;
+ 	__be32 new_ip, netmask;
+-	const struct nf_nat_multi_range_compat *mr = targinfo;
++	const struct nf_nat_multi_range_compat *mr = par->targinfo;
+ 	struct nf_nat_range newrange;
+ 
+-	NF_CT_ASSERT(hooknum == NF_INET_PRE_ROUTING
+-		     || hooknum == NF_INET_POST_ROUTING
+-		     || hooknum == NF_INET_LOCAL_OUT);
++	NF_CT_ASSERT(par->hooknum == NF_INET_PRE_ROUTING ||
++		     par->hooknum == NF_INET_POST_ROUTING ||
++		     par->hooknum == NF_INET_LOCAL_OUT);
+ 	ct = nf_ct_get(skb, &ctinfo);
+ 
+ 	netmask = ~(mr->range[0].min_ip ^ mr->range[0].max_ip);
+ 
+-	if (hooknum == NF_INET_PRE_ROUTING || hooknum == NF_INET_LOCAL_OUT)
++	if (par->hooknum == NF_INET_PRE_ROUTING ||
++	    par->hooknum == NF_INET_LOCAL_OUT)
+ 		new_ip = ip_hdr(skb)->daddr & ~netmask;
+ 	else
+ 		new_ip = ip_hdr(skb)->saddr & ~netmask;
+@@ -70,7 +69,7 @@ netmap_tg(struct sk_buff *skb, const struct net_device *in,
+ 		  mr->range[0].min, mr->range[0].max });
+ 
+ 	/* Hand modified range to generic setup. */
+-	return nf_nat_setup_info(ct, &newrange, HOOK2MANIP(hooknum));
++	return nf_nat_setup_info(ct, &newrange, HOOK2MANIP(par->hooknum));
+ }
+ 
+ static struct xt_target netmap_tg_reg __read_mostly = {
+diff --git a/net/ipv4/netfilter/ipt_REDIRECT.c b/net/ipv4/netfilter/ipt_REDIRECT.c
+index ef49610..23adb09 100644
+--- a/net/ipv4/netfilter/ipt_REDIRECT.c
++++ b/net/ipv4/netfilter/ipt_REDIRECT.c
+@@ -45,24 +45,22 @@ redirect_tg_check(const char *tablename, const void *e,
+ }
+ 
+ static unsigned int
+-redirect_tg(struct sk_buff *skb, const struct net_device *in,
+-            const struct net_device *out, unsigned int hooknum,
+-            const struct xt_target *target, const void *targinfo)
++redirect_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+ 	struct nf_conn *ct;
+ 	enum ip_conntrack_info ctinfo;
+ 	__be32 newdst;
+-	const struct nf_nat_multi_range_compat *mr = targinfo;
++	const struct nf_nat_multi_range_compat *mr = par->targinfo;
+ 	struct nf_nat_range newrange;
+ 
+-	NF_CT_ASSERT(hooknum == NF_INET_PRE_ROUTING
+-		     || hooknum == NF_INET_LOCAL_OUT);
++	NF_CT_ASSERT(par->hooknum == NF_INET_PRE_ROUTING ||
++		     par->hooknum == NF_INET_LOCAL_OUT);
+ 
+ 	ct = nf_ct_get(skb, &ctinfo);
+ 	NF_CT_ASSERT(ct && (ctinfo == IP_CT_NEW || ctinfo == IP_CT_RELATED));
+ 
+ 	/* Local packets: make them go to loopback */
+-	if (hooknum == NF_INET_LOCAL_OUT)
++	if (par->hooknum == NF_INET_LOCAL_OUT)
+ 		newdst = htonl(0x7F000001);
+ 	else {
+ 		struct in_device *indev;
+diff --git a/net/ipv4/netfilter/ipt_REJECT.c b/net/ipv4/netfilter/ipt_REJECT.c
+index 9f5da0c..b36071b 100644
+--- a/net/ipv4/netfilter/ipt_REJECT.c
++++ b/net/ipv4/netfilter/ipt_REJECT.c
+@@ -136,11 +136,9 @@ static inline void send_unreach(struct sk_buff *skb_in, int code)
+ }
+ 
+ static unsigned int
+-reject_tg(struct sk_buff *skb, const struct net_device *in,
+-          const struct net_device *out, unsigned int hooknum,
+-          const struct xt_target *target, const void *targinfo)
++reject_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+-	const struct ipt_reject_info *reject = targinfo;
++	const struct ipt_reject_info *reject = par->targinfo;
+ 
+ 	/* WARNING: This code causes reentry within iptables.
+ 	   This means that the iptables jump stack is now crap.  We
+@@ -168,7 +166,7 @@ reject_tg(struct sk_buff *skb, const struct net_device *in,
+ 		send_unreach(skb, ICMP_PKT_FILTERED);
+ 		break;
+ 	case IPT_TCP_RESET:
+-		send_reset(skb, hooknum);
++		send_reset(skb, par->hooknum);
+ 	case IPT_ICMP_ECHOREPLY:
+ 		/* Doesn't happen. */
+ 		break;
+diff --git a/net/ipv4/netfilter/ipt_TTL.c b/net/ipv4/netfilter/ipt_TTL.c
+index 7d01d42..05cbfd2 100644
+--- a/net/ipv4/netfilter/ipt_TTL.c
++++ b/net/ipv4/netfilter/ipt_TTL.c
+@@ -20,12 +20,10 @@ MODULE_DESCRIPTION("Xtables: IPv4 TTL field modification target");
+ MODULE_LICENSE("GPL");
+ 
+ static unsigned int
+-ttl_tg(struct sk_buff *skb, const struct net_device *in,
+-       const struct net_device *out, unsigned int hooknum,
+-       const struct xt_target *target, const void *targinfo)
++ttl_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+ 	struct iphdr *iph;
+-	const struct ipt_TTL_info *info = targinfo;
++	const struct ipt_TTL_info *info = par->targinfo;
+ 	int new_ttl;
+ 
+ 	if (!skb_make_writable(skb, skb->len))
+diff --git a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
+index 9065e4a..46c0df0 100644
+--- a/net/ipv4/netfilter/ipt_ULOG.c
++++ b/net/ipv4/netfilter/ipt_ULOG.c
+@@ -281,14 +281,10 @@ alloc_failure:
+ }
+ 
+ static unsigned int
+-ulog_tg(struct sk_buff *skb, const struct net_device *in,
+-        const struct net_device *out, unsigned int hooknum,
+-        const struct xt_target *target, const void *targinfo)
++ulog_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+-	struct ipt_ulog_info *loginfo = (struct ipt_ulog_info *) targinfo;
+-
+-	ipt_ulog_packet(hooknum, skb, in, out, loginfo, NULL);
+-
++	ipt_ulog_packet(par->hooknum, skb, par->in, par->out,
++	                par->targinfo, NULL);
+ 	return XT_CONTINUE;
+ }
+ 
+diff --git a/net/ipv4/netfilter/nf_nat_rule.c b/net/ipv4/netfilter/nf_nat_rule.c
+index f929352..83170ff 100644
+--- a/net/ipv4/netfilter/nf_nat_rule.c
++++ b/net/ipv4/netfilter/nf_nat_rule.c
+@@ -67,25 +67,21 @@ static struct xt_table nat_table = {
+ };
+ 
+ /* Source NAT */
+-static unsigned int ipt_snat_target(struct sk_buff *skb,
+-				    const struct net_device *in,
+-				    const struct net_device *out,
+-				    unsigned int hooknum,
+-				    const struct xt_target *target,
+-				    const void *targinfo)
++static unsigned int
++ipt_snat_target(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+ 	struct nf_conn *ct;
+ 	enum ip_conntrack_info ctinfo;
+-	const struct nf_nat_multi_range_compat *mr = targinfo;
++	const struct nf_nat_multi_range_compat *mr = par->targinfo;
+ 
+-	NF_CT_ASSERT(hooknum == NF_INET_POST_ROUTING);
++	NF_CT_ASSERT(par->hooknum == NF_INET_POST_ROUTING);
+ 
+ 	ct = nf_ct_get(skb, &ctinfo);
+ 
+ 	/* Connection must be valid and new. */
+ 	NF_CT_ASSERT(ct && (ctinfo == IP_CT_NEW || ctinfo == IP_CT_RELATED ||
+ 			    ctinfo == IP_CT_RELATED + IP_CT_IS_REPLY));
+-	NF_CT_ASSERT(out);
++	NF_CT_ASSERT(par->out != NULL);
+ 
+ 	return nf_nat_setup_info(ct, &mr->range[0], IP_NAT_MANIP_SRC);
+ }
+@@ -109,28 +105,24 @@ static void warn_if_extra_mangle(struct net *net, __be32 dstip, __be32 srcip)
+ 	ip_rt_put(rt);
+ }
+ 
+-static unsigned int ipt_dnat_target(struct sk_buff *skb,
+-				    const struct net_device *in,
+-				    const struct net_device *out,
+-				    unsigned int hooknum,
+-				    const struct xt_target *target,
+-				    const void *targinfo)
++static unsigned int
++ipt_dnat_target(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+ 	struct nf_conn *ct;
+ 	enum ip_conntrack_info ctinfo;
+-	const struct nf_nat_multi_range_compat *mr = targinfo;
++	const struct nf_nat_multi_range_compat *mr = par->targinfo;
+ 
+-	NF_CT_ASSERT(hooknum == NF_INET_PRE_ROUTING ||
+-		     hooknum == NF_INET_LOCAL_OUT);
++	NF_CT_ASSERT(par->hooknum == NF_INET_PRE_ROUTING ||
++		     par->hooknum == NF_INET_LOCAL_OUT);
+ 
+ 	ct = nf_ct_get(skb, &ctinfo);
+ 
+ 	/* Connection must be valid and new. */
+ 	NF_CT_ASSERT(ct && (ctinfo == IP_CT_NEW || ctinfo == IP_CT_RELATED));
+ 
+-	if (hooknum == NF_INET_LOCAL_OUT &&
++	if (par->hooknum == NF_INET_LOCAL_OUT &&
+ 	    mr->range[0].flags & IP_NAT_RANGE_MAP_IPS)
+-		warn_if_extra_mangle(dev_net(out), ip_hdr(skb)->daddr,
++		warn_if_extra_mangle(dev_net(par->out), ip_hdr(skb)->daddr,
+ 				     mr->range[0].min_ip);
+ 
+ 	return nf_nat_setup_info(ct, &mr->range[0], IP_NAT_MANIP_DST);
 diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index d934a69..a33485d 100644
+index 891358e..ee0986c 100644
 --- a/net/ipv6/netfilter/ip6_tables.c
 +++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -370,6 +370,7 @@ ip6t_do_table(struct sk_buff *skb,
+@@ -200,15 +200,11 @@ ip6_checkentry(const struct ip6t_ip6 *ipv6)
+ }
+ 
+ static unsigned int
+-ip6t_error(struct sk_buff *skb,
+-	  const struct net_device *in,
+-	  const struct net_device *out,
+-	  unsigned int hooknum,
+-	  const struct xt_target *target,
+-	  const void *targinfo)
++ip6t_error(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+ 	if (net_ratelimit())
+-		printk("ip6_tables: error: `%s'\n", (char *)targinfo);
++		printk("ip6_tables: error: `%s'\n",
++		       (const char *)par->targinfo);
+ 
+ 	return NF_DROP;
+ }
+@@ -360,6 +356,7 @@ ip6t_do_table(struct sk_buff *skb,
+ 	struct ip6t_entry *e, *back;
+ 	struct xt_table_info *private;
+ 	struct xt_match_param mtpar;
++	struct xt_target_param tgpar;
+ 
+ 	/* Initialization */
+ 	indev = in ? in->name : nulldevname;
+@@ -371,8 +368,9 @@ ip6t_do_table(struct sk_buff *skb,
+ 	 * rule is also a fragment-specific rule, non-fragments won't
+ 	 * match it. */
  	mtpar.hotdrop = &hotdrop;
- 	mtpar.in      = tgpar.in  = in;
- 	mtpar.out     = tgpar.out = out;
-+	mtpar.family  = tgpar.family = NFPROTO_IPV6;
- 	tgpar.hooknum = hook;
+-	mtpar.in      = in;
+-	mtpar.out     = out;
++	mtpar.in      = tgpar.in  = in;
++	mtpar.out     = tgpar.out = out;
++	tgpar.hooknum = hook;
  
  	read_lock_bh(&table->lock);
-@@ -604,6 +605,7 @@ cleanup_match(struct ip6t_entry_match *m, unsigned int *i)
+ 	IP_NF_ASSERT(table->valid_hooks & (1 << hook));
+@@ -438,15 +436,15 @@ ip6t_do_table(struct sk_buff *skb,
+ 			} else {
+ 				/* Targets which reenter must return
+ 				   abs. verdicts */
++				tgpar.target   = t->u.kernel.target;
++				tgpar.targinfo = t->data;
++
+ #ifdef CONFIG_NETFILTER_DEBUG
+ 				((struct ip6t_entry *)table_base)->comefrom
+ 					= 0xeeeeeeec;
+ #endif
+ 				verdict = t->u.kernel.target->target(skb,
+-								     in, out,
+-								     hook,
+-								     t->u.kernel.target,
+-								     t->data);
++								     &tgpar);
  
- 	par.match     = m->u.kernel.match;
- 	par.matchinfo = m->data;
-+	par.family    = NFPROTO_IPV6;
- 	if (par.match->destroy != NULL)
- 		par.match->destroy(&par);
- 	module_put(par.match->me);
-@@ -640,7 +642,7 @@ static int check_match(struct ip6t_entry_match *m, struct xt_mtchk_param *par,
- 	par->match     = m->u.kernel.match;
- 	par->matchinfo = m->data;
+ #ifdef CONFIG_NETFILTER_DEBUG
+ 				if (((struct ip6t_entry *)table_base)->comefrom
+diff --git a/net/ipv6/netfilter/ip6t_HL.c b/net/ipv6/netfilter/ip6t_HL.c
+index 7eebd35..ac759a5 100644
+--- a/net/ipv6/netfilter/ip6t_HL.c
++++ b/net/ipv6/netfilter/ip6t_HL.c
+@@ -19,12 +19,10 @@ MODULE_DESCRIPTION("Xtables: IPv6 Hop Limit field modification target");
+ MODULE_LICENSE("GPL");
  
--	ret = xt_check_match(par, NFPROTO_IPV6, m->u.match_size - sizeof(*m),
-+	ret = xt_check_match(par, m->u.match_size - sizeof(*m),
- 			     ipv6->proto, ipv6->invflags & IP6T_INV_PROTO);
- 	if (ret < 0) {
- 		duprintf("ip_tables: check failed for `%s'.\n",
-@@ -686,11 +688,12 @@ static int check_target(struct ip6t_entry *e, const char *name)
- 		.target    = t->u.kernel.target,
- 		.targinfo  = t->data,
- 		.hook_mask = e->comefrom,
-+		.family    = NFPROTO_IPV6,
- 	};
+ static unsigned int
+-hl_tg6(struct sk_buff *skb, const struct net_device *in,
+-       const struct net_device *out, unsigned int hooknum,
+-       const struct xt_target *target, const void *targinfo)
++hl_tg6(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+ 	struct ipv6hdr *ip6h;
+-	const struct ip6t_HL_info *info = targinfo;
++	const struct ip6t_HL_info *info = par->targinfo;
+ 	int new_hl;
+ 
+ 	if (!skb_make_writable(skb, skb->len))
+diff --git a/net/ipv6/netfilter/ip6t_LOG.c b/net/ipv6/netfilter/ip6t_LOG.c
+index fd148f3..a31d3ec 100644
+--- a/net/ipv6/netfilter/ip6t_LOG.c
++++ b/net/ipv6/netfilter/ip6t_LOG.c
+@@ -438,18 +438,16 @@ ip6t_log_packet(u_int8_t pf,
+ }
+ 
+ static unsigned int
+-log_tg6(struct sk_buff *skb, const struct net_device *in,
+-        const struct net_device *out, unsigned int hooknum,
+-        const struct xt_target *target, const void *targinfo)
++log_tg6(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+-	const struct ip6t_log_info *loginfo = targinfo;
++	const struct ip6t_log_info *loginfo = par->targinfo;
+ 	struct nf_loginfo li;
+ 
+ 	li.type = NF_LOG_TYPE_LOG;
+ 	li.u.log.level = loginfo->level;
+ 	li.u.log.logflags = loginfo->logflags;
+ 
+-	ip6t_log_packet(NFPROTO_IPV6, hooknum, skb, in, out,
++	ip6t_log_packet(NFPROTO_IPV6, par->hooknum, skb, par->in, par->out,
+ 			&li, loginfo->prefix);
+ 	return XT_CONTINUE;
+ }
+diff --git a/net/ipv6/netfilter/ip6t_REJECT.c b/net/ipv6/netfilter/ip6t_REJECT.c
+index f1a9fce..1d5f3a7 100644
+--- a/net/ipv6/netfilter/ip6t_REJECT.c
++++ b/net/ipv6/netfilter/ip6t_REJECT.c
+@@ -173,12 +173,10 @@ send_unreach(struct net *net, struct sk_buff *skb_in, unsigned char code,
+ }
+ 
+ static unsigned int
+-reject_tg6(struct sk_buff *skb, const struct net_device *in,
+-           const struct net_device *out, unsigned int hooknum,
+-           const struct xt_target *target, const void *targinfo)
++reject_tg6(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+-	const struct ip6t_reject_info *reject = targinfo;
+-	struct net *net = dev_net(in ? in : out);
++	const struct ip6t_reject_info *reject = par->targinfo;
++	struct net *net = dev_net((par->in != NULL) ? par->in : par->out);
+ 
+ 	pr_debug("%s: medium point\n", __func__);
+ 	/* WARNING: This code causes reentry within ip6tables.
+@@ -186,19 +184,19 @@ reject_tg6(struct sk_buff *skb, const struct net_device *in,
+ 	   must return an absolute verdict. --RR */
+ 	switch (reject->with) {
+ 	case IP6T_ICMP6_NO_ROUTE:
+-		send_unreach(net, skb, ICMPV6_NOROUTE, hooknum);
++		send_unreach(net, skb, ICMPV6_NOROUTE, par->hooknum);
+ 		break;
+ 	case IP6T_ICMP6_ADM_PROHIBITED:
+-		send_unreach(net, skb, ICMPV6_ADM_PROHIBITED, hooknum);
++		send_unreach(net, skb, ICMPV6_ADM_PROHIBITED, par->hooknum);
+ 		break;
+ 	case IP6T_ICMP6_NOT_NEIGHBOUR:
+-		send_unreach(net, skb, ICMPV6_NOT_NEIGHBOUR, hooknum);
++		send_unreach(net, skb, ICMPV6_NOT_NEIGHBOUR, par->hooknum);
+ 		break;
+ 	case IP6T_ICMP6_ADDR_UNREACH:
+-		send_unreach(net, skb, ICMPV6_ADDR_UNREACH, hooknum);
++		send_unreach(net, skb, ICMPV6_ADDR_UNREACH, par->hooknum);
+ 		break;
+ 	case IP6T_ICMP6_PORT_UNREACH:
+-		send_unreach(net, skb, ICMPV6_PORT_UNREACH, hooknum);
++		send_unreach(net, skb, ICMPV6_PORT_UNREACH, par->hooknum);
+ 		break;
+ 	case IP6T_ICMP6_ECHOREPLY:
+ 		/* Do nothing */
+diff --git a/net/netfilter/xt_CLASSIFY.c b/net/netfilter/xt_CLASSIFY.c
+index 8cffa29..011bc80 100644
+--- a/net/netfilter/xt_CLASSIFY.c
++++ b/net/netfilter/xt_CLASSIFY.c
+@@ -27,11 +27,9 @@ MODULE_ALIAS("ipt_CLASSIFY");
+ MODULE_ALIAS("ip6t_CLASSIFY");
+ 
+ static unsigned int
+-classify_tg(struct sk_buff *skb, const struct net_device *in,
+-            const struct net_device *out, unsigned int hooknum,
+-            const struct xt_target *target, const void *targinfo)
++classify_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+-	const struct xt_classify_target_info *clinfo = targinfo;
++	const struct xt_classify_target_info *clinfo = par->targinfo;
+ 
+ 	skb->priority = clinfo->priority;
+ 	return XT_CONTINUE;
+diff --git a/net/netfilter/xt_CONNMARK.c b/net/netfilter/xt_CONNMARK.c
+index e1415c3..95ed267 100644
+--- a/net/netfilter/xt_CONNMARK.c
++++ b/net/netfilter/xt_CONNMARK.c
+@@ -36,11 +36,9 @@ MODULE_ALIAS("ip6t_CONNMARK");
+ #include <net/netfilter/nf_conntrack_ecache.h>
+ 
+ static unsigned int
+-connmark_tg_v0(struct sk_buff *skb, const struct net_device *in,
+-               const struct net_device *out, unsigned int hooknum,
+-               const struct xt_target *target, const void *targinfo)
++connmark_tg_v0(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+-	const struct xt_connmark_target_info *markinfo = targinfo;
++	const struct xt_connmark_target_info *markinfo = par->targinfo;
+ 	struct nf_conn *ct;
+ 	enum ip_conntrack_info ctinfo;
+ 	u_int32_t diff;
+@@ -77,11 +75,9 @@ connmark_tg_v0(struct sk_buff *skb, const struct net_device *in,
+ }
+ 
+ static unsigned int
+-connmark_tg(struct sk_buff *skb, const struct net_device *in,
+-            const struct net_device *out, unsigned int hooknum,
+-            const struct xt_target *target, const void *targinfo)
++connmark_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+-	const struct xt_connmark_tginfo1 *info = targinfo;
++	const struct xt_connmark_tginfo1 *info = par->targinfo;
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nf_conn *ct;
+ 	u_int32_t newmark;
+diff --git a/net/netfilter/xt_CONNSECMARK.c b/net/netfilter/xt_CONNSECMARK.c
+index 5f221c3..2211a2c 100644
+--- a/net/netfilter/xt_CONNSECMARK.c
++++ b/net/netfilter/xt_CONNSECMARK.c
+@@ -65,11 +65,9 @@ static void secmark_restore(struct sk_buff *skb)
+ }
+ 
+ static unsigned int
+-connsecmark_tg(struct sk_buff *skb, const struct net_device *in,
+-               const struct net_device *out, unsigned int hooknum,
+-               const struct xt_target *target, const void *targinfo)
++connsecmark_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+-	const struct xt_connsecmark_target_info *info = targinfo;
++	const struct xt_connsecmark_target_info *info = par->targinfo;
+ 
+ 	switch (info->mode) {
+ 	case CONNSECMARK_SAVE:
+diff --git a/net/netfilter/xt_DSCP.c b/net/netfilter/xt_DSCP.c
+index f0b4958..c78e80a 100644
+--- a/net/netfilter/xt_DSCP.c
++++ b/net/netfilter/xt_DSCP.c
+@@ -29,11 +29,9 @@ MODULE_ALIAS("ipt_TOS");
+ MODULE_ALIAS("ip6t_TOS");
+ 
+ static unsigned int
+-dscp_tg(struct sk_buff *skb, const struct net_device *in,
+-        const struct net_device *out, unsigned int hooknum,
+-        const struct xt_target *target, const void *targinfo)
++dscp_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+-	const struct xt_DSCP_info *dinfo = targinfo;
++	const struct xt_DSCP_info *dinfo = par->targinfo;
+ 	u_int8_t dscp = ipv4_get_dsfield(ip_hdr(skb)) >> XT_DSCP_SHIFT;
+ 
+ 	if (dscp != dinfo->dscp) {
+@@ -48,11 +46,9 @@ dscp_tg(struct sk_buff *skb, const struct net_device *in,
+ }
+ 
+ static unsigned int
+-dscp_tg6(struct sk_buff *skb, const struct net_device *in,
+-         const struct net_device *out, unsigned int hooknum,
+-         const struct xt_target *target, const void *targinfo)
++dscp_tg6(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+-	const struct xt_DSCP_info *dinfo = targinfo;
++	const struct xt_DSCP_info *dinfo = par->targinfo;
+ 	u_int8_t dscp = ipv6_get_dsfield(ipv6_hdr(skb)) >> XT_DSCP_SHIFT;
+ 
+ 	if (dscp != dinfo->dscp) {
+@@ -80,11 +76,9 @@ dscp_tg_check(const char *tablename, const void *e_void,
+ }
+ 
+ static unsigned int
+-tos_tg_v0(struct sk_buff *skb, const struct net_device *in,
+-          const struct net_device *out, unsigned int hooknum,
+-          const struct xt_target *target, const void *targinfo)
++tos_tg_v0(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+-	const struct ipt_tos_target_info *info = targinfo;
++	const struct ipt_tos_target_info *info = par->targinfo;
+ 	struct iphdr *iph = ip_hdr(skb);
+ 	u_int8_t oldtos;
+ 
+@@ -119,11 +113,9 @@ tos_tg_check_v0(const char *tablename, const void *e_void,
+ }
+ 
+ static unsigned int
+-tos_tg(struct sk_buff *skb, const struct net_device *in,
+-       const struct net_device *out, unsigned int hooknum,
+-       const struct xt_target *target, const void *targinfo)
++tos_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+-	const struct xt_tos_target_info *info = targinfo;
++	const struct xt_tos_target_info *info = par->targinfo;
+ 	struct iphdr *iph = ip_hdr(skb);
+ 	u_int8_t orig, nv;
+ 
+@@ -141,11 +133,9 @@ tos_tg(struct sk_buff *skb, const struct net_device *in,
+ }
+ 
+ static unsigned int
+-tos_tg6(struct sk_buff *skb, const struct net_device *in,
+-        const struct net_device *out, unsigned int hooknum,
+-        const struct xt_target *target, const void *targinfo)
++tos_tg6(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+-	const struct xt_tos_target_info *info = targinfo;
++	const struct xt_tos_target_info *info = par->targinfo;
+ 	struct ipv6hdr *iph = ipv6_hdr(skb);
+ 	u_int8_t orig, nv;
+ 
+diff --git a/net/netfilter/xt_MARK.c b/net/netfilter/xt_MARK.c
+index c8ea7a8..27d03f3 100644
+--- a/net/netfilter/xt_MARK.c
++++ b/net/netfilter/xt_MARK.c
+@@ -25,22 +25,18 @@ MODULE_ALIAS("ipt_MARK");
+ MODULE_ALIAS("ip6t_MARK");
+ 
+ static unsigned int
+-mark_tg_v0(struct sk_buff *skb, const struct net_device *in,
+-           const struct net_device *out, unsigned int hooknum,
+-           const struct xt_target *target, const void *targinfo)
++mark_tg_v0(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+-	const struct xt_mark_target_info *markinfo = targinfo;
++	const struct xt_mark_target_info *markinfo = par->targinfo;
+ 
+ 	skb->mark = markinfo->mark;
+ 	return XT_CONTINUE;
+ }
+ 
+ static unsigned int
+-mark_tg_v1(struct sk_buff *skb, const struct net_device *in,
+-           const struct net_device *out, unsigned int hooknum,
+-           const struct xt_target *target, const void *targinfo)
++mark_tg_v1(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+-	const struct xt_mark_target_info_v1 *markinfo = targinfo;
++	const struct xt_mark_target_info_v1 *markinfo = par->targinfo;
+ 	int mark = 0;
+ 
+ 	switch (markinfo->mode) {
+@@ -62,11 +58,9 @@ mark_tg_v1(struct sk_buff *skb, const struct net_device *in,
+ }
+ 
+ static unsigned int
+-mark_tg(struct sk_buff *skb, const struct net_device *in,
+-        const struct net_device *out, unsigned int hooknum,
+-        const struct xt_target *target, const void *targinfo)
++mark_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+-	const struct xt_mark_tginfo2 *info = targinfo;
++	const struct xt_mark_tginfo2 *info = par->targinfo;
+ 
+ 	skb->mark = (skb->mark & ~info->mask) ^ info->mark;
+ 	return XT_CONTINUE;
+diff --git a/net/netfilter/xt_NFLOG.c b/net/netfilter/xt_NFLOG.c
+index 9b09552..3218ad6 100644
+--- a/net/netfilter/xt_NFLOG.c
++++ b/net/netfilter/xt_NFLOG.c
+@@ -21,11 +21,9 @@ MODULE_ALIAS("ipt_NFLOG");
+ MODULE_ALIAS("ip6t_NFLOG");
+ 
+ static unsigned int
+-nflog_tg(struct sk_buff *skb, const struct net_device *in,
+-         const struct net_device *out, unsigned int hooknum,
+-         const struct xt_target *target, const void *targinfo)
++nflog_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+-	const struct xt_nflog_info *info = targinfo;
++	const struct xt_nflog_info *info = par->targinfo;
+ 	struct nf_loginfo li;
+ 
+ 	li.type		     = NF_LOG_TYPE_ULOG;
+@@ -33,8 +31,8 @@ nflog_tg(struct sk_buff *skb, const struct net_device *in,
+ 	li.u.ulog.group	     = info->group;
+ 	li.u.ulog.qthreshold = info->threshold;
+ 
+-	nf_log_packet(target->family, hooknum, skb, in, out, &li,
+-		      "%s", info->prefix);
++	nf_log_packet(par->target->family, par->hooknum, skb, par->in,
++	              par->out, &li, "%s", info->prefix);
+ 	return XT_CONTINUE;
+ }
+ 
+diff --git a/net/netfilter/xt_NFQUEUE.c b/net/netfilter/xt_NFQUEUE.c
+index c03c2e8..2cc1fff 100644
+--- a/net/netfilter/xt_NFQUEUE.c
++++ b/net/netfilter/xt_NFQUEUE.c
+@@ -24,11 +24,9 @@ MODULE_ALIAS("ip6t_NFQUEUE");
+ MODULE_ALIAS("arpt_NFQUEUE");
+ 
+ static unsigned int
+-nfqueue_tg(struct sk_buff *skb, const struct net_device *in,
+-           const struct net_device *out, unsigned int hooknum,
+-           const struct xt_target *target, const void *targinfo)
++nfqueue_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+-	const struct xt_NFQ_info *tinfo = targinfo;
++	const struct xt_NFQ_info *tinfo = par->targinfo;
+ 
+ 	return NF_QUEUE_NR(tinfo->queuenum);
+ }
+diff --git a/net/netfilter/xt_NOTRACK.c b/net/netfilter/xt_NOTRACK.c
+index b9ee268..cc50295 100644
+--- a/net/netfilter/xt_NOTRACK.c
++++ b/net/netfilter/xt_NOTRACK.c
+@@ -13,9 +13,7 @@ MODULE_ALIAS("ipt_NOTRACK");
+ MODULE_ALIAS("ip6t_NOTRACK");
+ 
+ static unsigned int
+-notrack_tg(struct sk_buff *skb, const struct net_device *in,
+-           const struct net_device *out, unsigned int hooknum,
+-           const struct xt_target *target, const void *targinfo)
++notrack_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+ 	/* Previously seen (loopback)? Ignore. */
+ 	if (skb->nfct != NULL)
+diff --git a/net/netfilter/xt_RATEEST.c b/net/netfilter/xt_RATEEST.c
+index da7946e..92e3352 100644
+--- a/net/netfilter/xt_RATEEST.c
++++ b/net/netfilter/xt_RATEEST.c
+@@ -71,14 +71,9 @@ void xt_rateest_put(struct xt_rateest *est)
+ EXPORT_SYMBOL_GPL(xt_rateest_put);
+ 
+ static unsigned int
+-xt_rateest_tg(struct sk_buff *skb,
+-	      const struct net_device *in,
+-	      const struct net_device *out,
+-	      unsigned int hooknum,
+-	      const struct xt_target *target,
+-	      const void *targinfo)
++xt_rateest_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+-	const struct xt_rateest_target_info *info = targinfo;
++	const struct xt_rateest_target_info *info = par->targinfo;
+ 	struct gnet_stats_basic *stats = &info->est->bstats;
+ 
+ 	spin_lock_bh(&info->est->lock);
+diff --git a/net/netfilter/xt_SECMARK.c b/net/netfilter/xt_SECMARK.c
+index 2a2ab83..ad05214 100644
+--- a/net/netfilter/xt_SECMARK.c
++++ b/net/netfilter/xt_SECMARK.c
+@@ -29,12 +29,10 @@ MODULE_ALIAS("ip6t_SECMARK");
+ static u8 mode;
+ 
+ static unsigned int
+-secmark_tg(struct sk_buff *skb, const struct net_device *in,
+-           const struct net_device *out, unsigned int hooknum,
+-           const struct xt_target *target, const void *targinfo)
++secmark_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+ 	u32 secmark = 0;
+-	const struct xt_secmark_target_info *info = targinfo;
++	const struct xt_secmark_target_info *info = par->targinfo;
+ 
+ 	BUG_ON(info->mode != mode);
+ 
+diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
+index b868f99..e08762d 100644
+--- a/net/netfilter/xt_TCPMSS.c
++++ b/net/netfilter/xt_TCPMSS.c
+@@ -174,15 +174,13 @@ static u_int32_t tcpmss_reverse_mtu(const struct sk_buff *skb,
+ }
+ 
+ static unsigned int
+-tcpmss_tg4(struct sk_buff *skb, const struct net_device *in,
+-           const struct net_device *out, unsigned int hooknum,
+-           const struct xt_target *target, const void *targinfo)
++tcpmss_tg4(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+ 	struct iphdr *iph = ip_hdr(skb);
+ 	__be16 newlen;
  	int ret;
  
- 	t = ip6t_get_target(e);
--	ret = xt_check_target(&par, NFPROTO_IPV6, t->u.target_size - sizeof(*t),
-+	ret = xt_check_target(&par, t->u.target_size - sizeof(*t),
- 	      e->ipv6.proto, e->ipv6.invflags & IP6T_INV_PROTO);
- 	if (ret < 0) {
- 		duprintf("ip_tables: check failed for `%s'.\n",
-@@ -718,6 +721,7 @@ find_check_entry(struct ip6t_entry *e, const char *name, unsigned int size,
- 	mtpar.table     = name;
- 	mtpar.entryinfo = &e->ipv6;
- 	mtpar.hook_mask = e->comefrom;
-+	mtpar.family    = NFPROTO_IPV6;
- 	ret = IP6T_MATCH_ITERATE(e, find_check_match, &mtpar, &j);
- 	if (ret != 0)
- 		goto cleanup_matches;
-@@ -805,6 +809,7 @@ cleanup_entry(struct ip6t_entry *e, unsigned int *i)
+-	ret = tcpmss_mangle_packet(skb, targinfo,
++	ret = tcpmss_mangle_packet(skb, par->targinfo,
+ 				   tcpmss_reverse_mtu(skb, PF_INET),
+ 				   iph->ihl * 4,
+ 				   sizeof(*iph) + sizeof(struct tcphdr));
+@@ -199,9 +197,7 @@ tcpmss_tg4(struct sk_buff *skb, const struct net_device *in,
  
- 	par.target   = t->u.kernel.target;
- 	par.targinfo = t->data;
-+	par.family   = NFPROTO_IPV6;
- 	if (par.target->destroy != NULL)
- 		par.target->destroy(&par);
- 	module_put(par.target->me);
-@@ -1685,6 +1690,7 @@ static int compat_check_entry(struct ip6t_entry *e, const char *name,
- 	mtpar.table     = name;
- 	mtpar.entryinfo = &e->ipv6;
- 	mtpar.hook_mask = e->comefrom;
-+	mtpar.family    = NFPROTO_IPV6;
- 	ret = IP6T_MATCH_ITERATE(e, check_match, &mtpar, &j);
- 	if (ret)
- 		goto cleanup_matches;
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index f29513c..89837a4 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -321,7 +321,7 @@ int xt_find_revision(u8 af, const char *name, u8 revision, int target,
+ #if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
+ static unsigned int
+-tcpmss_tg6(struct sk_buff *skb, const struct net_device *in,
+-           const struct net_device *out, unsigned int hooknum,
+-           const struct xt_target *target, const void *targinfo)
++tcpmss_tg6(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+ 	struct ipv6hdr *ipv6h = ipv6_hdr(skb);
+ 	u8 nexthdr;
+@@ -212,7 +208,7 @@ tcpmss_tg6(struct sk_buff *skb, const struct net_device *in,
+ 	tcphoff = ipv6_skip_exthdr(skb, sizeof(*ipv6h), &nexthdr);
+ 	if (tcphoff < 0)
+ 		return NF_DROP;
+-	ret = tcpmss_mangle_packet(skb, targinfo,
++	ret = tcpmss_mangle_packet(skb, par->targinfo,
+ 				   tcpmss_reverse_mtu(skb, PF_INET6),
+ 				   tcphoff,
+ 				   sizeof(*ipv6h) + sizeof(struct tcphdr));
+diff --git a/net/netfilter/xt_TCPOPTSTRIP.c b/net/netfilter/xt_TCPOPTSTRIP.c
+index 2e0ae6c..9dd8c8e 100644
+--- a/net/netfilter/xt_TCPOPTSTRIP.c
++++ b/net/netfilter/xt_TCPOPTSTRIP.c
+@@ -75,19 +75,15 @@ tcpoptstrip_mangle_packet(struct sk_buff *skb,
  }
- EXPORT_SYMBOL_GPL(xt_find_revision);
  
--int xt_check_match(struct xt_mtchk_param *par, u_int8_t family,
-+int xt_check_match(struct xt_mtchk_param *par,
- 		   unsigned int size, u_int8_t proto, bool inv_proto)
+ static unsigned int
+-tcpoptstrip_tg4(struct sk_buff *skb, const struct net_device *in,
+-		const struct net_device *out, unsigned int hooknum,
+-		const struct xt_target *target, const void *targinfo)
++tcpoptstrip_tg4(struct sk_buff *skb, const struct xt_target_param *par)
  {
- 	if (XT_ALIGN(par->match->matchsize) != size &&
-@@ -331,26 +331,27 @@ int xt_check_match(struct xt_mtchk_param *par, u_int8_t family,
- 		 * because it uses a dynamic-size data set.
- 		 */
- 		printk("%s_tables: %s match: invalid size %Zu != %u\n",
--		       xt_prefix[family], par->match->name,
-+		       xt_prefix[par->family], par->match->name,
- 		       XT_ALIGN(par->match->matchsize), size);
- 		return -EINVAL;
- 	}
- 	if (par->match->table != NULL &&
- 	    strcmp(par->match->table, par->table) != 0) {
- 		printk("%s_tables: %s match: only valid in %s table, not %s\n",
--		       xt_prefix[family], par->match->name,
-+		       xt_prefix[par->family], par->match->name,
- 		       par->match->table, par->table);
- 		return -EINVAL;
- 	}
- 	if (par->match->hooks && (par->hook_mask & ~par->match->hooks) != 0) {
- 		printk("%s_tables: %s match: bad hook_mask %#x/%#x\n",
--		       xt_prefix[family], par->match->name,
-+		       xt_prefix[par->family], par->match->name,
- 		       par->hook_mask, par->match->hooks);
- 		return -EINVAL;
- 	}
- 	if (par->match->proto && (par->match->proto != proto || inv_proto)) {
- 		printk("%s_tables: %s match: only valid for protocol %u\n",
--		       xt_prefix[family], par->match->name, par->match->proto);
-+		       xt_prefix[par->family], par->match->name,
-+		       par->match->proto);
- 		return -EINVAL;
- 	}
- 	if (par->match->checkentry != NULL && !par->match->checkentry(par))
-@@ -471,31 +472,31 @@ int xt_compat_match_to_user(struct xt_entry_match *m, void __user **dstptr,
- EXPORT_SYMBOL_GPL(xt_compat_match_to_user);
- #endif /* CONFIG_COMPAT */
+-	return tcpoptstrip_mangle_packet(skb, targinfo, ip_hdrlen(skb),
++	return tcpoptstrip_mangle_packet(skb, par->targinfo, ip_hdrlen(skb),
+ 	       sizeof(struct iphdr) + sizeof(struct tcphdr));
+ }
  
--int xt_check_target(struct xt_tgchk_param *par, u_int8_t family,
-+int xt_check_target(struct xt_tgchk_param *par,
- 		    unsigned int size, u_int8_t proto, bool inv_proto)
+ #if defined(CONFIG_IP6_NF_MANGLE) || defined(CONFIG_IP6_NF_MANGLE_MODULE)
+ static unsigned int
+-tcpoptstrip_tg6(struct sk_buff *skb, const struct net_device *in,
+-		const struct net_device *out, unsigned int hooknum,
+-		const struct xt_target *target, const void *targinfo)
++tcpoptstrip_tg6(struct sk_buff *skb, const struct xt_target_param *par)
  {
- 	if (XT_ALIGN(par->target->targetsize) != size) {
- 		printk("%s_tables: %s target: invalid size %Zu != %u\n",
--		       xt_prefix[family], par->target->name,
-+		       xt_prefix[par->family], par->target->name,
- 		       XT_ALIGN(par->target->targetsize), size);
- 		return -EINVAL;
- 	}
- 	if (par->target->table != NULL &&
- 	    strcmp(par->target->table, par->table) != 0) {
- 		printk("%s_tables: %s target: only valid in %s table, not %s\n",
--		       xt_prefix[family], par->target->name,
-+		       xt_prefix[par->family], par->target->name,
- 		       par->target->table, par->table);
- 		return -EINVAL;
- 	}
- 	if (par->target->hooks && (par->hook_mask & ~par->target->hooks) != 0) {
- 		printk("%s_tables: %s target: bad hook_mask %#x/%#x\n",
--		       xt_prefix[family], par->target->name, par->hook_mask,
--		       par->target->hooks);
-+		       xt_prefix[par->family], par->target->name,
-+		       par->hook_mask, par->target->hooks);
- 		return -EINVAL;
- 	}
- 	if (par->target->proto && (par->target->proto != proto || inv_proto)) {
- 		printk("%s_tables: %s target: only valid for protocol %u\n",
--		       xt_prefix[family], par->target->name,
-+		       xt_prefix[par->family], par->target->name,
- 		       par->target->proto);
- 		return -EINVAL;
- 	}
+ 	struct ipv6hdr *ipv6h = ipv6_hdr(skb);
+ 	int tcphoff;
+@@ -98,7 +94,7 @@ tcpoptstrip_tg6(struct sk_buff *skb, const struct net_device *in,
+ 	if (tcphoff < 0)
+ 		return NF_DROP;
+ 
+-	return tcpoptstrip_mangle_packet(skb, targinfo, tcphoff,
++	return tcpoptstrip_mangle_packet(skb, par->targinfo, tcphoff,
+ 	       sizeof(*ipv6h) + sizeof(struct tcphdr));
+ }
+ #endif
+diff --git a/net/netfilter/xt_TPROXY.c b/net/netfilter/xt_TPROXY.c
+index 183f251..f08c49e 100644
+--- a/net/netfilter/xt_TPROXY.c
++++ b/net/netfilter/xt_TPROXY.c
+@@ -25,15 +25,10 @@
+ #include <net/netfilter/nf_tproxy_core.h>
+ 
+ static unsigned int
+-tproxy_tg(struct sk_buff *skb,
+-	  const struct net_device *in,
+-	  const struct net_device *out,
+-	  unsigned int hooknum,
+-	  const struct xt_target *target,
+-	  const void *targinfo)
++tproxy_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+ 	const struct iphdr *iph = ip_hdr(skb);
+-	const struct xt_tproxy_target_info *tgi = targinfo;
++	const struct xt_tproxy_target_info *tgi = par->targinfo;
+ 	struct udphdr _hdr, *hp;
+ 	struct sock *sk;
+ 
+@@ -44,7 +39,7 @@ tproxy_tg(struct sk_buff *skb,
+ 	sk = nf_tproxy_get_sock_v4(dev_net(skb->dev), iph->protocol,
+ 				   iph->saddr, tgi->laddr ? tgi->laddr : iph->daddr,
+ 				   hp->source, tgi->lport ? tgi->lport : hp->dest,
+-				   in, true);
++				   par->in, true);
+ 
+ 	/* NOTE: assign_sock consumes our sk reference */
+ 	if (sk && nf_tproxy_assign_sock(skb, sk)) {
+diff --git a/net/netfilter/xt_TRACE.c b/net/netfilter/xt_TRACE.c
+index da35f9f..fbb04b8 100644
+--- a/net/netfilter/xt_TRACE.c
++++ b/net/netfilter/xt_TRACE.c
+@@ -11,9 +11,7 @@ MODULE_ALIAS("ipt_TRACE");
+ MODULE_ALIAS("ip6t_TRACE");
+ 
+ static unsigned int
+-trace_tg(struct sk_buff *skb, const struct net_device *in,
+-         const struct net_device *out, unsigned int hooknum,
+-         const struct xt_target *target, const void *targinfo)
++trace_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+ 	skb->nf_trace = 1;
+ 	return XT_CONTINUE;
 diff --git a/net/sched/act_ipt.c b/net/sched/act_ipt.c
-index b951d42..0453d79 100644
+index 79ea193..89791a5 100644
 --- a/net/sched/act_ipt.c
 +++ b/net/sched/act_ipt.c
-@@ -55,9 +55,9 @@ static int ipt_init_target(struct ipt_entry_target *t, char *table, unsigned int
- 	par.target    = target;
- 	par.targinfo  = t->data;
- 	par.hook_mask = hook;
-+	par.family    = NFPROTO_IPV4;
+@@ -188,6 +188,7 @@ static int tcf_ipt(struct sk_buff *skb, struct tc_action *a,
+ {
+ 	int ret = 0, result = 0;
+ 	struct tcf_ipt *ipt = a->priv;
++	struct xt_target_param par;
  
--	ret = xt_check_target(&par, NFPROTO_IPV4,
--	      t->u.target_size - sizeof(*t), 0, false);
-+	ret = xt_check_target(&par, t->u.target_size - sizeof(*t), 0, false);
- 	if (ret < 0) {
- 		module_put(t->u.kernel.target->me);
- 		return ret;
+ 	if (skb_cloned(skb)) {
+ 		if (pskb_expand_head(skb, 0, 0, GFP_ATOMIC))
+@@ -203,10 +204,13 @@ static int tcf_ipt(struct sk_buff *skb, struct tc_action *a,
+ 	/* yes, we have to worry about both in and out dev
+ 	 worry later - danger - this API seems to have changed
+ 	 from earlier kernels */
+-	ret = ipt->tcfi_t->u.kernel.target->target(skb, skb->dev, NULL,
+-						   ipt->tcfi_hook,
+-						   ipt->tcfi_t->u.kernel.target,
+-						   ipt->tcfi_t->data);
++	par.in       = skb->dev;
++	par.out      = NULL;
++	par.hooknum  = ipt->tcfi_hook;
++	par.target   = ipt->tcfi_t->u.kernel.target;
++	par.targinfo = ipt->tcfi_t->data;
++	ret = par.target->target(skb, &par);
++
+ 	switch (ret) {
+ 	case NF_ACCEPT:
+ 		result = TC_ACT_OK;
 -- 
 1.6.0.1
 
