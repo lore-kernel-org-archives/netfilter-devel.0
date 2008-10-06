@@ -1,57 +1,95 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH RFC] xt_layer7
-Date: Mon, 6 Oct 2008 15:15:16 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0810061508360.10698@fbirervta.pbzchgretzou.qr>
-References: <38bcb3ec0810040022w79ccea3dk134c3f03d375a601@mail.gmail.com>  <alpine.LNX.1.10.0810040750300.19954@fbirervta.pbzchgretzou.qr>  <48E8C637.5060700@trash.net> <38bcb3ec0810061157k14d15ae3h902265f42095b469@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>,
-	Matthew Strait <quadong@users.sourceforge.net>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: James King <t.james.king@gmail.com>
+From: Eric Leblond <eric@inl.fr>
+Subject: [PATCH] Don't call nf_log_packet in NFLOG module.
+Date: Mon,  6 Oct 2008 21:40:24 +0200
+Message-ID: <1223322024-20336-1-git-send-email-eric@inl.fr>
+Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@inl.fr>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:40242 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751698AbYJFTPS (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Oct 2008 15:15:18 -0400
-In-Reply-To: <38bcb3ec0810061157k14d15ae3h902265f42095b469@mail.gmail.com>
+Received: from bayen.regit.org ([81.57.69.189]:55847 "EHLO ice-age"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752333AbYJFTk1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 6 Oct 2008 15:40:27 -0400
+In-Reply-To: <>
+References: <>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This patch modifies xt_NFLOG to suppress the call to nf_log_packet()
+function. The call of this wrapper in xt_NFLOG was causing NFLOG to
+use the first initialized module. Thus, if ipt_ULOG is loaded before
+nfnetlink_log all NFLOG rules are treated as plain LOG rules.
 
-On Monday 2008-10-06 14:57, James King wrote:
->> Jan Engelhardt wrote:
->>>
->>> Right now, you still cannot use it with a vanilla kernel because
->>> patches like #3 you attached enlarges the allocated region (remember,
->>> NF_CT_EXT_NUM just increased by one!), which is going to be a big
->>> impact {for users not using all the extensions} {if every imaginable
->>> extensions adds itself a NF_CT_EXT_ number}.
+Signed-off-by: Eric Leblond <eric@inl.fr>
+---
+ include/net/netfilter/nfnetlink_log.h |   13 +++++++++++++
+ net/netfilter/nfnetlink_log.c         |    3 ++-
+ net/netfilter/xt_NFLOG.c              |    5 +++--
+ 3 files changed, 18 insertions(+), 3 deletions(-)
+ create mode 100644 include/net/netfilter/nfnetlink_log.h
 
-Let me rephrase that one: you cannot use layer7 with vanilla right now
-because patch #3 is not in vanilla [yet] ;-)
+diff --git a/include/net/netfilter/nfnetlink_log.h b/include/net/netfilter/nfnetlink_log.h
+new file mode 100644
+index 0000000..c920259
+--- /dev/null
++++ b/include/net/netfilter/nfnetlink_log.h
+@@ -0,0 +1,13 @@
++#ifndef _KER_NFNETLINK_LOG_H
++#define _KER_NFNETLINK_LOG_H
++
++void
++nfulnl_log_packet(unsigned int pf,
++		  unsigned int hooknum,
++		  const struct sk_buff *skb,
++		  const struct net_device *in,
++		  const struct net_device *out,
++		  const struct nf_loginfo *li_user,
++		  const char *prefix);
++
++#endif /* _KER_NFNETLINK_LOG_H */
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index 9a35b57..494329a 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -533,7 +533,7 @@ static struct nf_loginfo default_loginfo = {
+ };
+ 
+ /* log handler for internal netfilter logging api */
+-static void
++void
+ nfulnl_log_packet(unsigned int pf,
+ 		  unsigned int hooknum,
+ 		  const struct sk_buff *skb,
+@@ -648,6 +648,7 @@ alloc_failure:
+ 	/* FIXME: statistics */
+ 	goto unlock_and_release;
+ }
++EXPORT_SYMBOL(nfulnl_log_packet);
+ 
+ static int
+ nfulnl_rcv_nl_event(struct notifier_block *this,
+diff --git a/net/netfilter/xt_NFLOG.c b/net/netfilter/xt_NFLOG.c
+index 19ae8ef..bb94aaa 100644
+--- a/net/netfilter/xt_NFLOG.c
++++ b/net/netfilter/xt_NFLOG.c
+@@ -13,6 +13,7 @@
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter/xt_NFLOG.h>
+ #include <net/netfilter/nf_log.h>
++#include <net/netfilter/nfnetlink_log.h>
+ 
+ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+ MODULE_DESCRIPTION("Xtables: packet logging to netlink using NFLOG");
+@@ -33,8 +34,8 @@ nflog_tg(struct sk_buff *skb, const struct net_device *in,
+ 	li.u.ulog.group	     = info->group;
+ 	li.u.ulog.qthreshold = info->threshold;
+ 
+-	nf_log_packet(target->family, hooknum, skb, in, out, &li,
+-		      "%s", info->prefix);
++	nfulnl_log_packet(target->family, hooknum, skb, in, out, &li,
++			  info->prefix);
+ 	return XT_CONTINUE;
+ }
+ 
+-- 
+1.5.6.5
 
->update_alloc_size() skips over unregistered extensions, and it's a bug
->to pass (id == NULL) to nf_ct_ext_add() or nf_ct_ext_create(), so
->unused extensions shouldn't really impact memory allocation in terms
->of allocated region size.  Under patch #3, nf_cf_ext_types[] has a
->single size increase by sizeof(nf_ct_ext_type), and it increases
->ct->ext->offset by one u8 (so per-conntrack increase).  Is this size
->increase alone enough to rule it out, or am I missing something else
->here?
-
-What I meant is the offset[] array. If we were to add 1000 new ct
-extensions, all users of the particular kernel would pay 1000 bytes
-for space they will never fully use.
-Additionally, NF_CT_EXT_NUM might be too undersized for
-*yet more* modules (e.g. out-of-tree) to register their stuff.
-It's like tcp port numbers - the number is only finite.
-A linked list would "solve" this (allow for infinitely many extensions,
-well, as long as your memory holds it), but of course at the cost
-of traversing it, etc. as Patrick pointed out.
-
-I am not against these patches - over time, we only accumulated 2
-modules, and maybe there is not that much of a market for more
-than a handul ones.
