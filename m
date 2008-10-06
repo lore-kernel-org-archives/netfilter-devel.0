@@ -1,48 +1,64 @@
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: Re: [PATCH] TPROXY cleanups
-Date: Mon, 6 Oct 2008 16:39:21 +0400
-Message-ID: <20081006123921.GA23796@x200.localdomain>
-References: <20081006121943.GA13547@x200.localdomain> <20081006122603.GA18559@sch.bme.hu>
+From: Matt Zagrabelny <mzagrabe@d.umn.edu>
+Subject: Re: iptables execution with sudo fails
+Date: Mon, 06 Oct 2008 08:19:50 -0500
+Message-ID: <1223299190.4745.316.camel@grateful.d.umn.edu>
+References: <548BC174642DC44AB25D749C28840FD308C72D7F@ZMY16EXM66.ds.mot.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: kaber@trash.net, hidden@sch.bme.hu, netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.190]:40863 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752791AbYJFMgm (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Oct 2008 08:36:42 -0400
-Received: by nf-out-0910.google.com with SMTP id d3so1009083nfc.21
-        for <netfilter-devel@vger.kernel.org>; Mon, 06 Oct 2008 05:36:41 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20081006122603.GA18559@sch.bme.hu>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-8ZnHfybpP8+WXuLpif3F"
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Tanneeru Muralidhar Babu-A19589 <muralidharbabu@motorola.com>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <548BC174642DC44AB25D749C28840FD308C72D7F@ZMY16EXM66.ds.mot.com>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Oct 06, 2008 at 02:26:03PM +0200, KOVACS Krisztian wrote:
-> On h, okt 06, 2008 at 04:19:44 +0400, Alexey Dobriyan wrote:
-> > * drop version.h -- unneeded and file will be needlessly rebuilt.
-> > * make tproxy_core unloadable
-> > * use "in" device outright, -- target and match are only in PRE_ROUTING,
-> >   so should avoid dereference.
 
-> > @@ -89,7 +88,11 @@ static int __init nf_tproxy_init(void)
-> >  	return 0;
-> >  }
-> >  
-> > +static void __exit nf_tproxy_exit(void)
-> > +{
-> > +}
-> >  module_init(nf_tproxy_init);
-> > +module_exit(nf_tproxy_exit);
-> 
-> Please don't do this. The module was made unloadable because it attaches a
-> function pointer to skb's and removing the module while there's an skb in
-> flight would cause a kernel crash.
+--=-8ZnHfybpP8+WXuLpif3F
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
-Have you actually seen it?
+On Mon, 2008-10-06 at 12:56 +0800, Tanneeru Muralidhar Babu-A19589
+wrote:
+> Hi,
+> =20
+> While executing iptables command using sudo on my system (running MV
+> 2.6.10), I see following errors. Could someone please help me understand
+> this error ?
+> =20
+> sudo:        0 : uid 0 does not exist in the passwd file! ; TTY=3Dunknown
+> ; PWD=3Dunknown ; USER=3Droot ; COMMAND=3D/sbin/iptables
+> =20
+> Is this a problem with passwd file ? Under what circumstances do we see
+> this error ?
 
-xt_TPROXY will pin it because it uses a symbol from it, so it won't
-dissapear.
+Do other commands work with sudo?
 
-Anyway, banning rmmod is absolutely wrong thing regardless.
+What is the exact syntax of the command you are trying to run?
+
+What is the contents of /etc/sudoers?
+
+--=20
+Matt Zagrabelny - mzagrabe@d.umn.edu - (218) 726 8844
+University of Minnesota Duluth
+Information Technology Systems & Services
+PGP key 1024D/84E22DA2 2005-11-07
+Fingerprint: 78F9 18B3 EF58 56F5 FC85  C5CA 53E7 887F 84E2 2DA2
+
+He is not a fool who gives up what he cannot keep to gain what he cannot
+lose.
+-Jim Elliot
+
+--=-8ZnHfybpP8+WXuLpif3F
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEABECAAYFAkjqEHUACgkQU+eIf4TiLaKTrQCghiSQwjpuzBRtuockVSR5O90u
+YwIAoJ15Dl9nqI3cuR+Qzt+Xw8M1MeyJ
+=0XYJ
+-----END PGP SIGNATURE-----
+
+--=-8ZnHfybpP8+WXuLpif3F--
+
