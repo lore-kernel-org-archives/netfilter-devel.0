@@ -1,35 +1,77 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: iptables execution with sudo fails
-Date: Mon, 6 Oct 2008 08:17:35 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0810060816160.10698@fbirervta.pbzchgretzou.qr>
-References: <548BC174642DC44AB25D749C28840FD308C72D7F@ZMY16EXM66.ds.mot.com>
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: [PATCH] TPROXY cleanups
+Date: Mon, 6 Oct 2008 16:19:44 +0400
+Message-ID: <20081006121943.GA13547@x200.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Tanneeru Muralidhar Babu-A19589 <muralidharbabu@motorola.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: hidden@sch.bme.hu, netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:57136 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752852AbYJFMRg (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.152]:48859 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752842AbYJFMR1 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Oct 2008 08:17:36 -0400
-In-Reply-To: <548BC174642DC44AB25D749C28840FD308C72D7F@ZMY16EXM66.ds.mot.com>
+	Mon, 6 Oct 2008 08:17:27 -0400
+Received: by fg-out-1718.google.com with SMTP id 19so1917216fgg.17
+        for <netfilter-devel@vger.kernel.org>; Mon, 06 Oct 2008 05:17:25 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+* drop version.h -- unneeded and file will be needlessly rebuilt.
+* make tproxy_core unloadable
+* use "in" device outright, -- target and match are only in PRE_ROUTING,
+  so should avoid dereference.
 
-On Monday 2008-10-06 00:56, Tanneeru Muralidhar Babu-A19589 wrote:
-> Hi,
-> 
->While executing iptables command using sudo on my system (running MV
->2.6.10), I see following errors. Could someone please help me understand
->this error ?
-> 
->sudo:        0 : uid 0 does not exist in the passwd file! ; TTY=unknown
->; PWD=unknown ; USER=root ; COMMAND=/sbin/iptables
-> 
->Is this a problem with passwd file ? Under what circumstances do we see
->this error ?
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+---
 
-This is a sudo problem, not iptables. I suggest you use the su
-command instead.
+ net/netfilter/nf_tproxy_core.c |    5 ++++-
+ net/netfilter/xt_TPROXY.c      |    2 +-
+ net/netfilter/xt_socket.c      |    2 +-
+ 3 files changed, 6 insertions(+), 3 deletions(-)
+
+--- a/net/netfilter/nf_tproxy_core.c
++++ b/net/netfilter/nf_tproxy_core.c
+@@ -10,7 +10,6 @@
+  *
+  */
+ 
+-#include <linux/version.h>
+ #include <linux/module.h>
+ 
+ #include <linux/net.h>
+@@ -89,7 +88,11 @@ static int __init nf_tproxy_init(void)
+ 	return 0;
+ }
+ 
++static void __exit nf_tproxy_exit(void)
++{
++}
+ module_init(nf_tproxy_init);
++module_exit(nf_tproxy_exit);
+ 
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Krisztian Kovacs");
+--- a/net/netfilter/xt_TPROXY.c
++++ b/net/netfilter/xt_TPROXY.c
+@@ -41,7 +41,7 @@ tproxy_tg(struct sk_buff *skb,
+ 	if (hp == NULL)
+ 		return NF_DROP;
+ 
+-	sk = nf_tproxy_get_sock_v4(dev_net(skb->dev), iph->protocol,
++	sk = nf_tproxy_get_sock_v4(dev_net(in), iph->protocol,
+ 				   iph->saddr, tgi->laddr ? tgi->laddr : iph->daddr,
+ 				   hp->source, tgi->lport ? tgi->lport : hp->dest,
+ 				   in, true);
+--- a/net/netfilter/xt_socket.c
++++ b/net/netfilter/xt_socket.c
+@@ -145,7 +145,7 @@ socket_mt(const struct sk_buff *skb,
+ 	}
+ #endif
+ 
+-	sk = nf_tproxy_get_sock_v4(dev_net(skb->dev), protocol,
++	sk = nf_tproxy_get_sock_v4(dev_net(in), protocol,
+ 				   saddr, daddr, sport, dport, in, false);
+ 	if (sk != NULL) {
+ 		bool wildcard = (inet_sk(sk)->rcv_saddr == 0);
