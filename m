@@ -1,345 +1,169 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 16/23] netfilter: xtables: move extension arguments into compound structure (3/6)
-Date: Mon,  6 Oct 2008 08:15:19 -0400
-Message-ID: <23c35a61c0f4834c0eea2f92dc7ca15433006526.1223294924.git.jengelh@medozas.de>
+Subject: [PATCH 08/23] netfilter: xtables: do centralized checkentry call (2/2)
+Date: Mon,  6 Oct 2008 08:15:11 -0400
+Message-ID: <4d1c693c1eeb16b8e66dfbfa1c43fe178ac4884b.1223294924.git.jengelh@medozas.de>
 References: <1223295326-10890-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:57112 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:57101 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753056AbYJFMPc (ORCPT
+	with ESMTP id S1752931AbYJFMPa (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Oct 2008 08:15:32 -0400
+	Mon, 6 Oct 2008 08:15:30 -0400
 In-Reply-To: <1223295326-10890-1-git-send-email-jengelh@medozas.de>
 In-Reply-To: <0a71cdb22ae4ae9ad9c49cab82cc41ccdd5653a1.1223294924.git.jengelh@medozas.de>
 References: <0a71cdb22ae4ae9ad9c49cab82cc41ccdd5653a1.1223294924.git.jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch does this for match extensions' destroy functions.
+With the previous patch moving checks into xtables.c, the checks in
+*_tables can be cleaned out. Also propagate the error code from
+xt_{match,target}_check in the error case instead of always using
+-EINVAL.
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/linux/netfilter/x_tables.h |    8 +++++++-
- net/bridge/netfilter/ebtables.c    |   20 ++++++++++++--------
- net/ipv4/netfilter/ip_tables.c     |   10 +++++++---
- net/ipv6/netfilter/ip6_tables.c    |   10 +++++++---
- net/netfilter/xt_connbytes.c       |    4 ++--
- net/netfilter/xt_connlimit.c       |    7 +++----
- net/netfilter/xt_connmark.c        |    5 ++---
- net/netfilter/xt_conntrack.c       |    5 ++---
- net/netfilter/xt_hashlimit.c       |    9 ++++-----
- net/netfilter/xt_helper.c          |    4 ++--
- net/netfilter/xt_rateest.c         |    5 ++---
- net/netfilter/xt_recent.c          |    4 ++--
- net/netfilter/xt_state.c           |    4 ++--
- net/netfilter/xt_string.c          |    4 ++--
- 14 files changed, 56 insertions(+), 43 deletions(-)
+ net/ipv4/netfilter/arp_tables.c |    8 +++-----
+ net/ipv4/netfilter/ip_tables.c  |   19 +++++++------------
+ net/ipv6/netfilter/ip6_tables.c |   19 +++++++------------
+ net/sched/act_ipt.c             |   12 ++----------
+ 4 files changed, 19 insertions(+), 39 deletions(-)
 
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index 763a704..c79c883 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -212,6 +212,12 @@ struct xt_mtchk_param {
- 	unsigned int hook_mask;
- };
- 
-+/* Match destructor parameters */
-+struct xt_mtdtor_param {
-+	const struct xt_match *match;
-+	void *matchinfo;
-+};
-+
- struct xt_match
- {
- 	struct list_head list;
-@@ -230,7 +236,7 @@ struct xt_match
- 	bool (*checkentry)(const struct xt_mtchk_param *);
- 
- 	/* Called when entry of this type deleted. */
--	void (*destroy)(const struct xt_match *match, void *matchinfo);
-+	void (*destroy)(const struct xt_mtdtor_param *);
- 
- 	/* Called when userspace align differs from kernel space one */
- 	void (*compat_from_user)(void *dst, void *src);
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 5ce37b2..0320b52 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -558,12 +558,16 @@ ebt_get_udc_positions(struct ebt_entry *e, struct ebt_table_info *newinfo,
- static inline int
- ebt_cleanup_match(struct ebt_entry_match *m, unsigned int *i)
- {
-+	struct xt_mtdtor_param par;
-+
- 	if (i && (*i)-- == 0)
- 		return 1;
--	if (m->u.match->destroy)
--		m->u.match->destroy(m->u.match, m->data);
--	module_put(m->u.match->me);
- 
-+	par.match     = m->u.match;
-+	par.matchinfo = m->data;
-+	if (par.match->destroy != NULL)
-+		par.match->destroy(&par);
-+	module_put(par.match->me);
- 	return 0;
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 19bebe2..ae525a9 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -466,14 +466,12 @@ static inline int check_target(struct arpt_entry *e, const char *name)
+ 	ret = xt_check_target(target, NFPROTO_ARP,
+ 			      t->u.target_size - sizeof(*t),
+ 			      name, e->comefrom, 0, 0, e, t->data);
+-	if (!ret && t->u.kernel.target->checkentry
+-	    && !t->u.kernel.target->checkentry(name, e, target, t->data,
+-					       e->comefrom)) {
++	if (ret < 0) {
+ 		duprintf("arp_tables: check failed for `%s'.\n",
+ 			 t->u.kernel.target->name);
+-		ret = -EINVAL;
++		return ret;
+ 	}
+-	return ret;
++	return 0;
  }
  
-@@ -609,7 +613,7 @@ ebt_check_entry(struct ebt_entry *e, struct ebt_table_info *newinfo,
- 	unsigned int i, j, hook = 0, hookmask = 0;
- 	size_t gap;
- 	int ret;
--	struct xt_mtchk_param par;
-+	struct xt_mtchk_param mtpar;
- 
- 	/* don't mess with the struct ebt_entries */
- 	if (e->bitmask == 0)
-@@ -651,10 +655,10 @@ ebt_check_entry(struct ebt_entry *e, struct ebt_table_info *newinfo,
- 	}
- 	i = 0;
- 
--	par.table     = name;
--	par.entryinfo = e;
--	par.hook_mask = hookmask;
--	ret = EBT_MATCH_ITERATE(e, ebt_check_match, &par, &i);
-+	mtpar.table     = name;
-+	mtpar.entryinfo = e;
-+	mtpar.hook_mask = hookmask;
-+	ret = EBT_MATCH_ITERATE(e, ebt_check_match, &mtpar, &i);
- 	if (ret != 0)
- 		goto cleanup_matches;
- 	j = 0;
+ static inline int
 diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 4147298..12ad4d5 100644
+index e4003de..b4c74a7 100644
 --- a/net/ipv4/netfilter/ip_tables.c
 +++ b/net/ipv4/netfilter/ip_tables.c
-@@ -576,12 +576,16 @@ mark_source_chains(struct xt_table_info *newinfo,
- static int
- cleanup_match(struct ipt_entry_match *m, unsigned int *i)
- {
-+	struct xt_mtdtor_param par;
-+
- 	if (i && (*i)-- == 0)
- 		return 1;
- 
--	if (m->u.kernel.match->destroy)
--		m->u.kernel.match->destroy(m->u.kernel.match, m->data);
--	module_put(m->u.kernel.match->me);
-+	par.match     = m->u.kernel.match;
-+	par.matchinfo = m->data;
-+	if (par.match->destroy != NULL)
-+		par.match->destroy(&par);
-+	module_put(par.match->me);
- 	return 0;
+@@ -617,16 +617,13 @@ check_match(struct ipt_entry_match *m, const char *name,
+ 	ret = xt_check_match(match, AF_INET, m->u.match_size - sizeof(*m),
+ 			     name, hookmask, ip->proto,
+ 			     ip->invflags & IPT_INV_PROTO, ip, m->data);
+-	if (!ret && m->u.kernel.match->checkentry
+-	    && !m->u.kernel.match->checkentry(name, ip, match, m->data,
+-					      hookmask)) {
++	if (ret < 0) {
+ 		duprintf("ip_tables: check failed for `%s'.\n",
+ 			 m->u.kernel.match->name);
+-		ret = -EINVAL;
++		return ret;
+ 	}
+-	if (!ret)
+-		(*i)++;
+-	return ret;
++	++*i;
++	return 0;
  }
  
+ static int
+@@ -669,14 +666,12 @@ static int check_target(struct ipt_entry *e, const char *name)
+ 	ret = xt_check_target(target, AF_INET, t->u.target_size - sizeof(*t),
+ 			      name, e->comefrom, e->ip.proto,
+ 			      e->ip.invflags & IPT_INV_PROTO, e, t->data);
+-	if (!ret && t->u.kernel.target->checkentry
+-	    && !t->u.kernel.target->checkentry(name, e, target, t->data,
+-					       e->comefrom)) {
++	if (ret < 0) {
+ 		duprintf("ip_tables: check failed for `%s'.\n",
+ 			 t->u.kernel.target->name);
+-		ret = -EINVAL;
++		return ret;
+ 	}
+-	return ret;
++	return 0;
+ }
+ 
+ static int
 diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 9c843e3..891358e 100644
+index 79c4965..12c41b8 100644
 --- a/net/ipv6/netfilter/ip6_tables.c
 +++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -599,12 +599,16 @@ mark_source_chains(struct xt_table_info *newinfo,
+@@ -643,16 +643,13 @@ static int check_match(struct ip6t_entry_match *m, const char *name,
+ 	ret = xt_check_match(match, AF_INET6, m->u.match_size - sizeof(*m),
+ 			     name, hookmask, ipv6->proto,
+ 			     ipv6->invflags & IP6T_INV_PROTO, ipv6, m->data);
+-	if (!ret && m->u.kernel.match->checkentry
+-	    && !m->u.kernel.match->checkentry(name, ipv6, match, m->data,
+-					      hookmask)) {
++	if (ret < 0) {
+ 		duprintf("ip_tables: check failed for `%s'.\n",
+ 			 m->u.kernel.match->name);
+-		ret = -EINVAL;
++		return ret;
+ 	}
+-	if (!ret)
+-		(*i)++;
+-	return ret;
++	++*i;
++	return 0;
+ }
+ 
  static int
- cleanup_match(struct ip6t_entry_match *m, unsigned int *i)
- {
-+	struct xt_mtdtor_param par;
-+
- 	if (i && (*i)-- == 0)
- 		return 1;
- 
--	if (m->u.kernel.match->destroy)
--		m->u.kernel.match->destroy(m->u.kernel.match, m->data);
--	module_put(m->u.kernel.match->me);
-+	par.match     = m->u.kernel.match;
-+	par.matchinfo = m->data;
-+	if (par.match->destroy != NULL)
-+		par.match->destroy(&par);
-+	module_put(par.match->me);
- 	return 0;
+@@ -695,14 +692,12 @@ static int check_target(struct ip6t_entry *e, const char *name)
+ 	ret = xt_check_target(target, AF_INET6, t->u.target_size - sizeof(*t),
+ 			      name, e->comefrom, e->ipv6.proto,
+ 			      e->ipv6.invflags & IP6T_INV_PROTO, e, t->data);
+-	if (!ret && t->u.kernel.target->checkentry
+-	    && !t->u.kernel.target->checkentry(name, e, target, t->data,
+-					       e->comefrom)) {
++	if (ret < 0) {
+ 		duprintf("ip_tables: check failed for `%s'.\n",
+ 			 t->u.kernel.target->name);
+-		ret = -EINVAL;
++		return ret;
+ 	}
+-	return ret;
++	return 0;
  }
  
-diff --git a/net/netfilter/xt_connbytes.c b/net/netfilter/xt_connbytes.c
-index 43a36c7..5bf4aa0 100644
---- a/net/netfilter/xt_connbytes.c
-+++ b/net/netfilter/xt_connbytes.c
-@@ -115,9 +115,9 @@ static bool connbytes_mt_check(const struct xt_mtchk_param *par)
- 	return true;
+ static int
+diff --git a/net/sched/act_ipt.c b/net/sched/act_ipt.c
+index ca5d72b..79ea193 100644
+--- a/net/sched/act_ipt.c
++++ b/net/sched/act_ipt.c
+@@ -52,19 +52,11 @@ static int ipt_init_target(struct ipt_entry_target *t, char *table, unsigned int
+ 
+ 	ret = xt_check_target(target, AF_INET, t->u.target_size - sizeof(*t),
+ 			      table, hook, 0, 0, NULL, t->data);
+-	if (ret) {
++	if (ret < 0) {
+ 		module_put(t->u.kernel.target->me);
+ 		return ret;
+ 	}
+-	if (t->u.kernel.target->checkentry
+-	    && !t->u.kernel.target->checkentry(table, NULL,
+-					       t->u.kernel.target, t->data,
+-					       hook)) {
+-		module_put(t->u.kernel.target->me);
+-		ret = -EINVAL;
+-	}
+-
+-	return ret;
++	return 0;
  }
  
--static void connbytes_mt_destroy(const struct xt_match *match, void *matchinfo)
-+static void connbytes_mt_destroy(const struct xt_mtdtor_param *par)
- {
--	nf_ct_l3proto_module_put(match->family);
-+	nf_ct_l3proto_module_put(par->match->family);
- }
- 
- static struct xt_match connbytes_mt_reg[] __read_mostly = {
-diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
-index 1361e99..bfb3ee6 100644
---- a/net/netfilter/xt_connlimit.c
-+++ b/net/netfilter/xt_connlimit.c
-@@ -246,16 +246,15 @@ static bool connlimit_mt_check(const struct xt_mtchk_param *par)
- 	return true;
- }
- 
--static void
--connlimit_mt_destroy(const struct xt_match *match, void *matchinfo)
-+static void connlimit_mt_destroy(const struct xt_mtdtor_param *par)
- {
--	const struct xt_connlimit_info *info = matchinfo;
-+	const struct xt_connlimit_info *info = par->matchinfo;
- 	struct xt_connlimit_conn *conn;
- 	struct xt_connlimit_conn *tmp;
- 	struct list_head *hash = info->data->iphash;
- 	unsigned int i;
- 
--	nf_ct_l3proto_module_put(match->family);
-+	nf_ct_l3proto_module_put(par->match->family);
- 
- 	for (i = 0; i < ARRAY_SIZE(info->data->iphash); ++i) {
- 		list_for_each_entry_safe(conn, tmp, &hash[i], list) {
-diff --git a/net/netfilter/xt_connmark.c b/net/netfilter/xt_connmark.c
-index b935b78..c708577 100644
---- a/net/netfilter/xt_connmark.c
-+++ b/net/netfilter/xt_connmark.c
-@@ -87,10 +87,9 @@ static bool connmark_mt_check(const struct xt_mtchk_param *par)
- 	return true;
- }
- 
--static void
--connmark_mt_destroy(const struct xt_match *match, void *matchinfo)
-+static void connmark_mt_destroy(const struct xt_mtdtor_param *par)
- {
--	nf_ct_l3proto_module_put(match->family);
-+	nf_ct_l3proto_module_put(par->match->family);
- }
- 
- #ifdef CONFIG_COMPAT
-diff --git a/net/netfilter/xt_conntrack.c b/net/netfilter/xt_conntrack.c
-index f04c46a..5cd58d7 100644
---- a/net/netfilter/xt_conntrack.c
-+++ b/net/netfilter/xt_conntrack.c
-@@ -288,10 +288,9 @@ static bool conntrack_mt_check(const struct xt_mtchk_param *par)
- 	return true;
- }
- 
--static void
--conntrack_mt_destroy(const struct xt_match *match, void *matchinfo)
-+static void conntrack_mt_destroy(const struct xt_mtdtor_param *par)
- {
--	nf_ct_l3proto_module_put(match->family);
-+	nf_ct_l3proto_module_put(par->match->family);
- }
- 
- #ifdef CONFIG_COMPAT
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index 2f73820..6fc4292 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -748,17 +748,16 @@ static bool hashlimit_mt_check(const struct xt_mtchk_param *par)
- }
- 
- static void
--hashlimit_mt_destroy_v0(const struct xt_match *match, void *matchinfo)
-+hashlimit_mt_destroy_v0(const struct xt_mtdtor_param *par)
- {
--	const struct xt_hashlimit_info *r = matchinfo;
-+	const struct xt_hashlimit_info *r = par->matchinfo;
- 
- 	htable_put(r->hinfo);
- }
- 
--static void
--hashlimit_mt_destroy(const struct xt_match *match, void *matchinfo)
-+static void hashlimit_mt_destroy(const struct xt_mtdtor_param *par)
- {
--	const struct xt_hashlimit_mtinfo1 *info = matchinfo;
-+	const struct xt_hashlimit_mtinfo1 *info = par->matchinfo;
- 
- 	htable_put(info->hinfo);
- }
-diff --git a/net/netfilter/xt_helper.c b/net/netfilter/xt_helper.c
-index 86d3c33..280c984 100644
---- a/net/netfilter/xt_helper.c
-+++ b/net/netfilter/xt_helper.c
-@@ -67,9 +67,9 @@ static bool helper_mt_check(const struct xt_mtchk_param *par)
- 	return true;
- }
- 
--static void helper_mt_destroy(const struct xt_match *match, void *matchinfo)
-+static void helper_mt_destroy(const struct xt_mtdtor_param *par)
- {
--	nf_ct_l3proto_module_put(match->family);
-+	nf_ct_l3proto_module_put(par->match->family);
- }
- 
- static struct xt_match helper_mt_reg[] __read_mostly = {
-diff --git a/net/netfilter/xt_rateest.c b/net/netfilter/xt_rateest.c
-index 4b05ce1..220a1d5 100644
---- a/net/netfilter/xt_rateest.c
-+++ b/net/netfilter/xt_rateest.c
-@@ -117,10 +117,9 @@ err1:
- 	return false;
- }
- 
--static void xt_rateest_mt_destroy(const struct xt_match *match,
--				  void *matchinfo)
-+static void xt_rateest_mt_destroy(const struct xt_mtdtor_param *par)
- {
--	struct xt_rateest_match_info *info = matchinfo;
-+	struct xt_rateest_match_info *info = par->matchinfo;
- 
- 	xt_rateest_put(info->est1);
- 	if (info->est2)
-diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
-index a512b49..4ebd4ca 100644
---- a/net/netfilter/xt_recent.c
-+++ b/net/netfilter/xt_recent.c
-@@ -349,9 +349,9 @@ out:
- 	return ret;
- }
- 
--static void recent_mt_destroy(const struct xt_match *match, void *matchinfo)
-+static void recent_mt_destroy(const struct xt_mtdtor_param *par)
- {
--	const struct xt_recent_mtinfo *info = matchinfo;
-+	const struct xt_recent_mtinfo *info = par->matchinfo;
- 	struct recent_table *t;
- 
- 	mutex_lock(&recent_mutex);
-diff --git a/net/netfilter/xt_state.c b/net/netfilter/xt_state.c
-index 88b1235..4c946cb 100644
---- a/net/netfilter/xt_state.c
-+++ b/net/netfilter/xt_state.c
-@@ -47,9 +47,9 @@ static bool state_mt_check(const struct xt_mtchk_param *par)
- 	return true;
- }
- 
--static void state_mt_destroy(const struct xt_match *match, void *matchinfo)
-+static void state_mt_destroy(const struct xt_mtdtor_param *par)
- {
--	nf_ct_l3proto_module_put(match->family);
-+	nf_ct_l3proto_module_put(par->match->family);
- }
- 
- static struct xt_match state_mt_reg[] __read_mostly = {
-diff --git a/net/netfilter/xt_string.c b/net/netfilter/xt_string.c
-index c9407aa..b4d7741 100644
---- a/net/netfilter/xt_string.c
-+++ b/net/netfilter/xt_string.c
-@@ -70,9 +70,9 @@ static bool string_mt_check(const struct xt_mtchk_param *par)
- 	return true;
- }
- 
--static void string_mt_destroy(const struct xt_match *match, void *matchinfo)
-+static void string_mt_destroy(const struct xt_mtdtor_param *par)
- {
--	textsearch_destroy(STRING_TEXT_PRIV(matchinfo)->config);
-+	textsearch_destroy(STRING_TEXT_PRIV(par->matchinfo)->config);
- }
- 
- static struct xt_match xt_string_mt_reg[] __read_mostly = {
+ static void ipt_destroy_target(struct ipt_entry_target *t)
 -- 
 1.6.0.1
 
