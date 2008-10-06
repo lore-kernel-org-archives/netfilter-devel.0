@@ -1,33 +1,69 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 01/16] [NETFILTER]: Re-add missing checkentry calls
-Date: Mon, 06 Oct 2008 13:34:53 +0200
-Message-ID: <48E9F7DD.4070302@trash.net>
-References: <67e1140a1db2e8aa9a4b6c80289039487c5445cb.1223149287.git.jengelh@medozas.de> <48E8B831.7020609@trash.net> <alpine.LNX.1.10.0810050922510.21891@fbirervta.pbzchgretzou.qr> <48E8C1E8.5050309@trash.net> <alpine.LNX.1.10.0810050948070.21891@fbirervta.pbzchgretzou.qr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: [PATCH 10/23] netfilter: ip6tables: fix Kconfig entry dependency for ip6t_LOG
+Date: Mon,  6 Oct 2008 08:15:13 -0400
+Message-ID: <164ab02780d16ab7920e7495fef6d72f0fd05ab9.1223294924.git.jengelh@medozas.de>
+References: <1223295326-10890-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:37962 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751975AbYJFLfB (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:57105 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752936AbYJFMPa (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Oct 2008 07:35:01 -0400
-In-Reply-To: <alpine.LNX.1.10.0810050948070.21891@fbirervta.pbzchgretzou.qr>
+	Mon, 6 Oct 2008 08:15:30 -0400
+In-Reply-To: <1223295326-10890-1-git-send-email-jengelh@medozas.de>
+In-Reply-To: <0a71cdb22ae4ae9ad9c49cab82cc41ccdd5653a1.1223294924.git.jengelh@medozas.de>
+References: <0a71cdb22ae4ae9ad9c49cab82cc41ccdd5653a1.1223294924.git.jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Sunday 2008-10-05 09:32, Patrick McHardy wrote:
->>> Hence these patches are generally designed for on-top-please.
->> That makes sense of course, the question was more about whether
->> it would make it easier for people doing bisections if I fold it.
->> It applies cleanly on top of that change directly, so it wouldn't
->> be a real problem.
->>
-> Yes please fold if you can. (Given that I already got a "forced update"
-> on today's `git fetch`, I think it's ok ;-)
-> 
+ip6t_LOG does certainly not depend on the filter table.
+(Also, move it so that menuconfig still displays it correctly.)
 
-Done, thanks.
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ net/ipv6/netfilter/Kconfig |   20 ++++++++++----------
+ 1 files changed, 10 insertions(+), 10 deletions(-)
+
+diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
+index f244324..fee881b 100644
+--- a/net/ipv6/netfilter/Kconfig
++++ b/net/ipv6/netfilter/Kconfig
+@@ -136,24 +136,24 @@ config IP6_NF_MATCH_EUI64
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+ # The targets
+-config IP6_NF_FILTER
+-	tristate "Packet filtering"
++config IP6_NF_TARGET_LOG
++	tristate "LOG target support"
+ 	depends on IP6_NF_IPTABLES
+ 	default m if NETFILTER_ADVANCED=n
+ 	help
+-	  Packet filtering defines a table `filter', which has a series of
+-	  rules for simple packet filtering at local input, forwarding and
+-	  local output.  See the man page for iptables(8).
++	  This option adds a `LOG' target, which allows you to create rules in
++	  any iptables table which records the packet header to the syslog.
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+-config IP6_NF_TARGET_LOG
+-	tristate "LOG target support"
+-	depends on IP6_NF_FILTER
++config IP6_NF_FILTER
++	tristate "Packet filtering"
++	depends on IP6_NF_IPTABLES
+ 	default m if NETFILTER_ADVANCED=n
+ 	help
+-	  This option adds a `LOG' target, which allows you to create rules in
+-	  any iptables table which records the packet header to the syslog.
++	  Packet filtering defines a table `filter', which has a series of
++	  rules for simple packet filtering at local input, forwarding and
++	  local output.  See the man page for iptables(8).
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
+-- 
+1.6.0.1
+
