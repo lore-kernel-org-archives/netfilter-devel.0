@@ -1,42 +1,44 @@
-From: Bryan Duff <bduff@astrocorp.com>
-Subject: Re: conntrack-tools unknown protocol search by number
-Date: Mon, 06 Oct 2008 15:46:16 -0500
-Message-ID: <48EA7918.10503@astrocorp.com>
-References: <48E6952B.5090905@astrocorp.com> <48E7396F.1010107@netfilter.org>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: RFC: net/netfilter reorganization
+Date: Mon, 6 Oct 2008 21:08:20 -0400 (EDT)
+Message-ID: <alpine.LNX.1.10.0810062106260.438@fbirervta.pbzchgretzou.qr>
+References: <48E8E984.8090807@trash.net> <alpine.LNX.1.10.0810051221560.21891@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0810052101090.17356@blackhole.kfki.hu> <20081005.132850.34376215.davem@davemloft.net> <alpine.LNX.1.10.0810051632400.32566@fbirervta.pbzchgretzou.qr>
+ <alpine.LNX.1.10.0810051641220.32566@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0810052258460.17462@blackhole.kfki.hu> <48E938F6.8080108@trash.net> <alpine.LNX.1.10.0810051909430.3354@fbirervta.pbzchgretzou.qr> <48E9E368.50901@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	David Miller <davem@davemloft.net>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, sam@ravnborg.org,
+	zippel@linux-m68k.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.astrocorp.com ([64.122.215.18]:21465 "EHLO
-	mail.astrocorp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753449AbYJFUnY (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:50163 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757356AbYJGBIW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Oct 2008 16:43:24 -0400
-In-Reply-To: <48E7396F.1010107@netfilter.org>
+	Mon, 6 Oct 2008 21:08:22 -0400
+In-Reply-To: <48E9E368.50901@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Yeah, I can add support for the other protocols.
 
--Bryan
+On Monday 2008-10-06 06:07, Patrick McHardy wrote:
+>>[troubles with Kconfig syntaxe about BOTH_CTMARK]
+>
+> That should be fine though since the old options already exist
+> (in most cases)?
+>
+> BTW, does it make any difference if you add a dependency
+> on TARGET_CTMARK || MATCH_CTMARK?
 
-Pablo Neira Ayuso wrote:
-> Hi Bryan,
->
-> Bryan Duff wrote:
->   
->> Now instead of "conntrack -L -p tcp" you can do "conntrack -L -p 6" -
->> useful for "unknown" proto's like gre, ah, esp.
->>     
->
-> Thanks for the patch. I have rework it a bit, the new patch is attached.
-> I'll push it to git if nobody complains.
->
-> BTW: udplite, dccp and sctp support are missing, in case that you want
-> to contribute something else. You'll also have to add the missing bits
-> into libnetfilter_conntrack.
->
->   
+Unfortunately no.
+If I use "BOTH_CTMARK depends on TARGET_CTMARK || MATCH_CTMARK", the 
+option does not show itself. Somewhat understandable.
+I also tried
+"BOTH_CTMARK default m if TARGET_CTMARK=m || MATCH_CTMARK=m", also a 
+no-go.
 
+Seems like config options without a one-line text are considered 
+nonexistent for kconfig to begin with, so that nothing can depend or 
+default on these.
