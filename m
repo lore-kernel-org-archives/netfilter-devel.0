@@ -1,44 +1,55 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: RFC: net/netfilter reorganization
-Date: Mon, 6 Oct 2008 21:08:20 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0810062106260.438@fbirervta.pbzchgretzou.qr>
-References: <48E8E984.8090807@trash.net> <alpine.LNX.1.10.0810051221560.21891@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0810052101090.17356@blackhole.kfki.hu> <20081005.132850.34376215.davem@davemloft.net> <alpine.LNX.1.10.0810051632400.32566@fbirervta.pbzchgretzou.qr>
- <alpine.LNX.1.10.0810051641220.32566@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0810052258460.17462@blackhole.kfki.hu> <48E938F6.8080108@trash.net> <alpine.LNX.1.10.0810051909430.3354@fbirervta.pbzchgretzou.qr> <48E9E368.50901@trash.net>
+From: KOVACS Krisztian <hidden@sch.bme.hu>
+Subject: Re: [PATCH] TPROXY cleanups
+Date: Tue, 07 Oct 2008 08:32:54 +0200
+Message-ID: <1223361174.8909.6.camel@nessa.odu>
+References: <20081006121943.GA13547@x200.localdomain>
+ <20081006122603.GA18559@sch.bme.hu> <20081006123921.GA23796@x200.localdomain>
+ <20081006141559.GC18559@sch.bme.hu> <48EA31C7.3040604@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	David Miller <davem@davemloft.net>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, sam@ravnborg.org,
-	zippel@linux-m68k.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7BIT
+Cc: Alexey Dobriyan <adobriyan@gmail.com>, hidden@sch.bme.hu,
+	netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:50163 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757356AbYJGBIW (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Oct 2008 21:08:22 -0400
-In-Reply-To: <48E9E368.50901@trash.net>
+Received: from balu.sch.bme.hu ([152.66.208.40]:44618 "EHLO balu.sch.bme.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750798AbYJGGdD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 7 Oct 2008 02:33:03 -0400
+Received: from [192.168.1.103] ([89.132.101.55])
+ by balu.sch.bme.hu (Sun Java System Messaging Server 6.2-7.05 (built Sep  5
+ 2006)) with ESMTPSA id <0K8C00KG3VHRNN20@balu.sch.bme.hu> for
+ netfilter-devel@vger.kernel.org; Tue, 07 Oct 2008 08:32:21 +0200 (CEST)
+In-reply-to: <48EA31C7.3040604@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi,
 
-On Monday 2008-10-06 06:07, Patrick McHardy wrote:
->>[troubles with Kconfig syntaxe about BOTH_CTMARK]
->
-> That should be fine though since the old options already exist
-> (in most cases)?
->
-> BTW, does it make any difference if you add a dependency
-> on TARGET_CTMARK || MATCH_CTMARK?
+On h, okt 06, 2008 at 05:41:59 +0200, Patrick McHardy wrote:
+> KOVACS Krisztian wrote:
+> >On h, okt 06, 2008 at 04:39:21 +0400, Alexey Dobriyan wrote:
+> >>xt_TPROXY will pin it because it uses a symbol from it, so it won't
+> >>dissapear.
+> >
+> >Yeah, that's true, and I think that it's impossible to remove the rule
+> >attaching the socket references while the skb's in flight. Ok, so let's
+> >add module_exit() then.
+> 
+> So Alexey's patch is fine for applying?
 
-Unfortunately no.
-If I use "BOTH_CTMARK depends on TARGET_CTMARK || MATCH_CTMARK", the 
-option does not show itself. Somewhat understandable.
-I also tried
-"BOTH_CTMARK default m if TARGET_CTMARK=m || MATCH_CTMARK=m", also a 
-no-go.
+My only fear was that you can remove the core module while there's a
+function pointer attached to the skb.
 
-Seems like config options without a one-line text are considered 
-nonexistent for kconfig to begin with, so that nothing can depend or 
-default on these.
+The TPROXY target is the only one actually attaching the pointer and you
+obviously can't remove the core module while you have a rule referring to
+TPROXY. The question is wheter or not it's possible that an skb still has
+the TPROXY-assigned socket (and destructor function pointer) after the
+referring iptables rule has been removed.
+
+I'm still not 100% sure that this is not possible... Making the module
+unloadable is not the proper solution, though.
+
+-- 
+KOVACS Krisztian
+
