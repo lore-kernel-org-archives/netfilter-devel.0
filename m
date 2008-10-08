@@ -1,158 +1,170 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 12/79: netns nf_conntrack: add ->ct_net pointer from conntrack to netns
-Date: Wed,  8 Oct 2008 12:46:37 +0200 (MEST)
-Message-ID: <20081008104637.10423.24342.sendpatchset@x2.localnet>
+Subject: netfilter 18/79: netns nf_conntrack: pass netns pointer to nf_conntrack_in()
+Date: Wed,  8 Oct 2008 12:46:45 +0200 (MEST)
+Message-ID: <20081008104645.10423.31950.sendpatchset@x2.localnet>
 References: <20081008104621.10423.12648.sendpatchset@x2.localnet>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45886 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:45899 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754204AbYJHKqi (ORCPT
+	with ESMTP id S1754418AbYJHKqq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Oct 2008 06:46:38 -0400
+	Wed, 8 Oct 2008 06:46:46 -0400
 In-Reply-To: <20081008104621.10423.12648.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 5a1fb391d881905e89623d78858d05b248cbc86a
+commit a702a65fc1376fc1f6757ec2a6960348af3f1876
 Author: Alexey Dobriyan <adobriyan@gmail.com>
-Date:   Wed Oct 8 11:35:02 2008 +0200
+Date:   Wed Oct 8 11:35:04 2008 +0200
 
-    netfilter: netns nf_conntrack: add ->ct_net pointer from conntrack to netns
+    netfilter: netns nf_conntrack: pass netns pointer to nf_conntrack_in()
     
-    Conntrack (struct nf_conn) gets pointer to netns: ->ct_net -- netns in which
-    it was created. It comes from netdevice.
-    
-    ->ct_net is write-once field.
-    
-    Every conntrack in system has ->ct_net initialized, no exceptions.
-    
-    ->ct_net doesn't pin netns: conntracks are recycled after timeouts and
-    pinning background traffic will prevent netns from even starting shutdown
-    sequence.
-    
-    Right now every conntrack is created in init_net.
+    It's deducible from skb->dev or skb->dst->dev, but we know netns at
+    the moment of call, so pass it down and use for finding and creating
+    conntracks.
     
     Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
     Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 0741ad5..2b8d6ef 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -123,7 +123,9 @@ struct nf_conn
+diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
+index b4b45c5..e78afe7 100644
+--- a/include/net/netfilter/nf_conntrack_core.h
++++ b/include/net/netfilter/nf_conntrack_core.h
+@@ -20,7 +20,8 @@
+ /* This header is used to share core functionality between the
+    standalone connection tracking module, and the compatibility layer's use
+    of connection tracking. */
+-extern unsigned int nf_conntrack_in(u_int8_t pf,
++extern unsigned int nf_conntrack_in(struct net *net,
++				    u_int8_t pf,
+ 				    unsigned int hooknum,
+ 				    struct sk_buff *skb);
  
- 	/* Extensions */
- 	struct nf_ct_ext *ext;
--
-+#ifdef CONFIG_NET_NS
-+	struct net *ct_net;
-+#endif
- 	struct rcu_head rcu;
- };
- 
-@@ -147,6 +149,17 @@ static inline u_int8_t nf_ct_protonum(const struct nf_conn *ct)
- /* get master conntrack via master expectation */
- #define master_ct(conntr) (conntr->master)
- 
-+extern struct net init_net;
-+
-+static inline struct net *nf_ct_net(const struct nf_conn *ct)
-+{
-+#ifdef CONFIG_NET_NS
-+	return ct->ct_net;
-+#else
-+	return &init_net;
-+#endif
-+}
-+
- /* Alter reply tuple (maybe alter helper). */
- extern void
- nf_conntrack_alter_reply(struct nf_conn *ct,
-@@ -251,7 +264,8 @@ extern void
- nf_ct_iterate_cleanup(int (*iter)(struct nf_conn *i, void *data), void *data);
- extern void nf_conntrack_free(struct nf_conn *ct);
- extern struct nf_conn *
--nf_conntrack_alloc(const struct nf_conntrack_tuple *orig,
-+nf_conntrack_alloc(struct net *net,
-+		   const struct nf_conntrack_tuple *orig,
- 		   const struct nf_conntrack_tuple *repl,
- 		   gfp_t gfp);
- 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index ee79e93..cefc338 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -464,7 +464,8 @@ static noinline int early_drop(unsigned int hash)
- 	return dropped;
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+index 03dd108..2e4dd3f 100644
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+@@ -172,7 +172,7 @@ static unsigned int ipv4_conntrack_in(unsigned int hooknum,
+ 				      const struct net_device *out,
+ 				      int (*okfn)(struct sk_buff *))
+ {
+-	return nf_conntrack_in(PF_INET, hooknum, skb);
++	return nf_conntrack_in(dev_net(in), PF_INET, hooknum, skb);
  }
  
--struct nf_conn *nf_conntrack_alloc(const struct nf_conntrack_tuple *orig,
-+struct nf_conn *nf_conntrack_alloc(struct net *net,
-+				   const struct nf_conntrack_tuple *orig,
- 				   const struct nf_conntrack_tuple *repl,
- 				   gfp_t gfp)
- {
-@@ -503,6 +504,9 @@ struct nf_conn *nf_conntrack_alloc(const struct nf_conntrack_tuple *orig,
- 	ct->tuplehash[IP_CT_DIR_REPLY].tuple = *repl;
- 	/* Don't set timer yet: wait for confirmation */
- 	setup_timer(&ct->timeout, death_by_timeout, (unsigned long)ct);
-+#ifdef CONFIG_NET_NS
-+	ct->ct_net = net;
-+#endif
- 	INIT_RCU_HEAD(&ct->rcu);
+ static unsigned int ipv4_conntrack_local(unsigned int hooknum,
+@@ -188,7 +188,7 @@ static unsigned int ipv4_conntrack_local(unsigned int hooknum,
+ 			printk("ipt_hook: happy cracking.\n");
+ 		return NF_ACCEPT;
+ 	}
+-	return nf_conntrack_in(PF_INET, hooknum, skb);
++	return nf_conntrack_in(dev_net(out), PF_INET, hooknum, skb);
+ }
  
- 	return ct;
-@@ -528,7 +532,8 @@ EXPORT_SYMBOL_GPL(nf_conntrack_free);
- /* Allocate a new conntrack: we return -ENOMEM if classification
-    failed due to stress.  Otherwise it really is unclassifiable. */
- static struct nf_conntrack_tuple_hash *
--init_conntrack(const struct nf_conntrack_tuple *tuple,
-+init_conntrack(struct net *net,
-+	       const struct nf_conntrack_tuple *tuple,
- 	       struct nf_conntrack_l3proto *l3proto,
- 	       struct nf_conntrack_l4proto *l4proto,
- 	       struct sk_buff *skb,
-@@ -544,7 +549,7 @@ init_conntrack(const struct nf_conntrack_tuple *tuple,
- 		return NULL;
+ /* Connection tracking may drop packets, but never alters them, so
+diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+index 85050c0..e91db16 100644
+--- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+@@ -211,11 +211,10 @@ static unsigned int ipv6_defrag(unsigned int hooknum,
+ 	return NF_STOLEN;
+ }
+ 
+-static unsigned int ipv6_conntrack_in(unsigned int hooknum,
+-				      struct sk_buff *skb,
+-				      const struct net_device *in,
+-				      const struct net_device *out,
+-				      int (*okfn)(struct sk_buff *))
++static unsigned int __ipv6_conntrack_in(struct net *net,
++					unsigned int hooknum,
++					struct sk_buff *skb,
++					int (*okfn)(struct sk_buff *))
+ {
+ 	struct sk_buff *reasm = skb->nfct_reasm;
+ 
+@@ -225,7 +224,7 @@ static unsigned int ipv6_conntrack_in(unsigned int hooknum,
+ 		if (!reasm->nfct) {
+ 			unsigned int ret;
+ 
+-			ret = nf_conntrack_in(PF_INET6, hooknum, reasm);
++			ret = nf_conntrack_in(net, PF_INET6, hooknum, reasm);
+ 			if (ret != NF_ACCEPT)
+ 				return ret;
+ 		}
+@@ -235,7 +234,16 @@ static unsigned int ipv6_conntrack_in(unsigned int hooknum,
+ 		return NF_ACCEPT;
  	}
  
--	ct = nf_conntrack_alloc(tuple, &repl_tuple, GFP_ATOMIC);
-+	ct = nf_conntrack_alloc(net, tuple, &repl_tuple, GFP_ATOMIC);
- 	if (ct == NULL || IS_ERR(ct)) {
- 		pr_debug("Can't allocate conntrack.\n");
- 		return (struct nf_conntrack_tuple_hash *)ct;
-@@ -631,7 +636,8 @@ resolve_normal_ct(struct sk_buff *skb,
+-	return nf_conntrack_in(PF_INET6, hooknum, skb);
++	return nf_conntrack_in(net, PF_INET6, hooknum, skb);
++}
++
++static unsigned int ipv6_conntrack_in(unsigned int hooknum,
++				      struct sk_buff *skb,
++				      const struct net_device *in,
++				      const struct net_device *out,
++				      int (*okfn)(struct sk_buff *))
++{
++	return __ipv6_conntrack_in(dev_net(in), hooknum, skb, okfn);
+ }
+ 
+ static unsigned int ipv6_conntrack_local(unsigned int hooknum,
+@@ -250,7 +258,7 @@ static unsigned int ipv6_conntrack_local(unsigned int hooknum,
+ 			printk("ipv6_conntrack_local: packet too short\n");
+ 		return NF_ACCEPT;
+ 	}
+-	return ipv6_conntrack_in(hooknum, skb, in, out, okfn);
++	return __ipv6_conntrack_in(dev_net(out), hooknum, skb, okfn);
+ }
+ 
+ static struct nf_hook_ops ipv6_conntrack_ops[] __read_mostly = {
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 2a105db..5c96d97 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -611,7 +611,8 @@ init_conntrack(struct net *net,
+ 
+ /* On success, returns conntrack ptr, sets skb->nfct and ctinfo */
+ static inline struct nf_conn *
+-resolve_normal_ct(struct sk_buff *skb,
++resolve_normal_ct(struct net *net,
++		  struct sk_buff *skb,
+ 		  unsigned int dataoff,
+ 		  u_int16_t l3num,
+ 		  u_int8_t protonum,
+@@ -632,10 +633,9 @@ resolve_normal_ct(struct sk_buff *skb,
+ 	}
+ 
  	/* look for tuple match */
- 	h = nf_conntrack_find_get(&tuple);
+-	h = nf_conntrack_find_get(&init_net, &tuple);
++	h = nf_conntrack_find_get(net, &tuple);
  	if (!h) {
--		h = init_conntrack(&tuple, l3proto, l4proto, skb, dataoff);
-+		h = init_conntrack(&init_net, &tuple, l3proto, l4proto, skb,
-+				   dataoff);
+-		h = init_conntrack(&init_net, &tuple, l3proto, l4proto, skb,
+-				   dataoff);
++		h = init_conntrack(net, &tuple, l3proto, l4proto, skb, dataoff);
  		if (!h)
  			return NULL;
  		if (IS_ERR(h))
-@@ -1185,6 +1191,9 @@ int nf_conntrack_init(struct net *net)
+@@ -669,7 +669,8 @@ resolve_normal_ct(struct sk_buff *skb,
+ }
  
- 	/* Set up fake conntrack:
- 	    - to never be deleted, not in any hashes */
-+#ifdef CONFIG_NET_NS
-+	nf_conntrack_untracked.ct_net = &init_net;
-+#endif
- 	atomic_set(&nf_conntrack_untracked.ct_general.use, 1);
- 	/*  - and look it like as a confirmed connection */
- 	set_bit(IPS_CONFIRMED_BIT, &nf_conntrack_untracked.status);
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index a875203..da3cdc8 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1125,7 +1125,7 @@ ctnetlink_create_conntrack(struct nlattr *cda[],
- 	struct nf_conn_help *help;
- 	struct nf_conntrack_helper *helper;
+ unsigned int
+-nf_conntrack_in(u_int8_t pf, unsigned int hooknum, struct sk_buff *skb)
++nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
++		struct sk_buff *skb)
+ {
+ 	struct nf_conn *ct;
+ 	enum ip_conntrack_info ctinfo;
+@@ -709,8 +710,8 @@ nf_conntrack_in(u_int8_t pf, unsigned int hooknum, struct sk_buff *skb)
+ 		return -ret;
+ 	}
  
--	ct = nf_conntrack_alloc(otuple, rtuple, GFP_KERNEL);
-+	ct = nf_conntrack_alloc(&init_net, otuple, rtuple, GFP_KERNEL);
- 	if (ct == NULL || IS_ERR(ct))
- 		return -ENOMEM;
- 
+-	ct = resolve_normal_ct(skb, dataoff, pf, protonum, l3proto, l4proto,
+-			       &set_reply, &ctinfo);
++	ct = resolve_normal_ct(net, skb, dataoff, pf, protonum,
++			       l3proto, l4proto, &set_reply, &ctinfo);
+ 	if (!ct) {
+ 		/* Not valid part of a connection */
+ 		NF_CT_STAT_INC_ATOMIC(invalid);
