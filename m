@@ -1,136 +1,50 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 40/79: netns nat: per-netns NAT table
-Date: Wed,  8 Oct 2008 12:47:15 +0200 (MEST)
-Message-ID: <20081008104715.10423.43979.sendpatchset@x2.localnet>
+Subject: netfilter 58/79: x_tables: output bad hook mask in hexadecimal
+Date: Wed,  8 Oct 2008 12:47:39 +0200 (MEST)
+Message-ID: <20081008104739.10423.76513.sendpatchset@x2.localnet>
 References: <20081008104621.10423.12648.sendpatchset@x2.localnet>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45984 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:46040 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754633AbYJHKrQ (ORCPT
+	with ESMTP id S1754806AbYJHKrk (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Oct 2008 06:47:16 -0400
+	Wed, 8 Oct 2008 06:47:40 -0400
 In-Reply-To: <20081008104621.10423.12648.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit e099a173573ce1ba171092aee7bb3c72ea686e59
-Author: Alexey Dobriyan <adobriyan@gmail.com>
-Date:   Wed Oct 8 11:35:10 2008 +0200
+commit 102befab75c438bfa356c6976026326728771ebc
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Wed Oct 8 11:35:15 2008 +0200
 
-    netfilter: netns nat: per-netns NAT table
+    netfilter: x_tables: output bad hook mask in hexadecimal
     
-    Same story as with iptable_filter, iptables_raw tables.
+    It is a mask, and masks are most useful in hex.
     
-    Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+    Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
     Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-diff --git a/include/net/netns/ipv4.h b/include/net/netns/ipv4.h
-index a6ed838..b286b84 100644
---- a/include/net/netns/ipv4.h
-+++ b/include/net/netns/ipv4.h
-@@ -38,6 +38,7 @@ struct netns_ipv4 {
- 	struct xt_table		*iptable_raw;
- 	struct xt_table		*arptable_filter;
- 	struct xt_table		*iptable_security;
-+	struct xt_table		*nat_table;
- #endif
- 
- 	int sysctl_icmp_echo_ignore_all;
-diff --git a/net/ipv4/netfilter/nf_nat_rule.c b/net/ipv4/netfilter/nf_nat_rule.c
-index e8b4d0d..0a02a8c 100644
---- a/net/ipv4/netfilter/nf_nat_rule.c
-+++ b/net/ipv4/netfilter/nf_nat_rule.c
-@@ -33,7 +33,7 @@ static struct
- 	struct ipt_replace repl;
- 	struct ipt_standard entries[3];
- 	struct ipt_error term;
--} nat_initial_table __initdata = {
-+} nat_initial_table __net_initdata = {
- 	.repl = {
- 		.name = "nat",
- 		.valid_hooks = NAT_VALID_HOOKS,
-@@ -58,14 +58,13 @@ static struct
- 	.term = IPT_ERROR_INIT,			/* ERROR */
- };
- 
--static struct xt_table __nat_table = {
-+static struct xt_table nat_table = {
- 	.name		= "nat",
- 	.valid_hooks	= NAT_VALID_HOOKS,
- 	.lock		= __RW_LOCK_UNLOCKED(__nat_table.lock),
- 	.me		= THIS_MODULE,
- 	.af		= AF_INET,
- };
--static struct xt_table *nat_table;
- 
- /* Source NAT */
- static unsigned int ipt_snat_target(struct sk_buff *skb,
-@@ -194,9 +193,10 @@ int nf_nat_rule_find(struct sk_buff *skb,
- 		     const struct net_device *out,
- 		     struct nf_conn *ct)
- {
-+	struct net *net = nf_ct_net(ct);
- 	int ret;
- 
--	ret = ipt_do_table(skb, hooknum, in, out, nat_table);
-+	ret = ipt_do_table(skb, hooknum, in, out, net->ipv4.nat_table);
- 
- 	if (ret == NF_ACCEPT) {
- 		if (!nf_nat_initialized(ct, HOOK2MANIP(hooknum)))
-@@ -226,14 +226,32 @@ static struct xt_target ipt_dnat_reg __read_mostly = {
- 	.family		= AF_INET,
- };
- 
-+static int __net_init nf_nat_rule_net_init(struct net *net)
-+{
-+	net->ipv4.nat_table = ipt_register_table(net, &nat_table,
-+						 &nat_initial_table.repl);
-+	if (IS_ERR(net->ipv4.nat_table))
-+		return PTR_ERR(net->ipv4.nat_table);
-+	return 0;
-+}
-+
-+static void __net_exit nf_nat_rule_net_exit(struct net *net)
-+{
-+	ipt_unregister_table(net->ipv4.nat_table);
-+}
-+
-+static struct pernet_operations nf_nat_rule_net_ops = {
-+	.init = nf_nat_rule_net_init,
-+	.exit = nf_nat_rule_net_exit,
-+};
-+
- int __init nf_nat_rule_init(void)
- {
- 	int ret;
- 
--	nat_table = ipt_register_table(&init_net, &__nat_table,
--				       &nat_initial_table.repl);
--	if (IS_ERR(nat_table))
--		return PTR_ERR(nat_table);
-+	ret = register_pernet_subsys(&nf_nat_rule_net_ops);
-+	if (ret != 0)
-+		goto out;
- 	ret = xt_register_target(&ipt_snat_reg);
- 	if (ret != 0)
- 		goto unregister_table;
-@@ -247,8 +265,8 @@ int __init nf_nat_rule_init(void)
-  unregister_snat:
- 	xt_unregister_target(&ipt_snat_reg);
-  unregister_table:
--	ipt_unregister_table(nat_table);
--
-+	unregister_pernet_subsys(&nf_nat_rule_net_ops);
-+ out:
- 	return ret;
- }
- 
-@@ -256,5 +274,5 @@ void nf_nat_rule_cleanup(void)
- {
- 	xt_unregister_target(&ipt_dnat_reg);
- 	xt_unregister_target(&ipt_snat_reg);
--	ipt_unregister_table(nat_table);
-+	unregister_pernet_subsys(&nf_nat_rule_net_ops);
- }
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 0e23f42..3b1fc40 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -342,7 +342,7 @@ int xt_check_match(const struct xt_match *match, unsigned short family,
+ 		return -EINVAL;
+ 	}
+ 	if (match->hooks && (hook_mask & ~match->hooks) != 0) {
+-		printk("%s_tables: %s match: bad hook_mask %u/%u\n",
++		printk("%s_tables: %s match: bad hook_mask %#x/%#x\n",
+ 		       xt_prefix[family], match->name, hook_mask, match->hooks);
+ 		return -EINVAL;
+ 	}
+@@ -483,7 +483,7 @@ int xt_check_target(const struct xt_target *target, unsigned short family,
+ 		return -EINVAL;
+ 	}
+ 	if (target->hooks && (hook_mask & ~target->hooks) != 0) {
+-		printk("%s_tables: %s target: bad hook_mask %u/%u\n",
++		printk("%s_tables: %s target: bad hook_mask %#x/%#x\n",
+ 		       xt_prefix[family], target->name, hook_mask,
+ 		       target->hooks);
+ 		return -EINVAL;
