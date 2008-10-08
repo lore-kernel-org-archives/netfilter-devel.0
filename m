@@ -1,683 +1,860 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 77/79: xtables: cut down on static data for family-independent extensions
-Date: Wed,  8 Oct 2008 12:48:05 +0200 (MEST)
-Message-ID: <20081008104805.10423.98964.sendpatchset@x2.localnet>
+Subject: netfilter 69/79: xtables: use "if" blocks in Kconfig
+Date: Wed,  8 Oct 2008 12:47:54 +0200 (MEST)
+Message-ID: <20081008104754.10423.81671.sendpatchset@x2.localnet>
 References: <20081008104621.10423.12648.sendpatchset@x2.localnet>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:46101 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:46076 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754907AbYJHKsH (ORCPT
+	with ESMTP id S1754800AbYJHKr4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Oct 2008 06:48:07 -0400
+	Wed, 8 Oct 2008 06:47:56 -0400
 In-Reply-To: <20081008104621.10423.12648.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 92f3b2b1bc968caaabee8cd78bee75ab7c4af74e
+commit c2df73de246ae75705af8ceed4f385b261dea108
 Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Wed Oct 8 11:35:20 2008 +0200
+Date:   Wed Oct 8 11:35:18 2008 +0200
 
-    netfilter: xtables: cut down on static data for family-independent extensions
-    
-    Using ->family in struct xt_*_param, multiple struct xt_{match,target}
-    can be squashed together.
+    netfilter: xtables: use "if" blocks in Kconfig
     
     Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
     Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-diff --git a/net/netfilter/xt_CONNMARK.c b/net/netfilter/xt_CONNMARK.c
-index c5a5072..d6e5ab4 100644
---- a/net/netfilter/xt_CONNMARK.c
-+++ b/net/netfilter/xt_CONNMARK.c
-@@ -128,9 +128,9 @@ static bool connmark_tg_check_v0(const struct xt_tgchk_param *par)
- 		printk(KERN_WARNING "CONNMARK: Only supports 32bit mark\n");
- 		return false;
- 	}
--	if (nf_ct_l3proto_try_module_get(par->target->family) < 0) {
-+	if (nf_ct_l3proto_try_module_get(par->family) < 0) {
- 		printk(KERN_WARNING "can't load conntrack support for "
--				    "proto=%u\n", par->target->family);
-+				    "proto=%u\n", par->family);
- 		return false;
- 	}
- 	return true;
-@@ -138,9 +138,9 @@ static bool connmark_tg_check_v0(const struct xt_tgchk_param *par)
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index 087b829..3816e1d 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -61,10 +61,11 @@ config IP_NF_IPTABLES
  
- static bool connmark_tg_check(const struct xt_tgchk_param *par)
- {
--	if (nf_ct_l3proto_try_module_get(par->target->family) < 0) {
-+	if (nf_ct_l3proto_try_module_get(par->family) < 0) {
- 		printk(KERN_WARNING "cannot load conntrack support for "
--		       "proto=%u\n", par->target->family);
-+		       "proto=%u\n", par->family);
- 		return false;
- 	}
- 	return true;
-@@ -148,7 +148,7 @@ static bool connmark_tg_check(const struct xt_tgchk_param *par)
+ 	  To compile it as a module, choose M here.  If unsure, say N.
  
- static void connmark_tg_destroy(const struct xt_tgdtor_param *par)
- {
--	nf_ct_l3proto_module_put(par->target->family);
-+	nf_ct_l3proto_module_put(par->family);
- }
++if IP_NF_IPTABLES
++
+ # The matches.
+ config IP_NF_MATCH_ADDRTYPE
+ 	tristate '"addrtype" address type match support'
+-	depends on IP_NF_IPTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  This option allows you to match what routing thinks of an address,
+@@ -75,7 +76,6 @@ config IP_NF_MATCH_ADDRTYPE
  
- #ifdef CONFIG_COMPAT
-@@ -186,7 +186,7 @@ static struct xt_target connmark_tg_reg[] __read_mostly = {
- 	{
- 		.name		= "CONNMARK",
- 		.revision	= 0,
--		.family		= NFPROTO_IPV4,
-+		.family		= NFPROTO_UNSPEC,
- 		.checkentry	= connmark_tg_check_v0,
- 		.destroy	= connmark_tg_destroy,
- 		.target		= connmark_tg_v0,
-@@ -199,34 +199,9 @@ static struct xt_target connmark_tg_reg[] __read_mostly = {
- 		.me		= THIS_MODULE
- 	},
- 	{
--		.name		= "CONNMARK",
--		.revision	= 0,
--		.family		= NFPROTO_IPV6,
--		.checkentry	= connmark_tg_check_v0,
--		.destroy	= connmark_tg_destroy,
--		.target		= connmark_tg_v0,
--		.targetsize	= sizeof(struct xt_connmark_target_info),
--#ifdef CONFIG_COMPAT
--		.compatsize	= sizeof(struct compat_xt_connmark_target_info),
--		.compat_from_user = connmark_tg_compat_from_user_v0,
--		.compat_to_user	= connmark_tg_compat_to_user_v0,
--#endif
--		.me		= THIS_MODULE
--	},
--	{
--		.name           = "CONNMARK",
--		.revision       = 1,
--		.family         = NFPROTO_IPV4,
--		.checkentry     = connmark_tg_check,
--		.target         = connmark_tg,
--		.targetsize     = sizeof(struct xt_connmark_tginfo1),
--		.destroy        = connmark_tg_destroy,
--		.me             = THIS_MODULE,
--	},
--	{
- 		.name           = "CONNMARK",
- 		.revision       = 1,
--		.family         = NFPROTO_IPV6,
-+		.family         = NFPROTO_UNSPEC,
- 		.checkentry     = connmark_tg_check,
- 		.target         = connmark_tg,
- 		.targetsize     = sizeof(struct xt_connmark_tginfo1),
-diff --git a/net/netfilter/xt_CONNSECMARK.c b/net/netfilter/xt_CONNSECMARK.c
-index b6e3f3f..b54c375 100644
---- a/net/netfilter/xt_CONNSECMARK.c
-+++ b/net/netfilter/xt_CONNSECMARK.c
-@@ -106,9 +106,9 @@ static bool connsecmark_tg_check(const struct xt_tgchk_param *par)
- 		return false;
- 	}
+ config IP_NF_MATCH_AH
+ 	tristate '"ah" match support'
+-	depends on IP_NF_IPTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  This match extension allows you to match a range of SPIs
+@@ -85,7 +85,6 @@ config IP_NF_MATCH_AH
  
--	if (nf_ct_l3proto_try_module_get(par->target->family) < 0) {
-+	if (nf_ct_l3proto_try_module_get(par->family) < 0) {
- 		printk(KERN_WARNING "can't load conntrack support for "
--				    "proto=%u\n", par->target->family);
-+				    "proto=%u\n", par->family);
- 		return false;
- 	}
- 	return true;
-@@ -116,40 +116,28 @@ static bool connsecmark_tg_check(const struct xt_tgchk_param *par)
+ config IP_NF_MATCH_ECN
+ 	tristate '"ecn" match support'
+-	depends on IP_NF_IPTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  This option adds a `ECN' match, which allows you to match against
+@@ -95,7 +94,6 @@ config IP_NF_MATCH_ECN
  
- static void connsecmark_tg_destroy(const struct xt_tgdtor_param *par)
- {
--	nf_ct_l3proto_module_put(par->target->family);
-+	nf_ct_l3proto_module_put(par->family);
- }
+ config IP_NF_MATCH_TTL
+ 	tristate '"ttl" match support'
+-	depends on IP_NF_IPTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  This adds CONFIG_IP_NF_MATCH_TTL option, which enabled the user
+@@ -106,7 +104,6 @@ config IP_NF_MATCH_TTL
+ # `filter', generic and specific targets
+ config IP_NF_FILTER
+ 	tristate "Packet filtering"
+-	depends on IP_NF_IPTABLES
+ 	default m if NETFILTER_ADVANCED=n
+ 	help
+ 	  Packet filtering defines a table `filter', which has a series of
+@@ -128,7 +125,6 @@ config IP_NF_TARGET_REJECT
  
--static struct xt_target connsecmark_tg_reg[] __read_mostly = {
--	{
--		.name		= "CONNSECMARK",
--		.family		= NFPROTO_IPV4,
--		.checkentry	= connsecmark_tg_check,
--		.destroy	= connsecmark_tg_destroy,
--		.target		= connsecmark_tg,
--		.targetsize	= sizeof(struct xt_connsecmark_target_info),
--		.me		= THIS_MODULE,
--	},
--	{
--		.name		= "CONNSECMARK",
--		.family		= NFPROTO_IPV6,
--		.checkentry	= connsecmark_tg_check,
--		.destroy	= connsecmark_tg_destroy,
--		.target		= connsecmark_tg,
--		.targetsize	= sizeof(struct xt_connsecmark_target_info),
--		.me		= THIS_MODULE,
--	},
-+static struct xt_target connsecmark_tg_reg __read_mostly = {
-+	.name       = "CONNSECMARK",
-+	.revision   = 0,
-+	.family     = NFPROTO_UNSPEC,
-+	.checkentry = connsecmark_tg_check,
-+	.destroy    = connsecmark_tg_destroy,
-+	.target     = connsecmark_tg,
-+	.targetsize = sizeof(struct xt_connsecmark_target_info),
-+	.me         = THIS_MODULE,
- };
+ config IP_NF_TARGET_LOG
+ 	tristate "LOG target support"
+-	depends on IP_NF_IPTABLES
+ 	default m if NETFILTER_ADVANCED=n
+ 	help
+ 	  This option adds a `LOG' target, which allows you to create rules in
+@@ -138,7 +134,6 @@ config IP_NF_TARGET_LOG
  
- static int __init connsecmark_tg_init(void)
- {
--	return xt_register_targets(connsecmark_tg_reg,
--	       ARRAY_SIZE(connsecmark_tg_reg));
-+	return xt_register_target(&connsecmark_tg_reg);
- }
+ config IP_NF_TARGET_ULOG
+ 	tristate "ULOG target support"
+-	depends on IP_NF_IPTABLES
+ 	default m if NETFILTER_ADVANCED=n
+ 	---help---
  
- static void __exit connsecmark_tg_exit(void)
- {
--	xt_unregister_targets(connsecmark_tg_reg,
--	                      ARRAY_SIZE(connsecmark_tg_reg));
-+	xt_unregister_target(&connsecmark_tg_reg);
- }
+@@ -159,7 +154,7 @@ config IP_NF_TARGET_ULOG
+ # NAT + specific targets: nf_conntrack
+ config NF_NAT
+ 	tristate "Full NAT"
+-	depends on IP_NF_IPTABLES && NF_CONNTRACK_IPV4
++	depends on NF_CONNTRACK_IPV4
+ 	default m if NETFILTER_ADVANCED=n
+ 	help
+ 	  The Full NAT option allows masquerading, port forwarding and other
+@@ -254,44 +249,43 @@ config NF_NAT_PROTO_SCTP
  
- module_init(connsecmark_tg_init);
-diff --git a/net/netfilter/xt_NFLOG.c b/net/netfilter/xt_NFLOG.c
-index 56ee4f1..50e3a52 100644
---- a/net/netfilter/xt_NFLOG.c
-+++ b/net/netfilter/xt_NFLOG.c
-@@ -31,7 +31,7 @@ nflog_tg(struct sk_buff *skb, const struct xt_target_param *par)
- 	li.u.ulog.group	     = info->group;
- 	li.u.ulog.qthreshold = info->threshold;
+ config NF_NAT_FTP
+ 	tristate
+-	depends on IP_NF_IPTABLES && NF_CONNTRACK && NF_NAT
++	depends on NF_CONNTRACK && NF_NAT
+ 	default NF_NAT && NF_CONNTRACK_FTP
  
--	nf_log_packet(par->target->family, par->hooknum, skb, par->in,
-+	nf_log_packet(par->family, par->hooknum, skb, par->in,
- 	              par->out, &li, "%s", info->prefix);
- 	return XT_CONTINUE;
- }
-@@ -47,33 +47,24 @@ static bool nflog_tg_check(const struct xt_tgchk_param *par)
- 	return true;
- }
+ config NF_NAT_IRC
+ 	tristate
+-	depends on IP_NF_IPTABLES && NF_CONNTRACK && NF_NAT
++	depends on NF_CONNTRACK && NF_NAT
+ 	default NF_NAT && NF_CONNTRACK_IRC
  
--static struct xt_target nflog_tg_reg[] __read_mostly = {
--	{
--		.name		= "NFLOG",
--		.family		= NFPROTO_IPV4,
--		.checkentry	= nflog_tg_check,
--		.target		= nflog_tg,
--		.targetsize	= sizeof(struct xt_nflog_info),
--		.me		= THIS_MODULE,
--	},
--	{
--		.name		= "NFLOG",
--		.family		= NFPROTO_IPV6,
--		.checkentry	= nflog_tg_check,
--		.target		= nflog_tg,
--		.targetsize	= sizeof(struct xt_nflog_info),
--		.me		= THIS_MODULE,
--	},
-+static struct xt_target nflog_tg_reg __read_mostly = {
-+	.name       = "NFLOG",
-+	.revision   = 0,
-+	.family     = NFPROTO_UNSPEC,
-+	.checkentry = nflog_tg_check,
-+	.target     = nflog_tg,
-+	.targetsize = sizeof(struct xt_nflog_info),
-+	.me         = THIS_MODULE,
- };
+ config NF_NAT_TFTP
+ 	tristate
+-	depends on IP_NF_IPTABLES && NF_CONNTRACK && NF_NAT
++	depends on NF_CONNTRACK && NF_NAT
+ 	default NF_NAT && NF_CONNTRACK_TFTP
  
- static int __init nflog_tg_init(void)
- {
--	return xt_register_targets(nflog_tg_reg, ARRAY_SIZE(nflog_tg_reg));
-+	return xt_register_target(&nflog_tg_reg);
- }
+ config NF_NAT_AMANDA
+ 	tristate
+-	depends on IP_NF_IPTABLES && NF_CONNTRACK && NF_NAT
++	depends on NF_CONNTRACK && NF_NAT
+ 	default NF_NAT && NF_CONNTRACK_AMANDA
  
- static void __exit nflog_tg_exit(void)
- {
--	xt_unregister_targets(nflog_tg_reg, ARRAY_SIZE(nflog_tg_reg));
-+	xt_unregister_target(&nflog_tg_reg);
- }
+ config NF_NAT_PPTP
+ 	tristate
+-	depends on IP_NF_IPTABLES && NF_CONNTRACK && NF_NAT
++	depends on NF_CONNTRACK && NF_NAT
+ 	default NF_NAT && NF_CONNTRACK_PPTP
+ 	select NF_NAT_PROTO_GRE
  
- module_init(nflog_tg_init);
-diff --git a/net/netfilter/xt_connbytes.c b/net/netfilter/xt_connbytes.c
-index 5bf4aa0..955e659 100644
---- a/net/netfilter/xt_connbytes.c
-+++ b/net/netfilter/xt_connbytes.c
-@@ -106,9 +106,9 @@ static bool connbytes_mt_check(const struct xt_mtchk_param *par)
- 	    sinfo->direction != XT_CONNBYTES_DIR_BOTH)
- 		return false;
+ config NF_NAT_H323
+ 	tristate
+-	depends on IP_NF_IPTABLES && NF_CONNTRACK && NF_NAT
++	depends on NF_CONNTRACK && NF_NAT
+ 	default NF_NAT && NF_CONNTRACK_H323
  
--	if (nf_ct_l3proto_try_module_get(par->match->family) < 0) {
-+	if (nf_ct_l3proto_try_module_get(par->family) < 0) {
- 		printk(KERN_WARNING "can't load conntrack support for "
--				    "proto=%u\n", par->match->family);
-+				    "proto=%u\n", par->family);
- 		return false;
- 	}
+ config NF_NAT_SIP
+ 	tristate
+-	depends on IP_NF_IPTABLES && NF_CONNTRACK && NF_NAT
++	depends on NF_CONNTRACK && NF_NAT
+ 	default NF_NAT && NF_CONNTRACK_SIP
  
-@@ -117,39 +117,28 @@ static bool connbytes_mt_check(const struct xt_mtchk_param *par)
+ # mangle + specific targets
+ config IP_NF_MANGLE
+ 	tristate "Packet mangling"
+-	depends on IP_NF_IPTABLES
+ 	default m if NETFILTER_ADVANCED=n
+ 	help
+ 	  This option adds a `mangle' table to iptables: see the man page for
+@@ -346,7 +340,6 @@ config IP_NF_TARGET_TTL
+ # raw + specific targets
+ config IP_NF_RAW
+ 	tristate  'raw table support (required for NOTRACK/TRACE)'
+-	depends on IP_NF_IPTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  This option adds a `raw' table to iptables. This table is the very
+@@ -359,7 +352,6 @@ config IP_NF_RAW
+ # security table for MAC policy
+ config IP_NF_SECURITY
+ 	tristate "Security table"
+-	depends on IP_NF_IPTABLES
+ 	depends on SECURITY
+ 	depends on NETFILTER_ADVANCED
+ 	help
+@@ -368,6 +360,8 @@ config IP_NF_SECURITY
+ 	 
+ 	  If unsure, say N.
  
- static void connbytes_mt_destroy(const struct xt_mtdtor_param *par)
- {
--	nf_ct_l3proto_module_put(par->match->family);
-+	nf_ct_l3proto_module_put(par->family);
- }
++endif # IP_NF_IPTABLES
++
+ # ARP tables
+ config IP_NF_ARPTABLES
+ 	tristate "ARP tables support"
+@@ -380,9 +374,10 @@ config IP_NF_ARPTABLES
  
--static struct xt_match connbytes_mt_reg[] __read_mostly = {
--	{
--		.name		= "connbytes",
--		.family		= NFPROTO_IPV4,
--		.checkentry	= connbytes_mt_check,
--		.match		= connbytes_mt,
--		.destroy	= connbytes_mt_destroy,
--		.matchsize	= sizeof(struct xt_connbytes_info),
--		.me		= THIS_MODULE
--	},
--	{
--		.name		= "connbytes",
--		.family		= NFPROTO_IPV6,
--		.checkentry	= connbytes_mt_check,
--		.match		= connbytes_mt,
--		.destroy	= connbytes_mt_destroy,
--		.matchsize	= sizeof(struct xt_connbytes_info),
--		.me		= THIS_MODULE
--	},
-+static struct xt_match connbytes_mt_reg __read_mostly = {
-+	.name       = "connbytes",
-+	.revision   = 0,
-+	.family     = NFPROTO_UNSPEC,
-+	.checkentry = connbytes_mt_check,
-+	.match      = connbytes_mt,
-+	.destroy    = connbytes_mt_destroy,
-+	.matchsize  = sizeof(struct xt_connbytes_info),
-+	.me         = THIS_MODULE,
- };
+ 	  To compile it as a module, choose M here.  If unsure, say N.
  
- static int __init connbytes_mt_init(void)
- {
--	return xt_register_matches(connbytes_mt_reg,
--	       ARRAY_SIZE(connbytes_mt_reg));
-+	return xt_register_match(&connbytes_mt_reg);
- }
++if IP_NF_ARPTABLES
++
+ config IP_NF_ARPFILTER
+ 	tristate "ARP packet filtering"
+-	depends on IP_NF_ARPTABLES
+ 	help
+ 	  ARP packet filtering defines a table `filter', which has a series of
+ 	  rules for simple ARP packet filtering at local input and
+@@ -393,10 +388,11 @@ config IP_NF_ARPFILTER
  
- static void __exit connbytes_mt_exit(void)
- {
--	xt_unregister_matches(connbytes_mt_reg, ARRAY_SIZE(connbytes_mt_reg));
-+	xt_unregister_match(&connbytes_mt_reg);
- }
+ config IP_NF_ARP_MANGLE
+ 	tristate "ARP payload mangling"
+-	depends on IP_NF_ARPTABLES
+ 	help
+ 	  Allows altering the ARP packet payload: source and destination
+ 	  hardware and network addresses.
  
- module_init(connbytes_mt_init);
-diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
-index bfb3ee6..7f404cc 100644
---- a/net/netfilter/xt_connlimit.c
-+++ b/net/netfilter/xt_connlimit.c
-@@ -192,10 +192,10 @@ connlimit_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	if (ct != NULL)
- 		tuple_ptr = &ct->tuplehash[0].tuple;
- 	else if (!nf_ct_get_tuplepr(skb, skb_network_offset(skb),
--				    par->match->family, &tuple))
-+				    par->family, &tuple))
- 		goto hotdrop;
++endif # IP_NF_ARPTABLES
++
+ endmenu
  
--	if (par->match->family == NFPROTO_IPV6) {
-+	if (par->family == NFPROTO_IPV6) {
- 		const struct ipv6hdr *iph = ipv6_hdr(skb);
- 		memcpy(&addr.ip6, &iph->saddr, sizeof(iph->saddr));
- 	} else {
-@@ -226,16 +226,16 @@ static bool connlimit_mt_check(const struct xt_mtchk_param *par)
- 	struct xt_connlimit_info *info = par->matchinfo;
- 	unsigned int i;
+diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
+index 91ffba0..53ea512 100644
+--- a/net/ipv6/netfilter/Kconfig
++++ b/net/ipv6/netfilter/Kconfig
+@@ -55,10 +55,11 @@ config IP6_NF_IPTABLES
  
--	if (nf_ct_l3proto_try_module_get(par->match->family) < 0) {
-+	if (nf_ct_l3proto_try_module_get(par->family) < 0) {
- 		printk(KERN_WARNING "cannot load conntrack support for "
--		       "address family %u\n", par->match->family);
-+		       "address family %u\n", par->family);
- 		return false;
- 	}
+ 	  To compile it as a module, choose M here.  If unsure, say N.
  
- 	/* init private data */
- 	info->data = kmalloc(sizeof(struct xt_connlimit_data), GFP_KERNEL);
- 	if (info->data == NULL) {
--		nf_ct_l3proto_module_put(par->match->family);
-+		nf_ct_l3proto_module_put(par->family);
- 		return false;
- 	}
++if IP6_NF_IPTABLES
++
+ # The simple matches.
+ config IP6_NF_MATCH_AH
+ 	tristate '"ah" match support'
+-	depends on IP6_NF_IPTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  This module allows one to match AH packets.
+@@ -67,7 +68,6 @@ config IP6_NF_MATCH_AH
  
-@@ -254,7 +254,7 @@ static void connlimit_mt_destroy(const struct xt_mtdtor_param *par)
- 	struct list_head *hash = info->data->iphash;
- 	unsigned int i;
+ config IP6_NF_MATCH_EUI64
+ 	tristate '"eui64" address check'
+-	depends on IP6_NF_IPTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  This module performs checking on the IPv6 source address
+@@ -78,7 +78,6 @@ config IP6_NF_MATCH_EUI64
  
--	nf_ct_l3proto_module_put(par->match->family);
-+	nf_ct_l3proto_module_put(par->family);
+ config IP6_NF_MATCH_FRAG
+ 	tristate '"frag" Fragmentation header match support'
+-	depends on IP6_NF_IPTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  frag matching allows you to match packets based on the fragmentation
+@@ -88,7 +87,6 @@ config IP6_NF_MATCH_FRAG
  
- 	for (i = 0; i < ARRAY_SIZE(info->data->iphash); ++i) {
- 		list_for_each_entry_safe(conn, tmp, &hash[i], list) {
-@@ -266,41 +266,30 @@ static void connlimit_mt_destroy(const struct xt_mtdtor_param *par)
- 	kfree(info->data);
- }
+ config IP6_NF_MATCH_OPTS
+ 	tristate '"hbh" hop-by-hop and "dst" opts header match support'
+-	depends on IP6_NF_IPTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  This allows one to match packets based on the hop-by-hop
+@@ -98,7 +96,6 @@ config IP6_NF_MATCH_OPTS
  
--static struct xt_match connlimit_mt_reg[] __read_mostly = {
--	{
--		.name       = "connlimit",
--		.family     = NFPROTO_IPV4,
--		.checkentry = connlimit_mt_check,
--		.match      = connlimit_mt,
--		.matchsize  = sizeof(struct xt_connlimit_info),
--		.destroy    = connlimit_mt_destroy,
--		.me         = THIS_MODULE,
--	},
--	{
--		.name       = "connlimit",
--		.family     = NFPROTO_IPV6,
--		.checkentry = connlimit_mt_check,
--		.match      = connlimit_mt,
--		.matchsize  = sizeof(struct xt_connlimit_info),
--		.destroy    = connlimit_mt_destroy,
--		.me         = THIS_MODULE,
--	},
-+static struct xt_match connlimit_mt_reg __read_mostly = {
-+	.name       = "connlimit",
-+	.revision   = 0,
-+	.family     = NFPROTO_UNSPEC,
-+	.checkentry = connlimit_mt_check,
-+	.match      = connlimit_mt,
-+	.matchsize  = sizeof(struct xt_connlimit_info),
-+	.destroy    = connlimit_mt_destroy,
-+	.me         = THIS_MODULE,
- };
+ config IP6_NF_MATCH_HL
+ 	tristate '"hl" match support'
+-	depends on IP6_NF_IPTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  HL matching allows you to match packets based on the hop
+@@ -108,7 +105,6 @@ config IP6_NF_MATCH_HL
  
- static int __init connlimit_mt_init(void)
- {
--	return xt_register_matches(connlimit_mt_reg,
--	       ARRAY_SIZE(connlimit_mt_reg));
-+	return xt_register_match(&connlimit_mt_reg);
- }
+ config IP6_NF_MATCH_IPV6HEADER
+ 	tristate '"ipv6header" IPv6 Extension Headers Match'
+-	depends on IP6_NF_IPTABLES
+ 	default m if NETFILTER_ADVANCED=n
+ 	help
+ 	  This module allows one to match packets based upon
+@@ -118,7 +114,6 @@ config IP6_NF_MATCH_IPV6HEADER
  
- static void __exit connlimit_mt_exit(void)
- {
--	xt_unregister_matches(connlimit_mt_reg, ARRAY_SIZE(connlimit_mt_reg));
-+	xt_unregister_match(&connlimit_mt_reg);
- }
+ config IP6_NF_MATCH_MH
+ 	tristate '"mh" match support'
+-	depends on IP6_NF_IPTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  This module allows one to match MH packets.
+@@ -127,7 +122,6 @@ config IP6_NF_MATCH_MH
  
- module_init(connlimit_mt_init);
- module_exit(connlimit_mt_exit);
--MODULE_AUTHOR("Jan Engelhardt <jengelh@computergmbh.de>");
-+MODULE_AUTHOR("Jan Engelhardt <jengelh@medozas.de>");
- MODULE_DESCRIPTION("Xtables: Number of connections matching");
- MODULE_LICENSE("GPL");
- MODULE_ALIAS("ipt_connlimit");
-diff --git a/net/netfilter/xt_connmark.c b/net/netfilter/xt_connmark.c
-index c708577..86cacab 100644
---- a/net/netfilter/xt_connmark.c
-+++ b/net/netfilter/xt_connmark.c
-@@ -69,9 +69,9 @@ static bool connmark_mt_check_v0(const struct xt_mtchk_param *par)
- 		printk(KERN_WARNING "connmark: only support 32bit mark\n");
- 		return false;
- 	}
--	if (nf_ct_l3proto_try_module_get(par->match->family) < 0) {
-+	if (nf_ct_l3proto_try_module_get(par->family) < 0) {
- 		printk(KERN_WARNING "can't load conntrack support for "
--				    "proto=%u\n", par->match->family);
-+				    "proto=%u\n", par->family);
- 		return false;
- 	}
- 	return true;
-@@ -79,9 +79,9 @@ static bool connmark_mt_check_v0(const struct xt_mtchk_param *par)
+ config IP6_NF_MATCH_RT
+ 	tristate '"rt" Routing header match support'
+-	depends on IP6_NF_IPTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  rt matching allows you to match packets based on the routing
+@@ -138,7 +132,6 @@ config IP6_NF_MATCH_RT
+ # The targets
+ config IP6_NF_TARGET_LOG
+ 	tristate "LOG target support"
+-	depends on IP6_NF_IPTABLES
+ 	default m if NETFILTER_ADVANCED=n
+ 	help
+ 	  This option adds a `LOG' target, which allows you to create rules in
+@@ -148,7 +141,6 @@ config IP6_NF_TARGET_LOG
  
- static bool connmark_mt_check(const struct xt_mtchk_param *par)
- {
--	if (nf_ct_l3proto_try_module_get(par->match->family) < 0) {
-+	if (nf_ct_l3proto_try_module_get(par->family) < 0) {
- 		printk(KERN_WARNING "cannot load conntrack support for "
--		       "proto=%u\n", par->match->family);
-+		       "proto=%u\n", par->family);
- 		return false;
- 	}
- 	return true;
-@@ -89,7 +89,7 @@ static bool connmark_mt_check(const struct xt_mtchk_param *par)
+ config IP6_NF_FILTER
+ 	tristate "Packet filtering"
+-	depends on IP6_NF_IPTABLES
+ 	default m if NETFILTER_ADVANCED=n
+ 	help
+ 	  Packet filtering defines a table `filter', which has a series of
+@@ -170,7 +162,6 @@ config IP6_NF_TARGET_REJECT
  
- static void connmark_mt_destroy(const struct xt_mtdtor_param *par)
- {
--	nf_ct_l3proto_module_put(par->match->family);
-+	nf_ct_l3proto_module_put(par->family);
- }
+ config IP6_NF_MANGLE
+ 	tristate "Packet mangling"
+-	depends on IP6_NF_IPTABLES
+ 	default m if NETFILTER_ADVANCED=n
+ 	help
+ 	  This option adds a `mangle' table to iptables: see the man page for
+@@ -198,7 +189,6 @@ config IP6_NF_TARGET_HL
  
- #ifdef CONFIG_COMPAT
-@@ -127,7 +127,7 @@ static struct xt_match connmark_mt_reg[] __read_mostly = {
- 	{
- 		.name		= "connmark",
- 		.revision	= 0,
--		.family		= NFPROTO_IPV4,
-+		.family		= NFPROTO_UNSPEC,
- 		.checkentry	= connmark_mt_check_v0,
- 		.match		= connmark_mt_v0,
- 		.destroy	= connmark_mt_destroy,
-@@ -140,34 +140,9 @@ static struct xt_match connmark_mt_reg[] __read_mostly = {
- 		.me		= THIS_MODULE
- 	},
- 	{
--		.name		= "connmark",
--		.revision	= 0,
--		.family		= NFPROTO_IPV6,
--		.checkentry	= connmark_mt_check_v0,
--		.match		= connmark_mt_v0,
--		.destroy	= connmark_mt_destroy,
--		.matchsize	= sizeof(struct xt_connmark_info),
--#ifdef CONFIG_COMPAT
--		.compatsize	= sizeof(struct compat_xt_connmark_info),
--		.compat_from_user = connmark_mt_compat_from_user_v0,
--		.compat_to_user	= connmark_mt_compat_to_user_v0,
--#endif
--		.me		= THIS_MODULE
--	},
--	{
--		.name           = "connmark",
--		.revision       = 1,
--		.family         = NFPROTO_IPV4,
--		.checkentry     = connmark_mt_check,
--		.match          = connmark_mt,
--		.matchsize      = sizeof(struct xt_connmark_mtinfo1),
--		.destroy        = connmark_mt_destroy,
--		.me             = THIS_MODULE,
--	},
--	{
- 		.name           = "connmark",
- 		.revision       = 1,
--		.family         = NFPROTO_IPV6,
-+		.family         = NFPROTO_UNSPEC,
- 		.checkentry     = connmark_mt_check,
- 		.match          = connmark_mt,
- 		.matchsize      = sizeof(struct xt_connmark_mtinfo1),
-diff --git a/net/netfilter/xt_conntrack.c b/net/netfilter/xt_conntrack.c
-index 5cd58d7..0b7139f 100644
---- a/net/netfilter/xt_conntrack.c
-+++ b/net/netfilter/xt_conntrack.c
-@@ -238,22 +238,22 @@ conntrack_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 		return false;
+ config IP6_NF_RAW
+ 	tristate  'raw table support (required for TRACE)'
+-	depends on IP6_NF_IPTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  This option adds a `raw' table to ip6tables. This table is the very
+@@ -211,7 +201,6 @@ config IP6_NF_RAW
+ # security table for MAC policy
+ config IP6_NF_SECURITY
+        tristate "Security table"
+-       depends on IP6_NF_IPTABLES
+        depends on SECURITY
+        depends on NETFILTER_ADVANCED
+        help
+@@ -220,5 +209,7 @@ config IP6_NF_SECURITY
+         
+          If unsure, say N.
  
- 	if (info->match_flags & XT_CONNTRACK_ORIGSRC)
--		if (conntrack_mt_origsrc(ct, info, par->match->family) ^
-+		if (conntrack_mt_origsrc(ct, info, par->family) ^
- 		    !(info->invert_flags & XT_CONNTRACK_ORIGSRC))
- 			return false;
++endif # IP6_NF_IPTABLES
++
+ endmenu
  
- 	if (info->match_flags & XT_CONNTRACK_ORIGDST)
--		if (conntrack_mt_origdst(ct, info, par->match->family) ^
-+		if (conntrack_mt_origdst(ct, info, par->family) ^
- 		    !(info->invert_flags & XT_CONNTRACK_ORIGDST))
- 			return false;
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 9ad74e8..899e780 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -38,10 +38,11 @@ config NF_CONNTRACK
  
- 	if (info->match_flags & XT_CONNTRACK_REPLSRC)
--		if (conntrack_mt_replsrc(ct, info, par->match->family) ^
-+		if (conntrack_mt_replsrc(ct, info, par->family) ^
- 		    !(info->invert_flags & XT_CONNTRACK_REPLSRC))
- 			return false;
+ 	  To compile it as a module, choose M here.  If unsure, say N.
  
- 	if (info->match_flags & XT_CONNTRACK_REPLDST)
--		if (conntrack_mt_repldst(ct, info, par->match->family) ^
-+		if (conntrack_mt_repldst(ct, info, par->family) ^
- 		    !(info->invert_flags & XT_CONNTRACK_REPLDST))
- 			return false;
++if NF_CONNTRACK
++
+ config NF_CT_ACCT
+ 	bool "Connection tracking flow accounting"
+ 	depends on NETFILTER_ADVANCED
+-	depends on NF_CONNTRACK
+ 	help
+ 	  If this option is enabled, the connection tracking code will
+ 	  keep per-flow packet and byte counters.
+@@ -63,7 +64,6 @@ config NF_CT_ACCT
+ config NF_CONNTRACK_MARK
+ 	bool  'Connection mark tracking support'
+ 	depends on NETFILTER_ADVANCED
+-	depends on NF_CONNTRACK
+ 	help
+ 	  This option enables support for connection marks, used by the
+ 	  `CONNMARK' target and `connmark' match. Similar to the mark value
+@@ -72,7 +72,7 @@ config NF_CONNTRACK_MARK
  
-@@ -280,9 +280,9 @@ conntrack_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+ config NF_CONNTRACK_SECMARK
+ 	bool  'Connection tracking security mark support'
+-	depends on NF_CONNTRACK && NETWORK_SECMARK
++	depends on NETWORK_SECMARK
+ 	default m if NETFILTER_ADVANCED=n
+ 	help
+ 	  This option enables security markings to be applied to
+@@ -85,7 +85,6 @@ config NF_CONNTRACK_SECMARK
  
- static bool conntrack_mt_check(const struct xt_mtchk_param *par)
- {
--	if (nf_ct_l3proto_try_module_get(par->match->family) < 0) {
-+	if (nf_ct_l3proto_try_module_get(par->family) < 0) {
- 		printk(KERN_WARNING "can't load conntrack support for "
--				    "proto=%u\n", par->match->family);
-+				    "proto=%u\n", par->family);
- 		return false;
- 	}
- 	return true;
-@@ -290,7 +290,7 @@ static bool conntrack_mt_check(const struct xt_mtchk_param *par)
+ config NF_CONNTRACK_EVENTS
+ 	bool "Connection tracking events"
+-	depends on NF_CONNTRACK
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  If this option is enabled, the connection tracking code will
+@@ -96,7 +95,7 @@ config NF_CONNTRACK_EVENTS
  
- static void conntrack_mt_destroy(const struct xt_mtdtor_param *par)
- {
--	nf_ct_l3proto_module_put(par->match->family);
-+	nf_ct_l3proto_module_put(par->family);
- }
+ config NF_CT_PROTO_DCCP
+ 	tristate 'DCCP protocol connection tracking support (EXPERIMENTAL)'
+-	depends on EXPERIMENTAL && NF_CONNTRACK
++	depends on EXPERIMENTAL
+ 	depends on NETFILTER_ADVANCED
+ 	default IP_DCCP
+ 	help
+@@ -107,11 +106,10 @@ config NF_CT_PROTO_DCCP
  
- #ifdef CONFIG_COMPAT
-@@ -361,17 +361,7 @@ static struct xt_match conntrack_mt_reg[] __read_mostly = {
- 	{
- 		.name       = "conntrack",
- 		.revision   = 1,
--		.family     = NFPROTO_IPV4,
--		.matchsize  = sizeof(struct xt_conntrack_mtinfo1),
--		.match      = conntrack_mt,
--		.checkentry = conntrack_mt_check,
--		.destroy    = conntrack_mt_destroy,
--		.me         = THIS_MODULE,
--	},
--	{
--		.name       = "conntrack",
--		.revision   = 1,
--		.family     = NFPROTO_IPV6,
-+		.family     = NFPROTO_UNSPEC,
- 		.matchsize  = sizeof(struct xt_conntrack_mtinfo1),
- 		.match      = conntrack_mt,
- 		.checkentry = conntrack_mt_check,
-diff --git a/net/netfilter/xt_helper.c b/net/netfilter/xt_helper.c
-index 280c984..64fc7f2 100644
---- a/net/netfilter/xt_helper.c
-+++ b/net/netfilter/xt_helper.c
-@@ -58,9 +58,9 @@ static bool helper_mt_check(const struct xt_mtchk_param *par)
- {
- 	struct xt_helper_info *info = par->matchinfo;
+ config NF_CT_PROTO_GRE
+ 	tristate
+-	depends on NF_CONNTRACK
  
--	if (nf_ct_l3proto_try_module_get(par->match->family) < 0) {
-+	if (nf_ct_l3proto_try_module_get(par->family) < 0) {
- 		printk(KERN_WARNING "can't load conntrack support for "
--				    "proto=%u\n", par->match->family);
-+				    "proto=%u\n", par->family);
- 		return false;
- 	}
- 	info->name[29] = '\0';
-@@ -69,38 +69,28 @@ static bool helper_mt_check(const struct xt_mtchk_param *par)
+ config NF_CT_PROTO_SCTP
+ 	tristate 'SCTP protocol connection tracking support (EXPERIMENTAL)'
+-	depends on EXPERIMENTAL && NF_CONNTRACK
++	depends on EXPERIMENTAL
+ 	depends on NETFILTER_ADVANCED
+ 	default IP_SCTP
+ 	help
+@@ -123,7 +121,6 @@ config NF_CT_PROTO_SCTP
  
- static void helper_mt_destroy(const struct xt_mtdtor_param *par)
- {
--	nf_ct_l3proto_module_put(par->match->family);
-+	nf_ct_l3proto_module_put(par->family);
- }
+ config NF_CT_PROTO_UDPLITE
+ 	tristate 'UDP-Lite protocol connection tracking support'
+-	depends on NF_CONNTRACK
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  With this option enabled, the layer 3 independent connection
+@@ -134,7 +131,6 @@ config NF_CT_PROTO_UDPLITE
  
--static struct xt_match helper_mt_reg[] __read_mostly = {
--	{
--		.name		= "helper",
--		.family		= NFPROTO_IPV4,
--		.checkentry	= helper_mt_check,
--		.match		= helper_mt,
--		.destroy	= helper_mt_destroy,
--		.matchsize	= sizeof(struct xt_helper_info),
--		.me		= THIS_MODULE,
--	},
--	{
--		.name		= "helper",
--		.family		= NFPROTO_IPV6,
--		.checkentry	= helper_mt_check,
--		.match		= helper_mt,
--		.destroy	= helper_mt_destroy,
--		.matchsize	= sizeof(struct xt_helper_info),
--		.me		= THIS_MODULE,
--	},
-+static struct xt_match helper_mt_reg __read_mostly = {
-+	.name       = "helper",
-+	.revision   = 0,
-+	.family     = NFPROTO_UNSPEC,
-+	.checkentry = helper_mt_check,
-+	.match      = helper_mt,
-+	.destroy    = helper_mt_destroy,
-+	.matchsize  = sizeof(struct xt_helper_info),
-+	.me         = THIS_MODULE,
- };
+ config NF_CONNTRACK_AMANDA
+ 	tristate "Amanda backup protocol support"
+-	depends on NF_CONNTRACK
+ 	depends on NETFILTER_ADVANCED
+ 	select TEXTSEARCH
+ 	select TEXTSEARCH_KMP
+@@ -150,7 +146,6 @@ config NF_CONNTRACK_AMANDA
  
- static int __init helper_mt_init(void)
- {
--	return xt_register_matches(helper_mt_reg, ARRAY_SIZE(helper_mt_reg));
-+	return xt_register_match(&helper_mt_reg);
- }
+ config NF_CONNTRACK_FTP
+ 	tristate "FTP protocol support"
+-	depends on NF_CONNTRACK
+ 	default m if NETFILTER_ADVANCED=n
+ 	help
+ 	  Tracking FTP connections is problematic: special helpers are
+@@ -165,7 +160,7 @@ config NF_CONNTRACK_FTP
  
- static void __exit helper_mt_exit(void)
- {
--	xt_unregister_matches(helper_mt_reg, ARRAY_SIZE(helper_mt_reg));
-+	xt_unregister_match(&helper_mt_reg);
- }
+ config NF_CONNTRACK_H323
+ 	tristate "H.323 protocol support"
+-	depends on NF_CONNTRACK && (IPV6 || IPV6=n)
++	depends on (IPV6 || IPV6=n)
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  H.323 is a VoIP signalling protocol from ITU-T. As one of the most
+@@ -185,7 +180,6 @@ config NF_CONNTRACK_H323
  
- module_init(helper_mt_init);
-diff --git a/net/netfilter/xt_pkttype.c b/net/netfilter/xt_pkttype.c
-index 37753a3..69da1d3 100644
---- a/net/netfilter/xt_pkttype.c
-+++ b/net/netfilter/xt_pkttype.c
-@@ -30,10 +30,10 @@ pkttype_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+ config NF_CONNTRACK_IRC
+ 	tristate "IRC protocol support"
+-	depends on NF_CONNTRACK
+ 	default m if NETFILTER_ADVANCED=n
+ 	help
+ 	  There is a commonly-used extension to IRC called
+@@ -201,7 +195,6 @@ config NF_CONNTRACK_IRC
  
- 	if (skb->pkt_type != PACKET_LOOPBACK)
- 		type = skb->pkt_type;
--	else if (par->match->family == NFPROTO_IPV4 &&
-+	else if (par->family == NFPROTO_IPV4 &&
- 	    ipv4_is_multicast(ip_hdr(skb)->daddr))
- 		type = PACKET_MULTICAST;
--	else if (par->match->family == NFPROTO_IPV6 &&
-+	else if (par->family == NFPROTO_IPV6 &&
- 	    ipv6_hdr(skb)->daddr.s6_addr[0] == 0xFF)
- 		type = PACKET_MULTICAST;
- 	else
-@@ -42,31 +42,23 @@ pkttype_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	return (type == info->pkttype) ^ info->invert;
- }
+ config NF_CONNTRACK_NETBIOS_NS
+ 	tristate "NetBIOS name service protocol support"
+-	depends on NF_CONNTRACK
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  NetBIOS name service requests are sent as broadcast messages from an
+@@ -221,7 +214,6 @@ config NF_CONNTRACK_NETBIOS_NS
  
--static struct xt_match pkttype_mt_reg[] __read_mostly = {
--	{
--		.name		= "pkttype",
--		.family		= NFPROTO_IPV4,
--		.match		= pkttype_mt,
--		.matchsize	= sizeof(struct xt_pkttype_info),
--		.me		= THIS_MODULE,
--	},
--	{
--		.name		= "pkttype",
--		.family		= NFPROTO_IPV6,
--		.match		= pkttype_mt,
--		.matchsize	= sizeof(struct xt_pkttype_info),
--		.me		= THIS_MODULE,
--	},
-+static struct xt_match pkttype_mt_reg __read_mostly = {
-+	.name      = "pkttype",
-+	.revision  = 0,
-+	.family    = NFPROTO_UNSPEC,
-+	.match     = pkttype_mt,
-+	.matchsize = sizeof(struct xt_pkttype_info),
-+	.me        = THIS_MODULE,
- };
+ config NF_CONNTRACK_PPTP
+ 	tristate "PPtP protocol support"
+-	depends on NF_CONNTRACK
+ 	depends on NETFILTER_ADVANCED
+ 	select NF_CT_PROTO_GRE
+ 	help
+@@ -241,7 +233,7 @@ config NF_CONNTRACK_PPTP
  
- static int __init pkttype_mt_init(void)
- {
--	return xt_register_matches(pkttype_mt_reg, ARRAY_SIZE(pkttype_mt_reg));
-+	return xt_register_match(&pkttype_mt_reg);
- }
+ config NF_CONNTRACK_SANE
+ 	tristate "SANE protocol support (EXPERIMENTAL)"
+-	depends on EXPERIMENTAL && NF_CONNTRACK
++	depends on EXPERIMENTAL
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  SANE is a protocol for remote access to scanners as implemented
+@@ -255,7 +247,6 @@ config NF_CONNTRACK_SANE
  
- static void __exit pkttype_mt_exit(void)
- {
--	xt_unregister_matches(pkttype_mt_reg, ARRAY_SIZE(pkttype_mt_reg));
-+	xt_unregister_match(&pkttype_mt_reg);
- }
+ config NF_CONNTRACK_SIP
+ 	tristate "SIP protocol support"
+-	depends on NF_CONNTRACK
+ 	default m if NETFILTER_ADVANCED=n
+ 	help
+ 	  SIP is an application-layer control protocol that can establish,
+@@ -268,7 +259,6 @@ config NF_CONNTRACK_SIP
  
- module_init(pkttype_mt_init);
+ config NF_CONNTRACK_TFTP
+ 	tristate "TFTP protocol support"
+-	depends on NF_CONNTRACK
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  TFTP connection tracking helper, this is required depending
+@@ -280,7 +270,6 @@ config NF_CONNTRACK_TFTP
+ 
+ config NF_CT_NETLINK
+ 	tristate 'Connection tracking netlink interface'
+-	depends on NF_CONNTRACK
+ 	select NETFILTER_NETLINK
+ 	depends on NF_NAT=n || NF_NAT
+ 	default m if NETFILTER_ADVANCED=n
+@@ -302,6 +291,8 @@ config NETFILTER_TPROXY
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
++endif # NF_CONNTRACK
++
+ config NETFILTER_XTABLES
+ 	tristate "Netfilter Xtables support (required for ip_tables)"
+ 	default m if NETFILTER_ADVANCED=n
+@@ -309,11 +300,12 @@ config NETFILTER_XTABLES
+ 	  This is required if you intend to use any of ip_tables,
+ 	  ip6_tables or arp_tables.
+ 
++if NETFILTER_XTABLES
++
+ # alphabetically ordered list of targets
+ 
+ config NETFILTER_XT_TARGET_CLASSIFY
+ 	tristate '"CLASSIFY" target support'
+-	depends on NETFILTER_XTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  This option adds a `CLASSIFY' target, which enables the user to set
+@@ -326,7 +318,6 @@ config NETFILTER_XT_TARGET_CLASSIFY
+ 
+ config NETFILTER_XT_TARGET_CONNMARK
+ 	tristate  '"CONNMARK" target support'
+-	depends on NETFILTER_XTABLES
+ 	depends on IP_NF_MANGLE || IP6_NF_MANGLE
+ 	depends on NF_CONNTRACK
+ 	depends on NETFILTER_ADVANCED
+@@ -342,7 +333,7 @@ config NETFILTER_XT_TARGET_CONNMARK
+ 
+ config NETFILTER_XT_TARGET_CONNSECMARK
+ 	tristate '"CONNSECMARK" target support'
+-	depends on NETFILTER_XTABLES && NF_CONNTRACK && NF_CONNTRACK_SECMARK
++	depends on NF_CONNTRACK && NF_CONNTRACK_SECMARK
+ 	default m if NETFILTER_ADVANCED=n
+ 	help
+ 	  The CONNSECMARK target copies security markings from packets
+@@ -354,7 +345,6 @@ config NETFILTER_XT_TARGET_CONNSECMARK
+ 
+ config NETFILTER_XT_TARGET_DSCP
+ 	tristate '"DSCP" and "TOS" target support'
+-	depends on NETFILTER_XTABLES
+ 	depends on IP_NF_MANGLE || IP6_NF_MANGLE
+ 	depends on NETFILTER_ADVANCED
+ 	help
+@@ -371,7 +361,6 @@ config NETFILTER_XT_TARGET_DSCP
+ 
+ config NETFILTER_XT_TARGET_MARK
+ 	tristate '"MARK" target support'
+-	depends on NETFILTER_XTABLES
+ 	default m if NETFILTER_ADVANCED=n
+ 	help
+ 	  This option adds a `MARK' target, which allows you to create rules
+@@ -385,7 +374,6 @@ config NETFILTER_XT_TARGET_MARK
+ 
+ config NETFILTER_XT_TARGET_NFLOG
+ 	tristate '"NFLOG" target support'
+-	depends on NETFILTER_XTABLES
+ 	default m if NETFILTER_ADVANCED=n
+ 	help
+ 	  This option enables the NFLOG target, which allows to LOG
+@@ -397,7 +385,6 @@ config NETFILTER_XT_TARGET_NFLOG
+ 
+ config NETFILTER_XT_TARGET_NFQUEUE
+ 	tristate '"NFQUEUE" target Support'
+-	depends on NETFILTER_XTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  This target replaced the old obsolete QUEUE target.
+@@ -409,7 +396,6 @@ config NETFILTER_XT_TARGET_NFQUEUE
+ 
+ config NETFILTER_XT_TARGET_NOTRACK
+ 	tristate  '"NOTRACK" target support'
+-	depends on NETFILTER_XTABLES
+ 	depends on IP_NF_RAW || IP6_NF_RAW
+ 	depends on NF_CONNTRACK
+ 	depends on NETFILTER_ADVANCED
+@@ -424,7 +410,6 @@ config NETFILTER_XT_TARGET_NOTRACK
+ 
+ config NETFILTER_XT_TARGET_RATEEST
+ 	tristate '"RATEEST" target support'
+-	depends on NETFILTER_XTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  This option adds a `RATEEST' target, which allows to measure
+@@ -450,7 +435,6 @@ config NETFILTER_XT_TARGET_TPROXY
+ 
+ config NETFILTER_XT_TARGET_TRACE
+ 	tristate  '"TRACE" target support'
+-	depends on NETFILTER_XTABLES
+ 	depends on IP_NF_RAW || IP6_NF_RAW
+ 	depends on NETFILTER_ADVANCED
+ 	help
+@@ -463,7 +447,7 @@ config NETFILTER_XT_TARGET_TRACE
+ 
+ config NETFILTER_XT_TARGET_SECMARK
+ 	tristate '"SECMARK" target support'
+-	depends on NETFILTER_XTABLES && NETWORK_SECMARK
++	depends on NETWORK_SECMARK
+ 	default m if NETFILTER_ADVANCED=n
+ 	help
+ 	  The SECMARK target allows security marking of network
+@@ -473,7 +457,7 @@ config NETFILTER_XT_TARGET_SECMARK
+ 
+ config NETFILTER_XT_TARGET_TCPMSS
+ 	tristate '"TCPMSS" target support'
+-	depends on NETFILTER_XTABLES && (IPV6 || IPV6=n)
++	depends on (IPV6 || IPV6=n)
+ 	default m if NETFILTER_ADVANCED=n
+ 	---help---
+ 	  This option adds a `TCPMSS' target, which allows you to alter the
+@@ -500,7 +484,7 @@ config NETFILTER_XT_TARGET_TCPMSS
+ 
+ config NETFILTER_XT_TARGET_TCPOPTSTRIP
+ 	tristate '"TCPOPTSTRIP" target support (EXPERIMENTAL)'
+-	depends on EXPERIMENTAL && NETFILTER_XTABLES
++	depends on EXPERIMENTAL
+ 	depends on IP_NF_MANGLE || IP6_NF_MANGLE
+ 	depends on NETFILTER_ADVANCED
+ 	help
+@@ -509,7 +493,6 @@ config NETFILTER_XT_TARGET_TCPOPTSTRIP
+ 
+ config NETFILTER_XT_MATCH_COMMENT
+ 	tristate  '"comment" match support'
+-	depends on NETFILTER_XTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  This option adds a `comment' dummy-match, which allows you to put
+@@ -520,7 +503,6 @@ config NETFILTER_XT_MATCH_COMMENT
+ 
+ config NETFILTER_XT_MATCH_CONNBYTES
+ 	tristate  '"connbytes" per-connection counter match support'
+-	depends on NETFILTER_XTABLES
+ 	depends on NF_CONNTRACK
+ 	depends on NETFILTER_ADVANCED
+ 	select NF_CT_ACCT
+@@ -533,7 +515,6 @@ config NETFILTER_XT_MATCH_CONNBYTES
+ 
+ config NETFILTER_XT_MATCH_CONNLIMIT
+ 	tristate '"connlimit" match support"'
+-	depends on NETFILTER_XTABLES
+ 	depends on NF_CONNTRACK
+ 	depends on NETFILTER_ADVANCED
+ 	---help---
+@@ -542,7 +523,6 @@ config NETFILTER_XT_MATCH_CONNLIMIT
+ 
+ config NETFILTER_XT_MATCH_CONNMARK
+ 	tristate  '"connmark" connection mark match support'
+-	depends on NETFILTER_XTABLES
+ 	depends on NF_CONNTRACK
+ 	depends on NETFILTER_ADVANCED
+ 	select NF_CONNTRACK_MARK
+@@ -556,7 +536,6 @@ config NETFILTER_XT_MATCH_CONNMARK
+ 
+ config NETFILTER_XT_MATCH_CONNTRACK
+ 	tristate '"conntrack" connection tracking match support'
+-	depends on NETFILTER_XTABLES
+ 	depends on NF_CONNTRACK
+ 	default m if NETFILTER_ADVANCED=n
+ 	help
+@@ -570,7 +549,6 @@ config NETFILTER_XT_MATCH_CONNTRACK
+ 
+ config NETFILTER_XT_MATCH_DCCP
+ 	tristate '"dccp" protocol match support'
+-	depends on NETFILTER_XTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	default IP_DCCP
+ 	help
+@@ -583,7 +561,6 @@ config NETFILTER_XT_MATCH_DCCP
+ 
+ config NETFILTER_XT_MATCH_DSCP
+ 	tristate '"dscp" and "tos" match support'
+-	depends on NETFILTER_XTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  This option adds a `DSCP' match, which allows you to match against
+@@ -599,7 +576,6 @@ config NETFILTER_XT_MATCH_DSCP
+ 
+ config NETFILTER_XT_MATCH_ESP
+ 	tristate '"esp" match support'
+-	depends on NETFILTER_XTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  This match extension allows you to match a range of SPIs
+@@ -609,7 +585,7 @@ config NETFILTER_XT_MATCH_ESP
+ 
+ config NETFILTER_XT_MATCH_HASHLIMIT
+ 	tristate '"hashlimit" match support'
+-	depends on NETFILTER_XTABLES && (IP6_NF_IPTABLES || IP6_NF_IPTABLES=n)
++	depends on (IP6_NF_IPTABLES || IP6_NF_IPTABLES=n)
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  This option adds a `hashlimit' match.
+@@ -624,7 +600,6 @@ config NETFILTER_XT_MATCH_HASHLIMIT
+ 
+ config NETFILTER_XT_MATCH_HELPER
+ 	tristate '"helper" match support'
+-	depends on NETFILTER_XTABLES
+ 	depends on NF_CONNTRACK
+ 	depends on NETFILTER_ADVANCED
+ 	help
+@@ -635,7 +610,6 @@ config NETFILTER_XT_MATCH_HELPER
+ 
+ config NETFILTER_XT_MATCH_IPRANGE
+ 	tristate '"iprange" address range match support'
+-	depends on NETFILTER_XTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	---help---
+ 	This option adds a "iprange" match, which allows you to match based on
+@@ -646,7 +620,6 @@ config NETFILTER_XT_MATCH_IPRANGE
+ 
+ config NETFILTER_XT_MATCH_LENGTH
+ 	tristate '"length" match support'
+-	depends on NETFILTER_XTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  This option allows you to match the length of a packet against a
+@@ -656,7 +629,6 @@ config NETFILTER_XT_MATCH_LENGTH
+ 
+ config NETFILTER_XT_MATCH_LIMIT
+ 	tristate '"limit" match support'
+-	depends on NETFILTER_XTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  limit matching allows you to control the rate at which a rule can be
+@@ -667,7 +639,6 @@ config NETFILTER_XT_MATCH_LIMIT
+ 
+ config NETFILTER_XT_MATCH_MAC
+ 	tristate '"mac" address match support'
+-	depends on NETFILTER_XTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  MAC matching allows you to match packets based on the source
+@@ -677,7 +648,6 @@ config NETFILTER_XT_MATCH_MAC
+ 
+ config NETFILTER_XT_MATCH_MARK
+ 	tristate '"mark" match support'
+-	depends on NETFILTER_XTABLES
+ 	default m if NETFILTER_ADVANCED=n
+ 	help
+ 	  Netfilter mark matching allows you to match packets based on the
+@@ -688,7 +658,6 @@ config NETFILTER_XT_MATCH_MARK
+ 
+ config NETFILTER_XT_MATCH_MULTIPORT
+ 	tristate '"multiport" Multiple port match support'
+-	depends on NETFILTER_XTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  Multiport matching allows you to match TCP or UDP packets based on
+@@ -699,7 +668,6 @@ config NETFILTER_XT_MATCH_MULTIPORT
+ 
+ config NETFILTER_XT_MATCH_OWNER
+ 	tristate '"owner" match support'
+-	depends on NETFILTER_XTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	---help---
+ 	Socket owner matching allows you to match locally-generated packets
+@@ -708,7 +676,7 @@ config NETFILTER_XT_MATCH_OWNER
+ 
+ config NETFILTER_XT_MATCH_POLICY
+ 	tristate 'IPsec "policy" match support'
+-	depends on NETFILTER_XTABLES && XFRM
++	depends on XFRM
+ 	default m if NETFILTER_ADVANCED=n
+ 	help
+ 	  Policy matching allows you to match packets based on the
+@@ -719,7 +687,7 @@ config NETFILTER_XT_MATCH_POLICY
+ 
+ config NETFILTER_XT_MATCH_PHYSDEV
+ 	tristate '"physdev" match support'
+-	depends on NETFILTER_XTABLES && BRIDGE && BRIDGE_NETFILTER
++	depends on BRIDGE && BRIDGE_NETFILTER
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  Physdev packet matching matches against the physical bridge ports
+@@ -729,7 +697,6 @@ config NETFILTER_XT_MATCH_PHYSDEV
+ 
+ config NETFILTER_XT_MATCH_PKTTYPE
+ 	tristate '"pkttype" packet type match support'
+-	depends on NETFILTER_XTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  Packet type matching allows you to match a packet by
+@@ -742,7 +709,6 @@ config NETFILTER_XT_MATCH_PKTTYPE
+ 
+ config NETFILTER_XT_MATCH_QUOTA
+ 	tristate '"quota" match support'
+-	depends on NETFILTER_XTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  This option adds a `quota' match, which allows to match on a
+@@ -753,7 +719,6 @@ config NETFILTER_XT_MATCH_QUOTA
+ 
+ config NETFILTER_XT_MATCH_RATEEST
+ 	tristate '"rateest" match support'
+-	depends on NETFILTER_XTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	select NETFILTER_XT_TARGET_RATEEST
+ 	help
+@@ -764,7 +729,6 @@ config NETFILTER_XT_MATCH_RATEEST
+ 
+ config NETFILTER_XT_MATCH_REALM
+ 	tristate  '"realm" match support'
+-	depends on NETFILTER_XTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	select NET_CLS_ROUTE
+ 	help
+@@ -779,7 +743,6 @@ config NETFILTER_XT_MATCH_REALM
+ 
+ config NETFILTER_XT_MATCH_RECENT
+ 	tristate '"recent" match support'
+-	depends on NETFILTER_XTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	---help---
+ 	This match is used for creating one or many lists of recently
+@@ -797,7 +760,7 @@ config NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
+ 
+ config NETFILTER_XT_MATCH_SCTP
+ 	tristate  '"sctp" protocol match support (EXPERIMENTAL)'
+-	depends on NETFILTER_XTABLES && EXPERIMENTAL
++	depends on EXPERIMENTAL
+ 	depends on NETFILTER_ADVANCED
+ 	default IP_SCTP
+ 	help
+@@ -825,7 +788,6 @@ config NETFILTER_XT_MATCH_SOCKET
+ 
+ config NETFILTER_XT_MATCH_STATE
+ 	tristate '"state" match support'
+-	depends on NETFILTER_XTABLES
+ 	depends on NF_CONNTRACK
+ 	default m if NETFILTER_ADVANCED=n
+ 	help
+@@ -837,7 +799,6 @@ config NETFILTER_XT_MATCH_STATE
+ 
+ config NETFILTER_XT_MATCH_STATISTIC
+ 	tristate '"statistic" match support'
+-	depends on NETFILTER_XTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  This option adds a `statistic' match, which allows you to match
+@@ -847,7 +808,6 @@ config NETFILTER_XT_MATCH_STATISTIC
+ 
+ config NETFILTER_XT_MATCH_STRING
+ 	tristate  '"string" match support'
+-	depends on NETFILTER_XTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	select TEXTSEARCH
+ 	select TEXTSEARCH_KMP
+@@ -861,7 +821,6 @@ config NETFILTER_XT_MATCH_STRING
+ 
+ config NETFILTER_XT_MATCH_TCPMSS
+ 	tristate '"tcpmss" match support'
+-	depends on NETFILTER_XTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  This option adds a `tcpmss' match, which allows you to examine the
+@@ -872,7 +831,6 @@ config NETFILTER_XT_MATCH_TCPMSS
+ 
+ config NETFILTER_XT_MATCH_TIME
+ 	tristate '"time" match support'
+-	depends on NETFILTER_XTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	---help---
+ 	  This option adds a "time" match, which allows you to match based on
+@@ -887,7 +845,6 @@ config NETFILTER_XT_MATCH_TIME
+ 
+ config NETFILTER_XT_MATCH_U32
+ 	tristate '"u32" match support'
+-	depends on NETFILTER_XTABLES
+ 	depends on NETFILTER_ADVANCED
+ 	---help---
+ 	  u32 allows you to extract quantities of up to 4 bytes from a packet,
+@@ -899,5 +856,6 @@ config NETFILTER_XT_MATCH_U32
+ 
+ 	  Details and examples are in the kernel module source.
+ 
+-endmenu
++endif # NETFILTER_XTABLES
+ 
++endmenu
