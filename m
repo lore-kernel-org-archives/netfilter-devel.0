@@ -1,207 +1,296 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 48/79: iptables TPROXY target
-Date: Wed,  8 Oct 2008 12:47:26 +0200 (MEST)
-Message-ID: <20081008104725.10423.76152.sendpatchset@x2.localnet>
+Subject: netfilter 64/79: xtables: do centralized checkentry call (1/2)
+Date: Wed,  8 Oct 2008 12:47:47 +0200 (MEST)
+Message-ID: <20081008104747.10423.86115.sendpatchset@x2.localnet>
 References: <20081008104621.10423.12648.sendpatchset@x2.localnet>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:46012 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:46058 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754645AbYJHKr1 (ORCPT
+	with ESMTP id S1754788AbYJHKrt (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Oct 2008 06:47:27 -0400
+	Wed, 8 Oct 2008 06:47:49 -0400
 In-Reply-To: <20081008104621.10423.12648.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit e84392707e10301b93121e1b74e2823db50cdf9e
-Author: KOVACS Krisztian <hidden@sch.bme.hu>
-Date:   Wed Oct 8 11:35:12 2008 +0200
+commit 367c679007fa4f990eb7ee381326ec59d8148b0e
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Wed Oct 8 11:35:17 2008 +0200
 
-    netfilter: iptables TPROXY target
+    netfilter: xtables: do centralized checkentry call (1/2)
     
-    The TPROXY target implements redirection of non-local TCP/UDP traffic to local
-    sockets. Additionally, it's possible to manipulate the packet mark if and only
-    if a socket has been found. (We need this because we cannot use multiple
-    targets in the same iptables rule.)
+    It used to be that {ip,ip6,etc}_tables called extension->checkentry
+    themselves, but this can be moved into the xtables core.
     
-    Signed-off-by: KOVACS Krisztian <hidden@sch.bme.hu>
+    Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
     Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-diff --git a/include/linux/netfilter/xt_TPROXY.h b/include/linux/netfilter/xt_TPROXY.h
-new file mode 100644
-index 0000000..152e8f9
---- /dev/null
-+++ b/include/linux/netfilter/xt_TPROXY.h
-@@ -0,0 +1,14 @@
-+#ifndef _XT_TPROXY_H_target
-+#define _XT_TPROXY_H_target
-+
-+/* TPROXY target is capable of marking the packet to perform
-+ * redirection. We can get rid of that whenever we get support for
-+ * mutliple targets in the same rule. */
-+struct xt_tproxy_target_info {
-+	u_int32_t mark_mask;
-+	u_int32_t mark_value;
-+	__be32 laddr;
-+	__be16 lport;
-+};
-+
-+#endif /* _XT_TPROXY_H_target */
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index f6c8072..de18bba 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -421,6 +421,21 @@ config NETFILTER_XT_TARGET_RATEEST
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index 6989b22..85aa427 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -330,10 +330,12 @@ extern void xt_unregister_matches(struct xt_match *match, unsigned int n);
  
- 	  To compile it as a module, choose M here.  If unsure, say N.
+ extern int xt_check_match(const struct xt_match *match, unsigned short family,
+ 			  unsigned int size, const char *table, unsigned int hook,
+-			  unsigned short proto, int inv_proto);
++			  unsigned short proto, int inv_proto,
++			  const void *entry, void *matchinfo);
+ extern int xt_check_target(const struct xt_target *target, unsigned short family,
+ 			   unsigned int size, const char *table, unsigned int hook,
+-			   unsigned short proto, int inv_proto);
++			   unsigned short proto, int inv_proto,
++			   const void *entry, void *targinfo);
  
-+config NETFILTER_XT_TARGET_TPROXY
-+	tristate '"TPROXY" target support (EXPERIMENTAL)'
-+	depends on EXPERIMENTAL
-+	depends on NETFILTER_TPROXY
-+	depends on NETFILTER_XTABLES
-+	depends on NETFILTER_ADVANCED
-+	select NF_DEFRAG_IPV4
-+	help
-+	  This option adds a `TPROXY' target, which is somewhat similar to
-+	  REDIRECT.  It can only be used in the mangle table and is useful
-+	  to redirect traffic to a transparent proxy.  It does _not_ depend
-+	  on Netfilter connection tracking and NAT, unlike REDIRECT.
-+
-+	  To compile it as a module, choose M here.  If unsure, say N.
-+
- config NETFILTER_XT_TARGET_TRACE
- 	tristate  '"TRACE" target support'
- 	depends on NETFILTER_XTABLES
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 1cdc3a1..8ce6766 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -51,6 +51,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_NFQUEUE) += xt_NFQUEUE.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_NOTRACK) += xt_NOTRACK.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_RATEEST) += xt_RATEEST.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_SECMARK) += xt_SECMARK.o
-+obj-$(CONFIG_NETFILTER_XT_TARGET_TPROXY) += xt_TPROXY.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_TCPMSS) += xt_TCPMSS.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_TCPOPTSTRIP) += xt_TCPOPTSTRIP.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_TRACE) += xt_TRACE.o
-diff --git a/net/netfilter/xt_TPROXY.c b/net/netfilter/xt_TPROXY.c
-new file mode 100644
-index 0000000..183f251
---- /dev/null
-+++ b/net/netfilter/xt_TPROXY.c
-@@ -0,0 +1,112 @@
-+/*
-+ * Transparent proxy support for Linux/iptables
-+ *
-+ * Copyright (c) 2006-2007 BalaBit IT Ltd.
-+ * Author: Balazs Scheidler, Krisztian Kovacs
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/skbuff.h>
-+#include <linux/ip.h>
-+#include <net/checksum.h>
-+#include <net/udp.h>
-+#include <net/inet_sock.h>
-+
-+#include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netfilter/xt_TPROXY.h>
-+
-+#include <net/netfilter/ipv4/nf_defrag_ipv4.h>
-+#include <net/netfilter/nf_tproxy_core.h>
-+
-+static unsigned int
-+tproxy_tg(struct sk_buff *skb,
-+	  const struct net_device *in,
-+	  const struct net_device *out,
-+	  unsigned int hooknum,
-+	  const struct xt_target *target,
-+	  const void *targinfo)
-+{
-+	const struct iphdr *iph = ip_hdr(skb);
-+	const struct xt_tproxy_target_info *tgi = targinfo;
-+	struct udphdr _hdr, *hp;
-+	struct sock *sk;
-+
-+	hp = skb_header_pointer(skb, ip_hdrlen(skb), sizeof(_hdr), &_hdr);
-+	if (hp == NULL)
-+		return NF_DROP;
-+
-+	sk = nf_tproxy_get_sock_v4(dev_net(skb->dev), iph->protocol,
-+				   iph->saddr, tgi->laddr ? tgi->laddr : iph->daddr,
-+				   hp->source, tgi->lport ? tgi->lport : hp->dest,
-+				   in, true);
-+
-+	/* NOTE: assign_sock consumes our sk reference */
-+	if (sk && nf_tproxy_assign_sock(skb, sk)) {
-+		/* This should be in a separate target, but we don't do multiple
-+		   targets on the same rule yet */
-+		skb->mark = (skb->mark & ~tgi->mark_mask) ^ tgi->mark_value;
-+
-+		pr_debug("redirecting: proto %u %08x:%u -> %08x:%u, mark: %x\n",
-+			 iph->protocol, ntohl(iph->daddr), ntohs(hp->dest),
-+			 ntohl(tgi->laddr), ntohs(tgi->lport), skb->mark);
-+		return NF_ACCEPT;
-+	}
-+
-+	pr_debug("no socket, dropping: proto %u %08x:%u -> %08x:%u, mark: %x\n",
-+		 iph->protocol, ntohl(iph->daddr), ntohs(hp->dest),
-+		 ntohl(tgi->laddr), ntohs(tgi->lport), skb->mark);
-+	return NF_DROP;
-+}
-+
-+static bool
-+tproxy_tg_check(const char *tablename,
-+		const void *entry,
-+		const struct xt_target *target,
-+		void *targetinfo,
-+		unsigned int hook_mask)
-+{
-+	const struct ipt_ip *i = entry;
-+
-+	if ((i->proto == IPPROTO_TCP || i->proto == IPPROTO_UDP)
-+	    && !(i->invflags & IPT_INV_PROTO))
-+		return true;
-+
-+	pr_info("xt_TPROXY: Can be used only in combination with "
-+		"either -p tcp or -p udp\n");
-+	return false;
-+}
-+
-+static struct xt_target tproxy_tg_reg __read_mostly = {
-+	.name		= "TPROXY",
-+	.family		= AF_INET,
-+	.table		= "mangle",
-+	.target		= tproxy_tg,
-+	.targetsize	= sizeof(struct xt_tproxy_target_info),
-+	.checkentry	= tproxy_tg_check,
-+	.hooks		= 1 << NF_INET_PRE_ROUTING,
-+	.me		= THIS_MODULE,
-+};
-+
-+static int __init tproxy_tg_init(void)
-+{
-+	nf_defrag_ipv4_enable();
-+	return xt_register_target(&tproxy_tg_reg);
-+}
-+
-+static void __exit tproxy_tg_exit(void)
-+{
-+	xt_unregister_target(&tproxy_tg_reg);
-+}
-+
-+module_init(tproxy_tg_init);
-+module_exit(tproxy_tg_exit);
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Krisztian Kovacs");
-+MODULE_DESCRIPTION("Netfilter transparent proxy (TPROXY) target module.");
-+MODULE_ALIAS("ipt_TPROXY");
+ extern struct xt_table *xt_register_table(struct net *net,
+ 					  struct xt_table *table,
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index 7d8ead5..7ee72b7 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -340,15 +340,11 @@ ebt_check_match(struct ebt_entry_match *m, struct ebt_entry *e,
+ 	m->u.match = match;
+ 
+ 	ret = xt_check_match(match, NFPROTO_BRIDGE, m->match_size,
+-	      name, hookmask, e->ethproto, e->invflags & EBT_IPROTO);
++	      name, hookmask, e->ethproto, e->invflags & EBT_IPROTO,
++	      e, m->data);
+ 	if (ret < 0) {
+ 		module_put(match->me);
+ 		return ret;
+-	} else if (match->checkentry != NULL &&
+-	    !match->checkentry(name, e, NULL, m->data, hookmask)) {
+-		module_put(match->me);
+-		BUGPRINT("match->check failed\n");
+-		return -EINVAL;
+ 	}
+ 
+ 	(*cnt)++;
+@@ -377,15 +373,11 @@ ebt_check_watcher(struct ebt_entry_watcher *w, struct ebt_entry *e,
+ 	w->u.watcher = watcher;
+ 
+ 	ret = xt_check_target(watcher, NFPROTO_BRIDGE, w->watcher_size,
+-	      name, hookmask, e->ethproto, e->invflags & EBT_IPROTO);
++	      name, hookmask, e->ethproto, e->invflags & EBT_IPROTO,
++	      e, w->data);
+ 	if (ret < 0) {
+ 		module_put(watcher->me);
+ 		return ret;
+-	} else if (watcher->checkentry != NULL &&
+-	    !watcher->checkentry(name, e, NULL, w->data, hookmask)) {
+-		module_put(watcher->me);
+-		BUGPRINT("watcher->check failed\n");
+-		return -EINVAL;
+ 	}
+ 
+ 	(*cnt)++;
+@@ -692,15 +684,11 @@ ebt_check_entry(struct ebt_entry *e, struct ebt_table_info *newinfo,
+ 	}
+ 
+ 	ret = xt_check_target(target, NFPROTO_BRIDGE, t->target_size,
+-	      name, hookmask, e->ethproto, e->invflags & EBT_IPROTO);
++	      name, hookmask, e->ethproto, e->invflags & EBT_IPROTO,
++	      e, t->data);
+ 	if (ret < 0) {
+ 		module_put(target->me);
+ 		goto cleanup_watchers;
+-	} else if (t->u.target->checkentry &&
+-	    !t->u.target->checkentry(name, e, NULL, t->data, hookmask)) {
+-		module_put(t->u.target->me);
+-		ret = -EINVAL;
+-		goto cleanup_watchers;
+ 	}
+ 	(*cnt)++;
+ 	return 0;
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index b4a9a17..ae525a9 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -465,15 +465,13 @@ static inline int check_target(struct arpt_entry *e, const char *name)
+ 
+ 	ret = xt_check_target(target, NFPROTO_ARP,
+ 			      t->u.target_size - sizeof(*t),
+-			      name, e->comefrom, 0, 0);
+-	if (!ret && t->u.kernel.target->checkentry
+-	    && !t->u.kernel.target->checkentry(name, e, target, t->data,
+-					       e->comefrom)) {
++			      name, e->comefrom, 0, 0, e, t->data);
++	if (ret < 0) {
+ 		duprintf("arp_tables: check failed for `%s'.\n",
+ 			 t->u.kernel.target->name);
+-		ret = -EINVAL;
++		return ret;
+ 	}
+-	return ret;
++	return 0;
+ }
+ 
+ static inline int
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index 4e7c719..b4c74a7 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -616,17 +616,14 @@ check_match(struct ipt_entry_match *m, const char *name,
+ 	match = m->u.kernel.match;
+ 	ret = xt_check_match(match, AF_INET, m->u.match_size - sizeof(*m),
+ 			     name, hookmask, ip->proto,
+-			     ip->invflags & IPT_INV_PROTO);
+-	if (!ret && m->u.kernel.match->checkentry
+-	    && !m->u.kernel.match->checkentry(name, ip, match, m->data,
+-					      hookmask)) {
++			     ip->invflags & IPT_INV_PROTO, ip, m->data);
++	if (ret < 0) {
+ 		duprintf("ip_tables: check failed for `%s'.\n",
+ 			 m->u.kernel.match->name);
+-		ret = -EINVAL;
++		return ret;
+ 	}
+-	if (!ret)
+-		(*i)++;
+-	return ret;
++	++*i;
++	return 0;
+ }
+ 
+ static int
+@@ -668,15 +665,13 @@ static int check_target(struct ipt_entry *e, const char *name)
+ 	target = t->u.kernel.target;
+ 	ret = xt_check_target(target, AF_INET, t->u.target_size - sizeof(*t),
+ 			      name, e->comefrom, e->ip.proto,
+-			      e->ip.invflags & IPT_INV_PROTO);
+-	if (!ret && t->u.kernel.target->checkentry
+-	    && !t->u.kernel.target->checkentry(name, e, target, t->data,
+-					       e->comefrom)) {
++			      e->ip.invflags & IPT_INV_PROTO, e, t->data);
++	if (ret < 0) {
+ 		duprintf("ip_tables: check failed for `%s'.\n",
+ 			 t->u.kernel.target->name);
+-		ret = -EINVAL;
++		return ret;
+ 	}
+-	return ret;
++	return 0;
+ }
+ 
+ static int
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 0b4557e..12c41b8 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -642,17 +642,14 @@ static int check_match(struct ip6t_entry_match *m, const char *name,
+ 	match = m->u.kernel.match;
+ 	ret = xt_check_match(match, AF_INET6, m->u.match_size - sizeof(*m),
+ 			     name, hookmask, ipv6->proto,
+-			     ipv6->invflags & IP6T_INV_PROTO);
+-	if (!ret && m->u.kernel.match->checkentry
+-	    && !m->u.kernel.match->checkentry(name, ipv6, match, m->data,
+-					      hookmask)) {
++			     ipv6->invflags & IP6T_INV_PROTO, ipv6, m->data);
++	if (ret < 0) {
+ 		duprintf("ip_tables: check failed for `%s'.\n",
+ 			 m->u.kernel.match->name);
+-		ret = -EINVAL;
++		return ret;
+ 	}
+-	if (!ret)
+-		(*i)++;
+-	return ret;
++	++*i;
++	return 0;
+ }
+ 
+ static int
+@@ -694,15 +691,13 @@ static int check_target(struct ip6t_entry *e, const char *name)
+ 	target = t->u.kernel.target;
+ 	ret = xt_check_target(target, AF_INET6, t->u.target_size - sizeof(*t),
+ 			      name, e->comefrom, e->ipv6.proto,
+-			      e->ipv6.invflags & IP6T_INV_PROTO);
+-	if (!ret && t->u.kernel.target->checkentry
+-	    && !t->u.kernel.target->checkentry(name, e, target, t->data,
+-					       e->comefrom)) {
++			      e->ipv6.invflags & IP6T_INV_PROTO, e, t->data);
++	if (ret < 0) {
+ 		duprintf("ip_tables: check failed for `%s'.\n",
+ 			 t->u.kernel.target->name);
+-		ret = -EINVAL;
++		return ret;
+ 	}
+-	return ret;
++	return 0;
+ }
+ 
+ static int
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 3b1fc40..d1f2fb3 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -323,7 +323,8 @@ EXPORT_SYMBOL_GPL(xt_find_revision);
+ 
+ int xt_check_match(const struct xt_match *match, unsigned short family,
+ 		   unsigned int size, const char *table, unsigned int hook_mask,
+-		   unsigned short proto, int inv_proto)
++		   unsigned short proto, int inv_proto, const void *entry,
++		   void *matchinfo)
+ {
+ 	if (XT_ALIGN(match->matchsize) != size &&
+ 	    match->matchsize != -1) {
+@@ -351,6 +352,9 @@ int xt_check_match(const struct xt_match *match, unsigned short family,
+ 		       xt_prefix[family], match->name, match->proto);
+ 		return -EINVAL;
+ 	}
++	if (match->checkentry != NULL &&
++	    !match->checkentry(table, entry, match, matchinfo, hook_mask))
++		return -EINVAL;
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(xt_check_match);
+@@ -469,7 +473,8 @@ EXPORT_SYMBOL_GPL(xt_compat_match_to_user);
+ 
+ int xt_check_target(const struct xt_target *target, unsigned short family,
+ 		    unsigned int size, const char *table, unsigned int hook_mask,
+-		    unsigned short proto, int inv_proto)
++		    unsigned short proto, int inv_proto, const void *entry,
++		    void *targinfo)
+ {
+ 	if (XT_ALIGN(target->targetsize) != size) {
+ 		printk("%s_tables: %s target: invalid size %Zu != %u\n",
+@@ -493,6 +498,9 @@ int xt_check_target(const struct xt_target *target, unsigned short family,
+ 		       xt_prefix[family], target->name, target->proto);
+ 		return -EINVAL;
+ 	}
++	if (target->checkentry != NULL &&
++	    !target->checkentry(table, entry, target, targinfo, hook_mask))
++		return -EINVAL;
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(xt_check_target);
+diff --git a/net/sched/act_ipt.c b/net/sched/act_ipt.c
+index d1263b3..79ea193 100644
+--- a/net/sched/act_ipt.c
++++ b/net/sched/act_ipt.c
+@@ -51,20 +51,12 @@ static int ipt_init_target(struct ipt_entry_target *t, char *table, unsigned int
+ 	t->u.kernel.target = target;
+ 
+ 	ret = xt_check_target(target, AF_INET, t->u.target_size - sizeof(*t),
+-			      table, hook, 0, 0);
+-	if (ret) {
++			      table, hook, 0, 0, NULL, t->data);
++	if (ret < 0) {
+ 		module_put(t->u.kernel.target->me);
+ 		return ret;
+ 	}
+-	if (t->u.kernel.target->checkentry
+-	    && !t->u.kernel.target->checkentry(table, NULL,
+-					       t->u.kernel.target, t->data,
+-					       hook)) {
+-		module_put(t->u.kernel.target->me);
+-		ret = -EINVAL;
+-	}
+-
+-	return ret;
++	return 0;
+ }
+ 
+ static void ipt_destroy_target(struct ipt_entry_target *t)
