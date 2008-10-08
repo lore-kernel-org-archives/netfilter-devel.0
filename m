@@ -1,47 +1,36 @@
-From: KOVACS Krisztian <hidden@sch.bme.hu>
-Subject: Re: [iptables PATCH 1/2] [TPROXY] Add userspace component of	the
-	TPROXY target
-Date: Wed, 08 Oct 2008 09:21:17 +0200
-Message-ID: <1223450477.7554.8.camel@nessa.odu>
-References: <1223450379.7554.3.camel@nessa.odu>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 14/23] netfilter: xtables: move extension arguments into
+ compound structure (1/6)
+Date: Wed, 08 Oct 2008 11:15:52 +0200
+Message-ID: <48EC7A48.1040901@trash.net>
+References: <1223295326-10890-1-git-send-email-jengelh@medozas.de> <f2c244bfb599465f55831331087b82ea613c5dfe.1223294924.git.jengelh@medozas.de>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7BIT
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from balu.sch.bme.hu ([152.66.208.40]:56843 "EHLO balu.sch.bme.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753392AbYJHHVT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Oct 2008 03:21:19 -0400
-Received: from [192.168.1.103] ([89.132.101.55])
- by balu.sch.bme.hu (Sun Java System Messaging Server 6.2-7.05 (built Sep  5
- 2006)) with ESMTPSA id <0K8E008M5SEE3CF0@balu.sch.bme.hu> for
- netfilter-devel@vger.kernel.org; Wed, 08 Oct 2008 09:20:38 +0200 (CEST)
-In-reply-to: <1223450379.7554.3.camel@nessa.odu>
+Received: from stinky.trash.net ([213.144.137.162]:43340 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751182AbYJHJQD (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Oct 2008 05:16:03 -0400
+In-Reply-To: <f2c244bfb599465f55831331087b82ea613c5dfe.1223294924.git.jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
-
-This is an accidental resend of the same patch, please ignore it.
-
-On Wed, 2008-10-08 at 09:19 +0200, KOVACS Krisztian wrote:
-> Add `TPROXY' target.
+Jan Engelhardt wrote:
+> The function signatures for Xtables extensions have grown over time.
+> It involves a lot of typing/replication, and also a bit of stack space
+> even if they are not used. Realize an NFWS2008 idea and pack them into
+> structs. The skb remains outside of the struct so gcc can continue to
+> apply its optimizations.
 > 
-> Signed-off-by: KOVACS Krisztian <hidden@sch.bme.hu>
-> ---
+> This patch does this for match extensions' match functions.
 > 
->  extensions/libxt_TPROXY.c           |  155
-> +++++++++++++++++++++++++++++++++++
->  extensions/libxt_TPROXY.man         |   21 +++++
->  include/linux/netfilter/xt_TPROXY.h |   14 +++
->  3 files changed, 190 insertions(+), 0 deletions(-)
->  create mode 100644 extensions/libxt_TPROXY.c
->  create mode 100644 extensions/libxt_TPROXY.man
->  create mode 100644 include/linux/netfilter/xt_TPROXY.h
-> [...]
+> A few ambiguities have also been addressed. The "offset" parameter for
+> example has been renamed to "fragoff" (there are so many different
+> offsets already) and "protoff" to "thoff" (there is more than just one
+> protocol here, so clarify).
 
--- 
-KOVACS Krisztian
-
+Applied, thanks.
