@@ -1,136 +1,187 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 38/79: netns nf_conntrack: PPTP conntracking in netns
-Date: Wed,  8 Oct 2008 12:47:12 +0200 (MEST)
-Message-ID: <20081008104712.10423.52504.sendpatchset@x2.localnet>
+Subject: netfilter 30/79: netns nf_conntrack: per-netns net.netfilter.nf_conntrack_count sysctl
+Date: Wed,  8 Oct 2008 12:47:01 +0200 (MEST)
+Message-ID: <20081008104701.10423.53414.sendpatchset@x2.localnet>
 References: <20081008104621.10423.12648.sendpatchset@x2.localnet>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45977 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:45952 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754644AbYJHKrO (ORCPT
+	with ESMTP id S1754580AbYJHKrD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Oct 2008 06:47:14 -0400
+	Wed, 8 Oct 2008 06:47:03 -0400
 In-Reply-To: <20081008104621.10423.12648.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 0e6e75af921d1f4799eeb9f83a31c86ab7cdeb8f
+commit 802507071b72ed5025747126099cbc6d1542f596
 Author: Alexey Dobriyan <adobriyan@gmail.com>
-Date:   Wed Oct 8 11:35:10 2008 +0200
+Date:   Wed Oct 8 11:35:08 2008 +0200
 
-    netfilter: netns nf_conntrack: PPTP conntracking in netns
+    netfilter: netns nf_conntrack: per-netns net.netfilter.nf_conntrack_count sysctl
+    
+    Note, sysctl table is always duplicated, this is simpler and less
+    special-cased.
     
     Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
     Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-diff --git a/net/netfilter/nf_conntrack_pptp.c b/net/netfilter/nf_conntrack_pptp.c
-index e47d5de..373e51e 100644
---- a/net/netfilter/nf_conntrack_pptp.c
-+++ b/net/netfilter/nf_conntrack_pptp.c
-@@ -98,6 +98,7 @@ EXPORT_SYMBOL(pptp_msg_name);
- static void pptp_expectfn(struct nf_conn *ct,
- 			 struct nf_conntrack_expect *exp)
- {
-+	struct net *net = nf_ct_net(ct);
- 	typeof(nf_nat_pptp_hook_expectfn) nf_nat_pptp_expectfn;
- 	pr_debug("increasing timeouts\n");
+diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
+index fc0a46d..2b50758 100644
+--- a/include/net/netns/conntrack.h
++++ b/include/net/netns/conntrack.h
+@@ -4,6 +4,7 @@
+ #include <linux/list.h>
+ #include <asm/atomic.h>
  
-@@ -121,7 +122,7 @@ static void pptp_expectfn(struct nf_conn *ct,
- 		pr_debug("trying to unexpect other dir: ");
- 		nf_ct_dump_tuple(&inv_t);
++struct ctl_table_header;
+ struct nf_conntrack_ecache;
  
--		exp_other = nf_ct_expect_find_get(&init_net, &inv_t);
-+		exp_other = nf_ct_expect_find_get(net, &inv_t);
- 		if (exp_other) {
- 			/* delete other expectation.  */
- 			pr_debug("found\n");
-@@ -134,7 +135,8 @@ static void pptp_expectfn(struct nf_conn *ct,
- 	rcu_read_unlock();
- }
- 
--static int destroy_sibling_or_exp(const struct nf_conntrack_tuple *t)
-+static int destroy_sibling_or_exp(struct net *net,
-+				  const struct nf_conntrack_tuple *t)
- {
- 	const struct nf_conntrack_tuple_hash *h;
- 	struct nf_conntrack_expect *exp;
-@@ -143,7 +145,7 @@ static int destroy_sibling_or_exp(const struct nf_conntrack_tuple *t)
- 	pr_debug("trying to timeout ct or exp for tuple ");
- 	nf_ct_dump_tuple(t);
- 
--	h = nf_conntrack_find_get(&init_net, t);
-+	h = nf_conntrack_find_get(net, t);
- 	if (h)  {
- 		sibling = nf_ct_tuplehash_to_ctrack(h);
- 		pr_debug("setting timeout of conntrack %p to 0\n", sibling);
-@@ -154,7 +156,7 @@ static int destroy_sibling_or_exp(const struct nf_conntrack_tuple *t)
- 		nf_ct_put(sibling);
- 		return 1;
- 	} else {
--		exp = nf_ct_expect_find_get(&init_net, t);
-+		exp = nf_ct_expect_find_get(net, t);
- 		if (exp) {
- 			pr_debug("unexpect_related of expect %p\n", exp);
- 			nf_ct_unexpect_related(exp);
-@@ -168,6 +170,7 @@ static int destroy_sibling_or_exp(const struct nf_conntrack_tuple *t)
- /* timeout GRE data connections */
- static void pptp_destroy_siblings(struct nf_conn *ct)
- {
-+	struct net *net = nf_ct_net(ct);
- 	const struct nf_conn_help *help = nfct_help(ct);
- 	struct nf_conntrack_tuple t;
- 
-@@ -178,7 +181,7 @@ static void pptp_destroy_siblings(struct nf_conn *ct)
- 	t.dst.protonum = IPPROTO_GRE;
- 	t.src.u.gre.key = help->help.ct_pptp_info.pns_call_id;
- 	t.dst.u.gre.key = help->help.ct_pptp_info.pac_call_id;
--	if (!destroy_sibling_or_exp(&t))
-+	if (!destroy_sibling_or_exp(net, &t))
- 		pr_debug("failed to timeout original pns->pac ct/exp\n");
- 
- 	/* try reply (pac->pns) tuple */
-@@ -186,7 +189,7 @@ static void pptp_destroy_siblings(struct nf_conn *ct)
- 	t.dst.protonum = IPPROTO_GRE;
- 	t.src.u.gre.key = help->help.ct_pptp_info.pac_call_id;
- 	t.dst.u.gre.key = help->help.ct_pptp_info.pns_call_id;
--	if (!destroy_sibling_or_exp(&t))
-+	if (!destroy_sibling_or_exp(net, &t))
- 		pr_debug("failed to timeout reply pac->pns ct/exp\n");
- }
- 
-@@ -594,15 +597,32 @@ static struct nf_conntrack_helper pptp __read_mostly = {
- 	.expect_policy		= &pptp_exp_policy,
+ struct netns_ct {
+@@ -16,6 +17,9 @@ struct netns_ct {
+ #ifdef CONFIG_NF_CONNTRACK_EVENTS
+ 	struct nf_conntrack_ecache *ecache;
+ #endif
++#ifdef CONFIG_SYSCTL
++	struct ctl_table_header	*sysctl_header;
++#endif
+ 	int			hash_vmalloc;
+ 	int			expect_vmalloc;
  };
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 169760d..64b4f95 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -330,7 +330,6 @@ EXPORT_SYMBOL_GPL(nf_conntrack_checksum);
+ static int log_invalid_proto_min = 0;
+ static int log_invalid_proto_max = 255;
  
-+static void nf_conntrack_pptp_net_exit(struct net *net)
-+{
-+	nf_ct_gre_keymap_flush(net);
-+}
-+
-+static struct pernet_operations nf_conntrack_pptp_net_ops = {
-+	.exit = nf_conntrack_pptp_net_exit,
-+};
-+
- static int __init nf_conntrack_pptp_init(void)
+-static struct ctl_table_header *nf_ct_sysctl_header;
+ static struct ctl_table_header *nf_ct_netfilter_header;
+ 
+ static ctl_table nf_ct_sysctl_table[] = {
+@@ -409,40 +408,58 @@ static struct ctl_path nf_ct_path[] = {
+ 
+ EXPORT_SYMBOL_GPL(nf_ct_log_invalid);
+ 
+-static int nf_conntrack_standalone_init_sysctl(void)
++static int nf_conntrack_standalone_init_sysctl(struct net *net)
  {
--	return nf_conntrack_helper_register(&pptp);
-+	int rv;
+-	nf_ct_netfilter_header =
+-		register_sysctl_paths(nf_ct_path, nf_ct_netfilter_table);
+-	if (!nf_ct_netfilter_header)
+-		goto out;
+-
+-	nf_ct_sysctl_header =
+-		 register_sysctl_paths(nf_net_netfilter_sysctl_path,
+-					nf_ct_sysctl_table);
+-	if (!nf_ct_sysctl_header)
++	struct ctl_table *table;
 +
-+	rv = nf_conntrack_helper_register(&pptp);
-+	if (rv < 0)
-+		return rv;
-+	rv = register_pernet_subsys(&nf_conntrack_pptp_net_ops);
-+	if (rv < 0)
-+		nf_conntrack_helper_unregister(&pptp);
-+	return rv;
++	if (net_eq(net, &init_net)) {
++		nf_ct_netfilter_header =
++		       register_sysctl_paths(nf_ct_path, nf_ct_netfilter_table);
++		if (!nf_ct_netfilter_header)
++			goto out;
++	}
++
++	table = kmemdup(nf_ct_sysctl_table, sizeof(nf_ct_sysctl_table),
++			GFP_KERNEL);
++	if (!table)
++		goto out_kmemdup;
++
++	table[1].data = &net->ct.count;
++
++	net->ct.sysctl_header = register_net_sysctl_table(net,
++					nf_net_netfilter_sysctl_path, table);
++	if (!net->ct.sysctl_header)
+ 		goto out_unregister_netfilter;
+ 
+ 	return 0;
+ 
+ out_unregister_netfilter:
+-	unregister_sysctl_table(nf_ct_netfilter_header);
++	kfree(table);
++out_kmemdup:
++	if (net_eq(net, &init_net))
++		unregister_sysctl_table(nf_ct_netfilter_header);
+ out:
+ 	printk("nf_conntrack: can't register to sysctl.\n");
+ 	return -ENOMEM;
  }
  
- static void __exit nf_conntrack_pptp_fini(void)
+-static void nf_conntrack_standalone_fini_sysctl(void)
++static void nf_conntrack_standalone_fini_sysctl(struct net *net)
  {
- 	nf_conntrack_helper_unregister(&pptp);
--	nf_ct_gre_keymap_flush(&init_net);
-+	unregister_pernet_subsys(&nf_conntrack_pptp_net_ops);
+-	unregister_sysctl_table(nf_ct_netfilter_header);
+-	unregister_sysctl_table(nf_ct_sysctl_header);
++	struct ctl_table *table;
++
++	if (net_eq(net, &init_net))
++		unregister_sysctl_table(nf_ct_netfilter_header);
++	table = net->ct.sysctl_header->ctl_table_arg;
++	unregister_net_sysctl_table(net->ct.sysctl_header);
++	kfree(table);
+ }
+ #else
+-static int nf_conntrack_standalone_init_sysctl(void)
++static int nf_conntrack_standalone_init_sysctl(struct net *net)
+ {
+ 	return 0;
  }
  
- module_init(nf_conntrack_pptp_init);
+-static void nf_conntrack_standalone_fini_sysctl(void)
++static void nf_conntrack_standalone_fini_sysctl(struct net *net)
+ {
+ }
+ #endif /* CONFIG_SYSCTL */
+@@ -457,8 +474,13 @@ static int nf_conntrack_net_init(struct net *net)
+ 	ret = nf_conntrack_standalone_init_proc(net);
+ 	if (ret < 0)
+ 		goto out_proc;
++	ret = nf_conntrack_standalone_init_sysctl(net);
++	if (ret < 0)
++		goto out_sysctl;
+ 	return 0;
+ 
++out_sysctl:
++	nf_conntrack_standalone_fini_proc(net);
+ out_proc:
+ 	nf_conntrack_cleanup(net);
+ out_init:
+@@ -467,6 +489,7 @@ out_init:
+ 
+ static void nf_conntrack_net_exit(struct net *net)
+ {
++	nf_conntrack_standalone_fini_sysctl(net);
+ 	nf_conntrack_standalone_fini_proc(net);
+ 	nf_conntrack_cleanup(net);
+ }
+@@ -478,25 +501,11 @@ static struct pernet_operations nf_conntrack_net_ops = {
+ 
+ static int __init nf_conntrack_standalone_init(void)
+ {
+-	int ret;
+-
+-	ret = register_pernet_subsys(&nf_conntrack_net_ops);
+-	if (ret < 0)
+-		goto out;
+-	ret = nf_conntrack_standalone_init_sysctl();
+-	if (ret < 0)
+-		goto out_sysctl;
+-	return 0;
+-
+-out_sysctl:
+-	unregister_pernet_subsys(&nf_conntrack_net_ops);
+-out:
+-	return ret;
++	return register_pernet_subsys(&nf_conntrack_net_ops);
+ }
+ 
+ static void __exit nf_conntrack_standalone_fini(void)
+ {
+-	nf_conntrack_standalone_fini_sysctl();
+ 	unregister_pernet_subsys(&nf_conntrack_net_ops);
+ }
+ 
