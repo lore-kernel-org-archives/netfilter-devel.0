@@ -1,57 +1,266 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 55/79: ebt_among: obtain match size through different means
-Date: Wed,  8 Oct 2008 12:47:35 +0200 (MEST)
-Message-ID: <20081008104735.10423.66877.sendpatchset@x2.localnet>
+Subject: netfilter 37/79: netns nf_conntrack: GRE conntracking in netns
+Date: Wed,  8 Oct 2008 12:47:11 +0200 (MEST)
+Message-ID: <20081008104711.10423.40204.sendpatchset@x2.localnet>
 References: <20081008104621.10423.12648.sendpatchset@x2.localnet>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:46029 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:45975 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754740AbYJHKrh (ORCPT
+	with ESMTP id S1754602AbYJHKrM (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Oct 2008 06:47:37 -0400
+	Wed, 8 Oct 2008 06:47:12 -0400
 In-Reply-To: <20081008104621.10423.12648.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 815377fe344c799228ca6278613ca3100b069ad5
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Wed Oct 8 11:35:14 2008 +0200
+commit 3bb0d1c00f86b13bb184193a8f0189ddd6f0459f
+Author: Alexey Dobriyan <adobriyan@gmail.com>
+Date:   Wed Oct 8 11:35:10 2008 +0200
 
-    netfilter: ebt_among: obtain match size through different means
+    netfilter: netns nf_conntrack: GRE conntracking in netns
     
-    The function signatures will be changed to match those of Xtables, and
-    the datalen argument will be gone. ebt_among unfortunately relies on
-    it, so we need to obtain it somehow.
+    * make keymap list per-netns
+    * per-netns keymal lock (not strictly necessary)
+    * flush keymap at netns stop and module unload.
     
-    Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+    Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
     Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-diff --git a/net/bridge/netfilter/ebt_among.c b/net/bridge/netfilter/ebt_among.c
-index 568c890..88b5c91 100644
---- a/net/bridge/netfilter/ebt_among.c
-+++ b/net/bridge/netfilter/ebt_among.c
-@@ -178,6 +178,8 @@ ebt_among_check(const char *tablename, unsigned int hookmask,
- 		const struct ebt_entry *e, void *data,
- 		unsigned int datalen)
- {
-+	const struct ebt_entry_match *em =
-+		container_of(data, const struct ebt_entry_match, data);
- 	const struct ebt_among_info *info = data;
- 	int expected_length = sizeof(struct ebt_among_info);
- 	const struct ebt_mac_wormhash *wh_dst, *wh_src;
-@@ -188,11 +190,11 @@ ebt_among_check(const char *tablename, unsigned int hookmask,
- 	expected_length += ebt_mac_wormhash_size(wh_dst);
- 	expected_length += ebt_mac_wormhash_size(wh_src);
+diff --git a/include/linux/netfilter/nf_conntrack_proto_gre.h b/include/linux/netfilter/nf_conntrack_proto_gre.h
+index 535e421..2a10efd 100644
+--- a/include/linux/netfilter/nf_conntrack_proto_gre.h
++++ b/include/linux/netfilter/nf_conntrack_proto_gre.h
+@@ -87,7 +87,7 @@ int nf_ct_gre_keymap_add(struct nf_conn *ct, enum ip_conntrack_dir dir,
+ /* delete keymap entries */
+ void nf_ct_gre_keymap_destroy(struct nf_conn *ct);
  
--	if (datalen != EBT_ALIGN(expected_length)) {
-+	if (em->match_size != EBT_ALIGN(expected_length)) {
- 		printk(KERN_WARNING
- 		       "ebtables: among: wrong size: %d "
- 		       "against expected %d, rounded to %Zd\n",
--		       datalen, expected_length,
-+		       em->match_size, expected_length,
- 		       EBT_ALIGN(expected_length));
- 		return false;
+-extern void nf_ct_gre_keymap_flush(void);
++extern void nf_ct_gre_keymap_flush(struct net *net);
+ extern void nf_nat_need_gre(void);
+ 
+ #endif /* __KERNEL__ */
+diff --git a/net/netfilter/nf_conntrack_pptp.c b/net/netfilter/nf_conntrack_pptp.c
+index 5db7df5..e47d5de 100644
+--- a/net/netfilter/nf_conntrack_pptp.c
++++ b/net/netfilter/nf_conntrack_pptp.c
+@@ -602,7 +602,7 @@ static int __init nf_conntrack_pptp_init(void)
+ static void __exit nf_conntrack_pptp_fini(void)
+ {
+ 	nf_conntrack_helper_unregister(&pptp);
+-	nf_ct_gre_keymap_flush();
++	nf_ct_gre_keymap_flush(&init_net);
+ }
+ 
+ module_init(nf_conntrack_pptp_init);
+diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
+index 5b1273a..a2cdbcb 100644
+--- a/net/netfilter/nf_conntrack_proto_gre.c
++++ b/net/netfilter/nf_conntrack_proto_gre.c
+@@ -29,8 +29,11 @@
+ #include <linux/list.h>
+ #include <linux/seq_file.h>
+ #include <linux/in.h>
++#include <linux/netdevice.h>
+ #include <linux/skbuff.h>
+-
++#include <net/dst.h>
++#include <net/net_namespace.h>
++#include <net/netns/generic.h>
+ #include <net/netfilter/nf_conntrack_l4proto.h>
+ #include <net/netfilter/nf_conntrack_helper.h>
+ #include <net/netfilter/nf_conntrack_core.h>
+@@ -40,19 +43,23 @@
+ #define GRE_TIMEOUT		(30 * HZ)
+ #define GRE_STREAM_TIMEOUT	(180 * HZ)
+ 
+-static DEFINE_RWLOCK(nf_ct_gre_lock);
+-static LIST_HEAD(gre_keymap_list);
++static int proto_gre_net_id;
++struct netns_proto_gre {
++	rwlock_t		keymap_lock;
++	struct list_head	keymap_list;
++};
+ 
+-void nf_ct_gre_keymap_flush(void)
++void nf_ct_gre_keymap_flush(struct net *net)
+ {
++	struct netns_proto_gre *net_gre = net_generic(net, proto_gre_net_id);
+ 	struct nf_ct_gre_keymap *km, *tmp;
+ 
+-	write_lock_bh(&nf_ct_gre_lock);
+-	list_for_each_entry_safe(km, tmp, &gre_keymap_list, list) {
++	write_lock_bh(&net_gre->keymap_lock);
++	list_for_each_entry_safe(km, tmp, &net_gre->keymap_list, list) {
+ 		list_del(&km->list);
+ 		kfree(km);
  	}
+-	write_unlock_bh(&nf_ct_gre_lock);
++	write_unlock_bh(&net_gre->keymap_lock);
+ }
+ EXPORT_SYMBOL(nf_ct_gre_keymap_flush);
+ 
+@@ -67,19 +74,20 @@ static inline int gre_key_cmpfn(const struct nf_ct_gre_keymap *km,
+ }
+ 
+ /* look up the source key for a given tuple */
+-static __be16 gre_keymap_lookup(struct nf_conntrack_tuple *t)
++static __be16 gre_keymap_lookup(struct net *net, struct nf_conntrack_tuple *t)
+ {
++	struct netns_proto_gre *net_gre = net_generic(net, proto_gre_net_id);
+ 	struct nf_ct_gre_keymap *km;
+ 	__be16 key = 0;
+ 
+-	read_lock_bh(&nf_ct_gre_lock);
+-	list_for_each_entry(km, &gre_keymap_list, list) {
++	read_lock_bh(&net_gre->keymap_lock);
++	list_for_each_entry(km, &net_gre->keymap_list, list) {
+ 		if (gre_key_cmpfn(km, t)) {
+ 			key = km->tuple.src.u.gre.key;
+ 			break;
+ 		}
+ 	}
+-	read_unlock_bh(&nf_ct_gre_lock);
++	read_unlock_bh(&net_gre->keymap_lock);
+ 
+ 	pr_debug("lookup src key 0x%x for ", key);
+ 	nf_ct_dump_tuple(t);
+@@ -91,20 +99,22 @@ static __be16 gre_keymap_lookup(struct nf_conntrack_tuple *t)
+ int nf_ct_gre_keymap_add(struct nf_conn *ct, enum ip_conntrack_dir dir,
+ 			 struct nf_conntrack_tuple *t)
+ {
++	struct net *net = nf_ct_net(ct);
++	struct netns_proto_gre *net_gre = net_generic(net, proto_gre_net_id);
+ 	struct nf_conn_help *help = nfct_help(ct);
+ 	struct nf_ct_gre_keymap **kmp, *km;
+ 
+ 	kmp = &help->help.ct_pptp_info.keymap[dir];
+ 	if (*kmp) {
+ 		/* check whether it's a retransmission */
+-		read_lock_bh(&nf_ct_gre_lock);
+-		list_for_each_entry(km, &gre_keymap_list, list) {
++		read_lock_bh(&net_gre->keymap_lock);
++		list_for_each_entry(km, &net_gre->keymap_list, list) {
+ 			if (gre_key_cmpfn(km, t) && km == *kmp) {
+-				read_unlock_bh(&nf_ct_gre_lock);
++				read_unlock_bh(&net_gre->keymap_lock);
+ 				return 0;
+ 			}
+ 		}
+-		read_unlock_bh(&nf_ct_gre_lock);
++		read_unlock_bh(&net_gre->keymap_lock);
+ 		pr_debug("trying to override keymap_%s for ct %p\n",
+ 			 dir == IP_CT_DIR_REPLY ? "reply" : "orig", ct);
+ 		return -EEXIST;
+@@ -119,9 +129,9 @@ int nf_ct_gre_keymap_add(struct nf_conn *ct, enum ip_conntrack_dir dir,
+ 	pr_debug("adding new entry %p: ", km);
+ 	nf_ct_dump_tuple(&km->tuple);
+ 
+-	write_lock_bh(&nf_ct_gre_lock);
+-	list_add_tail(&km->list, &gre_keymap_list);
+-	write_unlock_bh(&nf_ct_gre_lock);
++	write_lock_bh(&net_gre->keymap_lock);
++	list_add_tail(&km->list, &net_gre->keymap_list);
++	write_unlock_bh(&net_gre->keymap_lock);
+ 
+ 	return 0;
+ }
+@@ -130,12 +140,14 @@ EXPORT_SYMBOL_GPL(nf_ct_gre_keymap_add);
+ /* destroy the keymap entries associated with specified master ct */
+ void nf_ct_gre_keymap_destroy(struct nf_conn *ct)
+ {
++	struct net *net = nf_ct_net(ct);
++	struct netns_proto_gre *net_gre = net_generic(net, proto_gre_net_id);
+ 	struct nf_conn_help *help = nfct_help(ct);
+ 	enum ip_conntrack_dir dir;
+ 
+ 	pr_debug("entering for ct %p\n", ct);
+ 
+-	write_lock_bh(&nf_ct_gre_lock);
++	write_lock_bh(&net_gre->keymap_lock);
+ 	for (dir = IP_CT_DIR_ORIGINAL; dir < IP_CT_DIR_MAX; dir++) {
+ 		if (help->help.ct_pptp_info.keymap[dir]) {
+ 			pr_debug("removing %p from list\n",
+@@ -145,7 +157,7 @@ void nf_ct_gre_keymap_destroy(struct nf_conn *ct)
+ 			help->help.ct_pptp_info.keymap[dir] = NULL;
+ 		}
+ 	}
+-	write_unlock_bh(&nf_ct_gre_lock);
++	write_unlock_bh(&net_gre->keymap_lock);
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_gre_keymap_destroy);
+ 
+@@ -164,6 +176,7 @@ static bool gre_invert_tuple(struct nf_conntrack_tuple *tuple,
+ static bool gre_pkt_to_tuple(const struct sk_buff *skb, unsigned int dataoff,
+ 			     struct nf_conntrack_tuple *tuple)
+ {
++	struct net *net = dev_net(skb->dev ? skb->dev : skb->dst->dev);
+ 	const struct gre_hdr_pptp *pgrehdr;
+ 	struct gre_hdr_pptp _pgrehdr;
+ 	__be16 srckey;
+@@ -190,7 +203,7 @@ static bool gre_pkt_to_tuple(const struct sk_buff *skb, unsigned int dataoff,
+ 	}
+ 
+ 	tuple->dst.u.gre.key = pgrehdr->call_id;
+-	srckey = gre_keymap_lookup(tuple);
++	srckey = gre_keymap_lookup(net, tuple);
+ 	tuple->src.u.gre.key = srckey;
+ 
+ 	return true;
+@@ -285,15 +298,53 @@ static struct nf_conntrack_l4proto nf_conntrack_l4proto_gre4 __read_mostly = {
+ #endif
+ };
+ 
++static int proto_gre_net_init(struct net *net)
++{
++	struct netns_proto_gre *net_gre;
++	int rv;
++
++	net_gre = kmalloc(sizeof(struct netns_proto_gre), GFP_KERNEL);
++	if (!net_gre)
++		return -ENOMEM;
++	rwlock_init(&net_gre->keymap_lock);
++	INIT_LIST_HEAD(&net_gre->keymap_list);
++
++	rv = net_assign_generic(net, proto_gre_net_id, net_gre);
++	if (rv < 0)
++		kfree(net_gre);
++	return rv;
++}
++
++static void proto_gre_net_exit(struct net *net)
++{
++	struct netns_proto_gre *net_gre = net_generic(net, proto_gre_net_id);
++
++	nf_ct_gre_keymap_flush(net);
++	kfree(net_gre);
++}
++
++static struct pernet_operations proto_gre_net_ops = {
++	.init = proto_gre_net_init,
++	.exit = proto_gre_net_exit,
++};
++
+ static int __init nf_ct_proto_gre_init(void)
+ {
+-	return nf_conntrack_l4proto_register(&nf_conntrack_l4proto_gre4);
++	int rv;
++
++	rv = nf_conntrack_l4proto_register(&nf_conntrack_l4proto_gre4);
++	if (rv < 0)
++		return rv;
++	rv = register_pernet_gen_device(&proto_gre_net_id, &proto_gre_net_ops);
++	if (rv < 0)
++		nf_conntrack_l4proto_unregister(&nf_conntrack_l4proto_gre4);
++	return rv;
+ }
+ 
+ static void nf_ct_proto_gre_fini(void)
+ {
+ 	nf_conntrack_l4proto_unregister(&nf_conntrack_l4proto_gre4);
+-	nf_ct_gre_keymap_flush();
++	unregister_pernet_gen_device(proto_gre_net_id, &proto_gre_net_ops);
+ }
+ 
+ module_init(nf_ct_proto_gre_init);
