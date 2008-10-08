@@ -1,41 +1,45 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [Fwd: [PATCH 2.4]: ip6t_{hbh,dst}: Rejects not-strict mode on
- rule insersion]
-Date: Wed, 08 Oct 2008 14:55:24 +0200
-Message-ID: <48ECADBC.2010409@trash.net>
-References: <48ECA862.1010204@trash.net> <20081008125229.GC28783@1wt.eu>
+Subject: Re: [PATCH] Don't call nf_log_packet in NFLOG module.
+Date: Wed, 08 Oct 2008 15:02:54 +0200
+Message-ID: <48ECAF7E.30502@trash.net>
+References: <> <1223322024-20336-1-git-send-email-eric@inl.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Willy Tarreau <w@1wt.eu>
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@inl.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:49503 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:49706 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751561AbYJHMz1 (ORCPT
+	with ESMTP id S1750753AbYJHNCz (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Oct 2008 08:55:27 -0400
-In-Reply-To: <20081008125229.GC28783@1wt.eu>
+	Wed, 8 Oct 2008 09:02:55 -0400
+In-Reply-To: <1223322024-20336-1-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Willy Tarreau wrote:
-> Hi Patrick,
-> 
-> On Wed, Oct 08, 2008 at 02:32:34PM +0200, Patrick McHardy wrote:
->> Hi Willy,
->>
->> This patch from Yasuyuki fixes a problem in the hbh/dst matches which
->> is currently hidden by broken userspace, but will be exposed once
->> we've fixed userspace. Unfortunately neither of us has a working
->> 2.4 environment, so all I can do is forward the patch. The upstream
->> commit ID is 8ca31ce52.
-> 
-> OK. I still have working 2.4 + IPv6, so if there is any reproducer, I can
-> test the fix. Otherwise, I'll apply it, as it seems pretty straight-forward
-> for anyone who doesn't want to precisely understand what it fixes :-)
+Eric Leblond wrote:
+> This patch modifies xt_NFLOG to suppress the call to nf_log_packet()
+> function. The call of this wrapper in xt_NFLOG was causing NFLOG to
+> use the first initialized module. Thus, if ipt_ULOG is loaded before
+> nfnetlink_log all NFLOG rules are treated as plain LOG rules.
 
-I guess it can't be tested right now because of the userspace problem,
-but it really is pretty straight forward :)
+Oops, this slipped through somehow. It has been an intentional
+decision to use the registered logging backends though, just changing
+it to unconditionally use nfnetlink_log only solves the problem
+partially.
+
+The main problem is that the policy which backend to use is defined
+by module load order, which is obviously a pretty bad idea. This does
+not only affect xt_NFLOG, but also internal conntrack logging and
+anything else we might want to use this for in the future.
+
+So I think what we should do instead is introduce a proper way to
+select among the logging backends. We could introduce a global
+policy, or split by subsystem, which would currently be just
+"conntrack" and "NFLOG".
+
+And perhaps we should start getting rid of ULOG completely to
+simplify this stuff.
+
+But I'm open to being convinced of better ways :)
