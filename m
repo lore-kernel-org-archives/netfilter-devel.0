@@ -1,188 +1,265 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 41/79: netns nat: per-netns bysource hash
-Date: Wed,  8 Oct 2008 12:47:16 +0200 (MEST)
-Message-ID: <20081008104716.10423.16861.sendpatchset@x2.localnet>
+Subject: netfilter 47/79: iptables socket match
+Date: Wed,  8 Oct 2008 12:47:24 +0200 (MEST)
+Message-ID: <20081008104724.10423.13426.sendpatchset@x2.localnet>
 References: <20081008104621.10423.12648.sendpatchset@x2.localnet>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45988 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:46008 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754611AbYJHKrS (ORCPT
+	with ESMTP id S1754670AbYJHKr0 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Oct 2008 06:47:18 -0400
+	Wed, 8 Oct 2008 06:47:26 -0400
 In-Reply-To: <20081008104621.10423.12648.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 0c4c9288ada0e6642d511ef872f10a4781a896ff
-Author: Alexey Dobriyan <adobriyan@gmail.com>
-Date:   Wed Oct 8 11:35:11 2008 +0200
+commit 136cdc71fd54e77463e570643ac76e2b696e48a0
+Author: KOVACS Krisztian <hidden@sch.bme.hu>
+Date:   Wed Oct 8 11:35:12 2008 +0200
 
-    netfilter: netns nat: per-netns bysource hash
+    netfilter: iptables socket match
     
-    Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+    Add iptables 'socket' match, which matches packets for which a TCP/UDP
+    socket lookup succeeds.
+    
+    Signed-off-by: KOVACS Krisztian <hidden@sch.bme.hu>
     Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-diff --git a/include/net/netns/ipv4.h b/include/net/netns/ipv4.h
-index b286b84..ece1c92 100644
---- a/include/net/netns/ipv4.h
-+++ b/include/net/netns/ipv4.h
-@@ -39,6 +39,8 @@ struct netns_ipv4 {
- 	struct xt_table		*arptable_filter;
- 	struct xt_table		*iptable_security;
- 	struct xt_table		*nat_table;
-+	struct hlist_head	*nat_bysource;
-+	int			nat_vmalloced;
- #endif
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index ed1dcfb..f6c8072 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -778,6 +778,21 @@ config NETFILTER_XT_MATCH_SCTP
+ 	  If you want to compile it as a module, say M here and read
+ 	  <file:Documentation/kbuild/modules.txt>.  If unsure, say `N'.
  
- 	int sysctl_icmp_echo_ignore_all;
-diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
-index 5d4a5b7..2ac9eaf 100644
---- a/net/ipv4/netfilter/nf_nat_core.c
-+++ b/net/ipv4/netfilter/nf_nat_core.c
-@@ -37,9 +37,6 @@ static struct nf_conntrack_l3proto *l3proto __read_mostly;
- 
- /* Calculated at init based on memory size */
- static unsigned int nf_nat_htable_size __read_mostly;
--static int nf_nat_vmalloced;
--
--static struct hlist_head *bysource __read_mostly;
- 
- #define MAX_IP_NAT_PROTO 256
- static const struct nf_nat_protocol *nf_nat_protos[MAX_IP_NAT_PROTO]
-@@ -145,7 +142,8 @@ same_src(const struct nf_conn *ct,
- 
- /* Only called for SRC manip */
- static int
--find_appropriate_src(const struct nf_conntrack_tuple *tuple,
-+find_appropriate_src(struct net *net,
-+		     const struct nf_conntrack_tuple *tuple,
- 		     struct nf_conntrack_tuple *result,
- 		     const struct nf_nat_range *range)
- {
-@@ -155,7 +153,7 @@ find_appropriate_src(const struct nf_conntrack_tuple *tuple,
- 	const struct hlist_node *n;
- 
- 	rcu_read_lock();
--	hlist_for_each_entry_rcu(nat, n, &bysource[h], bysource) {
-+	hlist_for_each_entry_rcu(nat, n, &net->ipv4.nat_bysource[h], bysource) {
- 		ct = nat->ct;
- 		if (same_src(ct, tuple)) {
- 			/* Copy source part from reply tuple. */
-@@ -231,6 +229,7 @@ get_unique_tuple(struct nf_conntrack_tuple *tuple,
- 		 struct nf_conn *ct,
- 		 enum nf_nat_manip_type maniptype)
- {
-+	struct net *net = nf_ct_net(ct);
- 	const struct nf_nat_protocol *proto;
- 
- 	/* 1) If this srcip/proto/src-proto-part is currently mapped,
-@@ -242,7 +241,7 @@ get_unique_tuple(struct nf_conntrack_tuple *tuple,
- 	   manips not an issue.  */
- 	if (maniptype == IP_NAT_MANIP_SRC &&
- 	    !(range->flags & IP_NAT_RANGE_PROTO_RANDOM)) {
--		if (find_appropriate_src(orig_tuple, tuple, range)) {
-+		if (find_appropriate_src(net, orig_tuple, tuple, range)) {
- 			pr_debug("get_unique_tuple: Found current src map\n");
- 			if (!nf_nat_used_tuple(tuple, ct))
- 				return;
-@@ -283,6 +282,7 @@ nf_nat_setup_info(struct nf_conn *ct,
- 		  const struct nf_nat_range *range,
- 		  enum nf_nat_manip_type maniptype)
- {
-+	struct net *net = nf_ct_net(ct);
- 	struct nf_conntrack_tuple curr_tuple, new_tuple;
- 	struct nf_conn_nat *nat;
- 	int have_to_hash = !(ct->status & IPS_NAT_DONE_MASK);
-@@ -334,7 +334,8 @@ nf_nat_setup_info(struct nf_conn *ct,
- 		/* nf_conntrack_alter_reply might re-allocate exntension aera */
- 		nat = nfct_nat(ct);
- 		nat->ct = ct;
--		hlist_add_head_rcu(&nat->bysource, &bysource[srchash]);
-+		hlist_add_head_rcu(&nat->bysource,
-+				   &net->ipv4.nat_bysource[srchash]);
- 		spin_unlock_bh(&nf_nat_lock);
- 	}
- 
-@@ -583,6 +584,40 @@ static struct nf_ct_ext_type nat_extend __read_mostly = {
- 	.flags		= NF_CT_EXT_F_PREALLOC,
- };
- 
-+static int __net_init nf_nat_net_init(struct net *net)
++config NETFILTER_XT_MATCH_SOCKET
++	tristate '"socket" match support (EXPERIMENTAL)'
++	depends on EXPERIMENTAL
++	depends on NETFILTER_TPROXY
++	depends on NETFILTER_XTABLES
++	depends on NETFILTER_ADVANCED
++	select NF_DEFRAG_IPV4
++	help
++	  This option adds a `socket' match, which can be used to match
++	  packets for which a TCP or UDP socket lookup finds a valid socket.
++	  It can be used in combination with the MARK target and policy
++	  routing to implement full featured non-locally bound sockets.
++
++	  To compile it as a module, choose M here.  If unsure, say N.
++
+ config NETFILTER_XT_MATCH_STATE
+ 	tristate '"state" match support'
+ 	depends on NETFILTER_XTABLES
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index fc8bbb4..1cdc3a1 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -81,6 +81,7 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_RATEEST) += xt_rateest.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_REALM) += xt_realm.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_RECENT) += xt_recent.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_SCTP) += xt_sctp.o
++obj-$(CONFIG_NETFILTER_XT_MATCH_SOCKET) += xt_socket.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_STATE) += xt_state.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_STATISTIC) += xt_statistic.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_STRING) += xt_string.o
+diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
+new file mode 100644
+index 0000000..ac9db17
+--- /dev/null
++++ b/net/netfilter/xt_socket.c
+@@ -0,0 +1,192 @@
++/*
++ * Transparent proxy support for Linux/iptables
++ *
++ * Copyright (C) 2007-2008 BalaBit IT Ltd.
++ * Author: Krisztian Kovacs
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ */
++
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/netfilter/x_tables.h>
++#include <linux/netfilter_ipv4/ip_tables.h>
++#include <net/tcp.h>
++#include <net/udp.h>
++#include <net/icmp.h>
++#include <net/sock.h>
++#include <net/inet_sock.h>
++#include <net/netfilter/nf_tproxy_core.h>
++#include <net/netfilter/ipv4/nf_defrag_ipv4.h>
++
++#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
++#define XT_SOCKET_HAVE_CONNTRACK 1
++#include <net/netfilter/nf_conntrack.h>
++#endif
++
++static int
++extract_icmp_fields(const struct sk_buff *skb,
++		    u8 *protocol,
++		    __be32 *raddr,
++		    __be32 *laddr,
++		    __be16 *rport,
++		    __be16 *lport)
 +{
-+	net->ipv4.nat_bysource = nf_ct_alloc_hashtable(&nf_nat_htable_size,
-+						      &net->ipv4.nat_vmalloced);
-+	if (!net->ipv4.nat_bysource)
-+		return -ENOMEM;
++	unsigned int outside_hdrlen = ip_hdrlen(skb);
++	struct iphdr *inside_iph, _inside_iph;
++	struct icmphdr *icmph, _icmph;
++	__be16 *ports, _ports[2];
++
++	icmph = skb_header_pointer(skb, outside_hdrlen,
++				   sizeof(_icmph), &_icmph);
++	if (icmph == NULL)
++		return 1;
++
++	switch (icmph->type) {
++	case ICMP_DEST_UNREACH:
++	case ICMP_SOURCE_QUENCH:
++	case ICMP_REDIRECT:
++	case ICMP_TIME_EXCEEDED:
++	case ICMP_PARAMETERPROB:
++		break;
++	default:
++		return 1;
++	}
++
++	inside_iph = skb_header_pointer(skb, outside_hdrlen +
++					sizeof(struct icmphdr),
++					sizeof(_inside_iph), &_inside_iph);
++	if (inside_iph == NULL)
++		return 1;
++
++	if (inside_iph->protocol != IPPROTO_TCP &&
++	    inside_iph->protocol != IPPROTO_UDP)
++		return 1;
++
++	ports = skb_header_pointer(skb, outside_hdrlen +
++				   sizeof(struct icmphdr) +
++				   (inside_iph->ihl << 2),
++				   sizeof(_ports), &_ports);
++	if (ports == NULL)
++		return 1;
++
++	/* the inside IP packet is the one quoted from our side, thus
++	 * its saddr is the local address */
++	*protocol = inside_iph->protocol;
++	*laddr = inside_iph->saddr;
++	*lport = ports[0];
++	*raddr = inside_iph->daddr;
++	*rport = ports[1];
++
 +	return 0;
 +}
 +
-+/* Clear NAT section of all conntracks, in case we're loaded again. */
-+static int clean_nat(struct nf_conn *i, void *data)
-+{
-+	struct nf_conn_nat *nat = nfct_nat(i);
 +
-+	if (!nat)
-+		return 0;
-+	memset(nat, 0, sizeof(*nat));
-+	i->status &= ~(IPS_NAT_MASK | IPS_NAT_DONE_MASK | IPS_SEQ_ADJUST);
-+	return 0;
++static bool
++socket_mt(const struct sk_buff *skb,
++	  const struct net_device *in,
++	  const struct net_device *out,
++	  const struct xt_match *match,
++	  const void *matchinfo,
++	  int offset,
++	  unsigned int protoff,
++	  bool *hotdrop)
++{
++	const struct iphdr *iph = ip_hdr(skb);
++	struct udphdr _hdr, *hp = NULL;
++	struct sock *sk;
++	__be32 daddr, saddr;
++	__be16 dport, sport;
++	u8 protocol;
++#ifdef XT_SOCKET_HAVE_CONNTRACK
++	struct nf_conn const *ct;
++	enum ip_conntrack_info ctinfo;
++#endif
++
++	if (iph->protocol == IPPROTO_UDP || iph->protocol == IPPROTO_TCP) {
++		hp = skb_header_pointer(skb, ip_hdrlen(skb),
++					sizeof(_hdr), &_hdr);
++		if (hp == NULL)
++			return false;
++
++		protocol = iph->protocol;
++		saddr = iph->saddr;
++		sport = hp->source;
++		daddr = iph->daddr;
++		dport = hp->dest;
++
++	} else if (iph->protocol == IPPROTO_ICMP) {
++		if (extract_icmp_fields(skb, &protocol, &saddr, &daddr,
++					&sport, &dport))
++			return false;
++	} else {
++		return false;
++	}
++
++#ifdef XT_SOCKET_HAVE_CONNTRACK
++	/* Do the lookup with the original socket address in case this is a
++	 * reply packet of an established SNAT-ted connection. */
++
++	ct = nf_ct_get(skb, &ctinfo);
++	if (ct && (ct != &nf_conntrack_untracked) &&
++	    ((iph->protocol != IPPROTO_ICMP &&
++	      ctinfo == IP_CT_IS_REPLY + IP_CT_ESTABLISHED) ||
++	     (iph->protocol == IPPROTO_ICMP &&
++	      ctinfo == IP_CT_IS_REPLY + IP_CT_RELATED)) &&
++	    (ct->status & IPS_SRC_NAT_DONE)) {
++
++		daddr = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u3.ip;
++		dport = (iph->protocol == IPPROTO_TCP) ?
++			ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u.tcp.port :
++			ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u.udp.port;
++	}
++#endif
++
++	sk = nf_tproxy_get_sock_v4(dev_net(skb->dev), protocol,
++				   saddr, daddr, sport, dport, in, false);
++	if (sk != NULL) {
++		bool wildcard = (inet_sk(sk)->rcv_saddr == 0);
++
++		nf_tproxy_put_sock(sk);
++		if (wildcard)
++			sk = NULL;
++	}
++
++	pr_debug("socket match: proto %u %08x:%u -> %08x:%u "
++		 "(orig %08x:%u) sock %p\n",
++		 protocol, ntohl(saddr), ntohs(sport),
++		 ntohl(daddr), ntohs(dport),
++		 ntohl(iph->daddr), hp ? ntohs(hp->dest) : 0, sk);
++
++	return (sk != NULL);
 +}
 +
-+static void __net_exit nf_nat_net_exit(struct net *net)
-+{
-+	nf_ct_iterate_cleanup(net, &clean_nat, NULL);
-+	synchronize_rcu();
-+	nf_ct_free_hashtable(net->ipv4.nat_bysource, net->ipv4.nat_vmalloced,
-+			     nf_nat_htable_size);
-+}
-+
-+static struct pernet_operations nf_nat_net_ops = {
-+	.init = nf_nat_net_init,
-+	.exit = nf_nat_net_exit,
++static struct xt_match socket_mt_reg __read_mostly = {
++	.name		= "socket",
++	.family		= AF_INET,
++	.match		= socket_mt,
++	.hooks		= 1 << NF_INET_PRE_ROUTING,
++	.me		= THIS_MODULE,
 +};
 +
- static int __init nf_nat_init(void)
- {
- 	size_t i;
-@@ -599,12 +634,9 @@ static int __init nf_nat_init(void)
- 	/* Leave them the same for the moment. */
- 	nf_nat_htable_size = nf_conntrack_htable_size;
- 
--	bysource = nf_ct_alloc_hashtable(&nf_nat_htable_size,
--					 &nf_nat_vmalloced);
--	if (!bysource) {
--		ret = -ENOMEM;
-+	ret = register_pernet_subsys(&nf_nat_net_ops);
-+	if (ret < 0)
- 		goto cleanup_extend;
--	}
- 
- 	/* Sew in builtin protocols. */
- 	spin_lock_bh(&nf_nat_lock);
-@@ -629,23 +661,9 @@ static int __init nf_nat_init(void)
- 	return ret;
- }
- 
--/* Clear NAT section of all conntracks, in case we're loaded again. */
--static int clean_nat(struct nf_conn *i, void *data)
--{
--	struct nf_conn_nat *nat = nfct_nat(i);
--
--	if (!nat)
--		return 0;
--	memset(nat, 0, sizeof(*nat));
--	i->status &= ~(IPS_NAT_MASK | IPS_NAT_DONE_MASK | IPS_SEQ_ADJUST);
--	return 0;
--}
--
- static void __exit nf_nat_cleanup(void)
- {
--	nf_ct_iterate_cleanup(&init_net, &clean_nat, NULL);
--	synchronize_rcu();
--	nf_ct_free_hashtable(bysource, nf_nat_vmalloced, nf_nat_htable_size);
-+	unregister_pernet_subsys(&nf_nat_net_ops);
- 	nf_ct_l3proto_put(l3proto);
- 	nf_ct_extend_unregister(&nat_extend);
- 	rcu_assign_pointer(nf_nat_seq_adjust_hook, NULL);
++static int __init socket_mt_init(void)
++{
++	nf_defrag_ipv4_enable();
++	return xt_register_match(&socket_mt_reg);
++}
++
++static void __exit socket_mt_exit(void)
++{
++	xt_unregister_match(&socket_mt_reg);
++}
++
++module_init(socket_mt_init);
++module_exit(socket_mt_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Krisztian Kovacs, Balazs Scheidler");
++MODULE_DESCRIPTION("x_tables socket match module");
++MODULE_ALIAS("ipt_socket");
