@@ -1,44 +1,39 @@
-From: David Miller <davem@davemloft.net>
+From: Philip Craig <philipc@snapgear.com>
 Subject: Re: [net-next PATCH 16/16] Add documentation
-Date: Tue, 07 Oct 2008 13:53:16 -0700 (PDT)
-Message-ID: <20081007.135316.136478518.davem@davemloft.net>
-References: <20081007.125051.249207150.davem@davemloft.net>
-	<20081007200233.GA7386@sch.bme.hu>
-	<48EBCAE2.9000506@trash.net>
+Date: Wed, 08 Oct 2008 10:32:22 +1000
+Message-ID: <48EBFF96.8020305@snapgear.com>
+References: <20081001142431.4893.48078.stgit@este> <20081001142431.4893.5367.stgit@este> <alpine.LNX.1.10.0810030949300.3893@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: hidden@sch.bme.hu, jengelh@medozas.de, netdev@vger.kernel.org,
+Cc: KOVACS Krisztian <hidden@sch.bme.hu>,
+	David Miller <davem@davemloft.net>,
+	Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
-To: kaber@trash.net
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:56499
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1753644AbYJGUxk (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Oct 2008 16:53:40 -0400
-In-Reply-To: <48EBCAE2.9000506@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <alpine.LNX.1.10.0810030949300.3893@fbirervta.pbzchgretzou.qr>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Tue, 07 Oct 2008 22:47:30 +0200
-
-> KOVACS Krisztian wrote:
-> > Hi,
-> >
-> > On k, okt 07, 2008 at 12:50:51 -0700, David Miller wrote:
-> >   
-> >> Randy Dunlap asked for some corrections to this documentation patch,
-> >> and I also think that Patrick should take this one since it only
-> >> makes sense once the netfilter side of this patch set is present.
-> >>     
-> >
-> > Sure, thanks a lot. The corrections from Randy Dunlap are already in
-> > Patrick's tree.al
-> >   
+Jan Engelhardt wrote:
+>> +2. Redirecting traffic
+>> +======================
+>> +
+>> +Transparent proxying often involves "intercepting" traffic on a router. This is
+>> +usually done with the iptables REDIRECT target, however, there are serious
+>> +limitations of that method. One of the major issues is that it actually
+>> +modifies the packets to change the destination address -- which might not be
+>> +acceptable in certain situations. (Think of proxying UDP for example: you won't
+>> +be able to find out the original destination address. Even in case of TCP
+>> +getting the original destination address is racy.)
 > 
-> Just FYI: I hope to finally get all the netfilter patches out
-> by tommorrow.
+> IIRC, you _can_ find out, though I agree it's rather a hack (with 
+> tproxy, you can just use the address as received via recvmsg):
+> 
+> 	getsockopt(fd, SOL_IP, SO_ORIGINAL_DST, &sockaddr, &sizeptr);
 
-I was just about to ping you about this, thanks :-)
+Yes, but the problem is that SO_ORIGINAL_DST is only implemented for TCP.
+And I guess that the race for TCP is that the conntrack may not exist when you
+call getsockopt() (not sure that is something you'll hit in practice though).
+
