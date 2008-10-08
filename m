@@ -1,187 +1,190 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 30/79: netns nf_conntrack: per-netns net.netfilter.nf_conntrack_count sysctl
-Date: Wed,  8 Oct 2008 12:47:01 +0200 (MEST)
-Message-ID: <20081008104701.10423.53414.sendpatchset@x2.localnet>
+Subject: netfilter 22/79: netns nf_conntrack: per-netns /proc/net/ip_conntrack, /proc/net/stat/ip_conntrack, /proc/net/ip_conntrack_expect
+Date: Wed,  8 Oct 2008 12:46:51 +0200 (MEST)
+Message-ID: <20081008104651.10423.92602.sendpatchset@x2.localnet>
 References: <20081008104621.10423.12648.sendpatchset@x2.localnet>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45952 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:45921 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754580AbYJHKrD (ORCPT
+	with ESMTP id S1754418AbYJHKqw (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Oct 2008 06:47:03 -0400
+	Wed, 8 Oct 2008 06:46:52 -0400
 In-Reply-To: <20081008104621.10423.12648.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 802507071b72ed5025747126099cbc6d1542f596
+commit 5e6b29972b7e9c9c39882227e36fe0cd3463fe96
 Author: Alexey Dobriyan <adobriyan@gmail.com>
-Date:   Wed Oct 8 11:35:08 2008 +0200
+Date:   Wed Oct 8 11:35:06 2008 +0200
 
-    netfilter: netns nf_conntrack: per-netns net.netfilter.nf_conntrack_count sysctl
-    
-    Note, sysctl table is always duplicated, this is simpler and less
-    special-cased.
+    netfilter: netns nf_conntrack: per-netns /proc/net/ip_conntrack, /proc/net/stat/ip_conntrack, /proc/net/ip_conntrack_expect
     
     Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
     Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
-index fc0a46d..2b50758 100644
---- a/include/net/netns/conntrack.h
-+++ b/include/net/netns/conntrack.h
-@@ -4,6 +4,7 @@
- #include <linux/list.h>
- #include <asm/atomic.h>
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
+index f8636a5..b294083 100644
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4_compat.c
+@@ -21,18 +21,20 @@
+ #include <net/netfilter/nf_conntrack_acct.h>
  
-+struct ctl_table_header;
- struct nf_conntrack_ecache;
- 
- struct netns_ct {
-@@ -16,6 +17,9 @@ struct netns_ct {
- #ifdef CONFIG_NF_CONNTRACK_EVENTS
- 	struct nf_conntrack_ecache *ecache;
- #endif
-+#ifdef CONFIG_SYSCTL
-+	struct ctl_table_header	*sysctl_header;
-+#endif
- 	int			hash_vmalloc;
- 	int			expect_vmalloc;
+ struct ct_iter_state {
++	struct seq_net_private p;
+ 	unsigned int bucket;
  };
-diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
-index 169760d..64b4f95 100644
---- a/net/netfilter/nf_conntrack_standalone.c
-+++ b/net/netfilter/nf_conntrack_standalone.c
-@@ -330,7 +330,6 @@ EXPORT_SYMBOL_GPL(nf_conntrack_checksum);
- static int log_invalid_proto_min = 0;
- static int log_invalid_proto_max = 255;
  
--static struct ctl_table_header *nf_ct_sysctl_header;
- static struct ctl_table_header *nf_ct_netfilter_header;
- 
- static ctl_table nf_ct_sysctl_table[] = {
-@@ -409,40 +408,58 @@ static struct ctl_path nf_ct_path[] = {
- 
- EXPORT_SYMBOL_GPL(nf_ct_log_invalid);
- 
--static int nf_conntrack_standalone_init_sysctl(void)
-+static int nf_conntrack_standalone_init_sysctl(struct net *net)
+ static struct hlist_node *ct_get_first(struct seq_file *seq)
  {
--	nf_ct_netfilter_header =
--		register_sysctl_paths(nf_ct_path, nf_ct_netfilter_table);
--	if (!nf_ct_netfilter_header)
--		goto out;
--
--	nf_ct_sysctl_header =
--		 register_sysctl_paths(nf_net_netfilter_sysctl_path,
--					nf_ct_sysctl_table);
--	if (!nf_ct_sysctl_header)
-+	struct ctl_table *table;
-+
-+	if (net_eq(net, &init_net)) {
-+		nf_ct_netfilter_header =
-+		       register_sysctl_paths(nf_ct_path, nf_ct_netfilter_table);
-+		if (!nf_ct_netfilter_header)
-+			goto out;
-+	}
-+
-+	table = kmemdup(nf_ct_sysctl_table, sizeof(nf_ct_sysctl_table),
-+			GFP_KERNEL);
-+	if (!table)
-+		goto out_kmemdup;
-+
-+	table[1].data = &net->ct.count;
-+
-+	net->ct.sysctl_header = register_net_sysctl_table(net,
-+					nf_net_netfilter_sysctl_path, table);
-+	if (!net->ct.sysctl_header)
- 		goto out_unregister_netfilter;
++	struct net *net = seq_file_net(seq);
+ 	struct ct_iter_state *st = seq->private;
+ 	struct hlist_node *n;
  
+ 	for (st->bucket = 0;
+ 	     st->bucket < nf_conntrack_htable_size;
+ 	     st->bucket++) {
+-		n = rcu_dereference(init_net.ct.hash[st->bucket].first);
++		n = rcu_dereference(net->ct.hash[st->bucket].first);
+ 		if (n)
+ 			return n;
+ 	}
+@@ -42,13 +44,14 @@ static struct hlist_node *ct_get_first(struct seq_file *seq)
+ static struct hlist_node *ct_get_next(struct seq_file *seq,
+ 				      struct hlist_node *head)
+ {
++	struct net *net = seq_file_net(seq);
+ 	struct ct_iter_state *st = seq->private;
+ 
+ 	head = rcu_dereference(head->next);
+ 	while (head == NULL) {
+ 		if (++st->bucket >= nf_conntrack_htable_size)
+ 			return NULL;
+-		head = rcu_dereference(init_net.ct.hash[st->bucket].first);
++		head = rcu_dereference(net->ct.hash[st->bucket].first);
+ 	}
+ 	return head;
+ }
+@@ -158,8 +161,8 @@ static const struct seq_operations ct_seq_ops = {
+ 
+ static int ct_open(struct inode *inode, struct file *file)
+ {
+-	return seq_open_private(file, &ct_seq_ops,
+-			sizeof(struct ct_iter_state));
++	return seq_open_net(inode, file, &ct_seq_ops,
++			    sizeof(struct ct_iter_state));
+ }
+ 
+ static const struct file_operations ct_file_ops = {
+@@ -167,17 +170,18 @@ static const struct file_operations ct_file_ops = {
+ 	.open    = ct_open,
+ 	.read    = seq_read,
+ 	.llseek  = seq_lseek,
+-	.release = seq_release_private,
++	.release = seq_release_net,
+ };
+ 
+ /* expects */
+ struct ct_expect_iter_state {
++	struct seq_net_private p;
+ 	unsigned int bucket;
+ };
+ 
+ static struct hlist_node *ct_expect_get_first(struct seq_file *seq)
+ {
+-	struct net *net = &init_net;
++	struct net *net = seq_file_net(seq);
+ 	struct ct_expect_iter_state *st = seq->private;
+ 	struct hlist_node *n;
+ 
+@@ -192,7 +196,7 @@ static struct hlist_node *ct_expect_get_first(struct seq_file *seq)
+ static struct hlist_node *ct_expect_get_next(struct seq_file *seq,
+ 					     struct hlist_node *head)
+ {
+-	struct net *net = &init_net;
++	struct net *net = seq_file_net(seq);
+ 	struct ct_expect_iter_state *st = seq->private;
+ 
+ 	head = rcu_dereference(head->next);
+@@ -267,8 +271,8 @@ static const struct seq_operations exp_seq_ops = {
+ 
+ static int exp_open(struct inode *inode, struct file *file)
+ {
+-	return seq_open_private(file, &exp_seq_ops,
+-			sizeof(struct ct_expect_iter_state));
++	return seq_open_net(inode, file, &exp_seq_ops,
++			    sizeof(struct ct_expect_iter_state));
+ }
+ 
+ static const struct file_operations ip_exp_file_ops = {
+@@ -276,7 +280,7 @@ static const struct file_operations ip_exp_file_ops = {
+ 	.open    = exp_open,
+ 	.read    = seq_read,
+ 	.llseek  = seq_lseek,
+-	.release = seq_release_private,
++	.release = seq_release_net,
+ };
+ 
+ static void *ct_cpu_seq_start(struct seq_file *seq, loff_t *pos)
+@@ -367,36 +371,51 @@ static const struct file_operations ct_cpu_seq_fops = {
+ 	.release = seq_release,
+ };
+ 
+-int __init nf_conntrack_ipv4_compat_init(void)
++static int __net_init ip_conntrack_net_init(struct net *net)
+ {
+ 	struct proc_dir_entry *proc, *proc_exp, *proc_stat;
+ 
+-	proc = proc_net_fops_create(&init_net, "ip_conntrack", 0440, &ct_file_ops);
++	proc = proc_net_fops_create(net, "ip_conntrack", 0440, &ct_file_ops);
+ 	if (!proc)
+ 		goto err1;
+ 
+-	proc_exp = proc_net_fops_create(&init_net, "ip_conntrack_expect", 0440,
++	proc_exp = proc_net_fops_create(net, "ip_conntrack_expect", 0440,
+ 					&ip_exp_file_ops);
+ 	if (!proc_exp)
+ 		goto err2;
+ 
+ 	proc_stat = proc_create("ip_conntrack", S_IRUGO,
+-				init_net.proc_net_stat, &ct_cpu_seq_fops);
++				net->proc_net_stat, &ct_cpu_seq_fops);
+ 	if (!proc_stat)
+ 		goto err3;
  	return 0;
  
- out_unregister_netfilter:
--	unregister_sysctl_table(nf_ct_netfilter_header);
-+	kfree(table);
-+out_kmemdup:
-+	if (net_eq(net, &init_net))
-+		unregister_sysctl_table(nf_ct_netfilter_header);
- out:
- 	printk("nf_conntrack: can't register to sysctl.\n");
+ err3:
+-	proc_net_remove(&init_net, "ip_conntrack_expect");
++	proc_net_remove(net, "ip_conntrack_expect");
+ err2:
+-	proc_net_remove(&init_net, "ip_conntrack");
++	proc_net_remove(net, "ip_conntrack");
+ err1:
  	return -ENOMEM;
  }
  
--static void nf_conntrack_standalone_fini_sysctl(void)
-+static void nf_conntrack_standalone_fini_sysctl(struct net *net)
- {
--	unregister_sysctl_table(nf_ct_netfilter_header);
--	unregister_sysctl_table(nf_ct_sysctl_header);
-+	struct ctl_table *table;
++static void __net_exit ip_conntrack_net_exit(struct net *net)
++{
++	remove_proc_entry("ip_conntrack", net->proc_net_stat);
++	proc_net_remove(net, "ip_conntrack_expect");
++	proc_net_remove(net, "ip_conntrack");
++}
 +
-+	if (net_eq(net, &init_net))
-+		unregister_sysctl_table(nf_ct_netfilter_header);
-+	table = net->ct.sysctl_header->ctl_table_arg;
-+	unregister_net_sysctl_table(net->ct.sysctl_header);
-+	kfree(table);
- }
- #else
--static int nf_conntrack_standalone_init_sysctl(void)
-+static int nf_conntrack_standalone_init_sysctl(struct net *net)
++static struct pernet_operations ip_conntrack_net_ops = {
++	.init = ip_conntrack_net_init,
++	.exit = ip_conntrack_net_exit,
++};
++
++int __init nf_conntrack_ipv4_compat_init(void)
++{
++	return register_pernet_subsys(&ip_conntrack_net_ops);
++}
++
+ void __exit nf_conntrack_ipv4_compat_fini(void)
  {
- 	return 0;
+-	remove_proc_entry("ip_conntrack", init_net.proc_net_stat);
+-	proc_net_remove(&init_net, "ip_conntrack_expect");
+-	proc_net_remove(&init_net, "ip_conntrack");
++	unregister_pernet_subsys(&ip_conntrack_net_ops);
  }
- 
--static void nf_conntrack_standalone_fini_sysctl(void)
-+static void nf_conntrack_standalone_fini_sysctl(struct net *net)
- {
- }
- #endif /* CONFIG_SYSCTL */
-@@ -457,8 +474,13 @@ static int nf_conntrack_net_init(struct net *net)
- 	ret = nf_conntrack_standalone_init_proc(net);
- 	if (ret < 0)
- 		goto out_proc;
-+	ret = nf_conntrack_standalone_init_sysctl(net);
-+	if (ret < 0)
-+		goto out_sysctl;
- 	return 0;
- 
-+out_sysctl:
-+	nf_conntrack_standalone_fini_proc(net);
- out_proc:
- 	nf_conntrack_cleanup(net);
- out_init:
-@@ -467,6 +489,7 @@ out_init:
- 
- static void nf_conntrack_net_exit(struct net *net)
- {
-+	nf_conntrack_standalone_fini_sysctl(net);
- 	nf_conntrack_standalone_fini_proc(net);
- 	nf_conntrack_cleanup(net);
- }
-@@ -478,25 +501,11 @@ static struct pernet_operations nf_conntrack_net_ops = {
- 
- static int __init nf_conntrack_standalone_init(void)
- {
--	int ret;
--
--	ret = register_pernet_subsys(&nf_conntrack_net_ops);
--	if (ret < 0)
--		goto out;
--	ret = nf_conntrack_standalone_init_sysctl();
--	if (ret < 0)
--		goto out_sysctl;
--	return 0;
--
--out_sysctl:
--	unregister_pernet_subsys(&nf_conntrack_net_ops);
--out:
--	return ret;
-+	return register_pernet_subsys(&nf_conntrack_net_ops);
- }
- 
- static void __exit nf_conntrack_standalone_fini(void)
- {
--	nf_conntrack_standalone_fini_sysctl();
- 	unregister_pernet_subsys(&nf_conntrack_net_ops);
- }
- 
