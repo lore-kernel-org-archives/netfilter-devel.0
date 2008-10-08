@@ -1,318 +1,704 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 00/79: netfilter update
-Date: Wed,  8 Oct 2008 12:46:21 +0200 (MEST)
-Message-ID: <20081008104621.10423.12648.sendpatchset@x2.localnet>
+Subject: netfilter 06/79: implement NFPROTO_UNSPEC as a wildcard for extensions
+Date: Wed,  8 Oct 2008 12:46:29 +0200 (MEST)
+Message-ID: <20081008104629.10423.88883.sendpatchset@x2.localnet>
+References: <20081008104621.10423.12648.sendpatchset@x2.localnet>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45848 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:45860 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753231AbYJHKqX (ORCPT
+	with ESMTP id S1754001AbYJHKqb (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Oct 2008 06:46:23 -0400
+	Wed, 8 Oct 2008 06:46:31 -0400
+In-Reply-To: <20081008104621.10423.12648.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Dave,
+commit 55b69e91040c685a064198bd76e59885b7ad26c6
+Author: Jan Engelhardt <jengelh@computergmbh.de>
+Date:   Wed Oct 8 11:35:01 2008 +0200
 
-following is my netfilter update for 2.6.28, containing:
+    netfilter: implement NFPROTO_UNSPEC as a wildcard for extensions
+    
+    When a match or target is looked up using xt_find_{match,target},
+    Xtables will also search the NFPROTO_UNSPEC module list. This allows
+    for protocol-independent extensions (like xt_time) to be reused from
+    other components (e.g. arptables, ebtables).
+    
+    Extensions that take different codepaths depending on match->family
+    or target->family of course cannot use NFPROTO_UNSPEC within the
+    registration structure (e.g. xt_pkttype).
+    
+    Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-- a large number of patches for network namespace support from Alexey Dobrian.
-  We're getting close to full netns support.
-
-- Decoupling of netfilter family values from real protocol numbers as
-  preparatory work for making ebtables and arptables use the x_tables
-  infrastructure
-
-- A set of patches from Jan Engelhardt to make ebtables and arptables use
-  the x_tables infrastructure.
-
-- A set of patches from Jan Engelhardt to support and use AF-independant
-  matches and targets.
-
-- ipt_recent IPv6 support from Jan Engelhardt
-
-- Some cleanups (Kconfig, constifying) in the *tables area from Jan
-
-- The TPROXY patches from Krisztian Kovacs
-
-
-These patches are also available in a git-tree at, based on the latest
-net-next-2.6.git tree:
-
- git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git
-
-Please apply or pull, thanks.
-
-
- Documentation/feature-removal-schedule.txt         |    3 +
- Documentation/networking/tproxy.txt                |   85 +++++
- include/linux/netfilter.h                          |   97 ++----
- include/linux/netfilter/Kbuild                     |    1 +
- include/linux/netfilter/nf_conntrack_proto_gre.h   |    2 +-
- include/linux/netfilter/x_tables.h                 |  161 +++++++---
- include/linux/netfilter/xt_TPROXY.h                |   14 +
- include/linux/netfilter/xt_recent.h                |   26 ++
- include/linux/netfilter_bridge/ebtables.h          |   76 +++--
- include/linux/netfilter_ipv4/ipt_recent.h          |   28 +-
- include/net/net_namespace.h                        |    6 +
- include/net/netfilter/ipv4/nf_defrag_ipv4.h        |    6 +
- include/net/netfilter/nf_conntrack.h               |   34 ++-
- include/net/netfilter/nf_conntrack_acct.h          |   10 +-
- include/net/netfilter/nf_conntrack_core.h          |   11 +-
- include/net/netfilter/nf_conntrack_ecache.h        |   26 +-
- include/net/netfilter/nf_conntrack_expect.h        |   22 +-
- include/net/netfilter/nf_conntrack_l4proto.h       |   21 +-
- include/net/netfilter/nf_log.h                     |    8 +-
- include/net/netfilter/nf_queue.h                   |    6 +-
- include/net/netfilter/nf_tproxy_core.h             |   32 ++
- include/net/netns/conntrack.h                      |   30 ++
- include/net/netns/ipv4.h                           |    3 +
- net/bridge/br_netfilter.c                          |    4 +-
- net/bridge/netfilter/Kconfig                       |   30 +--
- net/bridge/netfilter/ebt_802_3.c                   |   47 ++--
- net/bridge/netfilter/ebt_among.c                   |   85 +++---
- net/bridge/netfilter/ebt_arp.c                     |   73 ++--
- net/bridge/netfilter/ebt_arpreply.c                |   49 ++--
- net/bridge/netfilter/ebt_dnat.c                    |   57 ++--
- net/bridge/netfilter/ebt_ip.c                      |   72 ++--
- net/bridge/netfilter/ebt_ip6.c                     |   76 ++---
- net/bridge/netfilter/ebt_limit.c                   |   45 ++--
- net/bridge/netfilter/ebt_log.c                     |   57 ++--
- net/bridge/netfilter/ebt_mark.c                    |   41 ++--
- net/bridge/netfilter/ebt_mark_m.c                  |   45 ++--
- net/bridge/netfilter/ebt_nflog.c                   |   44 ++--
- net/bridge/netfilter/ebt_pkttype.c                 |   41 +--
- net/bridge/netfilter/ebt_redirect.c                |   63 ++--
- net/bridge/netfilter/ebt_snat.c                    |   52 ++--
- net/bridge/netfilter/ebt_stp.c                     |   78 +++---
- net/bridge/netfilter/ebt_ulog.c                    |   58 ++--
- net/bridge/netfilter/ebt_vlan.c                    |   61 ++--
- net/bridge/netfilter/ebtables.c                    |  313 ++++++++----------
- net/core/net_namespace.c                           |    1 +
- net/ipv4/netfilter.c                               |    7 +-
- net/ipv4/netfilter/Kconfig                         |  128 ++++----
- net/ipv4/netfilter/Makefile                        |    4 +-
- net/ipv4/netfilter/arp_tables.c                    |  116 ++++---
- net/ipv4/netfilter/arpt_mangle.c                   |   15 +-
- net/ipv4/netfilter/arptable_filter.c               |    8 +-
- net/ipv4/netfilter/ip_tables.c                     |  177 +++++-----
- net/ipv4/netfilter/ipt_CLUSTERIP.c                 |   29 +-
- net/ipv4/netfilter/ipt_ECN.c                       |   17 +-
- net/ipv4/netfilter/ipt_LOG.c                       |   21 +-
- net/ipv4/netfilter/ipt_MASQUERADE.c                |   30 +-
- net/ipv4/netfilter/ipt_NETMAP.c                    |   26 +-
- net/ipv4/netfilter/ipt_REDIRECT.c                  |   21 +-
- net/ipv4/netfilter/ipt_REJECT.c                    |   19 +-
- net/ipv4/netfilter/ipt_TTL.c                       |   15 +-
- net/ipv4/netfilter/ipt_ULOG.c                      |   23 +-
- net/ipv4/netfilter/ipt_addrtype.c                  |   35 +--
- net/ipv4/netfilter/ipt_ah.c                        |   24 +-
- net/ipv4/netfilter/ipt_ecn.c                       |   20 +-
- net/ipv4/netfilter/ipt_ttl.c                       |    9 +-
- net/ipv4/netfilter/iptable_filter.c                |    6 +-
- net/ipv4/netfilter/iptable_mangle.c                |   10 +-
- net/ipv4/netfilter/iptable_raw.c                   |    4 +-
- net/ipv4/netfilter/iptable_security.c              |    6 +-
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c     |   68 +----
- .../netfilter/nf_conntrack_l3proto_ipv4_compat.c   |   73 +++--
- net/ipv4/netfilter/nf_conntrack_proto_icmp.c       |   22 +-
- net/ipv4/netfilter/nf_defrag_ipv4.c                |   96 ++++++
- net/ipv4/netfilter/nf_nat_core.c                   |   72 +++--
- net/ipv4/netfilter/nf_nat_helper.c                 |    2 +-
- net/ipv4/netfilter/nf_nat_pptp.c                   |    3 +-
- net/ipv4/netfilter/nf_nat_rule.c                   |   92 +++---
- net/ipv6/netfilter.c                               |    2 +-
- net/ipv6/netfilter/Kconfig                         |   77 ++---
- net/ipv6/netfilter/ip6_tables.c                    |  173 +++++-----
- net/ipv6/netfilter/ip6t_HL.c                       |   15 +-
- net/ipv6/netfilter/ip6t_LOG.c                      |   22 +-
- net/ipv6/netfilter/ip6t_REJECT.c                   |   39 +--
- net/ipv6/netfilter/ip6t_ah.c                       |   21 +-
- net/ipv6/netfilter/ip6t_eui64.c                    |   11 +-
- net/ipv6/netfilter/ip6t_frag.c                     |   21 +-
- net/ipv6/netfilter/ip6t_hbh.c                      |   25 +-
- net/ipv6/netfilter/ip6t_hl.c                       |    9 +-
- net/ipv6/netfilter/ip6t_ipv6header.c               |   16 +-
- net/ipv6/netfilter/ip6t_mh.c                       |   25 +-
- net/ipv6/netfilter/ip6t_rt.c                       |   21 +-
- net/ipv6/netfilter/ip6table_filter.c               |    6 +-
- net/ipv6/netfilter/ip6table_mangle.c               |   31 ++-
- net/ipv6/netfilter/ip6table_raw.c                  |   20 +-
- net/ipv6/netfilter/ip6table_security.c             |    6 +-
- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c     |   24 +-
- net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c     |   19 +-
- net/netfilter/Kconfig                              |  236 +++++++------
- net/netfilter/Makefile                             |    6 +
- net/netfilter/core.c                               |   18 +-
- net/netfilter/nf_conntrack_acct.c                  |  100 ++++--
- net/netfilter/nf_conntrack_core.c                  |  344 ++++++++++++--------
- net/netfilter/nf_conntrack_ecache.c                |   26 +-
- net/netfilter/nf_conntrack_expect.c                |  104 ++++---
- net/netfilter/nf_conntrack_ftp.c                   |    9 +-
- net/netfilter/nf_conntrack_h323_main.c             |    6 +-
- net/netfilter/nf_conntrack_helper.c                |   40 ++-
- net/netfilter/nf_conntrack_netlink.c               |   31 +-
- net/netfilter/nf_conntrack_pptp.c                  |   36 ++-
- net/netfilter/nf_conntrack_proto.c                 |   10 +-
- net/netfilter/nf_conntrack_proto_dccp.c            |   20 +-
- net/netfilter/nf_conntrack_proto_generic.c         |    2 +-
- net/netfilter/nf_conntrack_proto_gre.c             |  101 +++++--
- net/netfilter/nf_conntrack_proto_sctp.c            |    6 +-
- net/netfilter/nf_conntrack_proto_tcp.c             |   35 +-
- net/netfilter/nf_conntrack_proto_udp.c             |   16 +-
- net/netfilter/nf_conntrack_proto_udplite.c         |   20 +-
- net/netfilter/nf_conntrack_sip.c                   |    3 +-
- net/netfilter/nf_conntrack_standalone.c            |  146 +++++---
- net/netfilter/nf_internals.h                       |    4 +-
- net/netfilter/nf_log.c                             |   18 +-
- net/netfilter/nf_queue.c                           |   22 +-
- net/netfilter/nf_sockopt.c                         |   18 +-
- net/netfilter/nf_tproxy_core.c                     |   96 ++++++
- net/netfilter/nfnetlink_log.c                      |    4 +-
- net/netfilter/x_tables.c                           |  145 +++++----
- net/netfilter/xt_CLASSIFY.c                        |   44 +--
- net/netfilter/xt_CONNMARK.c                        |   78 ++----
- net/netfilter/xt_CONNSECMARK.c                     |   63 ++---
- net/netfilter/xt_DSCP.c                            |   59 ++--
- net/netfilter/xt_MARK.c                            |   76 +----
- net/netfilter/xt_NFLOG.c                           |   46 +--
- net/netfilter/xt_NFQUEUE.c                         |   10 +-
- net/netfilter/xt_NOTRACK.c                         |   30 +--
- net/netfilter/xt_RATEEST.c                         |   56 +---
- net/netfilter/xt_SECMARK.c                         |   52 +--
- net/netfilter/xt_TCPMSS.c                          |   38 +--
- net/netfilter/xt_TCPOPTSTRIP.c                     |   16 +-
- net/netfilter/xt_TPROXY.c                          |  102 ++++++
- net/netfilter/xt_TRACE.c                           |   30 +--
- net/netfilter/xt_comment.c                         |   31 +--
- net/netfilter/xt_connbytes.c                       |   56 +--
- net/netfilter/xt_connlimit.c                       |   80 ++---
- net/netfilter/xt_connmark.c                        |   68 +---
- net/netfilter/xt_conntrack.c                       |   62 ++---
- net/netfilter/xt_dccp.c                            |   27 +-
- net/netfilter/xt_dscp.c                            |   51 +--
- net/netfilter/xt_esp.c                             |   25 +-
- net/netfilter/xt_hashlimit.c                       |  104 +++----
- net/netfilter/xt_helper.c                          |   54 +--
- net/netfilter/xt_iprange.c                         |   27 +-
- net/netfilter/xt_length.c                          |   18 +-
- net/netfilter/xt_limit.c                           |   54 +--
- net/netfilter/xt_mac.c                             |   41 +--
- net/netfilter/xt_mark.c                            |   46 +---
- net/netfilter/xt_multiport.c                       |   71 ++---
- net/netfilter/xt_owner.c                           |   51 +---
- net/netfilter/xt_physdev.c                         |   49 +--
- net/netfilter/xt_pkttype.c                         |   37 +--
- net/netfilter/xt_policy.c                          |   34 +--
- net/netfilter/xt_quota.c                           |   43 +--
- net/netfilter/xt_rateest.c                         |   58 +---
- net/netfilter/xt_realm.c                           |    9 +-
- .../ipt_recent.c => netfilter/xt_recent.c}         |  348 +++++++++++++++-----
- net/netfilter/xt_sctp.c                            |   27 +-
- net/netfilter/xt_socket.c                          |  185 +++++++++++
- net/netfilter/xt_state.c                           |   24 +-
- net/netfilter/xt_statistic.c                       |   45 +--
- net/netfilter/xt_string.c                          |   53 +---
- net/netfilter/xt_tcpmss.c                          |   17 +-
- net/netfilter/xt_tcpudp.c                          |   64 ++---
- net/netfilter/xt_time.c                            |   41 +--
- net/netfilter/xt_u32.c                             |   33 +--
- net/sched/act_ipt.c                                |   46 ++--
- 174 files changed, 4281 insertions(+), 3901 deletions(-)
- create mode 100644 Documentation/networking/tproxy.txt
- create mode 100644 include/linux/netfilter/xt_TPROXY.h
- create mode 100644 include/linux/netfilter/xt_recent.h
- create mode 100644 include/net/netfilter/ipv4/nf_defrag_ipv4.h
- create mode 100644 include/net/netfilter/nf_tproxy_core.h
- create mode 100644 include/net/netns/conntrack.h
- create mode 100644 net/ipv4/netfilter/nf_defrag_ipv4.c
- create mode 100644 net/netfilter/nf_tproxy_core.c
- create mode 100644 net/netfilter/xt_TPROXY.c
- rename net/{ipv4/netfilter/ipt_recent.c => netfilter/xt_recent.c} (51%)
- create mode 100644 net/netfilter/xt_socket.c
-
-Alexey Dobriyan (38):
-      netfilter: netns: remove nf_*_net() wrappers
-      netfilter: netns: ip6table_raw in netns for real
-      netfilter: netns: ip6table_mangle in netns for real
-      netfilter: netns: ip6t_REJECT in netns for real
-      netfilter: netns nf_conntrack: add netns boilerplate
-      netfilter: netns nf_conntrack: add ->ct_net -- pointer from conntrack to netns
-      netfilter: netns nf_conntrack: per-netns conntrack count
-      netfilter: netns nf_conntrack: per-netns conntrack hash
-      netfilter: netns: fix {ip,6}_route_me_harder() in netns
-      netfilter: netns nf_conntrack: per-netns expectations
-      netfilter: netns nf_conntrack: per-netns unconfirmed list
-      netfilter: netns nf_conntrack: pass netns pointer to nf_conntrack_in()
-      netfilter: netns nf_conntrack: pass netns pointer to L4 protocol's ->error hook
-      netfilter: netns nf_conntrack: per-netns /proc/net/nf_conntrack, /proc/net/stat/nf_conntrack
-      netfilter: netns nf_conntrack: per-netns /proc/net/nf_conntrack_expect
-      netfilter: netns nf_conntrack: per-netns /proc/net/ip_conntrack, /proc/net/stat/ip_conntrack, /proc/net/ip_conntrack_expect
-      netns: export netns list
-      netfilter: netns nf_conntrack: unregister helper in every netns
-      netfilter: netns nf_conntrack: cleanup after L3 and L4 proto unregister in every netns
-      netfilter: netns nf_conntrack: pass conntrack to nf_conntrack_event_cache() not skb
-      netfilter: netns nf_conntrack: per-netns event cache
-      netfilter: netns nf_conntrack: per-netns statistics
-      netfilter: netns nf_conntrack: per-netns /proc/net/stat/nf_conntrack, /proc/net/stat/ip_conntrack
-      netfilter: netns nf_conntrack: per-netns net.netfilter.nf_conntrack_count sysctl
-      netfilter: netns nf_conntrack: per-netns net.netfilter.nf_conntrack_checksum sysctl
-      netfilter: netns nf_conntrack: per-netns net.netfilter.nf_conntrack_log_invalid sysctl
-      netfilter: netns nf_conntrack: per-netns conntrack accounting
-      netfilter: netns nf_conntrack: final netns tweaks
-      netfilter: netns nf_conntrack: SIP conntracking in netns
-      netfilter: netns nf_conntrack: H323 conntracking in netns
-      netfilter: netns nf_conntrack: GRE conntracking in netns
-      netfilter: netns nf_conntrack: PPTP conntracking in netns
-      netfilter: netns nat: fix ipt_MASQUERADE in netns
-      netfilter: netns nat: per-netns NAT table
-      netfilter: netns nat: per-netns bysource hash
-      netfilter: netns nf_conntrack: fixup DNAT in netns
-      netfilter: netns nat: PPTP NAT in netns
-      netfilter: enable netfilter in netns
-
-Jan Engelhardt (36):
-      netfilter: Use unsigned types for hooknum and pf vars
-      netfilter: rename ipt_recent to xt_recent
-      netfilter: xt_recent: IPv6 support
-      netfilter: Introduce NFPROTO_* constants
-      netfilter: x_tables: use NFPROTO_* in extensions
-      netfilter: implement NFPROTO_UNSPEC as a wildcard for extensions
-      netfilter: ebtables: do centralized size checking
-      netfilter: change return types of check functions for Ebtables extensions
-      netfilter: change return types of match functions for ebtables extensions
-      netfilter: Change return types of targets/watchers for Ebtables extensions
-      netfilter: add dummy members to Ebtables code to ease transition to Xtables
-      netfilter: ebt_among: obtain match size through different means
-      netfilter: change Ebtables function signatures to match Xtables's
-      netfilter: move Ebtables to use Xtables
-      netfilter: x_tables: output bad hook mask in hexadecimal
-      netfilter: ebtables: use generic table checking
-      netfilter: implement hotdrop for Ebtables
-      netfilter: remove unused Ebtables functions
-      netfilter: remove redundant casts from Ebtables
-      netfilter: ebtables: fix one wrong return value
-      netfilter: xtables: do centralized checkentry call (1/2)
-      netfilter: ip6tables: fix name of hopbyhop in Kconfig
-      netfilter: ip6tables: fix Kconfig entry dependency for ip6t_LOG
-      netfilter: ebtables: make BRIDGE_NF_EBTABLES a menuconfig option
-      netfilter: xtables: sort extensions alphabetically in Kconfig
-      netfilter: xtables: use "if" blocks in Kconfig
-      netfilter: xtables: move extension arguments into compound structure (1/6)
-      netfilter: xtables: move extension arguments into compound structure (2/6)
-      netfilter: xtables: move extension arguments into compound structure (3/6)
-      netfilter: xtables: move extension arguments into compound structure (4/6)
-      netfilter: xtables: move extension arguments into compound structure (5/6)
-      netfilter: xtables: move extension arguments into compound structure (6/6)
-      netfilter: xtables: provide invoked family value to extensions
-      netfilter: xtables: cut down on static data for family-independent extensions
-      netfilter: xtables: use NFPROTO_UNSPEC in more extensions
-      netfilter: xtables: remove bogus mangle table dependency of connmark
-
-KOVACS Krisztian (5):
-      netfilter: split netfilter IPv4 defragmentation into a separate module
-      netfilter: iptables tproxy core
-      netfilter: iptables socket match
-      netfilter: iptables TPROXY target
-      netfilter: Add documentation for tproxy
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 2a7eb1d..aece6c2 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -209,6 +209,11 @@ struct xt_match *xt_find_match(u8 af, const char *name, u8 revision)
+ 		}
+ 	}
+ 	mutex_unlock(&xt[af].mutex);
++
++	if (af != NFPROTO_UNSPEC)
++		/* Try searching again in the family-independent list */
++		return xt_find_match(NFPROTO_UNSPEC, name, revision);
++
+ 	return ERR_PTR(err);
+ }
+ EXPORT_SYMBOL(xt_find_match);
+@@ -234,6 +239,11 @@ struct xt_target *xt_find_target(u8 af, const char *name, u8 revision)
+ 		}
+ 	}
+ 	mutex_unlock(&xt[af].mutex);
++
++	if (af != NFPROTO_UNSPEC)
++		/* Try searching again in the family-independent list */
++		return xt_find_target(NFPROTO_UNSPEC, name, revision);
++
+ 	return ERR_PTR(err);
+ }
+ EXPORT_SYMBOL(xt_find_target);
+diff --git a/net/netfilter/xt_CLASSIFY.c b/net/netfilter/xt_CLASSIFY.c
+index 9d68da1..8cffa29 100644
+--- a/net/netfilter/xt_CLASSIFY.c
++++ b/net/netfilter/xt_CLASSIFY.c
+@@ -37,40 +37,26 @@ classify_tg(struct sk_buff *skb, const struct net_device *in,
+ 	return XT_CONTINUE;
+ }
+ 
+-static struct xt_target classify_tg_reg[] __read_mostly = {
+-	{
+-		.family		= NFPROTO_IPV4,
+-		.name 		= "CLASSIFY",
+-		.target 	= classify_tg,
+-		.targetsize	= sizeof(struct xt_classify_target_info),
+-		.table		= "mangle",
+-		.hooks		= (1 << NF_INET_LOCAL_OUT) |
+-				  (1 << NF_INET_FORWARD) |
+-				  (1 << NF_INET_POST_ROUTING),
+-		.me 		= THIS_MODULE,
+-	},
+-	{
+-		.name 		= "CLASSIFY",
+-		.family		= NFPROTO_IPV6,
+-		.target 	= classify_tg,
+-		.targetsize	= sizeof(struct xt_classify_target_info),
+-		.table		= "mangle",
+-		.hooks		= (1 << NF_INET_LOCAL_OUT) |
+-				  (1 << NF_INET_FORWARD) |
+-				  (1 << NF_INET_POST_ROUTING),
+-		.me 		= THIS_MODULE,
+-	},
++static struct xt_target classify_tg_reg __read_mostly = {
++	.name       = "CLASSIFY",
++	.revision   = 0,
++	.family     = NFPROTO_UNSPEC,
++	.table      = "mangle",
++	.hooks      = (1 << NF_INET_LOCAL_OUT) | (1 << NF_INET_FORWARD) |
++		      (1 << NF_INET_POST_ROUTING),
++	.target     = classify_tg,
++	.targetsize = sizeof(struct xt_classify_target_info),
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init classify_tg_init(void)
+ {
+-	return xt_register_targets(classify_tg_reg,
+-	       ARRAY_SIZE(classify_tg_reg));
++	return xt_register_target(&classify_tg_reg);
+ }
+ 
+ static void __exit classify_tg_exit(void)
+ {
+-	xt_unregister_targets(classify_tg_reg, ARRAY_SIZE(classify_tg_reg));
++	xt_unregister_target(&classify_tg_reg);
+ }
+ 
+ module_init(classify_tg_init);
+diff --git a/net/netfilter/xt_MARK.c b/net/netfilter/xt_MARK.c
+index 55ef079..c8ea7a8 100644
+--- a/net/netfilter/xt_MARK.c
++++ b/net/netfilter/xt_MARK.c
+@@ -222,15 +222,7 @@ static struct xt_target mark_tg_reg[] __read_mostly = {
+ 	{
+ 		.name           = "MARK",
+ 		.revision       = 2,
+-		.family         = NFPROTO_IPV4,
+-		.target         = mark_tg,
+-		.targetsize     = sizeof(struct xt_mark_tginfo2),
+-		.me             = THIS_MODULE,
+-	},
+-	{
+-		.name           = "MARK",
+-		.revision       = 2,
+-		.family         = NFPROTO_IPV6,
++		.family         = NFPROTO_UNSPEC,
+ 		.target         = mark_tg,
+ 		.targetsize     = sizeof(struct xt_mark_tginfo2),
+ 		.me             = THIS_MODULE,
+diff --git a/net/netfilter/xt_RATEEST.c b/net/netfilter/xt_RATEEST.c
+index f7114fc..da7946e 100644
+--- a/net/netfilter/xt_RATEEST.c
++++ b/net/netfilter/xt_RATEEST.c
+@@ -157,25 +157,15 @@ static void xt_rateest_tg_destroy(const struct xt_target *target,
+ 	xt_rateest_put(info->est);
+ }
+ 
+-static struct xt_target xt_rateest_target[] __read_mostly = {
+-	{
+-		.family		= NFPROTO_IPV4,
+-		.name		= "RATEEST",
+-		.target		= xt_rateest_tg,
+-		.checkentry	= xt_rateest_tg_checkentry,
+-		.destroy	= xt_rateest_tg_destroy,
+-		.targetsize	= sizeof(struct xt_rateest_target_info),
+-		.me		= THIS_MODULE,
+-	},
+-	{
+-		.family		= NFPROTO_IPV6,
+-		.name		= "RATEEST",
+-		.target		= xt_rateest_tg,
+-		.checkentry	= xt_rateest_tg_checkentry,
+-		.destroy	= xt_rateest_tg_destroy,
+-		.targetsize	= sizeof(struct xt_rateest_target_info),
+-		.me		= THIS_MODULE,
+-	},
++static struct xt_target xt_rateest_tg_reg __read_mostly = {
++	.name       = "RATEEST",
++	.revision   = 0,
++	.family     = NFPROTO_UNSPEC,
++	.target     = xt_rateest_tg,
++	.checkentry = xt_rateest_tg_checkentry,
++	.destroy    = xt_rateest_tg_destroy,
++	.targetsize = sizeof(struct xt_rateest_target_info),
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init xt_rateest_tg_init(void)
+@@ -186,13 +176,12 @@ static int __init xt_rateest_tg_init(void)
+ 		INIT_HLIST_HEAD(&rateest_hash[i]);
+ 
+ 	get_random_bytes(&jhash_rnd, sizeof(jhash_rnd));
+-	return xt_register_targets(xt_rateest_target,
+-				   ARRAY_SIZE(xt_rateest_target));
++	return xt_register_target(&xt_rateest_tg_reg);
+ }
+ 
+ static void __exit xt_rateest_tg_fini(void)
+ {
+-	xt_unregister_targets(xt_rateest_target, ARRAY_SIZE(xt_rateest_target));
++	xt_unregister_target(&xt_rateest_tg_reg);
+ }
+ 
+ 
+diff --git a/net/netfilter/xt_SECMARK.c b/net/netfilter/xt_SECMARK.c
+index 8f8f57b..2a2ab83 100644
+--- a/net/netfilter/xt_SECMARK.c
++++ b/net/netfilter/xt_SECMARK.c
+@@ -125,35 +125,25 @@ static void secmark_tg_destroy(const struct xt_target *target, void *targinfo)
+ 	}
+ }
+ 
+-static struct xt_target secmark_tg_reg[] __read_mostly = {
+-	{
+-		.name		= "SECMARK",
+-		.family		= NFPROTO_IPV4,
+-		.checkentry	= secmark_tg_check,
+-		.destroy	= secmark_tg_destroy,
+-		.target		= secmark_tg,
+-		.targetsize	= sizeof(struct xt_secmark_target_info),
+-		.me		= THIS_MODULE,
+-	},
+-	{
+-		.name		= "SECMARK",
+-		.family		= NFPROTO_IPV6,
+-		.checkentry	= secmark_tg_check,
+-		.destroy	= secmark_tg_destroy,
+-		.target		= secmark_tg,
+-		.targetsize	= sizeof(struct xt_secmark_target_info),
+-		.me		= THIS_MODULE,
+-	},
++static struct xt_target secmark_tg_reg __read_mostly = {
++	.name       = "SECMARK",
++	.revision   = 0,
++	.family     = NFPROTO_UNSPEC,
++	.checkentry = secmark_tg_check,
++	.destroy    = secmark_tg_destroy,
++	.target     = secmark_tg,
++	.targetsize = sizeof(struct xt_secmark_target_info),
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init secmark_tg_init(void)
+ {
+-	return xt_register_targets(secmark_tg_reg, ARRAY_SIZE(secmark_tg_reg));
++	return xt_register_target(&secmark_tg_reg);
+ }
+ 
+ static void __exit secmark_tg_exit(void)
+ {
+-	xt_unregister_targets(secmark_tg_reg, ARRAY_SIZE(secmark_tg_reg));
++	xt_unregister_target(&secmark_tg_reg);
+ }
+ 
+ module_init(secmark_tg_init);
+diff --git a/net/netfilter/xt_TRACE.c b/net/netfilter/xt_TRACE.c
+index e1bcad5..da35f9f 100644
+--- a/net/netfilter/xt_TRACE.c
++++ b/net/netfilter/xt_TRACE.c
+@@ -19,31 +19,23 @@ trace_tg(struct sk_buff *skb, const struct net_device *in,
+ 	return XT_CONTINUE;
+ }
+ 
+-static struct xt_target trace_tg_reg[] __read_mostly = {
+-	{
+-		.name		= "TRACE",
+-		.family		= NFPROTO_IPV4,
+-		.target		= trace_tg,
+-		.table		= "raw",
+-		.me		= THIS_MODULE,
+-	},
+-	{
+-		.name		= "TRACE",
+-		.family		= NFPROTO_IPV6,
+-		.target		= trace_tg,
+-		.table		= "raw",
+-		.me		= THIS_MODULE,
+-	},
++static struct xt_target trace_tg_reg __read_mostly = {
++	.name       = "TRACE",
++	.revision   = 0,
++	.family     = NFPROTO_UNSPEC,
++	.table      = "raw",
++	.target     = trace_tg,
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init trace_tg_init(void)
+ {
+-	return xt_register_targets(trace_tg_reg, ARRAY_SIZE(trace_tg_reg));
++	return xt_register_target(&trace_tg_reg);
+ }
+ 
+ static void __exit trace_tg_exit(void)
+ {
+-	xt_unregister_targets(trace_tg_reg, ARRAY_SIZE(trace_tg_reg));
++	xt_unregister_target(&trace_tg_reg);
+ }
+ 
+ module_init(trace_tg_init);
+diff --git a/net/netfilter/xt_limit.c b/net/netfilter/xt_limit.c
+index 584d668..00247bd 100644
+--- a/net/netfilter/xt_limit.c
++++ b/net/netfilter/xt_limit.c
+@@ -167,43 +167,29 @@ static int limit_mt_compat_to_user(void __user *dst, void *src)
+ }
+ #endif /* CONFIG_COMPAT */
+ 
+-static struct xt_match limit_mt_reg[] __read_mostly = {
+-	{
+-		.name		= "limit",
+-		.family		= NFPROTO_IPV4,
+-		.checkentry	= limit_mt_check,
+-		.match		= limit_mt,
+-		.matchsize	= sizeof(struct xt_rateinfo),
++static struct xt_match limit_mt_reg __read_mostly = {
++	.name             = "limit",
++	.revision         = 0,
++	.family           = NFPROTO_UNSPEC,
++	.match            = limit_mt,
++	.checkentry       = limit_mt_check,
++	.matchsize        = sizeof(struct xt_rateinfo),
+ #ifdef CONFIG_COMPAT
+-		.compatsize	= sizeof(struct compat_xt_rateinfo),
+-		.compat_from_user = limit_mt_compat_from_user,
+-		.compat_to_user	= limit_mt_compat_to_user,
++	.compatsize       = sizeof(struct compat_xt_rateinfo),
++	.compat_from_user = limit_mt_compat_from_user,
++	.compat_to_user   = limit_mt_compat_to_user,
+ #endif
+-		.me		= THIS_MODULE,
+-	},
+-	{
+-		.name		= "limit",
+-		.family		= NFPROTO_IPV6,
+-		.checkentry	= limit_mt_check,
+-		.match		= limit_mt,
+-		.matchsize	= sizeof(struct xt_rateinfo),
+-#ifdef CONFIG_COMPAT
+-		.compatsize	= sizeof(struct compat_xt_rateinfo),
+-		.compat_from_user = limit_mt_compat_from_user,
+-		.compat_to_user	= limit_mt_compat_to_user,
+-#endif
+-		.me		= THIS_MODULE,
+-	},
++	.me               = THIS_MODULE,
+ };
+ 
+ static int __init limit_mt_init(void)
+ {
+-	return xt_register_matches(limit_mt_reg, ARRAY_SIZE(limit_mt_reg));
++	return xt_register_match(&limit_mt_reg);
+ }
+ 
+ static void __exit limit_mt_exit(void)
+ {
+-	xt_unregister_matches(limit_mt_reg, ARRAY_SIZE(limit_mt_reg));
++	xt_unregister_match(&limit_mt_reg);
+ }
+ 
+ module_init(limit_mt_init);
+diff --git a/net/netfilter/xt_mark.c b/net/netfilter/xt_mark.c
+index c66affd..96dd2b6 100644
+--- a/net/netfilter/xt_mark.c
++++ b/net/netfilter/xt_mark.c
+@@ -92,7 +92,7 @@ static struct xt_match mark_mt_reg[] __read_mostly = {
+ 	{
+ 		.name		= "mark",
+ 		.revision	= 0,
+-		.family		= NFPROTO_IPV4,
++		.family		= NFPROTO_UNSPEC,
+ 		.checkentry	= mark_mt_check_v0,
+ 		.match		= mark_mt_v0,
+ 		.matchsize	= sizeof(struct xt_mark_info),
+@@ -104,31 +104,9 @@ static struct xt_match mark_mt_reg[] __read_mostly = {
+ 		.me		= THIS_MODULE,
+ 	},
+ 	{
+-		.name		= "mark",
+-		.revision	= 0,
+-		.family		= NFPROTO_IPV6,
+-		.checkentry	= mark_mt_check_v0,
+-		.match		= mark_mt_v0,
+-		.matchsize	= sizeof(struct xt_mark_info),
+-#ifdef CONFIG_COMPAT
+-		.compatsize	= sizeof(struct compat_xt_mark_info),
+-		.compat_from_user = mark_mt_compat_from_user_v0,
+-		.compat_to_user	= mark_mt_compat_to_user_v0,
+-#endif
+-		.me		= THIS_MODULE,
+-	},
+-	{
+-		.name           = "mark",
+-		.revision       = 1,
+-		.family         = NFPROTO_IPV4,
+-		.match          = mark_mt,
+-		.matchsize      = sizeof(struct xt_mark_mtinfo1),
+-		.me             = THIS_MODULE,
+-	},
+-	{
+ 		.name           = "mark",
+ 		.revision       = 1,
+-		.family         = NFPROTO_IPV6,
++		.family         = NFPROTO_UNSPEC,
+ 		.match          = mark_mt,
+ 		.matchsize      = sizeof(struct xt_mark_mtinfo1),
+ 		.me             = THIS_MODULE,
+diff --git a/net/netfilter/xt_quota.c b/net/netfilter/xt_quota.c
+index 59f61e3..a3c8798 100644
+--- a/net/netfilter/xt_quota.c
++++ b/net/netfilter/xt_quota.c
+@@ -54,33 +54,24 @@ quota_mt_check(const char *tablename, const void *entry,
+ 	return true;
+ }
+ 
+-static struct xt_match quota_mt_reg[] __read_mostly = {
+-	{
+-		.name		= "quota",
+-		.family		= NFPROTO_IPV4,
+-		.checkentry	= quota_mt_check,
+-		.match		= quota_mt,
+-		.matchsize	= sizeof(struct xt_quota_info),
+-		.me		= THIS_MODULE
+-	},
+-	{
+-		.name		= "quota",
+-		.family		= NFPROTO_IPV6,
+-		.checkentry	= quota_mt_check,
+-		.match		= quota_mt,
+-		.matchsize	= sizeof(struct xt_quota_info),
+-		.me		= THIS_MODULE
+-	},
++static struct xt_match quota_mt_reg __read_mostly = {
++	.name       = "quota",
++	.revision   = 0,
++	.family     = NFPROTO_UNSPEC,
++	.match      = quota_mt,
++	.checkentry = quota_mt_check,
++	.matchsize  = sizeof(struct xt_quota_info),
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init quota_mt_init(void)
+ {
+-	return xt_register_matches(quota_mt_reg, ARRAY_SIZE(quota_mt_reg));
++	return xt_register_match(&quota_mt_reg);
+ }
+ 
+ static void __exit quota_mt_exit(void)
+ {
+-	xt_unregister_matches(quota_mt_reg, ARRAY_SIZE(quota_mt_reg));
++	xt_unregister_match(&quota_mt_reg);
+ }
+ 
+ module_init(quota_mt_init);
+diff --git a/net/netfilter/xt_rateest.c b/net/netfilter/xt_rateest.c
+index ba1cb57..4dcfd73 100644
+--- a/net/netfilter/xt_rateest.c
++++ b/net/netfilter/xt_rateest.c
+@@ -137,36 +137,25 @@ static void xt_rateest_mt_destroy(const struct xt_match *match,
+ 		xt_rateest_put(info->est2);
+ }
+ 
+-static struct xt_match xt_rateest_match[] __read_mostly = {
+-	{
+-		.family		= NFPROTO_IPV4,
+-		.name		= "rateest",
+-		.match		= xt_rateest_mt,
+-		.checkentry	= xt_rateest_mt_checkentry,
+-		.destroy	= xt_rateest_mt_destroy,
+-		.matchsize	= sizeof(struct xt_rateest_match_info),
+-		.me		= THIS_MODULE,
+-	},
+-	{
+-		.family		= NFPROTO_IPV6,
+-		.name		= "rateest",
+-		.match		= xt_rateest_mt,
+-		.checkentry	= xt_rateest_mt_checkentry,
+-		.destroy	= xt_rateest_mt_destroy,
+-		.matchsize	= sizeof(struct xt_rateest_match_info),
+-		.me		= THIS_MODULE,
+-	},
++static struct xt_match xt_rateest_mt_reg __read_mostly = {
++	.name       = "rateest",
++	.revision   = 0,
++	.family     = NFPROTO_UNSPEC,
++	.match      = xt_rateest_mt,
++	.checkentry = xt_rateest_mt_checkentry,
++	.destroy    = xt_rateest_mt_destroy,
++	.matchsize  = sizeof(struct xt_rateest_match_info),
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init xt_rateest_mt_init(void)
+ {
+-	return xt_register_matches(xt_rateest_match,
+-				   ARRAY_SIZE(xt_rateest_match));
++	return xt_register_match(&xt_rateest_mt_reg);
+ }
+ 
+ static void __exit xt_rateest_mt_fini(void)
+ {
+-	xt_unregister_matches(xt_rateest_match, ARRAY_SIZE(xt_rateest_match));
++	xt_unregister_match(&xt_rateest_mt_reg);
+ }
+ 
+ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+diff --git a/net/netfilter/xt_statistic.c b/net/netfilter/xt_statistic.c
+index fd3bb14..f41a923 100644
+--- a/net/netfilter/xt_statistic.c
++++ b/net/netfilter/xt_statistic.c
+@@ -66,35 +66,24 @@ statistic_mt_check(const char *tablename, const void *entry,
+ 	return true;
+ }
+ 
+-static struct xt_match statistic_mt_reg[] __read_mostly = {
+-	{
+-		.name		= "statistic",
+-		.family		= NFPROTO_IPV4,
+-		.checkentry	= statistic_mt_check,
+-		.match		= statistic_mt,
+-		.matchsize	= sizeof(struct xt_statistic_info),
+-		.me		= THIS_MODULE,
+-	},
+-	{
+-		.name		= "statistic",
+-		.family		= NFPROTO_IPV6,
+-		.checkentry	= statistic_mt_check,
+-		.match		= statistic_mt,
+-		.matchsize	= sizeof(struct xt_statistic_info),
+-		.me		= THIS_MODULE,
+-	},
++static struct xt_match xt_statistic_mt_reg __read_mostly = {
++	.name       = "statistic",
++	.revision   = 0,
++	.family     = NFPROTO_UNSPEC,
++	.match      = statistic_mt,
++	.checkentry = statistic_mt_check,
++	.matchsize  = sizeof(struct xt_statistic_info),
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init statistic_mt_init(void)
+ {
+-	return xt_register_matches(statistic_mt_reg,
+-	       ARRAY_SIZE(statistic_mt_reg));
++	return xt_register_match(&xt_statistic_mt_reg);
+ }
+ 
+ static void __exit statistic_mt_exit(void)
+ {
+-	xt_unregister_matches(statistic_mt_reg,
+-	                      ARRAY_SIZE(statistic_mt_reg));
++	xt_unregister_match(&xt_statistic_mt_reg);
+ }
+ 
+ module_init(statistic_mt_init);
+diff --git a/net/netfilter/xt_string.c b/net/netfilter/xt_string.c
+index 5016971..18d8884 100644
+--- a/net/netfilter/xt_string.c
++++ b/net/netfilter/xt_string.c
+@@ -81,11 +81,11 @@ static void string_mt_destroy(const struct xt_match *match, void *matchinfo)
+ 	textsearch_destroy(STRING_TEXT_PRIV(matchinfo)->config);
+ }
+ 
+-static struct xt_match string_mt_reg[] __read_mostly = {
++static struct xt_match xt_string_mt_reg[] __read_mostly = {
+ 	{
+ 		.name 		= "string",
+ 		.revision	= 0,
+-		.family		= NFPROTO_IPV4,
++		.family		= NFPROTO_UNSPEC,
+ 		.checkentry	= string_mt_check,
+ 		.match 		= string_mt,
+ 		.destroy 	= string_mt_destroy,
+@@ -95,27 +95,7 @@ static struct xt_match string_mt_reg[] __read_mostly = {
+ 	{
+ 		.name 		= "string",
+ 		.revision	= 1,
+-		.family		= NFPROTO_IPV4,
+-		.checkentry	= string_mt_check,
+-		.match 		= string_mt,
+-		.destroy 	= string_mt_destroy,
+-		.matchsize	= sizeof(struct xt_string_info),
+-		.me 		= THIS_MODULE
+-	},
+-	{
+-		.name 		= "string",
+-		.revision	= 0,
+-		.family		= NFPROTO_IPV6,
+-		.checkentry	= string_mt_check,
+-		.match 		= string_mt,
+-		.destroy 	= string_mt_destroy,
+-		.matchsize	= sizeof(struct xt_string_info),
+-		.me 		= THIS_MODULE
+-	},
+-	{
+-		.name 		= "string",
+-		.revision	= 1,
+-		.family		= NFPROTO_IPV6,
++		.family		= NFPROTO_UNSPEC,
+ 		.checkentry	= string_mt_check,
+ 		.match 		= string_mt,
+ 		.destroy 	= string_mt_destroy,
+@@ -126,12 +106,13 @@ static struct xt_match string_mt_reg[] __read_mostly = {
+ 
+ static int __init string_mt_init(void)
+ {
+-	return xt_register_matches(string_mt_reg, ARRAY_SIZE(string_mt_reg));
++	return xt_register_matches(xt_string_mt_reg,
++				   ARRAY_SIZE(xt_string_mt_reg));
+ }
+ 
+ static void __exit string_mt_exit(void)
+ {
+-	xt_unregister_matches(string_mt_reg, ARRAY_SIZE(string_mt_reg));
++	xt_unregister_matches(xt_string_mt_reg, ARRAY_SIZE(xt_string_mt_reg));
+ }
+ 
+ module_init(string_mt_init);
+diff --git a/net/netfilter/xt_time.c b/net/netfilter/xt_time.c
+index fe9dae2..32d4c76 100644
+--- a/net/netfilter/xt_time.c
++++ b/net/netfilter/xt_time.c
+@@ -237,33 +237,23 @@ time_mt_check(const char *tablename, const void *ip,
+ 	return true;
+ }
+ 
+-static struct xt_match time_mt_reg[] __read_mostly = {
+-	{
+-		.name       = "time",
+-		.family     = NFPROTO_IPV4,
+-		.match      = time_mt,
+-		.matchsize  = sizeof(struct xt_time_info),
+-		.checkentry = time_mt_check,
+-		.me         = THIS_MODULE,
+-	},
+-	{
+-		.name       = "time",
+-		.family     = NFPROTO_IPV6,
+-		.match      = time_mt,
+-		.matchsize  = sizeof(struct xt_time_info),
+-		.checkentry = time_mt_check,
+-		.me         = THIS_MODULE,
+-	},
++static struct xt_match xt_time_mt_reg __read_mostly = {
++	.name       = "time",
++	.family     = NFPROTO_UNSPEC,
++	.match      = time_mt,
++	.checkentry = time_mt_check,
++	.matchsize  = sizeof(struct xt_time_info),
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init time_mt_init(void)
+ {
+-	return xt_register_matches(time_mt_reg, ARRAY_SIZE(time_mt_reg));
++	return xt_register_match(&xt_time_mt_reg);
+ }
+ 
+ static void __exit time_mt_exit(void)
+ {
+-	xt_unregister_matches(time_mt_reg, ARRAY_SIZE(time_mt_reg));
++	xt_unregister_match(&xt_time_mt_reg);
+ }
+ 
+ module_init(time_mt_init);
+diff --git a/net/netfilter/xt_u32.c b/net/netfilter/xt_u32.c
+index ed9f834..a6b971d 100644
+--- a/net/netfilter/xt_u32.c
++++ b/net/netfilter/xt_u32.c
+@@ -99,31 +99,23 @@ u32_mt(const struct sk_buff *skb, const struct net_device *in,
+ 	return ret ^ data->invert;
+ }
+ 
+-static struct xt_match u32_mt_reg[] __read_mostly = {
+-	{
+-		.name       = "u32",
+-		.family     = NFPROTO_IPV4,
+-		.match      = u32_mt,
+-		.matchsize  = sizeof(struct xt_u32),
+-		.me         = THIS_MODULE,
+-	},
+-	{
+-		.name       = "u32",
+-		.family     = NFPROTO_IPV6,
+-		.match      = u32_mt,
+-		.matchsize  = sizeof(struct xt_u32),
+-		.me         = THIS_MODULE,
+-	},
++static struct xt_match xt_u32_mt_reg __read_mostly = {
++	.name       = "u32",
++	.revision   = 0,
++	.family     = NFPROTO_UNSPEC,
++	.match      = u32_mt,
++	.matchsize  = sizeof(struct xt_u32),
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init u32_mt_init(void)
+ {
+-	return xt_register_matches(u32_mt_reg, ARRAY_SIZE(u32_mt_reg));
++	return xt_register_match(&xt_u32_mt_reg);
+ }
+ 
+ static void __exit u32_mt_exit(void)
+ {
+-	xt_unregister_matches(u32_mt_reg, ARRAY_SIZE(u32_mt_reg));
++	xt_unregister_match(&xt_u32_mt_reg);
+ }
+ 
+ module_init(u32_mt_init);
