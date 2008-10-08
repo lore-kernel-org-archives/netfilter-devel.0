@@ -1,102 +1,174 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 10/79: netns: ip6t_REJECT in netns for real
-Date: Wed,  8 Oct 2008 12:46:34 +0200 (MEST)
-Message-ID: <20081008104634.10423.24563.sendpatchset@x2.localnet>
+Subject: netfilter 11/79: netns nf_conntrack: add netns boilerplate
+Date: Wed,  8 Oct 2008 12:46:36 +0200 (MEST)
+Message-ID: <20081008104636.10423.27137.sendpatchset@x2.localnet>
 References: <20081008104621.10423.12648.sendpatchset@x2.localnet>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45879 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:45882 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754355AbYJHKqg (ORCPT
+	with ESMTP id S1754169AbYJHKqh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Oct 2008 06:46:36 -0400
+	Wed, 8 Oct 2008 06:46:37 -0400
 In-Reply-To: <20081008104621.10423.12648.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit e10aad9998e463df8e25ec749538faf3324dd31b
+commit dfdb8d791877052bbb527d9688d94a064721d8f7
 Author: Alexey Dobriyan <adobriyan@gmail.com>
 Date:   Wed Oct 8 11:35:02 2008 +0200
 
-    netfilter: netns: ip6t_REJECT in netns for real
+    netfilter: netns nf_conntrack: add netns boilerplate
+    
+    One comment: #ifdefs around #include is necessary to overcome amazing compile
+    breakages in NOTRACK-in-netns patch (see below).
     
     Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
     Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-diff --git a/net/ipv6/netfilter/ip6t_REJECT.c b/net/ipv6/netfilter/ip6t_REJECT.c
-index 672ad9f..f1a9fce 100644
---- a/net/ipv6/netfilter/ip6t_REJECT.c
-+++ b/net/ipv6/netfilter/ip6t_REJECT.c
-@@ -35,7 +35,7 @@ MODULE_DESCRIPTION("Xtables: packet \"rejection\" target for IPv6");
- MODULE_LICENSE("GPL");
+diff --git a/include/net/net_namespace.h b/include/net/net_namespace.h
+index a8eb43c..708009b 100644
+--- a/include/net/net_namespace.h
++++ b/include/net/net_namespace.h
+@@ -16,6 +16,9 @@
+ #include <net/netns/ipv6.h>
+ #include <net/netns/dccp.h>
+ #include <net/netns/x_tables.h>
++#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
++#include <net/netns/conntrack.h>
++#endif
  
- /* Send RST reply */
--static void send_reset(struct sk_buff *oldskb)
-+static void send_reset(struct net *net, struct sk_buff *oldskb)
+ struct proc_dir_entry;
+ struct net_device;
+@@ -67,6 +70,9 @@ struct net {
+ #endif
+ #ifdef CONFIG_NETFILTER
+ 	struct netns_xt		xt;
++#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
++	struct netns_ct		ct;
++#endif
+ #endif
+ 	struct net_generic	*gen;
+ };
+diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
+index 05760d6..532aa20 100644
+--- a/include/net/netfilter/nf_conntrack_core.h
++++ b/include/net/netfilter/nf_conntrack_core.h
+@@ -24,8 +24,8 @@ extern unsigned int nf_conntrack_in(u_int8_t pf,
+ 				    unsigned int hooknum,
+ 				    struct sk_buff *skb);
+ 
+-extern int nf_conntrack_init(void);
+-extern void nf_conntrack_cleanup(void);
++extern int nf_conntrack_init(struct net *net);
++extern void nf_conntrack_cleanup(struct net *net);
+ 
+ extern int nf_conntrack_proto_init(void);
+ extern void nf_conntrack_proto_fini(void);
+diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
+new file mode 100644
+index 0000000..82d80b8
+--- /dev/null
++++ b/include/net/netns/conntrack.h
+@@ -0,0 +1,6 @@
++#ifndef __NETNS_CONNTRACK_H
++#define __NETNS_CONNTRACK_H
++
++struct netns_ct {
++};
++#endif
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 6aaf64b..ee79e93 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1006,7 +1006,7 @@ EXPORT_SYMBOL_GPL(nf_conntrack_flush);
+ 
+ /* Mishearing the voices in his head, our hero wonders how he's
+    supposed to kill the mall. */
+-void nf_conntrack_cleanup(void)
++void nf_conntrack_cleanup(struct net *net)
  {
- 	struct sk_buff *nskb;
- 	struct tcphdr otcph, *tcph;
-@@ -94,7 +94,7 @@ static void send_reset(struct sk_buff *oldskb)
- 	fl.fl_ip_sport = otcph.dest;
- 	fl.fl_ip_dport = otcph.source;
- 	security_skb_classify_flow(oldskb, &fl);
--	dst = ip6_route_output(&init_net, NULL, &fl);
-+	dst = ip6_route_output(net, NULL, &fl);
- 	if (dst == NULL)
- 		return;
- 	if (dst->error || xfrm_lookup(&dst, &fl, NULL, 0))
-@@ -163,10 +163,11 @@ static void send_reset(struct sk_buff *oldskb)
+ 	rcu_assign_pointer(ip_ct_attach, NULL);
+ 
+@@ -1120,7 +1120,7 @@ EXPORT_SYMBOL_GPL(nf_conntrack_set_hashsize);
+ module_param_call(hashsize, nf_conntrack_set_hashsize, param_get_uint,
+ 		  &nf_conntrack_htable_size, 0600);
+ 
+-int __init nf_conntrack_init(void)
++int nf_conntrack_init(struct net *net)
+ {
+ 	int max_factor = 8;
+ 	int ret;
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index 990fa12..e6a79f2 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -537,7 +537,7 @@ static const struct file_operations exp_file_ops = {
+ };
+ #endif /* CONFIG_PROC_FS */
+ 
+-static int __init exp_proc_init(void)
++static int exp_proc_init(void)
+ {
+ #ifdef CONFIG_PROC_FS
+ 	struct proc_dir_entry *proc;
+@@ -558,7 +558,7 @@ static void exp_proc_remove(void)
+ 
+ module_param_named(expect_hashsize, nf_ct_expect_hsize, uint, 0600);
+ 
+-int __init nf_conntrack_expect_init(void)
++int nf_conntrack_expect_init(void)
+ {
+ 	int err = -ENOMEM;
+ 
+diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+index 8509db1..81dec17 100644
+--- a/net/netfilter/nf_conntrack_standalone.c
++++ b/net/netfilter/nf_conntrack_standalone.c
+@@ -440,11 +440,26 @@ static void nf_conntrack_standalone_fini_sysctl(void)
+ }
+ #endif /* CONFIG_SYSCTL */
+ 
++static int nf_conntrack_net_init(struct net *net)
++{
++	return nf_conntrack_init(net);
++}
++
++static void nf_conntrack_net_exit(struct net *net)
++{
++	nf_conntrack_cleanup(net);
++}
++
++static struct pernet_operations nf_conntrack_net_ops = {
++	.init = nf_conntrack_net_init,
++	.exit = nf_conntrack_net_exit,
++};
++
+ static int __init nf_conntrack_standalone_init(void)
+ {
+ 	int ret;
+ 
+-	ret = nf_conntrack_init();
++	ret = register_pernet_subsys(&nf_conntrack_net_ops);
+ 	if (ret < 0)
+ 		goto out;
+ 	ret = nf_conntrack_standalone_init_proc();
+@@ -458,7 +473,7 @@ static int __init nf_conntrack_standalone_init(void)
+ out_sysctl:
+ 	nf_conntrack_standalone_fini_proc();
+ out_proc:
+-	nf_conntrack_cleanup();
++	unregister_pernet_subsys(&nf_conntrack_net_ops);
+ out:
+ 	return ret;
+ }
+@@ -467,7 +482,7 @@ static void __exit nf_conntrack_standalone_fini(void)
+ {
+ 	nf_conntrack_standalone_fini_sysctl();
+ 	nf_conntrack_standalone_fini_proc();
+-	nf_conntrack_cleanup();
++	unregister_pernet_subsys(&nf_conntrack_net_ops);
  }
  
- static inline void
--send_unreach(struct sk_buff *skb_in, unsigned char code, unsigned int hooknum)
-+send_unreach(struct net *net, struct sk_buff *skb_in, unsigned char code,
-+	     unsigned int hooknum)
- {
- 	if (hooknum == NF_INET_LOCAL_OUT && skb_in->dev == NULL)
--		skb_in->dev = init_net.loopback_dev;
-+		skb_in->dev = net->loopback_dev;
- 
- 	icmpv6_send(skb_in, ICMPV6_DEST_UNREACH, code, 0, NULL);
- }
-@@ -177,6 +178,7 @@ reject_tg6(struct sk_buff *skb, const struct net_device *in,
-            const struct xt_target *target, const void *targinfo)
- {
- 	const struct ip6t_reject_info *reject = targinfo;
-+	struct net *net = dev_net(in ? in : out);
- 
- 	pr_debug("%s: medium point\n", __func__);
- 	/* WARNING: This code causes reentry within ip6tables.
-@@ -184,25 +186,25 @@ reject_tg6(struct sk_buff *skb, const struct net_device *in,
- 	   must return an absolute verdict. --RR */
- 	switch (reject->with) {
- 	case IP6T_ICMP6_NO_ROUTE:
--		send_unreach(skb, ICMPV6_NOROUTE, hooknum);
-+		send_unreach(net, skb, ICMPV6_NOROUTE, hooknum);
- 		break;
- 	case IP6T_ICMP6_ADM_PROHIBITED:
--		send_unreach(skb, ICMPV6_ADM_PROHIBITED, hooknum);
-+		send_unreach(net, skb, ICMPV6_ADM_PROHIBITED, hooknum);
- 		break;
- 	case IP6T_ICMP6_NOT_NEIGHBOUR:
--		send_unreach(skb, ICMPV6_NOT_NEIGHBOUR, hooknum);
-+		send_unreach(net, skb, ICMPV6_NOT_NEIGHBOUR, hooknum);
- 		break;
- 	case IP6T_ICMP6_ADDR_UNREACH:
--		send_unreach(skb, ICMPV6_ADDR_UNREACH, hooknum);
-+		send_unreach(net, skb, ICMPV6_ADDR_UNREACH, hooknum);
- 		break;
- 	case IP6T_ICMP6_PORT_UNREACH:
--		send_unreach(skb, ICMPV6_PORT_UNREACH, hooknum);
-+		send_unreach(net, skb, ICMPV6_PORT_UNREACH, hooknum);
- 		break;
- 	case IP6T_ICMP6_ECHOREPLY:
- 		/* Do nothing */
- 		break;
- 	case IP6T_TCP_RESET:
--		send_reset(skb);
-+		send_reset(net, skb);
- 		break;
- 	default:
- 		if (net_ratelimit())
+ module_init(nf_conntrack_standalone_init);
