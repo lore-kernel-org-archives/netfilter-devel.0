@@ -1,205 +1,299 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 19/79: netns nf_conntrack: pass netns pointer to L4 protocol's ->error hook
-Date: Wed,  8 Oct 2008 12:46:47 +0200 (MEST)
-Message-ID: <20081008104647.10423.94583.sendpatchset@x2.localnet>
+Subject: netfilter 26/79: netns nf_conntrack: pass conntrack to nf_conntrack_event_cache() not skb
+Date: Wed,  8 Oct 2008 12:46:56 +0200 (MEST)
+Message-ID: <20081008104656.10423.38790.sendpatchset@x2.localnet>
 References: <20081008104621.10423.12648.sendpatchset@x2.localnet>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45908 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:45935 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754499AbYJHKqs (ORCPT
+	with ESMTP id S1754517AbYJHKq6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Oct 2008 06:46:48 -0400
+	Wed, 8 Oct 2008 06:46:58 -0400
 In-Reply-To: <20081008104621.10423.12648.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 74c51a1497033e6ff7b8096797daca233a4a30df
+commit a71996fccce4b2086a26036aa3c915365ca36926
 Author: Alexey Dobriyan <adobriyan@gmail.com>
-Date:   Wed Oct 8 11:35:05 2008 +0200
+Date:   Wed Oct 8 11:35:07 2008 +0200
 
-    netfilter: netns nf_conntrack: pass netns pointer to L4 protocol's ->error hook
+    netfilter: netns nf_conntrack: pass conntrack to nf_conntrack_event_cache() not skb
     
-    Again, it's deducible from skb, but we're going to use it for
-    nf_conntrack_checksum and statistics, so just pass it from upper layer.
+    This is cleaner, we already know conntrack to which event is relevant.
     
     Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
     Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
-index d4376e9..97723d3 100644
---- a/include/net/netfilter/nf_conntrack_l4proto.h
-+++ b/include/net/netfilter/nf_conntrack_l4proto.h
-@@ -50,7 +50,7 @@ struct nf_conntrack_l4proto
- 	/* Called when a conntrack entry is destroyed */
- 	void (*destroy)(struct nf_conn *ct);
+diff --git a/include/net/netfilter/nf_conntrack_ecache.h b/include/net/netfilter/nf_conntrack_ecache.h
+index f0b9078..c1b406c 100644
+--- a/include/net/netfilter/nf_conntrack_ecache.h
++++ b/include/net/netfilter/nf_conntrack_ecache.h
+@@ -28,10 +28,8 @@ extern void __nf_ct_event_cache_init(struct nf_conn *ct);
+ extern void nf_ct_event_cache_flush(void);
  
--	int (*error)(struct sk_buff *skb, unsigned int dataoff,
-+	int (*error)(struct net *net, struct sk_buff *skb, unsigned int dataoff,
- 		     enum ip_conntrack_info *ctinfo,
- 		     u_int8_t pf, unsigned int hooknum);
+ static inline void
+-nf_conntrack_event_cache(enum ip_conntrack_events event,
+-			 const struct sk_buff *skb)
++nf_conntrack_event_cache(enum ip_conntrack_events event, struct nf_conn *ct)
+ {
+-	struct nf_conn *ct = (struct nf_conn *)skb->nfct;
+ 	struct nf_conntrack_ecache *ecache;
  
+ 	local_bh_disable();
 diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-index daf3463..8c7ed5b 100644
+index 8c7ed5b..205ba39 100644
 --- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
 +++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-@@ -123,7 +123,7 @@ static bool icmp_new(struct nf_conn *ct, const struct sk_buff *skb,
- 
- /* Returns conntrack if it dealt with ICMP, and filled in skb fields */
- static int
--icmp_error_message(struct sk_buff *skb,
-+icmp_error_message(struct net *net, struct sk_buff *skb,
- 		 enum ip_conntrack_info *ctinfo,
- 		 unsigned int hooknum)
- {
-@@ -155,7 +155,7 @@ icmp_error_message(struct sk_buff *skb,
- 
- 	*ctinfo = IP_CT_RELATED;
- 
--	h = nf_conntrack_find_get(&init_net, &innertuple);
-+	h = nf_conntrack_find_get(net, &innertuple);
- 	if (!h) {
- 		pr_debug("icmp_error_message: no match\n");
- 		return -NF_ACCEPT;
-@@ -172,7 +172,7 @@ icmp_error_message(struct sk_buff *skb,
- 
- /* Small and modified version of icmp_rcv */
- static int
--icmp_error(struct sk_buff *skb, unsigned int dataoff,
-+icmp_error(struct net *net, struct sk_buff *skb, unsigned int dataoff,
- 	   enum ip_conntrack_info *ctinfo, u_int8_t pf, unsigned int hooknum)
- {
- 	const struct icmphdr *icmph;
-@@ -217,7 +217,7 @@ icmp_error(struct sk_buff *skb, unsigned int dataoff,
- 	    && icmph->type != ICMP_REDIRECT)
- 		return NF_ACCEPT;
- 
--	return icmp_error_message(skb, ctinfo, hooknum);
-+	return icmp_error_message(net, skb, ctinfo, hooknum);
- }
- 
- #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
-diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-index 548cf4f..aabddfe 100644
---- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-@@ -122,7 +122,8 @@ static bool icmpv6_new(struct nf_conn *ct, const struct sk_buff *skb,
- }
- 
- static int
--icmpv6_error_message(struct sk_buff *skb,
-+icmpv6_error_message(struct net *net,
-+		     struct sk_buff *skb,
- 		     unsigned int icmp6off,
- 		     enum ip_conntrack_info *ctinfo,
- 		     unsigned int hooknum)
-@@ -156,7 +157,7 @@ icmpv6_error_message(struct sk_buff *skb,
- 
- 	*ctinfo = IP_CT_RELATED;
- 
--	h = nf_conntrack_find_get(&init_net, &intuple);
-+	h = nf_conntrack_find_get(net, &intuple);
- 	if (!h) {
- 		pr_debug("icmpv6_error: no match\n");
- 		return -NF_ACCEPT;
-@@ -172,7 +173,7 @@ icmpv6_error_message(struct sk_buff *skb,
- }
- 
- static int
--icmpv6_error(struct sk_buff *skb, unsigned int dataoff,
-+icmpv6_error(struct net *net, struct sk_buff *skb, unsigned int dataoff,
- 	     enum ip_conntrack_info *ctinfo, u_int8_t pf, unsigned int hooknum)
- {
- 	const struct icmp6hdr *icmp6h;
-@@ -197,7 +198,7 @@ icmpv6_error(struct sk_buff *skb, unsigned int dataoff,
- 	if (icmp6h->icmp6_type >= 128)
- 		return NF_ACCEPT;
- 
--	return icmpv6_error_message(skb, dataoff, ctinfo, hooknum);
-+	return icmpv6_error_message(net, skb, dataoff, ctinfo, hooknum);
- }
- 
- #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 5c96d97..251f020 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -703,11 +703,13 @@ nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
- 	/* It may be an special packet, error, unclean...
- 	 * inverse of the return code tells to the netfilter
- 	 * core what to do with the packet. */
--	if (l4proto->error != NULL &&
--	    (ret = l4proto->error(skb, dataoff, &ctinfo, pf, hooknum)) <= 0) {
--		NF_CT_STAT_INC_ATOMIC(error);
--		NF_CT_STAT_INC_ATOMIC(invalid);
--		return -ret;
-+	if (l4proto->error != NULL) {
-+		ret = l4proto->error(net, skb, dataoff, &ctinfo, pf, hooknum);
-+		if (ret <= 0) {
-+			NF_CT_STAT_INC_ATOMIC(error);
-+			NF_CT_STAT_INC_ATOMIC(invalid);
-+			return -ret;
-+		}
+@@ -91,7 +91,7 @@ static int icmp_packet(struct nf_conn *ct,
+ 			nf_ct_kill_acct(ct, ctinfo, skb);
+ 	} else {
+ 		atomic_inc(&ct->proto.icmp.count);
+-		nf_conntrack_event_cache(IPCT_PROTOINFO_VOLATILE, skb);
++		nf_conntrack_event_cache(IPCT_PROTOINFO_VOLATILE, ct);
+ 		nf_ct_refresh_acct(ct, ctinfo, skb, nf_ct_icmp_timeout);
  	}
  
- 	ct = resolve_normal_ct(net, skb, dataoff, pf, protonum,
-diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
-index edc3035..6ead8da 100644
---- a/net/netfilter/nf_conntrack_proto_dccp.c
-+++ b/net/netfilter/nf_conntrack_proto_dccp.c
-@@ -545,9 +545,9 @@ static int dccp_packet(struct nf_conn *ct, const struct sk_buff *skb,
+diff --git a/net/ipv4/netfilter/nf_nat_helper.c b/net/ipv4/netfilter/nf_nat_helper.c
+index 112dcfa..cf7a42b 100644
+--- a/net/ipv4/netfilter/nf_nat_helper.c
++++ b/net/ipv4/netfilter/nf_nat_helper.c
+@@ -193,7 +193,7 @@ nf_nat_mangle_tcp_packet(struct sk_buff *skb,
+ 		nf_conntrack_tcp_update(skb, ip_hdrlen(skb),
+ 					ct, CTINFO2DIR(ctinfo));
+ 
+-		nf_conntrack_event_cache(IPCT_NATSEQADJ, skb);
++		nf_conntrack_event_cache(IPCT_NATSEQADJ, ct);
+ 	}
+ 	return 1;
+ }
+diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+index aabddfe..df04de9 100644
+--- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+@@ -93,7 +93,7 @@ static int icmpv6_packet(struct nf_conn *ct,
+ 			nf_ct_kill_acct(ct, ctinfo, skb);
+ 	} else {
+ 		atomic_inc(&ct->proto.icmp.count);
+-		nf_conntrack_event_cache(IPCT_PROTOINFO_VOLATILE, skb);
++		nf_conntrack_event_cache(IPCT_PROTOINFO_VOLATILE, ct);
+ 		nf_ct_refresh_acct(ct, ctinfo, skb, nf_ct_icmpv6_timeout);
+ 	}
+ 
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 251f020..01f59c5 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -370,14 +370,14 @@ __nf_conntrack_confirm(struct sk_buff *skb)
+ 	spin_unlock_bh(&nf_conntrack_lock);
+ 	help = nfct_help(ct);
+ 	if (help && help->helper)
+-		nf_conntrack_event_cache(IPCT_HELPER, skb);
++		nf_conntrack_event_cache(IPCT_HELPER, ct);
+ #ifdef CONFIG_NF_NAT_NEEDED
+ 	if (test_bit(IPS_SRC_NAT_DONE_BIT, &ct->status) ||
+ 	    test_bit(IPS_DST_NAT_DONE_BIT, &ct->status))
+-		nf_conntrack_event_cache(IPCT_NATINFO, skb);
++		nf_conntrack_event_cache(IPCT_NATINFO, ct);
+ #endif
+ 	nf_conntrack_event_cache(master_ct(ct) ?
+-				 IPCT_RELATED : IPCT_NEW, skb);
++				 IPCT_RELATED : IPCT_NEW, ct);
  	return NF_ACCEPT;
+ 
+ out:
+@@ -740,7 +740,7 @@ nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
+ 	}
+ 
+ 	if (set_reply && !test_and_set_bit(IPS_SEEN_REPLY_BIT, &ct->status))
+-		nf_conntrack_event_cache(IPCT_STATUS, skb);
++		nf_conntrack_event_cache(IPCT_STATUS, ct);
+ 
+ 	return ret;
+ }
+@@ -853,7 +853,7 @@ acct:
+ 
+ 	/* must be unlocked when calling event cache */
+ 	if (event)
+-		nf_conntrack_event_cache(event, skb);
++		nf_conntrack_event_cache(event, ct);
+ }
+ EXPORT_SYMBOL_GPL(__nf_ct_refresh_acct);
+ 
+diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
+index bb20672..4f71071 100644
+--- a/net/netfilter/nf_conntrack_ftp.c
++++ b/net/netfilter/nf_conntrack_ftp.c
+@@ -318,7 +318,8 @@ static int find_nl_seq(u32 seq, const struct nf_ct_ftp_master *info, int dir)
  }
  
--static int dccp_error(struct sk_buff *skb, unsigned int dataoff,
--		      enum ip_conntrack_info *ctinfo, u_int8_t pf,
--		      unsigned int hooknum)
-+static int dccp_error(struct net *net, struct sk_buff *skb,
-+		      unsigned int dataoff, enum ip_conntrack_info *ctinfo,
-+		      u_int8_t pf, unsigned int hooknum)
+ /* We don't update if it's older than what we have. */
+-static void update_nl_seq(u32 nl_seq, struct nf_ct_ftp_master *info, int dir,
++static void update_nl_seq(struct nf_conn *ct, u32 nl_seq,
++			  struct nf_ct_ftp_master *info, int dir,
+ 			  struct sk_buff *skb)
  {
- 	struct dccp_hdr _dh, *dh;
- 	unsigned int dccp_len = skb->len - dataoff;
+ 	unsigned int i, oldest = NUM_SEQ_TO_REMEMBER;
+@@ -336,11 +337,11 @@ static void update_nl_seq(u32 nl_seq, struct nf_ct_ftp_master *info, int dir,
+ 
+ 	if (info->seq_aft_nl_num[dir] < NUM_SEQ_TO_REMEMBER) {
+ 		info->seq_aft_nl[dir][info->seq_aft_nl_num[dir]++] = nl_seq;
+-		nf_conntrack_event_cache(IPCT_HELPINFO_VOLATILE, skb);
++		nf_conntrack_event_cache(IPCT_HELPINFO_VOLATILE, ct);
+ 	} else if (oldest != NUM_SEQ_TO_REMEMBER &&
+ 		   after(nl_seq, info->seq_aft_nl[dir][oldest])) {
+ 		info->seq_aft_nl[dir][oldest] = nl_seq;
+-		nf_conntrack_event_cache(IPCT_HELPINFO_VOLATILE, skb);
++		nf_conntrack_event_cache(IPCT_HELPINFO_VOLATILE, ct);
+ 	}
+ }
+ 
+@@ -509,7 +510,7 @@ out_update_nl:
+ 	/* Now if this ends in \n, update ftp info.  Seq may have been
+ 	 * adjusted by NAT code. */
+ 	if (ends_in_nl)
+-		update_nl_seq(seq, ct_ftp_info, dir, skb);
++		update_nl_seq(ct, seq, ct_ftp_info, dir, skb);
+  out:
+ 	spin_unlock_bh(&nf_ftp_lock);
+ 	return ret;
+diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
+index c5a7822..5b1273a 100644
+--- a/net/netfilter/nf_conntrack_proto_gre.c
++++ b/net/netfilter/nf_conntrack_proto_gre.c
+@@ -229,7 +229,7 @@ static int gre_packet(struct nf_conn *ct,
+ 				   ct->proto.gre.stream_timeout);
+ 		/* Also, more likely to be important, and not a probe. */
+ 		set_bit(IPS_ASSURED_BIT, &ct->status);
+-		nf_conntrack_event_cache(IPCT_STATUS, skb);
++		nf_conntrack_event_cache(IPCT_STATUS, ct);
+ 	} else
+ 		nf_ct_refresh_acct(ct, ctinfo, skb,
+ 				   ct->proto.gre.timeout);
+diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+index b5a9059..ae8c260 100644
+--- a/net/netfilter/nf_conntrack_proto_sctp.c
++++ b/net/netfilter/nf_conntrack_proto_sctp.c
+@@ -369,7 +369,7 @@ static int sctp_packet(struct nf_conn *ct,
+ 
+ 		ct->proto.sctp.state = new_state;
+ 		if (old_state != new_state)
+-			nf_conntrack_event_cache(IPCT_PROTOINFO, skb);
++			nf_conntrack_event_cache(IPCT_PROTOINFO, ct);
+ 	}
+ 	write_unlock_bh(&sctp_lock);
+ 
+@@ -380,7 +380,7 @@ static int sctp_packet(struct nf_conn *ct,
+ 	    new_state == SCTP_CONNTRACK_ESTABLISHED) {
+ 		pr_debug("Setting assured bit\n");
+ 		set_bit(IPS_ASSURED_BIT, &ct->status);
+-		nf_conntrack_event_cache(IPCT_STATUS, skb);
++		nf_conntrack_event_cache(IPCT_STATUS, ct);
+ 	}
+ 
+ 	return NF_ACCEPT;
 diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 539a820..4e71de2 100644
+index 4e71de2..b5d62d6 100644
 --- a/net/netfilter/nf_conntrack_proto_tcp.c
 +++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -746,7 +746,8 @@ static const u8 tcp_valid_flags[(TH_FIN|TH_SYN|TH_RST|TH_ACK|TH_URG) + 1] =
- };
+@@ -969,9 +969,9 @@ static int tcp_packet(struct nf_conn *ct,
+ 		timeout = tcp_timeouts[new_state];
+ 	write_unlock_bh(&tcp_lock);
  
- /* Protect conntrack agaist broken packets. Code taken from ipt_unclean.c.  */
--static int tcp_error(struct sk_buff *skb,
-+static int tcp_error(struct net *net,
-+		     struct sk_buff *skb,
- 		     unsigned int dataoff,
- 		     enum ip_conntrack_info *ctinfo,
- 		     u_int8_t pf,
+-	nf_conntrack_event_cache(IPCT_PROTOINFO_VOLATILE, skb);
++	nf_conntrack_event_cache(IPCT_PROTOINFO_VOLATILE, ct);
+ 	if (new_state != old_state)
+-		nf_conntrack_event_cache(IPCT_PROTOINFO, skb);
++		nf_conntrack_event_cache(IPCT_PROTOINFO, ct);
+ 
+ 	if (!test_bit(IPS_SEEN_REPLY_BIT, &ct->status)) {
+ 		/* If only reply is a RST, we can consider ourselves not to
+@@ -990,7 +990,7 @@ static int tcp_packet(struct nf_conn *ct,
+ 		   after SYN_RECV or a valid answer for a picked up
+ 		   connection. */
+ 		set_bit(IPS_ASSURED_BIT, &ct->status);
+-		nf_conntrack_event_cache(IPCT_STATUS, skb);
++		nf_conntrack_event_cache(IPCT_STATUS, ct);
+ 	}
+ 	nf_ct_refresh_acct(ct, ctinfo, skb, timeout);
+ 
 diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
-index 2a965c4..8a245be 100644
+index 8a245be..e0ee89e 100644
 --- a/net/netfilter/nf_conntrack_proto_udp.c
 +++ b/net/netfilter/nf_conntrack_proto_udp.c
-@@ -89,7 +89,7 @@ static bool udp_new(struct nf_conn *ct, const struct sk_buff *skb,
- 	return true;
- }
+@@ -75,7 +75,7 @@ static int udp_packet(struct nf_conn *ct,
+ 		nf_ct_refresh_acct(ct, ctinfo, skb, nf_ct_udp_timeout_stream);
+ 		/* Also, more likely to be important, and not a probe */
+ 		if (!test_and_set_bit(IPS_ASSURED_BIT, &ct->status))
+-			nf_conntrack_event_cache(IPCT_STATUS, skb);
++			nf_conntrack_event_cache(IPCT_STATUS, ct);
+ 	} else
+ 		nf_ct_refresh_acct(ct, ctinfo, skb, nf_ct_udp_timeout);
  
--static int udp_error(struct sk_buff *skb, unsigned int dataoff,
-+static int udp_error(struct net *net, struct sk_buff *skb, unsigned int dataoff,
- 		     enum ip_conntrack_info *ctinfo,
- 		     u_int8_t pf,
- 		     unsigned int hooknum)
 diff --git a/net/netfilter/nf_conntrack_proto_udplite.c b/net/netfilter/nf_conntrack_proto_udplite.c
-index 4fb6c8d..9817019 100644
+index 9817019..c5b77c8 100644
 --- a/net/netfilter/nf_conntrack_proto_udplite.c
 +++ b/net/netfilter/nf_conntrack_proto_udplite.c
-@@ -89,7 +89,9 @@ static bool udplite_new(struct nf_conn *ct, const struct sk_buff *skb,
- 	return true;
- }
+@@ -75,7 +75,7 @@ static int udplite_packet(struct nf_conn *ct,
+ 				   nf_ct_udplite_timeout_stream);
+ 		/* Also, more likely to be important, and not a probe */
+ 		if (!test_and_set_bit(IPS_ASSURED_BIT, &ct->status))
+-			nf_conntrack_event_cache(IPCT_STATUS, skb);
++			nf_conntrack_event_cache(IPCT_STATUS, ct);
+ 	} else
+ 		nf_ct_refresh_acct(ct, ctinfo, skb, nf_ct_udplite_timeout);
  
--static int udplite_error(struct sk_buff *skb, unsigned int dataoff,
-+static int udplite_error(struct net *net,
-+			 struct sk_buff *skb,
-+			 unsigned int dataoff,
- 			 enum ip_conntrack_info *ctinfo,
- 			 u_int8_t pf,
- 			 unsigned int hooknum)
+diff --git a/net/netfilter/xt_CONNMARK.c b/net/netfilter/xt_CONNMARK.c
+index e72e5d0..e1415c3 100644
+--- a/net/netfilter/xt_CONNMARK.c
++++ b/net/netfilter/xt_CONNMARK.c
+@@ -54,7 +54,7 @@ connmark_tg_v0(struct sk_buff *skb, const struct net_device *in,
+ 			newmark = (ct->mark & ~markinfo->mask) | markinfo->mark;
+ 			if (newmark != ct->mark) {
+ 				ct->mark = newmark;
+-				nf_conntrack_event_cache(IPCT_MARK, skb);
++				nf_conntrack_event_cache(IPCT_MARK, ct);
+ 			}
+ 			break;
+ 		case XT_CONNMARK_SAVE:
+@@ -62,7 +62,7 @@ connmark_tg_v0(struct sk_buff *skb, const struct net_device *in,
+ 				  (skb->mark & markinfo->mask);
+ 			if (ct->mark != newmark) {
+ 				ct->mark = newmark;
+-				nf_conntrack_event_cache(IPCT_MARK, skb);
++				nf_conntrack_event_cache(IPCT_MARK, ct);
+ 			}
+ 			break;
+ 		case XT_CONNMARK_RESTORE:
+@@ -95,7 +95,7 @@ connmark_tg(struct sk_buff *skb, const struct net_device *in,
+ 		newmark = (ct->mark & ~info->ctmask) ^ info->ctmark;
+ 		if (ct->mark != newmark) {
+ 			ct->mark = newmark;
+-			nf_conntrack_event_cache(IPCT_MARK, skb);
++			nf_conntrack_event_cache(IPCT_MARK, ct);
+ 		}
+ 		break;
+ 	case XT_CONNMARK_SAVE:
+@@ -103,7 +103,7 @@ connmark_tg(struct sk_buff *skb, const struct net_device *in,
+ 		          (skb->mark & info->nfmask);
+ 		if (ct->mark != newmark) {
+ 			ct->mark = newmark;
+-			nf_conntrack_event_cache(IPCT_MARK, skb);
++			nf_conntrack_event_cache(IPCT_MARK, ct);
+ 		}
+ 		break;
+ 	case XT_CONNMARK_RESTORE:
+diff --git a/net/netfilter/xt_CONNSECMARK.c b/net/netfilter/xt_CONNSECMARK.c
+index ae939e5..5f221c3 100644
+--- a/net/netfilter/xt_CONNSECMARK.c
++++ b/net/netfilter/xt_CONNSECMARK.c
+@@ -43,7 +43,7 @@ static void secmark_save(const struct sk_buff *skb)
+ 		ct = nf_ct_get(skb, &ctinfo);
+ 		if (ct && !ct->secmark) {
+ 			ct->secmark = skb->secmark;
+-			nf_conntrack_event_cache(IPCT_SECMARK, skb);
++			nf_conntrack_event_cache(IPCT_SECMARK, ct);
+ 		}
+ 	}
+ }
