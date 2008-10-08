@@ -1,55 +1,83 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Expectation not quite up to where I want it
-Date: Wed, 08 Oct 2008 15:07:26 +0200
-Message-ID: <48ECB08E.5070909@trash.net>
-References: <alpine.LNX.1.10.0810041816150.21891@fbirervta.pbzchgretzou.qr>
+From: Eric Leblond <eric@inl.fr>
+Subject: Re: [PATCH] Don't call nf_log_packet in NFLOG module.
+Date: Wed, 8 Oct 2008 16:15:23 +0200
+Message-ID: <20081008141523.GN7518@khasse.inl.fr>
+References: <1223322024-20336-1-git-send-email-eric@inl.fr> <48ECAF7E.30502@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="mvpLiMfbWzRoNl4x"
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:49826 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750753AbYJHNH2 (ORCPT
+Received: from 141-53.206-83.static-ip.oleane.fr ([83.206.53.141]:53995 "EHLO
+	fydelkass.inl.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753381AbYJHPGR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Oct 2008 09:07:28 -0400
-In-Reply-To: <alpine.LNX.1.10.0810041816150.21891@fbirervta.pbzchgretzou.qr>
+	Wed, 8 Oct 2008 11:06:17 -0400
+Content-Disposition: inline
+In-Reply-To: <48ECAF7E.30502@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
->=20
-> I am not quite sure whether it is possible to even set up an
-> expectation when ctstate(ct) =3D=3D IP_CT_NEW, is it?=20
 
-It is - TFTP, SIP and netbios_ns are doing this.
+--mvpLiMfbWzRoNl4x
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> Fact is, this piece
-> of code segfaults on me right away in nf_ct_expect_related(),
-> possibly because exp->master or so is NULL, causing bad things when
-> issuing nfct_help(exp->master) in nf_ct_expect_related.
-> Any hints?
->=20
->     =E2=86=92   nf_ct_expect_init(exp, NF_CT_EXPECT_CLASS_DEFAULT, PF=
-_INET6,=20
->     =E2=86=92       =E2=86=92   (const union nf_inet_addr *)&iph->dad=
-dr,=20
->     =E2=86=92       =E2=86=92   (const union nf_inet_addr *)&iph->sad=
-dr,=20
->     =E2=86=92       =E2=86=92   IPPROTO_MH, NULL, &man);=20
->     =E2=86=92   printk(KERN_INFO "expectation set up\n");=20
->     =E2=86=92   nf_ct_dump_tuple(&exp->tuple);=20
->     =E2=86=92   if (nf_ct_expect_related(exp) !=3D 0)=20
->     =E2=86=92       =E2=86=92   printk(KERN_INFO "hm\n");=20
->     =E2=86=92   nf_ct_expect_put(exp); /* yes no ? /=20
+Hi,
 
-                                     ^ yes
+On Wednesday, 2008 October  8 at 15:02:54 +0200, Patrick McHardy wrote:
+> Eric Leblond wrote:
+>> This patch modifies xt_NFLOG to suppress the call to nf_log_packet()
+>> function. The call of this wrapper in xt_NFLOG was causing NFLOG to
+>> use the first initialized module. Thus, if ipt_ULOG is loaded before
+>> nfnetlink_log all NFLOG rules are treated as plain LOG rules.
+>
+> Oops, this slipped through somehow. It has been an intentional
+> decision to use the registered logging backends though, just changing
+> it to unconditionally use nfnetlink_log only solves the problem
+> partially.
 
-The part above is correct, the bug must be elsewhere.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hmm, looks like my explanation is not correct. This patch fixes the
+following bug :
+
+modprobe ipt_LOG
+modprobe nfnetlink_log
+iptables -A OUTPUT -j NFLOG
+Then : logged packet are treated as packet reaching the LOG target.
+
+> The main problem is that the policy which backend to use is defined
+> by module load order, which is obviously a pretty bad idea. This does
+> not only affect xt_NFLOG, but also internal conntrack logging and
+> anything else we might want to use this for in the future.
+>
+> So I think what we should do instead is introduce a proper way to
+> select among the logging backends. We could introduce a global
+> policy, or split by subsystem, which would currently be just
+> "conntrack" and "NFLOG".
+
+Yes, I currently working on doing that. I plan to send it in an other
+patch. I've send the following patch alone to fix this weird NFLOG
+target working as LOG target problem.
+
+BR,
+--=20
+Eric Leblond
+INL: http://www.inl.fr/
+NuFW: http://www.nufw.org/
+
+--mvpLiMfbWzRoNl4x
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+Content-Disposition: inline
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAkjswHoACgkQnxA7CdMWjzKHLQCeP0KF9Yo4xCN4NMkaAL8+kNpL
+vmIAoJEbdEn6w3NwuXQdkYXI3oIulZyk
+=FlEZ
+-----END PGP SIGNATURE-----
+
+--mvpLiMfbWzRoNl4x--
