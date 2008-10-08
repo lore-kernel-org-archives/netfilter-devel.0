@@ -1,83 +1,33 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: Re: [PATCH] Don't call nf_log_packet in NFLOG module.
-Date: Wed, 8 Oct 2008 16:15:23 +0200
-Message-ID: <20081008141523.GN7518@khasse.inl.fr>
-References: <1223322024-20336-1-git-send-email-eric@inl.fr> <48ECAF7E.30502@trash.net>
+From: David Miller <davem@davemloft.net>
+Subject: Re: netfilter 00/79: netfilter update
+Date: Wed, 08 Oct 2008 10:29:21 -0700 (PDT)
+Message-ID: <20081008.102921.195304090.davem@davemloft.net>
+References: <20081008104621.10423.12648.sendpatchset@x2.localnet>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="mvpLiMfbWzRoNl4x"
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 141-53.206-83.static-ip.oleane.fr ([83.206.53.141]:53995 "EHLO
-	fydelkass.inl.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753381AbYJHPGR (ORCPT
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:42220
+	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1754135AbYJHR3p (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Oct 2008 11:06:17 -0400
-Content-Disposition: inline
-In-Reply-To: <48ECAF7E.30502@trash.net>
+	Wed, 8 Oct 2008 13:29:45 -0400
+In-Reply-To: <20081008104621.10423.12648.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+From: Patrick McHardy <kaber@trash.net>
+Date: Wed,  8 Oct 2008 12:46:21 +0200 (MEST)
 
---mvpLiMfbWzRoNl4x
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> following is my netfilter update for 2.6.28, containing:
+ ...
+> These patches are also available in a git-tree at, based on the latest
+> net-next-2.6.git tree:
+> 
+>  git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git
+> 
+> Please apply or pull, thanks.
 
-Hi,
-
-On Wednesday, 2008 October  8 at 15:02:54 +0200, Patrick McHardy wrote:
-> Eric Leblond wrote:
->> This patch modifies xt_NFLOG to suppress the call to nf_log_packet()
->> function. The call of this wrapper in xt_NFLOG was causing NFLOG to
->> use the first initialized module. Thus, if ipt_ULOG is loaded before
->> nfnetlink_log all NFLOG rules are treated as plain LOG rules.
->
-> Oops, this slipped through somehow. It has been an intentional
-> decision to use the registered logging backends though, just changing
-> it to unconditionally use nfnetlink_log only solves the problem
-> partially.
-
-Hmm, looks like my explanation is not correct. This patch fixes the
-following bug :
-
-modprobe ipt_LOG
-modprobe nfnetlink_log
-iptables -A OUTPUT -j NFLOG
-Then : logged packet are treated as packet reaching the LOG target.
-
-> The main problem is that the policy which backend to use is defined
-> by module load order, which is obviously a pretty bad idea. This does
-> not only affect xt_NFLOG, but also internal conntrack logging and
-> anything else we might want to use this for in the future.
->
-> So I think what we should do instead is introduce a proper way to
-> select among the logging backends. We could introduce a global
-> policy, or split by subsystem, which would currently be just
-> "conntrack" and "NFLOG".
-
-Yes, I currently working on doing that. I plan to send it in an other
-patch. I've send the following patch alone to fix this weird NFLOG
-target working as LOG target problem.
-
-BR,
---=20
-Eric Leblond
-INL: http://www.inl.fr/
-NuFW: http://www.nufw.org/
-
---mvpLiMfbWzRoNl4x
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAkjswHoACgkQnxA7CdMWjzKHLQCeP0KF9Yo4xCN4NMkaAL8+kNpL
-vmIAoJEbdEn6w3NwuXQdkYXI3oIulZyk
-=FlEZ
------END PGP SIGNATURE-----
-
---mvpLiMfbWzRoNl4x--
+Looks good, pulled and pushed back out to net-next-2.6, thanks!
