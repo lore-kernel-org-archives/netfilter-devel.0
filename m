@@ -1,39 +1,32 @@
-From: Philip Craig <philipc@snapgear.com>
-Subject: Re: [net-next PATCH 16/16] Add documentation
-Date: Wed, 08 Oct 2008 10:32:22 +1000
-Message-ID: <48EBFF96.8020305@snapgear.com>
-References: <20081001142431.4893.48078.stgit@este> <20081001142431.4893.5367.stgit@este> <alpine.LNX.1.10.0810030949300.3893@fbirervta.pbzchgretzou.qr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: TEE for IPv6
+Date: Tue, 7 Oct 2008 21:09:06 -0400 (EDT)
+Message-ID: <alpine.LNX.1.10.0810072057470.5686@fbirervta.pbzchgretzou.qr>
+References: <48D93817.40909@critical.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: KOVACS Krisztian <hidden@sch.bme.hu>,
-	David Miller <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <alpine.LNX.1.10.0810030949300.3893@fbirervta.pbzchgretzou.qr>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: sebastian.classen@freenet.ag,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Mike Wileczka <mike.wileczka@critical.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:60589 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752788AbYJHBJJ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 7 Oct 2008 21:09:09 -0400
+In-Reply-To: <48D93817.40909@critical.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
->> +2. Redirecting traffic
->> +======================
->> +
->> +Transparent proxying often involves "intercepting" traffic on a router. This is
->> +usually done with the iptables REDIRECT target, however, there are serious
->> +limitations of that method. One of the major issues is that it actually
->> +modifies the packets to change the destination address -- which might not be
->> +acceptable in certain situations. (Think of proxying UDP for example: you won't
->> +be able to find out the original destination address. Even in case of TCP
->> +getting the original destination address is racy.)
-> 
-> IIRC, you _can_ find out, though I agree it's rather a hack (with 
-> tproxy, you can just use the address as received via recvmsg):
-> 
-> 	getsockopt(fd, SOL_IP, SO_ORIGINAL_DST, &sockaddr, &sizeptr);
 
-Yes, but the problem is that SO_ORIGINAL_DST is only implemented for TCP.
-And I guess that the race for TCP is that the conntrack may not exist when you
-call getsockopt() (not sure that is something you'll hit in practice though).
+On Tuesday 2008-09-23 14:40, Mike Wileczka wrote:
 
+> Hello, It appears that the TEE target is not supported under IPv6. 
+> Is that true?  Is there any quick way to get it working?
+
+It is true that there is currently no code for handling IPv6.
+
+There might be a quick way, but I do not know what functions to
+use. There are so many related to routing.
+ip6_dst_lookup or ip6_route_output, to be or not to be, etc.
