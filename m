@@ -1,240 +1,113 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 27/79: netns nf_conntrack: per-netns event cache
-Date: Wed,  8 Oct 2008 12:46:57 +0200 (MEST)
-Message-ID: <20081008104657.10423.95156.sendpatchset@x2.localnet>
+Subject: netfilter 21/79: netns nf_conntrack: per-netns /proc/net/nf_conntrack_expect
+Date: Wed,  8 Oct 2008 12:46:49 +0200 (MEST)
+Message-ID: <20081008104649.10423.23687.sendpatchset@x2.localnet>
 References: <20081008104621.10423.12648.sendpatchset@x2.localnet>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45939 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:45917 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754551AbYJHKq7 (ORCPT
+	with ESMTP id S1754517AbYJHKqv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Oct 2008 06:46:59 -0400
+	Wed, 8 Oct 2008 06:46:51 -0400
 In-Reply-To: <20081008104621.10423.12648.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 6058fa6bb96a5b6145cba10c5171f09c2783ca69
+commit dc5129f8df7cc3f2f04b322728d71c42795d34cc
 Author: Alexey Dobriyan <adobriyan@gmail.com>
-Date:   Wed Oct 8 11:35:07 2008 +0200
+Date:   Wed Oct 8 11:35:06 2008 +0200
 
-    netfilter: netns nf_conntrack: per-netns event cache
-    
-    Heh, last minute proof-reading of this patch made me think,
-    that this is actually unneeded, simply because "ct" pointers will be
-    different for different conntracks in different netns, just like they
-    are different in one netns.
-    
-    Not so sure anymore.
-    
-    [Patrick: pointers will be different, flushing can only be done while
-     inactive though and thus it needs to be per netns]
+    netfilter: netns nf_conntrack: per-netns /proc/net/nf_conntrack_expect
     
     Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
     Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-diff --git a/include/net/netfilter/nf_conntrack_ecache.h b/include/net/netfilter/nf_conntrack_ecache.h
-index c1b406c..35f814c 100644
---- a/include/net/netfilter/nf_conntrack_ecache.h
-+++ b/include/net/netfilter/nf_conntrack_ecache.h
-@@ -8,6 +8,7 @@
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index 5307316..6a09200 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -423,12 +423,13 @@ EXPORT_SYMBOL_GPL(nf_ct_expect_related);
  
- #include <linux/notifier.h>
- #include <linux/interrupt.h>
-+#include <net/net_namespace.h>
- #include <net/netfilter/nf_conntrack_expect.h>
- 
- #ifdef CONFIG_NF_CONNTRACK_EVENTS
-@@ -15,9 +16,6 @@ struct nf_conntrack_ecache {
- 	struct nf_conn *ct;
- 	unsigned int events;
+ #ifdef CONFIG_PROC_FS
+ struct ct_expect_iter_state {
++	struct seq_net_private p;
+ 	unsigned int bucket;
  };
--DECLARE_PER_CPU(struct nf_conntrack_ecache, nf_conntrack_ecache);
--
--#define CONNTRACK_ECACHE(x)	(__get_cpu_var(nf_conntrack_ecache).x)
  
- extern struct atomic_notifier_head nf_conntrack_chain;
- extern int nf_conntrack_register_notifier(struct notifier_block *nb);
-@@ -25,15 +23,16 @@ extern int nf_conntrack_unregister_notifier(struct notifier_block *nb);
- 
- extern void nf_ct_deliver_cached_events(const struct nf_conn *ct);
- extern void __nf_ct_event_cache_init(struct nf_conn *ct);
--extern void nf_ct_event_cache_flush(void);
-+extern void nf_ct_event_cache_flush(struct net *net);
- 
- static inline void
- nf_conntrack_event_cache(enum ip_conntrack_events event, struct nf_conn *ct)
+ static struct hlist_node *ct_expect_get_first(struct seq_file *seq)
  {
-+	struct net *net = nf_ct_net(ct);
- 	struct nf_conntrack_ecache *ecache;
+-	struct net *net = &init_net;
++	struct net *net = seq_file_net(seq);
+ 	struct ct_expect_iter_state *st = seq->private;
+ 	struct hlist_node *n;
  
- 	local_bh_disable();
--	ecache = &__get_cpu_var(nf_conntrack_ecache);
-+	ecache = per_cpu_ptr(net->ct.ecache, raw_smp_processor_id());
- 	if (ct != ecache->ct)
- 		__nf_ct_event_cache_init(ct);
- 	ecache->events |= event;
-@@ -58,6 +57,9 @@ nf_ct_expect_event(enum ip_conntrack_expect_events event,
- 	atomic_notifier_call_chain(&nf_ct_expect_chain, event, exp);
+@@ -443,7 +444,7 @@ static struct hlist_node *ct_expect_get_first(struct seq_file *seq)
+ static struct hlist_node *ct_expect_get_next(struct seq_file *seq,
+ 					     struct hlist_node *head)
+ {
+-	struct net *net = &init_net;
++	struct net *net = seq_file_net(seq);
+ 	struct ct_expect_iter_state *st = seq->private;
+ 
+ 	head = rcu_dereference(head->next);
+@@ -524,7 +525,7 @@ static const struct seq_operations exp_seq_ops = {
+ 
+ static int exp_open(struct inode *inode, struct file *file)
+ {
+-	return seq_open_private(file, &exp_seq_ops,
++	return seq_open_net(inode, file, &exp_seq_ops,
+ 			sizeof(struct ct_expect_iter_state));
  }
  
-+extern int nf_conntrack_ecache_init(struct net *net);
-+extern void nf_conntrack_ecache_fini(struct net *net);
-+
- #else /* CONFIG_NF_CONNTRACK_EVENTS */
- 
- static inline void nf_conntrack_event_cache(enum ip_conntrack_events event,
-@@ -67,7 +69,15 @@ static inline void nf_conntrack_event(enum ip_conntrack_events event,
- static inline void nf_ct_deliver_cached_events(const struct nf_conn *ct) {}
- static inline void nf_ct_expect_event(enum ip_conntrack_expect_events event,
- 				      struct nf_conntrack_expect *exp) {}
--static inline void nf_ct_event_cache_flush(void) {}
-+static inline void nf_ct_event_cache_flush(struct net *net) {}
-+
-+static inline int nf_conntrack_ecache_init(struct net *net)
-+{
-+	return 0;
-+
-+static inline void nf_conntrack_ecache_fini(struct net *net)
-+{
-+}
- #endif /* CONFIG_NF_CONNTRACK_EVENTS */
- 
- #endif /*_NF_CONNTRACK_ECACHE_H*/
-diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
-index 6ddf58e..9d5c162 100644
---- a/include/net/netns/conntrack.h
-+++ b/include/net/netns/conntrack.h
-@@ -4,12 +4,17 @@
- #include <linux/list.h>
- #include <asm/atomic.h>
- 
-+struct nf_conntrack_ecache;
-+
- struct netns_ct {
- 	atomic_t		count;
- 	unsigned int		expect_count;
- 	struct hlist_head	*hash;
- 	struct hlist_head	*expect_hash;
- 	struct hlist_head	unconfirmed;
-+#ifdef CONFIG_NF_CONNTRACK_EVENTS
-+	struct nf_conntrack_ecache *ecache;
-+#endif
- 	int			hash_vmalloc;
- 	int			expect_vmalloc;
+@@ -533,26 +534,26 @@ static const struct file_operations exp_file_ops = {
+ 	.open    = exp_open,
+ 	.read    = seq_read,
+ 	.llseek  = seq_lseek,
+-	.release = seq_release_private,
++	.release = seq_release_net,
  };
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 01f59c5..b55944e 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1023,7 +1023,8 @@ void nf_conntrack_cleanup(struct net *net)
- 	   delete... */
- 	synchronize_net();
+ #endif /* CONFIG_PROC_FS */
  
--	nf_ct_event_cache_flush();
-+	nf_ct_event_cache_flush(net);
-+	nf_conntrack_ecache_fini(net);
-  i_see_dead_people:
- 	nf_conntrack_flush(net);
- 	if (atomic_read(&net->ct.count) != 0) {
-@@ -1151,11 +1152,14 @@ int nf_conntrack_init(struct net *net)
- 		max_factor = 4;
- 	}
- 	atomic_set(&net->ct.count, 0);
-+	ret = nf_conntrack_ecache_init(net);
-+	if (ret < 0)
-+		goto err_ecache;
- 	net->ct.hash = nf_ct_alloc_hashtable(&nf_conntrack_htable_size,
- 						  &net->ct.hash_vmalloc);
- 	if (!net->ct.hash) {
- 		printk(KERN_ERR "Unable to create nf_conntrack_hash\n");
--		goto err_out;
-+		goto err_hash;
- 	}
- 	INIT_HLIST_HEAD(&net->ct.unconfirmed);
- 
-@@ -1215,6 +1219,8 @@ err_free_conntrack_slab:
- err_free_hash:
- 	nf_ct_free_hashtable(net->ct.hash, net->ct.hash_vmalloc,
- 			     nf_conntrack_htable_size);
--err_out:
-+err_hash:
-+	nf_conntrack_ecache_fini(net);
-+err_ecache:
- 	return -ENOMEM;
- }
-diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
-index 83c41ac..a5f5e2e 100644
---- a/net/netfilter/nf_conntrack_ecache.c
-+++ b/net/netfilter/nf_conntrack_ecache.c
-@@ -29,9 +29,6 @@ EXPORT_SYMBOL_GPL(nf_conntrack_chain);
- ATOMIC_NOTIFIER_HEAD(nf_ct_expect_chain);
- EXPORT_SYMBOL_GPL(nf_ct_expect_chain);
- 
--DEFINE_PER_CPU(struct nf_conntrack_ecache, nf_conntrack_ecache);
--EXPORT_PER_CPU_SYMBOL_GPL(nf_conntrack_ecache);
--
- /* deliver cached events and clear cache entry - must be called with locally
-  * disabled softirqs */
- static inline void
-@@ -51,10 +48,11 @@ __nf_ct_deliver_cached_events(struct nf_conntrack_ecache *ecache)
-  * by code prior to async packet handling for freeing the skb */
- void nf_ct_deliver_cached_events(const struct nf_conn *ct)
+-static int exp_proc_init(void)
++static int exp_proc_init(struct net *net)
  {
-+	struct net *net = nf_ct_net(ct);
- 	struct nf_conntrack_ecache *ecache;
+ #ifdef CONFIG_PROC_FS
+ 	struct proc_dir_entry *proc;
  
- 	local_bh_disable();
--	ecache = &__get_cpu_var(nf_conntrack_ecache);
-+	ecache = per_cpu_ptr(net->ct.ecache, raw_smp_processor_id());
- 	if (ecache->ct == ct)
- 		__nf_ct_deliver_cached_events(ecache);
- 	local_bh_enable();
-@@ -64,10 +62,11 @@ EXPORT_SYMBOL_GPL(nf_ct_deliver_cached_events);
- /* Deliver cached events for old pending events, if current conntrack != old */
- void __nf_ct_event_cache_init(struct nf_conn *ct)
- {
-+	struct net *net = nf_ct_net(ct);
- 	struct nf_conntrack_ecache *ecache;
- 
- 	/* take care of delivering potentially old events */
--	ecache = &__get_cpu_var(nf_conntrack_ecache);
-+	ecache = per_cpu_ptr(net->ct.ecache, raw_smp_processor_id());
- 	BUG_ON(ecache->ct == ct);
- 	if (ecache->ct)
- 		__nf_ct_deliver_cached_events(ecache);
-@@ -79,18 +78,31 @@ EXPORT_SYMBOL_GPL(__nf_ct_event_cache_init);
- 
- /* flush the event cache - touches other CPU's data and must not be called
-  * while packets are still passing through the code */
--void nf_ct_event_cache_flush(void)
-+void nf_ct_event_cache_flush(struct net *net)
- {
- 	struct nf_conntrack_ecache *ecache;
- 	int cpu;
- 
- 	for_each_possible_cpu(cpu) {
--		ecache = &per_cpu(nf_conntrack_ecache, cpu);
-+		ecache = per_cpu_ptr(net->ct.ecache, cpu);
- 		if (ecache->ct)
- 			nf_ct_put(ecache->ct);
- 	}
+-	proc = proc_net_fops_create(&init_net, "nf_conntrack_expect", 0440, &exp_file_ops);
++	proc = proc_net_fops_create(net, "nf_conntrack_expect", 0440, &exp_file_ops);
+ 	if (!proc)
+ 		return -ENOMEM;
+ #endif /* CONFIG_PROC_FS */
+ 	return 0;
  }
  
-+int nf_conntrack_ecache_init(struct net *net)
-+{
-+	net->ct.ecache = alloc_percpu(struct nf_conntrack_ecache);
-+	if (!net->ct.ecache)
-+		return -ENOMEM;
-+	return 0;
-+}
-+
-+void nf_conntrack_ecache_fini(struct net *net)
-+{
-+	free_percpu(net->ct.ecache);
-+}
-+
- int nf_conntrack_register_notifier(struct notifier_block *nb)
+-static void exp_proc_remove(void)
++static void exp_proc_remove(struct net *net)
  {
- 	return atomic_notifier_chain_register(&nf_conntrack_chain, nb);
+ #ifdef CONFIG_PROC_FS
+-	proc_net_remove(&init_net, "nf_conntrack_expect");
++	proc_net_remove(net, "nf_conntrack_expect");
+ #endif /* CONFIG_PROC_FS */
+ }
+ 
+@@ -581,7 +582,7 @@ int nf_conntrack_expect_init(struct net *net)
+ 	if (!nf_ct_expect_cachep)
+ 		goto err2;
+ 
+-	err = exp_proc_init();
++	err = exp_proc_init(net);
+ 	if (err < 0)
+ 		goto err3;
+ 
+@@ -598,7 +599,7 @@ err1:
+ 
+ void nf_conntrack_expect_fini(struct net *net)
+ {
+-	exp_proc_remove();
++	exp_proc_remove(net);
+ 	kmem_cache_destroy(nf_ct_expect_cachep);
+ 	nf_ct_free_hashtable(net->ct.expect_hash, net->ct.expect_vmalloc,
+ 			     nf_ct_expect_hsize);
