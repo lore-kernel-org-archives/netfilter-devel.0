@@ -1,1137 +1,1202 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 01/79: Use unsigned types for hooknum and pf vars
-Date: Wed,  8 Oct 2008 12:46:22 +0200 (MEST)
-Message-ID: <20081008104622.10423.97663.sendpatchset@x2.localnet>
+Subject: netfilter 02/79: rename ipt_recent to xt_recent
+Date: Wed,  8 Oct 2008 12:46:23 +0200 (MEST)
+Message-ID: <20081008104623.10423.53698.sendpatchset@x2.localnet>
 References: <20081008104621.10423.12648.sendpatchset@x2.localnet>
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45851 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:45854 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753769AbYJHKqY (ORCPT
+	with ESMTP id S1753795AbYJHKqZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Oct 2008 06:46:24 -0400
+	Wed, 8 Oct 2008 06:46:25 -0400
 In-Reply-To: <20081008104621.10423.12648.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 76108cea065cda58366d16a7eb6ca90d717a1396
-Author: Jan Engelhardt <jengelh@medozas.de>
+commit e948b20a71a06a740c925d6ea22b59b4e17cfa0c
+Author: Jan Engelhardt <jengelh@computergmbh.de>
 Date:   Wed Oct 8 11:35:00 2008 +0200
 
-    netfilter: Use unsigned types for hooknum and pf vars
+    netfilter: rename ipt_recent to xt_recent
     
-    and (try to) consistently use u_int8_t for the L3 family.
+    Like with other modules (such as ipt_state), ipt_recent.h is changed
+    to forward definitions to (IOW include) xt_recent.h, and xt_recent.c
+    is changed to use the new constant names.
     
     Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
     Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
-index 0c5eb7e..8c83d2e 100644
---- a/include/linux/netfilter.h
-+++ b/include/linux/netfilter.h
-@@ -92,8 +92,8 @@ struct nf_hook_ops
- 	/* User fills in from here down. */
- 	nf_hookfn *hook;
- 	struct module *owner;
--	int pf;
--	int hooknum;
-+	u_int8_t pf;
-+	unsigned int hooknum;
- 	/* Hooks are ordered in ascending priority. */
- 	int priority;
+diff --git a/include/linux/netfilter/Kbuild b/include/linux/netfilter/Kbuild
+index 3aff513..5a8af87 100644
+--- a/include/linux/netfilter/Kbuild
++++ b/include/linux/netfilter/Kbuild
+@@ -32,6 +32,7 @@ header-y += xt_owner.h
+ header-y += xt_pkttype.h
+ header-y += xt_rateest.h
+ header-y += xt_realm.h
++header-y += xt_recent.h
+ header-y += xt_sctp.h
+ header-y += xt_state.h
+ header-y += xt_statistic.h
+diff --git a/include/linux/netfilter/xt_recent.h b/include/linux/netfilter/xt_recent.h
+new file mode 100644
+index 0000000..5cfeb81
+--- /dev/null
++++ b/include/linux/netfilter/xt_recent.h
+@@ -0,0 +1,26 @@
++#ifndef _LINUX_NETFILTER_XT_RECENT_H
++#define _LINUX_NETFILTER_XT_RECENT_H 1
++
++enum {
++	XT_RECENT_CHECK    = 1 << 0,
++	XT_RECENT_SET      = 1 << 1,
++	XT_RECENT_UPDATE   = 1 << 2,
++	XT_RECENT_REMOVE   = 1 << 3,
++	XT_RECENT_TTL      = 1 << 4,
++
++	XT_RECENT_SOURCE   = 0,
++	XT_RECENT_DEST     = 1,
++
++	XT_RECENT_NAME_LEN = 200,
++};
++
++struct xt_recent_mtinfo {
++	u_int32_t seconds;
++	u_int32_t hit_count;
++	u_int8_t check_set;
++	u_int8_t invert;
++	char name[XT_RECENT_NAME_LEN];
++	u_int8_t side;
++};
++
++#endif /* _LINUX_NETFILTER_XT_RECENT_H */
+diff --git a/include/linux/netfilter_ipv4/ipt_recent.h b/include/linux/netfilter_ipv4/ipt_recent.h
+index 6508a45..d636cca 100644
+--- a/include/linux/netfilter_ipv4/ipt_recent.h
++++ b/include/linux/netfilter_ipv4/ipt_recent.h
+@@ -1,27 +1,21 @@
+ #ifndef _IPT_RECENT_H
+ #define _IPT_RECENT_H
+ 
+-#define RECENT_NAME	"ipt_recent"
+-#define RECENT_VER	"v0.3.1"
++#include <linux/netfilter/xt_recent.h>
+ 
+-#define IPT_RECENT_CHECK  1
+-#define IPT_RECENT_SET    2
+-#define IPT_RECENT_UPDATE 4
+-#define IPT_RECENT_REMOVE 8
+-#define IPT_RECENT_TTL   16
++#define ipt_recent_info xt_recent_mtinfo
+ 
+-#define IPT_RECENT_SOURCE 0
+-#define IPT_RECENT_DEST   1
++enum {
++	IPT_RECENT_CHECK    = XT_RECENT_CHECK,
++	IPT_RECENT_SET      = XT_RECENT_SET,
++	IPT_RECENT_UPDATE   = XT_RECENT_UPDATE,
++	IPT_RECENT_REMOVE   = XT_RECENT_REMOVE,
++	IPT_RECENT_TTL      = XT_RECENT_TTL,
+ 
+-#define IPT_RECENT_NAME_LEN 200
++	IPT_RECENT_SOURCE   = XT_RECENT_SOURCE,
++	IPT_RECENT_DEST     = XT_RECENT_DEST,
+ 
+-struct ipt_recent_info {
+-	u_int32_t   seconds;
+-	u_int32_t   hit_count;
+-	u_int8_t    check_set;
+-	u_int8_t    invert;
+-	char        name[IPT_RECENT_NAME_LEN];
+-	u_int8_t    side;
++	IPT_RECENT_NAME_LEN = XT_RECENT_NAME_LEN,
  };
-@@ -102,7 +102,7 @@ struct nf_sockopt_ops
- {
- 	struct list_head list;
  
--	int pf;
-+	u_int8_t pf;
+ #endif /*_IPT_RECENT_H*/
+diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
+index 90eb7cb..4e842d5 100644
+--- a/net/ipv4/netfilter/Kconfig
++++ b/net/ipv4/netfilter/Kconfig
+@@ -57,19 +57,6 @@ config IP_NF_IPTABLES
+ 	  To compile it as a module, choose M here.  If unsure, say N.
  
- 	/* Non-inclusive ranges: use 0/0/NULL to never get called. */
- 	int set_optmin;
-@@ -140,7 +140,7 @@ extern struct ctl_path nf_net_ipv4_netfilter_sysctl_path[];
+ # The matches.
+-config IP_NF_MATCH_RECENT
+-	tristate '"recent" match support'
+-	depends on IP_NF_IPTABLES
+-	depends on NETFILTER_ADVANCED
+-	help
+-	  This match is used for creating one or many lists of recently
+-	  used addresses and then matching against that/those list(s).
+-
+-	  Short options are available by using 'iptables -m recent -h'
+-	  Official Website: <http://snowman.net/projects/ipt_recent/>
+-
+-	  To compile it as a module, choose M here.  If unsure, say N.
+-
+ config IP_NF_MATCH_ECN
+ 	tristate '"ecn" match support'
+ 	depends on IP_NF_IPTABLES
+diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
+index 3f31291..1107edb 100644
+--- a/net/ipv4/netfilter/Makefile
++++ b/net/ipv4/netfilter/Makefile
+@@ -48,7 +48,6 @@ obj-$(CONFIG_IP_NF_SECURITY) += iptable_security.o
+ obj-$(CONFIG_IP_NF_MATCH_ADDRTYPE) += ipt_addrtype.o
+ obj-$(CONFIG_IP_NF_MATCH_AH) += ipt_ah.o
+ obj-$(CONFIG_IP_NF_MATCH_ECN) += ipt_ecn.o
+-obj-$(CONFIG_IP_NF_MATCH_RECENT) += ipt_recent.o
+ obj-$(CONFIG_IP_NF_MATCH_TTL) += ipt_ttl.o
  
- extern struct list_head nf_hooks[NPROTO][NF_MAX_HOOKS];
+ # targets
+diff --git a/net/ipv4/netfilter/ipt_recent.c b/net/ipv4/netfilter/ipt_recent.c
+deleted file mode 100644
+index 3974d7c..0000000
+--- a/net/ipv4/netfilter/ipt_recent.c
++++ /dev/null
+@@ -1,501 +0,0 @@
+-/*
+- * Copyright (c) 2006 Patrick McHardy <kaber@trash.net>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- *
+- * This is a replacement of the old ipt_recent module, which carried the
+- * following copyright notice:
+- *
+- * Author: Stephen Frost <sfrost@snowman.net>
+- * Copyright 2002-2003, Stephen Frost, 2.5.x port by laforge@netfilter.org
+- */
+-#include <linux/init.h>
+-#include <linux/ip.h>
+-#include <linux/moduleparam.h>
+-#include <linux/proc_fs.h>
+-#include <linux/seq_file.h>
+-#include <linux/string.h>
+-#include <linux/ctype.h>
+-#include <linux/list.h>
+-#include <linux/random.h>
+-#include <linux/jhash.h>
+-#include <linux/bitops.h>
+-#include <linux/skbuff.h>
+-#include <linux/inet.h>
+-#include <net/net_namespace.h>
+-
+-#include <linux/netfilter/x_tables.h>
+-#include <linux/netfilter_ipv4/ipt_recent.h>
+-
+-MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+-MODULE_DESCRIPTION("Xtables: \"recently-seen\" host matching for IPv4");
+-MODULE_LICENSE("GPL");
+-
+-static unsigned int ip_list_tot = 100;
+-static unsigned int ip_pkt_list_tot = 20;
+-static unsigned int ip_list_hash_size = 0;
+-static unsigned int ip_list_perms = 0644;
+-static unsigned int ip_list_uid = 0;
+-static unsigned int ip_list_gid = 0;
+-module_param(ip_list_tot, uint, 0400);
+-module_param(ip_pkt_list_tot, uint, 0400);
+-module_param(ip_list_hash_size, uint, 0400);
+-module_param(ip_list_perms, uint, 0400);
+-module_param(ip_list_uid, uint, 0400);
+-module_param(ip_list_gid, uint, 0400);
+-MODULE_PARM_DESC(ip_list_tot, "number of IPs to remember per list");
+-MODULE_PARM_DESC(ip_pkt_list_tot, "number of packets per IP to remember (max. 255)");
+-MODULE_PARM_DESC(ip_list_hash_size, "size of hash table used to look up IPs");
+-MODULE_PARM_DESC(ip_list_perms, "permissions on /proc/net/ipt_recent/* files");
+-MODULE_PARM_DESC(ip_list_uid,"owner of /proc/net/ipt_recent/* files");
+-MODULE_PARM_DESC(ip_list_gid,"owning group of /proc/net/ipt_recent/* files");
+-
+-struct recent_entry {
+-	struct list_head	list;
+-	struct list_head	lru_list;
+-	__be32			addr;
+-	u_int8_t		ttl;
+-	u_int8_t		index;
+-	u_int16_t		nstamps;
+-	unsigned long		stamps[0];
+-};
+-
+-struct recent_table {
+-	struct list_head	list;
+-	char			name[IPT_RECENT_NAME_LEN];
+-#ifdef CONFIG_PROC_FS
+-	struct proc_dir_entry	*proc;
+-#endif
+-	unsigned int		refcnt;
+-	unsigned int		entries;
+-	struct list_head	lru_list;
+-	struct list_head	iphash[0];
+-};
+-
+-static LIST_HEAD(tables);
+-static DEFINE_SPINLOCK(recent_lock);
+-static DEFINE_MUTEX(recent_mutex);
+-
+-#ifdef CONFIG_PROC_FS
+-static struct proc_dir_entry	*proc_dir;
+-static const struct file_operations	recent_fops;
+-#endif
+-
+-static u_int32_t hash_rnd;
+-static int hash_rnd_initted;
+-
+-static unsigned int recent_entry_hash(__be32 addr)
+-{
+-	if (!hash_rnd_initted) {
+-		get_random_bytes(&hash_rnd, 4);
+-		hash_rnd_initted = 1;
+-	}
+-	return jhash_1word((__force u32)addr, hash_rnd) & (ip_list_hash_size - 1);
+-}
+-
+-static struct recent_entry *
+-recent_entry_lookup(const struct recent_table *table, __be32 addr, u_int8_t ttl)
+-{
+-	struct recent_entry *e;
+-	unsigned int h;
+-
+-	h = recent_entry_hash(addr);
+-	list_for_each_entry(e, &table->iphash[h], list)
+-		if (e->addr == addr && (ttl == e->ttl || !ttl || !e->ttl))
+-			return e;
+-	return NULL;
+-}
+-
+-static void recent_entry_remove(struct recent_table *t, struct recent_entry *e)
+-{
+-	list_del(&e->list);
+-	list_del(&e->lru_list);
+-	kfree(e);
+-	t->entries--;
+-}
+-
+-static struct recent_entry *
+-recent_entry_init(struct recent_table *t, __be32 addr, u_int8_t ttl)
+-{
+-	struct recent_entry *e;
+-
+-	if (t->entries >= ip_list_tot) {
+-		e = list_entry(t->lru_list.next, struct recent_entry, lru_list);
+-		recent_entry_remove(t, e);
+-	}
+-	e = kmalloc(sizeof(*e) + sizeof(e->stamps[0]) * ip_pkt_list_tot,
+-		    GFP_ATOMIC);
+-	if (e == NULL)
+-		return NULL;
+-	e->addr      = addr;
+-	e->ttl       = ttl;
+-	e->stamps[0] = jiffies;
+-	e->nstamps   = 1;
+-	e->index     = 1;
+-	list_add_tail(&e->list, &t->iphash[recent_entry_hash(addr)]);
+-	list_add_tail(&e->lru_list, &t->lru_list);
+-	t->entries++;
+-	return e;
+-}
+-
+-static void recent_entry_update(struct recent_table *t, struct recent_entry *e)
+-{
+-	e->stamps[e->index++] = jiffies;
+-	if (e->index > e->nstamps)
+-		e->nstamps = e->index;
+-	e->index %= ip_pkt_list_tot;
+-	list_move_tail(&e->lru_list, &t->lru_list);
+-}
+-
+-static struct recent_table *recent_table_lookup(const char *name)
+-{
+-	struct recent_table *t;
+-
+-	list_for_each_entry(t, &tables, list)
+-		if (!strcmp(t->name, name))
+-			return t;
+-	return NULL;
+-}
+-
+-static void recent_table_flush(struct recent_table *t)
+-{
+-	struct recent_entry *e, *next;
+-	unsigned int i;
+-
+-	for (i = 0; i < ip_list_hash_size; i++)
+-		list_for_each_entry_safe(e, next, &t->iphash[i], list)
+-			recent_entry_remove(t, e);
+-}
+-
+-static bool
+-recent_mt(const struct sk_buff *skb, const struct net_device *in,
+-          const struct net_device *out, const struct xt_match *match,
+-          const void *matchinfo, int offset, unsigned int protoff,
+-          bool *hotdrop)
+-{
+-	const struct ipt_recent_info *info = matchinfo;
+-	struct recent_table *t;
+-	struct recent_entry *e;
+-	__be32 addr;
+-	u_int8_t ttl;
+-	bool ret = info->invert;
+-
+-	if (info->side == IPT_RECENT_DEST)
+-		addr = ip_hdr(skb)->daddr;
+-	else
+-		addr = ip_hdr(skb)->saddr;
+-
+-	ttl = ip_hdr(skb)->ttl;
+-	/* use TTL as seen before forwarding */
+-	if (out && !skb->sk)
+-		ttl++;
+-
+-	spin_lock_bh(&recent_lock);
+-	t = recent_table_lookup(info->name);
+-	e = recent_entry_lookup(t, addr,
+-				info->check_set & IPT_RECENT_TTL ? ttl : 0);
+-	if (e == NULL) {
+-		if (!(info->check_set & IPT_RECENT_SET))
+-			goto out;
+-		e = recent_entry_init(t, addr, ttl);
+-		if (e == NULL)
+-			*hotdrop = true;
+-		ret = !ret;
+-		goto out;
+-	}
+-
+-	if (info->check_set & IPT_RECENT_SET)
+-		ret = !ret;
+-	else if (info->check_set & IPT_RECENT_REMOVE) {
+-		recent_entry_remove(t, e);
+-		ret = !ret;
+-	} else if (info->check_set & (IPT_RECENT_CHECK | IPT_RECENT_UPDATE)) {
+-		unsigned long time = jiffies - info->seconds * HZ;
+-		unsigned int i, hits = 0;
+-
+-		for (i = 0; i < e->nstamps; i++) {
+-			if (info->seconds && time_after(time, e->stamps[i]))
+-				continue;
+-			if (++hits >= info->hit_count) {
+-				ret = !ret;
+-				break;
+-			}
+-		}
+-	}
+-
+-	if (info->check_set & IPT_RECENT_SET ||
+-	    (info->check_set & IPT_RECENT_UPDATE && ret)) {
+-		recent_entry_update(t, e);
+-		e->ttl = ttl;
+-	}
+-out:
+-	spin_unlock_bh(&recent_lock);
+-	return ret;
+-}
+-
+-static bool
+-recent_mt_check(const char *tablename, const void *ip,
+-                const struct xt_match *match, void *matchinfo,
+-                unsigned int hook_mask)
+-{
+-	const struct ipt_recent_info *info = matchinfo;
+-	struct recent_table *t;
+-	unsigned i;
+-	bool ret = false;
+-
+-	if (hweight8(info->check_set &
+-		     (IPT_RECENT_SET | IPT_RECENT_REMOVE |
+-		      IPT_RECENT_CHECK | IPT_RECENT_UPDATE)) != 1)
+-		return false;
+-	if ((info->check_set & (IPT_RECENT_SET | IPT_RECENT_REMOVE)) &&
+-	    (info->seconds || info->hit_count))
+-		return false;
+-	if (info->hit_count > ip_pkt_list_tot)
+-		return false;
+-	if (info->name[0] == '\0' ||
+-	    strnlen(info->name, IPT_RECENT_NAME_LEN) == IPT_RECENT_NAME_LEN)
+-		return false;
+-
+-	mutex_lock(&recent_mutex);
+-	t = recent_table_lookup(info->name);
+-	if (t != NULL) {
+-		t->refcnt++;
+-		ret = true;
+-		goto out;
+-	}
+-
+-	t = kzalloc(sizeof(*t) + sizeof(t->iphash[0]) * ip_list_hash_size,
+-		    GFP_KERNEL);
+-	if (t == NULL)
+-		goto out;
+-	t->refcnt = 1;
+-	strcpy(t->name, info->name);
+-	INIT_LIST_HEAD(&t->lru_list);
+-	for (i = 0; i < ip_list_hash_size; i++)
+-		INIT_LIST_HEAD(&t->iphash[i]);
+-#ifdef CONFIG_PROC_FS
+-	t->proc = proc_create(t->name, ip_list_perms, proc_dir, &recent_fops);
+-	if (t->proc == NULL) {
+-		kfree(t);
+-		goto out;
+-	}
+-	t->proc->uid       = ip_list_uid;
+-	t->proc->gid       = ip_list_gid;
+-	t->proc->data      = t;
+-#endif
+-	spin_lock_bh(&recent_lock);
+-	list_add_tail(&t->list, &tables);
+-	spin_unlock_bh(&recent_lock);
+-	ret = true;
+-out:
+-	mutex_unlock(&recent_mutex);
+-	return ret;
+-}
+-
+-static void recent_mt_destroy(const struct xt_match *match, void *matchinfo)
+-{
+-	const struct ipt_recent_info *info = matchinfo;
+-	struct recent_table *t;
+-
+-	mutex_lock(&recent_mutex);
+-	t = recent_table_lookup(info->name);
+-	if (--t->refcnt == 0) {
+-		spin_lock_bh(&recent_lock);
+-		list_del(&t->list);
+-		spin_unlock_bh(&recent_lock);
+-#ifdef CONFIG_PROC_FS
+-		remove_proc_entry(t->name, proc_dir);
+-#endif
+-		recent_table_flush(t);
+-		kfree(t);
+-	}
+-	mutex_unlock(&recent_mutex);
+-}
+-
+-#ifdef CONFIG_PROC_FS
+-struct recent_iter_state {
+-	struct recent_table	*table;
+-	unsigned int		bucket;
+-};
+-
+-static void *recent_seq_start(struct seq_file *seq, loff_t *pos)
+-	__acquires(recent_lock)
+-{
+-	struct recent_iter_state *st = seq->private;
+-	const struct recent_table *t = st->table;
+-	struct recent_entry *e;
+-	loff_t p = *pos;
+-
+-	spin_lock_bh(&recent_lock);
+-
+-	for (st->bucket = 0; st->bucket < ip_list_hash_size; st->bucket++)
+-		list_for_each_entry(e, &t->iphash[st->bucket], list)
+-			if (p-- == 0)
+-				return e;
+-	return NULL;
+-}
+-
+-static void *recent_seq_next(struct seq_file *seq, void *v, loff_t *pos)
+-{
+-	struct recent_iter_state *st = seq->private;
+-	const struct recent_table *t = st->table;
+-	struct recent_entry *e = v;
+-	struct list_head *head = e->list.next;
+-
+-	while (head == &t->iphash[st->bucket]) {
+-		if (++st->bucket >= ip_list_hash_size)
+-			return NULL;
+-		head = t->iphash[st->bucket].next;
+-	}
+-	(*pos)++;
+-	return list_entry(head, struct recent_entry, list);
+-}
+-
+-static void recent_seq_stop(struct seq_file *s, void *v)
+-	__releases(recent_lock)
+-{
+-	spin_unlock_bh(&recent_lock);
+-}
+-
+-static int recent_seq_show(struct seq_file *seq, void *v)
+-{
+-	const struct recent_entry *e = v;
+-	unsigned int i;
+-
+-	i = (e->index - 1) % ip_pkt_list_tot;
+-	seq_printf(seq, "src=%u.%u.%u.%u ttl: %u last_seen: %lu oldest_pkt: %u",
+-		   NIPQUAD(e->addr), e->ttl, e->stamps[i], e->index);
+-	for (i = 0; i < e->nstamps; i++)
+-		seq_printf(seq, "%s %lu", i ? "," : "", e->stamps[i]);
+-	seq_printf(seq, "\n");
+-	return 0;
+-}
+-
+-static const struct seq_operations recent_seq_ops = {
+-	.start		= recent_seq_start,
+-	.next		= recent_seq_next,
+-	.stop		= recent_seq_stop,
+-	.show		= recent_seq_show,
+-};
+-
+-static int recent_seq_open(struct inode *inode, struct file *file)
+-{
+-	struct proc_dir_entry *pde = PDE(inode);
+-	struct recent_iter_state *st;
+-
+-	st = __seq_open_private(file, &recent_seq_ops, sizeof(*st));
+-	if (st == NULL)
+-		return -ENOMEM;
+-
+-	st->table    = pde->data;
+-	return 0;
+-}
+-
+-static ssize_t recent_proc_write(struct file *file, const char __user *input,
+-				 size_t size, loff_t *loff)
+-{
+-	const struct proc_dir_entry *pde = PDE(file->f_path.dentry->d_inode);
+-	struct recent_table *t = pde->data;
+-	struct recent_entry *e;
+-	char buf[sizeof("+255.255.255.255")], *c = buf;
+-	__be32 addr;
+-	int add;
+-
+-	if (size > sizeof(buf))
+-		size = sizeof(buf);
+-	if (copy_from_user(buf, input, size))
+-		return -EFAULT;
+-	while (isspace(*c))
+-		c++;
+-
+-	if (size - (c - buf) < 5)
+-		return c - buf;
+-	if (!strncmp(c, "clear", 5)) {
+-		c += 5;
+-		spin_lock_bh(&recent_lock);
+-		recent_table_flush(t);
+-		spin_unlock_bh(&recent_lock);
+-		return c - buf;
+-	}
+-
+-	switch (*c) {
+-	case '-':
+-		add = 0;
+-		c++;
+-		break;
+-	case '+':
+-		c++;
+-	default:
+-		add = 1;
+-		break;
+-	}
+-	addr = in_aton(c);
+-
+-	spin_lock_bh(&recent_lock);
+-	e = recent_entry_lookup(t, addr, 0);
+-	if (e == NULL) {
+-		if (add)
+-			recent_entry_init(t, addr, 0);
+-	} else {
+-		if (add)
+-			recent_entry_update(t, e);
+-		else
+-			recent_entry_remove(t, e);
+-	}
+-	spin_unlock_bh(&recent_lock);
+-	return size;
+-}
+-
+-static const struct file_operations recent_fops = {
+-	.open		= recent_seq_open,
+-	.read		= seq_read,
+-	.write		= recent_proc_write,
+-	.release	= seq_release_private,
+-	.owner		= THIS_MODULE,
+-};
+-#endif /* CONFIG_PROC_FS */
+-
+-static struct xt_match recent_mt_reg __read_mostly = {
+-	.name		= "recent",
+-	.family		= AF_INET,
+-	.match		= recent_mt,
+-	.matchsize	= sizeof(struct ipt_recent_info),
+-	.checkentry	= recent_mt_check,
+-	.destroy	= recent_mt_destroy,
+-	.me		= THIS_MODULE,
+-};
+-
+-static int __init recent_mt_init(void)
+-{
+-	int err;
+-
+-	if (!ip_list_tot || !ip_pkt_list_tot || ip_pkt_list_tot > 255)
+-		return -EINVAL;
+-	ip_list_hash_size = 1 << fls(ip_list_tot);
+-
+-	err = xt_register_match(&recent_mt_reg);
+-#ifdef CONFIG_PROC_FS
+-	if (err)
+-		return err;
+-	proc_dir = proc_mkdir("ipt_recent", init_net.proc_net);
+-	if (proc_dir == NULL) {
+-		xt_unregister_match(&recent_mt_reg);
+-		err = -ENOMEM;
+-	}
+-#endif
+-	return err;
+-}
+-
+-static void __exit recent_mt_exit(void)
+-{
+-	BUG_ON(!list_empty(&tables));
+-	xt_unregister_match(&recent_mt_reg);
+-#ifdef CONFIG_PROC_FS
+-	remove_proc_entry("ipt_recent", init_net.proc_net);
+-#endif
+-}
+-
+-module_init(recent_mt_init);
+-module_exit(recent_mt_exit);
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index ee898e7..ccc78b0 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -732,6 +732,17 @@ config NETFILTER_XT_MATCH_REALM
+ 	  If you want to compile it as a module, say M here and read
+ 	  <file:Documentation/kbuild/modules.txt>.  If unsure, say `N'.
  
--int nf_hook_slow(int pf, unsigned int hook, struct sk_buff *skb,
-+int nf_hook_slow(u_int8_t pf, unsigned int hook, struct sk_buff *skb,
- 		 struct net_device *indev, struct net_device *outdev,
- 		 int (*okfn)(struct sk_buff *), int thresh);
- 
-@@ -151,7 +151,7 @@ int nf_hook_slow(int pf, unsigned int hook, struct sk_buff *skb,
-  *	okfn must be invoked by the caller in this case.  Any other return
-  *	value indicates the packet has been consumed by the hook.
-  */
--static inline int nf_hook_thresh(int pf, unsigned int hook,
-+static inline int nf_hook_thresh(u_int8_t pf, unsigned int hook,
- 				 struct sk_buff *skb,
- 				 struct net_device *indev,
- 				 struct net_device *outdev,
-@@ -167,7 +167,7 @@ static inline int nf_hook_thresh(int pf, unsigned int hook,
- 	return nf_hook_slow(pf, hook, skb, indev, outdev, okfn, thresh);
- }
- 
--static inline int nf_hook(int pf, unsigned int hook, struct sk_buff *skb,
-+static inline int nf_hook(u_int8_t pf, unsigned int hook, struct sk_buff *skb,
- 			  struct net_device *indev, struct net_device *outdev,
- 			  int (*okfn)(struct sk_buff *))
- {
-@@ -212,14 +212,14 @@ __ret;})
- 	NF_HOOK_THRESH(pf, hook, skb, indev, outdev, okfn, INT_MIN)
- 
- /* Call setsockopt() */
--int nf_setsockopt(struct sock *sk, int pf, int optval, char __user *opt, 
-+int nf_setsockopt(struct sock *sk, u_int8_t pf, int optval, char __user *opt,
- 		  int len);
--int nf_getsockopt(struct sock *sk, int pf, int optval, char __user *opt,
-+int nf_getsockopt(struct sock *sk, u_int8_t pf, int optval, char __user *opt,
- 		  int *len);
- 
--int compat_nf_setsockopt(struct sock *sk, int pf, int optval,
-+int compat_nf_setsockopt(struct sock *sk, u_int8_t pf, int optval,
- 		char __user *opt, int len);
--int compat_nf_getsockopt(struct sock *sk, int pf, int optval,
-+int compat_nf_getsockopt(struct sock *sk, u_int8_t pf, int optval,
- 		char __user *opt, int *len);
- 
- /* Call this before modifying an existing packet: ensures it is
-@@ -292,7 +292,7 @@ extern void nf_unregister_afinfo(const struct nf_afinfo *afinfo);
- extern void (*ip_nat_decode_session)(struct sk_buff *, struct flowi *);
- 
- static inline void
--nf_nat_decode_session(struct sk_buff *skb, struct flowi *fl, int family)
-+nf_nat_decode_session(struct sk_buff *skb, struct flowi *fl, u_int8_t family)
- {
- #ifdef CONFIG_NF_NAT_NEEDED
- 	void (*decodefn)(struct sk_buff *, struct flowi *);
-@@ -315,7 +315,7 @@ extern struct proc_dir_entry *proc_net_netfilter;
- #else /* !CONFIG_NETFILTER */
- #define NF_HOOK(pf, hook, skb, indev, outdev, okfn) (okfn)(skb)
- #define NF_HOOK_COND(pf, hook, skb, indev, outdev, okfn, cond) (okfn)(skb)
--static inline int nf_hook_thresh(int pf, unsigned int hook,
-+static inline int nf_hook_thresh(u_int8_t pf, unsigned int hook,
- 				 struct sk_buff *skb,
- 				 struct net_device *indev,
- 				 struct net_device *outdev,
-@@ -324,7 +324,7 @@ static inline int nf_hook_thresh(int pf, unsigned int hook,
- {
- 	return okfn(skb);
- }
--static inline int nf_hook(int pf, unsigned int hook, struct sk_buff *skb,
-+static inline int nf_hook(u_int8_t pf, unsigned int hook, struct sk_buff *skb,
- 			  struct net_device *indev, struct net_device *outdev,
- 			  int (*okfn)(struct sk_buff *))
- {
-@@ -332,7 +332,9 @@ static inline int nf_hook(int pf, unsigned int hook, struct sk_buff *skb,
- }
- struct flowi;
- static inline void
--nf_nat_decode_session(struct sk_buff *skb, struct flowi *fl, int family) {}
-+nf_nat_decode_session(struct sk_buff *skb, struct flowi *fl, u_int8_t family)
++config NETFILTER_XT_MATCH_RECENT
++	tristate '"recent" match support'
++	depends on NETFILTER_XTABLES
++	depends on NETFILTER_ADVANCED
++	---help---
++	This match is used for creating one or many lists of recently
++	used addresses and then matching against that/those list(s).
++
++	Short options are available by using 'iptables -m recent -h'
++	Official Website: <http://snowman.net/projects/ipt_recent/>
++
+ config NETFILTER_XT_MATCH_SCTP
+ 	tristate  '"sctp" protocol match support (EXPERIMENTAL)'
+ 	depends on NETFILTER_XTABLES && EXPERIMENTAL
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 3bd2cc5..f101cf6 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -76,6 +76,7 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_POLICY) += xt_policy.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_QUOTA) += xt_quota.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_RATEEST) += xt_rateest.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_REALM) += xt_realm.o
++obj-$(CONFIG_NETFILTER_XT_MATCH_RECENT) += xt_recent.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_SCTP) += xt_sctp.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_STATE) += xt_state.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_STATISTIC) += xt_statistic.o
+diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
+new file mode 100644
+index 0000000..422c0e4
+--- /dev/null
++++ b/net/netfilter/xt_recent.c
+@@ -0,0 +1,502 @@
++/*
++ * Copyright (c) 2006 Patrick McHardy <kaber@trash.net>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This is a replacement of the old ipt_recent module, which carried the
++ * following copyright notice:
++ *
++ * Author: Stephen Frost <sfrost@snowman.net>
++ * Copyright 2002-2003, Stephen Frost, 2.5.x port by laforge@netfilter.org
++ */
++#include <linux/init.h>
++#include <linux/ip.h>
++#include <linux/moduleparam.h>
++#include <linux/proc_fs.h>
++#include <linux/seq_file.h>
++#include <linux/string.h>
++#include <linux/ctype.h>
++#include <linux/list.h>
++#include <linux/random.h>
++#include <linux/jhash.h>
++#include <linux/bitops.h>
++#include <linux/skbuff.h>
++#include <linux/inet.h>
++#include <net/net_namespace.h>
++
++#include <linux/netfilter/x_tables.h>
++#include <linux/netfilter/xt_recent.h>
++
++MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
++MODULE_DESCRIPTION("Xtables: \"recently-seen\" host matching for IPv4");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("ipt_recent");
++
++static unsigned int ip_list_tot = 100;
++static unsigned int ip_pkt_list_tot = 20;
++static unsigned int ip_list_hash_size = 0;
++static unsigned int ip_list_perms = 0644;
++static unsigned int ip_list_uid = 0;
++static unsigned int ip_list_gid = 0;
++module_param(ip_list_tot, uint, 0400);
++module_param(ip_pkt_list_tot, uint, 0400);
++module_param(ip_list_hash_size, uint, 0400);
++module_param(ip_list_perms, uint, 0400);
++module_param(ip_list_uid, uint, 0400);
++module_param(ip_list_gid, uint, 0400);
++MODULE_PARM_DESC(ip_list_tot, "number of IPs to remember per list");
++MODULE_PARM_DESC(ip_pkt_list_tot, "number of packets per IP to remember (max. 255)");
++MODULE_PARM_DESC(ip_list_hash_size, "size of hash table used to look up IPs");
++MODULE_PARM_DESC(ip_list_perms, "permissions on /proc/net/ipt_recent/* files");
++MODULE_PARM_DESC(ip_list_uid,"owner of /proc/net/ipt_recent/* files");
++MODULE_PARM_DESC(ip_list_gid,"owning group of /proc/net/ipt_recent/* files");
++
++struct recent_entry {
++	struct list_head	list;
++	struct list_head	lru_list;
++	__be32			addr;
++	u_int8_t		ttl;
++	u_int8_t		index;
++	u_int16_t		nstamps;
++	unsigned long		stamps[0];
++};
++
++struct recent_table {
++	struct list_head	list;
++	char			name[XT_RECENT_NAME_LEN];
++#ifdef CONFIG_PROC_FS
++	struct proc_dir_entry	*proc;
++#endif
++	unsigned int		refcnt;
++	unsigned int		entries;
++	struct list_head	lru_list;
++	struct list_head	iphash[0];
++};
++
++static LIST_HEAD(tables);
++static DEFINE_SPINLOCK(recent_lock);
++static DEFINE_MUTEX(recent_mutex);
++
++#ifdef CONFIG_PROC_FS
++static struct proc_dir_entry	*proc_dir;
++static const struct file_operations	recent_fops;
++#endif
++
++static u_int32_t hash_rnd;
++static int hash_rnd_initted;
++
++static unsigned int recent_entry_hash(__be32 addr)
 +{
++	if (!hash_rnd_initted) {
++		get_random_bytes(&hash_rnd, 4);
++		hash_rnd_initted = 1;
++	}
++	return jhash_1word((__force u32)addr, hash_rnd) & (ip_list_hash_size - 1);
 +}
- #endif /*CONFIG_NETFILTER*/
- 
- #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index 2326296..6989b22 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -292,7 +292,7 @@ struct xt_table
- 	/* Set this to THIS_MODULE if you are a module, otherwise NULL */
- 	struct module *me;
- 
--	int af;		/* address/protocol family */
-+	u_int8_t af;		/* address/protocol family */
- };
- 
- #include <linux/netfilter_ipv4.h>
-@@ -346,19 +346,19 @@ extern struct xt_table_info *xt_replace_table(struct xt_table *table,
- 					      struct xt_table_info *newinfo,
- 					      int *error);
- 
--extern struct xt_match *xt_find_match(int af, const char *name, u8 revision);
--extern struct xt_target *xt_find_target(int af, const char *name, u8 revision);
--extern struct xt_target *xt_request_find_target(int af, const char *name, 
-+extern struct xt_match *xt_find_match(u8 af, const char *name, u8 revision);
-+extern struct xt_target *xt_find_target(u8 af, const char *name, u8 revision);
-+extern struct xt_target *xt_request_find_target(u8 af, const char *name,
- 						u8 revision);
--extern int xt_find_revision(int af, const char *name, u8 revision, int target,
--			    int *err);
-+extern int xt_find_revision(u8 af, const char *name, u8 revision,
-+			    int target, int *err);
- 
--extern struct xt_table *xt_find_table_lock(struct net *net, int af,
-+extern struct xt_table *xt_find_table_lock(struct net *net, u_int8_t af,
- 					   const char *name);
- extern void xt_table_unlock(struct xt_table *t);
- 
--extern int xt_proto_init(struct net *net, int af);
--extern void xt_proto_fini(struct net *net, int af);
-+extern int xt_proto_init(struct net *net, u_int8_t af);
-+extern void xt_proto_fini(struct net *net, u_int8_t af);
- 
- extern struct xt_table_info *xt_alloc_table_info(unsigned int size);
- extern void xt_free_table_info(struct xt_table_info *info);
-@@ -423,12 +423,12 @@ struct compat_xt_counters_info
- #define COMPAT_XT_ALIGN(s) (((s) + (__alignof__(struct compat_xt_counters)-1)) \
- 		& ~(__alignof__(struct compat_xt_counters)-1))
- 
--extern void xt_compat_lock(int af);
--extern void xt_compat_unlock(int af);
-+extern void xt_compat_lock(u_int8_t af);
-+extern void xt_compat_unlock(u_int8_t af);
- 
--extern int xt_compat_add_offset(int af, unsigned int offset, short delta);
--extern void xt_compat_flush_offsets(int af);
--extern short xt_compat_calc_jump(int af, unsigned int offset);
-+extern int xt_compat_add_offset(u_int8_t af, unsigned int offset, short delta);
-+extern void xt_compat_flush_offsets(u_int8_t af);
-+extern short xt_compat_calc_jump(u_int8_t af, unsigned int offset);
- 
- extern int xt_compat_match_offset(const struct xt_match *match);
- extern int xt_compat_match_from_user(struct xt_entry_match *m,
-diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
-index a817712..05760d6 100644
---- a/include/net/netfilter/nf_conntrack_core.h
-+++ b/include/net/netfilter/nf_conntrack_core.h
-@@ -20,7 +20,7 @@
- /* This header is used to share core functionality between the
-    standalone connection tracking module, and the compatibility layer's use
-    of connection tracking. */
--extern unsigned int nf_conntrack_in(int pf,
-+extern unsigned int nf_conntrack_in(u_int8_t pf,
- 				    unsigned int hooknum,
- 				    struct sk_buff *skb);
- 
-diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
-index dfdf4b4..4c4d894 100644
---- a/include/net/netfilter/nf_conntrack_expect.h
-+++ b/include/net/netfilter/nf_conntrack_expect.h
-@@ -86,7 +86,7 @@ void nf_ct_unexpect_related(struct nf_conntrack_expect *exp);
- /* Allocate space for an expectation: this is mandatory before calling
-    nf_ct_expect_related.  You will have to call put afterwards. */
- struct nf_conntrack_expect *nf_ct_expect_alloc(struct nf_conn *me);
--void nf_ct_expect_init(struct nf_conntrack_expect *, unsigned int, int,
-+void nf_ct_expect_init(struct nf_conntrack_expect *, unsigned int, u_int8_t,
- 		       const union nf_inet_addr *,
- 		       const union nf_inet_addr *,
- 		       u_int8_t, const __be16 *, const __be16 *);
-diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
-index 723df9d..d4376e9 100644
---- a/include/net/netfilter/nf_conntrack_l4proto.h
-+++ b/include/net/netfilter/nf_conntrack_l4proto.h
-@@ -39,7 +39,7 @@ struct nf_conntrack_l4proto
- 		      const struct sk_buff *skb,
- 		      unsigned int dataoff,
- 		      enum ip_conntrack_info ctinfo,
--		      int pf,
-+		      u_int8_t pf,
- 		      unsigned int hooknum);
- 
- 	/* Called when a new connection for this protocol found;
-@@ -52,7 +52,7 @@ struct nf_conntrack_l4proto
- 
- 	int (*error)(struct sk_buff *skb, unsigned int dataoff,
- 		     enum ip_conntrack_info *ctinfo,
--		     int pf, unsigned int hooknum);
-+		     u_int8_t pf, unsigned int hooknum);
- 
- 	/* Print out the per-protocol part of the tuple. Return like seq_* */
- 	int (*print_tuple)(struct seq_file *s,
-diff --git a/include/net/netfilter/nf_log.h b/include/net/netfilter/nf_log.h
-index 8c6b5ae..7182c06 100644
---- a/include/net/netfilter/nf_log.h
-+++ b/include/net/netfilter/nf_log.h
-@@ -28,7 +28,7 @@ struct nf_loginfo {
- 	} u;
- };
- 
--typedef void nf_logfn(unsigned int pf,
-+typedef void nf_logfn(u_int8_t pf,
- 		      unsigned int hooknum,
- 		      const struct sk_buff *skb,
- 		      const struct net_device *in,
-@@ -43,12 +43,12 @@ struct nf_logger {
- };
- 
- /* Function to register/unregister log function. */
--int nf_log_register(int pf, const struct nf_logger *logger);
-+int nf_log_register(u_int8_t pf, const struct nf_logger *logger);
- void nf_log_unregister(const struct nf_logger *logger);
--void nf_log_unregister_pf(int pf);
-+void nf_log_unregister_pf(u_int8_t pf);
- 
- /* Calls the registered backend logging function */
--void nf_log_packet(int pf,
-+void nf_log_packet(u_int8_t pf,
- 		   unsigned int hooknum,
- 		   const struct sk_buff *skb,
- 		   const struct net_device *in,
-diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
-index d030044..252fd10 100644
---- a/include/net/netfilter/nf_queue.h
-+++ b/include/net/netfilter/nf_queue.h
-@@ -8,7 +8,7 @@ struct nf_queue_entry {
- 	unsigned int		id;
- 
- 	struct nf_hook_ops	*elem;
--	int			pf;
-+	u_int8_t		pf;
- 	unsigned int		hook;
- 	struct net_device	*indev;
- 	struct net_device	*outdev;
-@@ -24,9 +24,9 @@ struct nf_queue_handler {
- 	char			*name;
- };
- 
--extern int nf_register_queue_handler(int pf,
-+extern int nf_register_queue_handler(u_int8_t pf,
- 				     const struct nf_queue_handler *qh);
--extern int nf_unregister_queue_handler(int pf,
-+extern int nf_unregister_queue_handler(u_int8_t pf,
- 				       const struct nf_queue_handler *qh);
- extern void nf_unregister_queue_handlers(const struct nf_queue_handler *qh);
- extern void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict);
-diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
-index 6a9a6cd..a4abed5 100644
---- a/net/bridge/br_netfilter.c
-+++ b/net/bridge/br_netfilter.c
-@@ -657,7 +657,7 @@ static unsigned int br_nf_forward_ip(unsigned int hook, struct sk_buff *skb,
- {
- 	struct nf_bridge_info *nf_bridge;
- 	struct net_device *parent;
--	int pf;
-+	u_int8_t pf;
- 
- 	if (!skb->nf_bridge)
- 		return NF_ACCEPT;
-@@ -791,7 +791,7 @@ static unsigned int br_nf_post_routing(unsigned int hook, struct sk_buff *skb,
- {
- 	struct nf_bridge_info *nf_bridge = skb->nf_bridge;
- 	struct net_device *realoutdev = bridge_parent(skb->dev);
--	int pf;
-+	u_int8_t pf;
- 
- #ifdef CONFIG_NETFILTER_DEBUG
- 	/* Be very paranoid. This probably won't happen anymore, but let's
-diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
-index 2f430d4..3770cd8 100644
---- a/net/bridge/netfilter/ebt_log.c
-+++ b/net/bridge/netfilter/ebt_log.c
-@@ -84,7 +84,7 @@ print_ports(const struct sk_buff *skb, uint8_t protocol, int offset)
- 
- #define myNIPQUAD(a) a[0], a[1], a[2], a[3]
- static void
--ebt_log_packet(unsigned int pf, unsigned int hooknum,
-+ebt_log_packet(u_int8_t pf, unsigned int hooknum,
-    const struct sk_buff *skb, const struct net_device *in,
-    const struct net_device *out, const struct nf_loginfo *loginfo,
-    const char *prefix)
-diff --git a/net/bridge/netfilter/ebt_ulog.c b/net/bridge/netfilter/ebt_ulog.c
-index 2d4c9ef..c84bda6 100644
---- a/net/bridge/netfilter/ebt_ulog.c
-+++ b/net/bridge/netfilter/ebt_ulog.c
-@@ -223,7 +223,7 @@ alloc_failure:
- }
- 
- /* this function is registered with the netfilter core */
--static void ebt_log_packet(unsigned int pf, unsigned int hooknum,
-+static void ebt_log_packet(u_int8_t pf, unsigned int hooknum,
-    const struct sk_buff *skb, const struct net_device *in,
-    const struct net_device *out, const struct nf_loginfo *li,
-    const char *prefix)
-diff --git a/net/ipv4/netfilter/ipt_LOG.c b/net/ipv4/netfilter/ipt_LOG.c
-index 0af1413..9330ba3 100644
---- a/net/ipv4/netfilter/ipt_LOG.c
-+++ b/net/ipv4/netfilter/ipt_LOG.c
-@@ -375,7 +375,7 @@ static struct nf_loginfo default_loginfo = {
- };
- 
- static void
--ipt_log_packet(unsigned int pf,
-+ipt_log_packet(u_int8_t pf,
- 	       unsigned int hooknum,
- 	       const struct sk_buff *skb,
- 	       const struct net_device *in,
-diff --git a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
-index b192756..d8241e6 100644
---- a/net/ipv4/netfilter/ipt_ULOG.c
-+++ b/net/ipv4/netfilter/ipt_ULOG.c
-@@ -292,7 +292,7 @@ ulog_tg(struct sk_buff *skb, const struct net_device *in,
- 	return XT_CONTINUE;
- }
- 
--static void ipt_logfn(unsigned int pf,
-+static void ipt_logfn(u_int8_t pf,
- 		      unsigned int hooknum,
- 		      const struct sk_buff *skb,
- 		      const struct net_device *in,
-diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-index 9779104..da8edcd 100644
---- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-+++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-@@ -79,7 +79,7 @@ static int icmp_packet(struct nf_conn *ct,
- 		       const struct sk_buff *skb,
- 		       unsigned int dataoff,
- 		       enum ip_conntrack_info ctinfo,
--		       int pf,
-+		       u_int8_t pf,
- 		       unsigned int hooknum)
- {
- 	/* Try to delete connection immediately after all replies:
-@@ -173,7 +173,7 @@ icmp_error_message(struct sk_buff *skb,
- /* Small and modified version of icmp_rcv */
- static int
- icmp_error(struct sk_buff *skb, unsigned int dataoff,
--	   enum ip_conntrack_info *ctinfo, int pf, unsigned int hooknum)
-+	   enum ip_conntrack_info *ctinfo, u_int8_t pf, unsigned int hooknum)
- {
- 	const struct icmphdr *icmph;
- 	struct icmphdr _ih;
-diff --git a/net/ipv6/netfilter/ip6t_LOG.c b/net/ipv6/netfilter/ip6t_LOG.c
-index 3a23169..0716f8a 100644
---- a/net/ipv6/netfilter/ip6t_LOG.c
-+++ b/net/ipv6/netfilter/ip6t_LOG.c
-@@ -385,7 +385,7 @@ static struct nf_loginfo default_loginfo = {
- };
- 
- static void
--ip6t_log_packet(unsigned int pf,
-+ip6t_log_packet(u_int8_t pf,
- 		unsigned int hooknum,
- 		const struct sk_buff *skb,
- 		const struct net_device *in,
-diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-index 14d47d8..5756f30 100644
---- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-@@ -81,7 +81,7 @@ static int icmpv6_packet(struct nf_conn *ct,
- 		       const struct sk_buff *skb,
- 		       unsigned int dataoff,
- 		       enum ip_conntrack_info ctinfo,
--		       int pf,
-+		       u_int8_t pf,
- 		       unsigned int hooknum)
- {
- 	/* Try to delete connection immediately after all replies:
-@@ -173,7 +173,7 @@ icmpv6_error_message(struct sk_buff *skb,
- 
- static int
- icmpv6_error(struct sk_buff *skb, unsigned int dataoff,
--	     enum ip_conntrack_info *ctinfo, int pf, unsigned int hooknum)
-+	     enum ip_conntrack_info *ctinfo, u_int8_t pf, unsigned int hooknum)
- {
- 	const struct icmp6hdr *icmp6h;
- 	struct icmp6hdr _ih;
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index 292fa28..26b8f48 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -113,7 +113,7 @@ EXPORT_SYMBOL(nf_unregister_hooks);
- 
- unsigned int nf_iterate(struct list_head *head,
- 			struct sk_buff *skb,
--			int hook,
-+			unsigned int hook,
- 			const struct net_device *indev,
- 			const struct net_device *outdev,
- 			struct list_head **i,
-@@ -155,7 +155,7 @@ unsigned int nf_iterate(struct list_head *head,
- 
- /* Returns 1 if okfn() needs to be executed by the caller,
-  * -EPERM for NF_DROP, 0 otherwise. */
--int nf_hook_slow(int pf, unsigned int hook, struct sk_buff *skb,
-+int nf_hook_slow(u_int8_t pf, unsigned int hook, struct sk_buff *skb,
- 		 struct net_device *indev,
- 		 struct net_device *outdev,
- 		 int (*okfn)(struct sk_buff *),
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 9d1830d..6aaf64b 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -665,7 +665,7 @@ resolve_normal_ct(struct sk_buff *skb,
- }
- 
- unsigned int
--nf_conntrack_in(int pf, unsigned int hooknum, struct sk_buff *skb)
-+nf_conntrack_in(u_int8_t pf, unsigned int hooknum, struct sk_buff *skb)
- {
- 	struct nf_conn *ct;
- 	enum ip_conntrack_info ctinfo;
-@@ -683,7 +683,7 @@ nf_conntrack_in(int pf, unsigned int hooknum, struct sk_buff *skb)
- 	}
- 
- 	/* rcu_read_lock()ed by nf_hook_slow */
--	l3proto = __nf_ct_l3proto_find((u_int16_t)pf);
-+	l3proto = __nf_ct_l3proto_find(pf);
- 	ret = l3proto->get_l4proto(skb, skb_network_offset(skb),
- 				   &dataoff, &protonum);
- 	if (ret <= 0) {
-@@ -693,7 +693,7 @@ nf_conntrack_in(int pf, unsigned int hooknum, struct sk_buff *skb)
- 		return -ret;
- 	}
- 
--	l4proto = __nf_ct_l4proto_find((u_int16_t)pf, protonum);
-+	l4proto = __nf_ct_l4proto_find(pf, protonum);
- 
- 	/* It may be an special packet, error, unclean...
- 	 * inverse of the return code tells to the netfilter
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index e8f0dea..990fa12 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -241,7 +241,7 @@ struct nf_conntrack_expect *nf_ct_expect_alloc(struct nf_conn *me)
- EXPORT_SYMBOL_GPL(nf_ct_expect_alloc);
- 
- void nf_ct_expect_init(struct nf_conntrack_expect *exp, unsigned int class,
--		       int family,
-+		       u_int8_t family,
- 		       const union nf_inet_addr *saddr,
- 		       const union nf_inet_addr *daddr,
- 		       u_int8_t proto, const __be16 *src, const __be16 *dst)
-diff --git a/net/netfilter/nf_conntrack_h323_main.c b/net/netfilter/nf_conntrack_h323_main.c
-index 2f83c15..5dc0478 100644
---- a/net/netfilter/nf_conntrack_h323_main.c
-+++ b/net/netfilter/nf_conntrack_h323_main.c
-@@ -709,7 +709,8 @@ static int expect_h245(struct sk_buff *skb, struct nf_conn *ct,
- /* If the calling party is on the same side of the forward-to party,
-  * we don't need to track the second call */
- static int callforward_do_filter(const union nf_inet_addr *src,
--                                 const union nf_inet_addr *dst, int family)
-+				 const union nf_inet_addr *dst,
-+				 u_int8_t family)
- {
- 	const struct nf_afinfo *afinfo;
- 	struct flowi fl1, fl2;
-diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
-index e7866dd..edc3035 100644
---- a/net/netfilter/nf_conntrack_proto_dccp.c
-+++ b/net/netfilter/nf_conntrack_proto_dccp.c
-@@ -461,7 +461,7 @@ static u64 dccp_ack_seq(const struct dccp_hdr *dh)
- 
- static int dccp_packet(struct nf_conn *ct, const struct sk_buff *skb,
- 		       unsigned int dataoff, enum ip_conntrack_info ctinfo,
--		       int pf, unsigned int hooknum)
-+		       u_int8_t pf, unsigned int hooknum)
- {
- 	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
- 	struct dccp_hdr _dh, *dh;
-@@ -546,7 +546,7 @@ static int dccp_packet(struct nf_conn *ct, const struct sk_buff *skb,
- }
- 
- static int dccp_error(struct sk_buff *skb, unsigned int dataoff,
--		      enum ip_conntrack_info *ctinfo, int pf,
-+		      enum ip_conntrack_info *ctinfo, u_int8_t pf,
- 		      unsigned int hooknum)
- {
- 	struct dccp_hdr _dh, *dh;
-diff --git a/net/netfilter/nf_conntrack_proto_generic.c b/net/netfilter/nf_conntrack_proto_generic.c
-index e31b0e7..dbe680a 100644
---- a/net/netfilter/nf_conntrack_proto_generic.c
-+++ b/net/netfilter/nf_conntrack_proto_generic.c
-@@ -45,7 +45,7 @@ static int packet(struct nf_conn *ct,
- 		  const struct sk_buff *skb,
- 		  unsigned int dataoff,
- 		  enum ip_conntrack_info ctinfo,
--		  int pf,
-+		  u_int8_t pf,
- 		  unsigned int hooknum)
- {
- 	nf_ct_refresh_acct(ct, ctinfo, skb, nf_ct_generic_timeout);
-diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
-index 9bd0396..c5a7822 100644
---- a/net/netfilter/nf_conntrack_proto_gre.c
-+++ b/net/netfilter/nf_conntrack_proto_gre.c
-@@ -219,7 +219,7 @@ static int gre_packet(struct nf_conn *ct,
- 		      const struct sk_buff *skb,
- 		      unsigned int dataoff,
- 		      enum ip_conntrack_info ctinfo,
--		      int pf,
-+		      u_int8_t pf,
- 		      unsigned int hooknum)
- {
- 	/* If we've seen traffic both ways, this is a GRE connection.
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index 30aa5b9..b5a9059 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -287,7 +287,7 @@ static int sctp_packet(struct nf_conn *ct,
- 		       const struct sk_buff *skb,
- 		       unsigned int dataoff,
- 		       enum ip_conntrack_info ctinfo,
--		       int pf,
-+		       u_int8_t pf,
- 		       unsigned int hooknum)
- {
- 	enum sctp_conntrack new_state, old_state;
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 6f61261..539a820 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -486,7 +486,7 @@ static bool tcp_in_window(const struct nf_conn *ct,
- 			  const struct sk_buff *skb,
- 			  unsigned int dataoff,
- 			  const struct tcphdr *tcph,
--			  int pf)
-+			  u_int8_t pf)
- {
- 	struct ip_ct_tcp_state *sender = &state->seen[dir];
- 	struct ip_ct_tcp_state *receiver = &state->seen[!dir];
-@@ -749,7 +749,7 @@ static const u8 tcp_valid_flags[(TH_FIN|TH_SYN|TH_RST|TH_ACK|TH_URG) + 1] =
- static int tcp_error(struct sk_buff *skb,
- 		     unsigned int dataoff,
- 		     enum ip_conntrack_info *ctinfo,
--		     int pf,
-+		     u_int8_t pf,
- 		     unsigned int hooknum)
- {
- 	const struct tcphdr *th;
-@@ -804,7 +804,7 @@ static int tcp_packet(struct nf_conn *ct,
- 		      const struct sk_buff *skb,
- 		      unsigned int dataoff,
- 		      enum ip_conntrack_info ctinfo,
--		      int pf,
-+		      u_int8_t pf,
- 		      unsigned int hooknum)
- {
- 	struct nf_conntrack_tuple *tuple;
-diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
-index 8b21762..2a965c4 100644
---- a/net/netfilter/nf_conntrack_proto_udp.c
-+++ b/net/netfilter/nf_conntrack_proto_udp.c
-@@ -66,7 +66,7 @@ static int udp_packet(struct nf_conn *ct,
- 		      const struct sk_buff *skb,
- 		      unsigned int dataoff,
- 		      enum ip_conntrack_info ctinfo,
--		      int pf,
-+		      u_int8_t pf,
- 		      unsigned int hooknum)
- {
- 	/* If we've seen traffic both ways, this is some kind of UDP
-@@ -91,7 +91,7 @@ static bool udp_new(struct nf_conn *ct, const struct sk_buff *skb,
- 
- static int udp_error(struct sk_buff *skb, unsigned int dataoff,
- 		     enum ip_conntrack_info *ctinfo,
--		     int pf,
-+		     u_int8_t pf,
- 		     unsigned int hooknum)
- {
- 	unsigned int udplen = skb->len - dataoff;
-diff --git a/net/netfilter/nf_conntrack_proto_udplite.c b/net/netfilter/nf_conntrack_proto_udplite.c
-index 1fa62f3..4fb6c8d 100644
---- a/net/netfilter/nf_conntrack_proto_udplite.c
-+++ b/net/netfilter/nf_conntrack_proto_udplite.c
-@@ -65,7 +65,7 @@ static int udplite_packet(struct nf_conn *ct,
- 			  const struct sk_buff *skb,
- 			  unsigned int dataoff,
- 			  enum ip_conntrack_info ctinfo,
--			  int pf,
-+			  u_int8_t pf,
- 			  unsigned int hooknum)
- {
- 	/* If we've seen traffic both ways, this is some kind of UDP
-@@ -91,7 +91,7 @@ static bool udplite_new(struct nf_conn *ct, const struct sk_buff *skb,
- 
- static int udplite_error(struct sk_buff *skb, unsigned int dataoff,
- 			 enum ip_conntrack_info *ctinfo,
--			 int pf,
-+			 u_int8_t pf,
- 			 unsigned int hooknum)
- {
- 	unsigned int udplen = skb->len - dataoff;
-diff --git a/net/netfilter/nf_internals.h b/net/netfilter/nf_internals.h
-index 196269c..bf66099 100644
---- a/net/netfilter/nf_internals.h
-+++ b/net/netfilter/nf_internals.h
-@@ -15,7 +15,7 @@
- /* core.c */
- extern unsigned int nf_iterate(struct list_head *head,
- 				struct sk_buff *skb,
--				int hook,
-+				unsigned int hook,
- 				const struct net_device *indev,
- 				const struct net_device *outdev,
- 				struct list_head **i,
-@@ -25,7 +25,7 @@ extern unsigned int nf_iterate(struct list_head *head,
- /* nf_queue.c */
- extern int nf_queue(struct sk_buff *skb,
- 		    struct list_head *elem,
--		    int pf, unsigned int hook,
-+		    u_int8_t pf, unsigned int hook,
- 		    struct net_device *indev,
- 		    struct net_device *outdev,
- 		    int (*okfn)(struct sk_buff *),
-diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
-index 9fda6ee..5c2f733 100644
---- a/net/netfilter/nf_log.c
-+++ b/net/netfilter/nf_log.c
-@@ -20,7 +20,7 @@ static DEFINE_MUTEX(nf_log_mutex);
- 
- /* return EBUSY if somebody else is registered, EEXIST if the same logger
-  * is registred, 0 on success. */
--int nf_log_register(int pf, const struct nf_logger *logger)
-+int nf_log_register(u_int8_t pf, const struct nf_logger *logger)
- {
- 	int ret;
- 
-@@ -45,7 +45,7 @@ int nf_log_register(int pf, const struct nf_logger *logger)
- }
- EXPORT_SYMBOL(nf_log_register);
- 
--void nf_log_unregister_pf(int pf)
-+void nf_log_unregister_pf(u_int8_t pf)
- {
- 	if (pf >= NPROTO)
- 		return;
-@@ -73,7 +73,7 @@ void nf_log_unregister(const struct nf_logger *logger)
- }
- EXPORT_SYMBOL(nf_log_unregister);
- 
--void nf_log_packet(int pf,
-+void nf_log_packet(u_int8_t pf,
- 		   unsigned int hooknum,
- 		   const struct sk_buff *skb,
- 		   const struct net_device *in,
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index 582ec3e..f285086 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -22,7 +22,7 @@ static DEFINE_MUTEX(queue_handler_mutex);
- 
- /* return EBUSY when somebody else is registered, return EEXIST if the
-  * same handler is registered, return 0 in case of success. */
--int nf_register_queue_handler(int pf, const struct nf_queue_handler *qh)
-+int nf_register_queue_handler(u_int8_t pf, const struct nf_queue_handler *qh)
- {
- 	int ret;
- 
-@@ -45,7 +45,7 @@ int nf_register_queue_handler(int pf, const struct nf_queue_handler *qh)
- EXPORT_SYMBOL(nf_register_queue_handler);
- 
- /* The caller must flush their queue before this */
--int nf_unregister_queue_handler(int pf, const struct nf_queue_handler *qh)
-+int nf_unregister_queue_handler(u_int8_t pf, const struct nf_queue_handler *qh)
- {
- 	if (pf >= NPROTO)
- 		return -EINVAL;
-@@ -67,7 +67,7 @@ EXPORT_SYMBOL(nf_unregister_queue_handler);
- 
- void nf_unregister_queue_handlers(const struct nf_queue_handler *qh)
- {
--	int pf;
-+	u_int8_t pf;
- 
- 	mutex_lock(&queue_handler_mutex);
- 	for (pf = 0; pf < NPROTO; pf++)  {
-@@ -107,7 +107,7 @@ static void nf_queue_entry_release_refs(struct nf_queue_entry *entry)
-  */
- static int __nf_queue(struct sk_buff *skb,
- 		      struct list_head *elem,
--		      int pf, unsigned int hook,
-+		      u_int8_t pf, unsigned int hook,
- 		      struct net_device *indev,
- 		      struct net_device *outdev,
- 		      int (*okfn)(struct sk_buff *),
-@@ -191,7 +191,7 @@ err:
- 
- int nf_queue(struct sk_buff *skb,
- 	     struct list_head *elem,
--	     int pf, unsigned int hook,
-+	     u_int8_t pf, unsigned int hook,
- 	     struct net_device *indev,
- 	     struct net_device *outdev,
- 	     int (*okfn)(struct sk_buff *),
-diff --git a/net/netfilter/nf_sockopt.c b/net/netfilter/nf_sockopt.c
-index 0148968..f9b46de 100644
---- a/net/netfilter/nf_sockopt.c
-+++ b/net/netfilter/nf_sockopt.c
-@@ -60,7 +60,7 @@ void nf_unregister_sockopt(struct nf_sockopt_ops *reg)
- }
- EXPORT_SYMBOL(nf_unregister_sockopt);
- 
--static struct nf_sockopt_ops *nf_sockopt_find(struct sock *sk, int pf,
-+static struct nf_sockopt_ops *nf_sockopt_find(struct sock *sk, u_int8_t pf,
- 		int val, int get)
- {
- 	struct nf_sockopt_ops *ops;
-@@ -96,7 +96,7 @@ out:
- }
- 
- /* Call get/setsockopt() */
--static int nf_sockopt(struct sock *sk, int pf, int val,
-+static int nf_sockopt(struct sock *sk, u_int8_t pf, int val,
- 		      char __user *opt, int *len, int get)
- {
- 	struct nf_sockopt_ops *ops;
-@@ -115,21 +115,22 @@ static int nf_sockopt(struct sock *sk, int pf, int val,
- 	return ret;
- }
- 
--int nf_setsockopt(struct sock *sk, int pf, int val, char __user *opt,
-+int nf_setsockopt(struct sock *sk, u_int8_t pf, int val, char __user *opt,
- 		  int len)
- {
- 	return nf_sockopt(sk, pf, val, opt, &len, 0);
- }
- EXPORT_SYMBOL(nf_setsockopt);
- 
--int nf_getsockopt(struct sock *sk, int pf, int val, char __user *opt, int *len)
-+int nf_getsockopt(struct sock *sk, u_int8_t pf, int val, char __user *opt,
-+		  int *len)
- {
- 	return nf_sockopt(sk, pf, val, opt, len, 1);
- }
- EXPORT_SYMBOL(nf_getsockopt);
- 
- #ifdef CONFIG_COMPAT
--static int compat_nf_sockopt(struct sock *sk, int pf, int val,
-+static int compat_nf_sockopt(struct sock *sk, u_int8_t pf, int val,
- 			     char __user *opt, int *len, int get)
- {
- 	struct nf_sockopt_ops *ops;
-@@ -155,14 +156,14 @@ static int compat_nf_sockopt(struct sock *sk, int pf, int val,
- 	return ret;
- }
- 
--int compat_nf_setsockopt(struct sock *sk, int pf,
-+int compat_nf_setsockopt(struct sock *sk, u_int8_t pf,
- 		int val, char __user *opt, int len)
- {
- 	return compat_nf_sockopt(sk, pf, val, opt, &len, 0);
- }
- EXPORT_SYMBOL(compat_nf_setsockopt);
- 
--int compat_nf_getsockopt(struct sock *sk, int pf,
-+int compat_nf_getsockopt(struct sock *sk, u_int8_t pf,
- 		int val, char __user *opt, int *len)
- {
- 	return compat_nf_sockopt(sk, pf, val, opt, len, 1);
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index 9a35b57..41e0105 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -359,7 +359,7 @@ static inline int
- __build_packet_message(struct nfulnl_instance *inst,
- 			const struct sk_buff *skb,
- 			unsigned int data_len,
--			unsigned int pf,
-+			u_int8_t pf,
- 			unsigned int hooknum,
- 			const struct net_device *indev,
- 			const struct net_device *outdev,
-@@ -534,7 +534,7 @@ static struct nf_loginfo default_loginfo = {
- 
- /* log handler for internal netfilter logging api */
- static void
--nfulnl_log_packet(unsigned int pf,
-+nfulnl_log_packet(u_int8_t pf,
- 		  unsigned int hooknum,
- 		  const struct sk_buff *skb,
- 		  const struct net_device *in,
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 5d75cd8..cf2f3e9 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -68,7 +68,8 @@ static const char *const xt_prefix[NPROTO] = {
- int
- xt_register_target(struct xt_target *target)
- {
--	int ret, af = target->family;
-+	u_int8_t af = target->family;
-+	int ret;
- 
- 	ret = mutex_lock_interruptible(&xt[af].mutex);
- 	if (ret != 0)
-@@ -82,7 +83,7 @@ EXPORT_SYMBOL(xt_register_target);
- void
- xt_unregister_target(struct xt_target *target)
- {
--	int af = target->family;
-+	u_int8_t af = target->family;
- 
- 	mutex_lock(&xt[af].mutex);
- 	list_del(&target->list);
-@@ -123,7 +124,8 @@ EXPORT_SYMBOL(xt_unregister_targets);
- int
- xt_register_match(struct xt_match *match)
- {
--	int ret, af = match->family;
-+	u_int8_t af = match->family;
-+	int ret;
- 
- 	ret = mutex_lock_interruptible(&xt[af].mutex);
- 	if (ret != 0)
-@@ -139,7 +141,7 @@ EXPORT_SYMBOL(xt_register_match);
- void
- xt_unregister_match(struct xt_match *match)
- {
--	int af =  match->family;
-+	u_int8_t af = match->family;
- 
- 	mutex_lock(&xt[af].mutex);
- 	list_del(&match->list);
-@@ -185,7 +187,7 @@ EXPORT_SYMBOL(xt_unregister_matches);
-  */
- 
- /* Find match, grabs ref.  Returns ERR_PTR() on error. */
--struct xt_match *xt_find_match(int af, const char *name, u8 revision)
-+struct xt_match *xt_find_match(u8 af, const char *name, u8 revision)
- {
- 	struct xt_match *m;
- 	int err = 0;
-@@ -210,7 +212,7 @@ struct xt_match *xt_find_match(int af, const char *name, u8 revision)
- EXPORT_SYMBOL(xt_find_match);
- 
- /* Find target, grabs ref.  Returns ERR_PTR() on error. */
--struct xt_target *xt_find_target(int af, const char *name, u8 revision)
-+struct xt_target *xt_find_target(u8 af, const char *name, u8 revision)
- {
- 	struct xt_target *t;
- 	int err = 0;
-@@ -234,7 +236,7 @@ struct xt_target *xt_find_target(int af, const char *name, u8 revision)
- }
- EXPORT_SYMBOL(xt_find_target);
- 
--struct xt_target *xt_request_find_target(int af, const char *name, u8 revision)
-+struct xt_target *xt_request_find_target(u8 af, const char *name, u8 revision)
- {
- 	struct xt_target *target;
- 
-@@ -246,7 +248,7 @@ struct xt_target *xt_request_find_target(int af, const char *name, u8 revision)
- }
- EXPORT_SYMBOL_GPL(xt_request_find_target);
- 
--static int match_revfn(int af, const char *name, u8 revision, int *bestp)
-+static int match_revfn(u8 af, const char *name, u8 revision, int *bestp)
- {
- 	const struct xt_match *m;
- 	int have_rev = 0;
-@@ -262,7 +264,7 @@ static int match_revfn(int af, const char *name, u8 revision, int *bestp)
- 	return have_rev;
- }
- 
--static int target_revfn(int af, const char *name, u8 revision, int *bestp)
-+static int target_revfn(u8 af, const char *name, u8 revision, int *bestp)
- {
- 	const struct xt_target *t;
- 	int have_rev = 0;
-@@ -279,7 +281,7 @@ static int target_revfn(int af, const char *name, u8 revision, int *bestp)
- }
- 
- /* Returns true or false (if no such extension at all) */
--int xt_find_revision(int af, const char *name, u8 revision, int target,
-+int xt_find_revision(u8 af, const char *name, u8 revision, int target,
- 		     int *err)
- {
- 	int have_rev, best = -1;
-@@ -337,7 +339,7 @@ int xt_check_match(const struct xt_match *match, unsigned short family,
- EXPORT_SYMBOL_GPL(xt_check_match);
- 
- #ifdef CONFIG_COMPAT
--int xt_compat_add_offset(int af, unsigned int offset, short delta)
-+int xt_compat_add_offset(u_int8_t af, unsigned int offset, short delta)
- {
- 	struct compat_delta *tmp;
- 
-@@ -359,7 +361,7 @@ int xt_compat_add_offset(int af, unsigned int offset, short delta)
- }
- EXPORT_SYMBOL_GPL(xt_compat_add_offset);
- 
--void xt_compat_flush_offsets(int af)
-+void xt_compat_flush_offsets(u_int8_t af)
- {
- 	struct compat_delta *tmp, *next;
- 
-@@ -373,7 +375,7 @@ void xt_compat_flush_offsets(int af)
- }
- EXPORT_SYMBOL_GPL(xt_compat_flush_offsets);
- 
--short xt_compat_calc_jump(int af, unsigned int offset)
-+short xt_compat_calc_jump(u_int8_t af, unsigned int offset)
- {
- 	struct compat_delta *tmp;
- 	short delta;
-@@ -590,7 +592,8 @@ void xt_free_table_info(struct xt_table_info *info)
- EXPORT_SYMBOL(xt_free_table_info);
- 
- /* Find table by name, grabs mutex & ref.  Returns ERR_PTR() on error. */
--struct xt_table *xt_find_table_lock(struct net *net, int af, const char *name)
-+struct xt_table *xt_find_table_lock(struct net *net, u_int8_t af,
-+				    const char *name)
- {
- 	struct xt_table *t;
- 
-@@ -612,13 +615,13 @@ void xt_table_unlock(struct xt_table *table)
- EXPORT_SYMBOL_GPL(xt_table_unlock);
- 
- #ifdef CONFIG_COMPAT
--void xt_compat_lock(int af)
-+void xt_compat_lock(u_int8_t af)
- {
- 	mutex_lock(&xt[af].compat_mutex);
- }
- EXPORT_SYMBOL_GPL(xt_compat_lock);
- 
--void xt_compat_unlock(int af)
-+void xt_compat_unlock(u_int8_t af)
- {
- 	mutex_unlock(&xt[af].compat_mutex);
- }
-@@ -722,13 +725,13 @@ EXPORT_SYMBOL_GPL(xt_unregister_table);
- #ifdef CONFIG_PROC_FS
- struct xt_names_priv {
- 	struct seq_net_private p;
--	int af;
-+	u_int8_t af;
- };
- static void *xt_table_seq_start(struct seq_file *seq, loff_t *pos)
- {
- 	struct xt_names_priv *priv = seq->private;
- 	struct net *net = seq_file_net(seq);
--	int af = priv->af;
-+	u_int8_t af = priv->af;
- 
- 	mutex_lock(&xt[af].mutex);
- 	return seq_list_start(&net->xt.tables[af], *pos);
-@@ -738,7 +741,7 @@ static void *xt_table_seq_next(struct seq_file *seq, void *v, loff_t *pos)
- {
- 	struct xt_names_priv *priv = seq->private;
- 	struct net *net = seq_file_net(seq);
--	int af = priv->af;
-+	u_int8_t af = priv->af;
- 
- 	return seq_list_next(v, &net->xt.tables[af], pos);
- }
-@@ -746,7 +749,7 @@ static void *xt_table_seq_next(struct seq_file *seq, void *v, loff_t *pos)
- static void xt_table_seq_stop(struct seq_file *seq, void *v)
- {
- 	struct xt_names_priv *priv = seq->private;
--	int af = priv->af;
-+	u_int8_t af = priv->af;
- 
- 	mutex_unlock(&xt[af].mutex);
- }
-@@ -922,7 +925,7 @@ static const struct file_operations xt_target_ops = {
- 
- #endif /* CONFIG_PROC_FS */
- 
--int xt_proto_init(struct net *net, int af)
-+int xt_proto_init(struct net *net, u_int8_t af)
- {
- #ifdef CONFIG_PROC_FS
- 	char buf[XT_FUNCTION_MAXNAMELEN];
-@@ -974,7 +977,7 @@ out:
- }
- EXPORT_SYMBOL_GPL(xt_proto_init);
- 
--void xt_proto_fini(struct net *net, int af)
-+void xt_proto_fini(struct net *net, u_int8_t af)
- {
- #ifdef CONFIG_PROC_FS
- 	char buf[XT_FUNCTION_MAXNAMELEN];
-diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
-index 70907f6..1655e2c 100644
---- a/net/netfilter/xt_connlimit.c
-+++ b/net/netfilter/xt_connlimit.c
-@@ -82,7 +82,7 @@ static inline bool already_closed(const struct nf_conn *conn)
- static inline unsigned int
- same_source_net(const union nf_inet_addr *addr,
- 		const union nf_inet_addr *mask,
--		const union nf_inet_addr *u3, unsigned int family)
-+		const union nf_inet_addr *u3, u_int8_t family)
- {
- 	if (family == AF_INET) {
- 		return (addr->ip & mask->ip) == (u3->ip & mask->ip);
-diff --git a/net/netfilter/xt_conntrack.c b/net/netfilter/xt_conntrack.c
-index d61412f..28a42a3 100644
---- a/net/netfilter/xt_conntrack.c
-+++ b/net/netfilter/xt_conntrack.c
-@@ -133,7 +133,7 @@ conntrack_addrcmp(const union nf_inet_addr *kaddr,
- static inline bool
- conntrack_mt_origsrc(const struct nf_conn *ct,
-                      const struct xt_conntrack_mtinfo1 *info,
--                     unsigned int family)
-+		     u_int8_t family)
- {
- 	return conntrack_addrcmp(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.u3,
- 	       &info->origsrc_addr, &info->origsrc_mask, family);
-@@ -142,7 +142,7 @@ conntrack_mt_origsrc(const struct nf_conn *ct,
- static inline bool
- conntrack_mt_origdst(const struct nf_conn *ct,
-                      const struct xt_conntrack_mtinfo1 *info,
--                     unsigned int family)
-+		     u_int8_t family)
- {
- 	return conntrack_addrcmp(&ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.u3,
- 	       &info->origdst_addr, &info->origdst_mask, family);
-@@ -151,7 +151,7 @@ conntrack_mt_origdst(const struct nf_conn *ct,
- static inline bool
- conntrack_mt_replsrc(const struct nf_conn *ct,
-                      const struct xt_conntrack_mtinfo1 *info,
--                     unsigned int family)
-+		     u_int8_t family)
- {
- 	return conntrack_addrcmp(&ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.u3,
- 	       &info->replsrc_addr, &info->replsrc_mask, family);
-@@ -160,7 +160,7 @@ conntrack_mt_replsrc(const struct nf_conn *ct,
- static inline bool
- conntrack_mt_repldst(const struct nf_conn *ct,
-                      const struct xt_conntrack_mtinfo1 *info,
--                     unsigned int family)
-+		     u_int8_t family)
- {
- 	return conntrack_addrcmp(&ct->tuplehash[IP_CT_DIR_REPLY].tuple.dst.u3,
- 	       &info->repldst_addr, &info->repldst_mask, family);
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index d9418a2..0c9268f 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -80,7 +80,7 @@ struct dsthash_ent {
- struct xt_hashlimit_htable {
- 	struct hlist_node node;		/* global list of all htables */
- 	atomic_t use;
--	int family;
-+	u_int8_t family;
- 
- 	struct hashlimit_cfg1 cfg;	/* config */
- 
-@@ -185,7 +185,7 @@ dsthash_free(struct xt_hashlimit_htable *ht, struct dsthash_ent *ent)
- }
- static void htable_gc(unsigned long htlong);
- 
--static int htable_create_v0(struct xt_hashlimit_info *minfo, int family)
-+static int htable_create_v0(struct xt_hashlimit_info *minfo, u_int8_t family)
- {
- 	struct xt_hashlimit_htable *hinfo;
- 	unsigned int size;
-@@ -258,8 +258,7 @@ static int htable_create_v0(struct xt_hashlimit_info *minfo, int family)
- 	return 0;
- }
- 
--static int htable_create(struct xt_hashlimit_mtinfo1 *minfo,
--                         unsigned int family)
-+static int htable_create(struct xt_hashlimit_mtinfo1 *minfo, u_int8_t family)
- {
- 	struct xt_hashlimit_htable *hinfo;
- 	unsigned int size;
-@@ -378,7 +377,7 @@ static void htable_destroy(struct xt_hashlimit_htable *hinfo)
- }
- 
- static struct xt_hashlimit_htable *htable_find_get(const char *name,
--						   int family)
-+						   u_int8_t family)
- {
- 	struct xt_hashlimit_htable *hinfo;
- 	struct hlist_node *pos;
-@@ -901,7 +900,7 @@ static void dl_seq_stop(struct seq_file *s, void *v)
- 	spin_unlock_bh(&htable->lock);
- }
- 
--static int dl_seq_real_show(struct dsthash_ent *ent, int family,
-+static int dl_seq_real_show(struct dsthash_ent *ent, u_int8_t family,
- 				   struct seq_file *s)
- {
- 	/* recalculate to show accurate numbers */
++
++static struct recent_entry *
++recent_entry_lookup(const struct recent_table *table, __be32 addr, u_int8_t ttl)
++{
++	struct recent_entry *e;
++	unsigned int h;
++
++	h = recent_entry_hash(addr);
++	list_for_each_entry(e, &table->iphash[h], list)
++		if (e->addr == addr && (ttl == e->ttl || !ttl || !e->ttl))
++			return e;
++	return NULL;
++}
++
++static void recent_entry_remove(struct recent_table *t, struct recent_entry *e)
++{
++	list_del(&e->list);
++	list_del(&e->lru_list);
++	kfree(e);
++	t->entries--;
++}
++
++static struct recent_entry *
++recent_entry_init(struct recent_table *t, __be32 addr, u_int8_t ttl)
++{
++	struct recent_entry *e;
++
++	if (t->entries >= ip_list_tot) {
++		e = list_entry(t->lru_list.next, struct recent_entry, lru_list);
++		recent_entry_remove(t, e);
++	}
++	e = kmalloc(sizeof(*e) + sizeof(e->stamps[0]) * ip_pkt_list_tot,
++		    GFP_ATOMIC);
++	if (e == NULL)
++		return NULL;
++	e->addr      = addr;
++	e->ttl       = ttl;
++	e->stamps[0] = jiffies;
++	e->nstamps   = 1;
++	e->index     = 1;
++	list_add_tail(&e->list, &t->iphash[recent_entry_hash(addr)]);
++	list_add_tail(&e->lru_list, &t->lru_list);
++	t->entries++;
++	return e;
++}
++
++static void recent_entry_update(struct recent_table *t, struct recent_entry *e)
++{
++	e->stamps[e->index++] = jiffies;
++	if (e->index > e->nstamps)
++		e->nstamps = e->index;
++	e->index %= ip_pkt_list_tot;
++	list_move_tail(&e->lru_list, &t->lru_list);
++}
++
++static struct recent_table *recent_table_lookup(const char *name)
++{
++	struct recent_table *t;
++
++	list_for_each_entry(t, &tables, list)
++		if (!strcmp(t->name, name))
++			return t;
++	return NULL;
++}
++
++static void recent_table_flush(struct recent_table *t)
++{
++	struct recent_entry *e, *next;
++	unsigned int i;
++
++	for (i = 0; i < ip_list_hash_size; i++)
++		list_for_each_entry_safe(e, next, &t->iphash[i], list)
++			recent_entry_remove(t, e);
++}
++
++static bool
++recent_mt(const struct sk_buff *skb, const struct net_device *in,
++          const struct net_device *out, const struct xt_match *match,
++          const void *matchinfo, int offset, unsigned int protoff,
++          bool *hotdrop)
++{
++	const struct xt_recent_mtinfo *info = matchinfo;
++	struct recent_table *t;
++	struct recent_entry *e;
++	__be32 addr;
++	u_int8_t ttl;
++	bool ret = info->invert;
++
++	if (info->side == XT_RECENT_DEST)
++		addr = ip_hdr(skb)->daddr;
++	else
++		addr = ip_hdr(skb)->saddr;
++
++	ttl = ip_hdr(skb)->ttl;
++	/* use TTL as seen before forwarding */
++	if (out && !skb->sk)
++		ttl++;
++
++	spin_lock_bh(&recent_lock);
++	t = recent_table_lookup(info->name);
++	e = recent_entry_lookup(t, addr,
++				info->check_set & XT_RECENT_TTL ? ttl : 0);
++	if (e == NULL) {
++		if (!(info->check_set & XT_RECENT_SET))
++			goto out;
++		e = recent_entry_init(t, addr, ttl);
++		if (e == NULL)
++			*hotdrop = true;
++		ret = !ret;
++		goto out;
++	}
++
++	if (info->check_set & XT_RECENT_SET)
++		ret = !ret;
++	else if (info->check_set & XT_RECENT_REMOVE) {
++		recent_entry_remove(t, e);
++		ret = !ret;
++	} else if (info->check_set & (XT_RECENT_CHECK | XT_RECENT_UPDATE)) {
++		unsigned long time = jiffies - info->seconds * HZ;
++		unsigned int i, hits = 0;
++
++		for (i = 0; i < e->nstamps; i++) {
++			if (info->seconds && time_after(time, e->stamps[i]))
++				continue;
++			if (++hits >= info->hit_count) {
++				ret = !ret;
++				break;
++			}
++		}
++	}
++
++	if (info->check_set & XT_RECENT_SET ||
++	    (info->check_set & XT_RECENT_UPDATE && ret)) {
++		recent_entry_update(t, e);
++		e->ttl = ttl;
++	}
++out:
++	spin_unlock_bh(&recent_lock);
++	return ret;
++}
++
++static bool
++recent_mt_check(const char *tablename, const void *ip,
++                const struct xt_match *match, void *matchinfo,
++                unsigned int hook_mask)
++{
++	const struct xt_recent_mtinfo *info = matchinfo;
++	struct recent_table *t;
++	unsigned i;
++	bool ret = false;
++
++	if (hweight8(info->check_set &
++		     (XT_RECENT_SET | XT_RECENT_REMOVE |
++		      XT_RECENT_CHECK | XT_RECENT_UPDATE)) != 1)
++		return false;
++	if ((info->check_set & (XT_RECENT_SET | XT_RECENT_REMOVE)) &&
++	    (info->seconds || info->hit_count))
++		return false;
++	if (info->hit_count > ip_pkt_list_tot)
++		return false;
++	if (info->name[0] == '\0' ||
++	    strnlen(info->name, XT_RECENT_NAME_LEN) == XT_RECENT_NAME_LEN)
++		return false;
++
++	mutex_lock(&recent_mutex);
++	t = recent_table_lookup(info->name);
++	if (t != NULL) {
++		t->refcnt++;
++		ret = true;
++		goto out;
++	}
++
++	t = kzalloc(sizeof(*t) + sizeof(t->iphash[0]) * ip_list_hash_size,
++		    GFP_KERNEL);
++	if (t == NULL)
++		goto out;
++	t->refcnt = 1;
++	strcpy(t->name, info->name);
++	INIT_LIST_HEAD(&t->lru_list);
++	for (i = 0; i < ip_list_hash_size; i++)
++		INIT_LIST_HEAD(&t->iphash[i]);
++#ifdef CONFIG_PROC_FS
++	t->proc = proc_create(t->name, ip_list_perms, proc_dir, &recent_fops);
++	if (t->proc == NULL) {
++		kfree(t);
++		goto out;
++	}
++	t->proc->uid       = ip_list_uid;
++	t->proc->gid       = ip_list_gid;
++	t->proc->data      = t;
++#endif
++	spin_lock_bh(&recent_lock);
++	list_add_tail(&t->list, &tables);
++	spin_unlock_bh(&recent_lock);
++	ret = true;
++out:
++	mutex_unlock(&recent_mutex);
++	return ret;
++}
++
++static void recent_mt_destroy(const struct xt_match *match, void *matchinfo)
++{
++	const struct xt_recent_mtinfo *info = matchinfo;
++	struct recent_table *t;
++
++	mutex_lock(&recent_mutex);
++	t = recent_table_lookup(info->name);
++	if (--t->refcnt == 0) {
++		spin_lock_bh(&recent_lock);
++		list_del(&t->list);
++		spin_unlock_bh(&recent_lock);
++#ifdef CONFIG_PROC_FS
++		remove_proc_entry(t->name, proc_dir);
++#endif
++		recent_table_flush(t);
++		kfree(t);
++	}
++	mutex_unlock(&recent_mutex);
++}
++
++#ifdef CONFIG_PROC_FS
++struct recent_iter_state {
++	struct recent_table	*table;
++	unsigned int		bucket;
++};
++
++static void *recent_seq_start(struct seq_file *seq, loff_t *pos)
++	__acquires(recent_lock)
++{
++	struct recent_iter_state *st = seq->private;
++	const struct recent_table *t = st->table;
++	struct recent_entry *e;
++	loff_t p = *pos;
++
++	spin_lock_bh(&recent_lock);
++
++	for (st->bucket = 0; st->bucket < ip_list_hash_size; st->bucket++)
++		list_for_each_entry(e, &t->iphash[st->bucket], list)
++			if (p-- == 0)
++				return e;
++	return NULL;
++}
++
++static void *recent_seq_next(struct seq_file *seq, void *v, loff_t *pos)
++{
++	struct recent_iter_state *st = seq->private;
++	const struct recent_table *t = st->table;
++	struct recent_entry *e = v;
++	struct list_head *head = e->list.next;
++
++	while (head == &t->iphash[st->bucket]) {
++		if (++st->bucket >= ip_list_hash_size)
++			return NULL;
++		head = t->iphash[st->bucket].next;
++	}
++	(*pos)++;
++	return list_entry(head, struct recent_entry, list);
++}
++
++static void recent_seq_stop(struct seq_file *s, void *v)
++	__releases(recent_lock)
++{
++	spin_unlock_bh(&recent_lock);
++}
++
++static int recent_seq_show(struct seq_file *seq, void *v)
++{
++	const struct recent_entry *e = v;
++	unsigned int i;
++
++	i = (e->index - 1) % ip_pkt_list_tot;
++	seq_printf(seq, "src=%u.%u.%u.%u ttl: %u last_seen: %lu oldest_pkt: %u",
++		   NIPQUAD(e->addr), e->ttl, e->stamps[i], e->index);
++	for (i = 0; i < e->nstamps; i++)
++		seq_printf(seq, "%s %lu", i ? "," : "", e->stamps[i]);
++	seq_printf(seq, "\n");
++	return 0;
++}
++
++static const struct seq_operations recent_seq_ops = {
++	.start		= recent_seq_start,
++	.next		= recent_seq_next,
++	.stop		= recent_seq_stop,
++	.show		= recent_seq_show,
++};
++
++static int recent_seq_open(struct inode *inode, struct file *file)
++{
++	struct proc_dir_entry *pde = PDE(inode);
++	struct recent_iter_state *st;
++
++	st = __seq_open_private(file, &recent_seq_ops, sizeof(*st));
++	if (st == NULL)
++		return -ENOMEM;
++
++	st->table    = pde->data;
++	return 0;
++}
++
++static ssize_t recent_proc_write(struct file *file, const char __user *input,
++				 size_t size, loff_t *loff)
++{
++	const struct proc_dir_entry *pde = PDE(file->f_path.dentry->d_inode);
++	struct recent_table *t = pde->data;
++	struct recent_entry *e;
++	char buf[sizeof("+255.255.255.255")], *c = buf;
++	__be32 addr;
++	int add;
++
++	if (size > sizeof(buf))
++		size = sizeof(buf);
++	if (copy_from_user(buf, input, size))
++		return -EFAULT;
++	while (isspace(*c))
++		c++;
++
++	if (size - (c - buf) < 5)
++		return c - buf;
++	if (!strncmp(c, "clear", 5)) {
++		c += 5;
++		spin_lock_bh(&recent_lock);
++		recent_table_flush(t);
++		spin_unlock_bh(&recent_lock);
++		return c - buf;
++	}
++
++	switch (*c) {
++	case '-':
++		add = 0;
++		c++;
++		break;
++	case '+':
++		c++;
++	default:
++		add = 1;
++		break;
++	}
++	addr = in_aton(c);
++
++	spin_lock_bh(&recent_lock);
++	e = recent_entry_lookup(t, addr, 0);
++	if (e == NULL) {
++		if (add)
++			recent_entry_init(t, addr, 0);
++	} else {
++		if (add)
++			recent_entry_update(t, e);
++		else
++			recent_entry_remove(t, e);
++	}
++	spin_unlock_bh(&recent_lock);
++	return size;
++}
++
++static const struct file_operations recent_fops = {
++	.open		= recent_seq_open,
++	.read		= seq_read,
++	.write		= recent_proc_write,
++	.release	= seq_release_private,
++	.owner		= THIS_MODULE,
++};
++#endif /* CONFIG_PROC_FS */
++
++static struct xt_match recent_mt_reg __read_mostly = {
++	.name		= "recent",
++	.family		= AF_INET,
++	.match		= recent_mt,
++	.matchsize	= sizeof(struct xt_recent_mtinfo),
++	.checkentry	= recent_mt_check,
++	.destroy	= recent_mt_destroy,
++	.me		= THIS_MODULE,
++};
++
++static int __init recent_mt_init(void)
++{
++	int err;
++
++	if (!ip_list_tot || !ip_pkt_list_tot || ip_pkt_list_tot > 255)
++		return -EINVAL;
++	ip_list_hash_size = 1 << fls(ip_list_tot);
++
++	err = xt_register_match(&recent_mt_reg);
++#ifdef CONFIG_PROC_FS
++	if (err)
++		return err;
++	proc_dir = proc_mkdir("ipt_recent", init_net.proc_net);
++	if (proc_dir == NULL) {
++		xt_unregister_match(&recent_mt_reg);
++		err = -ENOMEM;
++	}
++#endif
++	return err;
++}
++
++static void __exit recent_mt_exit(void)
++{
++	BUG_ON(!list_empty(&tables));
++	xt_unregister_match(&recent_mt_reg);
++#ifdef CONFIG_PROC_FS
++	remove_proc_entry("ipt_recent", init_net.proc_net);
++#endif
++}
++
++module_init(recent_mt_init);
++module_exit(recent_mt_exit);
