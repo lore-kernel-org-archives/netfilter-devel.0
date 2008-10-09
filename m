@@ -1,8 +1,8 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 3/8] [PATCH] Helper modules load-on-demand support for
-	ctnetlink
-Date: Thu, 09 Oct 2008 10:34:22 +0200
-Message-ID: <20081009083422.9824.35589.stgit@Decadence>
+Subject: [PATCH 4/8] [PATCH] use EOPNOTSUPP instead of EINVAL if the conntrack
+	has no helper
+Date: Thu, 09 Oct 2008 10:34:44 +0200
+Message-ID: <20081009083444.9824.95893.stgit@Decadence>
 References: <20081009083339.9824.24056.stgit@Decadence>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,298 +10,35 @@ Content-Transfer-Encoding: 7bit
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35143 "EHLO us.es"
+Received: from mail.us.es ([193.147.175.20]:35473 "EHLO us.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753468AbYJIIqz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Oct 2008 04:46:55 -0400
+	id S1753672AbYJIIrg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Oct 2008 04:47:36 -0400
 In-Reply-To: <20081009083339.9824.24056.stgit@Decadence>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds module loading for helpers via ctnetlink.
-
-* Creation path: We support explicit and implicit helper assignation. For
-  the explicit case, we try to load the module. If the module is correctly
-  loaded and the helper is present, we return EAGAIN to re-start the
-  creation. Otherwise, we return EOPNOTSUPP.
-* Update path: release the spin lock, load the module and check. If it is
-  present, then return EAGAIN to re-start the update.
-
-This patch includes a minor change in nfnetlink to support EAGAIN.
-Based on a suggestion from Patrick McHardy.
-
-This patch provides a refactorized function to lookup-and-set the
-connection tracking helper. The function removes the exported symbol
-__nf_ct_helper_find as it has not clients anymore.
+This patch changes the return value if the conntrack has no helper assigned.
+Instead of EINVAL, which is reserved for malformed messages, it returns
+EOPNOTSUPP.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
 
- include/net/netfilter/nf_conntrack_helper.h |   16 +++++-
- net/netfilter/nf_conntrack_core.c           |   30 +-----------
- net/netfilter/nf_conntrack_helper.c         |   33 ++++++++++++-
- net/netfilter/nf_conntrack_netlink.c        |   70 ++++++++++++++++++++++++---
- net/netfilter/nfnetlink.c                   |    3 +
- 5 files changed, 109 insertions(+), 43 deletions(-)
+ net/netfilter/nf_conntrack_netlink.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
-index f8060ab..9455699 100644
---- a/include/net/netfilter/nf_conntrack_helper.h
-+++ b/include/net/netfilter/nf_conntrack_helper.h
-@@ -39,9 +39,6 @@ struct nf_conntrack_helper
- };
- 
- extern struct nf_conntrack_helper *
--__nf_ct_helper_find(const struct nf_conntrack_tuple *tuple);
--
--extern struct nf_conntrack_helper *
- __nf_conntrack_helper_find_byname(const char *name);
- 
- extern int nf_conntrack_helper_register(struct nf_conntrack_helper *);
-@@ -49,6 +46,19 @@ extern void nf_conntrack_helper_unregister(struct nf_conntrack_helper *);
- 
- extern struct nf_conn_help *nf_ct_helper_ext_add(struct nf_conn *ct, gfp_t gfp);
- 
-+extern int __nf_ct_set_helper(struct nf_conn *ct, gfp_t flags);
-+
-+static inline int nf_ct_set_helper(struct nf_conn *ct, gfp_t flags)
-+{
-+	int ret;
-+
-+	rcu_read_lock();
-+	ret = __nf_ct_set_helper(ct, flags);
-+	rcu_read_unlock();
-+
-+	return ret;
-+}
-+
- static inline struct nf_conn_help *nfct_help(const struct nf_conn *ct)
- {
- 	return nf_ct_ext_find(ct, NF_CT_EXT_HELPER);
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 27de3c7..f465090 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -581,14 +581,7 @@ init_conntrack(struct net *net,
- 		nf_conntrack_get(&ct->master->ct_general);
- 		NF_CT_STAT_INC(net, expect_new);
- 	} else {
--		struct nf_conntrack_helper *helper;
--
--		helper = __nf_ct_helper_find(&repl_tuple);
--		if (helper) {
--			help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
--			if (help)
--				rcu_assign_pointer(help->helper, helper);
--		}
-+		__nf_ct_set_helper(ct, GFP_ATOMIC);
- 		NF_CT_STAT_INC(net, new);
- 	}
- 
-@@ -765,7 +758,6 @@ void nf_conntrack_alter_reply(struct nf_conn *ct,
- 			      const struct nf_conntrack_tuple *newreply)
- {
- 	struct nf_conn_help *help = nfct_help(ct);
--	struct nf_conntrack_helper *helper;
- 
- 	/* Should be unconfirmed, so not in hash table yet */
- 	NF_CT_ASSERT(!nf_ct_is_confirmed(ct));
-@@ -777,25 +769,7 @@ void nf_conntrack_alter_reply(struct nf_conn *ct,
- 	if (ct->master || (help && !hlist_empty(&help->expectations)))
- 		return;
- 
--	rcu_read_lock();
--	helper = __nf_ct_helper_find(newreply);
--	if (helper == NULL) {
--		if (help)
--			rcu_assign_pointer(help->helper, NULL);
--		goto out;
--	}
--
--	if (help == NULL) {
--		help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
--		if (help == NULL)
--			goto out;
--	} else {
--		memset(&help->help, 0, sizeof(help->help));
--	}
--
--	rcu_assign_pointer(help->helper, helper);
--out:
--	rcu_read_unlock();
-+	nf_ct_set_helper(ct, GFP_ATOMIC);
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_alter_reply);
- 
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index 9c06b9f..86cdbde 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -44,7 +44,7 @@ static unsigned int helper_hash(const struct nf_conntrack_tuple *tuple)
- 		(__force __u16)tuple->src.u.all) % nf_ct_helper_hsize;
- }
- 
--struct nf_conntrack_helper *
-+static struct nf_conntrack_helper *
- __nf_ct_helper_find(const struct nf_conntrack_tuple *tuple)
- {
- 	struct nf_conntrack_helper *helper;
-@@ -62,7 +62,6 @@ __nf_ct_helper_find(const struct nf_conntrack_tuple *tuple)
- 	}
- 	return NULL;
- }
--EXPORT_SYMBOL_GPL(__nf_ct_helper_find);
- 
- struct nf_conntrack_helper *
- __nf_conntrack_helper_find_byname(const char *name)
-@@ -94,6 +93,36 @@ struct nf_conn_help *nf_ct_helper_ext_add(struct nf_conn *ct, gfp_t gfp)
- }
- EXPORT_SYMBOL_GPL(nf_ct_helper_ext_add);
- 
-+int __nf_ct_set_helper(struct nf_conn *ct, gfp_t flags)
-+{
-+	int ret = 0;
-+	struct nf_conntrack_helper *helper;
-+	struct nf_conn_help *help = nfct_help(ct);
-+
-+	helper = __nf_ct_helper_find(&ct->tuplehash[IP_CT_DIR_REPLY].tuple);
-+	if (helper == NULL) {
-+		if (help)
-+			rcu_assign_pointer(help->helper, NULL);
-+		ret = -ENOENT;
-+		goto out;
-+	}
-+
-+	if (help == NULL) {
-+		help = nf_ct_helper_ext_add(ct, flags);
-+		if (help == NULL) {
-+			ret = -ENOMEM;
-+			goto out;
-+		}
-+	} else {
-+		memset(&help->help, 0, sizeof(help->help));
-+	}
-+
-+	rcu_assign_pointer(help->helper, helper);
-+out:
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(__nf_ct_set_helper);
-+
- static inline int unhelp(struct nf_conntrack_tuple_hash *i,
- 			 const struct nf_conntrack_helper *me)
- {
 diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index f38c649..a649f7b 100644
+index a649f7b..da2437c 100644
 --- a/net/netfilter/nf_conntrack_netlink.c
 +++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -952,8 +952,22 @@ ctnetlink_change_helper(struct nf_conn *ct, struct nlattr *cda[])
+@@ -1729,7 +1729,7 @@ ctnetlink_create_expect(struct nlattr *cda[], u_int8_t u3)
+ 
+ 	if (!help || !help->helper) {
+ 		/* such conntrack hasn't got any helper, abort */
+-		err = -EINVAL;
++		err = -EOPNOTSUPP;
+ 		goto out;
  	}
- 
- 	helper = __nf_conntrack_helper_find_byname(helpname);
--	if (helper == NULL)
-+	if (helper == NULL) {
-+#ifdef CONFIG_KMOD
-+		spin_unlock_bh(&nf_conntrack_lock);
-+
-+		if (request_module("nfct-helper-%s", helpname) < 0) {
-+			spin_lock_bh(&nf_conntrack_lock);
-+			return -EOPNOTSUPP;
-+		}
-+
-+		spin_lock_bh(&nf_conntrack_lock);
-+		helper = __nf_conntrack_helper_find_byname(helpname);
-+		if (helper)
-+			return -EAGAIN;
-+#endif
- 		return -EOPNOTSUPP;
-+	}
- 
- 	if (help) {
- 		if (help->helper == helper)
-@@ -1117,7 +1131,6 @@ ctnetlink_create_conntrack(struct nlattr *cda[],
- {
- 	struct nf_conn *ct;
- 	int err = -EINVAL;
--	struct nf_conn_help *help;
- 	struct nf_conntrack_helper *helper;
- 
- 	ct = nf_conntrack_alloc(&init_net, otuple, rtuple, GFP_KERNEL);
-@@ -1132,16 +1145,55 @@ ctnetlink_create_conntrack(struct nlattr *cda[],
- 	ct->status |= IPS_CONFIRMED;
- 
- 	rcu_read_lock();
--	helper = __nf_ct_helper_find(rtuple);
--	if (helper) {
--		help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
--		if (help == NULL) {
-+ 	if (cda[CTA_HELP]) {
-+ 		char *helpname;
-+ 
-+ 		err = ctnetlink_parse_help(cda[CTA_HELP], &helpname);
-+ 		if (err < 0) {
-+			rcu_read_unlock();
-+			goto err;
-+		}
-+
-+		helper = __nf_conntrack_helper_find_byname(helpname);
-+		if (helper == NULL) {
-+			rcu_read_unlock();
-+#ifdef CONFIG_KMOD
-+			if (request_module("nfct-helper-%s", helpname) < 0) {
-+				err = -EOPNOTSUPP;
-+				goto err;
-+			}
-+
-+			rcu_read_lock();
-+			helper = __nf_conntrack_helper_find_byname(helpname);
-+			if (helper) {
-+				rcu_read_unlock();
-+				err = -EAGAIN;
-+				goto err;
-+			}
-+			rcu_read_unlock();
-+#endif
-+			err = -EOPNOTSUPP;
-+			goto err;
-+		} else {
-+			struct nf_conn_help *help;
-+
-+			help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
-+			if (help == NULL) {
-+				rcu_read_unlock();
-+				err = -ENOMEM;
-+				goto err;
-+			}
-+
-+			/* not in hash table yet so not strictly necessary */
-+			rcu_assign_pointer(help->helper, helper);
-+		}
-+	} else {
-+		/* try an implicit helper assignation */
-+		err = __nf_ct_set_helper(ct, GFP_ATOMIC);
-+		if (err == -ENOMEM) {
- 			rcu_read_unlock();
--			err = -ENOMEM;
- 			goto err;
- 		}
--		/* not in hash table yet so not strictly necessary */
--		rcu_assign_pointer(help->helper, helper);
- 	}
- 
- 	if (cda[CTA_STATUS]) {
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index b75c9c4..323dcf8 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -165,7 +165,8 @@ static int nfnetlink_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
- 		} else
- 			return -EINVAL;
- 
--		return nc->call(nfnl, skb, nlh, cda);
-+		while ((err = nc->call(nfnl, skb, nlh, cda)) == -EAGAIN);
-+		return err;
- 	}
- }
  
 
