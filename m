@@ -1,57 +1,85 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 3/8] [PATCH] Helper modules load-on-demand support for
- ctnetlink
-Date: Thu, 09 Oct 2008 18:11:37 +0200
-Message-ID: <48EE2D39.8090401@trash.net>
-References: <20081009083339.9824.24056.stgit@Decadence> <20081009083422.9824.35589.stgit@Decadence> <48EE085E.2020701@trash.net> <48EE0A9A.7010706@trash.net> <48EE1A33.4010603@netfilter.org>
+From: Krzysztof Oledzki <ole@ans.pl>
+Subject: Re: [PATCH][libnetfilter_conntrack] add support for explicit helper
+ assignment
+Date: Thu, 9 Oct 2008 18:26:19 +0200 (CEST)
+Message-ID: <alpine.LNX.1.10.0810091814490.13257@bizon.gios.gov.pl>
+References: <48EDDE81.9070606@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
+Content-Type: MULTIPART/MIXED; BOUNDARY="-1144830174-691498199-1223569579=:13257"
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55187 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752718AbYJIQLj (ORCPT
+Received: from bizon.gios.gov.pl ([195.187.34.71]:44751 "EHLO
+	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755070AbYJIQqp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Oct 2008 12:11:39 -0400
-In-Reply-To: <48EE1A33.4010603@netfilter.org>
+	Thu, 9 Oct 2008 12:46:45 -0400
+In-Reply-To: <48EDDE81.9070606@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> Patrick McHardy wrote:
->> Patrick McHardy wrote:
->>> This one doesn't apply:
->>>
->>> patching file include/net/netfilter/nf_conntrack_helper.h
->>> patching file net/netfilter/nf_conntrack_core.c
->>> Hunk #1 FAILED at 581.
->>> Hunk #2 succeeded at 753 (offset -5 lines).
->>> Hunk #3 succeeded at 764 (offset -5 lines).
->>> 1 out of 3 hunks FAILED -- saving rejects to file
->>> net/netfilter/nf_conntrack_core.c.rej
->>> patching file net/netfilter/nf_conntrack_helper.c
->>> patching file net/netfilter/nf_conntrack_netlink.c
->>> Hunk #2 succeeded at 1131 with fuzz 1.
->>> patching file net/netfilter/nfnetlink.c
->> Oops, I think I didn't refresh my tree, so it didn't include any
->> of the netfilter patches I sent to Dave :)
-> 
-> So, what do I have to do now? I'm cloning Dave's tree now to put the
-> patches on top on it. Fine with it?
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-I think it was my mistake, let me try again ... yes, it applies
-cleanly. Both Dave's tree or my tree should work, but use Dave's
-if you want to be safe since I haven't updated mine yet.
+---1144830174-691498199-1223569579=:13257
+Content-Type: TEXT/PLAIN; charset=iso-8859-2; format=flowed
+Content-Transfer-Encoding: 8BIT
 
->> The remaining issues, especially the nfnl_lock think, should be
->> fixed though.
-> 
-> OK. BTW, returning EOPNOTSUPP looks better to me. ENOENT is misleading
-> since the user won't be able to differenciate between "I don't know
-> anything about that helper" and "this conntrack entry does not exist".
-> So, I prefer using EOPNOTSUPP.
 
-Makes sense.
 
+On Thu, 9 Oct 2008, Pablo Neira Ayuso wrote:
+
+> This patch adds support for the explicit helper assignment to
+> libnetfilter_conntrack. You can use it to test the load-on-demand helper
+> modules via ctnetlink.
+
+<CUT>
+
+> +enum nf_conntrack_helper_id {
+> +	NFCT_HELPER_UNSPEC = 0,
+> +	NFCT_HELPER_AMANDA,
+> +	NFCT_HELPER_FTP,
+> +	NFCT_HELPER_H323,
+> +	NFCT_HELPER_IRC = 4,
+> +	NFCT_HELPER_NETBIOS_NS,
+> +	NFCT_HELPER_PPTP,
+> +	NFCT_HELPER_SANE,
+> +	NFCT_HELPER_SIP = 8,
+> +	NFCT_HELPER_TFTP,
+> +	NFCT_HELPER_MAX
+> +};
+> +
+>  /* message type */
+>  enum nf_conntrack_msg_type {
+>  	NFCT_T_UNKNOWN = 0,
+> diff --git a/src/conntrack/build.c b/src/conntrack/build.c
+> index 1bc87f9..8c7cb7f 100644
+> --- a/src/conntrack/build.c
+> +++ b/src/conntrack/build.c
+> @@ -308,6 +308,38 @@ void __build_secmark(struct nfnlhdr *req,
+>  	nfnl_addattr32(&req->nlh, size, CTA_SECMARK, htonl(ct->secmark));
+>  }
+>
+> +const char *helper_id_to_name[] = {
+> +	[NFCT_HELPER_UNSPEC]		= "unknown-helper",
+> +	[NFCT_HELPER_AMANDA] 		= "amanda",
+> +	[NFCT_HELPER_FTP] 		= "ftp",
+> +	[NFCT_HELPER_H323]		= "h323",
+> +	[NFCT_HELPER_IRC]		= "irc",
+> +	[NFCT_HELPER_NETBIOS_NS]	= "netbios_ns",
+> +	[NFCT_HELPER_PPTP]		= "pptp",
+> +	[NFCT_HELPER_SANE]		= "sane",
+> +	[NFCT_HELPER_SIP]		= "sip",
+> +	[NFCT_HELPER_TFTP]		= "tftp",
+> +};
+> +
+
+Any chances to make it more frendly to new helpers and compatible with 
+out-of-tree helpers by registering a name directly from a helper and using 
+it? We may for example introduce something like /proc/net/nf_helpers.
+
+Best regards,
+
+ 			Krzysztof Olêdzki
+---1144830174-691498199-1223569579=:13257--
