@@ -1,348 +1,255 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 8/8] [PATCH] remove module dependency between ctnetlink and
-	nf_nat
-Date: Thu, 09 Oct 2008 10:36:25 +0200
-Message-ID: <20081009083625.9824.69320.stgit@Decadence>
-References: <20081009083339.9824.24056.stgit@Decadence>
+Subject: [PATCH][libnetfilter_conntrack] add support for explicit helper assignment
+Date: Thu, 09 Oct 2008 12:35:45 +0200
+Message-ID: <48EDDE81.9070606@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+Content-Type: multipart/mixed;
+ boundary="------------020501070709090405010402"
+To: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36250 "EHLO us.es"
+Received: from mail.us.es ([193.147.175.20]:42424 "EHLO us.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753392AbYJIItR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Oct 2008 04:49:17 -0400
-In-Reply-To: <20081009083339.9824.24056.stgit@Decadence>
+	id S1753932AbYJIKfz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 9 Oct 2008 06:35:55 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch removes the module dependency between ctnetlink and
-nf_nat by means of an indirect call that is initialized when
-nf_nat is loaded. Now, nf_conntrack_netlink only requires
-nf_conntrack and nfnetlink.
+This is a multi-part message in MIME format.
+--------------020501070709090405010402
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-This patch puts nfnetlink_parse_nat_setup_hook into the
-nf_conntrack_core to avoid dependencies between ctnetlink,
-nf_conntrack_ipv4 and nf_conntrack_ipv6.
+This patch adds support for the explicit helper assignment to
+libnetfilter_conntrack. You can use it to test the load-on-demand helper
+ modules via ctnetlink.
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
+
+--------------020501070709090405010402
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+[PATCH][libnetfilter_conntrack] add support for explicit helper assignment
+
+This patch adds support for explicit helper assignment.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
 
- include/net/netfilter/nf_nat_core.h  |    8 ++
- net/ipv4/netfilter/nf_nat_core.c     |   97 ++++++++++++++++++++++++++++
- net/netfilter/nf_conntrack_core.c    |    7 ++
- net/netfilter/nf_conntrack_netlink.c |  116 +++++++++++-----------------------
- 4 files changed, 150 insertions(+), 78 deletions(-)
-
-diff --git a/include/net/netfilter/nf_nat_core.h b/include/net/netfilter/nf_nat_core.h
-index f29eeb9..5868406 100644
---- a/include/net/netfilter/nf_nat_core.h
-+++ b/include/net/netfilter/nf_nat_core.h
-@@ -25,4 +25,12 @@ static inline int nf_nat_initialized(struct nf_conn *ct,
- 	else
- 		return test_bit(IPS_DST_NAT_DONE_BIT, &ct->status);
- }
+diff --git a/include/internal/extern.h b/include/internal/extern.h
+index a43cde7..0caa30c 100644
+--- a/include/internal/extern.h
++++ b/include/internal/extern.h
+@@ -9,4 +9,6 @@ extern filter_attr 	filter_attr_array[];
+ extern set_exp_attr	set_exp_attr_array[];
+ extern get_exp_attr	get_exp_attr_array[];
+ 
++extern const char 	*helper_id_to_name[];
 +
-+struct nlattr;
-+
-+extern int
-+(*nfnetlink_parse_nat_setup_hook)(struct nf_conn *ct,
-+				  enum nf_nat_manip_type manip,
-+				  struct nlattr *attr);
-+
- #endif /* _NF_NAT_CORE_H */
-diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
-index 2ac9eaf..91ec535 100644
---- a/net/ipv4/netfilter/nf_nat_core.c
-+++ b/net/ipv4/netfilter/nf_nat_core.c
-@@ -584,6 +584,98 @@ static struct nf_ct_ext_type nat_extend __read_mostly = {
- 	.flags		= NF_CT_EXT_F_PREALLOC,
+ #endif
+diff --git a/include/internal/object.h b/include/internal/object.h
+index e39a576..509f54b 100644
+--- a/include/internal/object.h
++++ b/include/internal/object.h
+@@ -137,6 +137,7 @@ struct nf_conntrack {
+ 	u_int32_t 	status;
+ 	u_int32_t	use;
+ 	u_int32_t	id;
++	u_int32_t	helper_id;
+ 
+ 	union __nfct_protoinfo 	protoinfo;
+ 	struct __nfct_counters 	counters[__DIR_MAX];
+diff --git a/include/libnetfilter_conntrack/libnetfilter_conntrack.h b/include/libnetfilter_conntrack/libnetfilter_conntrack.h
+index 46eed0a..ee22fa9 100644
+--- a/include/libnetfilter_conntrack/libnetfilter_conntrack.h
++++ b/include/libnetfilter_conntrack/libnetfilter_conntrack.h
+@@ -120,9 +120,26 @@ enum nf_conntrack_attr {
+ 	ATTR_SCTP_STATE = 52,			/* u8 bits */
+ 	ATTR_SCTP_VTAG_ORIG,			/* u32 bits */
+ 	ATTR_SCTP_VTAG_REPL,			/* u32 bits */
++	ATTR_HELPER_ID,				/* u32 bits */
+ 	ATTR_MAX
  };
  
-+#if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
++/* helper id's */
 +
-+#include <linux/netfilter/nfnetlink.h>
-+#include <linux/netfilter/nfnetlink_conntrack.h>
-+
-+static const struct nla_policy protonat_nla_policy[CTA_PROTONAT_MAX+1] = {
-+	[CTA_PROTONAT_PORT_MIN]	= { .type = NLA_U16 },
-+	[CTA_PROTONAT_PORT_MAX]	= { .type = NLA_U16 },
++enum nf_conntrack_helper_id {
++	NFCT_HELPER_UNSPEC = 0,
++	NFCT_HELPER_AMANDA,
++	NFCT_HELPER_FTP,
++	NFCT_HELPER_H323,
++	NFCT_HELPER_IRC = 4,
++	NFCT_HELPER_NETBIOS_NS,
++	NFCT_HELPER_PPTP,
++	NFCT_HELPER_SANE,
++	NFCT_HELPER_SIP = 8,
++	NFCT_HELPER_TFTP,
++	NFCT_HELPER_MAX
 +};
 +
-+static int nfnetlink_parse_nat_proto(struct nlattr *attr,
-+				     const struct nf_conn *ct,
-+				     struct nf_nat_range *range)
-+{
-+	struct nlattr *tb[CTA_PROTONAT_MAX+1];
-+	const struct nf_nat_protocol *npt;
-+	int err;
-+
-+	err = nla_parse_nested(tb, CTA_PROTONAT_MAX, attr, protonat_nla_policy);
-+	if (err < 0)
-+		return err;
-+
-+	npt = nf_nat_proto_find_get(nf_ct_protonum(ct));
-+	if (npt->nlattr_to_range)
-+		err = npt->nlattr_to_range(tb, range);
-+	nf_nat_proto_put(npt);
-+	return err;
-+}
-+
-+static const struct nla_policy nat_nla_policy[CTA_NAT_MAX+1] = {
-+	[CTA_NAT_MINIP]		= { .type = NLA_U32 },
-+	[CTA_NAT_MAXIP]		= { .type = NLA_U32 },
+ /* message type */
+ enum nf_conntrack_msg_type {
+ 	NFCT_T_UNKNOWN = 0,
+diff --git a/src/conntrack/build.c b/src/conntrack/build.c
+index 1bc87f9..8c7cb7f 100644
+--- a/src/conntrack/build.c
++++ b/src/conntrack/build.c
+@@ -308,6 +308,38 @@ void __build_secmark(struct nfnlhdr *req,
+ 	nfnl_addattr32(&req->nlh, size, CTA_SECMARK, htonl(ct->secmark));
+ }
+ 
++const char *helper_id_to_name[] = {
++	[NFCT_HELPER_UNSPEC]		= "unknown-helper",
++	[NFCT_HELPER_AMANDA] 		= "amanda",
++	[NFCT_HELPER_FTP] 		= "ftp",
++	[NFCT_HELPER_H323]		= "h323",
++	[NFCT_HELPER_IRC]		= "irc",
++	[NFCT_HELPER_NETBIOS_NS]	= "netbios_ns",
++	[NFCT_HELPER_PPTP]		= "pptp",
++	[NFCT_HELPER_SANE]		= "sane",
++	[NFCT_HELPER_SIP]		= "sip",
++	[NFCT_HELPER_TFTP]		= "tftp",
 +};
 +
-+static int
-+nfnetlink_parse_nat(struct nlattr *nat,
-+		    const struct nf_conn *ct, struct nf_nat_range *range)
++void __build_helper_name(struct nfnlhdr *req,
++			 size_t size,
++			 const struct nf_conntrack *ct)
 +{
-+	struct nlattr *tb[CTA_NAT_MAX+1];
-+	int err;
++	struct nfattr *nest;
 +
-+	memset(range, 0, sizeof(*range));
++	/* helper set, but probably unsupported */
++	if (ct->helper_id == 0)
++		return;
 +
-+	err = nla_parse_nested(tb, CTA_NAT_MAX, nat, nat_nla_policy);
-+	if (err < 0)
-+		return err;
-+
-+	if (tb[CTA_NAT_MINIP])
-+		range->min_ip = nla_get_be32(tb[CTA_NAT_MINIP]);
-+
-+	if (!tb[CTA_NAT_MAXIP])
-+		range->max_ip = range->min_ip;
-+	else
-+		range->max_ip = nla_get_be32(tb[CTA_NAT_MAXIP]);
-+
-+	if (range->min_ip)
-+		range->flags |= IP_NAT_RANGE_MAP_IPS;
-+
-+	if (!tb[CTA_NAT_PROTO])
-+		return 0;
-+
-+	err = nfnetlink_parse_nat_proto(tb[CTA_NAT_PROTO], ct, range);
-+	if (err < 0)
-+		return err;
-+
-+	return 0;
++	nest = nfnl_nest(&req->nlh, size, CTA_HELP);
++	nfnl_addattr_l(&req->nlh,
++			size, 
++			CTA_HELP_NAME,
++			helper_id_to_name[ct->helper_id],
++			strlen(helper_id_to_name[ct->helper_id]));
++	nfnl_nest_end(&req->nlh, nest);
 +}
 +
-+static int
-+nfnetlink_parse_nat_setup(struct nf_conn *ct,
-+			  enum nf_nat_manip_type manip,
-+			  struct nlattr *attr)
-+{
-+	struct nf_nat_range range;
+ int __build_conntrack(struct nfnl_subsys_handle *ssh,
+ 		      struct nfnlhdr *req,
+ 		      size_t size,
+@@ -417,5 +449,8 @@ int __build_conntrack(struct nfnl_subsys_handle *ssh,
+ 	    test_bit(ATTR_REPL_NAT_SEQ_OFFSET_AFTER, ct->set))
+ 	    	__build_nat_seq_adj(req, size, ct, __DIR_REPL);
+ 
++	if (test_bit(ATTR_HELPER_ID, ct->set))
++		__build_helper_name(req, size, ct);
 +
-+	if (nfnetlink_parse_nat(attr, ct, &range) < 0)
-+		return -EINVAL;
-+	if (nf_nat_initialized(ct, manip))
-+		return -EEXIST;
-+
-+	return nf_nat_setup_info(ct, &range, manip);
-+}
-+#else
-+static int
-+nfnetlink_parse_nat_setup(struct nf_conn *ct,
-+			  enum nf_nat_manip_type manip,
-+			  struct nlattr *attr)
-+{
-+	return -EOPNOTSUPP;
-+}
-+#endif
-+
- static int __net_init nf_nat_net_init(struct net *net)
- {
- 	net->ipv4.nat_bysource = nf_ct_alloc_hashtable(&nf_nat_htable_size,
-@@ -654,6 +746,9 @@ static int __init nf_nat_init(void)
- 
- 	BUG_ON(nf_nat_seq_adjust_hook != NULL);
- 	rcu_assign_pointer(nf_nat_seq_adjust_hook, nf_nat_seq_adjust);
-+	BUG_ON(nfnetlink_parse_nat_setup_hook != NULL);
-+	rcu_assign_pointer(nfnetlink_parse_nat_setup_hook, 
-+			   nfnetlink_parse_nat_setup);
- 	return 0;
- 
-  cleanup_extend:
-@@ -667,10 +762,12 @@ static void __exit nf_nat_cleanup(void)
- 	nf_ct_l3proto_put(l3proto);
- 	nf_ct_extend_unregister(&nat_extend);
- 	rcu_assign_pointer(nf_nat_seq_adjust_hook, NULL);
-+	rcu_assign_pointer(nfnetlink_parse_nat_setup_hook, NULL);
- 	synchronize_net();
- }
- 
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS("nf-nat-ipv4");
- 
- module_init(nf_nat_init);
- module_exit(nf_nat_cleanup);
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 281b398..1f9a0a8 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -38,9 +38,16 @@
- #include <net/netfilter/nf_conntrack_core.h>
- #include <net/netfilter/nf_conntrack_extend.h>
- #include <net/netfilter/nf_conntrack_acct.h>
-+#include <net/netfilter/nf_nat.h>
- 
- #define NF_CONNTRACK_VERSION	"0.5.0"
- 
-+unsigned int
-+(*nfnetlink_parse_nat_setup_hook)(struct nf_conn *ct,
-+				  enum nf_nat_manip_type manip,
-+				  struct nlattr *attr) __read_mostly;
-+EXPORT_SYMBOL_GPL(nfnetlink_parse_nat_setup_hook);
-+
- DEFINE_SPINLOCK(nf_conntrack_lock);
- EXPORT_SYMBOL_GPL(nf_conntrack_lock);
- 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 1046901..bce9e5d 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -784,71 +784,6 @@ ctnetlink_parse_tuple(struct nlattr *cda[], struct nf_conntrack_tuple *tuple,
  	return 0;
  }
- 
--#ifdef CONFIG_NF_NAT_NEEDED
--static const struct nla_policy protonat_nla_policy[CTA_PROTONAT_MAX+1] = {
--	[CTA_PROTONAT_PORT_MIN]	= { .type = NLA_U16 },
--	[CTA_PROTONAT_PORT_MAX]	= { .type = NLA_U16 },
--};
--
--static int nfnetlink_parse_nat_proto(struct nlattr *attr,
--				     const struct nf_conn *ct,
--				     struct nf_nat_range *range)
--{
--	struct nlattr *tb[CTA_PROTONAT_MAX+1];
--	const struct nf_nat_protocol *npt;
--	int err;
--
--	err = nla_parse_nested(tb, CTA_PROTONAT_MAX, attr, protonat_nla_policy);
--	if (err < 0)
--		return err;
--
--	npt = nf_nat_proto_find_get(nf_ct_protonum(ct));
--	if (npt->nlattr_to_range)
--		err = npt->nlattr_to_range(tb, range);
--	nf_nat_proto_put(npt);
--	return err;
--}
--
--static const struct nla_policy nat_nla_policy[CTA_NAT_MAX+1] = {
--	[CTA_NAT_MINIP]		= { .type = NLA_U32 },
--	[CTA_NAT_MAXIP]		= { .type = NLA_U32 },
--};
--
--static inline int
--nfnetlink_parse_nat(struct nlattr *nat,
--		    const struct nf_conn *ct, struct nf_nat_range *range)
--{
--	struct nlattr *tb[CTA_NAT_MAX+1];
--	int err;
--
--	memset(range, 0, sizeof(*range));
--
--	err = nla_parse_nested(tb, CTA_NAT_MAX, nat, nat_nla_policy);
--	if (err < 0)
--		return err;
--
--	if (tb[CTA_NAT_MINIP])
--		range->min_ip = nla_get_be32(tb[CTA_NAT_MINIP]);
--
--	if (!tb[CTA_NAT_MAXIP])
--		range->max_ip = range->min_ip;
--	else
--		range->max_ip = nla_get_be32(tb[CTA_NAT_MAXIP]);
--
--	if (range->min_ip)
--		range->flags |= IP_NAT_RANGE_MAP_IPS;
--
--	if (!tb[CTA_NAT_PROTO])
--		return 0;
--
--	err = nfnetlink_parse_nat_proto(tb[CTA_NAT_PROTO], ct, range);
--	if (err < 0)
--		return err;
--
--	return 0;
--}
--#endif
--
- static inline int
- ctnetlink_parse_help(struct nlattr *attr, char **helper_name)
- {
-@@ -986,6 +921,33 @@ out:
+diff --git a/src/conntrack/getter.c b/src/conntrack/getter.c
+index 20a2a35..65035f0 100644
+--- a/src/conntrack/getter.c
++++ b/src/conntrack/getter.c
+@@ -282,6 +282,11 @@ static const void *get_attr_repl_off_aft(const struct nf_conntrack *ct)
+ 	return &ct->tuple[__DIR_REPL].natseq.offset_after;
  }
  
- static int
-+ctnetlink_parse_nat_setup(struct nf_conn *ct,
-+			  enum nf_nat_manip_type manip,
-+			  struct nlattr *attr)
++static const void *get_attr_helper_id(const struct nf_conntrack *ct)
 +{
-+	typeof(nfnetlink_parse_nat_setup_hook) parse_nat_setup;
++	return &ct->helper_id;
++}
 +
-+	parse_nat_setup = rcu_dereference(nfnetlink_parse_nat_setup_hook);
-+	if (!parse_nat_setup) {
-+#ifdef CONFIG_KMOD
-+		spin_unlock_bh(&nf_conntrack_lock);
-+		if (request_module("nf-nat-ipv4") < 0) {
-+			spin_lock_bh(&nf_conntrack_lock);
-+			return -EOPNOTSUPP;
+ get_attr get_attr_array[] = {
+ 	[ATTR_ORIG_IPV4_SRC]		= get_attr_orig_ipv4_src,
+ 	[ATTR_ORIG_IPV4_DST] 		= get_attr_orig_ipv4_dst,
+@@ -338,4 +343,5 @@ get_attr get_attr_array[] = {
+ 	[ATTR_SCTP_STATE]		= get_attr_sctp_state,
+ 	[ATTR_SCTP_VTAG_ORIG]		= get_attr_sctp_vtag_orig,
+ 	[ATTR_SCTP_VTAG_REPL]		= get_attr_sctp_vtag_repl,
++	[ATTR_HELPER_ID]		= get_attr_helper_id,
+ };
+diff --git a/src/conntrack/parse.c b/src/conntrack/parse.c
+index 11cf5ff..41c0c26 100644
+--- a/src/conntrack/parse.c
++++ b/src/conntrack/parse.c
+@@ -356,6 +356,31 @@ __parse_nat_seq(const struct nfattr *attr, struct nf_conntrack *ct, int dir)
+ 	}
+ }
+ 
++static void 
++__parse_helper(const struct nfattr *attr, struct nf_conntrack *ct)
++{
++	int i, found = 0;
++	struct nfattr *tb[CTA_NAT_SEQ_MAX];
++
++	nfnl_parse_nested(tb, CTA_NAT_SEQ_MAX, attr);
++	if (!tb[CTA_HELP_NAME-1])
++		return;
++
++	for (i=0; i<NFCT_HELPER_MAX; i++) {
++		if (strcmp(NFA_DATA(tb[CTA_HELP_NAME-1]), 
++			   helper_id_to_name[i]) == 0) {
++			found = 1;
++			break;
 +		}
-+		spin_lock_bh(&nf_conntrack_lock);
-+		parse_nat_setup =
-+			rcu_dereference(nfnetlink_parse_nat_setup_hook);
-+		if (parse_nat_setup)
-+			return -EAGAIN;
-+#endif
-+		return -EOPNOTSUPP;
 +	}
 +
-+	return parse_nat_setup(ct, manip, attr);
++	if (!found)
++		return;
++
++	ct->helper_id = i;
++	set_bit(ATTR_HELPER_ID, ct->set);
 +}
 +
-+static int
- ctnetlink_change_status(struct nf_conn *ct, struct nlattr *cda[])
+ int __parse_message_type(const struct nlmsghdr *nlh)
  {
- 	unsigned long d;
-@@ -1008,23 +970,21 @@ ctnetlink_change_status(struct nf_conn *ct, struct nlattr *cda[])
- #ifndef CONFIG_NF_NAT_NEEDED
- 		return -EOPNOTSUPP;
- #else
--		struct nf_nat_range range;
-+		int ret;
- 
- 		if (cda[CTA_NAT_DST]) {
--			if (nfnetlink_parse_nat(cda[CTA_NAT_DST], ct,
--						&range) < 0)
--				return -EINVAL;
--			if (nf_nat_initialized(ct, IP_NAT_MANIP_DST))
--				return -EEXIST;
--			nf_nat_setup_info(ct, &range, IP_NAT_MANIP_DST);
-+			ret = ctnetlink_parse_nat_setup(ct,
-+							IP_NAT_MANIP_DST,
-+							cda[CTA_NAT_DST]);
-+			if (ret < 0)
-+				return ret;
- 		}
- 		if (cda[CTA_NAT_SRC]) {
--			if (nfnetlink_parse_nat(cda[CTA_NAT_SRC], ct,
--						&range) < 0)
--				return -EINVAL;
--			if (nf_nat_initialized(ct, IP_NAT_MANIP_SRC))
--				return -EEXIST;
--			nf_nat_setup_info(ct, &range, IP_NAT_MANIP_SRC);
-+			ret = ctnetlink_parse_nat_setup(ct,
-+							IP_NAT_MANIP_SRC,
-+							cda[CTA_NAT_SRC]);
-+			if (ret < 0)
-+				return ret;
- 		}
- #endif
+ 	u_int16_t type = NFNL_MSG_TYPE(nlh->nlmsg_type);
+@@ -447,4 +472,7 @@ void __parse_conntrack(const struct nlmsghdr *nlh,
+ 		ct->id = ntohl(*(u_int32_t *)NFA_DATA(cda[CTA_ID-1]));
+ 		set_bit(ATTR_ID, ct->set);
  	}
++
++	if (cda[CTA_HELP-1])
++		__parse_helper(cda[CTA_HELP-1], ct);
+ }
+diff --git a/src/conntrack/setter.c b/src/conntrack/setter.c
+index 6759652..b9e93ca 100644
+--- a/src/conntrack/setter.c
++++ b/src/conntrack/setter.c
+@@ -308,6 +308,16 @@ static void set_attr_repl_off_aft(struct nf_conntrack *ct, const void *value)
+ 	ct->tuple[__DIR_REPL].natseq.offset_after = *((u_int32_t *) value);
+ }
+ 
++static void set_attr_helper_id(struct nf_conntrack *ct, const void *value)
++{
++	u_int32_t val = *((u_int32_t *)value);
++
++	if (val >= NFCT_HELPER_MAX)
++		val = 0;
++
++	ct->helper_id = val;
++}
++
+ static void set_attr_do_nothing(struct nf_conntrack *ct, const void *value) {}
+ 
+ set_attr set_attr_array[] = {
+@@ -366,4 +376,5 @@ set_attr set_attr_array[] = {
+ 	[ATTR_SCTP_STATE]	= set_attr_sctp_state,
+ 	[ATTR_SCTP_VTAG_ORIG]	= set_attr_sctp_vtag_orig,
+ 	[ATTR_SCTP_VTAG_REPL]	= set_attr_sctp_vtag_repl,
++	[ATTR_HELPER_ID]	= set_attr_helper_id,
+ };
+diff --git a/utils/conntrack_create.c b/utils/conntrack_create.c
+index bc591b5..04b9807 100644
+--- a/utils/conntrack_create.c
++++ b/utils/conntrack_create.c
+@@ -29,6 +29,7 @@ int main()
+ 
+ 	nfct_set_attr_u8(ct, ATTR_TCP_STATE, TCP_CONNTRACK_LISTEN);
+ 	nfct_set_attr_u32(ct, ATTR_TIMEOUT, 100);
++	nfct_set_attr_u32(ct, ATTR_HELPER_ID, NFCT_HELPER_FTP);
+ 
+ 	h = nfct_open(CONNTRACK, 0);
+ 	if (!h) {
 
+--------------020501070709090405010402--
