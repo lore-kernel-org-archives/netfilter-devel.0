@@ -1,55 +1,39 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [Fwd: preparing net-next-2.6 for merge...]
-Date: Sat, 11 Oct 2008 16:57:05 +0200
-Message-ID: <48F0BEC1.3030508@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 1/6] [PATCH] use nf_conntrack_get instead of atomic_inc
+Date: Sat, 11 Oct 2008 17:21:16 +0200
+Message-ID: <20081011152116.6436.17277.stgit@Decadence>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-To: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:51836 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753879AbYJKO5I (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 11 Oct 2008 10:57:08 -0400
-Received: from [192.168.0.100] (unknown [78.42.204.165])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by stinky.trash.net (Postfix) with ESMTP id 79A77948AB
-	for <netfilter-devel@vger.kernel.org>; Sat, 11 Oct 2008 16:57:07 +0200 (MEST)
+Received: from mail.us.es ([193.147.175.20]:45375 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751357AbYJKPVW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 11 Oct 2008 11:21:22 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-FYI: the networking merge window is closed now.
+Use nf_conntrack_get instead of the direct call to atomic_inc.
 
-We've had multiple patches missing the merge window by just a
-few days during the past few releases, please take this as a
-reminder that its actually being enforced nowadays and patches
-need to be posted early.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
 
--------- Original Message --------
-Subject: preparing net-next-2.6 for merge...
-Date: Fri, 10 Oct 2008 12:29:37 -0700 (PDT)
-From: David Miller <davem@davemloft.net>
-To: netdev@vger.kernel.org
-CC: linux-wireless@vger.kernel.org
+ net/netfilter/nf_conntrack_netlink.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-
-I'm doing some quick merge, build, and boot tests on the tree as it
-stands right now then I'll send a pull request to Linus.
-
-I'm sure there are some things people still wanted to get into the
-tree, but let's try to follow the rules this time.  Only bug fixes
-and corrections at this point forward.
-
-Look at it this way, I have tons of stuff I wasn't able to finish up
-in time either, so both the rule and the pain and being applied fairly
-:-)
-
-Anyways, just FYI...
---
-To unsubscribe from this list: send the line "unsubscribe netdev" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index ff8deab..b7a6be8 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -1231,7 +1231,7 @@ ctnetlink_new_conntrack(struct sock *ctnl, struct sk_buff *skb,
+ 				goto out_unlock;
+ 			}
+ 			master_ct = nf_ct_tuplehash_to_ctrack(master_h);
+-			atomic_inc(&master_ct->ct_general.use);
++			nf_conntrack_get(&master_ct->ct_general);
+ 		}
+ 
+ 		spin_unlock_bh(&nf_conntrack_lock);
 
