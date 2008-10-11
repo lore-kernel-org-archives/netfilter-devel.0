@@ -1,7 +1,8 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/6] [PATCH] helper load-on-demand support for ctnetlink
-Date: Sat, 11 Oct 2008 17:21:38 +0200
-Message-ID: <20081011152138.6436.9012.stgit@Decadence>
+Subject: [PATCH 3/6] [PATCH] deliver events for conntracks created via
+	ctnetlink
+Date: Sat, 11 Oct 2008 17:22:00 +0200
+Message-ID: <20081011152200.6436.28664.stgit@Decadence>
 References: <20081011152116.6436.17277.stgit@Decadence>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -9,329 +10,545 @@ Content-Transfer-Encoding: 7bit
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58943 "EHLO us.es"
+Received: from mail.us.es ([193.147.175.20]:45575 "EHLO us.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753552AbYJKPVq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 11 Oct 2008 11:21:46 -0400
+	id S1753729AbYJKPWI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 11 Oct 2008 11:22:08 -0400
 In-Reply-To: <20081011152116.6436.17277.stgit@Decadence>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds on-request module loading for helpers via ctnetlink.
-To do so, we release the locks, load the module and check. If the
-helper is present, then it returns EAGAIN to re-start the operation.
-With this patch, we support explicit and implicit helper assignment.
+As for now, the creation and update of conntracks via ctnetlink do not
+propagate an event to userspace. This can result in inconsistent situations
+if several userspace processes modify the connection tracking table by means
+of ctnetlink at the same time. Specifically, using the conntrack command
+line tool and conntrackd at the same time can trigger unconsistencies.
 
-This patch also modifies nfnetlink to handle EAGAIN appropriately.
-This all is based on a suggestion from Patrick McHardy.
-
-This patch also provides a refactorized function to lookup-and-set
-the connection tracking helper. The function removes the exported
-symbol __nf_ct_helper_find as it has not clients anymore.
+This patch also modifies the event cache infrastructure to pass the
+process PID and the ECHO flag to nfnetlink_send() to report back
+to userspace if the process that triggered the change needs so.
+Based on a suggestion from Patrick McHardy.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
 
- include/linux/netfilter/nfnetlink.h         |    3 +
- include/net/netfilter/nf_conntrack_helper.h |    5 +-
- net/netfilter/nf_conntrack_core.c           |   28 +---------
- net/netfilter/nf_conntrack_helper.c         |   33 +++++++++++-
- net/netfilter/nf_conntrack_netlink.c        |   73 ++++++++++++++++++++++++---
- net/netfilter/nfnetlink.c                   |   12 +++-
- 6 files changed, 111 insertions(+), 43 deletions(-)
+ include/net/netfilter/nf_conntrack.h        |    2 -
+ include/net/netfilter/nf_conntrack_ecache.h |   59 +++++++++++++++++-
+ include/net/netfilter/nf_conntrack_expect.h |    2 +
+ net/netfilter/nf_conntrack_core.c           |   26 +++++++-
+ net/netfilter/nf_conntrack_ecache.c         |   14 +++-
+ net/netfilter/nf_conntrack_expect.c         |   43 +++++++++++--
+ net/netfilter/nf_conntrack_netlink.c        |   90 ++++++++++++++++++++++-----
+ 7 files changed, 201 insertions(+), 35 deletions(-)
 
-diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netfilter/nfnetlink.h
-index 0d8424f..7d8e045 100644
---- a/include/linux/netfilter/nfnetlink.h
-+++ b/include/linux/netfilter/nfnetlink.h
-@@ -78,6 +78,9 @@ extern int nfnetlink_send(struct sk_buff *skb, u32 pid, unsigned group,
- 			  int echo);
- extern int nfnetlink_unicast(struct sk_buff *skb, u_int32_t pid, int flags);
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index f11255e..2e0c536 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -199,7 +199,7 @@ __nf_conntrack_find(struct net *net, const struct nf_conntrack_tuple *tuple);
  
-+extern void nfnl_lock(void);
-+extern void nfnl_unlock(void);
-+
- #define MODULE_ALIAS_NFNL_SUBSYS(subsys) \
- 	MODULE_ALIAS("nfnetlink-subsys-" __stringify(subsys))
+ extern void nf_conntrack_hash_insert(struct nf_conn *ct);
  
-diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
-index f8060ab..8eebf6e 100644
---- a/include/net/netfilter/nf_conntrack_helper.h
-+++ b/include/net/netfilter/nf_conntrack_helper.h
-@@ -39,9 +39,6 @@ struct nf_conntrack_helper
+-extern void nf_conntrack_flush(struct net *net);
++extern void nf_conntrack_flush(struct net *net, u32 pid, int report);
+ 
+ extern bool nf_ct_get_tuplepr(const struct sk_buff *skb,
+ 			      unsigned int nhoff, u_int16_t l3num,
+diff --git a/include/net/netfilter/nf_conntrack_ecache.h b/include/net/netfilter/nf_conntrack_ecache.h
+index 35f814c..d1054df 100644
+--- a/include/net/netfilter/nf_conntrack_ecache.h
++++ b/include/net/netfilter/nf_conntrack_ecache.h
+@@ -17,6 +17,13 @@ struct nf_conntrack_ecache {
+ 	unsigned int events;
  };
  
- extern struct nf_conntrack_helper *
--__nf_ct_helper_find(const struct nf_conntrack_tuple *tuple);
--
--extern struct nf_conntrack_helper *
- __nf_conntrack_helper_find_byname(const char *name);
- 
- extern int nf_conntrack_helper_register(struct nf_conntrack_helper *);
-@@ -49,6 +46,8 @@ extern void nf_conntrack_helper_unregister(struct nf_conntrack_helper *);
- 
- extern struct nf_conn_help *nf_ct_helper_ext_add(struct nf_conn *ct, gfp_t gfp);
- 
-+extern int __nf_ct_set_helper(struct nf_conn *ct, gfp_t flags);
++/* This structure is passed to event handler */
++struct nf_ct_event {
++	struct nf_conn *ct;
++	u32 pid;
++	int report;
++};
 +
- static inline struct nf_conn_help *nfct_help(const struct nf_conn *ct)
+ extern struct atomic_notifier_head nf_conntrack_chain;
+ extern int nf_conntrack_register_notifier(struct notifier_block *nb);
+ extern int nf_conntrack_unregister_notifier(struct notifier_block *nb);
+@@ -39,22 +46,58 @@ nf_conntrack_event_cache(enum ip_conntrack_events event, struct nf_conn *ct)
+ 	local_bh_enable();
+ }
+ 
+-static inline void nf_conntrack_event(enum ip_conntrack_events event,
+-				      struct nf_conn *ct)
++static inline void
++nf_conntrack_event_report(enum ip_conntrack_events event,
++			  struct nf_conn *ct,
++			  u32 pid,
++			  int report)
  {
- 	return nf_ct_ext_find(ct, NF_CT_EXT_HELPER);
++	struct nf_ct_event item = {
++		.ct 	= ct,
++		.pid	= pid,
++		.report = report
++	};
++
+ 	if (nf_ct_is_confirmed(ct) && !nf_ct_is_dying(ct))
+-		atomic_notifier_call_chain(&nf_conntrack_chain, event, ct);
++		atomic_notifier_call_chain(&nf_conntrack_chain, event, &item);
+ }
+ 
++static inline void
++nf_conntrack_event(enum ip_conntrack_events event, struct nf_conn *ct)
++{
++	nf_conntrack_event_report(event, ct, 0, 0);
++}
++
++struct nf_exp_event {
++	struct nf_conntrack_expect *exp;
++	u32 pid;
++	int report;
++};
++
+ extern struct atomic_notifier_head nf_ct_expect_chain;
+ extern int nf_ct_expect_register_notifier(struct notifier_block *nb);
+ extern int nf_ct_expect_unregister_notifier(struct notifier_block *nb);
+ 
+ static inline void
++nf_ct_expect_event_report(enum ip_conntrack_expect_events event,
++			  struct nf_conntrack_expect *exp,
++			  u32 pid,
++			  int report)
++{
++	struct nf_exp_event item = {
++		.exp	= exp,
++		.pid	= pid,
++		.report = report
++	};
++
++	atomic_notifier_call_chain(&nf_ct_expect_chain, event, &item);
++}
++
++static inline void
+ nf_ct_expect_event(enum ip_conntrack_expect_events event,
+ 		   struct nf_conntrack_expect *exp)
+ {
+-	atomic_notifier_call_chain(&nf_ct_expect_chain, event, exp);
++	nf_ct_expect_event_report(event, exp, 0, 0);
+ }
+ 
+ extern int nf_conntrack_ecache_init(struct net *net);
+@@ -66,9 +109,17 @@ static inline void nf_conntrack_event_cache(enum ip_conntrack_events event,
+ 					    const struct sk_buff *skb) {}
+ static inline void nf_conntrack_event(enum ip_conntrack_events event,
+ 				      struct nf_conn *ct) {}
++static inline void nf_conntrack_event_report(enum ip_conntrack_events event,
++					     struct nf_conn *ct,
++					     u32 pid,
++					     int report) {}
+ static inline void nf_ct_deliver_cached_events(const struct nf_conn *ct) {}
+ static inline void nf_ct_expect_event(enum ip_conntrack_expect_events event,
+ 				      struct nf_conntrack_expect *exp) {}
++static inline void nf_ct_expect_event_report(enum ip_conntrack_expect_events e,
++					     struct nf_conntrack_expect *exp,
++ 					     u32 pid,
++ 					     int report) {}
+ static inline void nf_ct_event_cache_flush(struct net *net) {}
+ 
+ static inline int nf_conntrack_ecache_init(struct net *net)
+diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
+index 37a7fc1..2414475 100644
+--- a/include/net/netfilter/nf_conntrack_expect.h
++++ b/include/net/netfilter/nf_conntrack_expect.h
+@@ -100,6 +100,8 @@ void nf_ct_expect_init(struct nf_conntrack_expect *, unsigned int, u_int8_t,
+ 		       u_int8_t, const __be16 *, const __be16 *);
+ void nf_ct_expect_put(struct nf_conntrack_expect *exp);
+ int nf_ct_expect_related(struct nf_conntrack_expect *expect);
++int nf_ct_expect_related_report(struct nf_conntrack_expect *expect,
++				u32 pid, int report);
+ 
+ #endif /*_NF_CONNTRACK_EXPECT_H*/
+ 
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 27de3c7..54e35f3 100644
+index 54e35f3..3a8d80f 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
-@@ -581,14 +581,7 @@ init_conntrack(struct net *net,
- 		nf_conntrack_get(&ct->master->ct_general);
- 		NF_CT_STAT_INC(net, expect_new);
- 	} else {
--		struct nf_conntrack_helper *helper;
--
--		helper = __nf_ct_helper_find(&repl_tuple);
--		if (helper) {
--			help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
--			if (help)
--				rcu_assign_pointer(help->helper, helper);
--		}
-+		__nf_ct_set_helper(ct, GFP_ATOMIC);
- 		NF_CT_STAT_INC(net, new);
- 	}
+@@ -174,7 +174,8 @@ destroy_conntrack(struct nf_conntrack *nfct)
+ 	NF_CT_ASSERT(atomic_read(&nfct->use) == 0);
+ 	NF_CT_ASSERT(!timer_pending(&ct->timeout));
  
-@@ -765,7 +758,6 @@ void nf_conntrack_alter_reply(struct nf_conn *ct,
- 			      const struct nf_conntrack_tuple *newreply)
+-	nf_conntrack_event(IPCT_DESTROY, ct);
++	if (!test_bit(IPS_DYING_BIT, &ct->status))
++		nf_conntrack_event(IPCT_DESTROY, ct);
+ 	set_bit(IPS_DYING_BIT, &ct->status);
+ 
+ 	/* To make sure we don't get any weird locking issues here:
+@@ -965,8 +966,21 @@ void nf_ct_iterate_cleanup(struct net *net,
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_iterate_cleanup);
+ 
++struct __nf_ct_flush_report {
++	u32 pid;
++	int report;
++};
++
+ static int kill_all(struct nf_conn *i, void *data)
  {
- 	struct nf_conn_help *help = nfct_help(ct);
--	struct nf_conntrack_helper *helper;
- 
- 	/* Should be unconfirmed, so not in hash table yet */
- 	NF_CT_ASSERT(!nf_ct_is_confirmed(ct));
-@@ -778,23 +770,7 @@ void nf_conntrack_alter_reply(struct nf_conn *ct,
- 		return;
- 
- 	rcu_read_lock();
--	helper = __nf_ct_helper_find(newreply);
--	if (helper == NULL) {
--		if (help)
--			rcu_assign_pointer(help->helper, NULL);
--		goto out;
--	}
--
--	if (help == NULL) {
--		help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
--		if (help == NULL)
--			goto out;
--	} else {
--		memset(&help->help, 0, sizeof(help->help));
--	}
--
--	rcu_assign_pointer(help->helper, helper);
--out:
-+	__nf_ct_set_helper(ct, GFP_ATOMIC);
- 	rcu_read_unlock();
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_alter_reply);
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index 9c06b9f..86cdbde 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -44,7 +44,7 @@ static unsigned int helper_hash(const struct nf_conntrack_tuple *tuple)
- 		(__force __u16)tuple->src.u.all) % nf_ct_helper_hsize;
++	struct __nf_ct_flush_report *fr = (struct __nf_ct_flush_report *)data;
++
++	/* get_next_corpse sets the dying bit for us */
++	nf_conntrack_event_report(IPCT_DESTROY,
++				  i,
++				  fr->pid,
++				  fr->report);
++
+ 	return 1;
  }
  
--struct nf_conntrack_helper *
-+static struct nf_conntrack_helper *
- __nf_ct_helper_find(const struct nf_conntrack_tuple *tuple)
+@@ -980,9 +994,13 @@ void nf_ct_free_hashtable(struct hlist_head *hash, int vmalloced, unsigned int s
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_free_hashtable);
+ 
+-void nf_conntrack_flush(struct net *net)
++void nf_conntrack_flush(struct net *net, u32 pid, int report)
  {
- 	struct nf_conntrack_helper *helper;
-@@ -62,7 +62,6 @@ __nf_ct_helper_find(const struct nf_conntrack_tuple *tuple)
- 	}
- 	return NULL;
+-	nf_ct_iterate_cleanup(net, kill_all, NULL);
++	struct __nf_ct_flush_report fr = {
++		.pid 	= pid,
++		.report = report,
++	};
++	nf_ct_iterate_cleanup(net, kill_all, &fr);
  }
--EXPORT_SYMBOL_GPL(__nf_ct_helper_find);
+ EXPORT_SYMBOL_GPL(nf_conntrack_flush);
  
- struct nf_conntrack_helper *
- __nf_conntrack_helper_find_byname(const char *name)
-@@ -94,6 +93,36 @@ struct nf_conn_help *nf_ct_helper_ext_add(struct nf_conn *ct, gfp_t gfp)
+@@ -998,7 +1016,7 @@ static void nf_conntrack_cleanup_net(struct net *net)
+ 	nf_ct_event_cache_flush(net);
+ 	nf_conntrack_ecache_fini(net);
+  i_see_dead_people:
+-	nf_conntrack_flush(net);
++	nf_conntrack_flush(net, 0, 0);
+ 	if (atomic_read(&net->ct.count) != 0) {
+ 		schedule();
+ 		goto i_see_dead_people;
+diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
+index a5f5e2e..dee4190 100644
+--- a/net/netfilter/nf_conntrack_ecache.c
++++ b/net/netfilter/nf_conntrack_ecache.c
+@@ -35,9 +35,17 @@ static inline void
+ __nf_ct_deliver_cached_events(struct nf_conntrack_ecache *ecache)
+ {
+ 	if (nf_ct_is_confirmed(ecache->ct) && !nf_ct_is_dying(ecache->ct)
+-	    && ecache->events)
+-		atomic_notifier_call_chain(&nf_conntrack_chain, ecache->events,
+-				    ecache->ct);
++	    && ecache->events) {
++		struct nf_ct_event item = {
++			.ct 	= ecache->ct,
++			.pid	= 0,
++			.report	= 0
++		};
++
++		atomic_notifier_call_chain(&nf_conntrack_chain,
++					   ecache->events,
++					   &item);
++	}
+ 
+ 	ecache->events = 0;
+ 	nf_ct_put(ecache->ct);
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index 37a703b..c921b18 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -362,7 +362,7 @@ static inline int refresh_timer(struct nf_conntrack_expect *i)
+ 	return 1;
  }
- EXPORT_SYMBOL_GPL(nf_ct_helper_ext_add);
  
-+int __nf_ct_set_helper(struct nf_conn *ct, gfp_t flags)
-+{
+-int nf_ct_expect_related(struct nf_conntrack_expect *expect)
++static inline int __nf_ct_expect_check(struct nf_conntrack_expect *expect)
+ {
+ 	const struct nf_conntrack_expect_policy *p;
+ 	struct nf_conntrack_expect *i;
+@@ -371,11 +371,8 @@ int nf_ct_expect_related(struct nf_conntrack_expect *expect)
+ 	struct net *net = nf_ct_exp_net(expect);
+ 	struct hlist_node *n;
+ 	unsigned int h;
+-	int ret;
+-
+-	NF_CT_ASSERT(master_help);
 +	int ret = 0;
-+	struct nf_conntrack_helper *helper;
-+	struct nf_conn_help *help = nfct_help(ct);
-+
-+	helper = __nf_ct_helper_find(&ct->tuplehash[IP_CT_DIR_REPLY].tuple);
-+	if (helper == NULL) {
-+		if (help)
-+			rcu_assign_pointer(help->helper, NULL);
-+		ret = -ENOENT;
-+		goto out;
-+	}
-+
-+	if (help == NULL) {
-+		help = nf_ct_helper_ext_add(ct, flags);
-+		if (help == NULL) {
-+			ret = -ENOMEM;
-+			goto out;
-+		}
-+	} else {
-+		memset(&help->help, 0, sizeof(help->help));
-+	}
-+
-+	rcu_assign_pointer(help->helper, helper);
+ 
+-	spin_lock_bh(&nf_conntrack_lock);
+ 	if (!master_help->helper) {
+ 		ret = -ESHUTDOWN;
+ 		goto out;
+@@ -409,18 +406,50 @@ int nf_ct_expect_related(struct nf_conntrack_expect *expect)
+ 			printk(KERN_WARNING
+ 			       "nf_conntrack: expectation table full\n");
+ 		ret = -EMFILE;
+-		goto out;
+ 	}
 +out:
 +	return ret;
 +}
-+EXPORT_SYMBOL_GPL(__nf_ct_set_helper);
 +
- static inline int unhelp(struct nf_conntrack_tuple_hash *i,
- 			 const struct nf_conntrack_helper *me)
- {
++int nf_ct_expect_related(struct nf_conntrack_expect *expect)
++{
++	int ret;
++
++	spin_lock_bh(&nf_conntrack_lock);
++	ret = __nf_ct_expect_check(expect);
++	if (ret < 0)
++		goto out;
+ 
+ 	nf_ct_expect_insert(expect);
++	atomic_inc(&expect->use);
++	spin_unlock_bh(&nf_conntrack_lock);
+ 	nf_ct_expect_event(IPEXP_NEW, expect);
+-	ret = 0;
++	nf_ct_expect_put(expect);
++	return ret;
+ out:
+ 	spin_unlock_bh(&nf_conntrack_lock);
+ 	return ret;
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_expect_related);
+ 
++int nf_ct_expect_related_report(struct nf_conntrack_expect *expect,
++				u32 pid, int report)
++{
++	int ret;
++
++	spin_lock_bh(&nf_conntrack_lock);
++	ret = __nf_ct_expect_check(expect);
++	if (ret < 0)
++		goto out;
++	nf_ct_expect_insert(expect);
++out:
++	spin_unlock_bh(&nf_conntrack_lock);
++	if (ret == 0)
++		nf_ct_expect_event_report(IPEXP_NEW, expect, pid, report);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(nf_ct_expect_related_report);
++
+ #ifdef CONFIG_PROC_FS
+ struct ct_expect_iter_state {
+ 	struct seq_net_private p;
 diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index b7a6be8..8621b48 100644
+index 8621b48..3d0e9f0 100644
 --- a/net/netfilter/nf_conntrack_netlink.c
 +++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -952,8 +952,23 @@ ctnetlink_change_helper(struct nf_conn *ct, struct nlattr *cda[])
+@@ -410,7 +410,8 @@ static int ctnetlink_conntrack_event(struct notifier_block *this,
+ 	struct nlmsghdr *nlh;
+ 	struct nfgenmsg *nfmsg;
+ 	struct nlattr *nest_parms;
+-	struct nf_conn *ct = (struct nf_conn *)ptr;
++	struct nf_ct_event *item = (struct nf_ct_event *)ptr;
++	struct nf_conn *ct = item->ct;
+ 	struct sk_buff *skb;
+ 	unsigned int type;
+ 	sk_buff_data_t b;
+@@ -443,7 +444,7 @@ static int ctnetlink_conntrack_event(struct notifier_block *this,
+ 	b = skb->tail;
+ 
+ 	type |= NFNL_SUBSYS_CTNETLINK << 8;
+-	nlh   = NLMSG_PUT(skb, 0, 0, type, sizeof(struct nfgenmsg));
++	nlh   = NLMSG_PUT(skb, item->pid, 0, type, sizeof(struct nfgenmsg));
+ 	nfmsg = NLMSG_DATA(nlh);
+ 
+ 	nlh->nlmsg_flags    = flags;
+@@ -511,7 +512,7 @@ static int ctnetlink_conntrack_event(struct notifier_block *this,
+ 	rcu_read_unlock();
+ 
+ 	nlh->nlmsg_len = skb->tail - b;
+-	nfnetlink_send(skb, 0, group, 0);
++	nfnetlink_send(skb, item->pid, group, item->report);
+ 	return NOTIFY_DONE;
+ 
+ nla_put_failure:
+@@ -787,7 +788,9 @@ ctnetlink_del_conntrack(struct sock *ctnl, struct sk_buff *skb,
+ 		err = ctnetlink_parse_tuple(cda, &tuple, CTA_TUPLE_REPLY, u3);
+ 	else {
+ 		/* Flush the whole table */
+-		nf_conntrack_flush(&init_net);
++		nf_conntrack_flush(&init_net,
++				   NETLINK_CB(skb).pid,
++				   nlmsg_report(nlh));
+ 		return 0;
  	}
  
- 	helper = __nf_conntrack_helper_find_byname(helpname);
--	if (helper == NULL)
-+	if (helper == NULL) {
-+#ifdef CONFIG_KMOD
-+		spin_unlock_bh(&nf_conntrack_lock);
-+		nfnl_unlock();
-+		if (request_module("nfct-helper-%s", helpname) < 0) {
-+			nfnl_lock();
-+			spin_lock_bh(&nf_conntrack_lock);
-+			return -EOPNOTSUPP;
-+		}
-+		nfnl_lock();
-+		spin_lock_bh(&nf_conntrack_lock);
-+		helper = __nf_conntrack_helper_find_byname(helpname);
-+		if (helper)
-+			return -EAGAIN;
-+#endif
- 		return -EOPNOTSUPP;
-+	}
+@@ -808,6 +811,14 @@ ctnetlink_del_conntrack(struct sock *ctnl, struct sk_buff *skb,
+ 		}
+ 	}
  
- 	if (help) {
- 		if (help->helper == helper)
-@@ -1117,7 +1132,6 @@ ctnetlink_create_conntrack(struct nlattr *cda[],
++	nf_conntrack_event_report(IPCT_DESTROY,
++				  ct,
++				  NETLINK_CB(skb).pid,
++				  nlmsg_report(nlh));
++
++	/* death_by_timeout would report the event again */
++	set_bit(IPS_DYING_BIT, &ct->status);
++
+ 	nf_ct_kill(ct);
+ 	nf_ct_put(ct);
+ 
+@@ -1124,11 +1135,35 @@ ctnetlink_change_conntrack(struct nf_conn *ct, struct nlattr *cda[])
+ 	return 0;
+ }
+ 
++static inline void
++ctnetlink_event_report(struct nf_conn *ct, u32 pid, int report)
++{
++	unsigned int events = 0;
++
++	if (test_bit(IPS_EXPECTED_BIT, &ct->status))
++		events |= IPCT_RELATED;
++	else
++		events |= IPCT_NEW;
++
++	nf_conntrack_event_report(IPCT_STATUS |
++				  IPCT_HELPER |
++				  IPCT_REFRESH |
++				  IPCT_PROTOINFO |
++				  IPCT_NATSEQADJ |
++				  IPCT_MARK |
++				  events,
++				  ct,
++				  pid,
++				  report);
++}
++
+ static int
+ ctnetlink_create_conntrack(struct nlattr *cda[],
+ 			   struct nf_conntrack_tuple *otuple,
+ 			   struct nf_conntrack_tuple *rtuple,
+-			   struct nf_conn *master_ct)
++			   struct nf_conn *master_ct,
++			   u32 pid,
++			   int report)
  {
  	struct nf_conn *ct;
  	int err = -EINVAL;
--	struct nf_conn_help *help;
- 	struct nf_conntrack_helper *helper;
- 
- 	ct = nf_conntrack_alloc(&init_net, otuple, rtuple, GFP_KERNEL);
-@@ -1132,16 +1146,57 @@ ctnetlink_create_conntrack(struct nlattr *cda[],
- 	ct->status |= IPS_CONFIRMED;
- 
+@@ -1148,7 +1183,7 @@ ctnetlink_create_conntrack(struct nlattr *cda[],
  	rcu_read_lock();
--	helper = __nf_ct_helper_find(rtuple);
--	if (helper) {
--		help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
--		if (help == NULL) {
-+ 	if (cda[CTA_HELP]) {
-+ 		char *helpname;
-+ 
-+ 		err = ctnetlink_parse_help(cda[CTA_HELP], &helpname);
-+ 		if (err < 0) {
-+			rcu_read_unlock();
-+			goto err;
-+		}
+  	if (cda[CTA_HELP]) {
+  		char *helpname;
+- 
 +
-+		helper = __nf_conntrack_helper_find_byname(helpname);
-+		if (helper == NULL) {
-+			rcu_read_unlock();
-+#ifdef CONFIG_KMOD
-+			nfnl_unlock();
-+			if (request_module("nfct-helper-%s", helpname) < 0) {
-+				nfnl_lock();
-+				err = -EOPNOTSUPP;
-+				goto err;
-+			}
-+			nfnl_lock();
-+			rcu_read_lock();
-+			helper = __nf_conntrack_helper_find_byname(helpname);
-+			if (helper) {
-+				rcu_read_unlock();
-+				err = -EAGAIN;
-+				goto err;
-+			}
-+			rcu_read_unlock();
-+#endif
-+			err = -EOPNOTSUPP;
-+			goto err;
-+		} else {
-+			struct nf_conn_help *help;
-+
-+			help = nf_ct_helper_ext_add(ct, GFP_ATOMIC);
-+			if (help == NULL) {
-+				rcu_read_unlock();
-+				err = -ENOMEM;
-+				goto err;
-+			}
-+
-+			/* not in hash table yet so not strictly necessary */
-+			rcu_assign_pointer(help->helper, helper);
-+		}
-+	} else {
-+		/* try an implicit helper assignation */
-+		err = __nf_ct_set_helper(ct, GFP_ATOMIC);
-+		if (err == -ENOMEM) {
+  		err = ctnetlink_parse_help(cda[CTA_HELP], &helpname);
+  		if (err < 0) {
  			rcu_read_unlock();
--			err = -ENOMEM;
- 			goto err;
- 		}
--		/* not in hash table yet so not strictly necessary */
--		rcu_assign_pointer(help->helper, helper);
+@@ -1228,9 +1263,12 @@ ctnetlink_create_conntrack(struct nlattr *cda[],
+ 		ct->master = master_ct;
  	}
  
- 	if (cda[CTA_STATUS]) {
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index b75c9c4..4739f9f 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -44,15 +44,17 @@ static struct sock *nfnl = NULL;
- static const struct nfnetlink_subsystem *subsys_table[NFNL_SUBSYS_COUNT];
- static DEFINE_MUTEX(nfnl_mutex);
++	nf_conntrack_get(&ct->ct_general);
+ 	add_timer(&ct->timeout);
+ 	nf_conntrack_hash_insert(ct);
+ 	rcu_read_unlock();
++	ctnetlink_event_report(ct, pid, report);
++	nf_ct_put(ct);
  
--static inline void nfnl_lock(void)
-+void nfnl_lock(void)
- {
- 	mutex_lock(&nfnl_mutex);
- }
-+EXPORT_SYMBOL_GPL(nfnl_lock);
+ 	return 0;
  
--static inline void nfnl_unlock(void)
-+void nfnl_unlock(void)
- {
- 	mutex_unlock(&nfnl_mutex);
- }
-+EXPORT_SYMBOL_GPL(nfnl_unlock);
+@@ -1295,7 +1333,9 @@ ctnetlink_new_conntrack(struct sock *ctnl, struct sk_buff *skb,
+ 			err = ctnetlink_create_conntrack(cda,
+ 							 &otuple,
+ 							 &rtuple,
+-							 master_ct);
++							 master_ct,
++							 NETLINK_CB(skb).pid,
++							 nlmsg_report(nlh));
+ 		if (err < 0 && master_ct)
+ 			nf_ct_put(master_ct);
  
- int nfnetlink_subsys_register(const struct nfnetlink_subsystem *n)
- {
-@@ -132,6 +134,7 @@ static int nfnetlink_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
- 		return 0;
- 
- 	type = nlh->nlmsg_type;
-+replay:
- 	ss = nfnetlink_get_subsys(type);
- 	if (!ss) {
- #ifdef CONFIG_KMOD
-@@ -165,7 +168,10 @@ static int nfnetlink_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
- 		} else
- 			return -EINVAL;
- 
--		return nc->call(nfnl, skb, nlh, cda);
-+		err = nc->call(nfnl, skb, nlh, cda);
-+		if (err == -EAGAIN)
-+			goto replay;
+@@ -1307,6 +1347,8 @@ ctnetlink_new_conntrack(struct sock *ctnl, struct sk_buff *skb,
+ 	 * so there's no need to increase the refcount */
+ 	err = -EEXIST;
+ 	if (!(nlh->nlmsg_flags & NLM_F_EXCL)) {
++		struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
++
+ 		/* we only allow nat config for new conntracks */
+ 		if (cda[CTA_NAT_SRC] || cda[CTA_NAT_DST]) {
+ 			err = -EOPNOTSUPP;
+@@ -1317,8 +1359,19 @@ ctnetlink_new_conntrack(struct sock *ctnl, struct sk_buff *skb,
+ 			err = -EOPNOTSUPP;
+ 			goto out_unlock;
+ 		}
+-		err = ctnetlink_change_conntrack(nf_ct_tuplehash_to_ctrack(h),
+-						 cda);
++
++		err = ctnetlink_change_conntrack(ct, cda);
++		if (err == 0) {
++			nf_conntrack_get(&ct->ct_general);
++			spin_unlock_bh(&nf_conntrack_lock);
++			ctnetlink_event_report(ct,
++					       NETLINK_CB(skb).pid,
++					       nlmsg_report(nlh));
++			nf_ct_put(ct);
++		} else
++			spin_unlock_bh(&nf_conntrack_lock);
++
 +		return err;
  	}
+ 
+ out_unlock:
+@@ -1453,7 +1506,8 @@ static int ctnetlink_expect_event(struct notifier_block *this,
+ {
+ 	struct nlmsghdr *nlh;
+ 	struct nfgenmsg *nfmsg;
+-	struct nf_conntrack_expect *exp = (struct nf_conntrack_expect *)ptr;
++	struct nf_exp_event *item = (struct nf_exp_event *)ptr;
++	struct nf_conntrack_expect *exp = item->exp;
+ 	struct sk_buff *skb;
+ 	unsigned int type;
+ 	sk_buff_data_t b;
+@@ -1475,7 +1529,7 @@ static int ctnetlink_expect_event(struct notifier_block *this,
+ 	b = skb->tail;
+ 
+ 	type |= NFNL_SUBSYS_CTNETLINK_EXP << 8;
+-	nlh   = NLMSG_PUT(skb, 0, 0, type, sizeof(struct nfgenmsg));
++	nlh   = NLMSG_PUT(skb, item->pid, 0, type, sizeof(struct nfgenmsg));
+ 	nfmsg = NLMSG_DATA(nlh);
+ 
+ 	nlh->nlmsg_flags    = flags;
+@@ -1489,7 +1543,7 @@ static int ctnetlink_expect_event(struct notifier_block *this,
+ 	rcu_read_unlock();
+ 
+ 	nlh->nlmsg_len = skb->tail - b;
+-	nfnetlink_send(skb, 0, NFNLGRP_CONNTRACK_EXP_NEW, 0);
++	nfnetlink_send(skb, item->pid, NFNLGRP_CONNTRACK_EXP_NEW, item->report);
+ 	return NOTIFY_DONE;
+ 
+ nla_put_failure:
+@@ -1703,7 +1757,7 @@ ctnetlink_change_expect(struct nf_conntrack_expect *x, struct nlattr *cda[])
  }
+ 
+ static int
+-ctnetlink_create_expect(struct nlattr *cda[], u_int8_t u3)
++ctnetlink_create_expect(struct nlattr *cda[], u_int8_t u3, u32 pid, int report)
+ {
+ 	struct nf_conntrack_tuple tuple, mask, master_tuple;
+ 	struct nf_conntrack_tuple_hash *h = NULL;
+@@ -1750,7 +1804,7 @@ ctnetlink_create_expect(struct nlattr *cda[], u_int8_t u3)
+ 	memcpy(&exp->mask.src.u3, &mask.src.u3, sizeof(exp->mask.src.u3));
+ 	exp->mask.src.u.all = mask.src.u.all;
+ 
+-	err = nf_ct_expect_related(exp);
++	err = nf_ct_expect_related_report(exp, pid, report);
+ 	nf_ct_expect_put(exp);
+ 
+ out:
+@@ -1783,8 +1837,12 @@ ctnetlink_new_expect(struct sock *ctnl, struct sk_buff *skb,
+ 	if (!exp) {
+ 		spin_unlock_bh(&nf_conntrack_lock);
+ 		err = -ENOENT;
+-		if (nlh->nlmsg_flags & NLM_F_CREATE)
+-			err = ctnetlink_create_expect(cda, u3);
++		if (nlh->nlmsg_flags & NLM_F_CREATE) {
++			err = ctnetlink_create_expect(cda,
++						      u3,
++						      NETLINK_CB(skb).pid,
++						      nlmsg_report(nlh));
++		}
+ 		return err;
+ 	}
  
 
