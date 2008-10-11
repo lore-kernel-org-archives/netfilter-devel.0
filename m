@@ -1,8 +1,8 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 5/6] [PATCH] dynamic calculation of event message size for
-	ctnetlink
-Date: Sat, 11 Oct 2008 17:22:45 +0200
-Message-ID: <20081011152245.6436.17987.stgit@Decadence>
+Subject: [PATCH 6/6] [PATCH] remove module dependency between ctnetlink and
+	nf_nat
+Date: Sat, 11 Oct 2008 17:23:12 +0200
+Message-ID: <20081011152312.6436.15322.stgit@Decadence>
 References: <20081011152116.6436.17277.stgit@Decadence>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,472 +10,348 @@ Content-Transfer-Encoding: 7bit
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45883 "EHLO us.es"
+Received: from mail.us.es ([193.147.175.20]:46011 "EHLO us.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753861AbYJKPW6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 11 Oct 2008 11:22:58 -0400
+	id S1753864AbYJKPXR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 11 Oct 2008 11:23:17 -0400
 In-Reply-To: <20081011152116.6436.17277.stgit@Decadence>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds dynamic message size calculation for ctnetlink. This
-reduces CPU consumption since the overhead in the message trimming
-is removed.
+This patch removes the module dependency between ctnetlink and
+nf_nat by means of an indirect call that is initialized when
+nf_nat is loaded. Now, nf_conntrack_netlink only requires
+nf_conntrack and nfnetlink.
 
-Based on a suggestion from Patrick McHardy.
+This patch puts nfnetlink_parse_nat_setup_hook into the
+nf_conntrack_core to avoid dependencies between ctnetlink,
+nf_conntrack_ipv4 and nf_conntrack_ipv6.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
 
- include/net/netfilter/nf_conntrack_l3proto.h   |    2 
- include/net/netfilter/nf_conntrack_l4proto.h   |    3 +
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    6 +
- net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |    8 ++
- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |    6 +
- net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |    8 ++
- net/netfilter/nf_conntrack_core.c              |    6 +
- net/netfilter/nf_conntrack_netlink.c           |  103 ++++++++++++++++++++++++
- net/netfilter/nf_conntrack_proto_dccp.c        |   10 ++
- net/netfilter/nf_conntrack_proto_gre.c         |    1 
- net/netfilter/nf_conntrack_proto_sctp.c        |   12 +++
- net/netfilter/nf_conntrack_proto_tcp.c         |   14 +++
- net/netfilter/nf_conntrack_proto_udp.c         |    2 
- net/netfilter/nf_conntrack_proto_udplite.c     |    2 
- 14 files changed, 182 insertions(+), 1 deletions(-)
+ include/net/netfilter/nf_nat_core.h  |    8 ++
+ net/ipv4/netfilter/nf_nat_core.c     |   97 ++++++++++++++++++++++++++++
+ net/netfilter/nf_conntrack_core.c    |    7 ++
+ net/netfilter/nf_conntrack_netlink.c |  118 +++++++++++-----------------------
+ 4 files changed, 151 insertions(+), 79 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack_l3proto.h b/include/net/netfilter/nf_conntrack_l3proto.h
-index 0378676..e0007f9 100644
---- a/include/net/netfilter/nf_conntrack_l3proto.h
-+++ b/include/net/netfilter/nf_conntrack_l3proto.h
-@@ -55,6 +55,8 @@ struct nf_conntrack_l3proto
- 
- 	int (*nlattr_to_tuple)(struct nlattr *tb[],
- 			       struct nf_conntrack_tuple *t);
-+
-+	size_t (*nlattr_size)(void);
- 	const struct nla_policy *nla_policy;
- 
- #ifdef CONFIG_SYSCTL
-diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
-index 7f2f43c..3c80479 100644
---- a/include/net/netfilter/nf_conntrack_l4proto.h
-+++ b/include/net/netfilter/nf_conntrack_l4proto.h
-@@ -72,6 +72,8 @@ struct nf_conntrack_l4proto
- 			       const struct nf_conntrack_tuple *t);
- 	int (*nlattr_to_tuple)(struct nlattr *tb[],
- 			       struct nf_conntrack_tuple *t);
-+	size_t (*nlattr_size)(void);
-+	size_t (*nlattr_protoinfo_size)(void);
- 	const struct nla_policy *nla_policy;
- 
- #ifdef CONFIG_SYSCTL
-@@ -115,6 +117,7 @@ extern int nf_ct_port_tuple_to_nlattr(struct sk_buff *skb,
- 				      const struct nf_conntrack_tuple *tuple);
- extern int nf_ct_port_nlattr_to_tuple(struct nlattr *tb[],
- 				      struct nf_conntrack_tuple *t);
-+extern size_t nf_ct_port_nlattr_size(void);
- extern const struct nla_policy nf_ct_port_nla_policy[];
- 
- #ifdef CONFIG_SYSCTL
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-index 4a7c352..7b354e5 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -330,6 +330,11 @@ static int ipv4_nlattr_to_tuple(struct nlattr *tb[],
- 
- 	return 0;
+diff --git a/include/net/netfilter/nf_nat_core.h b/include/net/netfilter/nf_nat_core.h
+index f29eeb9..5868406 100644
+--- a/include/net/netfilter/nf_nat_core.h
++++ b/include/net/netfilter/nf_nat_core.h
+@@ -25,4 +25,12 @@ static inline int nf_nat_initialized(struct nf_conn *ct,
+ 	else
+ 		return test_bit(IPS_DST_NAT_DONE_BIT, &ct->status);
  }
 +
-+static size_t ipv4_nlattr_size(void)
-+{
-+	return nla_total_size(sizeof(u_int32_t))*2;
-+}
- #endif
- 
- static struct nf_sockopt_ops so_getorigdst = {
-@@ -350,6 +355,7 @@ struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv4 __read_mostly = {
- #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
- 	.tuple_to_nlattr = ipv4_tuple_to_nlattr,
- 	.nlattr_to_tuple = ipv4_nlattr_to_tuple,
-+	.nlattr_size	 = ipv4_nlattr_size,
- 	.nla_policy	 = ipv4_nla_policy,
- #endif
- #if defined(CONFIG_SYSCTL) && defined(CONFIG_NF_CONNTRACK_PROC_COMPAT)
-diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-index 4e88792..9e6bb21 100644
---- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-+++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-@@ -262,6 +262,13 @@ static int icmp_nlattr_to_tuple(struct nlattr *tb[],
- 
- 	return 0;
- }
++struct nlattr;
 +
-+static size_t icmp_nlattr_size(void)
-+{
-+	return nla_total_size(sizeof(u_int8_t)) +
-+	       nla_total_size(sizeof(u_int8_t)) +
-+	       nla_total_size(sizeof(u_int16_t));
-+}
- #endif
- 
- #ifdef CONFIG_SYSCTL
-@@ -310,6 +317,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_icmp __read_mostly =
- #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
- 	.tuple_to_nlattr	= icmp_tuple_to_nlattr,
- 	.nlattr_to_tuple	= icmp_nlattr_to_tuple,
-+	.nlattr_size		= icmp_nlattr_size,
- 	.nla_policy		= icmp_nla_policy,
- #endif
- #ifdef CONFIG_SYSCTL
-diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-index e91db16..3bc103d 100644
---- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-@@ -342,6 +342,11 @@ static int ipv6_nlattr_to_tuple(struct nlattr *tb[],
- 
- 	return 0;
- }
++extern int
++(*nfnetlink_parse_nat_setup_hook)(struct nf_conn *ct,
++				  enum nf_nat_manip_type manip,
++				  struct nlattr *attr);
 +
-+static size_t ipv6_nlattr_size(void)
-+{
-+	return nla_total_size(sizeof(u_int32_t)*4)*2;
-+}
- #endif
+ #endif /* _NF_NAT_CORE_H */
+diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
+index 2ac9eaf..91ec535 100644
+--- a/net/ipv4/netfilter/nf_nat_core.c
++++ b/net/ipv4/netfilter/nf_nat_core.c
+@@ -584,6 +584,98 @@ static struct nf_ct_ext_type nat_extend __read_mostly = {
+ 	.flags		= NF_CT_EXT_F_PREALLOC,
+ };
  
- struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6 __read_mostly = {
-@@ -354,6 +359,7 @@ struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6 __read_mostly = {
- #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
- 	.tuple_to_nlattr	= ipv6_tuple_to_nlattr,
- 	.nlattr_to_tuple	= ipv6_nlattr_to_tuple,
-+	.nlattr_size		= ipv6_nlattr_size,
- 	.nla_policy		= ipv6_nla_policy,
- #endif
- #ifdef CONFIG_SYSCTL
-diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-index 0572617..1c32c71 100644
---- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-@@ -243,6 +243,13 @@ static int icmpv6_nlattr_to_tuple(struct nlattr *tb[],
- 
- 	return 0;
- }
++#if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
 +
-+static size_t icmpv6_nlattr_size(void)
++#include <linux/netfilter/nfnetlink.h>
++#include <linux/netfilter/nfnetlink_conntrack.h>
++
++static const struct nla_policy protonat_nla_policy[CTA_PROTONAT_MAX+1] = {
++	[CTA_PROTONAT_PORT_MIN]	= { .type = NLA_U16 },
++	[CTA_PROTONAT_PORT_MAX]	= { .type = NLA_U16 },
++};
++
++static int nfnetlink_parse_nat_proto(struct nlattr *attr,
++				     const struct nf_conn *ct,
++				     struct nf_nat_range *range)
 +{
-+	return nla_total_size(sizeof(u_int8_t)) +
-+	       nla_total_size(sizeof(u_int8_t)) +
-+	       nla_total_size(sizeof(u_int16_t));
++	struct nlattr *tb[CTA_PROTONAT_MAX+1];
++	const struct nf_nat_protocol *npt;
++	int err;
++
++	err = nla_parse_nested(tb, CTA_PROTONAT_MAX, attr, protonat_nla_policy);
++	if (err < 0)
++		return err;
++
++	npt = nf_nat_proto_find_get(nf_ct_protonum(ct));
++	if (npt->nlattr_to_range)
++		err = npt->nlattr_to_range(tb, range);
++	nf_nat_proto_put(npt);
++	return err;
 +}
- #endif
++
++static const struct nla_policy nat_nla_policy[CTA_NAT_MAX+1] = {
++	[CTA_NAT_MINIP]		= { .type = NLA_U32 },
++	[CTA_NAT_MAXIP]		= { .type = NLA_U32 },
++};
++
++static int
++nfnetlink_parse_nat(struct nlattr *nat,
++		    const struct nf_conn *ct, struct nf_nat_range *range)
++{
++	struct nlattr *tb[CTA_NAT_MAX+1];
++	int err;
++
++	memset(range, 0, sizeof(*range));
++
++	err = nla_parse_nested(tb, CTA_NAT_MAX, nat, nat_nla_policy);
++	if (err < 0)
++		return err;
++
++	if (tb[CTA_NAT_MINIP])
++		range->min_ip = nla_get_be32(tb[CTA_NAT_MINIP]);
++
++	if (!tb[CTA_NAT_MAXIP])
++		range->max_ip = range->min_ip;
++	else
++		range->max_ip = nla_get_be32(tb[CTA_NAT_MAXIP]);
++
++	if (range->min_ip)
++		range->flags |= IP_NAT_RANGE_MAP_IPS;
++
++	if (!tb[CTA_NAT_PROTO])
++		return 0;
++
++	err = nfnetlink_parse_nat_proto(tb[CTA_NAT_PROTO], ct, range);
++	if (err < 0)
++		return err;
++
++	return 0;
++}
++
++static int
++nfnetlink_parse_nat_setup(struct nf_conn *ct,
++			  enum nf_nat_manip_type manip,
++			  struct nlattr *attr)
++{
++	struct nf_nat_range range;
++
++	if (nfnetlink_parse_nat(attr, ct, &range) < 0)
++		return -EINVAL;
++	if (nf_nat_initialized(ct, manip))
++		return -EEXIST;
++
++	return nf_nat_setup_info(ct, &range, manip);
++}
++#else
++static int
++nfnetlink_parse_nat_setup(struct nf_conn *ct,
++			  enum nf_nat_manip_type manip,
++			  struct nlattr *attr)
++{
++	return -EOPNOTSUPP;
++}
++#endif
++
+ static int __net_init nf_nat_net_init(struct net *net)
+ {
+ 	net->ipv4.nat_bysource = nf_ct_alloc_hashtable(&nf_nat_htable_size,
+@@ -654,6 +746,9 @@ static int __init nf_nat_init(void)
  
- #ifdef CONFIG_SYSCTL
-@@ -275,6 +282,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_icmpv6 __read_mostly =
- #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
- 	.tuple_to_nlattr	= icmpv6_tuple_to_nlattr,
- 	.nlattr_to_tuple	= icmpv6_nlattr_to_tuple,
-+	.nlattr_size		= icmpv6_nlattr_size,
- 	.nla_policy		= icmpv6_nla_policy,
- #endif
- #ifdef CONFIG_SYSCTL
+ 	BUG_ON(nf_nat_seq_adjust_hook != NULL);
+ 	rcu_assign_pointer(nf_nat_seq_adjust_hook, nf_nat_seq_adjust);
++	BUG_ON(nfnetlink_parse_nat_setup_hook != NULL);
++	rcu_assign_pointer(nfnetlink_parse_nat_setup_hook, 
++			   nfnetlink_parse_nat_setup);
+ 	return 0;
+ 
+  cleanup_extend:
+@@ -667,10 +762,12 @@ static void __exit nf_nat_cleanup(void)
+ 	nf_ct_l3proto_put(l3proto);
+ 	nf_ct_extend_unregister(&nat_extend);
+ 	rcu_assign_pointer(nf_nat_seq_adjust_hook, NULL);
++	rcu_assign_pointer(nfnetlink_parse_nat_setup_hook, NULL);
+ 	synchronize_net();
+ }
+ 
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("nf-nat-ipv4");
+ 
+ module_init(nf_nat_init);
+ module_exit(nf_nat_cleanup);
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 3a8d80f..7ca33aa 100644
+index 7ca33aa..1b13d64 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
-@@ -897,6 +897,12 @@ int nf_ct_port_nlattr_to_tuple(struct nlattr *tb[],
- 	return 0;
- }
- EXPORT_SYMBOL_GPL(nf_ct_port_nlattr_to_tuple);
-+
-+size_t nf_ct_port_nlattr_size(void)
-+{
-+	return nla_total_size(sizeof(u_int16_t))*2;
-+}
-+EXPORT_SYMBOL_GPL(nf_ct_port_nlattr_size);
- #endif
+@@ -38,9 +38,16 @@
+ #include <net/netfilter/nf_conntrack_core.h>
+ #include <net/netfilter/nf_conntrack_extend.h>
+ #include <net/netfilter/nf_conntrack_acct.h>
++#include <net/netfilter/nf_nat.h>
  
- /* Used by ipt_REJECT and ip6t_REJECT. */
+ #define NF_CONNTRACK_VERSION	"0.5.0"
+ 
++unsigned int
++(*nfnetlink_parse_nat_setup_hook)(struct nf_conn *ct,
++				  enum nf_nat_manip_type manip,
++				  struct nlattr *attr) __read_mostly;
++EXPORT_SYMBOL_GPL(nfnetlink_parse_nat_setup_hook);
++
+ DEFINE_SPINLOCK(nf_conntrack_lock);
+ EXPORT_SYMBOL_GPL(nf_conntrack_lock);
+ 
 diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 1c459a8..d64f328 100644
+index d64f328..34fc1f5 100644
 --- a/net/netfilter/nf_conntrack_netlink.c
 +++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -404,6 +404,107 @@ nla_put_failure:
+@@ -445,7 +445,7 @@ static inline size_t calculate_helper_room_size(const struct nf_conn *ct)
+ {
+ 	const struct nf_conn_help *help = nfct_help(ct);
+ 	struct nf_conntrack_helper *helper;
+-	size_t size;
++	size_t size = 0;
+ 
+ 	if (!help)
+ 		goto out;
+@@ -784,71 +784,6 @@ ctnetlink_parse_tuple(struct nlattr *cda[], struct nf_conntrack_tuple *tuple,
+ 	return 0;
  }
  
- #ifdef CONFIG_NF_CONNTRACK_EVENTS
-+static inline size_t calculate_tuple_room_size(const struct nf_conn *ct)
+-#ifdef CONFIG_NF_NAT_NEEDED
+-static const struct nla_policy protonat_nla_policy[CTA_PROTONAT_MAX+1] = {
+-	[CTA_PROTONAT_PORT_MIN]	= { .type = NLA_U16 },
+-	[CTA_PROTONAT_PORT_MAX]	= { .type = NLA_U16 },
+-};
+-
+-static int nfnetlink_parse_nat_proto(struct nlattr *attr,
+-				     const struct nf_conn *ct,
+-				     struct nf_nat_range *range)
+-{
+-	struct nlattr *tb[CTA_PROTONAT_MAX+1];
+-	const struct nf_nat_protocol *npt;
+-	int err;
+-
+-	err = nla_parse_nested(tb, CTA_PROTONAT_MAX, attr, protonat_nla_policy);
+-	if (err < 0)
+-		return err;
+-
+-	npt = nf_nat_proto_find_get(nf_ct_protonum(ct));
+-	if (npt->nlattr_to_range)
+-		err = npt->nlattr_to_range(tb, range);
+-	nf_nat_proto_put(npt);
+-	return err;
+-}
+-
+-static const struct nla_policy nat_nla_policy[CTA_NAT_MAX+1] = {
+-	[CTA_NAT_MINIP]		= { .type = NLA_U32 },
+-	[CTA_NAT_MAXIP]		= { .type = NLA_U32 },
+-};
+-
+-static inline int
+-nfnetlink_parse_nat(struct nlattr *nat,
+-		    const struct nf_conn *ct, struct nf_nat_range *range)
+-{
+-	struct nlattr *tb[CTA_NAT_MAX+1];
+-	int err;
+-
+-	memset(range, 0, sizeof(*range));
+-
+-	err = nla_parse_nested(tb, CTA_NAT_MAX, nat, nat_nla_policy);
+-	if (err < 0)
+-		return err;
+-
+-	if (tb[CTA_NAT_MINIP])
+-		range->min_ip = nla_get_be32(tb[CTA_NAT_MINIP]);
+-
+-	if (!tb[CTA_NAT_MAXIP])
+-		range->max_ip = range->min_ip;
+-	else
+-		range->max_ip = nla_get_be32(tb[CTA_NAT_MAXIP]);
+-
+-	if (range->min_ip)
+-		range->flags |= IP_NAT_RANGE_MAP_IPS;
+-
+-	if (!tb[CTA_NAT_PROTO])
+-		return 0;
+-
+-	err = nfnetlink_parse_nat_proto(tb[CTA_NAT_PROTO], ct, range);
+-	if (err < 0)
+-		return err;
+-
+-	return 0;
+-}
+-#endif
+-
+ static inline int
+ ctnetlink_parse_help(struct nlattr *attr, char **helper_name)
+ {
+@@ -986,6 +921,33 @@ out:
+ }
+ 
+ static int
++ctnetlink_parse_nat_setup(struct nf_conn *ct,
++			  enum nf_nat_manip_type manip,
++			  struct nlattr *attr)
 +{
-+	struct nf_conntrack_l3proto *l3proto;
-+        struct nf_conntrack_l4proto *l4proto;
-+	size_t size;
++	typeof(nfnetlink_parse_nat_setup_hook) parse_nat_setup;
 +
-+	rcu_read_lock();
-+	/* nested attributes CTA_TUPLE_[ORIG|REPLY] plus CTA_TUPLE_IP */
-+	size = nla_total_size(0) * 2;
-+	l3proto = __nf_ct_l3proto_find(nf_ct_l3num(ct));
-+	if (likely(l3proto->nlattr_size))
-+		size += l3proto->nlattr_size();
-+
-+	/* nested attributes CTA_TUPLE_PROTO plus CTA_PROTONUM */
-+	size += nla_total_size(0) + nla_total_size(sizeof(u_int8_t));
-+	l4proto = __nf_ct_l4proto_find(nf_ct_l3num(ct), nf_ct_protonum(ct));
-+	if (likely(l4proto->nlattr_size))
-+		size += l4proto->nlattr_size();
-+
-+	rcu_read_unlock();
-+	return size;
-+}
-+
-+static inline size_t calculate_protoinfo_room_size(const struct nf_conn *ct)
-+{
-+	size_t size = 0;
-+	struct nf_conntrack_l4proto *l4proto;
-+
-+	rcu_read_lock();
-+	l4proto = __nf_ct_l4proto_find(nf_ct_l3num(ct), nf_ct_protonum(ct));
-+	if (l4proto->nlattr_protoinfo_size)
-+		size = l4proto->nlattr_protoinfo_size();
-+	rcu_read_unlock();
-+
-+	return size;
-+}
-+
-+static inline size_t calculate_helper_room_size(const struct nf_conn *ct)
-+{
-+	const struct nf_conn_help *help = nfct_help(ct);
-+	struct nf_conntrack_helper *helper;
-+	size_t size;
-+
-+	if (!help)
-+		goto out;
-+
-+	rcu_read_lock();
-+	helper = rcu_dereference(help->helper);
-+	if (!helper)
-+		goto out_unlock;
-+
-+	size = nla_total_size(0) + 			/* CTA_HELP */
-+	       nla_total_size(strlen(helper->name));
-+out_unlock:
-+	rcu_read_unlock();
-+out:
-+	return size;
-+}
-+
-+static inline size_t
-+ctnetlink_calculate_room_size(const struct nf_conn *ct, unsigned long events)
-+{
-+	size_t size = NLMSG_SPACE(sizeof(struct nfgenmsg));
-+
-+	size += calculate_tuple_room_size(ct) * 2 +  /* original and reply */
-+		nla_total_size(sizeof(u_int32_t)) +  /* status */
-+		nla_total_size(sizeof(u_int32_t));   /* id */
-+
-+#ifdef CONFIG_NF_CONNTRACK_MARK
-+	if (events & IPCT_MARK || ct->mark)
-+		size += nla_total_size(sizeof(u_int32_t));
-+#endif
-+
-+	if (events & IPCT_DESTROY) {
-+		const struct nf_conn_counter *acct;
-+
-+		acct = nf_conn_acct_find(ct);
-+		if (acct) {
-+			size += nla_total_size(0) * 2 +
-+				nla_total_size(sizeof(u_int64_t)) * 2 * 2;
++	parse_nat_setup = rcu_dereference(nfnetlink_parse_nat_setup_hook);
++	if (!parse_nat_setup) {
++#ifdef CONFIG_KMOD
++		spin_unlock_bh(&nf_conntrack_lock);
++		if (request_module("nf-nat-ipv4") < 0) {
++			spin_lock_bh(&nf_conntrack_lock);
++			return -EOPNOTSUPP;
 +		}
-+		return size;
++		spin_lock_bh(&nf_conntrack_lock);
++		parse_nat_setup =
++			rcu_dereference(nfnetlink_parse_nat_setup_hook);
++		if (parse_nat_setup)
++			return -EAGAIN;
++#endif
++		return -EOPNOTSUPP;
 +	}
 +
-+	size += nla_total_size(sizeof(u_int32_t));	/* CTA_TIMEOUT */
-+	if (events & IPCT_PROTOINFO) {
-+		size += calculate_protoinfo_room_size(ct);
-+	}if (events & IPCT_HELPER || nfct_help(ct))
-+		size += calculate_helper_room_size(ct);
-+	if (events & IPCT_RELATED)
-+		size += calculate_tuple_room_size(ct->master);
-+	if (events & IPCT_NATSEQADJ)
-+		size += nla_total_size(0) * 2 +
-+			nla_total_size(sizeof(u_int32_t)) * 3 * 2;
-+#ifdef CONFIG_NF_CONNTRACK_SECMARK
-+	if (events & IPCT_SECMARK || ct->secmark)
-+		size += nla_total_size(sizeof(u_int32_t));
-+#endif
-+	return size;
++	return parse_nat_setup(ct, manip, attr);
 +}
 +
- static int ctnetlink_conntrack_event(struct notifier_block *this,
- 				     unsigned long events, void *ptr)
++static int
+ ctnetlink_change_status(struct nf_conn *ct, struct nlattr *cda[])
  {
-@@ -437,7 +538,7 @@ static int ctnetlink_conntrack_event(struct notifier_block *this,
- 	if (!nfnetlink_has_listeners(group))
- 		return NOTIFY_DONE;
+ 	unsigned long d;
+@@ -1008,23 +970,21 @@ ctnetlink_change_status(struct nf_conn *ct, struct nlattr *cda[])
+ #ifndef CONFIG_NF_NAT_NEEDED
+ 		return -EOPNOTSUPP;
+ #else
+-		struct nf_nat_range range;
++		int ret;
  
--	skb = alloc_skb(NLMSG_GOODSIZE, GFP_ATOMIC);
-+	skb = alloc_skb(ctnetlink_calculate_room_size(ct, events), GFP_ATOMIC);
- 	if (!skb)
- 		return NOTIFY_DONE;
- 
-diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
-index 8fcf176..6694173 100644
---- a/net/netfilter/nf_conntrack_proto_dccp.c
-+++ b/net/netfilter/nf_conntrack_proto_dccp.c
-@@ -657,6 +657,12 @@ static int nlattr_to_dccp(struct nlattr *cda[], struct nf_conn *ct)
- 	write_unlock_bh(&dccp_lock);
- 	return 0;
- }
-+
-+static size_t dccp_nlattr_protoinfo_size(void)
-+{
-+	return nla_total_size(0)*2 +	/* CTA_PROTOINFO */
-+	       nla_total_size(sizeof(u_int8_t));
-+}
+ 		if (cda[CTA_NAT_DST]) {
+-			if (nfnetlink_parse_nat(cda[CTA_NAT_DST], ct,
+-						&range) < 0)
+-				return -EINVAL;
+-			if (nf_nat_initialized(ct, IP_NAT_MANIP_DST))
+-				return -EEXIST;
+-			nf_nat_setup_info(ct, &range, IP_NAT_MANIP_DST);
++			ret = ctnetlink_parse_nat_setup(ct,
++							IP_NAT_MANIP_DST,
++							cda[CTA_NAT_DST]);
++			if (ret < 0)
++				return ret;
+ 		}
+ 		if (cda[CTA_NAT_SRC]) {
+-			if (nfnetlink_parse_nat(cda[CTA_NAT_SRC], ct,
+-						&range) < 0)
+-				return -EINVAL;
+-			if (nf_nat_initialized(ct, IP_NAT_MANIP_SRC))
+-				return -EEXIST;
+-			nf_nat_setup_info(ct, &range, IP_NAT_MANIP_SRC);
++			ret = ctnetlink_parse_nat_setup(ct,
++							IP_NAT_MANIP_SRC,
++							cda[CTA_NAT_SRC]);
++			if (ret < 0)
++				return ret;
+ 		}
  #endif
- 
- #ifdef CONFIG_SYSCTL
-@@ -749,6 +755,8 @@ static struct nf_conntrack_l4proto dccp_proto4 __read_mostly = {
- 	.from_nlattr		= nlattr_to_dccp,
- 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
- 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
-+	.nlattr_size		= nf_ct_port_nlattr_size,
-+	.nlattr_protoinfo_size	= dccp_nlattr_protoinfo_size,
- 	.nla_policy		= nf_ct_port_nla_policy,
- #endif
- #ifdef CONFIG_SYSCTL
-@@ -774,6 +782,8 @@ static struct nf_conntrack_l4proto dccp_proto6 __read_mostly = {
- 	.from_nlattr		= nlattr_to_dccp,
- 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
- 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
-+	.nlattr_size		= nf_ct_port_nlattr_size,
-+	.nlattr_protoinfo_size	= dccp_nlattr_protoinfo_size,
- 	.nla_policy		= nf_ct_port_nla_policy,
- #endif
- #ifdef CONFIG_SYSCTL
-diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
-index a2cdbcb..6e381c9 100644
---- a/net/netfilter/nf_conntrack_proto_gre.c
-+++ b/net/netfilter/nf_conntrack_proto_gre.c
-@@ -294,6 +294,7 @@ static struct nf_conntrack_l4proto nf_conntrack_l4proto_gre4 __read_mostly = {
- #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
- 	.tuple_to_nlattr = nf_ct_port_tuple_to_nlattr,
- 	.nlattr_to_tuple = nf_ct_port_nlattr_to_tuple,
-+	.nlattr_size	 = nf_ct_port_nlattr_size,
- 	.nla_policy	 = nf_ct_port_nla_policy,
- #endif
- };
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index ae8c260..a867849 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -537,6 +537,14 @@ static int nlattr_to_sctp(struct nlattr *cda[], struct nf_conn *ct)
- 
- 	return 0;
- }
-+
-+static size_t sctp_nlattr_protoinfo_size(void)
-+{
-+	return nla_total_size(0)*2 +           /* CTA_PROTOINFO */
-+	       nla_total_size(sizeof(u_int8_t)) +
-+	       nla_total_size(sizeof(u_int32_t)) +
-+	       nla_total_size(sizeof(u_int32_t));
-+}
- #endif
- 
- #ifdef CONFIG_SYSCTL
-@@ -671,6 +679,8 @@ static struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp4 __read_mostly = {
- 	.from_nlattr		= nlattr_to_sctp,
- 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
- 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
-+	.nlattr_size		= nf_ct_port_nlattr_size,
-+	.nlattr_protoinfo_size	= sctp_nlattr_protoinfo_size,
- 	.nla_policy		= nf_ct_port_nla_policy,
- #endif
- #ifdef CONFIG_SYSCTL
-@@ -699,6 +709,8 @@ static struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp6 __read_mostly = {
- 	.from_nlattr		= nlattr_to_sctp,
- 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
- 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
-+	.nlattr_size		= nf_ct_port_nlattr_size,
-+	.nlattr_protoinfo_size	= sctp_nlattr_protoinfo_size,
- 	.nla_policy		= nf_ct_port_nla_policy,
- #endif
- #ifdef CONFIG_SYSCTL
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index f947ec4..ddc87a3 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -1181,6 +1181,16 @@ static int nlattr_to_tcp(struct nlattr *cda[], struct nf_conn *ct)
- 
- 	return 0;
- }
-+
-+static size_t tcp_nlattr_protoinfo_size(void)
-+{
-+	return nla_total_size(0)*2 +	/* CTA_PROTOINFO */
-+	       nla_total_size(sizeof(u_int8_t)) +
-+	       nla_total_size(sizeof(u_int8_t)) +
-+	       nla_total_size(sizeof(u_int8_t)) +
-+	       nla_total_size(sizeof(struct nf_ct_tcp_flags)) +
-+	       nla_total_size(sizeof(struct nf_ct_tcp_flags));
-+}
- #endif
- 
- #ifdef CONFIG_SYSCTL
-@@ -1399,6 +1409,8 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp4 __read_mostly =
- 	.from_nlattr		= nlattr_to_tcp,
- 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
- 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
-+	.nlattr_size		= nf_ct_port_nlattr_size,
-+	.nlattr_protoinfo_size	= tcp_nlattr_protoinfo_size,
- 	.nla_policy		= nf_ct_port_nla_policy,
- #endif
- #ifdef CONFIG_SYSCTL
-@@ -1429,6 +1441,8 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp6 __read_mostly =
- 	.from_nlattr		= nlattr_to_tcp,
- 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
- 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
-+	.nlattr_size		= nf_ct_port_nlattr_size,
-+	.nlattr_protoinfo_size	= tcp_nlattr_protoinfo_size,
- 	.nla_policy		= nf_ct_port_nla_policy,
- #endif
- #ifdef CONFIG_SYSCTL
-diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
-index 7c2ca48..549da2c 100644
---- a/net/netfilter/nf_conntrack_proto_udp.c
-+++ b/net/netfilter/nf_conntrack_proto_udp.c
-@@ -193,6 +193,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_udp4 __read_mostly =
- #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
- 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
- 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
-+	.nlattr_size		= nf_ct_port_nlattr_size,
- 	.nla_policy		= nf_ct_port_nla_policy,
- #endif
- #ifdef CONFIG_SYSCTL
-@@ -220,6 +221,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_udp6 __read_mostly =
- #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
- 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
- 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
-+	.nlattr_size		= nf_ct_port_nlattr_size,
- 	.nla_policy		= nf_ct_port_nla_policy,
- #endif
- #ifdef CONFIG_SYSCTL
-diff --git a/net/netfilter/nf_conntrack_proto_udplite.c b/net/netfilter/nf_conntrack_proto_udplite.c
-index d22d839..70a21ff 100644
---- a/net/netfilter/nf_conntrack_proto_udplite.c
-+++ b/net/netfilter/nf_conntrack_proto_udplite.c
-@@ -181,6 +181,7 @@ static struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite4 __read_mostly =
- #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
- 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
- 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
-+	.nlattr_size		= nf_ct_port_nlattr_size,
- 	.nla_policy		= nf_ct_port_nla_policy,
- #endif
- #ifdef CONFIG_SYSCTL
-@@ -204,6 +205,7 @@ static struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite6 __read_mostly =
- #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
- 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
- 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
-+	.nlattr_size		= nf_ct_port_nlattr_size,
- 	.nla_policy		= nf_ct_port_nla_policy,
- #endif
- #ifdef CONFIG_SYSCTL
+ 	}
 
