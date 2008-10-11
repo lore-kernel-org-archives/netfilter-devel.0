@@ -1,88 +1,55 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 5/8] [PATCH] deliver events for conntracks created via
- ctnetlink
-Date: Sat, 11 Oct 2008 16:53:21 +0200
-Message-ID: <48F0BDE1.7040409@trash.net>
-References: <20081009083339.9824.24056.stgit@Decadence> <20081009083506.9824.48734.stgit@Decadence> <48EF593B.30208@trash.net> <48F09686.5060201@netfilter.org>
+Subject: [Fwd: preparing net-next-2.6 for merge...]
+Date: Sat, 11 Oct 2008 16:57:05 +0200
+Message-ID: <48F0BEC1.3030508@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:51753 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:51836 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752282AbYJKOxZ (ORCPT
+	with ESMTP id S1753879AbYJKO5I (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 11 Oct 2008 10:53:25 -0400
-In-Reply-To: <48F09686.5060201@netfilter.org>
+	Sat, 11 Oct 2008 10:57:08 -0400
+Received: from [192.168.0.100] (unknown [78.42.204.165])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by stinky.trash.net (Postfix) with ESMTP id 79A77948AB
+	for <netfilter-devel@vger.kernel.org>; Sat, 11 Oct 2008 16:57:07 +0200 (MEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> Patrick McHardy wrote:
->> Looks pretty good, some minor issues:
->>
->> - there are quite a lot of trailing whitespaces in this
->>   patch, please remove those.
-> 
-> I have added a tweak for vim to remove them automatically when I write
-> the file, so this should not happen anymore. BTW, does git complain on
-> this by default when I apply one patch or I have to tweak something?
+FYI: the networking merge window is closed now.
 
-I think it only does when importing a patch, not when doing commits.
+We've had multiple patches missing the merge window by just a
+few days during the past few releases, please take this as a
+reminder that its actually being enforced nowadays and patches
+need to be posted early.
 
->>> +/* This structure is passed to event handler */
->>> +struct nf_ct_event {
->>> +    struct nf_conn *ct;
->>> +    u32 pid;
->>> +    int report;
->>> +};
->> Just a suggestion: passing the nlmsghdr instead of the ECHO
->> flag and doing the approriate handling in the event functions
->> seems more logical to me. I think I know why you did it this
->> way (no reporting on unload, no netlink context there), see
->> below about that.
-> 
-> Indeed.
-> 
->>> diff --git a/net/netfilter/nf_conntrack_core.c
->>> b/net/netfilter/nf_conntrack_core.c
->>> index f465090..aab2618 100644
->>> --- a/net/netfilter/nf_conntrack_core.c
->>> +++ b/net/netfilter/nf_conntrack_core.c
->>> @@ -174,7 +174,8 @@ destroy_conntrack(struct nf_conntrack *nfct)
->>>      NF_CT_ASSERT(atomic_read(&nfct->use) == 0);
->>>      NF_CT_ASSERT(!timer_pending(&ct->timeout));
->>>  
->>> -    nf_conntrack_event(IPCT_DESTROY, ct);
->>> +    if (!test_bit(IPS_DYING_BIT, &ct->status))
->>> +        nf_conntrack_event(IPCT_DESTROY, ct);
->> Whats the idea behind this change? Is it simply an optimization?
-> 
-> If we remove a conntrack entry via ctnetlink, we get the event report
-> twice, one from ctnetlink and another one from death_by_timeout, so we
-> set the dying bit in ctnetlink to avoid this double reporting in
-> death_by_timeout. This idea is actually yours :)
+-------- Original Message --------
+Subject: preparing net-next-2.6 for merge...
+Date: Fri, 10 Oct 2008 12:29:37 -0700 (PDT)
+From: David Miller <davem@davemloft.net>
+To: netdev@vger.kernel.org
+CC: linux-wireless@vger.kernel.org
 
-I see, thanks for the explanation :)
 
->>> +    struct __nf_ct_flush_report *fr = (struct __nf_ct_flush_report
->>> *)data;
->>> +
->>> +    if (!fr->report)
->>> +        return 1;
->> Whats the reasoning behind not reporting destroy events on unload?
->> I don't think there's anything special about module unload, so it
->> seems inconsistent.
-> 
-> OK, I'll fix this. I'm going to prepare another patch round to cover
-> this issues.
+I'm doing some quick merge, build, and boot tests on the tree as it
+stands right now then I'll send a pull request to Linus.
 
-Unfortunately the networking merge window is closed already.
+I'm sure there are some things people still wanted to get into the
+tree, but let's try to follow the rules this time.  Only bug fixes
+and corrections at this point forward.
 
-The NAT decoupling qualifies as a bugfix in my opinion and
-we can get that one in, the others unfortunately will have
-to wait.
+Look at it this way, I have tons of stuff I wasn't able to finish up
+in time either, so both the rule and the pain and being applied fairly
+:-)
 
+Anyways, just FYI...
+--
+To unsubscribe from this list: send the line "unsubscribe netdev" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
