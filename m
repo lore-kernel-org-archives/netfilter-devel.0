@@ -1,386 +1,366 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: fwd: Move libipt_recent to libxt_recent
-Date: Mon, 13 Oct 2008 14:43:45 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0810131443300.20759@fbirervta.pbzchgretzou.qr>
+From: Roman Zippel <zippel@linux-m68k.org>
+Subject: Re: RFC: net/netfilter reorganization
+Date: Mon, 13 Oct 2008 20:52:28 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0810132042170.12399@localhost.localdomain>
+References: <48E8E984.8090807@trash.net> <alpine.LNX.1.10.0810051221560.21891@fbirervta.pbzchgretzou.qr>
+ <Pine.LNX.4.64.0810052101090.17356@blackhole.kfki.hu>
+ <20081005.132850.34376215.davem@davemloft.net>
+ <alpine.LNX.1.10.0810051632400.32566@fbirervta.pbzchgretzou.qr>
+ <alpine.LNX.1.10.0810051641220.32566@fbirervta.pbzchgretzou.qr>
+ <Pine.LNX.4.64.0810052258460.17462@blackhole.kfki.hu> <48E938F6.8080108@trash.net>
+ <alpine.LNX.1.10.0810051909430.3354@fbirervta.pbzchgretzou.qr>
+ <48E9E368.50901@trash.net> <alpine.LNX.1.10.0810062106260.438@fbirervta.pbzchgretzou.qr>
+ <Pine.LNX.4.64.0810071331170.12399@localhost.localdomain>
+ <alpine.LNX.1.10.0810071129180.23228@fbirervta.pbzchgretzou.qr>
+ <Pine.LNX.4.64.0810071856010.12399@localhost.localdomain>
+ <alpine.LNX.1.10.0810071343290.23228@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
+Content-Type: MULTIPART/MIXED; BOUNDARY="8323328-668692207-1223923947=:12399"
+Cc: Patrick McHardy <kaber@trash.net>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	David Miller <davem@davemloft.net>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, sam@ravnborg.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:58592 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755781AbYJMSns (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3670 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754764AbYJMSwv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 13 Oct 2008 14:43:48 -0400
+	Mon, 13 Oct 2008 14:52:51 -0400
+In-Reply-To: <alpine.LNX.1.10.0810071343290.23228@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
+--8323328-668692207-1223923947=:12399
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 
+Hi,
 
----------- Forwarded message ----------
-Date: Sat, 6 Sep 2008 11:47:58 -0400 (EDT)
-Subject: Move libipt_recent to libxt_recent
+On Tue, 7 Oct 2008, Jan Engelhardt wrote:
 
-commit faacd06f1453a7ba92d3fd80bf72113d36f4b51c
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Mon Feb 11 01:06:31 2008 +0100
+> We are trying to combine TARGET_CONNMARK and MATCH_CONNMARK into a
+> new option, and doing so without showing {TARGET,MATCH}, yet
+> selecting BOTH_CONNMARK when either of {TARGET,MATCH} was previously
+> selected (e.g by feeding oldconfig something that has these options
+> active).
 
-Move libipt_recent to libxt_recent
+Try the patch below, you can define an alias (e.g. add "option 
+alias=TARGET_CONNMARK" to BOTH_CONNMARK) and kconfig will use the alias 
+while reading the .config file (unless there is already a value for it).
+Previously .config data was only used as a preset for user prompts, for 
+any other derived symbol it's ignored.
+If it does what you need, I can get it merged as quickly as possible 
+after adding a bit of documentation. I maybe also give it another name, as 
+"alias" is a little general and it's not a generally usable alias.
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- extensions/{libipt_recent.c => libxt_recent.c}     |  129 ++++++------
- extensions/{libipt_recent.man => libxt_recent.man} |    2 +-
- include/linux/netfilter/xt_recent.h                |   26 +++
- include/linux/netfilter_ipv4/ipt_recent.h          |   27 ---
- 4 files changed, 92 insertions(+), 92 deletions(-)
- rename extensions/{libipt_recent.c => libxt_recent.c} (67%)
- rename extensions/{libipt_recent.man => libxt_recent.man} (99%)
- create mode 100644 include/linux/netfilter/xt_recent.h
- delete mode 100644 include/linux/netfilter_ipv4/ipt_recent.h
+bye, Roman
 
-diff --git a/extensions/libipt_recent.c b/extensions/libxt_recent.c
-similarity index 67%
-rename from extensions/libipt_recent.c
-rename to extensions/libxt_recent.c
-index 108de2f..4e770bd 100644
---- a/extensions/libipt_recent.c
-+++ b/extensions/libxt_recent.c
-@@ -5,28 +5,15 @@
- #include <stdlib.h>
- #include <getopt.h>
+diff --git a/scripts/kconfig/confdata.c b/scripts/kconfig/confdata.c
+index b91cf24..7c9f229 100644
+--- a/scripts/kconfig/confdata.c
++++ b/scripts/kconfig/confdata.c
+@@ -151,6 +151,7 @@ int conf_read_simple(const char *name, int def)
+ 	char line[1024];
+ 	char *p, *p2;
+ 	struct symbol *sym;
++	struct expr *e;
+ 	int i, def_flags;
  
--#include <iptables.h>
--#include <linux/netfilter_ipv4/ipt_recent.h>
--
--/* Need these in order to not fail when compiling against an older kernel. */
--#ifndef RECENT_NAME
--#define RECENT_NAME	"ipt_recent"
--#endif /* RECENT_NAME */
--
--#ifndef RECENT_VER
--#define RECENT_VER	"unknown"
--#endif /* RECENT_VER */
--
--#ifndef IPT_RECENT_NAME_LEN
--#define IPT_RECENT_NAME_LEN	200
--#endif /* IPT_RECENT_NAME_LEN */
-+#include <xtables.h>
-+#include <linux/netfilter/xt_recent.h>
+ 	if (name) {
+@@ -307,6 +308,23 @@ load:
  
- /* Options for this module */
- static const struct option recent_opts[] = {
--	{ .name = "set",      .has_arg = 0, .val = 201 }, 
--	{ .name = "rcheck",   .has_arg = 0, .val = 202 }, 
-+	{ .name = "set",      .has_arg = 0, .val = 201 },
-+	{ .name = "rcheck",   .has_arg = 0, .val = 202 },
- 	{ .name = "update",   .has_arg = 0, .val = 203 },
--	{ .name = "seconds",  .has_arg = 1, .val = 204 }, 
-+	{ .name = "seconds",  .has_arg = 1, .val = 204 },
- 	{ .name = "hitcount", .has_arg = 1, .val = 205 },
- 	{ .name = "remove",   .has_arg = 0, .val = 206 },
- 	{ .name = "rttl",     .has_arg = 0, .val = 207 },
-@@ -59,32 +46,32 @@ static void recent_help(void)
- "    --name name                 Name of the recent list to be used.  DEFAULT used if none given.\n"
- "    --rsource                   Match/Save the source address of each packet in the recent list table (default).\n"
- "    --rdest                     Match/Save the destination address of each packet in the recent list table.\n"
--RECENT_NAME " " RECENT_VER ": Stephen Frost <sfrost@snowman.net>.  http://snowman.net/projects/ipt_recent/\n");
-+"xt_recent by: Stephen Frost <sfrost@snowman.net>.  http://snowman.net/projects/ipt_recent/\n");
- }
--  
+ 	if (modules_sym)
+ 		sym_calc_value(modules_sym);
 +
- /* Initialize the match. */
- static void recent_init(struct xt_entry_match *match)
- {
--	struct ipt_recent_info *info = (struct ipt_recent_info *)(match)->data;
-+	struct xt_recent_mtinfo *info = (void *)(match)->data;
- 
--
--	strncpy(info->name,"DEFAULT",IPT_RECENT_NAME_LEN);
--	/* eventhough IPT_RECENT_NAME_LEN is currently defined as 200,
-+	strncpy(info->name,"DEFAULT", XT_RECENT_NAME_LEN);
-+	/* even though XT_RECENT_NAME_LEN is currently defined as 200,
- 	 * better be safe, than sorry */
--	info->name[IPT_RECENT_NAME_LEN-1] = '\0';
--	info->side = IPT_RECENT_SOURCE;
-+	info->name[XT_RECENT_NAME_LEN-1] = '\0';
-+	info->side = XT_RECENT_SOURCE;
++	expr_list_for_each_sym(sym_alias_list, e, sym) {
++		struct symbol *sym2;
++		struct property *prop;
++
++		if (!(sym->flags & def_flags))
++			continue;
++
++		for_all_properties(sym, prop, P_ALIAS) {
++			sym2 = prop_get_symbol(prop);
++			if (!(sym2->flags & def_flags)) {
++				sym2->def[def] = sym->def[def];
++				sym2->flags |= def_flags;
++			}
++		}
++	}
++
+ 	return 0;
  }
  
- #define RECENT_CMDS \
--	(IPT_RECENT_SET | IPT_RECENT_CHECK | \
--	IPT_RECENT_UPDATE | IPT_RECENT_REMOVE)
-+	(XT_RECENT_SET | XT_RECENT_CHECK | \
-+	XT_RECENT_UPDATE | XT_RECENT_REMOVE)
+diff --git a/scripts/kconfig/expr.h b/scripts/kconfig/expr.h
+index 9d4cba1..224bf4a 100644
+--- a/scripts/kconfig/expr.h
++++ b/scripts/kconfig/expr.h
+@@ -107,7 +107,7 @@ struct symbol {
  
- /* Function which parses command options; returns true if it
-    ate an option */
- static int recent_parse(int c, char **argv, int invert, unsigned int *flags,
-                         const void *entry, struct xt_entry_match **match)
- {
--	struct ipt_recent_info *info = (struct ipt_recent_info *)(*match)->data;
-+	struct xt_recent_mtinfo *info = (void *)(*match)->data;
-+
- 	switch (c) {
- 		case 201:
- 			if (*flags & RECENT_CMDS)
-@@ -92,20 +79,20 @@ static int recent_parse(int c, char **argv, int invert, unsigned int *flags,
- 					"recent: only one of `--set', `--rcheck' "
- 					"`--update' or `--remove' may be set");
- 			check_inverse(optarg, &invert, &optind, 0);
--			info->check_set |= IPT_RECENT_SET;
-+			info->check_set |= XT_RECENT_SET;
- 			if (invert) info->invert = 1;
--			*flags |= IPT_RECENT_SET;
-+			*flags |= XT_RECENT_SET;
- 			break;
--			
-+
- 		case 202:
- 			if (*flags & RECENT_CMDS)
- 				exit_error(PARAMETER_PROBLEM,
- 					"recent: only one of `--set', `--rcheck' "
- 					"`--update' or `--remove' may be set");
- 			check_inverse(optarg, &invert, &optind, 0);
--			info->check_set |= IPT_RECENT_CHECK;
-+			info->check_set |= XT_RECENT_CHECK;
- 			if(invert) info->invert = 1;
--			*flags |= IPT_RECENT_CHECK;
-+			*flags |= XT_RECENT_CHECK;
- 			break;
+ enum prop_type {
+ 	P_UNKNOWN, P_PROMPT, P_COMMENT, P_MENU, P_DEFAULT, P_CHOICE,
+-	P_SELECT, P_RANGE, P_ENV
++	P_SELECT, P_RANGE, P_ENV, P_ALIAS
+ };
  
- 		case 203:
-@@ -114,9 +101,9 @@ static int recent_parse(int c, char **argv, int invert, unsigned int *flags,
- 					"recent: only one of `--set', `--rcheck' "
- 					"`--update' or `--remove' may be set");
- 			check_inverse(optarg, &invert, &optind, 0);
--			info->check_set |= IPT_RECENT_UPDATE;
-+			info->check_set |= XT_RECENT_UPDATE;
- 			if (invert) info->invert = 1;
--			*flags |= IPT_RECENT_UPDATE;
-+			*flags |= XT_RECENT_UPDATE;
- 			break;
+ struct property {
+diff --git a/scripts/kconfig/lkc.h b/scripts/kconfig/lkc.h
+index 4a9af6f..7ea2bc4 100644
+--- a/scripts/kconfig/lkc.h
++++ b/scripts/kconfig/lkc.h
+@@ -53,6 +53,7 @@ enum conf_def_mode {
+ #define T_OPT_MODULES		1
+ #define T_OPT_DEFCONFIG_LIST	2
+ #define T_OPT_ENV		3
++#define T_OPT_ALIAS		4
  
- 		case 206:
-@@ -125,9 +112,9 @@ static int recent_parse(int c, char **argv, int invert, unsigned int *flags,
- 					"recent: only one of `--set', `--rcheck' "
- 					"`--update' or `--remove' may be set");
- 			check_inverse(optarg, &invert, &optind, 0);
--			info->check_set |= IPT_RECENT_REMOVE;
-+			info->check_set |= XT_RECENT_REMOVE;
- 			if (invert) info->invert = 1;
--			*flags |= IPT_RECENT_REMOVE;
-+			*flags |= XT_RECENT_REMOVE;
- 			break;
+ struct kconf_id {
+ 	int name;
+@@ -97,6 +98,7 @@ void menu_add_symbol(enum prop_type type, struct symbol *sym, struct expr *dep);
+ void menu_add_option(int token, char *arg);
+ void menu_finalize(struct menu *parent);
+ void menu_set_type(int type);
++void sym_check_prop(struct symbol *sym);
  
- 		case 204:
-@@ -139,21 +126,21 @@ static int recent_parse(int c, char **argv, int invert, unsigned int *flags,
- 			break;
+ /* util.c */
+ struct file *file_lookup(const char *name);
+@@ -115,6 +117,7 @@ const char *str_get(struct gstr *gs);
  
- 		case 207:
--			info->check_set |= IPT_RECENT_TTL;
--			*flags |= IPT_RECENT_TTL;
-+			info->check_set |= XT_RECENT_TTL;
-+			*flags |= XT_RECENT_TTL;
- 			break;
+ /* symbol.c */
+ extern struct expr *sym_env_list;
++extern struct expr *sym_alias_list;
  
- 		case 208:
--			strncpy(info->name,optarg,IPT_RECENT_NAME_LEN);
--			info->name[IPT_RECENT_NAME_LEN-1] = '\0';
-+			strncpy(info->name,optarg, XT_RECENT_NAME_LEN);
-+			info->name[XT_RECENT_NAME_LEN-1] = '\0';
- 			break;
+ void sym_init(void);
+ void sym_clear_all_valid(void);
+diff --git a/scripts/kconfig/menu.c b/scripts/kconfig/menu.c
+index 07ff8d1..e1d8686 100644
+--- a/scripts/kconfig/menu.c
++++ b/scripts/kconfig/menu.c
+@@ -175,6 +175,11 @@ void menu_add_option(int token, char *arg)
+ 	case T_OPT_ENV:
+ 		prop_add_env(arg);
+ 		break;
++	case T_OPT_ALIAS:
++		prop = prop_alloc(P_ALIAS, sym_lookup(arg, 0));
++		prop->menu = current_entry;
++		prop->expr = expr_alloc_symbol(current_entry->sym);
++		break;
+ 	}
+ }
  
- 		case 209:
--			info->side = IPT_RECENT_SOURCE;
-+			info->side = XT_RECENT_SOURCE;
+@@ -219,6 +224,23 @@ void sym_check_prop(struct symbol *sym)
+ 			    !menu_range_valid_sym(sym, prop->expr->right.sym))
+ 				prop_warn(prop, "range is invalid");
  			break;
- 
- 		case 210:
--			info->side = IPT_RECENT_DEST;
-+			info->side = XT_RECENT_DEST;
- 			break;
- 
++		case P_ALIAS:
++			if (sym->prop->type != P_ALIAS ||
++			    (prop->next && prop->next->type != P_ALIAS)) {
++				prop_warn(prop, "alias is invalid");
++				break;
++			}
++			sym2 = prop_get_symbol(prop);
++			if (sym->type != S_UNKNOWN && sym->type != sym2->type) {
++				prop_warn(prop, "conflicting alias type");
++				break;
++			}
++			sym->type = sym2->type;
++			if (!prop->next) {
++				sym_alias_list = expr_alloc_one(E_LIST, sym_alias_list);
++				sym_alias_list->right.sym = sym;
++			}
++			break;
  		default:
-@@ -170,8 +157,8 @@ static void recent_check(unsigned int flags)
- 		exit_error(PARAMETER_PROBLEM,
- 			"recent: you must specify one of `--set', `--rcheck' "
- 			"`--update' or `--remove'");
--	if ((flags & IPT_RECENT_TTL) &&
--	    (flags & (IPT_RECENT_SET | IPT_RECENT_REMOVE | IPT_RECENT_UPDATE)))
-+	if ((flags & XT_RECENT_TTL) &&
-+	    (flags & (XT_RECENT_SET | XT_RECENT_REMOVE | XT_RECENT_UPDATE)))
- 		exit_error(PARAMETER_PROBLEM,
- 		           "recent: --rttl may only be used with --rcheck or "
- 		           "--update");
-@@ -181,42 +168,56 @@ static void recent_check(unsigned int flags)
- static void recent_print(const void *ip, const struct xt_entry_match *match,
-                          int numeric)
+ 			;
+ 		}
+diff --git a/scripts/kconfig/symbol.c b/scripts/kconfig/symbol.c
+index 18f3e5c..f25fb3d 100644
+--- a/scripts/kconfig/symbol.c
++++ b/scripts/kconfig/symbol.c
+@@ -34,7 +34,7 @@ struct symbol *sym_defconfig_list;
+ struct symbol *modules_sym;
+ tristate modules_val;
+ 
+-struct expr *sym_env_list;
++struct expr *sym_env_list, *sym_alias_list;
+ 
+ void sym_add_default(struct symbol *sym, const char *def)
  {
--	struct ipt_recent_info *info = (struct ipt_recent_info *)match->data;
-+	const struct xt_recent_mtinfo *info = (const void *)match->data;
- 
- 	if (info->invert)
- 		fputc('!', stdout);
- 
- 	printf("recent: ");
--	if(info->check_set & IPT_RECENT_SET) printf("SET ");
--	if(info->check_set & IPT_RECENT_CHECK) printf("CHECK ");
--	if(info->check_set & IPT_RECENT_UPDATE) printf("UPDATE ");
--	if(info->check_set & IPT_RECENT_REMOVE) printf("REMOVE ");
-+	if (info->check_set & XT_RECENT_SET)
-+		printf("SET ");
-+	if (info->check_set & XT_RECENT_CHECK)
-+		printf("CHECK ");
-+	if (info->check_set & XT_RECENT_UPDATE)
-+		printf("UPDATE ");
-+	if (info->check_set & XT_RECENT_REMOVE)
-+		printf("REMOVE ");
- 	if(info->seconds) printf("seconds: %d ",info->seconds);
- 	if(info->hit_count) printf("hit_count: %d ",info->hit_count);
--	if(info->check_set & IPT_RECENT_TTL) printf("TTL-Match ");
-+	if (info->check_set & XT_RECENT_TTL)
-+		printf("TTL-Match ");
- 	if(info->name) printf("name: %s ",info->name);
--	if(info->side == IPT_RECENT_SOURCE) printf("side: source ");
--	if(info->side == IPT_RECENT_DEST) printf("side: dest");
-+	if (info->side == XT_RECENT_SOURCE)
-+		printf("side: source ");
-+	if (info->side == XT_RECENT_DEST)
-+		printf("side: dest");
- }
- 
- /* Saves the union ipt_matchinfo in parsable form to stdout. */
- static void recent_save(const void *ip, const struct xt_entry_match *match)
+@@ -937,6 +937,8 @@ const char *prop_get_type_name(enum prop_type type)
+ 		return "select";
+ 	case P_RANGE:
+ 		return "range";
++	case P_ALIAS:
++		return "alias";
+ 	case P_UNKNOWN:
+ 		break;
+ 	}
+diff --git a/scripts/kconfig/zconf.gperf b/scripts/kconfig/zconf.gperf
+index 25ef5d0..2816585 100644
+--- a/scripts/kconfig/zconf.gperf
++++ b/scripts/kconfig/zconf.gperf
+@@ -41,4 +41,5 @@ on,		T_ON,		TF_PARAM
+ modules,	T_OPT_MODULES,	TF_OPTION
+ defconfig_list,	T_OPT_DEFCONFIG_LIST,TF_OPTION
+ env,		T_OPT_ENV,	TF_OPTION
++alias,		T_OPT_ALIAS,	TF_OPTION
+ %%
+diff --git a/scripts/kconfig/zconf.hash.c_shipped b/scripts/kconfig/zconf.hash.c_shipped
+index 5c73d51..cd2f361 100644
+--- a/scripts/kconfig/zconf.hash.c_shipped
++++ b/scripts/kconfig/zconf.hash.c_shipped
+@@ -53,10 +53,10 @@ kconf_id_hash (register const char *str, register unsigned int len)
+       49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+       49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+       49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+-      49, 49, 49, 49, 49, 49, 49, 49, 11,  5,
++      49, 49, 49, 49, 49, 49, 49,  0, 35,  5,
+        0,  0,  5, 49,  5, 20, 49, 49,  5, 20,
+        5,  0, 30, 49,  0, 15,  0, 10,  0, 49,
+-      25, 49, 49, 49, 49, 49, 49, 49, 49, 49,
++      10, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+       49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+       49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+       49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
+@@ -100,24 +100,25 @@ struct kconf_id_strings_t
+     char kconf_id_strings_str12[sizeof("default")];
+     char kconf_id_strings_str13[sizeof("def_bool")];
+     char kconf_id_strings_str14[sizeof("help")];
+-    char kconf_id_strings_str15[sizeof("bool")];
+     char kconf_id_strings_str16[sizeof("config")];
+     char kconf_id_strings_str17[sizeof("def_tristate")];
+-    char kconf_id_strings_str18[sizeof("boolean")];
++    char kconf_id_strings_str18[sizeof("hex")];
+     char kconf_id_strings_str19[sizeof("defconfig_list")];
+     char kconf_id_strings_str21[sizeof("string")];
+     char kconf_id_strings_str22[sizeof("if")];
+     char kconf_id_strings_str23[sizeof("int")];
++    char kconf_id_strings_str25[sizeof("alias")];
+     char kconf_id_strings_str26[sizeof("select")];
+     char kconf_id_strings_str27[sizeof("modules")];
+     char kconf_id_strings_str28[sizeof("tristate")];
+     char kconf_id_strings_str29[sizeof("menu")];
+     char kconf_id_strings_str31[sizeof("source")];
+     char kconf_id_strings_str32[sizeof("comment")];
+-    char kconf_id_strings_str33[sizeof("hex")];
+     char kconf_id_strings_str35[sizeof("menuconfig")];
+     char kconf_id_strings_str36[sizeof("prompt")];
+     char kconf_id_strings_str37[sizeof("depends")];
++    char kconf_id_strings_str39[sizeof("bool")];
++    char kconf_id_strings_str42[sizeof("boolean")];
+     char kconf_id_strings_str48[sizeof("mainmenu")];
+   };
+ static struct kconf_id_strings_t kconf_id_strings_contents =
+@@ -134,24 +135,25 @@ static struct kconf_id_strings_t kconf_id_strings_contents =
+     "default",
+     "def_bool",
+     "help",
+-    "bool",
+     "config",
+     "def_tristate",
+-    "boolean",
++    "hex",
+     "defconfig_list",
+     "string",
+     "if",
+     "int",
++    "alias",
+     "select",
+     "modules",
+     "tristate",
+     "menu",
+     "source",
+     "comment",
+-    "hex",
+     "menuconfig",
+     "prompt",
+     "depends",
++    "bool",
++    "boolean",
+     "mainmenu"
+   };
+ #define kconf_id_strings ((const char *) &kconf_id_strings_contents)
+@@ -166,7 +168,7 @@ kconf_id_lookup (register const char *str, register unsigned int len)
  {
--	struct ipt_recent_info *info = (struct ipt_recent_info *)match->data;
-+	const struct xt_recent_mtinfo *info = (const void *)match->data;
+   enum
+     {
+-      TOTAL_KEYWORDS = 31,
++      TOTAL_KEYWORDS = 32,
+       MIN_WORD_LENGTH = 2,
+       MAX_WORD_LENGTH = 14,
+       MIN_HASH_VALUE = 2,
+@@ -189,16 +191,17 @@ kconf_id_lookup (register const char *str, register unsigned int len)
+       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str12,	T_DEFAULT,	TF_COMMAND, S_UNKNOWN},
+       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str13,	T_DEFAULT,	TF_COMMAND, S_BOOLEAN},
+       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str14,		T_HELP,		TF_COMMAND},
+-      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str15,		T_TYPE,		TF_COMMAND, S_BOOLEAN},
++      {-1},
+       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str16,		T_CONFIG,	TF_COMMAND},
+       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str17,	T_DEFAULT,	TF_COMMAND, S_TRISTATE},
+-      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str18,	T_TYPE,		TF_COMMAND, S_BOOLEAN},
++      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str18,		T_TYPE,		TF_COMMAND, S_HEX},
+       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str19,	T_OPT_DEFCONFIG_LIST,TF_OPTION},
+       {-1},
+       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str21,		T_TYPE,		TF_COMMAND, S_STRING},
+       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str22,		T_IF,		TF_COMMAND|TF_PARAM},
+       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str23,		T_TYPE,		TF_COMMAND, S_INT},
+-      {-1}, {-1},
++      {-1},
++      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str25,		T_OPT_ALIAS,	TF_OPTION},
+       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str26,		T_SELECT,	TF_COMMAND},
+       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str27,	T_OPT_MODULES,	TF_OPTION},
+       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str28,	T_TYPE,		TF_COMMAND, S_TRISTATE},
+@@ -206,13 +209,15 @@ kconf_id_lookup (register const char *str, register unsigned int len)
+       {-1},
+       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str31,		T_SOURCE,	TF_COMMAND},
+       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str32,	T_COMMENT,	TF_COMMAND},
+-      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str33,		T_TYPE,		TF_COMMAND, S_HEX},
+-      {-1},
++      {-1}, {-1},
+       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str35,	T_MENUCONFIG,	TF_COMMAND},
+       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str36,		T_PROMPT,	TF_COMMAND},
+       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str37,	T_DEPENDS,	TF_COMMAND},
+-      {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1},
+       {-1},
++      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str39,		T_TYPE,		TF_COMMAND, S_BOOLEAN},
++      {-1}, {-1},
++      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str42,	T_TYPE,		TF_COMMAND, S_BOOLEAN},
++      {-1}, {-1}, {-1}, {-1}, {-1},
+       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str48,	T_MAINMENU,	TF_COMMAND}
+     };
  
- 	if (info->invert)
- 		printf("! ");
- 
--	if(info->check_set & IPT_RECENT_SET) printf("--set ");
--	if(info->check_set & IPT_RECENT_CHECK) printf("--rcheck ");
--	if(info->check_set & IPT_RECENT_UPDATE) printf("--update ");
--	if(info->check_set & IPT_RECENT_REMOVE) printf("--remove ");
-+	if (info->check_set & XT_RECENT_SET)
-+		printf("--set ");
-+	if (info->check_set & XT_RECENT_CHECK)
-+		printf("--rcheck ");
-+	if (info->check_set & XT_RECENT_UPDATE)
-+		printf("--update ");
-+	if (info->check_set & XT_RECENT_REMOVE)
-+		printf("--remove ");
- 	if(info->seconds) printf("--seconds %d ",info->seconds);
- 	if(info->hit_count) printf("--hitcount %d ",info->hit_count);
--	if(info->check_set & IPT_RECENT_TTL) printf("--rttl ");
-+	if (info->check_set & XT_RECENT_TTL)
-+		printf("--rttl ");
- 	if(info->name) printf("--name %s ",info->name);
--	if(info->side == IPT_RECENT_SOURCE) printf("--rsource ");
--	if(info->side == IPT_RECENT_DEST) printf("--rdest ");
-+	if (info->side == XT_RECENT_SOURCE)
-+		printf("--rsource ");
-+	if (info->side == XT_RECENT_DEST)
-+		printf("--rdest ");
- }
- 
- /* Structure for iptables to use to communicate with module */
-@@ -224,8 +225,8 @@ static struct xtables_match recent_mt_reg = {
-     .name          = "recent",
-     .version       = XTABLES_VERSION,
-     .family        = PF_INET,
--    .size          = XT_ALIGN(sizeof(struct ipt_recent_info)),
--    .userspacesize = XT_ALIGN(sizeof(struct ipt_recent_info)),
-+    .size          = XT_ALIGN(sizeof(struct xt_recent_mtinfo)),
-+    .userspacesize = XT_ALIGN(sizeof(struct xt_recent_mtinfo)),
-     .help          = recent_help,
-     .init          = recent_init,
-     .parse         = recent_parse,
-diff --git a/extensions/libipt_recent.man b/extensions/libxt_recent.man
-similarity index 99%
-rename from extensions/libipt_recent.man
-rename to extensions/libxt_recent.man
-index 02432ba..f752577 100644
---- a/extensions/libipt_recent.man
-+++ b/extensions/libxt_recent.man
-@@ -67,7 +67,7 @@ Examples:
- Official website (http://snowman.net/projects/ipt_recent/) also has
- some examples of usage.
- 
--/proc/net/ipt_recent/* are the current lists of addresses and information 
-+/proc/net/ipt_recent/* are the current lists of addresses and information
- about each entry of each list.
- 
- Each file in /proc/net/ipt_recent/ can be read from to see the current list
-diff --git a/include/linux/netfilter/xt_recent.h b/include/linux/netfilter/xt_recent.h
-new file mode 100644
-index 0000000..5cfeb81
---- /dev/null
-+++ b/include/linux/netfilter/xt_recent.h
-@@ -0,0 +1,26 @@
-+#ifndef _LINUX_NETFILTER_XT_RECENT_H
-+#define _LINUX_NETFILTER_XT_RECENT_H 1
-+
-+enum {
-+	XT_RECENT_CHECK    = 1 << 0,
-+	XT_RECENT_SET      = 1 << 1,
-+	XT_RECENT_UPDATE   = 1 << 2,
-+	XT_RECENT_REMOVE   = 1 << 3,
-+	XT_RECENT_TTL      = 1 << 4,
-+
-+	XT_RECENT_SOURCE   = 0,
-+	XT_RECENT_DEST     = 1,
-+
-+	XT_RECENT_NAME_LEN = 200,
-+};
-+
-+struct xt_recent_mtinfo {
-+	u_int32_t seconds;
-+	u_int32_t hit_count;
-+	u_int8_t check_set;
-+	u_int8_t invert;
-+	char name[XT_RECENT_NAME_LEN];
-+	u_int8_t side;
-+};
-+
-+#endif /* _LINUX_NETFILTER_XT_RECENT_H */
-diff --git a/include/linux/netfilter_ipv4/ipt_recent.h b/include/linux/netfilter_ipv4/ipt_recent.h
-deleted file mode 100644
-index 6508a45..0000000
---- a/include/linux/netfilter_ipv4/ipt_recent.h
-+++ /dev/null
-@@ -1,27 +0,0 @@
--#ifndef _IPT_RECENT_H
--#define _IPT_RECENT_H
--
--#define RECENT_NAME	"ipt_recent"
--#define RECENT_VER	"v0.3.1"
--
--#define IPT_RECENT_CHECK  1
--#define IPT_RECENT_SET    2
--#define IPT_RECENT_UPDATE 4
--#define IPT_RECENT_REMOVE 8
--#define IPT_RECENT_TTL   16
--
--#define IPT_RECENT_SOURCE 0
--#define IPT_RECENT_DEST   1
--
--#define IPT_RECENT_NAME_LEN 200
--
--struct ipt_recent_info {
--	u_int32_t   seconds;
--	u_int32_t   hit_count;
--	u_int8_t    check_set;
--	u_int8_t    invert;
--	char        name[IPT_RECENT_NAME_LEN];
--	u_int8_t    side;
--};
--
--#endif /*_IPT_RECENT_H*/
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/scripts/kconfig/zconf.tab.c_shipped b/scripts/kconfig/zconf.tab.c_shipped
+index 95df833..05fbd1d 100644
+--- a/scripts/kconfig/zconf.tab.c_shipped
++++ b/scripts/kconfig/zconf.tab.c_shipped
+@@ -2278,6 +2278,10 @@ void conf_parse(const char *name)
+ 	for_all_symbols(i, sym) {
+ 		if (sym_check_deps(sym))
+ 			zconfnerrs++;
++		if (!(sym->flags & SYMBOL_WARNED)) {
++			sym_check_prop(sym);
++			sym->flags |= SYMBOL_WARNED;
++		}
+         }
+ 	if (zconfnerrs)
+ 		exit(1);
+diff --git a/scripts/kconfig/zconf.y b/scripts/kconfig/zconf.y
+index 9710b82..bb74756 100644
+--- a/scripts/kconfig/zconf.y
++++ b/scripts/kconfig/zconf.y
+@@ -495,6 +495,10 @@ void conf_parse(const char *name)
+ 	for_all_symbols(i, sym) {
+ 		if (sym_check_deps(sym))
+ 			zconfnerrs++;
++		if (!(sym->flags & SYMBOL_WARNED)) {
++			sym_check_prop(sym);
++			sym->flags |= SYMBOL_WARNED;
++		}
+         }
+ 	if (zconfnerrs)
+ 		exit(1);
+--8323328-668692207-1223923947=:12399--
