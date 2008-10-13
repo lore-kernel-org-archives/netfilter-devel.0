@@ -1,29 +1,22 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] iptables: fix error reporting for missing/wrong
- arguments
-Date: Sun, 12 Oct 2008 16:45:13 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0810121644530.27764@fbirervta.pbzchgretzou.qr>
-References: <48F25274.5090107@netfilter.org>
+Subject: hmm, iptables plans?
+Date: Sun, 12 Oct 2008 20:02:05 -0400 (EDT)
+Message-ID: <alpine.LNX.1.10.0810122001460.27764@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: kaber@trash.net
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:59839 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:34795 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751776AbYJLUpO (ORCPT
+	with ESMTP id S1754144AbYJMACJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 12 Oct 2008 16:45:14 -0400
-In-Reply-To: <48F25274.5090107@netfilter.org>
+	Sun, 12 Oct 2008 20:02:09 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Sunday 2008-10-12 15:39, Pablo Neira Ayuso wrote:
->
->Some work to improve iptables error reporting would be nice, I'll see if
->I can have a look into this issue.
 
-Improve - in what way?
+Like, finally getting a release out the door, maybe? :-)
+
+
