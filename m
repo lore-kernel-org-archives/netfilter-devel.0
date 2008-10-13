@@ -1,49 +1,62 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] iptables: fix error reporting for missing/wrong arguments
-Date: Mon, 13 Oct 2008 13:01:51 +0200
-Message-ID: <48F32A9F.1080402@netfilter.org>
-References: <48F25274.5090107@netfilter.org> <alpine.LNX.1.10.0810121644530.27764@fbirervta.pbzchgretzou.qr>
+Subject: [ANNOUNCE] libnetfilter_conntrack 0.0.97 release
+Date: Mon, 13 Oct 2008 14:29:14 +0200
+Message-ID: <48F33F1A.3000806@netfilter.org>
 Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------040600000501080305000902"
+Cc: netfilter-announce@lists.netfilter.org,
+	netfilter-devel@vger.kernel.org, lwn@lwn.net
+To: netfilter@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
+
+This is a multi-part message in MIME format.
+--------------040600000501080305000902
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41716 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754558AbYJMLC2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 13 Oct 2008 07:02:28 -0400
-In-Reply-To: <alpine.LNX.1.10.0810121644530.27764@fbirervta.pbzchgretzou.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Sunday 2008-10-12 15:39, Pablo Neira Ayuso wrote:
->> Some work to improve iptables error reporting would be nice, I'll see if
->> I can have a look into this issue.
-> 
-> Improve - in what way?
+Hi!
 
-There are a couple of nitpicking issues that I have observed during some
-training sessions, dummy users have the ability to trigger very
-confusing error messages from iptables, just one example:
+The netfilter project proudly presents libnetfilter_conntrack-0.0.97.
 
-% iptables -I INPUT -m state --state NEW, ESTABLISHED
-                                         ^
-                                     mind the small space
+libnetfilter_conntrack is a userspace library providing a programming
+interface (API) to the in-kernel connection tracking state table. This
+library requires a linux kernel >= 2.6.18.
 
-triggers:
+This release includes minor fixes, some enhancements and cleanups. See
+ChangeLog for more details.
 
-iptables v1.4.2-rc1: Bad state `'
-Try `iptables -h' or 'iptables --help' for more information.
+You can download it from:
 
-Another example: if iptables returns EINVAL, it would be nice to add a
-string to say "Check your kernel log messages". Even if we don't have
-better error handling, at least we can be more informative.
+http://www.netfilter.org/projects/libnetfilter_conntrack/
+ftp://ftp.netfilter.org/pub/libnetfilter_conntrack/
 
-So, when I said *improve* I meant about hunting this sort of issues.
+Pablo,
+on behalf of the Netfilter Project.
 
 -- 
 "Los honestos son inadaptados sociales" -- Les Luthiers
+
+--------------040600000501080305000902
+Content-Type: text/plain;
+ name="ChangeLog"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ChangeLog"
+
+Albert Veli (1):
+      API: fix endianess issue
+
+Pablo Neira Ayuso (7):
+      add comment in expect_create test file
+      add berkeley socket filtering high-level API
+      Extend high-level API for netlink BSF to add negative logic
+      bsf: use ntohl instead of htonl in the example
+      cleanup: split internal.h into several internal header files
+      compare: add two new flags for different level of comparisons
+      helper: explicit helper assignation support
+
+
+--------------040600000501080305000902--
