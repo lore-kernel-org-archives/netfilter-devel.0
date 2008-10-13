@@ -1,366 +1,461 @@
-From: Roman Zippel <zippel@linux-m68k.org>
-Subject: Re: RFC: net/netfilter reorganization
-Date: Mon, 13 Oct 2008 20:52:28 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0810132042170.12399@localhost.localdomain>
-References: <48E8E984.8090807@trash.net> <alpine.LNX.1.10.0810051221560.21891@fbirervta.pbzchgretzou.qr>
- <Pine.LNX.4.64.0810052101090.17356@blackhole.kfki.hu>
- <20081005.132850.34376215.davem@davemloft.net>
- <alpine.LNX.1.10.0810051632400.32566@fbirervta.pbzchgretzou.qr>
- <alpine.LNX.1.10.0810051641220.32566@fbirervta.pbzchgretzou.qr>
- <Pine.LNX.4.64.0810052258460.17462@blackhole.kfki.hu> <48E938F6.8080108@trash.net>
- <alpine.LNX.1.10.0810051909430.3354@fbirervta.pbzchgretzou.qr>
- <48E9E368.50901@trash.net> <alpine.LNX.1.10.0810062106260.438@fbirervta.pbzchgretzou.qr>
- <Pine.LNX.4.64.0810071331170.12399@localhost.localdomain>
- <alpine.LNX.1.10.0810071129180.23228@fbirervta.pbzchgretzou.qr>
- <Pine.LNX.4.64.0810071856010.12399@localhost.localdomain>
- <alpine.LNX.1.10.0810071343290.23228@fbirervta.pbzchgretzou.qr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH] [PATCH] remove module dependency between ctnetlink and nf_nat
+Date: Tue, 14 Oct 2008 00:24:00 +0200
+Message-ID: <20081013222400.8612.80582.stgit@Decadence>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="8323328-668692207-1223923947=:12399"
-Cc: Patrick McHardy <kaber@trash.net>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	David Miller <davem@davemloft.net>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, sam@ravnborg.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3670 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754764AbYJMSwv (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 13 Oct 2008 14:52:51 -0400
-In-Reply-To: <alpine.LNX.1.10.0810071343290.23228@fbirervta.pbzchgretzou.qr>
+Received: from mail.us.es ([193.147.175.20]:34534 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S932065AbYJMW35 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 13 Oct 2008 18:29:57 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+This patch removes the module dependency between ctnetlink and
+nf_nat by means of an indirect call that is initialized when
+nf_nat is loaded. Now, nf_conntrack_netlink only requires
+nf_conntrack and nfnetlink.
 
---8323328-668692207-1223923947=:12399
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+This patch puts nfnetlink_parse_nat_setup_hook into the
+nf_conntrack_core to avoid dependencies between ctnetlink,
+nf_conntrack_ipv4 and nf_conntrack_ipv6.
 
-Hi,
+This patch also introduces the function ctnetlink_change_nat
+that is only invoked from the creation path. Actually, the
+nat handling cannot be invoked from the update path since
+this is not allowed. By introducing this function, we remove
+the useless nat handling in the update path and we avoid
+deadlock-prone code.
 
-On Tue, 7 Oct 2008, Jan Engelhardt wrote:
+This patch also adds the required EAGAIN logic for nfnetlink.
 
-> We are trying to combine TARGET_CONNMARK and MATCH_CONNMARK into a
-> new option, and doing so without showing {TARGET,MATCH}, yet
-> selecting BOTH_CONNMARK when either of {TARGET,MATCH} was previously
-> selected (e.g by feeding oldconfig something that has these options
-> active).
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
 
-Try the patch below, you can define an alias (e.g. add "option 
-alias=TARGET_CONNMARK" to BOTH_CONNMARK) and kconfig will use the alias 
-while reading the .config file (unless there is already a value for it).
-Previously .config data was only used as a preset for user prompts, for 
-any other derived symbol it's ignored.
-If it does what you need, I can get it merged as quickly as possible 
-after adding a bit of documentation. I maybe also give it another name, as 
-"alias" is a little general and it's not a generally usable alias.
+ include/linux/netfilter/nfnetlink.h  |    3 +
+ include/net/netfilter/nf_nat_core.h  |    8 ++
+ net/ipv4/netfilter/nf_nat_core.c     |   97 ++++++++++++++++++++++
+ net/netfilter/nf_conntrack_core.c    |    7 ++
+ net/netfilter/nf_conntrack_netlink.c |  153 ++++++++++++++--------------------
+ net/netfilter/nfnetlink.c            |   12 ++-
+ 6 files changed, 187 insertions(+), 93 deletions(-)
 
-bye, Roman
-
-diff --git a/scripts/kconfig/confdata.c b/scripts/kconfig/confdata.c
-index b91cf24..7c9f229 100644
---- a/scripts/kconfig/confdata.c
-+++ b/scripts/kconfig/confdata.c
-@@ -151,6 +151,7 @@ int conf_read_simple(const char *name, int def)
- 	char line[1024];
- 	char *p, *p2;
- 	struct symbol *sym;
-+	struct expr *e;
- 	int i, def_flags;
+diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netfilter/nfnetlink.h
+index 0d8424f..7d8e045 100644
+--- a/include/linux/netfilter/nfnetlink.h
++++ b/include/linux/netfilter/nfnetlink.h
+@@ -78,6 +78,9 @@ extern int nfnetlink_send(struct sk_buff *skb, u32 pid, unsigned group,
+ 			  int echo);
+ extern int nfnetlink_unicast(struct sk_buff *skb, u_int32_t pid, int flags);
  
- 	if (name) {
-@@ -307,6 +308,23 @@ load:
++extern void nfnl_lock(void);
++extern void nfnl_unlock(void);
++
+ #define MODULE_ALIAS_NFNL_SUBSYS(subsys) \
+ 	MODULE_ALIAS("nfnetlink-subsys-" __stringify(subsys))
  
- 	if (modules_sym)
- 		sym_calc_value(modules_sym);
+diff --git a/include/net/netfilter/nf_nat_core.h b/include/net/netfilter/nf_nat_core.h
+index f29eeb9..5868406 100644
+--- a/include/net/netfilter/nf_nat_core.h
++++ b/include/net/netfilter/nf_nat_core.h
+@@ -25,4 +25,12 @@ static inline int nf_nat_initialized(struct nf_conn *ct,
+ 	else
+ 		return test_bit(IPS_DST_NAT_DONE_BIT, &ct->status);
+ }
 +
-+	expr_list_for_each_sym(sym_alias_list, e, sym) {
-+		struct symbol *sym2;
-+		struct property *prop;
++struct nlattr;
 +
-+		if (!(sym->flags & def_flags))
-+			continue;
++extern int
++(*nfnetlink_parse_nat_setup_hook)(struct nf_conn *ct,
++				  enum nf_nat_manip_type manip,
++				  struct nlattr *attr);
 +
-+		for_all_properties(sym, prop, P_ALIAS) {
-+			sym2 = prop_get_symbol(prop);
-+			if (!(sym2->flags & def_flags)) {
-+				sym2->def[def] = sym->def[def];
-+				sym2->flags |= def_flags;
-+			}
-+		}
-+	}
+ #endif /* _NF_NAT_CORE_H */
+diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
+index 2ac9eaf..a65cf69 100644
+--- a/net/ipv4/netfilter/nf_nat_core.c
++++ b/net/ipv4/netfilter/nf_nat_core.c
+@@ -584,6 +584,98 @@ static struct nf_ct_ext_type nat_extend __read_mostly = {
+ 	.flags		= NF_CT_EXT_F_PREALLOC,
+ };
+ 
++#if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
 +
++#include <linux/netfilter/nfnetlink.h>
++#include <linux/netfilter/nfnetlink_conntrack.h>
++
++static const struct nla_policy protonat_nla_policy[CTA_PROTONAT_MAX+1] = {
++	[CTA_PROTONAT_PORT_MIN]	= { .type = NLA_U16 },
++	[CTA_PROTONAT_PORT_MAX]	= { .type = NLA_U16 },
++};
++
++static int nfnetlink_parse_nat_proto(struct nlattr *attr,
++				     const struct nf_conn *ct,
++				     struct nf_nat_range *range)
++{
++	struct nlattr *tb[CTA_PROTONAT_MAX+1];
++	const struct nf_nat_protocol *npt;
++	int err;
++
++	err = nla_parse_nested(tb, CTA_PROTONAT_MAX, attr, protonat_nla_policy);
++	if (err < 0)
++		return err;
++
++	npt = nf_nat_proto_find_get(nf_ct_protonum(ct));
++	if (npt->nlattr_to_range)
++		err = npt->nlattr_to_range(tb, range);
++	nf_nat_proto_put(npt);
++	return err;
++}
++
++static const struct nla_policy nat_nla_policy[CTA_NAT_MAX+1] = {
++	[CTA_NAT_MINIP]		= { .type = NLA_U32 },
++	[CTA_NAT_MAXIP]		= { .type = NLA_U32 },
++};
++
++static int
++nfnetlink_parse_nat(struct nlattr *nat,
++		    const struct nf_conn *ct, struct nf_nat_range *range)
++{
++	struct nlattr *tb[CTA_NAT_MAX+1];
++	int err;
++
++	memset(range, 0, sizeof(*range));
++
++	err = nla_parse_nested(tb, CTA_NAT_MAX, nat, nat_nla_policy);
++	if (err < 0)
++		return err;
++
++	if (tb[CTA_NAT_MINIP])
++		range->min_ip = nla_get_be32(tb[CTA_NAT_MINIP]);
++
++	if (!tb[CTA_NAT_MAXIP])
++		range->max_ip = range->min_ip;
++	else
++		range->max_ip = nla_get_be32(tb[CTA_NAT_MAXIP]);
++
++	if (range->min_ip)
++		range->flags |= IP_NAT_RANGE_MAP_IPS;
++
++	if (!tb[CTA_NAT_PROTO])
++		return 0;
++
++	err = nfnetlink_parse_nat_proto(tb[CTA_NAT_PROTO], ct, range);
++	if (err < 0)
++		return err;
++
++	return 0;
++}
++
++static int
++nfnetlink_parse_nat_setup(struct nf_conn *ct,
++			  enum nf_nat_manip_type manip,
++			  struct nlattr *attr)
++{
++	struct nf_nat_range range;
++
++	if (nfnetlink_parse_nat(attr, ct, &range) < 0)
++		return -EINVAL;
++	if (nf_nat_initialized(ct, manip))
++		return -EEXIST;
++
++	return nf_nat_setup_info(ct, &range, manip);
++}
++#else
++static int
++nfnetlink_parse_nat_setup(struct nf_conn *ct,
++			  enum nf_nat_manip_type manip,
++			  struct nlattr *attr)
++{
++	return -EOPNOTSUPP;
++}
++#endif
++
+ static int __net_init nf_nat_net_init(struct net *net)
+ {
+ 	net->ipv4.nat_bysource = nf_ct_alloc_hashtable(&nf_nat_htable_size,
+@@ -654,6 +746,9 @@ static int __init nf_nat_init(void)
+ 
+ 	BUG_ON(nf_nat_seq_adjust_hook != NULL);
+ 	rcu_assign_pointer(nf_nat_seq_adjust_hook, nf_nat_seq_adjust);
++	BUG_ON(nfnetlink_parse_nat_setup_hook != NULL);
++	rcu_assign_pointer(nfnetlink_parse_nat_setup_hook,
++			   nfnetlink_parse_nat_setup);
+ 	return 0;
+ 
+  cleanup_extend:
+@@ -667,10 +762,12 @@ static void __exit nf_nat_cleanup(void)
+ 	nf_ct_l3proto_put(l3proto);
+ 	nf_ct_extend_unregister(&nat_extend);
+ 	rcu_assign_pointer(nf_nat_seq_adjust_hook, NULL);
++	rcu_assign_pointer(nfnetlink_parse_nat_setup_hook, NULL);
+ 	synchronize_net();
+ }
+ 
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS("nf-nat-ipv4");
+ 
+ module_init(nf_nat_init);
+ module_exit(nf_nat_cleanup);
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 27de3c7..622d7c6 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -38,9 +38,16 @@
+ #include <net/netfilter/nf_conntrack_core.h>
+ #include <net/netfilter/nf_conntrack_extend.h>
+ #include <net/netfilter/nf_conntrack_acct.h>
++#include <net/netfilter/nf_nat.h>
+ 
+ #define NF_CONNTRACK_VERSION	"0.5.0"
+ 
++unsigned int
++(*nfnetlink_parse_nat_setup_hook)(struct nf_conn *ct,
++				  enum nf_nat_manip_type manip,
++				  struct nlattr *attr) __read_mostly;
++EXPORT_SYMBOL_GPL(nfnetlink_parse_nat_setup_hook);
++
+ DEFINE_SPINLOCK(nf_conntrack_lock);
+ EXPORT_SYMBOL_GPL(nf_conntrack_lock);
+ 
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index ff8deab..154e952 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -682,71 +682,6 @@ ctnetlink_parse_tuple(struct nlattr *cda[], struct nf_conntrack_tuple *tuple,
  	return 0;
  }
  
-diff --git a/scripts/kconfig/expr.h b/scripts/kconfig/expr.h
-index 9d4cba1..224bf4a 100644
---- a/scripts/kconfig/expr.h
-+++ b/scripts/kconfig/expr.h
-@@ -107,7 +107,7 @@ struct symbol {
+-#ifdef CONFIG_NF_NAT_NEEDED
+-static const struct nla_policy protonat_nla_policy[CTA_PROTONAT_MAX+1] = {
+-	[CTA_PROTONAT_PORT_MIN]	= { .type = NLA_U16 },
+-	[CTA_PROTONAT_PORT_MAX]	= { .type = NLA_U16 },
+-};
+-
+-static int nfnetlink_parse_nat_proto(struct nlattr *attr,
+-				     const struct nf_conn *ct,
+-				     struct nf_nat_range *range)
+-{
+-	struct nlattr *tb[CTA_PROTONAT_MAX+1];
+-	const struct nf_nat_protocol *npt;
+-	int err;
+-
+-	err = nla_parse_nested(tb, CTA_PROTONAT_MAX, attr, protonat_nla_policy);
+-	if (err < 0)
+-		return err;
+-
+-	npt = nf_nat_proto_find_get(nf_ct_protonum(ct));
+-	if (npt->nlattr_to_range)
+-		err = npt->nlattr_to_range(tb, range);
+-	nf_nat_proto_put(npt);
+-	return err;
+-}
+-
+-static const struct nla_policy nat_nla_policy[CTA_NAT_MAX+1] = {
+-	[CTA_NAT_MINIP]		= { .type = NLA_U32 },
+-	[CTA_NAT_MAXIP]		= { .type = NLA_U32 },
+-};
+-
+-static inline int
+-nfnetlink_parse_nat(struct nlattr *nat,
+-		    const struct nf_conn *ct, struct nf_nat_range *range)
+-{
+-	struct nlattr *tb[CTA_NAT_MAX+1];
+-	int err;
+-
+-	memset(range, 0, sizeof(*range));
+-
+-	err = nla_parse_nested(tb, CTA_NAT_MAX, nat, nat_nla_policy);
+-	if (err < 0)
+-		return err;
+-
+-	if (tb[CTA_NAT_MINIP])
+-		range->min_ip = nla_get_be32(tb[CTA_NAT_MINIP]);
+-
+-	if (!tb[CTA_NAT_MAXIP])
+-		range->max_ip = range->min_ip;
+-	else
+-		range->max_ip = nla_get_be32(tb[CTA_NAT_MAXIP]);
+-
+-	if (range->min_ip)
+-		range->flags |= IP_NAT_RANGE_MAP_IPS;
+-
+-	if (!tb[CTA_NAT_PROTO])
+-		return 0;
+-
+-	err = nfnetlink_parse_nat_proto(tb[CTA_NAT_PROTO], ct, range);
+-	if (err < 0)
+-		return err;
+-
+-	return 0;
+-}
+-#endif
+-
+ static inline int
+ ctnetlink_parse_help(struct nlattr *attr, char **helper_name)
+ {
+@@ -874,6 +809,36 @@ out:
+ }
  
- enum prop_type {
- 	P_UNKNOWN, P_PROMPT, P_COMMENT, P_MENU, P_DEFAULT, P_CHOICE,
--	P_SELECT, P_RANGE, P_ENV
-+	P_SELECT, P_RANGE, P_ENV, P_ALIAS
- };
+ static int
++ctnetlink_parse_nat_setup(struct nf_conn *ct,
++			  enum nf_nat_manip_type manip,
++			  struct nlattr *attr)
++{
++	typeof(nfnetlink_parse_nat_setup_hook) parse_nat_setup;
++
++	parse_nat_setup = rcu_dereference(nfnetlink_parse_nat_setup_hook);
++	if (!parse_nat_setup) {
++#ifdef CONFIG_KMOD
++		rcu_read_unlock();
++		nfnl_unlock();
++		if (request_module("nf-nat-ipv4") < 0) {
++			nfnl_lock();
++			rcu_read_lock();
++			return -EOPNOTSUPP;
++		}
++		nfnl_lock();
++		rcu_read_lock();
++		parse_nat_setup =
++			rcu_dereference(nfnetlink_parse_nat_setup_hook);
++		if (parse_nat_setup)
++			return -EAGAIN;
++#endif
++		return -EOPNOTSUPP;
++	}
++
++	return parse_nat_setup(ct, manip, attr);
++}
++
++static int
+ ctnetlink_change_status(struct nf_conn *ct, struct nlattr *cda[])
+ {
+ 	unsigned long d;
+@@ -892,31 +857,6 @@ ctnetlink_change_status(struct nf_conn *ct, struct nlattr *cda[])
+ 		/* ASSURED bit can only be set */
+ 		return -EBUSY;
  
- struct property {
-diff --git a/scripts/kconfig/lkc.h b/scripts/kconfig/lkc.h
-index 4a9af6f..7ea2bc4 100644
---- a/scripts/kconfig/lkc.h
-+++ b/scripts/kconfig/lkc.h
-@@ -53,6 +53,7 @@ enum conf_def_mode {
- #define T_OPT_MODULES		1
- #define T_OPT_DEFCONFIG_LIST	2
- #define T_OPT_ENV		3
-+#define T_OPT_ALIAS		4
+-	if (cda[CTA_NAT_SRC] || cda[CTA_NAT_DST]) {
+-#ifndef CONFIG_NF_NAT_NEEDED
+-		return -EOPNOTSUPP;
+-#else
+-		struct nf_nat_range range;
+-
+-		if (cda[CTA_NAT_DST]) {
+-			if (nfnetlink_parse_nat(cda[CTA_NAT_DST], ct,
+-						&range) < 0)
+-				return -EINVAL;
+-			if (nf_nat_initialized(ct, IP_NAT_MANIP_DST))
+-				return -EEXIST;
+-			nf_nat_setup_info(ct, &range, IP_NAT_MANIP_DST);
+-		}
+-		if (cda[CTA_NAT_SRC]) {
+-			if (nfnetlink_parse_nat(cda[CTA_NAT_SRC], ct,
+-						&range) < 0)
+-				return -EINVAL;
+-			if (nf_nat_initialized(ct, IP_NAT_MANIP_SRC))
+-				return -EEXIST;
+-			nf_nat_setup_info(ct, &range, IP_NAT_MANIP_SRC);
+-		}
+-#endif
+-	}
+-
+ 	/* Be careful here, modifying NAT bits can screw up things,
+ 	 * so don't let users modify them directly if they don't pass
+ 	 * nf_nat_range. */
+@@ -924,6 +864,31 @@ ctnetlink_change_status(struct nf_conn *ct, struct nlattr *cda[])
+ 	return 0;
+ }
  
- struct kconf_id {
- 	int name;
-@@ -97,6 +98,7 @@ void menu_add_symbol(enum prop_type type, struct symbol *sym, struct expr *dep);
- void menu_add_option(int token, char *arg);
- void menu_finalize(struct menu *parent);
- void menu_set_type(int type);
-+void sym_check_prop(struct symbol *sym);
++static int
++ctnetlink_change_nat(struct nf_conn *ct, struct nlattr *cda[])
++{
++#ifdef CONFIG_NF_NAT_NEEDED
++	int ret;
++
++	if (cda[CTA_NAT_DST]) {
++		ret = ctnetlink_parse_nat_setup(ct,
++						IP_NAT_MANIP_DST,
++						cda[CTA_NAT_DST]);
++		if (ret < 0)
++			return ret;
++	}
++	if (cda[CTA_NAT_SRC]) {
++		ret = ctnetlink_parse_nat_setup(ct,
++						IP_NAT_MANIP_SRC,
++						cda[CTA_NAT_SRC]);
++		if (ret < 0)
++			return ret;
++	}
++	return 0;
++#else
++	return -EOPNOTSUPP;
++#endif
++}
  
- /* util.c */
- struct file *file_lookup(const char *name);
-@@ -115,6 +117,7 @@ const char *str_get(struct gstr *gs);
+ static inline int
+ ctnetlink_change_helper(struct nf_conn *ct, struct nlattr *cda[])
+@@ -1152,6 +1117,14 @@ ctnetlink_create_conntrack(struct nlattr *cda[],
+ 		}
+ 	}
  
- /* symbol.c */
- extern struct expr *sym_env_list;
-+extern struct expr *sym_alias_list;
++	if (cda[CTA_NAT_SRC] || cda[CTA_NAT_DST]) {
++		err = ctnetlink_change_nat(ct, cda);
++		if (err < 0) {
++			rcu_read_unlock();
++			goto err;
++		}
++	}
++
+ 	if (cda[CTA_PROTOINFO]) {
+ 		err = ctnetlink_change_protoinfo(ct, cda);
+ 		if (err < 0) {
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index b75c9c4..4739f9f 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -44,15 +44,17 @@ static struct sock *nfnl = NULL;
+ static const struct nfnetlink_subsystem *subsys_table[NFNL_SUBSYS_COUNT];
+ static DEFINE_MUTEX(nfnl_mutex);
  
- void sym_init(void);
- void sym_clear_all_valid(void);
-diff --git a/scripts/kconfig/menu.c b/scripts/kconfig/menu.c
-index 07ff8d1..e1d8686 100644
---- a/scripts/kconfig/menu.c
-+++ b/scripts/kconfig/menu.c
-@@ -175,6 +175,11 @@ void menu_add_option(int token, char *arg)
- 	case T_OPT_ENV:
- 		prop_add_env(arg);
- 		break;
-+	case T_OPT_ALIAS:
-+		prop = prop_alloc(P_ALIAS, sym_lookup(arg, 0));
-+		prop->menu = current_entry;
-+		prop->expr = expr_alloc_symbol(current_entry->sym);
-+		break;
+-static inline void nfnl_lock(void)
++void nfnl_lock(void)
+ {
+ 	mutex_lock(&nfnl_mutex);
+ }
++EXPORT_SYMBOL_GPL(nfnl_lock);
+ 
+-static inline void nfnl_unlock(void)
++void nfnl_unlock(void)
+ {
+ 	mutex_unlock(&nfnl_mutex);
+ }
++EXPORT_SYMBOL_GPL(nfnl_unlock);
+ 
+ int nfnetlink_subsys_register(const struct nfnetlink_subsystem *n)
+ {
+@@ -132,6 +134,7 @@ static int nfnetlink_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
+ 		return 0;
+ 
+ 	type = nlh->nlmsg_type;
++replay:
+ 	ss = nfnetlink_get_subsys(type);
+ 	if (!ss) {
+ #ifdef CONFIG_KMOD
+@@ -165,7 +168,10 @@ static int nfnetlink_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
+ 		} else
+ 			return -EINVAL;
+ 
+-		return nc->call(nfnl, skb, nlh, cda);
++		err = nc->call(nfnl, skb, nlh, cda);
++		if (err == -EAGAIN)
++			goto replay;
++		return err;
  	}
  }
  
-@@ -219,6 +224,23 @@ void sym_check_prop(struct symbol *sym)
- 			    !menu_range_valid_sym(sym, prop->expr->right.sym))
- 				prop_warn(prop, "range is invalid");
- 			break;
-+		case P_ALIAS:
-+			if (sym->prop->type != P_ALIAS ||
-+			    (prop->next && prop->next->type != P_ALIAS)) {
-+				prop_warn(prop, "alias is invalid");
-+				break;
-+			}
-+			sym2 = prop_get_symbol(prop);
-+			if (sym->type != S_UNKNOWN && sym->type != sym2->type) {
-+				prop_warn(prop, "conflicting alias type");
-+				break;
-+			}
-+			sym->type = sym2->type;
-+			if (!prop->next) {
-+				sym_alias_list = expr_alloc_one(E_LIST, sym_alias_list);
-+				sym_alias_list->right.sym = sym;
-+			}
-+			break;
- 		default:
- 			;
- 		}
-diff --git a/scripts/kconfig/symbol.c b/scripts/kconfig/symbol.c
-index 18f3e5c..f25fb3d 100644
---- a/scripts/kconfig/symbol.c
-+++ b/scripts/kconfig/symbol.c
-@@ -34,7 +34,7 @@ struct symbol *sym_defconfig_list;
- struct symbol *modules_sym;
- tristate modules_val;
- 
--struct expr *sym_env_list;
-+struct expr *sym_env_list, *sym_alias_list;
- 
- void sym_add_default(struct symbol *sym, const char *def)
- {
-@@ -937,6 +937,8 @@ const char *prop_get_type_name(enum prop_type type)
- 		return "select";
- 	case P_RANGE:
- 		return "range";
-+	case P_ALIAS:
-+		return "alias";
- 	case P_UNKNOWN:
- 		break;
- 	}
-diff --git a/scripts/kconfig/zconf.gperf b/scripts/kconfig/zconf.gperf
-index 25ef5d0..2816585 100644
---- a/scripts/kconfig/zconf.gperf
-+++ b/scripts/kconfig/zconf.gperf
-@@ -41,4 +41,5 @@ on,		T_ON,		TF_PARAM
- modules,	T_OPT_MODULES,	TF_OPTION
- defconfig_list,	T_OPT_DEFCONFIG_LIST,TF_OPTION
- env,		T_OPT_ENV,	TF_OPTION
-+alias,		T_OPT_ALIAS,	TF_OPTION
- %%
-diff --git a/scripts/kconfig/zconf.hash.c_shipped b/scripts/kconfig/zconf.hash.c_shipped
-index 5c73d51..cd2f361 100644
---- a/scripts/kconfig/zconf.hash.c_shipped
-+++ b/scripts/kconfig/zconf.hash.c_shipped
-@@ -53,10 +53,10 @@ kconf_id_hash (register const char *str, register unsigned int len)
-       49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
-       49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
-       49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
--      49, 49, 49, 49, 49, 49, 49, 49, 11,  5,
-+      49, 49, 49, 49, 49, 49, 49,  0, 35,  5,
-        0,  0,  5, 49,  5, 20, 49, 49,  5, 20,
-        5,  0, 30, 49,  0, 15,  0, 10,  0, 49,
--      25, 49, 49, 49, 49, 49, 49, 49, 49, 49,
-+      10, 49, 49, 49, 49, 49, 49, 49, 49, 49,
-       49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
-       49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
-       49, 49, 49, 49, 49, 49, 49, 49, 49, 49,
-@@ -100,24 +100,25 @@ struct kconf_id_strings_t
-     char kconf_id_strings_str12[sizeof("default")];
-     char kconf_id_strings_str13[sizeof("def_bool")];
-     char kconf_id_strings_str14[sizeof("help")];
--    char kconf_id_strings_str15[sizeof("bool")];
-     char kconf_id_strings_str16[sizeof("config")];
-     char kconf_id_strings_str17[sizeof("def_tristate")];
--    char kconf_id_strings_str18[sizeof("boolean")];
-+    char kconf_id_strings_str18[sizeof("hex")];
-     char kconf_id_strings_str19[sizeof("defconfig_list")];
-     char kconf_id_strings_str21[sizeof("string")];
-     char kconf_id_strings_str22[sizeof("if")];
-     char kconf_id_strings_str23[sizeof("int")];
-+    char kconf_id_strings_str25[sizeof("alias")];
-     char kconf_id_strings_str26[sizeof("select")];
-     char kconf_id_strings_str27[sizeof("modules")];
-     char kconf_id_strings_str28[sizeof("tristate")];
-     char kconf_id_strings_str29[sizeof("menu")];
-     char kconf_id_strings_str31[sizeof("source")];
-     char kconf_id_strings_str32[sizeof("comment")];
--    char kconf_id_strings_str33[sizeof("hex")];
-     char kconf_id_strings_str35[sizeof("menuconfig")];
-     char kconf_id_strings_str36[sizeof("prompt")];
-     char kconf_id_strings_str37[sizeof("depends")];
-+    char kconf_id_strings_str39[sizeof("bool")];
-+    char kconf_id_strings_str42[sizeof("boolean")];
-     char kconf_id_strings_str48[sizeof("mainmenu")];
-   };
- static struct kconf_id_strings_t kconf_id_strings_contents =
-@@ -134,24 +135,25 @@ static struct kconf_id_strings_t kconf_id_strings_contents =
-     "default",
-     "def_bool",
-     "help",
--    "bool",
-     "config",
-     "def_tristate",
--    "boolean",
-+    "hex",
-     "defconfig_list",
-     "string",
-     "if",
-     "int",
-+    "alias",
-     "select",
-     "modules",
-     "tristate",
-     "menu",
-     "source",
-     "comment",
--    "hex",
-     "menuconfig",
-     "prompt",
-     "depends",
-+    "bool",
-+    "boolean",
-     "mainmenu"
-   };
- #define kconf_id_strings ((const char *) &kconf_id_strings_contents)
-@@ -166,7 +168,7 @@ kconf_id_lookup (register const char *str, register unsigned int len)
- {
-   enum
-     {
--      TOTAL_KEYWORDS = 31,
-+      TOTAL_KEYWORDS = 32,
-       MIN_WORD_LENGTH = 2,
-       MAX_WORD_LENGTH = 14,
-       MIN_HASH_VALUE = 2,
-@@ -189,16 +191,17 @@ kconf_id_lookup (register const char *str, register unsigned int len)
-       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str12,	T_DEFAULT,	TF_COMMAND, S_UNKNOWN},
-       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str13,	T_DEFAULT,	TF_COMMAND, S_BOOLEAN},
-       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str14,		T_HELP,		TF_COMMAND},
--      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str15,		T_TYPE,		TF_COMMAND, S_BOOLEAN},
-+      {-1},
-       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str16,		T_CONFIG,	TF_COMMAND},
-       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str17,	T_DEFAULT,	TF_COMMAND, S_TRISTATE},
--      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str18,	T_TYPE,		TF_COMMAND, S_BOOLEAN},
-+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str18,		T_TYPE,		TF_COMMAND, S_HEX},
-       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str19,	T_OPT_DEFCONFIG_LIST,TF_OPTION},
-       {-1},
-       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str21,		T_TYPE,		TF_COMMAND, S_STRING},
-       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str22,		T_IF,		TF_COMMAND|TF_PARAM},
-       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str23,		T_TYPE,		TF_COMMAND, S_INT},
--      {-1}, {-1},
-+      {-1},
-+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str25,		T_OPT_ALIAS,	TF_OPTION},
-       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str26,		T_SELECT,	TF_COMMAND},
-       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str27,	T_OPT_MODULES,	TF_OPTION},
-       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str28,	T_TYPE,		TF_COMMAND, S_TRISTATE},
-@@ -206,13 +209,15 @@ kconf_id_lookup (register const char *str, register unsigned int len)
-       {-1},
-       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str31,		T_SOURCE,	TF_COMMAND},
-       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str32,	T_COMMENT,	TF_COMMAND},
--      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str33,		T_TYPE,		TF_COMMAND, S_HEX},
--      {-1},
-+      {-1}, {-1},
-       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str35,	T_MENUCONFIG,	TF_COMMAND},
-       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str36,		T_PROMPT,	TF_COMMAND},
-       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str37,	T_DEPENDS,	TF_COMMAND},
--      {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1}, {-1},
-       {-1},
-+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str39,		T_TYPE,		TF_COMMAND, S_BOOLEAN},
-+      {-1}, {-1},
-+      {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str42,	T_TYPE,		TF_COMMAND, S_BOOLEAN},
-+      {-1}, {-1}, {-1}, {-1}, {-1},
-       {(int)(long)&((struct kconf_id_strings_t *)0)->kconf_id_strings_str48,	T_MAINMENU,	TF_COMMAND}
-     };
- 
-diff --git a/scripts/kconfig/zconf.tab.c_shipped b/scripts/kconfig/zconf.tab.c_shipped
-index 95df833..05fbd1d 100644
---- a/scripts/kconfig/zconf.tab.c_shipped
-+++ b/scripts/kconfig/zconf.tab.c_shipped
-@@ -2278,6 +2278,10 @@ void conf_parse(const char *name)
- 	for_all_symbols(i, sym) {
- 		if (sym_check_deps(sym))
- 			zconfnerrs++;
-+		if (!(sym->flags & SYMBOL_WARNED)) {
-+			sym_check_prop(sym);
-+			sym->flags |= SYMBOL_WARNED;
-+		}
-         }
- 	if (zconfnerrs)
- 		exit(1);
-diff --git a/scripts/kconfig/zconf.y b/scripts/kconfig/zconf.y
-index 9710b82..bb74756 100644
---- a/scripts/kconfig/zconf.y
-+++ b/scripts/kconfig/zconf.y
-@@ -495,6 +495,10 @@ void conf_parse(const char *name)
- 	for_all_symbols(i, sym) {
- 		if (sym_check_deps(sym))
- 			zconfnerrs++;
-+		if (!(sym->flags & SYMBOL_WARNED)) {
-+			sym_check_prop(sym);
-+			sym->flags |= SYMBOL_WARNED;
-+		}
-         }
- 	if (zconfnerrs)
- 		exit(1);
---8323328-668692207-1223923947=:12399--
+
