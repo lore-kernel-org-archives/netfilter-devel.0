@@ -1,63 +1,92 @@
-From: Jesper Bengtsson <jesper.bengtsson@axis.com>
-Subject: iptable/netfilter mismatch
-Date: Tue, 14 Oct 2008 09:40:49 +0200
-Message-ID: <A612847CFE53224C91B23E3A5B48BAC73889B08E3B@xmail3.se.axis.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [bug, -git] ERROR: "ebt_unregister_table"	[net/bridge/netfilter/ebtable_nat.ko]
+ undefined
+Date: Tue, 14 Oct 2008 13:00:09 +0200
+Message-ID: <48F47BB9.9090902@trash.net>
+References: <20080821221943.GO31136@x200.localdomain> <20081013070347.GA3813@elte.hu> <20081013070940.GA6340@elte.hu> <20081013073501.GB4254@x200.localdomain> <20081014103005.GA19420@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-To: "'netfilter-devel@vger.kernel.org'" <netfilter-devel@vger.kernel.org>
+Content-Type: multipart/mixed;
+ boundary="------------080305030308060309020303"
+Cc: Alexey Dobriyan <adobriyan@gmail.com>,
+	shemminger@linux-foundation.org, netdev@vger.kernel.org,
+	containers@lists.linux-foundation.org, kaber@trash.et,
+	"David S. Miller" <davem@davemloft.net>,
+	linux-kernel@vger.kernel.org,
+	Jan Engelhardt <jengelh@computergmbh.de>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Ingo Molnar <mingo@elte.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from krynn.se.axis.com ([193.13.178.10]:33236 "EHLO
-	krynn.se.axis.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752557AbYJNH7E convert rfc822-to-8bit (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:65207 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754538AbYJNLAO (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 14 Oct 2008 03:59:04 -0400
-Received: from xmail3.se.axis.com (xmail3.se.axis.com [10.0.5.75])
-	by krynn.se.axis.com (8.13.4/8.13.4/Debian-3sarge3) with ESMTP id m9E7endb031558
-	for <netfilter-devel@vger.kernel.org>; Tue, 14 Oct 2008 09:40:49 +0200
-Content-Language: en-US
+	Tue, 14 Oct 2008 07:00:14 -0400
+In-Reply-To: <20081014103005.GA19420@elte.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+This is a multi-part message in MIME format.
+--------------080305030308060309020303
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-When running iptables on a CRIS cpu (ETRAX FS/100LX) I have a problem with adding error targets.
-I've debugged this problem and I found an iptables/netfilter mismatch.
+Ingo Molnar wrote:
+> i think you misunderstood my report. This is about latest upstream -git 
+> being broken:
+> 
+> ERROR: "ebt_register_table" [net/bridge/netfilter/ebtable_filter.ko] undefined!
+> ERROR: "ebt_do_table" [net/bridge/netfilter/ebtable_filter.ko] undefined!
+> ERROR: "ebt_unregister_table" [net/bridge/netfilter/ebtable_filter.ko] undefined!
+> ERROR: "ebt_register_table" [net/bridge/netfilter/ebtable_broute.ko] undefined!
+> ERROR: "ebt_do_table" [net/bridge/netfilter/ebtable_broute.ko] undefined!
+> ERROR: "ebt_unregister_table" [net/bridge/netfilter/ebtable_broute.ko] undefined!
+> make[1]: *** [__modpost] Error 1
+> make: *** [modules] Error 2
+> 
+> i posted to this thread because i wanted to find a relevant context. 
+> (but probably is not)
+> 
+> Anyway, i started a new thread for this.
+> 
+> the dependencies there look pretty complex so i did not find a quick fix 
+> - but i can test patches.
 
-The structure ipt_error_target is defined in two places:
-in the kernel, include/linux/netfilter_ipv4/ip_tables.h
-struct ipt_error_target
-{
-        struct ipt_entry_target target;
-        char errorname[IPT_FUNCTION_MAXNAMELEN];
-};
+This appears to be caused by Jan's Kconfig changes to use menuconfig,
+which lost a dependency on BRIDGE:
 
-and in iptables, libiptc/libiptc.c
-struct ipt_error_target
-{
-        STRUCT_ENTRY_TARGET t;
-        char error[TABLE_MAXNAMELEN];
-};
+-menu "Bridge: Netfilter Configuration"
+-       depends on BRIDGE && BRIDGE_NETFILTER
+-
+-config BRIDGE_NF_EBTABLES
++menuconfig BRIDGE_NF_EBTABLES
+         tristate "Ethernet Bridge tables (ebtables) support"
+         select NETFILTER_XTABLES
+         help
+           ebtables is a general, extensible frame/packet identification
+           framework. Say 'Y' or 'M' here if you want to do Ethernet
+           filtering/NAT/brouting on the Ethernet bridge.
 
-Before a patch, claiming to fix things for CRIS
-(http://lists.netfilter.org/pipermail/netfilter-devel/2007-January/026659.html),
-was applied the two structs above had the same size. After the patch the two structs differ by two
-bytes in size and when iptables tries to commit an error target to netfilter, netfilter will discard
-it since the target has incorrect size. I believe that this will only occur on architectures that don't use structure alignment, e.g. CRIS.
+Does this patch fix it?
 
-When modifying the struct in libiptc/libiptc.c like this:
+--------------080305030308060309020303
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
 
-struct ipt_error_target
-{
-        STRUCT_ENTRY_TARGET t;
-        char error[FUNCTION_MAXNAMELEN];
-};
+diff --git a/net/bridge/netfilter/Kconfig b/net/bridge/netfilter/Kconfig
+index 366d3e9..ba6f73e 100644
+--- a/net/bridge/netfilter/Kconfig
++++ b/net/bridge/netfilter/Kconfig
+@@ -4,6 +4,7 @@
+ 
+ menuconfig BRIDGE_NF_EBTABLES
+ 	tristate "Ethernet Bridge tables (ebtables) support"
++	depends on BRIDGE && BRIDGE_NETFILTER
+ 	select NETFILTER_XTABLES
+ 	help
+ 	  ebtables is a general, extensible frame/packet identification
 
-I can add error targets on my CRIS system.
-
-I'm a iptables/netfilter newbie and I really can't say for sure if FUNCTION_MAXNAMELEN or TABLE_MAXNAMELEN is the correct length to use in the ipt_error_target structure.
-
-Can anyone shed some light over the ipt_error_target structure?
-
-Thanks,
-Jesper
+--------------080305030308060309020303--
