@@ -1,72 +1,100 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: iptable/netfilter mismatch
-Date: Tue, 14 Oct 2008 14:12:01 +0200
-Message-ID: <48F48C91.80302@trash.net>
-References: <A612847CFE53224C91B23E3A5B48BAC73889B08E3B@xmail3.se.axis.com>
+Subject: Re: [PATCH] [PATCH] remove module dependency between ctnetlink and
+ nf_nat
+Date: Tue, 14 Oct 2008 15:50:59 +0200
+Message-ID: <48F4A3C3.2080202@trash.net>
+References: <20081013222400.8612.80582.stgit@Decadence>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: "'netfilter-devel@vger.kernel.org'" <netfilter-devel@vger.kernel.org>
-To: Jesper Bengtsson <jesper.bengtsson@axis.com>
+Content-Type: multipart/mixed;
+ boundary="------------080204070809000905030802"
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:34329 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:36765 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753932AbYJNMMG (ORCPT
+	with ESMTP id S1751040AbYJNNvF (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 14 Oct 2008 08:12:06 -0400
-In-Reply-To: <A612847CFE53224C91B23E3A5B48BAC73889B08E3B@xmail3.se.axis.com>
+	Tue, 14 Oct 2008 09:51:05 -0400
+In-Reply-To: <20081013222400.8612.80582.stgit@Decadence>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jesper Bengtsson wrote:
-> Hi,
-> 
-> When running iptables on a CRIS cpu (ETRAX FS/100LX) I have a problem with adding error targets.
-> I've debugged this problem and I found an iptables/netfilter mismatch.
-> 
-> The structure ipt_error_target is defined in two places:
-> in the kernel, include/linux/netfilter_ipv4/ip_tables.h
-> struct ipt_error_target
-> {
->         struct ipt_entry_target target;
->         char errorname[IPT_FUNCTION_MAXNAMELEN];
-> };
-> 
-> and in iptables, libiptc/libiptc.c
-> struct ipt_error_target
-> {
->         STRUCT_ENTRY_TARGET t;
->         char error[TABLE_MAXNAMELEN];
-> };
-> 
-> Before a patch, claiming to fix things for CRIS
-> (http://lists.netfilter.org/pipermail/netfilter-devel/2007-January/026659.html),
-> was applied the two structs above had the same size. After the patch the two structs differ by two
-> bytes in size and when iptables tries to commit an error target to netfilter, netfilter will discard
-> it since the target has incorrect size. I believe that this will only occur on architectures that don't use structure alignment, e.g. CRIS.
-> 
-> When modifying the struct in libiptc/libiptc.c like this:
-> 
-> struct ipt_error_target
-> {
->         STRUCT_ENTRY_TARGET t;
->         char error[FUNCTION_MAXNAMELEN];
-> };
-> 
-> I can add error targets on my CRIS system.
-> 
-> I'm a iptables/netfilter newbie and I really can't say for sure if FUNCTION_MAXNAMELEN or TABLE_MAXNAMELEN is the correct length to use in the ipt_error_target structure.
-> 
-> Can anyone shed some light over the ipt_error_target structure?
+This is a multi-part message in MIME format.
+--------------080204070809000905030802
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-The versions I'm looking at uses TABLE_MAXNAMELEN in userspace,
-which is 32, and FUNCTION_MAXNAMELEN in the kernel, which is 30.
-So yeah, this is still broken. "errorname" is not used within
-the kernel at all and the limit of 30 doesn't make any sense,
-so the correct fix appears to be to also use 32 within the kernel.
+Pablo Neira Ayuso wrote:
+> This patch removes the module dependency between ctnetlink and
+> nf_nat by means of an indirect call that is initialized when
+> nf_nat is loaded. Now, nf_conntrack_netlink only requires
+> nf_conntrack and nfnetlink.
+> 
+> This patch puts nfnetlink_parse_nat_setup_hook into the
+> nf_conntrack_core to avoid dependencies between ctnetlink,
+> nf_conntrack_ipv4 and nf_conntrack_ipv6.
+> 
+> This patch also introduces the function ctnetlink_change_nat
+> that is only invoked from the creation path. Actually, the
+> nat handling cannot be invoked from the update path since
+> this is not allowed. By introducing this function, we remove
+> the useless nat handling in the update path and we avoid
+> deadlock-prone code.
+> 
+> This patch also adds the required EAGAIN logic for nfnetlink.
 
-This shouldn't break anything since we align to u64 and the
-architectures like CRIS where this causes less than 4 byte alignment
-are currently broken, for all others it doesn't have any effect.
+This looks great, I've applied it with one minor change,
+thanks!
 
-Could you send a patch against the latest -git tree please?
+> +ctnetlink_parse_nat_setup(struct nf_conn *ct,
+> +			  enum nf_nat_manip_type manip,
+> +			  struct nlattr *attr)
+> +{
+> +	typeof(nfnetlink_parse_nat_setup_hook) parse_nat_setup;
+> +
+> +	parse_nat_setup = rcu_dereference(nfnetlink_parse_nat_setup_hook);
+> +	if (!parse_nat_setup) {
+> +#ifdef CONFIG_KMOD
+> +		rcu_read_unlock();
+> +		nfnl_unlock();
+> +		if (request_module("nf-nat-ipv4") < 0) {
+> +			nfnl_lock();
+> +			rcu_read_lock();
+> +			return -EOPNOTSUPP;
+> +		}
+> +		nfnl_lock();
+> +		rcu_read_lock();
+> +		parse_nat_setup =
+> +			rcu_dereference(nfnetlink_parse_nat_setup_hook);
+> +		if (parse_nat_setup)
+> +			return -EAGAIN;
+
+The rcu_dereference here isn't necessary because the pointer isn't
+actually dereferenced. It doesn't matter much, but removing it also
+looks slightly nicer :)
+
+
+--------------080204070809000905030802
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index b132124..08e82d6 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -832,9 +832,7 @@ ctnetlink_parse_nat_setup(struct nf_conn *ct,
+ 		}
+ 		nfnl_lock();
+ 		rcu_read_lock();
+-		parse_nat_setup =
+-			rcu_dereference(nfnetlink_parse_nat_setup_hook);
+-		if (parse_nat_setup)
++		if (nfnetlink_parse_nat_setup_hook)
+ 			return -EAGAIN;
+ #endif
+ 		return -EOPNOTSUPP;
+
+--------------080204070809000905030802--
