@@ -1,28 +1,40 @@
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: Re: [PATCH 1/7] netns ebtables: part 1
-Date: Wed, 15 Oct 2008 08:25:09 +0400
-Message-ID: <20081015042509.GL24058@x200.localdomain>
-References: <20081015042014.GE24058@x200.localdomain>
+From: KOVACS Krisztian <hidden@sch.bme.hu>
+Subject: Re: [iptables PATCH 1/2] [TPROXY] Add userspace component of the
+ TPROXY target
+Date: Wed, 15 Oct 2008 10:01:13 +0200
+Message-ID: <200810151001.13451@nessa>
+References: <20081008071541.9224.66180.stgit@nessa.odu>
+ <48F34987.4060509@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	containers@osdl.org
-To: kaber@trash.net
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 7BIT
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.187]:9253 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751282AbYJOEWN (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Oct 2008 00:22:13 -0400
-Received: by nf-out-0910.google.com with SMTP id d3so1135642nfc.21
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Oct 2008 21:22:12 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <20081015042014.GE24058@x200.localdomain>
+Received: from balu.sch.bme.hu ([152.66.208.40]:38038 "EHLO balu.sch.bme.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751758AbYJOIBU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 Oct 2008 04:01:20 -0400
+Received: from nessa.odu ([89.132.101.55])
+ by balu.sch.bme.hu (Sun Java System Messaging Server 6.2-7.05 (built Sep  5
+ 2006)) with ESMTPSA id <0K8R00FAYSX06T20@balu.sch.bme.hu> for
+ netfilter-devel@vger.kernel.org; Wed, 15 Oct 2008 10:00:36 +0200 (CEST)
+In-reply-to: <48F34987.4060509@trash.net>
+Content-disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Oct 15, 2008 at 08:20:14AM +0400, Alexey Dobriyan wrote:
-> One needs to add ".netns_ok = 1" to igmp_protocol to test all of this
-> with ebtables() in netns.
+Hi,
 
-Contains 80-column violations, I forgot about damn script again :^)
+On Monday 13 October 2008, Patrick McHardy wrote:
+> KOVACS Krisztian wrote:
+> > From: Balazs Scheidler <bazsi@balabit.hu>
+>
+> Could I get a Signed-off-by: line for these patches please?
+> Thanks!
+
+I'm going to resend the patches with the problems spotted by Jan fixed and 
+also with a proper signed-off-by line.
+
+-- 
+KOVACS Krisztian
