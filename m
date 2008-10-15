@@ -1,84 +1,253 @@
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: [PATCH 2/2] xt_recent: don't save PDEs in table
-Date: Wed, 15 Oct 2008 08:14:02 +0400
-Message-ID: <20081015041402.GC24058@x200.localdomain>
+Subject: [PATCH 1/7] netns ebtables: part 1
+Date: Wed, 15 Oct 2008 08:20:14 +0400
+Message-ID: <20081015042014.GE24058@x200.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	containers@osdl.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.26]:43920 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750860AbYJOELI (ORCPT
+Received: from nf-out-0910.google.com ([64.233.182.190]:10054 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750932AbYJOERT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Oct 2008 00:11:08 -0400
-Received: by ey-out-2122.google.com with SMTP id 6so914072eyi.37
-        for <netfilter-devel@vger.kernel.org>; Tue, 14 Oct 2008 21:11:05 -0700 (PDT)
+	Wed, 15 Oct 2008 00:17:19 -0400
+Received: by nf-out-0910.google.com with SMTP id d3so1135156nfc.21
+        for <netfilter-devel@vger.kernel.org>; Tue, 14 Oct 2008 21:17:17 -0700 (PDT)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Not strictly needed, so use local variable for PDE.
+One needs to add ".netns_ok = 1" to igmp_protocol to test all of this
+with ebtables() in netns.
+-------------------------------------------------
+[PATCH 1/7] netns ebtables: part 1
+
+* make list of ebt_tables per-netns
+* propagate netns from userspace, register table in passed netns
+* temporarily register every ebt_table in init_net
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 ---
 
- net/netfilter/xt_recent.c |   22 +++++++++++-----------
- 1 file changed, 11 insertions(+), 11 deletions(-)
+ include/linux/netfilter_bridge/ebtables.h |    2 -
+ include/net/netns/x_tables.h              |    1 
+ net/bridge/netfilter/ebtable_broute.c     |    2 -
+ net/bridge/netfilter/ebtable_filter.c     |    2 -
+ net/bridge/netfilter/ebtable_nat.c        |    2 -
+ net/bridge/netfilter/ebtables.c           |   54 ++++++++++++++++++++----------
+ 6 files changed, 41 insertions(+), 22 deletions(-)
 
---- a/net/netfilter/xt_recent.c
-+++ b/net/netfilter/xt_recent.c
-@@ -72,9 +72,6 @@ struct recent_entry {
- struct recent_table {
- 	struct list_head	list;
- 	char			name[XT_RECENT_NAME_LEN];
--#ifdef CONFIG_PROC_FS
--	struct proc_dir_entry	*proc_old, *proc;
--#endif
- 	unsigned int		refcnt;
- 	unsigned int		entries;
- 	struct list_head	lru_list;
-@@ -284,6 +281,9 @@ static bool recent_mt_check(const struct xt_mtchk_param *par)
- {
- 	const struct xt_recent_mtinfo *info = par->matchinfo;
- 	struct recent_table *t;
-+#ifdef CONFIG_PROC_FS
-+	struct proc_dir_entry *pde;
-+#endif
- 	unsigned i;
- 	bool ret = false;
+--- a/include/linux/netfilter_bridge/ebtables.h
++++ b/include/linux/netfilter_bridge/ebtables.h
+@@ -300,7 +300,7 @@ struct ebt_table
  
-@@ -318,25 +318,25 @@ static bool recent_mt_check(const struct xt_mtchk_param *par)
- 	for (i = 0; i < ip_list_hash_size; i++)
- 		INIT_LIST_HEAD(&t->iphash[i]);
- #ifdef CONFIG_PROC_FS
--	t->proc = proc_create_data(t->name, ip_list_perms, recent_proc_dir,
-+	pde = proc_create_data(t->name, ip_list_perms, recent_proc_dir,
- 		  &recent_mt_fops, t);
--	if (t->proc == NULL) {
-+	if (pde == NULL) {
- 		kfree(t);
- 		goto out;
- 	}
-+	pde->uid = ip_list_uid;
-+	pde->gid = ip_list_gid;
- #ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
--	t->proc_old = proc_create_data(t->name, ip_list_perms, proc_old_dir,
-+	pde = proc_create_data(t->name, ip_list_perms, proc_old_dir,
- 		      &recent_old_fops, t);
--	if (t->proc_old == NULL) {
-+	if (pde == NULL) {
- 		remove_proc_entry(t->name, proc_old_dir);
- 		kfree(t);
- 		goto out;
- 	}
--	t->proc_old->uid   = ip_list_uid;
--	t->proc_old->gid   = ip_list_gid;
-+	pde->uid = ip_list_uid;
-+	pde->gid = ip_list_gid;
+ #define EBT_ALIGN(s) (((s) + (__alignof__(struct ebt_replace)-1)) & \
+ 		     ~(__alignof__(struct ebt_replace)-1))
+-extern int ebt_register_table(struct ebt_table *table);
++extern int ebt_register_table(struct net *net, struct ebt_table *table);
+ extern void ebt_unregister_table(struct ebt_table *table);
+ extern unsigned int ebt_do_table(unsigned int hook, struct sk_buff *skb,
+    const struct net_device *in, const struct net_device *out,
+--- a/include/net/netns/x_tables.h
++++ b/include/net/netns/x_tables.h
+@@ -6,5 +6,6 @@
+ 
+ struct netns_xt {
+ 	struct list_head tables[NPROTO];
++	struct list_head ebt_tables;
+ };
  #endif
--	t->proc->uid       = ip_list_uid;
--	t->proc->gid       = ip_list_gid;
+--- a/net/bridge/netfilter/ebtable_broute.c
++++ b/net/bridge/netfilter/ebtable_broute.c
+@@ -66,7 +66,7 @@ static int __init ebtable_broute_init(void)
+ {
+ 	int ret;
+ 
+-	ret = ebt_register_table(&broute_table);
++	ret = ebt_register_table(&init_net, &broute_table);
+ 	if (ret < 0)
+ 		return ret;
+ 	/* see br_input.c */
+--- a/net/bridge/netfilter/ebtable_filter.c
++++ b/net/bridge/netfilter/ebtable_filter.c
+@@ -95,7 +95,7 @@ static int __init ebtable_filter_init(void)
+ {
+ 	int ret;
+ 
+-	ret = ebt_register_table(&frame_filter);
++	ret = ebt_register_table(&init_net, &frame_filter);
+ 	if (ret < 0)
+ 		return ret;
+ 	ret = nf_register_hooks(ebt_ops_filter, ARRAY_SIZE(ebt_ops_filter));
+--- a/net/bridge/netfilter/ebtable_nat.c
++++ b/net/bridge/netfilter/ebtable_nat.c
+@@ -102,7 +102,7 @@ static int __init ebtable_nat_init(void)
+ {
+ 	int ret;
+ 
+-	ret = ebt_register_table(&frame_nat);
++	ret = ebt_register_table(&init_net, &frame_nat);
+ 	if (ret < 0)
+ 		return ret;
+ 	ret = nf_register_hooks(ebt_ops_nat, ARRAY_SIZE(ebt_ops_nat));
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -55,7 +55,6 @@
+ 
+ 
+ static DEFINE_MUTEX(ebt_mutex);
+-static LIST_HEAD(ebt_tables);
+ 
+ static struct xt_target ebt_standard_target = {
+ 	.name       = "standard",
+@@ -324,9 +323,9 @@ find_inlist_lock(struct list_head *head, const char *name, const char *prefix,
  #endif
- 	spin_lock_bh(&recent_lock);
- 	list_add_tail(&t->list, &tables);
+ 
+ static inline struct ebt_table *
+-find_table_lock(const char *name, int *error, struct mutex *mutex)
++find_table_lock(struct net *net, const char *name, int *error, struct mutex *mutex)
+ {
+-	return find_inlist_lock(&ebt_tables, name, "ebtable_", error, mutex);
++	return find_inlist_lock(&net->xt.ebt_tables, name, "ebtable_", error, mutex);
+ }
+ 
+ static inline int
+@@ -953,7 +952,7 @@ static void get_counters(struct ebt_counter *oldcounters,
+ }
+ 
+ /* replace the table */
+-static int do_replace(void __user *user, unsigned int len)
++static int do_replace(struct net *net, void __user *user, unsigned int len)
+ {
+ 	int ret, i, countersize;
+ 	struct ebt_table_info *newinfo;
+@@ -1025,7 +1024,7 @@ static int do_replace(void __user *user, unsigned int len)
+ 	if (ret != 0)
+ 		goto free_counterstmp;
+ 
+-	t = find_table_lock(tmp.name, &ret, &ebt_mutex);
++	t = find_table_lock(net, tmp.name, &ret, &ebt_mutex);
+ 	if (!t) {
+ 		ret = -ENOENT;
+ 		goto free_iterate;
+@@ -1106,7 +1105,7 @@ free_newinfo:
+ 	return ret;
+ }
+ 
+-int ebt_register_table(struct ebt_table *table)
++int ebt_register_table(struct net *net, struct ebt_table *table)
+ {
+ 	struct ebt_table_info *newinfo;
+ 	struct ebt_table *t;
+@@ -1166,7 +1165,7 @@ int ebt_register_table(struct ebt_table *table)
+ 	if (ret != 0)
+ 		goto free_chainstack;
+ 
+-	list_for_each_entry(t, &ebt_tables, list) {
++	list_for_each_entry(t, &net->xt.ebt_tables, list) {
+ 		if (strcmp(t->name, table->name) == 0) {
+ 			ret = -EEXIST;
+ 			BUGPRINT("Table name already exists\n");
+@@ -1179,7 +1178,7 @@ int ebt_register_table(struct ebt_table *table)
+ 		ret = -ENOENT;
+ 		goto free_unlock;
+ 	}
+-	list_add(&table->list, &ebt_tables);
++	list_add(&table->list, &net->xt.ebt_tables);
+ 	mutex_unlock(&ebt_mutex);
+ 	return 0;
+ free_unlock:
+@@ -1217,7 +1216,7 @@ void ebt_unregister_table(struct ebt_table *table)
+ }
+ 
+ /* userspace just supplied us with counters */
+-static int update_counters(void __user *user, unsigned int len)
++static int update_counters(struct net *net, void __user *user, unsigned int len)
+ {
+ 	int i, ret;
+ 	struct ebt_counter *tmp;
+@@ -1237,7 +1236,7 @@ static int update_counters(void __user *user, unsigned int len)
+ 		return -ENOMEM;
+ 	}
+ 
+-	t = find_table_lock(hlp.name, &ret, &ebt_mutex);
++	t = find_table_lock(net, hlp.name, &ret, &ebt_mutex);
+ 	if (!t)
+ 		goto free_tmp;
+ 
+@@ -1395,10 +1394,10 @@ static int do_ebt_set_ctl(struct sock *sk,
+ 
+ 	switch(cmd) {
+ 	case EBT_SO_SET_ENTRIES:
+-		ret = do_replace(user, len);
++		ret = do_replace(sock_net(sk), user, len);
+ 		break;
+ 	case EBT_SO_SET_COUNTERS:
+-		ret = update_counters(user, len);
++		ret = update_counters(sock_net(sk), user, len);
+ 		break;
+ 	default:
+ 		ret = -EINVAL;
+@@ -1415,7 +1414,7 @@ static int do_ebt_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
+ 	if (copy_from_user(&tmp, user, sizeof(tmp)))
+ 		return -EFAULT;
+ 
+-	t = find_table_lock(tmp.name, &ret, &ebt_mutex);
++	t = find_table_lock(sock_net(sk), tmp.name, &ret, &ebt_mutex);
+ 	if (!t)
+ 		return ret;
+ 
+@@ -1471,27 +1470,46 @@ static struct nf_sockopt_ops ebt_sockopts =
+ 	.owner		= THIS_MODULE,
+ };
+ 
++static int __net_init ebtables_net_init(struct net *net)
++{
++	INIT_LIST_HEAD(&net->xt.ebt_tables);
++	return 0;
++}
++
++static struct pernet_operations ebtables_net_ops = {
++	.init = ebtables_net_init,
++};
++
+ static int __init ebtables_init(void)
+ {
+ 	int ret;
+ 
++	ret = register_pernet_subsys(&ebtables_net_ops);
++	if (ret < 0)
++		goto out_net;
+ 	ret = xt_register_target(&ebt_standard_target);
+ 	if (ret < 0)
+-		return ret;
++		goto out_target;
+ 	ret = nf_register_sockopt(&ebt_sockopts);
+-	if (ret < 0) {
+-		xt_unregister_target(&ebt_standard_target);
+-		return ret;
+-	}
++	if (ret < 0)
++		goto out_sockopt;
+ 
+ 	printk(KERN_INFO "Ebtables v2.0 registered\n");
+ 	return 0;
++
++out_sockopt:
++	xt_unregister_target(&ebt_standard_target);
++out_target:
++	unregister_pernet_subsys(&ebtables_net_ops);
++out_net:
++	return ret;
+ }
+ 
+ static void __exit ebtables_fini(void)
+ {
+ 	nf_unregister_sockopt(&ebt_sockopts);
+ 	xt_unregister_target(&ebt_standard_target);
++	unregister_pernet_subsys(&ebtables_net_ops);
+ 	printk(KERN_INFO "Ebtables v2.0 unregistered\n");
+ }
+ 
