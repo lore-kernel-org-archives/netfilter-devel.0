@@ -1,60 +1,51 @@
-From: Pierre Chifflier <chifflier@inl.fr>
-Subject: [PATCH 3/3] Fix HWHDR plugin name
-Date: Wed, 15 Oct 2008 11:50:14 +0200
-Message-ID: <1224064214-9074-4-git-send-email-chifflier@inl.fr>
-References: <1224064214-9074-1-git-send-email-chifflier@inl.fr>
-Cc: netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
+From: KOVACS Krisztian <hidden@sch.bme.hu>
+Subject: Re: [iptables PATCH 1/2] Add iptables support for the TPROXY target
+Date: Wed, 15 Oct 2008 12:30:54 +0200
+Message-ID: <200810151230.55125@nessa>
+References: <200810151010.15083@nessa> <200810151022.06435@nessa>
+ <48F5BD40.8050305@trash.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: 7BIT
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 141-53.206-83.static-ip.oleane.fr ([83.206.53.141]:46703 "EHLO
-	fydelkass.inl.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751241AbYJOKGi (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Oct 2008 06:06:38 -0400
-In-Reply-To: <1224064214-9074-1-git-send-email-chifflier@inl.fr>
+Received: from balu.sch.bme.hu ([152.66.208.40]:35917 "EHLO balu.sch.bme.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750880AbYJOKa6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 Oct 2008 06:30:58 -0400
+Received: from nessa.odu ([89.132.101.55])
+ by balu.sch.bme.hu (Sun Java System Messaging Server 6.2-7.05 (built Sep  5
+ 2006)) with ESMTPSA id <0K8R00FFJZUD7A80@balu.sch.bme.hu> for
+ netfilter-devel@vger.kernel.org; Wed, 15 Oct 2008 12:30:14 +0200 (CEST)
+In-reply-to: <48F5BD40.8050305@trash.net>
+Content-disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-MAC2STR has been renamed to HWHDR.
+Hi,
 
-Signed-off-by: Pierre Chifflier <chifflier@inl.fr>
----
- filter/ulogd_filter_HWHDR.c |    4 ++--
- ulogd.conf.in               |    2 +-
- 2 files changed, 3 insertions(+), 3 deletions(-)
+On Wednesday 15 October 2008, Patrick McHardy wrote:
+> KOVACS Krisztian wrote:
+> > On Wednesday 15 October 2008, Jan Engelhardt wrote:
+> >> A bit of forward planning would not have been bad; like using a
+> >> "union nf_inet_addr laddr" for a future IPv6 expansion, since those
+> >> pesky structs (xt_mymodule) tend be quite fixed and when they
+> >> change, they require a new revision.
+> >
+> > You're right. However I don't consider adding a new revision much of
+> > a problem when adding IPv6 support -- that is a major new feature
+> > anyway.
+> >
+> > But I think we're still on time: feel free to submit a patch to DaveM
+> > which changes the kernel side as well as a patch to the iptables
+> > modules.
+>
+> It would be good to avoid adding more of these ugly revisions,
+> so yeah, feel free to send patches :)
 
-diff --git a/filter/ulogd_filter_HWHDR.c b/filter/ulogd_filter_HWHDR.c
-index 327b5fe..af44791 100644
---- a/filter/ulogd_filter_HWHDR.c
-+++ b/filter/ulogd_filter_HWHDR.c
-@@ -1,4 +1,4 @@
--/* ulogd_filter_MAC2STR.c, Version $Revision: 1500 $
-+/* ulogd_filter_HWHDR.c, Version $Revision: 1500 $
-  *
-  * ulogd interpreter plugin for HWMAC
-  *
-@@ -218,7 +218,7 @@ static int interp_mac2str(struct ulogd_pluginstance *pi)
- 
- 
- static struct ulogd_plugin mac2str_pluging = {
--	.name = "MAC2STR",
-+	.name = "HWHDR",
- 	.input = {
- 		.keys = mac2str_inp,
- 		.num_keys = ARRAY_SIZE(mac2str_inp),
-diff --git a/ulogd.conf.in b/ulogd.conf.in
-index a32234d..751892f 100644
---- a/ulogd.conf.in
-+++ b/ulogd.conf.in
-@@ -39,7 +39,7 @@ plugin="@libdir@/ulogd/ulogd_filter_IFINDEX.so"
- plugin="@libdir@/ulogd/ulogd_filter_IP2STR.so"
- plugin="@libdir@/ulogd/ulogd_filter_IP2BIN.so"
- plugin="@libdir@/ulogd/ulogd_filter_PRINTPKT.so"
--plugin="@libdir@/ulogd/ulogd_filter_MAC2STR.so"
-+plugin="@libdir@/ulogd/ulogd_filter_HWHDR.so"
- plugin="@libdir@/ulogd/ulogd_filter_PRINTFLOW.so"
- #plugin="@libdir@/ulogd/ulogd_filter_MARK.so"
- plugin="@libdir@/ulogd/ulogd_output_LOGEMU.so"
+Yeah, and of course don't send it to Dave, send it to Patrick. I'm a bit 
+absent-minded today so don't expect meaningful mails from me...
+
 -- 
-1.5.6.5
-
+KOVACS Krisztian
