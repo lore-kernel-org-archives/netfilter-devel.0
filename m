@@ -1,25 +1,31 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/2] xt_recent: use proc_create_data()
-Date: Thu, 16 Oct 2008 15:12:30 +0200
-Message-ID: <48F73DBE.5040808@trash.net>
-References: <20081015041326.GB24058@x200.localdomain>
+Subject: Re: [PATCH 1/7] netns ebtables: part 1
+Date: Thu, 16 Oct 2008 15:18:36 +0200
+Message-ID: <48F73F2C.6030906@trash.net>
+References: <20081015042014.GE24058@x200.localdomain> <20081015042509.GL24058@x200.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	containers@osdl.org
 To: Alexey Dobriyan <adobriyan@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:33672 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:33865 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752685AbYJPNMe (ORCPT
+	with ESMTP id S1751168AbYJPNSl (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Oct 2008 09:12:34 -0400
-In-Reply-To: <20081015041326.GB24058@x200.localdomain>
+	Thu, 16 Oct 2008 09:18:41 -0400
+In-Reply-To: <20081015042509.GL24058@x200.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Alexey Dobriyan wrote:
-> It's tiny little bit safer because ->data always appears initialized.
+> On Wed, Oct 15, 2008 at 08:20:14AM +0400, Alexey Dobriyan wrote:
+>> One needs to add ".netns_ok = 1" to igmp_protocol to test all of this
+>> with ebtables() in netns.
+> 
+> Contains 80-column violations, I forgot about damn script again :^)
 
-These don't seem to actually fix anything, so please also resend
-once net-next is open again.
+Apart from the minor comment about patch 1 (and the 80 column violations
+I didn't notice so far :)), these look good to me.
+
