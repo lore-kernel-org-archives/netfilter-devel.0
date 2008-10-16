@@ -1,76 +1,61 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Writing NF modules  October2008 edition
-Date: Thu, 16 Oct 2008 19:08:25 +0200
-Message-ID: <48F77509.6090303@netfilter.org>
-References: <alpine.LNX.1.10.0810152210240.28060@fbirervta.pbzchgretzou.qr> <48F72E44.1030905@netfilter.org> <alpine.LNX.1.10.0810161213220.31082@fbirervta.pbzchgretzou.qr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: arptables and the generic xtables issues
+Date: Thu, 16 Oct 2008 13:19:23 -0400 (EDT)
+Message-ID: <alpine.LNX.1.10.0810161300210.31082@fbirervta.pbzchgretzou.qr>
+References: <48F69C2A.8010001@netfilter.org> <alpine.LNX.1.10.0810152151070.28060@fbirervta.pbzchgretzou.qr> <48F7405A.2050302@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: TEXT/PLAIN; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, kaber@trash.net
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37149 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751004AbYJPRIc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Oct 2008 13:08:32 -0400
-In-Reply-To: <alpine.LNX.1.10.0810161213220.31082@fbirervta.pbzchgretzou.qr>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:49132 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754660AbYJPRTZ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Oct 2008 13:19:25 -0400
+In-Reply-To: <48F7405A.2050302@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Thursday 2008-10-16 08:06, Pablo Neira Ayuso wrote:
->> Jan Engelhardt wrote:
->>> I have updated the e-book =E2=80=9CWriting your own Netfilter modul=
-es=E2=80=9D to this=20
->>> October's version. What's new? Featurewise, the API changes that ha=
-ve=20
->>> gone into net-next-2.6.28 are now mentioned. The work is now availa=
-ble=20
->>> under CC 3 too, with some extra clauses that have been suggested du=
-ring=20
->>> talking to you at NFWS.
->>>
->>> http://jengelh.medozas.de/documents/Netfilter_Modules.pdf
->>> (.lyx for source)
->>>
->>> I would like interested parties and coreteam to give a glance over =
-this=20
->>> for any comments, formatting errors, spellos or disagreements with =
-the=20
->>> statements provided in the book. Especially section 5.6/5.7 is miss=
-ing=20
->>> checksumming which has been a hard brick even for me.
->> Thank you Jan, this is a nice effort since we lack of updated docume=
-ntation.
->>
->> BTW, just one suggestion in terms of licensing. Why not use FDL inst=
-ead
->> for licensing? Debian cannot distribute this documentation, in case =
-that
->> they want to, with the current license AFAIK. Well, licensing is
->> something personal, I'm also fine with CC in any case.
->=20
-> Too bad for Debian, but the NC clause I consider elementary. And I do=
-=20
-> not see how that interferes with commercial use =E2=80=94 remember Wa=
-lnut Creek=20
-> CDROM (cdrom.com).
->=20
-> But it seems like Debian does not the GFDL so much either =E2=80=94 f=
-irst=20
-> paragraph of =E2=80=9CCriticism of the GFDL=E2=80=9D on=20
-> http://en.wikipedia.org/wiki/GFDL
 
-They finally did after one votation in 2006 IIRC. Don't put too much
-trust on wikipedia ;)
+On Thursday 2008-10-16 09:23, Patrick McHardy wrote:
+> Jan Engelhardt wrote:
+>> On Wednesday 2008-10-15 21:43, Pablo Neira Ayuso wrote:
+>> > Currently, we have tagged quite a lot of targets and matches with
+>> > AF_UNSPEC as they are generic for the netfilter supported protocol=
+s.
+>> > This is fine if we only think of ebtables, iptables and ip6tables =
+but
+>> > not for arptables, I doubt that all those target and matches can w=
+ork
+>> > with arptables - even if we still need the userspace support, of c=
+ourse.
+>> >
+>> > I think that we should fix those, right?
+>>=20
+>> That would be a tremendous amount of work, given that arptables (and
+>> ebtables too) is not quite the same codebase as iptables anymore.
+>> Most of the iptables development just went by arp and ebtables due
+>> to the nature of all these semiforks.
+>>=20
+>> I think we should rather focus on a truly family-independent table
+>> in the very near future. In fact I have ideas floating around that,
+>> but am stuck with how I'd exactly funnel it into reviewable patch
+>> chunks.
+>
+> I think we should finish the unification/resyncing efforts before
 
-[1]
-http://groups.google.com.mx/group/linux.debian.announce/browse_thread/t=
-hread/136fb411ba81b487/72e944886fea395f?lnk=3Draot
+Yesyesyes, but I think we reached a point where the next step in
+Improving It=E2=84=A2 requires a big lockstep change with userspace OR
+adding a new interface, just because of the "keeping compat" fun.
 
---=20
-"Los honestos son inadaptados sociales" -- Les Luthiers
+> adding new features in this area. There's still *a lot* of old
+> cruft that could probably be removed.
+
+Modules ripe for removal is just the smaller piece.
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
