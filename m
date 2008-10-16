@@ -1,73 +1,48 @@
-From: Jesper Bengtsson <jesper.bengtsson@axis.com>
-Subject: RE: [PATCH] Fix ERROR target on CRIS
-Date: Thu, 16 Oct 2008 13:28:13 +0200
-Message-ID: <A612847CFE53224C91B23E3A5B48BAC73889B08E4C@xmail3.se.axis.com>
-References: <alpine.LNX.1.10.0810151544580.10924@fbirervta.pbzchgretzou.qr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: fix arptable_filter wrong hook registering
+Date: Thu, 16 Oct 2008 13:52:21 +0200
+Message-ID: <48F72AF5.5060000@netfilter.org>
+References: <20081016012451.6126.34071.stgit@Decadence> <alpine.LNX.1.10.0810152126380.28060@fbirervta.pbzchgretzou.qr> <48F69EF2.5000104@netfilter.org> <alpine.LNX.1.10.0810152201290.28060@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: "'Jan Engelhardt'" <jengelh@medozas.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from miranda.se.axis.com ([193.13.178.8]:54024 "EHLO
-	miranda.se.axis.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752578AbYJPL2S convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Oct 2008 07:28:18 -0400
-In-Reply-To: <alpine.LNX.1.10.0810151544580.10924@fbirervta.pbzchgretzou.qr>
-Content-Language: en-US
+Received: from mail.us.es ([193.147.175.20]:44019 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754762AbYJPLw1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Oct 2008 07:52:27 -0400
+In-Reply-To: <alpine.LNX.1.10.0810152201290.28060@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Jan Engelhardt wrote:
+>>> Perhaps the following helps?
+>> Yes, your patch will also work, but it introduces an inconsistency in
+>> the naming used to register hooks in the family field.
+> 
+> No, not really. Netfilter Hooks are supposed to register with
+> 	.pf = NFPROTO_FOO
+> instead of
+> 	.pf = PF_FOO
+> because the nf_hooks list itself is indexed by nfproto numbers,
+> not PF numbers:
+> 
+> struct list_head nf_hooks[NFPROTO_NUMPROTO][NF_MAX_HOOKS] __read_mostly; 
+> 
+> (The fact that there's still PF_ in the source is merely historical,
+> and as you see, PF_foo == NFPROTO_foo for that exact reason.)
 
-> >This patch corrects a problem with adding ERROR targets on
-> architectures that don't align data structues, e.g. CRIS.
-> >
-> >Signed-off-by: Jesper Bengtsson <jesper.bengtsson@axis.com>
-> >---
-> >Index: linux-2.6/include/linux/netfilter_ipv4/ip_tables.h
-> >===================================================================
-> >RCS file:
-> /usr/local/cvs/linux/os/linux-2.6/include/linux/netfilter_ipv4
-> /ip_tables.h,v
-> >retrieving revision 1.19
-> >diff -b -u -p -r1.19 ip_tables.h
-> >--- linux-2.6/include/linux/netfilter_ipv4/ip_tables.h 21
-> Aug 2008 08:40:42 -0000 1.19
-> >+++ linux-2.6/include/linux/netfilter_ipv4/ip_tables.h 15
-> Oct 2008 12:55:31 -0000
-> >@@ -259,7 +259,7 @@ struct ipt_standard
-> > struct ipt_error_target
-> > {
-> >  struct ipt_entry_target target;
-> >- char errorname[IPT_FUNCTION_MAXNAMELEN];
-> >+ char errorname[IPT_TABLE_MAXNAMELEN];
+This makes sense, but then I think that a cleanup for all the NF_HOOK
+calls in the net code to use NFPROTO_* instead of the family would be
+interesting for consistency.
 
-First, my patch description was a bit incomplete. Sorry.
-Here's a better description (I hope...).
+BTW, I think that the last chunk of your patch should be a different one
+since it fixes NFQUEUE for arptables.
 
-The ipt_error_target structure is defined in both user space (iptables) and kernel space.
-The problem is that the member 'errorname' has different length in the two definitions.
-Iptables: char error[TABLE_MAXNAMELEN]; which is 32 bytes.
-Kernel: char errorname[IPT_FUNCTION_MAXNAMELEN]; which is 30 bytes.
+I don't mind about using your patch or mine, both works. Let's fix it,
+that's all. Patrick, I leave this up to you.
 
-When trying to add an ERROR target, using iptables, the kernel will discard the request since the length doesn't match the kernel's error target. This problem doesn't show on an architecture that aligns data since the iptabels and kernel structures will have the same size.
-
-I choose to change the kernel definition based on Patrick McHardy's suggestion:
-http://marc.info/?l=netfilter-devel&m=122398633329014&w=2
-
-
-> Resolve the indirect macro - use XT_TABLE_MAXNAMELEN.
-Why not use the macro? The other structures defined in this file is using the macro. Shall those definitions also be changed?
-
-> Fix up IPv6 too?
-The corresponding ip6t_error_target structure definition is identical in iptables and kernel as far as I can tell.
-
-> This looks not quite right to me though it is of course one way
-> to achieve to goal.. How about this?:
->
->         char errorname[XT_ALIGN(XT_FUNCTION_MAXNAMELEN)]
-The XT_ALIGN macro won't do any difference on the CRIS architecture since it's using 1 byte alignment.
-
-Best regards,
-Jesper
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
