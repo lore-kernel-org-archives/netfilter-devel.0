@@ -1,53 +1,49 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Writing NF modules  October2008 edition
-Date: Thu, 16 Oct 2008 13:56:40 +0200
-Message-ID: <48F72BF8.7000601@trash.net>
-References: <alpine.LNX.1.10.0810152210240.28060@fbirervta.pbzchgretzou.qr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: fix arptable_filter wrong hook registering
+Date: Thu, 16 Oct 2008 13:56:24 +0200
+Message-ID: <48F72BE8.80602@netfilter.org>
+References: <20081016012451.6126.34071.stgit@Decadence> <alpine.LNX.1.10.0810152126380.28060@fbirervta.pbzchgretzou.qr> <48F69EF2.5000104@netfilter.org> <alpine.LNX.1.10.0810152201290.28060@fbirervta.pbzchgretzou.qr> <48F72B07.1040706@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:64435 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755714AbYJPL4o (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Oct 2008 07:56:44 -0400
-In-Reply-To: <alpine.LNX.1.10.0810152210240.28060@fbirervta.pbzchgretzou.qr>
+Received: from mail.us.es ([193.147.175.20]:45041 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755654AbYJPL4a (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Oct 2008 07:56:30 -0400
+In-Reply-To: <48F72B07.1040706@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> I have updated the e-book =E2=80=9CWriting your own Netfilter modules=
-=E2=80=9D to this=20
-> October's version. What's new? Featurewise, the API changes that have=
-=20
-> gone into net-next-2.6.28 are now mentioned. The work is now availabl=
-e=20
-> under CC 3 too, with some extra clauses that have been suggested duri=
-ng=20
-> talking to you at NFWS.
->=20
-> http://jengelh.medozas.de/documents/Netfilter_Modules.pdf
-> (.lyx for source)
->=20
-> I would like interested parties and coreteam to give a glance over th=
-is=20
-> for any comments, formatting errors, spellos or disagreements with th=
-e=20
-> statements provided in the book. Especially section 5.6/5.7 is missin=
-g=20
-> checksumming which has been a hard brick even for me.
+Patrick McHardy wrote:
+> Jan Engelhardt wrote:
+>> On Wednesday 2008-10-15 21:54, Pablo Neira Ayuso wrote:
+>>
+>>>> Perhaps the following helps?
+>>> Yes, your patch will also work, but it introduces an inconsistency in
+>>> the naming used to register hooks in the family field.
+>>
+>> No, not really. Netfilter Hooks are supposed to register with
+>>     .pf = NFPROTO_FOO
+>> instead of
+>>     .pf = PF_FOO
+>> because the nf_hooks list itself is indexed by nfproto numbers,
+>> not PF numbers:
+>>
+>> struct list_head nf_hooks[NFPROTO_NUMPROTO][NF_MAX_HOOKS] __read_mostly;
+>> (The fact that there's still PF_ in the source is merely historical,
+>> and as you see, PF_foo == NFPROTO_foo for that exact reason.)
+> 
+> I agree with Jan on this one, there doesn't seem to be a reason for
+> not using the NFPROTO constants consistently.
 
-=46eel free to pose specific questions, but I'm afraid I currently
-don't have time to review this.
+OK, then I think that it would make sense a minor cleanup for all the
+NF_HOOK to use NFPROTO_*? We can do this later.
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+BTW, why are we using NFPROTO_ARP to 3? Just a convention I guess.
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
