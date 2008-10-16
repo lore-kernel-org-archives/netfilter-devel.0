@@ -1,75 +1,104 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH] netfilter: fix arptable_filter wrong hook registering
-Date: Thu, 16 Oct 2008 03:24:52 +0200
-Message-ID: <20081016012451.6126.34071.stgit@Decadence>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH] netfilter: fix arptable_filter wrong hook registering
+Date: Wed, 15 Oct 2008 21:41:39 -0400 (EDT)
+Message-ID: <alpine.LNX.1.10.0810152126380.28060@fbirervta.pbzchgretzou.qr>
+References: <20081016012451.6126.34071.stgit@Decadence>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:49548 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753156AbYJPBY7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Oct 2008 21:24:59 -0400
+Received: from sovereign.computergmbh.de ([85.214.69.204]:53222 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753408AbYJPBlm (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 15 Oct 2008 21:41:42 -0400
+In-Reply-To: <20081016012451.6126.34071.stgit@Decadence>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch replaces NFPROTO_ARP by NF_ARP in the hooks registered
-by arptable_filter, otherwise the arptables tool does not work.
-Thus, we use NF_ARP to register ARP hooks to match the NF_HOOK
-invocation in net/ipv4/arp.c and NFPROTO_ARP for internal xtables
-handling, ie. matches, targets and tables.
 
-This patch also fixes the ARP mangling in the ipt_CLUSTERIP target.
+On Wednesday 2008-10-15 21:24, Pablo Neira Ayuso wrote:
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+>This patch replaces NFPROTO_ARP by NF_ARP in the hooks registered
+>by arptable_filter, otherwise the arptables tool does not work.
+>Thus, we use NF_ARP to register ARP hooks to match the NF_HOOK
+>invocation in net/ipv4/arp.c and NFPROTO_ARP for internal xtables
+>handling, ie. matches, targets and tables.
+
+This does not fly. You are essentially trying to register
+arpt_in_hook for NFPROTO_UNSPEC, since NF_ARP == 0, and
+0 == NFPROTO_UNSPEC.
+
+
+Define "does not work". Do you mean arptables sees no packets?
+Perhaps the following helps?
+
+
+commit 60318cc486d15253b5ffc39b662a329f7e8f73b4
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Wed Oct 15 21:31:21 2008 -0400
+
+netfilter: replace old NF_ARP calls with NFPROTO_ARP
+
+(Supplements: ee999d8b9573df1b547aacdc6d79f86eb79c25cd)
+
+NFPROTO_ARP actually has a different value from NF_ARP, so ensure all
+callers use the new value so that packets _do_ get delivered to the
+registered hooks.
+
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
+ net/bridge/br_netfilter.c  |    2 +-
+ net/ipv4/arp.c             |    4 ++--
+ net/netfilter/xt_NFQUEUE.c |    2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
 
- net/ipv4/netfilter/arptable_filter.c |    6 +++---
- net/ipv4/netfilter/ipt_CLUSTERIP.c   |    2 +-
- 2 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/net/ipv4/netfilter/arptable_filter.c b/net/ipv4/netfilter/arptable_filter.c
-index bee3d11..984d05d 100644
---- a/net/ipv4/netfilter/arptable_filter.c
-+++ b/net/ipv4/netfilter/arptable_filter.c
-@@ -89,21 +89,21 @@ static struct nf_hook_ops arpt_ops[] __read_mostly = {
- 	{
- 		.hook		= arpt_in_hook,
- 		.owner		= THIS_MODULE,
--		.pf		= NFPROTO_ARP,
-+		.pf		= NF_ARP,
- 		.hooknum	= NF_ARP_IN,
- 		.priority	= NF_IP_PRI_FILTER,
- 	},
- 	{
- 		.hook		= arpt_out_hook,
- 		.owner		= THIS_MODULE,
--		.pf		= NFPROTO_ARP,
-+		.pf		= NF_ARP,
- 		.hooknum	= NF_ARP_OUT,
- 		.priority	= NF_IP_PRI_FILTER,
- 	},
- 	{
- 		.hook		= arpt_forward_hook,
- 		.owner		= THIS_MODULE,
--		.pf		= NFPROTO_ARP,
-+		.pf		= NF_ARP,
- 		.hooknum	= NF_ARP_FORWARD,
- 		.priority	= NF_IP_PRI_FILTER,
- 	},
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index 7ac1677..af8b1bb 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -541,7 +541,7 @@ arp_mangle(unsigned int hook,
+diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
+index a4abed5..fa5cda4 100644
+--- a/net/bridge/br_netfilter.c
++++ b/net/bridge/br_netfilter.c
+@@ -719,7 +719,7 @@ static unsigned int br_nf_forward_arp(unsigned int hook, struct sk_buff *skb,
+ 		return NF_ACCEPT;
+ 	}
+ 	*d = (struct net_device *)in;
+-	NF_HOOK(NF_ARP, NF_ARP_FORWARD, skb, (struct net_device *)in,
++	NF_HOOK(NFPROTO_ARP, NF_ARP_FORWARD, skb, (struct net_device *)in,
+ 		(struct net_device *)out, br_nf_forward_finish);
  
- static struct nf_hook_ops cip_arp_ops __read_mostly = {
- 	.hook = arp_mangle,
--	.pf = NFPROTO_ARP,
-+	.pf = NF_ARP,
- 	.hooknum = NF_ARP_OUT,
- 	.priority = -1
- };
-
+ 	return NF_STOLEN;
+diff --git a/net/ipv4/arp.c b/net/ipv4/arp.c
+index b043eda..1a9dd66 100644
+--- a/net/ipv4/arp.c
++++ b/net/ipv4/arp.c
+@@ -663,7 +663,7 @@ out:
+ void arp_xmit(struct sk_buff *skb)
+ {
+ 	/* Send it off, maybe filter it using firewalling first.  */
+-	NF_HOOK(NF_ARP, NF_ARP_OUT, skb, NULL, skb->dev, dev_queue_xmit);
++	NF_HOOK(NFPROTO_ARP, NF_ARP_OUT, skb, NULL, skb->dev, dev_queue_xmit);
+ }
+ 
+ /*
+@@ -928,7 +928,7 @@ static int arp_rcv(struct sk_buff *skb, struct net_device *dev,
+ 
+ 	memset(NEIGH_CB(skb), 0, sizeof(struct neighbour_cb));
+ 
+-	return NF_HOOK(NF_ARP, NF_ARP_IN, skb, dev, NULL, arp_process);
++	return NF_HOOK(NFPROTO_ARP, NF_ARP_IN, skb, dev, NULL, arp_process);
+ 
+ freeskb:
+ 	kfree_skb(skb);
+diff --git a/net/netfilter/xt_NFQUEUE.c b/net/netfilter/xt_NFQUEUE.c
+index 2cc1fff..f9977b3 100644
+--- a/net/netfilter/xt_NFQUEUE.c
++++ b/net/netfilter/xt_NFQUEUE.c
+@@ -48,7 +48,7 @@ static struct xt_target nfqueue_tg_reg[] __read_mostly = {
+ 	},
+ 	{
+ 		.name		= "NFQUEUE",
+-		.family		= NF_ARP,
++		.family		= NFPROTO_ARP,
+ 		.target		= nfqueue_tg,
+ 		.targetsize	= sizeof(struct xt_NFQ_info),
+ 		.me		= THIS_MODULE,
