@@ -1,42 +1,46 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: fix arptable_filter wrong hook registering
-Date: Thu, 16 Oct 2008 13:52:39 +0200
-Message-ID: <48F72B07.1040706@trash.net>
-References: <20081016012451.6126.34071.stgit@Decadence> <alpine.LNX.1.10.0810152126380.28060@fbirervta.pbzchgretzou.qr> <48F69EF2.5000104@netfilter.org> <alpine.LNX.1.10.0810152201290.28060@fbirervta.pbzchgretzou.qr>
+Subject: Re: arptables and the generic xtables issues
+Date: Thu, 16 Oct 2008 13:55:37 +0200
+Message-ID: <48F72BB9.40207@trash.net>
+References: <48F69C2A.8010001@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:64326 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:64414 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756788AbYJPLwp (ORCPT
+	with ESMTP id S1753465AbYJPLzl (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Oct 2008 07:52:45 -0400
-In-Reply-To: <alpine.LNX.1.10.0810152201290.28060@fbirervta.pbzchgretzou.qr>
+	Thu, 16 Oct 2008 07:55:41 -0400
+In-Reply-To: <48F69C2A.8010001@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Wednesday 2008-10-15 21:54, Pablo Neira Ayuso wrote:
+Pablo Neira Ayuso wrote:
+> Hi,
 > 
->>> Perhaps the following helps?
->> Yes, your patch will also work, but it introduces an inconsistency in
->> the naming used to register hooks in the family field.
+> Currently, we have tagged quite a lot of targets and matches with
+> AF_UNSPEC as they are generic for the netfilter supported protocols.
+> This is fine if we only think of ebtables, iptables and ip6tables but
+> not for arptables, I doubt that all those target and matches can work
+> with arptables - even if we still need the userspace support, of course.
 > 
-> No, not really. Netfilter Hooks are supposed to register with
-> 	.pf = NFPROTO_FOO
-> instead of
-> 	.pf = PF_FOO
-> because the nf_hooks list itself is indexed by nfproto numbers,
-> not PF numbers:
-> 
-> struct list_head nf_hooks[NFPROTO_NUMPROTO][NF_MAX_HOOKS] __read_mostly; 
-> 
-> (The fact that there's still PF_ in the source is merely historical,
-> and as you see, PF_foo == NFPROTO_foo for that exact reason.)
+> I think that we should fix those, right?
 
-I agree with Jan on this one, there doesn't seem to be a reason for
-not using the NFPROTO constants consistently.
+Looking through the list (targets only, arp_tables doesn't support
+matches):
+
+- CLASSIFY: OK
+- comment: OK
+- CONNMARK/CONNSECMARK: no effect
+- MARK: OK
+- NFLOG: OK
+- NOTRACK: no effect
+- RATEEST: should be OK
+- SECMARK: OK
+- TRACE: OK, but currently no effect
+
+So I don't think there really is a problem.
