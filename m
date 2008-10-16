@@ -1,63 +1,51 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: arptables and the generic xtables issues
-Date: Thu, 16 Oct 2008 13:19:23 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0810161300210.31082@fbirervta.pbzchgretzou.qr>
-References: <48F69C2A.8010001@netfilter.org> <alpine.LNX.1.10.0810152151070.28060@fbirervta.pbzchgretzou.qr> <48F7405A.2050302@trash.net>
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: Re: [PATCH 1/7] netns ebtables: part 1
+Date: Thu, 16 Oct 2008 23:39:55 +0400
+Message-ID: <20081016193955.GA26245@x200.localdomain>
+References: <20081015042014.GE24058@x200.localdomain> <48F73DA3.1030401@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:49132 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754660AbYJPRTZ (ORCPT
+Received: from nf-out-0910.google.com ([64.233.182.190]:7012 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752258AbYJPTgy (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Oct 2008 13:19:25 -0400
-In-Reply-To: <48F7405A.2050302@trash.net>
+	Thu, 16 Oct 2008 15:36:54 -0400
+Received: by nf-out-0910.google.com with SMTP id d3so113754nfc.21
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Oct 2008 12:36:53 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <48F73DA3.1030401@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-On Thursday 2008-10-16 09:23, Patrick McHardy wrote:
-> Jan Engelhardt wrote:
->> On Wednesday 2008-10-15 21:43, Pablo Neira Ayuso wrote:
->> > Currently, we have tagged quite a lot of targets and matches with
->> > AF_UNSPEC as they are generic for the netfilter supported protocol=
-s.
->> > This is fine if we only think of ebtables, iptables and ip6tables =
-but
->> > not for arptables, I doubt that all those target and matches can w=
-ork
->> > with arptables - even if we still need the userspace support, of c=
-ourse.
->> >
->> > I think that we should fix those, right?
->>=20
->> That would be a tremendous amount of work, given that arptables (and
->> ebtables too) is not quite the same codebase as iptables anymore.
->> Most of the iptables development just went by arp and ebtables due
->> to the nature of all these semiforks.
->>=20
->> I think we should rather focus on a truly family-independent table
->> in the very near future. In fact I have ideas floating around that,
->> but am stuck with how I'd exactly funnel it into reviewable patch
->> chunks.
+On Thu, Oct 16, 2008 at 03:12:03PM +0200, Patrick McHardy wrote:
+> Alexey Dobriyan wrote:
+>> One needs to add ".netns_ok = 1" to igmp_protocol to test all of this
+>> with ebtables() in netns.
+>> -------------------------------------------------
+>> [PATCH 1/7] netns ebtables: part 1
+>>
+>> * make list of ebt_tables per-netns
+>> * propagate netns from userspace, register table in passed netns
+>> * temporarily register every ebt_table in init_net
 >
-> I think we should finish the unification/resyncing efforts before
+> I'm not queuing patches for 2.6.29 yet, please resend the entire
+> batch once Dave opens his net-next tree again.
+>
+>> --- a/include/net/netns/x_tables.h
+>> +++ b/include/net/netns/x_tables.h
+>> @@ -6,5 +6,6 @@
+>>   struct netns_xt {
+>>  	struct list_head tables[NPROTO];
+>> +	struct list_head ebt_tables;
+>
+> This could just use tables[NFPROTO_BRIDGE].
 
-Yesyesyes, but I think we reached a point where the next step in
-Improving It=E2=84=A2 requires a big lockstep change with userspace OR
-adding a new interface, just because of the "keeping compat" fun.
+Good!
 
-> adding new features in this area. There's still *a lot* of old
-> cruft that could probably be removed.
+[drops some code]
 
-Modules ripe for removal is just the smaller piece.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I do wonder why these new numbers a) contain holes and b) exported in
+headers.
