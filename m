@@ -1,46 +1,53 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: arptables and the generic xtables issues
-Date: Thu, 16 Oct 2008 13:55:37 +0200
-Message-ID: <48F72BB9.40207@trash.net>
-References: <48F69C2A.8010001@netfilter.org>
+Subject: Re: Writing NF modules  October2008 edition
+Date: Thu, 16 Oct 2008 13:56:40 +0200
+Message-ID: <48F72BF8.7000601@trash.net>
+References: <alpine.LNX.1.10.0810152210240.28060@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Developer Mailing List
 	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:64414 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:64435 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753465AbYJPLzl (ORCPT
+	with ESMTP id S1755714AbYJPL4o (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Oct 2008 07:55:41 -0400
-In-Reply-To: <48F69C2A.8010001@netfilter.org>
+	Thu, 16 Oct 2008 07:56:44 -0400
+In-Reply-To: <alpine.LNX.1.10.0810152210240.28060@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> Hi,
-> 
-> Currently, we have tagged quite a lot of targets and matches with
-> AF_UNSPEC as they are generic for the netfilter supported protocols.
-> This is fine if we only think of ebtables, iptables and ip6tables but
-> not for arptables, I doubt that all those target and matches can work
-> with arptables - even if we still need the userspace support, of course.
-> 
-> I think that we should fix those, right?
+Jan Engelhardt wrote:
+> I have updated the e-book =E2=80=9CWriting your own Netfilter modules=
+=E2=80=9D to this=20
+> October's version. What's new? Featurewise, the API changes that have=
+=20
+> gone into net-next-2.6.28 are now mentioned. The work is now availabl=
+e=20
+> under CC 3 too, with some extra clauses that have been suggested duri=
+ng=20
+> talking to you at NFWS.
+>=20
+> http://jengelh.medozas.de/documents/Netfilter_Modules.pdf
+> (.lyx for source)
+>=20
+> I would like interested parties and coreteam to give a glance over th=
+is=20
+> for any comments, formatting errors, spellos or disagreements with th=
+e=20
+> statements provided in the book. Especially section 5.6/5.7 is missin=
+g=20
+> checksumming which has been a hard brick even for me.
 
-Looking through the list (targets only, arp_tables doesn't support
-matches):
+=46eel free to pose specific questions, but I'm afraid I currently
+don't have time to review this.
 
-- CLASSIFY: OK
-- comment: OK
-- CONNMARK/CONNSECMARK: no effect
-- MARK: OK
-- NFLOG: OK
-- NOTRACK: no effect
-- RATEEST: should be OK
-- SECMARK: OK
-- TRACE: OK, but currently no effect
-
-So I don't think there really is a problem.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
