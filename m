@@ -1,41 +1,73 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Writing NF modules  October2008 edition
-Date: Wed, 15 Oct 2008 22:47:39 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0810152210240.28060@fbirervta.pbzchgretzou.qr>
+From: Jesper Bengtsson <jesper.bengtsson@axis.com>
+Subject: RE: [PATCH] Fix ERROR target on CRIS
+Date: Thu, 16 Oct 2008 13:28:13 +0200
+Message-ID: <A612847CFE53224C91B23E3A5B48BAC73889B08E4C@xmail3.se.axis.com>
+References: <alpine.LNX.1.10.0810151544580.10924@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, kaber@trash.net
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: "'Jan Engelhardt'" <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:42425 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753587AbYJPCrn (ORCPT
+Received: from miranda.se.axis.com ([193.13.178.8]:54024 "EHLO
+	miranda.se.axis.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752578AbYJPL2S convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Oct 2008 22:47:43 -0400
+	Thu, 16 Oct 2008 07:28:18 -0400
+In-Reply-To: <alpine.LNX.1.10.0810151544580.10924@fbirervta.pbzchgretzou.qr>
+Content-Language: en-US
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-I have updated the e-book =E2=80=9CWriting your own Netfilter modules=E2=
-=80=9D to this=20
-October's version. What's new? Featurewise, the API changes that have=20
-gone into net-next-2.6.28 are now mentioned. The work is now available=20
-under CC=C2=A03 too, with some extra clauses that have been suggested d=
-uring=20
-talking to you at NFWS.
+> >This patch corrects a problem with adding ERROR targets on
+> architectures that don't align data structues, e.g. CRIS.
+> >
+> >Signed-off-by: Jesper Bengtsson <jesper.bengtsson@axis.com>
+> >---
+> >Index: linux-2.6/include/linux/netfilter_ipv4/ip_tables.h
+> >===================================================================
+> >RCS file:
+> /usr/local/cvs/linux/os/linux-2.6/include/linux/netfilter_ipv4
+> /ip_tables.h,v
+> >retrieving revision 1.19
+> >diff -b -u -p -r1.19 ip_tables.h
+> >--- linux-2.6/include/linux/netfilter_ipv4/ip_tables.h 21
+> Aug 2008 08:40:42 -0000 1.19
+> >+++ linux-2.6/include/linux/netfilter_ipv4/ip_tables.h 15
+> Oct 2008 12:55:31 -0000
+> >@@ -259,7 +259,7 @@ struct ipt_standard
+> > struct ipt_error_target
+> > {
+> >  struct ipt_entry_target target;
+> >- char errorname[IPT_FUNCTION_MAXNAMELEN];
+> >+ char errorname[IPT_TABLE_MAXNAMELEN];
 
-http://jengelh.medozas.de/documents/Netfilter_Modules.pdf
-(.lyx for source)
+First, my patch description was a bit incomplete. Sorry.
+Here's a better description (I hope...).
 
-I would like interested parties and coreteam to give a glance over this=
-=20
-for any comments, formatting errors, spellos or disagreements with the=20
-statements provided in the book. Especially section 5.6/5.7 is missing=20
-checksumming which has been a hard brick even for me.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The ipt_error_target structure is defined in both user space (iptables) and kernel space.
+The problem is that the member 'errorname' has different length in the two definitions.
+Iptables: char error[TABLE_MAXNAMELEN]; which is 32 bytes.
+Kernel: char errorname[IPT_FUNCTION_MAXNAMELEN]; which is 30 bytes.
+
+When trying to add an ERROR target, using iptables, the kernel will discard the request since the length doesn't match the kernel's error target. This problem doesn't show on an architecture that aligns data since the iptabels and kernel structures will have the same size.
+
+I choose to change the kernel definition based on Patrick McHardy's suggestion:
+http://marc.info/?l=netfilter-devel&m=122398633329014&w=2
+
+
+> Resolve the indirect macro - use XT_TABLE_MAXNAMELEN.
+Why not use the macro? The other structures defined in this file is using the macro. Shall those definitions also be changed?
+
+> Fix up IPv6 too?
+The corresponding ip6t_error_target structure definition is identical in iptables and kernel as far as I can tell.
+
+> This looks not quite right to me though it is of course one way
+> to achieve to goal.. How about this?:
+>
+>         char errorname[XT_ALIGN(XT_FUNCTION_MAXNAMELEN)]
+The XT_ALIGN macro won't do any difference on the CRIS architecture since it's using 1 byte alignment.
+
+Best regards,
+Jesper
