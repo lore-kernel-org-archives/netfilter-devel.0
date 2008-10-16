@@ -1,51 +1,69 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: RE: [PATCH] Fix ERROR target on CRIS
-Date: Thu, 16 Oct 2008 12:12:48 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0810161208130.31082@fbirervta.pbzchgretzou.qr>
-References: <A612847CFE53224C91B23E3A5B48BAC73889B08E4C@xmail3.se.axis.com>
+Subject: Re: Writing NF modules  October2008 edition
+Date: Thu, 16 Oct 2008 12:54:58 -0400 (EDT)
+Message-ID: <alpine.LNX.1.10.0810161213220.31082@fbirervta.pbzchgretzou.qr>
+References: <alpine.LNX.1.10.0810152210240.28060@fbirervta.pbzchgretzou.qr> <48F72E44.1030905@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Jesper Bengtsson <jesper.bengtsson@axis.com>
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, kaber@trash.net
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:41016 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:37566 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751130AbYJPQMu (ORCPT
+	with ESMTP id S1751004AbYJPQzA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Oct 2008 12:12:50 -0400
-In-Reply-To: <A612847CFE53224C91B23E3A5B48BAC73889B08E4C@xmail3.se.axis.com>
+	Thu, 16 Oct 2008 12:55:00 -0400
+In-Reply-To: <48F72E44.1030905@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Thursday 2008-10-16 07:28, Jesper Bengtsson wrote:
+On Thursday 2008-10-16 08:06, Pablo Neira Ayuso wrote:
+>Jan Engelhardt wrote:
+>> I have updated the e-book =E2=80=9CWriting your own Netfilter module=
+s=E2=80=9D to this=20
+>> October's version. What's new? Featurewise, the API changes that hav=
+e=20
+>> gone into net-next-2.6.28 are now mentioned. The work is now availab=
+le=20
+>> under CC 3 too, with some extra clauses that have been suggested dur=
+ing=20
+>> talking to you at NFWS.
+>>=20
+>> http://jengelh.medozas.de/documents/Netfilter_Modules.pdf
+>> (.lyx for source)
+>>=20
+>> I would like interested parties and coreteam to give a glance over t=
+his=20
+>> for any comments, formatting errors, spellos or disagreements with t=
+he=20
+>> statements provided in the book. Especially section 5.6/5.7 is missi=
+ng=20
+>> checksumming which has been a hard brick even for me.
 >
->The ipt_error_target structure is defined in both user space (iptables) 
->and kernel space. The problem is that the member 'errorname' has 
->different length in the two definitions. Iptables: char 
->error[TABLE_MAXNAMELEN]; which is 32 bytes. Kernel: char 
->errorname[IPT_FUNCTION_MAXNAMELEN]; which is 30 bytes.
-
-Oh :/  I had assumed that userspace uses IPT_FUNCTION_MAXNAMELEN too, 
-but *aligned it* to a boundary of at least 2, since there was a recent 
-report that ARM also had strange alignments in a way such that alignment 
-in userspace was different than alignment in the kernel:
-http://marc.info/?l=netfilter-devel&m=122309437709848&w=2
-
-
-But!
-
-12:11 nuqneh:~/Coding/iptables > grep -r '\b'TABLE_MAXNAME .
-./libiptc/libip4tc.c:#define TABLE_MAXNAMELEN   IPT_TABLE_MAXNAMELEN
-./libiptc/libip6tc.c:#define TABLE_MAXNAMELEN   IP6T_TABLE_MAXNAMELEN
-
-So TABLE_MAXNAMELEN seems to be the same as IPT_TABLE_MAXNAMELEN, so 
-TABLE_MAXNAMELEN too is 30, is not it?
-
-
->> Resolve the indirect macro - use XT_TABLE_MAXNAMELEN.
+>Thank you Jan, this is a nice effort since we lack of updated document=
+ation.
 >
->Why not use the macro?
+>BTW, just one suggestion in terms of licensing. Why not use FDL instea=
+d
+>for licensing? Debian cannot distribute this documentation, in case th=
+at
+>they want to, with the current license AFAIK. Well, licensing is
+>something personal, I'm also fine with CC in any case.
 
-I meant: use XT_TABLE_MAXNAMELEN over IPT_TABLE_MAXNAMELEN,
-since the latter is just a redirect.
+Too bad for Debian, but the NC clause I consider elementary. And I do=20
+not see how that interferes with commercial use=C2=A0=E2=80=94 remember=
+ Walnut Creek=20
+CDROM (cdrom.com).
+
+But it seems like Debian does not the GFDL so much either=C2=A0=E2=80=94=
+ first=20
+paragraph of =E2=80=9CCriticism of the GFDL=E2=80=9D on=20
+http://en.wikipedia.org/wiki/GFDL
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
