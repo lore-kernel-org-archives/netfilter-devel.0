@@ -1,48 +1,76 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: netfilter: use NFPROTO_* constants in NF_HOOK callsites
-Date: Sun, 19 Oct 2008 14:46:34 +0200
-Message-ID: <48FB2C2A.4010209@netfilter.org>
-References: <20081016012451.6126.34071.stgit@Decadence> <alpine.LNX.1.10.0810152126380.28060@fbirervta.pbzchgretzou.qr> <48F69EF2.5000104@netfilter.org> <alpine.LNX.1.10.0810152201290.28060@fbirervta.pbzchgretzou.qr> <48F72B07.1040706@trash.net> <48F72BE8.80602@netfilter.org> <alpine.LNX.1.10.0810170948050.30268@fbirervta.pbzchgretzou.qr> <alpine.LNX.1.10.0810171043520.30268@fbirervta.pbzchgretzou.qr> <48FA0B19.4030300@trash.net> <alpine.LNX.1.10.0810181519520.27947@fbirervta.pbzchgretzou.qr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+From: Patrick McHardy <kaber@trash.net>
+Subject: netfilter 05/07: xt_recent: use proc_create_data()
+Date: Mon, 20 Oct 2008 11:54:15 +0200 (MEST)
+Message-ID: <20081020095415.25670.57830.sendpatchset@x2.localnet>
+References: <20081020095408.25670.37455.sendpatchset@x2.localnet>
+Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34730 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751735AbYJSMrv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 19 Oct 2008 08:47:51 -0400
-In-Reply-To: <alpine.LNX.1.10.0810181519520.27947@fbirervta.pbzchgretzou.qr>
+Received: from stinky.trash.net ([213.144.137.162]:52354 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751502AbYJTJyQ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 20 Oct 2008 05:54:16 -0400
+In-Reply-To: <20081020095408.25670.37455.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Saturday 2008-10-18 12:13, Patrick McHardy wrote:
-> 
->> Jan Engelhardt wrote:
->>> commit cc3e81cbbc8a6977cfe614286de16020f9efa3c6
->>> Author: Jan Engelhardt <jengelh@medozas.de>
->>> Date:   Fri Oct 17 10:02:30 2008 -0400
->>>
->>> netfilter: use NFPROTO_* constants in NF_HOOK callsites
->> This is missing arp, the only place that would qualify as bugfix.
->> Please resubmit and add a changelog that explains that is actually
->> fixes something.
-> 
-> I just did that! Or did you already delete the mail and
-> marc is down?
-> http://marc.info/?l=netfilter-devel&m=122412130603479&w=2
+commit 2b86e1165f44022907ab31293a22286b6d783254
+Author: Alexey Dobriyan <adobriyan@gmail.com>
+Date:   Sat Oct 18 15:20:57 2008 +0200
 
-I think that Patrick means that you have to merge both patches and
-include the changelog that *explicitly* states that this is not just a
-cleanup but a bugfix, otherwise it won't get into 2.6.27.
+    netfilter: xt_recent: use proc_create_data()
+    
+    Fixes a crash in recent_seq_start:
+    
+    BUG: unable to handle kernel NULL pointer dereference at 0000000000000100
+    IP: [<ffffffffa002119c>] recent_seq_start+0x4c/0x90 [xt_recent]
+    PGD 17d33c067 PUD 107afe067 PMD 0
+    Oops: 0000 [#1] PREEMPT SMP DEBUG_PAGEALLOC
+    CPU 0
+    Modules linked in: ipt_LOG xt_recent af_packet iptable_nat nf_nat nf_conntrack_ipv4 nf_conntrack nf_defrag_ipv4 xt_tcpudp iptable_filter ip_tables x_tables ext2 nls_utf8 fuse sr_mod cdrom [last unloaded: ntfs]
+    Pid: 32373, comm: cat Not tainted 2.6.27-04ab591808565f968d4406f6435090ad671ebdab #6
+    RIP: 0010:[<ffffffffa002119c>]  [<ffffffffa002119c>] recent_seq_start+0x4c/0x90 [xt_recent]
+    RSP: 0018:ffff88015fed7e28  EFLAGS: 00010246
+    ...
+    
+    Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-BTW, include the Reported-by tag. Ingo Molnar recently told us to do so
-in all of our patches. I don't care about credits but this is supposed
-to be "good practise" to encourage testers.
-
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
+index 4ebd4ca..280c471 100644
+--- a/net/netfilter/xt_recent.c
++++ b/net/netfilter/xt_recent.c
+@@ -318,15 +318,15 @@ static bool recent_mt_check(const struct xt_mtchk_param *par)
+ 	for (i = 0; i < ip_list_hash_size; i++)
+ 		INIT_LIST_HEAD(&t->iphash[i]);
+ #ifdef CONFIG_PROC_FS
+-	t->proc = proc_create(t->name, ip_list_perms, recent_proc_dir,
+-		  &recent_mt_fops);
++	t->proc = proc_create_data(t->name, ip_list_perms, recent_proc_dir,
++		  &recent_mt_fops, t);
+ 	if (t->proc == NULL) {
+ 		kfree(t);
+ 		goto out;
+ 	}
+ #ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
+-	t->proc_old = proc_create(t->name, ip_list_perms, proc_old_dir,
+-		      &recent_old_fops);
++	t->proc_old = proc_create_data(t->name, ip_list_perms, proc_old_dir,
++		      &recent_old_fops, t);
+ 	if (t->proc_old == NULL) {
+ 		remove_proc_entry(t->name, proc_old_dir);
+ 		kfree(t);
+@@ -334,11 +334,9 @@ static bool recent_mt_check(const struct xt_mtchk_param *par)
+ 	}
+ 	t->proc_old->uid   = ip_list_uid;
+ 	t->proc_old->gid   = ip_list_gid;
+-	t->proc_old->data  = t;
+ #endif
+ 	t->proc->uid       = ip_list_uid;
+ 	t->proc->gid       = ip_list_gid;
+-	t->proc->data      = t;
+ #endif
+ 	spin_lock_bh(&recent_lock);
+ 	list_add_tail(&t->list, &tables);
