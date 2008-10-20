@@ -1,35 +1,39 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: fix arptable_filter wrong hook registering
-Date: Mon, 20 Oct 2008 11:54:51 +0200
-Message-ID: <48FC556B.80609@trash.net>
-References: <20081016012451.6126.34071.stgit@Decadence> <alpine.LNX.1.10.0810152126380.28060@fbirervta.pbzchgretzou.qr>
+Subject: netfilter 04/07: snmp nat leaks memory in case of failure
+Date: Mon, 20 Oct 2008 11:54:13 +0200 (MEST)
+Message-ID: <20081020095413.25670.77921.sendpatchset@x2.localnet>
+References: <20081020095408.25670.37455.sendpatchset@x2.localnet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
 	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:52375 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751240AbYJTJyx (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 20 Oct 2008 05:54:53 -0400
-In-Reply-To: <alpine.LNX.1.10.0810152126380.28060@fbirervta.pbzchgretzou.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: davem@davemloft.net
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20081020095408.25670.37455.sendpatchset@x2.localnet>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> commit 60318cc486d15253b5ffc39b662a329f7e8f73b4
-> Author: Jan Engelhardt <jengelh@medozas.de>
-> Date:   Wed Oct 15 21:31:21 2008 -0400
-> 
-> netfilter: replace old NF_ARP calls with NFPROTO_ARP
-> 
-> (Supplements: ee999d8b9573df1b547aacdc6d79f86eb79c25cd)
-> 
-> NFPROTO_ARP actually has a different value from NF_ARP, so ensure all
-> callers use the new value so that packets _do_ get delivered to the
-> registered hooks
+commit f935265f6041e490715ec31c7f918b8c348b5b95
+Author: \"Ilpo Jarvinen\ <ilpo.jarvinen@helsinki.fi>
+Date:   Sat Oct 18 15:20:56 2008 +0200
 
-Applied, thanks.
+    netfilter: snmp nat leaks memory in case of failure
+   =20
+    Signed-off-by: Ilpo J=E4rvinen <ilpo.jarvinen@helsinki.fi>
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+diff --git a/net/ipv4/netfilter/nf_nat_snmp_basic.c b/net/ipv4/netfilte=
+r/nf_nat_snmp_basic.c
+index ffeaffc..8303e4b 100644
+--- a/net/ipv4/netfilter/nf_nat_snmp_basic.c
++++ b/net/ipv4/netfilter/nf_nat_snmp_basic.c
+@@ -742,6 +742,7 @@ static unsigned char snmp_object_decode(struct asn1=
+_ctx *ctx,
+ 			*obj =3D kmalloc(sizeof(struct snmp_object) + len,
+ 				       GFP_ATOMIC);
+ 			if (*obj =3D=3D NULL) {
++				kfree(p);
+ 				kfree(id);
+ 				if (net_ratelimit())
+ 					printk("OOM in bsalg (%d)\n", __LINE__);
