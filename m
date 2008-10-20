@@ -1,45 +1,45 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [ANNOUNCE] ipset 2.4 released
-Date: Mon, 20 Oct 2008 13:05:05 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0810201254190.23040@blackhole.kfki.hu>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [ULOGD2] basic patches
+Date: Mon, 20 Oct 2008 14:04:56 +0200
+Message-ID: <48FC73E8.7070008@netfilter.org>
+References: <1224064214-9074-1-git-send-email-chifflier@inl.fr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Pierre Chifflier <chifflier@inl.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:55310 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751568AbYJTLFH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 20 Oct 2008 07:05:07 -0400
+Received: from mail.us.es ([193.147.175.20]:49435 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751955AbYJTMFF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 20 Oct 2008 08:05:05 -0400
+In-Reply-To: <1224064214-9074-1-git-send-email-chifflier@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+Pierre Chifflier wrote:
+> Hi,
+> 
+> These patchset fix the following problems:
+> 
+> - We don't need to add constraints in the PostgreSQL table, the application
+>   already checks for port value. Constraints only slow down insertions.
+> 
+> - Finish the renaming of MAC2STR plugin to HWHDR
+> 
+> - Fix a potential segfault in HWHDR plugin, when mac is NULL (e.g when using
+>   ulogd2 on OUTPUT).
 
-I'm happy to announce ipset 2.4. The new release contains some bugfixes, 
-a compatibility fix for kernels >= 2.6.27 and three new set types:
+All applied. Thanks Pierre. BTW, next time, it would great if you can
+improve the log a bit to look like:
 
-- ipportiphash: you can store and match IP address, port number and
-  IP address triples in it, where the first IP address must come from
-  a /16 sized network or range.
-- ipportnethash: you can store and match IP address, port number
-  and network address triples in it, where the first IP address
-  must come from a /16 sized network or range.
-- setlist: other sets can be stored in a setlist type of set, it's like 
-  an ordered union of sets.
+-o-
+section: short description
 
-Check out the manpage for the full description of the new set types.
+Long description
 
-The binding feature is scheduled for removal in the next ipset release: 
-the functionality can be replaced by the new set types.
+Signed-off-by: Dorian Gray <dorian@wilde.org>
+-o-
 
-You can download the new version from the ipset homepage:
-
-	http://ipset.netfilter.org/
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
