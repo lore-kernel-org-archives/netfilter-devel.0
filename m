@@ -1,52 +1,69 @@
-From: Krzysztof Oledzki <ole@ans.pl>
-Subject: Re: [ANNOUNCE] ipset 2.4 released
-Date: Tue, 21 Oct 2008 23:32:52 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0810212328200.30799@bizon.gios.gov.pl>
-References: <Pine.LNX.4.64.0810201254190.23040@blackhole.kfki.hu> <alpine.LNX.1.10.0810212240190.30799@bizon.gios.gov.pl> <Pine.LNX.4.64.0810212300020.25236@blackhole.kfki.hu>
+From: =?UTF-8?B?SmnFmcOtIE1vcmF2ZWM=?= <jim.lkml@gmail.com>
+Subject: iptables-1.4.2: libxt_TOS.c compilation ending with error - IPPROTO_SCTP
+ redefined
+Date: Wed, 22 Oct 2008 00:01:20 +0200
+Message-ID: <48FE5130.1040609@gmail.com>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-1144830174-1464768849-1224624772=:30799"
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.0810212300020.25236@blackhole.kfki.hu>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp2.iwebs.cz ([78.156.136.15]:49253 "EHLO smtp2.iwebs.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751784AbYJUWBp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 21 Oct 2008 18:01:45 -0400
+Received: from [192.168.1.16] (unknown [78.156.136.66])
+	by smtp2.iwebs.cz (Postfix) with ESMTP id B7A6E44A19B
+	for <netfilter-devel@vger.kernel.org>; Tue, 21 Oct 2008 16:57:58 -0500 (CDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+When I compiled iptables-1.4.2 I get an error:
 
----1144830174-1464768849-1224624772=:30799
-Content-Type: TEXT/PLAIN; charset=iso-8859-2; format=flowed
-Content-Transfer-Encoding: 8BIT
+In file included from /usr/include/netinet/ip.h:25,
+                 from /usr/include/linux/ip.h:19,
+                 from tos_values.c:4,
+                 from libxt_TOS.c:15:
+/usr/include/netinet/in.h:84: error: expected identifier before numeric constant
+make[2]: *** [libxt_TOS.oo] Error 1
 
 
 
-On Tue, 21 Oct 2008, Jozsef Kadlecsik wrote:
+libxt_TOS.c:12
+#include <xtables.h>
+#include <linux/netfilter/xt_DSCP.h>
+#include <linux/netfilter_ipv4/ipt_TOS.h>
+#include "tos_values.c"
 
-> On Tue, 21 Oct 2008, Krzysztof Oledzki wrote:
->
->> # element separator token changed to ',' in anticipating IPv6 addresses, old
->> separator tokens are still supported
->>
->> # cat  aqq
->> -N aqq macipmap --from 1.2.3.1 --to 1.2.3.10
->> -A aqq 1.2.3.10,11:22:33:44:55:66
->> COMMIT
->>
->> # cat aqq|ipset -R
->> Warning: please replace old separator character ':22:33:44:55:66.1' with ','.
-                                                                    ~~
-Just one more note: this ".1" looks strange, is it intentionally? It comes
-from:
+/usr/include/xtables.h:10
+#ifndef IPPROTO_SCTP
+#define IPPROTO_SCTP 132
+#endif
 
-fprintf(stderr, "Warning: please replace old separator character '%s.1' with ','.\n"
- 		"Next release won't support it.\n",
- 	ptr);
+/usr/include/netinet/in.h:84 (through tos_values.c -> linux/ip.h -> netinet/ip.h)
+    IPPROTO_SCTP = 132,	   /* Stream Control Transmission Protocol.  */
+#define IPPROTO_SCTP		IPPROTO_SCTP
 
-Maybe insted of '%s.1' something like '%c' should be used here, to print 
-only one character - the deprecated separator?
 
-Best regards,
+On my gentoo box IPPROTO_SCTP is defined in /usr/include/netinet/in.h (from sys-libs/glibc-2.7 package)
+and in /usr/include/xtables.h (net-firewall/iptables-1.4.1.1 package) too (conditionally).
 
- 				Krzysztof Olêdzki
----1144830174-1464768849-1224624772=:30799--
+However, in libxt_TOS.c <xtables.h> preceded <netinet/in.h> and SCTP is already defined by <xtables.h>.
+So, definition in <netinet/in.h> ending with error, because line "IPPROTO_SCTP = 132", 
+is probably interpreted as "132 = 132"
+
+
+As a temporary workaround, I included <netinet/in.h> before <xtables.h>:
+--- iptables-1.4.2/extensions/libxt_TOS.c.old   2008-10-21 20:06:18.334809888 +0200
++++ iptables-1.4.2/extensions/libxt_TOS.c       2008-10-21 20:06:47.774810167 +0200
+@@ -9,6 +9,7 @@
+ #include <stdlib.h>
+ #include <string.h>
+
++#include <netinet/in.h>
+ #include <xtables.h>
+ #include <linux/netfilter/xt_DSCP.h>
+ #include <linux/netfilter_ipv4/ipt_TOS.h>
+---
+
+JiM
