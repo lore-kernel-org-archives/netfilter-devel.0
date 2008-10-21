@@ -1,128 +1,137 @@
-From: Victor Stinner <victor.stinner@inl.fr>
-Subject: iptables-save and ip6tables-save exit code with no tables
-Date: Tue, 21 Oct 2008 11:36:49 +0200
-Message-ID: <200810211136.49892.victor.stinner@inl.fr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [ANNOUNCE] conntrack-tools 0.9.8 released
+Date: Tue, 21 Oct 2008 21:25:25 +0200
+Message-ID: <48FE2CA5.3050004@netfilter.org>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_xKa/I0K6ADbE+iR"
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 141-53.206-83.static-ip.oleane.fr ([83.206.53.141]:38739 "EHLO
-	fydelkass.inl.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751862AbYJUKG2 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Oct 2008 06:06:28 -0400
-Received: from [192.168.33.170] (helo=bart.local)
-	by fydelkass.inl.fr with esmtp (Exim 4.63)
-	(envelope-from <victor.stinner@inl.fr>)
-	id 1KsDfj-0002d4-AT
-	for netfilter-devel@vger.kernel.org; Tue, 21 Oct 2008 11:37:03 +0200
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: multipart/mixed;
+ boundary="------------030402050608010005050203"
+Cc: netfilter-announce@lists.netfilter.org, lwn@lwn.net
+To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
---Boundary-00=_xKa/I0K6ADbE+iR
-Content-Type: text/plain;
-  charset="us-ascii"
+This is a multi-part message in MIME format.
+--------------030402050608010005050203
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
 
-Hi,
+Hi!
 
-When I setup the firewall rules, I would like to be able to "rollback" to the 
-previous valid state. I'm using this pseudo-code:
- iptables-save > previous_rules
- iptables-restore < new_rules
- on error:
-    iptables-restore < previous_rules
+The netfilter project proudly presents another development release of
+the conntrack-tools. This release includes important updates, fixes and
+improvements. Moreover, a new user manual has been released,
+contributions to improve are welcome! Detailed changelog is attached.
 
-First problem is that iptables-save doesn't load the needed kernel modules to 
-get the table list. Second problem is that iptables-save (with no argument) 
-exit with code 0 (success) even if /proc/net/ip_tables_names is empty.
+What are the conntrack-tools?
 
-In my pseudo-code: if previous_rule is empty, "iptables-restore < 
-previous_rules" doesn't restore the previous status (iptables-restore does 
-nothing with empty input). I have to check iptables-save exit code *and* that 
-previous_rules is not empty.
+- The userspace daemon so-called conntrackd that covers the specific
+aspects of stateful Linux firewalls to enable high availability
+solutions. It can be used as statistics collector of the firewall use as
+well. The daemon is highly configurable and easily extensible.
 
-If the kernel module ip_tables is loaded, /proc/net/ip_table_names exists but 
-is empty. The module iptable_filter is needed to 
-fill /proc/net/ip_table_names.
+- The command line interface (CLI) conntrack that provides an interface
+to add, delete and update flow entries, list current active flows in
+plain text/XML, current IPv4 NAT'ed flows, reset counters, and flush the
+complete connection tracking table among many other.
 
-Same problems with ip6tables-save with /proc/net/ip6_tables_names, and modules 
-ip6_tables and ip6table_filter.
+Where can I download it from?
 
-Attached patch change iptables-save and ip6tables-save behaviour: if there is 
-no table, print the message:
-  iptables-save v1.4.1: /proc/net/ip_tables_names is empty
-and the exit code is 1 (error).
+http://www.netfilter.org/projects/conntrack-tools/downloads.html
 
-The message may be changed for a better message :-)
+Where can I get more information about them?
 
-Victor
+http://people.netfilter.org/pablo/conntrack-tools/
 
---Boundary-00=_xKa/I0K6ADbE+iR
-Content-Type: text/x-diff;
-  charset="utf-8";
-  name="iptables-save-exitcode.patch"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
-	filename="iptables-save-exitcode.patch"
+Where can I have a look at the new user manual?
 
-Index: iptables-save.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-=2D-- iptables-save.c	(r=C3=A9vision 7568)
-+++ iptables-save.c	(copie de travail)
-@@ -35,6 +35,7 @@
- static int for_each_table(int (*func)(const char *tablename))
- {
- 	int ret =3D 1;
-+	unsigned int count =3D 0;
- 	FILE *procfile =3D NULL;
- 	char tablename[IPT_TABLE_MAXNAMELEN+1];
-=20
-@@ -51,8 +52,13 @@
- 				   tablename);
- 		tablename[strlen(tablename) - 1] =3D '\0';
- 		ret &=3D func(tablename);
-+		count +=3D 1;
- 	}
-=20
-+	if (!count)
-+		exit_error(OTHER_PROBLEM,
-+			"/proc/net/ip_tables_names is empty\n",
-+			tablename);
- 	return ret;
- }
-=20
-Index: ip6tables-save.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-=2D-- ip6tables-save.c	(r=C3=A9vision 7568)
-+++ ip6tables-save.c	(copie de travail)
-@@ -37,6 +37,7 @@
- static int for_each_table(int (*func)(const char *tablename))
- {
- 	int ret =3D 1;
-+	unsigned int count =3D 0;
- 	FILE *procfile =3D NULL;
- 	char tablename[IP6T_TABLE_MAXNAMELEN+1];
-=20
-@@ -53,8 +54,13 @@
- 				   tablename);
- 		tablename[strlen(tablename) - 1] =3D '\0';
- 		ret &=3D func(tablename);
-+		count +=3D 1;
- 	}
-=20
-+	if (!count)
-+		exit_error(OTHER_PROBLEM,
-+			"/proc/net/ip6_tables_names is empty\n",
-+			tablename);
- 	return ret;
- }
-=20
+http://people.netfilter.org/pablo/conntrack-tools/install.html
 
---Boundary-00=_xKa/I0K6ADbE+iR--
+On behalf of the Netfilter Project,
+Pablo
+
+Enjoy!
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
+
+
+
+--------------030402050608010005050203
+Content-Type: text/plain;
+ name="ChangeLog"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ChangeLog"
+
+Albin Tonerre (1):
+      fix unsecure usage of printf and include limits.h (PATH_MAX and INT_MAX)
+ 
+Pablo Neira Ayuso (63):
+      check if entries already exist in kernel before injection
+      do not include Changelog in tarballs, use git shortlog instead
+      use only the original tuple to check if a conntrack is present
+      fix xml output: wrap output with one root element
+      Major rework of the user-space event filtering
+      add support for kernel-space filtering via BSF
+      log: syslog displays the entry that triggers the error
+      filter: skip protocol state filtering if state not present
+      conntrack: add new option --buffer-size for -E
+      add more sanity checks in the input path
+      commit: retry at least once if we hit ETIME or ENOMEM
+      fix: use %zu instead of %u for size_t
+      cleanup: remove obsolete clause Replicate in the example conffiles
+      fix: wrong information related to default logging action
+      fix: wrong use of timersub in cache_timer
+      fix broken normal deletion in caches
+      ftfw: show consistent information to users for problem diagnosing
+      doc: remove duplicated example files
+      script: rework scripts that enable interaction with keepalived
+      conntrackd: add -t option to shorten conntrack timeouts
+      fix missing updates in the example files
+      script: fix broken if branches
+      cache_iterators: do not report ENOENT in cache_reset_timers
+      script: yet another minor fix
+      netlink: add getter and check existence functions
+      cache iterators: rework cache_reset_timers
+      cache iterators: commit master entries before related ones
+      netlink: avoid errors related to the expected bit handling
+      conntrack: remove duplicated optarg checking
+      conntrack: remove unrequired \n in error message
+      conntrack: check for missing arguments in getopt_long
+      conntrack: insert `conntrack-tools' string in help and error messages
+      compilation: relax too strict warning checking
+      ftfw: check for malformed ack and nack messages
+      filter: fix NAT detection tweak
+      cleanup: Linux kernel version checking
+      filter: check if kernel-space filtering is available
+      cleanup: remove some debug messages from sync-ftfw.c
+      config: use /var/run to create the UNIX socket file
+      fix: remove node from tx_list when the state-entry is destroy
+      ftfw: fix race that triggers a double insertion into tx_list
+      ftfw: fix race condition in the helloing routine
+      ftfw: reset window and flush the resend queue during helloing
+      conntrack: cleanup for the update path
+      conntrack: cleanup XML header handling
+      conntrack: fix mark-based filtering for event display
+      conntrack: fix filtering for unsupported protocol
+      conntrack: fix dump counter displayed with -L expect
+      manual: add initial user manual
+      doc: update INSTALL file
+      conntrack: cleanup for NAT filtering
+      cache: fix update of scheduled-to-timeout entries
+      cache-iterators: improve committing
+      config: fix usage of 'PurgeTimeout' in Sync NOTRACK
+      notrack: fix double receival of resync requests
+      doc: rise default size of the hashtable in the example file
+      netlink: report when kernel-space event filtering is in use
+      filter: fix segfault if the Filter clause is unused
+      cache: use jhash2 instead of double jhash+jhash_2words
+      filter: do not filter in user-space if kernel supports BSF
+      doc: remove example about CacheWriteTrough
+      doc: update conntrackd manpage
+      conntrackd: add missing information on -t to the help
+      conntrackd: bump version to 0.9.8
+
+
+--------------030402050608010005050203--
