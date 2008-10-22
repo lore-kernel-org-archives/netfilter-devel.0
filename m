@@ -1,44 +1,58 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [ANNOUNCE] ipset 2.4 released
-Date: Wed, 22 Oct 2008 00:20:01 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0810212328190.25309@blackhole.kfki.hu>
-References: <Pine.LNX.4.64.0810201254190.23040@blackhole.kfki.hu>
- <alpine.LNX.1.10.0810212240190.30799@bizon.gios.gov.pl>
- <Pine.LNX.4.64.0810212300020.25236@blackhole.kfki.hu>
- <alpine.LNX.1.10.0810211707130.16007@fbirervta.pbzchgretzou.qr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: iptables-save and ip6tables-save exit code with no tables
+Date: Wed, 22 Oct 2008 08:29:47 +0200
+Message-ID: <48FEC85B.5020406@trash.net>
+References: <200810211136.49892.victor.stinner@inl.fr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <alpine.LNX.1.10.0810211707130.16007@fbirervta.pbzchgretzou.qr>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Victor Stinner <victor.stinner@inl.fr>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:41052 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751631AbYJVG3t (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 22 Oct 2008 02:29:49 -0400
+In-Reply-To: <200810211136.49892.victor.stinner@inl.fr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 21 Oct 2008, Jan Engelhardt wrote:
-
-> On Tuesday 2008-10-21 17:05, Jozsef Kadlecsik wrote:
-> >
-> >No, the separator between the different kind of elements, i.e. between IP 
-> >address and port or between IP address and MAC address. The token 
-> >separators inside IPv4(/IPv6) and MAC addresses remain the usual ones.
-> >
-> >That message is just misleading and I'm going to fix it.
-> >
-> >Sorry for the mess created by introducing earlier the '%' as a separator,
-> >that was a bad choice. :-(
+Victor Stinner wrote:
+> When I setup the firewall rules, I would like to be able to "rollback" to the 
+> previous valid state. I'm using this pseudo-code:
+>  iptables-save > previous_rules
+>  iptables-restore < new_rules
+>  on error:
+>     iptables-restore < previous_rules
 > 
-> 	1.2.3.4,5.6.7.8,[2001:db8::90]
-> works wonders to distuinguish IPv6 addresses ;-)
+> First problem is that iptables-save doesn't load the needed kernel modules to 
+> get the table list. Second problem is that iptables-save (with no argument) 
+> exit with code 0 (success) even if /proc/net/ip_tables_names is empty.
+> 
+> In my pseudo-code: if previous_rule is empty, "iptables-restore < 
+> previous_rules" doesn't restore the previous status (iptables-restore does 
+> nothing with empty input). I have to check iptables-save exit code *and* that 
+> previous_rules is not empty.
+> 
+> If the kernel module ip_tables is loaded, /proc/net/ip_table_names exists but 
+> is empty. The module iptable_filter is needed to 
+> fill /proc/net/ip_table_names.
+> 
+> Same problems with ip6tables-save with /proc/net/ip6_tables_names, and modules 
+> ip6_tables and ip6table_filter.
 
-Yes, but in my opinion it's ugly. Sometimes [] makes simpler to parse IPv6 
-addresses, but fortunately ipset won't need it. (Of course it's easy to 
-support square brackets.)
+Its actually ip_tables and ip6_tables that are needed to create this
+file.
 
-Best regards, 
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+> Attached patch change iptables-save and ip6tables-save behaviour: if there is 
+> no table, print the message:
+>   iptables-save v1.4.1: /proc/net/ip_tables_names is empty
+> and the exit code is 1 (error).
+> 
+> The message may be changed for a better message :-)
+
+I don't think we should treat this as an error, but simply output
+nothing. Regarding rollback, iptables-save/restore can't know about
+not-loaded tables, so what you should do is either load the table
+modules manually or use the "-t" parameter to iptables-save.
