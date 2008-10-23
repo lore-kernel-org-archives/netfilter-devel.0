@@ -1,33 +1,41 @@
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: pass netns to ->match or to not pass
-Date: Fri, 24 Oct 2008 03:16:11 +0400
-Message-ID: <20081023231611.GA19245@x200.localdomain>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: pass netns to ->match or to not pass
+Date: Thu, 23 Oct 2008 19:17:29 -0400 (EDT)
+Message-ID: <alpine.LNX.1.10.0810231915500.15705@fbirervta.pbzchgretzou.qr>
+References: <20081023231611.GA19245@x200.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Alexey Dobriyan <adobriyan@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.24]:30157 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759420AbYJWXM6 (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:43111 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752371AbYJWXRb (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Oct 2008 19:12:58 -0400
-Received: by ey-out-2122.google.com with SMTP id 6so197092eyi.37
-        for <netfilter-devel@vger.kernel.org>; Thu, 23 Oct 2008 16:12:56 -0700 (PDT)
-Content-Disposition: inline
+	Thu, 23 Oct 2008 19:17:31 -0400
+In-Reply-To: <20081023231611.GA19245@x200.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-xt_recent wants netns inside ->match hook (and xt_hashlimit probably,
-haven't looked closely):
 
-	recent_mt
-	recent_table_lookup
-	[use per-netns tables list]
+On Thursday 2008-10-23 19:16, Alexey Dobriyan wrote:
 
-Now, I can drag netns through struct xt_match_param, or use
-dev_net(skb->dev ? skb->dev : skb->dst->dev) trick.
+>xt_recent wants netns inside ->match hook (and xt_hashlimit probably,
+>haven't looked closely):
+>
+>	recent_mt
+>	recent_table_lookup
+>	[use per-netns tables list]
+>
+>Now, I can drag netns through struct xt_match_param, or use
+>dev_net(skb->dev ? skb->dev : skb->dst->dev) trick.
+>
+>And the latter should be better, because only xt_recent module will be
+>affected.
+>
+>Comments?
 
-And the latter should be better, because only xt_recent module will be
-affected.
+What exactly needs netns? This?
 
-Comments?
+	if (par->out != NULL && skb->sk == NULL)
+		ttl++;
