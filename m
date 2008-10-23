@@ -1,39 +1,28 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: Re: [patch] fix compile error in libxt_condition
-Date: Thu, 23 Oct 2008 15:39:03 +0200
-Message-ID: <200810231539.03977.thomas.jarosch@intra2net.com>
-References: <200810231232.17331.thomas.jarosch@intra2net.com> <200810231510.23807.thomas.jarosch@intra2net.com> <alpine.LNX.1.10.0810230911550.14500@fbirervta.pbzchgretzou.qr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [patch] iptables 1.4.2: Fix compile warnings
+Date: Thu, 23 Oct 2008 15:41:52 +0200
+Message-ID: <49007F20.2060506@trash.net>
+References: <200810231458.00929.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Thomas Jarosch <thomas.jarosch@intra2net.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rs02.intra2net.com ([81.169.173.116]:51458 "EHLO
-	rs02.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756583AbYJWNjO (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:51628 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757476AbYJWNlz (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Oct 2008 09:39:14 -0400
-In-Reply-To: <alpine.LNX.1.10.0810230911550.14500@fbirervta.pbzchgretzou.qr>
-Content-Disposition: inline
+	Thu, 23 Oct 2008 09:41:55 -0400
+In-Reply-To: <200810231458.00929.thomas.jarosch@intra2net.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> >A quick grep reveals it gets always defined in configure.ac.
->
-> No way.
->
-> 09:11 nuqneh:~/Coding/xtables-addons > grep -r XTABLES_INTERNAL .
-> 09:11 nuqneh:~/Coding/xtables-addons >
->
-> Wait... you downloaded libxt_condition.c from *xtables-addons*
-> and put it into the *iptables/* tree? Well, that is not going
-> to fly on its own. You need the patch of course, but then this
-> is not an xtables-addons problem.
+Thomas Jarosch wrote:
+> Hello Patrick,
+> 
+> attached is a small patch to fix compilation warnings
+> of iptables 1.4.2 using gcc 4.3.2.
 
-Thanks for checking! As long as it works on my box, I'm happy :-)
-
-Thomas
-
+Also applied, thanks.
