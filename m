@@ -1,34 +1,34 @@
-From: Thomas Graf <tgraf@suug.ch>
-Subject: Re: libnl: nfqueue: add nfqueue specific socket allocation function
-Date: Thu, 23 Oct 2008 14:01:16 +0200
-Message-ID: <20081023120115.GH20815@postel.suug.ch>
-References: <4900643C.6000501@trash.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [patch] fix compile error in libxt_condition
+Date: Thu, 23 Oct 2008 08:18:26 -0400 (EDT)
+Message-ID: <alpine.LNX.1.10.0810230815190.14500@fbirervta.pbzchgretzou.qr>
+References: <200810231232.17331.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Linux Netdev List <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4900643C.6000501@trash.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:52043 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751585AbYJWMS3 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 23 Oct 2008 08:18:29 -0400
+In-Reply-To: <200810231232.17331.thomas.jarosch@intra2net.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-* Patrick McHardy <kaber@trash.net> 2008-10-23 13:47
-> commit e92539843a0c7e5116254382626cce226bf2135e
-> Author: Patrick McHardy <kaber@trash.net>
-> Date:   Thu Oct 23 13:46:16 2008 +0200
-> 
->     libnl: nfqueue: add nfqueue specific socket allocation function
->     
->     nfqueue users usually send verdict messages from the receive callback.
->     When waiting for ACKs, the receive callback might be called again
->     recursively until the stack blows up.
->     
->     Add a nfqueue specific socket allocation function that automatically
->     disables ACKing for the socket.
->     
->     Signed-off-by: Patrick McHardy <kaber@trash.net>
+On Thursday 2008-10-23 06:32, Thomas Jarosch wrote:
 
-Applied, thanks Patrick.
+>Hello Jan,
+>
+>attached is a small patch to fix the compilation
+>of libxt_condition in xtables_addons using gcc 4.3.2.
+>
+>Fix compile error in libxt_condition
+>
+>libxt_condition.c:95: error: static declaration of 'libxt_condition_init' follows non-static declaration
+>../include/xtables/internal.h:64: error: previous declaration of 'libxt_condition_init' was here  
+
+Does this only hit libxt_condition? Who set the XTABLES_INTERNAL macro 
+to trigger inclusion of xtables/internal.h?
