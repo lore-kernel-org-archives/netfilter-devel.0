@@ -1,58 +1,107 @@
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: Re: pass netns to ->match or to not pass
-Date: Fri, 24 Oct 2008 20:25:17 +0400
-Message-ID: <20081024162517.GA10505@x200.localdomain>
-References: <20081023231611.GA19245@x200.localdomain> <alpine.LNX.1.10.0810231915500.15705@fbirervta.pbzchgretzou.qr> <20081023233620.GA19634@x200.localdomain> <alpine.LNX.1.10.0810232021220.15705@fbirervta.pbzchgretzou.qr> <20081024094506.GC19634@x200.localdomain> <alpine.LNX.1.10.0810240930500.15705@fbirervta.pbzchgretzou.qr> <20081024140523.GA24706@x200.localdomain> <alpine.LNX.1.10.0810241105040.15468@fbirervta.pbzchgretzou.qr>
+From: Sven Wegener <sven.wegener@stealer.net>
+Subject: [PATCH] ipset: limits.h strikes again
+Date: Sat, 25 Oct 2008 00:27:47 +0200 (CEST)
+Message-ID: <alpine.LNX.2.00.0810250020540.24348@titan.stealer.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.25]:59815 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752180AbYJXQWG (ORCPT
+Received: from smtp1.stealer.net ([88.198.224.204]:53569 "EHLO
+	smtp1.stealer.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754803AbYJXW16 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 24 Oct 2008 12:22:06 -0400
-Received: by ey-out-2122.google.com with SMTP id 6so328395eyi.37
-        for <netfilter-devel@vger.kernel.org>; Fri, 24 Oct 2008 09:21:59 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <alpine.LNX.1.10.0810241105040.15468@fbirervta.pbzchgretzou.qr>
+	Fri, 24 Oct 2008 18:27:58 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Oct 24, 2008 at 11:06:25AM -0400, Jan Engelhardt wrote:
-> 
-> On Friday 2008-10-24 10:10, Alexey Dobriyan wrote:
-> >On Fri, Oct 24, 2008 at 09:31:28AM -0400, Jan Engelhardt wrote:
-> >> 
-> >> >Well, if it would have a pointer like xt_connlimit has, I could take
-> >> >netns from ->matchinfo. Here is xt_connlimit patch, btw.
-> >> >
-> >> >diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
-> >> >index 7f404cc..ef01431 100644
-> >> >--- a/net/netfilter/xt_connlimit.c
-> >> >+++ b/net/netfilter/xt_connlimit.c
-> >> >@@ -38,6 +38,7 @@ struct xt_connlimit_conn {
-> >> > struct xt_connlimit_data {
-> >> > 	struct list_head iphash[256];
-> >> > 	spinlock_t lock;
-> >> >+	struct net *net;
-> >> > };
-> >> 
-> >> And why should this be better than dev_net(par->in)/dev_net(par_out)?
-> >
-> >par->in doesn't exist, not sure what do you mean.
-> >
-> Of course that exists when you get a packet. (If not, then it's par->out
-> in case of forwarded/output traffic.)
-> 
-> static bool
-> connlimit_mt(const struct sk_buff *skb, const struct xt_match_param *par)
-> {
-> 	...
-> }
-> 
-> struct xt_match_param {
-> 	const struct net_device *in, *out;   <- THAT ONE
+Hi Jozsef,
 
-Ah, these ones!
+looks like the include got lost, please apply.
+
+Sven
+
+Index: ipset/ipset_nethash.c
+===================================================================
+--- ipset/ipset_nethash.c	(revision 7571)
++++ ipset/ipset_nethash.c	(working copy)
+@@ -15,6 +15,7 @@
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+  */
+ 
++#include <limits.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+Index: ipset/ipset_ipportiphash.c
+===================================================================
+--- ipset/ipset_ipportiphash.c	(revision 7571)
++++ ipset/ipset_ipportiphash.c	(working copy)
+@@ -15,6 +15,7 @@
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+  */
+ 
++#include <limits.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+Index: ipset/ipset_iphash.c
+===================================================================
+--- ipset/ipset_iphash.c	(revision 7571)
++++ ipset/ipset_iphash.c	(working copy)
+@@ -15,6 +15,7 @@
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+  */
+ 
++#include <limits.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+Index: ipset/ipset_ipporthash.c
+===================================================================
+--- ipset/ipset_ipporthash.c	(revision 7571)
++++ ipset/ipset_ipporthash.c	(working copy)
+@@ -15,6 +15,7 @@
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+  */
+ 
++#include <limits.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+Index: ipset/ipset_iptreemap.c
+===================================================================
+--- ipset/ipset_iptreemap.c	(revision 7571)
++++ ipset/ipset_iptreemap.c	(working copy)
+@@ -15,6 +15,7 @@
+  * Place, Suite 330, Boston, MA 02111-1307 USA
+  */
+ 
++#include <limits.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+Index: ipset/ipset_iptree.c
+===================================================================
+--- ipset/ipset_iptree.c	(revision 7571)
++++ ipset/ipset_iptree.c	(working copy)
+@@ -15,6 +15,7 @@
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+  */
+ 
++#include <limits.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
+Index: ipset/ipset_ipportnethash.c
+===================================================================
+--- ipset/ipset_ipportnethash.c	(revision 7571)
++++ ipset/ipset_ipportnethash.c	(working copy)
+@@ -15,6 +15,7 @@
+  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
+  */
+ 
++#include <limits.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include <string.h>
