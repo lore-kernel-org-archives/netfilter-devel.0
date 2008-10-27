@@ -1,14 +1,10 @@
 From: hamid.jafarian@gmail.com (hamid jafarian)
-Subject: [PATCH 09/09]IPtablestng/KernelSpace - patch extensions modules
-Date: Mon, 27 Oct 2008 08:30:10 +0330 (IRST)
-Message-ID: <20081027050010.7A208C64091@host1.ystp.ac.ir>
+Subject: [PATCH 01/05]IPtablestng/UserSpace - patch build files
+Date: Mon, 27 Oct 2008 08:52:18 +0330 (IRST)
+Message-ID: <20081027052218.37C08C64092@host1.ystp.ac.ir>
 Cc: Netdev <netdev@vger.kernel.org>
 To: Netfilter-devel <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from [85.185.161.20] ([85.185.161.20]:59744 "EHLO host1.ystp.ac.ir"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1751376AbYJ0FVy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 27 Oct 2008 01:21:54 -0400
+Return-path: <netdev-owner@vger.kernel.org>
 cc: Pablo Neira Ayuso <pablo@netfilter.org>
 cc: Patrick McHardy <kaber@trash.net>
 cc: Jan Engelhardt <jengelh@medozas.de>
@@ -18,87 +14,90 @@ cc: Harald Welte <laforge@gnumonks.org>
 cc: Eric Leblond <eric@inl.fr>
 cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 cc: Amin Azez <azez@ufomechanic.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-use 'pktt_entry' instead of 'ipt_entry'.
+patching Makefile.am to compile only ipv4 commands.
 
-some changes in some extensions for campatibility.
+all of the ipv6 statements are removed from 'Makefile.am'. run 'automake' before configuring the package (to create 'Makefile.in').
 
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index a12dd32..9f57c26 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -367,35 +367,35 @@ clusterip_tg_check(const char *tablename, const void *e_void,
- 		return false;
+diff --git a/Makefile.am b/Makefile.am
+index 49edbf8..8dc941d 100644
+--- a/Makefile.am
++++ b/Makefile.am
+@@ -9,7 +9,7 @@ SUBDIRS         += libipq
+ endif
  
- 	}
--	if (e->ip.dmsk.s_addr != htonl(0xffffffff)
--	    || e->ip.dst.s_addr == 0) {
-+	if (e->pkt_header.ip4.dmsk.s_addr != htonl(0xffffffff)
-+	    || e->pkt_header.ip4.dst.s_addr == 0) {
- 		printk(KERN_ERR "CLUSTERIP: Please specify destination IP\n");
- 		return false;
- 	}
+ # libiptc
+-libiptc_libiptc_a_SOURCES = libiptc/libip4tc.c libiptc/libip6tc.c
++libiptc_libiptc_a_SOURCES = libiptc/libip4tc.c 
  
- 	/* FIXME: further sanity checks */
+ # iptables, dynamic
+ iptables_SOURCES          = iptables-standalone.c iptables.c xtables.c
+@@ -38,60 +38,30 @@ iptables_static_LDADD     = -lm libiptc/libiptc.a extensions/libext4.a
  
--	config = clusterip_config_find_get(e->ip.dst.s_addr, 1);
-+	config = clusterip_config_find_get(e->pkt_header.ip4.dst.s_addr, 1);
- 	if (!config) {
- 		if (!(cipinfo->flags & CLUSTERIP_FLAG_NEW)) {
--			printk(KERN_WARNING "CLUSTERIP: no config found for %u.%u.%u.%u, need 'new'\n", NIPQUAD(e->ip.dst.s_addr));
-+			printk(KERN_WARNING "CLUSTERIP: no config found for %u.%u.%u.%u, need 'new'\n", NIPQUAD(e->pkt_header.ip4.dst.s_addr));
- 			return false;
- 		} else {
- 			struct net_device *dev;
+ iptables_xml_SOURCES      = iptables-xml.c
  
--			if (e->ip.iniface[0] == '\0') {
-+			if (e->pkt_header.ip4.iniface[0] == '\0') {
- 				printk(KERN_WARNING "CLUSTERIP: Please specify an interface name\n");
- 				return false;
- 			}
+-# ip6tables, dynamic
+-ip6tables_SOURCES         = ip6tables-standalone.c ip6tables.c xtables.c
+-ip6tables_LDFLAGS         = -rdynamic
+-ip6tables_LDADD           = -ldl -lm libiptc/libiptc.a extensions/libext6.a
+-
+-ip6tables_multi_SOURCES   = ip6tables-multi.c ip6tables-save.c \
+-                            ip6tables-restore.c ip6tables-standalone.c \
+-                            ip6tables.c xtables.c
+-ip6tables_multi_CFLAGS    = ${AM_CFLAGS} -DIPTABLES_MULTI
+-ip6tables_multi_LDFLAGS   = ${ip6tables_LDFLAGS}
+-ip6tables_multi_LDADD     = ${ip6tables_LDADD}
+-
+-ip6tables_restore_SOURCES = ip6tables-restore.c ip6tables.c xtables.c
+-ip6tables_restore_LDFLAGS = ${ip6tables_LDFLAGS}
+-ip6tables_restore_LDADD   = ${ip6tables_LDADD}
+-
+-ip6tables_save_SOURCES    = ip6tables-save.c ip6tables.c xtables.c
+-ip6tables_save_LDFLAGS    = ${ip6tables_LDFLAGS}
+-ip6tables_save_LDADD      = ${ip6tables_LDADD}
+-
+-# iptables-multi, semi-static
+-ip6tables_static_SOURCES    = ${ip6tables_multi_SOURCES}
+-ip6tables_static_CFLAGS     = ${ip6tables_multi_CFLAGS} -DNO_SHARED_LIBS=1
+-ip6tables_static_LDADD      = -lm libiptc/libiptc.a extensions/libext6.a
+-
+ noinst_LIBRARIES := libiptc/libiptc.a
+ bin_PROGRAMS     := iptables-xml
+ sbin_PROGRAMS    :=
+ noinst_PROGRAMS  :=
+ man_MANS         := iptables.8 iptables-restore.8 iptables-save.8 \
+-                    iptables-xml.8 ip6tables.8 ip6tables-restore.8 \
+-                    ip6tables-save.8
+-CLEANFILES       := iptables.8 ip6tables.8
++                    iptables-xml.8 
++CLEANFILES       := iptables.8 
+ if ENABLE_DEVEL
+-include_HEADERS  := include/xtables.h include/iptables.h include/ip6tables.h
++include_HEADERS  := include/xtables.h include/iptables.h 
+ iptcdir           = ${includedir}/libiptc
+ iptc_HEADERS     := include/libiptc/libxtc.h \
+                     include/libiptc/ipt_kernel_headers.h
+ endif
  
--			dev = dev_get_by_name(&init_net, e->ip.iniface);
-+			dev = dev_get_by_name(&init_net, e->pkt_header.ip4.iniface);
- 			if (!dev) {
--				printk(KERN_WARNING "CLUSTERIP: no such interface %s\n", e->ip.iniface);
-+				printk(KERN_WARNING "CLUSTERIP: no such interface %s\n", e->pkt_header.ip4.iniface);
- 				return false;
- 			}
+ if ENABLE_STATIC
+-sbin_PROGRAMS += iptables-static ip6tables-static
++sbin_PROGRAMS += iptables-static 
+ endif
+ if ENABLE_SHARED
+-sbin_PROGRAMS += iptables iptables-multi iptables-restore iptables-save \
+-                 ip6tables ip6tables-multi ip6tables-restore ip6tables-save
++sbin_PROGRAMS += iptables iptables-multi iptables-restore iptables-save 
+ endif
  
- 			config = clusterip_config_init(cipinfo,
--							e->ip.dst.s_addr, dev);
-+							e->pkt_header.ip4.dst.s_addr, dev);
- 			if (!config) {
- 				printk(KERN_WARNING "CLUSTERIP: cannot allocate config\n");
- 				dev_put(dev);
-diff --git a/net/ipv4/netfilter/ipt_ECN.c b/net/ipv4/netfilter/ipt_ECN.c
-index 21395bc..41f8650 100644
---- a/net/ipv4/netfilter/ipt_ECN.c
-+++ b/net/ipv4/netfilter/ipt_ECN.c
-@@ -114,7 +114,7 @@ ecn_tg_check(const char *tablename, const void *e_void,
- 		return false;
- 	}
- 	if ((einfo->operation & (IPT_ECN_OP_SET_ECE|IPT_ECN_OP_SET_CWR))
--	    && (e->ip.proto != IPPROTO_TCP || (e->ip.invflags & XT_INV_PROTO))) {
-+	    && (e->pkt_header.ip4.proto != IPPROTO_TCP || (e->pkt_header.ip4.invflags & XT_INV_PROTO))) {
- 		printk(KERN_WARNING "ECN: cannot use TCP operations on a "
- 		       "non-tcp rule\n");
- 		return false;
-diff --git a/net/ipv4/netfilter/ipt_REJECT.c b/net/ipv4/netfilter/ipt_REJECT.c
-index 22606e2..0a851ea 100644
---- a/net/ipv4/netfilter/ipt_REJECT.c
-+++ b/net/ipv4/netfilter/ipt_REJECT.c
-@@ -188,8 +188,8 @@ reject_tg_check(const char *tablename, const void *e_void,
- 		return false;
- 	} else if (rejinfo->with == IPT_TCP_RESET) {
- 		/* Must specify that it's a TCP packet */
--		if (e->ip.proto != IPPROTO_TCP
--		    || (e->ip.invflags & XT_INV_PROTO)) {
-+		if (e->pkt_header.ip4.proto != IPPROTO_TCP
-+		    || (e->pkt_header.ip4.invflags & XT_INV_PROTO)) {
- 			printk("ipt_REJECT: TCP_RESET invalid for non-tcp\n");
- 			return false;
- 		}
+ iptables.8: ${srcdir}/iptables.8.in extensions/matches4.man extensions/targets4.man
+ 	${AM_VERBOSE_GEN} sed -e '/@MATCH@/ r extensions/matches4.man' -e '/@TARGET@/ r extensions/targets4.man' $< >$@;
+ 
+-ip6tables.8: ${srcdir}/ip6tables.8.in extensions/matches6.man extensions/targets6.man
+-	${AM_VERBOSE_GEN} sed -e '/@MATCH@/ r extensions/matches6.man' -e '/@TARGET@/ r extensions/targets6.man' $< >$@;
+-
+ extensions/%:
+ 	${MAKE} ${AM_MAKEFLAGS} -C $(@D) $(@F)
+ 
 
