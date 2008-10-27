@@ -1,30 +1,56 @@
-From: hamid.jafarian@gmail.com (hamid jafarian)
-Subject: [PATCH 00/05]IPtablestng/UserSpace-user part of iptablestng
-Date: Mon, 27 Oct 2008 09:07:56 +0330 (IRST)
-Message-ID: <20081027053756.157E5C64097@host1.ystp.ac.ir>
-Cc: Netdev <netdev@vger.kernel.org>
-To: Netfilter-devel <netfilter-devel@vger.kernel.org>
+From: "Jacky Luk" <jacky.luk@primecreation.com>
+Subject: About the netfilter_queue and ip_queue!
+Date: Mon, 27 Oct 2008 17:01:32 +0800
+Message-ID: <web-4603247@mail.primecreation.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="utf-8"; format="flowed"
+Content-Transfer-Encoding: 8bit
+To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from [85.185.161.20] ([85.185.161.20]:34348 "EHLO host1.ystp.ac.ir"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1752087AbYJ0F7k (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 27 Oct 2008 01:59:40 -0400
-cc: Pablo Neira Ayuso <pablo@netfilter.org>
-cc: Patrick McHardy <kaber@trash.net>
-cc: Jan Engelhardt <jengelh@medozas.de>
-cc: David Miller <davem@davemloft.net>
-cc: Rusty Russell <rusty@rustcorp.com.au>
-cc: Harald Welte <laforge@gnumonks.org>
-cc: Eric Leblond <eric@inl.fr>
-cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-cc: Amin Azez <azez@ufomechanic.net>
+Received: from n218103092061.netvigator.com ([218.103.92.61]:50582 "EHLO
+	mail.primecreation.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750832AbYJ0KF3 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 27 Oct 2008 06:05:29 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-some modification at user land to work with New Framework For IPtables
+Hi,
 
-it 's for iptables-1.4.1
-libiptc.c is rewrote from scrach to work with new framework.  and also some modifications for cammands to be aware of classifier.
-new command for iptables: -C 
-	iptables -C INPUT tuple
-	:change the classifier of INPUT chain
+My program is using ip_queue to develop in RHEL4.6. 
+Recently, I need to port my program to RHEL5.2 because the 
+stability issue of the system and my program in RHEL4.6.
+
+I found that the ip_queue is replaced by netfilter_queue 
+in RHEL5.2 now and netfilter_queue provides the backward 
+compatibility of ip_queue. As a result, I try to 
+re-compile my program without changing the source code (My 
+program is still using the ip_queue) and I found that it 
+can be compiled successfully in RHEL5.2.
+
+However, I found that my program cannot retrieve the 
+packets from the kernelspace into the userspace after it 
+is initialized as usual (Set the rules in iptables, 
+modprobe ip_queue - I think in RHEL5.2 is not needed to 
+modprobe ip_queue, but RHEL4.6 is needed).
+
+The following is my questions. Why my program cannot 
+retrieve the packets? Is it the configuration problem of 
+the rules in iptables? Or some steps is forgotten to 
+perform? Or netfilter_queue cannot be backward compatible 
+to the ip_queue?
+
+The platform which I compiled and executed my program is 
+RHEL5.2 (2.6.18-92.el5) with the installation of 
+libnfnetlink-0.0.39 and libnetfilter_queue-0.0.16. The 
+rules in iptables is listed in the below (It is the same 
+in RHEL4.6 and RHEL5.2):
+iptables -t mangle -A PREROUTING -i eth0 -p udp -d 
+192.168.0.0/24 -m multiport --destination-port 
+2123,2152,3386 -j QUEUE
+
+Thank you very much!
+
+Regards,
+
+Jacky Luk
