@@ -1,69 +1,35 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: manpage: explain what rule-specification is
-Date: Tue, 28 Oct 2008 15:01:48 -0400 (EDT)
-Message-ID: <alpine.LNX.1.10.0810281501320.10657@fbirervta.pbzchgretzou.qr>
-References: <alpine.LNX.1.10.0810281500340.10657@fbirervta.pbzchgretzou.qr>
+From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
+Subject: Re: Every other char with LOG netfilter output (bug?)
+Date: Tue, 28 Oct 2008 17:16:05 -0200
+Message-ID: <490764fb.2387460a.38c9.ffffb2ae@mx.google.com>
+References: <rlujt5-k63.ln1@tux.abusar.org.br>
+	<49074E81.6010207@trash.net>
+	<49075276.2686460a.0b00.ffff9f09@mx.google.com>
+	<4907564D.5090103@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:59652 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752470AbYJ1TBt (ORCPT
+Received: from hs-out-0708.google.com ([64.233.178.242]:7140 "EHLO
+	hs-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754604AbYJ1TQ0 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 28 Oct 2008 15:01:49 -0400
-In-Reply-To: <alpine.LNX.1.10.0810281500340.10657@fbirervta.pbzchgretzou.qr>
+	Tue, 28 Oct 2008 15:16:26 -0400
+Received: by hs-out-0708.google.com with SMTP id 4so777061hsl.5
+        for <netfilter-devel@vger.kernel.org>; Tue, 28 Oct 2008 12:16:25 -0700 (PDT)
+In-Reply-To: <4907564D.5090103@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 7ce5d4839ec877440b2d1b58c2fcfa378fcc4cc7
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Tue Oct 28 14:59:19 2008 -0400
+On Tue, 28 Oct 2008 19:13:33 +0100
+Patrick McHardy <kaber@trash.net> wrote:
 
-manpage: explain what rule-specification is
+> (net/ipv4/netfilter/ipt_LOG.c). I'd try nfnetlink_log first though.
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- iptables.8.in |   16 +++++++++++-----
- 1 files changed, 11 insertions(+), 5 deletions(-)
+	Ok, I'll try nfnetlink_log as you suggested and as soon as I
+have something relevant I return. Thank you very much!
 
-diff --git a/iptables.8.in b/iptables.8.in
-index 1d2ffec..9947da4 100644
---- a/iptables.8.in
-+++ b/iptables.8.in
-@@ -25,13 +25,13 @@
- .SH NAME
- iptables \- administration tool for IPv4 packet filtering and NAT
- .SH SYNOPSIS
--\fBiptables\fP [\fB-t\fP \fItable\fP] {\fB-A\fP|\fB-D\fP} \fIchain rule-specification\fP [\fIoptions...\fP]
-+\fBiptables\fP [\fB-t\fP \fItable\fP] {\fB-A\fP|\fB-D\fP} \fIchain\fP \fIrule-specification\fP
- .PP
--\fBiptables\fP [\fB-t\fP \fItable\fP] \fB-I\fP [\fIrulenum\fP] \fIrule-specification\fP [\fIoptions...\fP]
-+\fBiptables\fP [\fB-t\fP \fItable\fP] \fB-I\fP [\fIrulenum\fP] \fIrule-specification\fP
- .PP
--\fBiptables\fP [\fB-t\fP \fItable\fP] \fB-R\fP \fIrulenum rule-specification\fP [\fIoptions...\fP]
-+\fBiptables\fP [\fB-t\fP \fItable\fP] \fB-R\fP \fIrulenum rule-specification\fP
- .PP
--\fBiptables\fP [\fB-t\fP \fItable\fP] \fB-D\fP \fIchain rulenum\fP [\fIoptions...\fP]
-+\fBiptables\fP [\fB-t\fP \fItable\fP] \fB-D\fP \fIchain rulenum\fP
- .PP
- \fBiptables\fP [\fB-t\fP \fItable\fP] \fB-S\fP [\fIchain\fP]
- .PP
-@@ -41,9 +41,15 @@ iptables \- administration tool for IPv4 packet filtering and NAT
- .PP
- \fBiptables\fP [\fB-t\fP \fItable\fP] \fB-X\fP [\fIchain\fP]
- .PP
--\fBiptables\fP [\fB-t\fP \fItable\fP] \fB-P\fP \fIchain target\fP [\fIoptions...\fP]
-+\fBiptables\fP [\fB-t\fP \fItable\fP] \fB-P\fP \fIchain target\fP
- .PP
- \fBiptables\fP [\fB-t\fP \fItable\fP] \fB-E\fP \fIold-chain-name new-chain-name\fP
-+.PP
-+rule-specification = [\fImatches...\fP] [\fItarget\fP]
-+.PP
-+match = \fB-m\fP \fImatchname\fP [\fIper-match-options\fP]
-+.PP
-+target = \fB-j\fP \fItargetname\fP [\fIper-target-options\fP]
- .SH DESCRIPTION
- \fBIptables\fP is used to set up, maintain, and inspect the
- tables of IPv4 packet
+
+-- 
