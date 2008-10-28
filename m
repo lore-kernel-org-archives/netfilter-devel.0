@@ -1,62 +1,50 @@
-From: "hamid jafarian" <hamid.jafarian@gmail.com>
+From: Evgeniy Polyakov <zbr@ioremap.net>
 Subject: Re: [PATCH 00/09]IPtablestng/Kernel - New Framework For IPtables
-Date: Tue, 28 Oct 2008 13:32:06 +0330
-Message-ID: <464293e60810280302j26112754o72c1cf3ebd6a0b1f@mail.gmail.com>
-References: <20081027042834.0BA69C64087@host1.ystp.ac.ir>
-	 <20081028000044.GA16721@ioremap.net>
+Date: Tue, 28 Oct 2008 13:43:46 +0300
+Message-ID: <20081028104346.GA31146@ioremap.net>
+References: <20081027042834.0BA69C64087@host1.ystp.ac.ir> <20081028000044.GA16721@ioremap.net> <464293e60810280302j26112754o72c1cf3ebd6a0b1f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: Netfilter-devel <netfilter-devel@vger.kernel.org>,
 	Netdev <netdev@vger.kernel.org>,
-	"Pablo Neira Ayuso" <pablo@netfilter.org>,
-	"Patrick McHardy" <kaber@trash.net>,
-	"Jan Engelhardt" <jengelh@medozas.de>,
-	"Rusty Russell" <rusty@rustcorp.com.au>,
-	"Harald Welte" <laforge@gnumonks.org>,
-	"Eric Leblond" <eric@inl.fr>,
-	"Jozsef Kadlecsik" <kadlec@blackhole.kfki.hu>,
-	"Amin Azez" <azez@ufomechanic.net>
-To: "Evgeniy Polyakov" <zbr@ioremap.net>
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Jan Engelhardt <jengelh@medozas.de>,
+	Rusty Russell <rusty@rustcorp.com.au>,
+	Harald Welte <laforge@gnumonks.org>,
+	Eric Leblond <eric@inl.fr>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	Amin Azez <azez@ufomechanic.net>
+To: hamid jafarian <hamid.jafarian@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.238]:13042 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751518AbYJ1KCH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 28 Oct 2008 06:02:07 -0400
-In-Reply-To: <20081028000044.GA16721@ioremap.net>
+Received: from tservice.ru ([195.178.208.66]:45543 "EHLO tservice.net.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751644AbYJ1Knv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 28 Oct 2008 06:43:51 -0400
 Content-Disposition: inline
+In-Reply-To: <464293e60810280302j26112754o72c1cf3ebd6a0b1f@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-hi, &  special thanks
+Hi.
 
-On Tue, Oct 28, 2008 at 3:30 AM, Evgeniy Polyakov <zbr@ioremap.net> wrote:
-> Frankly saying your codying style is way out of expected range of
-> allowed glitches, so it is quite hard to review the whole thing. Please
-> update it to at least remotely match existing code.
+On Tue, Oct 28, 2008 at 01:32:06PM +0330, hamid jafarian (hamid.jafarian@gmail.com) wrote:
+> excuse for this loosely patches...
+> please more explain...
+> do you mean my patches are too long? or ambiguous?
+> i 've tried to code base on "Documentation/CodingStyle".. and patch
+> base on "how to participate in the kernel community" documents.
+> 
+> the core of this framework is located at pkt_tables.c&.h (#2&#3 of
+> kernel patches).
+> iptables.c&.h are completely changed. also at the user space libiptc.c
+> is rewritten from scratch thus their patches are really ambiguous to
+> be understood..what is the best way to send this patches?
+> what this phrase mean: "' remotely match existing code ""?
 
-excuse for this loosely patches...
-please more explain...
-do you mean my patches are too long? or ambiguous?
-i 've tried to code base on "Documentation/CodingStyle".. and patch
-base on "how to participate in the kernel community" documents.
-
-the core of this framework is located at pkt_tables.c&.h (#2&#3 of
-kernel patches).
-iptables.c&.h are completely changed. also at the user space libiptc.c
-is rewritten from scratch thus their patches are really ambiguous to
-be understood..what is the best way to send this patches?
-what this phrase mean: "' remotely match existing code ""?
-
->Also I noticed you
-> do not use list iteration functions sometimes and replaces them with
-> direct access to next/prev pointers, which is not a good idea.
-ok, i 've used this style to free list elements.
-if you mean "don't use direct access to prev/next", i 'll review my
-code and will try to use list iteration function on every place that
-is possible or at list use list functions and list element of
-structures instead of direct access to "next/prev"..
+I mean just coding style: spaces, braces, parentheses, function names
+like __something_small_AND_CAPITAL. checkpatch.pl may help, although imo
+it should not be followed strickly. It will much simpler to review changes.
 
 -- 
-Hamid Jafarian (hm.t)
+	Evgeniy Polyakov
