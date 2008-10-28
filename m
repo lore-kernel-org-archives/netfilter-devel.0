@@ -1,71 +1,113 @@
-From: "hamid jafarian" <hamid.jafarian@gmail.com>
-Subject: Re: [PATCH 00/09]IPtablestng/Kernel - New Framework For IPtables
-Date: Tue, 28 Oct 2008 16:27:04 +0330
-Message-ID: <464293e60810280557p33eb6a2bsd21e1a238816c3a8@mail.gmail.com>
-References: <20081027042834.0BA69C64087@host1.ystp.ac.ir>
-	 <20081028000044.GA16721@ioremap.net>
-	 <464293e60810280302j26112754o72c1cf3ebd6a0b1f@mail.gmail.com>
-	 <20081028104346.GA31146@ioremap.net> <4907008A.6050808@trash.net>
+From: Julien Vehent <julien@linuxwall.info>
+Subject: Re: NAT in an already established TCP connection
+Date: Tue, 28 Oct 2008 13:53:53 +0100
+Message-ID: <362dff85992463f0566f965662f8b75b@localhost>
+References: <4906F699.6010006@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: "Evgeniy Polyakov" <zbr@ioremap.net>,
-	Netfilter-devel <netfilter-devel@vger.kernel.org>,
-	Netdev <netdev@vger.kernel.org>,
-	"Pablo Neira Ayuso" <pablo@netfilter.org>,
-	"Jan Engelhardt" <jengelh@medozas.de>,
-	"Rusty Russell" <rusty@rustcorp.com.au>,
-	"Harald Welte" <laforge@gnumonks.org>,
-	"Eric Leblond" <eric@inl.fr>,
-	"Jozsef Kadlecsik" <kadlec@blackhole.kfki.hu>,
-	"Amin Azez" <azez@ufomechanic.net>
-To: "Patrick McHardy" <kaber@trash.net>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netfilter@lists.samba.org
+To: Diego Casado Mansilla <diego.casadomansilla@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.237]:23627 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751669AbYJ1M5F (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 28 Oct 2008 08:57:05 -0400
-In-Reply-To: <4907008A.6050808@trash.net>
-Content-Disposition: inline
+Received: from smtp-out2.sfr.fr ([160.92.187.251]:29601 "EHLO smtp.sfr.fr"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751673AbYJ1NSg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 28 Oct 2008 09:18:36 -0400
+In-Reply-To: <4906F699.6010006@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-hi,
-> I think these patches are a lost cause.
-may be!!.. and also may not
->Besides the fact that they
-> move things to the kernel instead of to userspace, they
-just adding/removing.. beside huge efforts in the previous version in
-copying/cloning this seems not to be bad effort..
+On Tue, 28 Oct 2008 12:25:13 +0100, Diego Casado Mansilla
+<diego.casadomansilla@gmail.com> wrote:
+> Hello all!!!
+> 
+> This is my first mail in the list.
+> 
+> Hopefully the question is interesting and you can figure out how to help
+> me.
+> 
+> I use iptables rules to manage the connections from internet to my local 
+> network. I know how to filter, do nat, etc...
+> But this days I'm trying to do NAT in connections that are already 
+> established. The problem is (as far as I know) the packets which pass 
+> throught the nat table are only the SYN packets (once), thus, the 
+> packets that are used to perform a NEW connection.
+> 
+> After that the connection is created, the maintenance and the resolution 
+> of the SNAT and DNAT are kept till the connection finish.
+> What I'm wondering is: how can I change the ports or IPs of an already 
+> established connection if my packets just go throught the nat table at 
+> the connection time?
+> 
 
-> - break the existing interface
-> - do not use netlink
-i didn't change any function prototype at the user space, so i think
-nothing is break (only the functions implementations at libiptc.c are
-changed).. just between kernel and user (this is internal).. and just
-for entries structure..
-netlink is one of my ideas about this version and may implement..
-> - are a drop-in replacement instead of incremental changes or a
->  completely new implementation
-by this new idea, many things are changed and wrirten from scratch.. i
-can continue its implementation to be completed.
-> - fix only a very small part of the problems of the current
->  iptables design
-beside your new ideas about nftables, this implementation also has
-some new ideas:
-about sets in  nftables: we can implement sets as classifier in this version
-about registers in nftables: we can see matches as registers in this version
-and about multiple targets: this version can use multiple targets..
->
-> I've asked Hamid to post these patches to see if there were any
-> useful incremental changes that would make sense to apply to
-> iptables, but it seems to come down to moving userspace to kernel
-> to support incremental changes.
-not only user to kernel.. this limited to add/remove..
-using classifiers as search engine, common framework for tables and
-new semantics.. so on..
+What you want is to redirect an existing connection to a new destination.
+If you use TCP protocol, the only way to do that is to record the current
+connection and, in parralel, create a second connection to you new
+destination and replay the payload on the packet in the new one.
 
+If you use UDP, this doesn't apply since there's no connection tracking in
+the UDP protocol. Netfilter, however, does some connection tracking on UDP
+packets, so make some test to see if it's doable.
+
+I had to solve the same problem in a honeypot project to redirect active
+connections from low interaction honeypots to high interactions honeypots.
+The solution I choosed was to queue the connections in userland using
+netfilter_queue, process them and replay those I've selected to the new
+destination in parrallel, and then drop the packet from the initial
+connection.
+
+It's tricky to do, and there's many issue to solve, but AFAIK this is the
+most reliable solution.
+
+> **** Maybe doing packets' replication since those ones are redirected to 
+> annother machine?
+
+Note : window-tracking is for the tracking of the window size in the tcp
+header, it has nothing to do with this.
+
+
+> 
+> **** NAT TCP Extensions??Patch-O-Matic --> window-tracking??
+> 
+> **** I read this in an interntet site:
+> 
+> --- NEW (and RELATED non-icmp)
+>     This is a very important part relevant for understanding the whole
+NAT
+>     subsystem. Only if the packet has the state NEW (i.e. it would
+>     establish
+>     a new connection, if we'd accept it), the NAT table is traversed by
+>     calling ip_nat_rule.c:ip_nat_rule_find(), which in turn calls
+>     ip_tables.c:ipt_do_table() for the actual IP table traversal. The 
+> traversal
+>     ends up in either ACCEPTing the packet as it is, or one of the nat 
+> targets
+>     (SNAT, DNAT and if loaded: REDIRECT, MASQUERADE) Please see
+>     chapter FIXME for further description of those targets.
+> 
+> --- ESTABLISHED
+>     This packet belongs to an already established connection. We don't
+need
+>     to traverse the NAT table again, as the necessary information
+>     (struct ip_nat_info) was already gained Hello everybody,
+> 
+> 
+> Thank you very much in advance and if my questions are not clear don't 
+> doubt to send me a message.
+> 
+> Diego.
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+
+
+
+Regards,
+Julien
 
 -- 
-Hamid Jafarian (hm.t)
+www.linuxwall.info
