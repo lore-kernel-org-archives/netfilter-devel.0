@@ -1,11 +1,10 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Evgeniy Polyakov <zbr@ioremap.net>
 Subject: Re: [PATCH 00/09]IPtablestng/Kernel - New Framework For IPtables
-Date: Tue, 28 Oct 2008 13:30:11 +0100
-Message-ID: <490705D3.4040809@trash.net>
-References: <20081027042834.0BA69C64087@host1.ystp.ac.ir> <20081028000044.GA16721@ioremap.net> <464293e60810280302j26112754o72c1cf3ebd6a0b1f@mail.gmail.com> <20081028104346.GA31146@ioremap.net> <4907008A.6050808@trash.net> <20081028122554.GA12945@ioremap.net>
+Date: Tue, 28 Oct 2008 15:43:13 +0300
+Message-ID: <20081028124313.GA15127@ioremap.net>
+References: <20081027042834.0BA69C64087@host1.ystp.ac.ir> <20081028000044.GA16721@ioremap.net> <464293e60810280302j26112754o72c1cf3ebd6a0b1f@mail.gmail.com> <20081028104346.GA31146@ioremap.net> <4907008A.6050808@trash.net> <20081028122554.GA12945@ioremap.net> <490705D3.4040809@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: hamid jafarian <hamid.jafarian@gmail.com>,
 	Netfilter-devel <netfilter-devel@vger.kernel.org>,
 	Netdev <netdev@vger.kernel.org>,
@@ -16,27 +15,27 @@ Cc: hamid jafarian <hamid.jafarian@gmail.com>,
 	Eric Leblond <eric@inl.fr>,
 	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
 	Amin Azez <azez@ufomechanic.net>
-To: Evgeniy Polyakov <zbr@ioremap.net>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:61384 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751649AbYJ1MaR (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 28 Oct 2008 08:30:17 -0400
-In-Reply-To: <20081028122554.GA12945@ioremap.net>
+Received: from netgear.net.ru ([195.178.208.66]:60485 "EHLO tservice.net.ru"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1751988AbYJ1MnO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 28 Oct 2008 08:43:14 -0400
+Content-Disposition: inline
+In-Reply-To: <490705D3.4040809@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Evgeniy Polyakov wrote:
-> On Tue, Oct 28, 2008 at 01:07:38PM +0100, Patrick McHardy (kaber@trash.net) wrote:
->> I think these patches are a lost cause. Besides the fact that they
->> move things to the kernel instead of to userspace, they
+On Tue, Oct 28, 2008 at 01:30:11PM +0100, Patrick McHardy (kaber@trash.net) wrote:
+> >What about part which replaces rules array with a list?
+> >That's the main part I was interested in though.
 > 
-> What about part which replaces rules array with a list?
-> That's the main part I was interested in though.
+> Thats also the part that breaks userspace compatibility and requires
+> to move a lot of userspace code to the kernel, at least in that
+> design. Its not possible to do this with iptables without breaking
+> userspace compability.
 
-Thats also the part that breaks userspace compatibility and requires
-to move a lot of userspace code to the kernel, at least in that
-design. Its not possible to do this with iptables without breaking
-userspace compability.
+Ok, I see. Than likely case is closed...
 
+-- 
+	Evgeniy Polyakov
