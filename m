@@ -1,43 +1,62 @@
-From: Greg KH <gregkh@suse.de>
-Subject: Re: netfilter 00/03: netfilter -stable fixes
-Date: Mon, 27 Oct 2008 19:45:29 -0700
-Message-ID: <20081028024529.GA17128@suse.de>
-References: <20081022174126.21341.38231.sendpatchset@x2.localnet> <alpine.LNX.1.10.0810240229550.4386@bizon.gios.gov.pl> <49014390.7080909@trash.net> <alpine.LNX.1.10.0810280311030.15543@bizon.gios.gov.pl>
+From: "hamid jafarian" <hamid.jafarian@gmail.com>
+Subject: Re: [PATCH 00/09]IPtablestng/Kernel - New Framework For IPtables
+Date: Tue, 28 Oct 2008 13:32:06 +0330
+Message-ID: <464293e60810280302j26112754o72c1cf3ebd6a0b1f@mail.gmail.com>
+References: <20081027042834.0BA69C64087@host1.ystp.ac.ir>
+	 <20081028000044.GA16721@ioremap.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: stable@kernel.org, netfilter-devel@vger.kernel.org,
-	Patrick McHardy <kaber@trash.net>
-To: Krzysztof Oledzki <ole@ans.pl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter-devel <netfilter-devel@vger.kernel.org>,
+	Netdev <netdev@vger.kernel.org>,
+	"Pablo Neira Ayuso" <pablo@netfilter.org>,
+	"Patrick McHardy" <kaber@trash.net>,
+	"Jan Engelhardt" <jengelh@medozas.de>,
+	"Rusty Russell" <rusty@rustcorp.com.au>,
+	"Harald Welte" <laforge@gnumonks.org>,
+	"Eric Leblond" <eric@inl.fr>,
+	"Jozsef Kadlecsik" <kadlec@blackhole.kfki.hu>,
+	"Amin Azez" <azez@ufomechanic.net>
+To: "Evgeniy Polyakov" <zbr@ioremap.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:37979 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751918AbYJ1DV4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 27 Oct 2008 23:21:56 -0400
+Received: from rv-out-0506.google.com ([209.85.198.238]:13042 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751518AbYJ1KCH (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 28 Oct 2008 06:02:07 -0400
+In-Reply-To: <20081028000044.GA16721@ioremap.net>
 Content-Disposition: inline
-In-Reply-To: <alpine.LNX.1.10.0810280311030.15543@bizon.gios.gov.pl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Oct 28, 2008 at 03:13:32AM +0100, Krzysztof Oledzki wrote:
->
->
-> On Fri, 24 Oct 2008, Patrick McHardy wrote:
->
->> Krzysztof Oledzki wrote:
->>> On Wed, 22 Oct 2008, Patrick McHardy wrote:
->>>> The following three patches for -stable fix some netfilter issues:
->>>> - a regression in the iprange match, causing mismatches with inversion
->>>> - a memory leak in the SNMP NAT helper
->>>> - a lost #ifdef, allowing user-triggerable WARN_ONs with NETFILTER_DEBUG
->>>>  (and some minor runtime misbehaviour)
->>> Which kernels need above patches? Only 2.6.27 or also 2.6.25/2.6.26?
->>
->> I think all three patches are also needed for 2.6.25 and 2.6.26.
->
-> Thank you for the confirmation.
->
-> Greg, could you please put above patches info queue-2.6.25/queue-2.6.26?
+hi, &  special thanks
 
-Will do, thanks.
+On Tue, Oct 28, 2008 at 3:30 AM, Evgeniy Polyakov <zbr@ioremap.net> wrote:
+> Frankly saying your codying style is way out of expected range of
+> allowed glitches, so it is quite hard to review the whole thing. Please
+> update it to at least remotely match existing code.
 
-greg k-h
+excuse for this loosely patches...
+please more explain...
+do you mean my patches are too long? or ambiguous?
+i 've tried to code base on "Documentation/CodingStyle".. and patch
+base on "how to participate in the kernel community" documents.
+
+the core of this framework is located at pkt_tables.c&.h (#2&#3 of
+kernel patches).
+iptables.c&.h are completely changed. also at the user space libiptc.c
+is rewritten from scratch thus their patches are really ambiguous to
+be understood..what is the best way to send this patches?
+what this phrase mean: "' remotely match existing code ""?
+
+>Also I noticed you
+> do not use list iteration functions sometimes and replaces them with
+> direct access to next/prev pointers, which is not a good idea.
+ok, i 've used this style to free list elements.
+if you mean "don't use direct access to prev/next", i 'll review my
+code and will try to use list iteration function on every place that
+is possible or at list use list functions and list element of
+structures instead of direct access to "next/prev"..
+
+-- 
+Hamid Jafarian (hm.t)
