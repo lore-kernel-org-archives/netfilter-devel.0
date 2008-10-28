@@ -1,11 +1,10 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Evgeniy Polyakov <zbr@ioremap.net>
 Subject: Re: [PATCH 00/09]IPtablestng/Kernel - New Framework For IPtables
-Date: Tue, 28 Oct 2008 13:07:38 +0100
-Message-ID: <4907008A.6050808@trash.net>
-References: <20081027042834.0BA69C64087@host1.ystp.ac.ir> <20081028000044.GA16721@ioremap.net> <464293e60810280302j26112754o72c1cf3ebd6a0b1f@mail.gmail.com> <20081028104346.GA31146@ioremap.net>
+Date: Tue, 28 Oct 2008 15:25:54 +0300
+Message-ID: <20081028122554.GA12945@ioremap.net>
+References: <20081027042834.0BA69C64087@host1.ystp.ac.ir> <20081028000044.GA16721@ioremap.net> <464293e60810280302j26112754o72c1cf3ebd6a0b1f@mail.gmail.com> <20081028104346.GA31146@ioremap.net> <4907008A.6050808@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: hamid jafarian <hamid.jafarian@gmail.com>,
 	Netfilter-devel <netfilter-devel@vger.kernel.org>,
 	Netdev <netdev@vger.kernel.org>,
@@ -16,49 +15,23 @@ Cc: hamid jafarian <hamid.jafarian@gmail.com>,
 	Eric Leblond <eric@inl.fr>,
 	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
 	Amin Azez <azez@ufomechanic.net>
-To: Evgeniy Polyakov <zbr@ioremap.net>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60770 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752393AbYJ1MHn (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 28 Oct 2008 08:07:43 -0400
-In-Reply-To: <20081028104346.GA31146@ioremap.net>
+Received: from corega.com.ru ([195.178.208.66]:40093 "EHLO tservice.net.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751881AbYJ1M0A (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 28 Oct 2008 08:26:00 -0400
+Content-Disposition: inline
+In-Reply-To: <4907008A.6050808@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Evgeniy Polyakov wrote:
-> Hi.
-> 
-> On Tue, Oct 28, 2008 at 01:32:06PM +0330, hamid jafarian (hamid.jafarian@gmail.com) wrote:
->> excuse for this loosely patches...
->> please more explain...
->> do you mean my patches are too long? or ambiguous?
->> i 've tried to code base on "Documentation/CodingStyle".. and patch
->> base on "how to participate in the kernel community" documents.
->>
->> the core of this framework is located at pkt_tables.c&.h (#2&#3 of
->> kernel patches).
->> iptables.c&.h are completely changed. also at the user space libiptc.c
->> is rewritten from scratch thus their patches are really ambiguous to
->> be understood..what is the best way to send this patches?
->> what this phrase mean: "' remotely match existing code ""?
-> 
-> I mean just coding style: spaces, braces, parentheses, function names
-> like __something_small_AND_CAPITAL. checkpatch.pl may help, although imo
-> it should not be followed strickly. It will much simpler to review changes.
+On Tue, Oct 28, 2008 at 01:07:38PM +0100, Patrick McHardy (kaber@trash.net) wrote:
+> I think these patches are a lost cause. Besides the fact that they
+> move things to the kernel instead of to userspace, they
 
-I think these patches are a lost cause. Besides the fact that they
-move things to the kernel instead of to userspace, they
+What about part which replaces rules array with a list?
+That's the main part I was interested in though.
 
-- break the existing interface
-- do not use netlink
-- are a drop-in replacement instead of incremental changes or a
-   completely new implementation
-- fix only a very small part of the problems of the current
-   iptables design
-
-I've asked Hamid to post these patches to see if there were any
-useful incremental changes that would make sense to apply to
-iptables, but it seems to come down to moving userspace to kernel
-to support incremental changes.
+-- 
+	Evgeniy Polyakov
