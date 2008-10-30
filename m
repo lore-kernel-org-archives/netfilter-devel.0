@@ -1,93 +1,63 @@
-From: Marek Szuba <Marek.Szuba@if.pw.edu.pl>
-Subject: IPv6 conntrack support for neighbour discovery
-Date: Thu, 30 Oct 2008 14:52:18 +0100
-Message-ID: <20081030145218.5395c3fe@hiperon.ws.hirg>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: Every other char with LOG netfilter output (bug?)
+Date: Thu, 30 Oct 2008 16:02:22 +0100
+Message-ID: <4909CC7E.7070801@netfilter.org>
+References: <rlujt5-k63.ln1@tux.abusar.org.br>	<49074E81.6010207@trash.net>	<49075276.2686460a.0b00.ffff9f09@mx.google.com>	<4907564D.5090103@trash.net> <49094b22.0f87460a.09d2.55b6@mx.google.com> <49095F02.7040104@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/GFQ+lOTws=4kKrB_MBbIj8j"
-Cc: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: =?ISO-8859-15?Q?D=E2niel_Fraga?= <fragabr@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from student.if.pw.edu.pl ([194.29.174.5]:41894 "EHLO
-	student.if.pw.edu.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755482AbYJ3N7E (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 30 Oct 2008 09:59:04 -0400
+Received: from mail.us.es ([193.147.175.20]:43525 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755150AbYJ3PDV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 30 Oct 2008 11:03:21 -0400
+In-Reply-To: <49095F02.7040104@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
---MP_/GFQ+lOTws=4kKrB_MBbIj8j
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: inline
+Patrick McHardy wrote:
+> D=E2niel Fraga wrote:
+>> On Tue, 28 Oct 2008 19:13:33 +0100
+>> Patrick McHardy <kaber@trash.net> wrote:
+>>
+>>> I'm not familiar with ftrace, but you could manually instrument it
+>>> (net/ipv4/netfilter/ipt_LOG.c). I'd try nfnetlink_log first though.
+>>
+>>     Hi Patrick, I installed ulogd2 with all necessary stuff. The
+>> normal log is working (with the default ulogd.conf), but how can I
+>> configure it to log the full packets? If you can provide me a sample
+>> configuration, I'll appreciate!
+>=20
+> One thing you need is to specify the amount of bytes you want transfe=
+red
+> to userspace:
+>=20
+> iptables ... -j NFLOG --nflog-range 65535
+>=20
+> The printpkt output plugin doesn't log the full packet, but I'm not
+> sure how to configure the pcap plugin (or whether it works at all
+> in ulogd2, which is still somewhere between alpha and beta).
+> Pablo (CCed) might be able to help.
 
-Hello everyone,
+The plugin works fine here. Uncomment the following lines:
 
-Following a suggestion I was given at the kernel Bugzilla I am
-forwarding this here.
+# plugin=3D"/usr/lib/ulogd/ulogd_output_PCAP.so
 
-It has come to my attention lately that the only two ICMPv6 packet
-types which IPv6 conntrack allows at present to initiate new
-connections are "echo request" and "node information query"; all other
-types appearing in this context are considered invalid. In particular,
-this includes two neighbour-discovery types specified in RFC 2461:
-"router solicitation" and "neighbour solicitation" - meaning that if a
-server drops all INVALID packets early in its INPUT or OUTPUT chain of
-IPv6 netfilter's filter table, neither of the two can be received from
-clients. Given that router solicitation is used for stateless network
-autoconfiguration and neighbour solicitation is an IPv6 equivalent of
-ARP requests, having these two dropped can be quite bad - especially
-the latter, as it pretty much kills IPv6 over Ethernet.
+# this is a stack for NFLOG packet-based logging to PCAP
+# stack=3Dlog1:NFLOG,base1:BASE,pcap1:PCAP
 
-Steps to reproduce:
+And make sure you have the appropriate section:
 
-1. Obtain an IPv6 address assigned to an Ethernet interface of host A
-(link-local will do);
-2. If necesssary, flush all ip6tables filter chains on host A and set
-their policies to ACCEPT;
-3. From host B on the same Ethernet network, ping6 the aforementioned IP
-address to verify that everything works;
-4. On host A, run something like "ip6tables -I INPUT 1 -m state --state
-INVALID -j DROP";
-5. Try to repeat step 3. This time the ping should fail and counters
-associated with the aforementioned rule should increment;
-6. Repeat all the above using OUTPUT instead of INPUT, with the same
-final result.
+[pcap1]
+file=3D"/var/log/ulogd.pcap"
+sync=3D1
 
-BTW. This problem was discovered and (hopefully) fixed collaboratively
-by =C5=81ukasz Stelmach <steelman@post.pl> and myself, please attribute both
-of us should the patch make it into code repositories.
-
-Attaching a proposed solution to the problem - the enclosed patch adds
-"router solicitation" and "neighbour solicitation" to the list of
-ICMPv6 types IPv6 conntrack considers allowed to initiate new
-connections. Note that in principle "router advertisement" ICMPv6
-packets could also be considered valid-new, as e.g. radvd periodically
-advertises its presence to the local network - as however it is not
-necessary to let this through as new to have things work (plus we
-aren't that big on broadcasting, even on supposedly-secure networks),
-the patch only adds solicitations to the list.
-
-Best regards,
 --=20
-MS
-
---MP_/GFQ+lOTws=4kKrB_MBbIj8j
-Content-Type: text/x-patch;
- name=nf_conntrack_proto_icmpv6.c-ndiscIsValid.patch
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename=nf_conntrack_proto_icmpv6.c-ndiscIsValid.patch
-
---- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c	2008-04-17 04:49:44.000000000 +0200
-+++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c	2008-10-20 16:49:09.000000000 +0200
-@@ -108,6 +108,8 @@
- {
- 	static const u_int8_t valid_new[] = {
- 		[ICMPV6_ECHO_REQUEST - 128] = 1,
-+		[NDISC_ROUTER_SOLICITATION - 128] = 1,
-+		[NDISC_NEIGHBOUR_SOLICITATION - 128] = 1,
- 		[ICMPV6_NI_QUERY - 128] = 1
- 	};
- 	int type = ct->tuplehash[0].tuple.dst.u.icmp.type - 128;
-
---MP_/GFQ+lOTws=4kKrB_MBbIj8j--
+"Los honestos son inadaptados sociales" -- Les Luthiers
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
