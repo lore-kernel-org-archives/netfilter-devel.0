@@ -1,50 +1,87 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Every other char with LOG netfilter output (bug?)
-Date: Thu, 30 Oct 2008 08:15:14 +0100
-Message-ID: <49095F02.7040104@trash.net>
-References: <rlujt5-k63.ln1@tux.abusar.org.br>	<49074E81.6010207@trash.net>	<49075276.2686460a.0b00.ffff9f09@mx.google.com>	<4907564D.5090103@trash.net> <49094b22.0f87460a.09d2.55b6@mx.google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>
-To: =?ISO-8859-15?Q?D=E2niel_Fraga?= <fragabr@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:53164 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752712AbYJ3HPR (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 30 Oct 2008 03:15:17 -0400
-In-Reply-To: <49094b22.0f87460a.09d2.55b6@mx.google.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Subject: netns 01/02: add register_pernet_gen_subsys/unregister_pernet_gen_subsys
+Date: Thu, 30 Oct 2008 08:31:46 +0100 (MET)
+Message-ID: <20081030073145.14487.48665.sendpatchset@x2.localnet>
+References: <20081030073143.14487.24299.sendpatchset@x2.localnet>
+Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org
+To: davem@davemloft.net
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20081030073143.14487.24299.sendpatchset@x2.localnet>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-D=E2niel Fraga wrote:
-> On Tue, 28 Oct 2008 19:13:33 +0100
-> Patrick McHardy <kaber@trash.net> wrote:
->=20
->> I'm not familiar with ftrace, but you could manually instrument it
->> (net/ipv4/netfilter/ipt_LOG.c). I'd try nfnetlink_log first though.
->=20
-> 	Hi Patrick, I installed ulogd2 with all necessary stuff. The
-> normal log is working (with the default ulogd.conf), but how can I
-> configure it to log the full packets? If you can provide me a sample
-> configuration, I'll appreciate!
+commit 616b16ca5561a4cb0fc6796ebf551e11636a3156
+Author: Alexey Dobriyan <adobriyan@gmail.com>
+Date:   Thu Oct 30 08:15:35 2008 +0100
 
-One thing you need is to specify the amount of bytes you want transfere=
-d
-to userspace:
+    netns: add register_pernet_gen_subsys/unregister_pernet_gen_subsys
+    
+    netns ops which are registered with register_pernet_gen_device() are
+    shutdown strictly before those which are registered with
+    register_pernet_subsys(). Sometimes this leads to opposite (read: buggy)
+    shutdown ordering between two modules.
+    
+    Add register_pernet_gen_subsys()/unregister_pernet_gen_subsys() for modules
+    which aren't elite enough for entry in struct net, and which can't use
+    register_pernet_gen_device(). PPTP conntracking module is such one.
+    
+    Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-iptables ... -j NFLOG --nflog-range 65535
-
-The printpkt output plugin doesn't log the full packet, but I'm not
-sure how to configure the pcap plugin (or whether it works at all
-in ulogd2, which is still somewhere between alpha and beta).
-Pablo (CCed) might be able to help.
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/include/net/net_namespace.h b/include/net/net_namespace.h
+index 708009b..700c53a 100644
+--- a/include/net/net_namespace.h
++++ b/include/net/net_namespace.h
+@@ -214,6 +214,8 @@ struct pernet_operations {
+ 
+ extern int register_pernet_subsys(struct pernet_operations *);
+ extern void unregister_pernet_subsys(struct pernet_operations *);
++extern int register_pernet_gen_subsys(int *id, struct pernet_operations *);
++extern void unregister_pernet_gen_subsys(int id, struct pernet_operations *);
+ extern int register_pernet_device(struct pernet_operations *);
+ extern void unregister_pernet_device(struct pernet_operations *);
+ extern int register_pernet_gen_device(int *id, struct pernet_operations *);
+diff --git a/net/core/net_namespace.c b/net/core/net_namespace.c
+index f1d07b5..1895a4c 100644
+--- a/net/core/net_namespace.c
++++ b/net/core/net_namespace.c
+@@ -325,6 +325,38 @@ void unregister_pernet_subsys(struct pernet_operations *module)
+ }
+ EXPORT_SYMBOL_GPL(unregister_pernet_subsys);
+ 
++int register_pernet_gen_subsys(int *id, struct pernet_operations *ops)
++{
++	int rv;
++
++	mutex_lock(&net_mutex);
++again:
++	rv = ida_get_new_above(&net_generic_ids, 1, id);
++	if (rv < 0) {
++		if (rv == -EAGAIN) {
++			ida_pre_get(&net_generic_ids, GFP_KERNEL);
++			goto again;
++		}
++		goto out;
++	}
++	rv = register_pernet_operations(first_device, ops);
++	if (rv < 0)
++		ida_remove(&net_generic_ids, *id);
++	mutex_unlock(&net_mutex);
++out:
++	return rv;
++}
++EXPORT_SYMBOL_GPL(register_pernet_gen_subsys);
++
++void unregister_pernet_gen_subsys(int id, struct pernet_operations *ops)
++{
++	mutex_lock(&net_mutex);
++	unregister_pernet_operations(ops);
++	ida_remove(&net_generic_ids, id);
++	mutex_unlock(&net_mutex);
++}
++EXPORT_SYMBOL_GPL(unregister_pernet_gen_subsys);
++
+ /**
+  *      register_pernet_device - register a network namespace device
+  *	@ops:  pernet operations structure for the subsystem
