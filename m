@@ -1,41 +1,28 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: netfilter 02/02: nf_conntrack_proto_gre: switch to
- register_pernet_gen_subsys()
-Date: Thu, 30 Oct 2008 23:55:57 -0700 (PDT)
-Message-ID: <20081030.235557.206473899.davem@davemloft.net>
-References: <20081030073143.14487.24299.sendpatchset@x2.localnet>
-	<20081030073146.14487.64303.sendpatchset@x2.localnet>
+From: "Jacky Luk" <jacky.luk@primecreation.com>
+Subject: About the netfilter_queue and multi threads!
+Date: Fri, 31 Oct 2008 18:45:23 +0800
+Message-ID: <web-4608013@mail.primecreation.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: kaber@trash.net
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:58541
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1752396AbYJaG4W (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 31 Oct 2008 02:56:22 -0400
-In-Reply-To: <20081030073146.14487.64303.sendpatchset@x2.localnet>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"; format="flowed"
+Content-Transfer-Encoding: 8bit
+To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Thu, 30 Oct 2008 08:31:47 +0100 (MET)
+Hi, 
 
->     netfilter: nf_conntrack_proto_gre: switch to register_pernet_gen_subsys()
->     
->     register_pernet_gen_device() can't be used is nf_conntrack_pptp module is
->     also used (compiled in or loaded).
->     
->     Right now, proto_gre_net_exit() is called before nf_conntrack_pptp_net_exit().
->     The former shutdowns and frees GRE piece of netns, however the latter
->     absolutely needs it to flush keymap. Oops is inevitable.
->     
->     Switch to shiny new register_pernet_gen_subsys() to get correct ordering in
->     netns ops list.
->     
->     Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
->     Signed-off-by: Patrick McHardy <kaber@trash.net>
+Does the netfilter_queue support the multi-thread 
+processing? In other words, I use one thread to receive 
+packets from the netfilter_queue (Use recv() function). In 
+the meanwhile, I dispatch them to other threads (Another 6 
+threads) to process by using Round-Robin method (Use 
+nfq_set_verdict() function when the processing is 
+finished). If so, does it cause any stability issues to 
+the system (e.g. Cause kernel panic)?
 
-Also applied, thanks.
+Thank you very much!
+
+Regards,
+
+Jacky Luk
