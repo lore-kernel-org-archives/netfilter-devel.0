@@ -1,42 +1,41 @@
-From: Rick Jones <rick.jones2@hp.com>
-Subject: Re: [Fwd: Re: Shortcuts to counting rules?]
-Date: Fri, 31 Oct 2008 11:54:03 -0700
-Message-ID: <490B544B.50903@hp.com>
-References: <490B46F0.4010100@hp.com> <alpine.LNX.1.10.0810311906120.29079@fbirervta.pbzchgretzou.qr>
+From: "Jianqing Zhang" <arrow.jianqing@gmail.com>
+Subject: How to iptables' QUEUE?
+Date: Fri, 31 Oct 2008 15:06:28 -0500
+Message-ID: <8a38e1330810311306oaa38381g1b1b3f76ccbe3195@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from g4t0014.houston.hp.com ([15.201.24.17]:2528 "EHLO
-	g4t0014.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751103AbYJaSyJ (ORCPT
+Received: from rv-out-0506.google.com ([209.85.198.233]:15876 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751351AbYJaUG2 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 31 Oct 2008 14:54:09 -0400
-In-Reply-To: <alpine.LNX.1.10.0810311906120.29079@fbirervta.pbzchgretzou.qr>
+	Fri, 31 Oct 2008 16:06:28 -0400
+Received: by rv-out-0506.google.com with SMTP id k40so1429892rvb.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 31 Oct 2008 13:06:28 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Friday 2008-10-31 18:57, Rick Jones wrote:
-> 
-> 
->>The end goal here is to teach netperf how to get a count of
->>iptables rules in place in the kernel.  There was also a drifting
->>question of whether or not strace should be taught about the
->>getsockopt() options.
-> 
-> 
-> iptables-save | grep ^- | wc -l
+I use iptables to filter incoming packets with some particular
+protocols, such as ICMP, and the target is QUEUE.
 
-Here is where I cop to being a luddite who prefers straight C to calling 
-system() :)
+=============================
 
-> And strace should not be taught that. We have seen at least one
-> change of the interpretation of the binary stream.
+Chain INPUT (policy ACCEPT)
+target prot opt source destination
+QUEUE icmp -- anywhere anywhere
 
-How about at least the option name(s) so it can present something other 
-than the 0x40/0x41 etc?
+Chain FORWARD (policy ACCEPT)
+target prot opt source destination
 
-rick jones
+Chain OUTPUT (policy ACCEPT)
+target prot opt source destination
+
+============================
+
+How can I check QUEUE of iptables, i.e. how can I know iptables
+captures the packets and put them in the QUEUE?
+
+Thanks
