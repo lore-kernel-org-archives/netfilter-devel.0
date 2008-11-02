@@ -1,159 +1,144 @@
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: [PATCH] netns ct: walk netns list under RTNL
-Date: Sat, 1 Nov 2008 17:32:15 +0300
-Message-ID: <20081101143215.GB23760@x200.localdomain>
+From: Philip Prindeville <philipp_subx@redfish-solutions.com>
+Subject: Issues building iptables-1.4.2 w/ linux 2.6.25 (and IMQ)
+Date: Sun, 02 Nov 2008 12:44:12 -0800
+Message-ID: <490E111C.9060006@redfish-solutions.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.185]:13380 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751561AbYKAO3E (ORCPT
+Received: from mail.redfish-solutions.com ([66.232.79.143]:48468 "EHLO
+	mail.redfish-solutions.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754136AbYKBVCY (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 1 Nov 2008 10:29:04 -0400
-Received: by nf-out-0910.google.com with SMTP id d3so730100nfc.21
-        for <netfilter-devel@vger.kernel.org>; Sat, 01 Nov 2008 07:29:00 -0700 (PDT)
-Content-Disposition: inline
+	Sun, 2 Nov 2008 16:02:24 -0500
+Received: from [192.168.10.6] (tosh.redfish-solutions.com [63.224.43.239])
+	(authenticated bits=0)
+	by mail.redfish-solutions.com (8.14.2/8.14.2) with ESMTP id mA2KiCbn019603
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <netfilter-devel@vger.kernel.org>; Sun, 2 Nov 2008 13:44:13 -0700
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-As was suspected, it's oopsable:
+I'm trying to build iptables 1.3.8 in a cross-compile environment for 
+linux 2.6.25.19 on an x86, but I'm seeing:
 
-BUG: unable to handle kernel paging request at 0000000000100100	<===
-IP: [<ffffffffa00984bc>] nf_conntrack_helper_unregister+0x137/0x16c [nf_conntrack]
-PGD 168b48067 PUD 168b47067 PMD 0 
-Oops: 0000 [#1] PREEMPT SMP DEBUG_PAGEALLOC
-last sysfs file: /sys/kernel/uevent_seqnum
-CPU 0 
-Modules linked in: nf_conntrack_pptp(-) nf_conntrack_proto_gre af_packet iptable_nat nf_nat nf_conntrack_ipv4 nf_conntrack nf_defrag_ipv4 iptable_filter ip_tables xt_tcpudp ip6table_filter ip6_tables x_tables ipv6 sr_mod cdrom [last unloaded: nf_conntrack_pptp]
-Pid: 9110, comm: rmmod Not tainted 2.6.28-rc2-netns-xfrm #2
-RIP: 0010:[<ffffffffa00984bc>]  [<ffffffffa00984bc>] nf_conntrack_helper_unregister+0x137/0x16c [nf_conntrack]
-RSP: 0018:ffff8801689dfea8  EFLAGS: 00010212
-RAX: 0000000000004000 RBX: 0000000000000000 RCX: 0000000000000033
-RDX: 0000000000003fff RSI: ffffffffa0648720 RDI: ffff88017fc2ced8
-RBP: ffff8801689dfed8 R08: 0000000000000002 R09: 0000000000000000
-R10: 0000000000000000 R11: ffff8801689dfd98 R12: 00000000001000f8
-R13: ffffffffa0648720 R14: 0000000000004000 R15: 0000000000000880
-FS:  00007f7ba894d6f0(0000) GS:ffffffff80521580(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-CR2: 0000000000100100 CR3: 0000000168b45000 CR4: 00000000000006e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-Process rmmod (pid: 9110, threadinfo ffff8801689de000, task ffff88017cd81218)
-Stack:
- ffff8801689dfed8 ffffffffa06487c0 0000000000000000 0000000000000880
- 00007fffb0955330 0000000000000880 ffff8801689dfee8 ffffffffa064771c
- ffff8801689dff78 ffffffff80253f87 746e6e6f635f666e 7470705f6b636172
-Call Trace:
- [<ffffffffa064771c>] nf_conntrack_pptp_fini+0x10/0x1e [nf_conntrack_pptp]
- [<ffffffff80253f87>] sys_delete_module+0x19f/0x1fe
- [<ffffffff8024cac8>] ? trace_hardirqs_on_caller+0xf0/0x114
- [<ffffffff803ea8b0>] ? trace_hardirqs_on_thunk+0x3a/0x3f
- [<ffffffff8020b52b>] system_call_fastpath+0x16/0x1b
-Code: 48 89 df 4c 89 ee 0f 18 08 e8 64 fe ff ff 48 8b 1b eb e5 49 ff c6 44 3b 35 4a bc 00 00 44 89 f0 72 c8 4d 8b 64 24 08 49 83 ec 08 <49> 8b 44 24 08 0f 18 08 49 8d 44 24 08 48 3d 60 4f 50 80 74 08 
-RIP  [<ffffffffa00984bc>] nf_conntrack_helper_unregister+0x137/0x16c [nf_conntrack]
- RSP <ffff8801689dfea8>
-CR2: 0000000000100100
-Kernel panic - not syncing: Fatal exception in interrupt
+/home/philipp/kernel/build_i586/staging_dir/bin/i586-linux-uclibc-gcc -Os -pipe -fomit-frame-pointer  -Wall -Wunused -I/home/philipp/kernel/build_i586/linux-2.6.25.19-astlinux/include -Iinclude/ -DIPTABLES_VERSION=\"1.3.8\"  -DNO_SHARED_LIBS=1 -DIPT_MIN_ALIGN=8 -DKERNEL_64_USERSPACE_32 -D_INIT=ipt_ah_init -c -o extensions/libipt_ah.o extensions/libipt_ah.c
+In file included from /home/philipp/kernel/build_i586/linux-2.6.25.19-astlinux/include/linux/netfilter_ipv4.h:9,
+                 from /home/philipp/kernel/build_i586/linux-2.6.25.19-astlinux/include/linux/netfilter_ipv4/ip_tables.h:27,
+                 from include/libiptc/libiptc.h:7,
+                 from include/iptables.h:6,
+                 from iptables.c:40:
+/home/philipp/kernel/build_i586/linux-2.6.25.19-astlinux/include/linux/netfilter.h:54: error: expected specifier-qualifier-list before '__u32'
+make[1]: *** [iptables.o] Error 1
+make[1]: *** Waiting for unfinished jobs....
+In file included from /home/philipp/kernel/build_i586/linux-2.6.25.19-astlinux/include/linux/netfilter_ipv4.h:9,
+                 from /home/philipp/kernel/build_i586/linux-2.6.25.19-astlinux/include/linux/netfilter_ipv4/ip_tables.h:27,
+                 from include/libiptc/libiptc.h:7,
+                 from include/iptables.h:6,
+                 from extensions/libipt_ah.c:9:
+/home/philipp/kernel/build_i586/linux-2.6.25.19-astlinux/include/linux/netfilter.h:54: error: expected specifier-qualifier-list before '__u32'
+make[1]: *** [extensions/libipt_ah.o] Error 1
+make[1]: Leaving directory `/home/philipp/kernel/build_i586/iptables-1.3.8'
+make: *** [/home/philipp/kernel/build_i586/iptables-1.3.8/iptables] Error 2
 
 
-BUG: unable to handle kernel paging request at 0000000000100100	<===
-IP: [<ffffffffa009890f>] nf_conntrack_l4proto_unregister+0x96/0xae [nf_conntrack]
-PGD 15e300067 PUD 15e1d8067 PMD 0 
-Oops: 0000 [#1] PREEMPT SMP DEBUG_PAGEALLOC
-last sysfs file: /sys/kernel/uevent_seqnum
-CPU 0 
-Modules linked in: nf_conntrack_proto_sctp(-) nf_conntrack_proto_dccp(-) af_packet iptable_nat nf_nat nf_conntrack_ipv4 nf_conntrack nf_defrag_ipv4 iptable_filter ip_tables xt_tcpudp ip6table_filter ip6_tables x_tables ipv6 sr_mod cdrom [last unloaded: nf_conntrack_proto_sctp]
-Pid: 16758, comm: rmmod Not tainted 2.6.28-rc2-netns-xfrm #3
-RIP: 0010:[<ffffffffa009890f>]  [<ffffffffa009890f>] nf_conntrack_l4proto_unregister+0x96/0xae [nf_conntrack]
-RSP: 0018:ffff88015dc1fec8  EFLAGS: 00010212
-RAX: 0000000000000000 RBX: 00000000001000f8 RCX: 0000000000000000
-RDX: ffffffffa009575c RSI: 0000000000000003 RDI: ffffffffa00956b5
-RBP: ffff88015dc1fed8 R08: 0000000000000002 R09: 0000000000000000
-R10: 0000000000000000 R11: ffff88015dc1fe48 R12: ffffffffa0458f60
-R13: 0000000000000880 R14: 00007fff4c361d30 R15: 0000000000000880
-FS:  00007f624435a6f0(0000) GS:ffffffff80521580(0000) knlGS:0000000000000000
-CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-CR2: 0000000000100100 CR3: 0000000168969000 CR4: 00000000000006e0
-DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-Process rmmod (pid: 16758, threadinfo ffff88015dc1e000, task ffff880179864218)
-Stack:
- ffffffffa0459100 0000000000000000 ffff88015dc1fee8 ffffffffa0457934
- ffff88015dc1ff78 ffffffff80253fef 746e6e6f635f666e 6f72705f6b636172
- 00707463735f6f74 ffffffff8024cb30 00000000023b8010 0000000000000000
-Call Trace:
- [<ffffffffa0457934>] nf_conntrack_proto_sctp_fini+0x10/0x1e [nf_conntrack_proto_sctp]
- [<ffffffff80253fef>] sys_delete_module+0x19f/0x1fe
- [<ffffffff8024cb30>] ? trace_hardirqs_on_caller+0xf0/0x114
- [<ffffffff803ea9b2>] ? trace_hardirqs_on_thunk+0x3a/0x3f
- [<ffffffff8020b52b>] system_call_fastpath+0x16/0x1b
-Code: 13 35 e0 e8 c4 6c 1a e0 48 8b 1d 6d c6 46 e0 eb 16 48 89 df 4c 89 e2 48 c7 c6 fc 85 09 a0 e8 61 cd ff ff 48 8b 5b 08 48 83 eb 08 <48> 8b 43 08 0f 18 08 48 8d 43 08 48 3d 60 4f 50 80 75 d3 5b 41 
-RIP  [<ffffffffa009890f>] nf_conntrack_l4proto_unregister+0x96/0xae [nf_conntrack]
- RSP <ffff88015dc1fec8>
-CR2: 0000000000100100
----[ end trace bde8ac82debf7192 ]---
+Is this a known issue?  Is there a patch for this?
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
----
+I tried bumping to 1.4.2, but that dies with a different issue:
 
- net/netfilter/nf_conntrack_helper.c |    3 +++
- net/netfilter/nf_conntrack_proto.c  |    5 +++++
- 2 files changed, 8 insertions(+)
+  CC       libxt_TCPOPTSTRIP.oo
+  CC       libxt_time.oo
+  CC       libxt_tos.oo
+libxt_time.c: In function 'time_save':
+libxt_time.c:400: warning: inlining failed in call to 'divide_time': --param max-inline-insns-single limit reached
+libxt_time.c:449: warning: called from here
+libxt_time.c:400: warning: inlining failed in call to 'divide_time': --param max-inline-insns-single limit reached
+libxt_time.c:451: warning: called from here
+libxt_time.c: In function 'time_print':
+libxt_time.c:400: warning: inlining failed in call to 'divide_time': --param max-inline-insns-single limit reached
+libxt_time.c:417: warning: called from here
+libxt_time.c:400: warning: inlining failed in call to 'divide_time': --param max-inline-insns-single limit reached
+libxt_time.c:419: warning: called from here
+  CC       libxt_TOS.oo
+  CC       libxt_TRACE.oo
+  CC       libxt_u32.oo
+  CC       libxt_udp.oo
+  CC       libipt_addrtype.oo
+  CC       libipt_ah.oo
+  CC       libipt_CLUSTERIP.oo
+  CC       libipt_DNAT.oo
+  CC       libipt_ecn.oo
+  CC       libipt_ECN.oo
+  CC       libipt_icmp.oo
+  CC       libipt_IMQ.oo
+  CC       libipt_LOG.oo
+  CC       libipt_MASQUERADE.oo
+libipt_IMQ.c: In function 'help':
+libipt_IMQ.c:18: error: 'IPTABLES_VERSION' undeclared (first use in this function)
+libipt_IMQ.c:18: error: (Each undeclared identifier is reported only once
+libipt_IMQ.c:18: error: for each function it appears in.)
+libipt_IMQ.c: At top level:
+libipt_IMQ.c:83: error: variable 'imq' has initializer but incomplete type
+libipt_IMQ.c:84: error: unknown field 'next' specified in initializer
+libipt_IMQ.c:84: warning: excess elements in struct initializer
+libipt_IMQ.c:84: warning: (near initialization for 'imq')
+libipt_IMQ.c:85: error: unknown field 'name' specified in initializer
+libipt_IMQ.c:85: warning: excess elements in struct initializer
+libipt_IMQ.c:85: warning: (near initialization for 'imq')
+libipt_IMQ.c:86: error: unknown field 'version' specified in initializer
+libipt_IMQ.c:86: error: 'IPTABLES_VERSION' undeclared here (not in a function)
+libipt_IMQ.c:86: warning: excess elements in struct initializer
+libipt_IMQ.c:86: warning: (near initialization for 'imq')
+libipt_IMQ.c:87: error: unknown field 'size' specified in initializer
+libipt_IMQ.c:87: warning: excess elements in struct initializer
+libipt_IMQ.c:87: warning: (near initialization for 'imq')
+libipt_IMQ.c:88: error: unknown field 'userspacesize' specified in initializer
+libipt_IMQ.c:88: warning: excess elements in struct initializer
+libipt_IMQ.c:88: warning: (near initialization for 'imq')
+libipt_IMQ.c:89: error: unknown field 'help' specified in initializer
+libipt_IMQ.c:89: warning: excess elements in struct initializer
+libipt_IMQ.c:89: warning: (near initialization for 'imq')
+libipt_IMQ.c:90: error: unknown field 'init' specified in initializer
+libipt_IMQ.c:90: warning: excess elements in struct initializer
+libipt_IMQ.c:90: warning: (near initialization for 'imq')
+libipt_IMQ.c:91: error: unknown field 'parse' specified in initializer
+libipt_IMQ.c:91: warning: excess elements in struct initializer
+libipt_IMQ.c:91: warning: (near initialization for 'imq')
+libipt_IMQ.c:92: error: unknown field 'final_check' specified in initializer
+libipt_IMQ.c:92: warning: excess elements in struct initializer
+libipt_IMQ.c:92: warning: (near initialization for 'imq')
+libipt_IMQ.c:93: error: unknown field 'print' specified in initializer
+libipt_IMQ.c:93: warning: excess elements in struct initializer
+libipt_IMQ.c:93: warning: (near initialization for 'imq')
+libipt_IMQ.c:94: error: unknown field 'save' specified in initializer
+libipt_IMQ.c:94: warning: excess elements in struct initializer
+libipt_IMQ.c:94: warning: (near initialization for 'imq')
+libipt_IMQ.c:95: error: unknown field 'extra_opts' specified in initializer
+libipt_IMQ.c:96: warning: excess elements in struct initializer
+libipt_IMQ.c:96: warning: (near initialization for 'imq')
+libipt_IMQ.c:99: error: static declaration of 'libipt_IMQ_init' follows non-static declaration
+../include/xtables/internal.h:64: error: previous declaration of 'libipt_IMQ_init' was here
+libipt_IMQ.c: In function 'libipt_IMQ_init':
+libipt_IMQ.c:100: warning: implicit declaration of function 'register_target'
+make[3]: *** [libipt_IMQ.oo] Error 1
+make[3]: *** Waiting for unfinished jobs....
+make[3]: Leaving directory `/home/philipp/kernel/build_i586/iptables-1.4.2/extensions'
+make[2]: *** [all-recursive] Error 1
+make[2]: Leaving directory `/home/philipp/kernel/build_i586/iptables-1.4.2'
+make[1]: *** [all] Error 2
+make[1]: Leaving directory `/home/philipp/kernel/build_i586/iptables-1.4.2'
+make: *** [/home/philipp/kernel/build_i586/iptables-1.4.2/iptables] Error 2
 
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -21,6 +21,7 @@
- #include <linux/kernel.h>
- #include <linux/netdevice.h>
- #include <linux/rculist.h>
-+#include <linux/rtnetlink.h>
- 
- #include <net/netfilter/nf_conntrack.h>
- #include <net/netfilter/nf_conntrack_l3proto.h>
-@@ -167,10 +168,12 @@ void nf_conntrack_helper_unregister(struct nf_conntrack_helper *me)
- 	 */
- 	synchronize_rcu();
- 
-+	rtnl_lock();
- 	spin_lock_bh(&nf_conntrack_lock);
- 	for_each_net(net)
- 		__nf_conntrack_helper_unregister(me, net);
- 	spin_unlock_bh(&nf_conntrack_lock);
-+	rtnl_unlock();
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_helper_unregister);
- 
---- a/net/netfilter/nf_conntrack_proto.c
-+++ b/net/netfilter/nf_conntrack_proto.c
-@@ -22,6 +22,7 @@
- #include <linux/notifier.h>
- #include <linux/kernel.h>
- #include <linux/netdevice.h>
-+#include <linux/rtnetlink.h>
- 
- #include <net/netfilter/nf_conntrack.h>
- #include <net/netfilter/nf_conntrack_l3proto.h>
-@@ -221,8 +222,10 @@ void nf_conntrack_l3proto_unregister(struct nf_conntrack_l3proto *proto)
- 	synchronize_rcu();
- 
- 	/* Remove all contrack entries for this protocol */
-+	rtnl_lock();
- 	for_each_net(net)
- 		nf_ct_iterate_cleanup(net, kill_l3proto, proto);
-+	rtnl_unlock();
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_l3proto_unregister);
- 
-@@ -333,8 +336,10 @@ void nf_conntrack_l4proto_unregister(struct nf_conntrack_l4proto *l4proto)
- 	synchronize_rcu();
- 
- 	/* Remove all contrack entries for this protocol */
-+	rtnl_lock();
- 	for_each_net(net)
- 		nf_ct_iterate_cleanup(net, kill_l4proto, l4proto);
-+	rtnl_unlock();
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_l4proto_unregister);
- 
+
+This is with the 2.6.25.7 IMQ patches.
+
+Building 1.4.1 also craps out similarly.
+
+Anyone have a suggestion? I'm trying to update the distro to go from 
+Linux 2.6.20 to 2.6.25 and don't have a lot of time to dig deeper.
+
+Thanks,
+
+-Philip
+
