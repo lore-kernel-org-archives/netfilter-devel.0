@@ -1,49 +1,53 @@
-From: =?ISO-8859-1?Q?D=E2niel?= Fraga <fragabr@gmail.com>
-Subject: Re: Every other char with LOG netfilter output (bug?)
-Date: Mon, 3 Nov 2008 13:41:53 -0200
-Message-ID: <490f1bc5.0603c00a.5277.44e5@mx.google.com>
-References: <rlujt5-k63.ln1@tux.abusar.org.br>
-	<49074E81.6010207@trash.net>
-	<49075276.2686460a.0b00.ffff9f09@mx.google.com>
-	<4907564D.5090103@trash.net>
-	<49094b22.0f87460a.09d2.55b6@mx.google.com>
-	<49095F02.7040104@trash.net>
-	<490a671a.0687460a.3af5.40a2@mx.google.com>
-	<490EF1B8.2060308@trash.net>
+From: Rick Jones <rick.jones2@hp.com>
+Subject: Re: [Fwd: Re: Shortcuts to counting rules?]
+Date: Mon, 03 Nov 2008 10:02:39 -0800
+Message-ID: <490F3CBF.5090706@hp.com>
+References: <490B46F0.4010100@hp.com>	<alpine.LNX.1.10.0810311906120.29079@fbirervta.pbzchgretzou.qr>	<490B544B.50903@hp.com> <alpine.LNX.1.10.0811010209040.23833@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel@vger.kernel.org,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	Ilpo =?ISO-8859-1?Q?J=E4rvinen?= <ilpo.jarvinen@helsinki.fi>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.27]:7605 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754133AbYKCPl7 (ORCPT
+Received: from g5t0007.atlanta.hp.com ([15.192.0.44]:47215 "EHLO
+	g5t0007.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750835AbYKCSCp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 3 Nov 2008 10:41:59 -0500
-Received: by qw-out-2122.google.com with SMTP id 3so1163696qwe.37
-        for <netfilter-devel@vger.kernel.org>; Mon, 03 Nov 2008 07:41:58 -0800 (PST)
-In-Reply-To: <490EF1B8.2060308@trash.net>
+	Mon, 3 Nov 2008 13:02:45 -0500
+In-Reply-To: <alpine.LNX.1.10.0811010209040.23833@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 03 Nov 2008 13:42:32 +0100
-Patrick McHardy <kaber@trash.net> wrote:
-
-> It doesn't explain why the LOG output is corrupted, but it seems
-> the hanging connections are caused by RST packets that are considered
-> INVALID.
+Jan Engelhardt wrote:
+> On Friday 2008-10-31 19:54, Rick Jones wrote:
 > 
-> Please enable conntrack debugging by executing:
+>>>iptables-save | grep ^- | wc -l
+>>
+>>Here is where I cop to being a luddite who prefers straight C to calling
+>>system() :)
 > 
-> echo 255 >/proc/sys/net/netfilter/nf_conntrack_log_invalid
 > 
-> so we can see why these packets are considered invalid.
+> But there is no C library. And libiptc is so strongly internal that
+> it does not fall under libraries-to-use.
 
-	Hi Patrick, problem solved. The problem was syslogd. :(
+I'm willing to code without a library, I just need to know how to parse 
+the set of entries I suspect.
 
-	Thanks ;)
+Someone in netfilter suggested the getsockopt() calls were part of the 
+ABI, which implies what the getsockopt() calls return is reasonably 
+"stable."  Is that actually the case, or can one not even ass-u-me the 
+getsockopt() calls themselves are stable?
 
--- 
+>>>And strace should not be taught that. We have seen at least one
+>>>change of the interpretation of the binary stream.
+>>
+>>How about at least the option name(s) so it can present something other than
+>>the 0x40/0x41 etc?
+> 
+> 
+> I do not mind that. Turn to the strace maintainer about getting that
+> implemented.
+
+Will do.
+
+rick jones
