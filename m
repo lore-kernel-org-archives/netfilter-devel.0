@@ -1,89 +1,44 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: IPv6 conntrack support for neighbour discovery
-Date: Tue, 04 Nov 2008 15:06:55 +0100
-Message-ID: <491056FF.8030801@trash.net>
-References: <20081030145218.5395c3fe@hiperon.ws.hirg>
+From: "Jacky Luk" <jacky.luk@primecreation.com>
+Subject: About the using of libnetfilter_queue!
+Date: Wed, 05 Nov 2008 00:14:07 +0800
+Message-ID: <web-4630504@mail.primecreation.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org,
-	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-To: Marek Szuba <Marek.Szuba@if.pw.edu.pl>
+Content-Type: text/plain; charset="utf-8"; format="flowed"
+Content-Transfer-Encoding: 8bit
+Cc: michael.tso@primecreation.com, michael.soong@primecreation.com
+To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:42205 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752078AbYKDOHC (ORCPT
+Received: from n218103092061.netvigator.com ([218.103.92.61]:52486 "EHLO
+	mail.primecreation.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753469AbYKDQSN (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Nov 2008 09:07:02 -0500
-In-Reply-To: <20081030145218.5395c3fe@hiperon.ws.hirg>
+	Tue, 4 Nov 2008 11:18:13 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Marek Szuba wrote:
-> Hello everyone,
->=20
-> Following a suggestion I was given at the kernel Bugzilla I am
-> forwarding this here.
->=20
-> It has come to my attention lately that the only two ICMPv6 packet
-> types which IPv6 conntrack allows at present to initiate new
-> connections are "echo request" and "node information query"; all othe=
-r
-> types appearing in this context are considered invalid. In particular=
-,
-> this includes two neighbour-discovery types specified in RFC 2461:
-> "router solicitation" and "neighbour solicitation" - meaning that if =
-a
-> server drops all INVALID packets early in its INPUT or OUTPUT chain o=
-f
-> IPv6 netfilter's filter table, neither of the two can be received fro=
-m
-> clients. Given that router solicitation is used for stateless network
-> autoconfiguration and neighbour solicitation is an IPv6 equivalent of
-> ARP requests, having these two dropped can be quite bad - especially
-> the latter, as it pretty much kills IPv6 over Ethernet.
->=20
-> Steps to reproduce:
->=20
-> 1. Obtain an IPv6 address assigned to an Ethernet interface of host A
-> (link-local will do);
-> 2. If necesssary, flush all ip6tables filter chains on host A and set
-> their policies to ACCEPT;
-> 3. From host B on the same Ethernet network, ping6 the aforementioned=
- IP
-> address to verify that everything works;
-> 4. On host A, run something like "ip6tables -I INPUT 1 -m state --sta=
-te
-> INVALID -j DROP";
-> 5. Try to repeat step 3. This time the ping should fail and counters
-> associated with the aforementioned rule should increment;
-> 6. Repeat all the above using OUTPUT instead of INPUT, with the same
-> final result.
->=20
-> BTW. This problem was discovered and (hopefully) fixed collaborativel=
-y
-> by =C5=81ukasz Stelmach <steelman@post.pl> and myself, please attribu=
-te both
-> of us should the patch make it into code repositories.
->=20
-> Attaching a proposed solution to the problem - the enclosed patch add=
-s
-> "router solicitation" and "neighbour solicitation" to the list of
-> ICMPv6 types IPv6 conntrack considers allowed to initiate new
-> connections. Note that in principle "router advertisement" ICMPv6
-> packets could also be considered valid-new, as e.g. radvd periodicall=
-y
-> advertises its presence to the local network - as however it is not
-> necessary to let this through as new to have things work (plus we
-> aren't that big on broadcasting, even on supposedly-secure networks),
-> the patch only adds solicitations to the list.
+Hi,
 
-This patch seems fine to me. Yasuyuki, what do you think?
+I have some questions about the using of 
+libnetfilter_queue. I use the RHEL 5.2 to develop my 
+application (Kernel: 2.6.18-92.el5). I found that there 
+are several strange phenomena when using the API of the 
+libnetfilter_queue.
 
+1. The nfq_get_timestamp() always returns the same value 
+of the timestamp for all packets retrieved from the 
+NFQUEUE. What is the cause of this problem?
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+2. I cannot set the maximum length of the queue by using 
+the function nfq_set_queue_maxlen(). This function always 
+returns -1 even though I have inputted the correct 
+parameters into this function. I have searched about this 
+issue in Google and someone said that kernel >= 2.6.20 
+would be supported to use this function. Is it true? If 
+so, how can I set the maximum length of the queue when I 
+use the kernel = 2.6.18?
+
+Thank you very much!
+
+Regards,
+
+Jacky Luk
