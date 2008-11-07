@@ -1,58 +1,70 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: libxt_conntrack: respect -n option during ruledump
-Date: Fri, 7 Nov 2008 04:12:41 +0100 (CET)
-Message-ID: <alpine.LNX.1.10.0811070411280.27330@fbirervta.pbzchgretzou.qr>
+From: Greg KH <gregkh@suse.de>
+Subject: [patch 22/23] netfilter: snmp nat leaks memory in case of failure
+Date: Fri, 7 Nov 2008 15:16:11 -0800
+Message-ID: <20081107231611.GW1108@kroah.com>
+References: <20081107224818.593212310@mini.kroah.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Justin Forbes <jmforbes@linuxtx.org>,
+	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
+	Theodore Ts'o <tytso@mit.edu>,
+	Randy Dunlap <rdunlap@xenotime.net>,
+	Dave Jones <davej@redhat.com>,
+	Chuck Wolber <chuckw@quantumlinux.com>,
+	Chris Wedgwood <reviews@ml.cw.f00f.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Chuck Ebbert <cebbert@redhat.com>,
+	Domenico Andreoli <cavokz@gmail.com>, Willy Tarreau <w@1wt.eu>,
+	Rodrigo Rubira Branco <rbranco@la.checkpoint.com>,
+	Jake Edge <jake@lwn.net>, Eugene Teo <eteo@redhat.com>,
+	torvalds@linux-foundation.org, akpm@linux-foundation.org,
+	alan@lxorguk.ukuu.org.uk, netfilter-devel@vger.kernel.org,
+	Patrick McHardy <kaber@trash.net>, davem@davemloft.net,
+	Ilpo Jarvinen <ilpo.jarvinen@helsinki.fi>
+To: linux-kernel@vger.kernel.org, stable@kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:49934 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750698AbYKGDMn (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 6 Nov 2008 22:12:43 -0500
+Received: from kroah.org ([198.145.64.141]:59438 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753875AbYKGXXS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 7 Nov 2008 18:23:18 -0500
+Content-Disposition: inline; filename="netfilter-snmp-nat-leaks-memory-in-case-of-failure.patch"
+In-Reply-To: <20081107231457.GA1108@kroah.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit a25e1ace7aac161fe8f61882b10dfb65551f8239
-Author: Bernhard Miklautz <miklautz@inqnet.at>
-Date:   Fri Oct 17 18:49:53 2008 +0200
+2.6.26-stable review patch.  If anyone has any objections, please let u=
+s know.
 
-libxt_conntrack: respect -n option during ruledump
+------------------
 
-Reference: http://bugs.debian.org/502548
+=46rom: Ilpo J=E4rvinen <ilpo.jarvinen@helsinki.fi>
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+netfilter: snmp nat leaks memory in case of failure
+
+Upstream commit 311670f3e:
+
+Signed-off-by: Ilpo Jarvinen <ilpo.jarvinen@helsinki.fi>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+
 ---
- extensions/libxt_conntrack.c |   10 ++++++++--
- 1 files changed, 8 insertions(+), 2 deletions(-)
+ net/ipv4/netfilter/nf_nat_snmp_basic.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/extensions/libxt_conntrack.c b/extensions/libxt_conntrack.c
-index 79ed3b8..987e1af 100644
---- a/extensions/libxt_conntrack.c
-+++ b/extensions/libxt_conntrack.c
-@@ -758,14 +758,20 @@ conntrack_dump_addr(const union nf_inet_addr *addr,
- 			printf("anywhere ");
- 			return;
- 		}
--		printf("%s ", ipaddr_to_anyname(&addr->in));
-+		if (numeric)
-+			printf("%s ", ipaddr_to_numeric(&addr->in));
-+		else
-+			printf("%s ", ipaddr_to_anyname(&addr->in));
- 	} else if (family == AF_INET6) {
- 		if (!numeric && addr->ip6[0] == 0 && addr->ip6[1] == 0 &&
- 		    addr->ip6[2] == 0 && addr->ip6[3] == 0) {
- 			printf("anywhere ");
- 			return;
- 		}
--		printf("%s ", ip6addr_to_anyname(&addr->in6));
-+		if (numeric)
-+			printf("%s ", ip6addr_to_numeric(&addr->in6));
-+		else
-+			printf("%s ", ip6addr_to_anyname(&addr->in6));
- 	}
- }
- 
+--- a/net/ipv4/netfilter/nf_nat_snmp_basic.c
++++ b/net/ipv4/netfilter/nf_nat_snmp_basic.c
+@@ -742,6 +742,7 @@ static unsigned char snmp_object_decode(
+ 			*obj =3D kmalloc(sizeof(struct snmp_object) + len,
+ 				       GFP_ATOMIC);
+ 			if (*obj =3D=3D NULL) {
++				kfree(p);
+ 				kfree(id);
+ 				if (net_ratelimit())
+ 					printk("OOM in bsalg (%d)\n", __LINE__);
 
+--=20
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
