@@ -1,42 +1,58 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [Fwd: Re: Shortcuts to counting rules?]
-Date: Fri, 7 Nov 2008 04:06:09 +0100 (CET)
-Message-ID: <alpine.LNX.1.10.0811070405070.27330@fbirervta.pbzchgretzou.qr>
-References: <490B46F0.4010100@hp.com> <alpine.LNX.1.10.0810311906120.29079@fbirervta.pbzchgretzou.qr> <490B544B.50903@hp.com> <alpine.LNX.1.10.0811010209040.23833@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0811051922050.6949@ask.diku.dk>
+Subject: libxt_conntrack: respect -n option during ruledump
+Date: Fri, 7 Nov 2008 04:12:41 +0100 (CET)
+Message-ID: <alpine.LNX.1.10.0811070411280.27330@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Rick Jones <rick.jones2@hp.com>, netfilter-devel@vger.kernel.org
-To: Jesper Dangaard Brouer <hawk@diku.dk>
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:48599 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:49934 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750787AbYKGDGO (ORCPT
+	with ESMTP id S1750698AbYKGDMn (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 6 Nov 2008 22:06:14 -0500
-In-Reply-To: <Pine.LNX.4.64.0811051922050.6949@ask.diku.dk>
+	Thu, 6 Nov 2008 22:12:43 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+commit a25e1ace7aac161fe8f61882b10dfb65551f8239
+Author: Bernhard Miklautz <miklautz@inqnet.at>
+Date:   Fri Oct 17 18:49:53 2008 +0200
 
-On Wednesday 2008-11-05 19:25, Jesper Dangaard Brouer wrote:
-> On Sat, 1 Nov 2008, Jan Engelhardt wrote:
->> On Friday 2008-10-31 19:54, Rick Jones wrote:
->> > >
->> > > iptables-save | grep ^- | wc -l
->> >
->> > Here is where I cop to being a luddite who prefers straight C to calling
->> > system() :)
->>
->> But there is no C library. And libiptc is so strongly internal that
->> it does not fall under libraries-to-use.
->
-> I don't see why not to use libiptc.  Its been one of the most stable /
-> less-changed through the years...
->
-> I'm using libiptc quite extensivly in IPTables::libiptc Perl CPAN module.
+libxt_conntrack: respect -n option during ruledump
 
-Hm yeah. The API might be ok, but the source is ugly. Hence
-the recent slew of patches. I'm still thinking how to pull
-this off so that it gets even less ugly, less big (it is
-essentially compiled twice), and then make it available
-as a standard library.
+Reference: http://bugs.debian.org/502548
+
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ extensions/libxt_conntrack.c |   10 ++++++++--
+ 1 files changed, 8 insertions(+), 2 deletions(-)
+
+diff --git a/extensions/libxt_conntrack.c b/extensions/libxt_conntrack.c
+index 79ed3b8..987e1af 100644
+--- a/extensions/libxt_conntrack.c
++++ b/extensions/libxt_conntrack.c
+@@ -758,14 +758,20 @@ conntrack_dump_addr(const union nf_inet_addr *addr,
+ 			printf("anywhere ");
+ 			return;
+ 		}
+-		printf("%s ", ipaddr_to_anyname(&addr->in));
++		if (numeric)
++			printf("%s ", ipaddr_to_numeric(&addr->in));
++		else
++			printf("%s ", ipaddr_to_anyname(&addr->in));
+ 	} else if (family == AF_INET6) {
+ 		if (!numeric && addr->ip6[0] == 0 && addr->ip6[1] == 0 &&
+ 		    addr->ip6[2] == 0 && addr->ip6[3] == 0) {
+ 			printf("anywhere ");
+ 			return;
+ 		}
+-		printf("%s ", ip6addr_to_anyname(&addr->in6));
++		if (numeric)
++			printf("%s ", ip6addr_to_numeric(&addr->in6));
++		else
++			printf("%s ", ip6addr_to_anyname(&addr->in6));
+ 	}
+ }
+ 
+
