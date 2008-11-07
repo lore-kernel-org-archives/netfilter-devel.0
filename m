@@ -1,8 +1,8 @@
 From: Greg KH <gregkh@suse.de>
-Subject: [patch 21/23] netfilter: xt_iprange: fix range inversion match
-Date: Fri, 7 Nov 2008 15:16:09 -0800
-Message-ID: <20081107231609.GV1108@kroah.com>
-References: <20081107224818.593212310@mini.kroah.org>
+Subject: [patch 14/16] netfilter: xt_iprange: fix range inversion match
+Date: Fri, 7 Nov 2008 15:26:26 -0800
+Message-ID: <20081107232626.GO4282@kroah.com>
+References: <20081107231848.995297975@mini.kroah.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: Justin Forbes <jmforbes@linuxtx.org>,
@@ -24,17 +24,17 @@ Cc: Justin Forbes <jmforbes@linuxtx.org>,
 	Jan Engelhardt <jengelh@medozas.de>
 To: linux-kernel@vger.kernel.org, stable@kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:59421 "EHLO coco.kroah.org"
+Received: from kroah.org ([198.145.64.141]:47647 "EHLO coco.kroah.org"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753847AbYKGXXR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 7 Nov 2008 18:23:17 -0500
+	id S1754857AbYKGX1A (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 7 Nov 2008 18:27:00 -0500
 Content-Disposition: inline; filename="netfilter-xt_iprange-fix-range-inversion-match.patch"
-In-Reply-To: <20081107231457.GA1108@kroah.com>
+In-Reply-To: <20081107232544.GA4282@kroah.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-2.6.26-stable review patch.  If anyone has any objections, please let us know.
+2.6.25-stable review patch.  If anyone has any objections, please let us know.
 
 ------------------
 
