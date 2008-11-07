@@ -1,11 +1,11 @@
 From: Greg KH <gregkh@suse.de>
-Subject: [patch 15/16] netfilter: snmp nat leaks memory in case of failure
-Date: Fri, 7 Nov 2008 15:26:29 -0800
-Message-ID: <20081107232629.GP4282@kroah.com>
+Subject: [patch 16/16] netfilter: restore lost ifdef guarding defrag
+	exception
+Date: Fri, 7 Nov 2008 15:26:31 -0800
+Message-ID: <20081107232631.GQ4282@kroah.com>
 References: <20081107231848.995297975@mini.kroah.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Cc: Justin Forbes <jmforbes@linuxtx.org>,
 	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
 	Theodore Ts'o <tytso@mit.edu>,
@@ -20,51 +20,61 @@ Cc: Justin Forbes <jmforbes@linuxtx.org>,
 	Jake Edge <jake@lwn.net>, Eugene Teo <eteo@redhat.com>,
 	torvalds@linux-foundation.org, akpm@linux-foundation.org,
 	alan@lxorguk.ukuu.org.uk, netfilter-devel@vger.kernel.org,
-	Patrick McHardy <kaber@trash.net>, davem@davemloft.net,
-	Ilpo Jarvinen <ilpo.jarvinen@helsinki.fi>
+	Patrick McHardy <kaber@trash.net>, davem@davemloft.net
 To: linux-kernel@vger.kernel.org, stable@kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:47661 "EHLO coco.kroah.org"
+Received: from kroah.org ([198.145.64.141]:47674 "EHLO coco.kroah.org"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753870AbYKGX1C (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 7 Nov 2008 18:27:02 -0500
-Content-Disposition: inline; filename="netfilter-snmp-nat-leaks-memory-in-case-of-failure.patch"
+	id S1754135AbYKGX1D (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 7 Nov 2008 18:27:03 -0500
+Content-Disposition: inline; filename="netfilter-restore-lost-ifdef-guarding-defrag-exception.patch"
 In-Reply-To: <20081107232544.GA4282@kroah.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-2.6.25-stable review patch.  If anyone has any objections, please let u=
-s know.
+2.6.25-stable review patch.  If anyone has any objections, please let us know.
 
 ------------------
 
-=46rom: Ilpo J=E4rvinen <ilpo.jarvinen@helsinki.fi>
+From: Patrick McHardy <kaber@trash.net>
 
-netfilter: snmp nat leaks memory in case of failure
+netfilter: restore lost #ifdef guarding defrag exception
 
-Upstream commit 311670f3e:
+Upstream commit 38f7ac3eb:
 
-Signed-off-by: Ilpo Jarvinen <ilpo.jarvinen@helsinki.fi>
+Nir Tzachar <nir.tzachar@gmail.com> reported a warning when sending
+fragments over loopback with NAT:
+
+[ 6658.338121] WARNING: at net/ipv4/netfilter/nf_nat_standalone.c:89 nf_nat_fn+0x33/0x155()
+
+The reason is that defragmentation is skipped for already tracked connections.
+This is wrong in combination with NAT and ip_conntrack actually had some ifdefs
+to avoid this behaviour when NAT is compiled in.
+
+The entire "optimization" may seem a bit silly, for now simply restoring the
+lost #ifdef is the easiest solution until we can come up with something better.
+
 Signed-off-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
 ---
- net/ipv4/netfilter/nf_nat_snmp_basic.c |    1 +
- 1 file changed, 1 insertion(+)
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
---- a/net/ipv4/netfilter/nf_nat_snmp_basic.c
-+++ b/net/ipv4/netfilter/nf_nat_snmp_basic.c
-@@ -742,6 +742,7 @@ static unsigned char snmp_object_decode(
- 			*obj =3D kmalloc(sizeof(struct snmp_object) + len,
- 				       GFP_ATOMIC);
- 			if (*obj =3D=3D NULL) {
-+				kfree(p);
- 				kfree(id);
- 				if (net_ratelimit())
- 					printk("OOM in bsalg (%d)\n", __LINE__);
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+@@ -138,10 +138,12 @@ static unsigned int ipv4_conntrack_defra
+ 					  const struct net_device *out,
+ 					  int (*okfn)(struct sk_buff *))
+ {
++#if !defined(CONFIG_NF_NAT) && !defined(CONFIG_NF_NAT_MODULE)
+ 	/* Previously seen (loopback)?  Ignore.  Do this before
+ 	   fragment check. */
+ 	if (skb->nfct)
+ 		return NF_ACCEPT;
++#endif
+ 
+ 	/* Gather fragments. */
+ 	if (ip_hdr(skb)->frag_off & htons(IP_MF | IP_OFFSET)) {
 
---=20
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
