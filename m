@@ -1,80 +1,31 @@
-From: Greg KH <gregkh@suse.de>
-Subject: [patch 16/16] netfilter: restore lost ifdef guarding defrag
-	exception
-Date: Fri, 7 Nov 2008 15:26:31 -0800
-Message-ID: <20081107232631.GQ4282@kroah.com>
-References: <20081107231848.995297975@mini.kroah.org>
+From: ilninno <ilninno@gmail.com>
+Subject: Re: Real-time behaviours
+Date: Sat, 8 Nov 2008 10:41:41 +0100
+Message-ID: <92770c820811080141x70af1c06k7aecacb11f6459bd@mail.gmail.com>
+References: <92770c820811071258u58a1e530obc750359ffc1ffcd@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Justin Forbes <jmforbes@linuxtx.org>,
-	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
-	Theodore Ts'o <tytso@mit.edu>,
-	Randy Dunlap <rdunlap@xenotime.net>,
-	Dave Jones <davej@redhat.com>,
-	Chuck Wolber <chuckw@quantumlinux.com>,
-	Chris Wedgwood <reviews@ml.cw.f00f.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Chuck Ebbert <cebbert@redhat.com>,
-	Domenico Andreoli <cavokz@gmail.com>, Willy Tarreau <w@1wt.eu>,
-	Rodrigo Rubira Branco <rbranco@la.checkpoint.com>,
-	Jake Edge <jake@lwn.net>, Eugene Teo <eteo@redhat.com>,
-	torvalds@linux-foundation.org, akpm@linux-foundation.org,
-	alan@lxorguk.ukuu.org.uk, netfilter-devel@vger.kernel.org,
-	Patrick McHardy <kaber@trash.net>, davem@davemloft.net
-To: linux-kernel@vger.kernel.org, stable@kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:47674 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754135AbYKGX1D (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 7 Nov 2008 18:27:03 -0500
-Content-Disposition: inline; filename="netfilter-restore-lost-ifdef-guarding-defrag-exception.patch"
-In-Reply-To: <20081107232544.GA4282@kroah.com>
+Received: from yx-out-2324.google.com ([74.125.44.29]:4347 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750985AbYKHJln (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 8 Nov 2008 04:41:43 -0500
+Received: by yx-out-2324.google.com with SMTP id 8so634682yxm.1
+        for <netfilter-devel@vger.kernel.org>; Sat, 08 Nov 2008 01:41:42 -0800 (PST)
+In-Reply-To: <92770c820811071258u58a1e530obc750359ffc1ffcd@mail.gmail.com>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-2.6.25-stable review patch.  If anyone has any objections, please let us know.
+Hello, im newbie here and i have some noobs questions for you:
 
-------------------
+I'm programming a simple front-end for iptables. My first question is
+if it possible to decide in real-time behaviours, for example: Check
+any new connection and see the ruleset, if will be blocked then create
+a window asking user's action (deny or accept). If user accept then
+change the ruleset in real-time before iptables block this.
 
-From: Patrick McHardy <kaber@trash.net>
-
-netfilter: restore lost #ifdef guarding defrag exception
-
-Upstream commit 38f7ac3eb:
-
-Nir Tzachar <nir.tzachar@gmail.com> reported a warning when sending
-fragments over loopback with NAT:
-
-[ 6658.338121] WARNING: at net/ipv4/netfilter/nf_nat_standalone.c:89 nf_nat_fn+0x33/0x155()
-
-The reason is that defragmentation is skipped for already tracked connections.
-This is wrong in combination with NAT and ip_conntrack actually had some ifdefs
-to avoid this behaviour when NAT is compiled in.
-
-The entire "optimization" may seem a bit silly, for now simply restoring the
-lost #ifdef is the easiest solution until we can come up with something better.
-
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
-
----
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    2 ++
- 1 file changed, 2 insertions(+)
-
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -138,10 +138,12 @@ static unsigned int ipv4_conntrack_defra
- 					  const struct net_device *out,
- 					  int (*okfn)(struct sk_buff *))
- {
-+#if !defined(CONFIG_NF_NAT) && !defined(CONFIG_NF_NAT_MODULE)
- 	/* Previously seen (loopback)?  Ignore.  Do this before
- 	   fragment check. */
- 	if (skb->nfct)
- 		return NF_ACCEPT;
-+#endif
- 
- 	/* Gather fragments. */
- 	if (ip_hdr(skb)->frag_off & htons(IP_MF | IP_OFFSET)) {
-
--- 
+Sorry for my english and thanks for your time :)
