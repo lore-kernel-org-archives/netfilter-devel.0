@@ -1,123 +1,81 @@
 From: Adam Nielsen <a.nielsen@shikadi.net>
-Subject: [PATCH 2/2] New netfilter target to trigger LED devices
-Date: Sun, 09 Nov 2008 23:26:08 +1000
-Message-ID: <4916E4F0.8010507@shikadi.net>
+Subject: [PATCH 1/2] New netfilter target to trigger LED devices
+Date: Sun, 09 Nov 2008 23:19:43 +1000
+Message-ID: <4916E36F.6000502@shikadi.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: Richard Purdie <rpurdie@openedhand.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from vitalin.sorra.shikadi.net ([64.71.152.201]:4866 "EHLO
+Received: from vitalin.sorra.shikadi.net ([64.71.152.201]:2656 "EHLO
 	vitalin.sorra.shikadi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752654AbYKIN0L (ORCPT
+	with ESMTP id S1755098AbYKINen (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 9 Nov 2008 08:26:11 -0500
+	Sun, 9 Nov 2008 08:34:43 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Kernel module providing implementation of LED netfilter target.  Each
-instance of the target appears as a led-trigger device, which can be
-associated with one or more LEDs in /sys/class/leds/
+Add a new "LED" target to iptables, which allows LEDs to blink in
+response to matching rules.
 
 Signed-off-by: Adam Nielsen <a.nielsen@shikadi.net>
 
 ---
 
-This patch was created against 2.6.28-rc3.  It contains a single new
-file (which should apply without problems) plus the associated kernel
-config options.
+Hi all,
 
-There are a few const-ness issues in the code - I've had to modify
-some data that should be const, but it does "belong" to me and
-should not be used by anything else.  But of course if you have any
-suggestions to get around this I'd like to hear them :-)
+This is my first attempt at a proper patch, so please be nice :-)
+
+The patch below (and the kernel module coming shortly) adds support
+for a LED target in netfilter.  This allows netfilter to blink LEDs
+on your system in response to certain packets passing through the
+machine.  For example, you could have an LED flashing to indicate
+how much HTTP traffic is coming into a server, or you might have an
+LED light up for a few minutes whenever someone connects to your
+machine via SSH.
+
+It uses the "led" class of hardware to provide the interface to the
+LEDs themselves, so you'll need at least one device that appears in
+/sys/class/leds/ to test this (and unfortunately keyboard LEDs don't
+appear there...yet.)
+
+The patch here is against iptables git as of a couple of hours ago,
+but it only adds two new files so it should apply without problems.
+
+I'll post the kernel module in the next e-mail.
+
+There are however a couple of outstanding issues I'd appreciate some
+advice with:
+
+Firstly, I've declared xt_led_info in both the iptables library and the
+kernel module.  This probably isn't ideal, but I wanted to avoid having
+to create another header file, which presumably needs to be installed on
+the user's system before iptables can be compiled.  Please let me know
+what the preferred solution to this might be.
+
+Secondly, I'm not sure whether setting xtables_target.family to
+PF_UNSPEC is correct.  Given that the process of blinking lights isn't
+related to any particular network protocol, I wanted the LED target to
+be available in as many cases as possible.  I think PF_UNSPEC does this,
+but please advise if there is a more suitable alternative.
+
+I hope these patches are at least suitable for your consideration!
 
 Cheers,
 Adam.
 
-
-diff -urN linux-2.6.28-rc3-orig/drivers/leds/Kconfig linux-2.6.28-rc3/drivers/leds/Kconfig
---- linux-2.6.28-rc3-orig/drivers/leds/Kconfig	2008-11-09 22:02:17.912599258 +1000
-+++ linux-2.6.28-rc3/drivers/leds/Kconfig	2008-11-09 22:47:32.889599211 +1000
-@@ -217,4 +217,7 @@
-  	  This allows LEDs to be initialised in the ON state.
-  	  If unsure, say Y.
-
-+comment "iptables trigger is under Netfilter config (LED target)"
-+	depends on LEDS_TRIGGERS
-+
-  endif # NEW_LEDS
-diff -urN linux-2.6.28-rc3-orig/net/netfilter/Kconfig linux-2.6.28-rc3/net/netfilter/Kconfig
---- linux-2.6.28-rc3-orig/net/netfilter/Kconfig	2008-11-09 22:02:24.010636621 +1000
-+++ linux-2.6.28-rc3/net/netfilter/Kconfig	2008-11-09 22:37:02.070599392 +1000
-@@ -357,6 +357,32 @@
-
-  	  To compile it as a module, choose M here.  If unsure, say N.
-
-+config NETFILTER_XT_TARGET_LED
-+	tristate '"LED" target support'
-+	depends on LEDS_CLASS
-+	depends on NETFILTER_ADVANCED
-+	help
-+	  This option adds a `LED' target, which allows you to blink LEDs in
-+	  response to particular packets passing through your machine.
-+
-+	  This can be used to turn a spare LED into a network activity LED,
-+	  which only flashes in response to FTP transfers, for example.  Or
-+	  you could have a LED which lights up for a minute or two every time
-+	  somebody connects to your machine via SSH.
-+
-+	  You will need support for the "led" class to make this work.
-+
-+	  To create a LED trigger for incoming SSH traffic:
-+	    iptables -A INPUT -p tcp --dport 22 -j LED --led-trigger-id ssh --led-delay 1000
-+
-+	  Then attach the new trigger to an LED on your system:
-+	    echo netfilter-ssh > /sys/class/leds/<ledname>/trigger
-+
-+	  For more information on the LEDs available on your system, see
-+	  Documentation/leds-class.txt
-+
-+	  To compile it as a module, choose M here.  If unsure, say N.
-+
-  config NETFILTER_XT_TARGET_MARK
-  	tristate '"MARK" target support'
-  	default m if NETFILTER_ADVANCED=n
-diff -urN linux-2.6.28-rc3-orig/net/netfilter/Makefile linux-2.6.28-rc3/net/netfilter/Makefile
---- linux-2.6.28-rc3-orig/net/netfilter/Makefile	2008-11-09 22:02:24.010636621 +1000
-+++ linux-2.6.28-rc3/net/netfilter/Makefile	2008-11-09 22:38:22.580607716 +1000
-@@ -45,6 +45,7 @@
-  obj-$(CONFIG_NETFILTER_XT_TARGET_CONNMARK) += xt_CONNMARK.o
-  obj-$(CONFIG_NETFILTER_XT_TARGET_CONNSECMARK) += xt_CONNSECMARK.o
-  obj-$(CONFIG_NETFILTER_XT_TARGET_DSCP) += xt_DSCP.o
-+obj-$(CONFIG_NETFILTER_XT_TARGET_LED) += xt_LED.o
-  obj-$(CONFIG_NETFILTER_XT_TARGET_MARK) += xt_MARK.o
-  obj-$(CONFIG_NETFILTER_XT_TARGET_NFLOG) += xt_NFLOG.o
-  obj-$(CONFIG_NETFILTER_XT_TARGET_NFQUEUE) += xt_NFQUEUE.o
-diff -urN linux-2.6.28-rc3-orig/net/netfilter/xt_LED.c linux-2.6.28-rc3/net/netfilter/xt_LED.c
---- linux-2.6.28-rc3-orig/net/netfilter/xt_LED.c	1970-01-01 10:00:00.000000000 +1000
-+++ linux-2.6.28-rc3/net/netfilter/xt_LED.c	2008-11-09 23:21:43.044599382 +1000
-@@ -0,0 +1,214 @@
+diff --git a/extensions/libxt_LED.c b/extensions/libxt_LED.c
+new file mode 100644
+index 0000000..f59c42e
+--- /dev/null
++++ b/extensions/libxt_LED.c
+@@ -0,0 +1,182 @@
 +/*
-+ * xt_LED.c - netfilter target to make LEDs blink upon packet matches
++ * libxt_LED.c - shared library add-on to iptables to add customized LED
++ *               trigger support.
 + *
-+ * Copyright (C) 2008 Adam Nielsen <a.nielsen@shikadi.net>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; version 2 of the License.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-+ * 02110-1301 USA.
-+ *
++ * (C) 2008 Adam Nielsen <a.nielsen@shikadi.net>
 + *
 + * This allows you to blink LEDs on your system in response to incoming
 + * network packets.
@@ -130,187 +88,193 @@ diff -urN linux-2.6.28-rc3-orig/net/netfilter/xt_LED.c linux-2.6.28-rc3/net/netf
 + *
 + * See /usr/src/linux/Documentation/leds-class.txt for LED details.
 + *
-+ */
-+
-+/*
-+ * Known issues:
-+ *
-+ *  - It's possible to add multiple led triggers with the same name (as
-+ *    set with --led-trigger-id)
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
 + *
 + */
 +
-+#include <linux/module.h>
-+#include <linux/skbuff.h>
-+#include <linux/netfilter/x_tables.h>
-+#include <linux/leds.h>
-+#include <linux/mutex.h>
++#include <stdio.h>
++#include <string.h>
++#include <stdlib.h>
++#include <getopt.h>
 +
-+#define DRVNAME	"xt_LED"
-+#define DRVMSG	DRVNAME ": "
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Adam Nielsen <a.nielsen@shikadi.net>");
-+MODULE_DESCRIPTION("Xtables: trigger LED devices on packet match");
++#include <xtables.h>
 +
 +struct xt_led_info {
 +	char id[26];  /* Unique ID for this trigger in the LED class */
 +	int delay;    /* Delay until LED is switched off again after trigger */
 +
-+	void *internal_data;  /* pointer to xt_led_info_internal */
++	void *internal_data; /* Kernel data used in the module */
 +};
 +
-+/* This is declared in here (the kernel module) only, to avoid having these
-+   dependencies in userspace code */
-+struct xt_led_info_internal {
-+	struct led_trigger netfilter_led_trigger;
-+	struct timer_list timer;
-+	struct mutex led_changing_state;
++static const struct option LED_opts[] = {
++	{ .name = "led-trigger-id", .has_arg = 1, .val = 'i' },
++	{ .name = "led-delay", .has_arg = 1, .val = 'd' },
++	{ .name = NULL }
 +};
 +
-+static unsigned int
-+led_tg(struct sk_buff *skb, const struct xt_target_param *par)
++static void LED_help(void)
 +{
-+	const struct xt_led_info *ledinfo = par->targinfo;
-+	/*noconst*/struct xt_led_info_internal *ledinternal = ledinfo->internal_data;
-+
-+	/* Make sure the timer callback doesn't go switching the LED off while
-+	   we're figuring out what to do */
-+	if (ledinfo->delay > 0) {
-+		mutex_lock(&ledinternal->led_changing_state);
-+
-+		/* If the LED is currently on, it could be some time before it
-+		   switches off again.  Another matching packet has arrived
-+		   though, so uncommenting the code below will briefly turn the
-+		   LED off to signal the new packet.  It will be switched on
-+		   again below, then stay on for the full timeout again.  The
-+		   code is currently commented out, because it can make the LED
-+		   flicker when lots of packets arrive, which defeats the
-+		   purpose of having the delay... */
-+		/*
-+		if (timer_pending(&ledinternal->timer))
-+			led_trigger_event(&ledinternal->netfilter_led_trigger,
-+			                  LED_OFF);
-+		*/
-+	}
-+
-+	led_trigger_event(&ledinternal->netfilter_led_trigger, LED_FULL);
-+
-+	/* If there's a positive delay, start/update the timer */
-+	if (ledinfo->delay > 0) {
-+		mod_timer(&ledinternal->timer,
-+			jiffies + msecs_to_jiffies(ledinfo->delay));
-+		/* If there's a *huge* delay right here (enough for the timer
-+		   to expire), it could cause the LED to remain stuck on until
-+		   the next packet, but it's probably not worth worrying
-+		   about... */
-+		mutex_unlock(&ledinternal->led_changing_state);
-+
-+	/* Otherwise if there was no delay given, blink as fast as possible */
-+	} else if (ledinfo->delay == 0) {
-+		led_trigger_event(&ledinternal->netfilter_led_trigger, LED_OFF);
-+	}
-+
-+	/* else the delay is negative, which means switch on and stay on */
-+
-+	return XT_CONTINUE;
++	printf(
++"LED target options:\n"
++"--led-trigger-id name           suffix for led trigger name\n"
++"--led-delay ms                  leave the LED on for this number of\n"
++"                                milliseconds after triggering.  Defaults\n"
++"                                to 0ms (blink as fast as possible.)\n"
++"                                Set to \"inf\" to stay on.  Incoming\n"
++"                                packets while the LED is on will still\n"
++"                                cause it to briefly blink off.\n");
 +}
 +
-+static void led_timeout_callback(unsigned long data)
++static void LED_init(struct xt_entry_target *t)
 +{
-+	struct xt_led_info *ledinfo = (struct xt_led_info *)data;
-+	struct xt_led_info_internal *ledinternal = ledinfo->internal_data;
++	struct xt_led_info *led = (struct xt_led_info *)t->data;
 +
-+	/* If the timer has expired while we're changing the state, then don't
-+	   interfere.  We also don't want to twiddle with anything after the
-+	   mutex is unlocked, because by then a new timeout will have been
-+	   set. */
-+	if (mutex_is_locked(&ledinternal->led_changing_state)) return;
++	/* defaults */
++	led->id[0] = 0;
++	led->delay = 0;
 +
-+	led_trigger_event(&ledinternal->netfilter_led_trigger, LED_OFF);
 +	return;
 +}
 +
-+static bool led_tg_check(const struct xt_tgchk_param *par)
++static int LED_parse(int c, char **argv, int invert, unsigned int *flags,
++                     const void *entry, struct xt_entry_target **target)
 +{
-+	/*noconst*/ struct xt_led_info *ledinfo = par->targinfo;
-+	struct xt_led_info_internal *ledinternal;
++	struct xt_led_info *led = (struct xt_led_info *)(*target)->data;
 +
-+	if (ledinfo->id[0] == 0) {
-+		printk(DRVMSG "No 'id' parameter given.\n");
-+		return false;
++	switch (c) {
++	case 'i':
++		if (check_inverse(optarg, &invert, NULL, 0))
++			exit_error(PARAMETER_PROBLEM,
++				"Unexpected `!' after --led-trigger-id");
++
++		if (strlen(optarg) > 15)
++			exit_error(PARAMETER_PROBLEM,
++				"--led-trigger-id must be 16 chars or less");
++
++		if (optarg[0] == 0)
++			exit_error(PARAMETER_PROBLEM,
++				"--led-trigger-id cannot be blank");
++
++		/* "netfilter-" + 16 char id == 26 == sizeof(led->id) */
++		strcpy(led->id, "netfilter-");
++		strcat(led->id, optarg);
++		*flags = 1;
++		return 1;
++
++	case 'd':
++		if (check_inverse(optarg, &invert, NULL, 0))
++			exit_error(PARAMETER_PROBLEM,
++				"Unexpected `!' after --led-delay");
++
++		if (strncasecmp(optarg, "inf", 3) == 0)
++			led->delay = -1;
++		else
++			led->delay = atoi(optarg);
++
++		return 1;
++
++	default:
++		break;
++
 +	}
-+
-+	if (!(ledinternal = kzalloc(sizeof(struct xt_led_info_internal), GFP_KERNEL))) {
-+		printk(DRVMSG "Out of memory\n");
-+		return false;
-+	}
-+
-+	ledinternal->netfilter_led_trigger.name = ledinfo->id;
-+	mutex_init(&ledinternal->led_changing_state);
-+
-+	printk(DRVMSG "Registering led trigger \"%s\".\n", ledinfo->id);
-+	if (led_trigger_register(&ledinternal->netfilter_led_trigger)) {
-+		printk(KERN_CRIT DRVMSG "led_trigger_register() failed\n");
-+		goto exit_alloc;
-+	}
-+
-+	/* See if we need to set up a timer */
-+	if (ledinfo->delay > 0) {
-+		setup_timer(&ledinternal->timer, led_timeout_callback,
-+			(unsigned long) ledinfo);
-+	}
-+
-+	ledinfo->internal_data = ledinternal;
-+
-+	return true;
-+
-+exit_alloc:
-+	kfree(ledinternal);
-+
-+	return false;
++	return 0;
 +}
 +
-+static void led_tg_destroy(const struct xt_tgdtor_param *par)
++static void LED_final_check(unsigned int flags)
 +{
-+	const struct xt_led_info *ledinfo = par->targinfo;
-+	/*noconst*/struct xt_led_info_internal *ledinternal = ledinfo->internal_data;
-+
-+	printk(DRVMSG "Unregistering led trigger \"%s\".\n",
-+		ledinternal->netfilter_led_trigger.name);
-+
-+	if (ledinfo->delay > 0)
-+		del_timer_sync(&ledinternal->timer);
-+
-+	led_trigger_unregister(&ledinternal->netfilter_led_trigger);
-+	kfree(ledinternal);
++	if (!flags)
++		exit_error(PARAMETER_PROBLEM, "--led-trigger-id must be specified");
 +	return;
 +}
 +
-+static struct xt_target led_tg_reg __read_mostly = {
-+	.name = "LED",
-+	.revision = 0,
-+	.family = NFPROTO_UNSPEC,
-+	.target = led_tg,
-+	.targetsize = sizeof(struct xt_led_info),
-+	.checkentry = led_tg_check,
-+	.destroy = led_tg_destroy,
-+	.me = THIS_MODULE,
++/* Print our config data, e.g. with iptables -L -v */
++static void LED_print(const void *ip, const struct xt_entry_target *target,
++                      int numeric)
++{
++	const struct xt_led_info *led = (const struct xt_led_info *)target->data;
++	const char *id = led->id + 10; /* trim off "netfilter-" prefix */
++	printf("led-trigger-id:'");
++	/* Some not so great code to escape single quotes in the ID */
++	while (*id) {
++		if (*id == '\'')
++			printf("\\'");
++		else
++			printf("%c", *id);
++		id++;
++	}
++	if (led->delay == -1) printf("' led-delay:inf ");
++	else printf("' led-delay:%dms ", led->delay);
++	return;
++}
++
++static void LED_save(const void *ip, const struct xt_entry_target *target)
++{
++	const struct xt_led_info *led = (const struct xt_led_info *)target->data;
++	const char *id = led->id + 10; /* trim off "netfilter-" prefix */
++
++	/* The same not so great code to escape single quotes in the ID */
++	printf("--led-trigger-id '");
++	while (*id) {
++		if (*id == '\'')
++			printf("\\'");
++		else
++			printf("%c", *id);
++		id++;
++	}
++	printf("' ");
++
++	/* Only print the delay if it's not zero (the default) */
++	if (led->delay > 0)
++		printf("--led-delay %d ", led->delay);
++	else if (led->delay == -1)
++		printf("--led-delay inf ");
++
++	return;
++}
++
++static struct xtables_target led_tg_reg = {
++	.family		= PF_UNSPEC,
++	.name		= "LED",
++	.version	= XTABLES_VERSION,
++	.size		= XT_ALIGN(sizeof(struct xt_led_info)),
++	.userspacesize	= XT_ALIGN(sizeof(struct xt_led_info)),
++	.help		= LED_help,
++	.init		= LED_init,
++	.parse		= LED_parse,
++	.final_check	= LED_final_check,
++	.extra_opts	= LED_opts,
++	.print		= LED_print,
++	.save		= LED_save,
 +};
 +
-+static int __init led_tg_init(void)
++void _init(void)
 +{
-+	printk(KERN_NOTICE DRVMSG "Registering LED netfilter target\n");
-+	return xt_register_target(&led_tg_reg);
++	xtables_register_target(&led_tg_reg);
 +}
-+
-+static void __exit led_tg_exit(void)
-+{
-+	printk(KERN_NOTICE DRVMSG "Unregistering LED netfilter target\n");
-+	xt_unregister_target(&led_tg_reg);
-+	return;
-+}
-+
-+module_init(led_tg_init);
-+module_exit(led_tg_exit);
-
+diff --git a/extensions/libxt_LED.man b/extensions/libxt_LED.man
+new file mode 100644
+index 0000000..96dd17c
+--- /dev/null
++++ b/extensions/libxt_LED.man
+@@ -0,0 +1,19 @@
++This creates an LED-trigger that can then be attached to system indicator
++lights, to blink or illuminate them when certain packets pass through the
++system.  One example might be to light up an LED for a few minutes every time
++an SSH connection is made to the local machine.  The following options control
++the trigger behaviour:
++.TP
++.BI "--led-trigger-id " "name"
++This is the name given to the LED trigger.  The actual name of the trigger
++will have the prefix "netfilter-".
++.TP
++.BI "--led-delay " "ms"
++This indicates how long (in milliseconds) the LED should be left illuminated
++when a packet arrives before being switched off again.  The default is 0
++(blink as fast as possible.)  The special value
++.I inf
++can be given to leave the LED on permanently once activated.  (In this case
++the trigger will need to be manually detached and reattached to the LED device
++to switch it off again.)
++.PP
