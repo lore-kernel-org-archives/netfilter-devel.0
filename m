@@ -1,37 +1,27 @@
-From: Piotr Duszynski <regis44@gmail.com>
-Subject: Conntrack modification
-Date: Sun, 09 Nov 2008 14:55:35 +0100
-Message-ID: <4916EBD7.2090006@gmail.com>
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: Re: [PATCH 2/2] New netfilter target to trigger LED devices
+Date: Sun, 9 Nov 2008 20:10:39 +0300
+Message-ID: <20081109171039.GA3287@x200.localdomain>
+References: <4916E4F0.8010507@shikadi.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org,
+	Richard Purdie <rpurdie@openedhand.com>
+To: Adam Nielsen <a.nielsen@shikadi.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fk-out-0910.google.com ([209.85.128.186]:26012 "EHLO
-	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754795AbYKINzT (ORCPT
+Received: from nf-out-0910.google.com ([64.233.182.186]:43773 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755415AbYKIRHQ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 9 Nov 2008 08:55:19 -0500
-Received: by fk-out-0910.google.com with SMTP id 18so2635664fkq.5
-        for <netfilter-devel@vger.kernel.org>; Sun, 09 Nov 2008 05:55:17 -0800 (PST)
+	Sun, 9 Nov 2008 12:07:16 -0500
+Received: by nf-out-0910.google.com with SMTP id d3so943735nfc.21
+        for <netfilter-devel@vger.kernel.org>; Sun, 09 Nov 2008 09:07:14 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <4916E4F0.8010507@shikadi.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi everyone,
-
-I am working on a project, that needs source MAC information for each
-active connection tracked by conntrack. In the beginning I was thinking
- about using the nf_conntrack_tuple.src for this purpose, but then I saw
-that the hash function is taking into account this struct as well. I
-guess that if I modified it, packets wouldn't be properly identified
-anymore as part of existing connection. After diving again into the
-source code I have come across nf_conntrack_extend , which seems to a
-good place to put the MAC related information.
-
-I am really not sure which path should I take. In the simplest case I
-could just add __u32 src_mac to the nf_conntrack_tuple, but this doesn't
-seem to be a very elegant solution .
-
-Best regards
-Piotrek
-
+On Sun, Nov 09, 2008 at 11:26:08PM +1000, Adam Nielsen wrote:
+> +	/*noconst*/struct xt_led_info_internal *ledinternal = ledinfo->internal_data;
+	  ^^^^^^^
+What is this?
