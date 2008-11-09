@@ -1,37 +1,42 @@
-From: Alexey Dobriyan <adobriyan@gmail.com>
+From: Adam Nielsen <a.nielsen@shikadi.net>
 Subject: Re: [PATCH 2/2] New netfilter target to trigger LED devices
-Date: Sun, 9 Nov 2008 20:58:19 +0300
-Message-ID: <20081109175819.GA3127@x200.localdomain>
-References: <4916E4F0.8010507@shikadi.net> <20081109171039.GA3287@x200.localdomain> <alpine.LNX.1.10.0811091839580.22255@fbirervta.pbzchgretzou.qr>
+Date: Mon, 10 Nov 2008 07:44:03 +1000
+Message-ID: <491759A3.1010209@shikadi.net>
+References: <4916E4F0.8010507@shikadi.net> <20081109171039.GA3287@x200.localdomain> <alpine.LNX.1.10.0811091839580.22255@fbirervta.pbzchgretzou.qr> <20081109175819.GA3127@x200.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Adam Nielsen <a.nielsen@shikadi.net>,
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Jan Engelhardt <jengelh@medozas.de>,
 	netfilter-devel@vger.kernel.org,
 	Richard Purdie <rpurdie@openedhand.com>
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Alexey Dobriyan <adobriyan@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.27]:18380 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755532AbYKIRy5 (ORCPT
+Received: from vitalin.sorra.shikadi.net ([64.71.152.201]:3966 "EHLO
+	vitalin.sorra.shikadi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757913AbYKIVoI (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 9 Nov 2008 12:54:57 -0500
-Received: by ey-out-2122.google.com with SMTP id 6so811021eyi.37
-        for <netfilter-devel@vger.kernel.org>; Sun, 09 Nov 2008 09:54:55 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <alpine.LNX.1.10.0811091839580.22255@fbirervta.pbzchgretzou.qr>
+	Sun, 9 Nov 2008 16:44:08 -0500
+In-Reply-To: <20081109175819.GA3127@x200.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Nov 09, 2008 at 06:40:39PM +0100, Jan Engelhardt wrote:
+>>>> +	/*noconst*/struct xt_led_info_internal *ledinternal =
+>>>>                        ledinfo->internal_data;
+>>> 	  ^^^^^^^
+>>> What is this?
+>> A C89-style comment?
 > 
-> On Sunday 2008-11-09 18:10, Alexey Dobriyan wrote:
-> 
-> >On Sun, Nov 09, 2008 at 11:26:08PM +1000, Adam Nielsen wrote:
-> >> +	/*noconst*/struct xt_led_info_internal *ledinternal =
-> >>                        ledinfo->internal_data;
-> >	  ^^^^^^^
-> >What is this?
-> 
-> A C89-style comment?
+> I'm talking about noconst. Utterly pointless.
 
-I'm talking about noconst. Utterly pointless.
+It's to highlight the parts of my code where I'm taking a
+const pointer, and then modifying the data pointed to.  I'm
+not sure whether this is allowed, so I thought I'd play
+it safe and flag that part of the code for comment.
+
+If you think it's fine as is then I'd be happy to remove
+the comment, unless it might be helpful to explain to
+others that what I'm doing is intentional.
+
+Cheers,
+Adam.
+
