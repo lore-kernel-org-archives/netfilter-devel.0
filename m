@@ -1,42 +1,51 @@
-From: Adam Nielsen <a.nielsen@shikadi.net>
-Subject: Re: [PATCH 2/2] New netfilter target to trigger LED devices
-Date: Mon, 10 Nov 2008 07:44:03 +1000
-Message-ID: <491759A3.1010209@shikadi.net>
-References: <4916E4F0.8010507@shikadi.net> <20081109171039.GA3287@x200.localdomain> <alpine.LNX.1.10.0811091839580.22255@fbirervta.pbzchgretzou.qr> <20081109175819.GA3127@x200.localdomain>
+From: "OpenSource Dev" <dev.opensource@gmail.com>
+Subject: how to update payload using QUEUE
+Date: Sun, 9 Nov 2008 17:03:09 -0600
+Message-ID: <c813aacf0811091503u26425f2fw368689d7d0ea6d6b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	netfilter-devel@vger.kernel.org,
-	Richard Purdie <rpurdie@openedhand.com>
-To: Alexey Dobriyan <adobriyan@gmail.com>
+To: netfilter <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from vitalin.sorra.shikadi.net ([64.71.152.201]:3966 "EHLO
-	vitalin.sorra.shikadi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757913AbYKIVoI (ORCPT
+Received: from qb-out-0506.google.com ([72.14.204.237]:57614 "EHLO
+	qb-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755914AbYKIXDL (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 9 Nov 2008 16:44:08 -0500
-In-Reply-To: <20081109175819.GA3127@x200.localdomain>
+	Sun, 9 Nov 2008 18:03:11 -0500
+Received: by qb-out-0506.google.com with SMTP id f11so1295289qba.17
+        for <netfilter-devel@vger.kernel.org>; Sun, 09 Nov 2008 15:03:10 -0800 (PST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
->>>> +	/*noconst*/struct xt_led_info_internal *ledinternal =
->>>>                        ledinfo->internal_data;
->>> 	  ^^^^^^^
->>> What is this?
->> A C89-style comment?
-> 
-> I'm talking about noconst. Utterly pointless.
+I am trying to use netfilter QUEUE to process IP payload in
+user-space. So far I have successfully retrived the packet (payload),
+done with my processing but I don't know how to put it back (modified
+payload) back to original outbound packet.
 
-It's to highlight the parts of my code where I'm taking a
-const pointer, and then modifying the data pointed to.  I'm
-not sure whether this is allowed, so I thought I'd play
-it safe and flag that part of the code for comment.
+this is what I have tried:
 
-If you think it's fine as is then I'd be happy to remove
-the comment, unless it might be helpful to explain to
-others that what I'm doing is intentional.
+--------------
+len  = nfq_get_payload(tb, &payload);
+if (len >= 0 ) {
+    new_len = process_payload(payload, *newPayload, len);
 
-Cheers,
-Adam.
+   //trying memcpy
+   memcpy(payload, newPayload, len);
+   pkt->ip->check = 0;
+   free(newPayload);
 
+}
+
+return nfq_set_verdict(qh, id, NF_ACCEPT, 0, NULL);
+--------------
+
+
+I tried using memcpy() to copy new payload data to existing, but I
+think that is being done on user space only. or do  I need to call
+some nfa_set.. function ?
+I will be glad if someone could point me to right direction.
+
+Thank you,
+
+Bikrant
