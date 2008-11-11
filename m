@@ -1,83 +1,77 @@
-From: "OpenSource Dev" <dev.opensource@gmail.com>
-Subject: Re: how to update payload using QUEUE
-Date: Mon, 10 Nov 2008 18:48:07 -0600
-Message-ID: <c813aacf0811101648l169bdffne799c41d014733d9@mail.gmail.com>
+From: Kuzin Andrey <kuzinandrey@yandex.ru>
+Subject: Re[2]: how to update payload using QUEUE
+Date: Tue, 11 Nov 2008 09:56:00 +0300
+Message-ID: <69704515.20081111095600@yandex.ru>
 References: <c813aacf0811091503u26425f2fw368689d7d0ea6d6b@mail.gmail.com>
-	 <1189733016.20081110095859@yandex.ru>
+ <1189733016.20081110095859@yandex.ru>
+ <c813aacf0811101648l169bdffne799c41d014733d9@mail.gmail.com>
+Reply-To: Kuzin Andrey <kuzinandrey@yandex.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-To: netfilter <netfilter-devel@vger.kernel.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.186]:47186 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752498AbYKKAsL (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 10 Nov 2008 19:48:11 -0500
-Received: by nf-out-0910.google.com with SMTP id d3so1254998nfc.21
-        for <netfilter-devel@vger.kernel.org>; Mon, 10 Nov 2008 16:48:08 -0800 (PST)
-In-Reply-To: <1189733016.20081110095859@yandex.ru>
-Content-Disposition: inline
+Received: from mail.mjkmail.ru ([212.45.5.115]:35286 "HELO mail.mjkmail.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
+	id S1754131AbYKKHC0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 11 Nov 2008 02:02:26 -0500
+In-Reply-To: <c813aacf0811101648l169bdffne799c41d014733d9@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Nov 10, 2008 at 12:58 AM, Kuzin Andrey <kuzinandrey@yandex.ru> wrote:
-> OD> I am trying to use netfilter QUEUE to process IP payload in
-> OD> user-space. So far I have successfully retrived the packet (payload),
-> OD> done with my processing but I don't know how to put it back (modified
-> OD> payload) back to original outbound packet.
-> OD> this is what I have tried:
-> OD> --------------
-> OD> len  = nfq_get_payload(tb, &payload);
-> OD> if (len >>= 0 ) {
-> OD>     new_len = process_payload(payload, *newPayload, len);
-> OD>    //trying memcpy
-> OD>    memcpy(payload, newPayload, len);
-> OD>    pkt->ip->check = 0;
-> OD>    free(newPayload);
-> OD> }
-> OD> return nfq_set_verdict(qh, id, NF_ACCEPT, 0, NULL);
-> OD> --------------
-> OD> I tried using memcpy() to copy new payload data to existing, but I
-> OD> think that is being done on user space only. or do  I need to call
-> OD> some nfa_set.. function ?
-> OD> I will be glad if someone could point me to right direction.
->
-> OD> Thank you,
->
-> Cut from libnetfilter_queue.c
-> ================================
-> int nfq_set_verdict(struct nfq_q_handle *qh, u_int32_t id,
->                u_int32_t verdict, u_int32_t data_len,
->                unsigned char *buf)
-> ================================
->
-> You call this function in this way:
-> return nfq_set_verdict(qh, id, NF_ACCEPT, 0, NULL);
->
-> I think right function call:
-> ===================
-> ret = nfq_set_verdict(qh, id, NF_ACCEPT, new_len, newPayload);
-> free(newPayload);
-> return ret;
-> ===================
-> and my be without any memcpy()
->
-> Try this...
+>> Cut from libnetfilter_queue.c
+>> ================================
+>> int nfq_set_verdict(struct nfq_q_handle *qh, u_int32_t id,
+>>                u_int32_t verdict, u_int32_t data_len,
+>>                unsigned char *buf)
+>> ================================
+>>
+>> You call this function in this way:
+>> return nfq_set_verdict(qh, id, NF_ACCEPT, 0, NULL);
+>>
+>> I think right function call:
+>> ===================
+>> ret = nfq_set_verdict(qh, id, NF_ACCEPT, new_len, newPayload);
+>> free(newPayload);
+>> return ret;
+>> ===================
+>> and my be without any memcpy()
+>>
+>> Try this...
 
-Thank you all. It worked for me.
-Now I think I am in right direction :)
+OD> Thank you all. It worked for me.
+OD> Now I think I am in right direction :)
 
-However, now I am having problem with checksum. After processing
-payload, I set the iphdr checksum value to 0 hoping system would
-automatically compute the check sum but it is not. Tcpdump shows "bad
-checksum" value (0).
+OD> However, now I am having problem with checksum. After processing
+OD> payload, I set the iphdr checksum value to 0 hoping system would
+OD> automatically compute the check sum but it is not. Tcpdump shows "bad
+OD> checksum" value (0).
 
-Or do I need to compute and set checksum manually. Ideally I would
-like to offload-checksum when possible.
+OD> Or do I need to compute and set checksum manually. Ideally I would
+OD> like to offload-checksum when possible.
+OD> Looking for your suggestions.
+OD> thanks again :)
+OD> Bikrant
 
-Looking for your suggestions.
+I found some useful links for you !
 
-thanks again :)
+Here use checksum compute for tcp and ip packets (some code from TCPDUMP):
+http://code.google.com/p/quefuzz/source/browse/trunk/quefuzz.c?r=5
 
-Bikrant
+Here use another cksum() function:
+https://trac.luffy.cx/udpproxy/browser/src
+https://trac.luffy.cx/udpproxy/browser/src/cksum.c
+https://trac.luffy.cx/udpproxy/browser/src/proxy.c
+
+Question is what function calculate checksum faster and rigth for
+nf_queue ?!
+
+May be this help to you !
+Write something about that. I also need this experience, but
+i don't have any time for experiments now.
+
+Any comments from nfq developers also appreciated.
+Why your nfq_set_verdict with payload don't compute checksum
+automatically ???!!!
+Google say what whole the world have difficults with that.
+
