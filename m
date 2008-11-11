@@ -1,60 +1,60 @@
-From: "OpenSource Dev" <dev.opensource@gmail.com>
-Subject: Re: Re[2]: how to update payload using QUEUE
-Date: Tue, 11 Nov 2008 02:54:43 -0600
-Message-ID: <c813aacf0811110054h7f51d7bg7088d77abe6de602@mail.gmail.com>
-References: <c813aacf0811091503u26425f2fw368689d7d0ea6d6b@mail.gmail.com>
-	 <1189733016.20081110095859@yandex.ru>
-	 <c813aacf0811101648l169bdffne799c41d014733d9@mail.gmail.com>
-	 <69704515.20081111095600@yandex.ru>
+From: "Giant Sand Fan's" <rampxxxx@gmail.com>
+Subject: Re: NF_IP_PRE_ROUTING,... not defined
+Date: Tue, 11 Nov 2008 10:00:10 +0100
+Message-ID: <417f50830811110100y2aae8e3ej99426153c6412fb0@mail.gmail.com>
+References: <417f50830811100953i6edaa921x53de3710e956c97f@mail.gmail.com>
+	 <4918792A.2070309@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: "Kuzin Andrey" <kuzinandrey@yandex.ru>
+To: "Patrick McHardy" <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.171]:19839 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751717AbYKKIyp (ORCPT
+Received: from rv-out-0506.google.com ([209.85.198.226]:42611 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754906AbYKKJAL (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 11 Nov 2008 03:54:45 -0500
-Received: by ug-out-1314.google.com with SMTP id 39so662158ugf.37
-        for <netfilter-devel@vger.kernel.org>; Tue, 11 Nov 2008 00:54:43 -0800 (PST)
-In-Reply-To: <69704515.20081111095600@yandex.ru>
+	Tue, 11 Nov 2008 04:00:11 -0500
+Received: by rv-out-0506.google.com with SMTP id k40so2953140rvb.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 11 Nov 2008 01:00:10 -0800 (PST)
+In-Reply-To: <4918792A.2070309@trash.net>
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> I found some useful links for you !
+ok, thanks, added by hand.
+
+In my aim to port my netfilt-routing soft from 2.6.22 to 2.6.25 i have
+too a problem, my *skb pointers are null (skb seems ok) and i don't
+know if there is more related to thoses changes to 2.6.25 as define
+__KERNEL__ thing in netfilter_ipv4.h any clue,idea, doc about those
+complete changes.
+
+2008/11/10 Patrick McHardy <kaber@trash.net>:
+> Giant Sand Fan's wrote:
+>>
+>> because the #ifndef __KERNEL__ tags goes beyond NT_IP_PRE_ROUTING,..
+>> defines , this change appears in 2.6.25 (because I works in 2.6.22)
+>> and I cannot compile my kernel module hook with that version.
+>>
+>> There is a way to do a correct development-compilation with this headers?
+>>
+>> I cannot find anything about this issue.Yes I can move the "#endif"
+>> but i think that must not be right thing.
+>>
+>> So sorry if I'm out of scope.
 >
-> Here use checksum compute for tcp and ip packets (some code from TCPDUMP):
-> http://code.google.com/p/quefuzz/source/browse/trunk/quefuzz.c?r=5
-
-This really works great. I will sure try some other methods too and
-try to find out which one is better.
-
-Right now I can ping two machines with modified ICMP payload and new
-checksum value :)
-But TCP is not working yet. I am pretty sure I have some code mixup somewhere.
-
-Thanks for your help!
-
-Bikrant
-
-
+> The kernel doesn't need these definitions anymore, so they're not
+> available to avoid people using them.
 >
-> Here use another cksum() function:
-> https://trac.luffy.cx/udpproxy/browser/src
-> https://trac.luffy.cx/udpproxy/browser/src/cksum.c
-> https://trac.luffy.cx/udpproxy/browser/src/proxy.c
+> For external modules that need to compile with multiple version,
+> you can either add the necessary definitions yourself (the values
+> are part of the ABI and unchangable) or possibly use the compat
+> headers from xtables-addons.
 >
-> Question is what function calculate checksum faster and rigth for
-> nf_queue ?!
->
-> May be this help to you !
-> Write something about that. I also need this experience, but
-> i don't have any time for experiments now.
->
-> Any comments from nfq developers also appreciated.
-> Why your nfq_set_verdict with payload don't compute checksum
-> automatically ???!!!
-> Google say what whole the world have difficults with that.
+
+
+
+-- 
+Please avoid sending me Word or PowerPoint attachments.
+See http://www.gnu.org/philosophy/no-word-attachments.html
