@@ -1,76 +1,61 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: libxt_conntrack: dump ctdir
-Date: Tue, 11 Nov 2008 15:18:44 +0100 (CET)
-Message-ID: <alpine.LNX.1.10.0811111518090.19024@fbirervta.pbzchgretzou.qr>
+From: Adam Nielsen <a.nielsen@shikadi.net>
+Subject: Re: [PATCH 1/2 v2] New netfilter target to trigger LED devices
+Date: Wed, 12 Nov 2008 20:32:37 +1000
+Message-ID: <491AB0C5.9030305@shikadi.net>
+References: <49196D12.1030803@shikadi.net> <alpine.LNX.1.10.0811111318020.19024@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:55197 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755581AbYKKOSq (ORCPT
+Received: from vitalin.sorra.shikadi.net ([64.71.152.201]:1807 "EHLO
+	vitalin.sorra.shikadi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751792AbYKLKck (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 11 Nov 2008 09:18:46 -0500
+	Wed, 12 Nov 2008 05:32:40 -0500
+In-Reply-To: <alpine.LNX.1.10.0811111318020.19024@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 9de6f0517f5fef7f18f2e4bba392ed68182e3d47
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Mon Nov 10 18:01:04 2008 +0100
+>> +struct xt_led_info {
+>> +	char id[26];        /* Unique ID for this trigger in the LED class */
+>> +	__u32 delay;        /* Delay until LED is switched off after trigger */
+>> +	__u8 always_blink;  /* Blink even if the LED is already on */
+>> +
+>> +	void *internal_data; /* Kernel data used in the module */
+>> +};
+> 
+> You now have an alignment problem, and need at least
+> 	void *internal_data __attribute__((aligned(8)))
+> as explained in the PDF. Ultimatively, these shouls be reordered to
+> accomodate for gaps (see doc).
+> 
+> Also, why is it 26?
 
-libxt_conntrack: dump ctdir
+Ah bummer, I forgot about that.  Is this the best order?  If I'm
+understanding correctly this order shouldn't need member alignment.
 
-Sent in as part of a larger private mail by G=C3=A1sp=C3=A1r Lajos
-<swifty@freemail.hu>; I cherry-picked the ctdir part.
+struct xt_led_info {
+	void *internal_data;
+	__u32 delay;
+	__u8 always_blink;
+	char id[26];
+};
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- extensions/libxt_conntrack.c |   15 +++++++++++++++
- 1 files changed, 15 insertions(+), 0 deletions(-)
+The id[26] is for a 16 char ID + the 10 digit "netfilter-" prefix.
+Actually that's a good point, it needs to be 27 to accomodate the
+terminating NULL.  At any rate, I'm not sure of the best way to describe
+that, without using #define.  What do you suggest?
 
-diff --git a/extensions/libxt_conntrack.c b/extensions/libxt_conntrack.=
-c
-index 987e1af..1e5f141 100644
---- a/extensions/libxt_conntrack.c
-+++ b/extensions/libxt_conntrack.c
-@@ -879,6 +879,14 @@ matchinfo_print(const void *ip, const struct xt_en=
-try_match *match, int numeric,
-         	else
-                 	printf("%lu:%lu ", sinfo->expires_min, sinfo->expires=
-_max);
- 	}
-+
-+	if (sinfo->flags & XT_CONNTRACK_DIRECTION) {
-+		if (sinfo->invflags & XT_CONNTRACK_DIRECTION)
-+			printf("%sctdir REPLY", optpfx);
-+		else
-+			printf("%sctdir ORIGINAL", optpfx);
-+	}
-+
- }
-=20
- static void
-@@ -976,6 +984,13 @@ conntrack_dump(const struct xt_conntrack_mtinfo1 *=
-info, const char *prefix,
- 			printf("%u:%u ", (unsigned int)info->expires_min,
- 			       (unsigned int)info->expires_max);
- 	}
-+
-+	if (info->match_flags & XT_CONNTRACK_DIRECTION) {
-+		if (info->invert_flags & XT_CONNTRACK_DIRECTION)
-+			printf("%sctdir REPLY", prefix);
-+		else
-+			printf("%sctdir ORIGINAL", prefix);
-+	}
- }
-=20
- static void conntrack_print(const void *ip, const struct xt_entry_matc=
-h *match,
+   /* strlen("netfilter-") + 16 char user-definable name */
+   #define LED_TRIGGER_ID_LENGTH (10 + 16)
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+   char id[LED_TRIGGER_ID_LENGTH + 1];
+
+In that case it might be worth #defining the 16 char part separately,
+so that it can be used in the parameter verification code too.  Let
+me know what you think.
+
+Thanks,
+Adam.
