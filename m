@@ -1,46 +1,86 @@
-From: Adam Nielsen <a.nielsen@shikadi.net>
-Subject: Re: [PATCH 1/2 v2] New netfilter target to trigger LED devices
-Date: Wed, 12 Nov 2008 21:10:43 +1000
-Message-ID: <491AB9B3.5060207@shikadi.net>
-References: <49196D12.1030803@shikadi.net> <alpine.LNX.1.10.0811111318020.19024@fbirervta.pbzchgretzou.qr> <491AB0C5.9030305@shikadi.net> <alpine.LNX.1.10.0811121157200.17100@fbirervta.pbzchgretzou.qr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: libiptc, arptables, ebtables plans or so - and header files
+Date: Wed, 12 Nov 2008 12:13:23 +0100
+Message-ID: <491ABA53.8040703@trash.net>
+References: <alpine.LNX.1.10.0811101726310.23956@fbirervta.pbzchgretzou.qr> <49187862.50306@trash.net> <alpine.LNX.1.10.0811101936100.3005@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from vitalin.sorra.shikadi.net ([64.71.152.201]:4805 "EHLO
-	vitalin.sorra.shikadi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750873AbYKLLKp (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:38560 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751882AbYKLLNZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 Nov 2008 06:10:45 -0500
-In-Reply-To: <alpine.LNX.1.10.0811121157200.17100@fbirervta.pbzchgretzou.qr>
+	Wed, 12 Nov 2008 06:13:25 -0500
+In-Reply-To: <alpine.LNX.1.10.0811101936100.3005@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
->> Ah bummer, I forgot about that.  Is this the best order?
-> 
-> No, that will break offsetof() in .userspacesize, as it will
-> become 0.
+Jan Engelhardt wrote:
+> On Monday 2008-11-10 19:07, Patrick McHardy wrote:
+>> Without having looked at it in much detail, I think it should
+>> be pretty easy to define per-family functions to fill the
+>> ipt_entry/ip6t_entry structs and a struct to describe the
+>> length and offset differences. The remaining parts are invariant
+>> across families, so the code should be easily unifiable.
+>=20
+> struct iptc_handle {
+> 	struct ipt_getinfo {
+> 	};
+> 	struct ipt_get_entries {
+> 		struct ipt_entry [];
+> 	};
+> };
+>=20
+> TC_INIT/create_tc_socket(table)
+> {
+> 	STRUCT_GETINFO info;
+> 	strcpy(info.name, table);
+> 	getsockopt(sockfd, TC_IPPROTO, SO_GET_INFO, &info...);
+> 	h =3D alloc_handle(info.name, info.size, info.num_entries);
+> }
+>=20
+> Just look at this pseudocode. The primitive transformation approach w=
+ould be
+>=20
+> 	create_v4_socket(table)
+> 	{
+> 		struct ip6t_getinfo info;
+> 		strcpy...
+> 		getsockopt..
+> 		h =3D alloc_handle...
+> 	}
+> =09
+> 	create_v6_socket(table)
+> 	{
+> 		struct ip6t_getinfo info;
+> 		strcpy...
+> 		getsockopt..
+> 		h =3D alloc_handle...
+> 	}
+> =09
+> 	create_socket(table, proto)
+> 	{
+> 		return proto_vft[proto]->create_socket(table)
+> 	}
+>=20
+> This because every line where a member of info is accessed is
+> essentially af-dependent already.
 
-Oh, double bummer, I forgot about that also.
+An af-dependant function to get a pointer to the sub-structures
+might simplify this a bit.
 
-> add id - 27 bytes.
-> add always_blink - 28 bytes.
-> 28? That's good for alignment of a u32. Add delay.
-> 32? That's good for alignment of a potentially-ptr64.
+> And I am not even down to
+> ipt_entry. It's not clear what to do here -- apart from ugly
+> tricks to record the offsets of members and then dereferencing
+> through void =E0 la  (char *)(((void *)&info) + af->name_offset).
 
-Ah okay, that works out quite well then.
-
-> And it's solved, even without thinking of NULs or prefixes.
-
-Sorry, I thought you meant "please explain where the 26 comes from"
-
-> Just use [27] - the struct will be hardcoded forever,
-> and putting #defines somewhere gives a wrong illusion it might be changeable.
-
-Will do.
-
-Cheers,
-Adam.
-
+proto_vft[proto]->fill_entry(...)?
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
