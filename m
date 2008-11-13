@@ -1,39 +1,54 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 2/2 v2] New netfilter target to trigger LED devices
-Date: Thu, 13 Nov 2008 16:56:47 +0100 (CET)
-Message-ID: <alpine.LNX.1.10.0811131653030.13330@fbirervta.pbzchgretzou.qr>
-References: <49196D3E.5080305@shikadi.net>
+From: Krzysztof Oledzki <ole@ans.pl>
+Subject: FW: people.netfilter.org are down PoM download doesn't work. (fwd)
+Date: Thu, 13 Nov 2008 21:00:13 +0100 (CET)
+Message-ID: <alpine.LNX.1.10.0811132058470.15987@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Adam Nielsen <a.nielsen@shikadi.net>
+Content-Type: MULTIPART/MIXED; BOUNDARY="-1144830174-1671346506-1226606413=:15987"
+Cc: netfilter-devel@vger.kernel.org
+To: laforge@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:44436 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751530AbYKMP4u (ORCPT
+Received: from bizon.gios.gov.pl ([195.187.34.71]:47929 "EHLO
+	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752060AbYKMUAT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Nov 2008 10:56:50 -0500
-In-Reply-To: <49196D3E.5080305@shikadi.net>
+	Thu, 13 Nov 2008 15:00:19 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-On Tuesday 2008-11-11 12:32, Adam Nielsen wrote:
-> +/*
-> + * Known issues:
-> + *
-> + *  - It's possible to add multiple led triggers with the same name (as
-> + *    set with --led-trigger-id)
-> + *
-> + */
+---1144830174-1671346506-1226606413=:15987
+Content-Type: TEXT/PLAIN; CHARSET=iso-8859-2; format=flowed
+Content-Transfer-Encoding: 8BIT
 
-So fix this?
+Hello,
 
-> +	/* If the timer has expired while we're changing the state, then don't
-> +	   interfere.  We also don't want to twiddle with anything after the
-> +	   mutex is unlocked, because by then a new timeout will have been
-> +	   set. */
+Is it a known problem?
 
-Not that it is overly important, but the comment style generally
-seems to be (for multilines)
-m{^(\s+)/\*\n(\1 \* \w+\n)+\1 \*/\n}
+Best regards,
+
+ 			Krzysztof Olêdzki
+
+---------- Forwarded message ----------
+Date: Wed, 12 Nov 2008 12:09:18 +0700
+From: max <max@nvk.co.th>
+To: acidfu@people.netfilter.org, ole@ans.pl, Franz.Regensburger@odorf.de
+Subject: FW: people.netfilter.org are down PoM download doesn't work.
+
+
+Dear PoM patch maintainer
+
+It?s seems that people.netfilter.org are down
+I can?t download needed patches with ?./runme ?download? anymore (goip,ipp2p,connlimit,time,impark)
+Do you have any suggestion for this issue?
+
+Thank you.
+
+BR,
+Max
+
+ 
+
+
+---1144830174-1671346506-1226606413=:15987--
