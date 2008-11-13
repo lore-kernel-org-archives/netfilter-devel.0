@@ -1,90 +1,65 @@
-From: Balazs Scheidler <bazsi@balabit.hu>
+From: Henrik Nordstrom <henrik@henriknordstrom.net>
 Subject: Re: [tproxy] udp + tproxy
-Date: Thu, 13 Nov 2008 08:25:54 +0100
-Message-ID: <1226561154.15193.10.camel@bzorp.balabit>
+Date: Thu, 13 Nov 2008 09:44:54 +0100
+Message-ID: <1226565894.13986.5.camel@henriknordstrom.net>
 References: <1226490030.31896.12.camel@sysandrey.icomswg.local>
 	 <20081112185910.GA1793@sch.bme.hu>
 	 <1226518030.10667.68.camel@bzorp.balabit>
 	 <alpine.LNX.1.10.0811130815300.8076@fbirervta.pbzchgretzou.qr>
+	 <1226561154.15193.10.camel@bzorp.balabit>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: KOVACS Krisztian <hidden@sch.bme.hu>,
+Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-Im4PezwuqXRq7jk6G0xp"
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	KOVACS Krisztian <hidden@sch.bme.hu>,
 	Andrey Luzgin <andrey@icomsw.com>, tproxy@lists.balabit.hu,
 	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Balazs Scheidler <bazsi@balabit.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from support.balabit.hu ([195.70.41.86]:49601 "EHLO lists.balabit.hu"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751595AbYKMH0F (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Nov 2008 02:26:05 -0500
-In-Reply-To: <alpine.LNX.1.10.0811130815300.8076@fbirervta.pbzchgretzou.qr>
+Received: from vps1.henriknordstrom.net ([195.20.207.177]:53037 "EHLO
+	vps1.henriknordstrom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751235AbYKMJJa (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 13 Nov 2008 04:09:30 -0500
+In-Reply-To: <1226561154.15193.10.camel@bzorp.balabit>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 2008-11-13 at 08:17 +0100, Jan Engelhardt wrote:
-> On Wednesday 2008-11-12 20:27, Balazs Scheidler wrote:
-> >> 
-> >> Since tproxy 4 (unlike tproxy 2) doesn't modify the incoming packets in
-> >> any way you should be able to get the correct destination address by
-> >> simply calling recvfrom() and using the source address returned by the
-> >> kernel.
-> >
-> >This is not true, recvfrom() returns the client address and does not
-> >return the original destination.
-> 
-> Mh, perhaps getsockname() could do something - well, at least
-> if used with accept() and as such, mostly for TCP only.
-> 
 
-Well, here's my other mail on the subject on the tproxy list, it
-basically details that we do have an implementation of accept() for UDP
-which we use in production. But I'm not sure that could be integrated to
-mainline.
+--=-Im4PezwuqXRq7jk6G0xp
+Content-Type: text/plain
+Content-Transfer-Encoding: quoted-printable
 
--<- quote ->-
+On tor, 2008-11-13 at 08:25 +0100, Balazs Scheidler wrote:
 
-Well, for supporting UDP with tproxy4 we use a different approach:
-udp_accept(), you can find it in the BalaBit kernel patch tree at
-http://www.balabit.com/downloads/files/kernel-patches/
+> PS: I was talking to Patrick McHardy whether to send the udp_accept()
+> patch for kernel inclusion, he said it might be worth trying, however he
+> was not completely sure it'd be integrated. So I didn't push it so far.
 
-The way udp_accept() works is as follows:
-  * the userspace proxy opens a "listening" udp socket, binds it to the
-listening address, performs no connect() calls
-  * tproxy redirects packets to this socket just like in the case for
-TCP
-  * whenever the socket becomes readable from the userspace proxy,
-accept() is invoked on the UDP socket, this accept() is implemented by
-the patch mentioned above
-  * in kernel space: the first packet is consulted from the socket
-buffer of the listening socket
-  * the kernel opens a new UDP socket, just like the accept() call for
-TCP does
-  * this new UDP socket is bound this way: 
-    * local address is the same as the destination address of the
-incoming packet
-    * destination address is the same as the source address of the
-incoming packet
-  * the socket buffer of the listening socket is traversed, and each
-packet having the same IP addresses as the first packet is moved to the
-newly opened socket; this traversal is happening in an atomic context,
-thus no new packets can arrive
-  * a reference to the newly opened socket is returned to userspace
-  * when a new packet comes in, the socket lookup will prefer the
-completely bound socket over the listening socket
+I second this, but also think that it will see some initial resistance.
 
-Since at the end of the accept() call you get a completely bound socket,
-you can simply call getsockname() to query the target address, just like
-with TCP.
+I guess the main complaint (assuming code is in good shale) will be that
+UDP does not have any sender verification, which means it's very easy to
+flood the kernel with UDP "connection requests". But on the other hand
+there is also no SYN_RECV or FIN_WAIT/TIME_WAIT states which may hold up
+things beyond CPU processing speed so this is not by far as big problem
+to deal with as in the TCP case..
 
-Hope this helps.
+Regards
+Henrik
 
-PS: I was talking to Patrick McHardy whether to send the udp_accept()
-patch for kernel inclusion, he said it might be worth trying, however he
-was not completely sure it'd be integrated. So I didn't push it so far.
+--=-Im4PezwuqXRq7jk6G0xp
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.7 (GNU/Linux)
 
--- 
-Bazsi
+iQCVAwUASRvpA0NPQ5Kbx8daAQKPJwP/TgTUSTztlsJBJKE8aZY1+9vtsUzS2Y1H
+qQ23pkO1A8SHO4UzuhSiU/HTsjYn7qZbgACFuwAlygrmUyQmPd8oR83c4aWaU579
+NtRftSnM55+g0WnsuctLkMr2MLQLnsB7LARzACalMpx4S9Twh1PRAazqnVDDwFfJ
+dibu/FeAiFE=
+=vrTO
+-----END PGP SIGNATURE-----
 
+--=-Im4PezwuqXRq7jk6G0xp--
 
