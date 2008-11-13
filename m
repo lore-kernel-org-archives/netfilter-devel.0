@@ -1,65 +1,34 @@
-From: Henrik Nordstrom <henrik@henriknordstrom.net>
-Subject: Re: [tproxy] udp + tproxy
-Date: Thu, 13 Nov 2008 09:44:54 +0100
-Message-ID: <1226565894.13986.5.camel@henriknordstrom.net>
-References: <1226490030.31896.12.camel@sysandrey.icomswg.local>
-	 <20081112185910.GA1793@sch.bme.hu>
-	 <1226518030.10667.68.camel@bzorp.balabit>
-	 <alpine.LNX.1.10.0811130815300.8076@fbirervta.pbzchgretzou.qr>
-	 <1226561154.15193.10.camel@bzorp.balabit>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [ANNOUNCE] ipset-2.4.4 released
+Date: Thu, 13 Nov 2008 10:43:31 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.0811131040050.9639@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1; protocol="application/pgp-signature"; boundary="=-Im4PezwuqXRq7jk6G0xp"
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	KOVACS Krisztian <hidden@sch.bme.hu>,
-	Andrey Luzgin <andrey@icomsw.com>, tproxy@lists.balabit.hu,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Balazs Scheidler <bazsi@balabit.hu>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from vps1.henriknordstrom.net ([195.20.207.177]:53037 "EHLO
-	vps1.henriknordstrom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751235AbYKMJJa (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 Nov 2008 04:09:30 -0500
-In-Reply-To: <1226561154.15193.10.camel@bzorp.balabit>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+Hello,
 
---=-Im4PezwuqXRq7jk6G0xp
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
+I'm happy to announce the new version of ipset - the list of the changes 
+is as follows:
 
-On tor, 2008-11-13 at 08:25 +0100, Balazs Scheidler wrote:
+  - Premature checking prevents to add valid elements to hash
+    types, fixed (bug reported by JC Janos).
+  - Local variable shadows another variable, fixed (reported
+    by Jan Engelhardt).
+  - More compiler warning options added and warnings fixed.
 
-> PS: I was talking to Patrick McHardy whether to send the udp_accept()
-> patch for kernel inclusion, he said it might be worth trying, however he
-> was not completely sure it'd be integrated. So I didn't push it so far.
+You can download the source of ipset from the webpage or svn:
 
-I second this, but also think that it will see some initial resistance.
+        http://ipset.netfilter.org/
+        svn co https://svn.netfilter.org/netfilter/trunk/ipset
 
-I guess the main complaint (assuming code is in good shale) will be that
-UDP does not have any sender verification, which means it's very easy to
-flood the kernel with UDP "connection requests". But on the other hand
-there is also no SYN_RECV or FIN_WAIT/TIME_WAIT states which may hold up
-things beyond CPU processing speed so this is not by far as big problem
-to deal with as in the TCP case..
-
-Regards
-Henrik
-
---=-Im4PezwuqXRq7jk6G0xp
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.7 (GNU/Linux)
-
-iQCVAwUASRvpA0NPQ5Kbx8daAQKPJwP/TgTUSTztlsJBJKE8aZY1+9vtsUzS2Y1H
-qQ23pkO1A8SHO4UzuhSiU/HTsjYn7qZbgACFuwAlygrmUyQmPd8oR83c4aWaU579
-NtRftSnM55+g0WnsuctLkMr2MLQLnsB7LARzACalMpx4S9Twh1PRAazqnVDDwFfJ
-dibu/FeAiFE=
-=vrTO
------END PGP SIGNATURE-----
-
---=-Im4PezwuqXRq7jk6G0xp--
-
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
