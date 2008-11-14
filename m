@@ -1,58 +1,44 @@
-From: Harald Welte <laforge@netfilter.org>
+From: Krzysztof Oledzki <ole@ans.pl>
 Subject: Re: FW: people.netfilter.org are down PoM download doesn't work.
-	(fwd)
-Date: Sat, 15 Nov 2008 03:29:13 +0800
-Message-ID: <20081114192913.GD4106@prithivi.gnumonks.org>
-References: <alpine.LNX.1.10.0811132058470.15987@bizon.gios.gov.pl>
+ (fwd)
+Date: Fri, 14 Nov 2008 20:40:35 +0100 (CET)
+Message-ID: <alpine.LNX.1.10.0811142040170.5204@bizon.gios.gov.pl>
+References: <alpine.LNX.1.10.0811132058470.15987@bizon.gios.gov.pl> <20081114192913.GD4106@prithivi.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="hYooF8G/hrfVAmum"
+Content-Type: MULTIPART/MIXED; BOUNDARY="-1144830174-85647559-1226691635=:5204"
 Cc: netfilter-devel@vger.kernel.org
-To: Krzysztof Oledzki <ole@ans.pl>
+To: Harald Welte <laforge@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:60787 "EHLO
-	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751898AbYKNTaK (ORCPT
+Received: from bizon.gios.gov.pl ([195.187.34.71]:53205 "EHLO
+	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751233AbYKNTkp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 14 Nov 2008 14:30:10 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.LNX.1.10.0811132058470.15987@bizon.gios.gov.pl>
+	Fri, 14 Nov 2008 14:40:45 -0500
+In-Reply-To: <20081114192913.GD4106@prithivi.gnumonks.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
---hYooF8G/hrfVAmum
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+---1144830174-85647559-1226691635=:5204
+Content-Type: TEXT/PLAIN; charset=iso-8859-2; format=flowed
+Content-Transfer-Encoding: 8BIT
 
-On Thu, Nov 13, 2008 at 09:00:13PM +0100, Krzysztof Oledzki wrote:
-> Hello,
+
+
+On Sat, 15 Nov 2008, Harald Welte wrote:
+
+> On Thu, Nov 13, 2008 at 09:00:13PM +0100, Krzysztof Oledzki wrote:
+>> Hello,
+>>
+>> Is it a known problem?
 >
-> Is it a known problem?
+> it is known, and should be fixed now
 
-it is known, and should be fixed now
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+Ack, thank you.
 
---hYooF8G/hrfVAmum
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
+Best regards,
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iD8DBQFJHdGJXaXGVTD0i/8RAiTjAJ9tJYcwJCAASd5uayWnaBs7UEU60QCeOKgJ
-/zC+i6eh3Xa4e1QYWtmF21A=
-=HnT4
------END PGP SIGNATURE-----
-
---hYooF8G/hrfVAmum--
+ 				Krzysztof Olêdzki
+---1144830174-85647559-1226691635=:5204--
