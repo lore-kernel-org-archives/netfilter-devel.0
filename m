@@ -1,8 +1,8 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 6/8] [PATCH] deliver events for conntracks created via
+Subject: [PATCH 7/8] [PATCH] dynamic calculation of event message size for
 	ctnetlink
-Date: Mon, 17 Nov 2008 09:41:19 +0100
-Message-ID: <20081117084119.11368.64381.stgit@Decadence>
+Date: Mon, 17 Nov 2008 09:41:42 +0100
+Message-ID: <20081117084141.11368.26975.stgit@Decadence>
 References: <20081117083924.11368.38741.stgit@Decadence>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,533 +10,472 @@ Content-Transfer-Encoding: 7bit
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52058 "EHLO us.es"
+Received: from mail.us.es ([193.147.175.20]:52111 "EHLO us.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755288AbYKQIl1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Nov 2008 03:41:27 -0500
+	id S1752546AbYKQIlx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 17 Nov 2008 03:41:53 -0500
 In-Reply-To: <20081117083924.11368.38741.stgit@Decadence>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-As for now, the creation and update of conntracks via ctnetlink do not
-propagate an event to userspace. This can result in inconsistent situations
-if several userspace processes modify the connection tracking table by means
-of ctnetlink at the same time. Specifically, using the conntrack command
-line tool and conntrackd at the same time can trigger unconsistencies.
+This patch adds dynamic message size calculation for ctnetlink. This
+reduces CPU consumption since the overhead in the message trimming
+is removed.
 
-This patch also modifies the event cache infrastructure to pass the
-process PID and the ECHO flag to nfnetlink_send() to report back
-to userspace if the process that triggered the change needs so.
 Based on a suggestion from Patrick McHardy.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
 
- include/net/netfilter/nf_conntrack.h        |    2 -
- include/net/netfilter/nf_conntrack_ecache.h |   57 ++++++++++++++++-
- include/net/netfilter/nf_conntrack_expect.h |    2 +
- net/netfilter/nf_conntrack_core.c           |   25 ++++++--
- net/netfilter/nf_conntrack_ecache.c         |   14 +++-
- net/netfilter/nf_conntrack_expect.c         |   43 +++++++++++--
- net/netfilter/nf_conntrack_netlink.c        |   88 ++++++++++++++++++++++-----
- 7 files changed, 197 insertions(+), 34 deletions(-)
+ include/net/netfilter/nf_conntrack_l3proto.h   |    2 
+ include/net/netfilter/nf_conntrack_l4proto.h   |    3 +
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    6 +
+ net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |    8 ++
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |    6 +
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |    8 ++
+ net/netfilter/nf_conntrack_core.c              |    6 +
+ net/netfilter/nf_conntrack_netlink.c           |  103 ++++++++++++++++++++++++
+ net/netfilter/nf_conntrack_proto_dccp.c        |   10 ++
+ net/netfilter/nf_conntrack_proto_gre.c         |    1 
+ net/netfilter/nf_conntrack_proto_sctp.c        |   12 +++
+ net/netfilter/nf_conntrack_proto_tcp.c         |   14 +++
+ net/netfilter/nf_conntrack_proto_udp.c         |    2 
+ net/netfilter/nf_conntrack_proto_udplite.c     |    2 
+ 14 files changed, 182 insertions(+), 1 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index f11255e..2e0c536 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -199,7 +199,7 @@ __nf_conntrack_find(struct net *net, const struct nf_conntrack_tuple *tuple);
+diff --git a/include/net/netfilter/nf_conntrack_l3proto.h b/include/net/netfilter/nf_conntrack_l3proto.h
+index 0378676..e0007f9 100644
+--- a/include/net/netfilter/nf_conntrack_l3proto.h
++++ b/include/net/netfilter/nf_conntrack_l3proto.h
+@@ -55,6 +55,8 @@ struct nf_conntrack_l3proto
  
- extern void nf_conntrack_hash_insert(struct nf_conn *ct);
- 
--extern void nf_conntrack_flush(struct net *net);
-+extern void nf_conntrack_flush(struct net *net, u32 pid, int report);
- 
- extern bool nf_ct_get_tuplepr(const struct sk_buff *skb,
- 			      unsigned int nhoff, u_int16_t l3num,
-diff --git a/include/net/netfilter/nf_conntrack_ecache.h b/include/net/netfilter/nf_conntrack_ecache.h
-index 1285ff2..0ff0dc6 100644
---- a/include/net/netfilter/nf_conntrack_ecache.h
-+++ b/include/net/netfilter/nf_conntrack_ecache.h
-@@ -17,6 +17,13 @@ struct nf_conntrack_ecache {
- 	unsigned int events;
- };
- 
-+/* This structure is passed to event handler */
-+struct nf_ct_event {
-+	struct nf_conn *ct;
-+	u32 pid;
-+	int report;
-+};
+ 	int (*nlattr_to_tuple)(struct nlattr *tb[],
+ 			       struct nf_conntrack_tuple *t);
 +
- extern struct atomic_notifier_head nf_conntrack_chain;
- extern int nf_conntrack_register_notifier(struct notifier_block *nb);
- extern int nf_conntrack_unregister_notifier(struct notifier_block *nb);
-@@ -39,22 +46,56 @@ nf_conntrack_event_cache(enum ip_conntrack_events event, struct nf_conn *ct)
- 	local_bh_enable();
- }
++	size_t (*nlattr_size)(void);
+ 	const struct nla_policy *nla_policy;
  
--static inline void nf_conntrack_event(enum ip_conntrack_events event,
--				      struct nf_conn *ct)
-+static inline void
-+nf_conntrack_event_report(enum ip_conntrack_events event,
-+			  struct nf_conn *ct,
-+			  u32 pid,
-+			  int report)
- {
-+	struct nf_ct_event item = {
-+		.ct 	= ct,
-+		.pid	= pid,
-+		.report = report
-+	};
- 	if (nf_ct_is_confirmed(ct) && !nf_ct_is_dying(ct))
--		atomic_notifier_call_chain(&nf_conntrack_chain, event, ct);
-+		atomic_notifier_call_chain(&nf_conntrack_chain, event, &item);
- }
+ #ifdef CONFIG_SYSCTL
+diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
+index 7f2f43c..3c80479 100644
+--- a/include/net/netfilter/nf_conntrack_l4proto.h
++++ b/include/net/netfilter/nf_conntrack_l4proto.h
+@@ -72,6 +72,8 @@ struct nf_conntrack_l4proto
+ 			       const struct nf_conntrack_tuple *t);
+ 	int (*nlattr_to_tuple)(struct nlattr *tb[],
+ 			       struct nf_conntrack_tuple *t);
++	size_t (*nlattr_size)(void);
++	size_t (*nlattr_protoinfo_size)(void);
+ 	const struct nla_policy *nla_policy;
  
-+static inline void
-+nf_conntrack_event(enum ip_conntrack_events event, struct nf_conn *ct)
+ #ifdef CONFIG_SYSCTL
+@@ -115,6 +117,7 @@ extern int nf_ct_port_tuple_to_nlattr(struct sk_buff *skb,
+ 				      const struct nf_conntrack_tuple *tuple);
+ extern int nf_ct_port_nlattr_to_tuple(struct nlattr *tb[],
+ 				      struct nf_conntrack_tuple *t);
++extern size_t nf_ct_port_nlattr_size(void);
+ extern const struct nla_policy nf_ct_port_nla_policy[];
+ 
+ #ifdef CONFIG_SYSCTL
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+index b2141e1..a739d5a 100644
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+@@ -329,6 +329,11 @@ static int ipv4_nlattr_to_tuple(struct nlattr *tb[],
+ 
+ 	return 0;
+ }
++
++static size_t ipv4_nlattr_size(void)
 +{
-+	nf_conntrack_event_report(event, ct, 0, 0);
++	return nla_total_size(sizeof(u_int32_t))*2;
 +}
-+
-+struct nf_exp_event {
-+	struct nf_conntrack_expect *exp;
-+	u32 pid;
-+	int report;
-+};
-+
- extern struct atomic_notifier_head nf_ct_expect_chain;
- extern int nf_ct_expect_register_notifier(struct notifier_block *nb);
- extern int nf_ct_expect_unregister_notifier(struct notifier_block *nb);
+ #endif
  
- static inline void
-+nf_ct_expect_event_report(enum ip_conntrack_expect_events event,
-+			  struct nf_conntrack_expect *exp,
-+			  u32 pid,
-+			  int report)
-+{
-+	struct nf_exp_event item = {
-+		.exp	= exp,
-+		.pid	= pid,
-+		.report = report
-+	};
-+	atomic_notifier_call_chain(&nf_ct_expect_chain, event, &item);
-+}
-+
-+static inline void
- nf_ct_expect_event(enum ip_conntrack_expect_events event,
- 		   struct nf_conntrack_expect *exp)
- {
--	atomic_notifier_call_chain(&nf_ct_expect_chain, event, exp);
-+	nf_ct_expect_event_report(event, exp, 0, 0);
+ static struct nf_sockopt_ops so_getorigdst = {
+@@ -349,6 +354,7 @@ struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv4 __read_mostly = {
+ #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
+ 	.tuple_to_nlattr = ipv4_tuple_to_nlattr,
+ 	.nlattr_to_tuple = ipv4_nlattr_to_tuple,
++	.nlattr_size	 = ipv4_nlattr_size,
+ 	.nla_policy	 = ipv4_nla_policy,
+ #endif
+ #if defined(CONFIG_SYSCTL) && defined(CONFIG_NF_CONNTRACK_PROC_COMPAT)
+diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+index 1fd3ef7..f2648aa 100644
+--- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
++++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+@@ -262,6 +262,13 @@ static int icmp_nlattr_to_tuple(struct nlattr *tb[],
+ 
+ 	return 0;
  }
++
++static size_t icmp_nlattr_size(void)
++{
++	return nla_total_size(sizeof(u_int8_t)) +
++	       nla_total_size(sizeof(u_int8_t)) +
++	       nla_total_size(sizeof(u_int16_t));
++}
+ #endif
  
- extern int nf_conntrack_ecache_init(struct net *net);
-@@ -66,9 +107,17 @@ static inline void nf_conntrack_event_cache(enum ip_conntrack_events event,
- 					    struct nf_conn *ct) {}
- static inline void nf_conntrack_event(enum ip_conntrack_events event,
- 				      struct nf_conn *ct) {}
-+static inline void nf_conntrack_event_report(enum ip_conntrack_events event,
-+					     struct nf_conn *ct,
-+					     u32 pid,
-+					     int report) {}
- static inline void nf_ct_deliver_cached_events(const struct nf_conn *ct) {}
- static inline void nf_ct_expect_event(enum ip_conntrack_expect_events event,
- 				      struct nf_conntrack_expect *exp) {}
-+static inline void nf_ct_expect_event_report(enum ip_conntrack_expect_events e,
-+					     struct nf_conntrack_expect *exp,
-+ 					     u32 pid,
-+ 					     int report) {}
- static inline void nf_ct_event_cache_flush(struct net *net) {}
+ #ifdef CONFIG_SYSCTL
+@@ -310,6 +317,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_icmp __read_mostly =
+ #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
+ 	.tuple_to_nlattr	= icmp_tuple_to_nlattr,
+ 	.nlattr_to_tuple	= icmp_nlattr_to_tuple,
++	.nlattr_size		= icmp_nlattr_size,
+ 	.nla_policy		= icmp_nla_policy,
+ #endif
+ #ifdef CONFIG_SYSCTL
+diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+index 727b953..4d3573e 100644
+--- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+@@ -341,6 +341,11 @@ static int ipv6_nlattr_to_tuple(struct nlattr *tb[],
  
- static inline int nf_conntrack_ecache_init(struct net *net)
-diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
-index 37a7fc1..ab17a15 100644
---- a/include/net/netfilter/nf_conntrack_expect.h
-+++ b/include/net/netfilter/nf_conntrack_expect.h
-@@ -100,6 +100,8 @@ void nf_ct_expect_init(struct nf_conntrack_expect *, unsigned int, u_int8_t,
- 		       u_int8_t, const __be16 *, const __be16 *);
- void nf_ct_expect_put(struct nf_conntrack_expect *exp);
- int nf_ct_expect_related(struct nf_conntrack_expect *expect);
-+int nf_ct_expect_related_report(struct nf_conntrack_expect *expect, 
-+				u32 pid, int report);
+ 	return 0;
+ }
++
++static size_t ipv6_nlattr_size(void)
++{
++	return nla_total_size(sizeof(u_int32_t)*4)*2;
++}
+ #endif
  
- #endif /*_NF_CONNTRACK_EXPECT_H*/
+ struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6 __read_mostly = {
+@@ -353,6 +358,7 @@ struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6 __read_mostly = {
+ #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
+ 	.tuple_to_nlattr	= ipv6_tuple_to_nlattr,
+ 	.nlattr_to_tuple	= ipv6_nlattr_to_tuple,
++	.nlattr_size		= ipv6_nlattr_size,
+ 	.nla_policy		= ipv6_nla_policy,
+ #endif
+ #ifdef CONFIG_SYSCTL
+diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+index bd52151..acb852a 100644
+--- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+@@ -243,6 +243,13 @@ static int icmpv6_nlattr_to_tuple(struct nlattr *tb[],
  
+ 	return 0;
+ }
++
++static size_t icmpv6_nlattr_size(void)
++{
++	return nla_total_size(sizeof(u_int8_t)) +
++	       nla_total_size(sizeof(u_int8_t)) +
++	       nla_total_size(sizeof(u_int16_t));
++}
+ #endif
+ 
+ #ifdef CONFIG_SYSCTL
+@@ -275,6 +282,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_icmpv6 __read_mostly =
+ #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
+ 	.tuple_to_nlattr	= icmpv6_tuple_to_nlattr,
+ 	.nlattr_to_tuple	= icmpv6_nlattr_to_tuple,
++	.nlattr_size		= icmpv6_nlattr_size,
+ 	.nla_policy		= icmpv6_nla_policy,
+ #endif
+ #ifdef CONFIG_SYSCTL
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index d6af04e..63afdf2 100644
+index 63afdf2..9a1c206 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
-@@ -181,7 +181,8 @@ destroy_conntrack(struct nf_conntrack *nfct)
- 	NF_CT_ASSERT(atomic_read(&nfct->use) == 0);
- 	NF_CT_ASSERT(!timer_pending(&ct->timeout));
- 
--	nf_conntrack_event(IPCT_DESTROY, ct);
-+	if (!test_bit(IPS_DYING_BIT, &ct->status))
-+		nf_conntrack_event(IPCT_DESTROY, ct);
- 	set_bit(IPS_DYING_BIT, &ct->status);
- 
- 	/* To make sure we don't get any weird locking issues here:
-@@ -972,8 +973,20 @@ void nf_ct_iterate_cleanup(struct net *net,
+@@ -904,6 +904,12 @@ int nf_ct_port_nlattr_to_tuple(struct nlattr *tb[],
+ 	return 0;
  }
- EXPORT_SYMBOL_GPL(nf_ct_iterate_cleanup);
- 
-+struct __nf_ct_flush_report {
-+	u32 pid;
-+	int report;
-+};
+ EXPORT_SYMBOL_GPL(nf_ct_port_nlattr_to_tuple);
 +
- static int kill_all(struct nf_conn *i, void *data)
- {
-+	struct __nf_ct_flush_report *fr = (struct __nf_ct_flush_report *)data;
-+
-+	/* get_next_corpse sets the dying bit for us */
-+	nf_conntrack_event_report(IPCT_DESTROY,
-+				  i,
-+				  fr->pid,
-+				  fr->report);
- 	return 1;
- }
- 
-@@ -987,9 +1000,13 @@ void nf_ct_free_hashtable(struct hlist_head *hash, int vmalloced, unsigned int s
- }
- EXPORT_SYMBOL_GPL(nf_ct_free_hashtable);
- 
--void nf_conntrack_flush(struct net *net)
-+void nf_conntrack_flush(struct net *net, u32 pid, int report)
- {
--	nf_ct_iterate_cleanup(net, kill_all, NULL);
-+	struct __nf_ct_flush_report fr = {
-+		.pid 	= pid,
-+		.report = report,
-+	};
-+	nf_ct_iterate_cleanup(net, kill_all, &fr);
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_flush);
- 
-@@ -1005,7 +1022,7 @@ static void nf_conntrack_cleanup_net(struct net *net)
- 	nf_ct_event_cache_flush(net);
- 	nf_conntrack_ecache_fini(net);
-  i_see_dead_people:
--	nf_conntrack_flush(net);
-+	nf_conntrack_flush(net, 0, 0);
- 	if (atomic_read(&net->ct.count) != 0) {
- 		schedule();
- 		goto i_see_dead_people;
-diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
-index a5f5e2e..dee4190 100644
---- a/net/netfilter/nf_conntrack_ecache.c
-+++ b/net/netfilter/nf_conntrack_ecache.c
-@@ -35,9 +35,17 @@ static inline void
- __nf_ct_deliver_cached_events(struct nf_conntrack_ecache *ecache)
- {
- 	if (nf_ct_is_confirmed(ecache->ct) && !nf_ct_is_dying(ecache->ct)
--	    && ecache->events)
--		atomic_notifier_call_chain(&nf_conntrack_chain, ecache->events,
--				    ecache->ct);
-+	    && ecache->events) {
-+		struct nf_ct_event item = {
-+			.ct 	= ecache->ct,
-+			.pid	= 0,
-+			.report	= 0
-+		};
-+
-+		atomic_notifier_call_chain(&nf_conntrack_chain,
-+					   ecache->events,
-+					   &item);
-+	}
- 
- 	ecache->events = 0;
- 	nf_ct_put(ecache->ct);
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index 37a703b..3a8a34a 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -362,7 +362,7 @@ static inline int refresh_timer(struct nf_conntrack_expect *i)
- 	return 1;
- }
- 
--int nf_ct_expect_related(struct nf_conntrack_expect *expect)
-+static inline int __nf_ct_expect_check(struct nf_conntrack_expect *expect)
- {
- 	const struct nf_conntrack_expect_policy *p;
- 	struct nf_conntrack_expect *i;
-@@ -371,11 +371,8 @@ int nf_ct_expect_related(struct nf_conntrack_expect *expect)
- 	struct net *net = nf_ct_exp_net(expect);
- 	struct hlist_node *n;
- 	unsigned int h;
--	int ret;
--
--	NF_CT_ASSERT(master_help);
-+	int ret = 0;
- 
--	spin_lock_bh(&nf_conntrack_lock);
- 	if (!master_help->helper) {
- 		ret = -ESHUTDOWN;
- 		goto out;
-@@ -409,18 +406,50 @@ int nf_ct_expect_related(struct nf_conntrack_expect *expect)
- 			printk(KERN_WARNING
- 			       "nf_conntrack: expectation table full\n");
- 		ret = -EMFILE;
--		goto out;
- 	}
-+out:
-+	return ret;
-+}
-+
-+int nf_ct_expect_related(struct nf_conntrack_expect *expect)
++size_t nf_ct_port_nlattr_size(void)
 +{
-+	int ret;
-+
-+	spin_lock_bh(&nf_conntrack_lock);
-+	ret = __nf_ct_expect_check(expect);
-+	if (ret < 0)
-+		goto out;
- 
- 	nf_ct_expect_insert(expect);
-+	atomic_inc(&expect->use);
-+	spin_unlock_bh(&nf_conntrack_lock);
- 	nf_ct_expect_event(IPEXP_NEW, expect);
--	ret = 0;
-+	nf_ct_expect_put(expect);
-+	return ret;
- out:
- 	spin_unlock_bh(&nf_conntrack_lock);
- 	return ret;
- }
- EXPORT_SYMBOL_GPL(nf_ct_expect_related);
- 
-+int nf_ct_expect_related_report(struct nf_conntrack_expect *expect, 
-+				u32 pid, int report)
-+{
-+	int ret;
-+
-+	spin_lock_bh(&nf_conntrack_lock);
-+	ret = __nf_ct_expect_check(expect);
-+	if (ret < 0)
-+		goto out;
-+	nf_ct_expect_insert(expect);
-+out:
-+	spin_unlock_bh(&nf_conntrack_lock);
-+	if (ret == 0)
-+		nf_ct_expect_event_report(IPEXP_NEW, expect, pid, report);
-+	return ret;
++	return nla_total_size(sizeof(u_int16_t))*2;
 +}
-+EXPORT_SYMBOL_GPL(nf_ct_expect_related_report);
-+
- #ifdef CONFIG_PROC_FS
- struct ct_expect_iter_state {
- 	struct seq_net_private p;
++EXPORT_SYMBOL_GPL(nf_ct_port_nlattr_size);
+ #endif
+ 
+ /* Used by ipt_REJECT and ip6t_REJECT. */
 diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 7af7a86..b9b5c53 100644
+index b9b5c53..0205ae6 100644
 --- a/net/netfilter/nf_conntrack_netlink.c
 +++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -410,7 +410,8 @@ static int ctnetlink_conntrack_event(struct notifier_block *this,
- 	struct nlmsghdr *nlh;
- 	struct nfgenmsg *nfmsg;
- 	struct nlattr *nest_parms;
--	struct nf_conn *ct = (struct nf_conn *)ptr;
-+	struct nf_ct_event *item = (struct nf_ct_event *)ptr;
-+	struct nf_conn *ct = item->ct;
- 	struct sk_buff *skb;
- 	unsigned int type;
- 	sk_buff_data_t b;
-@@ -443,7 +444,7 @@ static int ctnetlink_conntrack_event(struct notifier_block *this,
- 	b = skb->tail;
- 
- 	type |= NFNL_SUBSYS_CTNETLINK << 8;
--	nlh   = NLMSG_PUT(skb, 0, 0, type, sizeof(struct nfgenmsg));
-+	nlh   = NLMSG_PUT(skb, item->pid, 0, type, sizeof(struct nfgenmsg));
- 	nfmsg = NLMSG_DATA(nlh);
- 
- 	nlh->nlmsg_flags    = flags;
-@@ -511,7 +512,7 @@ static int ctnetlink_conntrack_event(struct notifier_block *this,
- 	rcu_read_unlock();
- 
- 	nlh->nlmsg_len = skb->tail - b;
--	nfnetlink_send(skb, 0, group, 0);
-+	nfnetlink_send(skb, item->pid, group, item->report);
- 	return NOTIFY_DONE;
- 
- nla_put_failure:
-@@ -722,7 +723,9 @@ ctnetlink_del_conntrack(struct sock *ctnl, struct sk_buff *skb,
- 		err = ctnetlink_parse_tuple(cda, &tuple, CTA_TUPLE_REPLY, u3);
- 	else {
- 		/* Flush the whole table */
--		nf_conntrack_flush(&init_net);
-+		nf_conntrack_flush(&init_net, 
-+				   NETLINK_CB(skb).pid, 
-+				   nlmsg_report(nlh));
- 		return 0;
- 	}
- 
-@@ -743,6 +746,14 @@ ctnetlink_del_conntrack(struct sock *ctnl, struct sk_buff *skb,
- 		}
- 	}
- 
-+	nf_conntrack_event_report(IPCT_DESTROY,
-+				  ct,
-+				  NETLINK_CB(skb).pid,
-+				  nlmsg_report(nlh));
-+
-+	/* death_by_timeout would report the event again */
-+	set_bit(IPS_DYING_BIT, &ct->status);
-+
- 	nf_ct_kill(ct);
- 	nf_ct_put(ct);
- 
-@@ -1088,11 +1099,35 @@ ctnetlink_change_conntrack(struct nf_conn *ct, struct nlattr *cda[])
- 	return 0;
+@@ -404,6 +404,107 @@ nla_put_failure:
  }
  
-+static inline void
-+ctnetlink_event_report(struct nf_conn *ct, u32 pid, int report)
+ #ifdef CONFIG_NF_CONNTRACK_EVENTS
++static inline size_t calculate_tuple_room_size(const struct nf_conn *ct)
 +{
-+	unsigned int events = 0;
++	struct nf_conntrack_l3proto *l3proto;
++        struct nf_conntrack_l4proto *l4proto;
++	size_t size;
 +
-+	if (test_bit(IPS_EXPECTED_BIT, &ct->status))
-+		events |= IPCT_RELATED;
-+	else
-+		events |= IPCT_NEW;
++	rcu_read_lock();
++	/* nested attributes CTA_TUPLE_[ORIG|REPLY] plus CTA_TUPLE_IP */
++	size = nla_total_size(0) * 2;
++	l3proto = __nf_ct_l3proto_find(nf_ct_l3num(ct));
++	if (likely(l3proto->nlattr_size))
++		size += l3proto->nlattr_size();
 +
-+	nf_conntrack_event_report(IPCT_STATUS |
-+				  IPCT_HELPER |
-+				  IPCT_REFRESH |
-+				  IPCT_PROTOINFO |
-+				  IPCT_NATSEQADJ |
-+				  IPCT_MARK |
-+				  events,
-+				  ct,
-+				  pid,
-+				  report);
++	/* nested attributes CTA_TUPLE_PROTO plus CTA_PROTONUM */
++	size += nla_total_size(0) + nla_total_size(sizeof(u_int8_t));
++	l4proto = __nf_ct_l4proto_find(nf_ct_l3num(ct), nf_ct_protonum(ct));
++	if (likely(l4proto->nlattr_size))
++		size += l4proto->nlattr_size();
++
++	rcu_read_unlock();
++	return size;
 +}
 +
- static int
- ctnetlink_create_conntrack(struct nlattr *cda[],
- 			   struct nf_conntrack_tuple *otuple,
- 			   struct nf_conntrack_tuple *rtuple,
--			   struct nf_conn *master_ct)
-+			   struct nf_conn *master_ct,
-+			   u32 pid,
-+			   int report)
++static inline size_t calculate_protoinfo_room_size(const struct nf_conn *ct)
++{
++	size_t size = 0;
++	struct nf_conntrack_l4proto *l4proto;
++
++	rcu_read_lock();
++	l4proto = __nf_ct_l4proto_find(nf_ct_l3num(ct), nf_ct_protonum(ct));
++	if (l4proto->nlattr_protoinfo_size)
++		size = l4proto->nlattr_protoinfo_size();
++	rcu_read_unlock();
++
++	return size;
++}
++
++static inline size_t calculate_helper_room_size(const struct nf_conn *ct)
++{
++	const struct nf_conn_help *help = nfct_help(ct);
++	struct nf_conntrack_helper *helper;
++	size_t size;
++
++	if (!help)
++		goto out;
++
++	rcu_read_lock();
++	helper = rcu_dereference(help->helper);
++	if (!helper)
++		goto out_unlock;
++
++	size = nla_total_size(0) + 			/* CTA_HELP */
++	       nla_total_size(strlen(helper->name));
++out_unlock:
++	rcu_read_unlock();
++out:
++	return size;
++}
++
++static inline size_t
++ctnetlink_calculate_room_size(const struct nf_conn *ct, unsigned long events)
++{
++	size_t size = NLMSG_SPACE(sizeof(struct nfgenmsg));
++
++	size += calculate_tuple_room_size(ct) * 2 +  /* original and reply */
++		nla_total_size(sizeof(u_int32_t)) +  /* status */
++		nla_total_size(sizeof(u_int32_t));   /* id */
++
++#ifdef CONFIG_NF_CONNTRACK_MARK
++	if (events & IPCT_MARK || ct->mark)
++		size += nla_total_size(sizeof(u_int32_t));
++#endif
++
++	if (events & IPCT_DESTROY) {
++		const struct nf_conn_counter *acct;
++
++		acct = nf_conn_acct_find(ct);
++		if (acct) {
++			size += nla_total_size(0) * 2 +
++				nla_total_size(sizeof(u_int64_t)) * 2 * 2;
++		}
++		return size;
++	}
++
++	size += nla_total_size(sizeof(u_int32_t));	/* CTA_TIMEOUT */
++	if (events & IPCT_PROTOINFO) {
++		size += calculate_protoinfo_room_size(ct);
++	}if (events & IPCT_HELPER || nfct_help(ct))
++		size += calculate_helper_room_size(ct);
++	if (events & IPCT_RELATED)
++		size += calculate_tuple_room_size(ct->master);
++	if (events & IPCT_NATSEQADJ)
++		size += nla_total_size(0) * 2 +
++			nla_total_size(sizeof(u_int32_t)) * 3 * 2;
++#ifdef CONFIG_NF_CONNTRACK_SECMARK
++	if (events & IPCT_SECMARK || ct->secmark)
++		size += nla_total_size(sizeof(u_int32_t));
++#endif
++	return size;
++}
++
+ static int ctnetlink_conntrack_event(struct notifier_block *this,
+ 				     unsigned long events, void *ptr)
  {
- 	struct nf_conn *ct;
- 	int err = -EINVAL;
-@@ -1198,9 +1233,12 @@ ctnetlink_create_conntrack(struct nlattr *cda[],
- 		ct->master = master_ct;
- 	}
+@@ -437,7 +538,7 @@ static int ctnetlink_conntrack_event(struct notifier_block *this,
+ 	if (!nfnetlink_has_listeners(group))
+ 		return NOTIFY_DONE;
  
-+	nf_conntrack_get(&ct->ct_general);
- 	add_timer(&ct->timeout);
- 	nf_conntrack_hash_insert(ct);
- 	rcu_read_unlock();
-+	ctnetlink_event_report(ct, pid, report);
-+	nf_ct_put(ct);
+-	skb = alloc_skb(NLMSG_GOODSIZE, GFP_ATOMIC);
++	skb = alloc_skb(ctnetlink_calculate_room_size(ct, events), GFP_ATOMIC);
+ 	if (!skb)
+ 		return NOTIFY_DONE;
+ 
+diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
+index 8fcf176..6694173 100644
+--- a/net/netfilter/nf_conntrack_proto_dccp.c
++++ b/net/netfilter/nf_conntrack_proto_dccp.c
+@@ -657,6 +657,12 @@ static int nlattr_to_dccp(struct nlattr *cda[], struct nf_conn *ct)
+ 	write_unlock_bh(&dccp_lock);
+ 	return 0;
+ }
++
++static size_t dccp_nlattr_protoinfo_size(void)
++{
++	return nla_total_size(0)*2 +	/* CTA_PROTOINFO */
++	       nla_total_size(sizeof(u_int8_t));
++}
+ #endif
+ 
+ #ifdef CONFIG_SYSCTL
+@@ -749,6 +755,8 @@ static struct nf_conntrack_l4proto dccp_proto4 __read_mostly = {
+ 	.from_nlattr		= nlattr_to_dccp,
+ 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
+ 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
++	.nlattr_size		= nf_ct_port_nlattr_size,
++	.nlattr_protoinfo_size	= dccp_nlattr_protoinfo_size,
+ 	.nla_policy		= nf_ct_port_nla_policy,
+ #endif
+ #ifdef CONFIG_SYSCTL
+@@ -774,6 +782,8 @@ static struct nf_conntrack_l4proto dccp_proto6 __read_mostly = {
+ 	.from_nlattr		= nlattr_to_dccp,
+ 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
+ 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
++	.nlattr_size		= nf_ct_port_nlattr_size,
++	.nlattr_protoinfo_size	= dccp_nlattr_protoinfo_size,
+ 	.nla_policy		= nf_ct_port_nla_policy,
+ #endif
+ #ifdef CONFIG_SYSCTL
+diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
+index 4ab62ad..8237cff 100644
+--- a/net/netfilter/nf_conntrack_proto_gre.c
++++ b/net/netfilter/nf_conntrack_proto_gre.c
+@@ -294,6 +294,7 @@ static struct nf_conntrack_l4proto nf_conntrack_l4proto_gre4 __read_mostly = {
+ #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
+ 	.tuple_to_nlattr = nf_ct_port_tuple_to_nlattr,
+ 	.nlattr_to_tuple = nf_ct_port_nlattr_to_tuple,
++	.nlattr_size	 = nf_ct_port_nlattr_size,
+ 	.nla_policy	 = nf_ct_port_nla_policy,
+ #endif
+ };
+diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+index c2bd457..78283c1 100644
+--- a/net/netfilter/nf_conntrack_proto_sctp.c
++++ b/net/netfilter/nf_conntrack_proto_sctp.c
+@@ -537,6 +537,14 @@ static int nlattr_to_sctp(struct nlattr *cda[], struct nf_conn *ct)
  
  	return 0;
- 
-@@ -1265,7 +1303,9 @@ ctnetlink_new_conntrack(struct sock *ctnl, struct sk_buff *skb,
- 			err = ctnetlink_create_conntrack(cda,
- 							 &otuple,
- 							 &rtuple,
--							 master_ct);
-+							 master_ct,
-+							 NETLINK_CB(skb).pid,
-+							 nlmsg_report(nlh));
- 		if (err < 0 && master_ct)
- 			nf_ct_put(master_ct);
- 
-@@ -1277,6 +1317,8 @@ ctnetlink_new_conntrack(struct sock *ctnl, struct sk_buff *skb,
- 	 * so there's no need to increase the refcount */
- 	err = -EEXIST;
- 	if (!(nlh->nlmsg_flags & NLM_F_EXCL)) {
-+		struct nf_conn *ct = nf_ct_tuplehash_to_ctrack(h);
-+
- 		/* we only allow nat config for new conntracks */
- 		if (cda[CTA_NAT_SRC] || cda[CTA_NAT_DST]) {
- 			err = -EOPNOTSUPP;
-@@ -1287,8 +1329,19 @@ ctnetlink_new_conntrack(struct sock *ctnl, struct sk_buff *skb,
- 			err = -EOPNOTSUPP;
- 			goto out_unlock;
- 		}
--		err = ctnetlink_change_conntrack(nf_ct_tuplehash_to_ctrack(h),
--						 cda);
-+
-+		err = ctnetlink_change_conntrack(ct, cda);
-+		if (err == 0) {
-+			nf_conntrack_get(&ct->ct_general);
-+			spin_unlock_bh(&nf_conntrack_lock);
-+			ctnetlink_event_report(ct,
-+					       NETLINK_CB(skb).pid,
-+					       nlmsg_report(nlh));
-+			nf_ct_put(ct);
-+		} else
-+			spin_unlock_bh(&nf_conntrack_lock);
-+
-+		return err;
- 	}
- 
- out_unlock:
-@@ -1423,7 +1476,8 @@ static int ctnetlink_expect_event(struct notifier_block *this,
- {
- 	struct nlmsghdr *nlh;
- 	struct nfgenmsg *nfmsg;
--	struct nf_conntrack_expect *exp = (struct nf_conntrack_expect *)ptr;
-+	struct nf_exp_event *item = (struct nf_exp_event *)ptr;
-+	struct nf_conntrack_expect *exp = item->exp;
- 	struct sk_buff *skb;
- 	unsigned int type;
- 	sk_buff_data_t b;
-@@ -1445,7 +1499,7 @@ static int ctnetlink_expect_event(struct notifier_block *this,
- 	b = skb->tail;
- 
- 	type |= NFNL_SUBSYS_CTNETLINK_EXP << 8;
--	nlh   = NLMSG_PUT(skb, 0, 0, type, sizeof(struct nfgenmsg));
-+	nlh   = NLMSG_PUT(skb, item->pid, 0, type, sizeof(struct nfgenmsg));
- 	nfmsg = NLMSG_DATA(nlh);
- 
- 	nlh->nlmsg_flags    = flags;
-@@ -1459,7 +1513,7 @@ static int ctnetlink_expect_event(struct notifier_block *this,
- 	rcu_read_unlock();
- 
- 	nlh->nlmsg_len = skb->tail - b;
--	nfnetlink_send(skb, 0, NFNLGRP_CONNTRACK_EXP_NEW, 0);
-+	nfnetlink_send(skb, item->pid, NFNLGRP_CONNTRACK_EXP_NEW, item->report);
- 	return NOTIFY_DONE;
- 
- nla_put_failure:
-@@ -1673,7 +1727,7 @@ ctnetlink_change_expect(struct nf_conntrack_expect *x, struct nlattr *cda[])
  }
++
++static size_t sctp_nlattr_protoinfo_size(void)
++{
++	return nla_total_size(0)*2 +           /* CTA_PROTOINFO */
++	       nla_total_size(sizeof(u_int8_t)) +
++	       nla_total_size(sizeof(u_int32_t)) +
++	       nla_total_size(sizeof(u_int32_t));
++}
+ #endif
  
- static int
--ctnetlink_create_expect(struct nlattr *cda[], u_int8_t u3)
-+ctnetlink_create_expect(struct nlattr *cda[], u_int8_t u3, u32 pid, int report)
- {
- 	struct nf_conntrack_tuple tuple, mask, master_tuple;
- 	struct nf_conntrack_tuple_hash *h = NULL;
-@@ -1720,7 +1774,7 @@ ctnetlink_create_expect(struct nlattr *cda[], u_int8_t u3)
- 	memcpy(&exp->mask.src.u3, &mask.src.u3, sizeof(exp->mask.src.u3));
- 	exp->mask.src.u.all = mask.src.u.all;
+ #ifdef CONFIG_SYSCTL
+@@ -671,6 +679,8 @@ static struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp4 __read_mostly = {
+ 	.from_nlattr		= nlattr_to_sctp,
+ 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
+ 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
++	.nlattr_size		= nf_ct_port_nlattr_size,
++	.nlattr_protoinfo_size	= sctp_nlattr_protoinfo_size,
+ 	.nla_policy		= nf_ct_port_nla_policy,
+ #endif
+ #ifdef CONFIG_SYSCTL
+@@ -699,6 +709,8 @@ static struct nf_conntrack_l4proto nf_conntrack_l4proto_sctp6 __read_mostly = {
+ 	.from_nlattr		= nlattr_to_sctp,
+ 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
+ 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
++	.nlattr_size		= nf_ct_port_nlattr_size,
++	.nlattr_protoinfo_size	= sctp_nlattr_protoinfo_size,
+ 	.nla_policy		= nf_ct_port_nla_policy,
+ #endif
+ #ifdef CONFIG_SYSCTL
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index a1edb9c..36e2876 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -1181,6 +1181,16 @@ static int nlattr_to_tcp(struct nlattr *cda[], struct nf_conn *ct)
  
--	err = nf_ct_expect_related(exp);
-+	err = nf_ct_expect_related_report(exp, pid, report);
- 	nf_ct_expect_put(exp);
+ 	return 0;
+ }
++
++static size_t tcp_nlattr_protoinfo_size(void)
++{
++	return nla_total_size(0)*2 +	/* CTA_PROTOINFO */
++	       nla_total_size(sizeof(u_int8_t)) +
++	       nla_total_size(sizeof(u_int8_t)) +
++	       nla_total_size(sizeof(u_int8_t)) +
++	       nla_total_size(sizeof(struct nf_ct_tcp_flags)) +
++	       nla_total_size(sizeof(struct nf_ct_tcp_flags));
++}
+ #endif
  
- out:
-@@ -1753,8 +1807,12 @@ ctnetlink_new_expect(struct sock *ctnl, struct sk_buff *skb,
- 	if (!exp) {
- 		spin_unlock_bh(&nf_conntrack_lock);
- 		err = -ENOENT;
--		if (nlh->nlmsg_flags & NLM_F_CREATE)
--			err = ctnetlink_create_expect(cda, u3);
-+		if (nlh->nlmsg_flags & NLM_F_CREATE) {
-+			err = ctnetlink_create_expect(cda,
-+						      u3,
-+						      NETLINK_CB(skb).pid,
-+						      nlmsg_report(nlh));
-+		}
- 		return err;
- 	}
- 
+ #ifdef CONFIG_SYSCTL
+@@ -1399,6 +1409,8 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp4 __read_mostly =
+ 	.from_nlattr		= nlattr_to_tcp,
+ 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
+ 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
++	.nlattr_size		= nf_ct_port_nlattr_size,
++	.nlattr_protoinfo_size	= tcp_nlattr_protoinfo_size,
+ 	.nla_policy		= nf_ct_port_nla_policy,
+ #endif
+ #ifdef CONFIG_SYSCTL
+@@ -1429,6 +1441,8 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp6 __read_mostly =
+ 	.from_nlattr		= nlattr_to_tcp,
+ 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
+ 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
++	.nlattr_size		= nf_ct_port_nlattr_size,
++	.nlattr_protoinfo_size	= tcp_nlattr_protoinfo_size,
+ 	.nla_policy		= nf_ct_port_nla_policy,
+ #endif
+ #ifdef CONFIG_SYSCTL
+diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
+index 2b8b1f5..e9abc8d 100644
+--- a/net/netfilter/nf_conntrack_proto_udp.c
++++ b/net/netfilter/nf_conntrack_proto_udp.c
+@@ -193,6 +193,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_udp4 __read_mostly =
+ #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
+ 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
+ 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
++	.nlattr_size		= nf_ct_port_nlattr_size,
+ 	.nla_policy		= nf_ct_port_nla_policy,
+ #endif
+ #ifdef CONFIG_SYSCTL
+@@ -220,6 +221,7 @@ struct nf_conntrack_l4proto nf_conntrack_l4proto_udp6 __read_mostly =
+ #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
+ 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
+ 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
++	.nlattr_size		= nf_ct_port_nlattr_size,
+ 	.nla_policy		= nf_ct_port_nla_policy,
+ #endif
+ #ifdef CONFIG_SYSCTL
+diff --git a/net/netfilter/nf_conntrack_proto_udplite.c b/net/netfilter/nf_conntrack_proto_udplite.c
+index 4579d8d..90f14e7 100644
+--- a/net/netfilter/nf_conntrack_proto_udplite.c
++++ b/net/netfilter/nf_conntrack_proto_udplite.c
+@@ -181,6 +181,7 @@ static struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite4 __read_mostly =
+ #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
+ 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
+ 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
++	.nlattr_size		= nf_ct_port_nlattr_size,
+ 	.nla_policy		= nf_ct_port_nla_policy,
+ #endif
+ #ifdef CONFIG_SYSCTL
+@@ -204,6 +205,7 @@ static struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite6 __read_mostly =
+ #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
+ 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
+ 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
++	.nlattr_size		= nf_ct_port_nlattr_size,
+ 	.nla_policy		= nf_ct_port_nla_policy,
+ #endif
+ #ifdef CONFIG_SYSCTL
 
