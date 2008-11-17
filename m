@@ -1,39 +1,39 @@
-From: "varun uppal" <varuneet.uppal@gmail.com>
-Subject: problems with iptables and ip_queue
-Date: Mon, 17 Nov 2008 16:50:28 +0000
-Message-ID: <ed1bf3f70811170850u7b6f5019o39ec2295ce0aaaa9@mail.gmail.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: Problem compiling
+Date: Mon, 17 Nov 2008 23:01:33 +0100 (CET)
+Message-ID: <alpine.LNX.1.10.0811172259080.17946@fbirervta.pbzchgretzou.qr>
+References: <49219BF2.6090904@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: John Haxby <john.haxby@oracle.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.229]:34975 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751620AbYKQQu2 (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:56965 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752447AbYKQWBf (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Nov 2008 11:50:28 -0500
-Received: by rv-out-0506.google.com with SMTP id k40so2505888rvb.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 17 Nov 2008 08:50:28 -0800 (PST)
-Content-Disposition: inline
+	Mon, 17 Nov 2008 17:01:35 -0500
+In-Reply-To: <49219BF2.6090904@oracle.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
 
-  I have a utility which uses iptables and captures the incoming
-packets on INPUT chain of filter table. I am getting a wierd problem,
-the incoming TCP segments start getting rejected due to incorrect
-checksum by my utility. I took tcpdump on ethernet interface and
-loopback interface, the segments on ethernet interface are fine, but
-by the time they are passed on to my application by iptables using
-ip_queue, the packets are corrupted. The TCP payload gets reset to
-zeroes, and thus my application when verifies the checksum, discards
-the segment on finding it incorrect.
-Surprisingly it happens only with segments greater than 200bytes in
-length. This problem is driving me crazy. Any help will be more than
-welcome.
-I have red hat enterprise linux 4, with kernel 2.6.9-42 and iptables
-version 1.2.11
+On Monday 2008-11-17 17:29, John Haxby wrote:
 
-thanks
-varun
+> Hello All,
+>
+> I'm having problems compiling this:
+> http://marek.terminus.sk/prog/ipt_sysrq.shtml
+>
+> This is on Fedora 9 and RHEL5 and in both cases I get this error:
+>
+> /usr/include/iptables.h:5:29: error: libiptc/libiptc.h: No such file or
+> directory
+
+(Just noting that this error has nothing to do with ipt_sysrq.)
+
+> Now, the easiest way to "fix" this is it to make sure that libiptc/libiptc.h is
+> installed into /usr/include
+
+What iptables version?
