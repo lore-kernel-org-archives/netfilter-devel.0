@@ -1,69 +1,63 @@
-From: Christoph Paasch <christoph.paasch@student.uclouvain.be>
-Subject: connection tracker - ipv6 extension headers
-Date: Mon, 17 Nov 2008 12:24:33 +0100
-Message-ID: <200811171224.33582.christoph.paasch@student.uclouvain.be>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] filter: add SKF_AD_NLATTR_NEST to look for nested attributes
+Date: Mon, 17 Nov 2008 15:35:09 +0100
+Message-ID: <4921811D.3080204@trash.net>
+References: <20081117083136.10840.70283.stgit@Decadence> <20081117.003622.132924683.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpout.sgsi.ucl.ac.be ([130.104.5.77]:51179 "EHLO
-	smtp4.sgsi.ucl.ac.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753415AbYKQLcj convert rfc822-to-8bit (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:45242 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752202AbYKQOfP (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Nov 2008 06:32:39 -0500
-Received: from christoph-dell.localnet (unknown [78.110.193.201])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	(Authenticated sender: cpaasch@smtp4.sgsi.ucl.ac.be)
-	by smtp4.sgsi.ucl.ac.be (Postfix) with ESMTPSA
-	for <netfilter-devel@vger.kernel.org>; Mon, 17 Nov 2008 12:24:41 +0100 (CET)
-Content-Disposition: inline
+	Mon, 17 Nov 2008 09:35:15 -0500
+In-Reply-To: <20081117.003622.132924683.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello everybody,
+David Miller wrote:
+> From: Pablo Neira Ayuso <pablo@netfilter.org>
+>> SKF_AD_NLATTR allows us to find the first matching attribute in a
+>> stream of netlink attributes from one offset to the end of the
+>> netlink message. This is not suitable to look for a specific
+>> matching inside a set of nested attributes.
+>>
+>> For example, in ctnetlink messages, if we look for the CTA_V6_SRC
+>> attribute in a message that talks about an IPv4 connection,
+>> SKF_AD_NLATTR returns the offset of CTA_STATUS which has the same
+>> value of CTA_V6_SRC but outside the nest. To differenciate
+>> CTA_STATUS and CTA_V6_SRC, we would have to make assumptions on the
+>> size of the attribute and the usual offset, resulting in horrible
+>> BSF code.
+>>
+>> This patch adds SKF_AD_NLATTR_NEST, which is a variant of
+>> SKF_AD_NLATTR, that looks for an attribute inside the limits of
+>> a nested attributes, but not further.
+>>
+>> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+> 
+> This looks fine to me, Patrick is it ok with you too?
+> 
+> If Patrick has no objections I'll apply it to net-next-2.6
 
-I'm quite new to netfilter, so be kind with me... :-)
+I think this needs more validation to avoid overruning the skb data:
 
-In the case of my Master Thesis I have to develop shim6-support in netf=
-ilter.
+> +		case SKF_AD_NLATTR_NEST: {
+> +			struct nlattr *nla;
+> +
+> +			if (skb_is_nonlinear(skb))
+> +				return 0;
+> +			if (A > skb->len - sizeof(struct nlattr))
+> +				return 0;
+> +
+> +			nla = nla_find_nested((struct nlattr *)&skb->data[A],X);
 
-I found that there is no real support in the netfilter connection track=
-er to=20
-handle IPv6 extension headers. (e.g.: when I receive a shim6-payload ex=
-tension=20
-header, I would like to check if the context-tag is a valid one for the=
-=20
-locators used. - shim6-control messages will be handled like a layer-4=20
-protocol as in icmp6)
+This interprets skb->data as nlattr and takes the nla_len member
+as limit for nla_find(), so it needs to be validated not to exceed
+the skb length.
 
-I thought, that I could do that job in nf_ct_ipv6_skip_exthdr(...) to c=
-heck if=20
-the context-tag is valid. But it's not the job of that function to chec=
-k the=20
-"validness" of an extension header.
-
-So, are there any plans to implement some kind of extension-header-hand=
-ler in=20
-the connection tracker? Or does there exists somewhere a patch who does=
- that=20
-job?
-
-I hope, that I was clear in my explanations.
-
-Thanks for helping me,
-
---
-Christoph Paasch
-
-=C9cole Polytechnique de Louvain-la-Neuve
-D=E9partement d'ing=E9nierie informatique
-
-www.rollerbulls.be
---
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Besides that, the patch looks fine.
