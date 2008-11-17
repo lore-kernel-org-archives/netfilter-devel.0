@@ -1,64 +1,69 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: conntrack ftp fails to handle PORT (and PASV?) command when
- split over multiple TCP packets
-Date: Mon, 17 Nov 2008 12:08:33 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.0811171152450.15405@blackhole.kfki.hu>
-References: <!&!AAAAAAAAAAAuAAAAAAAAAKTyXRN5/+lGvU59a+P7CFMBAN6gY+ZG84BMpVQcAbDh1IQAAAATbSgAABAAAACjGmKcXUZtSrl15MejBLj+AQAAAAA=@iname.com>
+From: Christoph Paasch <christoph.paasch@student.uclouvain.be>
+Subject: connection tracker - ipv6 extension headers
+Date: Mon, 17 Nov 2008 12:24:33 +0100
+Message-ID: <200811171224.33582.christoph.paasch@student.uclouvain.be>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Frank Bulk <frnkblk@iname.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:42038 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751048AbYKQLIf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Nov 2008 06:08:35 -0500
-In-Reply-To: <!&!AAAAAAAAAAAuAAAAAAAAAKTyXRN5/+lGvU59a+P7CFMBAN6gY+ZG84BMpVQcAbDh1IQAAAATbSgAABAAAACjGmKcXUZtSrl15MejBLj+AQAAAAA=@iname.com>
+Received: from smtpout.sgsi.ucl.ac.be ([130.104.5.77]:51179 "EHLO
+	smtp4.sgsi.ucl.ac.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753415AbYKQLcj convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 17 Nov 2008 06:32:39 -0500
+Received: from christoph-dell.localnet (unknown [78.110.193.201])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: cpaasch@smtp4.sgsi.ucl.ac.be)
+	by smtp4.sgsi.ucl.ac.be (Postfix) with ESMTPSA
+	for <netfilter-devel@vger.kernel.org>; Mon, 17 Nov 2008 12:24:41 +0100 (CET)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, 15 Nov 2008, Frank Bulk wrote:
+Hello everybody,
 
-> I'm working with the tech support of a residential DSL modem vendor on a NAT
-> issue.  The vendor says they use open source in their products and the logs
-> show all the typical iptables entries.  
-> 
-> We're using a DSL modem for OOB management of our DSLAMs.  We access the
-> DSLAM from the internet via the DSL modem's public IP which has been
-> configured with a DMZ to hit the DSLAM on its private IP.  We can access the
-> DSLAM via telnet and http, there's no problem there.
-> 
-> The problem occurs when we perform a configuration backup of the DSLAM.  The
-> DSLAM has a built-in (DSLAM vendor written?) FTP client that uploads the
-> configuration to our FTP server.  What's unique is that the DSLAM vendor's
-> FTP client issues each FTP command separately from the closing CRLF
-> ("\r\n").  For example, when the DSLAM logs in it first issues "LOGIN
-> username" in one packet, and then "\r\n" in the next packet.  Attached to
-> this post is a trace (I removed the login section to protect the user
-> credentials) where you can see this happening in packets #1 and #3.
-> According to the DSLAM vendor it shouldn't matter if the FTP client sends
-> the command character-by-character in separate packets or in one packet.
-> That's no problem for non-NATed DSLAMs because the FTP server is supposed to
-> wait for the closing CRLF, but it appears that iptables doesn't handle the
-> situation well.
+I'm quite new to netfilter, so be kind with me... :-)
 
-Yes, the FTP connection tracking module expects to receive the FTP 
-commands and the terminating CR character in one packet. If that's not 
-true, then FTP connection tracking won't work.
- 
-> Can anyone confirm that iptables still behaves this way, and if so, code a
-> fix so that no matter how many packets a PORT or PASV command are split over
-> (in other words, no matter how small the client's MTU) that iptables ACKs
-> each packet received on the LAN side and the ALG properly reassembles the
-> command and sends it out the WAN interface?
+In the case of my Master Thesis I have to develop shim6-support in netf=
+ilter.
 
-Anybody is free to improve netfilter/iptables. But I strongly doubt that 
-this case could be fixed easily.
+I found that there is no real support in the netfilter connection track=
+er to=20
+handle IPv6 extension headers. (e.g.: when I receive a shim6-payload ex=
+tension=20
+header, I would like to check if the context-tag is a valid one for the=
+=20
+locators used. - shim6-control messages will be handled like a layer-4=20
+protocol as in icmp6)
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+I thought, that I could do that job in nf_ct_ipv6_skip_exthdr(...) to c=
+heck if=20
+the context-tag is valid. But it's not the job of that function to chec=
+k the=20
+"validness" of an extension header.
+
+So, are there any plans to implement some kind of extension-header-hand=
+ler in=20
+the connection tracker? Or does there exists somewhere a patch who does=
+ that=20
+job?
+
+I hope, that I was clear in my explanations.
+
+Thanks for helping me,
+
+--
+Christoph Paasch
+
+=C9cole Polytechnique de Louvain-la-Neuve
+D=E9partement d'ing=E9nierie informatique
+
+www.rollerbulls.be
+--
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
