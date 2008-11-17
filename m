@@ -1,55 +1,34 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 8/8] [PATCH] bump the expectation helper name
-Date: Mon, 17 Nov 2008 09:42:05 +0100
-Message-ID: <20081117084205.11368.15974.stgit@Decadence>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 7/8] [PATCH] dynamic calculation of event message size
+ for ctnetlink
+Date: Mon, 17 Nov 2008 00:44:13 -0800 (PST)
+Message-ID: <20081117.004413.90628236.davem@davemloft.net>
 References: <20081117083924.11368.38741.stgit@Decadence>
+	<20081117084141.11368.26975.stgit@Decadence>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56062 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752705AbYKQImM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Nov 2008 03:42:12 -0500
-In-Reply-To: <20081117083924.11368.38741.stgit@Decadence>
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:45226
+	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1752664AbYKQIoO (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 17 Nov 2008 03:44:14 -0500
+In-Reply-To: <20081117084141.11368.26975.stgit@Decadence>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Include the expectation helper name at expectation dumping.
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Mon, 17 Nov 2008 09:41:42 +0100
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
+> This patch adds dynamic message size calculation for ctnetlink. This
+> reduces CPU consumption since the overhead in the message trimming
+> is removed.
+> 
+> Based on a suggestion from Patrick McHardy.
+> 
+> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 
- net/netfilter/nf_conntrack_netlink.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 0205ae6..7756d29 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1517,6 +1517,7 @@ ctnetlink_exp_dump_expect(struct sk_buff *skb,
- 			  const struct nf_conntrack_expect *exp)
- {
- 	struct nf_conn *master = exp->master;
-+	struct nf_conn_help *help = nfct_help(master);
- 	long timeout = (exp->timeout.expires - jiffies) / HZ;
- 
- 	if (timeout < 0)
-@@ -1534,6 +1535,14 @@ ctnetlink_exp_dump_expect(struct sk_buff *skb,
- 	NLA_PUT_BE32(skb, CTA_EXPECT_TIMEOUT, htonl(timeout));
- 	NLA_PUT_BE32(skb, CTA_EXPECT_ID, htonl((unsigned long)exp));
- 
-+	if (help) {
-+		struct nf_conntrack_helper *helper;
-+
-+		helper = rcu_dereference(help->helper);
-+		if (helper)
-+			NLA_PUT_STRING(skb, CTA_EXPECT_HELP_NAME, helper->name);
-+	}
-+
- 	return 0;
- 
- nla_put_failure:
-
+Nice patch.
