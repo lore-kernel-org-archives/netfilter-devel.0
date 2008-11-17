@@ -1,35 +1,64 @@
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: Re: [PATCH 5/8] [PATCH] Helper modules load-on-demand support for
-	ctnetlink
-Date: Mon, 17 Nov 2008 11:55:43 +0300
-Message-ID: <20081117085543.GA24019@x200.localdomain>
-References: <20081117083924.11368.38741.stgit@Decadence> <20081117084055.11368.51948.stgit@Decadence>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: conntrack ftp fails to handle PORT (and PASV?) command when
+ split over multiple TCP packets
+Date: Mon, 17 Nov 2008 12:08:33 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.0811171152450.15405@blackhole.kfki.hu>
+References: <!&!AAAAAAAAAAAuAAAAAAAAAKTyXRN5/+lGvU59a+P7CFMBAN6gY+ZG84BMpVQcAbDh1IQAAAATbSgAABAAAACjGmKcXUZtSrl15MejBLj+AQAAAAA=@iname.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Frank Bulk <frnkblk@iname.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.175]:37579 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752932AbYKQIwJ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Nov 2008 03:52:09 -0500
-Received: by ug-out-1314.google.com with SMTP id 39so341277ugf.37
-        for <netfilter-devel@vger.kernel.org>; Mon, 17 Nov 2008 00:52:06 -0800 (PST)
-Content-Disposition: inline
-In-Reply-To: <20081117084055.11368.51948.stgit@Decadence>
+Received: from smtp-in.kfki.hu ([148.6.0.26]:42038 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751048AbYKQLIf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 17 Nov 2008 06:08:35 -0500
+In-Reply-To: <!&!AAAAAAAAAAAuAAAAAAAAAKTyXRN5/+lGvU59a+P7CFMBAN6gY+ZG84BMpVQcAbDh1IQAAAATbSgAABAAAACjGmKcXUZtSrl15MejBLj+AQAAAAA=@iname.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Nov 17, 2008 at 09:40:55AM +0100, Pablo Neira Ayuso wrote:
-> --- a/net/netfilter/nf_conntrack_netlink.c
-> +++ b/net/netfilter/nf_conntrack_netlink.c
-> @@ -917,8 +917,22 @@ ctnetlink_change_helper(struct nf_conn *ct, struct nlattr *cda[])
->  	}
->  
->  	helper = __nf_conntrack_helper_find_byname(helpname);
-> -	if (helper == NULL)
-> +	if (helper == NULL) {
-> +#ifdef CONFIG_KMOD
+On Sat, 15 Nov 2008, Frank Bulk wrote:
 
-CONFIG_KMOD is on the way to always on, no need for ifdef.
+> I'm working with the tech support of a residential DSL modem vendor on a NAT
+> issue.  The vendor says they use open source in their products and the logs
+> show all the typical iptables entries.  
+> 
+> We're using a DSL modem for OOB management of our DSLAMs.  We access the
+> DSLAM from the internet via the DSL modem's public IP which has been
+> configured with a DMZ to hit the DSLAM on its private IP.  We can access the
+> DSLAM via telnet and http, there's no problem there.
+> 
+> The problem occurs when we perform a configuration backup of the DSLAM.  The
+> DSLAM has a built-in (DSLAM vendor written?) FTP client that uploads the
+> configuration to our FTP server.  What's unique is that the DSLAM vendor's
+> FTP client issues each FTP command separately from the closing CRLF
+> ("\r\n").  For example, when the DSLAM logs in it first issues "LOGIN
+> username" in one packet, and then "\r\n" in the next packet.  Attached to
+> this post is a trace (I removed the login section to protect the user
+> credentials) where you can see this happening in packets #1 and #3.
+> According to the DSLAM vendor it shouldn't matter if the FTP client sends
+> the command character-by-character in separate packets or in one packet.
+> That's no problem for non-NATed DSLAMs because the FTP server is supposed to
+> wait for the closing CRLF, but it appears that iptables doesn't handle the
+> situation well.
+
+Yes, the FTP connection tracking module expects to receive the FTP 
+commands and the terminating CR character in one packet. If that's not 
+true, then FTP connection tracking won't work.
+ 
+> Can anyone confirm that iptables still behaves this way, and if so, code a
+> fix so that no matter how many packets a PORT or PASV command are split over
+> (in other words, no matter how small the client's MTU) that iptables ACKs
+> each packet received on the LAN side and the ALG properly reassembles the
+> command and sends it out the WAN interface?
+
+Anybody is free to improve netfilter/iptables. But I strongly doubt that 
+this case could be fixed easily.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
