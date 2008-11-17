@@ -1,49 +1,39 @@
-From: John Haxby <john.haxby@oracle.com>
-Subject: Problem compiling
-Date: Mon, 17 Nov 2008 16:29:38 +0000
-Message-ID: <49219BF2.6090904@oracle.com>
+From: "varun uppal" <varuneet.uppal@gmail.com>
+Subject: problems with iptables and ip_queue
+Date: Mon, 17 Nov 2008 16:50:28 +0000
+Message-ID: <ed1bf3f70811170850u7b6f5019o39ec2295ce0aaaa9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-To: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from acsinet14.oracle.com ([141.146.126.236]:46922 "EHLO
-	acsinet14.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751630AbYKQQbW (ORCPT
+Received: from rv-out-0506.google.com ([209.85.198.229]:34975 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751620AbYKQQu2 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Nov 2008 11:31:22 -0500
-Received: from acsinet12.oracle.com (acsinet12.oracle.com [141.146.126.234])
-	by acsinet14.oracle.com (Switch-3.3.1/Switch-3.3.1) with ESMTP id mAHGWkJH011784
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <netfilter-devel@vger.kernel.org>; Mon, 17 Nov 2008 16:32:47 GMT
-Received: from rgminet15.oracle.com (rcsinet15.oracle.com [148.87.113.117])
-	by acsinet12.oracle.com (Switch-3.3.1/Switch-3.3.1) with ESMTP id mAHGTX69011573
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <netfilter-devel@vger.kernel.org>; Mon, 17 Nov 2008 16:29:35 GMT
-Received: from acsmt700.oracle.com (acsmt700.oracle.com [141.146.40.70])
-	by rgminet15.oracle.com (Switch-3.3.1/Switch-3.3.1) with ESMTP id mAHGTlx9018350
-	for <netfilter-devel@vger.kernel.org>; Mon, 17 Nov 2008 16:29:48 GMT
+	Mon, 17 Nov 2008 11:50:28 -0500
+Received: by rv-out-0506.google.com with SMTP id k40so2505888rvb.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 17 Nov 2008 08:50:28 -0800 (PST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello All,
+Hi,
 
-I'm having problems compiling this: 
-http://marek.terminus.sk/prog/ipt_sysrq.shtml
+  I have a utility which uses iptables and captures the incoming
+packets on INPUT chain of filter table. I am getting a wierd problem,
+the incoming TCP segments start getting rejected due to incorrect
+checksum by my utility. I took tcpdump on ethernet interface and
+loopback interface, the segments on ethernet interface are fine, but
+by the time they are passed on to my application by iptables using
+ip_queue, the packets are corrupted. The TCP payload gets reset to
+zeroes, and thus my application when verifies the checksum, discards
+the segment on finding it incorrect.
+Surprisingly it happens only with segments greater than 200bytes in
+length. This problem is driving me crazy. Any help will be more than
+welcome.
+I have red hat enterprise linux 4, with kernel 2.6.9-42 and iptables
+version 1.2.11
 
-This is on Fedora 9 and RHEL5 and in both cases I get this error:
-
-/usr/include/iptables.h:5:29: error: libiptc/libiptc.h: No such file or 
-directory
-
-Now, the easiest way to "fix" this is it to make sure that 
-libiptc/libiptc.h is installed into /usr/include but I'm wary of this as 
-libiptc.a has a comment in the Makefile that says "libiptc is not a 
-public interface and therefore not installed."
-
-What is the right thing to do here?   Install the missing header file(s) 
-or fix the normally installed header files to not refer to those that 
-aren't?
-
-jch
+thanks
+varun
