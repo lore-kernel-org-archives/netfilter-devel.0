@@ -1,48 +1,83 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] [TPROXY] implemented IP_RECVORIGDSTADDR socket option
-Date: Sun, 16 Nov 2008 19:32:10 -0800 (PST)
-Message-ID: <20081116.193210.05230282.davem@davemloft.net>
-References: <1226572624.7164.11.camel@bzorp.balabit>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH] filter: add SKF_AD_NLATTR_NEST to look for nested attributes
+Date: Mon, 17 Nov 2008 09:31:37 +0100
+Message-ID: <20081117083136.10840.70283.stgit@Decadence>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: jengelh@medozas.de, tproxy@lists.balabit.hu,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	hidden@sch.bme.hu, andrey@icomsw.com
-To: bazsi@balabit.hu
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net,
+	davem@davemloft.net
+To: netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:38941
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1755391AbYKQDcK (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 16 Nov 2008 22:32:10 -0500
-In-Reply-To: <1226572624.7164.11.camel@bzorp.balabit>
+Received: from mail.us.es ([193.147.175.20]:49246 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752185AbYKQIbq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 17 Nov 2008 03:31:46 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Balazs Scheidler <bazsi@balabit.hu>
-Date: Thu, 13 Nov 2008 11:37:04 +0100
+SKF_AD_NLATTR allows us to find the first matching attribute in a
+stream of netlink attributes from one offset to the end of the
+netlink message. This is not suitable to look for a specific
+matching inside a set of nested attributes.
 
-> In case UDP traffic is redirected to a local UDP socket,
-> the originally addressed destination address/port
-> cannot be recovered with the in-kernel tproxy.
-> 
-> This patch adds an IP_RECVORIGDSTADDR sockopt that enables
-> a IP_ORIGDSTADDR ancillary message in recvmsg(). This
-> ancillary message contains the original destination address/port
-> of the packet being received.
-> 
-> Signed-off-by: Balazs Scheidler <bazsi@balabit.hu>
+For example, in ctnetlink messages, if we look for the CTA_V6_SRC
+attribute in a message that talks about an IPv4 connection,
+SKF_AD_NLATTR returns the offset of CTA_STATUS which has the same
+value of CTA_V6_SRC but outside the nest. To differenciate
+CTA_STATUS and CTA_V6_SRC, we would have to make assumptions on the
+size of the attribute and the usual offset, resulting in horrible
+BSF code.
 
-I'm going to apply this to net-next-2.6, thanks!
+This patch adds SKF_AD_NLATTR_NEST, which is a variant of
+SKF_AD_NLATTR, that looks for an attribute inside the limits of
+a nested attributes, but not further.
 
-I was going to suggest simply adding a port member to the
-in_pktinfo struct, because at worst the user will see
-a MSG_CTRUNC.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
 
-But I guess that is not worth the risk.
+ include/linux/filter.h |    3 ++-
+ net/core/filter.c      |   15 +++++++++++++++
+ 2 files changed, 17 insertions(+), 1 deletions(-)
 
-If you want to do the function pointer cleanup suggested
-by David Stevens, please make that as a followon patch.
+diff --git a/include/linux/filter.h b/include/linux/filter.h
+index b6ea9aa..1354aaf 100644
+--- a/include/linux/filter.h
++++ b/include/linux/filter.h
+@@ -122,7 +122,8 @@ struct sock_fprog	/* Required for SO_ATTACH_FILTER. */
+ #define SKF_AD_PKTTYPE 	4
+ #define SKF_AD_IFINDEX 	8
+ #define SKF_AD_NLATTR	12
+-#define SKF_AD_MAX 	16
++#define SKF_AD_NLATTR_NEST	16
++#define SKF_AD_MAX	20
+ #define SKF_NET_OFF   (-0x100000)
+ #define SKF_LL_OFF    (-0x200000)
+ 
+diff --git a/net/core/filter.c b/net/core/filter.c
+index df37443..2f9c7ea 100644
+--- a/net/core/filter.c
++++ b/net/core/filter.c
+@@ -319,6 +319,21 @@ load_b:
+ 				A = 0;
+ 			continue;
+ 		}
++		case SKF_AD_NLATTR_NEST: {
++			struct nlattr *nla;
++
++			if (skb_is_nonlinear(skb))
++				return 0;
++			if (A > skb->len - sizeof(struct nlattr))
++				return 0;
++
++			nla = nla_find_nested((struct nlattr *)&skb->data[A],X);
++			if (nla)
++				A = (void *)nla - (void *)skb->data;
++			else
++				A = 0;
++			continue;
++		}
+ 		default:
+ 			return 0;
+ 		}
 
-Thanks.
