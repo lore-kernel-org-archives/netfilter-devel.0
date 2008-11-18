@@ -1,54 +1,90 @@
-From: "Frank Bulk" <frnkblk@iname.com>
-Subject: RE: conntrack ftp fails to handle PORT (and PASV?) command when split over multiple TCP packets
-Date: Mon, 17 Nov 2008 20:36:11 -0600
-Message-ID: <!&!AAAAAAAAAAAuAAAAAAAAAKTyXRN5/+lGvU59a+P7CFMBAN6gY+ZG84BMpVQcAbDh1IQAAAATbSgAABAAAADCtTUdIJ84Q59fOlKySo0wAQAAAAA=@iname.com>
-References: <!&!AAAAAAAAAAAuAAAAAAAAAKTyXRN5/+lGvU59a+P7CFMBAN6gY+ZG84BMpVQcAbDh1IQAAAATbSgAABAAAACjGmKcXUZtSrl15MejBLj+AQAAAAA=@iname.com> <49220C89.4040801@snapgear.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH] filter: add SKF_AD_NLATTR_NEST to look for nested attributes
+Date: Tue, 18 Nov 2008 04:01:12 +0100
+Message-ID: <20081118030112.28254.90533.stgit@Decadence>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@vger.kernel.org>
-To: "'Philip Craig'" <philipc@snapgear.com>
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net,
+	davem@davemloft.net
+To: netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.mtcnet.net ([199.120.69.26]:60658 "EHLO smtp1.mtcnet.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751371AbYKRCg3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Nov 2008 21:36:29 -0500
-In-Reply-To: <49220C89.4040801@snapgear.com>
-Content-Language: en-us
+Received: from mail.us.es ([193.147.175.20]:37059 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751327AbYKRDBR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 17 Nov 2008 22:01:17 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Philip:
+SKF_AD_NLATTR allows us to find the first matching attribute in a
+stream of netlink attributes from one offset to the end of the
+netlink message. This is not suitable to look for a specific
+matching inside a set of nested attributes.
 
-Thanks for the pointer to frox.
+For example, in ctnetlink messages, if we look for the CTA_V6_SRC
+attribute in a message that talks about an IPv4 connection,
+SKF_AD_NLATTR returns the offset of CTA_STATUS which has the same
+value of CTA_V6_SRC but outside the nest. To differenciate
+CTA_STATUS and CTA_V6_SRC, we would have to make assumptions on the
+size of the attribute and the usual offset, resulting in horrible
+BSF code.
 
-I'm not sure if the DSL modem vendor would add in this piece of opensource
-software to their box, but we'll see.
+This patch adds SKF_AD_NLATTR_NEST, which is a variant of
+SKF_AD_NLATTR, that looks for an attribute inside the limits of
+a nested attributes, but not further.
 
-Regards,
+This patch validates that we have enough room to look for the
+nested attributes - based on a suggestion from Patrick McHardy.
 
-Frank
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
 
------Original Message-----
-From: Philip Craig [mailto:philipc@snapgear.com] 
-Sent: Monday, November 17, 2008 6:30 PM
-To: Frank Bulk
-Cc: netfilter-devel@vger.kernel.org
-Subject: Re: conntrack ftp fails to handle PORT (and PASV?) command when
-split over multiple TCP packets
+ include/linux/filter.h |    3 ++-
+ net/core/filter.c      |   19 +++++++++++++++++++
+ 2 files changed, 21 insertions(+), 1 deletions(-)
 
-Frank Bulk wrote:
-> Can anyone confirm that iptables still behaves this way, and if so, code a
-> fix so that no matter how many packets a PORT or PASV command are split
-over
-> (in other words, no matter how small the client's MTU) that iptables ACKs
-> each packet received on the LAN side and the ALG properly reassembles the
-> command and sends it out the WAN interface?
-
-iptables is a packet filter, not an ALG.  You could add more state to the
-helper, but it would be hard to get right, and I don't think it is worth
-the effort.  Try using a userspace ftp proxy instead.  (eg I've used frox
-with no problems.)
-
+diff --git a/include/linux/filter.h b/include/linux/filter.h
+index b6ea9aa..1354aaf 100644
+--- a/include/linux/filter.h
++++ b/include/linux/filter.h
+@@ -122,7 +122,8 @@ struct sock_fprog	/* Required for SO_ATTACH_FILTER. */
+ #define SKF_AD_PKTTYPE 	4
+ #define SKF_AD_IFINDEX 	8
+ #define SKF_AD_NLATTR	12
+-#define SKF_AD_MAX 	16
++#define SKF_AD_NLATTR_NEST	16
++#define SKF_AD_MAX	20
+ #define SKF_NET_OFF   (-0x100000)
+ #define SKF_LL_OFF    (-0x200000)
+ 
+diff --git a/net/core/filter.c b/net/core/filter.c
+index df37443..d1d779c 100644
+--- a/net/core/filter.c
++++ b/net/core/filter.c
+@@ -319,6 +319,25 @@ load_b:
+ 				A = 0;
+ 			continue;
+ 		}
++		case SKF_AD_NLATTR_NEST: {
++			struct nlattr *nla;
++
++			if (skb_is_nonlinear(skb))
++				return 0;
++			if (A > skb->len - sizeof(struct nlattr))
++				return 0;
++
++			nla = (struct nlattr *)&skb->data[A];
++			if (nla->nla_len > A - skb->len)
++				return 0;
++
++			nla = nla_find_nested(nla, X);
++			if (nla)
++				A = (void *)nla - (void *)skb->data;
++			else
++				A = 0;
++			continue;
++		}
+ 		default:
+ 			return 0;
+ 		}
 
