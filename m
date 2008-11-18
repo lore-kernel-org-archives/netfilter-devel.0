@@ -1,45 +1,128 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 7/8] [PATCH] dynamic calculation of event message size
- for	ctnetlink
-Date: Tue, 18 Nov 2008 11:21:46 +0100
-Message-ID: <4922973A.7000001@netfilter.org>
-References: <20081117083924.11368.38741.stgit@Decadence> <20081117084141.11368.26975.stgit@Decadence> <49218EA3.8090801@trash.net> <49223799.70505@netfilter.org>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: src: reuse the global modprobe_program variable
+Date: Tue, 18 Nov 2008 11:44:15 +0100 (CET)
+Message-ID: <alpine.LNX.1.10.0811181143590.17946@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59878 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751709AbYKRKWA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Nov 2008 05:22:00 -0500
-In-Reply-To: <49223799.70505@netfilter.org>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:48450 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751061AbYKRKoQ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 18 Nov 2008 05:44:16 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> Patrick McHardy wrote:
->> These calculations look somewhat expensive to perform for every message.
->> Do you have any numbers for this new patch that shows the difference
->> in CPU usage compared to the resizing done by af_netlink.c?
-> 
-> Fabian Hugelshofer reported some reduction (~5%) on an embedded
-> environment but he was using top to measure the difference. I'll collect
-> some more trustable data and get back to you.
+commit 2a87943e288e30162c6e8e42be10fdc7c3bd8313
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Tue Nov 18 11:43:42 2008 +0100
 
-Some oprofile results:
+src: reuse the global modprobe_program variable
 
-wo/patch
-2189      0.0305  nf_conntrack_netlink.ko  nf_conntrack_netlink
-ctnetlink_conntrack_event
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ ip6tables-restore.c |   10 ++++------
+ iptables-restore.c  |    9 ++++-----
+ 2 files changed, 8 insertions(+), 11 deletions(-)
 
-w/patch
-2302      0.0440  nf_conntrack_netlink.ko  nf_conntrack_netlink
-ctnetlink_conntrack_event
+diff --git a/ip6tables-restore.c b/ip6tables-restore.c
+index 0daae5f..01bccf7 100644
+--- a/ip6tables-restore.c
++++ b/ip6tables-restore.c
+@@ -56,8 +56,7 @@ static void print_usage(const char *name, const char *version)
+ 	exit(1);
+ }
+ 
+-static struct ip6tc_handle *create_handle(const char *tablename,
+-                                    const char *modprobe)
++static struct ip6tc_handle *create_handle(const char *tablename)
+ {
+ 	struct ip6tc_handle *handle;
+ 
+@@ -65,7 +64,7 @@ static struct ip6tc_handle *create_handle(const char *tablename,
+ 
+ 	if (!handle) {
+ 		/* try to insmod the module if iptc_init failed */
+-		load_xtables_ko(modprobe, 0);
++		load_xtables_ko(modprobe_program, 0);
+ 		handle = ip6tc_init(tablename);
+ 	}
+ 
+@@ -124,7 +123,6 @@ int main(int argc, char *argv[])
+ 	int c;
+ 	char curtable[IP6T_TABLE_MAXNAMELEN + 1];
+ 	FILE *in;
+-	const char *modprobe = NULL;
+ 	int in_table = 0, testing = 0;
+ 
+ 	program_name = "ip6tables-restore";
+@@ -166,7 +164,7 @@ int main(int argc, char *argv[])
+ 				noflush = 1;
+ 				break;
+ 			case 'M':
+-				modprobe = optarg;
++				modprobe_program = optarg;
+ 				break;
+ 		}
+ 	}
+@@ -225,7 +223,7 @@ int main(int argc, char *argv[])
+ 			if (handle)
+ 				ip6tc_free(handle);
+ 
+-			handle = create_handle(table, modprobe);
++			handle = create_handle(table);
+ 			if (noflush == 0) {
+ 				DEBUGP("Cleaning all chains of table '%s'\n",
+ 					table);
+diff --git a/iptables-restore.c b/iptables-restore.c
+index 12e558d..4ea9306 100644
+--- a/iptables-restore.c
++++ b/iptables-restore.c
+@@ -55,7 +55,7 @@ static void print_usage(const char *name, const char *version)
+ 	exit(1);
+ }
+ 
+-static struct iptc_handle *create_handle(const char *tablename, const char *modprobe)
++static struct iptc_handle *create_handle(const char *tablename)
+ {
+ 	struct iptc_handle *handle;
+ 
+@@ -63,7 +63,7 @@ static struct iptc_handle *create_handle(const char *tablename, const char *modp
+ 
+ 	if (!handle) {
+ 		/* try to insmod the module if iptc_init failed */
+-		load_xtables_ko(modprobe, 0);
++		load_xtables_ko(modprobe_program, 0);
+ 		handle = iptc_init(tablename);
+ 	}
+ 
+@@ -124,7 +124,6 @@ main(int argc, char *argv[])
+ 	int c;
+ 	char curtable[IPT_TABLE_MAXNAMELEN + 1];
+ 	FILE *in;
+-	const char *modprobe = NULL;
+ 	int in_table = 0, testing = 0;
+ 	const char *tablename = NULL;
+ 
+@@ -167,7 +166,7 @@ main(int argc, char *argv[])
+ 				noflush = 1;
+ 				break;
+ 			case 'M':
+-				modprobe = optarg;
++				modprobe_program = optarg;
+ 				break;
+ 			case 'T':
+ 				tablename = optarg;
+@@ -231,7 +230,7 @@ main(int argc, char *argv[])
+ 			if (handle)
+ 				iptc_free(handle);
+ 
+-			handle = create_handle(table, modprobe);
++			handle = create_handle(table);
+ 			if (noflush == 0) {
+ 				DEBUGP("Cleaning all chains of table '%s'\n",
+ 					table);
 
-While __alloc_skb and netlink_broadcast report similar values for w/ and
-wo/ the patch.
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
