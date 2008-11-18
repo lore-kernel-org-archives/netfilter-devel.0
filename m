@@ -1,46 +1,46 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 7/8] [PATCH] dynamic calculation of event message size
- for	ctnetlink
-Date: Tue, 18 Nov 2008 12:03:00 +0100
-Message-ID: <4922A0E4.5010806@trash.net>
-References: <20081117083924.11368.38741.stgit@Decadence> <20081117084141.11368.26975.stgit@Decadence> <49218EA3.8090801@trash.net> <49223799.70505@netfilter.org> <4922973A.7000001@netfilter.org>
+Subject: Re: crash in death_by_timeout()
+Date: Tue, 18 Nov 2008 12:07:20 +0100
+Message-ID: <4922A1E8.7080405@trash.net>
+References: <20081117221855.GD3271@zebra.home>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: BORBELY Zoltan <bozo@andrews.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:33874 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:33969 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751356AbYKRLDG (ORCPT
+	with ESMTP id S1751061AbYKRLHZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Nov 2008 06:03:06 -0500
-In-Reply-To: <4922973A.7000001@netfilter.org>
+	Tue, 18 Nov 2008 06:07:25 -0500
+In-Reply-To: <20081117221855.GD3271@zebra.home>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> Pablo Neira Ayuso wrote:
->> Patrick McHardy wrote:
->>> These calculations look somewhat expensive to perform for every message.
->>> Do you have any numbers for this new patch that shows the difference
->>> in CPU usage compared to the resizing done by af_netlink.c?
->> Fabian Hugelshofer reported some reduction (~5%) on an embedded
->> environment but he was using top to measure the difference. I'll collect
->> some more trustable data and get back to you.
+BORBELY Zoltan wrote:
+> Hi,
 > 
-> Some oprofile results:
-> 
-> wo/patch
-> 2189      0.0305  nf_conntrack_netlink.ko  nf_conntrack_netlink
-> ctnetlink_conntrack_event
-> 
-> w/patch
-> 2302      0.0440  nf_conntrack_netlink.ko  nf_conntrack_netlink
-> ctnetlink_conntrack_event
-> 
-> While __alloc_skb and netlink_broadcast report similar values for w/ and
-> wo/ the patch.
+> There's a race in the nfct netlink code, the result is a crash in the
+> death_by_timeout() function. When a timer interrupt occures during a
+> new entry addition, the kernel will crash due to a NULL deref. The
+> attached patch has solved the problem for us. I haven't tested it on
+> the latest kernels, but the problem still seems to be there.
 
-So its actually getting worse? :) Any other differences, like less
-cycles for memcpy in netlink_trim()?
+> --- /tmp/nf_conntrack_netlink.c-orig	2008-09-29 23:28:55.000000000 +0200
+> +++ /tmp/nf_conntrack_netlink.c	2008-09-29 23:29:11.000000000 +0200
+> @@ -1177,8 +1177,8 @@
+>  		ct->master = master_ct;
+>  	}
+>  
+> -	add_timer(&ct->timeout);
+>  	nf_conntrack_hash_insert(ct);
+> +	add_timer(&ct->timeout);
+>  	rcu_read_unlock();
+
+That code looks very fishy. We should be holding the conntrack lock,
+otherwise the addition is not only racy against the timer, but also
+against addition of identical conntracks. Let me look into what
+happened here.
+
