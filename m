@@ -1,100 +1,58 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 1/3] iptables: fix error reporting with wrong/missing arguments
-Date: Wed, 19 Nov 2008 00:43:12 +0100
-Message-ID: <20081118234311.15750.80335.stgit@Decadence>
+Subject: [PATCH 2/3] state: report spaces in the state list parsing
+Date: Wed, 19 Nov 2008 00:43:36 +0100
+Message-ID: <20081118234336.15750.52780.stgit@Decadence>
+References: <20081118234311.15750.80335.stgit@Decadence>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50463 "EHLO us.es"
+Received: from mail.us.es ([193.147.175.20]:53138 "EHLO us.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752086AbYKRXnX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Nov 2008 18:43:23 -0500
+	id S1752158AbYKRXns (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 18 Nov 2008 18:43:48 -0500
+In-Reply-To: <20081118234311.15750.80335.stgit@Decadence>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch fixes wrong error reporting when arguments are missing:
+This patch adds better error reporting when the user inserts a space
+between two states with the --state option.
 
-# iptables -I INPUT -m state --state
-iptables v1.4.2-rc1: Unknown arg `(null)'
+iptables -I INPUT -m state ESTABLISHED, RELATED
+                                       ^
+				  mind the space
+
+results in:
+
+iptables v1.4.2-rc1: Bad state `'
 Try `iptables -h' or 'iptables --help' for more information.
 
-or wrong:
+Now this returns:
 
-# iptables -I INPUT -m state --xyz
-iptables v1.4.2-rc1: Unknown arg `(null)'
-Try `iptables -h' or 'iptables --help' for more information.
+iptables v1.4.2-rc1: `--state' requires a list of states with no
+spaces, e.g. ESTABLISHED,RELATED
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
 
- ip6tables.c |   19 ++++++++++++++++++-
- iptables.c  |   19 ++++++++++++++++++-
- 2 files changed, 36 insertions(+), 2 deletions(-)
+ extensions/libxt_state.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
-diff --git a/ip6tables.c b/ip6tables.c
-index 12298ca..9ce1074 100644
---- a/ip6tables.c
-+++ b/ip6tables.c
-@@ -1888,9 +1888,26 @@ int do_command6(int argc, char *argv[], char **table, ip6tc_handle_t *handle)
- 					continue;
- 				}
- 
--				if (!m)
-+				if (!m) {
-+					if (c == '?') {
-+						if (optopt) {
-+							exit_error(
-+							   PARAMETER_PROBLEM,
-+							   "option `%s' "
-+							   "requires an "
-+							   "argument",
-+							   argv[optind-1]);
-+						} else {
-+							exit_error(
-+							   PARAMETER_PROBLEM,
-+							   "unknown option "
-+							   "`%s'",
-+							   argv[optind-1]);
-+						}
-+					}
- 					exit_error(PARAMETER_PROBLEM,
- 						   "Unknown arg `%s'", optarg);
-+				}
- 			}
- 		}
- 		invert = FALSE;
-diff --git a/iptables.c b/iptables.c
-index b927a11..d2b9081 100644
---- a/iptables.c
-+++ b/iptables.c
-@@ -1909,9 +1909,26 @@ int do_command(int argc, char *argv[], char **table, iptc_handle_t *handle)
- 					optind--;
- 					continue;
- 				}
--				if (!m)
-+				if (!m) {
-+					if (c == '?') {
-+						if (optopt) {
-+							exit_error(
-+							   PARAMETER_PROBLEM,
-+							   "option `%s' "
-+							   "requires an "
-+							   "argument",
-+							   argv[optind-1]);
-+						} else {
-+							exit_error(
-+							   PARAMETER_PROBLEM,
-+							   "unknown option "
-+							   "`%s'",
-+							   argv[optind-1]);
-+						}
-+					}
- 					exit_error(PARAMETER_PROBLEM,
- 						   "Unknown arg `%s'", optarg);
-+				}
- 			}
- 		}
- 		invert = FALSE;
+diff --git a/extensions/libxt_state.c b/extensions/libxt_state.c
+index 3af2e48..ae8ae7b 100644
+--- a/extensions/libxt_state.c
++++ b/extensions/libxt_state.c
+@@ -54,7 +54,10 @@ state_parse_states(const char *arg, struct xt_state_info *sinfo)
+ 			exit_error(PARAMETER_PROBLEM, "Bad state `%s'", arg);
+ 		arg = comma+1;
+ 	}
+-
++	if (!*arg)
++		exit_error(PARAMETER_PROBLEM, "`--state' requires a list of "
++					      "states with no spaces, e.g. "
++					      "ESTABLISHED,RELATED");
+ 	if (strlen(arg) == 0 || !state_parse_state(arg, strlen(arg), sinfo))
+ 		exit_error(PARAMETER_PROBLEM, "Bad state `%s'", arg);
+ }
 
