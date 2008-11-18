@@ -1,54 +1,33 @@
-From: BORBELY Zoltan <bozo@andrews.hu>
-Subject: crash in death_by_timeout()
-Date: Mon, 17 Nov 2008 23:18:55 +0100
-Message-ID: <20081117221855.GD3271@zebra.home>
+From: Philip Craig <philipc@snapgear.com>
+Subject: Re: conntrack ftp fails to handle PORT (and PASV?) command when split
+ over multiple TCP packets
+Date: Tue, 18 Nov 2008 10:30:01 +1000
+Message-ID: <49220C89.4040801@snapgear.com>
+References: <!&!AAAAAAAAAAAuAAAAAAAAAKTyXRN5/+lGvU59a+P7CFMBAN6gY+ZG84BMpVQcAbDh1IQAAAATbSgAABAAAACjGmKcXUZtSrl15MejBLj+AQAAAAA=@iname.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="NtwzykIc2mflq5ck"
-To: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Frank Bulk <frnkblk@iname.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx8.datanet.hu ([194.149.13.161]:63791 "EHLO mx8.datanet.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751633AbYKQXBT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 Nov 2008 18:01:19 -0500
-Received: from dolphin (tng660dvmi.adsl.datanet.hu [195.56.206.203])
-	by mx8.datanet.hu (DataNet) with ESMTP id ED893EC284
-	for <netfilter-devel@vger.kernel.org>; Mon, 17 Nov 2008 23:19:14 +0100 (CET)
-Content-Disposition: inline
+Received: from rex.securecomputing.com ([203.24.151.4]:47595 "EHLO
+	cyberguard.com.au" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750893AbYKRAaE (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 17 Nov 2008 19:30:04 -0500
+In-Reply-To: <!&!AAAAAAAAAAAuAAAAAAAAAKTyXRN5/+lGvU59a+P7CFMBAN6gY+ZG84BMpVQcAbDh1IQAAAATbSgAABAAAACjGmKcXUZtSrl15MejBLj+AQAAAAA=@iname.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Frank Bulk wrote:
+> Can anyone confirm that iptables still behaves this way, and if so, code a
+> fix so that no matter how many packets a PORT or PASV command are split over
+> (in other words, no matter how small the client's MTU) that iptables ACKs
+> each packet received on the LAN side and the ALG properly reassembles the
+> command and sends it out the WAN interface?
 
---NtwzykIc2mflq5ck
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+iptables is a packet filter, not an ALG.  You could add more state to the
+helper, but it would be hard to get right, and I don't think it is worth
+the effort.  Try using a userspace ftp proxy instead.  (eg I've used frox
+with no problems.)
 
-Hi,
-
-There's a race in the nfct netlink code, the result is a crash in the
-death_by_timeout() function. When a timer interrupt occures during a
-new entry addition, the kernel will crash due to a NULL deref. The
-attached patch has solved the problem for us. I haven't tested it on
-the latest kernels, but the problem still seems to be there.
-
-Bye,
-Zoltan Borbely
-
---NtwzykIc2mflq5ck
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: attachment; filename="nf_conntrack_netlink.patch"
-
---- /tmp/nf_conntrack_netlink.c-orig	2008-09-29 23:28:55.000000000 +0200
-+++ /tmp/nf_conntrack_netlink.c	2008-09-29 23:29:11.000000000 +0200
-@@ -1177,8 +1177,8 @@
- 		ct->master = master_ct;
- 	}
- 
--	add_timer(&ct->timeout);
- 	nf_conntrack_hash_insert(ct);
-+	add_timer(&ct->timeout);
- 	rcu_read_unlock();
- 
- 	return 0;
-
---NtwzykIc2mflq5ck--
