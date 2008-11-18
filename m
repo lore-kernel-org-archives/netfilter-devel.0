@@ -1,21 +1,51 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Xtables-addons 1.6
-Date: Tue, 18 Nov 2008 18:42:39 +0100 (CET)
-Message-ID: <alpine.LNX.1.10.0811181840170.2316@fbirervta.pbzchgretzou.qr>
+From: John Haxby <john.haxby@oracle.com>
+Subject: Re: Problem compiling
+Date: Tue, 18 Nov 2008 18:14:05 +0000
+Message-ID: <492305ED.8010207@oracle.com>
+References: <49219BF2.6090904@oracle.com> <alpine.LNX.1.10.0811172259080.17946@fbirervta.pbzchgretzou.qr> <4921F222.7020809@oracle.com> <alpine.LNX.1.10.0811172342170.17946@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter@vger.kernel.org
-To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-owner@vger.kernel.org>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from acsinet12.oracle.com ([141.146.126.234]:42227 "EHLO
+	acsinet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753330AbYKRSOV (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 18 Nov 2008 13:14:21 -0500
+In-Reply-To: <alpine.LNX.1.10.0811172342170.17946@fbirervta.pbzchgretzou.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+Jan Engelhardt wrote:
+>
+> Blame the Fedora packager for that.
+> libiptc.h is installed with the raw iptables tarball since 1.4.0+git61.
+>   
 
-A short notice to inform readers of the Xtables-addons 1.6 release, 
-which incorporates a newer version of ipset (after the many releases it 
-did ;-) and making the package compile under the latest 2.6.28(-rc).
+I'd love to, but:
 
-I will try to process the feature requests that piled up by now... 
-meanwhile enjoy:
+$ tar xf iptables-1.4.1.1.tar.bz2
+$ cd iptables-1.4.1.1
+$ ./configure --preifx=/var/tmp/iptables-test --enable-devel --enable-libipq
+(the --enable's are just in case)
+$ make
+$ make install
+$ find /var/tmp/iptables-test -name '*.h'
+/var/tmp/iptables-test/include/xtables.h
+/var/tmp/iptables-test/include/libipq.h
+/var/tmp/iptables-test/include/ip6tables.h
+/var/tmp/iptables-test/include/libiptc/ipt_kernel_headers.h
+/var/tmp/iptables-test/include/libiptc/libxtc.h
+/var/tmp/iptables-test/include/iptables.h
 
-http://dev.medozas.de/files/xtables/xtables-addons-1.6.tar.bz2 {,.asc}
+The same thing with iptables-1.4.2 gives these header files:
+
+/var/tmp/iptables-test/include/xtables.h
+/var/tmp/iptables-test/include/libipq.h
+
+Clearly I'm doing something wrong.   Could you enlighten me?
+
+jch
