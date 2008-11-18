@@ -1,51 +1,41 @@
-From: John Haxby <john.haxby@oracle.com>
+From: Jan Engelhardt <jengelh@medozas.de>
 Subject: Re: Problem compiling
-Date: Tue, 18 Nov 2008 18:14:05 +0000
-Message-ID: <492305ED.8010207@oracle.com>
-References: <49219BF2.6090904@oracle.com> <alpine.LNX.1.10.0811172259080.17946@fbirervta.pbzchgretzou.qr> <4921F222.7020809@oracle.com> <alpine.LNX.1.10.0811172342170.17946@fbirervta.pbzchgretzou.qr>
+Date: Tue, 18 Nov 2008 19:27:00 +0100 (CET)
+Message-ID: <alpine.LNX.1.10.0811181919160.2316@fbirervta.pbzchgretzou.qr>
+References: <49219BF2.6090904@oracle.com> <alpine.LNX.1.10.0811172259080.17946@fbirervta.pbzchgretzou.qr> <4921F222.7020809@oracle.com> <alpine.LNX.1.10.0811172342170.17946@fbirervta.pbzchgretzou.qr> <492305ED.8010207@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+To: John Haxby <john.haxby@oracle.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from acsinet12.oracle.com ([141.146.126.234]:42227 "EHLO
-	acsinet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753330AbYKRSOV (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:52075 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751201AbYKRS1C (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Nov 2008 13:14:21 -0500
-In-Reply-To: <alpine.LNX.1.10.0811172342170.17946@fbirervta.pbzchgretzou.qr>
+	Tue, 18 Nov 2008 13:27:02 -0500
+In-Reply-To: <492305ED.8010207@oracle.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
+
+On Tuesday 2008-11-18 19:14, John Haxby wrote:
+> Jan Engelhardt wrote:
+>>
+>>> /usr/include/iptables.h:5:29: error: libiptc/libiptc.h: No such file or
+>>> directory
+>>
+>> [Try] Blame the Fedora packager for that.
+>> libiptc.h is installed with the raw iptables tarball since 1.4.0+git61.
 >
-> Blame the Fedora packager for that.
-> libiptc.h is installed with the raw iptables tarball since 1.4.0+git61.
->   
+> I'd love to, but:[...]
+> Clearly I'm doing something wrong.   Could you enlighten me?
 
-I'd love to, but:
+There must have been a dimensional rift somewhere and I must have mixed 
+something up. It is libxtc.h which is installed since then, because 
+xtables.h depended on it somehow. Upon reanalyzing, I see that there is 
+now room for patches to correct the current state. Thanks for pointing 
+out!
 
-$ tar xf iptables-1.4.1.1.tar.bz2
-$ cd iptables-1.4.1.1
-$ ./configure --preifx=/var/tmp/iptables-test --enable-devel --enable-libipq
-(the --enable's are just in case)
-$ make
-$ make install
-$ find /var/tmp/iptables-test -name '*.h'
-/var/tmp/iptables-test/include/xtables.h
-/var/tmp/iptables-test/include/libipq.h
-/var/tmp/iptables-test/include/ip6tables.h
-/var/tmp/iptables-test/include/libiptc/ipt_kernel_headers.h
-/var/tmp/iptables-test/include/libiptc/libxtc.h
-/var/tmp/iptables-test/include/iptables.h
-
-The same thing with iptables-1.4.2 gives these header files:
-
-/var/tmp/iptables-test/include/xtables.h
-/var/tmp/iptables-test/include/libipq.h
-
-Clearly I'm doing something wrong.   Could you enlighten me?
-
-jch
+In short, including iptables.h is not appropriate anymore; for
+all the important definitions have moved to xtables.h.
