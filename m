@@ -1,51 +1,28 @@
-From: Andy Whitcroft <apw@canonical.com>
-Subject: [PATCH 1/1] netfilter: ip{,6}t_policy.h should include xp_policy.h
-Date: Wed, 19 Nov 2008 16:21:22 +0000
-Message-ID: <1227111682-14073-1-git-send-email-apw@canonical.com>
-Cc: Andy Whitcroft <apw@canonical.com>
-To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 1/1] netfilter: ip{,6}t_policy.h should include xp_policy.h
+Date: Wed, 19 Nov 2008 19:08:17 +0100
+Message-ID: <49245611.1080905@trash.net>
+References: <1227111682-14073-1-git-send-email-apw@canonical.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
 	coreteam@netfilter.org
-Return-path: <netfilter-owner@vger.kernel.org>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: Andy Whitcroft <apw@canonical.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:36639 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752107AbYKSSIY (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 19 Nov 2008 13:08:24 -0500
+In-Reply-To: <1227111682-14073-1-git-send-email-apw@canonical.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-It seems that all of the include/netfilter_{ipv4,ipv6}/{ipt,ip6t}_*.h which
-share constants include the corresponding include/netfilter/xp_*.h files.
-Neither ipt_policy.h not ip6t_policy.h do.  Make these consistant with
-the norm.
+Andy Whitcroft wrote:
+> It seems that all of the include/netfilter_{ipv4,ipv6}/{ipt,ip6t}_*.h which
+> share constants include the corresponding include/netfilter/xp_*.h files.
+> Neither ipt_policy.h not ip6t_policy.h do.  Make these consistant with
+> the norm.
 
-Signed-off-by: Andy Whitcroft <apw@canonical.com>
----
- include/linux/netfilter_ipv4/ipt_policy.h  |    2 ++
- include/linux/netfilter_ipv6/ip6t_policy.h |    2 ++
- 2 files changed, 4 insertions(+), 0 deletions(-)
-
-diff --git a/include/linux/netfilter_ipv4/ipt_policy.h b/include/linux/netfilter_ipv4/ipt_policy.h
-index b9478a2..1037fb2 100644
---- a/include/linux/netfilter_ipv4/ipt_policy.h
-+++ b/include/linux/netfilter_ipv4/ipt_policy.h
-@@ -1,6 +1,8 @@
- #ifndef _IPT_POLICY_H
- #define _IPT_POLICY_H
- 
-+#include <linux/netfilter/xt_policy.h>
-+
- #define IPT_POLICY_MAX_ELEM		XT_POLICY_MAX_ELEM
- 
- /* ipt_policy_flags */
-diff --git a/include/linux/netfilter_ipv6/ip6t_policy.h b/include/linux/netfilter_ipv6/ip6t_policy.h
-index 6bab316..b1c449d 100644
---- a/include/linux/netfilter_ipv6/ip6t_policy.h
-+++ b/include/linux/netfilter_ipv6/ip6t_policy.h
-@@ -1,6 +1,8 @@
- #ifndef _IP6T_POLICY_H
- #define _IP6T_POLICY_H
- 
-+#include <linux/netfilter/xt_policy.h>
-+
- #define IP6T_POLICY_MAX_ELEM		XT_POLICY_MAX_ELEM
- 
- /* ip6t_policy_flags */
--- 
-1.6.0.4.911.gc990
-
+Does this actually fix a bug, or is it just for added consistency?
