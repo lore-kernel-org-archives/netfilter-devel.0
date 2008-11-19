@@ -1,32 +1,35 @@
-From: "JC Janos" <jcjanos245@gmail.com>
-Subject: Re: Xtables-addons 1.6
-Date: Tue, 18 Nov 2008 16:20:31 -0800
-Message-ID: <7259d7020811181620n1ca06f84oe9d6d1f5f0a680c7@mail.gmail.com>
-References: <alpine.LNX.1.10.0811181840170.2316@fbirervta.pbzchgretzou.qr>
+From: "=?BIG5?B?sWmp+qpO?=" <e5nz5c7h85a5d@gmail.com>
+Subject: =?BIG5?B?pHPgvqzsp9669K22s12tcA==?=
+Date: Wed, 19 Nov 2008 14:26:07 +0800
+Message-ID: <c16f75090811182226o4df3320br900988f95fce6b0b__46839.0824659311$1227076069$gmane$org@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: "Netfilter Developer Mailing List" <netfilter-devel@vger.kernel.org>,
-	netfilter@vger.kernel.org
-To: "Jan Engelhardt" <jengelh@medozas.de>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <alpine.LNX.1.10.0811181840170.2316@fbirervta.pbzchgretzou.qr>
+Content-Type: text/plain; charset=BIG5
+Content-Transfer-Encoding: base64
+To: netskidd5@msn.com
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from qb-out-0506.google.com ([72.14.204.226]:11421 "EHLO
+	qb-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751248AbYKSG0R (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 19 Nov 2008 01:26:17 -0500
+Received: by qb-out-0506.google.com with SMTP id f11so3282360qba.17
+        for <netfilter-devel@vger.kernel.org>; Tue, 18 Nov 2008 22:26:16 -0800 (PST)
 Content-Disposition: inline
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan,
-
-On Tue, Nov 18, 2008 at 9:42 AM, Jan Engelhardt <jengelh@medozas.de> wrote:
-> which incorporates a newer version of ipset (after the many releases it
-> did ;-)
-
-If we already have built & installed the latest ipset from its svn:
-repository is it ok to use it instead?
-
-Can the xtables-addons build be informed of a preexisting ipset?
-'configure --help' doesn't seem to have an option for it.
-
-Thanks.
-
---JC
+pHPgvqzsp9669K22s12tcAoKobqn2q3MqrqpdqauoUeryKThqrqoQ6O4pfOkcKjGsaGhQbOjrE+k
+c+C+qrqkaqjGsaEKCqHXoden2q3MpmKxwKVYpfi3fqfOtki69K+4pV2ndKtlpXi69K22rPykdSur
+4aV4ut6yerV7pqEKCqJDra2uya2ttnGxTa7Xu/kgpXWtbiQyOSw5MDAKCqJIKKZisGWjuKZ+MTAw
+TUKko62trHm2cbr0r7iqxbahKQoKob6n2q3MsLWquqSjpXWsT7r0r7ihQabTrE+xeqX4t36quqRK
+pGYKCqGuo7it06Zuqrql+Ld+uvSvuLjqrsanWa7Jp/O3c6q6s3Sr16xPq9ytq61uqroKCqHQpfi3
+fqLtpMaqurCqq3696LnOtqShQaW0s3mxeqq6uvS49Kr5rbEKCqH4v+++3KRz4L6mqLROsXqqurna
+t1EKCqHjoeOh46HjoeOh46HjoeOh46HjoeOh46HjoeOh46HjoeOh46HjoeOh46HjoeOh46HjoeMK
+UFM6IL11pFfByqqruvSvuKfarczB2aVptKOo0ajqpWS+96juoUEKoUChQLtQvXWkV6ZDpkyxYrPm
+pf6s2bZXsNMrtmynvcO6tk8uLi4uLi61par3rHmqQbDIvveo7gqh46HjoeOh46HjoeOh46HjoeOh
+46HjoeOh46HjoeOh46HjoeOh46HjoeOh46HjoeOh46HjCgrFd6rvqNO5cayiuN+2wLFNrfuhXVNh
+baFeoUcwOTgwMTE5ODEyIC8gMDkzODc2NDM5NQoKoeOh46HjoeOh46HjoeOh46HjoeOh46HjoeOh
+46HjoeOh46HjoeOh46HjoeOh46HjoeOh4wqlu6S9pXGldKV+tKOo0cP2weSmclNFT7HGp8eqQbDI
+CqtPw9KxTrF6qrq69K+4pmJZeCAvIEd4IC4uLrHGpmKyxKRArbYKoUChQKFAoUChQKFAoUChQKFA
+oUChQKFAoUChQKFAoUChQKFAIMV3qu+o07lxuN+w3SEhIQqh46HjoeOh46HjoeOh46HjoeOh46Hj
+oeOh46HjoeOh46HjoeOh46HjoeOh46HjoeOh46HjCg==
