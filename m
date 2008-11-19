@@ -1,34 +1,76 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 2/3] state: report spaces in the state list parsing
-Date: Wed, 19 Nov 2008 10:29:23 +0100 (CET)
-Message-ID: <alpine.LNX.1.10.0811191029090.30388@fbirervta.pbzchgretzou.qr>
-References: <20081118234311.15750.80335.stgit@Decadence> <20081118234336.15750.52780.stgit@Decadence>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/3] iptables: fix error reporting with wrong/missing
+ arguments
+Date: Wed, 19 Nov 2008 11:05:04 +0100
+Message-ID: <4923E4D0.6020003@netfilter.org>
+References: <20081118234311.15750.80335.stgit@Decadence> <alpine.LNX.1.10.0811191027340.30388@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:46623 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753129AbYKSJ3Y (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 19 Nov 2008 04:29:24 -0500
-In-Reply-To: <20081118234336.15750.52780.stgit@Decadence>
+Received: from mail.us.es ([193.147.175.20]:48076 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752679AbYKSKJy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 19 Nov 2008 05:09:54 -0500
+In-Reply-To: <alpine.LNX.1.10.0811191027340.30388@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Jan Engelhardt wrote:
+> On Wednesday 2008-11-19 00:43, Pablo Neira Ayuso wrote:
+>> @@ -1888,9 +1888,26 @@ int do_command6(int argc, char *argv[], char =
+**table, ip6tc_handle_t *handle)
+>> 					continue;
+>> 				}
+>>
+>> -				if (!m)
+>> +				if (!m) {
+>> +					if (c =3D=3D '?') {
+>> +						if (optopt) {
+>> +							exit_error(
+>> +							   PARAMETER_PROBLEM,
+>> +							   "option `%s' "
+>> +							   "requires an "
+>> +							   "argument",
+>> +							   argv[optind-1]);
+>> +						} else {
+>> +							exit_error(
+>> +							   PARAMETER_PROBLEM,
+>> +							   "unknown option "
+>> +							   "`%s'",
+>> +							   argv[optind-1]);
+>> +						}
+>> +					}
+>> 					exit_error(PARAMETER_PROBLEM,
+>> 						   "Unknown arg `%s'", optarg);
+>> +				}
+>=20
+> I think it is time to give attention to CodingStyle section 1:
+>=20
+> 	=E2=80=9CThe answer to that is that if you need more than 3 levels o=
+f
+> 	indentation, you're screwed anyway, and should fix your
+> 	program.=E2=80=9D
+>=20
+> Maybe this could be put into a separate function somehow than trying
+> to squeeze everything between colums 64 and 80?
 
-On Wednesday 2008-11-19 00:43, Pablo Neira Ayuso wrote:
+Putting this code into a function will not make any better for the whol=
+e
+section of code under the "default" tag in the switch - which is indeed
+already horrible as it looks like a real Spanish chorizo [1].
 
->Now this returns:
->
->iptables v1.4.2-rc1: `--state' requires a list of states with no
->spaces, e.g. ESTABLISHED,RELATED
->
->Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
->---
->
-> extensions/libxt_state.c |    5 ++++-
-> 1 files changed, 4 insertions(+), 1 deletions(-)
+Of course, you are free to send a patch to cleanup not only this part,
+but the whole default section of the switch. I'd be please to apply it.
 
-This also needs to be done for libxt_conntrack.c I guess.
+[1] http://en.wikipedia.org/wiki/Chorizo
+
+--=20
+"Los honestos son inadaptados sociales" -- Les Luthiers
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
