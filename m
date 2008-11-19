@@ -1,118 +1,48 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/3] state: report spaces in the state list parsing
-Date: Wed, 19 Nov 2008 11:11:48 +0100
-Message-ID: <4923E664.5020602@netfilter.org>
-References: <20081118234311.15750.80335.stgit@Decadence> <20081118234336.15750.52780.stgit@Decadence> <alpine.LNX.1.10.0811191029090.30388@fbirervta.pbzchgretzou.qr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: crash in death_by_timeout()
+Date: Wed, 19 Nov 2008 13:04:03 +0100
+Message-ID: <492400B3.6070706@trash.net>
+References: <20081117221855.GD3271@zebra.home> <4922A1E8.7080405@trash.net> <20081118123830.GD3201@zebra.home> <4922C0F7.3050604@trash.net> <4922C2D0.9060207@trash.net> <492340EE.1020607@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------010109050401030204080300"
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: BORBELY Zoltan <bozo@andrews.hu>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53805 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753499AbYKSKPJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 19 Nov 2008 05:15:09 -0500
-In-Reply-To: <alpine.LNX.1.10.0811191029090.30388@fbirervta.pbzchgretzou.qr>
+Received: from stinky.trash.net ([213.144.137.162]:61852 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751938AbYKSMEL (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 19 Nov 2008 07:04:11 -0500
+In-Reply-To: <492340EE.1020607@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------010109050401030204080300
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-Jan Engelhardt wrote:
-> On Wednesday 2008-11-19 00:43, Pablo Neira Ayuso wrote:
+Pablo Neira Ayuso wrote:
+> Patrick McHardy wrote:
+>> Pablo, do you recall the reason why the lock isn't held in
+>> ctnetlink_create_conntrack()?
 > 
->> Now this returns:
->>
->> iptables v1.4.2-rc1: `--state' requires a list of states with no
->> spaces, e.g. ESTABLISHED,RELATED
->>
->> Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
->> ---
->>
->> extensions/libxt_state.c |    5 ++++-
->> 1 files changed, 4 insertions(+), 1 deletions(-)
-> 
-> This also needs to be done for libxt_conntrack.c I guess.
+> The creation is done under the nfnl_mutex so that requests to create
+> identical entries cannot race. Of course, this is not enough to avoid
+> the race with the timer if we set a very small timer for a conntrack :(.
 
-Thanks for the spot, new patch attached.
+Its also not enough to avoid the race against packet processing,
+which takes nf_conntrack_lock.
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+> AFAICS, we don't need to enclose the whole conntrack creation path.
+> Would you prefer the patch attached? This patch should apply fine to
+> 2.6.28-rc.
 
---------------010109050401030204080300
-Content-Type: text/x-diff;
- name="fix-state-parsing.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="fix-state-parsing.patch"
+That fixes the timer race, but the race between lookup and creation
+remains. We really need to either hold the lock the entire time or
+redo the lookup before inserting the entry into the hash tables.
 
-state: report spaces in the state list parsing
+> I can send this patch to -stable. BTW, this patch may conflict with my
+> patch enqueued for 2.6.29 that adds userspace reporting, let me know if
+> I can give you a hand in some way (like sending it on top of this one or
+> yours again, whatever).
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-
-This patch adds better error reporting when the user inserts a space
-between two states with the --state option.
-
-iptables -I INPUT -m state ESTABLISHED, RELATED
-                                       ^
-				  mind the space
-
-results in:
-
-iptables v1.4.2-rc1: Bad state `'
-Try `iptables -h' or 'iptables --help' for more information.
-
-Now this returns:
-
-iptables v1.4.2-rc1: `--state' requires a list of states with no
-spaces, e.g. ESTABLISHED,RELATED
-
-This patch also applies to libxt_conntrack which has a copy of the
-function.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-
- extensions/libxt_conntrack.c |    5 ++++-
- extensions/libxt_state.c     |    5 ++++-
- 2 files changed, 8 insertions(+), 2 deletions(-)
-
-
-diff --git a/extensions/libxt_conntrack.c b/extensions/libxt_conntrack.c
-index 79ed3b8..5f3257c 100644
---- a/extensions/libxt_conntrack.c
-+++ b/extensions/libxt_conntrack.c
-@@ -107,7 +107,10 @@ parse_states(const char *arg, struct xt_conntrack_info *sinfo)
- 			exit_error(PARAMETER_PROBLEM, "Bad ctstate `%s'", arg);
- 		arg = comma+1;
- 	}
--
-+	if (!*arg)
-+		exit_error(PARAMETER_PROBLEM, "`--ctstate' requires a list of "
-+					      "states with no spaces, e.g. "
-+					      "ESTABLISHED,RELATED");
- 	if (strlen(arg) == 0 || !parse_state(arg, strlen(arg), sinfo))
- 		exit_error(PARAMETER_PROBLEM, "Bad ctstate `%s'", arg);
- }
-diff --git a/extensions/libxt_state.c b/extensions/libxt_state.c
-index 3af2e48..ae8ae7b 100644
---- a/extensions/libxt_state.c
-+++ b/extensions/libxt_state.c
-@@ -54,7 +54,10 @@ state_parse_states(const char *arg, struct xt_state_info *sinfo)
- 			exit_error(PARAMETER_PROBLEM, "Bad state `%s'", arg);
- 		arg = comma+1;
- 	}
--
-+	if (!*arg)
-+		exit_error(PARAMETER_PROBLEM, "`--state' requires a list of "
-+					      "states with no spaces, e.g. "
-+					      "ESTABLISHED,RELATED");
- 	if (strlen(arg) == 0 || !state_parse_state(arg, strlen(arg), sinfo))
- 		exit_error(PARAMETER_PROBLEM, "Bad state `%s'", arg);
- }
-
---------------010109050401030204080300--
+I'll take care of any merge issues.
