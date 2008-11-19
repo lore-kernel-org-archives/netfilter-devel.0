@@ -1,34 +1,51 @@
-From: "JC Janos" <jcjanos245@gmail.com>
-Subject: Re: Xtables-addons 1.6
-Date: Wed, 19 Nov 2008 05:58:34 -0800
-Message-ID: <7259d7020811190558m315a5e37va0310f4fc5fd6ff@mail.gmail.com>
-References: <alpine.LNX.1.10.0811181840170.2316@fbirervta.pbzchgretzou.qr>
-	 <7259d7020811181620n1ca06f84oe9d6d1f5f0a680c7@mail.gmail.com>
-	 <alpine.LNX.1.10.0811190900450.24370@fbirervta.pbzchgretzou.qr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: "Netfilter Developer Mailing List" <netfilter-devel@vger.kernel.org>,
-	netfilter@vger.kernel.org
-To: "Jan Engelhardt" <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.25]:27754 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753168AbYKSN6g (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 19 Nov 2008 08:58:36 -0500
-Received: by ey-out-2122.google.com with SMTP id 6so1373592eyi.37
-        for <netfilter-devel@vger.kernel.org>; Wed, 19 Nov 2008 05:58:34 -0800 (PST)
-In-Reply-To: <alpine.LNX.1.10.0811190900450.24370@fbirervta.pbzchgretzou.qr>
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Andy Whitcroft <apw@canonical.com>
+Subject: [PATCH 1/1] netfilter: ip{,6}t_policy.h should include xp_policy.h
+Date: Wed, 19 Nov 2008 16:21:22 +0000
+Message-ID: <1227111682-14073-1-git-send-email-apw@canonical.com>
+Cc: Andy Whitcroft <apw@canonical.com>
+To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Nov 19, 2008 at 12:05 AM, Jan Engelhardt <jengelh@medozas.de> wrote:
-> Yes, you can edit the "mconfig" file and set "build_ipset=n".
+It seems that all of the include/netfilter_{ipv4,ipv6}/{ipt,ip6t}_*.h which
+share constants include the corresponding include/netfilter/xp_*.h files.
+Neither ipt_policy.h not ip6t_policy.h do.  Make these consistant with
+the norm.
 
-That works.
+Signed-off-by: Andy Whitcroft <apw@canonical.com>
+---
+ include/linux/netfilter_ipv4/ipt_policy.h  |    2 ++
+ include/linux/netfilter_ipv6/ip6t_policy.h |    2 ++
+ 2 files changed, 4 insertions(+), 0 deletions(-)
 
-Thanks!
+diff --git a/include/linux/netfilter_ipv4/ipt_policy.h b/include/linux/netfilter_ipv4/ipt_policy.h
+index b9478a2..1037fb2 100644
+--- a/include/linux/netfilter_ipv4/ipt_policy.h
++++ b/include/linux/netfilter_ipv4/ipt_policy.h
+@@ -1,6 +1,8 @@
+ #ifndef _IPT_POLICY_H
+ #define _IPT_POLICY_H
+ 
++#include <linux/netfilter/xt_policy.h>
++
+ #define IPT_POLICY_MAX_ELEM		XT_POLICY_MAX_ELEM
+ 
+ /* ipt_policy_flags */
+diff --git a/include/linux/netfilter_ipv6/ip6t_policy.h b/include/linux/netfilter_ipv6/ip6t_policy.h
+index 6bab316..b1c449d 100644
+--- a/include/linux/netfilter_ipv6/ip6t_policy.h
++++ b/include/linux/netfilter_ipv6/ip6t_policy.h
+@@ -1,6 +1,8 @@
+ #ifndef _IP6T_POLICY_H
+ #define _IP6T_POLICY_H
+ 
++#include <linux/netfilter/xt_policy.h>
++
+ #define IP6T_POLICY_MAX_ELEM		XT_POLICY_MAX_ELEM
+ 
+ /* ip6t_policy_flags */
+-- 
+1.6.0.4.911.gc990
 
---JC
