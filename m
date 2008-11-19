@@ -1,28 +1,34 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: netfilter: xtables: add missing const qualifier to xt_tgchk_param
-Date: Wed, 19 Nov 2008 13:47:50 +0100
-Message-ID: <49240AF6.1080307@trash.net>
-References: <alpine.LNX.1.10.0811181229370.17946@fbirervta.pbzchgretzou.qr>
+From: "JC Janos" <jcjanos245@gmail.com>
+Subject: Re: Xtables-addons 1.6
+Date: Wed, 19 Nov 2008 05:58:34 -0800
+Message-ID: <7259d7020811190558m315a5e37va0310f4fc5fd6ff@mail.gmail.com>
+References: <alpine.LNX.1.10.0811181840170.2316@fbirervta.pbzchgretzou.qr>
+	 <7259d7020811181620n1ca06f84oe9d6d1f5f0a680c7@mail.gmail.com>
+	 <alpine.LNX.1.10.0811190900450.24370@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: "Netfilter Developer Mailing List" <netfilter-devel@vger.kernel.org>,
+	netfilter@vger.kernel.org
+To: "Jan Engelhardt" <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:62868 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752470AbYKSMr4 (ORCPT
+Received: from ey-out-2122.google.com ([74.125.78.25]:27754 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753168AbYKSN6g (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 19 Nov 2008 07:47:56 -0500
-In-Reply-To: <alpine.LNX.1.10.0811181229370.17946@fbirervta.pbzchgretzou.qr>
+	Wed, 19 Nov 2008 08:58:36 -0500
+Received: by ey-out-2122.google.com with SMTP id 6so1373592eyi.37
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Nov 2008 05:58:34 -0800 (PST)
+In-Reply-To: <alpine.LNX.1.10.0811190900450.24370@fbirervta.pbzchgretzou.qr>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> netfilter: xtables: add missing const qualifier to xt_tgchk_param
-> 
-> When entryinfo was a standalone parameter to functions, it used to be
-> "const void *". Put the const back in.
+On Wed, Nov 19, 2008 at 12:05 AM, Jan Engelhardt <jengelh@medozas.de> wrote:
+> Yes, you can edit the "mconfig" file and set "build_ipset=n".
 
-Applied, thanks.
+That works.
 
+Thanks!
+
+--JC
