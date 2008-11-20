@@ -1,49 +1,84 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] filter: add SKF_AD_NLATTR_NEST to look for nested
- attributes
-Date: Thu, 20 Nov 2008 00:49:35 -0800 (PST)
-Message-ID: <20081120.004935.255394712.davem@davemloft.net>
-References: <20081118030112.28254.90533.stgit@Decadence>
-	<49229DAE.6060105@trash.net>
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: xt_recent: don't save proc dirs
+Date: Thu, 20 Nov 2008 11:58:43 +0300
+Message-ID: <20081120085843.GA1927@x200.localdomain>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:52500
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1753958AbYKTItf (ORCPT
+Received: from ug-out-1314.google.com ([66.249.92.173]:20967 "EHLO
+	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753993AbYKTIzF (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Nov 2008 03:49:35 -0500
-In-Reply-To: <49229DAE.6060105@trash.net>
+	Thu, 20 Nov 2008 03:55:05 -0500
+Received: by ug-out-1314.google.com with SMTP id 39so208828ugf.37
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 Nov 2008 00:55:02 -0800 (PST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Tue, 18 Nov 2008 11:49:18 +0100
+Not needed, since creation and removal are done by name.
 
-> Pablo Neira Ayuso wrote:
-> > SKF_AD_NLATTR allows us to find the first matching attribute in a
-> > stream of netlink attributes from one offset to the end of the
-> > netlink message. This is not suitable to look for a specific
-> > matching inside a set of nested attributes.
-> > For example, in ctnetlink messages, if we look for the CTA_V6_SRC
-> > attribute in a message that talks about an IPv4 connection,
-> > SKF_AD_NLATTR returns the offset of CTA_STATUS which has the same
-> > value of CTA_V6_SRC but outside the nest. To differenciate
-> > CTA_STATUS and CTA_V6_SRC, we would have to make assumptions on the
-> > size of the attribute and the usual offset, resulting in horrible
-> > BSF code.
-> > This patch adds SKF_AD_NLATTR_NEST, which is a variant of
-> > SKF_AD_NLATTR, that looks for an attribute inside the limits of
-> > a nested attributes, but not further.
-> > This patch validates that we have enough room to look for the
-> > nested attributes - based on a suggestion from Patrick McHardy.
-> 
-> Looks good, thanks Pablo.
-> 
-> Acked-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+---
 
-Applied, thanks everyone.
+ net/netfilter/xt_recent.c |   22 +++++++++++-----------
+ 1 file changed, 11 insertions(+), 11 deletions(-)
+
+--- a/net/netfilter/xt_recent.c
++++ b/net/netfilter/xt_recent.c
+@@ -72,9 +72,6 @@ struct recent_entry {
+ struct recent_table {
+ 	struct list_head	list;
+ 	char			name[XT_RECENT_NAME_LEN];
+-#ifdef CONFIG_PROC_FS
+-	struct proc_dir_entry	*proc_old, *proc;
+-#endif
+ 	unsigned int		refcnt;
+ 	unsigned int		entries;
+ 	struct list_head	lru_list;
+@@ -284,6 +281,9 @@ static bool recent_mt_check(const struct xt_mtchk_param *par)
+ {
+ 	const struct xt_recent_mtinfo *info = par->matchinfo;
+ 	struct recent_table *t;
++#ifdef CONFIG_PROC_FS
++	struct proc_dir_entry *pde;
++#endif
+ 	unsigned i;
+ 	bool ret = false;
+ 
+@@ -318,25 +318,25 @@ static bool recent_mt_check(const struct xt_mtchk_param *par)
+ 	for (i = 0; i < ip_list_hash_size; i++)
+ 		INIT_LIST_HEAD(&t->iphash[i]);
+ #ifdef CONFIG_PROC_FS
+-	t->proc = proc_create_data(t->name, ip_list_perms, recent_proc_dir,
++	pde = proc_create_data(t->name, ip_list_perms, recent_proc_dir,
+ 		  &recent_mt_fops, t);
+-	if (t->proc == NULL) {
++	if (pde == NULL) {
+ 		kfree(t);
+ 		goto out;
+ 	}
++	pde->uid = ip_list_uid;
++	pde->gid = ip_list_gid;
+ #ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
+-	t->proc_old = proc_create_data(t->name, ip_list_perms, proc_old_dir,
++	pde = proc_create_data(t->name, ip_list_perms, proc_old_dir,
+ 		      &recent_old_fops, t);
+-	if (t->proc_old == NULL) {
++	if (pde == NULL) {
+ 		remove_proc_entry(t->name, proc_old_dir);
+ 		kfree(t);
+ 		goto out;
+ 	}
+-	t->proc_old->uid   = ip_list_uid;
+-	t->proc_old->gid   = ip_list_gid;
++	pde->uid = ip_list_uid;
++	pde->gid = ip_list_gid;
+ #endif
+-	t->proc->uid       = ip_list_uid;
+-	t->proc->gid       = ip_list_gid;
+ #endif
+ 	spin_lock_bh(&recent_lock);
+ 	list_add_tail(&t->list, &tables);
