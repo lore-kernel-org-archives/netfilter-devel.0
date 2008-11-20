@@ -1,45 +1,64 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/1] netfilter: ip{,6}t_policy.h should include	xp_policy.h
-Date: Thu, 20 Nov 2008 11:38:43 +0100
-Message-ID: <49253E33.8070201@trash.net>
-References: <1227111682-14073-1-git-send-email-apw@canonical.com> <49245611.1080905@trash.net> <20081120094541.GA31575@shadowen.org> <49253219.9070300@trash.net> <20081120103716.GC31575@shadowen.org>
+From: John Haxby <john.haxby@oracle.com>
+Subject: Re: xtables problem
+Date: Thu, 20 Nov 2008 15:30:59 +0000
+Message-ID: <492582B3.4000001@oracle.com>
+References: <49244C11.6080808@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org
-To: Andy Whitcroft <apw@canonical.com>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <20081120103716.GC31575@shadowen.org>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: netfilter@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from rcsinet11.oracle.com ([148.87.113.123]:57316 "EHLO
+	rgminet11.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754845AbYKTPbJ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 20 Nov 2008 10:31:09 -0500
+In-Reply-To: <49244C11.6080808@oracle.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Andy Whitcroft wrote:
-> On Thu, Nov 20, 2008 at 10:47:05AM +0100, Patrick McHardy wrote:
->> Andy Whitcroft wrote:
->>> On Wed, Nov 19, 2008 at 07:08:17PM +0100, Patrick McHardy wrote:
->>>> Andy Whitcroft wrote:
->>>>> It seems that all of the include/netfilter_{ipv4,ipv6}/{ipt,ip6t}_*.h which
->>>>> share constants include the corresponding include/netfilter/xp_*.h files.
->>>>> Neither ipt_policy.h not ip6t_policy.h do.  Make these consistant with
->>>>> the norm.
->>>> Does this actually fix a bug, or is it just for added consistency?
->>> It was reported by an Ubuntu user who was compiling against them.  From
->>> my point of view it seemed clearly inconsistant and therefore most likely
->>> wrong.  So it seemed reasonable to fix it and push it upstream, if
->>> there was a reason I was sure you'd soon put me straight.
->> I'm mainly asking in order to decide whether to push it for
->> 2.7.28 or 2.6.29. So did the user report a compilation error
->> or something like that?
-> 
-> We do have a bug open from an Ubuntu user who seems have hit the issue,
-> but details are scant, they did not report specifics of their use case.
-> I don't see it being particularly urgent, the work around is pretty simple
-> as I see it.  So I don't think there is any need to jump hoops to get it
-> into .28, we are pretty late in the cycle on that one.  For me knowing
-> its going to be upstream in .29 or wherever allows me to report that back
-> to the user.  If they are really insistant we can always pull the change
-> into our kernel as we won't have to carry it forever, though that is not
-> likely to be necessary.
+John Haxby wrote:
+>
+> $ ./configure --with-kbuild=/lib/modules/2.6.27.6/build
+> $ make
+> ...
+>  CC       libxt_CHAOS.oo
+>  CCLD     libxt_CHAOS.so
+> libxt_CHAOS.oo: In function `_init':
+> /home/jch/rpmbuild/BUILD/xtables-addons-1.6/extensions/libxt_CHAOS.c:112: 
+> multiple definition of `_init'
+> /usr/lib/gcc/x86_64-redhat-linux/4.3.0/../../../../lib64/crti.o:(.init+0x0): 
+> first defined here
+> collect2: ld returned 1 exit status
 
-OK, thanks for the information. Queued for 2.6.29.
+You can go off a distro, you really can:
+
+* Mon Feb 11 2008 Thomas Woerner <twoerner@redhat.com> 1.4.0-1
+- new version 1.4.0
+- fixed condrestart (rhbz#428148)
+- report the module in rmmod_r if there is an error
+- use nf_ext_init instead of my_init for extension constructors
+
+
+The description is possibly a little wrong because the upshot is that in 
+<xtables.h> "_INIT" and the subsequent definition of "_init" are 
+replaced with "NF_EXT_INIT" and "nf_ext_init" respectively.  Neither 
+Google nor Red Hat's bugzilla offer any readily findable explanation of 
+this all I found was quite a few copies of the same comment in various 
+different RPMs.
+
+The only thing that springs to mind is that variables and C-preprocessor 
+names whose names begin with "_" are reserved by C and you shouldn't use 
+them.
+
+If Thomas is listening, can you shed any light?
+
+Would it not be nice, as well, if iptables and xtables could come to an 
+agreement over what is the right thing to do.  I'm surely not the first 
+person to come unstuck with this. 
+
+Right, back to building an RPM from this thing.
+
+jch
