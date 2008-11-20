@@ -1,37 +1,24 @@
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: [PATCH] nf_conntrack_proto_gre: spread __exit
-Date: Thu, 20 Nov 2008 12:01:20 +0300
-Message-ID: <20081120090120.GC1927@x200.localdomain>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] ip6table_filter: merge LOCAL_IN and FORWARD hooks
+Date: Thu, 20 Nov 2008 09:58:52 +0100
+Message-ID: <492526CC.7050106@trash.net>
+References: <20081120090023.GB1927@x200.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+To: Alexey Dobriyan <adobriyan@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ug-out-1314.google.com ([66.249.92.172]:26939 "EHLO
-	ug-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754000AbYKTI5i (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:53268 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753502AbYKTI67 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Nov 2008 03:57:38 -0500
-Received: by ug-out-1314.google.com with SMTP id 39so209323ugf.37
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 Nov 2008 00:57:36 -0800 (PST)
-Content-Disposition: inline
+	Thu, 20 Nov 2008 03:58:59 -0500
+In-Reply-To: <20081120090023.GB1927@x200.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
----
+Alexey Dobriyan wrote:
 
- net/netfilter/nf_conntrack_proto_gre.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Applied, thanks.
 
---- a/net/netfilter/nf_conntrack_proto_gre.c
-+++ b/net/netfilter/nf_conntrack_proto_gre.c
-@@ -341,7 +341,7 @@ static int __init nf_ct_proto_gre_init(void)
- 	return rv;
- }
- 
--static void nf_ct_proto_gre_fini(void)
-+static void __exit nf_ct_proto_gre_fini(void)
- {
- 	nf_conntrack_l4proto_unregister(&nf_conntrack_l4proto_gre4);
- 	unregister_pernet_gen_subsys(proto_gre_net_id, &proto_gre_net_ops);
