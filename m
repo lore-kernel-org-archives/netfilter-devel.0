@@ -1,64 +1,76 @@
-From: John Haxby <john.haxby@oracle.com>
-Subject: Re: xtables problem
-Date: Thu, 20 Nov 2008 15:30:59 +0000
-Message-ID: <492582B3.4000001@oracle.com>
-References: <49244C11.6080808@oracle.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: xtables-addons problem
+Date: Thu, 20 Nov 2008 17:36:14 +0100 (CET)
+Message-ID: <alpine.LNX.1.10.0811201655430.7635@fbirervta.pbzchgretzou.qr>
+References: <49244C11.6080808@oracle.com> <492582B3.4000001@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter@vger.kernel.org,
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter@vger.kernel.org,
 	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
+	<netfilter-devel@vger.kernel.org>, twoerner@redhat.com
+To: John Haxby <john.haxby@oracle.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rcsinet11.oracle.com ([148.87.113.123]:57316 "EHLO
-	rgminet11.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754845AbYKTPbJ (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:41264 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753519AbYKTQgQ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Nov 2008 10:31:09 -0500
-In-Reply-To: <49244C11.6080808@oracle.com>
+	Thu, 20 Nov 2008 11:36:16 -0500
+In-Reply-To: <492582B3.4000001@oracle.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-John Haxby wrote:
+
+On Thursday 2008-11-20 16:30, John Haxby wrote:
+
+> John Haxby wrote:
+>>
+>> $ ./configure --with-kbuild=/lib/modules/2.6.27.6/build
+>> $ make
+>> ...
+>>  CC       libxt_CHAOS.oo
+>>  CCLD     libxt_CHAOS.so
+>> libxt_CHAOS.oo: In function `_init':
+>> /home/jch/rpmbuild/BUILD/xtables-addons-1.6/extensions/libxt_CHAOS.c:112:
+>> multiple definition of `_init'
+>> /usr/lib/gcc/x86_64-redhat-linux/4.3.0/../../../../lib64/crti.o:(.init+0x0):
+>> first defined here
+>> collect2: ld returned 1 exit status
 >
-> $ ./configure --with-kbuild=/lib/modules/2.6.27.6/build
-> $ make
-> ...
->  CC       libxt_CHAOS.oo
->  CCLD     libxt_CHAOS.so
-> libxt_CHAOS.oo: In function `_init':
-> /home/jch/rpmbuild/BUILD/xtables-addons-1.6/extensions/libxt_CHAOS.c:112: 
-> multiple definition of `_init'
-> /usr/lib/gcc/x86_64-redhat-linux/4.3.0/../../../../lib64/crti.o:(.init+0x0): 
-> first defined here
-> collect2: ld returned 1 exit status
+> You can go off a distro, you really can:
 
-You can go off a distro, you really can:
+(It took a while to get this... it's supposed to say)
+	You can go off _on_ a distro, you really can.
+Yes indeed.
 
-* Mon Feb 11 2008 Thomas Woerner <twoerner@redhat.com> 1.4.0-1
-- new version 1.4.0
-- fixed condrestart (rhbz#428148)
-- report the module in rmmod_r if there is an error
-- use nf_ext_init instead of my_init for extension constructors
+> The only thing that springs to mind is that variables and 
+> C-preprocessor names whose names begin with "_" are reserved by C and 
+> you shouldn't use them.
+>
+> If Thomas is listening, can you shed any light?
+>
+> Would it not be nice, as well, if iptables and xtables could come to 
+> an agreement over what is the right thing to do.
 
+(a) the iptables userspace package uses _init
 
-The description is possibly a little wrong because the upshot is that in 
-<xtables.h> "_INIT" and the subsequent definition of "_init" are 
-replaced with "NF_EXT_INIT" and "nf_ext_init" respectively.  Neither 
-Google nor Red Hat's bugzilla offer any readily findable explanation of 
-this all I found was quite a few copies of the same comment in various 
-different RPMs.
+(b) xtables is a generic term for protocol-independent code/components
 
-The only thing that springs to mind is that variables and C-preprocessor 
-names whose names begin with "_" are reserved by C and you shouldn't use 
-them.
+(c) xtables-addons's kernel parts are based on an unmodified kernel 
+source.
 
-If Thomas is listening, can you shed any light?
+(d) xtables-addons's userspace parts are based on an unmodified iptables 
+source.
 
-Would it not be nice, as well, if iptables and xtables could come to an 
-agreement over what is the right thing to do.  I'm surely not the first 
-person to come unstuck with this. 
+> * Mon Feb 11 2008 Thomas Woerner <twoerner@redhat.com> 1.4.0-1
+> - new version 1.4.0
+> - fixed condrestart (rhbz#428148)
+> - report the module in rmmod_r if there is an error
+> - use nf_ext_init instead of my_init for extension constructors
 
-Right, back to building an RPM from this thing.
+Not only did RedHat manage to blow up on (c) for RHEL5/CentOS because of 
+excessive backporting, but now they also crippled their iptables 
+package with that nf_ext_init, breaking ALL extensions out there.
 
-jch
+I wonder how they managed to not break the compilation of the
+extensions inside the iptables package -- because these continue to
+use _init and its substitution was just nuked by that patch.
