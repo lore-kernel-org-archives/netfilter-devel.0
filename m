@@ -1,50 +1,43 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: iptables (1.4.2 release) failed to run on embedded system with
- "can't initialize iptables table `filter'"
-Date: Fri, 21 Nov 2008 17:07:41 +0100 (CET)
-Message-ID: <alpine.LNX.1.10.0811211659001.12307@fbirervta.pbzchgretzou.qr>
-References: <op.uky4wc2dqigx4y@cyprus.local>
+From: John Haxby <john.haxby@oracle.com>
+Subject: Re: xtables problem
+Date: Fri, 21 Nov 2008 17:39:31 +0000
+Message-ID: <4926F253.90802@oracle.com>
+References: <49244C11.6080808@oracle.com> <492582B3.4000001@oracle.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: David Wu <davidwu@arcturusnetworks.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:44853 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752059AbYKUQHn (ORCPT
+Received: from acsinet12.oracle.com ([141.146.126.234]:22600 "EHLO
+	acsinet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756365AbYKURjl (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Nov 2008 11:07:43 -0500
-In-Reply-To: <op.uky4wc2dqigx4y@cyprus.local>
+	Fri, 21 Nov 2008 12:39:41 -0500
+In-Reply-To: <492582B3.4000001@oracle.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+John Haxby wrote:
+> $ ./configure --with-kbuild=/lib/modules/2.6.27.6/build
+> $ make
+> ...
+>  CC       libxt_CHAOS.oo
+>  CCLD     libxt_CHAOS.so
+> libxt_CHAOS.oo: In function `_init':
+> /home/jch/rpmbuild/BUILD/xtables-addons-1.6/extensions/libxt_CHAOS.c:112: 
+> multiple definition of `_init'
+> /usr/lib/gcc/x86_64-redhat-linux/4.3.0/../../../../lib64/crti.o:(.init+0x0): 
+> first defined here
+> collect2: ld returned 1 exit status
 
-On Friday 2008-11-21 15:51, David Wu wrote:
+I've submitted a bug report for this: 
+https://bugzilla.redhat.com/show_bug.cgi?id=472548
 
-> My question:
->   1 why tries to allocate 0 size memory, it is useful?
+Looking through this history of changes, it seems that this was a 
+well-intentioned fix as part of moving from "ld -shared" to "gcc 
+-shared" a while back (1.3.4 time) that accidentally got carried forward 
+even though it wasn't needed due to changes in iptables.
 
-        array_elems = (h->num_chains / list_length) + 
-                      (h->num_chains % list_length ? 1 : 0); 
-        array_mem   = sizeof(h->chain_index) * array_elems; 
-
-
-Logically,
-array_mem == 0  =>  (sizeof(h->chain_index) == 0) ^ (array_elems == 0).
-And given that sizeof() is unlikely to return 0 here, array_elems must 
-be 0. And the only way array_elems can be 0 is that h->num_chains < 
-list_length && h->num_chains == 0.  Buf if you have 0 chains to start 
-with, it sounds like it really could not get the filter to table to 
-work. gdb will help.
-
->   2 is there any problem to the iptables program in my change?
->     I may have to rebuild the toolchain so malloc will return a live
-> pointer for 0 size allocation.
->   3 I have got the error
->     ip_tables: ERROR target: invalid size 30 != 32
->     from 1.3.7 and 1.4.2 (didn't try other versions) and sent to this list
-> a question before but haven't received any answer
-
-It needs the same ABI, as was answered before:
-
-http://marc.info/?l=netfilter-devel&m=122309437709848&w=2
+jch
