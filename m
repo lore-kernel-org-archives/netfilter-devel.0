@@ -1,40 +1,32 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: doc: fix a typo in libip6t_REJECT.man
-Date: Thu, 20 Nov 2008 17:40:50 +0100 (CET)
-Message-ID: <alpine.LNX.1.10.0811201740400.7635@fbirervta.pbzchgretzou.qr>
+Subject: Re: TEE for IPv6
+Date: Fri, 21 Nov 2008 01:16:45 +0100 (CET)
+Message-ID: <alpine.LNX.1.10.0811210115290.30112@fbirervta.pbzchgretzou.qr>
+References: <48D93817.40909@critical.com> <alpine.LNX.1.10.0810072057470.5686@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
+Cc: sebastian.classen@freenet.ag,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Mike Wileczka <mike.wileczka@critical.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:49634 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:49386 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753092AbYKTQkw (ORCPT
+	with ESMTP id S1754872AbYKUAQr (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Nov 2008 11:40:52 -0500
+	Thu, 20 Nov 2008 19:16:47 -0500
+In-Reply-To: <alpine.LNX.1.10.0810072057470.5686@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 0b474f182c0735e3920a4ae8ade73e8a6aaedecf
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Thu Nov 20 17:21:04 2008 +0100
 
-doc: fix a typo in libip6t_REJECT.man
+On Wednesday 2008-10-08 03:09, Jan Engelhardt wrote:
+>On Tuesday 2008-09-23 14:40, Mike Wileczka wrote:
+>
+>> Hello, It appears that the TEE target is not supported under IPv6. 
+>> Is that true?  Is there any quick way to get it working?
+>
+>It is true that there is currently no code for handling IPv6.
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- extensions/libip6t_REJECT.man |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
-
-diff --git a/extensions/libip6t_REJECT.man b/extensions/libip6t_REJECT.man
-index 909d826..877a769 100644
---- a/extensions/libip6t_REJECT.man
-+++ b/extensions/libip6t_REJECT.man
-@@ -32,5 +32,4 @@ TCP RST packet to be sent back.  This is mainly useful for blocking
- (113/tcp) probes which frequently occur when sending mail to broken mail
- hosts (which won't accept your mail otherwise).
- .B tcp-reset
--can only be used with kernel versions 2.6.14 or latter.
--
-+can only be used with kernel versions 2.6.14 or later.
-
+I now added a compile-tested-only "TEE6" branch to the git repository;
+feel free to try at your own risk.
