@@ -1,45 +1,44 @@
-From: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>
+From: Rusty Russell <rusty@rustcorp.com.au>
 Subject: Re: ip_conntrack_ftp messages
-Date: Mon, 24 Nov 2008 17:23:46 +0100
-Message-ID: <492AD512.1030401@plouf.fr.eu.org>
-References: <31563483.01227485595724.JavaMail.shane@shane-laptop> <200811241445.56544.rusty@rustcorp.com.au> <492A9DD9.1090307@trash.net> <20081124152458.GA20442@linuxace.com> <492AC919.7070005@trash.net> <alpine.LNX.1.10.0811241653370.15363@fbirervta.pbzchgretzou.qr>
+Date: Tue, 25 Nov 2008 03:44:46 +1030
+Message-ID: <200811250344.46392.rusty@rustcorp.com.au>
+References: <31563483.01227485595724.JavaMail.shane@shane-laptop> <200811241445.56544.rusty@rustcorp.com.au> <492A9DD9.1090307@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Cc: Shane Goulden <shane@matrixau.net>, netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from poutre.nerim.net ([62.4.16.124]:49862 "EHLO poutre.nerim.net"
+Received: from ozlabs.org ([203.10.76.45]:41542 "EHLO ozlabs.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753014AbYKXQao (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 24 Nov 2008 11:30:44 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by poutre.nerim.net (Postfix) with ESMTP id 9973A39DDFB
-	for <netfilter-devel@vger.kernel.org>; Mon, 24 Nov 2008 17:23:45 +0100 (CET)
-Received: from poutre.nerim.net ([127.0.0.1])
-	by localhost (poutre.nerim.net [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id kjZ8YyJeeUTV for <netfilter-devel@vger.kernel.org>;
-	Mon, 24 Nov 2008 17:23:44 +0100 (CET)
-Received: from [192.168.0.246] (plouf.fr.eu.org [213.41.173.35])
-	by poutre.nerim.net (Postfix) with ESMTP id 3A63539DDCD
-	for <netfilter-devel@vger.kernel.org>; Mon, 24 Nov 2008 17:23:44 +0100 (CET)
-In-Reply-To: <alpine.LNX.1.10.0811241653370.15363@fbirervta.pbzchgretzou.qr>
+	id S1753085AbYKXRO7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 24 Nov 2008 12:14:59 -0500
+In-Reply-To: <492A9DD9.1090307@trash.net>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+On Monday 24 November 2008 22:58:09 Patrick McHardy wrote:
+> Rusty Russell wrote:
+> > 		if (net_ratelimit())
+> > 			printk("conntrack_ftp: partial %s %u+%u\n",
+> > 			       search[dir][i].pattern,
+> > 			       ntohl(th->seq), datalen);
+>
+> Its strange that FTP is apparently working since we drop those packets.
+> I'm not sure about downgrading that message, its there to inform the
+> user of an exceptional action (dropping of packets within conntrack).
 
-Jan Engelhardt a =E9crit :
->=20
-> Well, each packet (or rather, every new line) should be a "123 " code=
-,
-> followed by whatever text plus a newline.
+Actually, we drop the packets *so* it will work.  The idea is that they'll 
+coalesce and send the whole packet next time.
 
-Don't you mean "each reply" ? BTW, multi-line replies start with "123-"=
-,=20
-only the last line starts with "123 ".
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+If not, well, they don't get any more packes through, but without connection 
+tracking the other connections wouldn't work anyway (if the conntrack is being 
+used for NAT or filtering).
+
+IIRC wu-ftpd used to trigger this (multiple write syscalls for the ip address 
+and nagle sometimes hit in the middle; go figure).
+
+Cheers,
+Rusty.
