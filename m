@@ -1,64 +1,44 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: bridge 03/03: netfilter: fix update_pmtu crash with GRE
-Date: Mon, 24 Nov 2008 14:44:39 +0100 (MET)
-Message-ID: <20081124134431.462.53634.sendpatchset@x2.localnet>
-References: <20081124134427.462.77824.sendpatchset@x2.localnet>
-Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+From: Phil Oester <kernel@linuxace.com>
+Subject: Re: ip_conntrack_ftp messages
+Date: Mon, 24 Nov 2008 07:24:58 -0800
+Message-ID: <20081124152458.GA20442@linuxace.com>
+References: <31563483.01227485595724.JavaMail.shane@shane-laptop> <200811241445.56544.rusty@rustcorp.com.au> <492A9DD9.1090307@trash.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Rusty Russell <rusty@rustcorp.com.au>,
+	Shane Goulden <shane@matrixau.net>,
 	netfilter-devel@vger.kernel.org
-To: davem@davemloft.net
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20081124134427.462.77824.sendpatchset@x2.localnet>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from adsl-67-120-171-161.dsl.lsan03.pacbell.net ([67.120.171.161]:54600
+	"HELO linuxace.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752379AbYKXPbj (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 24 Nov 2008 10:31:39 -0500
+Content-Disposition: inline
+In-Reply-To: <492A9DD9.1090307@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 1e8768f064c00a4fbb42e87bc42b371bd9ca01c0
-Author: Herbert Xu <herbert@gondor.apana.org.au>
-Date:   Mon Nov 24 13:31:14 2008 +0100
+On Mon, Nov 24, 2008 at 01:28:09PM +0100, Patrick McHardy wrote:
+> Rusty Russell wrote:
+>> On Monday 24 November 2008 10:43:19 Shane Goulden wrote:
+>>> 2.6.18-92.1.10.el5xen
+>>>
+>>> FTP is working. Is there a way to easily silence the messages?
+>>
+>> Not that I am aware of.  Perhaps that printk (still there in latest 
+>> kernels) should be downgraded to a DEBUG?
+>>
+> Its strange that FTP is apparently working since we drop those packets.
+> I'm not sure about downgrading that message, its there to inform the
+> user of an exceptional action (dropping of packets within conntrack).
+>
+> Shane, how do you trigger those messages?
 
-    bridge: netfilter: fix update_pmtu crash with GRE
-    
-    As GRE tries to call the update_pmtu function on skb->dst and
-    bridge supplies an skb->dst that has a NULL ops field, all is
-    not well.
-    
-    This patch fixes this by giving the bridge device an ops field
-    with an update_pmtu function.  For the moment I've left all
-    other fields blank but we can fill them in later should the
-    need arise.
-    
-    Based on report and patch by Philip Craig.
-    
-    Signed-off-by: Herbert Xu <herbert@gondor.apana.org.au>
-    Signed-off-by: Patrick McHardy <kaber@trash.net>
+I've seen these messages when something other than FTP is utilizing
+port 21.  Perhaps we should have a bit in the conntrack helper which
+stops looking on future packets if it doesn't see FTP traffic in the
+beginning of the session?
 
-diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
-index fa5cda4..45f61c3 100644
---- a/net/bridge/br_netfilter.c
-+++ b/net/bridge/br_netfilter.c
-@@ -101,6 +101,18 @@ static inline __be16 pppoe_proto(const struct sk_buff *skb)
- 	 pppoe_proto(skb) == htons(PPP_IPV6) && \
- 	 brnf_filter_pppoe_tagged)
- 
-+static void fake_update_pmtu(struct dst_entry *dst, u32 mtu)
-+{
-+}
-+
-+static struct dst_ops fake_dst_ops = {
-+	.family =		AF_INET,
-+	.protocol =		__constant_htons(ETH_P_IP),
-+	.update_pmtu =		fake_update_pmtu,
-+	.entry_size =		sizeof(struct rtable),
-+	.entries =		ATOMIC_INIT(0),
-+};
-+
- /*
-  * Initialize bogus route table used to keep netfilter happy.
-  * Currently, we fill in the PMTU entry because netfilter
-@@ -117,6 +129,7 @@ void br_netfilter_rtable_init(struct net_bridge *br)
- 	rt->u.dst.path = &rt->u.dst;
- 	rt->u.dst.metrics[RTAX_MTU - 1] = 1500;
- 	rt->u.dst.flags	= DST_NOXFRM;
-+	rt->u.dst.ops = &fake_dst_ops;
- }
- 
- static inline struct rtable *bridge_parent_rtable(const struct net_device *dev)
+Phil
