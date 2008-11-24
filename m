@@ -1,54 +1,37 @@
-From: Kuzin Andrey <kuzinandrey@yandex.ru>
-Subject: Re: I need help with libnetfilter_queue
-Date: Sun, 23 Nov 2008 17:59:57 +0300
-Message-ID: <14310596125.20081123175957@yandex.ru>
-References: <92770c820811230603p4276d98bnc41df9606f4c6bc8@mail.gmail.com>
-Reply-To: Kuzin Andrey <kuzinandrey@yandex.ru>
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: ip_conntrack_ftp messages
+Date: Mon, 24 Nov 2008 14:45:56 +1030
+Message-ID: <200811241445.56544.rusty@rustcorp.com.au>
+References: <31563483.01227485595724.JavaMail.shane@shane-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-To: ilninno <ilninno@gmail.com>, netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Shane Goulden <shane@matrixau.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.mjkmail.ru ([212.45.5.115]:36302 "HELO mail.mjkmail.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1758195AbYKWO67 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 23 Nov 2008 09:58:59 -0500
-In-Reply-To: <92770c820811230603p4276d98bnc41df9606f4c6bc8@mail.gmail.com>
+Received: from ozlabs.org ([203.10.76.45]:46982 "EHLO ozlabs.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751075AbYKXEQC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 23 Nov 2008 23:16:02 -0500
+In-Reply-To: <31563483.01227485595724.JavaMail.shane@shane-laptop>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-i> Hi again! I need help with libnetfilter_queue, I searched examples,
-i> but I only found one simple test. My problem is that i need source ip
-i> and source port, but i don't know how can i get from struct nfq_data
-i> *pkt in the callback function.
+On Monday 24 November 2008 10:43:19 Shane Goulden wrote:
+> 2.6.18-92.1.10.el5xen
+>
+> FTP is working. Is there a way to easily silence the messages?
 
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netinet/ip.h>
-#include <netinet/tcp.h>
+Not that I am aware of.  Perhaps that printk (still there in latest kernels) 
+should be downgraded to a DEBUG?
 
-static int ob_netfilter_callback(struct nfq_q_handle *qh, struct nfgenmsg *nfmsg,
-              struct nfq_data *nfa, void *data)
-{
-............
-u_int16_t ip_packet_len = 0;
-struct ip *ip_packet = NULL;
-struct tcphdr *tcp_packet = NULL;
+		if (net_ratelimit())
+			printk("conntrack_ftp: partial %s %u+%u\n",
+			       search[dir][i].pattern,
+			       ntohl(th->seq), datalen);
 
-char *payload;
-..........
-
-nfq_get_payload(nfa, &payload);
-
-ip_packet = ((struct ip *)payload);
-ip_packet_len = ntohs(ip_packet->ip_len);
-
-printf("Source IP %s\n",inet_ntoa(ip_packet->ip_src));
-
-if (ip_packet->ip_p == IPPROTO_TCP) {
-   tcp_packet = (struct tcphdr *)(payload + sizeof(struct ip));
-   if (ntohs(tcp_packet->dest) == 25) { // SMTP PORT
-      printf("this is SMTP");
-   };
-};
+Cheers,
+Rusty.
 
