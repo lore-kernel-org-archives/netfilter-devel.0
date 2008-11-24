@@ -1,47 +1,58 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ip_conntrack_ftp messages
-Date: Mon, 24 Nov 2008 18:34:14 +0100
-Message-ID: <492AE596.6040909@trash.net>
-References: <31563483.01227485595724.JavaMail.shane@shane-laptop> <200811241445.56544.rusty@rustcorp.com.au> <492A9DD9.1090307@trash.net> <200811250344.46392.rusty@rustcorp.com.au>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Shane Goulden <shane@matrixau.net>, netfilter-devel@vger.kernel.org
-To: Rusty Russell <rusty@rustcorp.com.au>
+From: Eric Leblond <eric@inl.fr>
+Subject: [PATCH 2/2] netfilter: nfmark IPV6 routing in OUTPUT, mangle, NFQUEUE
+Date: Mon, 24 Nov 2008 21:46:47 +0100
+Message-ID: <1227559607-3077-3-git-send-email-eric@inl.fr>
+References: <1227559607-3077-1-git-send-email-eric@inl.fr>
+Cc: Eric Leblond <eric@inl.fr>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:35762 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753223AbYKXReY (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 24 Nov 2008 12:34:24 -0500
-In-Reply-To: <200811250344.46392.rusty@rustcorp.com.au>
+Received: from bayen.regit.org ([81.57.69.189]:39501 "EHLO ice-age"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753071AbYKXUqu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 24 Nov 2008 15:46:50 -0500
+In-Reply-To: <1227559607-3077-1-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Rusty Russell wrote:
-> On Monday 24 November 2008 22:58:09 Patrick McHardy wrote:
->> Rusty Russell wrote:
->>> 		if (net_ratelimit())
->>> 			printk("conntrack_ftp: partial %s %u+%u\n",
->>> 			       search[dir][i].pattern,
->>> 			       ntohl(th->seq), datalen);
->> Its strange that FTP is apparently working since we drop those packets.
->> I'm not sure about downgrading that message, its there to inform the
->> user of an exceptional action (dropping of packets within conntrack).
-> 
-> Actually, we drop the packets *so* it will work.  The idea is that they'll 
-> coalesce and send the whole packet next time.
+This patch let nfmark to be evaluated for routing decision for OUTPUT
+packet, in mangle table, when process paquet in NFQUEUE. This patch is
+an IPv6 port of Laurent Licour IPv4 one.
 
-I see. The only case in which I triggered it so far was when sending
-incomplete PORT commands using telnet, so I missed this important
-fact :)
+Signed-off-by: Eric Leblond <eric@inl.fr>
+---
+ net/ipv6/netfilter.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
-> If not, well, they don't get any more packes through, but without connection 
-> tracking the other connections wouldn't work anyway (if the conntrack is being 
-> used for NAT or filtering).
-> 
-> IIRC wu-ftpd used to trigger this (multiple write syscalls for the ip address 
-> and nagle sometimes hit in the middle; go figure).
+diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
+index fd5b3a4..af84a43 100644
+--- a/net/ipv6/netfilter.c
++++ b/net/ipv6/netfilter.c
+@@ -56,6 +56,7 @@ EXPORT_SYMBOL(ip6_route_me_harder);
+ struct ip6_rt_info {
+ 	struct in6_addr daddr;
+ 	struct in6_addr saddr;
++	__u32 mark;
+ };
+ 
+ static void nf_ip6_saveroute(const struct sk_buff *skb,
+@@ -68,6 +69,7 @@ static void nf_ip6_saveroute(const struct sk_buff *skb,
+ 
+ 		rt_info->daddr = iph->daddr;
+ 		rt_info->saddr = iph->saddr;
++		rt_info->mark = skb->mark;
+ 	}
+ }
+ 
+@@ -79,7 +81,8 @@ static int nf_ip6_reroute(struct sk_buff *skb,
+ 	if (entry->hook == NF_INET_LOCAL_OUT) {
+ 		struct ipv6hdr *iph = ipv6_hdr(skb);
+ 		if (!ipv6_addr_equal(&iph->daddr, &rt_info->daddr) ||
+-		    !ipv6_addr_equal(&iph->saddr, &rt_info->saddr))
++		    !ipv6_addr_equal(&iph->saddr, &rt_info->saddr) ||
++		    skb->mark != rt_info->mark)
+ 			return ip6_route_me_harder(skb);
+ 	}
+ 	return 0;
+-- 
+1.5.6.3
 
-Thanks for the explanation. I'll queue up a patch for 2.6.29 to change
-it to pr_debug().
