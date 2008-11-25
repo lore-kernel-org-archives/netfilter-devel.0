@@ -1,27 +1,96 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/2] netfilter: nfmark IPV6 routing in OUTPUT, mangle,
- NFQUEUE
-Date: Tue, 25 Nov 2008 12:18:41 +0100
-Message-ID: <492BDF11.3030800@trash.net>
-References: <1227559607-3077-1-git-send-email-eric@inl.fr> <1227559607-3077-3-git-send-email-eric@inl.fr>
+From: "David Wu" <davidwu@arcturusnetworks.com>
+Subject: Re: iptables (1.4.2 release) failed to run on embedded system with
+ "can't initialize iptables table `filter'"
+Date: Tue, 25 Nov 2008 12:10:12 -0500
+Message-ID: <op.uk6pzalwqigx4y@cyprus.local>
+References: <op.uky4wc2dqigx4y@cyprus.local>
+ <alpine.LNX.1.10.0811211659001.12307@fbirervta.pbzchgretzou.qr>
+ <op.ukze8tjtqigx4y@cyprus.local>
+ <alpine.LNX.1.10.0811221204080.25317@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; format=flowed; delsp=yes; charset=utf-8
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@inl.fr>
+To: "Jan Engelhardt" <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55769 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750837AbYKYLSv (ORCPT
+Received: from mail.arcturusnetworks.com ([204.50.165.220]:33074 "EHLO
+	mail.arcturusnetworks.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751741AbYKYRKP (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Nov 2008 06:18:51 -0500
-In-Reply-To: <1227559607-3077-3-git-send-email-eric@inl.fr>
+	Tue, 25 Nov 2008 12:10:15 -0500
+In-Reply-To: <alpine.LNX.1.10.0811221204080.25317@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Leblond wrote:
-> This patch let nfmark to be evaluated for routing decision for OUTPUT
-> packet, in mangle table, when process paquet in NFQUEUE. This patch is
-> an IPv6 port of Laurent Licour IPv4 one.
+On Sat, 22 Nov 2008 06:06:33 -0500, Jan Engelhardt <jengelh@medozas.de>  
+wrote:
 
-Also applied with a similar change, thanks Eric.
+> On Friday 2008-11-21 19:35, David Wu wrote:
+>>
+>> I have built it with: (I added --disable-largefile)
+>> $ ../configure --host=m68k-uclinux
+>> --with-kernel=/home/wmq/HG-REV/5329/uCmib.devel/kernel  
+>> --disable-largefile
+>> --disable-shared CFLAGS=-DNO_SHARED_LIBS
+>> on a machine (uname -a Linux ivymike 2.6.18.2-34-bigsmp #1 SMP Mon Nov  
+>> 27
+>> 11:46:27 UTC 2006 i686 i686 i386 GNU/Linux, openSUSE 10.2 (i586)  
+>> VERSION =
+>> 10.2)
+>> kernel version is 2.6.26-rc7
+>>
+>> embedded system is 32bit, building system is also 32 bit.
+>> I don't have a clue where goes wrong. Could you give more info about  
+>> which ABI
+>> involved.(libc ?)
+>
+> ABI includes size of types and their alignment, especially:
+>
+> 	sizeof(int), sizeof(long),
+> 	alignof(int), alignof(long),
+> 	alignof(uint32_t), alignof(uint64_t)
+>
+OK. I have found this:
+http://lists.netfilter.org/pipermail/netfilter-devel/2007-January/026659.html
+
+How about my other problem:
+
+>> My question:
+>>  1 why tries to allocate 0 size memory, it is useful?
+>>       array_elems = (h->num_chains / list_length) +
+>>                      (h->num_chains % list_length ? 1 : 0);
+>>        array_mem   = sizeof(h->chain_index) * array_elems;
+
+> Logically,
+> array_mem == 0  =>  (sizeof(h->chain_index) == 0) ^ (array_elems == 0).
+> And given that sizeof() is unlikely to return 0 here, array_elems must
+> be 0. And the only way array_elems can be 0 is that h->num_chains <
+> list_length && h->num_chains == 0.  Buf if you have 0 chains to start
+> with, it sounds like it really could not get the filter to table to
+> work. gdb will help.
+
+It seems that I really have a 0 chains to start. Does this include default  
+chains or is it only user defined chains?
+
+I have compiled on x86(openSUSE 11.0 (X86-64)VERSION = 11.0)
+(Linux cyprus 2.6.25.11-0.1-default #1 SMP 2008-07-13 20:48:28 +0200  
+x86_64 x86_64 x86_64 GNU/Linux)
+and enable debug() in libiptc/libiptc.c
+
+This is output:
+cyprus:/home/wmq/iptables/iptables-1.4.2 # ./iptables -L
+Alloc Chain index, elems:0 mem:0 bytes
+Building chain index
+Number of user defined chains:0 bucket_sz:40 array_sz:0
+Chain INPUT (policy ACCEPT)
+target     prot opt source               destination
+
+Chain FORWARD (policy ACCEPT)
+target     prot opt source               destination
+
+Chain OUTPUT (policy ACCEPT)
+target     prot opt source               destination
+
+
+-- 
+David Wu
