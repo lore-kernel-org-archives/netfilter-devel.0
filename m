@@ -1,28 +1,41 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: [PATCH 0/2] routing via nfmark in OUTPUT NFQUEUE
-Date: Mon, 24 Nov 2008 21:46:45 +0100
-Message-ID: <1227559607-3077-1-git-send-email-eric@inl.fr>
-To: netfilter-devel@vger.kernel.org
+From: David Miller <davem@davemloft.net>
+Subject: Re: netfilter 01/03: ctnetlink: fix conntrack creation race
+Date: Mon, 24 Nov 2008 16:05:47 -0800 (PST)
+Message-ID: <20081124.160547.137623297.davem@davemloft.net>
+References: <20081124134427.462.77824.sendpatchset@x2.localnet>
+	<20081124134428.462.23305.sendpatchset@x2.localnet>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:39498 "EHLO ice-age"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753047AbYKXUqu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 24 Nov 2008 15:46:50 -0500
-Received: from eric by ice-age with local (Exim 4.69)
-	(envelope-from <eric@bayen.regit.org>)
-	id 1L4iKV-0000od-6c
-	for netfilter-devel@vger.kernel.org; Mon, 24 Nov 2008 21:46:47 +0100
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:47145
+	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1752606AbYKYAFs (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 24 Nov 2008 19:05:48 -0500
+In-Reply-To: <20081124134428.462.23305.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+From: Patrick McHardy <kaber@trash.net>
+Date: Mon, 24 Nov 2008 14:44:36 +0100 (MET)
 
-This small patchset is a resend of a work by Laurent Licour. It
-adds a rerouting possibility if the mark has been changed in OUTPUT
-via NFQUEUE. First patch is IPv4 version from Laurent Licour, second
-patch is a port to IPv6 I've done.
+>     netfilter: ctnetlink: fix conntrack creation race
+>     
+>     Conntrack creation through ctnetlink has two races:
+>     
+>     - the timer may expire and free the conntrack concurrently, causing an
+>       invalid memory access when attempting to put it in the hash tables
+>     
+>     - an identical conntrack entry may be created in the packet processing
+>       path in the time between the lookup and hash insertion
+>     
+>     Hold the conntrack lock between the lookup and insertion to avoid this.
+>     
+>     Reported-by: Zoltan Borbely <bozo@andrews.hu>
+>     Signed-off-by: Patrick McHardy <kaber@trash.net>
+> 
 
-BR,
---
-Eric Leblond <eric@inl.fr>
-NuFW, Now User Filtering Works : http://www.nufw.org
+Applied.
