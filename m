@@ -1,50 +1,39 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Jan Engelhardt <jengelh@medozas.de>
 Subject: Re: iptables (1.4.2 release) failed to run on embedded system with
  "can't initialize iptables table `filter'"
-Date: Wed, 26 Nov 2008 17:25:13 +0100
-Message-ID: <492D7869.6090808@trash.net>
-References: <op.uky4wc2dqigx4y@cyprus.local> <alpine.LNX.1.10.0811211659001.12307@fbirervta.pbzchgretzou.qr> <op.ukze8tjtqigx4y@cyprus.local> <alpine.LNX.1.10.0811221204080.25317@fbirervta.pbzchgretzou.qr> <op.uk6pzalwqigx4y@cyprus.local> <alpine.LNX.1.10.0811251841070.15844@fbirervta.pbzchgretzou.qr> <op.uk6vd0boqigx4y@cyprus.local> <alpine.LNX.1.10.0811261711080.2741@fbirervta.pbzchgretzou.qr>
+Date: Wed, 26 Nov 2008 18:14:27 +0100 (CET)
+Message-ID: <alpine.LNX.1.10.0811261814020.5487@fbirervta.pbzchgretzou.qr>
+References: <op.uky4wc2dqigx4y@cyprus.local> <alpine.LNX.1.10.0811211659001.12307@fbirervta.pbzchgretzou.qr> <op.ukze8tjtqigx4y@cyprus.local> <alpine.LNX.1.10.0811221204080.25317@fbirervta.pbzchgretzou.qr> <op.uk6pzalwqigx4y@cyprus.local>
+ <alpine.LNX.1.10.0811251841070.15844@fbirervta.pbzchgretzou.qr> <op.uk6vd0boqigx4y@cyprus.local> <alpine.LNX.1.10.0811261711080.2741@fbirervta.pbzchgretzou.qr> <492D7869.6090808@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: David Wu <davidwu@arcturusnetworks.com>,
 	Netfilter Developer Mailing List
 	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:61912 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752360AbYKZQZZ (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:49285 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752186AbYKZROa (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Nov 2008 11:25:25 -0500
-In-Reply-To: <alpine.LNX.1.10.0811261711080.2741@fbirervta.pbzchgretzou.qr>
+	Wed, 26 Nov 2008 12:14:30 -0500
+In-Reply-To: <492D7869.6090808@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> (Patrick, try not to screw up utf-8 in the git log too often ;-)
 
-If you try not to use it at every possible opportunity ... :)
+On Wednesday 2008-11-26 17:25, Patrick McHardy wrote:
+> Jan Engelhardt wrote:
+>> (Patrick, try not to screw up utf-8 in the git log too often ;-)
+>
+> If you try not to use it at every possible opportunity ... :)
 
-> commit 3430170eca6bf73b590ddbd1a1ee0573862ff555
-> Author: Jan Engelhardt <jengelh@medozas.de>
-> Date:   Wed Nov 26 17:13:57 2008 +0100
->=20
-> libiptc: guard chain index allocation for different malloc implementa=
-tions
->=20
-> Some libc implementations such as =B5Clibc return NULL on malloc(0).
-> They are free to do that per C standard.
+You fail it ;-)
 
-Applied, thanks.
 
-That behaviour is a bit stupid in my opinion though, it puts the burden
-on every caller using dynamically calculated sizes. I would expect more
-things to break from this.
+Date:   Wed Nov 26 17:18:08 2008 +0100
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+    libiptc: guard chain index allocation for different malloc implementations
+    
+    Some libc implementations such as <265>Clibc return NULL on malloc(0).
+    They are free to do that per C standard.
