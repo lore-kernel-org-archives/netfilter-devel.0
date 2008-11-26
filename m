@@ -1,39 +1,48 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Re: NF_STOLEN
-Date: Wed, 26 Nov 2008 17:16:45 +0100 (CET)
-Message-ID: <alpine.LNX.1.10.0811261716140.2741@fbirervta.pbzchgretzou.qr>
-References: <23c0b023d0f5.23d0f523c0b0@pku.edu.cn>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: iptables (1.4.2 release) failed to run on embedded system with
+ "can't initialize iptables table `filter'"
+Date: Wed, 26 Nov 2008 17:25:13 +0100
+Message-ID: <492D7869.6090808@trash.net>
+References: <op.uky4wc2dqigx4y@cyprus.local> <alpine.LNX.1.10.0811211659001.12307@fbirervta.pbzchgretzou.qr> <op.ukze8tjtqigx4y@cyprus.local> <alpine.LNX.1.10.0811221204080.25317@fbirervta.pbzchgretzou.qr> <op.uk6pzalwqigx4y@cyprus.local> <alpine.LNX.1.10.0811251841070.15844@fbirervta.pbzchgretzou.qr> <op.uk6vd0boqigx4y@cyprus.local> <alpine.LNX.1.10.0811261711080.2741@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: =?UTF-8?B?6LW156OK?= <zhao.lei129@pku.edu.cn>
+Cc: David Wu <davidwu@arcturusnetworks.com>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:54283 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752975AbYKZQQr (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:61912 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752360AbYKZQZZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Nov 2008 11:16:47 -0500
-In-Reply-To: <23c0b023d0f5.23d0f523c0b0@pku.edu.cn>
+	Wed, 26 Nov 2008 11:25:25 -0500
+In-Reply-To: <alpine.LNX.1.10.0811261711080.2741@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Jan Engelhardt wrote:
+> (Patrick, try not to screw up utf-8 in the git log too often ;-)
 
-On Tuesday 2008-11-25 04:23, =E8=B5=B5=E7=A3=8A wrote:
+If you try not to use it at every possible opportunity ... :)
 
->Hi,
->
->Thank you for your reply.
->
->As per your advice, I call ip_rcv_finish (referenced by the argument
->okfn) in my NF_IP_PRE_ROUTING hook function. But I got segmentation
->fault. Could you explain in a little more detail what should I do or
->what was the problem with the above method? I'm a newbie in netfilter
->and linux kernel programming.
+> commit 3430170eca6bf73b590ddbd1a1ee0573862ff555
+> Author: Jan Engelhardt <jengelh@medozas.de>
+> Date:   Wed Nov 26 17:13:57 2008 +0100
+>=20
+> libiptc: guard chain index allocation for different malloc implementa=
+tions
+>=20
+> Some libc implementations such as =B5Clibc return NULL on malloc(0).
+> They are free to do that per C standard.
 
-It may be that your skb, if created from scratch, is missing
-some initialized fields. It is best to find the line where it
-crashed.
+Applied, thanks.
+
+That behaviour is a bit stupid in my opinion though, it puts the burden
+on every caller using dynamically calculated sizes. I would expect more
+things to break from this.
+
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
