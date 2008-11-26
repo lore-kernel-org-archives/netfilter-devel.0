@@ -1,39 +1,40 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: iptables (1.4.2 release) failed to run on embedded system with
- "can't initialize iptables table `filter'"
-Date: Wed, 26 Nov 2008 18:14:27 +0100 (CET)
-Message-ID: <alpine.LNX.1.10.0811261814020.5487@fbirervta.pbzchgretzou.qr>
-References: <op.uky4wc2dqigx4y@cyprus.local> <alpine.LNX.1.10.0811211659001.12307@fbirervta.pbzchgretzou.qr> <op.ukze8tjtqigx4y@cyprus.local> <alpine.LNX.1.10.0811221204080.25317@fbirervta.pbzchgretzou.qr> <op.uk6pzalwqigx4y@cyprus.local>
- <alpine.LNX.1.10.0811251841070.15844@fbirervta.pbzchgretzou.qr> <op.uk6vd0boqigx4y@cyprus.local> <alpine.LNX.1.10.0811261711080.2741@fbirervta.pbzchgretzou.qr> <492D7869.6090808@trash.net>
+From: Bryan Duff <bduff@astrocorp.com>
+Subject: Building the conntrack rule from scratch
+Date: Wed, 26 Nov 2008 15:45:07 -0600
+Message-ID: <492DC363.3040304@astrocorp.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: David Wu <davidwu@arcturusnetworks.com>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:49285 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752186AbYKZROa (ORCPT
+Received: from mail.astrocorp.com ([75.160.64.129]:21556 "EHLO
+	mail.astrocorp.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752028AbYKZWR0 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Nov 2008 12:14:30 -0500
-In-Reply-To: <492D7869.6090808@trash.net>
+	Wed, 26 Nov 2008 17:17:26 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by mail.astrocorp.com (Postfix) with ESMTP id BB0E0630FD
+	for <netfilter-devel@vger.kernel.org>; Wed, 26 Nov 2008 15:44:35 -0600 (CST)
+Received: from mail.astrocorp.com ([127.0.0.1])
+	by localhost (mail.astrocorp.com [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id XMIXY-EWmPOr for <netfilter-devel@vger.kernel.org>;
+	Wed, 26 Nov 2008 15:44:34 -0600 (CST)
+Received: from Win2003.astrocorp.com (unknown [192.168.1.146])
+	by mail.astrocorp.com (Postfix) with ESMTP id 75FB0630F9
+	for <netfilter-devel@vger.kernel.org>; Wed, 26 Nov 2008 15:44:34 -0600 (CST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+If I build a conntrack rule (before any traffic actually traverses), and 
+then send traffic through, the conntrack rule gets used, but no SNAT 
+takes place.  It sends the packet outbound with a source IP on the LAN 
+instead of using the reply-dst and SNAT'ing to the WAN side.
 
-On Wednesday 2008-11-26 17:25, Patrick McHardy wrote:
-> Jan Engelhardt wrote:
->> (Patrick, try not to screw up utf-8 in the git log too often ;-)
->
-> If you try not to use it at every possible opportunity ... :)
+How do I get it to SNAT the packet?  In this way I'm circumventing 
+iptables (why use it when you already have all the information anyway) - 
+so nat POSTROUTING is never actually touched by the first outbound 
+packet - it's picked up by the conntrack rule.
 
-You fail it ;-)
+Tell me if I'm missing something, or if more information is needed.
 
-
-Date:   Wed Nov 26 17:18:08 2008 +0100
-
-    libiptc: guard chain index allocation for different malloc implementations
-    
-    Some libc implementations such as <265>Clibc return NULL on malloc(0).
-    They are free to do that per C standard.
+-Bryan
