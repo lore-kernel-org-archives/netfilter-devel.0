@@ -1,75 +1,39 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: iptables (1.4.2 release) failed to run on embedded system with
- "can't initialize iptables table `filter'"
-Date: Wed, 26 Nov 2008 17:15:29 +0100 (CET)
-Message-ID: <alpine.LNX.1.10.0811261711080.2741@fbirervta.pbzchgretzou.qr>
-References: <op.uky4wc2dqigx4y@cyprus.local> <alpine.LNX.1.10.0811211659001.12307@fbirervta.pbzchgretzou.qr> <op.ukze8tjtqigx4y@cyprus.local> <alpine.LNX.1.10.0811221204080.25317@fbirervta.pbzchgretzou.qr> <op.uk6pzalwqigx4y@cyprus.local>
- <alpine.LNX.1.10.0811251841070.15844@fbirervta.pbzchgretzou.qr> <op.uk6vd0boqigx4y@cyprus.local>
+Subject: Re: Re: NF_STOLEN
+Date: Wed, 26 Nov 2008 17:16:45 +0100 (CET)
+Message-ID: <alpine.LNX.1.10.0811261716140.2741@fbirervta.pbzchgretzou.qr>
+References: <23c0b023d0f5.23d0f523c0b0@pku.edu.cn>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, kaber@trash.net
-To: David Wu <davidwu@arcturusnetworks.com>
+Cc: netfilter-devel@vger.kernel.org
+To: =?UTF-8?B?6LW156OK?= <zhao.lei129@pku.edu.cn>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:54276 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:54283 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751796AbYKZQPb (ORCPT
+	with ESMTP id S1752975AbYKZQQr (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Nov 2008 11:15:31 -0500
-In-Reply-To: <op.uk6vd0boqigx4y@cyprus.local>
+	Wed, 26 Nov 2008 11:16:47 -0500
+In-Reply-To: <23c0b023d0f5.23d0f523c0b0@pku.edu.cn>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Tuesday 2008-11-25 20:07, David Wu wrote:
-> On Tue, 25 Nov 2008 12:45:55 -0500, Jan Engelhardt <jengelh@medozas.d=
-e> wrote:
->> On Tuesday 2008-11-25 18:10, David Wu wrote:
->> >
->> >It seems that I really have a 0 chains to start. Does this include =
-default
->> >chains or is it only user defined chains?
->>
->> Apparently only user-defined chains. Seems ok to me.
+On Tuesday 2008-11-25 04:23, =E8=B5=B5=E7=A3=8A wrote:
+
+>Hi,
 >
-> Then will there be a patch for the implementation of malloc() which r=
-eturns a
-> NULL for 0 size allocation?
+>Thank you for your reply.
+>
+>As per your advice, I call ip_rcv_finish (referenced by the argument
+>okfn) in my NF_IP_PRE_ROUTING hook function. But I got segmentation
+>fault. Could you explain in a little more detail what should I do or
+>what was the problem with the above method? I'm a newbie in netfilter
+>and linux kernel programming.
 
-Like this?
-(Patrick, try not to screw up utf-8 in the git log too often ;-)
-
-commit 3430170eca6bf73b590ddbd1a1ee0573862ff555
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Wed Nov 26 17:13:57 2008 +0100
-
-libiptc: guard chain index allocation for different malloc implementati=
-ons
-
-Some libc implementations such as =C2=B5Clibc return NULL on malloc(0).
-They are free to do that per C standard.
-
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- libiptc/libiptc.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/libiptc/libiptc.c b/libiptc/libiptc.c
-index 13e4c69..544a5b2 100644
---- a/libiptc/libiptc.c
-+++ b/libiptc/libiptc.c
-@@ -503,7 +503,7 @@ static int iptcc_chain_index_alloc(struct xtc_handl=
-e *h)
- 	      array_elems, array_mem);
-=20
- 	h->chain_index =3D malloc(array_mem);
--	if (!h->chain_index) {
-+	if (h->chain_index =3D=3D NULL && array_mem > 0) {
- 		h->chain_index_sz =3D 0;
- 		return -ENOMEM;
- 	}
-
+It may be that your skb, if created from scratch, is missing
+some initialized fields. It is best to find the line where it
+crashed.
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
