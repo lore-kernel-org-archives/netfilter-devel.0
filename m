@@ -1,475 +1,383 @@
-From: John Haxby <john.haxby@oracle.com>
-Subject: [PATCH] More secure SYSRQ for xtables-addons
-Date: Thu, 27 Nov 2008 12:28:29 +0000
-Message-ID: <492E926D.5020807@oracle.com>
+From: "IKA SysAdmin" <ikaadmin@ethz.ch>
+Subject: AW: iptables cut specific connections when lots of files are commited via subversion
+Date: Thu, 27 Nov 2008 15:14:11 +0100
+Message-ID: <13685F7ECF97C14081E83FC0EC90853A3EC7EA@EX5.d.ethz.ch>
+References: <13685F7ECF97C14081E83FC0EC90853A3EC7E7@EX5.d.ethz.ch> <alpine.LNX.1.10.0811271308560.9403@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
+Content-Type: multipart/mixed;
+	boundary="----_=_NextPart_001_01C9509A.80773139"
+Cc: <netfilter-devel@vger.kernel.org>
+To: "Jan Engelhardt" <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from acsinet12.oracle.com ([141.146.126.234]:16692 "EHLO
-	acsinet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755173AbYK0M2i (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 27 Nov 2008 07:28:38 -0500
-Received: from acsinet13.oracle.com (acsinet13.oracle.com [141.146.126.235])
-	by acsinet12.oracle.com (Switch-3.3.1/Switch-3.3.1) with ESMTP id mARCSKk2015117
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <netfilter-devel@vger.kernel.org>; Thu, 27 Nov 2008 12:28:21 GMT
-Received: from acsmt700.oracle.com (acsmt700.oracle.com [141.146.40.70])
-	by acsinet13.oracle.com (Switch-3.3.1/Switch-3.3.1) with ESMTP id mARCSpEL023326
-	for <netfilter-devel@vger.kernel.org>; Thu, 27 Nov 2008 12:28:52 GMT
+Received: from xsmtp0.ethz.ch ([82.130.70.14]:10162 "EHLO XSMTP0.ethz.ch"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753534AbYK0OOw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 27 Nov 2008 09:14:52 -0500
+Content-class: urn:content-classes:message
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello All,
+This is a multi-part message in MIME format.
 
-This is a patch to the SYSRQ xtables-addon that is, I believe, secure=20
-enough to use in moderately untrustworthy environments.  I'm relatively=
-=20
-new to posting patches so please forgive me if I've messed this up.
+------_=_NextPart_001_01C9509A.80773139
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
 
-Rationale:
+Here is the firewall-builder file, the rules are within, I hope this is, =
+what you wanted.
 
-I want to be able to use SYSRQ to reboot, crash or partially diagnose=20
-machines that become unresponsive for one reason or another.   These=20
-machines, typically, are blades or rack mounted machines that do not=20
-have a PS/2 connection for a keyboard and the old method of wheeling=20
-round a "crash trolley" that has a monitor and a keyboard on it no=20
-longer works:  USB keyboards rarely, if ever, work because by the time=20
-the machine is responding only to a ping, udev is incapable of setting=20
-up a new keyboard.
+It's not SVN over http but over https. I don't know exactly, how SVN =
+works. But still if iptables detected it as DoS - why was the server =
+accessible from some computers, and from some not (it was not accessible =
+e.g. from my computer who didn't have any connections to the server)?=20
 
-This patch extends the xt_SYSRQ module to avoid both disclosing the=20
-sysrq password and preventing replay.  This is done by changing the=20
-request packet from the simple "<key><password>" to a slightly more=20
-complex "<key>,<seqno>,<salt>,<hash>".   The hash is the sha1 checksum=20
-of "<key>,<seqno>,<salt>,<password>".   A request can be constructed in=
-=20
-a small shell script, for example:
-
-    key=3D"s"
-    password=3D"cookie"
-    seqno=3D$(date +%s)
-    salt=3D"$(dd bs=3D12 count=3D1 if=3D/dev/urandom 2>/dev/null | open=
-ssl enc=20
--base64)"
-    req=3D"$key,$seqno,$salt"
-    req=3D"$req,$(echo -n "$req,$password" | sha1sum | cut -c 1-40)"
-
-As before this can be sent to the victim machine using socat or netcat.
-
-Verification of the hash in xt_SYSRQ follows much the same process.  =20
-The sequence number, seqno, is initialised to the current time (in=20
-seconds) when the xt_SYSRQ module is loaded and is updated each time a=20
-valid request is received.   A request with a sequence number less than=
-=20
-the current sequence number or a wrong hash is silently ignored.  =20
-(Using the time for the sequence number assumes (requires) that time=20
-doesn't go backwards on a reboot and that the requester and victim have=
-=20
-reasonably synchronized clocks.)
-
-The random salt is there to prevent pre-computed dictionary attacks=20
-difficult: dictionary attacks are still feasible if you capture a packe=
-t=20
-because the hash is computed quickly -- taking perhaps several=20
-milliseconds to compute a more complex hash in xt_SYSRQ when the machin=
-e=20
-is unresponsive is probably not the best thing you could do.  However,=20
-cracking, say, a random 32 character password would take some time and=20
-is probably beyond what the people in the target untrustworthy=20
-environment are prepared to do or have the resources for.   It almost=20
-goes without saying that no two victim machines should use the same=20
-password.
-
-Ideally the iptables rules for SYSRQ would include a minimum time=20
-between requests to avoid the worst effects of sysrq-request bombing,=20
-although I haven't mentioned that in the updated man page (mostly=20
-because I'm not sure how to do it).
-
-=46inally, the module allocates all the resources it need at module=20
-initialisation time on the assumption that if things are going badly=20
-resource allocation is going to be troublesome.
-
-jch
+Regards, Claudia
 
 
-diff -up xtables-addons-1.6/extensions/libxt_SYSRQ.man.sysrq xtables-ad=
-dons-1.6/extensions/libxt_SYSRQ.man
---- xtables-addons-1.6/extensions/libxt_SYSRQ.man.sysrq	2008-11-18 17:1=
-6:34.000000000 +0000
-+++ xtables-addons-1.6/extensions/libxt_SYSRQ.man	2008-11-27 11:02:12.0=
-00000000 +0000
-@@ -5,13 +5,15 @@ stuck as a result -- if still possible,=20
- processes are stuck, interrupts are likely to be still processed, and =
-as such,
- sysrq can be triggered through incoming network packets.
- .PP
--This xt_SYSRQ implementation does not use any encryption, so you shoul=
-d change
--the SYSRQ password after use unless you have made sure it was transmit=
-ted
--securely and no one sniffed the network, e.g. by use of an IPsec tunne=
-l whose
--endpoint is at the machine where you want to trigger the sysrq. Also, =
-you
--should limit as to who can issue commands using \fB-s\fP and/or \fB-m =
-mac\fP,
--and also that the destination is correct using \fB-d\fP (to protect ag=
-ainst
--potential broadcast packets), noting that it is still short of MAC/IP =
-spoofing:
-+The xt_SYSRQ implementation uses a salted SHA1 hash and a sequence num=
-ber to
-+prevent network sniffers from either guessing the password or replayin=
-g earlier
-+requests.  The initial sequence number comes from the time of day so y=
-ou will
-+have a small window of vulnerability should time go backwards at a reb=
-oot.
-+However, the file /sys/module/xt_SYSREQ/seqno can be used to both quer=
-y and
-+update the current sequence number.  Also, you should limit as to who =
-can issue
-+commands using \fB-s\fP and/or \fB-m mac\fP, and also that the destina=
-tion is
-+correct using \fB-d\fP (to protect against potential broadcast packets=
-), noting
-+that it is still short of MAC/IP spoofing:
- .IP
- -A INPUT -s 10.10.25.1 -m mac --mac-source aa:bb:cc:dd:ee:ff -d 10.10.=
-25.7
- -p udp --dport 9 -j SYSRQ
-@@ -24,10 +26,9 @@ This extension does not take any options
- required.
- .PP
- The SYSRQ password can be changed through
--/sys/module/xt_SYSRQ/parameters/password; note you need to use `echo -=
-n` to
--not add a newline to the password, i.e.
-+/sys/module/xt_SYSRQ/parameters/password, for example:
- .IP
--echo -n "password" >/sys/.../password
-+echo "password" >/sys/module/xt_SYSRQ/parameters/password
- .PP
- Alternatively, the password may be specified at modprobe time, but thi=
-s is
- insecure as people can possible see it through ps(1). You can use an o=
-ption
-@@ -36,12 +37,36 @@ by root.
- .IP
- options xt_SYSRQ password=3Dcookies
- .PP
--To trigger SYSRQ from a remote host, just use netcat or socat, specify=
-ing the
--action (only one) as first character, followed by the password:
--.IP
--echo -n "scookies" | socat stdin udp-sendto:10.10.25.7:9
--.IP
--echo -n "scookies" | netcat -u 10.10.25.7 9
--.PP
--See the Linux docs for possible sysrq keys. Important ones are:
--re(b)oot, power(o)ff, (s)ync filesystems, (u)mount and remount readonl=
-y.
-+The xt_SYSRQ module is normally silent unless a successful request is =
-received,
-+but the \fIdebug\fP module parameter can be used to find exactly why a
-+seemingly correct request is not being processed.
-+.PP
-+To trigger SYSRQ from a remote host, just use netcat or socat:
-+.RS
-+.nf
-+
-+sysrq_key=3D"s"  # the SysRq key
-+password=3D"password"
-+seqno=3D"$(date +%s)"
-+salt=3D"$(dd bs=3D12 count=3D1 if=3D/dev/urandom 2>/dev/null |
-+    openssl enc -base64)"
-+req=3D"$sysrq_key,$seqno,$salt"
-+req=3D"$req,$(echo -n "$req,$password" | sha1sum | cut -c1-40)"
-+
-+echo "$req" | socat stdin udp-sendto:10.10.25.7:9
-+# or
-+echo "$req" | netcat -uw1 10.10.25.7 9
-+
-+.fi
-+.RE
-+.PP
-+See the Linux docs for possible sysrq keys. Important ones are: re(b)o=
-ot,
-+power(o)ff, (s)ync filesystems, (u)mount and remount readonly.  More t=
-han one
-+sysrq key can be used at once, but bear in mind that, for example, a s=
-ync may
-+not complete before a subsequent reboot or poweroff.
-+.PP
-+The hashing scheme should be enough to prevent mis-use of SYSRQ in man=
-y
-+environments, but it is not perfect: take reasonable precautions to pr=
-otect
-+your machines.  Most importantly ensure that each machine has a differ=
-ent
-+password: there is scant protection for a SYSRQ packet being applied t=
-o a
-+machine that happens to have the same password.
-diff -up xtables-addons-1.6/extensions/xt_SYSRQ.c.sysrq xtables-addons-=
-1.6/extensions/xt_SYSRQ.c
---- xtables-addons-1.6/extensions/xt_SYSRQ.c.sysrq	2008-11-18 17:16:34.=
-000000000 +0000
-+++ xtables-addons-1.6/extensions/xt_SYSRQ.c	2008-11-27 11:15:34.000000=
-000 +0000
-@@ -3,7 +3,6 @@
-  *	Copyright =C2=A9 Jan Engelhardt <jengelh [at] medozas de>, 2008
-  *
-  *	Based upon the ipt_SYSRQ idea by Marek Zalem <marek [at] terminus s=
-k>
-- *	xt_SYSRQ does not use hashing or timestamps.
-  *
-  *	This program is free software; you can redistribute it and/or
-  *	modify it under the terms of the GNU General Public License
-@@ -19,43 +18,137 @@
- #include <linux/netfilter_ipv4/ip_tables.h>
- #include <linux/netfilter_ipv6/ip6_tables.h>
- #include <linux/netfilter/x_tables.h>
-+#include <linux/crypto.h>
-+#include <linux/scatterlist.h>
- #include <net/ip.h>
- #include "compat_xtables.h"
-=20
- static bool sysrq_once;
- static char sysrq_password[64];
-+static long seqno;
-+static int debug;
- module_param_string(password, sysrq_password, sizeof(sysrq_password),
--	S_IRUSR | S_IWUSR);
-+		S_IRUSR | S_IWUSR);
-+module_param(seqno, long, S_IRUSR | S_IWUSR);
-+module_param(debug, int, S_IRUSR | S_IWUSR);
- MODULE_PARM_DESC(password, "password for remote sysrq");
-+MODULE_PARM_DESC(seqno, "sequence number for remote sysrq");
-+MODULE_PARM_DESC(debug, "debugging: 0=3Doff, 1=3Don");
-=20
-+
-+static struct crypto_hash *tfm;
-+static int digestsize;
-+static unsigned char *digest_password;
-+static unsigned char *sha1_digest;
-+static char *sha1_hexdigest;
-+
-+/*
-+ * The data is of the form "<requests>,<seqno>,<salt>,<hash>" where
-+ * <requests> is a series of sysrq requests; <seqno> is a sequence num=
-ber
-+ * which must be greater than the last sequence number; <salt> is some
-+ * random bytes; and <hash> is the sha1 hash of everything up to and
-+ * including the preceding "/" together with the password.
-+ *
-+ * For example
-+ *
-+ *   salt=3D$RANDOM
-+ *   req=3D"s,$(date +%s),$salt"
-+ *   echo "$req,$(echo -n $req,secret | sha1sum | cut -c1-40)"
-+ *
-+ * You probably want a better salt and password than that though :-)
-+ */
- static unsigned int sysrq_tg(const void *pdata, uint16_t len)
- {
- 	const char *data =3D pdata;
--	char c;
-+	int i, n;
-+	struct scatterlist sg[2];
-+	struct hash_desc desc;
-+	int ret;
-+	long new_seqno =3D 0;
-=20
- 	if (*sysrq_password =3D=3D '\0') {
- 		if (!sysrq_once)
--			printk(KERN_INFO KBUILD_MODNAME "No password set\n");
-+			printk(KERN_INFO KBUILD_MODNAME ": No password set\n");
- 		sysrq_once =3D true;
- 		return NF_DROP;
- 	}
--
- 	if (len =3D=3D 0)
- 		return NF_DROP;
-=20
--	c =3D *data;
--	if (strncmp(&data[1], sysrq_password, len - 1) !=3D 0) {
--		printk(KERN_INFO KBUILD_MODNAME "Failed attempt - "
--		       "password mismatch\n");
-+	for (i =3D 0; sysrq_password[i]; i++)
-+		if (sysrq_password[i] =3D=3D '\n')
-+			break;
-+	sysrq_password[i] =3D '\0';
-+
-+	i =3D 0;
-+	for (n =3D 0; n < len - 1; n++) {
-+		if (i =3D=3D 1 && '0' <=3D data[n] && data[n] <=3D '9')
-+			new_seqno =3D 10L * new_seqno + data[n] - '0';
-+		if (data[n] =3D=3D ',' && ++i =3D=3D 3)
-+			break;
-+	}
-+	n++;
-+	if (i !=3D 3) {
-+		if (debug)
-+			printk(KERN_WARNING KBUILD_MODNAME
-+				": badly formatted request\n");
-+		return NF_DROP;
-+	}
-+	if (seqno >=3D new_seqno) {
-+		if (debug)
-+			printk(KERN_WARNING KBUILD_MODNAME
-+				": old sequence number ignored\n");
-+		return NF_DROP;
-+	}
-+
-+	desc.tfm =3D tfm;
-+	desc.flags =3D 0;
-+	ret =3D crypto_hash_init(&desc);
-+	if (ret)
-+		goto hash_fail;
-+	sg_init_table(sg, 2);
-+	sg_set_buf(&sg[0], data, n);
-+	strcpy(digest_password, sysrq_password);
-+	i =3D strlen(digest_password);
-+	sg_set_buf(&sg[1], digest_password, i);
-+	ret =3D crypto_hash_digest(&desc, sg, n + i, sha1_digest);
-+	if (ret)
-+		goto hash_fail;
-+
-+	for (i =3D 0; i < digestsize; i++) {
-+		sha1_hexdigest[2 * i] =3D
-+			"0123456789abcdef"[(sha1_digest[i] >> 4) & 0xf];
-+		sha1_hexdigest[2 * i + 1] =3D
-+			"0123456789abcdef"[sha1_digest[i] & 0xf];
-+	}
-+	sha1_hexdigest[2 * digestsize] =3D '\0';
-+	if (len - n < digestsize) {
-+		if (debug)
-+			printk(KERN_INFO KBUILD_MODNAME ": Short digest,"
-+				" expected %s\n", sha1_hexdigest);
-+		return NF_DROP;
-+	}
-+	if (strncmp(data + n, sha1_hexdigest, digestsize) !=3D 0) {
-+		if (debug)
-+			printk(KERN_INFO KBUILD_MODNAME ": Bad digest,"
-+				" expected %s\n", sha1_hexdigest);
- 		return NF_DROP;
- 	}
-=20
-+	/* Now we trust the requester */
-+	seqno =3D new_seqno;
-+	for (i =3D 0; i < len && data[i] !=3D ','; i++) {
-+		printk(KERN_INFO KBUILD_MODNAME ": SysRq %c\n", data[i]);
- #if LINUX_VERSION_CODE >=3D KERNEL_VERSION(2, 6, 19)
--	handle_sysrq(c, NULL);
-+		handle_sysrq(data[i], NULL);
- #else
--	handle_sysrq(c, NULL, NULL);
-+		handle_sysrq(data[i], NULL, NULL);
- #endif
-+	}
- 	return NF_ACCEPT;
-+hash_fail:
-+	printk(KERN_WARNING KBUILD_MODNAME ": digest failure\n");
-+	return NF_DROP;
- }
-=20
- static unsigned int
-@@ -73,9 +166,11 @@ sysrq_tg4(struct sk_buff **pskb, const s
- 	udph =3D (void *)iph + ip_hdrlen(skb);
- 	len  =3D ntohs(udph->len) - sizeof(struct udphdr);
-=20
--	printk(KERN_INFO KBUILD_MODNAME ": " NIPQUAD_FMT ":%u -> :%u len=3D%u=
-\n",
--	       NIPQUAD(iph->saddr), htons(udph->source), htons(udph->dest),
--	       len);
-+	if (debug)
-+		printk(KERN_INFO KBUILD_MODNAME
-+			": " NIPQUAD_FMT ":%u -> :%u len=3D%u\n",
-+			NIPQUAD(iph->saddr), htons(udph->source),
-+			htons(udph->dest), len);
- 	return sysrq_tg((void *)udph + sizeof(struct udphdr), len);
- }
-=20
-@@ -94,9 +189,11 @@ sysrq_tg6(struct sk_buff **pskb, const s
- 	udph =3D udp_hdr(skb);
- 	len  =3D ntohs(udph->len) - sizeof(struct udphdr);
-=20
--	printk(KERN_INFO KBUILD_MODNAME ": " NIP6_FMT ":%hu -> :%hu len=3D%u\=
-n",
--	       NIP6(iph->saddr), ntohs(udph->source),
--	       ntohs(udph->dest), len);
-+	if (debug)
-+		printk(KERN_INFO KBUILD_MODNAME
-+			": " NIP6_FMT ":%hu -> :%hu len=3D%u\n",
-+			NIP6(iph->saddr), ntohs(udph->source),
-+			ntohs(udph->dest), len);
- 	return sysrq_tg(udph + sizeof(struct udphdr), len);
- }
-=20
-@@ -146,11 +243,54 @@ static struct xt_target sysrq_tg_reg[] _
-=20
- static int __init sysrq_tg_init(void)
- {
-+	struct timeval now;
-+	tfm =3D crypto_alloc_hash("sha1", 0, CRYPTO_ALG_ASYNC);
-+	if (IS_ERR(tfm)) {
-+		printk(KERN_WARNING KBUILD_MODNAME
-+			": Error: Could not find or load sha1 hash\n");
-+		tfm =3D NULL;
-+		goto fail;
-+	}
-+	digestsize =3D crypto_hash_digestsize(tfm);
-+	sha1_digest =3D kmalloc(digestsize, GFP_KERNEL);
-+	if (!sha1_digest) {
-+		printk(KERN_WARNING KBUILD_MODNAME
-+			": Cannot allocate sha1_digest\n");
-+		goto fail;
-+	}
-+	sha1_hexdigest =3D kmalloc(2 * digestsize + 1, GFP_KERNEL);
-+	if (!sha1_hexdigest) {
-+		printk(KERN_WARNING KBUILD_MODNAME
-+			": Cannot allocate sha1_hexdigest\n");
-+		goto fail;
-+	}
-+	digest_password =3D kmalloc(sizeof(sysrq_password), GFP_KERNEL);
-+	if (!digest_password) {
-+		printk(KERN_WARNING KBUILD_MODNAME
-+			": Cannot allocate password digest space\n");
-+		goto fail;
-+	}
-+	do_gettimeofday(&now);
-+	seqno =3D now.tv_sec;
- 	return xt_register_targets(sysrq_tg_reg, ARRAY_SIZE(sysrq_tg_reg));
-+fail:
-+	if (tfm)
-+		crypto_free_hash(tfm);
-+	if (sha1_digest)
-+		kfree(sha1_digest);
-+	if (sha1_hexdigest)
-+		kfree(sha1_hexdigest);
-+	if (digest_password)
-+		kfree(digest_password);
-+	return -EINVAL;
- }
-=20
- static void __exit sysrq_tg_exit(void)
- {
-+	crypto_free_hash(tfm);
-+	kfree(sha1_digest);
-+	kfree(sha1_hexdigest);
-+	kfree(digest_password);
- 	return xt_unregister_targets(sysrq_tg_reg, ARRAY_SIZE(sysrq_tg_reg));
- }
+
+-----Urspr=FCngliche Nachricht-----
+Von: jengelh@sovereign.computergmbh.de im Auftrag von Jan Engelhardt
+Gesendet: Do 27.11.2008 13:11
+An: IKA SysAdmin
+Cc: netfilter-devel@vger.kernel.org
+Betreff: Re: iptables cut specific connections when lots of files are =
+commited via subversion
 =20
 
+On Thursday 2008-11-27 09:53, IKA SysAdmin wrote:
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>Hi there,
+>I had a problematic experience with iptables and thought, you might be =
+interested.
+>regards, Claudia
+
+I'd be interested in the ruleset.
+
+>iptables added (created with firewall builder 3), only certain
+>networks have access on the port 443, some on the samba shares on
+>the server and some on the ssh port, everything else is closed down.
+>cronjob, that refreshed the firewall builder iptables all 15min.
+>(*/15 * * * * /bin/sh /etc/firewall/IkaFw.fw > /dev/null) svn
+>clients mostly with tortoise over https port
+>
+>Problem with subversion:
+>
+>* commits and updates worked, but only with few files. As soon as
+>  somebody commited lots of files, the connection got lost.
+
+>* to make it more problematic, the https port was not available
+>  anymore from at last two subnets (one of them outside the virtual
+>  network of the campus), but it was still available from within the
+>  same subnet as the server is and from another subnet outside the
+>  virtual network of the campus
+
+>* on the server everything looked fine, httpd running, no errors in
+>  logfiles - but it wasn't accessible from all networks anymore
+
+>* after a reboot of the server, everything worked again - until
+>  somebody committed lots of files again
+
+>* after trying some things, I stopped iptables and we were able to
+>  commit lots of files
+
+>* also the flushing of the iptables helped - for one big commit,
+>  afterwards the server wasn't accessible anymore from most of the
+>  outside networks
+
+Must have been your cron script reloading the ruleset.
+
+>* The use of the sambashare didn't produce any errors, we were able
+>  to load lots of heavy files on that share.
+
+That's because SVN over http issues, I believe, one request
+per file. If it does not use HTTP pipelining, that means
+one connection per file. Which is likely to be detected as a DoS
+attack. Hooray for svn  -.-
+
+
+
+
+------_=_NextPart_001_01C9509A.80773139
+Content-Type: application/octet-stream;
+	name="IkaFw.fw"
+Content-Transfer-Encoding: base64
+Content-Description: IkaFw.fw
+Content-Disposition: attachment;
+	filename="IkaFw.fw"
+
+IyEvYmluL3NoIAojCiMgIFRoaXMgaXMgYXV0b21hdGljYWxseSBnZW5lcmF0ZWQgZmlsZS4gRE8g
+Tk9UIE1PRElGWSAhCiMKIyAgRmlyZXdhbGwgQnVpbGRlciAgZndiX2lwdCB2My4wLjAtNTExIAoj
+CiMgIEdlbmVyYXRlZCBXZWQgT2N0IDAxIDE2OjA3OjI2IDIwMDggV2VzdGV1cm9w5GlzY2hlIE5v
+cm1hbHplaXQgYnkgY21hdHRoeXMKIwojIGZpbGVzOiAqIElrYUZ3LmZ3CiMKIwojIENvbXBpbGVk
+IGZvciBpcHRhYmxlcyAoYW55IHZlcnNpb24pCiMKIyAgVGhpcyBpcyBhbiBleGFtcGxlIG9mIGEg
+ZmlyZXdhbGwgcHJvdGVjdGluZyBhIGhvc3QgKCBhIHNlcnZlciBvciBhIHdvcmtzdGF0aW9uKS4g
+T25seSBTU0ggYWNjZXNzIHRvIHRoZSBob3N0IGlzIHBlcm1pdHRlZC4gSG9zdCBoYXMgZHluYW1p
+YyBhZGRyZXNzLgojCiMKIwoKClBBVEg9Ii9zYmluOi91c3Ivc2JpbjovYmluOi91c3IvYmluOiR7
+UEFUSH0iCmV4cG9ydCBQQVRICgpMU01PRD0ibHNtb2QiCk1PRFBST0JFPSJtb2Rwcm9iZSIKSVBU
+QUJMRVM9ImlwdGFibGVzIgpJUDZUQUJMRVM9ImlwNnRhYmxlcyIKSVBUQUJMRVNfUkVTVE9SRT0i
+aXB0YWJsZXMtcmVzdG9yZSIKSVA2VEFCTEVTX1JFU1RPUkU9Ii9zYmluL2lwNnRhYmxlcy1yZXN0
+b3JlIgpJUD0iaXAiCkxPR0dFUj0ibG9nZ2VyIgoKCiMKIyBQcm9sb2cgc2NyaXB0CiMKCiMKIyBF
+bmQgb2YgcHJvbG9nIHNjcmlwdAojCgpsb2coKSB7CiAgZWNobyAiJDEiCiAgdGVzdCAteCAiJExP
+R0dFUiIgJiYgJExPR0dFUiAtcCBpbmZvICIkMSIKfQoKY2hlY2tfZmlsZSgpIHsKICB0ZXN0IC1y
+ICIkMiIgfHwgewogICAgZWNobyAiQ2FuIG5vdCBmaW5kIGZpbGUgJDIgcmVmZXJlbmNlZCBieSBB
+ZGRyZXNzVGFibGUgb2JqZWN0ICQxIgogICAgZXhpdCAxCiAgfQp9Cgp2YV9udW09MQphZGRfYWRk
+cigpIHsKICBhZGRyPSQxCiAgbm09JDIKICBkZXY9JDMKCiAgdHlwZT0iIgogIGFhZGQ9IiIKCiAg
+TD1gJElQIC00IGxpbmsgbHMgJGRldiB8IGhlYWQgLW4xYAogIGlmIHRlc3QgLW4gIiRMIjsgdGhl
+bgogICAgT0lGUz0kSUZTCiAgICBJRlM9IiAvOiw8IgogICAgc2V0ICRMCiAgICB0eXBlPSQ0CiAg
+ICBJRlM9JE9JRlMKICAgIGlmIHRlc3QgIiR0eXBlIiA9ICJOTy1DQVJSSUVSIjsgdGhlbgogICAg
+ICB0eXBlPSQ1CiAgICBmaQoKICAgIEw9YCRJUCAtNCBhZGRyIGxzICRkZXYgdG8gJGFkZHIgfCBn
+cmVwIGluZXQgfCBncmVwIC12IDpgCiAgICBpZiB0ZXN0IC1uICIkTCI7IHRoZW4KICAgICAgT0lG
+Uz0kSUZTCiAgICAgIElGUz0iIC8iCiAgICAgIHNldCAkTAogICAgICBhYWRkPSQyCiAgICAgIElG
+Uz0kT0lGUwogICAgZmkKICBmaQogIGlmIHRlc3QgLXogIiRhYWRkIjsgdGhlbgogICAgaWYgdGVz
+dCAiJHR5cGUiID0gIlBPSU5UT1BPSU5UIjsgdGhlbgogICAgICAkSVAgLTQgYWRkciBhZGQgJGFk
+ZHIgZGV2ICRkZXYgc2NvcGUgZ2xvYmFsIGxhYmVsICRkZXY6RldCJHt2YV9udW19CiAgICAgIHZh
+X251bT1gZXhwciAkdmFfbnVtICsgMWAKICAgIGZpCiAgICBpZiB0ZXN0ICIkdHlwZSIgPSAiQlJP
+QURDQVNUIjsgdGhlbgogICAgICAkSVAgLTQgYWRkciBhZGQgJGFkZHIvJG5tIGRldiAkZGV2IGJy
+ZCArIHNjb3BlIGdsb2JhbCBsYWJlbCAkZGV2OkZXQiR7dmFfbnVtfQogICAgICB2YV9udW09YGV4
+cHIgJHZhX251bSArIDFgCiAgICBmaQogIGZpCn0KCmdldEludGVyZmFjZVZhck5hbWUoKSB7CiAg
+ZWNobyAkMSB8IHNlZCAncy9cLi9fLycKfQoKZ2V0YWRkcigpIHsKICBkZXY9JDEKICBuYW1lPSQy
+CiAgTD1gJElQIC00IGFkZHIgc2hvdyBkZXYgJGRldiB8IGdyZXAgaW5ldCB8IGdyZXAgLXYgOmAK
+ICB0ZXN0IC16ICIkTCIgJiYgeyAKICAgIGV2YWwgIiRuYW1lPScnIgogICAgcmV0dXJuCiAgfQog
+IE9JRlM9JElGUwogIElGUz0iIC8iCiAgc2V0ICRMCiAgZXZhbCAiJG5hbWU9JDIiCiAgSUZTPSRP
+SUZTCn0KCmdldGFkZHI2KCkgewogIGRldj0kMQogIG5hbWU9JDIKICBMPWAkSVAgLTYgYWRkciBz
+aG93IGRldiAkZGV2IHwgZ3JlcCBpbmV0NiB8IGdyZXAgLXYgOmAKICB0ZXN0IC16ICIkTCIgJiYg
+eyAKICAgIGV2YWwgIiRuYW1lPScnIgogICAgcmV0dXJuCiAgfQogIE9JRlM9JElGUwogIElGUz0i
+IC8iCiAgc2V0ICRMCiAgZXZhbCAiJG5hbWU9JDIiCiAgSUZTPSRPSUZTCn0KCgpnZXRpbnRlcmZh
+Y2VzKCkgewogIE5BTUU9JDEKICAkSVAgbGluayBzaG93IHwgZ3JlcCAiOiAkTkFNRSIgfCB3aGls
+ZSByZWFkIEw7IGRvCiAgICBPSUZTPSRJRlMKICAgIElGUz0iIDoiCiAgICBzZXQgJEwKICAgIElG
+Uz0kT0lGUwogICAgZWNobyAkMgogIGRvbmUKfQoKCiMgaW5jcmVtZW50IGlwIGFkZHJlc3MKaW5j
+YWRkcigpCnsKICBuMT0kNAogIG4yPSQzCiAgbjM9JDIKICBuND0kMQoKICB2bjE9YGV2YWwgICJl
+Y2hvIFxcJCRuMSJgCgogIFI9YGV4cHIgJHZuMSBcPCAyNTVgCiAgaWYgdGVzdCAkUiA9ICIxIjsg
+dGhlbgogICAgZXZhbCAiJG4xPWBleHByICR2bjEgKyAxYCIKICBlbHNlCiAgICBldmFsICIkbjE9
+MCIKICAgIGluY2FkZHIgWFggJG40ICRuMyAkbjIKICBmaQp9CgppZiAkSVAgbGluayBscyA+L2Rl
+di9udWxsIDI+JjE7IHRoZW4KICBlY2hvOwplbHNlCiAgZWNobyAiaXByb3V0ZSBub3QgZm91bmQi
+CiAgZXhpdCAxCmZpCgoKCk1PRFVMRVNfRElSPSIvbGliL21vZHVsZXMvYHVuYW1lIC1yYC9rZXJu
+ZWwvbmV0LyIKTU9EVUxFUz1gZmluZCAkTU9EVUxFU19ESVIgLW5hbWUgJypjb25udHJhY2sqJ3xz
+ZWQgIC1lICdzL14uKlwvLy8nIC1lICdzL1woW15cLl1cKVwuLiovXDEvJ2AKZm9yIG1vZHVsZSBp
+biAkTU9EVUxFUzsgZG8gCiAgaWYgJExTTU9EIHwgZ3JlcCAke21vZHVsZX0gPi9kZXYvbnVsbDsg
+dGhlbiBjb250aW51ZTsgZmkKICAkTU9EUFJPQkUgJHttb2R1bGV9IHx8ICBleGl0IDEgCmRvbmUK
+CgojIFVzaW5nIDAgYWRkcmVzcyB0YWJsZSBmaWxlcwoKCklOVEVSRkFDRVM9ImV0aDAgbG8gZXRo
+MSAiCmZvciBpIGluICRJTlRFUkZBQ0VTIDsgZG8KICAkSVAgbGluayBzaG93ICIkaSIgPiAvZGV2
+L251bGwgMj4mMSB8fCB7CiAgICBsb2cgIkludGVyZmFjZSAkaSBkb2VzIG5vdCBleGlzdCIKICAg
+IGV4aXQgMQogIH0KZG9uZQoKCiMgQ29uZmlndXJlIGludGVyZmFjZXMKJElQIC00IG5laWdoIGZs
+dXNoIGRldiBldGgwID4vZGV2L251bGwgMj4mMQokSVAgLTQgYWRkciBmbHVzaCBkZXYgZXRoMCBz
+ZWNvbmRhcnkgbGFiZWwgImV0aDA6RldCKiIgPi9kZXYvbnVsbCAyPiYxCiRJUCAtNCBuZWlnaCBm
+bHVzaCBkZXYgZXRoMSA+L2Rldi9udWxsIDI+JjEKJElQIC00IGFkZHIgZmx1c2ggZGV2IGV0aDEg
+c2Vjb25kYXJ5IGxhYmVsICJldGgxOkZXQioiID4vZGV2L251bGwgMj4mMQoKCmFkZF9hZGRyIDEy
+OS4xMzIuMTY4LjI0MCAyNiBldGgwCiRJUCBsaW5rIHNldCBldGgwIHVwCmFkZF9hZGRyIDEyNy4w
+LjAuMSA4IGxvCiRJUCBsaW5rIHNldCBsbyB1cAphZGRfYWRkciAxMjkuMTMyLjE2OC4yNDEgMjYg
+ZXRoMQokSVAgbGluayBzZXQgZXRoMSB1cAoKCiMgQWRkIHZpcnR1YWwgYWRkcmVzc2VzIGZvciBO
+QVQgcnVsZXMKCgpsb2cgJ0FjdGl2YXRpbmcgZmlyZXdhbGwgc2NyaXB0IGdlbmVyYXRlZCBXZWQg
+T2N0IDAxIDE2OjA3OjI2IDIwMDggIGJ5IGNtYXR0aHlzJwoKCgojID09PT09PT09PT09PT09PT0g
+SVB2NAoKCiMgPT09PT09PT09PT09PT09PSBUYWJsZSAnZmlsdGVyJywgYXV0b21hdGljIHJ1bGVz
+CiRJUFRBQkxFUyAtUCBPVVRQVVQgIERST1AKJElQVEFCTEVTIC1QIElOUFVUICAgRFJPUAokSVBU
+QUJMRVMgLVAgRk9SV0FSRCBEUk9QCgpjYXQgL3Byb2MvbmV0L2lwX3RhYmxlc19uYW1lcyB8IHdo
+aWxlIHJlYWQgdGFibGU7IGRvCiAgJElQVEFCTEVTIC10ICR0YWJsZSAtTCAtbiB8IHdoaWxlIHJl
+YWQgYyBjaGFpbiByZXN0OyBkbwogICAgICBpZiB0ZXN0ICJYJGMiID0gIlhDaGFpbiIgOyB0aGVu
+CiAgICAgICAgJElQVEFCTEVTIC10ICR0YWJsZSAtRiAkY2hhaW4KICAgICAgZmkKICBkb25lCiAg
+JElQVEFCTEVTIC10ICR0YWJsZSAtWApkb25lCgoKJElQVEFCTEVTIC1BIElOUFVUICAgLW0gc3Rh
+dGUgLS1zdGF0ZSBFU1RBQkxJU0hFRCxSRUxBVEVEIC1qIEFDQ0VQVAokSVBUQUJMRVMgLUEgT1VU
+UFVUICAtbSBzdGF0ZSAtLXN0YXRlIEVTVEFCTElTSEVELFJFTEFURUQgLWogQUNDRVBUCiRJUFRB
+QkxFUyAtQSBGT1JXQVJEIC1tIHN0YXRlIC0tc3RhdGUgRVNUQUJMSVNIRUQsUkVMQVRFRCAtaiBB
+Q0NFUFQKCiMgPT09PT09PT09PT09PT09PSBUYWJsZSAnbWFuZ2xlJywgYXV0b21hdGljIHJ1bGVz
+CgojID09PT09PT09PT09PT09PT0gVGFibGUgJ2ZpbHRlcicsIHJ1bGUgc2V0IFBvbGljeQojIFBv
+bGljeSBjb21waWxlciBlcnJvcnMgYW5kIHdhcm5pbmdzOgojIAojIAojIFJ1bGUgMCAoZXRoMCkK
+IyAKZWNobyAiUnVsZSAwIChldGgwKSIKIyAKIyBhbnRpIHNwb29maW5nIHJ1bGUKIyAKJElQVEFC
+TEVTIC1OIEluX1JVTEVfMAokSVBUQUJMRVMgLUEgSU5QVVQgIC1pIGV0aDAgIC1zIDEyOS4xMzIu
+MTY4LjI0MCAgLW0gc3RhdGUgLS1zdGF0ZSBORVcgIC1qIEluX1JVTEVfMCAKJElQVEFCTEVTIC1B
+IElOUFVUICAtaSBldGgwICAtcyAxMjkuMTMyLjE2OC4yNDEgIC1tIHN0YXRlIC0tc3RhdGUgTkVX
+ICAtaiBJbl9SVUxFXzAgCiRJUFRBQkxFUyAtQSBGT1JXQVJEICAtaSBldGgwICAtcyAxMjkuMTMy
+LjE2OC4yNDAgIC1tIHN0YXRlIC0tc3RhdGUgTkVXICAtaiBJbl9SVUxFXzAgCiRJUFRBQkxFUyAt
+QSBGT1JXQVJEICAtaSBldGgwICAtcyAxMjkuMTMyLjE2OC4yNDEgIC1tIHN0YXRlIC0tc3RhdGUg
+TkVXICAtaiBJbl9SVUxFXzAgCiRJUFRBQkxFUyAtQSBJbl9SVUxFXzAgIC1qIExPRyAgLS1sb2ct
+bGV2ZWwgaW5mbyAtLWxvZy1wcmVmaXggIlJVTEUgMCAtLSBERU5ZICIKJElQVEFCTEVTIC1BIElu
+X1JVTEVfMCAgLWogRFJPUCAKIyAKIyBSdWxlIDEgKGV0aDEpCiMgCmVjaG8gIlJ1bGUgMSAoZXRo
+MSkiCiMgCiMgYW50aSBzcG9vZmluZyBydWxlCiMgCiMgCiRJUFRBQkxFUyAtTiBJbl9SVUxFXzEK
+JElQVEFCTEVTIC1BIElOUFVUICAtaSBldGgxICAtcyAxMjkuMTMyLjE2OC4yNDAgIC1tIHN0YXRl
+IC0tc3RhdGUgTkVXICAtaiBJbl9SVUxFXzEgCiRJUFRBQkxFUyAtQSBJTlBVVCAgLWkgZXRoMSAg
+LXMgMTI5LjEzMi4xNjguMjQxICAtbSBzdGF0ZSAtLXN0YXRlIE5FVyAgLWogSW5fUlVMRV8xIAok
+SVBUQUJMRVMgLUEgRk9SV0FSRCAgLWkgZXRoMSAgLXMgMTI5LjEzMi4xNjguMjQwICAtbSBzdGF0
+ZSAtLXN0YXRlIE5FVyAgLWogSW5fUlVMRV8xIAokSVBUQUJMRVMgLUEgRk9SV0FSRCAgLWkgZXRo
+MSAgLXMgMTI5LjEzMi4xNjguMjQxICAtbSBzdGF0ZSAtLXN0YXRlIE5FVyAgLWogSW5fUlVMRV8x
+IAokSVBUQUJMRVMgLUEgSW5fUlVMRV8xICAtaiBMT0cgIC0tbG9nLWxldmVsIGluZm8gLS1sb2ct
+cHJlZml4ICJSVUxFIDEgLS0gREVOWSAiCiRJUFRBQkxFUyAtQSBJbl9SVUxFXzEgIC1qIERST1Ag
+CiRJUFRBQkxFUyAtTiBPdXRfUlVMRV8xCiRJUFRBQkxFUyAtQSBPVVRQVVQgIC1vIGV0aDEgIC1t
+IHN0YXRlIC0tc3RhdGUgTkVXICAtaiBPdXRfUlVMRV8xIAokSVBUQUJMRVMgLUEgT3V0X1JVTEVf
+MSAgLWogTE9HICAtLWxvZy1sZXZlbCBpbmZvIC0tbG9nLXByZWZpeCAiUlVMRSAxIC0tIERFTlkg
+IgokSVBUQUJMRVMgLUEgT3V0X1JVTEVfMSAgLWogRFJPUCAKIyAKIyBSdWxlIDIgKGxvKQojIApl
+Y2hvICJSdWxlIDIgKGxvKSIKIyAKIyAKIyAKJElQVEFCTEVTIC1BIElOUFVUICAtaSBsbyAgLW0g
+c3RhdGUgLS1zdGF0ZSBORVcgIC1qIEFDQ0VQVCAKJElQVEFCTEVTIC1BIE9VVFBVVCAgLW8gbG8g
+IC1tIHN0YXRlIC0tc3RhdGUgTkVXICAtaiBBQ0NFUFQgCiMgCiMgUnVsZSAzIChnbG9iYWwpCiMg
+CmVjaG8gIlJ1bGUgMyAoZ2xvYmFsKSIKIyAKIyBWb24gRmlyZXdhbGwgaW5zIEVUSCBOZXR6d2Vy
+ayBpc3QgYWxsZXMgZXJsYXVidC4KIyBXZWdlbiBETlMsIFJlZGhhdCBVcGRhdGVzLCBUaW1lLCBl
+dGMuCiMgCiRJUFRBQkxFUyAtQSBPVVRQVVQgIC1kIDEyOS4xMzIuMC4wLzE2ICAtbSBzdGF0ZSAt
+LXN0YXRlIE5FVyAgLWogQUNDRVBUIAojIAojIFJ1bGUgNCAoZXRoMCkKIyAKZWNobyAiUnVsZSA0
+IChldGgwKSIKIyAKIyBTYW1iYSBadWdyaWZmCiMgCiMgCiRJUFRBQkxFUyAtTiBDaWQ3OTQzWDM4
+MjguMAokSVBUQUJMRVMgLUEgSU5QVVQgIC1pIGV0aDAgLXAgdGNwIC1tIHRjcCAgLW0gbXVsdGlw
+b3J0ICAtLWRwb3J0cyAxMzksMTM1LDQyLDQ0NSw4OCwzODksNjM2LDMyNjgsMzI2OSw1MywxMTEg
+IC1tIHN0YXRlIC0tc3RhdGUgTkVXICAtaiBDaWQ3OTQzWDM4MjguMCAKJElQVEFCTEVTIC1BIElO
+UFVUICAtaSBldGgwIC1wIHVkcCAtbSB1ZHAgIC1tIG11bHRpcG9ydCAgLS1kcG9ydHMgMTM4LDEz
+Nyw1Myw4OCwxMTEgIC1tIHN0YXRlIC0tc3RhdGUgTkVXICAtaiBDaWQ3OTQzWDM4MjguMCAKJElQ
+VEFCTEVTIC1BIENpZDc5NDNYMzgyOC4wICAtcyAxMjkuMTMyLjEyNy4xMjgvMjYgIC1qIEFDQ0VQ
+VCAKJElQVEFCTEVTIC1BIENpZDc5NDNYMzgyOC4wICAtcyAxMjkuMTMyLjEyNy4xOTIvMjcgIC1q
+IEFDQ0VQVCAKJElQVEFCTEVTIC1BIENpZDc5NDNYMzgyOC4wICAtcyAxMjkuMTMyLjEyNy4yMjQv
+MjggIC1qIEFDQ0VQVCAKJElQVEFCTEVTIC1BIENpZDc5NDNYMzgyOC4wICAtcyAxMjkuMTMyLjEy
+Ny4yNDAvMjkgIC1qIEFDQ0VQVCAKJElQVEFCTEVTIC1BIENpZDc5NDNYMzgyOC4wICAtcyAxMjku
+MTMyLjEyNy4yNDgvMzAgIC1qIEFDQ0VQVCAKJElQVEFCTEVTIC1BIENpZDc5NDNYMzgyOC4wICAt
+cyAxMjkuMTMyLjEyNy4yNTIgIC1qIEFDQ0VQVCAKJElQVEFCTEVTIC1BIENpZDc5NDNYMzgyOC4w
+ICAtcyAxMjkuMTMyLjEyNy4yNTMgIC1qIEFDQ0VQVCAKJElQVEFCTEVTIC1OIENpZDc5NDNYMzgy
+OC4xCiRJUFRBQkxFUyAtQSBGT1JXQVJEICAtbyBldGgwIC1wIHRjcCAtbSB0Y3AgIC1tIG11bHRp
+cG9ydCAgLS1kcG9ydHMgMTM5LDEzNSw0Miw0NDUsODgsMzg5LDYzNiwzMjY4LDMyNjksNTMsMTEx
+ICAtbSBzdGF0ZSAtLXN0YXRlIE5FVyAgLWogQ2lkNzk0M1gzODI4LjEgCiRJUFRBQkxFUyAtQSBG
+T1JXQVJEICAtbyBldGgwIC1wIHVkcCAtbSB1ZHAgIC1tIG11bHRpcG9ydCAgLS1kcG9ydHMgMTM4
+LDEzNyw1Myw4OCwxMTEgIC1tIHN0YXRlIC0tc3RhdGUgTkVXICAtaiBDaWQ3OTQzWDM4MjguMSAK
+JElQVEFCTEVTIC1OIENpZDc5NDNYMzgyOC4yCiRJUFRBQkxFUyAtQSBDaWQ3OTQzWDM4MjguMSAg
+LWQgMTI5LjEzMi4xNjguMjQwICAtaiBDaWQ3OTQzWDM4MjguMiAKJElQVEFCTEVTIC1BIENpZDc5
+NDNYMzgyOC4xICAtZCAxMjkuMTMyLjE2OC4yNDEgIC1qIENpZDc5NDNYMzgyOC4yIAokSVBUQUJM
+RVMgLUEgQ2lkNzk0M1gzODI4LjIgIC1zIDEyOS4xMzIuMTI3LjEyOC8yNiAgLWogQUNDRVBUIAok
+SVBUQUJMRVMgLUEgQ2lkNzk0M1gzODI4LjIgIC1zIDEyOS4xMzIuMTI3LjE5Mi8yNyAgLWogQUND
+RVBUIAokSVBUQUJMRVMgLUEgQ2lkNzk0M1gzODI4LjIgIC1zIDEyOS4xMzIuMTI3LjIyNC8yOCAg
+LWogQUNDRVBUIAokSVBUQUJMRVMgLUEgQ2lkNzk0M1gzODI4LjIgIC1zIDEyOS4xMzIuMTI3LjI0
+MC8yOSAgLWogQUNDRVBUIAokSVBUQUJMRVMgLUEgQ2lkNzk0M1gzODI4LjIgIC1zIDEyOS4xMzIu
+MTI3LjI0OC8zMCAgLWogQUNDRVBUIAokSVBUQUJMRVMgLUEgQ2lkNzk0M1gzODI4LjIgIC1zIDEy
+OS4xMzIuMTI3LjI1MiAgLWogQUNDRVBUIAokSVBUQUJMRVMgLUEgQ2lkNzk0M1gzODI4LjIgIC1z
+IDEyOS4xMzIuMTI3LjI1MyAgLWogQUNDRVBUIAojIAojIFJ1bGUgNSAoZXRoMCxldGgxKQojIApl
+Y2hvICJSdWxlIDUgKGV0aDAsZXRoMSkiCiMgCiMgU1NIIEFjY2VzcyB0byB0aGUgaG9zdDsgdXNl
+ZnVsIElDTVAKIyB0eXBlczsgcGluZyByZXF1ZXN0CiMgCiRJUFRBQkxFUyAtTiBDaWQ3ODUwWDM4
+MjguMAokSVBUQUJMRVMgLUEgSU5QVVQgIC1pIGV0aDAgLXAgaWNtcCAgLW0gaWNtcCAgLS1pY21w
+LXR5cGUgMTEvMCAgIC1tIHN0YXRlIC0tc3RhdGUgTkVXICAtaiBDaWQ3ODUwWDM4MjguMCAKJElQ
+VEFCTEVTIC1BIElOUFVUICAtaSBldGgwIC1wIGljbXAgIC1tIGljbXAgIC0taWNtcC10eXBlIDEx
+LzEgICAtbSBzdGF0ZSAtLXN0YXRlIE5FVyAgLWogQ2lkNzg1MFgzODI4LjAgCiRJUFRBQkxFUyAt
+QSBJTlBVVCAgLWkgZXRoMCAtcCBpY21wICAtbSBpY21wICAtLWljbXAtdHlwZSAwLzAgICAtbSBz
+dGF0ZSAtLXN0YXRlIE5FVyAgLWogQ2lkNzg1MFgzODI4LjAgCiRJUFRBQkxFUyAtQSBJTlBVVCAg
+LWkgZXRoMCAtcCBpY21wICAtbSBpY21wICAtLWljbXAtdHlwZSAzICAtbSBzdGF0ZSAtLXN0YXRl
+IE5FVyAgLWogQ2lkNzg1MFgzODI4LjAgCiRJUFRBQkxFUyAtQSBJTlBVVCAgLWkgZXRoMCAtcCBp
+Y21wICAtbSBpY21wICAtLWljbXAtdHlwZSA4LzAgICAtbSBzdGF0ZSAtLXN0YXRlIE5FVyAgLWog
+Q2lkNzg1MFgzODI4LjAgCiRJUFRBQkxFUyAtQSBJTlBVVCAgLWkgZXRoMCAtcCB0Y3AgLW0gdGNw
+ICAtbSBtdWx0aXBvcnQgIC0tZHBvcnRzIDIyLDMxNzMgIC1tIHN0YXRlIC0tc3RhdGUgTkVXICAt
+aiBDaWQ3ODUwWDM4MjguMCAKJElQVEFCTEVTIC1BIENpZDc4NTBYMzgyOC4wICAtcyAxMjkuMTMy
+LjEyNy4xMjgvMjYgIC1qIEFDQ0VQVCAKJElQVEFCTEVTIC1BIENpZDc4NTBYMzgyOC4wICAtcyAx
+MjkuMTMyLjEyNy4xOTIvMjcgIC1qIEFDQ0VQVCAKJElQVEFCTEVTIC1BIENpZDc4NTBYMzgyOC4w
+ICAtcyAxMjkuMTMyLjEyNy4yMjQvMjggIC1qIEFDQ0VQVCAKJElQVEFCTEVTIC1BIENpZDc4NTBY
+MzgyOC4wICAtcyAxMjkuMTMyLjEyNy4yNDAvMjkgIC1qIEFDQ0VQVCAKJElQVEFCTEVTIC1BIENp
+ZDc4NTBYMzgyOC4wICAtcyAxMjkuMTMyLjEyNy4yNDgvMzAgIC1qIEFDQ0VQVCAKJElQVEFCTEVT
+IC1BIENpZDc4NTBYMzgyOC4wICAtcyAxMjkuMTMyLjEyNy4yNTIgIC1qIEFDQ0VQVCAKJElQVEFC
+TEVTIC1BIENpZDc4NTBYMzgyOC4wICAtcyAxMjkuMTMyLjEyNy4yNTMgIC1qIEFDQ0VQVCAKJElQ
+VEFCTEVTIC1BIENpZDc4NTBYMzgyOC4wICAtcyB3aWVzZW5zYXQuZHluZG5zLm9yZyAtaiBBQ0NF
+UFQgCiRJUFRBQkxFUyAtQSBDaWQ3ODUwWDM4MjguMCAgLXMgdGlyYW1pc3VjaC5keW5kbnMub3Jn
+IC1qIEFDQ0VQVCAKJElQVEFCTEVTIC1OIENpZDc4NTBYMzgyOC4xCiRJUFRBQkxFUyAtQSBJTlBV
+VCAgLWkgZXRoMSAtcCBpY21wICAtbSBpY21wICAtLWljbXAtdHlwZSAxMS8wICAgLW0gc3RhdGUg
+LS1zdGF0ZSBORVcgIC1qIENpZDc4NTBYMzgyOC4xIAokSVBUQUJMRVMgLUEgSU5QVVQgIC1pIGV0
+aDEgLXAgaWNtcCAgLW0gaWNtcCAgLS1pY21wLXR5cGUgMTEvMSAgIC1tIHN0YXRlIC0tc3RhdGUg
+TkVXICAtaiBDaWQ3ODUwWDM4MjguMSAKJElQVEFCTEVTIC1BIElOUFVUICAtaSBldGgxIC1wIGlj
+bXAgIC1tIGljbXAgIC0taWNtcC10eXBlIDAvMCAgIC1tIHN0YXRlIC0tc3RhdGUgTkVXICAtaiBD
+aWQ3ODUwWDM4MjguMSAKJElQVEFCTEVTIC1BIElOUFVUICAtaSBldGgxIC1wIGljbXAgIC1tIGlj
+bXAgIC0taWNtcC10eXBlIDMgIC1tIHN0YXRlIC0tc3RhdGUgTkVXICAtaiBDaWQ3ODUwWDM4Mjgu
+MSAKJElQVEFCTEVTIC1BIElOUFVUICAtaSBldGgxIC1wIGljbXAgIC1tIGljbXAgIC0taWNtcC10
+eXBlIDgvMCAgIC1tIHN0YXRlIC0tc3RhdGUgTkVXICAtaiBDaWQ3ODUwWDM4MjguMSAKJElQVEFC
+TEVTIC1BIElOUFVUICAtaSBldGgxIC1wIHRjcCAtbSB0Y3AgIC1tIG11bHRpcG9ydCAgLS1kcG9y
+dHMgMjIsMzE3MyAgLW0gc3RhdGUgLS1zdGF0ZSBORVcgIC1qIENpZDc4NTBYMzgyOC4xIAokSVBU
+QUJMRVMgLUEgQ2lkNzg1MFgzODI4LjEgIC1zIDEyOS4xMzIuMTI3LjEyOC8yNiAgLWogQUNDRVBU
+IAokSVBUQUJMRVMgLUEgQ2lkNzg1MFgzODI4LjEgIC1zIDEyOS4xMzIuMTI3LjE5Mi8yNyAgLWog
+QUNDRVBUIAokSVBUQUJMRVMgLUEgQ2lkNzg1MFgzODI4LjEgIC1zIDEyOS4xMzIuMTI3LjIyNC8y
+OCAgLWogQUNDRVBUIAokSVBUQUJMRVMgLUEgQ2lkNzg1MFgzODI4LjEgIC1zIDEyOS4xMzIuMTI3
+LjI0MC8yOSAgLWogQUNDRVBUIAokSVBUQUJMRVMgLUEgQ2lkNzg1MFgzODI4LjEgIC1zIDEyOS4x
+MzIuMTI3LjI0OC8zMCAgLWogQUNDRVBUIAokSVBUQUJMRVMgLUEgQ2lkNzg1MFgzODI4LjEgIC1z
+IDEyOS4xMzIuMTI3LjI1MiAgLWogQUNDRVBUIAokSVBUQUJMRVMgLUEgQ2lkNzg1MFgzODI4LjEg
+IC1zIDEyOS4xMzIuMTI3LjI1MyAgLWogQUNDRVBUIAokSVBUQUJMRVMgLUEgQ2lkNzg1MFgzODI4
+LjEgIC1zIHdpZXNlbnNhdC5keW5kbnMub3JnIC1qIEFDQ0VQVCAKJElQVEFCTEVTIC1BIENpZDc4
+NTBYMzgyOC4xICAtcyB0aXJhbWlzdWNoLmR5bmRucy5vcmcgLWogQUNDRVBUIAokSVBUQUJMRVMg
+LU4gQ2lkNzg1MFgzODI4LjIKJElQVEFCTEVTIC1BIEZPUldBUkQgIC1vIGV0aDAgIC1kIDEyOS4x
+MzIuMTY4LjI0MCAgLW0gc3RhdGUgLS1zdGF0ZSBORVcgIC1qIENpZDc4NTBYMzgyOC4yIAokSVBU
+QUJMRVMgLUEgRk9SV0FSRCAgLW8gZXRoMCAgLWQgMTI5LjEzMi4xNjguMjQxICAtbSBzdGF0ZSAt
+LXN0YXRlIE5FVyAgLWogQ2lkNzg1MFgzODI4LjIgCiRJUFRBQkxFUyAtTiBDaWQ3ODUwWDM4Mjgu
+MwokSVBUQUJMRVMgLUEgQ2lkNzg1MFgzODI4LjIgLXAgaWNtcCAgLW0gaWNtcCAgLS1pY21wLXR5
+cGUgMTEvMCAgIC1qIENpZDc4NTBYMzgyOC4zIAokSVBUQUJMRVMgLUEgQ2lkNzg1MFgzODI4LjIg
+LXAgaWNtcCAgLW0gaWNtcCAgLS1pY21wLXR5cGUgMTEvMSAgIC1qIENpZDc4NTBYMzgyOC4zIAok
+SVBUQUJMRVMgLUEgQ2lkNzg1MFgzODI4LjIgLXAgaWNtcCAgLW0gaWNtcCAgLS1pY21wLXR5cGUg
+MC8wICAgLWogQ2lkNzg1MFgzODI4LjMgCiRJUFRBQkxFUyAtQSBDaWQ3ODUwWDM4MjguMiAtcCBp
+Y21wICAtbSBpY21wICAtLWljbXAtdHlwZSAzICAtaiBDaWQ3ODUwWDM4MjguMyAKJElQVEFCTEVT
+IC1BIENpZDc4NTBYMzgyOC4yIC1wIGljbXAgIC1tIGljbXAgIC0taWNtcC10eXBlIDgvMCAgIC1q
+IENpZDc4NTBYMzgyOC4zIAokSVBUQUJMRVMgLUEgQ2lkNzg1MFgzODI4LjIgLXAgdGNwIC1tIHRj
+cCAgLW0gbXVsdGlwb3J0ICAtLWRwb3J0cyAyMiwzMTczICAtaiBDaWQ3ODUwWDM4MjguMyAKJElQ
+VEFCTEVTIC1BIENpZDc4NTBYMzgyOC4zICAtcyAxMjkuMTMyLjEyNy4xMjgvMjYgIC1qIEFDQ0VQ
+VCAKJElQVEFCTEVTIC1BIENpZDc4NTBYMzgyOC4zICAtcyAxMjkuMTMyLjEyNy4xOTIvMjcgIC1q
+IEFDQ0VQVCAKJElQVEFCTEVTIC1BIENpZDc4NTBYMzgyOC4zICAtcyAxMjkuMTMyLjEyNy4yMjQv
+MjggIC1qIEFDQ0VQVCAKJElQVEFCTEVTIC1BIENpZDc4NTBYMzgyOC4zICAtcyAxMjkuMTMyLjEy
+Ny4yNDAvMjkgIC1qIEFDQ0VQVCAKJElQVEFCTEVTIC1BIENpZDc4NTBYMzgyOC4zICAtcyAxMjku
+MTMyLjEyNy4yNDgvMzAgIC1qIEFDQ0VQVCAKJElQVEFCTEVTIC1BIENpZDc4NTBYMzgyOC4zICAt
+cyAxMjkuMTMyLjEyNy4yNTIgIC1qIEFDQ0VQVCAKJElQVEFCTEVTIC1BIENpZDc4NTBYMzgyOC4z
+ICAtcyAxMjkuMTMyLjEyNy4yNTMgIC1qIEFDQ0VQVCAKJElQVEFCTEVTIC1BIENpZDc4NTBYMzgy
+OC4zICAtcyB3aWVzZW5zYXQuZHluZG5zLm9yZyAtaiBBQ0NFUFQgCiRJUFRBQkxFUyAtQSBDaWQ3
+ODUwWDM4MjguMyAgLXMgdGlyYW1pc3VjaC5keW5kbnMub3JnIC1qIEFDQ0VQVCAKJElQVEFCTEVT
+IC1OIENpZDc4NTBYMzgyOC40CiRJUFRBQkxFUyAtQSBGT1JXQVJEICAtbyBldGgxICAtZCAxMjku
+MTMyLjE2OC4yNDAgIC1tIHN0YXRlIC0tc3RhdGUgTkVXICAtaiBDaWQ3ODUwWDM4MjguNCAKJElQ
+VEFCTEVTIC1BIEZPUldBUkQgIC1vIGV0aDEgIC1kIDEyOS4xMzIuMTY4LjI0MSAgLW0gc3RhdGUg
+LS1zdGF0ZSBORVcgIC1qIENpZDc4NTBYMzgyOC40IAokSVBUQUJMRVMgLU4gQ2lkNzg1MFgzODI4
+LjUKJElQVEFCTEVTIC1BIENpZDc4NTBYMzgyOC40IC1wIGljbXAgIC1tIGljbXAgIC0taWNtcC10
+eXBlIDExLzAgICAtaiBDaWQ3ODUwWDM4MjguNSAKJElQVEFCTEVTIC1BIENpZDc4NTBYMzgyOC40
+IC1wIGljbXAgIC1tIGljbXAgIC0taWNtcC10eXBlIDExLzEgICAtaiBDaWQ3ODUwWDM4MjguNSAK
+JElQVEFCTEVTIC1BIENpZDc4NTBYMzgyOC40IC1wIGljbXAgIC1tIGljbXAgIC0taWNtcC10eXBl
+IDAvMCAgIC1qIENpZDc4NTBYMzgyOC41IAokSVBUQUJMRVMgLUEgQ2lkNzg1MFgzODI4LjQgLXAg
+aWNtcCAgLW0gaWNtcCAgLS1pY21wLXR5cGUgMyAgLWogQ2lkNzg1MFgzODI4LjUgCiRJUFRBQkxF
+UyAtQSBDaWQ3ODUwWDM4MjguNCAtcCBpY21wICAtbSBpY21wICAtLWljbXAtdHlwZSA4LzAgICAt
+aiBDaWQ3ODUwWDM4MjguNSAKJElQVEFCTEVTIC1BIENpZDc4NTBYMzgyOC40IC1wIHRjcCAtbSB0
+Y3AgIC1tIG11bHRpcG9ydCAgLS1kcG9ydHMgMjIsMzE3MyAgLWogQ2lkNzg1MFgzODI4LjUgCiRJ
+UFRBQkxFUyAtQSBDaWQ3ODUwWDM4MjguNSAgLXMgMTI5LjEzMi4xMjcuMTI4LzI2ICAtaiBBQ0NF
+UFQgCiRJUFRBQkxFUyAtQSBDaWQ3ODUwWDM4MjguNSAgLXMgMTI5LjEzMi4xMjcuMTkyLzI3ICAt
+aiBBQ0NFUFQgCiRJUFRBQkxFUyAtQSBDaWQ3ODUwWDM4MjguNSAgLXMgMTI5LjEzMi4xMjcuMjI0
+LzI4ICAtaiBBQ0NFUFQgCiRJUFRBQkxFUyAtQSBDaWQ3ODUwWDM4MjguNSAgLXMgMTI5LjEzMi4x
+MjcuMjQwLzI5ICAtaiBBQ0NFUFQgCiRJUFRBQkxFUyAtQSBDaWQ3ODUwWDM4MjguNSAgLXMgMTI5
+LjEzMi4xMjcuMjQ4LzMwICAtaiBBQ0NFUFQgCiRJUFRBQkxFUyAtQSBDaWQ3ODUwWDM4MjguNSAg
+LXMgMTI5LjEzMi4xMjcuMjUyICAtaiBBQ0NFUFQgCiRJUFRBQkxFUyAtQSBDaWQ3ODUwWDM4Mjgu
+NSAgLXMgMTI5LjEzMi4xMjcuMjUzICAtaiBBQ0NFUFQgCiRJUFRBQkxFUyAtQSBDaWQ3ODUwWDM4
+MjguNSAgLXMgd2llc2Vuc2F0LmR5bmRucy5vcmcgLWogQUNDRVBUIAokSVBUQUJMRVMgLUEgQ2lk
+Nzg1MFgzODI4LjUgIC1zIHRpcmFtaXN1Y2guZHluZG5zLm9yZyAtaiBBQ0NFUFQgCiMgCiMgUnVs
+ZSA2IChnbG9iYWwpCiMgCmVjaG8gIlJ1bGUgNiAoZ2xvYmFsKSIKIyAKIyAKIyAKJElQVEFCTEVT
+IC1OIENpZDc5MjJYMzgyOC4wCiRJUFRBQkxFUyAtQSBJTlBVVCAgLXMgMTI5LjEzMi4xMTUuMC8y
+NyAgLW0gc3RhdGUgLS1zdGF0ZSBORVcgIC1qIENpZDc5MjJYMzgyOC4wIAokSVBUQUJMRVMgLUEg
+SU5QVVQgIC1zIDEyOS4xMzIuMjM5LjE5Mi8yNyAgLW0gc3RhdGUgLS1zdGF0ZSBORVcgIC1qIENp
+ZDc5MjJYMzgyOC4wIAokSVBUQUJMRVMgLUEgQ2lkNzkyMlgzODI4LjAgLXAgaWNtcCAgLW0gaWNt
+cCAgLS1pY21wLXR5cGUgMTEvMCAgIC1qIEFDQ0VQVCAKJElQVEFCTEVTIC1BIENpZDc5MjJYMzgy
+OC4wIC1wIGljbXAgIC1tIGljbXAgIC0taWNtcC10eXBlIDExLzEgICAtaiBBQ0NFUFQgCiRJUFRB
+QkxFUyAtQSBDaWQ3OTIyWDM4MjguMCAtcCBpY21wICAtbSBpY21wICAtLWljbXAtdHlwZSAwLzAg
+ICAtaiBBQ0NFUFQgCiRJUFRBQkxFUyAtQSBDaWQ3OTIyWDM4MjguMCAtcCBpY21wICAtbSBpY21w
+ICAtLWljbXAtdHlwZSAzICAtaiBBQ0NFUFQgCiRJUFRBQkxFUyAtQSBDaWQ3OTIyWDM4MjguMCAt
+cCB0Y3AgLW0gdGNwICAtbSBtdWx0aXBvcnQgIC0tZHBvcnRzIDEzNzgzLDEzNzgyICAtaiBBQ0NF
+UFQgCiMgCiMgUnVsZSA3IChnbG9iYWwpCiMgCmVjaG8gIlJ1bGUgNyAoZ2xvYmFsKSIKIyAKIyAK
+IyAKJElQVEFCTEVTIC1OIFJVTEVfNwokSVBUQUJMRVMgLUEgSU5QVVQgLXAgdGNwIC1tIHRjcCAg
+LXMgODEuMjA4Ljc0LjE4MCAgLS1kcG9ydCAyMiAgLW0gc3RhdGUgLS1zdGF0ZSBORVcgIC1qIFJV
+TEVfNyAKJElQVEFCTEVTIC1BIFJVTEVfNyAgLWogTE9HICAtLWxvZy1sZXZlbCBpbmZvIC0tbG9n
+LXByZWZpeCAiUlVMRSA3IC0tIEFDQ0VQVCAiCiRJUFRBQkxFUyAtQSBSVUxFXzcgIC1qIEFDQ0VQ
+VCAKIyAKIyBSdWxlIDggKGV0aDEpCiMgCmVjaG8gIlJ1bGUgOCAoZXRoMSkiCiMgCiMgQWRyZXNz
+YmVyZWljaGUgZGVyIFN1YnZlcnNpb24gVXNlcgojIAokSVBUQUJMRVMgLU4gQ2lkNzk2MFgzODI4
+LjAKJElQVEFCTEVTIC1BIElOUFVUICAtaSBldGgxIC1wIHRjcCAtbSB0Y3AgIC0tZHBvcnQgNDQz
+ICAtbSBzdGF0ZSAtLXN0YXRlIE5FVyAgLWogQ2lkNzk2MFgzODI4LjAgCiRJUFRBQkxFUyAtQSBD
+aWQ3OTYwWDM4MjguMCAgLXMgMTI5LjEzMi4wLjAvMTYgIC1qIEFDQ0VQVCAKJElQVEFCTEVTIC1B
+IENpZDc5NjBYMzgyOC4wICAtcyA4MS4yMDguNzQuMTgwICAtaiBBQ0NFUFQgCiRJUFRBQkxFUyAt
+QSBDaWQ3OTYwWDM4MjguMCAgLXMgdGlyYW1pc3VjaC5keW5kbnMub3JnIC1qIEFDQ0VQVCAKJElQ
+VEFCTEVTIC1BIENpZDc5NjBYMzgyOC4wICAtcyB3aWVzZW5zYXQuZHluZG5zLm9yZyAtaiBBQ0NF
+UFQgCiRJUFRBQkxFUyAtTiBDaWQ3OTYwWDM4MjguMQokSVBUQUJMRVMgLUEgT1VUUFVUICAtbyBl
+dGgxIC1wIHRjcCAtbSB0Y3AgIC0tZHBvcnQgNDQzICAtbSBzdGF0ZSAtLXN0YXRlIE5FVyAgLWog
+Q2lkNzk2MFgzODI4LjEgCiRJUFRBQkxFUyAtTiBDaWQ3OTYwWDM4MjguMgokSVBUQUJMRVMgLUEg
+Q2lkNzk2MFgzODI4LjEgIC1kIDEyOS4xMzIuMTY4LjI0MCAgLWogQ2lkNzk2MFgzODI4LjIgCiRJ
+UFRBQkxFUyAtQSBDaWQ3OTYwWDM4MjguMSAgLWQgMTI5LjEzMi4xNjguMjQxICAtaiBDaWQ3OTYw
+WDM4MjguMiAKJElQVEFCTEVTIC1BIENpZDc5NjBYMzgyOC4yICAtcyAxMjkuMTMyLjAuMC8xNiAg
+LWogQUNDRVBUIAokSVBUQUJMRVMgLUEgQ2lkNzk2MFgzODI4LjIgIC1zIDgxLjIwOC43NC4xODAg
+IC1qIEFDQ0VQVCAKJElQVEFCTEVTIC1BIENpZDc5NjBYMzgyOC4yICAtcyB0aXJhbWlzdWNoLmR5
+bmRucy5vcmcgLWogQUNDRVBUIAokSVBUQUJMRVMgLUEgQ2lkNzk2MFgzODI4LjIgIC1zIHdpZXNl
+bnNhdC5keW5kbnMub3JnIC1qIEFDQ0VQVCAKJElQVEFCTEVTIC1OIENpZDc5NjBYMzgyOC4zCiRJ
+UFRBQkxFUyAtQSBGT1JXQVJEICAtbyBldGgxIC1wIHRjcCAtbSB0Y3AgIC0tZHBvcnQgNDQzICAt
+bSBzdGF0ZSAtLXN0YXRlIE5FVyAgLWogQ2lkNzk2MFgzODI4LjMgCiRJUFRBQkxFUyAtTiBDaWQ3
+OTYwWDM4MjguNAokSVBUQUJMRVMgLUEgQ2lkNzk2MFgzODI4LjMgIC1kIDEyOS4xMzIuMTY4LjI0
+MCAgLWogQ2lkNzk2MFgzODI4LjQgCiRJUFRBQkxFUyAtQSBDaWQ3OTYwWDM4MjguMyAgLWQgMTI5
+LjEzMi4xNjguMjQxICAtaiBDaWQ3OTYwWDM4MjguNCAKJElQVEFCTEVTIC1BIENpZDc5NjBYMzgy
+OC40ICAtcyAxMjkuMTMyLjAuMC8xNiAgLWogQUNDRVBUIAokSVBUQUJMRVMgLUEgQ2lkNzk2MFgz
+ODI4LjQgIC1zIDgxLjIwOC43NC4xODAgIC1qIEFDQ0VQVCAKJElQVEFCTEVTIC1BIENpZDc5NjBY
+MzgyOC40ICAtcyB0aXJhbWlzdWNoLmR5bmRucy5vcmcgLWogQUNDRVBUIAokSVBUQUJMRVMgLUEg
+Q2lkNzk2MFgzODI4LjQgIC1zIHdpZXNlbnNhdC5keW5kbnMub3JnIC1qIEFDQ0VQVCAKCiMKIwpl
+Y2hvIDEgPiAvcHJvYy9zeXMvbmV0L2lwdjQvaXBfZm9yd2FyZAoKCiMKIyBFcGlsb2cgc2NyaXB0
+CiMKCgojIEVuZCBvZiBlcGlsb2cgc2NyaXB0CiMKCgoK
+
+------_=_NextPart_001_01C9509A.80773139--
