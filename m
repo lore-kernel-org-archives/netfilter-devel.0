@@ -1,33 +1,30 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: netfilter 15/29: nf_conntrack: connection tracking helper name
- persistent aliases
-Date: Thu, 27 Nov 2008 19:33:31 +0100
-Message-ID: <492EE7FB.6020905@trash.net>
-References: <20081127161503.13891.62766.sendpatchset@x2.localnet> <20081127161523.13891.6192.sendpatchset@x2.localnet> <alpine.LNX.1.10.0811271930061.21626@fbirervta.pbzchgretzou.qr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: netfilter 23/29: ip{,6}t_policy.h should include xp_policy.h
+Date: Thu, 27 Nov 2008 19:33:39 +0100 (CET)
+Message-ID: <alpine.LNX.1.10.0811271932560.21626@fbirervta.pbzchgretzou.qr>
+References: <20081127161503.13891.62766.sendpatchset@x2.localnet> <20081127161534.13891.33306.sendpatchset@x2.localnet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: davem@davemloft.net, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <alpine.LNX.1.10.0811271930061.21626@fbirervta.pbzchgretzou.qr>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, apw@canonical.com
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:33131 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752032AbYK0Sdl (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 27 Nov 2008 13:33:41 -0500
+In-Reply-To: <20081127161534.13891.33306.sendpatchset@x2.localnet>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Thursday 2008-11-27 17:15, Patrick McHardy wrote:
->>    
->>    This patch adds the macro MODULE_ALIAS_NFCT_HELPER that defines a
->>    way to provide generic and persistent aliases for the connection
->>    tracking helpers.
-> 
-> I wonder a bit. iptables is fine with loading ipt_%s (mapped to xt_%s),
-> but conntrack requires an nfct-help-%s namespace and cannot use
-> nf_conntrack_%s?
-> Of course it makes sense to use a separate namespace - especially
-> in light of the nf_conntrack_ prefix used by both helpers and
-> protos, but I'm still asking.
+
+On Thursday 2008-11-27 17:15, Patrick McHardy wrote:
+
+>commit 018a7bf1e55000dd792194238c9043918d24d3dd
+>Author: Andy Whitcroft <apw@canonical.com>
+>Date:   Thu Nov 20 15:59:56 2008 +0100
 >
+>    netfilter: ip{,6}t_policy.h should include xp_policy.h
 
-Please CC the people that can actually answer this question.
+Still trying to fix Bug #1? It's xt_policy, not XP ;-)
