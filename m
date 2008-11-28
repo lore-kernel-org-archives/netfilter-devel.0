@@ -1,47 +1,49 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: netfilter 00/29: Netfilter Update
-Date: Fri, 28 Nov 2008 03:03:21 -0800 (PST)
-Message-ID: <20081128.030321.122070629.davem@davemloft.net>
-References: <20081127161503.13891.62766.sendpatchset@x2.localnet>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: netfilter 15/29: nf_conntrack: connection tracking helper name
+ persistent aliases
+Date: Fri, 28 Nov 2008 12:39:55 +0100 (CET)
+Message-ID: <alpine.LNX.1.10.0811281235400.3843@fbirervta.pbzchgretzou.qr>
+References: <20081127161503.13891.62766.sendpatchset@x2.localnet> <20081127161523.13891.6192.sendpatchset@x2.localnet> <alpine.LNX.1.10.0811271930061.21626@fbirervta.pbzchgretzou.qr> <492EE7FB.6020905@trash.net> <alpine.LNX.1.10.0811271933580.22601@fbirervta.pbzchgretzou.qr>
+ <492F16AC.10801@netfilter.org> <alpine.LNX.1.10.0811272313330.23969@fbirervta.pbzchgretzou.qr> <492F9A8D.90709@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:37890
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1752019AbYK1LDV (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:41472 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752501AbYK1Lj4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Nov 2008 06:03:21 -0500
-In-Reply-To: <20081127161503.13891.62766.sendpatchset@x2.localnet>
+	Fri, 28 Nov 2008 06:39:56 -0500
+In-Reply-To: <492F9A8D.90709@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Thu, 27 Nov 2008 17:15:03 +0100 (MET)
 
-> the following patches contain part 1 of the netfilter updates for 2.6.29.
-> The highlights are:
-> 
-> - netns support for ebtables, ipt_addrtype and some related cleanups from
->   Alexey Dobriyan
-> 
-> - ctnetlink updates from Pablo: automatic helper module loading, proper
->   event generation for actions performed through ctnetlink, minor cleanups
-> 
-> - switching of xt_NFLOG to directly use nfnetlink_log as backend instead
->   of the first loaded logging module, which was a constant source of
->   confusion for users. From Eric Leblond. Also from Eric are two patches
->   to support rerouting based on packet marks in nfnetlink_queue.
-> 
-> - Misc cleanups and minor fixes from myself, Andy Whitcroft, Simon Arlot
->   and Ingo Molnar.
-> 
-> 
-> There's a trivial merge conflict in net/netfilter/nf_conntrack_netlink.c,
-> so the patches won't apply directly. Please pull from
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git
+On Friday 2008-11-28 08:15, Patrick McHardy wrote:
+> Jan Engelhardt wrote:
+>> On Thursday 2008-11-27 22:52, Pablo Neira Ayuso wrote:
+>> > > I wonder a bit. iptables is fine with loading ipt_%s (mapped to xt_%s),
+>> > > but conntrack requires an nfct-help-%s namespace and cannot use
+>> > > nf_conntrack_%s?
+>> > > Of course it makes sense to use a separate namespace - especially
+>> > > in light of the nf_conntrack_ prefix used by both helpers and
+>> > > protos, but I'm still asking.
+>> > It is not the same point. The xt_* aliases in iptables were introduced
+>> > to keep backward compatibility for iptables (old versions try to load
+>> > ipt_* or ip6t_* modules, as they don't know anything about xt_*. Of
+>> > course, this is no longer true for current iptables versions).
+>> 
+>> Sadly enough, iptables still loads ipt_%s instead of xt_%s.
+>> Maybe it's time for a patch..
+>
+> Its needed to select the proper module, f.i. in case of REJECT.
+>
+Yeah I figured that much. How about doing the same as 
+MODULE_ALIAS_NFCT_HELPER?
 
-Pulled and pushed out to net-next-2.6, thanks Patrick!
+
+#define MODULE_ALIAS_NFXT(name, nfproto) \
+	MODULE_ALIAS("nfxt-" name "-" __stringify(nfproto))
