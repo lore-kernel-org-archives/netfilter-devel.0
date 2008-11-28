@@ -1,41 +1,53 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: netfilter 15/29: nf_conntrack: connection tracking helper name
- persistent aliases
-Date: Fri, 28 Nov 2008 08:15:25 +0100
-Message-ID: <492F9A8D.90709@trash.net>
-References: <20081127161503.13891.62766.sendpatchset@x2.localnet> <20081127161523.13891.6192.sendpatchset@x2.localnet> <alpine.LNX.1.10.0811271930061.21626@fbirervta.pbzchgretzou.qr> <492EE7FB.6020905@trash.net> <alpine.LNX.1.10.0811271933580.22601@fbirervta.pbzchgretzou.qr> <492F16AC.10801@netfilter.org> <alpine.LNX.1.10.0811272313330.23969@fbirervta.pbzchgretzou.qr>
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: Re: netfilter 07/29: netns ebtables: ebtable_broute in netns
+Date: Fri, 28 Nov 2008 11:02:08 +0300
+Message-ID: <20081128080208.GB3495@x200.localdomain>
+References: <20081127161503.13891.62766.sendpatchset@x2.localnet> <20081127161512.13891.85396.sendpatchset@x2.localnet> <alpine.LNX.1.10.0811271925170.21626@fbirervta.pbzchgretzou.qr> <492EE6B4.4030900@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:36588 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752188AbYK1HP1 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Nov 2008 02:15:27 -0500
-In-Reply-To: <alpine.LNX.1.10.0811272313330.23969@fbirervta.pbzchgretzou.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Jan Engelhardt <jengelh@medozas.de>, davem@davemloft.net,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <492EE6B4.4030900@trash.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> On Thursday 2008-11-27 22:52, Pablo Neira Ayuso wrote:
->>> I wonder a bit. iptables is fine with loading ipt_%s (mapped to xt_%s),
->>> but conntrack requires an nfct-help-%s namespace and cannot use
->>> nf_conntrack_%s?
->>> Of course it makes sense to use a separate namespace - especially
->>> in light of the nf_conntrack_ prefix used by both helpers and
->>> protos, but I'm still asking.
->> It is not the same point. The xt_* aliases in iptables were introduced
->> to keep backward compatibility for iptables (old versions try to load
->> ipt_* or ip6t_* modules, as they don't know anything about xt_*. Of
->> course, this is no longer true for current iptables versions).
-> 
-> Sadly enough, iptables still loads ipt_%s instead of xt_%s.
-> Maybe it's time for a patch..
+On Thu, Nov 27, 2008 at 07:28:04PM +0100, Patrick McHardy wrote:
+> [CCed Alexey]
+>
+> Jan Engelhardt wrote:
+>> On Thursday 2008-11-27 17:15, Patrick McHardy wrote:
+>>
+>>> commit 8157e6d16af86e4a8d31a035db7be02a8a171c26
+>>> Author: Alexey Dobriyan <adobriyan@gmail.com>
+>>> Date:   Tue Nov 4 14:29:03 2008 +0100
+>>>
+>>>    netfilter: netns ebtables: ebtable_broute in netns
+>>>       Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+>>>    Signed-off-by: Patrick McHardy <kaber@trash.net>
+>>>
+>>> diff --git a/include/net/netns/x_tables.h b/include/net/netns/x_tables.h
+>>> index b809397..055e684 100644
+>>> --- a/include/net/netns/x_tables.h
+>>> +++ b/include/net/netns/x_tables.h
+>>> @@ -4,7 +4,10 @@
+>>> #include <linux/list.h>
+>>> #include <linux/netfilter.h>
+>>>
+>>> +struct ebt_table;
+>>> +
+>>> struct netns_xt {
+>>> 	struct list_head tables[NFPROTO_NUMPROTO];
+>>> +	struct ebt_table *broute_table;
+>>> };
+>>> #endif
+>>
+>> Where are the other tables from ip and ip6? Wait, I think...
+>> the ebtables definitions should go to ebtables.h, just like
+>> the ip/ip6 ones went to [not x_tables.h].
 
-Its needed to select the proper module, f.i. in case of REJECT.
+I haven't bothered with new file for 3 pointers.
 
+When net.bridge.* sysctls will be made per-netns, definitely.
