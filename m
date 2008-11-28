@@ -1,38 +1,47 @@
-From: Andy Whitcroft <apw@canonical.com>
-Subject: Re: netfilter 23/29: ip{,6}t_policy.h should include xp_policy.h
-Date: Fri, 28 Nov 2008 08:58:56 +0000
-Message-ID: <20081128085856.GE13465@shadowen.org>
-References: <20081127161503.13891.62766.sendpatchset@x2.localnet> <20081127161534.13891.33306.sendpatchset@x2.localnet> <alpine.LNX.1.10.0811271932560.21626@fbirervta.pbzchgretzou.qr>
+From: David Miller <davem@davemloft.net>
+Subject: Re: netfilter 00/29: Netfilter Update
+Date: Fri, 28 Nov 2008 03:03:21 -0800 (PST)
+Message-ID: <20081128.030321.122070629.davem@davemloft.net>
+References: <20081127161503.13891.62766.sendpatchset@x2.localnet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:44978 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752682AbYK1I7A (ORCPT
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:37890
+	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1752019AbYK1LDV (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Nov 2008 03:59:00 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.LNX.1.10.0811271932560.21626@fbirervta.pbzchgretzou.qr>
+	Fri, 28 Nov 2008 06:03:21 -0500
+In-Reply-To: <20081127161503.13891.62766.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Nov 27, 2008 at 07:33:39PM +0100, Jan Engelhardt wrote:
-> 
-> On Thursday 2008-11-27 17:15, Patrick McHardy wrote:
-> 
-> >commit 018a7bf1e55000dd792194238c9043918d24d3dd
-> >Author: Andy Whitcroft <apw@canonical.com>
-> >Date:   Thu Nov 20 15:59:56 2008 +0100
-> >
-> >    netfilter: ip{,6}t_policy.h should include xp_policy.h
-> 
-> Still trying to fix Bug #1? It's xt_policy, not XP ;-)
+From: Patrick McHardy <kaber@trash.net>
+Date: Thu, 27 Nov 2008 17:15:03 +0100 (MET)
 
-Heh, sorry seems my dyslexia strikes again.  The patch itself of course
-is sane just the write up.  If you want me to respin let me know.
+> the following patches contain part 1 of the netfilter updates for 2.6.29.
+> The highlights are:
+> 
+> - netns support for ebtables, ipt_addrtype and some related cleanups from
+>   Alexey Dobriyan
+> 
+> - ctnetlink updates from Pablo: automatic helper module loading, proper
+>   event generation for actions performed through ctnetlink, minor cleanups
+> 
+> - switching of xt_NFLOG to directly use nfnetlink_log as backend instead
+>   of the first loaded logging module, which was a constant source of
+>   confusion for users. From Eric Leblond. Also from Eric are two patches
+>   to support rerouting based on packet marks in nfnetlink_queue.
+> 
+> - Misc cleanups and minor fixes from myself, Andy Whitcroft, Simon Arlot
+>   and Ingo Molnar.
+> 
+> 
+> There's a trivial merge conflict in net/netfilter/nf_conntrack_netlink.c,
+> so the patches won't apply directly. Please pull from
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git
 
--apw
+Pulled and pushed out to net-next-2.6, thanks Patrick!
