@@ -1,53 +1,38 @@
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: Re: netfilter 07/29: netns ebtables: ebtable_broute in netns
-Date: Fri, 28 Nov 2008 11:02:08 +0300
-Message-ID: <20081128080208.GB3495@x200.localdomain>
-References: <20081127161503.13891.62766.sendpatchset@x2.localnet> <20081127161512.13891.85396.sendpatchset@x2.localnet> <alpine.LNX.1.10.0811271925170.21626@fbirervta.pbzchgretzou.qr> <492EE6B4.4030900@trash.net>
+From: Andy Whitcroft <apw@canonical.com>
+Subject: Re: netfilter 23/29: ip{,6}t_policy.h should include xp_policy.h
+Date: Fri, 28 Nov 2008 08:58:56 +0000
+Message-ID: <20081128085856.GE13465@shadowen.org>
+References: <20081127161503.13891.62766.sendpatchset@x2.localnet> <20081127161534.13891.33306.sendpatchset@x2.localnet> <alpine.LNX.1.10.0811271932560.21626@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Jan Engelhardt <jengelh@medozas.de>, davem@davemloft.net,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
+Cc: Patrick McHardy <kaber@trash.net>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from adelie.canonical.com ([91.189.90.139]:44978 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752682AbYK1I7A (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 28 Nov 2008 03:59:00 -0500
 Content-Disposition: inline
-In-Reply-To: <492EE6B4.4030900@trash.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <alpine.LNX.1.10.0811271932560.21626@fbirervta.pbzchgretzou.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Nov 27, 2008 at 07:28:04PM +0100, Patrick McHardy wrote:
-> [CCed Alexey]
->
-> Jan Engelhardt wrote:
->> On Thursday 2008-11-27 17:15, Patrick McHardy wrote:
->>
->>> commit 8157e6d16af86e4a8d31a035db7be02a8a171c26
->>> Author: Alexey Dobriyan <adobriyan@gmail.com>
->>> Date:   Tue Nov 4 14:29:03 2008 +0100
->>>
->>>    netfilter: netns ebtables: ebtable_broute in netns
->>>       Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
->>>    Signed-off-by: Patrick McHardy <kaber@trash.net>
->>>
->>> diff --git a/include/net/netns/x_tables.h b/include/net/netns/x_tables.h
->>> index b809397..055e684 100644
->>> --- a/include/net/netns/x_tables.h
->>> +++ b/include/net/netns/x_tables.h
->>> @@ -4,7 +4,10 @@
->>> #include <linux/list.h>
->>> #include <linux/netfilter.h>
->>>
->>> +struct ebt_table;
->>> +
->>> struct netns_xt {
->>> 	struct list_head tables[NFPROTO_NUMPROTO];
->>> +	struct ebt_table *broute_table;
->>> };
->>> #endif
->>
->> Where are the other tables from ip and ip6? Wait, I think...
->> the ebtables definitions should go to ebtables.h, just like
->> the ip/ip6 ones went to [not x_tables.h].
+On Thu, Nov 27, 2008 at 07:33:39PM +0100, Jan Engelhardt wrote:
+> 
+> On Thursday 2008-11-27 17:15, Patrick McHardy wrote:
+> 
+> >commit 018a7bf1e55000dd792194238c9043918d24d3dd
+> >Author: Andy Whitcroft <apw@canonical.com>
+> >Date:   Thu Nov 20 15:59:56 2008 +0100
+> >
+> >    netfilter: ip{,6}t_policy.h should include xp_policy.h
+> 
+> Still trying to fix Bug #1? It's xt_policy, not XP ;-)
 
-I haven't bothered with new file for 3 pointers.
+Heh, sorry seems my dyslexia strikes again.  The patch itself of course
+is sane just the write up.  If you want me to respin let me know.
 
-When net.bridge.* sysctls will be made per-netns, definitely.
+-apw
