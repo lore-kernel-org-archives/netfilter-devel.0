@@ -1,66 +1,40 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] libnetfilter_conntrack 0.0.98 release
-Date: Sat, 29 Nov 2008 13:49:19 +0100
-Message-ID: <49313A4F.6090904@netfilter.org>
-Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------010701060004070107080504"
-Cc: netfilter-announce@lists.netfilter.org,
-	netfilter-devel@vger.kernel.org, lwn@lwn.net
-To: netfilter@vger.kernel.org
-Return-path: <netfilter-owner@vger.kernel.org>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Eric Leblond <eric@inl.fr>
+Subject: [libnetfilter_log patch] Fix minor memory leak.
+Date: Sun, 30 Nov 2008 15:34:03 +0100
+Message-ID: <1228055643-21565-1-git-send-email-eric@inl.fr>
+Cc: Eric Leblond <eric@inl.fr>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from bayen.regit.org ([81.57.69.189]:57827 "EHLO ice-age"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751273AbYK3OeH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 30 Nov 2008 09:34:07 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------010701060004070107080504
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+The nflog_handle is allocated in nflog_open(). This patch adds the missing
+free in nlog_close().
 
-Hi!
+Signed-off-by: Eric Leblond <eric@inl.fr>
+---
+ src/libnetfilter_log.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-The netfilter project proudly presents libnetfilter_conntrack-0.0.98.
-
-libnetfilter_conntrack is a userspace library providing a programming
-interface (API) to the in-kernel connection tracking state table. This
-library requires a linux kernel >= 2.6.18.
-
-This release includes one major bugfix, a couple of minor fixes, the new
-attribute group API and cleanups. See ChangeLog for more details.
-
-You can download it from:
-
-http://www.netfilter.org/projects/libnetfilter_conntrack/
-ftp://ftp.netfilter.org/pub/libnetfilter_conntrack/
-
-Pablo,
-on behalf of the Netfilter Project.
-
+diff --git a/src/libnetfilter_log.c b/src/libnetfilter_log.c
+index 6c0936e..216cdb8 100644
+--- a/src/libnetfilter_log.c
++++ b/src/libnetfilter_log.c
+@@ -237,7 +237,9 @@ int nflog_handle_packet(struct nflog_handle *h, char *buf, int len)
+ 
+ int nflog_close(struct nflog_handle *h)
+ {
+-	return nfnl_close(h->nfnlh);
++	int ret = nfnl_close(h->nfnlh);
++	free(h);
++	return ret;
+ }
+ 
+ /* bind nf_queue from a specific protocol family */
 -- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+1.5.6.3
 
-
---------------010701060004070107080504
-Content-Type: text/plain;
- name="ChangeLog"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="ChangeLog"
-
-Pablo Neira Ayuso (13):
-      objopt: use indirect calls instead of switch
-      API: use of __builtin_expect in error checking paths
-      snprintf: fix compilation warning in 64-bits platforms
-      groups: add attribute group API
-      API: add nfct_attr_is_set_array function
-      version: bump to 0.0.98
-      src: set specific array size for the API
-      qa: add test file to check for missing indirect function calls
-      helper: fix missing copy function for helper name
-      bsf: major rework of the BSF generation code
-      bsf: remove unnecessary function inline
-      api: fix bogus netlink flags in nfct_build_query
-      api: fix bogus netlink flags in nfexp_build_query
-
-
---------------010701060004070107080504--
