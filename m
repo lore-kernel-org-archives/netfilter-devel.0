@@ -1,89 +1,128 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] More secure SYSRQ for xtables-addons
-Date: Mon, 1 Dec 2008 20:34:52 +0100 (CET)
-Message-ID: <alpine.LNX.1.10.0812011952520.17726@fbirervta.pbzchgretzou.qr>
-References: <492E926D.5020807@oracle.com>
+From: "Kaplowitz, David" <dkaplowitz@irobot.com>
+Subject: multicast forwarding
+Date: Mon, 1 Dec 2008 14:44:19 -0500
+Message-ID: <1228160659.8392.94.camel@irbt-1279>
+Reply-To: "Kaplowitz, David" <dkaplowitz@irobot.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: John Haxby <john.haxby@oracle.com>
+Content-Type: multipart/signed;
+	micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="=-2lUvH8OwEVFagL3ti8/C"
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:54929 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752649AbYLATey (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Dec 2008 14:34:54 -0500
-In-Reply-To: <492E926D.5020807@oracle.com>
+Received: from smtp1.irobot.com ([206.83.81.187]:17200 "EHLO smtp1.irobot.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752269AbYLAT7G (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 1 Dec 2008 14:59:06 -0500
+Content-class: urn:content-classes:message
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Thursday 2008-11-27 13:28, John Haxby wrote:
+--=-2lUvH8OwEVFagL3ti8/C
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-> Hello All,
->
-> This is a patch to the SYSRQ xtables-addon that is, I believe, secure=
- enough to
-> use in moderately untrustworthy environments.
+Greetings,
 
-=46inally - I wondered when someone will augment it with some crypto
-magic=C2=A0:p
+I have an interesting difficulty.  I want to be able to grab a multicast
+stream from a machine (192.168.12.13) and forward/rebroadcast/rewrite
+it, such that the packets seem to come from my DMZ host (192.168.12.12).
 
-What I did not like with the original ipt_SYSRQ is that it used its
-own copy of the SHA algorithm - while being well aware that
-ipt_SYSRQ's root, if I remember correctly, dates to the time where
-in-kernel crypto did not exist yet.
+I have been trying an iptables solution, but that doesn't seem to be
+working at the moment, and it was recommended to me by =EF=BB=BFj_engelh on=
+ the
+#iptables channel to ask at this address for further assistance.
 
-> Ideally the iptables rules for SYSRQ would include a minimum time
-> between requests to avoid the worst effects of sysrq-request
-> bombing, although I haven't mentioned that in the updated man page
-> (mostly because I'm not sure how to do it).
+Thank you for your time and effort on my behalf.
 
--p udp --dport discard -m limit --limit 5/minute -j SYSRQ ...
+-dkap
 
-> .IP
-> -echo -n "password" >/sys/.../password
-> +echo "password" >/sys/module/xt_SYSRQ/parameters/password
-> .PP
+Below is three representative packets:
 
-I think we should not rely on \n being there. Checking for \0
-should also catch the echo -n (or open from a perl/c program) case:
+U 192.168.12.13:6970 -> 224.0.1.20:6990
+  ...@.7..........U`c.|?...^v/9.....?.....E......{.......^../..W....o.Q..;.=
+..
+  ....:'.S.~.....fv.......1xe................y...|Q.....3.@.u..........=3D.=
+....
+  .^0.........0.B.`.^............{../.....B..UY....Z.....Te....H........^..=
+..
+  .'...._..<.!..^b/7.....b..3.s.."....X......B.NL&...*.V..C.../|^o.T@......=
+O.
+  =3D.7..Nc...R....Vku...X8.`8A$.....]..Qy8......[...)3x./.?.n.......qy.   =
+   =20
+#
+U 192.168.12.13:6970 -> 224.0.1.20:6990
+  ...A.7..........U.S.}..../;......b..........fN.........O.^0.cA..t...b._W.=
+..
+  ./.:/......D..X^5.1....^.y'./.$.Z....-*..r.`.<^I...x...+.......-SVa.....N=
+..
+  ...;.]...=3D.......lJ..mO...<o.u"......2....I6. ./:/</5.y.^t/.YX..._O....=
+.F..
+  ...\...V...............y.x.p^...0X....q~..^w.......D...C..h.M...,../..o.b=
+1.
+  pN/.|^L*....B."v/w......!.8......p.0$D.+c.Qx1._.@...{ ..5....Y._.8.......=
+..
+  .h._.............f..R..^.yIP......L.d+.8.......8....?.xV.>....J.CfZ..1..p=
+*.
+  88Z.f.....@ ./'........:.c..0..:E.aO...B.h.....P.....r........T....%..K..=
+..
+  @J~...{...`q.q.g9J..PK....4-..kM.b..|..{....._.. GT..|........1y4^.......=
+..
+  ./....                                                                   =
+ =20
+#
+U 192.168.12.13:6970 -> 224.0.1.20:6990
+  .`.B.7.u....... ....$. ...h.H...X ........`.....4Z.z....v..Gw...~..|.....=
+..
+  T...hc...Q..knj7Y.`....|6%..LpS...wt.....s.|{i.}.....y.P5....(..q.e;.Z.H.=
+..
+  8O..nH.iw...t..I.....<.....&......y6..,b...Tk..k^.Z._.S./.Ny..C}.9cu..0..=
+.q
+  O.........R.z:.u..-L..}.rPV.6.x.P....O.....?.....?..NO..?'..\...V.:....lp=
+.!
+  ..W..iar...B.aD.....^.....B.!..KXK...f....u....^:VEa|g.O...apq........~..=
+%.
+  ...%....d......y....P.Tz.....-..|.3...U@u.<b....P.^AMV.....U..D.u..n.....=
+..
+  rj.*F..t...O.u A`:.@.......x....*gA.Fv.c`......2%'...[Z.FWJ.I...2.FV...VS=
+..
+  G....69....W)]...W.E...O*......R......S..F...Ug...Y.}..p...U.......Z.5...=
+..
+  r.i...FT%C....n.%.Uu&!.j.).7.3.....V'j.....?..D.pl..h->@Z...Z...7...y....=
+..
+  ..$.$\......e.@.$*.h.{'......EE|.2z.+z.5....x....ul..@.4.$G.....r..N.<bp<=
+c.
+  ....P......-.?..P....O....:..t......&....L.t..ggu'%........Nuq5'....N>.q.=
+uD
+  1..W...I....,^....5.`......z.o.......3.V...r...QEf...v...!..x.x..<4.?.e.1=
+.]
+  S..IJ...0 ......P.......x..i-....* .a8.A7........R..l2U.......e4t.g......=
+.p
+  ..aw....e......H.c.....h*...d.}....aK..........P...(...De..V...c.....PF..=
+.8
+  ......@y..2'....\..G..~x.F^/fl.0...TY...g.<..)L9.MR...d.S8.QF.%...z.....0=
+.^
+  ...........5...............GlYT.^#c.L.._Ur..\\..;r%^.*.M@..5H.T.o.s...2..=
+T.
+  .g...?..b......?FwR.M....s...NN..h..&~.....".<.F.&.uN..=3D..........pb4U.=
+....
+  p..5......&.4.L.p-.C.oB..C...%^].e.`..#......6..z.2......2...<.h0a....E")=
+..
+  .v.@.@M..t......0DS.L0.=3DO.}M6$Mf..."....1j..-.#Yi....a.3#...i.>.....}^.=
+W...
+  .)C.JL...... .q...F....ss..S...1.)L!.C.fh\...V.  =20
 
-> +	for (i =3D 0; sysrq_password[i]; i++)
-> +		if (sysrq_password[i] =3D=3D '\n')
-		|| sysrq_password[i] =3D=3D '\0'
+--=-2lUvH8OwEVFagL3ti8/C
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Description: This is a digitally signed message part
 
-(assuming that echoing into string module parameters at least adds a \0=
-)
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.6 (GNU/Linux)
 
-> +	sg_init_table(sg, 2);
-> +	sg_set_buf(&sg[0], data, n);
-> +	strcpy(digest_password, sysrq_password);
-> +	i =3D strlen(digest_password);
-> +	sg_set_buf(&sg[1], digest_password, i);
+iD8DBQBJND6TueMqKH4VzoYRAurxAJ9ANFgUUx1FeVaVxsgSkPs/3xGfNwCgsDgU
+BD8xs+qkMhLXMtAKbdZeDss=
+=eO4R
+-----END PGP SIGNATURE-----
 
-Could we directly use sysrq_password instead of copying it
-to digest_password first?
-
-> +	for (i =3D 0; i < len && data[i] !=3D ','; i++) {
-> +		printk(KERN_INFO KBUILD_MODNAME ": SysRq %c\n", data[i]);
-> #if LINUX_VERSION_CODE >=3D KERNEL_VERSION(2, 6, 19)
-> -	handle_sysrq(c, NULL);
-> +		handle_sysrq(data[i], NULL);
-> #else
-> -	handle_sysrq(c, NULL, NULL);
-> +		handle_sysrq(data[i], NULL, NULL);
-> #endif
-> +	}
-
-I see you handle multiple sysrq requests in one packet. This should be=20
-reflected in the manual/comments (e.g. <keys> instead of <key>).
-
-Care to fix it up? This looks good :)
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=-2lUvH8OwEVFagL3ti8/C--
