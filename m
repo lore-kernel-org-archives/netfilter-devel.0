@@ -1,89 +1,76 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: [ULOGD2 PATCH 06/18] SCTP support for PRINTPKT.
-Date: Mon,  1 Dec 2008 22:36:04 +0100
-Message-ID: <1228167376-22101-7-git-send-email-eric@inl.fr>
+Subject: [ULOGD2 PATCH 12/18] Call pluginstance stop function when exiting
+Date: Mon,  1 Dec 2008 22:36:10 +0100
+Message-ID: <1228167376-22101-13-git-send-email-eric@inl.fr>
 References: <1228167376-22101-1-git-send-email-eric@inl.fr>
 Cc: pablo@netfilter.org, Eric Leblond <eric@inl.fr>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:39300 "EHLO ice-age"
+Received: from bayen.regit.org ([81.57.69.189]:39306 "EHLO ice-age"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752251AbYLAVgU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Dec 2008 16:36:20 -0500
+	id S1752473AbYLAVgV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 1 Dec 2008 16:36:21 -0500
 In-Reply-To: <1228167376-22101-1-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch modifies PRINTPKT plugin to add SCTP support.
+The stop function of plugin was not called when ulogd2 was
+preparing to quit. This patch adds a call to stop for all
+plugins in each stack and free pluginstance.
 
 Signed-off-by: Eric Leblond <eric@inl.fr>
 ---
- include/ulogd/printpkt.h |    2 ++
- util/printpkt.c          |   17 ++++++++++++++++-
- 2 files changed, 18 insertions(+), 1 deletions(-)
+ src/ulogd.c |   26 +++++++++++++++++++++++++-
+ 1 files changed, 25 insertions(+), 1 deletions(-)
 
-diff --git a/include/ulogd/printpkt.h b/include/ulogd/printpkt.h
-index 6207d5b..a11ce4a 100644
---- a/include/ulogd/printpkt.h
-+++ b/include/ulogd/printpkt.h
-@@ -61,6 +61,8 @@ enum pkt_keys {
- 	KEY_ARP_SPA,
- 	KEY_ARP_THA,
- 	KEY_ARP_TPA,
-+	KEY_SCTP_SPORT,
-+	KEY_SCTP_DPORT,
- 	__PRINTPKT_KEYS
- };
- #define PRINTPKT_KEYS (__PRINTPKT_KEYS)
-diff --git a/util/printpkt.c b/util/printpkt.c
-index 2292377..5250792 100644
---- a/util/printpkt.c
-+++ b/util/printpkt.c
-@@ -102,7 +102,8 @@ struct ulogd_key printpkt_keys[] = {
- 	[KEY_ARP_SPA]           = { .name = "arp.saddr.str", },
- 	[KEY_ARP_THA]           = { .name = "arp.dhwaddr", },
- 	[KEY_ARP_TPA]           = { .name = "arp.daddr.str", },
--
-+	[KEY_SCTP_SPORT]	= { .name = "sctp.sport", },
-+	[KEY_SCTP_DPORT]	= { .name = "sctp.dport", },
- };
+diff --git a/src/ulogd.c b/src/ulogd.c
+index ead35b5..d193b26 100644
+--- a/src/ulogd.c
++++ b/src/ulogd.c
+@@ -958,18 +958,42 @@ static void deliver_signal_pluginstances(int signal)
+ 	}
+ }
  
- static int printpkt_proto(struct ulogd_key *res, char *buf, int protocol)
-@@ -167,6 +168,18 @@ static int printpkt_proto(struct ulogd_key *res, char *buf, int protocol)
- 				   ikey_get_u16(&res[KEY_UDP_DPORT]), 
- 				   ikey_get_u16(&res[KEY_UDP_LEN]));
- 		break;
-+	case IPPROTO_SCTP:
-+		buf_cur += sprintf(buf_cur, "PROTO=SCTP ");
++static void stop_pluginstances()
++{
++	struct ulogd_pluginstance_stack *stack;
++	struct ulogd_pluginstance *pi, *npi;
 +
-+		if (!pp_is_valid(res, KEY_SCTP_SPORT)) {
-+			buf_cur += sprintf(buf_cur, "INCOMPLETE");
-+			break;
++	llist_for_each_entry(stack, &ulogd_pi_stacks, stack_list) {
++		llist_for_each_entry_safe(pi, npi, &stack->list, list) {
++			if (((pi->plugin->priv_size == 0) || pi->private[0])
++					&& *pi->plugin->stop) {
++				ulogd_log(ULOGD_DEBUG, "calling stop for %s\n",
++					  pi->plugin->name);
++				(*pi->plugin->stop)(pi);
++				pi->private[0] = 0;
++			}
++			free(pi);
 +		}
++	}
++}
 +
-+		buf_cur += sprintf(buf_cur, "SPT=%u DPT=%u ", 
-+				   ikey_get_u16(&res[KEY_SCTP_SPORT]),
-+				   ikey_get_u16(&res[KEY_SCTP_DPORT]));
-+		break;
- 	case IPPROTO_ESP:
- 	case IPPROTO_AH:
- 		buf_cur += sprintf(buf_cur, "PROTO=%s ",
-@@ -223,6 +236,7 @@ static int printpkt_ipv4(struct ulogd_key *res, char *buf)
- 	switch (ikey_get_u8(&res[KEY_IP_PROTOCOL])) {
- 	case IPPROTO_TCP:
- 	case IPPROTO_UDP:
-+	case IPPROTO_SCTP:
- 	case IPPROTO_ESP:
- 	case IPPROTO_AH:
- 		buf_cur += printpkt_proto(res, buf_cur,
-@@ -311,6 +325,7 @@ static int printpkt_ipv6(struct ulogd_key *res, char *buf)
- 	switch (ikey_get_u8(&res[KEY_IP6_NEXTHDR])) {
- 	case IPPROTO_TCP:
- 	case IPPROTO_UDP:
-+	case IPPROTO_SCTP:
- 	case IPPROTO_ESP:
- 	case IPPROTO_AH:
- 		buf_cur += printpkt_proto(res, buf_cur,
+ static void sigterm_handler(int signal)
+ {
+-	
++
+ 	ulogd_log(ULOGD_NOTICE, "sigterm received, exiting\n");
+ 
+ 	deliver_signal_pluginstances(signal);
+ 
++	stop_pluginstances();
++
+ 	if (logfile != NULL  && logfile != stdout) {
+ 		fclose(logfile);
+ 		logfile = NULL;
+ 	}
+ 
++	if (ulogd_logfile)
++		free(ulogd_logfile);
++
+ 	exit(0);
+ }
+ 
 -- 
 1.5.6.3
 
