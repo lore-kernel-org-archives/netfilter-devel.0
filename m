@@ -1,41 +1,38 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] More secure SYSRQ for xtables-addons
-Date: Tue, 02 Dec 2008 02:39:31 +0100
-Message-ID: <493491D3.50708@trash.net>
-References: <492E926D.5020807@oracle.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: sg_set_page not usable for .bss?
+Date: Tue, 2 Dec 2008 02:41:02 +0100 (CET)
+Message-ID: <alpine.LNX.1.10.0812020237520.23359@fbirervta.pbzchgretzou.qr>
+References: <alpine.LNX.1.10.0812012338270.22349@fbirervta.pbzchgretzou.qr> <20081201.161026.234536822.davem@davemloft.net> <alpine.LNX.1.10.0812020112480.19492@fbirervta.pbzchgretzou.qr> <20081201.161418.51389602.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: John Haxby <john.haxby@oracle.com>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: john.haxby@oracle.com, netfilter-devel@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:58999 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752146AbYLBBjf (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:45599 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750895AbYLBBlF (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Dec 2008 20:39:35 -0500
-In-Reply-To: <492E926D.5020807@oracle.com>
+	Mon, 1 Dec 2008 20:41:05 -0500
+In-Reply-To: <20081201.161418.51389602.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-John Haxby wrote:
-> Rationale:
-> 
-> I want to be able to use SYSRQ to reboot, crash or partially diagnose 
-> machines that become unresponsive for one reason or another.   These 
-> machines, typically, are blades or rack mounted machines that do not 
-> have a PS/2 connection for a keyboard and the old method of wheeling 
-> round a "crash trolley" that has a monitor and a keyboard on it no 
-> longer works:  USB keyboards rarely, if ever, work because by the time 
-> the machine is responding only to a ping, udev is incapable of setting 
-> up a new keyboard.g/majordomo-info.html
 
-This module is starting to look kind of useful. Maybe its time for
-a resubmission for review and possibly merging once these patches
-are included.
-
-If we were to merge it, it would also be good to get some feedback
-from the crypto guys about whether the chosen authentication scheme
-meets its claims.
+On Tuesday 2008-12-02 01:14, David Miller wrote:
+>> >> 
+>> >> Well, sysrq_password is in the .bss section, where as digest_password
+>> >> is on the heap due to being kmalloc'ed. Maybe that makes a difference?
+>> >> Someone more versed with the virtual memory layer might know.
+>> >
+>> >You can't use these interfaces on kernel image addresses.
+>> >
+>> Great :-)  So what is the best way to use the SHA1 crypto algo
+>> with in-kernel addresses?
+>
+>kmalloc and copy it there, or something like that, you just
+>can't use in-kernel addresses, ever.
+>
+Yes, kmalloc is already used. But then, what sort of address
+does kmalloc return, if not an address within kernelspace?
+(usually >=0xc0000000 on standard i386)
