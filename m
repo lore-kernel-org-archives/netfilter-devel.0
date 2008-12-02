@@ -1,58 +1,41 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: sg_set_page not usable for .bss?
-Date: Mon, 01 Dec 2008 16:14:18 -0800 (PST)
-Message-ID: <20081201.161418.51389602.davem@davemloft.net>
-References: <alpine.LNX.1.10.0812012338270.22349@fbirervta.pbzchgretzou.qr>
-	<20081201.161026.234536822.davem@davemloft.net>
-	<alpine.LNX.1.10.0812020112480.19492@fbirervta.pbzchgretzou.qr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] More secure SYSRQ for xtables-addons
+Date: Tue, 02 Dec 2008 02:39:31 +0100
+Message-ID: <493491D3.50708@trash.net>
+References: <492E926D.5020807@oracle.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: john.haxby@oracle.com, netfilter-devel@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-To: jengelh@medozas.de
+Cc: John Haxby <john.haxby@oracle.com>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:46173
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1752021AbYLBAOS (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:58999 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752146AbYLBBjf (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Dec 2008 19:14:18 -0500
-In-Reply-To: <alpine.LNX.1.10.0812020112480.19492@fbirervta.pbzchgretzou.qr>
+	Mon, 1 Dec 2008 20:39:35 -0500
+In-Reply-To: <492E926D.5020807@oracle.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jan Engelhardt <jengelh@medozas.de>
-Date: Tue, 2 Dec 2008 01:13:34 +0100 (CET)
-
+John Haxby wrote:
+> Rationale:
 > 
-> On Tuesday 2008-12-02 01:10, David Miller wrote:
-> >> On Monday 2008-12-01 23:02, John Haxby wrote:
-> >> >>>+	sg_init_table(sg, 2);
-> >> >>>+	sg_set_buf(&sg[0], data, n);
-> >> >>>+	strcpy(digest_password, sysrq_password);
-> >> >>>+	i = strlen(digest_password);
-> >> >>>+	sg_set_buf(&sg[1], digest_password, i);
-> >> >>
-> >> >> Could we directly use sysrq_password instead of copying it to
-> >> >> digest_password first?
-> >> >
-> >> > No :-)   Eventually I discovered the reason my code wasn't working
-> >> > boils down to the definition of sg_set_buf:
-> >> >
-> >> >   sg_set_page(sg, virt_to_page(buf), buflen, offset_in_page(buf))
-> >> >
-> >> > which doesn't work for sysrq_password.   I don't know why I'll
-> >> > double check.
-> >> 
-> >> Well, sysrq_password is in the .bss section, where as digest_password
-> >> is on the heap due to being kmalloc'ed. Maybe that makes a difference?
-> >> Someone more versed with the virtual memory layer might know.
-> >
-> >You can't use these interfaces on kernel image addresses.
-> >
-> Great :-)  So what is the best way to use the SHA1 crypto algo
-> with in-kernel addresses?
+> I want to be able to use SYSRQ to reboot, crash or partially diagnose 
+> machines that become unresponsive for one reason or another.   These 
+> machines, typically, are blades or rack mounted machines that do not 
+> have a PS/2 connection for a keyboard and the old method of wheeling 
+> round a "crash trolley" that has a monitor and a keyboard on it no 
+> longer works:  USB keyboards rarely, if ever, work because by the time 
+> the machine is responding only to a ping, udev is incapable of setting 
+> up a new keyboard.g/majordomo-info.html
 
-kmalloc and copy it there, or something like that, you just
-can't use in-kernel addresses, ever.
+This module is starting to look kind of useful. Maybe its time for
+a resubmission for review and possibly merging once these patches
+are included.
 
+If we were to merge it, it would also be good to get some feedback
+from the crypto guys about whether the chosen authentication scheme
+meets its claims.
