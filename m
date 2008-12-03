@@ -1,55 +1,43 @@
-From: Philip Prindeville <philipp_subx@redfish-solutions.com>
-Subject: More nf_conntrack_sip questions
-Date: Tue, 02 Dec 2008 14:36:53 -0800
-Message-ID: <4935B885.8030107@redfish-solutions.com>
+From: ivan <lagigliaivan@gmail.com>
+Subject: L2 NAT
+Date: Wed, 3 Dec 2008 15:22:27 -0200
+Message-ID: <f4d9d6df0812030922y34efdaddu16c808ee637beb4b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.redfish-solutions.com ([66.232.79.143]:55180 "EHLO
-	mail.redfish-solutions.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751263AbYLBWgp (ORCPT
+Received: from nf-out-0910.google.com ([64.233.182.190]:38421 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751358AbYLCRW3 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Dec 2008 17:36:45 -0500
-Received: from [192.168.10.6] (tosh.redfish-solutions.com [63.224.43.239])
-	(authenticated bits=0)
-	by mail.redfish-solutions.com (8.14.2/8.14.2) with ESMTP id mB2MafhB011222
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <netfilter-devel@vger.kernel.org>; Tue, 2 Dec 2008 15:36:43 -0700
+	Wed, 3 Dec 2008 12:22:29 -0500
+Received: by nf-out-0910.google.com with SMTP id d3so1899082nfc.21
+        for <netfilter-devel@vger.kernel.org>; Wed, 03 Dec 2008 09:22:27 -0800 (PST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-I did a little investigation into my one-way voice issue, and noticed 
-that if I don't do voice-menus (i.e. where the Asterisk box itself 
-generates the first outbound INVITE, then passes-through the 2nd INVITE 
-once a handset picks up) then I get two-way voice (i.e. with sending the 
-call directly to the phone).  (In this topology, my Asterisk box is also 
-my firewall/NATting router...)
+Hi,
 
-If I enable the voice menus in the inbound dialplan, however, it can 
-hear the voice menus, but not the called-party when they pick up their 
-phone (extension).
+After having a lot of help of Grant Taylor in order to analyze if I
+was able to achieve my idea using the available iptables features, and
+getting as result the fact that I had to develop my own kernel module.
+I'm writing to this list because my question is related to the linux
+kernel programing.
 
-So someone (either the SIP conntrack module on the Asterisk border 
-firewall or else the SBC at the ILEC) is failing to look into the 2nd 
-INVITE (i.e. we're not rewriting it properly as it goes by, or the SBC 
-is failing to see it).
+I would like to pass parameters to the kernel module in run time from
+user space. These parameters could be IP address and MAC. Somebody
+know how I can do this??
 
-I've put traces up on ftp://ftp.redfish-solutions.com/ as:
+I was thinking about passing this parameters thorough a sysctl syscall
+or using /proc filesystem, but I beleave that this is not the correct
+way.
 
-trace-20081128-230313.br0
-trace-20081128-230313.br1
-trace-20081128-230415.br0
-trace-20081128-230415.br1
+Also I was taking a look to iptables source code and analyzing the
+source code of iptables and libiptc lib, but I could not find any clue
+how to these ones change the kernel parameters.
 
-The traces on interface "br1" are the "internal" network, with private 
-192.168.1.x addresses.  The "br0" traces are after outbound NATting (and 
-conntrack rewriting) has been applied.
+Could you pleas help me???
 
-This was done on a Linux 2.6.25.19 box with iptables v1.4.2.
-
-Thanks,
-
--Philip
-
+thanks!
