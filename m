@@ -1,43 +1,42 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [iptables PATCH] fixed the position of the exclamation mark
-Date: Mon, 8 Dec 2008 18:17:59 +0100 (CET)
-Message-ID: <alpine.LNX.1.10.0812081817200.2016@fbirervta.pbzchgretzou.qr>
-References: <20081208145717.30142.93140.stgit@woodpecker.roonstrasse.net> <alpine.LNX.1.10.0812081654450.2016@fbirervta.pbzchgretzou.qr> <20081208165813.GA601@squirrel.roonstrasse.net> <alpine.LNX.1.10.0812081807440.2016@fbirervta.pbzchgretzou.qr>
+Subject: libxt_rateest: fix segfault
+Date: Mon, 8 Dec 2008 18:24:11 +0100 (CET)
+Message-ID: <alpine.LNX.1.10.0812081818050.2016@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Max Kellermann <max@duempel.org>
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:59109 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:36201 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753331AbYLHRSA (ORCPT
+	with ESMTP id S1753487AbYLHRYM (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 8 Dec 2008 12:18:00 -0500
-In-Reply-To: <alpine.LNX.1.10.0812081807440.2016@fbirervta.pbzchgretzou.qr>
+	Mon, 8 Dec 2008 12:24:12 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+commit 48c13b071a7f37ea57f93312c2547d5512b78f3e
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Mon Dec 8 18:23:12 2008 +0100
 
-On Monday 2008-12-08 18:14, Jan Engelhardt wrote:
->On Monday 2008-12-08 17:58, Max Kellermann wrote:
->
->>On 2008/12/08 16:55, Jan Engelhardt <jengelh@medozas.de> wrote:
->>> The documentation is correct with what iptables outputs:
->>
->>Try "iptables -m tcp --help" (v1.4.1.1):
->>
->> --tcp-flags [!] mask comp      match when TCP flags & mask == comp
->>                                (Flags: SYN ACK FIN RST URG PSH ALL
->>                                NONE)
->>
->>So manpage and usage text is inconsistent...
->
->It is not (hint: try LATEST git version first):
->
->        printf(
->"tcp match options:\n"
->"[!] --tcp-flags mask comp      match when TCP flags & mask == comp\n"
->"                               (Flags: SYN ACK FIN RST URG PSH ALL NONE)\n"
+libxt_rateest: fix segfault
 
-I have however noticed that some code outputs the ! not always
-as documented in the manpage. A just-submitted patch fixes that.
+When running `ip6tables -m rateest` without any other arguments,
+rateest did segfault.
+---
+ extensions/libxt_rateest.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/extensions/libxt_rateest.c b/extensions/libxt_rateest.c
+index ebea437..f0dd577 100644
+--- a/extensions/libxt_rateest.c
++++ b/extensions/libxt_rateest.c
+@@ -306,7 +306,7 @@ rateest_final_check(unsigned int flags)
+ {
+ 	struct xt_rateest_match_info *info = rateest_info;
+ 
+-	if (!(info->flags & XT_RATEEST_MATCH_REL))
++	if (info != NULL && !(info->flags & XT_RATEEST_MATCH_REL))
+ 		info->flags |= XT_RATEEST_MATCH_ABS;
+ }
+ 
