@@ -1,52 +1,83 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: netfilter: xt_NFLOG is dependant of nfnetlink_log
-Date: Wed, 10 Dec 2008 19:49:17 +0100
-Message-ID: <1228934957-11967-1-git-send-email-eric@inl.fr>
-References: <1228934630.5961.8.camel@ice-age>
-Cc: Randy Dunlap <randy.dunlap@oracle.com>,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	netdev <netdev@vger.kernel.org>, linux-next@vger.kernel.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org, kaber@trash.net,
-	Eric Leblond <eric@inl.fr>
-To: Kamalesh Babulal <kamalesh@linux.vnet.ibm.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: inconsistency in time module of iptables
+Date: Wed, 10 Dec 2008 20:44:10 +0100 (CET)
+Message-ID: <alpine.LNX.1.10.0812102018180.6340@fbirervta.pbzchgretzou.qr>
+References: <494010B2.2050608@gmail.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: =?UTF-8?Q?Pawe=C5=82_Bany=C5=9B?= <pbanys@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:58686 "EHLO ice-age"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753784AbYLJSti (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Dec 2008 13:49:38 -0500
-In-Reply-To: <1228934630.5961.8.camel@ice-age>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:53999 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754170AbYLJToL (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 10 Dec 2008 14:44:11 -0500
+In-Reply-To: <494010B2.2050608@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The patch "don't call nf_log_packet in NFLOG module" make xt_NFLOG
-dependant of nfnetlink_log. This patch forces the dependencies to fix
-compilation in case only xt_NFLOG compilation was asked and modifies the
-help message accordingly to the change.
 
-Signed-off-by: Eric Leblond <eric@inl.fr>
----
- net/netfilter/Kconfig |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+On Wednesday 2008-12-10 19:55, Pawe=C5=82 Bany=C5=9B wrote:
+>
+>I tried to use the time module in iptables and I noticed some problems=
+=20
+>with time interpretation. I tested it on the following system:
+>
+>kernel: 2.6.27
+>iptables: v1.4.2
+>system clock time zone: Berlin (UTC+1)
+>
+>1. Inconsistency of "datestop":
+>2. Inconsistency of "datestart":
+>
+>system_time		--datestop	RESULT
+>14:00:00		14:10:00	rule should apply but it does not because for
+>iptables datestop is 13:10:00
+>
+>Remark: in internal calculations datestop is one hour less than set
+>Remark: in internal calculations datestart is two hours less than set
 
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 25dcef9..c2bac9c 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -373,11 +373,10 @@ config NETFILTER_XT_TARGET_MARK
- config NETFILTER_XT_TARGET_NFLOG
- 	tristate '"NFLOG" target support'
- 	default m if NETFILTER_ADVANCED=n
-+	select NETFILTER_NETLINK_LOG
- 	help
- 	  This option enables the NFLOG target, which allows to LOG
--	  messages through the netfilter logging API, which can use
--	  either the old LOG target, the old ULOG target or nfnetlink_log
--	  as backend.
-+	  messages through nfnetlink_log.
- 
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
--- 
-1.5.6.3
 
+Your kernel timezone may not be set. The below module may help:
+
+---<8--- (Makefile)
+obj-m +=3D time.o
+all:
+	make -C /lib/modules/`uname -r`/build M=3D$$PWD;
+--->8---
+
+---<8--- (time.c)
+#include <linux/kernel.h>
+#include <linux/module.h>
+#include <linux/time.h>
+
+extern struct timezone sys_tz;
+
+static int __init t_init(void)
+{
+	int minutes =3D sys_tz.tz_minuteswest;
+
+	if (minutes < 0) /* east of GW */
+		printk(KERN_WARNING "TZ is +%02d%02d\n",
+			-minutes / 60, -minutes % 60);
+	else /* west of GW */
+		printk(KERN_WARNING "TZ is -%02d%02d\n",
+		       minutes / 60, minutes % 60);
+	return -EIO;
+}
+
+static void __exit t_exit(void)
+{
+}
+
+module_init(t_init);
+module_exit(t_exit);
+MODULE_LICENSE("GPL");
+--->8---
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
