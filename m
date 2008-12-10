@@ -1,55 +1,49 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: netfilter: xt_time: print timezone for user information
-Date: Wed, 10 Dec 2008 20:49:09 +0100 (CET)
-Message-ID: <alpine.LNX.1.10.0812102048230.6340@fbirervta.pbzchgretzou.qr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH] netfilter: ctnetlink: fix missing CTA_NAT_SEQ_UNSPEC
+Date: Wed, 10 Dec 2008 21:06:50 +0100
+Message-ID: <20081210200649.23169.33618.stgit@Decadence>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:53182 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753520AbYLJTtN (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Dec 2008 14:49:13 -0500
+Received: from mail.us.es ([193.147.175.20]:40900 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753993AbYLJUG6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 10 Dec 2008 15:06:58 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This patch fixes an inconsistency in nfnetlink_conntrack.h that
+I introduced myself. The problem is that CTA_NAT_SEQ_UNSPEC is
+missing from enum ctattr_natseq. This inconsistency may lead to
+problems in the message parsing in userspace (if the message
+contains the CTA_NAT_SEQ_* attributes, of course).
 
-commit 5f6c55d201590a9360135fa5dbea78a9e958edb6
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Wed Dec 10 20:48:26 2008 +0100
+This patch breaks backward compatibility, however, the only known
+client of this code is libnetfilter_conntrack which indeed crashes
+because it assumes the existence of CTA_NAT_SEQ_UNSPEC to do
+the parsing.
 
-netfilter: xt_time: print timezone for user information
+The CTA_NAT_SEQ_* attributes were introduced in 2.6.25.
 
-Let users have a way to figure out if their distro set the kernel 
-timezone at all.
-
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_time.c |   11 +++++++++++
- 1 files changed, 11 insertions(+), 0 deletions(-)
 
-diff --git a/net/netfilter/xt_time.c b/net/netfilter/xt_time.c
-index 29375ba..93acaa5 100644
---- a/net/netfilter/xt_time.c
-+++ b/net/netfilter/xt_time.c
-@@ -243,6 +243,17 @@ static struct xt_match xt_time_mt_reg __read_mostly = {
+ include/linux/netfilter/nfnetlink_conntrack.h |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/include/linux/netfilter/nfnetlink_conntrack.h b/include/linux/netfilter/nfnetlink_conntrack.h
+index c19595c..29fe9ea 100644
+--- a/include/linux/netfilter/nfnetlink_conntrack.h
++++ b/include/linux/netfilter/nfnetlink_conntrack.h
+@@ -141,6 +141,7 @@ enum ctattr_protonat {
+ #define CTA_PROTONAT_MAX (__CTA_PROTONAT_MAX - 1)
  
- static int __init time_mt_init(void)
- {
-+	int minutes = sys_tz.tz_minuteswest;
-+
-+	if (minutes < 0) /* east of Greenwich */
-+		printk(KERN_INFO KBUILD_MODNAME
-+		       ": kernel timezone is +%02d%02d\n",
-+		       -minutes / 60, -minutes % 60);
-+	else /* west of Greenwich */
-+		printk(KERN_INFO KBUILD_MODNAME
-+		       ": kernel timezone is -%02d%02d\n",
-+		       minutes / 60, minutes % 60);
-+
- 	return xt_register_match(&xt_time_mt_reg);
- }
- 
+ enum ctattr_natseq {
++	CTA_NAT_SEQ_UNSPEC,
+ 	CTA_NAT_SEQ_CORRECTION_POS,
+ 	CTA_NAT_SEQ_OFFSET_BEFORE,
+ 	CTA_NAT_SEQ_OFFSET_AFTER,
 
