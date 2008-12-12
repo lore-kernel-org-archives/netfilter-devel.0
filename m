@@ -1,52 +1,44 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] net: Remove a noisy printk
-Date: Thu, 11 Dec 2008 20:32:43 -0800 (PST)
-Message-ID: <20081211.203243.124017657.davem@davemloft.net>
-References: <1229033625-30825-1-git-send-email-ajax@redhat.com>
+From: John Haxby <john.haxby@oracle.com>
+Subject: Re: [PATCH] More secure SYSRQ for xtables-addons
+Date: Fri, 12 Dec 2008 08:38:39 +0000
+Message-ID: <4942230F.2000106@oracle.com>
+References: <492E926D.5020807@oracle.com> <4935747C.5090207@oracle.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: linux-kernel@vger.kernel.org, davej@redhat.com,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	kaber@trash.net
-To: ajax@redhat.com
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1229033625-30825-1-git-send-email-ajax@redhat.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from acsinet11.oracle.com ([141.146.126.233]:57187 "EHLO
+	acsinet11.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750858AbYLLIis (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 12 Dec 2008 03:38:48 -0500
+Received: from acsinet13.oracle.com (acsinet13.oracle.com [141.146.126.235])
+	by acsinet11.oracle.com (Switch-3.3.1/Switch-3.3.1) with ESMTP id mBC8dkK5013531
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <netfilter-devel@vger.kernel.org>; Fri, 12 Dec 2008 08:39:48 GMT
+Received: from acsmt701.oracle.com (acsmt701.oracle.com [141.146.40.71])
+	by acsinet13.oracle.com (Switch-3.3.1/Switch-3.3.1) with ESMTP id mBC8d7Qj025116
+	for <netfilter-devel@vger.kernel.org>; Fri, 12 Dec 2008 08:39:08 GMT
+In-Reply-To: <4935747C.5090207@oracle.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Adam Jackson <ajax@redhat.com>
-Date: Thu, 11 Dec 2008 17:13:42 -0500
+John Haxby wrote:
+> Hello All,
+>
+> This is a patch to the SYSRQ xtables-addon that is, I believe, secure 
+> enough to use in moderately untrustworthy environments.
+>
+> This is an updated version of the patch to address comments previously 
+> received.   The main change, prompted by Patrick McHardy's question, 
+> is to allow the hash algorithm to be changed at module load time.  
+> Other than that I've clarified the '\n' password termination and 
+> updated the man page to include using -m limit, the configurable hash 
+> algorithm and made it a little that you can send multiple request keys.
 
-> From: Dave Jones <davej@redhat.com>
-> 
-> These messages are trivial to trigger when running stress tests
-> like isic, and add no real value.
-> 
-> Signed-off-by: Dave Jones <davej@redhat.com>
-> Signed-off-by: Adam Jackson <ajax@redhat.com>
+I don't know if I'm being overly anxious or impatient, but is there 
+anything more I need to do for this updated patch?
 
-If you don't send this to the netfilter developers nor the networking
-developers, noboby knowledgable can even look at this patch.
-
-CC:'d
-
-> ---
->  net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    2 --
->  1 files changed, 0 insertions(+), 2 deletions(-)
-> 
-> diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-> index 4a7c352..0e86d0d 100644
-> --- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-> +++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-> @@ -147,8 +147,6 @@ static unsigned int ipv4_conntrack_local(unsigned int hooknum,
->  	/* root is playing with raw sockets. */
->  	if (skb->len < sizeof(struct iphdr) ||
->  	    ip_hdrlen(skb) < sizeof(struct iphdr)) {
-> -		if (net_ratelimit())
-> -			printk("ipt_hook: happy cracking.\n");
->  		return NF_ACCEPT;
->  	}
->  	return nf_conntrack_in(dev_net(out), PF_INET, hooknum, skb);
-> -- 
-> 1.6.0.3
+jch
