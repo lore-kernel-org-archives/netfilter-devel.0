@@ -1,41 +1,52 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: ctnetlink: fix missing CTA_NAT_SEQ_UNSPEC
-Date: Thu, 11 Dec 2008 22:44:31 +0100
-Message-ID: <494189BF.1040701@netfilter.org>
-References: <20081210200649.23169.33618.stgit@Decadence> <49410EFF.1020603@trash.net>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] net: Remove a noisy printk
+Date: Thu, 11 Dec 2008 20:32:43 -0800 (PST)
+Message-ID: <20081211.203243.124017657.davem@davemloft.net>
+References: <1229033625-30825-1-git-send-email-ajax@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48916 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1757246AbYLKVon (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Dec 2008 16:44:43 -0500
-In-Reply-To: <49410EFF.1020603@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: linux-kernel@vger.kernel.org, davej@redhat.com,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	kaber@trash.net
+To: ajax@redhat.com
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1229033625-30825-1-git-send-email-ajax@redhat.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Pablo Neira Ayuso wrote:
->> This patch fixes an inconsistency in nfnetlink_conntrack.h that
->> I introduced myself. The problem is that CTA_NAT_SEQ_UNSPEC is
->> missing from enum ctattr_natseq. This inconsistency may lead to
->> problems in the message parsing in userspace (if the message
->> contains the CTA_NAT_SEQ_* attributes, of course).
->>
->> This patch breaks backward compatibility, however, the only known
->> client of this code is libnetfilter_conntrack which indeed crashes
->> because it assumes the existence of CTA_NAT_SEQ_UNSPEC to do
->> the parsing.
->>
->> The CTA_NAT_SEQ_* attributes were introduced in 2.6.25.
+From: Adam Jackson <ajax@redhat.com>
+Date: Thu, 11 Dec 2008 17:13:42 -0500
+
+> From: Dave Jones <davej@redhat.com>
 > 
-> Applied, thanks.
+> These messages are trivial to trigger when running stress tests
+> like isic, and add no real value.
+> 
+> Signed-off-by: Dave Jones <davej@redhat.com>
+> Signed-off-by: Adam Jackson <ajax@redhat.com>
 
-Thanks Patrick. This one should go to 2.6.28 as bugfix I think. Do you
-plan to pass it to David?
+If you don't send this to the netfilter developers nor the networking
+developers, noboby knowledgable can even look at this patch.
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+CC:'d
+
+> ---
+>  net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    2 --
+>  1 files changed, 0 insertions(+), 2 deletions(-)
+> 
+> diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+> index 4a7c352..0e86d0d 100644
+> --- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+> +++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+> @@ -147,8 +147,6 @@ static unsigned int ipv4_conntrack_local(unsigned int hooknum,
+>  	/* root is playing with raw sockets. */
+>  	if (skb->len < sizeof(struct iphdr) ||
+>  	    ip_hdrlen(skb) < sizeof(struct iphdr)) {
+> -		if (net_ratelimit())
+> -			printk("ipt_hook: happy cracking.\n");
+>  		return NF_ACCEPT;
+>  	}
+>  	return nf_conntrack_in(dev_net(out), PF_INET, hooknum, skb);
+> -- 
+> 1.6.0.3
