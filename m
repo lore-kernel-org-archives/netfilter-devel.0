@@ -1,44 +1,53 @@
-From: John Haxby <john.haxby@oracle.com>
-Subject: Re: [PATCH] More secure SYSRQ for xtables-addons
-Date: Fri, 12 Dec 2008 08:38:39 +0000
-Message-ID: <4942230F.2000106@oracle.com>
-References: <492E926D.5020807@oracle.com> <4935747C.5090207@oracle.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH] net: Remove a noisy printk
+Date: Sat, 13 Dec 2008 23:13:15 +0100 (CET)
+Message-ID: <alpine.LNX.1.10.0812132310080.27276@fbirervta.pbzchgretzou.qr>
+References: <1229033625-30825-1-git-send-email-ajax@redhat.com> <20081211.203243.124017657.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-To: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from acsinet11.oracle.com ([141.146.126.233]:57187 "EHLO
-	acsinet11.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750858AbYLLIis (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 12 Dec 2008 03:38:48 -0500
-Received: from acsinet13.oracle.com (acsinet13.oracle.com [141.146.126.235])
-	by acsinet11.oracle.com (Switch-3.3.1/Switch-3.3.1) with ESMTP id mBC8dkK5013531
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <netfilter-devel@vger.kernel.org>; Fri, 12 Dec 2008 08:39:48 GMT
-Received: from acsmt701.oracle.com (acsmt701.oracle.com [141.146.40.71])
-	by acsinet13.oracle.com (Switch-3.3.1/Switch-3.3.1) with ESMTP id mBC8d7Qj025116
-	for <netfilter-devel@vger.kernel.org>; Fri, 12 Dec 2008 08:39:08 GMT
-In-Reply-To: <4935747C.5090207@oracle.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: ajax@redhat.com, linux-kernel@vger.kernel.org, davej@redhat.com,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	kaber@trash.net
+To: David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20081211.203243.124017657.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-John Haxby wrote:
-> Hello All,
+
+On Friday 2008-12-12 05:32, David Miller wrote:
+>From: Adam Jackson <ajax@redhat.com>
+>Date: Thu, 11 Dec 2008 17:13:42 -0500
 >
-> This is a patch to the SYSRQ xtables-addon that is, I believe, secure 
-> enough to use in moderately untrustworthy environments.
+>> From: Dave Jones <davej@redhat.com>
+>>=20
+>> These messages are trivial to trigger when running stress tests
+>> like isic, and add no real value.
+>>=20
+>> Signed-off-by: Dave Jones <davej@redhat.com>
+>> Signed-off-by: Adam Jackson <ajax@redhat.com>
 >
-> This is an updated version of the patch to address comments previously 
-> received.   The main change, prompted by Patrick McHardy's question, 
-> is to allow the hash algorithm to be changed at module load time.  
-> Other than that I've clarified the '\n' password termination and 
-> updated the man page to include using -m limit, the configurable hash 
-> algorithm and made it a little that you can send multiple request keys.
+>If you don't send this to the netfilter developers nor the networking
+>developers, noboby knowledgable can even look at this patch.
 
-I don't know if I'm being overly anxious or impatient, but is there 
-anything more I need to do for this updated patch?
+(For the archive, it's not the Internation Student Identity Card)
+http://www.packetfactory.net/Projects/ISIC/ :
 
-jch
+=E2=80=9CISIC is a suite of utilities to exercise the stability of an I=
+P
+Stack and its component stacks (TCP, UDP, ICMP et. al.) It generates
+piles of pseudo random packets of the target protocol.=E2=80=9D
+
+>> @@ -147,8 +147,6 @@ static unsigned int ipv4_conntrack_local(unsigne=
+d int hooknum,
+>>  	/* root is playing with raw sockets. */
+>>  	if (skb->len < sizeof(struct iphdr) ||
+>>  	    ip_hdrlen(skb) < sizeof(struct iphdr)) {
+>> -		if (net_ratelimit())
+>> -			printk("ipt_hook: happy cracking.\n");
+>>  		return NF_ACCEPT;
+>>  	}
+>>  	return nf_conntrack_in(dev_net(out), PF_INET, hooknum, skb);
+
+I think this change is ok.
