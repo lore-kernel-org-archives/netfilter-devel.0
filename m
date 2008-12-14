@@ -1,73 +1,64 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] net: Remove a noisy printk
-Date: Sun, 14 Dec 2008 21:15:20 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.0812142056520.2621@blackhole.kfki.hu>
-References: <1229033625-30825-1-git-send-email-ajax@redhat.com> <20081211.203243.124017657.davem@davemloft.net> <alpine.LNX.1.10.0812132310080.27276@fbirervta.pbzchgretzou.qr> <alpine.DEB.2.00.0812141745550.2447@blackhole.kfki.hu>
- <alpine.LNX.1.10.0812141905490.10355@fbirervta.pbzchgretzou.qr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [ANNOUNCE] libnetfilter_conntrack 0.0.98 release
+Date: Sun, 14 Dec 2008 22:52:25 +0100
+Message-ID: <49458019.201@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: David Miller <davem@davemloft.net>, ajax@redhat.com,
-	linux-kernel@vger.kernel.org, davej@redhat.com,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Patrick McHardy <kaber@trash.net>
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <alpine.LNX.1.10.0812141905490.10355@fbirervta.pbzchgretzou.qr>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: multipart/mixed;
+ boundary="------------030209060903060402030803"
+Cc: netfilter-announce@lists.netfilter.org,
+	netfilter-devel@vger.kernel.org, lwn@lwn.net
+To: netfilter@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:38376 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750983AbYLNVwl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 14 Dec 2008 16:52:41 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, 14 Dec 2008, Jan Engelhardt wrote:
+This is a multi-part message in MIME format.
+--------------030209060903060402030803
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-> On Sunday 2008-12-14 18:09, Jozsef Kadlecsik wrote:
-> >> 
-> >> >> @@ -147,8 +147,6 @@ static unsigned int ipv4_conntrack_local(unsigned int hooknum,
-> >> >>  	/* root is playing with raw sockets. */
-> >> >>  	if (skb->len < sizeof(struct iphdr) ||
-> >> >>  	    ip_hdrlen(skb) < sizeof(struct iphdr)) {
-> >> >> -		if (net_ratelimit())
-> >> >> -			printk("ipt_hook: happy cracking.\n");
-> >> >>  		return NF_ACCEPT;
-> >> >>  	}
-> >> >>  	return nf_conntrack_in(dev_net(out), PF_INET, hooknum, skb);
-> >> 
-> >> I think this change is ok.
-> >
-> >In a >normal< system one usually does not use raw sockets. So if a root 
-> >process do use raw socket, at least netfilter sends a notification and 
-> >there's a chance that someone take notice it by checking the kernel logs.
-> >[...]
-> >But should we remove them due to nuisances on >test< systems?
-> >
-> >Rather make it a kernel compile option but do not remove.
-> 
-> This warning is in the conntrack calling code. Iff you play with
-> raw sockets and do something wrong, the generic network code
-> should barf IMHO, not nf_conntrack, and not [nf_conntrack_ipv4 only].
+Hi!
 
-It is not about doing something wrong at using raw sockets - it's about 
-using raw sockets.
+The netfilter project proudly presents libnetfilter_conntrack-0.0.99.
 
-I'm not quite convinced the generic network code should warn about raw 
-sockets. I believe it belongs to the security-related subsystems - 
-netfilter and (or) the security frameworks. [But as netfilter is much more 
-widely used, the 'or' is just theoretical.)
+libnetfilter_conntrack is a userspace library providing a programming
+interface (API) to the in-kernel connection tracking state table. This
+library requires a linux kernel >= 2.6.18.
 
-But back to netfilter: this is more than strange. The logging is already 
-removed from iptable_filter|mangle.c - and left in 
-ip6table_filter|mangle.c. The only place in the IPv4 path where the 
-checking happens is in nf_conntrack_l3proto_ipv4.c. IPv6 conntrack does
-it as well, but uses another message text:
+This release includes a couple of minor fixes. See ChangeLog for more
+details.
 
-        if (skb->len < sizeof(struct ipv6hdr)) {
-                if (net_ratelimit())
-                        printk("ipv6_conntrack_local: packet too short\n");
+You can download it from:
 
-[ISIC should check IPv6 too ;-).]
+http://www.netfilter.org/projects/libnetfilter_conntrack/
+ftp://ftp.netfilter.org/pub/libnetfilter_conntrack/
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Pablo,
+on behalf of the Netfilter Project.
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
+
+
+
+--------------030209060903060402030803
+Content-Type: text/plain;
+ name="ChangeLog"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ChangeLog"
+
+Pablo Neira Ayuso (6):
+      automake: add missing stack.h to include/internal/Makefile.am
+      version: bump to 0.0.99
+      api: fix minor issues in the kerneldoc style documentation
+      utils: fix wrong use of errno in example files
+      headers: add CTA_NAT_SEQ_UNSPEC to linux_nfnetlink_conntrack.h
+      build: do not inconditionally include TCP state into netlink message
+
+
+--------------030209060903060402030803--
