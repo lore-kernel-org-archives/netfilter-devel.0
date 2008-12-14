@@ -1,54 +1,75 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] More secure SYSRQ for xtables-addons
-Date: Sat, 13 Dec 2008 23:14:10 +0100 (CET)
-Message-ID: <alpine.LNX.1.10.0812132313260.27276@fbirervta.pbzchgretzou.qr>
-References: <492E926D.5020807@oracle.com> <4935747C.5090207@oracle.com> <4942230F.2000106@oracle.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH] net: Remove a noisy printk
+Date: Sun, 14 Dec 2008 18:09:17 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.0812141745550.2447@blackhole.kfki.hu>
+References: <1229033625-30825-1-git-send-email-ajax@redhat.com> <20081211.203243.124017657.davem@davemloft.net> <alpine.LNX.1.10.0812132310080.27276@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: John Haxby <john.haxby@oracle.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: David Miller <davem@davemloft.net>, ajax@redhat.com,
+	linux-kernel@vger.kernel.org, davej@redhat.com,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Patrick McHardy <kaber@trash.net>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:52732 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751879AbYLMWOL (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 13 Dec 2008 17:14:11 -0500
-In-Reply-To: <4942230F.2000106@oracle.com>
+Received: from smtp-in.kfki.hu ([148.6.0.25]:38269 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753387AbYLNRJU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 14 Dec 2008 12:09:20 -0500
+In-Reply-To: <alpine.LNX.1.10.0812132310080.27276@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Sat, 13 Dec 2008, Jan Engelhardt wrote:
 
-On Friday 2008-12-12 09:38, John Haxby wrote:
-> John Haxby wrote:
->> Hello All,
->>
->> This is a patch to the SYSRQ xtables-addon that is, I believe, secur=
-e enough
->> to use in moderately untrustworthy environments.
->>
->> This is an updated version of the patch to address comments previous=
-ly
->> received.   The main change, prompted by Patrick McHardy's question,=
- is to
->> allow the hash algorithm to be changed at module load time.  Other t=
-han that
->> I've clarified the '\n' password termination and updated the man pag=
-e to
->> include using -m limit, the configurable hash algorithm and made it =
-a little
->> that you can send multiple request keys.
->
-> I don't know if I'm being overly anxious or impatient, but is there a=
-nything
-> more I need to do for this updated patch?
+> On Friday 2008-12-12 05:32, David Miller wrote:
+> >From: Adam Jackson <ajax@redhat.com>
+> >Date: Thu, 11 Dec 2008 17:13:42 -0500
+> >
+> >> From: Dave Jones <davej@redhat.com>
+> >> 
+> >> These messages are trivial to trigger when running stress tests
+> >> like isic, and add no real value.
+> >> 
+> >> Signed-off-by: Dave Jones <davej@redhat.com>
+> >> Signed-off-by: Adam Jackson <ajax@redhat.com>
+> >
+> >If you don't send this to the netfilter developers nor the networking
+> >developers, noboby knowledgable can even look at this patch.
+> 
+> (For the archive, it's not the Internation Student Identity Card)
+> http://www.packetfactory.net/Projects/ISIC/ :
+> 
+> ?ISIC is a suite of utilities to exercise the stability of an IP
+> Stack and its component stacks (TCP, UDP, ICMP et. al.) It generates
+> piles of pseudo random packets of the target protocol.?
+> 
+> >> @@ -147,8 +147,6 @@ static unsigned int ipv4_conntrack_local(unsigned int hooknum,
+> >>  	/* root is playing with raw sockets. */
+> >>  	if (skb->len < sizeof(struct iphdr) ||
+> >>  	    ip_hdrlen(skb) < sizeof(struct iphdr)) {
+> >> -		if (net_ratelimit())
+> >> -			printk("ipt_hook: happy cracking.\n");
+> >>  		return NF_ACCEPT;
+> >>  	}
+> >>  	return nf_conntrack_in(dev_net(out), PF_INET, hooknum, skb);
+> 
+> I think this change is ok.
 
-Hm, did I miss to send an =E2=80=9Cok=E2=80=9D? It definitely is up in =
-the git repo already.
-Thanks again for the submission!
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+In a >normal< system one usually does not use raw sockets. So if a root 
+process do use raw socket, at least netfilter sends a notification and 
+there's a chance that someone take notice it by checking the kernel logs.
+
+Yes, if the machine is compromized then the logs can be tampered, if 
+netfilter is compiled as a module, the module can be replaced by another 
+one, and so on. A careful cracker can take care of all the alarms, trip 
+wires. But should we remove them due to nuisances on >test< systems?
+
+Rather make it a kernel compile option but do not remove.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
