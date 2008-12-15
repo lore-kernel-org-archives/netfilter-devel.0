@@ -1,43 +1,77 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] net: Remove a noisy printk
-Date: Mon, 15 Dec 2008 14:32:46 +0100
-Message-ID: <49465C7E.8050103@trash.net>
-References: <1229033625-30825-1-git-send-email-ajax@redhat.com> <20081211.203243.124017657.davem@davemloft.net> <alpine.LNX.1.10.0812132310080.27276@fbirervta.pbzchgretzou.qr> <alpine.DEB.2.00.0812141745550.2447@blackhole.kfki.hu> <alpine.LNX.1.10.0812141905490.10355@fbirervta.pbzchgretzou.qr> <alpine.DEB.2.00.0812142056520.2621@blackhole.kfki.hu> <49464C2C.6030009@trash.net> <alpine.DEB.2.00.0812151419380.4114@blackhole.kfki.hu>
+Subject: netfilter: ctnetlink: fix missing CTA_NAT_SEQ_UNSPEC
+Date: Mon, 15 Dec 2008 16:42:04 +0100
+Message-ID: <49467ACC.8080107@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	David Miller <davem@davemloft.net>, ajax@redhat.com,
-	linux-kernel@vger.kernel.org, davej@redhat.com,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: multipart/mixed;
+ boundary="------------090302020200080507080306"
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Linux Netdev List <netdev@vger.kernel.org>
+To: "David S. Miller" <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:56704 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:60277 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751971AbYLONcz (ORCPT
+	with ESMTP id S1752235AbYLOPmP (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Dec 2008 08:32:55 -0500
-In-Reply-To: <alpine.DEB.2.00.0812151419380.4114@blackhole.kfki.hu>
+	Mon, 15 Dec 2008 10:42:15 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jozsef Kadlecsik wrote:
-> On Mon, 15 Dec 2008, Patrick McHardy wrote:
-> 
->> I agree that it doesn't belong to the generic networking code.
->> But the way its handled in netfilter is far from perfect as well.
->> Currently multiple modules will spam the ringbuffer repeatedly,
->> but offer no possibility to change anything in the behaviour of
->> how these packets are treated. Unfortunately we can't handle this
->> in the ruleset (which is exactly the reason why we're spamming
->> the ringbuffer), so how about we add a module option controlling
->> how to treat those packets and remove the printk?
-> 
-> How about this: let the printk be removed from conntrack and the mangle 
-> table but put (back) into the filter table with a module option, which 
-> controls the behaviour (drop/accept & log/nolog)?
+This is a multi-part message in MIME format.
+--------------090302020200080507080306
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Sounds fine to me. We can't log it in the usual way though
-(ipt_LOG/nfnetlink_log) and spamming the ringbuffer should
-really be a last resort, so I'd prefer to limit it to print
-the message exactly once.
+Hi Dave,
+
+following is a single netfilter patch for 2.6.28, fixing incorrect
+ctnetlink NAT attribute definitions that break common userspace
+attribute parsing code.
+
+Please apply, thanks.
+
+
+--------------090302020200080507080306
+Content-Type: text/x-patch;
+ name="01.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="01.diff"
+
+commit 492092c2b1fc3d74b24d8744ba419dbcefadaf5e
+Author: Pablo Neira Ayuso <pablo@netfilter.org>
+Date:   Thu Dec 11 14:00:21 2008 +0100
+
+    netfilter: ctnetlink: fix missing CTA_NAT_SEQ_UNSPEC
+    
+    This patch fixes an inconsistency in nfnetlink_conntrack.h that
+    I introduced myself. The problem is that CTA_NAT_SEQ_UNSPEC is
+    missing from enum ctattr_natseq. This inconsistency may lead to
+    problems in the message parsing in userspace (if the message
+    contains the CTA_NAT_SEQ_* attributes, of course).
+    
+    This patch breaks backward compatibility, however, the only known
+    client of this code is libnetfilter_conntrack which indeed crashes
+    because it assumes the existence of CTA_NAT_SEQ_UNSPEC to do
+    the parsing.
+    
+    The CTA_NAT_SEQ_* attributes were introduced in 2.6.25.
+    
+    Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+diff --git a/include/linux/netfilter/nfnetlink_conntrack.h b/include/linux/netfilter/nfnetlink_conntrack.h
+index c19595c..29fe9ea 100644
+--- a/include/linux/netfilter/nfnetlink_conntrack.h
++++ b/include/linux/netfilter/nfnetlink_conntrack.h
+@@ -141,6 +141,7 @@ enum ctattr_protonat {
+ #define CTA_PROTONAT_MAX (__CTA_PROTONAT_MAX - 1)
+ 
+ enum ctattr_natseq {
++	CTA_NAT_SEQ_UNSPEC,
+ 	CTA_NAT_SEQ_CORRECTION_POS,
+ 	CTA_NAT_SEQ_OFFSET_BEFORE,
+ 	CTA_NAT_SEQ_OFFSET_AFTER,
+
+--------------090302020200080507080306--
