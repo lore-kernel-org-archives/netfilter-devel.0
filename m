@@ -1,32 +1,67 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [netfilter-core] [PATCH] netfilter: remove padding from struct
- xt_match on 64bit	builds
-Date: Mon, 15 Dec 2008 14:10:39 +0100
-Message-ID: <4946574F.5080107@trash.net>
-References: <1229089190.2921.7.camel@castor.localdomain>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH] net: Remove a noisy printk
+Date: Mon, 15 Dec 2008 14:25:04 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.0812151419380.4114@blackhole.kfki.hu>
+References: <1229033625-30825-1-git-send-email-ajax@redhat.com> <20081211.203243.124017657.davem@davemloft.net> <alpine.LNX.1.10.0812132310080.27276@fbirervta.pbzchgretzou.qr> <alpine.DEB.2.00.0812141745550.2447@blackhole.kfki.hu>
+ <alpine.LNX.1.10.0812141905490.10355@fbirervta.pbzchgretzou.qr> <alpine.DEB.2.00.0812142056520.2621@blackhole.kfki.hu> <49464C2C.6030009@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: coreteam@netfilter.org, netfilter@vger.kernel.org,
-	lkml <linux-kernel@vger.kernel.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Richard Kennedy <richard@rsk.demon.co.uk>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	David Miller <davem@davemloft.net>, ajax@redhat.com,
+	linux-kernel@vger.kernel.org, davej@redhat.com,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:56031 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750802AbYLONKr (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Dec 2008 08:10:47 -0500
-In-Reply-To: <1229089190.2921.7.camel@castor.localdomain>
+Received: from smtp2.kfki.hu ([148.6.0.28]:51521 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751154AbYLONZG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Dec 2008 08:25:06 -0500
+In-Reply-To: <49464C2C.6030009@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Richard Kennedy wrote:
-> reorder struct xt_match to remove 8 bytes of padding and make its size
-> 128 bytes.
-> 
-> This saves a small amount of data space in each of the xt netfilter
-> modules and fits xt_match in one 128 byte cache line.
+On Mon, 15 Dec 2008, Patrick McHardy wrote:
 
-Applied, thanks.
+> Jozsef Kadlecsik wrote:
+> > On Sun, 14 Dec 2008, Jan Engelhardt wrote:
+> > 
+> > > > In a >normal< system one usually does not use raw sockets. So if a root
+> > > > process do use raw socket, at least netfilter sends a notification and
+> > > > there's a chance that someone take notice it by checking the kernel
+> > > > logs.
+> > > > [...]
+> > > > But should we remove them due to nuisances on >test< systems?
+> > > > 
+> > > > Rather make it a kernel compile option but do not remove.
+> > > This warning is in the conntrack calling code. Iff you play with
+> > > raw sockets and do something wrong, the generic network code
+> > > should barf IMHO, not nf_conntrack, and not [nf_conntrack_ipv4 only].
+> > 
+> > It is not about doing something wrong at using raw sockets - it's about
+> > using raw sockets.
+> > 
+> > I'm not quite convinced the generic network code should warn about raw
+> > sockets. I believe it belongs to the security-related subsystems - netfilter
+> > and (or) the security frameworks. [But as netfilter is much more widely
+> > used, the 'or' is just theoretical.)
+> 
+> I agree that it doesn't belong to the generic networking code.
+> But the way its handled in netfilter is far from perfect as well.
+> Currently multiple modules will spam the ringbuffer repeatedly,
+> but offer no possibility to change anything in the behaviour of
+> how these packets are treated. Unfortunately we can't handle this
+> in the ruleset (which is exactly the reason why we're spamming
+> the ringbuffer), so how about we add a module option controlling
+> how to treat those packets and remove the printk?
+
+How about this: let the printk be removed from conntrack and the mangle 
+table but put (back) into the filter table with a module option, which 
+controls the behaviour (drop/accept & log/nolog)?
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
