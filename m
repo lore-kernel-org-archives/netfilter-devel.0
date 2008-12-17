@@ -1,226 +1,329 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] net: Remove a noisy printk
-Date: Wed, 17 Dec 2008 09:26:22 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.0812170922480.8687@blackhole.kfki.hu>
-References: <1229033625-30825-1-git-send-email-ajax@redhat.com> <20081211.203243.124017657.davem@davemloft.net> <alpine.LNX.1.10.0812132310080.27276@fbirervta.pbzchgretzou.qr> <alpine.DEB.2.00.0812141745550.2447@blackhole.kfki.hu> <20081214200353.GA2994@redhat.com>
- <alpine.LNX.1.10.0812162058030.21696@fbirervta.pbzchgretzou.qr>
+From: Piotr Duszynski <regis44@gmail.com>
+Subject: [PATCH 1/1 ] Conntrack extensions : Interrupt timeout
+Date: Wed, 17 Dec 2008 21:22:32 +0100
+Message-ID: <49495F88.2010103@gmail.com>
+References: <49467ACC.8080107@trash.net> <20081216.012018.196068498.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Dave Jones <davej@redhat.com>, David Miller <davem@davemloft.net>,
-	ajax@redhat.com, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Patrick McHardy <kaber@trash.net>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: unlisted-recipients:; (no To-header on input)
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:42677 "EHLO smtp2.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751548AbYLQI00 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Dec 2008 03:26:26 -0500
-In-Reply-To: <alpine.LNX.1.10.0812162058030.21696@fbirervta.pbzchgretzou.qr>
+Received: from fg-out-1718.google.com ([72.14.220.158]:19469 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752030AbYLQU1r (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 17 Dec 2008 15:27:47 -0500
+Received: by fg-out-1718.google.com with SMTP id 19so40042fgg.17
+        for <netfilter-devel@vger.kernel.org>; Wed, 17 Dec 2008 12:27:45 -0800 (PST)
+In-Reply-To: <20081216.012018.196068498.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 16 Dec 2008, Jan Engelhardt wrote:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-> Here is a patch that attempts silence both the fraction
-> that wants to keep the printk and those to get rid of it.
-> It trips up on the bloatmeters, though.
+Hi everyone,
 
-Based on your patch, here is another one: the printk is removed from 
-everywhere except the filter tables where it's controlled by the module 
-parameter. The checking against short packets was missing from 
-ip6table_raw.c, so it's added as well.
+This is my first patch for the netfilter, so please don't flame me from
+the beginning :) I am not a kernel hacker .
 
-diff --git a/net/ipv4/netfilter/iptable_filter.c b/net/ipv4/netfilter/iptable_filter.c
-index 1ea677d..9527e2a 100644
---- a/net/ipv4/netfilter/iptable_filter.c
-+++ b/net/ipv4/netfilter/iptable_filter.c
-@@ -19,6 +19,10 @@ MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.org>");
- MODULE_DESCRIPTION("iptables filter table");
- 
-+/* Default log short RAW packets */
-+static unsigned int happy_cracking = 1;
-+module_param(happy_cracking, bool, 0400);
+I wanted to write a module that would track all the MAC information for
+all established connections. Unfortunately, after the module is loaded
+and all the information is being properly recorded to the conntrack
+computer hangs . I can read that it is related with interrupt timeout,
+but after several hours of trying to fix this I am still in the same
+spot . I would really appreciate any guidance in this matter .
+
+Best regards
+Piotr Duszynski
+
+Example usage :
+
+iptables -A INPUT -j L2INFO
+
+Patch:
+
+diff -uNr
+linux-2.6.27.i686.orig/include/linux/netfilter/nf_conntrack_common.h
+linux-2.6.27.i686.new/include/linux/netfilter/nf_conntrack_common.h
+- ---
+linux-2.6.27.i686.orig/include/linux/netfilter/nf_conntrack_common.h
+2008-11-28 07:31:14.000000000 +0100
++++ linux-2.6.27.i686.new/include/linux/netfilter/nf_conntrack_common.h
+2008-12-09 17:42:47.000000000 +0100
+@@ -73,6 +73,10 @@
+ 	/* Connection has fixed timeout. */
+ 	IPS_FIXED_TIMEOUT_BIT = 10,
+ 	IPS_FIXED_TIMEOUT = (1 << IPS_FIXED_TIMEOUT_BIT),
 +
- #define FILTER_VALID_HOOKS ((1 << NF_INET_LOCAL_IN) | \
- 			    (1 << NF_INET_FORWARD) | \
- 			    (1 << NF_INET_LOCAL_OUT))
-@@ -94,7 +98,8 @@ ipt_local_out_hook(unsigned int hook,
- 	/* root is playing with raw sockets. */
- 	if (skb->len < sizeof(struct iphdr) ||
- 	    ip_hdrlen(skb) < sizeof(struct iphdr)) {
--		if (net_ratelimit())
-+		if (happy_cracking && net_ratelimit())
-+			/* FIXME: log process pid */
- 			printk("iptable_filter: ignoring short SOCK_RAW "
- 			       "packet.\n");
- 		return NF_ACCEPT;
-diff --git a/net/ipv4/netfilter/iptable_mangle.c b/net/ipv4/netfilter/iptable_mangle.c
-index da59182..773d6ed 100644
---- a/net/ipv4/netfilter/iptable_mangle.c
-+++ b/net/ipv4/netfilter/iptable_mangle.c
-@@ -132,12 +132,8 @@ ipt_local_hook(unsigned int hook,
- 
- 	/* root is playing with raw sockets. */
- 	if (skb->len < sizeof(struct iphdr)
--	    || ip_hdrlen(skb) < sizeof(struct iphdr)) {
--		if (net_ratelimit())
--			printk("iptable_mangle: ignoring short SOCK_RAW "
--			       "packet.\n");
-+	    || ip_hdrlen(skb) < sizeof(struct iphdr))
- 		return NF_ACCEPT;
--	}
- 
- 	/* Save things which could affect route */
- 	mark = skb->mark;
-diff --git a/net/ipv4/netfilter/iptable_raw.c b/net/ipv4/netfilter/iptable_raw.c
-index fddce77..71547fa 100644
---- a/net/ipv4/netfilter/iptable_raw.c
-+++ b/net/ipv4/netfilter/iptable_raw.c
-@@ -65,12 +65,8 @@ ipt_local_hook(unsigned int hook,
- {
- 	/* root is playing with raw sockets. */
- 	if (skb->len < sizeof(struct iphdr) ||
--	    ip_hdrlen(skb) < sizeof(struct iphdr)) {
--		if (net_ratelimit())
--			printk("iptable_raw: ignoring short SOCK_RAW "
--			       "packet.\n");
-+	    ip_hdrlen(skb) < sizeof(struct iphdr))
- 		return NF_ACCEPT;
--	}
- 	return ipt_do_table(skb, hook, in, out,
- 			    nf_local_out_net(in, out)->ipv4.iptable_raw);
- }
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-index 7eb0b61..d20c0a0 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -185,11 +185,8 @@ static unsigned int ipv4_conntrack_local(unsigned int hooknum,
- {
- 	/* root is playing with raw sockets. */
- 	if (skb->len < sizeof(struct iphdr) ||
--	    ip_hdrlen(skb) < sizeof(struct iphdr)) {
--		if (net_ratelimit())
--			printk("ipt_hook: happy cracking.\n");
-+	    ip_hdrlen(skb) < sizeof(struct iphdr))
- 		return NF_ACCEPT;
--	}
- 	return nf_conntrack_in(PF_INET, hooknum, skb);
- }
- 
-diff --git a/net/ipv6/netfilter/ip6table_filter.c b/net/ipv6/netfilter/ip6table_filter.c
-index 55a2c29..a74b0e6 100644
---- a/net/ipv6/netfilter/ip6table_filter.c
-+++ b/net/ipv6/netfilter/ip6table_filter.c
-@@ -17,6 +17,10 @@ MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.org>");
- MODULE_DESCRIPTION("ip6tables filter table");
- 
-+/* Default log short RAW packets */
-+static unsigned int happy_cracking = 1;
-+module_param(happy_cracking, bool, 0400);
++	/* Connection has src L2 info */
++	IPS_L2_INFO_BIT = 11,
++	IPS_L2_INFO = (1 << IPS_L2_INFO_BIT),
+ };
+
+ /* Connection tracking event bits */
+diff -uNr linux-2.6.27.i686.orig/include/linux/netfilter/xt_L2INFO.h
+linux-2.6.27.i686.new/include/linux/netfilter/xt_L2INFO.h
+- --- linux-2.6.27.i686.orig/include/linux/netfilter/xt_L2INFO.h
+1970-01-01 01:00:00.000000000 +0100
++++ linux-2.6.27.i686.new/include/linux/netfilter/xt_L2INFO.h	2008-12-14
+06:10:29.000000000 +0100
+@@ -0,0 +1,29 @@
++#ifndef _XT_L2INFO_H
++#define _XT_L2INFO_H
 +
- #define FILTER_VALID_HOOKS ((1 << NF_INET_LOCAL_IN) | \
- 			    (1 << NF_INET_FORWARD) | \
- 			    (1 << NF_INET_LOCAL_OUT))
-@@ -89,15 +93,14 @@ ip6t_local_out_hook(unsigned int hook,
- 		   const struct net_device *out,
- 		   int (*okfn)(struct sk_buff *))
- {
--#if 0
- 	/* root is playing with raw sockets. */
--	if (skb->len < sizeof(struct iphdr)
--	    || ip_hdrlen(skb) < sizeof(struct iphdr)) {
--		if (net_ratelimit())
--			printk("ip6t_hook: happy cracking.\n");
-+	if (skb->len < sizeof(struct ipv6hdr)) {
-+		if (happy_cracking && net_ratelimit())
-+			/* FIXME: log process pid */
-+			printk("ip6table_filter: ignoring short SOCK_RAW "
-+			       "packet.\n");
- 		return NF_ACCEPT;
- 	}
--#endif
- 
- 	return ip6t_do_table(skb, hook, in, out,
- 			     nf_local_out_net(in, out)->ipv6.ip6table_filter);
-diff --git a/net/ipv6/netfilter/ip6table_mangle.c b/net/ipv6/netfilter/ip6table_mangle.c
-index f405cea..5c93909 100644
---- a/net/ipv6/netfilter/ip6table_mangle.c
-+++ b/net/ipv6/netfilter/ip6table_mangle.c
-@@ -89,15 +89,9 @@ ip6t_local_hook(unsigned int hook,
- 	u_int8_t hop_limit;
- 	u_int32_t flowlabel, mark;
- 
--#if 0
- 	/* root is playing with raw sockets. */
--	if (skb->len < sizeof(struct iphdr)
--	    || ip_hdrlen(skb) < sizeof(struct iphdr)) {
--		if (net_ratelimit())
--			printk("ip6t_hook: happy cracking.\n");
-+	if (skb->len < sizeof(struct ipv6hdr))
- 		return NF_ACCEPT;
--	}
--#endif
- 
- 	/* save source/dest address, mark, hoplimit, flowlabel, priority,  */
- 	memcpy(&saddr, &ipv6_hdr(skb)->saddr, sizeof(saddr));
-diff --git a/net/ipv6/netfilter/ip6table_raw.c b/net/ipv6/netfilter/ip6table_raw.c
-index 92b9107..4e24ff9 100644
---- a/net/ipv6/netfilter/ip6table_raw.c
-+++ b/net/ipv6/netfilter/ip6table_raw.c
-@@ -54,6 +54,19 @@ ip6t_hook(unsigned int hook,
- 	return ip6t_do_table(skb, hook, in, out, init_net.ipv6.ip6table_raw);
- }
- 
-+static unsigned int
-+ip6t_local_hook(unsigned int hook,
-+		struct sk_buff *skb,
-+		const struct net_device *in,
-+		const struct net_device *out,
-+		int (*okfn)(struct sk_buff *))
++#include <linux/if_ether.h>
++#include <linux/netfilter/nf_conntrack_tuple_common.h>
++#include <net/netfilter/nf_conntrack_extend.h>
++
++struct nf_conn_l2info {
++	// MAC only at the moment
++	unsigned char src_addr[ETH_ALEN];
++	unsigned char dst_addr[ETH_ALEN];
++};
++
++
++
++static inline struct nf_conn_l2info  *nfct_l2info(const struct nf_conn *ct)
 +{
-+	/* root is playing with raw sockets. */
-+	if (skb->len < sizeof(struct ipv6hdr))
-+		return NF_ACCEPT;
-+	return ip6t_do_table(skb, hook, in, out, init_net.ipv6.ip6table_raw);
++        return nf_ct_ext_find(ct,NF_CT_EXT_L2INFO);
 +}
 +
- static struct nf_hook_ops ip6t_ops[] __read_mostly = {
- 	{
- 	  .hook = ip6t_hook,
-@@ -63,7 +76,7 @@ static struct nf_hook_ops ip6t_ops[] __read_mostly = {
- 	  .owner = THIS_MODULE,
- 	},
- 	{
--	  .hook = ip6t_hook,
-+	  .hook = ip6t_local_hook,
- 	  .pf = PF_INET6,
- 	  .hooknum = NF_INET_LOCAL_OUT,
- 	  .priority = NF_IP6_PRI_FIRST,
-diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-index 85050c0..462360e 100644
---- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-@@ -245,11 +245,8 @@ static unsigned int ipv6_conntrack_local(unsigned int hooknum,
- 					 int (*okfn)(struct sk_buff *))
- {
- 	/* root is playing with raw sockets. */
--	if (skb->len < sizeof(struct ipv6hdr)) {
--		if (net_ratelimit())
--			printk("ipv6_conntrack_local: packet too short\n");
-+	if (skb->len < sizeof(struct ipv6hdr))
- 		return NF_ACCEPT;
--	}
- 	return ipv6_conntrack_in(hooknum, skb, in, out, okfn);
- }
- 
++#endif
++
+diff -uNr
+linux-2.6.27.i686.orig/include/net/netfilter/nf_conntrack_extend.h
+linux-2.6.27.i686.new/include/net/netfilter/nf_conntrack_extend.h
+- --- linux-2.6.27.i686.orig/include/net/netfilter/nf_conntrack_extend.h
+2008-11-28 07:31:53.000000000 +0100
++++ linux-2.6.27.i686.new/include/net/netfilter/nf_conntrack_extend.h
+2008-12-14 04:16:44.000000000 +0100
+@@ -8,12 +8,14 @@
+ 	NF_CT_EXT_HELPER,
+ 	NF_CT_EXT_NAT,
+ 	NF_CT_EXT_ACCT,
++	NF_CT_EXT_L2INFO,
+ 	NF_CT_EXT_NUM,
+ };
 
-Bests regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+ #define NF_CT_EXT_HELPER_TYPE struct nf_conn_help
+ #define NF_CT_EXT_NAT_TYPE struct nf_conn_nat
+ #define NF_CT_EXT_ACCT_TYPE struct nf_conn_counter
++#define NF_CT_EXT_L2INFO_TYPE struct nf_conn_l2info
+
+ /* Extensions: optional stuff which isn't permanently in struct. */
+ struct nf_ct_ext {
+diff -uNr linux-2.6.27.i686.orig/net/netfilter/Kconfig
+linux-2.6.27.i686.new/net/netfilter/Kconfig
+- --- linux-2.6.27.i686.orig/net/netfilter/Kconfig	2008-11-28
+07:29:39.000000000 +0100
++++ linux-2.6.27.i686.new/net/netfilter/Kconfig	2008-12-09
+18:52:13.000000000 +0100
+@@ -380,6 +380,16 @@
+
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+
++
++config NETFILTER_XT_TARGET_L2INFO
++	tristate  '"L2INFO" target support'
++	depends on NETFILTER_XTABLES
++	depends on NF_CONNTRACK
++	help
++	  Adds L2 info to the connection
++	  If unsure, say `N'.
++
++
+ config NETFILTER_XT_TARGET_NOTRACK
+ 	tristate  '"NOTRACK" target support'
+ 	depends on NETFILTER_XTABLES
+diff -uNr linux-2.6.27.i686.orig/net/netfilter/Makefile
+linux-2.6.27.i686.new/net/netfilter/Makefile
+- --- linux-2.6.27.i686.orig/net/netfilter/Makefile	2008-11-28
+07:29:33.000000000 +0100
++++ linux-2.6.27.i686.new/net/netfilter/Makefile	2008-12-09
+18:52:18.000000000 +0100
+@@ -49,6 +49,7 @@
+ obj-$(CONFIG_NETFILTER_XT_TARGET_RATEEST) += xt_RATEEST.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_SECMARK) += xt_SECMARK.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_TCPMSS) += xt_TCPMSS.o
++obj-$(CONFIG_NETFILTER_XT_TARGET_L2INFO) += xt_L2INFO.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_TCPOPTSTRIP) += xt_TCPOPTSTRIP.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_TRACE) += xt_TRACE.o
+
+diff -uNr linux-2.6.27.i686.orig/net/netfilter/nf_conntrack_standalone.c
+linux-2.6.27.i686.new/net/netfilter/nf_conntrack_standalone.c
+- --- linux-2.6.27.i686.orig/net/netfilter/nf_conntrack_standalone.c
+2008-11-28 07:29:39.000000000 +0100
++++ linux-2.6.27.i686.new/net/netfilter/nf_conntrack_standalone.c
+2008-12-14 06:28:19.000000000 +0100
+@@ -26,6 +26,8 @@
+ #include <net/netfilter/nf_conntrack_expect.h>
+ #include <net/netfilter/nf_conntrack_helper.h>
+ #include <net/netfilter/nf_conntrack_acct.h>
++#include <linux/netfilter/xt_L2INFO.h>
++
+
+ MODULE_LICENSE("GPL");
+
+@@ -151,6 +153,32 @@
+ 	if (test_bit(IPS_ASSURED_BIT, &ct->status))
+ 		if (seq_printf(s, "[ASSURED] "))
+ 			return -ENOSPC;
++	if (test_bit(IPS_L2_INFO, &ct->status))
++	    {
++		if (seq_printf(s, "[L2INFO] "))
++			return -ENOSPC;
++	        struct nf_conn_l2info* l2info = nfct_l2info(ct);	
++	
++		if (!l2info)
++			return -ENOSPC;
++
++		int
+ret=seq_printf(s,"[%.2x:%.2x:%.2x:%.2x:%.2x:%.2x]<->[%.2x:%.2x:%.2x:%.2x:%.2x:%.2x]
+",
++                l2info->src_addr[0],
++                l2info->src_addr[1],
++                l2info->src_addr[2],
++                l2info->src_addr[3],
++                l2info->src_addr[4],
++                l2info->dst_addr[5],
++                l2info->dst_addr[0],
++                l2info->dst_addr[1],
++                l2info->dst_addr[2],
++                l2info->dst_addr[3],
++                l2info->dst_addr[4],
++                l2info->dst_addr[5]);
++	
++		if (ret)
++		return -ENOSPC;
++	    }
+
+ #if defined(CONFIG_NF_CONNTRACK_MARK)
+ 	if (seq_printf(s, "mark=%u ", ct->mark))
+diff -uNr linux-2.6.27.i686.orig/net/netfilter/xt_L2INFO.c
+linux-2.6.27.i686.new/net/netfilter/xt_L2INFO.c
+- --- linux-2.6.27.i686.orig/net/netfilter/xt_L2INFO.c	1970-01-01
+01:00:00.000000000 +0100
++++ linux-2.6.27.i686.new/net/netfilter/xt_L2INFO.c	2008-12-17
+07:25:09.000000000 +0100
+@@ -0,0 +1,140 @@
++#include <linux/skbuff.h>
++#include <linux/netfilter/x_tables.h>
++#include <net/netfilter/nf_conntrack.h>
++#include <linux/ip.h>
++#include <net/checksum.h>
++#include <linux/netfilter/xt_L2INFO.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/netfilter.h>
++#include <linux/netfilter_ipv4.h>
++#include <linux/inet.h>
++#include <linux/version.h>
++
++
++MODULE_AUTHOR("Piotr Duszynski L2 info target");
++MODULE_DESCRIPTION("x_tables per-conntrack L2info target");
++MODULE_LICENSE("GPL");
++
++
++static unsigned int target(struct sk_buff *skb,
++       const struct net_device *in,
++       const struct net_device *out,
++       unsigned int hooknum,
++       const struct xt_target *target,
++       const void *targinfo)
++{
++	struct nf_conn_l2info *l2info ;
++	struct nf_conn *ct;
++	enum ip_conntrack_info ctinfo;
++	struct ethhdr *eth;
++
++	ct = nf_ct_get(skb, &ctinfo);
++	
++	if (ct && (! test_bit(IPS_L2_INFO,&ct->status)))
++	{
++
++  	if(IP_CT_ESTABLISHED!=ctinfo
++	&& ctinfo != IP_CT_ESTABLISHED+IP_CT_IS_REPLY)
++	return XT_CONTINUE;
++	
++	if (  IP_CT_ESTABLISHED==ctinfo)
++	printk(KERN_INFO "L2INFO ESTABLISHED\n");
++	if ( ctinfo == IP_CT_ESTABLISHED+IP_CT_IS_REPLY)
++	printk(KERN_INFO "L2INFO REPLY ESTABLISHED\n");
++	
++		l2info = nfct_l2info(ct);
++		if (!l2info) {
++			printk(KERN_INFO "Adding L2INFO extension\n");
++			l2info = nf_ct_ext_add(ct, NF_CT_EXT_L2INFO,GFP_ATOMIC);
++			if (l2info == NULL) {
++				printk(KERN_INFO "failed to add L2INFO extension\n");
++				return XT_CONTINUE;
++			}
++		}
++		
++		set_bit(IPS_L2_INFO,&ct->status);
++	}
++		return XT_CONTINUE;
++}
++
++
++static void
++destroy(const struct xt_target *target, void *targinfo)
++{
++	nf_ct_l3proto_module_put(target->family);
++}
++
++
++static struct xt_target xt_l2info __read_mostly = {
++		.name		= "L2INFO",
++		.family		= AF_INET,
++		.destroy 	= destroy,
++		.target		= target,
++		.me		= THIS_MODULE,
++};
++
++static struct nf_ct_ext_type l2info_extend __read_mostly = {
++	.len		= sizeof(struct nf_conn_l2info),
++	.align		= __alignof__(struct nf_conn_l2info),
++	.id		= NF_CT_EXT_L2INFO,
++};
++
++static int __init xt_l2info_init(void)
++{
++	int ret;
++
++	ret = nf_ct_extend_register(&l2info_extend);
++	if (ret < 0) {
++		printk(KERN_ERR "xt_L2INFO: Unable to register extension\n");
++		return ret;
++	}
++
++	ret = xt_register_target(&xt_l2info);
++	if (ret < 0)
++		nf_ct_extend_unregister(&l2info_extend);
++	else
++	printk(KERN_ERR "xt_L2INFO: Target registered \n");
++	
++	return ret;
++}
++
++static void __exit xt_l2info_fin(void)
++{
++	nf_ct_extend_unregister(&l2info_extend);
++	xt_unregister_target(&xt_l2info);
++}
++
++module_init(xt_l2info_init);
++module_exit(xt_l2info_fin);
++
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iEYEARECAAYFAklJX4gACgkQd6OfpFr9kt8cowCfec1CCI67wJ6gSJXSznrxo1Ho
+N/8AniB2w5Wf5S4ZMBlMyaBbgEpkqTzM
+=ks30
+-----END PGP SIGNATURE-----
