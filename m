@@ -1,43 +1,43 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: [PATCH] net: Remove a noisy printk
-Date: Fri, 19 Dec 2008 11:51:54 +1030
-Message-ID: <200812191151.55607.rusty@rustcorp.com.au>
-References: <1229033625-30825-1-git-send-email-ajax@redhat.com> <alpine.DEB.2.00.0812141745550.2447@blackhole.kfki.hu> <20081214200353.GA2994@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Jan Engelhardt <jengelh@medozas.de>,
-	David Miller <davem@davemloft.net>, ajax@redhat.com,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
-To: Dave Jones <davej@redhat.com>
+From: Eric Leblond <eric@inl.fr>
+Subject: [libnetfilter_queue 1/4] Change variable name to have an homogeneous naming
+Date: Fri, 19 Dec 2008 22:36:28 +0100
+Message-ID: <1229722591-7836-2-git-send-email-eric@inl.fr>
+References: <1229722591-7836-1-git-send-email-eric@inl.fr>
+Cc: Eric Leblond <eric@inl.fr>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ozlabs.org ([203.10.76.45]:57032 "EHLO ozlabs.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751588AbYLSBWB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Dec 2008 20:22:01 -0500
-In-Reply-To: <20081214200353.GA2994@redhat.com>
-Content-Disposition: inline
+Received: from bayen.regit.org ([81.57.69.189]:57385 "EHLO ice-age"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751359AbYLSVge (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 19 Dec 2008 16:36:34 -0500
+In-Reply-To: <1229722591-7836-1-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Monday 15 December 2008 06:33:53 Dave Jones wrote:
-> On Sun, Dec 14, 2008 at 06:09:17PM +0100, Jozsef Kadlecsik wrote:
->  > In a >normal< system one usually does not use raw sockets. So if a root 
->  > process do use raw socket, at least netfilter sends a notification and 
->  > there's a chance that someone take notice it by checking the kernel logs.
-> 
-> 'normal' systems are irrelevant here. This message is triggerable remotely.
+This patch modifies a function to have through the file. Data length
+variable was named data_len everywhere but in this function.
 
-I don't think it can be.  This is for truncated locally-generated outgoing
-packets, which can only happen when root is playing with raw sockets.
+Signed-off-by: Eric Leblond <eric@inl.fr>
+---
+ src/libnetfilter_queue.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-As you can probably tell, I was the one who wrote this printk :)  IMHO,
-one reasonable complaint is sufficient to have it removed, so just remove
-it.  If anyone thinks it's valuable, put a static counter < 5 around it
-and add pid/comm info.
+diff --git a/src/libnetfilter_queue.c b/src/libnetfilter_queue.c
+index 5db6fd1..e7fbfcc 100644
+--- a/src/libnetfilter_queue.c
++++ b/src/libnetfilter_queue.c
+@@ -529,9 +529,9 @@ int nfq_set_verdict(struct nfq_q_handle *qh, u_int32_t id,
+  */
+ int nfq_set_verdict_mark(struct nfq_q_handle *qh, u_int32_t id,
+ 		u_int32_t verdict, u_int32_t mark,
+-		u_int32_t datalen, unsigned char *buf)
++		u_int32_t data_len, unsigned char *buf)
+ {
+-	return __set_verdict(qh, id, verdict, mark, 1, datalen, buf);
++	return __set_verdict(qh, id, verdict, mark, 1, data_len, buf);
+ }
+ 
+ /*************************************************************
+-- 
+1.5.6.3
 
-Cheers,
-Rusty.
