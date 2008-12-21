@@ -1,47 +1,27 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: hooks
-Date: Sat, 20 Dec 2008 00:16:48 +0100 (CET)
-Message-ID: <alpine.LNX.1.10.0812200016370.5615@fbirervta.pbzchgretzou.qr>
-References: <379e30200812171531v506beaccsdfb5c103ec0671d3@mail.gmail.com>  <alpine.LNX.1.10.0812180125510.7014@fbirervta.pbzchgretzou.qr> <379e30200812171705w3ebb59ffse29e0a948cd88294@mail.gmail.com>
+From: c8th9l0q29l1v <c8th9l0q29l1v@gmail.com>
+Subject: =?BIG5?B?PzIwMDgvMTIvMjEgpHPgvqzsp9669K22s12tcA==?=
+Date: Sun, 21 Dec 2008 13:14:16 +0800
+Message-ID: <a15a423e0812202114y151e7f50g3c8160f0874b4734@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Tobias Koeck <tobias.koeck@gmail.com>
+Content-Type: text/plain; charset=BIG5
+Content-Transfer-Encoding: base64
+To: netservant@rbcintl.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:46564 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751860AbYLSXQv (ORCPT
+Received: from po-out-1718.google.com ([72.14.252.156]:4374 "EHLO
+	po-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750744AbYLUFOR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 19 Dec 2008 18:16:51 -0500
-In-Reply-To: <379e30200812171705w3ebb59ffse29e0a948cd88294@mail.gmail.com>
+	Sun, 21 Dec 2008 00:14:17 -0500
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-On Thursday 2008-12-18 02:05, Tobias Koeck wrote:
-
->Hi Jan
->
->For instance I can use
->
->tron:/home/joblack/rarqos/iptables/iptables-1.4.0# iptables -t mangle
->-A FORWARD -j RARQOS
->iptables: Invalid argument
->
->and I have the same output in the syslog file.
-
-Can't debug without source.
-
->>>I'm programing  module and in the register function I've included
->>>
->>>       .hooks          = (1 << NF_INET_FORWARD),
->>>
->>>If I want to append a rule with iptables I get the following error
->>>message in /var/log/syslog:
->>>
->>>tron kernel: ip_tables: RARQOS target: bad hook_mask 4/16
->>>What could be the problem?
->>
->> In the invocation of the iptables command.
->> You are trying to use your target in the POSTROUTING chain (16)
->> but you only allow it to be used in FORWARD (4).
+MjAwOC0xMi0yMSAgLSAgMTM6MTQKCqRzeOC+ZqzsZqfeObr0S622NrNdSK1wCgqn2nOtzE+qulCp
+dmKmrk+hR6vIpOGquqhDo7il86RwqMaxoaFBs6OsT6Rz4L6quqRqqMaxoQoKp9p4rcxzUKZiObHA
+pVil+Ld+p862SLr0r7ilXad0q2WleLr0rbas/KR1K6vhpXi63rJ6tXumoQoKra1yrslzra1mtnFv
+sU2u17v5IKV1rW4kMjksOTAwICAopmKwZaO4pn4xMDBNQiCko62trHm2cbr0r7iqxbahKQoKp9pX
+rcxLsLU0qrpCpKNKpXV1rE9KuvRjr7ihQabTRaxPNbF6aKX4d7d+Mqq6daRKN6RmCgqjuDOt00im
+bmqqujal+Da3fk669E+vuGG46kauxmqnWXOuyUKn81q3c1GqunmzdHir106sT1ir3Hqtq2ytbmaq
+ugoKpfh3t36i7aTGSLCqWKt+ar3oabnOVrakoUGltGazeVSxejequk+69DW49Fmq+WytsQoKv+91
+vtxMpHN14L5ipqhPtE5JsXozqrp3udoxMbdRCgp6xXeq76jTuXGsorjftsCxTa37oUcwXzlfOF8w
+XzFfMV85XzhfMV8yCk+hs2uh0laiQzmh70uhvgo=
