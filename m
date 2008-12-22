@@ -1,57 +1,48 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: [libnfnetlink] Suppress iftable_up function which is no used.
-Date: Mon, 22 Dec 2008 23:07:55 +0100
-Message-ID: <1229983675-5025-1-git-send-email-eric@inl.fr>
-References: <alpine.LNX.1.10.0812221909100.26910@fbirervta.pbzchgretzou.qr>
-Cc: jengelh@medozas.de, netfilter-devel@vger.kernel.org,
-	Eric Leblond <eric@inl.fr>
-To: pablo@netfilter.org
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [libnetfilter_queue 4/4] Switch documentation style to
+ doxygen.
+Date: Mon, 22 Dec 2008 23:08:30 +0100 (CET)
+Message-ID: <alpine.LNX.1.10.0812222306080.27814@fbirervta.pbzchgretzou.qr>
+References: <1229722591-7836-1-git-send-email-eric@inl.fr> <1229722591-7836-5-git-send-email-eric@inl.fr> <494F6FB5.3090204@netfilter.org> <alpine.LNX.1.10.0812221449300.2670@fbirervta.pbzchgretzou.qr> <49500E59.1040200@netfilter.org>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Eric Leblond <eric@inl.fr>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:45501 "EHLO ice-age"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1757588AbYLVWIB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 22 Dec 2008 17:08:01 -0500
-In-Reply-To: <alpine.LNX.1.10.0812221909100.26910@fbirervta.pbzchgretzou.qr>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:32883 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759770AbYLVWIb (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 22 Dec 2008 17:08:31 -0500
+In-Reply-To: <49500E59.1040200@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Following compilation warning pointed out by Jan Engelhardt, this patch
-suppresses the iftable_up function which is of no use in this part of
-libnfnetlink library whom goal is to do ifindex to name resolution.
 
-Signed-off-by: Eric Leblond <eric@inl.fr>
----
- src/iftable.c |   17 -----------------
- 1 files changed, 0 insertions(+), 17 deletions(-)
+On Monday 2008-12-22 23:02, Pablo Neira Ayuso wrote:
+>Jan Engelhardt wrote:
+>> On Monday 2008-12-22 11:45, Pablo Neira Ayuso wrote:
+>> 
+>>> Eric Leblond wrote:
+>>>> This patch modifies the documentation format to switch to doxygen
+>>>> format. This leads to a interesting and useful output. An example
+>>>> can be found at the following url:
+>>>> 	http://www.nufw.org/doc/libnetfilter_queue/
+>>> I was thinking about using kerneldoc utility, but doxygen is better at
+>>> this moment. Could you also send the doxygen configuration file to put
+>>> it in the git tree?
+>>>
+>>> Once I generate the doxygen documentation, I'm going to add it to the
+>>> netfilter website.
+>> 
+>> I have a kerneldoc filter plugin for doxygen, if you like.
+>
+>I always like to get cool stuff, please don't ask next time, just post it ;)
 
-diff --git a/src/iftable.c b/src/iftable.c
-index b6a8e72..7cca66f 100644
---- a/src/iftable.c
-+++ b/src/iftable.c
-@@ -172,23 +172,6 @@ int nlif_index2name(struct nlif_handle *h,
- 	return -1;
- }
- 
--static int iftable_up(struct nlif_handle *h, unsigned int index)
--{
--	unsigned int hash;
--	struct ifindex_node *this;
--
--	hash = index & 0xF;
--	list_for_each_entry(this, &h->ifindex_hash[hash], head) {
--		if (this->index == index) {
--			if (this->flags & IFF_UP)
--				return 1;
--			else
--				return 0;
--		}
--	}
--	return -1;
--}
--
- /** Initialize interface table
-  *
-  * Initialize rtnl interface and interface table
--- 
-1.5.6.3
+http://dev.medozas.de/gitweb.cgi?p=hxtools;a=blob;f=libexec/doxygen-kerneldoc-filter;hb=master
 
+and in the Doxygen file, this is all:
+
+INPUT_FILTER = /path/to/doxygen-kerneldoc-filter
+
+Working example in git://dev.medozas.de/circum (run `doxygen`).
