@@ -1,27 +1,40 @@
-From: "Jianqing Zhang" <arrow.jianqing@gmail.com>
-Subject: Add a rule to PREROUTING table
-Date: Mon, 22 Dec 2008 15:44:35 -0600
-Message-ID: <8a38e1330812221344l51472479s2ff1e57b4bee08b7@mail.gmail.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: Add a rule to PREROUTING table
+Date: Mon, 22 Dec 2008 22:59:22 +0100 (CET)
+Message-ID: <alpine.LNX.1.10.0812222258510.25979@fbirervta.pbzchgretzou.qr>
+References: <8a38e1330812221344l51472479s2ff1e57b4bee08b7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Jianqing Zhang <arrow.jianqing@gmail.com>
 Return-path: <netfilter-owner@vger.kernel.org>
-Content-Disposition: inline
+In-Reply-To: <8a38e1330812221344l51472479s2ff1e57b4bee08b7@mail.gmail.com>
 Sender: netfilter-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I add a rule to the chain of PREROUTING for the nat table as follows:
 
- iptables -t nat -I PREROUTING -p udp --dport 4309 -j NFQUEUE --queue-num 0
+On Monday 2008-12-22 22:44, Jianqing Zhang wrote:
 
-However, when I run "iptables -L ", I can see nothing under PREROUTING chain
+>I add a rule to the chain of PREROUTING for the nat table as follows:
+>
+> iptables -t nat -I PREROUTING -p udp --dport 4309 -j NFQUEUE --queue-=
+num 0
+>
+>However, when I run "iptables -L ", I can see nothing under PREROUTING=
+ chain
 
-...
-Chain PREROUTING (0 references)
-target     prot opt source               destination
-...
+>Do miss something?
 
-Do miss something?
+The manpage.
 
-Thanks
+filter:
+      This  is  the default table (if no =E2=80=90t option is passed). =
+ It
+      contains the built=E2=80=90in chains INPUT (for packets destined =
+ to
+      local  sockets),  FORWARD  (for packets being routed through
+      the box), and OUTPUT (for locally=E2=80=90generated packets).
+
+
+
