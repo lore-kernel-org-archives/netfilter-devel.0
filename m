@@ -1,72 +1,38 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Compiler warnings on libnetfilter_*
-Date: Mon, 22 Dec 2008 23:21:11 +0100
-Message-ID: <495012D7.2080002@netfilter.org>
-References: <alpine.LNX.1.10.0812221909100.26910@fbirervta.pbzchgretzou.qr>
+From: ilninno <ilninno@gmail.com>
+Subject: How can i leave a packet to continue the iptables ruleset checking?
+Date: Tue, 23 Dec 2008 22:02:04 +0100
+Message-ID: <92770c820812231302q709cba94ua93e0ec210a906a1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48542 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753357AbYLVWVU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 22 Dec 2008 17:21:20 -0500
-In-Reply-To: <alpine.LNX.1.10.0812221909100.26910@fbirervta.pbzchgretzou.qr>
+Received: from yw-out-2324.google.com ([74.125.46.30]:51948 "EHLO
+	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750946AbYLWVCH (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 23 Dec 2008 16:02:07 -0500
+Received: by yw-out-2324.google.com with SMTP id 9so925926ywe.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 23 Dec 2008 13:02:05 -0800 (PST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> Hi,
-> 
-> I have compiled all the libnetfilter* libraries and conntrack-tools,
-> and this is the collection of compiler warnings I obtained.
-> (Note: running a silenced automake is a big win.)
+Hello! I have some problems with netfilter_queue:
 
-Is there already an option to silence automake? I found your patches in
-the automake ML but I didn't find them in the official tree. I'm not a
-fan of the verbose mode either.
+I created a queue and registered my c program, when a packet matchs
+with the iptables rules my code get the event. i usually return
+NF_ACCEPT and NF_DROP, but sometimes i need to leave the packet to
+continue with iptables rules checking, i tried with:
 
-> + make -j2
-> Making all in src
-> make[1]: Entering directory `/usr/src/packages/BUILD/netfilter-toolsuite-0.20081222/libnfnetlink/src'
->   CC       iftable.lo
->   CC       libnfnetlink.lo
-> iftable.c:176: warning: 'iftable_up' defined but not used
->   CC       rtnl.lo
->   CCLD     libnfnetlink.la
-> make[1]: Leaving directory `/usr/src/packages/BUILD/netfilter-toolsuite-0.20081222/libnfnetlink/src'
-> + popd
-> /usr/src/packages/BUILD/netfilter-toolsuite-0.20081222
+1- Using NF_QUEUE: WIth this option the packet enter again in iptables
+rules (from rule 1 to NFQUEUE rule), but i only want to check (from
+NFQUEUE rule to end).
 
-This one is known. I left it there because I was thinking about to make
-that function public. With the new libnfnetlink API (that I haven't post
-yet), we will not need it so we can remove.
 
-> + make -j2
-> Making all in conntrack
-> make[2]: Entering directory `/usr/src/packages/BUILD/netfilter-toolsuite-0.20081222/libnetfilter_conntrack/src/conntrack'
->   CC       api.lo
->   CC       callback.lo
-> mkdir: cannot create directory `.libs': File exists
+rule:   $IPTABLES -A OUTPUT -m state --state NEW -j NFQUEUE --queue-num 0
 
-I did not know this one.
 
-> callback.c: In function '__callback':
-> callback.c:30: warning: passing argument 2 of '__parse_conntrack' from incompatible pointer type
-> api.c: In function 'nfct_parse_conntrack':
-> api.c:668: warning: passing argument 2 of '__parse_conntrack' from incompatible pointer type
 
-A casting should fix this?
-
-[...]
-> + make -j2
-> Making all in extensions
-> make[1]: Entering directory `/usr/src/packages/BUILD/netfilter-toolsuite-0.20081222/conntrack-tools/extensions'
-
-I did not notice compilation that conntrack-tools was not warning about
-unused variables.
-
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+How can i leave the packet to continue in iptables ruleset without
+beginning again?  Thanks for your time.
