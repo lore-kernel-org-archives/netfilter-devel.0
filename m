@@ -1,70 +1,69 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Compiler warnings on libnetfilter_*
-Date: Wed, 24 Dec 2008 20:13:45 +0100 (CET)
-Message-ID: <alpine.LNX.1.10.0812222324030.27814@fbirervta.pbzchgretzou.qr>
-References: <alpine.LNX.1.10.0812221909100.26910@fbirervta.pbzchgretzou.qr> <495012D7.2080002@netfilter.org>
+Subject: Re: libxt_rateest: fix segfault
+Date: Wed, 24 Dec 2008 20:15:26 +0100 (CET)
+Message-ID: <alpine.LNX.1.10.0812242015110.8067@fbirervta.pbzchgretzou.qr>
+References: <alpine.LNX.1.10.0812081818050.2016@fbirervta.pbzchgretzou.qr> <493E7B1D.7030003@trash.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:45870 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:45875 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751629AbYLXTNr (ORCPT
+	with ESMTP id S1751343AbYLXTP1 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 24 Dec 2008 14:13:47 -0500
-In-Reply-To: <495012D7.2080002@netfilter.org>
+	Wed, 24 Dec 2008 14:15:27 -0500
+In-Reply-To: <493E7B1D.7030003@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Monday 2008-12-22 23:21, Pablo Neira Ayuso wrote:
->Jan Engelhardt wrote:
->> Hi,
+On Tuesday 2008-12-09 15:05, Patrick McHardy wrote:
+> Jan Engelhardt wrote:
+>> When running `ip6tables -m rateest` without any other arguments,
+>> rateest did segfault.
+>> ---
+>>  extensions/libxt_rateest.c |    2 +-
+>>  1 files changed, 1 insertions(+), 1 deletions(-)
 >> 
->> I have compiled all the libnetfilter* libraries and conntrack-tools,
->> and this is the collection of compiler warnings I obtained.
->> (Note: running a silenced automake is a big win.)
+>> diff --git a/extensions/libxt_rateest.c b/extensions/libxt_rateest.c
+>> index ebea437..f0dd577 100644
+>> --- a/extensions/libxt_rateest.c
+>> +++ b/extensions/libxt_rateest.c
+>> @@ -306,7 +306,7 @@ rateest_final_check(unsigned int flags)
+>>  {
+>>   struct xt_rateest_match_info *info = rateest_info;
+>> 
+>> -	if (!(info->flags & XT_RATEEST_MATCH_REL))
+>> +	if (info != NULL && !(info->flags & XT_RATEEST_MATCH_REL))
+>>    info->flags |= XT_RATEEST_MATCH_ABS;
 >
->Is there already an option to silence automake? I found your patches in
->the automake ML but I didn't find them in the official tree.
+> I think we should print an error message instead. The kernel will
+> refuse it anyways.
 
-It is currently underway. If you do not like the wait, you can
-of course patch your automake. Lucky users of openSUSE Linux can
-also grab an rpm from my distro.
+parent cea9f71f5618250a38acb21c31fbbf93a752f7d4
+commit e2ac8eed9cd24bfabedb931c854ab7e0c9de5fd1
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Wed Dec 24 20:15:44 2008 +0100
 
->> + make -j2
->> Making all in conntrack
->> make[2]: Entering directory `/usr/src/packages/BUILD/netfilter-toolsuite-0.20081222/libnetfilter_conntrack/src/conntrack'
->>   CC       api.lo
->>   CC       callback.lo
->> mkdir: cannot create directory `.libs': File exists
->
->I did not know this one.
+rateest: guard against segfault
 
-Oh this is due to the compiler command line having `mkdir .libs` in it,
-and running with -jN with N >= 2, multiple mkdir invocations can run
-at the same time. It is perfectly normal.
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ extensions/libxt_rateest.c |    3 +++
+ 1 files changed, 3 insertions(+), 0 deletions(-)
 
->> callback.c: In function '__callback':
->> callback.c:30: warning: passing argument 2 of '__parse_conntrack' from incompatible pointer type
->> api.c: In function 'nfct_parse_conntrack':
->> api.c:668: warning: passing argument 2 of '__parse_conntrack' from incompatible pointer type
->
->A casting should fix this?
-
-void __parse_conntrack(const struct nlmsghdr *nlh,                              
-                       const struct nfattr *cda[],                              
-                       struct nf_conntrack *ct)                                 
-
-
-int __callback(struct nlmsghdr *nlh, struct nfattr *nfa[], void *data)          
-{
-       __parse_conntrack(nlh, nfa, ct);                                        
-}
-
-
-A const_cast() [1] should do ;-)
-
-
-[1] http://jengelh.medozas.de/2008/1224-typechecking-casts.php
+diff --git a/extensions/libxt_rateest.c b/extensions/libxt_rateest.c
+index ebea437..333239d 100644
+--- a/extensions/libxt_rateest.c
++++ b/extensions/libxt_rateest.c
+@@ -306,6 +306,9 @@ rateest_final_check(unsigned int flags)
+ {
+ 	struct xt_rateest_match_info *info = rateest_info;
+ 
++	if (info == NULL)
++		exit_error(PARAMETER_PROBLEM, "rateest match: "
++		           "you need to specify some flags");
+ 	if (!(info->flags & XT_RATEEST_MATCH_REL))
+ 		info->flags |= XT_RATEEST_MATCH_ABS;
+ }
