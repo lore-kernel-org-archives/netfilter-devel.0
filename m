@@ -1,147 +1,123 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: iptables-restore: remove unused --binary flag
-Date: Wed, 24 Dec 2008 20:32:26 +0100 (CET)
-Message-ID: <alpine.LNX.1.10.0812242031570.514@fbirervta.pbzchgretzou.qr>
+Subject: iptables-save: restore indent after last change
+Date: Wed, 24 Dec 2008 20:32:37 +0100 (CET)
+Message-ID: <alpine.LNX.1.10.0812242032300.514@fbirervta.pbzchgretzou.qr>
+References: <alpine.LNX.1.10.0812242031570.514@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:33785 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:33787 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750852AbYLXTc2 (ORCPT
+	with ESMTP id S1751243AbYLXTci (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 24 Dec 2008 14:32:28 -0500
+	Wed, 24 Dec 2008 14:32:38 -0500
+In-Reply-To: <alpine.LNX.1.10.0812242031570.514@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 67f4e55f28abf2f666c0a0aa874d9421e91d6184
+parent 67f4e55f28abf2f666c0a0aa874d9421e91d6184
+commit 5c79c4fa98e35426b836d468e80c3c5e7466ad8b
 Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Wed Dec 24 20:30:47 2008 +0100
+Date:   Wed Dec 24 20:32:26 2008 +0100
 
-iptables-restore: remove unused --binary flag
+iptables-save: restore indent after last change
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- ip6tables-restore.c |    7 +------
- iptables-restore.c  |    7 +------
- iptables-save.c     |   12 ++----------
- 3 files changed, 4 insertions(+), 22 deletions(-)
+ iptables-save.c |   67 +++++++++++++++++++++-------------------------
+ 1 files changed, 31 insertions(+), 36 deletions(-)
 
-diff --git a/ip6tables-restore.c b/ip6tables-restore.c
-index 01bccf7..0920760 100644
---- a/ip6tables-restore.c
-+++ b/ip6tables-restore.c
-@@ -26,11 +26,10 @@
- #define DEBUGP(x, args...)
- #endif
- 
--static int binary = 0, counters = 0, verbose = 0, noflush = 0;
-+static int counters = 0, verbose = 0, noflush = 0;
- 
- /* Keeping track of external matches and targets.  */
- static const struct option options[] = {
--	{.name = "binary",   .has_arg = false, .val = 'b'},
- 	{.name = "counters", .has_arg = false, .val = 'c'},
- 	{.name = "verbose",  .has_arg = false, .val = 'v'},
- 	{.name = "test",     .has_arg = false, .val = 't'},
-@@ -45,7 +44,6 @@ static void print_usage(const char *name, const char *version) __attribute__((no
- static void print_usage(const char *name, const char *version)
- {
- 	fprintf(stderr, "Usage: %s [-b] [-c] [-v] [-t] [-h]\n"
--			"	   [ --binary ]\n"
- 			"	   [ --counters ]\n"
- 			"	   [ --verbose ]\n"
- 			"	   [ --test ]\n"
-@@ -144,9 +142,6 @@ int main(int argc, char *argv[])
- 
- 	while ((c = getopt_long(argc, argv, "bcvthnM:", options, NULL)) != -1) {
- 		switch (c) {
--			case 'b':
--				binary = 1;
--				break;
- 			case 'c':
- 				counters = 1;
- 				break;
-diff --git a/iptables-restore.c b/iptables-restore.c
-index 4ea9306..04b83b4 100644
---- a/iptables-restore.c
-+++ b/iptables-restore.c
-@@ -23,11 +23,10 @@
- #define DEBUGP(x, args...)
- #endif
- 
--static int binary = 0, counters = 0, verbose = 0, noflush = 0;
-+static int counters = 0, verbose = 0, noflush = 0;
- 
- /* Keeping track of external matches and targets.  */
- static const struct option options[] = {
--	{.name = "binary",   .has_arg = false, .val = 'b'},
- 	{.name = "counters", .has_arg = false, .val = 'c'},
- 	{.name = "verbose",  .has_arg = false, .val = 'v'},
- 	{.name = "test",     .has_arg = false, .val = 't'},
-@@ -43,7 +42,6 @@ static void print_usage(const char *name, const char *version) __attribute__((no
- static void print_usage(const char *name, const char *version)
- {
- 	fprintf(stderr, "Usage: %s [-b] [-c] [-v] [-t] [-h]\n"
--			"	   [ --binary ]\n"
- 			"	   [ --counters ]\n"
- 			"	   [ --verbose ]\n"
- 			"	   [ --test ]\n"
-@@ -146,9 +144,6 @@ main(int argc, char *argv[])
- 
- 	while ((c = getopt_long(argc, argv, "bcvthnM:T:", options, NULL)) != -1) {
- 		switch (c) {
--			case 'b':
--				binary = 1;
--				break;
- 			case 'c':
- 				counters = 1;
- 				break;
 diff --git a/iptables-save.c b/iptables-save.c
-index 6252c0b..dce9185 100644
+index dce9185..ea52377 100644
 --- a/iptables-save.c
 +++ b/iptables-save.c
-@@ -21,10 +21,9 @@
- #include <dlfcn.h>
- #endif
+@@ -60,6 +60,7 @@ static int do_output(const char *tablename)
+ {
+ 	struct iptc_handle *h;
+ 	const char *chain = NULL;
++	time_t now;
  
--static int show_binary = 0, show_counters = 0;
-+static int show_counters = 0;
- 
- static const struct option options[] = {
--	{.name = "binary",   .has_arg = false, .val = 'b'},
- 	{.name = "counters", .has_arg = false, .val = 'c'},
- 	{.name = "dump",     .has_arg = false, .val = 'd'},
- 	{.name = "table",    .has_arg = true,  .val = 't'},
-@@ -70,7 +69,7 @@ static int do_output(const char *tablename)
+ 	if (!tablename)
+ 		return for_each_table(&do_output);
+@@ -69,49 +70,43 @@ static int do_output(const char *tablename)
  		exit_error(OTHER_PROBLEM, "Can't initialize: %s\n",
  			   iptc_strerror(errno));
  
--	if (!show_binary) {
-+	{
- 		time_t now = time(NULL);
+-	{
+-		time_t now = time(NULL);
+-
+-		printf("# Generated by iptables-save v%s on %s",
+-		       XTABLES_VERSION, ctime(&now));
+-		printf("*%s\n", tablename);
+-
+-		/* Dump out chain names first,
+-		 * thereby preventing dependency conflicts */
+-		for (chain = iptc_first_chain(h);
+-		     chain;
+-		     chain = iptc_next_chain(h)) {
+-
+-			printf(":%s ", chain);
+-			if (iptc_builtin(chain, h)) {
+-				struct ipt_counters count;
+-				printf("%s ",
+-				       iptc_get_policy(chain, &count, h));
+-				printf("[%llu:%llu]\n", (unsigned long long)count.pcnt, (unsigned long long)count.bcnt);
+-			} else {
+-				printf("- [0:0]\n");
+-			}
+-		}
++	now = time(NULL);
  
- 		printf("# Generated by iptables-save v%s on %s",
-@@ -111,9 +110,6 @@ static int do_output(const char *tablename)
- 		now = time(NULL);
- 		printf("COMMIT\n");
- 		printf("# Completed on %s", ctime(&now));
--	} else {
--		/* Binary, huh?  OK. */
--		exit_error(OTHER_PROBLEM, "Binary NYI\n");
++	printf("# Generated by iptables-save v%s on %s",
++	       XTABLES_VERSION, ctime(&now));
++	printf("*%s\n", tablename);
+ 
+-		for (chain = iptc_first_chain(h);
+-		     chain;
+-		     chain = iptc_next_chain(h)) {
+-			const struct ipt_entry *e;
++	/* Dump out chain names first,
++	 * thereby preventing dependency conflicts */
++	for (chain = iptc_first_chain(h); chain != NULL;
++	     chain = iptc_next_chain(h)) {
+ 
+-			/* Dump out rules */
+-			e = iptc_first_rule(chain, h);
+-			while(e) {
+-				print_rule(e, h, chain, show_counters);
+-				e = iptc_next_rule(e, h);
+-			}
++		printf(":%s ", chain);
++		if (iptc_builtin(chain, h)) {
++			struct ipt_counters count;
++			printf("%s ", iptc_get_policy(chain, &count, h));
++			printf("[%llu:%llu]\n", (unsigned long long)count.pcnt, (unsigned long long)count.bcnt);
++		} else {
++			printf("- [0:0]\n");
+ 		}
++	}
++
++	for (chain = iptc_first_chain(h); chain != NULL;
++	     chain = iptc_next_chain(h)) {
++		const struct ipt_entry *e;
+ 
+-		now = time(NULL);
+-		printf("COMMIT\n");
+-		printf("# Completed on %s", ctime(&now));
++		/* Dump out rules */
++		e = iptc_first_rule(chain, h);
++		while (e) {
++			print_rule(e, h, chain, show_counters);
++			e = iptc_next_rule(e, h);
++		}
  	}
  
++	now = time(NULL);
++	printf("COMMIT\n");
++	printf("# Completed on %s", ctime(&now));
++
  	iptc_free(h);
-@@ -154,10 +150,6 @@ main(int argc, char *argv[])
  
- 	while ((c = getopt_long(argc, argv, "bcdt:", options, NULL)) != -1) {
- 		switch (c) {
--		case 'b':
--			show_binary = 1;
--			break;
--
- 		case 'c':
- 			show_counters = 1;
- 			break;
-
+ 	return 1;
