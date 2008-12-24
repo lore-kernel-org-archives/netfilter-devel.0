@@ -1,38 +1,30 @@
-From: ilninno <ilninno@gmail.com>
-Subject: How can i leave a packet to continue the iptables ruleset checking?
-Date: Tue, 23 Dec 2008 22:02:04 +0100
-Message-ID: <92770c820812231302q709cba94ua93e0ec210a906a1@mail.gmail.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 1/1 ] Conntrack extensions : Interrupt timeout
+Date: Wed, 24 Dec 2008 20:10:56 +0100 (CET)
+Message-ID: <alpine.LNX.1.10.0812242009260.8067@fbirervta.pbzchgretzou.qr>
+References: <49467ACC.8080107@trash.net>  <20081216.012018.196068498.davem@davemloft.net>  <49495F88.2010103@gmail.com>  <38bcb3ec0812171836r4c6161b2m1026d73722a72cfe@mail.gmail.com>  <494D4A11.5080304@gmail.com>
+ <38bcb3ec0812220107y64c4f495s1e37adb0169741ec@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Piotr Duszynski <regis44@gmail.com>,
+	netfilter-devel@vger.kernel.org
+To: James King <t.james.king@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from yw-out-2324.google.com ([74.125.46.30]:51948 "EHLO
-	yw-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750946AbYLWVCH (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:36002 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751273AbYLXTK7 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Dec 2008 16:02:07 -0500
-Received: by yw-out-2324.google.com with SMTP id 9so925926ywe.1
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 Dec 2008 13:02:05 -0800 (PST)
-Content-Disposition: inline
+	Wed, 24 Dec 2008 14:10:59 -0500
+In-Reply-To: <38bcb3ec0812220107y64c4f495s1e37adb0169741ec@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello! I have some problems with netfilter_queue:
 
-I created a queue and registered my c program, when a packet matchs
-with the iptables rules my code get the event. i usually return
-NF_ACCEPT and NF_DROP, but sometimes i need to leave the packet to
-continue with iptables rules checking, i tried with:
+On Monday 2008-12-22 10:07, James King wrote:
 
-1- Using NF_QUEUE: WIth this option the packet enter again in iptables
-rules (from rule 1 to NFQUEUE rule), but i only want to check (from
-NFQUEUE rule to end).
+>Please don't drop the mailing list CC when replying.  There are people
+>here much more talented than myself that might be able to help.
 
-
-rule:   $IPTABLES -A OUTPUT -m state --state NEW -j NFQUEUE --queue-num 0
-
-
-
-How can i leave the packet to continue in iptables ruleset without
-beginning again?  Thanks for your time.
+Please do not top post. There are people here that locate the first
+row with more than one '>' and then skip everything until the row
+that contains no '>'. Which, in your message, leads to no text.
