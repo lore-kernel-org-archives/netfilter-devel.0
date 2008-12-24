@@ -1,69 +1,147 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: libxt_rateest: fix segfault
-Date: Wed, 24 Dec 2008 20:15:26 +0100 (CET)
-Message-ID: <alpine.LNX.1.10.0812242015110.8067@fbirervta.pbzchgretzou.qr>
-References: <alpine.LNX.1.10.0812081818050.2016@fbirervta.pbzchgretzou.qr> <493E7B1D.7030003@trash.net>
+Subject: iptables-restore: remove unused --binary flag
+Date: Wed, 24 Dec 2008 20:32:26 +0100 (CET)
+Message-ID: <alpine.LNX.1.10.0812242031570.514@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:45875 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:33785 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751343AbYLXTP1 (ORCPT
+	with ESMTP id S1750852AbYLXTc2 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 24 Dec 2008 14:15:27 -0500
-In-Reply-To: <493E7B1D.7030003@trash.net>
+	Wed, 24 Dec 2008 14:32:28 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-On Tuesday 2008-12-09 15:05, Patrick McHardy wrote:
-> Jan Engelhardt wrote:
->> When running `ip6tables -m rateest` without any other arguments,
->> rateest did segfault.
->> ---
->>  extensions/libxt_rateest.c |    2 +-
->>  1 files changed, 1 insertions(+), 1 deletions(-)
->> 
->> diff --git a/extensions/libxt_rateest.c b/extensions/libxt_rateest.c
->> index ebea437..f0dd577 100644
->> --- a/extensions/libxt_rateest.c
->> +++ b/extensions/libxt_rateest.c
->> @@ -306,7 +306,7 @@ rateest_final_check(unsigned int flags)
->>  {
->>   struct xt_rateest_match_info *info = rateest_info;
->> 
->> -	if (!(info->flags & XT_RATEEST_MATCH_REL))
->> +	if (info != NULL && !(info->flags & XT_RATEEST_MATCH_REL))
->>    info->flags |= XT_RATEEST_MATCH_ABS;
->
-> I think we should print an error message instead. The kernel will
-> refuse it anyways.
-
-parent cea9f71f5618250a38acb21c31fbbf93a752f7d4
-commit e2ac8eed9cd24bfabedb931c854ab7e0c9de5fd1
+commit 67f4e55f28abf2f666c0a0aa874d9421e91d6184
 Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Wed Dec 24 20:15:44 2008 +0100
+Date:   Wed Dec 24 20:30:47 2008 +0100
 
-rateest: guard against segfault
+iptables-restore: remove unused --binary flag
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- extensions/libxt_rateest.c |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+ ip6tables-restore.c |    7 +------
+ iptables-restore.c  |    7 +------
+ iptables-save.c     |   12 ++----------
+ 3 files changed, 4 insertions(+), 22 deletions(-)
 
-diff --git a/extensions/libxt_rateest.c b/extensions/libxt_rateest.c
-index ebea437..333239d 100644
---- a/extensions/libxt_rateest.c
-+++ b/extensions/libxt_rateest.c
-@@ -306,6 +306,9 @@ rateest_final_check(unsigned int flags)
- {
- 	struct xt_rateest_match_info *info = rateest_info;
+diff --git a/ip6tables-restore.c b/ip6tables-restore.c
+index 01bccf7..0920760 100644
+--- a/ip6tables-restore.c
++++ b/ip6tables-restore.c
+@@ -26,11 +26,10 @@
+ #define DEBUGP(x, args...)
+ #endif
  
-+	if (info == NULL)
-+		exit_error(PARAMETER_PROBLEM, "rateest match: "
-+		           "you need to specify some flags");
- 	if (!(info->flags & XT_RATEEST_MATCH_REL))
- 		info->flags |= XT_RATEEST_MATCH_ABS;
- }
+-static int binary = 0, counters = 0, verbose = 0, noflush = 0;
++static int counters = 0, verbose = 0, noflush = 0;
+ 
+ /* Keeping track of external matches and targets.  */
+ static const struct option options[] = {
+-	{.name = "binary",   .has_arg = false, .val = 'b'},
+ 	{.name = "counters", .has_arg = false, .val = 'c'},
+ 	{.name = "verbose",  .has_arg = false, .val = 'v'},
+ 	{.name = "test",     .has_arg = false, .val = 't'},
+@@ -45,7 +44,6 @@ static void print_usage(const char *name, const char *version) __attribute__((no
+ static void print_usage(const char *name, const char *version)
+ {
+ 	fprintf(stderr, "Usage: %s [-b] [-c] [-v] [-t] [-h]\n"
+-			"	   [ --binary ]\n"
+ 			"	   [ --counters ]\n"
+ 			"	   [ --verbose ]\n"
+ 			"	   [ --test ]\n"
+@@ -144,9 +142,6 @@ int main(int argc, char *argv[])
+ 
+ 	while ((c = getopt_long(argc, argv, "bcvthnM:", options, NULL)) != -1) {
+ 		switch (c) {
+-			case 'b':
+-				binary = 1;
+-				break;
+ 			case 'c':
+ 				counters = 1;
+ 				break;
+diff --git a/iptables-restore.c b/iptables-restore.c
+index 4ea9306..04b83b4 100644
+--- a/iptables-restore.c
++++ b/iptables-restore.c
+@@ -23,11 +23,10 @@
+ #define DEBUGP(x, args...)
+ #endif
+ 
+-static int binary = 0, counters = 0, verbose = 0, noflush = 0;
++static int counters = 0, verbose = 0, noflush = 0;
+ 
+ /* Keeping track of external matches and targets.  */
+ static const struct option options[] = {
+-	{.name = "binary",   .has_arg = false, .val = 'b'},
+ 	{.name = "counters", .has_arg = false, .val = 'c'},
+ 	{.name = "verbose",  .has_arg = false, .val = 'v'},
+ 	{.name = "test",     .has_arg = false, .val = 't'},
+@@ -43,7 +42,6 @@ static void print_usage(const char *name, const char *version) __attribute__((no
+ static void print_usage(const char *name, const char *version)
+ {
+ 	fprintf(stderr, "Usage: %s [-b] [-c] [-v] [-t] [-h]\n"
+-			"	   [ --binary ]\n"
+ 			"	   [ --counters ]\n"
+ 			"	   [ --verbose ]\n"
+ 			"	   [ --test ]\n"
+@@ -146,9 +144,6 @@ main(int argc, char *argv[])
+ 
+ 	while ((c = getopt_long(argc, argv, "bcvthnM:T:", options, NULL)) != -1) {
+ 		switch (c) {
+-			case 'b':
+-				binary = 1;
+-				break;
+ 			case 'c':
+ 				counters = 1;
+ 				break;
+diff --git a/iptables-save.c b/iptables-save.c
+index 6252c0b..dce9185 100644
+--- a/iptables-save.c
++++ b/iptables-save.c
+@@ -21,10 +21,9 @@
+ #include <dlfcn.h>
+ #endif
+ 
+-static int show_binary = 0, show_counters = 0;
++static int show_counters = 0;
+ 
+ static const struct option options[] = {
+-	{.name = "binary",   .has_arg = false, .val = 'b'},
+ 	{.name = "counters", .has_arg = false, .val = 'c'},
+ 	{.name = "dump",     .has_arg = false, .val = 'd'},
+ 	{.name = "table",    .has_arg = true,  .val = 't'},
+@@ -70,7 +69,7 @@ static int do_output(const char *tablename)
+ 		exit_error(OTHER_PROBLEM, "Can't initialize: %s\n",
+ 			   iptc_strerror(errno));
+ 
+-	if (!show_binary) {
++	{
+ 		time_t now = time(NULL);
+ 
+ 		printf("# Generated by iptables-save v%s on %s",
+@@ -111,9 +110,6 @@ static int do_output(const char *tablename)
+ 		now = time(NULL);
+ 		printf("COMMIT\n");
+ 		printf("# Completed on %s", ctime(&now));
+-	} else {
+-		/* Binary, huh?  OK. */
+-		exit_error(OTHER_PROBLEM, "Binary NYI\n");
+ 	}
+ 
+ 	iptc_free(h);
+@@ -154,10 +150,6 @@ main(int argc, char *argv[])
+ 
+ 	while ((c = getopt_long(argc, argv, "bcdt:", options, NULL)) != -1) {
+ 		switch (c) {
+-		case 'b':
+-			show_binary = 1;
+-			break;
+-
+ 		case 'c':
+ 			show_counters = 1;
+ 			break;
+
