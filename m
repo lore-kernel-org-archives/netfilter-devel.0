@@ -1,32 +1,29 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: iptables-save: restore indent after last change
-Date: Tue, 30 Dec 2008 12:28:06 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0812301227480.27569@fbirervta.pbzchgretzou.qr>
-References: <alpine.LNX.1.10.0812242031570.514@fbirervta.pbzchgretzou.qr> <alpine.LNX.1.10.0812242032300.514@fbirervta.pbzchgretzou.qr> <495A024F.7060503@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [libnetfilter_log 1/3] Suppress reference to libnetfilter_queue
+ which is the model of libnetfilter_log.
+Date: Tue, 30 Dec 2008 12:19:45 +0100
+Message-ID: <495A03D1.3010703@netfilter.org>
+References: <1230586404-24639-1-git-send-email-eric@inl.fr> <1230586404-24639-2-git-send-email-eric@inl.fr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: kaber@trash.net,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@inl.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:40079 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751842AbYL3L2K (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 30 Dec 2008 06:28:10 -0500
-In-Reply-To: <495A024F.7060503@netfilter.org>
+Received: from mail.us.es ([193.147.175.20]:55296 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751066AbYL3MAO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 30 Dec 2008 07:00:14 -0500
+In-Reply-To: <1230586404-24639-2-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tuesday 2008-12-30 12:13, Pablo Neira Ayuso wrote:
+Eric Leblond wrote:
+> This patch fixes the description of the file was the one of libnetfilter_queue.c
+> and it suppresses indication through out the file that it is a copy of the queue
+> module.
 
->Jan Engelhardt wrote:
->> parent 67f4e55f28abf2f666c0a0aa874d9421e91d6184
->> commit 5c79c4fa98e35426b836d468e80c3c5e7466ad8b
->> Author: Jan Engelhardt <jengelh@medozas.de>
->> Date:   Wed Dec 24 20:32:26 2008 +0100
->> 
->> iptables-save: restore indent after last change
+Please, apply this one by yourself. Thanks.
 
-It depended on the previous.
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
