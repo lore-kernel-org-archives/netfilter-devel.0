@@ -1,37 +1,33 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: [libnetfilter_log 0/3] Misc code cleaning
-Date: Mon, 29 Dec 2008 22:33:21 +0100
-Message-ID: <1230586404-24639-1-git-send-email-eric@inl.fr>
-To: netfilter-devel@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: libxt_rateest: fix segfault
+Date: Tue, 30 Dec 2008 12:05:32 +0100
+Message-ID: <495A007C.4020605@netfilter.org>
+References: <alpine.LNX.1.10.0812081818050.2016@fbirervta.pbzchgretzou.qr> <493E7B1D.7030003@trash.net> <alpine.LNX.1.10.0812242015110.8067@fbirervta.pbzchgretzou.qr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Patrick McHardy <kaber@trash.net>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:43340 "EHLO ice-age"
+Received: from mail.us.es ([193.147.175.20]:49356 "EHLO us.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751904AbYL2Vdb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 29 Dec 2008 16:33:31 -0500
-Received: from eric by ice-age with local (Exim 4.69)
-	(envelope-from <eric@bayen.regit.org>)
-	id 1LHPjp-0006dc-1F
-	for netfilter-devel@vger.kernel.org; Mon, 29 Dec 2008 22:33:25 +0100
+	id S1752302AbYL3LFs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 30 Dec 2008 06:05:48 -0500
+In-Reply-To: <alpine.LNX.1.10.0812242015110.8067@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This small patchset cleans some part of the code of libnetfilter_log:
- * Suppress reference to libnetfilter_queue which is the model of libnetfilter_log.
- * Set nflog_errno as needed:
-	some FIXME were remaining, this patch fix this issue
- * Suppress NFULNL_MSG_CONFIG callback registration:
-	last FIXME was about a not coded and not used feature. The patch
-	disables it.
+Jan Engelhardt wrote:
+> parent cea9f71f5618250a38acb21c31fbbf93a752f7d4
+> commit e2ac8eed9cd24bfabedb931c854ab7e0c9de5fd1
+> Author: Jan Engelhardt <jengelh@medozas.de>
+> Date:   Wed Dec 24 20:15:44 2008 +0100
+> 
+> rateest: guard against segfault
 
-BR,
---
-Eric Leblond <eric@inl.fr>
-INL: http://www.inl.fr/
-NuFW: http://www.nufw.org/
-EdenWall: http://www.edenwall.com/
+Applied. Thanks Jan.
 
-Patchset statistics:
- src/libnetfilter_log.c |   38 +++++++++-----------------------------
- 1 files changed, 9 insertions(+), 29 deletions(-)
-
-
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
