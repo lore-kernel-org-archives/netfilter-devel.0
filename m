@@ -1,146 +1,90 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: [PATCH 5/5] netfilter: sysctl support of logger choice.
-Date: Fri,  2 Jan 2009 18:07:35 +0100
-Message-ID: <1230916055-15448-5-git-send-email-eric@inl.fr>
-References: <1230915875.28326.87.camel@ice-age>
-Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@inl.fr>
-To: kaber@trash.net
+From: Giacomo <delleceste@gmail.com>
+Subject: checksum calculation for an OUTPUT DNATted packet
+Date: Fri, 2 Jan 2009 23:47:52 +0100
+Message-ID: <885896af0901021447g3cdcf81as283779cfeacfe9b2@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:49077 "EHLO ice-age"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1757382AbZABRHp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 2 Jan 2009 12:07:45 -0500
-In-Reply-To: <1230915875.28326.87.camel@ice-age>
+Received: from mail-ew0-f17.google.com ([209.85.219.17]:61362 "EHLO
+	mail-ew0-f17.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751692AbZABWr4 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 2 Jan 2009 17:47:56 -0500
+Received: by ewy10 with SMTP id 10so6942547ewy.13
+        for <netfilter-devel@vger.kernel.org>; Fri, 02 Jan 2009 14:47:53 -0800 (PST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patchs adds support of modification of the used logger via sysctl.
-It can be used to change the logger to module that can not use the bind
-operation (ipt_LOG and ipt_ULOG). For this purpose, it creates a
-directory /proc/sys/net/netfilter/nf_log which contains a file
-per-protocol. The content of the file is the name current logger (NONE if
-not set) and a logger can be setup by simply echoing its name to the file.
+Hi to everybody.
 
-Signed-off-by: Eric Leblond <eric@inl.fr>
----
- include/linux/sysctl.h |    1 +
- net/netfilter/nf_log.c |   74 +++++++++++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 74 insertions(+), 1 deletions(-)
+Implementing a kernel module that changes an IP or port in a packet in
+OUTPUT (realizing the so
+called OUTPUT DNAT), I have to recalculate the checksum of the packet.
 
-diff --git a/include/linux/sysctl.h b/include/linux/sysctl.h
-index 39d471d..aa11b1c 100644
---- a/include/linux/sysctl.h
-+++ b/include/linux/sysctl.h
-@@ -335,6 +335,7 @@ enum
- 	NET_NF_CONNTRACK_FRAG6_LOW_THRESH=30,
- 	NET_NF_CONNTRACK_FRAG6_HIGH_THRESH=31,
- 	NET_NF_CONNTRACK_CHECKSUM=32,
-+	NET_NF_LOG=33,
- };
- 
- /* /proc/sys/net/ipv4 */
-diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
-index ed03c20..17698e3 100644
---- a/net/netfilter/nf_log.c
-+++ b/net/netfilter/nf_log.c
-@@ -14,7 +14,7 @@
-    LOG target modules */
- 
- #define NF_LOG_PREFIXLEN		128
--#define NFLOGGER_NAME_LEN		12
-+#define NFLOGGER_NAME_LEN		24
- 
- static const struct nf_logger *nf_loggers[NFPROTO_NUMPROTO] __read_mostly;
- static struct list_head nf_loggers_l[NFPROTO_NUMPROTO] __read_mostly;
-@@ -211,16 +211,88 @@ static const struct file_operations nflog_file_ops = {
- 
- #endif /* PROC_FS */
- 
-+#ifdef CONFIG_SYSCTL
-+struct ctl_path nf_log_sysctl_path[] = {
-+	{ .procname = "net", .ctl_name = CTL_NET, },
-+	{ .procname = "netfilter", .ctl_name = NET_NETFILTER, },
-+	{ .procname = "nf_log", .ctl_name = NET_NF_LOG, },
-+	{ }
-+};
-+
-+static struct ctl_table nf_log_sysctl_table[NFPROTO_NUMPROTO+1];
-+static struct ctl_table_header *nf_log_dir_header;
-+
-+static int nf_log_proc_dostring(ctl_table *table, int write, struct file *filp,
-+			 void *buffer, size_t *lenp, loff_t *ppos)
-+{
-+	const struct nf_logger *logger;
-+	int r;
-+	char ln_name[NFLOGGER_NAME_LEN];
-+
-+	rcu_read_lock();
-+	if (write) {
-+		logger = __find_logger(table->ctl_name, buffer);
-+		if (logger == NULL) {
-+			rcu_read_unlock();
-+			return -EINVAL;
-+		}
-+		r = nf_log_bind_pf(table->ctl_name, logger);
-+	} else {
-+		logger = rcu_dereference(nf_loggers[table->ctl_name]);
-+		if (! logger)
-+			table->data = "NONE";
-+		else {
-+			memcpy(ln_name, logger->name, NFLOGGER_NAME_LEN);
-+			table->data = ln_name;
-+		}
-+		r = proc_dostring(table, write, filp, buffer, lenp, ppos);
-+	}
-+	rcu_read_unlock();
-+
-+	return r;
-+}
-+
-+static int netfilter_log_sysctl_init(void)
-+{
-+	int i;
-+
-+	for (i = NFPROTO_UNSPEC; i < NFPROTO_NUMPROTO; i++) {
-+		char *pr_name = kmalloc(3, GFP_KERNEL);
-+		/* FIXME free at deinit but there is currently no deinit */
-+		snprintf(pr_name, 3, "%d", i);
-+		nf_log_sysctl_table[i].ctl_name	= i;
-+		nf_log_sysctl_table[i].procname	= pr_name;
-+		nf_log_sysctl_table[i].data = NULL;
-+		nf_log_sysctl_table[i].maxlen = NFLOGGER_NAME_LEN * sizeof(char);
-+		nf_log_sysctl_table[i].mode = 0644;
-+		nf_log_sysctl_table[i].proc_handler = nf_log_proc_dostring;
-+	}
-+
-+	nf_log_dir_header = register_sysctl_paths(nf_log_sysctl_path,
-+				       nf_log_sysctl_table);
-+
-+	return 0;
-+}
-+#else
-+static int netfilter_log_sysctl_init(void)
-+{
-+	return 0;
-+}
-+#endif /* CONFIG_SYSCTL */
- 
- int __init netfilter_log_init(void)
- {
- 	int i;
-+
- #ifdef CONFIG_PROC_FS
- 	if (!proc_create("nf_log", S_IRUGO,
- 			 proc_net_netfilter, &nflog_file_ops))
- 		return -1;
- #endif
- 
-+	if (netfilter_log_sysctl_init() < 0)
-+		return -1;
-+
- 	for (i = NFPROTO_UNSPEC; i < NFPROTO_NUMPROTO; i++) {
- 		INIT_LIST_HEAD(&(nf_loggers_l[i]));
- 	}
+It is not clear to me if I have to use tcp_v4_check or csum_tcpudp_magic.
+
+ csum_tcpudp_magic works fine like this:
+
+iph->check = 0;
+iph->check = ip_fast_csum((u8 *) iph, iph->ihl);
+
+th->check =  csum_tcpudp_magic(iph->saddr, iph->daddr, datalen,
+IPPROTO_TCP, skb_checksum(skb, iph->ihl * 4, datalen, 0));
+
+where datalen = skb->len - iph->ihl * 4;
+
+and skb is struct sk_buff.
+
+Instead the tcp_v4_check(), used as follows, does not work:
+
+struct tcphdr tcphead;
+iph->check = 0;
+iph->check = ip_fast_csum((u8 *) iph, iph->ihl);
+
+ th  = skb_header_pointer(skb, iph->ihl * 4,
+                                       sizeof(tcphead), &tcphead);
+
+th->check = tcp_v4_check(skb->len - 4 * iph->ihl, iph->saddr, iph->daddr,
+                               csum_partial((char *) th, len - 4 *
+iph->ihl, 0));
+
+Can someone tell me where I am wrong?
+
+I need to use a generic function to (re) calculate the checksum, also
+compatible with the
+older kernels (and so I cannot use inet_proto_csum_replace4() - or
+inet_proto_csum_replace2 - for instance).
+
+Another particular: tcp_v4_check() used as above, works when applied
+to packet DNATted in PRE-ROUTING,
+while it does not in OUTPUT DNAT, as in the subject of this message.
+
+Thanks in advance.
+
+Giacomo.
+
 -- 
-1.5.6.3
+Giacomo S.
+http://www.giacomos.it
 
+- - - - - - - - - - - - - - - - - - - - - -
+
+* Aprile 2008: iqfire-wall, un progetto
+  open source che implementa un
+  filtro di pacchetti di rete per Linux,
+  e` disponibile per il download qui:
+  http://sourceforge.net/projects/ipfire-wall
+
+* Informazioni e pagina web ufficiale:
+  http://www.giacomos.it/iqfire/index.html
+
+- - - - - - - - - - - - - - - - - - - - - -
+
+ . ''  `.
+:   :'    :
+ `.  ` '
+    `- Debian GNU/Linux -- The power of freedom
+        http://www.debian.org
