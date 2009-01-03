@@ -1,73 +1,51 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: Re: Bug in Netfiler_queue when using small packets in 100Mb traffic
-Date: Sat, 03 Jan 2009 16:32:39 +0100
-Message-ID: <1230996759.28326.101.camel@ice-age>
-References: <d579762c0901030638k3ddcac6dy8ee175244eaddbe9@mail.gmail.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [RFC][PATCH] ipset - remove binding support
+Date: Sun, 4 Jan 2009 00:12:50 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.0901032348430.5993@blackhole.kfki.hu>
+References: <1230654806.10747.6.camel@ws-aschultz>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-nmsiJmwv+NDP8HGZc37S"
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Andreas Schultz <aschultz@warp10.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 78-210-144-213.altitudetelecom.fr ([213.144.210.78]:37600 "EHLO
-	fydelkass.inl.fr" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1758530AbZACPcp (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 3 Jan 2009 10:32:45 -0500
-Received: from bayen.regit.org ([81.57.69.189] helo=[192.168.1.129])
-	by fydelkass.inl.fr with esmtpsa (TLS-1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.63)
-	(envelope-from <eric@inl.fr>)
-	id 1LJ8UU-0006x2-S6
-	for netfilter-devel@vger.kernel.org; Sat, 03 Jan 2009 16:32:43 +0100
-In-Reply-To: <d579762c0901030638k3ddcac6dy8ee175244eaddbe9@mail.gmail.com>
+Received: from smtp1.kfki.hu ([148.6.0.26]:36306 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932310AbZACXMx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 3 Jan 2009 18:12:53 -0500
+In-Reply-To: <1230654806.10747.6.camel@ws-aschultz>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi Andreas,
 
---=-nmsiJmwv+NDP8HGZc37S
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: quoted-printable
+On Tue, 30 Dec 2008, Andreas Schultz wrote:
 
-Hi,
+> Whenever i'm playing with ipset (coding), i stumble over the binding
+> stuff. This has been depreciated since 2.4.0 and i think it's time to
+> start doing some work for the next major release.
+> 
+> So here is a patch that removes the binding support from ipset. I have
+> tried to only remove stuff without changing to much else. Once binding
+> is gone, some function calls and APIs can be simplified. But this should
+> IMHO go into a separate patch.
 
-Le samedi 03 janvier 2009 =E0 15:38 +0100, VPF a =E9crit :
-> Hi, I encountered a problem with the example nfqnl_test.c when I sent
-> 100Mb/s of <200ko packets. The program stopped running quickly and
-> printed "unbinding from queue 0". It appears that the call recv(fd,
-> buf, sizeof(buf), 0) returns an error after a few packets. (errno 105
-> : No buffer space available).
->=20
-> Do you see any solution to this problem?
+If ipset internal structure remained the same, then according to the 
+planned course your patch (i.e. removing binding) would be the proper next 
+step. However the internals are being completely rewritten, mainly due to 
+changing the kernel-userspace communication channel from sockopt to 
+netlink. According to the planned timetable the new version will be out in 
+the first quarter of this year, as development release. (The current 
+branch as stable one will be maintained for a while.)
 
-This problem is well known. This is linked with the size of the
-nfnetlink buffer. The buffer is too small to contains the data when
-trafic is high. A typical workaround is to increase this size.=20
+So - unless you have already got something developed on top of ipset -, 
+I'd better not apply your patch. But if you have got something ready, 
+just ping me. Otherwise just give me some time and there'll be a new 
+branch with a new API, without binding.
 
-It can be done by using the nfnl_rcvbufsiz(). The code should looks
-like:
- nfnl_rcvbufsiz(nfq_nfnlh(h), SIZE);
-
-This workaround may not be sufficient and in this case a unbinding,
-rebinding of the queue is needed.
-
-BR,
---=20
-Eric Leblond <eleblond@inl.fr>
-INL: http://www.inl.fr/
-NuFW: http://www.nufw.org/
-EdenWall: http://www.edenwall.com/
-
---=-nmsiJmwv+NDP8HGZc37S
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Ceci est une partie de message
- =?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iD8DBQBJX4URnxA7CdMWjzIRAgm/AJ46eoY8dEbG2GLGXfAbuR+h0rEkbQCfRMdC
-znXpBfyZDKgaGy7CrkEekO8=
-=QMwF
------END PGP SIGNATURE-----
-
---=-nmsiJmwv+NDP8HGZc37S--
-
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
