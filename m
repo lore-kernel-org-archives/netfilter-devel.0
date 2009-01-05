@@ -1,51 +1,50 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [RFC][PATCH] ipset - remove binding support
-Date: Sun, 4 Jan 2009 00:12:50 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.0901032348430.5993@blackhole.kfki.hu>
-References: <1230654806.10747.6.camel@ws-aschultz>
+From: ilninno <ilninno@gmail.com>
+Subject: Hi again, get the process id associated to a packet
+Date: Mon, 5 Jan 2009 01:43:14 +0100
+Message-ID: <92770c820901041643t1b460c2bj4323a60ffcfc2c94@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Andreas Schultz <aschultz@warp10.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:36306 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932310AbZACXMx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 3 Jan 2009 18:12:53 -0500
-In-Reply-To: <1230654806.10747.6.camel@ws-aschultz>
+Received: from mail-gx0-f13.google.com ([209.85.217.13]:47428 "EHLO
+	mail-gx0-f13.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751880AbZAEAnR (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 4 Jan 2009 19:43:17 -0500
+Received: by gxk6 with SMTP id 6so5578321gxk.13
+        for <netfilter-devel@vger.kernel.org>; Sun, 04 Jan 2009 16:43:14 -0800 (PST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Andreas,
+Hello again, im the insistent newbie :)
 
-On Tue, 30 Dec 2008, Andreas Schultz wrote:
+Im trying to get packet pid (process identifier) but netfilter and
+nfnetlink functions aren't very clear:
 
-> Whenever i'm playing with ipset (coding), i stumble over the binding
-> stuff. This has been depreciated since 2.4.0 and i think it's time to
-> start doing some work for the next major release.
-> 
-> So here is a patch that removes the binding support from ipset. I have
-> tried to only remove stuff without changing to much else. Once binding
-> is gone, some function calls and APIs can be simplified. But this should
-> IMHO go into a separate patch.
+I saw a reference to packed pid in:
 
-If ipset internal structure remained the same, then according to the 
-planned course your patch (i.e. removing binding) would be the proper next 
-step. However the internals are being completely rewritten, mainly due to 
-changing the kernel-userspace communication channel from sockopt to 
-netlink. According to the planned timetable the new version will be out in 
-the first quarter of this year, as development release. (The current 
-branch as stable one will be maintained for a while.)
+ struct nlmsghdr
+{
+	__u32		nlmsg_len;	/* Length of message including header */
+	__u16		nlmsg_type;	/* Message content */
+	__u16		nlmsg_flags;	/* Additional flags */
+	__u32		nlmsg_seq;	/* Sequence number */
+	__u32		nlmsg_pid;	/* Sending process port ID */
+};
 
-So - unless you have already got something developed on top of ipset -, 
-I'd better not apply your patch. But if you have got something ready, 
-just ping me. Otherwise just give me some time and there'll be a new 
-branch with a new API, without binding.
+but isnt easy to get struct nlmsghdr from netfilter packet, i saw some
+could be but im not sure:
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+extern struct nlmsghdr *nfnl_get_msg_first(struct nfnl_handle *h,
+					   const unsigned char *buf,
+					   size_t len);
+
+I don't know what is buf and len, i saw library code with ddd but
+description is very short and i dont know how can i get buf and what
+is exactly. Please someone can help me to get packet's pid? I tried
+using netstat (-ntap | grep sourceport and destination ip)  but is too
+slow.
+
+Thanks for your time and sorry for my english.
