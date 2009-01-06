@@ -1,38 +1,28 @@
-From: ilninno <ilninno@gmail.com>
-Subject: Re: Hi again, get the process id associated to a packet
-Date: Mon, 5 Jan 2009 10:59:24 +0100
-Message-ID: <92770c820901050159j6c256448j80d0ec92f96c4a37@mail.gmail.com>
-References: <92770c820901041643t1b460c2bj4323a60ffcfc2c94@mail.gmail.com>
-	 <1231118620.3927.18.camel@ice-age>
-	 <alpine.LSU.2.00.0901050355380.4014@fbirervta.pbzchgretzou.qr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Scheduled removals
+Date: Tue, 6 Jan 2009 04:32:29 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0901060425250.14442@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.247]:31907 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752076AbZAEJ72 (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:53225 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750944AbZAFDcc (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 5 Jan 2009 04:59:28 -0500
-Received: by an-out-0708.google.com with SMTP id d40so2313268and.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 05 Jan 2009 01:59:24 -0800 (PST)
-In-Reply-To: <alpine.LSU.2.00.0901050355380.4014@fbirervta.pbzchgretzou.qr>
-Content-Disposition: inline
+	Mon, 5 Jan 2009 22:32:32 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi again!
-
-then i will try using /proc/net/tcp to get the process associated, thanks
+Hi,
 
 
-2009/1/5 Jan Engelhardt <jengelh@medozas.de>:
->
-> On Monday 2009-01-05 02:23, Eric Leblond wrote:
->>
->>By the way, you will find some libnetfilter_queue documentation here:
->>http://www.nufw.org/doc/libnetfilter_queue/
->
-> By the way, I notice that nfq_errno is not thread-safe.
->
+as per Documentation/feature-removal-schedule.txt, some legacy code is 
+ripe for removal. Now while pursuing this I wondered whether the struct 
+definitions for the old code in the header files (e.g. in 
+linux/netfilter/xt_CONNMARK.h) can also be removed or whether people 
+will argue that doing so would unnecessarily cause dismay on behalf the 
+potential users (of which there are not any). I am not aware of any 
+users, and neither is Search Engine Google, so I'd just take the bait 
+and kill it. Vetoes?
