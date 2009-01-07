@@ -1,64 +1,67 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: [PATCH 5/6] netfilter: print the list of register loggers.
-Date: Wed,  7 Jan 2009 21:05:33 +0100
-Message-ID: <1231358734-20958-5-git-send-email-eric@inl.fr>
+Subject: [PATCH 2/6] netfilter: suppress nf_log_unregister_pf function.
+Date: Wed,  7 Jan 2009 21:05:30 +0100
+Message-ID: <1231358734-20958-2-git-send-email-eric@inl.fr>
 References: <1231312622.4137.7.camel@ice-age>
 Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@inl.fr>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:42377 "EHLO ice-age"
+Received: from bayen.regit.org ([81.57.69.189]:42371 "EHLO ice-age"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754197AbZAGUFk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 7 Jan 2009 15:05:40 -0500
+	id S1753382AbZAGUFj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 7 Jan 2009 15:05:39 -0500
 In-Reply-To: <1231312622.4137.7.camel@ice-age>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch modifies the proc output to add display of registered
-loggers. The content of /proc/net/netfilter/nf_log is modified. Instead
-of displaying a protocol per line with format:
-	proto:logger
-it now displays:
-	proto:logger (comma_separated_list_of_loggers)
+The nf_log_unregister_pf() function is not used anymore as it was
+corresponding to the unbind operation which is now done via
+nflog_unbind_pf().
 
 Signed-off-by: Eric Leblond <eric@inl.fr>
 ---
- net/netfilter/nf_log.c |   17 +++++++++++++++--
- 1 files changed, 15 insertions(+), 2 deletions(-)
+ include/net/netfilter/nf_log.h |    1 -
+ net/netfilter/nf_log.c         |   15 ---------------
+ 2 files changed, 0 insertions(+), 16 deletions(-)
 
+diff --git a/include/net/netfilter/nf_log.h b/include/net/netfilter/nf_log.h
+index 08b4f18..ccaa43a 100644
+--- a/include/net/netfilter/nf_log.h
++++ b/include/net/netfilter/nf_log.h
+@@ -48,7 +48,6 @@ struct nf_logger {
+ /* Function to register/unregister log function. */
+ int nf_log_register(u_int8_t pf, struct nf_logger *logger);
+ void nf_log_unregister(struct nf_logger *logger);
+-void nf_log_unregister_pf(u_int8_t pf);
+ 
+ int nf_log_bind_pf(u_int8_t pf, const struct nf_logger *logger);
+ int nf_log_unbind_pf(u_int8_t pf);
 diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
-index 1655a1f..ee08b62 100644
+index 8a5e4aa..a1dcd46 100644
 --- a/net/netfilter/nf_log.c
 +++ b/net/netfilter/nf_log.c
-@@ -172,13 +172,26 @@ static int seq_show(struct seq_file *s, void *v)
- {
- 	loff_t *pos = v;
- 	const struct nf_logger *logger;
-+	struct nf_logger *t;
-+	char loggers_string[256];
-+	int len = 256;
- 
- 	logger = rcu_dereference(nf_loggers[*pos]);
- 
-+	memset(loggers_string, 0, len);
-+	list_for_each_entry(t, &nf_loggers_l[*pos], list[*pos]) {
-+		strncat(loggers_string, t->name, len);
-+		strncat(loggers_string, ",", 1);
-+		len -= strlen(t->name) + 1;
-+	}
-+	if (strlen(loggers_string))
-+		loggers_string[strlen(loggers_string) -1] = 0;
-+
- 	if (!logger)
--		return seq_printf(s, "%2lld NONE\n", *pos);
-+		return seq_printf(s, "%2lld NONE (%s)\n", *pos, loggers_string);
- 
--	return seq_printf(s, "%2lld %s\n", *pos, logger->name);
-+	return seq_printf(s, "%2lld %s (%s)\n", *pos, logger->name,
-+			  loggers_string);
+@@ -69,21 +69,6 @@ int nf_log_register(u_int8_t pf, struct nf_logger *logger)
  }
+ EXPORT_SYMBOL(nf_log_register);
  
- static const struct seq_operations nflog_seq_ops = {
+-void nf_log_unregister_pf(u_int8_t pf)
+-{
+-	struct nf_logger *e;
+-	if (pf >= ARRAY_SIZE(nf_loggers))
+-		return;
+-	spin_lock_bh(&nf_log_lock);
+-	list_for_each_entry(e, &(nf_loggers_l[pf]), list[pf])
+-		list_del(&(e->list[pf]));
+-	spin_unlock_bh(&nf_log_lock);
+-
+-	/* Give time to concurrent readers. */
+-	synchronize_rcu();
+-}
+-EXPORT_SYMBOL(nf_log_unregister_pf);
+-
+ void nf_log_unregister(struct nf_logger *logger)
+ {
+ 	int i;
 -- 
 1.6.1
 
