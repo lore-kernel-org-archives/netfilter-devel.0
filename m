@@ -1,146 +1,226 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: [PATCH 6/6] netfilter: sysctl support of logger choice.
-Date: Wed,  7 Jan 2009 21:05:34 +0100
-Message-ID: <1231358734-20958-6-git-send-email-eric@inl.fr>
+Subject: [PATCH 1/6] netfilter: use a linked list of loggers.
+Date: Wed,  7 Jan 2009 21:05:29 +0100
+Message-ID: <1231358734-20958-1-git-send-email-eric@inl.fr>
 References: <1231312622.4137.7.camel@ice-age>
 Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@inl.fr>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:42379 "EHLO ice-age"
+Received: from bayen.regit.org ([81.57.69.189]:42369 "EHLO ice-age"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754266AbZAGUFk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1753171AbZAGUFk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Wed, 7 Jan 2009 15:05:40 -0500
 In-Reply-To: <1231312622.4137.7.camel@ice-age>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patchs adds support of modification of the used logger via sysctl.
-It can be used to change the logger to module that can not use the bind
-operation (ipt_LOG and ipt_ULOG). For this purpose, it creates a
-directory /proc/sys/net/netfilter/nf_log which contains a file
-per-protocol. The content of the file is the name current logger (NONE if
-not set) and a logger can be setup by simply echoing its name to the file.
+This patch modifies nf_log to use a linked list of loggers for each
+protocol. It also separate registration and binding. To be used as
+logging module, a module has to register calling nf_log_register()
+and to bind to a protocol it has to call nf_log_bind_pf().
 
 Signed-off-by: Eric Leblond <eric@inl.fr>
 ---
- include/linux/sysctl.h |    1 +
- net/netfilter/nf_log.c |   74 +++++++++++++++++++++++++++++++++++++++++++++++-
- 2 files changed, 74 insertions(+), 1 deletions(-)
+ include/net/netfilter/nf_log.h |   10 +++-
+ net/netfilter/nf_log.c         |  107 +++++++++++++++++++++++++++++++---------
+ 2 files changed, 91 insertions(+), 26 deletions(-)
 
-diff --git a/include/linux/sysctl.h b/include/linux/sysctl.h
-index 39d471d..aa11b1c 100644
---- a/include/linux/sysctl.h
-+++ b/include/linux/sysctl.h
-@@ -335,6 +335,7 @@ enum
- 	NET_NF_CONNTRACK_FRAG6_LOW_THRESH=30,
- 	NET_NF_CONNTRACK_FRAG6_HIGH_THRESH=31,
- 	NET_NF_CONNTRACK_CHECKSUM=32,
-+	NET_NF_LOG=33,
+diff --git a/include/net/netfilter/nf_log.h b/include/net/netfilter/nf_log.h
+index 7182c06..08b4f18 100644
+--- a/include/net/netfilter/nf_log.h
++++ b/include/net/netfilter/nf_log.h
+@@ -1,6 +1,8 @@
+ #ifndef _NF_LOG_H
+ #define _NF_LOG_H
+ 
++#include <linux/netfilter.h>
++
+ /* those NF_LOG_* defines and struct nf_loginfo are legacy definitios that will
+  * disappear once iptables is replaced with pkttables.  Please DO NOT use them
+  * for any new code! */
+@@ -40,13 +42,17 @@ struct nf_logger {
+ 	struct module	*me;
+ 	nf_logfn 	*logfn;
+ 	char		*name;
++	struct list_head	list[NFPROTO_NUMPROTO];
  };
  
- /* /proc/sys/net/ipv4 */
+ /* Function to register/unregister log function. */
+-int nf_log_register(u_int8_t pf, const struct nf_logger *logger);
+-void nf_log_unregister(const struct nf_logger *logger);
++int nf_log_register(u_int8_t pf, struct nf_logger *logger);
++void nf_log_unregister(struct nf_logger *logger);
+ void nf_log_unregister_pf(u_int8_t pf);
+ 
++int nf_log_bind_pf(u_int8_t pf, const struct nf_logger *logger);
++int nf_log_unbind_pf(u_int8_t pf);
++
+ /* Calls the registered backend logging function */
+ void nf_log_packet(u_int8_t pf,
+ 		   unsigned int hooknum,
 diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
-index ee08b62..93cf003 100644
+index fa8ae5d..8a5e4aa 100644
 --- a/net/netfilter/nf_log.c
 +++ b/net/netfilter/nf_log.c
-@@ -14,7 +14,7 @@
+@@ -14,13 +14,25 @@
     LOG target modules */
  
  #define NF_LOG_PREFIXLEN		128
--#define NFLOGGER_NAME_LEN		12
-+#define NFLOGGER_NAME_LEN		24
++#define NFLOGGER_NAME_LEN		12
  
  static const struct nf_logger *nf_loggers[NFPROTO_NUMPROTO] __read_mostly;
- static struct list_head nf_loggers_l[NFPROTO_NUMPROTO] __read_mostly;
-@@ -216,16 +216,88 @@ static const struct file_operations nflog_file_ops = {
+-static DEFINE_MUTEX(nf_log_mutex);
++static struct list_head nf_loggers_l[NFPROTO_NUMPROTO] __read_mostly;
++static DEFINE_SPINLOCK(nf_log_lock);
  
- #endif /* PROC_FS */
- 
-+#ifdef CONFIG_SYSCTL
-+struct ctl_path nf_log_sysctl_path[] = {
-+	{ .procname = "net", .ctl_name = CTL_NET, },
-+	{ .procname = "netfilter", .ctl_name = NET_NETFILTER, },
-+	{ .procname = "nf_log", .ctl_name = NET_NF_LOG, },
-+	{ }
-+};
-+
-+static struct ctl_table nf_log_sysctl_table[NFPROTO_NUMPROTO+1];
-+static struct ctl_table_header *nf_log_dir_header;
-+
-+static int nf_log_proc_dostring(ctl_table *table, int write, struct file *filp,
-+			 void *buffer, size_t *lenp, loff_t *ppos)
+-/* return EBUSY if somebody else is registered, EEXIST if the same logger
+- * is registred, 0 on success. */
+-int nf_log_register(u_int8_t pf, const struct nf_logger *logger)
++static struct nf_logger *__find_logger(int pf, const char *str_logger)
 +{
-+	const struct nf_logger *logger;
-+	int r;
-+	char ln_name[NFLOGGER_NAME_LEN];
++	struct nf_logger *t;
 +
-+	rcu_read_lock();
-+	if (write) {
-+		logger = __find_logger(table->ctl_name, buffer);
-+		if (logger == NULL) {
-+			rcu_read_unlock();
-+			return -EINVAL;
++	list_for_each_entry(t, &nf_loggers_l[pf], list[pf])
++		if (!strnicmp(str_logger, t->name, NFLOGGER_NAME_LEN))
++			return t;
++
++	return NULL;
++}
++
++/* return EEXIST if the same logger is registred, 0 on success. */
++int nf_log_register(u_int8_t pf, struct nf_logger *logger)
+ {
+ 	int ret;
+ 
+@@ -29,50 +41,91 @@ int nf_log_register(u_int8_t pf, const struct nf_logger *logger)
+ 
+ 	/* Any setup of logging members must be done before
+ 	 * substituting pointer. */
+-	ret = mutex_lock_interruptible(&nf_log_mutex);
+-	if (ret < 0)
+-		return ret;
+-
+-	if (!nf_loggers[pf])
+-		rcu_assign_pointer(nf_loggers[pf], logger);
+-	else if (nf_loggers[pf] == logger)
+-		ret = -EEXIST;
+-	else
+-		ret = -EBUSY;
+-
+-	mutex_unlock(&nf_log_mutex);
++	spin_lock_bh(&nf_log_lock);
++
++	ret = -EEXIST;
++	if (pf == NFPROTO_UNSPEC) {
++		int i;
++		for (i = NFPROTO_UNSPEC; i < NFPROTO_NUMPROTO; i++) {
++			if (__find_logger(i, logger->name) == NULL) {
++				ret = 0;
++				INIT_LIST_HEAD(&(logger->list[i]));
++				list_add_tail(&(logger->list[i]),
++						  &(nf_loggers_l[i]));
++			}
 +		}
-+		r = nf_log_bind_pf(table->ctl_name, logger);
 +	} else {
-+		logger = rcu_dereference(nf_loggers[table->ctl_name]);
-+		if (! logger)
-+			table->data = "NONE";
-+		else {
-+			memcpy(ln_name, logger->name, NFLOGGER_NAME_LEN);
-+			table->data = ln_name;
++		if (__find_logger(pf, logger->name) == NULL) {
++			ret = 0;
++			INIT_LIST_HEAD(&(logger->list[pf]));
++			/* register at end of list to honor first register win */
++			list_add_tail(&(logger->list[pf]),
++					  &nf_loggers_l[pf]);
 +		}
-+		r = proc_dostring(table, write, filp, buffer, lenp, ppos);
-+	}
-+	rcu_read_unlock();
-+
-+	return r;
-+}
-+
-+static int netfilter_log_sysctl_init(void)
-+{
-+	int i;
-+
-+	for (i = NFPROTO_UNSPEC; i < NFPROTO_NUMPROTO; i++) {
-+		char *pr_name = kmalloc(3, GFP_KERNEL);
-+		/* FIXME free at deinit but there is currently no deinit */
-+		snprintf(pr_name, 3, "%d", i);
-+		nf_log_sysctl_table[i].ctl_name	= i;
-+		nf_log_sysctl_table[i].procname	= pr_name;
-+		nf_log_sysctl_table[i].data = NULL;
-+		nf_log_sysctl_table[i].maxlen = NFLOGGER_NAME_LEN * sizeof(char);
-+		nf_log_sysctl_table[i].mode = 0644;
-+		nf_log_sysctl_table[i].proc_handler = nf_log_proc_dostring;
 +	}
 +
-+	nf_log_dir_header = register_sysctl_paths(nf_log_sysctl_path,
-+				       nf_log_sysctl_table);
-+
-+	return 0;
-+}
-+#else
-+static int netfilter_log_sysctl_init(void)
++	spin_unlock_bh(&nf_log_lock);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(nf_log_register);
+ 
+ void nf_log_unregister_pf(u_int8_t pf)
+ {
++	struct nf_logger *e;
+ 	if (pf >= ARRAY_SIZE(nf_loggers))
+ 		return;
+-	mutex_lock(&nf_log_mutex);
+-	rcu_assign_pointer(nf_loggers[pf], NULL);
+-	mutex_unlock(&nf_log_mutex);
++	spin_lock_bh(&nf_log_lock);
++	list_for_each_entry(e, &(nf_loggers_l[pf]), list[pf])
++		list_del(&(e->list[pf]));
++	spin_unlock_bh(&nf_log_lock);
+ 
+ 	/* Give time to concurrent readers. */
+ 	synchronize_rcu();
+ }
+ EXPORT_SYMBOL(nf_log_unregister_pf);
+ 
+-void nf_log_unregister(const struct nf_logger *logger)
++void nf_log_unregister(struct nf_logger *logger)
+ {
+ 	int i;
++	struct nf_logger *llog;
+ 
+-	mutex_lock(&nf_log_mutex);
++	spin_lock_bh(&nf_log_lock);
+ 	for (i = 0; i < ARRAY_SIZE(nf_loggers); i++) {
+-		if (nf_loggers[i] == logger)
+-			rcu_assign_pointer(nf_loggers[i], NULL);
++		llog = __find_logger(i, logger->name);
++		if (llog) {
++			const struct nf_logger *c_logger = rcu_dereference(nf_loggers[i]);
++			if (c_logger == llog)
++				rcu_assign_pointer(nf_loggers[i], NULL);
++			list_del(&(logger->list[i]));
++		}
+ 	}
+-	mutex_unlock(&nf_log_mutex);
++	spin_unlock_bh(&nf_log_lock);
+ 
+ 	synchronize_rcu();
+ }
+ EXPORT_SYMBOL(nf_log_unregister);
+ 
++int nf_log_bind_pf(u_int8_t pf, const struct nf_logger *logger)
 +{
++	if (__find_logger(pf, logger->name) == NULL)
++		return -1;
++
++	spin_lock_bh(&nf_log_lock);
++	rcu_assign_pointer(nf_loggers[pf], logger);
++	spin_unlock_bh(&nf_log_lock);
 +	return 0;
 +}
-+#endif /* CONFIG_SYSCTL */
++EXPORT_SYMBOL(nf_log_bind_pf);
++
++int nf_log_unbind_pf(u_int8_t pf)
++{
++	spin_lock_bh(&nf_log_lock);
++	rcu_assign_pointer(nf_loggers[pf], NULL);
++	spin_unlock_bh(&nf_log_lock);
++	return 0;
++}
++EXPORT_SYMBOL(nf_log_unbind_pf);
++
+ void nf_log_packet(u_int8_t pf,
+ 		   unsigned int hooknum,
+ 		   const struct sk_buff *skb,
+@@ -163,10 +216,16 @@ static const struct file_operations nflog_file_ops = {
  
  int __init netfilter_log_init(void)
  {
- 	int i;
-+
++	int i;
  #ifdef CONFIG_PROC_FS
  	if (!proc_create("nf_log", S_IRUGO,
  			 proc_net_netfilter, &nflog_file_ops))
  		return -1;
  #endif
- 
-+	if (netfilter_log_sysctl_init() < 0)
-+		return -1;
 +
- 	for (i = NFPROTO_UNSPEC; i < NFPROTO_NUMPROTO; i++) {
- 		INIT_LIST_HEAD(&(nf_loggers_l[i]));
- 	}
++	for (i = NFPROTO_UNSPEC; i < NFPROTO_NUMPROTO; i++) {
++		INIT_LIST_HEAD(&(nf_loggers_l[i]));
++	}
++
+ 	return 0;
+ }
 -- 
 1.6.1
 
