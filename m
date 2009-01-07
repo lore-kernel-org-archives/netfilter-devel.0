@@ -1,61 +1,121 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: Re: [ULOGD2 0/6] DB performance
-Date: Wed, 07 Jan 2009 00:27:05 +0100
-Message-ID: <1231284425.4137.5.camel@ice-age>
-References: <1231281078-31060-1-git-send-email-chifflier@inl.fr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: env: augment deprecation notice
+Date: Wed, 7 Jan 2009 06:01:12 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0901070600500.15968@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-h/mGDzdYJypSXlbumdBs"
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Pierre Chifflier <chifflier@inl.fr>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 78-210-144-213.altitudetelecom.fr ([213.144.210.78]:49882 "EHLO
-	fydelkass.inl.fr" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1755144AbZAFX1K (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:59853 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750776AbZAGFBP (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 6 Jan 2009 18:27:10 -0500
-In-Reply-To: <1231281078-31060-1-git-send-email-chifflier@inl.fr>
+	Wed, 7 Jan 2009 00:01:15 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---=-h/mGDzdYJypSXlbumdBs
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: quoted-printable
+parent 6fdeb9468f1bac11698b200530cd454a167e1e39
+commit f19f52defad1145b062528db75eab6db43be7446
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Wed Jan 7 06:00:41 2009 +0100
 
-Hi,
+env: augment deprecation notice
 
-Le mardi 06 janvier 2009 =E0 23:31 +0100, Pierre Chifflier a =E9crit :
-> This patchset aims to improve the DB performance with the following
-> improvements:
->=20
-> * Allow local (unix socket) connections to PostgreSQL database
-> This one was spotted while profiling using callgrind, and noticing
-> unexpected calls to SSL functions. Using a local connection improves
-> speed a lot (by a factor 4 here).
+Tell the user what to use instead of IP*TABLES_LIBDIR.
 
-Good news :)
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ ip6tables-restore.c    |    3 ++-
+ ip6tables-save.c       |    3 ++-
+ ip6tables-standalone.c |    3 ++-
+ iptables-restore.c     |    3 ++-
+ iptables-save.c        |    3 ++-
+ iptables-standalone.c  |    3 ++-
+ 6 files changed, 12 insertions(+), 6 deletions(-)
 
-All patches have been applied after having coding style fixed. Be
-careful on that next time.
-
-BR,
---=20
-Eric Leblond <eric@inl.fr>
-INL: http://www.inl.fr/
-NuFW: http://www.nufw.org/
-
---=-h/mGDzdYJypSXlbumdBs
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Ceci est une partie de message
- =?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iD4DBQBJY+jGnxA7CdMWjzIRAj1IAJY0HwfBNv+mFB31meTHAljHCY1qAJ9vd1w3
-m4hE6Xt30QMFZGaigtPMAQ==
-=I8uz
------END PGP SIGNATURE-----
-
---=-h/mGDzdYJypSXlbumdBs--
-
+diff --git a/ip6tables-restore.c b/ip6tables-restore.c
+index 01bccf7..a84c2e3 100644
+--- a/ip6tables-restore.c
++++ b/ip6tables-restore.c
+@@ -133,7 +133,8 @@ int main(int argc, char *argv[])
+ 	if (lib_dir == NULL) {
+ 		lib_dir = getenv("IP6TABLES_LIB_DIR");
+ 		if (lib_dir != NULL)
+-			fprintf(stderr, "IP6TABLES_LIB_DIR is deprecated\n");
++			fprintf(stderr, "IP6TABLES_LIB_DIR is deprecated, "
++			        "use XTABLES_LIBDIR.\n");
+ 	}
+ 	if (lib_dir == NULL)
+ 		lib_dir = XTABLES_LIBDIR;
+diff --git a/ip6tables-save.c b/ip6tables-save.c
+index d5f8e54..11ef8c4 100644
+--- a/ip6tables-save.c
++++ b/ip6tables-save.c
+@@ -143,7 +143,8 @@ int main(int argc, char *argv[])
+ 	if (lib_dir == NULL) {
+ 		lib_dir = getenv("IP6TABLES_LIB_DIR");
+ 		if (lib_dir != NULL)
+-			fprintf(stderr, "IP6TABLES_LIB_DIR is deprecated\n");
++			fprintf(stderr, "IP6TABLES_LIB_DIR is deprecated, "
++			        "use XTABLES_LIBDIR.\n");
+ 	}
+ 	if (lib_dir == NULL)
+ 		lib_dir = XTABLES_LIBDIR;
+diff --git a/ip6tables-standalone.c b/ip6tables-standalone.c
+index 11c7cb0..f4b1f18 100644
+--- a/ip6tables-standalone.c
++++ b/ip6tables-standalone.c
+@@ -56,7 +56,8 @@ main(int argc, char *argv[])
+ 	if (lib_dir == NULL) {
+ 		lib_dir = getenv("IP6TABLES_LIB_DIR");
+ 		if (lib_dir != NULL)
+-			fprintf(stderr, "IP6TABLES_LIB_DIR is deprecated\n");
++			fprintf(stderr, "IP6TABLES_LIB_DIR is deprecated, "
++			        "use XTABLES_LIBDIR.\n");
+ 	}
+ 	if (lib_dir == NULL)
+ 		lib_dir = XTABLES_LIBDIR;
+diff --git a/iptables-restore.c b/iptables-restore.c
+index 4ea9306..7cc6d6d 100644
+--- a/iptables-restore.c
++++ b/iptables-restore.c
+@@ -135,7 +135,8 @@ main(int argc, char *argv[])
+ 	if (lib_dir == NULL) {
+ 		lib_dir = getenv("IPTABLES_LIB_DIR");
+ 		if (lib_dir != NULL)
+-			fprintf(stderr, "IPTABLES_LIB_DIR is deprecated\n");
++			fprintf(stderr, "IPTABLES_LIB_DIR is deprecated, "
++			        "use XTABLES_LIBDIR.\n");
+ 	}
+ 	if (lib_dir == NULL)
+ 		lib_dir = XTABLES_LIBDIR;
+diff --git a/iptables-save.c b/iptables-save.c
+index 6252c0b..7118d1f 100644
+--- a/iptables-save.c
++++ b/iptables-save.c
+@@ -143,7 +143,8 @@ main(int argc, char *argv[])
+ 	if (lib_dir == NULL) {
+ 		lib_dir = getenv("IPTABLES_LIB_DIR");
+ 		if (lib_dir != NULL)
+-			fprintf(stderr, "IPTABLES_LIB_DIR is deprecated\n");
++			fprintf(stderr, "IPTABLES_LIB_DIR is deprecated, "
++			        "use XTABLES_LIBDIR.\n");
+ 	}
+ 	if (lib_dir == NULL)
+ 		lib_dir = XTABLES_LIBDIR;
+diff --git a/iptables-standalone.c b/iptables-standalone.c
+index dbfae5b..3f2432f 100644
+--- a/iptables-standalone.c
++++ b/iptables-standalone.c
+@@ -57,7 +57,8 @@ main(int argc, char *argv[])
+ 	if (lib_dir == NULL) {
+ 		lib_dir = getenv("IPTABLES_LIB_DIR");
+ 		if (lib_dir != NULL)
+-			fprintf(stderr, "IPTABLES_LIB_DIR is deprecated\n");
++			fprintf(stderr, "IPTABLES_LIB_DIR is deprecated, "
++			        "use XTABLES_LIBDIR.\n");
+ 	}
+ 	if (lib_dir == NULL)
+ 		lib_dir = XTABLES_LIBDIR;
