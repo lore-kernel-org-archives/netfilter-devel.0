@@ -1,30 +1,31 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: build: resolve autotools suggestions
-Date: Thu, 8 Jan 2009 00:49:39 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0901080049060.29344@fbirervta.pbzchgretzou.qr>
-References: <alpine.LNX.1.10.0812252021300.17625@fbirervta.pbzchgretzou.qr> <495A05B0.8070700@netfilter.org> <alpine.LSU.2.00.0812301611070.5671@fbirervta.pbzchgretzou.qr> <4964B8F6.8080605@netfilter.org>
+Subject: Re: [PATCH 4/6] netfilter: convert logger modules to new API.
+Date: Thu, 8 Jan 2009 00:53:45 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0901080053110.29344@fbirervta.pbzchgretzou.qr>
+References: <1231312622.4137.7.camel@ice-age> <1231358734-20958-4-git-send-email-eric@inl.fr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: kaber@trash.net,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@inl.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:55531 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:35318 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753753AbZAGXtl (ORCPT
+	with ESMTP id S1758336AbZAGXxq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 7 Jan 2009 18:49:41 -0500
-In-Reply-To: <4964B8F6.8080605@netfilter.org>
+	Wed, 7 Jan 2009 18:53:46 -0500
+In-Reply-To: <1231358734-20958-4-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Wednesday 2009-01-07 15:15, Pablo Neira Ayuso wrote:
->
->Applied. Thanks. Any other missing patch to apply to iptables from your
->side? I remember those to deprecate -b for iptables-save/restore but I
->prefer to add a warning before removing them as I suggested.
+On Wednesday 2009-01-07 21:05, Eric Leblond wrote:
 
-I really really doubt anyone ever used it -- since there was no code,
-there was no effect.
+>This patch converts the logging modules to the new API. For nfnetlink_log,
+>it simply switchs call to register functions to call to bind function and
+>adds a call to nf_log_register() during init. For other modules, it just
+>remove a const flag from the logger structure.
+> 
+>-static const struct nf_logger ipt_log_logger ={
+>+static struct nf_logger ipt_log_logger ={
+
+But maybe add __read_mostly, then?
