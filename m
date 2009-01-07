@@ -1,226 +1,89 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: [PATCH 1/6] netfilter: use a linked list of loggers.
-Date: Wed,  7 Jan 2009 21:05:29 +0100
-Message-ID: <1231358734-20958-1-git-send-email-eric@inl.fr>
-References: <1231312622.4137.7.camel@ice-age>
-Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@inl.fr>
-To: kaber@trash.net
+From: Derek Ng <derek@rentec.com>
+Subject: destination NAT suggestion
+Date: Wed, 7 Jan 2009 17:20:42 -0500
+Message-ID: <200901071720.42864.derek@rentec.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:42369 "EHLO ice-age"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753171AbZAGUFk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 7 Jan 2009 15:05:40 -0500
-In-Reply-To: <1231312622.4137.7.camel@ice-age>
+Received: from unicorn.rentec.com ([216.223.240.10]:43843 "EHLO
+	unicorn.rentec.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932707AbZAGWjs (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 7 Jan 2009 17:39:48 -0500
+Received: from papyrus2.rentec.com ([172.18.66.19])
+	by unicorn.rentec.com (8.13.6/8.12.1) with ESMTP id n07MKTXd017254
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <netfilter-devel@vger.kernel.org>; Wed, 7 Jan 2009 17:20:29 -0500 (EST)
+Received: from sakura.rentec.com (sakura.rentec.com [172.18.83.39])
+	by papyrus2.rentec.com (8.14.3/8.14.0/SuSE Linux 0.8) with ESMTP id n07MKhh5030536
+	for <netfilter-devel@vger.kernel.org>; Wed, 7 Jan 2009 17:20:43 -0500
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch modifies nf_log to use a linked list of loggers for each
-protocol. It also separate registration and binding. To be used as
-logging module, a module has to register calling nf_log_register()
-and to bind to a protocol it has to call nf_log_bind_pf().
+Hello,
 
-Signed-off-by: Eric Leblond <eric@inl.fr>
----
- include/net/netfilter/nf_log.h |   10 +++-
- net/netfilter/nf_log.c         |  107 +++++++++++++++++++++++++++++++---------
- 2 files changed, 91 insertions(+), 26 deletions(-)
+Currently, iptables has the following behavior:
 
-diff --git a/include/net/netfilter/nf_log.h b/include/net/netfilter/nf_log.h
-index 7182c06..08b4f18 100644
---- a/include/net/netfilter/nf_log.h
-+++ b/include/net/netfilter/nf_log.h
-@@ -1,6 +1,8 @@
- #ifndef _NF_LOG_H
- #define _NF_LOG_H
- 
-+#include <linux/netfilter.h>
-+
- /* those NF_LOG_* defines and struct nf_loginfo are legacy definitios that will
-  * disappear once iptables is replaced with pkttables.  Please DO NOT use them
-  * for any new code! */
-@@ -40,13 +42,17 @@ struct nf_logger {
- 	struct module	*me;
- 	nf_logfn 	*logfn;
- 	char		*name;
-+	struct list_head	list[NFPROTO_NUMPROTO];
- };
- 
- /* Function to register/unregister log function. */
--int nf_log_register(u_int8_t pf, const struct nf_logger *logger);
--void nf_log_unregister(const struct nf_logger *logger);
-+int nf_log_register(u_int8_t pf, struct nf_logger *logger);
-+void nf_log_unregister(struct nf_logger *logger);
- void nf_log_unregister_pf(u_int8_t pf);
- 
-+int nf_log_bind_pf(u_int8_t pf, const struct nf_logger *logger);
-+int nf_log_unbind_pf(u_int8_t pf);
-+
- /* Calls the registered backend logging function */
- void nf_log_packet(u_int8_t pf,
- 		   unsigned int hooknum,
-diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
-index fa8ae5d..8a5e4aa 100644
---- a/net/netfilter/nf_log.c
-+++ b/net/netfilter/nf_log.c
-@@ -14,13 +14,25 @@
-    LOG target modules */
- 
- #define NF_LOG_PREFIXLEN		128
-+#define NFLOGGER_NAME_LEN		12
- 
- static const struct nf_logger *nf_loggers[NFPROTO_NUMPROTO] __read_mostly;
--static DEFINE_MUTEX(nf_log_mutex);
-+static struct list_head nf_loggers_l[NFPROTO_NUMPROTO] __read_mostly;
-+static DEFINE_SPINLOCK(nf_log_lock);
- 
--/* return EBUSY if somebody else is registered, EEXIST if the same logger
-- * is registred, 0 on success. */
--int nf_log_register(u_int8_t pf, const struct nf_logger *logger)
-+static struct nf_logger *__find_logger(int pf, const char *str_logger)
-+{
-+	struct nf_logger *t;
-+
-+	list_for_each_entry(t, &nf_loggers_l[pf], list[pf])
-+		if (!strnicmp(str_logger, t->name, NFLOGGER_NAME_LEN))
-+			return t;
-+
-+	return NULL;
-+}
-+
-+/* return EEXIST if the same logger is registred, 0 on success. */
-+int nf_log_register(u_int8_t pf, struct nf_logger *logger)
- {
- 	int ret;
- 
-@@ -29,50 +41,91 @@ int nf_log_register(u_int8_t pf, const struct nf_logger *logger)
- 
- 	/* Any setup of logging members must be done before
- 	 * substituting pointer. */
--	ret = mutex_lock_interruptible(&nf_log_mutex);
--	if (ret < 0)
--		return ret;
--
--	if (!nf_loggers[pf])
--		rcu_assign_pointer(nf_loggers[pf], logger);
--	else if (nf_loggers[pf] == logger)
--		ret = -EEXIST;
--	else
--		ret = -EBUSY;
--
--	mutex_unlock(&nf_log_mutex);
-+	spin_lock_bh(&nf_log_lock);
-+
-+	ret = -EEXIST;
-+	if (pf == NFPROTO_UNSPEC) {
-+		int i;
-+		for (i = NFPROTO_UNSPEC; i < NFPROTO_NUMPROTO; i++) {
-+			if (__find_logger(i, logger->name) == NULL) {
-+				ret = 0;
-+				INIT_LIST_HEAD(&(logger->list[i]));
-+				list_add_tail(&(logger->list[i]),
-+						  &(nf_loggers_l[i]));
-+			}
-+		}
-+	} else {
-+		if (__find_logger(pf, logger->name) == NULL) {
-+			ret = 0;
-+			INIT_LIST_HEAD(&(logger->list[pf]));
-+			/* register at end of list to honor first register win */
-+			list_add_tail(&(logger->list[pf]),
-+					  &nf_loggers_l[pf]);
-+		}
-+	}
-+
-+	spin_unlock_bh(&nf_log_lock);
- 	return ret;
- }
- EXPORT_SYMBOL(nf_log_register);
- 
- void nf_log_unregister_pf(u_int8_t pf)
- {
-+	struct nf_logger *e;
- 	if (pf >= ARRAY_SIZE(nf_loggers))
- 		return;
--	mutex_lock(&nf_log_mutex);
--	rcu_assign_pointer(nf_loggers[pf], NULL);
--	mutex_unlock(&nf_log_mutex);
-+	spin_lock_bh(&nf_log_lock);
-+	list_for_each_entry(e, &(nf_loggers_l[pf]), list[pf])
-+		list_del(&(e->list[pf]));
-+	spin_unlock_bh(&nf_log_lock);
- 
- 	/* Give time to concurrent readers. */
- 	synchronize_rcu();
- }
- EXPORT_SYMBOL(nf_log_unregister_pf);
- 
--void nf_log_unregister(const struct nf_logger *logger)
-+void nf_log_unregister(struct nf_logger *logger)
- {
- 	int i;
-+	struct nf_logger *llog;
- 
--	mutex_lock(&nf_log_mutex);
-+	spin_lock_bh(&nf_log_lock);
- 	for (i = 0; i < ARRAY_SIZE(nf_loggers); i++) {
--		if (nf_loggers[i] == logger)
--			rcu_assign_pointer(nf_loggers[i], NULL);
-+		llog = __find_logger(i, logger->name);
-+		if (llog) {
-+			const struct nf_logger *c_logger = rcu_dereference(nf_loggers[i]);
-+			if (c_logger == llog)
-+				rcu_assign_pointer(nf_loggers[i], NULL);
-+			list_del(&(logger->list[i]));
-+		}
- 	}
--	mutex_unlock(&nf_log_mutex);
-+	spin_unlock_bh(&nf_log_lock);
- 
- 	synchronize_rcu();
- }
- EXPORT_SYMBOL(nf_log_unregister);
- 
-+int nf_log_bind_pf(u_int8_t pf, const struct nf_logger *logger)
-+{
-+	if (__find_logger(pf, logger->name) == NULL)
-+		return -1;
-+
-+	spin_lock_bh(&nf_log_lock);
-+	rcu_assign_pointer(nf_loggers[pf], logger);
-+	spin_unlock_bh(&nf_log_lock);
-+	return 0;
-+}
-+EXPORT_SYMBOL(nf_log_bind_pf);
-+
-+int nf_log_unbind_pf(u_int8_t pf)
-+{
-+	spin_lock_bh(&nf_log_lock);
-+	rcu_assign_pointer(nf_loggers[pf], NULL);
-+	spin_unlock_bh(&nf_log_lock);
-+	return 0;
-+}
-+EXPORT_SYMBOL(nf_log_unbind_pf);
-+
- void nf_log_packet(u_int8_t pf,
- 		   unsigned int hooknum,
- 		   const struct sk_buff *skb,
-@@ -163,10 +216,16 @@ static const struct file_operations nflog_file_ops = {
- 
- int __init netfilter_log_init(void)
- {
-+	int i;
- #ifdef CONFIG_PROC_FS
- 	if (!proc_create("nf_log", S_IRUGO,
- 			 proc_net_netfilter, &nflog_file_ops))
- 		return -1;
- #endif
-+
-+	for (i = NFPROTO_UNSPEC; i < NFPROTO_NUMPROTO; i++) {
-+		INIT_LIST_HEAD(&(nf_loggers_l[i]));
-+	}
-+
- 	return 0;
- }
--- 
-1.6.1
+1) Packet enters to the incoming interface
+2) Check the INPUT rules
+3) Prerouting NAT check and perform source NAT
+4) Check the FORWARD rules
+5) Postrouting NAT check and perform destination NAT
+6) Check the OUTPUT rules
 
+The above flow has a limitation when performing the NAT.  SNAT can only be 
+performed under PREROUTING chain and DNAT can only be done on POSTROUTING 
+NAT.  It would be great if this limitation is removed.
+
+Reasons:
+1) Gain more control on routing table
+	a) The host's routing table would be cleaner, no matter what the destination 
+networks are.
+2) More flexible and more competitive
+	a) Engineer can design a cleaner and securer Linux firewalls and be creative
+	b) Easier for troubleshooting when the routing table is clean
+	c) More competitive to Cisco IOS NAT features (Inside Global, Inside Local, 
+Outside Local, Outside Global)
+
+Senario Example:
+1) Assume the web servers IP addresses for yahoo and google as the following
+	a) Yahoo: 10.10.10.1
+	b) Google: 10.10.10.1
+2) The firewall has three interfaces
+	a) Inside LAN (172.16.0.0/24 network)
+	b) Yahoo direct line (next hop IP is 192.168.1.1)
+	c) Google direct line (next hop IP is 192.168.1.2)
+3) iptables DNAT
+	a) 172.16.1.1 > 10.10.10.1
+	b) 172.16.1.2 > 10.10.10.1
+3) Current Limitation
+	a) Inside host tries to connect to Yahoo web server, 172.16.1.1.
+	b) iptables receives the packet and performs the prerouting DNAT 172.16.1.1 > 
+10.10.10.1
+	c) Based on the 10.10.10.1 destination, the host will try to forward the 
+packet based on the routing table, which can only point to 192.168.1.1 or 
+192.168.1.2.
+	d) Routing table.
+		Either	1) 10.10.10.1 192.168.1.1 255.255.255.255 eth1
+		or 		2) 10.10.10.1 192.168.1.2 255.255.255.255 eth2
+4) Without the current limitation
+	a) Inside host tries to connect to Yahoo web server, 172.16.1.1
+	b) Host receives the packet and forward it to the outside interface based on 
+the routing table.
+	c) iptables performs the postrouting DNAT before sending it out to the next 
+hop 192.168.1.1, 172.16.1.1 > 10.10.10.1
+	d) Routing table.
+		172.16.1.1 192.168.1.1 255.255.255.255 eth1
+		172.16.1.2 192.168.1.2 255.255.255.255 eth2
+
+If you need further information, please feel free to contact me at 
+631-246-7626 or email me at derek@rentec.com
+
+Thank you very much!
+
+Sincerely,
+Derek Ng
