@@ -1,35 +1,64 @@
-From: "Giant Sand Fan's" <rampxxxx@gmail.com>
-Subject: ip_route_me_harder question
-Date: Wed, 7 Jan 2009 18:19:49 +0100
-Message-ID: <417f50830901070919u7c90ac16x5771bece809568e4@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+From: Eric Leblond <eric@inl.fr>
+Subject: [PATCH 5/6] netfilter: print the list of register loggers.
+Date: Wed,  7 Jan 2009 21:05:33 +0100
+Message-ID: <1231358734-20958-5-git-send-email-eric@inl.fr>
+References: <1231312622.4137.7.camel@ice-age>
+Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@inl.fr>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.152]:3897 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752388AbZAGRTv (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 7 Jan 2009 12:19:51 -0500
-Received: by fg-out-1718.google.com with SMTP id 19so3054292fgg.17
-        for <netfilter-devel@vger.kernel.org>; Wed, 07 Jan 2009 09:19:49 -0800 (PST)
-Content-Disposition: inline
+Received: from bayen.regit.org ([81.57.69.189]:42377 "EHLO ice-age"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754197AbZAGUFk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 7 Jan 2009 15:05:40 -0500
+In-Reply-To: <1231312622.4137.7.camel@ice-age>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+This patch modifies the proc output to add display of registered
+loggers. The content of /proc/net/netfilter/nf_log is modified. Instead
+of displaying a protocol per line with format:
+	proto:logger
+it now displays:
+	proto:logger (comma_separated_list_of_loggers)
 
-I have a netfilter module that needs to reroute a packet after
-unpacking it (minimal encap) in NF_IP_PRE_ROUTING, because the dst
-changes. But even when a ip_route_me_harder with RTN_LOCAL works
-(ret==0) the packet disappears.
+Signed-off-by: Eric Leblond <eric@inl.fr>
+---
+ net/netfilter/nf_log.c |   17 +++++++++++++++--
+ 1 files changed, 15 insertions(+), 2 deletions(-)
 
-The question is , do i need to use ip_route_me_harder? because when
-the dst of encapsulated packet is the local machine it works.
-
-thanks.
-
+diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
+index 1655a1f..ee08b62 100644
+--- a/net/netfilter/nf_log.c
++++ b/net/netfilter/nf_log.c
+@@ -172,13 +172,26 @@ static int seq_show(struct seq_file *s, void *v)
+ {
+ 	loff_t *pos = v;
+ 	const struct nf_logger *logger;
++	struct nf_logger *t;
++	char loggers_string[256];
++	int len = 256;
+ 
+ 	logger = rcu_dereference(nf_loggers[*pos]);
+ 
++	memset(loggers_string, 0, len);
++	list_for_each_entry(t, &nf_loggers_l[*pos], list[*pos]) {
++		strncat(loggers_string, t->name, len);
++		strncat(loggers_string, ",", 1);
++		len -= strlen(t->name) + 1;
++	}
++	if (strlen(loggers_string))
++		loggers_string[strlen(loggers_string) -1] = 0;
++
+ 	if (!logger)
+-		return seq_printf(s, "%2lld NONE\n", *pos);
++		return seq_printf(s, "%2lld NONE (%s)\n", *pos, loggers_string);
+ 
+-	return seq_printf(s, "%2lld %s\n", *pos, logger->name);
++	return seq_printf(s, "%2lld %s (%s)\n", *pos, logger->name,
++			  loggers_string);
+ }
+ 
+ static const struct seq_operations nflog_seq_ops = {
 -- 
-Please avoid sending me Word or PowerPoint attachments.
-See http://www.gnu.org/philosophy/no-word-attachments.html
+1.6.1
+
