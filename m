@@ -1,121 +1,56 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: env: augment deprecation notice
-Date: Wed, 7 Jan 2009 06:01:12 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0901070600500.15968@fbirervta.pbzchgretzou.qr>
+From: Eric Leblond <eric@inl.fr>
+Subject: Re: [PATCH 3/5] netfilter: convert logger modules to new API.
+Date: Wed, 07 Jan 2009 08:17:01 +0100
+Message-ID: <1231312622.4137.7.camel@ice-age>
+References: <1230915875.28326.87.camel@ice-age>
+	 <1230916055-15448-3-git-send-email-eric@inl.fr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-xk9ALV7n+LVB63S6gXDZ"
+Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:59853 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750776AbZAGFBP (ORCPT
+Received: from 78-210-144-213.altitudetelecom.fr ([213.144.210.78]:36471 "EHLO
+	fydelkass.inl.fr" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1751014AbZAGHRH (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 7 Jan 2009 00:01:15 -0500
+	Wed, 7 Jan 2009 02:17:07 -0500
+In-Reply-To: <1230916055-15448-3-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-parent 6fdeb9468f1bac11698b200530cd454a167e1e39
-commit f19f52defad1145b062528db75eab6db43be7446
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Wed Jan 7 06:00:41 2009 +0100
+--=-xk9ALV7n+LVB63S6gXDZ
+Content-Type: text/plain; charset="ISO-8859-15"
+Content-Transfer-Encoding: quoted-printable
 
-env: augment deprecation notice
+Hi,
+Le vendredi 02 janvier 2009 =E0 18:07 +0100, Eric Leblond a =E9crit :
+> This patch converts the logging modules to the new API. For all modules
+...
+> and adds a call to nflog_register during init. Backward compatibility
+> should be preserved by this patch.
 
-Tell the user what to use instead of IP*TABLES_LIBDIR.
+I've discovered this is not the case, I will resend a reworked patchset
+soon to provide a true backward compatibility.
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- ip6tables-restore.c    |    3 ++-
- ip6tables-save.c       |    3 ++-
- ip6tables-standalone.c |    3 ++-
- iptables-restore.c     |    3 ++-
- iptables-save.c        |    3 ++-
- iptables-standalone.c  |    3 ++-
- 6 files changed, 12 insertions(+), 6 deletions(-)
+BR,
+--=20
+Eric Leblond <eric@inl.fr>
+INL: http://www.inl.fr/
+NuFW: http://www.nufw.org/
 
-diff --git a/ip6tables-restore.c b/ip6tables-restore.c
-index 01bccf7..a84c2e3 100644
---- a/ip6tables-restore.c
-+++ b/ip6tables-restore.c
-@@ -133,7 +133,8 @@ int main(int argc, char *argv[])
- 	if (lib_dir == NULL) {
- 		lib_dir = getenv("IP6TABLES_LIB_DIR");
- 		if (lib_dir != NULL)
--			fprintf(stderr, "IP6TABLES_LIB_DIR is deprecated\n");
-+			fprintf(stderr, "IP6TABLES_LIB_DIR is deprecated, "
-+			        "use XTABLES_LIBDIR.\n");
- 	}
- 	if (lib_dir == NULL)
- 		lib_dir = XTABLES_LIBDIR;
-diff --git a/ip6tables-save.c b/ip6tables-save.c
-index d5f8e54..11ef8c4 100644
---- a/ip6tables-save.c
-+++ b/ip6tables-save.c
-@@ -143,7 +143,8 @@ int main(int argc, char *argv[])
- 	if (lib_dir == NULL) {
- 		lib_dir = getenv("IP6TABLES_LIB_DIR");
- 		if (lib_dir != NULL)
--			fprintf(stderr, "IP6TABLES_LIB_DIR is deprecated\n");
-+			fprintf(stderr, "IP6TABLES_LIB_DIR is deprecated, "
-+			        "use XTABLES_LIBDIR.\n");
- 	}
- 	if (lib_dir == NULL)
- 		lib_dir = XTABLES_LIBDIR;
-diff --git a/ip6tables-standalone.c b/ip6tables-standalone.c
-index 11c7cb0..f4b1f18 100644
---- a/ip6tables-standalone.c
-+++ b/ip6tables-standalone.c
-@@ -56,7 +56,8 @@ main(int argc, char *argv[])
- 	if (lib_dir == NULL) {
- 		lib_dir = getenv("IP6TABLES_LIB_DIR");
- 		if (lib_dir != NULL)
--			fprintf(stderr, "IP6TABLES_LIB_DIR is deprecated\n");
-+			fprintf(stderr, "IP6TABLES_LIB_DIR is deprecated, "
-+			        "use XTABLES_LIBDIR.\n");
- 	}
- 	if (lib_dir == NULL)
- 		lib_dir = XTABLES_LIBDIR;
-diff --git a/iptables-restore.c b/iptables-restore.c
-index 4ea9306..7cc6d6d 100644
---- a/iptables-restore.c
-+++ b/iptables-restore.c
-@@ -135,7 +135,8 @@ main(int argc, char *argv[])
- 	if (lib_dir == NULL) {
- 		lib_dir = getenv("IPTABLES_LIB_DIR");
- 		if (lib_dir != NULL)
--			fprintf(stderr, "IPTABLES_LIB_DIR is deprecated\n");
-+			fprintf(stderr, "IPTABLES_LIB_DIR is deprecated, "
-+			        "use XTABLES_LIBDIR.\n");
- 	}
- 	if (lib_dir == NULL)
- 		lib_dir = XTABLES_LIBDIR;
-diff --git a/iptables-save.c b/iptables-save.c
-index 6252c0b..7118d1f 100644
---- a/iptables-save.c
-+++ b/iptables-save.c
-@@ -143,7 +143,8 @@ main(int argc, char *argv[])
- 	if (lib_dir == NULL) {
- 		lib_dir = getenv("IPTABLES_LIB_DIR");
- 		if (lib_dir != NULL)
--			fprintf(stderr, "IPTABLES_LIB_DIR is deprecated\n");
-+			fprintf(stderr, "IPTABLES_LIB_DIR is deprecated, "
-+			        "use XTABLES_LIBDIR.\n");
- 	}
- 	if (lib_dir == NULL)
- 		lib_dir = XTABLES_LIBDIR;
-diff --git a/iptables-standalone.c b/iptables-standalone.c
-index dbfae5b..3f2432f 100644
---- a/iptables-standalone.c
-+++ b/iptables-standalone.c
-@@ -57,7 +57,8 @@ main(int argc, char *argv[])
- 	if (lib_dir == NULL) {
- 		lib_dir = getenv("IPTABLES_LIB_DIR");
- 		if (lib_dir != NULL)
--			fprintf(stderr, "IPTABLES_LIB_DIR is deprecated\n");
-+			fprintf(stderr, "IPTABLES_LIB_DIR is deprecated, "
-+			        "use XTABLES_LIBDIR.\n");
- 	}
- 	if (lib_dir == NULL)
- 		lib_dir = XTABLES_LIBDIR;
+--=-xk9ALV7n+LVB63S6gXDZ
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Ceci est une partie de message
+ =?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iD8DBQBJZFbqnxA7CdMWjzIRAqcfAJsGlsseETRtj71ZJ3R0OkcvIa9p/gCeJiSo
+zhyRVcF8xxShyQXtga7bpcA=
+=f7hD
+-----END PGP SIGNATURE-----
+
+--=-xk9ALV7n+LVB63S6gXDZ--
+
