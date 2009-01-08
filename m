@@ -1,37 +1,49 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 5/6] netfilter: print the list of register loggers.
-Date: Thu, 8 Jan 2009 00:56:00 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0901080054080.29344@fbirervta.pbzchgretzou.qr>
-References: <1231312622.4137.7.camel@ice-age> <1231358734-20958-5-git-send-email-eric@inl.fr>
+Subject: netfilter: ct_extend: alloc space for xt_portscan
+Date: Thu, 8 Jan 2009 09:24:16 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0901080924030.2273@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@inl.fr>
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:48741 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:33360 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750843AbZAGX4B (ORCPT
+	with ESMTP id S1750780AbZAHIYT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 7 Jan 2009 18:56:01 -0500
-In-Reply-To: <1231358734-20958-5-git-send-email-eric@inl.fr>
+	Thu, 8 Jan 2009 03:24:19 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+parent b58602a4bac012b5f4fc12fe6b46ab237b610d5d
+commit 7634e5f586394eafc85973712ff11e60a9ae2f70
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Thu Jan 8 09:20:03 2009 +0100
 
-On Wednesday 2009-01-07 21:05, Eric Leblond wrote:
->--- a/net/netfilter/nf_log.c
->+++ b/net/netfilter/nf_log.c
->@@ -172,13 +172,26 @@ static int seq_show(struct seq_file *s, void *v)
-> {
-> 	loff_t *pos = v;
-> 	const struct nf_logger *logger;
->+	struct nf_logger *t;
->+	char loggers_string[256];
->+	int len = 256;
+netfilter: ct_extend: alloc space for xt_portscan
 
-An array this big is likely to upset the guys who try to reduce
-stack usage.
-<mumble> there ought to be some way to figure out how much
-space there is left in a seq... </mumble> and if there is
-enough, just always use seq_printf.
+The out-of-tree xt_portscan module currently (ab)uses skb->mark and
+nfct->mark to store its state, but such may collide with
+user-specified marks.
+
+Using nfct_extend alleviates that problem and hopefully paves way
+for inclusion of the module.
+
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ include/net/netfilter/nf_conntrack_extend.h |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/include/net/netfilter/nf_conntrack_extend.h b/include/net/netfilter/nf_conntrack_extend.h
+index da8ee52..389794a 100644
+--- a/include/net/netfilter/nf_conntrack_extend.h
++++ b/include/net/netfilter/nf_conntrack_extend.h
+@@ -8,6 +8,7 @@ enum nf_ct_ext_id
+ 	NF_CT_EXT_HELPER,
+ 	NF_CT_EXT_NAT,
+ 	NF_CT_EXT_ACCT,
++	NF_CT_EXT_PORTSCAN, /* xt_portscan state */
+ 	NF_CT_EXT_NUM,
+ };
+ 
 
