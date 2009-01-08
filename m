@@ -1,49 +1,42 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: ipset and iptables problem.
-Date: Thu, 8 Jan 2009 16:29:37 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0901081621490.24994@fbirervta.pbzchgretzou.qr>
-References: <49660570.70501@metu.edu.tr>
+From: "Jose Antonio Olivera Ortega" <josea.olivera@gmail.com>
+Subject: ip_route_me_harder at NF_IP_PREROUTING stage
+Date: Thu, 8 Jan 2009 16:45:39 +0100
+Message-ID: <1cf0e6b70901080745v2a2506adj2716ac3150b02156@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Husnu Demir <hdemir@metu.edu.tr>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:34641 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751743AbZAHP3k (ORCPT
+Received: from mail-bw0-f29.google.com ([209.85.218.29]:53177 "EHLO
+	mail-bw0-f29.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756042AbZAHPpl convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 8 Jan 2009 10:29:40 -0500
-In-Reply-To: <49660570.70501@metu.edu.tr>
+	Thu, 8 Jan 2009 10:45:41 -0500
+Received: by bwz10 with SMTP id 10so6699657bwz.13
+        for <netfilter-devel@vger.kernel.org>; Thu, 08 Jan 2009 07:45:39 -0800 (PST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi,
 
-On Thursday 2009-01-08 14:53, Husnu Demir wrote:
+is it neccesary to execture ip_route_me_harder after handling  packets
+(alter addresses) at NF_IP_PRE_ROUTING stage?
 
->Hi,
->
->I have problems with iptables and ipset. Is new iptables compatible with ipset?
->
->The details are below?
+I look fordward to hearing from you soon.
 
-Well are they?
+Respectfully,
 
-> uname -a
->Linux hai 2.6.28 #2 SMP Wed Jan 7 13:15:14 EET 2009 x86_64 GNU/Linux
-> ipset -V
->ipset v2.4.5 Protocol version 2.
+Jos=E9 Antonio Olivera.
 
-> iptables -I FORWARD -m set --set yeni src -j ACCEPT
-> hai kernel: Oops: 0000 [#8] SMP
-> hai kernel: last sysfs file: /sys/devices/virtual/net/lo/operstate
-> hai kernel: Stack:
-> hai kernel: ffff88023ded0908 0000000000000070 ffff88023ded0898 ffff880223e31540
-> hai kernel: ffff88023ded0800 ffffffffa00c4cc3 ffff88023ded090a ffffffffa00c4f64
-> hai kernel: Call Trace:
-> hai kernel: [<ffffffffa00ba280>] xt_check_match+0x12a/0x143 [x_tables]
-
-Compiling the unmodified 2.4.5 with 2.6.28 should give compiler warnings,
-and they should not be ignored.
-
-A modified version of ipset 2.4.5 ships with Xtables-addons 1.7 and is 
-runnable with 2.6.28.
+--=20
+Jose Antonio Olivera Ortega
+Mobile Phone: +34667447797
+EMail Address: JoseA.Olivera@gmail.com
+Skype user: JoseA.Olivera
+--
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
