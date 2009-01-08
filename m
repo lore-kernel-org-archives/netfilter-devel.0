@@ -1,109 +1,38 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: [PATCH 4/6] netfilter: convert logger modules to new API.
-Date: Thu,  8 Jan 2009 23:03:12 +0100
-Message-ID: <1231452194-7800-4-git-send-email-eric@inl.fr>
-References: <1231452093.10299.2.camel@ice-age>
-Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@inl.fr>
-To: kaber@trash.net, jengelh@medozas.de
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: ipset and iptables problem.
+Date: Thu, 8 Jan 2009 23:10:20 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.0901082309170.23337@blackhole.kfki.hu>
+References: <49660570.70501@metu.edu.tr>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Husnu Demir <hdemir@metu.edu.tr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:37547 "EHLO ice-age"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755126AbZAHWDU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 8 Jan 2009 17:03:20 -0500
-In-Reply-To: <1231452093.10299.2.camel@ice-age>
+Received: from smtp1.kfki.hu ([148.6.0.26]:44142 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750889AbZAHWKW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 8 Jan 2009 17:10:22 -0500
+In-Reply-To: <49660570.70501@metu.edu.tr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch converts the logging modules to the new API. For nfnetlink_log,
-it simply switchs call to register functions to call to bind function and
-adds a call to nf_log_register() during init. For other modules, it just
-remove a const flag from the logger structure and replace it with a
-__read_mostly.
+On Thu, 8 Jan 2009, Husnu Demir wrote:
 
-Signed-off-by: Eric Leblond <eric@inl.fr>
----
- net/ipv4/netfilter/ipt_LOG.c  |    2 +-
- net/ipv4/netfilter/ipt_ULOG.c |    2 +-
- net/ipv6/netfilter/ip6t_LOG.c |    2 +-
- net/netfilter/nfnetlink_log.c |   11 ++++++++---
- 4 files changed, 11 insertions(+), 6 deletions(-)
+> I have problems with iptables and ipset. Is new iptables compatible with ipset?
+> The details are below?
 
-diff --git a/net/ipv4/netfilter/ipt_LOG.c b/net/ipv4/netfilter/ipt_LOG.c
-index 4614a69..43ea638 100644
---- a/net/ipv4/netfilter/ipt_LOG.c
-+++ b/net/ipv4/netfilter/ipt_LOG.c
-@@ -464,7 +464,7 @@ static struct xt_target log_tg_reg __read_mostly = {
- 	.me		= THIS_MODULE,
- };
- 
--static const struct nf_logger ipt_log_logger ={
-+static struct nf_logger ipt_log_logger __read_mostly = {
- 	.name		= "ipt_LOG",
- 	.logfn		= &ipt_log_packet,
- 	.me		= THIS_MODULE,
-diff --git a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
-index 18a2826..d32cc4b 100644
---- a/net/ipv4/netfilter/ipt_ULOG.c
-+++ b/net/ipv4/netfilter/ipt_ULOG.c
-@@ -379,7 +379,7 @@ static struct xt_target ulog_tg_reg __read_mostly = {
- 	.me		= THIS_MODULE,
- };
- 
--static struct nf_logger ipt_ulog_logger = {
-+static struct nf_logger ipt_ulog_logger __read_mostly = {
- 	.name		= "ipt_ULOG",
- 	.logfn		= ipt_logfn,
- 	.me		= THIS_MODULE,
-diff --git a/net/ipv6/netfilter/ip6t_LOG.c b/net/ipv6/netfilter/ip6t_LOG.c
-index 7c668c6..66ae36b 100644
---- a/net/ipv6/netfilter/ip6t_LOG.c
-+++ b/net/ipv6/netfilter/ip6t_LOG.c
-@@ -477,7 +477,7 @@ static struct xt_target log_tg6_reg __read_mostly = {
- 	.me 		= THIS_MODULE,
- };
- 
--static const struct nf_logger ip6t_logger = {
-+static struct nf_logger ip6t_logger __read_mostly = {
- 	.name		= "ip6t_LOG",
- 	.logfn		= &ip6t_log_packet,
- 	.me		= THIS_MODULE,
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index 2770b4e..3bed7d2 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -690,7 +690,7 @@ nfulnl_recv_unsupp(struct sock *ctnl, struct sk_buff *skb,
- 	return -ENOTSUPP;
- }
- 
--static const struct nf_logger nfulnl_logger = {
-+static struct nf_logger nfulnl_logger __read_mostly = {
- 	.name	= "nfnetlink_log",
- 	.logfn	= &nfulnl_log_packet,
- 	.me	= THIS_MODULE,
-@@ -722,9 +722,9 @@ nfulnl_recv_config(struct sock *ctnl, struct sk_buff *skb,
- 		/* Commands without queue context */
- 		switch (cmd->command) {
- 		case NFULNL_CFG_CMD_PF_BIND:
--			return nf_log_register(pf, &nfulnl_logger);
-+			return nf_log_bind_pf(pf, &nfulnl_logger);
- 		case NFULNL_CFG_CMD_PF_UNBIND:
--			nf_log_unregister_pf(pf);
-+			nf_log_unbind_pf(pf);
- 			return 0;
- 		}
- 	}
-@@ -949,6 +949,11 @@ static int __init nfnetlink_log_init(void)
- 		goto cleanup_netlink_notifier;
- 	}
- 
-+	if ((status = nf_log_register(NFPROTO_UNSPEC, &nfulnl_logger)) < 0) {
-+		printk(KERN_ERR "log: failed to register logger\n");
-+		goto cleanup_netlink_notifier;
-+	}
-+
- #ifdef CONFIG_PROC_FS
- 	if (!proc_create("nfnetlink_log", 0440,
- 			 proc_net_netfilter, &nful_file_ops))
--- 
-1.5.6.3
+> Linux hai 2.6.28 #2 SMP Wed Jan 7 13:15:14 EET 2009 x86_64 GNU/Linux
 
+>  ipset -V
+> ipset v2.4.5 Protocol version 2.
+
+That's an incompatibility with kernel release 2.6.28, I think. There'll be 
+a new release of ipset to fix that before the weekend.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
