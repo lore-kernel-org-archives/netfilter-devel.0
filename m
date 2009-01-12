@@ -1,41 +1,42 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: multicast forwarding
-Date: Mon, 12 Jan 2009 06:08:08 +0100
-Message-ID: <496AD038.4090904@trash.net>
-References: <1228160659.8392.94.camel@irbt-1279>
+Subject: Re: How can i leave a packet to continue the iptables ruleset checking?
+Date: Mon, 12 Jan 2009 06:10:52 +0100
+Message-ID: <496AD0DC.1070102@trash.net>
+References: <92770c820812231302q709cba94ua93e0ec210a906a1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: "Kaplowitz, David" <dkaplowitz@irobot.com>
+To: ilninno <ilninno@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55530 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:55570 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750948AbZALFIX (ORCPT
+	with ESMTP id S1750720AbZALFLJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 Jan 2009 00:08:23 -0500
-In-Reply-To: <1228160659.8392.94.camel@irbt-1279>
+	Mon, 12 Jan 2009 00:11:09 -0500
+In-Reply-To: <92770c820812231302q709cba94ua93e0ec210a906a1@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Kaplowitz, David wrote:
-> Greetings,
->=20
-> I have an interesting difficulty.  I want to be able to grab a multic=
-ast
-> stream from a machine (192.168.12.13) and forward/rebroadcast/rewrite
-> it, such that the packets seem to come from my DMZ host (192.168.12.1=
-2).
->=20
-> I have been trying an iptables solution, but that doesn't seem to be
-> working at the moment, and it was recommended to me by =EF=BB=BFj_eng=
-elh on the
-> #iptables channel to ask at this address for further assistance.
+ilninno wrote:
+> Hello! I have some problems with netfilter_queue:
+> 
+> I created a queue and registered my c program, when a packet matchs
+> with the iptables rules my code get the event. i usually return
+> NF_ACCEPT and NF_DROP, but sometimes i need to leave the packet to
+> continue with iptables rules checking, i tried with:
+> 
+> 1- Using NF_QUEUE: WIth this option the packet enter again in iptables
+> rules (from rule 1 to NFQUEUE rule), but i only want to check (from
+> NFQUEUE rule to end).
+> 
+> 
+> rule:   $IPTABLES -A OUTPUT -m state --state NEW -j NFQUEUE --queue-num 0
+> 
+> 
+> 
+> How can i leave the packet to continue in iptables ruleset without
+> beginning again?  Thanks for your time.
 
-stateless NAT using the TC NAT action might work.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+You can use NF_REPEAT to enter the same chain again and mark
+the packet to skip the first rules or jump to a seperate chain.
