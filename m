@@ -1,87 +1,52 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] ebtables match inverted in 2.6.28? (Was: Re: ebtables
- match inverted in 2.6.28?)
-Date: Mon, 12 Jan 2009 08:54:12 +0100
-Message-ID: <496AF724.8060203@trash.net>
-References: <84ee33570812311400m5492af64n45c645a13fe91c2c@mail.gmail.com> <1230779772.29793.31.camel@localhost> <496AD1C6.9080906@trash.net> <alpine.LSU.2.00.0901120835390.21692@fbirervta.pbzchgretzou.qr>
+From: "Giant Sand Fan's" <rampxxxx@gmail.com>
+Subject: Re: ip_route_me_harder question
+Date: Mon, 12 Jan 2009 10:43:21 +0100
+Message-ID: <417f50830901120143t1ad797d6m98fa519b5be7a8e7@mail.gmail.com>
+References: <417f50830901070919u7c90ac16x5771bece809568e4@mail.gmail.com>
+	 <496AD28B.5070300@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------080704050400060605010308"
-Cc: matthltc@us.ibm.com, Matt Cross <matt.cross@gmail.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: "Patrick McHardy" <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:58069 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751376AbZALHyO (ORCPT
+Received: from mu-out-0910.google.com ([209.85.134.186]:1837 "EHLO
+	mu-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750984AbZALJnX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 Jan 2009 02:54:14 -0500
-In-Reply-To: <alpine.LSU.2.00.0901120835390.21692@fbirervta.pbzchgretzou.qr>
+	Mon, 12 Jan 2009 04:43:23 -0500
+Received: by mu-out-0910.google.com with SMTP id g7so4211805muf.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 12 Jan 2009 01:43:21 -0800 (PST)
+In-Reply-To: <496AD28B.5070300@trash.net>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------080704050400060605010308
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Thanks, yes, i had check the sk_buff->entry in prerouting and post and
+saw how it changes.
 
-Jan Engelhardt wrote:
->>> On Wed, 2008-12-31 at 17:00 -0500, Matt Cross wrote:
->>>> I think the work to move ebtables to use xtables broke ebtables.
->>>> Specifically, in commit 8cc784eec6676b58e7f60419c88179aaa97bf71c the
->>>> return value of the match functions was inverted so that they return 1
->>>> (true) on matches instead of EBT_MATCH (0), and vice versa (look in
->>>> ebt_ip.c).  The logic in ebtables.c (ebt_do_table() and
->>>> EBT_MATCH_ITERATE()) expect match functions to return 0 for matches.
->>>>
->> Jan, could you have a look at this please?
-> 
-> That seemds indeed so.
-> Patch is both for 2.6.29-running and 2.6.28.
-> 
-> netfilter: ebtables: fix inversion in match code
+I understand that only had to call ip_route_me_harder in a hook
+handler after a "routing block" if you have change the ip addresses.
 
-Applied, thanks. When fixing regressions please state the commit
-ID and subject of the patch introducing the breakage and also who
-reported it.
-
-Like this.
+2009/1/12 Patrick McHardy <kaber@trash.net>:
+> Giant Sand Fan's wrote:
+>>
+>> Hi,
+>>
+>> I have a netfilter module that needs to reroute a packet after
+>> unpacking it (minimal encap) in NF_IP_PRE_ROUTING, because the dst
+>> changes. But even when a ip_route_me_harder with RTN_LOCAL works
+>> (ret==0) the packet disappears.
+>>
+>> The question is , do i need to use ip_route_me_harder? because when
+>> the dst of encapsulated packet is the local machine it works.
+>
+> You don't need rerouting in *PRE*ROUTING, regular routing will
+> take care of this.
+>
 
 
---------------080704050400060605010308
-Content-Type: text/x-patch;
- name="01.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="01.diff"
 
-commit c6b52c688ecf03adb82724299b97701528821ca5
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Mon Jan 12 08:52:08 2009 +0100
-
-    netfilter: ebtables: fix inversion in match code
-    
-    Commit 8cc784ee (netfilter: change return types of match functions
-    for ebtables extensions) broke ebtables matches by inverting the
-    sense of match/nomatch.
-    
-    Reported-by: Matt Cross <matthltc@us.ibm.com>
-    Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
-    Signed-off-by: Patrick McHardy <kaber@trash.net>
-
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 8a8743d..820252a 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -79,7 +79,7 @@ static inline int ebt_do_match (struct ebt_entry_match *m,
- {
- 	par->match     = m->u.match;
- 	par->matchinfo = m->data;
--	return m->u.match->match(skb, par);
-+	return m->u.match->match(skb, par) ? EBT_MATCH : EBT_NOMATCH;
- }
- 
- static inline int ebt_dev_check(char *entry, const struct net_device *device)
-
---------------080704050400060605010308--
+-- 
+Please avoid sending me Word or PowerPoint attachments.
+See http://www.gnu.org/philosophy/no-word-attachments.html
