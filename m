@@ -1,93 +1,76 @@
-From: Bryan Duff <bduff@astrocorp.com>
-Subject: Re: xt_statistic.c - the statistic match
-Date: Mon, 12 Jan 2009 11:35:34 -0600
-Message-ID: <496B7F66.40900@astrocorp.com>
-References: <4967CDCB.3080306@astrocorp.com> <alpine.LSU.2.00.0901100433100.28890@fbirervta.pbzchgretzou.qr>
+From: "Nikolay S. Rybaloff" <nowhere@hakkenden.ath.cx>
+Subject: Re: Troubles with MARK target in 2.6.28
+Date: Mon, 12 Jan 2009 21:12:18 +0300
+Message-ID: <E60D555B58C140ACA19EAE0DF12DC2F4@Hakkenden>
+References: <86617ABF8F494F2A940C18251E3DC8D0@Hakkenden> <496AE0E3.1030009@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain;
+	format=flowed;
+	charset="ISO-8859-15";
+	reply-type=original
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.astrocorp.com ([75.160.64.129]:21481 "EHLO
-	mail.astrocorp.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751506AbZALRee (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 Jan 2009 12:34:34 -0500
-In-Reply-To: <alpine.LSU.2.00.0901100433100.28890@fbirervta.pbzchgretzou.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: <netfilter@vger.kernel.org>,
+	"Netfilter Development Mailinglist" <netfilter-devel@vger.kernel.org>,
+	"Jan Engelhardt" <jengelh@medozas.de>
+To: "Patrick McHardy" <kaber@trash.net>
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> On Friday 2009-01-09 23:20, Bryan Duff wrote:
->
->   
->> ... gets out of sync in nth mode.  The count seems to be off somehow.  At some
->> point the count is off - in my case I have 3 rules that are consecutive:
+That did the trick. Both MARK and CONNMARK are working like expected.
+
+--------------------------------------------------
+From: "Patrick McHardy" <kaber@trash.net>
+Sent: Monday, January 12, 2009 9:19 AM
+To: "Nikolay S. Rybalov" <nowhere@hakkenden.ath.cx>
+Cc: <netfilter@vger.kernel.org>; "Netfilter Development Mailinglist" 
+<netfilter-devel@vger.kernel.org>; "Jan Engelhardt" <jengelh@medozas.de>
+Subject: Re: Troubles with MARK target in 2.6.28
+
+> Nikolay S. Rybalov wrote:
+>> Hi all,
 >>
->> //snip - iptables rules
->> iptables -t mangle -A PREROUTING -i ethX -s 10.10.10.0/24 -d 10.10.11.0/24 -m
->> statistic --mode nth --every 3 --packet 0 -j MARK --set-mark 1
->> iptables -t mangle -A PREROUTING -i ethX -s 10.10.10.0/24 -d 10.10.11.0/24 -m
->> statistic --mode nth --every 3 --packet 1 -j MARK --set-mark 2
->> iptables -t
->> mangle -A PREROUTING -i ethX -s 10.10.10.0/24 -d 10.10.11.0/24 -m statistic
->> --mode nth --every 3 --packet 2 -j MARK --set-mark 3
->> //end snip
+>> I have troubles with "-j MARK --set-xmark" combination in mangle table.
+>> Particulary, I want set one bit in nf mark by means, say, --set-xmark
+>> 0x10/0x10, and it worked in kernels from at least 2.6.24 up to the last
+>> in 2.6.27.
 >>
->> Now when I accept those mark values, the packet counts which should be almost
->> equal are off by large numbers (hundreds of thousands):
->>     
+>> I use: iptables -t mangle -A POSTROUTING -o eth1 -d 192.168.37.0/24 -j
+>> MARK --set-xmark 0x10/0x10
+>>
+>> and get:
+>>
+>> iptables v1.4.2: Unknown arg `(null)'
+>> Try `iptables -h' or 'iptables --help' for more information.
+>>
+>> When I try --or-mark, iptables says that my "kernel too old 
+>> for --or-mark"
+>>
+>> Same thing happens with -j CONNMARK.
+>>
+>> Can someone advise what to do, I really need to set only one bit without
+>> altering the rest of the mark.
 >
-> Works for me..
+> Does this patch fix it?
 >
-> # iptables-save -c
-> [11253:5051887] -A PREROUTING -m statistic --mode nth --every 3 [--packet 0]
-> [11254:5117265] -A PREROUTING -m statistic --mode nth --every 3 --packet 1 
 >
->   
-I have three rules.  Each rule marks one packet for every three that 
-match - no packets matching that criteria should fall through.  After 
-they are marked, I accept them.
->> //snip - iptables -L
->> 978189 1210792980 ACCEPT     all  --  ethX   *       10.10.10.0/24
->> 10.10.11.0/24    MARK match 0x1
->> 2182885 2704995300 ACCEPT     all  --  ethX   *       10.10.10.0/24
->> 10.10.11.0/24    MARK match 0x2
->> 2289382 2862482240 ACCEPT     all  --  ethX   *       10.10.10.0/24
->> 10.10.11.0/24    MARK match 0x3
->>     
->
-> These do not seem to be the same rules you posted above.
-> Where do all the mark matches come from?
->
->   
-Those are the accept rules..., here are the match rules:
 
-126489573 186243254796 MARK       all  --  eth0   *       
-10.10.10.0/24        10.10.11.0/24    statistic mode nth every 3 MARK 
-set 0x11
-126489608 186238009472 MARK       all  --  eth0   *       
-10.10.10.0/24        10.10.11.0/24    statistic mode nth every 3 packet 
-1 MARK set 0x12
-126489614 186238262872 MARK       all  --  eth0   *       
-10.10.10.0/24        10.10.11.0/24    statistic mode nth every 3 packet 
-2 MARK set 0x13
-//the accept rules are right here...
 
-I mark the packets (in this case a packet goes through 3 statistic match 
-rules, and one should be marked).  And then I accept the marks - 
-otherwise the are remarked at some point later (which I don't want).  
-But the problem is that the 3 match rules get out of sync.  So instead 
-of each rule matching on a different packet (and incrementing on every 
-packet) - at some point 2 of the 3 rules are matching the same packet.
 
-How could that happen?  I'm not accepting between the statistic match 
-rules (which would definitely cause the rules to get out of sync).
->> 1417708 1807169776 MARK       all  --  ethX   *       10.10.10.0/24
->> 10.10.11.0/24    MARK set 0x1
->> 1417708 1807169776 ACCEPT     all  --  ethX   *       10.10.10.0/24
->> 10.10.11.0/24    MARK match 0x1
->> //end snip
->>     
-
+> diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+> index 89837a4..36cb63b 100644
+> --- a/net/netfilter/x_tables.c
+> +++ b/net/netfilter/x_tables.c
+> @@ -289,6 +289,10 @@ static int target_revfn(u8 af, const char *name, u8 
+> revision, int *bestp)
+>  have_rev = 1;
+>  }
+>  }
+> +
+> + if (af != NFPROTO_UNSPEC && !have_rev)
+> + return target_revfn(NFPROTO_UNSPEC, name, revision, bestp);
+> +
+>  return have_rev;
+> }
+>
+> 
