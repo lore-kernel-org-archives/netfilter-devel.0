@@ -1,98 +1,93 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 07/09: simplify nf_conntrack_alloc() error handling
-Date: Mon, 12 Jan 2009 11:06:08 +0100 (MET)
-Message-ID: <20090112100608.9280.46239.sendpatchset@x2.localnet>
-References: <20090112100559.9280.23431.sendpatchset@x2.localnet>
-Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org
-To: davem@davemloft.net
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20090112100559.9280.23431.sendpatchset@x2.localnet>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Bryan Duff <bduff@astrocorp.com>
+Subject: Re: xt_statistic.c - the statistic match
+Date: Mon, 12 Jan 2009 11:35:34 -0600
+Message-ID: <496B7F66.40900@astrocorp.com>
+References: <4967CDCB.3080306@astrocorp.com> <alpine.LSU.2.00.0901100433100.28890@fbirervta.pbzchgretzou.qr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.astrocorp.com ([75.160.64.129]:21481 "EHLO
+	mail.astrocorp.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751506AbZALRee (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 12 Jan 2009 12:34:34 -0500
+In-Reply-To: <alpine.LSU.2.00.0901100433100.28890@fbirervta.pbzchgretzou.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 74259cac7b03c2db8d046aa70aa53f4633290fd9
-Author: Julia Lawall <julia@diku.dk>
-Date:   Mon Jan 12 10:50:52 2009 +0100
+Jan Engelhardt wrote:
+> On Friday 2009-01-09 23:20, Bryan Duff wrote:
+>
+>   
+>> ... gets out of sync in nth mode.  The count seems to be off somehow.  At some
+>> point the count is off - in my case I have 3 rules that are consecutive:
+>>
+>> //snip - iptables rules
+>> iptables -t mangle -A PREROUTING -i ethX -s 10.10.10.0/24 -d 10.10.11.0/24 -m
+>> statistic --mode nth --every 3 --packet 0 -j MARK --set-mark 1
+>> iptables -t mangle -A PREROUTING -i ethX -s 10.10.10.0/24 -d 10.10.11.0/24 -m
+>> statistic --mode nth --every 3 --packet 1 -j MARK --set-mark 2
+>> iptables -t
+>> mangle -A PREROUTING -i ethX -s 10.10.10.0/24 -d 10.10.11.0/24 -m statistic
+>> --mode nth --every 3 --packet 2 -j MARK --set-mark 3
+>> //end snip
+>>
+>> Now when I accept those mark values, the packet counts which should be almost
+>> equal are off by large numbers (hundreds of thousands):
+>>     
+>
+> Works for me..
+>
+> # iptables-save -c
+> [11253:5051887] -A PREROUTING -m statistic --mode nth --every 3 [--packet 0]
+> [11254:5117265] -A PREROUTING -m statistic --mode nth --every 3 --packet 1 
+>
+>   
+I have three rules.  Each rule marks one packet for every three that 
+match - no packets matching that criteria should fall through.  After 
+they are marked, I accept them.
+>> //snip - iptables -L
+>> 978189 1210792980 ACCEPT     all  --  ethX   *       10.10.10.0/24
+>> 10.10.11.0/24    MARK match 0x1
+>> 2182885 2704995300 ACCEPT     all  --  ethX   *       10.10.10.0/24
+>> 10.10.11.0/24    MARK match 0x2
+>> 2289382 2862482240 ACCEPT     all  --  ethX   *       10.10.10.0/24
+>> 10.10.11.0/24    MARK match 0x3
+>>     
+>
+> These do not seem to be the same rules you posted above.
+> Where do all the mark matches come from?
+>
+>   
+Those are the accept rules..., here are the match rules:
 
-    netfilter: simplify nf_conntrack_alloc() error handling
-    
-    nf_conntrack_alloc cannot return NULL, so there is no need to check for
-    NULL before using the value.  I have also removed the initialization of ct
-    to NULL in nf_conntrack_alloc, since the value is never used, and since
-    perhaps it might lead one to think that return ct at the end might return
-    NULL.
-    
-    The semantic patch that finds this problem is as follows:
-    (http://www.emn.fr/x-info/coccinelle/)
-    
-    // <smpl>
-    @match exists@
-    expression x, E;
-    position p1,p2;
-    statement S1, S2;
-    @@
-    
-    x@p1 = nf_conntrack_alloc(...)
-    ... when != x = E
-    (
-      if (x@p2 == NULL || ...) S1 else S2
-    |
-      if (x@p2 == NULL && ...) S1 else S2
-    )
-    
-    @other_match exists@
-    expression match.x, E1, E2;
-    position p1!=match.p1,match.p2;
-    @@
-    
-    x@p1 = E1
-    ... when != x = E2
-    x@p2
-    
-    @ script:python depends on !other_match@
-    p1 << match.p1;
-    p2 << match.p2;
-    @@
-    
-    print "%s: call to nf_conntrack_alloc %s bad test %s" % (p1[0].file,p1[0].line,p2[0].line)
-    // </smpl>
-    
-    Signed-off-by: Julia Lawall <julia@diku.dk>
-    Signed-off-by: Patrick McHardy <kaber@trash.net>
+126489573 186243254796 MARK       all  --  eth0   *       
+10.10.10.0/24        10.10.11.0/24    statistic mode nth every 3 MARK 
+set 0x11
+126489608 186238009472 MARK       all  --  eth0   *       
+10.10.10.0/24        10.10.11.0/24    statistic mode nth every 3 packet 
+1 MARK set 0x12
+126489614 186238262872 MARK       all  --  eth0   *       
+10.10.10.0/24        10.10.11.0/24    statistic mode nth every 3 packet 
+2 MARK set 0x13
+//the accept rules are right here...
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 7e83f74..90ce9dd 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -469,7 +469,7 @@ struct nf_conn *nf_conntrack_alloc(struct net *net,
- 				   const struct nf_conntrack_tuple *repl,
- 				   gfp_t gfp)
- {
--	struct nf_conn *ct = NULL;
-+	struct nf_conn *ct;
- 
- 	if (unlikely(!nf_conntrack_hash_rnd_initted)) {
- 		get_random_bytes(&nf_conntrack_hash_rnd, 4);
-@@ -551,7 +551,7 @@ init_conntrack(struct net *net,
- 	}
- 
- 	ct = nf_conntrack_alloc(net, tuple, &repl_tuple, GFP_ATOMIC);
--	if (ct == NULL || IS_ERR(ct)) {
-+	if (IS_ERR(ct)) {
- 		pr_debug("Can't allocate conntrack.\n");
- 		return (struct nf_conntrack_tuple_hash *)ct;
- 	}
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 00e8c27..3dddec6 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1134,7 +1134,7 @@ ctnetlink_create_conntrack(struct nlattr *cda[],
- 	struct nf_conntrack_helper *helper;
- 
- 	ct = nf_conntrack_alloc(&init_net, otuple, rtuple, GFP_ATOMIC);
--	if (ct == NULL || IS_ERR(ct))
-+	if (IS_ERR(ct))
- 		return -ENOMEM;
- 
- 	if (!cda[CTA_TIMEOUT])
+I mark the packets (in this case a packet goes through 3 statistic match 
+rules, and one should be marked).  And then I accept the marks - 
+otherwise the are remarked at some point later (which I don't want).  
+But the problem is that the 3 match rules get out of sync.  So instead 
+of each rule matching on a different packet (and incrementing on every 
+packet) - at some point 2 of the 3 rules are matching the same packet.
+
+How could that happen?  I'm not accepting between the statistic match 
+rules (which would definitely cause the rules to get out of sync).
+>> 1417708 1807169776 MARK       all  --  ethX   *       10.10.10.0/24
+>> 10.10.11.0/24    MARK set 0x1
+>> 1417708 1807169776 ACCEPT     all  --  ethX   *       10.10.10.0/24
+>> 10.10.11.0/24    MARK match 0x1
+>> //end snip
+>>     
+
