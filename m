@@ -1,47 +1,78 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: iptables -git automake warnings
-Date: Mon, 12 Jan 2009 07:13:28 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0901120711210.21692@fbirervta.pbzchgretzou.qr>
-References: <496AD8C7.2020208@trash.net> <496AD922.7050909@trash.net> <496ADEDE.9050000@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Troubles with MARK target in 2.6.28
+Date: Mon, 12 Jan 2009 07:19:15 +0100
+Message-ID: <496AE0E3.1030009@trash.net>
+References: <86617ABF8F494F2A940C18251E3DC8D0@Hakkenden>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: multipart/mixed;
+ boundary="------------050208030106080205060300"
+Cc: netfilter@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Jan Engelhardt <jengelh@medozas.de>
+To: "Nikolay S. Rybalov" <nowhere@hakkenden.ath.cx>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:46447 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751370AbZALGNa (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:56630 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750903AbZALGTR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 Jan 2009 01:13:30 -0500
-In-Reply-To: <496ADEDE.9050000@trash.net>
+	Mon, 12 Jan 2009 01:19:17 -0500
+In-Reply-To: <86617ABF8F494F2A940C18251E3DC8D0@Hakkenden>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This is a multi-part message in MIME format.
+--------------050208030106080205060300
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Monday 2009-01-12 07:10, Patrick McHardy wrote:
+Nikolay S. Rybalov wrote:
+> Hi all,
+> 
+> I have troubles with "-j MARK --set-xmark" combination in mangle table. 
+> Particulary, I want set one bit in nf mark by means, say, --set-xmark 
+> 0x10/0x10, and it worked in kernels from at least 2.6.24 up to the last 
+> in 2.6.27.
+> 
+> I use: iptables -t mangle -A POSTROUTING -o eth1 -d 192.168.37.0/24 -j 
+> MARK --set-xmark 0x10/0x10
+> 
+> and get:
+> 
+> iptables v1.4.2: Unknown arg `(null)'
+> Try `iptables -h' or 'iptables --help' for more information.
+> 
+> When I try --or-mark, iptables says that my "kernel too old for --or-mark"
+> 
+> Same thing happens with -j CONNMARK.
+> 
+> Can someone advise what to do, I really need to set only one bit without 
+> altering the rest of the mark.
 
-> Patrick McHardy wrote:
->> Patrick McHardy wrote:
->>> I get this with the current iptables -git version:
->>>
->>> Makefile.am:7: `:='-style assignments are not portable
->>> Makefile.am:71: `:='-style assignments are not portable
->>> Makefile.am:72: `:='-style assignments are not portable
->>> Makefile.am:73: `:='-style assignments are not portable
->>> Makefile.am:74: `:='-style assignments are not portable
->>> Makefile.am:75: `:='-style assignments are not portable
->>> Makefile.am:78: `:='-style assignments are not portable
->>> Makefile.am:80: `:='-style assignments are not portable
->>> Makefile.am:97: `%'-style pattern rules are a GNU make extension
->>
->> Additionally compilation aborts with:
->>
->> make[2]: *** No rule to make target
->> `../include/linux/netfilter_ipv4/ipt_DSCP.h', needed by `libipt_ECN.oo'.
->> Stop.
->
-> This is resolved by using a fresh clone.
+Does this patch fix it?
 
-Must have been a really old tree, since no .c file besides
-libipt_DSCP.c (long renamed libxt_DSCP.c) ever used ipt_DSCP.h.
+
+--------------050208030106080205060300
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 89837a4..36cb63b 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -289,6 +289,10 @@ static int target_revfn(u8 af, const char *name, u8 revision, int *bestp)
+ 				have_rev = 1;
+ 		}
+ 	}
++
++	if (af != NFPROTO_UNSPEC && !have_rev)
++		return target_revfn(NFPROTO_UNSPEC, name, revision, bestp);
++
+ 	return have_rev;
+ }
+ 
+
+--------------050208030106080205060300--
