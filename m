@@ -1,60 +1,60 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: xt_statistic.c - the statistic match
-Date: Sat, 10 Jan 2009 04:38:31 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0901100433100.28890@fbirervta.pbzchgretzou.qr>
-References: <4967CDCB.3080306@astrocorp.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: doc: escape minus sign in manpages
+Date: Mon, 12 Jan 2009 02:36:10 +0100
+Message-ID: <496A9E8A.10405@netfilter.org>
+References: <alpine.LSU.2.00.0901090313110.16418@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Bryan Duff <bduff@astrocorp.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:38860 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751284AbZAJDid (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 9 Jan 2009 22:38:33 -0500
-In-Reply-To: <4967CDCB.3080306@astrocorp.com>
+Received: from mail.us.es ([193.147.175.20]:51648 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751907AbZALBg0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 11 Jan 2009 20:36:26 -0500
+In-Reply-To: <alpine.LSU.2.00.0901090313110.16418@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Jan Engelhardt wrote:
+> parent fbb9d345e207d1441922d22e0be86f428c815ae7
+> commit 39428b78ecfdbefb941f3eabc63f7e2d8c460e08
+> Author: Jan Engelhardt <jengelh@medozas.de>
+> Date:   Fri Jan 9 03:09:47 2009 +0100
+> 
+> doc: escape minus sign in manpages
+> 
+> groff formats '-' as a hyphen, and '\-' is needed for a minus.
+> 
+> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+> ---
+[...]
+> --- a/extensions/libip6t_HL.man
+> +++ b/extensions/libip6t_HL.man
+> @@ -7,11 +7,11 @@ table.
+>  .PP
+>  .B Don't ever set or increment the value on packets that leave your local network!
+>  .TP
+> -.BI "--hl-set " "value"
+> +\fB\-\-hl\-set\fP \fIvalue\fP
 
-On Friday 2009-01-09 23:20, Bryan Duff wrote:
+I like this change.
 
-> ... gets out of sync in nth mode.  The count seems to be off somehow.  At some
-> point the count is off - in my case I have 3 rules that are consecutive:
->
-> //snip - iptables rules
-> iptables -t mangle -A PREROUTING -i ethX -s 10.10.10.0/24 -d 10.10.11.0/24 -m
-> statistic --mode nth --every 3 --packet 0 -j MARK --set-mark 1
-> iptables -t mangle -A PREROUTING -i ethX -s 10.10.10.0/24 -d 10.10.11.0/24 -m
-> statistic --mode nth --every 3 --packet 1 -j MARK --set-mark 2
-> iptables -t
-> mangle -A PREROUTING -i ethX -s 10.10.10.0/24 -d 10.10.11.0/24 -m statistic
-> --mode nth --every 3 --packet 2 -j MARK --set-mark 3
-> //end snip
->
-> Now when I accept those mark values, the packet counts which should be almost
-> equal are off by large numbers (hundreds of thousands):
+> --- a/extensions/libip6t_LOG.man
+> +++ b/extensions/libip6t_LOG.man
+> @@ -1,31 +1,31 @@
+>  Turn on kernel logging of matching packets.  When this option is set
+>  for a rule, the Linux kernel will print some information on all
+> -matching packets (like most IPv6 IPv6-header fields) via the kernel log
+> +matching packets (like most IPv6 IPv6\-header fields) via the kernel log
+                                        ^^
+But hyphen is fine here.
 
-Works for me..
+Could you rework you script to actually change only options to minus?
+This would result in a smaller patch.
 
-# iptables-save -c
-[11253:5051887] -A PREROUTING -m statistic --mode nth --every 3 [--packet 0]
-[11254:5117265] -A PREROUTING -m statistic --mode nth --every 3 --packet 1 
-
-> //snip - iptables -L
-> 978189 1210792980 ACCEPT     all  --  ethX   *       10.10.10.0/24
-> 10.10.11.0/24    MARK match 0x1
-> 2182885 2704995300 ACCEPT     all  --  ethX   *       10.10.10.0/24
-> 10.10.11.0/24    MARK match 0x2
-> 2289382 2862482240 ACCEPT     all  --  ethX   *       10.10.10.0/24
-> 10.10.11.0/24    MARK match 0x3
-
-These do not seem to be the same rules you posted above.
-Where do all the mark matches come from?
-
-> 1417708 1807169776 MARK       all  --  ethX   *       10.10.10.0/24
-> 10.10.11.0/24    MARK set 0x1
-> 1417708 1807169776 ACCEPT     all  --  ethX   *       10.10.10.0/24
-> 10.10.11.0/24    MARK match 0x1
-> //end snip
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
