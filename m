@@ -1,33 +1,43 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Troubles with MARK target in 2.6.28
-Date: Mon, 12 Jan 2009 08:08:20 +0100
-Message-ID: <496AEC64.5040202@trash.net>
-References: <86617ABF8F494F2A940C18251E3DC8D0@Hakkenden> <496AE0E3.1030009@trash.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter@vger.kernel.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Jan Engelhardt <jengelh@medozas.de>
-To: "Nikolay S. Rybalov" <nowhere@hakkenden.ath.cx>
+From: Eric Leblond <eric@inl.fr>
+Subject: [PATCH] netfilter: desactivate nf_log logger via sysctl.
+Date: Mon, 12 Jan 2009 08:14:34 +0100
+Message-ID: <1231744474-19993-1-git-send-email-eric@inl.fr>
+References: <1231452093.10299.2.camel@ice-age>
+Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@inl.fr>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:57343 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750903AbZALHIW (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 Jan 2009 02:08:22 -0500
-In-Reply-To: <496AE0E3.1030009@trash.net>
+Received: from bayen.regit.org ([81.57.69.189]:39497 "EHLO ice-age"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751471AbZALHOi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 12 Jan 2009 02:14:38 -0500
+In-Reply-To: <1231452093.10299.2.camel@ice-age>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy wrote:
-> Does this patch fix it?
-> 
+This patch adds support for unbind of logger via sysctl. By echoing
+"NONE" to a /proc/sys/net/netfilter/nf_log/PROTO file, the logger
+corresponding to this PROTO is set to NULL.
 
-Jan, display of NFPROTO_UNSPEC targets and matches in
-/proc/net/ip_tables_targets etc. is also broken. Please
-have a look at this.
+Signed-off-by: Eric Leblond <eric@inl.fr>
+---
+ net/netfilter/nf_log.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-
+diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
+index d4b5259..4775700 100644
+--- a/net/netfilter/nf_log.c
++++ b/net/netfilter/nf_log.c
+@@ -252,6 +252,10 @@ static int nf_log_proc_dostring(ctl_table *table, int write, struct file *filp,
+ 
+ 	rcu_read_lock();
+ 	if (write) {
++		if (!strnicmp(buffer, "NONE", *lenp - 1)) {
++			rcu_read_unlock();
++			return nf_log_unbind_pf(table->ctl_name);
++		}
+ 		logger = __find_logger_n(table->ctl_name, buffer, *lenp -1);
+ 		if (logger == NULL) {
+ 			rcu_read_unlock();
+-- 
+1.5.6.3
 
