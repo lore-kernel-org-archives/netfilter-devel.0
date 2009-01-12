@@ -1,49 +1,58 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] ebtables match inverted in 2.6.28? (Was: Re: ebtables
- match inverted in 2.6.28?)
-Date: Mon, 12 Jan 2009 06:14:46 +0100
-Message-ID: <496AD1C6.9080906@trash.net>
-References: <84ee33570812311400m5492af64n45c645a13fe91c2c@mail.gmail.com> <1230779772.29793.31.camel@localhost>
+Subject: Re: Using TRACE with ulogd2
+Date: Mon, 12 Jan 2009 06:17:04 +0100
+Message-ID: <496AD250.9020400@trash.net>
+References: <alpine.LSU.2.00.0901061119270.28823@fbirervta.pbzchgretzou.qr> <1231238052.15452.32.camel@khasse.inl.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Matt Cross <matt.cross@gmail.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org,
-	Jan Engelhardt <jengelh@medozas.de>
-To: matthltc@us.ibm.com
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, sean.donner@gmail.com
+To: Eric Leblond <eric@inl.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55617 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:55654 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751007AbZALFPC (ORCPT
+	with ESMTP id S1751247AbZALFRU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 12 Jan 2009 00:15:02 -0500
-In-Reply-To: <1230779772.29793.31.camel@localhost>
+	Mon, 12 Jan 2009 00:17:20 -0500
+In-Reply-To: <1231238052.15452.32.camel@khasse.inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Matthew Helsley wrote:
-> On Wed, 2008-12-31 at 17:00 -0500, Matt Cross wrote:
->> I think the work to move ebtables to use xtables broke ebtables.
->> Specifically, in commit 8cc784eec6676b58e7f60419c88179aaa97bf71c the
->> return value of the match functions was inverted so that they return 1
->> (true) on matches instead of EBT_MATCH (0), and vice versa (look in
->> ebt_ip.c).  The logic in ebtables.c (ebt_do_table() and
->> EBT_MATCH_ITERATE()) expect match functions to return 0 for matches.
+Eric Leblond wrote:
+> Hi,
+>=20
+> Le mardi 06 janvier 2009 =E0 11:28 +0100, Jan Engelhardt a =E9crit :
+>> Hi,
 >>
->> The patch at the end of this message fixes the problem, but seems a
->> little hacky to me.  Who's the right person to address this?
+>>
+>> from discussions on IRC and after looking at the kernel's code, I go=
+t=20
+>> the impression that xt_TRACE's output can currently not be fed into=20
+>> ulogd2, as xt_NFLOG does not make itself available for NF Core loggi=
+ng=20
+>> through nf_log_packet() as it does not register with nf_log.c's
+>> nf_log_register().
+>> Could you consider adding this?
+>=20
+> In fact, it should work but it can be a little tricky. You need to
+> declare a stack starting with a NFLOG input plugin. This plugin has t=
+o
+> listen to event on nflog group 0:
+>=20
+> stack=3Dlog1:NFLOG,base1:BASE,ifi1:IFINDEX,ip2str1:IP2STR,print1:PRIN=
+TPKT,emu1:LOGEMU
+>=20
+> [log1]
+> group=3D0
+>=20
+> Under that condition, you should receive messages from TRACE.
 
-Jan, could you have a look at this please?
-
->> --- linux-2.6.28.orig/net/bridge/netfilter/ebtables.c   2008-12-24
->> 18:26:37.000000000 -0500
->> +++ linux-2.6.28/net/bridge/netfilter/ebtables.c        2008-12-31
->> 16:17:44.000000000 -0500
->> @@ -80,7 +80,7 @@
->>  {
->>         par->match     = m->u.match;
->>         par->matchinfo = m->data;
->> -       return m->u.match->match(skb, par);
->> +       return !m->u.match->match(skb, par);
->>  }
+Indeed, I've used it like that and it works fine.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
