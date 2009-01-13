@@ -1,61 +1,103 @@
-From: Bernhard Schmidt <berni@birkenwald.de>
-Subject: Re: [NETFILTER 04/05]: nf_nat: always select same SNAT source for
- same host
-Date: Tue, 13 Jan 2009 14:24:11 +0000 (UTC)
-Message-ID: <gki86b$a4e$1@ger.gmane.org>
-References: <20080227131427.26831.51195.sendpatchset@localhost.localdomain>
- <20080227131432.26831.2125.sendpatchset@localhost.localdomain>
- <47C5907F.3060904@trash.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: iptables manpage and ICMP type/code
+Date: Tue, 13 Jan 2009 15:30:50 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0901131521430.23531@fbirervta.pbzchgretzou.qr>
+References: <200901131508.06692.vstinner@inl.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Victor Stinner <vstinner@inl.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:38308 "EHLO ciao.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754173AbZAMOaH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 Jan 2009 09:30:07 -0500
-Received: from root by ciao.gmane.org with local (Exim 4.43)
-	id 1LMkHL-0006hL-41
-	for netfilter-devel@vger.kernel.org; Tue, 13 Jan 2009 14:30:03 +0000
-Received: from ppp-82-135-90-82.dynamic.mnet-online.de ([82.135.90.82])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Tue, 13 Jan 2009 14:30:03 +0000
-Received: from berni by ppp-82-135-90-82.dynamic.mnet-online.de with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Tue, 13 Jan 2009 14:30:03 +0000
+Received: from sovereign.computergmbh.de ([85.214.69.204]:53370 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756021AbZAMOaw (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 13 Jan 2009 09:30:52 -0500
+In-Reply-To: <200901131508.06692.vstinner@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy <kaber@trash.net> wrote:
 
-Hello Patrick,
-
-> Patrick McHardy wrote:
->> [NETFILTER]: nf_nat: always select same SNAT source for same host
->> 
->> We've removed the SAME target in 2.6.25-rc since it had 32/64 bit compat
->> problems and the NAT core provides the same behaviour regarding IP
->> selection. This turned out to be not entirely correct though, the
->> NAT core only selects the same IP from a range for the same src,dst
->> combination. Some people need the same IP for all destinations however.
->> 
->> The easiest way to do this is to ignore the destination IP when
->> doing SNAT. Since we're using jhash, we still get good distribution
->> for multiple source IPs.
->> 
->> Tested-by: David Lau <mintypickle@gmail.com>
->> 
->> Signed-off-by: Patrick McHardy <kaber@trash.net>
+On Tuesday 2009-01-13 15:08, Victor Stinner wrote:
+>iptables supports ICMP code filtering, but it's not documented in the manpage.
+>Attached patch fixes the manpage, [...]:
+>-       --icmp-type [!] typename
+>+       --icmp-type [!] type[/code]|typename
+>              This allows specification of the ICMP type, which can be a
+>              the command
+>               iptables -p icmp -h
 >
->
-> Please drop this patch for now, David reported some bad distribution
-> during further tests that I want to look into.
+>It changes also the text style: keywords are underlined.
 
-Any news on that? We're getting hit by that issue (ICQ fails to login,
-amongst others). In 2.6.25, but I did not see any patch in recent
-kernels that changes this.
+Actually \fI is italic (it's "I" for a reason); it's just that,
+now that you mention it, there seems to be a glitch in `man`
+that causes it to be displayed as underline.
 
-Bernhard
+>-[\fB!\fP] \fB\-\-icmp\-type\fP \fItypename\fP
+>+\fB\-\-icmp\-type\fP [\fB!\fP] \fItype\fP[\fB/\fP\fIcode\fP]|\fItypename\fP
 
+This is old syntax.
+
+> This allows specification of the ICMP type, which can be a numeric
+>-ICMP type, or one of the ICMP type names shown by the command
+>+ICMP
+>+.IR type ,
+>+.IR type
+>+and
+>+.IR code ,
+
+'type' did not refer to the placeholder, but the type in general,
+hence it was not italic to begin with. I think this should not
+change, either.
+
+
+
+parent 3e95daeb83446a61afa86914c9f1a03fa257537d (v1.4.3-rc1-19-g3e95dae)
+commit aa171d33c6d86940a057db2bd037f2f0106f1221
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Tue Jan 13 15:30:10 2009 +0100
+
+doc: augment ICMP manpage by type/code syntax
+
+The ICMP match module also allows numeric type/code as in
+"--icmp-type type/code". Document it.
+
+Based upon a patch by Victor Stinner <vstinner@inl.fr>.
+
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ extensions/libipt_icmp.c   |    2 +-
+ extensions/libipt_icmp.man |    4 ++--
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/extensions/libipt_icmp.c b/extensions/libipt_icmp.c
+index d0b7bb3..fa5a540 100644
+--- a/extensions/libipt_icmp.c
++++ b/extensions/libipt_icmp.c
+@@ -102,7 +102,7 @@ static void icmp_help(void)
+ 	printf(
+ "icmp match options:\n"
+ "[!] --icmp-type typename	match icmp type\n"
+-"				(or numeric type or type/code)\n");
++"[!] --icmp-type type[/code]	(or numeric type or type/code)\n");
+ 	print_icmptypes();
+ }
+ 
+diff --git a/extensions/libipt_icmp.man b/extensions/libipt_icmp.man
+index 8c1bdbe..1039704 100644
+--- a/extensions/libipt_icmp.man
++++ b/extensions/libipt_icmp.man
+@@ -1,9 +1,9 @@
+ This extension can be used if `\-\-protocol icmp' is specified. It
+ provides the following option:
+ .TP
+-[\fB!\fP] \fB\-\-icmp\-type\fP \fItypename\fP
++[\fB!\fP] \fB\-\-icmp\-type\fP {\fItype\fP[\fB/\fP\fIcode\fP]|\fItypename\fP}
+ This allows specification of the ICMP type, which can be a numeric
+-ICMP type, or one of the ICMP type names shown by the command
++ICMP type, type/code pair, or one of the ICMP type names shown by the command
+ .nf
+  iptables \-p icmp \-h
+ .fi
+-- 
+# Created with git-export-patch
