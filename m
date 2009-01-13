@@ -1,51 +1,62 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: xt_statistic.c - the statistic match
-Date: Tue, 13 Jan 2009 08:32:51 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0901130829350.24186@fbirervta.pbzchgretzou.qr>
-References: <4967CDCB.3080306@astrocorp.com> <alpine.LSU.2.00.0901100433100.28890@fbirervta.pbzchgretzou.qr> <496B7F66.40900@astrocorp.com> <496C1BD4.2050106@trash.net> <alpine.LSU.2.00.0901130827490.24186@fbirervta.pbzchgretzou.qr>
+Subject: Fwd: iptables-1.4.1-1.4.2 change "Warn about use of DROP in nat
+ table"
+Date: Tue, 13 Jan 2009 10:13:13 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0901131012390.7823@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Bryan Duff <bduff@astrocorp.com>, netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:60356 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:59238 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751932AbZAMHcw (ORCPT
+	with ESMTP id S1753967AbZAMJNQ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 Jan 2009 02:32:52 -0500
-In-Reply-To: <alpine.LSU.2.00.0901130827490.24186@fbirervta.pbzchgretzou.qr>
+	Tue, 13 Jan 2009 04:13:16 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by sovereign.computergmbh.de (Postfix) with ESMTP id 959B71C00DB2F
+	for <netfilter-devel@vger.kernel.org>; Tue, 13 Jan 2009 10:13:13 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+---------- Forwarded message ----------
+Date: Mon, 12 Jan 2009 21:35:44
+=46rom: Marek Kierdelewicz <marek@koba.pl>
+To: jengelh
+Subject: iptables-1.4.1-1.4.2 change "Warn about use of DROP in nat tab=
+le"
 
-On Tuesday 2009-01-13 08:28, Jan Engelhardt wrote:
->On Tuesday 2009-01-13 05:43, Patrick McHardy wrote:
->>>>> [...]
->>>
->>> How could that happen?  I'm not accepting between the statistic
->>> match rules (which would definitely cause the rules to get out of
->>> sync).
->>
->> Are you running on an SMP system? If so, try printing out the value
->> of info->master and verify that it always points to the same memory
->> (for each single match instance, so you should see exactly three
->> different values).
->
->Since info->master is always on CPU0, it's easy:
->
->	taskset -c 0 iptables -nvL
->
-Blip..
+Hello,
 
-Ideally, for tracking, you can use the -m quota match (or alternatively,
--m quota2 with Xtables-addons, which supports counting upwards)
-as an alternate counter to the per-counter rules. IOW
+Is there any particular reason for removing DROP target from nat table?
+Some people may be using this functionality (like me). Access
+control for lan clients on my routers is done in PREROUTING chain of na=
+t
+table in following way (in great simplification):
+- DNAT to infoHost:infoPort1 tcp packets to port 80 from IP/MAC pair in
+ipset INFO-GRP1
+- RETURN packets from IP/MAC pair in ipset
+- DNAT tcp packets to port 80 to infoHost:infoPort2
+- DROP rest of the packets
 
-	iptables ... -m statistic ... -m quota --quota 20000000
-or	iptables ... -m statistic ... -m quota2 --grow
+I know DROPping in nat table isn't perfect (doesn't filterout already
+established "connections"), but it should be less cpu-intensive as it's
+done for the first packet of a "connection". Removing DROP from nat
+table would force me use DROPs in filter table. Wouldn't it be a bit
+more cpu-intensive?
 
-	(should ideally be done with iptables-restore so that all rules
-	take effect at the same time)
+Anyway thanks for the warning :-).
 
-then, `taskset -c0 iptables -nvL` should return the same quota values
-for all rules.
+Regards,
+--=20
+Marek Kierdelewicz
+Kierownik Dzia=C5=82u System=C3=B3w Sieciowych, KoBa
+Manager of Network Systems Department, KoBa
+tel. (85) 7406466; fax. (85) 7406467
+e-mail: admin@koba.pl
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
