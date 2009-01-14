@@ -1,67 +1,71 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: doc: escape minus sign in manpages
-Date: Wed, 14 Jan 2009 06:47:59 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0901140645040.29956@fbirervta.pbzchgretzou.qr>
-References: <alpine.LSU.2.00.0901090313110.16418@fbirervta.pbzchgretzou.qr> <496A9E8A.10405@netfilter.org> <alpine.LSU.2.00.0901120339080.20867@fbirervta.pbzchgretzou.qr> <alpine.LSU.2.00.0901120706460.21692@fbirervta.pbzchgretzou.qr>
- <496AE148.6000909@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [ANNOUNCE] libnfnetlink 0.0.40 release
+Date: Wed, 14 Jan 2009 11:56:20 +0100
+Message-ID: <496DC4D4.6060106@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: pablo@netfilter.org,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: multipart/mixed;
+ boundary="------------070306060509090701090507"
+Cc: netfilter-announce@lists.netfilter.org,
+	netfilter-devel@vger.kernel.org, lwn@lwn.net
+To: netfilter@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:40330 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754078AbZANFsA (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 14 Jan 2009 00:48:00 -0500
-In-Reply-To: <496AE148.6000909@trash.net>
+Received: from mail.us.es ([193.147.175.20]:39679 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753709AbZANK4b (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 14 Jan 2009 05:56:31 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This is a multi-part message in MIME format.
+--------------070306060509090701090507
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-On Monday 2009-01-12 07:20, Patrick McHardy wrote:
-> Jan Engelhardt wrote:
->> Hm I noticed I still had something in my index that
->> puts back hyphens where they belong. Here goes:
->>
->>
->> parent fea74bf74ff524431ce65145f1523584edf99dc9 (v1.4.3-rc1-16-gfea74bf)
->> commit de2a83cb5022c429ccf1b852688481a0d8ad95e5
->> Author: Jan Engelhardt <jengelh@medozas.de>
->> Date:   Mon Jan 12 07:06:12 2009 +0100
->>
->> doc: escape minus sign in manpage (2)
->
-> Something in this patch seems to be confusing "patch":
->
-> patching file ip6tables.8.in
-> patching file iptables.8.in
-> Hunk #1 FAILED at 23.
-> 1 out of 1 hunk FAILED -- saving rejects to file iptables.8.in.rej
+Hi!
 
-Hm... but format/flowed is disabled already.
+The netfilter project proudly presents:
 
-$ git co 0c2b5a4aff # origin/master
-$ git-export-patch de2a83cb5022c429ccf1b852688481a0d8ad95e5^!
-[0001.diff] de2a83c... doc: escape minus sign in manpage (2)
-$ patch -p1 -i 0001.diff --dry
-patching file ip6tables.8.in
-patching file iptables.8.in
-$ 
+  * libnfnetlink-0.0.40
+
+libnfnetlink is the low-level library for netfilter related
+kernel/userspace communication. It provides a generic messaging
+infrastructure for in-kernel netfilter subsystems (such as
+nfnetlink_log, nfnetlink_queue, nfnetlink_conntrack) and their
+respective users and/or management tools in userspace.
+
+This release includes a couple of updates for the interface2index
+infrastructure one bugfix. See ChangeLog for more details.
+
+You can download it from:
+
+http://www.netfilter.org/projects/libnfnetlink/downloads.html
+ftp://ftp.netfilter.org/pub/libnfnetlink/
+
+Enjoy,
+Pablo - on behalf of the Netfilter Project.
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
+
+--------------070306060509090701090507
+Content-Type: text/plain;
+ name="ChangeLog"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ChangeLog"
+
+Eric Leblond (1):
+      Suppress iftable_up function which is not used.
+
+Jan Engelhardt (1):
+      libnfnetlink: mark functions as extern C
+
+Pablo Neira Ayuso (5):
+      bump version to 0.0.39
+      conditional compilation of testsuite utils
+      nlif: fix possible re-insertion in the list of interfaces
+      iftable: add nlif_get_ifflags to get the network interface flags
+      configure: bump version to 0.0.40
 
 
-> missing header for unified diff at line 388 of patch
-> can't find file to patch at input line 388
-> Perhaps you used the wrong -p or --strip option?
-> The text leading up to this was:
-> --------------------------
-> | tables of IPv4 packet
-> --------------------------
-> File to patch:
-> Skip this patch? [y]
-> Skipping patch.
-> 9 out of 9 hunks ignored
->
-
+--------------070306060509090701090507--
