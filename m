@@ -1,46 +1,68 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Troubles with MARK target in 2.6.28
-Date: Thu, 15 Jan 2009 17:20:57 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0901151720090.19363@fbirervta.pbzchgretzou.qr>
-References: <86617ABF8F494F2A940C18251E3DC8D0@Hakkenden> <496AE0E3.1030009@trash.net> <496AEC64.5040202@trash.net> <alpine.LSU.2.00.0901120814250.21692@fbirervta.pbzchgretzou.qr> <496AEEB0.3080905@trash.net> <alpine.LSU.2.00.0901140530190.26721@fbirervta.pbzchgretzou.qr>
- <496F40DC.2000605@trash.net> <496F42F0.7050305@netfilter.org> <alpine.LSU.2.00.0901151651410.17559@fbirervta.pbzchgretzou.qr> <496F5C25.2010702@trash.net> <alpine.LSU.2.00.0901151658280.17559@fbirervta.pbzchgretzou.qr> <496F5E6C.3030703@trash.net>
+From: Bryan Duff <bduff@astrocorp.com>
+Subject: Re: xt_statistic.c - the statistic match
+Date: Thu, 15 Jan 2009 10:25:31 -0600
+Message-ID: <496F637B.6020305@astrocorp.com>
+References: <4967CDCB.3080306@astrocorp.com>  <alpine.LSU.2.00.0901100433100.28890@fbirervta.pbzchgretzou.qr>  <496B7F66.40900@astrocorp.com> <38bcb3ec0901150237nc2d8316l62c27beef7e59170@mail.gmail.com> <alpine.LSU.2.00.0901151143480.400@fbirervta.pbzchgretzou.qr> <496F5A5C.1070504@astrocorp.com> <alpine.LSU.2.00.0901151652120.17559@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	"Nikolay S. Rybalov" <nowhere@hakkenden.ath.cx>,
-	netfilter@vger.kernel.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: James King <t.james.king@gmail.com>,
+	netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:51234 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758348AbZAOQU6 (ORCPT
+Received: from mail.astrocorp.com ([75.160.64.129]:21491 "EHLO
+	mail.astrocorp.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1757735AbZAOQYS (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Jan 2009 11:20:58 -0500
-In-Reply-To: <496F5E6C.3030703@trash.net>
+	Thu, 15 Jan 2009 11:24:18 -0500
+In-Reply-To: <alpine.LSU.2.00.0901151652120.17559@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Jan Engelhardt wrote:
+> On Thursday 2009-01-15 16:46, Bryan Duff wrote:
+>   
+>>> And iptables -Z should take care of the counters if rules are added
+>>> one-by-one. Also noteworthy is that when iptables is run, the
+>>> ruleset (including counters) is downloaded from the kernel, and
+>>> later uploaded again - possible setting counters backwards.
+>>> (I do no think there are any workarounds to that in the kernel,
+>>> at least I have not seen any.)
+>>> But at least all of the counters are set to where they were.
+>>>       
+>> Would iptables -Z fix the internal counter for the statistic nth match rule?  I
+>> don't see that it would.  Because that's the counter I really care about
+>> fixing.
+>>     
+>
+> It depends on the module and the implementation. As for -A/-I/-Z, all
+> private data will usually be retained. Only when the actual rule that
+> references a module is deleted, the private data of the module _may_
+> be removed too -- this obviously does not apply for modules that have
+> an information storage that can be referenced multiple times, such as
+> xt_recent, xt_condition or xt_quota2.
+>
+> So if you want to have the nth state be zeroed too, it's best to use
+> iptables-restore to insert them all at once into the kernel.
+>
+>   
+>> A couple things - this problem occurs multiple times after adding
+>> the rules (as in it can correct itself by oops'ing again), the
+>> other amusing thing - if I use printk's I can make it happen
+>> faster, also if I'm doing more throughput it happens faster.
+>>     
+>
+> Oopses, where?
+>   
+I'm sorry - it doesn't kernel panic.  But the count will get out of sync 
+continually (well after the rule has been put in place).  This problem 
+has nothing to do with adding the rule.   Because it works just fine ... 
+for a while.  Sending packets for an hour can cause this problem to 
+happen a good half-dozen times at least.  So I say oopses in the sense 
+that the module does not work as intended.
 
-On Thursday 2009-01-15 17:03, Patrick McHardy wrote:
-> Jan Engelhardt wrote:
->> On Thursday 2009-01-15 16:54, Patrick McHardy wrote:
->>>>> Agreed. The text-based interface seems to me like yet-another-interface
->>>>> that users may (ab)use (like /proc/net/nf_conntrack, I have seen people
->>>>> polling from it to display information, this was OK in the early days).
->>>>> Following this basis, one may come and implement another text-based
->>>>> interface to display the rule-set in the kernel and so on.
->>>> But is there an equivalent user tool and interface at this time
->>>> to obtain the same information?
->>> No that I know of, but that doesn't matter as long as nobody has a
->>> need for it.
->>>
->> As a developer of Xtables modules I have a need  ;-)
->
-> That was one of my first thoughts, it looks mainly useful for
-> developers. And I'm not very fond of the idea of adding almost
-> 300 lines of segfile beauty for that.
->
-Then you probably won't like it if I say that the same logic is
-needed if I shall make the existing proc-files multi-nfproto aware.
+Once again the problem deals with the internal counter: 
+"info->u.nth.count++".  If the problem was adding the rule it would only 
+happen once.
+
+-Bryan
