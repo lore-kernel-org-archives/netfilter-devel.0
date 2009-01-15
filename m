@@ -1,71 +1,61 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] libnfnetlink 0.0.40 release
-Date: Wed, 14 Jan 2009 11:56:20 +0100
-Message-ID: <496DC4D4.6060106@netfilter.org>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Targets with "mangle" table limiting (Was: Re: Troubles with MARK
+ target in 2.6.28)
+Date: Thu, 15 Jan 2009 09:06:03 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0901150855420.23894@fbirervta.pbzchgretzou.qr>
+References: <86617ABF8F494F2A940C18251E3DC8D0@Hakkenden> <496AE0E3.1030009@trash.net> <496AEC64.5040202@trash.net> <alpine.LSU.2.00.0901120814250.21692@fbirervta.pbzchgretzou.qr> <496AEEB0.3080905@trash.net>
+ <alpine.LSU.2.00.0901140530190.26721@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------070306060509090701090507"
-Cc: netfilter-announce@lists.netfilter.org,
-	netfilter-devel@vger.kernel.org, lwn@lwn.net
-To: netfilter@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39679 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753709AbZANK4b (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 14 Jan 2009 05:56:31 -0500
+Received: from sovereign.computergmbh.de ([85.214.69.204]:58601 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753954AbZAOIGH (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 15 Jan 2009 03:06:07 -0500
+In-Reply-To: <alpine.LSU.2.00.0901140530190.26721@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------070306060509090701090507
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 
-Hi!
+On Wednesday 2009-01-14 06:39, Jan Engelhardt wrote:
+>parent cc46eb3e855b7c1f628e934e01b97f4f2642973e (v2.6.29-rc1-22-gcc46eb3)
+>commit 11d60b1b555097e613ad6548b9b695a19735dda1
+>Author: Jan Engelhardt <jengelh@medozas.de>
+>Date:   Wed Jan 14 06:36:10 2009 +0100
+>
+>netfilter: proc file for extension overview
+>
+>Add a procfs file that dumps out the full Xtables target, match and
+>table info for all known nfprotos, superseding the IPv4/v6-only
+>/proc/net/ip{,6}_tables* which only provide names.
 
-The netfilter project proudly presents:
+With this patch of mine I was able to identify a small discrepancy
+(/proc/net/ip* would not have told me as it just prints names):
 
-  * libnfnetlink-0.0.40
+># -- Targets --
+># type	Name         	rev	table	nfproto	l4proto	hooks	tgsize
+>target	MARK           	2	*	*	*	*	     8
+>target	MARK           	1	mangle	*	*	*	     8
+>target	MARK           	0	mangle	*	*	*	     4
 
-libnfnetlink is the low-level library for netfilter related
-kernel/userspace communication. It provides a generic messaging
-infrastructure for in-kernel netfilter subsystems (such as
-nfnetlink_log, nfnetlink_queue, nfnetlink_conntrack) and their
-respective users and/or management tools in userspace.
+Namely that MARK.2 is available for all tables. It looks like an error,
+given that the previous ones were all limited to the mangle table.
+But, I would have to ask - what do we gain from limiting it to mangle?
+All other *MARK targets are available for all tables too, so what was
+the original reason for the table limit?
 
-This release includes a couple of updates for the interface2index
-infrastructure one bugfix. See ChangeLog for more details.
+I could imagine it having to do with routing (nfmark can be used as
+a routing key, as can TOS/DSCP):
 
-You can download it from:
+>target	TOS            	1	mangle	IPv4	*	*	     2
+>target	TOS            	0	mangle	IPv4	*	*	     1
+>target	DSCP           	0	mangle	IPv4	*	*	     1
 
-http://www.netfilter.org/projects/libnfnetlink/downloads.html
-ftp://ftp.netfilter.org/pub/libnfnetlink/
-
-Enjoy,
-Pablo - on behalf of the Netfilter Project.
-
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
-
---------------070306060509090701090507
-Content-Type: text/plain;
- name="ChangeLog"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="ChangeLog"
-
-Eric Leblond (1):
-      Suppress iftable_up function which is not used.
-
-Jan Engelhardt (1):
-      libnfnetlink: mark functions as extern C
-
-Pablo Neira Ayuso (5):
-      bump version to 0.0.39
-      conditional compilation of testsuite utils
-      nlif: fix possible re-insertion in the list of interfaces
-      iftable: add nlif_get_ifflags to get the network interface flags
-      configure: bump version to 0.0.40
-
-
---------------070306060509090701090507--
+then again, MARK has more uses than just for routing; it can, for example,
+serve as a way to reduce the number of rules by remembering some previous
+result.
+What do others think?
