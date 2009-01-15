@@ -1,73 +1,40 @@
-From: Bryan Duff <bduff@astrocorp.com>
-Subject: Re: xt_statistic.c - the statistic match
-Date: Thu, 15 Jan 2009 09:46:36 -0600
-Message-ID: <496F5A5C.1070504@astrocorp.com>
-References: <4967CDCB.3080306@astrocorp.com>  <alpine.LSU.2.00.0901100433100.28890@fbirervta.pbzchgretzou.qr>  <496B7F66.40900@astrocorp.com> <38bcb3ec0901150237nc2d8316l62c27beef7e59170@mail.gmail.com> <alpine.LSU.2.00.0901151143480.400@fbirervta.pbzchgretzou.qr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: Troubles with MARK target in 2.6.28
+Date: Thu, 15 Jan 2009 16:51:59 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0901151651410.17559@fbirervta.pbzchgretzou.qr>
+References: <86617ABF8F494F2A940C18251E3DC8D0@Hakkenden> <496AE0E3.1030009@trash.net> <496AEC64.5040202@trash.net> <alpine.LSU.2.00.0901120814250.21692@fbirervta.pbzchgretzou.qr> <496AEEB0.3080905@trash.net> <alpine.LSU.2.00.0901140530190.26721@fbirervta.pbzchgretzou.qr>
+ <496F40DC.2000605@trash.net> <496F42F0.7050305@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: James King <t.james.king@gmail.com>,
-	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.astrocorp.com ([75.160.64.129]:21656 "EHLO
-	mail.astrocorp.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1753045AbZAOPpO (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Jan 2009 10:45:14 -0500
-In-Reply-To: <alpine.LSU.2.00.0901151143480.400@fbirervta.pbzchgretzou.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Patrick McHardy <kaber@trash.net>,
+	"Nikolay S. Rybalov" <nowhere@hakkenden.ath.cx>,
+	netfilter@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <496F42F0.7050305@netfilter.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> On Thursday 2009-01-15 11:37, James King wrote:
->   
->>>>> //snip - iptables -L
->>>>> 978189 1210792980 ACCEPT     all  --  ethX   *       10.10.10.0/24
->>>>> 10.10.11.0/24    MARK match 0x1
->>>>> 2182885 2704995300 ACCEPT     all  --  ethX   *       10.10.10.0/24
->>>>> 10.10.11.0/24    MARK match 0x2
->>>>> 2289382 2862482240 ACCEPT     all  --  ethX   *       10.10.10.0/24
->>>>> 10.10.11.0/24    MARK match 0x3
->>>>> 1417708 1807169776 MARK       all  --  ethX   *       10.10.10.0/24
->>>>>  10.10.11.0/24    MARK set 0x1
->>>>> 1417708 1807169776 ACCEPT     all  --  ethX   *       10.10.10.0/24
->>>>>  10.10.11.0/24    MARK match 0x1
->>>>>           
->>> //end snip
->>>       
->> I'm a bit curious about this.  I thought it was only possible to use
->> the MARK target in mangle, but you seem to be listing the filter
->> table.  I notice that mark_tg_reg[] revision 2 doesn't limit the table
->> to mangle like r0 and r1 do (anyone know if this a bug, or is r2
->> intended to be available everywhere?)
->>     
->
-> Just posted moments ago:
-> http://marc.info/?l=netfilter-devel&m=123200677329507&w=2
->
->   
->> If you're using iptables to commit these rules individually (as your
->> first message implies) and the system is under traffic already, it's
->> easy for them to get out of sync because each nth rule tracks its own
->> state individually and MARK is non-terminating.
->>     
->
-> And iptables -Z should take care of the counters if rules are added
-> one-by-one. Also noteworthy is that when iptables is run, the
-> ruleset (including counters) is downloaded from the kernel, and
-> later uploaded again - possible setting counters backwards.
-> (I do no think there are any workarounds to that in the kernel,
-> at least I have not seen any.)
-> But at least all of the counters are set to where they were.
->   
-Would iptables -Z fix the internal counter for the statistic nth match 
-rule?  I don't see that it would.  Because that's the counter I really 
-care about fixing.
 
-A couple things - this problem occurs multiple times after adding the 
-rules (as in it can correct itself by oops'ing again), the other amusing 
-thing - if I use printk's I can make it happen faster, also if I'm doing 
-more throughput it happens faster.
+On Thursday 2009-01-15 15:06, Pablo Neira Ayuso wrote:
+>Patrick McHardy wrote:
+>> Jan Engelhardt wrote:
+>>> But the spartanic output of those proc files barely helps (especially
+>>> in light of multiple revisions), so here is the patch I spoke about,
+>>> refreshed and rebased, that solves the worries.
+>> 
+>> That seems a bit overkill. Text-based representation also doesn't seem
+>> ideal, iptables already has this information and a cmdline user will
+>> simply use "iptables ... -h" to get the supported option. For other
+>> programs a binary representation would probably be easier to handle.
+>
+>Agreed. The text-based interface seems to me like yet-another-interface
+>that users may (ab)use (like /proc/net/nf_conntrack, I have seen people
+>polling from it to display information, this was OK in the early days).
+>Following this basis, one may come and implement another text-based
+>interface to display the rule-set in the kernel and so on.
 
--Bryan
+But is there an equivalent user tool and interface at this time
+to obtain the same information?
