@@ -1,55 +1,55 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: xt_statistic.c - the statistic match
-Date: Thu, 15 Jan 2009 11:45:58 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0901151143480.400@fbirervta.pbzchgretzou.qr>
-References: <4967CDCB.3080306@astrocorp.com>  <alpine.LSU.2.00.0901100433100.28890@fbirervta.pbzchgretzou.qr>  <496B7F66.40900@astrocorp.com> <38bcb3ec0901150237nc2d8316l62c27beef7e59170@mail.gmail.com>
+From: "James King" <t.james.king@gmail.com>
+Subject: Re: Targets with "mangle" table limiting (Was: Re: Troubles with MARK target in 2.6.28)
+Date: Thu, 15 Jan 2009 04:08:38 -0800
+Message-ID: <38bcb3ec0901150408h39390a74s6fcc9f722094715d@mail.gmail.com>
+References: <86617ABF8F494F2A940C18251E3DC8D0@Hakkenden>
+	 <496AE0E3.1030009@trash.net> <496AEC64.5040202@trash.net>
+	 <alpine.LSU.2.00.0901120814250.21692@fbirervta.pbzchgretzou.qr>
+	 <496AEEB0.3080905@trash.net>
+	 <alpine.LSU.2.00.0901140530190.26721@fbirervta.pbzchgretzou.qr>
+	 <alpine.LSU.2.00.0901150855420.23894@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Bryan Duff <bduff@astrocorp.com>, netfilter-devel@vger.kernel.org
-To: James King <t.james.king@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: "Patrick McHardy" <kaber@trash.net>,
+	"Netfilter Development Mailinglist" <netfilter-devel@vger.kernel.org>
+To: "Jan Engelhardt" <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:52290 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753436AbZAOKqA (ORCPT
+Received: from mail-ew0-f17.google.com ([209.85.219.17]:51350 "EHLO
+	mail-ew0-f17.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1764177AbZAOMIk (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Jan 2009 05:46:00 -0500
-In-Reply-To: <38bcb3ec0901150237nc2d8316l62c27beef7e59170@mail.gmail.com>
+	Thu, 15 Jan 2009 07:08:40 -0500
+Received: by ewy10 with SMTP id 10so1225202ewy.13
+        for <netfilter-devel@vger.kernel.org>; Thu, 15 Jan 2009 04:08:38 -0800 (PST)
+In-Reply-To: <alpine.LSU.2.00.0901150855420.23894@fbirervta.pbzchgretzou.qr>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-On Thursday 2009-01-15 11:37, James King wrote:
->>>> //snip - iptables -L
->>>> 978189 1210792980 ACCEPT     all  --  ethX   *       10.10.10.0/24
->>>> 10.10.11.0/24    MARK match 0x1
->>>> 2182885 2704995300 ACCEPT     all  --  ethX   *       10.10.10.0/24
->>>> 10.10.11.0/24    MARK match 0x2
->>>> 2289382 2862482240 ACCEPT     all  --  ethX   *       10.10.10.0/24
->>>> 10.10.11.0/24    MARK match 0x3
->>>> 1417708 1807169776 MARK       all  --  ethX   *       10.10.10.0/24
->>>>  10.10.11.0/24    MARK set 0x1
->>>> 1417708 1807169776 ACCEPT     all  --  ethX   *       10.10.10.0/24
->>>>  10.10.11.0/24    MARK match 0x1
->> //end snip
+On Thu, Jan 15, 2009 at 12:06 AM, Jan Engelhardt <jengelh@medozas.de> wrote:
+> Namely that MARK.2 is available for all tables. It looks like an error,
+> given that the previous ones were all limited to the mangle table.
+> But, I would have to ask - what do we gain from limiting it to mangle?
+> All other *MARK targets are available for all tables too, so what was
+> the original reason for the table limit?
 >
->I'm a bit curious about this.  I thought it was only possible to use
->the MARK target in mangle, but you seem to be listing the filter
->table.  I notice that mark_tg_reg[] revision 2 doesn't limit the table
->to mangle like r0 and r1 do (anyone know if this a bug, or is r2
->intended to be available everywhere?)
+> I could imagine it having to do with routing (nfmark can be used as
+> a routing key, as can TOS/DSCP):
+>
+>>target TOS             1       mangle  IPv4    *       *            2
+>>target TOS             0       mangle  IPv4    *       *            1
+>>target DSCP            0       mangle  IPv4    *       *            1
+>
+> then again, MARK has more uses than just for routing; it can, for example,
+> serve as a way to reduce the number of rules by remembering some previous
+> result.
+> What do others think?
 
-Just posted moments ago:
-http://marc.info/?l=netfilter-devel&m=123200677329507&w=2
-
->If you're using iptables to commit these rules individually (as your
->first message implies) and the system is under traffic already, it's
->easy for them to get out of sync because each nth rule tracks its own
->state individually and MARK is non-terminating.
-
-And iptables -Z should take care of the counters if rules are added
-one-by-one. Also noteworthy is that when iptables is run, the
-ruleset (including counters) is downloaded from the kernel, and
-later uploaded again - possible setting counters backwards.
-(I do no think there are any workarounds to that in the kernel,
-at least I have not seen any.)
-But at least all of the counters are set to where they were.
+The only place I can see in the mangle table where nfmark has any
+special consideration is in ipt_local_hook(), in case the local output
+packet needs to be rerouted, but it seems a bit heavy handed to
+restrict MARK there based on that one edge case.  It might be useful
+to have it available elsewhere, for example to be able to refine the
+mark as it passes through the different tables, especially now that
+the mark is maskable.
