@@ -1,50 +1,45 @@
-From: Eric Leblond <eleblond@inl.fr>
-Subject: Re: Caching packets with libipq
-Date: Fri, 16 Jan 2009 08:22:47 +0100
-Message-ID: <1232090567.3789.2.camel@ice-age>
-References: <20090116104104.kzzlq1ol9g80cgok@wwwstudent.murdoch.edu.au>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Troubles with MARK target in 2.6.28
+Date: Fri, 16 Jan 2009 08:33:47 +0100
+Message-ID: <4970385B.3000209@trash.net>
+References: <86617ABF8F494F2A940C18251E3DC8D0@Hakkenden> <496AE0E3.1030009@trash.net> <496AEC64.5040202@trash.net> <alpine.LSU.2.00.0901120814250.21692@fbirervta.pbzchgretzou.qr> <496AEEB0.3080905@trash.net> <alpine.LSU.2.00.0901140530190.26721@fbirervta.pbzchgretzou.qr> <496F40DC.2000605@trash.net> <496F42F0.7050305@netfilter.org> <alpine.LSU.2.00.0901151651410.17559@fbirervta.pbzchgretzou.qr> <496F5C25.2010702@trash.net> <alpine.LSU.2.00.0901151658280.17559@fbirervta.pbzchgretzou.qr> <496F5E6C.3030703@trash.net> <alpine.LSU.2.00.0901151720090.19363@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: David Murray <30179198@student.murdoch.edu.au>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 78-210-144-213.altitudetelecom.fr ([213.144.210.78]:40212 "EHLO
-	fydelkass.inl.fr" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1755389AbZAPHW7 convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Jan 2009 02:22:59 -0500
-In-Reply-To: <20090116104104.kzzlq1ol9g80cgok@wwwstudent.murdoch.edu.au>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	"Nikolay S. Rybalov" <nowhere@hakkenden.ath.cx>,
+	netfilter@vger.kernel.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <alpine.LSU.2.00.0901151720090.19363@fbirervta.pbzchgretzou.qr>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-H,
+Jan Engelhardt wrote:
+> On Thursday 2009-01-15 17:03, Patrick McHardy wrote:
+>> Jan Engelhardt wrote:
+>>> On Thursday 2009-01-15 16:54, Patrick McHardy wrote:
+>>>>>> Agreed. The text-based interface seems to me like yet-another-interface
+>>>>>> that users may (ab)use (like /proc/net/nf_conntrack, I have seen people
+>>>>>> polling from it to display information, this was OK in the early days).
+>>>>>> Following this basis, one may come and implement another text-based
+>>>>>> interface to display the rule-set in the kernel and so on.
+>>>>> But is there an equivalent user tool and interface at this time
+>>>>> to obtain the same information?
+>>>> No that I know of, but that doesn't matter as long as nobody has a
+>>>> need for it.
+>>>>
+>>> As a developer of Xtables modules I have a need  ;-)
+>> That was one of my first thoughts, it looks mainly useful for
+>> developers. And I'm not very fond of the idea of adding almost
+>> 300 lines of segfile beauty for that.
+>>
+> Then you probably won't like it if I say that the same logic is
+> needed if I shall make the existing proc-files multi-nfproto aware.
 
-Le vendredi 16 janvier 2009 =E0 10:41 +0900, David Murray a =E9crit :
-> Hi,
->
-> I am currently writing this using libipq. The reason that I am not=20
-> using the newer libnetfilter is because there seems to be way more=20
-> documentation and examples for libipq rather than libnetfilter. Using=
-=20
-> libipq I am able to print out packet details and NF_ACCEPT or NF_DROP=
-,=20
-> however, the problem I am having is with copying and storing packets.
+What does "multi-nfproto aware" mean exactly?
 
-What about:
-	http://www.nufw.org/doc/libnetfilter_queue/
 
-Real question: what is missing here ?
 
-BR,
---=20
-Eric Leblond <eleblond@inl.fr>
-INL: http://www.inl.fr/
-NuFW: http://www.nufw.org/
-EdenWall: http://www.edenwall.com/
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
