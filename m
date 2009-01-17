@@ -1,57 +1,54 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: netfilter: src: remove unneeded goto
-Date: Sat, 17 Jan 2009 00:52:46 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0901170051560.18810@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH iptables] libxt_output: add more spaces to output
+Date: Sat, 17 Jan 2009 14:33:39 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0901171431250.2904@fbirervta.pbzchgretzou.qr>
+References: <20090117131414.66A2F9D4077@zog.reactivated.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
+Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
+To: Daniel Drake <dsd@gentoo.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:55862 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:54305 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761763AbZAPXws (ORCPT
+	with ESMTP id S1750783AbZAQNdk (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Jan 2009 18:52:48 -0500
+	Sat, 17 Jan 2009 08:33:40 -0500
+In-Reply-To: <20090117131414.66A2F9D4077@zog.reactivated.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
+On Saturday 2009-01-17 14:14, Daniel Drake wrote:
 
-Still valid for 2.6.29-rc2.
+>Commit bb9284d1 ("libxt_owner: add spaces to output") moved the printing
+>of spaces away from the owner_mt_print() function family, but forgot to
+>add spaces in all of the print_item() functions that are called.
+>
+>This is likely to be at least the partial cause of
+>https://bugs.gentoo.org/show_bug.cgi?id=254435
 
----8<---
-parent 8825f047f639abd185399969c8e3b863b6af0a28 (v2.6.28-rc2-661-g8825f04)
-commit ccdb1cf1a4417b7282c6b49723eef3ffe8758130
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Sun Nov 30 16:35:34 2008 +0100
+Approves-of-this-patch: Jan Engelhardt <jengelh@medozas.de>
 
-netfilter: src: remove unneeded goto
-
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- net/netfilter/core.c |    2 --
- 1 files changed, 0 insertions(+), 2 deletions(-)
-
-diff --git a/net/netfilter/core.c b/net/netfilter/core.c
-index a90ac83..5bb3473 100644
---- a/net/netfilter/core.c
-+++ b/net/netfilter/core.c
-@@ -174,7 +174,6 @@ next_hook:
- 			     outdev, &elem, okfn, hook_thresh);
- 	if (verdict == NF_ACCEPT || verdict == NF_STOP) {
- 		ret = 1;
--		goto unlock;
- 	} else if (verdict == NF_DROP) {
- 		kfree_skb(skb);
- 		ret = -EPERM;
-@@ -183,7 +182,6 @@ next_hook:
- 			      verdict >> NF_VERDICT_BITS))
- 			goto next_hook;
- 	}
--unlock:
- 	rcu_read_unlock();
- 	return ret;
- }
--- 
-# Created with git-export-patch
-
+>Index: iptables-20090116/extensions/libxt_owner.c
+>===================================================================
+>--- iptables-20090116.orig/extensions/libxt_owner.c
+>+++ iptables-20090116/extensions/libxt_owner.c
+>@@ -324,7 +324,7 @@ owner_mt_print_item_v0(const struct ipt_
+> 		return;
+> 	if (info->invert & flag)
+> 		printf("! ");
+>-	printf(label);
+>+	printf("%s ", label);
+> 
+> 	switch (info->match & flag) {
+> 	case IPT_OWNER_UID:
+>@@ -375,7 +375,7 @@ owner_mt6_print_item_v0(const struct ip6
+> 		return;
+> 	if (info->invert & flag)
+> 		printf("! ");
+>-	printf(label);
+>+	printf("%s ", label);
+> 
+> 	switch (info->match & flag) {
+> 	case IP6T_OWNER_UID:
+>
