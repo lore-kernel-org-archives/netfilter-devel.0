@@ -1,42 +1,50 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: [PATCH] netfilter: fix tuple inversion for Node information request.
-Date: Mon, 19 Jan 2009 23:20:12 +0100
-Message-ID: <1232403612-32301-1-git-send-email-eric@inl.fr>
-Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@inl.fr>
-To: kaber@trash.net, yasuyuki.kozakai@toshiba.co.jp
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Rejecting non-CIDR conformant masks?
+Date: Mon, 19 Jan 2009 23:24:39 +0100
+Message-ID: <4974FDA7.4040702@trash.net>
+References: <alpine.LSU.2.00.0901191917001.7294@fbirervta.pbzchgretzou.qr>    <4974C56D.7020903@trash.net> <21cb99dc3626f9cc34660485967c4425.squirrel@webmail.treenet.co.nz>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Amos Jeffries <squid3@treenet.co.nz>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:39931 "EHLO ice-age"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754045AbZASWU1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 19 Jan 2009 17:20:27 -0500
+Received: from stinky.trash.net ([213.144.137.162]:49172 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752210AbZASWYq (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 19 Jan 2009 17:24:46 -0500
+In-Reply-To: <21cb99dc3626f9cc34660485967c4425.squirrel@webmail.treenet.co.nz>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The patch fixes a typo in the inverse mapping of Node Information
-request. Following draft-ietf-ipngwg-icmp-name-lookups-09, "Querier"
-sends a type 139 (ICMPV6_NI_QUERY) packet to "Responder" which answer
-with a type 140 (ICMPV6_NI_REPLY) packet.
+Amos Jeffries wrote:
+>> Jan Engelhardt wrote:
+>>     
+>>> once again, with that lovely IRC channel that is out there, I noticed a
+>>> software that produces odd rules, and indeed, the latest iptables
+>>> (and ip6tables) seem to allow a match that has no equivalent CIDR
+>>> number, such as:
+>>>
+>>> 	-A test -d 0.0.0.123/0.0.0.255
+>>>
+>>> It absolutely works, but if iptables is supposed to support that (is
+>>> it?), I should be adding it to the manpage.
+>>> Comments?
+>>>       
+>> Its supposed to work, apparently people have been using masks like
+>> /0.0.0.1 for load-balancing with better distribution than /1 :)
+>>     
+>
+> Should they not be using ipset for that?
 
-Signed-off-by: Eric Leblond <eric@inl.fr>
----
- net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Why shouldn't they do this, its simple and probably effective.
+> The acceptance of this in ip6tables is a major security worry. With the
+> non-local network possibly accepting and routing hosts with 'forged' host
+> parts.
+>   
 
-diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-index bd52151..7a98857 100644
---- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-@@ -49,8 +49,8 @@ static bool icmpv6_pkt_to_tuple(const struct sk_buff *skb,
- static const u_int8_t invmap[] = {
- 	[ICMPV6_ECHO_REQUEST - 128]	= ICMPV6_ECHO_REPLY + 1,
- 	[ICMPV6_ECHO_REPLY - 128]	= ICMPV6_ECHO_REQUEST + 1,
--	[ICMPV6_NI_QUERY - 128]		= ICMPV6_NI_QUERY + 1,
--	[ICMPV6_NI_REPLY - 128]		= ICMPV6_NI_REPLY +1
-+	[ICMPV6_NI_QUERY - 128]		= ICMPV6_NI_REPLY + 1,
-+	[ICMPV6_NI_REPLY - 128]		= ICMPV6_NI_QUERY +1
- };
- 
- static bool icmpv6_invert_tuple(struct nf_conntrack_tuple *tuple,
--- 
-1.5.6.3
+I don't get the point, people can simply choose not to use this.
 
