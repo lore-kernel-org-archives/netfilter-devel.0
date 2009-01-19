@@ -1,47 +1,46 @@
-From: Simon Labrecque <simon@clubbeadplus.com>
-Subject: Re: Permit *any* destination port from source ip
-Date: Mon, 19 Jan 2009 16:26:53 -0500
-Message-ID: <C59A5A4D.D28A%simon@clubbeadplus.com>
-References: <alpine.LSU.2.00.0901192131570.12940@fbirervta.pbzchgretzou.qr>
+From: "Amos Jeffries" <squid3@treenet.co.nz>
+Subject: Re: Rejecting non-CIDR conformant masks?
+Date: Tue, 20 Jan 2009 11:08:34 +1300 (NZDT)
+Message-ID: <21cb99dc3626f9cc34660485967c4425.squirrel@webmail.treenet.co.nz>
+References: <alpine.LSU.2.00.0901191917001.7294@fbirervta.pbzchgretzou.qr>
+    <4974C56D.7020903@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Cc: "Jan Engelhardt" <jengelh@medozas.de>,
+	"Netfilter Developer Mailing List" <netfilter-devel@vger.kernel.org>
+To: "Patrick McHardy" <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from simmts5-qfe0.srvr.bell.ca ([206.47.199.163]:39972 "EHLO
-	simmts5-srv.bellnexxia.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752404AbZASV04 (ORCPT
+Received: from ip-58-28-153-233.static-xdsl.xnet.co.nz ([58.28.153.233]:48835
+	"EHLO treenet.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752624AbZASWTV (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 19 Jan 2009 16:26:56 -0500
-Received: from simip10-ac.srvr.bell.ca ([206.47.199.89])
-          by simmts5-srv.bellnexxia.net
-          (InterMail vM.5.01.06.13 201-253-122-130-113-20050324) with ESMTP
-          id <20090119212654.MTSF1658.simmts5-srv.bellnexxia.net@simip10-ac.srvr.bell.ca>
-          for <netfilter-devel@vger.kernel.org>;
-          Mon, 19 Jan 2009 16:26:54 -0500
-In-Reply-To: <alpine.LSU.2.00.0901192131570.12940@fbirervta.pbzchgretzou.qr>
+	Mon, 19 Jan 2009 17:19:21 -0500
+In-Reply-To: <4974C56D.7020903@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+> Jan Engelhardt wrote:
+>> once again, with that lovely IRC channel that is out there, I noticed a
+>> software that produces odd rules, and indeed, the latest iptables
+>> (and ip6tables) seem to allow a match that has no equivalent CIDR
+>> number, such as:
+>>
+>> 	-A test -d 0.0.0.123/0.0.0.255
+>>
+>> It absolutely works, but if iptables is supposed to support that (is
+>> it?), I should be adding it to the manpage.
+>> Comments?
+>
+> Its supposed to work, apparently people have been using masks like
+> /0.0.0.1 for load-balancing with better distribution than /1 :)
 
-> On Monday 2009-01-19 21:27, Simon Labrecque wrote:
->> On 19/01/09 3:14 PM, "Jan Engelhardt" <jengelh@medozas.de> wrote:
->>> On Monday 2009-01-19 21:11, Simon Labrecque wrote:
->> 
->> If there's no way to flag a connection as RELATED for any
->> destination port (given a known source and destination IP), then I
->> guess I'll have no choice, but I'm still not sure if it's possible
->> or not (beside the fact that this wouldn't be a *best practice*).
-> 
-> The conntrack(8) tool allows you to set up expectations and so on
-> from userspace.
+Should they not be using ipset for that?
 
-Would maybe work, but then again this would require deployment of new
-applications. Also, if it's possible to modify the expectations as needed
-using conntrack-tools (haven't tried yet), I would expect it would be
-possible to do it directly in the module... no?
+The acceptance of this in ip6tables is a major security worry. With the
+non-local network possibly accepting and routing hosts with 'forged' host
+parts.
 
-Simon Labrecque
+AYJ
+
 
