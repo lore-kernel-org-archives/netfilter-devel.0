@@ -1,81 +1,77 @@
-From: Sam Ravnborg <sam-uyr5N9Q2VtJg9hUCZPvPmw@public.gmane.org>
+From: Stephen Rothwell <sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org>
 Subject: Re: [GIT PULL -tip] fix 33 make headers_check warnings
-Date: Sun, 18 Jan 2009 11:10:29 +0100
-Message-ID: <20090118101029.GA31461@uranus.ravnborg.org>
-References: <1232223441.3966.22.camel@localhost.localdomain> <1232228261.27094.0.camel@macbook.infradead.org> <20090117221932.GA4956@uranus.ravnborg.org> <20090118091300.GA24849@elte.hu>
+Date: Mon, 19 Jan 2009 11:24:29 +1100
+Message-ID: <20090119112429.78f5dc33.sfr@canb.auug.org.au>
+References: <1232223441.3966.22.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>,
-	Jaswinder Singh Rajput <jaswinder-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>,
-	x86 maintainers <x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>, urs.thuermann-l29pVbxQd1IUtdQbppsyvg@public.gmane.org,
-	oliver.hartkopp-l29pVbxQd1IUtdQbppsyvg@public.gmane.org, linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org, neilb-l3A5Bk7waGM@public.gmane.org, linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org,
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA1";
+ boundary="Signature=_Mon__19_Jan_2009_11_24_29_+1100_YrWGFK.9COO2jjcI"
+Cc: Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>, x86 maintainers <x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>,
+	urs.thuermann-l29pVbxQd1IUtdQbppsyvg@public.gmane.org, oliver.hartkopp-l29pVbxQd1IUtdQbppsyvg@public.gmane.org,
+	linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org, neilb-l3A5Bk7waGM@public.gmane.org,
+	linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org,
 	spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org,
 	linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, tiwai-l3A5Bk7waGM@public.gmane.org,
 	mchehab-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
 	Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
-To: Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>
+To: Jaswinder Singh Rajput <jaswinder-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
 Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
-Content-Disposition: inline
-In-Reply-To: <20090118091300.GA24849-X9Un+BFzKDI@public.gmane.org>
+In-Reply-To: <1232223441.3966.22.camel-bi+AKbBUZKY6gyzm1THtWbp2dZbC/Bob@public.gmane.org>
 Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, Jan 18, 2009 at 10:13:00AM +0100, Ingo Molnar wrote:
-> 
-> * Sam Ravnborg <sam-uyr5N9Q2VtJg9hUCZPvPmw@public.gmane.org> wrote:
-> 
-> > On Sun, Jan 18, 2009 at 08:37:41AM +1100, David Woodhouse wrote:
-> > > On Sun, 2009-01-18 at 01:47 +0530, Jaswinder Singh Rajput wrote:
-> > > > --- a/include/linux/dvb/audio.h
-> > > > +++ b/include/linux/dvb/audio.h
-> > > > @@ -24,9 +24,8 @@
-> > > >  #ifndef _DVBAUDIO_H_
-> > > >  #define _DVBAUDIO_H_
-> > > >  
-> > > > -#ifdef __KERNEL__
-> > > >  #include <linux/types.h>
-> > > > -#else
-> > > > +#ifndef __KERNEL__
-> > > >  #include <stdint.h>
-> > > >  #endif
-> > > >  
-> > > 
-> > > That patch looks wrong, and unnecessary. It was fine before.
-> > Nope - include/linux/dvb/audio.h failed to include linux/types.h
-> > despite the fact that is uses __u32 etc.
-> > 
-> > But why the _kernel_ should include a userspace header is
-> > much more questionable.
-> 
-> ok, i dropped this one for the time being.
-> 
-> Sam, Andrew, et al, i've got the commit lineup below, to fix the ~200 new 
-> CONFIG_HEADERS_CHECK=y warnings we have in current -git, on x86 
-> allyesconfig.
-> 
-> Note that i have restructured the tree and the commits so that this effort 
-> can be tracked more easily: each commit has a "headers_check fix" subject 
-> line prefix. So you can go back later and revisit these things - for 
-> example whether a header really needs to be exported to user-space, via:
-> 
->   git log --grep='headers_check fix:' --pretty=format:"%h: %s"
-> 
-> to get an overview and a historic track record. We can follow this 
-> notation in the future too.
-> 
-> So if there are no objections, i'll send this to Linus tomorrow-ish and 
-> we'll have the worst of the fallout behind us and can embark on a much 
-> more fluid (and per maintainer) headers_check related workflow.
+--Signature=_Mon__19_Jan_2009_11_24_29_+1100_YrWGFK.9COO2jjcI
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Thanks for taking care of this Ingo and please push towards Linus.
-And thanks to all the contributors too - it was great to see this dealt
-with soo quickly!
+On Sun, 18 Jan 2009 01:47:21 +0530 Jaswinder Singh Rajput <jaswinder@kernel=
+.org> wrote:
+>
+> diff --git a/include/linux/nfsd/stats.h b/include/linux/nfsd/stats.h
+> index 7678cfb..0b53cfe 100644
+> --- a/include/linux/nfsd/stats.h
+> +++ b/include/linux/nfsd/stats.h
+> @@ -29,9 +29,11 @@ struct nfsd_stats {
+>  	unsigned int	ra_size;	/* size of ra cache */
+>  	unsigned int	ra_depth[11];	/* number of times ra entry was found that d=
+eep
+>  					 * in the cache (10percentiles). [10] =3D not found */
+> +#ifdef __KERNEL__
+>  #ifdef CONFIG_NFSD_V4
+>  	unsigned int	nfs4_opcount[LAST_NFS4_OP + 1];	/* count of individual nfs=
+v4 operations */
+>  #endif
+> +#endif /* __KERNEL__ */
+> =20
+>  };
 
-	Sam
+The only variable in the kernel of type "struct nfsd_stats" is only
+exported to user mode via procfs, so this whole structure could probably
+go inside __KERNEL__.  Then looking harder, I wonder if this header
+should be exported to user mode at all.
+
+--=20
+Cheers,
+Stephen Rothwell                    sfr-3FnU+UHB4dNDw9hX6IcOSA@public.gmane.org
+http://www.canb.auug.org.au/~sfr/
+
+--Signature=_Mon__19_Jan_2009_11_24_29_+1100_YrWGFK.9COO2jjcI
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEARECAAYFAklzyD0ACgkQjjKRsyhoI8yt9QCgmEHLhNSAB2fYNfqbvgl+WPEm
+rRoAnRBfynsNZYdMSfUK9yUqeTiWdV62
+=eQRT
+-----END PGP SIGNATURE-----
+
+--Signature=_Mon__19_Jan_2009_11_24_29_+1100_YrWGFK.9COO2jjcI--
 --
 To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
 the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
