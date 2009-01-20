@@ -1,112 +1,42 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: [PATCH] add --with-kernel-includes configure option to libnfnetlink
-Date: Tue, 20 Jan 2009 17:43:19 +0100
-Message-ID: <4975FF27.5060008@pandora.be>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH] add --with-kernel-includes configure option to
+ libnetfilter_queue
+Date: Tue, 20 Jan 2009 17:49:03 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0901201748090.31276@fbirervta.pbzchgretzou.qr>
+References: <4975FC41.70906@pandora.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Bart De Schuymer <bdschuym@pandora.be>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from edna.telenet-ops.be ([195.130.132.58]:53997 "EHLO
-	edna.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755586AbZATQnX (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:52717 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755991AbZATQtG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 20 Jan 2009 11:43:23 -0500
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by edna.telenet-ops.be (Postfix) with SMTP id EF60BE4089
-	for <netfilter-devel@vger.kernel.org>; Tue, 20 Jan 2009 17:43:19 +0100 (CET)
-Received: from [127.0.0.1] (d54C6FD43.access.telenet.be [84.198.253.67])
-	by edna.telenet-ops.be (Postfix) with ESMTP id BFDC1E4033
-	for <netfilter-devel@vger.kernel.org>; Tue, 20 Jan 2009 17:43:19 +0100 (CET)
+	Tue, 20 Jan 2009 11:49:06 -0500
+In-Reply-To: <4975FC41.70906@pandora.be>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
 
-This adds the --with-kernel-includes configure option to
-libnfnetlink and updates README. This option allows compiling
-with kernel headers not located at /usr/include.
-Note that the --with-kernel option isn't implemented.
+On Tuesday 2009-01-20 17:30, Bart De Schuymer wrote:
+>
+> +dnl Allows compiling the library with kernel include headers not located
+> +dnl at /usr/include
+> +AC_ARG_WITH([kernel-includes],
+> +    [AS_HELP_STRING([--with-kernel-includes=PATH],
+> +    [Path to kernel source include files @<:@default=/usr/include@:>@])],
+> +    [
+> +    if test x$withval = xyes -o x$withval = x ; then
+> +	AC_MSG_ERROR(--with-kernel-includes must be given the path to your
+> kernel source include files.)
+> +    fi
+> +    if ! test -d $withval ; then
 
+I would say this should be
+	if test ! -d "$withval"
 
-Signed-off-by: Bart De Schuymer <bdschuym@pandora.be>
+similarly below and for the other patches.
 
-
---- libnfnetlink-0.0.40/configure.in.old	2009-01-19 17:31:08.000000000 +0100
-+++ libnfnetlink-0.0.40/configure.in	2009-01-20 15:21:27.000000000 +0100
-@@ -17,8 +17,26 @@ case $target in 
- esac
- 
- 
--dnl--------------------------------
--dnl--------------------------------
-+dnl Allows compiling the library with kernel include headers not located
-+dnl at /usr/include
-+AC_ARG_WITH([kernel-includes],
-+    [AS_HELP_STRING([--with-kernel-includes=PATH],
-+    [Path to kernel source include files @<:@default=/usr/include@:>@])],
-+    [
-+    if test x$withval = xyes -o x$withval = x ; then
-+	AC_MSG_ERROR(--with-kernel-includes must be given the path to your kernel source include files.)
-+    fi
-+    if ! test -d $withval ; then
-+	AC_MSG_ERROR(The --with-kernel-includes path $withval is not a directory.)
-+    fi
-+    if ! test -d $withval/linux ; then
-+	AC_MSG_ERROR(The --with-kernel-includes directory $withval must contain the directory 'linux'.)
-+    fi
-+    if ! test -r $withval/linux ; then
-+	AC_MSG_ERROR(You must have read permissions for the kernel source include files.)
-+    fi
-+    KERNEL_INCLUDES=`(cd $withval; /bin/pwd)`
-+    CFLAGS="$CFLAGS -I$KERNEL_INCLUDES"],)
- 
- 
- dnl Output the makefile
---- libnfnetlink-0.0.40/README.old	2009-01-18 18:10:42.000000000 +0100
-+++ libnfnetlink-0.0.40/README	2009-01-20 15:06:43.000000000 +0100
-@@ -1,5 +1,5 @@
- libnfnetlink - userspace library for handling of netfilter netlink messages
--(C) 2001-2005 Netfilter Core Team <coreteam@netfilter.org>
-+(C) 2001-2009 Netfilter Core Team <coreteam@netfilter.org>
- ===========================================================================
- 
- What is nfnetlink?
-@@ -13,22 +13,22 @@ What is libnfnetlink?
- 
- libnfnetlink is a userspace library that provides some low-level
- nfnetlink handling functions.  It is used as a foundation for other, netfilter
--subsystem specific libraries such as libnfnetlink_conntrack, libnfnetlink_log
--and libnfnetlink_queue.
-+subsystem specific libraries such as libnetfilter_conntrack, libnetfilter_log
-+and libnetfilter_queue.
- 
- 
- Prerequirements for libnfnetlink
- 
- You will need kernel headers from a kernel that has nfnetlink support.  The
--first official kernel release to include nfnetlink support is 2.6.14.  
--You can specify the location of your kernel sources using the "--with-kernel="
--configure option.
-+first official kernel release to include nfnetlink support is 2.6.14.
-+You can specify the location of your kernel sources using the
-+"--with-kernel-includes" configure option.
- 
- 
- Where can I find documentation?
- 
- At the moment, you will have to RTFS.  Sorry, but we have barely enough
--manpower to keep development ongoing.  If you want to conribute documentation,
-+manpower to keep development ongoing.  If you want to contribute documentation,
- please contact us.
- 
- 
-@@ -40,6 +40,5 @@ the "libnfnetlink" Product.
- 
- Where do I get support?
- 
--The netfilter@lists.netfilter.org and netfilter-devel@lists.netfilter.org
--mailinglists server as support forum.
--
-+The netfilter@vger.kernel.org and netfilter-devel@vger.kernel.org
-+mailinglists serve as support forum.
+> +    if ! test -d $withval/linux ; then
+> +    if ! test -r $withval/linux ; then
