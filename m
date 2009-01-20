@@ -1,69 +1,92 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [4/5] build: resolve autotools suggestions to use
- AC_CONFIG_MACRO_DIR
-Date: Tue, 20 Jan 2009 12:17:11 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0901201217040.13700@fbirervta.pbzchgretzou.qr>
+Subject: [5/5] build: update configure.ac
+Date: Tue, 20 Jan 2009 12:17:18 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0901201217110.13700@fbirervta.pbzchgretzou.qr>
 References: <alpine.LSU.2.00.0901201214520.13700@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: eric@inl.fr
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:39855 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:39859 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757550AbZATLRM (ORCPT
+	with ESMTP id S1757550AbZATLRT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 20 Jan 2009 06:17:12 -0500
+	Tue, 20 Jan 2009 06:17:19 -0500
 In-Reply-To: <alpine.LSU.2.00.0901201214520.13700@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-parent 433135f373edde9cc9c129b28257844eb1b3642c
-commit d3ced9d5dcdb6b42a4c887b3afbfaaaa2bc09419
+parent d3ced9d5dcdb6b42a4c887b3afbfaaaa2bc09419
+commit 71d45403400bdb18bc6ae5efaf4772f6b847c351
 Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Tue Jan 20 12:05:54 2009 +0100
+Date:   Tue Jan 20 12:08:06 2009 +0100
 
-build: resolve autotools suggestions to use AC_CONFIG_MACRO_DIR
+build: update configure.ac
 
-libtoolize: Consider adding `AC_CONFIG_MACRO_DIR([m4])' to configure.ac and
-libtoolize: rerunning libtoolize, to keep the correct libtool macros in-tree.
-libtoolize: Consider adding `-I m4' to ACLOCAL_AMFLAGS in Makefile.am.
+Some constructs in there are old-fashioned. Replace them by their
+modern counterparts.
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- Makefile.am   |    1 +
- configure.in  |    1 +
- m4/.gitignore |    2 ++
- 3 files changed, 4 insertions(+), 0 deletions(-)
- create mode 100644 m4/.gitignore
+ autogen.sh                   |    7 ++-----
+ configure.in => configure.ac |   13 +++++++------
+ 2 files changed, 9 insertions(+), 11 deletions(-)
+ rename configure.in => configure.ac (91%)
 
-diff --git a/Makefile.am b/Makefile.am
-index e8b1154..ac35ce3 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -1,4 +1,5 @@
+diff --git a/autogen.sh b/autogen.sh
+index 189e2f4..36b2a2a 100755
+--- a/autogen.sh
++++ b/autogen.sh
+@@ -1,7 +1,4 @@
+ #!/bin/sh
  
-+ACLOCAL_AMFLAGS  = -I m4
- AUTOMAKE_OPTIONS = foreign dist-bzip2 1.6
- 
- man_MANS = ulogd.8
-diff --git a/configure.in b/configure.in
-index 9d3f02a..141fa7d 100644
+-aclocal
+-autoheader
+-libtoolize -c --force 
+-automake -c --add-missing
+-autoconf
++autoreconf -fi;
++rm -Rf autom4te.cache;
+diff --git a/configure.in b/configure.ac
+similarity index 91%
+rename from configure.in
+rename to configure.ac
+index 141fa7d..4429d5c 100644
 --- a/configure.in
-+++ b/configure.in
-@@ -4,6 +4,7 @@ AC_INIT
++++ b/configure.ac
+@@ -1,16 +1,16 @@
+ dnl Process this file with autoconf to produce a configure script.
+-AC_PREQ(2.50)
+-AC_INIT
++AC_PREREQ([2.50])
++AC_INIT([ulogd], [2.0.0beta2])
  
- AM_INIT_AUTOMAKE(ulogd, 2.0.0beta2)
- AM_CONFIG_HEADER(config.h)
-+AC_CONFIG_MACRO_DIR([m4])
+-AM_INIT_AUTOMAKE(ulogd, 2.0.0beta2)
+-AM_CONFIG_HEADER(config.h)
++AM_INIT_AUTOMAKE([-Wall])
++AC_CONFIG_HEADER([config.h])
+ AC_CONFIG_MACRO_DIR([m4])
  
  dnl Checks for programs.
  AC_PROG_MAKE_SET
-diff --git a/m4/.gitignore b/m4/.gitignore
-new file mode 100644
-index 0000000..64d9bbc
---- /dev/null
-+++ b/m4/.gitignore
-@@ -0,0 +1,2 @@
-+/libtool.m4
-+/lt*.m4
+ AC_PROG_CC
+ AC_PROG_INSTALL
+-AM_PROG_LIBTOOL
++AC_PROG_LIBTOOL
+ 
+ dnl Checks for libraries.
+ AC_CHECK_LIB(dl, dlopen)
+@@ -74,10 +74,11 @@ dnl AC_SUBST(HAVE_PCAP_H)
+ dnl AM_CONDITIONAL(HAVE_MYSQL, test x$mysqldir != x)
+ dnl AM_CONDITIONAL(HAVE_PGSQL, test x$pgsqldir != x)
+ 
+-AC_OUTPUT(include/Makefile include/ulogd/Makefile include/libipulog/Makefile \
++AC_CONFIG_FILES(include/Makefile include/ulogd/Makefile include/libipulog/Makefile \
+ 	  libipulog/Makefile \
+ 	  input/Makefile input/packet/Makefile input/flow/Makefile \
+ 	  filter/Makefile filter/raw2packet/Makefile filter/packet2flow/Makefile \
+ 	  output/Makefile output/pcap/Makefile output/mysql/Makefile output/pgsql/Makefile output/sqlite3/Makefile \
+ 	  output/dbi/Makefile \
+ 	  src/Makefile Makefile Rules.make)
++AC_OUTPUT
