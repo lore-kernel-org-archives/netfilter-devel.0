@@ -1,93 +1,78 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: RFC: Mandatory Access Control for sockets aka "personal
- firewalls"
-Date: Tue, 20 Jan 2009 21:31:24 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0901202120240.24253@fbirervta.pbzchgretzou.qr>
-References: <1232473719.24943.102.camel@sp-laptop3.sp-local> <alpine.LSU.2.00.0901201916340.516@fbirervta.pbzchgretzou.qr> <1232477780.24943.116.camel@sp-laptop3.sp-local> <m2prih3f9i.fsf@ssh.synack.fr>
+From: Paul Moore <paul.moore@hp.com>
+Subject: Re: RFC: Mandatory Access Control for sockets aka "personal firewalls"
+Date: Tue, 20 Jan 2009 15:47:44 -0500
+Message-ID: <200901201547.44981.paul.moore@hp.com>
+References: <1232473719.24943.102.camel@sp-laptop3.sp-local>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Stephan Peijnik <stephan@peijnik.at>,
-	linux-security-module <linux-security-module@vger.kernel.org>,
-	netdev@vger.kernel.org,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Samir Bellabes <sam@synack.fr>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: "linux-security-module" <linux-security-module@vger.kernel.org>,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Stephan Peijnik <stephan@peijnik.at>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:52446 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754731AbZATUb1 (ORCPT
+Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:42727 "EHLO
+	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756937AbZATUsD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 20 Jan 2009 15:31:27 -0500
-In-Reply-To: <m2prih3f9i.fsf@ssh.synack.fr>
+	Tue, 20 Jan 2009 15:48:03 -0500
+In-Reply-To: <1232473719.24943.102.camel@sp-laptop3.sp-local>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-On Tuesday 2009-01-20 21:15, Samir Bellabes wrote this in IRC:
+On Tuesday 20 January 2009 12:48:39 pm Stephan Peijnik wrote:
+> All proposed implementations of personal firewalls until now have
+> made it rather clear that the decision-making logic should be placed
+> in userspace, whilst only a small piece of code communicating with a
+> userspace daemon should be placed in the kernel itself.
 >
->be carefull, you are mixing 2 distincts questions in fact :
+> Okay, enough of the (not so) brief description on what people want to
+> do and on to a summary of what has been discussed so far.
 >
->1. how to have differents security models in the kernel, dealing with
->   the LSM hooks ?
+> Most implementations started out using the LSM framework for creating
+> a personal firewall, that's also the reason the whole discussion
+> started out on the LSM mailing list.
+> Even though this looks like a good solution there is one main problem
+> with the LSM framework right now: only a single LSM module can be
+> loaded and enabled at a time.
 
-A possible idea would be to not do the traditional LSM chaining,
-but a parallel approach.
+...
 
-The problem with LSM chaining is that it somewhat imposed an order
-on LSMs. The checks in SELinux for example could have decided
-"it's forbidden" and not call out to the secondary module that was
-registered with it. Similarly if my own module was primary and
-selinux was the secondary -- this would potentially lead to me
-having forgotten something in the primary and not calling the
-secondary so selinux would have an inconsistent state of itself.
-Therefore, how about doing a parallel LSM approach:
+> Another approach that has been suggested is using the netfilter
+> framework for this purpose. Even though this again sounds like a good
+> idea in the first place it also has its flaws.
 
-int security_create_inode(...)
-{
-	int ret == 0, x;
-	list_for_each_entry(lsm, ...) {
-		x = lsm->create_inode(...);
-		if (x < 0 && ret == 0)
-			ret = x;
-	}
-	return x;
-}
+...
 
-That way, SElinux (which must serve as a beating sample now)
-can update the security context associated with the inode as
-required, but our own modules still has something to say in
-whether the action is penultimately allowed.
+> And yet another approach was suggested: hooking socket-related calls
+> directly in net/socket.c. This would mean that the personal firewall
+> code is called directly from net/socket.c and can this way work in
+> process-context, without using the LSM framework.
 
-There is still an order and would leave question open like
-"if selinux does not like you at all, why bother showing
-a window to the user asking for 'prog xyz tries to bind()'".
+Another option that was brought up (although perhaps not very clearly 
+since it isn't listed here) was the embedding of the personal firewall 
+hooks into the individual LSMs roughly similar to how capabilities are 
+handled with SELinux today (a separate security mechanism that has 
+explicit calls within SELinux).  This approach enables the use of 
+current LSMs (although minor modifications will be needed) and avoids 
+the need to add new hooks to the core network stack.
 
-But I think it's the direction.
+> What has not been agreed on yet is whether only a way of hooking
+> these calls should be made available to implementations or whether
+> the whole in-kernel part should be developed together and allow
+> implementations of personal firewalls in userspace only, for example
+> using a netlink socket to communicate with the shared in-kernel code.
 
->But what you are asking is to have multiple security models at the same
->time, with some kind of priority.
->I don't know if it's ok or not, but what I'm sure is that snet will use
->LSM hooks or your new framework without any problems in fact, as you are
->going to make some kind of wrapper on the members of the struct
->security_operations.
+Since there will always be a significant userspace component to any 
+personal firewall approach it seems reasonable to push the decision 
+making into userspace and leave the kernel component relatively simple.  
+The basic idea behind Samir's "snet" concept where the kernel simply 
+passes messages to userspace and waits for a verdict seems like a 
+reasonable approach in that it can be made to support different 
+personal firewall implementations/designs without significant changes 
+to the kernel.
 
-jan>>> My opinion up to here would be to split LSM into the LSM category
->>> {selinux, apparmor, tomoyo} and the other, new LSM category
->>> {networking stuff}, just as a potential idea to get over the
->>> stacking / single LSM use  issue.
->
->Indeed I thought about that when writing snet.
-
-For starters, the existing LSM interface and the LSM  modules themselves
-could be split up so as to provide
-
- selinux.ko
-  \_ selinux_net.ko
-  \_ selinux_fs.ko
-  ...
-
-just a suggestion to ease the thinking process for now.
-If a purely network-related LSM does not have to think about
-"do I need to implement FS hooks that do chaining or not..."
-it is a lot better off.
-
+-- 
+paul moore
+linux @ hp
