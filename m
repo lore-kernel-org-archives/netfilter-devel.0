@@ -1,49 +1,45 @@
 From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: [PATCH] add --with-kernel-includes configure option to libnetfilter_conntrack
-Date: Tue, 20 Jan 2009 17:39:09 +0100
-Message-ID: <4975FE2D.9010401@pandora.be>
+Subject: [PATCH] add --with-kernel-includes configure option to libnfnetlink
+Date: Tue, 20 Jan 2009 17:43:19 +0100
+Message-ID: <4975FF27.5060008@pandora.be>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from wilson.telenet-ops.be ([195.130.132.42]:43964 "EHLO
-	wilson.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756676AbZATQjM (ORCPT
+Received: from edna.telenet-ops.be ([195.130.132.58]:53997 "EHLO
+	edna.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755586AbZATQnX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 20 Jan 2009 11:39:12 -0500
+	Tue, 20 Jan 2009 11:43:23 -0500
 Received: from localhost (localhost.localdomain [127.0.0.1])
-	by wilson.telenet-ops.be (Postfix) with SMTP id E0C473406A
-	for <netfilter-devel@vger.kernel.org>; Tue, 20 Jan 2009 17:39:09 +0100 (CET)
+	by edna.telenet-ops.be (Postfix) with SMTP id EF60BE4089
+	for <netfilter-devel@vger.kernel.org>; Tue, 20 Jan 2009 17:43:19 +0100 (CET)
 Received: from [127.0.0.1] (d54C6FD43.access.telenet.be [84.198.253.67])
-	by wilson.telenet-ops.be (Postfix) with ESMTP id B1CBC3405F
-	for <netfilter-devel@vger.kernel.org>; Tue, 20 Jan 2009 17:39:09 +0100 (CET)
+	by edna.telenet-ops.be (Postfix) with ESMTP id BFDC1E4033
+	for <netfilter-devel@vger.kernel.org>; Tue, 20 Jan 2009 17:43:19 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Hi,
 
-The previous mail should have had libnetfilter_log in the subject...
-
 This adds the --with-kernel-includes configure option to
-libnetfilter_conntrack and updates the README. This option allows
-compiling with kernel headers not located at /usr/include.
+libnfnetlink and updates README. This option allows compiling
+with kernel headers not located at /usr/include.
+Note that the --with-kernel option isn't implemented.
+
 
 Signed-off-by: Bart De Schuymer <bdschuym@pandora.be>
 
 
-
---- libnetfilter_conntrack-0.0.99/configure.in.old	2009-01-19 17:48:09.000000000 +0100
-+++ libnetfilter_conntrack-0.0.99/configure.in	2009-01-19 17:48:46.000000000 +0100
-@@ -72,11 +72,34 @@ if test ! -z "$libdir"; then
- 	CFLAGS="$CFLAGS -DLIBNETFILTER_CONNTRACK_DIR=$MODULE_DIR"
- fi
+--- libnfnetlink-0.0.40/configure.in.old	2009-01-19 17:31:08.000000000 +0100
++++ libnfnetlink-0.0.40/configure.in	2009-01-20 15:21:27.000000000 +0100
+@@ -17,8 +17,26 @@ case $target in 
+ esac
  
--CFLAGS="$CFLAGS $LIBNFNETLINK_CFLAGS"
- LIBNFCONNTRACK_LIBS="$LIBNFNETLINK_LIBS"
  
- AC_SUBST(LIBNFCONNTRACK_LIBS)
- 
+-dnl--------------------------------
+-dnl--------------------------------
 +dnl Allows compiling the library with kernel include headers not located
 +dnl at /usr/include
 +AC_ARG_WITH([kernel-includes],
@@ -63,23 +59,54 @@ Signed-off-by: Bart De Schuymer <bdschuym@pandora.be>
 +	AC_MSG_ERROR(You must have read permissions for the kernel source include files.)
 +    fi
 +    KERNEL_INCLUDES=`(cd $withval; /bin/pwd)`
-+    TMP_CFLAGS_OTHER=`$PKG_CONFIG libnfnetlink --cflags-only-other`
-+    TMP_CFLAGS_I=`$PKG_CONFIG libnfnetlink --cflags-only-I`
-+    CFLAGS="$CFLAGS $TMP_CFLAGS_OTHER -I$KERNEL_INCLUDES $TMP_CFLAGS_I"],
-+    CFLAGS="$CFLAGS $LIBNFNETLINK_CFLAGS")
-+
++    CFLAGS="$CFLAGS -I$KERNEL_INCLUDES"],)
+ 
+ 
  dnl Output the makefile
- AC_OUTPUT(Makefile src/Makefile include/Makefile utils/Makefile qa/Makefile include/libnetfilter_conntrack/Makefile include/internal/Makefile src/conntrack/Makefile src/expect/Makefile src/deprecated/Makefile src/deprecated/l3extensions/Makefile src/deprecated/extensions/Makefile libnetfilter_conntrack.pc)
+--- libnfnetlink-0.0.40/README.old	2009-01-18 18:10:42.000000000 +0100
++++ libnfnetlink-0.0.40/README	2009-01-20 15:06:43.000000000 +0100
+@@ -1,5 +1,5 @@
+ libnfnetlink - userspace library for handling of netfilter netlink messages
+-(C) 2001-2005 Netfilter Core Team <coreteam@netfilter.org>
++(C) 2001-2009 Netfilter Core Team <coreteam@netfilter.org>
+ ===========================================================================
  
---- libnetfilter_conntrack-0.0.99/README.old	2009-01-19 17:51:11.000000000 +0100
-+++ libnetfilter_conntrack-0.0.99/README	2009-01-19 17:58:21.000000000 +0100
-@@ -38,6 +38,9 @@ Linux kernel version >= 2.6.18 (http://w
-  * ctnetlink (ip_conntrack_netlink)
-  * connection tracking event notification API 
+ What is nfnetlink?
+@@ -13,22 +13,22 @@ What is libnfnetlink?
  
+ libnfnetlink is a userspace library that provides some low-level
+ nfnetlink handling functions.  It is used as a foundation for other, netfilter
+-subsystem specific libraries such as libnfnetlink_conntrack, libnfnetlink_log
+-and libnfnetlink_queue.
++subsystem specific libraries such as libnetfilter_conntrack, libnetfilter_log
++and libnetfilter_queue.
+ 
+ 
+ Prerequirements for libnfnetlink
+ 
+ You will need kernel headers from a kernel that has nfnetlink support.  The
+-first official kernel release to include nfnetlink support is 2.6.14.  
+-You can specify the location of your kernel sources using the "--with-kernel="
+-configure option.
++first official kernel release to include nfnetlink support is 2.6.14.
 +You can specify the location of your kernel sources using the
 +"--with-kernel-includes" configure option.
-+
- = Documentation =
  
- The libnetfilter_conntrack API is well documented, however we don't have any
+ 
+ Where can I find documentation?
+ 
+ At the moment, you will have to RTFS.  Sorry, but we have barely enough
+-manpower to keep development ongoing.  If you want to conribute documentation,
++manpower to keep development ongoing.  If you want to contribute documentation,
+ please contact us.
+ 
+ 
+@@ -40,6 +40,5 @@ the "libnfnetlink" Product.
+ 
+ Where do I get support?
+ 
+-The netfilter@lists.netfilter.org and netfilter-devel@lists.netfilter.org
+-mailinglists server as support forum.
+-
++The netfilter@vger.kernel.org and netfilter-devel@vger.kernel.org
++mailinglists serve as support forum.
