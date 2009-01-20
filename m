@@ -1,50 +1,81 @@
 From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: [PATCH] fix physdev manpage
-Date: Tue, 20 Jan 2009 17:19:17 +0100
-Message-ID: <4975F985.8090205@pandora.be>
+Subject: [PATCH] add hw src address, physindev and physoutdev support to nfqnl_test
+Date: Tue, 20 Jan 2009 17:23:56 +0100
+Message-ID: <4975FA9C.8090007@pandora.be>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from yergi.telenet-ops.be ([195.130.132.36]:42766 "EHLO
-	yergi.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755586AbZATQTu (ORCPT
+Received: from yorgi.telenet-ops.be ([195.130.133.69]:35461 "EHLO
+	yorgi.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754948AbZATQY0 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 20 Jan 2009 11:19:50 -0500
-Received: from edna.telenet-ops.be (unknown [195.130.132.58])
-	by yergi.telenet-ops.be (Postfix) with ESMTP id 8CA8B5C97DB
-	for <netfilter-devel@vger.kernel.org>; Tue, 20 Jan 2009 17:19:46 +0100 (CET)
+	Tue, 20 Jan 2009 11:24:26 -0500
+Received: from wilson.telenet-ops.be (wilson.telenet-ops.be [195.130.132.42])
+	by yorgi.telenet-ops.be (Postfix) with ESMTP id C43A0681593
+	for <netfilter-devel@vger.kernel.org>; Tue, 20 Jan 2009 17:24:23 +0100 (CET)
 Received: from localhost (localhost.localdomain [127.0.0.1])
-	by edna.telenet-ops.be (Postfix) with SMTP id 2EB92E40B3
-	for <netfilter-devel@vger.kernel.org>; Tue, 20 Jan 2009 17:19:18 +0100 (CET)
+	by wilson.telenet-ops.be (Postfix) with SMTP id 233CB3402C
+	for <netfilter-devel@vger.kernel.org>; Tue, 20 Jan 2009 17:23:57 +0100 (CET)
 Received: from [127.0.0.1] (d54C6FD43.access.telenet.be [84.198.253.67])
-	by edna.telenet-ops.be (Postfix) with ESMTP id F363CE4057
-	for <netfilter-devel@vger.kernel.org>; Tue, 20 Jan 2009 17:19:17 +0100 (CET)
+	by wilson.telenet-ops.be (Postfix) with ESMTP id E1D233405A
+	for <netfilter-devel@vger.kernel.org>; Tue, 20 Jan 2009 17:23:56 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Hi,
 
-
-A sentence of the physdev module's help entry was truncated by the man
-program because the line starts with a single quote.
+This adds the hardware source address, physindev and physoutdev support
+to nfqnl_test
 
 Signed-off-by: Bart De Schuymer <bdschuym@pandora.be>
 
-
---- iptables-1.4.2/extensions/libxt_physdev.man.old	2009-01-17 13:12:39.000000000 +0100
-+++ iptables-1.4.2/extensions/libxt_physdev.man	2009-01-17 13:16:37.000000000 +0100
-@@ -27,9 +27,9 @@ interface which begins with this name wi
- .B OUTPUT
- chains one cannot match on the bridge output port, however one can in the
- .B "filter OUTPUT"
--chain. If the packet won't leave by a bridge device or it is yet unknown what
--the output device will be, then the packet won't match this option, unless
--'!' is used.
-+chain. If the packet won't leave by a bridge device or if it is yet unknown what
-+the output device will be, then the packet won't match this option,
-+unless '!' is used.
- .TP
- [\fB!\fP] \fB--physdev-is-in\fP
- Matches if the packet has entered through a bridge interface.
+--- libnetfilter_queue-0.0.16/utils/nfqnl_test.c.old	2009-01-17 16:20:06.000000000 +0100
++++ libnetfilter_queue-0.0.16/utils/nfqnl_test.c	2009-01-17 16:22:44.000000000 +0100
+@@ -13,17 +13,28 @@ static u_int32_t print_pkt (struct nfq_d
+ {
+ 	int id = 0;
+ 	struct nfqnl_msg_packet_hdr *ph;
++	struct nfqnl_msg_packet_hw *hwph;
+ 	u_int32_t mark,ifi; 
+ 	int ret;
+ 	char *data;
+-	
++
+ 	ph = nfq_get_msg_packet_hdr(tb);
+-	if (ph){
++	if (ph) {
+ 		id = ntohl(ph->packet_id);
+ 		printf("hw_protocol=0x%04x hook=%u id=%u ",
+ 			ntohs(ph->hw_protocol), ph->hook, id);
+ 	}
+-	
++
++	hwph = nfq_get_packet_hw(tb);
++	if (hwph) {
++		int i, hlen = ntohs(hwph->hw_addrlen);
++
++		printf("hw_src_addr=");
++		for (i = 0; i < hlen-1; i++)
++			printf("%02x:", hwph->hw_addr[i]);
++		printf("%02x ", hwph->hw_addr[hlen-1]);
++	}
++
+ 	mark = nfq_get_nfmark(tb);
+ 	if (mark)
+ 		printf("mark=%u ", mark);
+@@ -35,6 +46,13 @@ static u_int32_t print_pkt (struct nfq_d
+ 	ifi = nfq_get_outdev(tb);
+ 	if (ifi)
+ 		printf("outdev=%u ", ifi);
++	ifi = nfq_get_physindev(tb);
++	if (ifi)
++		printf("physindev=%u ", ifi);
++
++	ifi = nfq_get_physoutdev(tb);
++	if (ifi)
++		printf("physoutdev=%u ", ifi);
+ 
+ 	ret = nfq_get_payload(tb, &data);
+ 	if (ret >= 0)
