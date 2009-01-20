@@ -1,548 +1,397 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: netfilter: xtables: Combine ipt_TTL and ip6t_HL source
-Date: Tue, 20 Jan 2009 14:16:22 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0901201415470.16288@fbirervta.pbzchgretzou.qr>
+Subject: netfilter: xtables: Combine ipt_ttl and ip6t_hl source
+Date: Tue, 20 Jan 2009 14:17:01 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0901201416250.16288@fbirervta.pbzchgretzou.qr>
+References: <alpine.LSU.2.00.0901201415470.16288@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List
 	<netfilter-devel@vger.kernel.org>, t.james.king@gmail.com
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:46940 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:46942 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761819AbZATNQZ (ORCPT
+	with ESMTP id S1760866AbZATNRE (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 20 Jan 2009 08:16:25 -0500
+	Tue, 20 Jan 2009 08:17:04 -0500
+In-Reply-To: <alpine.LSU.2.00.0901201415470.16288@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-parent b0b47dffd52c2eca62bc9a7d4fdf2cd4a2022e47 (v2.6.29-rc2-16-gb0b47df)
-commit 46094aad3697c8196da64c0d5bc64c8f14557fe1
+parent 46094aad3697c8196da64c0d5bc64c8f14557fe1 (v2.6.29-rc2-17-g46094aa)
+commit 451c6bbfad0ac839bccc5f0e1d2f603afa97ce2a
 Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Sun Jan 18 09:02:53 2009 +0100
+Date:   Sun Jan 18 09:02:59 2009 +0100
 
-netfilter: xtables: Combine ipt_TTL and ip6t_HL source
-
-Suggested by: James King <t.james.king@gmail.com>
-
-Similarly to commit c9fd49680954714473d6cbd2546d6ff120f96840, merge
-TTL and HL. Since HL does not depend on any IPv6-specific function,
-no new module dependencies would arise.
-
-With slight adjustments to the Kconfig help text.
+netfilter: xtables: Combine ipt_ttl and ip6t_hl source
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- net/ipv4/netfilter/Kconfig   |   15 ---
+ net/ipv4/netfilter/Kconfig   |    9 ---
  net/ipv4/netfilter/Makefile  |    1 -
- net/ipv4/netfilter/ipt_TTL.c |   97 -------------------
- net/ipv6/netfilter/Kconfig   |   17 ----
+ net/ipv4/netfilter/ipt_ttl.c |   63 --------------------
+ net/ipv6/netfilter/Kconfig   |    9 ---
  net/ipv6/netfilter/Makefile  |    1 -
- net/ipv6/netfilter/ip6t_HL.c |   95 -------------------
- net/netfilter/Kconfig        |   15 +++
+ net/ipv6/netfilter/ip6t_hl.c |   68 ---------------------
+ net/netfilter/Kconfig        |    8 +++
  net/netfilter/Makefile       |    1 +
- net/netfilter/xt_HL.c        |  171 ++++++++++++++++++++++++++++++++++
- 9 files changed, 187 insertions(+), 226 deletions(-)
- delete mode 100644 net/ipv4/netfilter/ipt_TTL.c
- delete mode 100644 net/ipv6/netfilter/ip6t_HL.c
- create mode 100644 net/netfilter/xt_HL.c
+ net/netfilter/xt_hl.c        |  108 ++++++++++++++++++++++++++++++++++
+ 9 files changed, 117 insertions(+), 151 deletions(-)
+ delete mode 100644 net/ipv4/netfilter/ipt_ttl.c
+ delete mode 100644 net/ipv6/netfilter/ip6t_hl.c
+ create mode 100644 net/netfilter/xt_hl.c
 
 diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index 3816e1d..3ad9f43 100644
+index 3ad9f43..40ad41f 100644
 --- a/net/ipv4/netfilter/Kconfig
 +++ b/net/ipv4/netfilter/Kconfig
-@@ -322,21 +322,6 @@ config IP_NF_TARGET_ECN
+@@ -92,15 +92,6 @@ config IP_NF_MATCH_ECN
  
  	  To compile it as a module, choose M here.  If unsure, say N.
  
--config IP_NF_TARGET_TTL
--	tristate  'TTL target support'
--	depends on IP_NF_MANGLE
+-config IP_NF_MATCH_TTL
+-	tristate '"ttl" match support'
 -	depends on NETFILTER_ADVANCED
 -	help
--	  This option adds a `TTL' target, which enables the user to modify
--	  the TTL value of the IP header.
--
--	  While it is safe to decrement/lower the TTL, this target also enables
--	  functionality to increment and set the TTL value of the IP header to
--	  arbitrary values.  This is EXTREMELY DANGEROUS since you can easily
--	  create immortal packets that loop forever on the network.
+-	  This adds CONFIG_IP_NF_MATCH_TTL option, which enabled the user
+-	  to match packets by their TTL value.
 -
 -	  To compile it as a module, choose M here.  If unsure, say N.
 -
- # raw + specific targets
- config IP_NF_RAW
- 	tristate  'raw table support (required for NOTRACK/TRACE)'
+ # `filter', generic and specific targets
+ config IP_NF_FILTER
+ 	tristate "Packet filtering"
 diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
-index 5f9b650..20b0c37 100644
+index 20b0c37..4811159 100644
 --- a/net/ipv4/netfilter/Makefile
 +++ b/net/ipv4/netfilter/Makefile
-@@ -61,7 +61,6 @@ obj-$(CONFIG_IP_NF_TARGET_MASQUERADE) += ipt_MASQUERADE.o
- obj-$(CONFIG_IP_NF_TARGET_NETMAP) += ipt_NETMAP.o
- obj-$(CONFIG_IP_NF_TARGET_REDIRECT) += ipt_REDIRECT.o
- obj-$(CONFIG_IP_NF_TARGET_REJECT) += ipt_REJECT.o
--obj-$(CONFIG_IP_NF_TARGET_TTL) += ipt_TTL.o
- obj-$(CONFIG_IP_NF_TARGET_ULOG) += ipt_ULOG.o
+@@ -51,7 +51,6 @@ obj-$(CONFIG_IP_NF_SECURITY) += iptable_security.o
+ obj-$(CONFIG_IP_NF_MATCH_ADDRTYPE) += ipt_addrtype.o
+ obj-$(CONFIG_IP_NF_MATCH_AH) += ipt_ah.o
+ obj-$(CONFIG_IP_NF_MATCH_ECN) += ipt_ecn.o
+-obj-$(CONFIG_IP_NF_MATCH_TTL) += ipt_ttl.o
  
- # generic ARP tables
-diff --git a/net/ipv4/netfilter/ipt_TTL.c b/net/ipv4/netfilter/ipt_TTL.c
+ # targets
+ obj-$(CONFIG_IP_NF_TARGET_CLUSTERIP) += ipt_CLUSTERIP.o
+diff --git a/net/ipv4/netfilter/ipt_ttl.c b/net/ipv4/netfilter/ipt_ttl.c
 deleted file mode 100644
-index 6d76aae..0000000
---- a/net/ipv4/netfilter/ipt_TTL.c
+index 297f1cb..0000000
+--- a/net/ipv4/netfilter/ipt_ttl.c
 +++ /dev/null
-@@ -1,97 +0,0 @@
--/* TTL modification target for IP tables
-- * (C) 2000,2005 by Harald Welte <laforge@netfilter.org>
+@@ -1,63 +0,0 @@
+-/* IP tables module for matching the value of the TTL
+- *
+- * (C) 2000,2001 by Harald Welte <laforge@netfilter.org>
 - *
 - * This program is free software; you can redistribute it and/or modify
 - * it under the terms of the GNU General Public License version 2 as
 - * published by the Free Software Foundation.
-- *
 - */
 -
+-#include <linux/ip.h>
 -#include <linux/module.h>
 -#include <linux/skbuff.h>
--#include <linux/ip.h>
--#include <net/checksum.h>
 -
+-#include <linux/netfilter_ipv4/ipt_ttl.h>
 -#include <linux/netfilter/x_tables.h>
--#include <linux/netfilter_ipv4/ipt_TTL.h>
 -
 -MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
--MODULE_DESCRIPTION("Xtables: IPv4 TTL field modification target");
+-MODULE_DESCRIPTION("Xtables: IPv4 TTL field match");
 -MODULE_LICENSE("GPL");
 -
--static unsigned int
--ttl_tg(struct sk_buff *skb, const struct xt_target_param *par)
+-static bool ttl_mt(const struct sk_buff *skb, const struct xt_match_param *par)
 -{
--	struct iphdr *iph;
--	const struct ipt_TTL_info *info = par->targinfo;
--	int new_ttl;
--
--	if (!skb_make_writable(skb, skb->len))
--		return NF_DROP;
--
--	iph = ip_hdr(skb);
+-	const struct ipt_ttl_info *info = par->matchinfo;
+-	const u8 ttl = ip_hdr(skb)->ttl;
 -
 -	switch (info->mode) {
--		case IPT_TTL_SET:
--			new_ttl = info->ttl;
--			break;
--		case IPT_TTL_INC:
--			new_ttl = iph->ttl + info->ttl;
--			if (new_ttl > 255)
--				new_ttl = 255;
--			break;
--		case IPT_TTL_DEC:
--			new_ttl = iph->ttl - info->ttl;
--			if (new_ttl < 0)
--				new_ttl = 0;
--			break;
+-		case IPT_TTL_EQ:
+-			return ttl == info->ttl;
+-		case IPT_TTL_NE:
+-			return ttl != info->ttl;
+-		case IPT_TTL_LT:
+-			return ttl < info->ttl;
+-		case IPT_TTL_GT:
+-			return ttl > info->ttl;
 -		default:
--			new_ttl = iph->ttl;
--			break;
+-			printk(KERN_WARNING "ipt_ttl: unknown mode %d\n",
+-				info->mode);
+-			return false;
 -	}
 -
--	if (new_ttl != iph->ttl) {
--		csum_replace2(&iph->check, htons(iph->ttl << 8),
--					   htons(new_ttl << 8));
--		iph->ttl = new_ttl;
--	}
--
--	return XT_CONTINUE;
+-	return false;
 -}
 -
--static bool ttl_tg_check(const struct xt_tgchk_param *par)
--{
--	const struct ipt_TTL_info *info = par->targinfo;
--
--	if (info->mode > IPT_TTL_MAXMODE) {
--		printk(KERN_WARNING "ipt_TTL: invalid or unknown Mode %u\n",
--			info->mode);
--		return false;
--	}
--	if (info->mode != IPT_TTL_SET && info->ttl == 0)
--		return false;
--	return true;
--}
--
--static struct xt_target ttl_tg_reg __read_mostly = {
--	.name 		= "TTL",
+-static struct xt_match ttl_mt_reg __read_mostly = {
+-	.name		= "ttl",
 -	.family		= NFPROTO_IPV4,
--	.target 	= ttl_tg,
--	.targetsize	= sizeof(struct ipt_TTL_info),
--	.table		= "mangle",
--	.checkentry 	= ttl_tg_check,
--	.me 		= THIS_MODULE,
+-	.match		= ttl_mt,
+-	.matchsize	= sizeof(struct ipt_ttl_info),
+-	.me		= THIS_MODULE,
 -};
 -
--static int __init ttl_tg_init(void)
+-static int __init ttl_mt_init(void)
 -{
--	return xt_register_target(&ttl_tg_reg);
+-	return xt_register_match(&ttl_mt_reg);
 -}
 -
--static void __exit ttl_tg_exit(void)
+-static void __exit ttl_mt_exit(void)
 -{
--	xt_unregister_target(&ttl_tg_reg);
+-	xt_unregister_match(&ttl_mt_reg);
 -}
 -
--module_init(ttl_tg_init);
--module_exit(ttl_tg_exit);
+-module_init(ttl_mt_init);
+-module_exit(ttl_mt_exit);
 diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
-index 53ea512..6a42a96 100644
+index 6a42a96..4a8d7ec 100644
 --- a/net/ipv6/netfilter/Kconfig
 +++ b/net/ipv6/netfilter/Kconfig
-@@ -170,23 +170,6 @@ config IP6_NF_MANGLE
+@@ -94,15 +94,6 @@ config IP6_NF_MATCH_OPTS
  
  	  To compile it as a module, choose M here.  If unsure, say N.
  
--config IP6_NF_TARGET_HL
--	tristate  'HL (hoplimit) target support'
--	depends on IP6_NF_MANGLE
+-config IP6_NF_MATCH_HL
+-	tristate '"hl" match support'
 -	depends on NETFILTER_ADVANCED
 -	help
--	  This option adds a `HL' target, which enables the user to decrement
--	  the hoplimit value of the IPv6 header or set it to a given (lower)
--	  value.
--
--	  While it is safe to decrement the hoplimit value, this option also
--	  enables functionality to increment and set the hoplimit value of the
--	  IPv6 header to arbitrary values.  This is EXTREMELY DANGEROUS since
--	  you can easily create immortal packets that loop forever on the
--	  network.
+-	  HL matching allows you to match packets based on the hop
+-	  limit of the packet.
 -
 -	  To compile it as a module, choose M here.  If unsure, say N.
 -
- config IP6_NF_RAW
- 	tristate  'raw table support (required for TRACE)'
- 	depends on NETFILTER_ADVANCED
+ config IP6_NF_MATCH_IPV6HEADER
+ 	tristate '"ipv6header" IPv6 Extension Headers Match'
+ 	default m if NETFILTER_ADVANCED=n
 diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
-index 3f17c94..61a4570 100644
+index 61a4570..aafbba3 100644
 --- a/net/ipv6/netfilter/Makefile
 +++ b/net/ipv6/netfilter/Makefile
-@@ -27,6 +27,5 @@ obj-$(CONFIG_IP6_NF_MATCH_OPTS) += ip6t_hbh.o
- obj-$(CONFIG_IP6_NF_MATCH_RT) += ip6t_rt.o
- 
- # targets
--obj-$(CONFIG_IP6_NF_TARGET_HL) += ip6t_HL.o
- obj-$(CONFIG_IP6_NF_TARGET_LOG) += ip6t_LOG.o
- obj-$(CONFIG_IP6_NF_TARGET_REJECT) += ip6t_REJECT.o
-diff --git a/net/ipv6/netfilter/ip6t_HL.c b/net/ipv6/netfilter/ip6t_HL.c
+@@ -20,7 +20,6 @@ obj-$(CONFIG_NF_CONNTRACK_IPV6) += nf_conntrack_ipv6.o
+ obj-$(CONFIG_IP6_NF_MATCH_AH) += ip6t_ah.o
+ obj-$(CONFIG_IP6_NF_MATCH_EUI64) += ip6t_eui64.o
+ obj-$(CONFIG_IP6_NF_MATCH_FRAG) += ip6t_frag.o
+-obj-$(CONFIG_IP6_NF_MATCH_HL) += ip6t_hl.o
+ obj-$(CONFIG_IP6_NF_MATCH_IPV6HEADER) += ip6t_ipv6header.o
+ obj-$(CONFIG_IP6_NF_MATCH_MH) += ip6t_mh.o
+ obj-$(CONFIG_IP6_NF_MATCH_OPTS) += ip6t_hbh.o
+diff --git a/net/ipv6/netfilter/ip6t_hl.c b/net/ipv6/netfilter/ip6t_hl.c
 deleted file mode 100644
-index 27b5adf..0000000
---- a/net/ipv6/netfilter/ip6t_HL.c
+index c964dca..0000000
+--- a/net/ipv6/netfilter/ip6t_hl.c
 +++ /dev/null
-@@ -1,95 +0,0 @@
--/*
-- * Hop Limit modification target for ip6tables
-- * Maciej Soltysiak <solt@dns.toxicfilms.tv>
-- * Based on HW's TTL module
+@@ -1,68 +0,0 @@
+-/* Hop Limit matching module */
+-
+-/* (C) 2001-2002 Maciej Soltysiak <solt@dns.toxicfilms.tv>
+- * Based on HW's ttl module
 - *
-- * This software is distributed under the terms of GNU GPL
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
 - */
 -
+-#include <linux/ipv6.h>
 -#include <linux/module.h>
 -#include <linux/skbuff.h>
--#include <linux/ip.h>
--#include <linux/ipv6.h>
 -
+-#include <linux/netfilter_ipv6/ip6t_hl.h>
 -#include <linux/netfilter/x_tables.h>
--#include <linux/netfilter_ipv6/ip6t_HL.h>
 -
 -MODULE_AUTHOR("Maciej Soltysiak <solt@dns.toxicfilms.tv>");
--MODULE_DESCRIPTION("Xtables: IPv6 Hop Limit field modification target");
+-MODULE_DESCRIPTION("Xtables: IPv6 Hop Limit field match");
 -MODULE_LICENSE("GPL");
 -
--static unsigned int
--hl_tg6(struct sk_buff *skb, const struct xt_target_param *par)
+-static bool hl_mt6(const struct sk_buff *skb, const struct xt_match_param *par)
 -{
--	struct ipv6hdr *ip6h;
--	const struct ip6t_HL_info *info = par->targinfo;
--	int new_hl;
--
--	if (!skb_make_writable(skb, skb->len))
--		return NF_DROP;
--
--	ip6h = ipv6_hdr(skb);
+-	const struct ip6t_hl_info *info = par->matchinfo;
+-	const struct ipv6hdr *ip6h = ipv6_hdr(skb);
 -
 -	switch (info->mode) {
--		case IP6T_HL_SET:
--			new_hl = info->hop_limit;
+-		case IP6T_HL_EQ:
+-			return ip6h->hop_limit == info->hop_limit;
 -			break;
--		case IP6T_HL_INC:
--			new_hl = ip6h->hop_limit + info->hop_limit;
--			if (new_hl > 255)
--				new_hl = 255;
+-		case IP6T_HL_NE:
+-			return ip6h->hop_limit != info->hop_limit;
 -			break;
--		case IP6T_HL_DEC:
--			new_hl = ip6h->hop_limit - info->hop_limit;
--			if (new_hl < 0)
--				new_hl = 0;
+-		case IP6T_HL_LT:
+-			return ip6h->hop_limit < info->hop_limit;
+-			break;
+-		case IP6T_HL_GT:
+-			return ip6h->hop_limit > info->hop_limit;
 -			break;
 -		default:
--			new_hl = ip6h->hop_limit;
--			break;
+-			printk(KERN_WARNING "ip6t_hl: unknown mode %d\n",
+-				info->mode);
+-			return false;
 -	}
 -
--	ip6h->hop_limit = new_hl;
--
--	return XT_CONTINUE;
+-	return false;
 -}
 -
--static bool hl_tg6_check(const struct xt_tgchk_param *par)
--{
--	const struct ip6t_HL_info *info = par->targinfo;
--
--	if (info->mode > IP6T_HL_MAXMODE) {
--		printk(KERN_WARNING "ip6t_HL: invalid or unknown Mode %u\n",
--			info->mode);
--		return false;
--	}
--	if (info->mode != IP6T_HL_SET && info->hop_limit == 0) {
--		printk(KERN_WARNING "ip6t_HL: increment/decrement doesn't "
--			"make sense with value 0\n");
--		return false;
--	}
--	return true;
--}
--
--static struct xt_target hl_tg6_reg __read_mostly = {
--	.name 		= "HL",
+-static struct xt_match hl_mt6_reg __read_mostly = {
+-	.name		= "hl",
 -	.family		= NFPROTO_IPV6,
--	.target		= hl_tg6,
--	.targetsize	= sizeof(struct ip6t_HL_info),
--	.table		= "mangle",
--	.checkentry	= hl_tg6_check,
--	.me		= THIS_MODULE
+-	.match		= hl_mt6,
+-	.matchsize	= sizeof(struct ip6t_hl_info),
+-	.me		= THIS_MODULE,
 -};
 -
--static int __init hl_tg6_init(void)
+-static int __init hl_mt6_init(void)
 -{
--	return xt_register_target(&hl_tg6_reg);
+-	return xt_register_match(&hl_mt6_reg);
 -}
 -
--static void __exit hl_tg6_exit(void)
+-static void __exit hl_mt6_exit(void)
 -{
--	xt_unregister_target(&hl_tg6_reg);
+-	xt_unregister_match(&hl_mt6_reg);
 -}
 -
--module_init(hl_tg6_init);
--module_exit(hl_tg6_exit);
+-module_init(hl_mt6_init);
+-module_exit(hl_mt6_exit);
 diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index c2bac9c..d99f29b 100644
+index d99f29b..0eb98b4 100644
 --- a/net/netfilter/Kconfig
 +++ b/net/netfilter/Kconfig
-@@ -357,6 +357,21 @@ config NETFILTER_XT_TARGET_DSCP
+@@ -620,6 +620,14 @@ config NETFILTER_XT_MATCH_HELPER
  
- 	  To compile it as a module, choose M here.  If unsure, say N.
+ 	  To compile it as a module, choose M here.  If unsure, say Y.
  
-+config NETFILTER_XT_TARGET_HL
-+	tristate '"HL" hoplimit target support'
-+	depends on IP_NF_MANGLE || IP6_NF_MANGLE
++config NETFILTER_XT_MATCH_HL
++	tristate '"hl" hoplimit/TTL match support'
 +	depends on NETFILTER_ADVANCED
 +	---help---
-+	This option adds the "HL" (for IPv6) and "TTL" (for IPv4)
-+	targets, which enable the user to change the
-+	hoplimit/time-to-live value of the IP header.
++	HL matching allows you to match packets based on the hoplimit
++	in the IPv6 header, or the time-to-live field in the IPv4
++	header of the packet.
 +
-+	While it is safe to decrement the hoplimit/TTL value, the
-+	modules also allow to increment and set the hoplimit value of
-+	the header to arbitrary values. This is EXTREMELY DANGEROUS
-+	since you can easily create immortal packets that loop
-+	forever on the network.
-+
- config NETFILTER_XT_TARGET_MARK
- 	tristate '"MARK" target support'
- 	default m if NETFILTER_ADVANCED=n
+ config NETFILTER_XT_MATCH_IPRANGE
+ 	tristate '"iprange" address range match support'
+ 	depends on NETFILTER_ADVANCED
 diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index da3d909..6ebe048 100644
+index 6ebe048..da73ed2 100644
 --- a/net/netfilter/Makefile
 +++ b/net/netfilter/Makefile
-@@ -45,6 +45,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_CLASSIFY) += xt_CLASSIFY.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_CONNMARK) += xt_CONNMARK.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_CONNSECMARK) += xt_CONNSECMARK.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_DSCP) += xt_DSCP.o
-+obj-$(CONFIG_NETFILTER_XT_TARGET_HL) += xt_HL.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_MARK) += xt_MARK.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_NFLOG) += xt_NFLOG.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_NFQUEUE) += xt_NFQUEUE.o
-diff --git a/net/netfilter/xt_HL.c b/net/netfilter/xt_HL.c
+@@ -68,6 +68,7 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_DSCP) += xt_dscp.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_ESP) += xt_esp.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_HASHLIMIT) += xt_hashlimit.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_HELPER) += xt_helper.o
++obj-$(CONFIG_NETFILTER_XT_MATCH_HL) += xt_hl.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_IPRANGE) += xt_iprange.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_LENGTH) += xt_length.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_LIMIT) += xt_limit.o
+diff --git a/net/netfilter/xt_hl.c b/net/netfilter/xt_hl.c
 new file mode 100644
-index 0000000..10e789e
+index 0000000..7726154
 --- /dev/null
-+++ b/net/netfilter/xt_HL.c
-@@ -0,0 +1,171 @@
++++ b/net/netfilter/xt_hl.c
+@@ -0,0 +1,108 @@
 +/*
-+ * TTL modification target for IP tables
-+ * (C) 2000,2005 by Harald Welte <laforge@netfilter.org>
++ * IP tables module for matching the value of the TTL
++ * (C) 2000,2001 by Harald Welte <laforge@netfilter.org>
 + *
-+ * Hop Limit modification target for ip6tables
-+ * Maciej Soltysiak <solt@dns.toxicfilms.tv>
++ * Hop Limit matching module
++ * (C) 2001-2002 Maciej Soltysiak <solt@dns.toxicfilms.tv>
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
 + */
 +
-+#include <linux/module.h>
-+#include <linux/skbuff.h>
 +#include <linux/ip.h>
 +#include <linux/ipv6.h>
-+#include <net/checksum.h>
++#include <linux/module.h>
++#include <linux/skbuff.h>
 +
 +#include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter_ipv4/ipt_TTL.h>
-+#include <linux/netfilter_ipv6/ip6t_HL.h>
++#include <linux/netfilter_ipv4/ipt_ttl.h>
++#include <linux/netfilter_ipv6/ip6t_hl.h>
 +
-+MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
 +MODULE_AUTHOR("Maciej Soltysiak <solt@dns.toxicfilms.tv>");
-+MODULE_DESCRIPTION("Xtables: Hoplimit/TTL Limit field modification target");
++MODULE_DESCRIPTION("Xtables: Hoplimit/TTL field match");
 +MODULE_LICENSE("GPL");
++MODULE_ALIAS("ipt_ttl");
++MODULE_ALIAS("ip6t_hl");
 +
-+static unsigned int
-+ttl_tg(struct sk_buff *skb, const struct xt_target_param *par)
++static bool ttl_mt(const struct sk_buff *skb, const struct xt_match_param *par)
 +{
-+	struct iphdr *iph;
-+	const struct ipt_TTL_info *info = par->targinfo;
-+	int new_ttl;
-+
-+	if (!skb_make_writable(skb, skb->len))
-+		return NF_DROP;
-+
-+	iph = ip_hdr(skb);
++	const struct ipt_ttl_info *info = par->matchinfo;
++	const u8 ttl = ip_hdr(skb)->ttl;
 +
 +	switch (info->mode) {
-+		case IPT_TTL_SET:
-+			new_ttl = info->ttl;
-+			break;
-+		case IPT_TTL_INC:
-+			new_ttl = iph->ttl + info->ttl;
-+			if (new_ttl > 255)
-+				new_ttl = 255;
-+			break;
-+		case IPT_TTL_DEC:
-+			new_ttl = iph->ttl - info->ttl;
-+			if (new_ttl < 0)
-+				new_ttl = 0;
-+			break;
++		case IPT_TTL_EQ:
++			return ttl == info->ttl;
++		case IPT_TTL_NE:
++			return ttl != info->ttl;
++		case IPT_TTL_LT:
++			return ttl < info->ttl;
++		case IPT_TTL_GT:
++			return ttl > info->ttl;
 +		default:
-+			new_ttl = iph->ttl;
-+			break;
++			printk(KERN_WARNING "ipt_ttl: unknown mode %d\n",
++				info->mode);
++			return false;
 +	}
 +
-+	if (new_ttl != iph->ttl) {
-+		csum_replace2(&iph->check, htons(iph->ttl << 8),
-+					   htons(new_ttl << 8));
-+		iph->ttl = new_ttl;
-+	}
-+
-+	return XT_CONTINUE;
++	return false;
 +}
 +
-+static unsigned int
-+hl_tg6(struct sk_buff *skb, const struct xt_target_param *par)
++static bool hl_mt6(const struct sk_buff *skb, const struct xt_match_param *par)
 +{
-+	struct ipv6hdr *ip6h;
-+	const struct ip6t_HL_info *info = par->targinfo;
-+	int new_hl;
-+
-+	if (!skb_make_writable(skb, skb->len))
-+		return NF_DROP;
-+
-+	ip6h = ipv6_hdr(skb);
++	const struct ip6t_hl_info *info = par->matchinfo;
++	const struct ipv6hdr *ip6h = ipv6_hdr(skb);
 +
 +	switch (info->mode) {
-+		case IP6T_HL_SET:
-+			new_hl = info->hop_limit;
++		case IP6T_HL_EQ:
++			return ip6h->hop_limit == info->hop_limit;
 +			break;
-+		case IP6T_HL_INC:
-+			new_hl = ip6h->hop_limit + info->hop_limit;
-+			if (new_hl > 255)
-+				new_hl = 255;
++		case IP6T_HL_NE:
++			return ip6h->hop_limit != info->hop_limit;
 +			break;
-+		case IP6T_HL_DEC:
-+			new_hl = ip6h->hop_limit - info->hop_limit;
-+			if (new_hl < 0)
-+				new_hl = 0;
++		case IP6T_HL_LT:
++			return ip6h->hop_limit < info->hop_limit;
++			break;
++		case IP6T_HL_GT:
++			return ip6h->hop_limit > info->hop_limit;
 +			break;
 +		default:
-+			new_hl = ip6h->hop_limit;
-+			break;
++			printk(KERN_WARNING "ip6t_hl: unknown mode %d\n",
++				info->mode);
++			return false;
 +	}
 +
-+	ip6h->hop_limit = new_hl;
-+
-+	return XT_CONTINUE;
++	return false;
 +}
 +
-+static bool ttl_tg_check(const struct xt_tgchk_param *par)
-+{
-+	const struct ipt_TTL_info *info = par->targinfo;
-+
-+	if (info->mode > IPT_TTL_MAXMODE) {
-+		printk(KERN_WARNING "ipt_TTL: invalid or unknown Mode %u\n",
-+			info->mode);
-+		return false;
-+	}
-+	if (info->mode != IPT_TTL_SET && info->ttl == 0)
-+		return false;
-+	return true;
-+}
-+
-+static bool hl_tg6_check(const struct xt_tgchk_param *par)
-+{
-+	const struct ip6t_HL_info *info = par->targinfo;
-+
-+	if (info->mode > IP6T_HL_MAXMODE) {
-+		printk(KERN_WARNING "ip6t_HL: invalid or unknown Mode %u\n",
-+			info->mode);
-+		return false;
-+	}
-+	if (info->mode != IP6T_HL_SET && info->hop_limit == 0) {
-+		printk(KERN_WARNING "ip6t_HL: increment/decrement doesn't "
-+			"make sense with value 0\n");
-+		return false;
-+	}
-+	return true;
-+}
-+
-+static struct xt_target hl_tg_reg[] __read_mostly = {
++static struct xt_match hl_mt_reg[] __read_mostly = {
 +	{
-+		.name       = "TTL",
++		.name       = "ttl",
 +		.revision   = 0,
 +		.family     = NFPROTO_IPV4,
-+		.target     = ttl_tg,
-+		.targetsize = sizeof(struct ipt_TTL_info),
-+		.table      = "mangle",
-+		.checkentry = ttl_tg_check,
++		.match      = ttl_mt,
++		.matchsize  = sizeof(struct ipt_ttl_info),
 +		.me         = THIS_MODULE,
 +	},
 +	{
-+		.name       = "HL",
++		.name       = "hl",
 +		.revision   = 0,
 +		.family     = NFPROTO_IPV6,
-+		.target     = hl_tg6,
-+		.targetsize = sizeof(struct ip6t_HL_info),
-+		.table      = "mangle",
-+		.checkentry = hl_tg6_check,
++		.match      = hl_mt6,
++		.matchsize  = sizeof(struct ip6t_hl_info),
 +		.me         = THIS_MODULE,
 +	},
 +};
 +
-+static int __init hl_tg_init(void)
++static int __init hl_mt_init(void)
 +{
-+	return xt_register_targets(hl_tg_reg, ARRAY_SIZE(hl_tg_reg));
++	return xt_register_matches(hl_mt_reg, ARRAY_SIZE(hl_mt_reg));
 +}
 +
-+static void __exit hl_tg_exit(void)
++static void __exit hl_mt_exit(void)
 +{
-+	xt_unregister_targets(hl_tg_reg, ARRAY_SIZE(hl_tg_reg));
++	xt_unregister_matches(hl_mt_reg, ARRAY_SIZE(hl_mt_reg));
 +}
 +
-+module_init(hl_tg_init);
-+module_exit(hl_tg_exit);
-+MODULE_ALIAS("ipt_TTL");
-+MODULE_ALIAS("ip6t_HL");
++module_init(hl_mt_init);
++module_exit(hl_mt_exit);
 -- 
 # Created with git-export-patch
-
