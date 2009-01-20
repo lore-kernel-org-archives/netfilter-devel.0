@@ -1,52 +1,51 @@
 From: Bart De Schuymer <bdschuym@pandora.be>
 Subject: [PATCH] add --with-kernel-includes configure option to libnetfilter_queue
-Date: Tue, 20 Jan 2009 17:30:57 +0100
-Message-ID: <4975FC41.70906@pandora.be>
+Date: Tue, 20 Jan 2009 17:33:03 +0100
+Message-ID: <4975FCBF.10003@pandora.be>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from winston.telenet-ops.be ([195.130.137.75]:43421 "EHLO
-	winston.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755989AbZATQbB (ORCPT
+Received: from monty.telenet-ops.be ([195.130.132.56]:51975 "EHLO
+	monty.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755991AbZATQdG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 20 Jan 2009 11:31:01 -0500
+	Tue, 20 Jan 2009 11:33:06 -0500
 Received: from localhost (localhost.localdomain [127.0.0.1])
-	by winston.telenet-ops.be (Postfix) with SMTP id 0A66DA005A
-	for <netfilter-devel@vger.kernel.org>; Tue, 20 Jan 2009 17:30:58 +0100 (CET)
+	by monty.telenet-ops.be (Postfix) with SMTP id 2AF265405A
+	for <netfilter-devel@vger.kernel.org>; Tue, 20 Jan 2009 17:33:04 +0100 (CET)
 Received: from [127.0.0.1] (d54C6FD43.access.telenet.be [84.198.253.67])
-	by winston.telenet-ops.be (Postfix) with ESMTP id D3782A0025
-	for <netfilter-devel@vger.kernel.org>; Tue, 20 Jan 2009 17:30:57 +0100 (CET)
+	by monty.telenet-ops.be (Postfix) with ESMTP id 0451754046
+	for <netfilter-devel@vger.kernel.org>; Tue, 20 Jan 2009 17:33:03 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Hi,
 
 This adds the --with-kernel-includes configure option to
-libnetfilter_queue and creates a README. This option allows compiling
+libnetfilter_log and creates a README. This option allows compiling
 with kernel headers not located at /usr/include.
 
 Signed-off-by: Bart De Schuymer <bdschuym@pandora.be>
 
 
---- libnetfilter_queue_snapshot/configure.in.old	2009-01-20 15:30:31.000000000 +0100
-+++ libnetfilter_queue_snapshot/configure.in	2009-01-20 15:30:46.000000000 +0100
-@@ -19,14 +19,37 @@ esac
+--- libnetfilter_log-0.0.15/configure.in.old	2009-01-19 17:31:47.000000000 +0100
++++ libnetfilter_log-0.0.15/configure.in	2009-01-19 17:41:15.000000000 +0100
+@@ -20,15 +20,38 @@ esac
  
  dnl Dependencies
- LIBNFNETLINK_REQUIRED=0.0.38
+ LIBNFNETLINK_REQUIRED=0.0.39
 - 
 +
  PKG_CHECK_MODULES(LIBNFNETLINK, libnfnetlink >= $LIBNFNETLINK_REQUIRED,,
  	AC_MSG_ERROR(Cannot find libnfnetlink >= $LIBNFNETLINK_REQUIRED))
-- 
+ 
 -CFLAGS="$CFLAGS $LIBNFNETLINK_CFLAGS"
-+
- LIBNFQUEUE_LIBS="$LIBNFNETLINK_LIBS"
+ LIBNFLOG_LIBS="$LIBNFNETLINK_LIBS"
 - 
 +
- AC_SUBST(LIBNFQUEUE_LIBS)
+ AC_SUBST(LIBNFLOG_LIBS)
  
 +dnl Allows compiling the library with kernel include headers not located
 +dnl at /usr/include
@@ -72,35 +71,35 @@ Signed-off-by: Bart De Schuymer <bdschuym@pandora.be>
 +    CFLAGS="$CFLAGS $TMP_CFLAGS_OTHER -I$KERNEL_INCLUDES $TMP_CFLAGS_I"],
 +    CFLAGS="$CFLAGS $LIBNFNETLINK_CFLAGS")
 +
- dnl Output the makefiles
- AC_OUTPUT(Makefile include/Makefile include/libnetfilter_queue/Makefile src/Makefile utils/Makefile libnetfilter_queue.pc doxygen.cfg)
---- libnetfilter_queue_snapshot/README.old	2009-01-20 15:30:40.000000000 +0100
-+++ libnetfilter_queue_snapshot/README	2009-01-20 15:31:11.000000000 +0100
-@@ -0,0 +1,45 @@
-+libnetfilter_queue - userspace library for handling queued network packets
+ dnl Output the makefile
+ AC_OUTPUT(Makefile src/Makefile include/Makefile include/libnetfilter_log/Makefile utils/Makefile libnetfilter_log.pc)
+ 
+--- libnetfilter_log-0.0.15/README.old	2009-01-19 17:58:57.000000000 +0100
++++ libnetfilter_log-0.0.15/README	2009-01-20 14:59:14.000000000 +0100
+@@ -0,0 +1,44 @@
++libnetfilter_log - userspace library for logging network packets
 +(C) 2005-2009 Netfilter Core Team <coreteam@netfilter.org>
 +===========================================================================
 +
-+What is netfilter_queue?
++What is netfilter_log?
 +
-+netfilter_queue enables the kernel packet filter to queue network packets
-+to userspace, using the nfnetlink transport layer. These packets can then be
-+inspected and/or altered by a userspace program and reinjected in the kernel
-+network stack.
++netfilter_log enables the kernel packet filter to queue copies of network
++packets to userspace for inspection, using the nfnetlink transport layer.
 +
 +
-+What is libnetfilter_queue?
++What is libnetfilter_log?
 +
-+libnetfilter_queue is a userspace library providing an API to packets that
-+have been queued by the kernel packet filter. It is part of a system that
-+deprecates the old ip_queue / libipq mechanism. libnetfilter_queue has been
-+previously known as libnfnetlink_queue.
++libnetfilter_log is a userspace library providing an interface to packets
++that have been logged by the kernel packet filter. It is part of a system
++that deprecates the old syslog/dmesg based packet logging. This library has
++been previously known as libnfnetlink_log.
++libnetfilter_log is used by ulogd2.
 +
 +
-+Prerequisites for libnetfilter_queue
++Prerequisites for libnetfilter_log
 +
-+libnetfilter_queue requires libnfnetlink and a kernel that includes the
-+nfnetlink_queue subsystem (i.e. 2.6.14 or later).
++libnetfilter_log requires libnfnetlink and a kernel that includes the
++nfnetlink_log subsystem (i.e. 2.6.14 or later).
 +You can specify the location of your kernel sources using the
 +"--with-kernel-includes" configure option.
 +
@@ -114,8 +113,8 @@ Signed-off-by: Bart De Schuymer <bdschuym@pandora.be>
 +
 +It has bugs.  Where do I report them?
 +
-+Please report all libnetfilter_queue bugs to https://bugzilla.netfilter.org/,
-+using the "libnetfilter_queue" Product.
++Please report all libnetfilter_log bugs to https://bugzilla.netfilter.org/,
++using the "libnetfilter_log" Product.
 +
 +
 +Where do I get support?
