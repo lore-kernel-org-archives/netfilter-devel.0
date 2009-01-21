@@ -1,82 +1,35 @@
-From: "Rob Meijer" <capibara@xs4all.nl>
-Subject: Re: RFC: Mandatory Access Control for sockets aka "personal  
-     firewalls"
-Date: Wed, 21 Jan 2009 10:32:54 +0100 (CET)
-Message-ID: <39767.77.61.51.106.1232530374.squirrel@webmail.xs4all.nl>
-Reply-To: rmeijer@xs4all.nl
+From: =?utf-8?q?K=C3=B6vesdi_Gy=C3=B6rgy?= <kgy@teledigit.hu>
+Subject: 2.6.28(.1) and netlink: scheduling while atomic
+Date: Wed, 21 Jan 2009 10:29:01 +0100
+Message-ID: <200901211029.01619.kgy@teledigit.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Cc: rmeijer@xs4all.nl, "Casey Schaufler" <casey@schaufler-ca.com>,
-	"Samir Bellabes" <sam@synack.fr>, imipak@yahoo.com,
-	"linux-security-module" <linux-security-module@vger.kernel.org>,
-	"Stephan Peijnik" <stephan@peijnik.at>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: "Peter Dolding" <oiaohm@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from fxip-0059e.externet.hu ([88.209.247.158]:50478 "EHLO
+	teledigit.hu" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1761886AbZAUJj1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 21 Jan 2009 04:39:27 -0500
+Received: from kgy-wifi.deverto.office ([195.70.47.5]:45505)
+	by teledigit.hu with [XMail 1.25 ESMTP Server]
+	id <S641> for <netfilter-devel@vger.kernel.org> from <kgy@teledigit.hu>;
+	Wed, 21 Jan 2009 10:31:04 +0100
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, January 21, 2009 09:15, Peter Dolding wrote:
+Hi,
 
-> Netfilter can already reject or approve out going packets from
-> applications on the base of user id process id and so on.  This is
-> before packets enter the Netfilter processing stack.   Cost of looking
-> up if applicaiton is approved or not appoved is out weight be the cost
-> of rejected packets going trough netfilter.
->
-> Sorry netfilter is already sorting out how sockets can be used.   What
-> you are basically talking about is two layors doing exactly the same
-> thing.   Half of what tuxguardian does can be done in a iptables
-> module.  Ie filtering out going traffic based on application.
->
-> Please explain why expanding netfilter is not a option.   Expanding
-> netfilter avoids conflicts with LSM's.
->
+The new netlink interface allows to add NAT directly to a conntrack entry.
+If it is used when the moudule nf-nat-ipv4 is not loaded in, it results in 
+crash:
+BUG: scheduling while atomic
+It is in the kernels 2.6.28 and 2.6.28.1 in the function 
+ctnetlink_parse_nat_setup(): it calls request_module() which causes the 
+problem. If the module is already loaded, then there is no problem.
 
-Agreed patches to Netfilter might get you a long way. Along the lines of
---owner-uid you may extend it with something like --owner-exe and possibly
---owner-callchainid. That could take care of:
-
-* connection-full-protocol like TCP
-* outgoing connection-less-protocol packets like UDP or ICMP
-
-The one thing that would remain would be incoming connection-less-protocol
-packets. If Netfilter could be patched in such a way that incoming packets
-could be filtered based on receiving process meta, that would be a great
-way to go. If not, maybe LSM would need to just mediate 'bind'.
-
-A second issue comes with user level administration. If Netfilter would be
-patched to allow a user to administrate her 'private' table, that could
-get called from the system wide Netfilter rules, some MAC framework would
-still be needed to make sure the user has a way to change the rules in her
-private table, but her browser, pdf reader, mail client etc have not.
-
-That is, you could define some system wide ruleset like:
-
-System wide:
-  * deny any packet from executables under '/home/*'
-  * deny any packet from user 'localuser'
-  * for any packet from an executable under /usr/bin/networkingtools/ jump
-    to the users USERPRIVATE table.
-  * deny all other trafic.
-
-User alice USERPRIVATE:
-  * allow all packets from /usr/bin/webbrowser to anything on tcp port 80.
-
-User bob USERPRIVATE:
-  * allow all packets from /usr/bin/webbrowser to the socks port of the
-    socks server.
-
-Would a solution like that be feasible?
-
-You would want alice or bob to be able to change their USERPRIVATE table,
-but you wouldn't want /usr/bin/webbrowser or any other program to do so
-independently. At least for that you would need close cooperation with
-for example SeLinux or AppArmor.
-
-Further it seems that 'bind' for connection less sockets will still be
-important a candidate for mediation by LSM IMHO.
-
-Rob.
-
+Regards:
+K. Gy.
