@@ -1,65 +1,49 @@
-From: =?KOI8-R?Q?=EB=CF=C2=D9=CC=D1=CE=D3=CB=C9=CA_=F7=CC=C1=C4=C9=CD=C9?=
-	 =?KOI8-R?Q?=D2?= <kent@lissi.ru>
-Subject: TCP-packet with PUSH flag with wrong payload data in LOCAL_OUT hook.
-Date: Wed, 21 Jan 2009 21:01:36 +0300
-Message-ID: <49776300.1060708@lissi.ru>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: TCP-packet with PUSH flag with wrong payload data in LOCAL_OUT
+ hook.
+Date: Wed, 21 Jan 2009 19:52:12 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0901211950220.20352@fbirervta.pbzchgretzou.qr>
+References: <49776300.1060708@lissi.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=KOI8-R
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: =?UTF-8?B?0JrQvtCx0YvQu9GP0L3RgdC60LjQuSDQktC70LDQtNC40LzQuNGA?=
+	<kent@lissi.ru>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 1175.ovz4.hc.ru ([89.111.184.110]:49438 "EHLO mail.lissi.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753984AbZAUSZS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 21 Jan 2009 13:25:18 -0500
-Received: from mail.dc-lissi.int ([194.84.136.194]:23456 helo=mail.lissi.ru)
-	by mail.lissi.ru with esmtp (Exim 4.67)
-	(envelope-from <kent@lissi.ru>)
-	id 1LPhOs-0004Al-6b
-	for netfilter-devel@vger.kernel.org; Wed, 21 Jan 2009 21:02:02 +0300
+Received: from sovereign.computergmbh.de ([85.214.69.204]:50535 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752056AbZAUSwP (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 21 Jan 2009 13:52:15 -0500
+In-Reply-To: <49776300.1060708@lissi.ru>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi.
 
-First of all - I am a beginner in kernel programming, so my question can
-be very stupid. Sorry.
+On Wednesday 2009-01-21 19:01, =D0=9A=D0=BE=D0=B1=D1=8B=D0=BB=D1=8F=D0=BD=
+=D1=81=D0=BA=D0=B8=D0=B9 =D0=92=D0=BB=D0=B0=D0=B4=D0=B8=D0=BC=D0=B8=D1=80=
+ wrote:
+>
+>I see in my module 3 handshake packets - they all normal.
+>Then I see first packet with payload - it is TCP-packet with PSH and A=
+CK
+>flags and it is not normal at all.
 
-I try to write simple firewall module and I find incomprehensible (at
-least for me) thing.
+It could be something in your code (which seem to be absent here).
 
-I have Linux-machine with 2.6.17 kernel with my firewall module.
-My module register two hooks - LOCAL_OUT and PRE_ROUTING.
-With wget I try to download index.html from external WWW-server.
+>In this packet in tcp-data area I MUST see such string:
+>"GET / HTTP/1.1..."
+>or in HEX
+>"4745 5420 2f20 4854 5450 2f31 2e31 ..."
+>BUT I see such data in it:
+>"0200 0100 0100 0000 0100 0000 0000 ....".
 
-I see in my module 3 handshake packets - they all normal.
-Then I see first packet with payload - it is TCP-packet with PSH and ACK
-flags and it is not normal at all.
-
-In this packet in tcp-data area I MUST see such string:
-"GET / HTTP/1.1..."
-or in HEX
-"4745 5420 2f20 4854 5450 2f31 2e31 ..."
-BUT I see such data in it:
-"0200 0100 0100 0000 0100 0000 0000 ....".
-
-As you can see - payload data wrong. IP and TCP headers - all normal.
-Length normal.
-
-Even more - if I return NF_ACCEPT on this packet - WWW-server got normal
-packet with normal payload data.
-
-If I use my Linux-machine as gateway (and catch forwarding packets by
-PRE_ROUTING hook) - I see this packet with normal data inside.
-
-
-So, I have some questions:
-
-1) Is it possible?
-2) If it is possible - what happens and where I can get normal payload data?
-
-
-P.S.: sorry if repeated question - I really was trying to find it in
-archive.
-
-P.P.S.: sorry for my English.
+Could be TCP options. Payload could be begin in a later packet maybe.
+Or somewhere in your code you have a wrong pointer.
+I don't read glass spheres so...
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
