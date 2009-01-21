@@ -1,55 +1,38 @@
-From: "Rob Meijer" <capibara@xs4all.nl>
-Subject: Re: RFC: Mandatory Access Control for sockets aka "personal
-     firewalls"
-Date: Wed, 21 Jan 2009 08:25:29 +0100 (CET)
-Message-ID: <57962.77.61.51.106.1232522729.squirrel@webmail.xs4all.nl>
-Reply-To: rmeijer@xs4all.nl
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: iptables-restore: remove unused --binary flag
+Date: Wed, 21 Jan 2009 09:06:24 +0100
+Message-ID: <4976D780.7010308@trash.net>
+References: <alpine.LNX.1.10.0812242031570.514@fbirervta.pbzchgretzou.qr> <495A0123.3020509@netfilter.org> <alpine.LSU.2.00.0901192119330.12940@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Cc: "Samir Bellabes" <sam@synack.fr>, imipak@yahoo.com,
-	"linux-security-module" <linux-security-module@vger.kernel.org>,
-	"Stephan Peijnik" <stephan@peijnik.at>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: "Casey Schaufler" <casey@schaufler-ca.com>
-Return-path: <linux-security-module-owner@vger.kernel.org>
-Sender: linux-security-module-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: pablo@netfilter.org,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:47896 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751591AbZAUIG2 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 21 Jan 2009 03:06:28 -0500
+In-Reply-To: <alpine.LSU.2.00.0901192119330.12940@fbirervta.pbzchgretzou.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, January 21, 2009 02:18, Casey Schaufler wrote:
->
->> we don't need this at all, as we are in process context, syscall can
->> sleep.
->> Trust me, it's strange to have it's web browser freezing waiting for a
->> timeout if the userspace part doesn't reply, but if it's replying, it's
->> transparent.
->
-> I hate to be the one to say this, but it looks to me as if the
-> easiest way to solve the problems that you have outlined would
-> be to create a new LSM based on SELinux with two important
-> changes. The first would be to have a separate policy for each
-> user (or process tree) and the second would be to make the policy
-> specification discretionary. SELinux has all the mechanism you're
-> talking about, but you want the policy being enforced to reflect
-> a set of "personal firewall" rules rather than "domain type" rules.
->  From the lobby at LCA in Hobart these rule sets are pretty hard to
-> tell apart. And let's not have the "SELinux isn't designed to do
-> that" row. Of course it isn't. Nonetheless, the personal firewall
-> sure sounds a lot like SELinux if you ignore the MAC/DAC difference.
+Jan Engelhardt wrote:
+> On Tuesday 2008-12-30 12:08, Pablo Neira Ayuso wrote:
+>> Jan Engelhardt wrote:
+>>> Author: Jan Engelhardt <jengelh@medozas.de>
+>>> Date:   Wed Dec 24 20:30:47 2008 +0100
+>>>
+>>> iptables-restore: remove unused --binary flag
+>>>
+>> I doubt that someone is using this option, anyhow I think that it would
+>> be better to output a warning message to stderr that says "-b is
+>> deprecated, fix your scripts". Later, we can remove it.
+> 
+> Requesting comments from Patrick.
 
-I think this is a perfect example of where using MAC 'and' DAC or rather
-centrally 'and' user managed profiles would be very fruitful. If you can
-create a purely permissive centrally managed per user profile, in fact
-delegating a permission set and allow each user to decompose and
-discretionary delegate parts of this profile to programs run by this same
-user, but with MAC restrictions when delegating to a process run by a
-different user, you would IMHO have a very powerful combination of MAC and
-DAC.
-
-I'm not sure however a label based MAC system would be best suited for
-combining MAC and DAC in such a way.
-
-
-
-Rob
-
+Both is fine with me, although I don't see a compelling reason against
+taking the safe route.
