@@ -1,67 +1,73 @@
-From: Stephan Peijnik <stephan@peijnik.at>
-Subject: Re: RFC: Mandatory Access Control for sockets aka "personal
-	firewalls"
-Date: Wed, 21 Jan 2009 00:48:41 +0100
-Message-ID: <1232495321.24943.149.camel@sp-laptop3.sp-local>
-References: <1232473719.24943.102.camel@sp-laptop3.sp-local>
-	 <200901201547.44981.paul.moore@hp.com>
+From: Jaswinder Singh Rajput <jaswinder-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [GIT PULL -tip] fix 33 make headers_check warnings
+Date: Wed, 21 Jan 2009 06:08:39 +0530
+Message-ID: <1232498319.3123.34.camel@localhost.localdomain>
+References: <1232223441.3966.22.camel@localhost.localdomain>
+	 <1232228261.27094.0.camel@macbook.infradead.org>
+	 <20090117221932.GA4956@uranus.ravnborg.org>  <49725B1E.604@kernel.org>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: linux-security-module <linux-security-module@vger.kernel.org>,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Paul Moore <paul.moore@hp.com>
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <200901201547.44981.paul.moore@hp.com>
-Sender: linux-security-module-owner@vger.kernel.org
+Cc: Sam Ravnborg <sam-uyr5N9Q2VtJg9hUCZPvPmw@public.gmane.org>,
+	David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>,
+	Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>, x86 maintainers <x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>,
+	urs.thuermann-l29pVbxQd1IUtdQbppsyvg@public.gmane.org, oliver.hartkopp-l29pVbxQd1IUtdQbppsyvg@public.gmane.org,
+	linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org, neilb-l3A5Bk7waGM@public.gmane.org,
+	linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org,
+	spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, tiwai-l3A5Bk7waGM@public.gmane.org,
+	mchehab-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+	Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+To: "H. Peter Anvin" <hpa-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <49725B1E.604-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, 2009-01-20 at 15:47 -0500, Paul Moore wrote:
-> Another option that was brought up (although perhaps not very clearly 
-> since it isn't listed here) was the embedding of the personal firewall 
-> hooks into the individual LSMs roughly similar to how capabilities are 
-> handled with SELinux today (a separate security mechanism that has 
-> explicit calls within SELinux).  This approach enables the use of 
-> current LSMs (although minor modifications will be needed) and avoids 
-> the need to add new hooks to the core network stack.
-
-Sorry for not adding that one, I think you sent that email after I
-finished writing the summary and that's why it wasn't included in the
-first place.
-This is another way of doing it, yes, but in the end we would probably
-end up writing additional wrapper like code with the only purpose of
-being called by <insert favorite LSM here> and then forwarding that call
-to <insert favorite personal firewall here>.
-To have multiple approaches working we would probably need
-register/unregister functions for that wrapper and, to be honest, to me
-this sounds like a more complicated version of doing the calls to the
-wrapper directly from net/socket.c. The outcome is pretty much the same
-though.
-
-> > What has not been agreed on yet is whether only a way of hooking
-> > these calls should be made available to implementations or whether
-> > the whole in-kernel part should be developed together and allow
-> > implementations of personal firewalls in userspace only, for example
-> > using a netlink socket to communicate with the shared in-kernel code.
+On Sat, 2009-01-17 at 14:26 -0800, H. Peter Anvin wrote:
+> Sam Ravnborg wrote:
+> >>>  
+> >> That patch looks wrong, and unnecessary. It was fine before.
+> > Nope - include/linux/dvb/audio.h failed to include linux/types.h
+> > despite the fact that is uses __u32 etc.
+> > 
+> > But why the _kernel_ should include a userspace header is
+> > much more questionable.
+> > 
 > 
-> Since there will always be a significant userspace component to any 
-> personal firewall approach it seems reasonable to push the decision 
-> making into userspace and leave the kernel component relatively simple.  
-> The basic idea behind Samir's "snet" concept where the kernel simply 
-> passes messages to userspace and waits for a verdict seems like a 
-> reasonable approach in that it can be made to support different 
-> personal firewall implementations/designs without significant changes 
-> to the kernel.
+> <stdint.h> is one of a handful of headers provided by gcc itself.
+> 
 
-I can only agree on that. However, providing a single solution that
-cannot be extended dynamically (think of adding support for additional
-protocols, implementing some sort of policy caching, etc.) might be the
-wrong way to go.
-We would end up having a solution and whilst I really like the snet
-approach we would lose some flexibility.
-This very approach on the other hand seems to work very well for
-netfilter and we would end up with keeping all those personal firewall
-developers out of the kernel.
+Should I reintroduce my patch to solve this warning of 'make headers_check':
+ usr/include/linux/dvb/audio.h:133: found __[us]{8,16,32,64} type without #include <linux/types.h>
 
--- Stephan
+diff --git a/include/linux/dvb/audio.h b/include/linux/dvb/audio.h
+index 89412e1..758a48c 100644
+--- a/include/linux/dvb/audio.h
++++ b/include/linux/dvb/audio.h
+@@ -24,9 +24,8 @@
+ #ifndef _DVBAUDIO_H_
+ #define _DVBAUDIO_H_
+ 
+-#ifdef __KERNEL__
+ #include <linux/types.h>
+-#else
++#ifndef __KERNEL__
+ #include <stdint.h>
+ #endif
 
+Or you guys have some better plan.
+
+Thanks,
+
+--
+JSR
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
