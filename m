@@ -1,99 +1,65 @@
-From: Paul Moore <paul.moore@hp.com>
-Subject: Re: RFC: Mandatory Access Control for sockets aka "personal firewalls"
-Date: Wed, 21 Jan 2009 09:49:41 -0500
-Message-ID: <200901210949.42056.paul.moore@hp.com>
-References: <1232473719.24943.102.camel@sp-laptop3.sp-local> <200901201547.44981.paul.moore@hp.com> <1232495321.24943.149.camel@sp-laptop3.sp-local>
+From: =?KOI8-R?Q?=EB=CF=C2=D9=CC=D1=CE=D3=CB=C9=CA_=F7=CC=C1=C4=C9=CD=C9?=
+	 =?KOI8-R?Q?=D2?= <kent@lissi.ru>
+Subject: TCP-packet with PUSH flag with wrong payload data in LOCAL_OUT hook.
+Date: Wed, 21 Jan 2009 21:01:36 +0300
+Message-ID: <49776300.1060708@lissi.ru>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=KOI8-R
 Content-Transfer-Encoding: 7bit
-Cc: "linux-security-module" <linux-security-module@vger.kernel.org>,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Stephan Peijnik <stephan@peijnik.at>
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <1232495321.24943.149.camel@sp-laptop3.sp-local>
-Content-Disposition: inline
-Sender: linux-security-module-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from 1175.ovz4.hc.ru ([89.111.184.110]:49438 "EHLO mail.lissi.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753984AbZAUSZS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 21 Jan 2009 13:25:18 -0500
+Received: from mail.dc-lissi.int ([194.84.136.194]:23456 helo=mail.lissi.ru)
+	by mail.lissi.ru with esmtp (Exim 4.67)
+	(envelope-from <kent@lissi.ru>)
+	id 1LPhOs-0004Al-6b
+	for netfilter-devel@vger.kernel.org; Wed, 21 Jan 2009 21:02:02 +0300
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tuesday 20 January 2009 6:48:41 pm Stephan Peijnik wrote:
-> On Tue, 2009-01-20 at 15:47 -0500, Paul Moore wrote:
-> > Another option that was brought up (although perhaps not very
-> > clearly since it isn't listed here) was the embedding of the
-> > personal firewall hooks into the individual LSMs roughly similar to
-> > how capabilities are handled with SELinux today (a separate
-> > security mechanism that has explicit calls within SELinux).  This
-> > approach enables the use of current LSMs (although minor
-> > modifications will be needed) and avoids the need to add new hooks
-> > to the core network stack.
->
-> Sorry for not adding that one, I think you sent that email after I
-> finished writing the summary and that's why it wasn't included in the
-> first place.
-> This is another way of doing it, yes, but in the end we would
-> probably end up writing additional wrapper like code with the only
-> purpose of being called by <insert favorite LSM here> and then
-> forwarding that call to <insert favorite personal firewall here>.
+Hi.
 
-That is pretty much my point.  Provide a personal firewall mechanism 
-with a well defined API that LSMs can call as necessary.  The personal 
-firewall code then notifies a userspace agent over another well defined 
-API (netfilter, etc.) and waits for a verdict response.
+First of all - I am a beginner in kernel programming, so my question can
+be very stupid. Sorry.
 
-I've mentioned this approach several times now (perhaps poorly?), if 
-there is something you don't understand in my suggestion please let me 
-know.  I'm also getting sick of typing "personal firewall" all the 
-time, we need a shorter name and I'm going to start calling 
-it "pfwall" :)
+I try to write simple firewall module and I find incomprehensible (at
+least for me) thing.
 
-> To have multiple approaches working we would probably need
-> register/unregister functions ...
+I have Linux-machine with 2.6.17 kernel with my firewall module.
+My module register two hooks - LOCAL_OUT and PRE_ROUTING.
+With wget I try to download index.html from external WWW-server.
 
-Why?  You don't need to "register" with the LSM and you don't need 
-to "register" with userspace.
+I see in my module 3 handshake packets - they all normal.
+Then I see first packet with payload - it is TCP-packet with PSH and ACK
+flags and it is not normal at all.
 
-> for that wrapper and, to be honest, to me this sounds like a more
-> complicated version of doing the calls to the wrapper directly from
-> net/socket.c ...
+In this packet in tcp-data area I MUST see such string:
+"GET / HTTP/1.1..."
+or in HEX
+"4745 5420 2f20 4854 5450 2f31 2e31 ..."
+BUT I see such data in it:
+"0200 0100 0100 0000 0100 0000 0000 ....".
 
-Personal preference I suppose, although I am very confident that the 
-option described above (LSM calling the pfwall) has a much better 
-chance of acceptance that an option which involves hooking the core 
-network stack.
+As you can see - payload data wrong. IP and TCP headers - all normal.
+Length normal.
 
-> > > What has not been agreed on yet is whether only a way of hooking
-> > > these calls should be made available to implementations or
-> > > whether the whole in-kernel part should be developed together and
-> > > allow implementations of personal firewalls in userspace only,
-> > > for example using a netlink socket to communicate with the shared
-> > > in-kernel code.
-> >
-> > Since there will always be a significant userspace component to any
-> > personal firewall approach it seems reasonable to push the decision
-> > making into userspace and leave the kernel component relatively
-> > simple. The basic idea behind Samir's "snet" concept where the
-> > kernel simply passes messages to userspace and waits for a verdict
-> > seems like a reasonable approach in that it can be made to support
-> > different personal firewall implementations/designs without
-> > significant changes to the kernel.
->
-> I can only agree on that. However, providing a single solution that
-> cannot be extended dynamically (think of adding support for
-> additional protocols, implementing some sort of policy caching, etc.)
-> might be the wrong way to go.
+Even more - if I return NF_ACCEPT on this packet - WWW-server got normal
+packet with normal payload data.
 
-Explain what you mean by "dynamically" and give an example.
+If I use my Linux-machine as gateway (and catch forwarding packets by
+PRE_ROUTING hook) - I see this packet with normal data inside.
 
-> We would end up having a solution and whilst I really like the snet
-> approach we would lose some flexibility.
 
-As I mentioned before in the previous thread, please list and explain 
-all your requirements and we can work to arrive at a solution which 
-meets those needs.  When possible we should work to develop solutions 
-which are as flexible as possible, but flexibility for the sake of 
-flexibility often results in unnecessary complexity which is rarely a 
-good thing.
+So, I have some questions:
 
--- 
-paul moore
-linux @ hp
+1) Is it possible?
+2) If it is possible - what happens and where I can get normal payload data?
+
+
+P.S.: sorry if repeated question - I really was trying to find it in
+archive.
+
+P.P.S.: sorry for my English.
