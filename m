@@ -1,112 +1,99 @@
-From: Peter Dolding <oiaohm@gmail.com>
-Subject: Re: RFC: Mandatory Access Control for sockets aka "personal
-	firewalls"
-Date: Thu, 22 Jan 2009 09:28:35 +1000
-Message-ID: <e7d8f83e0901211528ue344783qb66e481902274961@mail.gmail.com>
-References: <39767.77.61.51.106.1232530374.squirrel@webmail.xs4all.nl>
+From: Eric Leblond <eric@inl.fr>
+Subject: [PATCH 0/2] IPv6 conntrack support for neighbour discovery
+Date: Thu, 22 Jan 2009 00:41:27 +0100
+Message-ID: <1232581287.16003.47.camel@ice-age>
+References: <20081030145218.5395c3fe@hiperon.ws.hirg>
+	 <491056FF.8030801@trash.net> <200811050444.mA54i7XU020102@toshiba.co.jp>
+	 <20081105133508.67b25090@hiperon.ws.hirg>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Casey Schaufler <casey@schaufler-ca.com>,
-	Samir Bellabes <sam@synack.fr>, imipak@yahoo.com,
-	linux-security-module <linux-security-module@vger.kernel.org>,
-	Stephan Peijnik <stephan@peijnik.at>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: rmeijer@xs4all.nl
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <39767.77.61.51.106.1232530374.squirrel@webmail.xs4all.nl>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-s71OLpViz+CcAvh3/11r"
+Cc: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>, kaber@trash.net,
+	netfilter-devel@vger.kernel.org, vstinner@inl.fr,
+	Pablo Neira Ayuso <pablo@netfilter.org>
+To: Marek Szuba <Marek.Szuba@if.pw.edu.pl>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from 78-210-144-213.altitudetelecom.fr ([213.144.210.78]:55801 "EHLO
+	fydelkass.inl.fr" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1752817AbZAUXls (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 21 Jan 2009 18:41:48 -0500
+In-Reply-To: <20081105133508.67b25090@hiperon.ws.hirg>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jan 21, 2009 at 7:32 PM, Rob Meijer <capibara@xs4all.nl> wrote:
-> On Wed, January 21, 2009 09:15, Peter Dolding wrote:
->
->> Netfilter can already reject or approve out going packets from
->> applications on the base of user id process id and so on.  This is
->> before packets enter the Netfilter processing stack.   Cost of looking
->> up if applicaiton is approved or not appoved is out weight be the cost
->> of rejected packets going trough netfilter.
->>
->> Sorry netfilter is already sorting out how sockets can be used.   What
->> you are basically talking about is two layors doing exactly the same
->> thing.   Half of what tuxguardian does can be done in a iptables
->> module.  Ie filtering out going traffic based on application.
->>
->> Please explain why expanding netfilter is not a option.   Expanding
->> netfilter avoids conflicts with LSM's.
->>
->
-> Agreed patches to Netfilter might get you a long way. Along the lines of
-> --owner-uid you may extend it with something like --owner-exe and possibly
-> --owner-callchainid. That could take care of:
->
-> * connection-full-protocol like TCP
-> * outgoing connection-less-protocol packets like UDP or ICMP
->
-> The one thing that would remain would be incoming connection-less-protocol
-> packets. If Netfilter could be patched in such a way that incoming packets
-> could be filtered based on receiving process meta, that would be a great
-> way to go. If not, maybe LSM would need to just mediate 'bind'.
->
-> A second issue comes with user level administration. If Netfilter would be
-> patched to allow a user to administrate her 'private' table, that could
-> get called from the system wide Netfilter rules, some MAC framework would
-> still be needed to make sure the user has a way to change the rules in her
-> private table, but her browser, pdf reader, mail client etc have not.
->
-> That is, you could define some system wide ruleset like:
->
-> System wide:
->  * deny any packet from executables under '/home/*'
->  * deny any packet from user 'localuser'
->  * for any packet from an executable under /usr/bin/networkingtools/ jump
->    to the users USERPRIVATE table.
->  * deny all other trafic.
->
-> User alice USERPRIVATE:
->  * allow all packets from /usr/bin/webbrowser to anything on tcp port 80.
->
-> User bob USERPRIVATE:
->  * allow all packets from /usr/bin/webbrowser to the socks port of the
->    socks server.
->
-> Would a solution like that be feasible?
->
-> You would want alice or bob to be able to change their USERPRIVATE table,
-> but you wouldn't want /usr/bin/webbrowser or any other program to do so
-> independently. At least for that you would need close cooperation with
-> for example SeLinux or AppArmor.
->
-> Further it seems that 'bind' for connection less sockets will still be
-> important a candidate for mediation by LSM IMHO.
->
-More than feasible.   Look at cgroup's network stack work.   Stick
-each user in there own Cgroup and they can even have there own IP
-number and table if they like.   Of course cannot effect the table
-outside the Cgroup.   Its the one of the major reasons why I said
-fixing up netfilter to provide what is required makes doing multi user
-simple.
 
-Rules there would only be a extension to what cgroup networking and
-netfilter.  Yes no LSM involvement required.
+--=-s71OLpViz+CcAvh3/11r
+Content-Type: text/plain; charset="ISO-8859-15"
+Content-Transfer-Encoding: quoted-printable
 
-There are many ways though the Linux kernel.  This is part of the
-reason why I am asking why they are wanting LSM so much.  LSM was
-decided to be only one thing.   Not something to make more of if it
-can be avoided.   First rule should be seeing if API and Internal
-structs of Linux need fixing.  This case yes there are quite a few
-weaknesses in netfilter that could do with fixing.   If after fixing
-netfilter up it still turns out you need LSM support then you do have
-a valid reason.
+Hi,
 
-Bind not blocking is a defect in netfilter.   Bind call informs
-netfilter that the traffic to that location is wanted.   One problem
-netfilter cannot answer blocked.   Bind is not a LSM issue really.
-Its a API issue between bind and netfilter.   Currently netfilter just
-cuts the traffic off on the other side.  Ie you have binded to a port
-and will receive nothing because no traffic will get to you.  Its also
-not per application its global.    Yes netfilter rules store the
-information need for blocking bind just no way of informing
-application that it is.
+Le mercredi 05 novembre 2008 =E0 13:35 +0100, Marek Szuba a =E9crit :
+> On Wed, 05 Nov 2008 13:44:05 +0900 (JST)
+> Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp> wrote:
+>=20
+> > In short: nf_conntrack_proto_icmpv6.c does not help for protocols
+> > using their messages. conntrack helper is better.
+> So what you are suggesting is, someone needs to write such a helper
+> module. Correct?
 
-Peter Dolding
+I'm reopening this thread because Victor Stinner (in CC) has opened a
+similar bug in bugzilla:
+http://bugzilla.netfilter.org/show_bug.cgi?id=3D567
+Pablo has then pointed out this discussion.
+
+I don't think that we have to handle these part of ICMPv6 protocol with
+a connection tracking helper. For example, here's the trace of the
+exchange which are needed to obtain a "public" IPv6 address on my setup:
+
+15:14:42.377744 IP6 fe80::a00:27ff:feb3:e26c > ff02::2: ICMP6, router solic=
+itation, length 16
+15:14:42.405725 IP6 fe80::207:cbff:fe90:f8d1 > ff02::1: ICMP6, router adver=
+tisement, length 104
+15:14:43.401395 IP6 :: > ff02::1:ffb3:e26c: ICMP6, neighbor solicitation, w=
+ho has 2a01:e35:1394:5bd0:a00:27ff:feb3:e26c, length 24
+15:14:46.628300 IP6 fe80::a00:27ff:feb3:e26c > ff02::16: HBH ICMP6, multica=
+st listener report v2, 1 group record(s), length 28
+
+If we only analyse the first two, we see we can't easily invert the
+tuple of the connection: we don't know which address will answer and the
+destination address of the packet are changing. But as pointed by
+Yasuyuki the main point is not here, we need to accept the router
+advertisement to be able to detect changes in the routing. In fact,
+theses protocols are stateless and should be considered as such.
+
+IMHO, the main issue here is to tag the packets as INVALID. They are
+valid even we can't track them. I thus propose a patchset which adds the
+capability to avoid connection tracking the packets of these protocols.
+A sysctl flag can be set to activate this feature.
+
+With this patchset, the concerned packet don't get blocked by the
+INVALID rule and are not seen by the conntrack. They can be cleanly
+filtered in the ruleset.
+
+Patchset statistics:
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |   35 ++++++++++++++++++++=
++++-
+ 1 files changed, 34 insertions(+), 1 deletions(-)
+
+BR,
+--=20
+Eric Leblond <eric@inl.fr>
+INL: http://www.inl.fr/
+NuFW: http://www.nufw.org/
+
+--=-s71OLpViz+CcAvh3/11r
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Ceci est une partie de message
+ =?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iD8DBQBJd7KjnxA7CdMWjzIRAmaTAJwNmtk5vpXRfvb7pyUUh5Wjxvd07wCfeAaw
+f0ytrxtuPJQDhv8Y2grkCOg=
+=pDFN
+-----END PGP SIGNATURE-----
+
+--=-s71OLpViz+CcAvh3/11r--
+
