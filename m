@@ -1,35 +1,55 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: netfilter: xtables: Combine ipt_TTL and ip6t_HL source
-Date: Wed, 21 Jan 2009 07:48:08 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0901210747500.14993@fbirervta.pbzchgretzou.qr>
-References: <alpine.LSU.2.00.0901201415470.16288@fbirervta.pbzchgretzou.qr> <38bcb3ec0901201437t6ba198c8w83ecea8e3e6d4cde@mail.gmail.com>
+From: "Rob Meijer" <capibara@xs4all.nl>
+Subject: Re: RFC: Mandatory Access Control for sockets aka "personal
+     firewalls"
+Date: Wed, 21 Jan 2009 08:25:29 +0100 (CET)
+Message-ID: <57962.77.61.51.106.1232522729.squirrel@webmail.xs4all.nl>
+Reply-To: rmeijer@xs4all.nl
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: kaber@trash.net,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: James King <t.james.king@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:33839 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751872AbZAUGsL (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 21 Jan 2009 01:48:11 -0500
-In-Reply-To: <38bcb3ec0901201437t6ba198c8w83ecea8e3e6d4cde@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Cc: "Samir Bellabes" <sam@synack.fr>, imipak@yahoo.com,
+	"linux-security-module" <linux-security-module@vger.kernel.org>,
+	"Stephan Peijnik" <stephan@peijnik.at>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: "Casey Schaufler" <casey@schaufler-ca.com>
+Return-path: <linux-security-module-owner@vger.kernel.org>
+Sender: linux-security-module-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-
-On Tuesday 2009-01-20 23:37, James King wrote:
->> netfilter: xtables: Combine ipt_TTL and ip6t_HL source
->>
->> Similarly to commit c9fd49680954714473d6cbd2546d6ff120f96840, merge
->> TTL and HL. Since HL does not depend on any IPv6-specific function,
->> no new module dependencies would arise.
-
->> +               .table      = "mangle",
+On Wed, January 21, 2009 02:18, Casey Schaufler wrote:
 >
->Can we drop the mangle restriction at the same time?  Otherwise, looks
->good to me.
+>> we don't need this at all, as we are in process context, syscall can
+>> sleep.
+>> Trust me, it's strange to have it's web browser freezing waiting for a
+>> timeout if the userspace part doesn't reply, but if it's replying, it's
+>> transparent.
+>
+> I hate to be the one to say this, but it looks to me as if the
+> easiest way to solve the problems that you have outlined would
+> be to create a new LSM based on SELinux with two important
+> changes. The first would be to have a separate policy for each
+> user (or process tree) and the second would be to make the policy
+> specification discretionary. SELinux has all the mechanism you're
+> talking about, but you want the policy being enforced to reflect
+> a set of "personal firewall" rules rather than "domain type" rules.
+>  From the lobby at LCA in Hobart these rule sets are pretty hard to
+> tell apart. And let's not have the "SELinux isn't designed to do
+> that" row. Of course it isn't. Nonetheless, the personal firewall
+> sure sounds a lot like SELinux if you ignore the MAC/DAC difference.
 
-One thing at a time, I'd say.
+I think this is a perfect example of where using MAC 'and' DAC or rather
+centrally 'and' user managed profiles would be very fruitful. If you can
+create a purely permissive centrally managed per user profile, in fact
+delegating a permission set and allow each user to decompose and
+discretionary delegate parts of this profile to programs run by this same
+user, but with MAC restrictions when delegating to a process run by a
+different user, you would IMHO have a very powerful combination of MAC and
+DAC.
+
+I'm not sure however a label based MAC system would be best suited for
+combining MAC and DAC in such a way.
+
+
+
+Rob
+
