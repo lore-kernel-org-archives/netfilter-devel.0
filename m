@@ -1,260 +1,208 @@
-From: =?KOI8-R?B?68/C2czRztPLycog98zBxMnNydI=?= <kentlinux@yandex.ru>
-Subject: Re: Re: TCP-packet with PUSH flag with wrong payload data in LOCAL_OUT
-Date: Thu, 22 Jan 2009 16:53:36 +0300
-Message-ID: <7031232632416@webmail11.yandex.ru>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: Re: TCP-packet with PUSH flag with wrong payload data in
+ LOCAL_OUT
+Date: Thu, 22 Jan 2009 15:27:16 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0901221521450.24791@fbirervta.pbzchgretzou.qr>
+References: <7031232632416@webmail11.yandex.ru>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: "Netfilter Developer Mailing List" <netfilter-devel@vger.kernel.org>
-To: "Jan Engelhardt" <jengelh@medozas.de>
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: =?UTF-8?B?0JrQvtCx0YvQu9GP0L3RgdC60LjQuSDQktC70LDQtNC40LzQuNGA?=
+	<kentlinux@yandex.ru>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from forwards1.yandex.ru ([77.88.60.125]:39276 "EHLO
-	forwards1.yandex.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755246AbZAVOAm (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:57967 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751579AbZAVO1T (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 Jan 2009 09:00:42 -0500
+	Thu, 22 Jan 2009 09:27:19 -0500
+In-Reply-To: <7031232632416@webmail11.yandex.ru>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
->>  kent@lissi.ru
->>    SMTP error from remote mail server after end of data:
->>    host 194.84.136.194 [194.84.136.194]: 550 5.7.1 Message rejected.
+
+On Thursday 2009-01-22 14:53, =D0=9A=D0=BE=D0=B1=D1=8B=D0=BB=D1=8F=D0=BD=
+=D1=81=D0=BA=D0=B8=D0=B9 =D0=92=D0=BB=D0=B0=D0=B4=D0=B8=D0=BC=D0=B8=D1=80=
+ wrote:
+>Sorry.=20
+>There are my sources.
+>(As I undestood mail-list don't support attachments. Am I write?)
+
+Inline is easier to reply on:
+
+
+># define IP_PRINTF(addr) ((addr) & 0xff), (((addr) >> 8) & 0xff), (((a=
+ddr) >> 16) & 0xff), (((addr) >> 24) & 0xff)
+
+Use NIPQUAD and NIPQUAD_FMT.
+
+
+>int ip_packet_from_local_host(struct iphdr *iph)
+>{
+>	struct net_device *dev   =3D NULL;
+>	struct in_device *in_dev =3D NULL;
+>	struct in_ifaddr *ifaddr =3D NULL;
+>=09
+>	for (dev =3D dev_base; dev; dev =3D dev->next)
+>	{
+>		if (!dev->ip_ptr)
+>		{
+>			continue;
+>		}
+>		in_dev =3D (struct in_device *)dev->ip_ptr;
+
+Don't cast this.
+
+>		ifaddr =3D in_dev->ifa_list;
+>		while (ifaddr)
+>		{
+>			if (iph->saddr =3D=3D ifaddr->ifa_address)
+>			{
+>				return 1;
+>			}
+>			ifaddr =3D ifaddr->ifa_next;
+>		}
+>	}
+>=09
+>	return 0;
+>}
 >
->Should - have - known.
+>struct net_device* ip_packet_to_local_host(struct iphdr *iph)
+>{
+>	struct net_device *dev   =3D NULL;
+>	struct in_device *in_dev =3D NULL;
+>	struct in_ifaddr *ifaddr =3D NULL;
+>=09
+>	for (dev =3D dev_base; dev; dev =3D dev->next)
+>	{
+>		if (!dev->ip_ptr)
+>		{
+>			continue;
+>		}
+>		in_dev =3D (struct in_device *)dev->ip_ptr;
 
-Oops. It is some troubles in our hoster DNS config. (something in MX records...)
-Now I will post from current mail. Sorry.
+Nor this.
 
-
->>
->>I see in my module 3 handshake packets - they all normal.
->>Then I see first packet with payload - it is TCP-packet with PSH and ACK
->>flags and it is not normal at all.
+>		ifaddr =3D in_dev->ifa_list;
+>		while (ifaddr)
+>		{
+>			if (iph->daddr =3D=3D ifaddr->ifa_address)
+>			{
+>				return dev;
+>			}
+>			ifaddr =3D ifaddr->ifa_next;
+>		}
+>	}
+>	return NULL;
+>}
 >
->It could be something in your code (which seem to be absent here).
+>static unsigned int check_packet(struct sk_buff	*skb, short in_out)
+>{
+>    if(skb->nh.iph->protocol =3D=3D IPPROTO_TCP)
+>    {
+>	    struct tcphdr	*tcp;
+>	    char		*tcp_data=3DNULL;
+>	    char		tcp_flags[4];
+>	    unsigned int	tcp_data_off=3D0;
+>	   =20
+>	    tcp =3D (struct tcphdr *)((char*)skb->nh.iph + skb->nh.iph->ihl *=
+ 4);
+>	    tcp_data_off =3D (tcp->doff)*4;
+>	    tcp_data =3D (char *)tcp + tcp_data_off;
+>	    tcp_flags[0]=3D' ';
+>	    tcp_flags[1]=3D' ';
+>	    tcp_flags[2]=3D' ';
+>	    tcp_flags[3]=3D'\0';
 >
->>In this packet in tcp-data area I MUST see such string:
->>"GET / HTTP/1.1..."
->>or in HEX
->>"4745 5420 2f20 4854 5450 2f31 2e31 ..."
->>BUT I see such data in it:
->>"0200 0100 0100 0000 0100 0000 0000 ....".
+>	    if(tcp->syn)
+>		    tcp_flags[0] =3D 'S';
+>	    if(tcp->ack)
+>		    tcp_flags[1] =3D 'A';
+>	    if(tcp->psh)
+>		    tcp_flags[2] =3D 'P';
+>	    info("=3D=3D=3D HOOK_PACKET: packet src_addr=3D%u.%u.%u.%u:%u dst=
+_addr=3D%u.%u.%u.%u:%u [%s] protocol=3D%u, IN_OUT=3D%d, DATA_OFF =3D %u=
+",
+>			    IP_PRINTF(skb->nh.iph->saddr),ntohs(tcp->source),IP_PRINTF(skb-=
+>nh.iph->daddr),ntohs(tcp->dest),=20
+>			    tcp_flags, skb->nh.iph->protocol, in_out, tcp_data_off);
+>	    if(tcp->psh && ntohs(tcp->dest) =3D=3D 80)
+>	    {
+>		    info("=3D=3D=3D HOOK_PACKET: DATA=3D%02x %02x %02x %02x %02x %02=
+x", tcp_data[0],tcp_data[1],tcp_data[2],tcp_data[3],tcp_data[4],tcp_dat=
+a[5]);
+>//		    return NF_DROP;
+>	    }
+>    }
+
+Now consider this - tcp_data[0] invokes undefined behavior when
+
+ * there is no payload
+
+ * or the packet is fragmented (a corner case, though)
+
+
+Most likely the former is your case.
+
+>unsigned int hook_func(unsigned int hooknum,
+>                                struct sk_buff **pskb,
+>                                const struct net_device *in,
+>                                const struct net_device *out,
+>                                int (*okfn)(struct sk_buff *))
+>{
+>    struct sk_buff * skb =3D * pskb;
+>    int ret;
+>    if(skb =3D=3D NULL){
+>	info("HOOK skb=3D=3DNULL");
+>	return NF_DROP;
+>    }=09
+>    ret =3D check_packet(skb, (short)1); //1 - out
+
+Do not do redundant casts.
+
+>    return(ret);
+>}
 >
->Could be TCP options. Payload could be begin in a later packet maybe.
->Or somewhere in your code you have a wrong pointer.
->I don't read glass spheres so...
+>unsigned int hook_func_in(unsigned int hooknum,
+>                                struct sk_buff **pskb,
+>                                const struct net_device *in,
+>                                const struct net_device *out,
+>                                int (*okfn)(struct sk_buff *))
+>{
+>    struct sk_buff * skb =3D * pskb;
+>    int ret;
+>    if(skb =3D=3D NULL){
+>	info("HOOK_IN skb=3D=3DNULL");
+>	return NF_DROP;
+>    }=09
+>    if(skb->pkt_type =3D=3D PACKET_OUTGOING) =20
+>        ret =3D check_packet(skb, (short)1); //1 - out
+>    else
+>	ret =3D check_packet(skb, (short)0); //0 - in
 
+Stop it! >:)
 
-Sorry. 
-There are my sources.
-(As I undestood mail-list don't support attachments. Am I write?)
-
-==============================================
-
-#include <linux/module.h>
-#include <linux/kernel.h>
-#include <linux/netdevice.h>
-#include <linux/inetdevice.h>
-#include <linux/netfilter.h>
-#include <linux/netfilter_ipv4.h>
-#include <net/route.h>
-#include <linux/ip.h>
-#include <linux/tcp.h>
-#include <linux/spinlock_types.h>
-#include <linux/in_route.h>
-#include <net/ip.h>
-#include <linux/etherdevice.h>
-#include <linux/vmalloc.h>
-
-
-#define SYSLOG_ID "my_fw"
-# define IP_PRINTF(addr) ((addr) & 0xff), (((addr) >> 8) & 0xff), (((addr) >> 16) & 0xff), (((addr) >> 24) & 0xff)
-#define info(format, arg...)\
-		do {\
-			printk(KERN_INFO "%s: %s(): " format "\n" , SYSLOG_ID, __FUNCTION__, ## arg);\
-		} while (0)
-
-
-static struct nf_hook_ops nfho;
-static struct nf_hook_ops nfho_in;
-
-int ip_packet_from_local_host(struct iphdr *iph)
-{
-	struct net_device *dev   = NULL;
-	struct in_device *in_dev = NULL;
-	struct in_ifaddr *ifaddr = NULL;
-	
-	for (dev = dev_base; dev; dev = dev->next)
-	{
-		if (!dev->ip_ptr)
-		{
-			continue;
-		}
-		in_dev = (struct in_device *)dev->ip_ptr;
-		ifaddr = in_dev->ifa_list;
-		while (ifaddr)
-		{
-			if (iph->saddr == ifaddr->ifa_address)
-			{
-				return 1;
-			}
-			ifaddr = ifaddr->ifa_next;
-		}
-	}
-	
-	return 0;
-}
-
-struct net_device* ip_packet_to_local_host(struct iphdr *iph)
-{
-	struct net_device *dev   = NULL;
-	struct in_device *in_dev = NULL;
-	struct in_ifaddr *ifaddr = NULL;
-	
-	for (dev = dev_base; dev; dev = dev->next)
-	{
-		if (!dev->ip_ptr)
-		{
-			continue;
-		}
-		in_dev = (struct in_device *)dev->ip_ptr;
-		ifaddr = in_dev->ifa_list;
-		while (ifaddr)
-		{
-			if (iph->daddr == ifaddr->ifa_address)
-			{
-				return dev;
-			}
-			ifaddr = ifaddr->ifa_next;
-		}
-	}
-	return NULL;
-}
-
-static unsigned int check_packet(struct sk_buff	*skb, short in_out)
-{
-    if(skb->nh.iph->protocol == IPPROTO_TCP)
-    {
-	    struct tcphdr	*tcp;
-	    char		*tcp_data=NULL;
-	    char		tcp_flags[4];
-	    unsigned int	tcp_data_off=0;
-	    
-	    tcp = (struct tcphdr *)((char*)skb->nh.iph + skb->nh.iph->ihl * 4);
-	    tcp_data_off = (tcp->doff)*4;
-	    tcp_data = (char *)tcp + tcp_data_off;
-	    tcp_flags[0]=' ';
-	    tcp_flags[1]=' ';
-	    tcp_flags[2]=' ';
-	    tcp_flags[3]='\0';
-
-	    if(tcp->syn)
-		    tcp_flags[0] = 'S';
-	    if(tcp->ack)
-		    tcp_flags[1] = 'A';
-	    if(tcp->psh)
-		    tcp_flags[2] = 'P';
-	    info("=== HOOK_PACKET: packet src_addr=%u.%u.%u.%u:%u dst_addr=%u.%u.%u.%u:%u [%s] protocol=%u, IN_OUT=%d, DATA_OFF = %u",
-			    IP_PRINTF(skb->nh.iph->saddr),ntohs(tcp->source),IP_PRINTF(skb->nh.iph->daddr),ntohs(tcp->dest), 
-			    tcp_flags, skb->nh.iph->protocol, in_out, tcp_data_off);
-	    if(tcp->psh && ntohs(tcp->dest) == 80)
-	    {
-		    info("=== HOOK_PACKET: DATA=%02x %02x %02x %02x %02x %02x", tcp_data[0],tcp_data[1],tcp_data[2],tcp_data[3],tcp_data[4],tcp_data[5]);
-//		    return NF_DROP;
-	    }
-    }
-
-
-    return NF_ACCEPT;
-}
-
-unsigned int hook_func(unsigned int hooknum,
-                                struct sk_buff **pskb,
-                                const struct net_device *in,
-                                const struct net_device *out,
-                                int (*okfn)(struct sk_buff *))
-{
-    struct sk_buff * skb = * pskb;
-    int ret;
-    if(skb == NULL){
-	info("HOOK skb==NULL");
-	return NF_DROP;
-    }	
-    ret = check_packet(skb, (short)1); //1 - out
-    return(ret);
-}
-
-unsigned int hook_func_in(unsigned int hooknum,
-                                struct sk_buff **pskb,
-                                const struct net_device *in,
-                                const struct net_device *out,
-                                int (*okfn)(struct sk_buff *))
-{
-    struct sk_buff * skb = * pskb;
-    int ret;
-    if(skb == NULL){
-	info("HOOK_IN skb==NULL");
-	return NF_DROP;
-    }	
-    if(skb->pkt_type == PACKET_OUTGOING)  
-        ret = check_packet(skb, (short)1); //1 - out
-    else
-	ret = check_packet(skb, (short)0); //0 - in
-    return(ret);
-}
-
-
-static int __init fw_init(void)
-{
-    int ret;
-
-    nfho.hook     	= hook_func;
-    nfho.hooknum  	= NF_IP_LOCAL_OUT;
-    nfho.pf       	= PF_INET;
-    nfho.priority 	= NF_IP_PRI_FIRST;
-    
-    nfho_in.hook     	= hook_func_in;
-    nfho_in.hooknum 	= NF_IP_PRE_ROUTING;
-    nfho_in.pf       	= PF_INET;
-    nfho_in.priority 	= NF_IP_PRI_FIRST;
-  
-    nf_register_hook(&nfho);
-    nf_register_hook(&nfho_in);
-
-    info("Driver my_fw started");	    
-    return 0;
-}
-        
-static void __exit fw_cleanup(void)
-{
-    nf_unregister_hook(&nfho);
-    nf_unregister_hook(&nfho_in);
-    info("Driver my_fw stoped");	    
-}
-MODULE_LICENSE("GPL");
-MODULE_AUTHOR("KENTLINUX");
-MODULE_DESCRIPTION("KENTLINUX");
-module_init(fw_init);
-module_exit(fw_cleanup);
-==============================================================
-
-
-And syslog:
-
-====================================
-Jan 22 11:35:52 FW_EXT kernel: my_fw: fw_init(): Driver my_fw started
-Jan 22 11:35:54 FW_EXT kernel: my_fw: check_packet(): === HOOK_PACKET: packet src_addr=192.168.0.198:41924 dst_addr=192.168.0.132:80 [S  ] protocol=6, IN_OUT=1, DATA_OFF = 40
-Jan 22 11:35:54 FW_EXT kernel: my_fw: check_packet(): === HOOK_PACKET: packet src_addr=192.168.0.132:80 dst_addr=192.168.0.198:41924 [SA ] protocol=6, IN_OUT=0, DATA_OFF = 40
-Jan 22 11:35:54 FW_EXT kernel: my_fw: check_packet(): === HOOK_PACKET: packet src_addr=192.168.0.198:41924 dst_addr=192.168.0.132:80 [ A ] protocol=6, IN_OUT=1, DATA_OFF = 32
-Jan 22 11:35:54 FW_EXT kernel: my_fw: check_packet(): === HOOK_PACKET: packet src_addr=192.168.0.198:41924 dst_addr=192.168.0.132:80 [ AP] protocol=6, IN_OUT=1, DATA_OFF = 32
-Jan 22 11:35:54 FW_EXT kernel: my_fw: check_packet(): === HOOK_PACKET: DATA=02 00 01 00 01 00
-Jan 22 11:35:54 FW_EXT kernel: my_fw: check_packet(): === HOOK_PACKET: packet src_addr=192.168.0.132:80 dst_addr=192.168.0.198:41924 [ A ] protocol=6, IN_OUT=0, DATA_OFF = 32
-Jan 22 11:35:54 FW_EXT kernel: my_fw: check_packet(): === HOOK_PACKET: packet src_addr=192.168.0.132:80 dst_addr=192.168.0.198:41924 [ AP] protocol=6, IN_OUT=0, DATA_OFF = 32
-Jan 22 11:35:54 FW_EXT kernel: my_fw: check_packet(): === HOOK_PACKET: packet src_addr=192.168.0.198:41924 dst_addr=192.168.0.132:80 [ A ] protocol=6, IN_OUT=1, DATA_OFF = 32
-Jan 22 11:35:54 FW_EXT kernel: my_fw: check_packet(): === HOOK_PACKET: packet src_addr=192.168.0.198:41924 dst_addr=192.168.0.132:80 [ A ] protocol=6, IN_OUT=1, DATA_OFF = 32
-Jan 22 11:35:54 FW_EXT kernel: my_fw: check_packet(): === HOOK_PACKET: packet src_addr=192.168.0.132:80 dst_addr=192.168.0.198:41924 [ A ] protocol=6, IN_OUT=0, DATA_OFF = 32
-Jan 22 11:35:54 FW_EXT kernel: my_fw: check_packet(): === HOOK_PACKET: packet src_addr=192.168.0.198:41924 dst_addr=192.168.0.132:80 [ A ] protocol=6, IN_OUT=1, DATA_OFF = 32
-Jan 22 11:36:01 FW_EXT kernel: my_fw: fw_cleanup(): Driver my_fw stoped
-
-====================================
-
+>    return(ret);
+>}
+>
+>
+>Jan 22 11:35:52 FW_EXT kernel: my_fw: fw_init(): Driver my_fw started
+>Jan 22 11:35:54 FW_EXT kernel: my_fw: check_packet(): =3D=3D=3D HOOK_P=
+ACKET: packet src_addr=3D192.168.0.198:41924 dst_addr=3D192.168.0.132:8=
+0 [S  ] protocol=3D6, IN_OUT=3D1, DATA_OFF =3D 40
+>Jan 22 11:35:54 FW_EXT kernel: my_fw: check_packet(): =3D=3D=3D HOOK_P=
+ACKET: packet src_addr=3D192.168.0.132:80 dst_addr=3D192.168.0.198:4192=
+4 [SA ] protocol=3D6, IN_OUT=3D0, DATA_OFF =3D 40
+>Jan 22 11:35:54 FW_EXT kernel: my_fw: check_packet(): =3D=3D=3D HOOK_P=
+ACKET: packet src_addr=3D192.168.0.198:41924 dst_addr=3D192.168.0.132:8=
+0 [ A ] protocol=3D6, IN_OUT=3D1, DATA_OFF =3D 32
+>Jan 22 11:35:54 FW_EXT kernel: my_fw: check_packet(): =3D=3D=3D HOOK_P=
+ACKET: packet src_addr=3D192.168.0.198:41924 dst_addr=3D192.168.0.132:8=
+0 [ AP] protocol=3D6, IN_OUT=3D1, DATA_OFF =3D 32
+>Jan 22 11:35:54 FW_EXT kernel: my_fw: check_packet(): =3D=3D=3D HOOK_P=
+ACKET: DATA=3D02 00 01 00 01 00
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
