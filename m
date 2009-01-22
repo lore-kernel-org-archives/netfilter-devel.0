@@ -1,54 +1,48 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: TCP-packet with PUSH flag with wrong payload data in LOCAL_OUT
-Date: Thu, 22 Jan 2009 19:57:35 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0901221955530.5482@fbirervta.pbzchgretzou.qr>
-References: <7031232632416@webmail11.yandex.ru>  <alpine.LSU.2.00.0901221521450.24791@fbirervta.pbzchgretzou.qr>  <68611232638800@webmail51.yandex.ru>  <alpine.LSU.2.00.0901221705140.30491@fbirervta.pbzchgretzou.qr>
- <38bcb3ec0901221015x3da0e64bj8b4d0227224052a3@mail.gmail.com>
+Subject: Re: Ulogd patch series
+Date: Thu, 22 Jan 2009 20:49:54 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0901222048360.7246@fbirervta.pbzchgretzou.qr>
+References: <alpine.LSU.2.00.0901201214520.13700@fbirervta.pbzchgretzou.qr> <1232630176.27232.2.camel@khasse.inl.fr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Vladimir Kobylyanskiy <kentlinux@yandex.ru>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: James King <t.james.king@gmail.com>
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Eric Leblond <eric@inl.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:40141 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:60615 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753778AbZAVS5h (ORCPT
+	with ESMTP id S1753303AbZAVTt4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 Jan 2009 13:57:37 -0500
-In-Reply-To: <38bcb3ec0901221015x3da0e64bj8b4d0227224052a3@mail.gmail.com>
+	Thu, 22 Jan 2009 14:49:56 -0500
+In-Reply-To: <1232630176.27232.2.camel@khasse.inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Thursday 2009-01-22 19:15, James King wrote:
->On Thu, Jan 22, 2009 at 8:11 AM, Jan Engelhardt <jengelh@medozas.de> wrote:
->> Very well. But there still is another case I can think of -
->> non-linear skb.
->>
->>        struct tcphdr tcpbuf;
->>        const struct tcphdr *th;
->>
->>        th = skb_header_pointer(skb, ip_hdrlen(skb), sizeof(tcpbuf), &tcpbuf);
->>        if (th->psh && ntohs(tcp->dest) == 80) {
->>                char n[4];
->>
->>                if (skb_copy_bits(skb, ip_hdrlen(skb) + 4*tcp->doff,
->>                    n, sizeof(n)) >= 0)
->>                        printk("data: %02x %02x %02x %02x\n", n[0], n[1],
->>                               n[2], n[3]);
->>        }
+On Thursday 2009-01-22 14:16, Eric Leblond wrote:
+>Le mardi 20 janvier 2009 =C3=A0 12:16 +0100, Jan Engelhardt a =C3=A9cr=
+it :
+>>=20
+>> here are a bunch of patches that seemed to come in handy whilst=20
+>> packaging ulogd as rpm.
+>>=20
+>> Please pull from
+>> 	git://dev.medozas.de/ulogd master
+>>=20
+>> to recieve:
+>> Jan Engelhardt (5):
+>>       build: compile fix
 >
->Wouldn't
->
->if ((skb_linearize(skb) != 0) && net_ratelimit())
->      printk("skb is non-linear, but failed to linearize");
->
->be more preferable?
+>This one seems to be linked with your distro but the fix is harmless s=
+o
+>I've applied it.
 
-I don't think you want to be spending the CPU cycles for that.
-skb_copy_.. has a reason, at least for when you only need
-parts of the packet. A whole packet can be large --
-the MTU for lo is slightly above 16K, and that's a pretty big
-allocation already. The larger the allocation (come to think
-of jumbo packets), the sooner the fail.
+Well, one should not really rely on some other header file
+including it for you. Such is always a great surprise on,
+say, BSD, which seems to have much less inter-header
+dependencies. (Though this I tried on glibc 2.9.)
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
