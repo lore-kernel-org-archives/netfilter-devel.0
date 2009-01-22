@@ -1,208 +1,138 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Re: TCP-packet with PUSH flag with wrong payload data in
- LOCAL_OUT
-Date: Thu, 22 Jan 2009 15:27:16 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0901221521450.24791@fbirervta.pbzchgretzou.qr>
-References: <7031232632416@webmail11.yandex.ru>
+From: Vladimir Kobylyanskiy <kentlinux@yandex.ru>
+Subject: Re: TCP-packet with PUSH flag with wrong payload data in LOCAL_OUT
+Date: Thu, 22 Jan 2009 18:40:00 +0300
+Message-ID: <68611232638800@webmail51.yandex.ru>
+References: <7031232632416@webmail11.yandex.ru> <alpine.LSU.2.00.0901221521450.24791@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: =?UTF-8?B?0JrQvtCx0YvQu9GP0L3RgdC60LjQuSDQktC70LDQtNC40LzQuNGA?=
-	<kentlinux@yandex.ru>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: "Netfilter Developer Mailing List" <netfilter-devel@vger.kernel.org>
+To: "Jan Engelhardt" <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:57967 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751579AbZAVO1T (ORCPT
+Received: from forwards6.yandex.ru ([77.88.61.38]:58631 "EHLO
+	forwards6.yandex.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751258AbZAVPuh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 Jan 2009 09:27:19 -0500
-In-Reply-To: <7031232632416@webmail11.yandex.ru>
+	Thu, 22 Jan 2009 10:50:37 -0500
+In-Reply-To: <alpine.LSU.2.00.0901221521450.24791@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+22.01.09, 17:27, "Jan Engelhardt" <jengelh@medozas.de>:
 
-On Thursday 2009-01-22 14:53, =D0=9A=D0=BE=D0=B1=D1=8B=D0=BB=D1=8F=D0=BD=
-=D1=81=D0=BA=D0=B8=D0=B9 =D0=92=D0=BB=D0=B0=D0=B4=D0=B8=D0=BC=D0=B8=D1=80=
- wrote:
->Sorry.=20
->There are my sources.
->(As I undestood mail-list don't support attachments. Am I write?)
+> ># define IP_PRINTF(addr) ((addr) & 0xff), (((addr) >> 8) & 0xff), (((addr) >> 16) & 0xff), (((addr) >> 24) & 0xff)
+> Use NIPQUAD and NIPQUAD_FMT.
 
-Inline is easier to reply on:
+Ok. Thank you.
 
+> >int ip_packet_from_local_host(struct iphdr *iph)
+> >{
+> >	struct net_device *dev   = NULL;
+> >	struct in_device *in_dev = NULL;
+> >	struct in_ifaddr *ifaddr = NULL;
+> >	
+> >	for (dev = dev_base; dev; dev = dev->next)
+> >	{
+> >		if (!dev->ip_ptr)
+> >		{
+> >			continue;
+> >		}
+> >		in_dev = (struct in_device *)dev->ip_ptr;
+> Don't cast this.
 
-># define IP_PRINTF(addr) ((addr) & 0xff), (((addr) >> 8) & 0xff), (((a=
-ddr) >> 16) & 0xff), (((addr) >> 24) & 0xff)
-
-Use NIPQUAD and NIPQUAD_FMT.
-
-
->int ip_packet_from_local_host(struct iphdr *iph)
->{
->	struct net_device *dev   =3D NULL;
->	struct in_device *in_dev =3D NULL;
->	struct in_ifaddr *ifaddr =3D NULL;
->=09
->	for (dev =3D dev_base; dev; dev =3D dev->next)
->	{
->		if (!dev->ip_ptr)
->		{
->			continue;
->		}
->		in_dev =3D (struct in_device *)dev->ip_ptr;
-
-Don't cast this.
-
->		ifaddr =3D in_dev->ifa_list;
->		while (ifaddr)
->		{
->			if (iph->saddr =3D=3D ifaddr->ifa_address)
->			{
->				return 1;
->			}
->			ifaddr =3D ifaddr->ifa_next;
->		}
->	}
->=09
->	return 0;
->}
->
->struct net_device* ip_packet_to_local_host(struct iphdr *iph)
->{
->	struct net_device *dev   =3D NULL;
->	struct in_device *in_dev =3D NULL;
->	struct in_ifaddr *ifaddr =3D NULL;
->=09
->	for (dev =3D dev_base; dev; dev =3D dev->next)
->	{
->		if (!dev->ip_ptr)
->		{
->			continue;
->		}
->		in_dev =3D (struct in_device *)dev->ip_ptr;
-
-Nor this.
-
->		ifaddr =3D in_dev->ifa_list;
->		while (ifaddr)
->		{
->			if (iph->daddr =3D=3D ifaddr->ifa_address)
->			{
->				return dev;
->			}
->			ifaddr =3D ifaddr->ifa_next;
->		}
->	}
->	return NULL;
->}
->
->static unsigned int check_packet(struct sk_buff	*skb, short in_out)
->{
->    if(skb->nh.iph->protocol =3D=3D IPPROTO_TCP)
->    {
->	    struct tcphdr	*tcp;
->	    char		*tcp_data=3DNULL;
->	    char		tcp_flags[4];
->	    unsigned int	tcp_data_off=3D0;
->	   =20
->	    tcp =3D (struct tcphdr *)((char*)skb->nh.iph + skb->nh.iph->ihl *=
- 4);
->	    tcp_data_off =3D (tcp->doff)*4;
->	    tcp_data =3D (char *)tcp + tcp_data_off;
->	    tcp_flags[0]=3D' ';
->	    tcp_flags[1]=3D' ';
->	    tcp_flags[2]=3D' ';
->	    tcp_flags[3]=3D'\0';
->
->	    if(tcp->syn)
->		    tcp_flags[0] =3D 'S';
->	    if(tcp->ack)
->		    tcp_flags[1] =3D 'A';
->	    if(tcp->psh)
->		    tcp_flags[2] =3D 'P';
->	    info("=3D=3D=3D HOOK_PACKET: packet src_addr=3D%u.%u.%u.%u:%u dst=
-_addr=3D%u.%u.%u.%u:%u [%s] protocol=3D%u, IN_OUT=3D%d, DATA_OFF =3D %u=
-",
->			    IP_PRINTF(skb->nh.iph->saddr),ntohs(tcp->source),IP_PRINTF(skb-=
->nh.iph->daddr),ntohs(tcp->dest),=20
->			    tcp_flags, skb->nh.iph->protocol, in_out, tcp_data_off);
->	    if(tcp->psh && ntohs(tcp->dest) =3D=3D 80)
->	    {
->		    info("=3D=3D=3D HOOK_PACKET: DATA=3D%02x %02x %02x %02x %02x %02=
-x", tcp_data[0],tcp_data[1],tcp_data[2],tcp_data[3],tcp_data[4],tcp_dat=
-a[5]);
->//		    return NF_DROP;
->	    }
->    }
-
-Now consider this - tcp_data[0] invokes undefined behavior when
-
- * there is no payload
-
- * or the packet is fragmented (a corner case, though)
+Why?
 
 
-Most likely the former is your case.
+> Now consider this - tcp_data[0] invokes undefined behavior when
+>  * there is no payload
+>  * or the packet is fragmented (a corner case, though)
+> Most likely the former is your case.
 
->unsigned int hook_func(unsigned int hooknum,
->                                struct sk_buff **pskb,
->                                const struct net_device *in,
->                                const struct net_device *out,
->                                int (*okfn)(struct sk_buff *))
->{
->    struct sk_buff * skb =3D * pskb;
->    int ret;
->    if(skb =3D=3D NULL){
->	info("HOOK skb=3D=3DNULL");
->	return NF_DROP;
->    }=09
->    ret =3D check_packet(skb, (short)1); //1 - out
+> >    ret = check_packet(skb, (short)1); //1 - out
+> Do not do redundant casts.
+Ok. :)
 
-Do not do redundant casts.
 
->    return(ret);
->}
->
->unsigned int hook_func_in(unsigned int hooknum,
->                                struct sk_buff **pskb,
->                                const struct net_device *in,
->                                const struct net_device *out,
->                                int (*okfn)(struct sk_buff *))
->{
->    struct sk_buff * skb =3D * pskb;
->    int ret;
->    if(skb =3D=3D NULL){
->	info("HOOK_IN skb=3D=3DNULL");
->	return NF_DROP;
->    }=09
->    if(skb->pkt_type =3D=3D PACKET_OUTGOING) =20
->        ret =3D check_packet(skb, (short)1); //1 - out
->    else
->	ret =3D check_packet(skb, (short)0); //0 - in
+I add more debug-print to function "check_packet" - to show You, that the packet has payload data and it is not fragmented:
 
-Stop it! >:)
+Rewrited function:
+==================================================================
 
->    return(ret);
->}
->
->
->Jan 22 11:35:52 FW_EXT kernel: my_fw: fw_init(): Driver my_fw started
->Jan 22 11:35:54 FW_EXT kernel: my_fw: check_packet(): =3D=3D=3D HOOK_P=
-ACKET: packet src_addr=3D192.168.0.198:41924 dst_addr=3D192.168.0.132:8=
-0 [S  ] protocol=3D6, IN_OUT=3D1, DATA_OFF =3D 40
->Jan 22 11:35:54 FW_EXT kernel: my_fw: check_packet(): =3D=3D=3D HOOK_P=
-ACKET: packet src_addr=3D192.168.0.132:80 dst_addr=3D192.168.0.198:4192=
-4 [SA ] protocol=3D6, IN_OUT=3D0, DATA_OFF =3D 40
->Jan 22 11:35:54 FW_EXT kernel: my_fw: check_packet(): =3D=3D=3D HOOK_P=
-ACKET: packet src_addr=3D192.168.0.198:41924 dst_addr=3D192.168.0.132:8=
-0 [ A ] protocol=3D6, IN_OUT=3D1, DATA_OFF =3D 32
->Jan 22 11:35:54 FW_EXT kernel: my_fw: check_packet(): =3D=3D=3D HOOK_P=
-ACKET: packet src_addr=3D192.168.0.198:41924 dst_addr=3D192.168.0.132:8=
-0 [ AP] protocol=3D6, IN_OUT=3D1, DATA_OFF =3D 32
->Jan 22 11:35:54 FW_EXT kernel: my_fw: check_packet(): =3D=3D=3D HOOK_P=
-ACKET: DATA=3D02 00 01 00 01 00
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+static unsigned int check_packet(struct sk_buff *skb, short in_out)
+{
+    if(skb->nh.iph->protocol == IPPROTO_TCP)
+    {
+            struct tcphdr       *tcp;
+            char                *tcp_data=NULL;
+            char                tcp_flags[4];
+            unsigned int        tcp_data_off=0;
+            unsigned int        tcp_data_len=0;
+            unsigned int        if_fragmented = 0;
+            unsigned int        flag_MORE_FRAGMENTS = 0;
+            unsigned int        FRAGMENT_OFFSET = 0;
+
+            flag_MORE_FRAGMENTS = ntohs(skb->nh.iph->frag_off) & 0x2000;
+            FRAGMENT_OFFSET = ntohs(skb->nh.iph->frag_off) & 0x1fff;
+
+            if( (flag_MORE_FRAGMENTS == 1) || (FRAGMENT_OFFSET != 0))
+            {
+                    if_fragmented = 1;
+            }
+
+            tcp = (struct tcphdr *)((char*)skb->nh.iph + skb->nh.iph->ihl * 4);
+            tcp_data_off = (tcp->doff)*4;
+
+            tcp_data_len = ntohs(skb->nh.iph->tot_len) - (skb->nh.iph->ihl * 4) - tcp_data_off;
+
+            tcp_data = (char *)tcp + tcp_data_off;
+            tcp_flags[0]=' ';
+            tcp_flags[1]=' ';
+            tcp_flags[2]=' ';
+            tcp_flags[3]='\0';
+
+            if(tcp->syn)
+                    tcp_flags[0] = 'S';
+            if(tcp->ack)
+                    tcp_flags[1] = 'A';
+            if(tcp->psh)
+                    tcp_flags[2] = 'P';
+            info("=== HOOK_PACKET: packet src_addr=%u.%u.%u.%u:%u dst_addr=%u.%u.%u.%u:%u [%s] protocol=%u, IN_OUT=%d, DATA_OFF = %u, TCP_DATA_LEN = %u, if_fragmented = %u",
+                            IP_PRINTF(skb->nh.iph->saddr),ntohs(tcp->source),IP_PRINTF(skb->nh.iph->daddr),ntohs(tcp->dest),
+                            tcp_flags, skb->nh.iph->protocol, in_out, tcp_data_off, tcp_data_len, if_fragmented);
+            if(tcp->psh && ntohs(tcp->dest) == 80)
+            {
+                    info("=== HOOK_PACKET: DATA=%02x %02x %02x %02x %02x %02x", tcp_data[0],tcp_data[1],tcp_data[2],tcp_data[3],tcp_data[4],tcp_data[5]);
+//                  return NF_ACCEPT;
+            }
+    }
+
+==================================================================
+
+
+
+
+
+
+Syslog output:
+=============
+Jan 22 17:27:42 FW_EXT kernel: my_fw: fw_init(): Driver my_fw started
+Jan 22 17:27:45 FW_EXT kernel: my_fw: check_packet(): === HOOK_PACKET: packet src_addr=192.168.0.198:37118 dst_addr=192.168.0.132:80 [S  ] protocol=6, IN_OUT=1, DATA_OFF = 40, TCP_DATA_LEN = 0, if_fragmented = 0
+Jan 22 17:27:45 FW_EXT kernel: my_fw: check_packet(): === HOOK_PACKET: packet src_addr=192.168.0.132:80 dst_addr=192.168.0.198:37118 [SA ] protocol=6, IN_OUT=0, DATA_OFF = 40, TCP_DATA_LEN = 0, if_fragmented = 0
+Jan 22 17:27:45 FW_EXT kernel: my_fw: check_packet(): === HOOK_PACKET: packet src_addr=192.168.0.198:37118 dst_addr=192.168.0.132:80 [ A ] protocol=6, IN_OUT=1, DATA_OFF = 32, TCP_DATA_LEN = 0, if_fragmented = 0
+Jan 22 17:27:45 FW_EXT kernel: my_fw: check_packet(): === HOOK_PACKET: packet src_addr=192.168.0.198:37118 dst_addr=192.168.0.132:80 [ AP] protocol=6, IN_OUT=1, DATA_OFF = 32, TCP_DATA_LEN = 101, if_fragmented = 0
+Jan 22 17:27:45 FW_EXT kernel: my_fw: check_packet(): === HOOK_PACKET: DATA=02 00 01 00 01 00
+
+You see - it has 101 bytes of payload and it is not fragmented!
+May be when TCP packet with PUSH flag sended from localhost, payload data stored is some special buffer?
+Or kernel copy payload data after all firewall checks? (may be for some optimisation reasons )
+
+
+Jan 22 17:27:45 FW_EXT kernel: my_fw: check_packet(): === HOOK_PACKET: packet src_addr=192.168.0.132:80 dst_addr=192.168.0.198:37118 [ A ] protocol=6, IN_OUT=0, DATA_OFF = 32, TCP_DATA_LEN = 0, if_fragmented = 0
+Jan 22 17:27:45 FW_EXT kernel: my_fw: check_packet(): === HOOK_PACKET: packet src_addr=192.168.0.132:80 dst_addr=192.168.0.198:37118 [ AP] protocol=6, IN_OUT=0, DATA_OFF = 32, TCP_DATA_LEN = 842, if_fragmented = 0
+Jan 22 17:27:45 FW_EXT kernel: my_fw: check_packet(): === HOOK_PACKET: packet src_addr=192.168.0.198:37118 dst_addr=192.168.0.132:80 [ A ] protocol=6, IN_OUT=1, DATA_OFF = 32, TCP_DATA_LEN = 0, if_fragmented = 0
+Jan 22 17:27:45 FW_EXT kernel: my_fw: check_packet(): === HOOK_PACKET: packet src_addr=192.168.0.198:37118 dst_addr=192.168.0.132:80 [ A ] protocol=6, IN_OUT=1, DATA_OFF = 32, TCP_DATA_LEN = 0, if_fragmented = 0
+Jan 22 17:27:45 FW_EXT kernel: my_fw: check_packet(): === HOOK_PACKET: packet src_addr=192.168.0.132:80 dst_addr=192.168.0.198:37118 [ A ] protocol=6, IN_OUT=0, DATA_OFF = 32, TCP_DATA_LEN = 0, if_fragmented = 0
+Jan 22 17:27:45 FW_EXT kernel: my_fw: check_packet(): === HOOK_PACKET: packet src_addr=192.168.0.198:37118 dst_addr=192.168.0.132:80 [ A ] protocol=6, IN_OUT=1, DATA_OFF = 32, TCP_DATA_LEN = 0, if_fragmented = 0
+Jan 22 17:27:49 FW_EXT kernel: my_fw: fw_cleanup(): Driver my_fw stoped
+
+=============
