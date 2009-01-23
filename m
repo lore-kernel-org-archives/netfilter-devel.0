@@ -1,81 +1,52 @@
-From: Greg KH <gregkh@suse.de>
-Subject: [patch 30/46] netfilter: nf_conntrack: fix ICMP/ICMPv6 timeout
-	sysctls on big-endian
-Date: Thu, 22 Jan 2009 17:12:35 -0800
-Message-ID: <20090123011235.GE19756@kroah.com>
-References: <20090123010651.683741823@mini.kroah.org>
+From: NICOLAS BOULIANE <nicboul@gmail.com>
+Subject: Re: Patch for geoip match agains kernel 2.6.28
+Date: Thu, 22 Jan 2009 21:22:00 -0500
+Message-ID: <dd45289d0901221822v2d52b653h3f961dd8b4563843@mail.gmail.com>
+References: <000301c97cd4$4b810f30$e2832d90$%olav@bjerkeset.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Justin Forbes <jmforbes@linuxtx.org>,
-	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
-	Theodore Ts'o <tytso@mit.edu>,
-	Randy Dunlap <rdunlap@xenotime.net>,
-	Dave Jones <davej@redhat.com>,
-	Chuck Wolber <chuckw@quantumlinux.com>,
-	Chris Wedgwood <reviews@ml.cw.f00f.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Chuck Ebbert <cebbert@redhat.com>,
-	Domenico Andreoli <cavokz@gmail.com>, Willy Tarreau <w@1wt.eu>,
-	Rodrigo Rubira Branco <rbranco@la.checkpoint.com>,
-	Jake Edge <jake@lwn.net>, Eugene Teo <eteo@redhat.com>,
-	torvalds@linux-foundation.org, akpm@linux-foundation.org,
-	alan@lxorguk.ukuu.org.uk, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	davem@davemloft.net
-To: linux-kernel@vger.kernel.org, stable@kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Svein Olav Bjerkeset <svein.olav@bjerkeset.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:50710 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756532AbZAWBPI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 Jan 2009 20:15:08 -0500
-Content-Disposition: inline; filename="netfilter-nf_conntrack-fix-icmp-icmpv6-timeout-sysctls-on-big-endian.patch"
-In-Reply-To: <20090123011110.GA19756@kroah.com>
+Received: from wf-out-1314.google.com ([209.85.200.175]:14591 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756293AbZAWCWF (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 22 Jan 2009 21:22:05 -0500
+Received: by wf-out-1314.google.com with SMTP id 27so5290503wfd.4
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Jan 2009 18:22:00 -0800 (PST)
+In-Reply-To: <000301c97cd4$4b810f30$e2832d90$%olav@bjerkeset.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-2.6.28-stable review patch.  If anyone has any objections, please let us know.
+Hi Svein,
 
-------------------
+Thanks for this patch. I'll update my patchlet repository as soon as I get home.
 
-From: Patrick McHardy <kaber@trash.net>
+peace,
+acidfu.
 
-Upstream commit 71320af:
-
-An old bug crept back into the ICMP/ICMPv6 conntrack protocols: the timeout
-values are defined as unsigned longs, the sysctl's maxsize is set to
-sizeof(unsigned int). Use unsigned int for the timeout values as in the
-other conntrack protocols.
-
-Reported-by: Jean-Mickael Guerin <jean-mickael.guerin@6wind.com>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: David S. Miller <davem@davemloft.net>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
-
----
- net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |    2 +-
- net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
---- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-+++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-@@ -20,7 +20,7 @@
- #include <net/netfilter/nf_conntrack_core.h>
- #include <net/netfilter/nf_log.h>
- 
--static unsigned long nf_ct_icmp_timeout __read_mostly = 30*HZ;
-+static unsigned int nf_ct_icmp_timeout __read_mostly = 30*HZ;
- 
- static bool icmp_pkt_to_tuple(const struct sk_buff *skb, unsigned int dataoff,
- 			      struct nf_conntrack_tuple *tuple)
---- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-@@ -26,7 +26,7 @@
- #include <net/netfilter/ipv6/nf_conntrack_icmpv6.h>
- #include <net/netfilter/nf_log.h>
- 
--static unsigned long nf_ct_icmpv6_timeout __read_mostly = 30*HZ;
-+static unsigned int nf_ct_icmpv6_timeout __read_mostly = 30*HZ;
- 
- static bool icmpv6_pkt_to_tuple(const struct sk_buff *skb,
- 				unsigned int dataoff,
-
+On Thu, Jan 22, 2009 at 3:59 PM, Svein Olav Bjerkeset
+<svein.olav@bjerkeset.com> wrote:
+> Hi,
+>
+> Changes in "struct xt_match" from kernel 2.6.27 to 2.6.28 made the latest
+> version og Geoip match (Feb 11th 2008) from kernel version 2.6.28 on. I have
+> developed a patch that will make Geoip match work with 2.6.28.
+>
+> The patch can be downloaded from the following URL:
+> http://bjerkeset.com/patches/geoip-match-2.6.28.patch.gz
+>
+> The patch is against
+> http://people.netfilter.org/acidfu/patchlets/geoip.tar.gz as of Feb 11th
+> 2008.
+>
+> Regards,
+> Svein Olav Bjerkeset
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
