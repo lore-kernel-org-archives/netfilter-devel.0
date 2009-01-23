@@ -1,55 +1,54 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Patch for geoip match agains kernel 2.6.28
-Date: Fri, 23 Jan 2009 12:36:37 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0901231229460.24280@fbirervta.pbzchgretzou.qr>
-References: <000301c97cd4$4b810f30$e2832d90$%olav@bjerkeset.com> <dd45289d0901221822v2d52b653h3f961dd8b4563843@mail.gmail.com> <alpine.LSU.2.00.0901231020310.17548@fbirervta.pbzchgretzou.qr> <4979931B.5060503@netfilter.org>
+From: Jaswinder Singh Rajput <jaswinder-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>
+Subject: Re: [GIT PULL -tip] fix 33 make headers_check warnings
+Date: Fri, 23 Jan 2009 21:26:07 +0530
+Message-ID: <1232726167.3504.16.camel@localhost.localdomain>
+References: <1232223441.3966.22.camel@localhost.localdomain>
+	 <1232228261.27094.0.camel@macbook.infradead.org>
+	 <20090117221932.GA4956@uranus.ravnborg.org>
+	 <1232247901.3097.12.camel@localhost.localdomain>
+	 <20090118033339.GA671@bombadil.infradead.org>
+	 <1232249904.3097.15.camel@localhost.localdomain>
+	 <20090118041800.GB671@bombadil.infradead.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: NICOLAS BOULIANE <nicboul@gmail.com>,
-	Svein Olav Bjerkeset <svein.olav@bjerkeset.com>,
-	netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:40691 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753538AbZAWLgk (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 23 Jan 2009 06:36:40 -0500
-In-Reply-To: <4979931B.5060503@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Sam Ravnborg <sam-uyr5N9Q2VtJg9hUCZPvPmw@public.gmane.org>,
+	David Woodhouse <dwmw2-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>,
+	Ingo Molnar <mingo-X9Un+BFzKDI@public.gmane.org>, x86 maintainers <x86-DgEjT+Ai2ygdnm+yROfE0A@public.gmane.org>,
+	urs.thuermann-l29pVbxQd1IUtdQbppsyvg@public.gmane.org, oliver.hartkopp-l29pVbxQd1IUtdQbppsyvg@public.gmane.org,
+	linux-media-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	netfilter-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org, neilb-l3A5Bk7waGM@public.gmane.org,
+	linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, linux-raid-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	dbrownell-Rn4VEauK+AKRv+LV9MX5uipxlwaOVQ5f@public.gmane.org,
+	spi-devel-general-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	greg-U8xfFu+wG4EAvxtiuMwx3w@public.gmane.org, linux-usb-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	linux-mtd-IAPFreCvJWM7uuMidbF8XUB+6BGkLq7r@public.gmane.org, tiwai-l3A5Bk7waGM@public.gmane.org,
+	mchehab-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, LKML <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+	Andrew Morton <akpm-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org>
+To: Kyle McMartin <kyle-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org>
+Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20090118041800.GB671-PfSpb0PWhxZc2C7mugBRk2EX/6BAtgUQ@public.gmane.org>
+Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
+On Sat, 2009-01-17 at 23:18 -0500, Kyle McMartin wrote:
+> On Sun, Jan 18, 2009 at 09:08:24AM +0530, Jaswinder Singh Rajput wrote:
+> > If this file is _ONLY_ for userspace and kernel cannot use it then what
+> > is the point of keeping this file in kernel headers.
+> > 
+> 
+> There is effectively no point, especially when they reference a variable
+> that may or may not exist in the userspace code including it... It seems
+> entirely mtd-utils dependent.
+> 
+> Dave, will you queue Adrian's patch to nuke it?
 
-On Friday 2009-01-23 10:51, Pablo Neira Ayuso wrote:
->Jan Engelhardt wrote:
->> On Friday 2009-01-23 03:22, NICOLAS BOULIANE wrote:
->>> Thanks for this patch. I'll update my patchlet repository as soon as I get home.
->>>
->>> peace,
->>> acidfu.
->> 
->> People still use POM patchlets? Gosh...
->
->I'm planning to give a spin to POM to keep some (minor number of)
->patches in it. For example, AFAIK xtables-addons cannot contain patches
->like ACCOUNT, since they require changes in the main kernel.
+What is the status of include/mtd/jffs2-user.h
 
-That is true. But the few extensions that I know of that patch kernel
-files (ACCOUNT, layer7, ..) are not POM archives, but true
-unified-diff style patches, making it a lot easier to patch them in
-because most SCM or near-SCM tools (like quilt and stgit) support
-unidiffs.
+--
+JSR
 
->My opinion on pom-ng and xtables-addons is still the same. I think that
->they don't have a reason with the current kernel development cycle.
-
-Sort of they do (both). Almost like linux-staging, perhaps. I really
-don't know what to make of extensions being ... not really rejected,
-but not accepted either ... that have their place in a daily life
-IMHO.
-
->And, of course, if Nicolas wants to keep its patchset in pom-ng updated,
->I would be OK with it.
-
-Sure. But it would be beneficial for the end-user to receive
-the optimizations made since too.
+--
+To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
