@@ -1,49 +1,31 @@
-From: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Subject: Re: net-next-2.6 is live
-Date: Thu, 22 Jan 2009 19:17:26 -0800
-Message-ID: <9929d2390901221917s606489c3wfe77612c9c989433@mail.gmail.com>
-References: <20090121.165820.171747430.davem@davemloft.net>
+From: "Jacky Luk" <jacky.luk@primecreation.com>
+Subject: Is the libnetfilter_queue thread-safe?
+Date: Fri, 23 Jan 2009 12:02:21 +0800
+Message-ID: <web-4707182@mail.primecreation.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	linux-wireless@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20090121.165820.171747430.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset="utf-8"; format="flowed"
+Content-Transfer-Encoding: 8bit
+To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from n218103092061.netvigator.com ([218.103.92.61]:53895 "EHLO
+	mail.primecreation.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750771AbZAWFHt (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 23 Jan 2009 00:07:49 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jan 21, 2009 at 4:58 PM, David Miller <davem@davemloft.net> wrote:
->
-> Ok, I've pushed all of the patches I've applied for 2.6.30 off to:
->
->        master.kernel.org:/pub/scm/linux/kernel/git/davem/net-next-2.6.git
->
-> Enjoy.
-> --
+Hi,
 
-Dave, the net-next tree seems to be missing this patch...
+I would like to ask a question about the 
+libnetfilter_queue. Is the libnetfilter_queue thread-safe? 
+Would the API of libnetfilter_queue cause the kernel crash 
+under multi-threading environment? I am using the Red Hat 
+Enterprise Linux 5.2 with the kernel version 
+2.6.18-92.el5PAE to develop my own program. The version of 
+libnetfilter_queue is 0.0.16 and the version of 
+libnfnetlink is 0.0.40.
 
+Thanks and Regards,
 
-From: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-Date: Mon, 19 Jan 2009 16:17:08 -0800
-
-e1000e: drop lltx, remove unnecessary lock
-
- LLTX is deprecated and complicated, don't use it.  It was observed by Don Ash
- <donash4@gmail.com> that e1000e was acquiring this lock in the NAPI cleanup
- path.  This is obviously a bug, as this is a leftover from when e1000
- supported multiple tx queues and fake netdevs.
-
- another user reported this to us and tested routing with the 2.6.27 kernel and
- this patch and reported a 3.5 % improvement in packets forwarded in a
- multi-port test on 82571 parts.
-
- Signed-off-by: Jesse Brandeburg <jesse.brandeburg@intel.com>
- Signed-off-by: Bruce Allan <bruce.w.allan@intel.com>
- Signed-off-by: Jeff Kirsher <jeffrey.t.kirsher@intel.com>
-
--- 
-Cheers,
-Jeff
+Jacky Luk
