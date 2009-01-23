@@ -1,48 +1,64 @@
-From: Svein Olav Bjerkeset <svein.olav@bjerkeset.com>
-Subject: Patch for geoip match agains kernel 2.6.28
-Date: Thu, 22 Jan 2009 21:59:19 +0100
-Message-ID: <000301c97cd4$4b810f30$e2832d90$%olav@bjerkeset.com>
+From: Greg KH <gregkh@suse.de>
+Subject: [patch 29/46] netfilter: ebtables: fix inversion in match code
+Date: Thu, 22 Jan 2009 17:12:33 -0800
+Message-ID: <20090123011233.GD19756@kroah.com>
+References: <20090123010651.683741823@mini.kroah.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bgo1smout1.broadpark.no ([217.13.4.94]:59409 "EHLO
-	bgo1smout1.broadpark.no" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752039AbZAVV7i (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 Jan 2009 16:59:38 -0500
-Received: from bgo1sminn1.broadpark.no ([217.13.4.93])
- by bgo1smout1.broadpark.no
- (Sun Java(tm) System Messaging Server 6.3-3.01 (built Jul 12 2007; 32bit))
- with ESMTP id <0KDW00D2J4YJCFD0@bgo1smout1.broadpark.no> for
- netfilter-devel@vger.kernel.org; Thu, 22 Jan 2009 21:59:07 +0100 (CET)
-Received: from highbury.bjerkeset.com ([84.48.117.63])
- by bgo1sminn1.broadpark.no
- (Sun Java(tm) System Messaging Server 6.3-3.01 (built Jul 12 2007; 32bit))
- with ESMTP id <0KDW000UN4YIM3H0@bgo1sminn1.broadpark.no> for
- netfilter-devel@vger.kernel.org; Thu, 22 Jan 2009 21:59:07 +0100 (CET)
-Received: from anfield
- (anfield.bjerkeset.com [IPv6:2001:5c0:1101:e500:213:d3ff:fea1:41a9])
-	by highbury.bjerkeset.com (8.14.2/8.14.2) with ESMTP id n0MKx6hn016407	for
- <netfilter-devel@vger.kernel.org>; Thu, 22 Jan 2009 21:59:06 +0100
-Content-language: no
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Justin Forbes <jmforbes@linuxtx.org>,
+	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
+	Theodore Ts'o <tytso@mit.edu>,
+	Randy Dunlap <rdunlap@xenotime.net>,
+	Dave Jones <davej@redhat.com>,
+	Chuck Wolber <chuckw@quantumlinux.com>,
+	Chris Wedgwood <reviews@ml.cw.f00f.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Chuck Ebbert <cebbert@redhat.com>,
+	Domenico Andreoli <cavokz@gmail.com>, Willy Tarreau <w@1wt.eu>,
+	Rodrigo Rubira Branco <rbranco@la.checkpoint.com>,
+	Jake Edge <jake@lwn.net>, Eugene Teo <eteo@redhat.com>,
+	torvalds@linux-foundation.org, akpm@linux-foundation.org,
+	alan@lxorguk.ukuu.org.uk, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	davem@davemloft.net, Jan Engelhardt <jengelh@medozas.de>
+To: linux-kernel@vger.kernel.org, stable@kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline; filename="netfilter-ebtables-fix-inversion-in-match-code.patch"
+In-Reply-To: <20090123011110.GA19756@kroah.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+2.6.28-stable review patch.  If anyone has any objections, please let us know.
 
-Changes in "struct xt_match" from kernel 2.6.27 to 2.6.28 made the latest
-version og Geoip match (Feb 11th 2008) from kernel version 2.6.28 on. I have
-developed a patch that will make Geoip match work with 2.6.28.
+------------------
 
-The patch can be downloaded from the following URL:
-http://bjerkeset.com/patches/geoip-match-2.6.28.patch.gz
+From: Patrick McHardy <kaber@trash.net>
 
-The patch is against
-http://people.netfilter.org/acidfu/patchlets/geoip.tar.gz as of Feb 11th
-2008.
+Upstream commit d61ba9f:
 
-Regards,
-Svein Olav Bjerkeset
+Commit 8cc784ee (netfilter: change return types of match functions
+for ebtables extensions) broke ebtables matches by inverting the
+sense of match/nomatch.
+
+Reported-by: Matt Cross <matthltc@us.ibm.com>
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+
+---
+ net/bridge/netfilter/ebtables.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -80,7 +80,7 @@ static inline int ebt_do_match (struct e
+ {
+ 	par->match     = m->u.match;
+ 	par->matchinfo = m->data;
+-	return m->u.match->match(skb, par);
++	return m->u.match->match(skb, par) ? EBT_MATCH : EBT_NOMATCH;
+ }
+ 
+ static inline int ebt_dev_check(char *entry, const struct net_device *device)
 
