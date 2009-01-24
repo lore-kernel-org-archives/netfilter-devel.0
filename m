@@ -1,46 +1,75 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [GIT PULL -tip] fix 33 make headers_check warnings
-Date: Fri, 23 Jan 2009 14:01:07 -0800
-Message-ID: <497A3E23.7040606@zytor.com>
-References: <1232223441.3966.22.camel@localhost.localdomain>  <1232228261.27094.0.camel@macbook.infradead.org>  <20090117221932.GA4956@uranus.ravnborg.org>  <49725B1E.604@kernel.org>  <1232498319.3123.34.camel@localhost.localdomain>  <1232726359.3504.18.camel@localhost.localdomain> <1232726658.3504.22.camel@localhost.localdomain> <alpine.LSU.2.00.0901231710350.15413@fbirervta.pbzchgretzou.qr> <497A3793.5090502@zytor.com> <alpine.LSU.2.00.0901232252510.25716@fbirervta.pbzchgretzou.qr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Jaswinder Singh Rajput <jaswinder@kernel.org>,
-	"H. Peter Anvin" <hpa@kernel.org>, Sam Ravnborg <sam@ravnborg.org>,
-	David Woodhouse <dwmw2@infradead.org>,
-	Ingo Molnar <mingo@elte.hu>, x86 maintainers <x86@kernel.org>,
-	urs.thuermann@volkswagen.de, oliver.hartkopp@volkswagen.de,
-	linux-media@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org, bfields@fieldses.org, neilb@suse.de,
-	linux-nfs@vger.kernel.org, linux-raid@vger.kernel.org,
-	dbrownell@users.sourceforge.net, netdev@vger.kernel.org,
-	greg@kroah.com, linux-usb@vger.kernel.org,
-	linux-mtd@lists.infradead.org, tiwai@suse.de,
-	mchehab@infradead.org, LKML <linux-kernel@vger.kernel.org>,
-	Andrew Morton <akpm@linux-foundation.org>
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <linux-raid-owner@vger.kernel.org>
-In-Reply-To: <alpine.LSU.2.00.0901232252510.25716@fbirervta.pbzchgretzou.qr>
-Sender: linux-raid-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Eric Leblond <eric@inl.fr>
+Subject: [PATCH] netfilter: don't track ICMPv6 negotiation message.
+Date: Sat, 24 Jan 2009 11:32:58 +0100
+Message-ID: <1232793178-10922-1-git-send-email-eric@inl.fr>
+References: <200901231110.n0NBARDe000646@toshiba.co.jp>
+Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@inl.fr>
+To: yasuyuki.kozakai@toshiba.co.jp, kaber@trash.net
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from bayen.regit.org ([81.57.69.189]:43558 "EHLO ice-age"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751156AbZAXKdE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 24 Jan 2009 05:33:04 -0500
+In-Reply-To: <200901231110.n0NBARDe000646@toshiba.co.jp>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> 
-> Hm, maybe g++ defaults to std? Because this works without me using
-> "using std;"
-> 
-> #include <cstdint>
-> int main(void)
-> {
-> 	uint32_t x;
-> }
-> 
+This patch removes connection tracking handling for ICMPv6 messages
+related to autoconfiguration. They can be tracked because they are
+massively using multicast (on pre-defined address). But they are not
+invalid.
 
-Sorry, this was a bit of a surprise... basically the g++ <cstdint> 
-functionally does #include <stdint.h> then exports the symbols into the 
-std namespace, so it puts them into both...
+Signed-off-by: Eric Leblond <eric@inl.fr>
+---
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |   21 +++++++++++++++++++++
+ 1 files changed, 21 insertions(+), 0 deletions(-)
 
-	-hpa
-
+diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+index 6f859c1..94ace19 100644
+--- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+@@ -53,6 +53,17 @@ static const u_int8_t invmap[] = {
+ 	[ICMPV6_NI_REPLY - 128]		= ICMPV6_NI_QUERY +1
+ };
+ 
++static const u_int8_t noct_valid_new[] = {
++	[ICMPV6_MGM_QUERY - 130] = 1,
++	[ICMPV6_MGM_REPORT -130] = 1,
++	[ICMPV6_MGM_REDUCTION - 130] = 1,
++	[NDISC_ROUTER_SOLICITATION - 130] = 1,
++	[NDISC_ROUTER_ADVERTISEMENT - 130] = 1,
++	[NDISC_NEIGHBOUR_SOLICITATION - 130] = 1,
++	[NDISC_NEIGHBOUR_ADVERTISEMENT - 130] = 1,
++	[ICMPV6_MLD2_REPORT - 130] = 1
++};
++
+ static bool icmpv6_invert_tuple(struct nf_conntrack_tuple *tuple,
+ 				const struct nf_conntrack_tuple *orig)
+ {
+@@ -182,6 +193,7 @@ icmpv6_error(struct net *net, struct sk_buff *skb, unsigned int dataoff,
+ {
+ 	const struct icmp6hdr *icmp6h;
+ 	struct icmp6hdr _ih;
++	int type;
+ 
+ 	icmp6h = skb_header_pointer(skb, dataoff, sizeof(_ih), &_ih);
+ 	if (icmp6h == NULL) {
+@@ -199,6 +211,15 @@ icmpv6_error(struct net *net, struct sk_buff *skb, unsigned int dataoff,
+ 		return -NF_ACCEPT;
+ 	}
+ 
++	type = icmp6h->icmp6_type - 130;
++	if (type >= 0 && type < sizeof(noct_valid_new)
++	    && noct_valid_new[type]) {
++		skb->nfct = &nf_conntrack_untracked.ct_general;
++		skb->nfctinfo = IP_CT_NEW;
++		nf_conntrack_get(skb->nfct);
++		return NF_ACCEPT;
++	}
++
+ 	/* is not error message ? */
+ 	if (icmp6h->icmp6_type >= 128)
+ 		return NF_ACCEPT;
+-- 
+1.5.6.3
 
