@@ -1,75 +1,131 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: [PATCH] netfilter: don't track ICMPv6 negotiation message.
-Date: Sat, 24 Jan 2009 11:32:58 +0100
-Message-ID: <1232793178-10922-1-git-send-email-eric@inl.fr>
-References: <200901231110.n0NBARDe000646@toshiba.co.jp>
-Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@inl.fr>
-To: yasuyuki.kozakai@toshiba.co.jp, kaber@trash.net
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: [PATCH] add --with-kernel-includes configure option to libnetfilter_queue
+Date: Sat, 24 Jan 2009 12:17:31 +0100
+Message-ID: <497AF8CB.2060809@pandora.be>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:43558 "EHLO ice-age"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751156AbZAXKdE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 24 Jan 2009 05:33:04 -0500
-In-Reply-To: <200901231110.n0NBARDe000646@toshiba.co.jp>
+Received: from yorgi.telenet-ops.be ([195.130.133.69]:59215 "EHLO
+	yorgi.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751181AbZAXLSM (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 24 Jan 2009 06:18:12 -0500
+Received: from harold.telenet-ops.be (harold.telenet-ops.be [195.130.133.65])
+	by yorgi.telenet-ops.be (Postfix) with ESMTP id 16D66680323
+	for <netfilter-devel@vger.kernel.org>; Sat, 24 Jan 2009 12:18:11 +0100 (CET)
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by harold.telenet-ops.be (Postfix) with SMTP id D841030022
+	for <netfilter-devel@vger.kernel.org>; Sat, 24 Jan 2009 12:17:37 +0100 (CET)
+Received: from [127.0.0.1] (d54C6FD43.access.telenet.be [84.198.253.67])
+	by harold.telenet-ops.be (Postfix) with ESMTP id 9C31630028
+	for <netfilter-devel@vger.kernel.org>; Sat, 24 Jan 2009 12:17:37 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch removes connection tracking handling for ICMPv6 messages
-related to autoconfiguration. They can be tracked because they are
-massively using multicast (on pre-defined address). But they are not
-invalid.
+Hi,
 
-Signed-off-by: Eric Leblond <eric@inl.fr>
----
- net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |   21 +++++++++++++++++++++
- 1 files changed, 21 insertions(+), 0 deletions(-)
+[This is a rediff which includes support for directories with
+spaces.]
 
-diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-index 6f859c1..94ace19 100644
---- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-@@ -53,6 +53,17 @@ static const u_int8_t invmap[] = {
- 	[ICMPV6_NI_REPLY - 128]		= ICMPV6_NI_QUERY +1
- };
+
+This adds the --with-kernel-includes configure option to
+libnetfilter_queue and adds a README. This option allows compiling
+with kernel headers not located at /usr/include.
+
+Signed-off-by: Bart De Schuymer <bdschuym@pandora.be>
+
+
+--- libnetfilter_queue_snapshot/configure.in.old	2009-01-24 11:54:41.000000000 +0100
++++ libnetfilter_queue_snapshot/configure.in	2009-01-24 12:00:40.000000000 +0100
+@@ -19,14 +19,37 @@ esac
  
-+static const u_int8_t noct_valid_new[] = {
-+	[ICMPV6_MGM_QUERY - 130] = 1,
-+	[ICMPV6_MGM_REPORT -130] = 1,
-+	[ICMPV6_MGM_REDUCTION - 130] = 1,
-+	[NDISC_ROUTER_SOLICITATION - 130] = 1,
-+	[NDISC_ROUTER_ADVERTISEMENT - 130] = 1,
-+	[NDISC_NEIGHBOUR_SOLICITATION - 130] = 1,
-+	[NDISC_NEIGHBOUR_ADVERTISEMENT - 130] = 1,
-+	[ICMPV6_MLD2_REPORT - 130] = 1
-+};
+ dnl Dependencies
+ LIBNFNETLINK_REQUIRED=0.0.38
+- 
 +
- static bool icmpv6_invert_tuple(struct nf_conntrack_tuple *tuple,
- 				const struct nf_conntrack_tuple *orig)
- {
-@@ -182,6 +193,7 @@ icmpv6_error(struct net *net, struct sk_buff *skb, unsigned int dataoff,
- {
- 	const struct icmp6hdr *icmp6h;
- 	struct icmp6hdr _ih;
-+	int type;
- 
- 	icmp6h = skb_header_pointer(skb, dataoff, sizeof(_ih), &_ih);
- 	if (icmp6h == NULL) {
-@@ -199,6 +211,15 @@ icmpv6_error(struct net *net, struct sk_buff *skb, unsigned int dataoff,
- 		return -NF_ACCEPT;
- 	}
- 
-+	type = icmp6h->icmp6_type - 130;
-+	if (type >= 0 && type < sizeof(noct_valid_new)
-+	    && noct_valid_new[type]) {
-+		skb->nfct = &nf_conntrack_untracked.ct_general;
-+		skb->nfctinfo = IP_CT_NEW;
-+		nf_conntrack_get(skb->nfct);
-+		return NF_ACCEPT;
-+	}
+ PKG_CHECK_MODULES(LIBNFNETLINK, libnfnetlink >= $LIBNFNETLINK_REQUIRED,,
+ 	AC_MSG_ERROR(Cannot find libnfnetlink >= $LIBNFNETLINK_REQUIRED))
+- 
+-CFLAGS="$CFLAGS $LIBNFNETLINK_CFLAGS"
 +
- 	/* is not error message ? */
- 	if (icmp6h->icmp6_type >= 128)
- 		return NF_ACCEPT;
--- 
-1.5.6.3
-
+ LIBNFQUEUE_LIBS="$LIBNFNETLINK_LIBS"
+- 
++
+ AC_SUBST(LIBNFQUEUE_LIBS)
+ 
++dnl Allows compiling the library with kernel include headers not located
++dnl at /usr/include
++AC_ARG_WITH([kernel-includes],
++    [AS_HELP_STRING([--with-kernel-includes=PATH],
++    [Path to kernel source include files @<:@default=/usr/include@:>@])],
++    [
++    if test "x$withval" = xyes -o "x$withval" = x ; then
++	AC_MSG_ERROR(--with-kernel-includes must be given the path to your kernel source include files.)
++    fi
++    if ! test -d "$withval" ; then
++	AC_MSG_ERROR(The --with-kernel-includes path $withval is not a directory.)
++    fi
++    if ! test -d "$withval/linux" ; then
++	AC_MSG_ERROR(The --with-kernel-includes directory $withval must contain the directory 'linux'.)
++    fi
++    if ! test -r "$withval/linux" ; then
++	AC_MSG_ERROR(You must have read permissions for the kernel source include files.)
++    fi
++    KERNEL_INCLUDES=`(cd "$withval"; /bin/pwd)`
++    TMP_CFLAGS_OTHER=`$PKG_CONFIG libnfnetlink --cflags-only-other`
++    TMP_CFLAGS_I=`$PKG_CONFIG libnfnetlink --cflags-only-I`
++    CFLAGS="$CFLAGS $TMP_CFLAGS_OTHER -I\"$KERNEL_INCLUDES\" $TMP_CFLAGS_I"],
++    CFLAGS="$CFLAGS $LIBNFNETLINK_CFLAGS")
++
+ dnl Output the makefiles
+ AC_OUTPUT(Makefile include/Makefile include/libnetfilter_queue/Makefile src/Makefile utils/Makefile libnetfilter_queue.pc doxygen.cfg)
+--- libnetfilter_queue_snapshot/README.old	2009-01-24 11:54:59.000000000 +0100
++++ libnetfilter_queue_snapshot/README	2009-01-24 11:55:07.000000000 +0100
+@@ -0,0 +1,45 @@
++libnetfilter_queue - userspace library for handling queued network packets
++(C) 2005-2009 Netfilter Core Team <coreteam@netfilter.org>
++===========================================================================
++
++What is netfilter_queue?
++
++netfilter_queue enables the kernel packet filter to queue network packets
++to userspace, using the nfnetlink transport layer. These packets can then be
++inspected and/or altered by a userspace program and reinjected in the kernel
++network stack.
++
++
++What is libnetfilter_queue?
++
++libnetfilter_queue is a userspace library providing an API to packets that
++have been queued by the kernel packet filter. It is part of a system that
++deprecates the old ip_queue / libipq mechanism. libnetfilter_queue has been
++previously known as libnfnetlink_queue.
++
++
++Prerequisites for libnetfilter_queue
++
++libnetfilter_queue requires libnfnetlink and a kernel that includes the
++nfnetlink_queue subsystem (i.e. 2.6.14 or later).
++You can specify the location of your kernel sources using the
++"--with-kernel-includes" configure option.
++
++
++Where can I find documentation?
++
++At the moment, you will have to RTFS.  Sorry, but we have barely enough
++manpower to keep development ongoing.  If you want to contribute documentation,
++please contact us.
++
++
++It has bugs.  Where do I report them?
++
++Please report all libnetfilter_queue bugs to https://bugzilla.netfilter.org/,
++using the "libnetfilter_queue" Product.
++
++
++Where do I get support?
++
++The netfilter@vger.kernel.org and netfilter-devel@vger.kernel.org
++mailinglists serve as support forum.
