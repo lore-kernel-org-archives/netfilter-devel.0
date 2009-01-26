@@ -1,44 +1,36 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Is the libnetfilter_queue thread-safe?
-Date: Mon, 26 Jan 2009 14:21:57 +0100
-Message-ID: <497DB8F5.80600@trash.net>
-References: <web-4707182@mail.primecreation.com> <1232696125.22893.5.camel@ice-age>
+Subject: Re: netfilter: xtables: Combine ipt_TTL and ip6t_HL source
+Date: Mon, 26 Jan 2009 14:23:12 +0100
+Message-ID: <497DB940.3030007@trash.net>
+References: <38bcb3ec0901201437t6ba198c8w83ecea8e3e6d4cde@mail.gmail.com> <alpine.LSU.2.00.0901210747500.14993@fbirervta.pbzchgretzou.qr> <4976D7E3.7040603@trash.net> <20090121.122022.108101243.davem@davemloft.net> <4978247D.4060006@trash.net> <alpine.LSU.2.00.0901222050210.7246@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Jacky Luk <jacky.luk@primecreation.com>, netfilter@vger.kernel.org,
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: David Miller <davem@davemloft.net>, t.james.king@gmail.com,
 	netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@inl.fr>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:43686 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:43722 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750988AbZAZNWB (ORCPT
+	with ESMTP id S1751190AbZAZNXO (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 26 Jan 2009 08:22:01 -0500
-In-Reply-To: <1232696125.22893.5.camel@ice-age>
+	Mon, 26 Jan 2009 08:23:14 -0500
+In-Reply-To: <alpine.LSU.2.00.0901222050210.7246@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Leblond wrote:
-> Hi,
->=20
-> Le vendredi 23 janvier 2009 =E0 12:02 +0800, Jacky Luk a =E9crit :
->> Hi,
+Jan Engelhardt wrote:
+> On Thursday 2009-01-22 08:47, Patrick McHardy wrote:
+>> David Miller wrote:
+>>> From: Patrick McHardy <kaber@trash.net>
+>>> Date: Wed, 21 Jan 2009 09:08:03 +0100
+>>>
+>>>> Please resubmit once Dave starts accepting patches into net-next.git.
+>>> I'll probably publish my net-next-2.6 tree later today.
+>> I forgot to add: and once the netfilter regressions have been fixed :)
 >>
->> I would like to ask a question about the=20
->> libnetfilter_queue. Is the libnetfilter_queue thread-safe?=20
->=20
-> Is had yet to be decide :/ From my experience on NuFW, you can use it
-> with multithreaded programs and you can have a reading thread and a
-> writing thread working together on the same queue.
+> Are the still any open?
 
-I think it should be as long as you don't change anything related
-to the handle while using it. The remaining parts are merely a
-stateless communication mechanism, there's no reason why they
-shouldn't be thread-safe.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'm still waiting for a fix for the NFPROTO_UNSPEC proc regression.
+Or did I miss something?
+
