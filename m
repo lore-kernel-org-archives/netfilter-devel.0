@@ -1,50 +1,39 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 0/2] IPv6 conntrack support for neighbour discovery
-Date: Mon, 26 Jan 2009 14:11:37 +0100
-Message-ID: <497DB689.3020109@trash.net>
-References: <1232701347.32071.13.camel@khasse.inl.fr>	<200901231021.n0NALINO007201@toshiba.co.jp>	<1232707890.32071.41.camel@khasse.inl.fr> <200901231110.n0NBAR7Z000645@toshiba.co.jp>
+Subject: Re: nf_conntrack_proto_generic, assigned to 0
+Date: Mon, 26 Jan 2009 14:19:33 +0100
+Message-ID: <497DB865.8050003@trash.net>
+References: <200901241622.36634.christoph.paasch@student.uclouvain.be>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: eric@inl.fr, Marek.Szuba@if.pw.edu.pl,
-	netfilter-devel@vger.kernel.org, vstinner@inl.fr,
-	pablo@netfilter.org
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Cc: netfilter-devel@vger.kernel.org
+To: Christoph Paasch <christoph.paasch@student.uclouvain.be>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:43458 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:43623 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750738AbZAZNLm (ORCPT
+	with ESMTP id S1750738AbZAZNTf (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 26 Jan 2009 08:11:42 -0500
-In-Reply-To: <200901231110.n0NBAR7Z000645@toshiba.co.jp>
+	Mon, 26 Jan 2009 08:19:35 -0500
+In-Reply-To: <200901241622.36634.christoph.paasch@student.uclouvain.be>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Yasuyuki KOZAKAI wrote:
-> From: Eric Leblond <eric@inl.fr>
-> Date: Fri, 23 Jan 2009 11:51:30 +0100
+Christoph Paasch wrote:
+> Hi,
 > 
->>> I prefer 'NEW' rather than 'UNTRACKED' as other protocols which
->>> validation is unclear. So another solution is to let the connection
->>> tracking subsystem to create a new conntrack and to make
->>> nf_contrack_proto_icmpv6 assign 0 as timeout. How do you think ?
->> If we do that, we can have nfnetlink messages (NEW, DESTROY) send to
->> userspace. Personnaly, I don't think they are necessary. But there is an
->> other issue: as we can't invert the tuple, the information provided to
->> userspace will be false.
->>
->> Once we agree on this last point, I will send a reworked patchset (with
->> at least the removal of sysctl stuff).
+> while reading through the source-code I remarked, that for the generic l4 
+> protocol handler (nf_conntrack_proto_generic.c)  the protocol number 0 is 
+> used. While linux/in.h defines IPPROTO_IP = 0 (and says "a dummy protocol for 
+> tcp", whatever that may mean), in net/ipv6.h, the protocol 0 is used for the 
+> hop-by-hop header. And as IANA states, 0 is assigned to the IPv6 Hop-by-hop 
+> option.
 > 
-> Thank you. I understand why ICMPv6 packets are special here and
-> I agree to assign UNTRACKED to them. Indeed non-invertible tuple might
-> bring issues.
+> Even, if netfilter doesn't tracks the hop-by-hop protocol, it shouldn't use 
+> this number for the generic protocol handler, because this might be confusing.
+> In my opinion, 255 should be used, which is assigned as "Reserved" by IANA.
+> 
+> What do you think?
 
-How about adding a flag to indicate that only one direction of
-the tuple exists? It makes sense to support this for other kinds
-of simplex flows as well in my opinion and it somewhat goes in the
-same direction as the patch I talked about during the workshop
-to have only a single tuple within the conntrack and have reply
-tuples or potentially other tuples that relate to a connection
-within the ct_extend area. And using NEW and having netlink
-events seems more consistent to me.
+It doesn't make a difference currently since in both cases we'd use
+generic for HBH. But I think you're suggestion makes sense, could
+you send a patch for this?
