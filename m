@@ -1,54 +1,55 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 1/2] netfilter: ctnetlink: allow changing NAT sequence
-	adjustment in creation
-Date: Tue, 27 Jan 2009 22:14:57 +0100
-Message-ID: <20090127211457.10412.29085.stgit@Decadence>
+Subject: [PATCH 2/2] netfilter: ctnetlink: fix echo if not subscribed to any
+	multicast group
+Date: Tue, 27 Jan 2009 22:15:19 +0100
+Message-ID: <20090127211519.10412.96490.stgit@Decadence>
+References: <20090127211457.10412.29085.stgit@Decadence>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45330 "EHLO us.es"
+Received: from mail.us.es ([193.147.175.20]:60066 "EHLO us.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752850AbZA0VPD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 27 Jan 2009 16:15:03 -0500
+	id S1753130AbZA0VPr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 27 Jan 2009 16:15:47 -0500
+In-Reply-To: <20090127211457.10412.29085.stgit@Decadence>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch fixes an inconsistency in the current ctnetlink code
-since NAT sequence adjustment bit can only be updated but not set
-in the conntrack entry creation.
-
-This patch is used by conntrackd to successfully recover newly
-created entries that represent connections with helpers and NAT
-payload mangling.
+This patch fixes echoing if the socket that has sent the request to
+create/update/delete an entry is not subscribed to any multicast
+group. With the current code, ctnetlink would not send the echo
+message via unicast as nfnetlink_send() would be skip.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
 
- net/netfilter/nf_conntrack_netlink.c |   10 ++++++++++
- 1 files changed, 10 insertions(+), 0 deletions(-)
+ net/netfilter/nf_conntrack_netlink.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
 diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index ef51e99..016fad5 100644
+index 2424005..132207f 100644
 --- a/net/netfilter/nf_conntrack_netlink.c
 +++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1212,6 +1212,16 @@ ctnetlink_create_conntrack(struct nlattr *cda[],
- 		}
- 	}
+@@ -535,7 +535,7 @@ static int ctnetlink_conntrack_event(struct notifier_block *this,
+ 	} else
+ 		return NOTIFY_DONE;
  
-+#ifdef CONFIG_NF_NAT_NEEDED
-+	if (cda[CTA_NAT_SEQ_ADJ_ORIG] || cda[CTA_NAT_SEQ_ADJ_REPLY]) {
-+		err = ctnetlink_change_nat_seq_adj(ct, cda);
-+		if (err < 0) {
-+			rcu_read_unlock();
-+			goto err;
-+		}
-+	}
-+#endif
-+
- 	if (cda[CTA_PROTOINFO]) {
- 		err = ctnetlink_change_protoinfo(ct, cda);
- 		if (err < 0) {
+-	if (!nfnetlink_has_listeners(group))
++	if (!item->report && !nfnetlink_has_listeners(group))
+ 		return NOTIFY_DONE;
+ 
+ 	skb = alloc_skb(ctnetlink_calculate_room_size(ct, events), GFP_ATOMIC);
+@@ -1609,7 +1609,8 @@ static int ctnetlink_expect_event(struct notifier_block *this,
+ 	} else
+ 		return NOTIFY_DONE;
+ 
+-	if (!nfnetlink_has_listeners(NFNLGRP_CONNTRACK_EXP_NEW))
++	if (!item->report &&
++	    !nfnetlink_has_listeners(NFNLGRP_CONNTRACK_EXP_NEW))
+ 		return NOTIFY_DONE;
+ 
+ 	skb = alloc_skb(NLMSG_GOODSIZE, GFP_ATOMIC);
 
