@@ -1,50 +1,36 @@
-From: =?UTF-8?B?UGF3ZcWCIFN0YXN6ZXdza2k=?= <pstaszewski@itcare.pl>
-Subject: Re: [ SPAM ] Re: Is this normal?
-Date: Tue, 27 Jan 2009 15:26:08 +0100
-Message-ID: <497F1980.1070008@itcare.pl>
-References: <497F14B1.7070306@itcare.pl> <497F16F7.6020504@trash.net>
+From: jamal <hadi@cyberus.ca>
+Subject: Re: libxtables: prefix names and order it #1
+Date: Tue, 27 Jan 2009 09:29:32 -0500
+Message-ID: <1233066572.13279.76.camel@dogo.mojatatu.com>
+References: <alpine.LSU.2.00.0901271500200.13940@fbirervta.pbzchgretzou.qr>
+	 <1233065970.13279.74.camel@dogo.mojatatu.com>
+Reply-To: hadi@cyberus.ca
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Linux Network Development list <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net,
+	Netfilter Developer Mailing List
 	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <497F16F7.6020504@trash.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from nf-out-0910.google.com ([64.233.182.189]:16658 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753378AbZA0ObK (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 27 Jan 2009 09:31:10 -0500
+Received: by nf-out-0910.google.com with SMTP id d3so1171000nfc.21
+        for <netfilter-devel@vger.kernel.org>; Tue, 27 Jan 2009 06:31:09 -0800 (PST)
+In-Reply-To: <1233065970.13279.74.camel@dogo.mojatatu.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy pisze:
-> Pawe=C5=82 Staszewski wrote:
->> I have Linux that works as Router + traffic management with=20
->> connection tracking enabled but without making NAT
->>
->> About 600Mbit/s TX and 600Mbit/s RX forwarded traffic
->>
->> iptables -L -n -v -t raw
->> Chain PREROUTING (policy ACCEPT 3340M packets, 2623G bytes)
->> pkts bytes target     prot opt in     out     source              =20
->> destination
->> 3339M 2621G NOTRACK    all  --  *      *       0.0.0.0/0           =20
->> 0.0.0.0/0
->>
->>
->> kernel 2.6.28.2
->> CPU: Core 2, speed 2999.98 MHz (estimated)
->> Counted CPU_CLK_UNHALTED events (Clock cycles when not halted) with =
-a=20
->> unit mask of 0x00 (Unhalted core cycles) count 100000
->> samples  %        image name               app name                =20
->> symbol name
->> 14544205 15.8604  vmlinux                  vmlinux                 =20
->> ctnetlink_del_expect
->
-> This doesn't seem to be accurate, I'm guessing its really
-> ctnetlink_conntrack_event().
->
-> Does this patch make any difference?
+On Tue, 2009-01-27 at 09:19 -0500, jamal wrote:
 
-I will check this patch today at night.
+> Ok, no problem - let me know when you are done.
+
+BTW, it would be nice if you commit those patches to the git tree and i
+pull them.
+
+cheers,
+jamal
 
