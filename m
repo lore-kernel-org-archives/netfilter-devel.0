@@ -1,49 +1,17 @@
-From: Eric Dumazet <dada1@cosmosbay.com>
-Subject: Re: 32 core net-next stack/netfilter "scaling"
-Date: Tue, 27 Jan 2009 23:34:02 +0100
-Message-ID: <497F8BDA.6080908@cosmosbay.com>
-References: <497E361B.30909@hp.com>	<497E42F4.7080201@cosmosbay.com>	<497E44F6.2010703@hp.com>	<497ECF84.1030308@cosmosbay.com>	<497ED0A2.6050707@trash.net>	<497F350A.9020509@cosmosbay.com>	<497F457F.2050802@trash.net>	<497F4C2F.9000804@hp.com> <497F5BCD.9060807@hp.com>	<497F5F86.9010101@hp.com> <497F87E7.2000304@cosmosbay.com> <497F8ACD.2050203@hp.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Developers <netfilter-devel@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Linux Network Development list <netdev@vger.kernel.org>,
-	Stephen Hemminger <shemminger@vyatta.com>
-To: Rick Jones <rick.jones2@hp.com>
+From: Stephen Hemminger <shemminger@vyatta.com>
+Subject: [RFT 0/4] Iptables rwlock elimination
+Date: Tue, 27 Jan 2009 15:53:10 -0800
+Message-ID: <20090127235310.159946902@vyatta.com>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: David Miller <davem@davemloft.net>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <497F8ACD.2050203@hp.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Rick Jones a =E9crit :
->
->> Thanks for the report
->>
->> If you have so much contention on spinlocks, maybe hash function is=20
->> not good at all...
->>
->> hash =3D (unsigned long)ct;
->> hash ^=3D hash >> 16;
->> hash ^=3D hash >> 8;
->>
->> I ass-u-me you compiled your kernel with NR_CPUS=3D32 ?
->
-> I believe so - CONFIG_NR_CPUS in .config is 64 anyway.  If there is a=
-=20
-> more definitive place to check I'd be happy to look.
->
-> rick
->
->
+These are some experimental patches to eliminate the read/write lock
+in the fast path of iptables.  Not a big iptables user myself, so these
+more review and testing.
 
-By any chance, are you using SLAB instead of SLUB ?
-
-While running your netperf session, issuing :
-
-grep conntrack /proc/slabinfo
-
-Would help to know hash dispertion on your machine.
-
+-- 
 
