@@ -1,61 +1,57 @@
-From: Tobias Klausmann <klausman@schwarzvogel.de>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: Possible race condition in conntracking
-Date: Tue, 27 Jan 2009 14:06:04 +0100
-Message-ID: <20090127130604.GA19883@eric.schwarzvogel.de>
-References: <20090127075744.GA19875@eric.schwarzvogel.de> <497ED1E1.40304@trash.net>
+Date: Tue, 27 Jan 2009 14:14:44 +0100
+Message-ID: <497F08C4.90705@trash.net>
+References: <20090127075744.GA19875@eric.schwarzvogel.de> <497ED1E1.40304@trash.net> <20090127130604.GA19883@eric.schwarzvogel.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailinglist
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org,
+	Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
-To: netdev@vger.kernel.org
+To: Tobias Klausmann <klausman@schwarzvogel.de>
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <497ED1E1.40304@trash.net>
+In-Reply-To: <20090127130604.GA19883@eric.schwarzvogel.de>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi! 
+Tobias Klausmann wrote:
+> Hi! 
+> 
+> (I've now subscribed to netdev@, so no more CCs to me are necessary).
+> 
+> On Tue, 27 Jan 2009, Patrick McHardy wrote:
+>> That sounds plausible, but we only discard the new conntrack
+>> entry on clashes. The packet should be fine, unless you drop
+>> INVALID packets in your ruleset.
+> 
+> The ruleset currently does not contain any rules regarding
+> INVALID. Consequently, we opted for the TRACE approach.
+> 
+>> Try tracing the packet using the TRACE target. That should show
+>> whether it really disappears within netfilter and where.
+> 
+> I've removed the irrelevant fields like TTL, PREC etc and timing
+> info from syslog from the trace after making sure nothing funky
+> was going on there.
+> 
+> Apart from the ID field, I ended up with two identical traces.
+> 
+> So, as far as rule-matching is concerned, the two packets are
+> handled identically. Whatever happens after this:
+> 
+> Jan 27 11:00:39 fw2 kernel: TRACE: nat:POSTROUTING:policy:3 IN=
+> OUT=eth2.188 SRC=194.97.7.116 DST=194.97.3.83 LEN=66 TOS=0x00
+> PREC=0x00 TTL=63 ID=46964 DF PROTO=UDP SPT=53452 DPT=53 LEN=46 
+> 
+> is making this very packet go away. The policy of nat/PR is
+> ACCEPT.
 
-(I've now subscribed to netdev@, so no more CCs to me are necessary).
+This just means it passed through the last table/chain. The
+only one following is conntrack confirmation.
 
-On Tue, 27 Jan 2009, Patrick McHardy wrote:
-> That sounds plausible, but we only discard the new conntrack
-> entry on clashes. The packet should be fine, unless you drop
-> INVALID packets in your ruleset.
+Damn it :) I just noticed, we do indeed drop packets from
+duplicate new connections in conntrack confirmation.
 
-The ruleset currently does not contain any rules regarding
-INVALID. Consequently, we opted for the TRACE approach.
-
-> Try tracing the packet using the TRACE target. That should show
-> whether it really disappears within netfilter and where.
-
-I've removed the irrelevant fields like TTL, PREC etc and timing
-info from syslog from the trace after making sure nothing funky
-was going on there.
-
-Apart from the ID field, I ended up with two identical traces.
-
-So, as far as rule-matching is concerned, the two packets are
-handled identically. Whatever happens after this:
-
-Jan 27 11:00:39 fw2 kernel: TRACE: nat:POSTROUTING:policy:3 IN=
-OUT=eth2.188 SRC=194.97.7.116 DST=194.97.3.83 LEN=66 TOS=0x00
-PREC=0x00 TTL=63 ID=46964 DF PROTO=UDP SPT=53452 DPT=53 LEN=46 
-
-is making this very packet go away. The policy of nat/PR is
-ACCEPT.
-
-Presuming this:
-http://xkr47.outerspace.dyndns.org/netfilter/packet_flow/packet_flow9.png
-
-is accurate, I'm not sure what could drop the packet. We're not
-using QoS or tunneling on the packetfilter in question. This
-happens on two different machines (the machines are of the same
-type, but they have different NICs), so I doubt it's a hardware
-or driver issue.
-
-
-
--- 
-printk("Cool stuff's happening!\n")
-        linux-2.4.3/fs/jffs/intrep.c
+You should see the insert_failed conntrack counter show this
+(/proc/net/stat/nf_conntrack).
