@@ -1,55 +1,40 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/2] netfilter: ctnetlink: fix echo if not subscribed to any
-	multicast group
-Date: Tue, 27 Jan 2009 22:15:19 +0100
-Message-ID: <20090127211519.10412.96490.stgit@Decadence>
-References: <20090127211457.10412.29085.stgit@Decadence>
+From: Rick Jones <rick.jones2@hp.com>
+Subject: Re: 32 core net-next stack/netfilter "scaling"
+Date: Tue, 27 Jan 2009 14:29:33 -0800
+Message-ID: <497F8ACD.2050203@hp.com>
+References: <497E361B.30909@hp.com>	<497E42F4.7080201@cosmosbay.com>	<497E44F6.2010703@hp.com>	<497ECF84.1030308@cosmosbay.com>	<497ED0A2.6050707@trash.net>	<497F350A.9020509@cosmosbay.com>	<497F457F.2050802@trash.net>	<497F4C2F.9000804@hp.com> <497F5BCD.9060807@hp.com>	<497F5F86.9010101@hp.com> <497F87E7.2000304@cosmosbay.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+Cc: Netfilter Developers <netfilter-devel@vger.kernel.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Linux Network Development list <netdev@vger.kernel.org>,
+	Stephen Hemminger <shemminger@vyatta.com>
+To: Eric Dumazet <dada1@cosmosbay.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60066 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753130AbZA0VPr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 27 Jan 2009 16:15:47 -0500
-In-Reply-To: <20090127211457.10412.29085.stgit@Decadence>
+Received: from g1t0026.austin.hp.com ([15.216.28.33]:19042 "EHLO
+	g1t0026.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751020AbZA0W3i (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 27 Jan 2009 17:29:38 -0500
+In-Reply-To: <497F87E7.2000304@cosmosbay.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch fixes echoing if the socket that has sent the request to
-create/update/delete an entry is not subscribed to any multicast
-group. With the current code, ctnetlink would not send the echo
-message via unicast as nfnetlink_send() would be skip.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
+> Thanks for the report
+> 
+> If you have so much contention on spinlocks, maybe hash function is not 
+> good at all...
+> 
+> hash = (unsigned long)ct;
+> hash ^= hash >> 16;
+> hash ^= hash >> 8;
+> 
+> I ass-u-me you compiled your kernel with NR_CPUS=32 ?
 
- net/netfilter/nf_conntrack_netlink.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+I believe so - CONFIG_NR_CPUS in .config is 64 anyway.  If there is a more 
+definitive place to check I'd be happy to look.
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 2424005..132207f 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -535,7 +535,7 @@ static int ctnetlink_conntrack_event(struct notifier_block *this,
- 	} else
- 		return NOTIFY_DONE;
- 
--	if (!nfnetlink_has_listeners(group))
-+	if (!item->report && !nfnetlink_has_listeners(group))
- 		return NOTIFY_DONE;
- 
- 	skb = alloc_skb(ctnetlink_calculate_room_size(ct, events), GFP_ATOMIC);
-@@ -1609,7 +1609,8 @@ static int ctnetlink_expect_event(struct notifier_block *this,
- 	} else
- 		return NOTIFY_DONE;
- 
--	if (!nfnetlink_has_listeners(NFNLGRP_CONNTRACK_EXP_NEW))
-+	if (!item->report &&
-+	    !nfnetlink_has_listeners(NFNLGRP_CONNTRACK_EXP_NEW))
- 		return NOTIFY_DONE;
- 
- 	skb = alloc_skb(NLMSG_GOODSIZE, GFP_ATOMIC);
+rick
 
