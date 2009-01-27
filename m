@@ -1,101 +1,74 @@
 From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [PATCH] netfilter: don't track ICMPv6 negotiation message.
-Date: Tue, 27 Jan 2009 19:07:08 +0900 (JST)
-Message-ID: <200901271007.n0RA78tA025130@toshiba.co.jp>
-References: <200901231110.n0NBARDe000646@toshiba.co.jp>
-	<1232793178-10922-1-git-send-email-eric@inl.fr>
+Subject: Re: [PATCH 0/2] IPv6 conntrack support for neighbour discovery
+Date: Tue, 27 Jan 2009 19:09:38 +0900 (JST)
+Message-ID: <200901271009.n0RA9dqv000882@toshiba.co.jp>
+References: <1232707890.32071.41.camel@khasse.inl.fr>
+	<200901231110.n0NBAR7Z000645@toshiba.co.jp>
+	<497DB689.3020109@trash.net>
 Mime-Version: 1.0
 Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: yasuyuki.kozakai@toshiba.co.jp, kaber@trash.net,
-	netfilter-devel@vger.kernel.org
-To: eric@inl.fr
+Cc: yasuyuki.kozakai@toshiba.co.jp, eric@inl.fr,
+	Marek.Szuba@if.pw.edu.pl, netfilter-devel@vger.kernel.org,
+	vstinner@inl.fr, pablo@netfilter.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from inet-tsb5.toshiba.co.jp ([202.33.96.24]:58166 "EHLO
-	imx2.toshiba.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752152AbZA0KHM (ORCPT
+Received: from imx12.toshiba.co.jp ([61.202.160.132]:36125 "EHLO
+	imx12.toshiba.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752182AbZA0KJm (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 27 Jan 2009 05:07:12 -0500
-Received: from arc1.toshiba.co.jp ([133.199.194.235])
-	by imx2.toshiba.co.jp  with ESMTP id n0RA79oR005323
-	for <netfilter-devel@vger.kernel.org>; Tue, 27 Jan 2009 19:07:09 +0900 (JST)
+	Tue, 27 Jan 2009 05:09:42 -0500
+Received: from arc11.toshiba.co.jp ([133.199.90.127])
+	by imx12.toshiba.co.jp  with ESMTP id n0RA9eWL008089
+	for <netfilter-devel@vger.kernel.org>; Tue, 27 Jan 2009 19:09:40 +0900 (JST)
 Received: (from root@localhost)
-	by arc1.toshiba.co.jp  id n0RA79f6027312
-	for netfilter-devel@vger.kernel.org; Tue, 27 Jan 2009 19:07:09 +0900 (JST)
-Received: from mx12.toshiba.co.jp (localhost [127.0.0.1])
-	by ovp2.toshiba.co.jp  with ESMTP id n0RA79w8012229
-	for <netfilter-devel@vger.kernel.org>; Tue, 27 Jan 2009 19:07:09 +0900 (JST)
-In-Reply-To: <1232793178-10922-1-git-send-email-eric@inl.fr>
+	by arc11.toshiba.co.jp  id n0RA9ePA010231
+	for netfilter-devel@vger.kernel.org; Tue, 27 Jan 2009 19:09:40 +0900 (JST)
+Received: from mx.toshiba.co.jp (localhost [127.0.0.1])
+	by ovp11.toshiba.co.jp  with ESMTP id n0RA9d9U008335
+	for <netfilter-devel@vger.kernel.org>; Tue, 27 Jan 2009 19:09:40 +0900 (JST)
+In-Reply-To: <497DB689.3020109@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-Can you s/autoconfiguration/Stateless Address Autoconfiguration, MLD, and MLDv2/
-in commit log ?
+From: Patrick McHardy <kaber@trash.net>
+Date: Mon, 26 Jan 2009 14:11:37 +0100
 
-Others are fine to me.
+> Yasuyuki KOZAKAI wrote:
+> > From: Eric Leblond <eric@inl.fr>
+> > Date: Fri, 23 Jan 2009 11:51:30 +0100
+> > 
+> >>> I prefer 'NEW' rather than 'UNTRACKED' as other protocols which
+> >>> validation is unclear. So another solution is to let the connection
+> >>> tracking subsystem to create a new conntrack and to make
+> >>> nf_contrack_proto_icmpv6 assign 0 as timeout. How do you think ?
+> >> If we do that, we can have nfnetlink messages (NEW, DESTROY) send to
+> >> userspace. Personnaly, I don't think they are necessary. But there is an
+> >> other issue: as we can't invert the tuple, the information provided to
+> >> userspace will be false.
+> >>
+> >> Once we agree on this last point, I will send a reworked patchset (with
+> >> at least the removal of sysctl stuff).
+> > 
+> > Thank you. I understand why ICMPv6 packets are special here and
+> > I agree to assign UNTRACKED to them. Indeed non-invertible tuple might
+> > bring issues.
+> 
+> How about adding a flag to indicate that only one direction of
+> the tuple exists? It makes sense to support this for other kinds
+> of simplex flows as well in my opinion and it somewhat goes in the
+> same direction as the patch I talked about during the workshop
+> to have only a single tuple within the conntrack and have reply
+> tuples or potentially other tuples that relate to a connection
+> within the ct_extend area. And using NEW and having netlink
+> events seems more consistent to me.
+
+It sounds good for long term solution. For now Eric's patch is enough,
+I think.
+
+And sorry, I don't remember your patch in detail since maybe nftables talk
+was impressive to me ;) but it sounds that it will make easier to implement
+a module to track protocols using broadcast. 
 
 -- Yasuyuki Kozakai
-
-From: Eric Leblond <eric@inl.fr>
-Date: Sat, 24 Jan 2009 11:32:58 +0100
-
-> This patch removes connection tracking handling for ICMPv6 messages
-> related to autoconfiguration. They can be tracked because they are
-> massively using multicast (on pre-defined address). But they are not
-> invalid.
-> 
-> Signed-off-by: Eric Leblond <eric@inl.fr>
-> ---
->  net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |   21 +++++++++++++++++++++
->  1 files changed, 21 insertions(+), 0 deletions(-)
-> 
-> diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-> index 6f859c1..94ace19 100644
-> --- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-> +++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-> @@ -53,6 +53,17 @@ static const u_int8_t invmap[] = {
->  	[ICMPV6_NI_REPLY - 128]		= ICMPV6_NI_QUERY +1
->  };
->  
-> +static const u_int8_t noct_valid_new[] = {
-> +	[ICMPV6_MGM_QUERY - 130] = 1,
-> +	[ICMPV6_MGM_REPORT -130] = 1,
-> +	[ICMPV6_MGM_REDUCTION - 130] = 1,
-> +	[NDISC_ROUTER_SOLICITATION - 130] = 1,
-> +	[NDISC_ROUTER_ADVERTISEMENT - 130] = 1,
-> +	[NDISC_NEIGHBOUR_SOLICITATION - 130] = 1,
-> +	[NDISC_NEIGHBOUR_ADVERTISEMENT - 130] = 1,
-> +	[ICMPV6_MLD2_REPORT - 130] = 1
-> +};
-> +
->  static bool icmpv6_invert_tuple(struct nf_conntrack_tuple *tuple,
->  				const struct nf_conntrack_tuple *orig)
->  {
-> @@ -182,6 +193,7 @@ icmpv6_error(struct net *net, struct sk_buff *skb, unsigned int dataoff,
->  {
->  	const struct icmp6hdr *icmp6h;
->  	struct icmp6hdr _ih;
-> +	int type;
->  
->  	icmp6h = skb_header_pointer(skb, dataoff, sizeof(_ih), &_ih);
->  	if (icmp6h == NULL) {
-> @@ -199,6 +211,15 @@ icmpv6_error(struct net *net, struct sk_buff *skb, unsigned int dataoff,
->  		return -NF_ACCEPT;
->  	}
->  
-> +	type = icmp6h->icmp6_type - 130;
-> +	if (type >= 0 && type < sizeof(noct_valid_new)
-> +	    && noct_valid_new[type]) {
-> +		skb->nfct = &nf_conntrack_untracked.ct_general;
-> +		skb->nfctinfo = IP_CT_NEW;
-> +		nf_conntrack_get(skb->nfct);
-> +		return NF_ACCEPT;
-> +	}
-> +
->  	/* is not error message ? */
->  	if (icmp6h->icmp6_type >= 128)
->  		return NF_ACCEPT;
-> -- 
-> 1.5.6.3
-> 
