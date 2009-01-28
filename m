@@ -1,227 +1,170 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 1/3] netfilter: arptables: add mcmangle target
-Date: Wed, 28 Jan 2009 15:58:04 +0100
-Message-ID: <20090128145801.7501.44459.stgit@Decadence>
+Subject: [PATCH 2/3] netfilter: xtables: add PKTTYPE target
+Date: Wed, 28 Jan 2009 15:58:26 +0100
+Message-ID: <20090128145826.7501.34671.stgit@Decadence>
+References: <20090128145801.7501.44459.stgit@Decadence>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53799 "EHLO us.es"
+Received: from mail.us.es ([193.147.175.20]:53853 "EHLO us.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751282AbZA1O6N (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 28 Jan 2009 09:58:13 -0500
+	id S1751120AbZA1O6c (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 28 Jan 2009 09:58:32 -0500
+In-Reply-To: <20090128145801.7501.44459.stgit@Decadence>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds the mcmangle target for arptables which allows
-altering the source hardware address in ARP with a multicast
-hardware address. This target can be used to make a switch flood
-packets to the ports that use the same MAC multicast address. This
-is useful to deploy load-sharing clusters in environments in which
-the switch does not provide a way to flood packets to several
-ports.
+This patch adds the PKTTYPE target which can be used to mangle the
+skbuff packet type field. This target is useful in conjunction with
+the arptables mcmangle target to TCP working again when a
+multicast hardware address is used. An example of its use:
 
-Since all the nodes receives the same packets, each decides if
-it handles the packet based on hashing approach (See the `cluster'
-iptables match that comes with this patchset).
+iptables -I PREROUTING ! -s 224.0.0.0/4 -t mangle \
+	-j PKTTYPE --to-pkt-type unicast
 
-Theoretically, the use of the reserved VRRP hardware address should
-be fine for this, however, switches generally treat this hardware
-address space as normal unicast hardware address. Thus, in practise,
-it is not possible to have two nodes with the same VRRP hardware
-address.
+Given the following arptables rule-set:
 
-Please, note that this target violates RFC 1812 (section 3.3.2) since
-an ethernet device must not use a multicast link address.
+arptables -I OUTPUT -o eth0 -j mcmangle --h-length 6
+	\ --mc-mangle-mac 01:00:5e:00:01:01 --mc-mangle-dev eth0
+arptables -I INPUT --h-length 6 --destination-mac 01:00:5e:00:01:01
+	\ -j mangle --mangle-mac-d 00:zz:yy:xx:5a:27
 
-An example of the use of this target:
-
-arptables -I OUTPUT -o eth0 -j mcmangle --h-length 6 \
-	--mc-mangle-mac 01:00:5e:00:01:01 --mc-mangle-dev eth0
-arptables -I INPUT -i eth0 --h-length 6 --destination-mac \
-	01:00:5e:00:01:01 -j mangle --mangle-mac-d 00:zz:yy:xx:5a:27
-
-Where 00:zz:yy:xx:5a:27 is the original hardware address of this
-node. Note that the mcmangle target registers an entry in the multicast
-list that is required to get this working:
-
-$ cat /proc/net/dev_mcast | grep eth0 | head -1
-2    eth0            1     0     01005e000101
-
-You need the PKTTYPE iptables target (included in this patchset) to
-set skb->type to PACKET_HOST. Otherwise, you would be only able to
-ICMP ping nodes in the network ;).
+See arptables mcmangle target for further information.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
 
- include/linux/netfilter_arp/arpt_mcmangle.h |   14 ++++
- net/ipv4/netfilter/Kconfig                  |   12 +++
- net/ipv4/netfilter/Makefile                 |    1 
- net/ipv4/netfilter/arpt_mcmangle.c          |   98 +++++++++++++++++++++++++++
- 4 files changed, 125 insertions(+), 0 deletions(-)
- create mode 100644 include/linux/netfilter_arp/arpt_mcmangle.h
- create mode 100644 net/ipv4/netfilter/arpt_mcmangle.c
+ include/linux/netfilter/xt_PKTTYPE.h |    8 ++++
+ net/netfilter/Kconfig                |   18 ++++++++++
+ net/netfilter/Makefile               |    1 +
+ net/netfilter/xt_PKTTYPE.c           |   61 ++++++++++++++++++++++++++++++++++
+ 4 files changed, 88 insertions(+), 0 deletions(-)
+ create mode 100644 include/linux/netfilter/xt_PKTTYPE.h
+ create mode 100644 net/netfilter/xt_PKTTYPE.c
 
-diff --git a/include/linux/netfilter_arp/arpt_mcmangle.h b/include/linux/netfilter_arp/arpt_mcmangle.h
+diff --git a/include/linux/netfilter/xt_PKTTYPE.h b/include/linux/netfilter/xt_PKTTYPE.h
 new file mode 100644
-index 0000000..d14a1ab
+index 0000000..cc67cbf
 --- /dev/null
-+++ b/include/linux/netfilter_arp/arpt_mcmangle.h
-@@ -0,0 +1,14 @@
-+#ifndef _ARPT_MCMANGLE_H
-+#define _ARPT_MCMANGLE_H
-+#include <linux/netfilter_arp/arp_tables.h>
++++ b/include/linux/netfilter/xt_PKTTYPE.h
+@@ -0,0 +1,8 @@
++#ifndef _XT_PKTTYPE_TARGET_H
++#define _XT_PKTTYPE_TARGET_H
 +
-+struct net_device;
-+
-+struct arpt_mcmangle
-+{
-+	char ifname[IFNAMSIZ];
-+	char mc_devaddr[ETH_ALEN];
-+	struct net_device  __attribute__((aligned(8))) *dev;
++struct xt_pkttype_target_info {
++	u_int8_t pkt_type;
 +};
 +
-+#endif /* _ARPT_MANGLE_H */
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index 3816e1d..50f38b2 100644
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -392,6 +392,18 @@ config IP_NF_ARP_MANGLE
- 	  Allows altering the ARP packet payload: source and destination
- 	  hardware and network addresses.
++#endif /* _XT_PKTTYPE_TARGET_H */
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 25dcef9..9ed1ccf 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -489,6 +489,24 @@ config NETFILTER_XT_TARGET_TCPOPTSTRIP
+ 	  This option adds a "TCPOPTSTRIP" target, which allows you to strip
+ 	  TCP options from TCP packets.
  
-+config IP_NF_ARP_MCMANGLE
-+	tristate "ARP multicast address mangling"
++config NETFILTER_XT_TARGET_PKTTYPE
++	tristate  '"PKTTYPE" target support'
++	depends on IP_NF_RAW || IP6_NF_RAW
++	depends on NETFILTER_ADVANCED
 +	help
-+	  Allows altering the source unicast hardware address in ARP messages
-+	  with a multicast hardware address. This target is useful to make a
-+	  switch flood to all ports whose ethernet device have a multicast
-+	  hardware address. Please, see that this target violates RFC 1812
-+	  (section 3.3.2) since an ethernet device must not use a multicast
-+	  link address.
++	  The PKTTYPE target allows you to change the link layer packet type.
++	  This target is useful if you have set up a multicast MAC address (via
++	  arptables) for a given interface and you want the packets to reach
++	  the layer 4 stack (which would drop packet tagged as multicast
++	  from the link layer).
 +
-+	  To compile it as a module, choose M here.  If unsure, say N.
++	  This target can be used in conjunction with arptables and the cluster
++	  match to setup cluster of stateful firewalls which are connected
++	  through a switch.
 +
- endif # IP_NF_ARPTABLES
++	  If you want to compile it as a module, say M here and read
++	  <file:Documentation/kbuild/modules.txt>.  If unsure, say `N'.
++
+ config NETFILTER_XT_MATCH_COMMENT
+ 	tristate  '"comment" match support'
+ 	depends on NETFILTER_ADVANCED
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index da3d909..dd43ba9 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -55,6 +55,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_TPROXY) += xt_TPROXY.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_TCPMSS) += xt_TCPMSS.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_TCPOPTSTRIP) += xt_TCPOPTSTRIP.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_TRACE) += xt_TRACE.o
++obj-$(CONFIG_NETFILTER_XT_TARGET_PKTTYPE) += xt_PKTTYPE.o
  
- endmenu
-diff --git a/net/ipv4/netfilter/Makefile b/net/ipv4/netfilter/Makefile
-index 5f9b650..5c4cc3e 100644
---- a/net/ipv4/netfilter/Makefile
-+++ b/net/ipv4/netfilter/Makefile
-@@ -67,6 +67,7 @@ obj-$(CONFIG_IP_NF_TARGET_ULOG) += ipt_ULOG.o
- # generic ARP tables
- obj-$(CONFIG_IP_NF_ARPTABLES) += arp_tables.o
- obj-$(CONFIG_IP_NF_ARP_MANGLE) += arpt_mangle.o
-+obj-$(CONFIG_IP_NF_ARP_MCMANGLE) += arpt_mcmangle.o
- 
- # just filtering instance of ARP tables for now
- obj-$(CONFIG_IP_NF_ARPFILTER) += arptable_filter.o
-diff --git a/net/ipv4/netfilter/arpt_mcmangle.c b/net/ipv4/netfilter/arpt_mcmangle.c
+ # matches
+ obj-$(CONFIG_NETFILTER_XT_MATCH_COMMENT) += xt_comment.o
+diff --git a/net/netfilter/xt_PKTTYPE.c b/net/netfilter/xt_PKTTYPE.c
 new file mode 100644
-index 0000000..c82367a
+index 0000000..db68dc4
 --- /dev/null
-+++ b/net/ipv4/netfilter/arpt_mcmangle.c
-@@ -0,0 +1,98 @@
++++ b/net/netfilter/xt_PKTTYPE.c
+@@ -0,0 +1,61 @@
 +/*
-+ * (C) 2008-2009 Pablo Neira Ayuso <pablo@netfilter.org>
++ * (C) 2008 Pablo Neira Ayuso <pablo@netfilter.org>
 + *
 + * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
++ * it under the terms of the GNU General Public License version 2 as 
 + * published by the Free Software Foundation.
 + */
 +#include <linux/module.h>
 +#include <linux/skbuff.h>
-+
-+#include <linux/netfilter.h>
-+#include <linux/netfilter_arp.h>
-+#include <linux/netfilter_arp/arpt_mcmangle.h>
++#include <linux/jhash.h>
++#include <linux/netfilter/x_tables.h>
++#include <net/netfilter/nf_conntrack.h>
++#include <linux/netfilter/xt_PKTTYPE.h>
 +
 +static unsigned int
-+arpt_mcmangle_tg(struct sk_buff *skb, const struct xt_target_param *par)
++xt_pkttype_tg(struct sk_buff *skb, const struct xt_target_param *par)
 +{
-+	const struct arpt_mcmangle *mangle = par->targinfo;
-+	const struct arphdr *arp;
-+	unsigned char *arpptr;
-+	int hln;
++	const struct xt_pkttype_target_info *info = par->targinfo;
 +
-+	if (!skb_make_writable(skb, skb->len))
-+		return NF_DROP;
++	skb->pkt_type = info->pkt_type;
 +
-+	arp = arp_hdr(skb);
-+	arpptr = skb_network_header(skb) + sizeof(*arp);
-+	hln = arp->ar_hln;
-+
-+	/* We assume that pln and hln were checked in the match */
-+	if (ARPT_DEV_ADDR_LEN_MAX < hln ||
-+	    (arpptr + hln > skb_tail_pointer(skb))) {
-+	    	return NF_DROP;
-+	}
-+	memcpy(arpptr, mangle->mc_devaddr, hln);
-+
-+	return NF_ACCEPT;
++	return XT_CONTINUE;
 +}
 +
-+static bool
-+arpt_mcmangle_checkentry(const struct xt_tgchk_param *par)
-+{
-+	struct arpt_mcmangle *mangle = par->targinfo;
-+	struct net_device *dev;
-+
-+	if (!(mangle->mc_devaddr[0] & 0x01)) {
-+		printk(KERN_WARNING "arpt_mcmangle: wrong multicast address\n");
-+		return false;
-+	}
-+	dev = dev_get_by_name(&init_net, mangle->ifname);
-+	if (dev == NULL) {
-+		printk(KERN_WARNING "arpt_mcmangle: wrong `%s' interface\n",
-+			mangle->ifname);
-+		return false;
-+	}
-+	mangle->dev = dev;
-+	if (dev_mc_add(dev, mangle->mc_devaddr, ETH_ALEN, 0) < 0) {
-+		printk(KERN_ERR "arpt_mcmangle: cannot set multicast "
-+				"address\n");
-+		return false;
-+	}
-+	return true;
-+}
-+
-+static void
-+arpt_mcmangle_destroy(const struct xt_tgdtor_param *par)
-+{
-+	struct arpt_mcmangle *mangle = par->targinfo;
-+	dev_mc_delete(mangle->dev, mangle->mc_devaddr, ETH_ALEN, 0);
-+	dev_put(mangle->dev);
-+}
-+
-+static struct xt_target arpt_mcmangle_reg __read_mostly = {
-+	.name		= "mcmangle",
-+	.family		= NFPROTO_ARP,
-+	.target		= arpt_mcmangle_tg,
-+	.checkentry	= arpt_mcmangle_checkentry,
-+	.destroy	= arpt_mcmangle_destroy,
-+	.targetsize	= sizeof(struct arpt_mcmangle),
-+	.hooks		= (1 << NF_ARP_OUT),
-+	.me		= THIS_MODULE,
++static struct xt_target xt_pkttype_target[] __read_mostly = {
++	{
++		.family		= AF_INET,
++		.name		= "PKTTYPE",
++		.table		= "mangle",
++		.target		= xt_pkttype_tg,
++		.targetsize	= sizeof(struct xt_pkttype_target_info),
++		.me		= THIS_MODULE,
++	},
++	{
++		.family		= AF_INET6,
++		.name		= "PKTTYPE",
++		.table		= "mangle",
++		.target		= xt_pkttype_tg,
++		.targetsize	= sizeof(struct xt_pkttype_target_info),
++		.me		= THIS_MODULE,
++	},
 +};
 +
-+static int __init arpt_mcmangle_init(void)
++static int __init xt_pkttype_tg_init(void)
 +{
-+	return xt_register_target(&arpt_mcmangle_reg);
++	return xt_register_targets(xt_pkttype_target,
++				   ARRAY_SIZE(xt_pkttype_target));
 +}
 +
-+static void __exit arpt_mcmangle_fini(void)
++static void __exit xt_pkttype_tg_fini(void)
 +{
-+	xt_unregister_target(&arpt_mcmangle_reg);
++	xt_unregister_targets(xt_pkttype_target, ARRAY_SIZE(xt_pkttype_target));
 +}
 +
 +MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
 +MODULE_LICENSE("GPL");
-+MODULE_DESCRIPTION("arptables: arp multicast mangle target");
-+module_init(arpt_mcmangle_init);
-+module_exit(arpt_mcmangle_fini);
++MODULE_DESCRIPTION("Xtables: xt_PKTTYPE target");
++MODULE_ALIAS("ipt_PKTTYPE");
++MODULE_ALIAS("ip6t_PKTTYPE");
++module_init(xt_pkttype_tg_init);
++module_exit(xt_pkttype_tg_fini);
 
