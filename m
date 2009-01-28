@@ -1,69 +1,174 @@
-From: Alex Ivanov <handler@ua.fm>
-Subject: install patch-o-matic on fedora10
-Date: Wed, 28 Jan 2009 16:59:42 +0200
-Message-ID: <E1LSBtG-0006O1-2y@web07.mi6.kiev.ua>
+From: =?UTF-8?B?UGF3ZcWCIFN0YXN6ZXdza2k=?= <pstaszewski@itcare.pl>
+Subject: Re: [ SPAM ] Re: Is this normal?
+Date: Wed, 28 Jan 2009 17:09:35 +0100
+Message-ID: <4980833F.40301@itcare.pl>
+References: <497F14B1.7070306@itcare.pl> <497F16F7.6020504@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=windows-1251
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
+Cc: Linux Network Development list <netdev@vger.kernel.org>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from web01.mi6.kiev.ua ([91.198.36.2]:35001 "EHLO web01.mi6.kiev.ua"
+Received: from smtp.iq.pl ([86.111.241.19]:58539 "EHLO smtp.iq.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751172AbZA1QIQ convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 28 Jan 2009 11:08:16 -0500
-Received: from web07.mi6 ([10.0.0.19] helo=web07.mi6.kiev.ua)
-	by web01.mi6.kiev.ua with esmtp (Exim 4.69)
-	(envelope-from <handler@ua.fm>)
-	id 1LSBtJ-0005a2-CT
-	for netfilter-devel@vger.kernel.org; Wed, 28 Jan 2009 16:59:45 +0200
-Received: from web by web07.mi6.kiev.ua with local (Exim 4.69)
-	(envelope-from <handler@ua.fm>)
-	id 1LSBtG-0006O1-2y
-	for netfilter-devel@vger.kernel.org; Wed, 28 Jan 2009 16:59:42 +0200
+	id S1751155AbZA1QJj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 28 Jan 2009 11:09:39 -0500
+In-Reply-To: <497F16F7.6020504@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello!
-I download patch-o-matic-20031219.tar.bz2, unpack it
-To do:
-=2E/runme extra
-Hey! KERNEL_DIR is not set.
-Where is your kernel? [/usr/src/linux]  /usr/src/kernels/2.6.27.5-117.f=
-c10.i686/
-Testing... nth.patch ALREADY APPLIED (0 rejects out of 2 hunks).
-The base/nth patch:
-   Author: Fabrice MARIE <fabrice@netfilter.org>
-   Status: Works For Me.
-  =20
-   This option adds CONFIG_IP_NF_MATCH_NTH, which supplies a match
-   module that will allow you to match every Nth packet encountered.
-   By default there are 16 different counters that can be used.
-  =20
-   This match functions in one of two ways
-=2E..
-Do you want to apply this patch [N/y/t/f/a/r/b/w/q/?] y
-Testing patch base/nth.patch...
-Warning - no help text file could be found in either
-/usr/src/kernels/2.6.27.5-117.fc10.i686//net/ipv4/netfilter/Config.help
-or /usr/src/kernels/2.6.27.5-117.fc10.i686//Documentation/Configure.hel=
-p
-fgrep: /usr/src/kernels/2.6.27.5-117.fc10.i686//net/ipv4/netfilter/Conf=
-ig.in: No such file or directory
-Could not find place to slot in Config.in line
-TEST FAILED: patch NOT applied.
+after patch i have:
 
-but instead Config.in I have /usr/src/kernels/2.6.27.5-117.fc10.i686/ne=
-t/ipv4/netfilter/Kconfig file
-How I could change file name and instal this patch?
+CPU: Core 2, speed 3000 MHz (estimated)
+Counted CPU_CLK_UNHALTED events (Clock cycles when not halted) with a=20
+unit mask of 0x00 (Unhalted core cycles) count 100000
+samples  %        image name               app name                =20
+symbol name
+767616   13.0507  vmlinux                  vmlinux                 =20
+u32_delete
+291303    4.9526  vmlinux                  vmlinux                 =20
+_raw_spin_trylock
+269856    4.5880  vmlinux                  vmlinux                 =20
+do_ipt_get_ctl
+221887    3.7724  vmlinux                  vmlinux                 =20
+devm_ioport_unmap
+202405    3.4412  vmlinux                  vmlinux                 =20
+devm_ioport_map
+150375    2.5566  vmlinux                  vmlinux                 =20
+native_calibrate_tsc
+138476    2.3543  vmlinux                  vmlinux                 =20
+update_persistent_clock
+103328    1.7567  vmlinux                  vmlinux                 =20
+update_wall_time
+101648    1.7282  vmlinux                  vmlinux                 =20
+e1000_xmit_frame
+100776    1.7134  vmlinux                  vmlinux                 =20
+__ip_route_output_key
+94866     1.6129  vmlinux                  vmlinux                 =20
+dev_ethtool
+88844     1.5105  vmlinux                  vmlinux                 =20
+dev_queue_xmit
+88582     1.5060  vmlinux                  vmlinux                 =20
+ixgbe_update_rx_dca
+87747     1.4918  vmlinux                  vmlinux                 =20
+__pskb_pull_tail
+86888     1.4772  vmlinux                  vmlinux                 =20
+irq_entries_start
+77941     1.3251  vmlinux                  vmlinux                 =20
+ixgbe_configure
+76646     1.3031  vmlinux                  vmlinux                 =20
+ixgbe_clean_rx_irq
+75933     1.2910  vmlinux                  vmlinux                 =20
+ixgbe_alloc_rx_buffers
+75538     1.2843  vmlinux                  vmlinux                 =20
+e1000_get_eeprom
+75380     1.2816  vmlinux                  vmlinux                 =20
+ixgbe_vlan_rx_kill_vid
+71534     1.2162  vmlinux                  vmlinux                 =20
+e1000e_update_stats
+70017     1.1904  vmlinux                  vmlinux                 =20
+ip_route_input
+67435     1.1465  vmlinux                  vmlinux                  udp=
+_mt
+66901     1.1374  vmlinux                  vmlinux                 =20
+mach_set_rtc_mmss
+65824     1.1191  vmlinux                  vmlinux                 =20
+htb_dequeue
+63405     1.0780  vmlinux                  vmlinux                 =20
+text_poke
+58282     0.9909  vmlinux                  vmlinux                 =20
+devm_ioremap
+57893     0.9843  vmlinux                  vmlinux                 =20
+e1000_open
+51794     0.8806  vmlinux                  vmlinux                 =20
+ctrl_dumpfamily
+49911     0.8486  vmlinux                  vmlinux                 =20
+dev_seq_show
+49514     0.8418  vmlinux                  vmlinux                 =20
+skb_copy_and_csum_bits
+49168     0.8359  vmlinux                  vmlinux                 =20
+e1000_clean_rx_irq_ps
+48879     0.8310  vmlinux                  vmlinux                 =20
+ixgbe_setup_dca
+45064     0.7662  vmlinux                  vmlinux                 =20
+dev_unicast_sync
+43600     0.7413  vmlinux                  vmlinux                 =20
+ixgbe_clean_tx_irq
+42552     0.7235  vmlinux                  vmlinux                 =20
+ixgbe_xmit_frame
+41313     0.7024  vmlinux                  vmlinux                 =20
+_format_mac_addr
+41011     0.6973  vmlinux                  vmlinux                 =20
+pcim_iomap_regions
+40975     0.6966  vmlinux                  vmlinux                  sfq=
+_init
+38783     0.6594  vmlinux                  vmlinux                 =20
+tc_ctl_action
+35913     0.6106  vmlinux                  vmlinux                 =20
+hfsc_reset_qdisc
+34672     0.5895  vmlinux                  vmlinux                 =20
+xt_check_match
+32446     0.5516  vmlinux                  vmlinux                 =20
+packet_rcv
+31861     0.5417  vmlinux                  vmlinux                 =20
+__lru_cache_add
+31555     0.5365  vmlinux                  vmlinux                  s_s=
+top
+30430     0.5174  vmlinux                  vmlinux                 =20
+ip_defrag
+30235     0.5140  vmlinux                  vmlinux                 =20
+rwlock_bug
+29314     0.4984  vmlinux                  vmlinux                  htb=
+_init
+29236     0.4971  vmlinux                  vmlinux                 =20
+net_tx_action
+29062     0.4941  vmlinux                  vmlinux                 =20
+apply_alternatives
+28241     0.4801  vmlinux                  vmlinux                 =20
+tick_nohz_restart_sched_tick
+27626     0.4697  vmlinux                  vmlinux                 =20
+do_sysinfo
+25705     0.4370  vmlinux                  vmlinux                 =20
+htb_delete
+25336     0.4308  vmlinux                  vmlinux                 =20
+e1000_clean_jumbo_rx_irq
+24546     0.4173  vmlinux                  vmlinux                 =20
+tick_init_jiffy_update
+22883     0.3890  vmlinux                  vmlinux                 =20
+ixgbe_init_interrupt_scheme
 
--- =F0=E5=EA=EB=E0=EC=E0 ----------------------------------------------=
--------------
-=CF=EE=F2=EE=F0=EE=EF=E8=F1=FC =E7=E0=F0=E5=E3=E8=F1=F2=F0=E8=F0=EE=E2=E0=
-=F2=FC =F1=E0=EC=FB=E9 =EA=EE=F0=EE=F2=EA=E8=E9 =EF=EE=F7=F2=EE=E2=FB=E9=
- =E0=E4=F0=E5=F1 @i.ua
-http://mail.i.ua/reg - =E8 =EF=EE=EB=F3=F7=E8 1Gb =E4=EB=FF =F5=F0=E0=ED=
-=E5=ED=E8=FF =EF=E8=F1=E5=EC
+Patrick McHardy pisze:
+> Pawe=C5=82 Staszewski wrote:
+>> I have Linux that works as Router + traffic management with=20
+>> connection tracking enabled but without making NAT
+>>
+>> About 600Mbit/s TX and 600Mbit/s RX forwarded traffic
+>>
+>> iptables -L -n -v -t raw
+>> Chain PREROUTING (policy ACCEPT 3340M packets, 2623G bytes)
+>> pkts bytes target     prot opt in     out     source              =20
+>> destination
+>> 3339M 2621G NOTRACK    all  --  *      *       0.0.0.0/0           =20
+>> 0.0.0.0/0
+>>
+>>
+>> kernel 2.6.28.2
+>> CPU: Core 2, speed 2999.98 MHz (estimated)
+>> Counted CPU_CLK_UNHALTED events (Clock cycles when not halted) with =
+a=20
+>> unit mask of 0x00 (Unhalted core cycles) count 100000
+>> samples  %        image name               app name                =20
+>> symbol name
+>> 14544205 15.8604  vmlinux                  vmlinux                 =20
+>> ctnetlink_del_expect
+>
+> This doesn't seem to be accurate, I'm guessing its really
+> ctnetlink_conntrack_event().
+>
+> Does this patch make any difference?
 
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
