@@ -1,73 +1,41 @@
-From: Eric Dumazet <dada1@cosmosbay.com>
-Subject: Re: 32 core net-next stack/netfilter "scaling"
-Date: Wed, 28 Jan 2009 14:55:51 +0100
-Message-ID: <498063E7.5030106@cosmosbay.com>
-References: <497E361B.30909@hp.com>	<497E42F4.7080201@cosmosbay.com>	<497E44F6.2010703@hp.com>	<497ECF84.1030308@cosmosbay.com>	<497ED0A2.6050707@trash.net>	<497F350A.9020509@cosmosbay.com>	<497F457F.2050802@trash.net> <497F4C2F.9000804@hp.com> <497F5BCD.9060807@hp.com> <497F5F86.9010101@hp.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 0/3] netfilter: multi-primary clustering support
+Date: Wed, 28 Jan 2009 15:57:41 +0100
+Message-ID: <49807265.20506@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Developers <netfilter-devel@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Linux Network Development list <netdev@vger.kernel.org>,
-	Stephen Hemminger <shemminger@vyatta.com>
-To: Rick Jones <rick.jones2@hp.com>
+Content-Transfer-Encoding: 7bit
+Cc: Patrick McHardy <kaber@trash.net>
+To: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from gw1.cosmosbay.com ([212.99.114.194]:35698 "EHLO
-	gw1.cosmosbay.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751172AbZA1N4A convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 28 Jan 2009 08:56:00 -0500
-In-Reply-To: <497F5F86.9010101@hp.com>
+Received: from mail.us.es ([193.147.175.20]:57662 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751101AbZA1O56 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 28 Jan 2009 09:57:58 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Rick Jones a =E9crit :
->>> I will give it a try and let folks know the results - unless told
->>> otherwise, I will ass-u-me I only need rerun the "full_iptables" te=
-st
->>> case.
->>
->>
->> The runemomniagg2.sh script is still running, but the initial cycles
->> profile suggests that the main change is converting the write_lock
->> time into spinlock contention time with 78.39% of the cycles spent i=
-n
->> ia64_spinlock_contention. When the script completes I'll upload the
->> profiles and the netperf results to the same base URL as in the
->> basenote under "contrack01/"
->=20
-> The script completed - although at some point I hit an fd limit - I
-> think I have an fd leak in netperf somewhere :( .
->=20
-> Anyhow, there are still some netperfs that end-up kicking the bucket
-> during the run - I suspect starvation because where in the other conf=
-igs
-> (no iptables, and empty iptables) each netperf seems to consume about
-> 50% of a CPU - stands to reason - 64 netperfs, 32 cores - in the "ful=
-l"
-> case I see many netperfs consuming 100% of a CPU.  My gut is thinking
-> that one or more netperf contexts gets stuck doing something on behal=
-f
-> of others.  There is also ksoftirqd time for a few of those processes=
-=2E
->=20
-> Anyhow, the spread on trans/s/netperf is now 600 to 500 or 6000, whic=
-h
-> does represent an improvement.
->
+Hi Patrick,
 
-Yes indeed you have a speedup, tcp conntracking is OK.
+The following patches add one target for arptables, one target and one
+match for iptables. They are useful to setup active/active setups both
+for gateways with connection tracking support and back-end servers.
 
-You now hit the nf_conntrack_lock spinlock we have in generic conntrack=
- code=20
-(net/netfilter/nf_conntrack_core.c)
+[PATCH 1/3] netfilter: arptables: add mcmangle target
+[PATCH 2/3] netfilter: xtables: add PKTTYPE target
+[PATCH 3/3] netfilter: xtables: add cluster match
 
-nf_ct_refresh_acct() for instance has to lock it.
+One node of my testbed in an primary/backup setup performs very simple
+stateful filtering and NAT of ~21000 TCP connections per second. By
+using these target/matches appropriately, my two firewall nodes
+(multi-primary setup) can filter traffic reaching up to ~30000
+connection per second, which means a gain of ~40% more. I don't know yet
+the limit of this solution in terms of scalability as I also have two
+firewall nodes.
 
-We really want some finer locking here.
+Please, let me know if this approach is ready for merge to the 2.6.30
+tree ;).
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
