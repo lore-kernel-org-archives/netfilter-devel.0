@@ -1,96 +1,33 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 2/3] netfilter: xtables: add PKTTYPE target
-Date: Wed, 28 Jan 2009 17:11:37 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0901281707460.20921@fbirervta.pbzchgretzou.qr>
-References: <20090128145801.7501.44459.stgit@Decadence> <20090128145826.7501.34671.stgit@Decadence>
+Subject: Re: install patch-o-matic on fedora10
+Date: Wed, 28 Jan 2009 17:14:35 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0901281711530.20921@fbirervta.pbzchgretzou.qr>
+References: <E1LSBtG-0006O1-2y@web07.mi6.kiev.ua>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Alex Ivanov <handler@ua.fm>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:36441 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:36448 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751002AbZA1QLi (ORCPT
+	with ESMTP id S1751052AbZA1QOg (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 28 Jan 2009 11:11:38 -0500
-In-Reply-To: <20090128145826.7501.34671.stgit@Decadence>
+	Wed, 28 Jan 2009 11:14:36 -0500
+In-Reply-To: <E1LSBtG-0006O1-2y@web07.mi6.kiev.ua>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Wednesday 2009-01-28 15:59, Alex Ivanov wrote:
 
-On Wednesday 2009-01-28 15:58, Pablo Neira Ayuso wrote:
+>Hello!
+>I download patch-o-matic-20031219.tar.bz2, unpack it
+>To do:
+>./runme extra
+>Hey! KERNEL_DIR is not set.
+>Where is your kernel? [/usr/src/linux]  /usr/src/kernels/2.6.27.5-117.fc10.i686/
+>Testing... nth.patch ALREADY APPLIED (0 rejects out of 2 hunks).
 
->This patch adds the PKTTYPE target which can be used to mangle the
->skbuff packet type field. This target is useful in conjunction with
->the arptables mcmangle target to TCP working again when a
->multicast hardware address is used. An example of its use:
->
->iptables -I PREROUTING ! -s 224.0.0.0/4 -t mangle \
->	-j PKTTYPE --to-pkt-type unicast
 
-Are not packets not destined for 224/4 - assuming standard route setups=
- -
-unicast anyway?
-
->@@ -489,6 +489,24 @@ config NETFILTER_XT_TARGET_TCPOPTSTRIP
-> 	  This option adds a "TCPOPTSTRIP" target, which allows you to strip
-> 	  TCP options from TCP packets.
->=20
->+config NETFILTER_XT_TARGET_PKTTYPE
-
-Please adhere to alphabetical ordering. (Andrew Morton mentioned it
-time and again that it causes the least merge conflicts where
-conflicts would happen if multiple people always add to the last
-item.) Also, searching for "PKTTYPE"/("cluster") in `make menuconfig`
-in the otherwise-sorted Kconfig/Makefile list could provide confusing
-if it was out-of-order.
-
->+	  If you want to compile it as a module, say M here and read
->+	  <file:Documentation/kbuild/modules.txt>.  If unsure, say `N'.
-
-A lovely paragraph, but I think it has lost its purpose given that
-NETFILTER_ADVANCED can now be general-tagged "if unsure, pick=C2=A0N" a=
-nd
-the rest will be automagic.
-
->+++ b/net/netfilter/Makefile
->@@ -55,6 +55,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_TPROXY) +=3D xt_TPR=
-OXY.o
-> obj-$(CONFIG_NETFILTER_XT_TARGET_TCPMSS) +=3D xt_TCPMSS.o
-> obj-$(CONFIG_NETFILTER_XT_TARGET_TCPOPTSTRIP) +=3D xt_TCPOPTSTRIP.o
-> obj-$(CONFIG_NETFILTER_XT_TARGET_TRACE) +=3D xt_TRACE.o
->+obj-$(CONFIG_NETFILTER_XT_TARGET_PKTTYPE) +=3D xt_PKTTYPE.o
->=20
->+static struct xt_target xt_pkttype_target[] __read_mostly =3D {
->+	{
->+		.family		=3D AF_INET,
->+		.name		=3D "PKTTYPE",
->+		.table		=3D "mangle",
->+		.target		=3D xt_pkttype_tg,
->+		.targetsize	=3D sizeof(struct xt_pkttype_target_info),
->+		.me		=3D THIS_MODULE,
->+	},
->+	{
->+		.family		=3D AF_INET6,
->+		.name		=3D "PKTTYPE",
->+		.table		=3D "mangle",
->+		.target		=3D xt_pkttype_tg,
->+		.targetsize	=3D sizeof(struct xt_pkttype_target_info),
->+		.me		=3D THIS_MODULE,
->+	},
->+};
-
-Combine to NFPROTO_UNSPEC.
-
->+MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
->+MODULE_LICENSE("GPL");
->+MODULE_DESCRIPTION("Xtables: xt_PKTTYPE target");
-
-I propose
-MODULE_DESCRIPTION("Xtables: set skbuff packet type");
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+You seem to be stuck in a temporal vortex, may I help you out
+by mentioning the presence of
+/lib/modules/$VERSION/kernel/net/netfilter/xt_statistic.ko :-)
