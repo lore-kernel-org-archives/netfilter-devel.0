@@ -1,175 +1,94 @@
-From: =?UTF-8?B?UGF3ZcWCIFN0YXN6ZXdza2k=?= <pstaszewski@itcare.pl>
-Subject: Re: [ SPAM ] Re: Is this normal?
-Date: Wed, 28 Jan 2009 17:09:35 +0100
-Message-ID: <4980833F.40301@itcare.pl>
-References: <497F14B1.7070306@itcare.pl> <497F16F7.6020504@trash.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 2/3] netfilter: xtables: add PKTTYPE target
+Date: Wed, 28 Jan 2009 17:11:37 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0901281707460.20921@fbirervta.pbzchgretzou.qr>
+References: <20090128145801.7501.44459.stgit@Decadence> <20090128145826.7501.34671.stgit@Decadence>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
+Content-Type: TEXT/PLAIN; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Linux Network Development list <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.iq.pl ([86.111.241.19]:58539 "EHLO smtp.iq.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751155AbZA1QJj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 28 Jan 2009 11:09:39 -0500
-In-Reply-To: <497F16F7.6020504@trash.net>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:36441 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751002AbZA1QLi (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 28 Jan 2009 11:11:38 -0500
+In-Reply-To: <20090128145826.7501.34671.stgit@Decadence>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-after patch i have:
 
-CPU: Core 2, speed 3000 MHz (estimated)
-Counted CPU_CLK_UNHALTED events (Clock cycles when not halted) with a=20
-unit mask of 0x00 (Unhalted core cycles) count 100000
-samples  %        image name               app name                =20
-symbol name
-767616   13.0507  vmlinux                  vmlinux                 =20
-u32_delete
-291303    4.9526  vmlinux                  vmlinux                 =20
-_raw_spin_trylock
-269856    4.5880  vmlinux                  vmlinux                 =20
-do_ipt_get_ctl
-221887    3.7724  vmlinux                  vmlinux                 =20
-devm_ioport_unmap
-202405    3.4412  vmlinux                  vmlinux                 =20
-devm_ioport_map
-150375    2.5566  vmlinux                  vmlinux                 =20
-native_calibrate_tsc
-138476    2.3543  vmlinux                  vmlinux                 =20
-update_persistent_clock
-103328    1.7567  vmlinux                  vmlinux                 =20
-update_wall_time
-101648    1.7282  vmlinux                  vmlinux                 =20
-e1000_xmit_frame
-100776    1.7134  vmlinux                  vmlinux                 =20
-__ip_route_output_key
-94866     1.6129  vmlinux                  vmlinux                 =20
-dev_ethtool
-88844     1.5105  vmlinux                  vmlinux                 =20
-dev_queue_xmit
-88582     1.5060  vmlinux                  vmlinux                 =20
-ixgbe_update_rx_dca
-87747     1.4918  vmlinux                  vmlinux                 =20
-__pskb_pull_tail
-86888     1.4772  vmlinux                  vmlinux                 =20
-irq_entries_start
-77941     1.3251  vmlinux                  vmlinux                 =20
-ixgbe_configure
-76646     1.3031  vmlinux                  vmlinux                 =20
-ixgbe_clean_rx_irq
-75933     1.2910  vmlinux                  vmlinux                 =20
-ixgbe_alloc_rx_buffers
-75538     1.2843  vmlinux                  vmlinux                 =20
-e1000_get_eeprom
-75380     1.2816  vmlinux                  vmlinux                 =20
-ixgbe_vlan_rx_kill_vid
-71534     1.2162  vmlinux                  vmlinux                 =20
-e1000e_update_stats
-70017     1.1904  vmlinux                  vmlinux                 =20
-ip_route_input
-67435     1.1465  vmlinux                  vmlinux                  udp=
-_mt
-66901     1.1374  vmlinux                  vmlinux                 =20
-mach_set_rtc_mmss
-65824     1.1191  vmlinux                  vmlinux                 =20
-htb_dequeue
-63405     1.0780  vmlinux                  vmlinux                 =20
-text_poke
-58282     0.9909  vmlinux                  vmlinux                 =20
-devm_ioremap
-57893     0.9843  vmlinux                  vmlinux                 =20
-e1000_open
-51794     0.8806  vmlinux                  vmlinux                 =20
-ctrl_dumpfamily
-49911     0.8486  vmlinux                  vmlinux                 =20
-dev_seq_show
-49514     0.8418  vmlinux                  vmlinux                 =20
-skb_copy_and_csum_bits
-49168     0.8359  vmlinux                  vmlinux                 =20
-e1000_clean_rx_irq_ps
-48879     0.8310  vmlinux                  vmlinux                 =20
-ixgbe_setup_dca
-45064     0.7662  vmlinux                  vmlinux                 =20
-dev_unicast_sync
-43600     0.7413  vmlinux                  vmlinux                 =20
-ixgbe_clean_tx_irq
-42552     0.7235  vmlinux                  vmlinux                 =20
-ixgbe_xmit_frame
-41313     0.7024  vmlinux                  vmlinux                 =20
-_format_mac_addr
-41011     0.6973  vmlinux                  vmlinux                 =20
-pcim_iomap_regions
-40975     0.6966  vmlinux                  vmlinux                  sfq=
-_init
-38783     0.6594  vmlinux                  vmlinux                 =20
-tc_ctl_action
-35913     0.6106  vmlinux                  vmlinux                 =20
-hfsc_reset_qdisc
-34672     0.5895  vmlinux                  vmlinux                 =20
-xt_check_match
-32446     0.5516  vmlinux                  vmlinux                 =20
-packet_rcv
-31861     0.5417  vmlinux                  vmlinux                 =20
-__lru_cache_add
-31555     0.5365  vmlinux                  vmlinux                  s_s=
-top
-30430     0.5174  vmlinux                  vmlinux                 =20
-ip_defrag
-30235     0.5140  vmlinux                  vmlinux                 =20
-rwlock_bug
-29314     0.4984  vmlinux                  vmlinux                  htb=
-_init
-29236     0.4971  vmlinux                  vmlinux                 =20
-net_tx_action
-29062     0.4941  vmlinux                  vmlinux                 =20
-apply_alternatives
-28241     0.4801  vmlinux                  vmlinux                 =20
-tick_nohz_restart_sched_tick
-27626     0.4697  vmlinux                  vmlinux                 =20
-do_sysinfo
-25705     0.4370  vmlinux                  vmlinux                 =20
-htb_delete
-25336     0.4308  vmlinux                  vmlinux                 =20
-e1000_clean_jumbo_rx_irq
-24546     0.4173  vmlinux                  vmlinux                 =20
-tick_init_jiffy_update
-22883     0.3890  vmlinux                  vmlinux                 =20
-ixgbe_init_interrupt_scheme
+On Wednesday 2009-01-28 15:58, Pablo Neira Ayuso wrote:
 
-Patrick McHardy pisze:
-> Pawe=C5=82 Staszewski wrote:
->> I have Linux that works as Router + traffic management with=20
->> connection tracking enabled but without making NAT
->>
->> About 600Mbit/s TX and 600Mbit/s RX forwarded traffic
->>
->> iptables -L -n -v -t raw
->> Chain PREROUTING (policy ACCEPT 3340M packets, 2623G bytes)
->> pkts bytes target     prot opt in     out     source              =20
->> destination
->> 3339M 2621G NOTRACK    all  --  *      *       0.0.0.0/0           =20
->> 0.0.0.0/0
->>
->>
->> kernel 2.6.28.2
->> CPU: Core 2, speed 2999.98 MHz (estimated)
->> Counted CPU_CLK_UNHALTED events (Clock cycles when not halted) with =
-a=20
->> unit mask of 0x00 (Unhalted core cycles) count 100000
->> samples  %        image name               app name                =20
->> symbol name
->> 14544205 15.8604  vmlinux                  vmlinux                 =20
->> ctnetlink_del_expect
+>This patch adds the PKTTYPE target which can be used to mangle the
+>skbuff packet type field. This target is useful in conjunction with
+>the arptables mcmangle target to TCP working again when a
+>multicast hardware address is used. An example of its use:
 >
-> This doesn't seem to be accurate, I'm guessing its really
-> ctnetlink_conntrack_event().
->
-> Does this patch make any difference?
+>iptables -I PREROUTING ! -s 224.0.0.0/4 -t mangle \
+>	-j PKTTYPE --to-pkt-type unicast
 
+Are not packets not destined for 224/4 - assuming standard route setups=
+ -
+unicast anyway?
+
+>@@ -489,6 +489,24 @@ config NETFILTER_XT_TARGET_TCPOPTSTRIP
+> 	  This option adds a "TCPOPTSTRIP" target, which allows you to strip
+> 	  TCP options from TCP packets.
+>=20
+>+config NETFILTER_XT_TARGET_PKTTYPE
+
+Please adhere to alphabetical ordering. (Andrew Morton mentioned it
+time and again that it causes the least merge conflicts where
+conflicts would happen if multiple people always add to the last
+item.) Also, searching for "PKTTYPE"/("cluster") in `make menuconfig`
+in the otherwise-sorted Kconfig/Makefile list could provide confusing
+if it was out-of-order.
+
+>+	  If you want to compile it as a module, say M here and read
+>+	  <file:Documentation/kbuild/modules.txt>.  If unsure, say `N'.
+
+A lovely paragraph, but I think it has lost its purpose given that
+NETFILTER_ADVANCED can now be general-tagged "if unsure, pick=C2=A0N" a=
+nd
+the rest will be automagic.
+
+>+++ b/net/netfilter/Makefile
+>@@ -55,6 +55,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_TPROXY) +=3D xt_TPR=
+OXY.o
+> obj-$(CONFIG_NETFILTER_XT_TARGET_TCPMSS) +=3D xt_TCPMSS.o
+> obj-$(CONFIG_NETFILTER_XT_TARGET_TCPOPTSTRIP) +=3D xt_TCPOPTSTRIP.o
+> obj-$(CONFIG_NETFILTER_XT_TARGET_TRACE) +=3D xt_TRACE.o
+>+obj-$(CONFIG_NETFILTER_XT_TARGET_PKTTYPE) +=3D xt_PKTTYPE.o
+>=20
+>+static struct xt_target xt_pkttype_target[] __read_mostly =3D {
+>+	{
+>+		.family		=3D AF_INET,
+>+		.name		=3D "PKTTYPE",
+>+		.table		=3D "mangle",
+>+		.target		=3D xt_pkttype_tg,
+>+		.targetsize	=3D sizeof(struct xt_pkttype_target_info),
+>+		.me		=3D THIS_MODULE,
+>+	},
+>+	{
+>+		.family		=3D AF_INET6,
+>+		.name		=3D "PKTTYPE",
+>+		.table		=3D "mangle",
+>+		.target		=3D xt_pkttype_tg,
+>+		.targetsize	=3D sizeof(struct xt_pkttype_target_info),
+>+		.me		=3D THIS_MODULE,
+>+	},
+>+};
+
+Combine to NFPROTO_UNSPEC.
+
+>+MODULE_AUTHOR("Pablo Neira Ayuso <pablo@netfilter.org>");
+>+MODULE_LICENSE("GPL");
+>+MODULE_DESCRIPTION("Xtables: xt_PKTTYPE target");
+
+I propose
+MODULE_DESCRIPTION("Xtables: set skbuff packet type");
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
