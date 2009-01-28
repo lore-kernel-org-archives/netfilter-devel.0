@@ -1,82 +1,99 @@
 From: Eric Dumazet <dada1@cosmosbay.com>
-Subject: Re: 32 core net-next stack/netfilter "scaling"
-Date: Tue, 27 Jan 2009 23:17:11 +0100
-Message-ID: <497F87E7.2000304@cosmosbay.com>
-References: <497E361B.30909@hp.com>	<497E42F4.7080201@cosmosbay.com>	<497E44F6.2010703@hp.com>	<497ECF84.1030308@cosmosbay.com>	<497ED0A2.6050707@trash.net>	<497F350A.9020509@cosmosbay.com>	<497F457F.2050802@trash.net> <497F4C2F.9000804@hp.com> <497F5BCD.9060807@hp.com> <497F5F86.9010101@hp.com>
+Subject: Re: [RFT 3/4] netfilter: use sequence number synchronization for
+ counters
+Date: Wed, 28 Jan 2009 07:17:04 +0100
+Message-ID: <497FF860.9080406@cosmosbay.com>
+References: <20090127235310.159946902@vyatta.com> <20090127235508.952787501@vyatta.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1;
 	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Developers <netfilter-devel@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>,
-	Linux Network Development list <netdev@vger.kernel.org>,
-	Stephen Hemminger <shemminger@vyatta.com>
-To: Rick Jones <rick.jones2@hp.com>
+Cc: David Miller <davem@davemloft.net>,
+	Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Stephen Hemminger <shemminger@vyatta.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sp604003av.neufgp.fr ([84.96.92.124]:52648 "EHLO
+Received: from sp604003av.neufgp.fr ([84.96.92.124]:52053 "EHLO
 	neuf-infra-smtp-out-sp604003av.neufgp.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751584AbZA1BgB (ORCPT
+	by vger.kernel.org with ESMTP id S1751866AbZA1GRK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 27 Jan 2009 20:36:01 -0500
-In-Reply-To: <497F5F86.9010101@hp.com>
+	Wed, 28 Jan 2009 01:17:10 -0500
+In-Reply-To: <20090127235508.952787501@vyatta.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Rick Jones a =E9crit :
->>> I will give it a try and let folks know the results - unless told=20
->>> otherwise, I will ass-u-me I only need rerun the "full_iptables"=20
->>> test case.
->>
->>
->> The runemomniagg2.sh script is still running, but the initial cycles=
-=20
->> profile suggests that the main change is converting the write_lock=20
->> time into spinlock contention time with 78.39% of the cycles spent i=
-n=20
->> ia64_spinlock_contention. When the script completes I'll upload the=20
->> profiles and the netperf results to the same base URL as in the=20
->> basenote under "contrack01/"
+Stephen Hemminger a =E9crit :
+> Change how synchronization is done on the iptables counters. Use seqc=
+ount
+> wrapper instead of depending on reader/writer lock.
 >
-> The script completed - although at some point I hit an fd limit - I=20
-> think I have an fd leak in netperf somewhere :( .
+> Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
 >
-> Anyhow, there are still some netperfs that end-up kicking the bucket=20
-> during the run - I suspect starvation because where in the other=20
-> configs (no iptables, and empty iptables) each netperf seems to=20
-> consume about 50% of a CPU - stands to reason - 64 netperfs, 32 cores=
-=20
-> - in the "full" case I see many netperfs consuming 100% of a CPU.  My=
-=20
-> gut is thinking that one or more netperf contexts gets stuck doing=20
-> something on behalf of others.  There is also ksoftirqd time for a fe=
-w=20
-> of those processes.
 >
-> Anyhow, the spread on trans/s/netperf is now 600 to 500 or 6000, whic=
-h=20
-> does represent an improvement.
->
-> rick jones
->
-> PS - just to be certain that running-out of fd's didn't skew the=20
-> results I'm rerunning the script with ulimit -n 10240 and will see if=
-=20
-> that changes the results any.  And I suppose I need to go fd leak=20
-> hunting in netperf omni code :(
-> --=20
->
+>  =20
+> --- a/net/ipv4/netfilter/ip_tables.c	2009-01-27 14:48:41.567879095 -0=
+800
+> +++ b/net/ipv4/netfilter/ip_tables.c	2009-01-27 15:45:05.766673246 -0=
+800
+> @@ -366,7 +366,9 @@ ipt_do_table(struct sk_buff *skb,
+>  			if (IPT_MATCH_ITERATE(e, do_match, skb, &mtpar) !=3D 0)
+>  				goto no_match;
+> =20
+> +			write_seqcount_begin(&e->seq);
+>  			ADD_COUNTER(e->counters, ntohs(ip->tot_len), 1);
+> +			write_seqcount_end(&e->seq);
+>  =20
+Its not very good to do it like this, (one seqcount_t per rule per cpu)
 
-Thanks for the report
-
-If you have so much contention on spinlocks, maybe hash function is not=
+> =20
+>  			t =3D ipt_get_target(e);
+>  			IP_NF_ASSERT(t->u.kernel.target);
+> @@ -758,6 +760,7 @@ check_entry_size_and_hooks(struct ipt_en
+>  	   < 0 (not IPT_RETURN). --RR */
+> =20
+>  	/* Clear counters and comefrom */
+> +	seqcount_init(&e->seq);
+>  	e->counters =3D ((struct xt_counters) { 0, 0 });
+>  	e->comefrom =3D 0;
+> =20
+> @@ -915,14 +918,17 @@ get_counters(const struct xt_table_info=20
+>  			  &i);
+> =20
+>  	for_each_possible_cpu(cpu) {
+> +		struct ipt_entry *e =3D t->entries[cpu];
+> +		unsigned int start;
+> +
+>  		if (cpu =3D=3D curcpu)
+>  			continue;
+>  		i =3D 0;
+> -		IPT_ENTRY_ITERATE(t->entries[cpu],
+> -				  t->size,
+> -				  add_entry_to_counter,
+> -				  counters,
+> -				  &i);
+> +		do {
+> +			start =3D read_seqcount_begin(&e->seq);
+> +			IPT_ENTRY_ITERATE(e, t->size,
+> +					  add_entry_to_counter, counters, &i);
+> +		} while (read_seqcount_retry(&e->seq, start));
+>  =20
+This will never complete on a loaded machine and a big set of rules.
+When we reach the end of IPT_ENTRY_ITERATE, we notice many packets came=
 =20
-good at all...
+while doing the iteration and restart,
+with wrong accumulated values (no rollback of what was done to accumula=
+tor)
 
-hash =3D (unsigned long)ct;
-hash ^=3D hash >> 16;
-hash ^=3D hash >> 8;
+You want to do the seqcount_begin/end in the leaf function=20
+(add_entry_to_counter()), and make accumulate a value pair (bytes/count=
+er)
+only once you are sure they are correct.
 
-I ass-u-me you compiled your kernel with NR_CPUS=3D32 ?
+Using one seqcount_t per rule (struct ipt_entry) is very expensive.=20
+(This is 4 bytes per rule X num_possible_cpus())
+
+You need one seqcount_t per cpu
+
 
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
