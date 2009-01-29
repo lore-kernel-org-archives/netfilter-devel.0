@@ -1,38 +1,57 @@
-From: "Giant Sand Fan's" <rampxxxx@gmail.com>
-Subject: Reverse Nat and ICMP packet
-Date: Thu, 29 Jan 2009 20:59:06 +0100
-Message-ID: <417f50830901291159ma6ad4dbm454abc04f66e94e6@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.27]:49748 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751100AbZA2T7I (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 Jan 2009 14:59:08 -0500
-Received: by ey-out-2122.google.com with SMTP id 25so33337eya.37
-        for <netfilter-devel@vger.kernel.org>; Thu, 29 Jan 2009 11:59:06 -0800 (PST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Stephen Hemminger <shemminger@vyatta.com>
+Subject: [PATCH 3/6] ebtables: remove unneeded initializations
+Date: Thu, 29 Jan 2009 11:12:42 -0800
+Message-ID: <20090129191520.256257159@vyatta.com>
+References: <20090129191239.483204605@vyatta.com>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: David Miller <davem@davemloft.net>,
+	Patrick McHardy <kaber@trash.net>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline; filename=ebtables-lock-init.patch
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi:
+The initialization of the lock element is not needed
+since the lock is always initialized in ebt_register_table.
 
+Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
 
-I've a netfilter module that unpack a icmp packet and then there is a
-NAT to internet but in the back there is a problem the NAT don't do
-anything in prerouting.
-The question is the reverse is done with a match for address and what
-else? , i cannot no see it. I supposse that the macht is not done and
-then the reverse is not done too, perhaps the id or sequence fields of
-icmp are involved too.
+---
+ net/bridge/netfilter/ebtable_broute.c |    1 -
+ net/bridge/netfilter/ebtable_filter.c |    1 -
+ net/bridge/netfilter/ebtable_nat.c    |    1 -
+ 3 files changed, 3 deletions(-)
 
-Any clue, thanks anyway.
-
-
-
+--- a/net/bridge/netfilter/ebtable_broute.c	2009-01-27 17:09:10.313100854 -0800
++++ b/net/bridge/netfilter/ebtable_broute.c	2009-01-27 17:09:15.862142852 -0800
+@@ -46,7 +46,6 @@ static struct ebt_table broute_table =
+ 	.name		= "broute",
+ 	.table		= &initial_table,
+ 	.valid_hooks	= 1 << NF_BR_BROUTING,
+-	.lock		= __RW_LOCK_UNLOCKED(broute_table.lock),
+ 	.check		= check,
+ 	.me		= THIS_MODULE,
+ };
+--- a/net/bridge/netfilter/ebtable_filter.c	2009-01-27 17:08:50.725100955 -0800
++++ b/net/bridge/netfilter/ebtable_filter.c	2009-01-27 17:08:53.828611768 -0800
+@@ -55,7 +55,6 @@ static struct ebt_table frame_filter =
+ 	.name		= "filter",
+ 	.table		= &initial_table,
+ 	.valid_hooks	= FILTER_VALID_HOOKS,
+-	.lock		= __RW_LOCK_UNLOCKED(frame_filter.lock),
+ 	.check		= check,
+ 	.me		= THIS_MODULE,
+ };
+--- a/net/bridge/netfilter/ebtable_nat.c	2009-01-27 17:09:22.896602465 -0800
++++ b/net/bridge/netfilter/ebtable_nat.c	2009-01-27 17:09:31.589085328 -0800
+@@ -55,7 +55,6 @@ static struct ebt_table frame_nat =
+ 	.name		= "nat",
+ 	.table		= &initial_table,
+ 	.valid_hooks	= NAT_VALID_HOOKS,
+-	.lock		= __RW_LOCK_UNLOCKED(frame_nat.lock),
+ 	.check		= check,
+ 	.me		= THIS_MODULE,
+ };
 
 -- 
-Please avoid sending me Word or PowerPoint attachments.
-See http://www.gnu.org/philosophy/no-word-attachments.html
+
