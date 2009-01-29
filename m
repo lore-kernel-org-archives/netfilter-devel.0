@@ -1,41 +1,33 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: [PATCH 2/2] netfilter: log invalid new icmpv6 packet with nf_log_packet().
-Date: Thu, 29 Jan 2009 21:36:22 +0100
-Message-ID: <1233261382-17030-3-git-send-email-eric@inl.fr>
-References: <1233261382-17030-1-git-send-email-eric@inl.fr>
-Cc: Eric Leblond <eric@inl.fr>
+Subject: [PATCH 0/2] fix invalid packet logging for icmpv6 conntrack
+Date: Thu, 29 Jan 2009 21:36:20 +0100
+Message-ID: <1233261382-17030-1-git-send-email-eric@inl.fr>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:52086 "EHLO ice-age"
+Received: from bayen.regit.org ([81.57.69.189]:52083 "EHLO ice-age"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753994AbZA2Ug0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 Jan 2009 15:36:26 -0500
-In-Reply-To: <1233261382-17030-1-git-send-email-eric@inl.fr>
+	id S1753887AbZA2UgZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 29 Jan 2009 15:36:25 -0500
+Received: from eric by ice-age with local (Exim 4.69)
+	(envelope-from <eric@bayen.regit.org>)
+	id 1LSdcc-0004Zm-Rp
+	for netfilter-devel@vger.kernel.org; Thu, 29 Jan 2009 21:36:22 +0100
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds a logging message for invalid new icmpv6 packet.
 
-Signed-off-by: Eric Leblond <eric@inl.fr>
----
- net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+Hi,
 
-diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-index 72dbb6d..8b7059b 100644
---- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-@@ -126,6 +126,10 @@ static bool icmpv6_new(struct nf_conn *ct, const struct sk_buff *skb,
- 		pr_debug("icmpv6: can't create new conn with type %u\n",
- 			 type + 128);
- 		nf_ct_dump_tuple_ipv6(&ct->tuplehash[0].tuple);
-+		if (LOG_INVALID(&init_net, IPPROTO_ICMPV6))
-+			nf_log_packet(PF_INET6, 0, skb, NULL, NULL, NULL,
-+				      "nf_ct_icmpv6: invalid new with type %d ",
-+				      type + 128);
- 		return false;
- 	}
- 	atomic_set(&ct->proto.icmp.count, 0);
--- 
-1.5.6.3
+This small patchset fixes a small issue with a nf_log_packet() message which
+was badly formatted and adds a message for invalid new icmpv6 packet.
 
+Patchset statistic:
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |    9 +++++++--
+ 1 files changed, 7 insertions(+), 2 deletions(-)
+
+BR,
+--
+Eric Leblond <eric@inl.fr>
+INL: http://www.inl.fr/
+NuFW: http://www.nufw.org/
+EdenWall: http://www.edenwall.com/
