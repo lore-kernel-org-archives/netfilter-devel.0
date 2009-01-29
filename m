@@ -1,46 +1,41 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: Re: [PATCH 2/2] netfilter: log invalid new icmpv6 packet with  nf_log_packet().
-Date: Thu, 29 Jan 2009 21:57:21 +0100
-Message-ID: <49821831.6000609@inl.fr>
-References: <1233261382-17030-1-git-send-email-eric@inl.fr> <1233261382-17030-3-git-send-email-eric@inl.fr> <20090129204754.GA22097@x200.localdomain>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: [PATCH] netfilter: log invalid new icmpv6 packet with nf_log_packet().
+Date: Thu, 29 Jan 2009 21:59:02 +0100
+Message-ID: <1233262742-4891-1-git-send-email-eric@inl.fr>
+References: <49821831.6000609@inl.fr>
+Cc: Eric Leblond <eric@inl.fr>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 78-210-144-213.altitudetelecom.fr ([213.144.210.78]:52198 "EHLO
-	fydelkass.inl.fr" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1751688AbZA2U5a (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 Jan 2009 15:57:30 -0500
-In-Reply-To: <20090129204754.GA22097@x200.localdomain>
+Received: from bayen.regit.org ([81.57.69.189]:38931 "EHLO ice-age"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752653AbZA2U7H (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 29 Jan 2009 15:59:07 -0500
+In-Reply-To: <49821831.6000609@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+This patch adds a logging message for invalid new icmpv6 packet.
 
-Alexey Dobriyan a =E9crit :
-> On Thu, Jan 29, 2009 at 09:36:22PM +0100, Eric Leblond wrote:
->> --- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
->> +++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
->> @@ -126,6 +126,10 @@ static bool icmpv6_new(struct nf_conn *ct, cons=
-t struct sk_buff *skb,
->>  		pr_debug("icmpv6: can't create new conn with type %u\n",
->>  			 type + 128);
->>  		nf_ct_dump_tuple_ipv6(&ct->tuplehash[0].tuple);
->> +		if (LOG_INVALID(&init_net, IPPROTO_ICMPV6))
->=20
-> netns is nf_ct_net(ct) at this point, not &init_net.
+Signed-off-by: Eric Leblond <eric@inl.fr>
+---
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-Thanks a lot, updated patch to follow.
+diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+index 72dbb6d..41b8a95 100644
+--- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+@@ -126,6 +126,10 @@ static bool icmpv6_new(struct nf_conn *ct, const struct sk_buff *skb,
+ 		pr_debug("icmpv6: can't create new conn with type %u\n",
+ 			 type + 128);
+ 		nf_ct_dump_tuple_ipv6(&ct->tuplehash[0].tuple);
++		if (LOG_INVALID(nf_ct_net(ct), IPPROTO_ICMPV6))
++			nf_log_packet(PF_INET6, 0, skb, NULL, NULL, NULL,
++				      "nf_ct_icmpv6: invalid new with type %d ",
++				      type + 128);
+ 		return false;
+ 	}
+ 	atomic_set(&ct->proto.icmp.count, 0);
+-- 
+1.5.6.3
 
-BR,
---
-Eric Leblond <eric@inl.fr>
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
