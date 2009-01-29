@@ -1,141 +1,37 @@
-From: Stephen Hemminger <shemminger@vyatta.com>
-Subject: [PATCH 2/6] netfilter: remove unneeded initializations
-Date: Thu, 29 Jan 2009 11:12:41 -0800
-Message-ID: <20090129191520.124473042@vyatta.com>
-References: <20090129191239.483204605@vyatta.com>
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: Re: [PATCH 2/2] netfilter: log invalid new icmpv6 packet with
+	nf_log_packet().
+Date: Thu, 29 Jan 2009 23:47:54 +0300
+Message-ID: <20090129204754.GA22097@x200.localdomain>
+References: <1233261382-17030-1-git-send-email-eric@inl.fr> <1233261382-17030-3-git-send-email-eric@inl.fr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@inl.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from suva.vyatta.com ([76.74.103.44]:51504 "EHLO suva.vyatta.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758960AbZA2Ugl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 Jan 2009 15:36:41 -0500
-Content-Disposition: inline; filename=iptables-lock-init.patch
+Received: from ey-out-2122.google.com ([74.125.78.27]:52319 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754384AbZA2UmP (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 29 Jan 2009 15:42:15 -0500
+Received: by ey-out-2122.google.com with SMTP id 25so40128eya.37
+        for <netfilter-devel@vger.kernel.org>; Thu, 29 Jan 2009 12:42:13 -0800 (PST)
+Content-Disposition: inline
+In-Reply-To: <1233261382-17030-3-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Later patches change the locking on xt_table and the initialization of
-the lock element is not needed since the lock is always initialized in
-xt_table_register anyway.
+On Thu, Jan 29, 2009 at 09:36:22PM +0100, Eric Leblond wrote:
+> --- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+> +++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+> @@ -126,6 +126,10 @@ static bool icmpv6_new(struct nf_conn *ct, const struct sk_buff *skb,
+>  		pr_debug("icmpv6: can't create new conn with type %u\n",
+>  			 type + 128);
+>  		nf_ct_dump_tuple_ipv6(&ct->tuplehash[0].tuple);
+> +		if (LOG_INVALID(&init_net, IPPROTO_ICMPV6))
 
-Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
+netns is nf_ct_net(ct) at this point, not &init_net.
 
-
----
- net/ipv4/netfilter/arptable_filter.c   |    2 --
- net/ipv4/netfilter/iptable_filter.c    |    1 -
- net/ipv4/netfilter/iptable_mangle.c    |    1 -
- net/ipv4/netfilter/iptable_raw.c       |    1 -
- net/ipv4/netfilter/iptable_security.c  |    1 -
- net/ipv4/netfilter/nf_nat_rule.c       |    1 -
- net/ipv6/netfilter/ip6table_filter.c   |    1 -
- net/ipv6/netfilter/ip6table_mangle.c   |    1 -
- net/ipv6/netfilter/ip6table_raw.c      |    1 -
- net/ipv6/netfilter/ip6table_security.c |    1 -
- 10 files changed, 11 deletions(-)
-
---- a/net/ipv4/netfilter/arptable_filter.c	2009-01-26 17:24:43.687542005 -0800
-+++ b/net/ipv4/netfilter/arptable_filter.c	2009-01-26 19:50:37.891042244 -0800
-@@ -48,8 +48,6 @@ static struct
- static struct xt_table packet_filter = {
- 	.name		= "filter",
- 	.valid_hooks	= FILTER_VALID_HOOKS,
--	.lock		= __RW_LOCK_UNLOCKED(packet_filter.lock),
--	.private	= NULL,
- 	.me		= THIS_MODULE,
- 	.af		= NFPROTO_ARP,
- };
---- a/net/ipv4/netfilter/iptable_filter.c	2009-01-26 17:24:43.691541994 -0800
-+++ b/net/ipv4/netfilter/iptable_filter.c	2009-01-26 19:50:37.891042244 -0800
-@@ -56,7 +56,6 @@ static struct
- static struct xt_table packet_filter = {
- 	.name		= "filter",
- 	.valid_hooks	= FILTER_VALID_HOOKS,
--	.lock		= __RW_LOCK_UNLOCKED(packet_filter.lock),
- 	.me		= THIS_MODULE,
- 	.af		= AF_INET,
- };
---- a/net/ipv4/netfilter/iptable_raw.c	2009-01-26 17:24:43.691541994 -0800
-+++ b/net/ipv4/netfilter/iptable_raw.c	2009-01-26 19:50:37.891042244 -0800
-@@ -39,7 +39,6 @@ static struct
- static struct xt_table packet_raw = {
- 	.name = "raw",
- 	.valid_hooks =  RAW_VALID_HOOKS,
--	.lock = __RW_LOCK_UNLOCKED(packet_raw.lock),
- 	.me = THIS_MODULE,
- 	.af = AF_INET,
- };
---- a/net/ipv4/netfilter/iptable_security.c	2009-01-26 17:24:43.691541994 -0800
-+++ b/net/ipv4/netfilter/iptable_security.c	2009-01-26 19:50:37.891042244 -0800
-@@ -60,7 +60,6 @@ static struct
- static struct xt_table security_table = {
- 	.name		= "security",
- 	.valid_hooks	= SECURITY_VALID_HOOKS,
--	.lock		= __RW_LOCK_UNLOCKED(security_table.lock),
- 	.me		= THIS_MODULE,
- 	.af		= AF_INET,
- };
---- a/net/ipv4/netfilter/nf_nat_rule.c	2009-01-26 17:24:43.695541481 -0800
-+++ b/net/ipv4/netfilter/nf_nat_rule.c	2009-01-26 19:51:20.338030618 -0800
-@@ -61,7 +61,6 @@ static struct
- static struct xt_table nat_table = {
- 	.name		= "nat",
- 	.valid_hooks	= NAT_VALID_HOOKS,
--	.lock		= __RW_LOCK_UNLOCKED(nat_table.lock),
- 	.me		= THIS_MODULE,
- 	.af		= AF_INET,
- };
---- a/net/ipv6/netfilter/ip6table_filter.c	2009-01-26 17:24:43.735541493 -0800
-+++ b/net/ipv6/netfilter/ip6table_filter.c	2009-01-26 19:50:37.895044361 -0800
-@@ -54,7 +54,6 @@ static struct
- static struct xt_table packet_filter = {
- 	.name		= "filter",
- 	.valid_hooks	= FILTER_VALID_HOOKS,
--	.lock		= __RW_LOCK_UNLOCKED(packet_filter.lock),
- 	.me		= THIS_MODULE,
- 	.af		= AF_INET6,
- };
---- a/net/ipv6/netfilter/ip6table_mangle.c	2009-01-26 17:24:43.735541493 -0800
-+++ b/net/ipv6/netfilter/ip6table_mangle.c	2009-01-26 19:50:37.895044361 -0800
-@@ -60,7 +60,6 @@ static struct
- static struct xt_table packet_mangler = {
- 	.name		= "mangle",
- 	.valid_hooks	= MANGLE_VALID_HOOKS,
--	.lock		= __RW_LOCK_UNLOCKED(packet_mangler.lock),
- 	.me		= THIS_MODULE,
- 	.af		= AF_INET6,
- };
---- a/net/ipv6/netfilter/ip6table_raw.c	2009-01-26 17:24:43.735541493 -0800
-+++ b/net/ipv6/netfilter/ip6table_raw.c	2009-01-26 19:50:37.895044361 -0800
-@@ -38,7 +38,6 @@ static struct
- static struct xt_table packet_raw = {
- 	.name = "raw",
- 	.valid_hooks = RAW_VALID_HOOKS,
--	.lock = __RW_LOCK_UNLOCKED(packet_raw.lock),
- 	.me = THIS_MODULE,
- 	.af = AF_INET6,
- };
---- a/net/ipv6/netfilter/ip6table_security.c	2009-01-26 17:24:43.735541493 -0800
-+++ b/net/ipv6/netfilter/ip6table_security.c	2009-01-26 19:50:37.895044361 -0800
-@@ -59,7 +59,6 @@ static struct
- static struct xt_table security_table = {
- 	.name		= "security",
- 	.valid_hooks	= SECURITY_VALID_HOOKS,
--	.lock		= __RW_LOCK_UNLOCKED(security_table.lock),
- 	.me		= THIS_MODULE,
- 	.af		= AF_INET6,
- };
---- a/net/ipv4/netfilter/iptable_mangle.c	2009-01-26 17:24:43.691541994 -0800
-+++ b/net/ipv4/netfilter/iptable_mangle.c	2009-01-26 19:50:37.895044361 -0800
-@@ -67,7 +67,6 @@ static struct
- static struct xt_table packet_mangler = {
- 	.name		= "mangle",
- 	.valid_hooks	= MANGLE_VALID_HOOKS,
--	.lock		= __RW_LOCK_UNLOCKED(packet_mangler.lock),
- 	.me		= THIS_MODULE,
- 	.af		= AF_INET,
- };
-
--- 
-
+> +			nf_log_packet(PF_INET6, 0, skb, NULL, NULL, NULL,
+> +				      "nf_ct_icmpv6: invalid new with type %d ",
+> +				      type + 128);
