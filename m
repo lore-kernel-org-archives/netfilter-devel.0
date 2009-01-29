@@ -1,60 +1,41 @@
-From: Stephen Hemminger <shemminger@vyatta.com>
-Subject: [PATCH 1/6] netfilter: change elements in x_tables
-Date: Thu, 29 Jan 2009 11:12:40 -0800
-Message-ID: <20090129191520.012734381@vyatta.com>
-References: <20090129191239.483204605@vyatta.com>
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>
+From: Eric Leblond <eric@inl.fr>
+Subject: [PATCH 2/2] netfilter: log invalid new icmpv6 packet with nf_log_packet().
+Date: Thu, 29 Jan 2009 21:36:22 +0100
+Message-ID: <1233261382-17030-3-git-send-email-eric@inl.fr>
+References: <1233261382-17030-1-git-send-email-eric@inl.fr>
+Cc: Eric Leblond <eric@inl.fr>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from suva.vyatta.com ([76.74.103.44]:51502 "EHLO suva.vyatta.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758455AbZA2Ufs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 Jan 2009 15:35:48 -0500
-Content-Disposition: inline; filename=x_tables.patch
+Received: from bayen.regit.org ([81.57.69.189]:52086 "EHLO ice-age"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753994AbZA2Ug0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 29 Jan 2009 15:36:26 -0500
+In-Reply-To: <1233261382-17030-1-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Change to proper type on private pointer rather than anonymous void.
-Keep active elements on same cache line.
+This patch adds a logging message for invalid new icmpv6 packet.
 
-Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
-
-
+Signed-off-by: Eric Leblond <eric@inl.fr>
 ---
- include/linux/netfilter/x_tables.h |    9 ++++-----
- 1 file changed, 4 insertions(+), 5 deletions(-)
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
---- a/include/linux/netfilter/x_tables.h	2009-01-26 17:24:43.251543415 -0800
-+++ b/include/linux/netfilter/x_tables.h	2009-01-26 17:29:12.510649107 -0800
-@@ -349,9 +349,6 @@ struct xt_table
- {
- 	struct list_head list;
- 
--	/* A unique name... */
--	const char name[XT_TABLE_MAXNAMELEN];
--
- 	/* What hooks you will enter on */
- 	unsigned int valid_hooks;
- 
-@@ -359,13 +356,15 @@ struct xt_table
- 	rwlock_t lock;
- 
- 	/* Man behind the curtain... */
--	//struct ip6t_table_info *private;
--	void *private;
-+	struct xt_table_info *private;
- 
- 	/* Set this to THIS_MODULE if you are a module, otherwise NULL */
- 	struct module *me;
- 
- 	u_int8_t af;		/* address/protocol family */
-+
-+	/* A unique name... */
-+	const char name[XT_TABLE_MAXNAMELEN];
- };
- 
- #include <linux/netfilter_ipv4.h>
-
+diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+index 72dbb6d..8b7059b 100644
+--- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+@@ -126,6 +126,10 @@ static bool icmpv6_new(struct nf_conn *ct, const struct sk_buff *skb,
+ 		pr_debug("icmpv6: can't create new conn with type %u\n",
+ 			 type + 128);
+ 		nf_ct_dump_tuple_ipv6(&ct->tuplehash[0].tuple);
++		if (LOG_INVALID(&init_net, IPPROTO_ICMPV6))
++			nf_log_packet(PF_INET6, 0, skb, NULL, NULL, NULL,
++				      "nf_ct_icmpv6: invalid new with type %d ",
++				      type + 128);
+ 		return false;
+ 	}
+ 	atomic_set(&ct->proto.icmp.count, 0);
 -- 
+1.5.6.3
 
