@@ -1,29 +1,52 @@
-From: "G.W. Haywood" <ged@jubileegroup.co.uk>
-Subject: Re: [ANNOUNCE] ipset 2.4.7 released
-Date: Fri, 30 Jan 2009 14:00:20 +0000 (GMT)
-Message-ID: <Pine.LNX.4.58.0901301304350.27805@mail3.jubileegroup.co.uk>
-References: <alpine.DEB.2.00.0901282210030.22866@blackhole.kfki.hu>
+From: Andi Kleen <andi@firstfloor.org>
+Subject: Re: [PATCH] netfilter: unfold two critical loops in ip_packet_match()
+Date: Fri, 30 Jan 2009 16:47:33 +0100
+Message-ID: <87ocxox0bu.fsf@basil.nowhere.org>
+References: <497E361B.30909@hp.com> <497E42F4.7080201@cosmosbay.com>
+	<497E44F6.2010703@hp.com> <497ECF84.1030308@cosmosbay.com>
+	<497ED0A2.6050707@trash.net> <497F350A.9020509@cosmosbay.com>
+	<497F457F.2050802@trash.net> <497F4C2F.9000804@hp.com>
+	<497F5BCD.9060807@hp.com> <497F5F86.9010101@hp.com>
+	<498063E7.5030106@cosmosbay.com> <49808708.3050502@trash.net>
+	<498090C1.5020400@cosmosbay.com> <49809716.3020204@cosmosbay.com>
+	<4981CBE2.5020306@cosmosbay.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.0901282210030.22866@blackhole.kfki.hu>
-Sender: netfilter-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	Netfilter Developers <netfilter-devel@vger.kernel.org>,
+	Linux Network Development list <netdev@vger.kernel.org>
+To: Eric Dumazet <dada1@cosmosbay.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <4981CBE2.5020306@cosmosbay.com> (Eric Dumazet's message of "Thu, 29 Jan 2009 16:31:46 +0100")
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Jozsef,
+Eric Dumazet <dada1@cosmosbay.com> writes:
 
-On Wed, 28 Jan 2009, Jozsef Kadlecsik wrote:
+> While doing oprofile tests I noticed two loops are not properly unrolled by gcc
 
-> I'm happy to announce ipset 2.4.7, which contains a compatibility fix for
-> kernels >= 2.6.28
+That's because nobody passed -funroll-loops. Did you try that for
+that file? Likely will need -O2 too
 
-And it seems to work fine with kernel 2.4.37 - patches apply cleanly.
+> +static unsigned long ifname_compare(const void *_a, const void *_b, const void *_mask)
+> +{
+> +	const unsigned long *a = (const unsigned long *)_a;
+> +	const unsigned long *b = (const unsigned long *)_b;
+> +	const unsigned long *mask = (const unsigned long *)_mask;
+> +	unsigned long ret;
+> +
+> +	ret = (a[0] ^ b[0]) & mask[0];
+> +	ret |= (a[1] ^ b[1]) & mask[1];
+> +	if (IFNAMSIZ > 2 * sizeof(unsigned long))
+> +		ret |= (a[2] ^ b[2]) & mask[2];
+> +	if (IFNAMSIZ > 3 * sizeof(unsigned long))
+> +		ret |= (a[3] ^ b[3]) & mask[3];
 
-Thank you. :)
+That will silently break for IFNAMSIZ >= 4*sizeof(unsigned long)
+You should add a dummy loop for that or at least a BUILD_BUG_ON
 
---
+-Andi
 
-73,
-Ged.
+-- 
+ak@linux.intel.com -- Speaking for myself only.
