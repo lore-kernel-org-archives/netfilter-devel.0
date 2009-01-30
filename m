@@ -1,41 +1,69 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: libxtables: prefix names and order it #1
-Date: Fri, 30 Jan 2009 05:52:44 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0901300550390.23947@fbirervta.pbzchgretzou.qr>
-References: <alpine.LSU.2.00.0901271500200.13940@fbirervta.pbzchgretzou.qr>  <1233065970.13279.74.camel@dogo.mojatatu.com> <1233066572.13279.76.camel@dogo.mojatatu.com>
+From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: Re: [PATCH 5/6] netfilter: use sequence number synchronization for
+ counters
+Date: Fri, 30 Jan 2009 09:03:50 +0100
+Message-ID: <4982B466.5000700@cosmosbay.com>
+References: <20090129191239.483204605@vyatta.com> <20090129191520.531815152@vyatta.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: kaber@trash.net,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: jamal <hadi@cyberus.ca>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:52883 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753022AbZA3Ewq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 Jan 2009 23:52:46 -0500
-In-Reply-To: <1233066572.13279.76.camel@dogo.mojatatu.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: David Miller <davem@davemloft.net>,
+	Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Stephen Hemminger <shemminger@vyatta.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20090129191520.531815152@vyatta.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
+
+Stephen Hemminger a =E9crit :
+> Change how synchronization is done on the iptables counters. Use seqc=
+ount
+> wrapper instead of depending on reader/writer lock.
+>=20
+> Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
+>=20
+
+> --- a/net/netfilter/x_tables.c	2009-01-29 11:08:38.747070716 -0800
+> +++ b/net/netfilter/x_tables.c	2009-01-29 11:10:03.595571234 -0800
+> @@ -577,6 +577,34 @@ int xt_compat_target_to_user(struct xt_e
+>  EXPORT_SYMBOL_GPL(xt_compat_target_to_user);
+>  #endif
+> =20
+> +static DEFINE_PER_CPU(seqcount_t, xt_counter_sequence);
+> +
+> +void xt_fetch_counter(struct xt_counters *v, int cpu,
+> +		      const struct xt_counters *c)
+> +{
+> +	seqcount_t *seq =3D &per_cpu(xt_counter_sequence, cpu);
+> +	unsigned start;
+> +
+> +	do {
+> +		start =3D read_seqcount_begin(seq);
+> +		*v =3D *c;
+> +	} while (read_seqcount_retry(seq, start));
+> +}
+> +EXPORT_SYMBOL_GPL(xt_fetch_counter);
+> +
+> +void xt_incr_counter(struct xt_counters *c, unsigned b, unsigned p)
+
+You really want an inline xt_incr_counter() function here to speedup ip=
+t_do_table()
+
+I agree xt_fetch_counter() is not time critical and can be outlined.
 
 
-On Tuesday 2009-01-27 15:29, jamal wrote:
->On Tue, 2009-01-27 at 09:19 -0500, jamal wrote:
->
->> Ok, no problem - let me know when you are done.
->
->BTW, it would be nice if you commit those patches to the git tree and i
->pull them.
 
-The proposed changes are at
+> +{
+> +	seqcount_t *seq =3D &__get_cpu_var(xt_counter_sequence);
+> +
+> +	write_seqcount_begin(seq);
+> +	c->pcnt +=3D p;
+> +	c->bcnt +=3D b;
+> +	write_seqcount_end(seq);
+> +
+> +}
+> +EXPORT_SYMBOL_GPL(xt_incr_counter);
+> +
+> +
 
-	git://dev.medozas.de/iptables master
-
-	92 files changed, 1063 insertions(+), 1135 deletions(-)
-
-They are pretty broad, but repetitive.
-
-There are a few functions left. Like exit_error, which still has ties
-to the origin program (iptables, ip6tables), to do option freeing for
-example. Have not yet thought of how to resolve that. Ideas welcome.
