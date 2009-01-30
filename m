@@ -1,31 +1,41 @@
-From: Rick Jones <rick.jones2@hp.com>
-Subject: Re: [PATCH 0/6] iptables: read/write lock elimination (v0.4)
-Date: Thu, 29 Jan 2009 15:39:13 -0800
-Message-ID: <49823E21.1050608@hp.com>
-References: <20090129191239.483204605@vyatta.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: libxtables: prefix names and order it #1
+Date: Fri, 30 Jan 2009 05:52:44 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0901300550390.23947@fbirervta.pbzchgretzou.qr>
+References: <alpine.LSU.2.00.0901271500200.13940@fbirervta.pbzchgretzou.qr>  <1233065970.13279.74.camel@dogo.mojatatu.com> <1233066572.13279.76.camel@dogo.mojatatu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: David Miller <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Stephen Hemminger <shemminger@vyatta.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: kaber@trash.net,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: jamal <hadi@cyberus.ca>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from g5t0009.atlanta.hp.com ([15.192.0.46]:31453 "EHLO
-	g5t0009.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751931AbZA2XjW (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:52883 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753022AbZA3Ewq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 Jan 2009 18:39:22 -0500
-In-Reply-To: <20090129191239.483204605@vyatta.com>
+	Thu, 29 Jan 2009 23:52:46 -0500
+In-Reply-To: <1233066572.13279.76.camel@dogo.mojatatu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Stephen Hemminger wrote:
-> This is an update to last round of patches, using Eric's suggestion
-> to move the sequence count to top level per cpu variable. Also encapsulated
-> the counter manipulation.
 
-Is this version one you would like me to toss into the crucible of the 32-core 
-setup, or do you want it to have more eyeball time first?
+On Tuesday 2009-01-27 15:29, jamal wrote:
+>On Tue, 2009-01-27 at 09:19 -0500, jamal wrote:
+>
+>> Ok, no problem - let me know when you are done.
+>
+>BTW, it would be nice if you commit those patches to the git tree and i
+>pull them.
 
-rick jones
+The proposed changes are at
+
+	git://dev.medozas.de/iptables master
+
+	92 files changed, 1063 insertions(+), 1135 deletions(-)
+
+They are pretty broad, but repetitive.
+
+There are a few functions left. Like exit_error, which still has ties
+to the origin program (iptables, ip6tables), to do option freeing for
+example. Have not yet thought of how to resolve that. Ideas welcome.
