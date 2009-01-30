@@ -1,39 +1,38 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: Add real default to NFLOG qthreshold
-Date: Fri, 30 Jan 2009 23:31:45 +0100
-Message-ID: <1233354708-22009-1-git-send-email-eric@inl.fr>
+Subject: [iptables] xt_NFLOG: Set default NFLOG qthreshold to 0
+Date: Fri, 30 Jan 2009 23:31:47 +0100
+Message-ID: <1233354708-22009-3-git-send-email-eric@inl.fr>
+References: <1233354708-22009-1-git-send-email-eric@inl.fr>
+Cc: Eric Leblond <eric@inl.fr>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:51951 "EHLO ice-age"
+Received: from bayen.regit.org ([81.57.69.189]:51952 "EHLO ice-age"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753940AbZA3Wbv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1753803AbZA3Wbv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Fri, 30 Jan 2009 17:31:51 -0500
-Received: from eric by ice-age with local (Exim 4.69)
-	(envelope-from <eric@bayen.regit.org>)
-	id 1LT1ts-000666-TJ
-	for netfilter-devel@vger.kernel.org; Fri, 30 Jan 2009 23:31:48 +0100
+In-Reply-To: <1233354708-22009-1-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+By setting default NFLOG qthreshold to 0, userspace does not overwrite
+the per-instance value.
+---
+ include/linux/netfilter/xt_NFLOG.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-The goal of this patchset is to fix some issues with NFLOG. This target has a
-qthreshold value that can be set from iptables or from libnetfilter_log. If the
-qthreshold is set from libnetfilter_log and if the rule does not set the value,
-NFLOG should use the instance default. This is not the case, because iptables
-set the qthreshold to 1 by default and this is used as a user-defined value by
-kernel. This patchset fixes the issue by using the qthreshold as default for
-iptables:
- - netfilter 1/2: if set per-rule qthreshold overrides per-instance
- - iptables: xt_NFLOG: Set default NFLOG qthreshold to 0
+diff --git a/include/linux/netfilter/xt_NFLOG.h b/include/linux/netfilter/xt_NFLOG.h
+index cdcd0ed..4b36aeb 100644
+--- a/include/linux/netfilter/xt_NFLOG.h
++++ b/include/linux/netfilter/xt_NFLOG.h
+@@ -2,7 +2,7 @@
+ #define _XT_NFLOG_TARGET
+ 
+ #define XT_NFLOG_DEFAULT_GROUP		0x1
+-#define XT_NFLOG_DEFAULT_THRESHOLD	1
++#define XT_NFLOG_DEFAULT_THRESHOLD	0
+ 
+ #define XT_NFLOG_MASK			0x0
+ 
+-- 
+1.6.1
 
-This patchset also fixes an issue with definition of timeout in the logging
-queue. It fixes a computation error and change the unit to millisecond which
-is a more convenient as the targeted 1/100 sec:
- - netfilter 2/2: fix nflog timeout handling
-
-BR,
---
-Eric Leblond <eric@inl.fr>
-INL: http://www.inl.fr/
-NuFW: http://www.nufw.org/
