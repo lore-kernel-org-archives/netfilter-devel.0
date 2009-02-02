@@ -1,179 +1,61 @@
-From: Olivier MATZ <olivier.matz@6wind.com>
-Subject: Re: [PATCH] sctp: chunkmap size is too large
-Date: Mon, 02 Feb 2009 10:23:24 +0100
-Message-ID: <4986BB8C.5080503@6wind.com>
-References: <4983200B.2080707@6wind.com>
+From: "Giant Sand Fan's" <rampxxxx@gmail.com>
+Subject: Re: Reverse Nat and ICMP packet
+Date: Mon, 2 Feb 2009 18:16:55 +0100
+Message-ID: <417f50830902020916y401dd931g6b906e1b5e7d0f7a@mail.gmail.com>
+References: <417f50830901291159ma6ad4dbm454abc04f66e94e6@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------060500040804020500040107"
-To: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Patrick McHardy <kaber@netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 33.106-14-84.ripe.coltfrance.com ([84.14.106.33]:1210 "EHLO
-	proxy.6wind.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751005AbZBBJXa (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.156]:3829 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752786AbZBBRQ4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Feb 2009 04:23:30 -0500
-In-Reply-To: <4983200B.2080707@6wind.com>
+	Mon, 2 Feb 2009 12:16:56 -0500
+Received: by fg-out-1718.google.com with SMTP id 16so653791fgg.17
+        for <netfilter-devel@vger.kernel.org>; Mon, 02 Feb 2009 09:16:55 -0800 (PST)
+In-Reply-To: <417f50830901291159ma6ad4dbm454abc04f66e94e6@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------060500040804020500040107
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-
 Hi,
 
-A file was missing in the previous patch. I think that
-the size of chunkmapcopy in xt_sctp.c should also be
-fixed.
+I answer to myself.
 
-I attached the new patch.
+The problem was that our hook that do the unpack was after -less
+priority , higher number- that conntrack -both in prerouting- so in
+the back the packet was a different one that the one conntrack saves.
 
-  include/linux/netfilter/xt_sctp.h       |   30 
-++++++++++++++++--------------
-  include/linux/netfilter_ipv4/ipt_sctp.h |   30 
-++++++++++++++++--------------
-  net/netfilter/xt_sctp.c                 |    2 +-
-  3 files changed, 33 insertions(+), 29 deletions(-)
+The solution, just put with a priority NF_IP_PRI_CONNTRACK+1 .
 
-Signed-off-by: Olivier Matz <olivier.matz@6wind.com>
-
-Thanks,
-Olivier
+Thanks.
 
 
---------------060500040804020500040107
-Content-Type: text/x-patch;
- name="linux_sctp_chunkmap_too_large_b.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="linux_sctp_chunkmap_too_large_b.diff"
+2009/1/29 Giant Sand Fan's <rampxxxx@gmail.com>:
+> Hi:
+>
+>
+> I've a netfilter module that unpack a icmp packet and then there is a
+> NAT to internet but in the back there is a problem the NAT don't do
+> anything in prerouting.
+> The question is the reverse is done with a match for address and what
+> else? , i cannot no see it. I supposse that the macht is not done and
+> then the reverse is not done too, perhaps the id or sequence fields of
+> icmp are involved too.
+>
+> Any clue, thanks anyway.
+>
+>
+>
+>
+> --
+> Please avoid sending me Word or PowerPoint attachments.
+> See http://www.gnu.org/philosophy/no-word-attachments.html
+>
 
-diff -r 94166a3a38bd include/linux/netfilter/xt_sctp.h
---- a/include/linux/netfilter/xt_sctp.h	Sat Jan 31 15:56:23 2009 -0800
-+++ b/include/linux/netfilter/xt_sctp.h	Mon Feb 02 10:18:51 2009 +0100
-@@ -15,11 +15,13 @@
- 
- #define XT_NUM_SCTP_FLAGS	4
- 
-+#define sizeof_bits(type) (sizeof(type) * 8)
-+
- struct xt_sctp_info {
- 	u_int16_t dpts[2];  /* Min, Max */
- 	u_int16_t spts[2];  /* Min, Max */
- 
--	u_int32_t chunkmap[256 / sizeof (u_int32_t)];  /* Bit mask of chunks to be matched according to RFC 2960 */
-+	u_int32_t chunkmap[256 / sizeof_bits(u_int32_t)];  /* Bit mask of chunks to be matched according to RFC 2960 */
- 
- #define SCTP_CHUNK_MATCH_ANY   0x01  /* Match if any of the chunk types are present */
- #define SCTP_CHUNK_MATCH_ALL   0x02  /* Match if all of the chunk types are present */
-@@ -33,24 +35,24 @@
- 	u_int32_t invflags;
- };
- 
--#define bytes(type) (sizeof(type) * 8)
-+#define SCTP_MODULO(chunktype, type) (chunktype & (sizeof_bits(type)-1))
- 
--#define SCTP_CHUNKMAP_SET(chunkmap, type) 		\
--	do { 						\
--		(chunkmap)[type / bytes(u_int32_t)] |= 	\
--			1 << (type % bytes(u_int32_t));	\
-+#define SCTP_CHUNKMAP_SET(chunkmap, chunktype)				\
-+	do {								\
-+		chunkmap[chunktype / sizeof_bits(u_int32_t)] |=		\
-+			1 << SCTP_MODULO(chunktype, u_int32_t);		\
- 	} while (0)
- 
--#define SCTP_CHUNKMAP_CLEAR(chunkmap, type)		 	\
--	do {							\
--		(chunkmap)[type / bytes(u_int32_t)] &= 		\
--			~(1 << (type % bytes(u_int32_t)));	\
-+#define SCTP_CHUNKMAP_CLEAR(chunkmap, chunktype)		 	\
-+	do {								\
-+		chunkmap[chunktype / sizeof_bits(u_int32_t)] &=		\
-+			~(1 << SCTP_MODULO(chunktype, u_int32_t));	\
- 	} while (0)
- 
--#define SCTP_CHUNKMAP_IS_SET(chunkmap, type) 			\
--({								\
--	((chunkmap)[type / bytes (u_int32_t)] & 		\
--		(1 << (type % bytes (u_int32_t)))) ? 1: 0;	\
-+#define SCTP_CHUNKMAP_IS_SET(chunkmap, chunktype) 			\
-+({									\
-+	(chunkmap[chunktype / sizeof_bits(u_int32_t)] &			\
-+	 (1 << SCTP_MODULO(chunktype, u_int32_t))) ? 1 : 0;		\
- })
- 
- #define SCTP_CHUNKMAP_RESET(chunkmap) \
-diff -r 94166a3a38bd include/linux/netfilter_ipv4/ipt_sctp.h
---- a/include/linux/netfilter_ipv4/ipt_sctp.h	Sat Jan 31 15:56:23 2009 -0800
-+++ b/include/linux/netfilter_ipv4/ipt_sctp.h	Mon Feb 02 10:18:51 2009 +0100
-@@ -16,11 +16,13 @@
- 
- #define IPT_NUM_SCTP_FLAGS	4
- 
-+#define sizeof_bits(type) (sizeof(type) * 8)
-+
- struct ipt_sctp_info {
- 	u_int16_t dpts[2];  /* Min, Max */
- 	u_int16_t spts[2];  /* Min, Max */
- 
--	u_int32_t chunkmap[256 / sizeof (u_int32_t)];  /* Bit mask of chunks to be matched according to RFC 2960 */
-+	u_int32_t chunkmap[256 / sizeof_bits(u_int32_t)];  /* Bit mask of chunks to be matched according to RFC 2960 */
- 
- #define SCTP_CHUNK_MATCH_ANY   0x01  /* Match if any of the chunk types are present */
- #define SCTP_CHUNK_MATCH_ALL   0x02  /* Match if all of the chunk types are present */
-@@ -34,24 +36,24 @@
- 	u_int32_t invflags;
- };
- 
--#define bytes(type) (sizeof(type) * 8)
-+#define SCTP_MODULO(chunktype, type) (chunktype & (sizeof_bits(type)-1))
- 
--#define SCTP_CHUNKMAP_SET(chunkmap, type) 		\
--	do { 						\
--		chunkmap[type / bytes(u_int32_t)] |= 	\
--			1 << (type % bytes(u_int32_t));	\
-+#define SCTP_CHUNKMAP_SET(chunkmap, chunktype)				\
-+	do {								\
-+		chunkmap[chunktype / sizeof_bits(u_int32_t)] |=		\
-+			1 << SCTP_MODULO(chunktype, u_int32_t);		\
- 	} while (0)
- 
--#define SCTP_CHUNKMAP_CLEAR(chunkmap, type)		 	\
--	do {							\
--		chunkmap[type / bytes(u_int32_t)] &= 		\
--			~(1 << (type % bytes(u_int32_t)));	\
-+#define SCTP_CHUNKMAP_CLEAR(chunkmap, chunktype)		 	\
-+	do {								\
-+		chunkmap[chunktype / sizeof_bits(u_int32_t)] &=		\
-+			~(1 << SCTP_MODULO(chunktype, u_int32_t));	\
- 	} while (0)
- 
--#define SCTP_CHUNKMAP_IS_SET(chunkmap, type) 			\
--({								\
--	(chunkmap[type / bytes (u_int32_t)] & 			\
--		(1 << (type % bytes (u_int32_t)))) ? 1: 0;	\
-+#define SCTP_CHUNKMAP_IS_SET(chunkmap, chunktype) 			\
-+({									\
-+	(chunkmap[chunktype / sizeof_bits(u_int32_t)] &			\
-+	 (1 << SCTP_MODULO(chunktype, u_int32_t))) ? 1 : 0;		\
- })
- 
- #define SCTP_CHUNKMAP_RESET(chunkmap) 				\
-diff -r 94166a3a38bd net/netfilter/xt_sctp.c
---- a/net/netfilter/xt_sctp.c	Sat Jan 31 15:56:23 2009 -0800
-+++ b/net/netfilter/xt_sctp.c	Mon Feb 02 10:18:51 2009 +0100
-@@ -45,7 +45,7 @@
- 	     const struct xt_sctp_info *info,
- 	     bool *hotdrop)
- {
--	u_int32_t chunkmapcopy[256 / sizeof (u_int32_t)];
-+	u_int32_t chunkmapcopy[256 / sizeof_bits(u_int32_t)];
- 	const sctp_chunkhdr_t *sch;
- 	sctp_chunkhdr_t _sch;
- 	int chunk_match_type = info->chunk_match_type;
 
---------------060500040804020500040107--
+
+-- 
+Please avoid sending me Word or PowerPoint attachments.
+See http://www.gnu.org/philosophy/no-word-attachments.html
