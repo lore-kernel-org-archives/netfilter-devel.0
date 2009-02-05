@@ -1,62 +1,90 @@
-From: Ignacy Gawedzki <i@lri.fr>
-Subject: Netfilter API and libiptc
-Date: Thu, 5 Feb 2009 15:17:22 +0100
-Message-ID: <20090205141722.GB21417@qubit>
+From: Husnu Demir <hdemir@metu.edu.tr>
+Subject: -m state is not working.
+Date: Thu, 05 Feb 2009 16:46:20 +0200
+Message-ID: <498AFBBC.20608@metu.edu.tr>
+Reply-To: hdemir@metu.edu.tr
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Content-Type: multipart/mixed;
+ boundary="------------090100010503000208050108"
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ext.lri.fr ([129.175.15.4]:50463 "EHLO ext.lri.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751955AbZBEOdQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Feb 2009 09:33:16 -0500
-Received: from localhost (localhost [127.0.0.1])
-	by ext.lri.fr (Postfix) with ESMTP id E039BA4466
-	for <netfilter-devel@vger.kernel.org>; Thu,  5 Feb 2009 15:13:59 +0100 (CET)
-Received: from ext.lri.fr ([127.0.0.1])
-	by localhost (ext.lri.fr [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id Elx31HBHYPdy for <netfilter-devel@vger.kernel.org>;
-	Thu,  5 Feb 2009 15:13:59 +0100 (CET)
-Received: from smtp.lri.fr (vhost3-23 [129.175.3.23])
-	by ext.lri.fr (Postfix) with ESMTP id C9A0AA438A
-	for <netfilter-devel@vger.kernel.org>; Thu,  5 Feb 2009 15:13:59 +0100 (CET)
-Received: from qubit.lri.fr (qubit [129.175.11.180])
-	by smtp.lri.fr (Postfix) with ESMTP id C3A4AE056D
-	for <netfilter-devel@vger.kernel.org>; Thu,  5 Feb 2009 15:13:59 +0100 (CET)
-Received: from ig by qubit.lri.fr with local (Exim 4.69)
-	(envelope-from <i@lri.fr>)
-	id 1LV52g-0005f5-3j
-	for netfilter-devel@vger.kernel.org; Thu, 05 Feb 2009 15:17:22 +0100
-Content-Disposition: inline
+Received: from tenedos.general.services.metu.edu.tr ([144.122.144.162]:40034
+	"EHLO tenedos.general.services.metu.edu.tr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751252AbZBEOqW (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 5 Feb 2009 09:46:22 -0500
+Received: from [144.122.3.228] (nebula.cc.metu.edu.tr [144.122.3.228])
+	by tenedos.general.services.metu.edu.tr (8.13.8/8.13.8) with ESMTP id n15EkIIZ003241
+	for <netfilter-devel@vger.kernel.org>; Thu, 5 Feb 2009 16:46:19 +0200
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi everybody,
+This is a multi-part message in MIME format.
+--------------090100010503000208050108
+Content-Type: text/plain; charset=ISO-8859-9
+Content-Transfer-Encoding: 7bit
 
-I'm currently working on a project that relies on manipulation of iptables in
-order to perform fine data packet accounting.  This manipulation is performed
-dynamically, so the code initially used libiptc.
+Hi,
 
-Since iptables 1.4.0, libiptc is not distributed anymore, so I resolved to
-incorporate the code into our own source distribution, just as people from
-collectd seemingly did.  All seemed to work well until yesterday, when we
-eventually pinpointed our calls to the (internal) libiptc as a cause of a
-kernel freeze.  It only happened on a generic Ubuntu Hardy kernel
-(2.6.24-22-generic) on one particular laptop (I didn't succeed in reproducing
-the freeze on another hardware with the same distribution).  I suppose it has
-something to do with the change of the format of data flowing to kernelspace
-(iptables 1.3.8 came distributed on that freezing machine), could anyone here
-confirm that this is possible indeed?
+I recently compiled new kernel and tried the following;
 
-Now my question is: how are we supposed to proceed from now on in order to
-manipulate iptables?  I read about libxtables and the corresponding libxtc.h
-(though these are not yet packaged in the current Ubuntu Intrepid), but it's
-not clear to me how the communication with the kernel is actually to be done.
+# iptables -I FORWARD -p tcp -m state --state NEW -j ACCEPT
+iptables: Invalid argument
 
-Thanks for any information that could help me making this work properly.
 
-Ignacy
+# uname -a
+Linux ng-test 2.6.28.3 #4 SMP Thu Feb 5 08:37:37 EST 2009 x86_64 GNU/Linux
 
--- 
-P.S.  All information contained in the above letter is false,
-      for reasons of military security.
+# lsmod
+Module                  Size  Used by
+xt_state                4608  0
+nf_conntrack           64424  1 xt_state
+iptable_filter          5440  0
+ip_tables              19408  1 iptable_filter
+x_tables               23432  2 xt_state,ip_tables
+ipv6                  251328  22
+sr_mod                 17540  0
+e1000e                111728  0
+..
+..
+
+# modinfo xt_state
+filename:       /lib/modules/2.6.28.3/kernel/net/netfilter/xt_state.ko
+license:        GPL
+author:         Rusty Russell <rusty@rustcorp.com.au>
+description:    ip[6]_tables connection tracking state match module
+alias:          ipt_state
+alias:          ip6t_state
+vermagic:       2.6.28.3 SMP mod_unload modversions
+depends:        x_tables,nf_conntrack
+
+# iptables -V
+iptables v1.4.2
+
+
+Did I forget to add anything? How can I see what is happing?
+
+thanks.
+
+hdemir.
+
+
+--------------090100010503000208050108
+Content-Type: text/x-vcard; charset=utf-8;
+ name="hdemir.vcf"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="hdemir.vcf"
+
+begin:vcard
+fn:Husnu Demir
+n:Demir;Husnu
+email;internet:hdemir@metu.edu.tr
+tel;work:+903122103330
+tel;fax:+903122103303
+x-mozilla-html:FALSE
+version:2.1
+end:vcard
+
+
+--------------090100010503000208050108--
