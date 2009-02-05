@@ -1,17 +1,17 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: [PATCH 1/3] netfilter: arptables: add mcmangle target
-Date: Thu, 05 Feb 2009 18:23:46 +0100
-Message-ID: <20090205172346.6771.47075.stgit@Decadence>
+Date: Thu, 05 Feb 2009 18:26:00 +0100
+Message-ID: <20090205172600.6830.90176.stgit@Decadence>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50718 "EHLO us.es"
+Received: from mail.us.es ([193.147.175.20]:57764 "EHLO us.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754104AbZBERX6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Feb 2009 12:23:58 -0500
+	id S1758692AbZBER0Q (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 5 Feb 2009 12:26:16 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
