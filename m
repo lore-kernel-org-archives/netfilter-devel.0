@@ -1,43 +1,46 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] sctp: chunkmap size is too large
-Date: Wed, 4 Feb 2009 11:12:47 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0902041112030.17765@fbirervta.pbzchgretzou.qr>
-References: <4983200B.2080707@6wind.com> <20090201.011427.38305360.davem@davemloft.net>
+From: Nicolas Dichtel <nicolas.dichtel@dev.6wind.com>
+Subject: [PATCH] netfilter: sctp chunk mapping doesn't work
+Date: Thu, 05 Feb 2009 10:26:58 +0100
+Message-ID: <498AB0E2.50507@dev.6wind.com>
+Reply-To: nicolas.dichtel@dev.6wind.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: olivier.matz@6wind.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, kaber@netfilter.org
-To: David Miller <davem@davemloft.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:40176 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752096AbZBDKMu (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 4 Feb 2009 05:12:50 -0500
-In-Reply-To: <20090201.011427.38305360.davem@davemloft.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: multipart/mixed;
+ boundary="------------020709010100030801050002"
+To: netdev <netdev@vger.kernel.org>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>,
+	Patrick McHardy <kaber@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+This is a multi-part message in MIME format.
+--------------020709010100030801050002
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-On Sunday 2009-02-01 10:14, David Miller wrote:
->> I think that the chunkmap field in struct xt_sctp_info is
->> too large: we have 256 chunk types and it's a bitfield,
->> so the table should be 256 bits (8 uint32_t) instead
->> of 64 uint32_t.
->> 
->> I updated the size of the table, and I did some cosmetic
->> changes in SCTP_CHUNKMAP_* macros (use a mask instead of
->> a modulo).
->> 
->>   netfilter/xt_sctp.h       |   30 ++++++++++++++++--------------
->>   netfilter_ipv4/ipt_sctp.h |   30 ++++++++++++++++--------------
->>   2 files changed, 32 insertions(+), 28 deletions(-)
->> 
->> Can someone have a look at it ? Please CC me for any replies
->> as I'm not on the list.
->
->Patrick, I assume you got this?
+When user tries to map all chunks given in argument, kernel works on a copy of 
+the chunkmap, but at the end it doesn't check the copy, but the orginal one.
 
-At least I got this - and the change would have to be nak'ed because
-it changes the userspace<->kernel binary stream. If you do such a
-change, a new match revision is required.
+Signed-off-by: Qu Haoran <haoran.qu@6wind.com>
+Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
+
+--------------020709010100030801050002
+Content-Type: text/x-patch;
+ name="x.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x.diff"
+
+--- linux-2.6.28.2/net/netfilter/xt_sctp.c	2009-01-24 19:42:07.000000000 -0500
++++ linux-2.6.28.2-new/net/netfilter/xt_sctp.c	2009-02-05 04:13:31.000000000 -0500
+@@ -105,7 +105,7 @@ match_packet(const struct sk_buff *skb,
+ 
+ 	switch (chunk_match_type) {
+ 	case SCTP_CHUNK_MATCH_ALL:
+-		return SCTP_CHUNKMAP_IS_CLEAR(info->chunkmap);
++		return SCTP_CHUNKMAP_IS_CLEAR(chunkmapcopy);
+ 	case SCTP_CHUNK_MATCH_ANY:
+ 		return false;
+ 	case SCTP_CHUNK_MATCH_ONLY:
+
+--------------020709010100030801050002--
