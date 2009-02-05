@@ -1,67 +1,62 @@
-From: Arnd Bergmann <arnd@arndb.de>
-Subject: Re: [GIT PULL -tip] fix 22 make headers_check - 200901
-Date: Thu, 5 Feb 2009 15:30:24 +0100
-Message-ID: <200902051530.25897.arnd@arndb.de>
-References: <20090204064307.GA18415@gondor.apana.org.au> <200902041255.53264.arnd@arndb.de> <4989D17F.4030406@zytor.com>
+From: Ignacy Gawedzki <i@lri.fr>
+Subject: Netfilter API and libiptc
+Date: Thu, 5 Feb 2009 15:17:22 +0100
+Message-ID: <20090205141722.GB21417@qubit>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Jaswinder Singh Rajput <jaswinder@kernel.org>,
-	Herbert Xu <herbert@gondor.apana.org.au>, mingo@elte.hu,
-	x86@kernel.org, sam@ravnborg.org, jirislaby@gmail.com,
-	gregkh@suse.de, davem@davemloft.net, xyzzy@speakeasy.org,
-	mchehab@infradead.org, jens.axboe@oracle.com,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Avi Kivity <avi@redhat.com>, netfilter-devel@vger.kernel.org
-To: "H. Peter Anvin" <hpa@zytor.com>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:60630 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752240AbZBEOcp convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Feb 2009 09:32:45 -0500
-In-Reply-To: <4989D17F.4030406@zytor.com>
+Received: from ext.lri.fr ([129.175.15.4]:50463 "EHLO ext.lri.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751955AbZBEOdQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 5 Feb 2009 09:33:16 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by ext.lri.fr (Postfix) with ESMTP id E039BA4466
+	for <netfilter-devel@vger.kernel.org>; Thu,  5 Feb 2009 15:13:59 +0100 (CET)
+Received: from ext.lri.fr ([127.0.0.1])
+	by localhost (ext.lri.fr [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id Elx31HBHYPdy for <netfilter-devel@vger.kernel.org>;
+	Thu,  5 Feb 2009 15:13:59 +0100 (CET)
+Received: from smtp.lri.fr (vhost3-23 [129.175.3.23])
+	by ext.lri.fr (Postfix) with ESMTP id C9A0AA438A
+	for <netfilter-devel@vger.kernel.org>; Thu,  5 Feb 2009 15:13:59 +0100 (CET)
+Received: from qubit.lri.fr (qubit [129.175.11.180])
+	by smtp.lri.fr (Postfix) with ESMTP id C3A4AE056D
+	for <netfilter-devel@vger.kernel.org>; Thu,  5 Feb 2009 15:13:59 +0100 (CET)
+Received: from ig by qubit.lri.fr with local (Exim 4.69)
+	(envelope-from <i@lri.fr>)
+	id 1LV52g-0005f5-3j
+	for netfilter-devel@vger.kernel.org; Thu, 05 Feb 2009 15:17:22 +0100
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wednesday 04 February 2009, H. Peter Anvin wrote:
->=20
-> Actually, if anything we should move the *non* __KERNEL_STRICT_NAMES =
-out
-> of <linux/types.h> into something else, or completely deep-six them. =
-=C2=A0I
-> don't know of any libc which wants these anymore, and I think they're
-> just residual libc5 cruft.
->=20
-> However, if we want <linux/extra_types.h> that's fine with me; but
-> <linux/types.h> really should be clean, which means doing what
-> __KERNEL_STRICT_NAMES does now.
+Hi everybody,
 
-Right now, we have 15 exported headers [1] that use the non-strict=20
-posix types (pid_t, off_t, clock_t, ...) and a set of 106 (!)
-files [2] using non-strict integer types (u_int32_t, uint32_t, u32, ...=
-),
-76 of those alone in netfilter.
+I'm currently working on a project that relies on manipulation of iptables in
+order to perform fine data packet accounting.  This manipulation is performed
+dynamically, so the code initially used libiptc.
 
-Do you think we should fix up all of them before 2.6.29? I'm worried
-that we might introduce more regressions in the process.
-Also, should we leave netfilter alone, in order to reduce the changes?
-I'm also unsure whether a hack in headers_install would be better than
-changing the headers in the source tree.
+Since iptables 1.4.0, libiptc is not distributed anymore, so I resolved to
+incorporate the code into our own source distribution, just as people from
+collectd seemingly did.  All seemed to work well until yesterday, when we
+eventually pinpointed our calls to the (internal) libiptc as a cause of a
+kernel freeze.  It only happened on a generic Ubuntu Hardy kernel
+(2.6.24-22-generic) on one particular laptop (I didn't succeed in reproducing
+the freeze on another hardware with the same distribution).  I suppose it has
+something to do with the change of the format of data flowing to kernelspace
+(iptables 1.3.8 came distributed on that freezing machine), could anyone here
+confirm that this is possible indeed?
 
-	Arnd <><
+Now my question is: how are we supposed to proceed from now on in order to
+manipulate iptables?  I read about libxtables and the corresponding libxtc.h
+(though these are not yet packaged in the current Ubuntu Intrepid), but it's
+not clear to me how the communication with the kernel is actually to be done.
 
-[1] for i in dev_t mode_t off_t pid_t suseconds_t timer_t uid_t gid_t \
-    loff_t time_t clock_t caddr_t ; do grep \\\<$i\\\> $obj/usr/include=
- ; \
-    done | sort | grep -v linux/types.h
+Thanks for any information that could help me making this work properly.
 
-[2] grep '\<\(\(u_\|u\|\)int\(8\|16\|32\|64\)_t\|[us]\(8\|16\|32\|64\)\=
-)\>' \
-    $obj/usr/include | grep -v linux/types.h
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Ignacy
+
+-- 
+P.S.  All information contained in the above letter is false,
+      for reasons of military security.
