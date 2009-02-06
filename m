@@ -1,264 +1,212 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 2/2] iptables: cluster match support
-Date: Fri, 06 Feb 2009 08:44:23 +0100
-Message-ID: <20090206074423.6474.84130.stgit@Decadence>
-References: <20090206074401.6474.98561.stgit@Decadence>
+Subject: [PATCH 1/1] arptables: mcmangle support
+Date: Fri, 06 Feb 2009 08:49:09 +0100
+Message-ID: <498BEB75.80004@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+Content-Type: multipart/mixed;
+ boundary="------------090104060007030705070107"
+Cc: Patrick McHardy <kaber@trash.net>
+To: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39416 "EHLO us.es"
+Received: from mail.us.es ([193.147.175.20]:41041 "EHLO us.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751245AbZBFHom (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 6 Feb 2009 02:44:42 -0500
-In-Reply-To: <20090206074401.6474.98561.stgit@Decadence>
+	id S1752440AbZBFHtd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 6 Feb 2009 02:49:33 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds support for the cluster match to iptables.
+This is a multi-part message in MIME format.
+--------------090104060007030705070107
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+
+
+--------------090104060007030705070107
+Content-Type: text/x-diff;
+ name="arptables-ext.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="arptables-ext.patch"
+
+arptables: add mcmangle target support
+
+This patch adds support for the multicast mangle target to arptables.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
 
- extensions/libxt_cluster.c           |  200 ++++++++++++++++++++++++++++++++++
- include/linux/netfilter/xt_cluster.h |   21 ++++
- 2 files changed, 221 insertions(+), 0 deletions(-)
- create mode 100644 extensions/libxt_cluster.c
- create mode 100644 include/linux/netfilter/xt_cluster.h
-
-diff --git a/extensions/libxt_cluster.c b/extensions/libxt_cluster.c
-new file mode 100644
-index 0000000..1f82ac3
---- /dev/null
-+++ b/extensions/libxt_cluster.c
-@@ -0,0 +1,200 @@
-+/*
-+ * (C) 2008 by Pablo Neira Ayuso <pablo@netfilter.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
+Index: arptables-v0.0.3-3/extensions/Makefile
+===================================================================
+--- arptables-v0.0.3-3.orig/extensions/Makefile	2008-12-28 17:47:57.000000000 +0100
++++ arptables-v0.0.3-3/extensions/Makefile	2008-12-28 17:48:01.000000000 +0100
+@@ -1,6 +1,6 @@
+ #! /usr/bin/make
+ 
+-EXT_FUNC+=standard mangle
++EXT_FUNC+=standard mangle mcmangle
+ EXT_OBJS+=$(foreach T,$(EXT_FUNC), extensions/arpt_$(T).o)
+ 
+ extensions/ebt_%.o: extensions/arpt_%.c include/arptables.h include/arptables_common.h
+Index: arptables-v0.0.3-3/extensions/arpt_mcmangle.c
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ arptables-v0.0.3-3/extensions/arpt_mcmangle.c	2008-12-30 13:42:18.000000000 +0100
+@@ -0,0 +1,122 @@
 +#include <stdio.h>
++#include <netdb.h>
 +#include <string.h>
 +#include <stdlib.h>
++#include <limits.h>
 +#include <getopt.h>
-+#include <stddef.h>
++#include <arptables.h>
++#include <linux/netfilter_arp/arpt_mcmangle.h>
 +
-+#include <xtables.h>
-+#include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter/xt_cluster.h>
-+
-+/* maximum 16 nodes */
-+#define CLUSTER_MAX_NODES	16
-+
-+/* hack to keep for check */
-+static int total_nodes;
-+static int local_node;
-+
-+static void
-+cluster_help(void)
++static void help(void)
 +{
 +	printf(
-+"cluster match options:\n"
-+"  --cluster-total-nodes <num>		Set number of total nodes in cluster\n"
-+"  --cluster-local-node <num>		Set the local node number\n"
-+"  --cluster-hash-seed <num>		Set seed value of the Jenkins hash\n"
-+"  --cluster-proc-name <string>		Proc interface name\n");
++"mcmangle target v%s options:\n"
++"--mc-mangle-mac MAC address\n"
++"--mc-mangle-dev interface name\n",
++	ARPTABLES_VERSION);
 +}
 +
-+enum {
-+	CLUSTER_OPT_DEVICE,
-+	CLUSTER_OPT_TOTAL_NODES,
-+	CLUSTER_OPT_LOCAL_NODE,
-+	CLUSTER_OPT_HASH_SEED,
-+	CLUSTER_OPT_PROC_NAME,
++enum arpt_mcmangle_options {
++	MC_MANGLE_MAC,
++	MC_MANGLE_DEV,
 +};
 +
-+static const struct option cluster_opts[] = {
-+	{ "cluster-total-nodes", 	1, NULL, CLUSTER_OPT_TOTAL_NODES },
-+	{ "cluster-local-node", 	1, NULL, CLUSTER_OPT_LOCAL_NODE },
-+	{ "cluster-hash-seed",		1, NULL, CLUSTER_OPT_HASH_SEED },
-+	{ "cluster-proc-name",		1, NULL, CLUSTER_OPT_PROC_NAME },
-+	{ .name = NULL }
++static struct option opts[] = {
++	{ "mc-mangle-mac", required_argument, 0, MC_MANGLE_MAC },
++	{ "mc-mangle-dev", required_argument, 0, MC_MANGLE_DEV },
++	{ NULL }
 +};
 +
-+static int 
-+cluster_parse(int c, char **argv, int invert, unsigned int *flags,
-+	      const void *entry, struct xt_entry_match **match)
++static void init(struct arpt_entry_target *t) {}
++
++static int
++parse(int c, char **argv, int invert, unsigned int *flags,
++      const struct arpt_entry *e,
++      struct arpt_entry_target **t)
 +{
-+	struct xt_cluster_match_info *info = (void *)(*match)->data;
-+	unsigned int num;
++	struct arpt_mcmangle *mangle = (struct arpt_mcmangle *)(*t)->data;
++	struct ether_addr *macaddr;
++	int ret = 1;
 +
 +	switch (c) {
-+	case CLUSTER_OPT_TOTAL_NODES:
-+		if (*flags & (1 << c))
++	case MC_MANGLE_MAC:
++		if (e->arp.arhln_mask == 0)
++			exit_error(PARAMETER_PROBLEM, "no --h-length defined");
++		if (e->arp.invflags & ARPT_INV_ARPHLN)
 +			exit_error(PARAMETER_PROBLEM,
-+				   "Can only specify "
-+				   "`--cluster-total-nodes' once");
-+
-+		if (string_to_number(optarg, 1, CLUSTER_MAX_NODES, &num) < 0)
-+			exit_error(PARAMETER_PROBLEM, 
-+				    "Unable to parse `%s' in "
-+				    "`--cluster-total-nodes'", optarg);
-+
-+		total_nodes = num;
-+		info->total_nodes = (u_int16_t)num;
-+		*flags |= 1 << c;
++				   "! --h-length not allowed for "
++				   "--mc-mangle-mac");
++		if (e->arp.arhln != 6)
++			exit_error(PARAMETER_PROBLEM, "only --h-length 6 "
++						      "supported");
++		macaddr = ether_aton(argv[optind-1]);
++		if (macaddr == NULL)
++			exit_error(PARAMETER_PROBLEM, "invalid MAC address");
++		if (!(macaddr->ether_addr_octet[0] & 0x01))
++			exit_error(PARAMETER_PROBLEM, "invalid multicast MAC");
++		memcpy(mangle->mc_devaddr, macaddr, e->arp.arhln);
++		*flags |= (1 << MC_MANGLE_MAC);
 +		break;
-+	case CLUSTER_OPT_LOCAL_NODE:
-+		if (*flags & (1 << c))
-+			exit_error(PARAMETER_PROBLEM,
-+				   "Can only specify "
-+				   "`--cluster-local-node' once");
-+
-+		check_inverse(optarg, &invert, &optind, 0);
-+
-+		if (string_to_number(optarg, 1, CLUSTER_MAX_NODES, &num) < 0)
-+			exit_error(PARAMETER_PROBLEM,
-+				   "Unable to parse `%s' in "
-+				   "`--cluster-local-node'", optarg);
-+
-+		if (invert)
-+			info->flags |= (1 << XT_CLUSTER_F_INV);
-+
-+		info->node_id = (u_int16_t)num;
-+		*flags |= 1 << c;
-+		break;
-+	case CLUSTER_OPT_HASH_SEED:
-+		if (*flags & (1 << c))
-+			exit_error(PARAMETER_PROBLEM,
-+				   "Can only specify "
-+				   "`--cluster-hash-seed' once");
-+
-+		if (string_to_number(optarg, 0, UINT_MAX, &num) < 0)
-+			exit_error(PARAMETER_PROBLEM,
-+				   "Unable to parse `%s'", optarg);
-+
-+		info->hash_seed = num;
-+		*flags |= 1 << c;
-+		break;
-+	case CLUSTER_OPT_PROC_NAME:
-+		if (*flags & (1 << c))
-+			exit_error(PARAMETER_PROBLEM,
-+				   "Can only specify "
-+				   "`--cluster-proc-name' once");
-+
-+		if (strlen(optarg) > sizeof(info->proc_name))
-+			exit_error(PARAMETER_PROBLEM,
-+				   "--cluster-proc-name string too long");
-+
-+		strncpy(info->proc_name, optarg, sizeof(info->proc_name));
-+		info->proc_name[sizeof(info->proc_name)-1] = '\0';
-+		*flags |= 1 << c;
++	case MC_MANGLE_DEV:
++		strncpy(mangle->ifname, optarg, IFNAMSIZ);
++		*flags |= (1 << MC_MANGLE_DEV);
 +		break;
 +	default:
-+		return 0;
++		ret = 0;
 +	}
 +
-+	return 1;
++	return ret;
 +}
 +
-+static void
-+cluster_check(unsigned int flags)
++static void final_check(unsigned int flags)
 +{
-+	if ((flags & ((1 << CLUSTER_OPT_TOTAL_NODES) |
-+		      (1 << CLUSTER_OPT_LOCAL_NODE)  |
-+		      (1 << CLUSTER_OPT_PROC_NAME)))
-+		== ((1 << CLUSTER_OPT_TOTAL_NODES) |
-+		    (1 << CLUSTER_OPT_LOCAL_NODE) |
-+		    (1 << CLUSTER_OPT_PROC_NAME))) {
-+		if (local_node > total_nodes)
-+			exit_error(PARAMETER_PROBLEM,
-+				   "cluster match: `--cluster-local-node' "
-+				   "must be <= `--cluster-total-nodes'");
-+		return;
++	if (!(flags & (1 << MC_MANGLE_MAC))) {
++		exit_error(PARAMETER_PROBLEM, "missing --mc-mangle-mac");
 +	}
-+
-+	exit_error(PARAMETER_PROBLEM,
-+		   "cluster match: Invalid parameter combination");
++	if (!(flags & (1 << MC_MANGLE_DEV))) {
++		exit_error(PARAMETER_PROBLEM, "missing --mc-mangle-dev");
++	}
 +}
 +
 +static void
-+cluster_print(const void *ip, const struct xt_entry_match *match, int numeric)
++print(const struct arpt_arp *ip,
++      const struct arpt_entry_target *target, int numeric)
 +{
-+	const struct xt_cluster_match_info *info = (void *)match->data;
++	struct arpt_mcmangle *m = (struct arpt_mcmangle *)(target->data);
 +
-+	printf("cluster ");
-+	if (info->flags & XT_CLUSTER_F_INV)
-+		printf("!node_id=%u ", info->node_id);
-+	else
-+		printf("node_id=%u ", info->node_id);
-+
-+	printf("total_nodes=%u hash_seed=%u proc=%s ", 
-+		info->total_nodes,
-+		info->hash_seed,
-+		info->proc_name);
++	printf("--mc-mangle-mac ");
++	print_mac((unsigned char *)m->mc_devaddr, 6);
++	printf(" --mc-mangle-dev ");
++	printf("%s", m->ifname);
 +}
 +
 +static void
-+cluster_save(const void *ip, const struct xt_entry_match *match)
++save(const struct arpt_arp *ip, const struct arpt_entry_target *target)
 +{
-+	const struct xt_cluster_match_info *info = (void *)match->data;
++	struct arpt_mcmangle *m = (struct arpt_mcmangle *)(target->data);
 +
-+	if (info->flags & XT_CLUSTER_F_INV)
-+		printf("! --cluster-this-node %u ", info->node_id);
-+	else
-+		printf("--cluster-this-node %u ", info->node_id);
-+
-+	printf("--cluster-total-nodes %u "
-+	       "--cluster-hash-seed %u "
-+	       "--cluster-proc-entry %s ",
-+		info->total_nodes,
-+		info->hash_seed,
-+		info->proc_name);
++	printf("--mc-mangle-mac ");
++	print_mac((unsigned char *)m->mc_devaddr, 6);
++	printf(" --mc-mangle-dev ");
++	printf("%s", m->ifname);
 +}
 +
-+static struct xtables_match cluster_mt_reg = {
-+	.family		= AF_UNSPEC,
-+	.name		= "cluster",
-+	.version	= XTABLES_VERSION,
-+	.size		= XT_ALIGN(sizeof(struct xt_cluster_match_info)),
-+	.userspacesize  = XT_ALIGN(offsetof(struct xt_cluster_match_info,data)),
-+ 	.help		= cluster_help,
-+	.parse		= cluster_parse,
-+	.final_check	= cluster_check,
-+	.print		= cluster_print,
-+	.save		= cluster_save,
-+	.extra_opts	= cluster_opts,
++static struct arptables_target arpt_mcmangle = {
++	.name		= "mcmangle",
++	.version	= ARPTABLES_VERSION,
++	.size		= ARPT_ALIGN(sizeof(struct arpt_mcmangle)),
++	.userspacesize	= ARPT_ALIGN(offsetof(struct arpt_mcmangle, dev)),
++	.help		= help,
++	.init		= init,
++	.parse		= parse,
++	.final_check	= final_check,
++	.print		= print,
++	.save		= save,
++	.extra_opts	= opts,
 +};
 +
-+void _init(void)
++static void _init(void) __attribute__ ((constructor));
++static void _init(void)
 +{
-+	xtables_register_match(&cluster_mt_reg);
++	register_target(&arpt_mcmangle);
 +}
-diff --git a/include/linux/netfilter/xt_cluster.h b/include/linux/netfilter/xt_cluster.h
-new file mode 100644
-index 0000000..a06401d
---- /dev/null
-+++ b/include/linux/netfilter/xt_cluster.h
-@@ -0,0 +1,21 @@
-+#ifndef _XT_CLUSTER_MATCH_H
-+#define _XT_CLUSTER_MATCH_H
+Index: arptables-v0.0.3-3/include/linux/netfilter_arp/arpt_mcmangle.h
+===================================================================
+--- /dev/null	1970-01-01 00:00:00.000000000 +0000
++++ arptables-v0.0.3-3/include/linux/netfilter_arp/arpt_mcmangle.h	2008-12-30 14:01:02.000000000 +0100
+@@ -0,0 +1,14 @@
++#ifndef _ARPT_MCMANGLE_H
++#define _ARPT_MCMANGLE_H
++#include <linux/netfilter_arp/arp_tables.h>
 +
-+struct proc_dir_entry;
++struct net_device;
 +
-+enum xt_cluster_flags {
-+	XT_CLUSTER_F_INV = 0,
++struct arpt_mcmangle
++{
++	char ifname[IFNAMSIZ];
++	char mc_devaddr[ETH_ALEN];
++	struct net_device __attribute__((aligned(8))) *dev;
 +};
 +
-+struct xt_cluster_match_info {
-+	u_int16_t		total_nodes;
-+	u_int16_t		node_id;
-+	u_int32_t		hash_seed;
-+	char			proc_name[16];
-+	u_int32_t		flags;
++#endif /* _ARPT_MANGLE_H */
+Index: arptables-v0.0.3-3/include/arptables_common.h
+===================================================================
+--- arptables-v0.0.3-3.orig/include/arptables_common.h	2008-12-28 18:21:10.000000000 +0100
++++ arptables-v0.0.3-3/include/arptables_common.h	2008-12-28 18:21:19.000000000 +0100
+@@ -1,6 +1,9 @@
+ #ifndef _ARPTABLES_COMMON_H
+ #define _ARPTABLES_COMMON_H
+ 
++#undef offsetof
++#define offsetof(TYPE, MEMBER) ((size_t) &((TYPE *)0)->MEMBER)
 +
-+	/* Used internally by the kernel */
-+	void			*data __attribute__((aligned(8)));
-+};
-+
-+#endif /* _XT_CLUSTER_MATCH_H */
+ enum exittype {
+ 	OTHER_PROBLEM = 1,
+ 	PARAMETER_PROBLEM,
 
+--------------090104060007030705070107--
