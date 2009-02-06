@@ -1,67 +1,45 @@
-From: Christoph Paasch <christoph.paasch@student.uclouvain.be>
-Subject: Re: [PATCH] netfilter: don't track ICMPv6 negotiation message.
-Date: Fri, 6 Feb 2009 11:30:29 +0100
-Message-ID: <200902061130.29873.christoph.paasch@student.uclouvain.be>
-References: <200901271007.n0RA78k6023294@toshiba.co.jp> <1233053715-30398-1-git-send-email-eric@inl.fr>
+From: David Goulet <david.goulet2@usherbrooke.ca>
+Subject: ct_sync project update
+Date: Fri, 06 Feb 2009 11:47:18 -0500
+Message-ID: <498C6996.5060004@usherbrooke.ca>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Eric Leblond <eric@inl.fr>, yasuyuki.kozakai@toshiba.co.jp,
-	kaber@trash.net
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7BIT
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpout.sgsi.ucl.ac.be ([130.104.5.77]:57074 "EHLO
-	smtp2.sgsi.ucl.ac.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752828AbZBFKak convert rfc822-to-8bit (ORCPT
+Received: from relais.videotron.ca ([24.201.245.36]:24728 "EHLO
+	relais.videotron.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751780AbZBFQrX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 6 Feb 2009 05:30:40 -0500
-In-Reply-To: <1233053715-30398-1-git-send-email-eric@inl.fr>
-Content-Disposition: inline
+	Fri, 6 Feb 2009 11:47:23 -0500
+Received: from [192.168.1.33] ([24.203.248.64]) by VL-MO-MR001.ip.videotron.ca
+ (Sun Java(tm) System Messaging Server 6.3-4.01 (built Aug  3 2007; 32bit))
+ with ESMTP id <0KEN00J3OLAXAIB0@VL-MO-MR001.ip.videotron.ca> for
+ netfilter-devel@vger.kernel.org; Fri, 06 Feb 2009 11:47:21 -0500 (EST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-I have two questions regarding this patch.
+Hi people,
 
-On Tue January 27 2009, Eric Leblond wrote:
-> +	type =3D icmp6h->icmp6_type - 130;
-> +	if (type >=3D 0 && type < sizeof(noct_valid_new)
-> +	    && noct_valid_new[type]) {
-> +		skb->nfct =3D &nf_conntrack_untracked.ct_general;
-> +		skb->nfctinfo =3D IP_CT_NEW;
-> +		nf_conntrack_get(skb->nfct);
-> +		return NF_ACCEPT;
-> +	}
+For a University Project, I'm trying to take back the ct_sync
+project and make it work on >= linux kernel 2.6.26. The last patches
+I found are for linux 2.6.10 and much have changed since then. They
+are no longer applicable unless major changes.
 
-Why do you set skb->nfctinfo =3D IP_CT_NEW?
-Because in xt_state.c, at state_mt(...) :=20
-	if it is in front of an untracked packet (using nf_ct_is_untracked(skb=
-)) it
-	automatically sets the statebit to UNTRACKED and so the IP_CT_NEW isn'=
-t used.
+Is there any other group or "hidden svn" that maintain or contain up
+to date stuff?
+What's your best advice guys for this project? Is it realistic to
+take it back or not?
 
-Why do you return NF_ACCEPT and not -NF_ACCEPT?
-By returning a positiv value, the packet will continue it's way through=
- the=20
-connection tracker.
+Thanks a lot
+David
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.8 (Darwin)
 
-
-I hope that I was clear.=20
-Please correct me if I'm wrong...
-
-Greetings,
-
---
-Christoph Paasch
-
-=C9cole Polytechnique de Louvain
-D=E9partement d'ing=E9nierie informatique
-
-www.rollerbulls.be
---
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+iEYEARECAAYFAkmMaYgACgkQSvfBSxa9hWPZ3QCfb2ahSmRDUlu1wvnr6JOCRt6Z
+mFoAoL7r5RaplUwOw1+WLYuktzP2N+i+
+=LGaK
+-----END PGP SIGNATURE-----
