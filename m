@@ -1,34 +1,25 @@
 From: Anton VG <anton.vazir@gmail.com>
-Subject: (nfnl_talk: recvmsg over-run) and (nf_queue: full at 1024 entries,
-	dropping packets(s). Dropped: 582) - bug or just some defaults increase
-	required?
-Date: Fri, 6 Feb 2009 23:14:16 +0500
-Message-ID: <c4b050a10902061014w3df3b2c3xe9e6465be79b4e07@mail.gmail.com>
+Subject: Problem: nfnl_talk: recvmsg over-run and dead loop.
+Date: Sat, 7 Feb 2009 15:12:43 +0500
+Message-ID: <c4b050a10902070212x1a0671d9pd6e68560b37bb72b@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ew0-f21.google.com ([209.85.219.21]:46171 "EHLO
-	mail-ew0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752431AbZBFSOT (ORCPT
+Received: from mail-fx0-f20.google.com ([209.85.220.20]:53517 "EHLO
+	mail-fx0-f20.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752146AbZBGKMp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 6 Feb 2009 13:14:19 -0500
-Received: by ewy14 with SMTP id 14so1496820ewy.13
-        for <netfilter-devel@vger.kernel.org>; Fri, 06 Feb 2009 10:14:17 -0800 (PST)
+	Sat, 7 Feb 2009 05:12:45 -0500
+Received: by fxm13 with SMTP id 13so1702530fxm.13
+        for <netfilter-devel@vger.kernel.org>; Sat, 07 Feb 2009 02:12:43 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Hello Friends,
 
 Just came to a problem with nfnetlink_queue -
-
-I've created a service where users do connect to a host, and every
-connected user (over PPP) get's a separate NF-QUEUE -
-In this QUEUE i do packet accounting, to a different destination. When
-number of simultaneous queues went to 40+  I just came to a problem -
-deadloop with continues generation of the error to stderr - (3GB of
-record in the log in 3 minutes of deadlock)
 
 nfnl_talk: recvmsg over-run
 
@@ -45,7 +36,7 @@ in write () from /lib/libc.so.6
 #6  0x00007f67b930102d in nfnl_talk (nfnlh=0x53c4b0, n=<value
 optimized out>, peer=<value optimized out>, groups=<value optimized
 out>, answer=0x0,
-    junk=0, jarg=0x0) at libnfnetlink.c:678
+   junk=0, jarg=0x0) at libnfnetlink.c:678
 #7  0x00007f67b9be457f in __build_send_cfg_msg (h=0x5398d0, command=1
 '\001', queuenum=<value optimized out>, pf=0) at
 libnetfilter_queue.c:114
@@ -69,6 +60,15 @@ nf_queue: full at 1024 entries, dropping packets(s). Dropped: 679
 Further details: using kernel 2.6.26.5 and
 libnetfilter_queue-0.0.16
 libnfnetlink-0.0.39
+
+It's all while used in the environment where users do connect to a
+host, and every
+connected user (over PPP) get's a separate NF-QUEUE -
+In this QUEUE i do packet accounting, to a different destination. When
+number of simultaneous queues went to 40+  I just came to a problem -
+deadloop with continues generation of the error to stderr - (3GB of
+record in the log in 3 minutes of deadlock)
+
 
 Do you think that increasing the NFQNL_QMAX_DEFAULT from 1024 to 10240
 would solve the problem
