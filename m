@@ -1,49 +1,43 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 3/3] netfilter: xtables: add cluster match
-Date: Mon, 09 Feb 2009 16:25:41 +0100
-Message-ID: <49904AF5.7060809@trash.net>
-References: <20090128145801.7501.44459.stgit@Decadence> <20090128145848.7501.18129.stgit@Decadence>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] libxtables: Introduce xtables_afinfo
+Date: Mon, 09 Feb 2009 16:38:55 +0100
+Message-ID: <49904E0F.4090406@netfilter.org>
+References: <1234026339.4441.24.camel@dogo.mojatatu.com>	 <alpine.LSU.2.00.0902071957040.12855@fbirervta.pbzchgretzou.qr> <1234035818.4441.36.camel@dogo.mojatatu.com> <4990411F.5060509@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: hadi@cyberus.ca, Jan Engelhardt <jengelh@medozas.de>,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:57298 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754634AbZBIPZn (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Feb 2009 10:25:43 -0500
-In-Reply-To: <20090128145848.7501.18129.stgit@Decadence>
+Received: from mail.us.es ([193.147.175.20]:49142 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754369AbZBIPcB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 9 Feb 2009 10:32:01 -0500
+In-Reply-To: <4990411F.5060509@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> This patch adds the iptables cluster match. This match can be used
-> to deploy gateway and back-end load-sharing clusters. Assuming that
-> all the nodes see all packets (see arptables mcmangle target and
-> PKTTYPE iptables targets on how to do that), the cluster match
-> decides if this node has to handle a packet given:
+Patrick McHardy wrote:
+> jamal wrote:
+>> On Sat, 2009-02-07 at 20:05 +0100, Jan Engelhardt wrote:
+>>> ess.
+>>>
+>>> This afinfo thing has been a red LED beam in my eye. I just do not think
+>>> iproute2-m_ipt should have to deal with afinfo at all.
+>>> ..
+>>> So I now also dealt with that and moved it according to what I think 
+>>> is right - see latest git commit in mine; [77f48c2]
+>>
+>> Ok, tried that looks good. I prefer the approach you have. So
+>> discard the patch i posted.
 > 
-> 	jhash(source IP) % nodeID == 0
-> 
-> For related connections, the master conntrack is used. An example of
-> its use for a gateway cluster, in one of the cluster nodes:
-> 
-> iptables -I PREROUTING -t mangle -i eth1 -m cluster \
-> 	--cluster-total-nodes 2 --cluster-local-node 1 \
-> 	--cluster-proc-name eth1 -j MARK --set-mark 0xffff
-> iptables -A PREROUTING -t mangle -i eth1 \
-> 	-m mark ! --mark 0xffff -j DROP
-> iptables -A PREROUTING -t mangle -i eth2 -m cluster \
-> 	--cluster-total-nodes 2 --cluster-local-node 1 \
-> 	--cluster-proc-name eth2 -j MARK --set-mark 0xffff
-> iptables -A PREROUTING -t mangle -i eth2 \
+> I'm a bit unsynced right now because I lost a harddisk and couldn't
+> follow emails. Could you resend the agreed-upon patches that you
+> want me to apply please?
 
-While its simple and probably gives good distribution, using the
-source IP like this has the major disadvantage that when one node
-fails, all nodes need to change rulesets and the existing mapping
-of connections becomes at least partially invalid.
+Jan has sent them to netfilter-users instead of netfilter-devel by 
+mistake there this morning. Look there.
 
-Also using conntrack data implies that this can't be used in the
-raw table, which seems like the best place to drop foreign packets.
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
