@@ -1,43 +1,69 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: [PATCH 7/7] netfilter: fix nflog timeout handling.
-Date: Mon,  9 Feb 2009 22:11:16 +0100
-Message-ID: <1234213876-8176-7-git-send-email-eric@inl.fr>
+Subject: [PATCH 5/7] netfilter: print the list of register loggers.
+Date: Mon,  9 Feb 2009 22:11:14 +0100
+Message-ID: <1234213876-8176-5-git-send-email-eric@inl.fr>
 References: <49909B3E.0@inl.fr>
 Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@inl.fr>
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bayen.regit.org ([81.57.69.189]:36907 "EHLO ice-age"
+Received: from bayen.regit.org ([81.57.69.189]:36911 "EHLO ice-age"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753765AbZBIVLX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1753784AbZBIVLX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Mon, 9 Feb 2009 16:11:23 -0500
 In-Reply-To: <49909B3E.0@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-NFLOG timeout was computed in timer by doing:
- flushtimeout*HZ/100
-Default value of flushtimeout was HZ (for 1 second delay). This was
-wrong for non 100HZ computer. This patch modify the default delay by
-using 100 instead of HZ.
+This patch modifies the proc output to add display of registered
+loggers. The content of /proc/net/netfilter/nf_log is modified. Instead
+of displaying a protocol per line with format:
+	proto:logger
+it now displays:
+	proto:logger (comma_separated_list_of_loggers)
 
 Signed-off-by: Eric Leblond <eric@inl.fr>
 ---
- net/netfilter/nfnetlink_log.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ net/netfilter/nf_log.c |   22 ++++++++++++++++++++--
+ 1 files changed, 20 insertions(+), 2 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
-index 88b455e..42e7de9 100644
---- a/net/netfilter/nfnetlink_log.c
-+++ b/net/netfilter/nfnetlink_log.c
-@@ -39,7 +39,7 @@
- #endif
+diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
+index 1655a1f..fc1deca 100644
+--- a/net/netfilter/nf_log.c
++++ b/net/netfilter/nf_log.c
+@@ -172,13 +172,31 @@ static int seq_show(struct seq_file *s, void *v)
+ {
+ 	loff_t *pos = v;
+ 	const struct nf_logger *logger;
++	struct nf_logger *t;
++	int ret;
  
- #define NFULNL_NLBUFSIZ_DEFAULT	NLMSG_GOODSIZE
--#define NFULNL_TIMEOUT_DEFAULT 	HZ	/* every second */
-+#define NFULNL_TIMEOUT_DEFAULT 	100	/* every second */
- #define NFULNL_QTHRESH_DEFAULT 	100	/* 100 packets */
- #define NFULNL_COPY_RANGE_MAX	0xFFFF	/* max packet size is limited by 16-bit struct nfattr nfa_len field */
+ 	logger = rcu_dereference(nf_loggers[*pos]);
  
+ 	if (!logger)
+-		return seq_printf(s, "%2lld NONE\n", *pos);
++		ret = seq_printf(s, "%2lld NONE (", *pos);
++	else
++		ret = seq_printf(s, "%2lld %s (", *pos, logger->name);
++
++	if (ret < 0)
++		return ret;
++
++	list_for_each_entry(t, &nf_loggers_l[*pos], list[*pos]) {
++		ret = seq_printf(s, "%s", t->name);
++		if (ret < 0)
++			return ret;
++		if (&t->list[*pos] != nf_loggers_l[*pos].prev) {
++			ret = seq_printf(s, ",");
++			if (ret < 0)
++				return ret;
++		}
++	}
+ 
+-	return seq_printf(s, "%2lld %s\n", *pos, logger->name);
++	return seq_printf(s, ")\n");
+ }
+ 
+ static const struct seq_operations nflog_seq_ops = {
 -- 
 1.5.6.3
 
