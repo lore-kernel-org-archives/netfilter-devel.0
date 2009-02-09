@@ -1,68 +1,51 @@
-From: Ignacy Gawedzki <i@lri.fr>
-Subject: Re: Netfilter API and libiptc
-Date: Mon, 9 Feb 2009 19:39:41 +0100
-Message-ID: <20090209183941.GA1050@zenon.in.qult.net>
-References: <20090205141722.GB21417@qubit> <4990636B.9080900@trash.net>
+From: jamal <hadi@cyberus.ca>
+Subject: Re: [PATCH] libxtables: Introduce xtables_afinfo
+Date: Mon, 09 Feb 2009 15:45:05 -0500
+Message-ID: <1234212305.20903.7.camel@dogo.mojatatu.com>
+References: <1234026339.4441.24.camel@dogo.mojatatu.com>
+	 <alpine.LSU.2.00.0902071957040.12855@fbirervta.pbzchgretzou.qr>
+	 <1234035818.4441.36.camel@dogo.mojatatu.com>  <4990411F.5060509@trash.net>
+Reply-To: hadi@cyberus.ca
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from qult.net ([82.238.217.46]:39102 "EHLO slartibartfast.qult.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751623AbZBITLo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Feb 2009 14:11:44 -0500
-Content-Disposition: inline
-In-Reply-To: <4990636B.9080900@trash.net>
+Received: from mail-ew0-f21.google.com ([209.85.219.21]:51166 "EHLO
+	mail-ew0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751075AbZBIUq7 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 9 Feb 2009 15:46:59 -0500
+Received: by ewy14 with SMTP id 14so2775649ewy.13
+        for <netfilter-devel@vger.kernel.org>; Mon, 09 Feb 2009 12:46:57 -0800 (PST)
+In-Reply-To: <4990411F.5060509@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Feb 09, 2009 at 06:10:03PM +0100, thus spake Patrick McHardy:
-> Ignacy Gawedzki wrote:
->> Hi everybody,
->>
->> I'm currently working on a project that relies on manipulation of iptables in
->> order to perform fine data packet accounting.  This manipulation is performed
->> dynamically, so the code initially used libiptc.
->>
->> Since iptables 1.4.0, libiptc is not distributed anymore, so I resolved to
->> incorporate the code into our own source distribution, just as people from
->> collectd seemingly did.  All seemed to work well until yesterday, when we
->> eventually pinpointed our calls to the (internal) libiptc as a cause of a
->> kernel freeze.  It only happened on a generic Ubuntu Hardy kernel
->> (2.6.24-22-generic) on one particular laptop (I didn't succeed in reproducing
->> the freeze on another hardware with the same distribution).  I suppose it has
->> something to do with the change of the format of data flowing to kernelspace
->> (iptables 1.3.8 came distributed on that freezing machine), could anyone here
->> confirm that this is possible indeed?
->
-> It should never crash the kernel, and the ABI is supposed to be
-> compatible.
+On Mon, 2009-02-09 at 15:43 +0100, Patrick McHardy wrote:
 
-Good to know, thanks.
+> Could you resend the agreed-upon patches that you
+> want me to apply please?
 
->
->>
->> Now my question is: how are we supposed to proceed from now on in order to
->> manipulate iptables?  I read about libxtables and the corresponding libxtc.h
->> (though these are not yet packaged in the current Ubuntu Intrepid), but it's
->> not clear to me how the communication with the kernel is actually to be done.
->>
->> Thanks for any information that could help me making this work properly.
->
-> Hard to tell without seeing the exact crash you're getting.
+Ok, I just synced with latest git. I will send you a few patches first.
+My path to resolving tc/ipt is to start with being able to take a basic
+useless program like:
 
-As far as I know, the crash is a complete freeze.  I don't know whether there
-are any console messages to recover (using netconsole for instance).
+----------
+#include <xtables.h>
+int main(int argc, char **argv) {
 
-My question was not about how to prevent the machine from crashing, but rather
-how are we supposed to manipulate iptables, now that libiptc is not available.
+        return 0;
+}
+--------
 
-As for the kernel crash itself, it is right now pretty difficult for me to
-analyze, since I don't have the machine at hand and the person using it is too
-busy at the moment.  So maybe I'll be able to take a look at some later time.
+then compile and link with "gcc useless.c -lxtables -ldl"
 
-Thanks for your reply.
+As it is right now i have to define in the minimal exit_error()
 
--- 
-:wq!
+cheers,
+jamal
+
