@@ -1,66 +1,74 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: 32 core net-next stack/netfilter "scaling"
-Date: Mon, 09 Feb 2009 15:57:05 +0100
-Message-ID: <49904441.2090309@trash.net>
-References: <497E361B.30909@hp.com>	<497E42F4.7080201@cosmosbay.com>	<497E44F6.2010703@hp.com>	<497ECF84.1030308@cosmosbay.com>	<497ED0A2.6050707@trash.net>	<497F350A.9020509@cosmosbay.com>	<497F457F.2050802@trash.net> <497F4C2F.9000804@hp.com> <497F5BCD.9060807@hp.com> <497F5F86.9010101@hp.com> <498063E7.5030106@cosmosbay.com> <49808708.3050502@trash.net> <498090C1.5020400@cosmosbay.com> <49809716.3020204@cosmosbay.com>
+Subject: Re: [PATCH 1/3] netfilter: arptables: add mcmangle target
+Date: Mon, 09 Feb 2009 16:11:31 +0100
+Message-ID: <499047A3.9000505@trash.net>
+References: <20090128145801.7501.44459.stgit@Decadence>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Rick Jones <rick.jones2@hp.com>,
-	Netfilter Developers <netfilter-devel@vger.kernel.org>,
-	Linux Network Development list <netdev@vger.kernel.org>,
-	Stephen Hemminger <shemminger@vyatta.com>
-To: Eric Dumazet <dada1@cosmosbay.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:56684 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:57001 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753510AbZBIO5J (ORCPT
+	with ESMTP id S1753528AbZBIPLg (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Feb 2009 09:57:09 -0500
-In-Reply-To: <49809716.3020204@cosmosbay.com>
+	Mon, 9 Feb 2009 10:11:36 -0500
+In-Reply-To: <20090128145801.7501.44459.stgit@Decadence>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Dumazet wrote:
-> Eric Dumazet a =E9crit :
->> Patrick McHardy a =E9crit :
->>> That looks more complicated since it requires to take multiple lock=
-s
->>> occasionally (f.i. hash insertion, potentially helper-related and
->>> expectation-related stuff), and there is the unconfirmed_list, wher=
-e
->>> fine-grained locking can't really be used without changing it to
->>> a hash.
->>>
->> Yes its more complicated, but look what we did in 2.6.29 for tcp/udp
->>  sockets, using RCU to have lockless lookups.
->> Yes, we still take a lock when doing an insert or delete at socket
->> bind/unbind time.
->>
->> We could keep a central nf_conntrack_lock to guard insertions/delete=
-s
->> from hash and unconfirmed_list.
->>
->> But *normal* packets that only need to change state of one particula=
-r
->> connection could use RCU (without spinlock) to locate the conntrack,
->> then lock the found conntrack to perform all state changes.
->=20
-> Well... RCU is already used by conntrack :)
->=20
-> Maybe only __nf_ct_refresh_acct() needs not taking nf_conntrack_lock
+Pablo Neira Ayuso wrote:
+> This patch adds the mcmangle target for arptables which allows
+> altering the source hardware address in ARP with a multicast
+> hardware address. This target can be used to make a switch flood
+> packets to the ports that use the same MAC multicast address. This
+> is useful to deploy load-sharing clusters in environments in which
+> the switch does not provide a way to flood packets to several
+> ports.
 
-The lock is currently used to avoid timer update races.
-Martin has two old patches two remove it, but they require
-changes to the timer code to support a mod_timer variant
-that doesn't enable an inactive timer:
+Great name. Took me a bit to realize the connection to "multicast" :)
 
-http://people.netfilter.org/gandalf/performance/patches/mod_timer_noact
-http://people.netfilter.org/gandalf/performance/patches/__nf_ct_refresh=
-_acct-locking
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Since all the nodes receives the same packets, each decides if
+> it handles the packet based on hashing approach (See the `cluster'
+> iptables match that comes with this patchset).
+> 
+> Theoretically, the use of the reserved VRRP hardware address should
+> be fine for this, however, switches generally treat this hardware
+> address space as normal unicast hardware address. Thus, in practise,
+> it is not possible to have two nodes with the same VRRP hardware
+> address.
+> 
+> Please, note that this target violates RFC 1812 (section 3.3.2) since
+> an ethernet device must not use a multicast link address.
+> 
+> An example of the use of this target:
+> 
+> arptables -I OUTPUT -o eth0 -j mcmangle --h-length 6 \
+> 	--mc-mangle-mac 01:00:5e:00:01:01 --mc-mangle-dev eth0
+> arptables -I INPUT -i eth0 --h-length 6 --destination-mac \
+> 	01:00:5e:00:01:01 -j mangle --mangle-mac-d 00:zz:yy:xx:5a:27
+
+Wouldn't it be more generically usable if it was a simple "set
+either source or destination mac address to any value" target?
+In fact thats what it seems to be (or is there a multicast check?),
+so perhaps we should call it S/DNAT for consistency with iptables
+and ebtables?
+
+I'm wondering though why the device is needed as a parameter ..
+ah I see:
+
++	if (dev_mc_add(dev, mangle->mc_devaddr, ETH_ALEN, 0) < 0) {
++		printk(KERN_ERR "arpt_mcmangle: cannot set multicast "
++				"address\n");
++		return false;
++	}
+
+Continuing the idea of a generic ARP address mangling target,
+this would have to be done in userspace using SIOCADDMULTI.
+
+I would also prefer that approach because the multicast mangling
+seems a bit like a hack which only works when the requesting
+host accepts a multicast MAC address in the ARP reply.
+
+
