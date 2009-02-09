@@ -1,54 +1,34 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: several messages
-Date: Mon, 9 Feb 2009 22:44:47 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0902092242460.26793@fbirervta.pbzchgretzou.qr>
-References: <1234213032.20903.13.camel@dogo.mojatatu.com>  <alpine.LSU.2.00.0902092202020.25199@fbirervta.pbzchgretzou.qr> <1234214841.20903.27.camel@dogo.mojatatu.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: netfilter 00/05: netfilter fixes
+Date: Mon, 09 Feb 2009 14:32:38 -0800 (PST)
+Message-ID: <20090209.143238.25276576.davem@davemloft.net>
+References: <20090209163926.13918.96177.sendpatchset@x2.localnet>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-To: jamal <hadi@cyberus.ca>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:39397 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750735AbZBIVos (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Feb 2009 16:44:48 -0500
-In-Reply-To: <1234214841.20903.27.camel@dogo.mojatatu.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: kaber@trash.net
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20090209163926.13918.96177.sendpatchset@x2.localnet>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+From: Patrick McHardy <kaber@trash.net>
+Date: Mon,  9 Feb 2009 17:39:27 +0100 (MET)
 
+> Please apply or pull from:
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git
 
+I was going to pull from your tree and take it like that, but when I
+pulled I got 5 real changes and 50 merges with net-2.6, yikes! :-)
 
+If there was one or two merge changesets in there, I would have
+taken it.  But anything more than that for a tree containing
+5 bug fixes is excessive.
 
+I'll apply these as patches, but I really do want to be able to
+pull from your trees so please try to provide a cleaner tree
+next time.
 
-
-On Monday 2009-02-09 22:27, jamal wrote:
->On Mon, 2009-02-09 at 22:04 +0100, Jan Engelhardt wrote:
->> 
->> I do not think a library should call exit() and cause the main program 
->> to terminate; 
->> to this end it might be best to add a
->> 
->> 	void (*exit_error)(..
->> 
->> function pointer to the xtables_global struct you are proposing.
->
->Thanks for the suggestion - it sounds reasonable. 
->Note, however, grep says there are about 700 references  to exit_error()
->- so my intent of moving it into xtables.c is for usability more than
->anything.
-
-Hm you are right; much of the code assumes that exit_error()
-never returns. We need to stick to that for the time being.
-
->> If you could convert iptables.c and friends to also make use of this, 
->> that'd be great.
->
->There are only 3 definitions as far as i can see. If i can convert those
->to use that global struct then I should be able to compile that basic
->program.
-
-Yep.
+Thanks!
