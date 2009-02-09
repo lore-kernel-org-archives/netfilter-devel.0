@@ -1,44 +1,49 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/3] netfilter: xtables: add PKTTYPE target
-Date: Mon, 09 Feb 2009 16:13:17 +0100
-Message-ID: <4990480D.9060900@trash.net>
-References: <20090128145801.7501.44459.stgit@Decadence> <20090128145826.7501.34671.stgit@Decadence>
+Subject: Re: [PATCH 3/3] netfilter: xtables: add cluster match
+Date: Mon, 09 Feb 2009 16:25:41 +0100
+Message-ID: <49904AF5.7060809@trash.net>
+References: <20090128145801.7501.44459.stgit@Decadence> <20090128145848.7501.18129.stgit@Decadence>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:57047 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:57298 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755012AbZBIPNT (ORCPT
+	with ESMTP id S1754634AbZBIPZn (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Feb 2009 10:13:19 -0500
-In-Reply-To: <20090128145826.7501.34671.stgit@Decadence>
+	Mon, 9 Feb 2009 10:25:43 -0500
+In-Reply-To: <20090128145848.7501.18129.stgit@Decadence>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Pablo Neira Ayuso wrote:
-> This patch adds the PKTTYPE target which can be used to mangle the
-> skbuff packet type field. This target is useful in conjunction with
-> the arptables mcmangle target to TCP working again when a
-> multicast hardware address is used. An example of its use:
+> This patch adds the iptables cluster match. This match can be used
+> to deploy gateway and back-end load-sharing clusters. Assuming that
+> all the nodes see all packets (see arptables mcmangle target and
+> PKTTYPE iptables targets on how to do that), the cluster match
+> decides if this node has to handle a packet given:
 > 
-> iptables -I PREROUTING ! -s 224.0.0.0/4 -t mangle \
-> 	-j PKTTYPE --to-pkt-type unicast
+> 	jhash(source IP) % nodeID == 0
 > 
-> Given the following arptables rule-set:
+> For related connections, the master conntrack is used. An example of
+> its use for a gateway cluster, in one of the cluster nodes:
 > 
-> arptables -I OUTPUT -o eth0 -j mcmangle --h-length 6
-> 	\ --mc-mangle-mac 01:00:5e:00:01:01 --mc-mangle-dev eth0
-> arptables -I INPUT --h-length 6 --destination-mac 01:00:5e:00:01:01
-> 	\ -j mangle --mangle-mac-d 00:zz:yy:xx:5a:27
-> 
-> See arptables mcmangle target for further information.
+> iptables -I PREROUTING -t mangle -i eth1 -m cluster \
+> 	--cluster-total-nodes 2 --cluster-local-node 1 \
+> 	--cluster-proc-name eth1 -j MARK --set-mark 0xffff
+> iptables -A PREROUTING -t mangle -i eth1 \
+> 	-m mark ! --mark 0xffff -j DROP
+> iptables -A PREROUTING -t mangle -i eth2 -m cluster \
+> 	--cluster-total-nodes 2 --cluster-local-node 1 \
+> 	--cluster-proc-name eth2 -j MARK --set-mark 0xffff
+> iptables -A PREROUTING -t mangle -i eth2 \
 
-That one refers to this patch :) So you're actually communicating
-using TCP and multicast? Why don't you use UDP, which works fine
-using multicast without pkttype mangling?
+While its simple and probably gives good distribution, using the
+source IP like this has the major disadvantage that when one node
+fails, all nodes need to change rulesets and the existing mapping
+of connections becomes at least partially invalid.
 
-
-
+Also using conntrack data implies that this can't be used in the
+raw table, which seems like the best place to drop foreign packets.
