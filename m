@@ -1,63 +1,68 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 3/3] netfilter: xtables: add cluster match
-Date: Tue, 10 Feb 2009 00:23:14 +0100
-Message-ID: <4990BAE2.8090802@netfilter.org>
-References: <20090128145801.7501.44459.stgit@Decadence> <20090128145848.7501.18129.stgit@Decadence> <49904AF5.7060809@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: netfilter 00/05: netfilter fixes
+Date: Tue, 10 Feb 2009 00:36:06 +0100
+Message-ID: <4990BDE6.80102@trash.net>
+References: <20090209163926.13918.96177.sendpatchset@x2.localnet>	<20090209.143238.25276576.davem@davemloft.net>	<4990B26B.3020705@trash.net> <20090209.151806.02424601.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35832 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754052AbZBIXX1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Feb 2009 18:23:27 -0500
-In-Reply-To: <49904AF5.7060809@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20090209.151806.02424601.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Pablo Neira Ayuso wrote:
->> This patch adds the iptables cluster match. This match can be used
->> to deploy gateway and back-end load-sharing clusters. Assuming that
->> all the nodes see all packets (see arptables mcmangle target and
->> PKTTYPE iptables targets on how to do that), the cluster match
->> decides if this node has to handle a packet given:
->>
->>     jhash(source IP) % nodeID == 0
->>
->> For related connections, the master conntrack is used. An example of
->> its use for a gateway cluster, in one of the cluster nodes:
->>
->> iptables -I PREROUTING -t mangle -i eth1 -m cluster \
->>     --cluster-total-nodes 2 --cluster-local-node 1 \
->>     --cluster-proc-name eth1 -j MARK --set-mark 0xffff
->> iptables -A PREROUTING -t mangle -i eth1 \
->>     -m mark ! --mark 0xffff -j DROP
->> iptables -A PREROUTING -t mangle -i eth2 -m cluster \
->>     --cluster-total-nodes 2 --cluster-local-node 1 \
->>     --cluster-proc-name eth2 -j MARK --set-mark 0xffff
->> iptables -A PREROUTING -t mangle -i eth2 \
+David Miller wrote:
+> From: Patrick McHardy <kaber@trash.net>
+> Date: Mon, 09 Feb 2009 23:47:07 +0100
 > 
-> While its simple and probably gives good distribution, using the
-> source IP like this has the major disadvantage that when one node
-> fails, all nodes need to change rulesets and the existing mapping
-> of connections becomes at least partially invalid.
+>> David Miller wrote:
+>>> From: Patrick McHardy <kaber@trash.net>
+>>> Date: Mon,  9 Feb 2009 17:39:27 +0100 (MET)
+>>>
+>>>> Please apply or pull from:
+>>>>
+>>>> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git
+>>> I was going to pull from your tree and take it like that, but when I
+>>> pulled I got 5 real changes and 50 merges with net-2.6, yikes! :-)
+>> Ugh sorry, thats happening automatically, but it usually doesn't show
+>> up since it should be fast forwards. I'll have a look at what went
+>> wrong.
+> 
+> I think you got a change into your tree locally, this went via net-2.6
+> and thereafterwards it started using merges.  But that's just a guess.
 
-But this is the same problem that people have in fault-tolerant
-primary-backup stateful firewall setups. That's why the conntrack-tools
-are there, just in case that you want fault-tolerant stateful firewalls ;).
+Yes, probably, although I really never commit to my mirrored trees.
+It might have something to do with my disk dying last week and the
+restore I did :)
 
-> Also using conntrack data implies that this can't be used in the
-> raw table, which seems like the best place to drop foreign packets.
+> Want some suggestions for work flow? :-)
+> 
+> 1) For net-2.6 just clone Linus's tree, pull net-2.6 once as it is
+>    right now, then leave it alone.
+> 
+>    Periodically sync your origin (which is Linus's tree) via
+>    "git fetch origin".  This just grabs the objects.
+> 
+>    Then you can just go "git request-pull origin $(GIT_URL)" and
+>    it'll just work.
+> 
+>    Since the likelyhood for conflicts in the net-2.6 tree with
+>    your netfilter work is incredibly unlikely, doing a merge
+>    should never be necessary.  But if it is just go
+>    "git pull origin".
+> 
+> 2) For net-next-2.6 use net-next-2.6 as your "origin" (you can change
+>    this in .git/config), conflicts are more likely so every once in
+>    a while a "git pull origin" will be necessary.
+> 
+> If that doesn't work out or feel comfortable for you, that's
+> fine.
 
-Indeed, but this relies on the conntrack data to hash the same tuple for
-all the packets.
+I'll try that, maybe starting with net-2.6 since that tree is
+easier to maintain for me. My workflow is quite out of sync
+with modern git commands, some of my scripts are still adapted
+from bitkeeper times :)
 
-Look at the numbers, they are not that bad, I'm getting ~45% more
-performance while having my two firewalls running (before one was idle
-in my primary-backup setup).
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
