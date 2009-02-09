@@ -1,280 +1,349 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 12/16] libxtables: prefix - misc functions
-Date: Mon,  9 Feb 2009 18:34:56 +0100
-Message-ID: <1234200900-5964-13-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 13/16] libxtables: prefix - parse and escaped output func
+Date: Mon,  9 Feb 2009 18:34:57 +0100
+Message-ID: <1234200900-5964-14-git-send-email-jengelh@medozas.de>
 References: <1234200900-5964-1-git-send-email-jengelh@medozas.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:51472 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:51473 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755651AbZBIRfF (ORCPT
+	with ESMTP id S1755688AbZBIRfG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Feb 2009 12:35:05 -0500
+	Mon, 9 Feb 2009 12:35:06 -0500
 In-Reply-To: <1234200900-5964-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- extensions/libipt_REDIRECT.c |    2 +-
- extensions/libxt_dccp.c      |    6 +++---
- extensions/libxt_multiport.c |    6 +++---
- extensions/libxt_physdev.c   |    4 ++--
- extensions/libxt_sctp.c      |    6 +++---
- extensions/libxt_tcp.c       |    6 +++---
- extensions/libxt_udp.c       |    6 +++---
+ extensions/libip6t_policy.c  |    4 ++--
+ extensions/libipt_LOG.c      |    2 +-
+ extensions/libipt_ULOG.c     |    2 +-
+ extensions/libipt_policy.c   |    4 ++--
+ extensions/libxt_NFLOG.c     |    2 +-
+ extensions/libxt_conntrack.c |   24 ++++++++++++------------
+ extensions/libxt_helper.c    |    2 +-
  include/xtables.h.in         |    6 +++---
  ip6tables.c                  |    4 ++--
  iptables.c                   |    4 ++--
- xtables.c                    |    9 +++++----
- 11 files changed, 30 insertions(+), 29 deletions(-)
+ xtables.c                    |   17 ++++++++++++-----
+ 11 files changed, 39 insertions(+), 32 deletions(-)
 
-diff --git a/extensions/libipt_REDIRECT.c b/extensions/libipt_REDIRECT.c
-index 64ab737..1ef2b2e 100644
---- a/extensions/libipt_REDIRECT.c
-+++ b/extensions/libipt_REDIRECT.c
-@@ -48,7 +48,7 @@ parse_ports(const char *arg, struct ip_nat_multi_range *mr)
- 
- 	port = atoi(arg);
- 	if (port == 0)
--		port = service_to_port(arg, NULL);
-+		port = xtables_service_to_port(arg, NULL);
- 
- 	if (port == 0 || port > 65535)
- 		exit_error(PARAMETER_PROBLEM, "Port `%s' not valid\n", arg);
-diff --git a/extensions/libxt_dccp.c b/extensions/libxt_dccp.c
-index b7b55e2..9be0658 100644
---- a/extensions/libxt_dccp.c
-+++ b/extensions/libxt_dccp.c
-@@ -62,14 +62,14 @@ parse_dccp_ports(const char *portstring,
- 	buffer = strdup(portstring);
- 	DEBUGP("%s\n", portstring);
- 	if ((cp = strchr(buffer, ':')) == NULL) {
--		ports[0] = ports[1] = parse_port(buffer, "dccp");
-+		ports[0] = ports[1] = xtables_parse_port(buffer, "dccp");
- 	}
- 	else {
- 		*cp = '\0';
- 		cp++;
- 
--		ports[0] = buffer[0] ? parse_port(buffer, "dccp") : 0;
--		ports[1] = cp[0] ? parse_port(cp, "dccp") : 0xFFFF;
-+		ports[0] = buffer[0] ? xtables_parse_port(buffer, "dccp") : 0;
-+		ports[1] = cp[0] ? xtables_parse_port(cp, "dccp") : 0xFFFF;
- 
- 		if (ports[0] > ports[1])
+diff --git a/extensions/libip6t_policy.c b/extensions/libip6t_policy.c
+index 357cbea..fa855c1 100644
+--- a/extensions/libip6t_policy.c
++++ b/extensions/libip6t_policy.c
+@@ -214,7 +214,7 @@ static int policy_parse(int c, char **argv, int invert, unsigned int *flags,
  			exit_error(PARAMETER_PROBLEM,
-diff --git a/extensions/libxt_multiport.c b/extensions/libxt_multiport.c
-index dae6e33..a7db2a8 100644
---- a/extensions/libxt_multiport.c
-+++ b/extensions/libxt_multiport.c
-@@ -81,7 +81,7 @@ parse_multi_ports(const char *portstring, u_int16_t *ports, const char *proto)
- 	{
- 		next=strchr(cp, ',');
- 		if (next) *next++='\0';
--		ports[i] = parse_port(cp, proto);
-+		ports[i] = xtables_parse_port(cp, proto);
+ 			           "policy match: double --tunnel-src option");
+ 
+-		ip6parse_hostnetworkmask(argv[optind-1], &addr, &mask, &naddr);
++		xtables_ip6parse_any(argv[optind-1], &addr, &mask, &naddr);
+ 		if (naddr > 1)
+ 			exit_error(PARAMETER_PROBLEM,
+ 			           "policy match: name resolves to multiple IPs");
+@@ -229,7 +229,7 @@ static int policy_parse(int c, char **argv, int invert, unsigned int *flags,
+ 			exit_error(PARAMETER_PROBLEM,
+ 			           "policy match: double --tunnel-dst option");
+ 
+-		ip6parse_hostnetworkmask(argv[optind-1], &addr, &mask, &naddr);
++		xtables_ip6parse_any(argv[optind-1], &addr, &mask, &naddr);
+ 		if (naddr > 1)
+ 			exit_error(PARAMETER_PROBLEM,
+ 			           "policy match: name resolves to multiple IPs");
+diff --git a/extensions/libipt_LOG.c b/extensions/libipt_LOG.c
+index aefb54a..23790a0 100644
+--- a/extensions/libipt_LOG.c
++++ b/extensions/libipt_LOG.c
+@@ -235,7 +235,7 @@ static void LOG_save(const void *ip, const struct xt_entry_target *target)
+ 
+ 	if (strcmp(loginfo->prefix, "") != 0) {
+ 		printf("--log-prefix ");
+-		save_string(loginfo->prefix);
++		xtables_save_string(loginfo->prefix);
  	}
- 	if (cp) exit_error(PARAMETER_PROBLEM, "too many ports specified");
- 	free(buffer);
-@@ -113,10 +113,10 @@ parse_multi_ports_v1(const char *portstring,
- 					   "too many ports specified");
- 			*range++ = '\0';
- 		}
--		multiinfo->ports[i] = parse_port(cp, proto);
-+		multiinfo->ports[i] = xtables_parse_port(cp, proto);
- 		if (range) {
- 			multiinfo->pflags[i] = 1;
--			multiinfo->ports[++i] = parse_port(range, proto);
-+			multiinfo->ports[++i] = xtables_parse_port(range, proto);
- 			if (multiinfo->ports[i-1] >= multiinfo->ports[i])
- 				exit_error(PARAMETER_PROBLEM,
- 					   "invalid portrange specified");
-diff --git a/extensions/libxt_physdev.c b/extensions/libxt_physdev.c
-index 0572aba..6152cb3 100644
---- a/extensions/libxt_physdev.c
-+++ b/extensions/libxt_physdev.c
-@@ -44,7 +44,7 @@ physdev_parse(int c, char **argv, int invert, unsigned int *flags,
- 		if (*flags & XT_PHYSDEV_OP_IN)
- 			goto multiple_use;
- 		check_inverse(optarg, &invert, &optind, 0);
--		parse_interface(argv[optind-1], info->physindev,
-+		xtables_parse_interface(argv[optind-1], info->physindev,
- 				(unsigned char *)info->in_mask);
+ 
+ 	if (loginfo->level != LOG_DEFAULT_LEVEL)
+diff --git a/extensions/libipt_ULOG.c b/extensions/libipt_ULOG.c
+index d73a3f6..6e346d8 100644
+--- a/extensions/libipt_ULOG.c
++++ b/extensions/libipt_ULOG.c
+@@ -151,7 +151,7 @@ static void ULOG_save(const void *ip, const struct xt_entry_target *target)
+ 
+ 	if (strcmp(loginfo->prefix, "") != 0) {
+ 		fputs("--ulog-prefix ", stdout);
+-		save_string(loginfo->prefix);
++		xtables_save_string(loginfo->prefix);
+ 	}
+ 
+ 	if (loginfo->nl_group != ULOG_DEFAULT_NLGROUP) {
+diff --git a/extensions/libipt_policy.c b/extensions/libipt_policy.c
+index 6b044d8..c9ce850 100644
+--- a/extensions/libipt_policy.c
++++ b/extensions/libipt_policy.c
+@@ -182,7 +182,7 @@ static int policy_parse(int c, char **argv, int invert, unsigned int *flags,
+ 			exit_error(PARAMETER_PROBLEM,
+ 			           "policy match: double --tunnel-src option");
+ 
+-		ipparse_hostnetworkmask(argv[optind-1], &addr, &mask, &naddr);
++		xtables_ipparse_any(argv[optind-1], &addr, &mask, &naddr);
+ 		if (naddr > 1)
+ 			exit_error(PARAMETER_PROBLEM,
+ 			           "policy match: name resolves to multiple IPs");
+@@ -197,7 +197,7 @@ static int policy_parse(int c, char **argv, int invert, unsigned int *flags,
+ 			exit_error(PARAMETER_PROBLEM,
+ 			           "policy match: double --tunnel-dst option");
+ 
+-		ipparse_hostnetworkmask(argv[optind-1], &addr, &mask, &naddr);
++		xtables_ipparse_any(argv[optind-1], &addr, &mask, &naddr);
+ 		if (naddr > 1)
+ 			exit_error(PARAMETER_PROBLEM,
+ 			           "policy match: name resolves to multiple IPs");
+diff --git a/extensions/libxt_NFLOG.c b/extensions/libxt_NFLOG.c
+index fe22e98..bedfbe9 100644
+--- a/extensions/libxt_NFLOG.c
++++ b/extensions/libxt_NFLOG.c
+@@ -113,7 +113,7 @@ static void nflog_print(const struct xt_nflog_info *info, char *prefix)
+ {
+ 	if (info->prefix[0] != '\0') {
+ 		printf("%snflog-prefix ", prefix);
+-		save_string(info->prefix);
++		xtables_save_string(info->prefix);
+ 	}
+ 	if (info->group)
+ 		printf("%snflog-group %u ", prefix, info->group);
+diff --git a/extensions/libxt_conntrack.c b/extensions/libxt_conntrack.c
+index ffa279c..958f842 100644
+--- a/extensions/libxt_conntrack.c
++++ b/extensions/libxt_conntrack.c
+@@ -333,7 +333,7 @@ static int conntrack_parse(int c, char **argv, int invert, unsigned int *flags,
  		if (invert)
- 			info->invert |= XT_PHYSDEV_OP_IN;
-@@ -56,7 +56,7 @@ physdev_parse(int c, char **argv, int invert, unsigned int *flags,
- 		if (*flags & XT_PHYSDEV_OP_OUT)
- 			goto multiple_use;
- 		check_inverse(optarg, &invert, &optind, 0);
--		parse_interface(argv[optind-1], info->physoutdev,
-+		xtables_parse_interface(argv[optind-1], info->physoutdev,
- 				(unsigned char *)info->out_mask);
+ 			sinfo->invflags |= XT_CONNTRACK_ORIGSRC;
+ 
+-		ipparse_hostnetworkmask(argv[optind-1], &addrs,
++		xtables_ipparse_any(argv[optind-1], &addrs,
+ 					&sinfo->sipmsk[IP_CT_DIR_ORIGINAL],
+ 					&naddrs);
+ 		if(naddrs > 1)
+@@ -353,7 +353,7 @@ static int conntrack_parse(int c, char **argv, int invert, unsigned int *flags,
  		if (invert)
- 			info->invert |= XT_PHYSDEV_OP_OUT;
-diff --git a/extensions/libxt_sctp.c b/extensions/libxt_sctp.c
-index 37a6423..6348a2f 100644
---- a/extensions/libxt_sctp.c
-+++ b/extensions/libxt_sctp.c
-@@ -85,14 +85,14 @@ parse_sctp_ports(const char *portstring,
- 	buffer = strdup(portstring);
- 	DEBUGP("%s\n", portstring);
- 	if ((cp = strchr(buffer, ':')) == NULL) {
--		ports[0] = ports[1] = parse_port(buffer, "sctp");
-+		ports[0] = ports[1] = xtables_parse_port(buffer, "sctp");
- 	}
- 	else {
- 		*cp = '\0';
- 		cp++;
+ 			sinfo->invflags |= XT_CONNTRACK_ORIGDST;
  
--		ports[0] = buffer[0] ? parse_port(buffer, "sctp") : 0;
--		ports[1] = cp[0] ? parse_port(cp, "sctp") : 0xFFFF;
-+		ports[0] = buffer[0] ? xtables_parse_port(buffer, "sctp") : 0;
-+		ports[1] = cp[0] ? xtables_parse_port(cp, "sctp") : 0xFFFF;
+-		ipparse_hostnetworkmask(argv[optind-1], &addrs,
++		xtables_ipparse_any(argv[optind-1], &addrs,
+ 					&sinfo->dipmsk[IP_CT_DIR_ORIGINAL],
+ 					&naddrs);
+ 		if(naddrs > 1)
+@@ -373,7 +373,7 @@ static int conntrack_parse(int c, char **argv, int invert, unsigned int *flags,
+ 		if (invert)
+ 			sinfo->invflags |= XT_CONNTRACK_REPLSRC;
  
- 		if (ports[0] > ports[1])
+-		ipparse_hostnetworkmask(argv[optind-1], &addrs,
++		xtables_ipparse_any(argv[optind-1], &addrs,
+ 					&sinfo->sipmsk[IP_CT_DIR_REPLY],
+ 					&naddrs);
+ 		if(naddrs > 1)
+@@ -393,7 +393,7 @@ static int conntrack_parse(int c, char **argv, int invert, unsigned int *flags,
+ 		if (invert)
+ 			sinfo->invflags |= XT_CONNTRACK_REPLDST;
+ 
+-		ipparse_hostnetworkmask(argv[optind-1], &addrs,
++		xtables_ipparse_any(argv[optind-1], &addrs,
+ 					&sinfo->dipmsk[IP_CT_DIR_REPLY],
+ 					&naddrs);
+ 		if(naddrs > 1)
+@@ -551,7 +551,7 @@ conntrack_mt4_parse(int c, char **argv, int invert, unsigned int *flags,
+ 
+ 	switch (c) {
+ 	case '3': /* --ctorigsrc */
+-		ipparse_hostnetworkmask(optarg, &addr, &info->origsrc_mask.in,
++		xtables_ipparse_any(optarg, &addr, &info->origsrc_mask.in,
+ 		                        &naddrs);
+ 		if (naddrs > 1)
  			exit_error(PARAMETER_PROBLEM,
-diff --git a/extensions/libxt_tcp.c b/extensions/libxt_tcp.c
-index 56bdba5..bb66747 100644
---- a/extensions/libxt_tcp.c
-+++ b/extensions/libxt_tcp.c
-@@ -44,13 +44,13 @@ parse_tcp_ports(const char *portstring, u_int16_t *ports)
+@@ -564,7 +564,7 @@ conntrack_mt4_parse(int c, char **argv, int invert, unsigned int *flags,
+ 		break;
  
- 	buffer = strdup(portstring);
- 	if ((cp = strchr(buffer, ':')) == NULL)
--		ports[0] = ports[1] = parse_port(buffer, "tcp");
-+		ports[0] = ports[1] = xtables_parse_port(buffer, "tcp");
- 	else {
- 		*cp = '\0';
- 		cp++;
- 
--		ports[0] = buffer[0] ? parse_port(buffer, "tcp") : 0;
--		ports[1] = cp[0] ? parse_port(cp, "tcp") : 0xFFFF;
-+		ports[0] = buffer[0] ? xtables_parse_port(buffer, "tcp") : 0;
-+		ports[1] = cp[0] ? xtables_parse_port(cp, "tcp") : 0xFFFF;
- 
- 		if (ports[0] > ports[1])
+ 	case '4': /* --ctorigdst */
+-		ipparse_hostnetworkmask(optarg, &addr, &info->origdst_mask.in,
++		xtables_ipparse_any(optarg, &addr, &info->origdst_mask.in,
+ 		                        &naddrs);
+ 		if (naddrs > 1)
  			exit_error(PARAMETER_PROBLEM,
-diff --git a/extensions/libxt_udp.c b/extensions/libxt_udp.c
-index f64fd1c..4012841 100644
---- a/extensions/libxt_udp.c
-+++ b/extensions/libxt_udp.c
-@@ -36,13 +36,13 @@ parse_udp_ports(const char *portstring, u_int16_t *ports)
+@@ -577,7 +577,7 @@ conntrack_mt4_parse(int c, char **argv, int invert, unsigned int *flags,
+ 		break;
  
- 	buffer = strdup(portstring);
- 	if ((cp = strchr(buffer, ':')) == NULL)
--		ports[0] = ports[1] = parse_port(buffer, "udp");
-+		ports[0] = ports[1] = xtables_parse_port(buffer, "udp");
- 	else {
- 		*cp = '\0';
- 		cp++;
- 
--		ports[0] = buffer[0] ? parse_port(buffer, "udp") : 0;
--		ports[1] = cp[0] ? parse_port(cp, "udp") : 0xFFFF;
-+		ports[0] = buffer[0] ? xtables_parse_port(buffer, "udp") : 0;
-+		ports[1] = cp[0] ? xtables_parse_port(cp, "udp") : 0xFFFF;
- 
- 		if (ports[0] > ports[1])
+ 	case '5': /* --ctreplsrc */
+-		ipparse_hostnetworkmask(optarg, &addr, &info->replsrc_mask.in,
++		xtables_ipparse_any(optarg, &addr, &info->replsrc_mask.in,
+ 		                        &naddrs);
+ 		if (naddrs > 1)
  			exit_error(PARAMETER_PROBLEM,
+@@ -590,7 +590,7 @@ conntrack_mt4_parse(int c, char **argv, int invert, unsigned int *flags,
+ 		break;
+ 
+ 	case '6': /* --ctrepldst */
+-		ipparse_hostnetworkmask(optarg, &addr, &info->repldst_mask.in,
++		xtables_ipparse_any(optarg, &addr, &info->repldst_mask.in,
+ 		                        &naddrs);
+ 		if (naddrs > 1)
+ 			exit_error(PARAMETER_PROBLEM,
+@@ -621,7 +621,7 @@ conntrack_mt6_parse(int c, char **argv, int invert, unsigned int *flags,
+ 
+ 	switch (c) {
+ 	case '3': /* --ctorigsrc */
+-		ip6parse_hostnetworkmask(optarg, &addr,
++		xtables_ip6parse_any(optarg, &addr,
+ 		                         &info->origsrc_mask.in6, &naddrs);
+ 		if (naddrs > 1)
+ 			exit_error(PARAMETER_PROBLEM,
+@@ -634,7 +634,7 @@ conntrack_mt6_parse(int c, char **argv, int invert, unsigned int *flags,
+ 		break;
+ 
+ 	case '4': /* --ctorigdst */
+-		ip6parse_hostnetworkmask(optarg, &addr,
++		xtables_ip6parse_any(optarg, &addr,
+ 		                         &info->origdst_mask.in6, &naddrs);
+ 		if (naddrs > 1)
+ 			exit_error(PARAMETER_PROBLEM,
+@@ -647,7 +647,7 @@ conntrack_mt6_parse(int c, char **argv, int invert, unsigned int *flags,
+ 		break;
+ 
+ 	case '5': /* --ctreplsrc */
+-		ip6parse_hostnetworkmask(optarg, &addr,
++		xtables_ip6parse_any(optarg, &addr,
+ 		                         &info->replsrc_mask.in6, &naddrs);
+ 		if (naddrs > 1)
+ 			exit_error(PARAMETER_PROBLEM,
+@@ -660,7 +660,7 @@ conntrack_mt6_parse(int c, char **argv, int invert, unsigned int *flags,
+ 		break;
+ 
+ 	case '6': /* --ctrepldst */
+-		ip6parse_hostnetworkmask(optarg, &addr,
++		xtables_ip6parse_any(optarg, &addr,
+ 		                         &info->repldst_mask.in6, &naddrs);
+ 		if (naddrs > 1)
+ 			exit_error(PARAMETER_PROBLEM,
+diff --git a/extensions/libxt_helper.c b/extensions/libxt_helper.c
+index b60c982..23025cd 100644
+--- a/extensions/libxt_helper.c
++++ b/extensions/libxt_helper.c
+@@ -65,7 +65,7 @@ static void helper_save(const void *ip, const struct xt_entry_match *match)
+ 	struct xt_helper_info *info = (struct xt_helper_info *)match->data;
+ 
+ 	printf("%s--helper ",info->invert ? "! " : "");
+-	save_string(info->name);
++	xtables_save_string(info->name);
+ }
+ 
+ static struct xtables_match helper_match = {
 diff --git a/include/xtables.h.in b/include/xtables.h.in
-index 936bbcc..abde4d8 100644
+index abde4d8..c3c960b 100644
 --- a/include/xtables.h.in
 +++ b/include/xtables.h.in
-@@ -194,10 +194,10 @@ extern bool xtables_strtoul(const char *, char **, unsigned long *,
- 	unsigned long, unsigned long);
- extern bool xtables_strtoui(const char *, char **, unsigned int *,
- 	unsigned int, unsigned int);
--extern int service_to_port(const char *name, const char *proto);
--extern u_int16_t parse_port(const char *port, const char *proto);
-+extern int xtables_service_to_port(const char *name, const char *proto);
-+extern u_int16_t xtables_parse_port(const char *port, const char *proto);
- extern void
--parse_interface(const char *arg, char *vianame, unsigned char *mask);
-+xtables_parse_interface(const char *arg, char *vianame, unsigned char *mask);
+@@ -212,21 +212,21 @@ extern const char *xtables_ipaddr_to_anyname(const struct in_addr *);
+ extern const char *xtables_ipmask_to_numeric(const struct in_addr *);
+ extern struct in_addr *xtables_numeric_to_ipaddr(const char *);
+ extern struct in_addr *xtables_numeric_to_ipmask(const char *);
+-extern void ipparse_hostnetworkmask(const char *, struct in_addr **,
++extern void xtables_ipparse_any(const char *, struct in_addr **,
+ 	struct in_addr *, unsigned int *);
  
- /* this is a special 64bit data type that is 8-byte aligned */
- #define aligned_u64 u_int64_t __attribute__((aligned(8)))
+ extern struct in6_addr *xtables_numeric_to_ip6addr(const char *);
+ extern const char *xtables_ip6addr_to_numeric(const struct in6_addr *);
+ extern const char *xtables_ip6addr_to_anyname(const struct in6_addr *);
+ extern const char *xtables_ip6mask_to_numeric(const struct in6_addr *);
+-extern void ip6parse_hostnetworkmask(const char *, struct in6_addr **,
++extern void xtables_ip6parse_any(const char *, struct in6_addr **,
+ 	struct in6_addr *, unsigned int *);
+ 
+ /**
+  * Print the specified value to standard output, quoting dangerous
+  * characters if required.
+  */
+-extern void save_string(const char *value);
++extern void xtables_save_string(const char *value);
+ 
+ #ifdef NO_SHARED_LIBS
+ #	ifdef _INIT
 diff --git a/ip6tables.c b/ip6tables.c
-index f741c52..fd73276 100644
+index fd73276..48a6bec 100644
 --- a/ip6tables.c
 +++ b/ip6tables.c
-@@ -1700,7 +1700,7 @@ int do_command6(int argc, char *argv[], char **table, struct ip6tc_handle **hand
- 			check_inverse(optarg, &invert, &optind, argc);
- 			set_option(&options, OPT_VIANAMEIN, &fw.ipv6.invflags,
- 				   invert);
--			parse_interface(argv[optind-1],
-+			xtables_parse_interface(argv[optind-1],
- 					fw.ipv6.iniface,
- 					fw.ipv6.iniface_mask);
- 			break;
-@@ -1709,7 +1709,7 @@ int do_command6(int argc, char *argv[], char **table, struct ip6tc_handle **hand
- 			check_inverse(optarg, &invert, &optind, argc);
- 			set_option(&options, OPT_VIANAMEOUT, &fw.ipv6.invflags,
- 				   invert);
--			parse_interface(argv[optind-1],
-+			xtables_parse_interface(argv[optind-1],
- 					fw.ipv6.outiface,
- 					fw.ipv6.outiface_mask);
- 			break;
+@@ -1945,11 +1945,11 @@ int do_command6(int argc, char *argv[], char **table, struct ip6tc_handle **hand
+ 	}
+ 
+ 	if (shostnetworkmask)
+-		ip6parse_hostnetworkmask(shostnetworkmask, &saddrs,
++		xtables_ip6parse_any(shostnetworkmask, &saddrs,
+ 		                         &fw.ipv6.smsk, &nsaddrs);
+ 
+ 	if (dhostnetworkmask)
+-		ip6parse_hostnetworkmask(dhostnetworkmask, &daddrs,
++		xtables_ip6parse_any(dhostnetworkmask, &daddrs,
+ 		                         &fw.ipv6.dmsk, &ndaddrs);
+ 
+ 	if ((nsaddrs > 1 || ndaddrs > 1) &&
 diff --git a/iptables.c b/iptables.c
-index d3906fc..aeb40d8 100644
+index aeb40d8..925464c 100644
 --- a/iptables.c
 +++ b/iptables.c
-@@ -1705,7 +1705,7 @@ int do_command(int argc, char *argv[], char **table, struct iptc_handle **handle
- 			check_inverse(optarg, &invert, &optind, argc);
- 			set_option(&options, OPT_VIANAMEIN, &fw.ip.invflags,
- 				   invert);
--			parse_interface(argv[optind-1],
-+			xtables_parse_interface(argv[optind-1],
- 					fw.ip.iniface,
- 					fw.ip.iniface_mask);
- 			break;
-@@ -1714,7 +1714,7 @@ int do_command(int argc, char *argv[], char **table, struct iptc_handle **handle
- 			check_inverse(optarg, &invert, &optind, argc);
- 			set_option(&options, OPT_VIANAMEOUT, &fw.ip.invflags,
- 				   invert);
--			parse_interface(argv[optind-1],
-+			xtables_parse_interface(argv[optind-1],
- 					fw.ip.outiface,
- 					fw.ip.outiface_mask);
- 			break;
+@@ -1974,11 +1974,11 @@ int do_command(int argc, char *argv[], char **table, struct iptc_handle **handle
+ 	}
+ 
+ 	if (shostnetworkmask)
+-		ipparse_hostnetworkmask(shostnetworkmask, &saddrs,
++		xtables_ipparse_any(shostnetworkmask, &saddrs,
+ 					&fw.ip.smsk, &nsaddrs);
+ 
+ 	if (dhostnetworkmask)
+-		ipparse_hostnetworkmask(dhostnetworkmask, &daddrs,
++		xtables_ipparse_any(dhostnetworkmask, &daddrs,
+ 					&fw.ip.dmsk, &ndaddrs);
+ 
+ 	if ((nsaddrs > 1 || ndaddrs > 1) &&
 diff --git a/xtables.c b/xtables.c
-index 859a82a..a387ae0 100644
+index a387ae0..8a79c5b 100644
 --- a/xtables.c
 +++ b/xtables.c
-@@ -236,7 +236,7 @@ bool xtables_strtoui(const char *s, char **end, unsigned int *value,
- 	return ret;
+@@ -954,8 +954,15 @@ static struct in_addr *parse_ipmask(const char *mask)
+ 	return &maskaddr;
  }
  
--int service_to_port(const char *name, const char *proto)
-+int xtables_service_to_port(const char *name, const char *proto)
+-void ipparse_hostnetworkmask(const char *name, struct in_addr **addrpp,
+-                             struct in_addr *maskp, unsigned int *naddrs)
++/**
++ * xtables_ipparse_any - transform arbitrary name to in_addr
++ *
++ * Possible inputs (pseudo regex):
++ * 	m{^($hostname|$networkname|$ipaddr)(/$mask)?}
++ * "1.2.3.4/5", "1.2.3.4", "hostname", "networkname"
++ */
++void xtables_ipparse_any(const char *name, struct in_addr **addrpp,
++                         struct in_addr *maskp, unsigned int *naddrs)
  {
- 	struct servent *service;
- 
-@@ -246,19 +246,20 @@ int service_to_port(const char *name, const char *proto)
- 	return -1;
+ 	unsigned int i, j, k, n;
+ 	struct in_addr *addrp;
+@@ -1178,8 +1185,8 @@ static struct in6_addr *parse_ip6mask(char *mask)
+ 	return &maskaddr;
  }
  
--u_int16_t parse_port(const char *port, const char *proto)
-+u_int16_t xtables_parse_port(const char *port, const char *proto)
+-void ip6parse_hostnetworkmask(const char *name, struct in6_addr **addrpp,
+-                              struct in6_addr *maskp, unsigned int *naddrs)
++void xtables_ip6parse_any(const char *name, struct in6_addr **addrpp,
++                          struct in6_addr *maskp, unsigned int *naddrs)
  {
- 	unsigned int portnum;
- 
- 	if (xtables_strtoui(port, NULL, &portnum, 0, UINT16_MAX) ||
--	    (portnum = service_to_port(port, proto)) != (unsigned)-1)
-+	    (portnum = xtables_service_to_port(port, proto)) != (unsigned)-1)
- 		return portnum;
- 
- 	exit_error(PARAMETER_PROBLEM,
- 		   "invalid port/service `%s' specified", port);
+ 	struct in6_addr *addrp;
+ 	unsigned int i, j, k, n;
+@@ -1214,7 +1221,7 @@ void ip6parse_hostnetworkmask(const char *name, struct in6_addr **addrpp,
+ 	}
  }
  
--void parse_interface(const char *arg, char *vianame, unsigned char *mask)
-+void xtables_parse_interface(const char *arg, char *vianame,
-+			     unsigned char *mask)
+-void save_string(const char *value)
++void xtables_save_string(const char *value)
  {
- 	int vialen = strlen(arg);
- 	unsigned int i;
+ 	static const char no_quote_chars[] = "_-0123456789"
+ 		"abcdefghijklmnopqrstuvwxyz"
 -- 
 1.6.1.2
 
