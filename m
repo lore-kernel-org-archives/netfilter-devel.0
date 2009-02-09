@@ -1,88 +1,53 @@
-From: jamal <hadi@cyberus.ca>
-Subject: [PATCH] libxtables: define xtables_free_opts()
-Date: Mon, 09 Feb 2009 16:01:27 -0500
-Message-ID: <1234213287.20903.19.camel@dogo.mojatatu.com>
-Reply-To: hadi@cyberus.ca
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: several messages
+Date: Mon, 9 Feb 2009 22:04:40 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0902092202020.25199@fbirervta.pbzchgretzou.qr>
+References: <1234213032.20903.13.camel@dogo.mojatatu.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-lBJym+GYSA50tkFXwd7R"
-Cc: Jan Engelhardt <jengelh@medozas.de>,
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Patrick McHardy <kaber@trash.net>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+To: jamal <hadi@cyberus.ca>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ew0-f21.google.com ([209.85.219.21]:41144 "EHLO
-	mail-ew0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752919AbZBIVDU (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:36830 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753307AbZBIVEl (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Feb 2009 16:03:20 -0500
-Received: by ewy14 with SMTP id 14so2783893ewy.13
-        for <netfilter-devel@vger.kernel.org>; Mon, 09 Feb 2009 13:03:19 -0800 (PST)
+	Mon, 9 Feb 2009 16:04:41 -0500
+In-Reply-To: <1234213032.20903.13.camel@dogo.mojatatu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---=-lBJym+GYSA50tkFXwd7R
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+On Monday 2009-02-09 21:45, jamal wrote:
+>
+>Ok, I just synced with latest git. I will send you a few patches first.
+>My path to resolving tc/ipt is to start with being able to take a basic
+>useless program like:
+>
+>----------
+>#include <xtables.h>
+>int main(int argc, char **argv) {
+>
+>        return 0;
+>}
+>--------
+>
+>then compile and link with "gcc useless.c -lxtables -ldl"
+>
+>As it is right now i have to define in the minimal exit_error()
+
+I do not think a library should call exit() and cause the main program 
+to terminate; to this end it might be best to add a
+
+	void (*exit_error)(..
+
+function pointer to the xtables_global struct you are proposing.
 
 
-A user of the structure xtables_globals. Next goal is to attack
-exit_error() so i can compile that basic program..
+>
+>Here's the basic change.
 
-cheers,
-jamal
-
---=-lBJym+GYSA50tkFXwd7R
-Content-Disposition: attachment; filename=iptv2-1
-Content-Type: text/plain; name=iptv2-1; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
-commit 0d4663ae7dc54b5f4d28960dec4f7a1af4cd4d1a
-Author: Jamal Hadi Salim <hadi@cyberus.ca>
-Date:   Mon Feb 9 15:33:29 2009 -0500
-
-    Introduce xtables_free_opts() an xtables variant of
-    free_opts() which uses xtables_globals already set
-    by xtables_set_params(). The end goal is to have all internal
-    references in xtables.c use xtables_free_opts() instead of
-    depending on external defined free_opts()
-    
-    Signed-off-by: Jamal Hadi Salim <hadi@cyberus.ca>
-
-diff --git a/include/xtables.h.in b/include/xtables.h.in
-index 61dbc76..1d33394 100644
---- a/include/xtables.h.in
-+++ b/include/xtables.h.in
-@@ -204,6 +204,7 @@ extern void *xtables_malloc(size_t);
- extern int xtables_insmod(const char *, const char *, bool);
- extern int xtables_load_ko(const char *, bool);
- int xtables_set_params(struct xtables_globals *xtp);
-+void xtables_free_opts(int reset_offset, struct option *original_opts);
- 
- extern struct xtables_match *xtables_find_match(const char *name,
- 	enum xtables_tryload, struct xtables_rule_match **match);
-diff --git a/xtables.c b/xtables.c
-index aad5e53..95be5f8 100644
---- a/xtables.c
-+++ b/xtables.c
-@@ -68,6 +68,17 @@ int xtables_set_params(struct xtables_globals *xtp)
- 	return 0;
- }
- 
-+void xtables_free_opts(int reset_offset, struct option *original_opts)
-+{
-+	if (xt_params->opts != original_opts) {
-+		if (original_opts) 
-+			free(xt_params->opts);
-+		xt_params->opts = original_opts;
-+		if (reset_offset)
-+			xt_params->option_offset = 0;
-+	}
-+}
-+
- /**
-  * xtables_afinfo - protocol family dependent information
-  * @kmod:		kernel module basename (e.g. "ip_tables")
-
---=-lBJym+GYSA50tkFXwd7R--
-
+If you could convert iptables.c and friends to also make use of this, 
+that'd be great.
