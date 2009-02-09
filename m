@@ -1,54 +1,63 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC] netlink broadcast return value
-Date: Tue, 10 Feb 2009 00:23:06 +0100
-Message-ID: <4990BADA.7040309@trash.net>
-References: <4985A4C5.4050908@netfilter.org> <20090202.140533.121159038.davem@davemloft.net> <49903B03.2040302@trash.net> <4990B38A.3020207@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 3/3] netfilter: xtables: add cluster match
+Date: Tue, 10 Feb 2009 00:23:14 +0100
+Message-ID: <4990BAE2.8090802@netfilter.org>
+References: <20090128145801.7501.44459.stgit@Decadence> <20090128145848.7501.18129.stgit@Decadence> <49904AF5.7060809@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4990B38A.3020207@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:35832 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754052AbZBIXX1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 9 Feb 2009 18:23:27 -0500
+In-Reply-To: <49904AF5.7060809@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> Patrick McHardy wrote:
->> David Miller wrote:
->>> From: Pablo Neira Ayuso <pablo@netfilter.org>
->>> Date: Sun, 01 Feb 2009 14:33:57 +0100
->>>
->>>> In short, I think that the change that I'm proposing would also require
->>>> to fix some netlink_broadcast() clients to skip ENOBUFS errors: they are
->>>> not meaningful for them since they assume that Netlink is unreliable and
->>>> so the return value does not provide any useful information.
->>> I think this analysis is accurate.
->> We have at least one case where the caller wants to know of
->> any successful delivery. Keymanager queries done by xfrm_state
->> want to know whether an acquire was delivered to any keymanager.
->> So we need to continue to indicate this, maybe using a different
->> errno code than -ENOBUFS. I don't have a suggestion which one to
->> use though.
+Patrick McHardy wrote:
+> Pablo Neira Ayuso wrote:
+>> This patch adds the iptables cluster match. This match can be used
+>> to deploy gateway and back-end load-sharing clusters. Assuming that
+>> all the nodes see all packets (see arptables mcmangle target and
+>> PKTTYPE iptables targets on how to do that), the cluster match
+>> decides if this node has to handle a packet given:
+>>
+>>     jhash(source IP) % nodeID == 0
+>>
+>> For related connections, the master conntrack is used. An example of
+>> its use for a gateway cluster, in one of the cluster nodes:
+>>
+>> iptables -I PREROUTING -t mangle -i eth1 -m cluster \
+>>     --cluster-total-nodes 2 --cluster-local-node 1 \
+>>     --cluster-proc-name eth1 -j MARK --set-mark 0xffff
+>> iptables -A PREROUTING -t mangle -i eth1 \
+>>     -m mark ! --mark 0xffff -j DROP
+>> iptables -A PREROUTING -t mangle -i eth2 -m cluster \
+>>     --cluster-total-nodes 2 --cluster-local-node 1 \
+>>     --cluster-proc-name eth2 -j MARK --set-mark 0xffff
+>> iptables -A PREROUTING -t mangle -i eth2 \
 > 
-> Indeed, I have missed that spot. I'm not very familiar with that code,
-> however, I see that the creation of a state depends on the netlink
-> broadcast return value, but how useful is that? I think that the state
-> should be created even if the broadcast fails, the userspace daemon
-> should request a resync to the kernel as soon as it hits ENOBUFS, then
-> it would be in sync again with that state.
+> While its simple and probably gives good distribution, using the
+> source IP like this has the major disadvantage that when one node
+> fails, all nodes need to change rulesets and the existing mapping
+> of connections becomes at least partially invalid.
 
-The idea is that the kernel is performing an active query. I agree
-that there's nothing wrong with installing the SA and indicating the
-error to userspace. Userspace could dump the SADB and look for new
-larval states, however thats unlikely to be very useful since once
-an overflow occurs, you probably have a lot of states.
+But this is the same problem that people have in fault-tolerant
+primary-backup stateful firewall setups. That's why the conntrack-tools
+are there, just in case that you want fault-tolerant stateful firewalls ;).
 
-But unless I'm missing something, there's nothing wrong with this
-as long as the error is ignored. The fact that something was received
-by some listener doesn't have any meaning anyways, it might have
-been "ip monitor". Which somehow raises doubt about your proposed
-interface change though, I think anything that wants a reliable
-answer whether a packet was delivered to a process handling it
-appropriately should use unicast.
+> Also using conntrack data implies that this can't be used in the
+> raw table, which seems like the best place to drop foreign packets.
+
+Indeed, but this relies on the conntrack data to hash the same tuple for
+all the packets.
+
+Look at the numbers, they are not that bad, I'm getting ~45% more
+performance while having my two firewalls running (before one was idle
+in my primary-backup setup).
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
