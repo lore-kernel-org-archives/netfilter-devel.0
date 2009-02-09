@@ -1,48 +1,36 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [RFC] netlink broadcast return value
-Date: Mon, 09 Feb 2009 23:51:54 +0100
-Message-ID: <4990B38A.3020207@netfilter.org>
-References: <4985A4C5.4050908@netfilter.org> <20090202.140533.121159038.davem@davemloft.net> <49903B03.2040302@trash.net>
+Subject: Re: [PATCH 1/3] netfilter: arptables: add mcmangle target
+Date: Tue, 10 Feb 2009 00:13:00 +0100
+Message-ID: <4990B87C.5040001@netfilter.org>
+References: <20090128145801.7501.44459.stgit@Decadence> <499047A3.9000505@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38455 "EHLO us.es"
+Received: from mail.us.es ([193.147.175.20]:35201 "EHLO us.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752458AbZBIWwF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Feb 2009 17:52:05 -0500
-In-Reply-To: <49903B03.2040302@trash.net>
+	id S1753435AbZBIXNQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 9 Feb 2009 18:13:16 -0500
+In-Reply-To: <499047A3.9000505@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Patrick McHardy wrote:
-> David Miller wrote:
->> From: Pablo Neira Ayuso <pablo@netfilter.org>
->> Date: Sun, 01 Feb 2009 14:33:57 +0100
->>
->>> In short, I think that the change that I'm proposing would also require
->>> to fix some netlink_broadcast() clients to skip ENOBUFS errors: they are
->>> not meaningful for them since they assume that Netlink is unreliable and
->>> so the return value does not provide any useful information.
->>
->> I think this analysis is accurate.
-> 
-> We have at least one case where the caller wants to know of
-> any successful delivery. Keymanager queries done by xfrm_state
-> want to know whether an acquire was delivered to any keymanager.
-> So we need to continue to indicate this, maybe using a different
-> errno code than -ENOBUFS. I don't have a suggestion which one to
-> use though.
+> Great name. Took me a bit to realize the connection to "multicast" :)
 
-Indeed, I have missed that spot. I'm not very familiar with that code,
-however, I see that the creation of a state depends on the netlink
-broadcast return value, but how useful is that? I think that the state
-should be created even if the broadcast fails, the userspace daemon
-should request a resync to the kernel as soon as it hits ENOBUFS, then
-it would be in sync again with that state.
+I thought about mcnugget target, but it seems to be already copyrighted ;)
+
+> Continuing the idea of a generic ARP address mangling target,
+> this would have to be done in userspace using SIOCADDMULTI.
+> 
+> I would also prefer that approach because the multicast mangling
+> seems a bit like a hack which only works when the requesting
+> host accepts a multicast MAC address in the ARP reply.
+
+Indeed, I didn't know about SIOCADDMULTI, great. I'll do it like you
+have proposed. Thanks.
 
 -- 
 "Los honestos son inadaptados sociales" -- Les Luthiers
