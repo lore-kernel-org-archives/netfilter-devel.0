@@ -1,44 +1,48 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: netfilter 00/05: netfilter fixes
-Date: Mon, 09 Feb 2009 23:47:07 +0100
-Message-ID: <4990B26B.3020705@trash.net>
-References: <20090209163926.13918.96177.sendpatchset@x2.localnet> <20090209.143238.25276576.davem@davemloft.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [RFC] netlink broadcast return value
+Date: Mon, 09 Feb 2009 23:51:54 +0100
+Message-ID: <4990B38A.3020207@netfilter.org>
+References: <4985A4C5.4050908@netfilter.org> <20090202.140533.121159038.davem@davemloft.net> <49903B03.2040302@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:33675 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752140AbZBIWrL (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Feb 2009 17:47:11 -0500
-In-Reply-To: <20090209.143238.25276576.davem@davemloft.net>
+Received: from mail.us.es ([193.147.175.20]:38455 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752458AbZBIWwF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 9 Feb 2009 17:52:05 -0500
+In-Reply-To: <49903B03.2040302@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-David Miller wrote:
-> From: Patrick McHardy <kaber@trash.net>
-> Date: Mon,  9 Feb 2009 17:39:27 +0100 (MET)
-> 
->> Please apply or pull from:
+Patrick McHardy wrote:
+> David Miller wrote:
+>> From: Pablo Neira Ayuso <pablo@netfilter.org>
+>> Date: Sun, 01 Feb 2009 14:33:57 +0100
 >>
->> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git
+>>> In short, I think that the change that I'm proposing would also require
+>>> to fix some netlink_broadcast() clients to skip ENOBUFS errors: they are
+>>> not meaningful for them since they assume that Netlink is unreliable and
+>>> so the return value does not provide any useful information.
+>>
+>> I think this analysis is accurate.
 > 
-> I was going to pull from your tree and take it like that, but when I
-> pulled I got 5 real changes and 50 merges with net-2.6, yikes! :-)
+> We have at least one case where the caller wants to know of
+> any successful delivery. Keymanager queries done by xfrm_state
+> want to know whether an acquire was delivered to any keymanager.
+> So we need to continue to indicate this, maybe using a different
+> errno code than -ENOBUFS. I don't have a suggestion which one to
+> use though.
 
-Ugh sorry, thats happening automatically, but it usually doesn't show
-up since it should be fast forwards. I'll have a look at what went
-wrong.
+Indeed, I have missed that spot. I'm not very familiar with that code,
+however, I see that the creation of a state depends on the netlink
+broadcast return value, but how useful is that? I think that the state
+should be created even if the broadcast fails, the userspace daemon
+should request a resync to the kernel as soon as it hits ENOBUFS, then
+it would be in sync again with that state.
 
-> If there was one or two merge changesets in there, I would have
-> taken it.  But anything more than that for a tree containing
-> 5 bug fixes is excessive.
-> 
-> I'll apply these as patches, but I really do want to be able to
-> pull from your trees so please try to provide a cleaner tree
-> next time.
-
-I'll make sure of it, sorry.
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
