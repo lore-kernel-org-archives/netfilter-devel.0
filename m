@@ -1,42 +1,38 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] sctp: chunkmap size is too large
-Date: Mon, 09 Feb 2009 14:50:19 +0100
-Message-ID: <4990349B.30700@trash.net>
-References: <4983200B.2080707@6wind.com> <20090201.011427.38305360.davem@davemloft.net>
+Subject: Re: [RFC] netlink broadcast return value
+Date: Mon, 09 Feb 2009 15:17:39 +0100
+Message-ID: <49903B03.2040302@trash.net>
+References: <4985A4C5.4050908@netfilter.org> <20090202.140533.121159038.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: olivier.matz@6wind.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, kaber@netfilter.org
+Cc: pablo@netfilter.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
 To: David Miller <davem@davemloft.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20090201.011427.38305360.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:55780 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757368AbZBIORn (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 9 Feb 2009 09:17:43 -0500
+In-Reply-To: <20090202.140533.121159038.davem@davemloft.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
 David Miller wrote:
-> From: Olivier MATZ <olivier.matz@6wind.com>
-> Date: Fri, 30 Jan 2009 16:43:07 +0100
+> From: Pablo Neira Ayuso <pablo@netfilter.org>
+> Date: Sun, 01 Feb 2009 14:33:57 +0100
 > 
->> I think that the chunkmap field in struct xt_sctp_info is
->> too large: we have 256 chunk types and it's a bitfield,
->> so the table should be 256 bits (8 uint32_t) instead
->> of 64 uint32_t.
->>
->> I updated the size of the table, and I did some cosmetic
->> changes in SCTP_CHUNKMAP_* macros (use a mask instead of
->> a modulo).
->>
->>   netfilter/xt_sctp.h       |   30 ++++++++++++++++--------------
->>   netfilter_ipv4/ipt_sctp.h |   30 ++++++++++++++++--------------
->>   2 files changed, 32 insertions(+), 28 deletions(-)
->>
->> Can someone have a look at it ? Please CC me for any replies
->> as I'm not on the list.
+>> In short, I think that the change that I'm proposing would also require
+>> to fix some netlink_broadcast() clients to skip ENOBUFS errors: they are
+>> not meaningful for them since they assume that Netlink is unreliable and
+>> so the return value does not provide any useful information.
 > 
-> Patrick, I assume you got this?
+> I think this analysis is accurate.
 
-Sorry for the delay. As Jan already noticed, it changes the ABI,
-so we change it without adding a new revision. And I don't think
-a few bytes of memory savings justify that.
-
+We have at least one case where the caller wants to know of
+any successful delivery. Keymanager queries done by xfrm_state
+want to know whether an acquire was delivered to any keymanager.
+So we need to continue to indicate this, maybe using a different
+errno code than -ENOBUFS. I don't have a suggestion which one to
+use though.
