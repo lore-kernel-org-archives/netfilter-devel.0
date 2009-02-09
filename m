@@ -1,49 +1,73 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/3] netfilter: xtables: add PKTTYPE target
-Date: Tue, 10 Feb 2009 00:15:28 +0100
-Message-ID: <4990B910.1050802@netfilter.org>
-References: <20090128145801.7501.44459.stgit@Decadence> <20090128145826.7501.34671.stgit@Decadence> <4990480D.9060900@trash.net>
+From: David Miller <davem@davemloft.net>
+Subject: Re: netfilter 00/05: netfilter fixes
+Date: Mon, 09 Feb 2009 15:18:06 -0800 (PST)
+Message-ID: <20090209.151806.02424601.davem@davemloft.net>
+References: <20090209163926.13918.96177.sendpatchset@x2.localnet>
+	<20090209.143238.25276576.davem@davemloft.net>
+	<4990B26B.3020705@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35327 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753099AbZBIXPk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Feb 2009 18:15:40 -0500
-In-Reply-To: <4990480D.9060900@trash.net>
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:50239
+	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1752411AbZBIXSN (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 9 Feb 2009 18:18:13 -0500
+In-Reply-To: <4990B26B.3020705@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy wrote:
-> Pablo Neira Ayuso wrote:
->> This patch adds the PKTTYPE target which can be used to mangle the
->> skbuff packet type field. This target is useful in conjunction with
->> the arptables mcmangle target to TCP working again when a
->> multicast hardware address is used. An example of its use:
->>
->> iptables -I PREROUTING ! -s 224.0.0.0/4 -t mangle \
->>     -j PKTTYPE --to-pkt-type unicast
->>
->> Given the following arptables rule-set:
->>
->> arptables -I OUTPUT -o eth0 -j mcmangle --h-length 6
->>     \ --mc-mangle-mac 01:00:5e:00:01:01 --mc-mangle-dev eth0
->> arptables -I INPUT --h-length 6 --destination-mac 01:00:5e:00:01:01
->>     \ -j mangle --mangle-mac-d 00:zz:yy:xx:5a:27
->>
->> See arptables mcmangle target for further information.
+From: Patrick McHardy <kaber@trash.net>
+Date: Mon, 09 Feb 2009 23:47:07 +0100
+
+> David Miller wrote:
+> > From: Patrick McHardy <kaber@trash.net>
+> > Date: Mon,  9 Feb 2009 17:39:27 +0100 (MET)
+> > 
+> >> Please apply or pull from:
+> >>
+> >> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git
+> > I was going to pull from your tree and take it like that, but when I
+> > pulled I got 5 real changes and 50 merges with net-2.6, yikes! :-)
 > 
-> That one refers to this patch :) So you're actually communicating
-> using TCP and multicast? Why don't you use UDP, which works fine
-> using multicast without pkttype mangling?
+> Ugh sorry, thats happening automatically, but it usually doesn't show
+> up since it should be fast forwards. I'll have a look at what went
+> wrong.
 
-If the netdevice uses multicast MAC address, the link layer sets skbuff
-pkttype to PACKET_MULTICAST and TCP (among others) doesn't like this.
-This target is required to make TCP work again if a multicast MAC
-address is used.
+I think you got a change into your tree locally, this went via net-2.6
+and thereafterwards it started using merges.  But that's just a guess.
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+> > If there was one or two merge changesets in there, I would have
+> > taken it.  But anything more than that for a tree containing
+> > 5 bug fixes is excessive.
+> > I'll apply these as patches, but I really do want to be able to
+> > pull from your trees so please try to provide a cleaner tree
+> > next time.
+> 
+> I'll make sure of it, sorry.
+
+Want some suggestions for work flow? :-)
+
+1) For net-2.6 just clone Linus's tree, pull net-2.6 once as it is
+   right now, then leave it alone.
+
+   Periodically sync your origin (which is Linus's tree) via
+   "git fetch origin".  This just grabs the objects.
+
+   Then you can just go "git request-pull origin $(GIT_URL)" and
+   it'll just work.
+
+   Since the likelyhood for conflicts in the net-2.6 tree with
+   your netfilter work is incredibly unlikely, doing a merge
+   should never be necessary.  But if it is just go
+   "git pull origin".
+
+2) For net-next-2.6 use net-next-2.6 as your "origin" (you can change
+   this in .git/config), conflicts are more likely so every once in
+   a while a "git pull origin" will be necessary.
+
+If that doesn't work out or feel comfortable for you, that's
+fine.
