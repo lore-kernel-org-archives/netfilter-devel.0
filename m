@@ -1,60 +1,33 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: netfilter 00/05: netfilter fixes
-Date: Tue, 10 Feb 2009 01:31:07 +0100
-Message-ID: <4990CACB.1010707@trash.net>
-References: <4990B26B.3020705@trash.net>	<20090209.151806.02424601.davem@davemloft.net>	<4990BDE6.80102@trash.net> <20090209.162829.143182391.davem@davemloft.net>
+From: David Goulet <vanmortel@gmail.com>
+Subject: ct_sync project update
+Date: Mon, 09 Feb 2009 21:53:43 -0500
+Message-ID: <4990EC37.7030907@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:35587 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752031AbZBJAbM (ORCPT
+Received: from an-out-0708.google.com ([209.85.132.248]:62715 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751221AbZBJCxv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Feb 2009 19:31:12 -0500
-In-Reply-To: <20090209.162829.143182391.davem@davemloft.net>
+	Mon, 9 Feb 2009 21:53:51 -0500
+Received: by an-out-0708.google.com with SMTP id c2so931190anc.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 09 Feb 2009 18:53:50 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-David Miller wrote:
-> From: Patrick McHardy <kaber@trash.net>
-> Date: Tue, 10 Feb 2009 00:36:06 +0100
-> 
->> My workflow is quite out of sync with modern git commands, some of
->> my scripts are still adapted from bitkeeper times :)
-> 
-> You poor thing, I should buy you some beer :-)
-> 
-> But to be honest I had a caveman like mentality about
-> using GIT and it took me a long time to get to the
-> current way I do things:
-> 
-> 1) Dark ages:
-> 
-> 	Fresh git clone, add patches, push to Linus.
-> 	Repeat, rebasing every time.
-> 
-> 2) Brain enabled:
-> 
-> 	Stable git clone, used over and over again.
-> 
-> 	After Linus pulls, remember HEAD and use that as
-> 	base for next pull request.
-> 
-> 	Pull in Linus's tree occaisionally when conflicts
-> 	might be possible.
-> 
-> 3) Full enlightenment:
-> 
-> 	Stable git clone, used over and over again.
-> 
-> 	Track Linus's tree using "git fetch origin"
-> 
-> 	When conflicts are possible "git pull origin"
-> 
-> 	All pull requests are sent using "origin" as
-> 	the base.
+Hi people,
 
-I'll skip step 2 and will send a perfect pull request soon :)
+For a University Project, I'm trying to take back the ct_sync
+project and make it work on >= linux kernel 2.6.26. The lastest patches
+I found are for linux 2.6.10 and much have changed since then. They
+are no longer applicable unless major changes are made.
+
+Is there any other group or "hidden svn" that maintain or contain up
+to date stuff?
+What's your best advice guys for this project? Is it realistic to
+take it back or not?
+
+Thanks a lot
+David
