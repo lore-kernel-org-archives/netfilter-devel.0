@@ -1,63 +1,56 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC] netlink broadcast return value
-Date: Tue, 10 Feb 2009 14:50:55 +0100
-Message-ID: <4991863F.3030800@trash.net>
-References: <4985A4C5.4050908@netfilter.org> <20090202.140533.121159038.davem@davemloft.net> <49903B03.2040302@trash.net> <4990B38A.3020207@netfilter.org> <4990BADA.7040309@trash.net> <4990C337.3040704@netfilter.org>
+Subject: Re: [PATCH 2/3] netfilter: xtables: add PKTTYPE target
+Date: Tue, 10 Feb 2009 15:03:52 +0100
+Message-ID: <49918948.5010103@trash.net>
+References: <20090128145801.7501.44459.stgit@Decadence> <20090128145826.7501.34671.stgit@Decadence> <4990480D.9060900@trash.net> <4990B910.1050802@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:52936 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:53340 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754749AbZBJNvA (ORCPT
+	with ESMTP id S1753188AbZBJOD5 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Feb 2009 08:51:00 -0500
-In-Reply-To: <4990C337.3040704@netfilter.org>
+	Tue, 10 Feb 2009 09:03:57 -0500
+In-Reply-To: <4990B910.1050802@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Pablo Neira Ayuso wrote:
 > Patrick McHardy wrote:
 >> Pablo Neira Ayuso wrote:
+>>> This patch adds the PKTTYPE target which can be used to mangle the
+>>> skbuff packet type field. This target is useful in conjunction with
+>>> the arptables mcmangle target to TCP working again when a
+>>> multicast hardware address is used. An example of its use:
+>>>
+>>> iptables -I PREROUTING ! -s 224.0.0.0/4 -t mangle \
+>>>     -j PKTTYPE --to-pkt-type unicast
+>>>
+>>> Given the following arptables rule-set:
+>>>
+>>> arptables -I OUTPUT -o eth0 -j mcmangle --h-length 6
+>>>     \ --mc-mangle-mac 01:00:5e:00:01:01 --mc-mangle-dev eth0
+>>> arptables -I INPUT --h-length 6 --destination-mac 01:00:5e:00:01:01
+>>>     \ -j mangle --mangle-mac-d 00:zz:yy:xx:5a:27
+>>>
+>>> See arptables mcmangle target for further information.
+>> That one refers to this patch :) So you're actually communicating
+>> using TCP and multicast? Why don't you use UDP, which works fine
+>> using multicast without pkttype mangling?
 > 
->> But unless I'm missing something, there's nothing wrong with this
->> as long as the error is ignored. The fact that something was received
->> by some listener doesn't have any meaning anyways, it might have
->> been "ip monitor". Which somehow raises doubt about your proposed
->> interface change though, I think anything that wants a reliable
->> answer whether a packet was delivered to a process handling it
->> appropriately should use unicast.
-> 
-> Don't get me wrong, I agree with you that all netlink_broadcast callers
-> in the kernel should ignore the return value...
-> 
-> ... unless they have "some way" (like in Netfilter) to make event
-> delivery reliable: I have attached a patch that I didn't send you yet,
-> I'm still reviewing and testing it. It adds an entry to /proc to enable
-> reliable event delivery over netlink by dropping packets whose events
-> were not delivered, you mentioned that possibility once during one of
-> our conversations ;).
+> If the netdevice uses multicast MAC address, the link layer sets skbuff
+> pkttype to PACKET_MULTICAST and TCP (among others) doesn't like this.
+> This target is required to make TCP work again if a multicast MAC
+> address is used.
 
-I know, but in the mean time I think its wrong :) The delivery
-isn't reliable and what the admin is effectively expressing by
-setting your sysctl is "I don't have any listeners besides the
-synchronization daemon running". So it might as well use unicast.
+Yes, I know, I'm just wondering why you're using TCP at all for
+synchronizing. Its not for traffic from the Internet I assume
+since the node it ends up on is unknown to the outside anyways.
 
-> I'm aware of that this option may be dangerous if used by a buggy
-> process that trigger frequent overflows but it the cost of having
-> realible logging for ctnetlink (still, this behaviour is not the one by
-> default!).
-> 
-> And I need this option to make conntrackd synchronize state-changes
-> appropriately under very heavy load: I've testing the daemon with these
-> patches and it reliably synchronizes state-changes (my system were 100%
-> busy filtering traffic and fully synchronizing all TCP state-changes in
-> near real-time effort, with a noticeable performance drop of 30% in
-> terms of filtered connections).
+It really seems pretty hackish to add netfilter modules to work
+around valid checks in the stack. I'd prefer if we can come up
+with a nicer way that offers you the same functionality.
 
-So you're dropping the packet if you can't manage to synchronize.
-Doesn't that defeat the entire purpose of synchronizing, which is
-*increasing* reliability? :)
