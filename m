@@ -1,39 +1,61 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: ct_sync project update
-Date: Tue, 10 Feb 2009 08:56:02 +0100
-Message-ID: <49913312.1040203@netfilter.org>
-References: <4990EC37.7030907@gmail.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 06/16] libxtables: prefix/order - libdir
+Date: Tue, 10 Feb 2009 10:04:35 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0902100957230.21522@fbirervta.pbzchgretzou.qr>
+References: <1234200900-5964-1-git-send-email-jengelh@medozas.de> <1234200900-5964-7-git-send-email-jengelh@medozas.de> <499120EA.3000108@treenet.co.nz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: David Goulet <vanmortel@gmail.com>
+To: Amos Jeffries <squid3@treenet.co.nz>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38687 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750782AbZBJH4V (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Feb 2009 02:56:21 -0500
-In-Reply-To: <4990EC37.7030907@gmail.com>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:39426 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753557AbZBJJEi (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 10 Feb 2009 04:04:38 -0500
+In-Reply-To: <499120EA.3000108@treenet.co.nz>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-David Goulet wrote:
-> Hi people,
-> 
-> For a University Project, I'm trying to take back the ct_sync
-> project and make it work on >= linux kernel 2.6.26. The lastest patches
-> I found are for linux 2.6.10 and much have changed since then. They
-> are no longer applicable unless major changes are made.
-> 
-> Is there any other group or "hidden svn" that maintain or contain up
-> to date stuff?
-> What's your best advice guys for this project? Is it realistic to
-> take it back or not?
 
-Am we in time-loop or something? I think that we've already replied this
-question:
+On Tuesday 2009-02-10 07:38, Amos Jeffries wrote:
+> Jan Engelhardt wrote:
+>> +{
+>> +	xtables_libdir = getenv("XTABLES_LIBDIR");
+>> +	if (xtables_libdir != NULL)
+>> +		return;
+>> +	xtables_libdir = getenv("IPTABLES_LIB_DIR");
+>> +	if (xtables_libdir != NULL) {
+>> +		fprintf(stderr, "IPTABLES_LIB_DIR is deprecated, "
+>> +		        "use XTABLES_LIBDIR.\n");
+>> +		return;
+>> +	}
+>> +	xtables_libdir = XTABLES_LIBDIR;
+>> +}
+>
+> You appear to be consolidating both IPTABLES_LIB_DIR and IP6TABLES_LIB_DIR into
+> this function, yet it does not handle the IP6TABLES_LIB_DIR cases.
 
-http://marc.info/?l=netfilter-devel&m=123405664030924&w=2
+Thanks for noticing. I added a patch that adds it back
+(/me still wanting to pull in jamal's stuff for the next pull).
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
++++ b/xtables.c
+@@ -110,6 +110,19 @@ void xtables_init(void)
+                        "use XTABLES_LIBDIR.\n");
+                return;
+        }
++       /*
++        * Well yes, IP6TABLES_LIB_DIR is of lower priority over
++        * IPTABLES_LIB_DIR since this moved to libxtables; I think that is ok
++        * for these env vars are deprecated anyhow, and in light of the
++        * (shared) libxt_*.so files, makes less sense to have
++        * IPTABLES_LIB_DIR != IP6TABLES_LIB_DIR.
++        */
++       xtables_libdir = getenv("IP6TABLES_LIB_DIR");
++       if (xtables_libdir != NULL) {
++               fprintf(stderr, "IP6TABLES_LIB_DIR is deprecated, "
++                       "use XTABLES_LIBDIR.\n");
++               return;
++       }
+        xtables_libdir = XTABLES_LIBDIR;
+ }
