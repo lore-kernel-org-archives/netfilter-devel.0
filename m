@@ -1,149 +1,228 @@
 From: jamal <hadi@cyberus.ca>
-Subject: [PATCH] libxtables: Make ip6tables, iptables and iptables-xml use
-	xtables_globals
-Date: Mon, 09 Feb 2009 22:32:03 -0500
-Message-ID: <1234236724.20903.34.camel@dogo.mojatatu.com>
+Subject: [PATCH] libxtables: Replace direct exit_error() calls inside
+	libxtables
+Date: Mon, 09 Feb 2009 22:33:51 -0500
+Message-ID: <1234236831.20903.36.camel@dogo.mojatatu.com>
 Reply-To: hadi@cyberus.ca
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-veedO3N/qzYsduFa1W/R"
+Content-Type: multipart/mixed; boundary="=-cOFr7fT4Cv0epptCWgeo"
 Cc: Jan Engelhardt <jengelh@medozas.de>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from nf-out-0910.google.com ([64.233.182.185]:55745 "EHLO
-	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751160AbZBJDd5 (ORCPT
+Received: from ey-out-2122.google.com ([74.125.78.26]:28202 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752347AbZBJDfp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Feb 2009 22:33:57 -0500
-Received: by nf-out-0910.google.com with SMTP id d3so320687nfc.21
-        for <netfilter-devel@vger.kernel.org>; Mon, 09 Feb 2009 19:33:55 -0800 (PST)
+	Mon, 9 Feb 2009 22:35:45 -0500
+Received: by ey-out-2122.google.com with SMTP id 25so571448eya.37
+        for <netfilter-devel@vger.kernel.org>; Mon, 09 Feb 2009 19:35:43 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---=-veedO3N/qzYsduFa1W/R
+--=-cOFr7fT4Cv0epptCWgeo
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
 
-Next step is to get rid of exit_error from xtables.c
+Ok, finally - with this can compile and link xtables to:
+
+    -----
+     #include <xtables.h>
+     int main(int argc, char **argv) {
+
+            return 0;
+     }
+    ----
 
 cheers,
 jamal
 
---=-veedO3N/qzYsduFa1W/R
-Content-Disposition: attachment; filename=iptv2-3
-Content-Type: text/plain; name=iptv2-3; charset=UTF-8
+--=-cOFr7fT4Cv0epptCWgeo
+Content-Disposition: attachment; filename=iptv2-4
+Content-Type: text/plain; name=iptv2-4; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-commit 1ffb5ab094585266e072a6b3e4950b50fbf4b9b4
+commit fcdc4e404fb31e0cc171000bd87e081f40818959
 Author: Jamal Hadi Salim <hadi@cyberus.ca>
-Date:   Mon Feb 9 22:12:05 2009 -0500
+Date:   Mon Feb 9 22:19:07 2009 -0500
 
-    convert ip6tables, iptables and iptables-xml to use
-    xtables_globals/xtables_set_params()
+    Replace direct exit_error() calls inside libxtables with
+    xt_params->exit_error().
+    
+    With this change; i can now compile the useless app:
+    -----
+     #include <xtables.h>
+     int main(int argc, char **argv) {
+    
+            return 0;
+     }
+    ----
+    
+    with "gcc useless.c -lxtables -ldl"
     
     Signed-off-by: Jamal Hadi Salim <hadi@cyberus.ca>
 
-diff --git a/Makefile.am b/Makefile.am
-index 0ffb978..96de1b2 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -21,6 +21,7 @@ iptables_SOURCES          = iptables-standalone.c iptables.c
- iptables_LDFLAGS          = -rdynamic
- iptables_LDADD            = -ldl -lm libiptc/libiptc.a extensions/libext4.a libxtables.la
+diff --git a/xtables.c b/xtables.c
+index d0fc478..a7425ec 100644
+--- a/xtables.c
++++ b/xtables.c
+@@ -359,7 +359,7 @@ u_int16_t xtables_parse_port(const char *port, const char *proto)
+ 	    (portnum = xtables_service_to_port(port, proto)) != (unsigned)-1)
+ 		return portnum;
  
-+iptables_xml_LDADD        = -ldl libxtables.la
- iptables_multi_SOURCES    = iptables-multi.c iptables-save.c \
-                             iptables-restore.c iptables-xml.c \
-                             iptables-standalone.c iptables.c
-diff --git a/ip6tables.c b/ip6tables.c
-index 233974f..7561353 100644
---- a/ip6tables.c
-+++ b/ip6tables.c
-@@ -145,6 +145,13 @@ int line = -1;
- 
- static struct option *opts = original_opts;
- static unsigned int global_option_offset = 0;
-+struct xtables_globals ip6tables_globals = {
-+	.option_offset = 0,
-+	.program_version = IPTABLES_VERSION,
-+	.program_name = "ip6tables",
-+	.opts = original_opts,
-+	.exit_error = exit_error,
-+};
- 
- /* Table of legal combinations of commands and options.  If any of the
-  * given commands make an option legal, that option is legal (applies to
-@@ -1371,6 +1378,7 @@ int do_command6(int argc, char *argv[], char **table, struct ip6tc_handle **hand
-            demand-load a protocol. */
- 	opterr = 0;
- 
-+	xtables_set_params(&ip6tables_globals);
- 	while ((c = getopt_long(argc, argv,
- 	   "-A:D:R:I:L::S::M:F::Z::N:X::E:P:Vh::o:p:s:d:j:i:bvnt:m:xc:g:",
- 					   opts, NULL)) != -1) {
-diff --git a/iptables-xml.c b/iptables-xml.c
-index 307845c..329c598 100644
---- a/iptables-xml.c
-+++ b/iptables-xml.c
-@@ -17,6 +17,7 @@
- #include "iptables.h"
- #include "libiptc/libiptc.h"
- #include "iptables-multi.h"
-+#include <xtables.h>
- 
- #ifdef DEBUG
- #define DEBUGP(x, args...) fprintf(stderr, x, ## args)
-@@ -629,6 +630,12 @@ do_rule(char *pcnt, char *bcnt, int argc, char *argv[], int argvattr[])
- 	do_rule_part(NULL, NULL, 1, argc, argv, argvattr);
+-	exit_error(PARAMETER_PROBLEM,
++	xt_params->exit_error(PARAMETER_PROBLEM,
+ 		   "invalid port/service `%s' specified", port);
  }
  
-+struct xtables_globals iptables_xml_globals = {
-+	.option_offset = 0,
-+	.program_version = IPTABLES_VERSION,
-+	.program_name = "iptables-xml",
-+	.exit_error = exit_error,
-+};
+@@ -373,7 +373,7 @@ void xtables_parse_interface(const char *arg, char *vianame,
+ 	memset(vianame, 0, IFNAMSIZ);
  
- #ifdef IPTABLES_MULTI
- int
-@@ -646,6 +653,7 @@ main(int argc, char *argv[])
- 	program_version = IPTABLES_VERSION;
- 	line = 0;
+ 	if (vialen + 1 > IFNAMSIZ)
+-		exit_error(PARAMETER_PROBLEM,
++		xt_params->exit_error(PARAMETER_PROBLEM,
+ 			   "interface name `%s' must be shorter than IFNAMSIZ"
+ 			   " (%i)", arg, IFNAMSIZ-1);
  
-+	xtables_set_params(&iptables_xml_globals);
- 	while ((c = getopt_long(argc, argv, "cvh", options, NULL)) != -1) {
- 		switch (c) {
- 		case 'c':
-diff --git a/iptables.c b/iptables.c
-index f1a5d33..e8bed87 100644
---- a/iptables.c
-+++ b/iptables.c
-@@ -145,6 +145,14 @@ int line = -1;
- static struct option *opts = original_opts;
- static unsigned int global_option_offset = 0;
+@@ -495,7 +495,7 @@ xtables_find_match(const char *name, enum xtables_tryload tryload,
+ 		      name, false);
  
-+struct xtables_globals iptables_globals = {
-+	.option_offset = 0,
-+	.program_version = IPTABLES_VERSION,
-+	.program_name = "iptables",
-+	.opts = original_opts,
-+	.exit_error = exit_error,
-+};
-+
- /* Table of legal combinations of commands and options.  If any of the
-  * given commands make an option legal, that option is legal (applies to
-  * CMD_LIST and CMD_ZERO only).
-@@ -1393,6 +1401,7 @@ int do_command(int argc, char *argv[], char **table, struct iptc_handle **handle
-            demand-load a protocol. */
- 	opterr = 0;
+ 		if (ptr == NULL && tryload == XTF_LOAD_MUST_SUCCEED)
+-			exit_error(PARAMETER_PROBLEM,
++			xt_params->exit_error(PARAMETER_PROBLEM,
+ 				   "Couldn't load match `%s':%s\n",
+ 				   name, dlerror());
+ 	}
+@@ -507,7 +507,7 @@ xtables_find_match(const char *name, enum xtables_tryload tryload,
+ 			ptr = NULL;
+ 	}
+ 	if(!ptr && (tryload == XTF_LOAD_MUST_SUCCEED)) {
+-		exit_error(PARAMETER_PROBLEM,
++		xt_params->exit_error(PARAMETER_PROBLEM,
+ 			   "Couldn't find match `%s'\n", name);
+ 	}
+ #endif
+@@ -555,7 +555,7 @@ xtables_find_target(const char *name, enum xtables_tryload tryload)
+ 		      name, true);
  
-+	xtables_set_params(&iptables_globals);
- 	while ((c = getopt_long(argc, argv,
- 	   "-A:D:R:I:L::S::M:F::Z::N:X::E:P:Vh::o:p:s:d:j:i:fbvnt:m:xc:g:",
- 					   opts, NULL)) != -1) {
+ 		if (ptr == NULL && tryload == XTF_LOAD_MUST_SUCCEED)
+-			exit_error(PARAMETER_PROBLEM,
++			xt_params->exit_error(PARAMETER_PROBLEM,
+ 				   "Couldn't load target `%s':%s\n",
+ 				   name, dlerror());
+ 	}
+@@ -567,7 +567,7 @@ xtables_find_target(const char *name, enum xtables_tryload tryload)
+ 			ptr = NULL;
+ 	}
+ 	if(!ptr && (tryload == LOAD_MUST_SUCCEED)) {
+-		exit_error(PARAMETER_PROBLEM,
++		xt_params->exit_error(PARAMETER_PROBLEM,
+ 			   "Couldn't find target `%s'\n", name);
+ 	}
+ #endif
+@@ -820,7 +820,7 @@ void xtables_param_act(unsigned int status, const char *p1, ...)
+ 		b  = va_arg(args, unsigned int);
+ 		if (!b)
+ 			return;
+-		exit_error(PARAMETER_PROBLEM,
++		xt_params->exit_error(PARAMETER_PROBLEM,
+ 		           "%s: \"%s\" option may only be specified once",
+ 		           p1, p2);
+ 		break;
+@@ -829,13 +829,13 @@ void xtables_param_act(unsigned int status, const char *p1, ...)
+ 		b  = va_arg(args, unsigned int);
+ 		if (!b)
+ 			return;
+-		exit_error(PARAMETER_PROBLEM,
++		xt_params->exit_error(PARAMETER_PROBLEM,
+ 		           "%s: \"%s\" option cannot be inverted", p1, p2);
+ 		break;
+ 	case XTF_BAD_VALUE:
+ 		p2 = va_arg(args, const char *);
+ 		p3 = va_arg(args, const char *);
+-		exit_error(PARAMETER_PROBLEM,
++		xt_params->exit_error(PARAMETER_PROBLEM,
+ 		           "%s: Bad value for \"%s\" option: \"%s\"",
+ 		           p1, p2, p3);
+ 		break;
+@@ -843,11 +843,11 @@ void xtables_param_act(unsigned int status, const char *p1, ...)
+ 		b = va_arg(args, unsigned int);
+ 		if (!b)
+ 			return;
+-		exit_error(PARAMETER_PROBLEM,
++		xt_params->exit_error(PARAMETER_PROBLEM,
+ 		           "%s: At most one action is possible", p1);
+ 		break;
+ 	default:
+-		exit_error(status, p1, args);
++		xt_params->exit_error(status, p1, args);
+ 		break;
+ 	}
+ 
+@@ -1030,7 +1030,7 @@ ipparse_hostnetwork(const char *name, unsigned int *naddrs)
+ 	if ((addrptmp = host_to_ipaddr(name, naddrs)) != NULL)
+ 		return addrptmp;
+ 
+-	exit_error(PARAMETER_PROBLEM, "host/network `%s' not found", name);
++	xt_params->exit_error(PARAMETER_PROBLEM, "host/network `%s' not found", name);
+ }
+ 
+ static struct in_addr *parse_ipmask(const char *mask)
+@@ -1048,7 +1048,7 @@ static struct in_addr *parse_ipmask(const char *mask)
+ 		/* dotted_to_addr already returns a network byte order addr */
+ 		return addrp;
+ 	if (!xtables_strtoui(mask, NULL, &bits, 0, 32))
+-		exit_error(PARAMETER_PROBLEM,
++		xt_params->exit_error(PARAMETER_PROBLEM,
+ 			   "invalid mask `%s' specified", mask);
+ 	if (bits != 0) {
+ 		maskaddr.s_addr = htonl(0xFFFFFFFF << (32 - bits));
+@@ -1259,7 +1259,7 @@ ip6parse_hostnetwork(const char *name, unsigned int *naddrs)
+ 	if ((addrp = host_to_ip6addr(name, naddrs)) != NULL)
+ 		return addrp;
+ 
+-	exit_error(PARAMETER_PROBLEM, "host/network `%s' not found", name);
++	xt_params->exit_error(PARAMETER_PROBLEM, "host/network `%s' not found", name);
+ }
+ 
+ static struct in6_addr *parse_ip6mask(char *mask)
+@@ -1276,7 +1276,7 @@ static struct in6_addr *parse_ip6mask(char *mask)
+ 	if ((addrp = xtables_numeric_to_ip6addr(mask)) != NULL)
+ 		return addrp;
+ 	if (!xtables_strtoui(mask, NULL, &bits, 0, 128))
+-		exit_error(PARAMETER_PROBLEM,
++		xt_params->exit_error(PARAMETER_PROBLEM,
+ 			   "invalid mask `%s' specified", mask);
+ 	if (bits != 0) {
+ 		char *p = (void *)&maskaddr;
+@@ -1376,13 +1376,13 @@ int xtables_check_inverse(const char option[], int *invert,
+ 		        "extrapositioned (`! --option this`).\n");
+ 
+ 		if (*invert)
+-			exit_error(PARAMETER_PROBLEM,
++			xt_params->exit_error(PARAMETER_PROBLEM,
+ 				   "Multiple `!' flags not allowed");
+ 		*invert = true;
+ 		if (my_optind != NULL) {
+ 			++*my_optind;
+ 			if (argc && *my_optind > argc)
+-				exit_error(PARAMETER_PROBLEM,
++				xt_params->exit_error(PARAMETER_PROBLEM,
+ 					   "no argument following `!'");
+ 		}
+ 
+@@ -1433,7 +1433,7 @@ xtables_parse_protocol(const char *s)
+ 				}
+ 			}
+ 			if (i == ARRAY_SIZE(xtables_chain_protos))
+-				exit_error(PARAMETER_PROBLEM,
++				xt_params->exit_error(PARAMETER_PROBLEM,
+ 					   "unknown protocol `%s' specified",
+ 					   s);
+ 		}
 
---=-veedO3N/qzYsduFa1W/R--
+--=-cOFr7fT4Cv0epptCWgeo--
 
