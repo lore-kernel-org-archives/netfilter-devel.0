@@ -1,50 +1,63 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 1/3] netfilter: arptables: add mcmangle target
-Date: Tue, 10 Feb 2009 12:16:45 +0100
-Message-ID: <4991621D.9090300@netfilter.org>
-References: <20090128145801.7501.44459.stgit@Decadence> <499047A3.9000505@trash.net> <4990B87C.5040001@netfilter.org>
+From: Christoph Paasch <christoph.paasch@gmail.com>
+Subject: Re: -m state is not working.
+Date: Tue, 10 Feb 2009 12:48:57 +0100
+Message-ID: <200902101248.58046.christoph.paasch@gmail.com>
+References: <498AFBBC.20608@metu.edu.tr> <200902101006.02550.christoph.paasch@gmail.com> <alpine.LSU.2.00.0902101012060.21522@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org, hdemir@metu.edu.tr,
+	Patrick McHardy <kaber@trash.net>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48738 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750759AbZBJLQ6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Feb 2009 06:16:58 -0500
-In-Reply-To: <4990B87C.5040001@netfilter.org>
+Received: from ey-out-2122.google.com ([74.125.78.25]:49622 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752443AbZBJLtC (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 10 Feb 2009 06:49:02 -0500
+Received: by ey-out-2122.google.com with SMTP id 25so592423eya.37
+        for <netfilter-devel@vger.kernel.org>; Tue, 10 Feb 2009 03:49:00 -0800 (PST)
+In-Reply-To: <alpine.LSU.2.00.0902101012060.21522@fbirervta.pbzchgretzou.qr>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> Patrick McHardy wrote:
->> Great name. Took me a bit to realize the connection to "multicast" :)
-> 
-> I thought about mcnugget target, but it seems to be already copyrighted ;)
-> 
->> Continuing the idea of a generic ARP address mangling target,
->> this would have to be done in userspace using SIOCADDMULTI.
->>
->> I would also prefer that approach because the multicast mangling
->> seems a bit like a hack which only works when the requesting
->> host accepts a multicast MAC address in the ARP reply.
-> 
-> Indeed, I didn't know about SIOCADDMULTI, great. I'll do it like you
-> have proposed. Thanks.
+Hi,
 
-Hey, just to let you know ;). The 'ip' tool already allows adding static
-multicast MAC addresses via SIOCADDMULTI. The following commands do the
-trick:
+On Tue February 10 2009, Jan Engelhardt wrote:
+> It [Xtables kernel code] will not use l3proto_generic, because
+>
+>         if (nf_ct_l3proto_try_module_get(par->match->family) < 0) {
+>                 printk(KERN_WARNING "can't load conntrack support for "
+>                                     "proto=%u\n", par->match->family);
+>                 return false;
+>         }
+>
+> already catches the "mistake" (of having forgotten to build the
+> _ipv4/_ipv6 module), and returns EINVAL to userspace.
+Ups, didn't knew about that. Thanks... :-)
 
-ip maddr add 01:00:5e:00:01:01 dev eth1
-arptables -I OUTPUT -o eth1 --h-length 6 \
--j mangle --mangle-mac-s 01:00:5e:00:01:01
-arptables -I INPUT -i eth1 --h-length 6 --destination-mac \
-01:00:5e:00:01:01 -j mangle --mangle-mac-d $REAL_HWADDR1
+>
+> In other words: always look into dmesg for messages!
+>
+>
+> Only nf_conntrack will use l3proto_generic, but nf_conntrack is
+> independent of Xtables ;-)
 
-Still the PKTTYPE iptables target that I posted is needed to make TCP
-and friends work in a devide that uses a multicast MAC.
+I'm asking me, why does xt_state needs an l3 handler different from generic? 
+(the call to nf_ct_l3proto_try_module_get ensures this)
+Why not trying to handle l3 and l4 in a generic way, if there is no other 
+module compiled into the kernel, and so being able to access the state via 
+xt_state.
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+In any case, in my opinion, the generic l3 handler doesn't serves anything, 
+because it will return -NF_ACCEPT at the call to get_l4proto. Why not 
+associate the l4 generic handler to the l3-one? That way, the tracking for 
+unknown protocols (or not compiled into the kernel) can continue.
+
+Christoph
+
+P.S.: Jan, did you took a look at the code I sended to you? It's no problem, 
+if you didn't had the time...
+
