@@ -1,228 +1,130 @@
-From: jamal <hadi@cyberus.ca>
-Subject: [PATCH] libxtables: Replace direct exit_error() calls inside
-	libxtables
-Date: Mon, 09 Feb 2009 22:33:51 -0500
-Message-ID: <1234236831.20903.36.camel@dogo.mojatatu.com>
-Reply-To: hadi@cyberus.ca
+From: Amos Jeffries <squid3@treenet.co.nz>
+Subject: Re: [PATCH 06/16] libxtables: prefix/order - libdir
+Date: Tue, 10 Feb 2009 19:38:34 +1300
+Message-ID: <499120EA.3000108@treenet.co.nz>
+References: <1234200900-5964-1-git-send-email-jengelh@medozas.de> <1234200900-5964-7-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-cOFr7fT4Cv0epptCWgeo"
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.26]:28202 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752347AbZBJDfp (ORCPT
+Received: from ip-58-28-153-233.static-xdsl.xnet.co.nz ([58.28.153.233]:38763
+	"EHLO treenet.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751837AbZBJGi3 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Feb 2009 22:35:45 -0500
-Received: by ey-out-2122.google.com with SMTP id 25so571448eya.37
-        for <netfilter-devel@vger.kernel.org>; Mon, 09 Feb 2009 19:35:43 -0800 (PST)
+	Tue, 10 Feb 2009 01:38:29 -0500
+In-Reply-To: <1234200900-5964-7-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Jan Engelhardt wrote:
+> Consolidate the libdir variable initialization code into xtables.c.
+> 
+> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+> ---
+>  include/xtables.h.in       |    1 +
+>  include/xtables/internal.h |    2 --
+>  ip6tables-restore.c        |   11 +----------
+>  ip6tables-save.c           |   11 +----------
+>  ip6tables-standalone.c     |   11 +----------
+>  iptables-restore.c         |   11 +----------
+>  iptables-save.c            |   11 +----------
+>  iptables-standalone.c      |   11 +----------
+>  xtables.c                  |   23 ++++++++++++++++++++---
+>  9 files changed, 27 insertions(+), 65 deletions(-)
+> 
+> diff --git a/include/xtables.h.in b/include/xtables.h.in
+> index 02a832d..268c42e 100644
+> --- a/include/xtables.h.in
+> +++ b/include/xtables.h.in
+> @@ -159,6 +159,7 @@ extern const char *xtables_modprobe_program;
+>  extern struct xtables_match *xtables_matches;
+>  extern struct xtables_target *xtables_targets;
+>  
+> +extern void xtables_init(void);
+>  extern void *xtables_calloc(size_t, size_t);
+>  extern void *xtables_malloc(size_t);
+>  
+> diff --git a/include/xtables/internal.h b/include/xtables/internal.h
+> index 60375cd..21c4401 100644
+> --- a/include/xtables/internal.h
+> +++ b/include/xtables/internal.h
+> @@ -26,8 +26,6 @@ struct afinfo {
+>  	int so_rev_target;
+>  };
+>  
+> -extern char *lib_dir;
+> -
+>  /* This is decleared in ip[6]tables.c */
+>  extern struct afinfo afinfo;
+>  
+> diff --git a/ip6tables-restore.c b/ip6tables-restore.c
+> index 097711f..6be1a36 100644
+> --- a/ip6tables-restore.c
+> +++ b/ip6tables-restore.c
+> @@ -130,16 +130,7 @@ int main(int argc, char *argv[])
+>  	program_version = XTABLES_VERSION;
+>  	line = 0;
+>  
+> -	lib_dir = getenv("XTABLES_LIBDIR");
+> -	if (lib_dir == NULL) {
+> -		lib_dir = getenv("IP6TABLES_LIB_DIR");
+> -		if (lib_dir != NULL)
+> -			fprintf(stderr, "IP6TABLES_LIB_DIR is deprecated, "
+> -			        "use XTABLES_LIBDIR.\n");
+> -	}
+> -	if (lib_dir == NULL)
+> -		lib_dir = XTABLES_LIBDIR;
+> -
+> +	xtables_init();
+>  #ifdef NO_SHARED_LIBS
+>  	init_extensions();
+>  #endif
+> diff --git a/ip6tables-save.c b/ip6tables-save.c
+> index 11ef8c4..1b9d00a 100644
+> --- a/ip6tables-save.c
+> +++ b/ip6tables-save.c
+> @@ -139,16 +139,7 @@ int main(int argc, char *argv[])
+>  	program_name = "ip6tables-save";
+>  	program_version = XTABLES_VERSION;
+>  
+> -	lib_dir = getenv("XTABLES_LIBDIR");
+> -	if (lib_dir == NULL) {
+> -		lib_dir = getenv("IP6TABLES_LIB_DIR");
+> -		if (lib_dir != NULL)
+> -			fprintf(stderr, "IP6TABLES_LIB_DIR is deprecated, "
+> -			        "use XTABLES_LIBDIR.\n");
+> -	}
+> -	if (lib_dir == NULL)
+> -		lib_dir = XTABLES_LIBDIR;
+> -
+> +	xtables_init();
+>  #ifdef NO_SHARED_LIBS
+>  	init_extensions();
+>  #endif
 
---=-cOFr7fT4Cv0epptCWgeo
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+...
 
+>  
+> +void xtables_init(void)
+> +{
+> +	xtables_libdir = getenv("XTABLES_LIBDIR");
+> +	if (xtables_libdir != NULL)
+> +		return;
+> +	xtables_libdir = getenv("IPTABLES_LIB_DIR");
+> +	if (xtables_libdir != NULL) {
+> +		fprintf(stderr, "IPTABLES_LIB_DIR is deprecated, "
+> +		        "use XTABLES_LIBDIR.\n");
+> +		return;
+> +	}
+> +	xtables_libdir = XTABLES_LIBDIR;
+> +}
 
-Ok, finally - with this can compile and link xtables to:
+You appear to be consolidating both IPTABLES_LIB_DIR and 
+IP6TABLES_LIB_DIR into this function, yet it does not handle the 
+IP6TABLES_LIB_DIR cases.
 
-    -----
-     #include <xtables.h>
-     int main(int argc, char **argv) {
+/2c
 
-            return 0;
-     }
-    ----
-
-cheers,
-jamal
-
---=-cOFr7fT4Cv0epptCWgeo
-Content-Disposition: attachment; filename=iptv2-4
-Content-Type: text/plain; name=iptv2-4; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-
-commit fcdc4e404fb31e0cc171000bd87e081f40818959
-Author: Jamal Hadi Salim <hadi@cyberus.ca>
-Date:   Mon Feb 9 22:19:07 2009 -0500
-
-    Replace direct exit_error() calls inside libxtables with
-    xt_params->exit_error().
-    
-    With this change; i can now compile the useless app:
-    -----
-     #include <xtables.h>
-     int main(int argc, char **argv) {
-    
-            return 0;
-     }
-    ----
-    
-    with "gcc useless.c -lxtables -ldl"
-    
-    Signed-off-by: Jamal Hadi Salim <hadi@cyberus.ca>
-
-diff --git a/xtables.c b/xtables.c
-index d0fc478..a7425ec 100644
---- a/xtables.c
-+++ b/xtables.c
-@@ -359,7 +359,7 @@ u_int16_t xtables_parse_port(const char *port, const char *proto)
- 	    (portnum = xtables_service_to_port(port, proto)) != (unsigned)-1)
- 		return portnum;
- 
--	exit_error(PARAMETER_PROBLEM,
-+	xt_params->exit_error(PARAMETER_PROBLEM,
- 		   "invalid port/service `%s' specified", port);
- }
- 
-@@ -373,7 +373,7 @@ void xtables_parse_interface(const char *arg, char *vianame,
- 	memset(vianame, 0, IFNAMSIZ);
- 
- 	if (vialen + 1 > IFNAMSIZ)
--		exit_error(PARAMETER_PROBLEM,
-+		xt_params->exit_error(PARAMETER_PROBLEM,
- 			   "interface name `%s' must be shorter than IFNAMSIZ"
- 			   " (%i)", arg, IFNAMSIZ-1);
- 
-@@ -495,7 +495,7 @@ xtables_find_match(const char *name, enum xtables_tryload tryload,
- 		      name, false);
- 
- 		if (ptr == NULL && tryload == XTF_LOAD_MUST_SUCCEED)
--			exit_error(PARAMETER_PROBLEM,
-+			xt_params->exit_error(PARAMETER_PROBLEM,
- 				   "Couldn't load match `%s':%s\n",
- 				   name, dlerror());
- 	}
-@@ -507,7 +507,7 @@ xtables_find_match(const char *name, enum xtables_tryload tryload,
- 			ptr = NULL;
- 	}
- 	if(!ptr && (tryload == XTF_LOAD_MUST_SUCCEED)) {
--		exit_error(PARAMETER_PROBLEM,
-+		xt_params->exit_error(PARAMETER_PROBLEM,
- 			   "Couldn't find match `%s'\n", name);
- 	}
- #endif
-@@ -555,7 +555,7 @@ xtables_find_target(const char *name, enum xtables_tryload tryload)
- 		      name, true);
- 
- 		if (ptr == NULL && tryload == XTF_LOAD_MUST_SUCCEED)
--			exit_error(PARAMETER_PROBLEM,
-+			xt_params->exit_error(PARAMETER_PROBLEM,
- 				   "Couldn't load target `%s':%s\n",
- 				   name, dlerror());
- 	}
-@@ -567,7 +567,7 @@ xtables_find_target(const char *name, enum xtables_tryload tryload)
- 			ptr = NULL;
- 	}
- 	if(!ptr && (tryload == LOAD_MUST_SUCCEED)) {
--		exit_error(PARAMETER_PROBLEM,
-+		xt_params->exit_error(PARAMETER_PROBLEM,
- 			   "Couldn't find target `%s'\n", name);
- 	}
- #endif
-@@ -820,7 +820,7 @@ void xtables_param_act(unsigned int status, const char *p1, ...)
- 		b  = va_arg(args, unsigned int);
- 		if (!b)
- 			return;
--		exit_error(PARAMETER_PROBLEM,
-+		xt_params->exit_error(PARAMETER_PROBLEM,
- 		           "%s: \"%s\" option may only be specified once",
- 		           p1, p2);
- 		break;
-@@ -829,13 +829,13 @@ void xtables_param_act(unsigned int status, const char *p1, ...)
- 		b  = va_arg(args, unsigned int);
- 		if (!b)
- 			return;
--		exit_error(PARAMETER_PROBLEM,
-+		xt_params->exit_error(PARAMETER_PROBLEM,
- 		           "%s: \"%s\" option cannot be inverted", p1, p2);
- 		break;
- 	case XTF_BAD_VALUE:
- 		p2 = va_arg(args, const char *);
- 		p3 = va_arg(args, const char *);
--		exit_error(PARAMETER_PROBLEM,
-+		xt_params->exit_error(PARAMETER_PROBLEM,
- 		           "%s: Bad value for \"%s\" option: \"%s\"",
- 		           p1, p2, p3);
- 		break;
-@@ -843,11 +843,11 @@ void xtables_param_act(unsigned int status, const char *p1, ...)
- 		b = va_arg(args, unsigned int);
- 		if (!b)
- 			return;
--		exit_error(PARAMETER_PROBLEM,
-+		xt_params->exit_error(PARAMETER_PROBLEM,
- 		           "%s: At most one action is possible", p1);
- 		break;
- 	default:
--		exit_error(status, p1, args);
-+		xt_params->exit_error(status, p1, args);
- 		break;
- 	}
- 
-@@ -1030,7 +1030,7 @@ ipparse_hostnetwork(const char *name, unsigned int *naddrs)
- 	if ((addrptmp = host_to_ipaddr(name, naddrs)) != NULL)
- 		return addrptmp;
- 
--	exit_error(PARAMETER_PROBLEM, "host/network `%s' not found", name);
-+	xt_params->exit_error(PARAMETER_PROBLEM, "host/network `%s' not found", name);
- }
- 
- static struct in_addr *parse_ipmask(const char *mask)
-@@ -1048,7 +1048,7 @@ static struct in_addr *parse_ipmask(const char *mask)
- 		/* dotted_to_addr already returns a network byte order addr */
- 		return addrp;
- 	if (!xtables_strtoui(mask, NULL, &bits, 0, 32))
--		exit_error(PARAMETER_PROBLEM,
-+		xt_params->exit_error(PARAMETER_PROBLEM,
- 			   "invalid mask `%s' specified", mask);
- 	if (bits != 0) {
- 		maskaddr.s_addr = htonl(0xFFFFFFFF << (32 - bits));
-@@ -1259,7 +1259,7 @@ ip6parse_hostnetwork(const char *name, unsigned int *naddrs)
- 	if ((addrp = host_to_ip6addr(name, naddrs)) != NULL)
- 		return addrp;
- 
--	exit_error(PARAMETER_PROBLEM, "host/network `%s' not found", name);
-+	xt_params->exit_error(PARAMETER_PROBLEM, "host/network `%s' not found", name);
- }
- 
- static struct in6_addr *parse_ip6mask(char *mask)
-@@ -1276,7 +1276,7 @@ static struct in6_addr *parse_ip6mask(char *mask)
- 	if ((addrp = xtables_numeric_to_ip6addr(mask)) != NULL)
- 		return addrp;
- 	if (!xtables_strtoui(mask, NULL, &bits, 0, 128))
--		exit_error(PARAMETER_PROBLEM,
-+		xt_params->exit_error(PARAMETER_PROBLEM,
- 			   "invalid mask `%s' specified", mask);
- 	if (bits != 0) {
- 		char *p = (void *)&maskaddr;
-@@ -1376,13 +1376,13 @@ int xtables_check_inverse(const char option[], int *invert,
- 		        "extrapositioned (`! --option this`).\n");
- 
- 		if (*invert)
--			exit_error(PARAMETER_PROBLEM,
-+			xt_params->exit_error(PARAMETER_PROBLEM,
- 				   "Multiple `!' flags not allowed");
- 		*invert = true;
- 		if (my_optind != NULL) {
- 			++*my_optind;
- 			if (argc && *my_optind > argc)
--				exit_error(PARAMETER_PROBLEM,
-+				xt_params->exit_error(PARAMETER_PROBLEM,
- 					   "no argument following `!'");
- 		}
- 
-@@ -1433,7 +1433,7 @@ xtables_parse_protocol(const char *s)
- 				}
- 			}
- 			if (i == ARRAY_SIZE(xtables_chain_protos))
--				exit_error(PARAMETER_PROBLEM,
-+				xt_params->exit_error(PARAMETER_PROBLEM,
- 					   "unknown protocol `%s' specified",
- 					   s);
- 		}
-
---=-cOFr7fT4Cv0epptCWgeo--
-
+AYJ
