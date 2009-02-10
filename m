@@ -1,61 +1,51 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 06/16] libxtables: prefix/order - libdir
-Date: Tue, 10 Feb 2009 10:04:35 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0902100957230.21522@fbirervta.pbzchgretzou.qr>
-References: <1234200900-5964-1-git-send-email-jengelh@medozas.de> <1234200900-5964-7-git-send-email-jengelh@medozas.de> <499120EA.3000108@treenet.co.nz>
+From: Christoph Paasch <christoph.paasch@gmail.com>
+Subject: Re: -m state is not working.
+Date: Tue, 10 Feb 2009 10:06:02 +0100
+Message-ID: <200902101006.02550.christoph.paasch@gmail.com>
+References: <498AFBBC.20608@metu.edu.tr> <4990638A.1090208@trash.net> <499127AB.2050702@metu.edu.tr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Amos Jeffries <squid3@treenet.co.nz>
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
+To: hdemir@metu.edu.tr
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:39426 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753557AbZBJJEi (ORCPT
+Received: from mail-bw0-f161.google.com ([209.85.218.161]:34587 "EHLO
+	mail-bw0-f161.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755004AbZBJJGI (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Feb 2009 04:04:38 -0500
-In-Reply-To: <499120EA.3000108@treenet.co.nz>
+	Tue, 10 Feb 2009 04:06:08 -0500
+Received: by bwz5 with SMTP id 5so2361948bwz.13
+        for <netfilter-devel@vger.kernel.org>; Tue, 10 Feb 2009 01:06:05 -0800 (PST)
+In-Reply-To: <499127AB.2050702@metu.edu.tr>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi,
 
-On Tuesday 2009-02-10 07:38, Amos Jeffries wrote:
-> Jan Engelhardt wrote:
->> +{
->> +	xtables_libdir = getenv("XTABLES_LIBDIR");
->> +	if (xtables_libdir != NULL)
->> +		return;
->> +	xtables_libdir = getenv("IPTABLES_LIB_DIR");
->> +	if (xtables_libdir != NULL) {
->> +		fprintf(stderr, "IPTABLES_LIB_DIR is deprecated, "
->> +		        "use XTABLES_LIBDIR.\n");
->> +		return;
->> +	}
->> +	xtables_libdir = XTABLES_LIBDIR;
->> +}
+On Tue February 10 2009, Husnu Demir wrote:
+> Yes,
 >
-> You appear to be consolidating both IPTABLES_LIB_DIR and IP6TABLES_LIB_DIR into
-> this function, yet it does not handle the IP6TABLES_LIB_DIR cases.
+> I forgat to add that support :) But xt_state should not be seen if
+> nf_conntrack_ipv4 is not selected on the kernel config. It is useless
+> without nf_conntrack_ipv4 support.
 
-Thanks for noticing. I added a patch that adds it back
-(/me still wanting to pull in jamal's stuff for the next pull).
+Well, xt_state doesn't depends on nf_conntrack_ipv4, it can also be use 
+nf_conntrack_ipv6 or any other module you write yourself. The thing is that 
+without nf_conntrack_ipv4 (or *_ipv6), it uses nf_conntrack_l3proto_generic, 
+which won't be tracked, because get_l4proto(...) returns -NF_ACCEPT.
 
-+++ b/xtables.c
-@@ -110,6 +110,19 @@ void xtables_init(void)
-                        "use XTABLES_LIBDIR.\n");
-                return;
-        }
-+       /*
-+        * Well yes, IP6TABLES_LIB_DIR is of lower priority over
-+        * IPTABLES_LIB_DIR since this moved to libxtables; I think that is ok
-+        * for these env vars are deprecated anyhow, and in light of the
-+        * (shared) libxt_*.so files, makes less sense to have
-+        * IPTABLES_LIB_DIR != IP6TABLES_LIB_DIR.
-+        */
-+       xtables_libdir = getenv("IP6TABLES_LIB_DIR");
-+       if (xtables_libdir != NULL) {
-+               fprintf(stderr, "IP6TABLES_LIB_DIR is deprecated, "
-+                       "use XTABLES_LIBDIR.\n");
-+               return;
-+       }
-        xtables_libdir = XTABLES_LIBDIR;
- }
+Maybe it would be nice to return NF_ACCEPT,  and then handle it with the 
+generic layer 4 protocol handler. (set *protonum = 255 and let *dataoff 
+unchanged)
+
+Just a little suggestion.
+
+Have a nice day.
+
+--
+Christoph Paasch
+
+www.rollerbulls.be
+--
