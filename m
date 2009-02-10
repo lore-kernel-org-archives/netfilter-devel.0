@@ -1,49 +1,50 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: -m state is not working.
-Date: Tue, 10 Feb 2009 10:15:07 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0902101012060.21522@fbirervta.pbzchgretzou.qr>
-References: <498AFBBC.20608@metu.edu.tr> <4990638A.1090208@trash.net> <499127AB.2050702@metu.edu.tr> <200902101006.02550.christoph.paasch@gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/3] netfilter: arptables: add mcmangle target
+Date: Tue, 10 Feb 2009 12:16:45 +0100
+Message-ID: <4991621D.9090300@netfilter.org>
+References: <20090128145801.7501.44459.stgit@Decadence> <499047A3.9000505@trash.net> <4990B87C.5040001@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: hdemir@metu.edu.tr, netfilter-devel@vger.kernel.org,
-	Patrick McHardy <kaber@trash.net>
-To: Christoph Paasch <christoph.paasch@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:51368 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750929AbZBJJPJ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Feb 2009 04:15:09 -0500
-In-Reply-To: <200902101006.02550.christoph.paasch@gmail.com>
+Received: from mail.us.es ([193.147.175.20]:48738 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750759AbZBJLQ6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 10 Feb 2009 06:16:58 -0500
+In-Reply-To: <4990B87C.5040001@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-On Tuesday 2009-02-10 10:06, Christoph Paasch wrote:
->On Tue February 10 2009, Husnu Demir wrote:
+Pablo Neira Ayuso wrote:
+> Patrick McHardy wrote:
+>> Great name. Took me a bit to realize the connection to "multicast" :)
+> 
+> I thought about mcnugget target, but it seems to be already copyrighted ;)
+> 
+>> Continuing the idea of a generic ARP address mangling target,
+>> this would have to be done in userspace using SIOCADDMULTI.
 >>
->> I forgat to add that support :) But xt_state should not be seen if
->> nf_conntrack_ipv4 is not selected on the kernel config. It is useless
->> without nf_conntrack_ipv4 support.
->
->Well, xt_state doesn't depends on nf_conntrack_ipv4, it can also be use 
->nf_conntrack_ipv6 or any other module you write yourself. The thing is that 
->without nf_conntrack_ipv4 (or *_ipv6), it uses nf_conntrack_l3proto_generic, 
->which won't be tracked, because get_l4proto(...) returns -NF_ACCEPT.
+>> I would also prefer that approach because the multicast mangling
+>> seems a bit like a hack which only works when the requesting
+>> host accepts a multicast MAC address in the ARP reply.
+> 
+> Indeed, I didn't know about SIOCADDMULTI, great. I'll do it like you
+> have proposed. Thanks.
 
-It [Xtables kernel code] will not use l3proto_generic, because
+Hey, just to let you know ;). The 'ip' tool already allows adding static
+multicast MAC addresses via SIOCADDMULTI. The following commands do the
+trick:
 
-        if (nf_ct_l3proto_try_module_get(par->match->family) < 0) { 
-                printk(KERN_WARNING "can't load conntrack support for " 
-                                    "proto=%u\n", par->match->family); 
-                return false; 
-        } 
+ip maddr add 01:00:5e:00:01:01 dev eth1
+arptables -I OUTPUT -o eth1 --h-length 6 \
+-j mangle --mangle-mac-s 01:00:5e:00:01:01
+arptables -I INPUT -i eth1 --h-length 6 --destination-mac \
+01:00:5e:00:01:01 -j mangle --mangle-mac-d $REAL_HWADDR1
 
-already catches the "mistake" (of having forgotten to build the
-_ipv4/_ipv6 module), and returns EINVAL to userspace.
+Still the PKTTYPE iptables target that I posted is needed to make TCP
+and friends work in a devide that uses a multicast MAC.
 
-In other words: always look into dmesg for messages!
-
-
-Only nf_conntrack will use l3proto_generic, but nf_conntrack is
-independent of Xtables ;-)
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
