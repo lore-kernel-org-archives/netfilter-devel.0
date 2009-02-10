@@ -1,63 +1,63 @@
-From: Christoph Paasch <christoph.paasch@gmail.com>
-Subject: Re: -m state is not working.
-Date: Tue, 10 Feb 2009 12:48:57 +0100
-Message-ID: <200902101248.58046.christoph.paasch@gmail.com>
-References: <498AFBBC.20608@metu.edu.tr> <200902101006.02550.christoph.paasch@gmail.com> <alpine.LSU.2.00.0902101012060.21522@fbirervta.pbzchgretzou.qr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [RFC] netlink broadcast return value
+Date: Tue, 10 Feb 2009 14:50:55 +0100
+Message-ID: <4991863F.3030800@trash.net>
+References: <4985A4C5.4050908@netfilter.org> <20090202.140533.121159038.davem@davemloft.net> <49903B03.2040302@trash.net> <4990B38A.3020207@netfilter.org> <4990BADA.7040309@trash.net> <4990C337.3040704@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, hdemir@metu.edu.tr,
-	Patrick McHardy <kaber@trash.net>
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.25]:49622 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752443AbZBJLtC (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:52936 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754749AbZBJNvA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Feb 2009 06:49:02 -0500
-Received: by ey-out-2122.google.com with SMTP id 25so592423eya.37
-        for <netfilter-devel@vger.kernel.org>; Tue, 10 Feb 2009 03:49:00 -0800 (PST)
-In-Reply-To: <alpine.LSU.2.00.0902101012060.21522@fbirervta.pbzchgretzou.qr>
-Content-Disposition: inline
+	Tue, 10 Feb 2009 08:51:00 -0500
+In-Reply-To: <4990C337.3040704@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Pablo Neira Ayuso wrote:
+> Patrick McHardy wrote:
+>> Pablo Neira Ayuso wrote:
+> 
+>> But unless I'm missing something, there's nothing wrong with this
+>> as long as the error is ignored. The fact that something was received
+>> by some listener doesn't have any meaning anyways, it might have
+>> been "ip monitor". Which somehow raises doubt about your proposed
+>> interface change though, I think anything that wants a reliable
+>> answer whether a packet was delivered to a process handling it
+>> appropriately should use unicast.
+> 
+> Don't get me wrong, I agree with you that all netlink_broadcast callers
+> in the kernel should ignore the return value...
+> 
+> ... unless they have "some way" (like in Netfilter) to make event
+> delivery reliable: I have attached a patch that I didn't send you yet,
+> I'm still reviewing and testing it. It adds an entry to /proc to enable
+> reliable event delivery over netlink by dropping packets whose events
+> were not delivered, you mentioned that possibility once during one of
+> our conversations ;).
 
-On Tue February 10 2009, Jan Engelhardt wrote:
-> It [Xtables kernel code] will not use l3proto_generic, because
->
->         if (nf_ct_l3proto_try_module_get(par->match->family) < 0) {
->                 printk(KERN_WARNING "can't load conntrack support for "
->                                     "proto=%u\n", par->match->family);
->                 return false;
->         }
->
-> already catches the "mistake" (of having forgotten to build the
-> _ipv4/_ipv6 module), and returns EINVAL to userspace.
-Ups, didn't knew about that. Thanks... :-)
+I know, but in the mean time I think its wrong :) The delivery
+isn't reliable and what the admin is effectively expressing by
+setting your sysctl is "I don't have any listeners besides the
+synchronization daemon running". So it might as well use unicast.
 
->
-> In other words: always look into dmesg for messages!
->
->
-> Only nf_conntrack will use l3proto_generic, but nf_conntrack is
-> independent of Xtables ;-)
+> I'm aware of that this option may be dangerous if used by a buggy
+> process that trigger frequent overflows but it the cost of having
+> realible logging for ctnetlink (still, this behaviour is not the one by
+> default!).
+> 
+> And I need this option to make conntrackd synchronize state-changes
+> appropriately under very heavy load: I've testing the daemon with these
+> patches and it reliably synchronizes state-changes (my system were 100%
+> busy filtering traffic and fully synchronizing all TCP state-changes in
+> near real-time effort, with a noticeable performance drop of 30% in
+> terms of filtered connections).
 
-I'm asking me, why does xt_state needs an l3 handler different from generic? 
-(the call to nf_ct_l3proto_try_module_get ensures this)
-Why not trying to handle l3 and l4 in a generic way, if there is no other 
-module compiled into the kernel, and so being able to access the state via 
-xt_state.
-
-In any case, in my opinion, the generic l3 handler doesn't serves anything, 
-because it will return -NF_ACCEPT at the call to get_l4proto. Why not 
-associate the l4 generic handler to the l3-one? That way, the tracking for 
-unknown protocols (or not compiled into the kernel) can continue.
-
-Christoph
-
-P.S.: Jan, did you took a look at the code I sended to you? It's no problem, 
-if you didn't had the time...
-
+So you're dropping the packet if you can't manage to synchronize.
+Doesn't that defeat the entire purpose of synchronizing, which is
+*increasing* reliability? :)
