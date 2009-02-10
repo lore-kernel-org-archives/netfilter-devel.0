@@ -1,130 +1,109 @@
-From: Amos Jeffries <squid3@treenet.co.nz>
-Subject: Re: [PATCH 06/16] libxtables: prefix/order - libdir
-Date: Tue, 10 Feb 2009 19:38:34 +1300
-Message-ID: <499120EA.3000108@treenet.co.nz>
-References: <1234200900-5964-1-git-send-email-jengelh@medozas.de> <1234200900-5964-7-git-send-email-jengelh@medozas.de>
+From: Husnu Demir <hdemir@metu.edu.tr>
+Subject: Re: -m state is not working.
+Date: Tue, 10 Feb 2009 09:07:23 +0200
+Message-ID: <499127AB.2050702@metu.edu.tr>
+References: <498AFBBC.20608@metu.edu.tr> <4990638A.1090208@trash.net>
+Reply-To: hdemir@metu.edu.tr
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: multipart/mixed;
+ boundary="------------050509000705080009070201"
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ip-58-28-153-233.static-xdsl.xnet.co.nz ([58.28.153.233]:38763
-	"EHLO treenet.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751837AbZBJGi3 (ORCPT
+Received: from tenedos.general.services.metu.edu.tr ([144.122.144.162]:47928
+	"EHLO tenedos.general.services.metu.edu.tr" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750869AbZBJHH2 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Feb 2009 01:38:29 -0500
-In-Reply-To: <1234200900-5964-7-git-send-email-jengelh@medozas.de>
+	Tue, 10 Feb 2009 02:07:28 -0500
+In-Reply-To: <4990638A.1090208@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> Consolidate the libdir variable initialization code into xtables.c.
+This is a multi-part message in MIME format.
+--------------050509000705080009070201
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+
+Yes,
+
+I forgat to add that support :) But xt_state should not be seen if
+nf_conntrack_ipv4 is not selected on the kernel config. It is useless without
+nf_conntrack_ipv4 support.
+
+
+Thanks.
+
+hdemir.
+
+Patrick McHardy wrote:
+> Husnu Demir wrote:
+>> Hi,
+>>
+>> I recently compiled new kernel and tried the following;
+>>
+>> # iptables -I FORWARD -p tcp -m state --state NEW -j ACCEPT
+>> iptables: Invalid argument
+>>
+>>
+>> # uname -a
+>> Linux ng-test 2.6.28.3 #4 SMP Thu Feb 5 08:37:37 EST 2009 x86_64
+>> GNU/Linux
+>>
+>> # lsmod
+>> Module                  Size  Used by
+>> xt_state                4608  0
+>> nf_conntrack           64424  1 xt_state
+>> iptable_filter          5440  0
+>> ip_tables              19408  1 iptable_filter
+>> x_tables               23432  2 xt_state,ip_tables
+>> ipv6                  251328  22
+>> sr_mod                 17540  0
+>> e1000e                111728  0
+>> ..
+>> ..
+>>
+>> # modinfo xt_state
+>> filename:       /lib/modules/2.6.28.3/kernel/net/netfilter/xt_state.ko
+>> license:        GPL
+>> author:         Rusty Russell <rusty@rustcorp.com.au>
+>> description:    ip[6]_tables connection tracking state match module
+>> alias:          ipt_state
+>> alias:          ip6t_state
+>> vermagic:       2.6.28.3 SMP mod_unload modversions
+>> depends:        x_tables,nf_conntrack
+>>
+>> # iptables -V
+>> iptables v1.4.2
+>>
+>>
+>> Did I forget to add anything? How can I see what is happing?
 > 
-> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
-> ---
->  include/xtables.h.in       |    1 +
->  include/xtables/internal.h |    2 --
->  ip6tables-restore.c        |   11 +----------
->  ip6tables-save.c           |   11 +----------
->  ip6tables-standalone.c     |   11 +----------
->  iptables-restore.c         |   11 +----------
->  iptables-save.c            |   11 +----------
->  iptables-standalone.c      |   11 +----------
->  xtables.c                  |   23 ++++++++++++++++++++---
->  9 files changed, 27 insertions(+), 65 deletions(-)
+> I'm guessing you forgot nf_conntrack_ipv4.
 > 
-> diff --git a/include/xtables.h.in b/include/xtables.h.in
-> index 02a832d..268c42e 100644
-> --- a/include/xtables.h.in
-> +++ b/include/xtables.h.in
-> @@ -159,6 +159,7 @@ extern const char *xtables_modprobe_program;
->  extern struct xtables_match *xtables_matches;
->  extern struct xtables_target *xtables_targets;
->  
-> +extern void xtables_init(void);
->  extern void *xtables_calloc(size_t, size_t);
->  extern void *xtables_malloc(size_t);
->  
-> diff --git a/include/xtables/internal.h b/include/xtables/internal.h
-> index 60375cd..21c4401 100644
-> --- a/include/xtables/internal.h
-> +++ b/include/xtables/internal.h
-> @@ -26,8 +26,6 @@ struct afinfo {
->  	int so_rev_target;
->  };
->  
-> -extern char *lib_dir;
-> -
->  /* This is decleared in ip[6]tables.c */
->  extern struct afinfo afinfo;
->  
-> diff --git a/ip6tables-restore.c b/ip6tables-restore.c
-> index 097711f..6be1a36 100644
-> --- a/ip6tables-restore.c
-> +++ b/ip6tables-restore.c
-> @@ -130,16 +130,7 @@ int main(int argc, char *argv[])
->  	program_version = XTABLES_VERSION;
->  	line = 0;
->  
-> -	lib_dir = getenv("XTABLES_LIBDIR");
-> -	if (lib_dir == NULL) {
-> -		lib_dir = getenv("IP6TABLES_LIB_DIR");
-> -		if (lib_dir != NULL)
-> -			fprintf(stderr, "IP6TABLES_LIB_DIR is deprecated, "
-> -			        "use XTABLES_LIBDIR.\n");
-> -	}
-> -	if (lib_dir == NULL)
-> -		lib_dir = XTABLES_LIBDIR;
-> -
-> +	xtables_init();
->  #ifdef NO_SHARED_LIBS
->  	init_extensions();
->  #endif
-> diff --git a/ip6tables-save.c b/ip6tables-save.c
-> index 11ef8c4..1b9d00a 100644
-> --- a/ip6tables-save.c
-> +++ b/ip6tables-save.c
-> @@ -139,16 +139,7 @@ int main(int argc, char *argv[])
->  	program_name = "ip6tables-save";
->  	program_version = XTABLES_VERSION;
->  
-> -	lib_dir = getenv("XTABLES_LIBDIR");
-> -	if (lib_dir == NULL) {
-> -		lib_dir = getenv("IP6TABLES_LIB_DIR");
-> -		if (lib_dir != NULL)
-> -			fprintf(stderr, "IP6TABLES_LIB_DIR is deprecated, "
-> -			        "use XTABLES_LIBDIR.\n");
-> -	}
-> -	if (lib_dir == NULL)
-> -		lib_dir = XTABLES_LIBDIR;
-> -
-> +	xtables_init();
->  #ifdef NO_SHARED_LIBS
->  	init_extensions();
->  #endif
+> 
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe
+> netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-...
 
->  
-> +void xtables_init(void)
-> +{
-> +	xtables_libdir = getenv("XTABLES_LIBDIR");
-> +	if (xtables_libdir != NULL)
-> +		return;
-> +	xtables_libdir = getenv("IPTABLES_LIB_DIR");
-> +	if (xtables_libdir != NULL) {
-> +		fprintf(stderr, "IPTABLES_LIB_DIR is deprecated, "
-> +		        "use XTABLES_LIBDIR.\n");
-> +		return;
-> +	}
-> +	xtables_libdir = XTABLES_LIBDIR;
-> +}
+--------------050509000705080009070201
+Content-Type: text/x-vcard; charset=utf-8;
+ name="hdemir.vcf"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="hdemir.vcf"
 
-You appear to be consolidating both IPTABLES_LIB_DIR and 
-IP6TABLES_LIB_DIR into this function, yet it does not handle the 
-IP6TABLES_LIB_DIR cases.
+begin:vcard
+fn:Husnu Demir
+n:Demir;Husnu
+email;internet:hdemir@metu.edu.tr
+tel;work:+903122103330
+tel;fax:+903122103303
+x-mozilla-html:FALSE
+version:2.1
+end:vcard
 
-/2c
 
-AYJ
+--------------050509000705080009070201--
