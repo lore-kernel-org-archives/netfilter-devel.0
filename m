@@ -1,51 +1,104 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 2/3] netfilter: xtables: add PKTTYPE target
-Date: Wed, 11 Feb 2009 15:19:59 +0100
-Message-ID: <4992DE8F.5000609@netfilter.org>
-References: <20090128145801.7501.44459.stgit@Decadence> <20090128145826.7501.34671.stgit@Decadence> <4990480D.9060900@trash.net> <4990B910.1050802@netfilter.org> <49918948.5010103@trash.net> <alpine.DEB.2.00.0902101512500.9244@blackhole.kfki.hu> <49918D91.60801@trash.net> <4991C370.9000907@netfilter.org> <4992C3FB.8070606@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 6/7] netfilter: sysctl support of logger choice.
+Date: Wed, 11 Feb 2009 15:21:50 +0100
+Message-ID: <4992DEFE.6070609@trash.net>
+References: <49909B3E.0@inl.fr> <1234213876-8176-6-git-send-email-eric@inl.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@inl.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48701 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755583AbZBKOUK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Feb 2009 09:20:10 -0500
-In-Reply-To: <4992C3FB.8070606@trash.net>
+Received: from stinky.trash.net ([213.144.137.162]:51482 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753254AbZBKOVx (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 11 Feb 2009 09:21:53 -0500
+In-Reply-To: <1234213876-8176-6-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy wrote:
-> Pablo Neira Ayuso wrote:
->> Patrick McHardy wrote:
->>> Jozsef Kadlecsik wrote:
->>>> On Tue, 10 Feb 2009, Patrick McHardy wrote:
->>>>
->>>>> Yes, I know, I'm just wondering why you're using TCP at all for
->>>>> synchronizing. Its not for traffic from the Internet I assume
->>>>> since the node it ends up on is unknown to the outside anyways.
->>>> No, that's not the syncronizing traffic, but the "normal" TCP traffic
->>>> to be filtered by the firewalls, which have got multicast MAC
->>>> addresses on their interfaces.
->>> Multicast traffic is accepted for forwarding just fine, its just
->>> local TCP delivery thats refusing it. So it can't be forwarded
->>> traffic.
->>
->> You usually have some administration facility (like ssh) that would
->> break. Please, think that this can be also used to replace CLUSTERIP (to
->> be used in back-end servers, not only stateful firewalls).
-> 
-> I see. Still, this module has only one purpose, which is to circumvent
-> valid checks to make a different hack (although a nicer one) work.
-> Perhaps simply move it into the cluster match (yes yes, I know). That
-> way we can also avoid a bit of the new-module overhead.
+Eric Leblond wrote:
+> diff --git a/include/linux/sysctl.h b/include/linux/sysctl.h
+> index e76d3b2..78d8642 100644
+> --- a/include/linux/sysctl.h
+> +++ b/include/linux/sysctl.h
+> @@ -335,6 +335,7 @@ enum
+>  	NET_NF_CONNTRACK_FRAG6_LOW_THRESH=30,
+>  	NET_NF_CONNTRACK_FRAG6_HIGH_THRESH=31,
+>  	NET_NF_CONNTRACK_CHECKSUM=32,
+> +	NET_NF_LOG=33,
 
-Then, the cluster match would become the target match, since skbuff
-cannot be modified from matches (they are passed as const). Becoming a
-target means less flexibility :(
+New sysctls should use CTL_UNNUMBERED.
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+>  };
+>  
+>  /* /proc/sys/net/ipv4 */
+> diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
+> index fc1deca..4775700 100644
+> --- a/net/netfilter/nf_log.c
+> +++ b/net/netfilter/nf_log.c
+> @@ -14,23 +14,34 @@
+>     LOG target modules */
+>  
+>  #define NF_LOG_PREFIXLEN		128
+> -#define NFLOGGER_NAME_LEN		12
+> +#define NFLOGGER_NAME_LEN		24
+
+Please restructure this so the first patch adds the final value,
+if necessary at all.
+
+>  
+>  static const struct nf_logger *nf_loggers[NFPROTO_NUMPROTO] __read_mostly;
+>  static struct list_head nf_loggers_l[NFPROTO_NUMPROTO] __read_mostly;
+>  static DEFINE_SPINLOCK(nf_log_lock);
+>  
+> -static struct nf_logger *__find_logger(int pf, const char *str_logger)
+> +static struct nf_logger *__find_logger_n(int pf, const char *str_logger, size_t len)
+>  {
+>  	struct nf_logger *t;
+>  
+> -	list_for_each_entry(t, &nf_loggers_l[pf], list[pf])
+> -		if (!strnicmp(str_logger, t->name, NFLOGGER_NAME_LEN))
+> +	if (len > NFLOGGER_NAME_LEN)
+> +		return NULL;
+> +
+> +	list_for_each_entry(t, &nf_loggers_l[pf], list[pf]) {
+> +		if ((len != NFLOGGER_NAME_LEN) && (strlen(t->name) != len))
+
+This seems like overoptimization, just the strcmp is fine. Then you can
+also remove the wrapper around this function.
+
+> +			continue;
+> +		if (!strnicmp(str_logger, t->name, len))
+>  			return t;
+> +	}
+>  
+>  	return NULL;
+>  }
+>  
+> +static struct ctl_table nf_log_sysctl_table[NFPROTO_NUMPROTO+1];
+> +static struct ctl_table_header *nf_log_dir_header;
+> +
+> +static int nf_log_proc_dostring(ctl_table *table, int write, struct file *filp,
+> +			 void *buffer, size_t *lenp, loff_t *ppos)
+> +{
+> +	const struct nf_logger *logger;
+> +	int r;
+> +	char ln_name[NFLOGGER_NAME_LEN];
+> +
+> +	rcu_read_lock();
+> +	if (write) {
+> +		if (!strnicmp(buffer, "NONE", *lenp - 1)) {
+> +			rcu_read_unlock();
+> +			return nf_log_unbind_pf(table->ctl_name);
+> +		}
+> +		logger = __find_logger_n(table->ctl_name, buffer, *lenp -1);
+> +		if (logger == NULL) {
+> +			rcu_read_unlock();
+> +			return -EINVAL;
+> +		}
+> +		r = nf_log_bind_pf(table->ctl_name, logger);
+
+I doubt that RCU read lock is really what you want here since you're
+actively changing things.
