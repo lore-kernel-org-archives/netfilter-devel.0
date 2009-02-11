@@ -1,54 +1,48 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: RFC: introduce xtables global param struct
-Date: Wed, 11 Feb 2009 16:13:59 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0902111611140.20223@fbirervta.pbzchgretzou.qr>
-References: <1234034911.4441.32.camel@dogo.mojatatu.com>
+Subject: Re: [PATCH] libxtables: define xtables_free_opts()
+Date: Wed, 11 Feb 2009 16:17:10 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0902111615590.20223@fbirervta.pbzchgretzou.qr>
+References: <1234213287.20903.19.camel@dogo.mojatatu.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: kaber@trash.net, Pablo Neira Ayuso <pablo@netfilter.org>,
+Cc: Patrick McHardy <kaber@trash.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
 	netfilter-devel@vger.kernel.org
 To: jamal <hadi@cyberus.ca>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:59472 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:48638 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751169AbZBKPOB (ORCPT
+	with ESMTP id S1755240AbZBKPRL (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Feb 2009 10:14:01 -0500
-In-Reply-To: <1234034911.4441.32.camel@dogo.mojatatu.com>
+	Wed, 11 Feb 2009 10:17:11 -0500
+In-Reply-To: <1234213287.20903.19.camel@dogo.mojatatu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Monday 2009-02-09 22:01, jamal wrote:
 
-On Saturday 2009-02-07 20:28, jamal wrote:
 >
->I would like to introduce this new struct so as to pass 
->localize the globals used and help in symbol renames. 
-
-Please post patch inline. I otherwise need to save them
-and reinsert them into alpine..
-
->xtables_set_params() is intended to free xtables from depending
->(as it does right now) on existence of such externally definitions
->(from iptables/iptables6 etc).
-> 
->Ive included a sample user - xtables_free_opts() to show
->how i plan to use it.
->
->Let me know what you think before i proceed since i am going
->to be using this approach as a basis for other changes.
+>A user of the structure xtables_globals. Next goal is to attack
+>exit_error() so i can compile that basic program..
 >
 >cheers,
 >jamal
 >
 
->+struct xtables_globals
+>+void xtables_free_opts(int reset_offset, struct option *original_opts)
 >+{
->+	unsigned int option_offset;
->+	char *program_version;
->+	char *program_name;
->+	struct xtables_afinfo *afinfo;
->+	struct option *opts;
->+};
+>+	if (xt_params->opts != original_opts) {
+>+		if (original_opts) 
+>+			free(xt_params->opts);
+>+		xt_params->opts = original_opts;
+>+		if (reset_offset)
+>+			xt_params->option_offset = 0;
+>+	}
+>+}
+>+
 
-These should be const, esp. program_version and program_name.
-I added myself a patch now.
+While this may have been just moved from iptables.c or so
+(where? I do not see any deletions or conversions of code
+that is supposed to make use of xtables_free_opts!)
+this function needs some comments to explain just why
+it is supposed to be doing this.
