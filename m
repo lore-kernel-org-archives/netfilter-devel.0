@@ -1,59 +1,51 @@
-From: Rick Jones <rick.jones2@hp.com>
-Subject: Re: [RFC] iptables: lock free counters (v0.6)
-Date: Tue, 10 Feb 2009 14:20:30 -0800
-Message-ID: <4991FDAE.9060006@hp.com>
-References: <20090204001202.724266235@vyatta.com>	<20090204001755.808036408@vyatta.com>	<4989071E.5000803@cosmosbay.com> <4990515B.3070409@trash.net>	<20090209091437.5d5cbf48@extreme> <20090210095220.3e1350a1@extreme>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] Update jhash.h with the new version of Jenkins' hash
+Date: Tue, 10 Feb 2009 17:17:38 -0800 (PST)
+Message-ID: <20090210.171738.65421666.davem@davemloft.net>
+References: <alpine.DEB.2.00.0902102026060.10299@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>,
-	Eric Dumazet <dada1@cosmosbay.com>,
-	David Miller <davem@davemloft.net>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Stephen Hemminger <shemminger@vyatta.com>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: kadlec@blackhole.kfki.hu
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20090210095220.3e1350a1@extreme>
+In-Reply-To: <alpine.DEB.2.00.0902102026060.10299@blackhole.kfki.hu>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Stephen Hemminger wrote:
-> The reader/writer lock in ip_tables is acquired in the critical path of
-> processing packets and is one of the reasons just loading iptables can cause
-> a 20% performance loss. The rwlock serves two functions:
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Date: Tue, 10 Feb 2009 20:40:47 +0100 (CET)
+
+> Please consider applying the following patch:
 > 
-> 1) it prevents changes to table state (xt_replace) while table is in use.
->    This is now handled by doing rcu on the xt_table. When table is
->    replaced, the new table(s) are put in and the old one table(s) are freed
->    after RCU period.
+> The current jhash.h implements the lookup2() hash function by Bob Jenkins. 
+> However, lookup2() is outdated as Bob wrote a new hash function called 
+> lookup3(). The new hash function
 > 
-> 2) it provides synchronization when accesing the counter values.
->    This is now handled by swapping in new table_info entries for each cpu
->    then summing the old values, and putting the result back onto one
->    cpu.  On a busy system it may cause sampling to occur at different
->    times on each cpu, but no packet/byte counts are lost in the process.
+> - mixes better than lookup2(): it passes the check that every input bit 
+>   changes every output bit 50% of the time, while lookup2() failed it.
+> - performs better: compiled with -O2 on Core2 Duo, lookup3() 20-40% faster
+>   than lookup2() depending on the key length.
+> 
+> The patch replaces the lookup2() implementation of the 'jhash*' 
+> functions with that of lookup3().
+> 
+> You can read a longer comparison of the two and other hash functions at 
+> http://burtleburtle.net/bob/hash/doobs.html.
+> 
+> Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 
-I've taken this round for a spin on the 32-core setup.  I'd not previously 
-applied Patrick's patches to remove the initialization, so my kludges to compile 
-may have altered things, but assuming it was OK (convert the inits to 
-__MUTEX_INITIALIZER to make the compiler happy) it appears that this change does 
-very good things indeed for the "empty" case.  Where the 
-2.6.29-rc2/unpatchednet-next showed a 50% drop (handwaving math) in the "empty" 
-case compared to the "none" case (aka none is no iptables modules loaded, empty 
-being what one gets after iptables --list) this patch shows what appears to be a 
-much much smaller drop of less than 6%.
+I support this change and I also don't think it makes sense
+to have a jhash3.h new header file, that's just a waste of
+time.  Either the new stuff is better or it isn't, and that
+whole "matching hashes" argument is pure garbage.
 
-The original data can be seen at:
+But this kind of change isn't for me to decide, changing jhash
+impacts the entire tree not just networking, and also I know
+that Rusty Russell was investigating making this change and
+he even did his own timings on various platforms.
 
-ftp://ftp.netperf.org/iptable_scaling/  in no_iptables and empty_iptables
+Therefore this needs to be proposed on linux-kernel with appropriate
+parties CC:'d.
 
-and the data after this patch can be seen at:
-
-ftp://ftp.netperf.org/hemminger/hemminger6/  in none and empty
-
-while I have none of Eric's patches in this tree, just for grins I went ahead and 
-ran "full" as well.
-
-happy benchmarking,
-
-rick jones
+Thanks.
