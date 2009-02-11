@@ -1,95 +1,75 @@
-From: Anton VG <anton.vazir@gmail.com>
-Subject: Re: (nfnl_talk: recvmsg over-run) and (nf_queue: full at 1024
-	entries, dropping packets(s). Dropped: 582) - bug or just some defaults
-	increase required?
-Date: Wed, 11 Feb 2009 17:26:45 +0500
-Message-ID: <c4b050a10902110426s5e997220r21d615ebf0683bb8@mail.gmail.com>
-References: <c4b050a10902061014w3df3b2c3xe9e6465be79b4e07@mail.gmail.com>
-	 <498E3693.6030702@netfilter.org>
-	 <200902091556.25407.anton.vazir@gmail.com>
-	 <49901176.6020502@netfilter.org> <49928B62.1090600@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [RFC] netlink broadcast return value
+Date: Wed, 11 Feb 2009 13:44:23 +0100
+Message-ID: <4992C827.20302@trash.net>
+References: <4985A4C5.4050908@netfilter.org> <20090202.140533.121159038.davem@davemloft.net> <49903B03.2040302@trash.net> <4990B38A.3020207@netfilter.org> <4990BADA.7040309@trash.net> <4990C337.3040704@netfilter.org> <4991863F.3030800@trash.net> <4991CCC1.7080308@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f20.google.com ([209.85.220.20]:53477 "EHLO
-	mail-fx0-f20.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752831AbZBKM0t (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Feb 2009 07:26:49 -0500
-Received: by fxm13 with SMTP id 13so431540fxm.13
-        for <netfilter-devel@vger.kernel.org>; Wed, 11 Feb 2009 04:26:46 -0800 (PST)
-In-Reply-To: <49928B62.1090600@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <4991CCC1.7080308@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Pablo,
+Pablo Neira Ayuso wrote:
+> Patrick McHardy wrote:
+>> I know, but in the mean time I think its wrong :) The delivery
+>> isn't reliable and what the admin is effectively expressing by
+>> setting your sysctl is "I don't have any listeners besides the
+>> synchronization daemon running". So it might as well use unicast.
+> 
+> No :), this setting means "state-changes over ctnetlink will be reliable
+> at the cost of dropping packets (if needed)", it's an optional
+> trade-off. You may also have more listeners like a logging daemon
+> (ulogd), similarly this will be useful to ensure that ulogd doesn't leak
+> logging information which may happen under very heavy load. This option
+> is *not* only oriented to state-synchronization.
 
-On 64bit system, after applying the patch, nfq_create_queue() started
-to oftenly return NULL, and calling
-strerror(errno) - I've got a error "Invalid or incomplete multibyte or
-wide character".
+I'm aware of that. But you're adding a policy knob to control the
+behaviour of a one-to-many interface based on what a single listener
+(or maybe even two) want. Its not possible anymore to just listen to
+events for debugging, since that might even lock you out. You also
+can't use ulogd and say that you *don't* care whether every last state
+change was delivered to it.
 
-On 32bit it works. This have been tested with only 2x simultaneous queues
-Any thoughts?
+This seems very wrong to me. And I don't even see a reason to do
+this since its easy to use unicast and per-listener state.
 
-2009/2/11 Pablo Neira Ayuso <pablo@netfilter.org>:
-> Updates on this?
->
-> Pablo Neira Ayuso wrote:
->> Anton wrote:
->>> Pablo,
->>>
->>> Just a little more thought, this happened when my
->>> application attempted to create a NEW queue, while in
->>> kernel packet queue overrun situation. And after calling
->>> the nfq_create_queue there was no return from it, and only
->>> error message generation in the loop inside the
->>> libnetfilter_queue library. Looks like not a very proper
->>> behaviour. Am I missing something?
->>
->> Oh I see, I did not get the point initially. Does this patch fix the
->> problem?
->>
->>
->>
->> ------------------------------------------------------------------------
->>
->> diff --git a/src/libnetfilter_queue.c b/src/libnetfilter_queue.c
->> index 9e4903b..ec17595 100644
->> --- a/src/libnetfilter_queue.c
->> +++ b/src/libnetfilter_queue.c
->> @@ -141,7 +141,7 @@ __build_send_cfg_msg(struct nfq_handle *h, u_int8_t command,
->>       cmd.pf = htons(pf);
->>       nfnl_addattr_l(&u.nmh, sizeof(u), NFQA_CFG_CMD, &cmd, sizeof(cmd));
->>
->> -     return nfnl_talk(h->nfnlh, &u.nmh, 0, 0, NULL, NULL, NULL);
->> +     return nfnl_query(h->nfnlh, &u.nmh);
->>  }
->>
->>  static int __nfq_rcv_pkt(struct nlmsghdr *nlh, struct nfattr *nfa[],
->> @@ -553,7 +553,7 @@ int nfq_set_mode(struct nfq_q_handle *qh,
->>       nfnl_addattr_l(&u.nmh, sizeof(u), NFQA_CFG_PARAMS, &params,
->>                       sizeof(params));
->>
->> -     return nfnl_talk(qh->h->nfnlh, &u.nmh, 0, 0, NULL, NULL, NULL);
->> +     return nfnl_query(qh->h->nfnlh, &u.nmh);
->>  }
->>
->>  /**
->> @@ -581,7 +581,7 @@ int nfq_set_queue_maxlen(struct nfq_q_handle *qh,
->>       nfnl_addattr_l(&u.nmh, sizeof(u), NFQA_CFG_QUEUE_MAXLEN, &queue_maxlen,
->>                       sizeof(queue_maxlen));
->>
->> -     return nfnl_talk(qh->h->nfnlh, &u.nmh, 0, 0, NULL, NULL, NULL);
->> +     return nfnl_query(qh->h->nfnlh, &u.nmh);
->>  }
->>
->>  /**
->
->
-> --
-> "Los honestos son inadaptados sociales" -- Les Luthiers
->
+> Using unicast would not do any different from broadcast as you may have
+> two listeners receiving state-changes from ctnetlink via unicast, so the
+> problem would be basically the same as above if you want reliable
+> state-change information at the cost of dropping packets.
+
+Only the processes that actually care can specify this behaviour.
+They're likely to have more CPU time, better adjusted receive
+buffers etc than f.i. the conntrack tool when dumping events.
+
+> BTW, the netlink_broadcast return value looked to me inconsistent before
+> the patch. It returned ENOBUFS if it could not clone the skb, but zero
+> when at least one message was delivered. How useful can be this return
+> value for the callers? I would expect to have a similar behaviour to the
+> one of netlink_unicast (reporting EAGAIN error when it could not deliver
+> the message), even if the return value for most callers should be
+> ignored as it is not of any help.
+
+Its useless since you don't know how received it. It should return
+void IMO.
+
+>> So you're dropping the packet if you can't manage to synchronize.
+>> Doesn't that defeat the entire purpose of synchronizing, which is
+>> *increasing* reliability? :)
+> 
+> This reduces communications reliability a bit under very heavy load,
+> yes, because it may drop some packets but it adds reliable flow-based
+> logging accounting / state-synchronization in return. Both refers to
+> reliability in different contexts. In the end, it's a trade-off world.
+> There's some point at which you may want to choose which one you prefer,
+> reliable communications if the system is under heavy load or reliable
+> logging (no leaks in the logging) / state-synchronization (the backup
+> firewall is able to follow state-changes of the master under heavy load).
+
+Logging yes, but I can't see the point in perfect synchronization if
+that leads to less throughput.
