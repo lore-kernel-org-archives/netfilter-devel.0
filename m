@@ -1,44 +1,95 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/3] netfilter: xtables: add PKTTYPE target
-Date: Wed, 11 Feb 2009 13:26:35 +0100
-Message-ID: <4992C3FB.8070606@trash.net>
-References: <20090128145801.7501.44459.stgit@Decadence> <20090128145826.7501.34671.stgit@Decadence> <4990480D.9060900@trash.net> <4990B910.1050802@netfilter.org> <49918948.5010103@trash.net> <alpine.DEB.2.00.0902101512500.9244@blackhole.kfki.hu> <49918D91.60801@trash.net> <4991C370.9000907@netfilter.org>
+From: Anton VG <anton.vazir@gmail.com>
+Subject: Re: (nfnl_talk: recvmsg over-run) and (nf_queue: full at 1024
+	entries, dropping packets(s). Dropped: 582) - bug or just some defaults
+	increase required?
+Date: Wed, 11 Feb 2009 17:26:45 +0500
+Message-ID: <c4b050a10902110426s5e997220r21d615ebf0683bb8@mail.gmail.com>
+References: <c4b050a10902061014w3df3b2c3xe9e6465be79b4e07@mail.gmail.com>
+	 <498E3693.6030702@netfilter.org>
+	 <200902091556.25407.anton.vazir@gmail.com>
+	 <49901176.6020502@netfilter.org> <49928B62.1090600@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:48507 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752624AbZBKM0l (ORCPT
+Received: from mail-fx0-f20.google.com ([209.85.220.20]:53477 "EHLO
+	mail-fx0-f20.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752831AbZBKM0t (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Feb 2009 07:26:41 -0500
-In-Reply-To: <4991C370.9000907@netfilter.org>
+	Wed, 11 Feb 2009 07:26:49 -0500
+Received: by fxm13 with SMTP id 13so431540fxm.13
+        for <netfilter-devel@vger.kernel.org>; Wed, 11 Feb 2009 04:26:46 -0800 (PST)
+In-Reply-To: <49928B62.1090600@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> Patrick McHardy wrote:
->> Jozsef Kadlecsik wrote:
->>> On Tue, 10 Feb 2009, Patrick McHardy wrote:
->>>
->>>> Yes, I know, I'm just wondering why you're using TCP at all for
->>>> synchronizing. Its not for traffic from the Internet I assume
->>>> since the node it ends up on is unknown to the outside anyways.
->>> No, that's not the syncronizing traffic, but the "normal" TCP traffic
->>> to be filtered by the firewalls, which have got multicast MAC
->>> addresses on their interfaces.
->> Multicast traffic is accepted for forwarding just fine, its just
->> local TCP delivery thats refusing it. So it can't be forwarded
->> traffic.
-> 
-> You usually have some administration facility (like ssh) that would
-> break. Please, think that this can be also used to replace CLUSTERIP (to
-> be used in back-end servers, not only stateful firewalls).
+Pablo,
 
-I see. Still, this module has only one purpose, which is to circumvent
-valid checks to make a different hack (although a nicer one) work.
-Perhaps simply move it into the cluster match (yes yes, I know). That
-way we can also avoid a bit of the new-module overhead.
+On 64bit system, after applying the patch, nfq_create_queue() started
+to oftenly return NULL, and calling
+strerror(errno) - I've got a error "Invalid or incomplete multibyte or
+wide character".
+
+On 32bit it works. This have been tested with only 2x simultaneous queues
+Any thoughts?
+
+2009/2/11 Pablo Neira Ayuso <pablo@netfilter.org>:
+> Updates on this?
+>
+> Pablo Neira Ayuso wrote:
+>> Anton wrote:
+>>> Pablo,
+>>>
+>>> Just a little more thought, this happened when my
+>>> application attempted to create a NEW queue, while in
+>>> kernel packet queue overrun situation. And after calling
+>>> the nfq_create_queue there was no return from it, and only
+>>> error message generation in the loop inside the
+>>> libnetfilter_queue library. Looks like not a very proper
+>>> behaviour. Am I missing something?
+>>
+>> Oh I see, I did not get the point initially. Does this patch fix the
+>> problem?
+>>
+>>
+>>
+>> ------------------------------------------------------------------------
+>>
+>> diff --git a/src/libnetfilter_queue.c b/src/libnetfilter_queue.c
+>> index 9e4903b..ec17595 100644
+>> --- a/src/libnetfilter_queue.c
+>> +++ b/src/libnetfilter_queue.c
+>> @@ -141,7 +141,7 @@ __build_send_cfg_msg(struct nfq_handle *h, u_int8_t command,
+>>       cmd.pf = htons(pf);
+>>       nfnl_addattr_l(&u.nmh, sizeof(u), NFQA_CFG_CMD, &cmd, sizeof(cmd));
+>>
+>> -     return nfnl_talk(h->nfnlh, &u.nmh, 0, 0, NULL, NULL, NULL);
+>> +     return nfnl_query(h->nfnlh, &u.nmh);
+>>  }
+>>
+>>  static int __nfq_rcv_pkt(struct nlmsghdr *nlh, struct nfattr *nfa[],
+>> @@ -553,7 +553,7 @@ int nfq_set_mode(struct nfq_q_handle *qh,
+>>       nfnl_addattr_l(&u.nmh, sizeof(u), NFQA_CFG_PARAMS, &params,
+>>                       sizeof(params));
+>>
+>> -     return nfnl_talk(qh->h->nfnlh, &u.nmh, 0, 0, NULL, NULL, NULL);
+>> +     return nfnl_query(qh->h->nfnlh, &u.nmh);
+>>  }
+>>
+>>  /**
+>> @@ -581,7 +581,7 @@ int nfq_set_queue_maxlen(struct nfq_q_handle *qh,
+>>       nfnl_addattr_l(&u.nmh, sizeof(u), NFQA_CFG_QUEUE_MAXLEN, &queue_maxlen,
+>>                       sizeof(queue_maxlen));
+>>
+>> -     return nfnl_talk(qh->h->nfnlh, &u.nmh, 0, 0, NULL, NULL, NULL);
+>> +     return nfnl_query(qh->h->nfnlh, &u.nmh);
+>>  }
+>>
+>>  /**
+>
+>
+> --
+> "Los honestos son inadaptados sociales" -- Les Luthiers
+>
