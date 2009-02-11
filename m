@@ -1,90 +1,52 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC] netlink broadcast return value
-Date: Wed, 11 Feb 2009 17:54:56 +0100
-Message-ID: <499302E0.4070406@trash.net>
-References: <4985A4C5.4050908@netfilter.org> <20090202.140533.121159038.davem@davemloft.net> <49903B03.2040302@trash.net> <4990B38A.3020207@netfilter.org> <4990BADA.7040309@trash.net> <4990C337.3040704@netfilter.org> <4991863F.3030800@trash.net> <4991CCC1.7080308@netfilter.org> <4992C827.20302@trash.net> <4992FF51.9010507@netfilter.org>
+From: jamal <hadi@cyberus.ca>
+Subject: Re: RFC: introduce xtables global param struct
+Date: Wed, 11 Feb 2009 12:03:10 -0500
+Message-ID: <1234371790.20903.98.camel@dogo.mojatatu.com>
+References: <1234034911.4441.32.camel@dogo.mojatatu.com>
+	 <alpine.LSU.2.00.0902111611140.20223@fbirervta.pbzchgretzou.qr>
+Reply-To: hadi@cyberus.ca
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
+Cc: kaber@trash.net, Pablo Neira Ayuso <pablo@netfilter.org>,
 	netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:54966 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754595AbZBKQzE (ORCPT
+Received: from ey-out-2122.google.com ([74.125.78.24]:3233 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756398AbZBKRFJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Feb 2009 11:55:04 -0500
-In-Reply-To: <4992FF51.9010507@netfilter.org>
+	Wed, 11 Feb 2009 12:05:09 -0500
+Received: by ey-out-2122.google.com with SMTP id 25so34549eya.37
+        for <netfilter-devel@vger.kernel.org>; Wed, 11 Feb 2009 09:05:06 -0800 (PST)
+In-Reply-To: <alpine.LSU.2.00.0902111611140.20223@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> First of all, sorry, this email is probably too long.
+On Wed, 2009-02-11 at 16:13 +0100, Jan Engelhardt wrote:
+> On Saturday 2009-02-07 20:28, jamal wrote:
 
-Indeed, I'm doing some trimminng :)
+> Please post patch inline. I otherwise need to save them
+> and reinsert them into alpine..
 
-> Patrick McHardy wrote:
->> I'm aware of that. But you're adding a policy knob to control the
->> behaviour of a one-to-many interface based on what a single listener
->> (or maybe even two) want. Its not possible anymore to just listen to
->> events for debugging, since that might even lock you out.
+I have problems with my client  with insertion of whitespaces if 
+i do that. I will send the next one inlined and see if Patrick 
+complains when applying.
+
+> >+struct xtables_globals
+> >+{
+> >+	unsigned int option_offset;
+> >+	char *program_version;
+> >+	char *program_name;
+> >+	struct xtables_afinfo *afinfo;
+> >+	struct option *opts;
+> >+};
 > 
-> Can you think of one example where one ctnetlink listener may not find
-> useful reliable state-change reports? Still, this setting is optional
-> (it will be disabled by default) and, if turned on, you can disable it
-> for debugging purposes.
+> These should be const, esp. program_version and program_name.
+> I added myself a patch now.
 
-As I already said, "conntrack -E" used for debugging. Nobody cares
-whether it misses a few events instead of causing dropped packets.
-Whether its on or not by default is secondary to being the right
-thing at all.
+Ok, so you took care of this?
 
-> Thinking more about it, reliable logging and monitoring would be even
-> something interesting in terms of security.
+cheers,
+jamal
 
-I don't doubt that, I question the mechanism.
-
->> This seems very wrong to me. And I don't even see a reason to do
->> this since its easy to use unicast and per-listener state.
-> 
-> Netlink unicast would not be of any help either if you want reliable
-> state-change reporting via ctnetlink. If one process receives the event
-> and the other does not, you would also need to drop the packet to
-> perform reliable logging.
-
-Yes, and you don't need to if you don't want "reliable" logging.
-The point is that you can choose per socket. Only if a socket that
-really wants this doesn't get a copy you drop.
-
->>> Using unicast would not do any different from broadcast as you may have
->>> two listeners receiving state-changes from ctnetlink via unicast, so the
->>> problem would be basically the same as above if you want reliable
->>> state-change information at the cost of dropping packets.
-
-No, its not the same. ctsync sets big receive buffers and requests
-"reliable" delivery, "conntrack -E" does nothing special and doesn't
-care whether messages are dropped because its receive queue is too
-small.
-
->> Only the processes that actually care can specify this behaviour.
-> 
-> No, because this behaviour implies that the packet would be drop if the
-> state-change is not delivered correctly to all. It has to be an on/off
-> behaviour for all listeners.
-
-You keep saying that, but its only the case because the way you
-implemented it requires this. Why would ctsync care whether
-conntrack -E missed a packet?
-
->> [...]
-> I would have to tell sysadmins that conntrackd becomes unreliable under
-> heavy load in full near real-time mode, that would be horrible!.
-> Instead, with this option, I can tell them that, if they have selected
-> full near real-time event-driven synchronization, that reduces performance.
-
-Again, I'm not arguing about the option but about making it a
-sysctl or something that affects all (ctnetlink) sockets whether
-they care or not. You could even make it a per-broadcast listener
-option, but the sysctl is effectively converting broadcast
-operation to reliable unicast semantics and that seems wrong.
