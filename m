@@ -1,41 +1,54 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] libxtables:  Introduce xtables_merge_options()
-Date: Wed, 11 Feb 2009 16:08:30 +0100
-Message-ID: <4992E9EE.9050807@trash.net>
-References: <1234301250.20903.73.camel@dogo.mojatatu.com> <4992BF7C.7010306@trash.net> <alpine.LSU.2.00.0902111604290.20223@fbirervta.pbzchgretzou.qr> <4992E951.9020508@trash.net> <alpine.LSU.2.00.0902111606240.20223@fbirervta.pbzchgretzou.qr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: RFC: introduce xtables global param struct
+Date: Wed, 11 Feb 2009 16:13:59 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0902111611140.20223@fbirervta.pbzchgretzou.qr>
+References: <1234034911.4441.32.camel@dogo.mojatatu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: hadi@cyberus.ca, Pablo Neira Ayuso <pablo@netfilter.org>,
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: kaber@trash.net, Pablo Neira Ayuso <pablo@netfilter.org>,
 	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: jamal <hadi@cyberus.ca>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:52830 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754709AbZBKPIe (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:59472 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751169AbZBKPOB (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Feb 2009 10:08:34 -0500
-In-Reply-To: <alpine.LSU.2.00.0902111606240.20223@fbirervta.pbzchgretzou.qr>
+	Wed, 11 Feb 2009 10:14:01 -0500
+In-Reply-To: <1234034911.4441.32.camel@dogo.mojatatu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Wednesday 2009-02-11 16:05, Patrick McHardy wrote:
->> Jan Engelhardt wrote:
->>> On Wednesday 2009-02-11 13:07, Patrick McHardy wrote:
->>>
->>>> jamal wrote:
->>>>> Sorry, I said i wasnt gonna send more until i hear the ACKs/NACKs on all
->>>>> patches  but found myself with extra cycles; so i am sending 2-3 more.
->>>>> This one is for code reuse so i dont have to keep up in tc/ipt
->>>>> with the latest variant inside iptables.
->>>> I'll wait a few more hours before applying these to give other
->>>> people a chance to review them.
->>>>
->>> Bad for me who wakes up later than that hour  o_O
->> I haven't applied them yet ...
->>
-> Something *did* add 8e90ce6..8b7baeb though.
 
-Yes, I was referring to the last three patches.
+On Saturday 2009-02-07 20:28, jamal wrote:
+>
+>I would like to introduce this new struct so as to pass 
+>localize the globals used and help in symbol renames. 
 
+Please post patch inline. I otherwise need to save them
+and reinsert them into alpine..
+
+>xtables_set_params() is intended to free xtables from depending
+>(as it does right now) on existence of such externally definitions
+>(from iptables/iptables6 etc).
+> 
+>Ive included a sample user - xtables_free_opts() to show
+>how i plan to use it.
+>
+>Let me know what you think before i proceed since i am going
+>to be using this approach as a basis for other changes.
+>
+>cheers,
+>jamal
+>
+
+>+struct xtables_globals
+>+{
+>+	unsigned int option_offset;
+>+	char *program_version;
+>+	char *program_name;
+>+	struct xtables_afinfo *afinfo;
+>+	struct option *opts;
+>+};
+
+These should be const, esp. program_version and program_name.
+I added myself a patch now.
