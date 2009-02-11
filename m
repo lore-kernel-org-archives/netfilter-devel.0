@@ -1,51 +1,39 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] Update jhash.h with the new version of Jenkins' hash
-Date: Tue, 10 Feb 2009 17:17:38 -0800 (PST)
-Message-ID: <20090210.171738.65421666.davem@davemloft.net>
-References: <alpine.DEB.2.00.0902102026060.10299@blackhole.kfki.hu>
+From: Anton <anton.vazir@gmail.com>
+Subject: Re: (nfnl_talk: recvmsg over-run) and (nf_queue: full at 1024 entries, dropping packets(s). Dropped: 582) - bug or just some defaults increase required?
+Date: Wed, 11 Feb 2009 13:48:42 +0500
+Message-ID: <200902111348.43413.anton.vazir@gmail.com>
+References: <c4b050a10902061014w3df3b2c3xe9e6465be79b4e07@mail.gmail.com> <200902091556.25407.anton.vazir@gmail.com> <49901176.6020502@netfilter.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-6"
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: kadlec@blackhole.kfki.hu
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.0902102026060.10299@blackhole.kfki.hu>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.eastera.tj ([82.198.21.18]:57616 "EHLO mail.eastera.tj"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750958AbZBKIsy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 11 Feb 2009 03:48:54 -0500
+In-Reply-To: <49901176.6020502@netfilter.org>
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Date: Tue, 10 Feb 2009 20:40:47 +0100 (CET)
+I'll try to create a test environment for this, since it 
+happened in the production PC, so it hard to just try the 
+patch on production :)
 
-> Please consider applying the following patch:
-> 
-> The current jhash.h implements the lookup2() hash function by Bob Jenkins. 
-> However, lookup2() is outdated as Bob wrote a new hash function called 
-> lookup3(). The new hash function
-> 
-> - mixes better than lookup2(): it passes the check that every input bit 
->   changes every output bit 50% of the time, while lookup2() failed it.
-> - performs better: compiled with -O2 on Core2 Duo, lookup3() 20-40% faster
->   than lookup2() depending on the key length.
-> 
-> The patch replaces the lookup2() implementation of the 'jhash*' 
-> functions with that of lookup3().
-> 
-> You can read a longer comparison of the two and other hash functions at 
-> http://burtleburtle.net/bob/hash/doobs.html.
-> 
-> Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-
-I support this change and I also don't think it makes sense
-to have a jhash3.h new header file, that's just a waste of
-time.  Either the new stuff is better or it isn't, and that
-whole "matching hashes" argument is pure garbage.
-
-But this kind of change isn't for me to decide, changing jhash
-impacts the entire tree not just networking, and also I know
-that Rusty Russell was investigating making this change and
-he even did his own timings on various platforms.
-
-Therefore this needs to be proposed on linux-kernel with appropriate
-parties CC:'d.
-
-Thanks.
+On Monday 09 February 2009 16:20, Pablo Neira Ayuso wrote:
+> Anton wrote:
+> > Pablo,
+> >
+> > Just a little more thought, this happened when my
+> > application attempted to create a NEW queue, while in
+> > kernel packet queue overrun situation. And after
+> > calling the nfq_create_queue there was no return from
+> > it, and only error message generation in the loop
+> > inside the libnetfilter_queue library. Looks like not a
+> > very proper behaviour. Am I missing something?
+>
+> Oh I see, I did not get the point initially. Does this
+> patch fix the problem?
