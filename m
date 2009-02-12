@@ -1,29 +1,30 @@
 From: jamal <hadi@cyberus.ca>
-Subject: [PATCH] libxtables: Set proper name of application.
-Date: Thu, 12 Feb 2009 11:40:23 -0500
-Message-ID: <1234456823.3271.16.camel@dogo.mojatatu.com>
-References: <1234448241.3271.4.camel@dogo.mojatatu.com>
+Subject: [PATCH] libxtables: Introduce xtables_set_revision() and make
+	iptables and ip6tables use it.
+Date: Thu, 12 Feb 2009 11:40:59 -0500
+Message-ID: <1234456859.3271.18.camel@dogo.mojatatu.com>
+References: <1234449814.3271.6.camel@dogo.mojatatu.com>
 Reply-To: hadi@cyberus.ca
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-vjDTpbokLWlOB7BZwbc2"
+Content-Type: multipart/mixed; boundary="=-fkHcyhjAX9za5f+dsh7V"
 Cc: Jan Engelhardt <jengelh@medozas.de>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ew0-f21.google.com ([209.85.219.21]:39681 "EHLO
+Received: from mail-ew0-f21.google.com ([209.85.219.21]:40889 "EHLO
 	mail-ew0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756773AbZBLQmU (ORCPT
+	with ESMTP id S1756934AbZBLQm4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Feb 2009 11:42:20 -0500
-Received: by ewy14 with SMTP id 14so664301ewy.13
-        for <netfilter-devel@vger.kernel.org>; Thu, 12 Feb 2009 08:42:18 -0800 (PST)
-In-Reply-To: <1234448241.3271.4.camel@dogo.mojatatu.com>
+	Thu, 12 Feb 2009 11:42:56 -0500
+Received: by ewy14 with SMTP id 14so664516ewy.13
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 Feb 2009 08:42:54 -0800 (PST)
+In-Reply-To: <1234449814.3271.6.camel@dogo.mojatatu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---=-vjDTpbokLWlOB7BZwbc2
+--=-fkHcyhjAX9za5f+dsh7V
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
@@ -32,141 +33,151 @@ This is a resend.
 cheers,
 jamal
 
---=-vjDTpbokLWlOB7BZwbc2
-Content-Disposition: attachment; filename=iptv2-fix02
-Content-Type: text/plain; name=iptv2-fix02; charset=UTF-8
+--=-fkHcyhjAX9za5f+dsh7V
+Content-Disposition: attachment; filename=iptv3-1
+Content-Type: text/plain; name=iptv3-1; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-commit 10b0261ab18d3f9a8beb541b6e93a4c72e483e39
+commit 8805707deba432b3c07de57923f1b638be7db314
 Author: Jamal Hadi Salim <hadi@cyberus.ca>
-Date:   Wed Feb 11 16:28:31 2009 -0500
+Date:   Thu Feb 12 09:33:59 2009 -0500
 
-    Set proper name of application.
-    Thanks to Jan Engelhardt <jengelh@medozas.de> for
-    catching this.
+    Introduce xtables_set_revision() and make iptables and ip6tables use it.
     
-    Signed-off-by: Jamal Hadi Salim <hadi@cyberus.ca>
+     Signed-off-by: Jamal Hadi Salim <hadi@cyberus.ca>
 
-diff --git a/include/ip6tables.h b/include/ip6tables.h
-index 1956cf0..05a963e 100644
---- a/include/ip6tables.h
-+++ b/include/ip6tables.h
-@@ -14,6 +14,7 @@
- #define ip6t_tryload		xt_tryload
+diff --git a/include/xtables.h.in b/include/xtables.h.in
+index da7ee6b..b0606ee 100644
+--- a/include/xtables.h.in
++++ b/include/xtables.h.in
+@@ -205,6 +205,7 @@ extern void *xtables_malloc(size_t);
+ extern int xtables_insmod(const char *, const char *, bool);
+ extern int xtables_load_ko(const char *, bool);
+ extern int xtables_set_params(struct xtables_globals *xtp);
++extern void xtables_set_revision(char *name, u_int8_t revision);
+ void xtables_free_opts(int reset_offset, struct option *original_opts);
  
- extern int line;
-+extern struct xtables_globals ip6tables_globals;
- 
- /* Your shared library should call one of these. */
- extern int do_command6(int argc, char *argv[], char **table,
-diff --git a/include/iptables.h b/include/iptables.h
-index f7ae0cc..5c48699 100644
---- a/include/iptables.h
-+++ b/include/iptables.h
-@@ -14,6 +14,7 @@
- #define ipt_tryload		xt_tryload
- 
- extern int line;
-+extern struct xtables_globals iptables_globals;
- 
- /* Your shared library should call one of these. */
- extern int do_command(int argc, char *argv[], char **table,
-diff --git a/ip6tables-restore.c b/ip6tables-restore.c
-index acaf97b..3d535de 100644
---- a/ip6tables-restore.c
-+++ b/ip6tables-restore.c
-@@ -133,6 +133,7 @@ int main(int argc, char *argv[])
- 	xtables_program_name = program_name;
- 	xtables_init();
- 	xtables_set_nfproto(NFPROTO_IPV6);
-+	ip6tables_globals.program_name = "ip6tables-restore";
- #ifdef NO_SHARED_LIBS
- 	init_extensions();
- #endif
-diff --git a/ip6tables-save.c b/ip6tables-save.c
-index 32b5992..3af81ab 100644
---- a/ip6tables-save.c
-+++ b/ip6tables-save.c
-@@ -142,6 +142,7 @@ int main(int argc, char *argv[])
- 	xtables_program_name = program_name;
- 	xtables_init();
- 	xtables_set_nfproto(NFPROTO_IPV6);
-+	ip6tables_globals.program_name = "ip6tables-save";
- #ifdef NO_SHARED_LIBS
- 	init_extensions();
- #endif
-diff --git a/ip6tables-standalone.c b/ip6tables-standalone.c
-index cea4818..ab77065 100644
---- a/ip6tables-standalone.c
-+++ b/ip6tables-standalone.c
-@@ -55,6 +55,7 @@ main(int argc, char *argv[])
- 	xtables_program_name = program_name;
- 	xtables_init();
- 	xtables_set_nfproto(NFPROTO_IPV6);
-+	ip6tables_globals.program_name = "ip6tables";
- #ifdef NO_SHARED_LIBS
- 	init_extensions();
- #endif
+ extern struct xtables_match *xtables_find_match(const char *name,
 diff --git a/ip6tables.c b/ip6tables.c
-index 9262b14..541c1a9 100644
+index 541c1a9..b06cf84 100644
 --- a/ip6tables.c
 +++ b/ip6tables.c
-@@ -149,7 +149,6 @@ void ip6tables_exit_error(enum xtables_exittype status, const char *msg, ...) __
- struct xtables_globals ip6tables_globals = {
- 	.option_offset = 0,
- 	.program_version = IPTABLES_VERSION,
--	.program_name = "ip6tables",
- 	.opts = original_opts,
- 	.exit_err = ip6tables_exit_error,
- };
-diff --git a/iptables-restore.c b/iptables-restore.c
-index 810806f..0103016 100644
---- a/iptables-restore.c
-+++ b/iptables-restore.c
-@@ -135,6 +135,7 @@ main(int argc, char *argv[])
- 	xtables_program_name = program_name;
- 	xtables_init();
- 	xtables_set_nfproto(NFPROTO_IPV4);
-+	iptables_globals.program_name = "iptables-restore";
- #ifdef NO_SHARED_LIBS
- 	init_extensions();
- #endif
-diff --git a/iptables-save.c b/iptables-save.c
-index c4306fd..396406f 100644
---- a/iptables-save.c
-+++ b/iptables-save.c
-@@ -142,6 +142,7 @@ main(int argc, char *argv[])
- 	xtables_program_name = program_name;
- 	xtables_init();
- 	xtables_set_nfproto(NFPROTO_IPV4);
-+	iptables_globals.program_name = "iptables-save";
- #ifdef NO_SHARED_LIBS
- 	init_extensions();
- #endif
-diff --git a/iptables-standalone.c b/iptables-standalone.c
-index ece7cf4..007f2c2 100644
---- a/iptables-standalone.c
-+++ b/iptables-standalone.c
-@@ -56,6 +56,7 @@ main(int argc, char *argv[])
- 	xtables_program_name = program_name;
- 	xtables_init();
- 	xtables_set_nfproto(NFPROTO_IPV4);
-+	iptables_globals.program_name = "iptables";
- #ifdef NO_SHARED_LIBS
- 	init_extensions();
- #endif
+@@ -1325,14 +1325,6 @@ static void clear_rule_matches(struct ip6tables_rule_match **matches)
+ 	*matches = NULL;
+ }
+ 
+-static void set_revision(char *name, u_int8_t revision)
+-{
+-	/* Old kernel sources don't have ".revision" field,
+-	   but we stole a byte from name. */
+-	name[IP6T_FUNCTION_MAXNAMELEN - 2] = '\0';
+-	name[IP6T_FUNCTION_MAXNAMELEN - 1] = revision;
+-}
+-
+ int do_command6(int argc, char *argv[], char **table, struct ip6tc_handle **handle)
+ {
+ 	struct ip6t_entry fw, *e = NULL;
+@@ -1597,7 +1589,7 @@ int do_command6(int argc, char *argv[], char **table, struct ip6tc_handle **hand
+ 				target->t = xtables_calloc(1, size);
+ 				target->t->u.target_size = size;
+ 				strcpy(target->t->u.user.name, jumpto);
+-				set_revision(target->t->u.user.name,
++				xtables_set_revision(target->t->u.user.name,
+ 					     target->revision);
+ 				if (target->init != NULL)
+ 					target->init(target->t);
+@@ -1650,7 +1642,7 @@ int do_command6(int argc, char *argv[], char **table, struct ip6tc_handle **hand
+ 			m->m = xtables_calloc(1, size);
+ 			m->m->u.match_size = size;
+ 			strcpy(m->m->u.user.name, m->name);
+-			set_revision(m->m->u.user.name, m->revision);
++			xtables_set_revision(m->m->u.user.name, m->revision);
+ 			if (m->init != NULL)
+ 				m->init(m->m);
+ 			if (m != m->next)
+@@ -1797,7 +1789,7 @@ int do_command6(int argc, char *argv[], char **table, struct ip6tc_handle **hand
+ 					m->m = xtables_calloc(1, size);
+ 					m->m->u.match_size = size;
+ 					strcpy(m->m->u.user.name, m->name);
+-					set_revision(m->m->u.user.name,
++					xtables_set_revision(m->m->u.user.name,
+ 						     m->revision);
+ 					if (m->init != NULL)
+ 						m->init(m->m);
 diff --git a/iptables.c b/iptables.c
-index fe28e50..f8ccad7 100644
+index f8ccad7..e30ebea 100644
 --- a/iptables.c
 +++ b/iptables.c
-@@ -150,7 +150,6 @@ void iptables_exit_error(enum xtables_exittype status, const char *msg, ...) __a
- struct xtables_globals iptables_globals = {
- 	.option_offset = 0,
- 	.program_version = IPTABLES_VERSION,
--	.program_name = "iptables",
- 	.opts = original_opts,
- 	.exit_err = iptables_exit_error,
- };
+@@ -1335,14 +1335,6 @@ static void clear_rule_matches(struct iptables_rule_match **matches)
+ 	*matches = NULL;
+ }
+ 
+-static void set_revision(char *name, u_int8_t revision)
+-{
+-	/* Old kernel sources don't have ".revision" field,
+-	   but we stole a byte from name. */
+-	name[IPT_FUNCTION_MAXNAMELEN - 2] = '\0';
+-	name[IPT_FUNCTION_MAXNAMELEN - 1] = revision;
+-}
+-
+ void
+ get_kernel_version(void) {
+ 	static struct utsname uts;
+@@ -1613,7 +1605,7 @@ int do_command(int argc, char *argv[], char **table, struct iptc_handle **handle
+ 				target->t = xtables_calloc(1, size);
+ 				target->t->u.target_size = size;
+ 				strcpy(target->t->u.user.name, jumpto);
+-				set_revision(target->t->u.user.name,
++				xtables_set_revision(target->t->u.user.name,
+ 					     target->revision);
+ 				if (target->init != NULL)
+ 					target->init(target->t);
+@@ -1672,7 +1664,7 @@ int do_command(int argc, char *argv[], char **table, struct iptc_handle **handle
+ 			m->m = xtables_calloc(1, size);
+ 			m->m->u.match_size = size;
+ 			strcpy(m->m->u.user.name, m->name);
+-			set_revision(m->m->u.user.name, m->revision);
++			xtables_set_revision(m->m->u.user.name, m->revision);
+ 			if (m->init != NULL)
+ 				m->init(m->m);
+ 			if (m != m->next) {
+@@ -1826,7 +1818,7 @@ int do_command(int argc, char *argv[], char **table, struct iptc_handle **handle
+ 					m->m = xtables_calloc(1, size);
+ 					m->m->u.match_size = size;
+ 					strcpy(m->m->u.user.name, m->name);
+-					set_revision(m->m->u.user.name,
++					xtables_set_revision(m->m->u.user.name,
+ 						     m->revision);
+ 					if (m->init != NULL)
+ 						m->init(m->m);
+@@ -1987,7 +1979,7 @@ int do_command(int argc, char *argv[], char **table, struct iptc_handle **handle
+ 			target->t->u.target_size = size;
+ 			strcpy(target->t->u.user.name, jumpto);
+ 			if (!iptc_is_chain(jumpto, *handle))
+-				set_revision(target->t->u.user.name,
++				xtables_set_revision(target->t->u.user.name,
+ 					     target->revision);
+ 			if (target->init != NULL)
+ 				target->init(target->t);
+diff --git a/xtables.c b/xtables.c
+index 114a393..fe3d3f9 100644
+--- a/xtables.c
++++ b/xtables.c
+@@ -99,6 +99,14 @@ void xtables_free_opts(int reset_offset, struct option *original_opts)
+ 	}
+ }
+ 
++void xtables_set_revision(char *name, u_int8_t revision)
++{
++	/* Old kernel sources don't have ".revision" field,
++	*            but we stole a byte from name. */
++	name[XT_FUNCTION_MAXNAMELEN - 2] = '\0';
++	name[XT_FUNCTION_MAXNAMELEN - 1] = revision;
++}
++
+ /**
+  * xtables_afinfo - protocol family dependent information
+  * @kmod:		kernel module basename (e.g. "ip_tables")
 
---=-vjDTpbokLWlOB7BZwbc2--
+--=-fkHcyhjAX9za5f+dsh7V--
 
