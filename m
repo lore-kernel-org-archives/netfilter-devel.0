@@ -1,77 +1,69 @@
-From: Jesper Dangaard Brouer <hawk@diku.dk>
-Subject: Re: Netfilter API and libiptc
-Date: Thu, 12 Feb 2009 11:42:08 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0902121125190.22398@ask.diku.dk>
-References: <20090205141722.GB21417@qubit> <4990636B.9080900@trash.net>
- <20090209183941.GA1050@zenon.in.qult.net> <Pine.LNX.4.64.0902111408210.4822@ask.diku.dk>
- <4992E2B3.3030009@trash.net> <alpine.LSU.2.00.0902111656400.22845@fbirervta.pbzchgretzou.qr>
- <4993AFF9.9010002@trash.net> <alpine.LSU.2.00.0902120640480.32504@fbirervta.pbzchgretzou.qr>
- <Pine.LNX.4.64.0902121014550.22322@ask.diku.dk>
+From: Anton <anton.vazir@gmail.com>
+Subject: Re: (nfnl_talk: recvmsg over-run) and (nf_queue: full at 1024 =?iso-8859-1?q?=09entries?=, dropping packets(s). Dropped: 582) - bug or just some defaults =?iso-8859-1?q?=09increase?= required?
+Date: Thu, 12 Feb 2009 15:45:14 +0500
+Message-ID: <200902121545.16590.anton.vazir@gmail.com>
+References: <c4b050a10902061014w3df3b2c3xe9e6465be79b4e07@mail.gmail.com> <c4b050a10902110426s5e997220r21d615ebf0683bb8@mail.gmail.com> <4992FFD7.9090706@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: Patrick McHardy <kaber@trash.net>, Ignacy Gawedzki <i@lri.fr>,
-	Netfilter Developers <netfilter-devel@vger.kernel.org>,
-	hawk@comx.dk
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mgw1.diku.dk ([130.225.96.91]:35833 "EHLO mgw1.diku.dk"
+Received: from mail.eastera.tj ([82.198.21.18]:39911 "EHLO mail.eastera.tj"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759043AbZBLKmO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Feb 2009 05:42:14 -0500
-In-Reply-To: <Pine.LNX.4.64.0902121014550.22322@ask.diku.dk>
+	id S1755415AbZBLKpZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 12 Feb 2009 05:45:25 -0500
+In-Reply-To: <4992FFD7.9090706@netfilter.org>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 12 Feb 2009, Jesper Dangaard Brouer wrote:
+Pablo,
 
-> On Thu, 12 Feb 2009, Jan Engelhardt wrote:
+Some more info. After applying the patch, If we do try to 
+just create 100 QUEUE's by the test code - on the test PC, 
+with _no_ transit traffic, routed to QUEUE's - it works 
+fine, queues created with no problem. 
+But if we do this on the live PC, with trasit traffic routed 
+to queues - we came to the problem once in a few queues. 
+We localized the place, and the sequence is as follows:
+nfnl_query=>nfnl_catch=>nfnl_process
+
+and in the nfnl_process
+
+if (nlh->nlmsg_seq && nlh->nlmsg_seq != h->seq) {
+                errno = EILSEQ;
+                return -1;
+}
+
+and varibales are
+nlh->msg_seq=1234422225, h->seq=1234422229.
+
+EILSEQ=84
+strerr(84) returns "Invalid or incomplete multibyte or wide 
+character"
+
+Any clue on this?
+
+Regards,
+Anton.
+
+On Wednesday 11 February 2009 21:41, Pablo Neira Ayuso 
+wrote:
+> Anton VG wrote:
+> > Pablo,
+> >
+> > On 64bit system, after applying the patch,
+> > nfq_create_queue() started to oftenly return NULL, and
+> > calling
+> > strerror(errno) - I've got a error "Invalid or
+> > incomplete multibyte or wide character".
+> >
+> > On 32bit it works. This have been tested with only 2x
+> > simultaneous queues Any thoughts?
 >
->>  If Jesper then wants to play with the API, no problem, just
->>  don't forget bumping the so_version correctly.
->
-> I'll try it out today... lets see how intrusive it is...
-
-That was almost too easy...
-
-Although, Jan has priviously introduced some libiptc API changes, so I had 
-to adjust my old example/test libiptc programs a bit. e.g. removed the 
-typedef iptc_handle_t.
-
-Whats missing is that the libiptc.h header file should be installed.
-My patch below is not doing the right thing. I don't know automake well 
-enough, to make it create a directory libiptc/ under include/ where it 
-should install libiptc.h.
-
-Cheers,
-   Jesper Brouer
-
---
--------------------------------------------------------------------
-MSc. Master of Computer Science
-Dept. of Computer Science, University of Copenhagen
-Author of http://www.adsl-optimizer.dk
--------------------------------------------------------------------
-
-commit af01026f992347b70bcad05eda750b3808d7e970
-Author: Jesper Dangaard Brouer <hawk@comx.dk>
-Date:   Thu Feb 12 11:32:09 2009 +0100
-
-     Install the libiptc.h header file.
-
-     This patch is not what I really want, as it installs libiptc.h directly in
-     include/ where is should be placed in include/libiptc/ to comply with the
-     old standard.  The problem is that I don't know automake well enough...
-
-diff --git a/Makefile.am b/Makefile.am
-index 274b015..85dd1c7 100644
---- a/Makefile.am
-+++ b/Makefile.am
-@@ -81,7 +81,7 @@ man_MANS         = iptables.8 iptables-restore.8 iptables-save.8 \
-                     ip6tables-save.8
-  CLEANFILES       = iptables.8 ip6tables.8
-  if ENABLE_DEVEL
--include_HEADERS  = include/xtables.h
-+include_HEADERS  = include/xtables.h include/libiptc/libiptc.h
-  endif
-
-  if ENABLE_STATIC
+> Let me check this. Do you think that I can reproduce it
+> with the test file in libnetfilter_queue? If you can pass
+> something similar to your code to reproduce the problem,
+> it would be great. Thanks.
