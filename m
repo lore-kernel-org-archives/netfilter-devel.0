@@ -1,37 +1,55 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] libxtables: Set proper name of application.
-Date: Thu, 12 Feb 2009 16:10:17 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0902121609190.5658@fbirervta.pbzchgretzou.qr>
-References: <1234448241.3271.4.camel@dogo.mojatatu.com>
+Subject: Re: [PATCH] libxtables: Dont initialize global xt_params
+Date: Thu, 12 Feb 2009 16:14:23 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0902121612200.5658@fbirervta.pbzchgretzou.qr>
+References: <1234448162.3271.1.camel@dogo.mojatatu.com> <200902121609.43664.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>,
+Cc: hadi@cyberus.ca, Patrick McHardy <kaber@trash.net>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	netfilter-devel@vger.kernel.org
-To: jamal <hadi@cyberus.ca>
+To: Thomas Jarosch <thomas.jarosch@intra2net.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:49059 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:36442 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758854AbZBLPKS (ORCPT
+	with ESMTP id S1756312AbZBLPOY (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Feb 2009 10:10:18 -0500
-In-Reply-To: <1234448241.3271.4.camel@dogo.mojatatu.com>
+	Thu, 12 Feb 2009 10:14:24 -0500
+In-Reply-To: <200902121609.43664.thomas.jarosch@intra2net.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Thursday 2009-02-12 15:17, jamal wrote:
-
->commit 10b0261ab18d3f9a8beb541b6e93a4c72e483e39
->Author: Jamal Hadi Salim <hadi@cyberus.ca>
->Date:   Wed Feb 11 16:28:31 2009 -0500
+On Thursday 2009-02-12 16:09, Thomas Jarosch wrote:
+>> -struct xtables_globals *xt_params = NULL;
+>> +struct xtables_globals *xt_params;
 >
->    Set proper name of application.
->    Thanks to Jan Engelhardt <jengelh@medozas.de> for
->    catching this.
->    
->    Signed-off-by: Jamal Hadi Salim <hadi@cyberus.ca>
+>Thanks for your patch. Did you know about zeroing of .bss before?
+>
+>I see two possible drawbacks using this style:
+>
+>1. Other people which don't know this "trick" will think
+>the variable is not initialized -> Hard to read.
 
-If you cannot avoid the patch getting whitespace-mingled (as it did), 
-please send it as attachment.
+Well, maybe then they should get a better C book --
+automatic initialization is said to be(*) part of the C standard.
+And one should know the standard of a language IMHO.
+
+(*) Because it is not free, it remains a saga from people who do
+have access to it. :p
+
+>2. If that variable gets moved f.e. inside a function, it will become 
+>uninitialized. Also I'm not sure if the savings are even measurable...
+
+It seems to be for the Linux kernel. Especially when you happen
+to have large globals (both a lot of them, and large; e.g.
+foo[NR_CUPS]) this becomes a concern.
+
+
+Just my 2 ints. (Oh wait, move them to bss!)
+
+>
+>Just my two cents
+>Thomas
+>
 
