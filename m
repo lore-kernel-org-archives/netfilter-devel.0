@@ -1,290 +1,367 @@
-From: Adam Nielsen <a.nielsen@shikadi.net>
-Subject: [PATCH 2/2 v5] New netfilter target to trigger LED devices
-Date: Thu, 12 Feb 2009 21:51:52 +1000
-Message-ID: <49940D58.3040404@shikadi.net>
-References: <49934702.9060909@shikadi.net> <4993B34C.1020307@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [RFC] netlink broadcast return value
+Date: Thu, 12 Feb 2009 13:36:51 +0100
+Message-ID: <499417E3.5010304@netfilter.org>
+References: <4985A4C5.4050908@netfilter.org> <20090202.140533.121159038.davem@davemloft.net> <49903B03.2040302@trash.net> <4990B38A.3020207@netfilter.org> <4990BADA.7040309@trash.net> <4990C337.3040704@netfilter.org> <4991863F.3030800@trash.net> <4991CCC1.7080308@netfilter.org> <4992C827.20302@trash.net> <4992FF51.9010507@netfilter.org> <499302E0.4070406@trash.net> <49933CBE.8010108@netfilter.org> <4993AE94.1000104@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, rpurdie@linux.intel.com
+Content-Type: multipart/mixed;
+ boundary="------------080402060200080807060602"
+Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from vitalin.sorra.shikadi.net ([64.71.152.201]:2569 "EHLO
-	vitalin.sorra.shikadi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758693AbZBLLwB (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Feb 2009 06:52:01 -0500
-In-Reply-To: <4993B34C.1020307@trash.net>
+Received: from mail.us.es ([193.147.175.20]:46989 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1756607AbZBLMhP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 12 Feb 2009 07:37:15 -0500
+In-Reply-To: <4993AE94.1000104@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Kernel module providing implementation of LED netfilter target.  Each
-instance of the target appears as a led-trigger device, which can be
-associated with one or more LEDs in /sys/class/leds/
+This is a multi-part message in MIME format.
+--------------080402060200080807060602
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Adam Nielsen <a.nielsen@shikadi.net>
+Patrick McHardy wrote:
+> Pablo Neira Ayuso wrote:
+>> And again, you point that this should be per-socket, but how can you
+>> make this option per-socket? The only way that I see to make
+>> state-change reporting reliable is to drop the packet to force the peer
+>> to retransmit the packet and trigger the same state-change, and that
+>> affect all ctnetlink listeners.
+> 
+> For unicast its obviously simple, for broadcast you'd need something
+> like this:
+> 
+> err = 0;
+> for (all netlink sockets; sk && !err; ...) {
+>     skb = skb_clone(...)
+>     if (skb == NULL) {
+>         if (sk->flags & NETLINK_HIGHLY_RELIABLE)
+>             err = -ENOBUFS;
+>         continue;
+>     }
+>     ...
+> }
+> 
+> So you're returning an error when at least one of the "reliable"
+> sockets doesn't get its delivery.
 
+Patrick, I like it, I'm fine with this approach as soon as it let me add
+the "reliable" ctnetlink state-change reporting. I can add the following
+on top of the patch that David already applied:
+
+--- a/net/netlink/af_netlink.c
++++ b/net/netlink/af_netlink.c
+[...]
+@@ -999,6 +1000,7 @@ static inline int do_one_broadcast(struct sock *sk,
+ 		p->skb2 = NULL;
+ 	} else if ((val = netlink_broadcast_deliver(sk, p->skb2)) < 0) {
+ 		netlink_overrun(sk);
++		p->delivery_failure = 1;
+                ^^^^^^^^^^^^^^^^^^^^^^^^
+Replace this by:
++		if (nlk->flags & NETLINK_HIGHLY_RELIABLE)
++			p->delivery_failure = 1;
+
+And include the flag definition and setsockopt() operations in the new
+patch, of course.
+
+Please, find the previous patch that was applied to net-next tree
+enclosed to save you some time in case that you don't know what patch I
+was refering to. I think that the changes (several drivers and such) are
+still useful, as they should ignore the return value of
+netlink_broadcast() since it's not of any use for them (as we already
+discussed, they printk the error, that's useless).
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
+
+--------------080402060200080807060602
+Content-Type: text/x-diff;
+ name="netlink-broadcast-delivery-failure.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="netlink-broadcast-delivery-failure.patch"
+
+netlink: change return-value logic of netlink_broadcast()
+
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+
+Currently, netlink_broadcast() reports errors to the caller if no
+messages at all were delivered:
+
+1) If, at least, one message has been delivered correctly, returns 0.
+2) Otherwise, if no messages at all were delivered due to skb_clone()
+   failure, return -ENOBUFS.
+3) Otherwise, if there are no listeners, return -ESRCH.
+
+With this patch, the caller knows if the delivery of any of the
+messages to the listeners have failed:
+
+1) If it fails to deliver any message (for whatever reason), return
+   -ENOBUFS.
+2) Otherwise, if all messages were delivered OK, returns 0.
+3) Otherwise, if no listeners, return -ESRCH.
+
+In the current ctnetlink code and in Netfilter in general, we can add
+reliable logging and connection tracking event delivery by dropping the
+packets whose events were not successfully delivered over Netlink. Of
+course, this option would be settable via /proc as this approach reduces
+performance (in terms of filtered connections per seconds by a stateful
+firewall) but providing reliable logging and event delivery (for
+conntrackd) in return.
+
+This patch also changes some clients of netlink_broadcast() that
+may report ENOBUFS errors via printk. This error handling is not
+of any help. Instead, the userspace daemons that are listening to
+those netlink messages should resync themselves with the kernel-side
+if they hit ENOBUFS.
+
+BTW, netlink_broadcast() clients include those that call
+cn_netlink_send(), nlmsg_multicast() and genlmsg_multicast() since they
+internally call netlink_broadcast() and return its error value.
+
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
 
-Thanks for the feedback Patrick - here is the updated version with
-your suggestions:
+ drivers/acpi/event.c                |    6 +-----
+ drivers/scsi/scsi_transport_fc.c    |   16 ++++------------
+ drivers/scsi/scsi_transport_iscsi.c |   12 ++----------
+ drivers/video/uvesafb.c             |    5 ++++-
+ fs/dquot.c                          |    5 +----
+ lib/kobject_uevent.c                |    3 +++
+ net/netlink/af_netlink.c            |    8 ++++++--
+ net/wimax/op-msg.c                  |    9 +++------
+ net/wimax/stack.c                   |   12 ++++--------
+ 9 files changed, 28 insertions(+), 48 deletions(-)
 
-  - Mutexes removed - I concede that missing a blink here and there
-    is acceptable :-)
-  - KERN_ERR used for non-critical errors, all KERN_NOTICEs removed
-  - Split assignment out from comparison in kzalloc()
 
-Hope this one's okay!
+diff --git a/drivers/acpi/event.c b/drivers/acpi/event.c
+index 0c24bd4..aeb7e5f 100644
+--- a/drivers/acpi/event.c
++++ b/drivers/acpi/event.c
+@@ -235,11 +235,7 @@ int acpi_bus_generate_netlink_event(const char *device_class,
+ 		return result;
+ 	}
+ 
+-	result =
+-	    genlmsg_multicast(skb, 0, acpi_event_mcgrp.id, GFP_ATOMIC);
+-	if (result)
+-		ACPI_DEBUG_PRINT((ACPI_DB_INFO,
+-				  "Failed to send a Genetlink message!\n"));
++	genlmsg_multicast(skb, 0, acpi_event_mcgrp.id, GFP_ATOMIC);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/scsi/scsi_transport_fc.c b/drivers/scsi/scsi_transport_fc.c
+index 5f77417..3ee4eb4 100644
+--- a/drivers/scsi/scsi_transport_fc.c
++++ b/drivers/scsi/scsi_transport_fc.c
+@@ -533,12 +533,8 @@ fc_host_post_event(struct Scsi_Host *shost, u32 event_number,
+ 	event->event_code = event_code;
+ 	event->event_data = event_data;
+ 
+-	err = nlmsg_multicast(scsi_nl_sock, skb, 0, SCSI_NL_GRP_FC_EVENTS,
+-			      GFP_KERNEL);
+-	if (err && (err != -ESRCH))	/* filter no recipient errors */
+-		/* nlmsg_multicast already kfree_skb'd */
+-		goto send_fail;
+-
++	nlmsg_multicast(scsi_nl_sock, skb, 0, SCSI_NL_GRP_FC_EVENTS,
++			GFP_KERNEL);
+ 	return;
+ 
+ send_fail_skb:
+@@ -607,12 +603,8 @@ fc_host_post_vendor_event(struct Scsi_Host *shost, u32 event_number,
+ 	event->event_code = FCH_EVT_VENDOR_UNIQUE;
+ 	memcpy(&event->event_data, data_buf, data_len);
+ 
+-	err = nlmsg_multicast(scsi_nl_sock, skb, 0, SCSI_NL_GRP_FC_EVENTS,
+-			      GFP_KERNEL);
+-	if (err && (err != -ESRCH))	/* filter no recipient errors */
+-		/* nlmsg_multicast already kfree_skb'd */
+-		goto send_vendor_fail;
+-
++	nlmsg_multicast(scsi_nl_sock, skb, 0, SCSI_NL_GRP_FC_EVENTS,
++			GFP_KERNEL);
+ 	return;
+ 
+ send_vendor_fail_skb:
+diff --git a/drivers/scsi/scsi_transport_iscsi.c b/drivers/scsi/scsi_transport_iscsi.c
+index 75c9297..2adfab8 100644
+--- a/drivers/scsi/scsi_transport_iscsi.c
++++ b/drivers/scsi/scsi_transport_iscsi.c
+@@ -966,15 +966,7 @@ iscsi_if_transport_lookup(struct iscsi_transport *tt)
+ static int
+ iscsi_broadcast_skb(struct sk_buff *skb, gfp_t gfp)
+ {
+-	int rc;
+-
+-	rc = netlink_broadcast(nls, skb, 0, 1, gfp);
+-	if (rc < 0) {
+-		printk(KERN_ERR "iscsi: can not broadcast skb (%d)\n", rc);
+-		return rc;
+-	}
+-
+-	return 0;
++	return netlink_broadcast(nls, skb, 0, 1, gfp);
+ }
+ 
+ static int
+@@ -1207,7 +1199,7 @@ int iscsi_session_event(struct iscsi_cls_session *session,
+ 	 * the user and when the daemon is restarted it will handle it
+ 	 */
+ 	rc = iscsi_broadcast_skb(skb, GFP_KERNEL);
+-	if (rc < 0)
++	if (rc == -ESRCH)
+ 		iscsi_cls_session_printk(KERN_ERR, session,
+ 					 "Cannot notify userspace of session "
+ 					 "event %u. Check iscsi daemon\n",
+diff --git a/drivers/video/uvesafb.c b/drivers/video/uvesafb.c
+index 6c2d37f..74ae758 100644
+--- a/drivers/video/uvesafb.c
++++ b/drivers/video/uvesafb.c
+@@ -204,8 +204,11 @@ static int uvesafb_exec(struct uvesafb_ktask *task)
+ 		} else {
+ 			v86d_started = 1;
+ 			err = cn_netlink_send(m, 0, gfp_any());
++			if (err == -ENOBUFS)
++				err = 0;
+ 		}
+-	}
++	} else if (err == -ENOBUFS)
++		err = 0;
+ 
+ 	if (!err && !(task->t.flags & TF_EXIT))
+ 		err = !wait_for_completion_timeout(task->done,
+diff --git a/fs/dquot.c b/fs/dquot.c
+index bca3cac..d6add0b 100644
+--- a/fs/dquot.c
++++ b/fs/dquot.c
+@@ -1057,10 +1057,7 @@ static void send_warning(const struct dquot *dquot, const char warntype)
+ 		goto attr_err_out;
+ 	genlmsg_end(skb, msg_head);
+ 
+-	ret = genlmsg_multicast(skb, 0, quota_genl_family.id, GFP_NOFS);
+-	if (ret < 0 && ret != -ESRCH)
+-		printk(KERN_ERR
+-			"VFS: Failed to send notification message: %d\n", ret);
++	genlmsg_multicast(skb, 0, quota_genl_family.id, GFP_NOFS);
+ 	return;
+ attr_err_out:
+ 	printk(KERN_ERR "VFS: Not enough space to compose quota message!\n");
+diff --git a/lib/kobject_uevent.c b/lib/kobject_uevent.c
+index 318328d..3813102 100644
+--- a/lib/kobject_uevent.c
++++ b/lib/kobject_uevent.c
+@@ -227,6 +227,9 @@ int kobject_uevent_env(struct kobject *kobj, enum kobject_action action,
+ 			NETLINK_CB(skb).dst_group = 1;
+ 			retval = netlink_broadcast(uevent_sock, skb, 0, 1,
+ 						   GFP_KERNEL);
++			/* ENOBUFS should be handled in userspace */
++			if (retval == -ENOBUFS)
++				retval = 0;
+ 		} else
+ 			retval = -ENOMEM;
+ 	}
+diff --git a/net/netlink/af_netlink.c b/net/netlink/af_netlink.c
+index 9eb895c..6ee69c2 100644
+--- a/net/netlink/af_netlink.c
++++ b/net/netlink/af_netlink.c
+@@ -950,6 +950,7 @@ struct netlink_broadcast_data {
+ 	u32 pid;
+ 	u32 group;
+ 	int failure;
++	int delivery_failure;
+ 	int congested;
+ 	int delivered;
+ 	gfp_t allocation;
+@@ -999,6 +1000,7 @@ static inline int do_one_broadcast(struct sock *sk,
+ 		p->skb2 = NULL;
+ 	} else if ((val = netlink_broadcast_deliver(sk, p->skb2)) < 0) {
+ 		netlink_overrun(sk);
++		p->delivery_failure = 1;
+ 	} else {
+ 		p->congested |= val;
+ 		p->delivered = 1;
+@@ -1025,6 +1027,7 @@ int netlink_broadcast(struct sock *ssk, struct sk_buff *skb, u32 pid,
+ 	info.pid = pid;
+ 	info.group = group;
+ 	info.failure = 0;
++	info.delivery_failure = 0;
+ 	info.congested = 0;
+ 	info.delivered = 0;
+ 	info.allocation = allocation;
+@@ -1045,13 +1048,14 @@ int netlink_broadcast(struct sock *ssk, struct sk_buff *skb, u32 pid,
+ 	if (info.skb2)
+ 		kfree_skb(info.skb2);
+ 
++	if (info.delivery_failure || info.failure)
++		return -ENOBUFS;
++
+ 	if (info.delivered) {
+ 		if (info.congested && (allocation & __GFP_WAIT))
+ 			yield();
+ 		return 0;
+ 	}
+-	if (info.failure)
+-		return -ENOBUFS;
+ 	return -ESRCH;
+ }
+ EXPORT_SYMBOL(netlink_broadcast);
+diff --git a/net/wimax/op-msg.c b/net/wimax/op-msg.c
+index cb3b4ad..5d149c1 100644
+--- a/net/wimax/op-msg.c
++++ b/net/wimax/op-msg.c
+@@ -258,7 +258,6 @@ EXPORT_SYMBOL_GPL(wimax_msg_len);
+  */
+ int wimax_msg_send(struct wimax_dev *wimax_dev, struct sk_buff *skb)
+ {
+-	int result;
+ 	struct device *dev = wimax_dev->net_dev->dev.parent;
+ 	void *msg = skb->data;
+ 	size_t size = skb->len;
+@@ -266,11 +265,9 @@ int wimax_msg_send(struct wimax_dev *wimax_dev, struct sk_buff *skb)
+ 
+ 	d_printf(1, dev, "CTX: wimax msg, %zu bytes\n", size);
+ 	d_dump(2, dev, msg, size);
+-	result = genlmsg_multicast(skb, 0, wimax_gnl_mcg.id, GFP_KERNEL);
+-	d_printf(1, dev, "CTX: genl multicast result %d\n", result);
+-	if (result == -ESRCH)	/* Nobody connected, ignore it */
+-		result = 0;	/* btw, the skb is freed already */
+-	return result;
++	genlmsg_multicast(skb, 0, wimax_gnl_mcg.id, GFP_KERNEL);
++	d_printf(1, dev, "CTX: genl multicast done\n");
++	return 0;
+ }
+ EXPORT_SYMBOL_GPL(wimax_msg_send);
+ 
+diff --git a/net/wimax/stack.c b/net/wimax/stack.c
+index 3869c03..a0ee76b 100644
+--- a/net/wimax/stack.c
++++ b/net/wimax/stack.c
+@@ -163,16 +163,12 @@ int wimax_gnl_re_state_change_send(
+ 	struct device *dev = wimax_dev_to_dev(wimax_dev);
+ 	d_fnstart(3, dev, "(wimax_dev %p report_skb %p)\n",
+ 		  wimax_dev, report_skb);
+-	if (report_skb == NULL)
++	if (report_skb == NULL) {
++		result = -ENOMEM;
+ 		goto out;
+-	genlmsg_end(report_skb, header);
+-	result = genlmsg_multicast(report_skb, 0, wimax_gnl_mcg.id, GFP_KERNEL);
+-	if (result == -ESRCH)	/* Nobody connected, ignore it */
+-		result = 0;	/* btw, the skb is freed already */
+-	if (result < 0) {
+-		dev_err(dev, "RE_STCH: Error sending: %d\n", result);
+-		nlmsg_free(report_skb);
+ 	}
++	genlmsg_end(report_skb, header);
++	genlmsg_multicast(report_skb, 0, wimax_gnl_mcg.id, GFP_KERNEL);
+ out:
+ 	d_fnend(3, dev, "(wimax_dev %p report_skb %p) = %d\n",
+ 		wimax_dev, report_skb, result);
 
-
-diff -urN linux-2.6.28.3-orig/drivers/leds/Kconfig linux-2.6.28.3/drivers/leds/Kconfig
---- linux-2.6.28.3-orig/drivers/leds/Kconfig	2009-02-03 04:12:10.000000000 +1000
-+++ linux-2.6.28.3/drivers/leds/Kconfig	2009-02-08 22:46:06.844626971 +1000
-@@ -217,4 +217,7 @@
-  	  This allows LEDs to be initialised in the ON state.
-  	  If unsure, say Y.
-
-+comment "iptables trigger is under Netfilter config (LED target)"
-+    depends on LEDS_TRIGGERS
-+
-  endif # NEW_LEDS
-diff -urN linux-2.6.28.3-orig/include/linux/netfilter/Kbuild linux-2.6.28.3/include/linux/netfilter/Kbuild
---- linux-2.6.28.3-orig/include/linux/netfilter/Kbuild	2009-02-03 04:12:10.000000000 +1000
-+++ linux-2.6.28.3/include/linux/netfilter/Kbuild	2009-02-08 22:46:06.911560913 +1000
-@@ -7,6 +7,7 @@
-  header-y += xt_CONNMARK.h
-  header-y += xt_CONNSECMARK.h
-  header-y += xt_DSCP.h
-+header-y += xt_LED.h
-  header-y += xt_MARK.h
-  header-y += xt_NFLOG.h
-  header-y += xt_NFQUEUE.h
-diff -urN linux-2.6.28.3-orig/include/linux/netfilter/xt_LED.h linux-2.6.28.3/include/linux/netfilter/xt_LED.h
---- linux-2.6.28.3-orig/include/linux/netfilter/xt_LED.h	1970-01-01 10:00:00.000000000 +1000
-+++ linux-2.6.28.3/include/linux/netfilter/xt_LED.h	2009-02-12 07:29:19.033631735 +1000
-@@ -0,0 +1,13 @@
-+#ifndef _XT_LED_H
-+#define _XT_LED_H
-+
-+struct xt_led_info {
-+	char id[27];        /* Unique ID for this trigger in the LED class */
-+	__u8 always_blink;  /* Blink even if the LED is already on */
-+	__u32 delay;        /* Delay until LED is switched off after trigger */
-+
-+	/* Kernel data used in the module */
-+	void *internal_data __attribute__((aligned(8)));
-+};
-+
-+#endif /* _XT_LED_H */
-diff -urN linux-2.6.28.3-orig/net/netfilter/Kconfig linux-2.6.28.3/net/netfilter/Kconfig
---- linux-2.6.28.3-orig/net/netfilter/Kconfig	2009-02-03 04:12:10.000000000 +1000
-+++ linux-2.6.28.3/net/netfilter/Kconfig	2009-02-08 22:46:06.982631079 +1000
-@@ -357,6 +357,30 @@
-
-  	  To compile it as a module, choose M here.  If unsure, say N.
-
-+config NETFILTER_XT_TARGET_LED
-+    tristate '"LED" target support'
-+    depends on LEDS_CLASS
-+    depends on NETFILTER_ADVANCED
-+    help
-+      This option adds a `LED' target, which allows you to blink LEDs in
-+      response to particular packets passing through your machine.
-+
-+      This can be used to turn a spare LED into a network activity LED,
-+      which only flashes in response to FTP transfers, for example.  Or
-+      you could have an LED which lights up for a minute or two every time
-+      somebody connects to your machine via SSH.
-+
-+      You will need support for the "led" class to make this work.
-+
-+      To create an LED trigger for incoming SSH traffic:
-+        iptables -A INPUT -p tcp --dport 22 -j LED --led-trigger-id ssh --led-delay 1000
-+
-+      Then attach the new trigger to an LED on your system:
-+        echo netfilter-ssh > /sys/class/leds/<ledname>/trigger
-+
-+      For more information on the LEDs available on your system, see
-+      Documentation/leds-class.txt
-+
-  config NETFILTER_XT_TARGET_MARK
-  	tristate '"MARK" target support'
-  	default m if NETFILTER_ADVANCED=n
-diff -urN linux-2.6.28.3-orig/net/netfilter/Makefile linux-2.6.28.3/net/netfilter/Makefile
---- linux-2.6.28.3-orig/net/netfilter/Makefile	2009-02-03 04:12:10.000000000 +1000
-+++ linux-2.6.28.3/net/netfilter/Makefile	2009-02-08 22:46:07.031632072 +1000
-@@ -45,6 +45,7 @@
-  obj-$(CONFIG_NETFILTER_XT_TARGET_CONNMARK) += xt_CONNMARK.o
-  obj-$(CONFIG_NETFILTER_XT_TARGET_CONNSECMARK) += xt_CONNSECMARK.o
-  obj-$(CONFIG_NETFILTER_XT_TARGET_DSCP) += xt_DSCP.o
-+obj-$(CONFIG_NETFILTER_XT_TARGET_LED) += xt_LED.o
-  obj-$(CONFIG_NETFILTER_XT_TARGET_MARK) += xt_MARK.o
-  obj-$(CONFIG_NETFILTER_XT_TARGET_NFLOG) += xt_NFLOG.o
-  obj-$(CONFIG_NETFILTER_XT_TARGET_NFQUEUE) += xt_NFQUEUE.o
-diff -urN linux-2.6.28.3-orig/net/netfilter/xt_LED.c linux-2.6.28.3/net/netfilter/xt_LED.c
---- linux-2.6.28.3-orig/net/netfilter/xt_LED.c	1970-01-01 10:00:00.000000000 +1000
-+++ linux-2.6.28.3/net/netfilter/xt_LED.c	2009-02-12 21:23:42.081990028 +1000
-@@ -0,0 +1,162 @@
-+/*
-+ * xt_LED.c - netfilter target to make LEDs blink upon packet matches
-+ *
-+ * Copyright (C) 2008 Adam Nielsen <a.nielsen@shikadi.net>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; version 2 of the License.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-+ * 02110-1301 USA.
-+ *
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/skbuff.h>
-+#include <linux/netfilter/x_tables.h>
-+#include <linux/leds.h>
-+#include <linux/mutex.h>
-+
-+#include <linux/netfilter/xt_LED.h>
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Adam Nielsen <a.nielsen@shikadi.net>");
-+MODULE_DESCRIPTION("Xtables: trigger LED devices on packet match");
-+
-+/*
-+ * This is declared in here (the kernel module) only, to avoid having these
-+ * dependencies in userspace code.  This is what xt_led_info.internal_data
-+ * points to.
-+ */
-+struct xt_led_info_internal {
-+	struct led_trigger netfilter_led_trigger;
-+	struct timer_list timer;
-+};
-+
-+static unsigned int
-+led_tg(struct sk_buff *skb, const struct xt_target_param *par)
-+{
-+	const struct xt_led_info *ledinfo = par->targinfo;
-+	/*noconst*/struct xt_led_info_internal *ledinternal = ledinfo->internal_data;
-+
-+	/*
-+	 * If "always blink" is enabled, and there's still some time until the
-+	 * LED will switch off, briefly switch it off now.
-+	 */
-+	if ((ledinfo->delay > 0) && ledinfo->always_blink
-+		&& timer_pending(&ledinternal->timer))
-+			led_trigger_event(&ledinternal->netfilter_led_trigger,
-+				LED_OFF);
-+
-+	led_trigger_event(&ledinternal->netfilter_led_trigger, LED_FULL);
-+
-+	/* If there's a positive delay, start/update the timer */
-+	if (ledinfo->delay > 0) {
-+		mod_timer(&ledinternal->timer,
-+			jiffies + msecs_to_jiffies(ledinfo->delay));
-+
-+	/* Otherwise if there was no delay given, blink as fast as possible */
-+	} else if (ledinfo->delay == 0) {
-+		led_trigger_event(&ledinternal->netfilter_led_trigger, LED_OFF);
-+	}
-+
-+	/* else the delay is negative, which means switch on and stay on */
-+
-+	return XT_CONTINUE;
-+}
-+
-+static void led_timeout_callback(unsigned long data)
-+{
-+	struct xt_led_info *ledinfo = (struct xt_led_info *)data;
-+	struct xt_led_info_internal *ledinternal = ledinfo->internal_data;
-+
-+	led_trigger_event(&ledinternal->netfilter_led_trigger, LED_OFF);
-+}
-+
-+static bool led_tg_check(const struct xt_tgchk_param *par)
-+{
-+	/*noconst*/ struct xt_led_info *ledinfo = par->targinfo;
-+	struct xt_led_info_internal *ledinternal;
-+	int err;
-+
-+	if (ledinfo->id[0] == '\0') {
-+		printk(KERN_ERR KBUILD_MODNAME ": No 'id' parameter given.\n");
-+		return false;
-+	}
-+
-+	ledinternal = kzalloc(sizeof(struct xt_led_info_internal), GFP_KERNEL);
-+	if (!ledinternal) {
-+		printk(KERN_CRIT KBUILD_MODNAME ": out of memory\n");
-+		return false;
-+	}
-+
-+	ledinternal->netfilter_led_trigger.name = ledinfo->id;
-+
-+	err = led_trigger_register(&ledinternal->netfilter_led_trigger);
-+	if (err) {
-+		printk(KERN_CRIT KBUILD_MODNAME
-+			": led_trigger_register() failed\n");
-+		if (err == -EEXIST)
-+			printk(KERN_ERR KBUILD_MODNAME
-+				": Trigger name is already in use.\n");
-+		goto exit_alloc;
-+	}
-+
-+	/* See if we need to set up a timer */
-+	if (ledinfo->delay > 0)
-+		setup_timer(&ledinternal->timer, led_timeout_callback,
-+			(unsigned long) ledinfo);
-+
-+	ledinfo->internal_data = ledinternal;
-+
-+	return true;
-+
-+exit_alloc:
-+	kfree(ledinternal);
-+
-+	return false;
-+}
-+
-+static void led_tg_destroy(const struct xt_tgdtor_param *par)
-+{
-+	const struct xt_led_info *ledinfo = par->targinfo;
-+	/*noconst*/struct xt_led_info_internal *ledinternal = ledinfo->internal_data;
-+
-+	if (ledinfo->delay > 0)
-+		del_timer_sync(&ledinternal->timer);
-+
-+	led_trigger_unregister(&ledinternal->netfilter_led_trigger);
-+	kfree(ledinternal);
-+}
-+
-+static struct xt_target led_tg_reg __read_mostly = {
-+	.name		= "LED",
-+	.revision	= 0,
-+	.family		= NFPROTO_UNSPEC,
-+	.target		= led_tg,
-+	.targetsize	= XT_ALIGN(sizeof(struct xt_led_info)),
-+	.checkentry	= led_tg_check,
-+	.destroy	= led_tg_destroy,
-+	.me		= THIS_MODULE,
-+};
-+
-+static int __init led_tg_init(void)
-+{
-+	return xt_register_target(&led_tg_reg);
-+}
-+
-+static void __exit led_tg_exit(void)
-+{
-+	xt_unregister_target(&led_tg_reg);
-+}
-+
-+module_init(led_tg_init);
-+module_exit(led_tg_exit);
+--------------080402060200080807060602--
