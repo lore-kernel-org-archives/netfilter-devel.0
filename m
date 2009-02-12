@@ -1,69 +1,86 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: [PATCH] fix source code corruption in ebtables Makefile
-Date: Thu, 12 Feb 2009 21:22:29 +0100
-Message-ID: <49948505.1000700@pandora.be>
-References: <20090211163142.GA28401@tkeitel002.bln.innominate.local>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Re: Passive OS fingerprint xtables match.
+Date: Thu, 12 Feb 2009 12:41:15 -0800
+Message-ID: <20090212204115.GL6759@linux.vnet.ibm.com>
+References: <20090212171245.GA15025@ioremap.net> <20090212174253.GF6759@linux.vnet.ibm.com> <20090212175130.GA16318@ioremap.net>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: bart.de.schuymer@pandora.be, ebtables-devel@lists.sourceforge.net,
-	netfilter-devel@vger.kernel.org
-To: Tino Keitel <tkeitel@innominate.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from jacques.telenet-ops.be ([195.130.132.50]:35657 "EHLO
-	jacques.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751899AbZBLUWe (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Feb 2009 15:22:34 -0500
-In-Reply-To: <20090211163142.GA28401@tkeitel002.bln.innominate.local>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
+	David Miller <davem@davemloft.net>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Evgeniy Polyakov <zbr@ioremap.net>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20090212175130.GA16318@ioremap.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+On Thu, Feb 12, 2009 at 08:51:30PM +0300, Evgeniy Polyakov wrote:
+> Hi.
+> 
+> On Thu, Feb 12, 2009 at 09:42:53AM -0800, Paul E. McKenney (paulmck@linux.vnet.ibm.com) wrote:
+> > > Passive OS fingerprint homepage (archives, examples):
+> > > http://www.ioremap.net/projects/osf
+> > 
+> > I advocate using this to get more accurate censuses of machines
+> > accessing given web servers, given the tendency of browsers to lie
+> > about themselves in order to avoid being shut out of certain web sites.
+> > 
+> > One question about the module-unload sequence below.
+> > 
+> > Given a reasonable answer to that question, I am OK with this from
+> > an RCU viewpoint.
+> 
+> Thanks a lot Paul, but are they actually questions? You answered all of them :)
 
-Thanks for the report. The problem was actually in the naming of the 
-nflog init function, see the update in cvs.
+The last one was.  Your answer was that you prevented any concurrent
+access, but I frankly don't understand the netfilter/connector code
+well enough to do more than simply believe you.
 
-cheers,
-Bart
+							Thanx, Paul
 
-Tino Keitel schreef:
-> Hi,
->
-> the attached patch fixes source code corruption in the static: target
-> of the ebtables userspace Makefile. The sed magic tries to clean up the
-> modified source files, but fails. It ends up with this modifications:
->
-> diff -ru ebtables-v2.0.8-2.orig/extensions/ebt_nflog.c
-> ebtables-v2.0.8-2/extensions/ebt_nflog.c
-> --- ebtables-v2.0.8-2.orig/extensions/ebt_nflog.c       2009-02-11
-> 16:21:37.000000000 +0100
-> +++ ebtables-v2.0.8-2/extensions/ebt_nflog.c    2009-02-11
-> 17:22:58.000000000 +0100
-> @@ -45,7 +45,7 @@
->                "in-kernel queue\n");
->  }
->  
-> -static void nflog_init(struct ebt_entry_watcher *watcher)
-> +static _init(struct ebt_entry_watcher *watcher)
->  {
->         struct ebt_nflog_info *info = (struct ebt_nflog_info
-> *)watcher->data;
->  
-> @@ -165,7 +165,7 @@
->         .name = "nflog",
->         .size = sizeof(struct ebt_nflog_info),
->         .help = nflog_help,
-> -       .init = nflog_init,
-> +       .init _init,
->         .parse = nflog_parse,
->         .final_check = nflog_final_check,
->         .print = nflog_print,
->
-> With the patch, the Makefile makes a backup of the original files and
-> restores it after compilation.
->
-> Signed-off-by: Tino Keitel <tino.keitel@innominate.com>
->
->   
-
+> > > +static void __devexit ipt_osf_fini(void)
+> > > +{
+> > > +	struct ipt_osf_finger *f;
+> > > +	int i;
+> > > +
+> > > +	cn_del_callback(&cn_osf_id);
+> > > +	xt_unregister_match(&ipt_osf_match);
+> > > +
+> > > +	rcu_read_lock();
+> > > +	for (i=0; i<ARRAY_SIZE(ipt_osf_fingers); ++i) {
+> > > +		struct ipt_osf_finger_storage *st = &ipt_osf_fingers[i];
+> > > +
+> > > +		list_for_each_entry_rcu(f, &st->finger_list, finger_entry) {
+> > > +			list_del_rcu(&f->finger_entry);
+> > 
+> > For the above to be safe:
+> > 
+> > o	Any remaining RCU callbacks cannot reference the list
+> > 	(and your callbacks do in fact meet this constraint).
+> 
+> They do not access that list.
+> 
+> > o	Any timers have to have fired or been cancelled (but you
+> > 	don't seem to have any timers, so not a problem).
+> 
+> No timers, tasklets, work queues or whatever else postponing the work.
+> 
+> > o	All pathways to the data structure have to have been
+> > 	shut down.  This is the tough one -- or is it simply
+> > 	a requirement that the guy removing the module has shut
+> > 	down all requests?
+> 
+> They can be accessed via connector configuration, but it is stopped
+> above (and it waits for currently active users to run away);
+> and netfilter path, which should be prevented after match was also
+> unregistered above.
+> 
+> -- 
+> 	Evgeniy Polyakov
+> --
+> To unsubscribe from this list: send the line "unsubscribe netdev" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
