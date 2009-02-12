@@ -1,31 +1,333 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] Update jhash.h with the new version of Jenkins' hash
-Date: Thu, 12 Feb 2009 01:41:26 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0902120141040.23714@fbirervta.pbzchgretzou.qr>
-References: <alpine.DEB.2.00.0902111107480.15665@blackhole.kfki.hu> <20090212001223.GA5757@movementarian.org> <20090211.162928.193706021.davem@davemloft.net>
+Subject: Re: netfilter: half a patch for the pseudoregression
+Date: Thu, 12 Feb 2009 05:28:29 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0902120523040.27713@fbirervta.pbzchgretzou.qr>
+References: <alpine.LSU.2.00.0901272322210.31372@fbirervta.pbzchgretzou.qr> <499057DC.9000102@trash.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: wli@movementarian.org, kadlec@blackhole.kfki.hu,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, rusty@rustcorp.com.au
-To: David Miller <davem@davemloft.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20090211.162928.193706021.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:41983 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751873AbZBLE2c (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 11 Feb 2009 23:28:32 -0500
+In-Reply-To: <499057DC.9000102@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Thursday 2009-02-12 01:29, David Miller wrote:
+On Monday 2009-02-09 17:20, Patrick McHardy wrote:
 >
->> (double)0xdeadbeef/((unsigned long long)1 << 32) is a rather poor
->> approximation of (sqrt(5)-1)/2. If this value which is not the
->> golden ratio is arbitrary, calling it something different from
->> JHASH_GOLDEN_RATIO would surprise the code's readers much less.
+>> netfilter: make proc/net/ip_tables_matches print names from foreign NFPROTO
+>>
+>> The ugliness this code adds could have been better spent at
+>> a full and much more helpful dump.
 >
->Then we can change the name, whatever...
->
->But really, anyone truly interested will read the friggin' web site
->where all the design documents and hash test results live.
+> This might get easier by simply using the same mutex for all families.
 
-Why should we use deadbeef over golden_ratio anyway? It's just a
-random constant. And I'd take the gold over beef anytime ;-)
+There is (probably) a reason this mutex exists - should not touch
+it before analysis to make sure performance does not go down the
+gutter just because cross-nfproto mutex was unified. Maybe Stephen's
+RCU work makes it less of a problem. Have not looked into that.
+
+> The patch looks fine, please resubmit when you have fixed the second
+> half with proper changelog (stating that it fixes a regression and
+> the commit introducing it).
+
+parent de9662219c15ec76867815e1ea4ee6e3bd2d5783 (v2.6.29-rc4-24-gde96622)
+commit 6919d7bc8bc5e0639b6699e06cbb5af1be2d9523
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Thu Feb 12 05:27:45 2009 +0100
+
+netfilter: make proc/net/ip* print names from foreign NFPROTO
+
+When extensions were moved to the NFPROTO_UNSPEC wildcard in
+ab4f21e6fb1c09b13c4c3cb8357babe8223471bd, they disappeared from the
+procfs files.
+
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ net/netfilter/x_tables.c |  199 +++++++++++++++++++++++++++-----------
+ 1 files changed, 142 insertions(+), 57 deletions(-)
+
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index bfbf521..5baccfa 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -827,59 +827,143 @@ static const struct file_operations xt_table_ops = {
+ 	.release = seq_release_net,
+ };
+ 
+-static void *xt_match_seq_start(struct seq_file *seq, loff_t *pos)
++/*
++ * Traverse state for ip{,6}_{tables,matches} for helping crossing
++ * the multi-AF mutexes.
++ */
++struct nf_mttg_trav {
++	struct list_head *head, *curr;
++	uint8_t class, nfproto;
++};
++
++enum {
++	MTTG_TRAV_INIT,
++	MTTG_TRAV_NFP_UNSPEC,
++	MTTG_TRAV_NFP_SPEC,
++	MTTG_TRAV_DONE,
++};
++
++static void *xt_mttg_seq_next(struct seq_file *seq, void *v, loff_t *ppos,
++    bool is_target)
+ {
+-	struct proc_dir_entry *pde = (struct proc_dir_entry *)seq->private;
+-	u_int16_t af = (unsigned long)pde->data;
++	static const uint8_t next_class[] = {
++		[MTTG_TRAV_NFP_UNSPEC] = MTTG_TRAV_NFP_SPEC,
++		[MTTG_TRAV_NFP_SPEC]   = MTTG_TRAV_DONE,
++	};
++	struct nf_mttg_trav *trav = seq->private;
++
++	switch (trav->class) {
++	case MTTG_TRAV_INIT:
++		trav->class = MTTG_TRAV_NFP_UNSPEC;
++		mutex_lock(&xt[NFPROTO_UNSPEC].mutex);
++		trav->head = trav->curr = is_target ?
++			&xt[NFPROTO_UNSPEC].target : &xt[NFPROTO_UNSPEC].match;
++ 		break;
++	case MTTG_TRAV_NFP_UNSPEC:
++		trav->curr = trav->curr->next;
++		if (trav->curr != trav->head)
++			break;
++		mutex_unlock(&xt[NFPROTO_UNSPEC].mutex);
++		mutex_lock(&xt[trav->nfproto].mutex);
++		trav->head = trav->curr = is_target ?
++			&xt[trav->nfproto].target : &xt[trav->nfproto].match;
++		trav->class = next_class[trav->class];
++		break;
++	case MTTG_TRAV_NFP_SPEC:
++		trav->curr = trav->curr->next;
++		if (trav->curr != trav->head)
++			break;
++		/* fallthru, _stop will unlock */
++	default:
++		return NULL;
++	}
+ 
+-	mutex_lock(&xt[af].mutex);
+-	return seq_list_start(&xt[af].match, *pos);
++	if (ppos != NULL)
++		++*ppos;
++	return trav;
+ }
+ 
+-static void *xt_match_seq_next(struct seq_file *seq, void *v, loff_t *pos)
++static void *xt_mttg_seq_start(struct seq_file *seq, loff_t *pos,
++    bool is_target)
+ {
+-	struct proc_dir_entry *pde = (struct proc_dir_entry *)seq->private;
+-	u_int16_t af = (unsigned long)pde->data;
++	struct nf_mttg_trav *trav = seq->private;
++	unsigned int j;
+ 
+-	return seq_list_next(v, &xt[af].match, pos);
++	trav->class = MTTG_TRAV_INIT;
++	for (j = 0; j < *pos; ++j)
++		if (xt_mttg_seq_next(seq, NULL, NULL, is_target) == NULL)
++			return NULL;
++	return trav;
+ }
+ 
+-static void xt_match_seq_stop(struct seq_file *seq, void *v)
++static void xt_mttg_seq_stop(struct seq_file *seq, void *v)
+ {
+-	struct proc_dir_entry *pde = seq->private;
+-	u_int16_t af = (unsigned long)pde->data;
++	struct nf_mttg_trav *trav = seq->private;
++
++	switch (trav->class) {
++	case MTTG_TRAV_NFP_UNSPEC:
++		mutex_unlock(&xt[NFPROTO_UNSPEC].mutex);
++		break;
++	case MTTG_TRAV_NFP_SPEC:
++		mutex_unlock(&xt[trav->nfproto].mutex);
++		break;
++	}
++}
+ 
+-	mutex_unlock(&xt[af].mutex);
++static void *xt_match_seq_start(struct seq_file *seq, loff_t *pos)
++{
++	return xt_mttg_seq_start(seq, pos, false);
+ }
+ 
+-static int xt_match_seq_show(struct seq_file *seq, void *v)
++static void *xt_match_seq_next(struct seq_file *seq, void *v, loff_t *ppos)
+ {
+-	struct xt_match *match = list_entry(v, struct xt_match, list);
++	return xt_mttg_seq_next(seq, v, ppos, false);
++}
+ 
+-	if (strlen(match->name))
+-		return seq_printf(seq, "%s\n", match->name);
+-	else
+-		return 0;
++static int xt_match_seq_show(struct seq_file *seq, void *v)
++{
++	const struct nf_mttg_trav *trav = seq->private;
++	const struct xt_match *match;
++
++	switch (trav->class) {
++	case MTTG_TRAV_NFP_UNSPEC:
++	case MTTG_TRAV_NFP_SPEC:
++		if (trav->curr == trav->head)
++			return 0;
++		match = list_entry(trav->curr, struct xt_match, list);
++		return (*match->name == '\0') ? 0 :
++		       seq_printf(seq, "%s\n", match->name);
++	}
++	return 0;
+ }
+ 
+ static const struct seq_operations xt_match_seq_ops = {
+ 	.start	= xt_match_seq_start,
+ 	.next	= xt_match_seq_next,
+-	.stop	= xt_match_seq_stop,
++	.stop	= xt_mttg_seq_stop,
+ 	.show	= xt_match_seq_show,
+ };
+ 
+ static int xt_match_open(struct inode *inode, struct file *file)
+ {
++	struct seq_file *seq;
++	struct nf_mttg_trav *trav;
+ 	int ret;
+ 
+-	ret = seq_open(file, &xt_match_seq_ops);
+-	if (!ret) {
+-		struct seq_file *seq = file->private_data;
++	trav = kmalloc(sizeof(*trav), GFP_KERNEL);
++	if (trav == NULL)
++		return -ENOMEM;
+ 
+-		seq->private = PDE(inode);
++	ret = seq_open(file, &xt_match_seq_ops);
++	if (ret < 0) {
++		kfree(trav);
++		return ret;
+ 	}
+-	return ret;
++
++	seq = file->private_data;
++	seq->private = trav;
++	trav->nfproto = (unsigned long)PDE(inode)->data;
++	return 0;
+ }
+ 
+ static const struct file_operations xt_match_ops = {
+@@ -887,62 +971,63 @@ static const struct file_operations xt_match_ops = {
+ 	.open	 = xt_match_open,
+ 	.read	 = seq_read,
+ 	.llseek	 = seq_lseek,
+-	.release = seq_release,
++	.release = seq_release_private,
+ };
+ 
+ static void *xt_target_seq_start(struct seq_file *seq, loff_t *pos)
+ {
+-	struct proc_dir_entry *pde = (struct proc_dir_entry *)seq->private;
+-	u_int16_t af = (unsigned long)pde->data;
+-
+-	mutex_lock(&xt[af].mutex);
+-	return seq_list_start(&xt[af].target, *pos);
++	return xt_mttg_seq_start(seq, pos, true);
+ }
+ 
+-static void *xt_target_seq_next(struct seq_file *seq, void *v, loff_t *pos)
++static void *xt_target_seq_next(struct seq_file *seq, void *v, loff_t *ppos)
+ {
+-	struct proc_dir_entry *pde = (struct proc_dir_entry *)seq->private;
+-	u_int16_t af = (unsigned long)pde->data;
+-
+-	return seq_list_next(v, &xt[af].target, pos);
+-}
+-
+-static void xt_target_seq_stop(struct seq_file *seq, void *v)
+-{
+-	struct proc_dir_entry *pde = seq->private;
+-	u_int16_t af = (unsigned long)pde->data;
+-
+-	mutex_unlock(&xt[af].mutex);
++	return xt_mttg_seq_next(seq, v, ppos, true);
+ }
+ 
+ static int xt_target_seq_show(struct seq_file *seq, void *v)
+ {
+-	struct xt_target *target = list_entry(v, struct xt_target, list);
+-
+-	if (strlen(target->name))
+-		return seq_printf(seq, "%s\n", target->name);
+-	else
+-		return 0;
++	const struct nf_mttg_trav *trav = seq->private;
++	const struct xt_target *target;
++
++	switch (trav->class) {
++	case MTTG_TRAV_NFP_UNSPEC:
++	case MTTG_TRAV_NFP_SPEC:
++		if (trav->curr == trav->head)
++			return 0;
++		target = list_entry(trav->curr, struct xt_target, list);
++		return (*target->name == '\0') ? 0 :
++		       seq_printf(seq, "%s\n", target->name);
++	}
++	return 0;
+ }
+ 
+ static const struct seq_operations xt_target_seq_ops = {
+ 	.start	= xt_target_seq_start,
+ 	.next	= xt_target_seq_next,
+-	.stop	= xt_target_seq_stop,
++	.stop	= xt_mttg_seq_stop,
+ 	.show	= xt_target_seq_show,
+ };
+ 
+ static int xt_target_open(struct inode *inode, struct file *file)
+ {
++	struct seq_file *seq;
++	struct nf_mttg_trav *trav;
+ 	int ret;
+ 
+-	ret = seq_open(file, &xt_target_seq_ops);
+-	if (!ret) {
+-		struct seq_file *seq = file->private_data;
++	trav = kmalloc(sizeof(*trav), GFP_KERNEL);
++	if (trav == NULL)
++		return -ENOMEM;
+ 
+-		seq->private = PDE(inode);
++	ret = seq_open(file, &xt_target_seq_ops);
++	if (ret < 0) {
++		kfree(trav);
++		return ret;
+ 	}
+-	return ret;
++
++	seq = file->private_data;
++	seq->private = trav;
++	trav->nfproto = (unsigned long)PDE(inode)->data;
++	return 0;
+ }
+ 
+ static const struct file_operations xt_target_ops = {
+@@ -950,7 +1035,7 @@ static const struct file_operations xt_target_ops = {
+ 	.open	 = xt_target_open,
+ 	.read	 = seq_read,
+ 	.llseek	 = seq_lseek,
+-	.release = seq_release,
++	.release = seq_release_private,
+ };
+ 
+ #define FORMAT_TABLES	"_tables_names"
+-- 
+# Created with git-export-patch
