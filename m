@@ -1,54 +1,37 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Xtables-addon compile failure agains iptables-git (works agains
- v1.4.2)
-Date: Thu, 12 Feb 2009 16:08:16 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0902121604240.5658@fbirervta.pbzchgretzou.qr>
-References: <1234451039.21893.14.camel@localhost.localdomain>
+Subject: Re: [PATCH] libxtables: Set proper name of application.
+Date: Thu, 12 Feb 2009 16:10:17 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0902121609190.5658@fbirervta.pbzchgretzou.qr>
+References: <1234448241.3271.4.camel@dogo.mojatatu.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developers <netfilter-devel@vger.kernel.org>
-To: Jesper Dangaard Brouer <jdb@comx.dk>
+Cc: Patrick McHardy <kaber@trash.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+To: jamal <hadi@cyberus.ca>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:49043 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:49059 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759984AbZBLPIS (ORCPT
+	with ESMTP id S1758854AbZBLPKS (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Feb 2009 10:08:18 -0500
-In-Reply-To: <1234451039.21893.14.camel@localhost.localdomain>
+	Thu, 12 Feb 2009 10:10:18 -0500
+In-Reply-To: <1234448241.3271.4.camel@dogo.mojatatu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Thursday 2009-02-12 16:03, Jesper Dangaard Brouer wrote:
+On Thursday 2009-02-12 15:17, jamal wrote:
 
->Hi Jan,
+>commit 10b0261ab18d3f9a8beb541b6e93a4c72e483e39
+>Author: Jamal Hadi Salim <hadi@cyberus.ca>
+>Date:   Wed Feb 11 16:28:31 2009 -0500
 >
->I wanted to try out your Xtables-addon tree (at
->git://dev.medozas.de/xtables-addons).
->
->It fails compiling it against the latest iptables git tree, but works
->against tag v1.4.2.
+>    Set proper name of application.
+>    Thanks to Jan Engelhardt <jengelh@medozas.de> for
+>    catching this.
+>    
+>    Signed-off-by: Jamal Hadi Salim <hadi@cyberus.ca>
 
-Yes, known issue.
+If you cannot avoid the patch getting whitespace-mingled (as it did), 
+please send it as attachment.
 
->The problem is that:
-> 1. param_act() has been renamed to xtables_param_act()
-> 2. flags has been renamed P_* -> XTF_*
-> 3. string_to_number() converted to xtables_strtoui()
-> 4. strtonum() is renamed to xtables_strtoui()
->
->I tracked down the problem to some of your own commits:
->
-> a41545ca7cde: libxtables: prefix/order - param_act
-> 5f2922cfc0bb: libxtables: prefix/order - strtoui
->
->How do you want to keep Xtables-addon compatible between v1.4.2 and
->v1.4.3?
-
-I decided I do not want to. Once 1.4.3 goes live, Xtables-addons moves
-with it. That makes it easier for me...
-
-As for the user of whom we should be aware too: it is easier to
-upgrade iptables than it is to upgrade the kernel, hence I think it
-is a viable option to spend the time gained by doing so at keeping
-the kernel-level code workable in a wide range of kernel versions.
