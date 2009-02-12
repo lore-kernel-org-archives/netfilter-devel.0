@@ -1,113 +1,43 @@
-From: Evgeniy Polyakov <zbr@ioremap.net>
-Subject: Re: Passive OS fingerprint xtables match (iptables part)
-Date: Thu, 12 Feb 2009 22:18:24 +0300
-Message-ID: <20090212191824.GB17896@ioremap.net>
-References: <20090212171245.GA15025@ioremap.net> <alpine.LSU.2.00.0902121922280.20367@fbirervta.pbzchgretzou.qr>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: Re: [PATCH] Update jhash.h with the new version of Jenkins' hash
+Date: Thu, 12 Feb 2009 11:58:04 -0800
+Message-ID: <m1wsbvctrn.fsf@fess.ebiederm.org>
+References: <alpine.DEB.2.00.0902111107480.15665@blackhole.kfki.hu>
+	<20090212001223.GA5757@movementarian.org>
+	<alpine.DEB.2.00.0902121006440.18739@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
-	David Miller <davem@davemloft.net>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: wli@movementarian.org, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Rusty Russell <rusty@rustcorp.com.au>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from intermatrixgroup.ru ([195.178.208.66]:49231 "EHLO
-	tservice.net.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757571AbZBLTSe (ORCPT
+Received: from out01.mta.xmission.com ([166.70.13.231]:33173 "EHLO
+	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751003AbZBLT6B (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Feb 2009 14:18:34 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.LSU.2.00.0902121922280.20367@fbirervta.pbzchgretzou.qr>
+	Thu, 12 Feb 2009 14:58:01 -0500
+In-Reply-To: <alpine.DEB.2.00.0902121006440.18739@blackhole.kfki.hu> (Jozsef Kadlecsik's message of "Thu\, 12 Feb 2009 10\:11\:43 +0100 \(CET\)")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Feb 12, 2009 at 07:26:53PM +0100, Jan Engelhardt (jengelh@medozas.de) wrote:
-> >#include <xtables.h>
-> >
-> >typedef unsigned int __u32;
-> >typedef unsigned short __u16;
-> >typedef unsigned char __u8;
-> 
-> These should not done here.. it likely causes a "redefinition"
-> warning or compile error of sorts. Include <linux/types.h> if
-> in doubt.
+Jozsef Kadlecsik <kadlec@blackhole.kfki.hu> writes:
 
-It does not since linux/types.h header is not included, but better use
-existing header of course.
+> On Wed, 11 Feb 2009, wli@movementarian.org wrote:
+>
+>> On Wed, Feb 11, 2009 at 11:19:20AM +0100, Jozsef Kadlecsik wrote:
+>> >  /* The golden ration: an arbitrary value */
+>> > -#define JHASH_GOLDEN_RATIO	0x9e3779b9
+>> > +#define JHASH_GOLDEN_RATIO	0xdeadbeef
+>> 
 
-> >static void osf_help(void)
-> >{
-> >	printf("OS fingerprint match options:\n"
-> >		"--genre [!] string	Match a OS genre by passive fingerprinting.\n"
-> 
-> The syntax should be  [!] --genre string, that is what most
-> others use. Then the check_inverse call also be removed.
+0xdeadbeef is a really bad choice of an arbitrary value.  It is
+already used in multiple places.  Only a few of which are currently
+listed in linux/poison.h and if I happened to see that number in a
+debug trace having to sort through all of the possible sources looks
+like a major pain.
 
-ok.
+I don't really care what we call it but somehow 0xdeadbeef strikes me
+as wrong and something that will make debugging harder.
 
-> >static const struct option osf_opts[] = {
-> >	{ .name = "genre",	.has_arg = 1, .flag = 0, .val = '1' },
-> >	{ .name = "ttl",	.has_arg = 1, .flag = 0, .val = '2' },
-> >	{ .name = "log",	.has_arg = 1, .flag = 0, .val = '3' },
-> >	{ .name = "connector",	.has_arg = 0, .flag = 0, .val = '5' },
-> >	{ .name = NULL }
-> >};
-> 
-> .flag can be omitted; .has_arg=true
-> 
-> >			osf_parse_string(argv[optind-1], info);
-> >			if (invert)
-> >				info->flags |= IPT_OSF_INVERT;
-> >			info->len=strlen((char *)info->genre);
-> 
-> This cast seems unnecessary.
-
-Yup.
-
-> >		case '2': /* --ttl */
-> >			if (*flags & IPT_OSF_TTL)
-> >				exit_error(PARAMETER_PROBLEM, "Can't specify multiple ttl parameter");
-> >			*flags |= IPT_OSF_TTL;
-> >			info->flags |= IPT_OSF_TTL;
-> >			info->ttl = atoi(argv[optind-1]);
-> 
-> Make use of xtables_strtoui to do bounds checking on the TTL value.
-
-Hmm...
-$ grep xtables_strtoui -r /tmp/iptables-1.4.2
-$
-
-> >static void osf_save(const void *ip, const struct xt_entry_match *match)
-> >{
-> >	const struct ipt_osf_info *info = (const struct ipt_osf_info*) match->data;
-> >
-> >	printf("--genre %s%s ", (info->flags & IPT_OSF_INVERT) ? "! ": "", info->genre);
-> >}
-> 
-> Similarly, put ! before.
-
-ok.
-
-> >static struct xtables_match osf_match = {
-> >    .name		= "osf",
-> >    .version		= XTABLES_VERSION,
-> >    .size		= XT_ALIGN(sizeof(struct ipt_osf_info)),
-> >    .userspacesize	= XT_ALIGN(sizeof(struct ipt_osf_info)),
-> >    .help		= &osf_help,
-> >    .init		= &osf_init,
-> >    .parse		= &osf_parse,
-> >    .print		= &osf_print,
-> >    .final_check	= &osf_final_check,
-> >    .save		= &osf_save,
-> >    .extra_opts		= osf_opts
-> 
-> The & for function pointers is not needed (and actually makes
-> macro substituion break in some cases, just in case I need
-> an excuse)
-
-Well, having & clearly shows it is a pointer and not a value, especially
-when it is not clear from the name what it should be.
-
--- 
-	Evgeniy Polyakov
+Eric
