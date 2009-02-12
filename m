@@ -1,39 +1,36 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Netfilter API and libiptc
-Date: Thu, 12 Feb 2009 07:34:38 +0100
-Message-ID: <4993C2FE.4080602@trash.net>
-References: <20090205141722.GB21417@qubit> <4990636B.9080900@trash.net> <20090209183941.GA1050@zenon.in.qult.net> <Pine.LNX.4.64.0902111408210.4822@ask.diku.dk> <4992E2B3.3030009@trash.net> <alpine.LSU.2.00.0902111656400.22845@fbirervta.pbzchgretzou.qr> <4993AFF9.9010002@trash.net> <alpine.LSU.2.00.0902120640480.32504@fbirervta.pbzchgretzou.qr> <4993BA81.8030404@trash.net> <alpine.LSU.2.00.0902120706310.32504@fbirervta.pbzchgretzou.qr> <4993BF2A.8040001@trash.net> <alpine.LSU.2.00.0902120721350.4541@fbirervta.pbzchgretzou.qr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Jesper Dangaard Brouer <hawk@diku.dk>, Ignacy Gawedzki <i@lri.fr>,
-	Netfilter Developers <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Subject: netfilter 00/02: netfilter -stable fixes
+Date: Thu, 12 Feb 2009 08:07:35 +0100 (MET)
+Message-ID: <20090212070732.4876.43180.sendpatchset@x2.localnet>
+Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org, davem@davemloft.net
+To: stable@kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:41277 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:41870 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750776AbZBLGen (ORCPT
+	with ESMTP id S1751413AbZBLHHi (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Feb 2009 01:34:43 -0500
-In-Reply-To: <alpine.LSU.2.00.0902120721350.4541@fbirervta.pbzchgretzou.qr>
+	Thu, 12 Feb 2009 02:07:38 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Thursday 2009-02-12 07:18, Patrick McHardy wrote:
->>>> If you write me a script to take care of all the website crap,
->>>> I'll happily release more often :) Its just a major PITA currently.
->>> I'd rather put up some CMS, wordpress or blogger style than writing
->>> scripts. In case of Sourceforge, I use the RSS stuff - and they got
->>> to do storing the news items.
->> We talked about that, Harald is not feeling comfortable using these
->> on the netfilter servers, and I can understand why.
-> 
-> So do I.
-> Even in that case, I'd just skip announcing on netfilter.org.
-> People probably do not visit netfilter.org just to read
-> "We released v[x.y.z(+n)]" three times in a row.
+These patches against the last -stable version fix two netfilter bugs:
 
-Good point, the remaining website is also practically dead for
-years now :)
+- IPv6 conntrack incorrectly created inverted tuples for Node
+  Information Requests
 
+- the sctp match doesn't work at all when matching on the entire
+  chunkmap
+
+Please apply, thanks.
+
+
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |    4 ++--
+ net/netfilter/xt_sctp.c                        |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+Eric Leblond (1):
+      netfilter: fix tuple inversion for Node information request
+
+Qu Haoran (1):
+      netfilter: xt_sctp: sctp chunk mapping doesn't work
