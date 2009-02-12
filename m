@@ -1,183 +1,242 @@
 From: jamal <hadi@cyberus.ca>
-Subject: [PATCH] libxtables: Introduce xtables_set_revision() and make
-	iptables and ip6tables use it.
-Date: Thu, 12 Feb 2009 11:40:59 -0500
-Message-ID: <1234456859.3271.18.camel@dogo.mojatatu.com>
-References: <1234449814.3271.6.camel@dogo.mojatatu.com>
+Subject: [PATCH] libxtables: Make iptables and ip6tables use
+	xtables_free_opts()
+Date: Thu, 12 Feb 2009 11:50:06 -0500
+Message-ID: <1234457406.3271.23.camel@dogo.mojatatu.com>
 Reply-To: hadi@cyberus.ca
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-fkHcyhjAX9za5f+dsh7V"
+Content-Type: multipart/mixed; boundary="=-lNKEAL15lXtZtqM8VjKz"
 Cc: Jan Engelhardt <jengelh@medozas.de>,
 	Pablo Neira Ayuso <pablo@netfilter.org>,
 	netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ew0-f21.google.com ([209.85.219.21]:40889 "EHLO
+Received: from mail-ew0-f21.google.com ([209.85.219.21]:35183 "EHLO
 	mail-ew0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756934AbZBLQm4 (ORCPT
+	with ESMTP id S1757800AbZBLQwC (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Feb 2009 11:42:56 -0500
-Received: by ewy14 with SMTP id 14so664516ewy.13
-        for <netfilter-devel@vger.kernel.org>; Thu, 12 Feb 2009 08:42:54 -0800 (PST)
-In-Reply-To: <1234449814.3271.6.camel@dogo.mojatatu.com>
+	Thu, 12 Feb 2009 11:52:02 -0500
+Received: by mail-ew0-f21.google.com with SMTP id 14so667938ewy.13
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 Feb 2009 08:52:01 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---=-fkHcyhjAX9za5f+dsh7V
+--=-lNKEAL15lXtZtqM8VjKz
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 
-This is a resend.
+
+I have two more patches to send after this which i consider needed
+to complete for tc/m_xt.c future versions - will do later today.
+
+The first one is a rejuvenated version of what i sent yesterday 
+under "[PATCH] libxtables:  Introduce xtables_merge_options()"
+and the second one what i sent under subject "RFC: introduce xtables
+global param struct" sent yesterday.
 
 cheers,
 jamal
 
---=-fkHcyhjAX9za5f+dsh7V
-Content-Disposition: attachment; filename=iptv3-1
-Content-Type: text/plain; name=iptv3-1; charset=UTF-8
+--=-lNKEAL15lXtZtqM8VjKz
+Content-Disposition: attachment; filename=iptv3-2
+Content-Type: text/plain; name=iptv3-2; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 
-commit 8805707deba432b3c07de57923f1b638be7db314
+commit 9ec18ffd759533bb0b2749d82cc832f86e6dd66f
 Author: Jamal Hadi Salim <hadi@cyberus.ca>
-Date:   Thu Feb 12 09:33:59 2009 -0500
+Date:   Thu Feb 12 11:43:01 2009 -0500
 
-    Introduce xtables_set_revision() and make iptables and ip6tables use it.
+    Make iptables and ip6tables use xtables_free_opts()
     
-     Signed-off-by: Jamal Hadi Salim <hadi@cyberus.ca>
+    The patch modifies xtables_globals to introduce orig_opts
+    and xtables_free_opts() to emulate what free_opts used to do.
+    We also get rid of the copies of free_opts() that iptables
+    and ip6tables keep.
+    
+    Signed-off-by: Jamal Hadi Salim <hadi@cyberus.ca>
 
 diff --git a/include/xtables.h.in b/include/xtables.h.in
-index da7ee6b..b0606ee 100644
+index ee1c79b..a4c4cb7 100644
 --- a/include/xtables.h.in
 +++ b/include/xtables.h.in
-@@ -205,6 +205,7 @@ extern void *xtables_malloc(size_t);
- extern int xtables_insmod(const char *, const char *, bool);
+@@ -187,6 +187,7 @@ struct xtables_globals
+ {
+ 	unsigned int option_offset;
+ 	const char *program_name, *program_version;
++	struct option *orig_opts;
+ 	struct option *opts;
+ 	void (*exit_err)(enum xtables_exittype status, const char *msg, ...) __attribute__((noreturn, format(printf,2,3)));
+ };
+@@ -205,7 +206,7 @@ extern int xtables_insmod(const char *, const char *, bool);
  extern int xtables_load_ko(const char *, bool);
  extern int xtables_set_params(struct xtables_globals *xtp);
-+extern void xtables_set_revision(char *name, u_int8_t revision);
- void xtables_free_opts(int reset_offset, struct option *original_opts);
+ extern void xtables_set_revision(char *name, u_int8_t revision);
+-void xtables_free_opts(int reset_offset, struct option *original_opts);
++extern void xtables_free_opts(int reset_offset);
  
  extern struct xtables_match *xtables_find_match(const char *name,
+ 	enum xtables_tryload, struct xtables_rule_match **match);
 diff --git a/ip6tables.c b/ip6tables.c
-index 541c1a9..b06cf84 100644
+index b06cf84..2765308 100644
 --- a/ip6tables.c
 +++ b/ip6tables.c
-@@ -1325,14 +1325,6 @@ static void clear_rule_matches(struct ip6tables_rule_match **matches)
- 	*matches = NULL;
+@@ -150,6 +150,7 @@ struct xtables_globals ip6tables_globals = {
+ 	.option_offset = 0,
+ 	.program_version = IPTABLES_VERSION,
+ 	.opts = original_opts,
++	.orig_opts = original_opts,
+ 	.exit_err = ip6tables_exit_error,
+ };
+ 
+@@ -224,16 +225,6 @@ proto_to_name(u_int8_t proto, int nolookup)
+ 	return NULL;
  }
  
--static void set_revision(char *name, u_int8_t revision)
+-static void free_opts(int reset_offset)
 -{
--	/* Old kernel sources don't have ".revision" field,
--	   but we stole a byte from name. */
--	name[IP6T_FUNCTION_MAXNAMELEN - 2] = '\0';
--	name[IP6T_FUNCTION_MAXNAMELEN - 1] = revision;
+-	if (opts != original_opts) {
+-		free(opts);
+-		opts = original_opts;
+-		if (reset_offset)
+-			global_option_offset = 0;
+-	}
 -}
 -
- int do_command6(int argc, char *argv[], char **table, struct ip6tc_handle **handle)
+ static void
+ exit_tryhelp(int status)
  {
- 	struct ip6t_entry fw, *e = NULL;
-@@ -1597,7 +1589,7 @@ int do_command6(int argc, char *argv[], char **table, struct ip6tc_handle **hand
- 				target->t = xtables_calloc(1, size);
- 				target->t->u.target_size = size;
- 				strcpy(target->t->u.user.name, jumpto);
--				set_revision(target->t->u.user.name,
-+				xtables_set_revision(target->t->u.user.name,
- 					     target->revision);
- 				if (target->init != NULL)
- 					target->init(target->t);
-@@ -1650,7 +1642,7 @@ int do_command6(int argc, char *argv[], char **table, struct ip6tc_handle **hand
- 			m->m = xtables_calloc(1, size);
- 			m->m->u.match_size = size;
- 			strcpy(m->m->u.user.name, m->name);
--			set_revision(m->m->u.user.name, m->revision);
-+			xtables_set_revision(m->m->u.user.name, m->revision);
- 			if (m->init != NULL)
- 				m->init(m->m);
- 			if (m != m->next)
-@@ -1797,7 +1789,7 @@ int do_command6(int argc, char *argv[], char **table, struct ip6tc_handle **hand
- 					m->m = xtables_calloc(1, size);
- 					m->m->u.match_size = size;
- 					strcpy(m->m->u.user.name, m->name);
--					set_revision(m->m->u.user.name,
-+					xtables_set_revision(m->m->u.user.name,
- 						     m->revision);
- 					if (m->init != NULL)
- 						m->init(m->m);
+@@ -241,7 +232,7 @@ exit_tryhelp(int status)
+ 		fprintf(stderr, "Error occurred at line: %d\n", line);
+ 	fprintf(stderr, "Try `%s -h' or '%s --help' for more information.\n",
+ 			program_name, program_name );
+-	free_opts(1);
++	xtables_free_opts(1);
+ 	exit(status);
+ }
+ 
+@@ -351,7 +342,7 @@ ip6tables_exit_error(enum xtables_exittype status, const char *msg, ...)
+ 		fprintf(stderr,
+ 			"Perhaps ip6tables or your kernel needs to be upgraded.\n");
+ 	/* On error paths, make sure that we don't leak memory */
+-	free_opts(1);
++	xtables_free_opts(1);
+ 	exit(status);
+ }
+ 
+@@ -530,7 +521,7 @@ merge_options(struct option *oldopts, const struct option *newopts,
+ 
+ 	merge = malloc(sizeof(struct option) * (num_new + num_old + 1));
+ 	memcpy(merge, oldopts, num_old * sizeof(struct option));
+-	free_opts(0); /* Release previous options merged if any */
++	xtables_free_opts(0); /* Release previous options merged if any */
+ 	for (i = 0; i < num_new; i++) {
+ 		merge[num_old + i] = newopts[i];
+ 		merge[num_old + i].val += *option_offset;
+@@ -2048,7 +2039,7 @@ int do_command6(int argc, char *argv[], char **table, struct ip6tc_handle **hand
+ 	for (i = 0; i < ndaddrs; i++)
+ 		free(&daddrs[i]);
+ 
+-	free_opts(1);
++	xtables_free_opts(1);
+ 
+ 	return ret;
+ }
 diff --git a/iptables.c b/iptables.c
-index f8ccad7..e30ebea 100644
+index e30ebea..0487442 100644
 --- a/iptables.c
 +++ b/iptables.c
-@@ -1335,14 +1335,6 @@ static void clear_rule_matches(struct iptables_rule_match **matches)
- 	*matches = NULL;
- }
+@@ -151,6 +151,7 @@ struct xtables_globals iptables_globals = {
+ 	.option_offset = 0,
+ 	.program_version = IPTABLES_VERSION,
+ 	.opts = original_opts,
++	.orig_opts = original_opts,
+ 	.exit_err = iptables_exit_error,
+ };
  
--static void set_revision(char *name, u_int8_t revision)
+@@ -237,16 +238,6 @@ enum {
+ 	IPT_DOTTED_MASK
+ };
+ 
+-static void free_opts(int reset_offset)
 -{
--	/* Old kernel sources don't have ".revision" field,
--	   but we stole a byte from name. */
--	name[IPT_FUNCTION_MAXNAMELEN - 2] = '\0';
--	name[IPT_FUNCTION_MAXNAMELEN - 1] = revision;
+-	if (opts != original_opts) {
+-		free(opts);
+-		opts = original_opts;
+-		if (reset_offset)
+-			global_option_offset = 0;
+-	}
 -}
 -
- void
- get_kernel_version(void) {
- 	static struct utsname uts;
-@@ -1613,7 +1605,7 @@ int do_command(int argc, char *argv[], char **table, struct iptc_handle **handle
- 				target->t = xtables_calloc(1, size);
- 				target->t->u.target_size = size;
- 				strcpy(target->t->u.user.name, jumpto);
--				set_revision(target->t->u.user.name,
-+				xtables_set_revision(target->t->u.user.name,
- 					     target->revision);
- 				if (target->init != NULL)
- 					target->init(target->t);
-@@ -1672,7 +1664,7 @@ int do_command(int argc, char *argv[], char **table, struct iptc_handle **handle
- 			m->m = xtables_calloc(1, size);
- 			m->m->u.match_size = size;
- 			strcpy(m->m->u.user.name, m->name);
--			set_revision(m->m->u.user.name, m->revision);
-+			xtables_set_revision(m->m->u.user.name, m->revision);
- 			if (m->init != NULL)
- 				m->init(m->m);
- 			if (m != m->next) {
-@@ -1826,7 +1818,7 @@ int do_command(int argc, char *argv[], char **table, struct iptc_handle **handle
- 					m->m = xtables_calloc(1, size);
- 					m->m->u.match_size = size;
- 					strcpy(m->m->u.user.name, m->name);
--					set_revision(m->m->u.user.name,
-+					xtables_set_revision(m->m->u.user.name,
- 						     m->revision);
- 					if (m->init != NULL)
- 						m->init(m->m);
-@@ -1987,7 +1979,7 @@ int do_command(int argc, char *argv[], char **table, struct iptc_handle **handle
- 			target->t->u.target_size = size;
- 			strcpy(target->t->u.user.name, jumpto);
- 			if (!iptc_is_chain(jumpto, *handle))
--				set_revision(target->t->u.user.name,
-+				xtables_set_revision(target->t->u.user.name,
- 					     target->revision);
- 			if (target->init != NULL)
- 				target->init(target->t);
-diff --git a/xtables.c b/xtables.c
-index 114a393..fe3d3f9 100644
---- a/xtables.c
-+++ b/xtables.c
-@@ -99,6 +99,14 @@ void xtables_free_opts(int reset_offset, struct option *original_opts)
- 	}
+ static void
+ exit_tryhelp(int status)
+ {
+@@ -254,7 +245,7 @@ exit_tryhelp(int status)
+ 		fprintf(stderr, "Error occurred at line: %d\n", line);
+ 	fprintf(stderr, "Try `%s -h' or '%s --help' for more information.\n",
+ 			program_name, program_name );
+-	free_opts(1);
++	xtables_free_opts(1);
+ 	exit(status);
  }
  
-+void xtables_set_revision(char *name, u_int8_t revision)
-+{
-+	/* Old kernel sources don't have ".revision" field,
-+	*            but we stole a byte from name. */
-+	name[XT_FUNCTION_MAXNAMELEN - 2] = '\0';
-+	name[XT_FUNCTION_MAXNAMELEN - 1] = revision;
-+}
-+
- /**
-  * xtables_afinfo - protocol family dependent information
-  * @kmod:		kernel module basename (e.g. "ip_tables")
+@@ -364,7 +355,7 @@ iptables_exit_error(enum xtables_exittype status, const char *msg, ...)
+ 		fprintf(stderr,
+ 			"Perhaps iptables or your kernel needs to be upgraded.\n");
+ 	/* On error paths, make sure that we don't leak memory */
+-	free_opts(1);
++	xtables_free_opts(1);
+ 	exit(status);
+ }
+ 
+@@ -536,7 +527,7 @@ merge_options(struct option *oldopts, const struct option *newopts,
+ 	if (merge == NULL)
+ 		return NULL;
+ 	memcpy(merge, oldopts, num_old * sizeof(struct option));
+-	free_opts(0); /* Release previous options merged if any */
++	xtables_free_opts(0); /* Release previous options merged if any */
+ 	for (i = 0; i < num_new; i++) {
+ 		merge[num_old + i] = newopts[i];
+ 		merge[num_old + i].val += *option_offset;
+@@ -1342,7 +1333,7 @@ get_kernel_version(void) {
+ 
+ 	if (uname(&uts) == -1) {
+ 		fprintf(stderr, "Unable to retrieve kernel version.\n");
+-		free_opts(1);
++		xtables_free_opts(1);
+ 		exit(1);
+ 	}
+ 
+@@ -2087,7 +2078,7 @@ int do_command(int argc, char *argv[], char **table, struct iptc_handle **handle
+ 
+ 	free(saddrs);
+ 	free(daddrs);
+-	free_opts(1);
++	xtables_free_opts(1);
+ 
+ 	return ret;
+ }
+diff --git a/xtables.c b/xtables.c
+index fe3d3f9..9b4b27d 100644
+--- a/xtables.c
++++ b/xtables.c
+@@ -88,12 +88,11 @@ int xtables_set_params(struct xtables_globals *xtp)
+ 	return 0;
+ }
+ 
+-void xtables_free_opts(int reset_offset, struct option *original_opts)
++void xtables_free_opts(int reset_offset)
+ {
+-	if (xt_params->opts != original_opts) {
+-		if (original_opts) 
+-			free(xt_params->opts);
+-		xt_params->opts = original_opts;
++	if (xt_params->opts != xt_params->orig_opts) {
++		free(xt_params->opts);
++		xt_params->opts = xt_params->orig_opts;
+ 		if (reset_offset)
+ 			xt_params->option_offset = 0;
+ 	}
 
---=-fkHcyhjAX9za5f+dsh7V--
+--=-lNKEAL15lXtZtqM8VjKz--
 
