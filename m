@@ -1,46 +1,31 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: build: pkg-config file should provide CFLAGS
-Date: Thu, 12 Feb 2009 01:37:31 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0902120137200.21248@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH] Update jhash.h with the new version of Jenkins' hash
+Date: Thu, 12 Feb 2009 01:41:26 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0902120141040.23714@fbirervta.pbzchgretzou.qr>
+References: <alpine.DEB.2.00.0902111107480.15665@blackhole.kfki.hu> <20090212001223.GA5757@movementarian.org> <20090211.162928.193706021.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:55093 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754158AbZBLAhd (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Feb 2009 19:37:33 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: wli@movementarian.org, kadlec@blackhole.kfki.hu,
+	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, rusty@rustcorp.com.au
+To: David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20090211.162928.193706021.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 
-commit b83f1f8f2d15602a76f3af882914995ab11687fb
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Thu Feb 12 01:36:21 2009 +0100
+On Thursday 2009-02-12 01:29, David Miller wrote:
+>
+>> (double)0xdeadbeef/((unsigned long long)1 << 32) is a rather poor
+>> approximation of (sqrt(5)-1)/2. If this value which is not the
+>> golden ratio is arbitrary, calling it something different from
+>> JHASH_GOLDEN_RATIO would surprise the code's readers much less.
+>
+>Then we can change the name, whatever...
+>
+>But really, anyone truly interested will read the friggin' web site
+>where all the design documents and hash test results live.
 
-build: pkg-config file should provide CFLAGS
-
-When libxtables and its header files are installed in a non-default
-directory, -I/-L is needed.
-
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- xtables.pc.in |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
-
-diff --git a/xtables.pc.in b/xtables.pc.in
-index 7246d7b..6960e4f 100644
---- a/xtables.pc.in
-+++ b/xtables.pc.in
-@@ -8,4 +8,5 @@ includedir=@includedir@
- Name:		xtables
- Description:	Shared Xtables code for extensions and iproute2
- Version:	@PACKAGE_VERSION@
--Libs:		-lxtables
-+Libs:		-l${libdir} -lxtables
-+Cflags:		-I${includedir}
--- 
-# Created with git-export-patch
-
+Why should we use deadbeef over golden_ratio anyway? It's just a
+random constant. And I'd take the gold over beef anytime ;-)
