@@ -1,30 +1,50 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] Update jhash.h with the new version of Jenkins' hash
-Date: Wed, 11 Feb 2009 16:29:28 -0800 (PST)
-Message-ID: <20090211.162928.193706021.davem@davemloft.net>
-References: <alpine.DEB.2.00.0902111107480.15665@blackhole.kfki.hu>
-	<20090212001223.GA5757@movementarian.org>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: libxtables: flush before fork
+Date: Thu, 12 Feb 2009 01:30:28 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0902120130070.21248@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: kadlec@blackhole.kfki.hu, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	rusty@rustcorp.com.au
-To: wli@movementarian.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20090212001223.GA5757@movementarian.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: kaber@trash.net
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:34258 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755967AbZBLAa3 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 11 Feb 2009 19:30:29 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: wli@movementarian.org
-Date: Wed, 11 Feb 2009 19:12:23 -0500
 
-> (double)0xdeadbeef/((unsigned long long)1 << 32) is a rather poor
-> approximation of (sqrt(5)-1)/2. If this value which is not the
-> golden ratio is arbitrary, calling it something different from
-> JHASH_GOLDEN_RATIO would surprise the code's readers much less.
+commit 80b192ec65bac9c8c64ac56f0b11ddda3a5dd661
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Thu Feb 12 01:28:35 2009 +0100
 
-Then we can change the name, whatever...
+libxtables: flush before fork
 
-But really, anyone truly interested will read the friggin' web site
-where all the design documents and hash test results live.
+Reference: http://bugs.debian.org/514869
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ xtables.c |    6 ++++++
+ 1 files changed, 6 insertions(+), 0 deletions(-)
+
+diff --git a/xtables.c b/xtables.c
+index 02bfc17..d85e639 100644
+--- a/xtables.c
++++ b/xtables.c
+@@ -272,6 +272,12 @@ int xtables_insmod(const char *modname, const char *modprobe, bool quiet)
+ 		modprobe = buf;
+ 	}
+ 
++	/*
++	 * Need to flush the buffer, or the child may output it again
++	 * when switching the program thru execv.
++	 */
++	fflush(stdout);
++
+ 	switch (fork()) {
+ 	case 0:
+ 		argv[0] = (char *)modprobe;
+-- 
+# Created with git-export-patch
+
