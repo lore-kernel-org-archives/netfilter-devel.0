@@ -1,50 +1,52 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: pull request
-Date: Thu, 12 Feb 2009 06:46:28 +0100
-Message-ID: <4993B7B4.70901@trash.net>
-References: <1234364616-19974-1-git-send-email-jengelh@medozas.de> <4993B3AC.1060707@trash.net> <alpine.LSU.2.00.0902120632140.32504@fbirervta.pbzchgretzou.qr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: Netfilter API and libiptc
+Date: Thu, 12 Feb 2009 06:55:04 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0902120640480.32504@fbirervta.pbzchgretzou.qr>
+References: <20090205141722.GB21417@qubit> <4990636B.9080900@trash.net> <20090209183941.GA1050@zenon.in.qult.net> <Pine.LNX.4.64.0902111408210.4822@ask.diku.dk> <4992E2B3.3030009@trash.net> <alpine.LSU.2.00.0902111656400.22845@fbirervta.pbzchgretzou.qr>
+ <4993AFF9.9010002@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Jesper Dangaard Brouer <hawk@diku.dk>, Ignacy Gawedzki <i@lri.fr>,
+	Netfilter Developers <netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:40395 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750878AbZBLFqd (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:52874 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750742AbZBLFzG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Feb 2009 00:46:33 -0500
-In-Reply-To: <alpine.LSU.2.00.0902120632140.32504@fbirervta.pbzchgretzou.qr>
+	Thu, 12 Feb 2009 00:55:06 -0500
+In-Reply-To: <4993AFF9.9010002@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Thursday 2009-02-12 06:29, Patrick McHardy wrote:
->> jengelh@medozas.de wrote:
->>> 13 files changed, 108 insertions(+), 182 deletions(-)
->> This diffstat I get looks quite different:
+
+On Thursday 2009-02-12 06:13, Patrick McHardy wrote:
+>>>
+>> I have the code ready, it is easily mergeable-and-revertible(*) too, but let's
+>> wait with that because it currently relies on a certain revision of
+>> Makefile.am (IOW: merge conflicts with nf).
 >>
->> 11 files changed, 73 insertions(+), 67 deletions(-)
->>
->> Any idea whats going on there?
->>
-> 
-> I used git diff --stat instead of whatever merge outputs.
+>> (*) That is, changing it from 'lib_LTLIBRARIES' to 'noinst_LTLIBARIES' and it
+>> automatically becomes static wrt. the executables again. Oh I love automake :)
+>
+> I'd prefer to wait until after the next release with this.
 
-That gives the same (different) output for me.
+I'd rather not want to wait another 4 months with this change
+[of enabling iptc to be installed].
+If Jesper then wants to play with the API, no problem, just
+don't forget bumping the so_version correctly.
 
-> $ git diff --stat nf/master..mdz/master
-> [13 files, 108+, 182-]
-> $ git rev-parse nf/master
-> 8b7baebc93989106fd5d26b262d0ce191f8ef7c0
-> $ git rev-parse mdz/master
-> 47a6fd9ec9891a8040eb8fd6db3c5012c1056061
+> We already have quite a few changes and missed the last release,
 
-Well, it doesn't add up at all, even in those changelogs you posted
-f.i. the xtables.c lines amount to something in the order of 30, not
-over 100. The tree looks fine from a quick look, but I want to make
-sure that what I'm pulling is indeed what you intended to send me.
+Maybe releases should be more coordinated. 
+I could come up with a big bunch of suggested guidelines upfront.
+Release-early-release-often is the one I miss most.
+	.oO( and before I know it, I wrote another book )
 
-I'll skip this pull, please send a new request (with or without Jamal's
-patches, as you like) once you figured out where those differences are
-coming from.
+>so I want to start stabilizing a nice new release for 2.6.29 soon.
+
+Here is your chance to make 1.4.3 nice - it does happen that some
+projects seem to use libiptc, and because it's not installed with
+distros because it is noinst_ in our happy Makefile.am, projects do a
+verbatim copy which a deed worse than having the current API -
+cherry-steal commit 1715851e now! :-D
