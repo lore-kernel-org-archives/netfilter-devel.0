@@ -1,40 +1,157 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Netfilter API and libiptc
-Date: Thu, 12 Feb 2009 15:11:17 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0902121511030.27867@fbirervta.pbzchgretzou.qr>
-References: <20090205141722.GB21417@qubit> <4990636B.9080900@trash.net> <20090209183941.GA1050@zenon.in.qult.net> <Pine.LNX.4.64.0902111408210.4822@ask.diku.dk> <4992E2B3.3030009@trash.net> <alpine.LSU.2.00.0902111656400.22845@fbirervta.pbzchgretzou.qr>
- <4993AFF9.9010002@trash.net> <alpine.LSU.2.00.0902120640480.32504@fbirervta.pbzchgretzou.qr> <Pine.LNX.4.64.0902121014550.22322@ask.diku.dk> <Pine.LNX.4.64.0902121125190.22398@ask.diku.dk>
+From: jamal <hadi@cyberus.ca>
+Subject: [PATCH] libxtables: Set proper name of application.
+Date: Thu, 12 Feb 2009 09:17:21 -0500
+Message-ID: <1234448241.3271.4.camel@dogo.mojatatu.com>
+Reply-To: hadi@cyberus.ca
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>, Ignacy Gawedzki <i@lri.fr>,
-	Netfilter Developers <netfilter-devel@vger.kernel.org>,
-	hawk@comx.dk
-To: Jesper Dangaard Brouer <hawk@diku.dk>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:52637 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755113AbZBLOLU (ORCPT
+Received: from mail-ew0-f21.google.com ([209.85.219.21]:40495 "EHLO
+	mail-ew0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755835AbZBLOTR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Feb 2009 09:11:20 -0500
-In-Reply-To: <Pine.LNX.4.64.0902121125190.22398@ask.diku.dk>
+	Thu, 12 Feb 2009 09:19:17 -0500
+Received: by ewy14 with SMTP id 14so607204ewy.13
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 Feb 2009 06:19:16 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+commit 10b0261ab18d3f9a8beb541b6e93a4c72e483e39
+Author: Jamal Hadi Salim <hadi@cyberus.ca>
+Date:   Wed Feb 11 16:28:31 2009 -0500
 
-On Thursday 2009-02-12 11:42, Jesper Dangaard Brouer wrote:
-> On Thu, 12 Feb 2009, Jesper Dangaard Brouer wrote:
->> On Thu, 12 Feb 2009, Jan Engelhardt wrote:
->>
->>> If Jesper then wants to play with the API, no problem, just
->>> don't forget bumping the so_version correctly.
->>
->> I'll try it out today... lets see how intrusive it is...
->
-> That was almost too easy...
->
-> Whats missing is that the libiptc.h header file should be installed.
-> My patch below is not doing the right thing. I don't know automake well enough,
-> to make it create a directory libiptc/ under include/ where it should install
-> libiptc.h.
+    Set proper name of application.
+    Thanks to Jan Engelhardt <jengelh@medozas.de> for
+    catching this.
+    
+    Signed-off-by: Jamal Hadi Salim <hadi@cyberus.ca>
 
-Fixed now.
+diff --git a/include/ip6tables.h b/include/ip6tables.h
+index 1956cf0..05a963e 100644
+--- a/include/ip6tables.h
++++ b/include/ip6tables.h
+@@ -14,6 +14,7 @@
+ #define ip6t_tryload		xt_tryload
+ 
+ extern int line;
++extern struct xtables_globals ip6tables_globals;
+ 
+ /* Your shared library should call one of these. */
+ extern int do_command6(int argc, char *argv[], char **table,
+diff --git a/include/iptables.h b/include/iptables.h
+index f7ae0cc..5c48699 100644
+--- a/include/iptables.h
++++ b/include/iptables.h
+@@ -14,6 +14,7 @@
+ #define ipt_tryload		xt_tryload
+ 
+ extern int line;
++extern struct xtables_globals iptables_globals;
+ 
+ /* Your shared library should call one of these. */
+ extern int do_command(int argc, char *argv[], char **table,
+diff --git a/ip6tables-restore.c b/ip6tables-restore.c
+index acaf97b..3d535de 100644
+--- a/ip6tables-restore.c
++++ b/ip6tables-restore.c
+@@ -133,6 +133,7 @@ int main(int argc, char *argv[])
+ 	xtables_program_name = program_name;
+ 	xtables_init();
+ 	xtables_set_nfproto(NFPROTO_IPV6);
++	ip6tables_globals.program_name = "ip6tables-restore";
+ #ifdef NO_SHARED_LIBS
+ 	init_extensions();
+ #endif
+diff --git a/ip6tables-save.c b/ip6tables-save.c
+index 32b5992..3af81ab 100644
+--- a/ip6tables-save.c
++++ b/ip6tables-save.c
+@@ -142,6 +142,7 @@ int main(int argc, char *argv[])
+ 	xtables_program_name = program_name;
+ 	xtables_init();
+ 	xtables_set_nfproto(NFPROTO_IPV6);
++	ip6tables_globals.program_name = "ip6tables-save";
+ #ifdef NO_SHARED_LIBS
+ 	init_extensions();
+ #endif
+diff --git a/ip6tables-standalone.c b/ip6tables-standalone.c
+index cea4818..ab77065 100644
+--- a/ip6tables-standalone.c
++++ b/ip6tables-standalone.c
+@@ -55,6 +55,7 @@ main(int argc, char *argv[])
+ 	xtables_program_name = program_name;
+ 	xtables_init();
+ 	xtables_set_nfproto(NFPROTO_IPV6);
++	ip6tables_globals.program_name = "ip6tables";
+ #ifdef NO_SHARED_LIBS
+ 	init_extensions();
+ #endif
+diff --git a/ip6tables.c b/ip6tables.c
+index 9262b14..541c1a9 100644
+--- a/ip6tables.c
++++ b/ip6tables.c
+@@ -149,7 +149,6 @@ void ip6tables_exit_error(enum xtables_exittype
+status, const char *msg, ...) __
+ struct xtables_globals ip6tables_globals = {
+ 	.option_offset = 0,
+ 	.program_version = IPTABLES_VERSION,
+-	.program_name = "ip6tables",
+ 	.opts = original_opts,
+ 	.exit_err = ip6tables_exit_error,
+ };
+diff --git a/iptables-restore.c b/iptables-restore.c
+index 810806f..0103016 100644
+--- a/iptables-restore.c
++++ b/iptables-restore.c
+@@ -135,6 +135,7 @@ main(int argc, char *argv[])
+ 	xtables_program_name = program_name;
+ 	xtables_init();
+ 	xtables_set_nfproto(NFPROTO_IPV4);
++	iptables_globals.program_name = "iptables-restore";
+ #ifdef NO_SHARED_LIBS
+ 	init_extensions();
+ #endif
+diff --git a/iptables-save.c b/iptables-save.c
+index c4306fd..396406f 100644
+--- a/iptables-save.c
++++ b/iptables-save.c
+@@ -142,6 +142,7 @@ main(int argc, char *argv[])
+ 	xtables_program_name = program_name;
+ 	xtables_init();
+ 	xtables_set_nfproto(NFPROTO_IPV4);
++	iptables_globals.program_name = "iptables-save";
+ #ifdef NO_SHARED_LIBS
+ 	init_extensions();
+ #endif
+diff --git a/iptables-standalone.c b/iptables-standalone.c
+index ece7cf4..007f2c2 100644
+--- a/iptables-standalone.c
++++ b/iptables-standalone.c
+@@ -56,6 +56,7 @@ main(int argc, char *argv[])
+ 	xtables_program_name = program_name;
+ 	xtables_init();
+ 	xtables_set_nfproto(NFPROTO_IPV4);
++	iptables_globals.program_name = "iptables";
+ #ifdef NO_SHARED_LIBS
+ 	init_extensions();
+ #endif
+diff --git a/iptables.c b/iptables.c
+index fe28e50..f8ccad7 100644
+--- a/iptables.c
++++ b/iptables.c
+@@ -150,7 +150,6 @@ void iptables_exit_error(enum xtables_exittype
+status, const char *msg, ...) __a
+ struct xtables_globals iptables_globals = {
+ 	.option_offset = 0,
+ 	.program_version = IPTABLES_VERSION,
+-	.program_name = "iptables",
+ 	.opts = original_opts,
+ 	.exit_err = iptables_exit_error,
+ };
+
+
