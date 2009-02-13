@@ -1,37 +1,35 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: [PATCH] Update jhash.h with the new version of Jenkins' hash
-Date: Thu, 12 Feb 2009 13:28:42 +1030
-Message-ID: <200902121328.43749.rusty@rustcorp.com.au>
-References: <alpine.DEB.2.00.0902111107480.15665@blackhole.kfki.hu>
+From: Evgeniy Polyakov <zbr@ioremap.net>
+Subject: Re: Passive OS fingerprint xtables match (iptables part)
+Date: Fri, 13 Feb 2009 15:48:29 +0300
+Message-ID: <20090213124829.GA23879@ioremap.net>
+References: <20090212171245.GA15025@ioremap.net> <alpine.LSU.2.00.0902121922280.20367@fbirervta.pbzchgretzou.qr> <20090212191824.GB17896@ioremap.net> <alpine.LSU.2.00.0902122112280.670@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
+	David Miller <davem@davemloft.net>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.0902111107480.15665@blackhole.kfki.hu>
 Content-Disposition: inline
+In-Reply-To: <alpine.LSU.2.00.0902122112280.670@fbirervta.pbzchgretzou.qr>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wednesday 11 February 2009 20:49:20 Jozsef Kadlecsik wrote:
-> Hi,
+On Thu, Feb 12, 2009 at 09:19:18PM +0100, Jan Engelhardt (jengelh@medozas.de) wrote:
+> >> Make use of xtables_strtoui to do bounds checking on the TTL value.
+> >
+> >Hmm...
+> >$ grep xtables_strtoui -r /tmp/iptables-1.4.2
+> >$
 > 
-> The current jhash.h implements the lookup2() hash function by Bob Jenkins. 
-> However, lookup2() is outdated as Bob wrote a new hash function called 
-> lookup3(). The new hash function
-> 
-> - mixes better than lookup2(): it passes the check that every input bit 
->   changes every output bit 50% of the time, while lookup2() failed it.
-> - performs better: compiled with -O2 on Core2 Duo, lookup3() is 20-40% 
->   faster than lookup2() depending on the key length.
+> It is going to be in 1.4.3, after whose release is the earliest point
+> ipt_osf (or xt_osf :) will probably find its way into the mainlines.
+> In 1.4.2, it is still called strtonum.
 
-Hi Joszef,
+But it can be built with older (and already running) installation, with
+xtables_strtoui() this will not be allowed.
 
-My concern was that it's also bigger (and we inline it).  Performance is
-pretty much a wash since we so rarely hash more than a few words.
-
-Any stats on code size changes?
-Rusty.
+-- 
+	Evgeniy Polyakov
