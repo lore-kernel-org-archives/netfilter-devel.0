@@ -1,50 +1,53 @@
-From: jamal <hadi@cyberus.ca>
-Subject: Re: [PATCH] libxtables: Dont initialize global xt_params
-Date: Fri, 13 Feb 2009 08:49:18 -0500
-Message-ID: <1234532958.4078.10.camel@dogo.mojatatu.com>
-References: <1234448162.3271.1.camel@dogo.mojatatu.com>
-	 <200902121609.43664.thomas.jarosch@intra2net.com>
-	 <alpine.LSU.2.00.0902121612200.5658@fbirervta.pbzchgretzou.qr>
-	 <200902121641.54430.thomas.jarosch@intra2net.com>
-Reply-To: hadi@cyberus.ca
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: Passive OS fingerprint xtables match.
+Date: Fri, 13 Feb 2009 14:51:48 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0902131448040.9310@fbirervta.pbzchgretzou.qr>
+References: <20090212171245.GA15025@ioremap.net> <alpine.LSU.2.00.0902121900520.20367@fbirervta.pbzchgretzou.qr> <20090212185729.GA17896@ioremap.net> <alpine.LSU.2.00.0902122045080.670@fbirervta.pbzchgretzou.qr> <20090213130347.GD23879@ioremap.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	Patrick McHardy <kaber@trash.net>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-To: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ew0-f21.google.com ([209.85.219.21]:64195 "EHLO
-	mail-ew0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755569AbZBMNvR (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 13 Feb 2009 08:51:17 -0500
-Received: by ewy14 with SMTP id 14so1010810ewy.13
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Feb 2009 05:51:14 -0800 (PST)
-In-Reply-To: <200902121641.54430.thomas.jarosch@intra2net.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
+	David Miller <davem@davemloft.net>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Evgeniy Polyakov <zbr@ioremap.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20090213130347.GD23879@ioremap.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 2009-02-12 at 16:41 +0100, Thomas Jarosch wrote:
 
-> Well, I guess that's a job for the compiler/optimizer. I did a quick test by 
-> writing two versions of a small program initializing a static variable with 
-> zero and one version that doesn't (=zeroed in .bss). Guess what,
-> the size of the resulting executable stays the same.
-> 
-> When I initialize the variable with a non-zero value, then the program size 
-> increases. I tested "-O2", "-O0" and "-Os" and the results where the same.
-> Feel free to look at the assembler output, though I guess this optimization
-> is not measurable and makes the code harder to read :o)
-> 
+On Friday 2009-02-13 14:03, Evgeniy Polyakov wrote:
+>> >What's this? It does not exist in the net/ipv4/netfilter/Kconfig
+>> 
+>> net/netfilter/Kconfig: (e.g.)
+>> 
+>> config NETFILTER_XT_MATCH_COMMENT
+>>         tristate  '"comment" match support'
+>>         depends on NETFILTER_ADVANCED
+>>         ---help---
+>
+>But I placed OSF into net/ipv4/netfilter/ipt_osf.c, should it be moved
+>into different location?
 
-I have no objection with junking the patch i sent. My initial intent of
-NULLing was to use it as a check when first initializing - but now i
-realize it actually didnt matter; and the readability arguement sounds
-fair.
+That would be preferable -> net/netfilter/xt_osf.c.
 
-cheers,
-jamal
+>> >> >+					case OSFOPT_MSS:
+>> >> >+						mss = ntohs(*(u16 *)(optp + 2));
+>> >> 
+>> >> This needs get_unaligned(), in case someone sends a malicious packet.
+>> >
+>> >Hmmm, why is this needed? We dereference linear kernel pointer at
+>> >proper offset (modulo of the option size).
+>> 
+>> What if optp is odd?
+>
+>It cant, header is fixed and every option length is also fixed (and its
+>size is checked).
 
+This RFC-compliant ("An option may begin on any octet boundary.")
+option byte stream seems to produce an odd optp value:
+
+01 02 04 05 a0 00
+
+or where did I go wrong?
