@@ -1,27 +1,50 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] libxtables: Introduce xtables_merge_options()
-Date: Fri, 13 Feb 2009 14:58:44 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0902131457540.9310@fbirervta.pbzchgretzou.qr>
-References: <1234533092.4078.13.camel@dogo.mojatatu.com>
+From: Evgeniy Polyakov <zbr@ioremap.net>
+Subject: Re: Passive OS fingerprint xtables match.
+Date: Fri, 13 Feb 2009 17:22:04 +0300
+Message-ID: <20090213142204.GA27554@ioremap.net>
+References: <20090212171245.GA15025@ioremap.net> <alpine.LSU.2.00.0902121900520.20367@fbirervta.pbzchgretzou.qr> <20090212185729.GA17896@ioremap.net> <alpine.LSU.2.00.0902122045080.670@fbirervta.pbzchgretzou.qr> <20090213130347.GD23879@ioremap.net> <alpine.LSU.2.00.0902131448040.9310@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-To: jamal <hadi@cyberus.ca>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:56034 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752826AbZBMN6r (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 13 Feb 2009 08:58:47 -0500
-In-Reply-To: <1234533092.4078.13.camel@dogo.mojatatu.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
+	David Miller <davem@davemloft.net>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <alpine.LSU.2.00.0902131448040.9310@fbirervta.pbzchgretzou.qr>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+On Fri, Feb 13, 2009 at 02:51:48PM +0100, Jan Engelhardt (jengelh@medozas.de) wrote:
+> >> config NETFILTER_XT_MATCH_COMMENT
+> >>         tristate  '"comment" match support'
+> >>         depends on NETFILTER_ADVANCED
+> >>         ---help---
+> >
+> >But I placed OSF into net/ipv4/netfilter/ipt_osf.c, should it be moved
+> >into different location?
+> 
+> That would be preferable -> net/netfilter/xt_osf.c.
 
-On Friday 2009-02-13 14:51, jamal wrote:
+Ok, I will move it there.
 
->One more to go...
+> >> >proper offset (modulo of the option size).
+> >> 
+> >> What if optp is odd?
+> >
+> >It cant, header is fixed and every option length is also fixed (and its
+> >size is checked).
+> 
+> This RFC-compliant ("An option may begin on any octet boundary.")
+> option byte stream seems to produce an odd optp value:
+> 
+> 01 02 04 05 a0 00
+> 
+> or where did I go wrong?
 
-Made it so.
+OSF checks only MSS and timestamp options.
+
+-- 
+	Evgeniy Polyakov
