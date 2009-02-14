@@ -1,53 +1,46 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: (nfnl_talk: recvmsg over-run) and (nf_queue: full at 1024  entries,
- dropping packets(s). Dropped: 582) - bug or just some defaults  increase
- required?
-Date: Sat, 14 Feb 2009 18:13:34 +0100
-Message-ID: <4996FBBE.20009@netfilter.org>
-References: <c4b050a10902061014w3df3b2c3xe9e6465be79b4e07@mail.gmail.com> <c4b050a10902110426s5e997220r21d615ebf0683bb8@mail.gmail.com> <4992FFD7.9090706@netfilter.org> <200902121545.16590.anton.vazir@gmail.com>
+Subject: Re: netlink callback and socket buffer.
+Date: Sat, 14 Feb 2009 18:16:29 +0100
+Message-ID: <4996FC6D.6020705@netfilter.org>
+References: <885896af0902131235q68b79efbu5c25d29fd9bd1661@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Anton <anton.vazir@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Giacomo <delleceste@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40676 "EHLO us.es"
+Received: from mail.us.es ([193.147.175.20]:40815 "EHLO us.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751339AbZBNRNu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 14 Feb 2009 12:13:50 -0500
-In-Reply-To: <200902121545.16590.anton.vazir@gmail.com>
+	id S1751507AbZBNRQg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 14 Feb 2009 12:16:36 -0500
+In-Reply-To: <885896af0902131235q68b79efbu5c25d29fd9bd1661@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Anton wrote:
-> Pablo,
+Giacomo wrote:
+> Good evening to everybody.
 > 
-> Some more info. After applying the patch, If we do try to 
-> just create 100 QUEUE's by the test code - on the test PC, 
-> with _no_ transit traffic, routed to QUEUE's - it works 
-> fine, queues created with no problem. 
-> But if we do this on the live PC, with trasit traffic routed 
-> to queues - we came to the problem once in a few queues. 
-> We localized the place, and the sequence is as follows:
-> nfnl_query=>nfnl_catch=>nfnl_process
+> In recent kernels (>=2.6.24) netlink_kernel_create() callback function
+> has the following signature:
 > 
-> and in the nfnl_process
 > 
-> if (nlh->nlmsg_seq && nlh->nlmsg_seq != h->seq) {
->                 errno = EILSEQ;
->                 return -1;
-> }
+> (void *) function(struct sk_buff* skb);
 > 
-> and varibales are
-> nlh->msg_seq=1234422225, h->seq=1234422229.
+> while before it was
+> 
+> (void  *) function(struct sock *skctrl, int len)
+> 
+> In the latter, i used to call skb_dequeue, obtain the skb and then,
+> once data was extracted, I used
+> to kfree_skb(skb); where skb is a sk_buff* obtained by skb_dequeue();
+> 
+> Now (with the (void *) function(struct sk_buff* skb)  callback) I get
+> data from skb but DO NOT HAVE
+> TO kfree_skb() it...
+> 
+> Is it true?  Is it automatically freed by the kernel once the callback returns?
 
-This means that we expected to receive 1234422229, but we got 1234422225
-instead. I don't fine any explanation for this but this is spotting a
-problem somewhere (in the library or your application) that nfnl_talk
-silently ignores. Could you send me the code that you use to trigger this?
-
-Even if you don't have the problem anymore, We have to replace that
-nfnl_talk() which looks broken in several aspects.
+Right, look at netlink_unicast_kernel() in af_netlink.c
 
 -- 
 "Los honestos son inadaptados sociales" -- Les Luthiers
