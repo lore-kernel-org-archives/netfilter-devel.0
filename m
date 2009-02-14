@@ -1,70 +1,66 @@
-From: Greg KH <gregkh@suse.de>
-Subject: [patch 46/48] netfilter: xt_sctp: sctp chunk mapping doesnt work
-Date: Fri, 13 Feb 2009 17:13:53 -0800
-Message-ID: <20090214011353.GU17706@kroah.com>
-References: <20090214010805.419403436@mini.kroah.org>
+From: Anton <anton.vazir@gmail.com>
+Subject: Re: (nfnl_talk: recvmsg over-run) and (nf_queue: full at 1024  entries, dropping packets(s). Dropped: 582) - bug or just some defaults  increase required?
+Date: Sat, 14 Feb 2009 14:03:28 +0500
+Message-ID: <200902141403.28614.anton.vazir@gmail.com>
+References: <c4b050a10902061014w3df3b2c3xe9e6465be79b4e07@mail.gmail.com> <200902121545.16590.anton.vazir@gmail.com> <4994196F.7030400@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Justin Forbes <jmforbes@linuxtx.org>,
-	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
-	Theodore Ts'o <tytso@mit.edu>,
-	Randy Dunlap <rdunlap@xenotime.net>,
-	Dave Jones <davej@redhat.com>,
-	Chuck Wolber <chuckw@quantumlinux.com>,
-	Chris Wedgwood <reviews@ml.cw.f00f.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Chuck Ebbert <cebbert@redhat.com>,
-	Domenico Andreoli <cavokz@gmail.com>, Willy Tarreau <w@1wt.eu>,
-	Rodrigo Rubira Branco <rbranco@la.checkpoint.com>,
-	Jake Edge <jake@lwn.net>, Eugene Teo <eteo@redhat.com>,
-	torvalds@linux-foundation.org, akpm@linux-foundation.org,
-	alan@lxorguk.ukuu.org.uk, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	davem@davemloft.net, Qu Haoran <haoran.qu@6wind.com>,
-	Nicolas Dichtel <nicolas.dichtel@6wind.com>
-To: linux-kernel@vger.kernel.org, stable@kernel.org
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kroah.org ([198.145.64.141]:50709 "EHLO coco.kroah.org"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1764142AbZBNBQq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 13 Feb 2009 20:16:46 -0500
-Content-Disposition: inline; filename="netfilter-xt_sctp-sctp-chunk-mapping-doesn-t-work.patch"
-In-Reply-To: <20090214011208.GA17706@kroah.com>
+Received: from mail.eastera.tj ([82.198.21.18]:36137 "EHLO mail.eastera.tj"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750832AbZBNJDi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 14 Feb 2009 04:03:38 -0500
+In-Reply-To: <4994196F.7030400@netfilter.org>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-2.6.28-stable review patch.  If anyone has any objections, please let us know.
+Pablo,
 
-------------------
+Today (unpatched) case happened with increased buffer size 
+to 10240, nice=0, trying with nice=-15
+No dmesg messages on overflows. Just loop again. 
+Patch yet not usable, since returns failure too often on 
+queue creation. Any update from you?
 
-From: Qu Haoran <haoran.qu@6wind.com>
+Regards,
+Anton.
 
-netfilter: xt_sctp: sctp chunk mapping doesn't work
-
-Upstream commit: d4e2675a
-
-When user tries to map all chunks given in argument, kernel
-works on a copy of the chunkmap, but at the end it doesn't
-check the copy, but the orginal one.
-
-Signed-off-by: Qu Haoran <haoran.qu@6wind.com>
-Signed-off-by: Nicolas Dichtel <nicolas.dichtel@6wind.com>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
-
----
- net/netfilter/xt_sctp.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
---- a/net/netfilter/xt_sctp.c
-+++ b/net/netfilter/xt_sctp.c
-@@ -105,7 +105,7 @@ match_packet(const struct sk_buff *skb,
- 
- 	switch (chunk_match_type) {
- 	case SCTP_CHUNK_MATCH_ALL:
--		return SCTP_CHUNKMAP_IS_CLEAR(info->chunkmap);
-+		return SCTP_CHUNKMAP_IS_CLEAR(chunkmapcopy);
- 	case SCTP_CHUNK_MATCH_ANY:
- 		return false;
- 	case SCTP_CHUNK_MATCH_ONLY:
-
+On Thursday 12 February 2009 17:43, Pablo Neira Ayuso wrote:
+> Anton wrote:
+> > Pablo,
+> >
+> > Some more info. After applying the patch, If we do try
+> > to just create 100 QUEUE's by the test code - on the
+> > test PC, with _no_ transit traffic, routed to QUEUE's -
+> > it works fine, queues created with no problem.
+> > But if we do this on the live PC, with trasit traffic
+> > routed to queues - we came to the problem once in a few
+> > queues. We localized the place, and the sequence is as
+> > follows: nfnl_query=>nfnl_catch=>nfnl_process
+> >
+> > and in the nfnl_process
+> >
+> > if (nlh->nlmsg_seq && nlh->nlmsg_seq != h->seq) {
+> >                 errno = EILSEQ;
+> >                 return -1;
+> > }
+> >
+> > and varibales are
+> > nlh->msg_seq=1234422225, h->seq=1234422229.
+> >
+> > EILSEQ=84
+> > strerr(84) returns "Invalid or incomplete multibyte or
+> > wide character"
+> >
+> > Any clue on this?
+>
+> There's some race condition. It seems that you're
+> receiving packets from kernel-space to nfqueue before the
+> ACK message from kernel-space to user-space to confirm
+> subscription is send. Let me investigate this. Thanks for
+> the accurate report.
