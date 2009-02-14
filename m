@@ -1,68 +1,68 @@
-From: Giacomo <delleceste@gmail.com>
-Subject: netlink callback and socket buffer.
-Date: Fri, 13 Feb 2009 21:35:48 +0100
-Message-ID: <885896af0902131235q68b79efbu5c25d29fd9bd1661@mail.gmail.com>
+From: Greg KH <gregkh@suse.de>
+Subject: [patch 39/47] netfilter: fix tuple inversion for Node information
+	request
+Date: Fri, 13 Feb 2009 16:59:20 -0800
+Message-ID: <20090214005920.GN11282@kroah.com>
+References: <20090214005130.617401075@mini.kroah.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ew0-f21.google.com ([209.85.219.21]:51441 "EHLO
-	mail-ew0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751064AbZBMUfv (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 13 Feb 2009 15:35:51 -0500
-Received: by ewy14 with SMTP id 14so1144490ewy.13
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Feb 2009 12:35:48 -0800 (PST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Justin Forbes <jmforbes@linuxtx.org>,
+	Zwane Mwaikambo <zwane@arm.linux.org.uk>,
+	Theodore Ts'o <tytso@mit.edu>,
+	Randy Dunlap <rdunlap@xenotime.net>,
+	Dave Jones <davej@redhat.com>,
+	Chuck Wolber <chuckw@quantumlinux.com>,
+	Chris Wedgwood <reviews@ml.cw.f00f.org>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Chuck Ebbert <cebbert@redhat.com>,
+	Domenico Andreoli <cavokz@gmail.com>, Willy Tarreau <w@1wt.eu>,
+	Rodrigo Rubira Branco <rbranco@la.checkpoint.com>,
+	Jake Edge <jake@lwn.net>, Eugene Teo <eteo@redhat.com>,
+	torvalds@linux-foundation.org, akpm@linux-foundation.org,
+	alan@lxorguk.ukuu.org.uk, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	davem@davemloft.net, Eric Leblond <eric@inl.fr>
+To: linux-kernel@vger.kernel.org, stable@kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline; filename="netfilter-fix-tuple-inversion-for-node-information-request.patch"
+In-Reply-To: <20090214005726.GA11282@kroah.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Good evening to everybody.
+2.6.27-stable review patch.  If anyone has any objections, please let us know.
 
-In recent kernels (>=2.6.24) netlink_kernel_create() callback function
-has the following signature:
+------------------
 
+From: Eric Leblond <eric@inl.fr>
 
-(void *) function(struct sk_buff* skb);
+netfilter: fix tuple inversion for Node information request
 
-while before it was
+Upstream commit: a51f42f3c
 
-(void  *) function(struct sock *skctrl, int len)
+The patch fixes a typo in the inverse mapping of Node Information
+request. Following draft-ietf-ipngwg-icmp-name-lookups-09, "Querier"
+sends a type 139 (ICMPV6_NI_QUERY) packet to "Responder" which answer
+with a type 140 (ICMPV6_NI_REPLY) packet.
 
-In the latter, i used to call skb_dequeue, obtain the skb and then,
-once data was extracted, I used
-to kfree_skb(skb); where skb is a sk_buff* obtained by skb_dequeue();
+Signed-off-by: Eric Leblond <eric@inl.fr>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
-Now (with the (void *) function(struct sk_buff* skb)  callback) I get
-data from skb but DO NOT HAVE
-TO kfree_skb() it...
+---
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Is it true?  Is it automatically freed by the kernel once the callback returns?
+--- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+@@ -49,8 +49,8 @@ static bool icmpv6_pkt_to_tuple(const st
+ static const u_int8_t invmap[] = {
+ 	[ICMPV6_ECHO_REQUEST - 128]	= ICMPV6_ECHO_REPLY + 1,
+ 	[ICMPV6_ECHO_REPLY - 128]	= ICMPV6_ECHO_REQUEST + 1,
+-	[ICMPV6_NI_QUERY - 128]		= ICMPV6_NI_QUERY + 1,
+-	[ICMPV6_NI_REPLY - 128]		= ICMPV6_NI_REPLY +1
++	[ICMPV6_NI_QUERY - 128]		= ICMPV6_NI_REPLY + 1,
++	[ICMPV6_NI_REPLY - 128]		= ICMPV6_NI_QUERY +1
+ };
+ 
+ static bool icmpv6_invert_tuple(struct nf_conntrack_tuple *tuple,
 
-Thanks in advance.
-
-Giacomo S.
-
-
--- 
-Giacomo S.
-http://www.giacomos.it
-
-- - - - - - - - - - - - - - - - - - - - - -
-
-* Aprile 2008: iqfire-wall, un progetto
-  open source che implementa un
-  filtro di pacchetti di rete per Linux,
-  e` disponibile per il download qui:
-  http://sourceforge.net/projects/ipfire-wall
-
-* Informazioni e pagina web ufficiale:
-  http://www.giacomos.it/iqfire/index.html
-
-- - - - - - - - - - - - - - - - - - - - - -
-
- . ''  `.
-:   :'    :
- `.  ` '
-    `- Debian GNU/Linux -- The power of freedom
-        http://www.debian.org
