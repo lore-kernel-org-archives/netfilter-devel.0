@@ -1,56 +1,64 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: xtables: add cluster match
-Date: Mon, 16 Feb 2009 16:10:50 +0100
-Message-ID: <499981FA.3040106@trash.net>
-References: <20090214192936.11718.44732.stgit@Decadence> <49994643.8010001@trash.net> <499971CC.6040903@netfilter.org> <49997247.3010105@trash.net> <4999787C.7050203@netfilter.org> <499982CB.7020503@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: (nfnl_talk: recvmsg over-run) and (nf_queue: full at 1024 	entries,
+ dropping packets(s). Dropped: 582) - bug or just some defaults 	increase
+ required?
+Date: Mon, 16 Feb 2009 16:23:48 +0100
+Message-ID: <49998504.9020004@netfilter.org>
+References: <c4b050a10902061014w3df3b2c3xe9e6465be79b4e07@mail.gmail.com>	 <200902121545.16590.anton.vazir@gmail.com>	 <4996FBBE.20009@netfilter.org>	 <200902161819.27630.anton.vazir@gmail.com>	 <49996D49.9050606@netfilter.org> <c4b050a10902160638s231bd34by7e90f320dde3e27e@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>,
+	Vitaly Bodzhgua <vitaly@eastera.tj>
+To: Anton VG <anton.vazir@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60676 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750740AbZBPPKy (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Feb 2009 10:10:54 -0500
-In-Reply-To: <499982CB.7020503@netfilter.org>
+Received: from mail.us.es ([193.147.175.20]:57975 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750789AbZBPPPi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 16 Feb 2009 10:15:38 -0500
+In-Reply-To: <c4b050a10902160638s231bd34by7e90f320dde3e27e@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> Pablo Neira Ayuso wrote:
->> Patrick McHardy wrote:
->>> I see. That kind of makes sense, but if you're running a
->>> synchronization daemon anyways, you might as well renumber
->>> all nodes so you still have proper balancing, right?
+Anton VG wrote:
+> Pablo,
+> Attached is the code which triggers the case, and it does not use
+> threads (btw we of coase use mutexes in threaded app)
 > 
-> Hm, I was not replying to your question ;). Right, the renumbering also 
-> requires getting the states back to the original node. We can use the 
-> same hashing approach in userspace to know which states belong to 
-> original node that has come back to life when it requests a 
-> resynchronization.
+> How to use it:
+> at first, the app created 40 queues and attaches to output. Every
+> first 40 created queues have assigned corrwsponding
+> 192.168.1.{queue_num} IP address assigned to the queue.
+> This means, for instance when you send a file to an IP address
+> 192.168.1.37 it flows through QUEUE 37.
 > 
->> Indeed, the daemon may also add a new rule for the node that has gone 
->> down but that results in another extra hash operation to mark it or 
->> not (one extra hash per rule) :(.
+> Than app started the loop, where it's randomly creates and destroys
+> extra queues (over 40) every second.
 > 
-> This is not true. We may have something like this (assuming two nodes):
-
-To whom are you replying now? :)
-
-> if no mark set and hash % 2 == 0, accept
-> if no mark set and hash % 2 == 1, accept
-> if no mark set, drop
+> After starting the app, you need to send a big file, say 1GB, over FTP
+> to anther PC with IP address from group of first 40, we used
+> 192.168.1.37
 > 
-> So we can still do this adding rules with the iptables interface. But 
-> still having the /proc looks like a simple interface for this.
+> Somewhere is the middle of sending the file it triggers the error on
+> queue creation.
+> 
+> Please make sure that you use OUTPUT chain, and you send a file from test PC.
+> With this test code we did trigger this both on 64 and 32 bit systems.
+> Kernel versions on test PC's 2.6.26.1 and 2.6.26.5
+> 
+> Just let me know if anything needs clarification.
 
-I'm sure someone would argue that changing TCP port numbers of
-the tcp match through proc would be a nice and simple interface.
-The fact though is that we have an interface for handing a
-configuration to the kernel and this is clearly a configuration
-parameter. We're missing a proper way to use it in userspace
-from within programs (well, hopefully not for long anymore),
-but that needs to be fixed in userspace.
+void init_nfq()
+...
+  if (nfqfd>0) {
+    fcntl(nfqfd,F_SETFL,O_NONBLOCK);
+  } else throw "fail to set nfq nfnl fd";
+}
 
+With the current interface of libnetfilter_queue, the queue creation 
+must be blocking to ensure serialization. I'll document this. I can add 
+some functions to allow non-blocking queue creation but that's a 
+different point.
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
