@@ -1,42 +1,39 @@
-From: Evgeniy Polyakov <zbr@ioremap.net>
-Subject: Re: Passive OS fingerprint xtables match (iptables part)
-Date: Sun, 15 Feb 2009 20:35:03 +0300
-Message-ID: <20090215173502.GB19556@ioremap.net>
-References: <20090212171245.GA15025@ioremap.net> <alpine.LSU.2.00.0902121922280.20367@fbirervta.pbzchgretzou.qr> <20090213125215.GC23879@ioremap.net> <alpine.LSU.2.00.0902131402460.9310@fbirervta.pbzchgretzou.qr> <20090213131256.GE23879@ioremap.net> <alpine.LSU.2.00.0902131452010.9310@fbirervta.pbzchgretzou.qr>
+From: Philip Craig <philipc@snapgear.com>
+Subject: Re: [PATCH] libxtables: Dont initialize global xt_params
+Date: Mon, 16 Feb 2009 14:51:58 +1000
+Message-ID: <4998F0EE.3020404@snapgear.com>
+References: <1234448162.3271.1.camel@dogo.mojatatu.com> <200902121609.43664.thomas.jarosch@intra2net.com> <alpine.LSU.2.00.0902121612200.5658@fbirervta.pbzchgretzou.qr> <200902121641.54430.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
-	David Miller <davem@davemloft.net>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Jan Engelhardt <jengelh@medozas.de>, hadi@cyberus.ca,
+	Patrick McHardy <kaber@trash.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+To: Thomas Jarosch <thomas.jarosch@intra2net.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cet.com.ru ([195.178.208.66]:40000 "EHLO tservice.net.ru"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1753508AbZBORfN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 15 Feb 2009 12:35:13 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.LSU.2.00.0902131452010.9310@fbirervta.pbzchgretzou.qr>
+Received: from rex.securecomputing.com ([203.24.151.4]:54200 "EHLO
+	cyberguard.com.au" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756010AbZBPEwA (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 15 Feb 2009 23:52:00 -0500
+In-Reply-To: <200902121641.54430.thomas.jarosch@intra2net.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Feb 13, 2009 at 02:54:25PM +0100, Jan Engelhardt (jengelh@medozas.de) wrote:
-> >'! --genre Linux' means this option was not specified,
-> >'--genre ! Linux' means everything but Linux.
+Thomas Jarosch wrote:
+> Well, I guess that's a job for the compiler/optimizer. I did a quick test by 
+> writing two versions of a small program initializing a static variable with 
+> zero and one version that doesn't (=zeroed in .bss). Guess what,
+> the size of the resulting executable stays the same.
 > 
-> Well not in iptables. Not specifying an option is represented by 
-> voidness/absence of any string. (E.g. iptables -d 192.168.0.0/16  vs.
-> iptables ! -s 172.16.0.0/12 -d 192.168.0.0/16)
-> Also, (!(--genre == "linux")) is eqv. (--genre != "linux")
-> is equivalent in boolean logic  ;-)
+> When I initialize the variable with a non-zero value, then the program size 
+> increases. I tested "-O2", "-O0" and "-Os" and the results where the same.
+> Feel free to look at the assembler output, though I guess this optimization
+> is not measurable and makes the code harder to read :o)
 
-And that's not what should be :)
-In the code it is intended to be:
-(--genre && (--genre != Linux))
+For gcc, this depends on the -fno-zero-initialized-in-bss option.
+Recommendations to avoid zero initialization generally come from
+a time when gcc didn't do this by default.  Now it is more just
+personal preference.
 
-But I really do not care where to put a '!' sign in the documentation
-string :)
-
--- 
-	Evgeniy Polyakov
