@@ -1,49 +1,43 @@
-From: Anton VG <anton.vazir@gmail.com>
-Subject: Re: (nfnl_talk: recvmsg over-run) and (nf_queue: full at 1024
-	entries, dropping packets(s). Dropped: 582) - bug or just some defaults
-	increase required?
-Date: Mon, 16 Feb 2009 20:41:25 +0500
-Message-ID: <c4b050a10902160741i6d7a42deqaa41f9e22bdc4484@mail.gmail.com>
-References: <c4b050a10902061014w3df3b2c3xe9e6465be79b4e07@mail.gmail.com>
-	 <200902121545.16590.anton.vazir@gmail.com>
-	 <4996FBBE.20009@netfilter.org>
-	 <200902161819.27630.anton.vazir@gmail.com>
-	 <49996D49.9050606@netfilter.org>
-	 <c4b050a10902160638s231bd34by7e90f320dde3e27e@mail.gmail.com>
-	 <49998504.9020004@netfilter.org>
-	 <c4b050a10902160733y605a5cc1l710596b0aa658f5d@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 2/2 v5] New netfilter target to trigger LED devices
+Date: Mon, 16 Feb 2009 17:03:56 +0100
+Message-ID: <49998E6C.2030504@trash.net>
+References: <49934702.9060909@shikadi.net> <4993B34C.1020307@trash.net> <49940D58.3040404@shikadi.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	Vitaly Bodzhgua <vitaly@eastera.tj>
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, rpurdie@linux.intel.com
+To: Adam Nielsen <a.nielsen@shikadi.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-bw0-f161.google.com ([209.85.218.161]:58116 "EHLO
-	mail-bw0-f161.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751152AbZBPPl1 (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:62057 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750923AbZBPQEB (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Feb 2009 10:41:27 -0500
-Received: by bwz5 with SMTP id 5so3171696bwz.13
-        for <netfilter-devel@vger.kernel.org>; Mon, 16 Feb 2009 07:41:25 -0800 (PST)
-In-Reply-To: <c4b050a10902160733y605a5cc1l710596b0aa658f5d@mail.gmail.com>
+	Mon, 16 Feb 2009 11:04:01 -0500
+In-Reply-To: <49940D58.3040404@shikadi.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
->From the fcntl MAN page
+Adam Nielsen wrote:
+> Kernel module providing implementation of LED netfilter target.  Each
+> instance of the target appears as a led-trigger device, which can be
+> associated with one or more LEDs in /sys/class/leds/
+> 
+> Signed-off-by: Adam Nielsen <a.nielsen@shikadi.net>
+> 
+> ---
+> 
+> Thanks for the feedback Patrick - here is the updated version with
+> your suggestions:
+> 
+>  - Mutexes removed - I concede that missing a blink here and there
+>    is acceptable :-)
+>  - KERN_ERR used for non-critical errors, all KERN_NOTICEs removed
+>  - Split assignment out from comparison in kzalloc()
+> 
+> Hope this one's okay!
 
-If the O_NONBLOCK flag is not enabled, then  system  call
-is  blocked  until the lock is removed or converted to a mode that is
-compatible with the access.
-
-So, just to clarify, that commenting out the non-blocking fcntl - does
-not solve the problem, Error persists.
-
-2009/2/16 Anton VG <anton.vazir@gmail.com>:
-> The same stuff with commented out
->
-> // fcntl(nfqfd,F_SETFL,O_NONBLOCK);
->>
->> With the current interface of libnetfilter_queue, the queue creation must be
->> blocking to ensure serialization. I'll document this. I can add some
->> functions to allow non-blocking queue creation but that's a different point.
+Apart from some minor cosmetic issues that I'm simply going to
+fix up when applying, it looks fine to me. If Richard is also
+ok with this I'll apply it.
