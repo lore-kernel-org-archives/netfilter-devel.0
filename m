@@ -1,97 +1,215 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: xtables: add cluster match
-Date: Mon, 16 Feb 2009 15:30:20 +0100
-Message-ID: <4999787C.7050203@netfilter.org>
-References: <20090214192936.11718.44732.stgit@Decadence> <49994643.8010001@trash.net> <499971CC.6040903@netfilter.org> <49997247.3010105@trash.net>
+From: Anton VG <anton.vazir@gmail.com>
+Subject: Re: (nfnl_talk: recvmsg over-run) and (nf_queue: full at 1024
+	entries, dropping packets(s). Dropped: 582) - bug or just some defaults
+	increase required?
+Date: Mon, 16 Feb 2009 19:38:33 +0500
+Message-ID: <c4b050a10902160638s231bd34by7e90f320dde3e27e@mail.gmail.com>
+References: <c4b050a10902061014w3df3b2c3xe9e6465be79b4e07@mail.gmail.com>
+	 <200902121545.16590.anton.vazir@gmail.com>
+	 <4996FBBE.20009@netfilter.org>
+	 <200902161819.27630.anton.vazir@gmail.com>
+	 <49996D49.9050606@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: multipart/mixed; boundary=0016368e208719823a04630a24e3
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>,
+	Vitaly Bodzhgua <vitaly@eastera.tj>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37281 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751323AbZBPOWG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Feb 2009 09:22:06 -0500
-In-Reply-To: <49997247.3010105@trash.net>
+Received: from mail-bw0-f161.google.com ([209.85.218.161]:42131 "EHLO
+	mail-bw0-f161.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750859AbZBPOoa (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 16 Feb 2009 09:44:30 -0500
+Received: by bwz5 with SMTP id 5so3132701bwz.13
+        for <netfilter-devel@vger.kernel.org>; Mon, 16 Feb 2009 06:44:27 -0800 (PST)
+In-Reply-To: <49996D49.9050606@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy wrote:
-> Pablo Neira Ayuso wrote:
->> Patrick McHardy wrote:
->>>> ip maddr add 01:00:5e:00:01:01 dev eth1
->>>> ip maddr add 01:00:5e:00:01:02 dev eth2
->>>> arptables -I OUTPUT -o eth1 --h-length 6 \
->>>>     -j mangle --mangle-mac-s 01:00:5e:00:01:01
->>>> arptables -I INPUT -i eth1 --h-length 6 \
->>>>     --destination-mac 01:00:5e:00:01:01 \
->>>>     -j mangle --mangle-mac-d 00:zz:yy:xx:5a:27
->>>
->>> Mhh, is the saving of one or two characters really worth these
->>> deviations from the kind-of established naming scheme? Its hard
->>> to remember all these minor differences in my opinion.
+--0016368e208719823a04630a24e3
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+Pablo,
+Attached is the code which triggers the case, and it does not use
+threads (btw we of coase use mutexes in threaded app)
+
+How to use it:
+at first, the app created 40 queues and attaches to output. Every
+first 40 created queues have assigned corrwsponding
+192.168.1.{queue_num} IP address assigned to the queue.
+This means, for instance when you send a file to an IP address
+192.168.1.37 it flows through QUEUE 37.
+
+Than app started the loop, where it's randomly creates and destroys
+extra queues (over 40) every second.
+
+After starting the app, you need to send a big file, say 1GB, over FTP
+to anther PC with IP address from group of first 40, we used
+192.168.1.37
+
+Somewhere is the middle of sending the file it triggers the error on
+queue creation.
+
+Please make sure that you use OUTPUT chain, and you send a file from test PC.
+With this test code we did trigger this both on 64 and 32 bit systems.
+Kernel versions on test PC's 2.6.26.1 and 2.6.26.5
+
+Just let me know if anything needs clarification.
+
+Regards,
+Anton.
+
+2009/2/16 Pablo Neira Ayuso <pablo@netfilter.org>:
+> Anton wrote:
 >>
->> Hm, you mean the name "mangle" or the name of the option 
->> "--mangle-mac-d"? This is what we currently have in kernel mainline 
->> and arptables userspace, it's not my fault :). I can send you a patch 
->> to fix it with a consistent naming without breaking backward 
->> compatibility both in kernel and user-space.
-> 
-> Great, I wasn't aware that this already existed in userspace :)
+>> The code for full application is quite a big and overloaded with extra
+>> functionality like threading, database connectivity and so on. We'll try to
+>> make a simple emulation app to trigger the case and i'll send it.
+>
+> Threading is the point that I wanted to hear. Are you creating those queues
+> inside threads? The queue creation path is not thread-safe and it  requires
+> mutex.
+>
+> --
+> "Los honestos son inadaptados sociales" -- Les Luthiers
+>
 
-Yes, it's hosted by the ebtables projects. That tool really need some 
-care. It works but I don't know if it's actively maintained. Probably we 
-can offer hosting for it in git.netfilter.org. I'll investigate this.
+--0016368e208719823a04630a24e3
+Content-Type: text/x-c++src; charset=US-ASCII; name="nftst.cpp"
+Content-Disposition: attachment; filename="nftst.cpp"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fr98q27t0
 
->>>> In the case of TCP connections, pickup facility has to be disabled
->>>> to avoid marking TCP ACK packets coming in the reply direction as
->>>> valid.
->>>>
->>>> echo 0 > /proc/sys/net/netfilter/nf_conntrack_tcp_loose
->>>
->>> I'm not sure I understand this. You *don't* want to mark them
->>> as valid, and you need to disable pickup for this?
->>
->> If TCP pickup is enabled, one TCP ACK packet coming in the reply 
->> direction enters TCP ESTABLISHED state. Since that's a valid 
->> state-transition, the cluster match will consider that this is part of 
->> a connection that this node is handling since it's a valid 
->> state-transition. The cluster match does not mark packets that trigger 
->> invalid state transitions.
-> 
-> Why use conntrack at all? Shouldn't the cluster match simply
-> filter out all packets not for this cluster and thats it?
-> You stated it needs conntrack to get a constant tuple, but I
-> don't see why the conntrack tuple would differ from the data
-> that you can gather from the packet headers.
+CiNpbmNsdWRlIDxzdGRpby5oPgojaW5jbHVkZSA8c3RkbGliLmg+CiNpbmNsdWRlIDx1bmlzdGQu
+aD4KCiNpbmNsdWRlIDxuZXRpbmV0L2luLmg+CiNpbmNsdWRlIDxuZXRpbmV0L2lwLmg+CiNpbmNs
+dWRlIDxuZXRpbmV0L3RjcC5oPgojaW5jbHVkZSA8bmV0aW5ldC91ZHAuaD4KI2luY2x1ZGUgPHN5
+cy9pb2N0bC5oPgojaW5jbHVkZSA8ZmNudGwuaD4KI2luY2x1ZGUgPGVycm5vLmg+CiNpbmNsdWRl
+IDxzeXMvdGltZS5oPgojaW5jbHVkZSA8YXJwYS9pbmV0Lmg+CgojaW5jbHVkZSA8c3RyaW5nLmg+
+CiNpbmNsdWRlIDxzaWduYWwuaD4KCiNpbmNsdWRlIDxtYXA+CiNpbmNsdWRlIDxzdHJpbmc+CiNp
+bmNsdWRlIDxzc3RyZWFtPgoKdXNpbmcgbmFtZXNwYWNlIHN0ZDsKCgojaWZkZWYgIF9fY3BsdXNw
+bHVzCmV4dGVybiAiQyIgewojZW5kaWYKCiNpbmNsdWRlIDxsaW51eC9uZXRmaWx0ZXIuaD4JCS8q
+IGZvciBORl9BQ0NFUFQgKi8KI2luY2x1ZGUgPGxpYm5mbmV0bGluay9saWJuZm5ldGxpbmsuaD4K
+I2luY2x1ZGUgPGxpYm5ldGZpbHRlcl9xdWV1ZS9saWJuZXRmaWx0ZXJfcXVldWUuaD4KI2luY2x1
+ZGUgPGxpYm5ldGZpbHRlcl9xdWV1ZS9saW51eF9uZm5ldGxpbmtfcXVldWUuaD4KCiNpZmRlZiAg
+X19jcGx1c3BsdXMKfQojZW5kaWYKCgojZGVmaW5lIFFOVU0gNDAKI2RlZmluZSBRU1RBUlQgMTAw
+MAoKaW50IFRFUk09MDsKCnZvaWQgc2lnX3Rlcm0oaW50IHNpZykgewogVEVSTT0xOwp9CgpzdHJ1
+Y3QgaW5mbyB7CiBpbnQgcW51bTsKIHN0cnVjdCBuZnFfcV9oYW5kbGUgKnFoOwp9OwoKbWFwPGlu
+dCxpbmZvPiBxdWV1ZXM7IC8vcXVldXNbcW51bV09aW5mbwoKLy9HTE9CQWxTIEhFUkUKc3RydWN0
+IG5mcV9oYW5kbGUgKmg7CnN0cnVjdCBuZnFfcV9oYW5kbGUgKnFoOwpzdHJ1Y3QgbmZubF9oYW5k
+bGUgKm5oOwppbnQgbmZxZmQ7CgppbnQgcnY7CmNoYXIgYnVmWzQwOTZdOwovLz09PT09PT09PT09
+PT09PT09PT09PT09PT0KCnRlbXBsYXRlIDxjbGFzcyBUPgpzdGQ6OnN0cmluZyBzdHJpbmdpZnko
+VCB4KSB7CiBzdGQ6OnN0cmluZ3N0cmVhbSBvOwogbyA8PCB4OwogcmV0dXJuIG8uc3RyKCk7Cn0K
+CiNpbmNsdWRlIDxzeXMvcmVzb3VyY2UuaD4KCmludCBmb3JjZV9jb3JlKHVuc2lnbmVkIGxvbmcg
+Y29yZV9zaXplX2N1ciwgdW5zaWduZWQgbG9uZyBjb3JlX3NpemVfbWF4KSB7CiBzdHJ1Y3QgIHJs
+aW1pdCBybGltOwoKIHJsaW0ucmxpbV9jdXI9Y29yZV9zaXplX2N1cjsKIHJsaW0ucmxpbV9tYXg9
+Y29yZV9zaXplX21heDsKIHJldHVybiBzZXRybGltaXQoUkxJTUlUX0NPUkUsJnJsaW0pOwp9Cgov
+L0hBTkRMRVMgUEFDS0VUUyBIRVJFCnN0YXRpYyB1X2ludDMyX3QgaGFuZGxlX3BrdCAoc3RydWN0
+IG5mcV9kYXRhICp0YixzdHJ1Y3QgaW5mbyAqc3BlYyxpbnQgJnZlcmRpY3QpIHsKICBpbnQgaWQg
+PSAwOwogIHN0cnVjdCBuZnFubF9tc2dfcGFja2V0X2hkciAqcGg7CiAgdV9pbnQzMl90IG1hcms7
+CiAgaW50IHJldDsKICBjaGFyICpkYXRhOwovLz0JCiAgc3RydWN0IGlwaGRyICAqaXA7CiAgc3Ry
+dWN0IHRjcGhkciAqdGNwOwogIHN0cnVjdCB1ZHBoZHIgKnVkcDsKICBjaGFyIHNhZGRyWzIwXSxk
+YWRkclsyMF07CiAgaW50IHNwb3J0PTA7CiAgaW50IGRwb3J0PTA7CiAgaW50IGk7Ci8vPQkKICAK
+ICB2ZXJkaWN0PU5GX0FDQ0VQVDsgIAoJCiAgcGggPSBuZnFfZ2V0X21zZ19wYWNrZXRfaGRyKHRi
+KTsKICBpZiAocGgpIHsKCWlkID0gbnRvaGwocGgtPnBhY2tldF9pZCk7CglwcmludGYoImh3X3By
+b3RvY29sPTB4JTA0eCBob29rPSV1IGlkPSV1ICIsCgludG9ocyhwaC0+aHdfcHJvdG9jb2wpLCBw
+aC0+aG9vaywgaWQpOwkgCQkJCiAgfQoJCiAgbWFyayA9IG5mcV9nZXRfbmZtYXJrKHRiKTsKICBw
+cmludGYoIm1hcms9JXUgIiwgbWFyayk7CiAgcmV0ID0gbmZxX2dldF9wYXlsb2FkKHRiLCAmZGF0
+YSk7CgovLz09PT09PQogIGlwPShzdHJ1Y3QgaXBoZHIqKSBkYXRhOwogIGlmIChpcC0+cHJvdG9j
+b2w9PTYpIHsKICAgIHRjcD0oc3RydWN0IHRjcGhkciopIChkYXRhICsgKDQgKiBpcC0+aWhsKSk7
+CiAgICBzcG9ydCA9IGh0b25zKHRjcC0+c291cmNlKTsKICAgIGRwb3J0ID0gaHRvbnModGNwLT5k
+ZXN0KTsKICB9IGVsc2UgaWYgKGlwLT5wcm90b2NvbD09MTcpICB7CiAgICAgdWRwPShzdHJ1Y3Qg
+dWRwaGRyKikgKGRhdGEgKyAoNCAqIGlwLT5paGwpKTsKICAgICBzcG9ydCA9IGh0b25zKHVkcC0+
+c291cmNlKTsKICAgICBkcG9ydCA9IGh0b25zKHVkcC0+ZGVzdCk7CiAgfQoKICBzdHJjcHkoc2Fk
+ZHIsaW5ldF9udG9hKCooc3RydWN0IGluX2FkZHIqKSZpcC0+c2FkZHIpKTsKICBzdHJjcHkoZGFk
+ZHIsaW5ldF9udG9hKCooc3RydWN0IGluX2FkZHIqKSZpcC0+ZGFkZHIpKTsKCiAgcHJpbnRmKCIl
+aSBzcmM9JXM6JXUgIGRzdD0lczoldSBzaXplPSV1IHByb3RvPSV1IiwKICAgICAgICAgICAgICAg
+ICBzcGVjLT5xbnVtLHNhZGRyLHNwb3J0LGRhZGRyLGRwb3J0LGh0b25zKGlwLT50b3RfbGVuKSxp
+cC0+cHJvdG9jb2wpOwoKLy89PT09PT09CiAgZnB1dGMoJ1xuJywgc3Rkb3V0KTsKICByZXR1cm4g
+aWQ7Cn0KCQoKc3RhdGljIGludCBjYihzdHJ1Y3QgbmZxX3FfaGFuZGxlICpxaCwgc3RydWN0IG5m
+Z2VubXNnICpuZm1zZywKCSAgICAgIHN0cnVjdCBuZnFfZGF0YSAqbmZhLCB2b2lkICpkYXRhKSB7
+CiAgICAgICAgaW50IHZlcmRpY3Q9TkZfRFJPUDsJICAgICAgCiAJdV9pbnQzMl90IGlkID0gaGFu
+ZGxlX3BrdChuZmEsIChzdHJ1Y3QgaW5mbyAqKSBkYXRhLCB2ZXJkaWN0KTsKCXJldHVybiBuZnFf
+c2V0X3ZlcmRpY3QocWgsIGlkLCB2ZXJkaWN0LCAwLCBOVUxMKTsKfQoKCi8vSU5JVCBORlEKdm9p
+ZCBpbml0X25mcSgpIHsKIGg9MDsKIAogcHJpbnRmKCJvcGVuaW5nIGxpYnJhcnkgaGFuZGxlXG4i
+KTsKIGggPSBuZnFfb3BlbigpOwogaWYgKCFoKSB0aHJvdyAiZXJyb3IgZHVyaW5nIG5mcV9vcGVu
+KCkiOwoKIHByaW50ZigidW5iaW5kaW5nIGV4aXN0aW5nIG5mX3F1ZXVlIGhhbmRsZXIgZm9yIEFG
+X0lORVQgKGlmIGFueSlcbiIpOwogaWYgKG5mcV91bmJpbmRfcGYoaCwgQUZfSU5FVCkgPCAwKSB0
+aHJvdyAiZXJyb3IgZHVyaW5nIG5mcV91bmJpbmRfcGYoKSI7CgogcHJpbnRmKCJiaW5kaW5nIG5m
+bmV0bGlua19xdWV1ZSBhcyBuZl9xdWV1ZSBoYW5kbGVyIGZvciBBRl9JTkVUXG4iKTsKIGlmIChu
+ZnFfYmluZF9wZihoLCBBRl9JTkVUKSA8IDApIHRocm93ICJlcnJvciBkdXJpbmcgbmZxX2JpbmRf
+cGYoKSI7CgogbmggPSBuZnFfbmZubGgoaCk7CiBuZnFmZCA9IG5mbmxfZmQobmgpOwogICAgCiBp
+ZiAobmZxZmQ+MCkgewogICBmY250bChuZnFmZCxGX1NFVEZMLE9fTk9OQkxPQ0spOwogfSBlbHNl
+IHRocm93ICJmYWlsIHRvIHNldCBuZnEgbmZubCBmZCI7Cn0KCgovL0NIRUNLIElGIFRIRVJFIEFO
+WSBQQUNLRVRTIElOIFFVRVVFCmludCBjaGVja19uZnEoaW50IHRpbWVvdXQpIHsKIGZkX3NldCBy
+ZWFkZmRzOwogc3RydWN0IHRpbWV2YWwgdHY7CiBpbnQgcmVzOwoKIGlmICghcXVldWVzLnNpemUo
+KSkgcmV0dXJuIC0xMDA7CgogRkRfWkVSTygmcmVhZGZkcyk7CiBGRF9TRVQobmZxZmQsJnJlYWRm
+ZHMpOwoKIGlmICh0aW1lb3V0PDApIHsKICAgcmVzPXNlbGVjdChuZnFmZCsxLCZyZWFkZmRzLE5V
+TEwsTlVMTCxOVUxMKTsKIH0gZWxzZSB7CiAgIHR2LnR2X3NlYz0wOyAvL3RpbWVvdXQ7CiAgIHR2
+LnR2X3VzZWM9dGltZW91dDsKICAgcmVzPXNlbGVjdChuZnFmZCsxLCZyZWFkZmRzLE5VTEwsTlVM
+TCwmdHYpOwogfQoKIGlmIChyZXM+MCkgewogIHJlcz0wOwogICBpbnQgcnY7CiAgIGNoYXIgYnVm
+WzQwOTZdOwogICBpZiAoRkRfSVNTRVQobmZxZmQsJnJlYWRmZHMpKSB7CiAgICByZXM9MTsKICAg
+IHJ2ID0gcmVjdihuZnFmZCwgYnVmLCBzaXplb2YoYnVmKSwgMCk7CiAgICBpZiAoZXJybm8gPDAp
+IHRocm93IHN0cmVycm9yKGVycm5vKTsKICAgIG5mcV9oYW5kbGVfcGFja2V0KGgsIGJ1ZiwgcnYp
+OwogICB9CiB9CiAKIHJldHVybiByZXM7CiAKfQoKCgp2b2lkIGNyZWF0ZV9xdWV1ZShpbnQgcW51
+bSkgewogIHN0cnVjdCBpbmZvIHNwZWM7CiAgc3RydWN0IGluZm8gKnBzcGVjOwogIG1hcDxpbnQs
+aW5mbz46Oml0ZXJhdG9yIGlpOyAKICAKICBpZiAoKGlpPXF1ZXVlcy5maW5kKHFudW0pKSE9cXVl
+dWVzLmVuZCgpKSB7CiAgIHByaW50ZigicXVldWUgJyVpJyBhbHJlYWR5IHF1ZXVlZFxuIixpaS0+
+Zmlyc3QpOwogICByZXR1cm47CiAgfQoKICBzcGVjLnFudW09cW51bTsKICBxdWV1ZXNbc3BlYy5x
+bnVtXT1zcGVjOwoKICBwc3BlYz0mcXVldWVzW3NwZWMucW51bV07CiAgcHJpbnRmKCJiaW5kaW5n
+IHRoaXMgc29ja2V0IHRvIHF1ZXVlICclaSdcbiIsc3BlYy5xbnVtKTsKICBwc3BlYy0+cWggPSBu
+ZnFfY3JlYXRlX3F1ZXVlKGgsICBzcGVjLnFudW0sICZjYiwgcHNwZWMpOwogIGlmICghcHNwZWMt
+PnFoKSB0aHJvdyAiZXJyb3IgZHVyaW5nIG5mcV9jcmVhdGVfcXVldWUoKSI7CiAgcHJpbnRmKCJz
+ZXR0aW5nIGNvcHlfcGFja2V0IG1vZGVcbiIpOwogIGlmIChuZnFfc2V0X21vZGUocHNwZWMtPnFo
+LCBORlFOTF9DT1BZX1BBQ0tFVCwgMHhmZmZmKSA8IDApIHsKICAgIGZwcmludGYoc3RkZXJyLCJj
+YW4ndCBzZXQgcGFja2V0X2NvcHkgbW9kZSAoJXMpXG4iLHN0cmVycm9yKGVycm5vKSk7CiAgICBx
+dWV1ZXMuZXJhc2UocXVldWVzLmZpbmQoc3BlYy5xbnVtKSk7CiAgfSAgCn0KCnZvaWQgZGVsZXRl
+X3F1ZXVlKGludCBxbnVtKSB7CiBtYXA8aW50LGluZm8+OjppdGVyYXRvciBpaTsgCiBpZiAoKGlp
+PXF1ZXVlcy5maW5kKHFudW0pKSE9cXVldWVzLmVuZCgpKSB7CiAgIHByaW50ZigiZGVzdHJvaW5n
+IHF1ZXVlICclaSdcbiIsaWktPmZpcnN0KTsKICAgbmZxX2Rlc3Ryb3lfcXVldWUoaWktPnNlY29u
+ZC5xaCk7CiB9Cn0KCnZvaWQgZW5hYmxlX2FjY2VzcyhpbnQgcW51bSxpbnQgb3JkZXIsIGJvb2wg
+ZW5hYmxlPXRydWUpIHsKIGNoYXIgd2hhdDsKIAogaWYgKGVuYWJsZSkgd2hhdD0nQSc7CiBlbHNl
+IHdoYXQ9J0QnOwogCiBzdHJpbmcgY21kPXN0cmluZygiaXB0YWJsZXMgLSIpICsgd2hhdCArIiBP
+VVRQVVQgLWQgMTkyLjE2OC4xLiIgKyBzdHJpbmdpZnkob3JkZXIpKyAgIiAtaiBORlFVRVVFIC0t
+cXVldWUtbnVtICIrc3RyaW5naWZ5KHFudW0pOwogcHV0cyhjbWQuY19zdHIoKSk7CiBzeXN0ZW0o
+Y21kLmNfc3RyKCkpOwogCn0KCi8vUlVOIFRFU1QKCiNkZWZpbmUgVElNRU9VVCAxMDAwMAoKdm9p
+ZCBydW5fdGVzdCgpIHsKIGludCBpLG47CiBtYXA8aW50LGluZm8+OjppdGVyYXRvciBpaTsgCiBu
+PTA7CiAKIGZvcmNlX2NvcmUoLTEsLTEpOyAKIHNyYW5kKHRpbWUoMCkpOwogCiBmb3IgKGk9MDsg
+aTxRTlVNOyBpKyspIHsgLy9pbml0IHF1ZXVlcwogIGNyZWF0ZV9xdWV1ZShRU1RBUlQraSk7ICAg
+IAogIGVuYWJsZV9hY2Nlc3MoUVNUQVJUK2ksaSk7CiB9CiAKIHByaW50ZigiSW5pdGlhbGl6ZWQg
+JWkgcXVldWVzXG4iLHF1ZXVlcy5zaXplKCkpOwogCiB0aW1lX3Qgbm93PXRpbWUoMCk7CiB0aW1l
+X3QgbGFzdD0wOwogd2hpbGUoIVRFUk0pIHsKIC8vY3JlYXRpbmcgYW5kIGRlc3Ryb3lpbmcgcXVl
+dWVzIAogIGNoZWNrX25mcShUSU1FT1VUKTsKICBub3c9dGltZSgwKTsKICBpZiAobm93PGxhc3Qr
+MikgY29udGludWU7CiAgbGFzdD1ub3c7CiAgaW50IHg9KGludCkgKDQwLjArMTYwLjAvUkFORF9N
+QVgqcmFuZCgpKTsgLy9yYW5kb20gNDAuLjIwMAovLyAgcHJpbnRmKCIlaVxuIix4KTsKLy8gIGNv
+bnRpbnVlOwogIGlmICh4ICYgMSkgeyAvL3RyeSB0byBjcmVhdGUgaWYgeCBpcyBvZGQKICAgY3Jl
+YXRlX3F1ZXVlKHgrUVNUQVJUKTsKICAgZW5hYmxlX2FjY2VzcyhRU1RBUlQreCx4KTsKICAgY29u
+dGludWU7CiAgfQogIGlmIChxdWV1ZXMuc2l6ZSgpPFFOVU0pIGNvbnRpbnVlOwogIGRlbGV0ZV9x
+dWV1ZSh4K1FTVEFSVCk7IC8vdHJ5IHRvIGNyZWF0ZSBpZiB4IGlzIGV2ZW4KICBlbmFibGVfYWNj
+ZXNzKFFTVEFSVCt4LHgsZmFsc2UpOwogfQogCiBmb3IgKGlpPXF1ZXVlcy5iZWdpbigpO2lpIT1x
+dWV1ZXMuZW5kKCk7ICsraWkpIHsgLy9kZXN0cm95IHF1ZXVlcwogIGRlbGV0ZV9xdWV1ZShpaS0+
+Zmlyc3QpOwogIGVuYWJsZV9hY2Nlc3MoaWktPmZpcnN0LGlpLT5maXJzdC1RU1RBUlQsZmFsc2Up
+OyAgCiB9CiAKfQoKaW50IG1haW4oaW50IGFyZ2MsIGNoYXIgKiphcmd2KSB7Cgogc2lnbmFsKFNJ
+R1RFUk0sc2lnX3Rlcm0pOwogc2lnbmFsKFNJR0lOVCxzaWdfdGVybSk7CiAKIHRyeSB7IAogIGlu
+aXRfbmZxKCk7CiB9IAogY2F0Y2goY29uc3QgY2hhciAqbXNnKSB7CiAgZnByaW50ZihzdGRlcnIs
+IkZhaWwgdG8gaW5pdCBuZnE6ICVzXG4iLG1zZyk7ICAKICBleGl0KC0xKTsKIH0gCgogdHJ5IHsg
+CiAgcnVuX3Rlc3QoKTsKIH0gCiBjYXRjaChjb25zdCBjaGFyICptc2cpIHsKICBmcHJpbnRmKHN0
+ZGVyciwiRmFpbHVyZSBkdXJpbmcgdGVzdCBydW5uaW5nOiAlc1xuIixtc2cpOyAgCiAgZXhpdCgt
+MSk7CiB9IAogCiAKIHNpZ25hbChTSUdURVJNLFNJR19ERkwpOwogc2lnbmFsKFNJR0lOVCxTSUdf
+REZMKTsKCgojaWZkZWYgSU5TQU5FCgkvKiBub3JtYWxseSwgYXBwbGljYXRpb25zIFNIT1VMRCBO
+T1QgaXNzdWUgdGhpcyBjb21tYW5kLCBzaW5jZQoJICogaXQgZGV0YWNoZXMgb3RoZXIgcHJvZ3Jh
+bXMvc29ja2V0cyBmcm9tIEFGX0lORVQsIHRvbyAhICovCglwcmludGYoInVuYmluZGluZyBmcm9t
+IEFGX0lORVRcbiIpOwoJbmZxX3VuYmluZF9wZihoLCBBRl9JTkVUKTsKI2VuZGlmCiBwcmludGYo
+ImNsb3NpbmcgbGlicmFyeSBoYW5kbGVcbiIpOwogbmZxX2Nsb3NlKGgpOwogCiByZXR1cm4gMDsK
+fQo=
+--0016368e208719823a04630a24e3
+Content-Type: application/octet-stream; name=Makefile
+Content-Disposition: attachment; filename=Makefile
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_fr98rhcx1
 
-No, source NAT connections would have different headers. A -> B for 
-original, and B -> FW for reply direction. Thus, I cannot apply the same 
-hashing for packets going in the original and the reply direction. 
-Moreover, if this is packet-based, think also about possible asymmetric 
-filtering: original traffic direction filtered by node 1 but reply 
-traffic filtered by node 2. That will not work for a stateful firewall.
-
->>>> echo +2 > /proc/sys/net/netfilter/cluster/$PROC_NAME
->>>
->>> Does this provide anything you can't do by replacing the rule
->>> itself?
->>
->> Yes, the nodes in the cluster are identifies by an ID, the rule allows 
->> you to specify one ID. Say you have two cluster nodes, one with ID 1, 
->> and the other with ID 2. If the cluster node with ID 1 goes down, you 
->> can echo +1 to node with ID 2 so that it will handle packets going to 
->> node with ID 1 and ID 2. Of course, you need conntrackd to allow node 
->> ID 2 recover the filtering.
-> 
-> I see. That kind of makes sense, but if you're running a
-> synchronization daemon anyways, you might as well renumber
-> all nodes so you still have proper balancing, right?
-
-Indeed, the daemon may also add a new rule for the node that has gone 
-down but that results in another extra hash operation to mark it or not 
-(one extra hash per rule) :(.
-
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+I1BBVENIRURfUEFUSD0vdXNyL3NyYy9ORVRGSUxURVIvbGlibmV0ZmlsdGVyX3F1ZXVlLTAuMC4x
+Ni5wYXRjaGVkL3NyYy8ubGlicy8KUEFUQ0hFRF9QQVRIPS91c3Ivc3JjL2xpYi5wYXRjaGVkLwoK
+bmZ0c3Q6IG5mdHN0LmNwcAoJZysrIC1vICRAICReIC1MJChQQVRDSEVEX1BBVEgpIC1XbCwtcnBh
+dGg9JChQQVRDSEVEX1BBVEgpICAtbG5ldGZpbHRlcl9xdWV1ZSAtbG5mbmV0bGluawo=
+--0016368e208719823a04630a24e3--
