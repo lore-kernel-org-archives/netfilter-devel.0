@@ -1,39 +1,45 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] netfilter: xtables: add cluster match
-Date: Mon, 16 Feb 2009 13:13:29 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0902161312230.12536@fbirervta.pbzchgretzou.qr>
-References: <20090216092317.6855.7403.stgit@Decadence> <49993263.5050702@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [pull] all patches complete
+Date: Mon, 16 Feb 2009 13:15:58 +0100
+Message-ID: <499958FE.2060002@trash.net>
+References: <alpine.LSU.2.00.0902131642300.17695@fbirervta.pbzchgretzou.qr> <499942C3.1090906@trash.net> <alpine.LSU.2.00.0902161307420.12536@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:57634 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757191AbZBPMNa (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:55243 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752954AbZBPMQD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Feb 2009 07:13:30 -0500
-In-Reply-To: <49993263.5050702@netfilter.org>
+	Mon, 16 Feb 2009 07:16:03 -0500
+In-Reply-To: <alpine.LSU.2.00.0902161307420.12536@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Jan Engelhardt wrote:
+> On Monday 2009-02-16 11:41, Patrick McHardy wrote:
+> 
+>> Jan Engelhardt wrote:
+>>> All patches have been gathered and collected, pullable at the usual place of
+>>> 	git://dev.medozas.de/iptables master
+>>>
+>>> 20 files changed, 180 insertions(+), 173 deletions(-)
+>> I wanted to pull this, but I'm again getting a quite different
+>> diffstat:
+> 
+> This is because another patch was added at jamal's request.
+> 
+> I am not quite sure how the preferred workflow is for when
+> only a subset of a branch is supposed to be merged (because
+> the branch already moved on). I guess
+> `git fetch...; git merge $sha1` would work, but that looks
+> a bit odd in the changelog.
+> stat is currently
+>  21 files changed, 242 insertions(+), 258 deletions(-)
 
-On Monday 2009-02-16 10:31, Pablo Neira Ayuso wrote:
-
->Pablo Neira Ayuso wrote:
->
->> +static int xt_cluster_seq_show(struct seq_file *s, void *v)
->> +{
->> +	unsigned long *mask = v;
->> +	seq_printf(s, "0x%8lx\n", *mask);
->                         ^^^
->Damn, this needs the dot before the 8 to fill with zero the empty
->spaces. Jan's suggestion was wrong and I forgot to check this. I'll send
->the patch again.
-
-Wait wait, let me requote myself:
-
->'.' does not make sense with non-string,non-floating point numbers 
->(though it is a stdc feature it seems). I'd say "0x%08lx", for clarity.
-
-The second '0' in "0x%08lx" is missing.
+The preferred way is to not change the public tree after a pull request
+until it has been pulled. Not sure how you work, but I assume you have
+a local tree that you push to the public one. In that case simply wait
+until I've pulled before you update again.
