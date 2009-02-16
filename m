@@ -1,37 +1,71 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 3/4] netfilter: print the list of register loggers.
-Date: Mon, 16 Feb 2009 18:11:15 +0100
-Message-ID: <49999E33.9070307@trash.net>
-References: <49980BA7.2040108@inl.fr> <1234701437-2754-3-git-send-email-eric@inl.fr> <alpine.LSU.2.00.0902161753530.26651@fbirervta.pbzchgretzou.qr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH] netfilter: xtables: add cluster match
+Date: Mon, 16 Feb 2009 18:13:23 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0902161804550.26651@fbirervta.pbzchgretzou.qr>
+References: <20090214192936.11718.44732.stgit@Decadence> <49994643.8010001@trash.net> <499971CC.6040903@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Eric Leblond <eric@inl.fr>, netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:63518 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750718AbZBPRLS (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:46285 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750777AbZBPRNZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Feb 2009 12:11:18 -0500
-In-Reply-To: <alpine.LSU.2.00.0902161753530.26651@fbirervta.pbzchgretzou.qr>
+	Mon, 16 Feb 2009 12:13:25 -0500
+In-Reply-To: <499971CC.6040903@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> The seqprinting (knowingly that I suggested it) has a bit of a drawback
-> the way you use it -- if userspace passes a buffer of, say, size 11,
-> then the first seq_printf will succeed in stuffing " 1 NONE (" into
-> the buffer; it then has 2 left. Because t->name is probably more descriptive
-> than that, the second seq_printf will fail, breaking out of the loop,
-> calling seq_stop, etc. and userspace gets 9 as the return value for
-> the read() it attempted. However, when userspace now tries to read()
-> again, as it is absolutely entitled to, the " 1 NONE (" will be printed
-> again into the buffer -- which is rather undesirable.
-> ...
-> Maybe the authors of seq_file can offer some better function that
-> takes care of this?
 
-seqfile operates on records not characters and always provides
-one page of memory.
+On Monday 2009-02-16 15:01, Pablo Neira Ayuso wrote:
+>>>
+>>> And the following commands to make all nodes see the same packets:
+>>>
+>>> ip maddr add 01:00:5e:00:01:01 dev eth1
+>>> ip maddr add 01:00:5e:00:01:02 dev eth2
+>>> arptables -I OUTPUT -o eth1 --h-length 6 \
+>>>    -j mangle --mangle-mac-s 01:00:5e:00:01:01
+>>> arptables -I INPUT -i eth1 --h-length 6 \
+>>>    --destination-mac 01:00:5e:00:01:01 \
+>>>    -j mangle --mangle-mac-d 00:zz:yy:xx:5a:27
+>>
+>> Mhh, is the saving of one or two characters really worth these
+>> deviations from the kind-of established naming scheme? Its hard
+>> to remember all these minor differences in my opinion.
+>
+> Hm, you mean the name "mangle" or the name of the option "--mangle-ma=
+c-d"?
 
+In case of --mangle-mac-d, getopt automatically handles
+abbreviations (the best example I can think of where this works
+is `quilt ref --s --d` for --sort --diffstat).
+
+>> Unrelated to this patch, but maybe the target would also be
+>> better named "NAT" instead of the much more generic term "mangle".
+>> Why is it using lower case letters btw?
+>
+> No idea who has done this,
+
+Lowercasing targets was the original author's (Bart De Schuymer's)
+deed ;-)
+
+I have nothing against lowercase targets, in fact, many a user seems
+to so not get case-sensitity right=C2=A0=E2=80=94 =E2=80=9CINPUT=E2=80=9D=
+ vs. =E2=80=9Cinput=E2=80=9D (built-in
+chain names), =E2=80=9CMASQUERADE=E2=80=9D vs. =E2=80=9Cmasquerade=E2=80=
+=9D (targets), to name some=C2=A0=E2=80=94
+that I would support lowercasing all targets...=E2=80=94 if it were not=
+ for
+the clash between MARK (target) and mark (match), for example.
+Though, calling one of them =E2=80=9Cmark_m=E2=80=9D or underscore-some=
+thing to avoid
+the clash however, is what I dislike in favor of uppercasing target
+names.
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
