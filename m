@@ -1,88 +1,44 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: xtables: add cluster match
-Date: Mon, 16 Feb 2009 15:03:51 +0100
-Message-ID: <49997247.3010105@trash.net>
-References: <20090214192936.11718.44732.stgit@Decadence> <49994643.8010001@trash.net> <499971CC.6040903@netfilter.org>
+Subject: Re: Netfilter API and libiptc
+Date: Mon, 16 Feb 2009 15:08:01 +0100
+Message-ID: <49997341.1060907@trash.net>
+References: <20090205141722.GB21417@qubit> <4990636B.9080900@trash.net> <20090209183941.GA1050@zenon.in.qult.net> <Pine.LNX.4.64.0902111408210.4822@ask.diku.dk> <4992E2B3.3030009@trash.net> <alpine.LSU.2.00.0902111656400.22845@fbirervta.pbzchgretzou.qr> <4993AFF9.9010002@trash.net> <alpine.LSU.2.00.0902120640480.32504@fbirervta.pbzchgretzou.qr> <4993BA81.8030404@trash.net> <Pine.LNX.4.64.0902161402280.27418@ask.diku.dk> <Pine.LNX.4.64.0902161425020.27721@ask.diku.dk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Jan Engelhardt <jengelh@medozas.de>, Ignacy Gawedzki <i@lri.fr>,
+	Netfilter Developers <netfilter-devel@vger.kernel.org>
+To: Jesper Dangaard Brouer <hawk@diku.dk>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:58990 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:59061 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757210AbZBPOD4 (ORCPT
+	with ESMTP id S1757858AbZBPOIF (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Feb 2009 09:03:56 -0500
-In-Reply-To: <499971CC.6040903@netfilter.org>
+	Mon, 16 Feb 2009 09:08:05 -0500
+In-Reply-To: <Pine.LNX.4.64.0902161425020.27721@ask.diku.dk>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> Patrick McHardy wrote:
->>> ip maddr add 01:00:5e:00:01:01 dev eth1
->>> ip maddr add 01:00:5e:00:01:02 dev eth2
->>> arptables -I OUTPUT -o eth1 --h-length 6 \
->>>     -j mangle --mangle-mac-s 01:00:5e:00:01:01
->>> arptables -I INPUT -i eth1 --h-length 6 \
->>>     --destination-mac 01:00:5e:00:01:01 \
->>>     -j mangle --mangle-mac-d 00:zz:yy:xx:5a:27
->>
->> Mhh, is the saving of one or two characters really worth these
->> deviations from the kind-of established naming scheme? Its hard
->> to remember all these minor differences in my opinion.
+Jesper Dangaard Brouer wrote:
+> On Mon, 16 Feb 2009, Jesper Dangaard Brouer wrote:
 > 
-> Hm, you mean the name "mangle" or the name of the option 
-> "--mangle-mac-d"? This is what we currently have in kernel mainline and 
-> arptables userspace, it's not my fault :). I can send you a patch to fix 
-> it with a consistent naming without breaking backward compatibility both 
-> in kernel and user-space.
-
-Great, I wasn't aware that this already existed in userspace :)
-
->>> In the case of TCP connections, pickup facility has to be disabled
->>> to avoid marking TCP ACK packets coming in the reply direction as
->>> valid.
->>>
->>> echo 0 > /proc/sys/net/netfilter/nf_conntrack_tcp_loose
+>> Hi Patrick,
 >>
->> I'm not sure I understand this. You *don't* want to mark them
->> as valid, and you need to disable pickup for this?
-> 
-> If TCP pickup is enabled, one TCP ACK packet coming in the reply 
-> direction enters TCP ESTABLISHED state. Since that's a valid 
-> state-transition, the cluster match will consider that this is part of a 
-> connection that this node is handling since it's a valid 
-> state-transition. The cluster match does not mark packets that trigger 
-> invalid state transitions.
-
-Why use conntrack at all? Shouldn't the cluster match simply
-filter out all packets not for this cluster and thats it?
-You stated it needs conntrack to get a constant tuple, but I
-don't see why the conntrack tuple would differ from the data
-that you can gather from the packet headers.
-
->>> echo +2 > /proc/sys/net/netfilter/cluster/$PROC_NAME
+>> Would you please consider the libiptc shared library patch for inclusion?
+>> I don't find the patch intrusive.  I have tested it and it works.
 >>
->> Does this provide anything you can't do by replacing the rule
->> itself?
+>> See patch below...
 > 
-> Yes, the nodes in the cluster are identifies by an ID, the rule allows 
-> you to specify one ID. Say you have two cluster nodes, one with ID 1, 
-> and the other with ID 2. If the cluster node with ID 1 goes down, you 
-> can echo +1 to node with ID 2 so that it will handle packets going to 
-> node with ID 1 and ID 2. Of course, you need conntrackd to allow node ID 
-> 2 recover the filtering.
+> Ups, that patch would not apply cleanly to the latest git (commit 
+> 5dd19de34380).  Trivial diff conflict on Makefile.am (due to ae19604f 
+> "build: remove unneeded -ldl from iptables_xml_LDADD")
+> 
+> There is a clean version:
+> 
+>> From 4a1c3f3e56a2039b87636d3d2d8517933c47b517 Mon Sep 17 00:00:00 2001
+> From: Jan Engelhardt <jengelh@medozas.de>
+> Date: Wed, 11 Feb 2009 16:40:29 +0100
+> Subject: [PATCH 1/1] libiptc: make library available as a shared library
 
-I see. That kind of makes sense, but if you're running a
-synchronization daemon anyways, you might as well renumber
-all nodes so you still have proper balancing, right?
-
-> Now, I see that there is a possible optimization that consists of 
-> checking if one node has its node mask all set with regards to the total 
-> number of nodes, so that hashing can be skipped. But that's something 
-> that we can add later I think.
-
-Indeed.
-
-
+No objections from my side. Jan, do you consider this patch ready
+for inclusion?
