@@ -1,111 +1,88 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] Update jhash.h with the new version of Jenkins' hash
-Date: Tue, 17 Feb 2009 18:13:04 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.0902171723330.27283@blackhole.kfki.hu>
-References: <alpine.DEB.2.00.0902111107480.15665@blackhole.kfki.hu>  <20090212001223.GA5757@movementarian.org>  <alpine.DEB.2.00.0902121006440.18739@blackhole.kfki.hu> <f73f7ab80902120546w2ac30501v10fc55b9c8270be9@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: (nfnl_talk: recvmsg over-run) and (nf_queue: full at 1024 	entries,
+ dropping packets(s). Dropped: 582) - bug or just some defaults 	increase
+ required?
+Date: Tue, 17 Feb 2009 18:15:36 +0100
+Message-ID: <499AF0B8.5060202@netfilter.org>
+References: <c4b050a10902061014w3df3b2c3xe9e6465be79b4e07@mail.gmail.com>	 <200902121545.16590.anton.vazir@gmail.com>	 <4996FBBE.20009@netfilter.org>	 <200902161819.27630.anton.vazir@gmail.com>	 <49996D49.9050606@netfilter.org>	 <c4b050a10902160638s231bd34by7e90f320dde3e27e@mail.gmail.com>	 <49998504.9020004@netfilter.org>	 <c4b050a10902160733y605a5cc1l710596b0aa658f5d@mail.gmail.com>	 <c4b050a10902160741i6d7a42deqaa41f9e22bdc4484@mail.gmail.com> <c4b050a10902170858j698c32c3ye6c58682911c59eb@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Rusty Russell <rusty@rustcorp.com.au>
-To: Kyle Moffett <kyle@moffetthome.net>
+Content-Type: multipart/mixed;
+ boundary="------------060404010402080009010707"
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>,
+	Vitaly Bodzhgua <vitaly@eastera.tj>
+To: Anton VG <anton.vazir@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:45751 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753251AbZBQRNM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 Feb 2009 12:13:12 -0500
-In-Reply-To: <f73f7ab80902120546w2ac30501v10fc55b9c8270be9@mail.gmail.com>
+Received: from mail.us.es ([193.147.175.20]:37206 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752690AbZBQRPq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 17 Feb 2009 12:15:46 -0500
+In-Reply-To: <c4b050a10902170858j698c32c3ye6c58682911c59eb@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+This is a multi-part message in MIME format.
+--------------060404010402080009010707
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-On Thu, 12 Feb 2009, Kyle Moffett wrote:
+Anton VG wrote:
+> Pablo,
+> A little update, just tried non-patched variant with blocking, the
+> only difference is - it generated ERROR only once and hanged (waiting
+> for data)
+> Any update from you?
 
-> On Thu, Feb 12, 2009 at 4:11 AM, Jozsef Kadlecsik
-> <kadlec@blackhole.kfki.hu> wrote:
-> > The current jhash.h implements the lookup2() hash function by Bob Jenkins.
-> > However, lookup2() is outdated as Bob wrote a new hash function called
-> > lookup3(). The new hash function
-> >
-> > - mixes better than lookup2(): it passes the check that every input bit
-> >  changes every output bit 50% of the time, while lookup2() failed it.
-> > - performs better: compiled with -O2 on Core2 Duo, lookup3() 20-40% faster
-> >  than lookup2() depending on the key length.
-> 
-> Well, there's another question which is not addressed by Bob Jenkins'
-> design docs:
-> 
-> Kernel code usually runs cache-cold, whereas Bob Jenkins did most of
-> his testing cache-hot in tight loops.  If you compile both lookup2 and
-> lookup3 with -Os and run them in a loop with a cache flush, how well
-> do they compare then?
+Yes, I got a trace of the problem (with blocking behaviour):
 
-In order to get as much data as possible, I dusted off the good old cttest 
-program which was used long time ago to test and pick the currently used 
-lookup2 function. I added lookup3 to cttest, converted the internals to 
-follow the current netfilter/conntrack hash lookup usage and introduced a 
-large enough input buffer to force cold cache. I also added the superfast 
-hash by Paul Hsieh and murmur2 hash of Austin Appleby, to check those as 
-well.
+userspace                       kernelspace
+create queue (seq=x) --->
+add iptables rule    --->
+                     <--- (seq=0) packet sent
+verdict (seq=x+1)    --->
+                     <--- (seq=0) packet sent
+verdict (seq=x+2)    --->
+                     <--- (seq=x) ACK message
 
-The test program and all the generated html pages and graphs are at
-http://www.kfki.hu/~kadlec/sw/netfilter/ct3/. Here follows just a terse 
-summary:
+Then, it hits EILSEQ. The patch attached applies to libnfnetlink, it
+sets the sequence number for messages if we expect to receive an answer
+from kernelspace. With it, I can hit ENOBUFS (that's normal), but not
+EILSEQ anymore.
 
-- Superfasthash is definitely not good enough as it can too easily 
-  produce just too much clashes.
-- The murmur2 hash is the fastest one and looks quite good, still it
-  had got some trouble at specific hash table sizes.
-- No weakness could be spotted with the lookup3 hash.
-- When compiling with -Os, the hashes from fastest to slowest are:
-  murmur2, lookup3, superfast, lookup2.
-- When compiling with -O2, the hashes from fastest to slowest are:
-  murmur2, superfast, lookup3 and lookup2.
+With non-blocking behaviour, you may still hit EILSEQ (even with the
+patch applied) since the current API does not allow non-blocking queue
+creation.
 
-On Thu, 12 Feb 2009, Rusty Russell wrote:
+BTW, why don't open one socket handler per queue? That will reduce the
+chances to hit ENOBUFS. Now the problem for you would be that you'll
+have a lot of descriptors in userspace to handle (probably select() is
+not the best choice anymore) but more netlink bandwidth in return.
 
-> My concern was that it's also bigger (and we inline it).  Performance is
-> pretty much a wash since we so rarely hash more than a few words.
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
 
-In netfilter/conntrack (;-) we call the hash function for every packet, so 
-even if a small number of cycle can be gained at one lookup, I think it's 
-worth. And in the IPv4/IPv6 neutral nf_conntrack we hash 9 words.
+--------------060404010402080009010707
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
 
-> Any stats on code size changes?
+diff --git a/src/libnfnetlink.c b/src/libnfnetlink.c
+index d4212f9..5cfe2f5 100644
+--- a/src/libnfnetlink.c
++++ b/src/libnfnetlink.c
+@@ -418,7 +418,11 @@ void nfnl_fill_hdr(struct nfnl_subsys_handle *ssh,
+ 	nlh->nlmsg_type = (ssh->subsys_id<<8)|msg_type;
+ 	nlh->nlmsg_flags = msg_flags;
+ 	nlh->nlmsg_pid = 0;
+-	nlh->nlmsg_seq = ++ssh->nfnlh->seq;
++	/* set sequence number if we expect an answer from kernelspace */
++	if (msg_flags & (NLM_F_ACK | NLM_F_ECHO | NLM_F_DUMP))
++		nlh->nlmsg_seq = ++ssh->nfnlh->seq;
++	else
++		nlh->nlmsg_seq = 0;
+ 
+ 	/* check for wraparounds: assume that seqnum 0 is only used by events */
+ 	if (!ssh->nfnlh->seq)
 
-The minimal code here
-
-#include <stdint.h>
-
-typedef uint64_t u64;
-typedef uint32_t u32;
-typedef uint16_t u16;
-typedef uint8_t u8;
-
-#ifdef JHASH
-#include "jhash.h"
-#else
-#include "jhash3.h"
-#endif
-
-u32 hash(const u32 *key, u32 len, u32 initval)
-{
-        return jhash2(key, len, initval);
-}
-/* eof */
-
-compiled with -Os, then stripped, give:
-
--rw-r--r-- 1 kadlec kadlec 1080 2009-02-17 14:10 lookup2.o
--rw-r--r-- 1 kadlec kadlec 1024 2009-02-17 14:10 lookup3.o
-
-So I think the currently used lookup2 can safely be replaced with lookup3.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+--------------060404010402080009010707--
