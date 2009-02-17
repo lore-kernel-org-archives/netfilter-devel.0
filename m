@@ -1,48 +1,243 @@
-From: Ralf <rm@amitrader.com>
-Subject: userspace packetfiltering problems
-Date: Tue, 17 Feb 2009 21:14:27 +0100
-Message-ID: <gnf5r6$a7u$1@ger.gmane.org>
+From: Mohit Mehta <mohit.mehta@vyatta.com>
+Subject: [PATCH] iptables: expose option to zero packet and byte counters
+ for a specific rule using iptables/ip6tables
+Date: Tue, 17 Feb 2009 15:51:21 -0800 (PST)
+Message-ID: <4994336.27091234914681076.JavaMail.root@tahiti.vyatta.com>
+References: <13574679.27071234914513480.JavaMail.root@tahiti.vyatta.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:39270 "EHLO ciao.gmane.org"
+Received: from mail.vyatta.com ([76.74.103.46]:49730 "EHLO mail.vyatta.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750980AbZBQUOp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 Feb 2009 15:14:45 -0500
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1LZWL6-0004GK-Ev
-	for netfilter-devel@vger.kernel.org; Tue, 17 Feb 2009 20:14:44 +0000
-Received: from p57a2bf59.dip.t-dialin.net ([87.162.191.89])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Feb 2009 20:14:44 +0000
-Received: from rm by p57a2bf59.dip.t-dialin.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Tue, 17 Feb 2009 20:14:44 +0000
+	id S1751632AbZBQXvT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 17 Feb 2009 18:51:19 -0500
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by mail.vyatta.com (Postfix) with ESMTP id 83A604F400E
+	for <netfilter-devel@vger.kernel.org>; Tue, 17 Feb 2009 15:51:21 -0800 (PST)
+Received: from mail.vyatta.com ([127.0.0.1])
+	by localhost (mail.vyatta.com [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id qQAk7GVzCvah for <netfilter-devel@vger.kernel.org>;
+	Tue, 17 Feb 2009 15:51:21 -0800 (PST)
+Received: from mail.vyatta.com (mail.vyatta.com [76.74.103.46])
+	by mail.vyatta.com (Postfix) with ESMTP id 29B094F4007
+	for <netfilter-devel@vger.kernel.org>; Tue, 17 Feb 2009 15:51:21 -0800 (PST)
+In-Reply-To: <13574679.27071234914513480.JavaMail.root@tahiti.vyatta.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The majority of the public linux servers are VPS systems.
-Most are based on openVZ/Virtuozzo.
+iptc_zero_counter/ip6tc_zero_counter are functions available in libiptc to zero counters for a rule in a given chain. However, this is not exposed in iptables/ip6tables. The patch below exposes the underlying function to the user to zero out packet and byte counters for a specific rule.
 
-In this environment the VPS admin has IMHO unfortunately 
-no possibility to use modprobe or insmod to load iptable modules.
 
-Therefore it is impossible to write 3rd party software 
-which needs packet filtering capability (QUEUE/NFQUEUE).
+build-vm-jenner:/jenner/pkgs/iptables# git diff -u 039683e8958bb161d3eaece4853898ee575bc0f5 iptables.c ip6tables.c
+diff --git a/ip6tables.c b/ip6tables.c
+index e146114..22612b6 100644
+--- a/ip6tables.c
++++ b/ip6tables.c
+@@ -79,9 +79,10 @@
+ #define CMD_SET_POLICY         0x0400U
+ #define CMD_RENAME_CHAIN       0x0800U
+ #define CMD_LIST_RULES         0x1000U
+-#define NUMBER_OF_CMD  14
++#define CMD_ZERO_NUM           0x2000U
++#define NUMBER_OF_CMD  15
+ static const char cmdflags[] = { 'I', 'D', 'D', 'R', 'A', 'L', 'F', 'Z',
+-                                'N', 'X', 'P', 'E', 'S' };
++                                'Z', 'N', 'X', 'P', 'E', 'S' };
 
-The iptables/netfilter developers should think about this problem
-and give the VPS users the capability to load userspace modules
-by themselves, and not let them beg at their hosters
-as this mostly nearly never works.
+ #define OPTION_OFFSET 256
 
-Can anybody give me an advice for a packet filtering library
-that works in userspace on all linux systems, without the need
-for any kernel modules etc.?
-I tried libipq, but it gives an error because a kernel module
-(ip_queue) is not loaded, and the hoster denies to load that damn module.
-Is that not worser than Microsoft's monopoly practices???
-It is happening with Open Source! Isn't that a crime?
+@@ -165,6 +166,7 @@ static char commands_v_options[NUMBER_OF_CMD][NUMBER_OF_OPT] =
+ /*LIST*/      {' ','x','x','x','x',' ',' ','x','x',' ','x'},
+ /*FLUSH*/     {'x','x','x','x','x',' ','x','x','x','x','x'},
+ /*ZERO*/      {'x','x','x','x','x',' ','x','x','x','x','x'},
++/*ZERO_NUM*/  {'x','x','x','x','x',' ','x','x','x','x','x'},
+ /*NEW_CHAIN*/ {'x','x','x','x','x',' ','x','x','x','x','x'},
+ /*DEL_CHAIN*/ {'x','x','x','x','x',' ','x','x','x','x','x'},
+ /*SET_POLICY*/{'x','x','x','x','x',' ','x','x','x','x',' '},
+@@ -308,7 +310,8 @@ exit_printhelp(struct ip6tables_rule_match *matches)
+ "  --list-rules -S [chain [rulenum]]\n"
+ "                              Print the rules in a chain or all chains\n"
+ "  --flush   -F [chain]                Delete all rules in  chain or all chains\n"
+-"  --zero    -Z [chain]                Zero counters in chain or all chains\n"
++"  --zero    -Z [chain[rulenum]]\n"
++"                              Zero counters in chain or all chains\n"
+ "  --new     -N chain          Create a new user-defined chain\n"
+ "  --delete-chain\n"
+ "            -X [chain]                Delete a user-defined chain\n"
+@@ -1494,7 +1497,7 @@ int do_command6(int argc, char *argv[], char **table, ip6tc_handle_t *handle)
+                        break;
 
+                case 'L':
+-                       add_command(&command, CMD_LIST, CMD_ZERO,
++                       add_command(&command, CMD_LIST, CMD_ZERO|CMD_ZERO_NUM,
+                                    invert);
+                        if (optarg) chain = optarg;
+                        else if (optind < argc && argv[optind][0] != '-'
+@@ -1506,8 +1509,8 @@ int do_command6(int argc, char *argv[], char **table, ip6tc_handle_t *handle)
+                        break;
+
+                case 'S':
+-                       add_command(&command, CMD_LIST_RULES, CMD_ZERO,
+-                                   invert);
++                       add_command(&command, CMD_LIST_RULES,
++                                   CMD_ZERO|CMD_ZERO_NUM, invert);
+                        if (optarg) chain = optarg;
+                        else if (optind < argc && argv[optind][0] != '-'
+                                 && argv[optind][0] != '!')
+@@ -1533,6 +1536,11 @@ int do_command6(int argc, char *argv[], char **table, ip6tc_handle_t *handle)
+                        else if (optind < argc && argv[optind][0] != '-'
+                                && argv[optind][0] != '!')
+                                chain = argv[optind++];
++                       if (optind < argc && argv[optind][0] != '-'
++                               && argv[optind][0] != '!') {
++                               rulenum = parse_rulenumber(argv[optind++]);
++                               command = CMD_ZERO_NUM;
++                       }
+                        break;
+
+                case 'N':
+@@ -2035,8 +2043,12 @@ int do_command6(int argc, char *argv[], char **table, ip6tc_handle_t *handle)
+        case CMD_ZERO:
+                ret = zero_entries(chain, options&OPT_VERBOSE, handle);
+                break;
++       case CMD_ZERO_NUM:
++               ret = ip6tc_zero_counter(chain, rulenum, handle);
++               break;
+        case CMD_LIST:
+        case CMD_LIST|CMD_ZERO:
++       case CMD_LIST|CMD_ZERO_NUM:
+                ret = list_entries(chain,
+                                   rulenum,
+                                   options&OPT_VERBOSE,
+@@ -2047,9 +2059,12 @@ int do_command6(int argc, char *argv[], char **table, ip6tc_handle_t *handle)
+                if (ret && (command & CMD_ZERO))
+                        ret = zero_entries(chain,
+                                           options&OPT_VERBOSE, handle);
++               if (ret && (command & CMD_ZERO_NUM))
++                       ret = ip6tc_zero_counter(chain, rulenum, handle);
+                break;
+        case CMD_LIST_RULES:
+        case CMD_LIST_RULES|CMD_ZERO:
++       case CMD_LIST_RULES|CMD_ZERO_NUM:
+                ret = list_rules(chain,
+                                   rulenum,
+                                   options&OPT_VERBOSE,
+@@ -2057,6 +2072,8 @@ int do_command6(int argc, char *argv[], char **table, ip6tc_handle_t *handle)
+                if (ret && (command & CMD_ZERO))
+                        ret = zero_entries(chain,
+                                           options&OPT_VERBOSE, handle);
++               if (ret && (command & CMD_ZERO_NUM))
++                       ret = ip6tc_zero_counter(chain, rulenum, handle);
+                break;
+        case CMD_NEW_CHAIN:
+                ret = ip6tc_create_chain(chain, handle);
+diff --git a/iptables.c b/iptables.c
+index bf3cbca..4e67925 100644
+--- a/iptables.c
++++ b/iptables.c
+@@ -76,9 +76,10 @@
+ #define CMD_SET_POLICY         0x0400U
+ #define CMD_RENAME_CHAIN       0x0800U
+ #define CMD_LIST_RULES         0x1000U
+-#define NUMBER_OF_CMD  14
++#define CMD_ZERO_NUM           0x2000U
++#define NUMBER_OF_CMD  15
+ static const char cmdflags[] = { 'I', 'D', 'D', 'R', 'A', 'L', 'F', 'Z',
+-                                'N', 'X', 'P', 'E', 'S' };
++                                'Z', 'N', 'X', 'P', 'E', 'S' };
+
+ #define OPTION_OFFSET 256
+
+@@ -165,6 +166,7 @@ static char commands_v_options[NUMBER_OF_CMD][NUMBER_OF_OPT] =
+ /*LIST*/      {' ','x','x','x','x',' ',' ','x','x','x',' ','x'},
+ /*FLUSH*/     {'x','x','x','x','x',' ','x','x','x','x','x','x'},
+ /*ZERO*/      {'x','x','x','x','x',' ','x','x','x','x','x','x'},
++/*ZERO_NUM*/  {'x','x','x','x','x',' ','x','x','x','x','x','x'},
+ /*NEW_CHAIN*/ {'x','x','x','x','x',' ','x','x','x','x','x','x'},
+ /*DEL_CHAIN*/ {'x','x','x','x','x',' ','x','x','x','x','x','x'},
+ /*SET_POLICY*/{'x','x','x','x','x',' ','x','x','x','x','x',' '},
+@@ -311,7 +313,8 @@ exit_printhelp(struct iptables_rule_match *matches)
+ "  --list-rules -S [chain [rulenum]]\n"
+ "                              Print the rules in a chain or all chains\n"
+ "  --flush   -F [chain]                Delete all rules in  chain or all chains\n"
+-"  --zero    -Z [chain]                Zero counters in chain or all chains\n"
++"  --zero    -Z [chain [rulenum]]\n"
++"                              Zero counters in chain or all chains\n"
+ "  --new     -N chain          Create a new user-defined chain\n"
+ "  --delete-chain\n"
+ "            -X [chain]                Delete a user-defined chain\n"
+@@ -1521,7 +1524,7 @@ int do_command(int argc, char *argv[], char **table, iptc_handle_t *handle)
+                        break;
+
+                case 'L':
+-                       add_command(&command, CMD_LIST, CMD_ZERO,
++                       add_command(&command, CMD_LIST, CMD_ZERO|CMD_ZERO_NUM,
+                                    invert);
+                        if (optarg) chain = optarg;
+                        else if (optind < argc && argv[optind][0] != '-'
+@@ -1533,8 +1536,8 @@ int do_command(int argc, char *argv[], char **table, iptc_handle_t *handle)
+                        break;
+
+                case 'S':
+-                       add_command(&command, CMD_LIST_RULES, CMD_ZERO,
+-                                   invert);
++                       add_command(&command, CMD_LIST_RULES,
++                                   CMD_ZERO|CMD_ZERO_NUM, invert);
+                        if (optarg) chain = optarg;
+                        else if (optind < argc && argv[optind][0] != '-'
+                                 && argv[optind][0] != '!')
+@@ -1560,6 +1563,11 @@ int do_command(int argc, char *argv[], char **table, iptc_handle_t *handle)
+                        else if (optind < argc && argv[optind][0] != '-'
+                                && argv[optind][0] != '!')
+                                chain = argv[optind++];
++                       if (optind < argc && argv[optind][0] != '-'
++                               && argv[optind][0] != '!') {
++                               rulenum = parse_rulenumber(argv[optind++]);
++                               command = CMD_ZERO_NUM;
++                       }
+                        break;
+
+                case 'N':
+@@ -2087,8 +2095,12 @@ int do_command(int argc, char *argv[], char **table, iptc_handle_t *handle)
+        case CMD_ZERO:
+                ret = zero_entries(chain, options&OPT_VERBOSE, handle);
+                break;
++       case CMD_ZERO_NUM:
++               ret = iptc_zero_counter(chain, rulenum, handle);
++               break;
+        case CMD_LIST:
+        case CMD_LIST|CMD_ZERO:
++       case CMD_LIST|CMD_ZERO_NUM:
+                ret = list_entries(chain,
+                                   rulenum,
+                                   options&OPT_VERBOSE,
+@@ -2099,9 +2111,12 @@ int do_command(int argc, char *argv[], char **table, iptc_handle_t *handle)
+                if (ret && (command & CMD_ZERO))
+                        ret = zero_entries(chain,
+                                           options&OPT_VERBOSE, handle);
++               if (ret && (command & CMD_ZERO_NUM))
++                       ret = iptc_zero_counter(chain, rulenum, handle);
+                break;
+        case CMD_LIST_RULES:
+        case CMD_LIST_RULES|CMD_ZERO:
++       case CMD_LIST_RULES|CMD_ZERO_NUM:
+                ret = list_rules(chain,
+                                   rulenum,
+                                   options&OPT_VERBOSE,
+@@ -2109,6 +2124,8 @@ int do_command(int argc, char *argv[], char **table, iptc_handle_t *handle)
+                if (ret && (command & CMD_ZERO))
+                        ret = zero_entries(chain,
+                                           options&OPT_VERBOSE, handle);
++               if (ret && (command & CMD_ZERO_NUM))
++                       ret = iptc_zero_counter(chain, rulenum, handle);
+                break;
+        case CMD_NEW_CHAIN:
+                ret = iptc_create_chain(chain, handle);
+build-vm-jenner:/jenner/pkgs/iptables#
+
+
+
+Mohit Mehta
+Vyatta Inc.
