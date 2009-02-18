@@ -1,73 +1,50 @@
-From: Jianqing Zhang <arrow.jianqing@gmail.com>
-Subject: Re: iptables vs. IPsec SP
-Date: Wed, 18 Feb 2009 12:17:25 -0600
-Message-ID: <8a38e1330902181017o6892d93ek53162ceafa9b136d@mail.gmail.com>
-References: <8a38e1330902180817h6a2f9017v1b38b7f6a75fd6b3@mail.gmail.com>
-	 <alpine.LSU.2.00.0902181728190.26536@fbirervta.pbzchgretzou.qr>
-	 <8a38e1330902181015u65b2820w3a96340ec341073c@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: xtables: add cluster match
+Date: Wed, 18 Feb 2009 19:38:44 +0100
+Message-ID: <499C55B4.9020503@netfilter.org>
+References: <20090214192936.11718.44732.stgit@Decadence>	<49994643.8010001@trash.net> <499971CC.6040903@netfilter.org>	<49997247.3010105@trash.net> <4999787C.7050203@netfilter.org>	<499982CB.7020503@netfilter.org> <499981FA.3040106@trash.net>	<499A9597.4070608@netfilter.org> <499A9689.7090208@trash.net>	<499AC0B3.5040902@netfilter.org> <499BDF5D.2010809@trash.net>	<499BEBBF.7080705@netfilter.org> <m37i3nslv4.fsf@neo.luffy.cx> <499C44A5.9040700@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Vincent Bernat <bernat@luffy.cx>, netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.217.174]:58715 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752934AbZBRSX2 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Feb 2009 13:23:28 -0500
-Received: by gxk22 with SMTP id 22so85284gxk.13
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Feb 2009 10:23:27 -0800 (PST)
-In-Reply-To: <8a38e1330902181015u65b2820w3a96340ec341073c@mail.gmail.com>
+Received: from mail.us.es ([193.147.175.20]:34857 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751957AbZBRSaR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 18 Feb 2009 13:30:17 -0500
+In-Reply-To: <499C44A5.9040700@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Oops, I get it. SP does not catch multicast address in this case.
-Sorry about that.
+Patrick McHardy wrote:
+> Vincent Bernat wrote:
+>> OoO Pendant  le temps de midi  du mercredi 18 f=E9vrier  2009, vers =
+12:06,
+>> Pablo Neira Ayuso <pablo@netfilter.org> disait :
+>>
+>>>> OK, that explains why you want to handle it this way. I don't want
+>>>> to merge the proc file part though, so until the daemons get smart=
+er,
+>>>> people will have to use multiple rules.
+>>
+>>> :(
+>>
+>> A solution would be to give the  mask on the command line. The HA da=
+emon
+>> will output  the assigned nodes to a  file and the content  of this =
+file
+>> will be computed into a mask.
+>=20
+> Indeed. Just a bitmask (is 64 nodes max enough?) should be fine.
 
+Good point :), I'll add this to the patch that I'm reworking.
 
-On 2/18/09, Jianqing Zhang <arrow.jianqing@gmail.com> wrote:
-> Yes, that is also what I thought.
->
-> However it does not work in my test.
-> I add a SNAT rule on the host of 192.168.1.20 as following:
->
->  iptables -t nat -A POSTROUTING -p udp --dport 5002 -o eth0 -j SNAT
-> --to-source 192.168.1.55
->
-> to change the source address of outgoing upd packets with port 5002 to
-> 192.168.1.55.
->
-> I also insert one SPs as follows (output of "ip xfrm policy list"):
->
-> ...
-> src 192.168.1.55/32 dst 192.168.1.21/32
-> 	dir out priority 2080 ptype main
-> 	tmpl src 192.168.1.20 dst 192.168.1.21
-> 		proto esp reqid 16409 mode tunnel
-> ...
->
-> Then I send udp multicast at the port 5002.
->
-> But, I cannot see any ESP packets by tcpdump. Furthermore, on the
-> recipient side, I can get the muliticast udp with the changed source
-> IP (192.168.1.55). Actually I have stopped IPsec on the recipient
-> side. It looks that IPsec on the sender side is bypassed. Do I miss
-> something?
->
-> Thanks
->
->
-> On 2/18/09, Jan Engelhardt <jengelh@medozas.de> wrote:
->>
->> On Wednesday 2009-02-18 17:17, Jianqing Zhang wrote:
->>
->>>If I configure both IPsec SPs and iptables, when an IP packet is going
->>>out or coming,  which will process the packet first? SP or iptables
->>>(netfilters) rules?
->>
->> On the input path, obviously ESP is the first one seen, then the unpacked
->> one;
->> on the output path this is precisely reversed.
->>
->
+--=20
+"Los honestos son inadaptados sociales" -- Les Luthiers
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
