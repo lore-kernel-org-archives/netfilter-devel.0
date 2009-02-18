@@ -1,87 +1,36 @@
-From: Eric Dumazet <dada1@cosmosbay.com>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [RFT 3/4] Use mod_timer_noact to remove nf_conntrack_lock
-Date: Wed, 18 Feb 2009 15:01:19 +0100
-Message-ID: <499C14AF.60704@cosmosbay.com>
-References: <20090218051906.174295181@vyatta.com> <20090218052747.555811553@vyatta.com>
+Date: Wed, 18 Feb 2009 15:04:11 +0100
+Message-ID: <499C155B.9010200@trash.net>
+References: <20090218051906.174295181@vyatta.com> <20090218052747.555811553@vyatta.com> <499C14AF.60704@cosmosbay.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: David Miller <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>,
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Stephen Hemminger <shemminger@vyatta.com>,
+	David Miller <davem@davemloft.net>,
 	Rick Jones <rick.jones2@hp.com>, netdev@vger.kernel.org,
 	tglx@linutronix.de, netfilter-devel@vger.kernel.org,
 	Martin Josefsson <gandalf@wlug.westbo.se>
-To: Stephen Hemminger <shemminger@vyatta.com>
+To: Eric Dumazet <dada1@cosmosbay.com>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20090218052747.555811553@vyatta.com>
+In-Reply-To: <499C14AF.60704@cosmosbay.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Stephen Hemminger a =E9crit :
-> Now that we are using mod_timer_noact() for timer updates there's no =
-need to
-> hold the global lock during the timer update since the actual timeout=
- update
-> is now protected by the timer locking.
->=20
-> Signed-off-by: Martin Josefsson <gandalf@wlug.westbo.se>
->=20
-> ---
->  net/netfilter/nf_conntrack_core.c |    9 ++++-----
->  1 file changed, 4 insertions(+), 5 deletions(-)
->=20
-> --- a/net/netfilter/nf_conntrack_core.c	2009-02-17 10:55:33.370882059=
- -0800
-> +++ b/net/netfilter/nf_conntrack_core.c	2009-02-17 13:48:25.080060712=
- -0800
-> @@ -793,13 +793,12 @@ void __nf_ct_refresh_acct(struct nf_conn
->  	NF_CT_ASSERT(ct->timeout.data =3D=3D (unsigned long)ct);
->  	NF_CT_ASSERT(skb);
-> =20
-> -	spin_lock_bh(&nf_conntrack_lock);
-> -
->  	/* Only update if this is not a fixed timeout */
->  	if (test_bit(IPS_FIXED_TIMEOUT_BIT, &ct->status))
->  		goto acct;
-> =20
-> -	/* If not in hash table, timer will not be active yet */
-> +	/* If not in hash table, timer will not be active yet,
-> +	   we are the only one able to see it. */
->  	if (!nf_ct_is_confirmed(ct)) {
->  		ct->timeout.expires =3D extra_jiffies;
->  		event =3D IPCT_REFRESH;
-> @@ -821,16 +820,16 @@ acct:
->  	if (do_acct) {
->  		struct nf_conn_counter *acct;
-> =20
-> +		spin_lock_bh(&nf_conntrack_lock);
->  		acct =3D nf_conn_acct_find(ct);
->  		if (acct) {
->  			acct[CTINFO2DIR(ctinfo)].packets++;
->  			acct[CTINFO2DIR(ctinfo)].bytes +=3D
->  				skb->len - skb_network_offset(skb);
->  		}
-> +		spin_unlock_bh(&nf_conntrack_lock);
->  	}
-> =20
-> -	spin_unlock_bh(&nf_conntrack_lock);
-> -
->  	/* must be unlocked when calling event cache */
->  	if (event)
->  		nf_conntrack_event_cache(event, ct);
->=20
+Eric Dumazet wrote:
+> Unfortunatly, this patch changes nothing, as most of the time, do_acct is true.
+> 
+> We also need to fine lock the accounting part as well.
+> 
+> 	spin_lock_bh(&ct->some_lock);
+> 	acct = nf_conn_acct_find(ct);
+> 	if (acct) {
+> 		acct[CTINFO2DIR(ctinfo)].packets++;
+> 		acct[CTINFO2DIR(ctinfo)].bytes +=
+> 			skb->len - skb_network_offset(skb);
+> 	}
+> 	spin_unlock_bh(&ct->some_lock);
+> 
 
-Unfortunatly, this patch changes nothing, as most of the time, do_acct =
-is true.
-
-We also need to fine lock the accounting part as well.
-
-	spin_lock_bh(&ct->some_lock);
-	acct =3D nf_conn_acct_find(ct);
-	if (acct) {
-		acct[CTINFO2DIR(ctinfo)].packets++;
-		acct[CTINFO2DIR(ctinfo)].bytes +=3D
-			skb->len - skb_network_offset(skb);
-	}
-	spin_unlock_bh(&ct->some_lock);
-
+Its currently still enabled by default, but we intend to change that.
+After that I guess almost nobody will have it enabled.
