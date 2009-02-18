@@ -1,65 +1,34 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFT 3/4] Use mod_timer_noact to remove nf_conntrack_lock
-Date: Wed, 18 Feb 2009 15:27:58 +0100
-Message-ID: <499C1AEE.3050709@trash.net>
-References: <20090218051906.174295181@vyatta.com> <20090218052747.555811553@vyatta.com> <499C14AF.60704@cosmosbay.com> <499C155B.9010200@trash.net> <499C19BE.7090407@cosmosbay.com>
+Subject: Re: netfilter: half a patch for the pseudoregression
+Date: Wed, 18 Feb 2009 15:35:36 +0100
+Message-ID: <499C1CB8.4010901@trash.net>
+References: <alpine.LSU.2.00.0901272322210.31372@fbirervta.pbzchgretzou.qr> <499057DC.9000102@trash.net> <alpine.LSU.2.00.0902171952521.999@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Stephen Hemminger <shemminger@vyatta.com>,
-	David Miller <davem@davemloft.net>,
-	Rick Jones <rick.jones2@hp.com>, netdev@vger.kernel.org,
-	tglx@linutronix.de, netfilter-devel@vger.kernel.org,
-	Martin Josefsson <gandalf@wlug.westbo.se>
-To: Eric Dumazet <dada1@cosmosbay.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:54063 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:54223 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752301AbZBRO2C (ORCPT
+	with ESMTP id S1751938AbZBROfi (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Feb 2009 09:28:02 -0500
-In-Reply-To: <499C19BE.7090407@cosmosbay.com>
+	Wed, 18 Feb 2009 09:35:38 -0500
+In-Reply-To: <alpine.LSU.2.00.0902171952521.999@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Dumazet wrote:
-> Patrick McHardy a =E9crit :
->> Eric Dumazet wrote:
->>> Unfortunatly, this patch changes nothing, as most of the time, do_a=
-cct
->>> is true.
->>>
->>> We also need to fine lock the accounting part as well.
->>>
->>>     spin_lock_bh(&ct->some_lock);
->>>     acct =3D nf_conn_acct_find(ct);
->>>     if (acct) {
->>>         acct[CTINFO2DIR(ctinfo)].packets++;
->>>         acct[CTINFO2DIR(ctinfo)].bytes +=3D
->>>             skb->len - skb_network_offset(skb);
->>>     }
->>>     spin_unlock_bh(&ct->some_lock);
->>>
->> Its currently still enabled by default, but we intend to change that=
-=2E
->> After that I guess almost nobody will have it enabled.
->>=20
-> Really ? I find this accounting stuff really useful and always enable=
- it :)
+Jan Engelhardt wrote:
+> On Monday 2009-02-09 17:20, Patrick McHardy wrote:
+>> Jan Engelhardt wrote:
+>>> Here is the sample patch that fixes ip_tables_matches, but I still challenge
+>>> the usefulness of /proc/net/ip_tables_* altogether.
+>>> Those files should have been removed, or appropriately upgraded when revision
+>>> support was introduced.
+>> Thats not really the question right now since it exists and people
+>> are using it. Feel free to start a discussion on removing it once
+>> we've fixed the regression.
+> 
+> I've also send the complete thing (twice now). Did you receive it?
 
-You usually need extra userspace daemons to make something useful
-out of the data and I doubt many people are running them. It doesn't
-hurt to optimize it anyways of course :)
-
-But I'm somewhat doubtful that we're actually having lock contention
-here. One thing we could do with your lock hash change is to perform
-the counter updates while holding those locks, that avoids taking
-a different lock just for the counters. The only reason why its done
-in nf_ct_refresh is that it was already taking the conntrack lock,
-but if thats no longer the case, no reason to keep it there.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Applied, thanks. Will pass it upstream after some testing.
