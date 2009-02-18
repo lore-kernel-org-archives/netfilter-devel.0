@@ -1,36 +1,55 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFT 3/4] Use mod_timer_noact to remove nf_conntrack_lock
-Date: Wed, 18 Feb 2009 15:04:11 +0100
-Message-ID: <499C155B.9010200@trash.net>
-References: <20090218051906.174295181@vyatta.com> <20090218052747.555811553@vyatta.com> <499C14AF.60704@cosmosbay.com>
+Subject: Re: [PATCH 2/2 v5] New netfilter target to trigger LED devices
+Date: Wed, 18 Feb 2009 15:14:26 +0100
+Message-ID: <499C17C2.9020502@trash.net>
+References: <49934702.9060909@shikadi.net> <4993B34C.1020307@trash.net>	 <49940D58.3040404@shikadi.net>  <49998E6C.2030504@trash.net> <1234878654.5312.34.camel@dax.rpnet.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Stephen Hemminger <shemminger@vyatta.com>,
-	David Miller <davem@davemloft.net>,
-	Rick Jones <rick.jones2@hp.com>, netdev@vger.kernel.org,
-	tglx@linutronix.de, netfilter-devel@vger.kernel.org,
-	Martin Josefsson <gandalf@wlug.westbo.se>
-To: Eric Dumazet <dada1@cosmosbay.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <499C14AF.60704@cosmosbay.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: Adam Nielsen <a.nielsen@shikadi.net>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Richard Purdie <rpurdie@linux.intel.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:53702 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751661AbZBROOa (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 18 Feb 2009 09:14:30 -0500
+In-Reply-To: <1234878654.5312.34.camel@dax.rpnet.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Dumazet wrote:
-> Unfortunatly, this patch changes nothing, as most of the time, do_acct is true.
+Richard Purdie wrote:
+> On Mon, 2009-02-16 at 17:03 +0100, Patrick McHardy wrote:
+>> Adam Nielsen wrote:
+>>> Kernel module providing implementation of LED netfilter target.  Each
+>>> instance of the target appears as a led-trigger device, which can be
+>>> associated with one or more LEDs in /sys/class/leds/
+>>>
+>>> Signed-off-by: Adam Nielsen <a.nielsen@shikadi.net>
+>>>
+>>> ---
+>>>
+>>> Thanks for the feedback Patrick - here is the updated version with
+>>> your suggestions:
+>>>
+>>>  - Mutexes removed - I concede that missing a blink here and there
+>>>    is acceptable :-)
+>>>  - KERN_ERR used for non-critical errors, all KERN_NOTICEs removed
+>>>  - Split assignment out from comparison in kzalloc()
+>>>
+>>> Hope this one's okay!
+>> Apart from some minor cosmetic issues that I'm simply going to
+>> fix up when applying, it looks fine to me. If Richard is also
+>> ok with this I'll apply it.
 > 
-> We also need to fine lock the accounting part as well.
+> Looks good to me.
 > 
-> 	spin_lock_bh(&ct->some_lock);
-> 	acct = nf_conn_acct_find(ct);
-> 	if (acct) {
-> 		acct[CTINFO2DIR(ctinfo)].packets++;
-> 		acct[CTINFO2DIR(ctinfo)].bytes +=
-> 			skb->len - skb_network_offset(skb);
-> 	}
-> 	spin_unlock_bh(&ct->some_lock);
-> 
+> Acked-by: Richard Purdie <rpurdie@linux.intel.com>
 
-Its currently still enabled by default, but we intend to change that.
-After that I guess almost nobody will have it enabled.
+Thanks Richard.
+
+Adam, I wanted to apply this, but I get rejects for every single
+existing file. There appears to be some whitespace damage, please
+resend as attachment.
