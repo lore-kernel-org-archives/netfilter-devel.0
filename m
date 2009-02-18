@@ -1,141 +1,53 @@
-From: Oleg Nesterov <oleg@redhat.com>
-Subject: Re: [patch] timers: add mod_timer_pending()
-Date: Wed, 18 Feb 2009 18:00:57 +0100
-Message-ID: <20090218170057.GA28825@redhat.com>
-References: <20090218051906.174295181@vyatta.com> <20090218052747.437271195@vyatta.com> <20090218092041.GC3294@elte.hu> <499BDDFE.5010101@trash.net> <20090218120508.GB4100@elte.hu>
+From: Vincent Bernat <bernat@luffy.cx>
+Subject: Re: [PATCH] netfilter: xtables: add cluster match
+Date: Wed, 18 Feb 2009 18:20:15 +0100
+Message-ID: <m37i3nslv4.fsf@neo.luffy.cx>
+References: <20090214192936.11718.44732.stgit@Decadence>
+	<49994643.8010001@trash.net> <499971CC.6040903@netfilter.org>
+	<49997247.3010105@trash.net> <4999787C.7050203@netfilter.org>
+	<499982CB.7020503@netfilter.org> <499981FA.3040106@trash.net>
+	<499A9597.4070608@netfilter.org> <499A9689.7090208@trash.net>
+	<499AC0B3.5040902@netfilter.org> <499BDF5D.2010809@trash.net>
+	<499BEBBF.7080705@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>,
-	Peter Zijlstra <a.p.zijlstra@chello.nl>,
-	Stephen Hemminger <shemminger@vyatta.com>,
-	David Miller <davem@davemloft.net>,
-	Rick Jones <rick.jones2@hp.com>,
-	Eric Dumazet <dada1@cosmosbay.com>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, tglx@linutronix.de,
-	Martin Josefsson <gandalf@wlug.westbo.se>
-To: Ingo Molnar <mingo@elte.hu>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20090218120508.GB4100@elte.hu>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from bart.luffy.cx ([78.47.78.131]:54605 "EHLO bart.luffy.cx"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755587AbZBRRUT convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 18 Feb 2009 12:20:19 -0500
+In-Reply-To: <499BEBBF.7080705@netfilter.org> (Pablo Neira Ayuso's message of
+	"Wed, 18 Feb 2009 12:06:39 +0100")
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 02/18, Ingo Molnar wrote:
->
-> Based on an idea from Stephen Hemminger: introduce
->  mod_timer_pending() which is a mod_timer() offspring
-> that is an invariant on already removed timers.
+OoO Pendant  le temps de midi  du mercredi 18 f=C3=A9vrier  2009, vers =
+12:06,
+Pablo Neira Ayuso <pablo@netfilter.org> disait=C2=A0:
 
-This also can be used by workqueues, see
+>> OK, that explains why you want to handle it this way. I don't want
+>> to merge the proc file part though, so until the daemons get smarter=
+,
+>> people will have to use multiple rules.
 
-	http://marc.info/?l=linux-kernel&m=122209752020413
+> :(
 
-but can't we add another helper? Because,
-
-> +static inline int
-> +__mod_timer(struct timer_list *timer, unsigned long expires, bool pending_only)
->  {
->  	struct tvec_base *base, *new_base;
->  	unsigned long flags;
-> -	int ret = 0;
-> +	int ret;
-> +
-> +	ret = 0;
->
->  	timer_stats_timer_set_start_info(timer);
->  	BUG_ON(!timer->function);
-> @@ -614,6 +617,9 @@ int __mod_timer(struct timer_list *timer
->  	if (timer_pending(timer)) {
->  		detach_timer(timer, 0);
->  		ret = 1;
-> +	} else {
-> +		if (pending_only)
-> +			goto out_unlock;
-
-This can change the base (CPU) of the pending timer.
-
-How about
-
-	int __update_timer(struct timer_list *timer, unsigned long expires)
-	{
-		struct tvec_base *base;
-		unsigned long flags;
-		int ret = 0;
-
-		base = lock_timer_base(timer, &flags);
-		if (timer_pending(timer)) {
-			detach_timer(timer, 0);
-			timer->expires = expires;
-			internal_add_timer(base, timer);
-			ret = 1;
-		}
-		spin_unlock_irqrestore(&base->lock, flags);
-
-		return ret;
-	}
-
-?
-
-Unlike __mod_timer(..., bool pending_only), it preserves the CPU on
-which the timer is pending.
-
-Or, perhaps, we can modify __mod_timer() further,
-
-	static inline int
-	__mod_timer(struct timer_list *timer, unsigned long expires, bool pending_only)
-	{
-		struct tvec_base *base;
-		unsigned long flags;
-		int ret;
-
-		ret = 0;
-
-		timer_stats_timer_set_start_info(timer);
-		BUG_ON(!timer->function);
-
-		base = lock_timer_base(timer, &flags);
-
-		if (timer_pending(timer)) {
-			detach_timer(timer, 0);
-			ret = 1;
-		} else if (pending_only)
-			goto out_unlock;
-		}
-
-		debug_timer_activate(timer);
-
-		if (!pending_only) {
-			struct tvec_base *new_base = __get_cpu_var(tvec_bases);
-
-			if (base != new_base) {
-				/*
-				 * We are trying to schedule the timer on the local CPU.
-				 * However we can't change timer's base while it is running,
-				 * otherwise del_timer_sync() can't detect that the timer's
-				 * handler yet has not finished. This also guarantees that
-				 * the timer is serialized wrt itself.
-				 */
-				if (likely(base->running_timer != timer)) {
-					/* See the comment in lock_timer_base() */
-					timer_set_base(timer, NULL);
-					spin_unlock(&base->lock);
-					base = new_base;
-					spin_lock(&base->lock);
-					timer_set_base(timer, base);
-				}
-			}
-		}
-
-		timer->expires = expires;
-		internal_add_timer(base, timer);
-
-	out_unlock:
-		spin_unlock_irqrestore(&base->lock, flags);
-
-		return ret;
-	}
-
-What do you all think?
-
-Oleg.
-
+A solution would be to give the  mask on the command line. The HA daemo=
+n
+will output  the assigned nodes to a  file and the content  of this fil=
+e
+will be computed into a mask.
+--=20
+THE BOYS ROOM IS NOT A WATER PARK
+THE BOYS ROOM IS NOT A WATER PARK
+THE BOYS ROOM IS NOT A WATER PARK
+-+- Bart Simpson on chalkboard in episode 3F03
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
