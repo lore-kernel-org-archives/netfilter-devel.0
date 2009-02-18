@@ -1,40 +1,35 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/2] netfilter: Combine ipt_ttl and ip6t_hl source
-Date: Wed, 18 Feb 2009 19:07:33 +0100
-Message-ID: <499C4E65.3050609@trash.net>
-References: <1234972949-12036-1-git-send-email-jengelh@medozas.de> <1234972949-12036-3-git-send-email-jengelh@medozas.de> <499C4813.8070102@trash.net> <alpine.LSU.2.00.0902181855570.8011@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH] netfilter: xt_physdev fixes
+Date: Wed, 18 Feb 2009 19:14:03 +0100
+Message-ID: <499C4FEB.7040706@trash.net>
+References: <497F4C2F.9000804@hp.com> <497F5BCD.9060807@hp.com> <497F5F86.9010101@hp.com> <498063E7.5030106@cosmosbay.com> <49808708.3050502@trash.net> <498090C1.5020400@cosmosbay.com> <49809716.3020204@cosmosbay.com> <4981CBE2.5020306@cosmosbay.com> <87ocxox0bu.fsf@basil.nowhere.org> <498330B2.4060004@cosmosbay.com> <20090130172705.GB18453@one.firstfloor.org> <499032A4.9090301@trash.net> <499C24FF.90302@cosmosbay.com> <499C2766.5090904@trash.net> <499C3871.4030600@cosmosbay.com> <499C4739.3000800@cosmosbay.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59321 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751805AbZBRSHf (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Feb 2009 13:07:35 -0500
-In-Reply-To: <alpine.LSU.2.00.0902181855570.8011@fbirervta.pbzchgretzou.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Netfilter Developers <netfilter-devel@vger.kernel.org>,
+	Linux Network Development list <netdev@vger.kernel.org>
+To: Eric Dumazet <dada1@cosmosbay.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <499C4739.3000800@cosmosbay.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> On Wednesday 2009-02-18 18:40, Patrick McHardy wrote:
->> Also applied, thanks. How about a compat config option for one
->> or two releases to keep the make oldconfig annoyance down?
->>
-> This has been previously discussed with Sam or Roman, the end result
-> being that kbuild does not quite support option fowarding - every
-> symbol (e.g. OLD_TTL) that has no text will only be enabled if another
-> symbol references it (thru 'select' for example) and otherwise any
-> value, even one from .config, will be discarded and set to =n instead.
-> But when OLD_TTL=n, the 'select NEW_TTL' on OLD_TTL will not take
-> effect, and so on..
+Eric Dumazet wrote:
+> Hi Patrick
+> 
+> Please find following patch to prepare next one (loop unrolling)
+> 
+> I am not sure xt_physdev_info is aligned, either on an int or a long,
+> so please check my assertion before applying :)
 
-The alternative is to keep the text at the old options and have
-them select a new hidden one. After two releases we move the
-text over and kill the old ones.
+Yes, the private structures can assume alignment suitable for
+pointers and unsigned longs.
 
-But we really should do something about the constant kconfig
-annoyance caused by these renames, let alone people who really
-drop an option by accident and start bug hunting.
+> [PATCH] netfilter: xt_physdev fixes
+> 
+> 1) physdev_mt() incorrectly assumes nulldevname[] is aligned on an int
+> 
+> 2) It also uses word comparisons, while it could use long word ones.
+
+Applied, thanks.
