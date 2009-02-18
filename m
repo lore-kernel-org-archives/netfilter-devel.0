@@ -1,73 +1,59 @@
-From: Jarek Poplawski <jarkao2@gmail.com>
-Subject: Re: [RFT 3/4] Use mod_timer_noact to remove nf_conntrack_lock
-Date: Wed, 18 Feb 2009 11:05:22 +0000
-Message-ID: <20090218110522.GA5408@ff.dom.local>
-References: <20090218052747.555811553@vyatta.com>
+From: Ratnaraj Mirgal <ratnaraj20@gmail.com>
+Subject: Re: queuing pkts using nf_queue_handler in bridge (PF_BRIDGE) mode
+	not working in 2.6 kernel
+Date: Wed, 18 Feb 2009 16:35:23 +0530
+Message-ID: <c6c752b20902180305t796628abs6b926e69c2620b42@mail.gmail.com>
+References: <c6c752b20902171954k4439c1dsc7c311c4863deaef@mail.gmail.com>
+	 <499BE240.6050204@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: David Miller <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>,
-	Rick Jones <rick.jones2@hp.com>,
-	Eric Dumazet <dada1@cosmosbay.com>, netdev@vger.kernel.org,
-	tglx@linutronix.de, netfilter-devel@vger.kernel.org,
-	Martin Josefsson <gandalf@wlug.westbo.se>
-To: Stephen Hemminger <shemminger@vyatta.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20090218052747.555811553@vyatta.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ew0-f21.google.com ([209.85.219.21]:39507 "EHLO
+	mail-ew0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751988AbZBRLFZ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 18 Feb 2009 06:05:25 -0500
+Received: by ewy14 with SMTP id 14so2647331ewy.13
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Feb 2009 03:05:23 -0800 (PST)
+In-Reply-To: <499BE240.6050204@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On 18-02-2009 06:19, Stephen Hemminger wrote:
-> Now that we are using mod_timer_noact() for timer updates there's no need to
+thanx for reply :-)
 
-Hmm... so where exactly we are using this mod_timer_noact() now?
+i just found tht.... (i put printks in nf_queue of
+net/netfilter/nf_queue.c)... n i referred to afinfo of ipv4...
 
-Jarek P.
+thanx again
 
-> hold the global lock during the timer update since the actual timeout update
-> is now protected by the timer locking.
-> 
-> Signed-off-by: Martin Josefsson <gandalf@wlug.westbo.se>
-> 
-> ---
->  net/netfilter/nf_conntrack_core.c |    9 ++++-----
->  1 file changed, 4 insertions(+), 5 deletions(-)
-> 
-> --- a/net/netfilter/nf_conntrack_core.c	2009-02-17 10:55:33.370882059 -0800
-> +++ b/net/netfilter/nf_conntrack_core.c	2009-02-17 13:48:25.080060712 -0800
-> @@ -793,13 +793,12 @@ void __nf_ct_refresh_acct(struct nf_conn
->  	NF_CT_ASSERT(ct->timeout.data == (unsigned long)ct);
->  	NF_CT_ASSERT(skb);
->  
-> -	spin_lock_bh(&nf_conntrack_lock);
-> -
->  	/* Only update if this is not a fixed timeout */
->  	if (test_bit(IPS_FIXED_TIMEOUT_BIT, &ct->status))
->  		goto acct;
->  
-> -	/* If not in hash table, timer will not be active yet */
-> +	/* If not in hash table, timer will not be active yet,
-> +	   we are the only one able to see it. */
->  	if (!nf_ct_is_confirmed(ct)) {
->  		ct->timeout.expires = extra_jiffies;
->  		event = IPCT_REFRESH;
-> @@ -821,16 +820,16 @@ acct:
->  	if (do_acct) {
->  		struct nf_conn_counter *acct;
->  
-> +		spin_lock_bh(&nf_conntrack_lock);
->  		acct = nf_conn_acct_find(ct);
->  		if (acct) {
->  			acct[CTINFO2DIR(ctinfo)].packets++;
->  			acct[CTINFO2DIR(ctinfo)].bytes +=
->  				skb->len - skb_network_offset(skb);
->  		}
-> +		spin_unlock_bh(&nf_conntrack_lock);
->  	}
->  
-> -	spin_unlock_bh(&nf_conntrack_lock);
-> -
->  	/* must be unlocked when calling event cache */
->  	if (event)
->  		nf_conntrack_event_cache(event, ct);
+On Wed, Feb 18, 2009 at 3:56 PM, Patrick McHardy <kaber@trash.net> wrote:
+> Ratnaraj Mirgal wrote:
+>>
+>> Hi,
+>>
+>> i'm trying a simple lkm tht register a hook in PF_BRIDGE protocol,
+>> also registers a queue_handler for the same.
+>> the hook function simply returns NF_QUEUE for all IP pakcets.
+>>
+>> i'm trying this out in 2.6.18-8.el5 (centos 5.0)
+>>
+>> it seems like pkts are queuing up, but the _problem_ is queue_handler
+>> is not getting invoked.
+>> plz refer to the code below.
+>>
+>> (NOTE: the same program worked fine in my rh9 (ie 2.4 kernel), of
+>> course with minor nf API modification)
+>
+> The bridge netfilter code doesn't register an afinfo with the
+> netfilter core, so queueing drops the packets. Its actually
+> not needed since bridge netfilter doesn't need to reroute anyways.
+> So you basically need to change the __nf_queue function to only
+> invoke the af-specific functions if an afinfo is available.
+>
+> Patches welcome btw :)
+>
+>
+>
