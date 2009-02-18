@@ -1,44 +1,141 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: unfold two critical loops in ip_packet_match()
-Date: Wed, 18 Feb 2009 17:52:22 +0100
-Message-ID: <499C3CC6.9020704@trash.net>
-References: <497F4C2F.9000804@hp.com> <497F5BCD.9060807@hp.com> <497F5F86.9010101@hp.com> <498063E7.5030106@cosmosbay.com> <49808708.3050502@trash.net> <498090C1.5020400@cosmosbay.com> <49809716.3020204@cosmosbay.com> <4981CBE2.5020306@cosmosbay.com> <87ocxox0bu.fsf@basil.nowhere.org> <498330B2.4060004@cosmosbay.com> <20090130172705.GB18453@one.firstfloor.org> <499032A4.9090301@trash.net> <499C24FF.90302@cosmosbay.com> <499C2766.5090904@trash.net> <499C3871.4030600@cosmosbay.com>
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: Re: [patch] timers: add mod_timer_pending()
+Date: Wed, 18 Feb 2009 18:00:57 +0100
+Message-ID: <20090218170057.GA28825@redhat.com>
+References: <20090218051906.174295181@vyatta.com> <20090218052747.437271195@vyatta.com> <20090218092041.GC3294@elte.hu> <499BDDFE.5010101@trash.net> <20090218120508.GB4100@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Andi Kleen <andi@firstfloor.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	Netfilter Developers <netfilter-devel@vger.kernel.org>,
-	Linux Network Development list <netdev@vger.kernel.org>
-To: Eric Dumazet <dada1@cosmosbay.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>,
+	Peter Zijlstra <a.p.zijlstra@chello.nl>,
+	Stephen Hemminger <shemminger@vyatta.com>,
+	David Miller <davem@davemloft.net>,
+	Rick Jones <rick.jones2@hp.com>,
+	Eric Dumazet <dada1@cosmosbay.com>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, tglx@linutronix.de,
+	Martin Josefsson <gandalf@wlug.westbo.se>
+To: Ingo Molnar <mingo@elte.hu>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <499C3871.4030600@cosmosbay.com>
+Content-Disposition: inline
+In-Reply-To: <20090218120508.GB4100@elte.hu>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Eric Dumazet wrote:
-> Patrick McHardy a =E9crit :
->> In case of IPv4 and IPv6 they are already suitable aligned, it
->> simply performing the comparison in unsigned long quantities.
->> struct arpt_arp unfortunately doesn't properly align the interface
->> names, so we need to continue to do byte-wise comparisons.
->>
-> I see, but #ifdef CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS can help her=
-e ;)
+On 02/18, Ingo Molnar wrote:
+>
+> Based on an idea from Stephen Hemminger: introduce
+>  mod_timer_pending() which is a mod_timer() offspring
+> that is an invariant on already removed timers.
 
-get_unaligned() would work as well I guess. But we don't seem to
-have a get_unaligned_long().
+This also can be used by workqueues, see
 
-> ifname_compare() should be static in three files (ipv4_ip_tables, ipv=
-6_ip_tables and arp_tables),
-> since only arp_tables variant has the alignement problem.
->=20
-> [PATCH] netfilter: unfold two critical loops in arp_packet_match()
->=20
-> x86 and powerpc can perform long word accesses in an efficient maner.
-> We can use this to unroll two loops in arp_packet_match(), to
-> perform arithmetic on long words instead of bytes. This is a win
-> on x86_64 for example.
+	http://marc.info/?l=linux-kernel&m=122209752020413
 
-This looks good to me. Applied, thanks.
+but can't we add another helper? Because,
+
+> +static inline int
+> +__mod_timer(struct timer_list *timer, unsigned long expires, bool pending_only)
+>  {
+>  	struct tvec_base *base, *new_base;
+>  	unsigned long flags;
+> -	int ret = 0;
+> +	int ret;
+> +
+> +	ret = 0;
+>
+>  	timer_stats_timer_set_start_info(timer);
+>  	BUG_ON(!timer->function);
+> @@ -614,6 +617,9 @@ int __mod_timer(struct timer_list *timer
+>  	if (timer_pending(timer)) {
+>  		detach_timer(timer, 0);
+>  		ret = 1;
+> +	} else {
+> +		if (pending_only)
+> +			goto out_unlock;
+
+This can change the base (CPU) of the pending timer.
+
+How about
+
+	int __update_timer(struct timer_list *timer, unsigned long expires)
+	{
+		struct tvec_base *base;
+		unsigned long flags;
+		int ret = 0;
+
+		base = lock_timer_base(timer, &flags);
+		if (timer_pending(timer)) {
+			detach_timer(timer, 0);
+			timer->expires = expires;
+			internal_add_timer(base, timer);
+			ret = 1;
+		}
+		spin_unlock_irqrestore(&base->lock, flags);
+
+		return ret;
+	}
+
+?
+
+Unlike __mod_timer(..., bool pending_only), it preserves the CPU on
+which the timer is pending.
+
+Or, perhaps, we can modify __mod_timer() further,
+
+	static inline int
+	__mod_timer(struct timer_list *timer, unsigned long expires, bool pending_only)
+	{
+		struct tvec_base *base;
+		unsigned long flags;
+		int ret;
+
+		ret = 0;
+
+		timer_stats_timer_set_start_info(timer);
+		BUG_ON(!timer->function);
+
+		base = lock_timer_base(timer, &flags);
+
+		if (timer_pending(timer)) {
+			detach_timer(timer, 0);
+			ret = 1;
+		} else if (pending_only)
+			goto out_unlock;
+		}
+
+		debug_timer_activate(timer);
+
+		if (!pending_only) {
+			struct tvec_base *new_base = __get_cpu_var(tvec_bases);
+
+			if (base != new_base) {
+				/*
+				 * We are trying to schedule the timer on the local CPU.
+				 * However we can't change timer's base while it is running,
+				 * otherwise del_timer_sync() can't detect that the timer's
+				 * handler yet has not finished. This also guarantees that
+				 * the timer is serialized wrt itself.
+				 */
+				if (likely(base->running_timer != timer)) {
+					/* See the comment in lock_timer_base() */
+					timer_set_base(timer, NULL);
+					spin_unlock(&base->lock);
+					base = new_base;
+					spin_lock(&base->lock);
+					timer_set_base(timer, base);
+				}
+			}
+		}
+
+		timer->expires = expires;
+		internal_add_timer(base, timer);
+
+	out_unlock:
+		spin_unlock_irqrestore(&base->lock, flags);
+
+		return ret;
+	}
+
+What do you all think?
+
+Oleg.
+
