@@ -1,69 +1,34 @@
-From: Ingo Molnar <mingo@elte.hu>
+From: David Miller <davem@davemloft.net>
 Subject: Re: [RFT 2/4] Add mod_timer_noact
-Date: Wed, 18 Feb 2009 10:20:41 +0100
-Message-ID: <20090218092041.GC3294@elte.hu>
-References: <20090218051906.174295181@vyatta.com> <20090218052747.437271195@vyatta.com>
+Date: Wed, 18 Feb 2009 01:30:07 -0800 (PST)
+Message-ID: <20090218.013007.117003889.davem@davemloft.net>
+References: <20090218051906.174295181@vyatta.com>
+	<20090218052747.437271195@vyatta.com>
+	<20090218092041.GC3294@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: David Miller <davem@davemloft.net>,
-	Patrick McHardy <kaber@trash.net>,
-	Rick Jones <rick.jones2@hp.com>,
-	Eric Dumazet <dada1@cosmosbay.com>, netdev@vger.kernel.org,
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: shemminger@vyatta.com, kaber@trash.net, rick.jones2@hp.com,
+	dada1@cosmosbay.com, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org, tglx@linutronix.de,
-	Martin Josefsson <gandalf@wlug.westbo.se>
-To: Stephen Hemminger <shemminger@vyatta.com>
+	gandalf@wlug.westbo.se
+To: mingo@elte.hu
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20090218052747.437271195@vyatta.com>
+In-Reply-To: <20090218092041.GC3294@elte.hu>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
+From: Ingo Molnar <mingo@elte.hu>
+Date: Wed, 18 Feb 2009 10:20:41 +0100
 
-* Stephen Hemminger <shemminger@vyatta.com> wrote:
-
-> Introduce mod_timer_noact() which for example is to replace the calls to
-> del_timer()/add_timer() in __nf_ct_refresh_acct(). It works like mod_timer()
-> but doesn't activate or modify the timeout of an inactive timer which is the
-> behaviour we want in order to be able to use timers as a means of
-> synchronization in nf_conntrack.
+> Why dont you use something like this instead:
 > 
-> A later patch will modify __nf_ct_refresh_acct() to use mod_timer_noact()
-> which will then save one spin_lock_irqsave() / spin_lock_irqrestore() pair per
-> conntrack timer update. This will also get rid of the race we currently have
-> without adding more locking in nf_conntrack.
+> 	if (del_timer(timer))
+> 		add_timer(timer);
 > 
-> Signed-off-by: Martin Josefsson <gandalf@wlug.westbo.se>
-> 
-> ---
->  include/linux/timer.h |    8 ++++++--
->  kernel/relay.c        |    2 +-
->  kernel/timer.c        |   40 +++++++++++++++++++++++++++++++++++-----
->  3 files changed, 42 insertions(+), 8 deletions(-)
-> 
-> --- a/include/linux/timer.h	2009-02-17 10:55:33.427785986 -0800
-> +++ b/include/linux/timer.h	2009-02-17 11:04:10.291844534 -0800
-> @@ -25,6 +25,9 @@ struct timer_list {
->  
->  extern struct tvec_base boot_tvec_bases;
->  
-> +#define TIMER_ACT	1
-> +#define TIMER_NOACT	0
+> ?
 
-Ugly flaggery.
+Why don't you read his commit message?
 
-> -extern int __mod_timer(struct timer_list *timer, unsigned long expires);
-> +extern int __mod_timer(struct timer_list *timer, unsigned long expires, int activate);
-
-This is not really acceptable, it slows down every single 
-add_timer() and mod_timer() call in the kernel with a flag that 
-has one specific value in all but your case. There's more than 
-2000 such callsites in the kernel.
-
-Why dont you use something like this instead:
-
-	if (del_timer(timer))
-		add_timer(timer);
-
-?
-
-	Ingo
+At least show him that much respect if you're going to
+be against his patch.
