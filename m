@@ -1,51 +1,44 @@
-From: Vincent Bernat <bernat@luffy.cx>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH] netfilter: xtables: add cluster match
-Date: Wed, 18 Feb 2009 18:20:15 +0100
-Message-ID: <m37i3nslv4.fsf@neo.luffy.cx>
-References: <20090214192936.11718.44732.stgit@Decadence>
-	<49994643.8010001@trash.net> <499971CC.6040903@netfilter.org>
-	<49997247.3010105@trash.net> <4999787C.7050203@netfilter.org>
-	<499982CB.7020503@netfilter.org> <499981FA.3040106@trash.net>
-	<499A9597.4070608@netfilter.org> <499A9689.7090208@trash.net>
-	<499AC0B3.5040902@netfilter.org> <499BDF5D.2010809@trash.net>
-	<499BEBBF.7080705@netfilter.org>
+Date: Wed, 18 Feb 2009 18:25:57 +0100
+Message-ID: <499C44A5.9040700@trash.net>
+References: <20090214192936.11718.44732.stgit@Decadence>	<49994643.8010001@trash.net> <499971CC.6040903@netfilter.org>	<49997247.3010105@trash.net> <4999787C.7050203@netfilter.org>	<499982CB.7020503@netfilter.org> <499981FA.3040106@trash.net>	<499A9597.4070608@netfilter.org> <499A9689.7090208@trash.net>	<499AC0B3.5040902@netfilter.org> <499BDF5D.2010809@trash.net>	<499BEBBF.7080705@netfilter.org> <m37i3nslv4.fsf@neo.luffy.cx>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+To: Vincent Bernat <bernat@luffy.cx>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bart.luffy.cx ([78.47.78.131]:54605 "EHLO bart.luffy.cx"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755587AbZBRRUT convert rfc822-to-8bit (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:58526 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751246AbZBRR0A (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Feb 2009 12:20:19 -0500
-In-Reply-To: <499BEBBF.7080705@netfilter.org> (Pablo Neira Ayuso's message of
-	"Wed, 18 Feb 2009 12:06:39 +0100")
+	Wed, 18 Feb 2009 12:26:00 -0500
+In-Reply-To: <m37i3nslv4.fsf@neo.luffy.cx>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-OoO Pendant  le temps de midi  du mercredi 18 f=C3=A9vrier  2009, vers =
-12:06,
-Pablo Neira Ayuso <pablo@netfilter.org> disait=C2=A0:
+Vincent Bernat wrote:
+> OoO Pendant  le temps de midi  du mercredi 18 f=E9vrier  2009, vers 1=
+2:06,
+> Pablo Neira Ayuso <pablo@netfilter.org> disait :
+>=20
+>>> OK, that explains why you want to handle it this way. I don't want
+>>> to merge the proc file part though, so until the daemons get smarte=
+r,
+>>> people will have to use multiple rules.
+>=20
+>> :(
+>=20
+> A solution would be to give the  mask on the command line. The HA dae=
+mon
+> will output  the assigned nodes to a  file and the content  of this f=
+ile
+> will be computed into a mask.
 
->> OK, that explains why you want to handle it this way. I don't want
->> to merge the proc file part though, so until the daemons get smarter=
-,
->> people will have to use multiple rules.
-
-> :(
-
-A solution would be to give the  mask on the command line. The HA daemo=
-n
-will output  the assigned nodes to a  file and the content  of this fil=
-e
-will be computed into a mask.
---=20
-THE BOYS ROOM IS NOT A WATER PARK
-THE BOYS ROOM IS NOT A WATER PARK
-THE BOYS ROOM IS NOT A WATER PARK
--+- Bart Simpson on chalkboard in episode 3F03
+Indeed. Just a bitmask (is 64 nodes max enough?) should be fine.
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
