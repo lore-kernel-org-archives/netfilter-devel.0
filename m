@@ -1,35 +1,66 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: xt_physdev fixes
-Date: Wed, 18 Feb 2009 19:14:03 +0100
-Message-ID: <499C4FEB.7040706@trash.net>
-References: <497F4C2F.9000804@hp.com> <497F5BCD.9060807@hp.com> <497F5F86.9010101@hp.com> <498063E7.5030106@cosmosbay.com> <49808708.3050502@trash.net> <498090C1.5020400@cosmosbay.com> <49809716.3020204@cosmosbay.com> <4981CBE2.5020306@cosmosbay.com> <87ocxox0bu.fsf@basil.nowhere.org> <498330B2.4060004@cosmosbay.com> <20090130172705.GB18453@one.firstfloor.org> <499032A4.9090301@trash.net> <499C24FF.90302@cosmosbay.com> <499C2766.5090904@trash.net> <499C3871.4030600@cosmosbay.com> <499C4739.3000800@cosmosbay.com>
+From: Jianqing Zhang <arrow.jianqing@gmail.com>
+Subject: Re: iptables vs. IPsec SP
+Date: Wed, 18 Feb 2009 12:15:18 -0600
+Message-ID: <8a38e1330902181015u65b2820w3a96340ec341073c@mail.gmail.com>
+References: <8a38e1330902180817h6a2f9017v1b38b7f6a75fd6b3@mail.gmail.com>
+	 <alpine.LSU.2.00.0902181728190.26536@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Netfilter Developers <netfilter-devel@vger.kernel.org>,
-	Linux Network Development list <netdev@vger.kernel.org>
-To: Eric Dumazet <dada1@cosmosbay.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <499C4739.3000800@cosmosbay.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from el-out-1112.google.com ([209.85.162.180]:25466 "EHLO
+	el-out-1112.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753549AbZBRSPU (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 18 Feb 2009 13:15:20 -0500
+Received: by el-out-1112.google.com with SMTP id b25so14879elf.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Feb 2009 10:15:18 -0800 (PST)
+In-Reply-To: <alpine.LSU.2.00.0902181728190.26536@fbirervta.pbzchgretzou.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Dumazet wrote:
-> Hi Patrick
-> 
-> Please find following patch to prepare next one (loop unrolling)
-> 
-> I am not sure xt_physdev_info is aligned, either on an int or a long,
-> so please check my assertion before applying :)
+Yes, that is also what I thought.
 
-Yes, the private structures can assume alignment suitable for
-pointers and unsigned longs.
+However it does not work in my test.
+I add a SNAT rule on the host of 192.168.1.20 as following:
 
-> [PATCH] netfilter: xt_physdev fixes
-> 
-> 1) physdev_mt() incorrectly assumes nulldevname[] is aligned on an int
-> 
-> 2) It also uses word comparisons, while it could use long word ones.
+ iptables -t nat -A POSTROUTING -p udp --dport 5002 -o eth0 -j SNAT
+--to-source 192.168.1.55
 
-Applied, thanks.
+to change the source address of outgoing upd packets with port 5002 to
+192.168.1.55.
+
+I also insert one SPs as follows (output of "ip xfrm policy list"):
+
+...
+src 192.168.1.55/32 dst 192.168.1.21/32
+	dir out priority 2080 ptype main
+	tmpl src 192.168.1.20 dst 192.168.1.21
+		proto esp reqid 16409 mode tunnel
+...
+
+Then I send udp multicast at the port 5002.
+
+But, I cannot see any ESP packets by tcpdump. Furthermore, on the
+recipient side, I can get the muliticast udp with the changed source
+IP (192.168.1.55). Actually I have stopped IPsec on the recipient
+side. It looks that IPsec on the sender side is bypassed. Do I miss
+something?
+
+Thanks
+
+
+On 2/18/09, Jan Engelhardt <jengelh@medozas.de> wrote:
+>
+> On Wednesday 2009-02-18 17:17, Jianqing Zhang wrote:
+>
+>>If I configure both IPsec SPs and iptables, when an IP packet is going
+>>out or coming,  which will process the packet first? SP or iptables
+>>(netfilters) rules?
+>
+> On the input path, obviously ESP is the first one seen, then the unpacked
+> one;
+> on the output path this is precisely reversed.
+>
