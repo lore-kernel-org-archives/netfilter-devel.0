@@ -1,34 +1,32 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: netfilter: half a patch for the pseudoregression
-Date: Wed, 18 Feb 2009 15:35:36 +0100
-Message-ID: <499C1CB8.4010901@trash.net>
-References: <alpine.LSU.2.00.0901272322210.31372@fbirervta.pbzchgretzou.qr> <499057DC.9000102@trash.net> <alpine.LSU.2.00.0902171952521.999@fbirervta.pbzchgretzou.qr>
+Subject: Re: Passive OS fingerprint xtables match.
+Date: Wed, 18 Feb 2009 15:55:40 +0100
+Message-ID: <499C216C.7060700@trash.net>
+References: <20090212171245.GA15025@ioremap.net> <20090212174253.GF6759@linux.vnet.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:54223 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751938AbZBROfi (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Feb 2009 09:35:38 -0500
-In-Reply-To: <alpine.LSU.2.00.0902171952521.999@fbirervta.pbzchgretzou.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Evgeniy Polyakov <zbr@ioremap.net>, netdev@vger.kernel.org,
+	David Miller <davem@davemloft.net>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: paulmck@linux.vnet.ibm.com
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20090212174253.GF6759@linux.vnet.ibm.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> On Monday 2009-02-09 17:20, Patrick McHardy wrote:
->> Jan Engelhardt wrote:
->>> Here is the sample patch that fixes ip_tables_matches, but I still challenge
->>> the usefulness of /proc/net/ip_tables_* altogether.
->>> Those files should have been removed, or appropriately upgraded when revision
->>> support was introduced.
->> Thats not really the question right now since it exists and people
->> are using it. Feel free to start a discussion on removing it once
->> we've fixed the regression.
+Paul E. McKenney wrote:
+> On Thu, Feb 12, 2009 at 08:12:45PM +0300, Evgeniy Polyakov wrote:
+>> 
+>> Resending after Patrick's request :)
+>>
+>> Passive OS fingerprint homepage (archives, examples):
+>> http://www.ioremap.net/projects/osf
 > 
-> I've also send the complete thing (twice now). Did you receive it?
+> I advocate using this to get more accurate censuses of machines
+> accessing given web servers, given the tendency of browsers to lie
+> about themselves in order to avoid being shut out of certain web sites.
 
-Applied, thanks. Will pass it upstream after some testing.
+Fair enough :) I'll look over the patches and will apply them if
+everything is fine.
