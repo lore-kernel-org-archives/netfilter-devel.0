@@ -1,22 +1,49 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] iptables: expose option to zero packet and byte counters
- for a specific rule using iptables/ip6tables
-Date: Wed, 18 Feb 2009 21:22:05 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0902182118520.12329@fbirervta.pbzchgretzou.qr>
-References: <4700595.31361234988274007.JavaMail.root@tahiti.vyatta.com>
+From: Mohit Mehta <mohit.mehta@vyatta.com>
+Subject: Re: [PATCH] iptables: expose option to zero packet and byte
+ counters for a specific rule using iptables/ip6tables
+Date: Wed, 18 Feb 2009 12:32:01 -0800 (PST)
+Message-ID: <9174114.31441234989121915.JavaMail.root@tahiti.vyatta.com>
+References: <alpine.LSU.2.00.0902182118520.12329@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
-To: Mohit Mehta <mohit.mehta@vyatta.com>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:35546 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752106AbZBRUWH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Feb 2009 15:22:07 -0500
-In-Reply-To: <4700595.31361234988274007.JavaMail.root@tahiti.vyatta.com>
+Received: from mail.vyatta.com ([76.74.103.46]:45051 "EHLO mail.vyatta.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752525AbZBRUb7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 18 Feb 2009 15:31:59 -0500
+In-Reply-To: <alpine.LSU.2.00.0902182118520.12329@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
+
+>If you have trouble generating patches quickly, I can suggest the
+>use of the following tools:
+
+> - quilt
+>   (quilt new mywork.diff; quilt edit iptables.c; quilt ref;
+>    grab patch from patches/ directory)
+
+> - git
+>   (git clone; edit files; git add; git commit; git-export-patch)
+> - or git with stgit
+>   (stg new mywork.diff; edit; stg ref; stg export...)
+
+
+Thanks for these suggestions. 
+
+It should be noted that I did these changes to the latest source that I grabbed
+from debian sid. May be I should have just git cloned it from iptables repository. 
+let me knw if these aren't any good and I'll patch em against the most current version of iptables.
+
+
+----- Original Message -----
+From: "Jan Engelhardt" <jengelh@medozas.de>
+To: "Mohit Mehta" <mohit.mehta@vyatta.com>
+Cc: "Patrick McHardy" <kaber@trash.net>, netfilter-devel@vger.kernel.org
+Sent: Wednesday, February 18, 2009 12:22:05 PM (GMT-0800) Auto-Detected
+Subject: Re: [PATCH] iptables: expose option to zero packet and byte counters for a specific rule using iptables/ip6tables
 
 
 On Wednesday 2009-02-18 21:17, Mohit Mehta wrote:
