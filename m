@@ -1,38 +1,29 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Passive OS fingerprint xtables match.
-Date: Wed, 18 Feb 2009 16:30:03 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0902181629300.8034@fbirervta.pbzchgretzou.qr>
-References: <20090212171245.GA15025@ioremap.net> <alpine.LSU.2.00.0902121900520.20367@fbirervta.pbzchgretzou.qr> <20090212185729.GA17896@ioremap.net> <alpine.LSU.2.00.0902122045080.670@fbirervta.pbzchgretzou.qr> <20090213130347.GD23879@ioremap.net>
- <499C2308.2000109@trash.net> <20090218150742.GA30490@ioremap.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: netfilter git trees
+Date: Wed, 18 Feb 2009 16:36:57 +0100
+Message-ID: <499C2B19.9090307@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
-	David Miller <davem@davemloft.net>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	Netfilter Development Mailinglist
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+To: Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
-To: Evgeniy Polyakov <zbr@ioremap.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:60356 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752692AbZBRPaE (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:56045 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752203AbZBRPhA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Feb 2009 10:30:04 -0500
-In-Reply-To: <20090218150742.GA30490@ioremap.net>
+	Wed, 18 Feb 2009 10:37:00 -0500
+Received: from [192.168.0.100] (unknown [78.42.204.165])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by stinky.trash.net (Postfix) with ESMTPSA id 259A9948D5
+	for <netfilter-devel@vger.kernel.org>; Wed, 18 Feb 2009 16:36:58 +0100 (MET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Just FYI, I've created two new netfilter trees based on Dave's
+suggestions and moved the queued commits over. The nf-2.6.git
+tree should still have a linear history, the nf-next-2.6.git
+tree might not.
 
-On Wednesday 2009-02-18 16:07, Evgeniy Polyakov wrote:
->
->As of IPv6 support - it could be fairly trivial, the only thing we need
->is to dereference TCP header with the appropriate offset anf get don't
->fragment bit (ipv6 does not have it, so we could check both entries).
 
-But IPv6 can have Fragment Headers, serving about the same purpose.
-
->But... I do not have IPv6 network to test the changes (and definitely
->did not have it 6 years ago), so it was never implemented :)
-
-There exist lots of free VM solutions - and I think UML existed
-6 years ago, too.
