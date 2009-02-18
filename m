@@ -1,35 +1,45 @@
-From: Jarek Poplawski <jarkao2@gmail.com>
-Subject: Re: [RFT 2/4] Add mod_timer_noact
-Date: Wed, 18 Feb 2009 11:39:53 +0000
-Message-ID: <20090218113953.GB5408@ff.dom.local>
-References: <20090218110144.GA4100@elte.hu>
+From: "=?ISO-8859-1?Q?Ilpo_J=E4rvinen?=" <ilpo.jarvinen@helsinki.fi>
+Subject: Re: [PATCH] Update jhash.h with the new version of Jenkins' hash
+Date: Wed, 18 Feb 2009 13:50:43 +0200 (EET)
+Message-ID: <Pine.LNX.4.64.0902181345010.31742@wrl-59.cs.helsinki.fi>
+References: <alpine.DEB.2.00.0902111107480.15665@blackhole.kfki.hu>
+ <20090212001223.GA5757@movementarian.org>  <alpine.DEB.2.00.0902121006440.18739@blackhole.kfki.hu>
+ <f73f7ab80902120546w2ac30501v10fc55b9c8270be9@mail.gmail.com>
+ <alpine.DEB.2.00.0902171723330.27283@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: David Miller <davem@davemloft.net>, shemminger@vyatta.com,
-	kaber@trash.net, rick.jones2@hp.com, dada1@cosmosbay.com,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	tglx@linutronix.de, gandalf@wlug.westbo.se,
-	linux-kernel@vger.kernel.org
-To: Ingo Molnar <mingo@elte.hu>
+Content-Transfer-Encoding: 7bit
+Cc: Kyle Moffett <kyle@moffetthome.net>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org,
+	Rusty Russell <rusty@rustcorp.com.au>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.158]:37587 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751458AbZBRLkA (ORCPT
+Received: from courier.cs.helsinki.fi ([128.214.9.1]:37842 "EHLO
+	mail.cs.helsinki.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751078AbZBRLuq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Feb 2009 06:40:00 -0500
-Content-Disposition: inline
-In-Reply-To: <20090218110144.GA4100@elte.hu>
+	Wed, 18 Feb 2009 06:50:46 -0500
+In-Reply-To: <alpine.DEB.2.00.0902171723330.27283@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 18-02-2009 12:01, Ingo Molnar wrote:
-...
-> that straight away. Instead you forced me into wasting time on 
-> this rather long email (and you also forced the very unnecessary 
-> public embarrasment of a contributor), for what should have been 
-> an 'oops, right, will fix' routine matter.
+On Tue, 17 Feb 2009, Jozsef Kadlecsik wrote:
 
-No problem! But next time use this shorter routine, please...
+> On Thu, 12 Feb 2009, Rusty Russell wrote:
+> 
+> > My concern was that it's also bigger (and we inline it).  Performance is
+> > pretty much a wash since we so rarely hash more than a few words.
+> 
+> In netfilter/conntrack (;-) we call the hash function for every packet, so 
+> even if a small number of cycle can be gained at one lookup, I think it's 
+> worth. And in the IPv4/IPv6 neutral nf_conntrack we hash 9 words.
 
-Thanks,
-Jarek P.
+FYI, I once looked into inlining cost and jhash functions were among the 
+most wasteful (kernel-wide). Multiple jhash bodies were 100+ bytes, and 
+the overall cost was 10k+. I never got to the final submit of the 
+uninlining patch though...
+
+
+-- 
+ i.
