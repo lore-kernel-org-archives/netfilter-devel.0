@@ -1,30 +1,30 @@
-From: Rusty Russell <rusty@rustcorp.com.au>
-Subject: Re: [PATCH] Update jhash.h with the new version of Jenkins' hash
-Date: Wed, 18 Feb 2009 15:41:44 +1030
-Message-ID: <200902181541.45159.rusty@rustcorp.com.au>
-References: <alpine.DEB.2.00.0902111107480.15665@blackhole.kfki.hu> <f73f7ab80902120546w2ac30501v10fc55b9c8270be9@mail.gmail.com> <alpine.DEB.2.00.0902171723330.27283@blackhole.kfki.hu>
-Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Cc: Kyle Moffett <kyle@moffetthome.net>, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.0902171723330.27283@blackhole.kfki.hu>
-Content-Disposition: inline
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Stephen Hemminger <shemminger@vyatta.com>
+Subject: [RFT 0/4] Netfilter/iptables performance improvements
+Date: Tue, 17 Feb 2009 21:19:06 -0800
+Message-ID: <20090218051906.174295181@vyatta.com>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: David Miller <davem@davemloft.net>,
+	Patrick McHardy <kaber@trash.net>,
+	Rick Jones <rick.jones2@hp.com>,
+	Eric Dumazet <dada1@cosmosbay.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from suva.vyatta.com ([76.74.103.44]:37151 "EHLO suva.vyatta.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751408AbZBRFed (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 18 Feb 2009 00:34:33 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wednesday 18 February 2009 03:43:04 Jozsef Kadlecsik wrote:
-> On Thu, 12 Feb 2009, Rusty Russell wrote:
-> > Any stats on code size changes?
-> compiled with -Os, then stripped, give:
-> 
-> -rw-r--r-- 1 kadlec kadlec 1080 2009-02-17 14:10 lookup2.o
-> -rw-r--r-- 1 kadlec kadlec 1024 2009-02-17 14:10 lookup3.o
+Bring together the three performance improvements suggested.
+  1) RCU for ip_tables entries
+  2) mod_timer_noact for conntrack timer
+  3) eliminate tcp_lock
 
-The "size" command is more usual.  This looks like a total win to me.
+I took the patches for 2 & 3 and made them build and basically work.
 
-Thanks for being so thorough!
-Rusty.
+This patch set is against Patrick's netfilter next tree since
+it is where it should end up.
+	git.kernel.org:/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git
+
+-- 
+
