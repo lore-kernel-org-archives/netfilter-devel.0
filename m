@@ -1,62 +1,65 @@
-From: Stephen Hemminger <shemminger@vyatta.com>
-Subject: Re: [RFT 4/4] netfilter: Get rid of central rwlock in tcp
- conntracking
-Date: Wed, 18 Feb 2009 15:35:28 -0800
-Message-ID: <20090218153528.4c3df0f6@extreme>
-References: <20090218051906.174295181@vyatta.com>
-	<20090218052747.679540125@vyatta.com>
-	<499BDB5D.2050105@trash.net>
-	<20090218.135512.104648058.davem@davemloft.net>
-	<499C9881.2080909@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: PF_PACKET or nfnetlink logging of skb->priority
+Date: Thu, 19 Feb 2009 00:57:56 +0100
+Message-ID: <499CA084.30209@trash.net>
+References: <1234990308.18165.68.camel@ragnarok>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: David Miller <davem@davemloft.net>, rick.jones2@hp.com,
-	dada1@cosmosbay.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Cc: netdev@vger.kernel.org,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jeremy Jackson <jerj@coplanar.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.vyatta.com ([76.74.103.46]:53941 "EHLO mail.vyatta.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751456AbZBRXfa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Feb 2009 18:35:30 -0500
-In-Reply-To: <499C9881.2080909@trash.net>
+Received: from stinky.trash.net ([213.144.137.162]:33804 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750984AbZBRX6B (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 18 Feb 2009 18:58:01 -0500
+In-Reply-To: <1234990308.18165.68.camel@ragnarok>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 19 Feb 2009 00:23:45 +0100
-Patrick McHardy <kaber@trash.net> wrote:
+Jeremy Jackson wrote:
+> It seems that there is nothing that can capture the skb->priority
+> outside the kernel. 
+>
+> There is an iptables *target* "CLASSIFY", which can *set* skb->priority,
+> but there is no iptables *match* based on it.
+>
+> tcpdump/pcap/PF_PACKET are oblivious to skb->priority.
+>
+> netfilter netlink queue can export the skb->mark like the right
+> mechanism, but it doesn't touch skb->priority anywhere.   Perhaps there
+> needs to be a another one in include/linux/netfilter/nfnetlink_queue.h:
+>
+> enum nfqnl_attr_type {
+>         NFQA_UNSPEC,
+>         NFQA_PACKET_HDR,
+>         NFQA_VERDICT_HDR,               /* nfqnl_msg_verdict_hrd */
+>         NFQA_MARK,   
+> ... etc
+> 	NFQA_SKBPRIORITY
+>
+> The specific use I'm thinking of now, is troubleshooting priority
+> queueing with "tc" by being able to log or tcpdump traffic for a
+> specific qdisc/class.
+>
+> It might also be nice to be able to tcpdump and/or log packets going
+> into or out of a specific qdisc/class, but I'd settle for dumping
+> packets based on skb->priority.
+>   
 
-> David Miller wrote:
-> > From: Patrick McHardy <kaber@trash.net>
-> > Date: Wed, 18 Feb 2009 10:56:45 +0100
-> > 
-> >> Eric already posted a patch to use an array of locks, which is
-> >> a better approach IMO since it keeps the size of the conntrack
-> >> entries down.
-> > 
-> > Just as a side note, we generally frown upon the
-> > hash-array-of-spinlocks approach to scalability.
-> > 
-> > If you need proof that in the long term it's suboptimal, note that:
-> > 
-> > 1) this is Solaris's approach to locking scalability :-)
-> 
-> :)
-> 
-> > 2) every such case in the kernel eventually gets transformed into
-> >    RCU, a tree/trie based scheme, or some combination of the two
-> > 
-> > So maybe for now it's ok, but keep in mind that eventually
-> > this is certain to change. :)
-> 
-> This case might be different in that a normal firewall use case
-> probably doesn't have more than 16 cpus, even than would be quite
-> a lot. So for bigger machines this is probably more about keeping
-> the "non-use" costs low.
-> 
-> I'll keep it in mind though and I'm interested in seeing how it
-> turns out in the long term :)
+I think this makes a lot of sense for nfnetlink_queue/log, I'll
+gladly take patches :) It should also support changing the priority
+using nfnetlink_queue, that would simplify userspace classification
+since you don't need to map to mark values, just to have the
+classifier map it back to classes.
 
-It doesn't help that spinlock_t keeps growing! In good old days,
-a spin lock could fit in one byte.
+For libpcap the main problem will probably be that its meta data
+that needs to be stored in the pseudo header and you'll need to
+keep the format compatible and the tools need to be changed to
+interpret it. Using netfilter definitely looks like the easier
+route :)
+
+
