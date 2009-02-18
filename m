@@ -1,100 +1,67 @@
-From: Mohit Mehta <mohit.mehta@vyatta.com>
-Subject: Re: [PATCH] iptables: expose option to zero packet and byte
- counters for a specific rule using iptables/ip6tables
-Date: Wed, 18 Feb 2009 12:32:01 -0800 (PST)
-Message-ID: <9174114.31441234989121915.JavaMail.root@tahiti.vyatta.com>
-References: <alpine.LSU.2.00.0902182118520.12329@fbirervta.pbzchgretzou.qr>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [RFT 2/4] Add mod_timer_noact
+Date: Wed, 18 Feb 2009 13:39:59 -0800 (PST)
+Message-ID: <20090218.133959.193699273.davem@davemloft.net>
+References: <20090218092041.GC3294@elte.hu>
+	<20090218.013007.117003889.davem@davemloft.net>
+	<20090218110144.GA4100@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: shemminger@vyatta.com, kaber@trash.net, rick.jones2@hp.com,
+	dada1@cosmosbay.com, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, tglx@linutronix.de,
+	gandalf@wlug.westbo.se, linux-kernel@vger.kernel.org
+To: mingo@elte.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.vyatta.com ([76.74.103.46]:45051 "EHLO mail.vyatta.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752525AbZBRUb7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Feb 2009 15:31:59 -0500
-In-Reply-To: <alpine.LSU.2.00.0902182118520.12329@fbirervta.pbzchgretzou.qr>
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:60617
+	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1757605AbZBRVkP (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 18 Feb 2009 16:40:15 -0500
+In-Reply-To: <20090218110144.GA4100@elte.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
->If you have trouble generating patches quickly, I can suggest the
->use of the following tools:
+From: Ingo Molnar <mingo@elte.hu>
+Date: Wed, 18 Feb 2009 12:01:44 +0100
 
-> - quilt
->   (quilt new mywork.diff; quilt edit iptables.c; quilt ref;
->    grab patch from patches/ directory)
+> * David Miller <davem@davemloft.net> wrote:
+> 
+> | Introduce mod_timer_noact() which for example is to replace 
+> | the calls to del_timer()/add_timer() in 
+> | __nf_ct_refresh_acct(). It works like mod_timer() but doesn't 
+> | activate or modify the timeout of an inactive timer which is 
+> | the behaviour we want in order to be able to use timers as a 
+> | means of synchronization in nf_conntrack.
+> 
+> It does not mention the overhead to the regular timer interfaces 
+> at all, nor does it explain the reasons for this change 
+> adequately.
 
-> - git
->   (git clone; edit files; git add; git commit; git-export-patch)
-> - or git with stgit
->   (stg new mywork.diff; edit; stg ref; stg export...)
+You (conveniently) skipped this part of his commit message, so
+I guess this is the part you didn't read very carefully:
 
+	A later patch will modify __nf_ct_refresh_acct() to use
+	mod_timer_noact() which will then save one spin_lock_irqsave()
+	/ spin_lock_irqrestore() pair per conntrack timer update. This
+	will also get rid of the race we currently have without adding
+	more locking in nf_conntrack.
 
-Thanks for these suggestions. 
+The whole point is to avoid two spin_lock_irqsave() sequences, thus
+taking the timer locks twice.
 
-It should be noted that I did these changes to the latest source that I grabbed
-from debian sid. May be I should have just git cloned it from iptables repository. 
-let me knw if these aren't any good and I'll patch em against the most current version of iptables.
+So Ingo, when you say in response:
 
+	Why don't you use?
 
------ Original Message -----
-From: "Jan Engelhardt" <jengelh@medozas.de>
-To: "Mohit Mehta" <mohit.mehta@vyatta.com>
-Cc: "Patrick McHardy" <kaber@trash.net>, netfilter-devel@vger.kernel.org
-Sent: Wednesday, February 18, 2009 12:22:05 PM (GMT-0800) Auto-Detected
-Subject: Re: [PATCH] iptables: expose option to zero packet and byte counters for a specific rule using iptables/ip6tables
+		if (del_timer())
+			add_timer();
 
+you really look foolish and, in fact, disrespectful to Stephen.
 
-On Wednesday 2009-02-18 21:17, Mohit Mehta wrote:
+This was my objection to your email, it proved that you didn't
+really read his changelog message.  He explained perfectly well
+what the final goal was of his changes.
 
->> Please rediff your patch against the current tree.
->
->diff for iptables.c -
-
-If you have trouble generating patches quickly, I can suggest the
-use of the following tools:
-
- - quilt
-   (quilt new mywork.diff; quilt edit iptables.c; quilt ref;
-    grab patch from patches/ directory)
-
- - git
-   (git clone; edit files; git add; git commit; git-export-patch)
- - or git with stgit
-   (stg new mywork.diff; edit; stg ref; stg export...)
-
-
-
->@@ -2116,6 +2131,8 @@ int do_command(int argc, char *argv[], c
->                if (ret && (command & CMD_ZERO))
->                        ret = zero_entries(chain,
->                                           options&OPT_VERBOSE, handle);
->+               if (ret && (command & CMD_ZERO_NUM))
->+                       ret = iptc_zero_counter(chain, rulenum, handle);
->                break;
->        case CMD_NEW_CHAIN:
->                ret = iptc_create_chain(chain, handle);
->
->
->
->
->
->
->diff for ip6tables.c -
->
->--- ip6tables.c.orig    2009-02-18 11:44:04.000000000 -0800
->+++ ip6tables.c 2009-02-18 11:50:51.000000000 -0800
->@@ -79,9 +79,10 @@
-> #define CMD_SET_POLICY         0x0400U
-> #define CMD_RENAME_CHAIN       0x0800U
-> #define CMD_LIST_RULES         0x1000U
->-#define NUMBER_OF_CMD  14
->+#define CMD_ZERO_NUM           0x2000U
->+#define NUMBER_OF_CMD  15
-> static const char cmdflags[] = { 'I', 'D', 'D', 'R', 'A', 'L', 'F', 'Z',
->-                                'N', 'X', 'P', 'E', 'S' };
->+                                'Z', 'N', 'X', 'P', 'E', 'S' };
->
-> #define OPTION_OFFSET 256
->
+And you have this knee-jerk reaction quite often.
