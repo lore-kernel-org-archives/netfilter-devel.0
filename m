@@ -1,59 +1,88 @@
-From: Ratnaraj Mirgal <ratnaraj20@gmail.com>
-Subject: Re: queuing pkts using nf_queue_handler in bridge (PF_BRIDGE) mode
-	not working in 2.6 kernel
-Date: Wed, 18 Feb 2009 16:35:23 +0530
-Message-ID: <c6c752b20902180305t796628abs6b926e69c2620b42@mail.gmail.com>
-References: <c6c752b20902171954k4439c1dsc7c311c4863deaef@mail.gmail.com>
-	 <499BE240.6050204@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: xtables: add cluster match
+Date: Wed, 18 Feb 2009 12:06:39 +0100
+Message-ID: <499BEBBF.7080705@netfilter.org>
+References: <20090214192936.11718.44732.stgit@Decadence> <49994643.8010001@trash.net> <499971CC.6040903@netfilter.org> <49997247.3010105@trash.net> <4999787C.7050203@netfilter.org> <499982CB.7020503@netfilter.org> <499981FA.3040106@trash.net> <499A9597.4070608@netfilter.org> <499A9689.7090208@trash.net> <499AC0B3.5040902@netfilter.org> <499BDF5D.2010809@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ew0-f21.google.com ([209.85.219.21]:39507 "EHLO
-	mail-ew0-f21.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751988AbZBRLFZ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Feb 2009 06:05:25 -0500
-Received: by ewy14 with SMTP id 14so2647331ewy.13
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Feb 2009 03:05:23 -0800 (PST)
-In-Reply-To: <499BE240.6050204@trash.net>
+Received: from mail.us.es ([193.147.175.20]:50056 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752177AbZBRLGs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 18 Feb 2009 06:06:48 -0500
+In-Reply-To: <499BDF5D.2010809@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-thanx for reply :-)
+Patrick McHardy wrote:
+> Pablo Neira Ayuso wrote:
+>> Patrick McHardy wrote:
+>>>> A possible solution (that thinking it well, I don't like too much yet)
+>>>> would be to convert this to a HASHMARK target that will store the
+>>>> result
+>>>> of the hash in the skbuff mark, but the problem is that it would
+>>>> require
+>>>> a reserved space for hashmarks since they may clash with other
+>>>> user-defined marks.
+>>> That sounds a bit like a premature optimization. What I don't get
+>>> is why you don't simply set cluster-total-nodes to one when two
+>>> are down or remove the rule entirely.
+>>
+>> Indeed, but in practise existing failover daemons (at least those
+>> free/opensource that I know) doesn't show that "intelligent" behaviour
+>> since they initially (according to the configuration file) assign the
+>> resources to each node, and if one node fails, it assigns the
+>> corresponding resources to another sane node (ie. the daemon runs a
+>> script with the corresponding iptables rules).
+>>
+>> Re-adjusting cluster-total-nodes and cluster-local-nodes options (eg. if
+>> one cluster node goes down and there are only two nodes alive, change
+>> the rule-set to have only two nodes) seems indeed the natural way to go
+>> since the alive cluster nodes would share the workload that the failing
+>> node has left. However, as said, existing failover daemons only select
+>> one new master to recover what a failing node was doing, thus, only one
+>> runs the script to inject the states into the kernel.
+>>
+>> Therefore AFAICS, without the /proc interface, I would need one iptables
+>> rule per cluster-local-node handled, and so it's still the possible
+>> sub-optimal situation when one or several node fails.
+> 
+> OK, that explains why you want to handle it this way. I don't want
+> to merge the proc file part though, so until the daemons get smarter,
+> people will have to use multiple rules.
 
-i just found tht.... (i put printks in nf_queue of
-net/netfilter/nf_queue.c)... n i referred to afinfo of ipv4...
+:(
 
-thanx again
+> BTW, I recently looked into TIPC, its incredibly easy to use since
+> it deals with dead-node dectection etc internally and all you need
+> to do is exchange a few messages. Might be quite easy to write a
+> smarter failover daemon.
 
-On Wed, Feb 18, 2009 at 3:56 PM, Patrick McHardy <kaber@trash.net> wrote:
-> Ratnaraj Mirgal wrote:
->>
->> Hi,
->>
->> i'm trying a simple lkm tht register a hook in PF_BRIDGE protocol,
->> also registers a queue_handler for the same.
->> the hook function simply returns NF_QUEUE for all IP pakcets.
->>
->> i'm trying this out in 2.6.18-8.el5 (centos 5.0)
->>
->> it seems like pkts are queuing up, but the _problem_ is queue_handler
->> is not getting invoked.
->> plz refer to the code below.
->>
->> (NOTE: the same program worked fine in my rh9 (ie 2.4 kernel), of
->> course with minor nf API modification)
->
-> The bridge netfilter code doesn't register an afinfo with the
-> netfilter core, so queueing drops the packets. Its actually
-> not needed since bridge netfilter doesn't need to reroute anyways.
-> So you basically need to change the __nf_queue function to only
-> invoke the af-specific functions if an afinfo is available.
->
-> Patches welcome btw :)
->
->
->
+I see, I don't have more convincing arguments that "I would also need
+time for that but in the meanwhile, please allow this". Well, failover
+daemons are delicate pieces of software, they have to be stable,
+well-tested, bug-free, give timely responses. Still TIPC is experimental
+and I guess that the dead-node detection is only layer 3/4 based on
+heartbeats. Dead-node detection is a tricky issue, the more you can
+perform different layer checkings, the more increase chances to make
+wrong decisions that may lead to inconsistent situations and tons of
+problems. VRRP is the current standard and this one of his limitations,
+and so on.
+
+Well, if you are not going to accept the /proc interface, not matter
+what I can argument, I give up on this ;)
+
+Anyway, probably, this is a premature optimization (but worth?). Some
+numbers, in my testbed, I get ~1800 TCP connections per second less with
+eight cluster rules (no /proc interface).
+
+24347 TCP connections per second with one rule.
+22580 TCP connections per second with eight rules.
+
+OK, I'll send you another patch without the /proc interface.
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
