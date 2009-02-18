@@ -1,31 +1,55 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] iptables: expose option to zero packet and byte counters
- for a specific rule using iptables/ip6tables
-Date: Wed, 18 Feb 2009 19:40:35 +0100
-Message-ID: <499C5623.7060902@trash.net>
-References: <4994336.27091234914681076.JavaMail.root@tahiti.vyatta.com>
+From: Oleg Nesterov <oleg@redhat.com>
+Subject: Re: [patch] timers: add mod_timer_pending()
+Date: Wed, 18 Feb 2009 19:58:50 +0100
+Message-ID: <20090218185850.GA2494@redhat.com>
+References: <20090218051906.174295181@vyatta.com> <20090218052747.437271195@vyatta.com> <20090218092041.GC3294@elte.hu> <499BDDFE.5010101@trash.net> <20090218120508.GB4100@elte.hu> <20090218170057.GA28825@redhat.com> <20090218182311.GC26802@elte.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Mohit Mehta <mohit.mehta@vyatta.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>,
+	Peter Zijlstra <a.p.zijlstra@chello.nl>,
+	Stephen Hemminger <shemminger@vyatta.com>,
+	David Miller <davem@davemloft.net>,
+	Rick Jones <rick.jones2@hp.com>,
+	Eric Dumazet <dada1@cosmosbay.com>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, tglx@linutronix.de,
+	Martin Josefsson <gandalf@wlug.westbo.se>
+To: Ingo Molnar <mingo@elte.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59996 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752652AbZBRSki (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Feb 2009 13:40:38 -0500
-In-Reply-To: <4994336.27091234914681076.JavaMail.root@tahiti.vyatta.com>
+Received: from mx2.redhat.com ([66.187.237.31]:45024 "EHLO mx2.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752268AbZBRTB7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 18 Feb 2009 14:01:59 -0500
+Content-Disposition: inline
+In-Reply-To: <20090218182311.GC26802@elte.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Mohit Mehta wrote:
-> iptc_zero_counter/ip6tc_zero_counter are functions available in libiptc to zero counters for a rule in a given chain. However, this is not exposed in iptables/ip6tables. The patch below exposes the underlying function to the user to zero out packet and byte counters for a specific rule.
+On 02/18, Ingo Molnar wrote:
+>
+> * Oleg Nesterov <oleg@redhat.com> wrote:
+>
+> > Unlike __mod_timer(..., bool pending_only), it preserves the CPU on
+> > which the timer is pending.
+> >
+> > Or, perhaps, we can modify __mod_timer() further,
+>
+> if then i'd put it into a separate commit.
+>
+> I think the auto-migration of all the mod_timer() variants is a
+> scalability feature: if for example a networking socket's main
+> user migrates to another CPU, then the timer 'follows' it - even
+> if the timer never actually expires (which is quite common for
+> high-speed high-reliability networking transports).
 
-Exposing this seems useful, the patch doesn't apply to the
-current git version though:
+OK.
 
-8 out of 9 hunks FAILED -- saving rejects to file ip6tables.c.rej
-8 out of 9 hunks FAILED -- saving rejects to file iptables.c.rej
+But sometimes it is better (or necessary) to prevent the migration.
+Since you already are changed __mod_timer() it would be ugly to
+add yet another helper. Perhaps we should turn "bool pending_only"
+into "int flags" right now?
 
-Please rediff your patch against the current tree.
+This is minor, and perhaps we will never need the TIMER_DONT_MIGRATE
+flag. But if ever need, then we have to audit all callers.
+
+Oleg.
+
