@@ -1,122 +1,85 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 2/2] netfilter: Combine ipt_ttl and ip6t_hl source
-Date: Thu, 19 Feb 2009 01:48:21 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0902190143300.7806@fbirervta.pbzchgretzou.qr>
-References: <1234972949-12036-1-git-send-email-jengelh@medozas.de> <1234972949-12036-3-git-send-email-jengelh@medozas.de> <499C4813.8070102@trash.net> <alpine.LSU.2.00.0902181855570.8011@fbirervta.pbzchgretzou.qr> <499C4E65.3050609@trash.net>
+From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: [PATCH] netfilter: unfold two loops in physdev_mt()
+Date: Thu, 19 Feb 2009 09:00:11 +0100
+Message-ID: <499D118B.1040309@cosmosbay.com>
+References: <497F4C2F.9000804@hp.com> <497F5BCD.9060807@hp.com> <497F5F86.9010101@hp.com> <498063E7.5030106@cosmosbay.com> <49808708.3050502@trash.net> <498090C1.5020400@cosmosbay.com> <49809716.3020204@cosmosbay.com> <4981CBE2.5020306@cosmosbay.com> <87ocxox0bu.fsf@basil.nowhere.org> <498330B2.4060004@cosmosbay.com> <20090130172705.GB18453@one.firstfloor.org> <499032A4.9090301@trash.net> <499C24FF.90302@cosmosbay.com> <499C2766.5090904@trash.net> <499C3871.4030600@cosmosbay.com> <499C4739.3000800@cosmosbay.com> <499C4FEB.7040706@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Netfilter Developers <netfilter-devel@vger.kernel.org>,
+	Linux Network Development list <netdev@vger.kernel.org>
 To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:54223 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752455AbZBSAsY (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Feb 2009 19:48:24 -0500
-In-Reply-To: <499C4E65.3050609@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <499C4FEB.7040706@trash.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+xt_physdev netfilter module can use an ifname_compare() helper
+so that two loops are unfolded.
 
-On Wednesday 2009-02-18 19:07, Patrick McHardy wrote:
->
-> The alternative is to keep the text at the old options and have
-> them select a new hidden one. After two releases we move the
-> text over and kill the old ones.
->
-> But we really should do something about the constant kconfig
-> annoyance caused by these renames, let alone people who really
-> drop an option by accident and start bug hunting.
-
-Here, code speaks:
-
-parent 5626248049fb71d3703e20268e2043df3fd78f46 (v2.6.29-rc4-29-g5626248)
-commit 5eebd6df9f3304f74b611fe47bab50fd3a1c668b
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Thu Feb 19 01:42:57 2009 +0100
-
-netfilter: xtables: add backward-compat options
-
-Concern has been expressed about the changing Kconfig options.
-Provide the old options that forward-select.
-
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
 ---
- net/ipv4/netfilter/Kconfig |   18 ++++++++++++++++++
- net/ipv6/netfilter/Kconfig |   18 ++++++++++++++++++
- 2 files changed, 36 insertions(+), 0 deletions(-)
+ net/netfilter/xt_physdev.c |   32 +++++++++++++++++++++-----------
+ 1 files changed, 21 insertions(+), 11 deletions(-)
 
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index 40ad41f..f8d6180 100644
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -92,6 +92,15 @@ config IP_NF_MATCH_ECN
+diff --git a/net/netfilter/xt_physdev.c b/net/netfilter/xt_physdev.c
+index 4b13ef7..44a234e 100644
+--- a/net/netfilter/xt_physdev.c
++++ b/net/netfilter/xt_physdev.c
+@@ -20,10 +20,27 @@ MODULE_DESCRIPTION("Xtables: Bridge physical device match");
+ MODULE_ALIAS("ipt_physdev");
+ MODULE_ALIAS("ip6t_physdev");
  
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
-+config IP_NF_MATCH_TTL
-+	tristate '"ttl" match support'
-+	depends on NETFILTER_ADVANCED
-+	select NETFILTER_XT_MATCH_HL
-+	---help---
-+	This is a backwards-compat option for the user's convenience
-+	(e.g. when running oldconfig). It selects
-+	COFNIG_NETFILTER_XT_MATCH_HL.
++static unsigned long ifname_compare(const char *_a, const char *_b, const char *_mask)
++{
++	const unsigned long *a = (const unsigned long *)_a;
++	const unsigned long *b = (const unsigned long *)_b;
++	const unsigned long *mask = (const unsigned long *)_mask;
++	unsigned long ret;
 +
- # `filter', generic and specific targets
- config IP_NF_FILTER
- 	tristate "Packet filtering"
-@@ -313,6 +322,15 @@ config IP_NF_TARGET_ECN
- 
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
-+config IP_NF_TARGET_TTL
-+	tristate '"TTL" target support'
-+	depends on NETFILTER_ADVANCED
-+	select NETFILTER_XT_TARGET_HL
-+	---help---
-+	This is a backwards-compat option for the user's convenience
-+	(e.g. when running oldconfig). It selects
-+	COFNIG_NETFILTER_XT_TARGET_HL.
++	ret = (a[0] ^ b[0]) & mask[0];
++	if (IFNAMSIZ > sizeof(unsigned long))
++		ret |= (a[1] ^ b[1]) & mask[1];
++	if (IFNAMSIZ > 2 * sizeof(unsigned long))
++		ret |= (a[2] ^ b[2]) & mask[2];
++	if (IFNAMSIZ > 3 * sizeof(unsigned long))
++		ret |= (a[3] ^ b[3]) & mask[3];
++	BUILD_BUG_ON(IFNAMSIZ > 4 * sizeof(unsigned long));
++	return ret;
++}
 +
- # raw + specific targets
- config IP_NF_RAW
- 	tristate  'raw table support (required for NOTRACK/TRACE)'
-diff --git a/net/ipv6/netfilter/Kconfig b/net/ipv6/netfilter/Kconfig
-index 4a8d7ec..625353a 100644
---- a/net/ipv6/netfilter/Kconfig
-+++ b/net/ipv6/netfilter/Kconfig
-@@ -94,6 +94,15 @@ config IP6_NF_MATCH_OPTS
+ static bool
+ physdev_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+ {
+-	int i;
+ 	static const char nulldevname[IFNAMSIZ] __attribute__((aligned(sizeof(long))));
+ 	const struct xt_physdev_info *info = par->matchinfo;
+ 	unsigned long ret;
+@@ -68,11 +85,7 @@ physdev_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+ 	if (!(info->bitmask & XT_PHYSDEV_OP_IN))
+ 		goto match_outdev;
+ 	indev = nf_bridge->physindev ? nf_bridge->physindev->name : nulldevname;
+-	for (i = 0, ret = 0; i < IFNAMSIZ/sizeof(unsigned long); i++) {
+-		ret |= (((const unsigned long *)indev)[i]
+-			^ ((const unsigned long *)info->physindev)[i])
+-			& ((const unsigned long *)info->in_mask)[i];
+-	}
++	ret = ifname_compare(indev, info->physindev, info->in_mask);
  
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
-+config IP6_NF_MATCH_HL
-+	tristate '"hl" hoplimit match support'
-+	depends on NETFILTER_ADVANCED
-+	select NETFILTER_XT_MATCH_HL
-+	---help---
-+	This is a backwards-compat option for the user's convenience
-+	(e.g. when running oldconfig). It selects
-+	COFNIG_NETFILTER_XT_MATCH_HL.
+ 	if (!ret ^ !(info->invert & XT_PHYSDEV_OP_IN))
+ 		return false;
+@@ -82,11 +95,8 @@ match_outdev:
+ 		return true;
+ 	outdev = nf_bridge->physoutdev ?
+ 		 nf_bridge->physoutdev->name : nulldevname;
+-	for (i = 0, ret = 0; i < IFNAMSIZ/sizeof(unsigned long); i++) {
+-		ret |= (((const unsigned long *)outdev)[i]
+-			^ ((const unsigned long *)info->physoutdev)[i])
+-			& ((const unsigned long *)info->out_mask)[i];
+-	}
++	ret = ifname_compare(outdev, info->physoutdev, info->out_mask);
 +
- config IP6_NF_MATCH_IPV6HEADER
- 	tristate '"ipv6header" IPv6 Extension Headers Match'
- 	default m if NETFILTER_ADVANCED=n
-@@ -121,6 +130,15 @@ config IP6_NF_MATCH_RT
- 	  To compile it as a module, choose M here.  If unsure, say N.
+ 	return (!!ret ^ !(info->invert & XT_PHYSDEV_OP_OUT));
+ }
  
- # The targets
-+config IP6_NF_TARGET_HL
-+	tristate '"HL" hoplimit target support'
-+	depends on NETFILTER_ADVANCED
-+	select NETFILTER_XT_TARGET_HL
-+	---help---
-+	This is a backwards-compat option for the user's convenience
-+	(e.g. when running oldconfig). It selects
-+	COFNIG_NETFILTER_XT_TARGET_HL.
-+
- config IP6_NF_TARGET_LOG
- 	tristate "LOG target support"
- 	default m if NETFILTER_ADVANCED=n
--- 
-# Created with git-export-patch
