@@ -1,72 +1,134 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: Re: [PATCH 4/4] netfilter: sysctl support of logger choice.
-Date: Thu, 19 Feb 2009 22:52:25 +0100
-Message-ID: <499DD499.50704@inl.fr>
-References: <49980BA7.2040108@inl.fr> <1234701437-2754-4-git-send-email-eric@inl.fr> <499C2F92.3080105@trash.net> <499DC817.7010305@inl.fr> <499DC8F7.8080206@trash.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Subject: [PATCH 3/3] netfilter: sysctl support of logger choice.
+Date: Thu, 19 Feb 2009 22:54:18 +0100
+Message-ID: <1235080458-6623-3-git-send-email-eric@inl.fr>
+References: <499DD499.50704@inl.fr>
+Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@inl.fr>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 78-210-144-213.altitudetelecom.fr ([213.144.210.78]:36367 "EHLO
-	fydelkass.inl.fr" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1757741AbZBSVw3 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 19 Feb 2009 16:52:29 -0500
-In-Reply-To: <499DC8F7.8080206@trash.net>
+Received: from bayen.regit.org ([81.57.69.189]:59824 "EHLO ice-age"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1757936AbZBSVyX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 19 Feb 2009 16:54:23 -0500
+In-Reply-To: <499DD499.50704@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+This patchs adds support of modification of the used logger via sysctl.
+It can be used to change the logger to module that can not use the bind
+operation (ipt_LOG and ipt_ULOG). For this purpose, it creates a
+directory /proc/sys/net/netfilter/nf_log which contains a file
+per-protocol. The content of the file is the name current logger (NONE if
+not set) and a logger can be setup by simply echoing its name to the file.
+By echoing "NONE" to a /proc/sys/net/netfilter/nf_log/PROTO file, the
+logger corresponding to this PROTO is set to NULL.
 
-Patrick McHardy a =E9crit :
-> Eric Leblond wrote:
->> Hi,
->>
->> Patrick McHardy a =E9crit :
->>  =20
->>> Eric Leblond wrote:
->>>    =20
->>>> +static int nf_log_proc_dostring(ctl_table *table, int write, stru=
-ct
->>>> file *filp,
->>>>      =20
->>>> +    for (i =3D NFPROTO_UNSPEC; i < NFPROTO_NUMPROTO; i++) {
->>>> +        char *pr_name =3D kmalloc(3, GFP_KERNEL);
->>>> +        /* FIXME free at deinit but there is currently no deinit =
-*/
->>>> +        snprintf(pr_name, 3, "%d", i);
->>>> +        nf_log_sysctl_table[i].ctl_name    =3D i;
->>>>      =20
->>> This ctl_name use seems rather abusive. The names are used
->>> as numeric identifiers, we can't just stuff index values in
->>> there :)
->>>    =20
->> Your remark is not clear for me. I store here a integer which is the
->> protocol number. I see it as a real numeric identifier.
->>
->> Which change are you suggesting ?
->=20
-> Its an identifier for the sysctl syscall, its not meant to be used wi=
-th
-> private identifiers. And any new sysctl should use CTL_UNNUMBERED (wh=
-ich
-> you do, but then overwrite it).
+Signed-off-by: Eric Leblond <eric@inl.fr>
+---
+ net/netfilter/nf_log.c |   76 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 76 insertions(+), 0 deletions(-)
 
-Ok, once you've said it, it quiet obvious :/
+diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
+index efda4ba..87f1d49 100644
+--- a/net/netfilter/nf_log.c
++++ b/net/netfilter/nf_log.c
+@@ -14,6 +14,7 @@
+    LOG target modules */
+ 
+ #define NF_LOG_PREFIXLEN		128
++#define NFLOGGER_NAME_LEN		64
+ 
+ static const struct nf_logger *nf_loggers[NFPROTO_NUMPROTO] __read_mostly;
+ static struct list_head nf_loggers_l[NFPROTO_NUMPROTO] __read_mostly;
+@@ -209,6 +210,78 @@ static const struct file_operations nflog_file_ops = {
+ 
+ #endif /* PROC_FS */
+ 
++#ifdef CONFIG_SYSCTL
++struct ctl_path nf_log_sysctl_path[] = {
++	{ .procname = "net", .ctl_name = CTL_NET, },
++	{ .procname = "netfilter", .ctl_name = NET_NETFILTER, },
++	{ .procname = "nf_log", .ctl_name = CTL_UNNUMBERED, },
++	{ }
++};
++
++static struct ctl_table nf_log_sysctl_table[NFPROTO_NUMPROTO+1];
++static struct ctl_table_header *nf_log_dir_header;
++
++static int nf_log_proc_dostring(ctl_table *table, int write, struct file *filp,
++			 void *buffer, size_t *lenp, loff_t *ppos)
++{
++	const struct nf_logger *logger;
++	int r = 0;
++	int tindex = (unsigned long) table->extra1;
++
++	if (write) {
++		if (!strnicmp(buffer, "NONE", *lenp - 1)) {
++			return nf_log_unbind_pf(tindex);
++		}
++		mutex_lock(&nf_log_mutex);
++		logger = __find_logger(tindex, buffer);
++		if (logger == NULL) {
++			mutex_unlock(&nf_log_mutex);
++			return -EINVAL;
++		}
++		rcu_assign_pointer(nf_loggers[tindex], logger);
++		mutex_unlock(&nf_log_mutex);
++	} else {
++		rcu_read_lock();
++		logger = rcu_dereference(nf_loggers[tindex]);
++		if (! logger)
++			table->data = "NONE";
++		else
++			table->data = logger->name;
++		r = proc_dostring(table, write, filp, buffer, lenp, ppos);
++		rcu_read_unlock();
++	}
++
++	return r;
++}
++
++static int netfilter_log_sysctl_init(void)
++{
++	int i;
++
++	for (i = NFPROTO_UNSPEC; i < NFPROTO_NUMPROTO; i++) {
++		char *pr_name = kmalloc(3, GFP_KERNEL);
++		/* FIXME free at deinit but there is currently no deinit */
++		snprintf(pr_name, 3, "%d", i);
++		nf_log_sysctl_table[i].ctl_name	= CTL_UNNUMBERED;
++		nf_log_sysctl_table[i].procname	= pr_name;
++		nf_log_sysctl_table[i].data = NULL;
++		nf_log_sysctl_table[i].maxlen = NFLOGGER_NAME_LEN * sizeof(char);
++		nf_log_sysctl_table[i].mode = 0644;
++		nf_log_sysctl_table[i].proc_handler = nf_log_proc_dostring;
++		nf_log_sysctl_table[i].extra1 = (void *)(unsigned long) i;
++	}
++
++	nf_log_dir_header = register_sysctl_paths(nf_log_sysctl_path,
++				       nf_log_sysctl_table);
++
++	return 0;
++}
++#else
++static int netfilter_log_sysctl_init(void)
++{
++	return 0;
++}
++#endif /* CONFIG_SYSCTL */
+ 
+ int __init netfilter_log_init(void)
+ {
+@@ -219,6 +292,9 @@ int __init netfilter_log_init(void)
+ 		return -1;
+ #endif
+ 
++	if (netfilter_log_sysctl_init() < 0)
++		return -1;
++
+ 	for (i = NFPROTO_UNSPEC; i < NFPROTO_NUMPROTO; i++)
+ 		INIT_LIST_HEAD(&(nf_loggers_l[i]));
+ 
+-- 
+1.5.6.3
 
-A reworked patchset will follow as reply to this mail.
-
-Thanks once again for your remarks and your patience.
-
-BR,
---=20
-Eric Leblond <eric@inl.fr>
-INL: http://www.inl.fr/
-NuFW: http://www.nufw.org/
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
