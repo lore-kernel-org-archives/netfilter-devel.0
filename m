@@ -1,90 +1,46 @@
-From: Eric Dumazet <dada1@cosmosbay.com>
-Subject: [PATCH] netfilter: unfold two loops in ip6_packet_match()
-Date: Thu, 19 Feb 2009 09:14:14 +0100
-Message-ID: <499D14D6.7020005@cosmosbay.com>
-References: <497F4C2F.9000804@hp.com> <497F5BCD.9060807@hp.com> <497F5F86.9010101@hp.com> <498063E7.5030106@cosmosbay.com> <49808708.3050502@trash.net> <498090C1.5020400@cosmosbay.com> <49809716.3020204@cosmosbay.com> <4981CBE2.5020306@cosmosbay.com> <87ocxox0bu.fsf@basil.nowhere.org> <498330B2.4060004@cosmosbay.com> <20090130172705.GB18453@one.firstfloor.org> <499032A4.9090301@trash.net> <499C24FF.90302@cosmosbay.com> <499C2766.5090904@trash.net> <499C3871.4030600@cosmosbay.com> <499C4739.3000800@cosmosbay.com> <499C4FEB.7040706@trash.net> <499D118B.1040309@cosmosbay.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 2/2 v5] New netfilter target to trigger LED devices
+Date: Thu, 19 Feb 2009 11:14:55 +0100
+Message-ID: <499D311F.7050304@trash.net>
+References: <49934702.9060909@shikadi.net> <4993B34C.1020307@trash.net>	 <49940D58.3040404@shikadi.net>  <49998E6C.2030504@trash.net> <1234878654.5312.34.camel@dax.rpnet.com> <499C17C2.9020502@trash.net> <499C899F.5010002@shikadi.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Netfilter Developers <netfilter-devel@vger.kernel.org>,
-	Linux Network Development list <netdev@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <499D118B.1040309@cosmosbay.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: Richard Purdie <rpurdie@linux.intel.com>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Adam Nielsen <a.nielsen@shikadi.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:45929 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751725AbZBSKO5 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 19 Feb 2009 05:14:57 -0500
+In-Reply-To: <499C899F.5010002@shikadi.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-ip6_tables netfilter module can use an ifname_compare() helper
-so that two loops are unfolded.
+Adam Nielsen wrote:
+>> Adam, I wanted to apply this, but I get rejects for every single
+>> existing file. There appears to be some whitespace damage, please
+>> resend as attachment.
+> 
+> Hmm, that's odd - Thunderbird must not like sending tabs - sorry
+> about that!
+> 
+> I hope the attached files work better.
 
-Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
----
- net/ipv6/netfilter/ip6_tables.c |   33 +++++++++++++++++++-----------
- 1 files changed, 21 insertions(+), 12 deletions(-)
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index a33485d..d64594b 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -89,6 +89,25 @@ ip6t_ext_hdr(u8 nexthdr)
- 		 (nexthdr == IPPROTO_DSTOPTS) );
- }
- 
-+static unsigned long ifname_compare(const char *_a, const char *_b,
-+				    const unsigned char *_mask)
-+{
-+	const unsigned long *a = (const unsigned long *)_a;
-+	const unsigned long *b = (const unsigned long *)_b;
-+	const unsigned long *mask = (const unsigned long *)_mask;
-+	unsigned long ret;
-+
-+	ret = (a[0] ^ b[0]) & mask[0];
-+	if (IFNAMSIZ > sizeof(unsigned long))
-+		ret |= (a[1] ^ b[1]) & mask[1];
-+	if (IFNAMSIZ > 2 * sizeof(unsigned long))
-+		ret |= (a[2] ^ b[2]) & mask[2];
-+	if (IFNAMSIZ > 3 * sizeof(unsigned long))
-+		ret |= (a[3] ^ b[3]) & mask[3];
-+	BUILD_BUG_ON(IFNAMSIZ > 4 * sizeof(unsigned long));
-+	return ret;
-+}
-+
- /* Returns whether matches rule or not. */
- /* Performance critical - called for every packet */
- static inline bool
-@@ -99,7 +118,6 @@ ip6_packet_match(const struct sk_buff *skb,
- 		 unsigned int *protoff,
- 		 int *fragoff, bool *hotdrop)
- {
--	size_t i;
- 	unsigned long ret;
- 	const struct ipv6hdr *ipv6 = ipv6_hdr(skb);
- 
-@@ -120,12 +138,7 @@ ip6_packet_match(const struct sk_buff *skb,
- 		return false;
- 	}
- 
--	/* Look for ifname matches; this should unroll nicely. */
--	for (i = 0, ret = 0; i < IFNAMSIZ/sizeof(unsigned long); i++) {
--		ret |= (((const unsigned long *)indev)[i]
--			^ ((const unsigned long *)ip6info->iniface)[i])
--			& ((const unsigned long *)ip6info->iniface_mask)[i];
--	}
-+	ret = ifname_compare(indev, ip6info->iniface, ip6info->iniface_mask);
- 
- 	if (FWINV(ret != 0, IP6T_INV_VIA_IN)) {
- 		dprintf("VIA in mismatch (%s vs %s).%s\n",
-@@ -134,11 +147,7 @@ ip6_packet_match(const struct sk_buff *skb,
- 		return false;
- 	}
- 
--	for (i = 0, ret = 0; i < IFNAMSIZ/sizeof(unsigned long); i++) {
--		ret |= (((const unsigned long *)outdev)[i]
--			^ ((const unsigned long *)ip6info->outiface)[i])
--			& ((const unsigned long *)ip6info->outiface_mask)[i];
--	}
-+	ret = ifname_compare(outdev, ip6info->outiface, ip6info->outiface_mask);
- 
- 	if (FWINV(ret != 0, IP6T_INV_VIA_OUT)) {
- 		dprintf("VIA out mismatch (%s vs %s).%s\n",
+It applies with some minor manual fixups (please diff against the
+nf-next tree at git.kernel.org). It doesn't compile though:
 
+   CC [M]  net/netfilter/xt_LED.o
+net/netfilter/xt_LED.c:40: error: field 'netfilter_led_trigger' has 
+incomplete type
+net/netfilter/xt_LED.c: In function 'led_timeout_callback':
+net/netfilter/xt_LED.c:77: warning: unused variable 'ledinternal'
+net/netfilter/xt_LED.c: In function 'led_tg_check':
+net/netfilter/xt_LED.c:101: error: implicit declaration of function 
+'led_trigger_register'
+net/netfilter/xt_LED.c: In function 'led_tg_destroy':
+net/netfilter/xt_LED.c:134: error: implicit declaration of function 
+'led_trigger_unregister'
