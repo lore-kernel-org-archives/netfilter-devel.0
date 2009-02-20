@@ -1,48 +1,68 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: iptables return code 256
-Date: Fri, 20 Feb 2009 23:10:24 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0902202305340.14936@fbirervta.pbzchgretzou.qr>
-References: <gnn43d$647$1@ger.gmane.org> <alpine.LSU.2.00.0902202134350.11155@fbirervta.pbzchgretzou.qr> <gnn92e$ln9$1@ger.gmane.org>
+From: Rick Jones <rick.jones2@hp.com>
+Subject: Re: [PATCH] iptables: lock free counters
+Date: Fri, 20 Feb 2009 14:57:21 -0800
+Message-ID: <499F3551.5@hp.com>
+References: <20090218051906.174295181@vyatta.com>	<20090218052747.321329022@vyatta.com>	<20090219114719.560999b5@extreme>	<499DEF49.3040602@cosmosbay.com>	<499DF1A2.1030405@hp.com>	<20090219170318.3f7d54f2@extreme> <499E04C9.4020308@hp.com> <499E7B03.9090409@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Ralf <rm@amitrader.com>
+Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Stephen Hemminger <shemminger@vyatta.com>,
+	Eric Dumazet <dada1@cosmosbay.com>,
+	David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:32910 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751146AbZBTWK0 (ORCPT
+Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:38154 "EHLO
+	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753717AbZBTW50 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 Feb 2009 17:10:26 -0500
-In-Reply-To: <gnn92e$ln9$1@ger.gmane.org>
+	Fri, 20 Feb 2009 17:57:26 -0500
+In-Reply-To: <499E7B03.9090409@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+>> Fair enough. Is there a tree somewhere I can pull with all those in 
+>> it, or do I need to go back through the emails and apply patches?
+> 
+> 
+> You can use my nf-next.git tree from:
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git
+> 
+> It contains the lock free counters, as well as smaller optimizations
+> from Eric. 
 
-On Friday 2009-02-20 22:58, Ralf wrote:
-> Jan Engelhardt wrote:
->> On Friday 2009-02-20 21:33, Ralf wrote:
->>
->>> Sometimes an insert operation (-I) fails and iptables returns 256.
->>> Under which circumstances can iptables give a return code 256 ?
->>
->> Never should this happen, because the lower 8 bits of 256 that
->> make up the exist status are 0 actually.
->> Or where do you see 256?
-[I thought about $? first...]
->
-> int rc = system(sz);    // sz="iptables ..."
->
-> rc is sometimes definitely 256 !
->
-> What does it mean?
+So, by the time this hits inboxes, under:
 
-Humph humph, this is not a C forum!
+ftp://ftp.netperf.org/nf-next-2.6-results
 
-man 3 system:
+should be a directory called "baseline" which are the results from just a clone 
+of your tree from earlier today.  There you will find the config file, the log of 
+the build and then three subdirectories:
 
-RETURN VALUE
-       The value returned is -1 on  error  (e.g.   fork(2)  failed),  and  the
-       return  status  of the command otherwise.  This latter return status is
-       in the format specified in wait(2).  Thus, the exit code of the command
-       will  be  WEXITSTATUS(status).   In case /bin/sh could not be executed,
-       the exit status will be that of a command that does exit(127).
+none - results without doing iptables --list
+empty - results after doing iptables --list
+full - results after doing an iptables-restore of a config from the "iptables" 
+file also up there
+
+In each will be the netperf results in csv format, and four different caliper 
+(using the perfmon interface) profiles:
+
+"cycles" uses a profile which is able to take samples with interrupts disabled
+"fprof" is a plain flat profile that does not see things happening with interrupt 
+s disabled - comparing an fprof to cycles is sometimes interesting
+"dcache" tries to take cache miss profiles. iirc that uses the data ear in the 
+Itanium PMU to do its thing - I cannot recall the effect of interrupt disabling there
+"scgprof" is a sampled call graph profile - likely as not with interrupt 
+limitations similar to those of an fprof profile.
+
+> The last timer patch I've seen missed the actual conversion
+> to use mod_timer_pending(), but it would be great to have some numbers
+> on the conntrack lock changes. Thanks Rick!
+
+I will go back through my email now and try to find the conntrack lock changes 
+and apply them to the tree and turn the crank.
+
+happy benchmarking
+
+rick jones
