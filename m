@@ -1,29 +1,68 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: unfold two critical loops in ip_packet_match()
-Date: Fri, 20 Feb 2009 11:04:29 +0100
-Message-ID: <499E802D.1010909@trash.net>
-References: <497E361B.30909@hp.com>	<497E42F4.7080201@cosmosbay.com>	<497E44F6.2010703@hp.com>	<497ECF84.1030308@cosmosbay.com>	<497ED0A2.6050707@trash.net>	<497F350A.9020509@cosmosbay.com>	<497F457F.2050802@trash.net> <497F4C2F.9000804@hp.com> <497F5BCD.9060807@hp.com> <497F5F86.9010101@hp.com> <498063E7.5030106@cosmosbay.com> <49808708.3050502@trash.net> <498090C1.5020400@cosmosbay.com> <49809716.3020204@cosmosbay.com> <4981CBE2.5020306@cosmosbay.com> <499E7FA9.6070707@cosmosbay.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: functions returning structs: is it perfectly legal and how
+ efficient?
+Date: Fri, 20 Feb 2009 12:00:05 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0902201155090.9626@fbirervta.pbzchgretzou.qr>
+References: <885896af0902200115t49d86f26t65d981f6fab603cf@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Netfilter Developers <netfilter-devel@vger.kernel.org>,
-	Linux Network Development list <netdev@vger.kernel.org>
-To: Eric Dumazet <dada1@cosmosbay.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Giacomo <delleceste@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45367 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752985AbZBTKEb (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:32972 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750939AbZBTLAI (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 Feb 2009 05:04:31 -0500
-In-Reply-To: <499E7FA9.6070707@cosmosbay.com>
+	Fri, 20 Feb 2009 06:00:08 -0500
+In-Reply-To: <885896af0902200115t49d86f26t65d981f6fab603cf@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Dumazet wrote:
-> While doing oprofile tests I noticed two loops are not properly unrolled by gcc
-> 
-> Using a hand coded unrolled loop provides nice speedup : ipt_do_table
-> credited of 2.52 % of cpu instead of 3.29 % in tbench.
 
-Applied, thanks Eric.
+On Friday 2009-02-20 10:15, Giacomo wrote:
+>
+>Suppose we have a very little data structure - in kernel space - :
+>
+>typedef struct
+>{
+>  __u32 saddr, daddr;
+>  __u16 sport, dport;
+>  short int valid;
+>} net_quadruplet;
+
+Phew - http://www.kroah.com/linux/talks/ols_2002_kernel_codingstyle_talk/html/
+
+>[case 1]:
+>net_quadruplet get_quad_from_skb(const struct sk_buff* skb)
+>{
+>	net_quadruplet netquad;
+>	memset(&netquad, 0, sizeof(net_quadruplet));
+>        netquad.valid = 1;
+>        ...
+>        return netquad;
+>}
+>
+>Is it perfectly legal?
+
+That's a question for a C forum/channel, but yes, it is valid.
+
+>[code 2]:
+>Would it be more efficient
+>
+>int get_quad_from_skb(const struct sk_buff* skb, net_quadruplet* nquad)
+>{
+>   int return_value = 0;
+>   /* modify nquad
+>      .....
+>   */
+>   return return_value;
+>}
+>
+>?
+
+Depends on architecture and compiler. Usually it is said that the
+compiler will transparently transform the first case into variant 2.
+This need not always be the case however, returning an aggregate
+object such as a struct could also be accomplished by filling
+registers, where there are enough available to do so. This is all
+highly implementation-dependent though.
