@@ -1,32 +1,28 @@
-From: Ralf <rm@amitrader.com>
-Subject: iptables return code 256
-Date: Fri, 20 Feb 2009 21:33:48 +0100
-Message-ID: <gnn43d$647$1@ger.gmane.org>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: iptables return code 256
+Date: Fri, 20 Feb 2009 21:35:48 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0902202134350.11155@fbirervta.pbzchgretzou.qr>
+References: <gnn43d$647$1@ger.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Ralf <rm@amitrader.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from main.gmane.org ([80.91.229.2]:45725 "EHLO ciao.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753716AbZBTUeA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 Feb 2009 15:34:00 -0500
-Received: from list by ciao.gmane.org with local (Exim 4.43)
-	id 1Lac4M-0001th-Fz
-	for netfilter-devel@vger.kernel.org; Fri, 20 Feb 2009 20:33:58 +0000
-Received: from p57a2d807.dip.t-dialin.net ([87.162.216.7])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Feb 2009 20:33:58 +0000
-Received: from rm by p57a2d807.dip.t-dialin.net with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Fri, 20 Feb 2009 20:33:58 +0000
+Received: from sovereign.computergmbh.de ([85.214.69.204]:59599 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753725AbZBTUft (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 20 Feb 2009 15:35:49 -0500
+In-Reply-To: <gnn43d$647$1@ger.gmane.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Sometimes an insert operation (-I) fails and iptables returns 256.
-Under which circumstances can iptables give a return code 256 ?
 
-(I guess it happens when an internal resource is in locked state
-when user issues the iptables command, right?)  
+On Friday 2009-02-20 21:33, Ralf wrote:
 
+> Sometimes an insert operation (-I) fails and iptables returns 256.
+> Under which circumstances can iptables give a return code 256 ?
+
+Never should this happen, because the lower 8 bits of 256 that
+make up the exist status are 0 actually.
+Or where do you see 256?
