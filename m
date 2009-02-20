@@ -1,59 +1,69 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: xtables: add cluster match
-Date: Fri, 20 Feb 2009 10:24:42 +0100
-Message-ID: <499E76DA.7010802@trash.net>
-References: <20090219231439.6164.354.stgit@Decadence>
+Subject: Re: [PATCH] iptables: lock free counters
+Date: Fri, 20 Feb 2009 10:37:45 +0100
+Message-ID: <499E79E9.1000905@trash.net>
+References: <20090218051906.174295181@vyatta.com>	<20090218052747.321329022@vyatta.com> <20090219114719.560999b5@extreme> <499DEF49.3040602@cosmosbay.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Stephen Hemminger <shemminger@vyatta.com>,
+	David Miller <davem@davemloft.net>,
+	Rick Jones <rick.jones2@hp.com>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Eric Dumazet <dada1@cosmosbay.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:44383 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:44766 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753480AbZBTJYp (ORCPT
+	with ESMTP id S1752886AbZBTJht (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 Feb 2009 04:24:45 -0500
-In-Reply-To: <20090219231439.6164.354.stgit@Decadence>
+	Fri, 20 Feb 2009 04:37:49 -0500
+In-Reply-To: <499DEF49.3040602@cosmosbay.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> This patch adds the iptables cluster match. This match can be used
-> to deploy gateway and back-end load-sharing clusters. The cluster
-> can be composed of 32 nodes maximum (although I have only tested
-> this with two nodes, so I cannot tell what is the real scalability
-> limit of this solution in terms of cluster nodes).
+Eric Dumazet wrote:
+> Stephen Hemminger a =E9crit :
+>> The reader/writer lock in ip_tables is acquired in the critical path=
+ of
+>> processing packets and is one of the reasons just loading iptables c=
+an cause
+>> a 20% performance loss. The rwlock serves two functions:
+>>
+>> 1) it prevents changes to table state (xt_replace) while table is in=
+ use.
+>>    This is now handled by doing rcu on the xt_table. When table is
+>>    replaced, the new table(s) are put in and the old one table(s) ar=
+e freed
+>>    after RCU period.
+>>
+>> 2) it provides synchronization when accesing the counter values.
+>>    This is now handled by swapping in new table_info entries for eac=
+h cpu
+>>    then summing the old values, and putting the result back onto one
+>>    cpu.  On a busy system it may cause sampling to occur at differen=
+t
+>>    times on each cpu, but no packet/byte counts are lost in the proc=
+ess.
+>>
+>> Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
+>=20
+>=20
+> Acked-by: Eric Dumazet <dada1@cosmosbay.com>
+>=20
+> Sucessfully tested on my dual quad core machine too, but iptables onl=
+y (no ipv6 here)
+>=20
+> BTW, my new "tbench 8" result is 2450 MB/s, (it was 2150 MB/s not so =
+long ago)
+>=20
+> Thanks Stephen, thats very cool stuff, yet another rwlock out of kern=
+el :)
 
-Thanks Pablo.
-
-> +	ct = nf_ct_get(skb, &ctinfo);
-> +	if (ct == NULL)
-> +		return false;
-> +
-> +	if (ct == &nf_conntrack_untracked)
-> +		return false;
-> +
-> +	if (ct->master)
-> +		hash = xt_cluster_hash(ct->master, info);
-> +	else
-> +		hash = xt_cluster_hash(ct, info);
-
-This makes a lot of sense for helpers like SIP, where the expectation
-can arrive from a different source address. I'm just wondering how
-this works when not using reliable synchronization - in that case, other
-nodes might not be aware of the expectation and also accept the packet.
-I don't have a suggestion besides making sure expectations are
-synchronized, just thought I'd point it out.
-
-> +static bool xt_cluster_mt_checkentry(const struct xt_mtchk_param *par)
-> +{
-> +	struct xt_cluster_match_info *info = par->matchinfo;
-> +
-> +	if (info->node_mask > (1 << info->total_nodes)) {
-> +		printk(KERN_ERR "xt_cluster: the id of this node cannot be "
-> +				"higher than the total number of nodes\n");
-
-This looks like an off-by-one (warning: still at first coffee :)).
-It may also not be equal to the mask I'd expect. I can change it
-to >= when applying if you agree.
+Applied, thanks everyone. I've also addes Eric's tbench results
+to the changelog.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
