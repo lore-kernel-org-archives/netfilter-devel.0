@@ -1,127 +1,102 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [pull] request for 20090220
-Date: Sat, 21 Feb 2009 04:17:58 +0100
-Message-ID: <1235186284-31661-1-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 6/6] libxt_policy: use bounded strtoui
+Date: Sat, 21 Feb 2009 04:18:04 +0100
+Message-ID: <1235186284-31661-7-git-send-email-jengelh@medozas.de>
+References: <1235186284-31661-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org, hadi@cyberus.ca
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:37802 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:37819 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754518AbZBUDSG (ORCPT
+	with ESMTP id S1755064AbZBUDSI (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 Feb 2009 22:18:06 -0500
+	Fri, 20 Feb 2009 22:18:08 -0500
+In-Reply-To: <1235186284-31661-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+reqid and SPI can only have a value in the range 0..UINT32_MAX, not
+the entire range of the "long" type. Also throw an error if the
+incoming string does not look like a pure number.
 
-Please pull some more patches from the usual location,
-	git://dev.medozas.de/iptables master
+"Replaces" commit 6db2ded2f22a7e78743c86af523b8430876582e9.
 
-Jamal, I had to truncate the OPTION_OFFSET macro of yours (it was not 
-prefixed, and the only user was xtables.c), I hope this is ok with your 
-proceedings with iproute2. If not, please send an update on top.
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ extensions/libip6t_policy.c |   10 +++++++---
+ extensions/libipt_policy.c  |   10 +++++++---
+ 2 files changed, 14 insertions(+), 6 deletions(-)
 
-Jan Engelhardt (6):
-      doc: resynchronize manpage with in-code help
-      libxtables: inline and remove unused OPTION_OFFSET macro
-      libxtables: prefix exit_error to xtables_error
-      extensions: remove unwanted/add needed includes for IPv6 exts
-      extensions: remove unwanted/add needed includes for IPv4 exts
-      libxt_policy: use bounded strtoui
+diff --git a/extensions/libip6t_policy.c b/extensions/libip6t_policy.c
+index 0016da2..5106c28 100644
+--- a/extensions/libip6t_policy.c
++++ b/extensions/libip6t_policy.c
+@@ -156,7 +156,7 @@ static int policy_parse(int c, char **argv, int invert, unsigned int *flags,
+ 	struct ip6t_policy_info *info = (void *)(*match)->data;
+ 	struct ip6t_policy_elem *e = &info->pol[info->len];
+ 	struct in6_addr *addr = NULL, mask;
+-	unsigned int naddr = 0;
++	unsigned int naddr = 0, num;
+ 	int mode;
+ 
+ 	xtables_check_inverse(optarg, &invert, &optind, 0);
+@@ -197,7 +197,9 @@ static int policy_parse(int c, char **argv, int invert, unsigned int *flags,
+ 
+ 		e->match.reqid = 1;
+ 		e->invert.reqid = invert;
+-		e->reqid = strtoul(argv[optind-1], NULL, 10);
++		if (!xtables_strtoui(optarg, NULL, &num, 0, UINT32_MAX))
++			xtables_param_act(XTF_BAD_VALUE, "policy", "--reqid", optarg);
++		e->reqid = num;
+ 		break;
+ 	case '5':
+ 		if (e->match.spi)
+@@ -206,7 +208,9 @@ static int policy_parse(int c, char **argv, int invert, unsigned int *flags,
+ 
+ 		e->match.spi = 1;
+ 		e->invert.spi = invert;
+-		e->spi = strtoul(argv[optind-1], NULL, 0x10);
++		if (!xtables_strtoui(optarg, NULL, &num, 0, UINT32_MAX))
++			xtables_param_act(XTF_BAD_VALUE, "policy", "--spi", optarg);
++		e->spi = num;
+ 		break;
+ 	case '6':
+ 		if (e->match.saddr)
+diff --git a/extensions/libipt_policy.c b/extensions/libipt_policy.c
+index 1271fba..ae7282a 100644
+--- a/extensions/libipt_policy.c
++++ b/extensions/libipt_policy.c
+@@ -124,7 +124,7 @@ static int policy_parse(int c, char **argv, int invert, unsigned int *flags,
+ 	struct ipt_policy_info *info = (void *)(*match)->data;
+ 	struct ipt_policy_elem *e = &info->pol[info->len];
+ 	struct in_addr *addr = NULL, mask;
+-	unsigned int naddr = 0;
++	unsigned int naddr = 0, num;
+ 	int mode;
+ 
+ 	xtables_check_inverse(optarg, &invert, &optind, 0);
+@@ -165,7 +165,9 @@ static int policy_parse(int c, char **argv, int invert, unsigned int *flags,
+ 
+ 		e->match.reqid = 1;
+ 		e->invert.reqid = invert;
+-		e->reqid = strtoul(argv[optind-1], NULL, 10);
++		if (!xtables_strtoui(optarg, NULL, &num, 0, UINT32_MAX))
++			xtables_param_act(XTF_BAD_VALUE, "policy", "--spi", optarg);
++		e->reqid = num;
+ 		break;
+ 	case '5':
+ 		if (e->match.spi)
+@@ -174,7 +176,9 @@ static int policy_parse(int c, char **argv, int invert, unsigned int *flags,
+ 
+ 		e->match.spi = 1;
+ 		e->invert.spi = invert;
+-		e->spi = strtoul(argv[optind-1], NULL, 0x10);
++		if (!xtables_strtoui(optarg, NULL, &num, 0, UINT32_MAX))
++			xtables_param_act(XTF_BAD_VALUE, "policy", "--spi", optarg);
++		e->spi = num;
+ 		break;
+ 	case '6':
+ 		if (e->match.saddr)
+-- 
+1.6.1.3
 
- extensions/dscp_helper.c        |    4 +-
- extensions/expr                 |  179 +++++++++++++++++++++++++++++++++++++++
- extensions/libip6t_HL.c         |   17 ++--
- extensions/libip6t_LOG.c        |   27 +++---
- extensions/libip6t_REJECT.c     |    5 +-
- extensions/libip6t_ah.c         |   12 ++--
- extensions/libip6t_dst.c        |   24 +++---
- extensions/libip6t_frag.c       |   18 ++--
- extensions/libip6t_hbh.c        |   24 +++---
- extensions/libip6t_hl.c         |   11 +--
- extensions/libip6t_icmp6.c      |   10 +-
- extensions/libip6t_ipv6header.c |   13 ++--
- extensions/libip6t_mh.c         |    7 +-
- extensions/libip6t_policy.c     |   65 ++++++++-------
- extensions/libip6t_rt.c         |   32 ++++----
- extensions/libipt_CLUSTERIP.c   |   39 ++++-----
- extensions/libipt_DNAT.c        |   24 +++---
- extensions/libipt_ECN.c         |   17 ++--
- extensions/libipt_LOG.c         |   27 +++---
- extensions/libipt_MASQUERADE.c  |   10 +-
- extensions/libipt_MIRROR.c      |    1 -
- extensions/libipt_NETMAP.c      |   15 ++--
- extensions/libipt_REDIRECT.c    |   12 ++--
- extensions/libipt_REJECT.c      |    5 +-
- extensions/libipt_SAME.c        |   15 ++--
- extensions/libipt_SET.c         |   11 +--
- extensions/libipt_SNAT.c        |   22 +++---
- extensions/libipt_TTL.c         |   15 ++--
- extensions/libipt_ULOG.c        |   27 +++---
- extensions/libipt_addrtype.c    |   23 +++---
- extensions/libipt_ah.c          |    8 +-
- extensions/libipt_ecn.c         |   11 +--
- extensions/libipt_icmp.c        |    8 +-
- extensions/libipt_policy.c      |   63 +++++++-------
- extensions/libipt_realm.c       |    6 +-
- extensions/libipt_set.c         |    8 +-
- extensions/libipt_set.h         |   18 ++--
- extensions/libipt_ttl.c         |   15 ++--
- extensions/libxt_CLASSIFY.c     |    6 +-
- extensions/libxt_CONNMARK.c     |   20 ++--
- extensions/libxt_CONNSECMARK.c  |   10 +-
- extensions/libxt_DSCP.c         |   10 +-
- extensions/libxt_MARK.c         |   16 ++--
- extensions/libxt_NFLOG.c        |   24 +++---
- extensions/libxt_NFQUEUE.c      |    4 +-
- extensions/libxt_RATEEST.c      |   20 ++--
- extensions/libxt_SECMARK.c      |    8 +-
- extensions/libxt_TCPMSS.c       |    8 +-
- extensions/libxt_TCPOPTSTRIP.c  |   10 +-
- extensions/libxt_TOS.c          |    4 +-
- extensions/libxt_TPROXY.c       |    2 +-
- extensions/libxt_comment.c      |    6 +-
- extensions/libxt_connbytes.c    |   10 +-
- extensions/libxt_connlimit.c    |   10 +-
- extensions/libxt_connmark.c     |    4 +-
- extensions/libxt_conntrack.c    |   54 ++++++------
- extensions/libxt_dccp.c         |   14 ++--
- extensions/libxt_dscp.c         |   10 +-
- extensions/libxt_esp.c          |   10 +-
- extensions/libxt_hashlimit.c    |   32 ++++----
- extensions/libxt_helper.c       |    4 +-
- extensions/libxt_iprange.c      |   10 +-
- extensions/libxt_length.c       |    8 +-
- extensions/libxt_limit.c        |   10 +-
- extensions/libxt_mac.c          |    6 +-
- extensions/libxt_mark.c         |    4 +-
- extensions/libxt_multiport.c    |   28 +++---
- extensions/libxt_owner.c        |    4 +-
- extensions/libxt_physdev.c      |    4 +-
- extensions/libxt_pkttype.c      |    4 +-
- extensions/libxt_quota.c        |    6 +-
- extensions/libxt_rateest.c      |   44 +++++-----
- extensions/libxt_recent.c       |   12 ++--
- extensions/libxt_sctp.c         |   18 ++--
- extensions/libxt_state.c        |    8 +-
- extensions/libxt_statistic.c    |   32 ++++----
- extensions/libxt_string.c       |   38 ++++----
- extensions/libxt_tcp.c          |   18 ++--
- extensions/libxt_tcpmss.c       |    6 +-
- extensions/libxt_time.c         |   36 ++++----
- extensions/libxt_tos.c          |    4 +-
- extensions/libxt_u32.c          |   30 +++---
- extensions/libxt_udp.c          |    6 +-
- extensions/tos_values.c         |    6 +-
- include/xtables.h.in            |    3 +-
- ip6tables-restore.c             |   26 +++---
- ip6tables-save.c                |    8 +-
- ip6tables.8.in                  |    6 +-
- ip6tables.c                     |   77 +++++++++--------
- iptables-restore.c              |   26 +++---
- iptables-save.c                 |    8 +-
- iptables-xml.c                  |   16 ++--
- iptables.8.in                   |    6 +-
- iptables.c                      |   81 +++++++++---------
- xtables.c                       |    2 +-
- 95 files changed, 957 insertions(+), 788 deletions(-)
