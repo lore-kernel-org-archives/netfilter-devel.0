@@ -1,34 +1,39 @@
-From: jamal <hadi@cyberus.ca>
-Subject: Re: [pull] request for 20090220
-Date: Sat, 21 Feb 2009 07:54:11 -0500
-Message-ID: <1235220851.3307.4.camel@dogo.mojatatu.com>
-References: <1235186284-31661-1-git-send-email-jengelh@medozas.de>
-Reply-To: hadi@cyberus.ca
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 3/6] libxtables: prefix exit_error to xtables_error
+Date: Sat, 21 Feb 2009 15:46:25 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0902211544460.20889@fbirervta.pbzchgretzou.qr>
+References: <1235186284-31661-1-git-send-email-jengelh@medozas.de> <1235186284-31661-4-git-send-email-jengelh@medozas.de> <Pine.LNX.4.64.0902210828580.21582@ask.diku.dk>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Patrick McHardy <kaber@trash.net>,
+	Netfilter Developers <netfilter-devel@vger.kernel.org>,
+	hadi@cyberus.ca
+To: Jesper Dangaard Brouer <hawk@diku.dk>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.24]:20438 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751125AbZBUM4U (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:35936 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753092AbZBUOq2 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 21 Feb 2009 07:56:20 -0500
-Received: by ey-out-2122.google.com with SMTP id 25so225362eya.37
-        for <netfilter-devel@vger.kernel.org>; Sat, 21 Feb 2009 04:56:18 -0800 (PST)
-In-Reply-To: <1235186284-31661-1-git-send-email-jengelh@medozas.de>
+	Sat, 21 Feb 2009 09:46:28 -0500
+In-Reply-To: <Pine.LNX.4.64.0902210828580.21582@ask.diku.dk>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, 2009-02-21 at 04:17 +0100, Jan Engelhardt wrote:
 
-> Jamal, I had to truncate the OPTION_OFFSET macro of yours (it was not 
-> prefixed, and the only user was xtables.c), I hope this is ok with your 
-> proceedings with iproute2. If not, please send an update on top.
+On Saturday 2009-02-21 08:37, Jesper Dangaard Brouer wrote:
+> On Sat, 21 Feb 2009, Jan Engelhardt wrote:
+>
+>> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+>> ---
+>> extensions/dscp_helper.c        |    4 +-
+>> extensions/expr                 |  179 +++++++++++++++++++++++++++++++++++++++
+>
+> What is "extensions/expr", and what has it to do with "xtables_error" changes?
 
-Looks good to me. Thanks.
-
-cheers,
-jamal
-
+Mh, `git add .` considered harmful, I should be using git add -u ;-)
+Tree is now cleaned with filter-branched;
+ + f368d3e...978e27e header-resync -> header-resync (forced update)
+ + 85e39ec...4e41854 limits -> limits (forced update)
+and
+ + 617c80c...da68957 master -> master (forced update)
+   > 94 files changed, 778 insertions(+), 788 deletions(-)
