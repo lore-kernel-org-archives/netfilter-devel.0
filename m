@@ -1,36 +1,65 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [ANNOUNCE] conntrack-tools 0.9.11 released
-Date: Mon, 23 Feb 2009 08:17:30 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0902230815570.20446@fbirervta.pbzchgretzou.qr>
-References: <49A03C73.8010004@netfilter.org> <20090222233433.0dc8f396@liberty.rlwhome.lan>
+From: Giacomo <delleceste@gmail.com>
+Subject: "kobject: does not have a release()function, it is broken and must be
+	fixed.
+Date: Mon, 23 Feb 2009 09:38:02 +0100
+Message-ID: <885896af0902230038o5b893855g6b7def7d1ea00865@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, netfilter@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Robby Workman <rw@rlworkman.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:40094 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752325AbZBWHRc (ORCPT
+Received: from nf-out-0910.google.com ([64.233.182.187]:13820 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751906AbZBWIiE (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Feb 2009 02:17:32 -0500
-In-Reply-To: <20090222233433.0dc8f396@liberty.rlwhome.lan>
+	Mon, 23 Feb 2009 03:38:04 -0500
+Received: by nf-out-0910.google.com with SMTP id d21so413482nfb.21
+        for <netfilter-devel@vger.kernel.org>; Mon, 23 Feb 2009 00:38:03 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Good morning to all.
 
-On Monday 2009-02-23 06:34, Robby Workman wrote:
->On Sat, 21 Feb 2009 18:40:03 +0100
->Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->
->> The netfilter project presents another development release of the
->> conntrack-tools...
->
->I thought I recalled seeing discussion about this already, but I don't
->see it in my archives, so maybe not.   With glibc-2.7, this release
->builds fine; however, with glibc-2.9, both src/mcast.c and
->src/sync-mode.c need limits.h included, or else INT_MAX is undefined.
+Can anyone explain what I have to do in my module to avoid this warning?
+Is there any example?
 
-This builds fine for me - and I am on glibc 2.9.
-Just *what* is it in (which distro? Debian/Ubuntu again?)
-again to constantly fail on INT_MAX?
+I am currently implementing
+
+
+static int __init ini(void)
+{
+	
+}
+
+static void __exit fini(void)
+{
+}
+
+to initialize and cleanup module.
+
+Thanks in advance.
+
+Giacomo
+
+-- 
+Giacomo S.
+http://www.giacomos.it
+
+- - - - - - - - - - - - - - - - - - - - - -
+
+* Aprile 2008: iqfire-wall, un progetto
+  open source che implementa un
+  filtro di pacchetti di rete per Linux,
+  e` disponibile per il download qui:
+  http://sourceforge.net/projects/ipfire-wall
+
+* Informazioni e pagina web ufficiale:
+  http://www.giacomos.it/iqfire/index.html
+
+- - - - - - - - - - - - - - - - - - - - - -
+
+ . ''  `.
+:   :'    :
+ `.  ` '
+    `- Debian GNU/Linux -- The power of freedom
+        http://www.debian.org
