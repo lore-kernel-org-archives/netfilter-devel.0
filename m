@@ -1,58 +1,55 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [ANNOUNCE] conntrack-tools 0.9.11 released
-Date: Mon, 23 Feb 2009 17:55:07 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0902231753190.12150@fbirervta.pbzchgretzou.qr>
-References: <49A03C73.8010004@netfilter.org> <20090222233433.0dc8f396@liberty.rlwhome.lan> <alpine.LSU.2.00.0902230815570.20446@fbirervta.pbzchgretzou.qr> <49A26A3E.5020707@netfilter.org> <20090223093416.2c63fc02@liberty.rlwhome.lan>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 3/6] libxtables: prefix exit_error to xtables_error
+Date: Mon, 23 Feb 2009 17:56:18 +0100
+Message-ID: <49A2D532.2050506@trash.net>
+References: <1235186284-31661-1-git-send-email-jengelh@medozas.de> <1235186284-31661-4-git-send-email-jengelh@medozas.de> <49A2D2D6.8070606@trash.net> <alpine.LSU.2.00.0902231751550.12150@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, netfilter@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Robby Workman <rw@rlworkman.net>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, hadi@cyberus.ca
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:47019 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753231AbZBWQzK (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:39416 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752079AbZBWQ4V (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Feb 2009 11:55:10 -0500
-In-Reply-To: <20090223093416.2c63fc02@liberty.rlwhome.lan>
+	Mon, 23 Feb 2009 11:56:21 -0500
+In-Reply-To: <alpine.LSU.2.00.0902231751550.12150@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Jan Engelhardt wrote:
+> On Monday 2009-02-23 17:46, Patrick McHardy wrote:
+>> Jan Engelhardt wrote:
+>>> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+>>> diff --git a/extensions/expr b/extensions/expr
+>>> new file mode 100644
+>>> index 0000000..f00b70d
+>>> --- /dev/null
+>>> +++ b/extensions/expr
+>>> @@ -0,0 +1,179 @@
+>>> +#include <stdio.h>
+>>> +#include <stdint.h>
+>>> +#include <libHX/option.h>
+>>> +
+>>> +enum ttl_rel {
+>>> +	REL_EQ,
+>>> +	REL_LT,
+>>> +	REL_GT,
+>>> +}
+>> What is this file? I see no mentioning in the (non-existant) changelog.
+>>
+> Accidentally git-added code. It is removed in the latest tree's form.
+> There should not need to be any detailed changelog entry - it
+> really is just the prefixing that is needed for a good library
+> that was done.
+> 
 
-On Monday 2009-02-23 16:34, Robby Workman wrote:
->On Mon, 23 Feb 2009 10:19:58 +0100
->Pablo Neira Ayuso <pablo@netfilter.org> wrote:
->> >> I thought I recalled seeing discussion about this already, but I
->> >> don't see it in my archives, so maybe not.   With glibc-2.7, this
->> >> release builds fine; however, with glibc-2.9, both src/mcast.c and
->> >> src/sync-mode.c need limits.h included, or else INT_MAX is
->> >> undefined.
->> > 
->> > This builds fine for me - and I am on glibc 2.9.
->> > Just *what* is it in (which distro? Debian/Ubuntu again?)
->> > again to constantly fail on INT_MAX?
->> 
->> Indeed. This also compiles fine for me in debian. I have committed a
->> patch for this [1]. This issue is unfortunate. Gentoo bugzilla on
->> conntrack-tools had a patch but nobody has sent it to me. I notice it
->> after the release.
->
->
->Weird that it's not affecting Jan then, because it's definitely
->something specific to newer glibc (or perhaps gcc, but it's not
->immediately obvious how that would be the case). I'm on Slackware 
->rather than Gentoo, running quite a bit of prerelease development 
->builds (including gcc-4.3.3 and glibc-2.9 along with 2.6.28.7 kernel).
+This look a lot better:
 
-gcc [long command line as spouted by make] -E mcast.c | grep '^#'
+  94 files changed, 778 insertions(+), 788 deletions(-)
 
-After hand-filtering, the apparent sequence is:
+:)
 
-# 5 "../include/mcast.h" 2
-# 1 "/usr/include/netinet/in.h" 1 3 4
-# 1 "/usr/include/sys/socket.h" 1 3 4
-# 31 "/usr/include/bits/socket.h" 2 3 4
-# 1 "/usr/lib64/gcc/x86_64-suse-linux/4.3/include-fixed/limits.h" 1 3 4
-
-so <limits.h> is included via <bits/socket.h> is included via <sys/socket.h>
-etc. How is your stack trace?
+Pulled and pushed out again, thanks. Now lets slow things down until
+the next release please.
