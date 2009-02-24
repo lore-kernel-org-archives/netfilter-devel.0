@@ -1,41 +1,38 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [ANNOUNCE] conntrack-tools 0.9.11 released
-Date: Tue, 24 Feb 2009 10:59:43 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0902241035050.30346@fbirervta.pbzchgretzou.qr>
-References: <49A03C73.8010004@netfilter.org> <20090222233433.0dc8f396@liberty.rlwhome.lan> <alpine.LSU.2.00.0902230815570.20446@fbirervta.pbzchgretzou.qr> <49A26A3E.5020707@netfilter.org> <20090223093416.2c63fc02@liberty.rlwhome.lan>
- <alpine.LSU.2.00.0902231753190.12150@fbirervta.pbzchgretzou.qr> <20090223210242.0c385736@liberty.rlwhome.lan>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: ROUTE patch
+Date: Tue, 24 Feb 2009 14:41:54 +0100
+Message-ID: <49A3F922.4050508@trash.net>
+References: <c122d6890902240059j540fc8dcl529129d7bc5006fe@mail.gmail.com> <alpine.LSU.2.00.0902241031500.30346@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, netfilter@vger.kernel.org,
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Abhishek Singh <abhishek@abhishekonline.info>,
 	netfilter-devel@vger.kernel.org
-To: Robby Workman <rw@rlworkman.net>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <20090223210242.0c385736@liberty.rlwhome.lan>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:64813 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752803AbZBXNl7 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 Feb 2009 08:41:59 -0500
+In-Reply-To: <alpine.LSU.2.00.0902241031500.30346@fbirervta.pbzchgretzou.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+Jan Engelhardt wrote:
+> On Tuesday 2009-02-24 09:59, Abhishek Singh wrote:
+>> What I would like to know is that if someone would like to add it to
+>> the main iptables tree and the patchomatic repository. I am not sure
+>> how to go about it. If someone is interested, please let me know. I
+>> shall contribute the code and if would be happy to incorporate review
+>> comments by other developers.
+> 
+> [omg timeline!]
+> 
+> Short answer, no. There is iproute2 and xt_TEE which replace it,
+> and even patchomatic is gone.
+> 
+> [/me takes a leap forward]
 
-On Tuesday 2009-02-24 04:02, Robby Workman wrote:
->Not happening that way here (and bits.h indeed does not include
->limits.h) - see attached plaintext...
-
-Mystery solved.
-
-[glibc.rpm changelog]
-* Thu Apr 10 2008 pbaudis@suse.cz
-- Temporarily revert a namespace leakage cleanup in glibc-2.8 since
-  it causes a lot of build failures
-
---- sysdeps/unix/sysv/linux/bits/socket.h   
-+++ sysdeps/unix/sysv/linux/bits/socket.h
-@@ -26,8 +26,10 @@
- #endif   
- 
- #define        __need_size_t  
-+#define __need_NULL
- #include <stddef.h>
- 
-+#include <limits.h>
- #include <sys/types.h>
- 
- /* Type for length arguments in socket calls.  */
+Perhaps we can finally get this merged. IIRC the only reason against
+it is the IP layer duplication instead of simply using dst_output().
