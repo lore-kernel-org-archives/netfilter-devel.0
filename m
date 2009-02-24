@@ -1,46 +1,64 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] iptables: Add limits.h to get INT_MIN, INT_MAX, ...
-Date: Tue, 24 Feb 2009 15:09:52 +0100
-Message-ID: <49A3FFB0.4050609@trash.net>
-References: <20090220162831.1d0bf3d4@extreme> <alpine.LSU.2.00.0902210224330.25933@fbirervta.pbzchgretzou.qr> <alpine.LSU.2.00.0902210347001.28533@fbirervta.pbzchgretzou.qr>
+From: Robby Workman <rw@rlworkman.net>
+Subject: Re: [ANNOUNCE] conntrack-tools 0.9.11 released
+Date: Tue, 24 Feb 2009 08:10:42 -0600
+Message-ID: <20090224081042.0f37580e@liberty.rlwhome.lan>
+References: <49A03C73.8010004@netfilter.org>
+	<20090222233433.0dc8f396@liberty.rlwhome.lan>
+	<alpine.LSU.2.00.0902230815570.20446@fbirervta.pbzchgretzou.qr>
+	<49A26A3E.5020707@netfilter.org>
+	<20090223093416.2c63fc02@liberty.rlwhome.lan>
+	<49A3C3FE.2000403@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Stephen Hemminger <shemminger@vyatta.com>,
+Content-Type: multipart/signed; micalg=PGP-SHA1;
+ boundary="Sig_/C.eVs6lQz=iz_yxwNXrum5H"; protocol="application/pgp-signature"
+Cc: Jan Engelhardt <jengelh@medozas.de>, netfilter@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:33160 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753328AbZBXOJz (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Feb 2009 09:09:55 -0500
-In-Reply-To: <alpine.LSU.2.00.0902210347001.28533@fbirervta.pbzchgretzou.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <49A3C3FE.2000403@netfilter.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> On Saturday 2009-02-21 02:25, Jan Engelhardt wrote:
->> On Saturday 2009-02-21 01:28, Stephen Hemminger wrote:
->>
->>> Fix build failure of iptables utilities on debian/ubuntu, maybe other distros.
->>> The values INT_MIN and INT_MAX are used by many filters and these
->>> are defined in limits.h
->> No this is not right IMO, limits.h should be included for the same 
->> reason you would not do that to kernel's .h files.
->> Instead, limits.h should go in the .c files.
-> 
-> I wonder what debian has different in its Glibc files that
-> limits.h is not included like it is for everybody else.
+--Sig_/C.eVs6lQz=iz_yxwNXrum5H
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: quoted-printable
 
-It works fine for me on Debian.
+On Tue, 24 Feb 2009 10:55:10 +0100
+Pablo Neira Ayuso <pablo@netfilter.org> wrote:
 
-> Anyway, of course it should be included where due.
-> Gawd, that led me to have clean some unnecessary includes
-> up beforehand, but oh well.
-> 
-> Could you try the "limits" branch of git://dev.medozas.de/iptables
-> if it compiles for you?
+> Robby Workman wrote:
+> >=20
+> > Weird that it's not affecting Jan then, because it's definitely
+> > something specific to newer glibc (or perhaps gcc, but it's not
+> > immediately obvious how that would be the case). I'm on Slackware=20
+> > rather than Gentoo, running quite a bit of prerelease development=20
+> > builds (including gcc-4.3.3 and glibc-2.9 along with 2.6.28.7
+> > kernel).
+>=20
+> I'm don't mind too much as long as the following patch (which is
+> already in git to fix the gentoo's problem) fixes also yours:
+>=20
+> http://git.netfilter.org/cgi-bin/gitweb.cgi?p=3Dconntrack-tools.git;a=3Dc=
+ommitdiff;h=3D9bf002ff7935e7dff625683787fc3a06ac2ef2cb;hp=3D87c8c090e1b64ea=
+c27edb968845cb1e8ee65b06b
+>=20
+> Please, confirm that the problem is resolved.
 
-Unless Stephen has time to test this, I'll apply his patch. This
-doesn't seem worth loosing time over.
+
+Yes, that's exactly what I did locally to fix it -- confirmed.
+
+-RW
+
+--Sig_/C.eVs6lQz=iz_yxwNXrum5H
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.10 (GNU/Linux)
+
+iEYEARECAAYFAkmj/+MACgkQvGy9tf6lsvv/3wCgkdHw2SgOud+RKb7MuWr84AoZ
+eRAAoKopdg16IEKYQq8+ZUhOERlSZb4m
+=GlTE
+-----END PGP SIGNATURE-----
+
+--Sig_/C.eVs6lQz=iz_yxwNXrum5H--
