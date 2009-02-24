@@ -1,61 +1,46 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: xtables: add cluster match
-Date: Tue, 24 Feb 2009 15:06:26 +0100
-Message-ID: <49A3FEE2.3000601@trash.net>
-References: <20090223101354.7104.45999.stgit@Decadence> <49A3FA4B.5000107@trash.net> <49A3FE90.50305@netfilter.org>
+Subject: Re: [PATCH] iptables: Add limits.h to get INT_MIN, INT_MAX, ...
+Date: Tue, 24 Feb 2009 15:09:52 +0100
+Message-ID: <49A3FFB0.4050609@trash.net>
+References: <20090220162831.1d0bf3d4@extreme> <alpine.LSU.2.00.0902210224330.25933@fbirervta.pbzchgretzou.qr> <alpine.LSU.2.00.0902210347001.28533@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Stephen Hemminger <shemminger@vyatta.com>,
+	netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:33053 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:33160 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753110AbZBXOGa (ORCPT
+	with ESMTP id S1753328AbZBXOJz (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Feb 2009 09:06:30 -0500
-In-Reply-To: <49A3FE90.50305@netfilter.org>
+	Tue, 24 Feb 2009 09:09:55 -0500
+In-Reply-To: <alpine.LSU.2.00.0902210347001.28533@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> Patrick McHardy wrote:
->> Pablo Neira Ayuso wrote:
->>> +enum xt_cluster_flags {
->>> +    XT_CLUSTER_F_INV    = (1 << 0)
->>> +};
->>> +
->>> +struct xt_cluster_match_info {
->>> +    u_int32_t        total_nodes;
->>> +    u_int32_t        node_mask;
->>> +    u_int32_t        hash_seed;
->>> +    u_int32_t        flags;
->>> +};
+Jan Engelhardt wrote:
+> On Saturday 2009-02-21 02:25, Jan Engelhardt wrote:
+>> On Saturday 2009-02-21 01:28, Stephen Hemminger wrote:
 >>
->> This doesn't seem like such a hot idea. I haven't seen the new
->> userspace patch, but assuming you're interested in the flags and
->> not ignoring them in userspace, the user has to specify the hash
->> seed for rule deletions.
+>>> Fix build failure of iptables utilities on debian/ubuntu, maybe other distros.
+>>> The values INT_MIN and INT_MAX are used by many filters and these
+>>> are defined in limits.h
+>> No this is not right IMO, limits.h should be included for the same 
+>> reason you would not do that to kernel's .h files.
+>> Instead, limits.h should go in the .c files.
 > 
-> The user has to specify the hash seed to delete the rule if it's 
-> non-zero, otherwise it must be specified. The hash seed is optional. I 
-> don't quite see the problem.
+> I wonder what debian has different in its Glibc files that
+> limits.h is not included like it is for everybody else.
 
-Its a parameter without a meaning, the user is needlessly bothered
-with this.
+It works fine for me on Debian.
 
->> You also have to chose the same seed for all nodes in a cluster.
->> This seems needlessly complicated, I'd suggest to simply use zero.
+> Anyway, of course it should be included where due.
+> Gawd, that led me to have clean some unnecessary includes
+> up beforehand, but oh well.
 > 
-> One may want to forge traffic to flood a single node? The hash seed 
-> avoids this.
+> Could you try the "limits" branch of git://dev.medozas.de/iptables
+> if it compiles for you?
 
-No, it only makes it easier to shut off since I have to use the same
-source address to be sure I hit the same node. This seems like a valid
-argument though.
-
-The fact that you have to specify it for deletion still seems unnecesary
-though. You would never have two rules differing only in the seed value
-since that would mean the node is part of two clusters. So we might as
-well move it to the end and ignore it in userspace. What do you think?
-In case you agree, I also think "secret" would be a more fitting name.
+Unless Stephen has time to test this, I'll apply his patch. This
+doesn't seem worth loosing time over.
