@@ -1,37 +1,58 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: netfilter: install missing headers
-Date: Tue, 24 Feb 2009 15:24:38 +0100
-Message-ID: <49A40326.3000807@trash.net>
-References: <alpine.LSU.2.00.0902210443180.32599@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH] iptables: xt_hashlimit fix
+Date: Tue, 24 Feb 2009 15:31:35 +0100
+Message-ID: <49A404C7.1010900@trash.net>
+References: <20090218051906.174295181@vyatta.com>	<20090218052747.321329022@vyatta.com> <20090219114719.560999b5@extreme> <499DEF49.3040602@cosmosbay.com> <499EF222.3060507@cosmosbay.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Stephen Hemminger <shemminger@vyatta.com>
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: Stephen Hemminger <shemminger@vyatta.com>,
+	David Miller <davem@davemloft.net>,
+	Rick Jones <rick.jones2@hp.com>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Eric Dumazet <dada1@cosmosbay.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:33867 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:34111 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756424AbZBXOYl (ORCPT
+	with ESMTP id S1754018AbZBXObi (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Feb 2009 09:24:41 -0500
-In-Reply-To: <alpine.LSU.2.00.0902210443180.32599@fbirervta.pbzchgretzou.qr>
+	Tue, 24 Feb 2009 09:31:38 -0500
+In-Reply-To: <499EF222.3060507@cosmosbay.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> I hope now I got it right!
+Eric Dumazet wrote:
+> Damned this broke xt_hashlimit, version=0
 > 
-> ---8<---
-> parent 5eebd6df9f3304f74b611fe47bab50fd3a1c668b (v2.6.29-rc4-30-g5eebd6d)
-> commit 499c9627ecb75566801d96f0e91c9da356b6a8c8
-> Author: Jan Engelhardt <jengelh@medozas.de>
-> Date:   Sat Feb 21 04:44:18 2009 +0100
-> 
-> netfilter: install missing headers
-> 
-> iptables imports headers from (the unifdefed headers of a)
-> kernel tree, but some headers happened to not be installed.
+> ...
+> So, it appears some modules are using pointers to themselves, what a hack :(
 
-Looks fine. Applied, thanks.
+Indeed. This is unfortunately necessary in some cases to make sure
+that modules using global state actually use global state instead
+of the per-CPU copies.
+
+> We probably need an audit of other modules.
+> 
+> (net/netfilter/xt_statistic.c, net/netfilter/xt_quota.c,
+> net/netfilter/xt_limit.c ...)
+
+This seems fine in case of hashlimit since it the match data
+is read-only. In case of statistic and quota I think we still
+need it I think.
+
+> Unfortunatly I wont have time to do this in following days, any volunteer ?
+> 
+> Thank you
+> 
+> [PATCH] netfilter: xt_hashlimit fix
+> 
+> Commit 784544739a25c30637397ace5489eeb6e15d7d49
+> (netfilter: iptables: lock free counters) broke xt_hashlimit netfilter module :
+> 
+> This module was storing a pointer inside its xt_hashlimit_info, and this pointer
+> is not relocated when we temporarly switch tables (iptables -L).
+> 
+> This hack is not not needed at all (probably a leftover from
+> ancient time), as each cpu should and can access to its own copy.
+
+Applied, thanks.
