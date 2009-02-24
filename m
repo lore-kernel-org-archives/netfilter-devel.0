@@ -1,23 +1,75 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: netfilter 00/06: netfilter fixes
-Date: Tue, 24 Feb 2009 13:50:41 -0800 (PST)
-Message-ID: <20090224.135041.226502586.davem@davemloft.net>
-References: <20090224145243.9789.60678.sendpatchset@x2.localnet>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: xtables: add cluster match
+Date: Wed, 25 Feb 2009 00:13:47 +0100
+Message-ID: <49A47F2B.6040704@netfilter.org>
+References: <20090223101354.7104.45999.stgit@Decadence> <49A3FA4B.5000107@trash.net> <49A3FE90.50305@netfilter.org> <49A3FEE2.3000601@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: kaber@trash.net
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20090224145243.9789.60678.sendpatchset@x2.localnet>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:45126 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752910AbZBXXN7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 Feb 2009 18:13:59 -0500
+In-Reply-To: <49A3FEE2.3000601@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Tue, 24 Feb 2009 15:52:44 +0100 (MET)
-
-> The patches are also available in my nf-2.6.git tree at:
+Patrick McHardy wrote:
+> Pablo Neira Ayuso wrote:
+>> Patrick McHardy wrote:
+>>> Pablo Neira Ayuso wrote:
+>>>> +enum xt_cluster_flags {
+>>>> +    XT_CLUSTER_F_INV    = (1 << 0)
+>>>> +};
+>>>> +
+>>>> +struct xt_cluster_match_info {
+>>>> +    u_int32_t        total_nodes;
+>>>> +    u_int32_t        node_mask;
+>>>> +    u_int32_t        hash_seed;
+>>>> +    u_int32_t        flags;
+>>>> +};
+>>>
+>>> This doesn't seem like such a hot idea. I haven't seen the new
+>>> userspace patch, but assuming you're interested in the flags and
+>>> not ignoring them in userspace, the user has to specify the hash
+>>> seed for rule deletions.
+>>
+>> The user has to specify the hash seed to delete the rule if it's
+>> non-zero, otherwise it must be specified. The hash seed is optional. I
+>> don't quite see the problem.
 > 
-> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git
+> Its a parameter without a meaning, the user is needlessly bothered
+> with this.
 
-Pulled, thanks Patrick.
+>From the user view, yes. No matter what value you set as long as it is
+the same in all the cluster nodes.
+
+>>> You also have to chose the same seed for all nodes in a cluster.
+>>> This seems needlessly complicated, I'd suggest to simply use zero.
+>>
+>> One may want to forge traffic to flood a single node? The hash seed
+>> avoids this.
+> 
+> No, it only makes it easier to shut off since I have to use the same
+> source address to be sure I hit the same node. This seems like a valid
+> argument though.
+> 
+> The fact that you have to specify it for deletion still seems unnecesary
+> though. You would never have two rules differing only in the seed value
+> since that would mean the node is part of two clusters. So we might as
+> well move it to the end and ignore it in userspace. What do you think?
+
+But the value has to be the same in all the cluster nodes, so how can it
+be set to ensure that it is the same value?
+
+> In case you agree, I also think "secret" would be a more fitting name.
+
+I can rename the field to "secret" in the structure or change the
+iptables cluster match option to be "--cluster-secret" instead of
+"--cluster-hash-seed" if you like.
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
