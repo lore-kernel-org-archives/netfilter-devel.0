@@ -1,43 +1,49 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/2 v5] New netfilter target to trigger LED devices
-Date: Tue, 24 Feb 2009 14:51:02 +0100
-Message-ID: <49A3FB46.5060306@trash.net>
-References: <49934702.9060909@shikadi.net> <4993B34C.1020307@trash.net>	 <49940D58.3040404@shikadi.net>  <49998E6C.2030504@trash.net> <1234878654.5312.34.camel@dax.rpnet.com> <499C17C2.9020502@trash.net> <499C899F.5010002@shikadi.net> <499E7E92.7030607@trash.net> <49A15E3C.3090809@shikadi.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: xtables: add cluster match
+Date: Tue, 24 Feb 2009 15:05:04 +0100
+Message-ID: <49A3FE90.50305@netfilter.org>
+References: <20090223101354.7104.45999.stgit@Decadence> <49A3FA4B.5000107@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Adam Nielsen <a.nielsen@shikadi.net>
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:65073 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754405AbZBXNvF (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Feb 2009 08:51:05 -0500
-In-Reply-To: <49A15E3C.3090809@shikadi.net>
+Received: from mail.us.es ([193.147.175.20]:47848 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754230AbZBXNzd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 Feb 2009 08:55:33 -0500
+In-Reply-To: <49A3FA4B.5000107@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Adam Nielsen wrote:
->> Applied, thanks. I've made some minor cosmetic changes, like removal
->> of /* noconst */ annotations and fixing indentation in one spot.
->>
->> You can look at the final commit at:
->>
->> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git
+Patrick McHardy wrote:
+> Pablo Neira Ayuso wrote:
+>> +enum xt_cluster_flags {
+>> +    XT_CLUSTER_F_INV    = (1 << 0)
+>> +};
+>> +
+>> +struct xt_cluster_match_info {
+>> +    u_int32_t        total_nodes;
+>> +    u_int32_t        node_mask;
+>> +    u_int32_t        hash_seed;
+>> +    u_int32_t        flags;
+>> +};
 > 
-> Thanks Patrick, looks fine.  Did you fix the compile errors in your 
-> other post, or do you still want me to look at them?  It looks like it 
-> was compiled with LED support disabled, which I thought the kernel 
-> should take care of (not allowing the file to be compiled if LED support 
-> was not present.)
+> This doesn't seem like such a hot idea. I haven't seen the new
+> userspace patch, but assuming you're interested in the flags and
+> not ignoring them in userspace, the user has to specify the hash
+> seed for rule deletions.
 
-I did enable LED support to be able to select it. Might be a mistake
-when rebuilding on my side though, the latest patch compiles cleanly.
+The user has to specify the hash seed to delete the rule if it's 
+non-zero, otherwise it must be specified. The hash seed is optional. I 
+don't quite see the problem.
 
-> Did the other companion patch (1/2, the one to netfilter) also get 
-> committed?  Without that the new kernel module won't ever be used.
+> You also have to chose the same seed for all nodes in a cluster.
+> This seems needlessly complicated, I'd suggest to simply use zero.
 
-That will get committed when the new -rc window starts so we don't
-include the userspace code in a release before the kernel part is
-released (and thus still can fix any mistakes that come up).
+One may want to forge traffic to flood a single node? The hash seed 
+avoids this.
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
