@@ -1,40 +1,57 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: xtables: add cluster match
-Date: Wed, 25 Feb 2009 11:20:13 +0100
-Message-ID: <49A51B5D.3040707@trash.net>
-References: <20090223101354.7104.45999.stgit@Decadence> <49A3FA4B.5000107@trash.net> <49A3FE90.50305@netfilter.org> <49A3FEE2.3000601@trash.net> <49A47F2B.6040704@netfilter.org> <49A4DC95.8090708@trash.net> <49A5129F.3000700@netfilter.org>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: TEE patch [was: ROUTE patch]
+Date: Wed, 25 Feb 2009 11:26:18 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0902251120250.20946@fbirervta.pbzchgretzou.qr>
+References: <c122d6890902240059j540fc8dcl529129d7bc5006fe@mail.gmail.com> <alpine.LSU.2.00.0902241031500.30346@fbirervta.pbzchgretzou.qr> <49A3F922.4050508@trash.net> <alpine.LSU.2.00.0902241629550.23542@fbirervta.pbzchgretzou.qr> <49A4133E.4070703@trash.net>
+ <alpine.LSU.2.00.0902251053270.20946@fbirervta.pbzchgretzou.qr> <49A51B26.3050906@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Abhishek Singh <abhishek@abhishekonline.info>,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:58082 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757795AbZBYKUV (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:42833 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756590AbZBYK0V (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 Feb 2009 05:20:21 -0500
-In-Reply-To: <49A5129F.3000700@netfilter.org>
+	Wed, 25 Feb 2009 05:26:21 -0500
+In-Reply-To: <49A51B26.3050906@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> Patrick McHardy wrote:
->   
->> Pablo Neira Ayuso wrote:
->>     
->>>> In case you agree, I also think "secret" would be a more fitting name.
->>>>         
->>> I can rename the field to "secret" in the structure or change the
->>> iptables cluster match option to be "--cluster-secret" instead of
->>> "--cluster-hash-seed" if you like.
->>>       
->> Its more fitting in my opinion, but I don't really care.
->>     
+
+On Wednesday 2009-02-25 11:19, Patrick McHardy wrote:
 >
-> I don't either, would you apply the patch as is now?
->   
+>Thanks. About dst_output and reentrancy - using IPSKB_REROUTED to
+>skip the netfilter hooks should work I guess.
 
-I will :)
+IPv6 is missing IPSKB_REROUTED entirely.
 
+>> +static bool
+>> +tee_tg_route4(struct sk_buff *skb, const struct xt_tee_tginfo *info)
+>> +{
+>> +	int err;
+>> +	struct rtable *rt;
+>> +	struct flowi fl;
+>> +
+>> +	memset(&fl, 0, sizeof(fl));
+>> +	fl.nl_u.ip4_u.daddr = info->gw.ip;
+>> +	fl.nl_u.ip4_u.scope = RT_SCOPE_UNIVERSE;
+>
+>An index is probably useful when you want to mirror packets
+>somewhere outside of regular routing.
 
+ifindex?
+
+>> +static void __exit tee_tg_exit(void)
+>> +{
+>> +	xt_unregister_targets(tee_tg_reg, ARRAY_SIZE(tee_tg_reg));
+>> +	/* [SC]: shoud not we cleanup tee_track here? */
+>> +}
+>>   
+>
+>This is not safe without waiting for the tee ct references. Using
+>the untracked conntrack would be nicer anyways, but would need a
+>different loop detection mechanism.
+>
+Patches please :)
