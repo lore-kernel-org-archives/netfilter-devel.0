@@ -1,59 +1,35 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: TEE patch [was: ROUTE patch]
-Date: Wed, 25 Feb 2009 15:57:52 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0902251543370.4191@fbirervta.pbzchgretzou.qr>
-References: <c122d6890902240059j540fc8dcl529129d7bc5006fe@mail.gmail.com> <alpine.LSU.2.00.0902241031500.30346@fbirervta.pbzchgretzou.qr> <49A3F922.4050508@trash.net> <alpine.LSU.2.00.0902241629550.23542@fbirervta.pbzchgretzou.qr> <49A4133E.4070703@trash.net>
- <alpine.LSU.2.00.0902251053270.20946@fbirervta.pbzchgretzou.qr> <49A51B26.3050906@trash.net> <alpine.LSU.2.00.0902251120250.20946@fbirervta.pbzchgretzou.qr> <49A51D95.9080009@trash.net>
+From: Thomas Gleixner <tglx@linutronix.de>
+Subject: Re: 2.6.29-rc bug near nf_conntrack_tuple_taken
+Date: Thu, 26 Feb 2009 00:35:20 +0100 (CET)
+Message-ID: <alpine.LFD.2.00.0902260034330.9135@localhost.localdomain>
+References: <alpine.LSU.2.00.0902240044320.8597@fbirervta.pbzchgretzou.qr> <49A400D7.1010404@trash.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Abhishek Singh <abhishek@abhishekonline.info>,
-	netfilter-devel@vger.kernel.org
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	linux-rt-users@vger.kernel.org,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:34813 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752442AbZBYO5z (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 Feb 2009 09:57:55 -0500
-In-Reply-To: <49A51D95.9080009@trash.net>
+Received: from www.tglx.de ([62.245.132.106]:41359 "EHLO www.tglx.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751334AbZBYXf3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 25 Feb 2009 18:35:29 -0500
+In-Reply-To: <49A400D7.1010404@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Tue, 24 Feb 2009, Patrick McHardy wrote:
+> This would mean something has used the non-rcu list functions
+> when removing a conntrack from the hash. Which I don't see
+> happening anywhere. Another possibility would be that the connntrack
+> was already confirmed when the tuple got mangled and the list
+> got corrupted. The pr_debug in nf_conntrack_alter_reply should
+> trigger in that case.
 
-On Wednesday 2009-02-25 11:29, Patrick McHardy wrote:
->>>> +static bool
->>>> +tee_tg_route4(struct sk_buff *skb, const struct xt_tee_tginfo *info)
->>>> +{
->>>> +	int err;
->>>> +	struct rtable *rt;
->>>> +	struct flowi fl;
->>>> +
->>>> +	memset(&fl, 0, sizeof(fl));
->>>> +	fl.nl_u.ip4_u.daddr = info->gw.ip;
->>>> +	fl.nl_u.ip4_u.scope = RT_SCOPE_UNIVERSE;
->>>>       
->>> An index is probably useful when you want to mirror packets
->>> somewhere outside of regular routing.
->>
->> ifindex?
->
->Yes.
+Don't worry, that's a fallout of -rt, which is fixed in 2.6.29-rc6-rt3
+already.
 
-Hm. I previously had removed  fl.nl_u.ip4_u.tos = RT_TOS(iph->tos)
-since I reasoned:
+Thanks,
 
-	The cloned packet would theoretically go through the OUTPUT
-	chain (if we did not skip Xtables to guard against
-	reentracy), even if the original packet went through FORWARD
-	instead. As such, it is not a true clone, and does not need
-	to be treated as such.
-
-Adding ifindex to the routing key also makes me wonder whether the
-mark should be used too, noting however, that it may lead to a trap
-(order of MARK vs TEE in a ruleset) - or some kinky feature:
-
-	-t mangle -A PREROUTING -j TEE --gw 192.168.1.15
-	-t mangle -A PREROUTING -j MARK --set-mark 1
-	-t mangle -A PREROUTING -j TEE --gw 192.168.1.15
-
-I pretty much have no opinion on this.
+	tglx
