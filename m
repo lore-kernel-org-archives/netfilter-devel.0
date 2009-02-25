@@ -1,56 +1,43 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [Bugme-new] [Bug 12753] New: /proc/net/xt_recent/: +IP / -IP
- commands broken for IPv4
-Date: Wed, 25 Feb 2009 06:04:09 +0100
-Message-ID: <49A4D149.7070101@trash.net>
-References: <bug-12753-10286@http.bugzilla.kernel.org/> <20090224125830.e89f28c5.akpm@linux-foundation.org>
+Subject: Re: [PATCH] netfilter: xtables: add cluster match
+Date: Wed, 25 Feb 2009 06:52:21 +0100
+Message-ID: <49A4DC95.8090708@trash.net>
+References: <20090223101354.7104.45999.stgit@Decadence> <49A3FA4B.5000107@trash.net> <49A3FE90.50305@netfilter.org> <49A3FEE2.3000601@trash.net> <49A47F2B.6040704@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	bugme-daemon@bugzilla.kernel.org, joe-lk@ttdpatch.net
-To: Andrew Morton <akpm@linux-foundation.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20090224125830.e89f28c5.akpm@linux-foundation.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:51993 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751893AbZBYFwX (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 25 Feb 2009 00:52:23 -0500
+In-Reply-To: <49A47F2B.6040704@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Andrew Morton wrote:
-> (switched to email.  Please respond via emailed reply-to-all, not via the
-> bugzilla web interface).
->>
->> Latest working kernel version: up to at least 2.6.24
->> Earliest failing kernel version: first noticed with upgrade to 2.6.28
+Pablo Neira Ayuso wrote:
+> Patrick McHardy wrote:
+>> The fact that you have to specify it for deletion still seems unnecesary
+>> though. You would never have two rules differing only in the seed value
+>> since that would mean the node is part of two clusters. So we might as
+>> well move it to the end and ignore it in userspace. What do you think?
 > 
-> So it's a regression?
+> But the value has to be the same in all the cluster nodes, so how can it
+> be set to ensure that it is the same value?
 
-Yes. The fix is on its way upstream.
+I only meant ignoring it on comparisons of course, just as we do
+with all the private pointer stuff. Anyways, its not that important
+and it in fact would be slightly different behaviour from what we
+do in other cases, where we only ignore state. So perhaps not a good
+idea after all.
 
->> Possible solutions:
->> - initialize the addr variable in recent_mt_proc_write
->> - compare only 4 bytes for IPv4 addresses in recent_entry_lookup
->>
->> Simplest fix:
->> --- linux-2.6.28.7/net/netfilter/xt_recent.c.org        2009-02-22
->> 17:34:19.000000000 +0100
->> +++ linux-2.6.28.7/net/netfilter/xt_recent.c    2009-02-22 17:34:21.000000000
->> +0100
->> @@ -544,7 +544,7 @@
->>         struct recent_entry *e;
->>         char buf[sizeof("+b335:1d35:1e55:dead:c0de:1715:5afe:c0de")];
->>         const char *c = buf;
->> -       union nf_inet_addr addr;
->> +       union nf_inet_addr addr = {};
->>         u_int16_t family;
->>         bool add, succ;
->>
+>> In case you agree, I also think "secret" would be a more fitting name.
 > 
-> hm, that function does some pretty ugly things.
-> 
-> I wonder if the same bug exists elsewhere (or might do so in the
-> future).  A more general fix would be to write a new
-> in6_to_nf_inet_addr() and in4_to_nf_inet_addr() which correctly
-> initialise the whole union.
+> I can rename the field to "secret" in the structure or change the
+> iptables cluster match option to be "--cluster-secret" instead of
+> "--cluster-hash-seed" if you like.
 
-I don't think thats necessary, there are no intentions of adding
-more text-based interfaces.
+Its more fitting in my opinion, but I don't really care.
