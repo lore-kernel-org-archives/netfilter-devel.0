@@ -1,75 +1,41 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: xtables: add cluster match
-Date: Wed, 25 Feb 2009 00:13:47 +0100
-Message-ID: <49A47F2B.6040704@netfilter.org>
-References: <20090223101354.7104.45999.stgit@Decadence> <49A3FA4B.5000107@trash.net> <49A3FE90.50305@netfilter.org> <49A3FEE2.3000601@trash.net>
+Subject: [PATCH] netfilter: conntrack: don't deliver events for racy packets
+Date: Wed, 25 Feb 2009 03:53:34 +0100
+Message-ID: <20090225025334.4646.98606.stgit@Decadence>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:45126 "EHLO us.es"
+Received: from mail.us.es ([193.147.175.20]:57436 "EHLO us.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752910AbZBXXN7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Feb 2009 18:13:59 -0500
-In-Reply-To: <49A3FEE2.3000601@trash.net>
+	id S1753645AbZBYCxr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 Feb 2009 21:53:47 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy wrote:
-> Pablo Neira Ayuso wrote:
->> Patrick McHardy wrote:
->>> Pablo Neira Ayuso wrote:
->>>> +enum xt_cluster_flags {
->>>> +    XT_CLUSTER_F_INV    = (1 << 0)
->>>> +};
->>>> +
->>>> +struct xt_cluster_match_info {
->>>> +    u_int32_t        total_nodes;
->>>> +    u_int32_t        node_mask;
->>>> +    u_int32_t        hash_seed;
->>>> +    u_int32_t        flags;
->>>> +};
->>>
->>> This doesn't seem like such a hot idea. I haven't seen the new
->>> userspace patch, but assuming you're interested in the flags and
->>> not ignoring them in userspace, the user has to specify the hash
->>> seed for rule deletions.
->>
->> The user has to specify the hash seed to delete the rule if it's
->> non-zero, otherwise it must be specified. The hash seed is optional. I
->> don't quite see the problem.
-> 
-> Its a parameter without a meaning, the user is needlessly bothered
-> with this.
+This patch skips the delivery of conntrack events if the packet
+was drop due to a race condition in the conntrack insertion.
 
->From the user view, yes. No matter what value you set as long as it is
-the same in all the cluster nodes.
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
 
->>> You also have to chose the same seed for all nodes in a cluster.
->>> This seems needlessly complicated, I'd suggest to simply use zero.
->>
->> One may want to forge traffic to flood a single node? The hash seed
->> avoids this.
-> 
-> No, it only makes it easier to shut off since I have to use the same
-> source address to be sure I hit the same node. This seems like a valid
-> argument though.
-> 
-> The fact that you have to specify it for deletion still seems unnecesary
-> though. You would never have two rules differing only in the seed value
-> since that would mean the node is part of two clusters. So we might as
-> well move it to the end and ignore it in userspace. What do you think?
+ include/net/netfilter/nf_conntrack_core.h |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-But the value has to be the same in all the cluster nodes, so how can it
-be set to ensure that it is the same value?
+diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
+index c25068e..5a449b4 100644
+--- a/include/net/netfilter/nf_conntrack_core.h
++++ b/include/net/netfilter/nf_conntrack_core.h
+@@ -62,7 +62,8 @@ static inline int nf_conntrack_confirm(struct sk_buff *skb)
+ 	if (ct && ct != &nf_conntrack_untracked) {
+ 		if (!nf_ct_is_confirmed(ct) && !nf_ct_is_dying(ct))
+ 			ret = __nf_conntrack_confirm(skb);
+-		nf_ct_deliver_cached_events(ct);
++		if (likely(ret == NF_ACCEPT))
++			nf_ct_deliver_cached_events(ct);
+ 	}
+ 	return ret;
+ }
 
-> In case you agree, I also think "secret" would be a more fitting name.
-
-I can rename the field to "secret" in the structure or change the
-iptables cluster match option to be "--cluster-secret" instead of
-"--cluster-hash-seed" if you like.
-
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
