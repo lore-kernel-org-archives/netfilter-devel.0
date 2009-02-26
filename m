@@ -1,42 +1,64 @@
-From: "H. Peter Anvin" <hpa@zytor.com>
-Subject: Re: [patch 5/7] make netfilter use strict integer types
-Date: Wed, 25 Feb 2009 17:02:22 -0800
-Message-ID: <49A5EA1E.5@zytor.com>
-References: <20090225235138.062045835@arndb.de> <20090225235515.682333715@arndb.de> <alpine.LSU.2.00.0902260104220.20789@fbirervta.pbzchgretzou.qr> <49A5DECD.7090809@zytor.com> <alpine.LSU.2.00.0902260137001.23768@fbirervta.pbzchgretzou.qr>
+From: Nir Tzachar <nir.tzachar@gmail.com>
+Subject: [PATCH]: Fix ipt_REJECT problem with nf_bridge
+Date: Thu, 26 Feb 2009 10:48:26 +0200
+Message-ID: <9b2db90b0902260048j514b6ab0w63038bd11ab3f8f6@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: arnd@arndb.de, Sam Ravnborg <sam@ravnborg.org>,
-	Kyle McMartin <kyle@infradead.org>,
-	Ingo Molnar <mingo@elte.hu>,
-	Jaswinder Singh Rajput <jaswinderrajput@gmail.com>,
-	mingo@redhat.com, dwmw2@infradead.org,
-	linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, coreteam@netfilter.org
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <linux-arch-owner@vger.kernel.org>
-In-Reply-To: <alpine.LSU.2.00.0902260137001.23768@fbirervta.pbzchgretzou.qr>
-Sender: linux-arch-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: coreteam@netfilter.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-fx0-f176.google.com ([209.85.220.176]:64367 "EHLO
+	mail-fx0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751708AbZBZIs3 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 26 Feb 2009 03:48:29 -0500
+Received: by fxm24 with SMTP id 24so385463fxm.37
+        for <netfilter-devel@vger.kernel.org>; Thu, 26 Feb 2009 00:48:26 -0800 (PST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Thursday 2009-02-26 01:14, H. Peter Anvin wrote:
->>> [...]
->>> IMHO, __uXX should be replaced by uintX_t, but a move this great I
->>> will leave to future generations because there is just too much
->>> persisting opinions wrt. such proposal. As such I'd like to join
->>> and persist on my position and that uintX that we have should be kept.
->> We *CAN'T* replace __uXX with uintX_t.  Period, full stop, end of story.
-> 
-> Would the mindful master please elaborate why this is so, if it is
-> indeed not a personal decision.
+Hello.
 
-POSIX has strict rules as to what symbols you are allowed to present 
-into the user-visible namespace.  This means you can't use these types 
-for any header that may be indirectly included.
+There is a problem with the current version of ipt_REJECT when
+operating on a bridge interface.
+To be more exact, an RST is never sent to connections over the bridge,
+as the ip_route_me_harder function always fail.
 
-Since we can't use them in general, it's silly to use them for a 
-minority of headers, which would then have different exposure rules than 
-people otherwise can expect.
+The problem arises from the following code
+(net/ipv4/netfilter/ipt_REJECT.c line 221:)
 
-	-hpa
+        if (hook != NF_INET_FORWARD
+#ifdef CONFIG_BRIDGE_NETFILTER
+            || (nskb->nf_bridge && nskb->nf_bridge->mask & BRNF_BRIDGED)
+#endif
+           )
+                addr_type = RTN_LOCAL;
+
+but, as nskb was newly allocated just a few line back, the
+oldskb->nf_bridge was never copied, so nskb->nf_bridge is always NULL.
+The following patch corrects the problem. Please review and apply.
+
+Cheers, Nir.
+
+
+Signed-off-by: Nir Tzachar <nir.tzachar@gmail.com>
+Tested-by: Elad Kertis <elad.kertis@gmail.com>
+
+--- linux-2.6.28.7.old/net/ipv4/netfilter/ipt_REJECT.c	2009-02-26
+10:28:51.000000000 +0200
++++ linux-2.6.28.7/net/ipv4/netfilter/ipt_REJECT.c	2009-02-26
+10:31:26.000000000 +0200
+@@ -98,6 +98,12 @@
+ 				       niph->saddr, niph->daddr,
+ 				       csum_partial(tcph,
+ 						    sizeof(struct tcphdr), 0));
++#ifdef CONFIG_BRIDGE_NETFILTER
++	if (oldskb->nf_bridge){
++		nf_bridge_get(oldskb->nf_bridge);
++		nskb->nf_bridge = oldskb->nf_bridge;
++	}
++#endif
+
+ 	addr_type = RTN_UNSPEC;
+ 	if (hook != NF_INET_FORWARD
