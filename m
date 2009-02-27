@@ -1,62 +1,127 @@
-From: Stephen Hemminger <shemminger@vyatta.com>
-Subject: Re: [PATCH] iptables: new strict host model match
-Date: Thu, 26 Feb 2009 19:23:53 -0800
-Message-ID: <20090226192353.2b6dea9f@nehalam>
-References: <20090226175247.5e56910f@nehalam>
-	<alpine.LSU.2.00.0902270414290.14912@fbirervta.pbzchgretzou.qr>
+From: Giacomo <delleceste@gmail.com>
+Subject: linked lists, locking in softirq context -- no ideas ??
+Date: Fri, 27 Feb 2009 09:07:31 +0100
+Message-ID: <885896af0902270007i7d3c5750n2c2c80f9a559665d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>,
-	David Miller <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.vyatta.com ([76.74.103.46]:40622 "EHLO mail.vyatta.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753859AbZB0DX4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Feb 2009 22:23:56 -0500
-In-Reply-To: <alpine.LSU.2.00.0902270414290.14912@fbirervta.pbzchgretzou.qr>
+Received: from mail-ew0-f177.google.com ([209.85.219.177]:46816 "EHLO
+	mail-ew0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752665AbZB0IHe convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 27 Feb 2009 03:07:34 -0500
+Received: by ewy25 with SMTP id 25so1102528ewy.37
+        for <netfilter-devel@vger.kernel.org>; Fri, 27 Feb 2009 00:07:31 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 27 Feb 2009 04:16:19 +0100 (CET)
-Jan Engelhardt <jengelh@medozas.de> wrote:
+Hi to all...
+do not know if the mailing list received this message - nobody can answ=
+er?
 
-> 
-> On Friday 2009-02-27 02:52, Stephen Hemminger wrote:
-> >+static bool strict_mt(const struct sk_buff *skb, const struct xt_match_param *par)
-> >+{
-> >+	struct in_device *in_dev;
-> >+	bool ret;
-> >+
-> >+	rcu_read_lock();
-> >+	in_dev = __in_dev_get_rcu(skb->dev);
-> >+	ret = (in_dev && inet_addr_onlink(in_dev, ip_hdr(skb)->daddr, 0));
-> >+	rcu_read_unlock();
-> >+
-> >+	return ret;
-> >+}
-> 
-> This looks easy enough to also do for IPv6. Would you?
+Thanks so much
 
-IPV6 already does this.
+giacomo
 
-> 
-> >+static struct xt_match strict_mt_reg __read_mostly = {
-> >+	.name		= "strict",
-> >+	.family		= NFPROTO_IPV4,
-> >+	.match		= strict_mt,
-> >+	.matchsize	= 0,
-> >+	.me		= THIS_MODULE,
-> >+};
-> 
-> The match seems to make the most sense where an input device
-> is available, so
-> 
-> 	.hooks = (1 << NF_INET_PRE_ROUTING) | (1 << NF_INET_LOCAL_IN) |
-> 	         (1 << NF_INET_FORWARD)
-> 
-> should probably be added.
 
-Then routing wouldn't work...
+---------- Forwarded message ----------
+=46rom: Giacomo <delleceste@gmail.com>
+Date: 2009/2/23
+Subject: linked lists, locking in softirq context
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
+
+
+
+Harald Welte's "The journey of a packet through the Linux 2.6.10
+network stack" article says that packet travelling inside
+linux kernel 2.6 (the receive / input part) runs in softirq context.
+
+Hooking with netfilter's hooks in a kernel module, i need to read for
+each packet received a list of rules.
+
+Since in input and prerouting hooks the context is softirq (perhaps
+also in forward?), I need some read lock
+feature.
+
+I currently use RCU lists and, while reading lists I use
+
+READ
+
+read_lock_bh()
+
+together with list_for_each_rcu()
+
+When changing, or flushing, rules, I use
+
+WRITE
+
+spin_lock() + list_add_tail_rcu() (adding)
+
+or spin_lock() + list_for_each_entry() (for listing and then freeing
+with list_del_rcu() and call_rcu() )
+
+The question is:
+
+- is the read part above correct? - do I really need _bh()? or should
+I use simply read_lock() ?
+
+Thanks in advance
+
+Giacomo
+
+
+
+--
+Giacomo S.
+http://www.giacomos.it
+
+- - - - - - - - - - - - - - - - - - - - - -
+
+* Aprile 2008: iqfire-wall, un progetto
+=A0open source che implementa un
+=A0filtro di pacchetti di rete per Linux,
+=A0e` disponibile per il download qui:
+=A0http://sourceforge.net/projects/ipfire-wall
+
+* Informazioni e pagina web ufficiale:
+=A0http://www.giacomos.it/iqfire/index.html
+
+- - - - - - - - - - - - - - - - - - - - - -
+
+=A0. '' =A0`.
+: =A0 :' =A0 =A0:
+=A0`. =A0` '
+=A0 =A0`- Debian GNU/Linux -- The power of freedom
+=A0 =A0 =A0 =A0http://www.debian.org
+
+
+
+--=20
+Giacomo S.
+http://www.giacomos.it
+
+- - - - - - - - - - - - - - - - - - - - - -
+
+* Aprile 2008: iqfire-wall, un progetto
+  open source che implementa un
+  filtro di pacchetti di rete per Linux,
+  e` disponibile per il download qui:
+  http://sourceforge.net/projects/ipfire-wall
+
+* Informazioni e pagina web ufficiale:
+  http://www.giacomos.it/iqfire/index.html
+
+- - - - - - - - - - - - - - - - - - - - - -
+
+ . ''  `.
+:   :'    :
+ `.  ` '
+    `- Debian GNU/Linux -- The power of freedom
+        http://www.debian.org
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
