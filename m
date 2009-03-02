@@ -1,40 +1,36 @@
-From: pud <pud@subnet666.de>
+From: Jan Engelhardt <jengelh@medozas.de>
 Subject: Re: libxt_string: fix undefined behavior/incorrect patlen
-	calculation
-Date: Sun, 1 Mar 2009 23:37:35 +0100
-Message-ID: <20090301223735.GA25389@safeTpin.homeunix.org>
-Reply-To: pud@subnet666.de
+ calculation
+Date: Mon, 2 Mar 2009 03:25:09 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0903020324590.10419@fbirervta.pbzchgretzou.qr>
+References: <20090301223735.GA25389@safeTpin.homeunix.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel <netfilter-devel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: pud <pud@subnet666.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx01.qsc.de ([213.148.129.14]:41539 "EHLO mx01.qsc.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756050AbZCAWsM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 1 Mar 2009 17:48:12 -0500
-Received: from safetpin.homeunix.org (port-87-234-80-215.dynamic.qsc.de [87.234.80.215])
-	by mx01.qsc.de (Postfix) with ESMTP id E7EEC3CF72
-	for <netfilter-devel@vger.kernel.org>; Sun,  1 Mar 2009 23:37:44 +0100 (CET)
-Content-Disposition: inline
+Received: from sovereign.computergmbh.de ([85.214.69.204]:52102 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757299AbZCBCZM (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 1 Mar 2009 21:25:12 -0500
+In-Reply-To: <20090301223735.GA25389@safeTpin.homeunix.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-(sorry, msg-id lost)
 
-> commit 19b0cd770d1e042c85bf0b278261a61d4cea8193
-> Author: Jan Engelhardt <jeng...@medozas.de>
-> Date: Thu Feb 12 01:18:35 2009 +0100
-...
-> - stringinfo->patlen=strlen((char *)&stringinfo->pattern);
-> + stringinfo->patlen = strnlen((char *)&stringinfo->pattern,
-> +                           sizeof(stringinfo->patlen));
+On Sunday 2009-03-01 23:37, pud wrote:
+>(sorry, msg-id lost)
+>
+>> commit 19b0cd770d1e042c85bf0b278261a61d4cea8193
+>> Author: Jan Engelhardt <jeng...@medozas.de>
+>> Date: Thu Feb 12 01:18:35 2009 +0100
+>...
+>> - stringinfo->patlen=strlen((char *)&stringinfo->pattern);
+>> + stringinfo->patlen = strnlen((char *)&stringinfo->pattern,
+>> +                           sizeof(stringinfo->patlen));
+>
+>sorry, this doesn't work here, did you mean
+>sizeof(stringinfo->pattern)?
 
-sorry, this doesn't work here, did you mean
-sizeof(stringinfo->pattern)?
-
-
-=;p/ud aka nerdpunk
-
--- 
-gpg-key #C3B04767
+What do you mean "doesnot work"?
