@@ -1,36 +1,50 @@
-From: Denys Fedoryschenko <denys@visp.net.lb>
-Subject: Re: [PATCH] iptables: new strict host model match
-Date: Mon, 2 Mar 2009 15:46:23 +0200
-Message-ID: <200903021546.24187.denys@visp.net.lb>
-References: <20090226175247.5e56910f@nehalam> <Pine.LNX.4.64.0903021427570.27363@ask.diku.dk>
+From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: Re: [PATCH] iptables: lock free counters
+Date: Mon, 02 Mar 2009 18:47:09 +0100
+Message-ID: <49AC1B9D.5030107@cosmosbay.com>
+References: <20090218051906.174295181@vyatta.com>	<20090218052747.321329022@vyatta.com> <20090219114719.560999b5@extreme> <499DEF49.3040602@cosmosbay.com> <49A7F262.8040805@cosmosbay.com> <49ABBB21.9080401@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Stephen Hemminger <shemminger@vyatta.com>,
-	Patrick McHardy <kaber@trash.net>,
 	David Miller <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Jesper Dangaard Brouer <hawk@diku.dk>
+	Rick Jones <rick.jones2@hp.com>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.64.0903021427570.27363@ask.diku.dk>
-Content-Disposition: inline
+In-Reply-To: <49ABBB21.9080401@trash.net>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Monday 02 March 2009 15:42:33 Jesper Dangaard Brouer wrote:
-> On Thu, 26 Feb 2009, Stephen Hemminger wrote:
-> > This is a simple little iptables match that can be used to create the
-> > Strong End System model, that router and other non-Linux customers
-> > expect. There are management and other applications that use ping and
-> > expect to only get a response when the interface with that address is up.
-> > Normally, a Linux system will respond to a packet that arrives for any of
-> > the system addresses independent of which link it arrives on.
->
-> Is this no almost the same as:
->
->   echo 1 > /proc/sys/net/ipv4/conf/all/arp_ignore
->
-I guess if some "smart guy" will set static association in his ARP table, he 
-can ignore this rule and "hack the host" over another ip, which sits on 
-internal interface for example.
+Patrick McHardy a =E9crit :
+> Eric Dumazet wrote:
+>> # time iptables -nvL
+>> Chain INPUT (policy ACCEPT 416M packets, 64G bytes)
+>>  pkts bytes target     prot opt in     out     source             =20
+>> destination
+>>
+>> Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
+>>  pkts bytes target     prot opt in     out     source             =20
+>> destination
+>>
+>> Chain OUTPUT (policy ACCEPT 401M packets, 62G bytes)
+>>  pkts bytes target     prot opt in     out     source             =20
+>> destination
+>>
+>> real    0m1.810s
+>> user    0m0.000s
+>> sys     0m0.001s
+>=20
+> Thats really slow ...
+>=20
+>> CONFIG_NO_HZ=3Dy
+>> CONFIG_HZ_1000=3Dy
+>> CONFIG_HZ=3D1000
+>>
+>> One cpu is 100% handling softirqs, could it be the problem ?
+>=20
+> Is this fixed by your RCU quiescent state fix?
+
+Yes it is :)
+
