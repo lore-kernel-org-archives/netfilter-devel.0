@@ -1,128 +1,48 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: libxt_string: fix undefined behavior/incorrect patlen calculation
-Date: Mon, 02 Mar 2009 11:48:57 +0100
-Message-ID: <49ABB999.80709@netfilter.org>
-References: <20090301223735.GA25389@safeTpin.homeunix.org> <alpine.LSU.2.00.0903020324590.10419@fbirervta.pbzchgretzou.qr> <49ABA3D0.1060906@oracle.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] iptables: lock free counters
+Date: Mon, 02 Mar 2009 11:55:29 +0100
+Message-ID: <49ABBB21.9080401@trash.net>
+References: <20090218051906.174295181@vyatta.com>	<20090218052747.321329022@vyatta.com> <20090219114719.560999b5@extreme> <499DEF49.3040602@cosmosbay.com> <49A7F262.8040805@cosmosbay.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------010708020102000001080301"
-Cc: Jan Engelhardt <jengelh@medozas.de>, pud <pud@subnet666.de>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-To: John Haxby <john.haxby@oracle.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Stephen Hemminger <shemminger@vyatta.com>,
+	David Miller <davem@davemloft.net>,
+	Rick Jones <rick.jones2@hp.com>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+To: Eric Dumazet <dada1@cosmosbay.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59035 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755406AbZCBKtK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Mar 2009 05:49:10 -0500
-In-Reply-To: <49ABA3D0.1060906@oracle.com>
+Received: from stinky.trash.net ([213.144.137.162]:41917 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755541AbZCBKzf (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 2 Mar 2009 05:55:35 -0500
+In-Reply-To: <49A7F262.8040805@cosmosbay.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------010708020102000001080301
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-
-John Haxby wrote:
-> Jan Engelhardt wrote:
->> On Sunday 2009-03-01 23:37, pud wrote:
->>  
->>> (sorry, msg-id lost)
->>>
->>>    
->>>> commit 19b0cd770d1e042c85bf0b278261a61d4cea8193
->>>> Author: Jan Engelhardt <jeng...@medozas.de>
->>>> Date: Thu Feb 12 01:18:35 2009 +0100
->>>>       
->>> ...
->>>    
->>>> - stringinfo->patlen=strlen((char *)&stringinfo->pattern);
->>>> + stringinfo->patlen = strnlen((char *)&stringinfo->pattern,
->>>> +                           sizeof(stringinfo->patlen));
->>>>       
->>> sorry, this doesn't work here, did you mean
->>> sizeof(stringinfo->pattern)?
->>>     
->>
->> What do you mean "doesnot work"?
->>   
+Eric Dumazet wrote:
+> # time iptables -nvL
+> Chain INPUT (policy ACCEPT 416M packets, 64G bytes)
+>  pkts bytes target     prot opt in     out     source               destination
 > 
-> It looks very weird to me as well.   I may well be confused, but
+> Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
+>  pkts bytes target     prot opt in     out     source               destination
 > 
->    stringinfo->patlen = strnlen((char *)&stringinfo->pattern,
-> sizeof(stringinfo->patlen))
+> Chain OUTPUT (policy ACCEPT 401M packets, 62G bytes)
+>  pkts bytes target     prot opt in     out     source               destination
 > 
-> looks like something roughly equivalent to this:
+> real    0m1.810s
+> user    0m0.000s
+> sys     0m0.001s
+
+Thats really slow ...
+
+> CONFIG_NO_HZ=y
+> CONFIG_HZ_1000=y
+> CONFIG_HZ=1000
 > 
->    char pattern[256];
->    int patlen;
->    patlen = strlen(pattern, 4);
-> 
-> The "4" is sizeof(int) rather than the size of "pattern"
+> One cpu is 100% handling softirqs, could it be the problem ?
 
-Indeed. This was broken in:
-
-http://git.netfilter.org/cgi-bin/gitweb.cgi?p=iptables.git;a=commitdiff;h=37b4bde745698bf140d74e59a2561f34deeb8726;hp=41f03ba382dfd26e7db939fd02447058b1c56f7b
-
-Fix is attached.
-
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
-
---------------010708020102000001080301
-Content-Type: text/x-diff;
- name="fix-string.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="fix-string.patch"
-
-string: fix wrong pattern length calculation
-
-This fixes a problem introduced in 37b4bde745698bf140d74e59a2561f34deeb8726
-that leads to the wrong calculation of the pattern length in the
-string match.
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-
- extensions/libxt_string.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
-
-
-diff --git a/extensions/libxt_string.c b/extensions/libxt_string.c
-index 5ea529e..ba4b720 100644
---- a/extensions/libxt_string.c
-+++ b/extensions/libxt_string.c
-@@ -64,9 +64,10 @@ static void string_init(struct xt_entry_match *m)
- static void
- parse_string(const char *s, struct xt_string_info *info)
- {	
-+	/* xt_string does not need \0 at the end of the pattern */
- 	if (strlen(s) <= XT_STRING_MAX_PATTERN_SIZE) {
- 		strncpy(info->pattern, s, XT_STRING_MAX_PATTERN_SIZE);
--		info->patlen = strlen(s);
-+		info->patlen = strnlen(s, XT_STRING_MAX_PATTERN_SIZE);
- 		return;
- 	}
- 	xtables_error(PARAMETER_PROBLEM, "STRING too long \"%s\"", s);
-@@ -75,7 +76,8 @@ parse_string(const char *s, struct xt_string_info *info)
- static void
- parse_algo(const char *s, struct xt_string_info *info)
- {
--	if (strlen(s) <= XT_STRING_MAX_ALGO_NAME_SIZE) {
-+	/* xt_string needs \0 for algo name */
-+	if (strlen(s) < XT_STRING_MAX_ALGO_NAME_SIZE) {
- 		strncpy(info->algo, s, XT_STRING_MAX_ALGO_NAME_SIZE);
- 		return;
- 	}
-@@ -208,8 +210,6 @@ string_parse(int c, char **argv, int invert, unsigned int *flags,
- 			else
- 				stringinfo->u.v1.flags |= XT_STRING_FLAG_INVERT;
- 		}
--		stringinfo->patlen = strnlen((char *)&stringinfo->pattern,
--			sizeof(stringinfo->patlen));
- 		*flags |= STRING;
- 		break;
- 
-
---------------010708020102000001080301--
+Is this fixed by your RCU quiescent state fix?
