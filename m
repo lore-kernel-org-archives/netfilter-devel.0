@@ -1,55 +1,42 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] iptables: lock free counters
-Date: Mon, 02 Mar 2009 23:07:18 +0100
-Message-ID: <49AC5896.1010400@trash.net>
-References: <20090218051906.174295181@vyatta.com>	<20090218052747.321329022@vyatta.com>	<20090219114719.560999b5@extreme>	<499DEF49.3040602@cosmosbay.com>	<49A7F262.8040805@cosmosbay.com>	<49ABBB21.9080401@trash.net>	<49AC1B9D.5030107@cosmosbay.com>	<49AC5617.8020404@trash.net> <20090302140243.3aad4d5b@nehalam>
+Subject: Re: [PATCH] iptables: new strict host model match
+Date: Mon, 02 Mar 2009 23:12:30 +0100
+Message-ID: <49AC59CE.8000703@trash.net>
+References: <20090226175247.5e56910f@nehalam>	<Pine.LNX.4.64.0903021427570.27363@ask.diku.dk> <20090302105310.6c247f88@s6510>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Eric Dumazet <dada1@cosmosbay.com>,
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Jesper Dangaard Brouer <hawk@diku.dk>,
 	David Miller <davem@davemloft.net>,
-	Rick Jones <rick.jones2@hp.com>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 To: Stephen Hemminger <shemminger@vyatta.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55488 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753101AbZCBWHX (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Mar 2009 17:07:23 -0500
-In-Reply-To: <20090302140243.3aad4d5b@nehalam>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20090302105310.6c247f88@s6510>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 Stephen Hemminger wrote:
-> On Mon, 02 Mar 2009 22:56:39 +0100
-> Patrick McHardy <kaber@trash.net> wrote:
->=20
->> Eric Dumazet wrote:
->>> Patrick McHardy a =E9crit :
->>>> Eric Dumazet wrote:
->>>>> real    0m1.810s
->>>>> user    0m0.000s
->>>>> sys     0m0.001s
->>>> Thats really slow ...
->>>>
->>>>> CONFIG_NO_HZ=3Dy
->>>>> CONFIG_HZ_1000=3Dy
->>>>> CONFIG_HZ=3D1000
->>>>>
->>>>> One cpu is 100% handling softirqs, could it be the problem ?
->>>> Is this fixed by your RCU quiescent state fix?
->>> Yes it is :)
->> Great, thanks :)
->=20
-> I wonder if the RCU quiescent fix should go in 2.6.29 because it
-> fixes other issues like route changing RCU latency under Dos attack.
+> On Mon, 2 Mar 2009 14:42:33 +0100 (CET)
+> Jesper Dangaard Brouer <hawk@diku.dk> wrote:
+> 
+>> On Thu, 26 Feb 2009, Stephen Hemminger wrote:
+>>
+>>> This is a simple little iptables match that can be used to create the Strong
+>>> End System model, that router and other non-Linux customers expect. There
+>>> are management and other applications that use ping and expect to only get
+>>> a response when the interface with that address is up. Normally, a Linux
+>>> system will respond to a packet that arrives for any of the system addresses
+>>> independent of which link it arrives on.
+>> Is this no almost the same as:
+>>
+>>   echo 1 > /proc/sys/net/ipv4/conf/all/arp_ignore
+>>
+>>
+> 
+> That doesn't work when system already has an ARP entry and link goes down.
 
- From what I can tell, it should.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I think it would make sense to define the differences in behaviour
+that are expected when acting according to the strict host model.
+It very unlikely that all of this can be achieved with iptables,
+and if what can be done is still useful, the limitations should be
+known.
