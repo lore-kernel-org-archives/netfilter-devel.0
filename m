@@ -1,50 +1,37 @@
-From: Eric Dumazet <dada1@cosmosbay.com>
-Subject: Re: [PATCH] iptables: lock free counters
-Date: Mon, 02 Mar 2009 18:47:09 +0100
-Message-ID: <49AC1B9D.5030107@cosmosbay.com>
-References: <20090218051906.174295181@vyatta.com>	<20090218052747.321329022@vyatta.com> <20090219114719.560999b5@extreme> <499DEF49.3040602@cosmosbay.com> <49A7F262.8040805@cosmosbay.com> <49ABBB21.9080401@trash.net>
+From: Stephen Hemminger <shemminger@vyatta.com>
+Subject: Re: [PATCH] iptables: new strict host model match
+Date: Mon, 2 Mar 2009 10:53:10 -0800
+Message-ID: <20090302105310.6c247f88@s6510>
+References: <20090226175247.5e56910f@nehalam>
+	<Pine.LNX.4.64.0903021427570.27363@ask.diku.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Stephen Hemminger <shemminger@vyatta.com>,
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: Patrick McHardy <kaber@trash.net>,
 	David Miller <davem@davemloft.net>,
-	Rick Jones <rick.jones2@hp.com>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-To: Patrick McHardy <kaber@trash.net>
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Jesper Dangaard Brouer <hawk@diku.dk>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <49ABBB21.9080401@trash.net>
+In-Reply-To: <Pine.LNX.4.64.0903021427570.27363@ask.diku.dk>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy a =E9crit :
-> Eric Dumazet wrote:
->> # time iptables -nvL
->> Chain INPUT (policy ACCEPT 416M packets, 64G bytes)
->>  pkts bytes target     prot opt in     out     source             =20
->> destination
->>
->> Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
->>  pkts bytes target     prot opt in     out     source             =20
->> destination
->>
->> Chain OUTPUT (policy ACCEPT 401M packets, 62G bytes)
->>  pkts bytes target     prot opt in     out     source             =20
->> destination
->>
->> real    0m1.810s
->> user    0m0.000s
->> sys     0m0.001s
->=20
-> Thats really slow ...
->=20
->> CONFIG_NO_HZ=3Dy
->> CONFIG_HZ_1000=3Dy
->> CONFIG_HZ=3D1000
->>
->> One cpu is 100% handling softirqs, could it be the problem ?
->=20
-> Is this fixed by your RCU quiescent state fix?
+On Mon, 2 Mar 2009 14:42:33 +0100 (CET)
+Jesper Dangaard Brouer <hawk@diku.dk> wrote:
 
-Yes it is :)
+> On Thu, 26 Feb 2009, Stephen Hemminger wrote:
+> 
+> > This is a simple little iptables match that can be used to create the Strong
+> > End System model, that router and other non-Linux customers expect. There
+> > are management and other applications that use ping and expect to only get
+> > a response when the interface with that address is up. Normally, a Linux
+> > system will respond to a packet that arrives for any of the system addresses
+> > independent of which link it arrives on.
+> 
+> Is this no almost the same as:
+> 
+>   echo 1 > /proc/sys/net/ipv4/conf/all/arp_ignore
+> 
+>
 
+That doesn't work when system already has an ARP entry and link goes down.
