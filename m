@@ -1,48 +1,57 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] iptables: lock free counters
-Date: Mon, 02 Mar 2009 11:55:29 +0100
-Message-ID: <49ABBB21.9080401@trash.net>
-References: <20090218051906.174295181@vyatta.com>	<20090218052747.321329022@vyatta.com> <20090219114719.560999b5@extreme> <499DEF49.3040602@cosmosbay.com> <49A7F262.8040805@cosmosbay.com>
+Subject: Re: [PATCH] iptables: new strict host model match
+Date: Mon, 02 Mar 2009 12:02:05 +0100
+Message-ID: <49ABBCAD.9030203@trash.net>
+References: <20090226175247.5e56910f@nehalam>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Stephen Hemminger <shemminger@vyatta.com>,
-	David Miller <davem@davemloft.net>,
-	Rick Jones <rick.jones2@hp.com>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-To: Eric Dumazet <dada1@cosmosbay.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:41917 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755541AbZCBKzf (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Mar 2009 05:55:35 -0500
-In-Reply-To: <49A7F262.8040805@cosmosbay.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: David Miller <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Stephen Hemminger <shemminger@vyatta.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20090226175247.5e56910f@nehalam>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Eric Dumazet wrote:
-> # time iptables -nvL
-> Chain INPUT (policy ACCEPT 416M packets, 64G bytes)
->  pkts bytes target     prot opt in     out     source               destination
+Stephen Hemminger wrote:
+> This is a simple little iptables match that can be used to create the Strong
+> End System model, that router and other non-Linux customers expect. There
+> are management and other applications that use ping and expect to only get
+> a response when the interface with that address is up. Normally, a Linux
+> system will respond to a packet that arrives for any of the system addresses
+> independent of which link it arrives on.
 > 
-> Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
->  pkts bytes target     prot opt in     out     source               destination
+> The module can be used on the INPUT chain like:
 > 
-> Chain OUTPUT (policy ACCEPT 401M packets, 62G bytes)
->  pkts bytes target     prot opt in     out     source               destination
-> 
-> real    0m1.810s
-> user    0m0.000s
-> sys     0m0.001s
+> # iptables -P INPUT DROP
+> # iptables -A INPUT -m strict -j ACCEPT
 
-Thats really slow ...
+The idea makes sense ..
 
-> CONFIG_NO_HZ=y
-> CONFIG_HZ_1000=y
-> CONFIG_HZ=1000
-> 
-> One cpu is 100% handling softirqs, could it be the problem ?
+> +static bool strict_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+> +{
+> +	struct in_device *in_dev;
+> +	bool ret;
+> +
+> +	rcu_read_lock();
+> +	in_dev = __in_dev_get_rcu(skb->dev);
+> +	ret = (in_dev && inet_addr_onlink(in_dev, ip_hdr(skb)->daddr, 0));
+> +	rcu_read_unlock();
+> +
+> +	return ret;
+> +}
 
-Is this fixed by your RCU quiescent state fix?
+I'm not sure this is correct, I think it will only allow communication
+with truely on-link addresses, meaning it won't accept routed packets
+going to the interface address. Generally I don't think this can be
+fully done in iptables since you'd still have to deal with ARP etc.
+An IPv4 sysctl might be more appropriate.
+
+Just for the IPv4 packets, I'm wondering if the intended result could
+be achieved using the addrtype match. Something like:
+
+-m addrtype --limit-iface-in --dst-type LOCAL
+
+should check whether the destination address is local to the receiving
+interface.
