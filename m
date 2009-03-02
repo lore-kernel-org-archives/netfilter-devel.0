@@ -1,32 +1,61 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: why does tcpmss_reverse_mtu() in xt_TCPMSS.c call
- dst_release()
-Date: Mon, 2 Mar 2009 14:32:30 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0903021431210.30028@fbirervta.pbzchgretzou.qr>
-References: <885896af0903020508x25bbe37evb5d6ffd6f4f2c582@mail.gmail.com>
+From: Jesper Dangaard Brouer <hawk@diku.dk>
+Subject: Re: [PATCH] iptables: new strict host model match
+Date: Mon, 2 Mar 2009 14:42:33 +0100 (CET)
+Message-ID: <Pine.LNX.4.64.0903021427570.27363@ask.diku.dk>
+References: <20090226175247.5e56910f@nehalam>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Giacomo <delleceste@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Patrick McHardy <kaber@trash.net>,
+	David Miller <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Stephen Hemminger <shemminger@vyatta.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:46144 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751639AbZCBNcd (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Mar 2009 08:32:33 -0500
-In-Reply-To: <885896af0903020508x25bbe37evb5d6ffd6f4f2c582@mail.gmail.com>
+Received: from mgw2.diku.dk ([130.225.96.92]:44378 "EHLO mgw2.diku.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750772AbZCBNmi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 2 Mar 2009 08:42:38 -0500
+In-Reply-To: <20090226175247.5e56910f@nehalam>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Thu, 26 Feb 2009, Stephen Hemminger wrote:
 
-On Monday 2009-03-02 14:08, Giacomo wrote:
+> This is a simple little iptables match that can be used to create the Strong
+> End System model, that router and other non-Linux customers expect. There
+> are management and other applications that use ping and expect to only get
+> a response when the interface with that address is up. Normally, a Linux
+> system will respond to a packet that arrives for any of the system addresses
+> independent of which link it arrives on.
 
->Good morning. A simple question this time:
->
->why does tcpmss_reverse_mtu() in xt_TCPMSS.c call dst_release() after dst_mtu()?
->
->I saw that dst_release decrements reference count of the passed struct
->dst_entry*.
+Is this no almost the same as:
 
-A route entry will be created with ai->route(), but since all we want is 
-the MTU, this dst/route is released again so that it will get gc'ed.
+  echo 1 > /proc/sys/net/ipv4/conf/all/arp_ignore
+
+
+
+> +static bool strict_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+> +{
+> +	struct in_device *in_dev;
+> +	bool ret;
+> +
+> +	rcu_read_lock();
+> +	in_dev = __in_dev_get_rcu(skb->dev);
+> +	ret = (in_dev && inet_addr_onlink(in_dev, ip_hdr(skb)->daddr, 0));
+
+inet_addr_onlink() will call
+  -> inet_ifa_match(ip_hdr(skb)->daddr, ifa)
+
+arp_ignore = 1
+  -> inet_confirm_addr(in_dev, 0, tip, RT_SCOPE_HOST)
+     -> inet_ifa_match(tip, ifa)
+
+
+Hilsen
+   Jesper Brouer
+
+--
+-------------------------------------------------------------------
+MSc. Master of Computer Science
+Dept. of Computer Science, University of Copenhagen
+Author of http://www.adsl-optimizer.dk
+-------------------------------------------------------------------
