@@ -1,69 +1,42 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] netfilter: remove IPvX specific parts from
- nf_conntrack_l4proto.h
-Date: Tue, 10 Mar 2009 17:15:12 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0903101714170.23653@fbirervta.pbzchgretzou.qr>
-References: <1236615258-12897-1-git-send-email-christoph.paasch@gmail.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, kaber@trash.net
-To: Christoph Paasch <christoph.paasch@gmail.com>
+From: Scott James Remnant <scott@canonical.com>
+Subject: [PATCH 05/31] netfilter: Auto-load ip6_queue module when socket opened.
+Date: Mon, 2 Mar 2009 17:05:12 +0000
+Message-ID: <1ac10308df52b2e58c3a77313d3608c1a130341f.1236702228.git.scott@canonical.com>
+References: <cover.1236702228.git.scott@canonical.com>
+Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
+To: linux-kernel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:55030 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753006AbZCJQPO (ORCPT
+Received: from zelda.netsplit.com ([87.194.19.211]:34590 "EHLO
+	zelda.netsplit.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754848AbZCJQni (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Mar 2009 12:15:14 -0400
-In-Reply-To: <1236615258-12897-1-git-send-email-christoph.paasch@gmail.com>
+	Tue, 10 Mar 2009 12:43:38 -0400
+In-Reply-To: <cover.1236702228.git.scott@canonical.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+The ip6_queue module is missing the net-pf-16-proto-13 alias that would
+cause it to be auto-loaded when a socket of that type is opened.  This
+patch adds the alias.
 
+Signed-off-by: Scott James Remnant <scott@canonical.com>
+Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
+---
+ net/ipv6/netfilter/ip6_queue.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-On Monday 2009-03-09 17:14, Christoph Paasch wrote:
+diff --git a/net/ipv6/netfilter/ip6_queue.c b/net/ipv6/netfilter/ip6_queue.c
+index 5859c04..b693f84 100644
+--- a/net/ipv6/netfilter/ip6_queue.c
++++ b/net/ipv6/netfilter/ip6_queue.c
+@@ -643,6 +643,7 @@ static void __exit ip6_queue_fini(void)
+ 
+ MODULE_DESCRIPTION("IPv6 packet queue handler");
+ MODULE_LICENSE("GPL");
++MODULE_ALIAS_NET_PF_PROTO(PF_NETLINK, NETLINK_IP6_FW);
+ 
+ module_init(ip6_queue_init);
+ module_exit(ip6_queue_fini);
+-- 
+1.6.0.5
 
->Moving the structure definitions to the corresponding IPvX specific header files.
->---
-> include/net/netfilter/nf_conntrack_l4proto.h   |    5 +----
-> net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |    1 +
-> net/netfilter/nf_conntrack_proto_tcp.c         |    2 ++
-> net/netfilter/nf_conntrack_proto_udp.c         |    2 ++
-> 4 files changed, 6 insertions(+), 4 deletions(-)
-
-
-Seems good to go to me. Patrick?
-
-
->diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
->index debdaf7..16ab604 100644
->--- a/include/net/netfilter/nf_conntrack_l4proto.h
->+++ b/include/net/netfilter/nf_conntrack_l4proto.h
->@@ -90,10 +90,7 @@ struct nf_conntrack_l4proto
-> 	struct module *me;
-> };
-> 
->-/* Existing built-in protocols */
->-extern struct nf_conntrack_l4proto nf_conntrack_l4proto_tcp6;
->-extern struct nf_conntrack_l4proto nf_conntrack_l4proto_udp4;
->-extern struct nf_conntrack_l4proto nf_conntrack_l4proto_udp6;
->+/* Existing built-in generic protocol */
-> extern struct nf_conntrack_l4proto nf_conntrack_l4proto_generic;
-> 
-> #define MAX_NF_CT_PROTO 256
->diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
->index 727b953..e6852f6 100644
->--- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
->+++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
->@@ -26,6 +26,7 @@
-> #include <net/netfilter/nf_conntrack_l4proto.h>
-> #include <net/netfilter/nf_conntrack_l3proto.h>
-> #include <net/netfilter/nf_conntrack_core.h>
->+#include <net/netfilter/ipv6/nf_conntrack_ipv6.h>
-> 
-> static bool ipv6_pkt_to_tuple(const struct sk_buff *skb, unsigned int nhoff,
-> 			      struct nf_conntrack_tuple *tuple)
->diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
->index a1edb9c..7d3944f 100644
-
->[...]
