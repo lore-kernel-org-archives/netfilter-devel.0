@@ -1,57 +1,52 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] iptables: new strict host model match
-Date: Mon, 02 Mar 2009 12:02:05 +0100
-Message-ID: <49ABBCAD.9030203@trash.net>
-References: <20090226175247.5e56910f@nehalam>
+From: Giacomo <delleceste@gmail.com>
+Subject: why does tcpmss_reverse_mtu() in xt_TCPMSS.c call dst_release()
+Date: Mon, 2 Mar 2009 14:08:11 +0100
+Message-ID: <885896af0903020508x25bbe37evb5d6ffd6f4f2c582@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: David Miller <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Stephen Hemminger <shemminger@vyatta.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20090226175247.5e56910f@nehalam>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from nf-out-0910.google.com ([64.233.182.187]:25689 "EHLO
+	nf-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751234AbZCBNIO (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 2 Mar 2009 08:08:14 -0500
+Received: by nf-out-0910.google.com with SMTP id d21so492434nfb.21
+        for <netfilter-devel@vger.kernel.org>; Mon, 02 Mar 2009 05:08:12 -0800 (PST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Stephen Hemminger wrote:
-> This is a simple little iptables match that can be used to create the Strong
-> End System model, that router and other non-Linux customers expect. There
-> are management and other applications that use ping and expect to only get
-> a response when the interface with that address is up. Normally, a Linux
-> system will respond to a packet that arrives for any of the system addresses
-> independent of which link it arrives on.
-> 
-> The module can be used on the INPUT chain like:
-> 
-> # iptables -P INPUT DROP
-> # iptables -A INPUT -m strict -j ACCEPT
+Good morning. A simple question this time:
 
-The idea makes sense ..
+why does tcpmss_reverse_mtu() in xt_TCPMSS.c call dst_release() after dst_mtu()?
 
-> +static bool strict_mt(const struct sk_buff *skb, const struct xt_match_param *par)
-> +{
-> +	struct in_device *in_dev;
-> +	bool ret;
-> +
-> +	rcu_read_lock();
-> +	in_dev = __in_dev_get_rcu(skb->dev);
-> +	ret = (in_dev && inet_addr_onlink(in_dev, ip_hdr(skb)->daddr, 0));
-> +	rcu_read_unlock();
-> +
-> +	return ret;
-> +}
+I saw that dst_release decrements reference count of the passed struct
+dst_entry*.
 
-I'm not sure this is correct, I think it will only allow communication
-with truely on-link addresses, meaning it won't accept routed packets
-going to the interface address. Generally I don't think this can be
-fully done in iptables since you'd still have to deal with ARP etc.
-An IPv4 sysctl might be more appropriate.
+Is it called because of dst_mtu() or because of ip_route_output_key() ?
 
-Just for the IPv4 packets, I'm wondering if the intended result could
-be achieved using the addrtype match. Something like:
+thank you.
 
--m addrtype --limit-iface-in --dst-type LOCAL
+-- 
+Giacomo S.
+http://www.giacomos.it
 
-should check whether the destination address is local to the receiving
-interface.
+- - - - - - - - - - - - - - - - - - - - - -
+
+* Aprile 2008: iqfire-wall, un progetto
+  open source che implementa un
+  filtro di pacchetti di rete per Linux,
+  e` disponibile per il download qui:
+  http://sourceforge.net/projects/ipfire-wall
+
+* Informazioni e pagina web ufficiale:
+  http://www.giacomos.it/iqfire/index.html
+
+- - - - - - - - - - - - - - - - - - - - - -
+
+ . ''  `.
+:   :'    :
+ `.  ` '
+    `- Debian GNU/Linux -- The power of freedom
+        http://www.debian.org
