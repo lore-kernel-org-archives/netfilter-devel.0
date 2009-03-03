@@ -1,83 +1,256 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH] iptables: fix broken options-merging during libxtables rework
-Date: Tue, 03 Mar 2009 17:49:09 +0100
-Message-ID: <20090303164909.15156.82748.stgit@Decadence>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: netfilter: xtables: avoid pointer to self
+Date: Tue, 3 Mar 2009 18:09:20 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0903031806350.8887@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: jengelh@medozas.de, hadi@cyberus.ca
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59044 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751791AbZCCQzz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 3 Mar 2009 11:55:55 -0500
+Received: from sovereign.computergmbh.de ([85.214.69.204]:50195 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752301AbZCCRJX (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 3 Mar 2009 12:09:23 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch fixes options-merging that was broken somewhere
-during the libxtables rework. Before this patch, two pointers
-were used to keep the current options, however, the options field
-in xt_params was not appropritely updated. Thus, xtables_free_opts()
-was not restoring the original options.
 
-This patch fixes iptables-restore and ip6tables-restore that
-stopped working in my personal firewall.
+(There is a 2nd patch as reply, could you please fold that.)
 
-% iptables-restore
-*filter
--A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
--A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
-iptables-restore v1.4.3-rc1: Unknown arg `ESTABLISHED,RELATED'
-Error occurred at line: 4
-Try `iptables-restore -h' or 'iptables-restore --help' for more information.
+---8<---
+netfilter: xtables: avoid pointer to self
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Commit 784544739a25c30637397ace5489eeb6e15d7d49 (netfilter: iptables: 
+lock free counters) broke a number of modules whose rule data referenced 
+itself. A reallocation would not reestablish the correct references, so 
+it is best to use a separate struct that does not fall under RCU.
+
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
 
- ip6tables.c |    2 +-
- iptables.c  |    3 +--
- 2 files changed, 2 insertions(+), 3 deletions(-)
+ include/linux/netfilter/xt_limit.h     |    9 ++++---
+ include/linux/netfilter/xt_statistic.h |    7 +++---
+ net/netfilter/xt_limit.c               |   40 +++++++++++++++++++++++---------
+ net/netfilter/xt_statistic.c           |   28 ++++++++++++++++++----
+ 4 files changed, 61 insertions(+), 23 deletions(-)
 
-diff --git a/ip6tables.c b/ip6tables.c
-index 87663ef..54366b0 100644
---- a/ip6tables.c
-+++ b/ip6tables.c
-@@ -141,7 +141,6 @@ static struct option original_opts[] = {
-  * magic number of -1 */
- int line = -1;
+
+diff --git a/include/linux/netfilter/xt_limit.h b/include/linux/netfilter/xt_limit.h
+index b3ce653..fda222c 100644
+--- a/include/linux/netfilter/xt_limit.h
++++ b/include/linux/netfilter/xt_limit.h
+@@ -4,6 +4,8 @@
+ /* timings are in milliseconds. */
+ #define XT_LIMIT_SCALE 10000
  
--static struct option *opts = original_opts;
- void ip6tables_exit_error(enum xtables_exittype status, const char *msg, ...) __attribute__((noreturn, format(printf,2,3)));
- struct xtables_globals ip6tables_globals = {
- 	.option_offset = 0,
-@@ -194,6 +193,7 @@ static int inverse_for_options[NUMBER_OF_OPT] =
- /* -c */ 0,
++struct xt_limit_priv;
++
+ /* 1/10,000 sec period => max of 10,000/sec.  Min rate is then 429490
+    seconds, or one every 59 hours. */
+ struct xt_rateinfo {
+@@ -11,11 +13,10 @@ struct xt_rateinfo {
+ 	u_int32_t burst;  /* Period multiplier for upper limit. */
+ 
+ 	/* Used internally by the kernel */
+-	unsigned long prev;
+-	u_int32_t credit;
++	unsigned long prev; /* moved to xt_limit_priv */
++	u_int32_t credit; /* moved to xt_limit_priv */
+ 	u_int32_t credit_cap, cost;
+ 
+-	/* Ugly, ugly fucker. */
+-	struct xt_rateinfo *master;
++	struct xt_limit_priv *master;
+ };
+ #endif /*_XT_RATE_H*/
+diff --git a/include/linux/netfilter/xt_statistic.h b/include/linux/netfilter/xt_statistic.h
+index 3d38bc9..8f521ab 100644
+--- a/include/linux/netfilter/xt_statistic.h
++++ b/include/linux/netfilter/xt_statistic.h
+@@ -13,6 +13,8 @@ enum xt_statistic_flags {
+ };
+ #define XT_STATISTIC_MASK		0x1
+ 
++struct xt_statistic_priv;
++
+ struct xt_statistic_info {
+ 	u_int16_t			mode;
+ 	u_int16_t			flags;
+@@ -23,11 +25,10 @@ struct xt_statistic_info {
+ 		struct {
+ 			u_int32_t	every;
+ 			u_int32_t	packet;
+-			/* Used internally by the kernel */
+-			u_int32_t	count;
++			u_int32_t	count; /* unused */
+ 		} nth;
+ 	} u;
+-	struct xt_statistic_info	*master __attribute__((aligned(8)));
++	struct xt_statistic_priv *master __attribute__((aligned(8)));
  };
  
-+#define opts ip6tables_globals.opts
- #define prog_name ip6tables_globals.program_name
- #define prog_vers ip6tables_globals.program_version
- /* A few hardcoded protocols for 'all' and in case the user has no
-diff --git a/iptables.c b/iptables.c
-index bd177c7..8e37bee 100644
---- a/iptables.c
-+++ b/iptables.c
-@@ -140,8 +140,6 @@ static struct option original_opts[] = {
-  * magic number of -1 */
- int line = -1;
+ #endif /* _XT_STATISTIC_H */
+diff --git a/net/netfilter/xt_limit.c b/net/netfilter/xt_limit.c
+index c908d69..2e8089e 100644
+--- a/net/netfilter/xt_limit.c
++++ b/net/netfilter/xt_limit.c
+@@ -14,6 +14,11 @@
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter/xt_limit.h>
  
--static struct option *opts = original_opts;
--
- void iptables_exit_error(enum xtables_exittype status, const char *msg, ...) __attribute__((noreturn, format(printf,2,3)));
++struct xt_limit_priv {
++	unsigned long prev;
++	uint32_t credit;
++};
++
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Herve Eychenne <rv@wallfire.org>");
+ MODULE_DESCRIPTION("Xtables: rate-limit match");
+@@ -60,18 +65,18 @@ static DEFINE_SPINLOCK(limit_lock);
+ static bool
+ limit_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+ {
+-	struct xt_rateinfo *r =
+-		((const struct xt_rateinfo *)par->matchinfo)->master;
++	const struct xt_rateinfo *r = par->matchinfo;
++	struct xt_limit_priv *priv = r->master;
+ 	unsigned long now = jiffies;
  
- struct xtables_globals iptables_globals = {
-@@ -196,6 +194,7 @@ static int inverse_for_options[NUMBER_OF_OPT] =
- /* -c */ 0,
+ 	spin_lock_bh(&limit_lock);
+-	r->credit += (now - xchg(&r->prev, now)) * CREDITS_PER_JIFFY;
+-	if (r->credit > r->credit_cap)
+-		r->credit = r->credit_cap;
++	priv->credit += (now - xchg(&priv->prev, now)) * CREDITS_PER_JIFFY;
++	if (priv->credit > r->credit_cap)
++		priv->credit = r->credit_cap;
+ 
+-	if (r->credit >= r->cost) {
++	if (priv->credit >= r->cost) {
+ 		/* We're not limited. */
+-		r->credit -= r->cost;
++		priv->credit -= r->cost;
+ 		spin_unlock_bh(&limit_lock);
+ 		return true;
+ 	}
+@@ -95,6 +100,7 @@ user2credits(u_int32_t user)
+ static bool limit_mt_check(const struct xt_mtchk_param *par)
+ {
+ 	struct xt_rateinfo *r = par->matchinfo;
++	struct xt_limit_priv *priv;
+ 
+ 	/* Check for overflow. */
+ 	if (r->burst == 0
+@@ -104,19 +110,30 @@ static bool limit_mt_check(const struct xt_mtchk_param *par)
+ 		return false;
+ 	}
+ 
+-	/* For SMP, we only want to use one set of counters. */
+-	r->master = r;
++	priv = kmalloc(sizeof(*priv), GFP_KERNEL);
++	if (priv == NULL)
++		return -ENOMEM;
++
++	/* For SMP, we only want to use one set of state. */
++	r->master = priv;
+ 	if (r->cost == 0) {
+ 		/* User avg in seconds * XT_LIMIT_SCALE: convert to jiffies *
+ 		   128. */
+-		r->prev = jiffies;
+-		r->credit = user2credits(r->avg * r->burst);	 /* Credits full. */
++		priv->prev = jiffies;
++		priv->credit = user2credits(r->avg * r->burst); /* Credits full. */
+ 		r->credit_cap = user2credits(r->avg * r->burst); /* Credits full. */
+ 		r->cost = user2credits(r->avg);
+ 	}
+ 	return true;
+ }
+ 
++static void limit_mt_destroy(const struct xt_mtdtor_param *par)
++{
++	const struct xt_rateinfo *info = par->matchinfo;
++
++	kfree(info->master);
++}
++
+ #ifdef CONFIG_COMPAT
+ struct compat_xt_rateinfo {
+ 	u_int32_t avg;
+@@ -167,6 +184,7 @@ static struct xt_match limit_mt_reg __read_mostly = {
+ 	.family           = NFPROTO_UNSPEC,
+ 	.match            = limit_mt,
+ 	.checkentry       = limit_mt_check,
++	.destroy          = limit_mt_destroy,
+ 	.matchsize        = sizeof(struct xt_rateinfo),
+ #ifdef CONFIG_COMPAT
+ 	.compatsize       = sizeof(struct compat_xt_rateinfo),
+diff --git a/net/netfilter/xt_statistic.c b/net/netfilter/xt_statistic.c
+index 0d75141..d8c0f8f 100644
+--- a/net/netfilter/xt_statistic.c
++++ b/net/netfilter/xt_statistic.c
+@@ -16,6 +16,10 @@
+ #include <linux/netfilter/xt_statistic.h>
+ #include <linux/netfilter/x_tables.h>
+ 
++struct xt_statistic_priv {
++	uint32_t count;
++};
++
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+ MODULE_DESCRIPTION("Xtables: statistics-based matching (\"Nth\", random)");
+@@ -27,7 +31,7 @@ static DEFINE_SPINLOCK(nth_lock);
+ static bool
+ statistic_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+ {
+-	struct xt_statistic_info *info = (void *)par->matchinfo;
++	const struct xt_statistic_info *info = par->matchinfo;
+ 	bool ret = info->flags & XT_STATISTIC_INVERT;
+ 
+ 	switch (info->mode) {
+@@ -36,10 +40,9 @@ statistic_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+ 			ret = !ret;
+ 		break;
+ 	case XT_STATISTIC_MODE_NTH:
+-		info = info->master;
+ 		spin_lock_bh(&nth_lock);
+-		if (info->u.nth.count++ == info->u.nth.every) {
+-			info->u.nth.count = 0;
++		if (info->master->count++ == info->u.nth.every) {
++			info->master->count = 0;
+ 			ret = !ret;
+ 		}
+ 		spin_unlock_bh(&nth_lock);
+@@ -56,16 +59,31 @@ static bool statistic_mt_check(const struct xt_mtchk_param *par)
+ 	if (info->mode > XT_STATISTIC_MODE_MAX ||
+ 	    info->flags & ~XT_STATISTIC_MASK)
+ 		return false;
+-	info->master = info;
++
++	info->master = kzalloc(sizeof(*info->master), GFP_KERNEL);
++	if (info->master == NULL) {
++		printk(KERN_ERR KBUILD_MODNAME ": Out of memory\n");
++		return false;
++	}
++	info->master->count = info->u.nth.count;
++
+ 	return true;
+ }
+ 
++static void statistic_mt_destroy(const struct xt_mtdtor_param *par)
++{
++	const struct xt_statistic_info *info = par->matchinfo;
++
++	kfree(info->master);
++}
++
+ static struct xt_match xt_statistic_mt_reg __read_mostly = {
+ 	.name       = "statistic",
+ 	.revision   = 0,
+ 	.family     = NFPROTO_UNSPEC,
+ 	.match      = statistic_mt,
+ 	.checkentry = statistic_mt_check,
++	.destroy    = statistic_mt_destroy,
+ 	.matchsize  = sizeof(struct xt_statistic_info),
+ 	.me         = THIS_MODULE,
  };
- 
-+#define opts iptables_globals.opts
- #define prog_name iptables_globals.program_name
- #define prog_vers iptables_globals.program_version
- 
-
