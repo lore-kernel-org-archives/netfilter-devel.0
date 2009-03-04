@@ -1,59 +1,74 @@
-From: Bryan Duff <bduff@ecessa.com>
-Subject: Re: operation failure on delete
-Date: Wed, 04 Mar 2009 13:01:14 -0600
-Message-ID: <49AECFFA.6030401@astrocorp.com>
-References: <49AEA966.2020007@astrocorp.com> <49AEC4A8.7020000@netfilter.org>
+From: Fred Moyer <fred@redhotpenguin.com>
+Subject: build error when compiling nfsim against 2.6.23.17
+Date: Wed, 4 Mar 2009 12:23:35 -0800
+Message-ID: <ad28918e0903041223t7edb61d3hb479b3ca3c91ed26@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.astrocorp.com ([75.160.64.129]:21606 "EHLO
-	mail.astrocorp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755229AbZCDTBH (ORCPT
+Received: from rv-out-0506.google.com ([209.85.198.238]:60702 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754384AbZCDUXh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 4 Mar 2009 14:01:07 -0500
-In-Reply-To: <49AEC4A8.7020000@netfilter.org>
+	Wed, 4 Mar 2009 15:23:37 -0500
+Received: by rv-out-0506.google.com with SMTP id g37so3477044rvb.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 04 Mar 2009 12:23:35 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Thanks, the patch works.
+I'm developing a connection tracking module for the 2.6.23.17 kernel
+using the nf_conntrack helper examples (actually porting a nat module
+I had for 2.4.30) and am trying to use the nfsim test framework
+instead of my previous crude method of sending packets through the
+machine.
 
-Adding esp would be superfantabulous as well.
+I checked out a copy of nfsim and nfsim-testsuite from netfilter trunk
+svn, and configured nfism with the command './configure
+--kerneldir=../linux-2.6.23.17'.  However I encountered an error when
+running make.  Should I be looking for an older tag of nfsim?  I'm
+guessing that I have a version conflict which is causing this failure.
+ I've also inlined my  gcc and make version (centos 5.2 linux
+environment).
 
--Bryan
+[phred@aircloud nfsim]$ make
+doc/gen-help tools/config.c
+Faking up config-help:config
+gcc -Wmissing-prototypes -Wstrict-prototypes -Wunused -Wall -ggdb
+-Wa,-W -I. -I/home/phred/SL-Kernel/nfsim/core
+-I/home/phred/SL-Kernel/nfsim/kernelenv/include
+-I/home/phred/SL-Kernel/nfsim/netfilter/include  -c -o tools/config.o
+tools/config.c; ret=$?; rm -f `basename tools/config.c .c`-help*; exit
+$ret
+In file included from tools/config.c:26:
+/home/phred/SL-Kernel/nfsim/netfilter/include/linux/netfilter_ipv4.h:78:
+error: conflicting types for 'ip_route_me_harder'
+/home/phred/SL-Kernel/nfsim/core/ipv4/ipv4.h:711: error: previous
+declaration of 'ip_route_me_harder' was here
+/home/phred/SL-Kernel/nfsim/netfilter/include/linux/netfilter_ipv4.h:80:
+error: expected '=', ',', ';', 'asm' or '__attribute__' before
+'nf_ip_checksum'
+make: *** [tools/config.o] Error 1
 
-Pablo Neira Ayuso wrote:
-> Bryan Duff wrote:
->   
->> //snip - conntrack search and attempted delete.
->> root@localhost / # conntrack -L -p gre  unknown  47 27 src=60.60.60.151
->> dst=192.168.2.2 packets=6 bytes=648 [UNREPLIED] src=10.10.10.100
->> dst=60.60.60.151 packets=0 bytes=0 mark=2 use=1
->> conntrack v0.9.11 (conntrack-tools): 1 flow entries has been shown.
->> root@localhost / # conntrack -D -p gre
->> conntrack v0.9.11 (conntrack-tools): Operation failed: invalid parameters
->> //end snip
->>
->> But I can delete tcp, udp, icmp conntrack entries.  I can only guess
->> that there is a problem with "unknown" protocols like gre (haven't
->> checked on esp, and so forth).  Using the protocol number (in this case
->> 47) also fails.
->>     
->
-> No, it seems that the problem is that libnetfilter_conntrack-0.0.99 does
-> not include support for GRE yet.
->
->   
->> I'm using  libnfnetlink-0.0.40 and libnetfilter_conntrack-0.0.99
->>
->> Kernel version 2.6.29-rc7.  The conntrack version is that released on
->> the website (md5sum: ae97d335ad44e9611adde881490c8ec9).
->>     
->
-> The following patch should add it, it compiles, I didn't tested though.
-> I'd appreciate if you call tell me how it goes with it.
->
->   
 
+[phred@aircloud nfsim]$ gcc -v
+Using built-in specs.
+Target: i386-redhat-linux
+Configured with: ../configure --prefix=/usr --mandir=/usr/share/man
+--infodir=/usr/share/info --enable-shared --enable-threads=posix
+--enable-checking=release --with-system-zlib --enable-__cxa_atexit
+--disable-libunwind-exceptions --enable-libgcj-multifile
+--enable-languages=c,c++,objc,obj-c++,java,fortran,ada
+--enable-java-awt=gtk --disable-dssi --enable-plugin
+--with-java-home=/usr/lib/jvm/java-1.4.2-gcj-1.4.2.0/jre
+--with-cpu=generic --host=i386-redhat-linux
+Thread model: posix
+gcc version 4.1.2 20071124 (Red Hat 4.1.2-42)
+[phred@aircloud nfsim]$ make -v
+GNU Make 3.81
+Copyright (C) 2006  Free Software Foundation, Inc.
+This is free software; see the source for copying conditions.
+There is NO warranty; not even for MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE.
+
+This program built for i686-redhat-linux-gnu
