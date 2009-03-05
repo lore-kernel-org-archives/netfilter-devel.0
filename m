@@ -1,30 +1,30 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: operation failure on delete
-Date: Thu, 05 Mar 2009 13:19:46 +0100
-Message-ID: <49AFC362.8050707@netfilter.org>
-References: <49AEA966.2020007@astrocorp.com> <49AEC4A8.7020000@netfilter.org> <49AECFFA.6030401@astrocorp.com>
+Subject: Re: build error when compiling nfsim against 2.6.23.17
+Date: Thu, 05 Mar 2009 13:25:31 +0100
+Message-ID: <49AFC4BB.8090102@netfilter.org>
+References: <ad28918e0903041223t7edb61d3hb479b3ca3c91ed26@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Bryan Duff <bduff@ecessa.com>
+To: Fred Moyer <fred@redhotpenguin.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:60177 "EHLO us.es"
+Received: from mail.us.es ([193.147.175.20]:33481 "EHLO us.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752388AbZCEMT4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Mar 2009 07:19:56 -0500
-In-Reply-To: <49AECFFA.6030401@astrocorp.com>
+	id S1752992AbZCEMZl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 5 Mar 2009 07:25:41 -0500
+In-Reply-To: <ad28918e0903041223t7edb61d3hb479b3ca3c91ed26@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Bryan Duff wrote:
-> Thanks, the patch works.
+Fred Moyer wrote:
+> I'm developing a connection tracking module for the 2.6.23.17 kernel
+> using the nf_conntrack helper examples (actually porting a nat module
+> I had for 2.4.30) and am trying to use the nfsim test framework
+> instead of my previous crude method of sending packets through the
+> machine.
 
-Thanks for the info.
-
-> Adding esp would be superfantabulous as well.
-
-ESP should work just fine, no need for extra patches.
+Sorry, nfsim currently lacks of maintainer.
 
 -- 
 "Los honestos son inadaptados sociales" -- Les Luthiers
