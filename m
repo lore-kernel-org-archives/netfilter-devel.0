@@ -1,28 +1,61 @@
-From: sachin sanap <sachin.sanap.1gb@gmail.com>
-Subject: Identifying if the packet has been conn tracked by the conn track
-	module in the NAT module.
-Date: Thu, 5 Mar 2009 11:17:23 +0530
-Message-ID: <17923cc80903042147p6426a582tb503bff825ab0a5b@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+From: Florian Westphal <fwestphal@astaro.com>
+Subject: [PATCH xt-addons] TEE: do not use ipv6 if CONFIG_IPV6=n
+Date: Thu,  5 Mar 2009 11:01:50 +0100
+Message-ID: <1236247310-7895-1-git-send-email-fwestphal@astaro.com>
+Cc: Florian Westphal <fwestphal@astaro.com>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-gx0-f163.google.com ([209.85.217.163]:44016 "EHLO
-	mail-gx0-f163.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751038AbZCEFrZ (ORCPT
+Received: from dhost002-89.dex002.intermedia.net ([64.78.20.227]:4480 "EHLO
+	dhost002-89.dex002.intermedia.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751692AbZCEKRK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Mar 2009 00:47:25 -0500
-Received: by gxk7 with SMTP id 7so4189701gxk.13
-        for <netfilter-devel@vger.kernel.org>; Wed, 04 Mar 2009 21:47:23 -0800 (PST)
+	Thu, 5 Mar 2009 05:17:10 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+WARNING: xt_TEE.ko needs unknown symbol ip6_route_output
 
-I want to know if its possible for the NAT module to know if the
-packet sent to it has been identified by conn track modules like FTP,
-H323 and is treated differently than simple NAT.
+Signed-off-by: Florian Westphal <fwestphal@astaro.com>
+---
+ extensions/xt_TEE.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-Thanks
--Sachin
+diff --git a/extensions/xt_TEE.c b/extensions/xt_TEE.c
+index 265fc90..c605e49 100644
+--- a/extensions/xt_TEE.c
++++ b/extensions/xt_TEE.c
+@@ -210,6 +210,7 @@ tee_tg4(struct sk_buff **pskb, const struct xt_target_param *par)
+ 	return XT_CONTINUE;
+ }
+ 
++#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
+ static bool
+ tee_tg_route6(struct sk_buff *skb, const struct xt_tee_tginfo *info)
+ {
+@@ -263,6 +264,7 @@ tee_tg6(struct sk_buff **pskb, const struct xt_target_param *par)
+ 
+ 	return XT_CONTINUE;
+ }
++#endif
+ 
+ static bool tee_tg_check(const struct xt_tgchk_param *par)
+ {
+@@ -284,6 +286,7 @@ static struct xt_target tee_tg_reg[] __read_mostly = {
+ 		.checkentry = tee_tg_check,
+ 		.me         = THIS_MODULE,
+ 	},
++#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
+ 	{
+ 		.name       = "TEE",
+ 		.revision   = 0,
+@@ -294,6 +297,7 @@ static struct xt_target tee_tg_reg[] __read_mostly = {
+ 		.checkentry = tee_tg_check,
+ 		.me         = THIS_MODULE,
+ 	},
++#endif
+ };
+ 
+ static int __init tee_tg_init(void)
+-- 
+1.5.6.5
+
