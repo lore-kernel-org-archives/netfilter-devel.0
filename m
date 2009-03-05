@@ -1,109 +1,114 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 1/3] netfilter: ctnetlink: cleanup master conntrack assignation
-Date: Thu, 05 Mar 2009 17:07:14 +0100
-Message-ID: <20090305160714.13755.83435.stgit@Decadence>
+Subject: [PATCH 3/3] netfilter: ctnetlink: move event reporting for new
+	entries outside the lock
+Date: Thu, 05 Mar 2009 17:07:59 +0100
+Message-ID: <20090305160759.13755.64802.stgit@Decadence>
+References: <20090305160714.13755.83435.stgit@Decadence>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53170 "EHLO us.es"
+Received: from mail.us.es ([193.147.175.20]:53244 "EHLO us.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751845AbZCEQHY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Mar 2009 11:07:24 -0500
+	id S1752366AbZCEQIF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 5 Mar 2009 11:08:05 -0500
+In-Reply-To: <20090305160714.13755.83435.stgit@Decadence>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch moves the assignation of the master conntrack to
-ctnetlink_create_conntrack(), which is where it really belongs.
-This patch is a cleanup.
+This patch moves the event reporting outside the lock section. With
+this patch, the creation and update of entries is homogeneous from
+the event reporting perspective. Moreover, as the event reporting is
+done outside the lock section, the netlink broadcast delivery can
+benefit of the yield() call under congestion.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
 
- net/netfilter/nf_conntrack_netlink.c |   49 ++++++++++++++--------------------
- 1 files changed, 20 insertions(+), 29 deletions(-)
+ net/netfilter/nf_conntrack_netlink.c |   41 +++++++++++++++++++---------------
+ 1 files changed, 23 insertions(+), 18 deletions(-)
 
 diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 41226f0..a240a66 100644
+index d229370..fa5b23f 100644
 --- a/net/netfilter/nf_conntrack_netlink.c
 +++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1234,9 +1234,9 @@ static int
+@@ -1234,12 +1234,10 @@ ctnetlink_event_report(struct nf_conn *ct, u32 pid, int report)
+ 				  report);
+ }
+ 
+-static int
++static struct nf_conn *
  ctnetlink_create_conntrack(struct nlattr *cda[],
  			   struct nf_conntrack_tuple *otuple,
  			   struct nf_conntrack_tuple *rtuple,
--			   struct nf_conn *master_ct,
- 			   u32 pid,
--			   int report)
-+			   int report,
-+			   u8 u3)
+-			   u32 pid,
+-			   int report,
+ 			   u8 u3)
  {
  	struct nf_conn *ct;
- 	int err = -EINVAL;
-@@ -1347,7 +1347,22 @@ ctnetlink_create_conntrack(struct nlattr *cda[],
- #endif
+@@ -1248,7 +1246,7 @@ ctnetlink_create_conntrack(struct nlattr *cda[],
  
- 	/* setup master conntrack: this is a confirmed expectation */
--	if (master_ct) {
-+	if (cda[CTA_TUPLE_MASTER]) {
-+		struct nf_conntrack_tuple master;
-+		struct nf_conntrack_tuple_hash *master_h;
-+		struct nf_conn *master_ct;
-+
-+		err = ctnetlink_parse_tuple(cda, &master, CTA_TUPLE_MASTER, u3);
-+		if (err < 0)
-+			goto err;
-+
-+		master_h = __nf_conntrack_find(&init_net, &master);
-+		if (master_h == NULL) {
-+			err = -ENOENT;
-+			goto err;
-+		}
-+		master_ct = nf_ct_tuplehash_to_ctrack(master_h);
-+		nf_conntrack_get(&master_ct->ct_general);
- 		__set_bit(IPS_EXPECTED_BIT, &ct->status);
+ 	ct = nf_conntrack_alloc(&init_net, otuple, rtuple, GFP_ATOMIC);
+ 	if (IS_ERR(ct))
+-		return -ENOMEM;
++		return ERR_PTR(-ENOMEM);
+ 
+ 	if (!cda[CTA_TIMEOUT])
+ 		goto err;
+@@ -1371,18 +1369,14 @@ ctnetlink_create_conntrack(struct nlattr *cda[],
  		ct->master = master_ct;
  	}
-@@ -1395,39 +1410,15 @@ ctnetlink_new_conntrack(struct sock *ctnl, struct sk_buff *skb,
- 		h = __nf_conntrack_find(&init_net, &rtuple);
+ 
+-	nf_conntrack_get(&ct->ct_general);
+ 	add_timer(&ct->timeout);
+ 	nf_conntrack_hash_insert(ct);
+ 	rcu_read_unlock();
+-	ctnetlink_event_report(ct, pid, report);
+-	nf_ct_put(ct);
+-
+-	return 0;
+ 
++	return ct;
+ err:
+ 	nf_conntrack_free(ct);
+-	return err;
++	return ERR_PTR(err);
+ }
+ 
+ static int
+@@ -1415,14 +1409,25 @@ ctnetlink_new_conntrack(struct sock *ctnl, struct sk_buff *skb,
  
  	if (h == NULL) {
--		struct nf_conntrack_tuple master;
--		struct nf_conntrack_tuple_hash *master_h = NULL;
--		struct nf_conn *master_ct = NULL;
--
--		if (cda[CTA_TUPLE_MASTER]) {
--			err = ctnetlink_parse_tuple(cda,
--						    &master,
--						    CTA_TUPLE_MASTER,
--						    u3);
--			if (err < 0)
--				goto out_unlock;
--
--			master_h = __nf_conntrack_find(&init_net, &master);
--			if (master_h == NULL) {
--				err = -ENOENT;
--				goto out_unlock;
--			}
--			master_ct = nf_ct_tuplehash_to_ctrack(master_h);
--			nf_conntrack_get(&master_ct->ct_general);
--		}
--
  		err = -ENOENT;
- 		if (nlh->nlmsg_flags & NLM_F_CREATE)
- 			err = ctnetlink_create_conntrack(cda,
- 							 &otuple,
- 							 &rtuple,
--							 master_ct,
- 							 NETLINK_CB(skb).pid,
--							 nlmsg_report(nlh));
-+							 nlmsg_report(nlh),
-+							 u3);
- 		spin_unlock_bh(&nf_conntrack_lock);
--		if (err < 0 && master_ct)
--			nf_ct_put(master_ct);
--
+-		if (nlh->nlmsg_flags & NLM_F_CREATE)
+-			err = ctnetlink_create_conntrack(cda,
+-							 &otuple,
+-							 &rtuple,
+-							 NETLINK_CB(skb).pid,
+-							 nlmsg_report(nlh),
+-							 u3);
+-		spin_unlock_bh(&nf_conntrack_lock);
++		if (nlh->nlmsg_flags & NLM_F_CREATE) {
++			struct nf_conn *ct;
++
++			ct = ctnetlink_create_conntrack(cda, &otuple,
++							&rtuple, u3);
++			if (IS_ERR(ct)) {
++				err = PTR_ERR(ct);
++				goto out_unlock;
++			}
++			err = 0;
++			nf_conntrack_get(&ct->ct_general);
++			spin_unlock_bh(&nf_conntrack_lock);
++			ctnetlink_event_report(ct,
++					       NETLINK_CB(skb).pid,
++					       nlmsg_report(nlh));
++			nf_ct_put(ct);
++		} else
++			spin_unlock_bh(&nf_conntrack_lock);
++
  		return err;
  	}
  	/* implicit 'else' */
