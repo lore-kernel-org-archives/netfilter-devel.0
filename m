@@ -1,28 +1,33 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Freshmeat project notes
-Date: Fri, 6 Mar 2009 19:45:56 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0903061943380.21430@fbirervta.pbzchgretzou.qr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: Freshmeat project notes
+Date: Fri, 06 Mar 2009 21:03:03 +0100
+Message-ID: <49B18177.3040202@netfilter.org>
+References: <alpine.LSU.2.00.0903061943380.21430@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: pablo@netfilter.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:59706 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757397AbZCFSp7 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 6 Mar 2009 13:45:59 -0500
+Received: from mail.us.es ([193.147.175.20]:43843 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753739AbZCFUEU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 6 Mar 2009 15:04:20 -0500
+In-Reply-To: <alpine.LSU.2.00.0903061943380.21430@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Jan Engelhardt wrote:
+> Hi,
+> 
+> I just took a chance and tried accessing 
+> http://freshmeat.net/p/libnetfilter_queue , that returned a page for the 
+> project. Even the latest release is enlisted there - great. What I see 
+> missing though are the download URLs and the dependencies - 
+> libnetfilter_queue depends on libnfnetlink for example.
 
+I just added dependencies, it should be fine now. I'll add the download
+URLs next time.
 
-I just took a chance and tried accessing 
-http://freshmeat.net/p/libnetfilter_queue , that returned a page for the 
-project. Even the latest release is enlisted there - great. What I see 
-missing though are the download URLs and the dependencies - 
-libnetfilter_queue depends on libnfnetlink for example.
-
-
-Jan
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
