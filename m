@@ -1,34 +1,61 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [ANNOUNCE] ipset-2.5.0
-Date: Fri, 6 Mar 2009 11:44:36 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.0903061141020.31761@blackhole.kfki.hu>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [ANNOUNCE] libnfnetlink 0.0.41 release
+Date: Fri, 06 Mar 2009 17:59:50 +0100
+Message-ID: <49B15686.4050508@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-Return-path: <netfilter-owner@vger.kernel.org>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: multipart/mixed;
+ boundary="------------010908090305020401070304"
+Cc: netfilter-announce@lists.netfilter.org,
+	netfilter-devel@vger.kernel.org, lwn@lwn.net
+To: netfilter@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:58559 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750995AbZCFRAF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 6 Mar 2009 12:00:05 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+This is a multi-part message in MIME format.
+--------------010908090305020401070304
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-I'm happy to announce ipset 2.5.0. The changes of the release are
+Hi!
 
-userspace:
-  - On parisc architecture cast increases required aligment (bugzilla
-    id 582), fixed.
-  - Respect LDFLAGS settings at compile time (Peter Volkov).
+The netfilter project proudly presents:
 
-kernel:
-  - Use the spinlock initiator instead of setting the locks directly
-    as it causes compilation errors with 2.6.29-rt (Jan Engelhardt).
+  * libnfnetlink-0.0.41
 
-You can download it as usual from http://ipset.netfilter.org/ or from
-git:////git.netfilter.org/ipset.git
+libnfnetlink is the low-level library for netfilter related
+kernel/userspace communication. It provides a generic messaging
+infrastructure for in-kernel netfilter subsystems (such as
+nfnetlink_log, nfnetlink_queue, nfnetlink_conntrack) and their
+respective users and/or management tools in userspace.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+See ChangeLog (file attached) for more details on this release. You can
+download it from:
+
+http://www.netfilter.org/projects/libnfnetlink/downloads.html
+ftp://ftp.netfilter.org/pub/libnfnetlink/
+
+Regards,
+Pablo
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
+
+
+--------------010908090305020401070304
+Content-Type: text/plain;
+ name="ChangeLog-libnfnetlink-0.0.41"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="ChangeLog-libnfnetlink-0.0.41"
+
+Pablo Neira Ayuso (2):
+      nfnl: allow disabling and enabling sequence tracking
+      nfnl: tag nfnl_talk() and nfnl_listen() as deprecated
+
+
+--------------010908090305020401070304--
