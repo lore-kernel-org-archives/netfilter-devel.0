@@ -1,29 +1,42 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [ANNOUNCE] Xtables-addons 1.12
-Date: Sat, 7 Mar 2009 04:47:22 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0903070436470.31495@fbirervta.pbzchgretzou.qr>
+From: Harald Welte <laforge@netfilter.org>
+Subject: Re: [ANNOUNCE] ulogd 2.0.0beta3
+Date: Sat, 7 Mar 2009 07:34:06 -0300
+Message-ID: <20090307103406.GB4678@prithivi.gnumonks.org>
+References: <49B166E0.7030201@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: netfilter@vger.kernel.org
-Return-path: <netfilter-owner@vger.kernel.org>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ganesha.gnumonks.org ([213.95.27.120]:44473 "EHLO
+	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753119AbZCGM3Z (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 7 Mar 2009 07:29:25 -0500
+Content-Disposition: inline
+In-Reply-To: <49B166E0.7030201@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi guys,
 
-nuqneH!
+congratulations on the new beta release.
 
+On Fri, Mar 06, 2009 at 07:09:36PM +0100, Pablo Neira Ayuso wrote:
+>       Link ulogd2 with libpthread
 
-Along floats a new release with a few changes to xt_TEE with regards to 
-route selection and a few fixes for compile problems with certain kernel 
-configurations.
+I was just reading this and all alarm sirens went on.  I don't know
+why that is neccessary, and I hope it is just due to some library dependency.
 
-NOTE NOTE NOTE. The project URLs have changed to SF:
-	http://xtables-addons.sf.net/
-	git://xtables-addons.git.sf.net/gitroot/xtables-addons
+When I created ulogd and ulogd2, I never intended them to become some kind of
+multi-threaded monster with a complex locking and synchronization nightmare.
 
-And this release:
-	http://downloads.sf.net/xtables-addons/xtables-addons-1.12.tar.bz2 {,.asc}
+Sure, I'm no longer maintaining it, and I respect the decision of current
+maintainers, but I just wanted to point that out.
 
-Changelog:
-	http://xtables-addons.git.sf.net/git/gitweb.cgi?p=xtables-addons;a=blob;hb=master;f=doc/changelog.txt
+-- 
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+============================================================================
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
