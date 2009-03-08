@@ -1,50 +1,37 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Harald Welte <laforge@netfilter.org>
 Subject: Re: [ANNOUNCE] ulogd 2.0.0beta3
-Date: Sun, 08 Mar 2009 13:45:54 +0100
-Message-ID: <49B3BE02.9010203@netfilter.org>
-References: <49B166E0.7030201@netfilter.org> <20090307103406.GB4678@prithivi.gnumonks.org>
+Date: Sun, 8 Mar 2009 10:24:26 -0300
+Message-ID: <20090308132426.GG4220@prithivi.gnumonks.org>
+References: <49B166E0.7030201@netfilter.org> <20090307103406.GB4678@prithivi.gnumonks.org> <alpine.LSU.2.00.0903071542590.26625@fbirervta.pbzchgretzou.qr> <20090308095318.GA4009@piche.inl.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, Eric Leblond <eric@inl.fr>
-To: Harald Welte <laforge@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+To: Pierre Chifflier <p.chifflier@inl.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:38542 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751607AbZCHMqI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 8 Mar 2009 08:46:08 -0400
-In-Reply-To: <20090307103406.GB4678@prithivi.gnumonks.org>
+Received: from ganesha.gnumonks.org ([213.95.27.120]:60554 "EHLO
+	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751884AbZCHNYu (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 8 Mar 2009 09:24:50 -0400
+Content-Disposition: inline
+In-Reply-To: <20090308095318.GA4009@piche.inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Harald Welte wrote:
-> Hi guys,
-> 
-> congratulations on the new beta release.
-> 
-> On Fri, Mar 06, 2009 at 07:09:36PM +0100, Pablo Neira Ayuso wrote:
->>       Link ulogd2 with libpthread
-> 
-> I was just reading this and all alarm sirens went on.  I don't know
-> why that is neccessary, and I hope it is just due to some library dependency.
-> 
-> When I created ulogd and ulogd2, I never intended them to become some kind of
-> multi-threaded monster with a complex locking and synchronization nightmare.
+Ok, thanks for the explanation. seems fine to me.
 
-Please, don't worry, I will not allow such a crappy design change :)
+Now the only question is whether this wastes (significant) resources (i.e.
+resident set size or anything) in case ulogd2 runs on a small embedded box.
 
-The conntrack-tools follows the sample principle. I don't know if you
-had the time to look at the code, but for example, we removed another
-tricky issue from the synchronization point of view time ago which was
-the use of SIGALARM to implement the timer framework. So this whole
-thing now follows an event-driven design with a synchrnous alarm
-framework to avoid complexity as expected.
+If it is debugging-only, one could also enable it only for a debug-build (when
+-g / -pg is set)
 
-> Sure, I'm no longer maintaining it, and I respect the decision of current
-> maintainers, but I just wanted to point that out.
-
-As said, it seems that the patch was applied by Pierre (via Eric) due to
-some very kiddish reason, please, set alarms off :).
-
+regards,
 -- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
+============================================================================
+  "Fragmentation is like classful addressing -- an interesting early
+   architectural error that shows how much experimentation was going
+   on while IP was being designed."                    -- Paul Vixie
