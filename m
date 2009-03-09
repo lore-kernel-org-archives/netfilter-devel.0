@@ -1,36 +1,55 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: module testing practices [was Re: build error when compiling
- nfsim  against 2.6.23.17]
-Date: Mon, 9 Mar 2009 23:56:40 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0903092355590.26534@fbirervta.pbzchgretzou.qr>
-References: <ad28918e0903091536r6d35cbf7ncf9ac0e74ed6dffb@mail.gmail.com>
+From: Chris Hanson <chanson@bluebottle.com>
+Subject: Suggestion: "--match recent --set --life-span <secs>"  to prevent
+ table filling up
+Date: Mon, 09 Mar 2009 15:48:39 -0700
+Message-ID: <49B59CC7.7080002@bluebottle.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Fred Moyer <fred@redhotpenguin.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:47656 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752675AbZCIW4o (ORCPT
+Received: from mi0.bluebottle.com ([206.188.25.15]:48772 "EHLO
+	mi0.bluebottle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751563AbZCIXZs (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Mar 2009 18:56:44 -0400
-In-Reply-To: <ad28918e0903091536r6d35cbf7ncf9ac0e74ed6dffb@mail.gmail.com>
+	Mon, 9 Mar 2009 19:25:48 -0400
+Received: from fe2.bluebottle.com (internal.bluebottle.com [206.188.24.43])
+	by mi0.bluebottle.com (8.13.1/8.13.1) with ESMTP id n29Mmh5P004823
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <netfilter-devel@vger.kernel.org>; Mon, 9 Mar 2009 22:48:44 GMT
+Received: from hulk.roslyn.dyndns.org (66-233-57-27.bel.clearwire-dns.net [66.233.57.27])
+	(authenticated bits=0)
+	by fe2.bluebottle.com (8.13.1/8.13.1) with ESMTP id n29MmdwQ031851
+	for <netfilter-devel@vger.kernel.org>; Mon, 9 Mar 2009 22:48:43 GMT
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hello,
 
-On Monday 2009-03-09 23:36, Fred Moyer wrote:
->>
->> At least VMware Workstation has the Snapshot feature which cuts the
->> "reboot" time down to whatever it takes to reread the disk image from disk.
->>
->> Avoiding oopses is the best strategy, at which point you can reedit-
->> compile-reload the module as often as you need without reverting to
->> a snapshot.
->
->In the event of an oops, do you have any suggestions for capturing the
->stacktrace?  My vmware terminal console is 25 rows with no scrollback
->when it oopses, so I'm only getting half the stack.
->
-Boot with vga=6 to get 50 lines, or 'console=ttyS0 console=tty0' to get
-it all via serial.
+A suggestion for the match recent part of netfilter. Include a life_span 
+field in the table. A host is removed from a table after it hasn't been 
+seen for x seconds.
+
+I suggest this because of the number of botnet hosts that rapidly fill 
+up the /proc/net/ipt_recent tables. Sometimes an attacking host is only 
+seen once in a long probe/attack.
+
+
+Additional related suggestions:
+
+Perhaps just reuse the --seconds parameter on a --set. instead of adding 
+a new parameter.
+
+Give the field a default value. (3600?)
+
+Have a module command line parameter for changing the default value.
+
+Use 0 for an infinite life_span.
+
+
+I apologize for not being able to submit code. I tried looking at the 
+source and I soon realized that my coding skills are VERY rusty.
+
+I hope this sounds useful to you all. Keep up the good work.
+
+Chris Hanson
