@@ -1,56 +1,53 @@
-From: Cyrill Gorcunov <gorcunov@gmail.com>
-Subject: Re: [RFC 0/4] netfilter conntrack sysctls pernet support
-Date: Tue, 10 Mar 2009 00:08:43 +0300
-Message-ID: <20090309210843.GB18357@localhost>
-References: <20090309181628.109019157@gmail.com> <49B56440.2010404@trash.net> <20090309190744.GA18357@localhost>
+From: Fred Moyer <fred@redhotpenguin.com>
+Subject: module testing practices [was Re: build error when compiling nfsim
+	against 2.6.23.17]
+Date: Mon, 9 Mar 2009 15:36:25 -0700
+Message-ID: <ad28918e0903091536r6d35cbf7ncf9ac0e74ed6dffb@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: Patrick McHardy <kaber@trash.net>, davem@davemloft.net,
-	netdev@vger.kernel.org, linux-next@vger.kernel.org,
-	xemul@openvz.org, adobriyan@gmail.com,
-	Netfilter Development Mailinglist
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.155]:28965 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751959AbZCIVIZ (ORCPT
+Received: from rv-out-0506.google.com ([209.85.198.229]:59487 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751956AbZCIWg1 convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 9 Mar 2009 17:08:25 -0400
-Content-Disposition: inline
-In-Reply-To: <20090309190744.GA18357@localhost>
+	Mon, 9 Mar 2009 18:36:27 -0400
+Received: by rv-out-0506.google.com with SMTP id g37so1870267rvb.1
+        for <netfilter-devel@vger.kernel.org>; Mon, 09 Mar 2009 15:36:25 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[Cyrill Gorcunov - Mon, Mar 09, 2009 at 10:07:44PM +0300]
-...
-| >> +	sn->sysctl_table[0].data = &sn->sctp_timeouts[SCTP_CONNTRACK_CLOSED];
-| >> +	sn->sysctl_table[1].data = &sn->sctp_timeouts[SCTP_CONNTRACK_COOKIE_WAIT];
-| >> +	sn->sysctl_table[2].data = &sn->sctp_timeouts[SCTP_CONNTRACK_COOKIE_ECHOED];
-| >> +	sn->sysctl_table[3].data = &sn->sctp_timeouts[SCTP_CONNTRACK_ESTABLISHED];
-| >> +	sn->sysctl_table[4].data = &sn->sctp_timeouts[SCTP_CONNTRACK_SHUTDOWN_SENT];
-| >> +	sn->sysctl_table[5].data = &sn->sctp_timeouts[SCTP_CONNTRACK_SHUTDOWN_RECD];
-| >> +	sn->sysctl_table[6].data = &sn->sctp_timeouts[SCTP_CONNTRACK_SHUTDOWN_ACK_SENT];
-| >
-| > Please use an iteration to avoid these repetitve overly long lines.
-| >
-| 
-| Ah, thanks a lot! Indeed.
-| 
-| 	- Cyrill -
+On Fri, Mar 6, 2009 at 11:42 AM, Jan Engelhardt <jengelh@medozas.de> wr=
+ote:
+>
+> On Friday 2009-03-06 19:37, Fred Moyer wrote:
+>>>>
+>>>>What is the recommended alternative for testing connection helper m=
+odules?
+>>>
+>>> Testing them in a real world - perhaps virtual machines though - se=
+tup :-)
+>>
+>>I've had great success developing and testing with VMWare Fusion on a
+>>mac laptop. =A0The reboot time on an oops is maybe two minutes, about
+>>the same as my metal testing server, except lacking the fan noise and
+>>ability to live on my laptop.
+>
+> At least VMware Workstation has the Snapshot feature which cuts the
+> "reboot" time down to whatever it takes to reread the disk image from=
+ disk.
+>
+> Avoiding oopses is the best strategy, at which point you can reedit-
+> compile-reload the module as often as you need without reverting to
+> a snapshot.
 
-Patrick, if I make it like that (iterations)
-
-	...
-	BUILD_BUG_ON(ARRAY_SIZE(sctp_compat_sysctl_table) != SCTP_CONNTRACK_MAX);
-
-	for (i = 0; i < ARRAY_SIZE(sctp_compat_sysctl_table) - 1; i++)
-		sn->compat_sysctl_table[i].data = &sn->sctp_timeouts[i + 1];
-
-	...
-
-it seems the code become hard to follow. Yes it was long (repetitive) lines
-but it was obvious what is set for every table entry and easy to find what
-should be changed if SCTP_ enumeration is changed or table entry removed
-(for some reason). I could make it shorter in length but remain the same
-explicit assignment. How do you think?
-
-	- Cyrill -
+In the event of an oops, do you have any suggestions for capturing the
+stacktrace?  My vmware terminal console is 25 rows with no scrollback
+when it oopses, so I'm only getting half the stack.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
