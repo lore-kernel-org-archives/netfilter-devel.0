@@ -1,50 +1,55 @@
-From: Scott James Remnant <scott@canonical.com>
-Subject: [PATCH 04/31] netfilter: Auto-load ip_queue module when socket opened.
-Date: Mon, 2 Mar 2009 17:03:47 +0000
-Message-ID: <cad3a5b11d97ba57d8a5e4df605ed55324e2b734.1236702228.git.scott@canonical.com>
-References: <cover.1236702228.git.scott@canonical.com>
-Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
-To: linux-kernel@vger.kernel.org
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: Suggestion: "--match recent --set --life-span <secs>"  to prevent
+ table filling up
+Date: Tue, 10 Mar 2009 20:29:53 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0903102026470.23653@fbirervta.pbzchgretzou.qr>
+References: <49B59CC7.7080002@bluebottle.com> <alpine.LSU.2.00.0903101712400.19523@fbirervta.pbzchgretzou.qr> <49B6BD2E.7010908@bluebottle.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Chris Hanson <chanson@bluebottle.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from zelda.netsplit.com ([87.194.19.211]:34589 "EHLO
-	zelda.netsplit.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754769AbZCJQni (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:35053 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753473AbZCJT34 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Mar 2009 12:43:38 -0400
-In-Reply-To: <cover.1236702228.git.scott@canonical.com>
+	Tue, 10 Mar 2009 15:29:56 -0400
+In-Reply-To: <49B6BD2E.7010908@bluebottle.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The ip_queue module is missing the net-pf-16-proto-3 alias that would
-causae it to be auto-loaded when a socket of that type is opened.  This
-patch adds the alias.
+(whew, don't strip Ccs!)
 
-Signed-off-by: Scott James Remnant <scott@canonical.com>
-Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
----
- net/ipv4/netfilter/ip_queue.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+On Tuesday 2009-03-10 20:19, Chris Hanson wrote:
+>> =20
+>>> A suggestion for the match recent part of netfilter. Include a
+>>> life_span field in the table. A host is removed from a table after
+>>> it hasn't been seen for x seconds.
+>>
+>> How does this differ from simply ignoring hosts recorded in the list
+>> whose last_seen time is greater than x -- apart from potential
+>> memory savings?
+>
+> I had the impression that the --set function behaved badly when the t=
+able
+> filled up.
 
-diff --git a/net/ipv4/netfilter/ip_queue.c b/net/ipv4/netfilter/ip_queue.c
-index 432ce9d..5f22c91 100644
---- a/net/ipv4/netfilter/ip_queue.c
-+++ b/net/ipv4/netfilter/ip_queue.c
-@@ -24,6 +24,7 @@
- #include <linux/proc_fs.h>
- #include <linux/seq_file.h>
- #include <linux/security.h>
-+#include <linux/net.h>
- #include <linux/mutex.h>
- #include <net/net_namespace.h>
- #include <net/sock.h>
-@@ -640,6 +641,7 @@ static void __exit ip_queue_fini(void)
- MODULE_DESCRIPTION("IPv4 packet queue handler");
- MODULE_AUTHOR("James Morris <jmorris@intercode.com.au>");
- MODULE_LICENSE("GPL");
-+MODULE_ALIAS_NET_PF_PROTO(PF_NETLINK, NETLINK_FIREWALL);
- 
- module_init(ip_queue_init);
- module_exit(ip_queue_fini);
--- 
-1.6.0.5
+Well the =E2=80=9Conly=E2=80=9D problem xt_recent has is that entries a=
+re thrown off
+the edge of the table when it fills up. It *should* do this in the
+style of an LRU. The only benefit of a premature removal due to
+life_span exceeding I can see is that you want to expire specific
+entries (i.e. matched by, like, -m moonphase) to specifically keep
+even older entries from falling off the LRU edge.
 
+Seems to be a big plan there.</thoughts>
+
+> I also believe that the "--rcheck ! --seconds x" check didn't work.
+>
+> I will investigate and report back.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
