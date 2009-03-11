@@ -1,85 +1,104 @@
-From: Evgeniy Polyakov <zbr@ioremap.net>
-Subject: Re: Passive OS fingerprint xtables match.
-Date: Wed, 11 Mar 2009 00:54:44 +0300
-Message-ID: <20090310215443.GA9660@ioremap.net>
-References: <20090310151357.GA10658@ioremap.net> <Pine.LNX.4.64.0903102147480.21593@ask.diku.dk>
+From: "Andrew O. Zhukov" <andre@telegroup.com.ua>
+Subject: conntrack_sip bug
+Date: Wed, 11 Mar 2009 09:48:39 +0200
+Message-ID: <49B76CD7.5030806@telegroup.com.ua>
+References: <49B122A0.7080905@telegroup.com.ua>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>, netdev <netdev@vger.kernel.org>,
-	David Miller <davem@davemloft.net>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Jan Engelhardt <jengelh@medozas.de>, hawk@comx.dk
-To: Jesper Dangaard Brouer <hawk@diku.dk>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.64.0903102147480.21593@ask.diku.dk>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=KOI8-R;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from red.telegroup.kiev.ua ([193.28.184.10]:45320 "EHLO
+	red.telegroup.kiev.ua" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751365AbZCKHsm (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 11 Mar 2009 03:48:42 -0400
+Received: from andrew.telegroup.com.ua ([10.0.1.4]:46214)
+	by red.telegroup.kiev.ua with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.62)
+	(envelope-from <andre@telegroup.com.ua>)
+	id 1LhJB8-0003qO-Vf
+	for netfilter-devel@vger.kernel.org; Wed, 11 Mar 2009 09:48:39 +0200
+In-Reply-To: <49B122A0.7080905@telegroup.com.ua>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi.
+No answers from netfilter list.
 
-On Tue, Mar 10, 2009 at 10:01:30PM +0100, Jesper Dangaard Brouer (hawk@diku.dk) wrote:
-> >+static void __exit ipt_osf_fini(void)
-> >+{
-> >+	struct ipt_osf_finger *f;
-> >+	int i;
-> >+
-> >+	cn_del_callback(&cn_osf_id);
-> >+	xt_unregister_match(&ipt_osf_match);
-> >+
-> >+	rcu_read_lock();
-> >+	for (i=0; i<ARRAY_SIZE(ipt_osf_fingers); ++i) {
-> >+		struct ipt_osf_finger_storage *st = &ipt_osf_fingers[i];
-> >+
-> >+		list_for_each_entry_rcu(f, &st->finger_list, finger_entry) {
-> 
-> spin_lock(&st->finger_lock); //???
-> >+			list_del_rcu(&f->finger_entry);
-> spin_unlock(&st->finger_lock);
-> 
-> >+			call_rcu(&f->rcu_head, ipt_osf_finger_free_rcu);
-> >+		}
-> >+	}
-> >+	rcu_read_unlock();
-> 
-> Should the list_del_rcu() not be protected by a spinlock?
+I can exactly show the point where how this bug appeared include dumps=20
+from all points.
 
-Not required at this place - all users are already unregistered and
-no code can access this list except module exit path.
 
-> >+	rcu_barrier();
-> 
-> In some of my code I call synchronize_net(), is it enough to call 
-> rcu_barrier()?
+Andrew O. Zhukov =D0=C9=DB=C5=D4:
+> =EBernel 2.6.25.14-69.fc8
+> iptables-1.4.1.1-1.fc8.x86_64.rpm
+>=20
+> followed trouble:
+>=20
+> SIP gw                  Fedora               SipProxy      =E1sterisk
+> 192.168.2.24   192.168.2.1 666.666.34.46  555.555.184.13  555.555.184=
+=2E13
+>=20
+> Sip proxy without RTP proxy for not nat cusomers. It considetate SIP =
+GW=20
+> as 666.666.34.46 and do not switch on RTP proxy.
+>=20
+> call from SIP GW to Asterisk. Dump from Fedor=C1:
+>=20
+> U 2009/03/05 21:00:11.899191 555.555.184.13:5060 -> 192.168.2.24:5060
+>   SIP/2.0 183 Session Progress..Via: SIP/2.0/UDP=20
+> 555.555.184.13:5060;branch=3Dz9hG4bK878912355;rport=3D1025..From: "21=
+2ua1" <sip
+>   :101563@xxx.com>;tag=3D66346232..To:=20
+> <sip:2292694@xxx.com>;tag=3Das41f52f95..Call-ID:=20
+> 1295544592-5060-4@192.168.2.24..
+> .....
+> ..Contact: <sip:2292694@555.555.184.2>..Content-Type:=20
+> application/sdp..Content-Length: 263....v=3D0..o=3Droot 277
+>   97 27797 IN IP4 555.555.184.2..s=3Dsession..c=3DIN IP4 555.555.184.=
+2..t=3D0
+>=20
+> ---
+> 180 Ringing without sdp
+> ---
+>=20
+> U 2009/03/05 21:00:20.753646 555.555.184.13:5060 -> 192.168.2.24:5060
+>   SIP/2.0 200 OK..Via: SIP/2.0/UDP=20
+> 555.555.184.13:5060;branch=3Dz9hG4bK878912355;rport=3D1025..Record-Ro=
+ute:=20
+> <sip:555.555.184.13;
+>   lr=3Don;ftag=3D66346232>..From: "212ua1"=20
+> <sip:101563@xxx.com>;tag=3D66346232..To:=20
+> <sip:2292694@xxx.com>;tag=3Das41f52f95..C
+>   all-ID: 1295544592-5060-4@192.168.2.24..CSeq: 31 INVITE..User-Agent=
+:=20
+> Telegroup Ukraine..Allow: INVITE, ACK, CANCEL, OPTIO
+>   NS, BYE, REFER, SUBSCRIBE, NOTIFY..Supported: replaces..Contact:=20
+> <sip:2292694@555.555.184.2>..Content-Type: application/sd
+>   p..Content-Length: 265....v=3D0..o=3Droot 27797 27798 IN IP4=20
+> 555.555.184.13..s=3Dsession..c=3DIN IP4 555.555.184.13..t=3D0 0..m=3D=
+audio
+>    29444 RTP/AVP 18 101..a=3Drtpmap:18 G729/8000..a=3Dfmtp:18=20
+> annexb=3Dno..a=3Drtpmap:101 telephone-event/8000..a=3Dfmtp:101 0-16..=
+a=3D
+>   silenceSupp:off - - - -..a=3Dptime:20..a=3Dsendrecv..
+>=20
+> in the "OK" message =E1sterisk ip addresses in SDP changed to the ip=20
+> addresses of SipProxy by sip_conntrack. I can provide DUMP from the=20
+> SipProxy and the complete set of dumps for developers.
+>=20
+> Thanks in advance.
+>=20
+>=20
 
-It is enough here, rcu_barrier() will wait until all scheduled
-call_rcu() are completed, that's what we need. But in some cases we
-should only wait for the whole grace period to elapse, then one has to use
-synchronize_rcu() and friends. rcu_barrier() will wait for the callbacks
-to be executed, while they are executed after grace period has elapsed,
-so it implicitly includes synchronize_rcu(), but effectively they are
-the same: both functions register rcu callback and wait for the
-completion, rcu_barrier() is a bit more enhanced, since it has several
-types.
 
-> What is the difference between:
-> 
->  synchronize_rcu()
->  synchronize_net()
-
-Those are essentially the same - synchronize_net() has additional
-might_sleep()  call. Both will wait until grace period elapced - i.e.
-all currently RCU protected sections completed.
-
->  rcu_barrier()
-
-It will wait until all scheduled rcu callbacks are executed.
-
-So from the description they look different, but implementation
-suggestes that effectively they are the same, except that there are a
-bit different invocation types for the barrier.
-
--- 
-	Evgeniy Polyakov
+--=20
+Andrew O. Zhukov
+Telegroup Ukraine
+Technical director.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
