@@ -1,102 +1,62 @@
-From: "Andrew O. Zhukov" <andre@telegroup.com.ua>
-Subject: conntrack_sip bug
-Date: Wed, 11 Mar 2009 09:48:39 +0200
-Message-ID: <49B76CD7.5030806@telegroup.com.ua>
-References: <49B122A0.7080905@telegroup.com.ua>
+From: Nir Tzachar <nir.tzachar@gmail.com>
+Subject: Re: [PATCH]: Fix ipt_REJECT problem with nf_bridge
+Date: Wed, 11 Mar 2009 11:29:01 +0200
+Message-ID: <9b2db90b0903110229k14d0622flb7c4bfeecb02ca1a@mail.gmail.com>
+References: <9b2db90b0902260048j514b6ab0w63038bd11ab3f8f6@mail.gmail.com>
+	 <9b2db90b0903092229l1a02e8abtaf3e94a3a5ed641e@mail.gmail.com>
+	 <49B5FE06.1010204@snapgear.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=KOI8-R;
-	format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, jengelh@medozas.de
+To: Philip Craig <philipc@snapgear.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from red.telegroup.kiev.ua ([193.28.184.10]:45320 "EHLO
-	red.telegroup.kiev.ua" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751365AbZCKHsm (ORCPT
+Received: from ey-out-2122.google.com ([74.125.78.27]:46219 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751627AbZCKJ3D convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Mar 2009 03:48:42 -0400
-Received: from andrew.telegroup.com.ua ([10.0.1.4]:46214)
-	by red.telegroup.kiev.ua with esmtpsa (TLSv1:AES256-SHA:256)
-	(Exim 4.62)
-	(envelope-from <andre@telegroup.com.ua>)
-	id 1LhJB8-0003qO-Vf
-	for netfilter-devel@vger.kernel.org; Wed, 11 Mar 2009 09:48:39 +0200
-In-Reply-To: <49B122A0.7080905@telegroup.com.ua>
+	Wed, 11 Mar 2009 05:29:03 -0400
+Received: by ey-out-2122.google.com with SMTP id 25so494881eya.37
+        for <netfilter-devel@vger.kernel.org>; Wed, 11 Mar 2009 02:29:01 -0700 (PDT)
+In-Reply-To: <49B5FE06.1010204@snapgear.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-No answers from netfilter list.
+Hello.
 
-I can exactly show the point where how this bug appeared include dumps=20
-from all points.
+Thanks for your reply.
 
+On Tue, Mar 10, 2009 at 7:43 AM, Philip Craig <philipc@snapgear.com> wr=
+ote:
+> Nir Tzachar wrote:
+>>> The problem arises from the following code
+>>> (net/ipv4/netfilter/ipt_REJECT.c line 221:)
+>>>
+>>> =A0 =A0 =A0 =A0if (hook !=3D NF_INET_FORWARD
+>>> #ifdef CONFIG_BRIDGE_NETFILTER
+>>> =A0 =A0 =A0 =A0 =A0 =A0|| (nskb->nf_bridge && nskb->nf_bridge->mask=
+ & BRNF_BRIDGED)
+>>> #endif
+>>> =A0 =A0 =A0 =A0 =A0 )
+>>> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0addr_type =3D RTN_LOCAL;
+>>>
+>>> but, as nskb was newly allocated just a few line back, the
+>>> oldskb->nf_bridge was never copied, so nskb->nf_bridge is always NU=
+LL.
+>
+> Is there a reason you need to copy it into nskb, rather
+> than just changing the test to check oldskb?
+>
+> I don't think ipv4 netfilter should be setting this field
+> for new packets. =A0The bridging code will do that if needed
+> when it receives the packet.
 
-Andrew O. Zhukov =D0=C9=DB=C5=D4:
-> =EBernel 2.6.25.14-69.fc8
-> iptables-1.4.1.1-1.fc8.x86_64.rpm
->=20
-> followed trouble:
->=20
-> SIP gw                  Fedora               SipProxy      =E1sterisk
-> 192.168.2.24   192.168.2.1 666.666.34.46  555.555.184.13  555.555.184=
-=2E13
->=20
-> Sip proxy without RTP proxy for not nat cusomers. It considetate SIP =
-GW=20
-> as 666.666.34.46 and do not switch on RTP proxy.
->=20
-> call from SIP GW to Asterisk. Dump from Fedor=C1:
->=20
-> U 2009/03/05 21:00:11.899191 555.555.184.13:5060 -> 192.168.2.24:5060
->   SIP/2.0 183 Session Progress..Via: SIP/2.0/UDP=20
-> 555.555.184.13:5060;branch=3Dz9hG4bK878912355;rport=3D1025..From: "21=
-2ua1" <sip
->   :101563@xxx.com>;tag=3D66346232..To:=20
-> <sip:2292694@xxx.com>;tag=3Das41f52f95..Call-ID:=20
-> 1295544592-5060-4@192.168.2.24..
-> .....
-> ..Contact: <sip:2292694@555.555.184.2>..Content-Type:=20
-> application/sdp..Content-Length: 263....v=3D0..o=3Droot 277
->   97 27797 IN IP4 555.555.184.2..s=3Dsession..c=3DIN IP4 555.555.184.=
-2..t=3D0
->=20
-> ---
-> 180 Ringing without sdp
-> ---
->=20
-> U 2009/03/05 21:00:20.753646 555.555.184.13:5060 -> 192.168.2.24:5060
->   SIP/2.0 200 OK..Via: SIP/2.0/UDP=20
-> 555.555.184.13:5060;branch=3Dz9hG4bK878912355;rport=3D1025..Record-Ro=
-ute:=20
-> <sip:555.555.184.13;
->   lr=3Don;ftag=3D66346232>..From: "212ua1"=20
-> <sip:101563@xxx.com>;tag=3D66346232..To:=20
-> <sip:2292694@xxx.com>;tag=3Das41f52f95..C
->   all-ID: 1295544592-5060-4@192.168.2.24..CSeq: 31 INVITE..User-Agent=
-:=20
-> Telegroup Ukraine..Allow: INVITE, ACK, CANCEL, OPTIO
->   NS, BYE, REFER, SUBSCRIBE, NOTIFY..Supported: replaces..Contact:=20
-> <sip:2292694@555.555.184.2>..Content-Type: application/sd
->   p..Content-Length: 265....v=3D0..o=3Droot 27797 27798 IN IP4=20
-> 555.555.184.13..s=3Dsession..c=3DIN IP4 555.555.184.13..t=3D0 0..m=3D=
-audio
->    29444 RTP/AVP 18 101..a=3Drtpmap:18 G729/8000..a=3Dfmtp:18=20
-> annexb=3Dno..a=3Drtpmap:101 telephone-event/8000..a=3Dfmtp:101 0-16..=
-a=3D
->   silenceSupp:off - - - -..a=3Dptime:20..a=3Dsendrecv..
->=20
-> in the "OK" message =E1sterisk ip addresses in SDP changed to the ip=20
-> addresses of SipProxy by sip_conntrack. I can provide DUMP from the=20
-> SipProxy and the complete set of dumps for developers.
->=20
-> Thanks in advance.
->=20
->=20
+I agree. However, when I tried it (before setting the bridge argument
+on the new skb), the kernel crashes. I do not exactly remember where,
+but I think route_me_harder tries to dereference the nf_bridge
+pointer. I may be entirely wrong, so I'll give it another check.
 
-
---=20
-Andrew O. Zhukov
-Telegroup Ukraine
-Technical director.
+Cheers.
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
