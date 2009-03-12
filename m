@@ -1,50 +1,50 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: Nir Tzachar <nir.tzachar@gmail.com>
 Subject: Re: Fix ipt_REJECT problem with nf_bridge
-Date: Thu, 12 Mar 2009 11:35:13 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0903121133590.24554@fbirervta.pbzchgretzou.qr>
-References: <9b2db90b0902260048j514b6ab0w63038bd11ab3f8f6@mail.gmail.com>  <9b2db90b0903092229l1a02e8abtaf3e94a3a5ed641e@mail.gmail.com>  <49B5FE06.1010204@snapgear.com>  <9b2db90b0903110229k14d0622flb7c4bfeecb02ca1a@mail.gmail.com>
- <9b2db90b0903110444w47a99705qe0f22c21cdd0263d@mail.gmail.com> <49B85FA6.9040601@snapgear.com> <alpine.LSU.2.00.0903120341520.31440@fbirervta.pbzchgretzou.qr> <49B8A5E3.7070909@snapgear.com>
+Date: Thu, 12 Mar 2009 14:17:36 +0200
+Message-ID: <9b2db90b0903120517q665d20evc3795989b2f05c7b@mail.gmail.com>
+References: <9b2db90b0902260048j514b6ab0w63038bd11ab3f8f6@mail.gmail.com>
+	 <9b2db90b0903092229l1a02e8abtaf3e94a3a5ed641e@mail.gmail.com>
+	 <49B5FE06.1010204@snapgear.com>
+	 <9b2db90b0903110229k14d0622flb7c4bfeecb02ca1a@mail.gmail.com>
+	 <9b2db90b0903110444w47a99705qe0f22c21cdd0263d@mail.gmail.com>
+	 <49B85FA6.9040601@snapgear.com>
+	 <alpine.LSU.2.00.0903120341520.31440@fbirervta.pbzchgretzou.qr>
+	 <49B8A5E3.7070909@snapgear.com>
+	 <alpine.LSU.2.00.0903121133590.24554@fbirervta.pbzchgretzou.qr>
+	 <9b2db90b0903120516n1f9e67ck8994c9b92bb6aa0a@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Nir Tzachar <nir.tzachar@gmail.com>,
-	netfilter-devel@vger.kernel.org
-To: Philip Craig <philipc@snapgear.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:47162 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753372AbZCLKfR (ORCPT
+Received: from mail-ew0-f177.google.com ([209.85.219.177]:60179 "EHLO
+	mail-ew0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752114AbZCLMRj (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Mar 2009 06:35:17 -0400
-In-Reply-To: <49B8A5E3.7070909@snapgear.com>
+	Thu, 12 Mar 2009 08:17:39 -0400
+Received: by ewy25 with SMTP id 25so334289ewy.37
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 Mar 2009 05:17:36 -0700 (PDT)
+In-Reply-To: <9b2db90b0903120516n1f9e67ck8994c9b92bb6aa0a@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+> So what about the OP's observation that nskb->nf_bridge == NULL?>
+> Just because the incoming packet came in over a bridge does
+> not mean the RST is going over one too, and that being the
+> deciding factor for RTN_LOCAL or not, is it?
 
-On Thursday 2009-03-12 07:04, Philip Craig wrote:
->Jan Engelhardt wrote:
->> FYI: This is talking about "pure"-bridged traffic, i.e. traffic that will
->> go from one bridge port to another without touching the "routing decision"
->> box in [1]. In iptables terminology, that's
->> 
->> 	FORWARD -i br0 -o br0
->> 
->> style traffic. Since the RST packet REJECT creates goes through
->> OUTPUT, so I would assume no forwarding would take place, and the
->> ip_forward flag not be relevant. The BRNF_BRIDGED clause therefore
->> seems wrong because it will always be a non-local saddr.
+Well, in my case the RST goes over the bridge also. But the main
+factor is the following comment made by Philip:
 >
->I can understand this better now based on your explanation :-)
->But I think this clause is okay.
+> >We can't specify addr_type != RTN_LOCAL for the pure bridging case,
+> >because that tries to route the RST as though we received it
+> >from the network, which will fail if ip forwarding is disabled.
+> >
 >
->The addr_type == RTN_LOCAL path works for pure bridged traffic
->because ip_route_me_harder() avoids routing using saddr if
->saddr is foreign.
->
->We can't specify addr_type != RTN_LOCAL for the pure bridging case,
->because that tries to route the RST as though we received it
->from the network, which will fail if ip forwarding is disabled.
->
-So what about the OP's observation that nskb->nf_bridge == NULL?
-Just because the incoming packet came in over a bridge does
-not mean the RST is going over one too, and that being the
-deciding factor for RTN_LOCAL or not, is it?
+
+In my settings, I have a transparent bridge which does not allow ip
+forwarding. According to the comment above, this would prevent the RST
+from being sent.
+
+In any way, I will happily test any suggestions/patches after the weekend.
+Cheers.
