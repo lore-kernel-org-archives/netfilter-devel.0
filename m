@@ -1,25 +1,20 @@
 From: Daniel Lezcano <daniel.lezcano@free.fr>
-Subject: Re: [RFC v2 5/7] net: netfilter conntrack - add per-net functionality
- for TCP protocol
-Date: Thu, 12 Mar 2009 10:15:41 +0100
-Message-ID: <49B8D2BD.8090901@free.fr>
-References: <20090311205706.141086138@gmail.com> <20090311210817.688725782@gmail.com>
+Subject: Re: [RFC v2 6/7] net: netfilter conntrack - add per-net functionality
+ for UDP protocol
+Date: Thu, 12 Mar 2009 10:49:12 +0100
+Message-ID: <49B8DA98.5090806@free.fr>
+References: <20090311205706.141086138@gmail.com> <20090311210817.833318390@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: kaber@trash.net, davem@davemloft.net, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org, xemul@openvz.org,
 	adobriyan@gmail.com, Cyrill Gorcunov <gorcunov@openvz.org>
-To: unlisted-recipients:; (no To-header on input)
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mtagate4.uk.ibm.com ([195.212.29.137]:35962 "EHLO
-	mtagate4.uk.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750852AbZCLJP4 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Mar 2009 05:15:56 -0400
-In-Reply-To: <20090311210817.688725782@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: Cyrill Gorcunov <gorcunov@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20090311210817.833318390@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 Cyrill Gorcunov wrote:
 > Module specific data moved into per-net site and being allocated/freed
