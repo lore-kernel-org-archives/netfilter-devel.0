@@ -1,50 +1,97 @@
-From: Nir Tzachar <nir.tzachar@gmail.com>
-Subject: Re: Fix ipt_REJECT problem with nf_bridge
-Date: Thu, 12 Mar 2009 14:17:36 +0200
-Message-ID: <9b2db90b0903120517q665d20evc3795989b2f05c7b@mail.gmail.com>
-References: <9b2db90b0902260048j514b6ab0w63038bd11ab3f8f6@mail.gmail.com>
-	 <9b2db90b0903092229l1a02e8abtaf3e94a3a5ed641e@mail.gmail.com>
-	 <49B5FE06.1010204@snapgear.com>
-	 <9b2db90b0903110229k14d0622flb7c4bfeecb02ca1a@mail.gmail.com>
-	 <9b2db90b0903110444w47a99705qe0f22c21cdd0263d@mail.gmail.com>
-	 <49B85FA6.9040601@snapgear.com>
-	 <alpine.LSU.2.00.0903120341520.31440@fbirervta.pbzchgretzou.qr>
-	 <49B8A5E3.7070909@snapgear.com>
-	 <alpine.LSU.2.00.0903121133590.24554@fbirervta.pbzchgretzou.qr>
-	 <9b2db90b0903120516n1f9e67ck8994c9b92bb6aa0a@mail.gmail.com>
+From: Christoph Paasch <christoph.paasch@gmail.com>
+Subject: l4_packet returning NF_DROP
+Date: Thu, 12 Mar 2009 14:44:30 +0100
+Message-ID: <200903121444.37625.christoph.paasch@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed;
+  boundary="nextPart1622377.IAn0MISYdE";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ew0-f177.google.com ([209.85.219.177]:60179 "EHLO
+Received: from mail-ew0-f177.google.com ([209.85.219.177]:46915 "EHLO
 	mail-ew0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752114AbZCLMRj (ORCPT
+	with ESMTP id S1755272AbZCLNop (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Mar 2009 08:17:39 -0400
-Received: by ewy25 with SMTP id 25so334289ewy.37
-        for <netfilter-devel@vger.kernel.org>; Thu, 12 Mar 2009 05:17:36 -0700 (PDT)
-In-Reply-To: <9b2db90b0903120516n1f9e67ck8994c9b92bb6aa0a@mail.gmail.com>
+	Thu, 12 Mar 2009 09:44:45 -0400
+Received: by ewy25 with SMTP id 25so361098ewy.37
+        for <netfilter-devel@vger.kernel.org>; Thu, 12 Mar 2009 06:44:42 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> So what about the OP's observation that nskb->nf_bridge == NULL?>
-> Just because the incoming packet came in over a bridge does
-> not mean the RST is going over one too, and that being the
-> deciding factor for RTN_LOCAL or not, is it?
+--nextPart1622377.IAn0MISYdE
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-Well, in my case the RST goes over the bridge also. But the main
-factor is the following comment made by Philip:
->
-> >We can't specify addr_type != RTN_LOCAL for the pure bridging case,
-> >because that tries to route the RST as though we received it
-> >from the network, which will fail if ip forwarding is disabled.
-> >
->
+Hi,
 
-In my settings, I have a transparent bridge which does not allow ip
-forwarding. According to the comment above, this would prevent the RST
-from being sent.
+I have a question regarding the call to l4_packet, in nf_conntrack_in(...)=
+=20
+from nf_conntrack_core.c
 
-In any way, I will happily test any suggestions/patches after the weekend.
-Cheers.
+When a module like TCP returns -NF_DROP in tcp_packet(...), the packet won'=
+t=20
+get dropped, because NF_DROP =3D 0, and in nf_conntrack_in the return of th=
+e=20
+call to l4_packet is checked:
+if (ret < 0) {
+	...
+}
+
+So, there is no way to drop packets after l4_packet.
+
+Why does this is implemented that way?
+
+There are several points in tcp_packet where the function returns -NF_DROP =
+and=20
+the comments in this function say that the packet will get blocked.
+
+=46or example (from tcp_packet):
+
+	if (index =3D=3D TCP_SYNACK_SET
+		    && ct->proto.tcp.last_index =3D=3D TCP_SYN_SET
+		    && ct->proto.tcp.last_dir !=3D dir
+		    && ntohl(th->ack_seq) =3D=3D ct->proto.tcp.last_end) {
+			/* b) This SYN/ACK acknowledges a SYN that we earlier
+			 * ignored as invalid. This means that the client and
+			 * the server are both in sync, while the firewall is
+			 * not. We kill this session and block the SYN/ACK so
+			 * that the client cannot but retransmit its SYN and
+			 * thus initiate a clean new session.
+			 */
+			write_unlock_bh(&tcp_lock);
+			if (LOG_INVALID(net, IPPROTO_TCP))
+				nf_log_packet(pf, 0, skb, NULL, NULL, NULL,
+					  "nf_ct_tcp: killing out of sync session ");
+			nf_ct_kill(ct);
+			return -NF_DROP;
+		}
+
+I hope, that I was clear.
+Could someone please explain this to me?
+And how can I block packets after the call to l4_packet?
+
+Thanks
+
+=2D-
+Christoph Paasch
+
+www.rollerbulls.be
+=2D-
+
+--nextPart1622377.IAn0MISYdE
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEABECAAYFAkm5Eb8ACgkQLHtZTroOLZuMDACgoKudAyUxUlhU78hbuKkPuHTg
+NJUAoJH6c/TURgDRs/fFrFyhXpp/Lwbf
+=zLPZ
+-----END PGP SIGNATURE-----
+
+--nextPart1622377.IAn0MISYdE--
