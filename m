@@ -1,35 +1,40 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: Allow dropping packet after call to l4proto->packet
-Date: Thu, 12 Mar 2009 18:27:03 +0100
-Message-ID: <49B945E7.7080203@netfilter.org>
-References: <200903121603.02733.christoph.paasch@gmail.com> <1236870826-10054-1-git-send-email-christoph.paasch@gmail.com> <alpine.LSU.2.00.0903121634070.12067@fbirervta.pbzchgretzou.qr>
+From: Philip Craig <philipc@snapgear.com>
+Subject: Re: Fix ipt_REJECT problem with nf_bridge
+Date: Fri, 13 Mar 2009 10:50:22 +1000
+Message-ID: <49B9ADCE.3050702@snapgear.com>
+References: <9b2db90b0902260048j514b6ab0w63038bd11ab3f8f6@mail.gmail.com>  <9b2db90b0903092229l1a02e8abtaf3e94a3a5ed641e@mail.gmail.com>  <49B5FE06.1010204@snapgear.com>  <9b2db90b0903110229k14d0622flb7c4bfeecb02ca1a@mail.gmail.com> <9b2db90b0903110444w47a99705qe0f22c21cdd0263d@mail.gmail.com> <49B85FA6.9040601@snapgear.com> <alpine.LSU.2.00.0903120341520.31440@fbirervta.pbzchgretzou.qr> <49B8A5E3.7070909@snapgear.com> <alpine.LSU.2.00.0903121133590.24554@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Christoph Paasch <christoph.paasch@gmail.com>,
+Cc: Nir Tzachar <nir.tzachar@gmail.com>,
 	netfilter-devel@vger.kernel.org
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41743 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755000AbZCLR1M (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 12 Mar 2009 13:27:12 -0400
-In-Reply-To: <alpine.LSU.2.00.0903121634070.12067@fbirervta.pbzchgretzou.qr>
+Received: from rex.securecomputing.com ([203.24.151.4]:58170 "EHLO
+	cyberguard.com.au" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756057AbZCMAtO (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 12 Mar 2009 20:49:14 -0400
+In-Reply-To: <alpine.LSU.2.00.0903121133590.24554@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Jan Engelhardt wrote:
-> On Thursday 2009-03-12 16:13, Christoph Paasch wrote:
-> 
->> As NF_DROP = 0, no packets would ever have been dropped.
-> 
-> Mh would not it be safer to actually give NF_DROP a real value so that 
-> -NF_DROP also makes sense?
-> (Might need checking places where NF_DROP is used.)
+> So what about the OP's observation that nskb->nf_bridge == NULL?
+> Just because the incoming packet came in over a bridge does
+> not mean the RST is going over one too, and that being the
+> deciding factor for RTN_LOCAL or not, is it?
 
-We cannot change the current value of NF_DROP. This is exposed to
-userspace in libnetfilter_queue. Changing the value would break backward
-compatibility of existing applications.
+Agreed that the RST may not be going out a bridge.
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+We don't know yet whether the RST will be bridged; that's why
+we are calling ip_route_me_harder().
+
+The deciding factor for RTN_LOCAL should be whether the incoming
+packet is purely bridged, because that means the RST will have
+a foreign source address.  We must follow the first code path in
+ip_route_me_harder() or we drop it when ip forwarding is disabled,
+but if the RST has a foreign source address then it will normally
+follow the second code path, so we must force the first by
+specifying RTN_LOCAL.
+
