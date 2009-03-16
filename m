@@ -1,26 +1,31 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: conntrack: increase drop stats if sequence
- adjustment fails
-Date: Mon, 16 Mar 2009 15:19:29 +0100
-Message-ID: <49BE5FF1.7070705@trash.net>
-References: <20090303233657.7390.5796.stgit@Decadence>
+Subject: Re: [PATCH 3/3] netfilter: ctnetlink: move event reporting for new
+ entries outside the lock
+Date: Mon, 16 Mar 2009 15:23:16 +0100
+Message-ID: <49BE60D4.9040902@trash.net>
+References: <20090305160714.13755.83435.stgit@Decadence> <20090305160759.13755.64802.stgit@Decadence>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:46183 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:46288 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755725AbZCPOTc (ORCPT
+	with ESMTP id S1751800AbZCPOXW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Mar 2009 10:19:32 -0400
-In-Reply-To: <20090303233657.7390.5796.stgit@Decadence>
+	Mon, 16 Mar 2009 10:23:22 -0400
+In-Reply-To: <20090305160759.13755.64802.stgit@Decadence>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Pablo Neira Ayuso wrote:
-> This patch increases the statistics of packets drop if the sequence
-> adjustment fails in ipv4_confirm().
+> This patch moves the event reporting outside the lock section. With
+> this patch, the creation and update of entries is homogeneous from
+> the event reporting perspective. Moreover, as the event reporting is
+> done outside the lock section, the netlink broadcast delivery can
+> benefit of the yield() call under congestion.
 
-Applied, thanks.
+This one doesn't apply cleanly, probably because of the missing
+netlink_set_err patch. I've pushed out my current nf-next tree,
+please rediff against that tree.
