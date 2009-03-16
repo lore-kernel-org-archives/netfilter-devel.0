@@ -1,40 +1,47 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Passive OS fingerprint xtables match.
-Date: Mon, 16 Mar 2009 15:42:49 +0100
-Message-ID: <49BE6569.4060801@trash.net>
-References: <20090310151357.GA10658@ioremap.net> <49B78A4D.4060703@netfilter.org> <20090311100038.GA9560@ioremap.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] nefilter: nfnetlink: add nfnetlink_set_err and use it
+ in	ctnetlink
+Date: Mon, 16 Mar 2009 15:47:57 +0100
+Message-ID: <49BE669D.7040502@netfilter.org>
+References: <20090305163208.14553.517.stgit@Decadence> <49BE5E6F.2020708@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>, netdev@vger.kernel.org,
-	David Miller <davem@davemloft.net>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Jan Engelhardt <jengelh@medozas.de>
-To: Evgeniy Polyakov <zbr@ioremap.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20090311100038.GA9560@ioremap.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:37425 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754834AbZCPOsG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 16 Mar 2009 10:48:06 -0400
+In-Reply-To: <49BE5E6F.2020708@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Evgeniy Polyakov wrote:
-> Hi Pablo.
+Patrick McHardy wrote:
+> Pablo Neira Ayuso wrote:
+>> This patch adds nfnetlink_set_err() to propagate the error to netlink
+>> broadcast listener in case of memory allocation errors in the
+>> message building.
 > 
-> On Wed, Mar 11, 2009 at 10:54:21AM +0100, Pablo Neira Ayuso (pablo@netfilter.org) wrote:
->>> Fingerprint matching rules can be downloaded from OpenBSD source tree
->>> and loaded via netlink connector into the kernel via special util found
->>> in archive. It will also listen for events about matching packets.
->> I like this feature. We have nfnetlink so I don't see why we should use
->> the netlink connector instead.
+>> +void nfnetlink_set_err(u32 group, int error)
+>> +{
+>> +    netlink_set_err(nfnl, 0, group, error);
+>> +}
+>> +EXPORT_SYMBOL_GPL(nfnetlink_set_err);
+> 
+> Please make the pid argument controllable by the caller as well. This
+> is necessary to avoid double error notifications when an error occurs
+> in response to a user-request triggering notifications.
 
-I fully agree.
+OK, I'll add it, but the pid passed as argument will be zero by now.
+Note that, in the current code, user-requests ignore notification
+errors, so there is no chance to get double error notifications.
 
-> OSF exists about 6 years already, netlink configuration was added in
-> 2005, I do not remember if nfnetlink existed those days (IIRC it did
-> not, since I reused ULOG netlink first), right now I just cleanup
-> what was written before.
+I have another patch here to propagate errors of user-requests that
+result in failing notifications, then the pid parameter in
+nfnetlink_set_err() will be useful. That patch also includes the use of
+NETLINK_BROADCAST_ERROR. I'll send you that patch soon.
 
-We do have nfnetlink today however, so this argument does no longer
-apply. I don't mind the order in which things are fixed up of course,
-but before merging, it needs to be converted to nfnetlink.
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
