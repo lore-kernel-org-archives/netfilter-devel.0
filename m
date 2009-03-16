@@ -1,51 +1,141 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: nf_conntrack.acct has no effect
-Date: Mon, 16 Mar 2009 19:01:40 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0903161901270.21226@fbirervta.pbzchgretzou.qr>
-References: <alpine.LSU.2.00.0903161749530.16494@fbirervta.pbzchgretzou.qr> <49BE84D4.7050804@trash.net>
+From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: Re: [RFC v2 3/7] net: netfilter conntrack - add per-net
+	functionality for SCTP protocol
+Date: Mon, 16 Mar 2009 21:21:36 +0300
+Message-ID: <20090316182136.GF7551@localhost>
+References: <20090311205706.141086138@gmail.com> <20090311210817.384140456@gmail.com> <49BE71AF.8050200@trash.net> <20090316154620.GA7551@localhost> <49BE74CC.8060701@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: pablo@netfilter.org,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: davem@davemloft.net, daniel.lezcano@free.fr,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	xemul@openvz.org, adobriyan@gmail.com
 To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:39361 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761998AbZCPSBo (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Mar 2009 14:01:44 -0400
-In-Reply-To: <49BE84D4.7050804@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <49BE74CC.8060701@trash.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-
-On Monday 2009-03-16 17:56, Patrick McHardy wrote:
-> Jan Engelhardt wrote:
->> A forum made me (re)aware of
->>
->> Mar 15 18:20:25 wild-thing kernel: nf_conntrack version 0.5.0 (16384 buckets,
->> 65536 max)
->> Mar 15 18:20:25 wild-thing kernel: CONFIG_NF_CT_ACCT is deprecated and will be
->> removed soon. Plase use
->> Mar 15 18:20:25 wild-thing kernel: nf_conntrack.acct=1 kernel paramater,
->> acct=1 nf_conntrack module option or
->> Mar 15 18:20:25 wild-thing kernel: sysctl net.netfilter.nf_conntrack_acct=1 to
->> enable it.
->>
->> which prompted me to look into this a bit in detail. I was wondering
->> which functionality I would lose on not setting nf_conntrack.acct. To
->> my surprise, there is no loss of functionality, as the "nf_ct_acct"
->> in nf_conntrack_acct.c nor /proc/sys/net/netfilter/nf_conntrack_acct
->> which is the accompanied sysctl file cause the packet or byte
->> counters to disappear from `conntrack -L` or /proc/net/nf_conntrack.
->>
->> Should the message be removed? Should the missing check for
->> nf_ct_acct be included?
+[Patrick McHardy - Mon, Mar 16, 2009 at 04:48:28PM +0100]
+...
 >
-> Currently the default is set based on the old config option.
-> When unset, no acct-extend is allocated for *new* conntracks.
-> The old ones that do have an acct-extend are still displayed.
-> Does that explain your observation?
+>> Give me some time Patrick, will try. Actually initial idea
+>> of these macros was to eliminate 'possible' problems caused
+>> by for (;;) form (enum could be rearranged and we will fail
+>> silently).
+>
+> The state enums are pretty much set in stone as they're part of the
+> userspace ABI.
+>
+>> So I guess the some 'new' form of template would
+>> help (instead of current "ctrl table as a templae"). So
+>> will return with new proposal. Thanks for review!
+>
+> Thanks.
+>
 
-Absolutely, thanks for the clarification.
+After playing a bit with ctrl tables (thought about additional
+mapping set or say new sysctl helper structure, or even using
+extra1 member from struct ctl_table as temporary index) -- 
+you were right in your first propose on this patch. Iterative
+fasion is only more or less convenient here indeed :)
+
+Patrick, take a look please on the snippet below (that is how
+it looks now).
+...
+
++static __net_init int sctp_net_init(struct net *net)
++{
++	struct sctp_net *sn;
++	int err;
++
++	sn = kmalloc(sizeof(*sn), GFP_KERNEL);
++	if (!sn)
++		return -ENOMEM;
++
++	/* default values */
++	sn->sctp_timeouts[SCTP_CONNTRACK_CLOSED]	= 10 SECS;
++	sn->sctp_timeouts[SCTP_CONNTRACK_COOKIE_WAIT]	= 3 SECS;
++	sn->sctp_timeouts[SCTP_CONNTRACK_COOKIE_ECHOED]	= 3 SECS;
++	sn->sctp_timeouts[SCTP_CONNTRACK_ESTABLISHED]	= 5 DAYS;
++	sn->sctp_timeouts[SCTP_CONNTRACK_SHUTDOWN_SENT]	= 300 SECS / 1000;
++	sn->sctp_timeouts[SCTP_CONNTRACK_SHUTDOWN_RECD]	= 300 SECS / 1000;
++	sn->sctp_timeouts[SCTP_CONNTRACK_SHUTDOWN_ACK_SENT] = 3 SECS;
++
++	err = net_assign_generic(net, sctp_net_id, sn);
++	if (err)
++		goto out;
++
++	/*
++	 * Pin per-net data to sysctl tables
++	 *
++	 * We allocate new ctrl tables from predefined templates
++	 * and then assign .data fields iteratively, we allowed
++	 * to do so since SCTP_CONNTRACK_... enum is a part of
++	 * userspace ABI and it's hardly that the enum entries
++	 * will be rearranged
++	 */
++
+ #ifdef CONFIG_SYSCTL
+-	.ctl_table_users	= &sctp_sysctl_table_users,
+-	.ctl_table_header	= &sctp_sysctl_header,
+-	.ctl_table		= sctp_sysctl_table,
++	{
++	int i;
++	err = -ENOMEM;
++	sn->sysctl_table = kmemdup(sctp_sysctl_table,
++			sizeof(sctp_sysctl_table), GFP_KERNEL);
++	if (!sn->sysctl_table)
++		goto out;
++
++	for (i = SCTP_CONNTRACK_CLOSED; i < SCTP_CONNTRACK_MAX; i++)
++		sn->sysctl_table[i - 1].data = &sn->sctp_timeouts[i];
++
++	sn->sysctl_header = register_net_sysctl_table(net,
++			nf_net_netfilter_sysctl_path, sn->sysctl_table);
++	if (!sn->sysctl_header)
++		goto out_free;
++
++#ifdef CONFIG_NF_CONNTRACK_PROC_COMPAT
++	sn->compat_sysctl_table = kmemdup(sctp_compat_sysctl_table,
++			sizeof(sctp_compat_sysctl_table), GFP_KERNEL);
++	if (!sn->compat_sysctl_table)
++		goto out_sysctl;
++
++	for (i = SCTP_CONNTRACK_CLOSED; i < SCTP_CONNTRACK_MAX; i++)
++		sn->compat_sysctl_table[err - 1].data = &sn->sctp_timeouts[i];
++
++	sn->compat_sysctl_header = register_net_sysctl_table(net,
++			nf_net_ipv4_netfilter_sysctl_path, sn->compat_sysctl_table);
++	if (!sn->compat_sysctl_header)
++		goto out_free_compat;
++#endif /* CONFIG_NF_CONNTRACK_PROC_COMPAT */
++	}
++#endif /* CONFIG_SYSCTL */
++
++	return 0;
++
++#ifdef CONFIG_SYSCTL
++
++#ifdef CONFIG_NF_CONNTRACK_PROC_COMPAT
++out_free_compat:
++	kfree(sn->compat_sysctl_table);
++#endif
++out_sysctl:
++	unregister_net_sysctl_table(sn->sysctl_header);
++out_free:
++	kfree(sn->sysctl_table);
++#endif
++
++out:
++	kfree(sn);
++	return err;
++}
+...
+
+If such an approach is fine -- I will fix the TCP proto
+as well. Btw, this two patches (SCTP and TCP) are only
+involved in such a modification, are there some problems
+with patches for UDP, UDPlite and ICMP protos?
+
+	- Cyrill -
