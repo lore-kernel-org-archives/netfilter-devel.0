@@ -1,47 +1,51 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: (pull) pending patches
-Date: Mon, 16 Mar 2009 18:13:37 +0100
-Message-ID: <49BE88C1.6000004@trash.net>
-References: <alpine.LSU.2.00.0903152142090.17985@fbirervta.pbzchgretzou.qr> <49BE0FF3.5090906@netfilter.org> <alpine.LSU.2.00.0903161153030.26752@fbirervta.pbzchgretzou.qr> <49BE567F.1020704@trash.net> <alpine.LSU.2.00.0903161441001.4673@fbirervta.pbzchgretzou.qr> <49BE574E.8070202@trash.net> <alpine.LSU.2.00.0903161739080.15852@fbirervta.pbzchgretzou.qr> <49BE81E2.2030805@trash.net> <alpine.LSU.2.00.0903161748170.15852@fbirervta.pbzchgretzou.qr> <49BE8646.5040401@trash.net> <alpine.LSU.2.00.0903161809270.17820@fbirervta.pbzchgretzou.qr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: nf_conntrack.acct has no effect
+Date: Mon, 16 Mar 2009 19:01:40 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0903161901270.21226@fbirervta.pbzchgretzou.qr>
+References: <alpine.LSU.2.00.0903161749530.16494@fbirervta.pbzchgretzou.qr> <49BE84D4.7050804@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: pablo@netfilter.org,
 	Netfilter Developer Mailing List
 	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:51325 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752428AbZCPRNl (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:39361 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761998AbZCPSBo (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Mar 2009 13:13:41 -0400
-In-Reply-To: <alpine.LSU.2.00.0903161809270.17820@fbirervta.pbzchgretzou.qr>
+	Mon, 16 Mar 2009 14:01:44 -0400
+In-Reply-To: <49BE84D4.7050804@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Monday 2009-03-16 18:03, Patrick McHardy wrote:
-> 
->> Jan Engelhardt wrote:
->>> On Monday 2009-03-16 17:44, Patrick McHardy wrote:
->>>
->>>>> All NAT modules -- libipt_DNAT, SNAT, MASQUERADE, NETMAP, REDIRECT --
->>>>> use struct nf_nat_multi_range, which is also only in nf_nat.h.
->>>> Indeed, that one should be exported. But in order to that is should
->>>> be moved to include/linux/netfilter instead of using include/net
->>>> includes in userspace.
->>>>
->>> I agree. If however it does not make it into 2.6.29 I would suggest
->>> going with the proposed iptables tree with a manually-copied
->>> nf_nat.h, though.
->> Fair enough. Which branch do you want me to pull?
+
+On Monday 2009-03-16 17:56, Patrick McHardy wrote:
+> Jan Engelhardt wrote:
+>> A forum made me (re)aware of
 >>
-> master, please.
+>> Mar 15 18:20:25 wild-thing kernel: nf_conntrack version 0.5.0 (16384 buckets,
+>> 65536 max)
+>> Mar 15 18:20:25 wild-thing kernel: CONFIG_NF_CT_ACCT is deprecated and will be
+>> removed soon. Plase use
+>> Mar 15 18:20:25 wild-thing kernel: nf_conntrack.acct=1 kernel paramater,
+>> acct=1 nf_conntrack module option or
+>> Mar 15 18:20:25 wild-thing kernel: sysctl net.netfilter.nf_conntrack_acct=1 to
+>> enable it.
+>>
+>> which prompted me to look into this a bit in detail. I was wondering
+>> which functionality I would lose on not setting nf_conntrack.acct. To
+>> my surprise, there is no loss of functionality, as the "nf_ct_acct"
+>> in nf_conntrack_acct.c nor /proc/sys/net/netfilter/nf_conntrack_acct
+>> which is the accompanied sysctl file cause the packet or byte
+>> counters to disappear from `conntrack -L` or /proc/net/nf_conntrack.
+>>
+>> Should the message be removed? Should the missing check for
+>> nf_ct_acct be included?
+>
+> Currently the default is set based on the old config option.
+> When unset, no acct-extend is allocated for *new* conntracks.
+> The old ones that do have an acct-extend are still displayed.
+> Does that explain your observation?
 
-The diffstat looks massively different again. Careful comparision
-shows it actually *is* what you asked to pull, but please include
-a proper diffstat in the future so I don't have to do this every
-time I pull.
-
-Anyways, pulled and pushed out again, thanks.
+Absolutely, thanks for the clarification.
