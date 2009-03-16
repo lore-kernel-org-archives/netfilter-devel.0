@@ -1,26 +1,40 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Pending netfilter patches
-Date: Mon, 16 Mar 2009 17:13:28 +0100
-Message-ID: <49BE7AA8.4040407@trash.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: (pull) pending patches
+Date: Mon, 16 Mar 2009 17:42:02 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0903161739080.15852@fbirervta.pbzchgretzou.qr>
+References: <alpine.LSU.2.00.0903152142090.17985@fbirervta.pbzchgretzou.qr> <49BE0FF3.5090906@netfilter.org> <alpine.LSU.2.00.0903161153030.26752@fbirervta.pbzchgretzou.qr> <49BE567F.1020704@trash.net> <alpine.LSU.2.00.0903161441001.4673@fbirervta.pbzchgretzou.qr>
+ <49BE574E.8070202@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-To: Netfilter Development Mailinglist
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Developer Mailing List
 	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:49812 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754501AbZCPQNb (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:38228 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752428AbZCPQmG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Mar 2009 12:13:31 -0400
-Received: from [192.168.0.100] (unknown [78.42.204.165])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by stinky.trash.net (Postfix) with ESMTPSA id 8C8F6948B0
-	for <netfilter-devel@vger.kernel.org>; Mon, 16 Mar 2009 17:13:29 +0100 (MET)
+	Mon, 16 Mar 2009 12:42:06 -0400
+In-Reply-To: <49BE574E.8070202@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-I've went through the list and my inbox and applied or responded to
-everything I could find. Anything else can be considered lost, please
-resubmit in case I missed something.
+
+On Monday 2009-03-16 14:42, Patrick McHardy wrote:
+
+> Jan Engelhardt wrote:
+>> On Monday 2009-03-16 14:39, Patrick McHardy wrote:
+>>
+>>> We used to have ip_nat_range(_compat) for compatibility for that reason
+>>> IIRC. The kernel doesn't need anymore, so I think userspace should carry
+>>> a copy as long as ipt_SAME is still supported.
+>>>
+>> But that only makes it harder to keep files in sync :-/
+>
+> There is nothing to keep in sync, ipt_SAME doesn't exist in the kernel
+> anymore. And a structure kept purely to maintain compatibility with old
+> kernels will obviously never change.
+>
+All NAT modules -- libipt_DNAT, SNAT, MASQUERADE, NETMAP, REDIRECT --
+use struct nf_nat_multi_range, which is also only in nf_nat.h.
