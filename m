@@ -1,40 +1,24 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: remove IPvX specific parts from nf_conntrack_l4proto.h
-Date: Mon, 16 Mar 2009 15:16:38 +0100
-Message-ID: <49BE5F46.8060407@trash.net>
-References: <1236615258-12897-1-git-send-email-christoph.paasch@gmail.com> <alpine.LSU.2.00.0903101714170.23653@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH] netfilter: Kconfig spelling fixes (trivial)
+Date: Mon, 16 Mar 2009 15:17:59 +0100
+Message-ID: <49BE5F97.2090800@trash.net>
+References: <20090226173506.045653f5@nehalam>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Christoph Paasch <christoph.paasch@gmail.com>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: Stephen Hemminger <shemminger@vyatta.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:46103 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:46138 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760217AbZCPOQm (ORCPT
+	with ESMTP id S1753325AbZCPOSD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Mar 2009 10:16:42 -0400
-In-Reply-To: <alpine.LSU.2.00.0903101714170.23653@fbirervta.pbzchgretzou.qr>
+	Mon, 16 Mar 2009 10:18:03 -0400
+In-Reply-To: <20090226173506.045653f5@nehalam>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> 
-> On Monday 2009-03-09 17:14, Christoph Paasch wrote:
-> 
->> Moving the structure definitions to the corresponding IPvX specific header files.
->> ---
->> include/net/netfilter/nf_conntrack_l4proto.h   |    5 +----
->> net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |    1 +
->> net/netfilter/nf_conntrack_proto_tcp.c         |    2 ++
->> net/netfilter/nf_conntrack_proto_udp.c         |    2 ++
->> 4 files changed, 6 insertions(+), 4 deletions(-)
-> 
-> 
-> Seems good to go to me. Patrick?
+Stephen Hemminger wrote:
+> Signed-off-by: Stephen Hemminger <sheminger@vyatta.com>
 
-Me too, applied.
-
-Next time please sign off your patches though.
+Applied, thanks.
