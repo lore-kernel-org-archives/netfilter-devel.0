@@ -1,40 +1,35 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: (pull) pending patches
-Date: Mon, 16 Mar 2009 09:38:11 +0100
-Message-ID: <49BE0FF3.5090906@netfilter.org>
-References: <alpine.LSU.2.00.0903152142090.17985@fbirervta.pbzchgretzou.qr>
+Subject: Re: crash bug due to a missing initialization
+Date: Mon, 16 Mar 2009 09:47:55 +0100
+Message-ID: <49BE123B.4070403@netfilter.org>
+References: <20090313111818.GA5359@zebra.home>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net,
-	Netfilter Developer Mailing List
+Cc: Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+To: BORBELY Zoltan <bozo@andrews.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35146 "EHLO us.es"
+Received: from mail.us.es ([193.147.175.20]:41112 "EHLO us.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752272AbZCPIiZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Mar 2009 04:38:25 -0400
-In-Reply-To: <alpine.LSU.2.00.0903152142090.17985@fbirervta.pbzchgretzou.qr>
+	id S1753135AbZCPIsF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 16 Mar 2009 04:48:05 -0400
+In-Reply-To: <20090313111818.GA5359@zebra.home>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> diff --git a/extensions/libipt_DNAT.c b/extensions/libipt_DNAT.c
-> index f0a2369..b5f8028 100644
-> --- a/extensions/libipt_DNAT.c
-> +++ b/extensions/libipt_DNAT.c
-> @@ -6,8 +6,9 @@
->  #include <getopt.h>
->  #include <xtables.h>
->  #include <iptables.h> /* get_kernel_version */
-> +#include <limits.h> /* INT_MAX in ip_tables.h */
->  #include <linux/netfilter_ipv4/ip_tables.h>
-> -#include <linux/netfilter/nf_nat.h>
-> +#include <net/netfilter/nf_nat.h>
+BORBELY Zoltan wrote:
+> Hi,
+> 
+> In the ctnetlink_create_expect() function (in file nf_conntrack_netlink.c),
+> you forgot to initialize exp->class, which causes a crash in the
+> nf_ct_expect_related() function. I've just put an
+> 
+>     exp->class = 0;
+> 
+> line before the exp->expectfn = NULL line, and it has solved the problem.
 
-I thought that kernel headers under net/ are not ever exported to
-userspace ?
+Good catch.
 
 -- 
 "Los honestos son inadaptados sociales" -- Les Luthiers
