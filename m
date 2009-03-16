@@ -1,33 +1,52 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: netfilter: xtables: avoid pointer to self
-Date: Mon, 16 Mar 2009 15:36:06 +0100
-Message-ID: <49BE63D6.1090306@trash.net>
-References: <alpine.LSU.2.00.0903031806350.8887@fbirervta.pbzchgretzou.qr>
+Subject: Re: Passive OS fingerprint xtables match.
+Date: Mon, 16 Mar 2009 15:40:29 +0100
+Message-ID: <49BE64DD.5030404@trash.net>
+References: <20090310151357.GA10658@ioremap.net> <Pine.LNX.4.64.0903102147480.21593@ask.diku.dk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: Evgeniy Polyakov <zbr@ioremap.net>,
+	netdev <netdev@vger.kernel.org>,
+	David Miller <davem@davemloft.net>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Jan Engelhardt <jengelh@medozas.de>, hawk@comx.dk
+To: Jesper Dangaard Brouer <hawk@diku.dk>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:46860 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:46965 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754685AbZCPOgJ (ORCPT
+	with ESMTP id S1752933AbZCPOkf (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Mar 2009 10:36:09 -0400
-In-Reply-To: <alpine.LSU.2.00.0903031806350.8887@fbirervta.pbzchgretzou.qr>
+	Mon, 16 Mar 2009 10:40:35 -0400
+In-Reply-To: <Pine.LNX.4.64.0903102147480.21593@ask.diku.dk>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> (There is a 2nd patch as reply, could you please fold that.)
+Jesper Dangaard Brouer wrote:
+> On Tue, 10 Mar 2009, Evgeniy Polyakov wrote:
 > 
-> ---8<---
-> netfilter: xtables: avoid pointer to self
+>> +            call_rcu(&f->rcu_head, ipt_osf_finger_free_rcu);
+>> +        }
+>> +    }
+>> +    rcu_read_unlock();
 > 
-> Commit 784544739a25c30637397ace5489eeb6e15d7d49 (netfilter: iptables: 
-> lock free counters) broke a number of modules whose rule data referenced 
-> itself. A reallocation would not reestablish the correct references, so 
-> it is best to use a separate struct that does not fall under RCU.
+> Should the list_del_rcu() not be protected by a spinlock?
+> 
+> 
+>> +    rcu_barrier();
+> 
+> In some of my code I call synchronize_net(), is it enough to call 
+> rcu_barrier()?
+> 
+> What is the difference between:
+> 
+>  synchronize_rcu()
+>  synchronize_net()
+>  rcu_barrier()
 
-Applied, including the second patch. Thanks.
-
+synchronize_net() is just a call to synchronize_rcu(), so their
+functionality is equivalent. synchronize_net() is however only
+supposed to synchronize with RX packet processing, which is usually
+not enough for netfilter. So I prefer synchronize_rcu() for clarity.
