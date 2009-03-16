@@ -1,50 +1,36 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: (pull) pending patches
-Date: Mon, 16 Mar 2009 17:49:16 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0903161748170.15852@fbirervta.pbzchgretzou.qr>
-References: <alpine.LSU.2.00.0903152142090.17985@fbirervta.pbzchgretzou.qr> <49BE0FF3.5090906@netfilter.org> <alpine.LSU.2.00.0903161153030.26752@fbirervta.pbzchgretzou.qr> <49BE567F.1020704@trash.net> <alpine.LSU.2.00.0903161441001.4673@fbirervta.pbzchgretzou.qr>
- <49BE574E.8070202@trash.net> <alpine.LSU.2.00.0903161739080.15852@fbirervta.pbzchgretzou.qr> <49BE81E2.2030805@trash.net>
+Subject: nf_conntrack.acct has no effect
+Date: Mon, 16 Mar 2009 17:53:13 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0903161749530.16494@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: kaber@trash.net, pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:48264 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:48281 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755384AbZCPQtS (ORCPT
+	with ESMTP id S1754034AbZCPQxP (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Mar 2009 12:49:18 -0400
-In-Reply-To: <49BE81E2.2030805@trash.net>
+	Mon, 16 Mar 2009 12:53:15 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi,
 
-On Monday 2009-03-16 17:44, Patrick McHardy wrote:
 
-> Jan Engelhardt wrote:
->> On Monday 2009-03-16 14:42, Patrick McHardy wrote:
->>
->>> Jan Engelhardt wrote:
->>>> On Monday 2009-03-16 14:39, Patrick McHardy wrote:
->>>>
->>>>> We used to have ip_nat_range(_compat) for compatibility for that reason
->>>>> IIRC. The kernel doesn't need anymore, so I think userspace should carry
->>>>> a copy as long as ipt_SAME is still supported.
->>>>>
->>>> But that only makes it harder to keep files in sync :-/
->>> There is nothing to keep in sync, ipt_SAME doesn't exist in the kernel
->>> anymore. And a structure kept purely to maintain compatibility with old
->>> kernels will obviously never change.
->>>
->> All NAT modules -- libipt_DNAT, SNAT, MASQUERADE, NETMAP, REDIRECT --
->> use struct nf_nat_multi_range, which is also only in nf_nat.h.
->
-> Indeed, that one should be exported. But in order to that is should
-> be moved to include/linux/netfilter instead of using include/net
-> includes in userspace.
->
-I agree. If however it does not make it into 2.6.29 I would suggest
-going with the proposed iptables tree with a manually-copied
-nf_nat.h, though.
+A forum made me (re)aware of
+
+Mar 15 18:20:25 wild-thing kernel: nf_conntrack version 0.5.0 (16384 buckets, 65536 max)
+Mar 15 18:20:25 wild-thing kernel: CONFIG_NF_CT_ACCT is deprecated and will be removed soon. Plase use
+Mar 15 18:20:25 wild-thing kernel: nf_conntrack.acct=1 kernel paramater, acct=1 nf_conntrack module option or
+Mar 15 18:20:25 wild-thing kernel: sysctl net.netfilter.nf_conntrack_acct=1 to enable it.
+
+which prompted me to look into this a bit in detail. I was wondering
+which functionality I would lose on not setting nf_conntrack.acct. To
+my surprise, there is no loss of functionality, as the "nf_ct_acct"
+in nf_conntrack_acct.c nor /proc/sys/net/netfilter/nf_conntrack_acct
+which is the accompanied sysctl file cause the packet or byte
+counters to disappear from `conntrack -L` or /proc/net/nf_conntrack.
+
+Should the message be removed? Should the missing check for
+nf_ct_acct be included?
