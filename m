@@ -1,30 +1,25 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: size calculation wasted cpu time
-Date: Mon, 16 Mar 2009 15:06:13 +0100
-Message-ID: <49BE5CD5.5000808@netfilter.org>
-References: <152544048.20090316160216@yandex.ru>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] netfilter: conntrack: don't deliver events for racy packets
+Date: Mon, 16 Mar 2009 15:07:08 +0100
+Message-ID: <49BE5D0C.90807@trash.net>
+References: <20090225025334.4646.98606.stgit@Decadence>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Kuzin Andrey <kuzinandrey@yandex.ru>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34315 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751794AbZCPOGZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Mar 2009 10:06:25 -0400
-In-Reply-To: <152544048.20090316160216@yandex.ru>
+Received: from stinky.trash.net ([213.144.137.162]:45801 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751794AbZCPOHL (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 16 Mar 2009 10:07:11 -0400
+In-Reply-To: <20090225025334.4646.98606.stgit@Decadence>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Kuzin Andrey wrote:
-> In /net/netfilter/nfnetlink_queue.c every call of nfqnl_build_packet_message()
-> make series of call nla_total_size() for 'size' calculations.
-> I think 'size' is constant value for kernel build and may be define static
-> variable for this ?
+Pablo Neira Ayuso wrote:
+> This patch skips the delivery of conntrack events if the packet
+> was drop due to a race condition in the conntrack insertion.
 
-We can calculate this during the module initialization, brave to cook a
-patch for it?
-
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+Applied, thanks.
