@@ -1,34 +1,102 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: (pull) pending patches
-Date: Mon, 16 Mar 2009 14:42:38 +0100
-Message-ID: <49BE574E.8070202@trash.net>
-References: <alpine.LSU.2.00.0903152142090.17985@fbirervta.pbzchgretzou.qr> <49BE0FF3.5090906@netfilter.org> <alpine.LSU.2.00.0903161153030.26752@fbirervta.pbzchgretzou.qr> <49BE567F.1020704@trash.net> <alpine.LSU.2.00.0903161441001.4673@fbirervta.pbzchgretzou.qr>
+Subject: Re: [PATCH 1/3] netfilter: use a linked list of loggers.
+Date: Mon, 16 Mar 2009 14:54:44 +0100
+Message-ID: <49BE5A24.3060402@trash.net>
+References: <499DD499.50704@inl.fr> <1235080458-6623-1-git-send-email-eric@inl.fr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@inl.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45113 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:45443 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755553AbZCPNml (ORCPT
+	with ESMTP id S1752799AbZCPNys (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Mar 2009 09:42:41 -0400
-In-Reply-To: <alpine.LSU.2.00.0903161441001.4673@fbirervta.pbzchgretzou.qr>
+	Mon, 16 Mar 2009 09:54:48 -0400
+In-Reply-To: <1235080458-6623-1-git-send-email-eric@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Monday 2009-03-16 14:39, Patrick McHardy wrote:
-> 
->> We used to have ip_nat_range(_compat) for compatibility for that reason
->> IIRC. The kernel doesn't need anymore, so I think userspace should carry
->> a copy as long as ipt_SAME is still supported.
->>
-> But that only makes it harder to keep files in sync :-/
+Eric Leblond wrote:
+> This patch modifies nf_log to use a linked list of loggers for each
+> protocol. This list of loggers is read and write protected with a
+> mutex.
+> This patch separates registration and binding. To be used as
+> logging module, a module has to register calling nf_log_register()
+> and to bind to a protocol it has to call nf_log_bind_pf().
+> This patch also converts the logging modules to the new API. For nfnetlink_log,
+> it simply switchs call to register functions to call to bind function and
+> adds a call to nf_log_register() during init. For other modules, it just
+> remove a const flag from the logger structure and replace it with a
+> __read_mostly.
 
-There is nothing to keep in sync, ipt_SAME doesn't exist in the kernel
-anymore. And a structure kept purely to maintain compatibility with old
-kernels will obviously never change.
+Applied, thanks. I've made a few changes, please see below.
+
+> -void nf_log_unregister(const struct nf_logger *logger)
+> +void nf_log_unregister(struct nf_logger *logger)
+>  {
+>  	int i;
+>  
+>  	mutex_lock(&nf_log_mutex);
+>  	for (i = 0; i < ARRAY_SIZE(nf_loggers); i++) {
+> -		if (nf_loggers[i] == logger)
+> +		const struct nf_logger *c_logger = rcu_dereference(nf_loggers[i]);
+
+I've moved the definitionn to the beginning of the function to
+bring the line down to 80 characters.
+
+> +		if (c_logger == logger)
+>  			rcu_assign_pointer(nf_loggers[i], NULL);
+> +		list_del(&(logger->list[i]));
+>  	}
+>  	mutex_unlock(&nf_log_mutex);
+>  
+> @@ -73,6 +76,28 @@ void nf_log_unregister(const struct nf_logger *logger)
+>  }
+>  EXPORT_SYMBOL(nf_log_unregister);
+>  
+> +int nf_log_bind_pf(u_int8_t pf, const struct nf_logger *logger)
+> +{
+> +	mutex_lock(&nf_log_mutex);
+> +	if (__find_logger(pf, logger->name) == NULL) {
+> +		mutex_unlock(&nf_log_mutex);
+> +		return -1;
+
+This is returned directly to userspace and thus needs to use
+errno-codes. I've changed it to -ENOENT.
+
+> +	}
+> +	rcu_assign_pointer(nf_loggers[pf], logger);
+> +	mutex_unlock(&nf_log_mutex);
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL(nf_log_bind_pf);
+> +
+> +int nf_log_unbind_pf(u_int8_t pf)
+> +{
+> +	mutex_lock(&nf_log_mutex);
+> +	rcu_assign_pointer(nf_loggers[pf], NULL);
+> +	mutex_unlock(&nf_log_mutex);
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL(nf_log_unbind_pf);
+
+This should return void since there's nothing a caller can do
+about it and the only existing one doesn't care.
+
+> diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+> index c712e9f..42e7de9 100644
+> --- a/net/netfilter/nfnetlink_log.c
+> +++ b/net/netfilter/nfnetlink_log.c
+
+> @@ -952,6 +952,11 @@ static int __init nfnetlink_log_init(void)
+>  		goto cleanup_netlink_notifier;
+>  	}
+>  
+> +	if ((status = nf_log_register(NFPROTO_UNSPEC, &nfulnl_logger)) < 0) {
+> +		printk(KERN_ERR "log: failed to register logger\n");
+> +		goto cleanup_netlink_notifier;
+
+This needs to undo the nfnetlink subsys registration. I've fixed
+it before applying.
