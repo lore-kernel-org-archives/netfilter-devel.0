@@ -1,73 +1,69 @@
-From: Krzysztof Oledzki <ole@ans.pl>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: nf_conntrack.acct has no effect
-Date: Tue, 17 Mar 2009 15:18:48 +0100 (CET)
-Message-ID: <alpine.LNX.1.10.0903171505320.14581@bizon.gios.gov.pl>
-References: <alpine.LSU.2.00.0903161749530.16494@fbirervta.pbzchgretzou.qr> <49BE84D4.7050804@trash.net> <20090317082425.GA25491@mail.eitzenberger.org> <49BF9F7E.3090208@trash.net> <alpine.LNX.1.10.0903171411560.17354@bizon.gios.gov.pl> <49BFA633.4010306@trash.net>
- <alpine.LNX.1.10.0903171444060.14581@bizon.gios.gov.pl> <49BFAADF.9000008@trash.net> <alpine.LNX.1.10.0903171452570.14581@bizon.gios.gov.pl> <49BFAC57.1060702@trash.net>
+Date: Tue, 17 Mar 2009 15:22:15 +0100
+Message-ID: <49BFB217.9050001@trash.net>
+References: <alpine.LSU.2.00.0903161749530.16494@fbirervta.pbzchgretzou.qr> <49BE84D4.7050804@trash.net> <20090317082425.GA25491@mail.eitzenberger.org> <49BF9F7E.3090208@trash.net> <alpine.LNX.1.10.0903171411560.17354@bizon.gios.gov.pl> <49BFA633.4010306@trash.net> <alpine.LNX.1.10.0903171444060.14581@bizon.gios.gov.pl> <49BFAADF.9000008@trash.net> <alpine.LNX.1.10.0903171452570.14581@bizon.gios.gov.pl> <49BFAC57.1060702@trash.net> <alpine.LNX.1.10.0903171505320.14581@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-1144830174-177006869-1237299528=:14581"
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: Jan Engelhardt <jengelh@medozas.de>, pablo@netfilter.org,
 	Netfilter Developer Mailing List
 	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+To: Krzysztof Oledzki <ole@ans.pl>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bizon.gios.gov.pl ([195.187.34.71]:55217 "EHLO
-	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751299AbZCQOTH (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:48883 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751530AbZCQOWV (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 Mar 2009 10:19:07 -0400
-In-Reply-To: <49BFAC57.1060702@trash.net>
+	Tue, 17 Mar 2009 10:22:21 -0400
+In-Reply-To: <alpine.LNX.1.10.0903171505320.14581@bizon.gios.gov.pl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Krzysztof Oledzki wrote:
+> 
+> 
+> On Tue, 17 Mar 2009, Patrick McHardy wrote:
+> 
+>> Krzysztof Oledzki wrote:
+>>>
+>>>
+>>> On Tue, 17 Mar 2009, Patrick McHardy wrote:
+>>>
+>>>> Krzysztof Oledzki wrote:
+>>>>>> I'd say it has been long enough, but Jan raised a valid point.
+>>>>>> We can't use the Kconfig selection anymore once we remove that
+>>>>>> option, so we need a replacement to automatically enable counters.
+>>>>>
+>>>>> So loading connbytes should enable accounting automatically. Fine, 
+>>>>> it is doable. But how we want to handle it WRT to NS? Should it be 
+>>>>> enabled in all NameSpaces or...?
+>>>>
+>>>> Just the ones it is actually used in I'd say (i.e. in the checkentry
+>>>> function for the current namespace).
+>>>
+>>> OK, but AFAIK modules are not namespace dependly, so why only in 
+>>> actually used one? This bugs me a little.
+>>
+>> But using them is namespace dependant.
+> 
+> How?
 
----1144830174-177006869-1237299528=:14581
-Content-Type: TEXT/PLAIN; charset=iso-8859-2; format=flowed
-Content-Transfer-Encoding: 8BIT
+The "connbytes" rules exist only in a specific namespace.
 
+> Anyway, how about this:
+>  sysctl net.netfilter.nf_conntrack_acct=0 -> disable accounting in this NS
+>  sysctl net.netfilter.nf_conntrack_acct=1 -> enable accounting in this NS
+>  sysctl net.netfilter.nf_conntrack_acct=-1 -> (default) use global value 
+> in this NS
+> 
+> Global value: by default 0 if connbytes is not loaded, 1 if it is.
+> Global value could be set with nf_conntrack.acct=0/1 (kernel) acct=0/1 
+> (module) or sysctl (??? how global, NS independent sysctls are named???).
+> 
+> Doubts:
+>  - should we set global value to 0 when unloading connbytes?
 
-
-On Tue, 17 Mar 2009, Patrick McHardy wrote:
-
-> Krzysztof Oledzki wrote:
->> 
->> 
->> On Tue, 17 Mar 2009, Patrick McHardy wrote:
->> 
->>> Krzysztof Oledzki wrote:
->>>>> I'd say it has been long enough, but Jan raised a valid point.
->>>>> We can't use the Kconfig selection anymore once we remove that
->>>>> option, so we need a replacement to automatically enable counters.
->>>> 
->>>> So loading connbytes should enable accounting automatically. Fine, it is 
->>>> doable. But how we want to handle it WRT to NS? Should it be enabled in 
->>>> all NameSpaces or...?
->>> 
->>> Just the ones it is actually used in I'd say (i.e. in the checkentry
->>> function for the current namespace).
->> 
->> OK, but AFAIK modules are not namespace dependly, so why only in actually 
->> used one? This bugs me a little.
->
-> But using them is namespace dependant.
-
-How?
-
-Anyway, how about this:
-  sysctl net.netfilter.nf_conntrack_acct=0 -> disable accounting in this NS
-  sysctl net.netfilter.nf_conntrack_acct=1 -> enable accounting in this NS
-  sysctl net.netfilter.nf_conntrack_acct=-1 -> (default) use global value in this NS
-
-Global value: by default 0 if connbytes is not loaded, 1 if it is.
-Global value could be set with nf_conntrack.acct=0/1 (kernel) acct=0/1 
-(module) or sysctl (??? how global, NS independent sysctls are named???).
-
-Doubts:
-  - should we set global value to 0 when unloading connbytes?
-
-Best regards,
-
- 				Krzysztof Olêdzki
----1144830174-177006869-1237299528=:14581--
+Why do anything global at all? Its not needed unless connbytes is used
+(or something in userspace, which we can't detect), and that affects
+only a single namespace.
