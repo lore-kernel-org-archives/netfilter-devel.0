@@ -1,114 +1,69 @@
-From: Holger Eitzenberger <holger@eitzenberger.org>
-Subject: [patch 4/6] ctnetlink: allocate right-sized ctnetlink skb
-Date: Mon, 16 Mar 2009 23:07:03 +0100
-Message-ID: <20090316221139.605528511@jonathan.eitzenberger.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [patch 0/6] netfilter: ctnetlink allocation improvement
+Date: Tue, 17 Mar 2009 05:35:47 +0100
+Message-ID: <49BF28A3.3010606@trash.net>
 References: <20090316220659.756862181@jonathan.eitzenberger.org>
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>,
-	David Miller <davem@davemloft.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: David Miller <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Holger Eitzenberger <holger@eitzenberger.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:49897 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759367AbZCPWLr (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:32837 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751403AbZCQEfv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 16 Mar 2009 18:11:47 -0400
-Content-Disposition: inline; filename=ctnetlink-factor-out-alloc_skb-into-ctnetlink_all.diff
+	Tue, 17 Mar 2009 00:35:51 -0400
+In-Reply-To: <20090316220659.756862181@jonathan.eitzenberger.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Try to allocate a Netlink skb roughly the size of the actual
-message, with the help from the l3 and l4 protocol helpers.
-This is all to prevent a reallocation in netlink_trim() later.
+Holger Eitzenberger wrote:
+> what follows is a small patchset against net-next-2.6 which tries to
+> improve the way ctnetlink events are allocated.  By allocating the
+> ctnetlink skbs roughly the size of the message we prevent the skb from
+> later being reallocated in netlink_trim().
+> 
+> Though I haven't got any hard performance numbers yet I think this
+> might introduce a noticable performance gain.
+> 
+> The overall idea of these patches is to compute the proto independant
+> attribute sizes at compile time, the proto-dependant parts are
+> computed at registration of the actual proto helpers.  This is
+> achieved by introducing nla_policy_len(), which computes the max.
+> length of a nla_policy.
+> 
+> I also have to introduce NF_CT_HELPER_NAME_LEN as an upper limit for
+> the conntrack protcol helper names, which is not much of a problem
+> because all names in mainline are actually shorter than that.
 
-The overhead of allocating the right-sized skb is rather small, with
-ctnetlink_alloc_skb() actually being inlined away on my x86_64 box.
-The size of the per-proto space is determined at registration time of
-the protocol helper.
+The helper name change is fine. We currently have a limit of 30
+in the helper match, but that is just as arbitrary and 16 does
+seem like enough. In fact I need the same change for nftables :)
 
-Signed-off-by: Holger Eitzenberger <holger@eitzenberger.org>
+> It would be great to have that being merged.  Please share youre
+> comments.
 
-Index: net-next-2.6/net/netfilter/nf_conntrack_netlink.c
-===================================================================
---- net-next-2.6.orig/net/netfilter/nf_conntrack_netlink.c
-+++ net-next-2.6/net/netfilter/nf_conntrack_netlink.c
-@@ -404,6 +404,69 @@ nla_put_failure:
- }
- 
- #ifdef CONFIG_NF_CONNTRACK_EVENTS
-+/*
-+ * The general structure of a ctnetlink event is
-+ *
-+ *  CTA_TUPLE_ORIG
-+ *    <l3/l4-proto-attributes>
-+ *  CTA_TUPLE_REPLY
-+ *    <l3/l4-proto-attributes>
-+ *  CTA_ID
-+ *  ...
-+ *  CTA_PROTOINFO
-+ *    <l4-proto-attributes>
-+ *  CTA_TUPLE_MASTER
-+ *    <l3/l4-proto-attributes>
-+ *
-+ * Therefore the formular is
-+ *
-+ *   size = sizeof(generic_nlas) + 3 * sizeof(tuple_nlas)
-+ *		+ sizeof(protoinfo_nlas)
-+ */
-+static struct sk_buff *
-+ctnetlink_alloc_skb(const struct nf_conntrack_tuple *tuple, gfp_t gfp)
-+{
-+	struct nf_conntrack_l3proto *l3proto;
-+	struct nf_conntrack_l4proto *l4proto;
-+	int len;
-+
-+#define NLA_TYPE_SIZE(type)		nla_total_size(sizeof(type))
-+
-+	/* proto independant part */
-+	len = NLMSG_SPACE(sizeof(struct nfgenmsg))
-+		+ 3 * nla_total_size(0)		/* CTA_TUPLE_ORIG|REPL|MASTER */
-+		+ 3 * nla_total_size(0)		/* CTA_TUPLE_IP */
-+		+ 3 * nla_total_size(0)		/* CTA_TUPLE_PROTO */
-+		+ 3 * NLA_TYPE_SIZE(u_int8_t)	/* CTA_PROTO_NUM */
-+		+ NLA_TYPE_SIZE(u_int32_t)	/* CTA_ID */
-+		+ NLA_TYPE_SIZE(u_int32_t)	/* CTA_STATUS */
-+		+ 2 * nla_total_size(0)		/* CTA_COUNTERS_ORIG|REPL */
-+		+ 2 * NLA_TYPE_SIZE(uint64_t)	/* CTA_COUNTERS_PACKETS */
-+		+ 2 * NLA_TYPE_SIZE(uint64_t)	/* CTA_COUNTERS_BYTES */
-+		+ NLA_TYPE_SIZE(u_int32_t)	/* CTA_TIMEOUT */
-+		+ nla_total_size(0)		/* CTA_PROTOINFO */
-+		+ nla_total_size(0)		/* CTA_HELP */
-+		+ nla_total_size(NF_CT_HELPER_NAME_LEN)	/* CTA_HELP_NAME */
-+		+ NLA_TYPE_SIZE(u_int32_t)	/* CTA_SECMARK */
-+		+ 2 * nla_total_size(0)		/* CTA_NAT_SEQ_ADJ_ORIG|REPL */
-+		+ 2 * NLA_TYPE_SIZE(u_int32_t)	/* CTA_NAT_SEQ_CORRECTION_POS */
-+		+ 2 * NLA_TYPE_SIZE(u_int32_t)	/* CTA_NAT_SEQ_CORRECTION_BEFORE */
-+		+ 2 * NLA_TYPE_SIZE(u_int32_t)	/* CTA_NAT_SEQ_CORRECTION_AFTER */
-+		+ NLA_TYPE_SIZE(u_int32_t);	/* CTA_MARK */
-+
-+#undef NLA_TYPE_SIZE
-+
-+	l3proto = nf_ct_l3proto_find_get(tuple->src.l3num);
-+	len += l3proto->nla_size;
-+	nf_ct_l3proto_put(l3proto);
-+
-+	l4proto = nf_ct_l4proto_find_get(tuple->src.l3num, tuple->dst.protonum);
-+	len += l4proto->nla_size;
-+	nf_ct_l4proto_put(l4proto);
-+
-+	return alloc_skb(len, gfp);
-+}
-+
- static int ctnetlink_conntrack_event(struct notifier_block *this,
- 				     unsigned long events, void *ptr)
- {
-@@ -437,7 +500,7 @@ static int ctnetlink_conntrack_event(str
- 	if (!nfnetlink_has_listeners(group))
- 		return NOTIFY_DONE;
- 
--	skb = alloc_skb(NLMSG_GOODSIZE, GFP_ATOMIC);
-+	skb = ctnetlink_alloc_skb(tuple(ct, IP_CT_DIR_ORIGINAL), GFP_ATOMIC);
- 	if (!skb)
- 		return NOTIFY_DONE;
- 
+These patches look almost perfect, there's just one minor thing
+that should be fixed from my perspective (from patch 4):
 
--- 
+> +	l3proto = nf_ct_l3proto_find_get(tuple->src.l3num);
+> +	len += l3proto->nla_size;
+> +	nf_ct_l3proto_put(l3proto);
+> +
+> +	l4proto = nf_ct_l4proto_find_get(tuple->src.l3num, tuple->dst.protonum);
+> +	len += l4proto->nla_size;
+> +	nf_ct_l4proto_put(l4proto);
+> +
+> +	return alloc_skb(len, gfp);
+
+Its preferrable not to use module reference counting during packet
+processing, the protocols can be accessed safely using RCU. I thought
+I had fixed all those areas, but I now notice that ctnetlink is full
+of similar spots and takes and drops module references quite
+excessively. So just leave it as it is I guess, this should be fully
+fixed anyways.
+
+I'll wait a few hours for others to comment before applying your
+patches.
