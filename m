@@ -1,36 +1,44 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: nf_conntrack.acct has no effect
-Date: Tue, 17 Mar 2009 14:02:54 +0100
-Message-ID: <49BF9F7E.3090208@trash.net>
-References: <alpine.LSU.2.00.0903161749530.16494@fbirervta.pbzchgretzou.qr> <49BE84D4.7050804@trash.net> <20090317082425.GA25491@mail.eitzenberger.org>
+From: Holger Eitzenberger <holger@eitzenberger.org>
+Subject: Re: [patch 0/6] netfilter: ctnetlink allocation improvement
+Date: Tue, 17 Mar 2009 11:03:51 +0100
+Message-ID: <20090317100350.GA3526@mail.eitzenberger.org>
+References: <20090316220659.756862181@jonathan.eitzenberger.org> <49BF720C.2010603@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-To: Patrick McHardy <kaber@trash.net>,
-	Jan Engelhardt <jengelh@medozas.de>, pablo@netfilter.org,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>,
+	David Miller <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:46506 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752203AbZCQNC6 (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:55939 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756199AbZCQNRM (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 Mar 2009 09:02:58 -0400
-In-Reply-To: <20090317082425.GA25491@mail.eitzenberger.org>
+	Tue, 17 Mar 2009 09:17:12 -0400
+Content-Disposition: inline
+In-Reply-To: <49BF720C.2010603@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Holger Eitzenberger wrote:
-> On Mon, Mar 16, 2009 at 05:56:52PM +0100, Patrick McHardy wrote:
-> 
->> Currently the default is set based on the old config option.
->> When unset, no acct-extend is allocated for *new* conntracks.
->> The old ones that do have an acct-extend are still displayed.
-> 
-> I think the current implementation is unfortunate, because the
-> connbytes match auto-selects CONFIG_NF_CT_ACCT, and you end up having
-> the message always and can't get rid of it other than patching
-> it out.
+On Tue, Mar 17, 2009 at 10:49:00AM +0100, Pablo Neira Ayuso wrote:
 
-Its only a compat option, it will get removed soon. 2.6.30 or 2.6.31
-I'd say.
+> > Though I haven't got any hard performance numbers yet I think this
+> > might introduce a noticable performance gain.
+> 
+> I'm not sure about this. Instead, I noticed with oprofile that we spend
+> more cycles to calculate the message size. I think it's more like a
+> trade-off, reducing the message size to what we need reduces the chances
+> to hit ENOBUFS.
+
+Hi Pablo,
+
+your patch is a bit different, as you do the message length
+calculation on each packet.  Instead I do it once at compile time for
+the proto independant part and then later for each protocol helper at
+the time it is registered.  At unload time the helper is replaced by
+the generic one (which implies =0 always).
+
+Cheers,
+
+ /holger
+
