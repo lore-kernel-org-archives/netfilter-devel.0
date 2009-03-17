@@ -1,35 +1,53 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: No chain/target/match by that name
-Date: Tue, 17 Mar 2009 11:20:53 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0903171120370.15275@fbirervta.pbzchgretzou.qr>
-References: <49BF7930.5000808@gmx.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [patch 0/6] netfilter: ctnetlink allocation improvement
+Date: Tue, 17 Mar 2009 11:24:51 +0100
+Message-ID: <49BF7A73.3010605@netfilter.org>
+References: <20090316220659.756862181@jonathan.eitzenberger.org> <49BF28A3.3010606@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Vlad <limonad@gmx.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:55816 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758630AbZCQKU4 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 Mar 2009 06:20:56 -0400
-In-Reply-To: <49BF7930.5000808@gmx.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Holger Eitzenberger <holger@eitzenberger.org>,
+	David Miller <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <49BF28A3.3010606@trash.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+Hi Patrick,
 
-On Tuesday 2009-03-17 11:19, Vlad wrote:
+Patrick McHardy wrote:
+> These patches look almost perfect, there's just one minor thing
+> that should be fixed from my perspective (from patch 4):
+> 
+>> +    l3proto = nf_ct_l3proto_find_get(tuple->src.l3num);
+>> +    len += l3proto->nla_size;
+>> +    nf_ct_l3proto_put(l3proto);
+>> +
+>> +    l4proto = nf_ct_l4proto_find_get(tuple->src.l3num,
+>> tuple->dst.protonum);
+>> +    len += l4proto->nla_size;
+>> +    nf_ct_l4proto_put(l4proto);
+>> +
+>> +    return alloc_skb(len, gfp);
+> 
+> Its preferrable not to use module reference counting during packet
+> processing, the protocols can be accessed safely using RCU. I thought
+> I had fixed all those areas, but I now notice that ctnetlink is full
+> of similar spots and takes and drops module references quite
+> excessively. So just leave it as it is I guess, this should be fully
+> fixed anyways.
 
-> Hallo , I'm trying to write a new module for iptables. I started with a dummy
-> module. I can successfully compile it. But if I trying to use it, I get an
-> error message:
->
-> $ iptables -A INPUT -s 128.0.0.1 -m secan --drop -j DROP
-> drop frame
-> iptables: No chain/target/match by that name
->
-> Can someone tell me what is a problem? Here is my code:
->[...]
+Indeed, there are still a couple of module reference spots. We only
+remove them from the event delivery path.
 
-The iptables code looks fine, but what about the kernel side module?
+> I'll wait a few hours for others to comment before applying your
+> patches.
 
+Hm, it seems that our patches follows two different principles. AFAICS,
+Holger calculates an approximate message size to avoid trimming, while I
+calculate the exact message size.
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
