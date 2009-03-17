@@ -1,54 +1,43 @@
-From: Krzysztof Oledzki <ole@ans.pl>
+From: Jan Engelhardt <jengelh@medozas.de>
 Subject: Re: nf_conntrack.acct has no effect
-Date: Tue, 17 Mar 2009 14:13:56 +0100 (CET)
-Message-ID: <alpine.LNX.1.10.0903171411560.17354@bizon.gios.gov.pl>
-References: <alpine.LSU.2.00.0903161749530.16494@fbirervta.pbzchgretzou.qr> <49BE84D4.7050804@trash.net> <20090317082425.GA25491@mail.eitzenberger.org> <49BF9F7E.3090208@trash.net>
+Date: Tue, 17 Mar 2009 14:28:41 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0903171425520.30677@fbirervta.pbzchgretzou.qr>
+References: <alpine.LSU.2.00.0903161749530.16494@fbirervta.pbzchgretzou.qr> <49BE84D4.7050804@trash.net> <20090317082425.GA25491@mail.eitzenberger.org> <alpine.LNX.1.10.0903171409550.17354@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-1144830174-194160537-1237295636=:17354"
-Cc: Jan Engelhardt <jengelh@medozas.de>, pablo@netfilter.org,
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Holger Eitzenberger <holger@eitzenberger.org>,
+	Patrick McHardy <kaber@trash.net>, pablo@netfilter.org,
 	Netfilter Developer Mailing List
 	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+To: Krzysztof Oledzki <ole@ans.pl>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bizon.gios.gov.pl ([195.187.34.71]:49408 "EHLO
-	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752049AbZCQN2h (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:46264 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752249AbZCQN2o (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 Mar 2009 09:28:37 -0400
-In-Reply-To: <49BF9F7E.3090208@trash.net>
+	Tue, 17 Mar 2009 09:28:44 -0400
+In-Reply-To: <alpine.LNX.1.10.0903171409550.17354@bizon.gios.gov.pl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
 
----1144830174-194160537-1237295636=:17354
-Content-Type: TEXT/PLAIN; charset=iso-8859-2; format=flowed
-Content-Transfer-Encoding: 8BIT
-
-
-
-On Tue, 17 Mar 2009, Patrick McHardy wrote:
-
-> Holger Eitzenberger wrote:
+On Tuesday 2009-03-17 14:11, Krzysztof Oledzki wrote:
+> On Tue, 17 Mar 2009, Holger Eitzenberger wrote:
 >> On Mon, Mar 16, 2009 at 05:56:52PM +0100, Patrick McHardy wrote:
->> 
+>>
 >>> Currently the default is set based on the old config option.
 >>> When unset, no acct-extend is allocated for *new* conntracks.
 >>> The old ones that do have an acct-extend are still displayed.
->> 
+>>
 >> I think the current implementation is unfortunate, because the
 >> connbytes match auto-selects CONFIG_NF_CT_ACCT, and you end up having
 >> the message always and can't get rid of it other than patching
 >> it out.
 >
-> Its only a compat option, it will get removed soon. 2.6.30 or 2.6.31
-> I'd say.
+> This is not exactly true. CONFIG_NF_CT_ACCT only selects the default value, you
+> are still able to disable it with sysctl.
 
-I have the patch ready. Do you think it is a good moment to push it now, 
-so it will be included in 2.6.30, or should I rather wait for 2.6.31?
-
-Best regards,
-
- 			Krzysztof Olêdzki
----1144830174-194160537-1237295636=:17354--
+The implication is that xt_connbytes will not do the right thing
+anymore as soon as user accounting is turned off, either by flipping
+the sysctl value or deactivating the kconfig option. That is not
+good.
