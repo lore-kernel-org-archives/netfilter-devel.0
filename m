@@ -1,43 +1,48 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: nf_conntrack.acct has no effect
-Date: Tue, 17 Mar 2009 14:28:41 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0903171425520.30677@fbirervta.pbzchgretzou.qr>
-References: <alpine.LSU.2.00.0903161749530.16494@fbirervta.pbzchgretzou.qr> <49BE84D4.7050804@trash.net> <20090317082425.GA25491@mail.eitzenberger.org> <alpine.LNX.1.10.0903171409550.17354@bizon.gios.gov.pl>
+Date: Tue, 17 Mar 2009 14:31:31 +0100
+Message-ID: <49BFA633.4010306@trash.net>
+References: <alpine.LSU.2.00.0903161749530.16494@fbirervta.pbzchgretzou.qr> <49BE84D4.7050804@trash.net> <20090317082425.GA25491@mail.eitzenberger.org> <49BF9F7E.3090208@trash.net> <alpine.LNX.1.10.0903171411560.17354@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Holger Eitzenberger <holger@eitzenberger.org>,
-	Patrick McHardy <kaber@trash.net>, pablo@netfilter.org,
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Jan Engelhardt <jengelh@medozas.de>, pablo@netfilter.org,
 	Netfilter Developer Mailing List
 	<netfilter-devel@vger.kernel.org>
 To: Krzysztof Oledzki <ole@ans.pl>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:46264 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752249AbZCQN2o (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:47395 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752873AbZCQNbf (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 Mar 2009 09:28:44 -0400
-In-Reply-To: <alpine.LNX.1.10.0903171409550.17354@bizon.gios.gov.pl>
+	Tue, 17 Mar 2009 09:31:35 -0400
+In-Reply-To: <alpine.LNX.1.10.0903171411560.17354@bizon.gios.gov.pl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-On Tuesday 2009-03-17 14:11, Krzysztof Oledzki wrote:
-> On Tue, 17 Mar 2009, Holger Eitzenberger wrote:
->> On Mon, Mar 16, 2009 at 05:56:52PM +0100, Patrick McHardy wrote:
+Krzysztof Oledzki wrote:
+> 
+> 
+> On Tue, 17 Mar 2009, Patrick McHardy wrote:
+> 
+>> Holger Eitzenberger wrote:
+>>> On Mon, Mar 16, 2009 at 05:56:52PM +0100, Patrick McHardy wrote:
+>>>
+>>>> Currently the default is set based on the old config option.
+>>>> When unset, no acct-extend is allocated for *new* conntracks.
+>>>> The old ones that do have an acct-extend are still displayed.
+>>>
+>>> I think the current implementation is unfortunate, because the
+>>> connbytes match auto-selects CONFIG_NF_CT_ACCT, and you end up having
+>>> the message always and can't get rid of it other than patching
+>>> it out.
 >>
->>> Currently the default is set based on the old config option.
->>> When unset, no acct-extend is allocated for *new* conntracks.
->>> The old ones that do have an acct-extend are still displayed.
->>
->> I think the current implementation is unfortunate, because the
->> connbytes match auto-selects CONFIG_NF_CT_ACCT, and you end up having
->> the message always and can't get rid of it other than patching
->> it out.
->
-> This is not exactly true. CONFIG_NF_CT_ACCT only selects the default value, you
-> are still able to disable it with sysctl.
+>> Its only a compat option, it will get removed soon. 2.6.30 or 2.6.31
+>> I'd say.
+> 
+> I have the patch ready. Do you think it is a good moment to push it now, 
+> so it will be included in 2.6.30, or should I rather wait for 2.6.31?
 
-The implication is that xt_connbytes will not do the right thing
-anymore as soon as user accounting is turned off, either by flipping
-the sysctl value or deactivating the kconfig option. That is not
-good.
+I'd say it has been long enough, but Jan raised a valid point.
+We can't use the Kconfig selection anymore once we remove that
+option, so we need a replacement to automatically enable counters.
