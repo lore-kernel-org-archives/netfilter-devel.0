@@ -1,37 +1,33 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] [PATCH] dynamic calculation of event message size for
- ctnetlink
-Date: Tue, 17 Mar 2009 13:16:38 +0100
-Message-ID: <49BF94A6.6080508@trash.net>
-References: <20090317094909.6434.27331.stgit@Decadence> <49BF91A8.2070900@trash.net> <20090317121446.GB3526@mail.eitzenberger.org>
+From: Holger Eitzenberger <holger@eitzenberger.org>
+Subject: Re: nf_conntrack.acct has no effect
+Date: Tue, 17 Mar 2009 09:24:25 +0100
+Message-ID: <20090317082425.GA25491@mail.eitzenberger.org>
+References: <alpine.LSU.2.00.0903161749530.16494@fbirervta.pbzchgretzou.qr> <49BE84D4.7050804@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-To: Patrick McHardy <kaber@trash.net>,
-	Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Jan Engelhardt <jengelh@medozas.de>, pablo@netfilter.org,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45411 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752634AbZCQMQm (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.187]:64874 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1763228AbZCQNAO (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 17 Mar 2009 08:16:42 -0400
-In-Reply-To: <20090317121446.GB3526@mail.eitzenberger.org>
+	Tue, 17 Mar 2009 09:00:14 -0400
+Content-Disposition: inline
+In-Reply-To: <49BE84D4.7050804@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Holger Eitzenberger wrote:
-> On Tue, Mar 17, 2009 at 01:03:52PM +0100, Patrick McHardy wrote:
-> 
->> OK seriously, we need *some* numbers showing an improvement since I
->> have basically zero base to decide between your patches, besides the
->> fact that its to be expected that Holger's will be slightly faster.
-> 
-> I think we can give the hard numbers in the next 1-3 days.  Do you 
-> have a special test in mind?  Pablo, how did you test then?
+On Mon, Mar 16, 2009 at 05:56:52PM +0100, Patrick McHardy wrote:
 
-Nothing too complicated. I guess either a raw throughput benchmark,
-some cycle counting for event delivery or event delivery throughput
-would all be fine.
+> Currently the default is set based on the old config option.
+> When unset, no acct-extend is allocated for *new* conntracks.
+> The old ones that do have an acct-extend are still displayed.
 
+I think the current implementation is unfortunate, because the
+connbytes match auto-selects CONFIG_NF_CT_ACCT, and you end up having
+the message always and can't get rid of it other than patching
+it out.
 
