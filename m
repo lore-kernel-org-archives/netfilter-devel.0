@@ -1,120 +1,92 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [ANNOUNCE]: First release of nftables
-Date: Wed, 18 Mar 2009 09:28:03 +0100
-Message-ID: <49C0B093.7000908@trash.net>
-References: <49C078B6.4020603@trash.net>
+From: Holger Eitzenberger <holger@eitzenberger.org>
+Subject: Re: [PATCH] [PATCH] dynamic calculation of event message size for ctnetlink
+Date: Wed, 18 Mar 2009 09:38:40 +0100
+Message-ID: <20090318083840.GA9679@mail.eitzenberger.org>
+References: <20090317094909.6434.27331.stgit@Decadence> <49BF91A8.2070900@trash.net> <20090317121446.GB3526@mail.eitzenberger.org> <49BF94A6.6080508@trash.net> <49C0266B.40204@netfilter.org> <49C07B87.90404@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------010101060802060404080209"
-Cc: Linux Netdev List <netdev@vger.kernel.org>
-To: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <49C078B6.4020603@trash.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from moutng.kundenserver.de ([212.227.126.177]:50752 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752680AbZCRIir (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 18 Mar 2009 04:38:47 -0400
+Content-Disposition: inline
+In-Reply-To: <49C07B87.90404@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------010101060802060404080209
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+On Wed, Mar 18, 2009 at 05:41:43AM +0100, Patrick McHardy wrote:
 
-Patrick McHardy wrote:
-> Examples 
+> >This calculation results in no message trim if most of those attributes
+> >are present. However, assuming the worst case (no counters, no helper,
+> >no mark, no master tuple, etc.), netlink_trim() may be called. My patch
+> >calculates the exact size, so there's no trimming for any case.
+> 
+> The numbers imply that its still a net win. But its a valid point, if
+> the common case will still result in reallocations, it might make sense
+> to include the space for a few of those members optionally to make
+> sure we don't cross the 50% waste threshold.
 
-The rule snippets under tests/ pretty much all use obsolete syntax,
-so I'm attaching a test script (which doesn't make much sense, just
-testing features) so people can get a feeling for the syntax.
+That's a good point.
 
+For reference these are the attributes of TCP conntrack event, I have
+marked the optional NLAs.  I don't know what the ratio is in bytes
+though.
 
-
---------------010101060802060404080209
-Content-Type: text/plain;
- name="test"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="test"
-
-#! /home/kaber/src/nf/nft/nftables/src/nft -nf
-
-#include "ipv4-filter"
-
-flush table filter
-delete table filter
-
-table filter {
-	chain log_drop {
-		counter log prefix "drop" drop
-	}
-
-	chain log_accept {
-		counter log prefix "accept" accept
-	}
-
-	chain accept_related {
-		counter
-		tcp dport < 1024 counter log prefix "drop-related" drop
-		udp dport < 1024 counter log prefix "drop-related" drop
-		ct helper "sip" counter log prefix "accept-related-sip" accept
-		ct helper "ftp" counter log prefix "accept-related-ftp" accept
-		ct helper "irc" counter log prefix "accept-related-irc" accept
-		counter log prefix "accept-related" accept
-	}
-
-	chain accept_stateful {
-		counter
-		ct state vmap { established => accept, related => jump accept_related }
-		counter
-	}
-
-	chain input_local {
-		counter
-		jump accept_stateful
-		jump log_accept
-	}
-
-	chain output_local {
-		counter
-		jump accept_stateful
-		udp dport { 123, 631, 514} accept
-		jump log_accept
-	}
-
-	chain input {
-		hook NF_INET_LOCAL_IN 0
-		counter
-		meta iif vmap {				\
-			"eth0"  => jump input_local,	\
-			"eth1"  => jump input_local,	\
-			*	=> continue,		\
-		}
-		counter
-	}
-
-	chain test1 {
-		counter
-	}
-
-	chain output {
-		hook NF_INET_LOCAL_OUT 0
-		counter
-
-		meta oif vmap {				\
-			"eth0"  => jump output_local,	\
-			"eth1"  => jump output_local,	\
-			*	=> continue,		\
-		} counter
-
-		meta oif {				\
-			"eth0",				\
-			"eth1",				\
-		} counter
-
-		ip daddr vmap {				\
-			192.168.0.1 => jump test1,	\
-			*	    => continue,	\
-		} counter
-	}
-}
-
---------------010101060802060404080209--
+CTA_TUPLE_ORIG                          NLA_F_NESTED
+    CTA_TUPLE_IP                        NLA_F_NESTED
+        CTA_IP_V4_SRC
+        CTA_IP_V4_DST
+    CTA_TUPLE_PROTO                     NLA_F_NESTED
+        CTA_PROTO_NUM
+        CTA_PROTO_SRC_PORT
+        CTA_PROTO_DST_PORT
+CTA_TUPLE_REPLY                         NLA_F_NESTED
+    CTA_TUPLE_IP                        NLA_F_NESTED
+        /* ipv6_tuple_to_nl_attr() */
+        CTA_IP_V4_SRC
+        CTA_IP_V4_DST
+    CTA_TUPLE_PROTO                     NLA_F_NESTED
+        CTA_PROTO_NUM
+        CTA_PROTO_SRC_PORT   
+        CTA_PROTO_DST_PORT
+CTA_ID
+CTA_STATUS
+CTA_COUNTERS_ORIG                       NLA_F_NESTED optional
+    CTA_COUNTERS_PACKETS
+    CTA_COUNTERS_BYTES
+CTA_COUNTERS_REPLY                      NLA_F_NESTED optional
+    CTA_COUNTERS_PACKETS
+    CTA_COUNTERS_BYTES
+CTA_TIMEOUT
+CTA_PROTOINFO                           NLA_F_NESTED
+    CTA_PROTOINFO_TCP                   NLA_F_NESTED
+        CTA_PROTOINFO_TCP_STATE
+        CTA_PROTOINFO_TCP_WSCALE_ORIGINAL
+        CTA_PROTOINFO_TCP_WSCALE_REPLY
+        CTA_PROTOINFO_TCP_FLAGS_ORIGINAL
+        CTA_PROTOINFO_TCP_FLAGS_REPLY
+CTA_HELP								optional
+    CTA_HELP_NAME
+CTA_SECMARK                             optional
+CTA_TUPLE_MASTER                        NLA_F_NESTED optional
+    CTA_TUPLE_IP                        NLA_F_NESTED
+        CTA_IP_V4_SRC 
+        CTA_IP_V4_DST
+    CTA_TUPLE_PROTO                     NLA_F_NESTED
+        CTA_PROTO_NUM
+        CTA_PROTO_SRC_PORT
+        CTA_PROTO_DST_PORT
+CTA_NAT_SEQ_ADJ_ORIG                    NLA_F_NESTED optional
+    CTA_NAT_SEQ_CORRECTION_POS
+    CTA_NAT_SEQ_OFFSET_BEFORE
+    CTA_NAT_SEQ_OFFSET_AFTER
+CTA_NAT_SEQ_ADJ_REPLY                   NLA_F_NESTED optional
+    CTA_NAT_SEQ_CORRECTION_POS
+    CTA_NAT_SEQ_OFFSET_BEFORE
+    CTA_NAT_SEQ_OFFSET_AFTER
+CTA_MARK                  				optional
