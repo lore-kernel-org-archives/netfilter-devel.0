@@ -1,30 +1,63 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [Fwd: Re: Re: [PATCH 2.4.37] iptables: handle IPT_RETURN from
- user target]
-Date: Wed, 18 Mar 2009 18:02:09 +0100
-Message-ID: <49C12911.2080507@trash.net>
-References: <49C12888.3000907@expand.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/3] netfilter: ctnetlink: cleanup master conntrack assignation
+Date: Wed, 18 Mar 2009 23:26:22 +0100
+Message-ID: <49C1750E.7000206@netfilter.org>
+References: <20090305160714.13755.83435.stgit@Decadence> <49BE6188.9020601@trash.net> <49C12489.5040500@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: haimdaniel@gmail.com
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <49C12888.3000907@expand.com>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:57875 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752312AbZCRW0g (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 18 Mar 2009 18:26:36 -0400
+In-Reply-To: <49C12489.5040500@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Haim Daniel wrote:
-> Patric McHardy wrote:
+Patrick McHardy wrote:
+> Patrick McHardy wrote:
+>> Pablo Neira Ayuso wrote:
+>>> This patch moves the assignation of the master conntrack to
+>>> ctnetlink_create_conntrack(), which is where it really belongs.
+>>> This patch is a cleanup.
+>>
+>> Applied, thanks.
 > 
->  > And what module will be using this?
->  > --
-> 
-> Currently there's no such module in the src tree. I've encountered the 
-> problem
-> myself when I needed to write a proprietary module for the company I 
-> work for.
-> I've seen prev posts on the subject as well.
+> I've added this patch on top to fix a RCU context imbalance.
 
-You'll have to carry this patch yourself. Until we need it for something
-in the mainline tree, there's no reason to change it.
+Oh, stupid mistake, sorry for that.
+
+> This seems like a good opportunity to say this again: please (everyone)
+> compile your code using sparse. It catches this type and more bugs.
+
+I'll do.
+
+> There is a second bug introduced by this patch:
+> 
+>     add_timer(&ct->timeout);
+>     nf_conntrack_hash_insert(ct);
+>     rcu_read_unlock();
+> 
+>     return ct;
+> 
+> The conntrack lock is not held, it might crash or create double entries.
+
+Hm, but that code is inside ctnetlink_create_conntrack() which is called
+with the conntrack lock held.
+
+       if (nlh->nlmsg_flags & NLM_F_CREATE)
+                 err = ctnetlink_create_conntrack(cda,
+                                                  &otuple,
+                                                  &rtuple,
+-                                                 master_ct,
+                                                  NETLINK_CB(skb).pid,
+-                                                 nlmsg_report(nlh));
++                                                 nlmsg_report(nlh),
++                                                 u3);
+                spin_unlock_bh(&nf_conntrack_lock);
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
