@@ -1,108 +1,60 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] [PATCH] dynamic calculation of event message size for
- ctnetlink
-Date: Wed, 18 Mar 2009 05:41:43 +0100
-Message-ID: <49C07B87.90404@trash.net>
-References: <20090317094909.6434.27331.stgit@Decadence> <49BF91A8.2070900@trash.net> <20090317121446.GB3526@mail.eitzenberger.org> <49BF94A6.6080508@trash.net> <49C0266B.40204@netfilter.org>
+Subject: Re: nftables
+Date: Wed, 18 Mar 2009 08:47:28 +0100
+Message-ID: <49C0A710.8050207@trash.net>
+References: <4976FF54.1000009@linux.vnet.ibm.com> <200901271540.36749.rusty@rustcorp.com.au> <497ED2B5.4040703@trash.net> <497F059F.7070903@linux.vnet.ibm.com> <497F09CA.2040306@trash.net> <497FEBE5.1050508@linux.vnet.ibm.com> <498013D7.3010401@trash.net> <49C083F4.9010506@linux.vnet.ibm.com> <49C089A2.2020809@trash.net> <49C09610.1010106@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	Holger Eitzenberger <holger@eitzenberger.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Linux Netdev List <netdev@vger.kernel.org>
+To: Varun Chandramohan <varunc@linux.vnet.ibm.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:64322 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:34482 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751180AbZCRElr (ORCPT
+	with ESMTP id S1750782AbZCRHrf (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Mar 2009 00:41:47 -0400
-In-Reply-To: <49C0266B.40204@netfilter.org>
+	Wed, 18 Mar 2009 03:47:35 -0400
+In-Reply-To: <49C09610.1010106@linux.vnet.ibm.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> Patrick McHardy wrote:
->> Holger Eitzenberger wrote:
->>> On Tue, Mar 17, 2009 at 01:03:52PM +0100, Patrick McHardy wrote:
->>>
->>>> OK seriously, we need *some* numbers showing an improvement since I
->>>> have basically zero base to decide between your patches, besides the
->>>> fact that its to be expected that Holger's will be slightly faster.
->>> I think we can give the hard numbers in the next 1-3 days.  Do you
->>> have a special test in mind?  Pablo, how did you test then?
->> Nothing too complicated. I guess either a raw throughput benchmark,
->> some cycle counting for event delivery or event delivery throughput
->> would all be fine.
-> 
-> I have done a toy program - I know, it can be improved a lot - to get
-> some numbers. Please, find it attached. Here are some results that I got
-> in my testbed [1]. Uff, this has been hard as the numbers doesn't seem
-> to be very concluding.
-> 
-> ~24000 HTTP connections/s with no events listener
-> 
-> = With no patch =
-> ~19500 HTTP connections/s
-> 
-> AVG events/s 71779; enobufs/s=125; in 50 seconds
-> AVG events/s 69723; enobufs/s=123; in 89 seconds
-> AVG events/s 71061; enobufs/s=120; in 52 seconds
-> 
-> = With Pablo's =
-> ~20500 HTTP connections/s
-> 
-> AVG events/s 72141; enobufs/s=151; in 65 seconds
-> AVG events/s 70287; enobufs/s=141; in 76 seconds
-> 
-> = With Holger's =
-> ~20500-21000 HTTP connections/s
-> 
-> AVG events/s 68233; enobufs/s=192; in 126 seconds
-> AVG events/s 70241; enobufs/s=204; in 76 seconds
-> 
-> It seems that the results in terms of events/s are similar. While the
-> thoughput is slightly higher with Holger's patch, the number of enobufs
-> errors also increases, I don't have an explanation why enobufs errors
-> increases.
+Varun Chandramohan wrote:
+> Iam interested in hooking nftables to TC. Could you elaborate on this
+> a little bit?
+> And when you talk about in-kernel mangle table i suppose you mean the
+> mangle table of iptables? 
 
-My guess would be that without either patch, the reallocation causes
-less socket buffer usage. With approximate allocation, we safe the
-CPU overhead of reallocating, but end up using slightly more socket
-buffer space. The odd thing is that your patch also seems to increase
-the overflow rate, despite using exact allocations.
+OK first about mangle - usually tables with nftables should be created
+by userspace. The mangle table contains special functionality that needs
+to be implemented in the kernel (rerouting), so nftables (just as iptables)
+includes some code and table definitions for this. The way it should be is
+that rerouting is just a property that can be optionally specified for a
+chain.
 
-Just to clarify, the test didn't use "reliable" event deliver, right?
+About TC - thats one of the more complicated things I suppose. The first
+thing that needs to be investigated is whether hooking it natively (meaning
+it is called directly, similar to the TC classifiers today) or through a TC
+classifier would make more sense. The second approach is definitely less
+intrusive, but the TC classifier is pretty much useless with nftables
+and it imposes some undesirable limits. In the end each class should offer
+a chain to attach rules to. I'd also suggest to have a table-like container
+for each qdisc, so chains can be added that are not attached directly to
+classes (which I'm not sure is possible when using a TC classifier).
 
-> I still have one concern with Holger's patch and the static calculation
-> approach:
-> 
-> +	len = NLMSG_SPACE(sizeof(struct nfgenmsg))
-> +		+ 3 * nla_total_size(0)		/* CTA_TUPLE_ORIG|REPL|MASTER */
-> +		+ 3 * nla_total_size(0)		/* CTA_TUPLE_IP */
-> +		+ 3 * nla_total_size(0)		/* CTA_TUPLE_PROTO */
-> +		+ 3 * NLA_TYPE_SIZE(u_int8_t)	/* CTA_PROTO_NUM */
-> +		+ NLA_TYPE_SIZE(u_int32_t)	/* CTA_ID */
-> +		+ NLA_TYPE_SIZE(u_int32_t)	/* CTA_STATUS */
-> +		+ 2 * nla_total_size(0)		/* CTA_COUNTERS_ORIG|REPL */
-> +		+ 2 * NLA_TYPE_SIZE(uint64_t)	/* CTA_COUNTERS_PACKETS */
-> +		+ 2 * NLA_TYPE_SIZE(uint64_t)	/* CTA_COUNTERS_BYTES */
-> +		+ NLA_TYPE_SIZE(u_int32_t)	/* CTA_TIMEOUT */
-> +		+ nla_total_size(0)		/* CTA_PROTOINFO */
-> +		+ nla_total_size(0)		/* CTA_HELP */
-> +		+ nla_total_size(NF_CT_HELPER_NAME_LEN)	/* CTA_HELP_NAME */
-> +		+ NLA_TYPE_SIZE(u_int32_t)	/* CTA_SECMARK */
-> +		+ 2 * nla_total_size(0)		/* CTA_NAT_SEQ_ADJ_ORIG|REPL */
-> +		+ 2 * NLA_TYPE_SIZE(u_int32_t)	/* CTA_NAT_SEQ_CORRECTION_POS */
-> +		+ 2 * NLA_TYPE_SIZE(u_int32_t)	/* CTA_NAT_SEQ_CORRECTION_BEFORE */
-> +		+ 2 * NLA_TYPE_SIZE(u_int32_t)	/* CTA_NAT_SEQ_CORRECTION_AFTER */
-> +		+ NLA_TYPE_SIZE(u_int32_t);	/* CTA_MARK */
-> 
-> This calculation results in no message trim if most of those attributes
-> are present. However, assuming the worst case (no counters, no helper,
-> no mark, no master tuple, etc.), netlink_trim() may be called. My patch
-> calculates the exact size, so there's no trimming for any case.
+What's further needed is:
 
-The numbers imply that its still a net win. But its a valid point, if
-the common case will still result in reallocations, it might make sense
-to include the space for a few of those members optionally to make
-sure we don't cross the 50% waste threshold.
+- a way to transport the nftables netlink attributes to the kernel.
+  Either encapsulated in TC attributes or the "normal" way, depending
+  on how it is hooked.
+
+- nftables needs to be taught about TC verdicts. Classes bound to the
+  classifier should be treated similar to nftables chains (meaning a
+  lookup is made and the reference is stored). Check out nft_data_init()
+  for reference.
+
+- the ruleset evaluation function probably needs to be split into a
+  generic part, dealing with internal flow control, and the netfilter/
+  TC specific part, dealing with netfilter verdicts and class IDs.
+
