@@ -1,49 +1,37 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [ANNOUNCE]: First release of nftables
-Date: Wed, 18 Mar 2009 11:17:01 +0100
-Message-ID: <49C0CA1D.7020804@trash.net>
-References: <49C078B6.4020603@trash.net> <87tz5r17ac.fsf@basil.nowhere.org> <49C0C74A.1090709@trash.net> <49C0C946.4090606@linux.vnet.ibm.com>
+From: AMIT ARORA <amitarora.iitb@gmail.com>
+Subject: Destination MAC Address
+Date: Wed, 18 Mar 2009 17:43:25 +0530
+Message-ID: <c19f67d70903180513l5aefe0e3qeae3b149eea1a255@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Andi Kleen <andi@firstfloor.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Linux Netdev List <netdev@vger.kernel.org>
-To: Varun Chandramohan <varunc@linux.vnet.ibm.com>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:37853 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754102AbZCRKRI (ORCPT
+Received: from wf-out-1314.google.com ([209.85.200.172]:18154 "EHLO
+	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756761AbZCRMN1 convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Mar 2009 06:17:08 -0400
-In-Reply-To: <49C0C946.4090606@linux.vnet.ibm.com>
+	Wed, 18 Mar 2009 08:13:27 -0400
+Received: by wf-out-1314.google.com with SMTP id 29so27124wff.4
+        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2009 05:13:25 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Varun Chandramohan wrote:
-> Patrick McHardy wrote:
->> Andi Kleen wrote:
->>> Are there plans to implement the existing iptables/ipchains/ipfw user
->>> interfaces on top of nftables?
->>>       
->>
->> I've thought about a "skin" in userspace to parse the iptables syntax
->> and convert it to the new syntax. But the kernel won't have a
->> compatibility
->> interface and I'm not sure yet whether userspace will also be able to
->> output
->> iptables syntax. ipchains etc. definitely not.
->>
->>   
-> So, in that case if you are not going to provide a "skin" and that
-> iptables will be removed eventually. wouldnt it break applications
-> using iptables?
-> Sorry for such a basic question, but just curious.
+Hello guys,
+I am new to netfiler. I am hooking the packet from the INPUT hook of
+the iptables through libnetfilter_queue. I am able to get the source
+MAC address of the captured packet but not the Destination MAc (if it
+was a broadcast or addressed to my machine).
+Can someone please help
 
-Something will have to be done for compatibility, the skin is
-probably the easiest way. Compatibility on the kernel side would
-get incredibly ugly, I prefer something in userspace with a longer
-transition period.
+Thanks
+Amit
 
-But all of this is still quite some time away :)
+--
+
+Samuel Beckett =A0- "Birth was the death of him."
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
