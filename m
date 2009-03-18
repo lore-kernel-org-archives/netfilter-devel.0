@@ -1,46 +1,30 @@
-From: "Damian Lezama" <damian.lezama@hotmail.com>
-Subject: Problem changing source IP or Protocol in user space with NFQUEUE
-Date: Wed, 18 Mar 2009 08:51:20 -0700
-Message-ID: <COL110-DS24E63C96E7A93473A4751CF1990@phx.gbl>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: ctnetlink: remove remaining module refcount usage
+Date: Wed, 18 Mar 2009 17:31:33 +0100
+Message-ID: <49C121E5.8010809@trash.net>
+References: <1237390923-3122-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-To: <netfilter-devel@vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from col0-omc1-s7.col0.hotmail.com ([65.55.34.17]:17485 "EHLO
-	col0-omc1-s7.col0.hotmail.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752278AbZCRP5j (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:45378 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754161AbZCRQbh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Mar 2009 11:57:39 -0400
-Content-Language: en-us
+	Wed, 18 Mar 2009 12:31:37 -0400
+In-Reply-To: <1237390923-3122-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Florian Westphal wrote:
+> Hello list,
+> 
+> The following (small) patch converts the remaining module refcounting
+> in conntrack_netlink to RCU.
+> 
+> First patch does the conversion, 2nd one removes
+> nf_ct_l4proto_find_get/put (there are no more in-tree users).
 
-I'll update my message to make it more clear:
-
-I need to change the Source IP of incoming packets in PREROUTING. I'm
-implementing a tunnel like protocol. I'm intercepting the packets with an
-NFQUEUE in mangle table. When I change the Source IP or Protocol and return
-the packet with ACCEPT or REPEAT verdict it disappears. If I put my hook in
-INPUT (to handle the packets that are sent to the host) the applications get
-the packet but with the "old" IP.
-
-About packets that are going to be routed: If I change them in PREROUTING
-and change the Source IP I lose them. But I have to change the Destination
-there or the router will use the "old" IP for routing. I can change the
-destination in PREROUTING and the source in FORWARDING but it's ugly (and
-it's only a fix for these packets, I couldn't find a fix for packets sent to
-the host).
-
-I'm using the last version of libnetfilter_queue I'd appreciate any help
-here because I'm depending on this to advance with a prototype I need for my
-thesis, thanks!
-
-
-Regards,
-Damian
-
-
-
+Both patches applied, thanks Florian.
