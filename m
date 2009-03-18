@@ -1,37 +1,43 @@
-From: AMIT ARORA <amitarora.iitb@gmail.com>
-Subject: Destination MAC Address
-Date: Wed, 18 Mar 2009 17:43:25 +0530
-Message-ID: <c19f67d70903180513l5aefe0e3qeae3b149eea1a255@mail.gmail.com>
+From: Haim Daniel <haim.daniel@expand.com>
+Subject: [PATCH 2.4.37] iptables: handle IPT_RETURN from user target
+Date: Wed, 18 Mar 2009 15:32:29 +0200
+Message-ID: <49C0F7ED.40106@expand.com>
+Reply-To: haimdaniel@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=iso-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from wf-out-1314.google.com ([209.85.200.172]:18154 "EHLO
-	wf-out-1314.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756761AbZCRMN1 convert rfc822-to-8bit (ORCPT
+Received: from smtp-tlv.expand.com ([192.116.193.121]:35161 "EHLO
+	smtp-tlv.expand.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754671AbZCRNhQ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 18 Mar 2009 08:13:27 -0400
-Received: by wf-out-1314.google.com with SMTP id 29so27124wff.4
-        for <netfilter-devel@vger.kernel.org>; Wed, 18 Mar 2009 05:13:25 -0700 (PDT)
+	Wed, 18 Mar 2009 09:37:16 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello guys,
-I am new to netfiler. I am hooking the packet from the INPUT hook of
-the iptables through libnetfilter_queue. I am able to get the source
-MAC address of the captured packet but not the Destination MAc (if it
-was a broadcast or addressed to my machine).
-Can someone please help
+This patch handles IPT_RETURN retcode for user's iptables' targets 
+(modules).
 
-Thanks
-Amit
+Up until now it was handled only for the built-in RETURN iptables' target
+and IPT_RETURN in a user target resulted in a NF_DROP.
 
---
+Signed-off-by: Haim Daniel <haimdaniel@gmail.com>
+---
 
-Samuel Beckett =A0- "Birth was the death of him."
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff -Nuap a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+--- a/net/ipv4/netfilter/ip_tables.c    2009-03-18 14:00:12.000000000 +0200
++++ b/net/ipv4/netfilter/ip_tables.c    2009-03-18 14:00:29.000000000 +0200
+@@ -383,6 +383,11 @@ ipt_do_table(struct sk_buff **pskb,
+ 
+                 if (verdict == IPT_CONTINUE)
+                     e = (void *)e + e->next_offset;
++                else if (verdict == IPT_RETURN) {
++                    e = back;
++                    back = get_entry(table_base,
++                             back->comefrom);
++                }
+                 else
+                     /* Verdict */
+                     break;
+
