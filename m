@@ -1,43 +1,47 @@
-From: Christoph Paasch <christoph.paasch@gmail.com>
-Subject: [PATCH] iptables: avoid compile warnings for iptc_insert_chain
-Date: Thu, 19 Mar 2009 14:55:37 +0100
-Message-ID: <d69a2a7d86c4224396091673aefc59cf25d55713.1237460727.git.christoph.paasch@gmail.com>
-References: <49C202EA.40006@trash.net>
-Cc: Christoph Paasch <christoph.paasch@gmail.com>
-To: netfilter-devel@vger.kernel.org
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: Automatically load modules in iptables-save
+Date: Thu, 19 Mar 2009 14:55:54 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0903191452550.27642@fbirervta.pbzchgretzou.qr>
+References: <20090316171014.GG31952@ralph.linux2go.dk> <20090319125532.GC20472@ralph.linux2go.dk> <49C24332.2020107@trash.net> <20090319135006.GD20472@ralph.linux2go.dk>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: Soren Hansen <soren@ubuntu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ew0-f165.google.com ([209.85.219.165]:33430 "EHLO
-	mail-ew0-f165.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751834AbZCSNzl (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:47014 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751834AbZCSNz4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 19 Mar 2009 09:55:41 -0400
-Received: by ewy9 with SMTP id 9so404277ewy.37
-        for <netfilter-devel@vger.kernel.org>; Thu, 19 Mar 2009 06:55:39 -0700 (PDT)
-In-Reply-To: <49C202EA.40006@trash.net>
+	Thu, 19 Mar 2009 09:55:56 -0400
+In-Reply-To: <20090319135006.GD20472@ralph.linux2go.dk>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-iptc_insert_chain is too big to get inlined and so it generates
-a warning while compiling.
 
-Signed-off-by: Christoph Paasch <christoph.paasch@gmail.com>
----
- libiptc/libiptc.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+On Thursday 2009-03-19 14:50, Soren Hansen wrote:
+>On Thu, Mar 19, 2009 at 02:05:54PM +0100, Patrick McHardy wrote:
+>>>> If the iptables modules are not loaded when iptables-save is run,
+>>>> iptables-save will fail, because it can't open the relevant files in
+>>>> /proc.  This patch makes iptables-save attempt to load the modules,
+>>>> and then retries.
+>
+>Right. I thought about just silently bailing out, but decided to go this
+>route instead. Explanation follows.
+>
+>$ sudo iptables-save
+>iptables-save v1.4.1.1: Unable to open /proc/net/ip_tables_names: No such file or directory
+>$ echo $?
+>1
+>
+>I decided to try to load the modules instead of just silently returning,
 
-diff --git a/libiptc/libiptc.c b/libiptc/libiptc.c
-index 544a5b2..c3d9bfc 100644
---- a/libiptc/libiptc.c
-+++ b/libiptc/libiptc.c
-@@ -841,7 +841,7 @@ static int __iptcc_p_del_policy(struct xtc_handle *h, unsigned int num)
- }
- 
- /* alphabetically insert a chain into the list */
--static inline void iptc_insert_chain(struct xtc_handle *h, struct chain_head *c)
-+static void iptc_insert_chain(struct xtc_handle *h, struct chain_head *c)
- {
- 	struct chain_head *tmp;
- 	struct list_head  *list_start_pos;
--- 
-1.5.6.3
+IMHO, it should not fail, not even silently, but return success.
+If x_tables.ko is not loaded, there cannot be any tables active
+anyway, and thus would be equal to a loaded x_tables.ko with
+no table modules (iptable_filter, etc.) loaded.
 
+>so that if iptables-save succeeds, you can reasonably expect
+>iptables-restore to work as well.
+
+`echo '' | iptables-restore` does work. One more reason to
+make iptables-save not outputting anything returning 0.
