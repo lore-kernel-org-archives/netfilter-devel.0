@@ -1,47 +1,47 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Automatically load modules in iptables-save
-Date: Thu, 19 Mar 2009 14:55:54 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0903191452550.27642@fbirervta.pbzchgretzou.qr>
-References: <20090316171014.GG31952@ralph.linux2go.dk> <20090319125532.GC20472@ralph.linux2go.dk> <49C24332.2020107@trash.net> <20090319135006.GD20472@ralph.linux2go.dk>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: next iptables release
+Date: Thu, 19 Mar 2009 14:56:24 +0100
+Message-ID: <49C24F08.3040208@trash.net>
+References: <49C202EA.40006@trash.net> <49C23FD6.6010503@netfilter.org> <49C240DA.2070006@trash.net> <49C2443F.9080208@netfilter.org> <49C245AF.50802@trash.net> <alpine.LSU.2.00.0903191447140.27642@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
-To: Soren Hansen <soren@ubuntu.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:47014 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751834AbZCSNz4 (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:35935 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751306AbZCSN4e (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 19 Mar 2009 09:55:56 -0400
-In-Reply-To: <20090319135006.GD20472@ralph.linux2go.dk>
+	Thu, 19 Mar 2009 09:56:34 -0400
+In-Reply-To: <alpine.LSU.2.00.0903191447140.27642@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-On Thursday 2009-03-19 14:50, Soren Hansen wrote:
->On Thu, Mar 19, 2009 at 02:05:54PM +0100, Patrick McHardy wrote:
->>>> If the iptables modules are not loaded when iptables-save is run,
->>>> iptables-save will fail, because it can't open the relevant files in
->>>> /proc.  This patch makes iptables-save attempt to load the modules,
->>>> and then retries.
+Jan Engelhardt wrote:
 >
->Right. I thought about just silently bailing out, but decided to go this
->route instead. Explanation follows.
+>> How about just adding it as first commit after the release? That way
+>> people can get the latest stable version, including support for the
+>> cluster match. Otherwise they'd have to patch in the the extension
+>> anyways.
+>>    =20
 >
->$ sudo iptables-save
->iptables-save v1.4.1.1: Unable to open /proc/net/ip_tables_names: No such file or directory
->$ echo $?
->1
->
->I decided to try to load the modules instead of just silently returning,
+> I am all for including it now. Distributions are known to forget
+> updating iptables, so the earlier it gets included, the higher is the
+> chance distros pick it [a new iptables release] up. Users (or these
+> days, too, Debian) often upgrading their kernel yet not dare to
+> manually install anything outside the package manager's realm, that
+> is my impression. For example etchnhalf =E2=80=94 nice kernel, but it=
+ is
+> hopeless with the iptables version to get the new goodies.
+>  =20
 
-IMHO, it should not fail, not even silently, but return success.
-If x_tables.ko is not loaded, there cannot be any tables active
-anyway, and thus would be equal to a loaded x_tables.ko with
-no table modules (iptable_filter, etc.) loaded.
+Sorry, no way. I'm not going back to the random-crap model.
 
->so that if iptables-save succeeds, you can reasonably expect
->iptables-restore to work as well.
-
-`echo '' | iptables-restore` does work. One more reason to
-make iptables-save not outputting anything returning 0.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
