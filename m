@@ -1,43 +1,43 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: next iptables release
-Date: Thu, 19 Mar 2009 14:55:19 +0100
-Message-ID: <49C24EC7.3020402@trash.net>
-References: <49C202EA.40006@trash.net> <49C23FD6.6010503@netfilter.org> <49C240DA.2070006@trash.net> <alpine.LSU.2.00.0903191444090.27642@fbirervta.pbzchgretzou.qr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+From: Christoph Paasch <christoph.paasch@gmail.com>
+Subject: [PATCH] iptables: avoid compile warnings for iptc_insert_chain
+Date: Thu, 19 Mar 2009 14:55:37 +0100
+Message-ID: <d69a2a7d86c4224396091673aefc59cf25d55713.1237460727.git.christoph.paasch@gmail.com>
+References: <49C202EA.40006@trash.net>
+Cc: Christoph Paasch <christoph.paasch@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:35910 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751834AbZCSNz0 (ORCPT
+Received: from mail-ew0-f165.google.com ([209.85.219.165]:33430 "EHLO
+	mail-ew0-f165.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751834AbZCSNzl (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 19 Mar 2009 09:55:26 -0400
-In-Reply-To: <alpine.LSU.2.00.0903191444090.27642@fbirervta.pbzchgretzou.qr>
+	Thu, 19 Mar 2009 09:55:41 -0400
+Received: by ewy9 with SMTP id 9so404277ewy.37
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 Mar 2009 06:55:39 -0700 (PDT)
+In-Reply-To: <49C202EA.40006@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Thursday 2009-03-19 13:55, Patrick McHardy wrote:
->> Besides potentially confusing people (why doesn't it work despite me
->> doing everything the manpage says), what are the advantages of including
->> the manpage before the actual implementation?
->>     
->
-> It does not confuse people as much as you think, I would say.
-> Since iptables runs with kernels so old the dust could kill,
-> the scenarios where iptables has an .so file for a kernel piece
-> that did not exist yet back then are numerous.
->   
+iptc_insert_chain is too big to get inlined and so it generates
+a warning while compiling.
 
-Object files are a completely different questions. We've had tons of crap
-in there for unmerged patches that we did later merge and had to change
-the API, which caused "breakage" for people.
+Signed-off-by: Christoph Paasch <christoph.paasch@gmail.com>
+---
+ libiptc/libiptc.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-So that is out of the question anyways. And a manpage for something that
-isn't even present will either not get noticed or confuse people. Its not
-useful.
+diff --git a/libiptc/libiptc.c b/libiptc/libiptc.c
+index 544a5b2..c3d9bfc 100644
+--- a/libiptc/libiptc.c
++++ b/libiptc/libiptc.c
+@@ -841,7 +841,7 @@ static int __iptcc_p_del_policy(struct xtc_handle *h, unsigned int num)
+ }
+ 
+ /* alphabetically insert a chain into the list */
+-static inline void iptc_insert_chain(struct xtc_handle *h, struct chain_head *c)
++static void iptc_insert_chain(struct xtc_handle *h, struct chain_head *c)
+ {
+ 	struct chain_head *tmp;
+ 	struct list_head  *list_start_pos;
+-- 
+1.5.6.3
 
