@@ -1,40 +1,39 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: next iptables release
-Date: Thu, 19 Mar 2009 11:01:18 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0903191057280.25879@fbirervta.pbzchgretzou.qr>
-References: <49C202EA.40006@trash.net>
+Date: Thu, 19 Mar 2009 11:06:21 +0100
+Message-ID: <49C2191D.1060807@trash.net>
+References: <49C202EA.40006@trash.net> <alpine.LSU.2.00.0903191057280.25879@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:36148 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752298AbZCSKBW (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:64348 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751315AbZCSKGZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 19 Mar 2009 06:01:22 -0400
-In-Reply-To: <49C202EA.40006@trash.net>
+	Thu, 19 Mar 2009 06:06:25 -0400
+In-Reply-To: <alpine.LSU.2.00.0903191057280.25879@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 2009-03-19 09:31, Patrick McHardy wrote:
+Jan Engelhardt wrote:
+> On Thursday 2009-03-19 09:31, Patrick McHardy wrote:
+> 
+>> I've planned to release the next iptables version sometime (late)
+>> this weekend. We've had quite a lot of changes since the last
+>> version, please test the latest version from git and report any
+>> issues.
+> 
+>     libxtables: add -I/-L flags to pkgconfig files
+>     
+>     These are needed in case iptables gets installed into a non-standard
+>     path. It also enables automatic detection of these locations from 3rd
+>     party programs via pkgconfig.
+> 
+> 
+> Patch pullable from  git://dev.medozas.de/iptables master
 
-> I've planned to release the next iptables version sometime (late)
-> this weekend. We've had quite a lot of changes since the last
-> version, please test the latest version from git and report any
-> issues.
-
-    libxtables: add -I/-L flags to pkgconfig files
-    
-    These are needed in case iptables gets installed into a non-standard
-    path. It also enables automatic detection of these locations from 3rd
-    party programs via pkgconfig.
-
-
-Patch pullable from  git://dev.medozas.de/iptables master
-
-Updating 71bc61f..467e72c
-Fast forward
- xtables.pc.in |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+Pulled, thanks Jan.
