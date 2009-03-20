@@ -1,59 +1,45 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: libnl: fix missing limits.h include
-Date: Fri, 20 Mar 2009 18:02:52 +0100
-Message-ID: <49C3CC3C.9010906@trash.net>
+Subject: Re: Automatically load modules in iptables-save
+Date: Fri, 20 Mar 2009 19:42:04 +0100
+Message-ID: <49C3E37C.50107@trash.net>
+References: <20090316171014.GG31952@ralph.linux2go.dk> <20090319125532.GC20472@ralph.linux2go.dk> <49C24332.2020107@trash.net> <20090319135006.GD20472@ralph.linux2go.dk> <alpine.LSU.2.00.0903191452550.27642@fbirervta.pbzchgretzou.qr> <20090319142935.GE20472@ralph.linux2go.dk> <alpine.LSU.2.00.0903191530310.31487@fbirervta.pbzchgretzou.qr> <20090319154301.GF20472@ralph.linux2go.dk> <alpine.LSU.2.00.0903191701060.14674@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------010906090706010206060203"
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Thomas Graf <tgraf@suug.ch>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Soren Hansen <soren@ubuntu.com>, netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:33426 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:35190 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757037AbZCTRC4 (ORCPT
+	with ESMTP id S1754314AbZCTSmM (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 20 Mar 2009 13:02:56 -0400
+	Fri, 20 Mar 2009 14:42:12 -0400
+In-Reply-To: <alpine.LSU.2.00.0903191701060.14674@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------010906090706010206060203
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Jan Engelhardt wrote:
+> Here is a reworked version that also adds the missing IPv6
+> and manpage bits, pullable from the usual place at
+> 
+>  git://dev.medozas.de/iptables master
+> 
+> ---8<---
+> iptables-save: module loading corrections
+> 
+> 1. Ignore the absence of /proc/net/ip_tables_names, which happens
+> when x_tables.ko is not loaded. This is equivalent to having
+> x_tables.ko, but no tabe modules, loaded. As such, success should
+> be returned.
+> 
+> 2. Load table when explicitly requested by the -t option. Users might
+> expect "*foo" etc. to be output when `iptables-save -t foo` is
+> executed. So do autoload x_tables.ko and the table in this case.
+> 
+> *. Do this for both iptables-save and ip6tables-save, and adjust
+> the manpages for the new -M (modprobe program location) option that
+> is introduced.
+> 
+> Based upon a patch by Soren Hansen.
 
-
---------------010906090706010206060203
-Content-Type: text/x-patch;
- name="02.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="02.diff"
-
-commit d70b8153a31618fd49af97850dcc7bf329fbe0f5
-Author: Patrick McHardy <kaber@trash.net>
-Date:   Fri Mar 20 01:46:24 2009 +0100
-
-    libnl: fix missing limits.h include
-    
-    utils.c: In function 'parse_u32':
-    utils.c:23: error: 'ULONG_MAX' undeclared (first use in this function)
-    utils.c:23: error: (Each undeclared identifier is reported only once
-    utils.c:23: error: for each function it appears in.)
-    
-    Signed-off-by: Patrick McHardy <kaber@trash.net>
-
-diff --git a/src/utils.h b/src/utils.h
-index a5c94e6..8c4e884 100644
---- a/src/utils.h
-+++ b/src/utils.h
-@@ -16,6 +16,7 @@
- #include <string.h>
- #include <stdlib.h>
- #include <inttypes.h>
-+#include <limits.h>
- #include <errno.h>
- #include <stdint.h>
- #include <ctype.h>
-
---------------010906090706010206060203--
+Looks good, thanks Jan. Pulled and pushed out.
