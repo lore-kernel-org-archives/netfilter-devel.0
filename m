@@ -1,37 +1,26 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: fix unaligned memory access in tcp_sack
-Date: Mon, 23 Mar 2009 13:48:24 +0100
-Message-ID: <49C78518.2010106@trash.net>
-References: <878wmx3pfk.fsf@netris.org> <20090322.211730.224794112.davem@davemloft.net>
+Subject: Re: [PATCH] iptables: avoid compile warnings for iptc_insert_chain
+Date: Mon, 23 Mar 2009 13:51:34 +0100
+Message-ID: <49C785D6.3010604@trash.net>
+References: <49C202EA.40006@trash.net> <d69a2a7d86c4224396091673aefc59cf25d55713.1237460727.git.christoph.paasch@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: mhw@netris.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20090322.211730.224794112.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Christoph Paasch <christoph.paasch@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:37998 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753161AbZCWMvk (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 23 Mar 2009 08:51:40 -0400
+In-Reply-To: <d69a2a7d86c4224396091673aefc59cf25d55713.1237460727.git.christoph.paasch@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-David Miller wrote:
-> From: "Mark H. Weaver" <mhw@netris.org>
-> Date: Sun, 22 Mar 2009 23:09:51 -0400
-> 
->> This patch fixes an unaligned memory access in tcp_sack while reading
->> sequence numbers from TCP selective acknowledgement options.  Prior to
->> applying this patch, upstream linux-2.6.27.20 was occasionally
->> generating messages like this on my sparc64 system:
->>
->>   [54678.532071] Kernel unaligned access at TPC[6b17d4] tcp_packet+0xcd4/0xd00
->>
->> More details provided upon request.  Apologies in advance if I've sent
->> this to the wrong place or not followed proper procedures.
-> 
-> Acked-by: David S. Miller <davem@davemloft.net>
+Christoph Paasch wrote:
+> iptc_insert_chain is too big to get inlined and so it generates
+> a warning while compiling.
 
-Looks good to me. Dave, please apply directly or pull from:
-
-git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git
-
-Thanks!
+Applied, thanks. But please include the compiler messages in the
+changelog when fixing warnings.
