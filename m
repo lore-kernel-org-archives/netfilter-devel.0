@@ -1,26 +1,38 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] iptables: avoid compile warnings for iptc_insert_chain
-Date: Mon, 23 Mar 2009 13:51:34 +0100
-Message-ID: <49C785D6.3010604@trash.net>
-References: <49C202EA.40006@trash.net> <d69a2a7d86c4224396091673aefc59cf25d55713.1237460727.git.christoph.paasch@gmail.com>
+Subject: Re: next iptables release
+Date: Mon, 23 Mar 2009 14:09:39 +0100
+Message-ID: <49C78A13.8080709@trash.net>
+References: <49C202EA.40006@trash.net> <Pine.LNX.4.64.0903211542140.7844@ask.diku.dk>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Christoph Paasch <christoph.paasch@gmail.com>
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Jan Engelhardt <jengelh@medozas.de>
+To: Jesper Dangaard Brouer <hawk@diku.dk>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:37998 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:38406 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753161AbZCWMvk (ORCPT
+	with ESMTP id S1754065AbZCWNJs (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Mar 2009 08:51:40 -0400
-In-Reply-To: <d69a2a7d86c4224396091673aefc59cf25d55713.1237460727.git.christoph.paasch@gmail.com>
+	Mon, 23 Mar 2009 09:09:48 -0400
+In-Reply-To: <Pine.LNX.4.64.0903211542140.7844@ask.diku.dk>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Christoph Paasch wrote:
-> iptc_insert_chain is too big to get inlined and so it generates
-> a warning while compiling.
+Jesper Dangaard Brouer wrote:
+> On Thu, 19 Mar 2009, Patrick McHardy wrote:
+> 
+>> I've planned to release the next iptables version sometime (late)
+>> this weekend. We've had quite a lot of changes since the last
+>> version, please test the latest version from git and report any
+>> issues.
+> 
+> I just realized a bug in libiptc.c in func TC_RENAME_CHAIN.
+> The rename should insert the new chain name sorted, as my binary search 
+> system / skip-list rely on it.
+> 
+> I don't have time to fix it until monday. Jan, feel free to fix it up 
+> before I do...
 
-Applied, thanks. But please include the compiler messages in the
-changelog when fixing warnings.
+I'll wait with the release until someone sends me a patch :)
