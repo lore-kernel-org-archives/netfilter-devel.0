@@ -1,69 +1,39 @@
-From: Kuzin Andrey <kuzinandrey@yandex.ru>
-Subject: [PATCH]: drop packet without verdict from nfqueue after timeout
-Date: Mon, 23 Mar 2009 21:48:23 +0300
-Message-ID: <1691181420.20090323214823@yandex.ru>
-Reply-To: Kuzin Andrey <kuzinandrey@yandex.ru>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH]: drop packet without verdict from nfqueue after timeout
+Date: Mon, 23 Mar 2009 20:18:45 +0100
+Message-ID: <49C7E095.9020002@trash.net>
+References: <1691181420.20090323214823@yandex.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Kuzin Andrey <kuzinandrey@yandex.ru>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from forwards7.yandex.ru ([77.88.61.48]:40584 "EHLO
-	forwards7.yandex.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753042AbZCWSrV (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:46688 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752734AbZCWTSt (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Mar 2009 14:47:21 -0400
-Received: from smtp16.yandex.ru (smtp16.yandex.ru [77.88.61.56])
-	by forwards7.yandex.ru (Yandex) with ESMTP id C59DF150C79
-	for <netfilter-devel@vger.kernel.org>; Mon, 23 Mar 2009 21:47:17 +0300 (MSK)
-Received: from gw-212.mjknet.ru ([212.45.5.114]:25861 "EHLO www1.firststeps.ru"
-        smtp-auth: "kuzinandrey" TLS-CIPHER: <none> TLS-PEER-CN1: <none>)
-        by mail.yandex.ru with ESMTP id S12992617AbZCWSrL (ORCPT
-        <rfc822;netfilter-devel@vger.kernel.org>);
-        Mon, 23 Mar 2009 21:47:11 +0300
+	Mon, 23 Mar 2009 15:18:49 -0400
+In-Reply-To: <1691181420.20090323214823@yandex.ru>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is patch for problem with stucked packets in nf_queue if
-something going wrong in userspace program. Automatically drop packets
-without any verdict after timeout defined by NFQNL_TIMEOUT_ENTRY_DROP.
+Kuzin Andrey wrote:
+> This is patch for problem with stucked packets in nf_queue if
+> something going wrong in userspace program. Automatically drop packets
+> without any verdict after timeout defined by NFQNL_TIMEOUT_ENTRY_DROP.
 
-Who may create patch for menu config for this feature ?
+I don't want to add per-packet timeouts. The number one problem cause
+I've seen in userspace programs so far has been "missed" packets by
+incorrect application logic/error handling. These applications usually
+continue to send verdicts, they just miss some packets, which accumulate
+in the queue until it is full.
 
-
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 8c86011..74fc322 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -169,17 +169,29 @@ __enqueue_entry(struct nfqnl_instance *queue, struct nf_queue_entry *entry)
-        queue->queue_total++;
- }
-
-+#define NFQNL_TIMEOUT_ENTRY_DROP 30
-+
- static struct nf_queue_entry *
- find_dequeue_entry(struct nfqnl_instance *queue, unsigned int id)
- {
--       struct nf_queue_entry *entry = NULL, *i;
-+       struct nf_queue_entry *entry = NULL, *next, *i;
-+       ktime_t kt = ktime_get_real();
-
-        spin_lock_bh(&queue->lock);
-
--       list_for_each_entry(i, &queue->queue_list, list) {
-+       list_for_each_entry_safe(i, next, &queue->queue_list, list) {
-                if (i->id == id) {
-                        entry = i;
-                        break;
-+                } else {
-+                       struct timeval tv = ktime_to_timeval(ktime_sub(kt, i->skb->tstamp));
-+                       if (tv.tv_sec > NFQNL_TIMEOUT_ENTRY_DROP) {
-+                               printk(KERN_ERR "nf_queue: drop timeouted packet "
-+                                       "(queue_num=%u seq_id=%u)\n", queue->queue_num, i->id);
-+                               list_del(&i->list);
-+                               queue->queue_total--;
-+                               nf_reinject(i, NF_DROP);
-+                       }
-                }
-        }
+There's a very easy and cheap way to handle this. The packets have
+sequence numbers and userspace should issues verdicts in ascending
+order anyways to avoid reordering. Just add something that will drop
+everything in the queue up to the sequence number contained in the
+netlink message. And if you want to make it seem like something that
+isn't just meant to work around buggy application behaviour, you can
+use the same mechanism to add verdict batching :)
 
