@@ -1,64 +1,47 @@
-From: Jesper Dangaard Brouer <hawk@diku.dk>
-Subject: Re: next iptables release
-Date: Sat, 21 Mar 2009 15:46:47 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0903211542140.7844@ask.diku.dk>
-References: <49C202EA.40006@trash.net>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Jan Engelhardt <jengelh@medozas.de>
-To: Patrick McHardy <kaber@trash.net>
+From: "Mark H. Weaver" <mhw@netris.org>
+Subject: [PATCH] netfilter: fix unaligned memory access in tcp_sack
+Date: Sun, 22 Mar 2009 23:09:51 -0400
+Message-ID: <878wmx3pfk.fsf@netris.org>
+Cc: netdev@vger.kernel.org
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mgw2.diku.dk ([130.225.96.92]:39238 "EHLO mgw2.diku.dk"
+Received: from WORLD.PEACE.NET ([204.107.200.8]:40645 "EHLO world.peace.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752914AbZCUOq5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 21 Mar 2009 10:46:57 -0400
-In-Reply-To: <49C202EA.40006@trash.net>
+	id S1755472AbZCWDeF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 22 Mar 2009 23:34:05 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 19 Mar 2009, Patrick McHardy wrote:
+This patch fixes an unaligned memory access in tcp_sack while reading
+sequence numbers from TCP selective acknowledgement options.  Prior to
+applying this patch, upstream linux-2.6.27.20 was occasionally
+generating messages like this on my sparc64 system:
 
-> I've planned to release the next iptables version sometime (late)
-> this weekend. We've had quite a lot of changes since the last
-> version, please test the latest version from git and report any
-> issues.
+  [54678.532071] Kernel unaligned access at TPC[6b17d4] tcp_packet+0xcd4/0xd00
 
-I just realized a bug in libiptc.c in func TC_RENAME_CHAIN.
-The rename should insert the new chain name sorted, as my binary 
-search system / skip-list rely on it.
+More details provided upon request.  Apologies in advance if I've sent
+this to the wrong place or not followed proper procedures.
 
-I don't have time to fix it until monday. Jan, feel free to fix it up 
-before I do...
+   Best,
+    Mark
 
-Cheers,
-   Jesper Brouer
 
---
--------------------------------------------------------------------
-MSc. Master of Computer Science
-Dept. of Computer Science, University of Copenhagen
-Author of http://www.adsl-optimizer.dk
--------------------------------------------------------------------
-
-commit 6b7e7cde912a6395cb2a1f5e4b2f50cad2592b17
-Author: Jesper Dangaard Brouer <hawk@comx.dk>
-Date:   Sat Mar 21 15:40:54 2009 +0100
-
-     I just realized a bug in libiptc.c in func TC_RENAME_CHAIN.
-     Due my bsearch/skip-list implementation.
-
-diff --git a/libiptc/libiptc.c b/libiptc/libiptc.c
-index 544a5b2..3bcae9c 100644
---- a/libiptc/libiptc.c
-+++ b/libiptc/libiptc.c
-@@ -2404,6 +2404,8 @@ int TC_RENAME_CHAIN(const IPT_CHAINLABEL oldname,
-  		return 0;
-  	}
-
-+	/* FIXME: Bug here due to the bsearch system, new chain name
-+	   needs to be inserted sorted */
-  	strncpy(c->name, newname, sizeof(IPT_CHAINLABEL));
-
-  	set_changed(handle);
+--- linux-2.6/net/netfilter/nf_conntrack_proto_tcp.c.orig	2009-03-22 17:51:47.000000000 -0400
++++ linux-2.6/net/netfilter/nf_conntrack_proto_tcp.c	2009-03-22 22:49:23.000000000 -0400
+@@ -15,6 +15,7 @@
+ #include <linux/skbuff.h>
+ #include <linux/ipv6.h>
+ #include <net/ip6_checksum.h>
++#include <asm/unaligned.h>
+ 
+ #include <net/tcp.h>
+ 
+@@ -466,7 +467,7 @@ static void tcp_sack(const struct sk_buf
+ 				for (i = 0;
+ 				     i < (opsize - TCPOLEN_SACK_BASE);
+ 				     i += TCPOLEN_SACK_PERBLOCK) {
+-					tmp = ntohl(*((__be32 *)(ptr+i)+1));
++					tmp = get_unaligned_be32((__be32 *)(ptr+i)+1);
+ 
+ 					if (after(tmp, *sack))
+ 						*sack = tmp;
