@@ -1,47 +1,29 @@
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] netfilter: fix unaligned memory access in tcp_sack
+Date: Sun, 22 Mar 2009 21:17:30 -0700 (PDT)
+Message-ID: <20090322.211730.224794112.davem@davemloft.net>
+References: <878wmx3pfk.fsf@netris.org>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: mhw@netris.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <878wmx3pfk.fsf@netris.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
+
 From: "Mark H. Weaver" <mhw@netris.org>
-Subject: [PATCH] netfilter: fix unaligned memory access in tcp_sack
 Date: Sun, 22 Mar 2009 23:09:51 -0400
-Message-ID: <878wmx3pfk.fsf@netris.org>
-Cc: netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from WORLD.PEACE.NET ([204.107.200.8]:40645 "EHLO world.peace.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755472AbZCWDeF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 22 Mar 2009 23:34:05 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch fixes an unaligned memory access in tcp_sack while reading
-sequence numbers from TCP selective acknowledgement options.  Prior to
-applying this patch, upstream linux-2.6.27.20 was occasionally
-generating messages like this on my sparc64 system:
+> This patch fixes an unaligned memory access in tcp_sack while reading
+> sequence numbers from TCP selective acknowledgement options.  Prior to
+> applying this patch, upstream linux-2.6.27.20 was occasionally
+> generating messages like this on my sparc64 system:
+> 
+>   [54678.532071] Kernel unaligned access at TPC[6b17d4] tcp_packet+0xcd4/0xd00
+> 
+> More details provided upon request.  Apologies in advance if I've sent
+> this to the wrong place or not followed proper procedures.
 
-  [54678.532071] Kernel unaligned access at TPC[6b17d4] tcp_packet+0xcd4/0xd00
-
-More details provided upon request.  Apologies in advance if I've sent
-this to the wrong place or not followed proper procedures.
-
-   Best,
-    Mark
-
-
---- linux-2.6/net/netfilter/nf_conntrack_proto_tcp.c.orig	2009-03-22 17:51:47.000000000 -0400
-+++ linux-2.6/net/netfilter/nf_conntrack_proto_tcp.c	2009-03-22 22:49:23.000000000 -0400
-@@ -15,6 +15,7 @@
- #include <linux/skbuff.h>
- #include <linux/ipv6.h>
- #include <net/ip6_checksum.h>
-+#include <asm/unaligned.h>
- 
- #include <net/tcp.h>
- 
-@@ -466,7 +467,7 @@ static void tcp_sack(const struct sk_buf
- 				for (i = 0;
- 				     i < (opsize - TCPOLEN_SACK_BASE);
- 				     i += TCPOLEN_SACK_PERBLOCK) {
--					tmp = ntohl(*((__be32 *)(ptr+i)+1));
-+					tmp = get_unaligned_be32((__be32 *)(ptr+i)+1);
- 
- 					if (after(tmp, *sack))
- 						*sack = tmp;
+Acked-by: David S. Miller <davem@davemloft.net>
