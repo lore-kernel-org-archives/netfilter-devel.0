@@ -1,60 +1,93 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: Re: [Fwd: Re: Re: [PATCH 2.4.37] iptables: handle IPT_RETURN from
-	user target]
-Date: Mon, 23 Mar 2009 16:26:36 +0800
-Message-ID: <412e6f7f0903230126x3ee972b5se1005cc3b5895bce@mail.gmail.com>
-References: <49C12888.3000907@expand.com> <49C12911.2080507@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH] nefilter: nfnetlink: add nfnetlink_set_err and use it in
+	ctnetlink
+Date: Mon, 23 Mar 2009 11:07:01 +0100
+Message-ID: <20090323100701.14405.49966.stgit@Decadence>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: haimdaniel@gmail.com, netfilter@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <49C12911.2080507@trash.net>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:32863 "EHLO us.es"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755648AbZCWKHK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 23 Mar 2009 06:07:10 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-I posted this patch before. I am glad to see someone has the same
-requirement as me. It is useful when implementing ACL. Such as these
-statements:
+This patch adds nfnetlink_set_err() to propagate the error to netlink
+broadcast listener in case of memory allocation errors in the
+message building.
 
-if (x_cond) {
-   do_x;
-} else if (y_cond) {
-  do_y;
-} else if (z_cond) {
-  do_z;
-}
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
 
-Because the current iptables doesn't support multi-targets, we have to
-do this kinds of things in a dirty way.
+ include/linux/netfilter/nfnetlink.h  |    1 +
+ net/netfilter/nf_conntrack_netlink.c |    2 ++
+ net/netfilter/nfnetlink.c            |    6 ++++++
+ net/netlink/af_netlink.c             |    1 +
+ 4 files changed, 10 insertions(+), 0 deletions(-)
 
-On Thu, Mar 19, 2009 at 1:02 AM, Patrick McHardy <kaber@trash.net> wrote:
-> Haim Daniel wrote:
->>
->> Patric McHardy wrote:
->>
->>  > And what module will be using this?
->>  > --
->>
->> Currently there's no such module in the src tree. I've encountered the
->> problem
->> myself when I needed to write a proprietary module for the company I work
->> for.
->> I've seen prev posts on the subject as well.
->
-> You'll have to carry this patch yourself. Until we need it for something
-> in the mainline tree, there's no reason to change it.
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel"
-> in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netfilter/nfnetlink.h
+index 7d8e045..135e5cf 100644
+--- a/include/linux/netfilter/nfnetlink.h
++++ b/include/linux/netfilter/nfnetlink.h
+@@ -76,6 +76,7 @@ extern int nfnetlink_subsys_unregister(const struct nfnetlink_subsystem *n);
+ extern int nfnetlink_has_listeners(unsigned int group);
+ extern int nfnetlink_send(struct sk_buff *skb, u32 pid, unsigned group, 
+ 			  int echo);
++extern void nfnetlink_set_err(u32 pid, u32 group, int error);
+ extern int nfnetlink_unicast(struct sk_buff *skb, u_int32_t pid, int flags);
+ 
+ extern void nfnl_lock(void);
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 672ed6a..be4b324 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -522,6 +522,7 @@ static int ctnetlink_conntrack_event(struct notifier_block *this,
+ nla_put_failure:
+ 	rcu_read_unlock();
+ nlmsg_failure:
++	nfnetlink_set_err(0, group, -ENOBUFS);
+ 	kfree_skb(skb);
+ 	return NOTIFY_DONE;
+ }
+@@ -1539,6 +1540,7 @@ static int ctnetlink_expect_event(struct notifier_block *this,
+ nla_put_failure:
+ 	rcu_read_unlock();
+ nlmsg_failure:
++	nfnetlink_set_err(0, 0, -ENOBUFS);
+ 	kfree_skb(skb);
+ 	return NOTIFY_DONE;
+ }
+diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
+index 9c0ba17..2785d66 100644
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -113,6 +113,12 @@ int nfnetlink_send(struct sk_buff *skb, u32 pid, unsigned group, int echo)
+ }
+ EXPORT_SYMBOL_GPL(nfnetlink_send);
+ 
++void nfnetlink_set_err(u32 pid, u32 group, int error)
++{
++	netlink_set_err(nfnl, pid, group, error);
++}
++EXPORT_SYMBOL_GPL(nfnetlink_set_err);
++
+ int nfnetlink_unicast(struct sk_buff *skb, u_int32_t pid, int flags)
+ {
+ 	return netlink_unicast(nfnl, skb, pid, flags);
+diff --git a/net/netlink/af_netlink.c b/net/netlink/af_netlink.c
+index 09e5008..dc93836 100644
+--- a/net/netlink/af_netlink.c
++++ b/net/netlink/af_netlink.c
+@@ -1118,6 +1118,7 @@ void netlink_set_err(struct sock *ssk, u32 pid, u32 group, int code)
+ 
+ 	read_unlock(&nl_table_lock);
+ }
++EXPORT_SYMBOL(netlink_set_err);
+ 
+ /* must be called with netlink table grabbed */
+ static void netlink_update_socket_mc(struct netlink_sock *nlk,
 
-
-
--- 
-Regards，
-Changli Gao(xiaosuo@gmail.com)
