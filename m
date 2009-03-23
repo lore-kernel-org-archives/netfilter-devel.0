@@ -1,39 +1,37 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH]: drop packet without verdict from nfqueue after timeout
-Date: Mon, 23 Mar 2009 20:18:45 +0100
-Message-ID: <49C7E095.9020002@trash.net>
-References: <1691181420.20090323214823@yandex.ru>
+Subject: Re: [ANNOUNCE]: Release of iptables-1.4.3
+Date: Mon, 23 Mar 2009 20:19:31 +0100
+Message-ID: <49C7E0C3.8050907@trash.net>
+References: <49C79C90.80804@trash.net> <alpine.LSU.2.00.0903231917540.27630@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Kuzin Andrey <kuzinandrey@yandex.ru>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:46688 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752734AbZCWTSt (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Mar 2009 15:18:49 -0400
-In-Reply-To: <1691181420.20090323214823@yandex.ru>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Linux Netdev List <netdev@vger.kernel.org>,
+	netfilter <netfilter@lists.netfilter.org>,
+	netfilter-announce@lists.netfilter.org
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <alpine.LSU.2.00.0903231917540.27630@fbirervta.pbzchgretzou.qr>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Kuzin Andrey wrote:
-> This is patch for problem with stucked packets in nf_queue if
-> something going wrong in userspace program. Automatically drop packets
-> without any verdict after timeout defined by NFQNL_TIMEOUT_ENTRY_DROP.
+Jan Engelhardt wrote:
+> On Monday 2009-03-23 15:28, Patrick McHardy wrote:
+>
+>   
+>> The netfilter coreteam presents:
+>>
+>>    iptables version 1.4.3
+>>
+>> the iptables release for the 2.6.29 kernel. It has been some time
+>> since the last release and we've had a lot of changes all over the
+>> place.[...]
+>>     
+>
+> Can you update the freshmeat entry? (Or be courteous to add me to the
+> FM project.)
 
-I don't want to add per-packet timeouts. The number one problem cause
-I've seen in userspace programs so far has been "missed" packets by
-incorrect application logic/error handling. These applications usually
-continue to send verdicts, they just miss some packets, which accumulate
-in the queue until it is full.
-
-There's a very easy and cheap way to handle this. The packets have
-sequence numbers and userspace should issues verdicts in ascending
-order anyways to avoid reordering. Just add something that will drop
-everything in the queue up to the sequence number contained in the
-netlink message. And if you want to make it seem like something that
-isn't just meant to work around buggy application behaviour, you can
-use the same mechanism to add verdict batching :)
+I'll add you to the project when I'm near the password again :)
 
