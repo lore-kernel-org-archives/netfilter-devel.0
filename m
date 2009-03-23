@@ -1,38 +1,50 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: next iptables release
-Date: Mon, 23 Mar 2009 14:09:39 +0100
-Message-ID: <49C78A13.8080709@trash.net>
-References: <49C202EA.40006@trash.net> <Pine.LNX.4.64.0903211542140.7844@ask.diku.dk>
+From: Jesper Dangaard Brouer <hawk@comx.dk>
+Subject: [PATCH 1/3] iptables: Fix chain rename bug in libiptc.
+Date: Mon, 23 Mar 2009 13:55:14 +0100
+Message-ID: <20090323125514.959.87191.stgit@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Jan Engelhardt <jengelh@medozas.de>
-To: Jesper Dangaard Brouer <hawk@diku.dk>
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:38406 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754065AbZCWNJs (ORCPT
+Received: from lanfw001a.cxnet.dk ([87.72.215.196]:59525 "EHLO
+	lanfw001a.cxnet.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750711AbZCWNXU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Mar 2009 09:09:48 -0400
-In-Reply-To: <Pine.LNX.4.64.0903211542140.7844@ask.diku.dk>
+	Mon, 23 Mar 2009 09:23:20 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jesper Dangaard Brouer wrote:
-> On Thu, 19 Mar 2009, Patrick McHardy wrote:
-> 
->> I've planned to release the next iptables version sometime (late)
->> this weekend. We've had quite a lot of changes since the last
->> version, please test the latest version from git and report any
->> issues.
-> 
-> I just realized a bug in libiptc.c in func TC_RENAME_CHAIN.
-> The rename should insert the new chain name sorted, as my binary search 
-> system / skip-list rely on it.
-> 
-> I don't have time to fix it until monday. Jan, feel free to fix it up 
-> before I do...
+Chain renaming (TC_RENAME_CHAIN) can result in an unsorted
+chain list.  That breaks the requirement of the binary search
+done in iptcc_bsearch_chain_index().
 
-I'll wait with the release until someone sends me a patch :)
+Signed-off-by: Jesper Dangaard Brouer <hawk@comx.dk>
+---
+
+ libiptc/libiptc.c |    9 ++++++++-
+ 1 files changed, 8 insertions(+), 1 deletions(-)
+
+diff --git a/libiptc/libiptc.c b/libiptc/libiptc.c
+index 544a5b2..86cfab4 100644
+--- a/libiptc/libiptc.c
++++ b/libiptc/libiptc.c
+@@ -2404,8 +2404,15 @@ int TC_RENAME_CHAIN(const IPT_CHAINLABEL oldname,
+ 		return 0;
+ 	}
+ 
++	/* This only unlinks "c" from the list, thus no free(c) */
++	iptcc_chain_index_delete_chain(c, handle);
++
++	/* Change the name of the chain */
+ 	strncpy(c->name, newname, sizeof(IPT_CHAINLABEL));
+-	
++
++	/* Insert sorted into to list again */
++	iptc_insert_chain(handle, c);
++
+ 	set_changed(handle);
+ 
+ 	return 1;
+
