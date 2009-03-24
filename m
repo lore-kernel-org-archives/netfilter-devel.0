@@ -1,84 +1,72 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [ANNOUNCE]: Release of iptables-1.4.3.1
-Date: Tue, 24 Mar 2009 22:32:22 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0903242224390.26397@fbirervta.pbzchgretzou.qr>
-References: <49C8DB3B.909@netfilter.org> <200903242112.56886.steven@springl.ukfsn.org>
+From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: Re: netfilter 07/41: arp_tables: unfold two critical loops in arp_packet_match()
+Date: Tue, 24 Mar 2009 22:39:10 +0100
+Message-ID: <49C952FE.7070202@cosmosbay.com>
+References: <20090324.132954.148903398.davem@davemloft.net> <49C94B6A.5020304@cosmosbay.com> <alpine.LSU.2.00.0903242215590.26397@fbirervta.pbzchgretzou.qr> <20090324.141848.119353425.davem@davemloft.net> <alpine.LSU.2.00.0903242220280.26397@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Steven Jan Springl <steven@springl.ukfsn.org>
+Cc: David Miller <davem@davemloft.net>, kaber@trash.net,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:35893 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754724AbZCXVcY (ORCPT
+Received: from gw1.cosmosbay.com ([212.99.114.194]:39944 "EHLO
+	gw1.cosmosbay.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754124AbZCXVjW convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Mar 2009 17:32:24 -0400
-In-Reply-To: <200903242112.56886.steven@springl.ukfsn.org>
+	Tue, 24 Mar 2009 17:39:22 -0400
+In-Reply-To: <alpine.LSU.2.00.0903242220280.26397@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Jan Engelhardt a =E9crit :
+> On Tuesday 2009-03-24 22:18, David Miller wrote:
+>>>> Arches without efficient unaligned access can still perform a loop
+>>>> assuming 16bit alignment in ifname_compare()
+>>> Allow me some skepticism, but the code looks pretty much like a
+>>> standard memcmp.
+>> memcmp() can't make any assumptions about alignment.
+>> Whereas we _know_ this thing is exactly 16-bit aligned.
+>>
+>> All of the optimized memcmp() implementations look for
+>> 32-bit alignment and punt to byte at a time comparison
+>> loops if things are not aligned enough.
+>=20
+> Yes, I seem to remember glibc doing something like
+>=20
+>  if ((addr & 0x03) !=3D 0) {
+>      // process single bytes (increment addr as you go)
+>      // until addr & 0x03 =3D=3D 0.
+>  }
+>=20
+>  /* optimized loop here. also increases addr */
+>=20
+>  if ((addr & 0x03) !=3D 0)
+>      // still bytes left after loop - process on a per-byte basis
+>=20
+> Is the cost of testing for non-4-divisibility expensive enough
+> to warrant not usnig memcmp?
+>=20
+> Irrespective of all that, I think putting the interface comparison
+> code should be agglomerated in a function/header so that it is
+> replicated across iptables, ip6tables, ebtables, arptables, etc.
 
-On Tuesday 2009-03-24 22:12, Steven Jan Springl wrote:
+memcmp() is fine, but how is it solving the masking problem we have ?
 
->Is there a problem with mss in this release?
->If I specify rule:
->-A OUTPUT -p tcp --tcp-flags SYN,RST SYN -m tcpmss --mss 1000:1500 -j =
-ACCEPT
->I get error:
->=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0Invalid mss '1000' spe=
-cified.
->
->It appears that mss values less than 65536 are rejected, while values =
-of 65536=20
->or greater are accepted. Is this not the wrong way around?
+Also in the case of arp_tables, _a is long word aligned, while _b and _=
+mask are not.
 
-Indeed. There is an uncommon coding pattern (compared to the rest of=20
-the iptables sources) in the function at hand. Patch below.
+memcmp() in this case is slower, (and dont handle mask thing)
 
-usually:
-	if (!strtoui(...))
-		you_fail;
-	return ok;
-libxt_tcpmss:
-	if (strtoui(...))
-		return ok;
-	you_fail;
+If you look various ifname_compare(), we have two different implementat=
+ions.
 
-Pullable from the usual location at git://dev.medozas.de/iptables
+So yes, a factorization is possible for three ip_tables.c, ip6_tables.c=
+ and xt_physdev.c
 
-Updating 6e70f46..ed7925b
-=46ast forward
- extensions/libxt_tcpmss.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
 
-parent 6e70f46f2a146bb7c657f71724c999147a5925dc (v1.4.3.1)
-commit ed7925b77010dd17531ea0424b49d2b72af4add9
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Tue Mar 24 22:26:25 2009 +0100
 
-libxt_tcpmss: fix an inversion while parsing --mss
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- extensions/libxt_tcpmss.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/extensions/libxt_tcpmss.c b/extensions/libxt_tcpmss.c
-index 43a4a0d..46529f9 100644
---- a/extensions/libxt_tcpmss.c
-+++ b/extensions/libxt_tcpmss.c
-@@ -26,7 +26,7 @@ parse_tcp_mssvalue(const char *mssvalue)
- {
- 	unsigned int mssvaluenum;
-=20
--	if (!xtables_strtoui(mssvalue, NULL, &mssvaluenum, 0, UINT16_MAX))
-+	if (xtables_strtoui(mssvalue, NULL, &mssvaluenum, 0, UINT16_MAX))
- 		return mssvaluenum;
-=20
- 	xtables_error(PARAMETER_PROBLEM,
---=20
-# Created with git-export-patch
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
