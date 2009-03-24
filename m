@@ -1,48 +1,40 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] ctnetlink: optional packet drop to make event delivery
- reliable
-Date: Tue, 24 Mar 2009 14:21:57 +0100
-Message-ID: <49C8DE75.1050109@trash.net>
-References: <20090324110706.13981.24167.stgit@Decadence>
+From: Kristian Evensen <kristian.evensen@gmail.com>
+Subject: Re: Correct signatur for target
+Date: Tue, 24 Mar 2009 14:21:54 +0100
+Message-ID: <17e3a8f80903240621ic1a86f0gac018b02cd0fa9da@mail.gmail.com>
+References: <17e3a8f80903240606v1efab2eds2a40a1dbe820af00@mail.gmail.com>
+	 <alpine.LSU.2.00.0903241410130.27859@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:33741 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756698AbZCXNWE (ORCPT
+Received: from mail-fx0-f158.google.com ([209.85.220.158]:47335 "EHLO
+	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759600AbZCXNV5 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Mar 2009 09:22:04 -0400
-In-Reply-To: <20090324110706.13981.24167.stgit@Decadence>
+	Tue, 24 Mar 2009 09:21:57 -0400
+Received: by fxm2 with SMTP id 2so2270618fxm.37
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Mar 2009 06:21:54 -0700 (PDT)
+In-Reply-To: <alpine.LSU.2.00.0903241410130.27859@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
-> index 5a449b4..98078b2 100644
-> --- a/include/net/netfilter/nf_conntrack_core.h
-> +++ b/include/net/netfilter/nf_conntrack_core.h
-> @@ -62,8 +62,11 @@ static inline int nf_conntrack_confirm(struct sk_buff *skb)
+> To make Xtables-addons's compat_xtables.ko work with all supported
+> kernel versions, it has to slightly deviate from the latest kernel
+> API and use a double-pointer. So if you write your module with the
+> help of the compat layer, you need to be aware of this minor
+> difference. I think the latest version of the e-book also mentions
+> this.
 
-What tree is this against? I get reject in my nf-next tree.
+Thank you very much. When I no longer included "compat_xtables.h" and
+changed the signature, it worked.
 
->  	if (ct && ct != &nf_conntrack_untracked) {
->  		if (!nf_ct_is_confirmed(ct) && !nf_ct_is_dying(ct))
->  			ret = __nf_conntrack_confirm(skb);
-> -		if (likely(ret == NF_ACCEPT))
-> -			nf_ct_deliver_cached_events(ct);
-> +		if (likely(ret == NF_ACCEPT) &&
-> +		    nf_ct_deliver_cached_events(ct) < 0) {
+When I read the related paragraph (second in section 5.2) in the book
+again now, I see that it is mentioned. However, since I am not so
+familiar with xtables, I did not connect "glue code" with the
+"compat_xtables.h".
 
-The combined condition is unlikely I'd say. My main question though:
-how does this make event delivery reliable? It will drop the packet,
-fine, but all state changes have already been performed, new connections
-have been confirmed, etc.
-
-> +			NF_CT_STAT_INC_ATOMIC(nf_ct_net(ct), drop);
-> +			return NF_DROP;
-> +		}
->  	}
->  	return ret;
+Thank you again,
+Kristian
