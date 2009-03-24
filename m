@@ -1,43 +1,48 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Correct signatur for target
-Date: Tue, 24 Mar 2009 14:12:57 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0903241410130.27859@fbirervta.pbzchgretzou.qr>
-References: <17e3a8f80903240606v1efab2eds2a40a1dbe820af00@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] ctnetlink: optional packet drop to make event delivery
+ reliable
+Date: Tue, 24 Mar 2009 14:21:57 +0100
+Message-ID: <49C8DE75.1050109@trash.net>
+References: <20090324110706.13981.24167.stgit@Decadence>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Kristian Evensen <kristian.evensen@gmail.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:38106 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760367AbZCXNNA (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:33741 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756698AbZCXNWE (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Mar 2009 09:13:00 -0400
-In-Reply-To: <17e3a8f80903240606v1efab2eds2a40a1dbe820af00@mail.gmail.com>
+	Tue, 24 Mar 2009 09:22:04 -0400
+In-Reply-To: <20090324110706.13981.24167.stgit@Decadence>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Pablo Neira Ayuso wrote:
+> diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
+> index 5a449b4..98078b2 100644
+> --- a/include/net/netfilter/nf_conntrack_core.h
+> +++ b/include/net/netfilter/nf_conntrack_core.h
+> @@ -62,8 +62,11 @@ static inline int nf_conntrack_confirm(struct sk_buff *skb)
 
-On Tuesday 2009-03-24 14:06, Kristian Evensen wrote:
->
->I am currently working on an xtables-targetmodule, and have come
->across a thing that puzzles me a little bit. As far as I have
->understood it, according to both the book "Writing netfilter module"
->(excellent by the way, thank you Jan and Nicolas) and my
->x_tables.h-file, the signatur for *target is:
->
->static unsigned int (*target) (struct sk_buff *skb,
->			       const struct xt_target_param *par)
->
->However, to get it working on my machine (which runs the
->2.6.28.8-kernel), the first argument had to be a double pointer for my
->module to work as intended. I though the double pointer was there for
->compatibility with older kernels. Does any know where I am wrong/what
->I have done wrong?
+What tree is this against? I get reject in my nf-next tree.
 
-To make Xtables-addons's compat_xtables.ko work with all supported
-kernel versions, it has to slightly deviate from the latest kernel
-API and use a double-pointer. So if you write your module with the
-help of the compat layer, you need to be aware of this minor
-difference. I think the latest version of the e-book also mentions
-this.
+>  	if (ct && ct != &nf_conntrack_untracked) {
+>  		if (!nf_ct_is_confirmed(ct) && !nf_ct_is_dying(ct))
+>  			ret = __nf_conntrack_confirm(skb);
+> -		if (likely(ret == NF_ACCEPT))
+> -			nf_ct_deliver_cached_events(ct);
+> +		if (likely(ret == NF_ACCEPT) &&
+> +		    nf_ct_deliver_cached_events(ct) < 0) {
+
+The combined condition is unlikely I'd say. My main question though:
+how does this make event delivery reliable? It will drop the packet,
+fine, but all state changes have already been performed, new connections
+have been confirmed, etc.
+
+> +			NF_CT_STAT_INC_ATOMIC(nf_ct_net(ct), drop);
+> +			return NF_DROP;
+> +		}
+>  	}
+>  	return ret;
