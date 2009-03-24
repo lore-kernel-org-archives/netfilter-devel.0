@@ -1,63 +1,55 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: netfilter 07/41: arp_tables: unfold two critical loops in
- arp_packet_match()
-Date: Tue, 24 Mar 2009 14:18:48 -0700 (PDT)
-Message-ID: <20090324.141848.119353425.davem@davemloft.net>
-References: <20090324.132954.148903398.davem@davemloft.net>
-	<49C94B6A.5020304@cosmosbay.com>
-	<alpine.LSU.2.00.0903242215590.26397@fbirervta.pbzchgretzou.qr>
+From: Steven Jan Springl <steven@springl.ukfsn.org>
+Subject: Re: [ANNOUNCE]: Release of iptables-1.4.3.1
+Date: Tue, 24 Mar 2009 21:12:56 +0000
+Message-ID: <200903242112.56886.steven@springl.ukfsn.org>
+References: <49C8DB3B.909@netfilter.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: dada1@cosmosbay.com, kaber@trash.net, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: jengelh@medozas.de
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:44804
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1755225AbZCXVTA (ORCPT
+Received: from mail.springl.ukfsn.org ([84.45.199.6]:35415 "EHLO
+	mail.springl.ukfsn.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750760AbZCXVWF convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Mar 2009 17:19:00 -0400
-In-Reply-To: <alpine.LSU.2.00.0903242215590.26397@fbirervta.pbzchgretzou.qr>
+	Tue, 24 Mar 2009 17:22:05 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by mail.springl.ukfsn.org (Postfix) with ESMTP id D4171212FB
+	for <netfilter-devel@vger.kernel.org>; Tue, 24 Mar 2009 21:12:57 +0000 (GMT)
+Received: from mail.springl.ukfsn.org ([127.0.0.1])
+	by localhost (l2.home [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id I-X08iyDLAGL for <netfilter-devel@vger.kernel.org>;
+	Tue, 24 Mar 2009 21:12:57 +0000 (GMT)
+Received: from l3.home (l3.home [IPv6:2002:542d:c701:1:250:daff:fe6d:bbdd])
+	by mail.springl.ukfsn.org (Postfix) with ESMTP id 34BE4212F2
+	for <netfilter-devel@vger.kernel.org>; Tue, 24 Mar 2009 21:12:57 +0000 (GMT)
+In-Reply-To: <49C8DB3B.909@netfilter.org>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jan Engelhardt <jengelh@medozas.de>
-Date: Tue, 24 Mar 2009 22:17:17 +0100 (CET)
+Is there a problem with mss in this release?
 
-> 
-> On Tuesday 2009-03-24 22:06, Eric Dumazet wrote:
-> >>> +/*
-> >>> + * Unfortunatly, _b and _mask are not aligned to an int (or long int)
-> >>> + * Some arches dont care, unrolling the loop is a win on them.
-> >>> + */
-> >>> +static unsigned long ifname_compare(const char *_a, const char *_b, const char *_mask)
-> >>> +{
-> >>> +#ifdef CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS
-> >>> +	const unsigned long *a = (const unsigned long *)_a;
-> >>> +	const unsigned long *b = (const unsigned long *)_b;
-> >> 
-> >> I think we can at least give some help for the platforms which
-> >> require alignment.
-> >> 
-> >> We can, for example, assume 16-bit alignment and thus loop
-> >> over u16's
-> >
-> >Right. How about this incremental patch ?
-> >
-> >Thanks
-> >
-> >[PATCH] arp_tables: ifname_compare() can assume 16bit alignment
-> >
-> >Arches without efficient unaligned access can still perform a loop
-> >assuming 16bit alignment in ifname_compare()
-> 
-> Allow me some skepticism, but the code looks pretty much like a
-> standard memcmp.
+If I specify rule:
 
-memcmp() can't make any assumptions about alignment.
-Whereas we _know_ this thing is exactly 16-bit aligned.
+-A OUTPUT -p tcp --tcp-flags SYN,RST SYN -m tcpmss --mss 1000:1500 -j A=
+CCEPT
 
-All of the optimized memcmp() implementations look for
-32-bit alignment and punt to byte at a time comparison
-loops if things are not aligned enough.
+I get error:
+
+=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0Invalid mss '1000' spec=
+ified.
+
+It appears that mss values less than 65536 are rejected, while values o=
+f 65536=20
+or greater are accepted. Is this not the wrong way around?
+
+Regards
+
+Steven.
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
