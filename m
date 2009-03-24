@@ -1,28 +1,93 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: netfilter 25/41: Kconfig spelling fixes (trivial)
-Date: Tue, 24 Mar 2009 13:35:40 -0700 (PDT)
-Message-ID: <20090324.133540.209793964.davem@davemloft.net>
-References: <20090324140302.31401.37732.sendpatchset@x2.localnet>
-	<20090324140336.31401.95313.sendpatchset@x2.localnet>
-	<alpine.LSU.2.00.0903241518400.32642@fbirervta.pbzchgretzou.qr>
+From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: Re: netfilter 07/41: arp_tables: unfold two critical loops in arp_packet_match()
+Date: Tue, 24 Mar 2009 22:06:50 +0100
+Message-ID: <49C94B6A.5020304@cosmosbay.com>
+References: <20090324140302.31401.37732.sendpatchset@x2.localnet>	<20090324140312.31401.89168.sendpatchset@x2.localnet> <20090324.132954.148903398.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: kaber@trash.net, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
-To: jengelh@medozas.de
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <alpine.LSU.2.00.0903241518400.32642@fbirervta.pbzchgretzou.qr>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from gw1.cosmosbay.com ([212.99.114.194]:48570 "EHLO
+	gw1.cosmosbay.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751867AbZCXVHB convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 Mar 2009 17:07:01 -0400
+In-Reply-To: <20090324.132954.148903398.davem@davemloft.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jan Engelhardt <jengelh@medozas.de>
-Date: Tue, 24 Mar 2009 15:20:08 +0100 (CET)
+David Miller a =E9crit :
+> From: Patrick McHardy <kaber@trash.net>
+> Date: Tue, 24 Mar 2009 15:03:16 +0100 (MET)
+>=20
+>> +/*
+>> + * Unfortunatly, _b and _mask are not aligned to an int (or long in=
+t)
+>> + * Some arches dont care, unrolling the loop is a win on them.
+>> + */
+>> +static unsigned long ifname_compare(const char *_a, const char *_b,=
+ const char *_mask)
+>> +{
+>> +#ifdef CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS
+>> +	const unsigned long *a =3D (const unsigned long *)_a;
+>> +	const unsigned long *b =3D (const unsigned long *)_b;
+>=20
+> I think we can at least give some help for the platforms which
+> require alignment.
+>=20
+> We can, for example, assume 16-bit alignment and thus loop
+> over u16's
 
-> netfilter: trivial Kconfig spelling fixes
-> 
-> Supplements commit 67c0d57930ff9a24c6c34abee1b01f7716a9b0e2.
-> 
-> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+Right. How about this incremental patch ?
 
-Applied.
+Thanks
+
+[PATCH] arp_tables: ifname_compare() can assume 16bit alignment
+
+Arches without efficient unaligned access can still perform a loop
+assuming 16bit alignment in ifname_compare()
+
+Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
+
+
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_t=
+ables.c
+index 64a7c6c..84b9c17 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -76,6 +76,7 @@ static inline int arp_devaddr_compare(const struct ar=
+pt_devaddr_info *ap,
+ /*
+  * Unfortunatly, _b and _mask are not aligned to an int (or long int)
+  * Some arches dont care, unrolling the loop is a win on them.
++ * For other arches, we only have a 16bit alignement.
+  */
+ static unsigned long ifname_compare(const char *_a, const char *_b, co=
+nst char *_mask)
+ {
+@@ -95,10 +96,13 @@ static unsigned long ifname_compare(const char *_a,=
+ const char *_b, const char *
+ 	BUILD_BUG_ON(IFNAMSIZ > 4 * sizeof(unsigned long));
+ #else
+ 	unsigned long ret =3D 0;
++	const u16 *a =3D (const u16 *)_a;
++	const u16 *b =3D (const u16 *)_b;
++	const u16 *mask =3D (const u16 *)_mask;
+ 	int i;
+=20
+-	for (i =3D 0; i < IFNAMSIZ; i++)
+-		ret |=3D (_a[i] ^ _b[i]) & _mask[i];
++	for (i =3D 0; i < IFNAMSIZ/sizeof(u16); i++)
++		ret |=3D (a[i] ^ b[i]) & mask[i];
+ #endif
+ 	return ret;
+ }
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
