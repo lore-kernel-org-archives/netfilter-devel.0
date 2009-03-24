@@ -1,55 +1,86 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: netfilter 07/41: arp_tables: unfold two critical loops in
- arp_packet_match()
-Date: Tue, 24 Mar 2009 22:52:26 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0903242243040.3974@fbirervta.pbzchgretzou.qr>
-References: <20090324.132954.148903398.davem@davemloft.net> <49C94B6A.5020304@cosmosbay.com> <alpine.LSU.2.00.0903242215590.26397@fbirervta.pbzchgretzou.qr> <20090324.141848.119353425.davem@davemloft.net> <alpine.LSU.2.00.0903242220280.26397@fbirervta.pbzchgretzou.qr>
- <49C952FE.7070202@cosmosbay.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: netfilter spurious ELOOP
+Date: Tue, 24 Mar 2009 16:28:08 -0700 (PDT)
+Message-ID: <20090324.162808.114465835.davem@davemloft.net>
+References: <200903242302.n2ON25u4024288@givry.fdupont.fr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: David Miller <davem@davemloft.net>, kaber@trash.net,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Eric Dumazet <dada1@cosmosbay.com>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: linux-kernel@vger.kernel.org, coreteam@netfilter.org,
+	Francis_Dupont@isc.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+To: Francis.Dupont@fdupont.fr
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:53736 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752764AbZCXVw2 (ORCPT
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:35137
+	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1753569AbZCXX2U (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Mar 2009 17:52:28 -0400
-In-Reply-To: <49C952FE.7070202@cosmosbay.com>
+	Tue, 24 Mar 2009 19:28:20 -0400
+In-Reply-To: <200903242302.n2ON25u4024288@givry.fdupont.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+From: Francis Dupont <Francis.Dupont@fdupont.fr>
+Date: Wed, 25 Mar 2009 00:02:05 +0100
 
-On Tuesday 2009-03-24 22:39, Eric Dumazet wrote:
->>> memcmp() can't make any assumptions about alignment.
->>> Whereas we _know_ this thing is exactly 16-bit aligned.
->>>
->>> All of the optimized memcmp() implementations look for
->>> 32-bit alignment and punt to byte at a time comparison
->>> loops if things are not aligned enough.
->> 
->> Yes, I seem to remember glibc doing something like
->> [...]
->> Is the cost of testing for non-4-divisibility expensive enough
->> to warrant not usnig memcmp?
->> 
->> Irrespective of all that, I think putting the interface comparison
->> code should be agglomerated in a function/header so that it is
->> replicated across iptables, ip6tables, ebtables, arptables, etc.
->
->memcmp() is fine, but how is it solving the masking problem we have ?
+Adding correct CC:'s
 
-You are right; we would have to calculate the prefix length of the
-mask first. (And I think we can assume that there will not be any 1s
-in the mask after the first 0.) It would consume CPU indeed.
-
->Also in the case of arp_tables, _a is long word aligned, while _b and _mask
->are not.
->
->If you look various ifname_compare(), we have two different implementations.
->
->So yes, a factorization is possible for three ip_tables.c, ip6_tables.c and
-> xt_physdev.c.
-
-Very well.
+> summary: iptables command gets spurious ELOOP errors
+> 
+> report: when a rule with a target like MARK --set-mark 0x80000001
+> then adding new other rules can failed with "Too many levels of symbolic
+> links" (aka ELOOP) error.
+> The problem is in kernel net/ipv4/netfilter/ip_tables.c in the 
+> mark_source_chains() routine which checks the verdict field of
+> targets even for not standard targets.
+> 
+> keywords: netfilter target eloop
+> 
+> environment: recent gentoo and fedora. Problem not fixed in
+> linux-2.6.29 (last stable version taken from kernel.org some minutes ago).
+> 
+> proposed fix (checked):
+> diff --unified=10 net/ipv4/netfilter/ip_tables.c*
+> at the end of the message.
+> 
+> request: can you send to me at both my personal and professional addresses
+> a bug/ticket number as soon as possible?
+> 
+> Request
+> 
+> Francis.Dupont@fdupont.fr
+> 
+> PS: the patch:
+> 
+> --- net/ipv4/netfilter/ip_tables.c	2009-03-23 16:12:14.000000000 -0700
+> +++ net/ipv4/netfilter/ip_tables.c+fix	2009-03-24 15:55:45.000000000 -0700
+> @@ -489,21 +489,23 @@
+>  			e->comefrom |= ((1 << hook) | (1 << NF_INET_NUMHOOKS));
+>  
+>  			/* Unconditional return/END. */
+>  			if ((e->target_offset == sizeof(struct ipt_entry)
+>  			    && (strcmp(t->target.u.user.name,
+>  				       IPT_STANDARD_TARGET) == 0)
+>  			    && t->verdict < 0
+>  			    && unconditional(&e->ip)) || visited) {
+>  				unsigned int oldpos, size;
+>  
+> -				if (t->verdict < -NF_MAX_VERDICT - 1) {
+> +				if ((t->verdict < -NF_MAX_VERDICT - 1) &&
+> +				    (strcmp(t->target.u.user.name,
+> +					    IPT_STANDARD_TARGET) == 0)) {
+>  					duprintf("mark_source_chains: bad "
+>  						"negative verdict (%i)\n",
+>  								t->verdict);
+>  					return 0;
+>  				}
+>  
+>  				/* Return: backtrack through the last
+>  				   big jump. */
+>  				do {
+>  					e->comefrom ^= (1<<NF_INET_NUMHOOKS);
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
