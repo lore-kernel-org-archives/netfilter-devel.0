@@ -1,55 +1,50 @@
-From: Steven Jan Springl <steven@springl.ukfsn.org>
-Subject: Re: [ANNOUNCE]: Release of iptables-1.4.3.1
-Date: Tue, 24 Mar 2009 21:12:56 +0000
-Message-ID: <200903242112.56886.steven@springl.ukfsn.org>
-References: <49C8DB3B.909@netfilter.org>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: netfilter 07/41: arp_tables: unfold two critical loops in
+ arp_packet_match()
+Date: Tue, 24 Mar 2009 22:23:23 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0903242220280.26397@fbirervta.pbzchgretzou.qr>
+References: <20090324.132954.148903398.davem@davemloft.net> <49C94B6A.5020304@cosmosbay.com> <alpine.LSU.2.00.0903242215590.26397@fbirervta.pbzchgretzou.qr> <20090324.141848.119353425.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.springl.ukfsn.org ([84.45.199.6]:35415 "EHLO
-	mail.springl.ukfsn.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750760AbZCXVWF convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Mar 2009 17:22:05 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by mail.springl.ukfsn.org (Postfix) with ESMTP id D4171212FB
-	for <netfilter-devel@vger.kernel.org>; Tue, 24 Mar 2009 21:12:57 +0000 (GMT)
-Received: from mail.springl.ukfsn.org ([127.0.0.1])
-	by localhost (l2.home [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id I-X08iyDLAGL for <netfilter-devel@vger.kernel.org>;
-	Tue, 24 Mar 2009 21:12:57 +0000 (GMT)
-Received: from l3.home (l3.home [IPv6:2002:542d:c701:1:250:daff:fe6d:bbdd])
-	by mail.springl.ukfsn.org (Postfix) with ESMTP id 34BE4212F2
-	for <netfilter-devel@vger.kernel.org>; Tue, 24 Mar 2009 21:12:57 +0000 (GMT)
-In-Reply-To: <49C8DB3B.909@netfilter.org>
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: dada1@cosmosbay.com, kaber@trash.net, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20090324.141848.119353425.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Is there a problem with mss in this release?
 
-If I specify rule:
+On Tuesday 2009-03-24 22:18, David Miller wrote:
+>> >
+>> >Arches without efficient unaligned access can still perform a loop
+>> >assuming 16bit alignment in ifname_compare()
+>> 
+>> Allow me some skepticism, but the code looks pretty much like a
+>> standard memcmp.
+>
+>memcmp() can't make any assumptions about alignment.
+>Whereas we _know_ this thing is exactly 16-bit aligned.
+>
+>All of the optimized memcmp() implementations look for
+>32-bit alignment and punt to byte at a time comparison
+>loops if things are not aligned enough.
 
--A OUTPUT -p tcp --tcp-flags SYN,RST SYN -m tcpmss --mss 1000:1500 -j A=
-CCEPT
+Yes, I seem to remember glibc doing something like
 
-I get error:
+ if ((addr & 0x03) != 0) {
+     // process single bytes (increment addr as you go)
+     // until addr & 0x03 == 0.
+ }
 
-=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0=C2=A0Invalid mss '1000' spec=
-ified.
+ /* optimized loop here. also increases addr */
 
-It appears that mss values less than 65536 are rejected, while values o=
-f 65536=20
-or greater are accepted. Is this not the wrong way around?
+ if ((addr & 0x03) != 0)
+     // still bytes left after loop - process on a per-byte basis
 
-Regards
+Is the cost of testing for non-4-divisibility expensive enough
+to warrant not usnig memcmp?
 
-Steven.
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Irrespective of all that, I think putting the interface comparison
+code should be agglomerated in a function/header so that it is
+replicated across iptables, ip6tables, ebtables, arptables, etc.
