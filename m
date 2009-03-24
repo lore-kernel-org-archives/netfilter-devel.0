@@ -1,29 +1,37 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Some iptables-1.4.3 issues
-Date: Tue, 24 Mar 2009 13:50:37 +0100
-Message-ID: <49C8D71D.4000001@netfilter.org>
-References: <49C79C90.80804@trash.net> <1237882157.9988.2533.camel@localhost> <alpine.LSU.2.00.0903240951060.25646@fbirervta.pbzchgretzou.qr> <49C8C146.3040507@netfilter.org> <alpine.LSU.2.00.0903241219200.15443@fbirervta.pbzchgretzou.qr> <49C8C622.3060805@netfilter.org> <alpine.LSU.2.00.0903241248500.15443@fbirervta.pbzchgretzou.qr> <49C8CA58.9020003@netfilter.org> <49C8D659.5020705@trash.net>
+From: Kristian Evensen <kristian.evensen@gmail.com>
+Subject: Correct signatur for target
+Date: Tue, 24 Mar 2009 14:06:58 +0100
+Message-ID: <17e3a8f80903240606v1efab2eds2a40a1dbe820af00@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>, Peter Volkov <pva@gentoo.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:50342 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751245AbZCXMuu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Mar 2009 08:50:50 -0400
-In-Reply-To: <49C8D659.5020705@trash.net>
+Received: from fk-out-0910.google.com ([209.85.128.188]:7997 "EHLO
+	fk-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750781AbZCXNHB (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 Mar 2009 09:07:01 -0400
+Received: by fk-out-0910.google.com with SMTP id 18so1007003fkq.5
+        for <netfilter-devel@vger.kernel.org>; Tue, 24 Mar 2009 06:06:58 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy wrote:
-> Are you releasing a .1 version?
+Hello,
 
-Yes :), I'm about to finish it. The files are already in the FTP
-repository. Updating the website now.
+I am currently working on an xtables-targetmodule, and have come
+across a thing that puzzles me a little bit. As far as I have
+understood it, according to both the book "Writing netfilter module"
+(excellent by the way, thank you Jan and Nicolas) and my
+x_tables.h-file, the signatur for *target is:
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+static unsigned int (*target) (struct sk_buff *skb,
+			       const struct xt_target_param *par)
+
+However, to get it working on my machine (which runs the
+2.6.28.8-kernel), the first argument had to be a double pointer for my
+module to work as intended. I though the double pointer was there for
+compatibility with older kernels. Does any know where I am wrong/what
+I have done wrong?
+
+-Kristian
