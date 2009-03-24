@@ -1,35 +1,33 @@
-From: Bart Trojanowski <bart@jukie.net>
-Subject: Re: nftables: build issues
-Date: Tue, 24 Mar 2009 15:35:40 -0400
-Message-ID: <20090324193540.GD2551@jukie.net>
-References: <20090324185711.GB2551@jukie.net> <49C92E2B.3030906@trash.net>
+From: David Miller <davem@davemloft.net>
+Subject: Re: netfilter 00/41: Netfilter update for 2.6.30
+Date: Tue, 24 Mar 2009 13:26:50 -0700 (PDT)
+Message-ID: <20090324.132650.173976660.davem@davemloft.net>
+References: <20090324140302.31401.37732.sendpatchset@x2.localnet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from tau.jukie.net ([216.239.93.128]:53625 "EHLO tau.jukie.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761594AbZCXTng (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Mar 2009 15:43:36 -0400
-Content-Disposition: inline
-In-Reply-To: <49C92E2B.3030906@trash.net>
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:53302
+	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1752814AbZCXU1D (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 Mar 2009 16:27:03 -0400
+In-Reply-To: <20090324140302.31401.37732.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Just wanted to follow up...
+From: Patrick McHardy <kaber@trash.net>
+Date: Tue, 24 Mar 2009 15:03:06 +0100 (MET)
 
-* Patrick McHardy <kaber@trash.net> [090324 15:02]:
-> a crash. For now I'd recommend to get an older version of bison to
-> compile nftables. 1.2.3.dfsg-4 from etch works fine for me.
+> Please apply or pull from:
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git
 
-This did the trick.  I downgraded to bison 1:2.3.dfsg-5 (from Lenny)
-and I can now run 'nft --help' ... yey!
+I'm going to pull this all in, thanks Patrick.
+
+I'll reply to a few patches for which I'd like to see some
+followup discussion and change.
 
 Thanks.
-
--Bart
-
--- 
-				WebSig: http://www.jukie.net/~bart/sig/
