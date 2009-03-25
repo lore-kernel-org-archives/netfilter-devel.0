@@ -1,40 +1,37 @@
 From: Patrick McHardy <kaber@trash.net>
 Subject: Re: netfilter spurious ELOOP
-Date: Wed, 25 Mar 2009 19:38:17 +0100
-Message-ID: <49CA7A19.8040805@trash.net>
-References: <200903242302.n2ON25u4024288@givry.fdupont.fr> <20090324.162808.114465835.davem@davemloft.net> <49CA64D8.9040602@trash.net> <20090325173742.3C509E601C@farside.isc.org> <49CA741D.3080705@trash.net>
+Date: Wed, 25 Mar 2009 19:41:49 +0100
+Message-ID: <49CA7AED.3050705@trash.net>
+References: <200903242302.n2ON25u4024288@givry.fdupont.fr> <20090324.162808.114465835.davem@davemloft.net> <49CA64D8.9040602@trash.net> <20090325173742.3C509E601C@farside.isc.org> <49CA741D.3080705@trash.net> <49CA7A19.8040805@trash.net>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------080806050102030902050107"
-Cc: David Miller <davem@davemloft.net>, Francis.Dupont@fdupont.fr,
-	linux-kernel@vger.kernel.org, coreteam@netfilter.org,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Francis Dupont <Francis_Dupont@isc.org>
+ boundary="------------070508080107010306050803"
+Cc: netfilter-devel@vger.kernel.org
+To: Thomas Jarosch <thomas.jarosch@intra2net.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:36928 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:37019 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751591AbZCYSi0 (ORCPT
+	with ESMTP id S1759700AbZCYSl5 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 Mar 2009 14:38:26 -0400
-In-Reply-To: <49CA741D.3080705@trash.net>
+	Wed, 25 Mar 2009 14:41:57 -0400
+In-Reply-To: <49CA7A19.8040805@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 This is a multi-part message in MIME format.
---------------080806050102030902050107
+--------------070508080107010306050803
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 
 Patrick McHardy wrote:
-> Thanks, that answers my question. I'll apply your patch and send it to
-> -stable once its in the mainline kernel.
+> The same bug was also present in ip6_tables and arp_tables.
+> This is the patch I've committed:
 
-The same bug was also present in ip6_tables and arp_tables.
-This is the patch I've committed:
+Thomas, I think this is likely to fix the ELOOP problem you reported
+in 2007 that we've never managed to track down:
 
 
-
---------------080806050102030902050107
+--------------070508080107010306050803
 Content-Type: text/plain;
  name="x"
 Content-Transfer-Encoding: 7bit
@@ -108,4 +105,4 @@ index e59662b..e89cfa3 100644
  						"negative verdict (%i)\n",
  								t->verdict);
 
---------------080806050102030902050107--
+--------------070508080107010306050803--
