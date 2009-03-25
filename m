@@ -1,45 +1,42 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: netfilter spurious ELOOP
-Date: Wed, 25 Mar 2009 18:07:36 +0100
-Message-ID: <49CA64D8.9040602@trash.net>
-References: <200903242302.n2ON25u4024288@givry.fdupont.fr> <20090324.162808.114465835.davem@davemloft.net>
+Subject: Re: [PATCH] [PATCH] dynamic calculation of event message size for
+ ctnetlink
+Date: Wed, 25 Mar 2009 18:22:39 +0100
+Message-ID: <49CA685F.9040503@trash.net>
+References: <20090317094909.6434.27331.stgit@Decadence> <49BF91A8.2070900@trash.net> <20090317121446.GB3526@mail.eitzenberger.org> <49BF94A6.6080508@trash.net> <49C0266B.40204@netfilter.org> <49C07B87.90404@trash.net> <20090318083840.GA9679@mail.eitzenberger.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Francis.Dupont@fdupont.fr, linux-kernel@vger.kernel.org,
-	coreteam@netfilter.org, Francis_Dupont@isc.org,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+To: Patrick McHardy <kaber@trash.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:34958 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:35252 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751137AbZCYRHp (ORCPT
+	with ESMTP id S1752071AbZCYRWq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 Mar 2009 13:07:45 -0400
-In-Reply-To: <20090324.162808.114465835.davem@davemloft.net>
+	Wed, 25 Mar 2009 13:22:46 -0400
+In-Reply-To: <20090318083840.GA9679@mail.eitzenberger.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-David Miller wrote:
-> From: Francis Dupont <Francis.Dupont@fdupont.fr>
-> Date: Wed, 25 Mar 2009 00:02:05 +0100
+Holger Eitzenberger wrote:
+> On Wed, Mar 18, 2009 at 05:41:43AM +0100, Patrick McHardy wrote:
 > 
-> Adding correct CC:'s
+>>> This calculation results in no message trim if most of those attributes
+>>> are present. However, assuming the worst case (no counters, no helper,
+>>> no mark, no master tuple, etc.), netlink_trim() may be called. My patch
+>>> calculates the exact size, so there's no trimming for any case.
+>> The numbers imply that its still a net win. But its a valid point, if
+>> the common case will still result in reallocations, it might make sense
+>> to include the space for a few of those members optionally to make
+>> sure we don't cross the 50% waste threshold.
 > 
->> summary: iptables command gets spurious ELOOP errors
->>
->> report: when a rule with a target like MARK --set-mark 0x80000001
->> then adding new other rules can failed with "Too many levels of symbolic
->> links" (aka ELOOP) error.
->> The problem is in kernel net/ipv4/netfilter/ip_tables.c in the 
->> mark_source_chains() routine which checks the verdict field of
->> targets even for not standard targets.
->>
->> keywords: netfilter target eloop
->>
->> environment: recent gentoo and fedora. Problem not fixed in
->> linux-2.6.29 (last stable version taken from kernel.org some minutes ago).
+> That's a good point.
+> 
+> For reference these are the attributes of TCP conntrack event, I have
+> marked the optional NLAs.  I don't know what the ratio is in bytes
+> though.
 
-Just to clarify: does the problem happens when you have the MARK rule
-above in a user-defined chain that has more then one jump leading to
-it or does it also happen in other cases?
+Thanks Holger. I'm going to apply your patches since they're already
+an improvement, we can do further refinement on top.
