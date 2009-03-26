@@ -1,27 +1,45 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 3/3] netfilter: fix nf_logger name in ebt_ulog.
-Date: Thu, 26 Mar 2009 01:04:37 -0700 (PDT)
-Message-ID: <20090326.010437.61056270.davem@davemloft.net>
-References: <1238053819.13879.4.camel@ice-age>
-	<1238054396-9088-3-git-send-email-eric@inl.fr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: nftables-goes-automake patch series
+Date: Thu, 26 Mar 2009 10:45:30 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0903261044230.10634@fbirervta.pbzchgretzou.qr>
+References: <1237937468-31476-1-git-send-email-jengelh@medozas.de> <49CA2D68.20601@trash.net> <alpine.LSU.2.00.0903251447320.13559@fbirervta.pbzchgretzou.qr> <49CA40B2.5010300@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, sfr@canb.auug.org.au, linux-next@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: eric@inl.fr
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <1238054396-9088-3-git-send-email-eric@inl.fr>
-Sender: linux-next-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:48026 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753628AbZCZJpe (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 26 Mar 2009 05:45:34 -0400
+In-Reply-To: <49CA40B2.5010300@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Eric Leblond <eric@inl.fr>
-Date: Thu, 26 Mar 2009 08:59:56 +0100
-
-> This patch renames the ebt_ulog nf_logger from "ulog" to "ebt_ulog" to
-> be in sync with other modules naming. As this name was currently only
-> used for informational purpose, the renaming should be harmless.
-> 
-> Signed-off-by: Eric Leblond <eric@inl.fr>
-
-Applied.
+On Wednesday 2009-03-25 15:33, Patrick McHardy wrote:
+>
+>>> It also doesn't build anymore on my system, the
+>>> parser.h file is not generated:
+>>>
+>>> ...
+>>> scanner.l:23:20: Fehler: parser.h: Datei oder Verzeichnis nicht gef=
+unden
+>>> <stdout>:1395: Fehler: expected specifier-qualifier-list before =C2=
+=BBYYSTYPE=C2=AB
+>>> <stdout>:1454: Fehler: expected =C2=BB=3D=C2=AB, =C2=BB,=C2=AB, =C2=
+=BB;=C2=AB, =C2=BBasm=C2=AB or =C2=BB__attribute__=C2=AB
+>>> before
+>>> =C2=BB*=C2=AB token...
+>
+> I tried both pulling your tree into mine, as well as a fresh clone of
+> your tree. Let me know if you need more information.
+>
+I rebased and updated the tree now (top: 247566dd) with some info I=20
+found in the automake manual, see if that works for you.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
