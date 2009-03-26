@@ -1,57 +1,35 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: linux-next: net tree build warnings
-Date: Thu, 26 Mar 2009 14:17:53 +0100
-Message-ID: <49CB8081.6050709@trash.net>
-References: <20090326173713.ee63b803.sfr@canb.auug.org.au> <1238053819.13879.4.camel@ice-age>
+From: Kristian Evensen <kristian.evensen@gmail.com>
+Subject: Updating variable shared between user and kernel space
+Date: Thu, 26 Mar 2009 15:00:25 +0100
+Message-ID: <17e3a8f80903260700y2908961ah2218fcd185a76f7f@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
-	"David S. Miller" <davem@davemloft.net>,
-	linux-next@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@inl.fr>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:64163 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751133AbZCZNSF (ORCPT
+Received: from mail-fx0-f158.google.com ([209.85.220.158]:35680 "EHLO
+	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757182AbZCZOA2 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Mar 2009 09:18:05 -0400
-In-Reply-To: <1238053819.13879.4.camel@ice-age>
+	Thu, 26 Mar 2009 10:00:28 -0400
+Received: by fxm2 with SMTP id 2so565811fxm.37
+        for <netfilter-devel@vger.kernel.org>; Thu, 26 Mar 2009 07:00:25 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Leblond wrote:
-> Hi Stephen,
->=20
-> Le jeudi 26 mars 2009 =E0 17:37 +1100, Stephen Rothwell a =E9crit :
->> Hi Dave,
->>
->> Today's linux-next build (x86_64 allmodconfig) produced these warnin=
-gs:
->>
->> net/bridge/netfilter/ebt_log.c: In function 'ebt_log_init':
->> net/bridge/netfilter/ebt_log.c:230: warning: passing argument 2 of '=
-nf_log_register' discards qualifiers from pointer target type
->> net/bridge/netfilter/ebt_log.c: In function 'ebt_log_fini':
->> net/bridge/netfilter/ebt_log.c:236: warning: passing argument 1 of '=
-nf_log_unregister' discards qualifiers from pointer target type
->> net/bridge/netfilter/ebt_ulog.c: In function 'ebt_ulog_init':
->> net/bridge/netfilter/ebt_ulog.c:317: warning: passing argument 2 of =
-'nf_log_register' discards qualifiers from pointer target type
->> net/bridge/netfilter/ebt_ulog.c: In function 'ebt_ulog_fini':
->> net/bridge/netfilter/ebt_ulog.c:327: warning: passing argument 1 of =
-'nf_log_unregister' discards qualifiers from pointer target type
->=20
-> Thanks a lot for pointing this. I stupidely forgot to build this modu=
-le
-> during my testing.
+Hello,
 
-Same here, I seem to have accidentally disabled bridging in my test
-builds, sorry.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I have a value I would like to share between userspace and kernelspace
+(it is store in my target struct and intialized in the user space part
+of my module), but when I update it in kernel space it gets the wrong
+value. When for example incrementing the value by 1 every time the
+rule matches, the values are all messed up (but never larger than the
+number of matches/increments). When creating and initializing the
+value in the module, it behaves correctly.
+
+I always though that if you try to accesses userspace varibles from
+kernel space, you will get a seg. fault or similar, and am therefore a
+little confused as to why this do not work. Does anybody know why
+and/or how to share variables?
+
+-Kristian
