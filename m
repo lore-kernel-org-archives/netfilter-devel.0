@@ -1,32 +1,57 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [patch 1/1] ctnetlink: compute generic part of event more acurately
-Date: Thu, 26 Mar 2009 13:38:13 +0100
-Message-ID: <49CB7735.4060203@trash.net>
-References: <20090325212521.149272388@jonathan.eitzenberger.org> <20090325213123.842307488@jonathan.eitzenberger.org>
+Subject: Re: linux-next: net tree build warnings
+Date: Thu, 26 Mar 2009 14:17:53 +0100
+Message-ID: <49CB8081.6050709@trash.net>
+References: <20090326173713.ee63b803.sfr@canb.auug.org.au> <1238053819.13879.4.camel@ice-age>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: pablo@netfilter.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: Holger Eitzenberger <holger@eitzenberger.org>
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
+	"David S. Miller" <davem@davemloft.net>,
+	linux-next@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Eric Leblond <eric@inl.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:63118 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:64163 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753610AbZCZMiW (ORCPT
+	with ESMTP id S1751133AbZCZNSF (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Mar 2009 08:38:22 -0400
-In-Reply-To: <20090325213123.842307488@jonathan.eitzenberger.org>
+	Thu, 26 Mar 2009 09:18:05 -0400
+In-Reply-To: <1238053819.13879.4.camel@ice-age>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Holger Eitzenberger wrote:
-> On a box with most of the optional Netfilter switches turned off some
-> of the NLAs are never send, e. g. secmark, mark or the conntrack
-> byte/packet counters.  As a worst case scenario this may possibly
-> still lead to ctnetlink skbs being reallocated in netlink_trim()
-> later, loosing all the nice effects from the previous patches.
-> 
-> I try to solve that (at least partly) by correctly #ifdef'ing the
-> NLAs in the computation.
+Eric Leblond wrote:
+> Hi Stephen,
+>=20
+> Le jeudi 26 mars 2009 =E0 17:37 +1100, Stephen Rothwell a =E9crit :
+>> Hi Dave,
+>>
+>> Today's linux-next build (x86_64 allmodconfig) produced these warnin=
+gs:
+>>
+>> net/bridge/netfilter/ebt_log.c: In function 'ebt_log_init':
+>> net/bridge/netfilter/ebt_log.c:230: warning: passing argument 2 of '=
+nf_log_register' discards qualifiers from pointer target type
+>> net/bridge/netfilter/ebt_log.c: In function 'ebt_log_fini':
+>> net/bridge/netfilter/ebt_log.c:236: warning: passing argument 1 of '=
+nf_log_unregister' discards qualifiers from pointer target type
+>> net/bridge/netfilter/ebt_ulog.c: In function 'ebt_ulog_init':
+>> net/bridge/netfilter/ebt_ulog.c:317: warning: passing argument 2 of =
+'nf_log_register' discards qualifiers from pointer target type
+>> net/bridge/netfilter/ebt_ulog.c: In function 'ebt_ulog_fini':
+>> net/bridge/netfilter/ebt_ulog.c:327: warning: passing argument 1 of =
+'nf_log_unregister' discards qualifiers from pointer target type
+>=20
+> Thanks a lot for pointing this. I stupidely forgot to build this modu=
+le
+> during my testing.
 
-Applied, thanks Holger.
+Same here, I seem to have accidentally disabled bridging in my test
+builds, sorry.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
