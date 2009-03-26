@@ -1,88 +1,42 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: Re: linux-next: net tree build warnings
-Date: Thu, 26 Mar 2009 08:50:19 +0100
-Message-ID: <1238053819.13879.4.camel@ice-age>
-References: <20090326173713.ee63b803.sfr@canb.auug.org.au>
-Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-1mI39PDzsM3cjtQWIKXI"
-Cc: "David S. Miller" <davem@davemloft.net>,
-	linux-next@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>
+Subject: [PATCH 3/3] netfilter: fix nf_logger name in ebt_ulog.
+Date: Thu, 26 Mar 2009 08:59:56 +0100
+Message-ID: <1238054396-9088-3-git-send-email-eric@inl.fr>
+References: <1238053819.13879.4.camel@ice-age>
+Cc: linux-next@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, Eric Leblond <eric@inl.fr>
+To: davem@davemloft.net, kaber@trash.net, sfr@canb.auug.org.au
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from home.regit.org ([91.121.73.151]:45871 "EHLO
-	ks301150.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754989AbZCZHxO (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Mar 2009 03:53:14 -0400
-In-Reply-To: <20090326173713.ee63b803.sfr@canb.auug.org.au>
+Received: from bayen.regit.org ([81.57.69.189]:53694 "EHLO ice-age"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755632AbZCZIAS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 26 Mar 2009 04:00:18 -0400
+In-Reply-To: <1238053819.13879.4.camel@ice-age>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This patch renames the ebt_ulog nf_logger from "ulog" to "ebt_ulog" to
+be in sync with other modules naming. As this name was currently only
+used for informational purpose, the renaming should be harmless.
 
---=-1mI39PDzsM3cjtQWIKXI
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: quoted-printable
+Signed-off-by: Eric Leblond <eric@inl.fr>
+---
+ net/bridge/netfilter/ebt_ulog.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Hi Stephen,
-
-Le jeudi 26 mars 2009 =E0 17:37 +1100, Stephen Rothwell a =E9crit :
-> Hi Dave,
->=20
-> Today's linux-next build (x86_64 allmodconfig) produced these warnings:
->=20
-> net/bridge/netfilter/ebt_log.c: In function 'ebt_log_init':
-> net/bridge/netfilter/ebt_log.c:230: warning: passing argument 2 of 'nf_lo=
-g_register' discards qualifiers from pointer target type
-> net/bridge/netfilter/ebt_log.c: In function 'ebt_log_fini':
-> net/bridge/netfilter/ebt_log.c:236: warning: passing argument 1 of 'nf_lo=
-g_unregister' discards qualifiers from pointer target type
-> net/bridge/netfilter/ebt_ulog.c: In function 'ebt_ulog_init':
-> net/bridge/netfilter/ebt_ulog.c:317: warning: passing argument 2 of 'nf_l=
-og_register' discards qualifiers from pointer target type
-> net/bridge/netfilter/ebt_ulog.c: In function 'ebt_ulog_fini':
-> net/bridge/netfilter/ebt_ulog.c:327: warning: passing argument 1 of 'nf_l=
-og_unregister' discards qualifiers from pointer target type
-
-Thanks a lot for pointing this. I stupidely forgot to build this module
-during my testing.
-
-I've made the necessary modifications and a patch fixing this will
-follow this mail.
-
-Doing some testing of the ebt_ulog module, I've found some problems. One
-of them was the following messages:
-
-sys_init_module: 'ebt_ulog'->init suspiciously returned 1, it should
-follow 0/-E convention
-sys_init_module: loading module anyway...
-Pid: 2334, comm: modprobe Not tainted 2.6.29-rc5edenwall0-00883-g199e57b
-#146
-Call Trace:
- [<c0441b81>] ? printk+0xf/0x16
- [<c02311af>] sys_init_module+0x107/0x186
- [<c0202cfa>] syscall_call+0x7/0xb
-
-A patch fixing this will also follow.
-
-BR,
---=20
-Eric Leblond <eric@inl.fr>
-INL: http://www.inl.fr/
-NuFW: http://www.nufw.org/
-
---=-1mI39PDzsM3cjtQWIKXI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Ceci est une partie de message
- =?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iD8DBQBJyzO3nxA7CdMWjzIRAu6pAJ9Qm5sP+EjjGWtpnF/IPYqMP+L2zgCfWEBc
-VQxY21M4b9mhmvJXN/w84iY=
-=HLru
------END PGP SIGNATURE-----
-
---=-1mI39PDzsM3cjtQWIKXI--
+diff --git a/net/bridge/netfilter/ebt_ulog.c b/net/bridge/netfilter/ebt_ulog.c
+index ac6fa43..133eeae 100644
+--- a/net/bridge/netfilter/ebt_ulog.c
++++ b/net/bridge/netfilter/ebt_ulog.c
+@@ -280,7 +280,7 @@ static struct xt_target ebt_ulog_tg_reg __read_mostly = {
+ };
+ 
+ static struct nf_logger ebt_ulog_logger __read_mostly = {
+-	.name		= "ulog",
++	.name		= "ebt_ulog",
+ 	.logfn		= &ebt_log_packet,
+ 	.me		= THIS_MODULE,
+ };
+-- 
+1.5.6.3
 
