@@ -1,46 +1,45 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: iptable_nat and ip_conntrack coupling
-Date: Thu, 26 Mar 2009 18:26:27 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0903261823200.7735@fbirervta.pbzchgretzou.qr>
-References: <0199E0D51A61344794750DC57738F58E6677CE122D@GVW1118EXC.americas.hpqcorp.net>
+From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: Re: [patch 1/5] net: netfilter conntrack - add per-net
+	functionality for ICMP protocol
+Date: Thu, 26 Mar 2009 20:37:44 +0300
+Message-ID: <20090326173744.GG7950@localhost>
+References: <20090326160544.519118777@openvz.org> <20090326160711.826548855@openvz.org> <49CBAA5F.5020907@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: "Fischer, Anna" <anna.fischer@hp.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, xemul@openvz.org,
+	daniel.lezcano@free.fr, Alexey Dobriyan <adobriyan@gmail.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:41116 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756800AbZCZR03 (ORCPT
+Received: from ti-out-0910.google.com ([209.85.142.184]:48853 "EHLO
+	ti-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751053AbZCZRhO (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Mar 2009 13:26:29 -0400
-In-Reply-To: <0199E0D51A61344794750DC57738F58E6677CE122D@GVW1118EXC.americas.hpqcorp.net>
+	Thu, 26 Mar 2009 13:37:14 -0400
+Received: by ti-out-0910.google.com with SMTP id i7so456764tid.23
+        for <netfilter-devel@vger.kernel.org>; Thu, 26 Mar 2009 10:37:11 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <49CBAA5F.5020907@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+[Patrick McHardy - Thu, Mar 26, 2009 at 05:16:31PM +0100]
+> Cyrill Gorcunov wrote:
+>> Module specific data moved into per-net site and being allocated/freed
+>> during net namespace creation/deletion. For this reason module_init/exit
+>> calls added.
+>
+> This doesn't work. You can't have multiple module_init functions
+> in one module and nf_connntrack_ivp4 already includes one.
+>
+> Please test your patches with a modular built before resubmitting.
+>
 
-On Thursday 2009-03-26 18:04, Fischer, Anna wrote:
+Btw, the patches
 
->I'd like to understand how tightly integrated the iptable_nat code
->is with ip_conntrack. If I have rules that define what packets are
->supposed to be NATed (e.g. -j SNAT --to x.x.x.x or -j DNAT --to
->x.x.x.x), then does the code *always* do NAT on packets that match
->those rules?
+	[patch 2/5] net: netfilter conntrack - add per-net functionality for SCTP protocol
+	[patch 5/5] net: netfilter conntrack - add per-net functionality for UDPLITE protocol
 
-Only packets with their nf_conn in the NEW state will visit the nat
-table, after which a nat-table independent mapping in nf_nat does
-the rest. Use of the NOTRACK extension disables thes on a per-packet
-basis.
+are not affected by multiple module_init/exit issue (except general idea
+Alexey mentioned)
 
->Or, is there also the requirement that there has to be
->a connection maintained by ip_conntrack before packets are to be
->rewritten?
-
-There is. And in fact, such a connection exists by the time the
-rewrite metadata is applied for the first time.
-
->For example, if there is an ICMP packet coming through
->the iptable_nat code, and it is a REPLY where ip_conntrack has not
->tracked a REQUEST for, then will this prevent the code from
->rewriting the packet, even if the rules match the packet?
-
-Not prevented (see paragraph above).
+        Cyrill
