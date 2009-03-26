@@ -1,34 +1,56 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Updating variable shared between user and kernel space
-Date: Thu, 26 Mar 2009 15:26:37 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0903261504110.29211@fbirervta.pbzchgretzou.qr>
-References: <17e3a8f80903260700y2908961ah2218fcd185a76f7f@mail.gmail.com>
+Subject: Re: 32 vs 64 bits
+Date: Thu, 26 Mar 2009 15:32:01 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0903261528050.29211@fbirervta.pbzchgretzou.qr>
+References: <49CB9079.9070309@dev.6wind.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Kristian Evensen <kristian.evensen@gmail.com>
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Nicolas Dichtel <nicolas.dichtel@dev.6wind.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:36792 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:33127 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757454AbZCZO0k (ORCPT
+	with ESMTP id S1756528AbZCZOcE (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Mar 2009 10:26:40 -0400
-In-Reply-To: <17e3a8f80903260700y2908961ah2218fcd185a76f7f@mail.gmail.com>
+	Thu, 26 Mar 2009 10:32:04 -0400
+In-Reply-To: <49CB9079.9070309@dev.6wind.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Thursday 2009-03-26 15:00, Kristian Evensen wrote:
->
->I have a value I would like to share between userspace and kernelspace
->(it is store in my target struct and intialized in the user space part
->of my module), but when I update it in kernel space it gets the wrong
->value. When for example incrementing the value by 1 every time the
->rule matches, the values are all messed up (but never larger than the
->number of matches/increments). When creating and initializing the
->value in the module, it behaves correctly.
+On Thursday 2009-03-26 15:26, Nicolas Dichtel wrote:
 
-See the "Writing Netfilter Modules" e-book rev March 26 2009,
-section 4.6 "SMP problems". I just updated this because xt_quota,
-which serves as an example, was changed recently to account for
-the RCU patches, and so the explanation needed to change too.
+> Hi all,
+>
+> I'm trying to understand why the following commit has been done:
+>
+> http://git.netfilter.org/cgi-bin/gitweb.cgi?p=iptables.git;a=commitdiff;h=7d5cc229064b0e718046b9ecaebad3426dfff15f
+>
+>  Removes KERNEL_64_USERSPACE_32
+>
+>  Yasuyuki KOZAKAI [Sat, 30 Jun 2007 10:47:57 +0000 (10:47 +0000)]
+>
+>  The recent kernel has compat layer for iptables. It doesn't have
+>  compat layer for libipq and ip6tables, but ip6tables with
+>  KERNEL_64_USERSPACE_32 is still broken. We should fix kernel instead of
+>  fixing them if and when we want use their 32bit binary with 64bit kernel.
+>
+> Where is the compat layer?
+
+For example, net/netfilter/xt_MARK.c there are some regions with
+"#ifdef CONFIG_COMPAT". People used to use the C type "long", which
+has different sizes across different platforms, leading to a mess
+and evidently the compat conversion functions. Many of the Xtables
+modules do not suffer from this and hence there is not that much
+compat code left.
+
+> If I look in a recent kernel, it seems that
+> ip_queue.h still uses long and is broken.
+> [linux/netfilter_ipv4/ip_queue.h]
+
+Indeed this seems so.
+
+> Am I wrong?
+> If yes, what is the right way to fix this? Updating the API?
+
+Use libnetfilter_queue ;-)
