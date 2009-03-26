@@ -1,56 +1,47 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: 32 vs 64 bits
-Date: Thu, 26 Mar 2009 15:32:01 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0903261528050.29211@fbirervta.pbzchgretzou.qr>
-References: <49CB9079.9070309@dev.6wind.com>
+From: Evgeniy Polyakov <zbr@ioremap.net>
+Subject: Re: Passive OS fingerprint xtables match.
+Date: Thu, 26 Mar 2009 17:59:46 +0300
+Message-ID: <20090326145946.GA28563@ioremap.net>
+References: <20090326141405.GA25404@ioremap.net> <49CB8EC6.6070705@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Nicolas Dichtel <nicolas.dichtel@dev.6wind.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, David Miller <davem@davemloft.net>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Jan Engelhardt <jengelh@medozas.de>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:33127 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756528AbZCZOcE (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Mar 2009 10:32:04 -0400
-In-Reply-To: <49CB9079.9070309@dev.6wind.com>
+Received: from genesysrack.ru ([195.178.208.66]:56537 "EHLO tservice.net.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751993AbZCZO7t (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 26 Mar 2009 10:59:49 -0400
+Content-Disposition: inline
+In-Reply-To: <49CB8EC6.6070705@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Thu, Mar 26, 2009 at 03:18:46PM +0100, Patrick McHardy (kaber@trash.net) wrote:
+> Evgeniy Polyakov wrote:
+> >+static void xt_osf_send_connector(const struct xt_osf_user_finger *f,
+> >+				   const struct sk_buff *skb)
+> >+{
+> >+#if 1
+> >+	return;
+> >+#else
+> 
+> Please get rid of the connector remains.
+> 
+> The decision whether to still merge it in this window is up to Dave.
+> I already have some late-comers queued up that I hope to still get
+> in and I don't want to unnecessarily decrease my chances :)
 
-On Thursday 2009-03-26 15:26, Nicolas Dichtel wrote:
+I left that chunk to the case when we will want to send notifications to
+the userspace, right now we do not , so it is commented. And yes, names
+were not changed :)
 
-> Hi all,
->
-> I'm trying to understand why the following commit has been done:
->
-> http://git.netfilter.org/cgi-bin/gitweb.cgi?p=iptables.git;a=commitdiff;h=7d5cc229064b0e718046b9ecaebad3426dfff15f
->
->  Removes KERNEL_64_USERSPACE_32
->
->  Yasuyuki KOZAKAI [Sat, 30 Jun 2007 10:47:57 +0000 (10:47 +0000)]
->
->  The recent kernel has compat layer for iptables. It doesn't have
->  compat layer for libipq and ip6tables, but ip6tables with
->  KERNEL_64_USERSPACE_32 is still broken. We should fix kernel instead of
->  fixing them if and when we want use their 32bit binary with 64bit kernel.
->
-> Where is the compat layer?
+If Dave will refuse to pull it, please queue it into the netfilter tree
+for the next merge window update, since I will miss it almost for sure.
 
-For example, net/netfilter/xt_MARK.c there are some regions with
-"#ifdef CONFIG_COMPAT". People used to use the C type "long", which
-has different sizes across different platforms, leading to a mess
-and evidently the compat conversion functions. Many of the Xtables
-modules do not suffer from this and hence there is not that much
-compat code left.
-
-> If I look in a recent kernel, it seems that
-> ip_queue.h still uses long and is broken.
-> [linux/netfilter_ipv4/ip_queue.h]
-
-Indeed this seems so.
-
-> Am I wrong?
-> If yes, what is the right way to fix this? Updating the API?
-
-Use libnetfilter_queue ;-)
+-- 
+	Evgeniy Polyakov
