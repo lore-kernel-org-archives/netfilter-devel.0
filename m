@@ -1,31 +1,58 @@
-From: Kristian Evensen <kristian.evensen@gmail.com>
-Subject: Re: Updating variable shared between user and kernel space
-Date: Thu, 26 Mar 2009 16:29:41 +0100
-Message-ID: <17e3a8f80903260829j38f5af65v57005a3f8ffd542b@mail.gmail.com>
-References: <17e3a8f80903260700y2908961ah2218fcd185a76f7f@mail.gmail.com>
-	 <alpine.LSU.2.00.0903261504110.29211@fbirervta.pbzchgretzou.qr>
+From: Cyrill Gorcunov <gorcunov@gmail.com>
+Subject: Re: [RFC v2 5/7] net: netfilter conntrack - add per-net
+	functionality for TCP protocol
+Date: Thu, 26 Mar 2009 18:37:47 +0300
+Message-ID: <20090326153747.GB7950@localhost>
+References: <20090311205706.141086138@gmail.com> <20090311210817.688725782@gmail.com> <20090316205825.GK7551@localhost> <49CB9BB6.3040004@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: davem@davemloft.net, daniel.lezcano@free.fr,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	xemul@openvz.org, adobriyan@gmail.com
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:43317 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751611AbZCZP3o (ORCPT
+Received: from ey-out-2122.google.com ([74.125.78.25]:15189 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752725AbZCZPhM (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Mar 2009 11:29:44 -0400
-Received: by fxm2 with SMTP id 2so610023fxm.37
-        for <netfilter-devel@vger.kernel.org>; Thu, 26 Mar 2009 08:29:41 -0700 (PDT)
-In-Reply-To: <alpine.LSU.2.00.0903261504110.29211@fbirervta.pbzchgretzou.qr>
+	Thu, 26 Mar 2009 11:37:12 -0400
+Content-Disposition: inline
+In-Reply-To: <49CB9BB6.3040004@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> See the "Writing Netfilter Modules" e-book rev March 26 2009,
-> section 4.6 "SMP problems". I just updated this because xt_quota,
-> which serves as an example, was changed recently to account for
-> the RCU patches, and so the explanation needed to change too.
+[Patrick McHardy - Thu, Mar 26, 2009 at 04:13:58PM +0100]
+> Cyrill Gorcunov wrote:
+>> Here is an updated version which uses iterative assignment
+>> of sysctl data. Please review.
+>> ---
+>>
+>> From: Cyrill Gorcunov <gorcunov@openvz.org>
+>> Subject: [RFC v2 5/7] net: netfilter conntrack - add per-net functionality for TCP protocol
+>>
+>> Module specific data moved into per-net site and being allocated/freed
+>> during net namespace creation/deletion. For this reason module_init/exit
+>> calls added.
+>
+>
+> I guess this isn't going to get any prettier :) Could you please
+> send me the latest version of the missing patches against the current
+> nf-next tree?
+>
 
-Thank you, that was the chapter I was using a reference. Kmalloc here I come.
+Yes, no problem, wait a bit please.
 
--Kristian
+Btw, I think the bestest way (and surely more clean)
+would be to use some new form of the sysctl templates.
+
+But I didn't find such a form of writting which would
+sutisfy me. Since you said those enums are written in
+stone it's safe to use iterative fasion indeed but
+as I see you found them not that "pretty" too :)
+
+On the other hand -- if per-net initialization is not
+that critical in speed (ie some speed could be sacrificed
+for the code clarity -- I could play with those templates
+maybe). Just a thought.
+
+        Cyrill
