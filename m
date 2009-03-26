@@ -1,58 +1,40 @@
-From: Cyrill Gorcunov <gorcunov@gmail.com>
-Subject: Re: [RFC v2 5/7] net: netfilter conntrack - add per-net
-	functionality for TCP protocol
-Date: Thu, 26 Mar 2009 18:37:47 +0300
-Message-ID: <20090326153747.GB7950@localhost>
-References: <20090311205706.141086138@gmail.com> <20090311210817.688725782@gmail.com> <20090316205825.GK7551@localhost> <49CB9BB6.3040004@trash.net>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: Re: netfilter spurious ELOOP
+Date: Thu, 26 Mar 2009 16:22:58 +0100
+Message-ID: <200903261622.58453.thomas.jarosch@intra2net.com>
+References: <200903242302.n2ON25u4024288@givry.fdupont.fr> <49CA7A19.8040805@trash.net> <49CA7AED.3050705@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: davem@davemloft.net, daniel.lezcano@free.fr,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	xemul@openvz.org, adobriyan@gmail.com
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.25]:15189 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752725AbZCZPhM (ORCPT
+Received: from re01.intra2net.com ([82.165.28.202]:44182 "EHLO
+	re01.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753208AbZCZPk6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Mar 2009 11:37:12 -0400
+	Thu, 26 Mar 2009 11:40:58 -0400
+In-Reply-To: <49CA7AED.3050705@trash.net>
 Content-Disposition: inline
-In-Reply-To: <49CB9BB6.3040004@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[Patrick McHardy - Thu, Mar 26, 2009 at 04:13:58PM +0100]
-> Cyrill Gorcunov wrote:
->> Here is an updated version which uses iterative assignment
->> of sysctl data. Please review.
->> ---
->>
->> From: Cyrill Gorcunov <gorcunov@openvz.org>
->> Subject: [RFC v2 5/7] net: netfilter conntrack - add per-net functionality for TCP protocol
->>
->> Module specific data moved into per-net site and being allocated/freed
->> during net namespace creation/deletion. For this reason module_init/exit
->> calls added.
+Hi Patrick,
+
+On Wednesday, 25. March 2009 19:41:49 Patrick McHardy wrote:
+> Patrick McHardy wrote:
+> > The same bug was also present in ip6_tables and arp_tables.
+> > This is the patch I've committed:
 >
->
-> I guess this isn't going to get any prettier :) Could you please
-> send me the latest version of the missing patches against the current
-> nf-next tree?
->
+> Thomas, I think this is likely to fix the ELOOP problem you reported
+> in 2007 that we've never managed to track down:
 
-Yes, no problem, wait a bit please.
+Yes, you are right. It took me some hours to resurrect the original
+setup from 2007 and trigger the problem. The patch fixed the issue :-)
 
-Btw, I think the bestest way (and surely more clean)
-would be to use some new form of the sysctl templates.
+Tested-by: Thomas Jarosch <thomas.jarosch@intra2net.com>
 
-But I didn't find such a form of writting which would
-sutisfy me. Since you said those enums are written in
-stone it's safe to use iterative fasion indeed but
-as I see you found them not that "pretty" too :)
+Thanks,
+Thomas
 
-On the other hand -- if per-net initialization is not
-that critical in speed (ie some speed could be sacrificed
-for the code clarity -- I could play with those templates
-maybe). Just a thought.
-
-        Cyrill
