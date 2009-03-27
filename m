@@ -1,51 +1,58 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 4/5] conntrack: ecache: move event cache to conntrack
- extension infrastructure
-Date: Fri, 27 Mar 2009 10:52:26 +0100
-Message-ID: <49CCA1DA.7060902@trash.net>
-References: <20090327093822.8259.50902.stgit@Decadence> <20090327094009.8259.64117.stgit@Decadence>
+Subject: Re: [PATCH 5/5] ctnetlink: optional reliable event delivery
+Date: Fri, 27 Mar 2009 11:12:17 +0100
+Message-ID: <49CCA681.2090704@trash.net>
+References: <20090327093822.8259.50902.stgit@Decadence> <20090327094031.8259.81782.stgit@Decadence>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
 To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55969 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:56585 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753881AbZC0Jwg (ORCPT
+	with ESMTP id S1752280AbZC0KM1 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Mar 2009 05:52:36 -0400
-In-Reply-To: <20090327094009.8259.64117.stgit@Decadence>
+	Fri, 27 Mar 2009 06:12:27 -0400
+In-Reply-To: <20090327094031.8259.81782.stgit@Decadence>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Pablo Neira Ayuso wrote:
-> This patch reworks the event caching infrastructure to use the
-> conntrack extension infrastructure. As a result, you can enable and
-> disable event delivery via /proc/sys/net/netfilter/nf_conntrack_events
-> in runtime opposed to compilation time. The main drawback is that
-> we consume more memory per conntrack if event delivery is enabled.
+> This patch improves ctnetlink event reliability if one broadcast
+> listener has set the NETLINK_BROADCAST_ERROR socket option.
+> 
+> The logic is the following: if the event delivery fails, ctnetlink
+> sets IPCT_DELIVERY_FAILED event bit and keep the undelivered
+> events in the conntrack event cache. Thus, once the next packet
+> arrives, we trigger another event delivery in nf_conntrack_in(). If
+> things don't go well in this second try, we accumulate the pending
+> events in the cache but we try to deliver the current state as soon
+> as possible. Therefore, we may lost state transitions but the
+> userspace process gets in sync at some point.
 
->  static inline void
->  nf_conntrack_event_cache(enum ip_conntrack_events event, struct nf_conn *ct)
->  {
-> -	struct net *net = nf_ct_net(ct);
-> -	struct nf_conntrack_ecache *ecache;
-> -
-> -	local_bh_disable();
-> -	ecache = per_cpu_ptr(net->ct.ecache, raw_smp_processor_id());
-> -	if (ct != ecache->ct)
-> -		__nf_ct_event_cache_init(ct);
-> -	ecache->events |= event;
-> -	local_bh_enable();
-> +	spin_lock_bh(&nf_conntrack_lock);
-> +	__nf_conntrack_event_cache(event, ct);
-> +	spin_unlock_bh(&nf_conntrack_lock);
+Sounds good so far. Except - this won't work without per-conntrack
+events I guess. And those would need (quite a lot of) atomic operations
+again.
 
-This defeats all the work we've been doing to make conntrack lockless.
-This needs to be done differenty.
+> At worst case, if no events were delivered to userspace, we make
+> sure that destroy events are successfully delivered. This happens
+> because if ctnetlink fails to deliver the destroy event, we re-add
+> the conntrack timer with an extra grace timeout of 15 seconds to
+> trigger the event again (this grace timeout is tunable via /proc).
+> 
+> If a packet closing the flow (like a TCP RST) kills the conntrack
+> entry but the event delivery fails, we drop the packet and keep
+> the entry in the kernel. This is the only case in which we may drop
+> a packets.
 
-Generally, I'd say a better approach is to get rid of the notifier
-chain (unnecessary overhead for the single user we have), replace it
-by a function pointer for event delivery and use that as an indication
-that events should be tracked.
+This last two points don't seem like good behaviour at all. The
+timeouts are supposed to have a meaning, so they should *at least*
+deactivate the conntrack. Explicit removal of the conntrack should
+*never* fail. TCP conntrack needs it for connection reopening,
+handling out of sync sessions etc.
+
+> For expectations, the logic is more simple, if the event delivery
+> fails, we drop the packet.
+
+.. while restoring the expectation to an active state I hope?
