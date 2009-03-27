@@ -1,8 +1,7 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 4/5] conntrack: ecache: move event cache to conntrack
-	extension infrastructure
-Date: Fri, 27 Mar 2009 10:40:09 +0100
-Message-ID: <20090327094009.8259.64117.stgit@Decadence>
+Subject: [PATCH 5/5] ctnetlink: optional reliable event delivery
+Date: Fri, 27 Mar 2009 10:40:31 +0100
+Message-ID: <20090327094031.8259.81782.stgit@Decadence>
 References: <20090327093822.8259.50902.stgit@Decadence>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,648 +9,629 @@ Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42605 "EHLO us.es"
+Received: from mail.us.es ([193.147.175.20]:42611 "EHLO us.es"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752103AbZC0Jkg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Mar 2009 05:40:36 -0400
+	id S1754835AbZC0Jkp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 27 Mar 2009 05:40:45 -0400
 In-Reply-To: <20090327093822.8259.50902.stgit@Decadence>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch reworks the event caching infrastructure to use the
-conntrack extension infrastructure. As a result, you can enable and
-disable event delivery via /proc/sys/net/netfilter/nf_conntrack_events
-in runtime opposed to compilation time. The main drawback is that
-we consume more memory per conntrack if event delivery is enabled.
+This patch improves ctnetlink event reliability if one broadcast
+listener has set the NETLINK_BROADCAST_ERROR socket option.
+
+The logic is the following: if the event delivery fails, ctnetlink
+sets IPCT_DELIVERY_FAILED event bit and keep the undelivered
+events in the conntrack event cache. Thus, once the next packet
+arrives, we trigger another event delivery in nf_conntrack_in(). If
+things don't go well in this second try, we accumulate the pending
+events in the cache but we try to deliver the current state as soon
+as possible. Therefore, we may lost state transitions but the
+userspace process gets in sync at some point.
+
+At worst case, if no events were delivered to userspace, we make
+sure that destroy events are successfully delivered. This happens
+because if ctnetlink fails to deliver the destroy event, we re-add
+the conntrack timer with an extra grace timeout of 15 seconds to
+trigger the event again (this grace timeout is tunable via /proc).
+
+If a packet closing the flow (like a TCP RST) kills the conntrack
+entry but the event delivery fails, we drop the packet and keep
+the entry in the kernel. This is the only case in which we may drop
+a packets.
+
+For expectations, the logic is more simple, if the event delivery
+fails, we drop the packet.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
 
- include/net/netfilter/nf_conntrack_ecache.h |   71 +++++++---
- include/net/netfilter/nf_conntrack_extend.h |    2 
- include/net/netns/conntrack.h               |    5 -
- net/netfilter/nf_conntrack_core.c           |   37 ++---
- net/netfilter/nf_conntrack_ecache.c         |  195 +++++++++++++++++----------
- net/netfilter/nf_conntrack_ftp.c            |    4 -
- net/netfilter/nf_conntrack_netlink.c        |    1 
- net/netfilter/nf_conntrack_proto_sctp.c     |    2 
- net/netfilter/nf_conntrack_proto_tcp.c      |    7 +
- 9 files changed, 202 insertions(+), 122 deletions(-)
+ include/net/netfilter/nf_conntrack_core.h   |    6 +-
+ include/net/netfilter/nf_conntrack_ecache.h |   37 +++++++++----
+ include/net/netns/conntrack.h               |    1 
+ net/netfilter/nf_conntrack_core.c           |   31 +++++++----
+ net/netfilter/nf_conntrack_ecache.c         |   29 +++++++++-
+ net/netfilter/nf_conntrack_expect.c         |   12 +++-
+ net/netfilter/nf_conntrack_netlink.c        |   76 ++++++++++++++++++---------
+ net/netfilter/nf_conntrack_pptp.c           |   25 ++++++---
+ net/netfilter/nf_conntrack_proto_dccp.c     |    5 +-
+ net/netfilter/nf_conntrack_proto_tcp.c      |    5 +-
+ 10 files changed, 157 insertions(+), 70 deletions(-)
 
+diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
+index 5a449b4..1be51ba 100644
+--- a/include/net/netfilter/nf_conntrack_core.h
++++ b/include/net/netfilter/nf_conntrack_core.h
+@@ -62,8 +62,10 @@ static inline int nf_conntrack_confirm(struct sk_buff *skb)
+ 	if (ct && ct != &nf_conntrack_untracked) {
+ 		if (!nf_ct_is_confirmed(ct) && !nf_ct_is_dying(ct))
+ 			ret = __nf_conntrack_confirm(skb);
+-		if (likely(ret == NF_ACCEPT))
+-			nf_ct_deliver_cached_events(ct);
++		if (unlikely(ret == NF_DROP))
++			return NF_DROP;
++		if (unlikely(nf_ct_deliver_cached_events(ct) < 0))
++			nf_conntrack_event_cache(IPCT_DELIVERY_FAILED, ct);
+ 	}
+ 	return ret;
+ }
 diff --git a/include/net/netfilter/nf_conntrack_ecache.h b/include/net/netfilter/nf_conntrack_ecache.h
-index 892b8cd..89cf298 100644
+index 89cf298..2e86eac 100644
 --- a/include/net/netfilter/nf_conntrack_ecache.h
 +++ b/include/net/netfilter/nf_conntrack_ecache.h
-@@ -6,10 +6,11 @@
- #define _NF_CONNTRACK_ECACHE_H
- #include <net/netfilter/nf_conntrack.h>
- 
--#include <linux/notifier.h>
--#include <linux/interrupt.h>
- #include <net/net_namespace.h>
- #include <net/netfilter/nf_conntrack_expect.h>
-+#include <linux/netfilter/nf_conntrack_common.h>
-+#include <linux/netfilter/nf_conntrack_tuple_common.h>
-+#include <net/netfilter/nf_conntrack_extend.h>
- 
- /* Connection tracking event bits */
- enum ip_conntrack_events
-@@ -82,8 +83,24 @@ enum ip_conntrack_expect_events {
- 
- #ifdef CONFIG_NF_CONNTRACK_EVENTS
- struct nf_conntrack_ecache {
--	struct nf_conn *ct;
--	unsigned int events;
-+	unsigned int cache;
-+};
+@@ -74,6 +74,10 @@ enum ip_conntrack_events
+ 	/* Secmark is set */
+ 	IPCT_SECMARK_BIT = 14,
+ 	IPCT_SECMARK = (1 << IPCT_SECMARK_BIT),
 +
-+static inline struct nf_conntrack_ecache *
-+nf_ct_ecache_find(const struct nf_conn *ct)
-+{
-+	return nf_ct_ext_find(ct, NF_CT_EXT_ECACHE);
-+}
-+
-+static inline struct nf_conntrack_ecache *
-+nf_ct_ecache_ext_add(struct nf_conn *ct, gfp_t gfp)
-+{
-+	struct net *net = nf_ct_net(ct);
-+
-+	if (!net->ct.sysctl_events)
-+		return NULL;
-+
-+	return nf_ct_ext_add(ct, NF_CT_EXT_ECACHE, gfp);
++	/* An event delivery has failed */
++	IPCT_DELIVERY_FAILED_BIT = 31,
++	IPCT_DELIVERY_FAILED = (1 << IPCT_DELIVERY_FAILED_BIT),
  };
  
- /* This structure is passed to event handler */
-@@ -97,22 +114,28 @@ extern struct atomic_notifier_head nf_conntrack_chain;
+ enum ip_conntrack_expect_events {
+@@ -114,7 +118,7 @@ extern struct atomic_notifier_head nf_conntrack_chain;
  extern int nf_conntrack_register_notifier(struct notifier_block *nb);
  extern int nf_conntrack_unregister_notifier(struct notifier_block *nb);
  
--extern void nf_ct_deliver_cached_events(const struct nf_conn *ct);
--extern void __nf_ct_event_cache_init(struct nf_conn *ct);
--extern void nf_ct_event_cache_flush(struct net *net);
-+extern void nf_ct_deliver_cached_events(struct nf_conn *ct);
-+
-+static inline void
-+__nf_conntrack_event_cache(enum ip_conntrack_events event, struct nf_conn *ct)
-+{
-+	struct nf_conntrack_ecache *e;
-+
-+	e = nf_ct_ecache_find(ct);
-+	if (e == NULL)
-+		return;
-+
-+	e->cache |= event;
-+}
-+
-+extern spinlock_t nf_conntrack_lock;
+-extern void nf_ct_deliver_cached_events(struct nf_conn *ct);
++extern int nf_ct_deliver_cached_events(struct nf_conn *ct);
  
  static inline void
- nf_conntrack_event_cache(enum ip_conntrack_events event, struct nf_conn *ct)
- {
--	struct net *net = nf_ct_net(ct);
--	struct nf_conntrack_ecache *ecache;
--
--	local_bh_disable();
--	ecache = per_cpu_ptr(net->ct.ecache, raw_smp_processor_id());
--	if (ct != ecache->ct)
--		__nf_ct_event_cache_init(ct);
--	ecache->events |= event;
--	local_bh_enable();
-+	spin_lock_bh(&nf_conntrack_lock);
-+	__nf_conntrack_event_cache(event, ct);
-+	spin_unlock_bh(&nf_conntrack_lock);
+ __nf_conntrack_event_cache(enum ip_conntrack_events event, struct nf_conn *ct)
+@@ -138,7 +142,7 @@ nf_conntrack_event_cache(enum ip_conntrack_events event, struct nf_conn *ct)
+ 	spin_unlock_bh(&nf_conntrack_lock);
  }
  
- static inline void
-@@ -126,6 +149,11 @@ nf_conntrack_event_report(enum ip_conntrack_events event,
- 		.pid	= pid,
+-static inline void
++static inline int
+ nf_conntrack_event_report(enum ip_conntrack_events event,
+ 			  struct nf_conn *ct,
+ 			  u32 pid,
+@@ -150,18 +154,23 @@ nf_conntrack_event_report(enum ip_conntrack_events event,
  		.report = report
  	};
-+	struct net *net = nf_ct_net(ct);
+ 	struct net *net = nf_ct_net(ct);
++	int ret = 0;
+ 
+ 	if (!net->ct.sysctl_events)
+-		return;
+-
+-	if (nf_ct_is_confirmed(ct) && !nf_ct_is_dying(ct))
+-		atomic_notifier_call_chain(&nf_conntrack_chain, event, &item);
++		return 0;
 +
-+	if (!net->ct.sysctl_events)
-+		return;
-+
- 	if (nf_ct_is_confirmed(ct) && !nf_ct_is_dying(ct))
- 		atomic_notifier_call_chain(&nf_conntrack_chain, event, &item);
++	if (nf_ct_is_confirmed(ct) && !nf_ct_is_dying(ct)) {
++		ret = atomic_notifier_call_chain(&nf_conntrack_chain,
++						 event, &item);
++		ret = notifier_to_errno(ret);
++	}
++	return ret;
  }
-@@ -157,6 +185,11 @@ nf_ct_expect_event_report(enum ip_conntrack_expect_events event,
- 		.pid	= pid,
+ 
+-static inline void
++static inline int
+ nf_conntrack_event(enum ip_conntrack_events event, struct nf_conn *ct)
+ {
+-	nf_conntrack_event_report(event, ct, 0, 0);
++	return nf_conntrack_event_report(event, ct, 0, 0);
+ }
+ 
+ struct nf_exp_event {
+@@ -174,7 +183,7 @@ extern struct atomic_notifier_head nf_ct_expect_chain;
+ extern int nf_ct_expect_register_notifier(struct notifier_block *nb);
+ extern int nf_ct_expect_unregister_notifier(struct notifier_block *nb);
+ 
+-static inline void
++static inline int
+ nf_ct_expect_event_report(enum ip_conntrack_expect_events event,
+ 			  struct nf_conntrack_expect *exp,
+ 			  u32 pid,
+@@ -186,18 +195,20 @@ nf_ct_expect_event_report(enum ip_conntrack_expect_events event,
  		.report = report
  	};
-+	struct net *net = nf_ct_exp_net(exp);
-+
-+	if (!net->ct.sysctl_events)
-+		return;
-+
- 	atomic_notifier_call_chain(&nf_ct_expect_chain, event, &item);
+ 	struct net *net = nf_ct_exp_net(exp);
++	int ret;
+ 
+ 	if (!net->ct.sysctl_events)
+-		return;
++		return 0;
+ 
+-	atomic_notifier_call_chain(&nf_ct_expect_chain, event, &item);
++	ret = atomic_notifier_call_chain(&nf_ct_expect_chain, event, &item);
++	return notifier_to_errno(ret);
  }
  
-@@ -187,12 +220,6 @@ static inline void nf_ct_expect_event_report(enum ip_conntrack_expect_events e,
- 					     struct nf_conntrack_expect *exp,
-  					     u32 pid,
-  					     int report) {}
--static inline void nf_ct_event_cache_flush(struct net *net) {}
--
--static inline int nf_conntrack_ecache_init(struct net *net)
--{
--	return 0;
--}
- 
- static inline void nf_conntrack_ecache_fini(struct net *net)
+-static inline void
++static inline int
+ nf_ct_expect_event(enum ip_conntrack_expect_events event,
+ 		   struct nf_conntrack_expect *exp)
  {
-diff --git a/include/net/netfilter/nf_conntrack_extend.h b/include/net/netfilter/nf_conntrack_extend.h
-index da8ee52..7f8fc5d 100644
---- a/include/net/netfilter/nf_conntrack_extend.h
-+++ b/include/net/netfilter/nf_conntrack_extend.h
-@@ -8,12 +8,14 @@ enum nf_ct_ext_id
- 	NF_CT_EXT_HELPER,
- 	NF_CT_EXT_NAT,
- 	NF_CT_EXT_ACCT,
-+	NF_CT_EXT_ECACHE,
- 	NF_CT_EXT_NUM,
- };
+-	nf_ct_expect_event_report(event, exp, 0, 0);
++	return nf_ct_expect_event_report(event, exp, 0, 0);
+ }
  
- #define NF_CT_EXT_HELPER_TYPE struct nf_conn_help
- #define NF_CT_EXT_NAT_TYPE struct nf_conn_nat
- #define NF_CT_EXT_ACCT_TYPE struct nf_conn_counter
-+#define NF_CT_EXT_ECACHE_TYPE struct nf_conntrack_ecache
- 
- /* Extensions: optional stuff which isn't permanently in struct. */
- struct nf_ct_ext {
+ extern int nf_conntrack_ecache_init(struct net *net);
 diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
-index f4498a6..69dd322 100644
+index 69dd322..4e7fb0c 100644
 --- a/include/net/netns/conntrack.h
 +++ b/include/net/netns/conntrack.h
-@@ -14,15 +14,14 @@ struct netns_ct {
- 	struct hlist_head	*expect_hash;
+@@ -15,6 +15,7 @@ struct netns_ct {
  	struct hlist_head	unconfirmed;
  	struct ip_conntrack_stat *stat;
--#ifdef CONFIG_NF_CONNTRACK_EVENTS
--	struct nf_conntrack_ecache *ecache;
--#endif
-+	int			sysctl_events;
+ 	int			sysctl_events;
++	unsigned int		sysctl_events_retry_timeout;
  	int			sysctl_acct;
  	int			sysctl_checksum;
  	unsigned int		sysctl_log_invalid; /* Log invalid packets */
- #ifdef CONFIG_SYSCTL
- 	struct ctl_table_header	*sysctl_header;
- 	struct ctl_table_header	*acct_sysctl_header;
-+	struct ctl_table_header	*event_sysctl_header;
- #endif
- 	int			hash_vmalloc;
- 	int			expect_vmalloc;
 diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 94bccae..d5cae75 100644
+index d5cae75..1f0fcc0 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
-@@ -371,17 +371,17 @@ __nf_conntrack_confirm(struct sk_buff *skb)
- 	atomic_inc(&ct->ct_general.use);
- 	set_bit(IPS_CONFIRMED_BIT, &ct->status);
- 	NF_CT_STAT_INC(net, insert);
--	spin_unlock_bh(&nf_conntrack_lock);
- 	help = nfct_help(ct);
- 	if (help && help->helper)
--		nf_conntrack_event_cache(IPCT_HELPER, ct);
-+		__nf_conntrack_event_cache(IPCT_HELPER, ct);
- #ifdef CONFIG_NF_NAT_NEEDED
- 	if (test_bit(IPS_SRC_NAT_DONE_BIT, &ct->status) ||
- 	    test_bit(IPS_DST_NAT_DONE_BIT, &ct->status))
--		nf_conntrack_event_cache(IPCT_NATINFO, ct);
-+		__nf_conntrack_event_cache(IPCT_NATINFO, ct);
- #endif
--	nf_conntrack_event_cache(master_ct(ct) ?
--				 IPCT_RELATED : IPCT_NEW, ct);
-+	__nf_conntrack_event_cache(master_ct(ct) ?
-+				   IPCT_RELATED : IPCT_NEW, ct);
-+	spin_unlock_bh(&nf_conntrack_lock);
- 	return NF_ACCEPT;
+@@ -181,10 +181,6 @@ destroy_conntrack(struct nf_conntrack *nfct)
+ 	NF_CT_ASSERT(atomic_read(&nfct->use) == 0);
+ 	NF_CT_ASSERT(!timer_pending(&ct->timeout));
  
- out:
-@@ -562,6 +562,7 @@ init_conntrack(struct net *net,
- 	}
- 
- 	nf_ct_acct_ext_add(ct, GFP_ATOMIC);
-+	nf_ct_ecache_ext_add(ct, GFP_ATOMIC);
- 
- 	spin_lock_bh(&nf_conntrack_lock);
- 	exp = nf_ct_find_expectation(net, tuple);
-@@ -724,6 +725,9 @@ nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
- 
- 	NF_CT_ASSERT(skb->nfct);
- 
-+	/* We may have pending events, deliver them and clear the cache */
-+	nf_ct_deliver_cached_events(ct);
-+
- 	ret = l4proto->packet(ct, skb, dataoff, ctinfo, pf, hooknum);
- 	if (ret < 0) {
- 		/* Invalid: inverse of the return code tells
-@@ -789,8 +793,6 @@ void __nf_ct_refresh_acct(struct nf_conn *ct,
- 			  unsigned long extra_jiffies,
- 			  int do_acct)
- {
--	int event = 0;
+-	if (!test_bit(IPS_DYING_BIT, &ct->status))
+-		nf_conntrack_event(IPCT_DESTROY, ct);
+-	set_bit(IPS_DYING_BIT, &ct->status);
 -
- 	NF_CT_ASSERT(ct->timeout.data == (unsigned long)ct);
- 	NF_CT_ASSERT(skb);
- 
-@@ -803,7 +805,7 @@ void __nf_ct_refresh_acct(struct nf_conn *ct,
- 	/* If not in hash table, timer will not be active yet */
- 	if (!nf_ct_is_confirmed(ct)) {
- 		ct->timeout.expires = extra_jiffies;
--		event = IPCT_REFRESH;
-+		__nf_conntrack_event_cache(IPCT_REFRESH, ct);
- 	} else {
- 		unsigned long newtime = jiffies + extra_jiffies;
- 
-@@ -814,7 +816,7 @@ void __nf_ct_refresh_acct(struct nf_conn *ct,
- 		    && del_timer(&ct->timeout)) {
- 			ct->timeout.expires = newtime;
- 			add_timer(&ct->timeout);
--			event = IPCT_REFRESH;
-+			__nf_conntrack_event_cache(IPCT_REFRESH, ct);
- 		}
- 	}
- 
-@@ -831,10 +833,6 @@ acct:
- 	}
- 
- 	spin_unlock_bh(&nf_conntrack_lock);
--
--	/* must be unlocked when calling event cache */
--	if (event)
--		nf_conntrack_event_cache(event, ct);
+ 	/* To make sure we don't get any weird locking issues here:
+ 	 * destroy_conntrack() MUST NOT be called with a write lock
+ 	 * to nf_conntrack_lock!!! -HW */
+@@ -218,13 +214,23 @@ destroy_conntrack(struct nf_conntrack *nfct)
+ 	nf_conntrack_free(ct);
  }
- EXPORT_SYMBOL_GPL(__nf_ct_refresh_acct);
  
-@@ -1020,8 +1018,6 @@ static void nf_conntrack_cleanup_init_net(void)
- 
- static void nf_conntrack_cleanup_net(struct net *net)
+-static void death_by_timeout(unsigned long ul_conntrack)
++static bool kill_conntrack(struct nf_conn *ct)
  {
--	nf_ct_event_cache_flush(net);
--	nf_conntrack_ecache_fini(net);
-  i_see_dead_people:
- 	nf_ct_iterate_cleanup(net, kill_all, NULL);
- 	if (atomic_read(&net->ct.count) != 0) {
-@@ -1034,6 +1030,7 @@ static void nf_conntrack_cleanup_net(struct net *net)
+-	struct nf_conn *ct = (void *)ul_conntrack;
+ 	struct net *net = nf_ct_net(ct);
+ 	struct nf_conn_help *help = nfct_help(ct);
+ 	struct nf_conntrack_helper *helper;
  
- 	nf_ct_free_hashtable(net->ct.hash, net->ct.hash_vmalloc,
- 			     nf_conntrack_htable_size);
-+	nf_conntrack_ecache_fini(net);
- 	nf_conntrack_acct_fini(net);
- 	nf_conntrack_expect_fini(net);
- 	free_percpu(net->ct.stat);
-@@ -1207,9 +1204,6 @@ static int nf_conntrack_init_net(struct net *net)
- 		ret = -ENOMEM;
- 		goto err_stat;
++	if (!test_bit(IPS_DYING_BIT, &ct->status) && 
++	    nf_conntrack_event(IPCT_DESTROY, ct) < 0) {
++		/* event was not deliverd, retry again later */
++		ct->timeout.expires =
++			jiffies + net->ct.sysctl_events_retry_timeout;
++		add_timer(&ct->timeout);
++		/* ... say sorry, we failed to delete the entry */
++		return false;
++	}
++	set_bit(IPS_DYING_BIT, &ct->status);
++
+ 	if (help) {
+ 		rcu_read_lock();
+ 		helper = rcu_dereference(help->helper);
+@@ -240,6 +246,12 @@ static void death_by_timeout(unsigned long ul_conntrack)
+ 	clean_from_lists(ct);
+ 	spin_unlock_bh(&nf_conntrack_lock);
+ 	nf_ct_put(ct);
++	return true;
++}
++
++static void death_by_timeout(unsigned long ul_conntrack)
++{
++	kill_conntrack((struct nf_conn *)(void *)ul_conntrack);
+ }
+ 
+ struct nf_conntrack_tuple_hash *
+@@ -854,10 +866,9 @@ bool __nf_ct_kill_acct(struct nf_conn *ct,
+ 		spin_unlock_bh(&nf_conntrack_lock);
  	}
--	ret = nf_conntrack_ecache_init(net);
--	if (ret < 0)
--		goto err_ecache;
- 	net->ct.hash = nf_ct_alloc_hashtable(&nf_conntrack_htable_size,
- 						  &net->ct.hash_vmalloc);
- 	if (!net->ct.hash) {
-@@ -1223,6 +1217,9 @@ static int nf_conntrack_init_net(struct net *net)
- 	ret = nf_conntrack_acct_init(net);
- 	if (ret < 0)
- 		goto err_acct;
-+	ret = nf_conntrack_ecache_init(net);
-+	if (ret < 0)
-+		goto err_ecache;
  
- 	/* Set up fake conntrack:
- 	    - to never be deleted, not in any hashes */
-@@ -1235,14 +1232,14 @@ static int nf_conntrack_init_net(struct net *net)
- 
- 	return 0;
- 
-+err_ecache:
-+	nf_conntrack_acct_fini(net);
- err_acct:
- 	nf_conntrack_expect_fini(net);
- err_expect:
- 	nf_ct_free_hashtable(net->ct.hash, net->ct.hash_vmalloc,
- 			     nf_conntrack_htable_size);
- err_hash:
--	nf_conntrack_ecache_fini(net);
--err_ecache:
- 	free_percpu(net->ct.stat);
- err_stat:
- 	return ret;
+-	if (del_timer(&ct->timeout)) {
+-		ct->timeout.function((unsigned long)ct);
+-		return true;
+-	}
++	if (del_timer(&ct->timeout))
++		return kill_conntrack(ct);
++
+ 	return false;
+ }
+ EXPORT_SYMBOL_GPL(__nf_ct_kill_acct);
 diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
-index dee4190..7522ea0 100644
+index 7522ea0..c483ba6 100644
 --- a/net/netfilter/nf_conntrack_ecache.c
 +++ b/net/netfilter/nf_conntrack_ecache.c
-@@ -1,7 +1,7 @@
- /* Event cache for netfilter. */
+@@ -32,13 +32,14 @@ EXPORT_SYMBOL_GPL(nf_ct_expect_chain);
  
- /* (C) 1999-2001 Paul `Rusty' Russell
-- * (C) 2002-2006 Netfilter Core Team <coreteam@netfilter.org>
-+ * (C) 2002-2009 Netfilter Core Team <coreteam@netfilter.org>
-  * (C) 2003,2004 USAGI/WIDE Project <http://www.linux-ipv6.org>
-  *
-  * This program is free software; you can redistribute it and/or modify
-@@ -22,6 +22,7 @@
- 
- #include <net/netfilter/nf_conntrack.h>
- #include <net/netfilter/nf_conntrack_core.h>
-+#include <net/netfilter/nf_conntrack_extend.h>
- 
- ATOMIC_NOTIFIER_HEAD(nf_conntrack_chain);
- EXPORT_SYMBOL_GPL(nf_conntrack_chain);
-@@ -29,108 +30,160 @@ EXPORT_SYMBOL_GPL(nf_conntrack_chain);
- ATOMIC_NOTIFIER_HEAD(nf_ct_expect_chain);
- EXPORT_SYMBOL_GPL(nf_ct_expect_chain);
- 
--/* deliver cached events and clear cache entry - must be called with locally
-- * disabled softirqs */
--static inline void
--__nf_ct_deliver_cached_events(struct nf_conntrack_ecache *ecache)
-+/* Deliver all cached events for a particular conntrack. This is called
-+ * by code prior to async packet handling for freeing the skb */
-+void nf_ct_deliver_cached_events(struct nf_conn *ct)
+ /* Deliver all cached events for a particular conntrack. This is called
+  * by code prior to async packet handling for freeing the skb */
+-void nf_ct_deliver_cached_events(struct nf_conn *ct)
++int nf_ct_deliver_cached_events(struct nf_conn *ct)
  {
--	if (nf_ct_is_confirmed(ecache->ct) && !nf_ct_is_dying(ecache->ct)
--	    && ecache->events) {
-+	struct nf_conntrack_ecache *e;
-+
-+	e = nf_ct_ecache_find(ct);
-+	if (e == NULL)
-+		return;
-+
-+	if (nf_ct_is_confirmed(ct) && !nf_ct_is_dying(ct) && e->cache) {
+ 	struct nf_conntrack_ecache *e;
++	int ret = 0, delivered = 0;
+ 
+ 	e = nf_ct_ecache_find(ct);
+ 	if (e == NULL)
+-		return;
++		return 0;
+ 
+ 	if (nf_ct_is_confirmed(ct) && !nf_ct_is_dying(ct) && e->cache) {
  		struct nf_ct_event item = {
--			.ct 	= ecache->ct,
-+			.ct	= ct,
+@@ -46,9 +47,16 @@ void nf_ct_deliver_cached_events(struct nf_conn *ct)
  			.pid	= 0,
  			.report	= 0
  		};
--
--		atomic_notifier_call_chain(&nf_conntrack_chain,
--					   ecache->events,
--					   &item);
-+		atomic_notifier_call_chain(&nf_conntrack_chain, e->cache,&item);
+-		atomic_notifier_call_chain(&nf_conntrack_chain, e->cache,&item);
++		ret = atomic_notifier_call_chain(&nf_conntrack_chain,
++						 e->cache,&item);
++		ret = notifier_to_errno(ret);
++		if (ret == 0)
++			delivered = 1;
  	}
--
--	ecache->events = 0;
--	nf_ct_put(ecache->ct);
--	ecache->ct = NULL;
-+	xchg(&e->cache, 0);
- }
-+EXPORT_SYMBOL_GPL(nf_ct_deliver_cached_events);
- 
--/* Deliver all cached events for a particular conntrack. This is called
-- * by code prior to async packet handling for freeing the skb */
--void nf_ct_deliver_cached_events(const struct nf_conn *ct)
-+int nf_conntrack_register_notifier(struct notifier_block *nb)
- {
--	struct net *net = nf_ct_net(ct);
--	struct nf_conntrack_ecache *ecache;
--
--	local_bh_disable();
--	ecache = per_cpu_ptr(net->ct.ecache, raw_smp_processor_id());
--	if (ecache->ct == ct)
--		__nf_ct_deliver_cached_events(ecache);
--	local_bh_enable();
-+	return atomic_notifier_chain_register(&nf_conntrack_chain, nb);
- }
--EXPORT_SYMBOL_GPL(nf_ct_deliver_cached_events);
-+EXPORT_SYMBOL_GPL(nf_conntrack_register_notifier);
- 
--/* Deliver cached events for old pending events, if current conntrack != old */
--void __nf_ct_event_cache_init(struct nf_conn *ct)
-+int nf_conntrack_unregister_notifier(struct notifier_block *nb)
- {
--	struct net *net = nf_ct_net(ct);
--	struct nf_conntrack_ecache *ecache;
--
--	/* take care of delivering potentially old events */
--	ecache = per_cpu_ptr(net->ct.ecache, raw_smp_processor_id());
--	BUG_ON(ecache->ct == ct);
--	if (ecache->ct)
--		__nf_ct_deliver_cached_events(ecache);
--	/* initialize for this conntrack/packet */
--	ecache->ct = ct;
--	nf_conntrack_get(&ct->ct_general);
-+	return atomic_notifier_chain_unregister(&nf_conntrack_chain, nb);
- }
--EXPORT_SYMBOL_GPL(__nf_ct_event_cache_init);
-+EXPORT_SYMBOL_GPL(nf_conntrack_unregister_notifier);
- 
--/* flush the event cache - touches other CPU's data and must not be called
-- * while packets are still passing through the code */
--void nf_ct_event_cache_flush(struct net *net)
-+int nf_ct_expect_register_notifier(struct notifier_block *nb)
- {
--	struct nf_conntrack_ecache *ecache;
--	int cpu;
-+	return atomic_notifier_chain_register(&nf_ct_expect_chain, nb);
-+}
-+EXPORT_SYMBOL_GPL(nf_ct_expect_register_notifier);
- 
--	for_each_possible_cpu(cpu) {
--		ecache = per_cpu_ptr(net->ct.ecache, cpu);
--		if (ecache->ct)
--			nf_ct_put(ecache->ct);
--	}
-+int nf_ct_expect_unregister_notifier(struct notifier_block *nb)
-+{
-+	return atomic_notifier_chain_unregister(&nf_ct_expect_chain, nb);
- }
-+EXPORT_SYMBOL_GPL(nf_ct_expect_unregister_notifier);
- 
--int nf_conntrack_ecache_init(struct net *net)
-+#ifdef CONFIG_NF_CONNTRACK_EVENTS
-+#define NF_CT_EVENTS_DEFAULT 1
-+#else
-+#define NF_CT_EVENTS_DEFAULT 0
-+#endif
+-	xchg(&e->cache, 0);
++	if (delivered)
++		xchg(&e->cache, 0);
 +
-+static int nf_ct_events_switch __read_mostly = NF_CT_EVENTS_DEFAULT;
-+
-+module_param_named(event, nf_ct_events_switch, bool, 0644);
-+MODULE_PARM_DESC(event, "Enable connection tracking event delivery");
-+
-+#ifdef CONFIG_SYSCTL
-+static struct ctl_table event_sysctl_table[] = {
-+	{
-+		.ctl_name	= CTL_UNNUMBERED,
-+		.procname	= "nf_conntrack_events",
-+		.data		= &init_net.ct.sysctl_events,
-+		.maxlen		= sizeof(unsigned int),
-+		.mode		= 0644,
-+		.proc_handler	= proc_dointvec,
-+	},
-+	{}
-+};
-+#endif /* CONFIG_SYSCTL */
-+
-+static struct nf_ct_ext_type event_extend __read_mostly = {
-+	.len	= sizeof(struct nf_conntrack_ecache),
-+	.align	= __alignof__(struct nf_conntrack_ecache),
-+	.id	= NF_CT_EXT_ECACHE,
-+};
-+
-+#ifdef CONFIG_SYSCTL
-+static int nf_conntrack_event_init_sysctl(struct net *net)
- {
--	net->ct.ecache = alloc_percpu(struct nf_conntrack_ecache);
--	if (!net->ct.ecache)
--		return -ENOMEM;
-+	struct ctl_table *table;
-+
-+	table = kmemdup(event_sysctl_table, sizeof(event_sysctl_table),
-+			GFP_KERNEL);
-+	if (!table)
-+		goto out;
-+
-+	table[0].data = &net->ct.sysctl_events;
-+
-+	net->ct.event_sysctl_header =
-+		register_net_sysctl_table(net,
-+					  nf_net_netfilter_sysctl_path, table);
-+	if (!net->ct.event_sysctl_header) {
-+		printk(KERN_ERR "nf_ct_event: can't register to sysctl.\n");
-+		goto out_register;
-+	}
- 	return 0;
-+
-+out_register:
-+	kfree(table);
-+out:
-+	return -ENOMEM;
- }
- 
--void nf_conntrack_ecache_fini(struct net *net)
-+static void nf_conntrack_event_fini_sysctl(struct net *net)
- {
--	free_percpu(net->ct.ecache);
--}
-+	struct ctl_table *table;
- 
--int nf_conntrack_register_notifier(struct notifier_block *nb)
-+	table = net->ct.event_sysctl_header->ctl_table_arg;
-+	unregister_net_sysctl_table(net->ct.event_sysctl_header);
-+	kfree(table);
-+}
-+#else
-+static int nf_conntrack_event_init_sysctl(struct net *net)
- {
--	return atomic_notifier_chain_register(&nf_conntrack_chain, nb);
-+	return 0;
- }
--EXPORT_SYMBOL_GPL(nf_conntrack_register_notifier);
- 
--int nf_conntrack_unregister_notifier(struct notifier_block *nb)
-+static void nf_conntrack_event_fini_sysctl(struct net *net)
- {
--	return atomic_notifier_chain_unregister(&nf_conntrack_chain, nb);
- }
--EXPORT_SYMBOL_GPL(nf_conntrack_unregister_notifier);
-+#endif
- 
--int nf_ct_expect_register_notifier(struct notifier_block *nb)
-+int nf_conntrack_ecache_init(struct net *net)
- {
--	return atomic_notifier_chain_register(&nf_ct_expect_chain, nb);
-+	int ret;
-+
-+	net->ct.sysctl_events = nf_ct_events_switch;
-+
-+	if (net_eq(net, &init_net)) {
-+		ret = nf_ct_extend_register(&event_extend);
-+		if (ret < 0) {
-+			printk(KERN_ERR "nf_ct_event: Unable to register "
-+					"event extension.\n");
-+			goto out_extend_register;
-+		}
-+	}
-+
-+	ret = nf_conntrack_event_init_sysctl(net);
-+	if (ret < 0)
-+		goto out_sysctl;
-+
-+	return 0;
-+
-+out_sysctl:
-+	if (net_eq(net, &init_net))
-+		nf_ct_extend_unregister(&event_extend);
-+out_extend_register:
 +	return ret;
  }
--EXPORT_SYMBOL_GPL(nf_ct_expect_register_notifier);
+ EXPORT_SYMBOL_GPL(nf_ct_deliver_cached_events);
  
--int nf_ct_expect_unregister_notifier(struct notifier_block *nb)
-+void nf_conntrack_ecache_fini(struct net *net)
- {
--	return atomic_notifier_chain_unregister(&nf_ct_expect_chain, nb);
-+	nf_conntrack_event_fini_sysctl(net);
-+	if (net_eq(net, &init_net))
-+		nf_ct_extend_unregister(&event_extend);
+@@ -83,9 +91,12 @@ EXPORT_SYMBOL_GPL(nf_ct_expect_unregister_notifier);
+ #endif
+ 
+ static int nf_ct_events_switch __read_mostly = NF_CT_EVENTS_DEFAULT;
++static int nf_ct_events_retry_timeout __read_mostly = 15*HZ;
+ 
+ module_param_named(event, nf_ct_events_switch, bool, 0644);
+ MODULE_PARM_DESC(event, "Enable connection tracking event delivery");
++module_param_named(retry_timeout, nf_ct_events_retry_timeout, bool, 0644);
++MODULE_PARM_DESC(retry_timeout, "Event delivery retry timeout");
+ 
+ #ifdef CONFIG_SYSCTL
+ static struct ctl_table event_sysctl_table[] = {
+@@ -97,6 +108,14 @@ static struct ctl_table event_sysctl_table[] = {
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_dointvec,
+ 	},
++	{
++		.ctl_name	= CTL_UNNUMBERED,
++		.procname	= "nf_conntrack_events_retry_timeout",
++		.data		= &init_net.ct.sysctl_events_retry_timeout,
++		.maxlen		= sizeof(unsigned int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec_jiffies,
++	},
+ 	{}
+ };
+ #endif /* CONFIG_SYSCTL */
+@@ -118,6 +137,7 @@ static int nf_conntrack_event_init_sysctl(struct net *net)
+ 		goto out;
+ 
+ 	table[0].data = &net->ct.sysctl_events;
++	table[1].data = &net->ct.sysctl_events_retry_timeout;
+ 
+ 	net->ct.event_sysctl_header =
+ 		register_net_sysctl_table(net,
+@@ -158,6 +178,7 @@ int nf_conntrack_ecache_init(struct net *net)
+ 	int ret;
+ 
+ 	net->ct.sysctl_events = nf_ct_events_switch;
++	net->ct.sysctl_events_retry_timeout = nf_ct_events_retry_timeout;
+ 
+ 	if (net_eq(net, &init_net)) {
+ 		ret = nf_ct_extend_register(&event_extend);
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index 3a8a34a..e653e15 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -423,7 +423,10 @@ int nf_ct_expect_related(struct nf_conntrack_expect *expect)
+ 	nf_ct_expect_insert(expect);
+ 	atomic_inc(&expect->use);
+ 	spin_unlock_bh(&nf_conntrack_lock);
+-	nf_ct_expect_event(IPEXP_NEW, expect);
++	ret = nf_ct_expect_event(IPEXP_NEW, expect);
++	if (ret < 0)
++		nf_ct_unexpect_related(expect);
++
+ 	nf_ct_expect_put(expect);
+ 	return ret;
+ out:
+@@ -444,8 +447,11 @@ int nf_ct_expect_related_report(struct nf_conntrack_expect *expect,
+ 	nf_ct_expect_insert(expect);
+ out:
+ 	spin_unlock_bh(&nf_conntrack_lock);
+-	if (ret == 0)
+-		nf_ct_expect_event_report(IPEXP_NEW, expect, pid, report);
++	if (ret == 0) {
++		ret = nf_ct_expect_event_report(IPEXP_NEW, expect, pid, report);
++		if (ret < 0)
++			nf_ct_unexpect_related(expect);
++	}
+ 	return ret;
  }
--EXPORT_SYMBOL_GPL(nf_ct_expect_unregister_notifier);
-diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
-index 00fecc3..fe2931d 100644
---- a/net/netfilter/nf_conntrack_ftp.c
-+++ b/net/netfilter/nf_conntrack_ftp.c
-@@ -338,11 +338,11 @@ static void update_nl_seq(struct nf_conn *ct, u32 nl_seq,
- 
- 	if (info->seq_aft_nl_num[dir] < NUM_SEQ_TO_REMEMBER) {
- 		info->seq_aft_nl[dir][info->seq_aft_nl_num[dir]++] = nl_seq;
--		nf_conntrack_event_cache(IPCT_HELPINFO_VOLATILE, ct);
-+		__nf_conntrack_event_cache(IPCT_HELPINFO_VOLATILE, ct);
- 	} else if (oldest != NUM_SEQ_TO_REMEMBER &&
- 		   after(nl_seq, info->seq_aft_nl[dir][oldest])) {
- 		info->seq_aft_nl[dir][oldest] = nl_seq;
--		nf_conntrack_event_cache(IPCT_HELPINFO_VOLATILE, ct);
-+		__nf_conntrack_event_cache(IPCT_HELPINFO_VOLATILE, ct);
- 	}
- }
- 
+ EXPORT_SYMBOL_GPL(nf_ct_expect_related_report);
 diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index d399b04..cdc09bd 100644
+index cdc09bd..971d0aa 100644
 --- a/net/netfilter/nf_conntrack_netlink.c
 +++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1237,6 +1237,7 @@ ctnetlink_create_conntrack(struct nlattr *cda[],
+@@ -416,6 +416,7 @@ static int ctnetlink_conntrack_event(struct notifier_block *this,
+ 	unsigned int type;
+ 	sk_buff_data_t b;
+ 	unsigned int flags = 0, group;
++	int err;
+ 
+ 	/* ignore our fake conntrack entry */
+ 	if (ct == &nf_conntrack_untracked)
+@@ -512,13 +513,16 @@ static int ctnetlink_conntrack_event(struct notifier_block *this,
+ 	rcu_read_unlock();
+ 
+ 	nlh->nlmsg_len = skb->tail - b;
+-	nfnetlink_send(skb, item->pid, group, item->report);
++	err = nfnetlink_send(skb, item->pid, group, item->report);
++	if ((err == -ENOBUFS) || (err == -EAGAIN))
++		return notifier_from_errno(-ENOBUFS);
++
+ 	return NOTIFY_DONE;
+ 
+ nla_put_failure:
+ 	rcu_read_unlock();
+ nlmsg_failure:
+-	nfnetlink_set_err(0, group, -ENOBUFS);
++	nfnetlink_set_err(item->pid, group, -ENOBUFS);
+ 	kfree_skb(skb);
+ 	return NOTIFY_DONE;
+ }
+@@ -716,6 +720,7 @@ ctnetlink_del_conntrack(struct sock *ctnl, struct sk_buff *skb,
+ 	struct nf_conn *ct;
+ 	struct nfgenmsg *nfmsg = NLMSG_DATA(nlh);
+ 	u_int8_t u3 = nfmsg->nfgen_family;
++	struct net *net = nf_ct_net(ct);
+ 	int err = 0;
+ 
+ 	if (cda[CTA_TUPLE_ORIG])
+@@ -747,10 +752,18 @@ ctnetlink_del_conntrack(struct sock *ctnl, struct sk_buff *skb,
+ 		}
  	}
  
- 	nf_ct_acct_ext_add(ct, GFP_ATOMIC);
-+	nf_ct_ecache_ext_add(ct, GFP_ATOMIC);
+-	nf_conntrack_event_report(IPCT_DESTROY,
+-				  ct,
+-				  NETLINK_CB(skb).pid,
+-				  nlmsg_report(nlh));
++	if (nf_conntrack_event_report(IPCT_DESTROY, ct,
++				      NETLINK_CB(skb).pid,
++				      nlmsg_report(nlh)) < 0) {
++		/* we failed to report the event, shorten the timeout */
++		if (del_timer(&ct->timeout)) {
++			ct->timeout.expires =
++				jiffies + net->ct.sysctl_events_retry_timeout;
++			add_timer(&ct->timeout);
++		}
++		nf_ct_put(ct);
++		return -ENOBUFS;
++	}
  
- #if defined(CONFIG_NF_CONNTRACK_MARK)
- 	if (cda[CTA_MARK])
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index 74e0379..e7ea25c 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -369,7 +369,7 @@ static int sctp_packet(struct nf_conn *ct,
+ 	/* death_by_timeout would report the event again */
+ 	set_bit(IPS_DYING_BIT, &ct->status);
+@@ -1107,7 +1120,7 @@ ctnetlink_change_conntrack(struct nf_conn *ct, struct nlattr *cda[])
+ 	return 0;
+ }
  
- 		ct->proto.sctp.state = new_state;
- 		if (old_state != new_state)
--			nf_conntrack_event_cache(IPCT_PROTOINFO, ct);
-+			__nf_conntrack_event_cache(IPCT_PROTOINFO, ct);
+-static inline void
++static inline int
+ ctnetlink_event_report(struct nf_conn *ct, u32 pid, int report)
+ {
+ 	unsigned int events = 0;
+@@ -1117,16 +1130,13 @@ ctnetlink_event_report(struct nf_conn *ct, u32 pid, int report)
+ 	else
+ 		events |= IPCT_NEW;
+ 
+-	nf_conntrack_event_report(IPCT_STATUS |
+-				  IPCT_HELPER |
+-				  IPCT_REFRESH |
+-				  IPCT_PROTOINFO |
+-				  IPCT_NATSEQADJ |
+-				  IPCT_MARK |
+-				  events,
+-				  ct,
+-				  pid,
+-				  report);
++	return nf_conntrack_event_report(IPCT_STATUS |
++					 IPCT_HELPER |
++					 IPCT_REFRESH |
++					 IPCT_PROTOINFO |
++					 IPCT_NATSEQADJ |
++					 IPCT_MARK |
++					 events, ct, pid, report);
+ }
+ 
+ static struct nf_conn *
+@@ -1317,9 +1327,14 @@ ctnetlink_new_conntrack(struct sock *ctnl, struct sk_buff *skb,
+ 			err = 0;
+ 			nf_conntrack_get(&ct->ct_general);
+ 			spin_unlock_bh(&nf_conntrack_lock);
+-			ctnetlink_event_report(ct,
+-					       NETLINK_CB(skb).pid,
+-					       nlmsg_report(nlh));
++			if (ctnetlink_event_report(ct,
++						   NETLINK_CB(skb).pid,
++						   nlmsg_report(nlh)) < 0) {
++				nf_conntrack_event_cache(IPCT_DELIVERY_FAILED,
++							 ct);
++				nf_ct_put(ct);
++				return -ENOBUFS;
++			}
+ 			nf_ct_put(ct);
+ 		} else
+ 			spin_unlock_bh(&nf_conntrack_lock);
+@@ -1338,9 +1353,14 @@ ctnetlink_new_conntrack(struct sock *ctnl, struct sk_buff *skb,
+ 		if (err == 0) {
+ 			nf_conntrack_get(&ct->ct_general);
+ 			spin_unlock_bh(&nf_conntrack_lock);
+-			ctnetlink_event_report(ct,
+-					       NETLINK_CB(skb).pid,
+-					       nlmsg_report(nlh));
++			if (ctnetlink_event_report(ct,
++						   NETLINK_CB(skb).pid,
++						   nlmsg_report(nlh)) < 0) {
++				nf_conntrack_event_cache(IPCT_DELIVERY_FAILED,
++							 ct);
++				nf_ct_put(ct);
++				return -ENOBUFS;
++			}
+ 			nf_ct_put(ct);
+ 		} else
+ 			spin_unlock_bh(&nf_conntrack_lock);
+@@ -1494,7 +1514,7 @@ static int ctnetlink_expect_event(struct notifier_block *this,
+ 	struct sk_buff *skb;
+ 	unsigned int type;
+ 	sk_buff_data_t b;
+-	int flags = 0;
++	int flags = 0, err;
+ 
+ 	if (events & IPEXP_NEW) {
+ 		type = IPCTNL_MSG_EXP_NEW;
+@@ -1527,13 +1547,17 @@ static int ctnetlink_expect_event(struct notifier_block *this,
+ 	rcu_read_unlock();
+ 
+ 	nlh->nlmsg_len = skb->tail - b;
+-	nfnetlink_send(skb, item->pid, NFNLGRP_CONNTRACK_EXP_NEW, item->report);
++	err = nfnetlink_send(skb, item->pid,
++			     NFNLGRP_CONNTRACK_EXP_NEW, item->report);
++	if ((err == -ENOBUFS) || (err == -EAGAIN))
++		return notifier_from_errno(-ENOBUFS);
++
+ 	return NOTIFY_DONE;
+ 
+ nla_put_failure:
+ 	rcu_read_unlock();
+ nlmsg_failure:
+-	nfnetlink_set_err(0, 0, -ENOBUFS);
++	nfnetlink_set_err(item->pid, 0, -ENOBUFS);
+ 	kfree_skb(skb);
+ 	return NOTIFY_DONE;
+ }
+diff --git a/net/netfilter/nf_conntrack_pptp.c b/net/netfilter/nf_conntrack_pptp.c
+index 5ca1780..c67299b 100644
+--- a/net/netfilter/nf_conntrack_pptp.c
++++ b/net/netfilter/nf_conntrack_pptp.c
+@@ -152,9 +152,11 @@ static int destroy_sibling_or_exp(struct net *net,
+ 		pr_debug("setting timeout of conntrack %p to 0\n", sibling);
+ 		sibling->proto.gre.timeout	  = 0;
+ 		sibling->proto.gre.stream_timeout = 0;
+-		nf_ct_kill(sibling);
+-		nf_ct_put(sibling);
+-		return 1;
++		if (nf_ct_kill(sibling)) {
++			nf_ct_put(sibling);
++			return 1;
++		}
++		return 0;
+ 	} else {
+ 		exp = nf_ct_expect_find_get(net, t);
+ 		if (exp) {
+@@ -168,11 +170,12 @@ static int destroy_sibling_or_exp(struct net *net,
+ }
+ 
+ /* timeout GRE data connections */
+-static void pptp_destroy_siblings(struct nf_conn *ct)
++static bool pptp_destroy_siblings(struct nf_conn *ct)
+ {
+ 	struct net *net = nf_ct_net(ct);
+ 	const struct nf_conn_help *help = nfct_help(ct);
+ 	struct nf_conntrack_tuple t;
++	bool ret = true;
+ 
+ 	nf_ct_gre_keymap_destroy(ct);
+ 
+@@ -181,16 +184,21 @@ static void pptp_destroy_siblings(struct nf_conn *ct)
+ 	t.dst.protonum = IPPROTO_GRE;
+ 	t.src.u.gre.key = help->help.ct_pptp_info.pns_call_id;
+ 	t.dst.u.gre.key = help->help.ct_pptp_info.pac_call_id;
+-	if (!destroy_sibling_or_exp(net, &t))
++	if (!destroy_sibling_or_exp(net, &t)) {
+ 		pr_debug("failed to timeout original pns->pac ct/exp\n");
++		ret = false;
++	}
+ 
+ 	/* try reply (pac->pns) tuple */
+ 	memcpy(&t, &ct->tuplehash[IP_CT_DIR_REPLY].tuple, sizeof(t));
+ 	t.dst.protonum = IPPROTO_GRE;
+ 	t.src.u.gre.key = help->help.ct_pptp_info.pac_call_id;
+ 	t.dst.u.gre.key = help->help.ct_pptp_info.pns_call_id;
+-	if (!destroy_sibling_or_exp(net, &t))
++	if (!destroy_sibling_or_exp(net, &t)) {
+ 		pr_debug("failed to timeout reply pac->pns ct/exp\n");
++		ret = false;
++	}
++	return ret;
+ }
+ 
+ /* expect GRE connections (PNS->PAC and PAC->PNS direction) */
+@@ -357,7 +365,8 @@ pptp_inbound_pkt(struct sk_buff *skb,
+ 		info->cstate = PPTP_CALL_NONE;
+ 
+ 		/* untrack this call id, unexpect GRE packets */
+-		pptp_destroy_siblings(ct);
++		if (!pptp_destroy_siblings(ct))
++			return NF_DROP;
+ 		break;
+ 
+ 	case PPTP_WAN_ERROR_NOTIFY:
+@@ -593,7 +602,7 @@ static struct nf_conntrack_helper pptp __read_mostly = {
+ 	.tuple.src.u.tcp.port	= cpu_to_be16(PPTP_CONTROL_PORT),
+ 	.tuple.dst.protonum	= IPPROTO_TCP,
+ 	.help			= conntrack_pptp_help,
+-	.destroy		= pptp_destroy_siblings,
++	.destroy		= &pptp_destroy_siblings,
+ 	.expect_policy		= &pptp_exp_policy,
+ };
+ 
+diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
+index 8fcf176..c2c4b28 100644
+--- a/net/netfilter/nf_conntrack_proto_dccp.c
++++ b/net/netfilter/nf_conntrack_proto_dccp.c
+@@ -477,8 +477,9 @@ static int dccp_packet(struct nf_conn *ct, const struct sk_buff *skb,
+ 	if (type == DCCP_PKT_RESET &&
+ 	    !test_bit(IPS_SEEN_REPLY_BIT, &ct->status)) {
+ 		/* Tear down connection immediately if only reply is a RESET */
+-		nf_ct_kill_acct(ct, ctinfo, skb);
+-		return NF_ACCEPT;
++		if (nf_ct_kill_acct(ct, ctinfo, skb))
++			return NF_ACCEPT;
++		return NF_DROP;
  	}
- 	write_unlock_bh(&sctp_lock);
  
+ 	write_lock_bh(&dccp_lock);
 diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index a1edb9c..78bce2a 100644
+index 78bce2a..d272432 100644
 --- a/net/netfilter/nf_conntrack_proto_tcp.c
 +++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -969,11 +969,12 @@ static int tcp_packet(struct nf_conn *ct,
- 		timeout = nf_ct_tcp_timeout_unacknowledged;
- 	else
- 		timeout = tcp_timeouts[new_state];
--	write_unlock_bh(&tcp_lock);
- 
--	nf_conntrack_event_cache(IPCT_PROTOINFO_VOLATILE, ct);
-+	__nf_conntrack_event_cache(IPCT_PROTOINFO_VOLATILE, ct);
- 	if (new_state != old_state)
--		nf_conntrack_event_cache(IPCT_PROTOINFO, ct);
-+		__nf_conntrack_event_cache(IPCT_PROTOINFO, ct);
-+
-+	write_unlock_bh(&tcp_lock);
- 
- 	if (!test_bit(IPS_SEEN_REPLY_BIT, &ct->status)) {
- 		/* If only reply is a RST, we can consider ourselves not to
+@@ -982,8 +982,9 @@ static int tcp_packet(struct nf_conn *ct,
+ 		   problem case, so we can delete the conntrack
+ 		   immediately.  --RR */
+ 		if (th->rst) {
+-			nf_ct_kill_acct(ct, ctinfo, skb);
+-			return NF_ACCEPT;
++			if (nf_ct_kill_acct(ct, ctinfo, skb))
++				return NF_ACCEPT;
++			return NF_DROP;
+ 		}
+ 	} else if (!test_bit(IPS_ASSURED_BIT, &ct->status)
+ 		   && (old_state == TCP_CONNTRACK_SYN_RECV
 
