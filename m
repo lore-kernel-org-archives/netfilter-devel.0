@@ -1,57 +1,28 @@
-From: Stephen Rothwell <sfr@canb.auug.org.au>
-Subject: Re: linux-next: net tree build warnings
-Date: Fri, 27 Mar 2009 09:01:28 +1100
-Message-ID: <20090327090128.37883155.sfr@canb.auug.org.au>
-References: <20090326173713.ee63b803.sfr@canb.auug.org.au>
-	<1238053819.13879.4.camel@ice-age>
+From: David Miller <davem@davemloft.net>
+Subject: Re: netfilter 00/12: Netfilter fixes/2.6.30 update part II
+Date: Thu, 26 Mar 2009 22:46:27 -0700 (PDT)
+Message-ID: <20090326.224627.58456833.davem@davemloft.net>
+References: <20090326190225.23365.96356.sendpatchset@x2.localnet>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/pgp-signature";
- micalg="PGP-SHA1";
- boundary="Signature=_Fri__27_Mar_2009_09_01_28_+1100_e0Tk2WUSm18TweUc"
-Cc: "David S. Miller" <davem@davemloft.net>,
-	linux-next@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@inl.fr>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from chilli.pcug.org.au ([203.10.76.44]:35519 "EHLO smtps.tip.net.au"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757424AbZCZWBn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 26 Mar 2009 18:01:43 -0400
-In-Reply-To: <1238053819.13879.4.camel@ice-age>
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:46378
+	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1751164AbZC0Fqj (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 27 Mar 2009 01:46:39 -0400
+In-Reply-To: <20090326190225.23365.96356.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
---Signature=_Fri__27_Mar_2009_09_01_28_+1100_e0Tk2WUSm18TweUc
-Content-Type: text/plain; charset=US-ASCII
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+From: Patrick McHardy <kaber@trash.net>
+Date: Thu, 26 Mar 2009 20:02:30 +0100 (MET)
 
-Hi Eric,
+> Please apply or pull from:
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git
 
-On Thu, 26 Mar 2009 08:50:19 +0100 Eric Leblond <eric@inl.fr> wrote:
->
-> Thanks a lot for pointing this. I stupidely forgot to build this module
-> during my testing.
->=20
-> I've made the necessary modifications and a patch fixing this will
-> follow this mail.
-
-Thanks.
-
---=20
-Cheers,
-Stephen Rothwell                    sfr@canb.auug.org.au
-http://www.canb.auug.org.au/~sfr/
-
---Signature=_Fri__27_Mar_2009_09_01_28_+1100_e0Tk2WUSm18TweUc
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEARECAAYFAknL+zgACgkQjjKRsyhoI8y/QQCeJPlZYtcCE9ZOcVm5JhnaYWTB
-aY4AoI8b9HECjc3Jp+LIkDk2p3l+5X70
-=SNCz
------END PGP SIGNATURE-----
-
---Signature=_Fri__27_Mar_2009_09_01_28_+1100_e0Tk2WUSm18TweUc--
+Pulled, thanks.
