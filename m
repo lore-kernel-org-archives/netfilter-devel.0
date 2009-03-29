@@ -1,30 +1,46 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Tag for 1.4.3 missing
-Date: Sun, 29 Mar 2009 21:23:15 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0903292122520.28784@fbirervta.pbzchgretzou.qr>
-References: <alpine.LSU.2.00.0903292113270.28375@fbirervta.pbzchgretzou.qr>
+From: David Miller <davem@davemloft.net>
+Subject: Re: linux-next: Tree for March 27 (netfilter build error)
+Date: Sun, 29 Mar 2009 13:46:14 -0700 (PDT)
+Message-ID: <20090329.134614.198823811.davem@davemloft.net>
+References: <20090329064704.GA7255@localhost>
+	<20090328.234739.26481917.davem@davemloft.net>
+	<49CF62A2.6050803@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, pablo@netfilter.org
-To: kaber@trash.net
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:34722 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752890AbZC2TXR (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 29 Mar 2009 15:23:17 -0400
-In-Reply-To: <alpine.LSU.2.00.0903292113270.28375@fbirervta.pbzchgretzou.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: gorcunov@gmail.com, randy.dunlap@oracle.com, sfr@canb.auug.org.au,
+	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, kaber@trash.net,
+	netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <49CF62A2.6050803@netfilter.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Sunday 2009-03-29 21:13, Jan Engelhardt wrote:
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Date: Sun, 29 Mar 2009 13:59:30 +0200
 
->Hi,
->
->
->the git tag for 1.4.3 is missing, so if either of you could add it 
->that'd be cool.
->
->
-Commit in question is c9477d0dcd01af5d1ee6c95c757a8c814fb3be63.
+> David Miller wrote:
+> > From: Cyrill Gorcunov <gorcunov@gmail.com>
+> > Date: Sun, 29 Mar 2009 10:47:04 +0400
+> > 
+> >> [Randy Dunlap - Sat, Mar 28, 2009 at 09:26:42PM -0700]
+> >> ... 
+> >> | works_for_me.  Thanks.
+> >> | but missing S-O-B.
+> >> | 
+> >> | Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
+> >> ...
+> >>
+> >> Thanks for testing Randy. So if nobody will complain
+> >> here is a solid version of the patch. Though I would like
+> >> if Pablo or Patrick confirm its correctness. Thanks!
+> > 
+> > I'll apply this once Patrick or Pablo have a look at it.
+> 
+> I think that the patch attached is better since it removes the overhead
+> of the IPv6 dependency, which is indeed too much for the use of one
+> function. Thanks.
+
+I think it's a lot better too, applied, thanks!
