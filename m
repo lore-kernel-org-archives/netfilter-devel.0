@@ -1,29 +1,54 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 3/3] ctnetlink: optional reliable conntrack event delivery
-Date: Mon, 30 Mar 2009 15:32:40 +0200
-Message-ID: <49D0C9F8.2030005@netfilter.org>
-References: <20090330132330.14337.4705.stgit@Decadence> <20090330132840.14337.57303.stgit@Decadence>
+From: Rick Jones <rick.jones2@hp.com>
+Subject: Re: [PATCH] netfilter: finer grained nf_conn locking
+Date: Mon, 30 Mar 2009 11:57:57 -0700
+Message-ID: <49D11635.2050809@hp.com>
+References: <20090218051906.174295181@vyatta.com>	<20090218052747.679540125@vyatta.com>	<499BDB5D.2050105@trash.net> <499C1894.7060400@cosmosbay.com> <49CE568A.9090104@cosmosbay.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=us-ascii; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+Cc: Patrick McHardy <kaber@trash.net>,
+	Stephen Hemminger <shemminger@vyatta.com>,
+	David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Eric Dumazet <dada1@cosmosbay.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48943 "EHLO us.es"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754218AbZC3Nc4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 30 Mar 2009 09:32:56 -0400
-In-Reply-To: <20090330132840.14337.57303.stgit@Decadence>
+Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:38450 "EHLO
+	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755953AbZC3S6D (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 30 Mar 2009 14:58:03 -0400
+In-Reply-To: <49CE568A.9090104@cosmosbay.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> This patch does not include the removal of the notify chain as
-> Patrick suggested yet, but I'll work on such change on top of this
-> patch if this is OK.
-  ^^^
-BTW, this is comment is obsolte. I wrote it and then go back to add the
-notify chain removal as the very first patch :).
+Eric Dumazet wrote:
+> Hi Patrick
+> 
+> Apparently we could not finish the removal of tcp_lock for 2.6.30 :(
+> 
+> Stephen suggested using a 4 bytes hole in struct nf_conntrack,
+> but this is ok only if sizeof(spinlock_t) <= 4 and 64 bit arches.
+> 
+> We could do an hybrid thing : use nf_conn.ct_general.lock if 64 bit arches
+> and sizeof(spinlock_t) <= 4.
+> 
+> Other cases would use a carefuly sized array of spinlocks...
+> 
+> Thank you
+> 
+> [PATCH] netfilter: finer grained nf_conn locking
+> 
+> Introduction of fine grained lock infrastructure for nf_conn.
+> If possible, we use a 32bit hole on 64bit arches.
+> Else we use a global array of hashed spinlocks, so we dont
+> change size of "struct nf_conn"
+> 
+> Get rid of central tcp_lock rwlock used in TCP conntracking
+> using this infrastructure for better performance on SMP.
+> 
+> "tbench 8" results on my 8 core machine (32bit kernel, with
+> conntracking on) : 2319 MB/s instead of 2284 MB/s
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+Is this an implicit request for me to try to resurrect the 32-core setup?
+
+rick jones
