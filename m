@@ -1,85 +1,74 @@
-From: Stephen Hemminger <shemminger@vyatta.com>
+From: Jesper Dangaard Brouer <hawk@diku.dk>
 Subject: Re: [PATCH] netfilter: finer grained nf_conn locking
-Date: Mon, 30 Mar 2009 13:05:32 -0700
-Message-ID: <20090330130532.1e433313@nehalam>
-References: <20090218051906.174295181@vyatta.com>
-	<20090218052747.679540125@vyatta.com>
-	<499BDB5D.2050105@trash.net>
-	<499C1894.7060400@cosmosbay.com>
-	<49CE568A.9090104@cosmosbay.com>
-	<20090328174835.0d0b63f8@nehalam>
-	<49D1241B.6020504@cosmosbay.com>
+Date: Mon, 30 Mar 2009 22:34:14 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0903302224120.13385@ask.diku.dk>
+References: <20090218051906.174295181@vyatta.com> <20090218052747.679540125@vyatta.com>
+ <499BDB5D.2050105@trash.net> <499C1894.7060400@cosmosbay.com>
+ <49CE568A.9090104@cosmosbay.com> <49D11635.2050809@hp.com>
+ <Pine.LNX.4.64.0903302131390.13325@ask.diku.dk> <49D12387.20507@cosmosbay.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>,
-	David Miller <davem@davemloft.net>,
-	Rick Jones <rick.jones2@hp.com>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
+Content-Type: MULTIPART/MIXED; BOUNDARY="-511516320-68988457-1238445254=:13385"
+Cc: netdev <netdev@vger.kernel.org>,
+	Netfilter Developers <netfilter-devel@vger.kernel.org>
 To: Eric Dumazet <dada1@cosmosbay.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.vyatta.com ([76.74.103.46]:44840 "EHLO mail.vyatta.com"
+Received: from mgw2.diku.dk ([130.225.96.92]:48781 "EHLO mgw2.diku.dk"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754574AbZC3UFk convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 30 Mar 2009 16:05:40 -0400
-In-Reply-To: <49D1241B.6020504@cosmosbay.com>
+	id S1753951AbZC3UeV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 30 Mar 2009 16:34:21 -0400
+In-Reply-To: <49D12387.20507@cosmosbay.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 30 Mar 2009 21:57:15 +0200
-Eric Dumazet <dada1@cosmosbay.com> wrote:
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-> Stephen Hemminger a =C3=A9crit :
-> > On Sat, 28 Mar 2009 17:55:38 +0100
-> > Eric Dumazet <dada1@cosmosbay.com> wrote:
-> >=20
-> >> Eric Dumazet a =C3=A9crit :
-> >>> Patrick McHardy a =C3=A9crit :
-> >>>> Stephen Hemminger wrote:
-> >>>>
-> >>>>> @@ -50,6 +50,7 @@ struct ip_ct_tcp_state {
-> >>>>> =20
-> >>>>>  struct ip_ct_tcp
-> >>>>>  {
-> >>>>> +    spinlock_t    lock;
-> >>>>>      struct ip_ct_tcp_state seen[2];    /* connection parameter=
-s per
-> >>>>> direction */
-> >>>>>      u_int8_t    state;        /* state of the connection (enum
-> >>>>> tcp_conntrack) */
-> >>>>>      /* For detecting stale connections */
-> >>>> Eric already posted a patch to use an array of locks, which is
-> >>>> a better approach IMO since it keeps the size of the conntrack
-> >>>> entries down.
-> >>> Yes, we probably can use an array for short lived lock sections.
-> >=20
-> > I am not a fan of the array of locks. Sizing it is awkward and
-> > it is vulnerable to hash collisions. Let's see if there is another
-> > better way.
->=20
-> On normal machines, (no debugging spinlocks), patch uses an embedded
-> spinlock. We probably can use this even on 32bit kernels, considering
-> previous patch removed the rcu_head (8 bytes on 32bit arches) from
-> nf_conn :)
->=20
-> if LOCKDEP is on, size of a spinlock is 64 bytes on x86_64.
-> Adding a spinlock on each nf_conn would be too expensive. In this
-> case, an array of spinlock is a good compromise, as done in
-> IP route cache, tcp ehash, ...
->=20
-> I agree sizing of this hash table is not pretty, and should be
-> a generic kernel service (I wanted such service for futexes for examp=
-le)
->=20
+---511516320-68988457-1238445254=:13385
+Content-Type: TEXT/PLAIN; charset=iso-8859-1; format=flowed
+Content-Transfer-Encoding: 8BIT
 
-IMO having different locking based on lockdep and architecture is an in=
-vitation
-to future obscure problems. Perhaps some other locking method or shrink=
-ing
-ct entry would be better.
+On Mon, 30 Mar 2009, Eric Dumazet wrote:
+
+> Jesper Dangaard Brouer a écrit :
+>>
+>>> Eric Dumazet wrote:
+>>>>  "tbench 8" results on my 8 core machine (32bit kernel, with
+>>>>  conntracking on) : 2319 MB/s instead of 2284 MB/s
+>>
+>> How do you achieve this impressing numbers?
+>> Is it against localhost? (10Gbit/s is max 1250 MB/s)
+>>
+>
+> tbench is a tcp test on localhost yes :)
+
+I see!
+
+Using a Sun 10GbE NIC I was only getting a throughput of 556.86 MB/sec 
+with 64 procs (between an AMD Phenom X4 and a Core i7).  (Not tuned multi 
+queues yet ...)
+
+Against localhost I'm getting (not with applied patch):
+
+  1336.42 MB/sec on my AMD phenom X4 9950 Quad-Core Processor
+
+  1552.81 MB/sec on my Core i7 920 (4 physical cores, plus 4 threads)
+
+  2274.53 MB/sec on my dual CPU Xeon E5420 (8 cores)
+
+
+> Good to test tcp stack without going to NIC hardware
+
+Yes true, but this also stresses the process scheduler, I'm seeing around 
+800.000 context switches per sec on the Dual CPU Xeon system.
+
+
+Cheers,
+   Jesper Brouer
+
 --
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-------------------------------------------------------------------
+MSc. Master of Computer Science
+Dept. of Computer Science, University of Copenhagen
+Author of http://www.adsl-optimizer.dk
+-------------------------------------------------------------------
+---511516320-68988457-1238445254=:13385--
