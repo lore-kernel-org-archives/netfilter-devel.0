@@ -1,46 +1,33 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: linux-next: Tree for March 27 (netfilter build error)
-Date: Sun, 29 Mar 2009 13:46:14 -0700 (PDT)
-Message-ID: <20090329.134614.198823811.davem@davemloft.net>
-References: <20090329064704.GA7255@localhost>
-	<20090328.234739.26481917.davem@davemloft.net>
-	<49CF62A2.6050803@netfilter.org>
+From: Evgeniy Polyakov <zbr@ioremap.net>
+Subject: Re: Passive OS fingerprint xtables match.
+Date: Mon, 30 Mar 2009 10:20:52 +0400
+Message-ID: <20090330062052.GA26646@ioremap.net>
+References: <20090326141405.GA25404@ioremap.net> <49CB8EC6.6070705@trash.net> <20090326145946.GA28563@ioremap.net> <49CB9A57.6030903@trash.net> <20090326154135.GA30712@ioremap.net> <49CBA39A.4000705@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: gorcunov@gmail.com, randy.dunlap@oracle.com, sfr@canb.auug.org.au,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, kaber@trash.net,
-	netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <49CF62A2.6050803@netfilter.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, David Miller <davem@davemloft.net>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Jan Engelhardt <jengelh@medozas.de>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from intermatrixgroup.ru ([195.178.208.66]:59547 "EHLO
+	tservice.net.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750799AbZC3GVH (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 30 Mar 2009 02:21:07 -0400
+Content-Disposition: inline
+In-Reply-To: <49CBA39A.4000705@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Sun, 29 Mar 2009 13:59:30 +0200
+On Thu, Mar 26, 2009 at 04:47:38PM +0100, Patrick McHardy (kaber@trash.net) wrote:
+> Thanks. I'll wait for Dave's decision before applying it.
 
-> David Miller wrote:
-> > From: Cyrill Gorcunov <gorcunov@gmail.com>
-> > Date: Sun, 29 Mar 2009 10:47:04 +0400
-> > 
-> >> [Randy Dunlap - Sat, Mar 28, 2009 at 09:26:42PM -0700]
-> >> ... 
-> >> | works_for_me.  Thanks.
-> >> | but missing S-O-B.
-> >> | 
-> >> | Acked-by: Randy Dunlap <randy.dunlap@oracle.com>
-> >> ...
-> >>
-> >> Thanks for testing Randy. So if nobody will complain
-> >> here is a solid version of the patch. Though I would like
-> >> if Pablo or Patrick confirm its correctness. Thanks!
-> > 
-> > I'll apply this once Patrick or Pablo have a look at it.
-> 
-> I think that the patch attached is better since it removes the overhead
-> of the IPv6 dependency, which is indeed too much for the use of one
-> function. Thanks.
+Looks like David did not pull it in, please queue OSF and its library
+into netfilter tree.
+Thank you.
 
-I think it's a lot better too, applied, thanks!
+-- 
+	Evgeniy Polyakov
