@@ -1,37 +1,48 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Checkentry called twice?
-Date: Tue, 31 Mar 2009 17:16:59 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0903311715510.1684@fbirervta.pbzchgretzou.qr>
-References: <17e3a8f80903310416w788a6379pb8184013a068c6a9@mail.gmail.com>  <17e3a8f80903310503r3fd630d6m7822f406e3694d9d@mail.gmail.com>  <alpine.LSU.2.00.0903311428080.14162@fbirervta.pbzchgretzou.qr>  <17e3a8f80903310532v44eadf72we077a301d1199aa9@mail.gmail.com>
- <17e3a8f80903310546h123f8esafda204cea519ecb@mail.gmail.com>
+From: Haibin Wang <haibin123us@gmail.com>
+Subject: stream-like interface by netfilter?
+Date: Tue, 31 Mar 2009 15:03:07 -0700
+Message-ID: <741894ea0903311503j1ac8aebbt3b2767d6e18173eb@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Kristian Evensen <kristian.evensen@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:51320 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756122AbZCaPRE (ORCPT
+Received: from yx-out-2324.google.com ([74.125.44.30]:17723 "EHLO
+	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759525AbZCaWDJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 31 Mar 2009 11:17:04 -0400
-In-Reply-To: <17e3a8f80903310546h123f8esafda204cea519ecb@mail.gmail.com>
+	Tue, 31 Mar 2009 18:03:09 -0400
+Received: by yx-out-2324.google.com with SMTP id 31so2642349yxl.1
+        for <netfilter-devel@vger.kernel.org>; Tue, 31 Mar 2009 15:03:07 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi Netfilter folks,
 
-On Tuesday 2009-03-31 14:46, Kristian Evensen wrote:
+Some questions on netfilter interface in kernel space.
 
->Sorry for asking stupid questions, by reading some sections of the
->book a bit more thorough I discovered that destroy is called after
->checkentry :) Now I also understand why quota2 uses lists.
+First, Does netfilter provide a stream-like interface in kernel space,
+in addition to packets?
+Second, if not, is there a way that netfilter provides packets of a
+TCP connection in right order ( maybe also duplications free)?
+Third, if so, what would be the best place to put in TCP reassembly
+code to collect packets and present a stream-like interface? I used
+NAT helper and CONNTRACK helper before, but not sure that is the right
+place to fulfill such a function.
 
-The list is actually used so that we know what to show in procfs. As 
-described in the book, quota and recent and so on work because the new 
-table is checked first (which ups the refcount) before the old table 
-dies (downing the refcount), so it's 1->2->1 instead of 1->0->1. So the 
-data portions luckily don't go away while replacing a table.
+Essentially we are doing a project that requires inspecting contents
+of TCP connections, our current approach requires patch to kernel
+TCP/IP stack, which isn't that convenient to end users. So we want to
+explore the idea whether we could do it using Netfilter. But so far I
+haven't found such an interface from Netfilter documentation.
 
->However, if there is a way to avoid replacing the table I am very
->interested in learning about it.
+I did read another open source project Layer 7 Netfilter,
+http://l7-filter.sourceforge.net/
 
-Nope.
+
+, but since it also applies patch to the kernel, it isn't exactly what
+we want, though a good place to start with.
+
+Thanks for your attention.
+
+Haibin
