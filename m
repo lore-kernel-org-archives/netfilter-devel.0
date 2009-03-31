@@ -1,39 +1,38 @@
-From: Rick Jones <rick.jones2@hp.com>
-Subject: Re: [PATCH] netfilter: finer grained nf_conn locking
-Date: Mon, 30 Mar 2009 15:44:19 -0700
-Message-ID: <49D14B43.6030203@hp.com>
-References: <20090218051906.174295181@vyatta.com>	<20090218052747.679540125@vyatta.com>	<499BDB5D.2050105@trash.net> <499C1894.7060400@cosmosbay.com>	<49CE568A.9090104@cosmosbay.com> <49D11635.2050809@hp.com>	<Pine.LNX.4.64.0903302131390.13325@ask.diku.dk>	<49D12387.20507@cosmosbay.com>	<Pine.LNX.4.64.0903302224120.13385@ask.diku.dk> <49D12E87.4090005@cosmosbay.com>
+From: Kristian Evensen <kristian.evensen@gmail.com>
+Subject: Checkentry called twice?
+Date: Tue, 31 Mar 2009 13:16:47 +0200
+Message-ID: <17e3a8f80903310416w788a6379pb8184013a068c6a9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Jesper Dangaard Brouer <hawk@diku.dk>,
-	netdev <netdev@vger.kernel.org>,
-	Netfilter Developers <netfilter-devel@vger.kernel.org>
-To: Eric Dumazet <dada1@cosmosbay.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <49D12E87.4090005@cosmosbay.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-bw0-f169.google.com ([209.85.218.169]:37884 "EHLO
+	mail-bw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750852AbZCaLQu (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 31 Mar 2009 07:16:50 -0400
+Received: by bwz17 with SMTP id 17so2313397bwz.37
+        for <netfilter-devel@vger.kernel.org>; Tue, 31 Mar 2009 04:16:47 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-> Indeed, tbench is a mix of tcp and process scheduler test/bench
+Hello,
 
-If I were inclined to run networking tests (eg netperf) over loopback and wanted 
-to maximize the trips up and down the protocol stack while minimizing scheduler 
-overheads, I might be inclinded to configure --enable-burst with netperf and then 
-run N/2 concurrent instances of something like:
+I am (still) working on a small target for xtables and have
+encountered a bug I don't quite understand. It seems that after the
+first rule using my target is inserted, checkentry is called twice for
+every following rule. The reason I think this is that my output in the
+checkentry-function appears twice in the log-files. In addition, for
+some reason, the struct in the first call contains the values for the
+previous rule. After having studied my checkentry-function in detail,
+I don't find anything wrong with it. It does the necessary checks,
+creates a unique proc-file for this rule and returns true if
+everything is fine, and false otherwise.
 
-netperf -T M,N -t TCP_RR -l 30 -- -b 128 -D &
+I have always though that checkentry is always called once per rule
+(it returns true), does anyone have any hints, tips or suggestions to
+what might be wrong? Please let me know if you need more information.
 
-where M and N were chosen to have each netperf and netserver pair bound to a pair 
-of suitable cores, and the value in the -b option wash picked to maximize the CPU 
-utilization on those cores.  Then, in theory there would be little to no process 
-to process context switching and presumably little in the way of scheduler effect.
-
-What I don't know is if such a setup would have both netperf and netserver each 
-consuming 100% of a CPU or if one of them might "peg" before the other.  If one 
-did peg before the other, I might be inclined to switch to running N concurrent 
-instances, with -T M to bind each  netperf/netserver pair to the same core. 
-There would then be the process to process context switching though it would be 
-limited to "related" processes.
-
-rick jones
+Thanks,
+Kristian
