@@ -1,49 +1,38 @@
-From: Kristian Evensen <kristian.evensen@gmail.com>
-Subject: Re: Buffering and libnetfilter
-Date: Thu, 02 Apr 2009 19:22:55 +0200
-Message-ID: <49D4F46F.4030909@gmail.com>
-References: <17e3a8f80904020612u4ccbff81h5b9a009fe1e81227@mail.gmail.com> <17e3a8f80904020712r65e6f994g51d95756ef6efb1b@mail.gmail.com>
+From: Jiri Moravec <jim.lkml@gmail.com>
+Subject: Xtables-addons 1.14 - DHCPMAC.Kconfig problem
+Date: Thu, 02 Apr 2009 22:58:47 +0200
+Message-ID: <gr38uq$mud$1@ger.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.26]:18268 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760796AbZDBRSe (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 Apr 2009 13:18:34 -0400
-Received: by ey-out-2122.google.com with SMTP id 4so169437eyf.37
-        for <netfilter-devel@vger.kernel.org>; Thu, 02 Apr 2009 10:18:32 -0700 (PDT)
-In-Reply-To: <17e3a8f80904020712r65e6f994g51d95756ef6efb1b@mail.gmail.com>
+Received: from main.gmane.org ([80.91.229.2]:55850 "EHLO ciao.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755268AbZDBU70 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 2 Apr 2009 16:59:26 -0400
+Received: from list by ciao.gmane.org with local (Exim 4.43)
+	id 1LpU0O-0007yt-7o
+	for netfilter-devel@vger.kernel.org; Thu, 02 Apr 2009 20:59:20 +0000
+Received: from 78.156.136.66 ([78.156.136.66])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Thu, 02 Apr 2009 20:59:20 +0000
+Received: from jim.lkml by 78.156.136.66 with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <netfilter-devel@vger.kernel.org>; Thu, 02 Apr 2009 20:59:20 +0000
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello again,
+DHCPMAC.Kconfig some way lost TARGET_ ...
 
-After doing some more debugging, I have come a bit closer to answering 
-my question. However, there is one thing still puzzling me.
-
-I wrote a small application that uses select to multiplex between stdin 
-and the kernelsocket. When a netfilter-packet arrives, the packet_id is 
-registered in a list and the callback function returns 1. The user can 
-input the id of the packet he or she wants to have sent, and I use 
-nfq_set_verdict to allow the packet to continue its journey through the 
-kernel.
-
-When using this application, the same as with the test application 
-occurs. If I don't allow any packets to continue through the kernel, 
-netfilter_queue stops delivering new packets to the application after a 
-little while (recv/select just blocks). However, when I input a corret 
-id and allow the kernel to continue sending a packet, netfilter 
-deliveres a new packet immideatly (where packet_id == 
-prev_highest_packet_id + 1). So, my question now is, why do 
-netfilter_queue stop delivering new packets in the first place? I have 
-tried both tweaking the queue lenght (using nfnl_recv_bufsiz) and 
-setting it to extremely high values, and played around with the 
-proc-variables that control network memory consumption.
-
-Thanks in advance for any help,
-Kristian
-
+diff -Nupr v1.14/extensions/xt_DHCPMAC.Kconfig v1.14-r1/extensions/xt_DHCPMAC.Kconfig
+--- v1.14/extensions/xt_DHCPMAC.Kconfig	2009-04-02 22:44:11.000000000 +0200
++++ v1.14-r1/extensions/xt_DHCPMAC.Kconfig	2009-04-02 22:44:43.000000000 +0200
+@@ -1,4 +1,4 @@
+-config NETFILTER_XT_DHCPMAC
++config NETFILTER_XT_TARGET_DHCPMAC
+ 	tristate '"DHCPMAC" DHCP address matching and manipulation support'
+ 	depends on NETFILTER_XTABLES
+ 	depends on IP_NF_MANGLE || IP6_NF_MANGLE
 
