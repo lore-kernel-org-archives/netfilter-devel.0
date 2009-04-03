@@ -1,51 +1,35 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Google SoC, Optimized netfilter implementation
-Date: Fri, 03 Apr 2009 15:47:40 +0200
-Message-ID: <49D6137C.5030205@trash.net>
-References: <daf8006b0903311912g2c83d221w68197954d1e08d0d@mail.gmail.com> <878wmikqw8.fsf@basil.nowhere.org>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: Looking for a example of reading incoming IP
+Date: Fri, 3 Apr 2009 18:28:53 +0200 (CEST)
+Message-ID: <alpine.LSU.2.00.0904031826020.28939@fbirervta.pbzchgretzou.qr>
+References: <233215.95431.qm@web43411.mail.sp1.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Shreyas Bhatewara <shreyas.bhatewara@gmail.com>,
-	netfilter-devel@vger.kernel.org
-To: Andi Kleen <andi@firstfloor.org>
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Kunsheng Chen <kunsheng.chen@yahoo.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:48125 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754549AbZDCNrq (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:48399 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S936678AbZDCQ25 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 3 Apr 2009 09:47:46 -0400
-In-Reply-To: <878wmikqw8.fsf@basil.nowhere.org>
+	Fri, 3 Apr 2009 12:28:57 -0400
+In-Reply-To: <233215.95431.qm@web43411.mail.sp1.yahoo.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Andi Kleen wrote:
-> Shreyas Bhatewara <shreyas.bhatewara@gmail.com> writes:
->> I am composing a proposal for this project to be submitted at Google
->> SoC. Could anyone brief me about what you mean by "dynamic code
->> generation" (https://www.linuxfoundation.org/en/Google_Summer_of_Code_2009#Optimized_netfilter_implementation).
-> 
-> 
-> I believe it refers to generate machine code for firewall rules.
-> So instead of interpreting a data structure the dynamically generated
-> code would just check the rules directly.
-> 
-> This was done by some kernels before, e.g. OSF/Mach had code to compile
-> BPF rules into machine code.
-> 
-> Doing something like this would be likely interesting, but I expect
-> it would be far too much general work for a single SoC. So if you wanted
-> to do anything like that you would need to select a very narrow doable
-> subset.
 
-Thomas Graf presented something similar for TC at netconf 2005.
-But I'm not sure whether it was ever released.
+On Friday 2009-04-03 05:01, Kunsheng Chen wrote:
+>
+>I am looking for a example of netfilter hook to read the ip address
+> of incoming packets in both PreRoute and PostRoute.
 
-But I'm not so sure about the benefits. Sure, you can generate
-optimized code for the simple cases (lets say, TCP port comparison).
-But the impact how much you can gain from this is quite limited
-I'd expect, for large rulesets algorithmic improvements have a
-much larger potential. Something like hipac should not have to
-look at the key for each dimension (port number, address etc.)
-more than once, so it pretty much doesn't matter how well optimized
-that code is.
+Have a look at the Writing Netfilter Modules e-book
+(http://jengelh.medozas.de/), section=C2=A02 ("match extension"), which
+presents a fictional ipaddr module for demonstrational purposes
+that reads and prints said address.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
