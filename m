@@ -1,40 +1,36 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [pull] fixes to bz items
-Date: Fri, 3 Apr 2009 23:01:47 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0904032254260.8946@fbirervta.pbzchgretzou.qr>
+Subject: Re: Xtables-addons 1.14 - DHCPMAC.Kconfig problem
+Date: Sat, 4 Apr 2009 01:13:32 +0200 (CEST)
+Message-ID: <alpine.LSU.2.00.0904040111480.9894@fbirervta.pbzchgretzou.qr>
+References: <gr38uq$mud$1@ger.gmane.org>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: pablo@netfilter.org
+Cc: netfilter-devel@vger.kernel.org
+To: Jiri Moravec <jim.lkml@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:52045 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:56262 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753245AbZDCVBu (ORCPT
+	with ESMTP id S1753636AbZDCXNg (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 3 Apr 2009 17:01:50 -0400
+	Fri, 3 Apr 2009 19:13:36 -0400
+In-Reply-To: <gr38uq$mud$1@ger.gmane.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
 
+On Thursday 2009-04-02 22:58, Jiri Moravec wrote:
 
-Please pull from
-	git://dev.medozas.de/iptables master
-to receive fixes to bug reports told via e-mail and the Netfilter 
-bugzilla.
+>DHCPMAC.Kconfig some way lost TARGET_ ...
 
-Jan Engelhardt (5):
-      libxtables: reorder .version member
-      build: do not run ldconfig for DESTDIR installations
-      build: add configure option to disable ip6tables
-      build: add configure option to disable ipv4 iptables
-      libxtables: provide IPv6 zero address variable
+Nope, it's actually correct since the .c file contains  both target and 
+match.
 
-Updating cdf51d0..9c0fa7d
-Fast forward
- Makefile.am               |   20 ++++++++++++++------
- configure.ac              |   10 +++++++++-
- extensions/GNUmakefile.in |    4 ++--
- include/xtables.h.in      |   16 +++++++++++++---
- xtables.c                 |    3 ++-
- 5 files changed, 40 insertions(+), 13 deletions(-)
+>diff -Nupr v1.14/extensions/xt_DHCPMAC.Kconfig v1.14-r1/extensions/xt_DHCPMAC.Kconfig
+>--- v1.14/extensions/xt_DHCPMAC.Kconfig	2009-04-02 22:44:11.000000000 +0200
+>+++ v1.14-r1/extensions/xt_DHCPMAC.Kconfig	2009-04-02 22:44:43.000000000 +0200
+>@@ -1,4 +1,4 @@
+>-config NETFILTER_XT_DHCPMAC
+>+config NETFILTER_XT_TARGET_DHCPMAC
+> 	tristate '"DHCPMAC" DHCP address matching and manipulation support'
+> 	depends on NETFILTER_XTABLES
+> 	depends on IP_NF_MANGLE || IP6_NF_MANGLE
