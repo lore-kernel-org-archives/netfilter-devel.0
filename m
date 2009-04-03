@@ -1,36 +1,42 @@
-From: Kunsheng Chen <kunsheng.chen@yahoo.com>
-Subject: Looking for a example of reading incoming IP
-Date: Thu, 2 Apr 2009 20:01:31 -0700 (PDT)
-Message-ID: <233215.95431.qm@web43411.mail.sp1.yahoo.com>
+From: Andi Kleen <andi@firstfloor.org>
+Subject: Re: Google SoC, Optimized netfilter implementation
+Date: Fri, 03 Apr 2009 11:50:15 +0200
+Message-ID: <878wmikqw8.fsf@basil.nowhere.org>
+References: <daf8006b0903311912g2c83d221w68197954d1e08d0d@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Shreyas Bhatewara <shreyas.bhatewara@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from n78.bullet.mail.sp1.yahoo.com ([98.136.44.42]:37295 "HELO
-	n78.bullet.mail.sp1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751043AbZDCDBe (ORCPT
+Received: from one.firstfloor.org ([213.235.205.2]:50466 "EHLO
+	one.firstfloor.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762282AbZDCJuV (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 2 Apr 2009 23:01:34 -0400
+	Fri, 3 Apr 2009 05:50:21 -0400
+In-Reply-To: <daf8006b0903311912g2c83d221w68197954d1e08d0d@mail.gmail.com> (Shreyas Bhatewara's message of "Tue, 31 Mar 2009 21:12:36 -0500")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-Hello everyone,
-
-I am looking for a example of netfilter hook to read the ip address of incoming packets in both PreRoute and PostRoute. 
-
-I searched online for some example but none of them work for the kernel 2.6.29 I am using. I am not sure whether there something has been changed there.
-
-I could set up the hook now but always fail to read the correct ip address. Basically I want to store that ip address into a char array than just print it out. 
-
-Appreciate any help especially some concrete example.
+Shreyas Bhatewara <shreyas.bhatewara@gmail.com> writes:
+>
+> I am composing a proposal for this project to be submitted at Google
+> SoC. Could anyone brief me about what you mean by "dynamic code
+> generation" (https://www.linuxfoundation.org/en/Google_Summer_of_Code_2009#Optimized_netfilter_implementation).
 
 
-Thanks in advance,
+I believe it refers to generate machine code for firewall rules.
+So instead of interpreting a data structure the dynamically generated
+code would just check the rules directly.
 
+This was done by some kernels before, e.g. OSF/Mach had code to compile
+BPF rules into machine code.
 
--Kunsheng Chen
+Doing something like this would be likely interesting, but I expect
+it would be far too much general work for a single SoC. So if you wanted
+to do anything like that you would need to select a very narrow doable
+subset.
 
+-Andi
 
-      
-
+-- 
+ak@linux.intel.com -- Speaking for myself only.
