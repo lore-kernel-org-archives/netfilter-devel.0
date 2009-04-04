@@ -1,88 +1,155 @@
-From: Peter Volkov <pva@gentoo.org>
-Subject: [patch] iptables-1.4.3.1: unabled to restore proto and iface
- negated matches
-Date: Sat, 04 Apr 2009 14:11:12 +0400
-Message-ID: <1238839872.31963.621.camel@localhost>
-References: <49C8DB3B.909@netfilter.org>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [patch] iptables-1.4.3.1: unabled to restore ! -s 192.168.1.0/24
+ match
+Date: Sat, 4 Apr 2009 13:40:09 +0200 (CEST)
+Message-ID: <alpine.LSU.2.00.0904041334001.13174@fbirervta.pbzchgretzou.qr>
+References: <49C8DB3B.909@netfilter.org> <1238838634.31963.578.camel@localhost>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-EfY+QwnEqrN42KAZ+XPN"
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Peter Volkov <pva@gentoo.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:45366 "EHLO smtp.gentoo.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755106AbZDDKLw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 4 Apr 2009 06:11:52 -0400
-In-Reply-To: <49C8DB3B.909@netfilter.org>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:55182 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752197AbZDDLkN (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 4 Apr 2009 07:40:13 -0400
+In-Reply-To: <1238838634.31963.578.camel@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Saturday 2009-04-04 11:50, Peter Volkov wrote:
 
---=-EfY+QwnEqrN42KAZ+XPN
-Content-Type: multipart/mixed; boundary="=-7ma1aNmuc8F2Q5t3yOYn"
+>Hi. We've received bug report about broken ! -s 192.168.1.0/24 match:
+>http://bugs.gentoo.org/264089
 
-
---=-7ma1aNmuc8F2Q5t3yOYn
-Content-Type: text/plain
-Content-Transfer-Encoding: quoted-printable
-
-Hi. After previous fix I've reviewed sources a bit and found that
-protocol and iface negated matches are broken in the same regard. Patch
-in attachment fixes them too.
-
---=20
-Peter.
-
---=-7ma1aNmuc8F2Q5t3yOYn
-Content-Disposition: attachment; filename="iptables-1.4.3.1-proto-iface-save-restore.patch"
-Content-Type: text/x-patch; name="iptables-1.4.3.1-proto-iface-save-restore.patch";
-	charset="UTF-8"
-Content-Transfer-Encoding: base64
-
-Y29tbWl0IGEwOGRiMzQ5ZDBiZTk5YThhZThiNGFiMjcxNDg5YjQyNzM1ZjQ0MDQNCkF1dGhvcjog
-UGV0ZXIgVm9sa292IDxwdmFAZ2VudG9vLm9yZz4NCkRhdGU6ICAgU2F0IEFwciA0IDE0OjA3OjMx
-IDIwMDkgKzA0MDANCg0KICAgIEZpeCByZXN0b3JlIG9mIG5lZ2F0ZWQgaWZhY2UgYW5kIHByb3Rv
-IG1hdGNoZXMNCiAgICANCiAgICBBdHRlbXQgdG8gcmVzdG9yZSBydWxlc2V0IHdpdGggISAtaSBp
-ZmFjZSBvciAhIC1wIHByb3RvIG1hdGNoZXMgZmFpbA0KICAgIHdpdGggdGhlIGZvbGxvd2luZyBl
-cnJvcjoNCiAgICANCiAgICBVc2luZyBpbnRyYXBvc2l0aW9uZWQgbmVnYXRpb24gKGAtLW9wdGlv
-biAhIHRoaXNgKSBpcyBkZXByZWNhdGVkIGluDQogICAgZmF2b3Igb2YgZXh0cmFwb3NpdGlvbmVk
-IChgISAtLW9wdGlvbiB0aGlzYCkuDQogICAgDQogICAgVGhpcyBwYXRjaCBmaXhlcyB0aGlzIGlz
-c3VlLg0KDQpkaWZmIC0tZ2l0IGEvaXB0YWJsZXMuYyBiL2lwdGFibGVzLmMNCmluZGV4IGZlNDNh
-YjAuLjM5Mjk4MWYgMTAwNjQ0DQotLS0gYS9pcHRhYmxlcy5jDQorKysgYi9pcHRhYmxlcy5jDQpA
-QCAtMTAwMiwyMiArMTAwMiwyMiBAQCBzdGF0aWMgdm9pZCBwcmludF9wcm90byh1X2ludDE2X3Qg
-cHJvdG8sIGludCBpbnZlcnQpDQogew0KIAlpZiAocHJvdG8pIHsNCiAJCXVuc2lnbmVkIGludCBp
-Ow0KLQkJY29uc3QgY2hhciAqaW52ZXJ0c3RyID0gaW52ZXJ0ID8gIiEgIiA6ICIiOw0KKwkJY29u
-c3QgY2hhciAqaW52ZXJ0c3RyID0gaW52ZXJ0ID8gIiEiIDogIiI7DQogDQogCQlzdHJ1Y3QgcHJv
-dG9lbnQgKnBlbnQgPSBnZXRwcm90b2J5bnVtYmVyKHByb3RvKTsNCiAJCWlmIChwZW50KSB7DQot
-CQkJcHJpbnRmKCItcCAlcyVzICIsIGludmVydHN0ciwgcGVudC0+cF9uYW1lKTsNCisJCQlwcmlu
-dGYoIiVzIC1wICVzICIsIGludmVydHN0ciwgcGVudC0+cF9uYW1lKTsNCiAJCQlyZXR1cm47DQog
-CQl9DQogDQogCQlmb3IgKGkgPSAwOyB4dGFibGVzX2NoYWluX3Byb3Rvc1tpXS5uYW1lICE9IE5V
-TEw7ICsraSkNCiAJCQlpZiAoeHRhYmxlc19jaGFpbl9wcm90b3NbaV0ubnVtID09IHByb3RvKSB7
-DQotCQkJCXByaW50ZigiLXAgJXMlcyAiLA0KKwkJCQlwcmludGYoIiVzIC1wICVzICIsDQogCQkJ
-CSAgICAgICBpbnZlcnRzdHIsIHh0YWJsZXNfY2hhaW5fcHJvdG9zW2ldLm5hbWUpOw0KIAkJCQly
-ZXR1cm47DQogCQkJfQ0KIA0KLQkJcHJpbnRmKCItcCAlcyV1ICIsIGludmVydHN0ciwgcHJvdG8p
-Ow0KKwkJcHJpbnRmKCIlcyAtcCAldSAiLCBpbnZlcnRzdHIsIHByb3RvKTsNCiAJfQ0KIH0NCiAN
-CkBAIC0xMDM5LDcgKzEwMzksNyBAQCBwcmludF9pZmFjZShjaGFyIGxldHRlciwgY29uc3QgY2hh
-ciAqaWZhY2UsIGNvbnN0IHVuc2lnbmVkIGNoYXIgKm1hc2ssDQogCWlmIChtYXNrWzBdID09IDAp
-DQogCQlyZXR1cm47DQogDQotCXByaW50ZigiLSVjICVzIiwgbGV0dGVyLCBpbnZlcnQgPyAiISAi
-IDogIiIpOw0KKwlwcmludGYoIiVzIC0lYyAiLCBpbnZlcnQgPyAiISIgOiAiIiwgbGV0dGVyKTsN
-CiANCiAJZm9yIChpID0gMDsgaSA8IElGTkFNU0laOyBpKyspIHsNCiAJCWlmIChtYXNrW2ldICE9
-IDApIHsNCg==
+I combined your two patches, added the missing ip6 parts and used
+the default iptables spacing idioms.
 
 
---=-7ma1aNmuc8F2Q5t3yOYn--
+Pablo: This is available through the 'plus' branch at 
+git://dev.medozas.de/iptables.
 
---=-EfY+QwnEqrN42KAZ+XPN
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.10 (GNU/Linux)
+parent 9c0fa7d8c84dc2478bd36d31b328b697fbe4d0af (v1.4.3.1-7-g9c0fa7d)
+commit b1d968c30dde563c2738fdacb723c18232fb5ccb
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Sat Apr 4 13:28:40 2009 +0200
 
-iEYEABECAAYFAknXMkAACgkQz6tlgEWSarOrPwCfbIeDoxqeQynFIooI8ex5DKtQ
-nWEAn2G191wHwNEWiUSpvThbaVFT95PS
-=M04C
------END PGP SIGNATURE-----
+iptables: print negation extrapositioned
 
---=-EfY+QwnEqrN42KAZ+XPN--
+This patch combines the two referenced ones by Peter. I did a quick
+extra audit to spot and fix the missing ip6tables parts. (People like
+to forget ip6tables it seems.) Extension modules were, to the best of
+my knowledge, already audited in v1.4.3-rc1-10-gcea9f71.
 
+Reported-by: Yar Odin <yarodin@gmail.com>
+References: http://bugs.gentoo.org/264089
+Reported-by: Peter Volkov <pva@gentoo.org>
+References: http://marc.info/?l=netfilter-devel&m=123883867907935&w=2
+References: http://marc.info/?l=netfilter-devel&m=123883992508943&w=2
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ ip6tables.c |   12 ++++++------
+ iptables.c  |   12 ++++++------
+ 2 files changed, 12 insertions(+), 12 deletions(-)
+
+diff --git a/ip6tables.c b/ip6tables.c
+index 54366b0..35067f8 100644
+--- a/ip6tables.c
++++ b/ip6tables.c
+@@ -1006,7 +1006,7 @@ print_iface(char letter, const char *iface, const unsigned char *mask,
+ 	if (mask[0] == 0)
+ 		return;
+ 
+-	printf("-%c %s", letter, invert ? "! " : "");
++	printf("%s-%c ", invert ? "! " : "", letter);
+ 
+ 	for (i = 0; i < IFNAMSIZ; i++) {
+ 		if (mask[i] != 0) {
+@@ -1033,19 +1033,19 @@ static void print_proto(u_int16_t proto, int invert)
+ 
+ 		struct protoent *pent = getprotobynumber(proto);
+ 		if (pent) {
+-			printf("-p %s%s ",
++			printf("%s-p %s ",
+ 			       invertstr, pent->p_name);
+ 			return;
+ 		}
+ 
+ 		for (i = 0; xtables_chain_protos[i].name != NULL; ++i)
+ 			if (xtables_chain_protos[i].num == proto) {
+-				printf("-p %s%s ",
++				printf("%s-p %s ",
+ 				       invertstr, xtables_chain_protos[i].name);
+ 				return;
+ 			}
+ 
+-		printf("-p %s%u ", invertstr, proto);
++		printf("%s-p %u ", invertstr, proto);
+ 	}
+ }
+ 
+@@ -1081,9 +1081,9 @@ static void print_ip(char *prefix, const struct in6_addr *ip, const struct in6_a
+ 	if (l == 0 && !invert)
+ 		return;
+ 
+-	printf("%s %s%s",
+-		prefix,
++	printf("%s%s %s",
+ 		invert ? "! " : "",
++		prefix,
+ 		inet_ntop(AF_INET6, ip, buf, sizeof buf));
+ 
+ 	if (l == -1)
+diff --git a/iptables.c b/iptables.c
+index 3449dec..649baf4 100644
+--- a/iptables.c
++++ b/iptables.c
+@@ -1006,18 +1006,18 @@ static void print_proto(u_int16_t proto, int invert)
+ 
+ 		struct protoent *pent = getprotobynumber(proto);
+ 		if (pent) {
+-			printf("-p %s%s ", invertstr, pent->p_name);
++			printf("%s-p %s ", invertstr, pent->p_name);
+ 			return;
+ 		}
+ 
+ 		for (i = 0; xtables_chain_protos[i].name != NULL; ++i)
+ 			if (xtables_chain_protos[i].num == proto) {
+-				printf("-p %s%s ",
++				printf("%s-p %s ",
+ 				       invertstr, xtables_chain_protos[i].name);
+ 				return;
+ 			}
+ 
+-		printf("-p %s%u ", invertstr, proto);
++		printf("%s-p %u ", invertstr, proto);
+ 	}
+ }
+ 
+@@ -1039,7 +1039,7 @@ print_iface(char letter, const char *iface, const unsigned char *mask,
+ 	if (mask[0] == 0)
+ 		return;
+ 
+-	printf("-%c %s", letter, invert ? "! " : "");
++	printf("%s-%c ", invert ? "! " : "", letter);
+ 
+ 	for (i = 0; i < IFNAMSIZ; i++) {
+ 		if (mask[i] != 0) {
+@@ -1089,9 +1089,9 @@ static void print_ip(char *prefix, u_int32_t ip, u_int32_t mask, int invert)
+ 	if (!mask && !ip && !invert)
+ 		return;
+ 
+-	printf("%s %s%u.%u.%u.%u",
+-		prefix,
++	printf("%s%s %u.%u.%u.%u",
+ 		invert ? "! " : "",
++		prefix,
+ 		IP_PARTS(ip));
+ 
+ 	if (mask == 0xFFFFFFFFU) {
+-- 
+# Created with git-export-patch
