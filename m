@@ -1,53 +1,36 @@
-From: Eric Dumazet <dada1@cosmosbay.com>
-Subject: Re: Regression caused by commit "netfilter: iptables: lock free counters"
-Date: Sun, 05 Apr 2009 14:34:50 +0200
-Message-ID: <49D8A56A.8050606@cosmosbay.com>
-References: <20090329234702.4988017f@desktop.r000n.info> <8763hja8cy.fsf@newton.gmurray.org.uk> <20090405.012237.198610462.davem@davemloft.net> <49D88162.5040809@cosmosbay.com> <alpine.LSU.2.00.0904051328030.7501@fbirervta.pbzchgretzou.qr>
+From: BlackCat <blackcatzilla@gmail.com>
+Subject: Capture packets without route
+Date: Sun, 5 Apr 2009 20:34:23 +0400
+Message-ID: <1033002276.20090405203423@gmail.com>
+Reply-To: BlackCat <blackcatzilla@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: David Miller <davem@davemloft.net>, graham@gmurray.org.uk,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from gw1.cosmosbay.com ([212.99.114.194]:60102 "EHLO
-	gw1.cosmosbay.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751256AbZDEMfA convert rfc822-to-8bit (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.159]:19355 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750955AbZDEQed (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 5 Apr 2009 08:35:00 -0400
-In-Reply-To: <alpine.LSU.2.00.0904051328030.7501@fbirervta.pbzchgretzou.qr>
+	Sun, 5 Apr 2009 12:34:33 -0400
+Received: by fg-out-1718.google.com with SMTP id 16so138407fgg.17
+        for <netfilter-devel@vger.kernel.org>; Sun, 05 Apr 2009 09:34:30 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt a =E9crit :
-> On Sunday 2009-04-05 12:01, Eric Dumazet wrote:
->> This could probably be solved using a single "table" containing
->> rules only, that could be shared for every cpus. Only counters
->> should be percpu. This should save a lot of ram, over previous
->> situation (2.6.29 or current one)
->=20
-> Why would counters stay separate?
->=20
-> I recognize all of this table copying is related to do NUMA
-> optimizations, and I think I heard cache bouncing too somewhere else.
->=20
-> [ http://marc.info/?l=3Dnetfilter-devel&m=3D119903624211253&w=3D2 ]
->=20
->=20
+Hello,
 
-Not only NUMA, but SMP too. counters are integrated in rules themselves=
-=2E
-So in order to avoid ping pongs between cpus, we choose to allocate
-one copy of rules/counters per cpu.
+I try to write an implementation of one of the on-demand routing protocol (AODV)
+and have small trouble. When packet arrive from the network they normaly
+appear in PRE_ROUTING hook without any route testing. But host
+packets comming from transport level are have route testing before
+LOCAL_OUT hook in the ip_queue_xmit() function. And packets without
+appropriate route are dropped before reach the hook.
 
-But with some changes, we could let the rules read-only and shared by
-all cpus, and shadow counters only on percpu variables, thus reducing
-memory costs.
+To solve this problem I use fake default route via TAP interface. My
+question is does any other solution exists?
 
+-- 
+Best regards,
+ BlackCat
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
