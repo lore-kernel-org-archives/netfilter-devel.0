@@ -1,104 +1,109 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: netfilter: xtables: print hook name instead of mask
-Date: Sun, 5 Apr 2009 10:44:51 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0904051043390.21858@fbirervta.pbzchgretzou.qr>
+From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: Re: Regression caused by commit "netfilter: iptables: lock free counters"
+Date: Sun, 05 Apr 2009 12:01:06 +0200
+Message-ID: <49D88162.5040809@cosmosbay.com>
+References: <20090329234702.4988017f@desktop.r000n.info>	<8763hja8cy.fsf@newton.gmurray.org.uk> <20090405.012237.198610462.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: graham@gmurray.org.uk, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:42060 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752747AbZDEIoy (ORCPT
+Received: from gw1.cosmosbay.com ([212.99.114.194]:48190 "EHLO
+	gw1.cosmosbay.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756933AbZDEKBS convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 5 Apr 2009 04:44:54 -0400
+	Sun, 5 Apr 2009 06:01:18 -0400
+In-Reply-To: <20090405.012237.198610462.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-parent b8dfe498775de912116f275680ddb57c8799d9ef (v2.6.29-rc5-884-gb8dfe49)
-commit fc00a21ec88ca113f9c20416998279f0f1699e75
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Sun Apr 5 10:43:09 2009 +0200
+David Miller a =E9crit :
+> From: Graham Murray <graham@gmurray.org.uk>
+> Date: Sun, 05 Apr 2009 08:05:17 +0100
+>=20
+> Please CC the appropriate mailing lists (as I have now) when reportin=
+g
+> this incredibly useful information.  The networking and netfilter
+> developers largely do not read linux-kernel.
+>=20
+>> Roman Mindalev <r000n@r000n.net> writes:
+>>
+>>> Result of the bisection:
+>>>
+>>> 784544739a25c30637397ace5489eeb6e15d7d49 is first bad commit
+>>> commit 784544739a25c30637397ace5489eeb6e15d7d49            =20
+>> I am seeing a different problem which also bisects to this commit. T=
+here are
+>> no kernel messages but ip6tables fails to run.
+>>
+>> newton ~ # ip6tables -L -v
+>> FATAL: Module ip6_tables not found.
+>> ip6tables v1.4.3.1: can't initialize ip6tables table `filter': Memor=
+y allocation problem
+>> Perhaps ip6tables or your kernel needs to be upgraded.
+>>
+>> I get this error no matter which ip6tables sub-command I run. Ip6tab=
+les
+>> is built into the kernel, not as modules.
+>>
+>> An strace shows the failure to be=20
+>> socket(PF_INET6, SOCK_RAW, IPPROTO_RAW) =3D 3
+>> getsockopt(3, SOL_IPV6, 0x40 /* IPV6_??? */, "filter\0\305\0w~\300\0=
+wb\305P\24\312\t\0009b\305\216\23\0\0\310\341/g\16"..., [84]) =3D 0
+>> brk(0)                                  =3D 0x8273000
+>> brk(0x8294000)                          =3D 0x8294000
 
-netfilter: xtables: print hook name instead of mask
+so ip6tables allocates about 128 Kbytes of ram in order to get rules fr=
+om kernel.
 
-Users cannot make anything of these numbers. Let's just tell them
-directly.
+>> getsockopt(3, SOL_IPV6, 0x41 /* IPV6_??? */, 0x8273090, 0xbfd23628) =
+=3D -1 ENOMEM (Cannot allocate memory)
+>> close(3)                                =3D 0
+>>
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- net/netfilter/x_tables.c |   42 ++++++++++++++++++++++++++++++++++---
- 1 files changed, 38 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index bfcac92..013eb14 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -329,6 +329,32 @@ int xt_find_revision(u8 af, const char *name, u8 revision, int target,
- }
- EXPORT_SYMBOL_GPL(xt_find_revision);
- 
-+static char *textify_hooks(char *buf, size_t size, unsigned int mask)
-+{
-+	static const char *const names[] = {
-+		"PREROUTING", "INPUT", "FORWARD",
-+		"OUTPUT", "POSTROUTING", "BROUTING",
-+	};
-+	unsigned int i;
-+	char *p = buf;
-+	bool np = false;
-+	int res;
-+
-+	*p = '\0';
-+	for (i = 0; i < ARRAY_SIZE(names); ++i) {
-+		if (!(mask & (1 << i)))
-+			continue;
-+		res = snprintf(p, size, "%s%s", np ? "/" : "", names[i]);
-+		if (res > 0) {
-+			size -= res;
-+			p += res;
-+		}
-+		np = true;
-+	}
-+
-+	return buf;
-+}
-+
- int xt_check_match(struct xt_mtchk_param *par,
- 		   unsigned int size, u_int8_t proto, bool inv_proto)
- {
-@@ -351,9 +377,13 @@ int xt_check_match(struct xt_mtchk_param *par,
- 		return -EINVAL;
- 	}
- 	if (par->match->hooks && (par->hook_mask & ~par->match->hooks) != 0) {
--		printk("%s_tables: %s match: bad hook_mask %#x/%#x\n",
-+		char used[64], allow[64];
-+
-+		printk("%s_tables: %s match: used from hooks %s, but only "
-+		       "valid from %s\n",
- 		       xt_prefix[par->family], par->match->name,
--		       par->hook_mask, par->match->hooks);
-+		       textify_hooks(used, sizeof(used), par->hook_mask),
-+		       textify_hooks(allow, sizeof(allow), par->match->hooks));
- 		return -EINVAL;
- 	}
- 	if (par->match->proto && (par->match->proto != proto || inv_proto)) {
-@@ -497,9 +527,13 @@ int xt_check_target(struct xt_tgchk_param *par,
- 		return -EINVAL;
- 	}
- 	if (par->target->hooks && (par->hook_mask & ~par->target->hooks) != 0) {
--		printk("%s_tables: %s target: bad hook_mask %#x/%#x\n",
-+		char used[64], allow[64];
-+
-+		printk("%s_tables: %s target: used from hooks %s, but only "
-+		       "usable from %s\n",
- 		       xt_prefix[par->family], par->target->name,
--		       par->hook_mask, par->target->hooks);
-+		       textify_hooks(used, sizeof(used), par->hook_mask),
-+		       textify_hooks(allow, sizeof(allow), par->target->hooks));
- 		return -EINVAL;
- 	}
- 	if (par->target->proto && (par->target->proto != proto || inv_proto)) {
--- 
-# Created with git-export-patch
+This is a big problem yes, since "iptables|ip6tables" -L needs to alloc=
+ate kernel memory
+to perform the momentary swap.
 
+On x86, this is potentially a problem if vmalloc space is exhausted or =
+fragmented,
+(or lowmem exhausted) and/or many cpus are online/possible.
+
+Graham, could you please give us :
+
+# cat /proc/vmallocinfo
+# cat /proc/meminfo
+
+I wonder if your machine is in a state where even an "ip6tables -A ..."=
+ would fail anyway
+since it should allocate same amount of memory than "ip6tables -L "
+
+
+This could probably be solved using a single "table" containing rules o=
+nly, that could
+be shared for every cpus. Only counters should be percpu. This should s=
+ave a lot of ram,
+over previous situation (2.6.29 or current one)
+
+(current scheme is to allocate a copy of all rules logic *and* counters=
+ per cpu)
+
+Then if we want to be sure "iptables -L" cannot fail, we should reserve=
+ this extra space
+at load time (iptables -{A|I}", instead.
+
+Other possibility is to use a percpu seqlock as Stephen did in one of h=
+is patch, and not swap tables
+when doing "iptables -L".
+This would slowdown fast path a litle bit (one spinlock/spinunlock) per=
+ ipt_do_table() call.=20
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
