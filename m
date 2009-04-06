@@ -1,84 +1,43 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter: ctnetlink: deliver events for conntracks changed from
- userspace
-Date: Mon, 06 Apr 2009 14:32:14 +0200
-Message-ID: <49D9F64E.4050304@trash.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH] netfilter: finer grained nf_conn locking
+Date: Mon, 6 Apr 2009 14:32:54 +0200 (CEST)
+Message-ID: <alpine.LSU.2.00.0904061430160.1189@fbirervta.pbzchgretzou.qr>
+References: <20090218051906.174295181@vyatta.com> <20090218052747.679540125@vyatta.com> <499BDB5D.2050105@trash.net> <499C1894.7060400@cosmosbay.com> <49CE568A.9090104@cosmosbay.com> <20090328174835.0d0b63f8@nehalam> <49D1241B.6020504@cosmosbay.com>
+ <20090330130532.1e433313@nehalam> <49D9F086.7090905@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-To: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Stephen Hemminger <shemminger@vyatta.com>,
+	Eric Dumazet <dada1@cosmosbay.com>,
+	David Miller <davem@davemloft.net>,
+	Rick Jones <rick.jones2@hp.com>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:43932 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752051AbZDFMcV (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:49407 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752042AbZDFMc5 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Apr 2009 08:32:21 -0400
+	Mon, 6 Apr 2009 08:32:57 -0400
+In-Reply-To: <49D9F086.7090905@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo, I'm looking at a regression introduced by this patch
-and I'm not sure about the intentions:
 
-> +int nf_ct_expect_related(struct nf_conntrack_expect *expect)
-> +{
-> +       int ret;
-> +
-> +       spin_lock_bh(&nf_conntrack_lock);
-> +       ret = __nf_ct_expect_check(expect);
-> +       if (ret < 0)
-> +               goto out;
+On Monday 2009-04-06 14:07, Patrick McHardy wrote:
+>>>
+>>> if LOCKDEP is on, size of a spinlock is 64 bytes on x86_64.
+>>> Adding a spinlock on each nf_conn would be too expensive. In this
+>>> case, an array of spinlock is a good compromise, as done in
+>>> IP route cache, tcp ehash, ...
+>>
+>> IMO having different locking based on lockdep and architecture is an
+>> invitation
+>> to future obscure problems. Perhaps some other locking method or shrinking
+>> ct entry would be better.
+>
+> I agree. Do people enable lockdep on production machines?
 
-This is unfortunately broken since we return 0 when refreshing an
-existing expectation. This will create an identical expectation
-for each refresh.
->  
->         nf_ct_expect_insert(expect);
-> +       atomic_inc(&expect->use);
-
-This I don't understand - the caller is holding a reference, why
-do we need another one?
-
-> +       spin_unlock_bh(&nf_conntrack_lock);
->         nf_ct_expect_event(IPEXP_NEW, expect);
-> -       ret = 0;
-> +       nf_ct_expect_put(expect);
-> +       return ret;
->  out:
->         spin_unlock_bh(&nf_conntrack_lock);
->         return ret;
->  }
->  EXPORT_SYMBOL_GPL(nf_ct_expect_related);
->  
-> +int nf_ct_expect_related_report(struct nf_conntrack_expect *expect, 
-> +                               u32 pid, int report)
-> +{
-> +       int ret;
-> +
-> +       spin_lock_bh(&nf_conntrack_lock);
-> +       ret = __nf_ct_expect_check(expect);
-> +       if (ret < 0)
-> +               goto out;
-
-Same problem
-
-> +       nf_ct_expect_insert(expect);
-> +out:
-> +       spin_unlock_bh(&nf_conntrack_lock);
-> +       if (ret == 0)
-> +               nf_ct_expect_event_report(IPEXP_NEW, expect, pid, report);
-
-But here we don't take the reference, despite having the exact
-same situation.
-
-The next question would be - why do we need those two functions at
-all? Aside from the apparently unnecessary reference counting, the
-only difference is reporting, and that actually uses the exact
-same code path.
-
-> +       return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(nf_ct_expect_related_report);
+They do not.[1]
 
 
+[1] http://git.opensuse.org/?p=people/jblunck/kernel-source.git;a=blob;f=config/x86_64/default;hb=SL111_BRANCH
