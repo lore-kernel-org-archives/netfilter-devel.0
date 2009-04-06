@@ -1,50 +1,73 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: stream-like interface by netfilter?
-Date: Mon, 6 Apr 2009 12:59:14 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0904061254410.28277@fbirervta.pbzchgretzou.qr>
-References: <741894ea0903311503j1ac8aebbt3b2767d6e18173eb@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [ANNOUNCE] Release of iptables-1.4.3.2
+Date: Mon, 06 Apr 2009 13:38:14 +0200
+Message-ID: <49D9E9A6.7010303@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Haibin Wang <haibin123us@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:35846 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755218AbZDFK7Q (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Apr 2009 06:59:16 -0400
-In-Reply-To: <741894ea0903311503j1ac8aebbt3b2767d6e18173eb@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: multipart/mixed;
+ boundary="------------090700010709050000090606"
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Linux Netdev List <netdev@vger.kernel.org>,
+	netfilter-announce@lists.netfilter.org, lwn@lwn.net
+To: netfilter@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
+
+This is a multi-part message in MIME format.
+--------------090700010709050000090606
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+
+The netfilter coreteam presents:
+
+     iptables version 1.4.3.2
+
+the iptables release for the 2.6.29 kernel. This version includes
+accumulated bugfixes for the previous release from Jan Engelhardt and
+Peter Volkov. Check the Changelog file for more details.
+
+Remember that iptables >= 1.4.3 starts enforcing the deprecation of NAT
+filtering that was added in 1.4.2-rc1, filtering rules in the NAT tables
+will cause an error instead of a warning from now on. Please make sure
+your rulesets are update appropriately.
+
+Version 1.4.3.2 can be obtained from:
+
+http://www.netfilter.org/projects/iptables/downloads.html
+ftp://ftp.netfilter.org/pub/iptables/
+git://git.netfilter.org/iptables.git
+
+On behalf of the Netfilter Core Team.
+Happy firewalling!
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
 
 
-On Wednesday 2009-04-01 00:03, Haibin Wang wrote:
->
->First, Does netfilter provide a stream-like interface in kernel space,
->in addition to packets?
+--------------090700010709050000090606
+Content-Type: text/plain;
+ name="changes-iptables-1.4.3.2.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="changes-iptables-1.4.3.2.txt"
 
-Even STREAMS is quite message-based and you need to collect 
-packets/messages before you can linearize them to form a stream of 
-sorts.
+Jan Engelhardt (12):
+      libxt_tcpmss: fix an inversion while parsing --mss
+      iptables-multi: support "iptables-static" as a callable name
+      libxtables: reorder .version member
+      build: do not run ldconfig for DESTDIR installations
+      build: add configure option to disable ip6tables
+      build: add configure option to disable ipv4 iptables
+      libxtables: provide IPv6 zero address variable
+      iptables: print negation extrapositioned
+      Merge commit 'v1.4.3'
+      Merge branch 'plus'
+      CLASSIFY: document non-standard interpretation behavior
+      libxt_conntrack: properly output negation symbol
 
->Second, if not, is there a way that netfilter provides packets of a
->TCP connection in right order ( maybe also duplications free)?
+Pablo Neira Ayuso (1):
+      build: bump version to 1.4.3.2
 
-No.
 
->Third, if so, what would be the best place to put in TCP reassembly
->code to collect packets and present a stream-like interface? I used
->NAT helper and CONNTRACK helper before, but not sure that is the right
->place to fulfill such a function.
-
-A hyphothetical tcp "defrag" or "ordering" module should be run after 
-nf_defrag_ipv4.
-
->Essentially we are doing a project that requires inspecting contents
->of TCP connections, our current approach requires patch to kernel
->TCP/IP stack, which isn't that convenient to end users. So we want to
->explore the idea whether we could do it using Netfilter. But so far I
->haven't found such an interface from Netfilter documentation.
->
-
-You could be using libnetfilter_queue to do it in userspace instead.
+--------------090700010709050000090606--
