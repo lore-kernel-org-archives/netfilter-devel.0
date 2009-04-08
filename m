@@ -1,39 +1,44 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 01/03: ip6tables regression fix
-Date: Wed,  8 Apr 2009 18:52:17 +0200 (MEST)
-Message-ID: <20090408165213.6702.77183.sendpatchset@x2.localnet>
-References: <20090408165212.6702.44171.sendpatchset@x2.localnet>
-Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org
-To: davem@davemloft.net
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20090408165212.6702.44171.sendpatchset@x2.localnet>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: RE: full_cone_nat
+Date: Wed, 8 Apr 2009 20:44:34 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.0904081546410.7205@blackhole.kfki.hu>
+References: <47A7F67C62706041BC49DB7822B1C9DB1D47134138@INOAVREX11.ptin.corpPT.com>,<alpine.LSU.2.00.0904071726470.25905@fbirervta.pbzchgretzou.qr> <47A7F67C62706041BC49DB7822B1C9DB1D4713413C@INOAVREX11.ptin.corpPT.com>,<alpine.LSU.2.00.0904071731200.25905@fbirervta.pbzchgretzou.qr>,<47A7F67C62706041BC49DB7822B1C9DB1D4713413D@INOAVREX11.ptin.corpPT.com>
+ <47A7F67C62706041BC49DB7822B1C9DB1D4713413F@INOAVREX11.ptin.corpPT.com> <alpine.DEB.2.00.0904072008440.5338@blackhole.kfki.hu> <alpine.LSU.2.00.0904072017510.24473@fbirervta.pbzchgretzou.qr>,<alpine.DEB.2.00.0904072027110.5515@blackhole.kfki.hu>
+ <47A7F67C62706041BC49DB7822B1C9DB1D47134141@INOAVREX11.ptin.corpPT.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Hugo Miguel Mendes <est-h-mendes@ptinovacao.pt>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp2.kfki.hu ([148.6.0.28]:51830 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S935225AbZDHSoh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 8 Apr 2009 14:44:37 -0400
+In-Reply-To: <47A7F67C62706041BC49DB7822B1C9DB1D47134141@INOAVREX11.ptin.corpPT.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 49a88d18a1721ac14dbc67cd390db18ee1f3a42f
-Author: Eric Dumazet <dada1@cosmosbay.com>
-Date:   Mon Apr 6 17:06:55 2009 +0200
+On Tue, 7 Apr 2009, Hugo Miguel Mendes wrote:
 
-    netfilter: ip6tables regression fix
-    
-    Commit 7845447 (netfilter: iptables: lock free counters) broke
-    ip6_tables by unconditionally returning ENOMEM in alloc_counters(),
-    
-    Reported-by: Graham Murray <graham@gmurray.org.uk>
-    Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
-    Signed-off-by: Patrick McHardy <kaber@trash.net>
+> Can you tell me where can I find in the source code the function or 
+> functions responsible for checking the matching table of active 
+> connections present in the file ip_conntrack.
 
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index dfed176..800ae85 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -1033,6 +1033,8 @@ static struct xt_counters *alloc_counters(struct xt_table *table)
- 
- 	xt_free_table_info(info);
- 
-+	return counters;
-+
-  free_counters:
- 	vfree(counters);
-  nomem:
+You should first understand the internals of how netfilter connection 
+tracking and NAT handle the packets and the connections. You should 
+probably read the "Netfilter Hacking HOWTO" - it's outdated but still 
+contains valuable information - and should definitely read the 'Writing 
+netfilter modules' by Jan. Then you can easily find the relevant parts in 
+net/netfilter/nf_conntrack_[standalone|core|expect].c and 
+net/ipv4/netfilter/nf_nat_[standalone|core].c. Of course you should check 
+out how expectations are created and used looking at the existing 
+protocol helper modules.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
