@@ -1,35 +1,37 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [Bugme-new] [Bug 12954] New: SAMEIP --nodst functionality gone
- missing
-Date: Wed, 08 Apr 2009 17:32:48 +0200
-Message-ID: <49DCC3A0.7050001@trash.net>
-References: <bug-12954-10286@http.bugzilla.kernel.org/> <20090407143509.05ab3b28.akpm@linux-foundation.org> <Pine.LNX.4.62.0904080941370.10428@wlug.westbo.se>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Andrew Morton <akpm@linux-foundation.org>, netdev@vger.kernel.org,
-	bugme-daemon@bugzilla.kernel.org, berni@birkenwald.de,
+Subject: netfilter 02/03: fix selection of "LED" target in netfilter
+Date: Wed,  8 Apr 2009 18:52:18 +0200 (MEST)
+Message-ID: <20090408165214.6702.69359.sendpatchset@x2.localnet>
+References: <20090408165212.6702.44171.sendpatchset@x2.localnet>
+Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
 	netfilter-devel@vger.kernel.org
-To: Martin Josefsson <gandalf@mjufs.se>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:52357 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760832AbZDHPc4 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Apr 2009 11:32:56 -0400
-In-Reply-To: <Pine.LNX.4.62.0904080941370.10428@wlug.westbo.se>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: davem@davemloft.net
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20090408165212.6702.44171.sendpatchset@x2.localnet>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-[Resend to mailing list, I didn't notice this had left bugzilla]
+commit 3ae16f13027c26cb4c227392116c2027524a6444
+Author: Alex Riesen <fork0@users.sourceforge.net>
+Date:   Mon Apr 6 17:09:43 2009 +0200
 
-Martin Josefsson wrote:
-> Patrick, how about making the ipaddress selection based on only client 
-> ipaddress behaviour selectable with an SNAT parameter if the problem 
-> with the patch is that the distribution can be uneven for a small number 
-> of clients?
+    netfilter: fix selection of "LED" target in netfilter
+    
+    It's plural, not LED_TRIGGERS.
+    
+    Signed-off-by: Alex Riesen <fork0@users.sourceforge.net>
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-Actually I think the results back then were incorrect or it was
-just bad luck or something. Ideally we would just enable this
-unconditionally I think. I'll do some testing of the distribution
-myself during the next days and see how it goes.
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index bb279bf..2329c5f 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -374,7 +374,7 @@ config NETFILTER_XT_TARGET_HL
+ 
+ config NETFILTER_XT_TARGET_LED
+ 	tristate '"LED" target support'
+-	depends on LEDS_CLASS && LED_TRIGGERS
++	depends on LEDS_CLASS && LEDS_TRIGGERS
+ 	depends on NETFILTER_ADVANCED
+ 	help
+ 	  This option adds a `LED' target, which allows you to blink LEDs in
