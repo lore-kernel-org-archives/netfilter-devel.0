@@ -1,58 +1,80 @@
-From: Amos Jeffries <squid3@treenet.co.nz>
-Subject: Re: full_cone_nat
-Date: Wed, 08 Apr 2009 18:04:06 +1200
-Message-ID: <49DC3E56.7010807@treenet.co.nz>
-References: <47A7F67C62706041BC49DB7822B1C9DB1D47134138@INOAVREX11.ptin.corpPT.com>,<alpine.LSU.2.00.0904071726470.25905@fbirervta.pbzchgretzou.qr> <47A7F67C62706041BC49DB7822B1C9DB1D4713413C@INOAVREX11.ptin.corpPT.com>,<alpine.LSU.2.00.0904071731200.25905@fbirervta.pbzchgretzou.qr>,<47A7F67C62706041BC49DB7822B1C9DB1D4713413D@INOAVREX11.ptin.corpPT.com> <47A7F67C62706041BC49DB7822B1C9DB1D4713413F@INOAVREX11.ptin.corpPT.com> <alpine.DEB.2.00.0904072008440.5338@blackhole.kfki.hu> <alpine.LSU.2.00.0904072017510.24473@fbirervta.pbzchgretzou.qr>
+From: Martin Josefsson <gandalf@mjufs.se>
+Subject: Re: [Bugme-new] [Bug 12954] New: SAMEIP --nodst functionality gone
+ missing
+Date: Wed, 8 Apr 2009 10:03:38 +0200 (CEST)
+Message-ID: <Pine.LNX.4.62.0904080941370.10428@wlug.westbo.se>
+References: <bug-12954-10286@http.bugzilla.kernel.org/>
+ <20090407143509.05ab3b28.akpm@linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Hugo Miguel Mendes <est-h-mendes@ptinovacao.pt>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: netdev@vger.kernel.org, bugme-daemon@bugzilla.kernel.org,
+	berni@birkenwald.de, kaber@trash.net,
+	netfilter-devel@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ip-58-28-153-233.static-xdsl.xnet.co.nz ([58.28.153.233]:34316
-	"EHLO treenet.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752918AbZDHFL5 (ORCPT
+Received: from host91-201.netintact.se ([194.153.91.201]:37180 "EHLO
+	wlug.westbo.se" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1752400AbZDHIYx (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Apr 2009 01:11:57 -0400
-In-Reply-To: <alpine.LSU.2.00.0904072017510.24473@fbirervta.pbzchgretzou.qr>
+	Wed, 8 Apr 2009 04:24:53 -0400
+In-Reply-To: <20090407143509.05ab3b28.akpm@linux-foundation.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Tuesday 2009-04-07 20:16, Jozsef Kadlecsik wrote:
->> On Tue, 7 Apr 2009, Hugo Miguel Mendes wrote:
+On Tue, 7 Apr 2009, Andrew Morton wrote:
+
+>> Back in the days of 2.6.18 there was the SAME target which allowed, with the
+>> option '--nodst' to SNAT internal hosts to the same address of a whole SNAT
+>> range regardless of the destination address.
 >>
->>> What I mean with Full Cone NAT is the following:
->>> [...]
->> I answered you on Thu, 2 Apr 2009 when you asked the same question on
->> the netfilter mailing list. The answer hasn't changed since then: 
->> currently there's no way to create full cone NAT.
+>> In cb76c6a597350534d211ba79d92da1f9771f8226 the SAME target was removed from
+>> the kernel sources due to being obsolete, since the same functionality was now
+>> in nf_nat. Shortly after that a discussion Patrick McHardy proposed a patch to
+>> mimic the behaviour of SAME with --nodst in nf_nat by dropping the destination
+>> IP from the jhash. The patch was dropped shortly after because it apparently
+>> showed some uneven distribution.
 >>
->> It might be possible to write a new full cone NAT target by creating 
->> wildcard expectations.
-> 
-> Yeah there is a case where cone nat does not quite work. Assuming there
-> are the following mappings:
-> 
-> origsrc=192.168.17.2 origdst=80.10.20.30 replsrc=134.98.76.54 repldst=80.10.20.30
-> origsrc=192.168.17.3 origdst=80.20.30.40 replsrc=134.98.76.54 repldst=80.20.30.40
-> 
-> Then there is no way to ambiguously map incoming IP_CT_NEW connections
-> for 134.98.76.54 to an origsrc.
+>> The whole thread can be read at
+>> http://thread.gmane.org/gmane.comp.security.firewalls.netfilter.devel/23275/focus=27670
+>> .
+>>
+>> This thread went dead, I tried to revive it but did not get an answer. We're
+>> getting hit by this regression because we are currently NATing some thousand IP
+>> addresses (student dorms) to an external /28. It works fine with our old
+>> 2.6.18+SAME setup, but tests with 2.6.25+SNAT showed massive issues with
+>> connections from the same internal address to different destinations getting
+>> NATed to different addresses in the pool. Which breaks, for example, ICQ quite
+>> badly.
 
-You are right when IP-only tests are considered. The joy of full cone 
-NAT requires ports to be added to that equation.
+Problems like these were the reason why I wrote the SAME target in the 
+first place. I NAT'ed a few hundred students behind a small range of 
+ipaddresses and with normal SNAT they had extreme problems with ICQ and 
+online banking sites which require you to have the same source ip even if 
+you move between servers (diffrent destinations) etc.
 
-The NAT algorithm must be adapted to ensure every outbound 
-src-ip:src-port combo sent to the Net is completely unique and replies 
-from any ip to that particular sending port cone back to the unique 
-internal machine that opened it.
+After I wrote SAME I didn't get a single complaint.
 
-For your case origsrc-ip:origdst-ip:origdst-port tuplets are different.
+One bonus feature that many students really liked was that they always 
+had the same external ipaddress as long as they had the same internal 
+ipaddress and the external range of ipaddresses remained the same.
 
-/2c
+This feature isn't as important as having the same source ip for all 
+current sessions when using online banking services etc.
 
-AYJ
+I didn't think anyone was still using SAME... guess I was wrong.
 
+The uneven distribution of the patch in question can't be worse than the 
+SAME distributions which, iirc, just does something like:
+
+first_ip_in_snat_range + (client_ip % num_ips_in_snat_range)
+
+And given many clients behind the SNAT the distribution should be quite 
+even.
+
+
+Patrick, how about making the ipaddress selection based on only client 
+ipaddress behaviour selectable with an SNAT parameter if the problem with 
+the patch is that the distribution can be uneven for a small number of 
+clients?
+
+/Martin
