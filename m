@@ -1,66 +1,35 @@
-From: Tim Verhoeven <tim.verhoeven.be@gmail.com>
-Subject: Re: Compiling ebtables statically or dynamically results in different
-	behaviour
-Date: Wed, 8 Apr 2009 11:57:38 +0200
-Message-ID: <2a7fce340904080257r4164cd63hcd5f07b036489aae@mail.gmail.com>
-References: <W8403423488155181239184148@nocme1bl6.telenet-ops.be>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [Bugme-new] [Bug 12954] New: SAMEIP --nodst functionality gone
+ missing
+Date: Wed, 08 Apr 2009 17:32:48 +0200
+Message-ID: <49DCC3A0.7050001@trash.net>
+References: <bug-12954-10286@http.bugzilla.kernel.org/> <20090407143509.05ab3b28.akpm@linux-foundation.org> <Pine.LNX.4.62.0904080941370.10428@wlug.westbo.se>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: "bdschuym@pandora.be" <bdschuym@telenet.be>
+Cc: Andrew Morton <akpm@linux-foundation.org>, netdev@vger.kernel.org,
+	bugme-daemon@bugzilla.kernel.org, berni@birkenwald.de,
+	netfilter-devel@vger.kernel.org
+To: Martin Josefsson <gandalf@mjufs.se>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-bw0-f169.google.com ([209.85.218.169]:40467 "EHLO
-	mail-bw0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754367AbZDHJ5l (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:52357 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760832AbZDHPc4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 8 Apr 2009 05:57:41 -0400
-Received: by bwz17 with SMTP id 17so38600bwz.37
-        for <netfilter-devel@vger.kernel.org>; Wed, 08 Apr 2009 02:57:38 -0700 (PDT)
-In-Reply-To: <W8403423488155181239184148@nocme1bl6.telenet-ops.be>
+	Wed, 8 Apr 2009 11:32:56 -0400
+In-Reply-To: <Pine.LNX.4.62.0904080941370.10428@wlug.westbo.se>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Apr 8, 2009 at 11:49 AM, bdschuym@pandora.be
-<bdschuym@telenet.be> wrote:
-> What is your exact command and what type of processor are you using?
->
+[Resend to mailing list, I didn't notice this had left bugzilla]
 
-The command run is "ebtables -N 1000"
+Martin Josefsson wrote:
+> Patrick, how about making the ipaddress selection based on only client 
+> ipaddress behaviour selectable with an SNAT parameter if the problem 
+> with the patch is that the distribution can be uneven for a small number 
+> of clients?
 
-This is /proc/cpuinfo :
-processor       : 0
-vendor_id       : GenuineIntel
-cpu family      : 6
-model           : 23
-model name      : Intel(R) Xeon(R) CPU           E5430  @ 2.66GHz
-stepping        : 6
-cpu MHz         : 2666.758
-cache size      : 6144 KB
-physical id     : 0
-siblings        : 1
-core id         : 0
-cpu cores       : 1
-fpu             : yes
-fpu_exception   : yes
-cpuid level     : 10
-wp              : yes
-flags           : fpu tsc msr pae mce cx8 apic mtrr mca cmov pat pse36
-clflush dts acpi mmx fxsr sse sse2 ss ht tm syscall lm constant_tsc
-pni monitor ds_cpl vmx est tm2 cx16 xtpr lahf_lm
-bogomips        : 6669.91
-clflush size    : 64
-cache_alignment : 64
-address sizes   : 38 bits physical, 48 bits virtual
-
-It's a standard Intel Xeon (the server is a IBM HS21 Blade).
-
-Regards,
-Tim
-
--- 
-Tim Verhoeven - tim.verhoeven.be@gmail.com - 0479 / 88 11 83
-
-Hoping the problem  magically goes away  by ignoring it is the
-"microsoft approach to programming" and should never be allowed.
-(Linus Torvalds)
+Actually I think the results back then were incorrect or it was
+just bad luck or something. Ideally we would just enable this
+unconditionally I think. I'll do some testing of the distribution
+myself during the next days and see how it goes.
