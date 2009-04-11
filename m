@@ -1,35 +1,54 @@
-From: Fabricio Archanjo <farchanjo@gmail.com>
-Subject: netfilter issue
-Date: Thu, 9 Apr 2009 16:12:01 -0300
-Message-ID: <9e9f4e5f0904091212t10a6aeccm4ecef9089a0b00fc@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: iptables very slow after
+ commit784544739a25c30637397ace5489eeb6e15d7d49
+Date: Fri, 10 Apr 2009 18:25:07 -0700 (PDT)
+Message-ID: <20090410.182507.140306636.davem@davemloft.net>
+References: <Pine.LNX.4.64.0904101656190.2093@boston.corp.fedex.com>
+	<20090410095246.4fdccb56@s6510>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Cc: jeff.chua.linux@gmail.com, dada1@cosmosbay.com, jengelh@medozas.de,
+	kaber@trash.net, r000n@r000n.net, torvalds@linux-foundation.org,
+	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+To: shemminger@vyatta.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:40785 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761246AbZDITME (ORCPT
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:56868
+	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1754409AbZDKBZR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 9 Apr 2009 15:12:04 -0400
-Received: by fxm2 with SMTP id 2so737535fxm.37
-        for <netfilter-devel@vger.kernel.org>; Thu, 09 Apr 2009 12:12:02 -0700 (PDT)
+	Fri, 10 Apr 2009 21:25:17 -0400
+In-Reply-To: <20090410095246.4fdccb56@s6510>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-When, I compiling libnl-nft, i get that error:
+From: Stephen Hemminger <shemminger@vyatta.com>
+Date: Fri, 10 Apr 2009 09:52:46 -0700
 
-  CC netfilter/nft_data.c
-netfilter/nft_data.c:22: error: nested redefinition of 'enum nft_data_types'
-netfilter/nft_data.c:22: error: redeclaration of 'enum nft_data_types'
-netfilter/nft_data.c:23: error: redeclaration of enumerator 'NFT_DATA_VALUE'
-../include/linux/netfilter/nf_tables.h:219: error: previous definition
-of 'NFT_DATA_VALUE' was here
-netfilter/nft_data.c:24: error: redeclaration of enumerator 'NFT_DATA_VERDICT'
-../include/linux/netfilter/nf_tables.h:220: error: previous definition
-of 'NFT_DATA_VERDICT' was here
-make[2]: *** [netfilter/nft_data.o] Error 1
-make[1]: *** [all] Error 2
-make: *** [all] Error 2
+[ CC:'ing netfilter-devel and netdev... ]
 
-What do i do to repair it? I wanted test nftables.
+> On Fri, 10 Apr 2009 17:15:52 +0800 (SGT)
+> Jeff Chua <jeff.chua.linux@gmail.com> wrote:
+> 
+>> 
+>> 
+>> Adding 200 records in iptables took 6.0sec in 2.6.30-rc1 compared to 
+>> 0.2sec in 2.6.29. I've bisected down this commit.
+>> 
+>> There are a few patches on top of the original patch. When I reverted the 
+>> original commit + changing rcu_read() to rcu_read_bh(), it speeds up the 
+>> inserts back to .2sec again.
+>> 
+>> I'm loading all the firewall rules during boot-up and this 6 secs slowness 
+>> is really not very nice to wait for.
+> 
+> The performance benefit during operation is more important. The load
+> time is fixable. The problem is probably generic to any set of rules,
+> but could you post some info about your configuration (like the rule
+> set), and the system configuration (# of cpu's, config etc).
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Please read the FAQ at  http://www.tux.org/lkml/
