@@ -1,52 +1,63 @@
-From: Arkadiusz Miskiewicz <a.miskiewicz@gmail.com>
-Subject: Re: iptables very slow after commit 784544739a25c30637397ace5489eeb6e15d7d49
-Date: Sat, 11 Apr 2009 20:32:48 +0200
-Message-ID: <200904112032.49335.a.miskiewicz@gmail.com>
-References: <alpine.LFD.2.00.0904101828490.4583@localhost.localdomain> <20090410.230016.176733137.davem@davemloft.net> <f73f7ab80904111112n7c95d06ei32eb1f081842ae41@mail.gmail.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: iptables very slow after commit
+ 784544739a25c30637397ace5489eeb6e15d7d49
+Date: Sat, 11 Apr 2009 11:57:16 -0700 (PDT)
+Message-ID: <alpine.LFD.2.00.0904111150380.4583@localhost.localdomain>
+References: <Pine.LNX.4.64.0904101656190.2093@boston.corp.fedex.com> <20090410095246.4fdccb56@s6510> <20090410.182507.140306636.davem@davemloft.net> <alpine.LFD.2.00.0904101828490.4583@localhost.localdomain> <20090411041533.GB6822@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: David Miller <davem@davemloft.net>, jengelh@medozas.de,
-	paulmck@linux.vnet.ibm.com, torvalds@linux-foundation.org,
-	mingo@elte.hu, laijs@cn.fujitsu.com, shemminger@vyatta.com,
-	jeff.chua.linux@gmail.com, dada1@cosmosbay.com, kaber@trash.net,
-	r000n@r000n.net, linux-kernel@vger.kernel.org,
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: David Miller <davem@davemloft.net>, Ingo Molnar <mingo@elte.hu>,
+	Lai Jiangshan <laijs@cn.fujitsu.com>, shemminger@vyatta.com,
+	jeff.chua.linux@gmail.com, dada1@cosmosbay.com, jengelh@medozas.de,
+	kaber@trash.net, r000n@r000n.net,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
 	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Kyle Moffett <kyle@moffetthome.net>
+To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.29]:45957 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754721AbZDKScz convert rfc822-to-8bit (ORCPT
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:48506 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1758250AbZDKTFl (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 11 Apr 2009 14:32:55 -0400
-In-Reply-To: <f73f7ab80904111112n7c95d06ei32eb1f081842ae41@mail.gmail.com>
-Content-Disposition: inline
+	Sat, 11 Apr 2009 15:05:41 -0400
+In-Reply-To: <20090411041533.GB6822@linux.vnet.ibm.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Saturday 11 of April 2009, Kyle Moffett wrote:
 
-> Almost all of the standard firewall tools (such as shorewall, etc) ar=
-e
-> already using iptables-restore command to load firewall rules,
-> primarily because using separate iptables commands was *already* way
-> too slow. =20
 
-Some time ago there was batch patch that allowed to use standard shell =
-format=20
-of calling iptables but did everything at once:
+On Fri, 10 Apr 2009, Paul E. McKenney wrote:
+> 
+> 1.	Assuming that the synchronize_net() is intended to guarantee
+> 	that the new rules will be in effect before returning to
+> 	user space:
 
-http://lists.netfilter.org/pipermail/netfilter-devel/2004-
-September/016704.html
+Btw, I think that's a bad assumption.
 
-It didn't get merged - no idea why.
+The thing is, nobody can really care if the new rules are in effect or 
+not, because the thing you race with is not the "return to user space" 
+part, but the incoming packets.
 
---=20
-Arkadiusz Mi=C5=9Bkiewicz        PLD/Linux Team
-arekm / maven.pl            http://ftp.pld-linux.org/
+And those incoming packets might have been incoming before the rules were 
+set up too.
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+So I seriously doubt you need to synchronize with any returning to user 
+space. What you want to synchronize with is then later actions that do 
+things like turning on the interface that the rules are attached to etc!
+
+So I would suggest:
+
+ - remove the synchronize_net() entirely. Replace it with just freeing the 
+   old rules using RCU.
+
+ - new packets will always end up seeing the new rules. That includes the 
+   case of somebody doing "ifconfig eth0 up" that enables a new source of 
+   packets, so there are no real security issues.
+
+ - if you enabled your network interfaces before you updated your packet 
+   filtering rules, you already had a window where packets would come in 
+   with the old rules, so doing a "synchronize_net()" in no way protects 
+   against any race conditions anyway.
+
+Am I missing something?
+
+			Linus
