@@ -1,110 +1,144 @@
-From: Harald Welte <laforge@netfilter.org>
+From: Stephen Hemminger <shemminger@vyatta.com>
 Subject: Re: iptables very slow after commit
-	784544739a25c30637397ace5489eeb6e15d7d49
-Date: Sun, 12 Apr 2009 14:30:26 +0200
-Message-ID: <20090412123026.GL19172@prithivi.gnumonks.org>
-References: <alpine.LFD.2.00.0904101828490.4583@localhost.localdomain> <20090411041533.GB6822@linux.vnet.ibm.com> <alpine.LSU.2.00.0904110657410.26485@fbirervta.pbzchgretzou.qr> <20090410.230016.176733137.davem@davemloft.net> <f73f7ab80904111112n7c95d06ei32eb1f081842ae41@mail.gmail.com> <alpine.DEB.1.10.0904111751430.28893@asgard.lang.hm>
+ 784544739a25c30637397ace5489eeb6e15d7d49
+Date: Sun, 12 Apr 2009 09:06:03 -0700
+Message-ID: <20090412090603.556ba4fa@nehalam>
+References: <Pine.LNX.4.64.0904101656190.2093@boston.corp.fedex.com>
+	<20090410095246.4fdccb56@s6510>
+	<20090410.182507.140306636.davem@davemloft.net>
+	<alpine.LFD.2.00.0904101828490.4583@localhost.localdomain>
+	<20090411041533.GB6822@linux.vnet.ibm.com>
+	<alpine.LFD.2.00.0904111150380.4583@localhost.localdomain>
+	<20090412003445.GK6822@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="hLTC+yGFJlatjToQ"
-Cc: Kyle Moffett <kyle@moffetthome.net>,
-	David Miller <davem@davemloft.net>, jengelh@medozas.de,
-	paulmck@linux.vnet.ibm.com, torvalds@linux-foundation.org,
-	mingo@elte.hu, laijs@cn.fujitsu.com, shemminger@vyatta.com,
-	jeff.chua.linux@gmail.com, dada1@cosmosbay.com, kaber@trash.net,
-	r000n@r000n.net, linux-kernel@vger.kernel.org,
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	David Miller <davem@davemloft.net>,
+	Ingo Molnar <mingo@elte.hu>,
+	Lai Jiangshan <laijs@cn.fujitsu.com>,
+	jeff.chua.linux@gmail.com, dada1@cosmosbay.com, jengelh@medozas.de,
+	kaber@trash.net, r000n@r000n.net,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
 	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: david@lang.hm
+To: paulmck@linux.vnet.ibm.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:41569 "EHLO
-	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760031AbZDLMkM (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 12 Apr 2009 08:40:12 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.1.10.0904111751430.28893@asgard.lang.hm>
+Received: from mail.vyatta.com ([76.74.103.46]:44484 "EHLO mail.vyatta.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750739AbZDLQGL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 12 Apr 2009 12:06:11 -0400
+In-Reply-To: <20090412003445.GK6822@linux.vnet.ibm.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Sat, 11 Apr 2009 17:34:45 -0700
+"Paul E. McKenney" <paulmck@linux.vnet.ibm.com> wrote:
 
---hLTC+yGFJlatjToQ
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+> On Sat, Apr 11, 2009 at 11:57:16AM -0700, Linus Torvalds wrote:
+> > 
+> > 
+> > On Fri, 10 Apr 2009, Paul E. McKenney wrote:
+> > > 
+> > > 1.	Assuming that the synchronize_net() is intended to guarantee
+> > > 	that the new rules will be in effect before returning to
+> > > 	user space:
+> > 
+> > Btw, I think that's a bad assumption.
+> 
+> It does indeed appear to be!
+> 
+> > The thing is, nobody can really care if the new rules are in effect or 
+> > not, because the thing you race with is not the "return to user space" 
+> > part, but the incoming packets.
+> > 
+> > And those incoming packets might have been incoming before the rules were 
+> > set up too.
+> > 
+> > So I seriously doubt you need to synchronize with any returning to user 
+> > space. What you want to synchronize with is then later actions that do 
+> > things like turning on the interface that the rules are attached to etc!
+> > 
+> > So I would suggest:
+> > 
+> >  - remove the synchronize_net() entirely. Replace it with just freeing the 
+> >    old rules using RCU.
+> > 
+> >  - new packets will always end up seeing the new rules. That includes the 
+> >    case of somebody doing "ifconfig eth0 up" that enables a new source of 
+> >    packets, so there are no real security issues.
+> > 
+> >  - if you enabled your network interfaces before you updated your packet 
+> >    filtering rules, you already had a window where packets would come in 
+> >    with the old rules, so doing a "synchronize_net()" in no way protects 
+> >    against any race conditions anyway.
+> > 
+> > Am I missing something?
+> 
+> The issue at this point seems to be the need to get accurate snapshots
+> of various counters -- there are a number of Linux networking users who
+> need to account for every byte flowing through their systems.  However,
+> it is also necessary to update these counters very efficiently, given
+> that they are updated on a per-packet basis.  The current approach is
+> as follows:
+> 
+> 1.	Install a new set of counters.
+> 
+> 2.	Wait for a grace period to elapse.
+> 
+> 3.	At this point, we know that all subsequent counting will happen
+> 	on the new set of counters.
+> 
+> 4.	Add the value of the old set of counters to the new set of
+> 	counters.
+> 
+> 5.	Copy the old set of counters up to user space.
+> 
+> So we get a good snapshot in #5, while #4 ensures that we don't lose
+> any counts when taking future snapshots.  Unfortunately, #2 hits us
+> with grace-period latencies on the critical path.
+> 
+> We are going through the following possibilities:
+> 
+> o	Stick with the current approach, and ask people to move to
+> 	new batch-oriented interfaces.  However, a 30x decrease in
+> 	performance is pretty grim, even for an old-style interface.
+> 
+> o	Use various atomic tricks to get an immediate snapshot of the
+> 	old counters after step 1.  Make step 3 use call_rcu() instead
+> 	of synchronize_rcu(), and then step 4 happens off the
+> 	critical path.
+> 
+> 	This approach moves the RCU grace period off of the critical
+> 	path, but the atomic tricks are extremely ugly on 32-bit SMP
+> 	machines.  32-bit UP machines and 64-bit machines are not
+> 	too bad, though the 32-bit UP case does add preemption-disable
+> 	overhead on the counter-update fastpath.
+> 
+> o	Provide some sort of expedited synchronize_rcu().  This might
+> 	be able to decrease the hit from 30x down to maybe 5x.
+> 	But I might need to do this for the fast-boot folks anyway,
+> 	though I am first trying to get away with just speeding
+> 	up synchronized_rcu().  Though I was not thinking in terms
+> 	of 6x, let alone 30x.
+> 
+> 	Please note that this would not be a drop-in replacement for
+> 	synchronize_rcu().  One would use synchronize_rcu_expedited()
+> 	(or whatever) only when the system really could not get any
+> 	useful work done while the grace period was in progress.
+> 	The general approach would be to keep the whole machine busy
+> 	trying to get the grace period done as soon as possible.
+> 
+> 							Thanx, Paul
 
-Hi all,
+We could also try:
+  * per-cpu spinlock on counters (instead of synchronize_net). 
+    When doing update, just acquire
+    lock on that cpu and futz with counters then. Overhead should
+    still be less than 2.6.29 and earlier global rwlock
 
-On Sat, Apr 11, 2009 at 05:54:41PM -0700, david@lang.hm wrote:
->> Almost all of the standard firewall tools (such as shorewall, etc) are
->> already using iptables-restore command to load firewall rules,
->> primarily because using separate iptables commands was *already* way
->> too slow.  There's also the serious race-condition of doing a firewall
->> restart that way where you only have half your rules loaded for a bit.
->> The "iptables" command is fine for fiddling around with the command
->> line and making minor tweaks, but it simply doesn't cut it for
->> large-scale rules.
->
-> what are the userspace level tools that I am supposed to use in place of =
-=20
-> my current process? (which is to have a script that 1. stops traffic, 2. =
-=20
-> executes the iptables commands to create the rules that I want, then 3. =
-=20
-> enables traffic)
->
-> iptables-restore only works if you are actually restoring the old set of =
-=20
-> rules. if you need to change the rules that doesn't work.
+  * synchonize_rcu/synchronize_net is more guarantee than needed?
 
-That's what I implemented as "iptables-restore --noflush" a number of years
-ago. It doesn't flush the current uleset and swaps in a new one, but=20
-reads the current rules from kernel, applies any number of changes and swaps
-the new ruleset in.
+  * use on_each_cpu() somehow to do grace periood?
 
-The syntax of iptables-restore is almost identical to iptables commands, you
-just specify the table in a different way.  So you would just create your
-desired changes in that format, and echo that into iptables-restore.  If it=
-'s
-an entire new ruleset, you use no '--noflush' and it does automatic flushing
-of all old rules.  If your stdin-file contains only incremental changes, you
-use --noflush.
-
-In the netfilter project, we knew for many years that the 'swap the entire
-table atomically in' is a bad design choice.  This is what various develope=
-rs
-have been trying to address at different times, and which finally resulted
-in the nftables implementation of Patrick McHardy.  So for the mid- to long
-term there is a clear design that moves away from that.
-
-But so far, we have to live with the API and its semantics.  iptables users=
-pace
-has been improved a number of times, and things like iptables-restore with =
-or
-without --noflush can be used as an intermediate solution - and have been u=
-sed
-by many systems out there.
-
---=20
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
-
---hLTC+yGFJlatjToQ
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-Content-Disposition: inline
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iD8DBQFJ4d7iXaXGVTD0i/8RAsIbAKCEurTCifbQxxy9HxXJkh9fkGvCDgCfYmiG
-j581fDfdXd0kho8vp56EtqM=
-=ruDw
------END PGP SIGNATURE-----
-
---hLTC+yGFJlatjToQ--
+  * Add a cond_resched() into net_rx_action which might cause rx processing
+    to get out of rcu sooner? also in transmit packet scheduler.
