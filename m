@@ -1,827 +1,591 @@
-From: Stephen Hemminger <shemminger@vyatta.com>
-Subject: [PATCH] netfilter: use per-cpu spinlock rather than RCU
-Date: Mon, 13 Apr 2009 09:53:09 -0700
-Message-ID: <20090413095309.631cf395@nehalam>
-References: <20090411174801.GG6822@linux.vnet.ibm.com>
-	<18913.53699.544083.320542@cargo.ozlabs.ibm.com>
-	<20090412173108.GO6822@linux.vnet.ibm.com>
-	<20090412.181330.23529546.davem@davemloft.net>
-	<20090413040413.GQ6822@linux.vnet.ibm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: David Miller <davem@davemloft.net>, paulus@samba.org,
-	mingo@elte.hu, torvalds@linux-foundation.org, laijs@cn.fujitsu.com,
-	jeff.chua.linux@gmail.com, dada1@cosmosbay.com, jengelh@medozas.de,
-	kaber@trash.net, r000n@r000n.net, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	benh@kernel.crashing.org
-To: paulmck@linux.vnet.ibm.com
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20090413040413.GQ6822@linux.vnet.ibm.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: <mgranzow@zeus.com>
+Subject: Re: Multiple IPs on iptables/ip6tables command line
+Date: Mon, 13 Apr 2009 18:26:42 +0100
+Message-ID: <1239643602.572943.8323.nullmailer@zeus.com>
+Reply-To: mgranzow@zeus.com
+Cc: netfilter-devel@vger.kernel.org
+To: jengelh@medozas.de
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mailin.zeus.com ([212.44.21.7]:38717 "EHLO mailin.zeus.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750762AbZDMRl7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 13 Apr 2009 13:41:59 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-This is an alternative version of ip/ip6/arp tables locking using
-per-cpu locks.  This avoids the overhead of synchronize_net() during
-update but still removes the expensive rwlock in earlier versions.
+Sorry about the corrupt patch.  Here's a second try, hopefully without
+spurious line breaks.
 
-The idea for this came from an earlier version done by Eric Duzamet.
-Locking is done per-cpu, the fast path locks on the current cpu
-and updates counters.  The slow case involves acquiring the locks on
-all cpu's.
+Michael
 
-The mutex that was added for 2.6.30 in xt_table is unnecessary since
-there already is a mutex for xt[af].mutex that is held.
-
-Tested basic functionality (add/remove/list), but don't have test cases
-for stress, ip6tables or arptables.
-
-Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
 
 ---
-Patch against 2.6.30-rc1
+ include/xtables.h.in |    5 ++
+ ip6tables.c          |   49 +++++++++-----
+ iptables.c           |   42 +++++++++----
+ xtables.c            |  177 ++++++++++++++++++++++++++++++++++++++++++++++++++
+ 4 files changed, 243 insertions(+), 30 deletions(-)
 
- include/linux/netfilter/x_tables.h |    5 -
- net/ipv4/netfilter/arp_tables.c    |  122 ++++++++++------------------------
- net/ipv4/netfilter/ip_tables.c     |  129 +++++++++++--------------------------
- net/ipv6/netfilter/ip6_tables.c    |  127 +++++++++++-------------------------
- net/netfilter/x_tables.c           |   21 ------
- 5 files changed, 116 insertions(+), 288 deletions(-)
+diff --git a/include/xtables.h.in b/include/xtables.h.in
+index a399f90..a2b5f31 100644
+--- a/include/xtables.h.in
++++ b/include/xtables.h.in
+@@ -211,6 +211,7 @@ extern void xtables_init(void);
+ extern void xtables_set_nfproto(uint8_t);
+ extern void *xtables_calloc(size_t, size_t);
+ extern void *xtables_malloc(size_t);
++extern void *xtables_realloc(void*, size_t);
+ 
+ extern int xtables_insmod(const char *, const char *, bool);
+ extern int xtables_load_ko(const char *, bool);
+@@ -256,6 +257,8 @@ extern struct in_addr *xtables_numeric_to_ipaddr(const char *);
+ extern struct in_addr *xtables_numeric_to_ipmask(const char *);
+ extern void xtables_ipparse_any(const char *, struct in_addr **,
+ 	struct in_addr *, unsigned int *);
++extern void xtables_ipparse_multiple(const char *name, struct in_addr **addrpp,
++	struct in_addr **maskpp, unsigned int *naddrs);
+ 
+ extern struct in6_addr *xtables_numeric_to_ip6addr(const char *);
+ extern const char *xtables_ip6addr_to_numeric(const struct in6_addr *);
+@@ -263,6 +266,8 @@ extern const char *xtables_ip6addr_to_anyname(const struct in6_addr *);
+ extern const char *xtables_ip6mask_to_numeric(const struct in6_addr *);
+ extern void xtables_ip6parse_any(const char *, struct in6_addr **,
+ 	struct in6_addr *, unsigned int *);
++extern void xtables_ip6parse_multiple(const char *name, struct in6_addr **addrpp,
++	struct in6_addr **maskpp, unsigned int *naddrs);
+ 
+ /**
+  * Print the specified value to standard output, quoting dangerous
+diff --git a/ip6tables.c b/ip6tables.c
+index 35067f8..5433382 100644
+--- a/ip6tables.c
++++ b/ip6tables.c
+@@ -281,9 +281,9 @@ exit_printhelp(struct xtables_rule_match *matches)
+ 
+ "Options:\n"
+ "[!] --proto	-p proto	protocol: by number or name, eg. `tcp'\n"
+-"[!] --source	-s address[/mask]\n"
++"[!] --source	-s address[/mask][,address[/mask]]*\n"
+ "				source specification\n"
+-"[!] --destination -d address[/mask]\n"
++"[!] --destination -d address[/mask][,address[/mask]]*\n"
+ "				destination specification\n"
+ "[!] --in-interface -i input name[+]\n"
+ "				network interface name ([+] for wildcard)\n"
+@@ -740,8 +740,10 @@ append_entry(const ip6t_chainlabel chain,
+ 	     struct ip6t_entry *fw,
+ 	     unsigned int nsaddrs,
+ 	     const struct in6_addr saddrs[],
++	     const struct in6_addr smasks[],
+ 	     unsigned int ndaddrs,
+ 	     const struct in6_addr daddrs[],
++	     const struct in6_addr dmasks[],
+ 	     int verbose,
+ 	     struct ip6tc_handle *handle)
+ {
+@@ -750,8 +752,10 @@ append_entry(const ip6t_chainlabel chain,
+ 
+ 	for (i = 0; i < nsaddrs; i++) {
+ 		fw->ipv6.src = saddrs[i];
++		fw->ipv6.smsk = smasks[i];
+ 		for (j = 0; j < ndaddrs; j++) {
+ 			fw->ipv6.dst = daddrs[j];
++			fw->ipv6.dmsk = dmasks[j];
+ 			if (verbose)
+ 				print_firewall_line(fw, handle);
+ 			ret &= ip6tc_append_entry(chain, fw, handle);
+@@ -784,8 +788,10 @@ insert_entry(const ip6t_chainlabel chain,
+ 	     unsigned int rulenum,
+ 	     unsigned int nsaddrs,
+ 	     const struct in6_addr saddrs[],
++	     const struct in6_addr smasks[],
+ 	     unsigned int ndaddrs,
+ 	     const struct in6_addr daddrs[],
++	     const struct in6_addr dmasks[],
+ 	     int verbose,
+ 	     struct ip6tc_handle *handle)
+ {
+@@ -794,8 +800,10 @@ insert_entry(const ip6t_chainlabel chain,
+ 
+ 	for (i = 0; i < nsaddrs; i++) {
+ 		fw->ipv6.src = saddrs[i];
++		fw->ipv6.smsk = smasks[i];
+ 		for (j = 0; j < ndaddrs; j++) {
+ 			fw->ipv6.dst = daddrs[j];
++			fw->ipv6.dmsk = dmasks[j];
+ 			if (verbose)
+ 				print_firewall_line(fw, handle);
+ 			ret &= ip6tc_insert_entry(chain, fw, rulenum, handle);
+@@ -806,7 +814,7 @@ insert_entry(const ip6t_chainlabel chain,
+ }
+ 
+ static unsigned char *
+-make_delete_mask(struct ip6t_entry *fw, struct xtables_rule_match *matches)
++make_delete_mask(struct xtables_rule_match *matches)
+ {
+ 	/* Establish mask for comparison */
+ 	unsigned int size;
+@@ -843,8 +851,10 @@ delete_entry(const ip6t_chainlabel chain,
+ 	     struct ip6t_entry *fw,
+ 	     unsigned int nsaddrs,
+ 	     const struct in6_addr saddrs[],
++	     const struct in6_addr smasks[],
+ 	     unsigned int ndaddrs,
+ 	     const struct in6_addr daddrs[],
++	     const struct in6_addr dmasks[],
+ 	     int verbose,
+ 	     struct ip6tc_handle *handle,
+ 	     struct xtables_rule_match *matches)
+@@ -853,11 +863,13 @@ delete_entry(const ip6t_chainlabel chain,
+ 	int ret = 1;
+ 	unsigned char *mask;
+ 
+-	mask = make_delete_mask(fw, matches);
++	mask = make_delete_mask(matches);
+ 	for (i = 0; i < nsaddrs; i++) {
+ 		fw->ipv6.src = saddrs[i];
++		fw->ipv6.smsk = smasks[i];
+ 		for (j = 0; j < ndaddrs; j++) {
+ 			fw->ipv6.dst = daddrs[j];
++			fw->ipv6.dmsk = dmasks[j];
+ 			if (verbose)
+ 				print_firewall_line(fw, handle);
+ 			ret &= ip6tc_delete_entry(chain, fw, mask, handle);
+@@ -1291,9 +1303,9 @@ int do_command6(int argc, char *argv[], char **table, struct ip6tc_handle **hand
+ 	int invert = 0;
+ 	unsigned int nsaddrs = 0, ndaddrs = 0;
+ 	struct in6_addr *saddrs = NULL, *daddrs = NULL;
++	struct in6_addr *smasks = NULL, *dmasks = NULL;
+ 
+ 	int c, verbose = 0;
+-	unsigned i;
+ 	const char *chain = NULL;
+ 	const char *shostnetworkmask = NULL, *dhostnetworkmask = NULL;
+ 	const char *policy = NULL, *newname = NULL;
+@@ -1811,12 +1823,12 @@ int do_command6(int argc, char *argv[], char **table, struct ip6tc_handle **hand
+ 	}
+ 
+ 	if (shostnetworkmask)
+-		xtables_ip6parse_any(shostnetworkmask, &saddrs,
+-		                         &fw.ipv6.smsk, &nsaddrs);
++		xtables_ip6parse_multiple(shostnetworkmask, &saddrs,
++					  &smasks, &nsaddrs);
+ 
+ 	if (dhostnetworkmask)
+-		xtables_ip6parse_any(dhostnetworkmask, &daddrs,
+-		                         &fw.ipv6.dmsk, &ndaddrs);
++		xtables_ip6parse_multiple(dhostnetworkmask, &daddrs,
++					  &dmasks, &ndaddrs);
+ 
+ 	if ((nsaddrs > 1 || ndaddrs > 1) &&
+ 	    (fw.ipv6.invflags & (IP6T_INV_SRCIP | IP6T_INV_DSTIP)))
+@@ -1921,13 +1933,15 @@ int do_command6(int argc, char *argv[], char **table, struct ip6tc_handle **hand
+ 	switch (command) {
+ 	case CMD_APPEND:
+ 		ret = append_entry(chain, e,
+-				   nsaddrs, saddrs, ndaddrs, daddrs,
++				   nsaddrs, saddrs, smasks,
++				   ndaddrs, daddrs, dmasks,
+ 				   options&OPT_VERBOSE,
+ 				   *handle);
+ 		break;
+ 	case CMD_DELETE:
+ 		ret = delete_entry(chain, e,
+-				   nsaddrs, saddrs, ndaddrs, daddrs,
++				   nsaddrs, saddrs, smasks,
++				   ndaddrs, daddrs, dmasks,
+ 				   options&OPT_VERBOSE,
+ 				   *handle, matches);
+ 		break;
+@@ -1941,7 +1955,8 @@ int do_command6(int argc, char *argv[], char **table, struct ip6tc_handle **hand
+ 		break;
+ 	case CMD_INSERT:
+ 		ret = insert_entry(chain, e, rulenum - 1,
+-				   nsaddrs, saddrs, ndaddrs, daddrs,
++				   nsaddrs, saddrs, smasks,
++				   ndaddrs, daddrs, dmasks,
+ 				   options&OPT_VERBOSE,
+ 				   *handle);
+ 		break;
+@@ -2001,12 +2016,10 @@ int do_command6(int argc, char *argv[], char **table, struct ip6tc_handle **hand
+ 		e = NULL;
+ 	}
+ 
+-	for (i = 0; i < nsaddrs; i++)
+-		free(&saddrs[i]);
+-
+-	for (i = 0; i < ndaddrs; i++)
+-		free(&daddrs[i]);
+-
++	free(saddrs);
++	free(smasks);
++	free(daddrs);
++	free(dmasks);
+ 	xtables_free_opts(1);
+ 
+ 	return ret;
+diff --git a/iptables.c b/iptables.c
+index 649baf4..ccf265c 100644
+--- a/iptables.c
++++ b/iptables.c
+@@ -294,9 +294,9 @@ exit_printhelp(struct xtables_rule_match *matches)
+ 
+ "Options:\n"
+ "[!] --proto	-p proto	protocol: by number or name, eg. `tcp'\n"
+-"[!] --source	-s address[/mask]\n"
++"[!] --source	-s address[/mask][,address[/mask]]*\n"
+ "				source specification\n"
+-"[!] --destination -d address[/mask]\n"
++"[!] --destination -d address[/mask][,address[/mask]]*\n"
+ "				destination specification\n"
+ "[!] --in-interface -i input name[+]\n"
+ "				network interface name ([+] for wildcard)\n"
+@@ -742,8 +742,10 @@ append_entry(const ipt_chainlabel chain,
+ 	     struct ipt_entry *fw,
+ 	     unsigned int nsaddrs,
+ 	     const struct in_addr saddrs[],
++	     const struct in_addr smasks[],
+ 	     unsigned int ndaddrs,
+ 	     const struct in_addr daddrs[],
++	     const struct in_addr dmasks[],
+ 	     int verbose,
+ 	     struct iptc_handle *handle)
+ {
+@@ -752,8 +754,10 @@ append_entry(const ipt_chainlabel chain,
+ 
+ 	for (i = 0; i < nsaddrs; i++) {
+ 		fw->ip.src.s_addr = saddrs[i].s_addr;
++		fw->ip.smsk.s_addr = smasks[i].s_addr;
+ 		for (j = 0; j < ndaddrs; j++) {
+ 			fw->ip.dst.s_addr = daddrs[j].s_addr;
++			fw->ip.dmsk.s_addr = dmasks[j].s_addr;
+ 			if (verbose)
+ 				print_firewall_line(fw, handle);
+ 			ret &= iptc_append_entry(chain, fw, handle);
+@@ -786,8 +790,10 @@ insert_entry(const ipt_chainlabel chain,
+ 	     unsigned int rulenum,
+ 	     unsigned int nsaddrs,
+ 	     const struct in_addr saddrs[],
++	     const struct in_addr smasks[],
+ 	     unsigned int ndaddrs,
+ 	     const struct in_addr daddrs[],
++	     const struct in_addr dmasks[],
+ 	     int verbose,
+ 	     struct iptc_handle *handle)
+ {
+@@ -796,8 +802,10 @@ insert_entry(const ipt_chainlabel chain,
+ 
+ 	for (i = 0; i < nsaddrs; i++) {
+ 		fw->ip.src.s_addr = saddrs[i].s_addr;
++		fw->ip.smsk.s_addr = smasks[i].s_addr;
+ 		for (j = 0; j < ndaddrs; j++) {
+ 			fw->ip.dst.s_addr = daddrs[j].s_addr;
++			fw->ip.dmsk.s_addr = dmasks[j].s_addr;
+ 			if (verbose)
+ 				print_firewall_line(fw, handle);
+ 			ret &= iptc_insert_entry(chain, fw, rulenum, handle);
+@@ -808,7 +816,7 @@ insert_entry(const ipt_chainlabel chain,
+ }
+ 
+ static unsigned char *
+-make_delete_mask(struct ipt_entry *fw, struct xtables_rule_match *matches)
++make_delete_mask(struct xtables_rule_match *matches)
+ {
+ 	/* Establish mask for comparison */
+ 	unsigned int size;
+@@ -845,8 +853,10 @@ delete_entry(const ipt_chainlabel chain,
+ 	     struct ipt_entry *fw,
+ 	     unsigned int nsaddrs,
+ 	     const struct in_addr saddrs[],
++	     const struct in_addr smasks[],
+ 	     unsigned int ndaddrs,
+ 	     const struct in_addr daddrs[],
++	     const struct in_addr dmasks[],
+ 	     int verbose,
+ 	     struct iptc_handle *handle,
+ 	     struct xtables_rule_match *matches)
+@@ -855,11 +865,13 @@ delete_entry(const ipt_chainlabel chain,
+ 	int ret = 1;
+ 	unsigned char *mask;
+ 
+-	mask = make_delete_mask(fw, matches);
++	mask = make_delete_mask(matches);
+ 	for (i = 0; i < nsaddrs; i++) {
+ 		fw->ip.src.s_addr = saddrs[i].s_addr;
++		fw->ip.smsk.s_addr = smasks[i].s_addr;
+ 		for (j = 0; j < ndaddrs; j++) {
+ 			fw->ip.dst.s_addr = daddrs[j].s_addr;
++			fw->ip.dmsk.s_addr = dmasks[j].s_addr;
+ 			if (verbose)
+ 				print_firewall_line(fw, handle);
+ 			ret &= iptc_delete_entry(chain, fw, mask, handle);
+@@ -1313,7 +1325,8 @@ int do_command(int argc, char *argv[], char **table, struct iptc_handle **handle
+ 	struct ipt_entry fw, *e = NULL;
+ 	int invert = 0;
+ 	unsigned int nsaddrs = 0, ndaddrs = 0;
+-	struct in_addr *saddrs = NULL, *daddrs = NULL;
++	struct in_addr *saddrs = NULL, *smasks = NULL;
++	struct in_addr *daddrs = NULL, *dmasks = NULL;
+ 
+ 	int c, verbose = 0;
+ 	const char *chain = NULL;
+@@ -1848,12 +1861,12 @@ int do_command(int argc, char *argv[], char **table, struct iptc_handle **handle
+ 	}
+ 
+ 	if (shostnetworkmask)
+-		xtables_ipparse_any(shostnetworkmask, &saddrs,
+-					&fw.ip.smsk, &nsaddrs);
++		xtables_ipparse_multiple(shostnetworkmask, &saddrs,
++					 &smasks, &nsaddrs);
+ 
+ 	if (dhostnetworkmask)
+-		xtables_ipparse_any(dhostnetworkmask, &daddrs,
+-					&fw.ip.dmsk, &ndaddrs);
++		xtables_ipparse_multiple(dhostnetworkmask, &daddrs,
++					 &dmasks, &ndaddrs);
+ 
+ 	if ((nsaddrs > 1 || ndaddrs > 1) &&
+ 	    (fw.ip.invflags & (IPT_INV_SRCIP | IPT_INV_DSTIP)))
+@@ -1961,13 +1974,15 @@ int do_command(int argc, char *argv[], char **table, struct iptc_handle **handle
+ 	switch (command) {
+ 	case CMD_APPEND:
+ 		ret = append_entry(chain, e,
+-				   nsaddrs, saddrs, ndaddrs, daddrs,
++				   nsaddrs, saddrs, smasks,
++				   ndaddrs, daddrs, dmasks,
+ 				   options&OPT_VERBOSE,
+ 				   *handle);
+ 		break;
+ 	case CMD_DELETE:
+ 		ret = delete_entry(chain, e,
+-				   nsaddrs, saddrs, ndaddrs, daddrs,
++				   nsaddrs, saddrs, smasks,
++				   ndaddrs, daddrs, dmasks,
+ 				   options&OPT_VERBOSE,
+ 				   *handle, matches);
+ 		break;
+@@ -1981,7 +1996,8 @@ int do_command(int argc, char *argv[], char **table, struct iptc_handle **handle
+ 		break;
+ 	case CMD_INSERT:
+ 		ret = insert_entry(chain, e, rulenum - 1,
+-				   nsaddrs, saddrs, ndaddrs, daddrs,
++				   nsaddrs, saddrs, smasks,
++				   ndaddrs, daddrs, dmasks,
+ 				   options&OPT_VERBOSE,
+ 				   *handle);
+ 		break;
+@@ -2042,7 +2058,9 @@ int do_command(int argc, char *argv[], char **table, struct iptc_handle **handle
+ 	}
+ 
+ 	free(saddrs);
++	free(smasks);
+ 	free(daddrs);
++	free(dmasks);
+ 	xtables_free_opts(1);
+ 
+ 	return ret;
+diff --git a/xtables.c b/xtables.c
+index a01d4ea..22ebf82 100644
+--- a/xtables.c
++++ b/xtables.c
+@@ -271,6 +271,18 @@ void *xtables_malloc(size_t size)
+ 	return p;
+ }
+ 
++void *xtables_realloc(void* ptr, size_t size)
++{
++	void *p;
++
++	if ((p = realloc(ptr, size)) == NULL) {
++		perror("ip[6]tables: realloc failed");
++		exit(1);
++	}
++
++	return p;
++}
++
+ static char *get_modprobe(void)
+ {
+ 	int procfile;
+@@ -1133,6 +1145,93 @@ static struct in_addr *parse_ipmask(const char *mask)
+ 	return &maskaddr;
+ }
+ 
++void
++xtables_ipparse_multiple(const char *name, struct in_addr **addrpp,
++			 struct in_addr **maskpp, unsigned int *naddrs)
++{
++	struct in_addr *addrp;
++	char buf[256];
++	char *p;
++	int i, j;
++	unsigned int len, n;
++
++	unsigned int count = 1;
++	const char* loop = name;
++	while( (loop = strchr(loop, (int)',')) != NULL ) {
++		++count;
++		++loop; /* skip ',' */
++	}
++
++	*addrpp = xtables_malloc(sizeof(struct in_addr) * count);
++	*maskpp = xtables_malloc(sizeof(struct in_addr) * count);
++
++	loop = name;
++
++	for( i = 0; i < count /*NB: count can grow*/; i++ ) {
++		if( !loop ) break;
++		if( ',' == *loop) ++loop;
++		if( '\0' == *loop ) break;
++		p = strchr(loop, (int)',');
++		if( p )
++			len = p-loop;
++		else
++			len = strlen( loop );
++		if( 0 == len || (sizeof(buf)-1) < len ) break;
++
++		strncpy(buf, loop, len);
++		buf[len] = '\0';
++                loop += len;
++		if ((p = strrchr(buf, '/')) != NULL) {
++			*p = '\0';
++			addrp = parse_ipmask(p + 1);
++		} else
++			addrp = parse_ipmask(NULL);
++		memcpy(*maskpp+i, addrp, sizeof(*addrp));
++
++		/* if a null mask is given, the name is ignored, like in "any/0" */
++		if ((*maskpp+i)->s_addr == 0L)
++			strcpy(buf, "0.0.0.0"); /* a bit pointless to
++						process multiple
++						addresses in this
++						case... */
++
++		addrp = ipparse_hostnetwork(buf, &n);
++		if( 1 < n ) {
++			count += n - 1;
++			*addrpp = xtables_realloc(*addrpp,
++				sizeof(struct in_addr) * count);
++			*maskpp = xtables_realloc(*maskpp,
++				sizeof(struct in_addr) * count);
++			for( j = 0; j < n; ++j ) /* for each new addr */
++                           memcpy(*addrpp+i+j, addrp+j, sizeof(*addrp));
++			for( j = 1; j < n; ++j ) /* for each new mask */
++                           memcpy(*maskpp+i+j, *maskpp+i, sizeof(*addrp));
++			i += n - 1;
++		} else {
++			memcpy(*addrpp+i, addrp, sizeof(*addrp));
++		}
++		/* free what ipparse_hostnetwork had allocated: */
++		free(addrp);
++	}
++	*naddrs = count;
++	for (i = 0, j = 0; i < n; i++) {
++           (*addrpp+i)->s_addr &= (*maskpp+i)->s_addr;
++#if 0
++	j++;
++	/* this is O(N^2) in the number of ip addresses.  user should
++	provide unique ips */
++		for (k = 0; k < j - 1; k++) {
++			if (addrp[k].s_addr == addrp[j - 1].s_addr) {
++				(*naddrs)--;
++				j--;
++				break;
++			}
++		}
++#endif
++	}
++}
++
++
+ /**
+  * xtables_ipparse_any - transform arbitrary name to in_addr
+  *
+@@ -1364,6 +1463,84 @@ static struct in6_addr *parse_ip6mask(char *mask)
+ 	return &maskaddr;
+ }
+ 
++void
++xtables_ip6parse_multiple(const char *name, struct in6_addr **addrpp,
++		      struct in6_addr **maskpp, unsigned int *naddrs)
++{
++	struct in6_addr *addrp;
++	char buf[256];
++	char *p;
++	int i, j;
++	unsigned int len, n;
++	unsigned int count = 1;
++	const char* loop = name;
++	while( (loop = strchr(loop, (int)',')) != NULL ) {
++		++count;
++		++loop; /* skip ',' */
++	}
++
++	*addrpp = xtables_malloc(sizeof(struct in6_addr) * count);
++	*maskpp = xtables_malloc(sizeof(struct in6_addr) * count);
++
++	loop = name;
++
++	for( i = 0; i < count /*NB: count can grow*/; i++ ) {
++		if( !loop ) break;
++		if( ',' == *loop) ++loop;
++		if( '\0' == *loop ) break;
++		p = strchr(loop, (int)',');
++		if( p )
++			len = p-loop;
++		else
++			len = strlen( loop );
++		if( 0 == len || (sizeof(buf)-1) < len ) break;
++		
++		strncpy(buf, loop, len);
++		buf[len] = '\0';
++                loop += len;
++		if ((p = strrchr(buf, '/')) != NULL) {
++			*p = '\0';
++			addrp = parse_ip6mask(p + 1);
++		} else
++			addrp = parse_ip6mask(NULL);
++		memcpy((*maskpp)+i, addrp, sizeof(*addrp));
++
++		/* if a null mask is given, the name is ignored, like in "any/0" */
++		if (!memcmp(*maskpp+i, &in6addr_any, sizeof(in6addr_any)))
++			strcpy(buf, "::");
++
++		addrp = ip6parse_hostnetwork(buf, &n);
++		/* ip6parse_hostnetwork only ever returns one IP
++		address (it exits if the resolution fails).
++		Therefore, n will always be 1 here.  Leaving the
++		code below in anyway in case ip6parse_hostnetwork
++		is improved some day to behave like
++		ipparse_hostnetwork: */
++		if( 1 < n ) {
++			count += n - 1;
++			*addrpp = xtables_realloc(*addrpp,
++				sizeof(struct in6_addr) * count);
++			*maskpp = xtables_realloc(*maskpp,
++				sizeof(struct in6_addr) * count);
++			for(j = 0; j < n; ++j) /* for each new addr */
++				memcpy(*addrpp+i+j, addrp+j, sizeof(*addrp));
++			for(j = 1; j < n; ++j) /* for each new mask */
++				memcpy(*maskpp+i+j, *maskpp+i, sizeof(*addrp));
++			i += n - 1;
++		} else {
++			memcpy(*addrpp+i, addrp, sizeof(*addrp));
++		}
++		/* free what ip6parse_hostnetwork had allocated: */
++		free(addrp);
++	}
++	*naddrs = count;
++	for (i = 0, j = 0; i < n; i++) {
++		int k;
++		for (k = 0; k < 4; k++)
++			(*addrpp+i)->s6_addr32[k] &= (*maskpp+i)->s6_addr32[k];
++	}
++}
++
+ void xtables_ip6parse_any(const char *name, struct in6_addr **addrpp,
+                           struct in6_addr *maskp, unsigned int *naddrs)
+ {
+-- 
+1.5.6.3
 
---- a/include/linux/netfilter/x_tables.h	2009-04-13 08:27:45.698412446 -0700
-+++ b/include/linux/netfilter/x_tables.h	2009-04-13 08:34:05.499348295 -0700
-@@ -354,9 +354,6 @@ struct xt_table
- 	/* What hooks you will enter on */
- 	unsigned int valid_hooks;
- 
--	/* Lock for the curtain */
--	struct mutex lock;
--
- 	/* Man behind the curtain... */
- 	struct xt_table_info *private;
- 
-@@ -434,8 +431,6 @@ extern void xt_proto_fini(struct net *ne
- 
- extern struct xt_table_info *xt_alloc_table_info(unsigned int size);
- extern void xt_free_table_info(struct xt_table_info *info);
--extern void xt_table_entry_swap_rcu(struct xt_table_info *old,
--				    struct xt_table_info *new);
- 
- /*
-  * This helper is performance critical and must be inlined
---- a/net/ipv4/netfilter/ip_tables.c	2009-04-13 08:27:45.684411824 -0700
-+++ b/net/ipv4/netfilter/ip_tables.c	2009-04-13 09:12:54.295536361 -0700
-@@ -297,6 +297,8 @@ static void trace_packet(struct sk_buff 
- }
- #endif
- 
-+static DEFINE_PER_CPU(spinlock_t, ip_tables_lock);
-+
- /* Returns one of the generic firewall policies, like NF_ACCEPT. */
- unsigned int
- ipt_do_table(struct sk_buff *skb,
-@@ -339,9 +341,10 @@ ipt_do_table(struct sk_buff *skb,
- 
- 	IP_NF_ASSERT(table->valid_hooks & (1 << hook));
- 
--	rcu_read_lock_bh();
--	private = rcu_dereference(table->private);
--	table_base = rcu_dereference(private->entries[smp_processor_id()]);
-+	local_bh_disable();
-+	spin_lock(&__get_cpu_var(ip_tables_lock));
-+	private = table->private;
-+	table_base = private->entries[smp_processor_id()];
- 
- 	e = get_entry(table_base, private->hook_entry[hook]);
- 
-@@ -436,8 +439,8 @@ ipt_do_table(struct sk_buff *skb,
- 			e = (void *)e + e->next_offset;
- 		}
- 	} while (!hotdrop);
--
--	rcu_read_unlock_bh();
-+	spin_unlock(&__get_cpu_var(ip_tables_lock));
-+	local_bh_enable();
- 
- #ifdef DEBUG_ALLOW_ALL
- 	return NF_ACCEPT;
-@@ -891,86 +894,34 @@ get_counters(const struct xt_table_info 
- 	     struct xt_counters counters[])
- {
- 	unsigned int cpu;
--	unsigned int i;
--	unsigned int curcpu;
-+	unsigned int i = 0;
-+	unsigned int curcpu = raw_smp_processor_id();
- 
- 	/* Instead of clearing (by a previous call to memset())
- 	 * the counters and using adds, we set the counters
- 	 * with data used by 'current' CPU
- 	 * We dont care about preemption here.
- 	 */
--	curcpu = raw_smp_processor_id();
--
--	i = 0;
-+	spin_lock_bh(&per_cpu(ip_tables_lock, curcpu));
- 	IPT_ENTRY_ITERATE(t->entries[curcpu],
- 			  t->size,
- 			  set_entry_to_counter,
- 			  counters,
- 			  &i);
-+	spin_unlock_bh(&per_cpu(ip_tables_lock, curcpu));
- 
- 	for_each_possible_cpu(cpu) {
- 		if (cpu == curcpu)
- 			continue;
-+
- 		i = 0;
-+		spin_lock_bh(&per_cpu(ip_tables_lock, cpu));
- 		IPT_ENTRY_ITERATE(t->entries[cpu],
- 				  t->size,
- 				  add_entry_to_counter,
- 				  counters,
- 				  &i);
--	}
--
--}
--
--/* We're lazy, and add to the first CPU; overflow works its fey magic
-- * and everything is OK. */
--static int
--add_counter_to_entry(struct ipt_entry *e,
--		     const struct xt_counters addme[],
--		     unsigned int *i)
--{
--	ADD_COUNTER(e->counters, addme[*i].bcnt, addme[*i].pcnt);
--
--	(*i)++;
--	return 0;
--}
--
--/* Take values from counters and add them back onto the current cpu */
--static void put_counters(struct xt_table_info *t,
--			 const struct xt_counters counters[])
--{
--	unsigned int i, cpu;
--
--	local_bh_disable();
--	cpu = smp_processor_id();
--	i = 0;
--	IPT_ENTRY_ITERATE(t->entries[cpu],
--			  t->size,
--			  add_counter_to_entry,
--			  counters,
--			  &i);
--	local_bh_enable();
--}
--
--
--static inline int
--zero_entry_counter(struct ipt_entry *e, void *arg)
--{
--	e->counters.bcnt = 0;
--	e->counters.pcnt = 0;
--	return 0;
--}
--
--static void
--clone_counters(struct xt_table_info *newinfo, const struct xt_table_info *info)
--{
--	unsigned int cpu;
--	const void *loc_cpu_entry = info->entries[raw_smp_processor_id()];
--
--	memcpy(newinfo, info, offsetof(struct xt_table_info, entries));
--	for_each_possible_cpu(cpu) {
--		memcpy(newinfo->entries[cpu], loc_cpu_entry, info->size);
--		IPT_ENTRY_ITERATE(newinfo->entries[cpu], newinfo->size,
--				  zero_entry_counter, NULL);
-+		spin_unlock_bh(&per_cpu(ip_tables_lock, cpu));
- 	}
- }
- 
-@@ -979,7 +930,6 @@ static struct xt_counters * alloc_counte
- 	unsigned int countersize;
- 	struct xt_counters *counters;
- 	struct xt_table_info *private = table->private;
--	struct xt_table_info *info;
- 
- 	/* We need atomic snapshot of counters: rest doesn't change
- 	   (other than comefrom, which userspace doesn't care
-@@ -990,26 +940,10 @@ static struct xt_counters * alloc_counte
- 	if (counters == NULL)
- 		goto nomem;
- 
--	info = xt_alloc_table_info(private->size);
--	if (!info)
--		goto free_counters;
--
--	clone_counters(info, private);
--
--	mutex_lock(&table->lock);
--	xt_table_entry_swap_rcu(private, info);
--	synchronize_net();	/* Wait until smoke has cleared */
--
--	get_counters(info, counters);
--	put_counters(private, counters);
--	mutex_unlock(&table->lock);
--
--	xt_free_table_info(info);
-+	get_counters(private, counters);
- 
- 	return counters;
- 
-- free_counters:
--	vfree(counters);
-  nomem:
- 	return ERR_PTR(-ENOMEM);
- }
-@@ -1377,6 +1311,18 @@ do_replace(struct net *net, void __user 
- 	return ret;
- }
- 
-+/* We're lazy, and add to the first CPU; overflow works its fey magic
-+ * and everything is OK. */
-+static int
-+add_counter_to_entry(struct ipt_entry *e,
-+		     const struct xt_counters addme[],
-+		     unsigned int *i)
-+{
-+	ADD_COUNTER(e->counters, addme[*i].bcnt, addme[*i].pcnt);
-+
-+	(*i)++;
-+	return 0;
-+}
- 
- static int
- do_add_counters(struct net *net, void __user *user, unsigned int len, int compat)
-@@ -1386,7 +1332,7 @@ do_add_counters(struct net *net, void __
- 	struct xt_counters *paddc;
- 	unsigned int num_counters;
- 	const char *name;
--	int size;
-+	int curcpu, size;
- 	void *ptmp;
- 	struct xt_table *t;
- 	const struct xt_table_info *private;
-@@ -1437,25 +1383,27 @@ do_add_counters(struct net *net, void __
- 		goto free;
- 	}
- 
--	mutex_lock(&t->lock);
- 	private = t->private;
- 	if (private->number != num_counters) {
- 		ret = -EINVAL;
- 		goto unlock_up_free;
- 	}
- 
--	preempt_disable();
- 	i = 0;
-+	local_bh_disable();
- 	/* Choose the copy that is on our node */
--	loc_cpu_entry = private->entries[raw_smp_processor_id()];
-+	curcpu = smp_processor_id();
-+	spin_lock(&__get_cpu_var(ip_tables_lock));
-+	loc_cpu_entry = private->entries[curcpu];
- 	IPT_ENTRY_ITERATE(loc_cpu_entry,
- 			  private->size,
- 			  add_counter_to_entry,
- 			  paddc,
- 			  &i);
--	preempt_enable();
-+	spin_unlock(&__get_cpu_var(ip_tables_lock));
-+	local_bh_enable();
-+
-  unlock_up_free:
--	mutex_unlock(&t->lock);
- 	xt_table_unlock(t);
- 	module_put(t->me);
-  free:
-@@ -2272,7 +2220,10 @@ static struct pernet_operations ip_table
- 
- static int __init ip_tables_init(void)
- {
--	int ret;
-+	int cpu, ret;
-+
-+	for_each_possible_cpu(cpu)
-+		spin_lock_init(&per_cpu(ip_tables_lock, cpu));
- 
- 	ret = register_pernet_subsys(&ip_tables_net_ops);
- 	if (ret < 0)
---- a/net/netfilter/x_tables.c	2009-04-13 08:27:45.671412509 -0700
-+++ b/net/netfilter/x_tables.c	2009-04-13 09:19:51.687537585 -0700
-@@ -625,20 +625,6 @@ void xt_free_table_info(struct xt_table_
- }
- EXPORT_SYMBOL(xt_free_table_info);
- 
--void xt_table_entry_swap_rcu(struct xt_table_info *oldinfo,
--			     struct xt_table_info *newinfo)
--{
--	unsigned int cpu;
--
--	for_each_possible_cpu(cpu) {
--		void *p = oldinfo->entries[cpu];
--		rcu_assign_pointer(oldinfo->entries[cpu], newinfo->entries[cpu]);
--		newinfo->entries[cpu] = p;
--	}
--
--}
--EXPORT_SYMBOL_GPL(xt_table_entry_swap_rcu);
--
- /* Find table by name, grabs mutex & ref.  Returns ERR_PTR() on error. */
- struct xt_table *xt_find_table_lock(struct net *net, u_int8_t af,
- 				    const char *name)
-@@ -685,22 +671,18 @@ xt_replace_table(struct xt_table *table,
- 	struct xt_table_info *oldinfo, *private;
- 
- 	/* Do the substitution. */
--	mutex_lock(&table->lock);
- 	private = table->private;
- 	/* Check inside lock: is the old number correct? */
- 	if (num_counters != private->number) {
- 		duprintf("num_counters != table->private->number (%u/%u)\n",
- 			 num_counters, private->number);
--		mutex_unlock(&table->lock);
- 		*error = -EAGAIN;
- 		return NULL;
- 	}
- 	oldinfo = private;
--	rcu_assign_pointer(table->private, newinfo);
-+	table->private = newinfo;
- 	newinfo->initial_entries = oldinfo->initial_entries;
--	mutex_unlock(&table->lock);
- 
--	synchronize_net();
- 	return oldinfo;
- }
- EXPORT_SYMBOL_GPL(xt_replace_table);
-@@ -734,7 +716,6 @@ struct xt_table *xt_register_table(struc
- 
- 	/* Simplifies replace_table code. */
- 	table->private = bootstrap;
--	mutex_init(&table->lock);
- 
- 	if (!xt_replace_table(table, 0, newinfo, &ret))
- 		goto unlock;
---- a/net/ipv6/netfilter/ip6_tables.c	2009-04-13 08:37:58.189723514 -0700
-+++ b/net/ipv6/netfilter/ip6_tables.c	2009-04-13 09:14:26.576349680 -0700
-@@ -329,6 +329,8 @@ static void trace_packet(struct sk_buff 
- }
- #endif
- 
-+static DEFINE_PER_CPU(spinlock_t, ip6_tables_lock);
-+
- /* Returns one of the generic firewall policies, like NF_ACCEPT. */
- unsigned int
- ip6t_do_table(struct sk_buff *skb,
-@@ -365,9 +367,10 @@ ip6t_do_table(struct sk_buff *skb,
- 
- 	IP_NF_ASSERT(table->valid_hooks & (1 << hook));
- 
--	rcu_read_lock_bh();
--	private = rcu_dereference(table->private);
--	table_base = rcu_dereference(private->entries[smp_processor_id()]);
-+	local_bh_disable();
-+	spin_lock(&__get_cpu_var(ip6_tables_lock));
-+	private = table->private;
-+	table_base = private->entries[smp_processor_id()];
- 
- 	e = get_entry(table_base, private->hook_entry[hook]);
- 
-@@ -466,7 +469,8 @@ ip6t_do_table(struct sk_buff *skb,
- #ifdef CONFIG_NETFILTER_DEBUG
- 	((struct ip6t_entry *)table_base)->comefrom = NETFILTER_LINK_POISON;
- #endif
--	rcu_read_unlock_bh();
-+	spin_unlock(&__get_cpu_var(ip6_tables_lock));
-+	local_bh_enable();
- 
- #ifdef DEBUG_ALLOW_ALL
- 	return NF_ACCEPT;
-@@ -920,84 +924,33 @@ get_counters(const struct xt_table_info 
- 	     struct xt_counters counters[])
- {
- 	unsigned int cpu;
--	unsigned int i;
--	unsigned int curcpu;
-+	unsigned int i = 0;
-+	unsigned int curcpu = raw_smp_processor_id();
- 
- 	/* Instead of clearing (by a previous call to memset())
- 	 * the counters and using adds, we set the counters
- 	 * with data used by 'current' CPU
- 	 * We dont care about preemption here.
- 	 */
--	curcpu = raw_smp_processor_id();
--
--	i = 0;
-+	spin_lock_bh(&per_cpu(ip6_tables_lock, curcpu));
- 	IP6T_ENTRY_ITERATE(t->entries[curcpu],
- 			   t->size,
- 			   set_entry_to_counter,
- 			   counters,
- 			   &i);
-+	spin_unlock_bh(&per_cpu(ip6_tables_lock, curcpu));
- 
- 	for_each_possible_cpu(cpu) {
- 		if (cpu == curcpu)
- 			continue;
- 		i = 0;
-+		spin_lock_bh(&per_cpu(ip6_tables_lock, cpu));
- 		IP6T_ENTRY_ITERATE(t->entries[cpu],
- 				  t->size,
- 				  add_entry_to_counter,
- 				  counters,
- 				  &i);
--	}
--}
--
--/* We're lazy, and add to the first CPU; overflow works its fey magic
-- * and everything is OK. */
--static int
--add_counter_to_entry(struct ip6t_entry *e,
--		     const struct xt_counters addme[],
--		     unsigned int *i)
--{
--	ADD_COUNTER(e->counters, addme[*i].bcnt, addme[*i].pcnt);
--
--	(*i)++;
--	return 0;
--}
--
--/* Take values from counters and add them back onto the current cpu */
--static void put_counters(struct xt_table_info *t,
--			 const struct xt_counters counters[])
--{
--	unsigned int i, cpu;
--
--	local_bh_disable();
--	cpu = smp_processor_id();
--	i = 0;
--	IP6T_ENTRY_ITERATE(t->entries[cpu],
--			   t->size,
--			   add_counter_to_entry,
--			   counters,
--			   &i);
--	local_bh_enable();
--}
--
--static inline int
--zero_entry_counter(struct ip6t_entry *e, void *arg)
--{
--	e->counters.bcnt = 0;
--	e->counters.pcnt = 0;
--	return 0;
--}
--
--static void
--clone_counters(struct xt_table_info *newinfo, const struct xt_table_info *info)
--{
--	unsigned int cpu;
--	const void *loc_cpu_entry = info->entries[raw_smp_processor_id()];
--
--	memcpy(newinfo, info, offsetof(struct xt_table_info, entries));
--	for_each_possible_cpu(cpu) {
--		memcpy(newinfo->entries[cpu], loc_cpu_entry, info->size);
--		IP6T_ENTRY_ITERATE(newinfo->entries[cpu], newinfo->size,
--				   zero_entry_counter, NULL);
-+		spin_unlock_bh(&per_cpu(ip6_tables_lock, cpu));
- 	}
- }
- 
-@@ -1006,7 +959,6 @@ static struct xt_counters *alloc_counter
- 	unsigned int countersize;
- 	struct xt_counters *counters;
- 	struct xt_table_info *private = table->private;
--	struct xt_table_info *info;
- 
- 	/* We need atomic snapshot of counters: rest doesn't change
- 	   (other than comefrom, which userspace doesn't care
-@@ -1017,26 +969,9 @@ static struct xt_counters *alloc_counter
- 	if (counters == NULL)
- 		goto nomem;
- 
--	info = xt_alloc_table_info(private->size);
--	if (!info)
--		goto free_counters;
--
--	clone_counters(info, private);
--
--	mutex_lock(&table->lock);
--	xt_table_entry_swap_rcu(private, info);
--	synchronize_net();	/* Wait until smoke has cleared */
--
--	get_counters(info, counters);
--	put_counters(private, counters);
--	mutex_unlock(&table->lock);
--
--	xt_free_table_info(info);
--
-+	get_counters(private, counters);
- 	return counters;
- 
-- free_counters:
--	vfree(counters);
-  nomem:
- 	return ERR_PTR(-ENOMEM);
- }
-@@ -1405,6 +1340,19 @@ do_replace(struct net *net, void __user 
- 	return ret;
- }
- 
-+/* We're lazy, and add to the first CPU; overflow works its fey magic
-+ * and everything is OK. */
-+static int
-+add_counter_to_entry(struct ip6t_entry *e,
-+		     const struct xt_counters addme[],
-+		     unsigned int *i)
-+{
-+	ADD_COUNTER(e->counters, addme[*i].bcnt, addme[*i].pcnt);
-+
-+	(*i)++;
-+	return 0;
-+}
-+
- static int
- do_add_counters(struct net *net, void __user *user, unsigned int len,
- 		int compat)
-@@ -1414,7 +1362,7 @@ do_add_counters(struct net *net, void __
- 	struct xt_counters *paddc;
- 	unsigned int num_counters;
- 	char *name;
--	int size;
-+	int curcpu, size;
- 	void *ptmp;
- 	struct xt_table *t;
- 	const struct xt_table_info *private;
-@@ -1465,25 +1413,27 @@ do_add_counters(struct net *net, void __
- 		goto free;
- 	}
- 
--	mutex_lock(&t->lock);
- 	private = t->private;
- 	if (private->number != num_counters) {
- 		ret = -EINVAL;
- 		goto unlock_up_free;
- 	}
- 
--	preempt_disable();
- 	i = 0;
-+	local_bh_disable();
- 	/* Choose the copy that is on our node */
--	loc_cpu_entry = private->entries[raw_smp_processor_id()];
-+	curcpu = smp_processor_id();
-+	spin_lock(&__get_cpu_var(ip6_tables_lock));
-+	loc_cpu_entry = private->entries[curcpu];
- 	IP6T_ENTRY_ITERATE(loc_cpu_entry,
- 			  private->size,
- 			  add_counter_to_entry,
- 			  paddc,
- 			  &i);
--	preempt_enable();
-+	spin_unlock(&__get_cpu_var(ip6_tables_lock));
-+	local_bh_enable();
-+
-  unlock_up_free:
--	mutex_unlock(&t->lock);
- 	xt_table_unlock(t);
- 	module_put(t->me);
-  free:
-@@ -2298,7 +2248,10 @@ static struct pernet_operations ip6_tabl
- 
- static int __init ip6_tables_init(void)
- {
--	int ret;
-+	int cpu, ret;
-+
-+	for_each_possible_cpu(cpu)
-+		spin_lock_init(&per_cpu(ip6_tables_lock, cpu));
- 
- 	ret = register_pernet_subsys(&ip6_tables_net_ops);
- 	if (ret < 0)
---- a/net/ipv4/netfilter/arp_tables.c	2009-04-13 08:38:05.803598692 -0700
-+++ b/net/ipv4/netfilter/arp_tables.c	2009-04-13 09:19:57.079411426 -0700
-@@ -231,6 +231,8 @@ static inline struct arpt_entry *get_ent
- 	return (struct arpt_entry *)(base + offset);
- }
- 
-+static DEFINE_PER_CPU(spinlock_t, arp_tables_lock);
-+
- unsigned int arpt_do_table(struct sk_buff *skb,
- 			   unsigned int hook,
- 			   const struct net_device *in,
-@@ -253,9 +255,10 @@ unsigned int arpt_do_table(struct sk_buf
- 	indev = in ? in->name : nulldevname;
- 	outdev = out ? out->name : nulldevname;
- 
--	rcu_read_lock_bh();
--	private = rcu_dereference(table->private);
--	table_base = rcu_dereference(private->entries[smp_processor_id()]);
-+	local_bh_disable();
-+	spin_lock(&__get_cpu_var(arp_tables_lock));
-+	private = table->private;
-+	table_base = private->entries[smp_processor_id()];
- 
- 	e = get_entry(table_base, private->hook_entry[hook]);
- 	back = get_entry(table_base, private->underflow[hook]);
-@@ -328,8 +331,8 @@ unsigned int arpt_do_table(struct sk_buf
- 			e = (void *)e + e->next_offset;
- 		}
- 	} while (!hotdrop);
--
--	rcu_read_unlock_bh();
-+	spin_unlock(&__get_cpu_var(arp_tables_lock));
-+	local_bh_enable();
- 
- 	if (hotdrop)
- 		return NF_DROP;
-@@ -705,85 +708,33 @@ static void get_counters(const struct xt
- 			 struct xt_counters counters[])
- {
- 	unsigned int cpu;
--	unsigned int i;
--	unsigned int curcpu;
-+	unsigned int i = 0;
-+	unsigned int curcpu = raw_smp_processor_id();
- 
- 	/* Instead of clearing (by a previous call to memset())
- 	 * the counters and using adds, we set the counters
- 	 * with data used by 'current' CPU
- 	 * We dont care about preemption here.
- 	 */
--	curcpu = raw_smp_processor_id();
--
--	i = 0;
-+	spin_lock_bh(&per_cpu(arp_tables_lock, curcpu));
- 	ARPT_ENTRY_ITERATE(t->entries[curcpu],
- 			   t->size,
- 			   set_entry_to_counter,
- 			   counters,
- 			   &i);
-+	spin_unlock_bh(&per_cpu(arp_tables_lock, curcpu));
- 
- 	for_each_possible_cpu(cpu) {
- 		if (cpu == curcpu)
- 			continue;
- 		i = 0;
-+		spin_lock_bh(&per_cpu(arp_tables_lock, cpu));
- 		ARPT_ENTRY_ITERATE(t->entries[cpu],
- 				   t->size,
- 				   add_entry_to_counter,
- 				   counters,
- 				   &i);
--	}
--}
--
--
--/* We're lazy, and add to the first CPU; overflow works its fey magic
-- * and everything is OK. */
--static int
--add_counter_to_entry(struct arpt_entry *e,
--		     const struct xt_counters addme[],
--		     unsigned int *i)
--{
--	ADD_COUNTER(e->counters, addme[*i].bcnt, addme[*i].pcnt);
--
--	(*i)++;
--	return 0;
--}
--
--/* Take values from counters and add them back onto the current cpu */
--static void put_counters(struct xt_table_info *t,
--			 const struct xt_counters counters[])
--{
--	unsigned int i, cpu;
--
--	local_bh_disable();
--	cpu = smp_processor_id();
--	i = 0;
--	ARPT_ENTRY_ITERATE(t->entries[cpu],
--			  t->size,
--			  add_counter_to_entry,
--			  counters,
--			  &i);
--	local_bh_enable();
--}
--
--static inline int
--zero_entry_counter(struct arpt_entry *e, void *arg)
--{
--	e->counters.bcnt = 0;
--	e->counters.pcnt = 0;
--	return 0;
--}
--
--static void
--clone_counters(struct xt_table_info *newinfo, const struct xt_table_info *info)
--{
--	unsigned int cpu;
--	const void *loc_cpu_entry = info->entries[raw_smp_processor_id()];
--
--	memcpy(newinfo, info, offsetof(struct xt_table_info, entries));
--	for_each_possible_cpu(cpu) {
--		memcpy(newinfo->entries[cpu], loc_cpu_entry, info->size);
--		ARPT_ENTRY_ITERATE(newinfo->entries[cpu], newinfo->size,
--				  zero_entry_counter, NULL);
-+		spin_unlock_bh(&per_cpu(arp_tables_lock, cpu));
- 	}
- }
- 
-@@ -792,7 +743,6 @@ static struct xt_counters *alloc_counter
- 	unsigned int countersize;
- 	struct xt_counters *counters;
- 	struct xt_table_info *private = table->private;
--	struct xt_table_info *info;
- 
- 	/* We need atomic snapshot of counters: rest doesn't change
- 	 * (other than comefrom, which userspace doesn't care
-@@ -804,26 +754,10 @@ static struct xt_counters *alloc_counter
- 	if (counters == NULL)
- 		goto nomem;
- 
--	info = xt_alloc_table_info(private->size);
--	if (!info)
--		goto free_counters;
--
--	clone_counters(info, private);
--
--	mutex_lock(&table->lock);
--	xt_table_entry_swap_rcu(private, info);
--	synchronize_net();	/* Wait until smoke has cleared */
--
--	get_counters(info, counters);
--	put_counters(private, counters);
--	mutex_unlock(&table->lock);
--
--	xt_free_table_info(info);
-+	get_counters(private, counters);
- 
- 	return counters;
- 
-- free_counters:
--	vfree(counters);
-  nomem:
- 	return ERR_PTR(-ENOMEM);
- }
-@@ -1165,6 +1099,19 @@ static int do_replace(struct net *net, v
- 	return ret;
- }
- 
-+/* We're lazy, and add to the first CPU; overflow works its fey magic
-+ * and everything is OK. */
-+static int
-+add_counter_to_entry(struct arpt_entry *e,
-+		     const struct xt_counters addme[],
-+		     unsigned int *i)
-+{
-+	ADD_COUNTER(e->counters, addme[*i].bcnt, addme[*i].pcnt);
-+
-+	(*i)++;
-+	return 0;
-+}
-+
- static int do_add_counters(struct net *net, void __user *user, unsigned int len,
- 			   int compat)
- {
-@@ -1173,7 +1120,7 @@ static int do_add_counters(struct net *n
- 	struct xt_counters *paddc;
- 	unsigned int num_counters;
- 	const char *name;
--	int size;
-+	int curcpu, size;
- 	void *ptmp;
- 	struct xt_table *t;
- 	const struct xt_table_info *private;
-@@ -1224,25 +1171,26 @@ static int do_add_counters(struct net *n
- 		goto free;
- 	}
- 
--	mutex_lock(&t->lock);
- 	private = t->private;
- 	if (private->number != num_counters) {
- 		ret = -EINVAL;
- 		goto unlock_up_free;
- 	}
- 
--	preempt_disable();
- 	i = 0;
- 	/* Choose the copy that is on our node */
--	loc_cpu_entry = private->entries[smp_processor_id()];
-+	local_bh_disable();
-+	curcpu = smp_processor_id();
-+	spin_lock(&__get_cpu_var(arp_tables_lock));
-+	loc_cpu_entry = private->entries[curcpu];
- 	ARPT_ENTRY_ITERATE(loc_cpu_entry,
- 			   private->size,
- 			   add_counter_to_entry,
- 			   paddc,
- 			   &i);
--	preempt_enable();
-+	spin_unlock(&__get_cpu_var(arp_tables_lock));
-+	local_bh_enable();
-  unlock_up_free:
--	mutex_unlock(&t->lock);
- 
- 	xt_table_unlock(t);
- 	module_put(t->me);
