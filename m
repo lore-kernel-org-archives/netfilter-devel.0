@@ -1,34 +1,28 @@
-From: System Administrator <info@live.com>
-Subject: Email Alert
-Date: Mon, 13 Apr 2009 15:15:39 -0400
-Message-ID: <20090413151539.12836nyxpiabye6z@seapost-private.ecn.purdue.edu>
-Reply-To: customer-care-accounts@live.com
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: Multiple IPs on iptables/ip6tables command line
+Date: Mon, 13 Apr 2009 22:45:55 +0200 (CEST)
+Message-ID: <alpine.LSU.2.00.0904132243470.17301@fbirervta.pbzchgretzou.qr>
+References: <1239643602.572943.8323.nullmailer@zeus.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
- charset=ISO-8859-1;
- DelSp="Yes";
- format="flowed"
-Content-Transfer-Encoding: 7bit
-To: undisclosed-recipients:;
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: mgranzow@zeus.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx02.ecn.purdue.edu ([128.46.177.8]:44920 "EHLO
-	mx02.ecn.purdue.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751613AbZDMTvL (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:41019 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751744AbZDMUp5 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 13 Apr 2009 15:51:11 -0400
-Content-Disposition: inline
+	Mon, 13 Apr 2009 16:45:57 -0400
+In-Reply-To: <1239643602.572943.8323.nullmailer@zeus.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
+On Monday 2009-04-13 19:26, mgranzow@zeus.com wrote:
 
--- 
-This is to inform you that your Mailbox has been de-activated by your System Administrator due to an unusual activity detected in your mailbox. Hence, you may not be able to receive new mail until your mailbox is re-activated. You are to contact your System Administrator with your Login Details which includes your mailbox User name and Password for them to re-activate your mailbox.
+>Sorry about the corrupt patch.  Here's a second try, hopefully without
+>spurious line breaks.
 
-System Administrator
-E-mail: customer-care-accounts@live.com
-
-If your mailbox remains de-activated for an extended period of time, it may result in further limitations or eventual closure of your mailbox.
-
-The information contained in this e-mail may be confidential and is intended solely for the use of the named addressee. Access, copying or re-use of the e-mail or any information contained herein by any other person is not authorized.
+First thing - it works. Needs manpage update, sorev update, style, etc. 
+I'll fix that.
 
