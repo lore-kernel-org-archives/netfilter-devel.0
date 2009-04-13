@@ -1,82 +1,40 @@
-From: Stephen Hemminger <shemminger@vyatta.com>
+From: Martin Josefsson <gandalf@mjufs.se>
 Subject: Re: [PATCH] netfilter: use per-cpu spinlock rather than RCU
-Date: Mon, 13 Apr 2009 11:11:06 -0700
-Message-ID: <20090413111106.718888ca@nehalam>
+Date: Mon, 13 Apr 2009 21:06:10 +0200 (CEST)
+Message-ID: <Pine.LNX.4.62.0904132102030.10428@wlug.westbo.se>
 References: <20090411174801.GG6822@linux.vnet.ibm.com>
-	<18913.53699.544083.320542@cargo.ozlabs.ibm.com>
-	<20090412173108.GO6822@linux.vnet.ibm.com>
-	<20090412.181330.23529546.davem@davemloft.net>
-	<20090413040413.GQ6822@linux.vnet.ibm.com>
-	<20090413095309.631cf395@nehalam>
-	<49E37908.2080903@cosmosbay.com>
+ <18913.53699.544083.320542@cargo.ozlabs.ibm.com> <20090412173108.GO6822@linux.vnet.ibm.com>
+ <20090412.181330.23529546.davem@davemloft.net> <20090413040413.GQ6822@linux.vnet.ibm.com>
+ <20090413095309.631cf395@nehalam>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Cc: paulmck@linux.vnet.ibm.com, David Miller <davem@davemloft.net>,
 	paulus@samba.org, mingo@elte.hu, torvalds@linux-foundation.org,
 	laijs@cn.fujitsu.com, jeff.chua.linux@gmail.com,
-	jengelh@medozas.de, kaber@trash.net, r000n@r000n.net,
-	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, benh@kernel.crashing.org
-To: Eric Dumazet <dada1@cosmosbay.com>
+	dada1@cosmosbay.com, jengelh@medozas.de, kaber@trash.net,
+	r000n@r000n.net, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	benh@kernel.crashing.org
+To: Stephen Hemminger <shemminger@vyatta.com>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <49E37908.2080903@cosmosbay.com>
+In-Reply-To: <20090413095309.631cf395@nehalam>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 13 Apr 2009 19:40:24 +0200
-Eric Dumazet <dada1@cosmosbay.com> wrote:
+On Mon, 13 Apr 2009, Stephen Hemminger wrote:
 
-> Stephen Hemminger a =C3=A9crit :
-> > This is an alternative version of ip/ip6/arp tables locking using
-> > per-cpu locks.  This avoids the overhead of synchronize_net() durin=
-g
-> > update but still removes the expensive rwlock in earlier versions.
-> >=20
-> > The idea for this came from an earlier version done by Eric Duzamet=
-=2E
-> > Locking is done per-cpu, the fast path locks on the current cpu
-> > and updates counters.  The slow case involves acquiring the locks o=
-n
-> > all cpu's.
-> >=20
-> > The mutex that was added for 2.6.30 in xt_table is unnecessary sinc=
-e
-> > there already is a mutex for xt[af].mutex that is held.
-> >=20
-> > Tested basic functionality (add/remove/list), but don't have test c=
-ases
-> > for stress, ip6tables or arptables.
-> >=20
-> > Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
->=20
-> Patch seems good to me, but apparently xt_replace_table()
-> misses the "acquiring the locks on all cpus" you mentioned in ChangeL=
-og ?
+> This is an alternative version of ip/ip6/arp tables locking using
+> per-cpu locks.  This avoids the overhead of synchronize_net() during
+> update but still removes the expensive rwlock in earlier versions.
+>
+> The idea for this came from an earlier version done by Eric Duzamet.
+> Locking is done per-cpu, the fast path locks on the current cpu
+> and updates counters.  The slow case involves acquiring the locks on
+> all cpu's.
 
-It happens in get_counters already.
+Doesn't spin_lock() result in a pipeline flush on x86?
 
-> I am still off-computers until tomorrow so cannot provide a patch for=
- this, sorry.
->=20
-> Some form of
->=20
-> local_bh_disable();
-> for_each_possible_cpu(cpu)
-> 	spin_lock(&per_cpu(ip_tables_lock, cpu));
->=20
-> oldinfo =3D private;
-> /* do the substitution */
-> table->private =3D newinfo;
-> newinfo->initial_entries =3D oldinfo->initial_entries;
->=20
-> for_each_possible_cpu(cpu)
-> 	spin_unlock(&per_cpu(ip_tables_lock, cpu));
-> local_bh_enable();
->=20
->=20
-> But I wonder if this could hit a limit of max spinlocks held by this =
-cpu, say on a 4096 cpu machine ?
->=20
->=20
->=20
+iirc there was a benchmark in an RCU paper that tested using per cpu 
+spin_locks and the result was that it didn't scale well at all.
+
+/Martin
