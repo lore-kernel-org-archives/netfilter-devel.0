@@ -1,43 +1,34 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [PATCH] netfilter: use per-cpu spinlock rather than RCU
-Date: Mon, 13 Apr 2009 12:17:00 -0700 (PDT)
-Message-ID: <alpine.LFD.2.00.0904131213360.26713@localhost.localdomain>
-References: <20090411174801.GG6822@linux.vnet.ibm.com> <18913.53699.544083.320542@cargo.ozlabs.ibm.com> <20090412173108.GO6822@linux.vnet.ibm.com> <20090412.181330.23529546.davem@davemloft.net> <20090413040413.GQ6822@linux.vnet.ibm.com> <20090413095309.631cf395@nehalam>
- <Pine.LNX.4.62.0904132102030.10428@wlug.westbo.se>
+From: System Administrator <info@live.com>
+Subject: Email Alert
+Date: Mon, 13 Apr 2009 15:15:39 -0400
+Message-ID: <20090413151539.12836nyxpiabye6z@seapost-private.ecn.purdue.edu>
+Reply-To: customer-care-accounts@live.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Stephen Hemminger <shemminger@vyatta.com>,
-	paulmck@linux.vnet.ibm.com, David Miller <davem@davemloft.net>,
-	paulus@samba.org, mingo@elte.hu, laijs@cn.fujitsu.com,
-	jeff.chua.linux@gmail.com, dada1@cosmosbay.com, jengelh@medozas.de,
-	kaber@trash.net, r000n@r000n.net, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	benh@kernel.crashing.org
-To: Martin Josefsson <gandalf@mjufs.se>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <Pine.LNX.4.62.0904132102030.10428@wlug.westbo.se>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain;
+ charset=ISO-8859-1;
+ DelSp="Yes";
+ format="flowed"
+Content-Transfer-Encoding: 7bit
+To: undisclosed-recipients:;
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mx02.ecn.purdue.edu ([128.46.177.8]:44920 "EHLO
+	mx02.ecn.purdue.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751613AbZDMTvL (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 13 Apr 2009 15:51:11 -0400
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
 
 
-On Mon, 13 Apr 2009, Martin Josefsson wrote:
-> 
-> Doesn't spin_lock() result in a pipeline flush on x86?
+-- 
+This is to inform you that your Mailbox has been de-activated by your System Administrator due to an unusual activity detected in your mailbox. Hence, you may not be able to receive new mail until your mailbox is re-activated. You are to contact your System Administrator with your Login Details which includes your mailbox User name and Password for them to re-activate your mailbox.
 
-It's about 20-40 cycles when cached and uncontended, with some outliers 
-(50+ cycles on P4, 12 cycles on some AMD opterons).
+System Administrator
+E-mail: customer-care-accounts@live.com
 
-So it's not a big deal if you actually hit that case.
+If your mailbox remains de-activated for an extended period of time, it may result in further limitations or eventual closure of your mailbox.
 
-> iirc there was a benchmark in an RCU paper that tested using per cpu
-> spin_locks and the result was that it didn't scale well at all.
+The information contained in this e-mail may be confidential and is intended solely for the use of the named addressee. Access, copying or re-use of the e-mail or any information contained herein by any other person is not authorized.
 
-Spinlocks scale wonderfully well if you only touch them on one CPU.
-
-Of course, if you truly only touch them on one CPU they are pointless, but 
-a "all normal code only touches the local CPU spinlock, the really odd 
-cases take all locks" approach works fine. It makes the uncommon case 
-really quite slow, but if it truly is uncommon, that's fine.
-
-			Linus
