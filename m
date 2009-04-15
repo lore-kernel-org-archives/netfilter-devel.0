@@ -1,90 +1,100 @@
-From: Stephen Hemminger <shemminger@vyatta.com>
-Subject: Re: [PATCH] netfilter: use per-cpu spinlock rather than RCU (v3)
-Date: Wed, 15 Apr 2009 09:31:44 -0700
-Message-ID: <20090415093144.2afdcdba@nehalam>
-References: <20090411174801.GG6822@linux.vnet.ibm.com>
-	<18913.53699.544083.320542@cargo.ozlabs.ibm.com>
-	<20090412173108.GO6822@linux.vnet.ibm.com>
-	<20090412.181330.23529546.davem@davemloft.net>
-	<20090413040413.GQ6822@linux.vnet.ibm.com>
-	<20090413095309.631cf395@nehalam>
-	<49E48136.5060700@trash.net>
-	<49E49C65.8060808@cosmosbay.com>
-	<20090414074554.7fa73e2f@nehalam>
-	<49E4B0A5.70404@cosmosbay.com>
-	<b6a2187b0904140951r3c6a41fdnc26b149202bdfa84@mail.gmail.com>
-	<20090414111716.28585806@nehalam>
-	<49E4E3E8.5090201@cosmosbay.com>
-	<20090414141351.0f63ac98@nehalam>
-	<49E502B5.7070700@cosmosbay.com>
-	<49E5BDF7.8090502@trash.net>
+From: Giacomo <delleceste@gmail.com>
+Subject: nlmsg_failure on a function in some machines
+Date: Wed, 15 Apr 2009 22:53:24 +0200
+Message-ID: <885896af0904151353r2c3fb13du9ce3ac524bf5ae9@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Eric Dumazet <dada1@cosmosbay.com>,
-	Jeff Chua <jeff.chua.linux@gmail.com>,
-	paulmck@linux.vnet.ibm.com, David Miller <davem@davemloft.net>,
-	paulus@samba.org, mingo@elte.hu, torvalds@linux-foundation.org,
-	laijs@cn.fujitsu.com, jengelh@medozas.de, r000n@r000n.net,
-	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, benh@kernel.crashing.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.vyatta.com ([76.74.103.46]:39560 "EHLO mail.vyatta.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751314AbZDOQbv convert rfc822-to-8bit (ORCPT
+Received: from mail-ew0-f165.google.com ([209.85.219.165]:36441 "EHLO
+	mail-ew0-f165.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751113AbZDOUx2 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Apr 2009 12:31:51 -0400
-In-Reply-To: <49E5BDF7.8090502@trash.net>
+	Wed, 15 Apr 2009 16:53:28 -0400
+Received: by ewy9 with SMTP id 9so94657ewy.37
+        for <netfilter-devel@vger.kernel.org>; Wed, 15 Apr 2009 13:53:25 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 15 Apr 2009 12:59:03 +0200
-Patrick McHardy <kaber@trash.net> wrote:
+Good morning to all.
+I noticed that the following piece of code, while working on many machines,
+goes to NLMSG_PUT nlmsg_failure goto label in some cases.
 
-> Eric Dumazet wrote:
-> > Stephen Hemminger a =C3=A9crit :
-> >> This is an alternative version of ip/ip6/arp tables locking using
-> >> per-cpu locks.  This avoids the overhead of synchronize_net() duri=
-ng
-> >> update but still removes the expensive rwlock in earlier versions.
-> >>
-> >> The idea for this came from an earlier version done by Eric Dumaze=
-t.
-> >> Locking is done per-cpu, the fast path locks on the current cpu
-> >> and updates counters.  The slow case involves acquiring the locks =
-on
-> >> all cpu's.
-> >>
-> >> The mutex that was added for 2.6.30 in xt_table is unnecessary sin=
-ce
-> >> there already is a mutex for xt[af].mutex that is held.
-> >>
-> >> Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
-> >>
-> >> ---
-> >>  include/linux/netfilter/x_tables.h |    5 -
-> >>  net/ipv4/netfilter/arp_tables.c    |  112 +++++++++--------------=
-----------
-> >>  net/ipv4/netfilter/ip_tables.c     |  123 +++++++++++------------=
---------------
-> >>  net/ipv6/netfilter/ip6_tables.c    |  119 +++++++++++------------=
-------------
-> >>  net/netfilter/x_tables.c           |   28 --------
-> >>  5 files changed, 110 insertions(+), 277 deletions(-)
-> >>
-> >=20
-> > Tested successfuly on my dev machine, thanks Stephen.
-> >=20
-> > Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
->=20
-> Applied, thanks everyone. I'll give it some testing myself and
-> will send it upstream tonight.
+Is there something wrong with it?
 
-I am running it with LOCKDEP now to check for any issues.
-It also needs to be validated with SMP configured kernel running on UP.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks in advance.
+
+Code follows here:
+
+ /* buf is a buffer containing the data to be sent to userspace,
+  * numbytes is the length of the data contained in buf
+ */
+ struct sk_buff *build_packet(void *buf, int numbytes)
+    4 {
+    5   struct sk_buff *skb_to_user;
+    6   struct nlmsghdr *nlh;
+    7   void *data;
+    8   int len = NLMSG_SPACE(numbytes);
+    9    /* allocate socket buffer space atomically */
+   10   skb_to_user = alloc_skb(len, GFP_ATOMIC);
+   11
+   12   if(skb_to_user == NULL)
+   13     return NULL;
+   14
+   15   nlh = NLMSG_PUT(skb_to_user, 0, 0, 0, len);
+   16   if(NLMSG_OK(nlh, NLMSG_LENGTH(len)))
+   17   {
+   18     nlh->nlmsg_len = NLMSG_LENGTH(len);
+   19     data = NLMSG_DATA(nlh);
+   20     memcpy(data, buf, numbytes);
+   21   }
+   22   else
+   23   {
+   24     printk("IPFIRE: NLMSG_OK failed: NLMSG_LENGTH(%d) is %d,
+NLMSG_SPACE(numbytes %d) is %d in build_packet(), "
+   25       "ipfi_netl_packet_builder.c\n", len, NLMSG_LENGTH(len),
+numbytes, NLMSG_SPACE(numbytes));
+   26     return NULL;
+   27   }
+   28   return skb_to_user;      /* return just allocated socket buffer */
+   29
+   30   nlmsg_failure:  /* NLMSG_PUT fails */
+   31
+   32   printk("IPFIRE: nlmsg failure in build_packet() - %d bytes -
+ipfi_netl_packet_builder.c\n", len);
+   33   return NULL;
+   34 }
+   35
+
+  As told before, in some machines NLMSG_PUT goes to nlmsg_failure label.
+
+Thanks in advance for any suggestion.
+
+Best regards
+
+Giacomo
+
+
+-- 
+Giacomo S.
+http://www.giacomos.it
+
+- - - - - - - - - - - - - - - - - - - - - -
+
+* Aprile 2008: iqfire-wall, un progetto
+  open source che implementa un
+  filtro di pacchetti di rete per Linux,
+  e` disponibile per il download qui:
+  http://sourceforge.net/projects/ipfire-wall
+
+* Informazioni e pagina web ufficiale:
+  http://www.giacomos.it/iqfire/index.html
+
+- - - - - - - - - - - - - - - - - - - - - -
+
+ . ''  `.
+:   :'    :
+ `.  ` '
+    `- Debian GNU/Linux -- The power of freedom
+        http://www.debian.org
