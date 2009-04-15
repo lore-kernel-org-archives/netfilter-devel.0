@@ -1,50 +1,48 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] netfilter: use per-cpu spinlock rather than RCU (v3)
-Date: Tue, 14 Apr 2009 20:23:59 -0700 (PDT)
-Message-ID: <20090414.202359.07968871.davem@davemloft.net>
-References: <20090414111716.28585806@nehalam>
-	<49E4E3E8.5090201@cosmosbay.com>
-	<20090414141351.0f63ac98@nehalam>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: Re: ipt_ACCOUNT 1.15 released
+Date: Wed, 15 Apr 2009 10:11:41 +0200
+Message-ID: <200904151011.42360.thomas.jarosch@intra2net.com>
+References: <200904141744.57570.thomas.jarosch@intra2net.com> <alpine.LSU.2.00.0904141807430.21682@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Cc: dada1@cosmosbay.com, jeff.chua.linux@gmail.com, kaber@trash.net,
-	paulmck@linux.vnet.ibm.com, paulus@samba.org, mingo@elte.hu,
-	torvalds@linux-foundation.org, laijs@cn.fujitsu.com,
-	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	benh@kernel.crashing.org
-To: shemminger@vyatta.com
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, siarka2107@interia.pl
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:46963
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1753491AbZDODYI (ORCPT
+Received: from re01.intra2net.com ([82.165.28.202]:46520 "EHLO
+	re01.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750839AbZDOILp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 14 Apr 2009 23:24:08 -0400
-In-Reply-To: <20090414141351.0f63ac98@nehalam>
+	Wed, 15 Apr 2009 04:11:45 -0400
+In-Reply-To: <alpine.LSU.2.00.0904141807430.21682@fbirervta.pbzchgretzou.qr>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Stephen Hemminger <shemminger@vyatta.com>
-Date: Tue, 14 Apr 2009 14:13:51 -0700
+Hi Jan,
 
-> This is an alternative version of ip/ip6/arp tables locking using
-> per-cpu locks.  This avoids the overhead of synchronize_net() during
-> update but still removes the expensive rwlock in earlier versions.
-> 
-> The idea for this came from an earlier version done by Eric Dumazet.
-> Locking is done per-cpu, the fast path locks on the current cpu
-> and updates counters.  The slow case involves acquiring the locks on
-> all cpu's.
-> 
-> The mutex that was added for 2.6.30 in xt_table is unnecessary since
-> there already is a mutex for xt[af].mutex that is held.
-> 
-> Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
+On Tuesday, 14. April 2009 18:10:54 Jan Engelhardt wrote:
+> guess I just forward this to you, as I do not want to touch ACCOUNT
+> just yet.
 
-Things seem to be winding down, good. :-)
+As you already mentioned, I'm not sure it would be a good idea
+to include it as the kernel patch extends the kernel<->user space socket 
+operations in include/linux/netfilter_ipv4/ip_tables.h.
 
-I'll let Patrick McHardy merge this to me with his other pending
-netfilter fixes.
+"ipt_account" is another story as it works differently.
+The lastest patch seems to be for 2.6.19 / iptables 1.3.5,
+though there is some recent activity on the project homepage.
 
-Thanks!
+I'm still surprised how many people are using ipt_ACCOUNT,
+somehow it is magnetic to ISPs in central and eastern europe :-)
+
+> >Can You prepare ipt_ACCOUNT and ipt_account patches/files supported for
+> >kernel 2.6.29?
+
+ipt_ACCOUNT is now ready for 2.6.29.
+
+Cheers,
+Thomas
+
