@@ -1,47 +1,90 @@
-From: Bryan Duff <bduff@ecessa.com>
-Subject: Xtables compile fails.
-Date: Wed, 15 Apr 2009 09:07:26 -0500
-Message-ID: <49E5EA1E.6060504@astrocorp.com>
+From: Stephen Hemminger <shemminger@vyatta.com>
+Subject: Re: [PATCH] netfilter: use per-cpu spinlock rather than RCU (v3)
+Date: Wed, 15 Apr 2009 09:31:44 -0700
+Message-ID: <20090415093144.2afdcdba@nehalam>
+References: <20090411174801.GG6822@linux.vnet.ibm.com>
+	<18913.53699.544083.320542@cargo.ozlabs.ibm.com>
+	<20090412173108.GO6822@linux.vnet.ibm.com>
+	<20090412.181330.23529546.davem@davemloft.net>
+	<20090413040413.GQ6822@linux.vnet.ibm.com>
+	<20090413095309.631cf395@nehalam>
+	<49E48136.5060700@trash.net>
+	<49E49C65.8060808@cosmosbay.com>
+	<20090414074554.7fa73e2f@nehalam>
+	<49E4B0A5.70404@cosmosbay.com>
+	<b6a2187b0904140951r3c6a41fdnc26b149202bdfa84@mail.gmail.com>
+	<20090414111716.28585806@nehalam>
+	<49E4E3E8.5090201@cosmosbay.com>
+	<20090414141351.0f63ac98@nehalam>
+	<49E502B5.7070700@cosmosbay.com>
+	<49E5BDF7.8090502@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Eric Dumazet <dada1@cosmosbay.com>,
+	Jeff Chua <jeff.chua.linux@gmail.com>,
+	paulmck@linux.vnet.ibm.com, David Miller <davem@davemloft.net>,
+	paulus@samba.org, mingo@elte.hu, torvalds@linux-foundation.org,
+	laijs@cn.fujitsu.com, jengelh@medozas.de, r000n@r000n.net,
+	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, benh@kernel.crashing.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.astrocorp.com ([64.122.215.18]:21459 "EHLO
-	mail.astrocorp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753105AbZDOOcH (ORCPT
+Received: from mail.vyatta.com ([76.74.103.46]:39560 "EHLO mail.vyatta.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751314AbZDOQbv convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 15 Apr 2009 10:32:07 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by mail.astrocorp.com (Postfix) with ESMTP id 835DD630C2
-	for <netfilter-devel@vger.kernel.org>; Wed, 15 Apr 2009 09:06:55 -0500 (CDT)
-Received: from mail.astrocorp.com ([127.0.0.1])
-	by localhost (mail.astrocorp.com [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id u1+iprRNQPOP for <netfilter-devel@vger.kernel.org>;
-	Wed, 15 Apr 2009 09:06:54 -0500 (CDT)
-Received: from Win2003.astrocorp.com (unknown [192.168.1.146])
-	by mail.astrocorp.com (Postfix) with ESMTP id 4841B630C1
-	for <netfilter-devel@vger.kernel.org>; Wed, 15 Apr 2009 09:06:54 -0500 (CDT)
+	Wed, 15 Apr 2009 12:31:51 -0400
+In-Reply-To: <49E5BDF7.8090502@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
- From |(git://xtables-addons.git.sf.net/gitroot/xtables-addons/).|
+On Wed, 15 Apr 2009 12:59:03 +0200
+Patrick McHardy <kaber@trash.net> wrote:
 
-//snip - xtables git compile
-  CC [M]  
-/var/tmp/portage/net-firewall/xtables-addons-9999/work/xtables-addons-9999/extensions/xt_TEE.o
-  CC [M]  
-/var/tmp/portage/net-firewall/xtables-addons-9999/work/xtables-addons-9999/extensions/xt_condition.o
-/var/tmp/portage/net-firewall/xtables-addons-9999/work/xtables-addons-9999/extensions/xt_condition.c: 
-In function 'condition_mt_check':
-/var/tmp/portage/net-firewall/xtables-addons-9999/work/xtables-addons-9999/extensions/xt_condition.c:164: 
-error: 'struct proc_dir_entry' has no member named 'owner'
-make[4]: *** 
-[/var/tmp/portage/net-firewall/xtables-addons-9999/work/xtables-addons-9999/extensions/xt_condition.o] 
-Error 1
-//end snip
+> Eric Dumazet wrote:
+> > Stephen Hemminger a =C3=A9crit :
+> >> This is an alternative version of ip/ip6/arp tables locking using
+> >> per-cpu locks.  This avoids the overhead of synchronize_net() duri=
+ng
+> >> update but still removes the expensive rwlock in earlier versions.
+> >>
+> >> The idea for this came from an earlier version done by Eric Dumaze=
+t.
+> >> Locking is done per-cpu, the fast path locks on the current cpu
+> >> and updates counters.  The slow case involves acquiring the locks =
+on
+> >> all cpu's.
+> >>
+> >> The mutex that was added for 2.6.30 in xt_table is unnecessary sin=
+ce
+> >> there already is a mutex for xt[af].mutex that is held.
+> >>
+> >> Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
+> >>
+> >> ---
+> >>  include/linux/netfilter/x_tables.h |    5 -
+> >>  net/ipv4/netfilter/arp_tables.c    |  112 +++++++++--------------=
+----------
+> >>  net/ipv4/netfilter/ip_tables.c     |  123 +++++++++++------------=
+--------------
+> >>  net/ipv6/netfilter/ip6_tables.c    |  119 +++++++++++------------=
+------------
+> >>  net/netfilter/x_tables.c           |   28 --------
+> >>  5 files changed, 110 insertions(+), 277 deletions(-)
+> >>
+> >=20
+> > Tested successfuly on my dev machine, thanks Stephen.
+> >=20
+> > Signed-off-by: Eric Dumazet <dada1@cosmosbay.com>
+>=20
+> Applied, thanks everyone. I'll give it some testing myself and
+> will send it upstream tonight.
 
-I looked in /usr/src/linux/include/linux/proc_fs.h - and struct module 
-*owner is now longer in 2.6.30.
-
--Bryan
+I am running it with LOCKDEP now to check for any issues.
+It also needs to be validated with SMP configured kernel running on UP.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
