@@ -1,75 +1,75 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: Re: ipt_ACCOUNT 1.15 released
-Date: Thu, 16 Apr 2009 18:34:17 +0200
-Message-ID: <200904161834.17450.thomas.jarosch@intra2net.com>
-References: <200904141744.57570.thomas.jarosch@intra2net.com> <200904151011.42360.thomas.jarosch@intra2net.com> <1239788429.11865.20.camel@enterprise.ims-firmen.de>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [PATCH] netfilter: use per-cpu recursive spinlock  (v6)
+Date: Thu, 16 Apr 2009 09:37:07 -0700 (PDT)
+Message-ID: <alpine.LFD.2.00.0904160926520.4042@localhost.localdomain>
+References: <49E5BDF7.8090502@trash.net> <20090415135526.2afc4d18@nehalam> <49E64C91.5020708@cosmosbay.com> <20090415.164811.19905145.davem@davemloft.net> <20090415170111.6e1ca264@nehalam> <alpine.LFD.2.00.0904151705120.4042@localhost.localdomain>
+ <20090415174551.529d241c@nehalam> <49E6BBA9.2030701@cosmosbay.com> <49E7384B.5020707@trash.net> <20090416144748.GB6924@linux.vnet.ibm.com> <49E75876.10509@cosmosbay.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Thomas Jacob <jacob@internet24.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rs02.intra2net.com ([81.169.173.116]:56114 "EHLO
-	rs02.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755750AbZDPQeW (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Apr 2009 12:34:22 -0400
-In-Reply-To: <1239788429.11865.20.camel@enterprise.ims-firmen.de>
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: paulmck@linux.vnet.ibm.com, Patrick McHardy <kaber@trash.net>,
+	Stephen Hemminger <shemminger@vyatta.com>,
+	David Miller <davem@davemloft.net>, jeff.chua.linux@gmail.com,
+	paulus@samba.org, mingo@elte.hu, laijs@cn.fujitsu.com,
+	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	benh@kernel.crashing.org
+To: Eric Dumazet <dada1@cosmosbay.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <49E75876.10509@cosmosbay.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hello Thomas,
 
-On Wednesday, 15. April 2009 11:40:29 you wrote:
-> > As you already mentioned, I'm not sure it would be a good idea
-> > to include it as the kernel patch extends the kernel<->user space socket
-> > operations in include/linux/netfilter_ipv4/ip_tables.h.
->
-> I noticed this too, and the question for me is, do you really need
-> do things this way? Because that's really the only thing that requires
-> a kernel patch in your module. Ipset for instance doesn't anymore, but
-> I guess they've been "assigned" a permanent socket option number.... if
-> that could happen for your module: problem solved.
 
-Interesting findings. The "IPT_BASE_CTL" socket operation usually starts
-at 64 and then various operations get added to it by incrementing the value.
+On Thu, 16 Apr 2009, Eric Dumazet wrote:
+>  
+> +struct rec_lock {
+> +	spinlock_t lock;
+> +	int	   count; /* recursion count */
+> +};
+> +static DEFINE_PER_CPU(struct rec_lock, arp_tables_lock);
 
-ipset's socket operations use absolute values like 0x201,
-I'm wondering if they were registered somewhere or just "allocated".
+What the _fuck_ are you doing?
 
-> > I'm still surprised how many people are using ipt_ACCOUNT,
-> > somehow it is magnetic to ISPs in central and eastern europe :-)
->
-> One reason springs to mind, apart from the obvious "they were there
-> first" reason: 64 bit counters... your module only uses 32 bit counters
-> which is not really great if you all you want to do account traffic at
-> an ISP, because if you've got a fully loaded 100 Mbps-Port your counters
-> will overflow every 5 minutes, so one needs to write software
-> that can extract and adding up the accounting data by querying your
-> module very often (I just did that for a future project ;).
->
-> Also the other ipt_account allows saving and restoring the accounting
-> state, thereby allowing you to deal with crashes and reboots.
->
-> But as you say, ipt_account is not really supported anymore, so....
->
-> BTW, if you plan to add 64bit counters and maybe also IPv6 capability
-> I'd be very much willing to help ;)
+Stop sending these shit-for-brains crazy patches out. That's not a lock, 
+that's a messy way of saying "I don't know what the hell I'm doing, but 
+I'll mess things up".
 
-The 32bit counters were a design decision to store a complete class C subnet 
-into one kernel page. We query the data on our own system every second to 
-check the online timeout of dial up lines, so that doesn't affect us.
+Don't do recursive locks (or your own locking primitives in general), but 
+goddammit, if you have to, at least know what the hell you're doing. Your 
+thing is a piece of shit.
 
-Transforming the internal data structure into a hash table would be the way to 
-go for IPv6 support and 64 bit counters. I guess it wouldn't be slower than 
-the current approach or could even be faster for large networks,
-so that would need a performance benchmark.
+A recursive lock needs an owner, or it's not a lock at all. It's some 
+random data structure that contains a lock that may or may not be taken, 
+and that may actually _work_ depending on the exact patterns of taking the 
+lock, but that's not an excuse.
 
-On the other side I would look at conntrack accounting first, it wasn't ready 
-for production use when I wrote ipt_ACCOUNT back then, which it is now.
+The fact that code "happens to work by mistake" (and I'm not saying that 
+your does - but it might just because of the per-cpu'ness of it, and I'm 
+not even going to look at crap like that it closer to try to prove it one 
+way or the other) does not make that code acceptable.
 
-Cheers,
-Thomas
+Because even if it works today, it's just a bug waiting to happen. The 
+thing you did is _not_ a generic recursive lock, and it does _not_ work in 
+general. Don't call it a "rec_lock". Don't write code that accesses it 
+without any comments as if it was simple. Just DON'T.
 
+Guys, this whole discussion has just been filled with crazy crap. Can 
+somebody even explain why we care so deeply about some counters for 
+something that we just _deleted_ and that have random values anyway?
+
+I can see the counters being interesting while a firewall is active, but I 
+sure don't see what's so wonderfully interesting after-the-fact about a 
+counter on something that NO LONGER EXISTS that it has to be somehow 
+"exactly right".
+
+And it's certainly not interesting enough to merit this kind of random 
+fragile crazy code.
+
+Please. Get a grip, people!
+
+Show of hands, here: tell me a single use that really _requires_ those 
+exact counters of a netfilter rule that got deleted and is no longer 
+active?
+
+			Linus
