@@ -1,87 +1,133 @@
 From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [PATCH] netfilter: use per-cpu spinlock rather than RCU (v3)
-Date: Thu, 16 Apr 2009 07:33:04 -0700
-Message-ID: <20090416143303.GA6924@linux.vnet.ibm.com>
-References: <49E5BDF7.8090502@trash.net> <20090415135526.2afc4d18@nehalam> <49E64C91.5020708@cosmosbay.com> <20090415.164811.19905145.davem@davemloft.net> <49E6CFB2.2020905@cosmosbay.com>
+Subject: Re: [PATCH] netfilter: use per-cpu spinlock and RCU (v5)
+Date: Thu, 16 Apr 2009 07:47:48 -0700
+Message-ID: <20090416144748.GB6924@linux.vnet.ibm.com>
+References: <49E5BDF7.8090502@trash.net> <20090415135526.2afc4d18@nehalam> <49E64C91.5020708@cosmosbay.com> <20090415.164811.19905145.davem@davemloft.net> <20090415170111.6e1ca264@nehalam> <alpine.LFD.2.00.0904151705120.4042@localhost.localdomain> <20090415174551.529d241c@nehalam> <49E6BBA9.2030701@cosmosbay.com> <49E7384B.5020707@trash.net>
 Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: David Miller <davem@davemloft.net>, shemminger@vyatta.com,
-	kaber@trash.net, jeff.chua.linux@gmail.com, paulus@samba.org,
-	mingo@elte.hu, torvalds@linux-foundation.org, laijs@cn.fujitsu.com,
+Cc: Eric Dumazet <dada1@cosmosbay.com>,
+	Stephen Hemminger <shemminger@vyatta.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	David Miller <davem@davemloft.net>, jeff.chua.linux@gmail.com,
+	paulus@samba.org, mingo@elte.hu, laijs@cn.fujitsu.com,
 	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
 	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
 	benh@kernel.crashing.org
-To: Eric Dumazet <dada1@cosmosbay.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1757132AbZDPOd3@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from e6.ny.us.ibm.com ([32.97.182.146]:44386 "EHLO e6.ny.us.ibm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751906AbZDPOrx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Apr 2009 10:47:53 -0400
 Content-Disposition: inline
-In-Reply-To: <49E6CFB2.2020905@cosmosbay.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+In-Reply-To: <49E7384B.5020707@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Apr 16, 2009 at 08:26:58AM +0200, Eric Dumazet wrote:
-> David Miller a =E9crit :
-> > From: Eric Dumazet <dada1@cosmosbay.com>
-> > Date: Wed, 15 Apr 2009 23:07:29 +0200
-> >=20
-> >> Well, it seems original patch was not so bad after all
-> >>
-> >> http://lists.netfilter.org/pipermail/netfilter-devel/2006-January/=
-023175.html
-> >>
-> >> So change per-cpu spinlocks to per-cpu rwlocks=20
-> >>
-> >> and use read_lock() in ipt_do_table() to allow recursion...
-> >=20
-> > Grumble, one more barrier to getting rid of rwlocks in the whole
-> > tree. :-/
-> >=20
-> > I really think we should entertain the idea where we don't RCU quie=
-sce
-> > when adding rules.  That was dismissed as not workable because the =
-new
-> > rule must be "visible" as soon as we return to userspace but let's =
-get
-> > real, effectively it will be.
->=20
-> We had to RCU quiesce to be sure old rules were not any more used bef=
-ore
-> freeing them. Alternative is to defer freeing via call_rcu() but
-> subject to OOM.
->=20
-> With 200 basic rules, size of rules table is about 40960 bytes per cp=
-u.
-> (88 pages taken on vmalloc virtual space on my 8 cpus machine)
-> 0xfcaf8000-0xfcb03000   45056 xt_alloc_table_info+0xa8/0xd0 pages=3D1=
-0 vmalloc
-> 0xfcb04000-0xfcb0f000   45056 xt_alloc_table_info+0xa8/0xd0 pages=3D1=
-0 vmalloc
-> 0xfcb10000-0xfcb1b000   45056 xt_alloc_table_info+0xa8/0xd0 pages=3D1=
-0 vmalloc
-> 0xfcb1c000-0xfcb27000   45056 xt_alloc_table_info+0xa8/0xd0 pages=3D1=
-0 vmalloc
-> 0xfcb28000-0xfcb33000   45056 xt_alloc_table_info+0xa8/0xd0 pages=3D1=
-0 vmalloc
-> 0xfcb34000-0xfcb3f000   45056 xt_alloc_table_info+0xa8/0xd0 pages=3D1=
-0 vmalloc
-> 0xfcb40000-0xfcb4b000   45056 xt_alloc_table_info+0xa8/0xd0 pages=3D1=
-0 vmalloc
-> 0xfcb4c000-0xfcb57000   45056 xt_alloc_table_info+0xa8/0xd0 pages=3D1=
-0 vmalloc
->=20
-> This kind of monolithic huge object is hard to handle with RCU semant=
-ic,
-> more suitable for handling set of small objects (struct file for exam=
-ple),
-> even if RCU can have a backoff of 10000 elements in its queue...
+On Thu, Apr 16, 2009 at 03:53:15PM +0200, Patrick McHardy wrote:
+> Eric Dumazet wrote:
+>> Stephen Hemminger a =E9crit :
+>>> This is an alternative version of ip/ip6/arp tables locking using
+>>> per-cpu locks.  This avoids the overhead of synchronize_net() durin=
+g
+>>> update but still removes the expensive rwlock in earlier versions.
+>>>
+>>> The idea for this came from an earlier version done by Eric Dumazet=
+=2E
+>>> Locking is done per-cpu, the fast path locks on the current cpu
+>>> and updates counters.  The slow case involves acquiring the locks o=
+n
+>>> all cpu's. This version uses RCU for the table->base reference
+>>> but per-cpu-lock for counters.
+>
+>> This version is a regression over 2.6.2[0-9], because of two points
+>> 1) Much more atomic ops :
+>> Because of additional
+>>> +			spin_lock(&__get_cpu_var(ip_tables_lock));
+>>>  			ADD_COUNTER(e->counters, ntohs(ip->tot_len), 1);
+>>> +			spin_unlock(&__get_cpu_var(ip_tables_lock));
+>> added on each counter updates.
+>> On many setups, each packet coming in or out of the machine has
+>> to update between 2 to 20 rule counters. So to avoid *one* atomic op=
+s
+>> of read_unlock(), this v4 version adds 2 to 20 atomic ops...
+>
+> I agree, this seems to be a step backwards.
+>
+>> I still not see the problem between the previous version (2.6.2[0-8]=
+) that=20
+>> had a central
+>>  rwlock, that hurted performance on SMP because of cache line ping p=
+ong,=20
+>> and the solution
+>> having one rwlock per cpu.
+>> We wanted to reduce the cache line ping pong first. This *is* the hu=
+rting=20
+>> point,
+>> by an order of magnitude.
+>
+> Dave doesn't seem to like the rwlock approach.
 
-To be honest, the per-CPU-locking approach looks pretty good to me for
-this particular case.  That said, the problem you mention above does
-have some straightforward solutions.
+Well, we don't really need an rwlock, especially given that we really
+don't want two "readers" incrementing the same counter concurrently.
 
-One solution to consider would be to do the call_rcu(), but to keep a
-counter of the number of calls, perhaps something like the following:
+A safer approach would be to maintain a flag in the task structure
+tracking which (if any) of the per-CPU locks you hold.  Also maintain
+a recursion-depth counter.  If the flag says you don't already hold
+the lock, set it and acquire the lock.  Either way, increment the
+recursion-depth counter:
+
+	if (current->netfilter_lock_held !=3D cur_cpu) {
+		BUG_ON(current->netfilter_lock_held !=3D CPU_NONE);
+		spin_lock(per_cpu(..., cur_cpu));
+		current->netfilter_lock_held =3D cur_cpu;
+	}
+	current->netfilter_lock_nesting++;
+
+And reverse the process to unlock:
+
+	if (--current->netfilter_lock_nesting =3D=3D 0) {
+		spin_unlock(per_cpu(..., cur_cpu));
+		current->netfilter_lock_held =3D CPU_NONE;
+	}
+
+>                                                I don't see a way to
+> do anything asynchronously like call_rcu() to improve this, so to
+> bring up one of Stephens suggestions again:
+>
+>>> >   * use on_each_cpu() somehow to do grace periood?
+>
+> We could use this to replace the counters, presuming it is
+> indeed faster than waiting for a RCU grace period.
+
+One way to accomplish this is to take Mathieu Desnoyers's user-level
+RCU implementation and drop it into the kernel, replacing the POSIX
+signal handling with on_each_cpu(), smp_call_function(), or whatever.
+
+>> 2) Second problem : Potential OOM
+>> About freeing old rules with call_rcu() and/or schedule_work(), this=
+ is=20
+>> going
+>> to OOM pretty fast on small appliances with basic firewall setups lo=
+ading
+>> rules one by one, as done by original topic reporter.
+>> We had reports from guys using linux with 4MB of available ram (Fren=
+ch=20
+>> provider free.fr on
+>> their applicance box), and we had to use SLAB_DESTROY_BY_RCU thing o=
+n=20
+>> conntrack
+>>  to avoid OOM for their setups. We dont want to use call_rcu() and q=
+ueue=20
+>> 100 or 200 vfree().
+>
+> Agreed.
+
+This is not a real problem be handled by doing a synchronize_rcu() ever=
+y
+so often as noted in a prior email elsewhere in this thread:
 
 	call_rcu(...);
 	if (++count > 50) {
@@ -89,66 +135,27 @@ counter of the number of calls, perhaps something like the following:
 		count =3D 0;
 	}
 
-Of course, you might (or might not) need to atomically increment count,
-and you of course would want to replace the "50" with some symbolic
-constant, or perhaps even a variable whose value might be determined by
-the size of the object and/or the amount of memory available.
+This choice of constant would reduce the grace-period pain to 2% of the
+full effect, which should be acceptable, at least if I remember the
+original problem report of 0.2 seconds growing to 6.0 seconds -- this
+would give you:
 
-Would this help?
+	(6.0-0.2)/50+0.2 =3D .316
 
-> > If there are any stale object reference issues, we can use RCU obje=
-ct
-> > destruction to handle that kind of thing.
-> >=20
-> > I almost cringed when the per-spinlock idea was proposed, but per-c=
-pu
-> > rwlocks just takes things too far for my tastes.
->=20
-> In my humble opinion, this is a reasonnable compromise, and Stephen p=
-atch
-> version 4 is ok for me.
+I would argue that 100 milliseconds is an OK penalty for a deprecated
+feature.  But of course the per-CPU lock approach should avoid even tha=
+t
+penalty, albeit at some per-packet penalty.  However, my guess is that
+this per-packet penalty is not measureable at the system level.
 
-Again, the per-CPU-locking approach looks good to me, as well.
-
-But if it turns out that we really do need an RCU implementation with
-really short grace periods (tens of microseconds typical latency on
-mid-range multiprocessors, those with SGI Altix systems would suffer
-a bit more), then it can be done.  It would need to be yet another
-implementation of RCU for the following reasons:
-
-o	High update-side overhead (broadcast IPIs via
-	smp_call_function().  This is not a problem in this case,
-	but would be a showstopper for (say) dcache.  I don't know
-	of any way of fixing this.
-
-o	Defeats power-conservation measures by waking up every CPU
-	at every grace period.	(Might be fixable, for example, by using
-	the same dyntick tricks used by preemptable and hierarchical RCU.
-	But not recommended for first implementation.)
-
-o	Poor update-side scalability.  (Definitely fixable, but the
-	fix should be to the underlying smp_call_function() primitives.)
-
-o	No ability to share grace periods among concurrent
-	synchronize_rcu() primitves.  (Definitely fixable, but not
-	recommended until needed.  Unlikely to be needed -- after all,
-	if your grace period completes in 10 microseconds, just how many
-	concurrent updates do you expect there to be???)
-
-o	No call_rcu() style primtive.  (Definitely fixable, but not
-	recommended until needed.  Besides, if the grace period only
-	takes a few tens of microseconds, why exactly do you need an
-	asynchronous interface?
-
-If this is needed, one good starting point would be Mathieu Desnoyers's
-user-level RCU primitive.  The main change would be replacing the POSIX
-signals with smp_call_function().
-
-Yet again, I don't see a real problem with the per-CPU locking approach
-in this case, but anything to prevent Dave Miller from having to suffer
-the pain of hashed locks!  (Can't say that I have ever used hashed lock=
-s
-myself, but I could imagine that they might impose cache-thrashing and
-deadlock issues.)
+And if the penalty of a single uncontended lock -is- measureable, I wil=
+l
+be very quick to offer my congratulations, at least once I get my jaw
+off my keyboard.  ;-)
 
 							Thanx, Paul
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
