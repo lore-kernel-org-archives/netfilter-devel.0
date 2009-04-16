@@ -1,43 +1,39 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 00/03: netfilter fixes
-Date: Thu, 16 Apr 2009 19:16:22 +0200 (MEST)
-Message-ID: <20090416171621.11406.78609.sendpatchset@x2.localnet>
+Subject: netfilter 02/03: nf_conntrack: fix crash when unloading helpers
+Date: Thu, 16 Apr 2009 19:16:24 +0200 (MEST)
+Message-ID: <20090416171623.11406.45891.sendpatchset@x2.localnet>
+References: <20090416171621.11406.78609.sendpatchset@x2.localnet>
 Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
 	netfilter-devel@vger.kernel.org
 To: davem@davemloft.net
 Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20090416171621.11406.78609.sendpatchset@x2.localnet>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Dave,
+commit 38fb0afcd8761f8858e27135ed89a65117e2019c
+Author: Patrick McHardy <kaber@trash.net>
+Date:   Wed Apr 15 12:45:08 2009 +0200
 
-the following three patches fix two netfilter bugs introduced during the merge
-window and re-add support for a feature that accidentally got dropped with the
-SAME target removal:
+    netfilter: nf_conntrack: fix crash when unloading helpers
+    
+    Commit ea781f197d (netfilter: nf_conntrack: use SLAB_DESTROY_BY_RCU and)
+    get rid of call_rcu() was missing one conversion to the hlist_nulls
+    functions, causing a crash when unloading conntrack helper modules.
+    
+    Reported-and-tested-by: Mariusz Kozlowski <m.kozlowski@tuxland.pl>
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-- a missing list initialization of the nf_log logger lists
-
-- a missing conversion to use the hlist_nulls list function in connection tracking
-  helper unregistration
-
-- support for persistent multi-range NAT mappings
-
-Please apply or pull from:
-
-git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git
-
-Thanks!
-
-
- include/net/netfilter/nf_nat.h      |    1 +
- net/ipv4/netfilter/nf_nat_core.c    |    3 ++-
- net/netfilter/nf_conntrack_helper.c |    2 +-
- net/netfilter/nf_log.c              |    4 ++++
- 4 files changed, 8 insertions(+), 2 deletions(-)
-
-Eric Dumazet (1):
-      netfilter: nf_log regression fix
-
-Patrick McHardy (2):
-      netfilter: nf_conntrack: fix crash when unloading helpers
-      netfilter: nf_nat: add support for persistent mappings
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index 30b8e90..0fa5a42 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -176,7 +176,7 @@ static void __nf_conntrack_helper_unregister(struct nf_conntrack_helper *me,
+ 	}
+ 
+ 	/* Get rid of expecteds, set helpers to NULL. */
+-	hlist_for_each_entry(h, nn, &net->ct.unconfirmed, hnnode)
++	hlist_nulls_for_each_entry(h, nn, &net->ct.unconfirmed, hnnode)
+ 		unhelp(h, me);
+ 	for (i = 0; i < nf_conntrack_htable_size; i++) {
+ 		hlist_nulls_for_each_entry(h, nn, &net->ct.hash[i], hnnode)
