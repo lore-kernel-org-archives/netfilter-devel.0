@@ -1,94 +1,85 @@
-From: Thomas Jacob <jacob@internet24.de>
-Subject: Re: ipt_ACCOUNT 1.15 released
-Date: Thu, 16 Apr 2009 20:29:46 +0200
-Message-ID: <1239906586.26220.58.camel@enterprise.ims-firmen.de>
-References: <200904141744.57570.thomas.jarosch@intra2net.com>
-	 <200904151011.42360.thomas.jarosch@intra2net.com>
-	 <1239788429.11865.20.camel@enterprise.ims-firmen.de>
-	 <200904161834.17450.thomas.jarosch@intra2net.com>
+From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: Re: [PATCH] netfilter: use per-cpu recursive spinlock  (v6)
+Date: Thu, 16 Apr 2009 20:41:58 +0200
+Message-ID: <49E77BF6.1080206@cosmosbay.com>
+References: <20090415135526.2afc4d18@nehalam> <49E64C91.5020708@cosmosbay.com> <20090415.164811.19905145.davem@davemloft.net> <20090415170111.6e1ca264@nehalam> <alpine.LFD.2.00.0904151705120.4042@localhost.localdomain> <20090415174551.529d241c@nehalam> <49E6BBA9.2030701@cosmosbay.com> <49E7384B.5020707@trash.net> <20090416144748.GB6924@linux.vnet.ibm.com> <49E75876.10509@cosmosbay.com> <20090416175850.GH6924@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailout01.ims-firmen.de ([213.174.32.96]:33158 "EHLO
-	mailout01.ims-firmen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757705AbZDPS3t (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Apr 2009 14:29:49 -0400
-In-Reply-To: <200904161834.17450.thomas.jarosch@intra2net.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Patrick McHardy <kaber@trash.net>,
+	Stephen Hemminger <shemminger@vyatta.com>,
+	David Miller <davem@davemloft.net>, jeff.chua.linux@gmail.com,
+	paulus@samba.org, mingo@elte.hu, laijs@cn.fujitsu.com,
+	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	benh@kernel.crashing.org
+To: paulmck@linux.vnet.ibm.com
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1758765AbZDPSmn@vger.kernel.org>
+In-Reply-To: <20090416175850.GH6924@linux.vnet.ibm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 2009-04-16 at 18:34 +0200, Thomas Jarosch wrote:
-> Hello Thomas,
 
-> Interesting findings. The "IPT_BASE_CTL" socket operation usually starts
-> at 64 and then various operations get added to it by incrementing the value.
-> 
-> ipset's socket operations use absolute values like 0x201,
-> I'm wondering if they were registered somewhere or just "allocated".
 
-include/linux/netfilter_ipv4/ip_set.h
+Paul E. McKenney a =E9crit :
+>=20
+> But if some other CPU holds the lock, this code would fail to wait fo=
+r
+> that other CPU to release the lock, right?  It also might corrupt the
+> rl->count field due to two CPUs accessing it concurrently non-atomica=
+lly.
+
+If another cpu holds the lock, this cpu will spin on its own lock.
+
+Remember other cpus dont touch rl->count. This is a private field, only=
+ touched
+by the cpu on its own per_cpu data. There is no possible 'corruption'
+
+
+So the owner of the per_cpu data does :
 
 /*
- * A sockopt of such quality has hardly ever been seen before on the
-open
- * market!  This little beauty, hardly ever used: above 64, so it's
- * traditionally used for firewalling, not touched (even once!) by the
- * 2.0, 2.2 and 2.4 kernels!
- *
- * Comes with its own certificate of authenticity, valid anywhere in the
- * Free world!
- *
- * Rusty, 19.4.2000
+ * disable preemption, get rl =3D &__get_cpu_var(arp_tables_lock);
+ * then :
  */
-#define SO_IP_SET       83
+lock_time :
+if (++rl->count =3D=3D 0)
+	spin_lock(&rl->lock);
 
-But maybe someone on the list who remembers how this number got
-to be can comment on the issue ;)
-
-> The 32bit counters were a design decision to store a complete class C subnet 
-> into one kernel page. We query the data on our own system every second to 
-> check the online timeout of dial up lines, so that doesn't affect us.
->
-> Transforming the internal data structure into a hash table would be the way to 
-> go for IPv6 support and 64 bit counters. I guess it wouldn't be slower than 
-> the current approach or could even be faster for large networks,
-> so that would need a performance benchmark.
-
-That's what I thought as well, hash tables are the way to
-go. 
-
-I am stilling thinking about implementing this, if I find the time.
-Also, in order to make IPv6 accounting practical, I would probably add
-some sort of subnet accounting along the following lines.
-
--j ACCOUNT --network 1234:4567::/32 --account_mask /64
-
-which would only account packets in --network, and count data
-for a whole subnet instead of a single IP, as assigning single
-IPv6 addresses to customers is kind of silly in an ISP environment.
-
-To collect data for single IPs just use --account_mask 128.
-
-Another idea, possibly useful from an ISP perspective, might be
-to only start the counters (i.e. add the entry to the hash bucket) if
-packets with the IP/subnet have arrived from a certain direction first.
-
-This way, your tables don't overflow with all the IP scans
-from the Internet.
-
-> On the other side I would look at conntrack accounting first, it wasn't ready 
-> for production use when I wrote ipt_ACCOUNT back then, which it is now.
-
->From where I'm standing this looks much resource extensive than the
-approaches taken by ipt_ACCOUNT or ipt_account. All I am interested in
-is a byte counter per target IP/subnet that can be queried once a day
-so that I know who is consuming my bandwidth. Something that passes
-each connection track to user space doesn't look so good for that.
-
-But maybe I am wrong about this, I  haven't actually tried to use it.
+unlock_time:
+if (likely(--rl->count =3D=3D 0))
+	spin_unlock(&rl->lock);
 
 
+while other cpus only do :
+
+spin_lock(&rl->lock);
+/* work on data */
+spin_unlock(&rl->lock);
+
+So they cannot corrupt 'count' stuff.
+
+>=20
+> I suggest the following, preferably in a function or macro or somethi=
+ng:
+>=20
+> 	cur_cpu =3D smp_processor_id();
+> 	if (likely(rl->owner !=3D cur_cpu) {
+> 		spin_lock(&rl->lock);
+> 		rl->owner =3D smp_processor_id();
+> 		rl->count =3D 1;
+> 	} else {
+> 		rl->count++;
+> 	}
+>=20
+> And the inverse for unlock.
+>=20
+> Or am I missing something subtle?
+
+Apparently Linus missed it too, and reacted badly to my mail.
+I dont know why we discuss of this stuff on lkml either...
+
+I stop working on this subject and consider drinking dome hard stuf and
+watching tv :)
+
+See you
