@@ -1,55 +1,75 @@
-From: Eric Dumazet <dada1@cosmosbay.com>
-Subject: Re: [PATCH] netfilter: use per-cpu recursive spinlock  (v6)
-Date: Thu, 16 Apr 2009 18:20:04 +0200
-Message-ID: <49E75AB4.6030701@cosmosbay.com>
-References: <49E5BDF7.8090502@trash.net> <20090415135526.2afc4d18@nehalam> <49E64C91.5020708@cosmosbay.com> <20090415.164811.19905145.davem@davemloft.net> <20090415170111.6e1ca264@nehalam> <alpine.LFD.2.00.0904151705120.4042@localhost.localdomain> <20090415174551.529d241c@nehalam> <49E6BBA9.2030701@cosmosbay.com> <49E7384B.5020707@trash.net> <20090416144748.GB6924@linux.vnet.ibm.com> <49E75876.10509@cosmosbay.com>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: Re: ipt_ACCOUNT 1.15 released
+Date: Thu, 16 Apr 2009 18:34:17 +0200
+Message-ID: <200904161834.17450.thomas.jarosch@intra2net.com>
+References: <200904141744.57570.thomas.jarosch@intra2net.com> <200904151011.42360.thomas.jarosch@intra2net.com> <1239788429.11865.20.camel@enterprise.ims-firmen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>,
-	Stephen Hemminger <shemminger@vyatta.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	David Miller <davem@davemloft.net>, jeff.chua.linux@gmail.com,
-	paulus@samba.org, mingo@elte.hu, laijs@cn.fujitsu.com,
-	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	benh@kernel.crashing.org
-To: paulmck@linux.vnet.ibm.com
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Thomas Jacob <jacob@internet24.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from gw1.cosmosbay.com ([212.99.114.194]:36109 "EHLO
-	gw1.cosmosbay.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757001AbZDPQVP convert rfc822-to-8bit (ORCPT
+Received: from rs02.intra2net.com ([81.169.173.116]:56114 "EHLO
+	rs02.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755750AbZDPQeW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Apr 2009 12:21:15 -0400
-In-Reply-To: <49E75876.10509@cosmosbay.com>
+	Thu, 16 Apr 2009 12:34:22 -0400
+In-Reply-To: <1239788429.11865.20.camel@enterprise.ims-firmen.de>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Dumazet a =E9crit :
+Hello Thomas,
 
-> I also considered using regular spinlocks and spin_trylock() to "dete=
-ct"
-> the recurse case without a global counter.
->=20
-> lock :
-> local_bh_disable();
-> int locked =3D spin_trylock(&__get_cpu_var(arp_tables_lock);
->=20
-> unlock:
->=20
-> if (likely(locked))
-> 	spin_unlock(&__get_cpu_var(arp_tables_lock));
-> local_bh_enable();
->=20
-> But we would lose some runtime features, I dont feel comfortable abou=
-t
-> this trylock version. What others people think ?
->=20
+On Wednesday, 15. April 2009 11:40:29 you wrote:
+> > As you already mentioned, I'm not sure it would be a good idea
+> > to include it as the kernel patch extends the kernel<->user space socket
+> > operations in include/linux/netfilter_ipv4/ip_tables.h.
+>
+> I noticed this too, and the question for me is, do you really need
+> do things this way? Because that's really the only thing that requires
+> a kernel patch in your module. Ipset for instance doesn't anymore, but
+> I guess they've been "assigned" a permanent socket option number.... if
+> that could happen for your module: problem solved.
 
-Oh well, this wont work of course, forget about this trylock thing :)
+Interesting findings. The "IPT_BASE_CTL" socket operation usually starts
+at 64 and then various operations get added to it by incrementing the value.
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ipset's socket operations use absolute values like 0x201,
+I'm wondering if they were registered somewhere or just "allocated".
+
+> > I'm still surprised how many people are using ipt_ACCOUNT,
+> > somehow it is magnetic to ISPs in central and eastern europe :-)
+>
+> One reason springs to mind, apart from the obvious "they were there
+> first" reason: 64 bit counters... your module only uses 32 bit counters
+> which is not really great if you all you want to do account traffic at
+> an ISP, because if you've got a fully loaded 100 Mbps-Port your counters
+> will overflow every 5 minutes, so one needs to write software
+> that can extract and adding up the accounting data by querying your
+> module very often (I just did that for a future project ;).
+>
+> Also the other ipt_account allows saving and restoring the accounting
+> state, thereby allowing you to deal with crashes and reboots.
+>
+> But as you say, ipt_account is not really supported anymore, so....
+>
+> BTW, if you plan to add 64bit counters and maybe also IPv6 capability
+> I'd be very much willing to help ;)
+
+The 32bit counters were a design decision to store a complete class C subnet 
+into one kernel page. We query the data on our own system every second to 
+check the online timeout of dial up lines, so that doesn't affect us.
+
+Transforming the internal data structure into a hash table would be the way to 
+go for IPv6 support and 64 bit counters. I guess it wouldn't be slower than 
+the current approach or could even be faster for large networks,
+so that would need a performance benchmark.
+
+On the other side I would look at conntrack accounting first, it wasn't ready 
+for production use when I wrote ipt_ACCOUNT back then, which it is now.
+
+Cheers,
+Thomas
+
