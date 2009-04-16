@@ -1,35 +1,40 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: Kristian Evensen <kristian.evensen@gmail.com>
 Subject: Re: First userspace, then module
-Date: Thu, 16 Apr 2009 09:28:11 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0904160927340.2510@fbirervta.pbzchgretzou.qr>
+Date: Thu, 16 Apr 2009 10:31:36 +0200
+Message-ID: <17e3a8f80904160131t1a667f9dt1f9e5a4fc2c8a221@mail.gmail.com>
 References: <49E6D7F8.6030507@gmail.com>
+	 <alpine.LSU.2.00.0904160927340.2510@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Kristian Evensen <kristian.evensen@gmail.com>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:52044 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751228AbZDPH2P (ORCPT
+Received: from mail-fx0-f158.google.com ([209.85.220.158]:64796 "EHLO
+	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751383AbZDPIbh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Apr 2009 03:28:15 -0400
-In-Reply-To: <49E6D7F8.6030507@gmail.com>
+	Thu, 16 Apr 2009 04:31:37 -0400
+Received: by fxm2 with SMTP id 2so273748fxm.37
+        for <netfilter-devel@vger.kernel.org>; Thu, 16 Apr 2009 01:31:36 -0700 (PDT)
+In-Reply-To: <alpine.LSU.2.00.0904160927340.2510@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-On Thursday 2009-04-16 09:02, Kristian Evensen wrote:
+On Thu, Apr 16, 2009 at 9:28 AM, Jan Engelhardt <jengelh@medozas.de> wrote:
 >
-> I am playing around with an idea for a module that will manipulate the packets
-> in userspace before passing them on to the xtables module. In other words,
-> there will be two rules in iptables (in the samle table) and after userspace is
-> done with the packet, it will be passed onto the next rule.
+> On Thursday 2009-04-16 09:02, Kristian Evensen wrote:
+>>
+>> I am playing around with an idea for a module that will manipulate the packets
+>> in userspace before passing them on to the xtables module. In other words,
+>> there will be two rules in iptables (in the samle table) and after userspace is
+>> done with the packet, it will be passed onto the next rule.
+>
+> Not possible. But you can have it reenter at the start using
+> NF_REPEAT, I think.
 
-Not possible. But you can have it reenter at the start using
-NF_REPEAT, I think.
+Ok, thank you. I guess the best way then is to try and somehow mark
+the packet, make it reenter and have the other rule higher up. This
+rule will then also require a match on mark.
 
-> However, when creating a small prototype to see if this is possible, I did not
-> find an equivalant to "XT_CONTINUE" that can be passed to nfq_set_verdict and I
-> therefore did not get the prortype working.So my question is, is it possible to
-> first send a packet to userspace, make a verdict and then have it processed by
-> a rule in the same iptables-table?
+-Kristian
