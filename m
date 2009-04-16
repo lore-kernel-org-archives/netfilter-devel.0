@@ -1,58 +1,48 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH] netfilter: use per-cpu spinlock rather than RCU (v3)
-Date: Thu, 16 Apr 2009 14:24:06 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0904161423240.22333@fbirervta.pbzchgretzou.qr>
-References: <20090411174801.GG6822@linux.vnet.ibm.com> <18913.53699.544083.320542@cargo.ozlabs.ibm.com> <20090412173108.GO6822@linux.vnet.ibm.com> <20090412.181330.23529546.davem@davemloft.net> <20090413040413.GQ6822@linux.vnet.ibm.com> <20090413095309.631cf395@nehalam>
- <49E48136.5060700@trash.net> <49E49C65.8060808@cosmosbay.com> <20090414074554.7fa73e2f@nehalam> <49E4B0A5.70404@cosmosbay.com> <b6a2187b0904140951r3c6a41fdnc26b149202bdfa84@mail.gmail.com> <20090414111716.28585806@nehalam> <49E4E3E8.5090201@cosmosbay.com>
- <20090414141351.0f63ac98@nehalam> <49E502B5.7070700@cosmosbay.com> <49E5BDF7.8090502@trash.net> <20090415135526.2afc4d18@nehalam> <49E64C91.5020708@cosmosbay.com> <alpine.LSU.2.00.0904152354330.5844@fbirervta.pbzchgretzou.qr> <49E720BE.2000200@trash.net>
+Date: Thu, 16 Apr 2009 14:28:11 +0200
+Message-ID: <49E7245B.10208@trash.net>
+References: <49E64C91.5020708@cosmosbay.com>	<20090415.164811.19905145.davem@davemloft.net>	<20090415170111.6e1ca264@nehalam> <20090415.170539.34899625.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Eric Dumazet <dada1@cosmosbay.com>,
-	Stephen Hemminger <shemminger@vyatta.com>,
-	Jeff Chua <jeff.chua.linux@gmail.com>,
-	paulmck@linux.vnet.ibm.com, David Miller <davem@davemloft.net>,
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: shemminger@vyatta.com, dada1@cosmosbay.com,
+	jeff.chua.linux@gmail.com, paulmck@linux.vnet.ibm.com,
 	paulus@samba.org, mingo@elte.hu, torvalds@linux-foundation.org,
-	laijs@cn.fujitsu.com, r000n@r000n.net,
+	laijs@cn.fujitsu.com, jengelh@medozas.de, r000n@r000n.net,
 	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
 	netdev@vger.kernel.org, benh@kernel.crashing.org
-To: Patrick McHardy <kaber@trash.net>
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:46054 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752695AbZDPMYJ (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:54939 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753133AbZDPM2S (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Apr 2009 08:24:09 -0400
-In-Reply-To: <49E720BE.2000200@trash.net>
+	Thu, 16 Apr 2009 08:28:18 -0400
+In-Reply-To: <20090415.170539.34899625.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+David Miller wrote:
+> From: Stephen Hemminger <shemminger@vyatta.com>
+> Date: Wed, 15 Apr 2009 17:01:11 -0700
+> 
+>> The counters are the bigger problem, otherwise we could just free table
+>> info via rcu.  Do we really have to support: replace where the counter
+>> values coming out to user space are always exactly accurate, or is it
+>> allowed to replace a rule and maybe lose some counter ticks (worst case
+>> NCPU-1).
+> 
+> I say this case doesn't matter until someone can prove that it's
+> any different from the IPTABLES replace operation system call
+> executing a few microseconds earlier or later.
+> 
+> There really is no difference, and we're making complexity out of
+> nothing just to ensure something which isn't actually guarenteed right
+> now.
 
-On Thursday 2009-04-16 14:12, Patrick McHardy wrote:
-> Jan Engelhardt wrote:
->> On Wednesday 2009-04-15 23:07, Eric Dumazet wrote:
->>> Stephen Hemminger a =C3=A9crit :
->>>> Looks like there is some recursive path into ip_tables that makes =
-the
->>>> per-cpu spinlock break.  I get lockup's with KVM networking.
->>>>
->>>> Suggestions?
->>> Well, it seems original patch was not so bad after all
->>>
->>> http://lists.netfilter.org/pipermail/netfilter-devel/2006-January/0=
-23175.html
->>>
->>> So change per-cpu spinlocks to per-cpu rwlocks=20
->>> and use read_lock() in ipt_do_table() to allow recursion...
->>>
->> iptables cannot quite recurse into itself due to the comefrom stuff.
->
-> Actually it can by using the REJECT target:
+Actually I believe it does work right now. Userspace maps the old
+counter values to the replacement rules and the kernel adds them
+up, so in the end we currently should always have accurate counters,
+independant of the exact time when a replacement took place.
 
-Yes, but it has to return an absolute verdict (which REJECT does),
-so it's not really a recursion, it's more like a goto without return.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
