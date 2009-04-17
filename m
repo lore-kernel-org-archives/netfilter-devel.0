@@ -1,43 +1,33 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH] netfilter: per-cpu spin-lock with recursion (v0.8)
-Date: Fri, 17 Apr 2009 19:08:15 +0200
-Message-ID: <1239988095.23397.4823.camel@laptop>
-References: <20090415170111.6e1ca264@nehalam>
-	 <alpine.LFD.2.00.0904151705120.4042@localhost.localdomain>
-	 <49E72E83.50702@trash.net>	<20090416.153354.170676392.davem@davemloft.net>
-	 <20090416234955.GL6924@linux.vnet.ibm.com>
-	 <20090416165233.5d8bbfb5@nehalam> <49E81B9D.3030807@cosmosbay.com>
-	 <49E81E63.2090909@cosmosbay.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] Allow fragmentation of VLAN packets traversing a bridge.
+Date: Fri, 17 Apr 2009 19:20:40 +0200
+Message-ID: <49E8BA68.50605@trash.net>
+References: <49E89E0D.5080000@gmail.com> <49E8A6DF.3040905@trash.net> <49E8B73C.7080004@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Stephen Hemminger <shemminger@vyatta.com>,
-	paulmck@linux.vnet.ibm.com, David Miller <davem@davemloft.net>,
-	kaber@trash.net, torvalds@linux-foundation.org,
-	jeff.chua.linux@gmail.com, paulus@samba.org, mingo@elte.hu,
-	laijs@cn.fujitsu.com, jengelh@medozas.de, r000n@r000n.net,
-	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, benh@kernel.crashing.org
-To: Eric Dumazet <dada1@cosmosbay.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([18.85.46.34]:36194 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755896AbZDQRIh (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 17 Apr 2009 13:08:37 -0400
-In-Reply-To: <49E81E63.2090909@cosmosbay.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org
+To: Saikiran Madugula <hummerbliss@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <49E8B73C.7080004@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 2009-04-17 at 08:14 +0200, Eric Dumazet wrote:
-> > Also, please dont call this a 'recursive lock', since it is not a general
-> > recursive lock, as pointed by Linus and Paul.
-> > 
-> > Second question is about MAX_LOCK_DEPTH
+Saikiran Madugula wrote:
+> Patrick McHardy wrote:
+>>> -    if (skb->protocol == htons(ETH_P_IP) &&
+>>> +    if ((skb->protocol == htons(ETH_P_IP) || IS_VLAN_IP(skb)) &&
+>>>          skb->len > skb->dev->mtu &&
+>>>          !skb_is_gso(skb))
+>>>          return ip_fragment(skb, br_dev_queue_push_xmit);
+>> Please add an additional check for skb->nfct != NULL to make sure
+>> that this only refragments packets defragmented by conntrack.
 > 
-> I meant here the ~256 limit we have on preempt_count, not related to LOCKDEP
+> Thanks for the feedback, skb->nfct is present only if CONFIG_NF_CONNTRACK or
+> CONFIG_NF_CONNTRACK_MODULE is defined. Was wondering if the entire check before
+> ip_fragment is necessary if NF_CONNTRACK is not defined. If not, I will post
+> updated patch as per your suggestion.
 
-Very good point, so 256 nested spin_lock() instances will make the
-kernel unhappy -- since we now (almost?) support up to 4096 cpus, this
-seems like a no-no.
+Good point. Yes, everything related to fragmenting is only needed
+with NF_CONNTRACK, so an additional ifdef makes sense.
 
