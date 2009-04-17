@@ -1,46 +1,29 @@
-From: =?iso-8859-15?Q?G=E9rald?= Colangelo <binarym@psycho-hazard.net>
-Subject: libnetfilter_queue and pid of process owning packet.
-Date: Fri, 17 Apr 2009 16:59:50 +0200
-Message-ID: <20090417145949.GS3600@finnois.psycho-hazard.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 1/2] netfilter: ctnetlink: report error if event message
+ allocation fails
+Date: Fri, 17 Apr 2009 17:47:58 +0200
+Message-ID: <49E8A4AE.3000808@trash.net>
+References: <20090417090010.11291.31173.stgit@Decadence> <20090417090527.11291.46129.stgit@Decadence> <49E84924.9010000@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from finnois.psycho-hazard.net ([91.121.135.173]:1928 "EHLO
-	finnois.psycho-hazard.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751441AbZDQPay (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:56527 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754926AbZDQPsB (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 17 Apr 2009 11:30:54 -0400
-Received: from finnois.yanluo.net (dom0.local.psycho-hazard.net [10.0.0.1])
-	by finnois.psycho-hazard.net (Postfix) with SMTP id 3E86F134075
-	for <netfilter-devel@vger.kernel.org>; Fri, 17 Apr 2009 16:59:50 +0200 (CEST)
-Content-Disposition: inline
+	Fri, 17 Apr 2009 11:48:01 -0400
+In-Reply-To: <49E84924.9010000@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Pablo Neira Ayuso wrote:
+> Pablo Neira Ayuso wrote:
+>> This patch fixes an inconsistency that results in no error reports
+>> to user-space listeners if we fail to allocate the event message.
+> 
+> I was missing the expectation part. New patch attached.
 
-Is there a simple way to get the pid of the process owning the packet t=
-hrought
-libnetfilter_queue ?
-I know that this parameters would only be revelant in case of OUPUTed p=
-acket,
-but i would be really useful for me ... :)
-I have searched the web, browsed snort_inline, honeytrap and moblock so=
-urce code,
-but didn't find anything concerning my needs.
-
-Regards,
-
---=20
-G=E9rald Colangelo=20
-binarym@psycho-hazard.net - http://www.yanluo.net
-
-Being a sysadmin means hours of hard labor every day.
-Being an abusive sysadmin means hours of fun.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Applied, thanks Pablo.
