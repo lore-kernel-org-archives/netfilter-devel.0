@@ -1,34 +1,64 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: netfilter 00/02: netfilter fixes
-Date: Fri, 17 Apr 2009 15:44:26 -0700 (PDT)
-Message-ID: <20090417.154426.217109514.davem@davemloft.net>
-References: <20090417160913.32484.93063.sendpatchset@x2.localnet>
+From: Saikiran Madugula <hummerbliss@gmail.com>
+Subject: [PATCH] Allow fragmentation of VLAN packets traversing a bridge.
+Date: Fri, 17 Apr 2009 23:51:14 +0100
+Message-ID: <49E907E2.3020304@gmail.com>
+References: <49E89E0D.5080000@gmail.com> <49E8A6DF.3040905@trash.net> <49E8B73C.7080004@gmail.com> <49E8BA68.50605@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+Cc: Saikiran Madugula <hummerbliss@gmail.com>,
+	netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:52281
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1752127AbZDQWoe (ORCPT
+Received: from mail-ew0-f176.google.com ([209.85.219.176]:57438 "EHLO
+	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753438AbZDQWvR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 17 Apr 2009 18:44:34 -0400
-In-Reply-To: <20090417160913.32484.93063.sendpatchset@x2.localnet>
+	Fri, 17 Apr 2009 18:51:17 -0400
+In-Reply-To: <49E8BA68.50605@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Fri, 17 Apr 2009 18:09:13 +0200 (MEST)
+br_nf_dev_queue_xmit only checks for ETH_P_IP packets for fragmenting but not
+VLAN packets. This results in dropping of large VLAN packets. This can be
+observed when connection tracking is enabled. Connection tracking re-assembles
+fragmented packets, and these have to re-fragmented when transmitting out. Also,
+make sure only refragmented packets are defragmented as per suggestion from
+Patrick McHardy.
 
-> the following two patches fix two netfilter bugs:
-> 
-> - missing socket notification for ctnetlink skb allocation errors
-> 
-> - an incorrect return code in nfnetlink for netlink_kernel_create() failure
-> 
-> Please apply or pull from:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git
+Signed-off-by: Saikiran Madugula <hummerbliss@gmail.com>
+---
+ net/bridge/br_netfilter.c |   10 +++++++++-
+ 1 files changed, 9 insertions(+), 1 deletions(-)
 
-Pulled, thanks a lot!
+diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
+index 3953ac4..e4a418f 100644
+--- a/net/bridge/br_netfilter.c
++++ b/net/bridge/br_netfilter.c
+@@ -788,15 +788,23 @@ static unsigned int br_nf_local_out(unsigned int hook, struct sk_buff *skb,
+ 	return NF_STOLEN;
+ }
+ 
++#if defined(CONFIG_NF_CONNTRACK_IPV4) || defined(CONFIG_NF_CONNTRACK_IPV4_MODULE)
+ static int br_nf_dev_queue_xmit(struct sk_buff *skb)
+ {
+-	if (skb->protocol == htons(ETH_P_IP) &&
++	if (skb->nfct != NULL &&
++	    (skb->protocol == htons(ETH_P_IP) || IS_VLAN_IP(skb)) &&
+ 	    skb->len > skb->dev->mtu &&
+ 	    !skb_is_gso(skb))
+ 		return ip_fragment(skb, br_dev_queue_push_xmit);
+ 	else
+ 		return br_dev_queue_push_xmit(skb);
+ }
++#else
++static int br_nf_dev_queue_xmit(struct sk_buff *skb)
++{
++        return br_dev_queue_push_xmit(skb);
++}
++#endif
+ 
+ /* PF_BRIDGE/POST_ROUTING ********************************************/
+ static unsigned int br_nf_post_routing(unsigned int hook, struct sk_buff *skb,
+-- 
+1.5.6.3
