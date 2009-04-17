@@ -1,44 +1,46 @@
-From: Saikiran Madugula <hummerbliss@gmail.com>
-Subject: [PATCH] Allow fragmentation of VLAN packets traversing a bridge.
-Date: Fri, 17 Apr 2009 16:19:41 +0100
-Message-ID: <49E89E0D.5080000@gmail.com>
+From: =?iso-8859-15?Q?G=E9rald?= Colangelo <binarym@psycho-hazard.net>
+Subject: libnetfilter_queue and pid of process owning packet.
+Date: Fri, 17 Apr 2009 16:59:50 +0200
+Message-ID: <20090417145949.GS3600@finnois.psycho-hazard.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Saikiran Madugula <hummerbliss@gmail.com>,
-	netfilter-devel@vger.kernel.org
-To: netdev <netdev@vger.kernel.org>
+Content-Type: text/plain; charset=iso-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ew0-f176.google.com ([209.85.219.176]:48508 "EHLO
-	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758630AbZDQPTp (ORCPT
+Received: from finnois.psycho-hazard.net ([91.121.135.173]:1928 "EHLO
+	finnois.psycho-hazard.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751441AbZDQPay (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 17 Apr 2009 11:19:45 -0400
+	Fri, 17 Apr 2009 11:30:54 -0400
+Received: from finnois.yanluo.net (dom0.local.psycho-hazard.net [10.0.0.1])
+	by finnois.psycho-hazard.net (Postfix) with SMTP id 3E86F134075
+	for <netfilter-devel@vger.kernel.org>; Fri, 17 Apr 2009 16:59:50 +0200 (CEST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-br_nf_dev_queue_xmit only checks for ETH_P_IP packets for fragmenting but not
-VLAN packets. This results in dropping of large VLAN packets. This can be
-observed when connection tracking is enabled. Connection tracking re-assembles
-fragmented packets, and these have to be re-fragmented when transmitting out.
+Hi,
 
-Signed-off-by: Saikiran Madugula <hummerbliss@gmail.com>
----
- net/bridge/br_netfilter.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Is there a simple way to get the pid of the process owning the packet t=
+hrought
+libnetfilter_queue ?
+I know that this parameters would only be revelant in case of OUPUTed p=
+acket,
+but i would be really useful for me ... :)
+I have searched the web, browsed snort_inline, honeytrap and moblock so=
+urce code,
+but didn't find anything concerning my needs.
 
-diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
-index 3953ac4..941f702 100644
---- a/net/bridge/br_netfilter.c
-+++ b/net/bridge/br_netfilter.c
-@@ -790,7 +790,7 @@ static unsigned int br_nf_local_out(unsigned int hook, struct sk_buff *skb,
- 
- static int br_nf_dev_queue_xmit(struct sk_buff *skb)
- {
--	if (skb->protocol == htons(ETH_P_IP) &&
-+	if ((skb->protocol == htons(ETH_P_IP) || IS_VLAN_IP(skb)) &&
- 	    skb->len > skb->dev->mtu &&
- 	    !skb_is_gso(skb))
- 		return ip_fragment(skb, br_dev_queue_push_xmit);
--- 
-1.5.6.3
+Regards,
+
+--=20
+G=E9rald Colangelo=20
+binarym@psycho-hazard.net - http://www.yanluo.net
+
+Being a sysadmin means hours of hard labor every day.
+Being an abusive sysadmin means hours of fun.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
