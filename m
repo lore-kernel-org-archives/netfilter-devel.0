@@ -1,33 +1,47 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Allow fragmentation of VLAN packets traversing a bridge.
-Date: Fri, 17 Apr 2009 19:20:40 +0200
-Message-ID: <49E8BA68.50605@trash.net>
-References: <49E89E0D.5080000@gmail.com> <49E8A6DF.3040905@trash.net> <49E8B73C.7080004@gmail.com>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH] netfilter: use per-cpu spinlock rather than RCU (v3)
+Date: Fri, 17 Apr 2009 19:22:59 +0200
+Message-ID: <1239988979.23397.4841.camel@laptop>
+References: <20090416215033.3e648a7a@nehalam>
+	 <49E810B0.9000906@cosmosbay.com> <20090417054032.GD6885@linux.vnet.ibm.com>
+	 <20090417.010710.59150850.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org
-To: Saikiran Madugula <hummerbliss@gmail.com>
+Cc: paulmck@linux.vnet.ibm.com, dada1@cosmosbay.com,
+	shemminger@vyatta.com, kaber@trash.net,
+	torvalds@linux-foundation.org, jeff.chua.linux@gmail.com,
+	paulus@samba.org, mingo@elte.hu, laijs@cn.fujitsu.com,
+	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	benh@kernel.crashing.org, mathieu.desnoyers@polymtl.ca
+To: David Miller <davem@davemloft.net>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <49E8B73C.7080004@gmail.com>
+In-Reply-To: <20090417.010710.59150850.davem@davemloft.net>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Saikiran Madugula wrote:
-> Patrick McHardy wrote:
->>> -    if (skb->protocol == htons(ETH_P_IP) &&
->>> +    if ((skb->protocol == htons(ETH_P_IP) || IS_VLAN_IP(skb)) &&
->>>          skb->len > skb->dev->mtu &&
->>>          !skb_is_gso(skb))
->>>          return ip_fragment(skb, br_dev_queue_push_xmit);
->> Please add an additional check for skb->nfct != NULL to make sure
->> that this only refragments packets defragmented by conntrack.
+On Fri, 2009-04-17 at 01:07 -0700, David Miller wrote:
+> From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+> Date: Thu, 16 Apr 2009 22:40:32 -0700
 > 
-> Thanks for the feedback, skb->nfct is present only if CONFIG_NF_CONNTRACK or
-> CONFIG_NF_CONNTRACK_MODULE is defined. Was wondering if the entire check before
-> ip_fragment is necessary if NF_CONNTRACK is not defined. If not, I will post
-> updated patch as per your suggestion.
+> > I completely agree that this RCU is absolutely -not- 2.6.30 material.  ;-)
+> 
+> I don't understand why we're writing such complicated code.
+> 
+> Oh I see why, it's because not every arch uses the generic SMP helpers
+> yet :-)
+> 
+> Because if they did universally, we could solve this problem so
+> simply, by merely sending a remote softirq to every online cpu.  Once
+> those all complete we have enough of a quiesce period, every cpu must
+> have exited any netfilter packet processing code path they were in.
+> 
+> And we could know they complete using an atomic counter or something.
 
-Good point. Yes, everything related to fragmenting is only needed
-with NF_CONNTRACK, so an additional ifdef makes sense.
+Since its a full broadcast, we can do that _today_ using on_each_cpu().
+But whatever way we turn this, this will be a very expensive operation.
+Imagine doing that on your 256-way for every iptables rules change.
+
+
 
