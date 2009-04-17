@@ -1,153 +1,57 @@
-From: Peter Zijlstra <peterz@infradead.org>
-Subject: Re: [PATCH] netfilter: use per-cpu spinlock rather than RCU (v3)
-Date: Fri, 17 Apr 2009 18:51:37 +0200
-Message-ID: <1239987097.23397.4800.camel@laptop>
-References: <20090415170111.6e1ca264@nehalam>
-	 <alpine.LFD.2.00.0904151705120.4042@localhost.localdomain>
-	 <49E72E83.50702@trash.net> <20090416.153354.170676392.davem@davemloft.net>
-	 <20090416234955.GL6924@linux.vnet.ibm.com>
-	 <20090417012812.GA25534@linux.vnet.ibm.com>
-	 <1239948734.23397.4052.camel@laptop>
-	 <20090417163351.GC6742@linux.vnet.ibm.com>
+From: Saikiran Madugula <hummerbliss@gmail.com>
+Subject: Re: [PATCH] Allow fragmentation of VLAN packets traversing a bridge.
+Date: Fri, 17 Apr 2009 18:07:08 +0100
+Message-ID: <49E8B73C.7080004@gmail.com>
+References: <49E89E0D.5080000@gmail.com> <49E8A6DF.3040905@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: David Miller <davem@davemloft.net>, kaber@trash.net,
-	torvalds@linux-foundation.org, shemminger@vyatta.com,
-	dada1@cosmosbay.com, jeff.chua.linux@gmail.com, paulus@samba.org,
-	mingo@elte.hu, laijs@cn.fujitsu.com, jengelh@medozas.de,
-	r000n@r000n.net, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	benh@kernel.crashing.org, mathieu.desnoyers@polymtl.ca
-To: paulmck@linux.vnet.ibm.com
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20090417163351.GC6742@linux.vnet.ibm.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ey-out-2122.google.com ([74.125.78.26]:21333 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756294AbZDQRHM (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 17 Apr 2009 13:07:12 -0400
+In-Reply-To: <49E8A6DF.3040905@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 2009-04-17 at 09:33 -0700, Paul E. McKenney wrote:
-
-> > One comment, its again a global thing..
-> > 
-> > I've been playing with the idea for a while now to make all RCU
-> > implementations into proper objects so that you can do things like:
-> > 
-> >   struct atomic_rcu_domain my_rcu_domain = create_atomic_rcu();
-> > 
-> >   atomic_rcu_read_lock(&my_rcu_domain());
-> >   ...
-> > 
-> >   atomic_rcu_read_unlock(&my_rcu_domain());
-> > 
-> > and
-> > 
-> >   call_atomic_rcu(&my_rcu_domain, &my_obj->rcu_head, do_something);
-> > 
-> > etc..
-> > 
-> > We would have:
-> > 
-> >   atomic_rcu  --  'classic' non preemptible RCU (treercu these days)
-> >   sleep_rcu   --  'preemptible' RCU
-> > 
-> > Then have 3 default domains:
-> > 
-> > sched_rcu     -- always atomic_rcu
+Patrick McHardy wrote:
+> Saikiran Madugula wrote:
+>> br_nf_dev_queue_xmit only checks for ETH_P_IP packets for fragmenting
+>> but not
+>> VLAN packets. This results in dropping of large VLAN packets. This can be
+>> observed when connection tracking is enabled. Connection tracking
+>> re-assembles
+>> fragmented packets, and these have to be re-fragmented when
+>> transmitting out.
+>>
+>> Signed-off-by: Saikiran Madugula <hummerbliss@gmail.com>
+>> ---
+>>  net/bridge/br_netfilter.c |    2 +-
+>>  1 files changed, 1 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
+>> index 3953ac4..941f702 100644
+>> --- a/net/bridge/br_netfilter.c
+>> +++ b/net/bridge/br_netfilter.c
+>> @@ -790,7 +790,7 @@ static unsigned int br_nf_local_out(unsigned int
+>> hook, struct sk_buff *skb,
+>>  
+>>  static int br_nf_dev_queue_xmit(struct sk_buff *skb)
+>>  {
+>> -    if (skb->protocol == htons(ETH_P_IP) &&
+>> +    if ((skb->protocol == htons(ETH_P_IP) || IS_VLAN_IP(skb)) &&
+>>          skb->len > skb->dev->mtu &&
+>>          !skb_is_gso(skb))
+>>          return ip_fragment(skb, br_dev_queue_push_xmit);
 > 
-> This is the call_rcu_sched() variant.
-> 
-> > rcu           -- depends on PREEMPT_RCU
-> 
-> This is the call_rcu() variant.
-> 
-> > preempt_rcu   -- always sleep_rcu
-> 
-> I guess that this one could allow sleeping on mutexes...  Does anyone
-> need to do that?
+> Please add an additional check for skb->nfct != NULL to make sure
+> that this only refragments packets defragmented by conntrack.
 
-I almost did a few times, but never quite got the code that needed it
-working good enough for it to go anywhere.
-
-> > This would allow generic code to:
-> >   1) use preemptible RCU for those cases where needed
-> >   2) create smaller RCU domains where needed, such as in this case
-> >   3) mostly do away with SRCU
-> 
-> #3 would be good!  But...
-> 
-> At an API level, there are two differences between SRCU and the other
-> RCU implementations:
-> 
-> a.	The return value from srcu_read_lock() is passed to
-> 	srcu_read_unlock().
-> 
-> b.	There is a control block passed in to each SRCU primitive.
-> 
-> Difference (a) could potentially be taken care of with a few tricks I
-> am trying in the process of getting preemptrcu merged into treercu.
-
-Right, incrementing one cpu and decrementing another doesn't change the
-sum over all cpus :-)
-
-> Your approach to (b) certainly makes it uniform, there are >500
-> occurrences of rcu_read_lock() and rcu_read_unlock() each, but only
-> a very few occurrences of srcu_read_lock() and srcu_read_unlock()
-> (like exactly one each!).  So adding an argument to rcu_read_lock()
-> does not sound at all reasonable.
-
-static inline void rcu_read_lock(void)
-{
-	atomic_rcu_read_lock(&global_atomic_rcu_context);
-}
-
-static inline void rcu_read_unlock(void)
-{
-	atomic_rcu_read_unlock(&global_atomic_rcu_context);
-}
-
-static inline void call_rcu(struct rcu_head *rcuhead, void (*func)(struct rcu_head *))
-{
-	call_atomic_rcu(&global_atomic_rcu_context, rcuhead, func);
-}
-
-etc.. Should take care of that, no?
-
-> > Now I realize that the presented RCU implementation has a different
-> > grace period method than the existing ones that use the timer tick to
-> > drive the state machine, so 2) might not be too relevant here. But maybe
-> > we can do something with different grace periods too.
-> > 
-> > Anyway, just an idea because I always get a little offended at the hard
-> > coded global variables in all these RCU implementations :-)
-> 
-> I am thinking in terms of adding a synchronize_rcu_bh() with the desired
-> properties.  That way we avoid yet another RCU flavor.  (What can I say?
-> I got carried away!)  Also, since the rcu-bh flavor is used only by
-> networking, we have a fair amount of freedom to tweak it. 
-
-Right. I was thinking along the way of providing a watermark (either
-nr_queued based, or time based) and once it exceeds try to drive it from
-read_unlock. Or similar. unlock driven RCU implementations have the best
-grace period time every, except for all the down sides ;-)
-
->  It will take
-> longer than introducing a new flavor, but Steve Hemminger has a good
-> solution already, and RCU really isn't the thing to do quick hacks on.
-
-Ok, back on topic :-)
-
-I wouldn't exactly call it a good solution, it does a
-for_each_possible_cpu() spin_lock();
-
- 1) that should probably be for_each_online_cpu()
-
- 2) that doesn't scale at all, I'm sure dave's 256-way hurts like mad
-    when inserting tons of rules and we do that for every iptable
-    modification.
-
- 3) there is no way lockdep can track all that :(
-
-Do we _really_ _really_ __HAVE__ to serialize this? So far I've heard
-Patrick say: there might be, a use case. That doesn't sound like: we
-should make it dead slow for everybody else.
-
+Thanks for the feedback, skb->nfct is present only if CONFIG_NF_CONNTRACK or
+CONFIG_NF_CONNTRACK_MODULE is defined. Was wondering if the entire check before
+ip_fragment is necessary if NF_CONNTRACK is not defined. If not, I will post
+updated patch as per your suggestion.
