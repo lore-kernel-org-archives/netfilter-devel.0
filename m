@@ -1,43 +1,37 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] netfilter: use per-cpu spinlock rather than RCU (v3)
-Date: Fri, 17 Apr 2009 01:07:10 -0700 (PDT)
-Message-ID: <20090417.010710.59150850.davem@davemloft.net>
-References: <20090416215033.3e648a7a@nehalam>
-	<49E810B0.9000906@cosmosbay.com>
-	<20090417054032.GD6885@linux.vnet.ibm.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 0/2] minor netfilter fixes for 2.6.30-rc
+Date: Fri, 17 Apr 2009 11:05:05 +0200
+Message-ID: <20090417090010.11291.31173.stgit@Decadence>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: dada1@cosmosbay.com, shemminger@vyatta.com, kaber@trash.net,
-	torvalds@linux-foundation.org, jeff.chua.linux@gmail.com,
-	paulus@samba.org, mingo@elte.hu, laijs@cn.fujitsu.com,
-	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	benh@kernel.crashing.org, mathieu.desnoyers@polymtl.ca
-To: paulmck@linux.vnet.ibm.com
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:40446
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1753552AbZDQIHT (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 17 Apr 2009 04:07:19 -0400
-In-Reply-To: <20090417054032.GD6885@linux.vnet.ibm.com>
+Received: from mail.us.es ([193.147.175.20]:48558 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753228AbZDQJFP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 17 Apr 2009 05:05:15 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Date: Thu, 16 Apr 2009 22:40:32 -0700
+Hi Patrick,
 
-> I completely agree that this RCU is absolutely -not- 2.6.30 material.  ;-)
+The following patches are a couple of minor fixes for 2.6.30-rc:
 
-I don't understand why we're writing such complicated code.
+ * fix missing error report to user-space in ctnetlink if we fail to
+ allocate the message.
+ * fix misleading error in nfnetlink (-EPERM) if we fail to load
+ nfnetlink. This patch replaces it with ENOMEM as it does rtnetlink.
 
-Oh I see why, it's because not every arch uses the generic SMP helpers
-yet :-)
+---
 
-Because if they did universally, we could solve this problem so
-simply, by merely sending a remote softirq to every online cpu.  Once
-those all complete we have enough of a quiesce period, every cpu must
-have exited any netfilter packet processing code path they were in.
+Pablo Neira Ayuso (2):
+      netfilter: nfnetlink: return ENOMEM if we fail to create netlink socket
+      netfilter: ctnetlink: report error if event message allocation fails
 
-And we could know they complete using an atomic counter or something.
+
+ net/netfilter/nf_conntrack_netlink.c |    5 +++--
+ net/netfilter/nfnetlink.c            |    2 +-
+ 2 files changed, 4 insertions(+), 3 deletions(-)
+
