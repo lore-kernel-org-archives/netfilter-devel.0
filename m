@@ -1,36 +1,47 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: libnetfilter_queue and pid of process owning packet.
-Date: Fri, 17 Apr 2009 17:54:16 +0200
-Message-ID: <49E8A628.6070808@trash.net>
-References: <20090417145949.GS3600@finnois.psycho-hazard.net>
+Subject: Re: [PATCH] Allow fragmentation of VLAN packets traversing a bridge.
+Date: Fri, 17 Apr 2009 17:57:19 +0200
+Message-ID: <49E8A6DF.3040905@trash.net>
+References: <49E89E0D.5080000@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: =?ISO-8859-15?Q?G=E9rald_Colangelo?= <binarym@psycho-hazard.net>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org
+To: Saikiran Madugula <hummerbliss@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:56656 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:56712 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754161AbZDQPyS (ORCPT
+	with ESMTP id S1757093AbZDQP5a (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 17 Apr 2009 11:54:18 -0400
-In-Reply-To: <20090417145949.GS3600@finnois.psycho-hazard.net>
+	Fri, 17 Apr 2009 11:57:30 -0400
+In-Reply-To: <49E89E0D.5080000@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-G=E9rald Colangelo wrote:
-> Is there a simple way to get the pid of the process owning the packet=
- throught
-> libnetfilter_queue ?
-> I know that this parameters would only be revelant in case of OUPUTed=
- packet,
-> but i would be really useful for me ... :)
+Saikiran Madugula wrote:
+> br_nf_dev_queue_xmit only checks for ETH_P_IP packets for fragmenting but not
+> VLAN packets. This results in dropping of large VLAN packets. This can be
+> observed when connection tracking is enabled. Connection tracking re-assembles
+> fragmented packets, and these have to be re-fragmented when transmitting out.
+> 
+> Signed-off-by: Saikiran Madugula <hummerbliss@gmail.com>
+> ---
+>  net/bridge/br_netfilter.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
+> index 3953ac4..941f702 100644
+> --- a/net/bridge/br_netfilter.c
+> +++ b/net/bridge/br_netfilter.c
+> @@ -790,7 +790,7 @@ static unsigned int br_nf_local_out(unsigned int hook, struct sk_buff *skb,
+>  
+>  static int br_nf_dev_queue_xmit(struct sk_buff *skb)
+>  {
+> -	if (skb->protocol == htons(ETH_P_IP) &&
+> +	if ((skb->protocol == htons(ETH_P_IP) || IS_VLAN_IP(skb)) &&
+>  	    skb->len > skb->dev->mtu &&
+>  	    !skb_is_gso(skb))
+>  		return ip_fragment(skb, br_dev_queue_push_xmit);
 
-Currently not, but I'd take a patch to add fsuid/fsgid support.
-Check out the nfnetlink_log code for reference if needed.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Please add an additional check for skb->nfct != NULL to make sure
+that this only refragments packets defragmented by conntrack.
