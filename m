@@ -1,55 +1,82 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: per-cpu spin-lock with recursion (v0.8)
-Date: Fri, 17 Apr 2009 13:17:13 +0200
-Message-ID: <49E86539.9070408@trash.net>
-References: <20090415170111.6e1ca264@nehalam>	<alpine.LFD.2.00.0904151705120.4042@localhost.localdomain>	<49E72E83.50702@trash.net>	<20090416.153354.170676392.davem@davemloft.net>	<20090416234955.GL6924@linux.vnet.ibm.com> <20090416165233.5d8bbfb5@nehalam> <49E81B9D.3030807@cosmosbay.com>
+From: Giacomo <delleceste@gmail.com>
+Subject: question about names as addresses in iptables
+Date: Fri, 17 Apr 2009 15:02:16 +0200
+Message-ID: <885896af0904170602vdf7a448xd53d5e8642d14d90@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Stephen Hemminger <shemminger@vyatta.com>,
-	paulmck@linux.vnet.ibm.com, David Miller <davem@davemloft.net>,
-	torvalds@linux-foundation.org, jeff.chua.linux@gmail.com,
-	paulus@samba.org, mingo@elte.hu, laijs@cn.fujitsu.com,
-	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	benh@kernel.crashing.org
-To: Eric Dumazet <dada1@cosmosbay.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:51123 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754601AbZDQLRU (ORCPT
+Received: from mail-ew0-f176.google.com ([209.85.219.176]:40069 "EHLO
+	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755100AbZDQNCS (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 17 Apr 2009 07:17:20 -0400
-In-Reply-To: <49E81B9D.3030807@cosmosbay.com>
+	Fri, 17 Apr 2009 09:02:18 -0400
+Received: by ewy24 with SMTP id 24so210785ewy.37
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Apr 2009 06:02:17 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Dumazet wrote:
-> Stephen Hemminger a =E9crit :
->> This version of x_tables (ip/ip6/arp) locking uses a per-cpu
->> recursive lock that can be nested. It is sort of like existing kerne=
-l_lock,
->> rwlock_t and even old 2.4 brlock.
->>
->> ...
-> I like this version 8 of the patch, as it mixes all ideas we had,
-> but have two questions.
->=20
-> Previous netfilter code (and 2.6.30-rc2 one too) disable BH, not only=
- preemption.
->=20
-> I see xt_table_info_lock_all(void) does block BH, so this one is safe=
-=2E
->=20
-> I let Patrick or other tell us if its safe to run ipt_do_table()
-> with preemption disabled but BH enabled, I really dont know.
+Good morning
 
-No, on jumps the return position is stored in the per-cpu copy
-of the ruleset and we must prevent BH context corrupting the
-value of something running in process context.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+man iptables says
+
+-s, --source [!] address[/mask]
+	      Source  specification.   Address can be either a network name, a
+	      hostname (please note that specifying any name  to  be  resolved
+	      with a remote query such as DNS is a really bad idea), a network
+	      IP address (with /mask), or a plain IP address.  The mask can be
+	      either  a  network mask or a plain number, specifying the number
+	      of 1's at the left side of the network mask.  Thus, a mask of 24
+	      is  equivalent  to  255.255.255.0.   A  "!"  argument before the
+	      address specification inverts the sense of the address. The flag
+	      --src is an alias for this option.
+
+the same goes for destination...
+
+the question is:
+
+how is name resolution implemented?
+
+Is userspace iptables resolving names into ips and loading them into
+the kernel when i impart the command line
+and then are they left as they are into the kernel?
+
+If an ip address changes its value, mantaining the same name, is it
+necessary to reload the rule?
+
+If a name has more than one ip address (the name has aliases), are all
+the ip addresses loaded into the rule?
+(as an example www.google.com has three ips). If yes, how can I see
+the numeric values into the iptable rule?
+
+Thanks for the answer, assumed that "a remote query such as DNS is a
+really bad idea", I am interested in
+the concept implementation.
+
+Giacomo
+
+
+
+-- 
+Giacomo S.
+http://www.giacomos.it
+
+- - - - - - - - - - - - - - - - - - - - - -
+
+* Aprile 2008: iqfire-wall, un progetto
+  open source che implementa un
+  filtro di pacchetti di rete per Linux,
+  e` disponibile per il download qui:
+  http://sourceforge.net/projects/ipfire-wall
+
+* Informazioni e pagina web ufficiale:
+  http://www.giacomos.it/iqfire/index.html
+
+- - - - - - - - - - - - - - - - - - - - - -
+
+ . ''  `.
+:   :'    :
+ `.  ` '
+    `- Debian GNU/Linux -- The power of freedom
+        http://www.debian.org
