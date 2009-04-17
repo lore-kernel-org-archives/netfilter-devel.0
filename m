@@ -1,30 +1,55 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: ulogd2 commit
-Date: Fri, 17 Apr 2009 12:52:29 +0200
-Message-ID: <49E85F6D.9030008@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] netfilter: per-cpu spin-lock with recursion (v0.8)
+Date: Fri, 17 Apr 2009 13:17:13 +0200
+Message-ID: <49E86539.9070408@trash.net>
+References: <20090415170111.6e1ca264@nehalam>	<alpine.LFD.2.00.0904151705120.4042@localhost.localdomain>	<49E72E83.50702@trash.net>	<20090416.153354.170676392.davem@davemloft.net>	<20090416234955.GL6924@linux.vnet.ibm.com> <20090416165233.5d8bbfb5@nehalam> <49E81B9D.3030807@cosmosbay.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Eric Leblond <eric@inl.fr>, Pierre Chifflier <chifflier@inl.fr>
-To: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Stephen Hemminger <shemminger@vyatta.com>,
+	paulmck@linux.vnet.ibm.com, David Miller <davem@davemloft.net>,
+	torvalds@linux-foundation.org, jeff.chua.linux@gmail.com,
+	paulus@samba.org, mingo@elte.hu, laijs@cn.fujitsu.com,
+	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	benh@kernel.crashing.org
+To: Eric Dumazet <dada1@cosmosbay.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43056 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754607AbZDQKwi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 17 Apr 2009 06:52:38 -0400
+Received: from stinky.trash.net ([213.144.137.162]:51123 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754601AbZDQLRU (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 17 Apr 2009 07:17:20 -0400
+In-Reply-To: <49E81B9D.3030807@cosmosbay.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Eric, Pierre,
+Eric Dumazet wrote:
+> Stephen Hemminger a =E9crit :
+>> This version of x_tables (ip/ip6/arp) locking uses a per-cpu
+>> recursive lock that can be nested. It is sort of like existing kerne=
+l_lock,
+>> rwlock_t and even old 2.4 brlock.
+>>
+>> ...
+> I like this version 8 of the patch, as it mixes all ideas we had,
+> but have two questions.
+>=20
+> Previous netfilter code (and 2.6.30-rc2 one too) disable BH, not only=
+ preemption.
+>=20
+> I see xt_table_info_lock_all(void) does block BH, so this one is safe=
+=2E
+>=20
+> I let Patrick or other tell us if its safe to run ipt_do_table()
+> with preemption disabled but BH enabled, I really dont know.
 
-Please, could you justify the need for commit
-0ff525cb0506b2c043bc9df6d7e7b486c865bc38?
-
-http://git.netfilter.org/cgi-bin/gitweb.cgi?p=ulogd2.git;a=commit;h=0ff525cb0506b2c043bc9df6d7e7b486c865bc38
-
-I don't think that it's a good idea to support external compilation of
-ulogd2 modules. We should promote people to push forward things to mainline.
-
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+No, on jumps the return position is stored in the per-cpu copy
+of the ruleset and we must prevent BH context corrupting the
+value of something running in process context.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
