@@ -1,92 +1,65 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: ulogd2 commit
-Date: Sat, 18 Apr 2009 14:05:56 +0200
-Message-ID: <49E9C224.6060606@netfilter.org>
-References: <49E85F6D.9030008@netfilter.org>	 <1240053470.10215.16.camel@ice-age>  <49E9BCFD.80102@netfilter.org> <1240055885.10215.27.camel@ice-age>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Re: [PATCH] netfilter: use per-cpu spinlock rather than RCU (v3)
+Date: Sat, 18 Apr 2009 07:14:55 -0700
+Message-ID: <20090418141455.GA7082@linux.vnet.ibm.com>
+References: <20090415170111.6e1ca264@nehalam> <alpine.LFD.2.00.0904151705120.4042@localhost.localdomain> <49E72E83.50702@trash.net> <20090416.153354.170676392.davem@davemloft.net> <20090416234955.GL6924@linux.vnet.ibm.com> <20090417012812.GA25534@linux.vnet.ibm.com> <20090418094001.GA2369@ioremap.net>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Pierre Chifflier <chifflier@inl.fr>
-To: Eric Leblond <eric@inl.fr>
+Content-Type: text/plain; charset=us-ascii
+Cc: David Miller <davem@davemloft.net>, kaber@trash.net,
+	torvalds@linux-foundation.org, shemminger@vyatta.com,
+	dada1@cosmosbay.com, jeff.chua.linux@gmail.com, paulus@samba.org,
+	mingo@elte.hu, laijs@cn.fujitsu.com, jengelh@medozas.de,
+	r000n@r000n.net, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	benh@kernel.crashing.org, mathieu.desnoyers@polymtl.ca
+To: Evgeniy Polyakov <zbr@ioremap.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34636 "EHLO mail.us.es"
+Received: from e5.ny.us.ibm.com ([32.97.182.145]:36785 "EHLO e5.ny.us.ibm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751359AbZDRMGF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 18 Apr 2009 08:06:05 -0400
-In-Reply-To: <1240055885.10215.27.camel@ice-age>
+	id S1751008AbZDROO7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 18 Apr 2009 10:14:59 -0400
+Content-Disposition: inline
+In-Reply-To: <20090418094001.GA2369@ioremap.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Leblond wrote:
-> Hi,
->=20
-> Le samedi 18 avril 2009 =E0 13:43 +0200, Pablo Neira Ayuso a =E9crit =
-:
->> Eric Leblond wrote:
->>> Hi,
->>>
->>> Le vendredi 17 avril 2009 =E0 12:52 +0200, Pablo Neira Ayuso a =E9c=
-rit :
->=20
-> ...
->=20
->> 1) Looking at my ulogd2 installation, this exports a lot of header f=
-iles
->> for external use:
->>
->> $ ls /usr/include/ulogd/
->> common.h    hash.h            jhash.h      linux_rbtree.h  timer.h
->> conffile.h  ipfix_protocol.h  linuxlist.h  slist.h         ulogd.h
->>
->> Sorry, but this is a bit nasty. If this patch aims to allow compilin=
-g
->> external ulogd2 module,  please make public only the basic functions
->> (register, unregister, ...) in one header public file called ulogd.h=
- or
->> something like that. But not exporting all those jhash.h, linux_rbtr=
-ee.h
->> and so on.
->=20
-> Your point is correct...
->=20
->> 2) Related to the previous point, if we make public some API, we'll =
-have
->> to get attached to them to ensure backward compatibility. If we supp=
-ort
->> external modules, we'll have to engage to not changing the exported =
-API,
->> otherwise people may complain about breakages of their external modu=
-les.
->> All those files that you have exported means quite a lot APIs that w=
-e'll
->> have to get attached to.
->=20
->=20
-> This is not what I was trying to do. The only goal was compilation
-> outside of tree. Target was not to provide a complete and fixed plugi=
-n
-> infrastructure. In this case, a clean and stable API is really needed=
-=2E=20
+On Sat, Apr 18, 2009 at 01:40:01PM +0400, Evgeniy Polyakov wrote:
+> Hi.
+> 
+> On Thu, Apr 16, 2009 at 06:28:12PM -0700, Paul E. McKenney (paulmck@linux.vnet.ibm.com) wrote:
+> > +/* Single bit for grace-period index, low-order bits are nesting counter. */
+> > +#define RCU_FGP_COUNT		1UL
+> > +#define RCU_FGP_PARITY		(1UL << (sizeof(long) << 2))
+> > +#define RCU_FGP_NEST_MASK	(RCU_FGP_PARITY - 1)
+> > +
+> > +extern long rcu_fgp_ctr;
+> > +DECLARE_PER_CPU(long, rcu_fgp_active_readers);
+> > +
+> > +static inline void rcu_read_lock_fgp(void)
+> > +{
+> > +	long tmp;
+> > +	long *uarp;
+> > +
+> > +	preempt_disable();
+> > +	uarp = &__get_cpu_var(rcu_fgp_active_readers);
+> > +	tmp = *uarp;
+> > +	if (likely(!(tmp & RCU_FGP_NEST_MASK)))
+> > +		*uarp = rcu_fgp_ctr;  /* Outermost rcu_read_lock(). */
+> > +	else
+> > +		*uarp = tmp + RCU_FGP_COUNT;  /* Nested rcu_read_lock(). */
+> > +	barrier();
+> > +}
+> > +
+> > +static inline void rcu_read_unlock_fgp(void)
+> > +{
+> > +	barrier();
+> > +	__get_cpu_var(rcu_fgp_active_readers)--;
+> 
+> Shouldn't it be rcu_fgp_active_readers - RCU_FGP_COUNT?
+> Although it is 1 by definition, it is more clear when understanding
+> what's going on here.
 
-Yes, but that compilation needs those header files to compile because i=
-t
-will use functions that are implemented in ulogd2, right? Otherwise, I
-don't see the point of making them all public.
+Excellent point, fixed!
 
->> I have my concerns with regards to this patch from both the technica=
-l
->> approach and the new policy that it introduces.
->=20
-> I agree for a revert of this commit. I can push it if you want.
-
-Please, go ahead. Thanks Eric.
-
---=20
-"Los honestos son inadaptados sociales" -- Les Luthiers
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+						Thanx, Paul
