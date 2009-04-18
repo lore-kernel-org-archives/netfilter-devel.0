@@ -1,62 +1,81 @@
-From: Evgeniy Polyakov <zbr@ioremap.net>
-Subject: Re: [PATCH] netfilter: use per-cpu spinlock rather than RCU (v3)
-Date: Sat, 18 Apr 2009 13:40:01 +0400
-Message-ID: <20090418094001.GA2369@ioremap.net>
-References: <20090415170111.6e1ca264@nehalam> <alpine.LFD.2.00.0904151705120.4042@localhost.localdomain> <49E72E83.50702@trash.net> <20090416.153354.170676392.davem@davemloft.net> <20090416234955.GL6924@linux.vnet.ibm.com> <20090417012812.GA25534@linux.vnet.ibm.com>
+From: Eric Leblond <eric@inl.fr>
+Subject: Re: ulogd2 commit
+Date: Sat, 18 Apr 2009 13:17:50 +0200
+Message-ID: <1240053470.10215.16.camel@ice-age>
+References: <49E85F6D.9030008@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: David Miller <davem@davemloft.net>, kaber@trash.net,
-	torvalds@linux-foundation.org, shemminger@vyatta.com,
-	dada1@cosmosbay.com, jeff.chua.linux@gmail.com, paulus@samba.org,
-	mingo@elte.hu, laijs@cn.fujitsu.com, jengelh@medozas.de,
-	r000n@r000n.net, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	benh@kernel.crashing.org, mathieu.desnoyers@polymtl.ca
-To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-bWx+Ba0uLBYx1QCehJxH"
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Pierre Chifflier <chifflier@inl.fr>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from genesysrack.ru ([195.178.208.66]:42818 "EHLO tservice.net.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750760AbZDRJkH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 18 Apr 2009 05:40:07 -0400
-Content-Disposition: inline
-In-Reply-To: <20090417012812.GA25534@linux.vnet.ibm.com>
+Received: from home.regit.org ([91.121.73.151]:36581 "EHLO
+	ks301150.kimsufi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751441AbZDRLSq (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 18 Apr 2009 07:18:46 -0400
+In-Reply-To: <49E85F6D.9030008@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi.
 
-On Thu, Apr 16, 2009 at 06:28:12PM -0700, Paul E. McKenney (paulmck@linux.vnet.ibm.com) wrote:
-> +/* Single bit for grace-period index, low-order bits are nesting counter. */
-> +#define RCU_FGP_COUNT		1UL
-> +#define RCU_FGP_PARITY		(1UL << (sizeof(long) << 2))
-> +#define RCU_FGP_NEST_MASK	(RCU_FGP_PARITY - 1)
-> +
-> +extern long rcu_fgp_ctr;
-> +DECLARE_PER_CPU(long, rcu_fgp_active_readers);
-> +
-> +static inline void rcu_read_lock_fgp(void)
-> +{
-> +	long tmp;
-> +	long *uarp;
-> +
-> +	preempt_disable();
-> +	uarp = &__get_cpu_var(rcu_fgp_active_readers);
-> +	tmp = *uarp;
-> +	if (likely(!(tmp & RCU_FGP_NEST_MASK)))
-> +		*uarp = rcu_fgp_ctr;  /* Outermost rcu_read_lock(). */
-> +	else
-> +		*uarp = tmp + RCU_FGP_COUNT;  /* Nested rcu_read_lock(). */
-> +	barrier();
-> +}
-> +
-> +static inline void rcu_read_unlock_fgp(void)
-> +{
-> +	barrier();
-> +	__get_cpu_var(rcu_fgp_active_readers)--;
+--=-bWx+Ba0uLBYx1QCehJxH
+Content-Type: text/plain; charset="ISO-8859-15"
+Content-Transfer-Encoding: quoted-printable
 
-Shouldn't it be rcu_fgp_active_readers - RCU_FGP_COUNT?
-Although it is 1 by definition, it is more clear when understanding
-what's going on here.
+Hi,
 
--- 
-	Evgeniy Polyakov
+Le vendredi 17 avril 2009 =E0 12:52 +0200, Pablo Neira Ayuso a =E9crit :
+> Hi Eric, Pierre,
+>=20
+> Please, could you justify the need for commit
+> 0ff525cb0506b2c043bc9df6d7e7b486c865bc38?
+>=20
+> http://git.netfilter.org/cgi-bin/gitweb.cgi?p=3Dulogd2.git;a=3Dcommit;h=
+=3D0ff525cb0506b2c043bc9df6d7e7b486c865bc38
+>=20
+> I don't think that it's a good idea to support external compilation of
+> ulogd2 modules. We should promote people to push forward things to mainli=
+ne.
+
+I clearly agree with the goal of promoting people to push forward things
+to mainline but it has to be done by openness and reactivity of
+mainteners, not by technical means.
+
+But let looks at the diffstat of this commit:
+ include/Makefile.am       |    1 +
+ include/ulogd/Makefile.am |    3 +--
+ include/ulogd/ulogd.h     |    2 ++
+ 3 files changed, 4 insertions(+), 2 deletions(-)
+
+That's really not a big work for anyone to arrive to the same result. An
+other point is that compiling outside of tree require you to maintain
+your own build system which is quiet boring.
+
+Thus, using git to maintain you own forked branch is the easiest way to
+keep your work hidden and/or non public.
+
+IMHO, this patch does not change anything about external contribution.
+
+BR,
+--=20
+Eric Leblond <eric@inl.fr>
+INL: http://www.inl.fr/
+NuFW: http://www.nufw.org/
+
+--=-bWx+Ba0uLBYx1QCehJxH
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Ceci est une partie de message
+ =?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iD8DBQBJ6bbWnxA7CdMWjzIRAuwbAJ0Wl7gQ0NgqDLzPe8EV4Hp+bEY5dwCgiLKQ
+MKxTXS79c9Y/acWGF2+y/N8=
+=bG4l
+-----END PGP SIGNATURE-----
+
+--=-bWx+Ba0uLBYx1QCehJxH--
+
