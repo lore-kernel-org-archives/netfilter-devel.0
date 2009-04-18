@@ -1,64 +1,62 @@
-From: Saikiran Madugula <hummerbliss@gmail.com>
-Subject: [PATCH] Allow fragmentation of VLAN packets traversing a bridge.
-Date: Fri, 17 Apr 2009 23:51:14 +0100
-Message-ID: <49E907E2.3020304@gmail.com>
-References: <49E89E0D.5080000@gmail.com> <49E8A6DF.3040905@trash.net> <49E8B73C.7080004@gmail.com> <49E8BA68.50605@trash.net>
+From: Evgeniy Polyakov <zbr@ioremap.net>
+Subject: Re: [PATCH] netfilter: use per-cpu spinlock rather than RCU (v3)
+Date: Sat, 18 Apr 2009 13:40:01 +0400
+Message-ID: <20090418094001.GA2369@ioremap.net>
+References: <20090415170111.6e1ca264@nehalam> <alpine.LFD.2.00.0904151705120.4042@localhost.localdomain> <49E72E83.50702@trash.net> <20090416.153354.170676392.davem@davemloft.net> <20090416234955.GL6924@linux.vnet.ibm.com> <20090417012812.GA25534@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Saikiran Madugula <hummerbliss@gmail.com>,
-	netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: David Miller <davem@davemloft.net>, kaber@trash.net,
+	torvalds@linux-foundation.org, shemminger@vyatta.com,
+	dada1@cosmosbay.com, jeff.chua.linux@gmail.com, paulus@samba.org,
+	mingo@elte.hu, laijs@cn.fujitsu.com, jengelh@medozas.de,
+	r000n@r000n.net, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	benh@kernel.crashing.org, mathieu.desnoyers@polymtl.ca
+To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ew0-f176.google.com ([209.85.219.176]:57438 "EHLO
-	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753438AbZDQWvR (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 17 Apr 2009 18:51:17 -0400
-In-Reply-To: <49E8BA68.50605@trash.net>
+Received: from genesysrack.ru ([195.178.208.66]:42818 "EHLO tservice.net.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750760AbZDRJkH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 18 Apr 2009 05:40:07 -0400
+Content-Disposition: inline
+In-Reply-To: <20090417012812.GA25534@linux.vnet.ibm.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-br_nf_dev_queue_xmit only checks for ETH_P_IP packets for fragmenting but not
-VLAN packets. This results in dropping of large VLAN packets. This can be
-observed when connection tracking is enabled. Connection tracking re-assembles
-fragmented packets, and these have to re-fragmented when transmitting out. Also,
-make sure only refragmented packets are defragmented as per suggestion from
-Patrick McHardy.
+Hi.
 
-Signed-off-by: Saikiran Madugula <hummerbliss@gmail.com>
----
- net/bridge/br_netfilter.c |   10 +++++++++-
- 1 files changed, 9 insertions(+), 1 deletions(-)
+On Thu, Apr 16, 2009 at 06:28:12PM -0700, Paul E. McKenney (paulmck@linux.vnet.ibm.com) wrote:
+> +/* Single bit for grace-period index, low-order bits are nesting counter. */
+> +#define RCU_FGP_COUNT		1UL
+> +#define RCU_FGP_PARITY		(1UL << (sizeof(long) << 2))
+> +#define RCU_FGP_NEST_MASK	(RCU_FGP_PARITY - 1)
+> +
+> +extern long rcu_fgp_ctr;
+> +DECLARE_PER_CPU(long, rcu_fgp_active_readers);
+> +
+> +static inline void rcu_read_lock_fgp(void)
+> +{
+> +	long tmp;
+> +	long *uarp;
+> +
+> +	preempt_disable();
+> +	uarp = &__get_cpu_var(rcu_fgp_active_readers);
+> +	tmp = *uarp;
+> +	if (likely(!(tmp & RCU_FGP_NEST_MASK)))
+> +		*uarp = rcu_fgp_ctr;  /* Outermost rcu_read_lock(). */
+> +	else
+> +		*uarp = tmp + RCU_FGP_COUNT;  /* Nested rcu_read_lock(). */
+> +	barrier();
+> +}
+> +
+> +static inline void rcu_read_unlock_fgp(void)
+> +{
+> +	barrier();
+> +	__get_cpu_var(rcu_fgp_active_readers)--;
 
-diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
-index 3953ac4..e4a418f 100644
---- a/net/bridge/br_netfilter.c
-+++ b/net/bridge/br_netfilter.c
-@@ -788,15 +788,23 @@ static unsigned int br_nf_local_out(unsigned int hook, struct sk_buff *skb,
- 	return NF_STOLEN;
- }
- 
-+#if defined(CONFIG_NF_CONNTRACK_IPV4) || defined(CONFIG_NF_CONNTRACK_IPV4_MODULE)
- static int br_nf_dev_queue_xmit(struct sk_buff *skb)
- {
--	if (skb->protocol == htons(ETH_P_IP) &&
-+	if (skb->nfct != NULL &&
-+	    (skb->protocol == htons(ETH_P_IP) || IS_VLAN_IP(skb)) &&
- 	    skb->len > skb->dev->mtu &&
- 	    !skb_is_gso(skb))
- 		return ip_fragment(skb, br_dev_queue_push_xmit);
- 	else
- 		return br_dev_queue_push_xmit(skb);
- }
-+#else
-+static int br_nf_dev_queue_xmit(struct sk_buff *skb)
-+{
-+        return br_dev_queue_push_xmit(skb);
-+}
-+#endif
- 
- /* PF_BRIDGE/POST_ROUTING ********************************************/
- static unsigned int br_nf_post_routing(unsigned int hook, struct sk_buff *skb,
+Shouldn't it be rcu_fgp_active_readers - RCU_FGP_COUNT?
+Although it is 1 by definition, it is more clear when understanding
+what's going on here.
+
 -- 
-1.5.6.3
+	Evgeniy Polyakov
