@@ -1,61 +1,65 @@
-From: Tim Verhoeven <tim.verhoeven.be@gmail.com>
-Subject: Re: Compiling ebtables statically or dynamically results in different
-	behaviour
-Date: Mon, 20 Apr 2009 11:27:10 +0200
-Message-ID: <2a7fce340904200227j42e07fd3gbf507539809a4e08@mail.gmail.com>
-References: <W8403423488155181239184148@nocme1bl6.telenet-ops.be>
-	 <2a7fce340904080257r4164cd63hcd5f07b036489aae@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] Add support to log original and NAT-ed IP addresses
+Date: Mon, 20 Apr 2009 11:58:38 +0200
+Message-ID: <49EC474E.8090604@netfilter.org>
+References: <alpine.DEB.2.00.0904201012170.10463@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: "bdschuym@pandora.be" <bdschuym@telenet.be>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:35904 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754134AbZDTJ1N convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 20 Apr 2009 05:27:13 -0400
-Received: by fxm2 with SMTP id 2so1841347fxm.37
-        for <netfilter-devel@vger.kernel.org>; Mon, 20 Apr 2009 02:27:10 -0700 (PDT)
-In-Reply-To: <2a7fce340904080257r4164cd63hcd5f07b036489aae@mail.gmail.com>
+Received: from mail.us.es ([193.147.175.20]:50146 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753384AbZDTJ6w (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 20 Apr 2009 05:58:52 -0400
+In-Reply-To: <alpine.DEB.2.00.0904201012170.10463@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Apr 8, 2009 at 11:57 AM, Tim Verhoeven
-<tim.verhoeven.be@gmail.com> wrote:
-> On Wed, Apr 8, 2009 at 11:49 AM, bdschuym@pandora.be
-> <bdschuym@telenet.be> wrote:
->> What is your exact command and what type of processor are you using?
->>
->
-> The command run is "ebtables -N 1000"
->
-> This is /proc/cpuinfo :
-> processor =C2=A0 =C2=A0 =C2=A0 : 0
-> vendor_id =C2=A0 =C2=A0 =C2=A0 : GenuineIntel
-> cpu family =C2=A0 =C2=A0 =C2=A0: 6
-> model =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 : 23
-> model name =C2=A0 =C2=A0 =C2=A0: Intel(R) Xeon(R) CPU =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 E5430 =C2=A0@ 2.66GHz
-=2E..snip...
+Hi Jozsef,
 
-Hi again,
+Jozsef Kadlecsik wrote:
+> Hi,
+> 
+> Attached you can find patches for netfilter and iptabes to support the 
+> logging of the original and NAT-ed IP addresses together.
+> 
+> Currently there's no way to do it by netfilter/iptables. If we log in the 
+> filter table, there we can record the original src IP address only. 
+> However, we cannot log the src IP address after NAT at all: SNAT happens 
+> in the nat table at POSTROUTING, and there's no other table to which the 
+> logging rule could be added (and the NAT targets return ACCEPT, so we 
+> cannot add the loggin rule to the nat table either).
+> 
+> The only way to log src/dst IP before/after NAT presently is to run 
+> 'conntrack' in event mode like this:
+> 
+> 	conntrack -E -e NEW | logger -p kernel.info
 
-Is there any update about this issue ? Can I do anything to help debug
- the problem ? I have test machines available.
+We can also do this by means of ulogd2 or, alternatively, conntrackd in
+its very basic statistics mode.
 
-Thanks,
-Tim
+> which is a little bit cumbersome and requires the libnfnetlink, 
+> libnetfilter_conntrack libraries too.
 
---=20
-Tim Verhoeven - tim.verhoeven.be@gmail.com - 0479 / 88 11 83
+Yes, this needs some extra user-space software. With regards to logging,
+I think that the current policy is to move most of the logics to
+user-space, I don't think that overloading iptables with yet another
+logging facility is the way to go.
 
-Hoping the problem  magically goes away  by ignoring it is the
-"microsoft approach to programming" and should never be allowed.
-(Linus Torvalds)
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> The attached netfilter patch is questionable/incomplete in the sense that:
+> 
+> - it adds the POST_ROUTING hook to the raw table and in the IPv4 case 
+>   only: but there's no much point to add the hook to IPv6
+> - for the sake of completeness the LOCAL_IN hook should be added too, 
+>   in order to make possilbe the logging of local SNAT-ed addresses
+> - the original src/dst ports could be logged as well: in practice the
+>   original src IP address matters only when one wants to hunt down
+>   an infected machine on a NATed network
+
+I think that Patrick is not going to like the idea of adding more hooks,
+what do you think Patrick?
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
