@@ -1,7 +1,7 @@
 From: Stephen Hemminger <shemminger@vyatta.com>
 Subject: Re: [PATCH] netfilter: use per-cpu recursive lock (v10)
-Date: Mon, 20 Apr 2009 13:32:53 -0700
-Message-ID: <20090420133253.422747b4@nehalam>
+Date: Mon, 20 Apr 2009 13:42:49 -0700
+Message-ID: <20090420134249.43ab1f6f@nehalam>
 References: <20090415170111.6e1ca264@nehalam>
 	<alpine.LFD.2.00.0904151705120.4042@localhost.localdomain>
 	<49E72E83.50702@trash.net>
@@ -23,9 +23,9 @@ Cc: paulmck@linux.vnet.ibm.com, Evgeniy Polyakov <zbr@ioremap.net>,
 	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
 	benh@kernel.crashing.org, mathieu.desnoyers@polymtl.ca
 To: Eric Dumazet <dada1@cosmosbay.com>
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756982AbZDTUnZ@vger.kernel.org>
 In-Reply-To: <49ECBE0A.7010303@cosmosbay.com>
-Sender: netdev-owner@vger.kernel.org
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 On Mon, 20 Apr 2009 20:25:14 +0200
@@ -75,8 +75,14 @@ e
 > because calling 250 times spin_lock() is going to overflow preempt_co=
 unt,
 > as each spin_lock() increases preempt_count by one.
+>=20
+> PREEMPT_MASK: 0x000000ff
+>=20
+> add_preempt_count() should warn us about this overflow if CONFIG_DEBU=
+G_PREEMPT is set
 
-Ok, not that I have one of those.
-
-The problem which lockdep has is that it seems to associate all the
-locks with same name.
+Wouldn't 256 or higher CPU system be faster without preempt?  If there =
+are that many
+CPU's, it is faster to do the work on other cpu and avoid the overhead =
+of a hotly
+updated preempt count.
