@@ -1,61 +1,55 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH] Add support to log original and NAT-ed IP addresses
-Date: Mon, 20 Apr 2009 13:23:24 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.0904201315030.10463@blackhole.kfki.hu>
-References: <alpine.DEB.2.00.0904201012170.10463@blackhole.kfki.hu> <49EC474E.8090604@netfilter.org> <alpine.DEB.2.00.0904201200240.10463@blackhole.kfki.hu> <49EC5794.8090204@netfilter.org>
+From: Thomas Jacob <jacob@internet24.de>
+Subject: Re: ipt_ACCOUNT 1.15 released
+Date: Mon, 20 Apr 2009 13:31:32 +0200
+Message-ID: <1240227092.27336.35.camel@enterprise.ims-firmen.de>
+References: <200904141744.57570.thomas.jarosch@intra2net.com>
+	 <200904161834.17450.thomas.jarosch@intra2net.com>
+	 <1239906586.26220.58.camel@enterprise.ims-firmen.de>
+	 <200904201219.28011.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Thomas Jarosch <thomas.jarosch@intra2net.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:56042 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753817AbZDTLXZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 20 Apr 2009 07:23:25 -0400
-In-Reply-To: <49EC5794.8090204@netfilter.org>
+Received: from mailout02.ims-firmen.de ([213.174.32.97]:32940 "EHLO
+	mailout02.ims-firmen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754397AbZDTLbe (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 20 Apr 2009 07:31:34 -0400
+In-Reply-To: <200904201219.28011.thomas.jarosch@intra2net.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Pablo,
-
-On Mon, 20 Apr 2009, Pablo Neira Ayuso wrote:
-
-> Jozsef Kadlecsik wrote:
-> > 
-> > On Mon, 20 Apr 2009, Pablo Neira Ayuso wrote:
-> > 
-> >>> Attached you can find patches for netfilter and iptabes to support the 
-> >>> logging of the original and NAT-ed IP addresses together.
-> >>>
-> >>> Currently there's no way to do it by netfilter/iptables. If we log in the 
-> >>> filter table, there we can record the original src IP address only. 
-> >>> However, we cannot log the src IP address after NAT at all: SNAT happens 
-> >>> in the nat table at POSTROUTING, and there's no other table to which the 
-> >>> logging rule could be added (and the NAT targets return ACCEPT, so we 
-> >>> cannot add the loggin rule to the nat table either).
-> >>>
-> >>> The only way to log src/dst IP before/after NAT presently is to run 
-> >>> 'conntrack' in event mode like this:
-> >>>
-> >>> 	conntrack -E -e NEW | logger -p kernel.info
-> >> We can also do this by means of ulogd2 or, alternatively, conntrackd in
-> >> its very basic statistics mode.
-> > 
-> > But ulogd2 requires the ULOG target and ULOG cannot log the SNAT-ed 
-> > address either, similarly to the vanilla LOG target: there's presently no 
-> > hook at which the information is available for the LOG/ULOG targets.
+On Mon, 2009-04-20 at 12:19 +0200, Thomas Jarosch wrote:
+> On Thursday, 16. April 2009 20:29:46 Thomas Jacob wrote:
+> > Also, in order to make IPv6 accounting practical, I would probably add
+> > some sort of subnet accounting along the following lines.
+> >
+> > -j ACCOUNT --network 1234:4567::/32 --account_mask /64
+> >
+> > which would only account packets in --network, and count data
+> > for a whole subnet instead of a single IP, as assigning single
+> > IPv6 addresses to customers is kind of silly in an ISP environment.
+> >
+> > To collect data for single IPs just use --account_mask 128.
 > 
-> I wasn't refering to any iptables target. New ulogd2 includes support
-> for ctnetlink, which can do this. I know, that means the extra libraries
-> dependencies.
+> Well, for IPv4 you can alreay use "--src 172.16.0.0/16"
+> and then do "-j ACCOUNT --addr 0.0.0.0/0" to merge
+> the complete subnet into one single IP address.
 
-I see. Thanks the info, good to know that ulogd2 is capable of this.
-(Calling 'conntrack' for logging looked really ugly. :-)
+Hmm, then maybe haven't understood your module yet.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+If I specify "--src 172.16.0.0/16 -j ACCOUNT --addr 0.0.0.0/0 --tname
+X", I was under the impression that I will get entries for each single
+IP that somehow appears in packets that match --src 172.16.0.0/16
+in table X. Potentially a huge number (if you are getting DDOSed ;).
+
+Then of course I could add up all these entries and come up with a
+number for the subnet. And if I want to account many subnets
+(1000s) this way, I will need to add many such tables and rules. 
+
+That will probably not scale well, I think. 
+
+Or does your module work in a different way?
+
