@@ -1,52 +1,55 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Add support to log original and NAT-ed IP addresses
-Date: Tue, 21 Apr 2009 14:22:22 +0200
-Message-ID: <49EDBA7E.2040200@trash.net>
-References: <alpine.DEB.2.00.0904201012170.10463@blackhole.kfki.hu> <49EC474E.8090604@netfilter.org> <alpine.DEB.2.00.0904201200240.10463@blackhole.kfki.hu> <49EC5794.8090204@netfilter.org> <alpine.DEB.2.00.0904201315030.10463@blackhole.kfki.hu> <49EC896E.5070402@trash.net> <alpine.DEB.2.00.0904201838090.11586@blackhole.kfki.hu>
+From: Christoph Paasch <christoph.paasch@gmail.com>
+Subject: iptables specify path to kernel headers
+Date: Tue, 21 Apr 2009 16:13:36 +0200
+Message-ID: <200904211613.45467.christoph.paasch@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: multipart/signed;
+  boundary="nextPart2720408.xXzhpYPs9Z";
+  protocol="application/pgp-signature";
+  micalg=pgp-sha1
 Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59067 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751607AbZDUMW2 (ORCPT
+Received: from mail-ew0-f176.google.com ([209.85.219.176]:63617 "EHLO
+	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751199AbZDUONu (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Apr 2009 08:22:28 -0400
-In-Reply-To: <alpine.DEB.2.00.0904201838090.11586@blackhole.kfki.hu>
+	Tue, 21 Apr 2009 10:13:50 -0400
+Received: by ewy24 with SMTP id 24so1609532ewy.37
+        for <netfilter-devel@vger.kernel.org>; Tue, 21 Apr 2009 07:13:49 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jozsef Kadlecsik wrote:
-> On Mon, 20 Apr 2009, Patrick McHardy wrote:
-> 
->> Jozsef Kadlecsik wrote:
->>> On Mon, 20 Apr 2009, Pablo Neira Ayuso wrote:
->>>> I wasn't refering to any iptables target. New ulogd2 includes support
->>>> for ctnetlink, which can do this. I know, that means the extra libraries
->>>> dependencies.
->>> I see. Thanks the info, good to know that ulogd2 is capable of this.
->>> (Calling 'conntrack' for logging looked really ugly. :-)
->> In the kernel, we could log the information from the conntrack
->> entry, if any. That would allow to log the manips after they
->> have been set up.
-> 
-> Yes, but I'd not want an unconditional logging.
+--nextPart2720408.xXzhpYPs9Z
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: inline
 
-I missed the point, you're already doing what I had in mind (use
-ct->tuplehash->...) and the new hook is needed to even get a chance
-to log the packet after SNAT.
+Hello,
 
->> Would Pablo's suggestion or the conntrack method work for you?
-> 
-> Oh, it's not for me at all: at a workshop I was asked how to log the info 
-> (hint: conflicker ;-) and embarrased enough I had to admit there was no 
-> easy way. That's why I put together the patch, with all it's questionable 
-> details.
+is there a way to specify a custom path to the kernel headers when compilin=
+g=20
+iptables?
 
-I can see that it has some informational value, but for things like
-locating infected hosts, why not simply look at the traffic before
-it is NATed? I currently can't come up with a real use case for
-this ...
+Thanks in advance,
+
+=2D-
+Christoph Paasch
+
+www.rollerbulls.be
+=2D-
+
+--nextPart2720408.xXzhpYPs9Z
+Content-Type: application/pgp-signature; name=signature.asc 
+Content-Description: This is a digitally signed message part.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEABECAAYFAknt1JAACgkQLHtZTroOLZurSwCfUqiQQkFsTLYy00dyedovMMnU
+cu8AoIsWDmLrpA8fAW/SUvyKZepiclmh
+=tf+X
+-----END PGP SIGNATURE-----
+
+--nextPart2720408.xXzhpYPs9Z--
