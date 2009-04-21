@@ -1,161 +1,64 @@
-From: Stephen Hemminger <shemminger@vyatta.com>
-Subject: Re: [PATCH] netfilter: use per-cpu recursive lock (v11)
-Date: Tue, 21 Apr 2009 09:43:50 -0700
-Message-ID: <20090421094350.1e00207a@nehalam>
-References: <alpine.LFD.2.00.0904151705120.4042@localhost.localdomain>
-	<49E72E83.50702@trash.net>
-	<20090416.153354.170676392.davem@davemloft.net>
-	<20090416234955.GL6924@linux.vnet.ibm.com>
-	<20090417012812.GA25534@linux.vnet.ibm.com>
-	<20090418094001.GA2369@ioremap.net>
-	<20090418141455.GA7082@linux.vnet.ibm.com>
-	<20090420103414.1b4c490f@nehalam>
-	<49ECBE0A.7010303@cosmosbay.com>
-	<18924.59347.375292.102385@cargo.ozlabs.ibm.com>
-	<20090420215827.GK6822@linux.vnet.ibm.com>
-	<18924.64032.103954.171918@cargo.ozlabs.ibm.com>
-	<20090420160121.268a8226@nehalam>
-	<alpine.LFD.2.00.0904210831560.2199@localhost.localdomain>
+From: Hugo Miguel Mendes <est-h-mendes@ptinovacao.pt>
+Subject: RE: full_cone_nat
+Date: Tue, 21 Apr 2009 17:41:37 +0100
+Message-ID: <47A7F67C62706041BC49DB7822B1C9DB2248FD9A99@INOAVREX11.ptin.corpPT.com>
+References: <47A7F67C62706041BC49DB7822B1C9DB1D47134138@INOAVREX11.ptin.corpPT.com>,<alpine.LSU.2.00.0904071726470.25905@fbirervta.pbzchgretzou.qr>
+ <47A7F67C62706041BC49DB7822B1C9DB1D4713413C@INOAVREX11.ptin.corpPT.com>,<alpine.LSU.2.00.0904071731200.25905@fbirervta.pbzchgretzou.qr>,<47A7F67C62706041BC49DB7822B1C9DB1D4713413D@INOAVREX11.ptin.corpPT.com>
+ <47A7F67C62706041BC49DB7822B1C9DB1D4713413F@INOAVREX11.ptin.corpPT.com>
+ <alpine.DEB.2.00.0904072008440.5338@blackhole.kfki.hu>
+ <alpine.LSU.2.00.0904072017510.24473@fbirervta.pbzchgretzou.qr>,<alpine.DEB.2.00.0904072027110.5515@blackhole.kfki.hu>
+ <47A7F67C62706041BC49DB7822B1C9DB1D47134141@INOAVREX11.ptin.corpPT.com>,<alpine.DEB.2.00.0904081546410.7205@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: Paul Mackerras <paulus@samba.org>, paulmck@linux.vnet.ibm.com,
-	Eric Dumazet <dada1@cosmosbay.com>,
-	Evgeniy Polyakov <zbr@ioremap.net>,
-	David Miller <davem@davemloft.net>, kaber@trash.net,
-	jeff.chua.linux@gmail.com, mingo@elte.hu, laijs@cn.fujitsu.com,
-	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	benh@kernel.crashing.org, mathieu.desnoyers@polymtl.ca
-To: Linus Torvalds <torvalds@linux-foundation.org>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.vyatta.com ([76.74.103.46]:58976 "EHLO mail.vyatta.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757825AbZDUQn5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Apr 2009 12:43:57 -0400
-In-Reply-To: <alpine.LFD.2.00.0904210831560.2199@localhost.localdomain>
+Received: from mail6.ptinovacao.pt ([194.65.138.99]:51230 "EHLO
+	owa.ptinovacao.pt" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757705AbZDUQnl convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 21 Apr 2009 12:43:41 -0400
+In-Reply-To: <alpine.DEB.2.00.0904081546410.7205@blackhole.kfki.hu>
+Content-Language: pt-PT
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 21 Apr 2009 09:13:52 -0700 (PDT)
-Linus Torvalds <torvalds@linux-foundation.org> wrote:
+Hi,
+I had been on vacation and I have just seen your answer.
+Thanks for the help, I'm just going to start reading what you suggested.
 
-> 
-> Ok, so others already pointed out how dangerous/buggy this looks, but I'd 
-> like to strengthen that a bit more:
-> 
-> On Mon, 20 Apr 2009, Stephen Hemminger wrote:
-> > +
-> > +/**
-> > + * xt_table_info_rdlock_bh - recursive read lock for xt table info
-> > + *
-> > + * Table processing calls this to hold off any changes to table
-> > + * (on current CPU). Always leaves with bottom half disabled.
-> > + * If called recursively, then assumes bh/preempt already disabled.
-> > + */
-> > +void xt_info_rdlock_bh(void)
-> > +{
-> > +	struct xt_info_lock *lock;
-> > +
-> > +	preempt_disable();
-> > +	lock = &__get_cpu_var(xt_info_locks);
-> > +	if (likely(++lock->depth == 0))
-> > +		spin_lock_bh(&lock->lock);
-> > +	preempt_enable_no_resched();
-> > +}
-> > +EXPORT_SYMBOL_GPL(xt_info_rdlock_bh);
-> 
-> This function is FUCKED UP.
-> 
-> It's total crap for several reasons"
-> 
->  - the already-mentioned race with bottom half locking.
-> 
->    If bottom halfs aren't already disabled, then if a bottom half comes in 
->    after the "++lock->depth" and before the spin_lock_bh(), then you will 
->    have no locking AT ALL for the processing of that bottom half - it will 
->    just increment the lock depth again, and nobody will have locked 
->    anything at all.
-> 
->    And if for some reason, you can prove that bottom half processing is 
->    already disabled, then ALL THAT OTHER CRAP is just that - CRAP. The 
->    whole preemption disabling, the whole "_bh()" thing, everything.
-> 
->    So either it's horribly buggy, or it's horribly broken and pointless. 
->    Take your pick.
-> 
->  - the total lack of comments. Why does that "count" protect anything? 
->    It's not a recursive lock, since there is no ownership (two 
->    independent accessors could call this and both "get" the lock), so you 
->    had damn well better create some big-ass comments about why it's ok in 
->    this case, and what the rules are that make it ok.
-> 
->    So DON'T GO AROUND CALLING IT A RECURSIVE LOCK! Don't write comments 
->    that are TOTAL AND UTTER SH*T! Just DON'T!
-> 
->    It's a "reader lock". It's not "recursive".  It never was recursive, it 
->    never will be, and calling it that is just a sign that whoever wrote 
->    the function is a moron and doesn't know what he is doing. STOP DOING THIS!
-> 
->  - that _idiotic_ "preempt_enable_no_resched()". F*ck me, but the comment 
->    already says that preemption is disabled when exiting, so why does it 
->    even bother to enable it? Why play those mindless games with preemption 
->    counts, knowing that they are bogus?
-> 
->    Do it readably. Disable preemption first, and just re-enable it at 
->    UNLOCK time. No odd pseudo-reenables anywhere.
-> 
-> Oh, I know very well that the spli-locking will disable preemption, so 
-> it's "correct" to play those games, but the point is, it's just damn 
-> stupid and annoying. It just makes the source code actively _misleading_ 
-> to see crap like that - it looks like you enabled preemption, when in fact 
-> the code very much on purpose does _not_ enable preemption at all. 
-> 
-> In other words, I really REALLY hate that patch. I think it looks slightly 
-> better than Eric Dumazet's original patch (at least the locking subtlety 
-> is now in a function of its own and _could_ be commented upon sanely and 
-> if it wasn't broken it might be acceptable), but quite frankly, I'd still 
-> horribly disgusted with the crap.
-> 
-> Why are you doing this insane thing? If you want a read-lock, just use the 
-> damned read-write locks already! Ad far as I can tell, this lock is in 
-> _no_ way better than just using those counting reader-writer locks, except 
-> it is open-coded and looks buggy.
-> 
-> There is basically _never_ a good reason to re-implement locking 
-> primitives: you'll just introduce bugs. As proven very ably by the amount 
-> of crap above in what is supposed to be a very simple function.
-> 
-> If you want a counting read-lock (in _order_ to allow recursion, but not 
-> because the lock itself is somehow recursive!), then that function should 
-> look like this:
-> 
-> 	void xt_info_rdlock_bh(void)
-> 	{
-> 		struct xt_info_lock *lock
-> 
-> 		local_bh_disable();
-> 		lock = &__get_cpu_var(xt_info_locks);
-> 		read_lock(&lock->lock);
-> 	}
-> 
-> And then the "unlock" should be the reverse. No games, no crap, and 
-> hopefully then no bugs. And if you do it that way, you don't even need the 
-> comments, although quite frankly, it probably makes a lot of sense to talk 
-> about the interaction between "local_bh_disable()" and the preempt count, 
-> and why you're not using "read_lock_bh()".
-> 
-> And if you don't want a read-lock, then fine - don't use a read-lock, do 
-> something else. But then don't just re-implement it (badly) either and 
-> call it something else!
-> 
-> 			Linus
-> 
-> PS: Ingo, why do the *_bh() functions in kernel/spinlock.c do _both_ a 
-> "local_bh_disable()" and a "preempt_disable()"? BH disable should disable 
-> preemption too, no? Or am I confused? In which case we need that in 
-> the above rdlock_bh too.
+Best Regards
 
-Ah a nice day, with Linus giving constructive feedback. Too bad he has
-to channel it out of the dark side.
+Hugo Mendes
+___
+De: Jozsef Kadlecsik [kadlec@blackhole.kfki.hu]
+Enviado: quarta-feira, 8 de Abril de 2009 19:44
+Para: Hugo Miguel Mendes
+Cc: Jan Engelhardt; netfilter-devel@vger.kernel.org
+Assunto: RE: full_cone_nat
 
+On Tue, 7 Apr 2009, Hugo Miguel Mendes wrote:
+
+> Can you tell me where can I find in the source code the function or
+> functions responsible for checking the matching table of active
+> connections present in the file ip_conntrack.
+
+You should first understand the internals of how netfilter connection
+tracking and NAT handle the packets and the connections. You should
+probably read the "Netfilter Hacking HOWTO" - it's outdated but still
+contains valuable information - and should definitely read the 'Writing
+netfilter modules' by Jan. Then you can easily find the relevant parts in
+net/netfilter/nf_conntrack_[standalone|core|expect].c and
+net/ipv4/netfilter/nf_nat_[standalone|core].c. Of course you should check
+out how expectations are created and used looking at the existing
+protocol helper modules.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
