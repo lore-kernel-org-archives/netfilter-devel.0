@@ -1,34 +1,40 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: warnings in current tree
-Date: Tue, 21 Apr 2009 01:44:27 -0700 (PDT)
-Message-ID: <20090421.014427.86938853.davem@davemloft.net>
-References: <20090421.014357.219275555.davem@davemloft.net>
+From: Lai Jiangshan <laijs@cn.fujitsu.com>
+Subject: Re: [PATCH] netfilter: use per-cpu recursive lock (v11)
+Date: Tue, 21 Apr 2009 16:42:40 +0800
+Message-ID: <49ED8700.3010603@cn.fujitsu.com>
+References: <49ECBE0A.7010303@cosmosbay.com> <18924.59347.375292.102385@cargo.ozlabs.ibm.com> <20090420215827.GK6822@linux.vnet.ibm.com> <18924.64032.103954.171918@cargo.ozlabs.ibm.com> <20090420160121.268a8226@nehalam> <49ED406F.2040401@cn.fujitsu.com> <49ED4407.8010200@cosmosbay.com> <49ED5813.1000803@cn.fujitsu.com> <20090420224540.30d7b0ed@nehalam> <49ED6D2E.5060808@cn.fujitsu.com> <20090421081649.GA16782@ioremap.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: netfilter@vger.kernel.org
+Cc: Stephen Hemminger <shemminger@vyatta.com>,
+	Eric Dumazet <dada1@cosmosbay.com>,
+	Paul Mackerras <paulus@samba.org>, paulmck@linux.vnet.ibm.com,
+	David Miller <davem@davemloft.net>, kaber@trash.net,
+	torvalds@linux-foundation.org, jeff.chua.linux@gmail.com,
+	mingo@elte.hu, jengelh@medozas.de, r000n@r000n.net,
+	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, benh@kernel.crashing.org,
+	mathieu.desnoyers@polymtl.ca
+To: Evgeniy Polyakov <zbr@ioremap.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:54753
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1750884AbZDUIof (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Apr 2009 04:44:35 -0400
-In-Reply-To: <20090421.014357.219275555.davem@davemloft.net>
+Received: from cn.fujitsu.com ([222.73.24.84]:55967 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1752435AbZDUIpH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 21 Apr 2009 04:45:07 -0400
+In-Reply-To: <20090421081649.GA16782@ioremap.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: David Miller <davem@davemloft.net>
-Date: Tue, 21 Apr 2009 01:43:57 -0700 (PDT)
-
-
-Sorry, duh, meant netfilter-devel :-)
-
-> Can someone fix these up?  Thanks!
+Evgeniy Polyakov wrote:
 > 
-> net/netfilter/nf_conntrack_netlink.c:1234: warning: 'helpname' may be used uninitialized in this function
-> net/netfilter/nf_conntrack_netlink.c:991: warning: 'helpname' may be used uninitialized in this function
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Netfilter as long as other generic network pathes are never accessed
+> from interrupt context, but your analysis looks right for the softirq
+> case.
+> 
+
+A question:
+
+softirq is always not nesting. Why we need recursive lock?
+
+Lai.
+
