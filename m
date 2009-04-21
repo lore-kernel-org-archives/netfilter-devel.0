@@ -1,64 +1,91 @@
-From: Hugo Miguel Mendes <est-h-mendes@ptinovacao.pt>
-Subject: RE: full_cone_nat
-Date: Tue, 21 Apr 2009 17:41:37 +0100
-Message-ID: <47A7F67C62706041BC49DB7822B1C9DB2248FD9A99@INOAVREX11.ptin.corpPT.com>
-References: <47A7F67C62706041BC49DB7822B1C9DB1D47134138@INOAVREX11.ptin.corpPT.com>,<alpine.LSU.2.00.0904071726470.25905@fbirervta.pbzchgretzou.qr>
- <47A7F67C62706041BC49DB7822B1C9DB1D4713413C@INOAVREX11.ptin.corpPT.com>,<alpine.LSU.2.00.0904071731200.25905@fbirervta.pbzchgretzou.qr>,<47A7F67C62706041BC49DB7822B1C9DB1D4713413D@INOAVREX11.ptin.corpPT.com>
- <47A7F67C62706041BC49DB7822B1C9DB1D4713413F@INOAVREX11.ptin.corpPT.com>
- <alpine.DEB.2.00.0904072008440.5338@blackhole.kfki.hu>
- <alpine.LSU.2.00.0904072017510.24473@fbirervta.pbzchgretzou.qr>,<alpine.DEB.2.00.0904072027110.5515@blackhole.kfki.hu>
- <47A7F67C62706041BC49DB7822B1C9DB1D47134141@INOAVREX11.ptin.corpPT.com>,<alpine.DEB.2.00.0904081546410.7205@blackhole.kfki.hu>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Re: [RFC PATCH] v3 RCU implementation with fast grace periods
+Date: Tue, 21 Apr 2009 09:51:51 -0700
+Message-ID: <20090421165151.GJ6642@linux.vnet.ibm.com>
+References: <20090421045931.GA9953@linux.vnet.ibm.com> <20090421151034.GA3792@Krystal>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail6.ptinovacao.pt ([194.65.138.99]:51230 "EHLO
-	owa.ptinovacao.pt" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757705AbZDUQnl convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Apr 2009 12:43:41 -0400
-In-Reply-To: <alpine.DEB.2.00.0904081546410.7205@blackhole.kfki.hu>
-Content-Language: pt-PT
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, davem@davemloft.net, kaber@trash.net,
+	torvalds@linux-foundation.org, shemminger@vyatta.com,
+	dada1@cosmosbay.com, jeff.chua.linux@gmail.com, paulus@samba.org,
+	mingo@elte.hu, laijs@cn.fujitsu.com, jengelh@medozas.de,
+	r000n@r000n.net, benh@kernel.crashing.org
+To: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20090421151034.GA3792@Krystal>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
-I had been on vacation and I have just seen your answer.
-Thanks for the help, I'm just going to start reading what you suggested.
+On Tue, Apr 21, 2009 at 11:10:35AM -0400, Mathieu Desnoyers wrote:
+> * Paul E. McKenney (paulmck@linux.vnet.ibm.com) wrote:
 
-Best Regards
+[ . . . ]
 
-Hugo Mendes
-___
-De: Jozsef Kadlecsik [kadlec@blackhole.kfki.hu]
-Enviado: quarta-feira, 8 de Abril de 2009 19:44
-Para: Hugo Miguel Mendes
-Cc: Jan Engelhardt; netfilter-devel@vger.kernel.org
-Assunto: RE: full_cone_nat
+> > +void synchronize_rcu_fgp(void)
+> > +{
+> > +	mutex_lock(&rcu_fgp_mutex);
+> > +	
+> > +	/* CPUs must see earlier change before parity flip. */
+> > +	smp_call_function(rcu_fgp_do_mb, NULL, 1);
+> > +
+> 
+> Hrm, my original comment about missing smp_mb() here still applies, I
+> don't think we have come to an agreement yet.
 
-On Tue, 7 Apr 2009, Hugo Miguel Mendes wrote:
+My argument is that smp_call_function() must necessarily contain a
+full memory barrier, otherwise it cannot function properly.  ;-)
 
-> Can you tell me where can I find in the source code the function or
-> functions responsible for checking the matching table of active
-> connections present in the file ip_conntrack.
+> > +	/*
+> > +	 * We must flip twice to correctly handle tasks that stall
+> > +	 * in rcu_read_lock_fgp() between the time that they fetch
+> > +	 * rcu_fgp_ctr and the time that the store to their CPU's
+> > +	 * rcu_fgp_active_readers.  No matter when they resume
+> > +	 * execution, we will wait for them to get to the corresponding
+> > +	 * rcu_read_unlock_fgp().
+> > +	 */
+> > +	ACCESS_ONCE(rcu_fgp_ctr) ^= RCU_FGP_PARITY;  /* flip parity 0 -> 1 */
+> > +	rcu_fgp_wait_for_quiescent_state();	     /* wait for old readers */
+> > +	ACCESS_ONCE(rcu_fgp_ctr) ^= RCU_FGP_PARITY;  /* flip parity 1 -> 0 */
+> > +	rcu_fgp_wait_for_quiescent_state();	     /* wait for old readers */
+> > +
+> > +	/* Prevent CPUs from reordering out of prior RCU critical sections. */
+> > +	smp_call_function(rcu_fgp_do_mb, NULL, 1);
+> > +
+> 
+> Same here.
+> 
+> So we would need to either add a smp_mb() at both of these locations, or
+> use on_each_cpu() rather than smp_call_function. Note that this is to
+> ensure that the "updater" thread executes these memory barriers.
 
-You should first understand the internals of how netfilter connection
-tracking and NAT handle the packets and the connections. You should
-probably read the "Netfilter Hacking HOWTO" - it's outdated but still
-contains valuable information - and should definitely read the 'Writing
-netfilter modules' by Jan. Then you can easily find the relevant parts in
-net/netfilter/nf_conntrack_[standalone|core|expect].c and
-net/ipv4/netfilter/nf_nat_[standalone|core].c. Of course you should check
-out how expectations are created and used looking at the existing
-protocol helper modules.
+Or rely on the barriers that must be part of smp_call_function.  ;-)
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+						Thanx, Paul
+
+> Mathieu
+> 
+> 
+> > +	rcu_fgp_completed++;
+> > +	mutex_unlock(&rcu_fgp_mutex);
+> > +}
+> > +EXPORT_SYMBOL_GPL(synchronize_rcu_fgp);
+> > +
+> > +/**
+> > + * rcu_fgp_batches_completed - return batches completed.
+> > + * @sp: srcu_struct on which to report batch completion.
+> > + *
+> > + * Report the number of batches, correlated with, but not necessarily
+> > + * precisely the same as, the number of grace periods that have elapsed.
+> > + */
+> > +long rcu_fgp_batches_completed(void)
+> > +{
+> > +	return rcu_fgp_completed;
+> > +}
+> > +EXPORT_SYMBOL_GPL(rcu_fgp_batches_completed);
+> 
+> -- 
+> Mathieu Desnoyers
+> OpenPGP key fingerprint: 8CD5 52C3 8E3C 4140 715F  BA06 3F25 A8FE 3BAE 9A68
