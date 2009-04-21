@@ -1,53 +1,62 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [PATCH] netfilter: use per-cpu recursive lock (v10)
-Date: Mon, 20 Apr 2009 16:44:46 -0700
-Message-ID: <20090420234446.GL6822@linux.vnet.ibm.com>
-References: <20090416.153354.170676392.davem@davemloft.net> <20090416234955.GL6924@linux.vnet.ibm.com> <20090417012812.GA25534@linux.vnet.ibm.com> <20090418094001.GA2369@ioremap.net> <20090418141455.GA7082@linux.vnet.ibm.com> <20090420103414.1b4c490f@nehalam> <49ECBE0A.7010303@cosmosbay.com> <18924.59347.375292.102385@cargo.ozlabs.ibm.com> <20090420215827.GK6822@linux.vnet.ibm.com> <18924.64032.103954.171918@cargo.ozlabs.ibm.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Lai Jiangshan <laijs@cn.fujitsu.com>
+Subject: Re: [PATCH] netfilter: use per-cpu recursive lock (v11)
+Date: Tue, 21 Apr 2009 11:41:35 +0800
+Message-ID: <49ED406F.2040401@cn.fujitsu.com>
+References: <alpine.LFD.2.00.0904151705120.4042@localhost.localdomain>	<49E72E83.50702@trash.net>	<20090416.153354.170676392.davem@davemloft.net>	<20090416234955.GL6924@linux.vnet.ibm.com>	<20090417012812.GA25534@linux.vnet.ibm.com>	<20090418094001.GA2369@ioremap.net>	<20090418141455.GA7082@linux.vnet.ibm.com>	<20090420103414.1b4c490f@nehalam>	<49ECBE0A.7010303@cosmosbay.com>	<18924.59347.375292.102385@cargo.ozlabs.ibm.com>	<20090420215827.GK6822@linux.vnet.ibm.com>	<18924.64032.103954.171918@cargo.ozlabs.ibm.com> <20090420160121.268a8226@nehalam>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Eric Dumazet <dada1@cosmosbay.com>,
-	Stephen Hemminger <shemminger@vyatta.com>,
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Cc: Paul Mackerras <paulus@samba.org>, paulmck@linux.vnet.ibm.com,
+	Eric Dumazet <dada1@cosmosbay.com>,
 	Evgeniy Polyakov <zbr@ioremap.net>,
 	David Miller <davem@davemloft.net>, kaber@trash.net,
 	torvalds@linux-foundation.org, jeff.chua.linux@gmail.com,
-	mingo@elte.hu, laijs@cn.fujitsu.com, jengelh@medozas.de,
-	r000n@r000n.net, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	benh@kernel.crashing.org, mathieu.desnoyers@polymtl.ca
-To: Paul Mackerras <paulus@samba.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from e7.ny.us.ibm.com ([32.97.182.137]:59311 "EHLO e7.ny.us.ibm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753596AbZDTXou (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 20 Apr 2009 19:44:50 -0400
-Content-Disposition: inline
-In-Reply-To: <18924.64032.103954.171918@cargo.ozlabs.ibm.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+	mingo@elte.hu, jengelh@medozas.de, r000n@r000n.net,
+	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, benh@kernel.crashing.org,
+	mathieu.desnoyers@polymtl.ca
+To: Stephen Hemminger <shemminger@vyatta.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20090420160121.268a8226@nehalam>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Apr 21, 2009 at 08:41:36AM +1000, Paul Mackerras wrote:
-> Paul E. McKenney writes:
-> 
-> > But a single CPU is acquiring one lock per CPU, so all the increments
-> > are to one CPU's preempt_count.  :-(
-> 
-> OK, I see, so a task can't take more than 255 spinlocks without
-> overflowing the preempt count, which seems a bit limiting.
-> 
-> There are 6 free bits in the preempt_count currently, so the preempt
-> count could be expanded to 14 bits, which would be enough for all
-> current systems.  Beyond that I guess we could make preempt_count be a
-> long and allow bigger counts on 64-bit architectures.
+Stephen Hemminger wrote:
+> +/**
+> + * xt_table_info_rdlock_bh - recursive read lock for xt table info
+> + *
+> + * Table processing calls this to hold off any changes to table
+> + * (on current CPU). Always leaves with bottom half disabled.
+> + * If called recursively, then assumes bh/preempt already disabled.
+> + */
+> +void xt_info_rdlock_bh(void)
+> +{
+> +	struct xt_info_lock *lock;
+> +
+> +	preempt_disable();
+> +	lock = &__get_cpu_var(xt_info_locks);
+> +	if (likely(++lock->depth == 0))
 
-Or we use the trick Eric suggested and Steve employed in the most recent
-patch.  ;-)
+Maybe I missed something. I think softirq may be still enabled here.
+So what happen when xt_info_rdlock_bh() called recursively here?
 
-An alternative would be for the update code to acquire but one lock at a
-time, but this would likely require another lock to exclude other
-updaters and I believe would also require restructuring the count
-accumulation.
+> +		spin_lock_bh(&lock->lock);
+> +	preempt_enable_no_resched();
+> +}
+> +EXPORT_SYMBOL_GPL(xt_info_rdlock_bh);
+> +
 
-So Steve's current patch seems a bit less intrusive, overall.
+Is this OK for you:
 
-							Thanx, Paul
+void xt_info_rdlock_bh(void)
+{
+	struct xt_info_lock *lock;
+
+	local_bh_disable();
+	lock = &__get_cpu_var(xt_info_locks);
+	if (likely(++lock->depth == 0))
+		spin_lock(&lock->lock);
+}
+
+Lai.
+
