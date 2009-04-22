@@ -1,135 +1,106 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [RFC PATCH] v3 RCU implementation with fast grace periods
-Date: Tue, 21 Apr 2009 16:07:59 -0700
-Message-ID: <20090421230759.GO6642@linux.vnet.ibm.com>
-References: <20090421045931.GA9953@linux.vnet.ibm.com> <20090421151034.GA3792@Krystal> <20090421165151.GJ6642@linux.vnet.ibm.com> <20090421211158.GD15045@Krystal>
-Reply-To: paulmck@linux.vnet.ibm.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, davem@davemloft.net, kaber@trash.net,
-	torvalds@linux-foundation.org, shemminger@vyatta.com,
-	dada1@cosmosbay.com, jeff.chua.linux@gmail.com, paulus@samba.org,
-	mingo@elte.hu, laijs@cn.fujitsu.com, jengelh@medozas.de,
-	r000n@r000n.net, benh@kernel.crashing.org
-To: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+From: chrisw@sous-sol.org
+Subject: patch netfilter-ip-ip6-arp-_tables-fix-incorrect-loop-detection.patch queued to 2.6.29-stable tree
+Date: Tue, 21 Apr 2009 17:05:02 -0700
+Message-ID: <200904220005.n3M052k5012161@x200.localdomain>
+References: <49DA2051.5030507@trash.net>
+Cc: stable@kernel.org, stable-commits@vger.kernel.org
+To: kaber@trash.net, chrisw@sous-sol.org, davem@davemloft.net,
+	Francis_Dupont@isc.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from e9.ny.us.ibm.com ([32.97.182.139]:45250 "EHLO e9.ny.us.ibm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751644AbZDUXIB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 21 Apr 2009 19:08:01 -0400
-Content-Disposition: inline
-In-Reply-To: <20090421211158.GD15045@Krystal>
+Received: from sous-sol.org ([216.99.217.87]:45511 "EHLO x200.localdomain"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753852AbZDVALm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 21 Apr 2009 20:11:42 -0400
+In-Reply-To: <49DA2051.5030507@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, Apr 21, 2009 at 05:11:58PM -0400, Mathieu Desnoyers wrote:
-> * Paul E. McKenney (paulmck@linux.vnet.ibm.com) wrote:
-> > On Tue, Apr 21, 2009 at 11:10:35AM -0400, Mathieu Desnoyers wrote:
-> > > * Paul E. McKenney (paulmck@linux.vnet.ibm.com) wrote:
-> > 
-> > [ . . . ]
-> > 
-> > > > +void synchronize_rcu_fgp(void)
-> > > > +{
-> > > > +	mutex_lock(&rcu_fgp_mutex);
-> > > > +	
-> > > > +	/* CPUs must see earlier change before parity flip. */
-> > > > +	smp_call_function(rcu_fgp_do_mb, NULL, 1);
-> > > > +
-> > > 
-> > > Hrm, my original comment about missing smp_mb() here still applies, I
-> > > don't think we have come to an agreement yet.
-> > 
-> > My argument is that smp_call_function() must necessarily contain a
-> > full memory barrier, otherwise it cannot function properly.  ;-)
-> > 
-> 
-> Looking at :
-> 
-> kernel/smp.c
-> 
-> smp_call_function_many() indeed has a smp_mb(). It is called by
-> smp_call_function(). I wonder if it could eventually be turned into a
-> smp_wmb() instead ? If this is even a remote possibility, then the fact
-> that
-> 
-> - The rcu_fgp code does not document that it expects smp_call_function()
->   to have a smp_mb().
-> - The fact that smp_call_function_many() comments do not state that this
->   function provides the guarantee to run a smp_mb().
-> 
-> are both asking for an eventual bug to creep into the kernel.
 
-Many bugs -- I believe that a number of users of smp_call_function()
-assume that it maintains ordering between the calling code and all
-invocations of the function passed to smp_call_function().
+This is a note to let you know that we have just queued up the patch titled
 
-> So your assumption seems OK, but I think it needs to be explicitly
-> documented.
+     Subject: netfilter: {ip, ip6, arp}_tables: fix incorrect loop detection
 
-That might well be a good thing.
+to the 2.6.29-stable tree.  Its filename is
 
-							Thanx, Paul
+     netfilter-ip-ip6-arp-_tables-fix-incorrect-loop-detection.patch
 
-> Mathieu
-> 
-> > > > +	/*
-> > > > +	 * We must flip twice to correctly handle tasks that stall
-> > > > +	 * in rcu_read_lock_fgp() between the time that they fetch
-> > > > +	 * rcu_fgp_ctr and the time that the store to their CPU's
-> > > > +	 * rcu_fgp_active_readers.  No matter when they resume
-> > > > +	 * execution, we will wait for them to get to the corresponding
-> > > > +	 * rcu_read_unlock_fgp().
-> > > > +	 */
-> > > > +	ACCESS_ONCE(rcu_fgp_ctr) ^= RCU_FGP_PARITY;  /* flip parity 0 -> 1 */
-> > > > +	rcu_fgp_wait_for_quiescent_state();	     /* wait for old readers */
-> > > > +	ACCESS_ONCE(rcu_fgp_ctr) ^= RCU_FGP_PARITY;  /* flip parity 1 -> 0 */
-> > > > +	rcu_fgp_wait_for_quiescent_state();	     /* wait for old readers */
-> > > > +
-> > > > +	/* Prevent CPUs from reordering out of prior RCU critical sections. */
-> > > > +	smp_call_function(rcu_fgp_do_mb, NULL, 1);
-> > > > +
-> > > 
-> > > Same here.
-> > > 
-> > > So we would need to either add a smp_mb() at both of these locations, or
-> > > use on_each_cpu() rather than smp_call_function. Note that this is to
-> > > ensure that the "updater" thread executes these memory barriers.
-> > 
-> > Or rely on the barriers that must be part of smp_call_function.  ;-)
-> > 
-> > 						Thanx, Paul
-> > 
-> > > Mathieu
-> > > 
-> > > 
-> > > > +	rcu_fgp_completed++;
-> > > > +	mutex_unlock(&rcu_fgp_mutex);
-> > > > +}
-> > > > +EXPORT_SYMBOL_GPL(synchronize_rcu_fgp);
-> > > > +
-> > > > +/**
-> > > > + * rcu_fgp_batches_completed - return batches completed.
-> > > > + * @sp: srcu_struct on which to report batch completion.
-> > > > + *
-> > > > + * Report the number of batches, correlated with, but not necessarily
-> > > > + * precisely the same as, the number of grace periods that have elapsed.
-> > > > + */
-> > > > +long rcu_fgp_batches_completed(void)
-> > > > +{
-> > > > +	return rcu_fgp_completed;
-> > > > +}
-> > > > +EXPORT_SYMBOL_GPL(rcu_fgp_batches_completed);
-> > > 
-> > > -- 
-> > > Mathieu Desnoyers
-> > > OpenPGP key fingerprint: 8CD5 52C3 8E3C 4140 715F  BA06 3F25 A8FE 3BAE 9A68
-> 
-> -- 
-> Mathieu Desnoyers
-> OpenPGP key fingerprint: 8CD5 52C3 8E3C 4140 715F  BA06 3F25 A8FE 3BAE 9A68
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+A git repo of this tree can be found at 
+    http://www.kernel.org/git/?p=linux/kernel/git/stable/stable-queue.git;a=summary
+
+
+>From stable-bounces@linux.kernel.org  Mon Apr  6 15:33:13 2009
+Message-ID: <49DA2051.5030507@trash.net>
+Date: Mon, 06 Apr 2009 17:31:29 +0200
+From: Patrick McHardy <kaber@trash.net>
+To: stable@kernel.org
+Cc: Netfilter Development Mailinglist <netfilter-devel@vger.kernel.org>,         "David S. Miller" <davem@davemloft.net>
+Subject: netfilter: {ip, ip6, arp}_tables: fix incorrect loop detection
+
+upstream commit: 1f9352ae2253a97b07b34dcf16ffa3b4ca12c558
+
+Commit e1b4b9f ([NETFILTER]: {ip,ip6,arp}_tables: fix exponential worst-case
+search for loops) introduced a regression in the loop detection algorithm,
+causing sporadic incorrectly detected loops.
+
+When a chain has already been visited during the check, it is treated as
+having a standard target containing a RETURN verdict directly at the
+beginning in order to not check it again. The real target of the first
+rule is then incorrectly treated as STANDARD target and checked not to
+contain invalid verdicts.
+
+Fix by making sure the rule does actually contain a standard target.
+
+Based on patch by Francis Dupont <Francis_Dupont@isc.org>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Chris Wright <chrisw@sous-sol.org>
+---
+---
+ net/ipv4/netfilter/arp_tables.c |    4 +++-
+ net/ipv4/netfilter/ip_tables.c  |    4 +++-
+ net/ipv6/netfilter/ip6_tables.c |    4 +++-
+ 3 files changed, 9 insertions(+), 3 deletions(-)
+
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -374,7 +374,9 @@ static int mark_source_chains(struct xt_
+ 			    && unconditional(&e->arp)) || visited) {
+ 				unsigned int oldpos, size;
+ 
+-				if (t->verdict < -NF_MAX_VERDICT - 1) {
++				if ((strcmp(t->target.u.user.name,
++					    ARPT_STANDARD_TARGET) == 0) &&
++				    t->verdict < -NF_MAX_VERDICT - 1) {
+ 					duprintf("mark_source_chains: bad "
+ 						"negative verdict (%i)\n",
+ 								t->verdict);
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -496,7 +496,9 @@ mark_source_chains(struct xt_table_info 
+ 			    && unconditional(&e->ip)) || visited) {
+ 				unsigned int oldpos, size;
+ 
+-				if (t->verdict < -NF_MAX_VERDICT - 1) {
++				if ((strcmp(t->target.u.user.name,
++			    		    IPT_STANDARD_TARGET) == 0) &&
++				    t->verdict < -NF_MAX_VERDICT - 1) {
+ 					duprintf("mark_source_chains: bad "
+ 						"negative verdict (%i)\n",
+ 								t->verdict);
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -525,7 +525,9 @@ mark_source_chains(struct xt_table_info 
+ 			    && unconditional(&e->ipv6)) || visited) {
+ 				unsigned int oldpos, size;
+ 
+-				if (t->verdict < -NF_MAX_VERDICT - 1) {
++				if ((strcmp(t->target.u.user.name,
++					    IP6T_STANDARD_TARGET) == 0) &&
++				    t->verdict < -NF_MAX_VERDICT - 1) {
+ 					duprintf("mark_source_chains: bad "
+ 						"negative verdict (%i)\n",
+ 								t->verdict);
+
+
+Patches currently in stable-queue which might be from kaber@trash.net are
+
+queue-2.6.29/netfilter-ip-ip6-arp-_tables-fix-incorrect-loop-detection.patch
