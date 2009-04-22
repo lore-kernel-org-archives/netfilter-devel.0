@@ -1,45 +1,48 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Netfilter patch missing in 2.6.29.2 queue?
-Date: Wed, 22 Apr 2009 15:42:23 +0200
-Message-ID: <49EF1EBF.10306@netfilter.org>
-References: <49EEFFE6.6090908@netfilter.org> <49EF1E39.4030303@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] fix missing attribute in DCCP
+Date: Wed, 22 Apr 2009 15:44:56 +0200
+Message-ID: <49EF1F58.30209@trash.net>
+References: <20090422122306.14461.55699.stgit@Decadence>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: chrisw@sous-sol.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37343 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753835AbZDVNmc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Apr 2009 09:42:32 -0400
-In-Reply-To: <49EF1E39.4030303@trash.net>
+Received: from stinky.trash.net ([213.144.137.162]:55661 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752327AbZDVNpB (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 22 Apr 2009 09:45:01 -0400
+In-Reply-To: <20090422122306.14461.55699.stgit@Decadence>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy wrote:
-> Pablo Neira Ayuso wrote:
->> Hi Chris,
->>
->> I don't see this patch:
->>
->> http://git.kernel.org/?p=linux/kernel/git/davem/net-2.6.git;a=commit;h=83731671d9e6878c0a05d309c68fb71c16d3235a
->>
->>
->> in the 2.6.29.2 queue:
->>
->> http://git.kernel.org/?p=linux/kernel/git/stable/stable-queue.git;a=commit;h=9033999847821478c74c1338b4239679d0c81118
->>
->>
->> Could you also add it, please?
+Pablo Neira Ayuso wrote:
+> Hi Patrick,
 > 
-> Its queued for my next -stable update, but I have no objections
-> if someone queues it up before that :)
+> While finishing the DCCP support (I think it's the last to finish
+> the conntrack-tools), I notice that there's one field that is
+> not exported to user-space via ctnetlink.
+> 
+> This patch adds a couple of missing attributes that allows me to
+> set the role in DCCP connections, otherwise the ctnetlink support
+> is not of much help to be used by conntrackd.
+> 
+> This can be done with only one attribute, so we can have just one
+> CTA_PROTOINFO_DCCP_ROLE_ORIGINAL and set the reply as the opposite.
+> However, this may look at bit inconsistent. I don't really mind
+> the way this is done, just tell me I'll do it :), but I need this
+> to complete DCCP support.
 
-Oh sorry for the clash, I wasn't sure where this went and I'm also a bit
-worry for this regression :)
+Indeed, this looks like an unnecessary way to do something wrong for
+userspace. Since the roles are always the opposite in each direction,
+we might as well change the kernel to only keep track of the role
+in the original direction and use !role for the reply direction.
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+> +	ct->proto.dccp.role[IP_CT_DIR_ORIGINAL] =
+> +		nla_get_u8(tb[CTA_PROTOINFO_DCCP_ROLE_ORIGINAL]);
+> +	ct->proto.dccp.role[IP_CT_DIR_REPLY] =
+> +		nla_get_u8(tb[CTA_PROTOINFO_DCCP_ROLE_REPLY]);
+
+Validation please, incorrect values might crash the kernel.
