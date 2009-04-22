@@ -1,45 +1,53 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Add support to log original and NAT-ed IP addresses
-Date: Wed, 22 Apr 2009 17:59:32 +0200
-Message-ID: <49EF3EE4.1090204@trash.net>
-References: <alpine.DEB.2.00.0904201012170.10463@blackhole.kfki.hu> <49EC474E.8090604@netfilter.org> <alpine.DEB.2.00.0904201200240.10463@blackhole.kfki.hu> <49EC5794.8090204@netfilter.org> <alpine.DEB.2.00.0904201315030.10463@blackhole.kfki.hu> <49EC896E.5070402@trash.net> <alpine.DEB.2.00.0904201838090.11586@blackhole.kfki.hu> <49EDBA7E.2040200@trash.net> <alpine.DEB.2.00.0904211939040.7297@blackhole.kfki.hu>
+Subject: Re: netfilter conntrack tcp lock
+Date: Wed, 22 Apr 2009 18:04:20 +0200
+Message-ID: <49EF4004.6040303@trash.net>
+References: <20090421210412.268fc4e7@nehalam> <49EEA3B1.9030803@cosmosbay.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Stephen Hemminger <shemminger@vyatta.com>,
+	"Paul E. McKenney" <paulmck@us.ibm.com>,
 	netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Eric Dumazet <dada1@cosmosbay.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:58717 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:58813 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751880AbZDVP7j (ORCPT
+	with ESMTP id S1750988AbZDVQEZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Apr 2009 11:59:39 -0400
-In-Reply-To: <alpine.DEB.2.00.0904211939040.7297@blackhole.kfki.hu>
+	Wed, 22 Apr 2009 12:04:25 -0400
+In-Reply-To: <49EEA3B1.9030803@cosmosbay.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jozsef Kadlecsik wrote:
-> On Tue, 21 Apr 2009, Patrick McHardy wrote:
-> 
->> I can see that it has some informational value, but for things like
->> locating infected hosts, why not simply look at the traffic before
->> it is NATed? I currently can't come up with a real use case for
->> this ...
-> 
-> The well-maintained sites manage to locate on-site infected machines by 
-> using IDS, traffic-analysis, etc. However the typical user case for small 
-> sites is that the ISP or other offsite host report an abuse: "your machine 
-> x.y.z.w attacked machine a.b.c.d/added to the RBL because of spamming/etc" 
-> - and the machine x.y.z.w is of course their firewall. And they have got 
-> nothing which could help them to pick the real machine from the NATed 
-> network behind the firewall. And the small sites is the main reason why 
-> I'd favor an "out of the box" solution, which does not rely on anything 
-> besides netfilter/iptables.
+Eric Dumazet wrote:
+> Stephen Hemminger a =E9crit :
+>> Not sure what the performance impact would be but simply changing tc=
+p_lock
+>> (in nf_conntrack_proto_tcp) to a spin_lock might get a performance b=
+oost.
+>> I thought I heard Paul say read_locks are way slower than spin_lock.
+>>
+>> Alternatively, going to some form of bit based hash lock might work.
+>>
+> I thought Patrick was OK with adding a spinlock into each nf_conn str=
+uct ?
+> (We shrunk this struct with the rcu_head removal)
 
-Yes, but at that point, you can look at your logfiles and see who
-connected to a.b.c.d and you'll see the internal address. Logging
-the NATed address is not really helping since you need the internal
-address anyways, so it seems natural to look at the unNATed information.
-What am I missing here?
+Yes, my main concern was the further size increase.
 
+> A straight forward locking schem. We have spinlocks everywhere in ker=
+nel afterall, and
+> conntracking deserves this.
+> =20
+> Just resubmit one of your prior patch perhaps ? I can dig it in a cou=
+ple of hours eventually.
+
+Yes, please.
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
