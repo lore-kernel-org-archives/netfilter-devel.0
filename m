@@ -1,43 +1,33 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH] netfilter: use per-cpu recursive lock (v11)
-Date: Wed, 22 Apr 2009 13:26:12 +0200
-Message-ID: <20090422112612.GA3799@elte.hu>
-References: <49EEDAF0.2010507@cosmosbay.com> <20090422101318.GA6630@ff.dom.local>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Netfilter patch missing in 2.6.29.2 queue?
+Date: Wed, 22 Apr 2009 13:30:46 +0200
+Message-ID: <49EEFFE6.6090908@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Eric Dumazet <dada1@cosmosbay.com>,
-	Stephen Hemminger <shemminger@vyatta.com>,
-	Peter Zijlstra <a.p.zijlstra@chello.nl>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Paul Mackerras <paulus@samba.org>, paulmck@linux.vnet.ibm.com,
-	Evgeniy Polyakov <zbr@ioremap.net>,
-	David Miller <davem@davemloft.net>, kaber@trash.net,
-	jeff.chua.linux@gmail.com, laijs@cn.fujitsu.com,
-	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	benh@kernel.crashing.org, mathieu.desnoyers@polymtl.ca
-To: Jarek Poplawski <jarkao2@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20090422101318.GA6630@ff.dom.local>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Patrick McHardy <kaber@trash.net>
+To: chrisw@sous-sol.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:51139 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753192AbZDVLa4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 22 Apr 2009 07:30:56 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi Chris,
 
-* Jarek Poplawski <jarkao2@gmail.com> wrote:
+I don't see this patch:
 
-> On 22-04-2009 10:53, Eric Dumazet wrote:
-> ...
-> > If this could be done without recursion, I am pretty sure 
-> > netfilter and network guys would have done it. I found Linus 
-> > reaction quite shocking IMHO, considering hard work done by all 
-> > people on this.
-> 
-> Right, looks like 100% (Scandinavian?!) troll. I wonder where is 
-> the admin of this mess...
+http://git.kernel.org/?p=linux/kernel/git/davem/net-2.6.git;a=commit;h=83731671d9e6878c0a05d309c68fb71c16d3235a
 
-You might disagree with me on an honest technical basis, but note 
-that this kind of childish, knee-jerk reaction against dissenting 
-people is what gives netdev its bad reputation.
+in the 2.6.29.2 queue:
 
-	Ingo
+http://git.kernel.org/?p=linux/kernel/git/stable/stable-queue.git;a=commit;h=9033999847821478c74c1338b4239679d0c81118
+
+Could you also add it, please?
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
