@@ -1,79 +1,47 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Possible bug in TCPOPTSTRIP?
-Date: Wed, 22 Apr 2009 14:15:19 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0904221414280.31941@fbirervta.pbzchgretzou.qr>
-References: <20090422102414.GA2310@bts.sk>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH] fix missing attribute in DCCP
+Date: Wed, 22 Apr 2009 14:27:45 +0200
+Message-ID: <20090422122306.14461.55699.stgit@Decadence>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: svens@bitebene.org,
-	=?UTF-8?Q?Marian_=C4=8Eurkovi=C4=8D?= <md@bts.sk>
-To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:43126 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751468AbZDVMPV (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Apr 2009 08:15:21 -0400
-In-Reply-To: <20090422102414.GA2310@bts.sk>
+Received: from mail.us.es ([193.147.175.20]:58926 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752327AbZDVM17 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 22 Apr 2009 08:27:59 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[Cc: netfilter-devel]
+Hi Patrick,
 
-On Wednesday 2009-04-22 12:24, Marian =C4=8Eurkovi=C4=8D wrote:
+While finishing the DCCP support (I think it's the last to finish
+the conntrack-tools), I notice that there's one field that is
+not exported to user-space via ctnetlink.
 
->Hi,
->
->  after some attempts to remove wscale option using TCPOPTSTRIP module
->we run into strange problem. With the following combination of TCP opt=
-ions,
->TCPOPTSTRIP is not able to find/strip wscale option:
->
-><mss 1460,sackOK,timestamp 3448576858 0,nop,wscale 7>
->
->It can find sack-permitted, also timestamp, but not wscale.
->
->With other combinations, e.g.
->
-><mss 1460,nop,nop,sackOK,nop,wscale 7>
->
->TCPOPTSTRIP finds/strips wscale option very well.
->
->Tested on 2.6.27-21 (Fedora10) with iptables 1.4.1.1
->
->Any ideas?
->
->
->   Thanks & kind regards,
->
->         M.
-> =20
->
->
->----------------------------------------------------------------------=
-----
->----                                                                  =
-----
->----   Marian =C4=8Eurkovi=C4=8D                       network  manage=
-r         ----
->----                                                                  =
-----
->----   Slovak Technical University           Tel: +421 2 571 041 81   =
-----
->----   Computer Centre, N=C3=A1m. Slobody 17      Fax: +421 2 524 94 3=
-51   ----
->----   812 43 Bratislava, Slovak Republic    E-mail/sip: md@bts.sk    =
-----
->----                                                                  =
-----
->----------------------------------------------------------------------=
-----
->
->
+This patch adds a couple of missing attributes that allows me to
+set the role in DCCP connections, otherwise the ctnetlink support
+is not of much help to be used by conntrackd.
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This can be done with only one attribute, so we can have just one
+CTA_PROTOINFO_DCCP_ROLE_ORIGINAL and set the reply as the opposite.
+However, this may look at bit inconsistent. I don't really mind
+the way this is done, just tell me I'll do it :), but I need this
+to complete DCCP support.
+
+BTW, I think that this can be qualified as bugfix for 2.6.30-rc
+since the current support is not of any help to create
+conntrack entries with DCCP.
+
+---
+
+Pablo Neira Ayuso (1):
+      netfilter: conntrack: add missing role attributes for DCCP
+
+
+ include/linux/netfilter/nfnetlink_conntrack.h |    2 ++
+ net/netfilter/nf_conntrack_proto_dccp.c       |   13 ++++++++++++-
+ 2 files changed, 14 insertions(+), 1 deletions(-)
+
