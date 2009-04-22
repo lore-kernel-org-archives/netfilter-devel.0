@@ -1,11 +1,12 @@
-From: Eric Dumazet <dada1@cosmosbay.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: [PATCH] netfilter: use per-cpu recursive lock (v11)
-Date: Wed, 22 Apr 2009 18:57:25 +0200
-Message-ID: <49EF4C75.6060604@cosmosbay.com>
-References: <20090420103414.1b4c490f@nehalam> <49ECBE0A.7010303@cosmosbay.com> <18924.59347.375292.102385@cargo.ozlabs.ibm.com> <20090420215827.GK6822@linux.vnet.ibm.com> <18924.64032.103954.171918@cargo.ozlabs.ibm.com> <20090420160121.268a8226@nehalam> <alpine.LFD.2.00.0904210831560.2199@localhost.localdomain> <20090421111541.228e977a@nehalam> <20090421191007.GA15485@elte.hu> <49EE2293.4090201@cosmosbay.com> <20090422073524.GA31835@elte.hu> <49EEDAF0.2010507@cosmosbay.com> <alpine.LFD.2.00.0904220806320.3101@localhost.localdomain>
+Date: Wed, 22 Apr 2009 10:18:50 -0700 (PDT)
+Message-ID: <alpine.LFD.2.00.0904221001270.3101@localhost.localdomain>
+References: <20090420103414.1b4c490f@nehalam> <49ECBE0A.7010303@cosmosbay.com> <18924.59347.375292.102385@cargo.ozlabs.ibm.com> <20090420215827.GK6822@linux.vnet.ibm.com> <18924.64032.103954.171918@cargo.ozlabs.ibm.com> <20090420160121.268a8226@nehalam>
+ <alpine.LFD.2.00.0904210831560.2199@localhost.localdomain> <20090421111541.228e977a@nehalam> <20090421191007.GA15485@elte.hu> <49EE2293.4090201@cosmosbay.com> <20090422073524.GA31835@elte.hu> <49EEDAF0.2010507@cosmosbay.com> <alpine.LFD.2.00.0904220806320.3101@localhost.localdomain>
+ <49EF4C75.6060604@cosmosbay.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Ingo Molnar <mingo@elte.hu>,
 	Stephen Hemminger <shemminger@vyatta.com>,
 	Peter Zijlstra <a.p.zijlstra@chello.nl>,
@@ -16,112 +17,79 @@ Cc: Ingo Molnar <mingo@elte.hu>,
 	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
 	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
 	benh@kernel.crashing.org, mathieu.desnoyers@polymtl.ca
-To: Linus Torvalds <torvalds@linux-foundation.org>
+To: Eric Dumazet <dada1@cosmosbay.com>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.0904220806320.3101@localhost.localdomain>
+In-Reply-To: <49EF4C75.6060604@cosmosbay.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Linus Torvalds a =E9crit :
->=20
-> On Wed, 22 Apr 2009, Eric Dumazet wrote:
->> If this could be done without recursion, I am pretty sure netfilter
->> and network guys would have done it. I found Linus reaction quite
->> shocking IMHO, considering hard work done by all people on this.
->=20
-> You don't _understand_ do you?
->=20
-> There is a huge difference between recursive code, and a recursive lo=
-ck.
->=20
-> The netfilter code may need to occasionally re-enter itself. Nobody e=
-ver=20
-> contested _that_ part.
->=20
-> What I have disagreed with the whole time is=20
->=20
->  (a) doing local ad-hoc locking primitives without any comments=20
->      what-so-ever.
->=20
->  (b) Doing them _wrong_ in many cases
->=20
->  (c) Calling the _lock_ a "recursive" lock.
->=20
-> The fact that a lock works with recursion doesn't make it "recursive"=
-=2E=20
-> That generally has a very special meaning for locking primitives, and=
-=20
-> means something else.
->=20
-> In contrast, a read-write lock actually has known properties, and we =
-have=20
-> existing locking mechanisms for those. And we call them read-write lo=
-cks=20
-> DESPITE THE FACT that the reading part can be done recursively.=20
->=20
-> If you call a read-write lock a "recursive" lock, then you're a moron=
-=2E=20
-> It simply is _not_ a recursive lock. And neither is the lock you actu=
-ally=20
-> implemented, even though you (and Stephen) continually call it that.=20
->=20
-> SO STOP CALLING IT A RECURSIVE LOCK. Look at your very own code: you =
-can=20
-> actually only use that lock in a recursive context in a _very_ specif=
-ic=20
-> place. Notice how it's only "recursive" when taken in the per-CPU con=
-text,=20
-> but _not_ recursive when the filter-updating code ("writer") takes it=
-?
->=20
-> Do you understand now? It really shouldn't be so hard for you.=20
->=20
-> Naming is important. Locking is important. You did both things wrong.=
- You=20
-> named your locks something incorrect and mis-leading that didn't actu=
-ally=20
-> describe them, and you did your own private locking code without then=
-=20
-> documenting what the rules for this special lock were.
->=20
-> Maybe in your world that's ok. But no, in mine it's not. I've seen to=
-o=20
-> many damn _non-functioning_ locks to ever want to see stuff like that=
-=20
-> again.
->=20
->
 
-Linus,
 
-I actually sent *one* buggy patch, and you already gave your feedback a=
-nd NACK.
+On Wed, 22 Apr 2009, Eric Dumazet wrote:
+> 
+> I actually sent *one* buggy patch, and you already gave your feedback 
+> and NACK.
 
-=46ine
+Actually, the thing is, I don't even think your original patch was even 
+buggy. The bug crept in later. I NAK'ed it not because it was buggy, but 
+because of the ad-hoc'ness and the naming. Really.
 
-I even relayed this to Stephen suggesting him not calling this a recurs=
-ive lock.
-(Note how I use 'suggesting' here)
+And I actually even said so in my original rant:
 
-So, what do you want from me ? Should I copy 100 times :
+ 'The fact that code "happens to work by mistake" (and I'm not saying that
+  your does - but it might just because of the per-cpu'ness of it [..]'
 
-"I should not call it a recursive lock. I shall not invent new locking =
-infra. I am a moron."=20
-"I should not call it a recursive lock. I shall not invent new locking =
-infra. I am a moron."=20
-"I should not call it a recursive lock. I shall not invent new locking =
-infra. I am a moron."=20
-"I should not call it a recursive lock. I shall not invent new locking =
-infra. I am a moron."=20
-"I should not call it a recursive lock. I shall not invent new locking =
-infra. I am a moron."=20
-"I should not call it a recursive lock. I shall not invent new locking =
-infra. I am a moron."=20
-=2E..
+because your original patch still had the
 
-OK done
+	rcu_read_lock_bh();
 
-Can we now proceed and continue ?
+in place before the whole
 
-Thank you
+	rl = &__get_cpu_var(arp_tables_lock);
+	if (likely(rl->count++ == 0))
+		spin_lock(&rl->lock);
 
+and that should have protected against both BH callers and preemption.
+
+So I actually believe that your original patch probably worked fine (but 
+as I said in my reaction to it, I thought it was almost by mistake and I 
+wasn't going to review it)
+
+So the actual _bug_ crept in later, when the RCU lock was removed, and the 
+lock was cleaned up and separated into a function of its own.
+
+And in fact, that is kind of my point: "uncommented locking with ad-hoc 
+semantics is very fragile". Even _correct_ code ends up not being correct 
+in the long run, because people don't realize all the subtle issues.
+
+> I even relayed this to Stephen suggesting him not calling this a recursive lock.
+> (Note how I use 'suggesting' here)
+> 
+> So, what do you want from me ? Should I copy 100 times :
+
+So I consider this thread ended from a technical standpoint.
+
+[ That said, I will not be at all shocked to hear if people decide later 
+  that the RCU method was better after all, and that even the per-cpu
+  rwlock or spinlock is just too expensive. ]
+
+My problem today (apart from the relatively minor issue of also wanting to 
+get the commit log fixed up) is just that I see emails from you finding my 
+reaction shocking and from Jarek Poplawski that seem to still think that 
+I'm a troll.
+
+Just because I pointed out real technical problems? Is that shocking or 
+trolling?
+
+Really - please go back to my _original_ email. No, it was not polite. But 
+here's another quote from it:
+
+  "Because even if it works today, it's just a bug waiting to happen."
+
+and dammit, I sent that out _before_ the very next version of the patch 
+that actually _did_ introduce that exact bug.
+
+So dammit - what part of my email was "shocking" or "trolling"? The part 
+where I was right? Or what?
+
+			Linus
