@@ -1,44 +1,40 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: warnings in current tree
-Date: Wed, 22 Apr 2009 02:27:22 -0700 (PDT)
-Message-ID: <20090422.022722.82114710.davem@davemloft.net>
-References: <20090421.014357.219275555.davem@davemloft.net>
-	<20090421.014427.86938853.davem@davemloft.net>
-	<49EDA5CE.4010108@netfilter.org>
+From: Jarek Poplawski <jarkao2@gmail.com>
+Subject: Re: [PATCH] netfilter: use per-cpu recursive lock (v11)
+Date: Wed, 22 Apr 2009 10:13:18 +0000
+Message-ID: <20090422101318.GA6630@ff.dom.local>
+References: <49EEDAF0.2010507@cosmosbay.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: pablo@netfilter.org
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <49EDA5CE.4010108@netfilter.org>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Ingo Molnar <mingo@elte.hu>,
+	Stephen Hemminger <shemminger@vyatta.com>,
+	Peter Zijlstra <a.p.zijlstra@chello.nl>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Paul Mackerras <paulus@samba.org>, paulmck@linux.vnet.ibm.com,
+	Evgeniy Polyakov <zbr@ioremap.net>,
+	David Miller <davem@davemloft.net>, kaber@trash.net,
+	jeff.chua.linux@gmail.com, laijs@cn.fujitsu.com,
+	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	benh@kernel.crashing.org, mathieu.desnoyers@polymtl.ca
+To: Eric Dumazet <dada1@cosmosbay.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from rv-out-0506.google.com ([209.85.198.233]:56473 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754389AbZDVKNd (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 22 Apr 2009 06:13:33 -0400
+Content-Disposition: inline
+In-Reply-To: <49EEDAF0.2010507@cosmosbay.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Date: Tue, 21 Apr 2009 12:54:06 +0200
+On 22-04-2009 10:53, Eric Dumazet wrote:
+...
+> If this could be done without recursion, I am pretty sure netfilter
+> and network guys would have done it. I found Linus reaction quite
+> shocking IMHO, considering hard work done by all people on this.
 
-> Hi David!
-> 
-> David Miller wrote:
->> From: David Miller <davem@davemloft.net>
->> Date: Tue, 21 Apr 2009 01:43:57 -0700 (PDT)
->> 
->> Sorry, duh, meant netfilter-devel :-)
->> 
->>> Can someone fix these up?  Thanks!
->>>
->>> net/netfilter/nf_conntrack_netlink.c:1234: warning: 'helpname' may be used uninitialized in this function
->>> net/netfilter/nf_conntrack_netlink.c:991: warning: 'helpname' may be used uninitialized in this function
-> 
-> Hm, weird, is this a "bogus punch"? I don't remember to have seen those
-> here and that code has not been modified recently.
-> 
-> Anyway, patch attached :).
+Right, looks like 100% (Scandinavian?!) troll. I wonder where is the
+admin of this mess...
 
-Applied, thanks :-)
-
-The problem is when you pass the address of a local variable
-to a function, which is then inlined and has non-trivial
-control flow (as far as GCC is concerned), and this is the
-way the variable is initialized.
+Jarek P.
