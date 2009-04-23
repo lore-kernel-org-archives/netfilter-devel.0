@@ -1,41 +1,55 @@
-From: Jarek Poplawski <jarkao2@gmail.com>
-Subject: Re: IMQ bug: kernel reboot immediately
-Date: Thu, 23 Apr 2009 12:11:04 +0000
-Message-ID: <20090423121104.GC6809@ff.dom.local>
-References: <20090423084323.GA5696@ff.dom.local> <49F040E8.80402@trash.net> <alpine.LSU.2.00.0904231223050.18687@fbirervta.pbzchgretzou.qr> <49F042E7.7060900@trash.net> <beb91d720904230412j4dea4034o61f2d0682ff76d1a@mail.gmail.com> <49F04F6B.7010709@trash.net> <20090423114019.GB6809@ff.dom.local> <49F05502.7050504@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] Add support to log original and NAT-ed IP addresses
+Date: Thu, 23 Apr 2009 14:12:01 +0200
+Message-ID: <49F05B11.8040804@trash.net>
+References: <alpine.DEB.2.00.0904201012170.10463@blackhole.kfki.hu> <49EC474E.8090604@netfilter.org> <alpine.DEB.2.00.0904201200240.10463@blackhole.kfki.hu> <49EC5794.8090204@netfilter.org> <alpine.DEB.2.00.0904201315030.10463@blackhole.kfki.hu> <49EC896E.5070402@trash.net> <alpine.DEB.2.00.0904201838090.11586@blackhole.kfki.hu> <49EDBA7E.2040200@trash.net> <alpine.DEB.2.00.0904211939040.7297@blackhole.kfki.hu> <49EF3EE4.1090204@trash.net> <alpine.DEB.2.00.0904222234570.10604@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Salatiel Filho <salatiel.filho@gmail.com>,
-	Jan Engelhardt <jengelh@medozas.de>,
-	"Y. D." <duyuyang@gmail.com>, netdev <netdev@vger.kernel.org>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rv-out-0506.google.com ([209.85.198.228]:10518 "EHLO
-	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752526AbZDWMLO (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:48496 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753276AbZDWMMK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Apr 2009 08:11:14 -0400
-Content-Disposition: inline
-In-Reply-To: <49F05502.7050504@trash.net>
+	Thu, 23 Apr 2009 08:12:10 -0400
+In-Reply-To: <alpine.DEB.2.00.0904222234570.10604@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Apr 23, 2009 at 01:46:10PM +0200, Patrick McHardy wrote:
-> Jarek Poplawski wrote:
->> On Thu, Apr 23, 2009 at 01:22:19PM +0200, Patrick McHardy wrote:
->> ...
->>> Currently not, the conntrack association is done at a later point.
->>> We could add a classifier or TC action that performs the lookup
->>> during ingress classification.
->>
->> BTW, some time ago I started to wonder how safe are those various
->> ingress activities wrt. invalid packets, dropped later in ip_rcv().
->
-> Leaving aside the ipt action, I'm not aware of any problems caused
-> by ingress classification. Could you be more specific?
+Jozsef Kadlecsik wrote:
+> On Wed, 22 Apr 2009, Patrick McHardy wrote:
+> 
+>>> The well-maintained sites manage to locate on-site infected machines by
+>>> using IDS, traffic-analysis, etc. However the typical user case for small
+>>> sites is that the ISP or other offsite host report an abuse: "your machine
+>>> x.y.z.w attacked machine a.b.c.d/added to the RBL because of spamming/etc" -
+>>> and the machine x.y.z.w is of course their firewall. And they have got
+>>> nothing which could help them to pick the real machine from the NATed
+>>> network behind the firewall. And the small sites is the main reason why I'd
+>>> favor an "out of the box" solution, which does not rely on anything besides
+>>> netfilter/iptables.
+>> Yes, but at that point, you can look at your logfiles and see who
+>> connected to a.b.c.d and you'll see the internal address. Logging
+>> the NATed address is not really helping since you need the internal
+>> address anyways, so it seems natural to look at the unNATed information.
+>> What am I missing here?
+> 
+> Hmm, if there are multiple clients connecting to the same external node 
+> (or even just a few ones but the exact time is not definite due to the 
+> unsynced clocks) then the hunted client does not stand out. But it might 
+> indicate multiple infected machines as well...
 
-There is nothing specific yet. I hope these other classifiers and
-actions aren't mislead too much to go astray.
+Yes, you'd need at least destination port numbers to reduce false
+positives. But the same is also true if you do log the NATed address.
+For the small-site case you describe, the external address is usually
+know anyways since there is only a single one :)
 
-Jarek P.
+Just to be clear about this, I don't generally object to this,
+but before making this (quite undesirable IMO) change, I'd like
+to be sure that it actually provides a tantamount benefit.
+Please feel free to tell me that I'm missing the point :)
+
+
