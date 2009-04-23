@@ -1,40 +1,67 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: IMQ bug: kernel reboot immediately
-Date: Thu, 23 Apr 2009 12:28:55 +0200
-Message-ID: <49F042E7.7060900@trash.net>
-References: <20090423084323.GA5696@ff.dom.local> <49F040E8.80402@trash.net> <alpine.LSU.2.00.0904231223050.18687@fbirervta.pbzchgretzou.qr>
+Subject: Re: nf_conntrack_proto_udplite
+Date: Thu, 23 Apr 2009 12:30:12 +0200
+Message-ID: <49F04334.9000905@trash.net>
+References: <200904222106.29497.steven@springl.ukfsn.org>
 Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------080104040403060603030806"
+Cc: netfilter-devel@vger.kernel.org
+To: Steven Jan Springl <steven@springl.ukfsn.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:46456 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756237AbZDWKaS (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 23 Apr 2009 06:30:18 -0400
+In-Reply-To: <200904222106.29497.steven@springl.ukfsn.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
+
+This is a multi-part message in MIME format.
+--------------080104040403060603030806
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Jarek Poplawski <jarkao2@gmail.com>, "Y. D." <duyuyang@gmail.com>,
-	netdev <netdev@vger.kernel.org>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <alpine.LSU.2.00.0904231223050.18687@fbirervta.pbzchgretzou.qr>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> On Thursday 2009-04-23 12:20, Patrick McHardy wrote:
+Steven Jan Springl wrote:
+> Hello
 > 
->>>> Is IMQ still maintained? I am using IMQ to shape ingress traffic.
->>>> But the application is a streaming server (VLC). However, the kernel
->>>> reboots immediately as quick as can hardly been seen what is
->>>> wrong with it.
->>>>
->>>> Any help with this kinda problem?
->>> IMQ isn't a part of kernel/netfilter, so you should try at its own
->>> site/mailing list.
->> I'd rather suggest to get rid of it and use ifb, AFAIK there hasn't
->> been a single version in all those years that didn't cause this kind
->> of problems.
+> Whilst testing kernel 2.6.30-rc3 I have noticed that when I issue command: 
 > 
-> I'd rather point out that ifb does not seem to be able to do all of what 
-> IMQ can, up to the point where it is believed in the public that ifb is 
-> practically useless.
+> modprobe nf_conntrack_proto_udplite
+> 
+> the following message is produced:
+> 
+> FATAL: Error inserting nf_conntrack_proto_udplite 
+> (/lib/modules/2.6.30-rc3/kernel/net/netfilter/nf_conntrack_proto_udplite.ko): 
+> Invalid argument
+> 
+> Is this a kernel bug or have I done something wrong?
 
-I'm aware of those claims, but not of the details. If this is true,
-people should raise those issues and help resolve them. I wouldn't
-hold my breath waiting for IMQ to get fixed.
+Thanks for the report, it seems the IPv6 udplite protocol was
+forgotten during a recent API change.
 
+Does this patch help?
+
+
+--------------080104040403060603030806
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+diff --git a/net/netfilter/nf_conntrack_proto_udplite.c b/net/netfilter/nf_conntrack_proto_udplite.c
+index 4614696..0badedc 100644
+--- a/net/netfilter/nf_conntrack_proto_udplite.c
++++ b/net/netfilter/nf_conntrack_proto_udplite.c
+@@ -204,6 +204,7 @@ static struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite6 __read_mostly =
+ 	.error			= udplite_error,
+ #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
+ 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
++	.nlattr_tuple_size	= nf_ct_port_nlattr_tuple_size,
+ 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
+ 	.nla_policy		= nf_ct_port_nla_policy,
+ #endif
+
+--------------080104040403060603030806--
