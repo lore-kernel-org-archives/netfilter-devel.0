@@ -1,111 +1,61 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [PATCH RFC] v1 expedited "big hammer" RCU grace periods
-Date: Thu, 23 Apr 2009 08:15:09 -0700
-Message-ID: <20090423151509.GB6877@linux.vnet.ibm.com>
-References: <20090423052520.GA13036@linux.vnet.ibm.com> <49F006AE.5040104@cn.fujitsu.com>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Michael Tokarev <mjt@tls.msk.ru>
+Subject: flow start_time
+Date: Thu, 23 Apr 2009 19:32:41 +0400
+Message-ID: <49F08A19.6010909@msgid.tls.msk.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, mingo@elte.hu,
-	akpm@linux-foundation.org, torvalds@linux-foundation.org,
-	davem@davemloft.net, dada1@cosmosbay.com, zbr@ioremap.net,
-	jeff.chua.linux@gmail.com, paulus@samba.org, jengelh@medozas.de,
-	r000n@r000n.net, benh@kernel.crashing.org,
-	mathieu.desnoyers@polymtl.ca
-To: Lai Jiangshan <laijs@cn.fujitsu.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from e4.ny.us.ibm.com ([32.97.182.144]:42777 "EHLO e4.ny.us.ibm.com"
+Received: from isrv.corpit.ru ([81.13.33.159]:42279 "EHLO isrv.corpit.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759313AbZDWPPM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Apr 2009 11:15:12 -0400
-Content-Disposition: inline
-In-Reply-To: <49F006AE.5040104@cn.fujitsu.com>
+	id S1751732AbZDWPdd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 23 Apr 2009 11:33:33 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Apr 23, 2009 at 02:11:58PM +0800, Lai Jiangshan wrote:
-> Paul E. McKenney wrote:
+Hello.
 
-[ . . . ]
+Right now I'm evaluating various ways to perform traffic accounting
+in Linux.  Nowadays solutions are all based on netfilter and packet
+queuing over netlink interface.  And most tools used for that sort
+of stuff are based on Cisco "flows".  So far so good.
 
-> Hi, Paul
-> 
-> I just typed codes in email, very like these two pathes:
-> 
-> [PATCH 1/2] sched: Introduce APIs for waiting multi events
-> http://lkml.org/lkml/2009/4/14/733
-> 
-> [PATCH 2/2] rcupdate: use struct ref_completion
-> http://lkml.org/lkml/2009/4/14/734
-> 
-> Lai.
-> --------------
+There are several tools available to perform logging of various
+statistics which are being logging over netlink, including the
+successor of ulogd.  But all the tools I've seen so far perform
+"flow management" in userspace in addition to all the housekeeping
+the kernel already does - namely, mixing-n-matching various
+conntrack entries together, keeping/managing hash tables of
+various (src_IP, dst_IP, src_port, dst_port etc) stuff.
 
-Interesting approach!  This would get a second use for your multi-events
-waiting code above.  ;-)
+For flow-based accounting (compatible with cisco netflows I mean)
+this all is only to get one field of the flow structure: it's
+the start_time, i.e., in terms of conntrack, it's the time when
+the conntrack entry were created.
 
-Looks like the idea is to have the task doing the
-synchronize_rcu_bh_expedited() hold a reference across the process,
-and have each rcu_bh_fast_qs() also acquire a reference, which would
-be released in the softirq handler synchronize_rcu_bh_expedited_help().
+But isn't it a bit excessive to duplicate all the (quite heavy
+and fast-changing) data structures in both kernel- and user-space?
+I mean, at least for the "industry standard" format, the one
+missing field can be kept by kernel, especially since there,
+it costs only extra 4 bytes, and zero CPU, while in duplicating
+the whole thing in user space is something entirely else?
 
-One question -- does this approach correctly handle all the CPU hotplug
-scenarios?  (I think that it might, but am not completely certain.)
+I understand that this is not a standard format, not even to
+think about "The" standard, and there are other possible formats
+too, with their own complications/requirements, and that for
+users who does not use such statistics that's 4 bytes wasted
+per conntrack which also may mean something...
 
-							Thanx, Paul
+But still, now not talking about cisco netflows in particular,
+but from just logical point of view -- the information exposed
+by the kernel is incomplete and lacks this very field, -- flow
+start_time -- I think.
 
-> #ifndef CONFIG_SMP
-> 
-> static void __init synchronize_rcu_expedited_init(void)
-> {
-> }
-> 
-> void synchronize_rcu_bh_expedited(void)
-> {
-> 	cond_resched();
-> }
-> 
-> #else /* #ifndef CONFIG_SMP */
-> 
-> static DEFINE_MUTEX(synchronize_rcu_bh_mutex);
-> static DEFINE_PER_CPU(int, call_only_once); /* is it need ? */
-> static struct ref_completion rcu_bh_expedited_completion
-> 
-> static void synchronize_rcu_bh_expedited_help(struct softirq_action *unused)
-> {
-> 	if (__get_cpu_var(call_only_once)) {
-> 		smp_mb();
-> 		ref_completion_put(&rcu_bh_expedited_completion);
-> 		__get_cpu_var(call_only_once) = 0;
-> 	}
-> }
-> 
-> static void rcu_bh_fast_qs(void *unused)
-> {
-> 	__get_cpu_var(call_only_once) = 1;
-> 	ref_completion_get(&rcu_bh_expedited_completion);
-> 	raise_softirq(RCU_EXPEDITED_SOFTIRQ);
-> }
-> 
-> static void __init synchronize_rcu_expedited_init(void)
-> {
-> 	open_softirq(RCU_EXPEDITED_SOFTIRQ, synchronize_rcu_bh_expedited_help);
-> }
-> 
-> void synchronize_rcu_bh_expedited(void)
-> {
-> 	mutex_lock(&synchronize_rcu_bh_mutex);
-> 
-> 	ref_completion_get_init(&rcu_bh_expedited_completion);
-> 
-> 	smp_call_function(rcu_bh_fast_qs, NULL, 1);
-> 
-> 	ref_completion_put_init(&rcu_bh_expedited_completion);
-> 	ref_completion_wait(&rcu_bh_expedited_completion);
-> 
-> 	mutex_unlock(&synchronize_rcu_bh_mutex);
-> }
-> 
-> #endif /* #else #ifndef CONFIG_SMP */
-> 
+So, are there any objections/comments/suggestions about just
+adding this one thing (conditionally using CONFIG_foo or not)?
+Or maybe it is already there and there's nothing to do?
+
+Thanks!
+
+/mjt
