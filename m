@@ -1,24 +1,29 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/2] TProxy doesn't depend on NF_CONNTRACK
-Date: Fri, 24 Apr 2009 16:55:58 +0200
-Message-ID: <49F1D2FE.3090702@trash.net>
-References: <1240579820-18637-1-git-send-email-panther@balabit.hu> <1240579820-18637-2-git-send-email-panther@balabit.hu>
+Subject: Re: [PATCH 1/3] netfilter: conntrack: add missing role attributes
+ for DCCP
+Date: Fri, 24 Apr 2009 16:59:24 +0200
+Message-ID: <49F1D3CC.6060307@trash.net>
+References: <20090424102534.30250.37215.stgit@Decadence> <20090424103009.30250.99268.stgit@Decadence>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Laszlo Attila Toth <panther@balabit.hu>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:46847 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:46932 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756948AbZDXO4F (ORCPT
+	with ESMTP id S1756323AbZDXO7b (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 24 Apr 2009 10:56:05 -0400
-In-Reply-To: <1240579820-18637-2-git-send-email-panther@balabit.hu>
+	Fri, 24 Apr 2009 10:59:31 -0400
+In-Reply-To: <20090424103009.30250.99268.stgit@Decadence>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Laszlo Attila Toth wrote:
-> Signed-off-by: Laszlo Attila Toth <panther@balabit.hu>
+Pablo Neira Ayuso wrote:
+> This patch adds missing role attribute to the DCCP type, otherwise
+> the creation of entries is not of any use.
+> 
+> The attribute added is CTA_PROTOINFO_DCCP_ROLE which contains the
+> role of the conntrack original tuple.
 
-Applied, thanks.
+Applied, thanks Pablo.
