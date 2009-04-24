@@ -1,141 +1,132 @@
-From: Laszlo Attila Toth <panther@balabit.hu>
-Subject: [PATCH 1/1] socket: Added 'transparent' option
-Date: Fri, 24 Apr 2009 18:07:03 +0200
-Message-ID: <1240589223-12494-1-git-send-email-panther@balabit.hu>
-Cc: Laszlo Attila Toth <panther@balabit.hu>
-To: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+From: Stephen Hemminger <shemminger@vyatta.com>
+Subject: Re: [PATCH]  netfilter: use per-CPU recursive lock {XIV}
+Date: Fri, 24 Apr 2009 09:18:39 -0700
+Message-ID: <20090424091839.6e13ebec@nehalam>
+References: <20090418094001.GA2369@ioremap.net>
+	<20090418141455.GA7082@linux.vnet.ibm.com>
+	<20090420103414.1b4c490f@nehalam>
+	<49ECBE0A.7010303@cosmosbay.com>
+	<18924.59347.375292.102385@cargo.ozlabs.ibm.com>
+	<20090420215827.GK6822@linux.vnet.ibm.com>
+	<18924.64032.103954.171918@cargo.ozlabs.ibm.com>
+	<20090420160121.268a8226@nehalam>
+	<alpine.LFD.2.00.0904210831560.2199@localhost.localdomain>
+	<20090421111541.228e977a@nehalam>
+	<20090421193924.GA24404@elte.hu>
+	<20090421143927.52d7d89d@nehalam>
+	<alpine.LFD.2.00.0904220821240.3101@localhost.localdomain>
+	<20090423210938.1501507b@nehalam>
+	<49F146FF.5050200@cosmosbay.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	Ingo Molnar <mingo@elte.hu>, Paul Mackerras <paulus@samba.org>,
+	paulmck@linux.vnet.ibm.com, Evgeniy Polyakov <zbr@ioremap.net>,
+	David Miller <davem@davemloft.net>, kaber@trash.net,
+	jeff.chua.linux@gmail.com, laijs@cn.fujitsu.com,
+	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	benh@kernel.crashing.org, mathieu.desnoyers@polymtl.ca
+To: Eric Dumazet <dada1@cosmosbay.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from support.balabit.hu ([195.70.41.86]:58980 "EHLO lists.balabit.hu"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751794AbZDXQHK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 24 Apr 2009 12:07:10 -0400
-Received: from balabit.hu (unknown [10.80.0.254])
-	by lists.balabit.hu (Postfix) with ESMTP id B861C13A134
-	for <netfilter-devel@vger.kernel.org>; Fri, 24 Apr 2009 18:07:09 +0200 (CEST)
+Received: from mail.vyatta.com ([76.74.103.46]:50643 "EHLO mail.vyatta.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753946AbZDXQSq convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 24 Apr 2009 12:18:46 -0400
+In-Reply-To: <49F146FF.5050200@cosmosbay.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Added new revision of the 'socket' match. If its new option is set,
-enabled 'transparent' socket option is required for the socket to be matched.
+On Fri, 24 Apr 2009 06:58:39 +0200
+Eric Dumazet <dada1@cosmosbay.com> wrote:
 
-Signed-off-by: Laszlo Attila Toth <panther@balabit.hu>
----
- include/linux/netfilter/xt_socket.h |    8 +++++
- net/netfilter/xt_socket.c           |   52 +++++++++++++++++++++++++++++------
- 2 files changed, 51 insertions(+), 9 deletions(-)
- create mode 100644 include/linux/netfilter/xt_socket.h
+> Stephen Hemminger a =C3=A9crit :
+> > In days of old in 2.6.29, netfilter did locketh using a=20
+> > lock of the reader kind when doing its table business, and do
+> > a writer when with pen in hand like a overworked accountant
+> > did replace the tables. This sucketh and caused the single
+> > lock to fly back and forth like a poor errant boy.
+> >=20
+> > But then netfilter was blessed with RCU and the performance
+> > was divine, but alas there were those that suffered for
+> > trying to replace their many rules one at a time.
+> >=20
+> > So now RCU must be vanquished from the scene, and better
+> > chastity belts be placed upon this valuable asset most dear.
+> > The locks that were but one are now replaced by one per suitor.
+> >=20
+> > The repair was made after much discussion involving
+> > Eric the wise, and Linus the foul. With flowers springing
+> > up amid the thorns some peace has finally prevailed and
+> > all is soothed. This patch and purple prose was penned by
+> > in honor of "Talk like Shakespeare" day.
+> >=20
+> > Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
+>=20
+>=20
+> Philip Davis of the university=E2=80=99s School of English said :
+>=20
+>   "Shakespeare surprises the brain and catches it off guard in
+>   a manner that produces a sudden burst of activity - a sense=20
+>   of drama created out of the simplest of things."
+>=20
+> http://www.physorg.com/news85664210.html
+>=20
+> >=20
+> > ---
+> > What hath changed over the last two setting suns:
+> >   * more words, mostly correct...
+> >=20
+> >   * no need to locketh for writeh on current cpu tis=20
+> >     always so
+> >=20
+> >   * the locking of all cpu's on replace is always done as
+> >     part of the get_counters cycle, so the sychronize swip
+> >     in replace tables is gone with only a comment remaing
+> >=20
+> >  include/linux/netfilter/x_tables.h |   55 ++++++++++++++--
+> >  net/ipv4/netfilter/arp_tables.c    |  125 ++++++++++--------------=
+------------
+> >  net/ipv4/netfilter/ip_tables.c     |  126 ++++++++++--------------=
+-------------
+> >  net/ipv6/netfilter/ip6_tables.c    |  123 ++++++++++--------------=
+------------
+> >  net/netfilter/x_tables.c           |   55 ++++++++--------
+> >  5 files changed, 188 insertions(+), 296 deletions(-)
+> >=20
+>=20
+>=20
+> > =20
+> >  static int __init xt_init(void)
+> >  {
+> > -	int i, rv;
+> > +	unsigned int i;
+> > +	int rv;
+> > +	static struct lock_class_key xt_lock_key[NR_CPUS];
+>=20
+> Could we avoid this [NR_CPUS] thing ?
+>=20
+> > +
+> > +	for_each_possible_cpu(i) {
+> > +		rwlock_t *lock =3D &per_cpu(xt_info_locks, i);
+> > +
+> > +		rwlock_init(lock);
+> > +		lockdep_set_class(lock, xt_lock_key+i);
+> > +	}
+>=20
+>=20
+> Did you tried :
+>=20
+> static DECLARE_PER_CPU(struct lock_class_key, xt_locks_key);
+>=20
 
-diff --git a/include/linux/netfilter/xt_socket.h b/include/linux/netfilter/xt_socket.h
-new file mode 100644
-index 0000000..2222d63
---- /dev/null
-+++ b/include/linux/netfilter/xt_socket.h
-@@ -0,0 +1,8 @@
-+#ifndef _XT_SOCKET_H_match
-+#define _XT_SOCKET_H_match
-+
-+struct xt_socket_match_info {
-+	__u8 transparent:1;
-+};
-+
-+#endif /* _XT_SOCKET_H_match */
-diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
-index 1acc089..0f2c317 100644
---- a/net/netfilter/xt_socket.c
-+++ b/net/netfilter/xt_socket.c
-@@ -22,6 +22,8 @@
- #include <net/netfilter/nf_tproxy_core.h>
- #include <net/netfilter/ipv4/nf_defrag_ipv4.h>
- 
-+#include <linux/netfilter/xt_socket.h>
-+
- #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- #define XT_SOCKET_HAVE_CONNTRACK 1
- #include <net/netfilter/nf_conntrack.h>
-@@ -86,7 +88,7 @@ extract_icmp_fields(const struct sk_buff *skb,
- 
- 
- static bool
--socket_mt(const struct sk_buff *skb, const struct xt_match_param *par)
-+socket_match(const struct sk_buff *skb, const struct xt_match_param *par, bool check_transparent)
- {
- 	const struct iphdr *iph = ip_hdr(skb);
- 	struct udphdr _hdr, *hp = NULL;
-@@ -142,10 +144,19 @@ socket_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 				   saddr, daddr, sport, dport, par->in, false);
- 	if (sk != NULL) {
- 		bool wildcard = (sk->sk_state != TCP_TIME_WAIT && inet_sk(sk)->rcv_saddr == 0);
-+		bool transparent = (sk->sk_state != TCP_TIME_WAIT && inet_sk(sk)->transparent) ||
-+				   (sk->sk_state == TCP_TIME_WAIT && inet_twsk(sk)->tw_transparent);
-+		const struct xt_socket_match_info *info;
-+
-+		if (check_transparent);
-+			info = par->matchinfo;
- 
- 		nf_tproxy_put_sock(sk);
-+
- 		if (wildcard)
- 			sk = NULL;
-+		else if (check_transparent && info->transparent && !transparent)
-+			sk = NULL;
- 	}
- 
- 	pr_debug("socket match: proto %u %08x:%u -> %08x:%u "
-@@ -157,23 +168,46 @@ socket_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	return (sk != NULL);
- }
- 
--static struct xt_match socket_mt_reg __read_mostly = {
--	.name		= "socket",
--	.family		= AF_INET,
--	.match		= socket_mt,
--	.hooks		= 1 << NF_INET_PRE_ROUTING,
--	.me		= THIS_MODULE,
-+static bool
-+socket_mt_v0(const struct sk_buff *skb, const struct xt_match_param *par)
-+{
-+	return socket_match(skb, par, false);
-+}
-+
-+static bool
-+socket_mt_v1(const struct sk_buff *skb, const struct xt_match_param *par)
-+{
-+	return socket_match(skb, par, true);
-+}
-+
-+static struct xt_match socket_mt_reg[] __read_mostly = {
-+	{
-+		.name		= "socket",
-+		.family		= AF_INET,
-+		.match		= socket_mt_v0,
-+		.hooks		= 1 << NF_INET_PRE_ROUTING,
-+		.me		= THIS_MODULE,
-+	},
-+	{
-+		.name		= "socket",
-+		.family		= AF_INET,
-+		.match		= socket_mt_v1,
-+		.matchsize	= sizeof(struct xt_socket_match_info),
-+		.hooks		= 1 << NF_INET_PRE_ROUTING,
-+		.me		= THIS_MODULE,
-+		.revision	= 1,
-+	},
- };
- 
- static int __init socket_mt_init(void)
- {
- 	nf_defrag_ipv4_enable();
--	return xt_register_match(&socket_mt_reg);
-+	return xt_register_matches(socket_mt_reg, ARRAY_SIZE(socket_mt_reg));
- }
- 
- static void __exit socket_mt_exit(void)
- {
--	xt_unregister_match(&socket_mt_reg);
-+	xt_unregister_matches(socket_mt_reg, ARRAY_SIZE(socket_mt_reg));
- }
- 
- module_init(socket_mt_init);
--- 
-1.6.2.2.404.ge96f3
+The lock keys are really only used by lock dep, and I thought per cpu
+space was more scarce on some arch.
 
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
