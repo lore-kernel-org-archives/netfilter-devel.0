@@ -1,44 +1,89 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 0/3] netfilter fixes for 2.6.30-rc
-Date: Fri, 24 Apr 2009 12:29:48 +0200
-Message-ID: <20090424102534.30250.37215.stgit@Decadence>
+Subject: [PATCH 1/3] netfilter: conntrack: add missing role attributes for DCCP
+Date: Fri, 24 Apr 2009 12:30:10 +0200
+Message-ID: <20090424103009.30250.99268.stgit@Decadence>
+References: <20090424102534.30250.37215.stgit@Decadence>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40359 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:40395 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752654AbZDXK34 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 24 Apr 2009 06:29:56 -0400
+	id S1753383AbZDXKaU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 24 Apr 2009 06:30:20 -0400
+In-Reply-To: <20090424102534.30250.37215.stgit@Decadence>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Patrick,
+This patch adds missing role attribute to the DCCP type, otherwise
+the creation of entries is not of any use.
 
-This patchset contains three fixes for 2.6.30-rc. Two for DCCP
-conntrack support: one adding the role attribute which is required
-to create consistent conntrack entries and another to fix a missing
-initialization in Holger's ctnetlink message shrinking. There's
-another patch for the new cluster match, I noticed a problem while
-testing the user-space part in iptables (not in the git tree yet).
+The attribute added is CTA_PROTOINFO_DCCP_ROLE which contains the
+role of the conntrack original tuple.
 
-Please, apply!
-
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
 
-Pablo Neira Ayuso (3):
-      netfilter: conntrack: fix EINVAL during DCCP loading
-      netfilter: iptables: fix use of cluster match with 32 nodes
-      netfilter: conntrack: add missing role attributes for DCCP
-
-
  include/linux/netfilter/nfnetlink_conntrack.h |    1 +
- include/linux/netfilter/xt_cluster.h          |    2 ++
- net/netfilter/nf_conntrack_proto_dccp.c       |   16 +++++++++++++++-
- net/netfilter/xt_cluster.c                    |    8 +++++++-
- 4 files changed, 25 insertions(+), 2 deletions(-)
+ net/netfilter/nf_conntrack_proto_dccp.c       |   15 ++++++++++++++-
+ 2 files changed, 15 insertions(+), 1 deletions(-)
 
--- 
-Signature
+diff --git a/include/linux/netfilter/nfnetlink_conntrack.h b/include/linux/netfilter/nfnetlink_conntrack.h
+index 29fe9ea..1a865e4 100644
+--- a/include/linux/netfilter/nfnetlink_conntrack.h
++++ b/include/linux/netfilter/nfnetlink_conntrack.h
+@@ -100,6 +100,7 @@ enum ctattr_protoinfo_tcp {
+ enum ctattr_protoinfo_dccp {
+ 	CTA_PROTOINFO_DCCP_UNSPEC,
+ 	CTA_PROTOINFO_DCCP_STATE,
++	CTA_PROTOINFO_DCCP_ROLE,
+ 	__CTA_PROTOINFO_DCCP_MAX,
+ };
+ #define CTA_PROTOINFO_DCCP_MAX (__CTA_PROTOINFO_DCCP_MAX - 1)
+diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
+index 50dac8d..3c266e6 100644
+--- a/net/netfilter/nf_conntrack_proto_dccp.c
++++ b/net/netfilter/nf_conntrack_proto_dccp.c
+@@ -633,6 +633,8 @@ static int dccp_to_nlattr(struct sk_buff *skb, struct nlattr *nla,
+ 	if (!nest_parms)
+ 		goto nla_put_failure;
+ 	NLA_PUT_U8(skb, CTA_PROTOINFO_DCCP_STATE, ct->proto.dccp.state);
++	NLA_PUT_U8(skb, CTA_PROTOINFO_DCCP_ROLE,
++		   ct->proto.dccp.role[IP_CT_DIR_ORIGINAL]);
+ 	nla_nest_end(skb, nest_parms);
+ 	read_unlock_bh(&dccp_lock);
+ 	return 0;
+@@ -644,6 +646,7 @@ nla_put_failure:
+ 
+ static const struct nla_policy dccp_nla_policy[CTA_PROTOINFO_DCCP_MAX + 1] = {
+ 	[CTA_PROTOINFO_DCCP_STATE]	= { .type = NLA_U8 },
++	[CTA_PROTOINFO_DCCP_ROLE]	= { .type = NLA_U8 },
+ };
+ 
+ static int nlattr_to_dccp(struct nlattr *cda[], struct nf_conn *ct)
+@@ -661,11 +664,21 @@ static int nlattr_to_dccp(struct nlattr *cda[], struct nf_conn *ct)
+ 		return err;
+ 
+ 	if (!tb[CTA_PROTOINFO_DCCP_STATE] ||
+-	    nla_get_u8(tb[CTA_PROTOINFO_DCCP_STATE]) >= CT_DCCP_IGNORE)
++	    !tb[CTA_PROTOINFO_DCCP_ROLE] ||
++	    nla_get_u8(tb[CTA_PROTOINFO_DCCP_ROLE]) > CT_DCCP_ROLE_MAX ||
++	    nla_get_u8(tb[CTA_PROTOINFO_DCCP_STATE]) >= CT_DCCP_IGNORE) {
+ 		return -EINVAL;
++	}
+ 
+ 	write_lock_bh(&dccp_lock);
+ 	ct->proto.dccp.state = nla_get_u8(tb[CTA_PROTOINFO_DCCP_STATE]);
++	if (nla_get_u8(tb[CTA_PROTOINFO_DCCP_ROLE]) == CT_DCCP_ROLE_CLIENT) {
++		ct->proto.dccp.role[IP_CT_DIR_ORIGINAL] = CT_DCCP_ROLE_CLIENT;
++		ct->proto.dccp.role[IP_CT_DIR_REPLY] = CT_DCCP_ROLE_SERVER;
++	} else {
++		ct->proto.dccp.role[IP_CT_DIR_ORIGINAL] = CT_DCCP_ROLE_SERVER;
++		ct->proto.dccp.role[IP_CT_DIR_REPLY] = CT_DCCP_ROLE_CLIENT;
++	}
+ 	write_unlock_bh(&dccp_lock);
+ 	return 0;
+ }
+
