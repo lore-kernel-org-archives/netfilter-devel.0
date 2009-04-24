@@ -1,44 +1,77 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 3/3] netfilter: conntrack: fix EINVAL during DCCP loading
-Date: Fri, 24 Apr 2009 12:30:53 +0200
-Message-ID: <20090424103053.30250.7275.stgit@Decadence>
-References: <20090424102534.30250.37215.stgit@Decadence>
+From: Roman Hoog Antink <rha@open.ch>
+Subject: Re: xt_recent compat code supposedly broken
+Date: Fri, 24 Apr 2009 13:32:50 +0200
+Message-ID: <49F1A362.6020109@open.ch>
+References: <alpine.LSU.2.00.0904241032310.20106@fbirervta.pbzchgretzou.qr> <alpine.LSU.2.00.0904241050030.22023@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+Content-Type: multipart/mixed;
+ boundary="------------050201050705020808000901"
+Cc: kaber@trash.net, Josef Drexler <joe-lk@ttdpatch.net>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:40455 "EHLO mail.us.es"
+Received: from mail6.open.ch ([213.156.224.131]:22244 "EHLO mail6.open.ch"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755758AbZDXKbB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 24 Apr 2009 06:31:01 -0400
-In-Reply-To: <20090424102534.30250.37215.stgit@Decadence>
+	id S1753444AbZDXLyi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 24 Apr 2009 07:54:38 -0400
+In-Reply-To: <alpine.LSU.2.00.0904241050030.22023@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-# modprobe nf_conntrack_proto_dccp
-FATAL: Error inserting nf_conntrack_proto_dccp (/lib/modules/2.6.30-rc1-00666-gd4b5cc5/kernel/net/netfilter/nf_conntrack_proto_dccp.ko): Invalid argument
+This is a multi-part message in MIME format.
+--------------050201050705020808000901
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-This patch fixes a problem during introduced in commit
-a400c30edb1958ceb53c4b8ce78989189b36df47.
+Thank you!
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
+Find attached the slightly adapted patch (nf_inet_addr is a union, not 
+struct). I tested it successfully with kernel 2.6.29 and it fixed the 
+compat path issue.
 
- net/netfilter/nf_conntrack_proto_dccp.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+Cheers
+Roman
 
-diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
-index 3c266e6..8e757dd 100644
---- a/net/netfilter/nf_conntrack_proto_dccp.c
-+++ b/net/netfilter/nf_conntrack_proto_dccp.c
-@@ -790,6 +790,7 @@ static struct nf_conntrack_l4proto dccp_proto6 __read_mostly = {
- 	.print_conntrack	= dccp_print_conntrack,
- #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
- 	.to_nlattr		= dccp_to_nlattr,
-+	.nlattr_size		= dccp_nlattr_size,
- 	.from_nlattr		= nlattr_to_dccp,
- 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
- 	.nlattr_tuple_size	= nf_ct_port_nlattr_tuple_size,
 
+--------------050201050705020808000901
+Content-Type: text/x-patch;
+ name="xt_recent-compat-2.6.29.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="xt_recent-compat-2.6.29.patch"
+
+diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
+index 791e030..fcc2d7b 100644
+--- a/net/netfilter/xt_recent.c
++++ b/net/netfilter/xt_recent.c
+@@ -474,7 +474,7 @@ static ssize_t recent_old_proc_write(struct file *file,
+ 	struct recent_table *t = pde->data;
+ 	struct recent_entry *e;
+ 	char buf[sizeof("+255.255.255.255")], *c = buf;
+-	__be32 addr;
++	union nf_inet_addr addr = {};
+ 	int add;
+ 
+ 	if (size > sizeof(buf))
+@@ -506,14 +506,13 @@ static ssize_t recent_old_proc_write(struct file *file,
+ 		add = 1;
+ 		break;
+ 	}
+-	addr = in_aton(c);
++	addr.ip = in_aton(c);
+ 
+ 	spin_lock_bh(&recent_lock);
+-	e = recent_entry_lookup(t, (const void *)&addr, NFPROTO_IPV4, 0);
++	e = recent_entry_lookup(t, &addr, NFPROTO_IPV4, 0);
+ 	if (e == NULL) {
+ 		if (add)
+-			recent_entry_init(t, (const void *)&addr,
+-					  NFPROTO_IPV4, 0);
++			recent_entry_init(t, &addr, NFPROTO_IPV4, 0);
+ 	} else {
+ 		if (add)
+ 			recent_entry_update(t, e);
+-- # Created with git-export-patch 
+
+--------------050201050705020808000901--
