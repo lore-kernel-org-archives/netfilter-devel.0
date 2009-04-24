@@ -1,58 +1,176 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 02/05: nf_ct_dccp/udplite: fix protocol registration error
-Date: Fri, 24 Apr 2009 17:44:03 +0200 (MEST)
-Message-ID: <20090424154358.28952.13426.sendpatchset@x2.localnet>
-References: <20090424154355.28952.21443.sendpatchset@x2.localnet>
-Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org
-To: davem@davemloft.net
+From: Laszlo Attila Toth <panther@balabit.hu>
+Subject: [resend iptables] socket match: new revision, match transparent sockets
+Date: Fri, 24 Apr 2009 18:06:12 +0200
+Message-ID: <1240589172-12454-1-git-send-email-panther@balabit.hu>
+Cc: Laszlo Attila Toth <panther@balabit.hu>
+To: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:47984 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751257AbZDXPoE (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 24 Apr 2009 11:44:04 -0400
-In-Reply-To: <20090424154355.28952.21443.sendpatchset@x2.localnet>
+Received: from support.balabit.hu ([195.70.41.86]:58975 "EHLO lists.balabit.hu"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751128AbZDXQGR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 24 Apr 2009 12:06:17 -0400
+Received: from balabit.hu (unknown [10.80.0.254])
+	by lists.balabit.hu (Postfix) with ESMTP id 1F79113A134
+	for <netfilter-devel@vger.kernel.org>; Fri, 24 Apr 2009 18:06:15 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 5ff482940f5aa2cdc3424c4a8ea94b9833b2af5f
-Author: Patrick McHardy <kaber@trash.net>
-Date:   Fri Apr 24 15:37:44 2009 +0200
+Added new revision of the socket match.
 
-    netfilter: nf_ct_dccp/udplite: fix protocol registration error
-    
-    Commit d0dba725 (netfilter: ctnetlink: add callbacks to the per-proto
-    nlattrs) changed the protocol registration function to abort if the
-    to-be registered protocol doesn't provide a new callback function.
-    
-    The DCCP and UDP-Lite IPv6 protocols were missed in this conversion,
-    add the required callback pointer.
-    
-    Reported-and-tested-by: Steven Jan Springl <steven@springl.ukfsn.org>
-    Signed-off-by: Patrick McHardy <kaber@trash.net>
+if the '--transparent' parameter is specified, the sockets,
+which transparent socket option is not set, are ignored.
 
-diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
-index 50dac8d..5411d63 100644
---- a/net/netfilter/nf_conntrack_proto_dccp.c
-+++ b/net/netfilter/nf_conntrack_proto_dccp.c
-@@ -777,6 +777,7 @@ static struct nf_conntrack_l4proto dccp_proto6 __read_mostly = {
- 	.print_conntrack	= dccp_print_conntrack,
- #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
- 	.to_nlattr		= dccp_to_nlattr,
-+	.nlattr_size		= dccp_nlattr_size,
- 	.from_nlattr		= nlattr_to_dccp,
- 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
- 	.nlattr_tuple_size	= nf_ct_port_nlattr_tuple_size,
-diff --git a/net/netfilter/nf_conntrack_proto_udplite.c b/net/netfilter/nf_conntrack_proto_udplite.c
-index 4614696..0badedc 100644
---- a/net/netfilter/nf_conntrack_proto_udplite.c
-+++ b/net/netfilter/nf_conntrack_proto_udplite.c
-@@ -204,6 +204,7 @@ static struct nf_conntrack_l4proto nf_conntrack_l4proto_udplite6 __read_mostly =
- 	.error			= udplite_error,
- #if defined(CONFIG_NF_CT_NETLINK) || defined(CONFIG_NF_CT_NETLINK_MODULE)
- 	.tuple_to_nlattr	= nf_ct_port_tuple_to_nlattr,
-+	.nlattr_tuple_size	= nf_ct_port_nlattr_tuple_size,
- 	.nlattr_to_tuple	= nf_ct_port_nlattr_to_tuple,
- 	.nla_policy		= nf_ct_port_nla_policy,
- #endif
+Signed-off-by: Laszlo Attila Toth <panther@balabit.hu>
+---
+ extensions/libxt_socket.c           |   92 +++++++++++++++++++++++++++++-----
+ extensions/libxt_socket.man         |    6 ++-
+ include/linux/netfilter/xt_socket.h |    8 +++
+ 3 files changed, 91 insertions(+), 15 deletions(-)
+ create mode 100644 include/linux/netfilter/xt_socket.h
+
+diff --git a/extensions/libxt_socket.c b/extensions/libxt_socket.c
+index eebc7c5..7299944 100644
+--- a/extensions/libxt_socket.c
++++ b/extensions/libxt_socket.c
+@@ -6,34 +6,98 @@
+ #include <stdio.h>
+ #include <getopt.h>
+ #include <xtables.h>
++#include <linux/netfilter/xt_socket.h>
+ 
+-static void socket_mt_help(void)
++static void socket_mt_help_v0(void)
+ {
+-	printf("socket v%s has no options\n\n", XTABLES_VERSION);
++	printf("socket match has no options.\n\n");
+ }
+ 
+-static int socket_mt_parse(int c, char **argv, int invert, unsigned int *flags,
+-			const void *entry, struct xt_entry_match **match)
++static void socket_mt_help_v1(void)
++{
++	printf("socket match options:\n"
++"--transparent      Matches only if the socket's transparent option is set\n");
++}
++
++static const struct option socket_opts_v1[] = {
++	{ "transparent", 0, NULL, '1' },
++	{ }
++};
++
++static int socket_mt_parse_v0(int c, char **argv, int invert, unsigned int *flags,
++			      const void *entry, struct xt_entry_match **match)
+ {
+ 	return 0;
+ }
+ 
++static int socket_mt_parse_v1(int c, char **argv, int invert, unsigned int *flags,
++			const void *entry, struct xt_entry_match **match)
++{
++	struct xt_socket_match_info *info = (struct xt_socket_match_info *)(*match)->data;
++
++	switch (c) {
++	case '1':
++		if (*flags)
++			xtables_error(PARAMETER_PROBLEM,
++				      "Can't specify multiple --transparent");
++		info->transparent = 1;
++		*flags = 1;
++		break;
++	default:
++		return 0;
++	}
++	return 1;
++}
++
+ static void socket_mt_check(unsigned int flags)
+ {
+ }
+ 
+-static struct xtables_match socket_mt_reg = {
+-	.name	       = "socket",
+-	.version       = XTABLES_VERSION,
+-	.family	       = NFPROTO_IPV4,
+-	.size	       = XT_ALIGN(0),
+-	.userspacesize = XT_ALIGN(0),
+-	.parse	       = socket_mt_parse,
+-	.final_check   = socket_mt_check,
+-	.help	       = socket_mt_help,
++static void socket_mt_print_v1(const void *ip,
++			       const struct xt_entry_match *target,
++			       int numeric)
++{
++	const struct xt_socket_match_info *info = (const void *)target->data;
++	printf("socket ");
++	if (info->transparent)
++		printf("transparent ");
++}
++
++static void socket_mt_save_v1(const void *ip, const struct xt_entry_match *match)
++{
++	const struct xt_socket_match_info *info =
++	    (const struct xt_socket_match_info*) match->data;
++
++	if (info->transparent)
++		printf("--transparent ");
++}
++
++static struct xtables_match socket_mt_reg_v0 = {
++	.name		= "socket",
++	.version	= XTABLES_VERSION,
++	.family		= NFPROTO_IPV4,
++	.parse		= socket_mt_parse_v0,
++	.final_check	= socket_mt_check,
++	.help		= socket_mt_help_v0,
++};
++
++static struct xtables_match socket_mt_reg_v1 = {
++	.name		= "socket",
++	.version	= XTABLES_VERSION,
++	.family		= NFPROTO_IPV4,
++	.size		= XT_ALIGN(sizeof(struct xt_socket_match_info)),
++	.userspacesize	= XT_ALIGN(sizeof(struct xt_socket_match_info)),
++	.parse		= socket_mt_parse_v1,
++	.print		= socket_mt_print_v1,
++	.save		= socket_mt_save_v1,
++	.final_check	= socket_mt_check,
++	.help		= socket_mt_help_v1,
++	.extra_opts	= socket_opts_v1,
++	.revision	= 1,
+ };
+ 
+ void _init(void)
+ {
+-	xtables_register_match(&socket_mt_reg);
++	xtables_register_match(&socket_mt_reg_v0);
++	xtables_register_match(&socket_mt_reg_v1);
+ }
+diff --git a/extensions/libxt_socket.man b/extensions/libxt_socket.man
+index 50c8854..edc9d75 100644
+--- a/extensions/libxt_socket.man
++++ b/extensions/libxt_socket.man
+@@ -1,2 +1,6 @@
+ This matches if an open socket can be found by doing a socket lookup on the
+-packet.
++packet which doesn\'t listen on the \'any\' IP address (0.0.0.0).
++.TP
++.BI "\-\-transparent"
++Enables additional check, that the actual socket's transparent socket option
++has to be set.
+diff --git a/include/linux/netfilter/xt_socket.h b/include/linux/netfilter/xt_socket.h
+new file mode 100644
+index 0000000..2222d63
+--- /dev/null
++++ b/include/linux/netfilter/xt_socket.h
+@@ -0,0 +1,8 @@
++#ifndef _XT_SOCKET_H_match
++#define _XT_SOCKET_H_match
++
++struct xt_socket_match_info {
++	__u8 transparent:1;
++};
++
++#endif /* _XT_SOCKET_H_match */
+-- 
+1.6.2.2.404.ge96f3
+
