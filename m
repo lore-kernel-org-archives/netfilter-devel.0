@@ -1,32 +1,67 @@
-From: Kristian Evensen <kristian.evensen@gmail.com>
-Subject: Prombles compiling xtables-addons 1.14 with kernel 2.6.29.1
-Date: Sat, 25 Apr 2009 19:45:30 +0200
-Message-ID: <17e3a8f80904251045i106aba94g795a230b49d67223@mail.gmail.com>
+From: Stephen Hemminger <shemminger@vyatta.com>
+Subject: [PATCH] netfilter: iptables no lockdep is needed..
+Date: Sat, 25 Apr 2009 13:30:52 -0700
+Message-ID: <20090425133052.4cb711f5@nehalam>
+References: <20090418094001.GA2369@ioremap.net>
+	<20090418141455.GA7082@linux.vnet.ibm.com>
+	<20090420103414.1b4c490f@nehalam>
+	<49ECBE0A.7010303@cosmosbay.com>
+	<18924.59347.375292.102385@cargo.ozlabs.ibm.com>
+	<20090420215827.GK6822@linux.vnet.ibm.com>
+	<18924.64032.103954.171918@cargo.ozlabs.ibm.com>
+	<20090420160121.268a8226@nehalam>
+	<alpine.LFD.2.00.0904210831560.2199@localhost.localdomain>
+	<20090421111541.228e977a@nehalam>
+	<20090421193924.GA24404@elte.hu>
+	<20090421143927.52d7d89d@nehalam>
+	<alpine.LFD.2.00.0904220821240.3101@localhost.localdomain>
+	<20090423210938.1501507b@nehalam>
+	<49F146FF.5050200@cosmosbay.com>
+	<20090424091839.6e13ebec@nehalam>
+	<49F22465.80305@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f158.google.com ([209.85.220.158]:57830 "EHLO
-	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753167AbZDYRpc (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 25 Apr 2009 13:45:32 -0400
-Received: by fxm2 with SMTP id 2so1600319fxm.37
-        for <netfilter-devel@vger.kernel.org>; Sat, 25 Apr 2009 10:45:31 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Eric Dumazet <dada1@cosmosbay.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Ingo Molnar <mingo@elte.hu>, Paul Mackerras <paulus@samba.org>,
+	paulmck@linux.vnet.ibm.com, Evgeniy Polyakov <zbr@ioremap.net>,
+	David Miller <davem@davemloft.net>, kaber@trash.net,
+	jeff.chua.linux@gmail.com, laijs@cn.fujitsu.com,
+	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	benh@kernel.crashing.org, mathieu.desnoyers@polymtl.ca
+To: Jarek Poplawski <jarkao2@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <49F22465.80305@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+Epilogue due to master Jarek. Lockdep carest not about the locking
+doth bestowed. Therefore no keys are needed.
 
-I recently had to upgrade my kernel to 2.6.29.1 and I am no longer
-able to compile xtables-addons. I have run "make clean" and rerun
-configure, but when I try to compile I get a message saying that
-"register_target", "_targets" and so on (all the xt_...) functions are
-undefined. Does anyone have any hints or suggestions?
+Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
 
-I have recompiled iptables 1.4.3.2 and my .config xtables is compiled
-into the kernel as a module.
+---
+ net/netfilter/x_tables.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-Thanks in advance,
-Kristian
+--- a/net/netfilter/x_tables.c	2009-04-25 13:25:48.115026283 -0700
++++ b/net/netfilter/x_tables.c	2009-04-25 13:26:15.646215635 -0700
+@@ -1145,14 +1145,9 @@ static int __init xt_init(void)
+ {
+ 	unsigned int i;
+ 	int rv;
+-	static struct lock_class_key xt_lock_key[NR_CPUS];
+ 
+-	for_each_possible_cpu(i) {
+-		rwlock_t *lock = &per_cpu(xt_info_locks, i);
+-
+-		rwlock_init(lock);
+-		lockdep_set_class(lock, xt_lock_key+i);
+-	}
++	for_each_possible_cpu(i)
++		rwlock_init(&per_cpu(xt_info_locks, i));
+ 
+ 	xt = kmalloc(sizeof(struct xt_af) * NFPROTO_NUMPROTO, GFP_KERNEL);
+ 	if (!xt)
