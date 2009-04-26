@@ -1,41 +1,58 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Wrong MAC in redirected packet
-Date: Sun, 26 Apr 2009 11:46:22 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0904261143001.28183@fbirervta.pbzchgretzou.qr>
-References: <17e3a8f80903250727q739fac53r6325a8eefff96a97@mail.gmail.com>  <alpine.LSU.2.00.0903251528420.19598@fbirervta.pbzchgretzou.qr>  <17e3a8f80903250800q15964da1gaf24ff1670ba3802@mail.gmail.com>  <alpine.LSU.2.00.0903251603050.18819@fbirervta.pbzchgretzou.qr>
-  <49CA8A6B.1020603@gmail.com>  <alpine.LSU.2.00.0903252047020.28681@fbirervta.pbzchgretzou.qr>  <49CA8C5A.1030908@gmail.com>  <alpine.LSU.2.00.0903252057190.29156@fbirervta.pbzchgretzou.qr>  <49CA9B8B.7080605@gmail.com> <17e3a8f80903260326i636c7c0byaf4d9b0b8e77c514@mail.gmail.com>
- <alpine.LSU.2.00.0903262106140.15111@fbirervta.pbzchgretzou.qr> <49CBEB9E.7080902@gmail.com>
+From: Jarek Poplawski <jarkao2@gmail.com>
+Subject: Re: [PATCH] netfilter: iptables no lockdep is needed..
+Date: Sun, 26 Apr 2009 10:18:25 +0200
+Message-ID: <20090426081825.GA2755@ami.dom.local>
+References: <alpine.LFD.2.00.0904210831560.2199@localhost.localdomain> <20090421111541.228e977a@nehalam> <20090421193924.GA24404@elte.hu> <20090421143927.52d7d89d@nehalam> <alpine.LFD.2.00.0904220821240.3101@localhost.localdomain> <20090423210938.1501507b@nehalam> <49F146FF.5050200@cosmosbay.com> <20090424091839.6e13ebec@nehalam> <49F22465.80305@gmail.com> <20090425133052.4cb711f5@nehalam>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Kristian Evensen <kristian.evensen@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:52023 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750900AbZDZJqY (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 26 Apr 2009 05:46:24 -0400
-In-Reply-To: <49CBEB9E.7080902@gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Eric Dumazet <dada1@cosmosbay.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Ingo Molnar <mingo@elte.hu>, Paul Mackerras <paulus@samba.org>,
+	paulmck@linux.vnet.ibm.com, Evgeniy Polyakov <zbr@ioremap.net>,
+	David Miller <davem@davemloft.net>, kaber@trash.net,
+	jeff.chua.linux@gmail.com, laijs@cn.fujitsu.com,
+	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	benh@kernel.crashing.org, mathieu.desnoyers@polymtl.ca
+To: Stephen Hemminger <shemminger@vyatta.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754736AbZDZITd@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20090425133052.4cb711f5@nehalam>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+On Sat, Apr 25, 2009 at 01:30:52PM -0700, Stephen Hemminger wrote:
+> Epilogue due to master Jarek. Lockdep carest not about the locking
+> doth bestowed. Therefore no keys are needed.
+> 
+> Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
 
-On Thursday 2009-03-26 21:54, Kristian Evensen wrote:
-> Jan Engelhardt skrev:
->> On Thursday 2009-03-26 11:26, Kristian Evensen wrote:
->>  
->>> Turned out that it was the checksums. They were calculated correctly,
->>> but since I processed packets on input, tcp_hdr and udp_hdr of course
->>> returned invalid pointers. My code is now more or less RAWNAT, so if
->>> it is of interest to anybody else I will merge them and make it
->>> available.
->>
->> I have now rebased the RAWNAT branch to Xt-a's master and
->> made the rawpost tables workable with all kernel versions.
->> It does not have MAC addr punning yet.
+Very nice! I guess this Shakespeare guy Will sign off this all too. ;-)
 
-I am just rethinking this. There are cases where we do not want MAC punning.
-(E.g. when a packet still needs to be routed through another gateway
-instead of being delivered directly to the final ethernet segment.)
+Thanks,
+Jarek P.
 
-Is --to-mac aa:bb:cc:dd:ee:ff sufficient, or did you want --to-mac IPaddr?
+> 
+> ---
+>  net/netfilter/x_tables.c |    9 ++-------
+>  1 file changed, 2 insertions(+), 7 deletions(-)
+> 
+> --- a/net/netfilter/x_tables.c	2009-04-25 13:25:48.115026283 -0700
+> +++ b/net/netfilter/x_tables.c	2009-04-25 13:26:15.646215635 -0700
+> @@ -1145,14 +1145,9 @@ static int __init xt_init(void)
+>  {
+>  	unsigned int i;
+>  	int rv;
+> -	static struct lock_class_key xt_lock_key[NR_CPUS];
+>  
+> -	for_each_possible_cpu(i) {
+> -		rwlock_t *lock = &per_cpu(xt_info_locks, i);
+> -
+> -		rwlock_init(lock);
+> -		lockdep_set_class(lock, xt_lock_key+i);
+> -	}
+> +	for_each_possible_cpu(i)
+> +		rwlock_init(&per_cpu(xt_info_locks, i));
+>  
+>  	xt = kmalloc(sizeof(struct xt_af) * NFPROTO_NUMPROTO, GFP_KERNEL);
+>  	if (!xt)
