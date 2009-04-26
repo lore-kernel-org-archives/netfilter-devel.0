@@ -1,52 +1,44 @@
-From: Kristian Evensen <kristian.evensen@gmail.com>
-Subject: Re: Wrong MAC in redirected packet
-Date: Sun, 26 Apr 2009 18:22:08 +0200
-Message-ID: <17e3a8f80904260922v6525aac3hbcb2398ce514446d@mail.gmail.com>
-References: <17e3a8f80903250727q739fac53r6325a8eefff96a97@mail.gmail.com>
-	 <49CA8A6B.1020603@gmail.com>
-	 <alpine.LSU.2.00.0903252047020.28681@fbirervta.pbzchgretzou.qr>
-	 <49CA8C5A.1030908@gmail.com>
-	 <alpine.LSU.2.00.0903252057190.29156@fbirervta.pbzchgretzou.qr>
-	 <49CA9B8B.7080605@gmail.com>
-	 <17e3a8f80903260326i636c7c0byaf4d9b0b8e77c514@mail.gmail.com>
-	 <alpine.LSU.2.00.0903262106140.15111@fbirervta.pbzchgretzou.qr>
-	 <49CBEB9E.7080902@gmail.com>
-	 <alpine.LSU.2.00.0904261143001.28183@fbirervta.pbzchgretzou.qr>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [PATCH RFC] v2 expedited "big hammer" RCU grace periods
+Date: Sun, 26 Apr 2009 13:27:17 +0200
+Message-ID: <20090426112717.GE10391@elte.hu>
+References: <20090426052340.GA24931@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-bw0-f163.google.com ([209.85.218.163]:56482 "EHLO
-	mail-bw0-f163.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751962AbZDZQWK (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 26 Apr 2009 12:22:10 -0400
-Received: by bwz7 with SMTP id 7so1872758bwz.37
-        for <netfilter-devel@vger.kernel.org>; Sun, 26 Apr 2009 09:22:09 -0700 (PDT)
-In-Reply-To: <alpine.LSU.2.00.0904261143001.28183@fbirervta.pbzchgretzou.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, akpm@linux-foundation.org,
+	torvalds@linux-foundation.org, davem@davemloft.net,
+	dada1@cosmosbay.com, zbr@ioremap.net, jeff.chua.linux@gmail.com,
+	paulus@samba.org, laijs@cn.fujitsu.com, jengelh@medozas.de,
+	r000n@r000n.net, benh@kernel.crashing.org,
+	mathieu.desnoyers@polymtl.ca
+To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1756291AbZDZL32@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20090426052340.GA24931@linux.vnet.ibm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
->>>> Turned out that it was the checksums. They were calculated correctly,
->>>> but since I processed packets on input, tcp_hdr and udp_hdr of course
->>>> returned invalid pointers. My code is now more or less RAWNAT, so if
->>>> it is of interest to anybody else I will merge them and make it
->>>> available.
->>>
->>> I have now rebased the RAWNAT branch to Xt-a's master and
->>> made the rawpost tables workable with all kernel versions.
->>> It does not have MAC addr punning yet.
->
-> I am just rethinking this. There are cases where we do not want MAC punning.
-> (E.g. when a packet still needs to be routed through another gateway
-> instead of being delivered directly to the final ethernet segment.)
->
-> Is --to-mac aa:bb:cc:dd:ee:ff sufficient, or did you want --to-mac IPaddr?
 
-The last one would be the easiest to use and would therefore be
-desirable. However, forcing the user to write the full MAC-address
-might limit scenarios where it is used wrongly.
+* Paul E. McKenney <paulmck@linux.vnet.ibm.com> wrote:
 
--Kristian
+> Second cut of "big hammer" expedited RCU grace periods, but only 
+> for rcu_bh.  This creates another softirq vector, so that entering 
+> this softirq vector will have forced an rcu_bh quiescent state (as 
+> noted by Dave Miller).  Use smp_call_function() to invoke 
+> raise_softirq() on all CPUs in order to cause this to happen.  
+> Track the CPUs that have passed through a quiescent state (or gone 
+> offline) with a cpumask.
+
+hm, i'm still asking whether doing this would be simpler via a 
+reschedule vector - which not only is an existing facility but also 
+forces all RCU domains through a quiescent state - not just bh-RCU 
+participants.
+
+Triggering a new softirq is in no way simpler that doing an SMP 
+cross-call - in fact softirqs are a finite resource so using some 
+other facility would be preferred.
+
+Am i missing something?
+
+	Ingo
