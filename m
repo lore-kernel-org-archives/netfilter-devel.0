@@ -1,39 +1,127 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Wrong MAC in redirected packet
-Date: Sun, 26 Apr 2009 23:29:50 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0904262328470.16867@fbirervta.pbzchgretzou.qr>
-References: <17e3a8f80903250727q739fac53r6325a8eefff96a97@mail.gmail.com>  <49CA8A6B.1020603@gmail.com>  <alpine.LSU.2.00.0903252047020.28681@fbirervta.pbzchgretzou.qr>  <49CA8C5A.1030908@gmail.com>  <alpine.LSU.2.00.0903252057190.29156@fbirervta.pbzchgretzou.qr>
-  <49CA9B8B.7080605@gmail.com>  <17e3a8f80903260326i636c7c0byaf4d9b0b8e77c514@mail.gmail.com>  <alpine.LSU.2.00.0903262106140.15111@fbirervta.pbzchgretzou.qr>  <49CBEB9E.7080902@gmail.com>  <alpine.LSU.2.00.0904261143001.28183@fbirervta.pbzchgretzou.qr>
- <17e3a8f80904260922v6525aac3hbcb2398ce514446d@mail.gmail.com>
+From: Eric Dumazet <dada1@cosmosbay.com>
+Subject: Re: [PATCH] netfilter: use per-CPU recursive lock {XV}
+Date: Sun, 26 Apr 2009 22:55:49 +0200
+Message-ID: <49F4CA55.8020705@cosmosbay.com>
+References: <20090421111541.228e977a@nehalam> <20090421193924.GA24404@elte.hu> <20090421143927.52d7d89d@nehalam> <alpine.LFD.2.00.0904220821240.3101@localhost.localdomain> <20090423210938.1501507b@nehalam> <49F146FF.5050200@cosmosbay.com> <20090424091839.6e13ebec@nehalam> <49F22465.80305@gmail.com> <20090425133052.4cb711f5@nehalam> <49F4A6E3.7080102@cosmosbay.com> <20090426193135.GA30851@Krystal>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Kristian Evensen <kristian.evensen@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Stephen Hemminger <shemminger@vyatta.com>,
+	David Miller <davem@davemloft.net>,
+	Jarek Poplawski <jarkao2@gmail.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Ingo Molnar <mingo@elte.hu>, Paul Mackerras <paulus@samba.org>,
+	paulmck@linux.vnet.ibm.com, Evgeniy Polyakov <zbr@ioremap.net>,
+	kaber@trash.net, jeff.chua.linux@gmail.com, laijs@cn.fujitsu.com,
+	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	benh@kernel.crashing.org
+To: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:60426 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751750AbZDZV3z (ORCPT
+Received: from gw1.cosmosbay.com ([212.99.114.194]:49457 "EHLO
+	gw1.cosmosbay.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751629AbZDZU5n convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 26 Apr 2009 17:29:55 -0400
-In-Reply-To: <17e3a8f80904260922v6525aac3hbcb2398ce514446d@mail.gmail.com>
+	Sun, 26 Apr 2009 16:57:43 -0400
+In-Reply-To: <20090426193135.GA30851@Krystal>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-On Sunday 2009-04-26 18:22, Kristian Evensen wrote:
+Mathieu Desnoyers a =E9crit :
+> * Eric Dumazet (dada1@cosmosbay.com) wrote:
+>> From: Stephen Hemminger <shemminger@vyatta.com>
 >>
->> I am just rethinking this. There are cases where we do not want MAC punning.
->> (E.g. when a packet still needs to be routed through another gateway
->> instead of being delivered directly to the final ethernet segment.)
+>>> Epilogue due to master Jarek. Lockdep carest not about the locking
+>>> doth bestowed. Therefore no keys are needed.
+>>>
+>>> Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
+>> So far, so good, should be ready for inclusion now, nobody complaine=
+d :)
 >>
->> Is --to-mac aa:bb:cc:dd:ee:ff sufficient, or did you want --to-mac IPaddr?
->
->The last one would be the easiest to use and would therefore be
->desirable. However, forcing the user to write the full MAC-address
->might limit scenarios where it is used wrongly.
+>> I include the final patch, merge of your last two patches.
+>>
+>> David, could you please review it once again and apply it if it's OK=
+ ?
+>>
+> [...]
+>> +/*
+>> + * Per-CPU read/write lock associated with per-cpu table entries.
+>> + * This is not a general solution but makes reader locking fast sin=
+ce
+>> + * there is no shared variable to cause cache ping-pong; but adds a=
+n
+>> + * additional write-side penalty since update must lock all
+>> + * possible CPU's.
+>> + *
+>> + * Read lock is used by ip/arp/ip6 tables rule processing which run=
+s per-cpu.
+>> + * It needs to ensure that the rules are not being changed while pa=
+cket
+>> + * is being processed. In some cases, the read lock will be acquire=
+d
+>> + * twice on the same CPU; this is okay because read locks handle ne=
+sting.
+>> + *
+>> + * Write lock is used in two cases:
+>> + *    1. reading counter values
+>> + *       all readers need to be stopped and the per-CPU values are =
+summed.
+>> + *
+>> + *    2. replacing tables
+>> + *       any readers that are using the old tables have to complete
+>> + *       before freeing the old table. This is handled by reading
+>> + *	  as a side effect of reading counters
+>> + */
+>> +DECLARE_PER_CPU(rwlock_t, xt_info_locks);
+>> +
+>> +static inline void xt_info_rdlock_bh(void)
+>> +{
+>> +	/*
+>> +	 * Note: can not use read_lock_bh(&__get_cpu_var(xt_info_locks))
+>> +	 * because need to ensure that preemption is disable before
+>> +	 * acquiring per-cpu-variable, so do it as a two step process
+>> +	 */
+>> +	local_bh_disable();
+>=20
+> Why do you need to disable bottom halves on the read-side ? You could
+> probably just disable preemption, given this lock is nestable on the
+> read-side anyway. Or I'm missing something obvious ?
 
-You know what, I am just pushing rawnat out now (merged into master
-as of today), and everything else is "patches please" :-)
+It may not be obvious, but subject already raised on this list, so I'll
+try to be as precise as possible (But may be wrong on some points, I'll
+let Patrick correct me if necessary)
 
-It does work for modifying packets-in-transit as a start. Have not
-tested local address manipulation tho.
+ipt_do_table() is not a readonly function returning a verdict.
+
+1) It handles a stack (check how is used next->comefrom) that seems to
+be stored on rules themselves. (This is how I understand this code)
+This is safe as each cpu has its own copy of rules/counters, and BH pro=
+tected.
+
+2) It also updates two 64 bit counters (bytes/packets) on each matched =
+rule.
+
+3) Some netfilter matches/targets probably rely on the fact their handl=
+ers
+are run with BH disabled by their caller (ipt_do_table()/arp/ip6...)
+
+These must be BH protected (and preempt disabled too), or else :
+
+1) A softirq could interrupt a process in the middle of ipt_do_table()
+and corrupt its "stack".
+
+2) A softirq could interrupt a process in ipt_do_table() in the middle
+ of the ADD_COUNTER(). Some counters could be corrupted.
+
+3) Some netfiler extensions would break.
+
+Previous linux versions already used a read_lock_bh() here, on a single
+and shared rwlock, there is nothing new on this BH locking AFAIK.
+
+Thank you
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
