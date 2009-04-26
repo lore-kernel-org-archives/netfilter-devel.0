@@ -1,107 +1,101 @@
-From: Ingo Molnar <mingo@elte.hu>
-Subject: Re: [PATCH RFC] v2 expedited "big hammer" RCU grace periods
-Date: Mon, 27 Apr 2009 05:26:39 +0200
-Message-ID: <20090427032639.GA10087@elte.hu>
-References: <20090426052340.GA24931@linux.vnet.ibm.com> <20090426112717.GE10391@elte.hu> <20090426191343.GC29238@Krystal> <20090426202255.GA5365@elte.hu> <20090426214451.GC6945@linux.vnet.ibm.com>
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+Subject: Re: [PATCH] netfilter: use per-CPU recursive lock {XV}
+Date: Sun, 26 Apr 2009 18:32:11 -0400
+Message-ID: <20090426223211.GB825@Krystal>
+References: <20090421143927.52d7d89d@nehalam> <alpine.LFD.2.00.0904220821240.3101@localhost.localdomain> <20090423210938.1501507b@nehalam> <49F146FF.5050200@cosmosbay.com> <20090424091839.6e13ebec@nehalam> <49F22465.80305@gmail.com> <20090425133052.4cb711f5@nehalam> <49F4A6E3.7080102@cosmosbay.com> <20090426185646.GB29238@Krystal> <20090426145746.1184aeba@nehalam>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, akpm@linux-foundation.org,
-	torvalds@linux-foundation.org, davem@davemloft.net,
-	dada1@cosmosbay.com, zbr@ioremap.net, jeff.chua.linux@gmail.com,
-	paulus@samba.org, laijs@cn.fujitsu.com, jengelh@medozas.de,
-	r000n@r000n.net, benh@kernel.crashing.org
-To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755573AbZD0D1j@vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+Cc: Eric Dumazet <dada1@cosmosbay.com>,
+	David Miller <davem@davemloft.net>,
+	Jarek Poplawski <jarkao2@gmail.com>,
+	Linus Torvalds <torvalds@linux-foundation.org>,
+	Ingo Molnar <mingo@elte.hu>, Paul Mackerras <paulus@samba.org>,
+	paulmck@linux.vnet.ibm.com, Evgeniy Polyakov <zbr@ioremap.net>,
+	kaber@trash.net, jeff.chua.linux@gmail.com, laijs@cn.fujitsu.com,
+	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	benh@kernel.crashing.org, Thomas Gleixner <tglx@linutronix.de>,
+	Steven Rostedt <rostedt@goodmis.org>
+To: Stephen Hemminger <shemminger@vyatta.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1754646AbZDZWhu@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20090426214451.GC6945@linux.vnet.ibm.com>
+In-Reply-To: <20090426145746.1184aeba@nehalam>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
-* Paul E. McKenney <paulmck@linux.vnet.ibm.com> wrote:
-
-> On Sun, Apr 26, 2009 at 10:22:55PM +0200, Ingo Molnar wrote:
-> > 
-> > * Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca> wrote:
-> > 
-> > > * Ingo Molnar (mingo@elte.hu) wrote:
-> > > > 
-> > > > * Paul E. McKenney <paulmck@linux.vnet.ibm.com> wrote:
-> > > > 
-> > > > > Second cut of "big hammer" expedited RCU grace periods, but only 
-> > > > > for rcu_bh.  This creates another softirq vector, so that entering 
-> > > > > this softirq vector will have forced an rcu_bh quiescent state (as 
-> > > > > noted by Dave Miller).  Use smp_call_function() to invoke 
-> > > > > raise_softirq() on all CPUs in order to cause this to happen.  
-> > > > > Track the CPUs that have passed through a quiescent state (or gone 
-> > > > > offline) with a cpumask.
-> > > > 
-> > > > hm, i'm still asking whether doing this would be simpler via a 
-> > > > reschedule vector - which not only is an existing facility but also 
-> > > > forces all RCU domains through a quiescent state - not just bh-RCU 
-> > > > participants.
-> > > > 
-> > > > Triggering a new softirq is in no way simpler that doing an SMP 
-> > > > cross-call - in fact softirqs are a finite resource so using some 
-> > > > other facility would be preferred.
-> > > > 
-> > > > Am i missing something?
-> > > > 
+* Stephen Hemminger (shemminger@vyatta.com) wrote:
+> On Sun, 26 Apr 2009 14:56:46 -0400
+> Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca> wrote:
+> 
+> > * Eric Dumazet (dada1@cosmosbay.com) wrote:
+> > > From: Stephen Hemminger <shemminger@vyatta.com>
 > > > 
-> > > I think the reason for this whole thread is that waiting for rcu 
-> > > quiescent state, when called many times e.g. in multiple iptables 
-> > > invokations, takes too longs (5 seconds to load the netfilter 
-> > > rules at boot). [...]
+> > > > Epilogue due to master Jarek. Lockdep carest not about the locking
+> > > > doth bestowed. Therefore no keys are needed.
+> > > > 
+> > > > Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
+> > > 
+> > > So far, so good, should be ready for inclusion now, nobody complained :)
+> > > 
+> > > I include the final patch, merge of your last two patches.
+> > > 
+> > > David, could you please review it once again and apply it if it's OK ?
 > > 
-> > I'm aware of the problem space.
+> > > Thanks to all for your help and patience
+> > > 
+> > > [PATCH] netfilter: use per-CPU recursive lock {XV}
 > > 
-> > I was suggesting that to trigger the quiescent state and to wait for 
-> > it to propagate it would be enough to reuse the reschedule 
-> > mechanism.
+> > Hi Eric, 
 > > 
-> > It would be relatively straightforward: first a send-reschedule then 
-> > do a wait_task_context_switch() on rq->curr - both are existing 
-> > primitives. (a task reference has to be taken but that's pretty much 
-> > all)
-> 
-> Well, one reason I didn't take this approach was that I didn't 
-> happen to think of it.  ;-)
-> 
-> Also that I hadn't heard of wait_task_context_switch().
-> 
-> Hmmm...  Looking for wait_task_context_switch().  OK, found it.
-> 
-> It looks to me that this primitive won't return until the 
-> scheduler actually decides to run something else.  We instead need 
-> to have something that stops waiting once the CPU enters the 
-> scheduler, hence the previous thought of making rcu_qsctr_inc() do 
-> a bit of extra work.
-> 
-> This would be a way of making an expedited RCU-sched across all 
-> RCU implementations.  As noted in the earlier email, it would not 
-> handle RCU or RCU-bh in a -rt kernel.
-> 
-> > By the time wait_task_context_switch() returns from the last CPU 
-> > we know that the quiescent state has passed.
-> 
-> We would want to wait for all of the CPUs in parallel, though, 
-> wouldn't we?  Seems that we would not want to wait for the last 
-> CPU to do another trip through the scheduler if it had already 
-> passed through the scheduler while we were waiting on the earlier 
-> CPUs.
-> 
-> So it seems like we would still want a two-pass approach -- one 
-> pass to capture the current state, the second pass to wait for the 
-> state to change.
+> > Suitable name would probably be :
+> > 
 
-I think waiting in parallel is still possible (first kick all tasks, 
-then make sure all tasks have left the CPU at least once).
+Hi Stephen,
 
-The busy-waiting in wait_task_context_switch() is indeed a problem - 
-but perhaps that could be refactored to be a migration-thread driven 
-wait_for_completion() + complete() cycle? It could be driven by 
-preempt notifiers perhaps - and become zero-cost.
+[I see that you have cutted my name proposal from the original email,
+which might make it difficult for others to follow. I will assume you
+did it by mistake.]
 
-	Ingo
+(re-added)
+[PATCH] netfilter: use bh disabling with per-cpu read-write lock
+
+> 
+> But Linus is trying to delude himself.
+> 
+> This usage is recursive even if he doesn't like the terminology.
+> The same CPU has to be able to reacquire the read lock without deadlocking.
+> If reader/writer locks were implemented in a pure writer gets priority
+> method, then this code would break!  So yes read locks can be used recursively
+> now in Linux, but if the were implemented differently then this code
+> would break.  For example, the -rt kernel turns all read/write locks into
+> mutexs, so the -rt kernel developers will have to address this.
+
+Reading Documentation/spinlocks.txt, which states the lock usage
+guidelines :
+
+"Note that you can be clever with read-write locks and interrupts. For
+example, if you know that the interrupt only ever gets a read-lock, then
+you can use a non-irq version of read locks everywhere - because they
+don't block on each other (and thus there is no dead-lock wrt interrupts.
+But when you do the write-lock, you have to use the irq-safe version."
+
+So it's assumed in the kernel-wide read lock usage that nested read
+locks are OK. I'm adding Thomas and Steven in CC, but I'm quite sure
+they must have dealt with nested read-lock transformation into mutexes
+by detecting nesting in some way in -rt. But I'll let them confirm this.
+
+So I don't see why you are dreaming about a different semantic than the
+one of the primitives you are using. I guess I'll leave the semantics to
+you. I just find it astonishing that you persist saying that everbody is
+wrong on a topic like semantic, which is in the end a mean to
+communicate ideas clearly within the overall community you disagree
+with.
+
+Good luck !
+
+Mathieu
+
+-- 
+Mathieu Desnoyers
+OpenPGP key fingerprint: 8CD5 52C3 8E3C 4140 715F  BA06 3F25 A8FE 3BAE 9A68
