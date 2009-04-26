@@ -1,67 +1,36 @@
-From: Stephen Hemminger <shemminger@vyatta.com>
-Subject: [PATCH] netfilter: iptables no lockdep is needed..
-Date: Sat, 25 Apr 2009 13:30:52 -0700
-Message-ID: <20090425133052.4cb711f5@nehalam>
-References: <20090418094001.GA2369@ioremap.net>
-	<20090418141455.GA7082@linux.vnet.ibm.com>
-	<20090420103414.1b4c490f@nehalam>
-	<49ECBE0A.7010303@cosmosbay.com>
-	<18924.59347.375292.102385@cargo.ozlabs.ibm.com>
-	<20090420215827.GK6822@linux.vnet.ibm.com>
-	<18924.64032.103954.171918@cargo.ozlabs.ibm.com>
-	<20090420160121.268a8226@nehalam>
-	<alpine.LFD.2.00.0904210831560.2199@localhost.localdomain>
-	<20090421111541.228e977a@nehalam>
-	<20090421193924.GA24404@elte.hu>
-	<20090421143927.52d7d89d@nehalam>
-	<alpine.LFD.2.00.0904220821240.3101@localhost.localdomain>
-	<20090423210938.1501507b@nehalam>
-	<49F146FF.5050200@cosmosbay.com>
-	<20090424091839.6e13ebec@nehalam>
-	<49F22465.80305@gmail.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: netfilter 00/05: netfilter fixes
+Date: Sat, 25 Apr 2009 17:57:58 -0700 (PDT)
+Message-ID: <20090425.175758.05225143.davem@davemloft.net>
+References: <20090424154355.28952.21443.sendpatchset@x2.localnet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Eric Dumazet <dada1@cosmosbay.com>,
-	Linus Torvalds <torvalds@linux-foundation.org>,
-	Ingo Molnar <mingo@elte.hu>, Paul Mackerras <paulus@samba.org>,
-	paulmck@linux.vnet.ibm.com, Evgeniy Polyakov <zbr@ioremap.net>,
-	David Miller <davem@davemloft.net>, kaber@trash.net,
-	jeff.chua.linux@gmail.com, laijs@cn.fujitsu.com,
-	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	benh@kernel.crashing.org, mathieu.desnoyers@polymtl.ca
-To: Jarek Poplawski <jarkao2@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <49F22465.80305@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: kaber@trash.net
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:60649
+	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1751776AbZDZA6G (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 25 Apr 2009 20:58:06 -0400
+In-Reply-To: <20090424154355.28952.21443.sendpatchset@x2.localnet>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Epilogue due to master Jarek. Lockdep carest not about the locking
-doth bestowed. Therefore no keys are needed.
+From: Patrick McHardy <kaber@trash.net>
+Date: Fri, 24 Apr 2009 17:44:01 +0200 (MEST)
 
-Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
+> Please apply or pull from:
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git
 
----
- net/netfilter/x_tables.c |    9 ++-------
- 1 file changed, 2 insertions(+), 7 deletions(-)
+Pulled, thanks Patrick.
 
---- a/net/netfilter/x_tables.c	2009-04-25 13:25:48.115026283 -0700
-+++ b/net/netfilter/x_tables.c	2009-04-25 13:26:15.646215635 -0700
-@@ -1145,14 +1145,9 @@ static int __init xt_init(void)
- {
- 	unsigned int i;
- 	int rv;
--	static struct lock_class_key xt_lock_key[NR_CPUS];
- 
--	for_each_possible_cpu(i) {
--		rwlock_t *lock = &per_cpu(xt_info_locks, i);
--
--		rwlock_init(lock);
--		lockdep_set_class(lock, xt_lock_key+i);
--	}
-+	for_each_possible_cpu(i)
-+		rwlock_init(&per_cpu(xt_info_locks, i));
- 
- 	xt = kmalloc(sizeof(struct xt_af) * NFPROTO_NUMPROTO, GFP_KERNEL);
- 	if (!xt)
+It would be nice to see this fixed:
+
+  CHECK   include/linux/netfilter (57 files)
+/home/davem/src/GIT/net-2.6/usr/include/linux/netfilter/xt_LED.h:6: found __[us]{8,16,32,64} type without #include <linux/types.h>
+  LD      vmlinux
+
+Thanks!
