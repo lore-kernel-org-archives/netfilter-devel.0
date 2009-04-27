@@ -1,51 +1,50 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: problem with xtables-addons and CentOS 5.3
-Date: Tue, 28 Apr 2009 01:43:39 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0904280110180.30770@fbirervta.pbzchgretzou.qr>
-References: <49F49944.3010800@solutti.com.br> <alpine.LSU.2.00.0904271110320.6706@fbirervta.pbzchgretzou.qr> <49F582F4.5080604@solutti.com.br> <alpine.LSU.2.00.0904271224480.6706@fbirervta.pbzchgretzou.qr> <49F61DF9.4060508@solutti.com.br>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [PATCH] netfilter: use per-CPU r**ursive lock {XV}
+Date: Mon, 27 Apr 2009 16:32:41 -0700 (PDT)
+Message-ID: <alpine.LFD.2.00.0904271619240.22156@localhost.localdomain>
+References: <49F22465.80305@gmail.com> <20090425133052.4cb711f5@nehalam> <49F4A6E3.7080102@cosmosbay.com> <20090426185646.GB29238@Krystal> <20090426145746.1184aeba@nehalam> <1240854297.7620.65.camel@twins> <20090427113010.5e3f1700@nehalam> <20090427185423.GC23862@elte.hu>
+ <20090427120658.35a858bb@nehalam> <alpine.LFD.2.00.0904271219570.22156@localhost.localdomain> <20090427203616.GB3836@ioremap.net> <alpine.LFD.2.00.0904271340400.22156@localhost.localdomain> <20090427144054.1fb9b7a6@nehalam> <alpine.LFD.2.00.0904271506530.22156@localhost.localdomain>
+ <alpine.LFD.2.00.0904271525120.22156@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: ML netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Leonardo Rodrigues <leolistas@solutti.com.br>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:44380 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753229AbZD0Xnl (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 27 Apr 2009 19:43:41 -0400
-In-Reply-To: <49F61DF9.4060508@solutti.com.br>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Evgeniy Polyakov <zbr@ioremap.net>, Ingo Molnar <mingo@elte.hu>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>,
+	Eric Dumazet <dada1@cosmosbay.com>,
+	David Miller <davem@davemloft.net>,
+	Jarek Poplawski <jarkao2@gmail.com>,
+	Paul Mackerras <paulus@samba.org>, paulmck@linux.vnet.ibm.com,
+	kaber@trash.net, jeff.chua.linux@gmail.com, laijs@cn.fujitsu.com,
+	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	benh@kernel.crashing.org
+To: Stephen Hemminger <shemminger@vyatta.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.00.0904271525120.22156@localhost.localdomain>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 
-On Monday 2009-04-27 23:04, Leonardo Rodrigues wrote:
->
->=C2=A0=C2=A0=C2=A0 after compiling a vanilla kernel, i could successfu=
-lly compile
->xtables-addons 1.14 on CentOS 5.3 x86_64 box.
->
->=C2=A0=C2=A0=C2=A0 Jan .... what do you thinkg about changing the warn=
-ing
->
->echo "WARNING: This distribution is not officially supported.";
->
->=C2=A0=C2=A0=C2=A0 to something like:
->
->echo "WARNING: This distribution is not officially supported when usin=
-g
->CentOS/RHEL supplied kernel.";
->echo "When using a kernel compiled from scratch, from official kernel
->sources (not CentOS/RHEL ones),"
->echo "xtables-addons can be compiled and works fine."
 
+On Mon, 27 Apr 2009, Linus Torvalds wrote:
+> 
+> I left the commentary about "readers" and "writers", because in many
+> ways it's correct, and what the code actually does is very much to
+> emulate a reader-writer lock.  I put quotes around the uses in the
+> comments to high-light that it largely _acts_ as a reader-writer lock. 
 
-Ok so I changed it, because accuracy is in my interest.
+Btw, I think it was Paul who pointed out that technically it's probably 
+better to call them "local" and "global" lockers instead of "readers" and 
+"writers".
 
--echo "WARNING: This distribution is not officially supported.";
-+echo "WARNING: This distribution's shipped kernel is not supported.";
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+That also probably clarifies the rules on when you use one over the other 
+(ie reading off all the statistics is a "global" operation, as is 
+obviously replacing the tables).
+
+Of course, "readers" and "writers" is something most Linux lock people are 
+more used to. Or "brlock" for the old-timers, but that involves a heavy 
+dose of bad taste. The new use is much nicer, especially since it never 
+takes the global lock on _all_ cpu's (which was really a killer in so 
+many ways).
+
+			Linus
