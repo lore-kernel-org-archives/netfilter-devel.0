@@ -1,196 +1,175 @@
-From: Leonardo Rodrigues <leolistas@solutti.com.br>
-Subject: Re: problem with xtables-addons and CentOS 5.3
-Date: Mon, 27 Apr 2009 18:16:55 -0300
-Message-ID: <49F620C7.5060501@solutti.com.br>
-References: <49F49944.3010800@solutti.com.br> <alpine.LSU.2.00.0904271110320.6706@fbirervta.pbzchgretzou.qr> <49F582F4.5080604@solutti.com.br> <alpine.LSU.2.00.0904271224480.6706@fbirervta.pbzchgretzou.qr>
+From: Stephen Hemminger <shemminger@vyatta.com>
+Subject: Re: [PATCH] netfilter: use per-CPU r**ursive lock {XV}
+Date: Mon, 27 Apr 2009 14:40:54 -0700
+Message-ID: <20090427144054.1fb9b7a6@nehalam>
+References: <49F22465.80305@gmail.com>
+	<20090425133052.4cb711f5@nehalam>
+	<49F4A6E3.7080102@cosmosbay.com>
+	<20090426185646.GB29238@Krystal>
+	<20090426145746.1184aeba@nehalam>
+	<1240854297.7620.65.camel@twins>
+	<20090427113010.5e3f1700@nehalam>
+	<20090427185423.GC23862@elte.hu>
+	<20090427120658.35a858bb@nehalam>
+	<alpine.LFD.2.00.0904271219570.22156@localhost.localdomain>
+	<20090427203616.GB3836@ioremap.net>
+	<alpine.LFD.2.00.0904271340400.22156@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms060708070606060103080003"
-To: ML netfilter-devel <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Evgeniy Polyakov <zbr@ioremap.net>, Ingo Molnar <mingo@elte.hu>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>,
+	Eric Dumazet <dada1@cosmosbay.com>,
+	David Miller <davem@davemloft.net>,
+	Jarek Poplawski <jarkao2@gmail.com>,
+	Paul Mackerras <paulus@samba.org>, paulmck@linux.vnet.ibm.com,
+	kaber@trash.net, jeff.chua.linux@gmail.com, laijs@cn.fujitsu.com,
+	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	benh@kernel.crashing.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.242]:35937 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754537AbZD0VRM (ORCPT
+Received: from mail.vyatta.com ([76.74.103.46]:44021 "EHLO mail.vyatta.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752630AbZD0VlD convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 27 Apr 2009 17:17:12 -0400
-Received: by an-out-0708.google.com with SMTP id d40so106517and.1
-        for <netfilter-devel@vger.kernel.org>; Mon, 27 Apr 2009 14:17:11 -0700 (PDT)
-In-Reply-To: <alpine.LSU.2.00.0904271224480.6706@fbirervta.pbzchgretzou.qr>
+	Mon, 27 Apr 2009 17:41:03 -0400
+In-Reply-To: <alpine.LFD.2.00.0904271340400.22156@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a cryptographically signed message in MIME format.
+On Mon, 27 Apr 2009 13:58:48 -0700 (PDT)
+Linus Torvalds <torvalds@linux-foundation.org> wrote:
 
---------------ms060708070606060103080003
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: quoted-printable
+>=20
+>=20
+> On Tue, 28 Apr 2009, Evgeniy Polyakov wrote:
+> >=20
+> > Just ot be sure readers will not lose the discssion topic: do you o=
+bject
+> > against naming or realizaion?
+>=20
+> I said _long_ ago that I thought the patch was fine.=20
+>=20
+> What I object to is people mis-representing the lock, and apparently=20
+> having a really hard time admitting that having a good grounding in=20
+> networking doesn't necessarily mean that you know everything about=20
+> something as basic as locking.
+>=20
+> > If its about the former, does 'dog's breath lock' proposed by Steph=
+en=20
+> > fit?
+>=20
+> Is that just an attempt to avoid admitting that they were wrong about=
+ lock=20
+> naming? And then trying to trivialize it by calling things by a=20
+> _different_ wrong name, but silly enough that they hope people won't =
+call=20
+> them on it?
 
-Jan Engelhardt escreveu:
->
-> It is the RHEL/Centos kernel that's riddled with problematic backports =
-
-> as usual.
->  =20
-
-    after compiling a vanilla kernel, i could successfully compile=20
-xtables-addons 1.14 on CentOS 5.3 x86_64 box.
-
-    Jan .... what do you thinkg about changing the warning
-
-echo "WARNING: This distribution is not officially supported.";
-
-    to something like:
-
-echo "WARNING: This distribution is not officially supported when using=20
-CentOS/RHEL supplied kernel.";
-echo "When using a kernel compiled from scratch, from official kernel=20
-sources (not CentOS/RHEL ones),"
-echo "xtables-addons can be compiled and works fine."
-
-    it would be more useful than simply 'not supported' ......
-
-    i dont know if that would be necessary, but i uninstalled supplied=20
-iptables as well and installed from sources. So i have successfully:
-
-
-[root@centos53 ~]# cat /etc/redhat-release
-CentOS  release  5.3  (Final)
-
-[root@centos53 ~]# iptables --version   =20
-iptables  v1.4.3.2
-
-[root@centos53 ~]# uname -a
-Linux centos53  2.6.29.1-grsec  #1  SMP  Mon  Apr  27  16:30:29  BRT =20
-2009  x86_64  x86_64  x86_64  GNU/Linux
-[root@centos53 ~]#
-
-and xtables-addons 1.14
+The part that concerns me is that the reader lock used in a nested mann=
+er on
+same cpu may still be broken on -rt. Other than that it is just languag=
+e
+lawyering; violent agreement that the lock gets used multiple times by
+same CPU. I never had the occasion to address this before
+(and avoided such usage), but this legacy code exists and needs to
+be dealt with.
 
 
+> Why not just use the correct name? I think it was Mathieu that just=20
+> suggested:
+>=20
+> 	[PATCH] netfilter: use bh disabling with per-cpu read-write lock
+>=20
+> or just call it "netfilter: use per-CPU read-write lock".
 
---=20
+[PATCH] netfilter: Ceci n'est pas une serrure r=C3=A9currente
 
-
-	Atenciosamente / Sincerily,
-	Leonardo Rodrigues
-	Solutti Tecnologia
-	http://www.solutti.com.br
-
-	Minha armadilha de SPAM, N=C3O mandem email
-	gertrudes@solutti.com.br
-	My SPAMTRAP, do not email it
+I don't care. I don't care. Don't you get the point yet.
 
 
 
+>=20
+> Why are people so against calling things by their correct names? Why =
+do=20
+> certain network people seem to force a stupid and incorrect descripti=
+on,=20
+> when they have been told (a) that it's wrong and (b) why it's wrong=20
+> several times?
 
+Because meaning comes from context, and my meaning comes from different
+context. So we disagree on correct names.=20
 
---------------ms060708070606060103080003
-Content-Type: application/x-pkcs7-signature; name="smime.p7s"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="smime.p7s"
-Content-Description: S/MIME Cryptographic Signature
-
-MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIRQjCC
-BIowggNyoAMCAQICECf06hH0eobEbp27bqkXBwcwDQYJKoZIhvcNAQEFBQAwbzELMAkGA1UE
-BhMCU0UxFDASBgNVBAoTC0FkZFRydXN0IEFCMSYwJAYDVQQLEx1BZGRUcnVzdCBFeHRlcm5h
-bCBUVFAgTmV0d29yazEiMCAGA1UEAxMZQWRkVHJ1c3QgRXh0ZXJuYWwgQ0EgUm9vdDAeFw0w
-NTA2MDcwODA5MTBaFw0yMDA1MzAxMDQ4MzhaMIGuMQswCQYDVQQGEwJVUzELMAkGA1UECBMC
-VVQxFzAVBgNVBAcTDlNhbHQgTGFrZSBDaXR5MR4wHAYDVQQKExVUaGUgVVNFUlRSVVNUIE5l
-dHdvcmsxITAfBgNVBAsTGGh0dHA6Ly93d3cudXNlcnRydXN0LmNvbTE2MDQGA1UEAxMtVVRO
-LVVTRVJGaXJzdC1DbGllbnQgQXV0aGVudGljYXRpb24gYW5kIEVtYWlsMIIBIjANBgkqhkiG
-9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsjmFpPJ9q0E7YkY3rs3BYHW8OWX5ShpHornMSMxqmNVN
-NRm5pELlzkniii8efNIxB8dOtINknS4p1aJkxIW9hVE1eaROaJB7HHqkkqgX8pgV8pPMyaQy
-lbsMTzC9mKALi+VuG6JG+ni8om+rWV6lL8/K2m2qL+usobNqqrcuZzWLeeEeaYji5kbNoKXq
-vgvOdjp6Dpvq/NonWz1zHyLmSGHGTPNpsaguG7bUMSAsvIKKjqQOpdeJQ/wWWq8dcdcRWdq6
-hw2v+vPhwvCkxWeM1tZUOt4KpLoDd7NlyP0e03RiqhjKaJMeoYV+9Udly/hNVyh00jT/MLbu
-9mIwFIws6wIDAQABo4HhMIHeMB8GA1UdIwQYMBaAFK29mHo0tCb3+sQmVO8DveAky1QaMB0G
-A1UdDgQWBBSJgmd9xJ0mcABLtFBIfN49rgRufTAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/
-BAUwAwEB/zB7BgNVHR8EdDByMDigNqA0hjJodHRwOi8vY3JsLmNvbW9kb2NhLmNvbS9BZGRU
-cnVzdEV4dGVybmFsQ0FSb290LmNybDA2oDSgMoYwaHR0cDovL2NybC5jb21vZG8ubmV0L0Fk
-ZFRydXN0RXh0ZXJuYWxDQVJvb3QuY3JsMA0GCSqGSIb3DQEBBQUAA4IBAQAZ2IkRbyispgCi
-54fBm5AD236hEv0e8+LwAamUVEJrmgnEoG3XkJIEA2Z5Q3H8+G+v23ZF4jcaPd3kWQR4rBz0
-g0bzes9bhHIt5UbBuhgRKfPLSXmHPLptBZ2kbWhPrXIUNqi5sf2/z3/wpGqUNVCPz4FtVbHd
-WTBK322gnGQfSXzvNrv042n0+DmPWq1LhTq3Du3Tzw1EovsEv+QvcI4l+1pUBrPQxLxtjftz
-Mizpm4QkLdZ/kXpoAlAfDj9N6cz1u2fo3BwuO/xOzf4CjuOoEwqlJkRl6RDyTVKnrtw+ymsy
-XEFs/vVdoOr/0fqbhlhtPZZH5f4ulQTCAMyOofK7MIIGVjCCBT6gAwIBAgIQQFpTnts/ZrM2
-QpaoboeKrjANBgkqhkiG9w0BAQUFADCBrjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAlVUMRcw
-FQYDVQQHEw5TYWx0IExha2UgQ2l0eTEeMBwGA1UEChMVVGhlIFVTRVJUUlVTVCBOZXR3b3Jr
-MSEwHwYDVQQLExhodHRwOi8vd3d3LnVzZXJ0cnVzdC5jb20xNjA0BgNVBAMTLVVUTi1VU0VS
-Rmlyc3QtQ2xpZW50IEF1dGhlbnRpY2F0aW9uIGFuZCBFbWFpbDAeFw0wODA2MDkwMDAwMDBa
-Fw0wOTA2MDkyMzU5NTlaMIHwMTUwMwYDVQQLEyxDb21vZG8gVHJ1c3QgTmV0d29yayAtIFBF
-UlNPTkEgTk9UIFZBTElEQVRFRDFGMEQGA1UECxM9VGVybXMgYW5kIENvbmRpdGlvbnMgb2Yg
-dXNlOiBodHRwOi8vd3d3LmNvbW9kby5uZXQvcmVwb3NpdG9yeTEfMB0GA1UECxMWKGMpMjAw
-MyBDb21vZG8gTGltaXRlZDElMCMGA1UEAxMcTGVvbmFyZG8gUm9kcmlndWVzIE1hZ2FsaGFl
-czEnMCUGCSqGSIb3DQEJARYYbGVvbGlzdGFzQHNvbHV0dGkuY29tLmJyMIIBIjANBgkqhkiG
-9w0BAQEFAAOCAQ8AMIIBCgKCAQEAw05KcNe9SNakX11fOnTzkNsXWY4pS6sXsh2d7LI+LIpu
-AyebSLY8kGSMq2BmcK6XEHETMgefa5qxXwCa9mybez2OrfhsaXkNXiC/nIQj2RX4OebigPbE
-osgFKT3kW+CJpl/LXSm1mPEq54r7O6ajB8uwnBrCh521mM2wf4evEJEePjDrqI08f76TBGPv
-c96Cs1B1noJQvrw4bTcF8vtK7CzrKpcBJNkO6/DneeZ3cKx+aO8YlzXLpHCmFS88TZlc2cUx
-f9ta14rSwyMrmINhEJwcmMo2dbzGSIigauozed0YaOi9xV8NgXda1qce+yt8uliRD4vqV2HA
-AIhDkZL+EQIDAQABo4ICKjCCAiYwHwYDVR0jBBgwFoAUiYJnfcSdJnAAS7RQSHzePa4Ebn0w
-HQYDVR0OBBYEFFa9PpPImE4tpP7eG3M71zx4GXCjMA4GA1UdDwEB/wQEAwIFoDAMBgNVHRMB
-Af8EAjAAMCAGA1UdJQQZMBcGCCsGAQUFBwMEBgsrBgEEAbIxAQMFAjARBglghkgBhvhCAQEE
-BAMCBSAwRgYDVR0gBD8wPTA7BgwrBgEEAbIxAQIBAQEwKzApBggrBgEFBQcCARYdaHR0cHM6
-Ly9zZWN1cmUuY29tb2RvLm5ldC9DUFMwgaUGA1UdHwSBnTCBmjBMoEqgSIZGaHR0cDovL2Ny
-bC5jb21vZG9jYS5jb20vVVROLVVTRVJGaXJzdC1DbGllbnRBdXRoZW50aWNhdGlvbmFuZEVt
-YWlsLmNybDBKoEigRoZEaHR0cDovL2NybC5jb21vZG8ubmV0L1VUTi1VU0VSRmlyc3QtQ2xp
-ZW50QXV0aGVudGljYXRpb25hbmRFbWFpbC5jcmwwfAYIKwYBBQUHAQEEcDBuMDYGCCsGAQUF
-BzAChipodHRwOi8vY3J0LmNvbW9kb2NhLmNvbS9VVE5BQUFDbGllbnRDQS5jcnQwNAYIKwYB
-BQUHMAKGKGh0dHA6Ly9jcnQuY29tb2RvLm5ldC9VVE5BQUFDbGllbnRDQS5jcnQwIwYDVR0R
-BBwwGoEYbGVvbGlzdGFzQHNvbHV0dGkuY29tLmJyMA0GCSqGSIb3DQEBBQUAA4IBAQBhtTRE
-pJ1HapBjVPXj9xA2yVx14oO0ncvyoYm3wYfw6yP4nNjXs25nu78KPnGRxYSmzlDNqenzs4XX
-dsFMsNeiHgC1wtLc7gGSHwCf12B2eMWhW+gl13832ULv++vuvWult91JlMHqm2/aB73fZFJO
-H60HKAVYkeHQYMhE2vigmmNSvzjL4Lf1o61P3cm1QkfQHSKa1dx0e/hcZ1nK53eb4xhhayH0
-6mP0jtGbenlkWUhAnxFE/3IoxxCdtmxJYU/J4OkvImMLaldfKu3GGaSVIB4Vkcj32OuhCaMF
-nnIC36f/xGiM3iPuNA3ekP/POXYL16n7zeN9IFbO7Ulkk7nhMIIGVjCCBT6gAwIBAgIQQFpT
-nts/ZrM2QpaoboeKrjANBgkqhkiG9w0BAQUFADCBrjELMAkGA1UEBhMCVVMxCzAJBgNVBAgT
-AlVUMRcwFQYDVQQHEw5TYWx0IExha2UgQ2l0eTEeMBwGA1UEChMVVGhlIFVTRVJUUlVTVCBO
-ZXR3b3JrMSEwHwYDVQQLExhodHRwOi8vd3d3LnVzZXJ0cnVzdC5jb20xNjA0BgNVBAMTLVVU
-Ti1VU0VSRmlyc3QtQ2xpZW50IEF1dGhlbnRpY2F0aW9uIGFuZCBFbWFpbDAeFw0wODA2MDkw
-MDAwMDBaFw0wOTA2MDkyMzU5NTlaMIHwMTUwMwYDVQQLEyxDb21vZG8gVHJ1c3QgTmV0d29y
-ayAtIFBFUlNPTkEgTk9UIFZBTElEQVRFRDFGMEQGA1UECxM9VGVybXMgYW5kIENvbmRpdGlv
-bnMgb2YgdXNlOiBodHRwOi8vd3d3LmNvbW9kby5uZXQvcmVwb3NpdG9yeTEfMB0GA1UECxMW
-KGMpMjAwMyBDb21vZG8gTGltaXRlZDElMCMGA1UEAxMcTGVvbmFyZG8gUm9kcmlndWVzIE1h
-Z2FsaGFlczEnMCUGCSqGSIb3DQEJARYYbGVvbGlzdGFzQHNvbHV0dGkuY29tLmJyMIIBIjAN
-BgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAw05KcNe9SNakX11fOnTzkNsXWY4pS6sXsh2d
-7LI+LIpuAyebSLY8kGSMq2BmcK6XEHETMgefa5qxXwCa9mybez2OrfhsaXkNXiC/nIQj2RX4
-OebigPbEosgFKT3kW+CJpl/LXSm1mPEq54r7O6ajB8uwnBrCh521mM2wf4evEJEePjDrqI08
-f76TBGPvc96Cs1B1noJQvrw4bTcF8vtK7CzrKpcBJNkO6/DneeZ3cKx+aO8YlzXLpHCmFS88
-TZlc2cUxf9ta14rSwyMrmINhEJwcmMo2dbzGSIigauozed0YaOi9xV8NgXda1qce+yt8uliR
-D4vqV2HAAIhDkZL+EQIDAQABo4ICKjCCAiYwHwYDVR0jBBgwFoAUiYJnfcSdJnAAS7RQSHze
-Pa4Ebn0wHQYDVR0OBBYEFFa9PpPImE4tpP7eG3M71zx4GXCjMA4GA1UdDwEB/wQEAwIFoDAM
-BgNVHRMBAf8EAjAAMCAGA1UdJQQZMBcGCCsGAQUFBwMEBgsrBgEEAbIxAQMFAjARBglghkgB
-hvhCAQEEBAMCBSAwRgYDVR0gBD8wPTA7BgwrBgEEAbIxAQIBAQEwKzApBggrBgEFBQcCARYd
-aHR0cHM6Ly9zZWN1cmUuY29tb2RvLm5ldC9DUFMwgaUGA1UdHwSBnTCBmjBMoEqgSIZGaHR0
-cDovL2NybC5jb21vZG9jYS5jb20vVVROLVVTRVJGaXJzdC1DbGllbnRBdXRoZW50aWNhdGlv
-bmFuZEVtYWlsLmNybDBKoEigRoZEaHR0cDovL2NybC5jb21vZG8ubmV0L1VUTi1VU0VSRmly
-c3QtQ2xpZW50QXV0aGVudGljYXRpb25hbmRFbWFpbC5jcmwwfAYIKwYBBQUHAQEEcDBuMDYG
-CCsGAQUFBzAChipodHRwOi8vY3J0LmNvbW9kb2NhLmNvbS9VVE5BQUFDbGllbnRDQS5jcnQw
-NAYIKwYBBQUHMAKGKGh0dHA6Ly9jcnQuY29tb2RvLm5ldC9VVE5BQUFDbGllbnRDQS5jcnQw
-IwYDVR0RBBwwGoEYbGVvbGlzdGFzQHNvbHV0dGkuY29tLmJyMA0GCSqGSIb3DQEBBQUAA4IB
-AQBhtTREpJ1HapBjVPXj9xA2yVx14oO0ncvyoYm3wYfw6yP4nNjXs25nu78KPnGRxYSmzlDN
-qenzs4XXdsFMsNeiHgC1wtLc7gGSHwCf12B2eMWhW+gl13832ULv++vuvWult91JlMHqm2/a
-B73fZFJOH60HKAVYkeHQYMhE2vigmmNSvzjL4Lf1o61P3cm1QkfQHSKa1dx0e/hcZ1nK53eb
-4xhhayH06mP0jtGbenlkWUhAnxFE/3IoxxCdtmxJYU/J4OkvImMLaldfKu3GGaSVIB4Vkcj3
-2OuhCaMFnnIC36f/xGiM3iPuNA3ekP/POXYL16n7zeN9IFbO7Ulkk7nhMYIEUDCCBEwCAQEw
-gcMwga4xCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJVVDEXMBUGA1UEBxMOU2FsdCBMYWtlIENp
-dHkxHjAcBgNVBAoTFVRoZSBVU0VSVFJVU1QgTmV0d29yazEhMB8GA1UECxMYaHR0cDovL3d3
-dy51c2VydHJ1c3QuY29tMTYwNAYDVQQDEy1VVE4tVVNFUkZpcnN0LUNsaWVudCBBdXRoZW50
-aWNhdGlvbiBhbmQgRW1haWwCEEBaU57bP2azNkKWqG6Hiq4wCQYFKw4DAhoFAKCCAmEwGAYJ
-KoZIhvcNAQkDMQsGCSqGSIb3DQEHATAcBgkqhkiG9w0BCQUxDxcNMDkwNDI3MjExNjU1WjAj
-BgkqhkiG9w0BCQQxFgQUKTUgLN60vGlFlh2f56wuvzVUUrAwUgYJKoZIhvcNAQkPMUUwQzAK
-BggqhkiG9w0DBzAOBggqhkiG9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYFKw4DAgcwDQYI
-KoZIhvcNAwICASgwgdQGCSsGAQQBgjcQBDGBxjCBwzCBrjELMAkGA1UEBhMCVVMxCzAJBgNV
-BAgTAlVUMRcwFQYDVQQHEw5TYWx0IExha2UgQ2l0eTEeMBwGA1UEChMVVGhlIFVTRVJUUlVT
-VCBOZXR3b3JrMSEwHwYDVQQLExhodHRwOi8vd3d3LnVzZXJ0cnVzdC5jb20xNjA0BgNVBAMT
-LVVUTi1VU0VSRmlyc3QtQ2xpZW50IEF1dGhlbnRpY2F0aW9uIGFuZCBFbWFpbAIQQFpTnts/
-ZrM2QpaoboeKrjCB1gYLKoZIhvcNAQkQAgsxgcaggcMwga4xCzAJBgNVBAYTAlVTMQswCQYD
-VQQIEwJVVDEXMBUGA1UEBxMOU2FsdCBMYWtlIENpdHkxHjAcBgNVBAoTFVRoZSBVU0VSVFJV
-U1QgTmV0d29yazEhMB8GA1UECxMYaHR0cDovL3d3dy51c2VydHJ1c3QuY29tMTYwNAYDVQQD
-Ey1VVE4tVVNFUkZpcnN0LUNsaWVudCBBdXRoZW50aWNhdGlvbiBhbmQgRW1haWwCEEBaU57b
-P2azNkKWqG6Hiq4wDQYJKoZIhvcNAQEBBQAEggEAQU8005i2IK+H2Hlj6iGGrqZKvnj2PBD0
-6RZU40PAHM9kWOq6YO/KckmtfqeoXYZJBZyAKT43G56KfLYiB11nn6UdZ7NnxQ3ObqCbtn0g
-lIiQQQmYO3aPr9SsSPT14+6krqlpZUzL0pgc3gRoiqKhRNvKHfuyJBIE3xC7fU3p8sOIFp6c
-geias6tylOgJ3lj7/aUAELfExgKLowN9PaW5Z4gjOIZvJVdxqxRYlb0eNF22r7E6gGGFmzr9
-6kXPjdVsEnjnOcjFyGTrjVizendkXfUCK7QrBoovtNtb57maIgypFjZXK7WU6XW97224mKCK
-pngubZeZ2sPBbtLBa2e45gAAAAAAAA==
---------------ms060708070606060103080003--
+> What's so hard with just doing the TechnicallyRightThing(tm) and=20
+> describing it as such?
+>=20
+> And btw - don't get me wrong. There are _other_ ways to do that locki=
+ng=20
+> too. You don't have to use a rwlock. You can do it with explicit coun=
+ting,=20
+> the way Eric's original patch did. But it would be wrong to call that=
+ one=20
+> "recursive lock" too.
+>=20
+> Or you _could_ use a recursive lock, but nobody has actually posted s=
+uch=20
+> patches. It would work. No question about it. And if it actually _wer=
+e_ a=20
+> recursive lock, I wouldn't have objected about the description saying=
+ it=20
+> is (although I would probably have objected to it being unnecessarily=
+=20
+> complex, when a simpler rwlock or the explicit count thing would be=20
+> sufficient).
+>=20
+> But since the current simple patch is using a rwlock, why not just sa=
+y=20
+> that? Why call it something incorrect ("recursive lock") or nonsensic=
+al=20
+> ("dog's breath lock").
+>=20
+> As I tried to explain with an analogy, networking people would (quite=
+=20
+> correctly) object to me calling a serial line an "ethernet cable". Wh=
+y is=20
+> it so hard for netfilter people to then see why it's wrong to call a=20
+> rwlock a "recursive lock".
+>=20
+> I mean, guys, if you don't want to read up on decades of locking work=
+,=20
+> just google for it. Google for "recursive lock" (_with_ the quotes). =
+At=20
+> least for me, the very first hit gives a reasonable explanation for i=
+t,=20
+> and it says:
+>=20
+>   "POSIX allows mutexes to be recursive. That means the same thread c=
+an=20
+>    lock the same mutex twice and won't deadlock."
+>=20
+> and realize that the "same thread" part is very much a keyword, not j=
+uat=20
+> a random implementation detail (the first answer to the question is=20
+> better than the question, but even the question at the top really doe=
+s=20
+> get at the basics).
+>=20
+> And please do realize that neither rwlocks nor the counting locks fro=
+m=20
+> Dumazet's original patch do that. Never did. They simply aren't recur=
+sive=20
+> locks.
+>=20
+> So just don't call them that. But is "dog's breath" any better? Yes, =
+maybe=20
+> it's less _misleading_, but it sure as hell isn't any more descriptiv=
+e.
+>=20
+> 			Linus
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
