@@ -1,17 +1,17 @@
-From: Ingo Molnar <mingo@elte.hu>
+From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Subject: Re: [PATCH RFC] v2 expedited "big hammer" RCU grace periods
-Date: Mon, 27 Apr 2009 15:43:02 +0200
-Message-ID: <20090427134302.GA19137@elte.hu>
+Date: Mon, 27 Apr 2009 11:54:24 -0400
+Message-ID: <20090427155424.GA27041@Krystal>
 References: <20090426052340.GA24931@linux.vnet.ibm.com> <20090426112717.GE10391@elte.hu> <20090426191343.GC29238@Krystal> <20090426202255.GA5365@elte.hu> <20090426214451.GC6945@linux.vnet.ibm.com> <20090427032639.GA10087@elte.hu> <20090427132153.GI6945@linux.vnet.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, akpm@linux-foundation.org,
-	torvalds@linux-foundation.org, davem@davemloft.net,
-	dada1@cosmosbay.com, zbr@ioremap.net, jeff.chua.linux@gmail.com,
-	paulus@samba.org, laijs@cn.fujitsu.com, jengelh@medozas.de,
-	r000n@r000n.net, benh@kernel.crashing.org
+Content-Transfer-Encoding: 7bit
+Cc: Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	akpm@linux-foundation.org, torvalds@linux-foundation.org,
+	davem@davemloft.net, dada1@cosmosbay.com, zbr@ioremap.net,
+	jeff.chua.linux@gmail.com, paulus@samba.org, laijs@cn.fujitsu.com,
+	jengelh@medozas.de, r000n@r000n.net, benh@kernel.crashing.org
 To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
@@ -19,9 +19,7 @@ In-Reply-To: <20090427132153.GI6945@linux.vnet.ibm.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-
-* Paul E. McKenney <paulmck@linux.vnet.ibm.com> wrote:
-
+* Paul E. McKenney (paulmck@linux.vnet.ibm.com) wrote:
 > On Mon, Apr 27, 2009 at 05:26:39AM +0200, Ingo Molnar wrote:
 > > 
 > > * Paul E. McKenney <paulmck@linux.vnet.ibm.com> wrote:
@@ -103,22 +101,36 @@ List-Id: netfilter-devel.vger.kernel.org
 > > I think waiting in parallel is still possible (first kick all tasks, 
 > > then make sure all tasks have left the CPU at least once).
 > > 
-> > The busy-waiting in wait_task_context_switch() is indeed a 
-> > problem - but perhaps that could be refactored to be a 
-> > migration-thread driven wait_for_completion() + complete() 
-> > cycle? It could be driven by preempt notifiers perhaps - and 
-> > become zero-cost.
+> > The busy-waiting in wait_task_context_switch() is indeed a problem - 
+> > but perhaps that could be refactored to be a migration-thread driven 
+> > wait_for_completion() + complete() cycle? It could be driven by 
+> > preempt notifiers perhaps - and become zero-cost.
 > 
-> Hmmm...  It would need to be informed of the quiescent state even 
-> if that quiescent state did not result in a preemption.
+> Hmmm...  It would need to be informed of the quiescent state even if
+> that quiescent state did not result in a preemption.
 > 
-> But you are right -- I do need to expedite RCU, not just RCU-bh, 
-> especially given that the boot-speed guys are starting to see 
-> grace periods as a measureable fraction of the boot time.  I will 
-> take another pass at this.
+> But you are right -- I do need to expedite RCU, not just RCU-bh,
+> especially given that the boot-speed guys are starting to see grace
+> periods as a measureable fraction of the boot time.  I will take another
+> pass at this.
+> 
+> 							Thanx, Paul
 
-The precise method of signalling is a detail i suspect - so by all 
-means use a new softirq if that is the cleanest. I'd also agree that 
-covering not just bh-rcu would definitely be a good idea.
+It might sound a bit simplistic, but... scheduling a high-priority
+workqueue on every CPUs would give you the guarantees you seem to need
+here. Or is the delay of letting the scheduler schedule a high-priority
+task a delay you are trying to avoid ?
 
-	Ingo
+Some kind of priority boosting done by synchronize_rcu() could probably
+work, and you could support rcu callbacks priority boosting by assigning
+a priority to each callback registered (same priority as the thread
+which invoked call_rcu). The rcu callbacks could then be sorted by
+priority in a RB tree, and only the callbacks associated with priority
+>= than the next priority task would be executed.
+
+Mathieu
+
+
+-- 
+Mathieu Desnoyers
+OpenPGP key fingerprint: 8CD5 52C3 8E3C 4140 715F  BA06 3F25 A8FE 3BAE 9A68
