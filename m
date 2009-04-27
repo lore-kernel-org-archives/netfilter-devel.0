@@ -1,50 +1,44 @@
 From: Evgeniy Polyakov <zbr@ioremap.net>
-Subject: Re: [PATCH] netfilter: use per-CPU r**ursive lock {XV}
-Date: Tue, 28 Apr 2009 00:36:16 +0400
-Message-ID: <20090427203616.GB3836@ioremap.net>
-References: <49F22465.80305@gmail.com> <20090425133052.4cb711f5@nehalam> <49F4A6E3.7080102@cosmosbay.com> <20090426185646.GB29238@Krystal> <20090426145746.1184aeba@nehalam> <1240854297.7620.65.camel@twins> <20090427113010.5e3f1700@nehalam> <20090427185423.GC23862@elte.hu> <20090427120658.35a858bb@nehalam> <alpine.LFD.2.00.0904271219570.22156@localhost.localdomain>
+Subject: Re: [PATCH RFC] v2 expedited "big hammer" RCU grace periods
+Date: Tue, 28 Apr 2009 00:56:02 +0400
+Message-ID: <20090427205601.GA5716@ioremap.net>
+References: <20090426052340.GA24931@linux.vnet.ibm.com> <20090426112717.GE10391@elte.hu> <20090426191343.GC29238@Krystal> <20090426202255.GA5365@elte.hu> <20090426214451.GC6945@linux.vnet.ibm.com> <20090427032639.GA10087@elte.hu> <20090427132153.GI6945@linux.vnet.ibm.com> <20090427155424.GA27041@Krystal>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Stephen Hemminger <shemminger@vyatta.com>,
-	Ingo Molnar <mingo@elte.hu>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>,
-	Eric Dumazet <dada1@cosmosbay.com>,
-	David Miller <davem@davemloft.net>,
-	Jarek Poplawski <jarkao2@gmail.com>,
-	Paul Mackerras <paulus@samba.org>, paulmck@linux.vnet.ibm.com,
-	kaber@trash.net, jeff.chua.linux@gmail.com, laijs@cn.fujitsu.com,
-	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	benh@kernel.crashing.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	akpm@linux-foundation.org, torvalds@linux-foundation.org,
+	davem@davemloft.net, dada1@cosmosbay.com,
+	jeff.chua.linux@gmail.com, paulus@samba.org, laijs@cn.fujitsu.com,
+	jengelh@medozas.de, r000n@r000n.net, benh@kernel.crashing.org
+To: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from tservice.ru ([195.178.208.66]:42485 "EHLO tservice.net.ru"
+Received: from cs-studio.ru ([195.178.208.66]:58603 "EHLO tservice.net.ru"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1760694AbZD0Ug0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 27 Apr 2009 16:36:26 -0400
+	id S1756935AbZD0U4J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 27 Apr 2009 16:56:09 -0400
 Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.00.0904271219570.22156@localhost.localdomain>
+In-Reply-To: <20090427155424.GA27041@Krystal>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Hi.
 
-On Mon, Apr 27, 2009 at 12:46:48PM -0700, Linus Torvalds (torvalds@linux-foundation.org) wrote:
-> > All those references support my argument that the lock is being
-> > used recursively in this case.
-> 
-> What's so hard between understanding the difference between "used 
-> recursively" and "recursive lock"?
-> 
-> THEY MEAN TWO TOTALLY DIFFERENT THINGS!
-> 
-> The fact that you don't seem to understand that is one of the things I've 
-> been complaining about all along.
+On Mon, Apr 27, 2009 at 11:54:24AM -0400, Mathieu Desnoyers (mathieu.desnoyers@polymtl.ca) wrote:
+> It might sound a bit simplistic, but... scheduling a high-priority
+> workqueue on every CPUs would give you the guarantees you seem to need
+> here. Or is the delay of letting the scheduler schedule a high-priority
+> task a delay you are trying to avoid ?
 
-Just ot be sure readers will not lose the discssion topic: do you object
-against naming or realizaion? If its about the former, does 'dog's
-breath lock' proposed by Stephen fit?
+I believe not the abstract (empty) task should be invoked, but a real
+task which does the work. Presumably if we want to schedule a way
+networking part to copy its counters, system should wake up the
+appropriate userspace thread blocked in a grace-period waking path, so
+effectively either RCU callback processing code or some registered
+thread should be awakened.
+
+Just a detail though.
 
 -- 
 	Evgeniy Polyakov
