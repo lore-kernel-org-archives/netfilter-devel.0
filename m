@@ -1,22 +1,11 @@
-From: Stephen Hemminger <shemminger@vyatta.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
 Subject: Re: [PATCH] netfilter: use per-CPU r**ursive lock {XV}
-Date: Mon, 27 Apr 2009 14:40:54 -0700
-Message-ID: <20090427144054.1fb9b7a6@nehalam>
-References: <49F22465.80305@gmail.com>
-	<20090425133052.4cb711f5@nehalam>
-	<49F4A6E3.7080102@cosmosbay.com>
-	<20090426185646.GB29238@Krystal>
-	<20090426145746.1184aeba@nehalam>
-	<1240854297.7620.65.camel@twins>
-	<20090427113010.5e3f1700@nehalam>
-	<20090427185423.GC23862@elte.hu>
-	<20090427120658.35a858bb@nehalam>
-	<alpine.LFD.2.00.0904271219570.22156@localhost.localdomain>
-	<20090427203616.GB3836@ioremap.net>
-	<alpine.LFD.2.00.0904271340400.22156@localhost.localdomain>
+Date: Mon, 27 Apr 2009 15:24:52 -0700 (PDT)
+Message-ID: <alpine.LFD.2.00.0904271506530.22156@localhost.localdomain>
+References: <49F22465.80305@gmail.com> <20090425133052.4cb711f5@nehalam> <49F4A6E3.7080102@cosmosbay.com> <20090426185646.GB29238@Krystal> <20090426145746.1184aeba@nehalam> <1240854297.7620.65.camel@twins> <20090427113010.5e3f1700@nehalam> <20090427185423.GC23862@elte.hu>
+ <20090427120658.35a858bb@nehalam> <alpine.LFD.2.00.0904271219570.22156@localhost.localdomain> <20090427203616.GB3836@ioremap.net> <alpine.LFD.2.00.0904271340400.22156@localhost.localdomain> <20090427144054.1fb9b7a6@nehalam>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Evgeniy Polyakov <zbr@ioremap.net>, Ingo Molnar <mingo@elte.hu>,
 	Peter Zijlstra <peterz@infradead.org>,
 	Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>,
@@ -28,148 +17,79 @@ Cc: Evgeniy Polyakov <zbr@ioremap.net>, Ingo Molnar <mingo@elte.hu>,
 	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
 	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
 	benh@kernel.crashing.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
+To: Stephen Hemminger <shemminger@vyatta.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.vyatta.com ([76.74.103.46]:44021 "EHLO mail.vyatta.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752630AbZD0VlD convert rfc822-to-8bit (ORCPT
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:54587 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750806AbZD0WhZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 27 Apr 2009 17:41:03 -0400
-In-Reply-To: <alpine.LFD.2.00.0904271340400.22156@localhost.localdomain>
+	Mon, 27 Apr 2009 18:37:25 -0400
+In-Reply-To: <20090427144054.1fb9b7a6@nehalam>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 27 Apr 2009 13:58:48 -0700 (PDT)
-Linus Torvalds <torvalds@linux-foundation.org> wrote:
-
->=20
->=20
-> On Tue, 28 Apr 2009, Evgeniy Polyakov wrote:
-> >=20
-> > Just ot be sure readers will not lose the discssion topic: do you o=
-bject
-> > against naming or realizaion?
->=20
-> I said _long_ ago that I thought the patch was fine.=20
->=20
-> What I object to is people mis-representing the lock, and apparently=20
-> having a really hard time admitting that having a good grounding in=20
-> networking doesn't necessarily mean that you know everything about=20
-> something as basic as locking.
->=20
-> > If its about the former, does 'dog's breath lock' proposed by Steph=
-en=20
-> > fit?
->=20
-> Is that just an attempt to avoid admitting that they were wrong about=
- lock=20
-> naming? And then trying to trivialize it by calling things by a=20
-> _different_ wrong name, but silly enough that they hope people won't =
-call=20
-> them on it?
-
-The part that concerns me is that the reader lock used in a nested mann=
-er on
-same cpu may still be broken on -rt. Other than that it is just languag=
-e
-lawyering; violent agreement that the lock gets used multiple times by
-same CPU. I never had the occasion to address this before
-(and avoided such usage), but this legacy code exists and needs to
-be dealt with.
 
 
-> Why not just use the correct name? I think it was Mathieu that just=20
-> suggested:
->=20
-> 	[PATCH] netfilter: use bh disabling with per-cpu read-write lock
->=20
-> or just call it "netfilter: use per-CPU read-write lock".
+On Mon, 27 Apr 2009, Stephen Hemminger wrote:
+>
+> The part that concerns me is that the reader lock used in a nested manner on
+> same cpu may still be broken on -rt.
 
-[PATCH] netfilter: Ceci n'est pas une serrure r=C3=A9currente
+I think that's a valid concern, and I don't actually object to not using a 
+rwlock, but using the "explicit counting + spinlock" that we had at one 
+point. It _might_ even be faster, since a spinlock can be faster than a 
+rwlock, and the (rare) case where you recurse you can then avoid the 
+atomic entirely.
 
-I don't care. I don't care. Don't you get the point yet.
+But EVEN IF YOU DO THAT, it's still wrong to call it a "recursive lock". 
+Because it still wouldn't be one.
 
+That's kind of my point, and always has been. It was why I objected to the 
+original patch description by Dumazet. It wasn't a recursive lock back 
+then _either_. For all the reasons I tried to explain to you, and you seem 
+to not care about.
 
+Btw, if you do use the "explicit count" case, then please please please 
+make sure it's documented and bug-free. And dammit, correct documentation 
+in this case very much talks about how it is _not_ a "recursive lock", but 
+a spinlock that then has an explicit counter that avoids taking the lock 
+entirely in one very specific path (that happens to be recursive).
 
->=20
-> Why are people so against calling things by their correct names? Why =
-do=20
-> certain network people seem to force a stupid and incorrect descripti=
-on,=20
-> when they have been told (a) that it's wrong and (b) why it's wrong=20
-> several times?
+The thing is, using a rwlock kind of implicitly documents all of that, 
+because you can tell somebody who doesn't even read the code that it's a 
+"per-cpu rwlock", and they then know what the semantics are (given that 
+they know the kernel semantics for locking in the first place).
 
-Because meaning comes from context, and my meaning comes from different
-context. So we disagree on correct names.=20
+But once you start doing your own locking rules, you really have to 
+explain why it works, and what it does. And you do have to be very 
+careful, because it's so easy to get locking wrong.
 
-> What's so hard with just doing the TechnicallyRightThing(tm) and=20
-> describing it as such?
->=20
-> And btw - don't get me wrong. There are _other_ ways to do that locki=
-ng=20
-> too. You don't have to use a rwlock. You can do it with explicit coun=
-ting,=20
-> the way Eric's original patch did. But it would be wrong to call that=
- one=20
-> "recursive lock" too.
->=20
-> Or you _could_ use a recursive lock, but nobody has actually posted s=
-uch=20
-> patches. It would work. No question about it. And if it actually _wer=
-e_ a=20
-> recursive lock, I wouldn't have objected about the description saying=
- it=20
-> is (although I would probably have objected to it being unnecessarily=
-=20
-> complex, when a simpler rwlock or the explicit count thing would be=20
-> sufficient).
->=20
-> But since the current simple patch is using a rwlock, why not just sa=
-y=20
-> that? Why call it something incorrect ("recursive lock") or nonsensic=
-al=20
-> ("dog's breath lock").
->=20
-> As I tried to explain with an analogy, networking people would (quite=
-=20
-> correctly) object to me calling a serial line an "ethernet cable". Wh=
-y is=20
-> it so hard for netfilter people to then see why it's wrong to call a=20
-> rwlock a "recursive lock".
->=20
-> I mean, guys, if you don't want to read up on decades of locking work=
-,=20
-> just google for it. Google for "recursive lock" (_with_ the quotes). =
-At=20
-> least for me, the very first hit gives a reasonable explanation for i=
-t,=20
-> and it says:
->=20
->   "POSIX allows mutexes to be recursive. That means the same thread c=
-an=20
->    lock the same mutex twice and won't deadlock."
->=20
-> and realize that the "same thread" part is very much a keyword, not j=
-uat=20
-> a random implementation detail (the first answer to the question is=20
-> better than the question, but even the question at the top really doe=
-s=20
-> get at the basics).
->=20
-> And please do realize that neither rwlocks nor the counting locks fro=
-m=20
-> Dumazet's original patch do that. Never did. They simply aren't recur=
-sive=20
-> locks.
->=20
-> So just don't call them that. But is "dog's breath" any better? Yes, =
-maybe=20
-> it's less _misleading_, but it sure as hell isn't any more descriptiv=
-e.
->=20
-> 			Linus
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> I don't care. I don't care. Don't you get the point yet.
+
+If you don't care about the naming, then use the right one. 
+
+And if you don't care about the naming, why do you then say I'm deluding 
+myself, when I'm _correct_, and I _do_ happen to care about correct 
+naming.
+
+Locking really is important.  Code that gets locking wrong breaks in
+really subtle and nasty ways.  And it sadly tends to "work" in testing,
+since the breakage cases require just the right timing.  So locking
+should be robust and as "obviously correct" as possible.
+
+And naming really is important.  Misnaming things makes people make
+assumptions that aren't true.  If you talk about recursive locks, it
+should be reasonable that people who know how recursive locks work would
+then make assumptions about them.  If the code then doesn't actually
+match those rules, that's bad. 
+
+It's like having a comment in front of a piece of code that says something 
+totally different than what the code actually does. It's _bad_. That's why 
+naming matters so much - because naming is commentary.  If you mis-name 
+things on purpose, it's simply a bug.
+
+Do _you_ get the point?
+
+You _do_ care about bugs, don't you?
+
+			Linus
