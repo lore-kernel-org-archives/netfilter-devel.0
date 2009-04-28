@@ -1,55 +1,51 @@
-From: Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
 Subject: Re: [PATCH] netfilter: use per-CPU r**ursive lock {XV}
-Date: Tue, 28 Apr 2009 09:52:19 -0400
-Message-ID: <20090428135219.GA28513@Krystal>
-References: <49F6A8FD.3010804@cosmosbay.com> <20090428.045342.206106171.davem@davemloft.net> <20090428124033.GA1655@elte.hu> <20090428.064340.193569214.davem@davemloft.net>
+Date: Tue, 28 Apr 2009 07:22:59 -0700
+Message-ID: <20090428142258.GA6730@linux.vnet.ibm.com>
+References: <20090427185423.GC23862@elte.hu> <20090427120658.35a858bb@nehalam> <alpine.LFD.2.00.0904271219570.22156@localhost.localdomain> <20090427203616.GB3836@ioremap.net> <alpine.LFD.2.00.0904271340400.22156@localhost.localdomain> <20090427144054.1fb9b7a6@nehalam> <alpine.LFD.2.00.0904271506530.22156@localhost.localdomain> <alpine.LFD.2.00.0904271525120.22156@localhost.localdomain> <alpine.LFD.2.00.0904271619240.22156@localhost.localdomain> <1240904468.7620.70.camel@twins>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: mingo@elte.hu, dada1@cosmosbay.com, torvalds@linux-foundation.org,
-	shemminger@vyatta.com, zbr@ioremap.net, peterz@infradead.org,
-	jarkao2@gmail.com, paulus@samba.org, paulmck@linux.vnet.ibm.com,
-	kaber@trash.net, jeff.chua.linux@gmail.com, laijs@cn.fujitsu.com,
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	Stephen Hemminger <shemminger@vyatta.com>,
+	Evgeniy Polyakov <zbr@ioremap.net>,
+	Ingo Molnar <mingo@elte.hu>,
+	Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>,
+	Eric Dumazet <dada1@cosmosbay.com>,
+	David Miller <davem@davemloft.net>,
+	Jarek Poplawski <jarkao2@gmail.com>,
+	Paul Mackerras <paulus@samba.org>, kaber@trash.net,
+	jeff.chua.linux@gmail.com, laijs@cn.fujitsu.com,
 	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
 	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
 	benh@kernel.crashing.org
-To: David Miller <davem@davemloft.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from tomts20.bellnexxia.net ([209.226.175.74]:51807 "EHLO
-	tomts20-srv.bellnexxia.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755381AbZD1N5Y (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 28 Apr 2009 09:57:24 -0400
+To: Peter Zijlstra <peterz@infradead.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <20090428.064340.193569214.davem@davemloft.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1240904468.7620.70.camel@twins>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-* David Miller (davem@davemloft.net) wrote:
-> From: Ingo Molnar <mingo@elte.hu>
-> Date: Tue, 28 Apr 2009 14:40:33 +0200
+On Tue, Apr 28, 2009 at 09:41:08AM +0200, Peter Zijlstra wrote:
+> On Mon, 2009-04-27 at 16:32 -0700, Linus Torvalds wrote:
+> > 
+> > On Mon, 27 Apr 2009, Linus Torvalds wrote:
+> > > 
+> > > I left the commentary about "readers" and "writers", because in many
+> > > ways it's correct, and what the code actually does is very much to
+> > > emulate a reader-writer lock.  I put quotes around the uses in the
+> > > comments to high-light that it largely _acts_ as a reader-writer lock. 
+> > 
+> > Btw, I think it was Paul who pointed out that technically it's probably 
+> > better to call them "local" and "global" lockers instead of "readers" and 
+> > "writers".
 > 
-> > IMHO this locking construct should be considered for 
-> > linux/local_lock.h and kernel/local_lock.c. Even if the netfilter 
-> > code drops its use soon afterwards ;-)
-> 
-> If you can show me have to pass a per-cpu variable (the variable,
-> not a dereference of it) as an argument to an inline function,
-> I'll implement this :-)
-> 
-> It has to be dereferenced after local_bh_disable() for the
-> read side acquisition.
+> exclusive vs non-exclusive is what the literature would call them in
+> most cases I think.
 
-The local_bh_disable() could be outside of the locking construct. This
-would make it easier to adapt it to various users (irq disable, bh
-disable, preempt disable) depending on the contexts from which they much
-be protected.
+I would argue that the non-exclusive category includes both reader-writer
+locking and local-global locking.  That said, we have an unusual variant
+of local-global in this case, as the global processing acquires only one
+of the locks at a time.
 
-And if it still does not work for some reason, using a #define is
-discouraged, but could work.
-
-Mathieu
-
--- 
-Mathieu Desnoyers
-OpenPGP key fingerprint: 8CD5 52C3 8E3C 4140 715F  BA06 3F25 A8FE 3BAE 9A68
+							Thanx, Paul
