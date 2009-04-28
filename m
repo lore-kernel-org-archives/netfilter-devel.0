@@ -1,60 +1,67 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [bug] FWMARKs and persistence in IPVS: The Use of Unions
-Date: Tue, 28 Apr 2009 14:27:34 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0904281421530.7300@fbirervta.pbzchgretzou.qr>
-References: <20090428081509.GA746@verge.net.au> <alpine.LSU.2.00.0904281103250.27149@fbirervta.pbzchgretzou.qr> <20090428092351.GC8165@verge.net.au> <20090428105941.GA20907@verge.net.au>
+From: Ingo Molnar <mingo@elte.hu>
+Subject: Re: [PATCH] netfilter: use per-CPU r**ursive lock {XV}
+Date: Tue, 28 Apr 2009 14:40:33 +0200
+Message-ID: <20090428124033.GA1655@elte.hu>
+References: <alpine.LFD.2.00.0904271525120.22156@localhost.localdomain> <alpine.LFD.2.00.0904271602390.22156@localhost.localdomain> <49F6A8FD.3010804@cosmosbay.com> <20090428.045342.206106171.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>,
-	lvs-devel@vger.kernel.org,
-	=?UTF-8?Q?Fabien_Duch=C3=AAne?=
-	<fabien.duchene@student.uclouvain.be>,
-	Joseph Mack NA3T <jmack@wm7d.net>,
-	Julius Volz <julius.volz@gmail.com>
-To: Simon Horman <horms@verge.net.au>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <20090428105941.GA20907@verge.net.au>
-Sender: lvs-devel-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: dada1@cosmosbay.com, torvalds@linux-foundation.org,
+	shemminger@vyatta.com, zbr@ioremap.net, peterz@infradead.org,
+	mathieu.desnoyers@polymtl.ca, jarkao2@gmail.com, paulus@samba.org,
+	paulmck@linux.vnet.ibm.com, kaber@trash.net,
+	jeff.chua.linux@gmail.com, laijs@cn.fujitsu.com,
+	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	benh@kernel.crashing.org
+To: David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20090428.045342.206106171.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
 
-On Tuesday 2009-04-28 12:59, Simon Horman wrote:
->>>
->>>union nf_inet_addr fwmark = {
->>>	.all = { 0, 0, 0, htonl(svc->fwmark) }
->>>};
->[said something about cp->af...]
+* David Miller <davem@davemloft.net> wrote:
 
-It does not make sense to use AF_INE with some address as unreal
-as {0,0,0,fwmark}, just BTW.
+> From: Eric Dumazet <dada1@cosmosbay.com>
+> Date: Tue, 28 Apr 2009 08:58:05 +0200
+> 
+> > I am not sure my day job will permit me to polish a patch mixing all
+> > the bits and comments. But I am glad we eventually got back spinlocks
+> > which are probably better than rwlocks for implementing this stuff.
+> > 
+> > Instead of submitting a full patch again, we could first submit a new
+> >  include file containg all comments and inline functions ?
+> > 
+> > This include file could be local to netfilter, with a big stick on
+> > it to forbids its use on other areas (No changes in Documentation/ )
+> > 
+> > Then, as soon as we can go back to pure RCU solution, we can 
+> > safely delete this controversial-locking-nesting-per-cpu-thing ?
+> 
+> I say we merge Linus's locking idea into the XV patch, fixup the 
+> commit message wording, and move on with life.
+> 
+> For something that's going to get deleted as soon as the faster 
+> grace period RCU stuff is available, it has consumed an inordinate 
+> amount of our time :-)
 
->> > If you use ->all, then using NFPROTO_UNSPEC as af
->> > seems to me like a good match.
->
->I am guessing that AF_UNSPEC is more appropriate than NFPROTO_UNSPEC.
->Please correct me if I am wrong.
+One more reason to factor out this code into general locking code.
 
-Whatever. You could even use AF_INET6 to mean "take the ipv4 part
-of nf_inet_addr", and AF_INET to "take the ipv6 part". The mapping
-is on you, so to speak.
-Since you are dealing with an *nf*_inet_addr, using *NF*PROTO_ seemed
-the closest thing.
+The latest code looks a bit similar to the old big-reader-locks hack 
+(which got dropped for good many eons ago and with which i deny any 
+involvement with, such as having authored it. [oh, did i say that 
+out loud? crap.]), implemented cleanly and properly.
 
->The following patch expresses these ideas as they crrently stand.
->Fabien, is it possible for you to test this?
->
->Index: net-next-2.6/net/netfilter/ipvs/ip_vs_conn.c
->===================================================================
->--- net-next-2.6.orig/net/netfilter/ipvs/ip_vs_conn.c	2009-04-28 20:37:48.000000000 +1000
->+++ net-next-2.6/net/netfilter/ipvs/ip_vs_conn.c	2009-04-28 20:37:51.000000000 +1000
->@@ -260,7 +260,10 @@ struct ip_vs_conn *ip_vs_ct_in_get
-> 	list_for_each_entry(cp, &ip_vs_conn_tab[hash], c_list) {
-> 		if (cp->af == af &&
-> 		    ip_vs_addr_equal(af, s_addr, &cp->caddr) &&
->-		    ip_vs_addr_equal(af, d_addr, &cp->vaddr) &&
->+		    /* protocol should only be IPPROTO_IP if
->+		     * d_addr is a fwmark */
->+		    ip_vs_addr_equal(protocol == IPPROTO_IP ? AF_UNSPEC : af,
->+		                     d_addr, &cp->vaddr) &&
+IMHO this locking construct should be considered for 
+linux/local_lock.h and kernel/local_lock.c. Even if the netfilter 
+code drops its use soon afterwards ;-)
 
-What about IPPROTO_IPV6?
+[ The _only_ thing i am worried about is the apparent fact that
+  there's so much confusion about recursion versus read-access.
+  Recursion might be hard to factor out of the netfilter code, and
+  maybe it's not even possible realistically (we fought years with
+  the BKL and are still fighting it) but if its harms are not even
+  _realized_ that difficult task turns into an impossible task ;-) ]
+
+	Ingo
