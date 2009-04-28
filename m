@@ -1,136 +1,53 @@
-From: =?UTF-8?B?RmFiaWVuIER1Y2jDqm5l?=
-	<fabien.duchene@student.uclouvain.be>
-Subject: Re: [bug] FWMARKs and persistence in IPVS: The Use of Unions
-Date: Tue, 28 Apr 2009 13:30:26 +0200
-Message-ID: <49F6E8D2.8010403@student.uclouvain.be>
-References: <20090428081509.GA746@verge.net.au> <alpine.LSU.2.00.0904281103250.27149@fbirervta.pbzchgretzou.qr> <20090428092351.GC8165@verge.net.au> <20090428105941.GA20907@verge.net.au>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] netfilter: use per-CPU r**ursive lock {XV}
+Date: Tue, 28 Apr 2009 04:53:42 -0700 (PDT)
+Message-ID: <20090428.045342.206106171.davem@davemloft.net>
+References: <alpine.LFD.2.00.0904271525120.22156@localhost.localdomain>
+	<alpine.LFD.2.00.0904271602390.22156@localhost.localdomain>
+	<49F6A8FD.3010804@cosmosbay.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	lvs-devel@vger.kernel.org, Joseph Mack NA3T <jmack@wm7d.net>,
-	Julius Volz <julius.volz@gmail.com>
-To: Simon Horman <horms@verge.net.au>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: torvalds@linux-foundation.org, shemminger@vyatta.com,
+	zbr@ioremap.net, mingo@elte.hu, peterz@infradead.org,
+	mathieu.desnoyers@polymtl.ca, jarkao2@gmail.com, paulus@samba.org,
+	paulmck@linux.vnet.ibm.com, kaber@trash.net,
+	jeff.chua.linux@gmail.com, laijs@cn.fujitsu.com,
+	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	benh@kernel.crashing.org
+To: dada1@cosmosbay.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtpout.sgsi.ucl.ac.be ([130.104.5.77]:58229 "EHLO
-	smtp3.sgsi.ucl.ac.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760640AbZD1LjX (ORCPT
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:53299
+	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
+	by vger.kernel.org with ESMTP id S1760381AbZD1Lxt (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 28 Apr 2009 07:39:23 -0400
-In-Reply-To: <20090428105941.GA20907@verge.net.au>
+	Tue, 28 Apr 2009 07:53:49 -0400
+In-Reply-To: <49F6A8FD.3010804@cosmosbay.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Simon Horman a =C3=A9crit :
-> On Tue, Apr 28, 2009 at 07:23:55PM +1000, Simon Horman wrote:
->> On Tue, Apr 28, 2009 at 11:07:40AM +0200, Jan Engelhardt wrote:
->>> On Tuesday 2009-04-28 10:15, Simon Horman wrote:
->>>> It seems to me that it should be easy enough to fix by changing
->>>> fwmark in ip_vs_sched_persist() from:
->>>>
->>>> union nf_inet_addr fwmark =3D {
->>>> 	.all =3D { 0, 0, 0, htonl(svc->fwmark) }
->>>> };
->>>>
->>>> to:
->>>>
->>>> union nf_inet_addr fwmark =3D {
->>>> 	.all =3D { htonl(svc->fwmark), 0, 0, 0 }
->>>> };
->>>>
->>>> Assuming that this would result in fwmark->ip being set to
->>>> htonl(svc->fwmark), which is relevant if svc->af is AF_INET - that=
- is,
->>>> for IPv4.[...]
->>>> An alternate idea would be to change the af value used for fwmarks=
-,
->>>> but this seems to be even less clean than the current (slightly br=
-oken)
->>>> technique of using nf_inet_addr for IPv4 or IPv6 addresses, or fwm=
-arks.
->>> If you use ->all, then using NFPROTO_UNSPEC as af
->>> seems to me like a good match.
->=20
-> I am guessing that AF_UNSPEC is more appropriate than NFPROTO_UNSPEC.
-> Please correct me if I am wrong.
->=20
->> That seems reasonable, though ip_vs_ct_in_get() would still
->> need to use the real af for the cp->af =3D=3D af and
->> ip_vs_addr_equal(af, s_addr, &cp->caddr) portinos of the check.
->=20
-> It looks like checking for proto =3D=3D IPPROTO_IP can tell us if
-> the destination is a fwmark. This is based on the assumption that
-> iph.protocol can never be IPPROTO_IP in ip_vs_sched_persist().
->=20
-> The following patch expresses these ideas as they crrently stand.
-> Fabien, is it possible for you to test this?
->=20
-Yep!
+From: Eric Dumazet <dada1@cosmosbay.com>
+Date: Tue, 28 Apr 2009 08:58:05 +0200
 
-I'll do it right now.
-> Index: net-next-2.6/net/netfilter/ipvs/ip_vs_conn.c
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- net-next-2.6.orig/net/netfilter/ipvs/ip_vs_conn.c	2009-04-28 20:3=
-7:48.000000000 +1000
-> +++ net-next-2.6/net/netfilter/ipvs/ip_vs_conn.c	2009-04-28 20:37:51.=
-000000000 +1000
-> @@ -260,7 +260,10 @@ struct ip_vs_conn *ip_vs_ct_in_get
->  	list_for_each_entry(cp, &ip_vs_conn_tab[hash], c_list) {
->  		if (cp->af =3D=3D af &&
->  		    ip_vs_addr_equal(af, s_addr, &cp->caddr) &&
-> -		    ip_vs_addr_equal(af, d_addr, &cp->vaddr) &&
-> +		    /* protocol should only be IPPROTO_IP if
-> +		     * d_addr is a fwmark */
-> +		    ip_vs_addr_equal(protocol =3D=3D IPPROTO_IP ? AF_UNSPEC : af,
-> +		                     d_addr, &cp->vaddr) &&
->  		    s_port =3D=3D cp->cport && d_port =3D=3D cp->vport &&
->  		    cp->flags & IP_VS_CONN_F_TEMPLATE &&
->  		    protocol =3D=3D cp->protocol) {
-> @@ -698,7 +701,9 @@ ip_vs_conn_new(int af, int proto, const=20
->  	cp->cport	   =3D cport;
->  	ip_vs_addr_copy(af, &cp->vaddr, vaddr);
->  	cp->vport	   =3D vport;
-> -	ip_vs_addr_copy(af, &cp->daddr, daddr);
-> +	/* proto should only be IPPROTO_IP if d_addr is a fwmark */
-> +	ip_vs_addr_copy(proto =3D=3D IPPROTO_IP ? AF_UNSPEC : af,
-> +			&cp->daddr, daddr);
->  	cp->dport          =3D dport;
->  	cp->flags	   =3D flags;
->  	spin_lock_init(&cp->lock);
-> Index: net-next-2.6/net/netfilter/ipvs/ip_vs_core.c
-> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
-> --- net-next-2.6.orig/net/netfilter/ipvs/ip_vs_core.c	2009-04-28 20:3=
-7:48.000000000 +1000
-> +++ net-next-2.6/net/netfilter/ipvs/ip_vs_core.c	2009-04-28 20:37:51.=
-000000000 +1000
-> @@ -278,7 +278,7 @@ ip_vs_sched_persist(struct ip_vs_service
->  		 */
->  		if (svc->fwmark) {
->  			union nf_inet_addr fwmark =3D {
-> -				.all =3D { 0, 0, 0, htonl(svc->fwmark) }
-> +				.ip =3D htonl(svc->fwmark)
->  			};
-> =20
->  			ct =3D ip_vs_ct_in_get(svc->af, IPPROTO_IP, &snet, 0,
-> @@ -306,7 +306,7 @@ ip_vs_sched_persist(struct ip_vs_service
->  			 */
->  			if (svc->fwmark) {
->  				union nf_inet_addr fwmark =3D {
-> -					.all =3D { 0, 0, 0, htonl(svc->fwmark) }
-> +					.ip =3D htonl(svc->fwmark)
->  				};
-> =20
->  				ct =3D ip_vs_conn_new(svc->af, IPPROTO_IP,
->=20
->=20
+> I am not sure my day job will permit me to polish a patch mixing all
+> the bits and comments. But I am glad we eventually got back spinlocks
+> which are probably better than rwlocks for implementing this stuff.
+> 
+> Instead of submitting a full patch again, we could first submit a new
+>  include file containg all comments and inline functions ?
+> 
+> This include file could be local to netfilter, with a big stick on
+> it to forbids its use on other areas (No changes in Documentation/ )
+> 
+> Then, as soon as we can go back to pure RCU solution, we can safely
+> delete this controversial-locking-nesting-per-cpu-thing ?
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I say we merge Linus's locking idea into the XV patch, fixup the
+commit message wording, and move on with life.
+
+For something that's going to get deleted as soon as the faster grace
+period RCU stuff is available, it has consumed an inordinate amount of
+our time :-)
+
+I might take a stab at this before hittng bed tonight, no promises :)
