@@ -1,53 +1,165 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] netfilter: use per-CPU r**ursive lock {XV}
-Date: Tue, 28 Apr 2009 04:53:42 -0700 (PDT)
-Message-ID: <20090428.045342.206106171.davem@davemloft.net>
-References: <alpine.LFD.2.00.0904271525120.22156@localhost.localdomain>
-	<alpine.LFD.2.00.0904271602390.22156@localhost.localdomain>
-	<49F6A8FD.3010804@cosmosbay.com>
+From: Julius Volz <julius.volz@gmail.com>
+Subject: Re: [bug] FWMARKs and persistence in IPVS: The Use of Unions
+Date: Tue, 28 Apr 2009 13:59:22 +0200
+Message-ID: <43ca39800904280459r7e63c2a4q9416d735a399233d@mail.gmail.com>
+References: <20090428081509.GA746@verge.net.au>
+	 <alpine.LSU.2.00.0904281103250.27149@fbirervta.pbzchgretzou.qr>
+	 <20090428092351.GC8165@verge.net.au>
+	 <20090428105941.GA20907@verge.net.au>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: torvalds@linux-foundation.org, shemminger@vyatta.com,
-	zbr@ioremap.net, mingo@elte.hu, peterz@infradead.org,
-	mathieu.desnoyers@polymtl.ca, jarkao2@gmail.com, paulus@samba.org,
-	paulmck@linux.vnet.ibm.com, kaber@trash.net,
-	jeff.chua.linux@gmail.com, laijs@cn.fujitsu.com,
-	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	benh@kernel.crashing.org
-To: dada1@cosmosbay.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>,
+	lvs-devel@vger.kernel.org,
+	=?ISO-8859-1?Q?Fabien_Duch=EAne?=
+	<fabien.duchene@student.uclouvain.be>,
+	Joseph Mack NA3T <jmack@wm7d.net>
+To: Simon Horman <horms@verge.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:53299
-	"EHLO sunset.davemloft.net" rhost-flags-OK-FAIL-OK-OK)
-	by vger.kernel.org with ESMTP id S1760381AbZD1Lxt (ORCPT
+Received: from mail-fx0-f158.google.com ([209.85.220.158]:42831 "EHLO
+	mail-fx0-f158.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756093AbZD1L7Y convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 28 Apr 2009 07:53:49 -0400
-In-Reply-To: <49F6A8FD.3010804@cosmosbay.com>
+	Tue, 28 Apr 2009 07:59:24 -0400
+In-Reply-To: <20090428105941.GA20907@verge.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Eric Dumazet <dada1@cosmosbay.com>
-Date: Tue, 28 Apr 2009 08:58:05 +0200
+On Tue, Apr 28, 2009 at 12:59 PM, Simon Horman <horms@verge.net.au> wro=
+te:
+> On Tue, Apr 28, 2009 at 07:23:55PM +1000, Simon Horman wrote:
+>> On Tue, Apr 28, 2009 at 11:07:40AM +0200, Jan Engelhardt wrote:
+>> >
+>> > On Tuesday 2009-04-28 10:15, Simon Horman wrote:
+>> > >
+>> > >It seems to me that it should be easy enough to fix by changing
+>> > >fwmark in ip_vs_sched_persist() from:
+>> > >
+>> > >union nf_inet_addr fwmark =3D {
+>> > > =A0 .all =3D { 0, 0, 0, htonl(svc->fwmark) }
+>> > >};
+>> > >
+>> > >to:
+>> > >
+>> > >union nf_inet_addr fwmark =3D {
+>> > > =A0 .all =3D { htonl(svc->fwmark), 0, 0, 0 }
+>> > >};
+>> > >
+>> > >Assuming that this would result in fwmark->ip being set to
+>> > >htonl(svc->fwmark), which is relevant if svc->af is AF_INET - tha=
+t is,
+>> > >for IPv4.[...]
+>> > >An alternate idea would be to change the af value used for fwmark=
+s,
+>> > >but this seems to be even less clean than the current (slightly b=
+roken)
+>> > >technique of using nf_inet_addr for IPv4 or IPv6 addresses, or fw=
+marks.
+>> >
+>> > If you use ->all, then using NFPROTO_UNSPEC as af
+>> > seems to me like a good match.
+>
+> I am guessing that AF_UNSPEC is more appropriate than NFPROTO_UNSPEC.
+> Please correct me if I am wrong.
+>
+>> That seems reasonable, though ip_vs_ct_in_get() would still
+>> need to use the real af for the cp->af =3D=3D af and
+>> ip_vs_addr_equal(af, s_addr, &cp->caddr) portinos of the check.
+>
+> It looks like checking for proto =3D=3D IPPROTO_IP can tell us if
+> the destination is a fwmark. This is based on the assumption that
+> iph.protocol can never be IPPROTO_IP in ip_vs_sched_persist().
+>
+> The following patch expresses these ideas as they crrently stand.
+> Fabien, is it possible for you to test this?
+>
+> Index: net-next-2.6/net/netfilter/ipvs/ip_vs_conn.c
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- net-next-2.6.orig/net/netfilter/ipvs/ip_vs_conn.c =A0 2009-04-28 =
+20:37:48.000000000 +1000
+> +++ net-next-2.6/net/netfilter/ipvs/ip_vs_conn.c =A0 =A0 =A0 =A02009-=
+04-28 20:37:51.000000000 +1000
+> @@ -260,7 +260,10 @@ struct ip_vs_conn *ip_vs_ct_in_get
+> =A0 =A0 =A0 =A0list_for_each_entry(cp, &ip_vs_conn_tab[hash], c_list)=
+ {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (cp->af =3D=3D af &&
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ip_vs_addr_equal(af, s_addr, &=
+cp->caddr) &&
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ip_vs_addr_equal(af, d_addr, &c=
+p->vaddr) &&
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 /* protocol should only be IPPR=
+OTO_IP if
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0* d_addr is a fwmark */
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ip_vs_addr_equal(protocol =3D=3D=
+ IPPROTO_IP ? AF_UNSPEC : af,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0d_addr, &cp->vaddr) &&
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0s_port =3D=3D cp->cport && d_p=
+ort =3D=3D cp->vport &&
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0cp->flags & IP_VS_CONN_F_TEMPL=
+ATE &&
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0protocol =3D=3D cp->protocol) =
+{
+> @@ -698,7 +701,9 @@ ip_vs_conn_new(int af, int proto, const
+> =A0 =A0 =A0 =A0cp->cport =A0 =A0 =A0 =A0 =A0=3D cport;
+> =A0 =A0 =A0 =A0ip_vs_addr_copy(af, &cp->vaddr, vaddr);
+> =A0 =A0 =A0 =A0cp->vport =A0 =A0 =A0 =A0 =A0=3D vport;
+> - =A0 =A0 =A0 ip_vs_addr_copy(af, &cp->daddr, daddr);
+> + =A0 =A0 =A0 /* proto should only be IPPROTO_IP if d_addr is a fwmar=
+k */
+> + =A0 =A0 =A0 ip_vs_addr_copy(proto =3D=3D IPPROTO_IP ? AF_UNSPEC : a=
+f,
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 &cp->daddr, daddr);
+> =A0 =A0 =A0 =A0cp->dport =A0 =A0 =A0 =A0 =A0=3D dport;
+> =A0 =A0 =A0 =A0cp->flags =A0 =A0 =A0 =A0 =A0=3D flags;
+> =A0 =A0 =A0 =A0spin_lock_init(&cp->lock);
+> Index: net-next-2.6/net/netfilter/ipvs/ip_vs_core.c
+> =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> --- net-next-2.6.orig/net/netfilter/ipvs/ip_vs_core.c =A0 2009-04-28 =
+20:37:48.000000000 +1000
+> +++ net-next-2.6/net/netfilter/ipvs/ip_vs_core.c =A0 =A0 =A0 =A02009-=
+04-28 20:37:51.000000000 +1000
+> @@ -278,7 +278,7 @@ ip_vs_sched_persist(struct ip_vs_service
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 */
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (svc->fwmark) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0union nf_inet_addr fwm=
+ark =3D {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .all =3D=
+ { 0, 0, 0, htonl(svc->fwmark) }
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 .ip =3D=
+ htonl(svc->fwmark)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0};
+>
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ct =3D ip_vs_ct_in_get=
+(svc->af, IPPROTO_IP, &snet, 0,
+> @@ -306,7 +306,7 @@ ip_vs_sched_persist(struct ip_vs_service
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 */
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (svc->fwmark) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0union =
+nf_inet_addr fwmark =3D {
+> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 .all =3D { 0, 0, 0, htonl(svc->fwmark) }
+> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
+ =A0 =A0 .ip =3D htonl(svc->fwmark)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0};
+>
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0ct =3D=
+ ip_vs_conn_new(svc->af, IPPROTO_IP,
 
-> I am not sure my day job will permit me to polish a patch mixing all
-> the bits and comments. But I am glad we eventually got back spinlocks
-> which are probably better than rwlocks for implementing this stuff.
-> 
-> Instead of submitting a full patch again, we could first submit a new
->  include file containg all comments and inline functions ?
-> 
-> This include file could be local to netfilter, with a big stick on
-> it to forbids its use on other areas (No changes in Documentation/ )
-> 
-> Then, as soon as we can go back to pure RCU solution, we can safely
-> delete this controversial-locking-nesting-per-cpu-thing ?
+Looks good to me, without being able to test it now.
 
-I say we merge Linus's locking idea into the XV patch, fixup the
-commit message wording, and move on with life.
+I earlier mentioned also changing __ip_vs_conn_in_get(), but now
+realized that the problem exists only during connection template
+lookup, not for regular connections.
 
-For something that's going to get deleted as soon as the faster grace
-period RCU stuff is available, it has consumed an inordinate amount of
-our time :-)
-
-I might take a stab at this before hittng bed tonight, no promises :)
+Julius
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
