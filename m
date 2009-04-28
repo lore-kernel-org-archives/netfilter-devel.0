@@ -1,50 +1,36 @@
-From: Christoph Paasch <christoph.paasch@gmail.com>
-Subject: [PATCH] netfilter: fix: support ipv6header match on packets ending with NEXTHDR_NONE
-Date: Tue, 28 Apr 2009 19:05:11 +0200
-Message-ID: <1240938311-22978-1-git-send-email-christoph.paasch@gmail.com>
-Cc: Christoph Paasch <christoph.paasch@gmail.com>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ew0-f176.google.com ([209.85.219.176]:49284 "EHLO
-	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933021AbZD1RFR (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 28 Apr 2009 13:05:17 -0400
-Received: by ewy24 with SMTP id 24so722027ewy.37
-        for <netfilter-devel@vger.kernel.org>; Tue, 28 Apr 2009 10:05:14 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [PATCH] netfilter: revised locking for x_tables
+Date: Tue, 28 Apr 2009 09:55:32 -0700 (PDT)
+Message-ID: <alpine.LFD.2.00.0904280954500.22156@localhost.localdomain>
+References: <20090428135219.GA28513@Krystal> <20090428.073759.78537345.davem@davemloft.net> <20090428144920.GA28942@Krystal> <20090428.080031.14741305.davem@davemloft.net> <20090428092411.5331c4a1@nehalam>
+ <alpine.LFD.2.00.0904280931360.22156@localhost.localdomain>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: David Miller <davem@davemloft.net>, mathieu.desnoyers@polymtl.ca,
+	mingo@elte.hu, dada1@cosmosbay.com, zbr@ioremap.net,
+	peterz@infradead.org, jarkao2@gmail.com, paulus@samba.org,
+	paulmck@linux.vnet.ibm.com, kaber@trash.net,
+	jeff.chua.linux@gmail.com, laijs@cn.fujitsu.com,
+	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	benh@kernel.crashing.org
+To: Stephen Hemminger <shemminger@vyatta.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.00.0904280931360.22156@localhost.localdomain>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-As packets ending with NEXTHDR_NONE don't have a last extension header,
-the check for the length needs to be after the check for NEXTHDR_NONE.
 
-Signed-off-by: Christoph Paasch <christoph.paasch@gmail.com>
----
- net/ipv6/netfilter/ip6t_ipv6header.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/net/ipv6/netfilter/ip6t_ipv6header.c b/net/ipv6/netfilter/ip6t_ipv6header.c
-index 14e6724..91490ad 100644
---- a/net/ipv6/netfilter/ip6t_ipv6header.c
-+++ b/net/ipv6/netfilter/ip6t_ipv6header.c
-@@ -50,14 +50,14 @@ ipv6header_mt6(const struct sk_buff *skb, const struct xt_match_param *par)
- 		struct ipv6_opt_hdr _hdr;
- 		int hdrlen;
- 
--		/* Is there enough space for the next ext header? */
--		if (len < (int)sizeof(struct ipv6_opt_hdr))
--			return false;
- 		/* No more exthdr -> evaluate */
- 		if (nexthdr == NEXTHDR_NONE) {
- 			temp |= MASK_NONE;
- 			break;
- 		}
-+		/* Is there enough space for the next ext header? */
-+		if (len < (int)sizeof(struct ipv6_opt_hdr))
-+			return false;
- 		/* ESP -> evaluate */
- 		if (nexthdr == NEXTHDR_ESP) {
- 			temp |= MASK_ESP;
--- 
-1.6.0.4
+On Tue, 28 Apr 2009, Linus Torvalds wrote:
+>
+> Ack. 
+> 
+> It could do with the update from Eric about how non-current CPU writelocks 
+> only require preemp-disable around get_counters() (and then the 
+> local_bh_disable() only around the current-CPU case).
 
+Btw, regardless, that's an incremental improvement, and does not negate 
+the "Ack" part.
+
+			Linus
