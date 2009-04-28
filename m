@@ -1,54 +1,35 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] netfilter: use per-CPU r**ursive lock {XV}
-Date: Tue, 28 Apr 2009 09:42:09 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0904280936220.21875@fbirervta.pbzchgretzou.qr>
-References: <20090423210938.1501507b@nehalam> <49F146FF.5050200@cosmosbay.com> <20090424091839.6e13ebec@nehalam> <49F22465.80305@gmail.com> <20090425133052.4cb711f5@nehalam> <49F4A6E3.7080102@cosmosbay.com> <20090426185646.GB29238@Krystal>
- <20090426145746.1184aeba@nehalam> <1240854297.7620.65.camel@twins> <20090427113010.5e3f1700@nehalam> <20090427185423.GC23862@elte.hu> <20090427120658.35a858bb@nehalam> <alpine.LFD.2.00.0904271219570.22156@localhost.localdomain>
+Subject: Re: Prombles compiling xtables-addons 1.14 with kernel 2.6.29.1
+Date: Tue, 28 Apr 2009 09:59:48 +0200 (CEST)
+Message-ID: <alpine.LSU.2.00.0904280959310.21875@fbirervta.pbzchgretzou.qr>
+References: <17e3a8f80904251045i106aba94g795a230b49d67223@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Stephen Hemminger <shemminger@vyatta.com>,
-	Ingo Molnar <mingo@elte.hu>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>,
-	Eric Dumazet <dada1@cosmosbay.com>,
-	David Miller <davem@davemloft.net>,
-	Jarek Poplawski <jarkao2@gmail.com>,
-	Paul Mackerras <paulus@samba.org>, paulmck@linux.vnet.ibm.com,
-	Evgeniy Polyakov <zbr@ioremap.net>, kaber@trash.net,
-	jeff.chua.linux@gmail.com, laijs@cn.fujitsu.com, r000n@r000n.net,
-	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, benh@kernel.crashing.org
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <alpine.LFD.2.00.0904271219570.22156@localhost.localdomain>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Kristian Evensen <kristian.evensen@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:36928 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760832AbZD1H7t (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 28 Apr 2009 03:59:49 -0400
+In-Reply-To: <17e3a8f80904251045i106aba94g795a230b49d67223@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Monday 2009-04-27 21:46, Linus Torvalds wrote:
+On Saturday 2009-04-25 19:45, Kristian Evensen wrote:
 
->Clue bat #3 [sic #4]:
+>Hello,
 >
-> - if you do not understand the difference between these two things, don't 
->   then try to claim that somebody _else_ who does understand it is 
->   "deluding himself".
+>I recently had to upgrade my kernel to 2.6.29.1 and I am no longer
+>able to compile xtables-addons. I have run "make clean" and rerun
+>configure, but when I try to compile I get a message saying that
+>"register_target", "_targets" and so on (all the xt_...) functions are
+>undefined. Does anyone have any hints or suggestions?
 >
->   Analogy time: Ethernet and a modem line can both get you on the
->   internet. Now, let's say that Mr Peter Paste-Eater has heard of 
->   ethernet, and knows you can get on the internet with an ethernet 
->   connection, but he happens to use a modem line to do it.
->
->   Now, Peter Paste-Eater talks to you, and tells you he is connecting to 
->   the internet with ethernet, and proudly shows you his serial line and 
->   modem, and tells you how he uses ethernet to get onto the internet. You 
->   correct him, and tell him it's not ethernet.  He argues for several 
->   days about how he gets on the internet, and that it must thus be 
->   ethernet, and that you're obviously just "deluding yourself".
->
->Now, can you see why people react badly to you talking about "recursive 
->locks"? You're acting like Peter Paste-Eater calling his serial line 
->ethernet.
+>I have recompiled iptables 1.4.3.2 and my .config xtables is compiled
+>into the kernel as a module.
 
-It could be worse. He could be running Ethernet over serial, e.g. L2TP.
-Or his serial line is a TP cable with RJ45 plugs - consumers like
-to call that Ethernet (cable) too.
+Posting the error message might get us somewhere.
+
