@@ -1,51 +1,52 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [bug] FWMARKs and persistence in IPVS: The Use of Unions
-Date: Tue, 28 Apr 2009 17:28:06 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0904281724040.17524@fbirervta.pbzchgretzou.qr>
-References: <20090428081509.GA746@verge.net.au> <alpine.LSU.2.00.0904281103250.27149@fbirervta.pbzchgretzou.qr> <20090428092351.GC8165@verge.net.au> <20090428105941.GA20907@verge.net.au> <alpine.LSU.2.00.0904281421530.7300@fbirervta.pbzchgretzou.qr>
- <20090428150045.GA8377@verge.net.au>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Re: [PATCH] netfilter: use per-CPU r**ursive lock {XV}
+Date: Tue, 28 Apr 2009 08:42:13 -0700
+Message-ID: <20090428154213.GA10833@linux.vnet.ibm.com>
+References: <49F6A8FD.3010804@cosmosbay.com> <20090428.045342.206106171.davem@davemloft.net> <20090428124033.GA1655@elte.hu> <20090428.064340.193569214.davem@davemloft.net>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>,
-	lvs-devel@vger.kernel.org,
-	=?UTF-8?Q?Fabien_Duch=C3=AAne?=
-	<fabien.duchene@student.uclouvain.be>,
-	Joseph Mack NA3T <jmack@wm7d.net>,
-	Julius Volz <julius.volz@gmail.com>
-To: Simon Horman <horms@verge.net.au>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <20090428150045.GA8377@verge.net.au>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: mingo@elte.hu, dada1@cosmosbay.com, torvalds@linux-foundation.org,
+	shemminger@vyatta.com, zbr@ioremap.net, peterz@infradead.org,
+	mathieu.desnoyers@polymtl.ca, jarkao2@gmail.com, paulus@samba.org,
+	kaber@trash.net, jeff.chua.linux@gmail.com, laijs@cn.fujitsu.com,
+	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	benh@kernel.crashing.org
+To: David Miller <davem@davemloft.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from e6.ny.us.ibm.com ([32.97.182.146]:40966 "EHLO e6.ny.us.ibm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754851AbZD1PmS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 28 Apr 2009 11:42:18 -0400
+Content-Disposition: inline
+In-Reply-To: <20090428.064340.193569214.davem@davemloft.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+On Tue, Apr 28, 2009 at 06:43:40AM -0700, David Miller wrote:
+> From: Ingo Molnar <mingo@elte.hu>
+> Date: Tue, 28 Apr 2009 14:40:33 +0200
+> 
+> > IMHO this locking construct should be considered for 
+> > linux/local_lock.h and kernel/local_lock.c. Even if the netfilter 
+> > code drops its use soon afterwards ;-)
+> 
+> If you can show me have to pass a per-cpu variable (the variable,
+> not a dereference of it) as an argument to an inline function,
+> I'll implement this :-)
+> 
+> It has to be dereferenced after local_bh_disable() for the
+> read side acquisition.
 
-On Tuesday 2009-04-28 17:00, Simon Horman wrote:
->> >Index: net-next-2.6/net/netfilter/ipvs/ip_vs_conn.c
->> >===================================================================
->> >--- net-next-2.6.orig/net/netfilter/ipvs/ip_vs_conn.c	2009-04-28 20:37:48.000000000 +1000
->> >+++ net-next-2.6/net/netfilter/ipvs/ip_vs_conn.c	2009-04-28 20:37:51.000000000 +1000
->> >@@ -260,7 +260,10 @@ struct ip_vs_conn *ip_vs_ct_in_get
->> > 	list_for_each_entry(cp, &ip_vs_conn_tab[hash], c_list) {
->> > 		if (cp->af == af &&
->> > 		    ip_vs_addr_equal(af, s_addr, &cp->caddr) &&
->> >-		    ip_vs_addr_equal(af, d_addr, &cp->vaddr) &&
->> >+		    /* protocol should only be IPPROTO_IP if
->> >+		     * d_addr is a fwmark */
->> >+		    ip_vs_addr_equal(protocol == IPPROTO_IP ? AF_UNSPEC : af,
->> >+		                     d_addr, &cp->vaddr) &&
->> 
->> What about IPPROTO_IPV6?
->
->I believe that the value IPPROTO_IP is only used in the case of fwmark.
->Here is a explanation of why.
->
->1) If a fwmark in use, then it is set to IPPROTO_IP when dealing
->   with templates for persistance.
->2) If the entry is created by the FTP helper, IPPROTO_TCP is used.
->3) If the entry is created by syncrhonisation of the table of another
->   machine, then the protocol used in the foreign entry is used -
->   which would have been set by one of these 4 cases.
->4) Otherwise the value of iph.protocol is used.
+The way I did this in treercu.c was to create an array of references
+to the per-CPU data in question.  Not necessarily recommended, but
+one way of doing it.  That said, one could argue that we should wait
+until we have at least three users before creating a generic primitive.
 
-That sounds a bit like whenever you get an IPIP packet,
-IPVS will erroneously think it is operating on an fwmark-based address.
+And I just know that I am going to regret this deeply, but I cannot
+resist posting the following URL:
+
+http://en.wikipedia.org/wiki/Wikipedia:Avoid_Parkinson's_Bicycle_Shed_Effect
+
+							Thanx, Paul
