@@ -1,44 +1,31 @@
-From: Christoph Lameter <cl@linux.com>
-Subject: Re: [PATCH] netfilter: use per-CPU r**ursive lock {XV}
-Date: Tue, 28 Apr 2009 13:35:40 -0400 (EDT)
-Message-ID: <alpine.DEB.1.10.0904281330390.13862@qirst.com>
-References: <49F6A8FD.3010804@cosmosbay.com> <20090428.045342.206106171.davem@davemloft.net> <20090428124033.GA1655@elte.hu> <20090428.064340.193569214.davem@davemloft.net> <20090428154213.GA10833@linux.vnet.ibm.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: David Miller <davem@davemloft.net>, mingo@elte.hu,
-	dada1@cosmosbay.com, torvalds@linux-foundation.org,
-	shemminger@vyatta.com, zbr@ioremap.net, peterz@infradead.org,
-	mathieu.desnoyers@polymtl.ca, jarkao2@gmail.com, paulus@samba.org,
-	kaber@trash.net, jeff.chua.linux@gmail.com, laijs@cn.fujitsu.com,
-	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	benh@kernel.crashing.org
-To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+From: Eric Leblond <eric@inl.fr>
+Subject: [RFC] make thread-safe iface resolution in libnfnetlink
+Date: Tue, 28 Apr 2009 23:45:26 +0200
+Message-ID: <1240955127-13723-1-git-send-email-eric@inl.fr>
+Cc: netfilter-devel@vger.kernel.org
+To: pablo@netfilter.org, kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.ultrahosting.com ([74.213.174.254]:46232 "EHLO
-	smtp.ultrahosting.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754293AbZD1SCM (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 28 Apr 2009 14:02:12 -0400
-In-Reply-To: <20090428154213.GA10833@linux.vnet.ibm.com>
+Received: from bayen.regit.org ([81.57.69.189]:38066 "EHLO ice-age"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753069AbZD1Vpb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 28 Apr 2009 17:45:31 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 28 Apr 2009, Paul E. McKenney wrote:
+Hi,
 
-> > If you can show me have to pass a per-cpu variable (the variable,
-> > not a dereference of it) as an argument to an inline function,
-> > I'll implement this :-)
-> >
-> > It has to be dereferenced after local_bh_disable() for the
-> > read side acquisition.
->
-> The way I did this in treercu.c was to create an array of references
-> to the per-CPU data in question.  Not necessarily recommended, but
-> one way of doing it.  That said, one could argue that we should wait
-> until we have at least three users before creating a generic primitive.
+I've encountered some problems with libnfnetlink iface resolution on a
+system where some interfaces are getting up and down: NuFW which uses
+this feature has crashed during a down/up of an interfaces. One of
+the reason seems that nufw uses one thread is used for iface related
+event treatment and another thread is doing iface name resolution.
 
-The new percpu allocator allows you to create a per cpu pointer and pass
-it to functions.
+As the hash can be modified or read without any lock, I think the
+problem can be linked with this issue. I thus propose a patch that
+modifies the iface resolution subsystem to make it thread-safe.
 
-per_cpu_ptr(pointer,cpu) is used to select an instance.
+BR,
+--
+Eric Leblond <eric@inl.fr>
+INL: http://www.inl.fr/
+NuFW: http://www.nufw.org/
