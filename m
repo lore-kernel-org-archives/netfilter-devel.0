@@ -1,104 +1,122 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [bug] FWMARKs and persistence in IPVS: The Use of Unions
-Date: Wed, 29 Apr 2009 01:00:49 +1000
-Message-ID: <20090428150045.GA8377@verge.net.au>
-References: <20090428081509.GA746@verge.net.au> <alpine.LSU.2.00.0904281103250.27149@fbirervta.pbzchgretzou.qr> <20090428092351.GC8165@verge.net.au> <20090428105941.GA20907@verge.net.au> <alpine.LSU.2.00.0904281421530.7300@fbirervta.pbzchgretzou.qr>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: [PATCH] netfilter: use per-CPU r**ursive lock {XV}
+Date: Tue, 28 Apr 2009 08:09:10 -0700 (PDT)
+Message-ID: <alpine.LFD.2.00.0904280748350.22156@localhost.localdomain>
+References: <49F22465.80305@gmail.com> <20090425133052.4cb711f5@nehalam> <49F4A6E3.7080102@cosmosbay.com> <20090426185646.GB29238@Krystal> <20090426145746.1184aeba@nehalam> <1240854297.7620.65.camel@twins> <20090427113010.5e3f1700@nehalam> <20090427185423.GC23862@elte.hu>
+ <20090427120658.35a858bb@nehalam> <alpine.LFD.2.00.0904271219570.22156@localhost.localdomain> <20090427203616.GB3836@ioremap.net> <alpine.LFD.2.00.0904271340400.22156@localhost.localdomain> <20090427144054.1fb9b7a6@nehalam> <alpine.LFD.2.00.0904271506530.22156@localhost.localdomain>
+ <alpine.LFD.2.00.0904271525120.22156@localhost.localdomain> <alpine.LFD.2.00.0904271602390.22156@localhost.localdomain> <49F6A8FD.3010804@cosmosbay.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>,
-	lvs-devel@vger.kernel.org,
-	Fabien =?iso-8859-1?Q?Duch=EAne?=
-	<fabien.duchene@student.uclouvain.be>,
-	Joseph Mack NA3T <jmack@wm7d.net>,
-	Julius Volz <julius.volz@gmail.com>
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LSU.2.00.0904281421530.7300@fbirervta.pbzchgretzou.qr>
-Sender: lvs-devel-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Stephen Hemminger <shemminger@vyatta.com>,
+	Evgeniy Polyakov <zbr@ioremap.net>,
+	Ingo Molnar <mingo@elte.hu>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>,
+	David Miller <davem@davemloft.net>,
+	Jarek Poplawski <jarkao2@gmail.com>,
+	Paul Mackerras <paulus@samba.org>, paulmck@linux.vnet.ibm.com,
+	kaber@trash.net, jeff.chua.linux@gmail.com, laijs@cn.fujitsu.com,
+	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	benh@kernel.crashing.org
+To: Eric Dumazet <dada1@cosmosbay.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <49F6A8FD.3010804@cosmosbay.com>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Apr 28, 2009 at 02:27:34PM +0200, Jan Engelhardt wrote:
+
+
+On Tue, 28 Apr 2009, Eric Dumazet wrote:
 > 
-> On Tuesday 2009-04-28 12:59, Simon Horman wrote:
-> >>>
-> >>>union nf_inet_addr fwmark = {
-> >>>	.all = { 0, 0, 0, htonl(svc->fwmark) }
-> >>>};
-> >[said something about cp->af...]
+> Instead of submitting a full patch again, we could first submit a new
+>  include file containg all comments and inline functions ?
+
+Well, I actually already suggested to David that he should just merge the 
+last patch I saw floating around (with the "recursive" -> "readwrite" fix 
+in the comment ;), so that we can at least get the basic issue fixed, and 
+then we can tweak it a bit with smaller patches flying around.
+
+And at least right now, the difference between the rwlock and the 
+"count+spinlock" should be basically almost unnoticeable, and a very small 
+implementation issue. They're entirely interchangeable, after all.
+
+> This include file could be local to netfilter, with a big stick on
+> it to forbids its use on other areas (No changes in Documentation/ )
+>
+> Then, as soon as we can go back to pure RCU solution, we can safely
+> delete this controversial-locking-nesting-per-cpu-thing ?
+
+I don't have any strogn preferences, but I'd almost prefer to not abstract 
+things out even that much. It's already pretty well hidden inside 
+<netfilter/x_tables.h>, I'd hate to add a new file just for this. 
+
+As to just adding more commenting that it must not be used anywhere else, 
+I certainly agree with that.
+
+> Instead of local/global name that Paul suggested, that was about
+> 'global' locking all locks at the same time. Not any more the good
+> name IMHO
 > 
-> It does not make sense to use AF_INE with some address as unreal
-> as {0,0,0,fwmark}, just BTW.
+> Maybe something like local/remote or owner/foreigner ?
 
-Agreed.
+local/remote works for me, and yes, since we only take the remote side one 
+CPU at a time, I guess "global" is misleading. But "owner/foreigner" 
+sounds pretty odd.
 
-> >> > If you use ->all, then using NFPROTO_UNSPEC as af
-> >> > seems to me like a good match.
-> >
-> >I am guessing that AF_UNSPEC is more appropriate than NFPROTO_UNSPEC.
-> >Please correct me if I am wrong.
+> One comment about this comment you wrote :
 > 
-> Whatever. You could even use AF_INET6 to mean "take the ipv4 part
-> of nf_inet_addr", and AF_INET to "take the ipv6 part". The mapping
-> is on you, so to speak.
-
-Ok, though I would hope that we can come up with something a little
-more intuative than that.
-
-> Since you are dealing with an *nf*_inet_addr, using *NF*PROTO_ seemed
-> the closest thing.
-
-Ok, as it happens the code that looked like it should be modified was
-using AF_ values, even though it deals with nf_inet_addr. As you mention
-this, it looks like it should be possible to change all the relevant
-ip_vs code over to use NFPROTO_ instead, but lets leave looking into
-that for later.
-
-> >The following patch expresses these ideas as they crrently stand.
-> >Fabien, is it possible for you to test this?
-> >
-> >Index: net-next-2.6/net/netfilter/ipvs/ip_vs_conn.c
-> >===================================================================
-> >--- net-next-2.6.orig/net/netfilter/ipvs/ip_vs_conn.c	2009-04-28 20:37:48.000000000 +1000
-> >+++ net-next-2.6/net/netfilter/ipvs/ip_vs_conn.c	2009-04-28 20:37:51.000000000 +1000
-> >@@ -260,7 +260,10 @@ struct ip_vs_conn *ip_vs_ct_in_get
-> > 	list_for_each_entry(cp, &ip_vs_conn_tab[hash], c_list) {
-> > 		if (cp->af == af &&
-> > 		    ip_vs_addr_equal(af, s_addr, &cp->caddr) &&
-> >-		    ip_vs_addr_equal(af, d_addr, &cp->vaddr) &&
-> >+		    /* protocol should only be IPPROTO_IP if
-> >+		     * d_addr is a fwmark */
-> >+		    ip_vs_addr_equal(protocol == IPPROTO_IP ? AF_UNSPEC : af,
-> >+		                     d_addr, &cp->vaddr) &&
+> /*
+>  * The "writer" side needs to get exclusive access to the lock,
+>  * regardless of readers.  This must be called with bottom half
+>  * processing (and thus also preemption) disabled. 
+>  */
 > 
-> What about IPPROTO_IPV6?
+> Its true that BH should be disabled if caller runs
+> on the cpu it wants to lock. 
+> For other ones (true foreigners), there is
+> no requirement about BH (current cpu could be interrupted
+> by a softirq and packets could fly)
 
-I believe that the value IPPROTO_IP is only used in the case of fwmark.
-Here is a explanation of why.
+Yes. Other CPU's just require preemption protection. 
 
-The value of protocol in ip_vs_ct_in_get() and ip_vs_conn_new()
-can come from serveral sources:
+> We could use following construct and not require disabling BH
+> more than a short period of time.
+> (But preemption disabled for the whole duration)
+> 
+> preempt_disable(); // could be cpu_migration_disable();
+> 
+> int curcpu = smp_processor_id();
+> /*
+>  * Gather stats for current cpu : must disable BH
+>  * before trying to lock.
+>  */
+> local_bh_disable();
+> xt_info_wrlock(curcpu);
+> // copy stats of this cpu on my private data (not shown here)
+> xt_info_wrunlock(curcpu);
+> local_bh_enable();
+> 
+> for_each_possible_cpu(cpu) {
+> 	if (cpu == curcpu)
+> 		continue;
+> 	xt_info_wrlock(cpu);
+> 	// fold stats of "cpu" on my private data (not shown here)
+> 	xt_info_wrunlock((cpu);
+> }
+> preempt_enable(); // could be cpu_migration_enable();
 
-1) If a fwmark in use, then it is set to IPPROTO_IP when dealing
-   with templates for persistance.
-2) If the entry is created by the FTP helper, IPPROTO_TCP is used.
-3) If the entry is created by syncrhonisation of the table of another
-   machine, then the protocol used in the foreign entry is used -
-   which would have been set by one of these 4 cases.
-4) Otherwise the value of iph.protocol is used. iph is set set as
-   ip_vs_fill_iphdr(svc->af, skb_network_header(skb), &iph);
+Agreed. 
 
-The key is that functions that provide cases 1), 2) and 4) are all called
-from ip_vs_in() which filters packets so that, amongst other things, the
-protocol is accepted by ip_vs_proto_get(). At this time, that means it must
-be one of:
+> So your initial comment could be changed to :
+> 
+> /*
+>  * The "writer" side needs to get exclusive access to the lock,
+>  * regardless of readers. If caller is about to lock its own lock,
+>  * he must have disabled BH before. For other cpus, no special
+>  * care but preemption disabled to guarantee no cpu migration.
+>  */
 
-    IPPROTO_TCP (as per ip_vs_protocol_tcp)
-    IPPROTO_UDP (as per ip_vs_protocol_udp)
-    IPPROTO_AH  (as per ip_vs_protocol_ah)
-    IPPROTO_ESP (as per ip_vs_protocol_esp)
+Ack.
 
-I had thought about adding an explicit is_fwmark field to ip_vs_ct_in_get()
-and ip_vs_conn_new(), but it would also need to be added to the syncronisation
-protocol, changes to which seem best avoided for compatibility reasons.
-
+			Linus
