@@ -1,62 +1,64 @@
-From: manuprivat@gmx.de
-Subject: mangle table shows error with MARK target
-Date: Tue, 28 Apr 2009 09:16:11 +0200
-Message-ID: <20090428071611.47750@gmx.net>
+From: Peter Zijlstra <peterz@infradead.org>
+Subject: Re: [PATCH] netfilter: use per-CPU r**ursive lock {XV}
+Date: Tue, 28 Apr 2009 09:41:08 +0200
+Message-ID: <1240904468.7620.70.camel@twins>
+References: <49F22465.80305@gmail.com> <20090425133052.4cb711f5@nehalam>
+	 <49F4A6E3.7080102@cosmosbay.com> <20090426185646.GB29238@Krystal>
+	 <20090426145746.1184aeba@nehalam> <1240854297.7620.65.camel@twins>
+	 <20090427113010.5e3f1700@nehalam> <20090427185423.GC23862@elte.hu>
+	 <20090427120658.35a858bb@nehalam>
+	 <alpine.LFD.2.00.0904271219570.22156@localhost.localdomain>
+	 <20090427203616.GB3836@ioremap.net>
+	 <alpine.LFD.2.00.0904271340400.22156@localhost.localdomain>
+	 <20090427144054.1fb9b7a6@nehalam>
+	 <alpine.LFD.2.00.0904271506530.22156@localhost.localdomain>
+	 <alpine.LFD.2.00.0904271525120.22156@localhost.localdomain>
+	 <alpine.LFD.2.00.0904271619240.22156@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.gmx.net ([213.165.64.20]:53158 "HELO mail.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with SMTP
-	id S1751450AbZD1HQP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 28 Apr 2009 03:16:15 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Stephen Hemminger <shemminger@vyatta.com>,
+	Evgeniy Polyakov <zbr@ioremap.net>,
+	Ingo Molnar <mingo@elte.hu>,
+	Mathieu Desnoyers <mathieu.desnoyers@polymtl.ca>,
+	Eric Dumazet <dada1@cosmosbay.com>,
+	David Miller <davem@davemloft.net>,
+	Jarek Poplawski <jarkao2@gmail.com>,
+	Paul Mackerras <paulus@samba.org>, paulmck@linux.vnet.ibm.com,
+	kaber@trash.net, jeff.chua.linux@gmail.com, laijs@cn.fujitsu.com,
+	jengelh@medozas.de, r000n@r000n.net, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	benh@kernel.crashing.org
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <alpine.LFD.2.00.0904271619240.22156@localhost.localdomain>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi netfilter-list,
+On Mon, 2009-04-27 at 16:32 -0700, Linus Torvalds wrote:
+> 
+> On Mon, 27 Apr 2009, Linus Torvalds wrote:
+> > 
+> > I left the commentary about "readers" and "writers", because in many
+> > ways it's correct, and what the code actually does is very much to
+> > emulate a reader-writer lock.  I put quotes around the uses in the
+> > comments to high-light that it largely _acts_ as a reader-writer lock. 
+> 
+> Btw, I think it was Paul who pointed out that technically it's probably 
+> better to call them "local" and "global" lockers instead of "readers" and 
+> "writers".
 
-if I use command:
+exclusive vs non-exclusive is what the literature would call them in
+most cases I think.
 
-#iptables -nvL -t mangle
-
-I get:
-
-Chain FORWARD (policy ACCEPT 0 packets, 0 bytes)
-pkts bytes target     prot opt in     out     source               dest=
-ination
-insmod: ip_tables.ko: no module by that name found
-modprobe: failed to load module ip_tables
-insmod: ip_tables.ko: no module by that name found
-modprobe: failed to load module ip_tables
-insmod: ip_tables.ko: no module by that name found
-modprobe: failed to load module ip_tables
-insmod: ip_tables.ko: no module by that name found
-modprobe: failed to load module ip_tables
-   0     0 MARK       all  --  *      *       10.0.20.2            0.0.=
-0.0/0           MARK set 0x14
-
-
-Everything works fine, but I get this error message?
-My kernel is built with every point of iptables stuff included, not as =
-module.
-This error occurs only if I did an entry with MARK target, and it depen=
-ds on iptables-version.
-with iptables v.1.2.9 there is no error displayed.
-
-
-iptables: v1.4.3.2
-kernel: 2.6.23.9
-
-Hope somebody knows how to eliminate the error.
-
-Regards,
-Manu=20
---=20
-Psssst! Schon vom neuen GMX MultiMessenger geh=F6rt? Der kann`s mit all=
-en: http://www.gmx.net/de/go/multimessenger01
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> That also probably clarifies the rules on when you use one over the other 
+> (ie reading off all the statistics is a "global" operation, as is 
+> obviously replacing the tables).
+> 
+> Of course, "readers" and "writers" is something most Linux lock people are 
+> more used to. Or "brlock" for the old-timers, but that involves a heavy 
+> dose of bad taste. The new use is much nicer, especially since it never 
+> takes the global lock on _all_ cpu's (which was really a killer in so 
+> many ways).
+> 
+> 			Linus
