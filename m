@@ -1,43 +1,53 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Multiple IPs on iptables/ip6tables command line
-Date: Wed, 29 Apr 2009 22:53:50 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0904292251480.9772@fbirervta.pbzchgretzou.qr>
-References: <49DE2F54.1040703@zeus.com>
+From: Jeff Chua <jeff.chua.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+Subject: Re: [PATCH] netfilter: revised locking for x_tables
+Date: Thu, 30 Apr 2009 11:26:40 +0800
+Message-ID: <b6a2187b0904292026k7d6107a7vcdc761d4149f40aa@mail.gmail.com>
+References: <20090428092411.5331c4a1@nehalam>
+	 <alpine.LFD.2.00.0904280931360.22156@localhost.localdomain>
+	 <alpine.LFD.2.00.0904280954500.22156@localhost.localdomain>
+	 <20090428.223708.168741998.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Michael Granzow <mgranzow@zeus.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:39098 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753077AbZD2Uxv (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 29 Apr 2009 16:53:51 -0400
-In-Reply-To: <49DE2F54.1040703@zeus.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: torvalds-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org, mathieu.desnoyers-scC8bbJcJLCw5LPnMra/2Q@public.gmane.org,
+	mingo-X9Un+BFzKDI@public.gmane.org, dada1-fPLkHRcR87vqlBn2x/YWAg@public.gmane.org, zbr-i6C2adt8DTjR7s880joybQ@public.gmane.org,
+	peterz-wEGCiKHe2LqWVfeAwA7xHQ@public.gmane.org, jarkao2-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, paulus-eUNUBHrolfbYtjvyW6yDsg@public.gmane.org,
+	paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org, laijs-BthXqXjhjHXQFUHtdCDX3A@public.gmane.org,
+	jengelh-nopoi9nDyk+ELgA04lAiVw@public.gmane.org, r000n-ioAbOcnQCpJeoWH0uzbU5w@public.gmane.org,
+	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	benh-XVmvHMARGAS8U2dJNN8I7kB+6BGkLq7r@public.gmane.org, "Rafael J. Wysocki" <rjw-KKrjLPT3xs0@public.gmane.org>,
+	Linux Kernel Mailing List <linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+	Kernel Testers List <kernel-testers-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+	Stephen Hemminger <shemminger-ZtmgI6mnKB3QT0dZR+AlfA@public.gmane.org>
+To: David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Return-path: <kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+In-Reply-To: <20090428.223708.168741998.davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>
+Sender: kernel-testers-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
+
+On Wed, Apr 29, 2009 at 1:37 PM, David Miller <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org> wrote:
+> I've applied this, thanks everyone!
+
+I see the patch is already in Linus's tree that I just git pulled.
+Tested for 200 iptables rules ... as fast as before the slow down.
+
+real    0m0.211s
+user    0m0.060s
+sys     0m0.144s
+
+Thank you all for fixing this bug!
 
 
-On Thursday 2009-04-09 19:24, Michael Granzow wrote:
->It seems iptables (and ip6tables) can only process one IP address at a
->time which makes blocking many IP addresses a rather slow process.
+On Sun, Apr 26, 2009 at 3:31 AM, Rafael J. Wysocki <rjw-KKrjLPT3xs0@public.gmane.org> wrote:
+> Bug-Entry       : http://bugzilla.kernel.org/show_bug.cgi?id=13118
+> Subject         : iptables very slow after commit 784544739a25c30637397ace5489eeb6e15d7d49
+> Submitter       : Jeff Chua <jeff.chua.linux-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org>
+> Date            : 2009-04-10 16:05 (16 days old)
+> References      : http://lkml.org/lkml/2009/4/10/111
+> Handled-By      : Eric Dumazet <dada1-fPLkHRcR87vqlBn2x/YWAg@public.gmane.org>
 
-Use iptables-restore ;-)
+Rafael, it's fixed. Please close the case.
 
->commit 377b05e967bc0623364089f2d57018ab2604ea95
->Author: Michael Granzow <mgranzow@zeus.com>
->Date:   Thu Apr 9 16:38:09 2009 +0100
->
->    Allow multiple IPs on the command-line for iptables/ip6tables.
->    
->    With this patch, you can process more than one IP address with a single
->    invocation of iptables, for instance:
->    
->     # ip6tables -A INPUT -s 2001:db8::a,2001:db8::b,2001:db8::c -j DROP
->     # ip6tables -I INPUT -s 2001:db8::d,2001:db8::e -j DROP
->     # ip6tables -D INPUT -s 2001:db8::a,2001:db8::d -j DROP
 
-I cleaned this patch now and queued it.
-
-You may re-inspect or test it, grabbable from:
-	git://dev.medozas.de/iptables  master  (commit 91c9e31)
+Thanks,
+Jeff.
