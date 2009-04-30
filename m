@@ -1,37 +1,25 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] xt_socket: checks for the state of nf_conntrack
-Date: Thu, 30 Apr 2009 09:39:09 -0700 (PDT)
-Message-ID: <20090430.093909.157285653.davem@davemloft.net>
-References: <1241105755-10017-1-git-send-email-panther@balabit.hu>
+From: Hugo Miguel Mendes <est-h-mendes@ptinovacao.pt>
+Subject: Documentation about Netfilter and Iptables
+Date: Thu, 30 Apr 2009 18:45:34 +0100
+Message-ID: <47A7F67C62706041BC49DB7822B1C9DB2248FD9A9E@INOAVREX11.ptin.corpPT.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, mingo@elte.hu, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, hidden@sch.bme.hu,
-	linux-kernel@vger.kernel.org
-To: panther@balabit.hu
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:47315
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753534AbZD3QjP (ORCPT
+Received: from mail6.ptinovacao.pt ([194.65.138.99]:32452 "EHLO
+	owa.ptinovacao.pt" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760443AbZD3RqJ convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 30 Apr 2009 12:39:15 -0400
-In-Reply-To: <1241105755-10017-1-git-send-email-panther@balabit.hu>
+	Thu, 30 Apr 2009 13:46:09 -0400
+Content-Language: pt-PT
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Laszlo Attila Toth <panther@balabit.hu>
-Date: Thu, 30 Apr 2009 17:35:55 +0200
+Dear all,
 
-> xt_socket can use connection tracking, and checks whether it is a module.
-> 
-> Signed-off-by: Laszlo Attila Toth <panther@balabit.hu>
+I'm trying to develop a NAT Helper and a Conntrack Helper Module to Netfilter, using iptables 1.3.8. I have already read all the How To documents in the netfilter.org and I'm having some trouble understanding the structure of iptables and netfilter and how they interact. Do you now some good documentation on this topics?
 
-I don't understand why we want what this is doing....
+Best Regards
 
-> +	depends on !NF_CONNTRACK || NF_CONNTRACK
-
-This means that if NF_CONNTRACK is modular, it won't allow
-the xt_socket code to be built.
-
-However, all of this stuff should be buildable modular.
+Hugo Mendes
