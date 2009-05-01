@@ -1,61 +1,150 @@
-From: =?ISO-8859-2?Q?T=F3th_L=E1szl=F3_Attila?= <panther@elte.hu>
-Subject: Re: [PATCH] xt_socket: checks for the state of nf_conntrack
-Date: Thu, 30 Apr 2009 22:26:24 +0200
-Message-ID: <3512771A-B2D4-48F5-90A6-AF0FAA1633D5@elte.hu>
-References: <1241105755-10017-1-git-send-email-panther@balabit.hu> <20090430.093909.157285653.davem@davemloft.net>
-Mime-Version: 1.0 (Apple Message framework v930.3)
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
-Content-Transfer-Encoding: 8BIT
-Cc: panther@balabit.hu, kaber@trash.net, mingo@elte.hu,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	hidden@sch.bme.hu, linux-kernel@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [bug] FWMARKs and persistence in IPVS: The Use of Unions
+Date: Fri, 1 May 2009 16:40:36 +1000
+Message-ID: <20090501064035.GA28357@verge.net.au>
+References: <20090428081509.GA746@verge.net.au> <alpine.LSU.2.00.0904281103250.27149@fbirervta.pbzchgretzou.qr> <20090428092351.GC8165@verge.net.au> <20090428105941.GA20907@verge.net.au> <49F6E8D2.8010403@student.uclouvain.be>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>,
+	lvs-devel@vger.kernel.org, Joseph Mack NA3T <jmack@wm7d.net>,
+	Julius Volz <julius.volz@gmail.com>
+To: Fabien =?iso-8859-1?Q?Duch=EAne?=
+	<fabien.duchene@student.uclouvain.be>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx3.mail.elte.hu ([157.181.1.138]:37748 "EHLO mx3.mail.elte.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751405AbZD3U0b convert rfc822-to-8bit (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:47263 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752568AbZEAGkh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 30 Apr 2009 16:26:31 -0400
-In-Reply-To: <20090430.093909.157285653.davem@davemloft.net>
+	Fri, 1 May 2009 02:40:37 -0400
+Content-Disposition: inline
+In-Reply-To: <49F6E8D2.8010403@student.uclouvain.be>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Dave,
+On Tue, Apr 28, 2009 at 01:30:26PM +0200, Fabien Duch=EAne wrote:
+> Simon Horman a =E9crit :
+> > On Tue, Apr 28, 2009 at 07:23:55PM +1000, Simon Horman wrote:
+> >> On Tue, Apr 28, 2009 at 11:07:40AM +0200, Jan Engelhardt wrote:
+> >>> On Tuesday 2009-04-28 10:15, Simon Horman wrote:
+> >>>> It seems to me that it should be easy enough to fix by changing
+> >>>> fwmark in ip_vs_sched_persist() from:
+> >>>>
+> >>>> union nf_inet_addr fwmark =3D {
+> >>>> 	.all =3D { 0, 0, 0, htonl(svc->fwmark) }
+> >>>> };
+> >>>>
+> >>>> to:
+> >>>>
+> >>>> union nf_inet_addr fwmark =3D {
+> >>>> 	.all =3D { htonl(svc->fwmark), 0, 0, 0 }
+> >>>> };
+> >>>>
+> >>>> Assuming that this would result in fwmark->ip being set to
+> >>>> htonl(svc->fwmark), which is relevant if svc->af is AF_INET - th=
+at is,
+> >>>> for IPv4.[...]
+> >>>> An alternate idea would be to change the af value used for fwmar=
+ks,
+> >>>> but this seems to be even less clean than the current (slightly =
+broken)
+> >>>> technique of using nf_inet_addr for IPv4 or IPv6 addresses, or f=
+wmarks.
+> >>> If you use ->all, then using NFPROTO_UNSPEC as af
+> >>> seems to me like a good match.
+> >=20
+> > I am guessing that AF_UNSPEC is more appropriate than NFPROTO_UNSPE=
+C.
+> > Please correct me if I am wrong.
+> >=20
+> >> That seems reasonable, though ip_vs_ct_in_get() would still
+> >> need to use the real af for the cp->af =3D=3D af and
+> >> ip_vs_addr_equal(af, s_addr, &cp->caddr) portinos of the check.
+> >=20
+> > It looks like checking for proto =3D=3D IPPROTO_IP can tell us if
+> > the destination is a fwmark. This is based on the assumption that
+> > iph.protocol can never be IPPROTO_IP in ip_vs_sched_persist().
+> >=20
+> > The following patch expresses these ideas as they crrently stand.
+> > Fabien, is it possible for you to test this?
+> >=20
+> Yep!
+>=20
+> I'll do it right now.
 
-On 2009.04.30., at 18:39, David Miller wrote:
+Hi Fabien,
 
-> From: Laszlo Attila Toth <panther@balabit.hu>
-> Date: Thu, 30 Apr 2009 17:35:55 +0200
->
->> xt_socket can use connection tracking, and checks whether it is a  
->> module.
->>
->> Signed-off-by: Laszlo Attila Toth <panther@balabit.hu>
->
-> I don't understand why we want what this is doing....
->
+did you get a chance to test this?
 
-Most of the time the source / destination addresses and ports of the  
-packet are enough to lookup the corresponding socket. With the SNAT  
-target this kind of lookup is broken. The socket match is in the  
-mangle table, before nat, thus it can see only the destination address  
-set by the SNAT target (this is the reply direction). If we want to  
-support SNAT, we need nf_conntrack.  But this is optional, if  
-connection tracking is not in the kernel, the socket match will  
-compiled without it....
+> > Index: net-next-2.6/net/netfilter/ipvs/ip_vs_conn.c
+> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> > --- net-next-2.6.orig/net/netfilter/ipvs/ip_vs_conn.c	2009-04-28 20=
+:37:48.000000000 +1000
+> > +++ net-next-2.6/net/netfilter/ipvs/ip_vs_conn.c	2009-04-28 20:37:5=
+1.000000000 +1000
+> > @@ -260,7 +260,10 @@ struct ip_vs_conn *ip_vs_ct_in_get
+> >  	list_for_each_entry(cp, &ip_vs_conn_tab[hash], c_list) {
+> >  		if (cp->af =3D=3D af &&
+> >  		    ip_vs_addr_equal(af, s_addr, &cp->caddr) &&
+> > -		    ip_vs_addr_equal(af, d_addr, &cp->vaddr) &&
+> > +		    /* protocol should only be IPPROTO_IP if
+> > +		     * d_addr is a fwmark */
+> > +		    ip_vs_addr_equal(protocol =3D=3D IPPROTO_IP ? AF_UNSPEC : af=
+,
+> > +		                     d_addr, &cp->vaddr) &&
+> >  		    s_port =3D=3D cp->cport && d_port =3D=3D cp->vport &&
+> >  		    cp->flags & IP_VS_CONN_F_TEMPLATE &&
+> >  		    protocol =3D=3D cp->protocol) {
+> > @@ -698,7 +701,9 @@ ip_vs_conn_new(int af, int proto, const=20
+> >  	cp->cport	   =3D cport;
+> >  	ip_vs_addr_copy(af, &cp->vaddr, vaddr);
+> >  	cp->vport	   =3D vport;
+> > -	ip_vs_addr_copy(af, &cp->daddr, daddr);
+> > +	/* proto should only be IPPROTO_IP if d_addr is a fwmark */
+> > +	ip_vs_addr_copy(proto =3D=3D IPPROTO_IP ? AF_UNSPEC : af,
+> > +			&cp->daddr, daddr);
+> >  	cp->dport          =3D dport;
+> >  	cp->flags	   =3D flags;
+> >  	spin_lock_init(&cp->lock);
+> > Index: net-next-2.6/net/netfilter/ipvs/ip_vs_core.c
+> > =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
+> > --- net-next-2.6.orig/net/netfilter/ipvs/ip_vs_core.c	2009-04-28 20=
+:37:48.000000000 +1000
+> > +++ net-next-2.6/net/netfilter/ipvs/ip_vs_core.c	2009-04-28 20:37:5=
+1.000000000 +1000
+> > @@ -278,7 +278,7 @@ ip_vs_sched_persist(struct ip_vs_service
+> >  		 */
+> >  		if (svc->fwmark) {
+> >  			union nf_inet_addr fwmark =3D {
+> > -				.all =3D { 0, 0, 0, htonl(svc->fwmark) }
+> > +				.ip =3D htonl(svc->fwmark)
+> >  			};
+> > =20
+> >  			ct =3D ip_vs_ct_in_get(svc->af, IPPROTO_IP, &snet, 0,
+> > @@ -306,7 +306,7 @@ ip_vs_sched_persist(struct ip_vs_service
+> >  			 */
+> >  			if (svc->fwmark) {
+> >  				union nf_inet_addr fwmark =3D {
+> > -					.all =3D { 0, 0, 0, htonl(svc->fwmark) }
+> > +					.ip =3D htonl(svc->fwmark)
+> >  				};
+> > =20
+> >  				ct =3D ip_vs_conn_new(svc->af, IPPROTO_IP,
+> >=20
+> >=20
 
->> +	depends on !NF_CONNTRACK || NF_CONNTRACK
->
-> This means that if NF_CONNTRACK is modular, it won't allow
-> the xt_socket code to be built.
->
-
-I checked that if NF_CONNTRACK is disabled, the socket match will be  
-allowed to be built either into a module, or into vmlinuz. If  
-NF_CONNTRACK is "y", it is exactly the same. If NF_CONNTRACK=m, the  
-socket match can only be a module.
-
-> However, all of this stuff should be buildable modular.
+--=20
+Simon Horman
+  VA Linux Systems Japan K.K. Satellite Lab in Sydney, Australia
+  H: www.vergenet.net/~horms/            W: www.valinux.co.jp/en
 
 --
-Attila
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
