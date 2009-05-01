@@ -1,37 +1,30 @@
-From: Evgeniy Polyakov <zbr@ioremap.net>
-Subject: Re: Passive OS fingerprint xtables match.
-Date: Sat, 2 May 2009 00:15:03 +0400
-Message-ID: <20090501201503.GA28315@ioremap.net>
-References: <20090326141405.GA25404@ioremap.net> <49CB8EC6.6070705@trash.net> <20090326145946.GA28563@ioremap.net> <49CB9A57.6030903@trash.net> <20090326154135.GA30712@ioremap.net> <49CBA39A.4000705@trash.net> <20090330062052.GA26646@ioremap.net>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] xt_socket: checks for the state of nf_conntrack
+Date: Fri, 01 May 2009 15:22:33 -0700 (PDT)
+Message-ID: <20090501.152233.267014258.davem@davemloft.net>
+References: <1241105755-10017-1-git-send-email-panther@balabit.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org, David Miller <davem@davemloft.net>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Jan Engelhardt <jengelh@medozas.de>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net, mingo@elte.hu, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, hidden@sch.bme.hu,
+	linux-kernel@vger.kernel.org
+To: panther@balabit.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cet.com.ru ([195.178.208.66]:51885 "EHLO tservice.net.ru"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1753840AbZEAUPH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 1 May 2009 16:15:07 -0400
-Content-Disposition: inline
-In-Reply-To: <20090330062052.GA26646@ioremap.net>
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:55043
+	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755616AbZEAWWj (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 1 May 2009 18:22:39 -0400
+In-Reply-To: <1241105755-10017-1-git-send-email-panther@balabit.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi.
+From: Laszlo Attila Toth <panther@balabit.hu>
+Date: Thu, 30 Apr 2009 17:35:55 +0200
 
-On Mon, Mar 30, 2009 at 10:20:52AM +0400, Evgeniy Polyakov (zbr@ioremap.net) wrote:
-> On Thu, Mar 26, 2009 at 04:47:38PM +0100, Patrick McHardy (kaber@trash.net) wrote:
-> > Thanks. I'll wait for Dave's decision before applying it.
+> xt_socket can use connection tracking, and checks whether it is a module.
 > 
-> Looks like David did not pull it in, please queue OSF and its library
-> into netfilter tree.
-> Thank you.
+> Signed-off-by: Laszlo Attila Toth <panther@balabit.hu>
 
-Just curious... Ping? :)
-
--- 
-	Evgeniy Polyakov
+Applied, thanks.
