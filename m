@@ -1,13 +1,13 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 9/9] iptables: replace open-coded sizeof by ARRAY_SIZE
-Date: Sun,  3 May 2009 21:54:33 +0200
-Message-ID: <1241380473-22262-10-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 8/9] extensions: add const qualifiers in print/save functions
+Date: Sun,  3 May 2009 21:54:32 +0200
+Message-ID: <1241380473-22262-9-git-send-email-jengelh@medozas.de>
 References: <1241380473-22262-1-git-send-email-jengelh@medozas.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:34576 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:34575 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752966AbZECTyh (ORCPT
+	with ESMTP id S1754587AbZECTyh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Sun, 3 May 2009 15:54:37 -0400
 In-Reply-To: <1241380473-22262-1-git-send-email-jengelh@medozas.de>
@@ -16,623 +16,696 @@ List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- extensions/dscp_helper.c        |    6 ++----
- extensions/libip6t_LOG.c        |   12 +++---------
- extensions/libip6t_REJECT.c     |   11 ++++-------
- extensions/libip6t_icmp6.c      |   11 ++++-------
- extensions/libip6t_ipv6header.c |   16 +++++-----------
- extensions/libip6t_mh.c         |    7 +++----
- extensions/libipt_LOG.c         |   12 +++---------
- extensions/libipt_REJECT.c      |    9 ++++-----
- extensions/libipt_icmp.c        |   11 ++++-------
- extensions/libxt_dccp.c         |    5 ++---
- extensions/libxt_hashlimit.c    |    3 +--
- extensions/libxt_limit.c        |    3 +--
- extensions/libxt_pkttype.c      |   12 +++---------
- extensions/libxt_sctp.c         |   18 ++----------------
- extensions/libxt_tcp.c          |    9 +++------
- ip6tables-restore.c             |    2 +-
- iptables-restore.c              |    2 +-
- iptables-xml.c                  |    2 +-
- 18 files changed, 47 insertions(+), 104 deletions(-)
+ extensions/libip6t_hl.c        |    2 +-
+ extensions/libipt_DNAT.c       |    4 ++--
+ extensions/libipt_MASQUERADE.c |   10 ++++------
+ extensions/libipt_NETMAP.c     |    5 ++---
+ extensions/libipt_REDIRECT.c   |   10 ++++------
+ extensions/libipt_SAME.c       |   10 ++++------
+ extensions/libipt_SET.c        |    6 ++----
+ extensions/libipt_SNAT.c       |    4 ++--
+ extensions/libipt_realm.c      |    4 ++--
+ extensions/libipt_set.c        |    6 ++----
+ extensions/libxt_CONNSECMARK.c |    6 +++---
+ extensions/libxt_RATEEST.c     |    2 +-
+ extensions/libxt_SECMARK.c     |    4 ++--
+ extensions/libxt_comment.c     |    4 ++--
+ extensions/libxt_connbytes.c   |    8 ++++----
+ extensions/libxt_connmark.c    |    4 ++--
+ extensions/libxt_conntrack.c   |    5 +++--
+ extensions/libxt_hashlimit.c   |    6 ++----
+ extensions/libxt_helper.c      |    4 ++--
+ extensions/libxt_limit.c       |    4 ++--
+ extensions/libxt_mark.c        |    4 ++--
+ extensions/libxt_physdev.c     |    6 ++----
+ extensions/libxt_pkttype.c     |    6 +++---
+ extensions/libxt_quota.c       |    4 ++--
+ extensions/libxt_rateest.c     |    7 ++++---
+ extensions/libxt_state.c       |    4 ++--
+ extensions/libxt_statistic.c   |    4 ++--
+ extensions/libxt_time.c        |    2 +-
+ 28 files changed, 66 insertions(+), 79 deletions(-)
 
-diff --git a/extensions/dscp_helper.c b/extensions/dscp_helper.c
-index 8fa0f4a..75b1fec 100644
---- a/extensions/dscp_helper.c
-+++ b/extensions/dscp_helper.c
-@@ -51,7 +51,7 @@ class_to_dscp(const char *name)
+diff --git a/extensions/libip6t_hl.c b/extensions/libip6t_hl.c
+index cc84018..c61d941 100644
+--- a/extensions/libip6t_hl.c
++++ b/extensions/libip6t_hl.c
+@@ -90,7 +90,7 @@ static void hl_check(unsigned int flags)
+ static void hl_print(const void *ip, const struct xt_entry_match *match,
+                      bool numeric)
  {
- 	unsigned int i;
- 
--	for (i = 0; i < sizeof(ds_classes) / sizeof(struct ds_class); i++) {
-+	for (i = 0; i < ARRAY_SIZE(ds_classes); i++) {
- 		if (!strncasecmp(name, ds_classes[i].name,
- 					strlen(ds_classes[i].name)))
- 			return ds_classes[i].dscp;
-@@ -68,11 +68,9 @@ dscp_to_name(unsigned int dscp)
+-	static const char *op[] = {
++	static const char *const op[] = {
+ 		[IP6T_HL_EQ] = "==",
+ 		[IP6T_HL_NE] = "!=",
+ 		[IP6T_HL_LT] = "<",
+diff --git a/extensions/libipt_DNAT.c b/extensions/libipt_DNAT.c
+index 4f35aa2..2dceee2 100644
+--- a/extensions/libipt_DNAT.c
++++ b/extensions/libipt_DNAT.c
+@@ -220,7 +220,7 @@ static void print_range(const struct nf_nat_range *r)
+ static void DNAT_print(const void *ip, const struct xt_entry_target *target,
+                        bool numeric)
  {
- 	int i;
+-	struct ipt_natinfo *info = (void *)target;
++	const struct ipt_natinfo *info = (const void *)target;
+ 	unsigned int i = 0;
  
--	for (i = 0; i < sizeof(ds_classes) / sizeof(struct ds_class); i++) {
-+	for (i = 0; i < ARRAY_SIZE(ds_classes); ++i) 
- 		if (dscp == ds_classes[i].dscp)
- 			return ds_classes[i].name;
--	}
--
+ 	printf("to:");
+@@ -236,7 +236,7 @@ static void DNAT_print(const void *ip, const struct xt_entry_target *target,
  
- 	xtables_error(PARAMETER_PROBLEM,
- 			"Invalid DSCP value `%d'\n", dscp);
-diff --git a/extensions/libip6t_LOG.c b/extensions/libip6t_LOG.c
-index 824671e..259e564 100644
---- a/extensions/libip6t_LOG.c
-+++ b/extensions/libip6t_LOG.c
-@@ -73,9 +73,7 @@ parse_level(const char *level)
- 	if (!xtables_strtoui(level, NULL, &lev, 0, 7)) {
- 		unsigned int i = 0;
- 
--		for (i = 0;
--		     i < sizeof(ip6t_log_names) / sizeof(struct ip6t_log_names);
--		     i++) {
-+		for (i = 0; i < ARRAY_SIZE(ip6t_log_names); ++i)
- 			if (strncasecmp(level, ip6t_log_names[i].name,
- 					strlen(level)) == 0) {
- 				if (set++)
-@@ -84,7 +82,6 @@ parse_level(const char *level)
- 						   level);
- 				lev = ip6t_log_names[i].level;
- 			}
--		}
- 
- 		if (!set)
- 			xtables_error(PARAMETER_PROBLEM,
-@@ -202,15 +199,12 @@ static void LOG_print(const void *ip, const struct xt_entry_target *target,
- 		printf("flags %u level %u ",
- 		       loginfo->logflags, loginfo->level);
- 	else {
--		for (i = 0;
--		     i < sizeof(ip6t_log_names) / sizeof(struct ip6t_log_names);
--		     i++) {
-+		for (i = 0; i < ARRAY_SIZE(ip6t_log_names); ++i)
- 			if (loginfo->level == ip6t_log_names[i].level) {
- 				printf("level %s ", ip6t_log_names[i].name);
- 				break;
- 			}
--		}
--		if (i == sizeof(ip6t_log_names) / sizeof(struct ip6t_log_names))
-+		if (i == ARRAY_SIZE(ip6t_log_names))
- 			printf("UNKNOWN level %u ", loginfo->level);
- 		if (loginfo->logflags & IP6T_LOG_TCPSEQ)
- 			printf("tcp-sequence ");
-diff --git a/extensions/libip6t_REJECT.c b/extensions/libip6t_REJECT.c
-index 38d3534..57be710 100644
---- a/extensions/libip6t_REJECT.c
-+++ b/extensions/libip6t_REJECT.c
-@@ -44,7 +44,7 @@ print_reject_types(void)
- 
- 	printf("Valid reject types:\n");
- 
--	for (i = 0; i < sizeof(reject_table)/sizeof(struct reject_names); i++) {
-+	for (i = 0; i < ARRAY_SIZE(reject_table); ++i) {
- 		printf("    %-25s\t%s\n", reject_table[i].name, reject_table[i].desc);
- 		printf("    %-25s\talias\n", reject_table[i].alias);
- 	}
-@@ -80,7 +80,6 @@ static bool REJECT_parse(int c, char **argv, bool invert, unsigned int *flags,
+ static void DNAT_save(const void *ip, const struct xt_entry_target *target)
  {
- 	struct ip6t_reject_info *reject = 
- 		(struct ip6t_reject_info *)(*target)->data;
--	unsigned int limit = sizeof(reject_table)/sizeof(struct reject_names);
- 	unsigned int i;
+-	struct ipt_natinfo *info = (void *)target;
++	const struct ipt_natinfo *info = (const void *)target;
+ 	unsigned int i = 0;
  
- 	switch(c) {
-@@ -88,13 +87,12 @@ static bool REJECT_parse(int c, char **argv, bool invert, unsigned int *flags,
- 		if (xtables_check_inverse(optarg, &invert, NULL, 0))
- 			xtables_error(PARAMETER_PROBLEM,
- 				   "Unexpected `!' after --reject-with");
--		for (i = 0; i < limit; i++) {
-+		for (i = 0; i < ARRAY_SIZE(reject_table); ++i)
- 			if ((strncasecmp(reject_table[i].name, optarg, strlen(optarg)) == 0)
- 			    || (strncasecmp(reject_table[i].alias, optarg, strlen(optarg)) == 0)) {
- 				reject->with = reject_table[i].with;
- 				return true;
- 			}
--		}
- 		xtables_error(PARAMETER_PROBLEM, "unknown reject type \"%s\"", optarg);
- 	default:
- 		/* Fall through */
-@@ -110,10 +108,9 @@ static void REJECT_print(const void *ip, const struct xt_entry_target *target,
- 		= (const struct ip6t_reject_info *)target->data;
- 	unsigned int i;
+ 	for (i = 0; i < info->mr.rangesize; i++) {
+diff --git a/extensions/libipt_MASQUERADE.c b/extensions/libipt_MASQUERADE.c
+index 6d2446e..ad25468 100644
+--- a/extensions/libipt_MASQUERADE.c
++++ b/extensions/libipt_MASQUERADE.c
+@@ -113,9 +113,8 @@ static void
+ MASQUERADE_print(const void *ip, const struct xt_entry_target *target,
+                  bool numeric)
+ {
+-	struct nf_nat_multi_range *mr
+-		= (struct nf_nat_multi_range *)target->data;
+-	struct nf_nat_range *r = &mr->range[0];
++	const struct nf_nat_multi_range *mr = (const void *)target->data;
++	const struct nf_nat_range *r = &mr->range[0];
  
--	for (i = 0; i < sizeof(reject_table)/sizeof(struct reject_names); i++) {
-+	for (i = 0; i < ARRAY_SIZE(reject_table); ++i)
- 		if (reject_table[i].with == reject->with)
- 			break;
--	}
- 	printf("reject-with %s ", reject_table[i].name);
- }
- 
-@@ -123,7 +120,7 @@ static void REJECT_save(const void *ip, const struct xt_entry_target *target)
- 		= (const struct ip6t_reject_info *)target->data;
- 	unsigned int i;
- 
--	for (i = 0; i < sizeof(reject_table)/sizeof(struct reject_names); i++)
-+	for (i = 0; i < ARRAY_SIZE(reject_table); ++i)
- 		if (reject_table[i].with == reject->with)
- 			break;
- 
-diff --git a/extensions/libip6t_icmp6.c b/extensions/libip6t_icmp6.c
-index c10a06e..82df436 100644
---- a/extensions/libip6t_icmp6.c
-+++ b/extensions/libip6t_icmp6.c
-@@ -60,7 +60,7 @@ print_icmpv6types(void)
- 	unsigned int i;
- 	printf("Valid ICMPv6 Types:");
- 
--	for (i = 0; i < sizeof(icmpv6_codes)/sizeof(struct icmpv6_names); i++) {
-+	for (i = 0; i < ARRAY_SIZE(icmpv6_codes); ++i) {
- 		if (i && icmpv6_codes[i].type == icmpv6_codes[i-1].type) {
- 			if (icmpv6_codes[i].code_min == icmpv6_codes[i-1].code_min
- 			    && (icmpv6_codes[i].code_max
-@@ -92,7 +92,7 @@ static const struct option icmp6_opts[] = {
+ 	if (r->flags & IP_NAT_RANGE_PROTO_SPECIFIED) {
+ 		printf("masq ports: ");
+@@ -132,9 +131,8 @@ MASQUERADE_print(const void *ip, const struct xt_entry_target *target,
  static void
- parse_icmpv6(const char *icmpv6type, u_int8_t *type, u_int8_t code[])
+ MASQUERADE_save(const void *ip, const struct xt_entry_target *target)
  {
--	unsigned int limit = sizeof(icmpv6_codes)/sizeof(struct icmpv6_names);
-+	static const unsigned int limit = ARRAY_SIZE(icmpv6_codes);
- 	unsigned int match = limit;
- 	unsigned int i;
+-	struct nf_nat_multi_range *mr
+-		= (struct nf_nat_multi_range *)target->data;
+-	struct nf_nat_range *r = &mr->range[0];
++	const struct nf_nat_multi_range *mr = (const void *)target->data;
++	const struct nf_nat_range *r = &mr->range[0];
  
-@@ -182,16 +182,13 @@ static void print_icmpv6type(u_int8_t type,
- 	if (!numeric) {
- 		unsigned int i;
- 
--		for (i = 0;
--		     i < sizeof(icmpv6_codes)/sizeof(struct icmpv6_names);
--		     i++) {
-+		for (i = 0; i < ARRAY_SIZE(icmpv6_codes); ++i)
- 			if (icmpv6_codes[i].type == type
- 			    && icmpv6_codes[i].code_min == code_min
- 			    && icmpv6_codes[i].code_max == code_max)
- 				break;
--		}
- 
--		if (i != sizeof(icmpv6_codes)/sizeof(struct icmpv6_names)) {
-+		if (i != ARRAY_SIZE(icmpv6_codes)) {
- 			printf("%s%s ",
- 			       invert ? "!" : "",
- 			       icmpv6_codes[i].name);
-diff --git a/extensions/libip6t_ipv6header.c b/extensions/libip6t_ipv6header.c
-index da6c0b0..a216967 100644
---- a/extensions/libip6t_ipv6header.c
-+++ b/extensions/libip6t_ipv6header.c
-@@ -78,7 +78,7 @@ proto_to_name(u_int8_t proto, int nolookup)
-                         return pent->p_name;
-         }
- 
--        for (i = 0; i < sizeof(chain_protos)/sizeof(struct pprot); i++)
-+        for (i = 0; i < ARRAY_SIZE(chain_protos); ++i)
-                 if (chain_protos[i].num == proto)
-                         return chain_protos[i].name;
- 
-@@ -95,16 +95,13 @@ name_to_proto(const char *s)
-         	proto = pent->p_proto;
-         else {
-         	unsigned int i;
--        	for (i = 0;
--        		i < sizeof(chain_protos)/sizeof(struct pprot);
--        		i++) {
-+        	for (i = 0; i < ARRAY_SIZE(chain_protos); ++i)
-         		if (strcmp(s, chain_protos[i].name) == 0) {
-         			proto = chain_protos[i].num;
-         			break;
-         		}
--        	}
- 
--        	if (i == sizeof(chain_protos)/sizeof(struct pprot))
-+		if (i == ARRAY_SIZE(chain_protos))
- 			xtables_error(PARAMETER_PROBLEM,
-         			"unknown header `%s' specified",
-         			s);
-@@ -117,16 +114,13 @@ static unsigned int
- add_proto_to_mask(int proto){
- 	unsigned int i=0, flag=0;
- 
--	for (i = 0;
--		i < sizeof(chain_flags)/sizeof(struct numflag);
--		i++) {
-+	for (i = 0; i < ARRAY_SIZE(chain_flags); ++i)
- 			if (proto == chain_flags[i].proto){
- 				flag = chain_flags[i].flag;
- 				break;
- 			}
--	}
- 
--	if (i == sizeof(chain_flags)/sizeof(struct numflag))
-+	if (i == ARRAY_SIZE(chain_flags))
- 		xtables_error(PARAMETER_PROBLEM,
- 		"unknown header `%d' specified",
- 		proto);
-diff --git a/extensions/libip6t_mh.c b/extensions/libip6t_mh.c
-index f7b699f..2fc735a 100644
---- a/extensions/libip6t_mh.c
-+++ b/extensions/libip6t_mh.c
-@@ -49,7 +49,7 @@ static void print_types_all(void)
- 	unsigned int i;
- 	printf("Valid MH types:");
- 
--	for (i = 0; i < sizeof(mh_names)/sizeof(struct mh_name); i++) {
-+	for (i = 0; i < ARRAY_SIZE(mh_names); ++i) {
- 		if (i && mh_names[i].type == mh_names[i-1].type)
- 			printf(" (%s)", mh_names[i].name);
- 		else
-@@ -76,7 +76,7 @@ static void mh_init(struct xt_entry_match *m)
- static unsigned int name_to_type(const char *name)
+ 	if (r->flags & IP_NAT_RANGE_PROTO_SPECIFIED) {
+ 		printf("--to-ports %hu", ntohs(r->min.tcp.port));
+diff --git a/extensions/libipt_NETMAP.c b/extensions/libipt_NETMAP.c
+index 4d4b125..2be72c1 100644
+--- a/extensions/libipt_NETMAP.c
++++ b/extensions/libipt_NETMAP.c
+@@ -141,9 +141,8 @@ static void NETMAP_check(unsigned int flags)
+ static void NETMAP_print(const void *ip, const struct xt_entry_target *target,
+                          bool numeric)
  {
- 	int namelen = strlen(name);
--	unsigned int limit = sizeof(mh_names)/sizeof(struct mh_name);
-+	static const unsigned int limit = ARRAY_SIZE(mh_names);
- 	unsigned int match = limit;
- 	unsigned int i;
+-	struct nf_nat_multi_range *mr
+-		= (struct nf_nat_multi_range *)target->data;
+-	struct nf_nat_range *r = &mr->range[0];
++	const struct nf_nat_multi_range *mr = (const void *)target->data;
++	const struct nf_nat_range *r = &mr->range[0];
+ 	struct in_addr a;
+ 	int bits;
  
-@@ -152,10 +152,9 @@ static const char *type_to_name(u_int8_t type)
+diff --git a/extensions/libipt_REDIRECT.c b/extensions/libipt_REDIRECT.c
+index 83b0f22..2bc0ad1 100644
+--- a/extensions/libipt_REDIRECT.c
++++ b/extensions/libipt_REDIRECT.c
+@@ -126,9 +126,8 @@ REDIRECT_parse(int c, char **argv, bool invert, unsigned int *flags,
+ static void REDIRECT_print(const void *ip, const struct xt_entry_target *target,
+                            bool numeric)
  {
- 	unsigned int i;
+-	struct nf_nat_multi_range *mr
+-		= (struct nf_nat_multi_range *)target->data;
+-	struct nf_nat_range *r = &mr->range[0];
++	const struct nf_nat_multi_range *mr = (const void *)target->data;
++	const struct nf_nat_range *r = &mr->range[0];
  
--	for (i = 0; i < sizeof(mh_names)/sizeof(struct mh_name); i++) {
-+	for (i = 0; i < ARRAY_SIZE(mh_names); ++i)
- 		if (mh_names[i].type == type)
- 			return mh_names[i].name;
--	}
+ 	if (r->flags & IP_NAT_RANGE_PROTO_SPECIFIED) {
+ 		printf("redir ports ");
+@@ -143,9 +142,8 @@ static void REDIRECT_print(const void *ip, const struct xt_entry_target *target,
  
- 	return NULL;
- }
-diff --git a/extensions/libipt_LOG.c b/extensions/libipt_LOG.c
-index 59a08d6..30d56ae 100644
---- a/extensions/libipt_LOG.c
-+++ b/extensions/libipt_LOG.c
-@@ -73,9 +73,7 @@ parse_level(const char *level)
- 	if (!xtables_strtoui(level, NULL, &lev, 0, 7)) {
- 		unsigned int i = 0;
- 
--		for (i = 0;
--		     i < sizeof(ipt_log_names) / sizeof(struct ipt_log_names);
--		     i++) {
-+		for (i = 0; i < ARRAY_SIZE(ipt_log_names); ++i)
- 			if (strncasecmp(level, ipt_log_names[i].name,
- 					strlen(level)) == 0) {
- 				if (set++)
-@@ -84,7 +82,6 @@ parse_level(const char *level)
- 						   level);
- 				lev = ipt_log_names[i].level;
- 			}
--		}
- 
- 		if (!set)
- 			xtables_error(PARAMETER_PROBLEM,
-@@ -202,15 +199,12 @@ static void LOG_print(const void *ip, const struct xt_entry_target *target,
- 		printf("flags %u level %u ",
- 		       loginfo->logflags, loginfo->level);
- 	else {
--		for (i = 0;
--		     i < sizeof(ipt_log_names) / sizeof(struct ipt_log_names);
--		     i++) {
-+		for (i = 0; i < ARRAY_SIZE(ipt_log_names); ++i)
- 			if (loginfo->level == ipt_log_names[i].level) {
- 				printf("level %s ", ipt_log_names[i].name);
- 				break;
- 			}
--		}
--		if (i == sizeof(ipt_log_names) / sizeof(struct ipt_log_names))
-+		if (i == ARRAY_SIZE(ipt_log_names))
- 			printf("UNKNOWN level %u ", loginfo->level);
- 		if (loginfo->logflags & IPT_LOG_TCPSEQ)
- 			printf("tcp-sequence ");
-diff --git a/extensions/libipt_REJECT.c b/extensions/libipt_REJECT.c
-index 9014fe4..5789894 100644
---- a/extensions/libipt_REJECT.c
-+++ b/extensions/libipt_REJECT.c
-@@ -57,7 +57,7 @@ print_reject_types(void)
- 
- 	printf("Valid reject types:\n");
- 
--	for (i = 0; i < sizeof(reject_table)/sizeof(struct reject_names); i++) {
-+	for (i = 0; i < ARRAY_SIZE(reject_table); ++i) {
- 		printf("    %-25s\t%s\n", reject_table[i].name, reject_table[i].desc);
- 		printf("    %-25s\talias\n", reject_table[i].alias);
- 	}
-@@ -94,7 +94,7 @@ static bool REJECT_parse(int c, char **argv, bool invert, unsigned int *flags,
-                         const void *entry, struct xt_entry_target **target)
+ static void REDIRECT_save(const void *ip, const struct xt_entry_target *target)
  {
- 	struct ipt_reject_info *reject = (struct ipt_reject_info *)(*target)->data;
--	unsigned int limit = sizeof(reject_table)/sizeof(struct reject_names);
-+	static const unsigned int limit = ARRAY_SIZE(reject_table);
- 	unsigned int i;
+-	struct nf_nat_multi_range *mr
+-		= (struct nf_nat_multi_range *)target->data;
+-	struct nf_nat_range *r = &mr->range[0];
++	const struct nf_nat_multi_range *mr = (const void *)target->data;
++	const struct nf_nat_range *r = &mr->range[0];
  
- 	switch(c) {
-@@ -129,10 +129,9 @@ static void REJECT_print(const void *ip, const struct xt_entry_target *target,
- 		= (const struct ipt_reject_info *)target->data;
- 	unsigned int i;
+ 	if (r->flags & IP_NAT_RANGE_PROTO_SPECIFIED) {
+ 		printf("--to-ports ");
+diff --git a/extensions/libipt_SAME.c b/extensions/libipt_SAME.c
+index bbd63c7..8fbda49 100644
+--- a/extensions/libipt_SAME.c
++++ b/extensions/libipt_SAME.c
+@@ -139,14 +139,13 @@ static void SAME_print(const void *ip, const struct xt_entry_target *target,
+                        bool numeric)
+ {
+ 	unsigned int count;
+-	struct ipt_same_info *mr
+-		= (struct ipt_same_info *)target->data;
++	const struct ipt_same_info *mr = (const void *)target->data;
+ 	int random_selection = 0;
+ 	
+ 	printf("same:");
+ 	
+ 	for (count = 0; count < mr->rangesize; count++) {
+-		struct nf_nat_range *r = &mr->range[count];
++		const struct nf_nat_range *r = &mr->range[count];
+ 		struct in_addr a;
  
--	for (i = 0; i < sizeof(reject_table)/sizeof(struct reject_names); i++) {
-+	for (i = 0; i < ARRAY_SIZE(reject_table); ++i)
- 		if (reject_table[i].with == reject->with)
- 			break;
--	}
- 	printf("reject-with %s ", reject_table[i].name);
+ 		a.s_addr = r->min_ip;
+@@ -172,12 +171,11 @@ static void SAME_print(const void *ip, const struct xt_entry_target *target,
+ static void SAME_save(const void *ip, const struct xt_entry_target *target)
+ {
+ 	unsigned int count;
+-	struct ipt_same_info *mr
+-		= (struct ipt_same_info *)target->data;
++	const struct ipt_same_info *mr = (const void *)target->data;
+ 	int random_selection = 0;
+ 
+ 	for (count = 0; count < mr->rangesize; count++) {
+-		struct nf_nat_range *r = &mr->range[count];
++		const struct nf_nat_range *r = &mr->range[count];
+ 		struct in_addr a;
+ 
+ 		a.s_addr = r->min_ip;
+diff --git a/extensions/libipt_SET.c b/extensions/libipt_SET.c
+index 6f409a1..db0d433 100644
+--- a/extensions/libipt_SET.c
++++ b/extensions/libipt_SET.c
+@@ -130,8 +130,7 @@ print_target(const char *prefix, const struct ipt_set_info *info)
+ static void SET_print(const void *ip, const struct xt_entry_target *target,
+                       bool numeric)
+ {
+-	struct ipt_set_info_target *info =
+-	    (struct ipt_set_info_target *) target->data;
++	const struct ipt_set_info_target *info = (const void *)target->data;
+ 
+ 	print_target("add-set", &info->add_set);
+ 	print_target("del-set", &info->del_set);
+@@ -139,8 +138,7 @@ static void SET_print(const void *ip, const struct xt_entry_target *target,
+ 
+ static void SET_save(const void *ip, const struct xt_entry_target *target)
+ {
+-	struct ipt_set_info_target *info =
+-	    (struct ipt_set_info_target *) target->data;
++	const struct ipt_set_info_target *info = (const void *)target->data;
+ 
+ 	print_target("--add-set", &info->add_set);
+ 	print_target("--del-set", &info->del_set);
+diff --git a/extensions/libipt_SNAT.c b/extensions/libipt_SNAT.c
+index 11ef08f..c7eccd0 100644
+--- a/extensions/libipt_SNAT.c
++++ b/extensions/libipt_SNAT.c
+@@ -220,7 +220,7 @@ static void print_range(const struct nf_nat_range *r)
+ static void SNAT_print(const void *ip, const struct xt_entry_target *target,
+                        bool numeric)
+ {
+-	struct ipt_natinfo *info = (void *)target;
++	const struct ipt_natinfo *info = (const void *)target;
+ 	unsigned int i = 0;
+ 
+ 	printf("to:");
+@@ -236,7 +236,7 @@ static void SNAT_print(const void *ip, const struct xt_entry_target *target,
+ 
+ static void SNAT_save(const void *ip, const struct xt_entry_target *target)
+ {
+-	struct ipt_natinfo *info = (void *)target;
++	const struct ipt_natinfo *info = (const void *)target;
+ 	unsigned int i = 0;
+ 
+ 	for (i = 0; i < info->mr.rangesize; i++) {
+diff --git a/extensions/libipt_realm.c b/extensions/libipt_realm.c
+index bde3472..88fa499 100644
+--- a/extensions/libipt_realm.c
++++ b/extensions/libipt_realm.c
+@@ -208,7 +208,7 @@ print_realm(unsigned long id, unsigned long mask, bool numeric)
+ static void realm_print(const void *ip, const struct xt_entry_match *match,
+                         bool numeric)
+ {
+-	struct ipt_realm_info *ri = (struct ipt_realm_info *) match->data;
++	const struct ipt_realm_info *ri = (const void *)match->data;
+ 
+ 	if (ri->invert)
+ 		printf("! ");
+@@ -219,7 +219,7 @@ static void realm_print(const void *ip, const struct xt_entry_match *match,
+ 
+ static void realm_save(const void *ip, const struct xt_entry_match *match)
+ {
+-	struct ipt_realm_info *ri = (struct ipt_realm_info *) match->data;
++	const struct ipt_realm_info *ri = (const void *)match->data;
+ 
+ 	if (ri->invert)
+ 		printf("! ");
+diff --git a/extensions/libipt_set.c b/extensions/libipt_set.c
+index b704852..cfa64dc 100644
+--- a/extensions/libipt_set.c
++++ b/extensions/libipt_set.c
+@@ -122,16 +122,14 @@ print_match(const char *prefix, const struct ipt_set_info *info)
+ static void set_print(const void *ip, const struct xt_entry_match *match,
+                       bool numeric)
+ {
+-	struct ipt_set_info_match *info = 
+-		(struct ipt_set_info_match *) match->data;
++	const struct ipt_set_info_match *info = (const void *)match->data;
+ 
+ 	print_match("set", &info->match_set);
  }
  
-@@ -142,7 +141,7 @@ static void REJECT_save(const void *ip, const struct xt_entry_target *target)
- 		= (const struct ipt_reject_info *)target->data;
- 	unsigned int i;
- 
--	for (i = 0; i < sizeof(reject_table)/sizeof(struct reject_names); i++)
-+	for (i = 0; i < ARRAY_SIZE(reject_table); ++i)
- 		if (reject_table[i].with == reject->with)
- 			break;
- 
-diff --git a/extensions/libipt_icmp.c b/extensions/libipt_icmp.c
-index f823677..dadde99 100644
---- a/extensions/libipt_icmp.c
-+++ b/extensions/libipt_icmp.c
-@@ -84,7 +84,7 @@ print_icmptypes(void)
- 	unsigned int i;
- 	printf("Valid ICMP Types:");
- 
--	for (i = 0; i < sizeof(icmp_codes)/sizeof(struct icmp_names); i++) {
-+	for (i = 0; i < ARRAY_SIZE(icmp_codes); ++i) {
- 		if (i && icmp_codes[i].type == icmp_codes[i-1].type) {
- 			if (icmp_codes[i].code_min == icmp_codes[i-1].code_min
- 			    && (icmp_codes[i].code_max
-@@ -116,7 +116,7 @@ static const struct option icmp_opts[] = {
- static void 
- parse_icmp(const char *icmptype, u_int8_t *type, u_int8_t code[])
+ static void set_save(const void *ip, const struct xt_entry_match *match)
  {
--	unsigned int limit = sizeof(icmp_codes)/sizeof(struct icmp_names);
-+	static const unsigned int limit = ARRAY_SIZE(icmp_codes);
- 	unsigned int match = limit;
- 	unsigned int i;
+-	struct ipt_set_info_match *info = 
+-		(struct ipt_set_info_match *) match->data;
++	const struct ipt_set_info_match *info = (const void *)match->data;
  
-@@ -207,16 +207,13 @@ static void print_icmptype(u_int8_t type,
- 	if (!numeric) {
- 		unsigned int i;
+ 	print_match("--set", &info->match_set);
+ }
+diff --git a/extensions/libxt_CONNSECMARK.c b/extensions/libxt_CONNSECMARK.c
+index d48d1f6..f32d860 100644
+--- a/extensions/libxt_CONNSECMARK.c
++++ b/extensions/libxt_CONNSECMARK.c
+@@ -70,7 +70,7 @@ static void CONNSECMARK_check(unsigned int flags)
+ 		           "or --restore is allowed");
+ }
  
--		for (i = 0;
--		     i < sizeof(icmp_codes)/sizeof(struct icmp_names);
--		     i++) {
-+		for (i = 0; i < ARRAY_SIZE(icmp_codes); ++i)
- 			if (icmp_codes[i].type == type
- 			    && icmp_codes[i].code_min == code_min
- 			    && icmp_codes[i].code_max == code_max)
- 				break;
--		}
+-static void print_connsecmark(struct xt_connsecmark_target_info *info)
++static void print_connsecmark(const struct xt_connsecmark_target_info *info)
+ {
+ 	switch (info->mode) {
+ 	case CONNSECMARK_SAVE:
+@@ -90,7 +90,7 @@ static void
+ CONNSECMARK_print(const void *ip, const struct xt_entry_target *target,
+                   bool numeric)
+ {
+-	struct xt_connsecmark_target_info *info =
++	const struct xt_connsecmark_target_info *info =
+ 		(struct xt_connsecmark_target_info*)(target)->data;
  
--		if (i != sizeof(icmp_codes)/sizeof(struct icmp_names)) {
-+		if (i != ARRAY_SIZE(icmp_codes)) {
- 			printf("%s%s ",
- 			       invert ? "!" : "",
- 			       icmp_codes[i].name);
-diff --git a/extensions/libxt_dccp.c b/extensions/libxt_dccp.c
-index e5e2edc..d0d4e64 100644
---- a/extensions/libxt_dccp.c
-+++ b/extensions/libxt_dccp.c
-@@ -103,13 +103,12 @@ parse_dccp_types(const char *typestring)
+ 	printf("CONNSECMARK ");
+@@ -100,7 +100,7 @@ CONNSECMARK_print(const void *ip, const struct xt_entry_target *target,
+ static void
+ CONNSECMARK_save(const void *ip, const struct xt_entry_target *target)
+ {
+-	struct xt_connsecmark_target_info *info =
++	const struct xt_connsecmark_target_info *info =
+ 		(struct xt_connsecmark_target_info*)target->data;
  
- 	for (ptr = strtok(buffer, ","); ptr; ptr = strtok(NULL, ",")) {
- 		unsigned int i;
--		for (i = 0; i < sizeof(dccp_pkt_types)/sizeof(char *); i++) {
-+		for (i = 0; i < ARRAY_SIZE(dccp_pkt_types); ++i)
- 			if (!strcasecmp(dccp_pkt_types[i], ptr)) {
- 				typemask |= (1 << i);
- 				break;
- 			}
--		}
--		if (i == sizeof(dccp_pkt_types)/sizeof(char *))
-+		if (i == ARRAY_SIZE(dccp_pkt_types))
- 			xtables_error(PARAMETER_PROBLEM,
- 				   "Unknown DCCP type `%s'", ptr);
+ 	printf("--");
+diff --git a/extensions/libxt_RATEEST.c b/extensions/libxt_RATEEST.c
+index bd70852..e1fbdda 100644
+--- a/extensions/libxt_RATEEST.c
++++ b/extensions/libxt_RATEEST.c
+@@ -175,7 +175,7 @@ RATEEST_final_check(unsigned int flags)
+ static void
+ __RATEEST_print(const struct xt_entry_target *target, const char *prefix)
+ {
+-	struct xt_rateest_target_info *info = (void *)target->data;
++	const struct xt_rateest_target_info *info = (const void *)target->data;
+ 	unsigned int local_interval;
+ 	unsigned int local_ewma_log;
+ 
+diff --git a/extensions/libxt_SECMARK.c b/extensions/libxt_SECMARK.c
+index 36f9d7c..c6a9116 100644
+--- a/extensions/libxt_SECMARK.c
++++ b/extensions/libxt_SECMARK.c
+@@ -77,7 +77,7 @@ static void print_secmark(struct xt_secmark_target_info *info)
+ static void SECMARK_print(const void *ip, const struct xt_entry_target *target,
+                           bool numeric)
+ {
+-	struct xt_secmark_target_info *info =
++	const struct xt_secmark_target_info *info =
+ 		(struct xt_secmark_target_info*)(target)->data;
+ 
+ 	printf("SECMARK ");
+@@ -86,7 +86,7 @@ static void SECMARK_print(const void *ip, const struct xt_entry_target *target,
+ 
+ static void SECMARK_save(const void *ip, const struct xt_entry_target *target)
+ {
+-	struct xt_secmark_target_info *info =
++	const struct xt_secmark_target_info *info =
+ 		(struct xt_secmark_target_info*)target->data;
+ 
+ 	printf("--");
+diff --git a/extensions/libxt_comment.c b/extensions/libxt_comment.c
+index 79d1594..da959c7 100644
+--- a/extensions/libxt_comment.c
++++ b/extensions/libxt_comment.c
+@@ -72,7 +72,7 @@ static void comment_check(unsigned int flags)
+ static void
+ comment_print(const void *ip, const struct xt_entry_match *match, bool numeric)
+ {
+-	struct xt_comment_info *commentinfo = (struct xt_comment_info *)match->data;
++	struct xt_comment_info *commentinfo = (void *)match->data;
+ 
+ 	commentinfo->comment[XT_MAX_COMMENT_LEN-1] = '\0';
+ 	printf("/* %s */ ", commentinfo->comment);
+@@ -82,7 +82,7 @@ comment_print(const void *ip, const struct xt_entry_match *match, bool numeric)
+ static void
+ comment_save(const void *ip, const struct xt_entry_match *match)
+ {
+-	struct xt_comment_info *commentinfo = (struct xt_comment_info *)match->data;
++	struct xt_comment_info *commentinfo = (void *)match->data;
+ 
+ 	commentinfo->comment[XT_MAX_COMMENT_LEN-1] = '\0';
+ 	printf("--comment ");
+diff --git a/extensions/libxt_connbytes.c b/extensions/libxt_connbytes.c
+index d465fc4..bf1d05f 100644
+--- a/extensions/libxt_connbytes.c
++++ b/extensions/libxt_connbytes.c
+@@ -103,7 +103,7 @@ static void connbytes_check(unsigned int flags)
+ 			   "`--connbytes-dir' and `--connbytes-mode'");
+ }
+ 
+-static void print_mode(struct xt_connbytes_info *sinfo)
++static void print_mode(const struct xt_connbytes_info *sinfo)
+ {
+ 	switch (sinfo->what) {
+ 		case XT_CONNBYTES_PKTS:
+@@ -121,7 +121,7 @@ static void print_mode(struct xt_connbytes_info *sinfo)
  	}
+ }
+ 
+-static void print_direction(struct xt_connbytes_info *sinfo)
++static void print_direction(const struct xt_connbytes_info *sinfo)
+ {
+ 	switch (sinfo->direction) {
+ 		case XT_CONNBYTES_DIR_ORIGINAL:
+@@ -143,7 +143,7 @@ static void
+ connbytes_print(const void *ip, const struct xt_entry_match *match,
+                 bool numeric)
+ {
+-	struct xt_connbytes_info *sinfo = (struct xt_connbytes_info *)match->data;
++	const struct xt_connbytes_info *sinfo = (const void *)match->data;
+ 
+ 	if (sinfo->count.from > sinfo->count.to) 
+ 		printf("connbytes ! %llu:%llu ",
+@@ -163,7 +163,7 @@ connbytes_print(const void *ip, const struct xt_entry_match *match,
+ 
+ static void connbytes_save(const void *ip, const struct xt_entry_match *match)
+ {
+-	struct xt_connbytes_info *sinfo = (struct xt_connbytes_info *)match->data;
++	const struct xt_connbytes_info *sinfo = (const void *)match->data;
+ 
+ 	if (sinfo->count.from > sinfo->count.to) 
+ 		printf("! --connbytes %llu:%llu ",
+diff --git a/extensions/libxt_connmark.c b/extensions/libxt_connmark.c
+index fa16e96..4418e6a 100644
+--- a/extensions/libxt_connmark.c
++++ b/extensions/libxt_connmark.c
+@@ -123,7 +123,7 @@ static void
+ connmark_print(const void *ip, const struct xt_entry_match *match,
+                bool numeric)
+ {
+-	struct xt_connmark_info *info = (struct xt_connmark_info *)match->data;
++	const struct xt_connmark_info *info = (const void *)match->data;
+ 
+ 	printf("CONNMARK match ");
+ 	if (info->invert)
+@@ -145,7 +145,7 @@ connmark_mt_print(const void *ip, const struct xt_entry_match *match,
+ 
+ static void connmark_save(const void *ip, const struct xt_entry_match *match)
+ {
+-	struct xt_connmark_info *info = (struct xt_connmark_info *)match->data;
++	const struct xt_connmark_info *info = (const void *)match->data;
+ 
+ 	if (info->invert)
+ 		printf("! ");
+diff --git a/extensions/libxt_conntrack.c b/extensions/libxt_conntrack.c
+index 4b6c3c5..0ede034 100644
+--- a/extensions/libxt_conntrack.c
++++ b/extensions/libxt_conntrack.c
+@@ -780,7 +780,8 @@ conntrack_dump_addr(const union nf_inet_addr *addr,
+ }
+ 
+ static void
+-print_addr(struct in_addr *addr, struct in_addr *mask, bool inv, bool numeric)
++print_addr(const struct in_addr *addr, const struct in_addr *mask,
++           bool inv, bool numeric)
+ {
+ 	char buf[BUFSIZ];
+ 
+@@ -803,7 +804,7 @@ static void
+ matchinfo_print(const void *ip, const struct xt_entry_match *match,
+                 bool numeric, const char *optpfx)
+ {
+-	struct xt_conntrack_info *sinfo = (void *)match->data;
++	const struct xt_conntrack_info *sinfo = (const void *)match->data;
+ 
+ 	if(sinfo->flags & XT_CONNTRACK_STATE) {
+         	if (sinfo->invflags & XT_CONNTRACK_STATE)
 diff --git a/extensions/libxt_hashlimit.c b/extensions/libxt_hashlimit.c
-index 1ca78d8..c499ecc 100644
+index 4fd844f..1ca78d8 100644
 --- a/extensions/libxt_hashlimit.c
 +++ b/extensions/libxt_hashlimit.c
-@@ -485,11 +485,10 @@ static void print_rate(u_int32_t period)
+@@ -525,8 +525,7 @@ static void print_mode(unsigned int mode, char separator)
+ static void hashlimit_print(const void *ip,
+                             const struct xt_entry_match *match, bool numeric)
  {
- 	unsigned int i;
+-	struct xt_hashlimit_info *r = 
+-		(struct xt_hashlimit_info *)match->data;
++	const struct xt_hashlimit_info *r = (const void *)match->data;
+ 	fputs("limit: avg ", stdout); print_rate(r->cfg.avg);
+ 	printf("burst %u ", r->cfg.burst);
+ 	fputs("mode ", stdout);
+@@ -590,8 +589,7 @@ hashlimit_mt6_print(const void *ip, const struct xt_entry_match *match,
  
--	for (i = 1; i < sizeof(rates)/sizeof(struct rates); i++) {
-+	for (i = 1; i < ARRAY_SIZE(rates); ++i)
- 		if (period > rates[i].mult
-             || rates[i].mult/period < rates[i].mult%period)
- 			break;
--	}
+ static void hashlimit_save(const void *ip, const struct xt_entry_match *match)
+ {
+-	struct xt_hashlimit_info *r = 
+-		(struct xt_hashlimit_info *)match->data;
++	const struct xt_hashlimit_info *r = (const void *)match->data;
  
- 	printf("%u/%s ", rates[i-1].mult / period, rates[i-1].name);
+ 	fputs("--hashlimit ", stdout); print_rate(r->cfg.avg);
+ 	if (r->cfg.burst != XT_HASHLIMIT_BURST)
+diff --git a/extensions/libxt_helper.c b/extensions/libxt_helper.c
+index d5e5670..951db5c 100644
+--- a/extensions/libxt_helper.c
++++ b/extensions/libxt_helper.c
+@@ -56,14 +56,14 @@ static void helper_check(unsigned int flags)
+ static void
+ helper_print(const void *ip, const struct xt_entry_match *match, bool numeric)
+ {
+-	struct xt_helper_info *info = (struct xt_helper_info *)match->data;
++	const struct xt_helper_info *info = (const void *)match->data;
+ 
+ 	printf("helper match %s\"%s\" ", info->invert ? "! " : "", info->name);
  }
+ 
+ static void helper_save(const void *ip, const struct xt_entry_match *match)
+ {
+-	struct xt_helper_info *info = (struct xt_helper_info *)match->data;
++	const struct xt_helper_info *info = (const void *)match->data;
+ 
+ 	printf("%s--helper ",info->invert ? "! " : "");
+ 	xtables_save_string(info->name);
 diff --git a/extensions/libxt_limit.c b/extensions/libxt_limit.c
-index a999531..3acb00f 100644
+index e408e3e..a999531 100644
 --- a/extensions/libxt_limit.c
 +++ b/extensions/libxt_limit.c
-@@ -133,11 +133,10 @@ static void print_rate(u_int32_t period)
+@@ -145,14 +145,14 @@ static void print_rate(u_int32_t period)
+ static void
+ limit_print(const void *ip, const struct xt_entry_match *match, bool numeric)
  {
- 	unsigned int i;
- 
--	for (i = 1; i < sizeof(rates)/sizeof(struct rates); i++) {
-+	for (i = 1; i < ARRAY_SIZE(rates); ++i)
- 		if (period > rates[i].mult
-             || rates[i].mult/period < rates[i].mult%period)
- 			break;
--	}
- 
- 	printf("%u/%s ", rates[i-1].mult / period, rates[i-1].name);
+-	struct xt_rateinfo *r = (struct xt_rateinfo *)match->data;
++	const struct xt_rateinfo *r = (const void *)match->data;
+ 	printf("limit: avg "); print_rate(r->avg);
+ 	printf("burst %u ", r->burst);
  }
+ 
+ static void limit_save(const void *ip, const struct xt_entry_match *match)
+ {
+-	struct xt_rateinfo *r = (struct xt_rateinfo *)match->data;
++	const struct xt_rateinfo *r = (const void *)match->data;
+ 
+ 	printf("--limit "); print_rate(r->avg);
+ 	if (r->burst != XT_LIMIT_BURST)
+diff --git a/extensions/libxt_mark.c b/extensions/libxt_mark.c
+index c6299ff..eb45c24 100644
+--- a/extensions/libxt_mark.c
++++ b/extensions/libxt_mark.c
+@@ -110,7 +110,7 @@ mark_mt_print(const void *ip, const struct xt_entry_match *match, bool numeric)
+ static void
+ mark_print(const void *ip, const struct xt_entry_match *match, bool numeric)
+ {
+-	struct xt_mark_info *info = (struct xt_mark_info *)match->data;
++	const struct xt_mark_info *info = (const void *)match->data;
+ 
+ 	printf("MARK match ");
+ 
+@@ -134,7 +134,7 @@ static void mark_mt_save(const void *ip, const struct xt_entry_match *match)
+ static void
+ mark_save(const void *ip, const struct xt_entry_match *match)
+ {
+-	struct xt_mark_info *info = (struct xt_mark_info *)match->data;
++	const struct xt_mark_info *info = (const void *)match->data;
+ 
+ 	if (info->invert)
+ 		printf("! ");
+diff --git a/extensions/libxt_physdev.c b/extensions/libxt_physdev.c
+index 1ce408c..39fff0b 100644
+--- a/extensions/libxt_physdev.c
++++ b/extensions/libxt_physdev.c
+@@ -115,8 +115,7 @@ static void physdev_check(unsigned int flags)
+ static void
+ physdev_print(const void *ip, const struct xt_entry_match *match, bool numeric)
+ {
+-	struct xt_physdev_info *info =
+-		(struct xt_physdev_info*)match->data;
++	const struct xt_physdev_info *info = (const void *)match->data;
+ 
+ 	printf("PHYSDEV match");
+ 	if (info->bitmask & XT_PHYSDEV_OP_ISIN)
+@@ -140,8 +139,7 @@ physdev_print(const void *ip, const struct xt_entry_match *match, bool numeric)
+ 
+ static void physdev_save(const void *ip, const struct xt_entry_match *match)
+ {
+-	struct xt_physdev_info *info =
+-		(struct xt_physdev_info*)match->data;
++	const struct xt_physdev_info *info = (const void *)match->data;
+ 
+ 	if (info->bitmask & XT_PHYSDEV_OP_ISIN)
+ 		printf("%s--physdev-is-in ",
 diff --git a/extensions/libxt_pkttype.c b/extensions/libxt_pkttype.c
-index f8ad175..ba22055 100644
+index 294c854..f8ad175 100644
 --- a/extensions/libxt_pkttype.c
 +++ b/extensions/libxt_pkttype.c
-@@ -47,11 +47,9 @@ static void print_types(void)
- 	unsigned int	i;
- 	
- 	printf("Valid packet types:\n");
--	for (i = 0; i < sizeof(supported_types)/sizeof(struct pkttypes); i++)
--	{
-+	for (i = 0; i < ARRAY_SIZE(supported_types); ++i)
- 		if(supported_types[i].printhelp == 1)
- 			printf("\t%-14s\t\t%s\n", supported_types[i].name, supported_types[i].help);
--	}
- 	printf("\n");
+@@ -112,7 +112,7 @@ static void pkttype_check(unsigned int flags)
+ 		xtables_error(PARAMETER_PROBLEM, "You must specify \"--pkt-type\"");
  }
  
-@@ -72,14 +70,12 @@ static void parse_pkttype(const char *pkttype, struct xt_pkttype_info *info)
+-static void print_pkttype(struct xt_pkttype_info *info)
++static void print_pkttype(const struct xt_pkttype_info *info)
  {
  	unsigned int	i;
  	
--	for (i = 0; i < sizeof(supported_types)/sizeof(struct pkttypes); i++)
--	{
-+	for (i = 0; i < ARRAY_SIZE(supported_types); ++i)
- 		if(strcasecmp(pkttype, supported_types[i].name)==0)
- 		{
- 			info->pkttype=supported_types[i].pkttype;
- 			return;
- 		}
--	}
- 	
- 	xtables_error(PARAMETER_PROBLEM, "Bad packet type '%s'", pkttype);
- }
-@@ -116,14 +112,12 @@ static void print_pkttype(const struct xt_pkttype_info *info)
+@@ -131,7 +131,7 @@ static void print_pkttype(struct xt_pkttype_info *info)
+ static void pkttype_print(const void *ip, const struct xt_entry_match *match,
+                           bool numeric)
  {
- 	unsigned int	i;
+-	struct xt_pkttype_info *info = (struct xt_pkttype_info *)match->data;
++	const struct xt_pkttype_info *info = (const void *)match->data;
  	
--	for (i = 0; i < sizeof(supported_types)/sizeof(struct pkttypes); i++)
--	{
-+	for (i = 0; i < ARRAY_SIZE(supported_types); ++i)
- 		if(supported_types[i].pkttype==info->pkttype)
- 		{
- 			printf("%s ", supported_types[i].name);
- 			return;
- 		}
--	}
+ 	printf("PKTTYPE %s= ", info->invert?"!":"");
+ 	print_pkttype(info);
+@@ -139,7 +139,7 @@ static void pkttype_print(const void *ip, const struct xt_entry_match *match,
  
- 	printf("%d ", info->pkttype);	/* in case we didn't find an entry in named-packtes */
- }
-diff --git a/extensions/libxt_sctp.c b/extensions/libxt_sctp.c
-index 85b2bce..561662a 100644
---- a/extensions/libxt_sctp.c
-+++ b/extensions/libxt_sctp.c
-@@ -18,20 +18,8 @@
- #include <netinet/in.h>
- #include <xtables.h>
- 
--#ifndef ARRAY_SIZE
--#define ARRAY_SIZE(x) (sizeof(x) / sizeof((x)[0]))
--#endif
--
- #include <linux/netfilter/xt_sctp.h>
- 
--/* Some ZS!#@:$%*#$! has replaced the ELEMCOUNT macro in ipt_sctp.h with
-- * ARRAY_SIZE without noticing that this file is used from userspace,
-- * and userspace doesn't have ARRAY_SIZE */
--
--#ifndef ELEMCOUNT
--#define ELEMCOUNT ARRAY_SIZE
--#endif
--
- #if 0
- #define DEBUGP(format, first...) printf(format, ##first)
- #define static
-@@ -199,7 +187,7 @@ parse_sctp_chunk(struct xt_sctp_info *einfo,
- 			*chunk_flags++ = 0;
- 		}
- 		
--		for (i = 0; i < ELEMCOUNT(sctp_chunk_names); i++) {
-+		for (i = 0; i < ARRAY_SIZE(sctp_chunk_names); ++i)
- 			if (strcasecmp(sctp_chunk_names[i].name, ptr) == 0) {
- 				DEBUGP("Chunk num %d\n", sctp_chunk_names[i].chunk_type);
- 				SCTP_CHUNKMAP_SET(einfo->chunkmap, 
-@@ -207,7 +195,6 @@ parse_sctp_chunk(struct xt_sctp_info *einfo,
- 				found = 1;
- 				break;
- 			}
--		}
- 		if (!found)
- 			xtables_error(PARAMETER_PROBLEM,
- 				   "Unknown sctp chunk `%s'", ptr);
-@@ -390,10 +377,9 @@ print_chunk(u_int32_t chunknum, bool numeric)
- 	else {
- 		int i;
- 
--		for (i = 0; i < ELEMCOUNT(sctp_chunk_names); i++) {
-+		for (i = 0; i < ARRAY_SIZE(sctp_chunk_names); ++i)
- 			if (sctp_chunk_names[i].chunk_type == chunknum)
- 				printf("%s", sctp_chunk_names[chunknum].name);
--		}
- 	}
- }
- 
-diff --git a/extensions/libxt_tcp.c b/extensions/libxt_tcp.c
-index e98ab76..6ff5c24 100644
---- a/extensions/libxt_tcp.c
-+++ b/extensions/libxt_tcp.c
-@@ -87,18 +87,15 @@ parse_tcp_flag(const char *flags)
- 
- 	for (ptr = strtok(buffer, ","); ptr; ptr = strtok(NULL, ",")) {
- 		unsigned int i;
--		for (i = 0;
--		     i < sizeof(tcp_flag_names)/sizeof(struct tcp_flag_names);
--		     i++) {
-+		for (i = 0; i < ARRAY_SIZE(tcp_flag_names); ++i)
- 			if (strcasecmp(tcp_flag_names[i].name, ptr) == 0) {
- 				ret |= tcp_flag_names[i].flag;
- 				break;
- 			}
--		}
--		if (i == sizeof(tcp_flag_names)/sizeof(struct tcp_flag_names))
-+		if (i == ARRAY_SIZE(tcp_flag_names))
- 			xtables_error(PARAMETER_PROBLEM,
- 				   "Unknown TCP flag `%s'", ptr);
--		}
-+	}
- 
- 	free(buffer);
- 	return ret;
-diff --git a/ip6tables-restore.c b/ip6tables-restore.c
-index 324dd1f..1d5efea 100644
---- a/ip6tables-restore.c
-+++ b/ip6tables-restore.c
-@@ -99,7 +99,7 @@ static int newargc;
-  * returns true if argument added, false otherwise */
- static int add_argv(char *what) {
- 	DEBUGP("add_argv: %s\n", what);
--	if (what && ((newargc + 1) < sizeof(newargv)/sizeof(char *))) {
-+	if (what && newargc + 1 < ARRAY_SIZE(newargv)) {
- 		newargv[newargc] = strdup(what);
- 		newargc++;
- 		return 1;
-diff --git a/iptables-restore.c b/iptables-restore.c
-index f1c5e3e..2a797cc 100644
---- a/iptables-restore.c
-+++ b/iptables-restore.c
-@@ -99,7 +99,7 @@ static int newargc;
-  * returns true if argument added, false otherwise */
- static int add_argv(char *what) {
- 	DEBUGP("add_argv: %s\n", what);
--	if (what && ((newargc + 1) < sizeof(newargv)/sizeof(char *))) {
-+	if (what && newargc + 1 < ARRAY_SIZE(newargv)) {
- 		newargv[newargc] = strdup(what);
- 		newargc++;
- 		return 1;
-diff --git a/iptables-xml.c b/iptables-xml.c
-index 543715b..e5d1941 100644
---- a/iptables-xml.c
-+++ b/iptables-xml.c
-@@ -110,7 +110,7 @@ static int
- add_argv(char *what, int quoted)
+ static void pkttype_save(const void *ip, const struct xt_entry_match *match)
  {
- 	DEBUGP("add_argv: %d %s\n", newargc, what);
--	if (what && ((newargc + 1) < sizeof(newargv) / sizeof(char *))) {
-+	if (what && newargc + 1 < ARRAY_SIZE(newargv)) {
- 		newargv[newargc] = strdup(what);
- 		newargvattr[newargc] = quoted;
- 		newargc++;
+-	struct xt_pkttype_info *info = (struct xt_pkttype_info *)match->data;
++	const struct xt_pkttype_info *info = (const void *)match->data;
+ 	
+ 	printf("%s--pkt-type ", info->invert ? "! " : "");
+ 	print_pkttype(info);
+diff --git a/extensions/libxt_quota.c b/extensions/libxt_quota.c
+index 6843841..ae283f5 100644
+--- a/extensions/libxt_quota.c
++++ b/extensions/libxt_quota.c
+@@ -26,14 +26,14 @@ static void quota_help(void)
+ static void
+ quota_print(const void *ip, const struct xt_entry_match *match, bool numeric)
+ {
+-	struct xt_quota_info *q = (struct xt_quota_info *) match->data;
++	const struct xt_quota_info *q = (const void *)match->data;
+ 	printf("quota: %llu bytes", (unsigned long long) q->quota);
+ }
+ 
+ static void
+ quota_save(const void *ip, const struct xt_entry_match *match)
+ {
+-	struct xt_quota_info *q = (struct xt_quota_info *) match->data;
++	const struct xt_quota_info *q = (const void *)match->data;
+ 	printf("--quota %llu ", (unsigned long long) q->quota);
+ }
+ 
+diff --git a/extensions/libxt_rateest.c b/extensions/libxt_rateest.c
+index 2c17326..dbc6f17 100644
+--- a/extensions/libxt_rateest.c
++++ b/extensions/libxt_rateest.c
+@@ -333,7 +333,8 @@ rateest_print_rate(u_int32_t rate, bool numeric)
+ }
+ 
+ static void
+-rateest_print_mode(struct xt_rateest_match_info *info, const char *prefix)
++rateest_print_mode(const struct xt_rateest_match_info *info,
++                   const char *prefix)
+ {
+ 	if (info->flags & XT_RATEEST_MATCH_INVERT)
+ 		printf("! ");
+@@ -356,7 +357,7 @@ rateest_print_mode(struct xt_rateest_match_info *info, const char *prefix)
+ static void
+ rateest_print(const void *ip, const struct xt_entry_match *match, bool numeric)
+ {
+-	struct xt_rateest_match_info *info = (void *)match->data;
++	const struct xt_rateest_match_info *info = (const void *)match->data;
+ 
+ 	printf("rateest match ");
+ 
+@@ -406,7 +407,7 @@ rateest_print(const void *ip, const struct xt_entry_match *match, bool numeric)
+ static void
+ rateest_save(const void *ip, const struct xt_entry_match *match)
+ {
+-	struct xt_rateest_match_info *info = (void *)match->data;
++	const struct xt_rateest_match_info *info = (const void *)match->data;
+ 
+ 	if (info->flags & XT_RATEEST_MATCH_REL) {
+ 		printf("--rateest1 %s ", info->name1);
+diff --git a/extensions/libxt_state.c b/extensions/libxt_state.c
+index 97afe45..248d71f 100644
+--- a/extensions/libxt_state.c
++++ b/extensions/libxt_state.c
+@@ -125,7 +125,7 @@ state_print(const void *ip,
+       const struct xt_entry_match *match,
+       bool numeric)
+ {
+-	struct xt_state_info *sinfo = (struct xt_state_info *)match->data;
++	const struct xt_state_info *sinfo = (const void *)match->data;
+ 
+ 	printf("state ");
+ 	state_print_state(sinfo->statemask);
+@@ -133,7 +133,7 @@ state_print(const void *ip,
+ 
+ static void state_save(const void *ip, const struct xt_entry_match *match)
+ {
+-	struct xt_state_info *sinfo = (struct xt_state_info *)match->data;
++	const struct xt_state_info *sinfo = (const void *)match->data;
+ 
+ 	printf("--state ");
+ 	state_print_state(sinfo->statemask);
+diff --git a/extensions/libxt_statistic.c b/extensions/libxt_statistic.c
+index 139f878..4f661e8 100644
+--- a/extensions/libxt_statistic.c
++++ b/extensions/libxt_statistic.c
+@@ -148,7 +148,7 @@ static void
+ statistic_print(const void *ip, const struct xt_entry_match *match,
+                 bool numeric)
+ {
+-	struct xt_statistic_info *info = (struct xt_statistic_info *)match->data;
++	const struct xt_statistic_info *info = (const void *)match->data;
+ 
+ 	printf("statistic ");
+ 	print_match(info, "");
+@@ -156,7 +156,7 @@ statistic_print(const void *ip, const struct xt_entry_match *match,
+ 
+ static void statistic_save(const void *ip, const struct xt_entry_match *match)
+ {
+-	struct xt_statistic_info *info = (struct xt_statistic_info *)match->data;
++	const struct xt_statistic_info *info = (const void *)match->data;
+ 
+ 	print_match(info, "--");
+ }
+diff --git a/extensions/libxt_time.c b/extensions/libxt_time.c
+index f2db56f..6dc7431 100644
+--- a/extensions/libxt_time.c
++++ b/extensions/libxt_time.c
+@@ -406,7 +406,7 @@ static inline void divide_time(unsigned int fulltime, unsigned int *hours,
+ static void time_print(const void *ip, const struct xt_entry_match *match,
+                        bool numeric)
+ {
+-	struct xt_time_info *info = (void *)match->data;
++	const struct xt_time_info *info = (const void *)match->data;
+ 	unsigned int h, m, s;
+ 
+ 	printf("TIME ");
 -- 
 1.6.2.2
 
