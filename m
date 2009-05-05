@@ -1,39 +1,44 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/1] socket: Added 'transparent' option
-Date: Tue, 05 May 2009 17:52:39 +0200
-Message-ID: <4A0060C7.4060007@trash.net>
-References: <1240589223-12494-1-git-send-email-panther@balabit.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Laszlo Attila Toth <panther@balabit.hu>
+Subject: netfilter 01/04: add missing linux/types.h include to xt_LED.h
+Date: Tue,  5 May 2009 18:47:44 +0200 (MEST)
+Message-ID: <20090505164743.19290.67296.sendpatchset@x2.localnet>
+References: <20090505164742.19290.7829.sendpatchset@x2.localnet>
+Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45376 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:46577 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751697AbZEEPwk (ORCPT
+	with ESMTP id S1754005AbZEEQrp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 5 May 2009 11:52:40 -0400
-In-Reply-To: <1240589223-12494-1-git-send-email-panther@balabit.hu>
+	Tue, 5 May 2009 12:47:45 -0400
+In-Reply-To: <20090505164742.19290.7829.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Laszlo Attila Toth wrote:
-> Added new revision of the 'socket' match. If its new option is set,
-> enabled 'transparent' socket option is required for the socket to be matched.
-> 
-> +socket_match(const struct sk_buff *skb, const struct xt_match_param *par, bool check_transparent)
->  {
->  	const struct iphdr *iph = ip_hdr(skb);
->  	struct udphdr _hdr, *hp = NULL;
-> @@ -142,10 +144,19 @@ socket_mt(const struct sk_buff *skb, const struct xt_match_param *par)
->  				   saddr, daddr, sport, dport, par->in, false);
->  	if (sk != NULL) {
->  		bool wildcard = (sk->sk_state != TCP_TIME_WAIT && inet_sk(sk)->rcv_saddr == 0);
-> +		bool transparent = (sk->sk_state != TCP_TIME_WAIT && inet_sk(sk)->transparent) ||
-> +				   (sk->sk_state == TCP_TIME_WAIT && inet_twsk(sk)->tw_transparent);
-> +		const struct xt_socket_match_info *info;
+commit a7ca7fccacc029958fd09985e7f3529b90ec791d
+Author: Patrick McHardy <kaber@trash.net>
+Date:   Tue May 5 14:31:12 2009 +0200
 
-Please use proper line breaks at 80 characters.
+    netfilter: add missing linux/types.h include to xt_LED.h
+    
+    Pointed out by Dave Miller:
+    
+      CHECK   include/linux/netfilter (57 files)
+    /home/davem/src/GIT/net-2.6/usr/include/linux/netfilter/xt_LED.h:6: found __[us]{8,16,32,64} type without #include <linux/types.h>
+    
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-
+diff --git a/include/linux/netfilter/xt_LED.h b/include/linux/netfilter/xt_LED.h
+index 4c91a0d..f5509e7 100644
+--- a/include/linux/netfilter/xt_LED.h
++++ b/include/linux/netfilter/xt_LED.h
+@@ -1,6 +1,8 @@
+ #ifndef _XT_LED_H
+ #define _XT_LED_H
+ 
++#include <linux/types.h>
++
+ struct xt_led_info {
+ 	char id[27];        /* Unique ID for this trigger in the LED class */
+ 	__u8 always_blink;  /* Blink even if the LED is already on */
