@@ -1,41 +1,39 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/2] netfilter: ctnetlink: fix wrong message type in user
- updates
-Date: Tue, 05 May 2009 17:49:06 +0200
-Message-ID: <4A005FF2.7010502@trash.net>
-References: <20090505131219.7241.85258.stgit@Decadence> <20090505131429.7241.88268.stgit@Decadence>
+Subject: Re: [PATCH 1/1] socket: Added 'transparent' option
+Date: Tue, 05 May 2009 17:52:39 +0200
+Message-ID: <4A0060C7.4060007@trash.net>
+References: <1240589223-12494-1-git-send-email-panther@balabit.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Laszlo Attila Toth <panther@balabit.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45294 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:45376 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752216AbZEEPtI (ORCPT
+	with ESMTP id S1751697AbZEEPwk (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 5 May 2009 11:49:08 -0400
-In-Reply-To: <20090505131429.7241.88268.stgit@Decadence>
+	Tue, 5 May 2009 11:52:40 -0400
+In-Reply-To: <1240589223-12494-1-git-send-email-panther@balabit.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> This patch fixes the wrong message type that are triggered by
-> user updates, the following commands:
+Laszlo Attila Toth wrote:
+> Added new revision of the 'socket' match. If its new option is set,
+> enabled 'transparent' socket option is required for the socket to be matched.
 > 
-> (term1)# conntrack -I -p tcp -s 1.1.1.1 -d 2.2.2.2 -t 10 --sport 10 --dport 20 --state LISTEN
-> (term1)# conntrack -U -p tcp -s 1.1.1.1 -d 2.2.2.2 -t 10 --sport 10 --dport 20 --state SYN_SENT
-> (term1)# conntrack -U -p tcp -s 1.1.1.1 -d 2.2.2.2 -t 10 --sport 10 --dport 20 --state SYN_RECV
-> 
-> only trigger event message of type NEW, when only the first is NEW
-> while others should be UPDATE.
-> 
-> (term2)# conntrack -E
->     [NEW] tcp      6 10 LISTEN src=1.1.1.1 dst=2.2.2.2 sport=10 dport=20 [UNREPLIED] src=2.2.2.2 dst=1.1.1.1 sport=20 dport=10 mark=0
->     [NEW] tcp      6 10 SYN_SENT src=1.1.1.1 dst=2.2.2.2 sport=10 dport=20 [UNREPLIED] src=2.2.2.2 dst=1.1.1.1 sport=20 dport=10 mark=0
->     [NEW] tcp      6 10 SYN_RECV src=1.1.1.1 dst=2.2.2.2 sport=10 dport=20 [UNREPLIED] src=2.2.2.2 dst=1.1.1.1 sport=20 dport=10 mark=0
-> 
-> This patch also removes IPCT_REFRESH from the bitmask since it is
-> not of any use.
+> +socket_match(const struct sk_buff *skb, const struct xt_match_param *par, bool check_transparent)
+>  {
+>  	const struct iphdr *iph = ip_hdr(skb);
+>  	struct udphdr _hdr, *hp = NULL;
+> @@ -142,10 +144,19 @@ socket_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+>  				   saddr, daddr, sport, dport, par->in, false);
+>  	if (sk != NULL) {
+>  		bool wildcard = (sk->sk_state != TCP_TIME_WAIT && inet_sk(sk)->rcv_saddr == 0);
+> +		bool transparent = (sk->sk_state != TCP_TIME_WAIT && inet_sk(sk)->transparent) ||
+> +				   (sk->sk_state == TCP_TIME_WAIT && inet_twsk(sk)->tw_transparent);
+> +		const struct xt_socket_match_info *info;
 
-Also applied, thanks.
+Please use proper line breaks at 80 characters.
+
+
