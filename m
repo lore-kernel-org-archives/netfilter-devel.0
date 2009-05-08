@@ -1,97 +1,125 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 11/11] netfilter: xtables: print hook name instead of mask
-Date: Fri,  8 May 2009 11:26:41 +0200
-Message-ID: <1241774801-2315-12-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 10/11] netfilter: xtables: consolidate comefrom debug cast access
+Date: Fri,  8 May 2009 11:26:40 +0200
+Message-ID: <1241774801-2315-11-git-send-email-jengelh@medozas.de>
 References: <1241774801-2315-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:53366 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:53365 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753734AbZEHJ0p (ORCPT
+	with ESMTP id S1756042AbZEHJ0p (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Fri, 8 May 2009 05:26:45 -0400
 In-Reply-To: <1241774801-2315-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Users cannot make anything of these numbers. Let's just tell them
-directly.
-
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- net/netfilter/x_tables.c |   42 ++++++++++++++++++++++++++++++++++++++----
- 1 files changed, 38 insertions(+), 4 deletions(-)
+ net/ipv4/netfilter/ip_tables.c  |   13 +++++++++----
+ net/ipv6/netfilter/ip6_tables.c |   13 ++++++++-----
+ 2 files changed, 17 insertions(+), 9 deletions(-)
 
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 150e5cf..46dba5f 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -329,6 +329,32 @@ int xt_find_revision(u8 af, const char *name, u8 revision, int target,
- }
- EXPORT_SYMBOL_GPL(xt_find_revision);
- 
-+static char *textify_hooks(char *buf, size_t size, unsigned int mask)
-+{
-+	static const char *const names[] = {
-+		"PREROUTING", "INPUT", "FORWARD",
-+		"OUTPUT", "POSTROUTING", "BROUTING",
-+	};
-+	unsigned int i;
-+	char *p = buf;
-+	bool np = false;
-+	int res;
-+
-+	*p = '\0';
-+	for (i = 0; i < ARRAY_SIZE(names); ++i) {
-+		if (!(mask & (1 << i)))
-+			continue;
-+		res = snprintf(p, size, "%s%s", np ? "/" : "", names[i]);
-+		if (res > 0) {
-+			size -= res;
-+			p += res;
-+		}
-+		np = true;
-+	}
-+
-+	return buf;
-+}
-+
- int xt_check_match(struct xt_mtchk_param *par,
- 		   unsigned int size, u_int8_t proto, bool inv_proto)
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index d91ecd4..7b35c0b 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -311,6 +311,8 @@ ipt_do_table(struct sk_buff *skb,
+ 	     const struct net_device *out,
+ 	     struct xt_table *table)
  {
-@@ -351,9 +377,13 @@ int xt_check_match(struct xt_mtchk_param *par,
- 		return -EINVAL;
- 	}
- 	if (par->match->hooks && (par->hook_mask & ~par->match->hooks) != 0) {
--		printk("%s_tables: %s match: bad hook_mask %#x/%#x\n",
-+		char used[64], allow[64];
++#define tb_comefrom ((struct ipt_entry *)table_base)->comefrom
 +
-+		printk("%s_tables: %s match: used from hooks %s, but only "
-+		       "valid from %s\n",
- 		       xt_prefix[par->family], par->match->name,
--		       par->hook_mask, par->match->hooks);
-+		       textify_hooks(used, sizeof(used), par->hook_mask),
-+		       textify_hooks(allow, sizeof(allow), par->match->hooks));
- 		return -EINVAL;
- 	}
- 	if (par->match->proto && (par->match->proto != proto || inv_proto)) {
-@@ -497,9 +527,13 @@ int xt_check_target(struct xt_tgchk_param *par,
- 		return -EINVAL;
- 	}
- 	if (par->target->hooks && (par->hook_mask & ~par->target->hooks) != 0) {
--		printk("%s_tables: %s target: bad hook_mask %#x/%#x\n",
-+		char used[64], allow[64];
+ 	static const char nulldevname[IFNAMSIZ] __attribute__((aligned(sizeof(long))));
+ 	const struct iphdr *ip;
+ 	u_int16_t datalen;
+@@ -409,18 +411,19 @@ ipt_do_table(struct sk_buff *skb,
+ 		   abs. verdicts */
+ 		tgpar.target   = t->u.kernel.target;
+ 		tgpar.targinfo = t->data;
 +
-+		printk("%s_tables: %s target: used from hooks %s, but only "
-+		       "usable from %s\n",
- 		       xt_prefix[par->family], par->target->name,
--		       par->hook_mask, par->target->hooks);
-+		       textify_hooks(used, sizeof(used), par->hook_mask),
-+		       textify_hooks(allow, sizeof(allow), par->target->hooks));
- 		return -EINVAL;
- 	}
- 	if (par->target->proto && (par->target->proto != proto || inv_proto)) {
++
+ #ifdef CONFIG_NETFILTER_DEBUG
+-		((struct ipt_entry *)table_base)->comefrom = 0xeeeeeeec;
++		tb_comefrom = 0xeeeeeeec;
+ #endif
+ 		verdict = t->u.kernel.target->target(skb, &tgpar);
+ #ifdef CONFIG_NETFILTER_DEBUG
+-		if (((struct ipt_entry *)table_base)->comefrom != 0xeeeeeeec &&
+-		    verdict == IPT_CONTINUE) {
++		if (comefrom != 0xeeeeeeec && verdict == IPT_CONTINUE) {
+ 			printk("Target %s reentered!\n",
+ 			       t->u.kernel.target->name);
+ 			verdict = NF_DROP;
+ 		}
+-		((struct ipt_entry *)table_base)->comefrom = 0x57acc001;
++		tb_comefrom = 0x57acc001;
+ #endif
+ 		/* Target might have changed stuff. */
+ 		ip = ip_hdr(skb);
+@@ -441,6 +444,8 @@ ipt_do_table(struct sk_buff *skb,
+ 		return NF_DROP;
+ 	else return verdict;
+ #endif
++
++#undef tb_comefrom
+ }
+ 
+ /* Figures out from what hook each rule can be called: returns 0 if
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 5a178be..5164e0b 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -343,6 +343,8 @@ ip6t_do_table(struct sk_buff *skb,
+ 	      const struct net_device *out,
+ 	      struct xt_table *table)
+ {
++#define tb_comefrom ((struct ip6t_entry *)table_base)->comefrom
++
+ 	static const char nulldevname[IFNAMSIZ] __attribute__((aligned(sizeof(long))));
+ 	bool hotdrop = false;
+ 	/* Initializing verdict to NF_DROP keeps gcc happy. */
+@@ -440,18 +442,17 @@ ip6t_do_table(struct sk_buff *skb,
+ 		tgpar.targinfo = t->data;
+ 
+ #ifdef CONFIG_NETFILTER_DEBUG
+-		((struct ip6t_entry *)table_base)->comefrom = 0xeeeeeeec;
++		tb_comefrom = 0xeeeeeeec;
+ #endif
+ 		verdict = t->u.kernel.target->target(skb, &tgpar);
+ 
+ #ifdef CONFIG_NETFILTER_DEBUG
+-		if (((struct ip6t_entry *)table_base)->comefrom != 0xeeeeeeec &&
+-		    verdict == IP6T_CONTINUE) {
++		if (tb_comefrom != 0xeeeeeeec && verdict == IP6T_CONTINUE) {
+ 			printk("Target %s reentered!\n",
+ 			       t->u.kernel.target->name);
+ 			verdict = NF_DROP;
+ 		}
+-		((struct ip6t_entry *)table_base)->comefrom = 0x57acc001;
++		tb_comefrom = 0x57acc001;
+ #endif
+ 		if (verdict == IP6T_CONTINUE)
+ 			e = ip6t_next_entry(e);
+@@ -461,7 +462,7 @@ ip6t_do_table(struct sk_buff *skb,
+ 	} while (!hotdrop);
+ 
+ #ifdef CONFIG_NETFILTER_DEBUG
+-	((struct ip6t_entry *)table_base)->comefrom = NETFILTER_LINK_POISON;
++	tb_comefrom = NETFILTER_LINK_POISON;
+ #endif
+ 	xt_info_rdunlock_bh();
+ 
+@@ -472,6 +473,8 @@ ip6t_do_table(struct sk_buff *skb,
+ 		return NF_DROP;
+ 	else return verdict;
+ #endif
++
++#undef tb_comefrom
+ }
+ 
+ /* Figures out from what hook each rule can be called: returns 0 if
 -- 
 1.6.2.2
 
