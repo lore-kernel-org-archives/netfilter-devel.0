@@ -1,182 +1,88 @@
-From: Laszlo Attila Toth <panther@balabit.hu>
-Subject: [resend iptables] new revision of socket match to check IP_TRANSPARENT
-Date: Fri,  8 May 2009 09:47:30 +0200
-Message-ID: <1241768850-28725-2-git-send-email-panther@balabit.hu>
-References: <1241768850-28725-1-git-send-email-panther@balabit.hu>
-Cc: Laszlo Attila Toth <panther@balabit.hu>
-To: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: [PATCH 03/11] netfilter: xtables: use NFPROTO_ in standard targets
+Date: Fri,  8 May 2009 11:26:33 +0200
+Message-ID: <1241774801-2315-4-git-send-email-jengelh@medozas.de>
+References: <1241774801-2315-1-git-send-email-jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from support.balabit.hu ([195.70.41.86]:32783 "EHLO lists.balabit.hu"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754472AbZEHHrg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 8 May 2009 03:47:36 -0400
-Received: from balabit.hu (unknown [10.80.0.254])
-	by lists.balabit.hu (Postfix) with ESMTP id A847E39D299
-	for <netfilter-devel@vger.kernel.org>; Fri,  8 May 2009 09:47:36 +0200 (CEST)
-In-Reply-To: <1241768850-28725-1-git-send-email-panther@balabit.hu>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:53351 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754064AbZEHJ0m (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 8 May 2009 05:26:42 -0400
+In-Reply-To: <1241774801-2315-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Added new revision of the socket match.
-
-if the '--transparent' parameter is specified, the matching sockets have to
-enable the IP_TRANSPARENT socket option.
-
-Signed-off-by: Laszlo Attila Toth <panther@balabit.hu>
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- extensions/libxt_socket.c           |   96 +++++++++++++++++++++++++++++-----
- extensions/libxt_socket.man         |    6 ++-
- include/linux/netfilter/xt_socket.h |    8 +++
- 3 files changed, 95 insertions(+), 15 deletions(-)
- create mode 100644 include/linux/netfilter/xt_socket.h
+ net/ipv4/netfilter/ip_tables.c  |    6 +++---
+ net/ipv6/netfilter/ip6_tables.c |    6 +++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/extensions/libxt_socket.c b/extensions/libxt_socket.c
-index eebc7c5..03c1852 100644
---- a/extensions/libxt_socket.c
-+++ b/extensions/libxt_socket.c
-@@ -6,34 +6,102 @@
- #include <stdio.h>
- #include <getopt.h>
- #include <xtables.h>
-+#include <linux/netfilter/xt_socket.h>
- 
--static void socket_mt_help(void)
-+static void socket_mt_help_v0(void)
- {
--	printf("socket v%s has no options\n\n", XTABLES_VERSION);
-+	printf("socket match has no options.\n\n");
- }
- 
--static int socket_mt_parse(int c, char **argv, int invert, unsigned int *flags,
--			const void *entry, struct xt_entry_match **match)
-+static void socket_mt_help_v1(void)
-+{
-+	printf("socket match options:\n"
-+"--transparent      Matches only if the socket's transparent option is set\n");
-+}
-+
-+static const struct option socket_opts_v1[] = {
-+	{ "transparent", 0, NULL, '1' },
-+	{ }
-+};
-+
-+static int socket_mt_parse_v0(int c, char **argv, int invert,
-+			      unsigned int *flags, const void *entry,
-+			      struct xt_entry_match **match)
- {
- 	return 0;
- }
- 
-+static int socket_mt_parse_v1(int c, char **argv, int invert,
-+			      unsigned int *flags, const void *entry,
-+			      struct xt_entry_match **match)
-+{
-+	struct xt_socket_match_info *info =
-+		(struct xt_socket_match_info *) (*match)->data;
-+
-+	switch (c) {
-+	case '1':
-+		if (*flags)
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "Can't specify multiple --transparent");
-+		info->transparent = 1;
-+		*flags = 1;
-+		break;
-+	default:
-+		return 0;
-+	}
-+	return 1;
-+}
-+
- static void socket_mt_check(unsigned int flags)
- {
- }
- 
--static struct xtables_match socket_mt_reg = {
--	.name	       = "socket",
--	.version       = XTABLES_VERSION,
--	.family	       = NFPROTO_IPV4,
--	.size	       = XT_ALIGN(0),
--	.userspacesize = XT_ALIGN(0),
--	.parse	       = socket_mt_parse,
--	.final_check   = socket_mt_check,
--	.help	       = socket_mt_help,
-+static void socket_mt_print_v1(const void *ip,
-+			       const struct xt_entry_match *target,
-+			       int numeric)
-+{
-+	const struct xt_socket_match_info *info = (const void *)target->data;
-+	printf("socket ");
-+	if (info->transparent)
-+		printf("transparent ");
-+}
-+
-+static void socket_mt_save_v1(const void *ip,
-+			      const struct xt_entry_match *match)
-+{
-+	const struct xt_socket_match_info *info =
-+	    (const struct xt_socket_match_info*) match->data;
-+
-+	if (info->transparent)
-+		printf("--transparent ");
-+}
-+
-+static struct xtables_match socket_mt_reg_v0 = {
-+	.name		= "socket",
-+	.version	= XTABLES_VERSION,
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index 3051dda..5abc276 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -2158,7 +2158,7 @@ static bool icmp_checkentry(const struct xt_mtchk_param *par)
+ static struct xt_target ipt_standard_target __read_mostly = {
+ 	.name		= IPT_STANDARD_TARGET,
+ 	.targetsize	= sizeof(int),
+-	.family		= AF_INET,
 +	.family		= NFPROTO_IPV4,
-+	.parse		= socket_mt_parse_v0,
-+	.final_check	= socket_mt_check,
-+	.help		= socket_mt_help_v0,
-+};
-+
-+static struct xtables_match socket_mt_reg_v1 = {
-+	.name		= "socket",
-+	.version	= XTABLES_VERSION,
+ #ifdef CONFIG_COMPAT
+ 	.compatsize	= sizeof(compat_int_t),
+ 	.compat_from_user = compat_standard_from_user,
+@@ -2170,7 +2170,7 @@ static struct xt_target ipt_error_target __read_mostly = {
+ 	.name		= IPT_ERROR_TARGET,
+ 	.target		= ipt_error,
+ 	.targetsize	= IPT_FUNCTION_MAXNAMELEN,
+-	.family		= AF_INET,
 +	.family		= NFPROTO_IPV4,
-+	.size		= XT_ALIGN(sizeof(struct xt_socket_match_info)),
-+	.userspacesize	= XT_ALIGN(sizeof(struct xt_socket_match_info)),
-+	.parse		= socket_mt_parse_v1,
-+	.print		= socket_mt_print_v1,
-+	.save		= socket_mt_save_v1,
-+	.final_check	= socket_mt_check,
-+	.help		= socket_mt_help_v1,
-+	.extra_opts	= socket_opts_v1,
-+	.revision	= 1,
  };
  
- void _init(void)
- {
--	xtables_register_match(&socket_mt_reg);
-+	xtables_register_match(&socket_mt_reg_v0);
-+	xtables_register_match(&socket_mt_reg_v1);
- }
-diff --git a/extensions/libxt_socket.man b/extensions/libxt_socket.man
-index 50c8854..edc9d75 100644
---- a/extensions/libxt_socket.man
-+++ b/extensions/libxt_socket.man
-@@ -1,2 +1,6 @@
- This matches if an open socket can be found by doing a socket lookup on the
--packet.
-+packet which doesn\'t listen on the \'any\' IP address (0.0.0.0).
-+.TP
-+.BI "\-\-transparent"
-+Enables additional check, that the actual socket's transparent socket option
-+has to be set.
-diff --git a/include/linux/netfilter/xt_socket.h b/include/linux/netfilter/xt_socket.h
-new file mode 100644
-index 0000000..2222d63
---- /dev/null
-+++ b/include/linux/netfilter/xt_socket.h
-@@ -0,0 +1,8 @@
-+#ifndef _XT_SOCKET_H_match
-+#define _XT_SOCKET_H_match
-+
-+struct xt_socket_match_info {
-+	__u8 transparent:1;
-+};
-+
-+#endif /* _XT_SOCKET_H_match */
+ static struct nf_sockopt_ops ipt_sockopts = {
+@@ -2196,7 +2196,7 @@ static struct xt_match icmp_matchstruct __read_mostly = {
+ 	.matchsize	= sizeof(struct ipt_icmp),
+ 	.checkentry	= icmp_checkentry,
+ 	.proto		= IPPROTO_ICMP,
+-	.family		= AF_INET,
++	.family		= NFPROTO_IPV4,
+ };
+ 
+ static int __net_init ip_tables_net_init(struct net *net)
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 41fbc1e..37a850e 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -2191,7 +2191,7 @@ static bool icmp6_checkentry(const struct xt_mtchk_param *par)
+ static struct xt_target ip6t_standard_target __read_mostly = {
+ 	.name		= IP6T_STANDARD_TARGET,
+ 	.targetsize	= sizeof(int),
+-	.family		= AF_INET6,
++	.family		= NFPROTO_IPV6,
+ #ifdef CONFIG_COMPAT
+ 	.compatsize	= sizeof(compat_int_t),
+ 	.compat_from_user = compat_standard_from_user,
+@@ -2203,7 +2203,7 @@ static struct xt_target ip6t_error_target __read_mostly = {
+ 	.name		= IP6T_ERROR_TARGET,
+ 	.target		= ip6t_error,
+ 	.targetsize	= IP6T_FUNCTION_MAXNAMELEN,
+-	.family		= AF_INET6,
++	.family		= NFPROTO_IPV6,
+ };
+ 
+ static struct nf_sockopt_ops ip6t_sockopts = {
+@@ -2229,7 +2229,7 @@ static struct xt_match icmp6_matchstruct __read_mostly = {
+ 	.matchsize	= sizeof(struct ip6t_icmp),
+ 	.checkentry	= icmp6_checkentry,
+ 	.proto		= IPPROTO_ICMPV6,
+-	.family		= AF_INET6,
++	.family		= NFPROTO_IPV6,
+ };
+ 
+ static int __net_init ip6_tables_net_init(struct net *net)
 -- 
-1.6.2.2.404.ge96f3
+1.6.2.2
 
