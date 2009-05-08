@@ -1,126 +1,148 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: [PATCH] ipvs: IPv4 FWMARK virtual services
-Date: Thu, 7 May 2009 11:02:29 +1000
-Message-ID: <20090507010229.GD10063@verge.net.au>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: David Miller <davem@davemloft.net>,
-	Jan Engelhardt <jengelh@medozas.de>,
-	Fabien =?iso-8859-1?Q?Duch=EAne?=
-	<fabien.duchene@student.uclouvain.be>,
-	Joseph Mack NA3T <jmack@wm7d.net>,
-	Julius Volz <julius.volz@gmail.com>
-To: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Laszlo Attila Toth <panther@balabit.hu>
+Subject: [resend 2.6.30-rc4] Added 'transparent' option to socket match
+Date: Fri,  8 May 2009 09:47:29 +0200
+Message-ID: <1241768850-28725-1-git-send-email-panther@balabit.hu>
+Cc: Laszlo Attila Toth <panther@balabit.hu>
+To: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from support.balabit.hu ([195.70.41.86]:32780 "EHLO lists.balabit.hu"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753596AbZEHHrf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 8 May 2009 03:47:35 -0400
+Received: from balabit.hu (unknown [10.80.0.254])
+	by lists.balabit.hu (Postfix) with ESMTP id 5723C39D27C
+	for <netfilter-devel@vger.kernel.org>; Fri,  8 May 2009 09:47:34 +0200 (CEST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-This fixes the use of fwmarks to denote IPv4 virtual services
-which was unfortunately broken as a result of the integration
-of IPv6 support into IPVS, which was included in 2.6.28.
+Added new revision of the 'socket' match, that can check for
+the IP_TRANSPARENT socket option. 
 
-The problem arises because fwmarks are stored in the 4th octet
-of a union nf_inet_addr .all, however in the case of IPv4 only
-the first octet, corresponding to .ip, is assigned and compared.
+If the matchinfo's 'transparent' member is set, matching sockets have to enable
+the IP_TRANSPARENT socket option.
 
-In other words, using .all =3D { 0, 0, 0, htonl(svc->fwmark) always
-results in a value of 0 (32bits) being stored for IPv4. This means
-that one fwmark can be used, as it ends up being mapped to 0, but thing=
-s
-break down when multiple fwmarks are used, as they all end up being map=
-ped
-to 0.
+Signed-off-by: Laszlo Attila Toth <panther@balabit.hu>
+---
+ include/linux/netfilter/xt_socket.h |    8 +++++
+ net/netfilter/xt_socket.c           |   56 +++++++++++++++++++++++++++++-----
+ 2 files changed, 55 insertions(+), 9 deletions(-)
+ create mode 100644 include/linux/netfilter/xt_socket.h
 
-As fwmarks are 32bits a reasonable fix seems to be to just store the fw=
-mark
-in .ip, and comparing and storing .ip when fwmarks are used.
-
-This patch makes the assumption that in calls to ip_vs_ct_in_get()
-and ip_vs_sched_persist() if the proto parameter is IPPROTO_IP then
-we are dealing with an fwmark. I believe this is valid as ip_vs_in()
-does fairly strict filtering on the protocol and IPPROTO_IP should
-not be used in these calls unless explicitly passed when making
-these calls for fwmarks in ip_vs_sched_persist().
-
-Tested-by: Fabien Duch=EAne <fabien.duchene@student.uclouvain.be>
-Cc: Joseph Mack NA3T <jmack@wm7d.net>
-Cc: Julius Volz <julius.volz@gmail.com>
-Signed-off-by: Simon Horman <horms@verge.net.au>
-
---=20
-
-This problem should probably be fixed in stable too.
-Either using this patch, or a simpler though arguably less correct one =
-that
-uses:
-
-	.all =3D { htonl(svc->fwmark), 0, 0, 0 }
-
-That change doesn't require updating ip_vs_ct_in_get() or ip_vs_conn_ne=
-w(),
-nor any assumptions about the value of proto. Fabien Duch=EAne has test=
-ed
-this simpler change and found it to work.
-
-Index: net-next-2.6/net/netfilter/ipvs/ip_vs_conn.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- net-next-2.6.orig/net/netfilter/ipvs/ip_vs_conn.c	2009-04-28 20:37:=
-48.000000000 +1000
-+++ net-next-2.6/net/netfilter/ipvs/ip_vs_conn.c	2009-04-28 20:37:51.00=
-0000000 +1000
-@@ -260,7 +260,10 @@ struct ip_vs_conn *ip_vs_ct_in_get
- 	list_for_each_entry(cp, &ip_vs_conn_tab[hash], c_list) {
- 		if (cp->af =3D=3D af &&
- 		    ip_vs_addr_equal(af, s_addr, &cp->caddr) &&
--		    ip_vs_addr_equal(af, d_addr, &cp->vaddr) &&
-+		    /* protocol should only be IPPROTO_IP if
-+		     * d_addr is a fwmark */
-+		    ip_vs_addr_equal(protocol =3D=3D IPPROTO_IP ? AF_UNSPEC : af,
-+		                     d_addr, &cp->vaddr) &&
- 		    s_port =3D=3D cp->cport && d_port =3D=3D cp->vport &&
- 		    cp->flags & IP_VS_CONN_F_TEMPLATE &&
- 		    protocol =3D=3D cp->protocol) {
-@@ -698,7 +701,9 @@ ip_vs_conn_new(int af, int proto, const=20
- 	cp->cport	   =3D cport;
- 	ip_vs_addr_copy(af, &cp->vaddr, vaddr);
- 	cp->vport	   =3D vport;
--	ip_vs_addr_copy(af, &cp->daddr, daddr);
-+	/* proto should only be IPPROTO_IP if d_addr is a fwmark */
-+	ip_vs_addr_copy(proto =3D=3D IPPROTO_IP ? AF_UNSPEC : af,
-+			&cp->daddr, daddr);
- 	cp->dport          =3D dport;
- 	cp->flags	   =3D flags;
- 	spin_lock_init(&cp->lock);
-Index: net-next-2.6/net/netfilter/ipvs/ip_vs_core.c
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
-=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D
---- net-next-2.6.orig/net/netfilter/ipvs/ip_vs_core.c	2009-04-28 20:37:=
-48.000000000 +1000
-+++ net-next-2.6/net/netfilter/ipvs/ip_vs_core.c	2009-04-28 20:37:51.00=
-0000000 +1000
-@@ -278,7 +278,7 @@ ip_vs_sched_persist(struct ip_vs_service
- 		 */
- 		if (svc->fwmark) {
- 			union nf_inet_addr fwmark =3D {
--				.all =3D { 0, 0, 0, htonl(svc->fwmark) }
-+				.ip =3D htonl(svc->fwmark)
- 			};
-=20
- 			ct =3D ip_vs_ct_in_get(svc->af, IPPROTO_IP, &snet, 0,
-@@ -306,7 +306,7 @@ ip_vs_sched_persist(struct ip_vs_service
- 			 */
- 			if (svc->fwmark) {
- 				union nf_inet_addr fwmark =3D {
--					.all =3D { 0, 0, 0, htonl(svc->fwmark) }
-+					.ip =3D htonl(svc->fwmark)
- 				};
-=20
- 				ct =3D ip_vs_conn_new(svc->af, IPPROTO_IP,
-
+diff --git a/include/linux/netfilter/xt_socket.h b/include/linux/netfilter/xt_socket.h
+new file mode 100644
+index 0000000..2222d63
+--- /dev/null
++++ b/include/linux/netfilter/xt_socket.h
+@@ -0,0 +1,8 @@
++#ifndef _XT_SOCKET_H_match
++#define _XT_SOCKET_H_match
++
++struct xt_socket_match_info {
++	__u8 transparent:1;
++};
++
++#endif /* _XT_SOCKET_H_match */
+diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
+index 1acc089..6938033 100644
+--- a/net/netfilter/xt_socket.c
++++ b/net/netfilter/xt_socket.c
+@@ -22,6 +22,8 @@
+ #include <net/netfilter/nf_tproxy_core.h>
+ #include <net/netfilter/ipv4/nf_defrag_ipv4.h>
+ 
++#include <linux/netfilter/xt_socket.h>
++
+ #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ #define XT_SOCKET_HAVE_CONNTRACK 1
+ #include <net/netfilter/nf_conntrack.h>
+@@ -86,7 +88,8 @@ extract_icmp_fields(const struct sk_buff *skb,
+ 
+ 
+ static bool
+-socket_mt(const struct sk_buff *skb, const struct xt_match_param *par)
++socket_match(const struct sk_buff *skb, const struct xt_match_param *par,
++	     bool check_transparent)
+ {
+ 	const struct iphdr *iph = ip_hdr(skb);
+ 	struct udphdr _hdr, *hp = NULL;
+@@ -142,10 +145,22 @@ socket_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+ 				   saddr, daddr, sport, dport, par->in, false);
+ 	if (sk != NULL) {
+ 		bool wildcard = (sk->sk_state != TCP_TIME_WAIT && inet_sk(sk)->rcv_saddr == 0);
++		bool transparent = (sk->sk_state != TCP_TIME_WAIT &&
++					inet_sk(sk)->transparent) ||
++				   (sk->sk_state == TCP_TIME_WAIT &&
++					inet_twsk(sk)->tw_transparent);
++		const struct xt_socket_match_info *info;
++
++		if (check_transparent);
++			info = par->matchinfo;
+ 
+ 		nf_tproxy_put_sock(sk);
++
+ 		if (wildcard)
+ 			sk = NULL;
++		else if (check_transparent && info->transparent &&
++			 !transparent)
++			sk = NULL;
+ 	}
+ 
+ 	pr_debug("socket match: proto %u %08x:%u -> %08x:%u "
+@@ -157,23 +172,46 @@ socket_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+ 	return (sk != NULL);
+ }
+ 
+-static struct xt_match socket_mt_reg __read_mostly = {
+-	.name		= "socket",
+-	.family		= AF_INET,
+-	.match		= socket_mt,
+-	.hooks		= 1 << NF_INET_PRE_ROUTING,
+-	.me		= THIS_MODULE,
++static bool
++socket_mt_v0(const struct sk_buff *skb, const struct xt_match_param *par)
++{
++	return socket_match(skb, par, false);
++}
++
++static bool
++socket_mt_v1(const struct sk_buff *skb, const struct xt_match_param *par)
++{
++	return socket_match(skb, par, true);
++}
++
++static struct xt_match socket_mt_reg[] __read_mostly = {
++	{
++		.name		= "socket",
++		.family		= AF_INET,
++		.match		= socket_mt_v0,
++		.hooks		= 1 << NF_INET_PRE_ROUTING,
++		.me		= THIS_MODULE,
++	},
++	{
++		.name		= "socket",
++		.family		= AF_INET,
++		.match		= socket_mt_v1,
++		.matchsize	= sizeof(struct xt_socket_match_info),
++		.hooks		= 1 << NF_INET_PRE_ROUTING,
++		.me		= THIS_MODULE,
++		.revision	= 1,
++	},
+ };
+ 
+ static int __init socket_mt_init(void)
+ {
+ 	nf_defrag_ipv4_enable();
+-	return xt_register_match(&socket_mt_reg);
++	return xt_register_matches(socket_mt_reg, ARRAY_SIZE(socket_mt_reg));
+ }
+ 
+ static void __exit socket_mt_exit(void)
+ {
+-	xt_unregister_match(&socket_mt_reg);
++	xt_unregister_matches(socket_mt_reg, ARRAY_SIZE(socket_mt_reg));
+ }
+ 
+ module_init(socket_mt_init);
+-- 
+1.6.2.2.404.ge96f3
 
