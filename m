@@ -1,224 +1,469 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 06/11] netfilter: xtables: consolidate open-coded logic
-Date: Fri,  8 May 2009 11:26:36 +0200
-Message-ID: <1241774801-2315-7-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 07/11] netfilter: xtables: reduce indent level by one
+Date: Fri,  8 May 2009 11:26:37 +0200
+Message-ID: <1241774801-2315-8-git-send-email-jengelh@medozas.de>
 References: <1241774801-2315-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:53357 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:53362 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755577AbZEHJ0o (ORCPT
+	with ESMTP id S1755415AbZEHJ0o (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Fri, 8 May 2009 05:26:44 -0400
 In-Reply-To: <1241774801-2315-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Cosmetic only. Transformation applied:
+
+	-if (foo) { long block; } else { short block; }
+	+if (!foo) { short block; continue; } long block;
+
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- net/bridge/netfilter/ebtables.c |   16 ++++++++++------
- net/ipv4/netfilter/arp_tables.c |   14 ++++++++++----
- net/ipv4/netfilter/ip_tables.c  |   14 ++++++++++----
- net/ipv6/netfilter/ip6_tables.c |   14 ++++++++++----
- 4 files changed, 40 insertions(+), 18 deletions(-)
+ net/ipv4/netfilter/arp_tables.c |  108 +++++++++++++++----------------
+ net/ipv4/netfilter/ip_tables.c  |  134 +++++++++++++++++++--------------------
+ net/ipv6/netfilter/ip6_tables.c |  132 +++++++++++++++++++--------------------
+ 3 files changed, 181 insertions(+), 193 deletions(-)
 
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 820252a..2455583 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -142,6 +142,12 @@ static inline int ebt_basic_match(struct ebt_entry *e, struct ethhdr *h,
- 	return 0;
- }
- 
-+static inline __pure
-+struct ebt_entry *ebt_next_entry(const struct ebt_entry *entry)
-+{
-+	return (void *)entry + entry->next_offset;
-+}
-+
- /* Do some firewalling */
- unsigned int ebt_do_table (unsigned int hook, struct sk_buff *skb,
-    const struct net_device *in, const struct net_device *out,
-@@ -249,8 +255,7 @@ letsreturn:
- 		/* jump to a udc */
- 		cs[sp].n = i + 1;
- 		cs[sp].chaininfo = chaininfo;
--		cs[sp].e = (struct ebt_entry *)
--		   (((char *)point) + point->next_offset);
-+		cs[sp].e = ebt_next_entry(point);
- 		i = 0;
- 		chaininfo = (struct ebt_entries *) (base + verdict);
- #ifdef CONFIG_NETFILTER_DEBUG
-@@ -266,8 +271,7 @@ letsreturn:
- 		sp++;
- 		continue;
- letscontinue:
--		point = (struct ebt_entry *)
--		   (((char *)point) + point->next_offset);
-+		point = ebt_next_entry(point);
- 		i++;
- 	}
- 
-@@ -787,7 +791,7 @@ static int check_chainloops(struct ebt_entries *chain, struct ebt_cl_stack *cl_s
- 			/* this can't be 0, so the loop test is correct */
- 			cl_s[i].cs.n = pos + 1;
- 			pos = 0;
--			cl_s[i].cs.e = ((void *)e + e->next_offset);
-+			cl_s[i].cs.e = ebt_next_entry(e);
- 			e = (struct ebt_entry *)(hlp2->data);
- 			nentries = hlp2->nentries;
- 			cl_s[i].from = chain_nr;
-@@ -797,7 +801,7 @@ static int check_chainloops(struct ebt_entries *chain, struct ebt_cl_stack *cl_s
- 			continue;
- 		}
- letscontinue:
--		e = (void *)e + e->next_offset;
-+		e = ebt_next_entry(e);
- 		pos++;
- 	}
- 	return 0;
 diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 831fe18..940e54b 100644
+index 940e54b..ecba246 100644
 --- a/net/ipv4/netfilter/arp_tables.c
 +++ b/net/ipv4/netfilter/arp_tables.c
-@@ -231,6 +231,12 @@ static inline struct arpt_entry *get_entry(void *base, unsigned int offset)
- 	return (struct arpt_entry *)(base + offset);
- }
+@@ -273,66 +273,62 @@ unsigned int arpt_do_table(struct sk_buff *skb,
  
-+static inline __pure
-+struct arpt_entry *arpt_next_entry(const struct arpt_entry *entry)
-+{
-+	return (void *)entry + entry->next_offset;
-+}
-+
- unsigned int arpt_do_table(struct sk_buff *skb,
- 			   unsigned int hook,
- 			   const struct net_device *in,
-@@ -295,10 +301,10 @@ unsigned int arpt_do_table(struct sk_buff *skb,
- 					continue;
- 				}
- 				if (table_base + v
--				    != (void *)e + e->next_offset) {
-+				    != arpt_next_entry(e)) {
- 					/* Save old back ptr in next entry */
- 					struct arpt_entry *next
--						= (void *)e + e->next_offset;
-+						= arpt_next_entry(e);
- 					next->comefrom =
- 						(void *)back - table_base;
+ 	arp = arp_hdr(skb);
+ 	do {
+-		if (arp_packet_match(arp, skb->dev, indev, outdev, &e->arp)) {
+-			struct arpt_entry_target *t;
+-			int hdr_len;
++		struct arpt_entry_target *t;
++		int hdr_len;
  
-@@ -320,13 +326,13 @@ unsigned int arpt_do_table(struct sk_buff *skb,
- 				arp = arp_hdr(skb);
- 
- 				if (verdict == ARPT_CONTINUE)
--					e = (void *)e + e->next_offset;
-+					e = arpt_next_entry(e);
- 				else
- 					/* Verdict */
- 					break;
- 			}
- 		} else {
--			e = (void *)e + e->next_offset;
+-			hdr_len = sizeof(*arp) + (2 * sizeof(struct in_addr)) +
+-				(2 * skb->dev->addr_len);
++		if (!arp_packet_match(arp, skb->dev, indev, outdev, &e->arp)) {
 +			e = arpt_next_entry(e);
++			continue;
++		}
+ 
+-			ADD_COUNTER(e->counters, hdr_len, 1);
++		hdr_len = sizeof(*arp) + (2 * sizeof(struct in_addr)) +
++			(2 * skb->dev->addr_len);
++		ADD_COUNTER(e->counters, hdr_len, 1);
+ 
+-			t = arpt_get_target(e);
++		t = arpt_get_target(e);
+ 
+-			/* Standard target? */
+-			if (!t->u.kernel.target->target) {
+-				int v;
++		/* Standard target? */
++		if (!t->u.kernel.target->target) {
++			int v;
+ 
+-				v = ((struct arpt_standard_target *)t)->verdict;
+-				if (v < 0) {
+-					/* Pop from stack? */
+-					if (v != ARPT_RETURN) {
+-						verdict = (unsigned)(-v) - 1;
+-						break;
+-					}
+-					e = back;
+-					back = get_entry(table_base,
+-							 back->comefrom);
+-					continue;
+-				}
+-				if (table_base + v
+-				    != arpt_next_entry(e)) {
+-					/* Save old back ptr in next entry */
+-					struct arpt_entry *next
+-						= arpt_next_entry(e);
+-					next->comefrom =
+-						(void *)back - table_base;
+-
+-					/* set back pointer to next entry */
+-					back = next;
+-				}
+-
+-				e = get_entry(table_base, v);
+-			} else {
+-				/* Targets which reenter must return
+-				 * abs. verdicts
+-				 */
+-				tgpar.target   = t->u.kernel.target;
+-				tgpar.targinfo = t->data;
+-				verdict = t->u.kernel.target->target(skb,
+-								     &tgpar);
+-
+-				/* Target might have changed stuff. */
+-				arp = arp_hdr(skb);
+-
+-				if (verdict == ARPT_CONTINUE)
+-					e = arpt_next_entry(e);
+-				else
+-					/* Verdict */
++			v = ((struct arpt_standard_target *)t)->verdict;
++			if (v < 0) {
++				/* Pop from stack? */
++				if (v != ARPT_RETURN) {
++					verdict = (unsigned)(-v) - 1;
+ 					break;
++				}
++				e = back;
++				back = get_entry(table_base, back->comefrom);
++				continue;
+ 			}
++			if (table_base + v
++			    != arpt_next_entry(e)) {
++				/* Save old back ptr in next entry */
++				struct arpt_entry *next = arpt_next_entry(e);
++				next->comefrom = (void *)back - table_base;
++
++				/* set back pointer to next entry */
++				back = next;
++			}
++
++			e = get_entry(table_base, v);
+ 		} else {
+-			e = arpt_next_entry(e);
++			/* Targets which reenter must return
++			 * abs. verdicts
++			 */
++			tgpar.target   = t->u.kernel.target;
++			tgpar.targinfo = t->data;
++			verdict = t->u.kernel.target->target(skb, &tgpar);
++
++			/* Target might have changed stuff. */
++			arp = arp_hdr(skb);
++
++			if (verdict == ARPT_CONTINUE)
++				e = arpt_next_entry(e);
++			else
++				/* Verdict */
++				break;
  		}
  	} while (!hotdrop);
  	xt_info_rdunlock_bh();
 diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 16b7c09..7ec4e40 100644
+index 7ec4e40..82888bc 100644
 --- a/net/ipv4/netfilter/ip_tables.c
 +++ b/net/ipv4/netfilter/ip_tables.c
-@@ -297,6 +297,12 @@ static void trace_packet(struct sk_buff *skb,
- }
- #endif
+@@ -354,91 +354,87 @@ ipt_do_table(struct sk_buff *skb,
+ 	back = get_entry(table_base, private->underflow[hook]);
  
-+static inline __pure
-+struct ipt_entry *ipt_next_entry(const struct ipt_entry *entry)
-+{
-+	return (void *)entry + entry->next_offset;
-+}
+ 	do {
++		struct ipt_entry_target *t;
 +
- /* Returns one of the generic firewall policies, like NF_ACCEPT. */
- unsigned int
- ipt_do_table(struct sk_buff *skb,
-@@ -385,11 +391,11 @@ ipt_do_table(struct sk_buff *skb,
- 							 back->comefrom);
- 					continue;
- 				}
--				if (table_base + v != (void *)e + e->next_offset
-+				if (table_base + v != ipt_next_entry(e)
- 				    && !(e->ip.flags & IPT_F_GOTO)) {
- 					/* Save old back ptr in next entry */
- 					struct ipt_entry *next
--						= (void *)e + e->next_offset;
-+						= ipt_next_entry(e);
- 					next->comefrom
- 						= (void *)back - table_base;
- 					/* set back pointer to next entry */
-@@ -424,7 +430,7 @@ ipt_do_table(struct sk_buff *skb,
- 				datalen = skb->len - ip->ihl * 4;
- 
- 				if (verdict == IPT_CONTINUE)
--					e = (void *)e + e->next_offset;
-+					e = ipt_next_entry(e);
- 				else
- 					/* Verdict */
- 					break;
-@@ -432,7 +438,7 @@ ipt_do_table(struct sk_buff *skb,
- 		} else {
- 
- 		no_match:
--			e = (void *)e + e->next_offset;
+ 		IP_NF_ASSERT(e);
+ 		IP_NF_ASSERT(back);
+-		if (ip_packet_match(ip, indev, outdev,
++		if (!ip_packet_match(ip, indev, outdev,
+ 		    &e->ip, mtpar.fragoff)) {
+-			struct ipt_entry_target *t;
++ no_match:
 +			e = ipt_next_entry(e);
++			continue;
++		}
+ 
+-			if (IPT_MATCH_ITERATE(e, do_match, skb, &mtpar) != 0)
+-				goto no_match;
++		if (IPT_MATCH_ITERATE(e, do_match, skb, &mtpar) != 0)
++			goto no_match;
+ 
+-			ADD_COUNTER(e->counters, ntohs(ip->tot_len), 1);
++		ADD_COUNTER(e->counters, ntohs(ip->tot_len), 1);
+ 
+-			t = ipt_get_target(e);
+-			IP_NF_ASSERT(t->u.kernel.target);
++		t = ipt_get_target(e);
++		IP_NF_ASSERT(t->u.kernel.target);
+ 
+ #if defined(CONFIG_NETFILTER_XT_TARGET_TRACE) || \
+     defined(CONFIG_NETFILTER_XT_TARGET_TRACE_MODULE)
+-			/* The packet is traced: log it */
+-			if (unlikely(skb->nf_trace))
+-				trace_packet(skb, hook, in, out,
+-					     table->name, private, e);
++		/* The packet is traced: log it */
++		if (unlikely(skb->nf_trace))
++			trace_packet(skb, hook, in, out,
++				     table->name, private, e);
+ #endif
+-			/* Standard target? */
+-			if (!t->u.kernel.target->target) {
+-				int v;
+-
+-				v = ((struct ipt_standard_target *)t)->verdict;
+-				if (v < 0) {
+-					/* Pop from stack? */
+-					if (v != IPT_RETURN) {
+-						verdict = (unsigned)(-v) - 1;
+-						break;
+-					}
+-					e = back;
+-					back = get_entry(table_base,
+-							 back->comefrom);
+-					continue;
+-				}
+-				if (table_base + v != ipt_next_entry(e)
+-				    && !(e->ip.flags & IPT_F_GOTO)) {
+-					/* Save old back ptr in next entry */
+-					struct ipt_entry *next
+-						= ipt_next_entry(e);
+-					next->comefrom
+-						= (void *)back - table_base;
+-					/* set back pointer to next entry */
+-					back = next;
++		/* Standard target? */
++		if (!t->u.kernel.target->target) {
++			int v;
++
++			v = ((struct ipt_standard_target *)t)->verdict;
++			if (v < 0) {
++				/* Pop from stack? */
++				if (v != IPT_RETURN) {
++					verdict = (unsigned)(-v) - 1;
++					break;
+ 				}
++				e = back;
++				back = get_entry(table_base, back->comefrom);
++				continue;
++			}
++			if (table_base + v != ipt_next_entry(e)
++			    && !(e->ip.flags & IPT_F_GOTO)) {
++				/* Save old back ptr in next entry */
++				struct ipt_entry *next = ipt_next_entry(e);
++				next->comefrom = (void *)back - table_base;
++				/* set back pointer to next entry */
++				back = next;
++			}
+ 
+-				e = get_entry(table_base, v);
+-			} else {
+-				/* Targets which reenter must return
+-				   abs. verdicts */
+-				tgpar.target   = t->u.kernel.target;
+-				tgpar.targinfo = t->data;
++			e = get_entry(table_base, v);
++		} else {
++			/* Targets which reenter must return
++			   abs. verdicts */
++			tgpar.target   = t->u.kernel.target;
++			tgpar.targinfo = t->data;
+ #ifdef CONFIG_NETFILTER_DEBUG
+-				((struct ipt_entry *)table_base)->comefrom
+-					= 0xeeeeeeec;
++			((struct ipt_entry *)table_base)->comefrom
++				= 0xeeeeeeec;
+ #endif
+-				verdict = t->u.kernel.target->target(skb,
+-								     &tgpar);
++			verdict = t->u.kernel.target->target(skb, &tgpar);
+ #ifdef CONFIG_NETFILTER_DEBUG
+-				if (((struct ipt_entry *)table_base)->comefrom
+-				    != 0xeeeeeeec
+-				    && verdict == IPT_CONTINUE) {
+-					printk("Target %s reentered!\n",
+-					       t->u.kernel.target->name);
+-					verdict = NF_DROP;
+-				}
+-				((struct ipt_entry *)table_base)->comefrom
+-					= 0x57acc001;
+-#endif
+-				/* Target might have changed stuff. */
+-				ip = ip_hdr(skb);
+-				datalen = skb->len - ip->ihl * 4;
+-
+-				if (verdict == IPT_CONTINUE)
+-					e = ipt_next_entry(e);
+-				else
+-					/* Verdict */
+-					break;
++			if (((struct ipt_entry *)table_base)->comefrom
++			    != 0xeeeeeeec
++			    && verdict == IPT_CONTINUE) {
++				printk("Target %s reentered!\n",
++				       t->u.kernel.target->name);
++				verdict = NF_DROP;
+ 			}
+-		} else {
+-
+-		no_match:
+-			e = ipt_next_entry(e);
++			((struct ipt_entry *)table_base)->comefrom
++				= 0x57acc001;
++#endif
++			/* Target might have changed stuff. */
++			ip = ip_hdr(skb);
++			datalen = skb->len - ip->ihl * 4;
++
++			if (verdict == IPT_CONTINUE)
++				e = ipt_next_entry(e);
++			else
++				/* Verdict */
++				break;
  		}
  	} while (!hotdrop);
  	xt_info_rdunlock_bh();
 diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 4853a3d..9176e98 100644
+index 9176e98..a6c2213 100644
 --- a/net/ipv6/netfilter/ip6_tables.c
 +++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -329,6 +329,12 @@ static void trace_packet(struct sk_buff *skb,
- }
- #endif
+@@ -381,91 +381,87 @@ ip6t_do_table(struct sk_buff *skb,
+ 	back = get_entry(table_base, private->underflow[hook]);
  
-+static inline __pure struct ip6t_entry *
-+ip6t_next_entry(const struct ip6t_entry *entry)
-+{
-+	return (void *)entry + entry->next_offset;
-+}
+ 	do {
++		struct ip6t_entry_target *t;
 +
- /* Returns one of the generic firewall policies, like NF_ACCEPT. */
- unsigned int
- ip6t_do_table(struct sk_buff *skb,
-@@ -414,11 +420,11 @@ ip6t_do_table(struct sk_buff *skb,
- 							 back->comefrom);
- 					continue;
- 				}
--				if (table_base + v != (void *)e + e->next_offset
-+				if (table_base + v != ip6t_next_entry(e)
- 				    && !(e->ipv6.flags & IP6T_F_GOTO)) {
- 					/* Save old back ptr in next entry */
- 					struct ip6t_entry *next
--						= (void *)e + e->next_offset;
-+						= ip6t_next_entry(e);
- 					next->comefrom
- 						= (void *)back - table_base;
- 					/* set back pointer to next entry */
-@@ -451,7 +457,7 @@ ip6t_do_table(struct sk_buff *skb,
- 					= 0x57acc001;
- #endif
- 				if (verdict == IP6T_CONTINUE)
--					e = (void *)e + e->next_offset;
-+					e = ip6t_next_entry(e);
- 				else
- 					/* Verdict */
- 					break;
-@@ -459,7 +465,7 @@ ip6t_do_table(struct sk_buff *skb,
- 		} else {
- 
- 		no_match:
--			e = (void *)e + e->next_offset;
+ 		IP_NF_ASSERT(e);
+ 		IP_NF_ASSERT(back);
+-		if (ip6_packet_match(skb, indev, outdev, &e->ipv6,
+-			&mtpar.thoff, &mtpar.fragoff, &hotdrop)) {
+-			struct ip6t_entry_target *t;
++		if (!ip6_packet_match(skb, indev, outdev, &e->ipv6,
++		    &mtpar.thoff, &mtpar.fragoff, &hotdrop)) {
++ no_match:
 +			e = ip6t_next_entry(e);
++			continue;
++		}
+ 
+-			if (IP6T_MATCH_ITERATE(e, do_match, skb, &mtpar) != 0)
+-				goto no_match;
++		if (IP6T_MATCH_ITERATE(e, do_match, skb, &mtpar) != 0)
++			goto no_match;
+ 
+-			ADD_COUNTER(e->counters,
+-				    ntohs(ipv6_hdr(skb)->payload_len) +
+-				    sizeof(struct ipv6hdr), 1);
++		ADD_COUNTER(e->counters,
++			    ntohs(ipv6_hdr(skb)->payload_len) +
++			    sizeof(struct ipv6hdr), 1);
+ 
+-			t = ip6t_get_target(e);
+-			IP_NF_ASSERT(t->u.kernel.target);
++		t = ip6t_get_target(e);
++		IP_NF_ASSERT(t->u.kernel.target);
+ 
+ #if defined(CONFIG_NETFILTER_XT_TARGET_TRACE) || \
+     defined(CONFIG_NETFILTER_XT_TARGET_TRACE_MODULE)
+-			/* The packet is traced: log it */
+-			if (unlikely(skb->nf_trace))
+-				trace_packet(skb, hook, in, out,
+-					     table->name, private, e);
++		/* The packet is traced: log it */
++		if (unlikely(skb->nf_trace))
++			trace_packet(skb, hook, in, out,
++				     table->name, private, e);
+ #endif
+-			/* Standard target? */
+-			if (!t->u.kernel.target->target) {
+-				int v;
+-
+-				v = ((struct ip6t_standard_target *)t)->verdict;
+-				if (v < 0) {
+-					/* Pop from stack? */
+-					if (v != IP6T_RETURN) {
+-						verdict = (unsigned)(-v) - 1;
+-						break;
+-					}
+-					e = back;
+-					back = get_entry(table_base,
+-							 back->comefrom);
+-					continue;
+-				}
+-				if (table_base + v != ip6t_next_entry(e)
+-				    && !(e->ipv6.flags & IP6T_F_GOTO)) {
+-					/* Save old back ptr in next entry */
+-					struct ip6t_entry *next
+-						= ip6t_next_entry(e);
+-					next->comefrom
+-						= (void *)back - table_base;
+-					/* set back pointer to next entry */
+-					back = next;
++		/* Standard target? */
++		if (!t->u.kernel.target->target) {
++			int v;
++
++			v = ((struct ip6t_standard_target *)t)->verdict;
++			if (v < 0) {
++				/* Pop from stack? */
++				if (v != IP6T_RETURN) {
++					verdict = (unsigned)(-v) - 1;
++					break;
+ 				}
++				e = back;
++				back = get_entry(table_base, back->comefrom);
++				continue;
++			}
++			if (table_base + v != ip6t_next_entry(e)
++			    && !(e->ipv6.flags & IP6T_F_GOTO)) {
++				/* Save old back ptr in next entry */
++				struct ip6t_entry *next = ip6t_next_entry(e);
++				next->comefrom = (void *)back - table_base;
++				/* set back pointer to next entry */
++				back = next;
++			}
+ 
+-				e = get_entry(table_base, v);
+-			} else {
+-				/* Targets which reenter must return
+-				   abs. verdicts */
+-				tgpar.target   = t->u.kernel.target;
+-				tgpar.targinfo = t->data;
++			e = get_entry(table_base, v);
++		} else {
++			/* Targets which reenter must return
++			   abs. verdicts */
++			tgpar.target   = t->u.kernel.target;
++			tgpar.targinfo = t->data;
+ 
+ #ifdef CONFIG_NETFILTER_DEBUG
+-				((struct ip6t_entry *)table_base)->comefrom
+-					= 0xeeeeeeec;
++			((struct ip6t_entry *)table_base)->comefrom
++				= 0xeeeeeeec;
+ #endif
+-				verdict = t->u.kernel.target->target(skb,
+-								     &tgpar);
++			verdict = t->u.kernel.target->target(skb, &tgpar);
+ 
+ #ifdef CONFIG_NETFILTER_DEBUG
+-				if (((struct ip6t_entry *)table_base)->comefrom
+-				    != 0xeeeeeeec
+-				    && verdict == IP6T_CONTINUE) {
+-					printk("Target %s reentered!\n",
+-					       t->u.kernel.target->name);
+-					verdict = NF_DROP;
+-				}
+-				((struct ip6t_entry *)table_base)->comefrom
+-					= 0x57acc001;
+-#endif
+-				if (verdict == IP6T_CONTINUE)
+-					e = ip6t_next_entry(e);
+-				else
+-					/* Verdict */
+-					break;
++			if (((struct ip6t_entry *)table_base)->comefrom
++			    != 0xeeeeeeec
++			    && verdict == IP6T_CONTINUE) {
++				printk("Target %s reentered!\n",
++				       t->u.kernel.target->name);
++				verdict = NF_DROP;
+ 			}
+-		} else {
+-
+-		no_match:
+-			e = ip6t_next_entry(e);
++			((struct ip6t_entry *)table_base)->comefrom
++				= 0x57acc001;
++#endif
++			if (verdict == IP6T_CONTINUE)
++				e = ip6t_next_entry(e);
++			else
++				/* Verdict */
++				break;
  		}
  	} while (!hotdrop);
  
