@@ -1,60 +1,40 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH] netfilter: conntrack: add missing DCCP protocol changes in
-	event cache
-Date: Sat, 09 May 2009 20:46:03 +0200
-Message-ID: <20090509184603.7636.66528.stgit@Decadence>
-References: <20090509184316.7636.12044.stgit@Decadence>
+From: Amos Jeffries <squid3@treenet.co.nz>
+Subject: Re: [PATCH 07/11] netfilter: xtables: reduce indent level by one
+Date: Mon, 11 May 2009 01:39:14 +1200
+Message-ID: <4A06D902.80003@treenet.co.nz>
+References: <1241774801-2315-1-git-send-email-jengelh@medozas.de> <1241774801-2315-8-git-send-email-jengelh@medozas.de> <4A04E59B.7040503@treenet.co.nz> <alpine.LSU.2.00.0905090553080.13691@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59828 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751921AbZEISqL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 9 May 2009 14:46:11 -0400
-In-Reply-To: <20090509184316.7636.12044.stgit@Decadence>
+Received: from ip-58-28-153-233.static-xdsl.xnet.co.nz ([58.28.153.233]:34640
+	"EHLO treenet.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752292AbZEJNjV (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 10 May 2009 09:39:21 -0400
+In-Reply-To: <alpine.LSU.2.00.0905090553080.13691@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds the missing protocol state-change event reporting
-for DCCP.
+Jan Engelhardt wrote:
+> On Saturday 2009-05-09 04:08, Amos Jeffries wrote:
+>> Jan Engelhardt wrote:
+>>> Cosmetic only. Transformation applied:
+>>>
+>>> 	-if (foo) { long block; } else { short block; }
+>>> 	+if (!foo) { short block; continue; } long block;
+>>>
+>>> -			if (IPT_MATCH_ITERATE(e, do_match, skb, &mtpar) != 0)
+>>> -				goto no_match;
+>>> +		if (IPT_MATCH_ITERATE(e, do_match, skb, &mtpar) != 0)
+>>> +			goto no_match;
+>> Didn't your patch just earlier remove these no_match jumps from xtables?
+> 
+> You are looking at patch #07/11, the gotos are removed in patch #08/11.
 
-$ sudo conntrack -E
-    [NEW] dccp     33 240 src=192.168.0.2 dst=192.168.1.2 sport=57040 dport=5001 [UNREPLIED] src=192.168.1.2 dst=192.168.1.100 sport=5001 dport=57040
+Ah, the weirdness introduced by splitting patches in to small tasks.
+Gotcha.
 
-With this patch:
-
-$ sudo conntrack -E
-    [NEW] dccp     33 240 REQUEST src=192.168.0.2 dst=192.168.1.2 sport=57040 dport=5001 [UNREPLIED] src=192.168.1.2 dst=192.168.1.100 sport=5001 dport=57040
-
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-
- net/netfilter/nf_conntrack_proto_dccp.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
-index 8e757dd..aee0d6b 100644
---- a/net/netfilter/nf_conntrack_proto_dccp.c
-+++ b/net/netfilter/nf_conntrack_proto_dccp.c
-@@ -22,6 +22,7 @@
- #include <linux/netfilter/nfnetlink_conntrack.h>
- #include <net/netfilter/nf_conntrack.h>
- #include <net/netfilter/nf_conntrack_l4proto.h>
-+#include <net/netfilter/nf_conntrack_ecache.h>
- #include <net/netfilter/nf_log.h>
- 
- static DEFINE_RWLOCK(dccp_lock);
-@@ -553,6 +554,9 @@ static int dccp_packet(struct nf_conn *ct, const struct sk_buff *skb,
- 	ct->proto.dccp.state = new_state;
- 	write_unlock_bh(&dccp_lock);
- 
-+	if (new_state != old_state)
-+		nf_conntrack_event_cache(IPCT_PROTOINFO, ct);
-+
- 	dn = dccp_pernet(net);
- 	nf_ct_refresh_acct(ct, ctinfo, skb, dn->dccp_timeout[new_state]);
- 
-
+Amos
