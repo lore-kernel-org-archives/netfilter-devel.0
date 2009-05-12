@@ -1,885 +1,613 @@
-From: Evgeniy Polyakov <zbr@ioremap.net>
-Subject: [resend] Passive OS fingerprint xtables match.
-Date: Mon, 11 May 2009 13:53:43 +0400
-Message-ID: <20090511095343.GA30778@ioremap.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [PATCH 0/1] Conntrack event generation control, kernel part
+Date: Tue, 12 May 2009 13:52:22 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.0905121348460.28379@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="TB36FDmn/VVEgNH/"
-Cc: netdev@vger.kernel.org, David Miller <davem@davemloft.net>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Jan Engelhardt <jengelh@medozas.de>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Patrick McHardy <kaber@trash.net>,
+	Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from netgear.net.ru ([195.178.208.66]:34151 "EHLO tservice.net.ru"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1757672AbZEKJxy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 11 May 2009 05:53:54 -0400
-Content-Disposition: inline
+Received: from smtp-in.kfki.hu ([148.6.0.26]:57130 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751989AbZELLwY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 12 May 2009 07:52:24 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi Patrick and Pablo,
 
---TB36FDmn/VVEgNH/
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+The patch adds support to control the in-kernel event generation.
+In practice we face two problems: we should support a fine-grained
+event generation in netfilter, in order to be able to catch and follow
+the different state changes. At the same time, for example for conntrack
+replication, a too fine-grained event generation can easily result in
+a high, unnecessary system load. BFP and/or userspace event filtering
+is not effective enough to avoid it: the resources are already burnt
+on building up the netlink messages.
 
-Hi.
+The patch solves the problem by adding the full power of iptables
+to select which traffic should generate events and by adding new
+options to the CONNMARK target to specify exactly which events should
+be generated for the selected traffic.
 
-Passive OS fingerprinting netfilter module allows to passively detect
-remote OS and perform various netfilter actions based on that knowledge.
-This module compares some data (WS, MSS, options and it's order, ttl, df
-and others) from packets with SYN bit set with dynamically loaded OS
-fingerprints.
+The downsize is that extra 16 bit required in the nf_conn structure to
+store the selected event flags.
 
-Fingerprint matching rules can be downloaded from OpenBSD source tree
-and loaded via netfilter netlink subsystem into the kernel via special
-util found in archive.
+The events were a little bit reorganized as well:
 
-Archive contains library file (also attached), which was shipped
-with iptables extensions some time ago (at least when ipt_osf existed
-in patch-o-matic).
+- IPCT_STATUS is split into IPCT_SEEN_REPLY and IPCT_ASSURED, to express
+  exactly the state change in conntrack
+- IPCT_PROTOINFO_VOLATILE renamed to IPCT_ICMP_PROTOINFO, mainly
+  to get a shorter name ;-)
+- IPCT_HELPINFO_VOLATILE, IPCT_NATINFO and IPCT_COUNTER_FILLING
+  are dropped
+- IPEXP_REFRESH and IPEXP_TIMEOUT are added to cover the expectation
+  events.
 
-Both patch and library (attached) incorporated all requested features
-and extensions, namely nfnetlink implementation, codying style cleanups,
-RCU issues and others. Attached patch was rebased against current
-vanilla tree.
+The single unresolved issue is backward incompatibility: should a module
+parameter or a sysctl flag be added to the patch to specify the old
+behaviour (i.e. generate events unconditionally)?
 
-Fingerprints can be downloaded from
-http://www.openbsd.org/cgi-bin/cvsweb/src/etc/pf.os
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+---
+ include/linux/netfilter/nf_conntrack_common.h  |   63 ++++++++++-------
+ include/linux/netfilter/xt_CONNMARK.h          |   10 +++-
+ include/net/netfilter/nf_conntrack.h           |    4 +
+ include/net/netfilter/nf_conntrack_ecache.h    |   14 +++-
+ net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |    2 +-
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |    2 +-
+ net/netfilter/nf_conntrack_core.c              |    7 +--
+ net/netfilter/nf_conntrack_expect.c            |    1 +
+ net/netfilter/nf_conntrack_ftp.c               |    4 +-
+ net/netfilter/nf_conntrack_netlink.c           |   12 +++-
+ net/netfilter/nf_conntrack_proto_gre.c         |    2 +-
+ net/netfilter/nf_conntrack_proto_sctp.c        |    2 +-
+ net/netfilter/nf_conntrack_proto_tcp.c         |    3 +-
+ net/netfilter/nf_conntrack_proto_udp.c         |    2 +-
+ net/netfilter/nf_conntrack_proto_udplite.c     |    2 +-
+ net/netfilter/nf_conntrack_sip.c               |    1 +
+ net/netfilter/xt_CONNMARK.c                    |   92 +++++++++++++++++++++++-
+ 17 files changed, 172 insertions(+), 51 deletions(-)
 
-Example usage:
-# modrpobe xt_osf
-# ./nfnl_osf -f ./pf.os
--d switch removes fingerprints
-# iptables -I INPUT -j ACCEPT -p tcp -m osf --genre Linux --log 0 --ttl 2
-
-You will find something like this in the syslog:
-Windows [2000:SP3:Windows XP Pro SP1, 2000 SP3]: 11.22.33.55:4024 -> 11.22.33.44:139 hops=4
-Linux [2.5:]: 1.2.3.4:44448 -> 11.22.33.44:22 hops=4
-
-Please consider for inclusion.
-Thank you.
-
-Passive OS fingerprint homepage (archives, examples):
-http://www.ioremap.net/projects/osf
-
-Signed-off-by: Evgeniy Polyakov <zbr@ioremap.net>
-
- include/linux/netfilter/nfnetlink.h |    3 +-
- include/linux/netfilter/xt_osf.h    |  119 +++++++++
- net/netfilter/Kconfig               |   13 +
- net/netfilter/Makefile              |    1 +
- net/netfilter/xt_osf.c              |  469 +++++++++++++++++++++++++++++++++++
- 5 files changed, 604 insertions(+), 1 deletions(-)
-
-diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netfilter/nfnetlink.h
-index c600083..bb9c9ae 100644
---- a/include/linux/netfilter/nfnetlink.h
-+++ b/include/linux/netfilter/nfnetlink.h
-@@ -46,7 +46,8 @@ struct nfgenmsg {
- #define NFNL_SUBSYS_CTNETLINK_EXP	2
- #define NFNL_SUBSYS_QUEUE		3
- #define NFNL_SUBSYS_ULOG		4
--#define NFNL_SUBSYS_COUNT		5
-+#define NFNL_SUBSYS_OSF			5
-+#define NFNL_SUBSYS_COUNT		6
+diff --git a/include/linux/netfilter/nf_conntrack_common.h b/include/linux/netfilter/nf_conntrack_common.h
+index 885cbe2..41a74de 100644
+--- a/include/linux/netfilter/nf_conntrack_common.h
++++ b/include/linux/netfilter/nf_conntrack_common.h
+@@ -94,19 +94,25 @@ enum ip_conntrack_events
+ 	IPCT_REFRESH_BIT = 3,
+ 	IPCT_REFRESH = (1 << IPCT_REFRESH_BIT),
+ 
+-	/* Status has changed */
+-	IPCT_STATUS_BIT = 4,
+-	IPCT_STATUS = (1 << IPCT_STATUS_BIT),
++	/* Assured bit is set */
++	IPCT_ASSURED_BIT = 4,
++	IPCT_ASSURED = (1 << IPCT_ASSURED_BIT),
+ 
+-	/* Update of protocol info */
++	/* Backward compatibility */
++	IPCT_STATUS = IPCT_ASSURED,
++
++	/* Protocol state info */
+ 	IPCT_PROTOINFO_BIT = 5,
+ 	IPCT_PROTOINFO = (1 << IPCT_PROTOINFO_BIT),
+ 
+-	/* Volatile protocol info */
+-	IPCT_PROTOINFO_VOLATILE_BIT = 6,
+-	IPCT_PROTOINFO_VOLATILE = (1 << IPCT_PROTOINFO_VOLATILE_BIT),
++	/* ICMP(v6) protocol info */
++	IPCT_ICMP_PROTOINFO_BIT = 6,
++	IPCT_ICMP_PROTOINFO = (1 << IPCT_ICMP_PROTOINFO_BIT),
++
++	/* Backward compatibility */
++	IPCT_PROTOINFO_VOLATILE = IPCT_ICMP_PROTOINFO,
+ 
+-	/* New helper for conntrack */
++	/* Helper for conntrack added/removed */
+ 	IPCT_HELPER_BIT = 7,
+ 	IPCT_HELPER = (1 << IPCT_HELPER_BIT),
+ 
+@@ -114,34 +120,41 @@ enum ip_conntrack_events
+ 	IPCT_HELPINFO_BIT = 8,
+ 	IPCT_HELPINFO = (1 << IPCT_HELPINFO_BIT),
+ 
+-	/* Volatile helper info */
+-	IPCT_HELPINFO_VOLATILE_BIT = 9,
+-	IPCT_HELPINFO_VOLATILE = (1 << IPCT_HELPINFO_VOLATILE_BIT),
+-
+-	/* NAT info */
+-	IPCT_NATINFO_BIT = 10,
+-	IPCT_NATINFO = (1 << IPCT_NATINFO_BIT),
+-
+-	/* Counter highest bit has been set, unused */
+-	IPCT_COUNTER_FILLING_BIT = 11,
+-	IPCT_COUNTER_FILLING = (1 << IPCT_COUNTER_FILLING_BIT),
++	/* Seen reply packet */
++	IPCT_SEEN_REPLY_BIT = 9,
++	IPCT_SEEN_REPLY = (1 << IPCT_SEEN_REPLY_BIT),
+ 
+ 	/* Mark is set */
+-	IPCT_MARK_BIT = 12,
++	IPCT_MARK_BIT = 10,
+ 	IPCT_MARK = (1 << IPCT_MARK_BIT),
+ 
+ 	/* NAT sequence adjustment */
+-	IPCT_NATSEQADJ_BIT = 13,
++	IPCT_NATSEQADJ_BIT = 11,
+ 	IPCT_NATSEQADJ = (1 << IPCT_NATSEQADJ_BIT),
+ 
+ 	/* Secmark is set */
+-	IPCT_SECMARK_BIT = 14,
++	IPCT_SECMARK_BIT = 12,
+ 	IPCT_SECMARK = (1 << IPCT_SECMARK_BIT),
+-};
++	
++	/* All conntrack event bits */
++	IPCT_ALL_BIT = 13,
++	IPCT_ALL = ((1 << IPCT_ALL_BIT) - 1),
+ 
+-enum ip_conntrack_expect_events {
+-	IPEXP_NEW_BIT = 0,
++	/* New expectation created */
++	IPEXP_NEW_BIT = 13,
+ 	IPEXP_NEW = (1 << IPEXP_NEW_BIT),
++
++	/* Timer has been refreshed */
++	IPEXP_REFRESH_BIT = 14,
++	IPEXP_REFRESH = (1 << IPEXP_REFRESH_BIT),
++
++	/* Expectation timed out */
++	IPEXP_TIMEOUT_BIT = 15,
++	IPEXP_TIMEOUT = (1 << IPEXP_TIMEOUT_BIT),
++
++	/* All expectation event bits */
++	IPEXP_ALL_BIT = 16,
++	IPEXP_ALL = (((1 << IPEXP_ALL_BIT) - 1) & ~IPCT_ALL)
+ };
  
  #ifdef __KERNEL__
+diff --git a/include/linux/netfilter/xt_CONNMARK.h b/include/linux/netfilter/xt_CONNMARK.h
+index 7635c8f..0ecbc85 100644
+--- a/include/linux/netfilter/xt_CONNMARK.h
++++ b/include/linux/netfilter/xt_CONNMARK.h
+@@ -15,7 +15,8 @@
+ enum {
+ 	XT_CONNMARK_SET = 0,
+ 	XT_CONNMARK_SAVE,
+-	XT_CONNMARK_RESTORE
++	XT_CONNMARK_RESTORE,
++	XT_CONNMARK_EVENT_ONLY
+ };
  
-diff --git a/include/linux/netfilter/xt_osf.h b/include/linux/netfilter/xt_osf.h
-new file mode 100644
-index 0000000..11903a9
---- /dev/null
-+++ b/include/linux/netfilter/xt_osf.h
-@@ -0,0 +1,119 @@
-+/*
-+ * Copyright (c) 2003+ Evgeniy Polyakov <johnpol@2ka.mxt.ru>
-+ *
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-+ */
-+
-+#ifndef _XT_OSF_H
-+#define _XT_OSF_H
-+
-+#define MAXGENRELEN		32
-+#define MAXDETLEN		64
-+
-+#define XT_OSF_GENRE		(1<<0)
-+#define	XT_OSF_TTL		(1<<1)
-+#define XT_OSF_LOG		(1<<2)
-+#define XT_OSF_UNUSED		(1<<3)
-+#define XT_OSF_CONNECTOR	(1<<4)
-+#define XT_OSF_INVERT		(1<<5)
-+
-+#define XT_OSF_LOGLEVEL_ALL	0
-+#define XT_OSF_LOGLEVEL_FIRST	1
-+#define XT_OSF_LOGLEVEL_ALL_KNOWN	2
-+
-+#define XT_OSF_TTL_TRUE		0	/* True ip and fingerprint TTL comparison */
-+#define XT_OSF_TTL_LESS		1	/* Check if ip TTL is less than fingerprint one */
-+#define XT_OSF_TTL_NOCHECK	2	/* Do not compare ip and fingerprint TTL at all */
-+
-+struct xt_osf_info {
-+	char			genre[MAXGENRELEN];
-+	__u32			len;
-+	__u32			flags;
-+	__u32			loglevel;
-+	__u32			ttl;
-+};
-+
-+/*
-+ * Wildcard MSS (kind of).
-+ * It is used to implement a state machine for the different wildcard values
-+ * of the MSS and window sizes.
-+ */
-+struct xt_osf_wc {
-+	__u32			wc;
-+	__u32			val;
-+};
-+
-+/*
-+ * This struct represents IANA options
-+ * http://www.iana.org/assignments/tcp-parameters
-+ */
-+struct xt_osf_opt {
-+	__u16			kind, length;
-+	struct xt_osf_wc	wc;
-+};
-+
-+struct xt_osf_user_finger {
-+	struct xt_osf_wc	wss;
-+
-+	__u8			ttl, df;
-+	__u16			ss, mss;
-+	__u16			opt_num;
-+
-+	char			genre[MAXGENRELEN];
-+	char			version[MAXGENRELEN];
-+	char			subtype[MAXGENRELEN];
-+
-+	/* MAX_IPOPTLEN is maximum if all options are NOPs or EOLs */
-+	struct xt_osf_opt	opt[MAX_IPOPTLEN];
-+};
-+
-+struct xt_osf_nlmsg {
-+	struct xt_osf_user_finger	f;
-+	struct iphdr		ip;
-+	struct tcphdr		tcp;
-+};
-+
-+/* Defines for IANA option kinds */
-+
-+enum iana_options {
-+	OSFOPT_EOL = 0,		/* End of options */
-+	OSFOPT_NOP, 		/* NOP */
-+	OSFOPT_MSS, 		/* Maximum segment size */
-+	OSFOPT_WSO, 		/* Window scale option */
-+	OSFOPT_SACKP,		/* SACK permitted */
-+	OSFOPT_SACK,		/* SACK */
-+	OSFOPT_ECHO,
-+	OSFOPT_ECHOREPLY,
-+	OSFOPT_TS,		/* Timestamp option */
-+	OSFOPT_POCP,		/* Partial Order Connection Permitted */
-+	OSFOPT_POSP,		/* Partial Order Service Profile */
-+
-+	/* Others are not used in the current OSF */
-+	OSFOPT_EMPTY = 255,
-+};
-+
-+enum xt_osf_msg_types {
-+	OSF_MSG_SETUP,
-+	OSF_MSG_MAX,
-+};
-+
-+enum xt_osf_attr_type {
-+	OSF_ATTR_UNSPEC,
-+	OSF_ATTR_FINGER,
-+	OSF_ATTR_MAX,
-+};
-+
-+#endif				/* _XT_OSF_H */
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 2329c5f..b0273f9 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -916,6 +916,19 @@ config NETFILTER_XT_MATCH_U32
+ struct xt_connmark_target_info {
+@@ -29,4 +30,11 @@ struct xt_connmark_tginfo1 {
+ 	__u8 mode;
+ };
  
- 	  Details and examples are in the kernel module source.
- 
-+config NETFILTER_XT_MATCH_OSF
-+	tristate '"osf" Passive OS fingerprint match'
-+	depends on NETFILTER_ADVANCED
-+	help
-+	  This option selects the Passive OS Fingerprinting match module
-+	  that allows to passively match the remote operating system by
-+	  analyzing incoming TCP SYN packets.
-+
-+	  Rules and loading software can be downloaded from
-+	  http://www.ioremap.net/projects/osf
-+
-+	  To compile it as a module, choose M here.  If unsure, say N.
-+
- endif # NETFILTER_XTABLES
- 
- endmenu
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 6282060..49f62ee 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -77,6 +77,7 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_LIMIT) += xt_limit.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_MAC) += xt_mac.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_MARK) += xt_mark.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_MULTIPORT) += xt_multiport.o
-+obj-$(CONFIG_NETFILTER_XT_MATCH_OSF) += xt_osf.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_OWNER) += xt_owner.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_PHYSDEV) += xt_physdev.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_PKTTYPE) += xt_pkttype.o
-diff --git a/net/netfilter/xt_osf.c b/net/netfilter/xt_osf.c
-new file mode 100644
-index 0000000..71b5eac
---- /dev/null
-+++ b/net/netfilter/xt_osf.c
-@@ -0,0 +1,469 @@
-+/*
-+ * Copyright (c) 2003+ Evgeniy Polyakov <zbr@ioremap.net>
-+ *
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/kernel.h>
-+
-+#include <linux/connector.h>
-+#include <linux/if.h>
-+#include <linux/inetdevice.h>
-+#include <linux/ip.h>
-+#include <linux/list.h>
-+#include <linux/percpu.h>
-+#include <linux/rculist.h>
-+#include <linux/smp.h>
-+#include <linux/skbuff.h>
-+#include <linux/slab.h>
-+#include <linux/spinlock.h>
-+#include <linux/tcp.h>
-+#include <linux/types.h>
-+
-+#include <net/ip.h>
-+#include <net/tcp.h>
-+
-+#include <linux/netfilter/nfnetlink.h>
-+#include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter/xt_osf.h>
-+
-+struct xt_osf_finger {
-+	struct rcu_head			rcu_head;
-+	struct list_head		finger_entry;
-+	struct xt_osf_user_finger	finger;
++struct xt_connmark_tginfo2 {
++	__u32 ctmark, ctmask, nfmask;
++	__u8 mode;
++	__u8 events;
++	__u16 eventmask;
 +};
 +
-+enum osf_fmatch_states {
-+	/* Packet does not match the fingerprint */
-+	FMATCH_WRONG = 0,
-+	/* Packet matches the fingerprint */
-+	FMATCH_OK,
-+	/* Options do not match the fingerprint, but header does */
-+	FMATCH_OPT_WRONG,
-+};
+ #endif /*_XT_CONNMARK_H_target*/
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index 6c3f964..bf8b156 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -117,6 +117,10 @@ struct nf_conn {
+ 	u_int32_t secmark;
+ #endif
+ 
++#ifdef CONFIG_NF_CONNTRACK_EVENTS
++	u_int16_t eventmask;
++#endif
 +
-+struct xt_osf_finger_storage
+ 	/* Storage reserved for other modules: */
+ 	union nf_conntrack_proto proto;
+ 
+diff --git a/include/net/netfilter/nf_conntrack_ecache.h b/include/net/netfilter/nf_conntrack_ecache.h
+index 0ff0dc6..15a1018 100644
+--- a/include/net/netfilter/nf_conntrack_ecache.h
++++ b/include/net/netfilter/nf_conntrack_ecache.h
+@@ -38,6 +38,9 @@ nf_conntrack_event_cache(enum ip_conntrack_events event, struct nf_conn *ct)
+ 	struct net *net = nf_ct_net(ct);
+ 	struct nf_conntrack_ecache *ecache;
+ 
++	if (!(ct->eventmask & event & IPCT_ALL))
++		return;
++
+ 	local_bh_disable();
+ 	ecache = per_cpu_ptr(net->ct.ecache, raw_smp_processor_id());
+ 	if (ct != ecache->ct)
+@@ -57,7 +60,9 @@ nf_conntrack_event_report(enum ip_conntrack_events event,
+ 		.pid	= pid,
+ 		.report = report
+ 	};
+-	if (nf_ct_is_confirmed(ct) && !nf_ct_is_dying(ct))
++	if (nf_ct_is_confirmed(ct)
++	    && !nf_ct_is_dying(ct)
++	    && (ct->eventmask & event & IPCT_ALL))
+ 		atomic_notifier_call_chain(&nf_conntrack_chain, event, &item);
+ }
+ 
+@@ -78,7 +83,7 @@ extern int nf_ct_expect_register_notifier(struct notifier_block *nb);
+ extern int nf_ct_expect_unregister_notifier(struct notifier_block *nb);
+ 
+ static inline void
+-nf_ct_expect_event_report(enum ip_conntrack_expect_events event,
++nf_ct_expect_event_report(enum ip_conntrack_events event,
+ 			  struct nf_conntrack_expect *exp,
+ 			  u32 pid,
+ 			  int report)
+@@ -88,11 +93,12 @@ nf_ct_expect_event_report(enum ip_conntrack_expect_events event,
+ 		.pid	= pid,
+ 		.report = report
+ 	};
+-	atomic_notifier_call_chain(&nf_ct_expect_chain, event, &item);
++	if (exp->master && (exp->master->exp_eventmask & event & IPEXP_ALL))
++		atomic_notifier_call_chain(&nf_ct_expect_chain, event, &item);
+ }
+ 
+ static inline void
+-nf_ct_expect_event(enum ip_conntrack_expect_events event,
++nf_ct_expect_event(enum ip_conntrack_events event,
+ 		   struct nf_conntrack_expect *exp)
+ {
+ 	nf_ct_expect_event_report(event, exp, 0, 0);
+diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+index 23b2c2e..fc6c56f 100644
+--- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
++++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
+@@ -91,7 +91,7 @@ static int icmp_packet(struct nf_conn *ct,
+ 			nf_ct_kill_acct(ct, ctinfo, skb);
+ 	} else {
+ 		atomic_inc(&ct->proto.icmp.count);
+-		nf_conntrack_event_cache(IPCT_PROTOINFO_VOLATILE, ct);
++		nf_conntrack_event_cache(IPCT_ICMP_PROTOINFO, ct);
+ 		nf_ct_refresh_acct(ct, ctinfo, skb, nf_ct_icmp_timeout);
+ 	}
+ 
+diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+index 9903227..d359a0d 100644
+--- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
+@@ -104,7 +104,7 @@ static int icmpv6_packet(struct nf_conn *ct,
+ 			nf_ct_kill_acct(ct, ctinfo, skb);
+ 	} else {
+ 		atomic_inc(&ct->proto.icmp.count);
+-		nf_conntrack_event_cache(IPCT_PROTOINFO_VOLATILE, ct);
++		nf_conntrack_event_cache(IPCT_ICMP_PROTOINFO, ct);
+ 		nf_ct_refresh_acct(ct, ctinfo, skb, nf_ct_icmpv6_timeout);
+ 	}
+ 
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 8020db6..1aec311 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -398,11 +398,6 @@ __nf_conntrack_confirm(struct sk_buff *skb)
+ 	help = nfct_help(ct);
+ 	if (help && help->helper)
+ 		nf_conntrack_event_cache(IPCT_HELPER, ct);
+-#ifdef CONFIG_NF_NAT_NEEDED
+-	if (test_bit(IPS_SRC_NAT_DONE_BIT, &ct->status) ||
+-	    test_bit(IPS_DST_NAT_DONE_BIT, &ct->status))
+-		nf_conntrack_event_cache(IPCT_NATINFO, ct);
+-#endif
+ 	nf_conntrack_event_cache(master_ct(ct) ?
+ 				 IPCT_RELATED : IPCT_NEW, ct);
+ 	return NF_ACCEPT;
+@@ -756,7 +751,7 @@ nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
+ 	}
+ 
+ 	if (set_reply && !test_and_set_bit(IPS_SEEN_REPLY_BIT, &ct->status))
+-		nf_conntrack_event_cache(IPCT_STATUS, ct);
++		nf_conntrack_event_cache(IPCT_SEEN_REPLY, ct);
+ 
+ 	return ret;
+ }
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index afde8f9..0f0513b 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -62,6 +62,7 @@ static void nf_ct_expectation_timed_out(unsigned long ul_expect)
+ 	struct nf_conntrack_expect *exp = (void *)ul_expect;
+ 
+ 	spin_lock_bh(&nf_conntrack_lock);
++	nf_ct_expect_event(IPEXP_TIMEOUT, exp);
+ 	nf_ct_unlink_expect(exp);
+ 	spin_unlock_bh(&nf_conntrack_lock);
+ 	nf_ct_expect_put(exp);
+diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
+index 00fecc3..c4f12ad 100644
+--- a/net/netfilter/nf_conntrack_ftp.c
++++ b/net/netfilter/nf_conntrack_ftp.c
+@@ -338,11 +338,11 @@ static void update_nl_seq(struct nf_conn *ct, u32 nl_seq,
+ 
+ 	if (info->seq_aft_nl_num[dir] < NUM_SEQ_TO_REMEMBER) {
+ 		info->seq_aft_nl[dir][info->seq_aft_nl_num[dir]++] = nl_seq;
+-		nf_conntrack_event_cache(IPCT_HELPINFO_VOLATILE, ct);
++		nf_conntrack_event_cache(IPCT_HELPINFO, ct);
+ 	} else if (oldest != NUM_SEQ_TO_REMEMBER &&
+ 		   after(nl_seq, info->seq_aft_nl[dir][oldest])) {
+ 		info->seq_aft_nl[dir][oldest] = nl_seq;
+-		nf_conntrack_event_cache(IPCT_HELPINFO_VOLATILE, ct);
++		nf_conntrack_event_cache(IPCT_HELPINFO, ct);
+ 	}
+ }
+ 
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index fd77619..e52c36f 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -494,6 +494,9 @@ static int ctnetlink_conntrack_event(struct notifier_block *this,
+ 	if (ct == &nf_conntrack_untracked)
+ 		return NOTIFY_DONE;
+ 
++	/* ignore events explicitly not wanted */
++	events &= ct->eventmask;
++
+ 	if (events & IPCT_DESTROY) {
+ 		type = IPCTNL_MSG_CT_DELETE;
+ 		group = NFNLGRP_CONNTRACK_DESTROY;
+@@ -501,7 +504,7 @@ static int ctnetlink_conntrack_event(struct notifier_block *this,
+ 		type = IPCTNL_MSG_CT_NEW;
+ 		flags = NLM_F_CREATE|NLM_F_EXCL;
+ 		group = NFNLGRP_CONNTRACK_NEW;
+-	} else  if (events & (IPCT_STATUS | IPCT_PROTOINFO)) {
++	} else  if (events & (IPCT_ASSURED | IPCT_PROTOINFO)) {
+ 		type = IPCTNL_MSG_CT_NEW;
+ 		group = NFNLGRP_CONNTRACK_UPDATE;
+ 	} else
+@@ -1367,7 +1370,7 @@ ctnetlink_new_conntrack(struct sock *ctnl, struct sk_buff *skb,
+ 			else
+ 				events = IPCT_NEW;
+ 
+-			nf_conntrack_event_report(IPCT_STATUS |
++			nf_conntrack_event_report(IPCT_ASSURED |
+ 						  IPCT_HELPER |
+ 						  IPCT_PROTOINFO |
+ 						  IPCT_NATSEQADJ |
+@@ -1392,7 +1395,7 @@ ctnetlink_new_conntrack(struct sock *ctnl, struct sk_buff *skb,
+ 		if (err == 0) {
+ 			nf_conntrack_get(&ct->ct_general);
+ 			spin_unlock_bh(&nf_conntrack_lock);
+-			nf_conntrack_event_report(IPCT_STATUS |
++			nf_conntrack_event_report(IPCT_ASSURED |
+ 						  IPCT_HELPER |
+ 						  IPCT_PROTOINFO |
+ 						  IPCT_NATSEQADJ |
+@@ -1545,6 +1548,9 @@ static int ctnetlink_expect_event(struct notifier_block *this,
+ 	sk_buff_data_t b;
+ 	int flags = 0;
+ 
++	/* ignore events explicitly not wanted */
++	events &= exp->master->exp_eventmask;
++
+ 	if (events & IPEXP_NEW) {
+ 		type = IPCTNL_MSG_EXP_NEW;
+ 		flags = NLM_F_CREATE|NLM_F_EXCL;
+diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
+index 117b801..e93d827 100644
+--- a/net/netfilter/nf_conntrack_proto_gre.c
++++ b/net/netfilter/nf_conntrack_proto_gre.c
+@@ -242,7 +242,7 @@ static int gre_packet(struct nf_conn *ct,
+ 				   ct->proto.gre.stream_timeout);
+ 		/* Also, more likely to be important, and not a probe. */
+ 		set_bit(IPS_ASSURED_BIT, &ct->status);
+-		nf_conntrack_event_cache(IPCT_STATUS, ct);
++		nf_conntrack_event_cache(IPCT_ASSURED, ct);
+ 	} else
+ 		nf_ct_refresh_acct(ct, ctinfo, skb,
+ 				   ct->proto.gre.timeout);
+diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
+index 101b4ad..d5ef276 100644
+--- a/net/netfilter/nf_conntrack_proto_sctp.c
++++ b/net/netfilter/nf_conntrack_proto_sctp.c
+@@ -380,7 +380,7 @@ static int sctp_packet(struct nf_conn *ct,
+ 	    new_state == SCTP_CONNTRACK_ESTABLISHED) {
+ 		pr_debug("Setting assured bit\n");
+ 		set_bit(IPS_ASSURED_BIT, &ct->status);
+-		nf_conntrack_event_cache(IPCT_STATUS, ct);
++		nf_conntrack_event_cache(IPCT_ASSURED, ct);
+ 	}
+ 
+ 	return NF_ACCEPT;
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index b5ccf2b..96fddc7 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -974,7 +974,6 @@ static int tcp_packet(struct nf_conn *ct,
+ 		timeout = tcp_timeouts[new_state];
+ 	write_unlock_bh(&tcp_lock);
+ 
+-	nf_conntrack_event_cache(IPCT_PROTOINFO_VOLATILE, ct);
+ 	if (new_state != old_state)
+ 		nf_conntrack_event_cache(IPCT_PROTOINFO, ct);
+ 
+@@ -995,7 +994,7 @@ static int tcp_packet(struct nf_conn *ct,
+ 		   after SYN_RECV or a valid answer for a picked up
+ 		   connection. */
+ 		set_bit(IPS_ASSURED_BIT, &ct->status);
+-		nf_conntrack_event_cache(IPCT_STATUS, ct);
++		nf_conntrack_event_cache(IPCT_ASSURED, ct);
+ 	}
+ 	nf_ct_refresh_acct(ct, ctinfo, skb, timeout);
+ 
+diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
+index 70809d1..d5499a5 100644
+--- a/net/netfilter/nf_conntrack_proto_udp.c
++++ b/net/netfilter/nf_conntrack_proto_udp.c
+@@ -77,7 +77,7 @@ static int udp_packet(struct nf_conn *ct,
+ 		nf_ct_refresh_acct(ct, ctinfo, skb, nf_ct_udp_timeout_stream);
+ 		/* Also, more likely to be important, and not a probe */
+ 		if (!test_and_set_bit(IPS_ASSURED_BIT, &ct->status))
+-			nf_conntrack_event_cache(IPCT_STATUS, ct);
++			nf_conntrack_event_cache(IPCT_ASSURED, ct);
+ 	} else
+ 		nf_ct_refresh_acct(ct, ctinfo, skb, nf_ct_udp_timeout);
+ 
+diff --git a/net/netfilter/nf_conntrack_proto_udplite.c b/net/netfilter/nf_conntrack_proto_udplite.c
+index 0badedc..b277cea 100644
+--- a/net/netfilter/nf_conntrack_proto_udplite.c
++++ b/net/netfilter/nf_conntrack_proto_udplite.c
+@@ -75,7 +75,7 @@ static int udplite_packet(struct nf_conn *ct,
+ 				   nf_ct_udplite_timeout_stream);
+ 		/* Also, more likely to be important, and not a probe */
+ 		if (!test_and_set_bit(IPS_ASSURED_BIT, &ct->status))
+-			nf_conntrack_event_cache(IPCT_STATUS, ct);
++			nf_conntrack_event_cache(IPCT_ASSURED, ct);
+ 	} else
+ 		nf_ct_refresh_acct(ct, ctinfo, skb, nf_ct_udplite_timeout);
+ 
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index 4b57216..6014b01 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -701,6 +701,7 @@ static int refresh_signalling_expectation(struct nf_conn *ct,
+ 		exp->flags &= ~NF_CT_EXPECT_INACTIVE;
+ 		exp->timeout.expires = jiffies + expires * HZ;
+ 		add_timer(&exp->timeout);
++		nf_ct_expect_event(IPEXP_REFRESH, exp);
+ 		found = 1;
+ 		break;
+ 	}
+diff --git a/net/netfilter/xt_CONNMARK.c b/net/netfilter/xt_CONNMARK.c
+index d6e5ab4..86bc5ea 100644
+--- a/net/netfilter/xt_CONNMARK.c
++++ b/net/netfilter/xt_CONNMARK.c
+@@ -75,7 +75,7 @@ connmark_tg_v0(struct sk_buff *skb, const struct xt_target_param *par)
+ }
+ 
+ static unsigned int
+-connmark_tg(struct sk_buff *skb, const struct xt_target_param *par)
++connmark_tg_v1(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+ 	const struct xt_connmark_tginfo1 *info = par->targinfo;
+ 	enum ip_conntrack_info ctinfo;
+@@ -112,6 +112,48 @@ connmark_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ 	return XT_CONTINUE;
+ }
+ 
++static unsigned int
++connmark_tg_v2(struct sk_buff *skb, const struct xt_target_param *par)
 +{
-+	struct list_head		finger_list;
-+	spinlock_t			finger_lock;
-+};
++	const struct xt_connmark_tginfo2 *info = par->targinfo;
++	enum ip_conntrack_info ctinfo;
++	struct nf_conn *ct;
++	u_int32_t newmark;
 +
-+/*
-+ * Indexed by dont-fragment bit.
-+ * It is the only constant value in the fingerprint.
-+ */
-+struct xt_osf_finger_storage xt_osf_fingers[2];
++	ct = nf_ct_get(skb, &ctinfo);
++	if (ct == NULL)
++		return XT_CONTINUE;
 +
-+struct xt_osf_message {
-+	struct cn_msg		cmsg;
-+	struct xt_osf_nlmsg	nlmsg;
-+};
-+
-+static const struct nla_policy xt_osf_policy[OSF_ATTR_MAX + 1] = {
-+	[OSF_ATTR_FINGER]	= { .len = sizeof(struct xt_osf_user_finger) },
-+};
-+
-+static void xt_osf_finger_free_rcu(struct rcu_head *rcu_head)
-+{
-+	struct xt_osf_finger *f = container_of(rcu_head, struct xt_osf_finger, rcu_head);
-+
-+	kfree(f);
-+}
-+
-+static int xt_osf_setup_callback(struct sock *ctnl, struct sk_buff *skb,
-+			struct nlmsghdr *nlh, struct nlattr *osf_attrs[])
-+{
-+	struct xt_osf_user_finger *f;
-+	struct nfgenmsg *nfmsg = NLMSG_DATA(nlh);
-+	u16 delete = ntohs(nfmsg->res_id);
-+	struct xt_osf_finger *kf = NULL, *sf;
-+	struct xt_osf_finger_storage *st;
-+	int err;
-+
-+	if (!osf_attrs[OSF_ATTR_FINGER])
-+		return -EINVAL;
-+
-+	f = nla_data(osf_attrs[OSF_ATTR_FINGER]);
-+	st = &xt_osf_fingers[!!f->df];
-+
-+	/*
-+	 * If 'delete' is set to 0 then we add attached fingerprint,
-+	 * otherwise remove, and in this case we do not need to allocate data.
-+	 */
-+	if (!delete) {
-+		kf = kmalloc(sizeof(struct xt_osf_finger), GFP_KERNEL);
-+		if (!kf)
-+			return -ENOMEM;
-+
-+		memcpy(&kf->finger, f, sizeof(struct xt_osf_user_finger));
-+	}
-+
-+	err = -ENOENT;
-+
-+	rcu_read_lock();
-+	list_for_each_entry_rcu(sf, &st->finger_list, finger_entry) {
-+		if (memcmp(&sf->finger, f, sizeof(struct xt_osf_user_finger)))
-+			continue;
-+
-+		if (delete) {
-+			spin_lock_bh(&st->finger_lock);
-+			list_del_rcu(&sf->finger_entry);
-+			spin_unlock_bh(&st->finger_lock);
-+			call_rcu(&sf->rcu_head, xt_osf_finger_free_rcu);
-+		} else {
-+			kfree(kf);
-+			kf = NULL;
++#ifdef NF_CONNTRACK_EVENTS
++	if (info->events)
++		ct->eventmask = info->eventmask;
++#endif
++	switch (info->mode) {
++	case XT_CONNMARK_SET:
++		newmark = (ct->mark & ~info->ctmask) ^ info->ctmark;
++		if (ct->mark != newmark) {
++			ct->mark = newmark;
++			nf_conntrack_event_cache(IPCT_MARK, ct);
 +		}
-+
-+		err = 0;
++		break;
++	case XT_CONNMARK_SAVE:
++		newmark = (ct->mark & ~info->ctmask) ^
++		          (skb->mark & info->nfmask);
++		if (ct->mark != newmark) {
++			ct->mark = newmark;
++			nf_conntrack_event_cache(IPCT_MARK, ct);
++		}
++		break;
++	case XT_CONNMARK_RESTORE:
++		newmark = (skb->mark & ~info->nfmask) ^
++		          (ct->mark & info->ctmask);
++		skb->mark = newmark;
 +		break;
 +	}
 +
-+	if (kf) {
-+		spin_lock_bh(&st->finger_lock);
-+		list_add_tail_rcu(&kf->finger_entry, &st->finger_list);
-+		spin_unlock_bh(&st->finger_lock);
-+#if 0
-+		printk(KERN_INFO "Added rule for %s:%s:%s.\n",
-+			kf->finger.genre, kf->finger.version, kf->finger.subtype);
-+#endif
-+	}
-+	rcu_read_unlock();
-+
-+	return 0;
++	return XT_CONTINUE;
 +}
 +
-+static const struct nfnl_callback xt_osf_nfnetlink_callbacks[OSF_MSG_MAX] = {
-+	[OSF_MSG_SETUP]	= {
-+		.call		= xt_osf_setup_callback,
-+		.attr_count	= OSF_ATTR_MAX,
-+		.policy		= xt_osf_policy,
+ static bool connmark_tg_check_v0(const struct xt_tgchk_param *par)
+ {
+ 	const struct xt_connmark_target_info *matchinfo = par->targinfo;
+@@ -180,6 +222,37 @@ static int connmark_tg_compat_to_user_v0(void __user *dst, void *src)
+ 	};
+ 	return copy_to_user(dst, &cm, sizeof(cm)) ? -EFAULT : 0;
+ }
++
++struct compat_xt_connmark_tginfo1 {
++	__u32 ctmark, ctmask, nfmask;
++	__u8 mode;
++	__u8 __pad1;
++	__u16 __pad2;
++};
++
++static void connmark_tg_compat_from_user_v1(void *dst, void *src)
++{
++	const struct compat_xt_connmark_tginfo1 *cm = src;
++	struct xt_connmark_tginfo1 m = {
++		.ctmark	= cm->ctmark,
++		.ctmask	= cm->ctmask,
++		.nfmask = cm->nfmask,
++		.mode	= cm->mode,
++	};
++	memcpy(dst, &m, sizeof(m));
++}
++
++static int connmark_tg_compat_to_user_v1(void __user *dst, void *src)
++{
++	const struct xt_connmark_tginfo1 *m = src;
++	struct compat_xt_connmark_tginfo1 cm = {
++		.ctmark	= m->ctmark,
++		.ctmask	= m->ctmask,
++		.nfmask = m->nfmask,
++		.mode	= m->mode,
++	};
++	return copy_to_user(dst, &cm, sizeof(cm)) ? -EFAULT : 0;
++}
+ #endif /* CONFIG_COMPAT */
+ 
+ static struct xt_target connmark_tg_reg[] __read_mostly = {
+@@ -203,9 +276,24 @@ static struct xt_target connmark_tg_reg[] __read_mostly = {
+ 		.revision       = 1,
+ 		.family         = NFPROTO_UNSPEC,
+ 		.checkentry     = connmark_tg_check,
+-		.target         = connmark_tg,
++		.target         = connmark_tg_v1,
+ 		.targetsize     = sizeof(struct xt_connmark_tginfo1),
+ 		.destroy        = connmark_tg_destroy,
++#ifdef CONFIG_COMPAT
++		.compatsize	= sizeof(struct compat_xt_connmark_tginfo1),
++		.compat_from_user = connmark_tg_compat_from_user_v1,
++		.compat_to_user	= connmark_tg_compat_to_user_v1,
++#endif
++		.me             = THIS_MODULE,
 +	},
-+};
-+
-+static const struct nfnetlink_subsystem xt_osf_nfnetlink = {
-+	.name			= "osf",
-+	.subsys_id		= NFNL_SUBSYS_OSF,
-+	.cb_count		= OSF_MSG_MAX,
-+	.cb			= xt_osf_nfnetlink_callbacks,
-+};
-+
-+static inline int xt_osf_ttl(const struct sk_buff *skb, const struct xt_osf_info *info,
-+			    unsigned char f_ttl)
-+{
-+	const struct iphdr *ip = ip_hdr(skb);
-+
-+	if (info->flags & XT_OSF_TTL) {
-+		if (info->ttl == XT_OSF_TTL_TRUE)
-+			return ip->ttl == f_ttl;
-+		if (info->ttl == XT_OSF_TTL_NOCHECK)
-+			return 1;
-+		else if (ip->ttl <= f_ttl)
-+			return 1;
-+		else {
-+			struct in_device *in_dev = in_dev_get(skb->dev);
-+			int ret = 0;
-+
-+			for_ifa(in_dev) {
-+				if (inet_ifa_match(ip->saddr, ifa)) {
-+					ret = (ip->ttl == f_ttl);
-+					break;
-+				}
-+			}
-+			endfor_ifa(in_dev);
-+
-+			in_dev_put(in_dev);
-+			return ret;
-+		}
-+	}
-+
-+	return ip->ttl == f_ttl;
-+}
-+
-+static bool xt_osf_match_packet(const struct sk_buff *skb,
-+		const struct xt_match_param *p)
-+{
-+	const struct xt_osf_info *info = p->matchinfo;
-+	const struct iphdr *ip = ip_hdr(skb);
-+	const struct tcphdr *tcp;
-+	struct tcphdr _tcph;
-+	int fmatch = FMATCH_WRONG, fcount = 0;
-+	unsigned int optsize = 0, check_WSS = 0;
-+	u16 window, totlen, mss = 0;
-+	bool df;
-+	const unsigned char *optp = NULL, *_optp = NULL;
-+	unsigned char opts[MAX_IPOPTLEN];
-+	const struct xt_osf_finger *kf;
-+	const struct xt_osf_user_finger *f;
-+	const struct xt_osf_finger_storage *st;
-+
-+	if (!info)
-+		return false;
-+
-+	tcp = skb_header_pointer(skb, ip_hdrlen(skb), sizeof(struct tcphdr), &_tcph);
-+	if (!tcp)
-+		return false;
-+
-+	if (!tcp->syn)
-+		return false;
-+
-+	totlen = ntohs(ip->tot_len);
-+	df = ntohs(ip->frag_off) & IP_DF;
-+	window = ntohs(tcp->window);
-+
-+	if (tcp->doff * 4 > sizeof(struct tcphdr)) {
-+		optsize = tcp->doff * 4 - sizeof(struct tcphdr);
-+
-+		if (optsize > sizeof(opts))
-+			optsize = sizeof(opts);
-+
-+		_optp = optp = skb_header_pointer(skb, ip_hdrlen(skb) + sizeof(struct tcphdr),
-+				optsize, opts);
-+	}
-+
-+	st = &xt_osf_fingers[df];
-+
-+	rcu_read_lock();
-+	list_for_each_entry_rcu(kf, &st->finger_list, finger_entry) {
-+		f = &kf->finger;
-+
-+		if (!(info->flags & XT_OSF_LOG) && strcmp(info->genre, f->genre))
-+			continue;
-+
-+		optp = _optp;
-+		fmatch = FMATCH_WRONG;
-+
-+		if (totlen == f->ss && xt_osf_ttl(skb, info, f->ttl)) {
-+			int foptsize, optnum;
-+
-+			check_WSS = 0;
-+
-+			switch (f->wss.wc) {
-+			case 0:
-+				check_WSS = 0;
-+				break;
-+			case 'S':
-+				check_WSS = 1;
-+				break;
-+			case 'T':
-+				check_WSS = 2;
-+				break;
-+			case '%':
-+				check_WSS = 3;
-+				break;
-+			default:
-+				check_WSS = 4;
-+				break;
-+			}
-+			if (check_WSS == 4)
-+				continue;
-+
-+			/* Check options */
-+
-+			foptsize = 0;
-+			for (optnum = 0; optnum < f->opt_num; ++optnum)
-+				foptsize += f->opt[optnum].length;
-+
-+			if (foptsize > MAX_IPOPTLEN || optsize > MAX_IPOPTLEN || optsize != foptsize)
-+				continue;
-+
-+			for (optnum = 0; optnum < f->opt_num; ++optnum) {
-+				if (f->opt[optnum].kind == (*optp)) {
-+					__u32 len = f->opt[optnum].length;
-+					const __u8 *optend = optp + len;
-+					int loop_cont = 0;
-+
-+					fmatch = FMATCH_OK;
-+
-+					switch (*optp) {
-+					case OSFOPT_MSS:
-+						mss = optp[3];
-+						mss <<= 8;
-+						mss |= optp[2];
-+
-+						mss = ntohs(mss);
-+						break;
-+					case OSFOPT_TS:
-+						loop_cont = 1;
-+						break;
-+					}
-+
-+					optp = optend;
-+				} else
-+					fmatch = FMATCH_OPT_WRONG;
-+
-+				if (fmatch != FMATCH_OK)
-+					break;
-+			}
-+
-+			if (fmatch != FMATCH_OPT_WRONG) {
-+				fmatch = FMATCH_WRONG;
-+
-+				switch (check_WSS) {
-+				case 0:
-+					if (f->wss.val == 0 || window == f->wss.val)
-+						fmatch = FMATCH_OK;
-+					break;
-+				case 1:	/* MSS */
-+#define SMART_MSS_1	1460
-+#define SMART_MSS_2	1448
-+					if (window == f->wss.val * mss ||
-+					    window == f->wss.val * SMART_MSS_1 ||
-+					    window == f->wss.val * SMART_MSS_2)
-+						fmatch = FMATCH_OK;
-+					break;
-+				case 2:	/* MTU */
-+					if (window == f->wss.val * (mss + 40) ||
-+					    window == f->wss.val * (SMART_MSS_1 + 40) ||
-+					    window == f->wss.val * (SMART_MSS_2 + 40))
-+						fmatch = FMATCH_OK;
-+					break;
-+				case 3:	/* MOD */
-+					if ((window % f->wss.val) == 0)
-+						fmatch = FMATCH_OK;
-+					break;
-+				}
-+			}
-+
-+			if (fmatch != FMATCH_OK)
-+				continue;
-+
-+			fcount++;
-+			if (info->flags & XT_OSF_LOG)
-+				printk(KERN_INFO "%s [%s:%s] : "
-+					"%pi4:%d -> %pi4:%d hops=%d\n",
-+					f->genre, f->version, f->subtype,
-+					&ip->saddr, ntohs(tcp->source),
-+					&ip->daddr, ntohs(tcp->dest),
-+					f->ttl - ip->ttl);
-+
-+			if ((info->flags & XT_OSF_LOG) &&
-+			    info->loglevel == XT_OSF_LOGLEVEL_FIRST)
-+				break;
-+		}
-+	}
-+	rcu_read_unlock();
-+
-+	if (!fcount && (info->flags & (XT_OSF_LOG | XT_OSF_CONNECTOR))) {
-+		unsigned int i;
-+		struct xt_osf_user_finger fg;
-+
-+		memset(&fg, 0, sizeof(fg));
-+#if 1
-+		if (info->flags & XT_OSF_LOG) {
-+			if (info->loglevel != XT_OSF_LOGLEVEL_ALL_KNOWN)
-+				printk(KERN_INFO "Unknown: win: %u, mss: %u, "
-+					"totlen: %u, df: %d, ttl: %u : ",
-+					window, mss, totlen, df, ip->ttl);
-+			else
-+				printk(KERN_INFO "");
-+			if (_optp) {
-+				optp = _optp;
-+				for (i = 0; i < optsize; i++)
-+					printk("%02X ", optp[i]);
-+			}
-+
-+			printk("%pi4:%u -> %pi4:%u\n",
-+			     &ip->saddr, ntohs(tcp->source),
-+			     &ip->daddr, ntohs(tcp->dest));
-+		}
-+#endif
-+	}
-+
-+	if (fcount)
-+		fmatch = FMATCH_OK;
-+
-+	return fmatch == FMATCH_OK;
-+}
-+
-+static struct xt_match xt_osf_match = {
-+	.name 		= "osf",
-+	.revision	= 0,
-+	.family		= NFPROTO_IPV4,
-+	.proto		= IPPROTO_TCP,
-+	.hooks      	= (1 << NF_INET_LOCAL_IN) | (1 << NF_INET_PRE_ROUTING) | (1 << NF_INET_FORWARD),
-+	.match 		= xt_osf_match_packet,
-+	.matchsize	= sizeof(struct xt_osf_info),
-+	.me		= THIS_MODULE,
-+};
-+
-+static int __init xt_osf_init(void)
-+{
-+	int err = -EINVAL;
-+	int i;
-+
-+	for (i=0; i<ARRAY_SIZE(xt_osf_fingers); ++i) {
-+		struct xt_osf_finger_storage *st = &xt_osf_fingers[i];
-+
-+		INIT_LIST_HEAD(&st->finger_list);
-+		spin_lock_init(&st->finger_lock);
-+	}
-+
-+	err = nfnetlink_subsys_register(&xt_osf_nfnetlink);
-+	if (err < 0) {
-+		printk(KERN_ERR "Failed (%d) to register OSF nsfnetlink helper.\n", err);
-+		goto err_out_exit;
-+	}
-+
-+	err = xt_register_match(&xt_osf_match);
-+	if (err) {
-+		printk(KERN_ERR "Failed (%d) to register OS fingerprint "
-+				"matching module.\n", err);
-+		goto err_out_remove;
-+	}
-+
-+	printk(KERN_INFO "Started passive OS fingerprint matching module.\n");
-+
-+	return 0;
-+
-+err_out_remove:
-+	nfnetlink_subsys_unregister(&xt_osf_nfnetlink);
-+err_out_exit:
-+	return err;
-+}
-+
-+static void __exit xt_osf_fini(void)
-+{
-+	struct xt_osf_finger *f;
-+	int i;
-+
-+	nfnetlink_subsys_unregister(&xt_osf_nfnetlink);
-+	xt_unregister_match(&xt_osf_match);
-+
-+	rcu_read_lock();
-+	for (i=0; i<ARRAY_SIZE(xt_osf_fingers); ++i) {
-+		struct xt_osf_finger_storage *st = &xt_osf_fingers[i];
-+
-+		list_for_each_entry_rcu(f, &st->finger_list, finger_entry) {
-+			list_del_rcu(&f->finger_entry);
-+			call_rcu(&f->rcu_head, xt_osf_finger_free_rcu);
-+		}
-+	}
-+	rcu_read_unlock();
-+
-+	rcu_barrier();
-+
-+	printk(KERN_INFO "Passive OS fingerprint matching module finished.\n");
-+}
-+
-+module_init(xt_osf_init);
-+module_exit(xt_osf_fini);
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Evgeniy Polyakov <zbr@ioremap.net>");
-+MODULE_DESCRIPTION("Passive OS fingerprint matching.");
-+MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_OSF);
-
++	{
++		.name           = "CONNMARK",
++		.revision       = 2,
++		.family         = NFPROTO_UNSPEC,
++		.checkentry     = connmark_tg_check,
++		.target         = connmark_tg_v2,
++		.targetsize     = sizeof(struct xt_connmark_tginfo2),
++		.destroy        = connmark_tg_destroy,
+ 		.me             = THIS_MODULE,
+ 	},
+ };
 -- 
-	Evgeniy Polyakov
-
---TB36FDmn/VVEgNH/
-Content-Type: text/x-csrc; charset=us-ascii
-Content-Disposition: attachment; filename="libxt_osf.c"
-
-/*
- * Copyright (c) 2003+ Evgeniy Polyakov <zbr@ioremap.net>
- *
- *
- * This program is free software; you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation; either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
- */
-
-/*
- * xtables interface for OS fingerprint matching module.
- */
-
-#include <stdio.h>
-#include <netdb.h>
-#include <string.h>
-#include <stdlib.h>
-#include <getopt.h>
-#include <ctype.h>
-
-#include <linux/types.h>
-
-#include <xtables.h>
-
-#include <netinet/ip.h>
-#include <netinet/tcp.h>
-
-#include "xt_osf.h"
-
-static void osf_help(void)
-{
-	printf("OS fingerprint match options:\n"
-		"--genre [!] string         Match a OS genre by passive fingerprinting.\n"
-		"--ttl                  Use some TTL check extensions to determine OS:\n"
-		"       0                       true ip and fingerprint TTL comparison. Works for LAN.\n"
-		"       1                       check if ip TTL is less than fingerprint one. Works for global addresses.\n"
-		"       2                       do not compare TTL at all. Allows to detect NMAP, but can produce false results.\n"
-		"--log level            Log determined genres into dmesg even if they do not match desired one:\n"
-		"       0                       log all matched or unknown signatures.\n"
-		"       1                       log only first one.\n"
-		"       2                       log all known matched signatures.\n"
-		);
-}
+1.5.4.3
 
 
-static const struct option osf_opts[] = {
-	{ .name = "genre",	.has_arg = true, .val = '1' },
-	{ .name = "ttl",	.has_arg = true, .val = '2' },
-	{ .name = "log",	.has_arg = true, .val = '3' },
-	{ .name = NULL }
-};
-
-
-static void osf_parse_string(const unsigned char *s, struct xt_osf_info *info)
-{
-	if (strlen(s) < MAXGENRELEN) 
-		strcpy(info->genre, s);
-	else 
-		exit_error(PARAMETER_PROBLEM, "Genre string too long `%s' [%d], max=%d", 
-				s, strlen(s), MAXGENRELEN);
-}
-
-static int osf_parse(int c, char **argv, int invert, unsigned int *flags,
-      			const void *entry,
-      			struct xt_entry_match **match)
-{
-	struct xt_osf_info *info = (struct xt_osf_info *)(*match)->data;
-	
-	switch(c) {
-		case '1': /* --genre */
-			if (*flags & XT_OSF_GENRE)
-				exit_error(PARAMETER_PROBLEM, "Can't specify multiple genre parameter");
-			check_inverse(optarg, &invert, &optind, 0);
-			osf_parse_string(argv[optind-1], info);
-			if (invert)
-				info->flags |= XT_OSF_INVERT;
-			info->len=strlen(info->genre);
-			*flags |= XT_OSF_GENRE;
-			break;
-		case '2': /* --ttl */
-			if (*flags & XT_OSF_TTL)
-				exit_error(PARAMETER_PROBLEM, "Can't specify multiple ttl parameter");
-			*flags |= XT_OSF_TTL;
-			info->flags |= XT_OSF_TTL;
-			if (!xtables_strtoui(argv[optind-1], NULL, &info->ttl, 0, 2))
-				xtables_error(PARAMETER_PROBLEM, "TTL parameter is too big");
-			break;
-		case '3': /* --log */
-			if (*flags & XT_OSF_LOG)
-				exit_error(PARAMETER_PROBLEM, "Can't specify multiple log parameter");
-			*flags |= XT_OSF_LOG;
-			if (!xtables_strtoui(argv[optind-1], NULL, &info->loglevel, 0, 2))
-				xtables_error(PARAMETER_PROBLEM, "Log level parameter is too big");
-			info->flags |= XT_OSF_LOG;
-			break;
-		default:
-			return 0;
-	}
-
-	return 1;
-}
-
-static void osf_final_check(unsigned int flags)
-{
-	if (!flags)
-		exit_error(PARAMETER_PROBLEM, "OS fingerprint match: You must specify `--genre'");
-}
-
-static void osf_print(const void *ip, const struct xt_entry_match *match, int numeric)
-{
-	const struct xt_osf_info *info = (const struct xt_osf_info*) match->data;
-
-	printf("OS fingerprint match %s%s ", (info->flags & XT_OSF_INVERT) ? "! " : "", info->genre);
-}
-
-static void osf_save(const void *ip, const struct xt_entry_match *match)
-{
-	const struct xt_osf_info *info = (const struct xt_osf_info*) match->data;
-
-	printf("--genre %s%s ", (info->flags & XT_OSF_INVERT) ? "! ": "", info->genre);
-}
-
-static struct xtables_match osf_match = {
-	.name		= "osf",
-	.version	= XTABLES_VERSION,
-	.size		= XT_ALIGN(sizeof(struct xt_osf_info)),
-	.userspacesize	= XT_ALIGN(sizeof(struct xt_osf_info)),
-	.help		= osf_help,
-	.parse		= osf_parse,
-	.print		= osf_print,
-	.final_check	= osf_final_check,
-	.save		= osf_save,
-	.extra_opts	= osf_opts,
-	.family		= NFPROTO_IPV4
-};
-
-void _init(void)
-{
-	xtables_register_match(&osf_match);
-}
-
---TB36FDmn/VVEgNH/--
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
