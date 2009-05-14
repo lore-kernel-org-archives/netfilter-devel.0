@@ -1,33 +1,37 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] conntrackd: message building fix for uint16_t attributes
-Date: Tue, 12 May 2009 23:11:43 +0200
-Message-ID: <4A09E60F.2070208@netfilter.org>
-References: <4A09A150.3060807@6wind.com>
+Subject: Re: [PATCH 0/1] Conntrack event generation control, kernel part
+Date: Thu, 14 May 2009 11:32:02 +0200
+Message-ID: <4A0BE512.9010003@netfilter.org>
+References: <alpine.DEB.2.00.0905121348460.28379@blackhole.kfki.hu> <4A097752.4030303@netfilter.org> <alpine.DEB.2.00.0905121524020.28379@blackhole.kfki.hu> <4A098B7F.6050605@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Samuel GAUTHIER <samuel.gauthier@6wind.com>
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48800 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:43840 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753174AbZELVME (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 May 2009 17:12:04 -0400
-In-Reply-To: <4A09A150.3060807@6wind.com>
+	id S1752882AbZENJR2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 14 May 2009 05:17:28 -0400
+In-Reply-To: <4A098B7F.6050605@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Samuel GAUTHIER wrote:
-> Dear Pablo,
-> 
-> I think that the patch attached to this email should be applied to
-> current conntrack-tools tree.
-> nfct_get_attr_u16 returns a uint16_t, so I think that in src/build.c,
-> the result of nfct_get_attr_u16 should be put into a uint16_t, not a
-> uint32_t.
+Hi Jozsef,
 
-Right. Thanks Samuel. Applied.
+Pablo Neira Ayuso wrote:
+> I see, but something similar to nfnetlink_queue/NFQUEUE (per-process)
+> together with an extended version of the `conntrack match' for events
+> would be more flexible
+
+Another very simple choice can be to add more multicast groups according 
+to the sort of events. We can get more fine grain event selection while 
+keeping it per-process. Currently, there's only three sort of events: 
+NEW, UPDATE and DESTROY. We can add more netlink multicast groups to 
+allow user-space to select what kind of events they are interested.
+
+I'm going to send a patch for this. The point here is to make event 
+groups generic enough to make them useful for all sort of applications.
 
 -- 
 "Los honestos son inadaptados sociales" -- Les Luthiers
