@@ -1,40 +1,25 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 0/1] Conntrack event generation control, kernel part
-Date: Thu, 14 May 2009 12:44:19 +0200
-Message-ID: <4A0BF603.9090600@netfilter.org>
-References: <alpine.DEB.2.00.0905121348460.28379@blackhole.kfki.hu> <4A097752.4030303@netfilter.org> <alpine.DEB.2.00.0905121524020.28379@blackhole.kfki.hu> <4A098B7F.6050605@netfilter.org> <4A0BE512.9010003@netfilter.org>
+From: Hugo Miguel Mendes <est-h-mendes@ptinovacao.pt>
+Subject: Conntrack, expectations, debug
+Date: Thu, 14 May 2009 12:56:26 +0100
+Message-ID: <47A7F67C62706041BC49DB7822B1C9DB2273C5F360@INOAVREX11.ptin.corpPT.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56478 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753010AbZENK3m (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 May 2009 06:29:42 -0400
-In-Reply-To: <4A0BE512.9010003@netfilter.org>
+Received: from owa.ptinovacao.pt ([194.65.138.99]:42811 "EHLO
+	owa.ptinovacao.pt" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754773AbZENL46 convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 14 May 2009 07:56:58 -0400
+Content-Language: pt-PT
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> Hi Jozsef,
-> 
-> Pablo Neira Ayuso wrote:
->> I see, but something similar to nfnetlink_queue/NFQUEUE (per-process)
->> together with an extended version of the `conntrack match' for events
->> would be more flexible
-> 
-> Another very simple choice can be to add more multicast groups according 
-> to the sort of events. We can get more fine grain event selection while 
-> keeping it per-process. Currently, there's only three sort of events: 
-> NEW, UPDATE and DESTROY. We can add more netlink multicast groups to 
-> allow user-space to select what kind of events they are interested.
+Dear all,
 
-netlink doesn't seem to support overlapping event groups, and UPDATE and 
-ASSURED groups would overlap. Thus, we'll need to call 
-netlink_broadcast() twice. I still don't find a non-intrusive way to do 
-some non-BPF-based filtering :(
+I have read the documents "Writing Netfilter Modules" and "netfiler-hacking-HOWTO" and I still didn't understand how can I write a conntrack helper module in order to ignore the source address in incoming connection, is there any already written module with good documentation? Is there anyway to manually enter connections in the conntrack list? Just onde more question, is it possible to debug netfilter in order to see how the packets flow through the code?
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+Best Regards
+
+Hugo Mendes
