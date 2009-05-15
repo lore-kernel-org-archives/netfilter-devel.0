@@ -1,25 +1,62 @@
-From: Hugo Miguel Mendes <est-h-mendes@ptinovacao.pt>
-Subject: Conntrack, expectations, debug
-Date: Thu, 14 May 2009 12:56:26 +0100
-Message-ID: <47A7F67C62706041BC49DB7822B1C9DB2273C5F360@INOAVREX11.ptin.corpPT.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 0/1] Conntrack event generation control, kernel part
+Date: Fri, 15 May 2009 21:07:30 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.0905152059080.1804@blackhole.kfki.hu>
+References: <alpine.DEB.2.00.0905121348460.28379@blackhole.kfki.hu> <4A097752.4030303@netfilter.org> <alpine.DEB.2.00.0905121524020.28379@blackhole.kfki.hu> <4A098B7F.6050605@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from owa.ptinovacao.pt ([194.65.138.99]:42811 "EHLO
-	owa.ptinovacao.pt" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754773AbZENL46 convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 May 2009 07:56:58 -0400
-Content-Language: pt-PT
+Received: from smtp-in.kfki.hu ([148.6.0.26]:57947 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753689AbZEOTHa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 15 May 2009 15:07:30 -0400
+In-Reply-To: <4A098B7F.6050605@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Dear all,
+Hi Pablo,
 
-I have read the documents "Writing Netfilter Modules" and "netfiler-hacking-HOWTO" and I still didn't understand how can I write a conntrack helper module in order to ignore the source address in incoming connection, is there any already written module with good documentation? Is there anyway to manually enter connections in the conntrack list? Just onde more question, is it possible to debug netfilter in order to see how the packets flow through the code?
+On Tue, 12 May 2009, Pablo Neira Ayuso wrote:
 
-Best Regards
+> >> BTW, I don't like using connmark for this.
+> > 
+> > You mean the CONNMARK target? I deliberately avoided using the connection 
+> > marks. Or "marking" the connections by the eventmask? But that is the most 
+> > effective way to filter the events.
+> 
+> I see, but something similar to nfnetlink_queue/NFQUEUE (per-process)
+> together with an extended version of the `conntrack match' for events
+> would be more flexible.
 
-Hugo Mendes
+The match solution cannot cover cases when the actual event happens at 
+confirmation while the target can "see" all. But I agree, that "matching" 
+events would be more natural for the users than marking.
+
+> > Another very simple choice can be to add more multicast groups 
+> > according to the sort of events. We can get more fine grain event 
+> > selection while keeping it per-process. Currently, there's only three 
+> > sort of events: NEW, UPDATE and DESTROY. We can add more netlink 
+> > multicast groups to allow user-space to select what kind of events 
+> > they are interested.
+> 
+> netlink doesn't seem to support overlapping event groups, and UPDATE and 
+> ASSURED groups would overlap. Thus, we'll need to call 
+> netlink_broadcast() twice. I still don't find a non-intrusive way to do 
+> some non-BPF-based filtering :(
+
+Why don't we introduce groups like nflog and nfqueue? res_id is unused in 
+ctnetlink, so we could use it to pair the application and the event flow.
+
+The CONNMARK target with the approach I suggest could easily be extended 
+to cover the res_id too and store it in the conntrack entry. That'd still 
+just amount 32 bits (eventmask + res_id) in nf_conn which is required.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
