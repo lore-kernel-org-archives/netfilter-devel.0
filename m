@@ -1,46 +1,51 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [ANNOUNCE] ipset-3.0 released
-Date: Sat, 16 May 2009 22:10:12 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.0905162203170.3688@blackhole.kfki.hu>
+From: =?UTF-8?Q?Jan_Rathousk=C3=BD?= <jan.rathousky@gmail.com>
+Subject: port based routing for local generated connections
+Date: Sun, 17 May 2009 01:28:03 +0200
+Message-ID: <a14f8c120905161628i6b129e87m17f6db647115315c@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:37545 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757170AbZEPUKM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 16 May 2009 16:10:12 -0400
+Received: from mail-bw0-f174.google.com ([209.85.218.174]:41527 "EHLO
+	mail-bw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751188AbZEPX2D convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 16 May 2009 19:28:03 -0400
+Received: by bwz22 with SMTP id 22so2575301bwz.37
+        for <netfilter-devel@vger.kernel.org>; Sat, 16 May 2009 16:28:03 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+Hi everybody,
+I'm looking for something that allows me routing based on destination
+ports (for two OpenVPN tunnels).
+=46irst I found nice howto [1] but there is one problem =E2=80=93 it wo=
+rks only
+with LAN traffic and I want it for one computer with two ISPs. Because
+router decision is done before writing marks for local generated
+packets. So this howto is not for me :(
+I was told that "iptables -j ROUTE" is what I'm looking for.
+But I'm not able to compile POM with actual iptables version and my
+Debian Squeeze kernel.
+Than I found xtables-addon which is much more "fresh" than POM. But it
+doesn't have support for ROUTE action.
+Do you plan to add it to xtables-addon?
+or
+Do you know something else that can help me with this situation?
 
-I'm happy to announce the ipset-3.0 release, codename "big end" :-):
-the release fixes bigendian and 64/32bit environment-related bugs and 
-issues.
+Thanks for answers and for your work.
 
-In consequence of the 64/32bit issues, the kernel-userspace protocol 
-version number had to be bumped. Therefore if you upgrade to 3.0, you must 
-install both the kernel modules and the ipset binary from the package - 
-the kernel won't work with older ipset binaries and the new binary won't 
-work with older ipset kernel modules. Here follows the new changelog 
-entries:
+Jan
 
-userspace:
-  - New kernel-userspace protocol release
-  - Bigendian and 64/32bit fixes (Stefan Gula, bugzilla id 593)
-  - tests/runtests.sh changed to support old bash shells
+PS: does anyone try to contact someone from netfilter team to add a
+link to xtables-addon instead of POM? It's quite hard to find this
+project.
 
-kernel part:
-  - New kernel-userspace protocol release
-  - Bigendian and 64/32bit fixes (Stefan Gula, bugzilla id 593)
-  - Support of 2.4.3[67].*  kernels fixed
-  - Compiling with debugging enabled fixed
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+[1] http://www.linuxhorizon.ro/iproute2.html
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
