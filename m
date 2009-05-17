@@ -1,94 +1,73 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: user-space xtables ABI [was Re: [Fwd: Re: iptables pull	request]]
-Date: Sun, 17 May 2009 17:40:00 +0200
-Message-ID: <4A102FD0.2050007@netfilter.org>
-References: <4A0E9786.8060407@netfilter.org>	 <1242566196.3996.23.camel@dogo.mojatatu.com>	 <4A10235B.3070607@netfilter.org> <1242573261.3996.36.camel@dogo.mojatatu.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: user-space xtables ABI [was Re: [Fwd: Re: iptables pull
+ request]]
+Date: Sun, 17 May 2009 18:01:17 +0200 (CEST)
+Message-ID: <alpine.LSU.2.00.0905171711230.6819@fbirervta.pbzchgretzou.qr>
+References: <4A0E9786.8060407@netfilter.org> <1242566196.3996.23.camel@dogo.mojatatu.com> <4A10235B.3070607@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: hadi@cyberus.ca,
+	Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>,
-	Jan Engelhardt <jengelh@medozas.de>,
 	Patrick McHardy <kaber@trash.net>
-To: hadi@cyberus.ca
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:33248 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753488AbZEQPkK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 17 May 2009 11:40:10 -0400
-In-Reply-To: <1242573261.3996.36.camel@dogo.mojatatu.com>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:45671 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751535AbZEQQBR (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 17 May 2009 12:01:17 -0400
+In-Reply-To: <4A10235B.3070607@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-jamal wrote:
-> On Sun, 2009-05-17 at 16:46 +0200, Pablo Neira Ayuso wrote:
-> 
->> Now that we have a public API for extensions and your tc ipt thing uses
->> it, I would not expect more breakages as long as we're aware of it.
-> [..]
->> I think that, now that we have a public API, ABI should be not broken.
-> 
-> That would be fantastic.
-> 
->> In case that some interface has limitations, we can add a new one while
->> keeping the old. 
-> 
-> And maybe spit out some warning somewhere that the interface being used
-> is deprecated (the way the kernel does it so well currently).
 
-There is an __attribute__((deprecated)) in gcc that displays a message
-during compilation time to warn that the software is using obsolete
-interfaces. Then, we can remove it 1 or 2 years later.
+On Sunday 2009-05-17 16:46, Pablo Neira Ayuso wrote:
+>jamal wrote:
+>> On Sat, 2009-05-16 at 12:37 +0200, Pablo Neira Ayuso wrote:
+>>
+>> maybe we can have some simple working relationship rules:
+>> 
+>> a) whoever breaks ABI (hopefully there are good reasons
+>> to intentionally break it) should also fix ipt, just like they
+>> fix iptables. 
+>> b) whoever breaks the ABI should consider both backward and
+>> forward compatibility. I will review patches to make sure this
+>> is still so.
+>
+>I think that, now that we have a public API, ABI should be not broken.
+>In case that some interface has limitations, we can add a new one while
+>keeping the old. The result is not nice since you end having two
+>functions that do the same with different interfaces but this doesn't
+>break binary backward compatibility. Of course, the change would need
+>some justification, eg. some client code do need something that the
+>current interface does not allow in any way.
+>
+>With this policy, design errors accumulate along time so we learn the
+>lesson from our own mistakes and, then, we work on a new version 2 of
+>the API to resolve the accumulated issues after some time. This is how
+>I'm managing existing netfilter libraries. This policy makes the
+>developement of libraries/public interfaces slower but I think that
+>users are way happier (no binary breakages).
 
->> The result is not nice since you end having two
->> functions that do the same with different interfaces but this doesn't
->> break binary backward compatibility. 
-> 
-> Would be an improvement - currently i have to find out over configure
-> scripts at compile time i.e write a little program using old API and if
-> doesnt compile, try the next thing etc.
-> I think if you also depracate over a period of time the old interface
-> by giving ample warnings the API users are surely going to migrate.
+With that policy we end up with the same crap that is happening
+in the kernel.
 
-Yes, that will help, however some lazy users wait for the breakage to
-move on, but who cares about them ;)
+Just because we magically managed to stuff lots of functions into an
+.so file does not make it public. It just so happens to save a bunch
+of kilobytes in all of the binaries that were previously statically
+linked to xtables.c, and was deemed one way to figure out how to deal
+with intrusive m_ipt. Sorry, but in all efforts that went in so far,
+I discharge libxtables having a stable API. For that, the iptables
+code is not beauty enough yet.
 
->> Of course, the change would need
->> some justification, eg. some client code do need something that the
->> current interface does not allow in any way.
-> 
-> Indeed.
-> 
->> With this policy, design errors accumulate along time so we learn the
->> lesson from our own mistakes and, then, we work on a new version 2 of
->> the API to resolve the accumulated issues after some time. This is how
->> I'm managing existing netfilter libraries. This policy makes the
->> developement of libraries/public interfaces slower but I think that
->> users are way happier (no binary breakages).
-> 
-> I think there will always be challenges and lessons learnt but i dont
-> see the approach you outline as making "development slower" - it just
-> forces whoever introduces a new interface thinks at least twice ;->
+Now, I had to just think of Xtables-addons that has a similar issue.
+For the kernel modules, it uses a separate compat_xtables.c glue
+module that hides the hacks needed for older versions.
 
-Right :)
-
-> An evolution instead of a revolution is a lot more acceptable
-> i.e build on existing interface and give it more features than totaly
-> changing it like you change your socks.
-
-In my case, it's been four years with the current library APIs and
-following an evolution approach as you have mentioned (adding new
-functions and obsoleting old ones but keeping them in the tree for a
-while). Now I'm doing more like a full re-design that needs the
-"revolution", no way to keep backward compatibility to resolve several
-issues.
-
-Still, people would be able to have both version 1 and 2 of the
-libraries installed in their computer so they can keep attached to old
-versions without breaking binary backward compatibility. I've been
-discussing this with a friend of mine that maintains a couple of
-critical libraries in the gnome project, it was nice to expose him my
-ideas and see that I was on the right track.
-
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+Would tc profit from something similar for libxtables? It would gain
+the capability to work with iptableses potentially older than the
+reference point. But is that truly required? Upgrading userspace is a
+lot easier than the kernel. If a newer tc is installed on one's
+system, the user might just as well do so for iptables in the same
+run.
