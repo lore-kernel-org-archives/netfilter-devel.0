@@ -1,73 +1,59 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: user-space xtables ABI [was Re: [Fwd: Re: iptables	pull	request]]
-Date: Mon, 18 May 2009 16:18:19 +0200
-Message-ID: <4A116E2B.6050600@netfilter.org>
-References: <4A0E9786.8060407@netfilter.org>	 <1242566196.3996.23.camel@dogo.mojatatu.com>	 <4A10235B.3070607@netfilter.org>	 <1242573261.3996.36.camel@dogo.mojatatu.com>	 <4A102FD0.2050007@netfilter.org> <1242578893.3996.70.camel@dogo.mojatatu.com>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Re: [PATCH RFC] v5 expedited "big hammer" RCU grace periods
+Date: Mon, 18 May 2009 07:40:39 -0700
+Message-ID: <20090518144039.GA6768@linux.vnet.ibm.com>
+References: <20090517191141.GA25915@linux.vnet.ibm.com> <4A110768.2040707@cn.fujitsu.com>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Jan Engelhardt <jengelh@medozas.de>,
-	Patrick McHardy <kaber@trash.net>
-To: hadi@cyberus.ca
+Content-Type: text/plain; charset=us-ascii
+Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, mingo@elte.hu,
+	akpm@linux-foundation.org, torvalds@linux-foundation.org,
+	davem@davemloft.net, dada1@cosmosbay.com, zbr@ioremap.net,
+	jeff.chua.linux@gmail.com, paulus@samba.org, jengelh@medozas.de,
+	r000n@r000n.net, benh@kernel.crashing.org,
+	mathieu.desnoyers@polymtl.ca
+To: Lai Jiangshan <laijs@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:58852 "EHLO mail.us.es"
+Received: from e6.ny.us.ibm.com ([32.97.182.146]:58824 "EHLO e6.ny.us.ibm.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752522AbZEROSd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 May 2009 10:18:33 -0400
-In-Reply-To: <1242578893.3996.70.camel@dogo.mojatatu.com>
+	id S1751090AbZEROkl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 18 May 2009 10:40:41 -0400
+Content-Disposition: inline
+In-Reply-To: <4A110768.2040707@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-jamal wrote:
-> On Sun, 2009-05-17 at 17:40 +0200, Pablo Neira Ayuso wrote:
->> There is an __attribute__((deprecated)) in gcc that displays a message
->> during compilation time to warn that the software is using obsolete
->> interfaces. Then, we can remove it 1 or 2 years later.
+On Mon, May 18, 2009 at 02:59:52PM +0800, Lai Jiangshan wrote:
+> Paul E. McKenney wrote:
+> > +void sched_expedited_wake(void *unused)
+> > +{
+> > +	mutex_lock(&__get_cpu_var(sched_expedited_done_mutex));
+> > +	if (__get_cpu_var(sched_expedited_done_qs) ==
+> > +	    SCHED_EXPEDITED_QS_DONE_QS) {
+> > +		__get_cpu_var(sched_expedited_done_qs) =
+> > +			SCHED_EXPEDITED_QS_NEED_QS;
+> > +		wake_up(&__get_cpu_var(sched_expedited_qs_wq));
+> > +	}
+> > +	mutex_unlock(&__get_cpu_var(sched_expedited_done_mutex));
+> > +}
 > 
-> Also something runtime maybe on syslog (example what packet socket
-> used to do - complaining about tcpdump until they changed it).
-> I did forget to mention one thing which may sound extreme,
-> Documentation:
-> A document aptly named "ABI breakage" which outlines all revisions and
-> what they break. Maybe even an extra document called
-> "Deprecation" which announces what is going to break and when.
-
-That seems fine, although I'm not sure that users usually look at these
-sort of files. I think that they wait until things break so they have to
-put out the fire :).
-
->> In my case, it's been four years with the current library APIs and
->> following an evolution approach as you have mentioned (adding new
->> functions and obsoleting old ones but keeping them in the tree for a
->> while). Now I'm doing more like a full re-design that needs the
->> "revolution", no way to keep backward compatibility to resolve several
->> issues.
+> [...]
 > 
-> I think there is room for revolutions with the caveat of ample warnings.
-> Like you said if you have been giving warning for 2 years about
-> something deprecating then you are absolved of dropping the interface.
+> > +		get_online_cpus();
+> > +		preempt_disable();
+> > +		mycpu = smp_processor_id();
+> > +		smp_call_function(sched_expedited_wake, NULL, 1);
 > 
->> Still, people would be able to have both version 1 and 2 of the
->> libraries installed in their computer so they can keep attached to old
->> versions without breaking binary backward compatibility. I've been
->> discussing this with a friend of mine that maintains a couple of
->> critical libraries in the gnome project, it was nice to expose him my
->> ideas and see that I was on the right track.
-> 
-> Good motivation to migrate from version 1 to 2 is always a key 
-> factor. Give me some compelling reason to migrate. At the risk of
-> sounding politically  incorrect: Example, IPV4 works just fine; add 
-> NAT and you address the major  sticking point and i dont care about
-> the fact that IPV6 has the insurance that i can slice bread with it
-> someday when i need to. OTOH, pay me some $$ per packet
-> (a .01 Canadian penny would do) and i will migrate to IPV6;->
+> sched_expedited_wake() calls mutex_lock() which may sleep?
 
-Well, shiny new features is the only thing that I can "sell" in this
-case. Something like: "if you migrate from version 1 to 2, you will get
-these set of new features in return". Of course, if they don't need
-them, it's a hard sell ;).
+Good eyes!  Fixing this and the failure to release this lock in
+krcu_sched_expedited_percpu() allows it to survive 10 hours of
+rcutorture running in parallel with onlining/offlining random CPUs.
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+> And I think you have re-implement workqueue.
+
+Hmmm...  I suppose I could use schedule_work(), though I am concerned
+about interference from other work.  But I will give this some thought.
+
+							Thanx, Paul
