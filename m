@@ -1,164 +1,64 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [PATCH RFC] v5 expedited "big hammer" RCU grace periods
-Date: Wed, 20 May 2009 08:30:23 -0700
-Message-ID: <20090520153023.GB6729@linux.vnet.ibm.com>
-References: <20090517191141.GA25915@linux.vnet.ibm.com> <20090518075630.GA10687@elte.hu> <20090518151421.GB6768@linux.vnet.ibm.com> <20090518154241.GA27047@elte.hu> <20090518160254.GD6768@linux.vnet.ibm.com> <20090519085825.GA9388@elte.hu> <20090519123316.GA7159@linux.vnet.ibm.com> <20090519124436.GA6238@elte.hu> <20090519161839.GA6750@linux.vnet.ibm.com> <20090520080924.GA6736@elte.hu>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Thomas Jacob <jacob@internet24.de>
+Subject: ulogd2/NFLOG: nfnetlink_log: error creating log nlmsg
+Date: Wed, 20 May 2009 20:05:30 +0200
+Message-ID: <1242842730.8076.60.camel@enterprise.ims-firmen.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, akpm@linux-foundation.org,
-	torvalds@linux-foundation.org, davem@davemloft.net,
-	dada1@cosmosbay.com, zbr@ioremap.net, jeff.chua.linux@gmail.com,
-	paulus@samba.org, laijs@cn.fujitsu.com, jengelh@medozas.de,
-	r000n@r000n.net, benh@kernel.crashing.org,
-	mathieu.desnoyers@polymtl.ca
-To: Ingo Molnar <mingo@elte.hu>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from e9.ny.us.ibm.com ([32.97.182.139]:37990 "EHLO e9.ny.us.ibm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752412AbZETPaZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 May 2009 11:30:25 -0400
-Content-Disposition: inline
-In-Reply-To: <20090520080924.GA6736@elte.hu>
+Received: from mailout01.ims-firmen.de ([213.174.32.96]:53898 "EHLO
+	mailout01.ims-firmen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754944AbZETSFa (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 20 May 2009 14:05:30 -0400
+Received: from mailin02.ims-firmen.de ([192.168.1.111])
+	by mailout01.ims-firmen.de with esmtp (Exim 4.69)
+	(envelope-from <jacob@internet24.de>)
+	id 1M6qAV-00053U-BO
+	for netfilter-devel@vger.kernel.org; Wed, 20 May 2009 20:05:31 +0200
+Received: from [213.174.32.254] (helo=[192.168.0.170])
+	by mailin02.ims-firmen.de with esmtpsa (TLSv1:DHE-RSA-AES256-SHA:256)
+	(Exim 4.69)
+	(envelope-from <jacob@internet24.de>)
+	id 1M6qAV-0007jW-Aa
+	for netfilter-devel@vger.kernel.org; Wed, 20 May 2009 20:05:31 +0200
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, May 20, 2009 at 10:09:24AM +0200, Ingo Molnar wrote:
-> 
-> * Paul E. McKenney <paulmck@linux.vnet.ibm.com> wrote:
-> 
-> > On Tue, May 19, 2009 at 02:44:36PM +0200, Ingo Molnar wrote:
-> > > 
-> > > * Paul E. McKenney <paulmck@linux.vnet.ibm.com> wrote:
-> > > 
-> > > > On Tue, May 19, 2009 at 10:58:25AM +0200, Ingo Molnar wrote:
-> > > > > 
-> > > > > * Paul E. McKenney <paulmck@linux.vnet.ibm.com> wrote:
-> > > > > 
-> > > > > > On Mon, May 18, 2009 at 05:42:41PM +0200, Ingo Molnar wrote:
-> > > > > > > 
-> > > > > > > * Paul E. McKenney <paulmck@linux.vnet.ibm.com> wrote:
-> > > > > > > 
-> > > > > > > > > i might be missing something fundamental here, but why not just 
-> > > > > > > > > have per CPU helper threads, all on the same waitqueue, and wake 
-> > > > > > > > > them up via a single wake_up() call? That would remove the SMP 
-> > > > > > > > > cross call (wakeups do immediate cross-calls already).
-> > > > > > > > 
-> > > > > > > > My concern with this is that the cache misses accessing all the 
-> > > > > > > > processes on this single waitqueue would be serialized, slowing 
-> > > > > > > > things down. In contrast, the bitmask that smp_call_function() 
-> > > > > > > > traverses delivers on the order of a thousand CPUs' worth of bits 
-> > > > > > > > per cache miss.  I will give it a try, though.
-> > > > > > > 
-> > > > > > > At least if you go via the migration threads, you can queue up 
-> > > > > > > requests to them locally. But there's going to be cachemisses 
-> > > > > > > _anyway_, since you have to access them all from a single CPU, 
-> > > > > > > and then they have to fetch details about what to do, and then 
-> > > > > > > have to notify the originator about completion.
-> > > > > > 
-> > > > > > Ah, so you are suggesting that I use smp_call_function() to run 
-> > > > > > code on each CPU that wakes up that CPU's migration thread?  I 
-> > > > > > will take a look at this.
-> > > > > 
-> > > > > My suggestion was to queue up a dummy 'struct migration_req' up with 
-> > > > > it (change migration_req::task == NULL to mean 'nothing') and simply 
-> > > > > wake it up using wake_up_process().
-> > > > 
-> > > > OK.  I was thinking of just using wake_up_process() without the
-> > > > migration_req structure, and unconditionally setting a per-CPU
-> > > > variable from within migration_thread() just before the list_empty()
-> > > > check.  In your approach we would need a NULL-pointer check just
-> > > > before the call to __migrate_task().
-> > > > 
-> > > > > That will force a quiescent state, without the need for any extra 
-> > > > > information, right?
-> > > > 
-> > > > Yep!
-> > > > 
-> > > > > This is what the scheduler code does, roughly:
-> > > > > 
-> > > > >                 wake_up_process(rq->migration_thread);
-> > > > >                 wait_for_completion(&req.done);
-> > > > > 
-> > > > > and this will always have to perform well. The 'req' could be put 
-> > > > > into PER_CPU, and a loop could be done like this:
-> > > > > 
-> > > > > 	for_each_online_cpu(cpu)
-> > > > >                 wake_up_process(cpu_rq(cpu)->migration_thread);
-> > > > > 
-> > > > > 	for_each_online_cpu(cpu)
-> > > > >                 wait_for_completion(&per_cpu(req, cpu).done);
-> > > > > 
-> > > > > hm?
-> > > > 
-> > > > My concern is the linear slowdown for large systems, but this 
-> > > > should be OK for modest systems (a few 10s of CPUs).  However, I 
-> > > > will try it out -- it does not need to be a long-term solution, 
-> > > > after all.
-> > > 
-> > > I think there is going to be a linear slowdown no matter what - 
-> > > because sending that many IPIs is going to be linear. (there are 
-> > > no 'broadcast to all' IPIs anymore - on x86 we only have them if 
-> > > all physical APIC IDs are 7 or smaller.)
-> > 
-> > With the current code, agreed.  One could imagine making an IPI 
-> > tree, so that a given CPU IPIs (say) eight subordinates.  Making 
-> > this work nice with CPU hotplug would be entertaining, to say the 
-> > least.
-> 
-> Certainly! :-)
-> 
-> As a general note, unrelated to your patches: i think our 
-> CPU-hotplug related complexity seems to be a bit too much. This is 
-> really just a gut feeling - from having seen many patches that also 
-> have hotplug notifiers.
-> 
-> I'm wondering whether this is because it's structured in a 
-> suboptimal way, or because i'm (intuitively) under-estimating the 
-> complexity of what it takes to express what happens when a CPU is 
-> offlined and then onlined?
+Hello List,
 
-I suppose that I could take this as a cue to reminisce about the old days
-in a past life with a different implementation of CPU online/offline,
-but life is just too short for that sort of thing.  Not that guys my
-age let that stop them.  ;-)
+I am trying to get ulogd2 to log NFLOG-collected data
+correctly, and am getting lots of "nfnetlink_log: error creating log
+nlmsg" and only very few actual log entries.
 
-And in that past life, exercising CPU online/offline usually exposed
-painful bugs in new code, so I cannot claim that the old-life approach
-to CPU hotplug was perfect.  Interestingly enough, running uniprocessor
-also exposed painful bugs more often than not.  Of course, the only way
-to run uniprocessor was to offline all but one of the CPUs, so you would
-hit the online/offline bugs before hitting the uniprocessor-only bugs.
+As far as I can tell this happens when there is not enough skb_tailroom
+for the log-message in __build_packet_message, but in
+nfulnl_log_packet there also a check of skb_tailroom against a different
+size value which is supposed to result in flushing messages if there
+is no space.
 
-The thing that worries me most about CPU hotplug in Linux is that
-there is no clear hierarchy of CPU function in the offline process,
-given that the offlining process invokes notifiers in the same order
-as does the onlining process.  Whether this is a real defect in the CPU
-hotplug design or is instead simply a symptom of my not yet being fully
-comfortable with the two-phase CPU-removal process is an interesting
-question to which I do not have an answer.
+Bug? Feature? If it's the latter, how can I prevent this from
+happening?
 
-Either way, the thought process is different.  In my old life, CPUs shed
-roles in the opposite order that they acquired them.  This meant that a
-given CPU was naturally guaranteed to be correctly taking interrupts for
-the entire time that it was capable of running user-level processes.
-Later in the offlining process, it would still take interrupts, but
-would be unable to run user processes.  Still later, it would no longer
-be taking interrupts, and would stop participating in RCU and in the
-global TLB-flush algorithm.  There was no need to stop the whole machine
-to make a given CPU go offline, in fact, most of the work was done by
-the CPU in question.
+   Thanks,
+      Thomas
 
-In the case of RCU, this meant that there was no need for double-checking
-for offlined CPUs, because CPUs could reliably indicate a quiescent
-state on their way out.
+Installation details:
 
-On the other hand, there was no equivalent of dynticks in the old days.
-And it is dynticks that is responsible for most of the complexity present
-in force_quiescent_state(), not CPU hotplug.
+conntrack-tools-0.9.12
+iptables-1.4.3.2
+libnetfilter_conntrack-0.0.99
+libnetfilter_log-0.0.16
+libnfnetlink-0.0.41
+linux-2.6.27.21 (Greg Kroah-Hartman's "stable" branch)
+ulogd2 (fairly recent git pull, <1.5 month)
 
-So I cannot hold up RCU as something that would be greatly simplified
-by changing the CPU hotplug design, much as I might like to.  ;-)
+I am logging using "-m limit 1/s --burst 60 -j NFLOG --threshold 10
+--prefix SOMETHING" with maybe 3-4 different rules like this in the main
+data path. Log volume therefore shouldn't be that high.
 
-							Thanx, Paul
+Ulogd2 uses the example NFLOG stack [log1:NFLOG] (i.e.
+LOGEMU/PRINTPKT...) and sync=0, the rest are default settings.
+
+
