@@ -1,93 +1,72 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: conntrack and RSTs received during CLOSE_WAIT
-Date: Thu, 21 May 2009 17:31:30 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.0905211729090.13699@blackhole.kfki.hu>
-References: <4A0DE859.7000209@tigertech.com> <alpine.DEB.2.00.0905162348430.4156@blackhole.kfki.hu> <4A0F7FEE.3010405@tigertech.com> <4A139222.2020505@tigertech.com> <alpine.DEB.2.00.0905200904310.10018@blackhole.kfki.hu> <4A1466F6.8070304@tigertech.com>
- <alpine.DEB.2.00.0905202327240.11796@blackhole.kfki.hu>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: ulogd2/NFLOG: nfnetlink_log: error creating log nlmsg
+Date: Thu, 21 May 2009 19:24:58 +0200
+Message-ID: <4A158E6A.8090705@netfilter.org>
+References: <1242842730.8076.60.camel@enterprise.ims-firmen.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Robert L Mathews <lists@tigertech.com>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.0905202327240.11796@blackhole.kfki.hu>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: multipart/mixed;
+ boundary="------------040207010803010807010907"
+Cc: netfilter-devel@vger.kernel.org
+To: Thomas Jacob <jacob@internet24.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:56967 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752113AbZEURms (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 21 May 2009 13:42:48 -0400
+In-Reply-To: <1242842730.8076.60.camel@enterprise.ims-firmen.de>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 20 May 2009, Jozsef Kadlecsik wrote:
+This is a multi-part message in MIME format.
+--------------040207010803010807010907
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-> Because connlimit/connbytes rely on conntrack, the latter should be 
-> "fixed". However I do not see any way to make it resistant against such 
-> attacks: if we shrink the window (by which alogrithm?) we may block valid 
-> RST segments and thus cause connections to hang instead of termination.
+Thomas Jacob wrote:
+> Hello List,
+> 
+> I am trying to get ulogd2 to log NFLOG-collected data
+> correctly, and am getting lots of "nfnetlink_log: error creating log
+> nlmsg" and only very few actual log entries.
+> 
+> As far as I can tell this happens when there is not enough skb_tailroom
+> for the log-message in __build_packet_message, but in
+> nfulnl_log_packet there also a check of skb_tailroom against a different
+> size value which is supposed to result in flushing messages if there
+> is no space.
+> 
+> Bug? Feature? If it's the latter, how can I prevent this from
+> happening?
 
-OK, here is a patch. Could you test it with your script and in your 
-environment?
+Does this patch helps? It seems that we're missing to add the size of
+the hardware address since 2.6.27.
 
-The patch below introduces a new flag for TCP conntrack to mark that RST 
-segment was seen. If retransmitted packets detected from the other 
-direction after the RST segment detected, the timeout of the conntrack 
-entry is linearly increased up to a hardcoded value. Thus we can both 
-catch the retransmitted packets and preserve the effectiveness of 
-connlimit/connbytes.
----
-diff --git a/include/linux/netfilter/nf_conntrack_tcp.h b/include/linux/netfilter/nf_conntrack_tcp.h
-index 3066789..465d346 100644
---- a/include/linux/netfilter/nf_conntrack_tcp.h
-+++ b/include/linux/netfilter/nf_conntrack_tcp.h
-@@ -35,6 +35,9 @@ enum tcp_conntrack {
- /* Has unacknowledged data */
- #define IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED	0x10
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
+
+--------------040207010803010807010907
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index fd326ac..66a6dd5 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -581,6 +581,12 @@ nfulnl_log_packet(u_int8_t pf,
+ 		+ nla_total_size(sizeof(struct nfulnl_msg_packet_hw))
+ 		+ nla_total_size(sizeof(struct nfulnl_msg_packet_timestamp));
  
-+/* Has seen RST */
-+#define IP_CT_TCP_FLAG_RST_SEEN			0x20
++	if (in && skb_mac_header_was_set(skb)) {
++		size +=   nla_total_size(skb->dev->hard_header_len)
++			+ nla_total_size(sizeof(u_int16_t))	/* hwtype */
++			+ nla_total_size(sizeof(u_int16_t));	/* hwlen */
++	}
 +
- struct nf_ct_tcp_flags {
- 	__u8 flags;
- 	__u8 mask;
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index b5ccf2b..fca7caa 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -84,6 +84,10 @@ static unsigned int tcp_timeouts[TCP_CONNTRACK_MAX] __read_mostly = {
- 	[TCP_CONNTRACK_CLOSE]		= 10 SECS,
- };
+ 	spin_lock_bh(&inst->lock);
  
-+/* Max timeout when retransmitted packets detected after RST was seen
-+   from the other direction */
-+#define TCP_TIMEOUT_RETRANS_AFTER_RST		2 MINS
-+
- #define sNO TCP_CONNTRACK_NONE
- #define sSS TCP_CONNTRACK_SYN_SENT
- #define sSR TCP_CONNTRACK_SYN_RECV
-@@ -918,6 +922,8 @@ static int tcp_packet(struct nf_conn *ct,
- 				  "nf_ct_tcp: invalid state ");
- 		return -NF_ACCEPT;
- 	case TCP_CONNTRACK_CLOSE:
-+		if (index == TCP_RST_SET)
-+			ct->proto.tcp.seen[dir].flags |= IP_CT_TCP_FLAG_RST_SEEN;
- 		if (index == TCP_RST_SET
- 		    && ((test_bit(IPS_SEEN_REPLY_BIT, &ct->status)
- 			 && ct->proto.tcp.last_index == TCP_SYN_SET)
-@@ -963,7 +969,12 @@ static int tcp_packet(struct nf_conn *ct,
- 	    && new_state == TCP_CONNTRACK_FIN_WAIT)
- 		ct->proto.tcp.seen[dir].flags |= IP_CT_TCP_FLAG_CLOSE_INIT;
- 
--	if (ct->proto.tcp.retrans >= nf_ct_tcp_max_retrans &&
-+	if (ct->proto.tcp.seen[!dir].flags & IP_CT_TCP_FLAG_RST_SEEN
-+	    && ct->proto.tcp.retrans > 1)
-+	    	timeout = min_t(unsigned int,
-+	    			tcp_timeouts[sCL] * ct->proto.tcp.retrans,
-+	    			TCP_TIMEOUT_RETRANS_AFTER_RST);
-+	else if (ct->proto.tcp.retrans >= nf_ct_tcp_max_retrans &&
- 	    tcp_timeouts[new_state] > nf_ct_tcp_timeout_max_retrans)
- 		timeout = nf_ct_tcp_timeout_max_retrans;
- 	else if ((ct->proto.tcp.seen[0].flags | ct->proto.tcp.seen[1].flags) &
+ 	if (inst->flags & NFULNL_CFG_F_SEQ)
 
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+--------------040207010803010807010907--
