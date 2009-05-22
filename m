@@ -1,110 +1,63 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: conntrack and RSTs received during CLOSE_WAIT
-Date: Fri, 22 May 2009 13:27:20 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.0905221255140.14889@blackhole.kfki.hu>
-References: <4A0DE859.7000209@tigertech.com> <4A0F7FEE.3010405@tigertech.com>  <4A139222.2020505@tigertech.com>  <alpine.DEB.2.00.0905200904310.10018@blackhole.kfki.hu>  <4A1466F6.8070304@tigertech.com>  <alpine.DEB.2.00.0905202327240.11796@blackhole.kfki.hu>
-  <alpine.DEB.2.00.0905211729090.13699@blackhole.kfki.hu>  <4A15A156.6030400@tigertech.com>  <38db14850905212132x3d4f4d83y6808ad89d2d79324@mail.gmail.com>  <alpine.DEB.2.00.0905220917190.14889@blackhole.kfki.hu> <38db14850905220126t55f0e754y6c65cbfaed533bc0@mail.gmail.com>
- <alpine.DEB.2.00.0905221047190.14889@blackhole.kfki.hu>
+From: Thomas Jacob <jacob@internet24.de>
+Subject: Re: ulogd2/NFLOG: nfnetlink_log: error creating log nlmsg
+Date: Fri, 22 May 2009 14:12:41 +0200
+Message-ID: <20090522121241.GA28340@internet24.de>
+References: <1242842730.8076.60.camel@enterprise.ims-firmen.de> <4A158E6A.8090705@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Robert L Mathews <lists@tigertech.com>,
-	Anatoly Muliarski <x86ever@gmail.com>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <alpine.DEB.2.00.0905221047190.14889@blackhole.kfki.hu>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mailout01.ims-firmen.de ([213.174.32.96]:36571 "EHLO
+	mailout01.ims-firmen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751000AbZEVMMm (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 22 May 2009 08:12:42 -0400
+Content-Disposition: inline
+In-Reply-To: <4A158E6A.8090705@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 22 May 2009, Jozsef Kadlecsik wrote:
-
-> On Fri, 22 May 2009, Anatoly Muliarski wrote:
+On Thu, May 21, 2009 at 07:24:58PM +0200, Pablo Neira Ayuso wrote:
+> Thomas Jacob wrote:
+> > Bug? Feature? If it's the latter, how can I prevent this from
+> > happening?
 > 
-> > > This is the main problem: we can never be sure the packets which are seen
-> > > by firewall do really reach the destination or they order is preserved.
-> 
-> > We could save the LAST sequence number as a current one.
-> > So we keep the connection and mark the current RST as invalid and
-> > correctly react on the following ones. Unfortunately this does not
-> > solve the main problem - unable to know whether the received sequence
-> > number is valid or not. As an vague idea - we could track the ack
-> > number from other direction and so keep the last delivered sequence
-> > number. What can say about it?
-> 
-> Relying on the last ACK received from the other direction looks promising. 
-> We record the last (highest) ACK sent by both endpoints, which makes sure 
-> the packet they ack they did indeed received. And we accept a RST segment 
-> only if it's in the window we calculate (wider than the destination's) AND 
-> equal or higher than the saved last ACK from the other direction.
-> 
-> The only downside is that new fields must be added to struct ip_ct_tcp.
+> Does this patch helps? It seems that we're missing to add the size of
+> the hardware address since 2.6.27.
 
-So here is the patch which adds checking RST segments against the highest 
-ack we seen from the other direction. I tested it with your script and 
-conntrack could resist receiving bogus RST segments.
+Thanks for the quick reply and the patch. Unfortunately I haven't found a way
+to reproduce this problem in a lab environment yet, so I can't confirm
+whether or not it does anything. Originally the issue
+occurred when hot-replacing an older system with one that
+runs NFLOG/ulogd2 and the versions listed, thereby generating lots
+of invalid packets probably (which should have been logged) as well
+as some intentional drops (Packet rate at the time maybe was 30kpps).
 
-diff --git a/include/linux/netfilter/nf_conntrack_tcp.h b/include/linux/netfilter/nf_conntrack_tcp.h
-index 3066789..b2f384d 100644
---- a/include/linux/netfilter/nf_conntrack_tcp.h
-+++ b/include/linux/netfilter/nf_conntrack_tcp.h
-@@ -35,6 +35,9 @@ enum tcp_conntrack {
- /* Has unacknowledged data */
- #define IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED	0x10
- 
-+/* The field td_maxack has been set */
-+#define IP_CT_TCP_FLAG_MAXACK_SET		0x20
-+
- struct nf_ct_tcp_flags {
- 	__u8 flags;
- 	__u8 mask;
-@@ -46,6 +49,7 @@ struct ip_ct_tcp_state {
- 	u_int32_t	td_end;		/* max of seq + len */
- 	u_int32_t	td_maxend;	/* max of ack + max(win, 1) */
- 	u_int32_t	td_maxwin;	/* max(win) */
-+	u_int32_t	td_maxack;	/* max of ack */
- 	u_int8_t	td_scale;	/* window scale factor */
- 	u_int8_t	flags;		/* per direction options */
- };
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index b5ccf2b..97a6e93 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -634,6 +634,14 @@ static bool tcp_in_window(const struct nf_conn *ct,
- 			sender->td_end = end;
- 			sender->flags |= IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED;
- 		}
-+		if (tcph->ack) {
-+			if (!(sender->flags & IP_CT_TCP_FLAG_MAXACK_SET)) {
-+				sender->td_maxack = ack;
-+				sender->flags |= IP_CT_TCP_FLAG_MAXACK_SET;
-+			} else if (after(ack, sender->td_maxack))
-+				sender->td_maxack = ack;
-+		}
-+
- 		/*
- 		 * Update receiver data.
- 		 */
-@@ -919,6 +927,16 @@ static int tcp_packet(struct nf_conn *ct,
- 		return -NF_ACCEPT;
- 	case TCP_CONNTRACK_CLOSE:
- 		if (index == TCP_RST_SET
-+		    && (ct->proto.tcp.seen[!dir].flags & IP_CT_TCP_FLAG_MAXACK_SET)
-+		    && before(ntohl(th->seq), ct->proto.tcp.seen[!dir].td_maxack)) {
-+			/* Invalid RST  */
-+			write_unlock_bh(&tcp_lock);
-+			if (LOG_INVALID(net, IPPROTO_TCP))
-+				nf_log_packet(pf, 0, skb, NULL, NULL, NULL,
-+					  "nf_ct_tcp: invalid RST ");
-+			return -NF_ACCEPT;
-+		}
-+		if (index == TCP_RST_SET
- 		    && ((test_bit(IPS_SEEN_REPLY_BIT, &ct->status)
- 			 && ct->proto.tcp.last_index == TCP_SYN_SET)
- 			|| (!test_bit(IPS_ASSURED_BIT, &ct->status)
+Any hints as to what kind of traffic I should be generating to create
+a situation that your patch might be a remedy for ?
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+   Thanks, 
+       Thomas
+
+> -- 
+> "Los honestos son inadaptados sociales" -- Les Luthiers
+
+> diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+> index fd326ac..66a6dd5 100644
+> --- a/net/netfilter/nfnetlink_log.c
+> +++ b/net/netfilter/nfnetlink_log.c
+> @@ -581,6 +581,12 @@ nfulnl_log_packet(u_int8_t pf,
+>  		+ nla_total_size(sizeof(struct nfulnl_msg_packet_hw))
+>  		+ nla_total_size(sizeof(struct nfulnl_msg_packet_timestamp));
+>  
+> +	if (in && skb_mac_header_was_set(skb)) {
+> +		size +=   nla_total_size(skb->dev->hard_header_len)
+> +			+ nla_total_size(sizeof(u_int16_t))	/* hwtype */
+> +			+ nla_total_size(sizeof(u_int16_t));	/* hwlen */
+> +	}
+> +
+>  	spin_lock_bh(&inst->lock);
+>  
+>  	if (inst->flags & NFULNL_CFG_F_SEQ)
+
