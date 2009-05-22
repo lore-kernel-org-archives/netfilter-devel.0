@@ -1,75 +1,110 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Link problems with libxtables
-Date: Fri, 22 May 2009 11:47:20 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0905221147010.4453@fbirervta.pbzchgretzou.qr>
-References: <c97a47b90905211727h6841648fu83004ba81e5bf3eb@mail.gmail.com> <c97a47b90905211728p68fdaf94jf0b7214c12271a57@mail.gmail.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: conntrack and RSTs received during CLOSE_WAIT
+Date: Fri, 22 May 2009 13:27:20 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.0905221255140.14889@blackhole.kfki.hu>
+References: <4A0DE859.7000209@tigertech.com> <4A0F7FEE.3010405@tigertech.com>  <4A139222.2020505@tigertech.com>  <alpine.DEB.2.00.0905200904310.10018@blackhole.kfki.hu>  <4A1466F6.8070304@tigertech.com>  <alpine.DEB.2.00.0905202327240.11796@blackhole.kfki.hu>
+  <alpine.DEB.2.00.0905211729090.13699@blackhole.kfki.hu>  <4A15A156.6030400@tigertech.com>  <38db14850905212132x3d4f4d83y6808ad89d2d79324@mail.gmail.com>  <alpine.DEB.2.00.0905220917190.14889@blackhole.kfki.hu> <38db14850905220126t55f0e754y6c65cbfaed533bc0@mail.gmail.com>
+ <alpine.DEB.2.00.0905221047190.14889@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: "Michael Lawson (mshindo)" <michael@sphinix.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:51704 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752877AbZEVJrT (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 22 May 2009 05:47:19 -0400
-In-Reply-To: <c97a47b90905211728p68fdaf94jf0b7214c12271a57@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Robert L Mathews <lists@tigertech.com>,
+	Anatoly Muliarski <x86ever@gmail.com>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.00.0905221047190.14889@blackhole.kfki.hu>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Friday 2009-05-22 02:28, Michael Lawson (mshindo) wrote:
+On Fri, 22 May 2009, Jozsef Kadlecsik wrote:
 
->I am having problems using a member function of libxtables:
->
->g++ main.cpp Firewall.cpp Rule.cpp Match.cpp IP4Addr.cpp -lxtables -liptc
->/tmp/cce5IKHM.o: In function `print_match(xt_entry_match const*,
->ipt_ip const*, int)':
->Firewall.cpp:(.text+0x326): undefined reference to
->`xtables_find_match(char const*, xtables_tryload,
->xtables_rule_match**)'
->collect2: ld returned 1 exit status
->make: *** [all] Error 1
->
->I understand this is most likely a link problem, can someone point me
->in the right direction ?
+> On Fri, 22 May 2009, Anatoly Muliarski wrote:
+> 
+> > > This is the main problem: we can never be sure the packets which are seen
+> > > by firewall do really reach the destination or they order is preserved.
+> 
+> > We could save the LAST sequence number as a current one.
+> > So we keep the connection and mark the current RST as invalid and
+> > correctly react on the following ones. Unfortunately this does not
+> > solve the main problem - unable to know whether the received sequence
+> > number is valid or not. As an vague idea - we could track the ack
+> > number from other direction and so keep the last delivered sequence
+> > number. What can say about it?
+> 
+> Relying on the last ACK received from the other direction looks promising. 
+> We record the last (highest) ACK sent by both endpoints, which makes sure 
+> the packet they ack they did indeed received. And we accept a RST segment 
+> only if it's in the window we calculate (wider than the destination's) AND 
+> equal or higher than the saved last ACK from the other direction.
+> 
+> The only downside is that new fields must be added to struct ip_ct_tcp.
 
-We need this
+So here is the patch which adds checking RST segments against the highest 
+ack we seen from the other direction. I tested it with your script and 
+conntrack could resist receiving bogus RST segments.
 
-parent a869eab48f6cf27ffc9b7ed5b2303ff2bd3e943c (v1.4.3.2-4-ga869eab)
-commit ab63b538b69379236f9cc1be9040e342eef433fb
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Fri May 22 11:46:55 2009 +0200
-
-xtables: use extern "C"
-
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- include/xtables.h.in |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
-
-diff --git a/include/xtables.h.in b/include/xtables.h.in
-index a399f90..4d4ca0a 100644
---- a/include/xtables.h.in
-+++ b/include/xtables.h.in
-@@ -203,6 +203,10 @@ struct xtables_globals
- 	void (*exit_err)(enum xtables_exittype status, const char *msg, ...) __attribute__((noreturn, format(printf,2,3)));
+diff --git a/include/linux/netfilter/nf_conntrack_tcp.h b/include/linux/netfilter/nf_conntrack_tcp.h
+index 3066789..b2f384d 100644
+--- a/include/linux/netfilter/nf_conntrack_tcp.h
++++ b/include/linux/netfilter/nf_conntrack_tcp.h
+@@ -35,6 +35,9 @@ enum tcp_conntrack {
+ /* Has unacknowledged data */
+ #define IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED	0x10
+ 
++/* The field td_maxack has been set */
++#define IP_CT_TCP_FLAG_MAXACK_SET		0x20
++
+ struct nf_ct_tcp_flags {
+ 	__u8 flags;
+ 	__u8 mask;
+@@ -46,6 +49,7 @@ struct ip_ct_tcp_state {
+ 	u_int32_t	td_end;		/* max of seq + len */
+ 	u_int32_t	td_maxend;	/* max of ack + max(win, 1) */
+ 	u_int32_t	td_maxwin;	/* max(win) */
++	u_int32_t	td_maxack;	/* max of ack */
+ 	u_int8_t	td_scale;	/* window scale factor */
+ 	u_int8_t	flags;		/* per direction options */
  };
- 
-+#ifdef __cplusplus
-+extern "C" {
-+#endif
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index b5ccf2b..97a6e93 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -634,6 +634,14 @@ static bool tcp_in_window(const struct nf_conn *ct,
+ 			sender->td_end = end;
+ 			sender->flags |= IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED;
+ 		}
++		if (tcph->ack) {
++			if (!(sender->flags & IP_CT_TCP_FLAG_MAXACK_SET)) {
++				sender->td_maxack = ack;
++				sender->flags |= IP_CT_TCP_FLAG_MAXACK_SET;
++			} else if (after(ack, sender->td_maxack))
++				sender->td_maxack = ack;
++		}
 +
- extern const char *xtables_modprobe_program;
- extern struct xtables_match *xtables_matches;
- extern struct xtables_target *xtables_targets;
-@@ -295,4 +299,8 @@ extern void _init(void);
- 
- #endif
- 
-+#ifdef __cplusplus
-+} /* extern "C" */
-+#endif
-+
- #endif /* _XTABLES_H */
--- 
-# Created with git-export-patch
+ 		/*
+ 		 * Update receiver data.
+ 		 */
+@@ -919,6 +927,16 @@ static int tcp_packet(struct nf_conn *ct,
+ 		return -NF_ACCEPT;
+ 	case TCP_CONNTRACK_CLOSE:
+ 		if (index == TCP_RST_SET
++		    && (ct->proto.tcp.seen[!dir].flags & IP_CT_TCP_FLAG_MAXACK_SET)
++		    && before(ntohl(th->seq), ct->proto.tcp.seen[!dir].td_maxack)) {
++			/* Invalid RST  */
++			write_unlock_bh(&tcp_lock);
++			if (LOG_INVALID(net, IPPROTO_TCP))
++				nf_log_packet(pf, 0, skb, NULL, NULL, NULL,
++					  "nf_ct_tcp: invalid RST ");
++			return -NF_ACCEPT;
++		}
++		if (index == TCP_RST_SET
+ 		    && ((test_bit(IPS_SEEN_REPLY_BIT, &ct->status)
+ 			 && ct->proto.tcp.last_index == TCP_SYN_SET)
+ 			|| (!test_bit(IPS_ASSURED_BIT, &ct->status)
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
