@@ -1,50 +1,75 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: DROP still returns -EPERM to userspace in OUTPUT chain
-Date: Fri, 22 May 2009 11:44:39 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0905211707050.23519@fbirervta.pbzchgretzou.qr>
+Subject: Re: Link problems with libxtables
+Date: Fri, 22 May 2009 11:47:20 +0200 (CEST)
+Message-ID: <alpine.LSU.2.00.0905221147010.4453@fbirervta.pbzchgretzou.qr>
+References: <c97a47b90905211727h6841648fu83004ba81e5bf3eb@mail.gmail.com> <c97a47b90905211728p68fdaf94jf0b7214c12271a57@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: wintre <mikeacar@gmail.com>
-To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: "Michael Lawson (mshindo)" <michael@sphinix.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:51703 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:51704 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751475AbZEVJok (ORCPT
+	with ESMTP id S1752877AbZEVJrT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 22 May 2009 05:44:40 -0400
+	Fri, 22 May 2009 05:47:19 -0400
+In-Reply-To: <c97a47b90905211728p68fdaf94jf0b7214c12271a57@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+On Friday 2009-05-22 02:28, Michael Lawson (mshindo) wrote:
 
+>I am having problems using a member function of libxtables:
+>
+>g++ main.cpp Firewall.cpp Rule.cpp Match.cpp IP4Addr.cpp -lxtables -liptc
+>/tmp/cce5IKHM.o: In function `print_match(xt_entry_match const*,
+>ipt_ip const*, int)':
+>Firewall.cpp:(.text+0x326): undefined reference to
+>`xtables_find_match(char const*, xtables_tryload,
+>xtables_rule_match**)'
+>collect2: ld returned 1 exit status
+>make: *** [all] Error 1
+>
+>I understand this is most likely a link problem, can someone point me
+>in the right direction ?
 
-once again, irc snatched this report:
+We need this
 
-|2009-05-20T20:56 < Wintre:#Netfilter>
-|
-|Specifically, when I add a DROP rule to the local firewall, send(2)
-|starts getting EPERM. The netfilter core code includes
-|nf_hook_slow(), which says:
-|
-| /* Returns 1 if okfn() needs to be executed by the caller,
-|  * -EPERM for NF_DROP, 0 otherwise. */
-|
-|So, this seems kind of crazy to me. I always thought drop was
-|supposed to be silent, and changing the return value of send(2),
-|well. Bad. Anybody got a link to a discussion of this issue? Or is it
-|just a plain old bug?
+parent a869eab48f6cf27ffc9b7ed5b2303ff2bd3e943c (v1.4.3.2-4-ga869eab)
+commit ab63b538b69379236f9cc1be9040e342eef433fb
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Fri May 22 11:46:55 2009 +0200
 
-I agree with the user here. For now, one had to make use of the
-=E2=80=9CSTEAL=E2=80=9D target [1] to get the real silent drop behavior=
- for the
-OUTPUT chain. Surely that is not the ideal thing either.
-Requesting comments from NF maintainers.
+xtables: use extern "C"
 
-[1] http://xtables-addons.git.sourceforge.net/git/gitweb.cgi?p=3Dxtable=
-s-addons;a=3Dblob;hb=3DHEAD;f=3Dextensions/xt_STEAL.c
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ include/xtables.h.in |    8 ++++++++
+ 1 files changed, 8 insertions(+), 0 deletions(-)
+
+diff --git a/include/xtables.h.in b/include/xtables.h.in
+index a399f90..4d4ca0a 100644
+--- a/include/xtables.h.in
++++ b/include/xtables.h.in
+@@ -203,6 +203,10 @@ struct xtables_globals
+ 	void (*exit_err)(enum xtables_exittype status, const char *msg, ...) __attribute__((noreturn, format(printf,2,3)));
+ };
+ 
++#ifdef __cplusplus
++extern "C" {
++#endif
++
+ extern const char *xtables_modprobe_program;
+ extern struct xtables_match *xtables_matches;
+ extern struct xtables_target *xtables_targets;
+@@ -295,4 +299,8 @@ extern void _init(void);
+ 
+ #endif
+ 
++#ifdef __cplusplus
++} /* extern "C" */
++#endif
++
+ #endif /* _XTABLES_H */
+-- 
+# Created with git-export-patch
