@@ -1,47 +1,37 @@
-From: Denys Fedoryschenko <denys@visp.net.lb>
-Subject: Re: ipt_MASQUERADE weirdness (consuming CPU cycles while not used)
-Date: Thu, 21 May 2009 23:10:29 +0300
-Message-ID: <200905212310.29661.denys@visp.net.lb>
-References: <200905182219.30216.denys@visp.net.lb> <4A1596D4.6000708@netfilter.org>
+From: "Michael Lawson (mshindo)" <michael@sphinix.com>
+Subject: Link problems with libxtables
+Date: Fri, 22 May 2009 12:28:50 +1200
+Message-ID: <c97a47b90905211728p68fdaf94jf0b7214c12271a57@mail.gmail.com>
+References: <c97a47b90905211727h6841648fu83004ba81e5bf3eb@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from hosting.visp.net.lb ([194.146.153.11]:32893 "EHLO
-	hosting.visp.net.lb" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753894AbZEUUSs (ORCPT
+Received: from rv-out-0506.google.com ([209.85.198.239]:21699 "EHLO
+	rv-out-0506.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754309AbZEVA2t (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 May 2009 16:18:48 -0400
-In-Reply-To: <4A1596D4.6000708@netfilter.org>
-Content-Disposition: inline
+	Thu, 21 May 2009 20:28:49 -0400
+Received: by rv-out-0506.google.com with SMTP id f9so472520rvb.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 21 May 2009 17:28:50 -0700 (PDT)
+In-Reply-To: <c97a47b90905211727h6841648fu83004ba81e5bf3eb@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 21 May 2009 21:00:52 Pablo Neira Ayuso wrote:
-> Denys Fedoryschenko wrote:
-> > I have loaded pppoe (1700 users). I test one rule for short time with -j
-> > MASQUERADE, then removed it and reset conntrack (conntrack -F). But still
-> > i can see it is consuming CPU even when it is not used in any rule. Even
-> > i reboot server and just load rules that dont have MASQUERADE, and just
-> > load module - it will start consuming CPU immediately.
->
-> Are you using 2.6.29 with any conntrack helper loaded? In that case this
-> fix is not in -stable yet.
->
-> http://kerneltrap.org/mailarchive/linux-netdev/2009/4/8/5440564
->
-> > 64811     3.7735  ipt_MASQUERADE           ipt_MASQUERADE          
-> > device_cmp
->
-> device_cmp() by nf_ct_iterate_cleanup() when NETDEV_DOWN event is
-> received. Weird, is your device going down quite often? Another
-> possibility is that there's some entry stuck in the conntrack table that
-> we cannot delete, perhaps we're leaking refcounts somewhere.
-It is loaded pppoe server (2k interfaces), sure they are 
-appearing-disappearing non-stop. Thats maybe case, but weird that it is 
-consuming CPU time while module not used at all anywhere (no rules with 
-MASQUERADE).
+I am having problems using a member function of libxtables:
 
+g++ main.cpp Firewall.cpp Rule.cpp Match.cpp IP4Addr.cpp -lxtables -liptc
+/tmp/cce5IKHM.o: In function `print_match(xt_entry_match const*,
+ipt_ip const*, int)':
+Firewall.cpp:(.text+0x326): undefined reference to
+`xtables_find_match(char const*, xtables_tryload,
+xtables_rule_match**)'
+collect2: ld returned 1 exit status
+make: *** [all] Error 1
+
+I understand this is most likely a link problem, can someone point me
+in the right direction ?
+
+--
+Michael Lawson
