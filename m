@@ -1,58 +1,34 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: DROP still returns -EPERM to userspace in OUTPUT chain
-Date: Sat, 23 May 2009 17:02:35 +0200
-Message-ID: <4A18100B.1080803@netfilter.org>
-References: <alpine.LSU.2.00.0905211707050.23519@fbirervta.pbzchgretzou.qr> <4A17D45C.6040909@netfilter.org> <alpine.LSU.2.00.0905231309250.361@fbirervta.pbzchgretzou.qr> <4A17E14B.5040701@netfilter.org> <alpine.LSU.2.00.0905231517400.4949@fbirervta.pbzchgretzou.qr>
+From: Dmitri Seletski <drjoms@gmail.com>
+Subject: nooby question
+Date: Sun, 24 May 2009 03:07:43 +0100
+Message-ID: <4A18ABEF.4080903@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, wintre <mikeacar@gmail.com>,
-	Patrick McHardy <kaber@trash.net>
-To: Jan Engelhardt <jengelh@medozas.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48461 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753191AbZEWPCn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 23 May 2009 11:02:43 -0400
-In-Reply-To: <alpine.LSU.2.00.0905231517400.4949@fbirervta.pbzchgretzou.qr>
+Received: from mail-ew0-f176.google.com ([209.85.219.176]:49599 "EHLO
+	mail-ew0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753116AbZEXCHp (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 23 May 2009 22:07:45 -0400
+Received: by ewy24 with SMTP id 24so2496835ewy.37
+        for <netfilter-devel@vger.kernel.org>; Sat, 23 May 2009 19:07:45 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Saturday 2009-05-23 13:43, Pablo Neira Ayuso wrote:
->>>> Returning
->>>> -EPERM seems to me quite sane to note that the kernel is explicit (via
->>>> iptables, for example) not allowing permission to send().
->>> Yeah but DROP is perceived by users to be "silently ignore it",
->>> while the "you don't have permission" is REJECT's job.
->> But the DROP and REJECT behaviours refer to the packet logic, ie. with
->> DROP nothing is done, with REJECT we send some explicit packet (like an
->> ICMP administratively prohibited). That still applies to user-space.
-> 
-> -EPERM is an "administrative prohibited" for userspace, just like a
-> returned ICMP packet. Here, functions overlap.
+Hello.
 
-Indeed, I forgot about that case.
+I am looking into being able to administer my home network and possibly
+more complicated network scenarios.
+I can make a rule or two to block ports, but i want more.
 
->> Reporting -EPERM seems to me a good practise to report user-space
->> applications that the kernel is explicit dropping the packet. Otherwise,
->> while diagnosing problems, people cannot be sure where the packet has
->> been lost.
-> 
-> Then again, people might be using -m limit -j DROP to simulate actual
-> packet loss, for whatever scientific interests they currently have.
+ULOG seems to become obsolete. I don't want to use LOG either.
 
-For scientific purposes, like packet omission emulation, better to use
-netem [1].
+Question is, is there a command line tool or daemon, that is planned to
+be actively developed that can possibly track some ipv4/ipv6
+information? Let's say, I want to know who and how many times attempted
+to connect to SSH port and similar info without trashing my dmesg output.
 
-> So just wanting to know - are people supposed to use xt_STEAL instead
-> if they really want it silently dropped?
-
-Well, I still would like to know any application that can benefit from
-this, apart from broken applications.
-
-[1] http://www.linuxfoundation.org/en/Net:Netem
-
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+Thank you in advance.
+Dmitri
