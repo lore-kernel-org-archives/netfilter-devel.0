@@ -1,43 +1,36 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Fix accepting invalid RST segments
-Date: Mon, 25 May 2009 17:24:09 +0200
-Message-ID: <4A1AB819.6000503@trash.net>
-References: <alpine.DEB.2.00.0905251204300.19770@blackhole.kfki.hu>
+Subject: Re: [PATCH] netfilter: conntrack: add missing DCCP protocol changes
+ in	event cache
+Date: Mon, 25 May 2009 17:30:54 +0200
+Message-ID: <4A1AB9AE.3020305@trash.net>
+References: <20090509184316.7636.12044.stgit@Decadence> <20090509184603.7636.66528.stgit@Decadence>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:61241 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:61377 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752148AbZEYPYK (ORCPT
+	with ESMTP id S1751582AbZEYPay (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 May 2009 11:24:10 -0400
-In-Reply-To: <alpine.DEB.2.00.0905251204300.19770@blackhole.kfki.hu>
+	Mon, 25 May 2009 11:30:54 -0400
+In-Reply-To: <20090509184603.7636.66528.stgit@Decadence>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jozsef Kadlecsik wrote:
-> Hi Patrick,
+Pablo Neira Ayuso wrote:
+> This patch adds the missing protocol state-change event reporting
+> for DCCP.
 > 
-> Robert L Mathews discovered that some clients send evil TCP RST segments, 
-> which are accepted by netfilter conntrack but discarded by the 
-> destination. Thus the conntrack entry is destroyed but the destination 
-> retransmits data until timeout.
+> $ sudo conntrack -E
+>     [NEW] dccp     33 240 src=192.168.0.2 dst=192.168.1.2 sport=57040 dport=5001 [UNREPLIED] src=192.168.1.2 dst=192.168.1.100 sport=5001 dport=57040
 > 
-> The same technique, i.e. sending properly crafted RST segments, can easily 
-> be used to bypass connlimit/connbytes based restrictions (the sample 
-> script written by Robert can be found in the netfilter mailing list 
-> archives).
+> With this patch:
 > 
-> The patch below adds a new flag and new field to struct ip_ct_tcp_state so 
-> that checking RST segments can be made more strict and thus TCP conntrack 
-> can catch the invalid ones: the RST segment is accepted only if its 
-> sequence number higher than or equal to the highest ack we seen from the 
-> other direction. (The last_ack field cannot be reused because it is used 
-> to catch resent packets.)
+> $ sudo conntrack -E
+>     [NEW] dccp     33 240 REQUEST src=192.168.0.2 dst=192.168.1.2 sport=57040 dport=5001 [UNREPLIED] src=192.168.1.2 dst=192.168.1.100 sport=5001 dport=57040
+>
 
-
-Applied, thanks.
+Applied, thanks Pablo.
 
