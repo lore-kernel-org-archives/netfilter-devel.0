@@ -1,39 +1,50 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: pull: minor tidbits
-Date: Tue, 26 May 2009 15:08:09 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0905261505270.24535@fbirervta.pbzchgretzou.qr>
-References: <1243337187-18216-1-git-send-email-jengelh@medozas.de> <4A1BD494.9090105@netfilter.org> <4A1BDBA7.8080209@netfilter.org>
+From: Jesper Dangaard Brouer <hawk@comx.dk>
+Subject: [PATCH 2/2] Bugfix: xt_hashlimit does a wrong SEQ_SKIP.
+Date: Tue, 26 May 2009 15:18:57 +0200
+Message-ID: <20090526131857.7377.6946.stgit@localhost>
+References: <20090526131852.7377.68330.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	"Patrick McHardy" <kaber@trash.net>,
+	"Jonathan Corbet" <corbet@lwn.net>,
+	Jesper Dangaard Brouer <hawk@comx.dk>
+To: "David S. Miller" <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:59611 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750889AbZEZNIK (ORCPT
+Received: from lanfw001a.cxnet.dk ([87.72.215.196]:38932 "EHLO
+	lanfw001a.cxnet.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750943AbZEZNgX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 26 May 2009 09:08:10 -0400
-In-Reply-To: <4A1BDBA7.8080209@netfilter.org>
+	Tue, 26 May 2009 09:36:23 -0400
+In-Reply-To: <20090526131852.7377.68330.stgit@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+(Inside net/netfilter/xt_hashlimit.c)
+The function dl_seq_show() returns 1 (equal to SEQ_SKIP) in case
+a seq_printf() call return -1.  It should return -1.
 
-On Tuesday 2009-05-26 14:08, Pablo Neira Ayuso wrote:
->
->@@ -75,7 +75,7 @@ static void mh_init(struct xt_entry_match *m)
-> static unsigned int name_to_type(const char *name)
-> {
->        int namelen = strlen(name);
->-       unsigned int limit = sizeof(mh_names)/sizeof(struct mh_name);
->+       static const unsigned int limit = ARRAY_SIZE(mh_names);
->        unsigned int match = limit;
->        unsigned int i;
->
->The use of static here looks to me like a clever trick to avoid
->recalculations? I think this is a bit of abuse of static, the compiler
->itself should notice this and avoid re-calculations.
+This SEQ_SKIP behavior brakes processing the proc file e.g. via a
+pipe or just through less.
 
-If you never take the address of limit, the static keyword is just
-added safety sugar for when you do. Compiler does not recalculate
-anything even without it, it's merely a hint to put it into the
-right section, instead of the stack.
+Signed-off-by: Jesper Dangaard Brouer <hawk@comx.dk>
+---
+
+ net/netfilter/xt_hashlimit.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index a5b5369..219dcdb 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -926,7 +926,7 @@ static int dl_seq_show(struct seq_file *s, void *v)
+ 	if (!hlist_empty(&htable->hash[*bucket])) {
+ 		hlist_for_each_entry(ent, pos, &htable->hash[*bucket], node)
+ 			if (dl_seq_real_show(ent, htable->family, s))
+-				return 1;
++				return -1;
+ 	}
+ 	return 0;
+ }
+
