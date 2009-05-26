@@ -1,80 +1,82 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Link problems with libxtables
-Date: Mon, 25 May 2009 20:37:17 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0905252036330.30491@fbirervta.pbzchgretzou.qr>
-References: <c97a47b90905211727h6841648fu83004ba81e5bf3eb@mail.gmail.com> <c97a47b90905211728p68fdaf94jf0b7214c12271a57@mail.gmail.com> <alpine.LSU.2.00.0905221147010.4453@fbirervta.pbzchgretzou.qr>
+From: Lai Jiangshan <laijs@cn.fujitsu.com>
+Subject: Re: [PATCH RFC] v7 expedited "big hammer" RCU grace periods
+Date: Tue, 26 May 2009 09:03:55 +0800
+Message-ID: <4A1B3FFB.7090306@cn.fujitsu.com>
+References: <20090522190525.GA13286@linux.vnet.ibm.com> <4A1A3C23.8090004@cn.fujitsu.com> <20090525164446.GD7168@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:33918 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751453AbZEYShR (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 May 2009 14:37:17 -0400
-In-Reply-To: <alpine.LSU.2.00.0905221147010.4453@fbirervta.pbzchgretzou.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, mingo@elte.hu,
+	akpm@linux-foundation.org, torvalds@linux-foundation.org,
+	davem@davemloft.net, dada1@cosmosbay.com, zbr@ioremap.net,
+	jeff.chua.linux@gmail.com, paulus@samba.org, jengelh@medozas.de,
+	r000n@r000n.net, benh@kernel.crashing.org,
+	mathieu.desnoyers@polymtl.ca
+To: paulmck@linux.vnet.ibm.com
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20090525164446.GD7168@linux.vnet.ibm.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
+
+Paul E. McKenney wrote:
+> 
+> Good point -- I should at the very least add a comment to
+> synchronize_sched_expedited() stating that it cannot be called holding
+> any lock that is acquired in a CPU hotplug notifier.  If this restriction
+> causes any problems, then your approach seems like a promising fix.
 
 
-cc kaber, to apply
+Reviewed-by: Lai Jiangshan <laijs@cn.fujitsu.com>
 
-On Friday 2009-05-22 11:47, Jan Engelhardt wrote:
->
->>I am having problems using a member function of libxtables:
+> 
+>> The coupling of synchronize_sched_expedited() and migration_req
+>> is largely increased:
 >>
->>g++ main.cpp Firewall.cpp Rule.cpp Match.cpp IP4Addr.cpp -lxtables -liptc
->>/tmp/cce5IKHM.o: In function `print_match(xt_entry_match const*,
->>ipt_ip const*, int)':
->>Firewall.cpp:(.text+0x326): undefined reference to
->>`xtables_find_match(char const*, xtables_tryload,
->>xtables_rule_match**)'
->>collect2: ld returned 1 exit status
->>make: *** [all] Error 1
->>
->>I understand this is most likely a link problem, can someone point me
->>in the right direction ?
->
->We need this
->
-parent a869eab48f6cf27ffc9b7ed5b2303ff2bd3e943c (v1.4.3.2-4-ga869eab)
-commit ab63b538b69379236f9cc1be9040e342eef433fb
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Fri May 22 11:46:55 2009 +0200
+>> 1) The offline cpu's per_cpu(rcu_migration_req, cpu) is handled.
+>>    See migration_call::CPU_DEAD
+> 
+> Good.  ;-)
+> 
+>> 2) migration_call() is the highest priority of cpu notifiers,
+>>    So even any other cpu notifier calls synchronize_sched_expedited(),
+>>    It'll not cause DEADLOCK.
+> 
+> You mean if using your preempt_disable() approach, right?  Unless I am
+> missing something, the current get_online_cpus() approach would deadlock
+> in this case.
+> 
 
-xtables: use extern "C"
+Yes, I mean if using my preempt_disable() approach. The current
+get_online_cpus() approach would NOT deadlock in this case also,
+we can require get_online_cpus() in cpu notifiers.
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- include/xtables.h.in |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+> diff --git a/include/linux/rcupreempt.h b/include/linux/rcupreempt.h
+> index fce5227..78117ed 100644
+> --- a/include/linux/rcupreempt.h
+> +++ b/include/linux/rcupreempt.h
+> @@ -74,6 +74,16 @@ extern int rcu_needs_cpu(int cpu);
+>  
+>  extern void __synchronize_sched(void);
+>  
+> +static inline void synchronize_rcu_expedited(void)
+> +{
+> +	synchronize_rcu();  /* Placeholder for new rcupreempt implementation. */
+> +}
+> +
+> +static inline void synchronize_rcu_bh_expedited(void)
+> +{
+> +	synchronize_rcu();  /* Placeholder for new rcupreempt implementation. */
+> +}
+> +
 
-diff --git a/include/xtables.h.in b/include/xtables.h.in
-index a399f90..4d4ca0a 100644
---- a/include/xtables.h.in
-+++ b/include/xtables.h.in
-@@ -203,6 +203,10 @@ struct xtables_globals
- 	void (*exit_err)(enum xtables_exittype status, const char *msg, ...) __attribute__((noreturn, format(printf,2,3)));
- };
- 
-+#ifdef __cplusplus
-+extern "C" {
-+#endif
-+
- extern const char *xtables_modprobe_program;
- extern struct xtables_match *xtables_matches;
- extern struct xtables_target *xtables_targets;
-@@ -295,4 +299,8 @@ extern void _init(void);
- 
- #endif
- 
-+#ifdef __cplusplus
-+} /* extern "C" */
-+#endif
-+
- #endif /* _XTABLES_H */
--- 
-# Created with git-export-patch
+Why not synchronize_rcu_bh() ?
 
+In mainline, rcu_read_lock_bh() is not preemptable,
+So I think synchronize_sched_expedited() is better.
+
+Anyway, synchronize_rcu() is OK for me, because it is
+"Placeholder for new rcupreempt implementation".
+
+Lai
 
