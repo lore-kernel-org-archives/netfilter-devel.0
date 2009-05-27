@@ -1,43 +1,33 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: ipset: bool type always overridden
-Date: Wed, 27 May 2009 14:43:35 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0905271440590.29172@fbirervta.pbzchgretzou.qr>
-References: <alpine.LSU.2.00.0905271400540.26986@fbirervta.pbzchgretzou.qr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH 0/2] A couple of netfilter fixes
+Date: Wed, 27 May 2009 14:53:35 +0200
+Message-ID: <20090527125242.11366.70215.stgit@Decadence>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:38836 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761630AbZE0Mne (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 27 May 2009 08:43:34 -0400
-In-Reply-To: <alpine.LSU.2.00.0905271400540.26986@fbirervta.pbzchgretzou.qr>
+Received: from mail.us.es ([193.147.175.20]:51199 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759153AbZE0NgN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 27 May 2009 09:36:13 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi Patrick,
+
+Are we in time to put these patches into 2.6.30-rc?
+
+---
+
+Pablo Neira Ayuso (2):
+      netfilter: conntrack: add support for DCCP handshake sequence to ctnetlink
+      netfilter: nfnetlink_log: fix wrong skbuff size calculation
 
 
->+++ b/extensions/ipset/ip_set_setlist.c
->+#ifndef bool
->+#define bool   int
->+#endif
+ include/linux/netfilter/nfnetlink_conntrack.h |    1 +
+ net/netfilter/nf_conntrack_proto_dccp.c       |    7 +++++++
+ net/netfilter/nfnetlink_log.c                 |    6 ++++++
+ 3 files changed, 14 insertions(+), 0 deletions(-)
 
-Is wrong too, since bool is not a define in the first place. If things=20
-go bad, it causes external functions to suddenly be accessed with a=20
-different ABI than they actually have.
-
-You will need to check for 2.6.18 instead:
-
-#if LINUX_VERSION_CODE <=3D KERNEL_VERSION(2, 6, 18)
-typedef _Bool bool;
-enum { false =3D 0, true =3D 1, };
-#endif
-	=E2=80=94from xtables-addons/extensions/compat_xtnu.h
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
