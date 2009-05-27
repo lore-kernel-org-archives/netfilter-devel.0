@@ -1,32 +1,41 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/2] netfilter: conntrack: add support for DCCP handshake
- sequence to ctnetlink
-Date: Wed, 27 May 2009 16:13:36 +0200
-Message-ID: <4A1D4A90.6030605@trash.net>
-References: <20090527125242.11366.70215.stgit@Decadence> <20090527125423.11366.64989.stgit@Decadence>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:50882 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757634AbZE0ONj (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 27 May 2009 10:13:39 -0400
-In-Reply-To: <20090527125423.11366.64989.stgit@Decadence>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Subject: netfilter 03/04: xt_hashlimit does a wrong SEQ_SKIP
+Date: Wed, 27 May 2009 16:35:28 +0200 (MEST)
+Message-ID: <20090527143526.4649.77396.sendpatchset@x2.localnet>
+References: <20090527143521.4649.73610.sendpatchset@x2.localnet>
+Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org
+To: davem@davemloft.net
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20090527143521.4649.73610.sendpatchset@x2.localnet>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Pablo Neira Ayuso wrote:
-> --- a/net/netfilter/nf_conntrack_proto_dccp.c
-> +++ b/net/netfilter/nf_conntrack_proto_dccp.c
-> @@ -639,6 +639,8 @@ static int dccp_to_nlattr(struct sk_buff *skb, struct nlattr *nla,
->  	NLA_PUT_U8(skb, CTA_PROTOINFO_DCCP_STATE, ct->proto.dccp.state);
->  	NLA_PUT_U8(skb, CTA_PROTOINFO_DCCP_ROLE,
->  		   ct->proto.dccp.role[IP_CT_DIR_ORIGINAL]);
-> +	NLA_PUT_U64(skb, CTA_PROTOINFO_DCCP_HANDSHAKE_SEQ,
-> +		    ct->proto.dccp.handshake_seq);
+commit 683a04cebc63819a36b1db19843bd17771f05b55
+Author: Jesper Dangaard Brouer <hawk@comx.dk>
+Date:   Wed May 27 15:45:34 2009 +0200
 
-This should use big endian byteorder.
+    netfilter: xt_hashlimit does a wrong SEQ_SKIP
+    
+    The function dl_seq_show() returns 1 (equal to SEQ_SKIP) in case
+    a seq_printf() call return -1.  It should return -1.
+    
+    This SEQ_SKIP behavior brakes processing the proc file e.g. via a
+    pipe or just through less.
+    
+    Signed-off-by: Jesper Dangaard Brouer <hawk@comx.dk>
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index a5b5369..219dcdb 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -926,7 +926,7 @@ static int dl_seq_show(struct seq_file *s, void *v)
+ 	if (!hlist_empty(&htable->hash[*bucket])) {
+ 		hlist_for_each_entry(ent, pos, &htable->hash[*bucket], node)
+ 			if (dl_seq_real_show(ent, htable->family, s))
+-				return 1;
++				return -1;
+ 	}
+ 	return 0;
+ }
