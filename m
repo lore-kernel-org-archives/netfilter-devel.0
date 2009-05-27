@@ -1,186 +1,151 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [1/2] ipset 3.0 changes audit: printf types
-Date: Wed, 27 May 2009 14:35:45 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0905271400540.26986@fbirervta.pbzchgretzou.qr>
+Subject: [2/2] ipset: change %i -> %d
+Date: Wed, 27 May 2009 14:36:07 +0200 (CEST)
+Message-ID: <alpine.LSU.2.00.0905271435500.26986@fbirervta.pbzchgretzou.qr>
+References: <alpine.LSU.2.00.0905271400540.26986@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:48489 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:48491 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761128AbZE0Mfq (ORCPT
+	with ESMTP id S1760570AbZE0MgG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 27 May 2009 08:35:46 -0400
+	Wed, 27 May 2009 08:36:06 -0400
+In-Reply-To: <alpine.LSU.2.00.0905271400540.26986@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
 
-
-today I looked at the changes introduced by 3.0, and noticed a few bits 
-that warranted patches.
-
-BTW I just see that git tags are missing -------v
-
-
-parent 027dc5fb9021ce3f814a345b17c56d899733569a ()
-commit a1b31451f546a536fc3a37647437a048bda6601a
+parent a1b31451f546a536fc3a37647437a048bda6601a ()
+commit 1e768f11ad05fb8ccc3738eb26a822d13190a739
 Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Wed May 27 14:31:40 2009 +0200
+Date:   Wed May 27 14:34:08 2009 +0200
 
-ipset: correct format specifiers
+ipset: change %i -> %d
 
-The diff between 2.5.0..3.0 highlighted some changes that were incorrect
-(some before, and some afterwards too).
+%i is the historical, and deprecated, variant of %d.
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- .../include/linux/netfilter_ipv4/ip_set_bitmaps.h  |    2 +-
- .../include/linux/netfilter_ipv4/ip_set_hashes.h   |    8 +++---
- kernel/ip_set.c                                    |   14 ++++++------
- kernel/ip_set_iptree.c                             |    4 +-
- 4 files changed, 14 insertions(+), 14 deletions(-)
+ ipset.c         |    4 ++--
+ ipset_ipmap.c   |    4 ++--
+ kernel/ip_set.c |   12 ++++++------
+ libipt_set.h    |    2 +-
+ 4 files changed, 11 insertions(+), 11 deletions(-)
 
-diff --git a/kernel/include/linux/netfilter_ipv4/ip_set_bitmaps.h b/kernel/include/linux/netfilter_ipv4/ip_set_bitmaps.h
-index d537639..90e87e3 100644
---- a/kernel/include/linux/netfilter_ipv4/ip_set_bitmaps.h
-+++ b/kernel/include/linux/netfilter_ipv4/ip_set_bitmaps.h
-@@ -19,7 +19,7 @@ type##_create(struct ip_set *set, const void *data, u_int32_t size)	\
- 									\
- 	map = kmalloc(sizeof(struct ip_set_##type), GFP_KERNEL);	\
- 	if (!map) {							\
--		DP("out of memory for %lu bytes",			\
-+		DP("out of memory for %zu bytes",			\
- 		   sizeof(struct ip_set_##type));			\
- 		return -ENOMEM;						\
- 	}								\
-diff --git a/kernel/include/linux/netfilter_ipv4/ip_set_hashes.h b/kernel/include/linux/netfilter_ipv4/ip_set_hashes.h
-index 4ca8431..f7d6a69 100644
---- a/kernel/include/linux/netfilter_ipv4/ip_set_hashes.h
-+++ b/kernel/include/linux/netfilter_ipv4/ip_set_hashes.h
-@@ -36,14 +36,14 @@ type##_retry(struct ip_set *set)					\
- 	tmp = kmalloc(sizeof(struct ip_set_##type)			\
- 		      + map->probes * sizeof(initval_t), GFP_ATOMIC);	\
- 	if (!tmp) {							\
--		DP("out of memory for %lu bytes",			\
-+		DP("out of memory for %zu bytes",			\
- 		   sizeof(struct ip_set_##type)				\
- 		   + map->probes * sizeof(initval_t));			\
- 		return -ENOMEM;						\
- 	}								\
- 	tmp->members = harray_malloc(hashsize, sizeof(dtype), GFP_ATOMIC);\
- 	if (!tmp->members) {						\
--		DP("out of memory for %lu bytes", hashsize * sizeof(dtype));\
-+		DP("out of memory for %zu bytes", hashsize * sizeof(dtype));\
- 		kfree(tmp);						\
- 		return -ENOMEM;						\
- 	}								\
-@@ -109,7 +109,7 @@ type##_create(struct ip_set *set, const void *data, u_int32_t size)	\
- 	map = kmalloc(sizeof(struct ip_set_##type)			\
- 		      + req->probes * sizeof(initval_t), GFP_KERNEL);	\
- 	if (!map) {							\
--		DP("out of memory for %lu bytes",			\
-+		DP("out of memory for %zu bytes",			\
- 		   sizeof(struct ip_set_##type)				\
- 		   + req->probes * sizeof(initval_t));			\
- 		return -ENOMEM;						\
-@@ -126,7 +126,7 @@ type##_create(struct ip_set *set, const void *data, u_int32_t size)	\
- 	}								\
- 	map->members = harray_malloc(map->hashsize, sizeof(dtype), GFP_KERNEL);\
- 	if (!map->members) {						\
--		DP("out of memory for %lu bytes", map->hashsize * sizeof(dtype));\
-+		DP("out of memory for %zu bytes", map->hashsize * sizeof(dtype));\
- 		kfree(map);						\
- 		return -ENOMEM;						\
- 	}								\
+diff --git a/ipset.c b/ipset.c
+index de6a4ec..5ff32cf 100644
+--- a/ipset.c
++++ b/ipset.c
+@@ -1577,7 +1577,7 @@ static int set_adtip(struct set *set, const char *adt,
+ 
+ 	/* Alloc memory for the data to send */
+ 	size = sizeof(struct ip_set_req_adt) + set->settype->adt_size ;
+-	DP("alloc size %i", size);
++	DP("alloc size %d", size);
+ 	data = ipset_malloc(size);
+ 
+ 	/* Fill out the request */
+@@ -1663,7 +1663,7 @@ static int set_bind(struct set *set, const char *adt,
+ 		size += IP_SET_MAXNAMELEN;
+ 	else if (!(op == IP_SET_OP_UNBIND_SET && set == NULL))
+ 		size += set->settype->adt_size;
+-	DP("alloc size %i", size);
++	DP("alloc size %d", size);
+ 	data = ipset_malloc(size);
+ 
+ 	/* Fill out the request */
+diff --git a/ipset_ipmap.c b/ipset_ipmap.c
+index 287b057..992a862 100644
+--- a/ipset_ipmap.c
++++ b/ipset_ipmap.c
+@@ -225,12 +225,12 @@ initheader(struct set *set, const void *data)
+ 		mask = range_to_mask(header->from, header->to, &mask_bits);
+ 		netmask_bits = mask_to_bits(header->netmask);
+ 
+-		DP("bits: %i %i", mask_bits, netmask_bits);
++		DP("bits: %d %d", mask_bits, netmask_bits);
+ 		map->hosts = 2 << (32 - netmask_bits - 1);
+ 		map->sizeid = 2 << (netmask_bits - mask_bits - 1);
+ 	}
+ 
+-	DP("%i %i", map->hosts, map->sizeid );
++	DP("%d %d", map->hosts, map->sizeid );
+ }
+ 
+ static void
 diff --git a/kernel/ip_set.c b/kernel/ip_set.c
-index f94d0e0..8b9ee3a 100644
+index 8b9ee3a..fd01e83 100644
 --- a/kernel/ip_set.c
 +++ b/kernel/ip_set.c
-@@ -536,7 +536,7 @@ ip_set_addip(ip_set_id_t index,
- 	IP_SET_ASSERT(set);
+@@ -1220,7 +1220,7 @@ static int ip_set_save_set(ip_set_id_t index,
+ 	*used += sizeof(struct ip_set_save);
  
- 	if (size - sizeof(struct ip_set_req_adt) != set->type->reqsize) {
--		ip_set_printk("data length wrong (want %lu, have %lu)",
-+		ip_set_printk("data length wrong (want %lu, have %zu)",
- 			      (long unsigned)set->type->reqsize,
- 			      size - sizeof(struct ip_set_req_adt));
- 		return -EINVAL;
-@@ -558,7 +558,7 @@ ip_set_delip(ip_set_id_t index,
- 	IP_SET_ASSERT(set);
+ 	set = ip_set_list[index];
+-	DP("set: %s, used: %i(%i) %p %p", set->name, *used, len,
++	DP("set: %s, used: %d(%d) %p %p", set->name, *used, len,
+ 	   data, data + *used);
  
- 	if (size - sizeof(struct ip_set_req_adt) != set->type->reqsize) {
--		ip_set_printk("data length wrong (want %lu, have %lu)",
-+		ip_set_printk("data length wrong (want %lu, have %zu)",
- 			      (long unsigned)set->type->reqsize,
- 			      size - sizeof(struct ip_set_req_adt));
- 		return -EINVAL;
-@@ -585,7 +585,7 @@ ip_set_testip(ip_set_id_t index,
- 	IP_SET_ASSERT(set);
- 	
- 	if (size - sizeof(struct ip_set_req_adt) != set->type->reqsize) {
--		ip_set_printk("data length wrong (want %lu, have %lu)",
-+		ip_set_printk("data length wrong (want %lu, have %zu)",
- 			      (long unsigned)set->type->reqsize,
- 			      size - sizeof(struct ip_set_req_adt));
- 		return -EINVAL;
+ 	read_lock_bh(&set->lock);
+@@ -1237,7 +1237,7 @@ static int ip_set_save_set(ip_set_id_t index,
+ 	set->type->list_header(set, data + *used);
+ 	*used += set_save->header_size;
+ 
+-	DP("set header filled: %s, used: %i(%lu) %p %p", set->name, *used,
++	DP("set header filled: %s, used: %d(%lu) %p %p", set->name, *used,
+ 	   (unsigned long)set_save->header_size, data, data + *used);
+ 	/* Get and ensure set specific members size */
+ 	set_save->members_size = set->type->list_members_size(set);
+@@ -1248,7 +1248,7 @@ static int ip_set_save_set(ip_set_id_t index,
+ 	set->type->list_members(set, data + *used);
+ 	*used += set_save->members_size;
+ 	read_unlock_bh(&set->lock);
+-	DP("set members filled: %s, used: %i(%lu) %p %p", set->name, *used,
++	DP("set members filled: %s, used: %d(%lu) %p %p", set->name, *used,
+ 	   (unsigned long)set_save->members_size, data, data + *used);
+ 	return 0;
+ 
 @@ -1329,7 +1329,7 @@ static int ip_set_restore(void *data,
  	while (1) {
  		line++;
  		
--		DP("%i %lu %i", used, sizeof(struct ip_set_restore), len);
-+		DP("%i %zu %i", used, sizeof(struct ip_set_restore), len);
+-		DP("%i %zu %i", used, sizeof(struct ip_set_restore), len);
++		DP("%d %zu %d", used, sizeof(struct ip_set_restore), len);
  		/* Get and ensure header size */
  		if (used + sizeof(struct ip_set_restore) > len)
  			return line;
-@@ -1939,14 +1939,14 @@ ip_set_sockfn_get(struct sock *sk, int optval, void *user, int *len)
- 
- 		if (*len < sizeof(struct ip_set_req_setnames)
- 		    || *len != req_restore->size) {
--			ip_set_printk("invalid RESTORE (want =%lu, got %u)",
-+			ip_set_printk("invalid RESTORE (want =%lu, got %d)",
- 				      (long unsigned)req_restore->size, *len);
- 			res = -EINVAL;
- 			goto done;
+@@ -1373,7 +1373,7 @@ static int ip_set_restore(void *data,
+ 		while (members_size + set->type->reqsize <=
+ 		       set_restore->members_size) {
+ 			line++;
+-		       	DP("members: %i, line %i", members_size, line);
++			DP("members: %d, line %d", members_size, line);
+ 			res = __ip_set_addip(index,
+ 					   data + used + members_size,
+ 					   set->type->reqsize);
+@@ -1382,7 +1382,7 @@ static int ip_set_restore(void *data,
+ 			members_size += set->type->reqsize;
  		}
- 		line = ip_set_restore(data + sizeof(struct ip_set_req_setnames),
- 				      req_restore->size - sizeof(struct ip_set_req_setnames));
--		DP("ip_set_restore: %u", line);
-+		DP("ip_set_restore: %d", line);
- 		if (line != 0) {
- 			res = -EAGAIN;
- 			req_restore->size = line;
-@@ -1961,7 +1961,7 @@ ip_set_sockfn_get(struct sock *sk, int optval, void *user, int *len)
- 	}	/* end of switch(op) */
  
-     copy:
--   	DP("set %s, copylen %u", index != IP_SET_INVALID_ID
-+   	DP("set %s, copylen %d", index != IP_SET_INVALID_ID
-    	             		 && ip_set_list[index]
-    	             ? ip_set_list[index]->name
-    	             : ":all:", copylen);
-diff --git a/kernel/ip_set_iptree.c b/kernel/ip_set_iptree.c
-index 08b9118..1ef8263 100644
---- a/kernel/ip_set_iptree.c
-+++ b/kernel/ip_set_iptree.c
-@@ -282,7 +282,7 @@ iptree_create(struct ip_set *set, const void *data, u_int32_t size)
- 	struct ip_set_iptree *map;
+-		DP("members_size %lu  %i",
++		DP("members_size %lu  %d",
+ 		   (unsigned long)set_restore->members_size, members_size);
+ 		if (members_size != set_restore->members_size)
+ 			return line++;
+diff --git a/libipt_set.h b/libipt_set.h
+index 0521251..b7f23f0 100644
+--- a/libipt_set.h
++++ b/libipt_set.h
+@@ -36,7 +36,7 @@ parse_bindings(const char *optarg, struct ipt_set_info *info)
  
- 	if (size != sizeof(struct ip_set_req_iptree_create)) {
--		ip_set_printk("data length wrong (want %lu, have %lu)",
-+		ip_set_printk("data length wrong (want %zu, have %lu)",
- 			      sizeof(struct ip_set_req_iptree_create),
- 			      (unsigned long)size);
- 		return -EINVAL;
-@@ -290,7 +290,7 @@ iptree_create(struct ip_set *set, const void *data, u_int32_t size)
+ 	if (tmp)
+ 		exit_error(PARAMETER_PROBLEM,
+-			   "Can't follow bindings deeper than %i.", 
++			   "Can't follow bindings deeper than %d.",
+ 			   IP_SET_MAX_BINDINGS);
  
- 	map = kmalloc(sizeof(struct ip_set_iptree), GFP_KERNEL);
- 	if (!map) {
--		DP("out of memory for %lu bytes",
-+		DP("out of memory for %zu bytes",
- 		   sizeof(struct ip_set_iptree));
- 		return -ENOMEM;
- 	}
+ 	free(saved);
 -- 
 # Created with git-export-patch
