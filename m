@@ -1,52 +1,42 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: Re: full_cone_nat
-Date: Thu, 28 May 2009 07:55:07 +0800
-Message-ID: <412e6f7f0905271655t4fca4ab0jc2ed8051b09c39a@mail.gmail.com>
-References: <47A7F67C62706041BC49DB7822B1C9DB1D47134138@INOAVREX11.ptin.corpPT.com>
-	 <alpine.LSU.2.00.0904071731200.25905@fbirervta.pbzchgretzou.qr>
-	 <47A7F67C62706041BC49DB7822B1C9DB1D4713413D@INOAVREX11.ptin.corpPT.com>
-	 <47A7F67C62706041BC49DB7822B1C9DB1D4713413F@INOAVREX11.ptin.corpPT.com>
-	 <alpine.DEB.2.00.0904072008440.5338@blackhole.kfki.hu>
-	 <alpine.LSU.2.00.0904072017510.24473@fbirervta.pbzchgretzou.qr>
-	 <alpine.DEB.2.00.0904072027110.5515@blackhole.kfki.hu>
-	 <47A7F67C62706041BC49DB7822B1C9DB1D47134141@INOAVREX11.ptin.corpPT.com>
-	 <alpine.DEB.2.00.0904081546410.7205@blackhole.kfki.hu>
-	 <47A7F67C62706041BC49DB7822B1C9DB2248FD9A99@INOAVREX11.ptin.corpPT.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [1/2] ipset 3.0 changes audit: printf types
+Date: Thu, 28 May 2009 10:23:23 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.0905281019480.26723@blackhole.kfki.hu>
+References: <alpine.LSU.2.00.0905271400540.26986@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-2022-JP
-Content-Transfer-Encoding: 7bit
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Jan Engelhardt <jengelh@medozas.de>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Hugo Miguel Mendes <est-h-mendes@ptinovacao.pt>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.28]:33247 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757141AbZE0XzF (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 27 May 2009 19:55:05 -0400
-Received: by yx-out-2324.google.com with SMTP id 3so2822425yxj.1
-        for <netfilter-devel@vger.kernel.org>; Wed, 27 May 2009 16:55:07 -0700 (PDT)
-In-Reply-To: <47A7F67C62706041BC49DB7822B1C9DB2248FD9A99@INOAVREX11.ptin.corpPT.com>
+Received: from smtp2.kfki.hu ([148.6.0.28]:44365 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757724AbZE1IXW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 28 May 2009 04:23:22 -0400
+In-Reply-To: <alpine.LSU.2.00.0905271400540.26986@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Apr 22, 2009 at 12:41 AM, Hugo Miguel Mendes
-<est-h-mendes@ptinovacao.pt> wrote:
-> Hi,
-> I had been on vacation and I have just seen your answer.
-> Thanks for the help, I'm just going to start reading what you suggested.
->
-> Best Regards
->
+Hi Jan,
 
-It likes Port Trigger. Maybe you can refer to its source code, and you
-can get the code from DD-WRT via
-http://www.dd-wrt.com/dd-wrtv2/downloads/others/sourcecode/v23/dd-wrt.v23.SP1-Final.src.tar.bz2
-.
+On Wed, 27 May 2009, Jan Engelhardt wrote:
 
+> today I looked at the changes introduced by 3.0, and noticed a few bits 
+> that warranted patches.
+[...]
 
+Thanks, I pulled all of your patches.
 
--- 
-Regards，
-Changli Gao(xiaosuo@gmail.com)
+I'm going to release a new version at the weekend because 
+
+a. I "successfully" broke the iptables set/SET match and target by 
+   the new protocol version in ipset
+b. This is a good opportunity to get rid of the deprecated functionality 
+   (binding) and adding forward-compatibility in the match and target.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
