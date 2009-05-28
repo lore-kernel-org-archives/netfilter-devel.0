@@ -1,38 +1,42 @@
-From: Hannes Eder <hannes@hanneseder.net>
-Subject: [PATCH 2/2] net/netfilter: remove redundant variable
-Date: Thu, 28 May 2009 14:45:51 +0200
-Message-ID: <20090528124548.21789.63516.stgit@jazzy.zrh.corp.google.com>
-References: <20090528124521.21789.46751.stgit@jazzy.zrh.corp.google.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: netfilter 00/04: netfilter fixes
+Date: Thu, 28 May 2009 18:34:21 +0200
+Message-ID: <4A1EBD0D.7090303@trash.net>
+References: <20090527143521.4649.73610.sendpatchset@x2.localnet> <20090527.155235.79198381.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
-To: netdev@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.33.17]:34923 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760868AbZE1Mpy (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 May 2009 08:45:54 -0400
-In-Reply-To: <20090528124521.21789.46751.stgit@jazzy.zrh.corp.google.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20090527.155235.79198381.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Signed-off-by: Hannes Eder <hannes@hanneseder.net>
----
- net/netfilter/nf_log.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+David Miller wrote:
+> From: Patrick McHardy <kaber@trash.net>
+> Date: Wed, 27 May 2009 16:35:24 +0200 (MEST)
+> 
+>> following are four netfilter fixes for 2.6.30, containing:
+>>
+>> - a patch from Jozsef to fix accepting invalid RST packets in TCP conntrack
+>> - a patch from Pablo to properly propagate DCCP conntrack state changes
+>> - a patch from Jesper to fix an invalid return value in a xt_hashlimit
+>>   seq_file function
+>> - another patch from Pablo to fix undersized skb allocation in nfnetlink_log
+>>
+>> Please apply or pull from:
+>>
+>> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git
+> 
+> Pulled, thanks Patrick.
+> 
+> In the future, can you please explicitly specify the branch name, even
+> if it is just 'master', in your GIT URLs for me to pull from?
+> 
+> GIT requires that it always be specified, therefore if you put it
+> there at the end of the URL I can just cut and paste it into my
+> command line.
 
-diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
-index 7511aed..b584cc2 100644
---- a/net/netfilter/nf_log.c
-+++ b/net/netfilter/nf_log.c
-@@ -47,7 +47,6 @@ int nf_log_register(u_int8_t pf, struct nf_logger *logger)
- 	mutex_lock(&nf_log_mutex);
- 
- 	if (pf == NFPROTO_UNSPEC) {
--		int i;
- 		for (i = NFPROTO_UNSPEC; i < NFPROTO_NUMPROTO; i++)
- 			list_add_tail(&(logger->list[i]), &(nf_loggers_l[i]));
- 	} else {
+Sure, will do :)
 
