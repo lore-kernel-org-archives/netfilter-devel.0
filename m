@@ -1,39 +1,59 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [1/2] ipset 3.0 changes audit: printf types
-Date: Thu, 28 May 2009 10:23:23 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.0905281019480.26723@blackhole.kfki.hu>
-References: <alpine.LSU.2.00.0905271400540.26986@fbirervta.pbzchgretzou.qr>
+Subject: Re: TCP simultaneous open using iptables NAT?
+Date: Thu, 28 May 2009 10:58:41 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.0905281014090.26723@blackhole.kfki.hu>
+References: <4ddb24250905271506qb50323etf3f7deb4e240ff72@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Saatvik Agarwal <saatvik.agarwal@stanford.edu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:44365 "EHLO smtp2.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.28]:56778 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757724AbZE1IXW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 May 2009 04:23:22 -0400
-In-Reply-To: <alpine.LSU.2.00.0905271400540.26986@fbirervta.pbzchgretzou.qr>
+	id S1756972AbZE1I6l (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 28 May 2009 04:58:41 -0400
+In-Reply-To: <4ddb24250905271506qb50323etf3f7deb4e240ff72@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Jan,
+On Wed, 27 May 2009, Saatvik Agarwal wrote:
 
-On Wed, 27 May 2009, Jan Engelhardt wrote:
+> For my research project in school, I am trying to establish TCP
+> connections when both hosts are behind full-cone NATs using TCP's
+> simultaneous open functionality. Unfortunately, it seems that iptables
+> does not support TCP simultaneous open. For my test environment, I
+> simulate a full-cone NAT using iptables. My iptables rule is exactly
+> as follows:
+> 
+> iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 
-> today I looked at the changes introduced by 3.0, and noticed a few bits 
-> that warranted patches.
-[...]
+That rule cannot simulate full-cone NAT, because netfilter implements 
+port-restricted cone NAT.
 
-Thanks, I pulled all of your patches.
+> According to the BEHAVE requirements outlined in IETF RFC 5382, TCP
+> simultaneous open must be supported by "well behaved NATs". So is
+> there a mistake in my rules or does iptables not support simultaneous
+> open?
 
-I'm going to release a new version at the weekend because 
+The connection tracking subsystem does not support TCP simultaneous open.
 
-a. I "successfully" broke the iptables set/SET match and target by 
-   the new protocol version in ipset
-b. This is a good opportunity to get rid of the deprecated functionality 
-   (binding) and adding forward-compatibility in the match and target.
+As far as I'm concerned, I do not care whatever RFC is created in trying 
+to push NAT over its limits - that is just a totally wrong track. NAT was 
+invented solely to slow down the depletion of the IPv4 address space in 
+the hope to give more time introducing and *deploying* IPv6 world-wide. 
+And everyone was fully aware that NAT breaks one of the key concempts of 
+IP, the end-to-end connectivity. These "NAT behavioral requirements" RFCs 
+are the results of that breakage (and written exclusively from the point 
+of view of the application designers).
 
-Best regards,
+It is no point trying to *put back* end-to-end connectivity on top of NAT 
+when the clear and straight solution is to go to IPv6. 
+
+The end-to-end connectivity is the very reason why I refuse the idea to 
+implement NAT for IPv6 in netfilter. The damage what IPv4 NAT produced 
+hasn't taught us not to repeat the same mistake again, willingly?
+
+Best regads,
 Jozsef
 -
 E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
