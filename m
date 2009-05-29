@@ -1,46 +1,54 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Fwd: ebtables broken for kernel above 2.6.28
-Date: Fri, 29 May 2009 19:16:10 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0905291915490.12199@fbirervta.pbzchgretzou.qr>
-References: <17923cc80905280124t4ed6cf7m87f91e4444146697@mail.gmail.com>  <4A1EB783.4090801@pandora.be>  <17923cc80905282251s2ddc50a4n1a44a2b1e6b01cc5@mail.gmail.com>  <alpine.LSU.2.00.0905291156060.9095@fbirervta.pbzchgretzou.qr>
- <17923cc80905290414r5caaaec9t8b6c4ce849c66175@mail.gmail.com> <4A200B60.6080804@pandora.be>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: TCP simultaneous open using iptables NAT?
+Date: Sat, 30 May 2009 01:10:59 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.0905300051320.30481@blackhole.kfki.hu>
+References: <4ddb24250905271506qb50323etf3f7deb4e240ff72@mail.gmail.com> <alpine.DEB.2.00.0905281014090.26723@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: sachin sanap <sachin.sanap.1gb@gmail.com>,
-	netfilter-devel@vger.kernel.org, buytenh@wantstofly.org
-To: Bart De Schuymer <bdschuym@pandora.be>
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Saatvik Agarwal <saatvik.agarwal@stanford.edu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:60286 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752505AbZE2RQK (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 May 2009 13:16:10 -0400
-In-Reply-To: <4A200B60.6080804@pandora.be>
+Received: from smtp-in.kfki.hu ([148.6.0.28]:49267 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752612AbZE2XK6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 29 May 2009 19:10:58 -0400
+In-Reply-To: <alpine.DEB.2.00.0905281014090.26723@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Thu, 28 May 2009, Jozsef Kadlecsik wrote:
 
-On Friday 2009-05-29 18:20, Bart De Schuymer wrote:
+> On Wed, 27 May 2009, Saatvik Agarwal wrote:
+> 
+> > For my research project in school, I am trying to establish TCP
+> > connections when both hosts are behind full-cone NATs using TCP's
+> > simultaneous open functionality. Unfortunately, it seems that iptables
+> > does not support TCP simultaneous open. For my test environment, I
+> > simulate a full-cone NAT using iptables. My iptables rule is exactly
+> > as follows:
+> > 
+> > iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+> 
+> That rule cannot simulate full-cone NAT, because netfilter implements 
+> port-restricted cone NAT.
 
-> Hi,
->
-> I think it's best to fix this in the kernel if it's possible, since we don't
-> want to break compatibility.
-> If the fix has to be in userspace, then it must be a fix that still works for
-> older kernels.
+In order to describe the mapping and filtering behaviour of netfilter as 
+complete as possible, I have to add the following:
 
-Since the kernel uses xt_align already, it's best for userspace to do the same.
+- According to the terminology of RFC 3489, netfilter implements port 
+  restricted cone NAT. If the --random flag is specified to the 
+  SNAT/MASQUERADE/... targets, it's better described as a symmetric NAT.
+- According to the terminology of RFC 4787 and RFC 5382, netfilter
+  implements
+  - endpoint-independent mapping, if the --random flag is not 
+    specified to the SNAT/MASQUERADE/... targets, otherwise it's an
+    address and port-dependent mapping.
+  - address and port-dependent filtering.
 
->>
->> #ifndef IPPROTO_SCTP
->> #define IPPROTO_SCTP           132
->> @@ -37,7 +38,7 @@
->> #define EXEC_STYLE_DAEMON      1
->>
->> #ifndef EBT_MIN_ALIGN
->> -#define EBT_MIN_ALIGN (__alignof__(struct ebt_entry_target))
->> +#define EBT_MIN_ALIGN (__alignof__(struct _xt_align))
->> #endif
->> #define EBT_ALIGN(s) (((s) + (EBT_MIN_ALIGN-1)) & ~(EBT_MIN_ALIGN-1))
->> #define ERRORMSG_MAXLEN 128
->>
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
