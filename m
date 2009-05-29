@@ -1,70 +1,56 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [resend] Passive OS fingerprint xtables match.
-Date: Fri, 29 May 2009 11:49:51 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0905291144460.9095@fbirervta.pbzchgretzou.qr>
-References: <20090511095343.GA30778@ioremap.net> <4A1D6A20.8050404@trash.net> <20090529085918.GA11887@ioremap.net>
+Subject: Re: Fwd: ebtables broken for kernel above 2.6.28
+Date: Fri, 29 May 2009 12:02:06 +0200 (CEST)
+Message-ID: <alpine.LSU.2.00.0905291156060.9095@fbirervta.pbzchgretzou.qr>
+References: <17923cc80905280124t4ed6cf7m87f91e4444146697@mail.gmail.com>  <4A1EB783.4090801@pandora.be> <17923cc80905282251s2ddc50a4n1a44a2b1e6b01cc5@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
-	David Miller <davem@davemloft.net>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Evgeniy Polyakov <zbr@ioremap.net>
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org, buytenh@wantstofly.org
+To: sachin sanap <sachin.sanap.1gb@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:59919 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:43305 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753087AbZE2Jtv (ORCPT
+	with ESMTP id S1751827AbZE2KCE (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 May 2009 05:49:51 -0400
-In-Reply-To: <20090529085918.GA11887@ioremap.net>
+	Fri, 29 May 2009 06:02:04 -0400
+In-Reply-To: <17923cc80905282251s2ddc50a4n1a44a2b1e6b01cc5@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Friday 2009-05-29 10:59, Evgeniy Polyakov wrote:
->> >+/* Defines for IANA option kinds */
->> >+
->> >+enum iana_options {
->> >+	OSFOPT_EOL = 0,		/* End of options */
->> >+	OSFOPT_NOP, 		/* NOP */
->> >+	OSFOPT_MSS, 		/* Maximum segment size */
->> >+	OSFOPT_WSO, 		/* Window scale option */
->> >+	OSFOPT_SACKP,		/* SACK permitted */
->> >+	OSFOPT_SACK,		/* SACK */
->> >+	OSFOPT_ECHO,
->> >+	OSFOPT_ECHOREPLY,
->> >+	OSFOPT_TS,		/* Timestamp option */
->> >+	OSFOPT_POCP,		/* Partial Order Connection Permitted */
->> >+	OSFOPT_POSP,		/* Partial Order Service Profile */
->> >+
->> >+	/* Others are not used in the current OSF */
->> >+	OSFOPT_EMPTY = 255,
->> >+};
->> 
->> Why do we need to duplicate these?
->
->Why duplicate? It is the only place of the constants describing used
->option numbers. include/net/tcp.h does not have 'partial order' options
->in particular.
+On Friday 2009-05-29 07:51, sachin sanap wrote:
 
-Then you do one of these:
+>Iam facing problem with ebtables binay on 2.6.28 kernel (same binary
+>works well with 2.6.27). Its mostly a structure alignment issue with
+>standard targets like DROP,ACCEPT etc. Message seen by user is
+>"eb_tables: standard target: invalid size 8 !=3D 4"
+>Iam trying to fix it, this mail is just to check if its already fixed
+>by someone else?
 
-1. add TCPOPT_POCP/POSP to tcp.h or
-2. define it locally:
-#include <net/tcp.h>
-enum {
-	TCPOPT_POCP = 9,
-	TCPOPT_POSP = 10,
-};
+Indeed this seems to happen, but only when using a mixed-bitness
+combination:
 
->> >+config NETFILTER_XT_MATCH_OSF
->> >+	tristate '"osf" Passive OS fingerprint match'
->> >+	depends on NETFILTER_ADVANCED
->> 
->> && NFNETLINK
->
->Will add.
+/tmp/usr/sbin # LD_LIBRARY_PATH=3D../lib ./ebtables -A INPUT -j ACCEPT
+The kernel doesn't support the ebtables 'filter' table.
 
-Does it really need to depend on nfnetlink? Even if I just want to
-have it dumped to syslog?
+/tmp/usr/sbin # uname -a
+Linux sovereign 2.6.29.3-jen80-default #1 SMP 2009-04-06 18:10:58 +0200=
+=20
+x86_64 x86_64 x86_64 GNU/Linux
+
+/tmp/usr/sbin # file ebtables
+ebtables: ELF 32-bit LSB executable, Intel 80386, version 1 (SYSV), for=
+=20
+GNU/Linux 2.6.4, dynamically linked (uses shared libs), stripped
+
+ebtables does work when it is 64-bit too, so the immediate workaround=C2=
+=A0=E2=80=94
+assuming you are on x86=C2=A0=E2=80=94 is to not use a 32-bit userspace=
+ with a
+64-bit kernel.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
