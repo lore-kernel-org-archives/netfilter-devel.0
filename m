@@ -1,55 +1,60 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] fix "manpages: do not include v4-only modules in ip6tables
- manpage"
-Date: Sun, 31 May 2009 22:24:52 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0905312220210.815@fbirervta.pbzchgretzou.qr>
-References: <1243788616-375-1-git-send-email-fw@strlen.de>
+From: Saatvik Agarwal <saatvik.agarwal@stanford.edu>
+Subject: Re: [PATCH] TCP simultaneous open support
+Date: Sun, 31 May 2009 16:04:23 -0700
+Message-ID: <4ddb24250905311604o8d0f2c2l9ba3984ae296a009@mail.gmail.com>
+References: <alpine.DEB.2.00.0905311614330.760@blackhole.kfki.hu>
+	 <alpine.DEB.2.00.0905311631480.760@blackhole.kfki.hu>
+Reply-To: saatvik.agarwal@stanford.edu
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:54385 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752836AbZEaUYv (ORCPT
+Received: from mail-gx0-f214.google.com ([209.85.217.214]:42492 "EHLO
+	mail-gx0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751033AbZEaXEW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 31 May 2009 16:24:51 -0400
-In-Reply-To: <1243788616-375-1-git-send-email-fw@strlen.de>
+	Sun, 31 May 2009 19:04:22 -0400
+Received: by gxk10 with SMTP id 10so12403338gxk.13
+        for <netfilter-devel@vger.kernel.org>; Sun, 31 May 2009 16:04:23 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.0905311631480.760@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi Jozsef,
 
-On Sunday 2009-05-31 18:50, Florian Westphal wrote:
+Thanks a lot for the patch. What version of the kernel/netfilter code
+is this patch intended for? I'm running debian 2.6.26 (lenny) and I
+can't patch my source. 14 out of the 15 hunks fail.
 
->previous commit tries to skip v4-only module manpages
->by searching for NFPROTO_IPV(4|6) -- in the man page itself.
+I might do a manual merge for now.
+
+Thanks so much once again for the patch. I will try to test it in the
+next few days and let you know how it goes.
+
+Best,
+Saatvik
+
+On 5/31/09, Jozsef Kadlecsik <kadlec@blackhole.kfki.hu> wrote:
+> On Sun, 31 May 2009, Jozsef Kadlecsik wrote:
 >
->Searching the .c file instead is not sufficient:
->- there is at least one page (libxt_policy) without a libxt_*c
->- there are targets/modules which use family AF_UNSPEC.
-
-No, this one misses manpages too... Bah, time to eradicate the ip/ip6/
-name mess.
-
->diff --git a/extensions/GNUmakefile.in b/extensions/GNUmakefile.in
->index 8d7f21d..44a6d02 100644
->--- a/extensions/GNUmakefile.in
->+++ b/extensions/GNUmakefile.in
->@@ -161,10 +161,13 @@ man_run    = \
-> 	${AM_VERBOSE_GEN} \
-> 	for ext in $(1); do \
-> 		f="${srcdir}/libxt_$$ext.man"; \
->-		if [ -f "$$f" ] && grep -q "$(3)" "$$f"; then \
->-			echo ".SS $$ext"; \
->-			cat "$$f"; \
->-			continue; \
->+		if [ -f "$$f" ] ; then \
->+			cfile="${srcdir}/libxt_$$ext.c"; \
->+			if [ ! -f "$$cfile" ] || grep -q "\(_UNSPEC\|$(3)\)" "$$cfile"; then \
->+				echo ".SS $$ext"; \
->+				cat "$$f"; \
->+				continue; \
->+			fi; \
-> 		fi; \
-> 		f="${srcdir}/lib$(2)t_$$ext.man"; \
-> 		if [ -f "$$f" ]; then \
+>  > ---
+>  >  include/linux/netfilter/nf_conntrack_tcp.h |    2 +-
+>  >  net/netfilter/nf_conntrack_proto_tcp.c     |   97 +++++++++++++++++-----------
+>  >  2 files changed, 61 insertions(+), 38 deletions(-)
+>
+>
+> Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+>
+>  Sorry, that line was not added.
+>
+>  Best regards,
+>  Jozseg
+>
+> -
+>  E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+>  PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+>  Address : KFKI Research Institute for Particle and Nuclear Physics
+>           H-1525 Budapest 114, POB. 49, Hungary
+>
