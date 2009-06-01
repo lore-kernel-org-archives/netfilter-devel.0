@@ -1,284 +1,1427 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 5/5] extensions: use NFPROTO_UNSPEC for .family field
-Date: Mon,  1 Jun 2009 12:06:33 +0200
-Message-ID: <1243850793-9526-6-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 3/5] policy: merge ipv6 and ipv4 variant
+Date: Mon,  1 Jun 2009 12:06:31 +0200
+Message-ID: <1243850793-9526-4-git-send-email-jengelh@medozas.de>
 References: <1243850793-9526-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: pablo@netfilter.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:53169 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:53165 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755962AbZFAKGf (ORCPT
+	with ESMTP id S1752228AbZFAKGe (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Jun 2009 06:06:35 -0400
+	Mon, 1 Jun 2009 06:06:34 -0400
 In-Reply-To: <1243850793-9526-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This constant would be the designated one for the .family field; it
-also, given recent changes, makes grep for NFPROTO_UNSPEC work to
-finally recollect all manpages.
+The files duplicate most of their code, and struct ipt_policy_info
+being defined to xt_policy_info makes them actually have even more in
+common.
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- extensions/libxt_CLASSIFY.c  |    2 +-
- extensions/libxt_MARK.c      |    2 +-
- extensions/libxt_RATEEST.c   |    2 +-
- extensions/libxt_SECMARK.c   |    2 +-
- extensions/libxt_TRACE.c     |    2 +-
- extensions/libxt_cluster.c   |    2 +-
- extensions/libxt_length.c    |    2 +-
- extensions/libxt_limit.c     |    2 +-
- extensions/libxt_mark.c      |    4 ++--
- extensions/libxt_pkttype.c   |    2 +-
- extensions/libxt_quota.c     |    2 +-
- extensions/libxt_rateest.c   |    2 +-
- extensions/libxt_standard.c  |    2 +-
- extensions/libxt_statistic.c |    2 +-
- extensions/libxt_string.c    |    4 ++--
- extensions/libxt_time.c      |    2 +-
- extensions/libxt_u32.c       |    2 +-
- 17 files changed, 19 insertions(+), 19 deletions(-)
+ extensions/libip6t_policy.c |  432 ------------------------------------
+ extensions/libipt_policy.c  |  430 ------------------------------------
+ extensions/libxt_policy.c   |  513 +++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 513 insertions(+), 862 deletions(-)
+ delete mode 100644 extensions/libip6t_policy.c
+ delete mode 100644 extensions/libipt_policy.c
+ create mode 100644 extensions/libxt_policy.c
 
-diff --git a/extensions/libxt_CLASSIFY.c b/extensions/libxt_CLASSIFY.c
-index 7db2e4c..82b8f4e 100644
---- a/extensions/libxt_CLASSIFY.c
-+++ b/extensions/libxt_CLASSIFY.c
-@@ -96,7 +96,7 @@ CLASSIFY_save(const void *ip, const struct xt_entry_target *target)
- }
- 
- static struct xtables_target classify_target = { 
--	.family		= AF_UNSPEC,
-+	.family		= NFPROTO_UNSPEC,
- 	.name		= "CLASSIFY",
- 	.version	= XTABLES_VERSION,
- 	.size		= XT_ALIGN(sizeof(struct xt_classify_target_info)),
-diff --git a/extensions/libxt_MARK.c b/extensions/libxt_MARK.c
-index ec2fe96..ff48a76 100644
---- a/extensions/libxt_MARK.c
-+++ b/extensions/libxt_MARK.c
-@@ -326,7 +326,7 @@ static struct xtables_target mark_tg_reg_v2 = {
- 	.version       = XTABLES_VERSION,
- 	.name          = "MARK",
- 	.revision      = 2,
--	.family        = AF_UNSPEC,
-+	.family        = NFPROTO_UNSPEC,
- 	.size          = XT_ALIGN(sizeof(struct xt_mark_tginfo2)),
- 	.userspacesize = XT_ALIGN(sizeof(struct xt_mark_tginfo2)),
- 	.help          = mark_tg_help,
-diff --git a/extensions/libxt_RATEEST.c b/extensions/libxt_RATEEST.c
-index 1a7b0a9..4b7831f 100644
---- a/extensions/libxt_RATEEST.c
-+++ b/extensions/libxt_RATEEST.c
-@@ -202,7 +202,7 @@ RATEEST_save(const void *ip, const struct xt_entry_target *target)
- }
- 
- static struct xtables_target rateest_tg_reg = {
--	.family		= AF_UNSPEC,
-+	.family		= NFPROTO_UNSPEC,
- 	.name		= "RATEEST",
- 	.version	= XTABLES_VERSION,
- 	.size		= XT_ALIGN(sizeof(struct xt_rateest_target_info)),
-diff --git a/extensions/libxt_SECMARK.c b/extensions/libxt_SECMARK.c
-index 0c09c88..2152b6f 100644
---- a/extensions/libxt_SECMARK.c
-+++ b/extensions/libxt_SECMARK.c
-@@ -93,7 +93,7 @@ static void SECMARK_save(const void *ip, const struct xt_entry_target *target)
- }
- 
- static struct xtables_target secmark_target = {
--	.family		= AF_UNSPEC,
-+	.family		= NFPROTO_UNSPEC,
- 	.name		= "SECMARK",
- 	.version	= XTABLES_VERSION,
- 	.revision	= 0,
-diff --git a/extensions/libxt_TRACE.c b/extensions/libxt_TRACE.c
-index b8eb969..344b80d 100644
---- a/extensions/libxt_TRACE.c
-+++ b/extensions/libxt_TRACE.c
-@@ -19,7 +19,7 @@ static int TRACE_parse(int c, char **argv, int invert, unsigned int *flags,
- }
- 
- static struct xtables_target trace_target = {
--	.family		= AF_UNSPEC,
-+	.family		= NFPROTO_UNSPEC,
- 	.name		= "TRACE",
- 	.version	= XTABLES_VERSION,
- 	.size		= XT_ALIGN(0),
-diff --git a/extensions/libxt_cluster.c b/extensions/libxt_cluster.c
-index 1659a60..c80afe6 100644
---- a/extensions/libxt_cluster.c
-+++ b/extensions/libxt_cluster.c
-@@ -219,7 +219,7 @@ cluster_save(const void *ip, const struct xt_entry_match *match)
- }
- 
- static struct xtables_match cluster_mt_reg = {
--	.family		= AF_UNSPEC,
-+	.family		= NFPROTO_UNSPEC,
- 	.name		= "cluster",
- 	.version	= XTABLES_VERSION,
- 	.size		= XT_ALIGN(sizeof(struct xt_cluster_match_info)),
-diff --git a/extensions/libxt_length.c b/extensions/libxt_length.c
-index 7bb31a8..0f954cf 100644
---- a/extensions/libxt_length.c
-+++ b/extensions/libxt_length.c
-@@ -114,7 +114,7 @@ static void length_save(const void *ip, const struct xt_entry_match *match)
- }
- 
- static struct xtables_match length_match = {
--	.family		= AF_UNSPEC,
-+	.family		= NFPROTO_UNSPEC,
- 	.name		= "length",
- 	.version	= XTABLES_VERSION,
- 	.size		= XT_ALIGN(sizeof(struct xt_length_info)),
-diff --git a/extensions/libxt_limit.c b/extensions/libxt_limit.c
-index 498f009..8ca921c 100644
---- a/extensions/libxt_limit.c
-+++ b/extensions/libxt_limit.c
-@@ -158,7 +158,7 @@ static void limit_save(const void *ip, const struct xt_entry_match *match)
- }
- 
- static struct xtables_match limit_match = {
--	.family		= AF_UNSPEC,
-+	.family		= NFPROTO_UNSPEC,
- 	.name		= "limit",
- 	.version	= XTABLES_VERSION,
- 	.size		= XT_ALIGN(sizeof(struct xt_rateinfo)),
-diff --git a/extensions/libxt_mark.c b/extensions/libxt_mark.c
-index 0edff74..6f8cc57 100644
---- a/extensions/libxt_mark.c
-+++ b/extensions/libxt_mark.c
-@@ -144,7 +144,7 @@ mark_save(const void *ip, const struct xt_entry_match *match)
- }
- 
- static struct xtables_match mark_match = {
--	.family		= AF_UNSPEC,
-+	.family		= NFPROTO_UNSPEC,
- 	.name		= "mark",
- 	.revision	= 0,
- 	.version	= XTABLES_VERSION,
-@@ -162,7 +162,7 @@ static struct xtables_match mark_mt_reg = {
- 	.version        = XTABLES_VERSION,
- 	.name           = "mark",
- 	.revision       = 1,
--	.family         = AF_UNSPEC,
-+	.family         = NFPROTO_UNSPEC,
- 	.size           = XT_ALIGN(sizeof(struct xt_mark_mtinfo1)),
- 	.userspacesize  = XT_ALIGN(sizeof(struct xt_mark_mtinfo1)),
- 	.help           = mark_mt_help,
-diff --git a/extensions/libxt_pkttype.c b/extensions/libxt_pkttype.c
-index e3db2aa..7586c7f 100644
---- a/extensions/libxt_pkttype.c
-+++ b/extensions/libxt_pkttype.c
-@@ -139,7 +139,7 @@ static void pkttype_save(const void *ip, const struct xt_entry_match *match)
- }
- 
- static struct xtables_match pkttype_match = {
--	.family		= AF_UNSPEC,
-+	.family		= NFPROTO_UNSPEC,
- 	.name		= "pkttype",
- 	.version	= XTABLES_VERSION,
- 	.size		= XT_ALIGN(sizeof(struct xt_pkttype_info)),
-diff --git a/extensions/libxt_quota.c b/extensions/libxt_quota.c
-index 4c1bcb0..0ccc94b 100644
---- a/extensions/libxt_quota.c
-+++ b/extensions/libxt_quota.c
-@@ -74,7 +74,7 @@ quota_parse(int c, char **argv, int invert, unsigned int *flags,
- }
- 
- static struct xtables_match quota_match = {
--	.family		= AF_UNSPEC,
-+	.family		= NFPROTO_UNSPEC,
- 	.name		= "quota",
- 	.version	= XTABLES_VERSION,
- 	.size		= XT_ALIGN(sizeof (struct xt_quota_info)),
-diff --git a/extensions/libxt_rateest.c b/extensions/libxt_rateest.c
-index 9f3a436..54a7579 100644
---- a/extensions/libxt_rateest.c
-+++ b/extensions/libxt_rateest.c
-@@ -432,7 +432,7 @@ rateest_save(const void *ip, const struct xt_entry_match *match)
- }
- 
- static struct xtables_match rateest_mt_reg = {
--	.family		= AF_UNSPEC,
-+	.family		= NFPROTO_UNSPEC,
- 	.name		= "rateest",
- 	.version	= XTABLES_VERSION,
- 	.size		= XT_ALIGN(sizeof(struct xt_rateest_match_info)),
-diff --git a/extensions/libxt_standard.c b/extensions/libxt_standard.c
-index 54e1348..56dc2d2 100644
---- a/extensions/libxt_standard.c
-+++ b/extensions/libxt_standard.c
-@@ -21,7 +21,7 @@ static int standard_parse(int c, char **argv, int invert, unsigned int *flags,
- }
- 
- static struct xtables_target standard_target = {
--	.family		= AF_UNSPEC,
-+	.family		= NFPROTO_UNSPEC,
- 	.name		= "standard",
- 	.version	= XTABLES_VERSION,
- 	.size		= XT_ALIGN(sizeof(int)),
-diff --git a/extensions/libxt_statistic.c b/extensions/libxt_statistic.c
-index 5b03686..913aa2c 100644
---- a/extensions/libxt_statistic.c
-+++ b/extensions/libxt_statistic.c
-@@ -160,7 +160,7 @@ static void statistic_save(const void *ip, const struct xt_entry_match *match)
- }
- 
- static struct xtables_match statistic_match = {
--	.family		= AF_UNSPEC,
-+	.family		= NFPROTO_UNSPEC,
- 	.name		= "statistic",
- 	.version	= XTABLES_VERSION,
- 	.size		= XT_ALIGN(sizeof(struct xt_statistic_info)),
-diff --git a/extensions/libxt_string.c b/extensions/libxt_string.c
-index ba4b720..18e3ed2 100644
---- a/extensions/libxt_string.c
-+++ b/extensions/libxt_string.c
-@@ -353,7 +353,7 @@ static void string_save(const void *ip, const struct xt_entry_match *match)
- static struct xtables_match string_match = {
-     .name		= "string",
-     .revision		= 0,
--    .family		= AF_UNSPEC,
-+    .family		= NFPROTO_UNSPEC,
-     .version		= XTABLES_VERSION,
-     .size		= XT_ALIGN(sizeof(struct xt_string_info)),
-     .userspacesize	= offsetof(struct xt_string_info, config),
-@@ -369,7 +369,7 @@ static struct xtables_match string_match = {
- static struct xtables_match string_match_v1 = {
-     .name		= "string",
-     .revision		= 1,
--    .family		= AF_UNSPEC,
-+    .family		= NFPROTO_UNSPEC,
-     .version		= XTABLES_VERSION,
-     .size		= XT_ALIGN(sizeof(struct xt_string_info)),
-     .userspacesize	= offsetof(struct xt_string_info, config),
-diff --git a/extensions/libxt_time.c b/extensions/libxt_time.c
-index 1c81260..098fc9c 100644
---- a/extensions/libxt_time.c
-+++ b/extensions/libxt_time.c
-@@ -467,7 +467,7 @@ static void time_save(const void *ip, const struct xt_entry_match *match)
- 
- static struct xtables_match time_match = {
- 	.name          = "time",
--	.family        = AF_UNSPEC,
-+	.family        = NFPROTO_UNSPEC,
- 	.version       = XTABLES_VERSION,
- 	.size          = XT_ALIGN(sizeof(struct xt_time_info)),
- 	.userspacesize = XT_ALIGN(sizeof(struct xt_time_info)),
-diff --git a/extensions/libxt_u32.c b/extensions/libxt_u32.c
-index c2aeb27..8e149c1 100644
---- a/extensions/libxt_u32.c
-+++ b/extensions/libxt_u32.c
-@@ -267,7 +267,7 @@ static void u32_save(const void *ip, const struct xt_entry_match *match)
- 
- static struct xtables_match u32_match = {
- 	.name          = "u32",
--	.family        = AF_UNSPEC,
-+	.family        = NFPROTO_UNSPEC,
- 	.version       = XTABLES_VERSION,
- 	.size          = XT_ALIGN(sizeof(struct xt_u32)),
- 	.userspacesize = XT_ALIGN(sizeof(struct xt_u32)),
+diff --git a/extensions/libip6t_policy.c b/extensions/libip6t_policy.c
+deleted file mode 100644
+index daeff89..0000000
+--- a/extensions/libip6t_policy.c
++++ /dev/null
+@@ -1,432 +0,0 @@
+-/* Shared library add-on to ip6tables to add policy support. */
+-#include <stdio.h>
+-#include <netdb.h>
+-#include <string.h>
+-#include <stdlib.h>
+-#include <syslog.h>
+-#include <getopt.h>
+-#include <netdb.h>
+-#include <errno.h>
+-#include <sys/socket.h>
+-#include <netinet/in.h>
+-#include <arpa/inet.h>
+-#include <xtables.h>
+-#include <libiptc/libip6tc.h>
+-#include <linux/netfilter/xt_policy.h>
+-
+-/*
+- * HACK: global pointer to current matchinfo for making
+- * final checks and adjustments in final_check.
+- */
+-static struct xt_policy_info *policy_info;
+-
+-static void policy_help(void)
+-{
+-	printf(
+-"policy match options:\n"
+-"  --dir in|out			match policy applied during decapsulation/\n"
+-"				policy to be applied during encapsulation\n"
+-"  --pol none|ipsec		match policy\n"
+-"  --strict 			match entire policy instead of single element\n"
+-"				at any position\n"
+-"[!] --reqid reqid		match reqid\n"
+-"[!] --spi spi			match SPI\n"
+-"[!] --proto proto		match protocol (ah/esp/ipcomp)\n"
+-"[!] --mode mode 		match mode (transport/tunnel)\n"
+-"[!] --tunnel-src addr/masklen	match tunnel source\n"
+-"[!] --tunnel-dst addr/masklen	match tunnel destination\n"
+-"  --next 			begin next element in policy\n");
+-}
+-
+-static const struct option policy_opts[] =
+-{
+-	{
+-		.name		= "dir",
+-		.has_arg	= 1,
+-		.val		= '1',
+-	},
+-	{
+-		.name		= "pol",
+-		.has_arg	= 1,
+-		.val		= '2',
+-	},
+-	{
+-		.name		= "strict",
+-		.val		= '3'
+-	},
+-	{
+-		.name		= "reqid",
+-		.has_arg	= 1,
+-		.val		= '4',
+-	},
+-	{
+-		.name		= "spi",
+-		.has_arg	= 1,
+-		.val		= '5'
+-	},
+-	{
+-		.name		= "tunnel-src",
+-		.has_arg	= 1,
+-		.val		= '6'
+-	},
+-	{
+-		.name		= "tunnel-dst",
+-		.has_arg	= 1,
+-		.val		= '7'
+-	},
+-	{
+-		.name		= "proto",
+-		.has_arg	= 1,
+-		.val		= '8'
+-	},
+-	{
+-		.name		= "mode",
+-		.has_arg	= 1,
+-		.val		= '9'
+-	},
+-	{
+-		.name		= "next",
+-		.val		= 'a'
+-	},
+-	{ .name = NULL }
+-};
+-
+-static int parse_direction(char *s)
+-{
+-	if (strcmp(s, "in") == 0)
+-		return XT_POLICY_MATCH_IN;
+-	if (strcmp(s, "out") == 0)
+-		return XT_POLICY_MATCH_OUT;
+-	xtables_error(PARAMETER_PROBLEM, "policy_match: invalid dir \"%s\"", s);
+-}
+-
+-static int parse_policy(char *s)
+-{
+-	if (strcmp(s, "none") == 0)
+-		return XT_POLICY_MATCH_NONE;
+-	if (strcmp(s, "ipsec") == 0)
+-		return 0;
+-	xtables_error(PARAMETER_PROBLEM, "policy match: invalid policy \"%s\"", s);
+-}
+-
+-static int parse_mode(char *s)
+-{
+-	if (strcmp(s, "transport") == 0)
+-		return XT_POLICY_MODE_TRANSPORT;
+-	if (strcmp(s, "tunnel") == 0)
+-		return XT_POLICY_MODE_TUNNEL;
+-	xtables_error(PARAMETER_PROBLEM, "policy match: invalid mode \"%s\"", s);
+-}
+-
+-static int policy_parse(int c, char **argv, int invert, unsigned int *flags,
+-                        const void *entry, struct xt_entry_match **match)
+-{
+-	struct xt_policy_info *info = (void *)(*match)->data;
+-	struct xt_policy_elem *e = &info->pol[info->len];
+-	struct in6_addr *addr = NULL, mask;
+-	unsigned int naddr = 0, num;
+-	int mode;
+-
+-	xtables_check_inverse(optarg, &invert, &optind, 0);
+-
+-	switch (c) {
+-	case '1':
+-		if (info->flags & (XT_POLICY_MATCH_IN|XT_POLICY_MATCH_OUT))
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: double --dir option");
+-		if (invert)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: can't invert --dir option");
+-
+-		info->flags |= parse_direction(argv[optind-1]);
+-		break;
+-	case '2':
+-		if (invert)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: can't invert --policy option");
+-
+-		info->flags |= parse_policy(argv[optind-1]);
+-		break;
+-	case '3':
+-		if (info->flags & XT_POLICY_MATCH_STRICT)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: double --strict option");
+-
+-		if (invert)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: can't invert --strict option");
+-
+-		info->flags |= XT_POLICY_MATCH_STRICT;
+-		break;
+-	case '4':
+-		if (e->match.reqid)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: double --reqid option");
+-
+-		e->match.reqid = 1;
+-		e->invert.reqid = invert;
+-		if (!xtables_strtoui(optarg, NULL, &num, 0, UINT32_MAX))
+-			xtables_param_act(XTF_BAD_VALUE, "policy", "--reqid", optarg);
+-		e->reqid = num;
+-		break;
+-	case '5':
+-		if (e->match.spi)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: double --spi option");
+-
+-		e->match.spi = 1;
+-		e->invert.spi = invert;
+-		if (!xtables_strtoui(optarg, NULL, &num, 0, UINT32_MAX))
+-			xtables_param_act(XTF_BAD_VALUE, "policy", "--spi", optarg);
+-		e->spi = num;
+-		break;
+-	case '6':
+-		if (e->match.saddr)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: double --tunnel-src option");
+-
+-		xtables_ip6parse_any(argv[optind-1], &addr, &mask, &naddr);
+-		if (naddr > 1)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: name resolves to multiple IPs");
+-
+-		e->match.saddr = 1;
+-		e->invert.saddr = invert;
+-		memcpy(&e->saddr.a6, addr, sizeof(*addr));
+-		memcpy(&e->smask.a6, &mask, sizeof(mask));
+-                break;
+-	case '7':
+-		if (e->match.daddr)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: double --tunnel-dst option");
+-
+-		xtables_ip6parse_any(argv[optind-1], &addr, &mask, &naddr);
+-		if (naddr > 1)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: name resolves to multiple IPs");
+-
+-		e->match.daddr = 1;
+-		e->invert.daddr = invert;
+-		memcpy(&e->daddr.a6, addr, sizeof(*addr));
+-		memcpy(&e->dmask.a6, &mask, sizeof(mask));
+-		break;
+-	case '8':
+-		if (e->match.proto)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: double --proto option");
+-
+-		e->proto = xtables_parse_protocol(argv[optind-1]);
+-		if (e->proto != IPPROTO_AH && e->proto != IPPROTO_ESP &&
+-		    e->proto != IPPROTO_COMP)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: protocol must ah/esp/ipcomp");
+-		e->match.proto = 1;
+-		e->invert.proto = invert;
+-		break;
+-	case '9':
+-		if (e->match.mode)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: double --mode option");
+-
+-		mode = parse_mode(argv[optind-1]);
+-		e->match.mode = 1;
+-		e->invert.mode = invert;
+-		e->mode = mode;
+-		break;
+-	case 'a':
+-		if (invert)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: can't invert --next option");
+-
+-		if (++info->len == XT_POLICY_MAX_ELEM)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: maximum policy depth reached");
+-		break;
+-	default:
+-		return 0;
+-	}
+-
+-	policy_info = info;
+-	return 1;
+-}
+-
+-static void policy_check(unsigned int flags)
+-{
+-	struct xt_policy_info *info = policy_info;
+-	struct xt_policy_elem *e;
+-	int i;
+-
+-	if (info == NULL)
+-		xtables_error(PARAMETER_PROBLEM,
+-		           "policy match: no parameters given");
+-
+-	if (!(info->flags & (XT_POLICY_MATCH_IN|XT_POLICY_MATCH_OUT)))
+-		xtables_error(PARAMETER_PROBLEM,
+-		           "policy match: neither --in nor --out specified");
+-
+-	if (info->flags & XT_POLICY_MATCH_NONE) {
+-		if (info->flags & XT_POLICY_MATCH_STRICT)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: policy none but --strict given");
+-
+-		if (info->len != 0)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: policy none but policy given");
+-	} else
+-		info->len++;	/* increase len by 1, no --next after last element */
+-
+-	if (!(info->flags & XT_POLICY_MATCH_STRICT) && info->len > 1)
+-		xtables_error(PARAMETER_PROBLEM,
+-		           "policy match: multiple elements but no --strict");
+-
+-	for (i = 0; i < info->len; i++) {
+-		e = &info->pol[i];
+-
+-                if (info->flags & XT_POLICY_MATCH_STRICT &&
+-		    !(e->match.reqid || e->match.spi || e->match.saddr ||
+-                      e->match.daddr || e->match.proto || e->match.mode))
+-			xtables_error(PARAMETER_PROBLEM,
+-                                   "policy match: empty policy element");
+-
+-		if ((e->match.saddr || e->match.daddr)
+-		    && ((e->mode == XT_POLICY_MODE_TUNNEL && e->invert.mode) ||
+-		        (e->mode == XT_POLICY_MODE_TRANSPORT && !e->invert.mode)))
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: --tunnel-src/--tunnel-dst "
+-			           "is only valid in tunnel mode");
+-	}
+-}
+-
+-static void print_mode(char *prefix, u_int8_t mode, int numeric)
+-{
+-	printf("%smode ", prefix);
+-
+-	switch (mode) {
+-	case XT_POLICY_MODE_TRANSPORT:
+-		printf("transport ");
+-		break;
+-	case XT_POLICY_MODE_TUNNEL:
+-		printf("tunnel ");
+-		break;
+-	default:
+-		printf("??? ");
+-		break;
+-	}
+-}
+-
+-static void print_proto(char *prefix, u_int8_t proto, int numeric)
+-{
+-	struct protoent *p = NULL;
+-
+-	printf("%sproto ", prefix);
+-	if (!numeric)
+-		p = getprotobynumber(proto);
+-	if (p != NULL)
+-		printf("%s ", p->p_name);
+-	else
+-		printf("%u ", proto);
+-}
+-
+-#define PRINT_INVERT(x)		\
+-do {				\
+-	if (x)			\
+-		printf("! ");	\
+-} while(0)
+-
+-static void print_entry(char *prefix, const struct xt_policy_elem *e,
+-                        int numeric)
+-{
+-	if (e->match.reqid) {
+-		PRINT_INVERT(e->invert.reqid);
+-		printf("%sreqid %u ", prefix, e->reqid);
+-	}
+-	if (e->match.spi) {
+-		PRINT_INVERT(e->invert.spi);
+-		printf("%sspi 0x%x ", prefix, e->spi);
+-	}
+-	if (e->match.proto) {
+-		PRINT_INVERT(e->invert.proto);
+-		print_proto(prefix, e->proto, numeric);
+-	}
+-	if (e->match.mode) {
+-		PRINT_INVERT(e->invert.mode);
+-		print_mode(prefix, e->mode, numeric);
+-	}
+-	if (e->match.daddr) {
+-		PRINT_INVERT(e->invert.daddr);
+-		printf("%stunnel-dst %s%s ", prefix,
+-		       xtables_ip6addr_to_numeric(&e->daddr.a6),
+-		       xtables_ip6mask_to_numeric(&e->dmask.a6));
+-	}
+-	if (e->match.saddr) {
+-		PRINT_INVERT(e->invert.saddr);
+-		printf("%stunnel-src %s%s ", prefix,
+-		       xtables_ip6addr_to_numeric(&e->saddr.a6),
+-		       xtables_ip6mask_to_numeric(&e->smask.a6));
+-	}
+-}
+-
+-static void print_flags(char *prefix, const struct xt_policy_info *info)
+-{
+-	if (info->flags & XT_POLICY_MATCH_IN)
+-		printf("%sdir in ", prefix);
+-	else
+-		printf("%sdir out ", prefix);
+-
+-	if (info->flags & XT_POLICY_MATCH_NONE)
+-		printf("%spol none ", prefix);
+-	else
+-		printf("%spol ipsec ", prefix);
+-
+-	if (info->flags & XT_POLICY_MATCH_STRICT)
+-		printf("%sstrict ", prefix);
+-}
+-
+-static void policy_print(const void *ip, const struct xt_entry_match *match,
+-                         int numeric)
+-{
+-	const struct xt_policy_info *info = (void *)match->data;
+-	unsigned int i;
+-
+-	printf("policy match ");
+-	print_flags("", info);
+-	for (i = 0; i < info->len; i++) {
+-		if (info->len > 1)
+-			printf("[%u] ", i);
+-		print_entry("", &info->pol[i], numeric);
+-	}
+-
+-	printf("\n");
+-}
+-
+-static void policy_save(const void *ip, const struct xt_entry_match *match)
+-{
+-	const struct xt_policy_info *info = (void *)match->data;
+-	unsigned int i;
+-
+-	print_flags("--", info);
+-	for (i = 0; i < info->len; i++) {
+-		print_entry("--", &info->pol[i], 0);
+-		if (i + 1 < info->len)
+-			printf("--next ");
+-	}
+-}
+-
+-static struct xtables_match policy_mt6_reg = {
+-	.name		= "policy",
+-	.version	= XTABLES_VERSION,
+-	.family		= NFPROTO_IPV6,
+-	.size		= XT_ALIGN(sizeof(struct xt_policy_info)),
+-	.userspacesize	= XT_ALIGN(sizeof(struct xt_policy_info)),
+-	.help		= policy_help,
+-	.parse		= policy_parse,
+-	.final_check	= policy_check,
+-	.print		= policy_print,
+-	.save		= policy_save,
+-	.extra_opts	= policy_opts,
+-};
+-
+-void _init(void)
+-{
+-	xtables_register_match(&policy_mt6_reg);
+-}
+diff --git a/extensions/libipt_policy.c b/extensions/libipt_policy.c
+deleted file mode 100644
+index d6bad00..0000000
+--- a/extensions/libipt_policy.c
++++ /dev/null
+@@ -1,430 +0,0 @@
+-/* Shared library add-on to iptables to add policy support. */
+-#include <stdio.h>
+-#include <netdb.h>
+-#include <string.h>
+-#include <stdlib.h>
+-#include <syslog.h>
+-#include <getopt.h>
+-#include <netdb.h>
+-#include <errno.h>
+-#include <sys/socket.h>
+-#include <netinet/in.h>
+-#include <arpa/inet.h>
+-#include <xtables.h>
+-
+-#include <linux/netfilter/xt_policy.h>
+-
+-/*
+- * HACK: global pointer to current matchinfo for making
+- * final checks and adjustments in final_check.
+- */
+-static struct xt_policy_info *policy_info;
+-
+-static void policy_help(void)
+-{
+-	printf(
+-"policy match options:\n"
+-"  --dir in|out			match policy applied during decapsulation/\n"
+-"				policy to be applied during encapsulation\n"
+-"  --pol none|ipsec		match policy\n"
+-"  --strict 			match entire policy instead of single element\n"
+-"				at any position\n"
+-"[!] --reqid reqid		match reqid\n"
+-"[!] --spi spi			match SPI\n"
+-"[!] --proto proto		match protocol (ah/esp/ipcomp)\n"
+-"[!] --mode mode 		match mode (transport/tunnel)\n"
+-"[!] --tunnel-src addr/mask	match tunnel source\n"
+-"[!] --tunnel-dst addr/mask	match tunnel destination\n"
+-"  --next 			begin next element in policy\n");
+-}
+-
+-static const struct option policy_opts[] =
+-{
+-	{
+-		.name		= "dir",
+-		.has_arg	= 1,
+-		.val		= '1',
+-	},
+-	{
+-		.name		= "pol",
+-		.has_arg	= 1,
+-		.val		= '2',
+-	},
+-	{
+-		.name		= "strict",
+-		.val		= '3'
+-	},
+-	{
+-		.name		= "reqid",
+-		.has_arg	= 1,
+-		.val		= '4',
+-	},
+-	{
+-		.name		= "spi",
+-		.has_arg	= 1,
+-		.val		= '5'
+-	},
+-	{
+-		.name		= "tunnel-src",
+-		.has_arg	= 1,
+-		.val		= '6'
+-	},
+-	{
+-		.name		= "tunnel-dst",
+-		.has_arg	= 1,
+-		.val		= '7'
+-	},
+-	{
+-		.name		= "proto",
+-		.has_arg	= 1,
+-		.val		= '8'
+-	},
+-	{
+-		.name		= "mode",
+-		.has_arg	= 1,
+-		.val		= '9'
+-	},
+-	{
+-		.name		= "next",
+-		.val		= 'a'
+-	},
+-	{ .name = NULL }
+-};
+-
+-static int parse_direction(char *s)
+-{
+-	if (strcmp(s, "in") == 0)
+-		return XT_POLICY_MATCH_IN;
+-	if (strcmp(s, "out") == 0)
+-		return XT_POLICY_MATCH_OUT;
+-	xtables_error(PARAMETER_PROBLEM, "policy_match: invalid dir \"%s\"", s);
+-}
+-
+-static int parse_policy(char *s)
+-{
+-	if (strcmp(s, "none") == 0)
+-		return XT_POLICY_MATCH_NONE;
+-	if (strcmp(s, "ipsec") == 0)
+-		return 0;
+-	xtables_error(PARAMETER_PROBLEM, "policy match: invalid policy \"%s\"", s);
+-}
+-
+-static int parse_mode(char *s)
+-{
+-	if (strcmp(s, "transport") == 0)
+-		return XT_POLICY_MODE_TRANSPORT;
+-	if (strcmp(s, "tunnel") == 0)
+-		return XT_POLICY_MODE_TUNNEL;
+-	xtables_error(PARAMETER_PROBLEM, "policy match: invalid mode \"%s\"", s);
+-}
+-
+-static int policy_parse(int c, char **argv, int invert, unsigned int *flags,
+-                        const void *entry, struct xt_entry_match **match)
+-{
+-	struct xt_policy_info *info = (void *)(*match)->data;
+-	struct xt_policy_elem *e = &info->pol[info->len];
+-	struct in_addr *addr = NULL, mask;
+-	unsigned int naddr = 0, num;
+-	int mode;
+-
+-	xtables_check_inverse(optarg, &invert, &optind, 0);
+-
+-	switch (c) {
+-	case '1':
+-		if (info->flags & (XT_POLICY_MATCH_IN | XT_POLICY_MATCH_OUT))
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: double --dir option");
+-		if (invert)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: can't invert --dir option");
+-
+-		info->flags |= parse_direction(argv[optind-1]);
+-		break;
+-	case '2':
+-		if (invert)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: can't invert --policy option");
+-
+-		info->flags |= parse_policy(argv[optind-1]);
+-		break;
+-	case '3':
+-		if (info->flags & XT_POLICY_MATCH_STRICT)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: double --strict option");
+-
+-		if (invert)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: can't invert --strict option");
+-
+-		info->flags |= XT_POLICY_MATCH_STRICT;
+-		break;
+-	case '4':
+-		if (e->match.reqid)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: double --reqid option");
+-
+-		e->match.reqid = 1;
+-		e->invert.reqid = invert;
+-		if (!xtables_strtoui(optarg, NULL, &num, 0, UINT32_MAX))
+-			xtables_param_act(XTF_BAD_VALUE, "policy", "--spi", optarg);
+-		e->reqid = num;
+-		break;
+-	case '5':
+-		if (e->match.spi)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: double --spi option");
+-
+-		e->match.spi = 1;
+-		e->invert.spi = invert;
+-		if (!xtables_strtoui(optarg, NULL, &num, 0, UINT32_MAX))
+-			xtables_param_act(XTF_BAD_VALUE, "policy", "--spi", optarg);
+-		e->spi = num;
+-		break;
+-	case '6':
+-		if (e->match.saddr)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: double --tunnel-src option");
+-
+-		xtables_ipparse_any(argv[optind-1], &addr, &mask, &naddr);
+-		if (naddr > 1)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: name resolves to multiple IPs");
+-
+-		e->match.saddr = 1;
+-		e->invert.saddr = invert;
+-		e->saddr.a4 = addr[0];
+-		e->smask.a4 = mask;
+-                break;
+-	case '7':
+-		if (e->match.daddr)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: double --tunnel-dst option");
+-
+-		xtables_ipparse_any(argv[optind-1], &addr, &mask, &naddr);
+-		if (naddr > 1)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: name resolves to multiple IPs");
+-
+-		e->match.daddr = 1;
+-		e->invert.daddr = invert;
+-		e->daddr.a4 = addr[0];
+-		e->dmask.a4 = mask;
+-		break;
+-	case '8':
+-		if (e->match.proto)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: double --proto option");
+-
+-		e->proto = xtables_parse_protocol(argv[optind-1]);
+-		if (e->proto != IPPROTO_AH && e->proto != IPPROTO_ESP &&
+-		    e->proto != IPPROTO_COMP)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: protocol must ah/esp/ipcomp");
+-		e->match.proto = 1;
+-		e->invert.proto = invert;
+-		break;
+-	case '9':
+-		if (e->match.mode)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: double --mode option");
+-
+-		mode = parse_mode(argv[optind-1]);
+-		e->match.mode = 1;
+-		e->invert.mode = invert;
+-		e->mode = mode;
+-		break;
+-	case 'a':
+-		if (invert)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: can't invert --next option");
+-
+-		if (++info->len == XT_POLICY_MAX_ELEM)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: maximum policy depth reached");
+-		break;
+-	default:
+-		return 0;
+-	}
+-
+-	policy_info = info;
+-	return 1;
+-}
+-
+-static void policy_check(unsigned int flags)
+-{
+-	struct xt_policy_info *info = policy_info;
+-	struct xt_policy_elem *e;
+-	int i;
+-
+-	if (info == NULL)
+-		xtables_error(PARAMETER_PROBLEM,
+-		           "policy match: no parameters given");
+-
+-	if (!(info->flags & (XT_POLICY_MATCH_IN | XT_POLICY_MATCH_OUT)))
+-		xtables_error(PARAMETER_PROBLEM,
+-		           "policy match: neither --in nor --out specified");
+-
+-	if (info->flags & XT_POLICY_MATCH_NONE) {
+-		if (info->flags & XT_POLICY_MATCH_STRICT)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: policy none but --strict given");
+-
+-		if (info->len != 0)
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: policy none but policy given");
+-	} else
+-		info->len++;	/* increase len by 1, no --next after last element */
+-
+-	if (!(info->flags & XT_POLICY_MATCH_STRICT) && info->len > 1)
+-		xtables_error(PARAMETER_PROBLEM,
+-		           "policy match: multiple elements but no --strict");
+-
+-	for (i = 0; i < info->len; i++) {
+-		e = &info->pol[i];
+-
+-		if (info->flags & XT_POLICY_MATCH_STRICT &&
+-		    !(e->match.reqid || e->match.spi || e->match.saddr ||
+-		      e->match.daddr || e->match.proto || e->match.mode))
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: empty policy element");
+-
+-		if ((e->match.saddr || e->match.daddr)
+-		    && ((e->mode == XT_POLICY_MODE_TUNNEL && e->invert.mode) ||
+-		        (e->mode == XT_POLICY_MODE_TRANSPORT && !e->invert.mode)))
+-			xtables_error(PARAMETER_PROBLEM,
+-			           "policy match: --tunnel-src/--tunnel-dst "
+-			           "is only valid in tunnel mode");
+-	}
+-}
+-
+-static void print_mode(char *prefix, u_int8_t mode, int numeric)
+-{
+-	printf("%smode ", prefix);
+-
+-	switch (mode) {
+-	case XT_POLICY_MODE_TRANSPORT:
+-		printf("transport ");
+-		break;
+-	case XT_POLICY_MODE_TUNNEL:
+-		printf("tunnel ");
+-		break;
+-	default:
+-		printf("??? ");
+-		break;
+-	}
+-}
+-
+-static void print_proto(char *prefix, u_int8_t proto, int numeric)
+-{
+-	struct protoent *p = NULL;
+-
+-	printf("%sproto ", prefix);
+-	if (!numeric)
+-		p = getprotobynumber(proto);
+-	if (p != NULL)
+-		printf("%s ", p->p_name);
+-	else
+-		printf("%u ", proto);
+-}
+-
+-#define PRINT_INVERT(x)		\
+-do {				\
+-	if (x)			\
+-		printf("! ");	\
+-} while(0)
+-
+-static void print_entry(char *prefix, const struct xt_policy_elem *e,
+-                        int numeric)
+-{
+-	if (e->match.reqid) {
+-		PRINT_INVERT(e->invert.reqid);
+-		printf("%sreqid %u ", prefix, e->reqid);
+-	}
+-	if (e->match.spi) {
+-		PRINT_INVERT(e->invert.spi);
+-		printf("%sspi 0x%x ", prefix, e->spi);
+-	}
+-	if (e->match.proto) {
+-		PRINT_INVERT(e->invert.proto);
+-		print_proto(prefix, e->proto, numeric);
+-	}
+-	if (e->match.mode) {
+-		PRINT_INVERT(e->invert.mode);
+-		print_mode(prefix, e->mode, numeric);
+-	}
+-	if (e->match.daddr) {
+-		PRINT_INVERT(e->invert.daddr);
+-		printf("%stunnel-dst %s%s ", prefix,
+-		       xtables_ipaddr_to_numeric((const void *)&e->daddr),
+-		       xtables_ipmask_to_numeric((const void *)&e->dmask));
+-	}
+-	if (e->match.saddr) {
+-		PRINT_INVERT(e->invert.saddr);
+-		printf("%stunnel-src %s%s ", prefix,
+-		       xtables_ipaddr_to_numeric((const void *)&e->saddr),
+-		       xtables_ipmask_to_numeric((const void *)&e->smask));
+-	}
+-}
+-
+-static void print_flags(char *prefix, const struct xt_policy_info *info)
+-{
+-	if (info->flags & XT_POLICY_MATCH_IN)
+-		printf("%sdir in ", prefix);
+-	else
+-		printf("%sdir out ", prefix);
+-
+-	if (info->flags & XT_POLICY_MATCH_NONE)
+-		printf("%spol none ", prefix);
+-	else
+-		printf("%spol ipsec ", prefix);
+-
+-	if (info->flags & XT_POLICY_MATCH_STRICT)
+-		printf("%sstrict ", prefix);
+-}
+-
+-static void policy_print(const void *ip, const struct xt_entry_match *match,
+-                         int numeric)
+-{
+-	const struct xt_policy_info *info = (void *)match->data;
+-	unsigned int i;
+-
+-	printf("policy match ");
+-	print_flags("", info);
+-	for (i = 0; i < info->len; i++) {
+-		if (info->len > 1)
+-			printf("[%u] ", i);
+-		print_entry("", &info->pol[i], numeric);
+-	}
+-}
+-
+-static void policy_save(const void *ip, const struct xt_entry_match *match)
+-{
+-	const struct xt_policy_info *info = (void *)match->data;
+-	unsigned int i;
+-
+-	print_flags("--", info);
+-	for (i = 0; i < info->len; i++) {
+-		print_entry("--", &info->pol[i], 0);
+-		if (i + 1 < info->len)
+-			printf("--next ");
+-	}
+-}
+-
+-static struct xtables_match policy_mt_reg = {
+-	.name		= "policy",
+-	.version	= XTABLES_VERSION,
+-	.family		= NFPROTO_IPV4,
+-	.size		= XT_ALIGN(sizeof(struct xt_policy_info)),
+-	.userspacesize	= XT_ALIGN(sizeof(struct xt_policy_info)),
+-	.help		= policy_help,
+-	.parse		= policy_parse,
+-	.final_check	= policy_check,
+-	.print		= policy_print,
+-	.save		= policy_save,
+-	.extra_opts	= policy_opts,
+-};
+-
+-void _init(void)
+-{
+-	xtables_register_match(&policy_mt_reg);
+-}
+diff --git a/extensions/libxt_policy.c b/extensions/libxt_policy.c
+new file mode 100644
+index 0000000..d17b1bb
+--- /dev/null
++++ b/extensions/libxt_policy.c
+@@ -0,0 +1,513 @@
++/* Shared library add-on to iptables to add policy support. */
++#include <stdio.h>
++#include <netdb.h>
++#include <string.h>
++#include <stdlib.h>
++#include <syslog.h>
++#include <getopt.h>
++#include <netdb.h>
++#include <errno.h>
++#include <sys/socket.h>
++#include <netinet/in.h>
++#include <arpa/inet.h>
++#include <xtables.h>
++
++#include <linux/netfilter/xt_policy.h>
++
++/*
++ * HACK: global pointer to current matchinfo for making
++ * final checks and adjustments in final_check.
++ */
++static struct xt_policy_info *policy_info;
++
++static void policy_help(void)
++{
++	printf(
++"policy match options:\n"
++"  --dir in|out			match policy applied during decapsulation/\n"
++"				policy to be applied during encapsulation\n"
++"  --pol none|ipsec		match policy\n"
++"  --strict 			match entire policy instead of single element\n"
++"				at any position\n"
++"[!] --reqid reqid		match reqid\n"
++"[!] --spi spi			match SPI\n"
++"[!] --proto proto		match protocol (ah/esp/ipcomp)\n"
++"[!] --mode mode 		match mode (transport/tunnel)\n"
++"[!] --tunnel-src addr/mask	match tunnel source\n"
++"[!] --tunnel-dst addr/mask	match tunnel destination\n"
++"  --next 			begin next element in policy\n");
++}
++
++static const struct option policy_opts[] =
++{
++	{
++		.name		= "dir",
++		.has_arg	= 1,
++		.val		= '1',
++	},
++	{
++		.name		= "pol",
++		.has_arg	= 1,
++		.val		= '2',
++	},
++	{
++		.name		= "strict",
++		.val		= '3'
++	},
++	{
++		.name		= "reqid",
++		.has_arg	= 1,
++		.val		= '4',
++	},
++	{
++		.name		= "spi",
++		.has_arg	= 1,
++		.val		= '5'
++	},
++	{
++		.name		= "tunnel-src",
++		.has_arg	= 1,
++		.val		= '6'
++	},
++	{
++		.name		= "tunnel-dst",
++		.has_arg	= 1,
++		.val		= '7'
++	},
++	{
++		.name		= "proto",
++		.has_arg	= 1,
++		.val		= '8'
++	},
++	{
++		.name		= "mode",
++		.has_arg	= 1,
++		.val		= '9'
++	},
++	{
++		.name		= "next",
++		.val		= 'a'
++	},
++	{ .name = NULL }
++};
++
++static int parse_direction(char *s)
++{
++	if (strcmp(s, "in") == 0)
++		return XT_POLICY_MATCH_IN;
++	if (strcmp(s, "out") == 0)
++		return XT_POLICY_MATCH_OUT;
++	xtables_error(PARAMETER_PROBLEM, "policy_match: invalid dir \"%s\"", s);
++}
++
++static int parse_policy(char *s)
++{
++	if (strcmp(s, "none") == 0)
++		return XT_POLICY_MATCH_NONE;
++	if (strcmp(s, "ipsec") == 0)
++		return 0;
++	xtables_error(PARAMETER_PROBLEM, "policy match: invalid policy \"%s\"", s);
++}
++
++static int parse_mode(char *s)
++{
++	if (strcmp(s, "transport") == 0)
++		return XT_POLICY_MODE_TRANSPORT;
++	if (strcmp(s, "tunnel") == 0)
++		return XT_POLICY_MODE_TUNNEL;
++	xtables_error(PARAMETER_PROBLEM, "policy match: invalid mode \"%s\"", s);
++}
++
++static int policy_parse(int c, int invert, unsigned int *flags,
++                        struct xt_policy_info *info, uint8_t family)
++{
++	struct xt_policy_elem *e = &info->pol[info->len];
++	struct in_addr *addr = NULL, mask;
++	struct in6_addr *addr6 = NULL, mask6;
++	unsigned int naddr = 0, num;
++	int mode;
++
++	xtables_check_inverse(optarg, &invert, &optind, 0);
++
++	switch (c) {
++	case '1':
++		if (info->flags & (XT_POLICY_MATCH_IN | XT_POLICY_MATCH_OUT))
++			xtables_error(PARAMETER_PROBLEM,
++			           "policy match: double --dir option");
++		if (invert)
++			xtables_error(PARAMETER_PROBLEM,
++			           "policy match: can't invert --dir option");
++
++		info->flags |= parse_direction(optarg);
++		break;
++	case '2':
++		if (invert)
++			xtables_error(PARAMETER_PROBLEM,
++			           "policy match: can't invert --policy option");
++
++		info->flags |= parse_policy(optarg);
++		break;
++	case '3':
++		if (info->flags & XT_POLICY_MATCH_STRICT)
++			xtables_error(PARAMETER_PROBLEM,
++			           "policy match: double --strict option");
++
++		if (invert)
++			xtables_error(PARAMETER_PROBLEM,
++			           "policy match: can't invert --strict option");
++
++		info->flags |= XT_POLICY_MATCH_STRICT;
++		break;
++	case '4':
++		if (e->match.reqid)
++			xtables_error(PARAMETER_PROBLEM,
++			           "policy match: double --reqid option");
++
++		e->match.reqid = 1;
++		e->invert.reqid = invert;
++		if (!xtables_strtoui(optarg, NULL, &num, 0, UINT32_MAX))
++			xtables_param_act(XTF_BAD_VALUE, "policy", "--spi", optarg);
++		e->reqid = num;
++		break;
++	case '5':
++		if (e->match.spi)
++			xtables_error(PARAMETER_PROBLEM,
++			           "policy match: double --spi option");
++
++		e->match.spi = 1;
++		e->invert.spi = invert;
++		if (!xtables_strtoui(optarg, NULL, &num, 0, UINT32_MAX))
++			xtables_param_act(XTF_BAD_VALUE, "policy", "--spi", optarg);
++		e->spi = num;
++		break;
++	case '6':
++		if (e->match.saddr)
++			xtables_error(PARAMETER_PROBLEM,
++			           "policy match: double --tunnel-src option");
++
++		if (family == NFPROTO_IPV6)
++			xtables_ip6parse_any(optarg, &addr6, &mask6, &naddr);
++		else
++			xtables_ipparse_any(optarg, &addr, &mask, &naddr);
++		if (naddr > 1)
++			xtables_error(PARAMETER_PROBLEM,
++			           "policy match: name resolves to multiple IPs");
++
++		e->match.saddr = 1;
++		e->invert.saddr = invert;
++		if (family == NFPROTO_IPV6) {
++			memcpy(&e->saddr.a6, addr6, sizeof(*addr6));
++			memcpy(&e->smask.a6, &mask6, sizeof(mask6));
++		} else {
++			e->saddr.a4 = addr[0];
++			e->smask.a4 = mask;
++		}
++                break;
++	case '7':
++		if (e->match.daddr)
++			xtables_error(PARAMETER_PROBLEM,
++			           "policy match: double --tunnel-dst option");
++
++		if (family == NFPROTO_IPV6)
++			xtables_ip6parse_any(optarg, &addr6, &mask6, &naddr);
++		else
++			xtables_ipparse_any(optarg, &addr, &mask, &naddr);
++		if (naddr > 1)
++			xtables_error(PARAMETER_PROBLEM,
++			           "policy match: name resolves to multiple IPs");
++
++		e->match.daddr = 1;
++		e->invert.daddr = invert;
++		if (family == NFPROTO_IPV6) {
++			memcpy(&e->daddr.a6, addr6, sizeof(*addr6));
++			memcpy(&e->dmask.a6, &mask6, sizeof(mask6));
++		} else {
++			e->daddr.a4 = addr[0];
++			e->dmask.a4 = mask;
++		}
++		break;
++	case '8':
++		if (e->match.proto)
++			xtables_error(PARAMETER_PROBLEM,
++			           "policy match: double --proto option");
++
++		e->proto = xtables_parse_protocol(optarg);
++		if (e->proto != IPPROTO_AH && e->proto != IPPROTO_ESP &&
++		    e->proto != IPPROTO_COMP)
++			xtables_error(PARAMETER_PROBLEM,
++			           "policy match: protocol must ah/esp/ipcomp");
++		e->match.proto = 1;
++		e->invert.proto = invert;
++		break;
++	case '9':
++		if (e->match.mode)
++			xtables_error(PARAMETER_PROBLEM,
++			           "policy match: double --mode option");
++
++		mode = parse_mode(optarg);
++		e->match.mode = 1;
++		e->invert.mode = invert;
++		e->mode = mode;
++		break;
++	case 'a':
++		if (invert)
++			xtables_error(PARAMETER_PROBLEM,
++			           "policy match: can't invert --next option");
++
++		if (++info->len == XT_POLICY_MAX_ELEM)
++			xtables_error(PARAMETER_PROBLEM,
++			           "policy match: maximum policy depth reached");
++		break;
++	default:
++		return 0;
++	}
++
++	policy_info = info;
++	return 1;
++}
++
++static int policy4_parse(int c, char **argv, int invert, unsigned int *flags,
++                         const void *entry, struct xt_entry_match **match)
++{
++	return policy_parse(c, invert, flags, (void *)(*match)->data,
++	       NFPROTO_IPV4);
++}
++
++static int policy6_parse(int c, char **argv, int invert, unsigned int *flags,
++                        const void *entry, struct xt_entry_match **match)
++{
++	return policy_parse(c, invert, flags, (void *)(*match)->data,
++	       NFPROTO_IPV6);
++}
++
++static void policy_check(unsigned int flags)
++{
++	struct xt_policy_info *info = policy_info;
++	struct xt_policy_elem *e;
++	int i;
++
++	if (info == NULL)
++		xtables_error(PARAMETER_PROBLEM,
++		           "policy match: no parameters given");
++
++	if (!(info->flags & (XT_POLICY_MATCH_IN | XT_POLICY_MATCH_OUT)))
++		xtables_error(PARAMETER_PROBLEM,
++		           "policy match: neither --in nor --out specified");
++
++	if (info->flags & XT_POLICY_MATCH_NONE) {
++		if (info->flags & XT_POLICY_MATCH_STRICT)
++			xtables_error(PARAMETER_PROBLEM,
++			           "policy match: policy none but --strict given");
++
++		if (info->len != 0)
++			xtables_error(PARAMETER_PROBLEM,
++			           "policy match: policy none but policy given");
++	} else
++		info->len++;	/* increase len by 1, no --next after last element */
++
++	if (!(info->flags & XT_POLICY_MATCH_STRICT) && info->len > 1)
++		xtables_error(PARAMETER_PROBLEM,
++		           "policy match: multiple elements but no --strict");
++
++	for (i = 0; i < info->len; i++) {
++		e = &info->pol[i];
++
++		if (info->flags & XT_POLICY_MATCH_STRICT &&
++		    !(e->match.reqid || e->match.spi || e->match.saddr ||
++		      e->match.daddr || e->match.proto || e->match.mode))
++			xtables_error(PARAMETER_PROBLEM,
++			           "policy match: empty policy element");
++
++		if ((e->match.saddr || e->match.daddr)
++		    && ((e->mode == XT_POLICY_MODE_TUNNEL && e->invert.mode) ||
++		        (e->mode == XT_POLICY_MODE_TRANSPORT && !e->invert.mode)))
++			xtables_error(PARAMETER_PROBLEM,
++			           "policy match: --tunnel-src/--tunnel-dst "
++			           "is only valid in tunnel mode");
++	}
++}
++
++static void print_mode(const char *prefix, u_int8_t mode, int numeric)
++{
++	printf("%smode ", prefix);
++
++	switch (mode) {
++	case XT_POLICY_MODE_TRANSPORT:
++		printf("transport ");
++		break;
++	case XT_POLICY_MODE_TUNNEL:
++		printf("tunnel ");
++		break;
++	default:
++		printf("??? ");
++		break;
++	}
++}
++
++static void print_proto(const char *prefix, u_int8_t proto, int numeric)
++{
++	struct protoent *p = NULL;
++
++	printf("%sproto ", prefix);
++	if (!numeric)
++		p = getprotobynumber(proto);
++	if (p != NULL)
++		printf("%s ", p->p_name);
++	else
++		printf("%u ", proto);
++}
++
++#define PRINT_INVERT(x)		\
++do {				\
++	if (x)			\
++		printf("! ");	\
++} while(0)
++
++static void print_entry(const char *prefix, const struct xt_policy_elem *e,
++                        bool numeric, uint8_t family)
++{
++	if (e->match.reqid) {
++		PRINT_INVERT(e->invert.reqid);
++		printf("%sreqid %u ", prefix, e->reqid);
++	}
++	if (e->match.spi) {
++		PRINT_INVERT(e->invert.spi);
++		printf("%sspi 0x%x ", prefix, e->spi);
++	}
++	if (e->match.proto) {
++		PRINT_INVERT(e->invert.proto);
++		print_proto(prefix, e->proto, numeric);
++	}
++	if (e->match.mode) {
++		PRINT_INVERT(e->invert.mode);
++		print_mode(prefix, e->mode, numeric);
++	}
++	if (e->match.daddr) {
++		PRINT_INVERT(e->invert.daddr);
++		if (family == NFPROTO_IPV6)
++			printf("%stunnel-dst %s%s ", prefix,
++			       xtables_ip6addr_to_numeric(&e->daddr.a6),
++			       xtables_ip6mask_to_numeric(&e->dmask.a6));
++		else
++			printf("%stunnel-dst %s%s ", prefix,
++			       xtables_ipaddr_to_numeric(&e->daddr.a4),
++			       xtables_ipmask_to_numeric(&e->dmask.a4));
++	}
++	if (e->match.saddr) {
++		PRINT_INVERT(e->invert.saddr);
++		if (family == NFPROTO_IPV6)
++			printf("%stunnel-src %s%s ", prefix,
++			       xtables_ip6addr_to_numeric(&e->saddr.a6),
++			       xtables_ip6mask_to_numeric(&e->smask.a6));
++		else
++			printf("%stunnel-src %s%s ", prefix,
++			       xtables_ipaddr_to_numeric(&e->saddr.a4),
++			       xtables_ipmask_to_numeric(&e->smask.a4));
++	}
++}
++
++static void print_flags(char *prefix, const struct xt_policy_info *info)
++{
++	if (info->flags & XT_POLICY_MATCH_IN)
++		printf("%sdir in ", prefix);
++	else
++		printf("%sdir out ", prefix);
++
++	if (info->flags & XT_POLICY_MATCH_NONE)
++		printf("%spol none ", prefix);
++	else
++		printf("%spol ipsec ", prefix);
++
++	if (info->flags & XT_POLICY_MATCH_STRICT)
++		printf("%sstrict ", prefix);
++}
++
++static void policy4_print(const void *ip, const struct xt_entry_match *match,
++                          int numeric)
++{
++	const struct xt_policy_info *info = (void *)match->data;
++	unsigned int i;
++
++	printf("policy match ");
++	print_flags("", info);
++	for (i = 0; i < info->len; i++) {
++		if (info->len > 1)
++			printf("[%u] ", i);
++		print_entry("", &info->pol[i], numeric, NFPROTO_IPV4);
++	}
++}
++
++static void policy6_print(const void *ip, const struct xt_entry_match *match,
++                          int numeric)
++{
++	const struct xt_policy_info *info = (void *)match->data;
++	unsigned int i;
++
++	printf("policy match ");
++	print_flags("", info);
++	for (i = 0; i < info->len; i++) {
++		if (info->len > 1)
++			printf("[%u] ", i);
++		print_entry("", &info->pol[i], numeric, NFPROTO_IPV6);
++	}
++}
++
++static void policy4_save(const void *ip, const struct xt_entry_match *match)
++{
++	const struct xt_policy_info *info = (void *)match->data;
++	unsigned int i;
++
++	print_flags("--", info);
++	for (i = 0; i < info->len; i++) {
++		print_entry("--", &info->pol[i], false, NFPROTO_IPV4);
++		if (i + 1 < info->len)
++			printf("--next ");
++	}
++}
++
++static void policy6_save(const void *ip, const struct xt_entry_match *match)
++{
++	const struct xt_policy_info *info = (void *)match->data;
++	unsigned int i;
++
++	print_flags("--", info);
++	for (i = 0; i < info->len; i++) {
++		print_entry("--", &info->pol[i], false, NFPROTO_IPV6);
++		if (i + 1 < info->len)
++			printf("--next ");
++	}
++}
++
++static struct xtables_match policy_mt_reg = {
++	.name		= "policy",
++	.version	= XTABLES_VERSION,
++	.family		= NFPROTO_IPV4,
++	.size		= XT_ALIGN(sizeof(struct xt_policy_info)),
++	.userspacesize	= XT_ALIGN(sizeof(struct xt_policy_info)),
++	.help		= policy_help,
++	.parse		= policy4_parse,
++	.final_check	= policy_check,
++	.print		= policy4_print,
++	.save		= policy4_save,
++	.extra_opts	= policy_opts,
++};
++
++static struct xtables_match policy_mt6_reg = {
++	.name		= "policy",
++	.version	= XTABLES_VERSION,
++	.family		= NFPROTO_IPV6,
++	.size		= XT_ALIGN(sizeof(struct xt_policy_info)),
++	.userspacesize	= XT_ALIGN(sizeof(struct xt_policy_info)),
++	.help		= policy_help,
++	.parse		= policy6_parse,
++	.final_check	= policy_check,
++	.print		= policy6_print,
++	.save		= policy6_save,
++	.extra_opts	= policy_opts,
++};
++
++void _init(void)
++{
++	xtables_register_match(&policy_mt_reg);
++	xtables_register_match(&policy_mt6_reg);
++}
 -- 
 1.6.3.1
 
