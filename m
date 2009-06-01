@@ -1,48 +1,38 @@
-From: Saatvik Agarwal <saatvik.agarwal@stanford.edu>
-Subject: Re: [PATCH] TCP simultaneous open support
-Date: Sun, 31 May 2009 17:50:09 -0700
-Message-ID: <4ddb24250905311750q33f6193fi12dda710d75b2b28@mail.gmail.com>
-References: <alpine.DEB.2.00.0905311614330.760@blackhole.kfki.hu>
-	 <alpine.DEB.2.00.0905311631480.760@blackhole.kfki.hu>
-	 <4ddb24250905311604o8d0f2c2l9ba3984ae296a009@mail.gmail.com>
-	 <alpine.LSU.2.00.0906010149510.12927@fbirervta.pbzchgretzou.qr>
-Reply-To: saatvik.agarwal@stanford.edu
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] fix "manpages: do not include v4-only modules in ip6tables
+ manpage"
+Date: Mon, 01 Jun 2009 10:58:30 +0200
+Message-ID: <4A239836.3020400@netfilter.org>
+References: <1243788616-375-1-git-send-email-fw@strlen.de> <alpine.LSU.2.00.0905312220210.815@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from yx-out-2324.google.com ([74.125.44.29]:15698 "EHLO
-	yx-out-2324.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752505AbZFAAuH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 31 May 2009 20:50:07 -0400
-Received: by yx-out-2324.google.com with SMTP id 3so4026344yxj.1
-        for <netfilter-devel@vger.kernel.org>; Sun, 31 May 2009 17:50:09 -0700 (PDT)
-In-Reply-To: <alpine.LSU.2.00.0906010149510.12927@fbirervta.pbzchgretzou.qr>
+Received: from mail.us.es ([193.147.175.20]:56648 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752835AbZFAI6i (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 1 Jun 2009 04:58:38 -0400
+In-Reply-To: <alpine.LSU.2.00.0905312220210.815@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hmm. I tried both the latest RC and the latest stable release. Same
-problem. For example, the arrays in chunk 2 & 3 of nf_conntrack_tcp.h
-are significantly longer in the latest release than indicated in the
-diff. Am I missing something?
+Jan Engelhardt wrote:
+> On Sunday 2009-05-31 18:50, Florian Westphal wrote:
+> 
+>> previous commit tries to skip v4-only module manpages
+>> by searching for NFPROTO_IPV(4|6) -- in the man page itself.
+>>
+>> Searching the .c file instead is not sufficient:
+>> - there is at least one page (libxt_policy) without a libxt_*c
+>> - there are targets/modules which use family AF_UNSPEC.
+> 
+> No, this one misses manpages too... Bah, time to eradicate the ip/ip6/
+> name mess.
 
-Thanks,
-Saatvik
+Florian is trying to help fixing this broken feature that you
+introduced. Why don't you tell him what pages are missing?
 
-On 5/31/09, Jan Engelhardt <jengelh@medozas.de> wrote:
->
->  On Monday 2009-06-01 01:04, Saatvik Agarwal wrote:
->
->  >Hi Jozsef,
->  >
->  >Thanks a lot for the patch. What version of the kernel/netfilter code
->  >is this patch intended for? I'm running debian 2.6.26 (lenny) and I
->  >can't patch my source. 14 out of the 15 hunks fail.
->
->
-> Often enough, whatever is cooking in Linus's (i.e. 2.6.30-rc currently).
->
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
