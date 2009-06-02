@@ -1,58 +1,45 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 3/7] netfilter: ctnetlink: cleanup message building and
- size	calculation
-Date: Tue, 02 Jun 2009 16:52:26 +0200
-Message-ID: <4A253CAA.4090906@trash.net>
-References: <20090602114933.7677.25219.stgit@Decadence> <20090602115235.7677.91307.stgit@Decadence> <4A252506.9050604@trash.net> <4A253BE1.9090006@netfilter.org>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [RFD,patch] ICMP echo conntrack timeout
+Date: Tue, 02 Jun 2009 16:53:57 +0200
+Message-ID: <4A253D05.3080409@netfilter.org>
+References: <20090601174352.GH31797@fi.muni.cz> <4A251127.8000605@netfilter.org> <4A251FBB.8060804@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Jan Kasprzak <kas@fi.muni.cz>, netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:41495 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752166AbZFBOw3 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Jun 2009 10:52:29 -0400
-In-Reply-To: <4A253BE1.9090006@netfilter.org>
+Received: from mail.us.es ([193.147.175.20]:59594 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752168AbZFBO5t (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Jun 2009 10:57:49 -0400
+In-Reply-To: <4A251FBB.8060804@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> Patrick McHardy wrote:
->> This one is really hard to review because of the mixed renames
->> and code movals. Please split this into two patches.
+Patrick McHardy wrote:
+> Pablo Neira Ayuso wrote:
+>>>     I think it would be better to keep the default timeout of
+>>> nf_ct_icmp_timeout even after the echo reply is received. Feel free
+>>> to correct me why early deleting of ICMP conntrack entries is needed,
+>>> or consider applying the following patch.
+>>
+>> The only problem that I see is that you patch relaxes the current
+>> checking that we're doing. I mean, for every packet in one direction we
+>> only accept one ICMP reply packet. With your patch, we can accept more
+>> than one packet in the reply direction.
 > 
-> OK, I'm splitting them now.
+> Thats the intention, isn't it? :) I don't see a problem with this,
+> conntrack is supposed to accept valid responses and I don't think
+> its unreasonable to consider duplicate echo-replies as valid.
 
-Thanks.
+I only wanted to point with this patch we're doing more relaxed ICMP
+tracking, but I'm fine with this.
 
->>> +static inline const struct nf_conntrack_tuple *
->>> +nf_ct_tuple(const struct nf_conn *ct, enum ip_conntrack_dir dir)
->>> +{
->>> +    return &ct->tuplehash[dir].tuple;
->>> +}
->> This is a useful helper for other situations as well, so I think
->> it shouldn't be const.
-> 
-> I get:
-> 
-> net/netfilter/nf_conntrack_netlink.c:370: warning: passing argument 1 of
-> 'nf_ct_tuple' discards qualifiers from pointer target type
-> net/netfilter/nf_conntrack_netlink.c:377: warning: passing argument 1 of
-> 'nf_ct_tuple' discards qualifiers from pointer target type
-> 
-> So I have to remove the 'const' from the last parameter of
-> ctnetlink_fill_info().
-> 
-> Or do some ugly casting in the nf_ct_tuple() calls to avoid the warning,
-> in that case I would prefer to leave that macro there.
-> 
-> Please, let me know what you prefer.
+BTW, with this patch, we can add state synchronization in conntrackd for
+ICMP (some bits are still missing to support this). This is something
+that I don't particularly find very useful, but some people have
+requested this.
 
-The best way is probably to keep using a macro since there's
-no other way to handle this properly. But I'm all in favour
-of renaming that macro and making it globally available as
-you did.
-
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
