@@ -1,62 +1,52 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: [PATCH] TCP simultaneous open support
-Date: Tue, 02 Jun 2009 13:32:42 +0200
-Message-ID: <4A250DDA.1010406@trash.net>
-References: <alpine.DEB.2.00.0905311614330.760@blackhole.kfki.hu>
+Date: Tue, 2 Jun 2009 13:51:02 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.0906021336080.11925@blackhole.kfki.hu>
+References: <alpine.DEB.2.00.0905311614330.760@blackhole.kfki.hu> <4A250DDA.1010406@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org,
 	Saatvik Agarwal <saatvik.agarwal@stanford.edu>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:37057 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758029AbZFBLcq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Jun 2009 07:32:46 -0400
-In-Reply-To: <alpine.DEB.2.00.0905311614330.760@blackhole.kfki.hu>
+Received: from smtp-in.kfki.hu ([148.6.0.28]:33554 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1760132AbZFBLvC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Jun 2009 07:51:02 -0400
+In-Reply-To: <4A250DDA.1010406@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jozsef Kadlecsik wrote:
-> Hi Patrick,
-> 
-> The patch below adds supporting TCP simultaneous open to conntrack. The 
-> unused LISTEN state is replaced by a new state (SYN_SENT2) denoting the 
-> second SYN sent from the reply direction in the new case. The state table 
-> is updated and the function tcp_in_window is modified to handle 
-> simultaneous open.
-> 
-> The functionality can fairly easily be tested by socat. A sample tcpdump 
-> recording 
-> 
-> ...
-> and the corresponding netlink events:
-> 
->     [NEW] tcp      6 120 SYN_SENT src=192.168.0.254 dst=192.168.0.1 sport=2020 dport=2020 [UNREPLIED] src=192.168.0.1 dst=192.168.0.254 sport=2020 dport=2020
->  [UPDATE] tcp      6 120 LISTEN src=192.168.0.254 dst=192.168.0.1 sport=2020 dport=2020 src=192.168.0.1 dst=192.168.0.254 sport=2020 dport=2020
->  [UPDATE] tcp      6 60 SYN_RECV src=192.168.0.254 dst=192.168.0.1 sport=2020 dport=2020 src=192.168.0.1 dst=192.168.0.254 sport=2020 dport=2020
->  [UPDATE] tcp      6 432000 ESTABLISHED src=192.168.0.254 dst=192.168.0.1 sport=2020 dport=2020 src=192.168.0.1 dst=192.168.0.254 sport=2020 dport=2020 [ASSURED]
-> 
-> The RST packet was dropped in the raw table, thus it did not reach 
-> conntrack.  nfnetlink_conntrack is unpatched so it shows the new SYN_SENT2 
-> state as the old unused LISTEN.
-> 
-> With TCP simultaneous open support we satisfy REQ-2 in RFC 5382 ;-).
-> 
-> Additional minor correction in this patch is that in order to catch
-> uninitialized reply directions, "td_maxwin == 0" is used instead of
-> "td_end == 0" because the former can't be true except in uninitialized
-> state while td_end may accidentally be equal to zero in the mid of a
-> connection.
+Hi Patrick,
 
-Thanks Jozsef. Just one question:
+On Tue, 2 Jun 2009, Patrick McHardy wrote:
 
-> -	TCP_CONNTRACK_LISTEN,
-> +	TCP_CONNTRACK_SYN_SENT2,
+> Thanks Jozsef. Just one question:
+> 
+> > -	TCP_CONNTRACK_LISTEN,
+> > +	TCP_CONNTRACK_SYN_SENT2,
+> 
+> is this constant already used in userspace? From your conntrack
+> output above I'd assume the answer is yes, so we should keep it
+> around as an alias to avoid compilation errors.
 
-is this constant already used in userspace? From your conntrack
-output above I'd assume the answer is yes, so we should keep it
-around as an alias to avoid compilation errors.
+libnetfilter_conntrack has got it's own header file which defines 
+TCP_CONNTRACK_LISTEN and it's string interpretation as "LISTEN" state. 
+'conntrack' relies on libnetfilter_conntrack when translating the 
+numerical id received from the kernel to the string value, that is the 
+reason for the "misinterpretation" of the state. So from 
+libnetfilter_conntrack and conntrack-tools point of view we can safely 
+remove TCP_CONNTRACK_LISTEN.
 
+I'm not aware of any project which would use the kernel header file 
+directly, but that does not mean there isn't any. We might keep the 
+symbol, of course. Shall I resend the patch with TCP_CONNTRACK_LISTEN 
+preserved?
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
