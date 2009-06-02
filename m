@@ -1,7 +1,8 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 5/9] netfilter: ctnetlink: cleanup message-size calculation
-Date: Tue, 02 Jun 2009 20:19:38 +0200
-Message-ID: <20090602181938.18573.52766.stgit@Decadence>
+Subject: [PATCH 6/9] netfilter: conntrack: don't report events on module
+	removal
+Date: Tue, 02 Jun 2009 20:20:00 +0200
+Message-ID: <20090602181959.18573.58028.stgit@Decadence>
 References: <20090602181336.18573.85368.stgit@Decadence>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -9,152 +10,108 @@ Content-Transfer-Encoding: 7bit
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52016 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:52073 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751364AbZFBSdX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Jun 2009 14:33:23 -0400
+	id S1751516AbZFBSdi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Jun 2009 14:33:38 -0400
 In-Reply-To: <20090602181336.18573.85368.stgit@Decadence>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch cleans up the message calculation to make it similar
-to rtnetlink, moreover, it removes unneeded verbose information.
+During the module removal there are no possible event listeners
+since ctnetlink must be removed before to allow removing
+nf_conntrack. This patch removes the event reporting for the
+module removal case which is not of any use in the existing code.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
 
- net/netfilter/nf_conntrack_netlink.c |  102 +++++++++++++---------------------
- 1 files changed, 40 insertions(+), 62 deletions(-)
+ include/net/netfilter/nf_conntrack.h |    2 +-
+ net/netfilter/nf_conntrack_core.c    |   15 ++++++++++-----
+ net/netfilter/nf_conntrack_netlink.c |    6 +++---
+ 3 files changed, 14 insertions(+), 9 deletions(-)
 
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 5c14867..58fde0e 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -403,76 +403,55 @@ nla_put_failure:
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index b909241..2ba36dd 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -203,7 +203,7 @@ __nf_conntrack_find(struct net *net, const struct nf_conntrack_tuple *tuple);
+ 
+ extern void nf_conntrack_hash_insert(struct nf_conn *ct);
+ 
+-extern void nf_conntrack_flush(struct net *net, u32 pid, int report);
++extern void nf_conntrack_flush_report(struct net *net, u32 pid, int report);
+ 
+ extern bool nf_ct_get_tuplepr(const struct sk_buff *skb,
+ 			      unsigned int nhoff, u_int16_t l3num,
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 8020db6..f59c4ed 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1001,7 +1001,7 @@ struct __nf_ct_flush_report {
+ 	int report;
+ };
+ 
+-static int kill_all(struct nf_conn *i, void *data)
++static int kill_report(struct nf_conn *i, void *data)
+ {
+ 	struct __nf_ct_flush_report *fr = (struct __nf_ct_flush_report *)data;
+ 
+@@ -1013,6 +1013,11 @@ static int kill_all(struct nf_conn *i, void *data)
+ 	return 1;
  }
  
- #ifdef CONFIG_NF_CONNTRACK_EVENTS
--/*
-- * The general structure of a ctnetlink event is
-- *
-- *  CTA_TUPLE_ORIG
-- *    <l3/l4-proto-attributes>
-- *  CTA_TUPLE_REPLY
-- *    <l3/l4-proto-attributes>
-- *  CTA_ID
-- *  ...
-- *  CTA_PROTOINFO
-- *    <l4-proto-attributes>
-- *  CTA_TUPLE_MASTER
-- *    <l3/l4-proto-attributes>
-- *
-- * Therefore the formular is
-- *
-- *   size = sizeof(headers) + sizeof(generic_nlas) + 3 * sizeof(tuple_nlas)
-- *		+ sizeof(protoinfo_nlas)
-- */
--static struct sk_buff *
--ctnetlink_alloc_skb(const struct nf_conntrack_tuple *tuple, gfp_t gfp)
-+static inline size_t
-+ctnetlink_proto_size(const struct nf_conn *ct)
- {
- 	struct nf_conntrack_l3proto *l3proto;
- 	struct nf_conntrack_l4proto *l4proto;
--	int len;
--
--#define NLA_TYPE_SIZE(type)		nla_total_size(sizeof(type))
--
--	/* proto independant part */
--	len = NLMSG_ALIGN(sizeof(struct nfgenmsg))
--		+ 3 * nla_total_size(0)		/* CTA_TUPLE_ORIG|REPL|MASTER */
--		+ 3 * nla_total_size(0)		/* CTA_TUPLE_IP */
--		+ 3 * nla_total_size(0)		/* CTA_TUPLE_PROTO */
--		+ 3 * NLA_TYPE_SIZE(u_int8_t)	/* CTA_PROTO_NUM */
--		+ NLA_TYPE_SIZE(u_int32_t)	/* CTA_ID */
--		+ NLA_TYPE_SIZE(u_int32_t)	/* CTA_STATUS */
-+	size_t len = 0;
-+
-+	rcu_read_lock();
-+	l3proto = __nf_ct_l3proto_find(nf_ct_l3num(ct));
-+	len += l3proto->nla_size;
-+
-+	l4proto = __nf_ct_l4proto_find(nf_ct_l3num(ct), nf_ct_protonum(ct));
-+	len += l4proto->nla_size;
-+	rcu_read_unlock();
-+
-+	return len;
++static int kill_all(struct nf_conn *i, void *data)
++{
++	return 1;
 +}
 +
-+static inline size_t
-+ctnetlink_nlmsg_size(const struct nf_conn *ct)
-+{
-+	return NLMSG_ALIGN(sizeof(struct nfgenmsg))
-+	       + 3 * nla_total_size(0) /* CTA_TUPLE_ORIG|REPL|MASTER */
-+	       + 3 * nla_total_size(0) /* CTA_TUPLE_IP */
-+	       + 3 * nla_total_size(0) /* CTA_TUPLE_PROTO */
-+	       + 3 * nla_total_size(sizeof(u_int8_t)) /* CTA_PROTO_NUM */
-+	       + nla_total_size(sizeof(u_int32_t)) /* CTA_ID */
-+	       + nla_total_size(sizeof(u_int32_t)) /* CTA_STATUS */
- #ifdef CONFIG_NF_CT_ACCT
--		+ 2 * nla_total_size(0)		/* CTA_COUNTERS_ORIG|REPL */
--		+ 2 * NLA_TYPE_SIZE(uint64_t)	/* CTA_COUNTERS_PACKETS */
--		+ 2 * NLA_TYPE_SIZE(uint64_t)	/* CTA_COUNTERS_BYTES */
-+	       + 2 * nla_total_size(0) /* CTA_COUNTERS_ORIG|REPL */
-+	       + 2 * nla_total_size(sizeof(uint64_t)) /* CTA_COUNTERS_PACKETS */
-+	       + 2 * nla_total_size(sizeof(uint64_t)) /* CTA_COUNTERS_BYTES */
- #endif
--		+ NLA_TYPE_SIZE(u_int32_t)	/* CTA_TIMEOUT */
--		+ nla_total_size(0)		/* CTA_PROTOINFO */
--		+ nla_total_size(0)		/* CTA_HELP */
--		+ nla_total_size(NF_CT_HELPER_NAME_LEN)	/* CTA_HELP_NAME */
-+	       + nla_total_size(sizeof(u_int32_t)) /* CTA_TIMEOUT */
-+	       + nla_total_size(0) /* CTA_PROTOINFO */
-+	       + nla_total_size(0) /* CTA_HELP */
-+	       + nla_total_size(NF_CT_HELPER_NAME_LEN) /* CTA_HELP_NAME */
- #ifdef CONFIG_NF_CONNTRACK_SECMARK
--		+ NLA_TYPE_SIZE(u_int32_t)	/* CTA_SECMARK */
-+	       + nla_total_size(sizeof(u_int32_t)) /* CTA_SECMARK */
- #endif
- #ifdef CONFIG_NF_NAT_NEEDED
--		+ 2 * nla_total_size(0)		/* CTA_NAT_SEQ_ADJ_ORIG|REPL */
--		+ 2 * NLA_TYPE_SIZE(u_int32_t)	/* CTA_NAT_SEQ_CORRECTION_POS */
--		+ 2 * NLA_TYPE_SIZE(u_int32_t)	/* CTA_NAT_SEQ_CORRECTION_BEFORE */
--		+ 2 * NLA_TYPE_SIZE(u_int32_t)	/* CTA_NAT_SEQ_CORRECTION_AFTER */
-+	       + 2 * nla_total_size(0) /* CTA_NAT_SEQ_ADJ_ORIG|REPL */
-+	       + 6 * nla_total_size(sizeof(u_int32_t)) /* CTA_NAT_SEQ_OFFSET */
- #endif
- #ifdef CONFIG_NF_CONNTRACK_MARK
--		+ NLA_TYPE_SIZE(u_int32_t)	/* CTA_MARK */
-+	       + nla_total_size(sizeof(u_int32_t)) /* CTA_MARK */
- #endif
--		;
--
--#undef NLA_TYPE_SIZE
--
--	rcu_read_lock();
--	l3proto = __nf_ct_l3proto_find(tuple->src.l3num);
--	len += l3proto->nla_size;
--
--	l4proto = __nf_ct_l4proto_find(tuple->src.l3num, tuple->dst.protonum);
--	len += l4proto->nla_size;
--	rcu_read_unlock();
--
--	return nlmsg_new(len, gfp);
-+	       + ctnetlink_proto_size(ct)
-+	       ;
+ void nf_ct_free_hashtable(void *hash, int vmalloced, unsigned int size)
+ {
+ 	if (vmalloced)
+@@ -1023,15 +1028,15 @@ void nf_ct_free_hashtable(void *hash, int vmalloced, unsigned int size)
  }
+ EXPORT_SYMBOL_GPL(nf_ct_free_hashtable);
  
- static int ctnetlink_conntrack_event(struct notifier_block *this,
-@@ -507,9 +486,8 @@ static int ctnetlink_conntrack_event(struct notifier_block *this,
- 	if (!item->report && !nfnetlink_has_listeners(group))
- 		return NOTIFY_DONE;
+-void nf_conntrack_flush(struct net *net, u32 pid, int report)
++void nf_conntrack_flush_report(struct net *net, u32 pid, int report)
+ {
+ 	struct __nf_ct_flush_report fr = {
+ 		.pid 	= pid,
+ 		.report = report,
+ 	};
+-	nf_ct_iterate_cleanup(net, kill_all, &fr);
++	nf_ct_iterate_cleanup(net, kill_report, &fr);
+ }
+-EXPORT_SYMBOL_GPL(nf_conntrack_flush);
++EXPORT_SYMBOL_GPL(nf_conntrack_flush_report);
  
--	skb = ctnetlink_alloc_skb(nf_ct_tuple(ct, IP_CT_DIR_ORIGINAL),
--				  GFP_ATOMIC);
--	if (!skb)
-+	skb = nlmsg_new(ctnetlink_nlmsg_size(ct), GFP_ATOMIC);
-+	if (skb == NULL)
- 		goto errout;
+ static void nf_conntrack_cleanup_init_net(void)
+ {
+@@ -1045,7 +1050,7 @@ static void nf_conntrack_cleanup_net(struct net *net)
+ 	nf_ct_event_cache_flush(net);
+ 	nf_conntrack_ecache_fini(net);
+  i_see_dead_people:
+-	nf_conntrack_flush(net, 0, 0);
++	nf_ct_iterate_cleanup(net, kill_all, NULL);
+ 	if (atomic_read(&net->ct.count) != 0) {
+ 		schedule();
+ 		goto i_see_dead_people;
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 58fde0e..3a20de1 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -777,9 +777,9 @@ ctnetlink_del_conntrack(struct sock *ctnl, struct sk_buff *skb,
+ 		err = ctnetlink_parse_tuple(cda, &tuple, CTA_TUPLE_REPLY, u3);
+ 	else {
+ 		/* Flush the whole table */
+-		nf_conntrack_flush(&init_net, 
+-				   NETLINK_CB(skb).pid, 
+-				   nlmsg_report(nlh));
++		nf_conntrack_flush_report(&init_net,
++					 NETLINK_CB(skb).pid,
++					 nlmsg_report(nlh));
+ 		return 0;
+ 	}
  
- 	type |= NFNL_SUBSYS_CTNETLINK << 8;
 
