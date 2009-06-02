@@ -1,8 +1,8 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 4/7] netfilter: conntrack: don't report events on module
-	removal
-Date: Tue, 02 Jun 2009 13:52:58 +0200
-Message-ID: <20090602115257.7677.66264.stgit@Decadence>
+Subject: [PATCH 5/7] netfilter: conntrack: remove events flags from userspace
+	exposed file
+Date: Tue, 02 Jun 2009 13:53:19 +0200
+Message-ID: <20090602115319.7677.11147.stgit@Decadence>
 References: <20090602114933.7677.25219.stgit@Decadence>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="utf-8"
@@ -10,108 +10,183 @@ Content-Transfer-Encoding: 7bit
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:53932 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36875 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751439AbZFBMdA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Jun 2009 08:33:00 -0400
+	id S1751560AbZFBMdM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Jun 2009 08:33:12 -0400
 In-Reply-To: <20090602114933.7677.25219.stgit@Decadence>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-During the module removal there are no possible event listeners
-since ctnetlink must be removed before to allow removing
-nf_conntrack. This patch removes the event reporting for the
-module removal case which is not of any use in the existing code.
+This patch moves the event flags from linux/netfilter/nf_conntrack_common.h
+to net/netfilter/nf_conntrack_ecache.h. This flags are not of any use
+from userspace.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
 
- include/net/netfilter/nf_conntrack.h |    2 +-
- net/netfilter/nf_conntrack_core.c    |   15 ++++++++++-----
- net/netfilter/nf_conntrack_netlink.c |    6 +++---
- 3 files changed, 14 insertions(+), 9 deletions(-)
+ include/linux/netfilter/nf_conntrack_common.h |   69 -------------------------
+ include/net/netfilter/nf_conntrack_ecache.h   |   69 +++++++++++++++++++++++++
+ 2 files changed, 69 insertions(+), 69 deletions(-)
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 9aafe70..57a0da5 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -207,7 +207,7 @@ __nf_conntrack_find(struct net *net, const struct nf_conntrack_tuple *tuple);
- 
- extern void nf_conntrack_hash_insert(struct nf_conn *ct);
- 
--extern void nf_conntrack_flush(struct net *net, u32 pid, int report);
-+extern void nf_conntrack_flush_report(struct net *net, u32 pid, int report);
- 
- extern bool nf_ct_get_tuplepr(const struct sk_buff *skb,
- 			      unsigned int nhoff, u_int16_t l3num,
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 8020db6..f59c4ed 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1001,7 +1001,7 @@ struct __nf_ct_flush_report {
- 	int report;
+diff --git a/include/linux/netfilter/nf_conntrack_common.h b/include/linux/netfilter/nf_conntrack_common.h
+index 885cbe2..a8248ee 100644
+--- a/include/linux/netfilter/nf_conntrack_common.h
++++ b/include/linux/netfilter/nf_conntrack_common.h
+@@ -75,75 +75,6 @@ enum ip_conntrack_status {
+ 	IPS_FIXED_TIMEOUT = (1 << IPS_FIXED_TIMEOUT_BIT),
  };
  
--static int kill_all(struct nf_conn *i, void *data)
-+static int kill_report(struct nf_conn *i, void *data)
+-/* Connection tracking event bits */
+-enum ip_conntrack_events
+-{
+-	/* New conntrack */
+-	IPCT_NEW_BIT = 0,
+-	IPCT_NEW = (1 << IPCT_NEW_BIT),
+-
+-	/* Expected connection */
+-	IPCT_RELATED_BIT = 1,
+-	IPCT_RELATED = (1 << IPCT_RELATED_BIT),
+-
+-	/* Destroyed conntrack */
+-	IPCT_DESTROY_BIT = 2,
+-	IPCT_DESTROY = (1 << IPCT_DESTROY_BIT),
+-
+-	/* Timer has been refreshed */
+-	IPCT_REFRESH_BIT = 3,
+-	IPCT_REFRESH = (1 << IPCT_REFRESH_BIT),
+-
+-	/* Status has changed */
+-	IPCT_STATUS_BIT = 4,
+-	IPCT_STATUS = (1 << IPCT_STATUS_BIT),
+-
+-	/* Update of protocol info */
+-	IPCT_PROTOINFO_BIT = 5,
+-	IPCT_PROTOINFO = (1 << IPCT_PROTOINFO_BIT),
+-
+-	/* Volatile protocol info */
+-	IPCT_PROTOINFO_VOLATILE_BIT = 6,
+-	IPCT_PROTOINFO_VOLATILE = (1 << IPCT_PROTOINFO_VOLATILE_BIT),
+-
+-	/* New helper for conntrack */
+-	IPCT_HELPER_BIT = 7,
+-	IPCT_HELPER = (1 << IPCT_HELPER_BIT),
+-
+-	/* Update of helper info */
+-	IPCT_HELPINFO_BIT = 8,
+-	IPCT_HELPINFO = (1 << IPCT_HELPINFO_BIT),
+-
+-	/* Volatile helper info */
+-	IPCT_HELPINFO_VOLATILE_BIT = 9,
+-	IPCT_HELPINFO_VOLATILE = (1 << IPCT_HELPINFO_VOLATILE_BIT),
+-
+-	/* NAT info */
+-	IPCT_NATINFO_BIT = 10,
+-	IPCT_NATINFO = (1 << IPCT_NATINFO_BIT),
+-
+-	/* Counter highest bit has been set, unused */
+-	IPCT_COUNTER_FILLING_BIT = 11,
+-	IPCT_COUNTER_FILLING = (1 << IPCT_COUNTER_FILLING_BIT),
+-
+-	/* Mark is set */
+-	IPCT_MARK_BIT = 12,
+-	IPCT_MARK = (1 << IPCT_MARK_BIT),
+-
+-	/* NAT sequence adjustment */
+-	IPCT_NATSEQADJ_BIT = 13,
+-	IPCT_NATSEQADJ = (1 << IPCT_NATSEQADJ_BIT),
+-
+-	/* Secmark is set */
+-	IPCT_SECMARK_BIT = 14,
+-	IPCT_SECMARK = (1 << IPCT_SECMARK_BIT),
+-};
+-
+-enum ip_conntrack_expect_events {
+-	IPEXP_NEW_BIT = 0,
+-	IPEXP_NEW = (1 << IPEXP_NEW_BIT),
+-};
+-
+ #ifdef __KERNEL__
+ struct ip_conntrack_stat
  {
- 	struct __nf_ct_flush_report *fr = (struct __nf_ct_flush_report *)data;
+diff --git a/include/net/netfilter/nf_conntrack_ecache.h b/include/net/netfilter/nf_conntrack_ecache.h
+index 0ff0dc6..892b8cd 100644
+--- a/include/net/netfilter/nf_conntrack_ecache.h
++++ b/include/net/netfilter/nf_conntrack_ecache.h
+@@ -11,6 +11,75 @@
+ #include <net/net_namespace.h>
+ #include <net/netfilter/nf_conntrack_expect.h>
  
-@@ -1013,6 +1013,11 @@ static int kill_all(struct nf_conn *i, void *data)
- 	return 1;
- }
- 
-+static int kill_all(struct nf_conn *i, void *data)
++/* Connection tracking event bits */
++enum ip_conntrack_events
 +{
-+	return 1;
-+}
++	/* New conntrack */
++	IPCT_NEW_BIT = 0,
++	IPCT_NEW = (1 << IPCT_NEW_BIT),
 +
- void nf_ct_free_hashtable(void *hash, int vmalloced, unsigned int size)
- {
- 	if (vmalloced)
-@@ -1023,15 +1028,15 @@ void nf_ct_free_hashtable(void *hash, int vmalloced, unsigned int size)
- }
- EXPORT_SYMBOL_GPL(nf_ct_free_hashtable);
- 
--void nf_conntrack_flush(struct net *net, u32 pid, int report)
-+void nf_conntrack_flush_report(struct net *net, u32 pid, int report)
- {
- 	struct __nf_ct_flush_report fr = {
- 		.pid 	= pid,
- 		.report = report,
- 	};
--	nf_ct_iterate_cleanup(net, kill_all, &fr);
-+	nf_ct_iterate_cleanup(net, kill_report, &fr);
- }
--EXPORT_SYMBOL_GPL(nf_conntrack_flush);
-+EXPORT_SYMBOL_GPL(nf_conntrack_flush_report);
- 
- static void nf_conntrack_cleanup_init_net(void)
- {
-@@ -1045,7 +1050,7 @@ static void nf_conntrack_cleanup_net(struct net *net)
- 	nf_ct_event_cache_flush(net);
- 	nf_conntrack_ecache_fini(net);
-  i_see_dead_people:
--	nf_conntrack_flush(net, 0, 0);
-+	nf_ct_iterate_cleanup(net, kill_all, NULL);
- 	if (atomic_read(&net->ct.count) != 0) {
- 		schedule();
- 		goto i_see_dead_people;
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 6931026..9b16dfe 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -778,9 +778,9 @@ ctnetlink_del_conntrack(struct sock *ctnl, struct sk_buff *skb,
- 		err = ctnetlink_parse_tuple(cda, &tuple, CTA_TUPLE_REPLY, u3);
- 	else {
- 		/* Flush the whole table */
--		nf_conntrack_flush(&init_net, 
--				   NETLINK_CB(skb).pid, 
--				   nlmsg_report(nlh));
-+		nf_conntrack_flush_report(&init_net,
-+					 NETLINK_CB(skb).pid,
-+					 nlmsg_report(nlh));
- 		return 0;
- 	}
- 
++	/* Expected connection */
++	IPCT_RELATED_BIT = 1,
++	IPCT_RELATED = (1 << IPCT_RELATED_BIT),
++
++	/* Destroyed conntrack */
++	IPCT_DESTROY_BIT = 2,
++	IPCT_DESTROY = (1 << IPCT_DESTROY_BIT),
++
++	/* Timer has been refreshed */
++	IPCT_REFRESH_BIT = 3,
++	IPCT_REFRESH = (1 << IPCT_REFRESH_BIT),
++
++	/* Status has changed */
++	IPCT_STATUS_BIT = 4,
++	IPCT_STATUS = (1 << IPCT_STATUS_BIT),
++
++	/* Update of protocol info */
++	IPCT_PROTOINFO_BIT = 5,
++	IPCT_PROTOINFO = (1 << IPCT_PROTOINFO_BIT),
++
++	/* Volatile protocol info */
++	IPCT_PROTOINFO_VOLATILE_BIT = 6,
++	IPCT_PROTOINFO_VOLATILE = (1 << IPCT_PROTOINFO_VOLATILE_BIT),
++
++	/* New helper for conntrack */
++	IPCT_HELPER_BIT = 7,
++	IPCT_HELPER = (1 << IPCT_HELPER_BIT),
++
++	/* Update of helper info */
++	IPCT_HELPINFO_BIT = 8,
++	IPCT_HELPINFO = (1 << IPCT_HELPINFO_BIT),
++
++	/* Volatile helper info */
++	IPCT_HELPINFO_VOLATILE_BIT = 9,
++	IPCT_HELPINFO_VOLATILE = (1 << IPCT_HELPINFO_VOLATILE_BIT),
++
++	/* NAT info */
++	IPCT_NATINFO_BIT = 10,
++	IPCT_NATINFO = (1 << IPCT_NATINFO_BIT),
++
++	/* Counter highest bit has been set, unused */
++	IPCT_COUNTER_FILLING_BIT = 11,
++	IPCT_COUNTER_FILLING = (1 << IPCT_COUNTER_FILLING_BIT),
++
++	/* Mark is set */
++	IPCT_MARK_BIT = 12,
++	IPCT_MARK = (1 << IPCT_MARK_BIT),
++
++	/* NAT sequence adjustment */
++	IPCT_NATSEQADJ_BIT = 13,
++	IPCT_NATSEQADJ = (1 << IPCT_NATSEQADJ_BIT),
++
++	/* Secmark is set */
++	IPCT_SECMARK_BIT = 14,
++	IPCT_SECMARK = (1 << IPCT_SECMARK_BIT),
++};
++
++enum ip_conntrack_expect_events {
++	IPEXP_NEW_BIT = 0,
++	IPEXP_NEW = (1 << IPEXP_NEW_BIT),
++};
++
+ #ifdef CONFIG_NF_CONNTRACK_EVENTS
+ struct nf_conntrack_ecache {
+ 	struct nf_conn *ct;
 
