@@ -1,46 +1,62 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH] TCP simultaneous open support
-Date: Tue, 2 Jun 2009 10:41:39 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.0906021036090.11925@blackhole.kfki.hu>
-References: <alpine.DEB.2.00.0905311614330.760@blackhole.kfki.hu>  <alpine.DEB.2.00.0905311631480.760@blackhole.kfki.hu>  <4ddb24250905311604o8d0f2c2l9ba3984ae296a009@mail.gmail.com>  <alpine.LSU.2.00.0906010149510.12927@fbirervta.pbzchgretzou.qr>
- <4ddb24250905311750q33f6193fi12dda710d75b2b28@mail.gmail.com>
+Date: Tue, 02 Jun 2009 13:32:42 +0200
+Message-ID: <4A250DDA.1010406@trash.net>
+References: <alpine.DEB.2.00.0905311614330.760@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
-To: Saatvik Agarwal <saatvik.agarwal@stanford.edu>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org,
+	Saatvik Agarwal <saatvik.agarwal@stanford.edu>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:52905 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757990AbZFBIli (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Jun 2009 04:41:38 -0400
-In-Reply-To: <4ddb24250905311750q33f6193fi12dda710d75b2b28@mail.gmail.com>
+Received: from stinky.trash.net ([213.144.137.162]:37057 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758029AbZFBLcq (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Jun 2009 07:32:46 -0400
+In-Reply-To: <alpine.DEB.2.00.0905311614330.760@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, 31 May 2009, Saatvik Agarwal wrote:
+Jozsef Kadlecsik wrote:
+> Hi Patrick,
+> 
+> The patch below adds supporting TCP simultaneous open to conntrack. The 
+> unused LISTEN state is replaced by a new state (SYN_SENT2) denoting the 
+> second SYN sent from the reply direction in the new case. The state table 
+> is updated and the function tcp_in_window is modified to handle 
+> simultaneous open.
+> 
+> The functionality can fairly easily be tested by socat. A sample tcpdump 
+> recording 
+> 
+> ...
+> and the corresponding netlink events:
+> 
+>     [NEW] tcp      6 120 SYN_SENT src=192.168.0.254 dst=192.168.0.1 sport=2020 dport=2020 [UNREPLIED] src=192.168.0.1 dst=192.168.0.254 sport=2020 dport=2020
+>  [UPDATE] tcp      6 120 LISTEN src=192.168.0.254 dst=192.168.0.1 sport=2020 dport=2020 src=192.168.0.1 dst=192.168.0.254 sport=2020 dport=2020
+>  [UPDATE] tcp      6 60 SYN_RECV src=192.168.0.254 dst=192.168.0.1 sport=2020 dport=2020 src=192.168.0.1 dst=192.168.0.254 sport=2020 dport=2020
+>  [UPDATE] tcp      6 432000 ESTABLISHED src=192.168.0.254 dst=192.168.0.1 sport=2020 dport=2020 src=192.168.0.1 dst=192.168.0.254 sport=2020 dport=2020 [ASSURED]
+> 
+> The RST packet was dropped in the raw table, thus it did not reach 
+> conntrack.  nfnetlink_conntrack is unpatched so it shows the new SYN_SENT2 
+> state as the old unused LISTEN.
+> 
+> With TCP simultaneous open support we satisfy REQ-2 in RFC 5382 ;-).
+> 
+> Additional minor correction in this patch is that in order to catch
+> uninitialized reply directions, "td_maxwin == 0" is used instead of
+> "td_end == 0" because the former can't be true except in uninitialized
+> state while td_end may accidentally be equal to zero in the mid of a
+> connection.
 
-> Hmm. I tried both the latest RC and the latest stable release. Same
-> problem. For example, the arrays in chunk 2 & 3 of nf_conntrack_tcp.h
-> are significantly longer in the latest release than indicated in the
-> diff. Am I missing something?
+Thanks Jozsef. Just one question:
 
-My patch is on top of the patch
+> -	TCP_CONNTRACK_LISTEN,
+> +	TCP_CONNTRACK_SYN_SENT2,
 
-Date: Mon, 25 May 2009 12:35:19 +0200 (CEST)
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
-Subject: [PATCH] Fix accepting invalid RST segments
+is this constant already used in userspace? From your conntrack
+output above I'd assume the answer is yes, so we should keep it
+around as an alias to avoid compilation errors.
 
-So first you should apply that.
-
-Or pull Patrick's git tree from 
-git://git.kernel.org/pub/scm/kaber/nf-2.6.git
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
