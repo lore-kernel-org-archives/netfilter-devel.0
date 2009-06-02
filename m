@@ -1,49 +1,34 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFD,patch] ICMP echo conntrack timeout
-Date: Tue, 02 Jun 2009 14:10:57 +0200
-Message-ID: <4A2516D1.30900@trash.net>
-References: <20090601174352.GH31797@fi.muni.cz>
+Subject: Re: [PATCH] TCP simultaneous open support
+Date: Tue, 02 Jun 2009 14:12:03 +0200
+Message-ID: <4A251713.2010508@trash.net>
+References: <alpine.DEB.2.00.0905311614330.760@blackhole.kfki.hu> <alpine.DEB.2.00.0905311631480.760@blackhole.kfki.hu> <4A2514EA.6000100@trash.net> <alpine.DEB.2.00.0906021405510.11925@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Kasprzak <kas@fi.muni.cz>
+Cc: netfilter-devel@vger.kernel.org,
+	Saatvik Agarwal <saatvik.agarwal@stanford.edu>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:37860 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:37881 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751601AbZFBMLA (ORCPT
+	with ESMTP id S1752798AbZFBMME (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Jun 2009 08:11:00 -0400
-In-Reply-To: <20090601174352.GH31797@fi.muni.cz>
+	Tue, 2 Jun 2009 08:12:04 -0400
+In-Reply-To: <alpine.DEB.2.00.0906021405510.11925@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Kasprzak wrote:
-> 	Hello, netfilter developers!
+Jozsef Kadlecsik wrote:
+> On Tue, 2 Jun 2009, Patrick McHardy wrote:
 > 
-> I am trying to delploy a conntrackd-based HA router and (if possible) a
-> flow statistics collector. I have discovered that nf_conntrack treats each
-> ICMP echo request/reply pair as a separate connection (in
-> net/ipv4/netfilter/nf_conntrack_proto_icmp.c:icmp_packet() function).
-> This has several problems:
+>>
+>>>  		.proc_handler	= proc_dointvec_jiffies,
+>>>  	},
+>>> +		.procname	= "ip_conntrack_tcp_timeout_syn_sent2",
+>>> +		.data		= &tcp_timeouts[TCP_CONNTRACK_SYN_SENT2],
 > 
-> - excessive conntrackd traffic when the ping is running over the router
-> 	(one new "connection" per echo request/reply pair).
-> 
-> - should there be a duplicated ICMP echo reply (such as when when pinging
-> 	a cluster IP address), only the first echo reply is seen as
-> 	ESTABLISHED, the rest is INVALID.
-> 
-> - no "per-flow" statistics available, as there is no notion of the "flow"		at all.
-> 
-> 	I think it would be better to keep the default timeout of
-> nf_ct_icmp_timeout even after the echo reply is received. Feel free
-> to correct me why early deleting of ICMP conntrack entries is needed,
-> or consider applying the following patch.
+> That's a copy-paste bug, sorry: I have to run a slighty older kernel 
+> release on my test system and I selected the paste area one line off.
 
-I think this patch makes sense, it also improves behaviour in cases with
-asymetric MTUs where a fragmentation required is sent after the reply
-passed through conntrack and conntrack can't associate it to the already
-gone connection anymore.
-
-Unless someone has concerns I'm missing, I'll apply this.
+Don't worry, I've seen worse problems with patches :)
