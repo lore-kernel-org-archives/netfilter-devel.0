@@ -1,75 +1,60 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] TCP simultaneous open support
-Date: Tue, 02 Jun 2009 13:42:32 +0200
-Message-ID: <4A251028.6020300@netfilter.org>
-References: <alpine.DEB.2.00.0905311614330.760@blackhole.kfki.hu> <4A250DDA.1010406@trash.net>
+Subject: Re: [RFD,patch] ICMP echo conntrack timeout
+Date: Tue, 02 Jun 2009 13:46:47 +0200
+Message-ID: <4A251127.8000605@netfilter.org>
+References: <20090601174352.GH31797@fi.muni.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@vger.kernel.org,
-	Saatvik Agarwal <saatvik.agarwal@stanford.edu>
-To: Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Kasprzak <kas@fi.muni.cz>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:35524 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36023 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751202AbZFBM2T (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Jun 2009 08:28:19 -0400
-In-Reply-To: <4A250DDA.1010406@trash.net>
+	id S1751553AbZFBMaI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Jun 2009 08:30:08 -0400
+In-Reply-To: <20090601174352.GH31797@fi.muni.cz>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy wrote:
-> Jozsef Kadlecsik wrote:
->> Hi Patrick,
->>
->> The patch below adds supporting TCP simultaneous open to conntrack.
->> The unused LISTEN state is replaced by a new state (SYN_SENT2)
->> denoting the second SYN sent from the reply direction in the new case.
->> The state table is updated and the function tcp_in_window is modified
->> to handle simultaneous open.
->>
->> The functionality can fairly easily be tested by socat. A sample
->> tcpdump recording
->> ...
->> and the corresponding netlink events:
->>
->>     [NEW] tcp      6 120 SYN_SENT src=192.168.0.254 dst=192.168.0.1
->> sport=2020 dport=2020 [UNREPLIED] src=192.168.0.1 dst=192.168.0.254
->> sport=2020 dport=2020
->>  [UPDATE] tcp      6 120 LISTEN src=192.168.0.254 dst=192.168.0.1
->> sport=2020 dport=2020 src=192.168.0.1 dst=192.168.0.254 sport=2020
->> dport=2020
->>  [UPDATE] tcp      6 60 SYN_RECV src=192.168.0.254 dst=192.168.0.1
->> sport=2020 dport=2020 src=192.168.0.1 dst=192.168.0.254 sport=2020
->> dport=2020
->>  [UPDATE] tcp      6 432000 ESTABLISHED src=192.168.0.254
->> dst=192.168.0.1 sport=2020 dport=2020 src=192.168.0.1
->> dst=192.168.0.254 sport=2020 dport=2020 [ASSURED]
->>
->> The RST packet was dropped in the raw table, thus it did not reach
->> conntrack.  nfnetlink_conntrack is unpatched so it shows the new
->> SYN_SENT2 state as the old unused LISTEN.
->>
->> With TCP simultaneous open support we satisfy REQ-2 in RFC 5382 ;-).
->>
->> Additional minor correction in this patch is that in order to catch
->> uninitialized reply directions, "td_maxwin == 0" is used instead of
->> "td_end == 0" because the former can't be true except in uninitialized
->> state while td_end may accidentally be equal to zero in the mid of a
->> connection.
-> 
-> Thanks Jozsef. Just one question:
-> 
->> -    TCP_CONNTRACK_LISTEN,
->> +    TCP_CONNTRACK_SYN_SENT2,
-> 
-> is this constant already used in userspace? From your conntrack
-> output above I'd assume the answer is yes, so we should keep it
-> around as an alias to avoid compilation errors.
+Hi Jan,
 
-libnetfilter_conntrack keeps its own copy of it in user-space. libnl
-seems not to do it, so the alias would be a good idea.
+Jan Kasprzak wrote:
+> 	Hello, netfilter developers!
+> 
+> I am trying to delploy a conntrackd-based HA router and (if possible) a
+> flow statistics collector. I have discovered that nf_conntrack treats each
+> ICMP echo request/reply pair as a separate connection (in
+> net/ipv4/netfilter/nf_conntrack_proto_icmp.c:icmp_packet() function).
+> This has several problems:
+> 
+> - excessive conntrackd traffic when the ping is running over the router
+> 	(one new "connection" per echo request/reply pair).
+
+Indeed, one event per new ICMP echo packet is too much. This can be also
+a way to exhaust resources of the conntrack subsystem.
+
+> - should there be a duplicated ICMP echo reply (such as when when pinging
+> 	a cluster IP address), only the first echo reply is seen as
+> 	ESTABLISHED, the rest is INVALID.
+> 
+> - no "per-flow" statistics available, as there is no notion of the "flow"		at all.
+
+Indeed, no packet accounting at all.
+
+> 	I think it would be better to keep the default timeout of
+> nf_ct_icmp_timeout even after the echo reply is received. Feel free
+> to correct me why early deleting of ICMP conntrack entries is needed,
+> or consider applying the following patch.
+
+The only problem that I see is that you patch relaxes the current
+checking that we're doing. I mean, for every packet in one direction we
+only accept one ICMP reply packet. With your patch, we can accept more
+than one packet in the reply direction.
+
+I have a similar patch in my internal tree. It allows only one reply
+packet per original and many packet in the original direction as you
+want. I'll post it asap so we can discuss on it.
 
 -- 
 "Los honestos son inadaptados sociales" -- Les Luthiers
