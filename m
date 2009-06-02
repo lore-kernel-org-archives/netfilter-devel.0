@@ -1,60 +1,51 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [RFD,patch] ICMP echo conntrack timeout
-Date: Tue, 02 Jun 2009 13:46:47 +0200
-Message-ID: <4A251127.8000605@netfilter.org>
-References: <20090601174352.GH31797@fi.muni.cz>
+Subject: [PATCH 0/7] Netfilter updates for nf-next tree (2.6.31)
+Date: Tue, 02 Jun 2009 13:51:30 +0200
+Message-ID: <20090602114933.7677.25219.stgit@Decadence>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Kasprzak <kas@fi.muni.cz>
+Cc: kaber@trash.net
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36023 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:53591 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751553AbZFBMaI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Jun 2009 08:30:08 -0400
-In-Reply-To: <20090601174352.GH31797@fi.muni.cz>
+	id S1750980AbZFBMbG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 2 Jun 2009 08:31:06 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Jan,
+Hi Patrick,
 
-Jan Kasprzak wrote:
-> 	Hello, netfilter developers!
-> 
-> I am trying to delploy a conntrackd-based HA router and (if possible) a
-> flow statistics collector. I have discovered that nf_conntrack treats each
-> ICMP echo request/reply pair as a separate connection (in
-> net/ipv4/netfilter/nf_conntrack_proto_icmp.c:icmp_packet() function).
-> This has several problems:
-> 
-> - excessive conntrackd traffic when the ping is running over the router
-> 	(one new "connection" per echo request/reply pair).
+Here it follows the first bunch of updates for your nf-next tree.
+This patchset is mostly oriented to cleanups and the conntrack event
+subsystem.
 
-Indeed, one event per new ICMP echo packet is too much. This can be also
-a way to exhaust resources of the conntrack subsystem.
+Wait for your comments! Thanks!
 
-> - should there be a duplicated ICMP echo reply (such as when when pinging
-> 	a cluster IP address), only the first echo reply is seen as
-> 	ESTABLISHED, the rest is INVALID.
-> 
-> - no "per-flow" statistics available, as there is no notion of the "flow"		at all.
+---
 
-Indeed, no packet accounting at all.
+Pablo Neira Ayuso (7):
+      netfilter: conntrack: replace notify chain by function pointer
+      netfilter: conntrack: simplify event caching system
+      netfilter: conntrack: remove events flags from userspace exposed file
+      netfilter: conntrack: don't report events on module removal
+      netfilter: ctnetlink: cleanup message building and size calculation
+      netfilter: ctnetlink: remove nowait parameter from *fill_info()
+      netfilter: nfnetlink: cleanup for nfnetlink_rcv_msg() function
 
-> 	I think it would be better to keep the default timeout of
-> nf_ct_icmp_timeout even after the echo reply is received. Feel free
-> to correct me why early deleting of ICMP conntrack entries is needed,
-> or consider applying the following patch.
 
-The only problem that I see is that you patch relaxes the current
-checking that we're doing. I mean, for every packet in one direction we
-only accept one ICMP reply packet. With your patch, we can accept more
-than one packet in the reply direction.
+ include/linux/netfilter/nf_conntrack_common.h  |   69 ------
+ include/linux/netfilter/nfnetlink.h            |    2 
+ include/net/netfilter/nf_conntrack.h           |    8 +
+ include/net/netfilter/nf_conntrack_ecache.h    |  113 +++++++++-
+ net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |    1 
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |    1 
+ net/netfilter/nf_conntrack_core.c              |   29 +--
+ net/netfilter/nf_conntrack_ecache.c            |  101 ++++++++-
+ net/netfilter/nf_conntrack_ftp.c               |    2 
+ net/netfilter/nf_conntrack_netlink.c           |  262 +++++++++++-------------
+ net/netfilter/nf_conntrack_proto_tcp.c         |    1 
+ net/netfilter/nfnetlink.c                      |   28 +--
+ 12 files changed, 326 insertions(+), 291 deletions(-)
 
-I have a similar patch in my internal tree. It allows only one reply
-packet per original and many packet in the original direction as you
-want. I'll post it asap so we can discuss on it.
-
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
