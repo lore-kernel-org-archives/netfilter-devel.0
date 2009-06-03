@@ -1,56 +1,47 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 9/9] netfilter: conntrack: replace notify chain by function
- pointer
-Date: Wed, 03 Jun 2009 10:05:55 +0200
-Message-ID: <4A262EE3.8010607@netfilter.org>
-References: <20090602181336.18573.85368.stgit@Decadence> <20090602182115.18573.84532.stgit@Decadence> <4A261711.1020208@trash.net>
+From: Nishit Shah <nsshah.82@gmail.com>
+Subject: TSO issue - "DNAT/mark based routing/MASQUEARDE on locally genrated
+	traffic"
+Date: Wed, 3 Jun 2009 14:25:49 +0530
+Message-ID: <b2d58cb80906030155j2431b907yd0444c7ae372e064@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56502 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753668AbZFCIey (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 3 Jun 2009 04:34:54 -0400
-In-Reply-To: <4A261711.1020208@trash.net>
+Received: from mail-qy0-f104.google.com ([209.85.221.104]:39335 "EHLO
+	mail-qy0-f104.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753082AbZFCIzs convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 3 Jun 2009 04:55:48 -0400
+Received: by qyk2 with SMTP id 2so1675674qyk.33
+        for <netfilter-devel@vger.kernel.org>; Wed, 03 Jun 2009 01:55:50 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy wrote:
-> Pablo Neira Ayuso wrote:
->> -int nf_ct_expect_unregister_notifier(struct notifier_block *nb)
->> +int nf_ct_expect_unregister_notifier(struct nf_exp_event_notifier *new)
->>  {
->> -    return atomic_notifier_chain_unregister(&nf_ct_expect_chain, nb);
->> +    int ret = 0;
->> +    struct nf_exp_event_notifier *notify;
->> +
->> +    mutex_lock(&nf_ct_ecache_mutex);
->> +    notify = rcu_dereference(nf_expect_event_cb);
->> +    if (notify != new) {
->> +        ret = -EINVAL;
->> +        goto out_unlock;
->> +    }
-> 
-> I think these unregistration functions should return void. The only
-> reason why they don't currently is because the notifier_chain_unregister
-> function for some unknown reasons don't return void, but there's
-> a) nothing the caller could possibly do to handle this and b) a bug
-> anyways. So I'd suggest to just unconditionally assign NULL.
+Hi,
+                Whenever there is a output device change for locally
+generated traffic due to,
+                           DNAT/mark based routing in OUTPUT nat/mangle
+                           MASQURADE in POSTROUTING nat
+                 NETIF_F_TSO flag is not unset from sk->sk_route_caps.
 
-Would you be OK with something like:
+So, there are chances that, output device returned at TCP/IP layer
+routing supports NETIF_F_TSO  and changed output device due to
+DNAT/mark based routing/MASQUERADE doesn=92t support NETIF_F_TSO.
+In some of my experiments for some interfaces, I got =93NETDEV_WATCHDOG=
+:
+eth1 transmit timeout=94 messages and for some others packets doesn=92t=
+ go
+out of the box.
+Currently I have disabled TSO on all interfaces through ethtool.
 
-BUG_ON(notify != new);
+Is there any other way to solve this issue (something like resetting
+the flag in route_me_harder() if device doesn=92t support TSO ) ?
 
-So we can catch this very unlikely bug, if so.
-
-> Sorry for not bringing this up earlier.
-> 
-> BTW, you might also consider marking the callback pointers read_mostly.
-
-Done.
-
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+Rgds,
+Nishit Shah.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
