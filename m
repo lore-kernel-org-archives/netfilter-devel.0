@@ -1,31 +1,35 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: Iwan Budi Kusnanto <iwanbk@gmail.com>
 Subject: Re: VLAN tagging not supported by ebtables ?
-Date: Thu, 4 Jun 2009 12:42:50 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0906041242320.32084@fbirervta.pbzchgretzou.qr>
+Date: Thu, 4 Jun 2009 17:52:05 +0700
+Message-ID: <41f748550906040352o57022c9br55c8658adb84073b@mail.gmail.com>
 References: <41f748550906040330l36d5b241w7b0d4d52db352a5@mail.gmail.com>
+	 <alpine.LSU.2.00.0906041242320.32084@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org, bdschuym@pandora.be
-To: Iwan Budi Kusnanto <iwanbk@gmail.com>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:43482 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751973AbZFDKmt (ORCPT
+Received: from mail-px0-f182.google.com ([209.85.216.182]:50820 "EHLO
+	mail-px0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751153AbZFDKwD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Jun 2009 06:42:49 -0400
-In-Reply-To: <41f748550906040330l36d5b241w7b0d4d52db352a5@mail.gmail.com>
+	Thu, 4 Jun 2009 06:52:03 -0400
+Received: by pxi12 with SMTP id 12so666185pxi.33
+        for <netfilter-devel@vger.kernel.org>; Thu, 04 Jun 2009 03:52:05 -0700 (PDT)
+In-Reply-To: <alpine.LSU.2.00.0906041242320.32084@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 2009-06-04 12:30, Iwan Budi Kusnanto wrote:
-
->Hi,
->I'm new to ebtables. From my googling and looking into ebtables source
->code, ebtables doesn't support vlan tagging ? Am i right ? ( i already
->looked at ebt_vlan.c).
+On 6/4/09, Jan Engelhardt <jengelh@medozas.de> wrote:
 >
->If yes, is there any reason why vlan tagging support in ebtables not
->implemented by netfiler/ebtables developer ?
+> I would say that VLAN tagging is done by routing a packet out a specific
+>  (VLAN) interface.
+>
 
-I would say that VLAN tagging is done by routing a packet out a specific 
-(VLAN) interface.
+Thanks Jan, we meet some condition that prevent us from adding VLAN
+interface in our system.
+
+
+-- 
+Iwan Budi Kusnanto
