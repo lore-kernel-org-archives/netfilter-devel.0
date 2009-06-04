@@ -1,84 +1,77 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [net-next] socket: Added 'transparent' option
-Date: Thu, 4 Jun 2009 14:45:02 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0906041443050.6111@fbirervta.pbzchgretzou.qr>
-References: <1244119045-10614-1-git-send-email-panther@balabit.hu> <1244119045-10614-2-git-send-email-panther@balabit.hu>
+From: Evgeniy Polyakov <zbr@ioremap.net>
+Subject: Re: [resend] Passive OS fingerprint xtables match.
+Date: Thu, 4 Jun 2009 17:11:53 +0400
+Message-ID: <20090604131153.GA18251@ioremap.net>
+References: <20090511095343.GA30778@ioremap.net> <4A1D6A20.8050404@trash.net> <20090604113723.GA13018@ioremap.net> <4A27B5A1.9050300@trash.net> <20090604120719.GA14981@ioremap.net> <4A27B9EC.2010301@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
-To: Laszlo Attila Toth <panther@balabit.hu>
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, David Miller <davem@davemloft.net>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Jan Engelhardt <jengelh@medozas.de>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:58573 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755388AbZFDMpB (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Jun 2009 08:45:01 -0400
-In-Reply-To: <1244119045-10614-2-git-send-email-panther@balabit.hu>
+Received: from broadrack.ru ([195.178.208.66]:53664 "EHLO tservice.net.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753939AbZFDNMC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 4 Jun 2009 09:12:02 -0400
+Content-Disposition: inline
+In-Reply-To: <4A27B9EC.2010301@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Thu, Jun 04, 2009 at 02:11:24PM +0200, Patrick McHardy (kaber@trash.net) wrote:
+> Thats not what I meant. struct xt_match_param is passed to the
+> ->match() callbacks from *t_do_table(). This is where you can
+> add the real hook number to have it available in ->match().
+> 
+> (Forgot to mention earlier: please in a seperate patch and adjusting
+>  all *tables copies)
 
-On Thursday 2009-06-04 14:37, Laszlo Attila Toth wrote:
+Kind of this (for ipv4 only so far, also reorderd a field to fill the
+gap):
 
->Added new revision of the 'socket' match. If its new option is set,
->enabled 'transparent' socket option is required for the socket to be m=
-atched.
->
->Signed-off-by: Laszlo Attila Toth <panther@balabit.hu>
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index 7b1a652..65a08ae 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -184,9 +184,10 @@ struct xt_counters_info
+  * @matchinfo:	per-match data
+  * @fragoff:	packet is a fragment, this is the data offset
+  * @thoff:	position of transport header relative to skb->data
+- * @hotdrop:	drop packet if we had inspection problems
++ * @hook:	hook number given packet came from
+  * @family:	Actual NFPROTO_* through which the function is invoked
+  * 		(helpful when match->family == NFPROTO_UNSPEC)
++ * @hotdrop:	drop packet if we had inspection problems
+  */
+ struct xt_match_param {
+ 	const struct net_device *in, *out;
+@@ -194,8 +195,9 @@ struct xt_match_param {
+ 	const void *matchinfo;
+ 	int fragoff;
+ 	unsigned int thoff;
+-	bool *hotdrop;
++	unsigned int hooknum;
+ 	u_int8_t family;
++	bool *hotdrop;
+ };
+ 
+ /**
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index 810c0b6..385e4a0 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -335,7 +335,7 @@ ipt_do_table(struct sk_buff *skb,
+ 	mtpar.in      = tgpar.in  = in;
+ 	mtpar.out     = tgpar.out = out;
+ 	mtpar.family  = tgpar.family = NFPROTO_IPV4;
+-	tgpar.hooknum = hook;
++	mtpar.hooknum = tgpar.hooknum = hook;
+ 
+ 	IP_NF_ASSERT(table->valid_hooks & (1 << hook));
+ 
 
->+++ b/include/linux/netfilter/xt_socket.h
->@@ -0,0 +1,8 @@
->+#ifndef _XT_SOCKET_H_match
->+#define _XT_SOCKET_H_match
->+
->+struct xt_socket_match_info1 {
->+	__u8 transparent:1;
->+};
->+
->+#endif /* _XT_SOCKET_H_match */
-
-Compiler-level bitfields are not portable, so let's not use them.
-
->@@ -142,10 +145,22 @@ socket_mt(const struct sk_buff *skb, const struc=
-t xt_match_param *par)
-> 				   saddr, daddr, sport, dport, par->in, false);
-> 	if (sk !=3D NULL) {
-> 		bool wildcard =3D (sk->sk_state !=3D TCP_TIME_WAIT && inet_sk(sk)->=
-rcv_saddr =3D=3D 0);
->+		bool transparent =3D (sk->sk_state !=3D TCP_TIME_WAIT &&
->+					inet_sk(sk)->transparent) ||
->+				   (sk->sk_state =3D=3D TCP_TIME_WAIT &&
->+					inet_twsk(sk)->tw_transparent);
->+		const struct xt_socket_match_info1 *info =3D NULL;
->+
->+		if (check_transparent);
->+			info =3D par->matchinfo;
-
-That's a definite =E2=80=9Cwhoops in coding=E2=80=9D there with that tr=
-ailing ;.
-Wanna buy a `make C=3D1`? :-)
-
->+static struct xt_match socket_mt_reg[] __read_mostly =3D {
->+	{
->+		.name		=3D "socket",
->+		.revision	=3D 0,
->+		.family		=3D AF_INET,
-
-NFPROTO_IPV4
-
->+		.match		=3D socket_mt_v0,
->+		.hooks		=3D 1 << NF_INET_PRE_ROUTING,
->+		.me		=3D THIS_MODULE,
->+	},
->+	{
->+		.name		=3D "socket",
->+		.revision	=3D 1,
->+		.family		=3D AF_INET,
-
-^
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+	Evgeniy Polyakov
