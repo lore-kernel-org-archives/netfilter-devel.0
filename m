@@ -1,182 +1,84 @@
-From: Laszlo Attila Toth <panther@balabit.hu>
-Subject: [iptables] socket match: new revision, match transparent sockets
-Date: Thu,  4 Jun 2009 14:37:25 +0200
-Message-ID: <1244119045-10614-3-git-send-email-panther@balabit.hu>
-References: <1244119045-10614-1-git-send-email-panther@balabit.hu>
- <1244119045-10614-2-git-send-email-panther@balabit.hu>
-Cc: kaber@trash.net, Laszlo Attila Toth <panther@balabit.hu>
-To: netfilter-devel@vger.kernel.org
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [net-next] socket: Added 'transparent' option
+Date: Thu, 4 Jun 2009 14:45:02 +0200 (CEST)
+Message-ID: <alpine.LSU.2.00.0906041443050.6111@fbirervta.pbzchgretzou.qr>
+References: <1244119045-10614-1-git-send-email-panther@balabit.hu> <1244119045-10614-2-git-send-email-panther@balabit.hu>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+To: Laszlo Attila Toth <panther@balabit.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from support.balabit.hu ([195.70.41.86]:58998 "EHLO lists.balabit.hu"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1755003AbZFDMhZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Jun 2009 08:37:25 -0400
-Received: from balabit.hu (unknown [10.80.0.254])
-	by lists.balabit.hu (Postfix) with ESMTP id 28E7313A2F2
-	for <netfilter-devel@vger.kernel.org>; Thu,  4 Jun 2009 14:37:27 +0200 (CEST)
+Received: from sovereign.computergmbh.de ([85.214.69.204]:58573 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755388AbZFDMpB (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 4 Jun 2009 08:45:01 -0400
 In-Reply-To: <1244119045-10614-2-git-send-email-panther@balabit.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Added new revision of the socket match.
 
-if the '--transparent' parameter is specified, the sockets,
-which transparent socket option is not set, are ignored.
+On Thursday 2009-06-04 14:37, Laszlo Attila Toth wrote:
 
-Signed-off-by: Laszlo Attila Toth <panther@balabit.hu>
----
- extensions/libxt_socket.c           |   95 +++++++++++++++++++++++++++++-----
- extensions/libxt_socket.man         |    6 ++-
- include/linux/netfilter/xt_socket.h |    8 +++
- 3 files changed, 94 insertions(+), 15 deletions(-)
- create mode 100644 include/linux/netfilter/xt_socket.h
+>Added new revision of the 'socket' match. If its new option is set,
+>enabled 'transparent' socket option is required for the socket to be m=
+atched.
+>
+>Signed-off-by: Laszlo Attila Toth <panther@balabit.hu>
 
-diff --git a/extensions/libxt_socket.c b/extensions/libxt_socket.c
-index eebc7c5..e071c20 100644
---- a/extensions/libxt_socket.c
-+++ b/extensions/libxt_socket.c
-@@ -6,34 +6,101 @@
- #include <stdio.h>
- #include <getopt.h>
- #include <xtables.h>
-+#include <linux/netfilter/xt_socket.h>
- 
--static void socket_mt_help(void)
-+static void socket_mt_help_v0(void)
- {
--	printf("socket v%s has no options\n\n", XTABLES_VERSION);
-+	printf("socket match has no options.\n\n");
- }
- 
--static int socket_mt_parse(int c, char **argv, int invert, unsigned int *flags,
--			const void *entry, struct xt_entry_match **match)
-+static void socket_mt_help_v1(void)
-+{
-+	printf("socket match options:\n"
-+"--transparent      Matches only if the socket's transparent option is set\n");
-+}
-+
-+static const struct option socket_opts_v1[] = {
-+	{ "transparent", 0, NULL, '1' },
-+	{ }
-+};
-+
-+static int socket_mt_parse_v0(int c, char **argv, int invert,
-+			      unsigned int *flags, const void *entry,
-+			      struct xt_entry_match **match)
- {
- 	return 0;
- }
- 
-+static int socket_mt_parse_v1(int c, char **argv, int invert,
-+			      unsigned int *flags, const void *entry,
-+			      struct xt_entry_match **match)
-+{
-+	struct xt_socket_match_info1 *info = (void *) (*match)->data;
-+
-+	switch (c) {
-+	case '1':
-+		if (*flags)
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "Can't specify multiple --transparent");
-+		info->transparent = 1;
-+		*flags = 1;
-+		break;
-+	default:
-+		return 0;
-+	}
-+	return 1;
-+}
-+
- static void socket_mt_check(unsigned int flags)
- {
- }
- 
--static struct xtables_match socket_mt_reg = {
--	.name	       = "socket",
--	.version       = XTABLES_VERSION,
--	.family	       = NFPROTO_IPV4,
--	.size	       = XT_ALIGN(0),
--	.userspacesize = XT_ALIGN(0),
--	.parse	       = socket_mt_parse,
--	.final_check   = socket_mt_check,
--	.help	       = socket_mt_help,
-+static void socket_mt_print_v1(const void *ip,
-+			       const struct xt_entry_match *match,
-+			       int numeric)
-+{
-+	const struct xt_socket_match_info1 *info = (const void *)match->data;
-+	printf("socket ");
-+	if (info->transparent)
-+		printf("transparent ");
-+}
-+
-+static void socket_mt_save_v1(const void *ip,
-+			      const struct xt_entry_match *match)
-+{
-+	const struct xt_socket_match_info1 *info = (const void *)match->data;
-+
-+	if (info->transparent)
-+		printf("--transparent ");
-+}
-+
-+static struct xtables_match socket_mt_reg_v0 = {
-+	.name		= "socket",
-+	.revision	= 0,
-+	.version	= XTABLES_VERSION,
-+	.family		= NFPROTO_IPV4,
-+	.parse		= socket_mt_parse_v0,
-+	.final_check	= socket_mt_check,
-+	.help		= socket_mt_help_v0,
-+};
-+
-+static struct xtables_match socket_mt_reg_v1 = {
-+	.name		= "socket",
-+	.version	= XTABLES_VERSION,
-+	.revision	= 1,
-+	.family		= NFPROTO_IPV4,
-+	.size		= XT_ALIGN(sizeof(struct xt_socket_match_info1)),
-+	.userspacesize	= XT_ALIGN(sizeof(struct xt_socket_match_info1)),
-+	.parse		= socket_mt_parse_v1,
-+	.print		= socket_mt_print_v1,
-+	.save		= socket_mt_save_v1,
-+	.final_check	= socket_mt_check,
-+	.help		= socket_mt_help_v1,
-+	.extra_opts	= socket_opts_v1,
- };
- 
- void _init(void)
- {
--	xtables_register_match(&socket_mt_reg);
-+	xtables_register_match(&socket_mt_reg_v0);
-+	xtables_register_match(&socket_mt_reg_v1);
- }
-diff --git a/extensions/libxt_socket.man b/extensions/libxt_socket.man
-index 50c8854..edc9d75 100644
---- a/extensions/libxt_socket.man
-+++ b/extensions/libxt_socket.man
-@@ -1,2 +1,6 @@
- This matches if an open socket can be found by doing a socket lookup on the
--packet.
-+packet which doesn\'t listen on the \'any\' IP address (0.0.0.0).
-+.TP
-+.BI "\-\-transparent"
-+Enables additional check, that the actual socket's transparent socket option
-+has to be set.
-diff --git a/include/linux/netfilter/xt_socket.h b/include/linux/netfilter/xt_socket.h
-new file mode 100644
-index 0000000..8b2b2f0
---- /dev/null
-+++ b/include/linux/netfilter/xt_socket.h
-@@ -0,0 +1,8 @@
-+#ifndef _XT_SOCKET_H_match
-+#define _XT_SOCKET_H_match
-+
-+struct xt_socket_match_info1 {
-+	__u8 transparent:1;
-+};
-+
-+#endif /* _XT_SOCKET_H_match */
--- 
-1.6.2.2.404.ge96f3
+>+++ b/include/linux/netfilter/xt_socket.h
+>@@ -0,0 +1,8 @@
+>+#ifndef _XT_SOCKET_H_match
+>+#define _XT_SOCKET_H_match
+>+
+>+struct xt_socket_match_info1 {
+>+	__u8 transparent:1;
+>+};
+>+
+>+#endif /* _XT_SOCKET_H_match */
 
+Compiler-level bitfields are not portable, so let's not use them.
+
+>@@ -142,10 +145,22 @@ socket_mt(const struct sk_buff *skb, const struc=
+t xt_match_param *par)
+> 				   saddr, daddr, sport, dport, par->in, false);
+> 	if (sk !=3D NULL) {
+> 		bool wildcard =3D (sk->sk_state !=3D TCP_TIME_WAIT && inet_sk(sk)->=
+rcv_saddr =3D=3D 0);
+>+		bool transparent =3D (sk->sk_state !=3D TCP_TIME_WAIT &&
+>+					inet_sk(sk)->transparent) ||
+>+				   (sk->sk_state =3D=3D TCP_TIME_WAIT &&
+>+					inet_twsk(sk)->tw_transparent);
+>+		const struct xt_socket_match_info1 *info =3D NULL;
+>+
+>+		if (check_transparent);
+>+			info =3D par->matchinfo;
+
+That's a definite =E2=80=9Cwhoops in coding=E2=80=9D there with that tr=
+ailing ;.
+Wanna buy a `make C=3D1`? :-)
+
+>+static struct xt_match socket_mt_reg[] __read_mostly =3D {
+>+	{
+>+		.name		=3D "socket",
+>+		.revision	=3D 0,
+>+		.family		=3D AF_INET,
+
+NFPROTO_IPV4
+
+>+		.match		=3D socket_mt_v0,
+>+		.hooks		=3D 1 << NF_INET_PRE_ROUTING,
+>+		.me		=3D THIS_MODULE,
+>+	},
+>+	{
+>+		.name		=3D "socket",
+>+		.revision	=3D 1,
+>+		.family		=3D AF_INET,
+
+^
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
