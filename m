@@ -1,43 +1,68 @@
-From: Laszlo Attila Toth <panther@balabit.hu>
-Subject: Re: [net-next] socket: Added 'transparent' option
-Date: Thu, 04 Jun 2009 15:33:31 +0200
-Message-ID: <4A27CD2B.9060105@balabit.hu>
-References: <1244119045-10614-1-git-send-email-panther@balabit.hu> <1244119045-10614-2-git-send-email-panther@balabit.hu> <alpine.LSU.2.00.0906041443050.6111@fbirervta.pbzchgretzou.qr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [resend net-next] socket: Added 'transparent' option
+Date: Thu, 04 Jun 2009 15:34:18 +0200
+Message-ID: <4A27CD5A.6040303@trash.net>
+References: <1244122013-25970-1-git-send-email-panther@balabit.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, jengelh@medozas.de
+To: Laszlo Attila Toth <panther@balabit.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from support.balabit.hu ([195.70.41.86]:44917 "EHLO lists.balabit.hu"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756255AbZFDNdc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Jun 2009 09:33:32 -0400
-Received: from balabit.hu (unknown [10.80.0.254])
-	by lists.balabit.hu (Postfix) with ESMTP id 2A97F13A13C
-	for <netfilter-devel@vger.kernel.org>; Thu,  4 Jun 2009 15:33:33 +0200 (CEST)
-In-Reply-To: <alpine.LSU.2.00.0906041443050.6111@fbirervta.pbzchgretzou.qr>
+Received: from stinky.trash.net ([213.144.137.162]:65044 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751899AbZFDNeT (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 4 Jun 2009 09:34:19 -0400
+In-Reply-To: <1244122013-25970-1-git-send-email-panther@balabit.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Thursday 2009-06-04 14:37, Laszlo Attila Toth wrote:
->> +
->> +		if (check_transparent);
->> +			info =3D par->matchinfo;
->=20
-> That's a definite =E2=80=9Cwhoops in coding=E2=80=9D there with that =
-trailing ;.
-> Wanna buy a `make C=3D1`? :-)
+Laszlo Attila Toth wrote:
+> +++ b/include/linux/netfilter/xt_socket.h
+> @@ -0,0 +1,8 @@
+> +#ifndef _XT_SOCKET_H_match
+> +#define _XT_SOCKET_H_match
+> +
+> +struct xt_socket_match_info1 {
+> +	__u8 transparent;
+> +};
 
-Thanks. I tried make C=3D1 but this mistake wasn't noticed by sparse...
+Please use a bitmask.
 
+>  static bool
+> -socket_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+> +socket_match(const struct sk_buff *skb, const struct xt_match_param *par,
+> +	     bool check_transparent)
+>  {
+>  	const struct iphdr *iph = ip_hdr(skb);
+>  	struct udphdr _hdr, *hp = NULL;
+> @@ -142,10 +145,22 @@ socket_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+>  				   saddr, daddr, sport, dport, par->in, false);
+>  	if (sk != NULL) {
+>  		bool wildcard = (sk->sk_state != TCP_TIME_WAIT && inet_sk(sk)->rcv_saddr == 0);
+> +		bool transparent = (sk->sk_state != TCP_TIME_WAIT &&
+> +					inet_sk(sk)->transparent) ||
+> +				   (sk->sk_state == TCP_TIME_WAIT &&
+> +					inet_twsk(sk)->tw_transparent);
+> +		const struct xt_socket_match_info1 *info = NULL;
 
---=20
-Attila
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This is not particulary well readable. Please do the initializations
+seperately from the definitions.
+
+> +
+> +		if (check_transparent)
+> +			info = par->matchinfo;
+
+How about just passing par->matchinfo to socket_match()?
+
+>  		nf_tproxy_put_sock(sk);
+> +
+>  		if (wildcard)
+>  			sk = NULL;
+> +		else if (check_transparent && info->transparent &&
+> +			 !transparent)
+> +			sk = NULL;
+
+Please add a comment what this is doing exactly. And why do the lookup
+at all in this case?
