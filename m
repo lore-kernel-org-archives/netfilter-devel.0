@@ -1,42 +1,35 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Evgeniy Polyakov <zbr@ioremap.net>
 Subject: Re: [resend] Passive OS fingerprint xtables match.
-Date: Thu, 04 Jun 2009 13:53:05 +0200
-Message-ID: <4A27B5A1.9050300@trash.net>
-References: <20090511095343.GA30778@ioremap.net> <4A1D6A20.8050404@trash.net> <20090604113723.GA13018@ioremap.net>
+Date: Thu, 4 Jun 2009 16:07:19 +0400
+Message-ID: <20090604120719.GA14981@ioremap.net>
+References: <20090511095343.GA30778@ioremap.net> <4A1D6A20.8050404@trash.net> <20090604113723.GA13018@ioremap.net> <4A27B5A1.9050300@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: netdev@vger.kernel.org, David Miller <davem@davemloft.net>,
 	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
 	Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>,
 	Jan Engelhardt <jengelh@medozas.de>
-To: Evgeniy Polyakov <zbr@ioremap.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:62583 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751512AbZFDLxG (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Jun 2009 07:53:06 -0400
-In-Reply-To: <20090604113723.GA13018@ioremap.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4A27B5A1.9050300@trash.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Evgeniy Polyakov wrote:
-> Hi.
+On Thu, Jun 04, 2009 at 01:53:05PM +0200, Patrick McHardy (kaber@trash.net) wrote:
+> >That's hard - there is no hook number in the match function, so we do
+> >not really know if it is forward, input or prerouting.
 > 
-> On Wed, May 27, 2009 at 06:28:16PM +0200, Patrick McHardy (kaber@trash.net) wrote:
->>> You will find something like this in the syslog:
->>> Windows [2000:SP3:Windows XP Pro SP1, 2000 SP3]: 11.22.33.55:4024 -> 
->>> 11.22.33.44:139 hops=4
->>> Linux [2.5:]: 1.2.3.4:44448 -> 11.22.33.44:22 hops=4
->> Please convert this to use nf_log_packet().
+> This is really needed, spamming the ring buffer is not a good option.
 > 
-> That's hard - there is no hook number in the match function, so we do
-> not really know if it is forward, input or prerouting.
+> I'd say just add the hook number to xt_match_param. Its a bit
+> inconsistent anyways that we're handing it to checkentry for
+> validation, but not to the match function.
 
-This is really needed, spamming the ring buffer is not a good option.
+Doesn't checkentry receive a mask of all possible hooks? There is still
+no per-packet hook number. Although we can always use INPUT hook since
+its the most widely used one. And drop a comment about this abuse.
 
-I'd say just add the hook number to xt_match_param. Its a bit
-inconsistent anyways that we're handing it to checkentry for
-validation, but not to the match function.
+-- 
+	Evgeniy Polyakov
