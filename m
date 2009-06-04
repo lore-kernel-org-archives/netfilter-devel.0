@@ -1,23 +1,38 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 0/2] reliable per-conntrack event cache
-Date: Thu, 04 Jun 2009 13:17:51 +0200
-Message-ID: <4A27AD5F.9050207@netfilter.org>
-References: <20090604110307.6702.10147.stgit@Decadence>
+From: Evgeniy Polyakov <zbr@ioremap.net>
+Subject: Re: [resend] Passive OS fingerprint xtables match.
+Date: Thu, 4 Jun 2009 15:37:23 +0400
+Message-ID: <20090604113723.GA13018@ioremap.net>
+References: <20090511095343.GA30778@ioremap.net> <4A1D6A20.8050404@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:59512 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754395AbZFDLSA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Jun 2009 07:18:00 -0400
-In-Reply-To: <20090604110307.6702.10147.stgit@Decadence>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, David Miller <davem@davemloft.net>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Jan Engelhardt <jengelh@medozas.de>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4A1D6A20.8050404@trash.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Oops, I forgot to include the subject sorry.
+Hi.
+
+On Wed, May 27, 2009 at 06:28:16PM +0200, Patrick McHardy (kaber@trash.net) wrote:
+> >You will find something like this in the syslog:
+> >Windows [2000:SP3:Windows XP Pro SP1, 2000 SP3]: 11.22.33.55:4024 -> 
+> >11.22.33.44:139 hops=4
+> >Linux [2.5:]: 1.2.3.4:44448 -> 11.22.33.44:22 hops=4
+> 
+> Please convert this to use nf_log_packet().
+
+That's hard - there is no hook number in the match function, so we do
+not really know if it is forward, input or prerouting.
+
+In the version I'm about to send I fixed all rised issues except
+multiple attributes - if there will be a need to extend attribute list
+we can always switch them into new attribute except current all-in-one.
 
 -- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+	Evgeniy Polyakov
