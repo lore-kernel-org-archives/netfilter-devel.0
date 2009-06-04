@@ -1,41 +1,23 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [resend net-next] socket: Added 'transparent' option
-Date: Thu, 4 Jun 2009 16:55:34 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0906041653420.13894@fbirervta.pbzchgretzou.qr>
-References: <1244122013-25970-1-git-send-email-panther@balabit.hu> <4A27CD5A.6040303@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [resend] Passive OS fingerprint xtables match.
+Date: Thu, 04 Jun 2009 16:55:54 +0200
+Message-ID: <4A27E07A.6070800@trash.net>
+References: <20090511095343.GA30778@ioremap.net> <4A1D6A20.8050404@trash.net> <20090604113723.GA13018@ioremap.net> <4A27B5A1.9050300@trash.net> <20090604120719.GA14981@ioremap.net> <4A27B9EC.2010301@trash.net> <20090604131153.GA18251@ioremap.net> <4A27C921.6020301@trash.net> <20090604145009.GB18251@ioremap.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Laszlo Attila Toth <panther@balabit.hu>,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:44256 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752679AbZFDOzd (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Jun 2009 10:55:33 -0400
-In-Reply-To: <4A27CD5A.6040303@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, David Miller <davem@davemloft.net>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Jan Engelhardt <jengelh@medozas.de>
+To: Evgeniy Polyakov <zbr@ioremap.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20090604145009.GB18251@ioremap.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+Evgeniy Polyakov wrote:
+> Added hook number into match extension parameter structure.
 
-On Thursday 2009-06-04 15:34, Patrick McHardy wrote:
-> Laszlo Attila Toth wrote:
->> +++ b/include/linux/netfilter/xt_socket.h
->> @@ -0,0 +1,8 @@
->> +#ifndef _XT_SOCKET_H_match
->> +#define _XT_SOCKET_H_match
->> +
->> +struct xt_socket_match_info1 {
->> +	__u8 transparent;
->> +};
->
-> Please use a bitmask.
-
-enum {
-	XT_SOCKET_TRANSPARENT = 1 << 0,
-};
-
-struct xt_socket_mtinfo1 {
-	__u8 flags;
-};
+Applied, thanks.
