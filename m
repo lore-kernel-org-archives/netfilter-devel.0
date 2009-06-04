@@ -1,20 +1,18 @@
 From: Laszlo Attila Toth <panther@balabit.hu>
-Subject: [resend iptables] socket: Added 'transparent' option
-Date: Thu,  4 Jun 2009 15:26:53 +0200
-Message-ID: <1244122013-25970-2-git-send-email-panther@balabit.hu>
-References: <1244122013-25970-1-git-send-email-panther@balabit.hu>
+Subject: [resend net-next] socket: Added 'transparent' option
+Date: Thu,  4 Jun 2009 15:26:52 +0200
+Message-ID: <1244122013-25970-1-git-send-email-panther@balabit.hu>
 Cc: kaber@trash.net, jengelh@medozas.de,
 	Laszlo Attila Toth <panther@balabit.hu>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from support.balabit.hu ([195.70.41.86]:36932 "EHLO lists.balabit.hu"
+Received: from support.balabit.hu ([195.70.41.86]:36928 "EHLO lists.balabit.hu"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752653AbZFDN1C (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1752422AbZFDN1C (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Thu, 4 Jun 2009 09:27:02 -0400
 Received: from balabit.hu (unknown [10.80.0.254])
-	by lists.balabit.hu (Postfix) with ESMTP id D999C13A257
+	by lists.balabit.hu (Postfix) with ESMTP id 0DFFD13A25B
 	for <netfilter-devel@vger.kernel.org>; Thu,  4 Jun 2009 15:27:02 +0200 (CEST)
-In-Reply-To: <1244122013-25970-1-git-send-email-panther@balabit.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
