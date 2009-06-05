@@ -1,48 +1,50 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: rateest usage problem - slightly lost
-Date: Fri, 5 Jun 2009 15:27:59 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0906051526430.7950@fbirervta.pbzchgretzou.qr>
-References: <c4b050a10905310718h110e127cg6ee114cff0bc2f8c@mail.gmail.com> <c4b050a10905310924h20456bebj900c14226ad8dec5@mail.gmail.com>
+Subject: Re: [PATCH 2/2] NFQUEUE: add new v1 version with queue-balance
+ option
+Date: Fri, 5 Jun 2009 15:30:15 +0200 (CEST)
+Message-ID: <alpine.LSU.2.00.0906051528200.7950@fbirervta.pbzchgretzou.qr>
+References: <1244164679-11032-1-git-send-email-fw@strlen.de> <1244164679-11032-3-git-send-email-fw@strlen.de> <alpine.LSU.2.00.0906051457160.17010@fbirervta.pbzchgretzou.qr> <20090605132707.GG29745@Chamillionaire.breakpoint.cc>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>, kaber@trash.net
-To: Anton VG <anton.vazir@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:48794 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:39915 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752688AbZFEN15 (ORCPT
+	with ESMTP id S1750978AbZFENaN (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Jun 2009 09:27:57 -0400
-In-Reply-To: <c4b050a10905310924h20456bebj900c14226ad8dec5@mail.gmail.com>
+	Fri, 5 Jun 2009 09:30:13 -0400
+In-Reply-To: <20090605132707.GG29745@Chamillionaire.breakpoint.cc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Sunday 2009-05-31 18:24, Anton VG wrote:
-
->Seems finally I've got it working, and had to look at the sources of
->the xt_rateest.c to understand what it wants :)
+On Friday 2009-06-05 15:27, Florian Westphal wrote:
+>> >target4_v1{
+>> >+	.revision	= 1,
+>> >+	.name		= "NFQUEUE",
+>> >+	.version	= XTABLES_VERSION,
+>> >+	.size		= XT_ALIGN(sizeof(struct xt_NFQ_info_v1)),
+>> >+	.userspacesize	= XT_ALIGN(sizeof(struct xt_NFQ_info_v1)),
+>> >+	.help		= NFQUEUE_help_v1,
+>> >+	.init		= NFQUEUE_init_v1,
+>> >+	.parse		= NFQUEUE_parse_v1,
+>> >+	.print		= NFQUEUE_print_v1,
+>> >+	.save		= NFQUEUE_save_v1,
+>> >+	.extra_opts	= NFQUEUE_opts_v1,
+>> >+};
+>> >+
+>> >+static struct xtables_target nfqueue_target6_v1 = {
+>> >+	.family		= NFPROTO_IPV6,
+>> >+	.revision	= 1,
+>> 
+>> You can combine these two to NFPROTO_UNSPEC, like you did to v0,
+>> is not it?
 >
->Possibly it's good to update man page with more examples of rateest
->usage, so it would be clear, that we have to use the first and the
->second (bps1 and bps2) parameters, and rateest give it's result as
->difference of them,[...]
+>Hm, v1 is tied to ipv4/6 on the kernel side, thats why I wanted to make
+>this explicit here, too.
 
-If you have any concrete recommendations=C2=A0=E2=80=94 perhaps even yo=
-ur use case=C2=A0=E2=80=94=20
-on how to improve the wording, we would like to hear. Ideally in the=20
-form of a patch, but an unformatted text/plain blob will also do.
-
-> so the following
->
->iptables -t mangle -A PREROUTING -s $SOURCE -m rateest --rateest1
->$RATEESTIMATOR --rateest-bps1 0 --rateest-bps2 200kbit --rateest-lt -j
->MARK --set-mark $TARGETMARK
->
->will set mark only when estimated rate is below 200kbit
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+It is not needed. iptables's .family and the kernel's .family fields
+are not linked in any way. That is why libxt_length.c can have
+NFPROTO_UNSPEC even if the kernel's xt_length.c happens not to
+(because it inspects L3proto-dependent headers).
