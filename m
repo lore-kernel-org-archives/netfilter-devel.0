@@ -1,30 +1,31 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFD,patch] ICMP echo conntrack timeout
-Date: Fri, 05 Jun 2009 12:46:28 +0200
-Message-ID: <4A28F784.7030200@trash.net>
-References: <20090601174352.GH31797@fi.muni.cz>
+From: Holger Eitzenberger <holger@eitzenberger.org>
+Subject: Re: [PATCH 2/3] netfilter: NFQUEUE: queue balancing support
+Date: Fri, 5 Jun 2009 12:43:54 +0200
+Message-ID: <20090605104354.GA4184@mail.eitzenberger.org>
+References: <1244164542-10739-1-git-send-email-fw@strlen.de> <1244164542-10739-3-git-send-email-fw@strlen.de> <4A28EA6F.1080109@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Kasprzak <kas@fi.muni.cz>
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org,
+	Holger Eitzenberger <heitzenberger@astaro.com>,
+	Florian Westphal <fwestphal@astaro.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:54546 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753456AbZFEKqa (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:63271 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751433AbZFEKtI (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Jun 2009 06:46:30 -0400
-In-Reply-To: <20090601174352.GH31797@fi.muni.cz>
+	Fri, 5 Jun 2009 06:49:08 -0400
+Content-Disposition: inline
+In-Reply-To: <4A28EA6F.1080109@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Kasprzak wrote:
-> From: Jan "Yenya" Kasprzak <kas@fi.muni.cz>
-> Date: Mon, 1 Jun 2009 18:53:20 +0200
-> Subject: [PATCH] [nf_conntrack] Keep the ICMP ct entries longer
+Hi Pablo,
 
-Your patch doesn't apply to the latest tree. Could you rediff against
-git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git
-please?
+> Does this guarantee that packets with NAT handlings go to the same queue?
 
-Thanks.
+Yes, this is guaranteed by the way the hashing is done.  And in fact
+it's very much necessary for applications like Snort e. g.
+
+ /holger
+
