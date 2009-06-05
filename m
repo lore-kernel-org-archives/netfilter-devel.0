@@ -1,422 +1,234 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Passive OS fingerprint xtables match.
-Date: Fri, 05 Jun 2009 13:54:15 +0200
-Message-ID: <4A290767.6080202@trash.net>
-References: <20090604162212.GA24661@ioremap.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/2] netfilter: conntrack: move event cache to conntrack
+ extension infrastructure
+Date: Fri, 05 Jun 2009 15:06:43 +0200
+Message-ID: <4A291863.4090604@netfilter.org>
+References: <20090604110307.6702.10147.stgit@Decadence> <20090604110818.6702.51833.stgit@Decadence> <4A28FBCB.4070100@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, David Miller <davem@davemloft.net>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Jan Engelhardt <jengelh@medozas.de>
-To: Evgeniy Polyakov <zbr@ioremap.net>
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55896 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751024AbZFELyQ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Jun 2009 07:54:16 -0400
-In-Reply-To: <20090604162212.GA24661@ioremap.net>
+Received: from mail.us.es ([193.147.175.20]:59953 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751410AbZFEMzi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 5 Jun 2009 08:55:38 -0400
+In-Reply-To: <4A28FBCB.4070100@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Evgeniy Polyakov wrote:
+Patrick McHardy wrote:
+> Pablo Neira Ayuso wrote:
+>> -/* Connection tracking event bits */
+>> +/* Connection tracking event types */
+>>  enum ip_conntrack_events
+>>  {
+>> -    /* New conntrack */
+>> -    IPCT_NEW_BIT = 0,
+>> -    IPCT_NEW = (1 << IPCT_NEW_BIT),
+>> -
+>> -...
+>> +    IPCT_NEW        = 0,    /* new conntrack */
 > 
-> This version switches from printk to nf_log_packet() interface,
-> introduces separate add/remove commands for fingerprint processing,
-> drops unused variables and includes, adds more comments and contains
-> other misc cleanups.
+> Why this change? Further down, you change the code to use
+> (1 << IPCT_*), which isn't really an improvement.
 
-Thanks, this looks much better already. A few final requests:
+Oh, this is not intended to be an improvement. I needed to change this 
+to use bitopts operations, that's all. Or I could use IPCT_*_BIT and 
+change every reference to this in the whole conntrack table, but the 
+patch would be much bigger and noisy :).
 
-> +++ b/net/netfilter/xt_osf.c
-> +
-> +struct xt_osf_finger_storage {
-> +	struct list_head		finger_list;
-> +};
-
-Without the lock the struct doesn't seem useful anymore. Any reason
-for not removing it?
-
-> +static int xt_osf_add_callback(struct sock *ctnl, struct sk_buff *skb,
-> +			struct nlmsghdr *nlh, struct nlattr *osf_attrs[])
-> +{
-> +	struct xt_osf_user_finger *f;
-> +	struct xt_osf_finger *kf = NULL, *sf;
-> +	struct xt_osf_finger_storage *st;
-> +	int err = 0;
-> +
-> +	if (!osf_attrs[OSF_ATTR_FINGER])
-> +		return -EINVAL;
-> +
-> +	f = nla_data(osf_attrs[OSF_ATTR_FINGER]);
-> +	st = &xt_osf_fingers[!!f->df];
-> +
-> +	kf = kmalloc(sizeof(struct xt_osf_finger), GFP_KERNEL);
-> +	if (!kf)
-> +		return -ENOMEM;
-> +
-> +	memcpy(&kf->finger, f, sizeof(struct xt_osf_user_finger));
-> +
-> +	rcu_read_lock();
-> +	list_for_each_entry_rcu(sf, &st->finger_list, finger_entry) {
-> +		if (memcmp(&sf->finger, f, sizeof(struct xt_osf_user_finger)))
-> +			continue;
-> +
-> +		/*
-> +		 * We are protected by nfnl mutex.
-
-Which means we don't need RCU here (and for removal), right?
-
-> +		 */
-> +		kfree(kf);
-> +		kf = NULL;
-> +
-> +		err = -EEXIST;
-> +		break;
-
-Please verify that the correct netlink flags are set to avoid
-problems in case someone wants to add replacements later on.
-This means addition always requires NLM_F_CREATE. NLM_F_REPLACE
-is currently not supported, but EEXIST should only be returned
-when NLM_F_EXCL is set.
-
-> +static inline int xt_osf_ttl(const struct sk_buff *skb, const struct xt_osf_info *info,
-> +			    unsigned char f_ttl)
-> +{
-> +	const struct iphdr *ip = ip_hdr(skb);
-> +
-> +	if (info->flags & XT_OSF_TTL) {
-> +		if (info->ttl == XT_OSF_TTL_TRUE)
-> +			return ip->ttl == f_ttl;
-> +		if (info->ttl == XT_OSF_TTL_NOCHECK)
-> +			return 1;
-> +		else if (ip->ttl <= f_ttl)
-> +			return 1;
-> +		else {
-> +			struct in_device *in_dev = in_dev_get(skb->dev);
-
-This code is only running inside RCU read side section.
-You could use the non-refcounted variant.
-
-> +			int ret = 0;
-> +
-> +			for_ifa(in_dev) {
-> +				if (inet_ifa_match(ip->saddr, ifa)) {
-> +					ret = (ip->ttl == f_ttl);
-> +					break;
-> +				}
-> +			}
-> +			endfor_ifa(in_dev);
-> +
-> +			in_dev_put(in_dev);
-> +			return ret;
-> +		}
-> +	}
-> +
-> +	return ip->ttl == f_ttl;
-> +}
-> +
-> +static bool xt_osf_match_packet(const struct sk_buff *skb,
-> +		const struct xt_match_param *p)
-> +{
-> +	const struct xt_osf_info *info = p->matchinfo;
-> +	const struct iphdr *ip = ip_hdr(skb);
-> +	const struct tcphdr *tcp;
-> +	struct tcphdr _tcph;
-> +	int fmatch = FMATCH_WRONG, fcount = 0;
-> +	unsigned int optsize = 0, check_WSS = 0;
-> +	u16 window, totlen, mss = 0;
-> +	bool df;
-> +	const unsigned char *optp = NULL, *_optp = NULL;
-> +	unsigned char opts[MAX_IPOPTLEN];
-> +	const struct xt_osf_finger *kf;
-> +	const struct xt_osf_user_finger *f;
-> +	const struct xt_osf_finger_storage *st;
-> +
-> +	if (!info)
-> +		return false;
-> +
-> +	tcp = skb_header_pointer(skb, ip_hdrlen(skb), sizeof(struct tcphdr), &_tcph);
-> +	if (!tcp)
-> +		return false;
-> +
-> +	if (!tcp->syn)
-> +		return false;
-> +
-> +	totlen = ntohs(ip->tot_len);
-> +	df = ntohs(ip->frag_off) & IP_DF;
-> +	window = ntohs(tcp->window);
-> +
-> +	if (tcp->doff * 4 > sizeof(struct tcphdr)) {
-> +		optsize = tcp->doff * 4 - sizeof(struct tcphdr);
-
-tcp_optlen()?
-
-> +
-> +		if (optsize > sizeof(opts))
-> +			optsize = sizeof(opts);
-
-How can this happen? The doff field can only represent up to 40
-bytes of option length.
-
-> +
-> +		_optp = optp = skb_header_pointer(skb, ip_hdrlen(skb) +
-> +				sizeof(struct tcphdr), optsize, opts);
-> +	}
-> +
-> +	st = &xt_osf_fingers[df];
-> +
-> +	rcu_read_lock();
-> +	list_for_each_entry_rcu(kf, &st->finger_list, finger_entry) {
-> +		f = &kf->finger;
-> +
-> +		if (!(info->flags & XT_OSF_LOG) && strcmp(info->genre, f->genre))
-> +			continue;
-> +
-> +		optp = _optp;
-> +		fmatch = FMATCH_WRONG;
-> +
-> +		if (totlen == f->ss && xt_osf_ttl(skb, info, f->ttl)) {
-> +			int foptsize, optnum;
-> +
-> +			/*
-> +			 * Should not happen if userspace parser was written correctly.
-> +			 */
-> +			if (f->wss.wc >= OSF_WSS_MAX)
-> +				continue;
-> +
-> +			/* Check options */
-> +
-> +			foptsize = 0;
-> +			for (optnum = 0; optnum < f->opt_num; ++optnum)
-> +				foptsize += f->opt[optnum].length;
-> +
-> +			if (foptsize > MAX_IPOPTLEN ||
-> +				optsize > MAX_IPOPTLEN ||
-> +				optsize != foptsize)
-> +				continue;
-> +
-> +			check_WSS = f->wss.wc;
-> +
-> +			for (optnum = 0; optnum < f->opt_num; ++optnum) {
-> +				if (f->opt[optnum].kind == (*optp)) {
-> +					__u32 len = f->opt[optnum].length;
-> +					const __u8 *optend = optp + len;
-> +					int loop_cont = 0;
-> +
-> +					fmatch = FMATCH_OK;
-> +
-> +					switch (*optp) {
-> +					case OSFOPT_MSS:
-> +						mss = optp[3];
-> +						mss <<= 8;
-> +						mss |= optp[2];
-> +
-> +						mss = ntohs(mss);
-> +						break;
-> +					case OSFOPT_TS:
-> +						loop_cont = 1;
-> +						break;
-> +					}
-> +
-> +					optp = optend;
-> +				} else
-> +					fmatch = FMATCH_OPT_WRONG;
-> +
-> +				if (fmatch != FMATCH_OK)
-> +					break;
-> +			}
-> +
-> +			if (fmatch != FMATCH_OPT_WRONG) {
-> +				fmatch = FMATCH_WRONG;
-> +
-> +				switch (check_WSS) {
-> +				case OSF_WSS_PLAIN:
-> +					if (f->wss.val == 0 || window == f->wss.val)
-> +						fmatch = FMATCH_OK;
-> +					break;
-> +				case OSF_WSS_MSS:
-> +					/*
-> +					 * Some smart modems decrease mangle MSS to 
-> +					 * SMART_MSS_2, so we check standard, decreased
-> +					 * and the one provided in the fingerprint MSS
-> +					 * values.
-> +					 */
-> +#define SMART_MSS_1	1460
-> +#define SMART_MSS_2	1448
-> +					if (window == f->wss.val * mss ||
-> +					    window == f->wss.val * SMART_MSS_1 ||
-> +					    window == f->wss.val * SMART_MSS_2)
-> +						fmatch = FMATCH_OK;
-> +					break;
-> +				case OSF_WSS_MTU:
-> +					if (window == f->wss.val * (mss + 40) ||
-> +					    window == f->wss.val * (SMART_MSS_1 + 40) ||
-> +					    window == f->wss.val * (SMART_MSS_2 + 40))
-> +						fmatch = FMATCH_OK;
-> +					break;
-> +				case OSF_WSS_MODULO:
-> +					if ((window % f->wss.val) == 0)
-> +						fmatch = FMATCH_OK;
-> +					break;
-> +				}
-> +			}
-> +
-> +			if (fmatch != FMATCH_OK)
-> +				continue;
-> +
-> +			fcount++;
-> +			/*
-> +			 * Everyone uses NULL loginfo (well, everyone uses
-> +			 * NULL for all but format and message fields), so
-> +			 * I did not set it up either.
-> +			 */
-
-That comment doesn't provide much value IMO. A loginfo field is only
-passed in by the various LOG targets.
-
-> +			if (info->flags & XT_OSF_LOG)
-> +				nf_log_packet(p->hooknum, 0, skb, p->in, p->out, NULL,
-> +					"%s [%s:%s] : %pi4:%d -> %pi4:%d hops=%d\n",
-> +					f->genre, f->version, f->subtype,
-> +					&ip->saddr, ntohs(tcp->source),
-> +					&ip->daddr, ntohs(tcp->dest),
-> +					f->ttl - ip->ttl);
-> +
-> +			if ((info->flags & XT_OSF_LOG) &&
-> +			    info->loglevel == XT_OSF_LOGLEVEL_FIRST)
-> +				break;
-> +		}
-> +	}
-> +	rcu_read_unlock();
-> +
-> +	if (!fcount && (info->flags & XT_OSF_LOG)) {
-> +		unsigned int i;
-> +		struct xt_osf_user_finger fg;
-> +
-> +		memset(&fg, 0, sizeof(fg));
-> +
-> +		if (info->flags & XT_OSF_LOG) {
-> +			if (info->loglevel != XT_OSF_LOGLEVEL_ALL_KNOWN)
-> +				nf_log_packet(p->hooknum, 0, skb, p->in, p->out, NULL,
-> +					"window: %u, mss: %u, totlen: %u, df: %d, ttl: %u : ",
-> +					window, mss, totlen, df, ip->ttl);
-
-nf_log_packet() can pass the entire packet to userspace. Header-field
-extraction should be done by whatever is logging in userspace. This
-looks very much like debugging anyways, where is the actual message?
-
-> +			if (_optp) {
-> +				optp = _optp;
-> +				for (i = 0; i < optsize; i++)
-> +					nf_log_packet(p->hooknum, 0, skb, p->in, p->out, NULL,
-> +						"%02X ", optp[i]);
-
-Same here and other logging calls.
-
-> +			}
-> +
-> +			nf_log_packet(p->hooknum, 0, skb, p->in, p->out, NULL,
-> +					"%pi4:%u -> %pi4:%u\n",
-> +			     &ip->saddr, ntohs(tcp->source),
-> +			     &ip->daddr, ntohs(tcp->dest));
-> +		}
-> +	}
-> +
-> +	if (fcount)
-> +		fmatch = FMATCH_OK;
-> +
-> +	return fmatch == FMATCH_OK;
-> +}
-> +
-> +static struct xt_match xt_osf_match = {
-> +	.name 		= "osf",
-> +	.revision	= 0,
-> +	.family		= NFPROTO_IPV4,
-> +	.proto		= IPPROTO_TCP,
-> +	.hooks      	= (1 << NF_INET_LOCAL_IN) |
-> +				(1 << NF_INET_PRE_ROUTING) |
-> +				(1 << NF_INET_FORWARD),
-> +	.match 		= xt_osf_match_packet,
-> +	.matchsize	= sizeof(struct xt_osf_info),
-> +	.me		= THIS_MODULE,
-> +};
-> +
-> +static int __init xt_osf_init(void)
-> +{
-> +	int err = -EINVAL;
-> +	int i;
-> +
-> +	for (i=0; i<ARRAY_SIZE(xt_osf_fingers); ++i) {
-> +		struct xt_osf_finger_storage *st = &xt_osf_fingers[i];
-> +
-> +		INIT_LIST_HEAD(&st->finger_list);
-> +	}
-> +
-> +	err = nfnetlink_subsys_register(&xt_osf_nfnetlink);
-> +	if (err < 0) {
-> +		printk(KERN_ERR "Failed (%d) to register OSF nsfnetlink helper.\n", err);
-> +		goto err_out_exit;
-> +	}
-> +
-> +	err = xt_register_match(&xt_osf_match);
-> +	if (err) {
-> +		printk(KERN_ERR "Failed (%d) to register OS fingerprint "
-> +				"matching module.\n", err);
-> +		goto err_out_remove;
-> +	}
-> +
-> +	printk(KERN_INFO "Started passive OS fingerprint matching module.\n");
-
-Please no messages on successful module load. Or at least
-not when statically built, but preferrably not at all.
-
-> +
-> +	return 0;
-> +
-> +err_out_remove:
-> +	nfnetlink_subsys_unregister(&xt_osf_nfnetlink);
-> +err_out_exit:
-> +	return err;
-> +}
-> +
-> +static void __exit xt_osf_fini(void)
-> +{
-> +	struct xt_osf_finger *f;
-> +	int i;
-> +
-> +	nfnetlink_subsys_unregister(&xt_osf_nfnetlink);
-> +	xt_unregister_match(&xt_osf_match);
-> +
-> +	rcu_read_lock();
-> +	for (i=0; i<ARRAY_SIZE(xt_osf_fingers); ++i) {
-> +		struct xt_osf_finger_storage *st = &xt_osf_fingers[i];
-> +
-> +		list_for_each_entry_rcu(f, &st->finger_list, finger_entry) {
-> +			list_del_rcu(&f->finger_entry);
-> +			call_rcu(&f->rcu_head, xt_osf_finger_free_rcu);
-> +		}
-> +	}
-> +	rcu_read_unlock();
-> +
-> +	rcu_barrier();
-> +
-> +	printk(KERN_INFO "Passive OS fingerprint matching module finished.\n");
-
-Even less on unload :)
-
-> +}
-> +
-> +module_init(xt_osf_init);
-> +module_exit(xt_osf_fini);
-> +
-> +MODULE_LICENSE("GPL");
-> +MODULE_AUTHOR("Evgeniy Polyakov <zbr@ioremap.net>");
-> +MODULE_DESCRIPTION("Passive OS fingerprint matching.");
-> +MODULE_ALIAS_NFNL_SUBSYS(NFNL_SUBSYS_OSF);
+>>  static inline void
+>>  nf_conntrack_event_cache(enum ip_conntrack_events event, struct 
+>> nf_conn *ct)
+>>  {
+>> -    struct net *net = nf_ct_net(ct);
+>> -    struct nf_conntrack_ecache *ecache;
+>> -
+>> -    local_bh_disable();
+>> -    ecache = per_cpu_ptr(net->ct.ecache, raw_smp_processor_id());
+>> -    if (ct != ecache->ct)
+>> -        __nf_ct_event_cache_init(ct);
+>> -    ecache->events |= event;
+>> -    local_bh_enable();
+>> +    struct nf_conntrack_ecache *e;
+>> +    struct nf_ct_event_notifier *notify;
+>> +
+>> +    rcu_read_lock();
+>> +    notify = rcu_dereference(nf_conntrack_event_cb);
+>> +    if (notify == NULL) {
+>> +        rcu_read_unlock();
+>> +        return;
+>> +    }
+>> +    rcu_read_unlock();
 > 
-> 
+> Why the rcu handling? Its not dereferenced, so its not necessary.
 
+I'll remove this.
+
+>> +
+>> +    e = nf_ct_ecache_find(ct);
+>> +    if (e == NULL)
+>> +        return;
+>> +
+>> +    set_bit(event, &e->cache);
+> 
+> This looks quite expensive, given how often this operation is performed.
+> Did you benchmark this?
+
+I'll do that benchmark. I was initially using nf_conntrack_lock to 
+protect the per-conntrack event cache, I think that use bitops is a bit 
+better?
+
+>> diff --git a/include/net/netfilter/nf_conntrack_extend.h 
+>> b/include/net/netfilter/nf_conntrack_extend.h
+>> index da8ee52..7f8fc5d 100644
+>> --- a/include/net/netfilter/nf_conntrack_extend.h
+>> +++ b/include/net/netfilter/nf_conntrack_extend.h
+>> @@ -8,12 +8,14 @@ enum nf_ct_ext_id
+>>      NF_CT_EXT_HELPER,
+>>      NF_CT_EXT_NAT,
+>>      NF_CT_EXT_ACCT,
+>> +    NF_CT_EXT_ECACHE,
+>>      NF_CT_EXT_NUM,
+> 
+> Quoting nf_conntrack_extend.c:
+> 
+> /* This assumes that extended areas in conntrack for the types
+>    whose NF_CT_EXT_F_PREALLOC bit set are allocated in order */
+> 
+> Is that actually the case here? It might be beneficial to move
+> this before accounting if possible, I guess its used more often.
+
+I think that accounting information is updated more often. Events are 
+only updated for very few packet specifically the setup and the 
+tear-down packets of a flow.
+
+>> @@ -738,6 +739,9 @@ nf_conntrack_in(struct net *net, u_int8_t pf, 
+>> unsigned int hooknum,
+>>  
+>>      NF_CT_ASSERT(skb->nfct);
+>>  
+>> +    /* We may have pending events, deliver them and clear the cache */
+>> +    nf_ct_deliver_cached_events(ct);
+> 
+> How does this guarantee that an event will be delivered in time?
+> As far as I can see, it might never be delivered, or at least not
+> until a timeout occurs.
+
+Yes, that's the idea. In short, if we have cached events, we trigger a 
+delivery via ctnetlink. If the delivery fails, we keep the cached events 
+and the next packet will trigger a new delivery. We can lose events but 
+at worse case, the destroy will be delivered.
+
+If we add a new conntrack extension to store the creation and 
+destruction time of the conntrack entries, we can have reliable 
+flow-accouting since, at least, the destroy event will be delivered. In 
+the case of the state synchronization, we aim to ensure that 
+long-standing flows survive failures, thus, under event loss, the backup 
+nodes would gett the state after some tries, specially for long-standing 
+flows since every packet would trigger another delivery in case of problems.
+
+BTW, I have removed that line locally. So the next delivery try for 
+pending events is done only in nf_conntrack_confirm(), not twice, one in 
+nf_conntrack_in() and nf_conntrack_confirm() as it happens in this patch.
+
+>> +void nf_ct_deliver_cached_events_report(struct nf_conn *ct, u32 pid, 
+>> int report)
+>>  {
+>>      struct nf_ct_event_notifier *notify;
+>> +    struct nf_conntrack_ecache *e;
+>>  
+>>      rcu_read_lock();
+>>      notify = rcu_dereference(nf_conntrack_event_cb);
+>>      if (notify == NULL)
+>>          goto out_unlock;
+>>  
+>> -    if (nf_ct_is_confirmed(ecache->ct) && !nf_ct_is_dying(ecache->ct)
+>> -        && ecache->events) {
+>> +    e = nf_ct_ecache_find(ct);
+>> +    if (e == NULL)
+>> +        goto out_unlock;
+>> +
+>> +    if (nf_ct_is_confirmed(ct) && !nf_ct_is_dying(ct) && e->cache) {
+>>          struct nf_ct_event item = {
+>> -            .ct     = ecache->ct,
+>> -            .pid    = 0,
+>> -            .report    = 0
+>> +            .ct    = ct,
+>> +            .pid    = pid,
+>> +            .report    = report
+>>          };
+>>  
+>> -        notify->fcn(ecache->events, &item);
+>> +        notify->fcn(e->cache, &item);
+>>      }
+>> -
+>> -    ecache->events = 0;
+>> -    nf_ct_put(ecache->ct);
+>> -    ecache->ct = NULL;
+>> +    xchg(&e->cache, 0);
+> 
+> This races with delivery. There's no guarantee that it didn't cache
+> another event between delivery and clearing the bits.
+
+Yes, I can do something like:
+
+long events;
+events = xchg(&e->cache, 0);
+
+at the very beginning of this function, and then use "events" instead of 
+e->cache along this function.
+
+>> +static int nf_ct_events_switch __read_mostly = NF_CT_EVENTS_DEFAULT;
+>> +
+>> +module_param_named(event, nf_ct_events_switch, bool, 0644);
+>> +MODULE_PARM_DESC(event, "Enable connection tracking event delivery");
+> 
+> I think its actually possible to use a bool type for the variable
+> nowadays. But I don't think we need the _switch suffix.
+
+OK, I'll remove that prefix and I'll use bool (before making sure that 
+it's possible :).
+
+> Actually
+> I don't really see the need for a module parameter at all, we already
+> have the sysctl.
+
+OK, I'll remove it.
+
+>> diff --git a/net/netfilter/nf_conntrack_netlink.c 
+>> b/net/netfilter/nf_conntrack_netlink.c
+>> index 4448b06..2dd2910 100644
+>> --- a/net/netfilter/nf_conntrack_netlink.c
+>> +++ b/net/netfilter/nf_conntrack_netlink.c
+>> @@ -468,10 +468,10 @@ ctnetlink_conntrack_event(unsigned int events, 
+>> struct nf_ct_event *item)
+>>      if (ct == &nf_conntrack_untracked)
+>>          return 0;
+>>  
+>> -    if (events & IPCT_DESTROY) {
+>> +    if (events & (1 << IPCT_DESTROY)) {
+> 
+> This is really no improvement :)
+
+The other choice is to use __test_bit().
+
+>> @@ -1123,6 +1123,8 @@ ctnetlink_change_conntrack(struct nf_conn *ct, 
+>> struct nlattr *cda[])
+>>          err = ctnetlink_change_helper(ct, cda);
+>>          if (err < 0)
+>>              return err;
+>> +
+>> +        nf_conntrack_event_cache(IPCT_HELPER, ct);
+> 
+> Why are we suddenly caching a lot more events manually?
+
+Currently, in user-space triggered events, we are including in the event 
+message some fields that may not have been updated. Now we can provide 
+more accurante events by notifying only the conntrack object fields that 
+have been updated.
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
