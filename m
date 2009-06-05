@@ -1,31 +1,43 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 3/3] netfilter: MASQUERADE: remove redundant rwlock
-Date: Fri, 05 Jun 2009 13:27:50 +0200
-Message-ID: <4A290136.4040204@trash.net>
-References: <1244164542-10739-1-git-send-email-fw@strlen.de> <1244164542-10739-4-git-send-email-fw@strlen.de>
+Subject: Re: NFQUEUE balancing extension (userspace changes)
+Date: Fri, 05 Jun 2009 13:28:30 +0200
+Message-ID: <4A29015E.5020307@trash.net>
+References: <1244164679-11032-1-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
 To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55329 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:55344 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750806AbZFEL1v (ORCPT
+	with ESMTP id S1750858AbZFEL2a (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Jun 2009 07:27:51 -0400
-In-Reply-To: <1244164542-10739-4-git-send-email-fw@strlen.de>
+	Fri, 5 Jun 2009 07:28:30 -0400
+In-Reply-To: <1244164679-11032-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Florian Westphal wrote:
-> The lock "protects" an assignment and a comparision of an integer.
-> When the caller of device_cmp() evaluates the result, nat->masq_index
-> may already have been changed (regardless if the lock is there or not).
+> Hello list,
 > 
-> So, the lock either has to be held during nf_ct_iterate_cleanup(),
-> or can be removed.
+> this adds a new revision of the NFQUEUE target.
 > 
-> This does the latter.
+> In particular, a new "--queue-balance" option, which allows to
+> specify a range of queues to use.
+> Packets are then balanced across the given queues by the kernel.
+> 
+> This is useful for multicore systems:
+> start multiple instances of the userspace program on queues
+> x, x+1, .. x+n and use "--queue-balance x:x+n".
+> 
+> As for naming, if you'd prefer a different name (or just extend
+> the existing --queue-num option to accept "firstid:lastid" instead),
+> please let me know and I'll be happy to change it.
+> 
+> Both paches can also be pulled from
+> git://git.breakpoint.cc/fw/iptables.git nfq-balance
 
-Agreed, its useless. Applied, thanks.
+Thanks, I'll wait with pulling these until we've made the iptables
+release for 2.6.30.
+
