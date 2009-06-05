@@ -1,50 +1,32 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Passive OS fingerprint xtables match.
-Date: Fri, 05 Jun 2009 15:30:13 +0200
-Message-ID: <4A291DE5.9040802@trash.net>
-References: <20090604162212.GA24661@ioremap.net> <4A290767.6080202@trash.net> <alpine.LSU.2.00.0906051508300.17010@fbirervta.pbzchgretzou.qr>
+From: Florian Westphal <fw@strlen.de>
+Subject: Re: [PATCH 2/2] NFQUEUE: add new v1 version with queue-balance
+	option
+Date: Fri, 5 Jun 2009 15:33:27 +0200
+Message-ID: <20090605133327.GH29745@Chamillionaire.breakpoint.cc>
+References: <1244164679-11032-1-git-send-email-fw@strlen.de> <1244164679-11032-3-git-send-email-fw@strlen.de> <alpine.LSU.2.00.0906051457160.17010@fbirervta.pbzchgretzou.qr> <20090605132707.GG29745@Chamillionaire.breakpoint.cc> <alpine.LSU.2.00.0906051528200.7950@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Evgeniy Polyakov <zbr@ioremap.net>, netdev@vger.kernel.org,
-	David Miller <davem@davemloft.net>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Florian Westphal <fw@strlen.de>, netfilter-devel@vger.kernel.org
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:57970 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751088AbZFENaP (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:42400 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751912AbZFENd0 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Jun 2009 09:30:15 -0400
-In-Reply-To: <alpine.LSU.2.00.0906051508300.17010@fbirervta.pbzchgretzou.qr>
+	Fri, 5 Jun 2009 09:33:26 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LSU.2.00.0906051528200.7950@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Friday 2009-06-05 13:54, Patrick McHardy wrote:
->   
->>> +
->>> +		if (optsize > sizeof(opts))
->>> +			optsize = sizeof(opts);
->>>       
->> How can this happen? The doff field can only represent up to 40
->> bytes of option length.
->>     
->
-> Forged packets?
+Jan Engelhardt <jengelh@medozas.de> wrote:
+> >Hm, v1 is tied to ipv4/6 on the kernel side, thats why I wanted to make
+> >this explicit here, too.
+> 
+> It is not needed. iptables's .family and the kernel's .family fields
+> are not linked in any way. That is why libxt_length.c can have
+> NFPROTO_UNSPEC even if the kernel's xt_length.c happens not to
+> (because it inspects L3proto-dependent headers).
 
-How would that increase the size of the doff field? :)
->>> +	printk(KERN_INFO "Started passive OS fingerprint matching module.\n");
->>>       
->> Please no messages on successful module load. Or at least
->> not when statically built, but preferrably not at all.
->>     
->
-> By that logic should not the messages-on-load for netfilter be removed? ;-)
->   
-
-I wouldn't care, but there's a difference between the main module printing a
-message and extensions printing a message.
-
+I didn't know this was common practice. Thanks for explaining, I will use
+_UNSPEC as you suggested.
