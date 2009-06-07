@@ -1,78 +1,64 @@
-From: Mike Acar <mikeacar@gmail.com>
-Subject: Re: DROP still returns -EPERM to userspace in OUTPUT chain
-Date: Sat, 6 Jun 2009 21:22:41 -0700
-Message-ID: <4664d77a0906062122w7ec23b73p9a322b02b5fb3744@mail.gmail.com>
-References: <alpine.LSU.2.00.0905211707050.23519@fbirervta.pbzchgretzou.qr>
-	 <4A17D45C.6040909@netfilter.org>
-	 <alpine.LSU.2.00.0905231309250.361@fbirervta.pbzchgretzou.qr>
-	 <4A17E14B.5040701@netfilter.org>
-	 <alpine.LSU.2.00.0905231517400.4949@fbirervta.pbzchgretzou.qr>
+From: Evgeniy Polyakov <zbr@ioremap.net>
+Subject: Re: Passive OS fingerprint xtables match.
+Date: Sun, 7 Jun 2009 19:12:18 +0400
+Message-ID: <20090607151218.GA31757@ioremap.net>
+References: <20090604162212.GA24661@ioremap.net> <4A290767.6080202@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Developer Mailing List
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, David Miller <davem@davemloft.net>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>,
-	Patrick McHardy <kaber@trash.net>
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.251]:65350 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751026AbZFGEWk (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 7 Jun 2009 00:22:40 -0400
-Received: by an-out-0708.google.com with SMTP id d40so4410050and.1
-        for <netfilter-devel@vger.kernel.org>; Sat, 06 Jun 2009 21:22:41 -0700 (PDT)
-In-Reply-To: <alpine.LSU.2.00.0905231517400.4949@fbirervta.pbzchgretzou.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+	Jan Engelhardt <jengelh@medozas.de>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4A290767.6080202@trash.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-I'd like to re-open this discussion. I apologize for not responding
-sooner; I've been a bit busy. I'm also not subscribed to
-netfilter-devel, so this message may bounce from there.
+Hi Patrick.
 
-On Sat, May 23, 2009 at 6:20 AM, Jan Engelhardt<jengelh@medozas.de> wrote:
+I've added mentioned cleanups except the one described below.
 
-> Then again, people might be using -m limit -j DROP to simulate actual
-> packet loss, for whatever scientific interests they currently have.
+On Fri, Jun 05, 2009 at 01:54:15PM +0200, Patrick McHardy (kaber@trash.net) wrote:
 
-Which is precisely what happened: I was using DROP to simulate packet
-loss to test timeout handling in a program. The program in question
-does handle errors, but that wasn't the code path I wanted to
-exercise. I wasn't aware of netem, but DROP would be all I needed in
-this case (if it didn't return -EPERM).
+> >+	tcp = skb_header_pointer(skb, ip_hdrlen(skb), sizeof(struct tcphdr), 
+> >&_tcph);
+> >+	if (!tcp)
+> >+		return false;
+> >+
+> >+	if (!tcp->syn)
+> >+		return false;
+> >+
+> >+	totlen = ntohs(ip->tot_len);
+> >+	df = ntohs(ip->frag_off) & IP_DF;
+> >+	window = ntohs(tcp->window);
+> >+
+> >+	if (tcp->doff * 4 > sizeof(struct tcphdr)) {
+> >+		optsize = tcp->doff * 4 - sizeof(struct tcphdr);
+> 
+> tcp_optlen()?
 
-In my former life as a sysadmin, it never occurred to me to interpret
-DROP as "administratively prohibited"; that is what REJECT is for. I
-interpreted DROP as "drop the packet silently, without any response",
-which I think is the intuitive interpretation. An ICMP reply to a
-remote machine is a response, and changing the return value of a
-system call is also a response; neither is desirable.
+TCP header is potentially copied above and transport header may be not
+set, so I work with that part of skb without assuming it was previously
+set by lower layers.
 
-The current behavior produces different results on local and remote
-machines - programs on the remote machine time out, while programs on
-the local machine get an error. I think this inconsistency - or
-asymmetry - is undesirable.
+> >+		if (info->flags & XT_OSF_LOG) {
+> >+			if (info->loglevel != XT_OSF_LOGLEVEL_ALL_KNOWN)
+> >+				nf_log_packet(p->hooknum, 0, skb, p->in, 
+> >p->out, NULL,
+> >+					"window: %u, mss: %u, totlen: %u, 
+> >df: %d, ttl: %u : ",
+> >+					window, mss, totlen, df, ip->ttl);
+> 
+> nf_log_packet() can pass the entire packet to userspace. Header-field
+> extraction should be done by whatever is logging in userspace. This
+> looks very much like debugging anyways, where is the actual message?
 
-What happens when adding an INPUT DROP rule for a protocol and port
-bound for a socket where a daemon is listening? If we apply this
-interpretation consistently, then when the rule is added, those
-listen() calls should be interrupted and return -EPERM. I don't think
-that's desirable behavior either - I think the kernel should drop the
-packets when they arrive, and the listening daemon should never know
-it happened.
+Message itself is 'printed' couple of lines below, but apparently it is
+not needed for nf_log_packet, only for the printk()-based debug, so I
+dropped that part.
 
-Pablo Neira Ayuso <pablo@netfilter.org> wrote:
-> Reporting -EPERM seems to me a good practise to report user-space
-> applications that the kernel is explicit dropping the packet. Otherwise,
-> while diagnosing problems, people cannot be sure where the packet has
-> been lost.
-
-I don't agree. In fact, the current behavior makes this worse, because
-the -EPERM behavior is unexpected (I think the interpretation of DROP
-as silent is very common) and inconsistent (different things happen if
-you're dropping remotely versus locally) - so it's not like you can
-forget that you must check both end's firewalling rules when you're
-diagnosing a problem.
-
--- Mike Acar
+-- 
+	Evgeniy Polyakov
