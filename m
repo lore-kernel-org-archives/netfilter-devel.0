@@ -1,43 +1,43 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 0/5] We must use rcu_barrier() on module unload
-Date: Mon, 08 Jun 2009 16:00:29 +0200
-Message-ID: <4A2D197D.4060804@trash.net>
-References: <20090608130959.10052.54590.stgit@localhost>
+Subject: Re: Passive OS fingerprint xtables match.
+Date: Mon, 08 Jun 2009 17:06:08 +0200
+Message-ID: <4A2D28E0.80508@trash.net>
+References: <20090607151758.GB31757@ioremap.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: "David S. Miller" <davem@davemloft.net>,
+Cc: netdev@vger.kernel.org, David Miller <davem@davemloft.net>,
 	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	urs.thuermann@volkswagen.de, oliver.hartkopp@volkswagen.de,
-	wg@grandegger.com, vladislav.yasevich@hp.com, sri@us.ibm.com,
-	linux-sctp@vger.kernel.org, Trond.Myklebust@netapp.com,
-	linux-nfs@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Jesper Dangaard Brouer <hawk@comx.dk>
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Jan Engelhardt <jengelh@medozas.de>
+To: Evgeniy Polyakov <zbr@ioremap.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:36356 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:37666 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752229AbZFHOA2 (ORCPT
+	with ESMTP id S1753100AbZFHPGH (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 8 Jun 2009 10:00:28 -0400
-In-Reply-To: <20090608130959.10052.54590.stgit@localhost>
+	Mon, 8 Jun 2009 11:06:07 -0400
+In-Reply-To: <20090607151758.GB31757@ioremap.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jesper Dangaard Brouer wrote:
-> If an unloadable module uses RCU callbacks, it need to use
-> rcu_barrier() so that the module may be safely unloaded.
-> 
-> While hacking on a netfilter module of my own, I learned the
-> importance of calling rcu_barrier() instead of only a
-> synchronize_rcu() on module unload (iif using any call_rcu()
-> callbacks).  synchronize_rcu() does wait for a grace period to
-> elapse, but it does not wait for the callbacks to complete.
-> 
-> ...
-> I have made a patch for each individual module, so objections can be
-> made on a per module basis.  I have Cc'ed all of the patches to the
-> maintainers of each module (according to the MAINTAINERS file).
+Evgeniy Polyakov wrote:
+> Passive OS fingerprinting netfilter module allows to passively detect
+> remote OS and perform various netfilter actions based on that knowledge.
+> This module compares some data (WS, MSS, options and it's order, ttl, df
+> and others) from packets with SYN bit set with dynamically loaded OS
+> fingerprints.
 
-Acked-by: Patrick McHardy <kaber@trash.net> for patches 1 and 2, good
-catch.
+Applied, thanks. I've made one minor change:
+
+--- a/include/linux/netfilter/Kbuild
++++ b/include/linux/netfilter/Kbuild
+@@ -33,6 +33,7 @@ header-y += xt_limit.h
+  header-y += xt_mac.h
+  header-y += xt_mark.h
+  header-y += xt_multiport.h
++header-y += xt_osf.h
+  header-y += xt_owner.h
+  header-y += xt_pkttype.h
+  header-y += xt_quota.h
