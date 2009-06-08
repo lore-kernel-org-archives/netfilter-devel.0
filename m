@@ -1,187 +1,139 @@
 From: Laszlo Attila Toth <panther@balabit.hu>
-Subject: [resend2 iptables] socket match: new revision, match transparent sockets
-Date: Mon,  8 Jun 2009 14:30:24 +0200
-Message-ID: <1244464224-30692-3-git-send-email-panther@balabit.hu>
+Subject: [resend2 net-next] socket: added mtinfo with 'transparent' flag
+Date: Mon,  8 Jun 2009 14:30:23 +0200
+Message-ID: <1244464224-30692-2-git-send-email-panther@balabit.hu>
 References: <4A27CD5A.6040303@trash.net>
  <1244464224-30692-1-git-send-email-panther@balabit.hu>
- <1244464224-30692-2-git-send-email-panther@balabit.hu>
 Cc: kaber@trash.net, Laszlo Attila Toth <panther@balabit.hu>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from support.balabit.hu ([195.70.41.86]:41205 "EHLO lists.balabit.hu"
+Received: from support.balabit.hu ([195.70.41.86]:41207 "EHLO lists.balabit.hu"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753711AbZFHMa1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1753564AbZFHMa1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Mon, 8 Jun 2009 08:30:27 -0400
 Received: from balabit.hu (unknown [10.80.0.254])
-	by lists.balabit.hu (Postfix) with ESMTP id 42BA813A295
+	by lists.balabit.hu (Postfix) with ESMTP id 815B913A29F
 	for <netfilter-devel@vger.kernel.org>; Mon,  8 Jun 2009 14:30:27 +0200 (CEST)
-In-Reply-To: <1244464224-30692-2-git-send-email-panther@balabit.hu>
+In-Reply-To: <1244464224-30692-1-git-send-email-panther@balabit.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Added new revision of the socket match.
+Added new revision of the 'socket' match supporting flags.
 
-if the '--transparent' parameter is specified, the sockets without
-set transparent socket option are ignored.
+If the XT_SOCKET_TRANSPARENT flag is set, enabled 'transparent'
+socket option is required for the socket to be matched.
 
 Signed-off-by: Laszlo Attila Toth <panther@balabit.hu>
 ---
- extensions/libxt_socket.c           |   95 +++++++++++++++++++++++++++++-----
- extensions/libxt_socket.man         |    6 ++-
- include/linux/netfilter/xt_socket.h |   12 ++++
- 3 files changed, 98 insertions(+), 15 deletions(-)
- create mode 100644 include/linux/netfilter/xt_socket.h
+ net/netfilter/xt_socket.c |   63 +++++++++++++++++++++++++++++++++++++--------
+ 1 files changed, 52 insertions(+), 11 deletions(-)
 
-diff --git a/extensions/libxt_socket.c b/extensions/libxt_socket.c
-index eebc7c5..2230a93 100644
---- a/extensions/libxt_socket.c
-+++ b/extensions/libxt_socket.c
-@@ -6,34 +6,101 @@
- #include <stdio.h>
- #include <getopt.h>
- #include <xtables.h>
+diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
+index 1acc089..f97270c 100644
+--- a/net/netfilter/xt_socket.c
++++ b/net/netfilter/xt_socket.c
+@@ -22,6 +22,8 @@
+ #include <net/netfilter/nf_tproxy_core.h>
+ #include <net/netfilter/ipv4/nf_defrag_ipv4.h>
+ 
 +#include <linux/netfilter/xt_socket.h>
++
+ #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ #define XT_SOCKET_HAVE_CONNTRACK 1
+ #include <net/netfilter/nf_conntrack.h>
+@@ -86,7 +88,8 @@ extract_icmp_fields(const struct sk_buff *skb,
  
--static void socket_mt_help(void)
-+static void socket_mt_help_v0(void)
+ 
+ static bool
+-socket_mt(const struct sk_buff *skb, const struct xt_match_param *par)
++socket_match(const struct sk_buff *skb, const struct xt_match_param *par,
++	     const struct xt_socket_mtinfo1 *info)
  {
--	printf("socket v%s has no options\n\n", XTABLES_VERSION);
-+	printf("socket match has no options.\n\n");
+ 	const struct iphdr *iph = ip_hdr(skb);
+ 	struct udphdr _hdr, *hp = NULL;
+@@ -141,10 +144,24 @@ socket_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+ 	sk = nf_tproxy_get_sock_v4(dev_net(skb->dev), protocol,
+ 				   saddr, daddr, sport, dport, par->in, false);
+ 	if (sk != NULL) {
+-		bool wildcard = (sk->sk_state != TCP_TIME_WAIT && inet_sk(sk)->rcv_saddr == 0);
++		bool wildcard;
++		bool transparent = true;
++
++		/* Ignore sockets listening on INADDR_ANY */
++		wildcard = (sk->sk_state != TCP_TIME_WAIT &&
++			    inet_sk(sk)->rcv_saddr == 0);
++
++		/* Ignore non-transparent sockets,
++		   if XT_SOCKET_TRANSPARENT is used */
++		if (info && info->flags & XT_SOCKET_TRANSPARENT)
++			transparent = ((sk->sk_state != TCP_TIME_WAIT &&
++					inet_sk(sk)->transparent) ||
++				       (sk->sk_state == TCP_TIME_WAIT &&
++					inet_twsk(sk)->tw_transparent));
+ 
+ 		nf_tproxy_put_sock(sk);
+-		if (wildcard)
++
++		if (wildcard || !transparent)
+ 			sk = NULL;
+ 	}
+ 
+@@ -157,23 +174,47 @@ socket_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+ 	return (sk != NULL);
  }
  
--static int socket_mt_parse(int c, char **argv, int invert, unsigned int *flags,
--			const void *entry, struct xt_entry_match **match)
-+static void socket_mt_help_v1(void)
+-static struct xt_match socket_mt_reg __read_mostly = {
+-	.name		= "socket",
+-	.family		= AF_INET,
+-	.match		= socket_mt,
+-	.hooks		= 1 << NF_INET_PRE_ROUTING,
+-	.me		= THIS_MODULE,
++static bool
++socket_mt_v0(const struct sk_buff *skb, const struct xt_match_param *par)
 +{
-+	printf("socket match options:\n"
-+"--transparent      Matches only if the socket's transparent option is set\n");
++	return socket_match(skb, par, NULL);
 +}
 +
-+static const struct option socket_opts_v1[] = {
-+	{ "transparent", 0, NULL, '1' },
-+	{ }
-+};
-+
-+static int socket_mt_parse_v0(int c, char **argv, int invert,
-+			      unsigned int *flags, const void *entry,
-+			      struct xt_entry_match **match)
- {
- 	return 0;
- }
- 
-+static int socket_mt_parse_v1(int c, char **argv, int invert,
-+			      unsigned int *flags, const void *entry,
-+			      struct xt_entry_match **match)
++static bool
++socket_mt_v1(const struct sk_buff *skb, const struct xt_match_param *par)
 +{
-+	struct xt_socket_mtinfo1 *info = (void *) (*match)->data;
-+
-+	switch (c) {
-+	case '1':
-+		if (*flags)
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "Can't specify multiple --transparent");
-+		info->flags |= XT_SOCKET_TRANSPARENT;
-+		*flags = 1;
-+		break;
-+	default:
-+		return 0;
-+	}
-+	return 1;
++	return socket_match(skb, par, par->matchinfo);
 +}
 +
- static void socket_mt_check(unsigned int flags)
- {
- }
- 
--static struct xtables_match socket_mt_reg = {
--	.name	       = "socket",
--	.version       = XTABLES_VERSION,
--	.family	       = NFPROTO_IPV4,
--	.size	       = XT_ALIGN(0),
--	.userspacesize = XT_ALIGN(0),
--	.parse	       = socket_mt_parse,
--	.final_check   = socket_mt_check,
--	.help	       = socket_mt_help,
-+static void socket_mt_print_v1(const void *ip,
-+			       const struct xt_entry_match *match,
-+			       int numeric)
-+{
-+	const struct xt_socket_mtinfo1 *info = (const void *)match->data;
-+	printf("socket ");
-+	if (info->flags & XT_SOCKET_TRANSPARENT)
-+		printf("transparent ");
-+}
-+
-+static void socket_mt_save_v1(const void *ip,
-+			      const struct xt_entry_match *match)
-+{
-+	const struct xt_socket_mtinfo1 *info = (const void *)match->data;
-+
-+	if (info->flags & XT_SOCKET_TRANSPARENT)
-+		printf("--transparent ");
-+}
-+
-+static struct xtables_match socket_mt_reg_v0 = {
-+	.name		= "socket",
-+	.revision	= 0,
-+	.version	= XTABLES_VERSION,
-+	.family		= NFPROTO_IPV4,
-+	.parse		= socket_mt_parse_v0,
-+	.final_check	= socket_mt_check,
-+	.help		= socket_mt_help_v0,
-+};
-+
-+static struct xtables_match socket_mt_reg_v1 = {
-+	.name		= "socket",
-+	.version	= XTABLES_VERSION,
-+	.revision	= 1,
-+	.family		= NFPROTO_IPV4,
-+	.size		= XT_ALIGN(sizeof(struct xt_socket_mtinfo1)),
-+	.userspacesize	= XT_ALIGN(sizeof(struct xt_socket_mtinfo1)),
-+	.parse		= socket_mt_parse_v1,
-+	.print		= socket_mt_print_v1,
-+	.save		= socket_mt_save_v1,
-+	.final_check	= socket_mt_check,
-+	.help		= socket_mt_help_v1,
-+	.extra_opts	= socket_opts_v1,
++static struct xt_match socket_mt_reg[] __read_mostly = {
++	{
++		.name		= "socket",
++		.revision	= 0,
++		.family		= NFPROTO_IPV4,
++		.match		= socket_mt_v0,
++		.hooks		= 1 << NF_INET_PRE_ROUTING,
++		.me		= THIS_MODULE,
++	},
++	{
++		.name		= "socket",
++		.revision	= 1,
++		.family		= AF_INET,
++		.match		= socket_mt_v1,
++		.matchsize	= sizeof(struct xt_socket_mtinfo1),
++		.hooks		= 1 << NF_INET_PRE_ROUTING,
++		.me		= THIS_MODULE,
++	},
  };
  
- void _init(void)
+ static int __init socket_mt_init(void)
  {
--	xtables_register_match(&socket_mt_reg);
-+	xtables_register_match(&socket_mt_reg_v0);
-+	xtables_register_match(&socket_mt_reg_v1);
+ 	nf_defrag_ipv4_enable();
+-	return xt_register_match(&socket_mt_reg);
++	return xt_register_matches(socket_mt_reg, ARRAY_SIZE(socket_mt_reg));
  }
-diff --git a/extensions/libxt_socket.man b/extensions/libxt_socket.man
-index 50c8854..edc9d75 100644
---- a/extensions/libxt_socket.man
-+++ b/extensions/libxt_socket.man
-@@ -1,2 +1,6 @@
- This matches if an open socket can be found by doing a socket lookup on the
--packet.
-+packet which doesn\'t listen on the \'any\' IP address (0.0.0.0).
-+.TP
-+.BI "\-\-transparent"
-+Enables additional check, that the actual socket's transparent socket option
-+has to be set.
-diff --git a/include/linux/netfilter/xt_socket.h b/include/linux/netfilter/xt_socket.h
-new file mode 100644
-index 0000000..f6ba866
---- /dev/null
-+++ b/include/linux/netfilter/xt_socket.h
-@@ -0,0 +1,12 @@
-+#ifndef _XT_SOCKET_H_match
-+#define _XT_SOCKET_H_match
-+
-+enum {
-+	XT_SOCKET_TRANSPARENT = 1 << 0,
-+};
-+
-+struct xt_socket_mtinfo1 {
-+	__u8 flags;
-+};
-+
-+#endif /* _XT_SOCKET_H_match */
+ 
+ static void __exit socket_mt_exit(void)
+ {
+-	xt_unregister_match(&socket_mt_reg);
++	xt_unregister_matches(socket_mt_reg, ARRAY_SIZE(socket_mt_reg));
+ }
+ 
+ module_init(socket_mt_init);
 -- 
 1.6.2.2.404.ge96f3
 
