@@ -1,159 +1,158 @@
-From: Laszlo Attila Toth <panther@balabit.hu>
-Subject: [net-next] socket: added mtinfo with 'transparent' flag
-Date: Tue,  9 Jun 2009 15:11:50 +0200
-Message-ID: <1244553110-12145-1-git-send-email-panther@balabit.hu>
-References: <4A2E5AA2.8020206@trash.net>
-Cc: netfilter-devel@vger.kernel.org,
-	Laszlo Attila Toth <panther@balabit.hu>
-To: kaber@trash.net
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [PATCH] Add support unified match/target files to iptables
+Date: Tue, 9 Jun 2009 15:12:40 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.0906091505160.23699@blackhole.kfki.hu>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from support.balabit.hu ([195.70.41.86]:57518 "EHLO lists.balabit.hu"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1758482AbZFINLz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 9 Jun 2009 09:11:55 -0400
-Received: from balabit.hu (unknown [10.80.0.254])
-	by lists.balabit.hu (Postfix) with ESMTP id 6F36B13A258
-	for <netfilter-devel@vger.kernel.org>; Tue,  9 Jun 2009 15:11:53 +0200 (CEST)
-In-Reply-To: <4A2E5AA2.8020206@trash.net>
+Received: from smtp-in.kfki.hu ([148.6.0.28]:40438 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753993AbZFINMj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 9 Jun 2009 09:12:39 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by smtp2.kfki.hu (Postfix) with ESMTP id D647A1F41D8
+	for <netfilter-devel@vger.kernel.org>; Tue,  9 Jun 2009 15:12:40 +0200 (CEST)
+Received: from smtp2.kfki.hu ([127.0.0.1])
+	by localhost (smtp2.kfki.hu [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id FaKLUxVfzPsU for <netfilter-devel@vger.kernel.org>;
+	Tue,  9 Jun 2009 15:12:40 +0200 (CEST)
+Received: from blackhole.kfki.hu (blackhole.kfki.hu [148.6.0.114])
+	by smtp2.kfki.hu (Postfix) with ESMTP id B5F021F41CD
+	for <netfilter-devel@vger.kernel.org>; Tue,  9 Jun 2009 15:12:40 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Added new revision of the 'socket' match supporting flags.
+Hi,
 
-If the XT_SOCKET_TRANSPARENT flag is set, enabled 'transparent'
-socket option is required for the socket to be matched.
+The patch below adds supporting unified match/target files - and the 
+possibility to lowercase all target files - to iptables. There are a 
+couple of match/target pairs (say mark/MARK), which could be covered in a 
+single file, but the current search logic prevents it. The patch modifies 
+the searching with adding an extra check with lowercased filename for 
+targets. Comments are welcomed!
 
-Signed-off-by: Laszlo Attila Toth <panther@balabit.hu>
----
- include/linux/netfilter/xt_socket.h |   12 +++++++
- net/netfilter/xt_socket.c           |   63 ++++++++++++++++++++++++++++------
- 2 files changed, 64 insertions(+), 11 deletions(-)
- create mode 100644 include/linux/netfilter/xt_socket.h
-
-diff --git a/include/linux/netfilter/xt_socket.h b/include/linux/netfilter/xt_socket.h
-new file mode 100644
-index 0000000..f6ba866
---- /dev/null
-+++ b/include/linux/netfilter/xt_socket.h
-@@ -0,0 +1,12 @@
-+#ifndef _XT_SOCKET_H_match
-+#define _XT_SOCKET_H_match
-+
-+enum {
-+	XT_SOCKET_TRANSPARENT = 1 << 0,
-+};
-+
-+struct xt_socket_mtinfo1 {
-+	__u8 flags;
-+};
-+
-+#endif /* _XT_SOCKET_H_match */
-diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
-index 1acc089..ebf00ad 100644
---- a/net/netfilter/xt_socket.c
-+++ b/net/netfilter/xt_socket.c
-@@ -22,6 +22,8 @@
- #include <net/netfilter/nf_tproxy_core.h>
- #include <net/netfilter/ipv4/nf_defrag_ipv4.h>
+diff --git a/xtables.c b/xtables.c
+index e018331..ebd0b87 100644
+--- a/xtables.c
++++ b/xtables.c
+@@ -16,6 +16,7 @@
+  *	Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
  
-+#include <linux/netfilter/xt_socket.h>
-+
- #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- #define XT_SOCKET_HAVE_CONNTRACK 1
- #include <net/netfilter/nf_conntrack.h>
-@@ -86,7 +88,8 @@ extract_icmp_fields(const struct sk_buff *skb,
- 
- 
- static bool
--socket_mt(const struct sk_buff *skb, const struct xt_match_param *par)
-+socket_match(const struct sk_buff *skb, const struct xt_match_param *par,
-+	     const struct xt_socket_mtinfo1 *info)
- {
- 	const struct iphdr *iph = ip_hdr(skb);
- 	struct udphdr _hdr, *hp = NULL;
-@@ -141,10 +144,24 @@ socket_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	sk = nf_tproxy_get_sock_v4(dev_net(skb->dev), protocol,
- 				   saddr, daddr, sport, dport, par->in, false);
- 	if (sk != NULL) {
--		bool wildcard = (sk->sk_state != TCP_TIME_WAIT && inet_sk(sk)->rcv_saddr == 0);
-+		bool wildcard;
-+		bool transparent = true;
-+
-+		/* Ignore sockets listening on INADDR_ANY */
-+		wildcard = (sk->sk_state != TCP_TIME_WAIT &&
-+			    inet_sk(sk)->rcv_saddr == 0);
-+
-+		/* Ignore non-transparent sockets,
-+		   if XT_SOCKET_TRANSPARENT is used */
-+		if (info && info->flags & XT_SOCKET_TRANSPARENT)
-+			transparent = ((sk->sk_state != TCP_TIME_WAIT &&
-+					inet_sk(sk)->transparent) ||
-+				       (sk->sk_state == TCP_TIME_WAIT &&
-+					inet_twsk(sk)->tw_transparent));
- 
- 		nf_tproxy_put_sock(sk);
--		if (wildcard)
-+
-+		if (wildcard || !transparent)
- 			sk = NULL;
- 	}
- 
-@@ -157,23 +174,47 @@ socket_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	return (sk != NULL);
++#include <ctype.h>
+ #include <errno.h>
+ #include <fcntl.h>
+ #include <netdb.h>
+@@ -475,51 +476,74 @@ void xtables_parse_interface(const char *arg, char *vianame,
  }
  
--static struct xt_match socket_mt_reg __read_mostly = {
--	.name		= "socket",
--	.family		= AF_INET,
--	.match		= socket_mt,
--	.hooks		= 1 << NF_INET_PRE_ROUTING,
--	.me		= THIS_MODULE,
-+static bool
-+socket_mt_v0(const struct sk_buff *skb, const struct xt_match_param *par)
+ #ifndef NO_SHARED_LIBS
++static void *try_dlopen(const char *path, const char *extname, bool is_target)
 +{
-+	return socket_match(skb, par, NULL);
++	struct stat sb;
++	void *ptr = NULL;
++
++	if (stat(path, &sb) != 0)
++		return ptr;
++	
++	if (dlopen(path, RTLD_NOW) != NULL) {
++		/* Found library.  If it didn't register itself,
++		   maybe they specified target as match. */
++		if (is_target)
++			ptr = xtables_find_target(extname, XTF_DONT_LOAD);
++		else
++			ptr = xtables_find_match(extname, XTF_DONT_LOAD, NULL);
++	} else
++		fprintf(stderr, "%s: %s\n", path, dlerror());
++	
++	return ptr;
 +}
 +
-+static bool
-+socket_mt_v1(const struct sk_buff *skb, const struct xt_match_param *par)
++static void *try_load(unsigned int fmtlen, const char *dir,
++	const char *prefix, const char *filename, const char *extname,
++	bool is_target)
 +{
-+	return socket_match(skb, par, par->matchinfo);
++	char path[256];
++	void *ptr = NULL;
++
++	snprintf(path, sizeof(path), "%.*s/libxt_%s.so",
++	         fmtlen, dir, filename);
++	if ((ptr = try_dlopen(path, extname, is_target)) != NULL)
++		return ptr;
++
++	snprintf(path, sizeof(path), "%.*s/%s%s.so",
++	         fmtlen, dir, prefix, filename);
++	
++	return try_dlopen(path, extname, is_target);
 +}
 +
-+static struct xt_match socket_mt_reg[] __read_mostly = {
-+	{
-+		.name		= "socket",
-+		.revision	= 0,
-+		.family		= NFPROTO_IPV4,
-+		.match		= socket_mt_v0,
-+		.hooks		= 1 << NF_INET_PRE_ROUTING,
-+		.me		= THIS_MODULE,
-+	},
-+	{
-+		.name		= "socket",
-+		.revision	= 1,
-+		.family		= NFPROTO_IPV4,
-+		.match		= socket_mt_v1,
-+		.matchsize	= sizeof(struct xt_socket_mtinfo1),
-+		.hooks		= 1 << NF_INET_PRE_ROUTING,
-+		.me		= THIS_MODULE,
-+	},
- };
- 
- static int __init socket_mt_init(void)
+ static void *load_extension(const char *search_path, const char *prefix,
+     const char *name, bool is_target)
  {
- 	nf_defrag_ipv4_enable();
--	return xt_register_match(&socket_mt_reg);
-+	return xt_register_matches(socket_mt_reg, ARRAY_SIZE(socket_mt_reg));
- }
+ 	const char *dir = search_path, *next;
+ 	void *ptr = NULL;
+-	struct stat sb;
+-	char path[256];
++	char lcname[XT_FUNCTION_MAXNAMELEN-1];
++	unsigned int fmtlen;
++	int i;
++
++	if (is_target)
++		for (i = 0; name[i] && i < XT_FUNCTION_MAXNAMELEN - 1; i++)
++			lcname[i] = tolower(name[i]);
  
- static void __exit socket_mt_exit(void)
- {
--	xt_unregister_match(&socket_mt_reg);
-+	xt_unregister_matches(socket_mt_reg, ARRAY_SIZE(socket_mt_reg));
- }
+ 	do {
+ 		next = strchr(dir, ':');
+ 		if (next == NULL)
+ 			next = dir + strlen(dir);
+-		snprintf(path, sizeof(path), "%.*s/libxt_%s.so",
+-		         (unsigned int)(next - dir), dir, name);
+-
+-		if (dlopen(path, RTLD_NOW) != NULL) {
+-			/* Found library.  If it didn't register itself,
+-			   maybe they specified target as match. */
+-			if (is_target)
+-				ptr = xtables_find_target(name, XTF_DONT_LOAD);
+-			else
+-				ptr = xtables_find_match(name,
+-				      XTF_DONT_LOAD, NULL);
+-		} else if (stat(path, &sb) == 0) {
+-			fprintf(stderr, "%s: %s\n", path, dlerror());
+-		}
  
- module_init(socket_mt_init);
--- 
-1.6.2.2.404.ge96f3
++		fmtlen = (unsigned int)(next - dir);
++		ptr = try_load(fmtlen, dir, prefix, name, name, is_target);
+ 		if (ptr != NULL)
+ 			return ptr;
+ 
+-		snprintf(path, sizeof(path), "%.*s/%s%s.so",
+-		         (unsigned int)(next - dir), dir, prefix, name);
+-		if (dlopen(path, RTLD_NOW) != NULL) {
+-			if (is_target)
+-				ptr = xtables_find_target(name, XTF_DONT_LOAD);
+-			else
+-				ptr = xtables_find_match(name,
+-				      XTF_DONT_LOAD, NULL);
+-		} else if (stat(path, &sb) == 0) {
+-			fprintf(stderr, "%s: %s\n", path, dlerror());
++		if (is_target) {
++			ptr = try_load(fmtlen, dir, prefix, lcname, name, is_target);
++			if (ptr != NULL)
++		    		return ptr;
+ 		}
+ 
+-		if (ptr != NULL)
+-			return ptr;
+-
+ 		dir = next + 1;
+ 	} while (*next != '\0');
+ 
 
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
