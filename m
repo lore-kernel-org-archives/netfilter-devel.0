@@ -1,32 +1,41 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [net-next] socket: added mtinfo with 'transparent' flag
-Date: Tue, 09 Jun 2009 15:18:25 +0200
-Message-ID: <4A2E6121.9060408@trash.net>
-References: <4A2E5AA2.8020206@trash.net> <1244553110-12145-1-git-send-email-panther@balabit.hu>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: Notification of new BZ entries
+Date: Tue, 09 Jun 2009 16:23:26 +0200
+Message-ID: <4A2E705E.3090106@netfilter.org>
+References: <alpine.LSU.2.00.0906082341230.3946@fbirervta.pbzchgretzou.qr> <4A2E4123.7030608@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Laszlo Attila Toth <panther@balabit.hu>
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:62912 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758421AbZFINSZ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 9 Jun 2009 09:18:25 -0400
-In-Reply-To: <1244553110-12145-1-git-send-email-panther@balabit.hu>
+Received: from mail.us.es ([193.147.175.20]:41565 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753022AbZFIOXh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 9 Jun 2009 10:23:37 -0400
+In-Reply-To: <4A2E4123.7030608@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Laszlo Attila Toth wrote:
-> Added new revision of the 'socket' match supporting flags.
+Patrick McHardy wrote:
+> Jan Engelhardt wrote:
+>> Dear co-developers,
+>>
+>> the netfilter bugzilla currently by default still assigns new
+>> entries to laforge.
+>>
+>> Unfortunately this means there will be no notification to
+>> $current_developer_set, and entries be missed. I try to regularly
+>> sweep along to catch new entries, but sometimes I forget.
+>> Since the amount of new entries in BZ is really low, could not BZ be
+>> set up to throw a mail to nf-dev whenever a new item gets created?
 > 
-> If the XT_SOCKET_TRANSPARENT flag is set, enabled 'transparent'
-> socket option is required for the socket to be matched.
+> We do have a bugzilla list for that already. The default should
+> be changed anyways of course, but I thought Pablo already did that?
 
-Applied, thanks.
+I'll fix this to assign all the bugs to the nf-bugzilla mailing list.
 
-> +#ifndef _XT_SOCKET_H_match
-> +#define _XT_SOCKET_H_match
-
-and removed _match.
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
