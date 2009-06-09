@@ -1,41 +1,56 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Notification of new BZ entries
-Date: Tue, 09 Jun 2009 16:23:26 +0200
-Message-ID: <4A2E705E.3090106@netfilter.org>
-References: <alpine.LSU.2.00.0906082341230.3946@fbirervta.pbzchgretzou.qr> <4A2E4123.7030608@trash.net>
+From: Vlad Yasevich <vladislav.yasevich@hp.com>
+Subject: Re: [PATCH 4/5] sctp: protocol.c call rcu_barrier() on unload.
+Date: Tue, 09 Jun 2009 11:44:23 -0400
+Message-ID: <4A2E8357.80509@hp.com>
+References: <20090608130959.10052.54590.stgit@localhost> <20090608131143.10052.96470.stgit@localhost> <20090608162227.GE6961@linux.vnet.ibm.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41565 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753022AbZFIOXh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 9 Jun 2009 10:23:37 -0400
-In-Reply-To: <4A2E4123.7030608@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Jesper Dangaard Brouer <hawk@comx.dk>,
+	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, urs.thuermann@volkswagen.de,
+	oliver.hartkopp@volkswagen.de, wg@grandegger.com, sri@us.ibm.com,
+	linux-sctp@vger.kernel.org, Trond.Myklebust@netapp.com,
+	linux-nfs@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: paulmck@linux.vnet.ibm.com
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20090608162227.GE6961@linux.vnet.ibm.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Jan Engelhardt wrote:
->> Dear co-developers,
->>
->> the netfilter bugzilla currently by default still assigns new
->> entries to laforge.
->>
->> Unfortunately this means there will be no notification to
->> $current_developer_set, and entries be missed. I try to regularly
->> sweep along to catch new entries, but sometimes I forget.
->> Since the amount of new entries in BZ is really low, could not BZ be
->> set up to throw a mail to nf-dev whenever a new item gets created?
+Paul E. McKenney wrote:
+> On Mon, Jun 08, 2009 at 03:11:43PM +0200, Jesper Dangaard Brouer wrote:
+>> On module unload call rcu_barrier(), this is needed as synchronize_rcu()
+>> is not strong enough.  The kmem_cache_destroy() does invoke
+>> synchronize_rcu() but it does not provide same protection.
 > 
-> We do have a bugzilla list for that already. The default should
-> be changed anyways of course, but I thought Pablo already did that?
+> Good, looks like sctp_v4_del_protocol() invokes call_rcu(), which the
+> rcu_barrier() would then wait for.  And it looks like sctp_v6_del_protocol()
+> does the same for IPv6.
+> 
+> Reviewed_by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+> 
+>> Signed-off-by: Jesper Dangaard Brouer <hawk@comx.dk>
+>> ---
+>>
+>>  net/sctp/protocol.c |    2 ++
+>>  1 files changed, 2 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/net/sctp/protocol.c b/net/sctp/protocol.c
+>> index cb2c50d..79cbd47 100644
+>> --- a/net/sctp/protocol.c
+>> +++ b/net/sctp/protocol.c
+>> @@ -1370,6 +1370,8 @@ SCTP_STATIC __exit void sctp_exit(void)
+>>  	sctp_proc_exit();
+>>  	cleanup_sctp_mibs();
+>>
+>> +	rcu_barrier(); /* Wait for completion of call_rcu()'s */
+>> +
+>>  	kmem_cache_destroy(sctp_chunk_cachep);
+>>  	kmem_cache_destroy(sctp_bucket_cachep);
+>>  }
+>>
 
-I'll fix this to assign all the bugs to the nf-bugzilla mailing list.
+Shouldn't the rcu_barrier call be before sctp_free_local_addr_list()?
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+-vlad
