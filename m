@@ -1,36 +1,39 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Notification of new BZ entries
-Date: Tue, 09 Jun 2009 13:01:55 +0200
-Message-ID: <4A2E4123.7030608@trash.net>
-References: <alpine.LSU.2.00.0906082341230.3946@fbirervta.pbzchgretzou.qr>
+Subject: Re: [resend2 net-next] socket: added mtinfo with 'transparent' flag
+Date: Tue, 09 Jun 2009 14:50:42 +0200
+Message-ID: <4A2E5AA2.8020206@trash.net>
+References: <4A27CD5A.6040303@trash.net> <1244464224-30692-1-git-send-email-panther@balabit.hu> <1244464224-30692-2-git-send-email-panther@balabit.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, pablo@netfilter.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: Laszlo Attila Toth <panther@balabit.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59926 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:62322 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760340AbZFILBy (ORCPT
+	with ESMTP id S1753927AbZFIMun (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 9 Jun 2009 07:01:54 -0400
-In-Reply-To: <alpine.LSU.2.00.0906082341230.3946@fbirervta.pbzchgretzou.qr>
+	Tue, 9 Jun 2009 08:50:43 -0400
+In-Reply-To: <1244464224-30692-2-git-send-email-panther@balabit.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> Dear co-developers,
-> 
-> 
-> the netfilter bugzilla currently by default still assigns new
-> entries to laforge.
-> 
-> Unfortunately this means there will be no notification to 
-> $current_developer_set, and entries be missed. I try to regularly sweep 
-> along to catch new entries, but sometimes I forget.
-> Since the amount of new entries in BZ is really low, could not BZ be set 
-> up to throw a mail to nf-dev whenever a new item gets created?
+Laszlo Attila Toth wrote:
+>  net/netfilter/xt_socket.c |   63 +++++++++++++++++++++++++++++++++++++--------
 
-We do have a bugzilla list for that already. The default should
-be changed anyways of course, but I thought Pablo already did that?
+> +#include <linux/netfilter/xt_socket.h>
+
+-ENOCOMPILE
+
+> +	{
+> +		.name		= "socket",
+> +		.revision	= 1,
+> +		.family		= AF_INET,
+
+NFPROTO_IPV4 please.
+
+> +		.match		= socket_mt_v1,
+> +		.matchsize	= sizeof(struct xt_socket_mtinfo1),
+> +		.hooks		= 1 << NF_INET_PRE_ROUTING,
+> +		.me		= THIS_MODULE,
+> +	},
