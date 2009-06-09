@@ -1,36 +1,40 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH 2/2] netfilter: conntrack: optional reliable conntrack
  event	delivery
-Date: Wed, 10 Jun 2009 00:36:02 +0200
-Message-ID: <4A2EE3D2.1090007@netfilter.org>
-References: <20090604110307.6702.10147.stgit@Decadence> <20090604110841.6702.76228.stgit@Decadence> <4A292DB7.4000000@trash.net>
+Date: Wed, 10 Jun 2009 00:43:47 +0200
+Message-ID: <4A2EE5A3.2000502@trash.net>
+References: <20090604110307.6702.10147.stgit@Decadence> <20090604110841.6702.76228.stgit@Decadence> <4A292DB7.4000000@trash.net> <4A2EE3D2.1090007@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org, Eric Dumazet <dada1@cosmosbay.com>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:34391 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750990AbZFIWgM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 9 Jun 2009 18:36:12 -0400
-In-Reply-To: <4A292DB7.4000000@trash.net>
+Received: from stinky.trash.net ([213.144.137.162]:41175 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750749AbZFIWnr (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 9 Jun 2009 18:43:47 -0400
+In-Reply-To: <4A2EE3D2.1090007@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Patrick,
-
-A couple of minor issues related to this patch.
-
-Patrick McHardy wrote:
->> +    hlist_nulls_del_rcu(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode);
+Pablo Neira Ayuso wrote:
+> Hi Patrick,
 > 
-> Why is _rcu used? The lists are never used for a lookup.
+> A couple of minor issues related to this patch.
+> 
+> Patrick McHardy wrote:
+>>> +    hlist_nulls_del_rcu(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode);
+>> Why is _rcu used? The lists are never used for a lookup.
+> 
+> There's no hlist_nulls_del() operation without rcu. I have a patch here
+> to add hlist_nulls_add_head() and hlist_nulls_del() although I guess
+> that you are going to tell me that you cannot apply that patch? So,
+> where to go?
 
-There's no hlist_nulls_del() operation without rcu. I have a patch here
-to add hlist_nulls_add_head() and hlist_nulls_del() although I guess
-that you are going to tell me that you cannot apply that patch? So,
-where to go?
-
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+Either way is fine I guess. Adding non _rcu function makes sense
+I think (Eric CCed to correct me :)). But there's also no harm
+in using the RCU functions as long as you add a comment stating
+that you don't in fact rely on the RCU properties to avoid confusing
+people.
