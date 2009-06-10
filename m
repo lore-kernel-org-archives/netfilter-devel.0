@@ -1,73 +1,59 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: [PATCH 2/2] netfilter: conntrack: optional reliable conntrack
- event	delivery
-Date: Wed, 10 Jun 2009 14:22:05 +0200
-Message-ID: <4A2FA56D.4090105@netfilter.org>
-References: <20090604110307.6702.10147.stgit@Decadence> <20090604110841.6702.76228.stgit@Decadence> <4A292DB7.4000000@trash.net> <4A2EE3D2.1090007@netfilter.org> <4A2EE5A3.2000502@trash.net> <4A2EE610.9020207@trash.net> <4A2EE907.70609@netfilter.org> <4A2F09D9.7090507@gmail.com> <4A2F830C.9020403@trash.net> <4A2F8CC7.2010708@netfilter.org> <4A2F9120.9010904@trash.net> <4A2F9289.6000502@trash.net> <4A2F9BB8.8020701@trash.net>
+ event delivery
+Date: Wed, 10 Jun 2009 14:26:07 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.0906101356370.25631@blackhole.kfki.hu>
+References: <20090604110307.6702.10147.stgit@Decadence> <20090604110841.6702.76228.stgit@Decadence> <4A292DB7.4000000@trash.net> <4A2EE3D2.1090007@netfilter.org> <4A2EE5A3.2000502@trash.net> <4A2EE610.9020207@trash.net> <4A2EE907.70609@netfilter.org>
+ <4A2F09D9.7090507@gmail.com> <4A2F830C.9020403@trash.net> <4A2F8CC7.2010708@netfilter.org> <4A2F9120.9010904@trash.net> <4A2F9289.6000502@trash.net> <4A2F9BB8.8020701@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Eric Dumazet <eric.dumazet@gmail.com>,
 	netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:48212 "EHLO mail.us.es"
+Received: from smtp-in.kfki.hu ([148.6.0.25]:39523 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756175AbZFJMWN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Jun 2009 08:22:13 -0400
+	id S1754437AbZFJM0H (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 10 Jun 2009 08:26:07 -0400
 In-Reply-To: <4A2F9BB8.8020701@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy wrote:
+On Wed, 10 Jun 2009, Patrick McHardy wrote:
+
+> Patrick McHardy wrote:
+> > Patrick McHardy wrote:
+> > > Pablo Neira Ayuso wrote:
+> > > > Can you see any problem with this optimistic approach? I know, it can
+> > > > potentially try to restore the cache, but this is very unlikely to
+> > > > happen?
+> > > 
+> > > Its probably quite unlikely, so not a big issue. OTOH this is
+> > > effectively doing something quite similar to a spinlock. Maybe
+> > > its finally time to add per-conntrack locking.
+> > > 
+> > > Eric even had a patch for this IIRC :)
+> > 
+> > I'll take a quick stab at this, will let you know in 30-60 minutes.
+> 
 > This is a first attempt to replace some global locks by private
 > per conntrack locks. On 64 bit, it fits into a hole and doesn't
 > enlarge struct nf_conn.
-> 
-> Wrt. to the event cache, we certainly don't want to take and release
-> the lock for every event. I was thinking about something like this:
-> 
-> - add a new member to the event structure to hold undelivered events
->   (named "missed" below)
-> - cache events in the existing member as you're doing currently
-> - on delivery, do something like this:
-> 
->     events = xchg(&e->cache, 0);
->     missed = e->missed;
-               ^^^
-I think that we need to take the lock since we read e->missed, I see
-this possible issue:
-
-CPU0 gets a copy of the missed events (without taking the lock)
-CPU1 has already delivered the missed events, it clears them
-CPU0 delivers missed events that were already delivered by CPU1.
-
->     ret = notify->fcn(events | missed, &item);
->     if (!success || missed) {
->         spin_lock_bh(&ct->lock);
->         if (!success)
->             e->missed |= events;
->         else
->             e->missed &= ~missed;
->         spin_unlock_bh(&ct->lock);
->     }
-> 
-> so if we failed to deliver the events, we add them to the missed
-> events for the next delivery attempt. Once we've delivered the
-> missed events, we clear them from the cache.
-> 
+[...] 
 > Now is that really better - I'm not sure myself :) The per-conntrack
 > locking would be an improvement though. What do you think?
 
-Indeed, I also think that the per-conntrack locking would be an
-improvement for the protocol helpers.
+I think it's cool and highly required, in order to add per hash bucket 
+locks too :-). And hash bucket locking can even more improve performance. 
+(We need the ordered locking of the buckets for both directions only when 
+entries are added/deleted, otherwise a single read-lock of the given 
+bucket is enough.)
 
-wrt. the event cache, the missed field can save us from doing the
-locking in every event caching at the cost of consuming a bit more of
-memory. I think this is more conservative but safer than my approach (no
-potential defering by calling cmpxchg forever, even if it's unlikely).
-Still, we would need to take the spin lock for the event delivery. Let
-me know what you think.
-
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
