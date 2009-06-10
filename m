@@ -1,64 +1,74 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH 2/2] netfilter: conntrack: optional reliable conntrack
- event	delivery
-Date: Wed, 10 Jun 2009 03:18:17 +0200
-Message-ID: <4A2F09D9.7090507@gmail.com>
-References: <20090604110307.6702.10147.stgit@Decadence> <20090604110841.6702.76228.stgit@Decadence> <4A292DB7.4000000@trash.net> <4A2EE3D2.1090007@netfilter.org> <4A2EE5A3.2000502@trash.net> <4A2EE610.9020207@trash.net> <4A2EE907.70609@netfilter.org>
+From: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCH 2/5] nfnetlink_queue: Use rcu_barrier() on module
+ unload.
+Date: Tue, 9 Jun 2009 22:38:16 -0700
+Message-ID: <20090609223816.af9b1bf9.akpm@linux-foundation.org>
+References: <20090608130959.10052.54590.stgit@localhost>
+	<20090608131133.10052.40836.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: "David S. Miller" <davem@davemloft.net>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	urs.thuermann@volkswagen.de, oliver.hartkopp@volkswagen.de,
+	wg@grandegger.com, vladislav.yasevich@hp.com, sri@us.ibm.com,
+	linux-sctp@vger.kernel.org, Trond.Myklebust@netapp.com,
+	linux-nfs@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Jesper Dangaard Brouer <hawk@comx.dk>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from gw1.cosmosbay.com ([212.99.114.194]:40914 "EHLO
-	gw1.cosmosbay.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751181AbZFJBSZ (ORCPT
+Received: from smtp1.linux-foundation.org ([140.211.169.13]:60458 "EHLO
+	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751448AbZFJFic (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 9 Jun 2009 21:18:25 -0400
-In-Reply-To: <4A2EE907.70609@netfilter.org>
+	Wed, 10 Jun 2009 01:38:32 -0400
+In-Reply-To: <20090608131133.10052.40836.stgit@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso a =E9crit :
-> Patrick McHardy wrote:
->> Patrick McHardy wrote:
->>> Pablo Neira Ayuso wrote:
->>>> Hi Patrick,
->>>>
->>>> A couple of minor issues related to this patch.
->>>>
->>>> Patrick McHardy wrote:
->>>>>> +    hlist_nulls_del_rcu(&ct->tuplehash[IP_CT_DIR_ORIGINAL].hnno=
-de);
->>>>> Why is _rcu used? The lists are never used for a lookup.
->>>> There's no hlist_nulls_del() operation without rcu. I have a patch=
- here
->>>> to add hlist_nulls_add_head() and hlist_nulls_del() although I gue=
-ss
->>>> that you are going to tell me that you cannot apply that patch? So=
-,
->>>> where to go?
->>> Either way is fine I guess. Adding non _rcu function makes sense
->>> I think (Eric CCed to correct me :)). But there's also no harm
->>> in using the RCU functions as long as you add a comment stating
->>> that you don't in fact rely on the RCU properties to avoid confusin=
-g
->>> people.
->> But to clarify: the non-RCU functions would be preferred :)
->=20
-> OK :). Eric, could you tell what if this patch is OK? It's based on t=
-he
-> RCU version.
->=20
->=20
+On Mon, 08 Jun 2009 15:11:33 +0200 Jesper Dangaard Brouer <hawk@comx.dk> wrote:
 
-Sure, this patch is fine !
+> This module uses rcu_call() thus it should use rcu_barrier() on module unload.
+> 
+> Also fixed a trivial typo 'nfetlink' -> 'nfnetlink' in comment.
+> 
+> Signed-off-by: Jesper Dangaard Brouer <hawk@comx.dk>
+> ---
+> 
+>  net/netfilter/nfnetlink_queue.c |    4 +++-
+>  1 files changed, 3 insertions(+), 1 deletions(-)
+> 
+> diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+> index 8c86011..71daa09 100644
+> --- a/net/netfilter/nfnetlink_queue.c
+> +++ b/net/netfilter/nfnetlink_queue.c
+> @@ -1,6 +1,6 @@
+>  /*
+>   * This is a module which is used for queueing packets and communicating with
+> - * userspace via nfetlink.
+> + * userspace via nfnetlink.
+>   *
+>   * (C) 2005 by Harald Welte <laforge@netfilter.org>
+>   * (C) 2007 by Patrick McHardy <kaber@trash.net>
+> @@ -932,6 +932,8 @@ static void __exit nfnetlink_queue_fini(void)
+>  #endif
+>  	nfnetlink_subsys_unregister(&nfqnl_subsys);
+>  	netlink_unregister_notifier(&nfqnl_rtnl_notifier);
+> +
+> +	rcu_barrier(); /* Wait for completion of call_rcu()'s */
+>  }
+>  
+>  MODULE_DESCRIPTION("netfilter packet queue handler");
 
-Acked-by: Eric Dumazet <eric.dumazet@gmail.com>
+Possibly you've fixed the bug which the module_put(THIS_MODULE) in
+instance_destroy_rcu() is addressing.
 
-Thank you
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Do we still need to take a ref against the module for each instance
+once the above fix is in place?
+
+<goes git mining>
+
+Nope, the THIS_MODULE games have been there since day one, and I can't
+work out why they're there.  net/netfilter/nfnetlink_log.c has them
+too.
+
