@@ -1,38 +1,73 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/3] iptables: accept multiple IP address specifications
- for -s, -d
-Date: Wed, 10 Jun 2009 14:19:59 +0200
-Message-ID: <4A2FA4EF.6080402@trash.net>
-References: <1244229955-27642-1-git-send-email-jengelh@medozas.de> <1244229955-27642-2-git-send-email-jengelh@medozas.de> <4A2A1260.7050207@netfilter.org> <4A2D171E.9060401@trash.net> <alpine.LSU.2.00.0906101405590.30984@fbirervta.pbzchgretzou.qr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 2/2] netfilter: conntrack: optional reliable conntrack
+ event	delivery
+Date: Wed, 10 Jun 2009 14:22:05 +0200
+Message-ID: <4A2FA56D.4090105@netfilter.org>
+References: <20090604110307.6702.10147.stgit@Decadence> <20090604110841.6702.76228.stgit@Decadence> <4A292DB7.4000000@trash.net> <4A2EE3D2.1090007@netfilter.org> <4A2EE5A3.2000502@trash.net> <4A2EE610.9020207@trash.net> <4A2EE907.70609@netfilter.org> <4A2F09D9.7090507@gmail.com> <4A2F830C.9020403@trash.net> <4A2F8CC7.2010708@netfilter.org> <4A2F9120.9010904@trash.net> <4A2F9289.6000502@trash.net> <4A2F9BB8.8020701@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
 	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:57059 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753275AbZFJMUA (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Jun 2009 08:20:00 -0400
-In-Reply-To: <alpine.LSU.2.00.0906101405590.30984@fbirervta.pbzchgretzou.qr>
+Received: from mail.us.es ([193.147.175.20]:48212 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756175AbZFJMWN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 10 Jun 2009 08:22:13 -0400
+In-Reply-To: <4A2F9BB8.8020701@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Monday 2009-06-08 15:50, Patrick McHardy wrote:
->>>> From: Michael Granzow <mgranzow@zeus.com>
->>>>
->>>> libiptc already supports adding and deleting multiple rules with
->>>> different addresses, so it only needs to be wired up to the options.
->>>>
->>>> 	# ip6tables -I INPUT -s 2001:db8::d,2001:db8::e -j DROP
->> No objections besides that its too large for this late in the cycle.
->>
-> Git is not as castrated as Hg when it comes to branches, so why not
-> make a "stable" branch that is then regularly merged into master? :)
+Patrick McHardy wrote:
+> This is a first attempt to replace some global locks by private
+> per conntrack locks. On 64 bit, it fits into a hole and doesn't
+> enlarge struct nf_conn.
+> 
+> Wrt. to the event cache, we certainly don't want to take and release
+> the lock for every event. I was thinking about something like this:
+> 
+> - add a new member to the event structure to hold undelivered events
+>   (named "missed" below)
+> - cache events in the existing member as you're doing currently
+> - on delivery, do something like this:
+> 
+>     events = xchg(&e->cache, 0);
+>     missed = e->missed;
+               ^^^
+I think that we need to take the lock since we read e->missed, I see
+this possible issue:
 
-I don't see why that would currently be necessary. We're talking
-about a few days, and in fact I'd rather have people test the
-current code before the release instead of hacking on new things :)
+CPU0 gets a copy of the missed events (without taking the lock)
+CPU1 has already delivered the missed events, it clears them
+CPU0 delivers missed events that were already delivered by CPU1.
+
+>     ret = notify->fcn(events | missed, &item);
+>     if (!success || missed) {
+>         spin_lock_bh(&ct->lock);
+>         if (!success)
+>             e->missed |= events;
+>         else
+>             e->missed &= ~missed;
+>         spin_unlock_bh(&ct->lock);
+>     }
+> 
+> so if we failed to deliver the events, we add them to the missed
+> events for the next delivery attempt. Once we've delivered the
+> missed events, we clear them from the cache.
+> 
+> Now is that really better - I'm not sure myself :) The per-conntrack
+> locking would be an improvement though. What do you think?
+
+Indeed, I also think that the per-conntrack locking would be an
+improvement for the protocol helpers.
+
+wrt. the event cache, the missed field can save us from doing the
+locking in every event caching at the cost of consuming a bit more of
+memory. I think this is more conservative but safer than my approach (no
+potential defering by calling cmpxchg forever, even if it's unlikely).
+Still, we would need to take the spin lock for the event delivery. Let
+me know what you think.
+
+-- 
+"Los honestos son inadaptados sociales" -- Les Luthiers
