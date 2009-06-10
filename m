@@ -1,45 +1,83 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/2] netfilter: conntrack: optional reliable conntrack
- event	delivery
-Date: Wed, 10 Jun 2009 14:56:04 +0200
-Message-ID: <4A2FAD64.7050900@trash.net>
-References: <20090604110307.6702.10147.stgit@Decadence> <20090604110841.6702.76228.stgit@Decadence> <4A292DB7.4000000@trash.net> <4A2EE3D2.1090007@netfilter.org> <4A2EE5A3.2000502@trash.net> <4A2EE610.9020207@trash.net> <4A2EE907.70609@netfilter.org> <4A2F09D9.7090507@gmail.com> <4A2F830C.9020403@trash.net> <4A2F8CC7.2010708@netfilter.org> <4A2F9120.9010904@trash.net> <4A2F9289.6000502@trash.net> <4A2F9BB8.8020701@trash.net> <4A2FA56D.4090105@netfilter.org> <4A2FA6A9.2090709@trash.net> <4A2FAA6B.3080102@netfilter.org>
+Subject: RFC: conntrack: use mod_timer_pending()
+Date: Wed, 10 Jun 2009 15:05:56 +0200
+Message-ID: <4A2FAFB4.1050100@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: multipart/mixed;
+ boundary="------------090405040506020708010205"
+To: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Martin Josefsson <gandalf@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:57909 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:58107 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757206AbZFJM4F (ORCPT
+	with ESMTP id S1753199AbZFJNF5 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Jun 2009 08:56:05 -0400
-In-Reply-To: <4A2FAA6B.3080102@netfilter.org>
+	Wed, 10 Jun 2009 09:05:57 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> Patrick McHardy wrote:
->> Pablo Neira Ayuso wrote:
->>> wrt. the event cache, the missed field can save us from doing the
->>> locking in every event caching at the cost of consuming a bit more of
->>> memory. I think this is more conservative but safer than my approach (no
->>> potential defering by calling cmpxchg forever, even if it's unlikely).
->>> Still, we would need to take the spin lock for the event delivery. Let
->>> me know what you think.
->> Would we really have to? The events are incremental anyways, so
->> it shouldn't matter if we very rarely deliver an event twice.
-> 
-> No problem. I'll add a comment to tell about this, we can re-visit this
-> issue later if it becomes a problem.
+This is a multi-part message in MIME format.
+--------------090405040506020708010205
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Agreed on the comment - I have to insist though that this can't cause
-problems based on the duplicate delivery if userspace is using the
-API correctly :) We can already have partial deliveries, so userspace
-needs to incrementally accumulate the information in any case.
+This patch changes conntrack to use the new mod_timer_pending()
+function, which only rearms the timer if it was still active.
+This allows to only grab the lock in __nf_ct_refresh_acct when
+accounting is used.
 
-> Please, let me know once you are done with your patch to rebase mine ;).
+Anyone seing anything wrong with this?
 
-I'm done.
+--------------090405040506020708010205
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index edf9569..2737f5d 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -807,8 +807,6 @@ void __nf_ct_refresh_acct(struct nf_conn *ct,
+ 	NF_CT_ASSERT(ct->timeout.data == (unsigned long)ct);
+ 	NF_CT_ASSERT(skb);
+ 
+-	spin_lock_bh(&nf_conntrack_lock);
+-
+ 	/* Only update if this is not a fixed timeout */
+ 	if (test_bit(IPS_FIXED_TIMEOUT_BIT, &ct->status))
+ 		goto acct;
+@@ -822,11 +820,8 @@ void __nf_ct_refresh_acct(struct nf_conn *ct,
+ 		/* Only update the timeout if the new timeout is at least
+ 		   HZ jiffies from the old timeout. Need del_timer for race
+ 		   avoidance (may already be dying). */
+-		if (newtime - ct->timeout.expires >= HZ
+-		    && del_timer(&ct->timeout)) {
+-			ct->timeout.expires = newtime;
+-			add_timer(&ct->timeout);
+-		}
++		if (newtime - ct->timeout.expires >= HZ)
++			mod_timer_pending(&ct->timeout, newtime);
+ 	}
+ 
+ acct:
+@@ -835,13 +830,13 @@ acct:
+ 
+ 		acct = nf_conn_acct_find(ct);
+ 		if (acct) {
++			spin_lock_bh(&nf_conntrack_lock);
+ 			acct[CTINFO2DIR(ctinfo)].packets++;
+ 			acct[CTINFO2DIR(ctinfo)].bytes +=
+ 				skb->len - skb_network_offset(skb);
++			spin_unlock_bh(&nf_conntrack_lock);
+ 		}
+ 	}
+-
+-	spin_unlock_bh(&nf_conntrack_lock);
+ }
+ EXPORT_SYMBOL_GPL(__nf_ct_refresh_acct);
+ 
+
+--------------090405040506020708010205--
