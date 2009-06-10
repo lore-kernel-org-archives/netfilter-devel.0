@@ -1,31 +1,32 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH 4/4] netfilter: conntrack: optional reliable conntrack
- event	delivery
-Date: Wed, 10 Jun 2009 17:10:47 +0200
-Message-ID: <4A2FCCF7.40005@netfilter.org>
-References: <20090610133716.14805.95308.stgit@Decadence> <20090610134150.14805.4528.stgit@Decadence> <4A2FB985.8030002@netfilter.org> <4A2FB9BA.5050106@trash.net> <4A2FC9B5.8030600@netfilter.org> <4A2FCB93.3090507@trash.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [1/2] ipset 3.0 changes audit: printf types
+Date: Wed, 10 Jun 2009 19:07:13 +0200 (CEST)
+Message-ID: <alpine.LSU.2.00.0906101905001.26136@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:37810 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755308AbZFJPKz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Jun 2009 11:10:55 -0400
-In-Reply-To: <4A2FCB93.3090507@trash.net>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:36148 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751211AbZFJRHM (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 10 Jun 2009 13:07:12 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy wrote:
-> Yes, the networking merge window closes a lot earlier than the general
-> kernel merge window and I have to get the other patches in.
-> 
-> I can delay it today, but I don't want to risk waiting until tomorrow.
 
-I'm going to take my laptop with me to see if I can finish it during
-some spare time. Let's see if I reach the merge window in time :-).
+On or about 27 May 2009, Jozsef wrote:
+>
+>I'm going to release a new version at the weekend because
+>
+>a. I "successfully" broke the iptables set/SET match and target by
+>the new protocol version in ipset
+>b. This is a good opportunity to get rid of the deprecated 
+>functionality
+>(binding) and adding forward-compatibility in the match and target.
 
--- 
-"Los honestos son inadaptados sociales" -- Les Luthiers
+Weekends have passed, can a fix be expected? :)
+
+
+Jan
