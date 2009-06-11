@@ -1,46 +1,31 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: netfilter 00/31: netfilter update
-Date: Thu, 11 Jun 2009 15:54:38 +0200
-Message-ID: <4A310C9E.3050904@trash.net>
-References: <20090610194621.11112.72922.sendpatchset@x2.localnet>	<20090610.234618.116984779.davem@davemloft.net> <20090611.010827.193702616.davem@davemloft.net>
+Subject: Re: [PATCH] Reserve nfnetlink subsys ids.
+Date: Thu, 11 Jun 2009 16:08:52 +0200
+Message-ID: <4A310FF4.2070207@trash.net>
+References: <alpine.DEB.2.00.0906111334090.28605@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+Cc: netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:53209 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:53467 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753094AbZFKNyj (ORCPT
+	with ESMTP id S1760892AbZFKOIz (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Jun 2009 09:54:39 -0400
-In-Reply-To: <20090611.010827.193702616.davem@davemloft.net>
+	Thu, 11 Jun 2009 10:08:55 -0400
+In-Reply-To: <alpine.DEB.2.00.0906111334090.28605@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-David Miller wrote:
-> From: David Miller <davem@davemloft.net>
-> Date: Wed, 10 Jun 2009 23:46:18 -0700 (PDT)
+Jozsef Kadlecsik wrote:
+> Hi Patrick,
 > 
->> From: Patrick McHardy <kaber@trash.net>
->> Date: Wed, 10 Jun 2009 21:46:22 +0200 (MEST)
->>
->>> Please apply or pull from:
->>>
->>> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git master
->> Pulled, thanks a lot Patrick.
->>
->> I'll push it back out to kernel.org after some build testing.
-> 
-> This stuff isn't ready, sorry I had to undo my pull:
-> 
-> net/netfilter/nf_conntrack_proto_tcp.c: In function 'tcp_packet':
-> net/netfilter/nf_conntrack_proto_tcp.c:947: error: 'tcp_lock' undeclared (first use in this function)
-> net/netfilter/nf_conntrack_proto_tcp.c:947: error: (Each undeclared identifier is reported only once
-> net/netfilter/nf_conntrack_proto_tcp.c:947: error: for each function it appears in.)
-> make[2]: *** [net/netfilter/nf_conntrack_proto_tcp.o] Error 1
-> make[2]: *** Waiting for unfinished jobs....
+> A tiny patch to add nfnetlink subsys ids for nftables and ipset. :-)
 
-That odd, my tree doesn't have a single reference to tcp_lock left.
-I'll check what went wrong, sorry.
+Its usually frowned upon to reserve IDs that are not used yet.
+We can certainly coordinate so nftables and ipset won't clash
+unless we add a different subsystem (we actually did, OSF is
+new in nf-next-2.6.git). But is there a reason for adding the
+IPSET id at this time instead of waiting until we merge it?
 
