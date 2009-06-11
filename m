@@ -1,49 +1,46 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH] Reserve nfnetlink subsys ids.
-Date: Thu, 11 Jun 2009 13:36:16 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.0906111334090.28605@blackhole.kfki.hu>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: netfilter 00/31: netfilter update
+Date: Thu, 11 Jun 2009 15:54:38 +0200
+Message-ID: <4A310C9E.3050904@trash.net>
+References: <20090610194621.11112.72922.sendpatchset@x2.localnet>	<20090610.234618.116984779.davem@davemloft.net> <20090611.010827.193702616.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-To: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:56037 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761585AbZFKLgO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Jun 2009 07:36:14 -0400
+Received: from stinky.trash.net ([213.144.137.162]:53209 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753094AbZFKNyj (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 11 Jun 2009 09:54:39 -0400
+In-Reply-To: <20090611.010827.193702616.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Patrick,
+David Miller wrote:
+> From: David Miller <davem@davemloft.net>
+> Date: Wed, 10 Jun 2009 23:46:18 -0700 (PDT)
+> 
+>> From: Patrick McHardy <kaber@trash.net>
+>> Date: Wed, 10 Jun 2009 21:46:22 +0200 (MEST)
+>>
+>>> Please apply or pull from:
+>>>
+>>> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git master
+>> Pulled, thanks a lot Patrick.
+>>
+>> I'll push it back out to kernel.org after some build testing.
+> 
+> This stuff isn't ready, sorry I had to undo my pull:
+> 
+> net/netfilter/nf_conntrack_proto_tcp.c: In function 'tcp_packet':
+> net/netfilter/nf_conntrack_proto_tcp.c:947: error: 'tcp_lock' undeclared (first use in this function)
+> net/netfilter/nf_conntrack_proto_tcp.c:947: error: (Each undeclared identifier is reported only once
+> net/netfilter/nf_conntrack_proto_tcp.c:947: error: for each function it appears in.)
+> make[2]: *** [net/netfilter/nf_conntrack_proto_tcp.o] Error 1
+> make[2]: *** Waiting for unfinished jobs....
 
-A tiny patch to add nfnetlink subsys ids for nftables and ipset. :-)
+That odd, my tree doesn't have a single reference to tcp_lock left.
+I'll check what went wrong, sorry.
 
-Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
----
- include/linux/netfilter/nfnetlink.h |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
-
-diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netfilter/nfnetlink.h
-index c600083..e0f2ab0 100644
---- a/include/linux/netfilter/nfnetlink.h
-+++ b/include/linux/netfilter/nfnetlink.h
-@@ -46,7 +46,9 @@ struct nfgenmsg {
- #define NFNL_SUBSYS_CTNETLINK_EXP	2
- #define NFNL_SUBSYS_QUEUE		3
- #define NFNL_SUBSYS_ULOG		4
--#define NFNL_SUBSYS_COUNT		5
-+#define NFNL_SUBSYS_NFTABLES		5
-+#define NFNL_SUBSYS_IPSET		6
-+#define NFNL_SUBSYS_COUNT		7
- 
- #ifdef __KERNEL__
- 
--- 
-1.5.4.3
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
