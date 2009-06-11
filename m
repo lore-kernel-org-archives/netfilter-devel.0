@@ -1,48 +1,93 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 3/5] libxt_connlimit: initialize v6_mask
-Date: Thu, 11 Jun 2009 13:11:20 +0200
-Message-ID: <1244718682-2497-4-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 4/5] iptables: close open file descriptors
+Date: Thu, 11 Jun 2009 13:11:21 +0200
+Message-ID: <1244718682-2497-5-git-send-email-jengelh@medozas.de>
 References: <1244718682-2497-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:38298 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:38300 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762773AbZFKLLX (ORCPT
+	with ESMTP id S1762857AbZFKLLX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Thu, 11 Jun 2009 07:11:23 -0400
 In-Reply-To: <1244718682-2497-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: kd6lvw <kd6lvw@yahoo.com>
+Just for correctness, close some file descriptors that were opened.
+(E.g. ip6tables-save reading from procfs files.)
 
-When converting "--connlimit-mask $bits" to a 128-bit v6 mask, the
-code uses a left shift on v6_mask[n]. This requires v6_mask to be
-filled with all one-bits beforehand, but this initialization was not
-done.
-
-References: http://bugzilla.netfilter.org/show_bug.cgi?id=597
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- extensions/libxt_connlimit.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ ip6tables-restore.c |    2 ++
+ ip6tables-save.c    |    1 +
+ iptables-restore.c  |    2 ++
+ iptables-save.c     |    1 +
+ iptables-xml.c      |    2 ++
+ 5 files changed, 8 insertions(+), 0 deletions(-)
 
-diff --git a/extensions/libxt_connlimit.c b/extensions/libxt_connlimit.c
-index f001a2e..403e7e6 100644
---- a/extensions/libxt_connlimit.c
-+++ b/extensions/libxt_connlimit.c
-@@ -26,7 +26,9 @@ static const struct option connlimit_opts[] = {
- static void connlimit_init(struct xt_entry_match *match)
- {
- 	struct xt_connlimit_info *info = (void *)match->data;
--	info->v4_mask = 0xFFFFFFFFUL;
-+
-+	/* This will also initialize the v4 mask correctly */
-+	memset(info->v6_mask, 0xFF, sizeof(info->v6_mask));
+diff --git a/ip6tables-restore.c b/ip6tables-restore.c
+index 1d5efea..06a82ae 100644
+--- a/ip6tables-restore.c
++++ b/ip6tables-restore.c
+@@ -454,5 +454,7 @@ int main(int argc, char *argv[])
+ 		exit(1);
+ 	}
+ 
++	if (in != NULL)
++		fclose(in);
+ 	return 0;
+ }
+diff --git a/ip6tables-save.c b/ip6tables-save.c
+index 97205c1..c59608f 100644
+--- a/ip6tables-save.c
++++ b/ip6tables-save.c
+@@ -54,6 +54,7 @@ static int for_each_table(int (*func)(const char *tablename))
+ 		ret &= func(tablename);
+ 	}
+ 
++	fclose(procfile);
+ 	return ret;
  }
  
- static void prefix_to_netmask(u_int32_t *mask, unsigned int prefix_len)
+diff --git a/iptables-restore.c b/iptables-restore.c
+index 2a797cc..5108fda 100644
+--- a/iptables-restore.c
++++ b/iptables-restore.c
+@@ -459,5 +459,7 @@ main(int argc, char *argv[])
+ 		exit(1);
+ 	}
+ 
++	if (in != NULL)
++		fclose(in);
+ 	return 0;
+ }
+diff --git a/iptables-save.c b/iptables-save.c
+index 6000b49..f63ee6b 100644
+--- a/iptables-save.c
++++ b/iptables-save.c
+@@ -52,6 +52,7 @@ static int for_each_table(int (*func)(const char *tablename))
+ 		ret &= func(tablename);
+ 	}
+ 
++	fclose(procfile);
+ 	return ret;
+ }
+ 
+diff --git a/iptables-xml.c b/iptables-xml.c
+index e5d1941..daf4208 100644
+--- a/iptables-xml.c
++++ b/iptables-xml.c
+@@ -870,6 +870,8 @@ main(int argc, char *argv[])
+ 		exit(1);
+ 	}
+ 
++	if (in != NULL)
++		fclose(in);
+ 	printf("</iptables-rules>\n");
+ 	free_argv();
+ 
 -- 
 1.6.3.1
 
