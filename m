@@ -1,52 +1,49 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: June 11 iptables pull
-Date: Thu, 11 Jun 2009 13:11:17 +0200
-Message-ID: <1244718682-2497-1-git-send-email-jengelh@medozas.de>
-Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [PATCH] Reserve nfnetlink subsys ids.
+Date: Thu, 11 Jun 2009 13:36:16 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.0906111334090.28605@blackhole.kfki.hu>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:38292 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762727AbZFKLLX (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Jun 2009 07:11:23 -0400
+Received: from smtp0.kfki.hu ([148.6.0.25]:56037 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1761585AbZFKLgO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 11 Jun 2009 07:36:14 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi Patrick,
 
-Hi,
+A tiny patch to add nfnetlink subsys ids for nftables and ipset. :-)
 
+Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+---
+ include/linux/netfilter/nfnetlink.h |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-a couple more fixes to the iptables proper. Please pull from
-the "stable" branch at
-	git://dev.medozas.de/iptables stable
+diff --git a/include/linux/netfilter/nfnetlink.h b/include/linux/netfilter/nfnetlink.h
+index c600083..e0f2ab0 100644
+--- a/include/linux/netfilter/nfnetlink.h
++++ b/include/linux/netfilter/nfnetlink.h
+@@ -46,7 +46,9 @@ struct nfgenmsg {
+ #define NFNL_SUBSYS_CTNETLINK_EXP	2
+ #define NFNL_SUBSYS_QUEUE		3
+ #define NFNL_SUBSYS_ULOG		4
+-#define NFNL_SUBSYS_COUNT		5
++#define NFNL_SUBSYS_NFTABLES		5
++#define NFNL_SUBSYS_IPSET		6
++#define NFNL_SUBSYS_COUNT		7
+ 
+ #ifdef __KERNEL__
+ 
+-- 
+1.5.4.3
 
-to receive
-
-Frank Tobin (1):
-      libxt_tcp: fix a manpage syntax typo
-
-Ian Bruce (1):
-      libxt_tcp: manpage corrections and suggestions
-
-Jan Engelhardt (2):
-      iptables: close open file descriptors
-      manpages: markup corrections
-
-kd6lvw (1):
-      libxt_connlimit: initialize v6_mask
-
-
- extensions/libxt_TCPMSS.man    |    5 ++---
- extensions/libxt_TPROXY.man    |    2 +-
- extensions/libxt_cluster.man   |   38 +++++++++++++++++++-------------------
- extensions/libxt_connlimit.c   |    4 +++-
- extensions/libxt_connlimit.man |    2 +-
- extensions/libxt_recent.man    |    4 ++--
- extensions/libxt_tcp.man       |    6 +++---
- ip6tables-restore.c            |    2 ++
- ip6tables-save.c               |    1 +
- iptables-restore.c             |    2 ++
- iptables-save.c                |    1 +
- iptables-xml.c                 |    2 ++
- 12 files changed, 39 insertions(+), 30 deletions(-)
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
