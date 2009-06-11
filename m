@@ -1,26 +1,39 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: June 11 iptables pull
-Date: Thu, 11 Jun 2009 17:57:32 +0200
-Message-ID: <4A31296C.1030200@trash.net>
-References: <1244718682-2497-1-git-send-email-jengelh@medozas.de>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH 0/3] netfilter: Use pr_<level> and pr_fmt
+Date: Thu, 11 Jun 2009 10:44:59 -0700
+Message-ID: <1244742299.30185.7.camel@Joe-Laptop.home>
+References: <cover.1244705154.git.joe@perches.com>
+	 <alpine.LSU.2.00.0906111303260.1795@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
+Cc: Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, David Miller <davem@davemloft.net>
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55520 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754704AbZFKP5b (ORCPT
+Received: from 136-022.dsl.LABridge.com ([206.117.136.22]:3907 "EHLO
+	mail.perches.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751849AbZFKRpE (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Jun 2009 11:57:31 -0400
-In-Reply-To: <1244718682-2497-1-git-send-email-jengelh@medozas.de>
+	Thu, 11 Jun 2009 13:45:04 -0400
+In-Reply-To: <alpine.LSU.2.00.0906111303260.1795@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> a couple more fixes to the iptables proper. Please pull from
-> the "stable" branch at
-> 	git://dev.medozas.de/iptables stable
+On Thu, 2009-06-11 at 13:04 +0200, Jan Engelhardt wrote:
+> On Thursday 2009-06-11 09:40, Joe Perches wrote:
+> 
+> >Many of the [wretched grammar removed] netfilter printk
+> >calls do not have KERN_<level> prefixes.
+[]
+> >Remove the function names in printk strings and add
+> >#define pr_fmt(fmt) "%s:%s " fmt, KBUILD_MODNAME, __func__
+> 
+> Hm I had wished there was a better way than to replicate
+> this define over all Netfilter files.
+> Perhaps stuff it into an include.
 
-Pulled and pushed out again, thanks Jan.
+Maybe standardize the netfilter includes a bit later?
+
+Patrick, is this patch set concept acceptable at all?
+
