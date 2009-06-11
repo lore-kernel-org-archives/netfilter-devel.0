@@ -1,43 +1,31 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: netfilter 00/31: netfilter update
-Date: Thu, 11 Jun 2009 01:08:27 -0700 (PDT)
-Message-ID: <20090611.010827.193702616.davem@davemloft.net>
-References: <20090610194621.11112.72922.sendpatchset@x2.localnet>
-	<20090610.234618.116984779.davem@davemloft.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 0/3] netfilter: Use pr_<level> and pr_fmt
+Date: Thu, 11 Jun 2009 13:04:58 +0200 (CEST)
+Message-ID: <alpine.LSU.2.00.0906111303260.1795@fbirervta.pbzchgretzou.qr>
+References: <cover.1244705154.git.joe@perches.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: kaber@trash.net
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:48852
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1760176AbZFKIIZ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Jun 2009 04:08:25 -0400
-In-Reply-To: <20090610.234618.116984779.davem@davemloft.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, David Miller <davem@davemloft.net>
+To: Joe Perches <joe@perches.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <cover.1244705154.git.joe@perches.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: David Miller <davem@davemloft.net>
-Date: Wed, 10 Jun 2009 23:46:18 -0700 (PDT)
 
-> From: Patrick McHardy <kaber@trash.net>
-> Date: Wed, 10 Jun 2009 21:46:22 +0200 (MEST)
-> 
->> Please apply or pull from:
->> 
->> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git master
-> 
-> Pulled, thanks a lot Patrick.
-> 
-> I'll push it back out to kernel.org after some build testing.
+On Thursday 2009-06-11 09:40, Joe Perches wrote:
 
-This stuff isn't ready, sorry I had to undo my pull:
+>Many of the calls to netfilter printk calls do not
+>have KERN_<level> prefixes.
+>
+>Convert printks with KERN_<level> to pr_<level>
+>and use pr_info for unprefixed printks.
+>
+>Remove the function names in printk strings and add
+>#define pr_fmt(fmt) "%s:%s " fmt, KBUILD_MODNAME, __func__
 
-net/netfilter/nf_conntrack_proto_tcp.c: In function 'tcp_packet':
-net/netfilter/nf_conntrack_proto_tcp.c:947: error: 'tcp_lock' undeclared (first use in this function)
-net/netfilter/nf_conntrack_proto_tcp.c:947: error: (Each undeclared identifier is reported only once
-net/netfilter/nf_conntrack_proto_tcp.c:947: error: for each function it appears in.)
-make[2]: *** [net/netfilter/nf_conntrack_proto_tcp.o] Error 1
-make[2]: *** Waiting for unfinished jobs....
+Hm I had wished there was a better way than to replicate
+this define over all Netfilter files.
+Perhaps stuff it into an include.
+
