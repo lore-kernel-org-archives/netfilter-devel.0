@@ -1,30 +1,31 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: David Miller <davem@davemloft.net>
 Subject: Re: netfilter 00/31: netfilter update
-Date: Fri, 12 Jun 2009 03:48:57 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0906120347200.28404@fbirervta.pbzchgretzou.qr>
-References: <20090611.161910.109357779.davem@davemloft.net> <20090611.164047.74924409.davem@davemloft.net> <4A31978A.3040300@trash.net> <20090611.165041.201036582.davem@davemloft.net> <4A31B0CD.40300@trash.net>
+Date: Thu, 11 Jun 2009 20:53:18 -0700 (PDT)
+Message-ID: <20090611.205318.235209070.davem@davemloft.net>
+References: <4A31978A.3040300@trash.net>
+	<20090611.165041.201036582.davem@davemloft.net>
+	<4A31B0CD.40300@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: kaber@trash.net
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:54845
+	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750744AbZFLDxQ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 11 Jun 2009 23:53:16 -0400
 In-Reply-To: <4A31B0CD.40300@trash.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+From: Patrick McHardy <kaber@trash.net>
+Date: Fri, 12 Jun 2009 03:35:09 +0200
 
-On Friday 2009-06-12 03:35, Patrick McHardy wrote:
->@@ -418,7 +418,7 @@ ipt_do_table(struct sk_buff *skb,
-> #endif
-> 		verdict = t->u.kernel.target->target(skb, &tgpar);
-> #ifdef CONFIG_NETFILTER_DEBUG
->-		if (comefrom != 0xeeeeeeec && verdict == IPT_CONTINUE) {
->+		if (tb_comefrom != 0xeeeeeeec && verdict == IPT_CONTINUE) {
-> 			printk("Target %s reentered!\n",
-> 			       t->u.kernel.target->name);
-> 			verdict = NF_DROP;
+> Please pull from:
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git master
 
-Apologies; must have been an oversight on my behalf -- since the ipv6
-code did indeed receive the comefrom => tb_comefrom transform in the
-debug half.
+Looks like we have something good now, pushed out to kernel.org
+thanks!
