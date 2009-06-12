@@ -1,31 +1,40 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: netfilter 00/31: netfilter update
-Date: Thu, 11 Jun 2009 20:53:18 -0700 (PDT)
-Message-ID: <20090611.205318.235209070.davem@davemloft.net>
-References: <4A31978A.3040300@trash.net>
-	<20090611.165041.201036582.davem@davemloft.net>
-	<4A31B0CD.40300@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] Reserve nfnetlink subsys ids.
+Date: Fri, 12 Jun 2009 14:08:56 +0200
+Message-ID: <4A324558.3020506@trash.net>
+References: <alpine.DEB.2.00.0906111334090.28605@blackhole.kfki.hu> <4A310FF4.2070207@trash.net> <4A31142E.50707@netfilter.org> <4A31198F.7010004@trash.net> <alpine.DEB.2.00.0906112349380.30129@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:54845
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750744AbZFLDxQ (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:43588 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753277AbZFLMI6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Jun 2009 23:53:16 -0400
-In-Reply-To: <4A31B0CD.40300@trash.net>
+	Fri, 12 Jun 2009 08:08:58 -0400
+In-Reply-To: <alpine.DEB.2.00.0906112349380.30129@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Fri, 12 Jun 2009 03:35:09 +0200
-
-> Please pull from:
+Jozsef Kadlecsik wrote:
+> On Thu, 11 Jun 2009, Patrick McHardy wrote:
 > 
-> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git master
+>> Pablo Neira Ayuso wrote:
+>>> Patrick McHardy wrote:
+>>>> Jozsef Kadlecsik wrote:
+>>>>> Hi Patrick,
+>>>>>
+>>>>> A tiny patch to add nfnetlink subsys ids for nftables and ipset. :-)
+>> As I said, IDs are usually not reserved until something is merged,
+>> even if there is agreement to merge it. I guess there has been too
+>> much bad experience with reserved IDs and code that never got merged.
+>> I have to justify the patches I merge myself and so far I can't.
+> 
+> You're right, of course. I'm going to find another way for a smooth 
+> protocol migration.
 
-Looks like we have something good now, pushed out to kernel.org
-thanks!
+I didn't mean to finally say no, just wondering if there are special
+circumstances which would justify an exception.
