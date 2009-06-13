@@ -1,43 +1,80 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/3] net/netfilter: Convert printk uses to pr_<level>
-Date: Sat, 13 Jun 2009 12:45:15 +0200
-Message-ID: <4A33833B.4080609@trash.net>
-References: <cover.1244705154.git.joe@perches.com> <835d5482f92aa00f571b2775b96e0e555c31bcf8.1244705154.git.joe@perches.com>
+Subject: netfilter 01/07: nf_log: fix sleeping function called from invalid context
+Date: Sat, 13 Jun 2009 15:09:36 +0200 (MEST)
+Message-ID: <20090613130935.2112.24077.sendpatchset@x2.localnet>
+References: <20090613130934.2112.65299.sendpatchset@x2.localnet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	David Miller <davem@davemloft.net>
-To: Joe Perches <joe@perches.com>
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org
+To: davem@davemloft.net
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <835d5482f92aa00f571b2775b96e0e555c31bcf8.1244705154.git.joe@perches.com>
+In-Reply-To: <20090613130934.2112.65299.sendpatchset@x2.localnet>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Joe Perches wrote:
-> Remove function names from format strings
-> Add #define pr_fmt(fmt) "%s:%s: " fmt, KBUILD_MODNAME, __func__
+commit 266d07cb1c9a0c345d7d3aea889f92062894059e
+Author: Patrick McHardy <kaber@trash.net>
+Date:   Sat Jun 13 12:21:10 2009 +0200
 
-In my opinion a lot of the debugging messages should simply be
-removed, they provide little informational value and decrease
-readability of the code. Unfortunately I couldn't convince
-everyone of that.
+    netfilter: nf_log: fix sleeping function called from invalid contex=
+t
+   =20
+    Fix regression introduced by 17625274 "netfilter: sysctl support of
+    logger choice":
+   =20
+    BUG: sleeping function called from invalid context at /mnt/s390test=
+/linux-2.6-tip/arch/s390/include/asm/uaccess.h:234
+    in_atomic(): 1, irqs_disabled(): 0, pid: 3245, name: sysctl
+    CPU: 1 Not tainted 2.6.30-rc8-tipjun10-02053-g39ae214 #1
+    Process sysctl (pid: 3245, task: 000000007f675da0, ksp: 000000007eb=
+17cf0)
+    0000000000000000 000000007eb17be8 0000000000000002 0000000000000000
+           000000007eb17c88 000000007eb17c00 000000007eb17c00 000000000=
+0048156
+           00000000003e2de8 000000007f676118 000000007eb17f10 000000000=
+0000000
+           0000000000000000 000000007eb17be8 000000000000000d 000000007=
+eb17c58
+           00000000003e2050 000000000001635c 000000007eb17be8 000000007=
+eb17c30
+    Call Trace:
+    (=DD<00000000000162e6>=A8 show_trace+0x13a/0x148)
+     =DD<00000000000349ea>=A8 __might_sleep+0x13a/0x164
+     =DD<0000000000050300>=A8 proc_dostring+0x134/0x22c
+     =DD<0000000000312b70>=A8 nf_log_proc_dostring+0xfc/0x188
+     =DD<0000000000136f5e>=A8 proc_sys_call_handler+0xf6/0x118
+     =DD<0000000000136fda>=A8 proc_sys_read+0x26/0x34
+     =DD<00000000000d6e9c>=A8 vfs_read+0xac/0x158
+     =DD<00000000000d703e>=A8 SyS_read+0x56/0x88
+     =DD<0000000000027f42>=A8 sysc_noemu+0x10/0x16
+   =20
+    Use the nf_log_mutex instead of RCU to fix this.
+   =20
+    Reported-and-tested-by: Maran Pakkirisamy <maranpsamy@in.ibm.com>
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
 
->  #ifdef CONFIG_NF_CT_ACCT
-> -	printk(KERN_WARNING "CONFIG_NF_CT_ACCT is deprecated and will be removed soon. Please use\n");
-> -		printk(KERN_WARNING "nf_conntrack.acct=1 kernel parameter, acct=1 nf_conntrack module option or\n");
-> -		printk(KERN_WARNING "sysctl net.netfilter.nf_conntrack_acct=1 to enable it.\n");
-> +		pr_warning("CONFIG_NF_CT_ACCT is deprecated and will be removed soon.\n");
-> +		pr_warning("Please use nf_conntrack.acct=1 kernel parameter, acct=1 nf_conntrack\n");
-> +		pr_warning("module option or sysctl net.netfilter.nf_conntrack_acct=1 to enable it.\n");
-
-For non-debugging messages that should provide enough information
-to make sense of them without function names, this change does not
-make much sense in my opinion.
-
-Instead of a half-way readable message, we now would get:
-
-nf_conntrack: nf_conntrack_acct_init: CONFIG_NF_CT_ACCT is deprecated ...
-
-which is not an improvement at all. So unless we can limit this
-to debugging message, I'll pass on this change.
+diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
+index beb3731..2fefe14 100644
+--- a/net/netfilter/nf_log.c
++++ b/net/netfilter/nf_log.c
+@@ -248,14 +248,14 @@ static int nf_log_proc_dostring(ctl_table *table,=
+ int write, struct file *filp,
+ 		rcu_assign_pointer(nf_loggers[tindex], logger);
+ 		mutex_unlock(&nf_log_mutex);
+ 	} else {
+-		rcu_read_lock();
+-		logger =3D rcu_dereference(nf_loggers[tindex]);
++		mutex_lock(&nf_log_mutex);
++		logger =3D nf_loggers[tindex];
+ 		if (!logger)
+ 			table->data =3D "NONE";
+ 		else
+ 			table->data =3D logger->name;
+ 		r =3D proc_dostring(table, write, filp, buffer, lenp, ppos);
+-		rcu_read_unlock();
++		mutex_unlock(&nf_log_mutex);
+ 	}
+=20
+ 	return r;
