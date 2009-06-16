@@ -1,35 +1,39 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Jan Engelhardt <jengelh@medozas.de>
 Subject: Re: [ANNOUNCE]: Release of iptables-1.4.4
-Date: Tue, 16 Jun 2009 15:36:02 +0200
-Message-ID: <4A379FC2.7060004@trash.net>
-References: <4A3787DB.1040704@trash.net> <x6ski01g7t@gzp>
+Date: Tue, 16 Jun 2009 16:30:30 +0200 (CEST)
+Message-ID: <alpine.LSU.2.00.0906161629360.3418@fbirervta.pbzchgretzou.qr>
+References: <4A3787DB.1040704@trash.net> <x6ski01g7t@gzp> <4A379FC2.7060004@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: "Gabor Z. Papp" <gzp@papp.hu>,
+	Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>,
 	Linux Netdev List <netdev@vger.kernel.org>,
 	"'netfilter@vger.kernel.org'" <netfilter@vger.kernel.org>,
 	netfilter-announce@lists.netfilter.org
-To: "Gabor Z. Papp" <gzp@papp.hu>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:38906 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754984AbZFPNgB (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:47584 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759209AbZFPOa3 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 16 Jun 2009 09:36:01 -0400
-In-Reply-To: <x6ski01g7t@gzp>
+	Tue, 16 Jun 2009 10:30:29 -0400
+In-Reply-To: <4A379FC2.7060004@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Gabor Z. Papp wrote:
-> * Patrick McHardy <kaber@trash.net>:
-> 
-> | The netfilter coreteam presents:
-> 
-> |     iptables version 1.4.4
-> 
-> config.h:#define PACKAGE_VERSION "1.4.3.2"
-> 
 
-Run configure.
+On Tuesday 2009-06-16 15:36, Patrick McHardy wrote:
+> Gabor Z. Papp wrote:
+>> * Patrick McHardy <kaber@trash.net>:
+>>
+>> | The netfilter coreteam presents:
+>>
+>> |     iptables version 1.4.4
+>>
+>> config.h:#define PACKAGE_VERSION "1.4.3.2"
+>
+> Run configure.
+
+Nope, see `git show v1.4.4:configure.ac`.
+AC_INIT in configure.ac was indeed not updated.
