@@ -1,88 +1,77 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH 2/3] net/netfilter: Convert printk uses to pr_<level>
-Date: Tue, 16 Jun 2009 10:58:45 -0700
-Message-ID: <1245175125.28596.100.camel@Joe-Laptop.home>
-References: <cover.1244705154.git.joe@perches.com>
-	 <835d5482f92aa00f571b2775b96e0e555c31bcf8.1244705154.git.joe@perches.com>
-	 <4A33833B.4080609@trash.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: ebtables broken for kernel above 2.6.28
+Date: Wed, 17 Jun 2009 01:08:42 +0200 (CEST)
+Message-ID: <alpine.LSU.2.00.0906160838410.25132@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	David Miller <davem@davemloft.net>
-To: Patrick McHardy <kaber@trash.net>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Linus Torvalds <torvalds@linux-foundation.org>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4A33833B.4080609@trash.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
-
-On Sat, 2009-06-13 at 12:45 +0200, Patrick McHardy wrote:
-> Joe Perches wrote:
-> > Remove function names from format strings
-> > Add #define pr_fmt(fmt) "%s:%s: " fmt, KBUILD_MODNAME, __func__
-> 
-> For non-debugging messages that should provide enough information
-> to make sense of them without function names, this change does not
-> make much sense in my opinion.
-> 
-> Instead of a half-way readable message, we now would get:
-> 
-> nf_conntrack: nf_conntrack_acct_init: CONFIG_NF_CT_ACCT is deprecated ...
-> 
-> which is not an improvement at all. So unless we can limit this
-> to debugging message, I'll pass on this change.
-
-Good point.
-
-Maybe there should be a #define pr_dbg_fmt(fmt) <foo>
-
-Perhaps:
-
-diff --git a/include/linux/kernel.h b/include/linux/kernel.h
-index 883cd44..adda97d 100644
---- a/include/linux/kernel.h
-+++ b/include/linux/kernel.h
-@@ -360,6 +360,10 @@ static inline char *pack_hex_byte(char *buf, u8 byte)
- #define pr_fmt(fmt) fmt
- #endif
- 
-+#ifndef pr_dbg_fmt
-+#define pr_dbg_fmt(fmt) pr_fmt(fmt)
-+#endif
-+
- #define pr_emerg(fmt, ...) \
-         printk(KERN_EMERG pr_fmt(fmt), ##__VA_ARGS__)
- #define pr_alert(fmt, ...) \
-@@ -380,16 +384,16 @@ static inline char *pack_hex_byte(char *buf, u8 byte)
- /* pr_devel() should produce zero code unless DEBUG is defined */
- #ifdef DEBUG
- #define pr_devel(fmt, ...) \
--	printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
-+	printk(KERN_DEBUG pr_dbg_fmt(fmt), ##__VA_ARGS__)
- #else
- #define pr_devel(fmt, ...) \
--	({ if (0) printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__); 0; })
-+	({ if (0) printk(KERN_DEBUG pr_dbg_fmt(fmt), ##__VA_ARGS__); 0; })
- #endif
- 
- /* If you are writing a driver, please use dev_dbg instead */
- #if defined(DEBUG)
- #define pr_debug(fmt, ...) \
--	printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__)
-+	printk(KERN_DEBUG pr_dbg_fmt(fmt), ##__VA_ARGS__)
- #elif defined(CONFIG_DYNAMIC_DEBUG)
- /* dynamic_pr_debug() uses pr_fmt() internally so we don't need it here */
- #define pr_debug(fmt, ...) do { \
-@@ -397,7 +401,7 @@ static inline char *pack_hex_byte(char *buf, u8 byte)
- 	} while (0)
- #else
- #define pr_debug(fmt, ...) \
--	({ if (0) printk(KERN_DEBUG pr_fmt(fmt), ##__VA_ARGS__); 0; })
-+	({ if (0) printk(KERN_DEBUG pr_dbg_fmt(fmt), ##__VA_ARGS__); 0; })
- #endif
- 
- /*
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Bart De Schuymer <bdshuym@pandora.be>,
+	Peter Volkov <pva@gentoo.org>,
+	Sachin Nasap <sachin.sanap.1gb@gmail.com>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:58366 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754424AbZFPXIl (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 16 Jun 2009 19:08:41 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
 
+
+Patrick McHardy wrote on  2009-06-02 12:20:45:
+>Jan Engelhardt wrote:
+>> On Friday 2009-05-29 18:20, Bart De Schuymer wrote:
+>>=20
+>>> I think it's best to fix this in the kernel if it's possible, since=
+=20
+>>> we don't
+>>> want to break compatibility.
+>>> If the fix has to be in userspace, then it must be a fix that still=
+=20
+>>> works for
+>>> older kernels.
+>>=20
+>> Since the kernel uses xt_align already, it's best for userspace to d=
+o=20
+>> the same.
+>
+>But that doesn't work for older kernels. Please don't dismiss
+>compatibility issues that easily. Sometimes things unfortunately
+>do slip through, but I expect people to do their best to fix the
+>problem properly when this happens.
+
+I compiled myself an ARM crosscompiler, just to see what's going on. No=
+t=20
+that I could run the binaries, but I could at least look at the objdump=
+=20
+output. The first impression was: "the state before the supposed=20
+regression was introduced could not have worked on ARM in the first=20
+place had I run this".
+
+It turns out that ebtables is completely unusable on at least three=20
+arches with given ABI configurations even if things were still=20
+calculated against ebt_replace instead of _xt_align. One case has been=20
+verified by me since it's consumer hardware, and it surprises me=20
+the Debian project has not found this earlier, because they actually=20
+produced one affected binary distribution in the past (x86 with=20
+k64_u32).
+
+Affected arches are all with k64_u32. (Perhaps almost all=C2=A0=E2=80=94=
+ I did not=20
+recall seeing it on sparc64, and, as I am just checking up on ebtables'=
+s=20
+Makefile, it has a hack for sparc.) The other configuration I see=20
+problems in is a (rather normal) k32_u32 ARM setup with a kernel=20
+compiled with CONFIG_EABI=3Dno.
+
+The userspace patch proposed by Sachin Nasap is, IMHO, one to fix the=20
+alignment problems (both old and recent) in one clap.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
