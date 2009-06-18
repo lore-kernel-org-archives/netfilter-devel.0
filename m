@@ -1,52 +1,32 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: netfilter: xt_quota: fix incomplete initialization
-Date: Thu, 18 Jun 2009 06:54:20 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0906180652290.12643@fbirervta.pbzchgretzou.qr>
+From: =?UTF-8?B?0KHQsNC80YPRgdC10L3QutC+INCQ0L3QtNGA0LXQuQ==?=
+	<samusenko@msm.ru>
+Subject: SIP support on server side
+Date: Thu, 18 Jun 2009 11:59:15 +0400
+Message-ID: <4A39F3D3.7000101@msm.ru>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:56721 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751214AbZFREyT (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Jun 2009 00:54:19 -0400
+Received: from tempo.di-net.ru ([213.248.12.5]:27361 "EHLO tempo.di-net.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751239AbZFRInm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Jun 2009 04:43:42 -0400
+Received: from [213.248.12.118]
+	by tempo.di-net.ru with esmtpa (Exim 4.69)
+	(envelope-from <samusenko@msm.ru>)
+	id 1MHCWM-0006FW-2F
+	for netfilter-devel@vger.kernel.org; Thu, 18 Jun 2009 11:58:54 +0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hello!
 
-Affects mainline and 2.6.30.
+Where i can get docs for nf_conntrack_sip and nf_nat_sip?
 
-parent 167b2cd72bca6ca1cb3cf6a05d212cf11d65e08d (v2.6.30-rc6-1344-g167b2cd)
-commit 93739b7ba1bbfdb010417a89fd72e08ae29890cc
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Thu Jun 18 06:47:44 2009 +0200
+Can i do following: Place these sip modules on server side with openser, 
+rtpproxy and have RTP ports opened?
+How to configure iptables for this?
 
-netfilter: xt_quota: fix incomplete initialization
-
-Commit v2.6.29-rc5-872-gacc738f ("xtables: avoid pointer to self")
-forgot to copy the initial quota value supplied by iptables into the
-private structure, thus counting from whatever was in the memory
-kmalloc returned.
-
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- net/netfilter/xt_quota.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/net/netfilter/xt_quota.c b/net/netfilter/xt_quota.c
-index 01dd07b..98fc190 100644
---- a/net/netfilter/xt_quota.c
-+++ b/net/netfilter/xt_quota.c
-@@ -54,6 +54,7 @@ static bool quota_mt_check(const struct xt_mtchk_param *par)
- 	if (q->master == NULL)
- 		return -ENOMEM;
- 
-+	q->master->quota = q->quota;
- 	return true;
- }
- 
--- 
-# Created with git-export-patch
-
+Thanks.
+Andrey.
