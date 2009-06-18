@@ -1,32 +1,52 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [ANNOUNCE]: Release of iptables-1.4.4
-Date: Wed, 17 Jun 2009 14:01:04 +0200
-Message-ID: <4A38DB00.1090605@trash.net>
-References: <4A3787DB.1040704@trash.net> <200906161641.34393.thomas.jarosch@intra2net.com> <4A37B22C.6090207@trash.net> <200906170917.45005.thomas.jarosch@intra2net.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: netfilter: xt_quota: fix incomplete initialization
+Date: Thu, 18 Jun 2009 06:54:20 +0200 (CEST)
+Message-ID: <alpine.LSU.2.00.0906180652290.12643@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:65123 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751927AbZFQMBD (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:56721 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751214AbZFREyT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Jun 2009 08:01:03 -0400
-In-Reply-To: <200906170917.45005.thomas.jarosch@intra2net.com>
+	Thu, 18 Jun 2009 00:54:19 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Thomas Jarosch wrote:
-> Good morning Patrick,
-> 
-> On Tuesday, 16. June 2009 16:54:36 you wrote:
->>> Besides this small cosmetic matter, I can report that it compiles fine
->>> :-)
->> Thats some good news at least :)
-> 
-> Good enough for freshmeat.net? ;-)
 
-Done, thanks for the reminder.
+Affects mainline and 2.6.30.
+
+parent 167b2cd72bca6ca1cb3cf6a05d212cf11d65e08d (v2.6.30-rc6-1344-g167b2cd)
+commit 93739b7ba1bbfdb010417a89fd72e08ae29890cc
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Thu Jun 18 06:47:44 2009 +0200
+
+netfilter: xt_quota: fix incomplete initialization
+
+Commit v2.6.29-rc5-872-gacc738f ("xtables: avoid pointer to self")
+forgot to copy the initial quota value supplied by iptables into the
+private structure, thus counting from whatever was in the memory
+kmalloc returned.
+
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ net/netfilter/xt_quota.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/net/netfilter/xt_quota.c b/net/netfilter/xt_quota.c
+index 01dd07b..98fc190 100644
+--- a/net/netfilter/xt_quota.c
++++ b/net/netfilter/xt_quota.c
+@@ -54,6 +54,7 @@ static bool quota_mt_check(const struct xt_mtchk_param *par)
+ 	if (q->master == NULL)
+ 		return -ENOMEM;
+ 
++	q->master->quota = q->quota;
+ 	return true;
+ }
+ 
+-- 
+# Created with git-export-patch
+
