@@ -1,32 +1,45 @@
-From: =?UTF-8?B?0KHQsNC80YPRgdC10L3QutC+INCQ0L3QtNGA0LXQuQ==?=
-	<samusenko@msm.ru>
-Subject: SIP support on server side
-Date: Thu, 18 Jun 2009 11:59:15 +0400
-Message-ID: <4A39F3D3.7000101@msm.ru>
+From: angico <angico@angico.org>
+Subject: A GUI for iptables
+Date: Thu, 18 Jun 2009 12:11:16 -0300
+Message-ID: <1245337876.6328.32.camel@pirilampo.jlmCosta>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from tempo.di-net.ru ([213.248.12.5]:27361 "EHLO tempo.di-net.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751239AbZFRInm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Jun 2009 04:43:42 -0400
-Received: from [213.248.12.118]
-	by tempo.di-net.ru with esmtpa (Exim 4.69)
-	(envelope-from <samusenko@msm.ru>)
-	id 1MHCWM-0006FW-2F
-	for netfilter-devel@vger.kernel.org; Thu, 18 Jun 2009 11:58:54 +0400
+Received: from efreela.com.br ([74.204.170.46]:50294 "EHLO
+	server.efreela.com.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756075AbZFRPby (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Jun 2009 11:31:54 -0400
+Received: from [189.81.28.155] (helo=[192.168.253.101])
+	by server.efreela.com.br with esmtpa (Exim 4.69)
+	(envelope-from <angico@angico.org>)
+	id 1MHJGr-0007oI-Se
+	for netfilter-devel@vger.kernel.org; Thu, 18 Jun 2009 12:11:23 -0300
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello!
+Hi!
 
-Where i can get docs for nf_conntrack_sip and nf_nat_sip?
+I'd like to inform you I recently launched a new project at
+SourceForge.net, which is a front-end GUI for iptables.
 
-Can i do following: Place these sip modules on server side with openser, 
-rtpproxy and have RTP ports opened?
-How to configure iptables for this?
+This program, named "IPTEditor," greatly eases administrator's pain of
+dealing with long lists of iptables rules. It's written in Ruby and is
+based on GTK+. It's released under the terms of GNU GPL. And I hope it
+be of any utility (it is, really, to me!).
 
-Thanks.
-Andrey.
+URLs: <http://iptables.sourceforge.net/> - SourceForge's project page
+and <http://iptables.angico.org/> - Project home page.
+
+So, if you find it interesting, at least, I ask you for the kindness of
+announcing it in your lists.
+
+Thank you very much and
+
+Best regards,
+
+-- 
+angico <angico@angico.org>
+
