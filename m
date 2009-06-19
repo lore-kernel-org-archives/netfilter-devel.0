@@ -1,52 +1,42 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
 Subject: Re: About libnetfilter_queue
-Date: Fri, 19 Jun 2009 14:59:22 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0906191458570.18418@fbirervta.pbzchgretzou.qr>
-References: <20090618144650.GL14944@finnois.psycho-hazard.net>
+Date: Fri, 19 Jun 2009 15:52:54 +0200
+Message-ID: <4A3B9836.9010607@netfilter.org>
+References: <20090618144650.GL14944@finnois.psycho-hazard.net> <alpine.LSU.2.00.0906191458570.18418@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: =?UTF-8?Q?G=C3=A9rald_Colangelo?= <binarym@psycho-hazard.net>
-To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: =?UTF-8?B?R8OpcmFsZCBDb2xhbmdlbG8=?= <binarym@psycho-hazard.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:35959 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755565AbZFSM7V (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 19 Jun 2009 08:59:21 -0400
-In-Reply-To: <20090618144650.GL14944@finnois.psycho-hazard.net>
+Received: from mail.us.es ([193.147.175.20]:39775 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751561AbZFSNxF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 19 Jun 2009 09:53:05 -0400
+In-Reply-To: <alpine.LSU.2.00.0906191458570.18418@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Jan Engelhardt wrote:
+> bounce nf-dev
+>=20
+> On Thursday 2009-06-18 16:46, G=C3=A9rald Colangelo wrote:
+>=20
+>> Hi guy,
+>>
+>> I wrote you today since i noticed you're contributing regulary to th=
+e
+>> netfilter-devel list ...
+>> Since the trafic is quiet huge, i unsubscribe, but i want to pass an
+>> information i discovered while coding ...
+>> If you init all the libnetfilter_queue stuff and then, setuid(!0), t=
+hen you
+>> won't be able to send packet, the kernel drops it silently ...
 
-bounce nf-dev
-
-On Thursday 2009-06-18 16:46, G=C3=A9rald Colangelo wrote:
-
->Hi guy,
->
->I wrote you today since i noticed you're contributing regulary to the
->netfilter-devel list ...
->Since the trafic is quiet huge, i unsubscribe, but i want to pass an
->information i discovered while coding ...
->If you init all the libnetfilter_queue stuff and then, setuid(!0), the=
-n you
->won't be able to send packet, the kernel drops it silently ...
->I've been looking for the solution for 5 days ! That's why i prefered =
-telling
->you, and if you find this information useful, relay it to the list :)
->
->Regards,
->
->--=20
->G=C3=A9rald Colangelo=20
->binarym@psycho-hazard.net - http://www.yanluo.net
->
->Being a sysadmin means hours of hard labor every day.
->Being an abusive sysadmin means hours of fun.
->
->
-
+You still have to keep CAP_NET_ADMIN to make it. And you should get
+EPERM when sending packets.
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
