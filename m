@@ -1,903 +1,538 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 4/6] IPv4 specific extensions
-Date: Sun, 21 Jun 2009 00:00:29 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.0906202359180.11764@blackhole.kfki.hu>
+Subject: [PATCH 5/6] IPv6 specific extensions
+Date: Sun, 21 Jun 2009 00:01:39 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.0906210000310.11764@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:37300 "EHLO smtp1.kfki.hu"
+Received: from smtp0.kfki.hu ([148.6.0.25]:55959 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753511AbZFTWA1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 20 Jun 2009 18:00:27 -0400
+	id S1753745AbZFTWBi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 20 Jun 2009 18:01:38 -0400
 Received: from localhost (localhost [127.0.0.1])
-	by smtp1.kfki.hu (Postfix) with ESMTP id 55602188156
-	for <netfilter-devel@vger.kernel.org>; Sun, 21 Jun 2009 00:00:29 +0200 (CEST)
-Received: from smtp1.kfki.hu ([127.0.0.1])
-	by localhost (smtp1.kfki.hu [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id X-BszSS08+xn for <netfilter-devel@vger.kernel.org>;
-	Sun, 21 Jun 2009 00:00:29 +0200 (CEST)
+	by smtp0.kfki.hu (Postfix) with ESMTP id C80088827D
+	for <netfilter-devel@vger.kernel.org>; Sun, 21 Jun 2009 00:01:39 +0200 (CEST)
+Received: from smtp0.kfki.hu ([127.0.0.1])
+	by localhost (smtp0.kfki.hu [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id ktg2B-B-3lGh for <netfilter-devel@vger.kernel.org>;
+	Sun, 21 Jun 2009 00:01:39 +0200 (CEST)
 Received: from blackhole.kfki.hu (blackhole.kfki.hu [148.6.0.114])
-	by smtp1.kfki.hu (Postfix) with ESMTP id 397EF188154
-	for <netfilter-devel@vger.kernel.org>; Sun, 21 Jun 2009 00:00:29 +0200 (CEST)
+	by smtp0.kfki.hu (Postfix) with ESMTP id AE2978825F
+	for <netfilter-devel@vger.kernel.org>; Sun, 21 Jun 2009 00:01:39 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The IPv4 specific extensions with the new error reporting methods.
+The IPv6 specific extensions with the new error reporting methods.
 
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
 
- include/linux/netfilter_ipv4/ipt_CLUSTERIP.h |   12 +++++++
- include/linux/netfilter_ipv4/ipt_ECN.h       |    9 +++++
- include/linux/netfilter_ipv4/ipt_LOG.h       |    7 ++++
- include/linux/netfilter_ipv4/ipt_NAT.h       |   17 ++++++++++
- include/linux/netfilter_ipv4/ipt_REJECT.h    |    9 +++++
- include/linux/netfilter_ipv4/ipt_ULOG.h      |    7 ++++
- include/linux/netfilter_ipv4/ipt_addrtype.h  |    8 +++++
- include/linux/netfilter_ipv4/ipt_ah.h        |    7 ++++
- include/linux/netfilter_ipv4/ipt_ecn.h       |    8 +++++
- net/ipv4/netfilter/ipt_CLUSTERIP.c           |   40 +++++++++++++-----------
- net/ipv4/netfilter/ipt_ECN.c                 |   31 ++++++++++--------
- net/ipv4/netfilter/ipt_LOG.c                 |   11 ++++---
- net/ipv4/netfilter/ipt_MASQUERADE.c          |   22 +++++++++----
- net/ipv4/netfilter/ipt_NETMAP.c              |   26 +++++++++++----
- net/ipv4/netfilter/ipt_REDIRECT.c            |   23 ++++++++++----
- net/ipv4/netfilter/ipt_REJECT.c              |   34 ++++++++++++--------
- net/ipv4/netfilter/ipt_ULOG.c                |   12 ++++---
- net/ipv4/netfilter/ipt_addrtype.c            |   23 +++++++-------
- net/ipv4/netfilter/ipt_ah.c                  |   16 ++++++---
- net/ipv4/netfilter/ipt_ecn.c                 |   27 +++++++++-------
- net/ipv4/netfilter/nf_nat_rule.c             |   44 +++++++++++++++++++-------
- 21 files changed, 277 insertions(+), 116 deletions(-)
+ include/linux/netfilter_ipv6/ip6t_HL.h         |    8 ++++++
+ include/linux/netfilter_ipv6/ip6t_LOG.h        |    7 ++++++
+ include/linux/netfilter_ipv6/ip6t_REJECT.h     |    9 +++++++
+ include/linux/netfilter_ipv6/ip6t_ah.h         |    6 +++++
+ include/linux/netfilter_ipv6/ip6t_eui64.h      |   10 ++++++++
+ include/linux/netfilter_ipv6/ip6t_frag.h       |    6 +++++
+ include/linux/netfilter_ipv6/ip6t_ipv6header.h |    6 +++++
+ include/linux/netfilter_ipv6/ip6t_mh.h         |    7 ++++++
+ include/linux/netfilter_ipv6/ip6t_opts.h       |    7 ++++++
+ include/linux/netfilter_ipv6/ip6t_rt.h         |    7 ++++++
+ net/ipv6/netfilter/ip6t_LOG.c                  |   11 +++++----
+ net/ipv6/netfilter/ip6t_REJECT.c               |   30 ++++++++++++++++--------
+ net/ipv6/netfilter/ip6t_ah.c                   |    9 ++++---
+ net/ipv6/netfilter/ip6t_eui64.c                |   18 +++++++++++++-
+ net/ipv6/netfilter/ip6t_frag.c                 |    9 ++++---
+ net/ipv6/netfilter/ip6t_hbh.c                  |   11 +++++----
+ net/ipv6/netfilter/ip6t_ipv6header.c           |    6 ++---
+ net/ipv6/netfilter/ip6t_mh.c                   |   17 ++++++++++----
+ net/ipv6/netfilter/ip6t_rt.c                   |    8 +++---
+ 19 files changed, 151 insertions(+), 41 deletions(-)
 
-diff --git a/include/linux/netfilter_ipv4/ipt_CLUSTERIP.h b/include/linux/netfilter_ipv4/ipt_CLUSTERIP.h
-index e5a3687..257a4bf 100644
---- a/include/linux/netfilter_ipv4/ipt_CLUSTERIP.h
-+++ b/include/linux/netfilter_ipv4/ipt_CLUSTERIP.h
-@@ -7,6 +7,18 @@ enum clusterip_hashmode {
-     CLUSTERIP_HASHMODE_SIP_SPT_DPT,
- };
+diff --git a/include/linux/netfilter_ipv6/ip6t_HL.h b/include/linux/netfilter_ipv6/ip6t_HL.h
+index afb7813..a529fc2 100644
+--- a/include/linux/netfilter_ipv6/ip6t_HL.h
++++ b/include/linux/netfilter_ipv6/ip6t_HL.h
+@@ -6,6 +6,14 @@
+ #define _IP6T_HL_H
  
-+enum {
-+	IPT_CLUSTERIP_ERR_NONE,
-+	IPT_CLUSTERIP_ERR_MODE,
-+	IPT_CLUSTERIP_ERR_DEST,
-+	IPT_CLUSTERIP_ERR_CONFIG,
-+	IPT_CLUSTERIP_ERR_NO_IFACE,
-+	IPT_CLUSTERIP_ERR_UNKNOWN_IFACE,
-+	IPT_CLUSTERIP_ERR_ALLOC,
-+	IPT_CLUSTERIP_ERR_CONNTRACK,
-+	IPT_CLUSTERIP_ERR_MAX,
+ enum {
++	XT_HL_ERR_NONE,
++	XT_HL_ERR_MANGLE_TABLE,
++	XT_HL_ERR_MODE,
++	XT_HL_ERR_SET,
++	XT_HL_ERR_MAX,
 +};
 +
- #define CLUSTERIP_HASHMODE_MAX CLUSTERIP_HASHMODE_SIP_SPT_DPT
- 
- #define CLUSTERIP_MAX_NODES 16
-diff --git a/include/linux/netfilter_ipv4/ipt_ECN.h b/include/linux/netfilter_ipv4/ipt_ECN.h
-index 94e0d98..ddf4f6e 100644
---- a/include/linux/netfilter_ipv4/ipt_ECN.h
-+++ b/include/linux/netfilter_ipv4/ipt_ECN.h
-@@ -18,6 +18,15 @@
- 
- #define IPT_ECN_OP_MASK		0xce
- 
 +enum {
-+	IPT_ECN_ERR_NONE,
-+	IPT_ECN_ERR_MANGLE_TABLE,
-+	IPT_ECN_ERR_OPERATION,
-+	IPT_ECN_ERR_ECT,
-+	IPT_ECN_ERR_NOT_TCP,
-+	IPT_ECN_ERR_MAX,
-+};
-+
- struct ipt_ECN_info {
- 	u_int8_t operation;	/* bitset of operations */
- 	u_int8_t ip_ect;	/* ECT codepoint of IPv4 header, pre-shifted */
-diff --git a/include/linux/netfilter_ipv4/ipt_LOG.h b/include/linux/netfilter_ipv4/ipt_LOG.h
-index 90fa652..b227905 100644
---- a/include/linux/netfilter_ipv4/ipt_LOG.h
-+++ b/include/linux/netfilter_ipv4/ipt_LOG.h
+ 	IP6T_HL_SET = 0,
+ 	IP6T_HL_INC,
+ 	IP6T_HL_DEC
+diff --git a/include/linux/netfilter_ipv6/ip6t_LOG.h b/include/linux/netfilter_ipv6/ip6t_LOG.h
+index 0d0119b..17f3c4d 100644
+--- a/include/linux/netfilter_ipv6/ip6t_LOG.h
++++ b/include/linux/netfilter_ipv6/ip6t_LOG.h
 @@ -9,6 +9,13 @@
- #define IPT_LOG_NFLOG		0x10	/* Unsupported, don't reuse */
- #define IPT_LOG_MASK		0x1f
+ #define IP6T_LOG_NFLOG		0x10	/* Unsupported, don't use */
+ #define IP6T_LOG_MASK		0x1f
  
 +enum {
-+	IPT_LOG_ERR_NONE,
-+	IPT_LOG_ERR_LEVEL,
-+	IPT_LOG_ERR_PREFIXLEN,
-+	IPT_LOG_ERR_MAX,
++	IP6T_LOG_ERR_NONE,
++	IP6T_LOG_ERR_LEVEL,
++	IP6T_LOG_ERR_PREFIXLEN,
++	IP6T_LOG_ERR_MAX,
 +};
 +
- struct ipt_log_info {
+ struct ip6t_log_info {
  	unsigned char level;
  	unsigned char logflags;
-diff --git a/include/linux/netfilter_ipv4/ipt_NAT.h b/include/linux/netfilter_ipv4/ipt_NAT.h
-new file mode 100644
-index 0000000..564ecf4
---- /dev/null
-+++ b/include/linux/netfilter_ipv4/ipt_NAT.h
-@@ -0,0 +1,17 @@
-+#ifndef _IPT_NAT_H
-+#define _IPT_NAT_H
-+
-+enum {
-+	IPT_NAT_ERR_NONE,
-+	IPT_NAT_ERR_TABLE,
-+	IPT_NAT_ERR_MASQ_HOOKS_4,
-+	IPT_NAT_ERR_NETMAP_HOOKS_034,
-+	IPT_NAT_ERR_REDIRECT_HOOKS_03,
-+	IPT_NAT_ERR_SNAT_HOOKS_4,
-+	IPT_NAT_ERR_DNAT_HOOKS_03,
-+	IPT_NAT_ERR_MAP_IPS,
-+	IPT_NAT_ERR_RANGESIZE,
-+	IPT_NAT_ERR_MAX,
-+};
-+
-+#endif
-diff --git a/include/linux/netfilter_ipv4/ipt_REJECT.h b/include/linux/netfilter_ipv4/ipt_REJECT.h
-index 4293a1a..89ba84e 100644
---- a/include/linux/netfilter_ipv4/ipt_REJECT.h
-+++ b/include/linux/netfilter_ipv4/ipt_REJECT.h
-@@ -13,6 +13,15 @@ enum ipt_reject_with {
- 	IPT_ICMP_ADMIN_PROHIBITED
+diff --git a/include/linux/netfilter_ipv6/ip6t_REJECT.h b/include/linux/netfilter_ipv6/ip6t_REJECT.h
+index 6be6504..02f8dcd 100644
+--- a/include/linux/netfilter_ipv6/ip6t_REJECT.h
++++ b/include/linux/netfilter_ipv6/ip6t_REJECT.h
+@@ -11,6 +11,15 @@ enum ip6t_reject_with {
+ 	IP6T_TCP_RESET
  };
  
 +enum {
-+	IPT_REJECT_ERR_NONE,
-+	IPT_REJECT_ERR_FILTER_TABLE,
-+	IPT_REJECT_ERR_HOOKS_123,
-+	IPT_REJECT_ERR_ECHOREPLY,
-+	IPT_REJECT_ERR_NOT_TCP,
-+	IPT_REJECT_ERR_MAX,
++	IP6T_REJECT_ERR_NONE,
++	IP6T_REJECT_ERR_FILTER_TABLE,
++	IP6T_REJECT_ERR_HOOKS_123,
++	IP6T_REJECT_ERR_ECHOREPLY,
++	IP6T_REJECT_ERR_NOT_TCP,
++	IP6T_REJECT_ERR_MAX,
 +};
 +
- struct ipt_reject_info {
- 	enum ipt_reject_with with;      /* reject type */
+ struct ip6t_reject_info {
+ 	u_int32_t	with;	/* reject type */
  };
-diff --git a/include/linux/netfilter_ipv4/ipt_ULOG.h b/include/linux/netfilter_ipv4/ipt_ULOG.h
-index 417aad2..2129672 100644
---- a/include/linux/netfilter_ipv4/ipt_ULOG.h
-+++ b/include/linux/netfilter_ipv4/ipt_ULOG.h
-@@ -23,6 +23,13 @@
-  * Assuming a standard ethernet-mtu of 1500, we could define this up
-  * to 80... but even 50 seems to be big enough. */
+diff --git a/include/linux/netfilter_ipv6/ip6t_ah.h b/include/linux/netfilter_ipv6/ip6t_ah.h
+index 8531879..7c664c6 100644
+--- a/include/linux/netfilter_ipv6/ip6t_ah.h
++++ b/include/linux/netfilter_ipv6/ip6t_ah.h
+@@ -1,6 +1,12 @@
+ #ifndef _IP6T_AH_H
+ #define _IP6T_AH_H
  
 +enum {
-+	IPT_ULOG_ERR_NONE,
-+	IPT_ULOG_ERR_PREFIXLEN,
-+	IPT_ULOG_ERR_QLEN,
-+	IPT_ULOG_ERR_MAX,
++	IP6T_AH_ERR_NONE,
++	IP6T_AH_ERR_FLAGS,
++	IP6T_AH_ERR_MAX,
 +};
 +
- /* private data structure for each rule with a ULOG target */
- struct ipt_ulog_info {
- 	unsigned int nl_group;
-diff --git a/include/linux/netfilter_ipv4/ipt_addrtype.h b/include/linux/netfilter_ipv4/ipt_addrtype.h
-index 446de6a..59480c5 100644
---- a/include/linux/netfilter_ipv4/ipt_addrtype.h
-+++ b/include/linux/netfilter_ipv4/ipt_addrtype.h
-@@ -8,6 +8,14 @@ enum {
- 	IPT_ADDRTYPE_LIMIT_IFACE_OUT	= 0x0008,
- };
- 
-+enum {
-+	IPT_ADDRTYPE_ERR_NONE,
-+	IPT_ADDRTYPE_ERR_IFACE_BOTH,
-+	IPT_ADDRTYPE_ERR_IFACE_IN_HOOKS_34,
-+	IPT_ADDRTYPE_ERR_IFACE_OUT_HOOKS_01,
-+	IPT_ADDRTYPE_ERR_MAX,
-+};	
-+
- struct ipt_addrtype_info_v1 {
- 	u_int16_t	source;		/* source-type mask */
- 	u_int16_t	dest;		/* dest-type mask */
-diff --git a/include/linux/netfilter_ipv4/ipt_ah.h b/include/linux/netfilter_ipv4/ipt_ah.h
-index 7b9a2ac..5734201 100644
---- a/include/linux/netfilter_ipv4/ipt_ah.h
-+++ b/include/linux/netfilter_ipv4/ipt_ah.h
-@@ -1,6 +1,13 @@
- #ifndef _IPT_AH_H
- #define _IPT_AH_H
- 
-+enum {
-+	IPT_AH_ERR_NONE,
-+	IPT_AH_ERR_PROTO,
-+	IPT_AH_ERR_FLAGS,
-+	IPT_AH_ERR_MAX,
-+};
-+
- struct ipt_ah
+ struct ip6t_ah
  {
  	u_int32_t spis[2];			/* Security Parameter Index */
-diff --git a/include/linux/netfilter_ipv4/ipt_ecn.h b/include/linux/netfilter_ipv4/ipt_ecn.h
-index 1f0d9a4..57200c1 100644
---- a/include/linux/netfilter_ipv4/ipt_ecn.h
-+++ b/include/linux/netfilter_ipv4/ipt_ecn.h
-@@ -18,6 +18,14 @@
- 
- #define IPT_ECN_OP_MATCH_MASK	0xce
- 
+diff --git a/include/linux/netfilter_ipv6/ip6t_eui64.h b/include/linux/netfilter_ipv6/ip6t_eui64.h
+new file mode 100644
+index 0000000..b9fe28b
+--- /dev/null
++++ b/include/linux/netfilter_ipv6/ip6t_eui64.h
+@@ -0,0 +1,10 @@
++#ifndef _IP6T_EUI64_H
++#define _IP6T_EUI64_H
++
 +enum {
-+	IPT_ECN_ERR_NONE,
-+	IPT_ECN_ERR_OPERATION,
-+	IPT_ECN_ERR_INVERT,
-+	IPT_ECN_ERR_NOT_TCP,
-+	IPT_ECN_ERR_MAX,
++	IP6T_EUI64_ERR_NONE,
++	IP6T_EUI64_ERR_HOOKS_012,
++	IP6T_EUI64_ERR_MAX,
 +};
 +
- /* match info */
- struct ipt_ecn_info {
- 	u_int8_t operation;
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index 2e4f98b..cbbcb5c 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -347,7 +347,7 @@ clusterip_tg(struct sk_buff *skb, const struct xt_target_param *par)
- 	return XT_CONTINUE;
- }
++#endif /*_IP6T_EUI64_H*/
+diff --git a/include/linux/netfilter_ipv6/ip6t_frag.h b/include/linux/netfilter_ipv6/ip6t_frag.h
+index 66070a0..22be05c 100644
+--- a/include/linux/netfilter_ipv6/ip6t_frag.h
++++ b/include/linux/netfilter_ipv6/ip6t_frag.h
+@@ -1,6 +1,12 @@
+ #ifndef _IP6T_FRAG_H
+ #define _IP6T_FRAG_H
  
--static bool clusterip_tg_check(const struct xt_tgchk_param *par)
-+static unsigned int clusterip_tg_check(const struct xt_tgchk_param *par)
++enum {
++	IP6T_FRAG_ERR_NONE,
++	IP6T_FRAG_ERR_FLAGS,
++	IP6T_FRAG_ERR_MAX,
++};
++
+ struct ip6t_frag
  {
- 	struct ipt_clusterip_tgt_info *cipinfo = par->targinfo;
- 	const struct ipt_entry *e = par->entryinfo;
-@@ -357,15 +357,15 @@ static bool clusterip_tg_check(const struct xt_tgchk_param *par)
- 	if (cipinfo->hash_mode != CLUSTERIP_HASHMODE_SIP &&
- 	    cipinfo->hash_mode != CLUSTERIP_HASHMODE_SIP_SPT &&
- 	    cipinfo->hash_mode != CLUSTERIP_HASHMODE_SIP_SPT_DPT) {
--		printk(KERN_WARNING "CLUSTERIP: unknown mode `%u'\n",
--			cipinfo->hash_mode);
--		return false;
-+		xt_compat_log(par, "CLUSTERIP: unknown mode `%u'",
-+			      cipinfo->hash_mode);
-+		return IPT_CLUSTERIP_ERR_MODE;
+ 	u_int32_t ids[2];			/* Security Parameter Index */
+diff --git a/include/linux/netfilter_ipv6/ip6t_ipv6header.h b/include/linux/netfilter_ipv6/ip6t_ipv6header.h
+index 51c53fc..d516f67 100644
+--- a/include/linux/netfilter_ipv6/ip6t_ipv6header.h
++++ b/include/linux/netfilter_ipv6/ip6t_ipv6header.h
+@@ -8,6 +8,12 @@ on whether they contain certain headers */
+ #ifndef __IPV6HEADER_H
+ #define __IPV6HEADER_H
  
- 	}
- 	if (e->ip.dmsk.s_addr != htonl(0xffffffff)
- 	    || e->ip.dst.s_addr == 0) {
--		printk(KERN_ERR "CLUSTERIP: Please specify destination IP\n");
--		return false;
-+		xt_compat_log(par, "CLUSTERIP: Please specify destination IP");
-+		return IPT_CLUSTERIP_ERR_DEST;
- 	}
- 
- 	/* FIXME: further sanity checks */
-@@ -373,28 +373,32 @@ static bool clusterip_tg_check(const struct xt_tgchk_param *par)
- 	config = clusterip_config_find_get(e->ip.dst.s_addr, 1);
- 	if (!config) {
- 		if (!(cipinfo->flags & CLUSTERIP_FLAG_NEW)) {
--			printk(KERN_WARNING "CLUSTERIP: no config found for %pI4, need 'new'\n", &e->ip.dst.s_addr);
--			return false;
-+			xt_compat_log(par, "CLUSTERIP: no config found for %pI4, "
-+				      "need 'new'",
-+				      &e->ip.dst.s_addr);
-+			return IPT_CLUSTERIP_ERR_CONFIG;
- 		} else {
- 			struct net_device *dev;
- 
- 			if (e->ip.iniface[0] == '\0') {
--				printk(KERN_WARNING "CLUSTERIP: Please specify an interface name\n");
--				return false;
-+				xt_compat_log(par, "CLUSTERIP: Please specify "
-+					      "an interface name");
-+				return IPT_CLUSTERIP_ERR_NO_IFACE;
- 			}
- 
- 			dev = dev_get_by_name(&init_net, e->ip.iniface);
- 			if (!dev) {
--				printk(KERN_WARNING "CLUSTERIP: no such interface %s\n", e->ip.iniface);
--				return false;
-+				xt_compat_log(par, "CLUSTERIP: no such interface %s",
-+					      e->ip.iniface);
-+				return IPT_CLUSTERIP_ERR_UNKNOWN_IFACE;
- 			}
- 
- 			config = clusterip_config_init(cipinfo,
- 							e->ip.dst.s_addr, dev);
- 			if (!config) {
--				printk(KERN_WARNING "CLUSTERIP: cannot allocate config\n");
-+				xt_compat_log(par, "CLUSTERIP: cannot allocate config");
- 				dev_put(dev);
--				return false;
-+				return IPT_CLUSTERIP_ERR_ALLOC;
- 			}
- 			dev_mc_add(config->dev,config->clustermac, ETH_ALEN, 0);
- 		}
-@@ -402,12 +406,12 @@ static bool clusterip_tg_check(const struct xt_tgchk_param *par)
- 	cipinfo->config = config;
- 
- 	if (nf_ct_l3proto_try_module_get(par->target->family) < 0) {
--		printk(KERN_WARNING "can't load conntrack support for "
--				    "proto=%u\n", par->target->family);
--		return false;
-+		xt_compat_log(par, "can't load conntrack support for "
-+			      "proto=%u", par->target->family);
-+		return IPT_CLUSTERIP_ERR_CONNTRACK;
- 	}
- 
--	return true;
-+	return IPT_CLUSTERIP_ERR_NONE;
- }
- 
- /* drop reference count of cluster config when rule is deleted */
-diff --git a/net/ipv4/netfilter/ipt_ECN.c b/net/ipv4/netfilter/ipt_ECN.c
-index f7e2fa0..4b6b1e3 100644
---- a/net/ipv4/netfilter/ipt_ECN.c
-+++ b/net/ipv4/netfilter/ipt_ECN.c
-@@ -93,28 +93,32 @@ ecn_tg(struct sk_buff *skb, const struct xt_target_param *par)
- 	return XT_CONTINUE;
- }
- 
--static bool ecn_tg_check(const struct xt_tgchk_param *par)
-+static unsigned int ecn_tg_check(const struct xt_tgchk_param *par)
++enum {
++	IP6T_IPV6HEADER_ERR_NONE,
++	IP6T_IPV6HEADER_ERR_FLAGS,
++	IP6T_IPV6HEADER_ERR_MAX,
++};
++
+ struct ip6t_ipv6header_info
  {
- 	const struct ipt_ECN_info *einfo = par->targinfo;
--	const struct ipt_entry *e = par->entryinfo;
+ 	u_int8_t matchflags;
+diff --git a/include/linux/netfilter_ipv6/ip6t_mh.h b/include/linux/netfilter_ipv6/ip6t_mh.h
+index b9ca9a5..0da311c 100644
+--- a/include/linux/netfilter_ipv6/ip6t_mh.h
++++ b/include/linux/netfilter_ipv6/ip6t_mh.h
+@@ -1,6 +1,13 @@
+ #ifndef _IP6T_MH_H
+ #define _IP6T_MH_H
  
-+	if (strcmp(par->table, "mangle") != 0) {
-+		xt_compat_log(par, "ECN target can only be used in the "
-+			      "\"mangle\" table.");
-+	    	return IPT_ECN_ERR_MANGLE_TABLE;
-+	}
- 	if (einfo->operation & IPT_ECN_OP_MASK) {
--		printk(KERN_WARNING "ECN: unsupported ECN operation %x\n",
--			einfo->operation);
--		return false;
-+		xt_compat_log(par, "ECN: unsupported ECN operation %x",
-+			      einfo->operation);
-+		return IPT_ECN_ERR_OPERATION;
- 	}
- 	if (einfo->ip_ect & ~IPT_ECN_IP_MASK) {
--		printk(KERN_WARNING "ECN: new ECT codepoint %x out of mask\n",
--			einfo->ip_ect);
--		return false;
-+		xt_compat_log(par, "ECN: new ECT codepoint %x out of mask",
-+			      einfo->ip_ect);
-+		return IPT_ECN_ERR_ECT;
- 	}
- 	if ((einfo->operation & (IPT_ECN_OP_SET_ECE|IPT_ECN_OP_SET_CWR))
--	    && (e->ip.proto != IPPROTO_TCP || (e->ip.invflags & XT_INV_PROTO))) {
--		printk(KERN_WARNING "ECN: cannot use TCP operations on a "
--		       "non-tcp rule\n");
--		return false;
-+	    && (par->proto != IPPROTO_TCP || par->inverted)) {
-+		xt_compat_log(par, "ECN: cannot use TCP operations on a "
-+			      "non-tcp rule");
-+		return IPT_ECN_ERR_NOT_TCP;
- 	}
--	return true;
-+	return IPT_ECN_ERR_NONE;
- }
- 
- static struct xt_target ecn_tg_reg __read_mostly = {
-@@ -122,7 +126,6 @@ static struct xt_target ecn_tg_reg __read_mostly = {
- 	.family		= NFPROTO_IPV4,
- 	.target		= ecn_tg,
- 	.targetsize	= sizeof(struct ipt_ECN_info),
--	.table		= "mangle",
- 	.checkentry	= ecn_tg_check,
- 	.me		= THIS_MODULE,
- };
-diff --git a/net/ipv4/netfilter/ipt_LOG.c b/net/ipv4/netfilter/ipt_LOG.c
-index acc44c6..fd99551 100644
---- a/net/ipv4/netfilter/ipt_LOG.c
-+++ b/net/ipv4/netfilter/ipt_LOG.c
-@@ -439,20 +439,21 @@ log_tg(struct sk_buff *skb, const struct xt_target_param *par)
- 	return XT_CONTINUE;
- }
- 
--static bool log_tg_check(const struct xt_tgchk_param *par)
-+static unsigned int log_tg_check(const struct xt_tgchk_param *par)
++enum {
++	IP6T_MH_ERR_NONE,
++	IP6T_MH_ERR_PROTO,
++	IP6T_MH_ERR_FLAGS,
++	IP6T_MH_ERR_MAX,
++};
++
+ /* MH matching stuff */
+ struct ip6t_mh
  {
--	const struct ipt_log_info *loginfo = par->targinfo;
-+	struct ipt_log_info *loginfo = par->targinfo;
+diff --git a/include/linux/netfilter_ipv6/ip6t_opts.h b/include/linux/netfilter_ipv6/ip6t_opts.h
+index a07e363..21a4f60 100644
+--- a/include/linux/netfilter_ipv6/ip6t_opts.h
++++ b/include/linux/netfilter_ipv6/ip6t_opts.h
+@@ -3,6 +3,13 @@
+ 
+ #define IP6T_OPTS_OPTSNR 16
+ 
++enum {
++	IP6T_OPTS_ERR_NONE,
++	IP6T_OPTS_ERR_FLAGS,
++	IP6T_OPTS_ERR_STRICT,
++	IP6T_OPTS_ERR_MAX,
++};
++
+ struct ip6t_opts
+ {
+ 	u_int32_t hdrlen;			/* Header Length */
+diff --git a/include/linux/netfilter_ipv6/ip6t_rt.h b/include/linux/netfilter_ipv6/ip6t_rt.h
+index 5215602..ccd6185 100644
+--- a/include/linux/netfilter_ipv6/ip6t_rt.h
++++ b/include/linux/netfilter_ipv6/ip6t_rt.h
+@@ -5,6 +5,13 @@
+ 
+ #define IP6T_RT_HOPS 16
+ 
++enum {
++	IP6T_RT_ERR_NONE,
++	IP6T_RT_ERR_FLAGS,
++	IP6T_RT_ERR_RT0,
++	IP6T_RT_ERR_MAX,
++};
++
+ struct ip6t_rt
+ {
+ 	u_int32_t rt_type;			/* Routing Type */
+diff --git a/net/ipv6/netfilter/ip6t_LOG.c b/net/ipv6/netfilter/ip6t_LOG.c
+index 7018cac..f4c240f 100644
+--- a/net/ipv6/netfilter/ip6t_LOG.c
++++ b/net/ipv6/netfilter/ip6t_LOG.c
+@@ -452,20 +452,21 @@ log_tg6(struct sk_buff *skb, const struct xt_target_param *par)
+ }
+ 
+ 
+-static bool log_tg6_check(const struct xt_tgchk_param *par)
++static unsigned int log_tg6_check(const struct xt_tgchk_param *par)
+ {
+-	const struct ip6t_log_info *loginfo = par->targinfo;
++	struct ip6t_log_info *loginfo = par->targinfo;
  
  	if (loginfo->level >= 8) {
  		pr_debug("LOG: level %u >= 8\n", loginfo->level);
 -		return false;
-+		return IPT_LOG_ERR_LEVEL;
++		return IP6T_LOG_ERR_LEVEL;
  	}
  	if (loginfo->prefix[sizeof(loginfo->prefix)-1] != '\0') {
  		pr_debug("LOG: prefix term %i\n",
  			 loginfo->prefix[sizeof(loginfo->prefix)-1]);
 -		return false;
 +		loginfo->prefix[sizeof(loginfo->prefix)-1] = '\0';
-+		return IPT_LOG_ERR_PREFIXLEN;
++		return IP6T_LOG_ERR_PREFIXLEN;
  	}
 -	return true;
-+	return IPT_LOG_ERR_NONE;
++	return IP6T_LOG_ERR_NONE;
  }
  
- static struct xt_target log_tg_reg __read_mostly = {
-diff --git a/net/ipv4/netfilter/ipt_MASQUERADE.c b/net/ipv4/netfilter/ipt_MASQUERADE.c
-index dada086..17f5aaa 100644
---- a/net/ipv4/netfilter/ipt_MASQUERADE.c
-+++ b/net/ipv4/netfilter/ipt_MASQUERADE.c
-@@ -22,25 +22,37 @@
- #include <net/netfilter/nf_nat_rule.h>
- #include <linux/netfilter_ipv4.h>
- #include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter_ipv4/ipt_NAT.h>
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.org>");
- MODULE_DESCRIPTION("Xtables: automatic-address SNAT");
- 
- /* FIXME: Multiple targets. --RR */
--static bool masquerade_tg_check(const struct xt_tgchk_param *par)
-+static unsigned int masquerade_tg_check(const struct xt_tgchk_param *par)
- {
- 	const struct nf_nat_multi_range_compat *mr = par->targinfo;
-+	unsigned int valid_hooks = 1 << NF_INET_POST_ROUTING;
- 
-+	if (strcmp(par->table, "nat") != 0) {
-+		xt_compat_log(par, "MASQUERADE target can only be used in the "
-+			      "\"nat\" table.");
-+	    	return IPT_NAT_ERR_TABLE;
-+	}
-+	if ((par->hook_mask & ~valid_hooks) != 0) {
-+		xt_compat_log(par, "MASQUERADE target can only be used in the "
-+			      "POSTROUTING chain.");
-+		return IPT_NAT_ERR_MASQ_HOOKS_4;
-+	}
- 	if (mr->range[0].flags & IP_NAT_RANGE_MAP_IPS) {
- 		pr_debug("masquerade_check: bad MAP_IPS.\n");
--		return false;
-+		return IPT_NAT_ERR_MAP_IPS;
- 	}
- 	if (mr->rangesize != 1) {
- 		pr_debug("masquerade_check: bad rangesize %u\n", mr->rangesize);
--		return false;
-+		return IPT_NAT_ERR_RANGESIZE;
- 	}
--	return true;
-+	return IPT_NAT_ERR_NONE;
- }
- 
- static unsigned int
-@@ -140,8 +152,6 @@ static struct xt_target masquerade_tg_reg __read_mostly = {
- 	.family		= NFPROTO_IPV4,
- 	.target		= masquerade_tg,
- 	.targetsize	= sizeof(struct nf_nat_multi_range_compat),
--	.table		= "nat",
--	.hooks		= 1 << NF_INET_POST_ROUTING,
- 	.checkentry	= masquerade_tg_check,
- 	.me		= THIS_MODULE,
- };
-diff --git a/net/ipv4/netfilter/ipt_NETMAP.c b/net/ipv4/netfilter/ipt_NETMAP.c
-index 7c29582..224646c 100644
---- a/net/ipv4/netfilter/ipt_NETMAP.c
-+++ b/net/ipv4/netfilter/ipt_NETMAP.c
-@@ -16,25 +16,39 @@
- #include <linux/netfilter.h>
- #include <linux/netfilter_ipv4.h>
- #include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter_ipv4/ipt_NAT.h>
- #include <net/netfilter/nf_nat_rule.h>
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Svenning Soerensen <svenning@post5.tele.dk>");
- MODULE_DESCRIPTION("Xtables: 1:1 NAT mapping of IPv4 subnets");
- 
--static bool netmap_tg_check(const struct xt_tgchk_param *par)
-+static unsigned int netmap_tg_check(const struct xt_tgchk_param *par)
- {
- 	const struct nf_nat_multi_range_compat *mr = par->targinfo;
-+	unsigned int valid_hooks = (1 << NF_INET_PRE_ROUTING) |
-+		(1 << NF_INET_POST_ROUTING) |
-+		(1 << NF_INET_LOCAL_OUT);
- 
-+	if (strcmp(par->table, "nat") != 0) {
-+		xt_compat_log(par, "NETMAP target can only be used in the "
-+			      "\"nat\" table.");
-+	    	return IPT_NAT_ERR_TABLE;
-+	}
-+	if ((par->hook_mask & ~valid_hooks) != 0) {
-+		xt_compat_log(par, "NETMAP target can only be used in the "
-+			      "PREROUTING, OUTPUT and POSTROUTING chains.");
-+		return IPT_NAT_ERR_NETMAP_HOOKS_034;
-+	}
- 	if (!(mr->range[0].flags & IP_NAT_RANGE_MAP_IPS)) {
- 		pr_debug("NETMAP:check: bad MAP_IPS.\n");
--		return false;
-+		return IPT_NAT_ERR_MAP_IPS;
- 	}
- 	if (mr->rangesize != 1) {
- 		pr_debug("NETMAP:check: bad rangesize %u.\n", mr->rangesize);
--		return false;
-+		return IPT_NAT_ERR_RANGESIZE;
- 	}
--	return true;
-+	return IPT_NAT_ERR_NONE;
- }
- 
- static unsigned int
-@@ -74,10 +88,6 @@ static struct xt_target netmap_tg_reg __read_mostly = {
- 	.family		= NFPROTO_IPV4,
- 	.target 	= netmap_tg,
- 	.targetsize	= sizeof(struct nf_nat_multi_range_compat),
--	.table		= "nat",
--	.hooks		= (1 << NF_INET_PRE_ROUTING) |
--			  (1 << NF_INET_POST_ROUTING) |
--			  (1 << NF_INET_LOCAL_OUT),
- 	.checkentry 	= netmap_tg_check,
- 	.me 		= THIS_MODULE
- };
-diff --git a/net/ipv4/netfilter/ipt_REDIRECT.c b/net/ipv4/netfilter/ipt_REDIRECT.c
-index 698e5e7..34d3efd 100644
---- a/net/ipv4/netfilter/ipt_REDIRECT.c
-+++ b/net/ipv4/netfilter/ipt_REDIRECT.c
-@@ -19,6 +19,7 @@
- #include <net/checksum.h>
- #include <linux/netfilter_ipv4.h>
- #include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter_ipv4/ipt_NAT.h>
- #include <net/netfilter/nf_nat_rule.h>
- 
- MODULE_LICENSE("GPL");
-@@ -26,19 +27,31 @@ MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.org>");
- MODULE_DESCRIPTION("Xtables: Connection redirection to localhost");
- 
- /* FIXME: Take multiple ranges --RR */
--static bool redirect_tg_check(const struct xt_tgchk_param *par)
-+static unsigned int redirect_tg_check(const struct xt_tgchk_param *par)
- {
- 	const struct nf_nat_multi_range_compat *mr = par->targinfo;
-+	unsigned int valid_hooks = (1 << NF_INET_PRE_ROUTING) |
-+		(1 << NF_INET_LOCAL_OUT);
- 
-+	if (strcmp(par->table, "nat") != 0) {
-+		xt_compat_log(par, "REDIRECT target can only be used in the "
-+			      "\"nat\" table.");
-+	    	return IPT_NAT_ERR_TABLE;
-+	}
-+	if ((par->hook_mask & ~valid_hooks) != 0) {
-+		xt_compat_log(par, "REDIRECT target can only be used in the "
-+			      "PREROUTING and OUTPUT chains.");
-+		return IPT_NAT_ERR_REDIRECT_HOOKS_03;
-+	}
- 	if (mr->range[0].flags & IP_NAT_RANGE_MAP_IPS) {
- 		pr_debug("redirect_check: bad MAP_IPS.\n");
--		return false;
-+		return IPT_NAT_ERR_MAP_IPS;
- 	}
- 	if (mr->rangesize != 1) {
- 		pr_debug("redirect_check: bad rangesize %u.\n", mr->rangesize);
--		return false;
-+		return IPT_NAT_ERR_RANGESIZE;
- 	}
--	return true;
-+	return IPT_NAT_ERR_NONE;
- }
- 
- static unsigned int
-@@ -90,8 +103,6 @@ static struct xt_target redirect_tg_reg __read_mostly = {
- 	.family		= NFPROTO_IPV4,
- 	.target		= redirect_tg,
- 	.targetsize	= sizeof(struct nf_nat_multi_range_compat),
--	.table		= "nat",
--	.hooks		= (1 << NF_INET_PRE_ROUTING) | (1 << NF_INET_LOCAL_OUT),
- 	.checkentry	= redirect_tg_check,
- 	.me		= THIS_MODULE,
- };
-diff --git a/net/ipv4/netfilter/ipt_REJECT.c b/net/ipv4/netfilter/ipt_REJECT.c
-index c93ae44..65b323b 100644
---- a/net/ipv4/netfilter/ipt_REJECT.c
-+++ b/net/ipv4/netfilter/ipt_REJECT.c
-@@ -174,23 +174,34 @@ reject_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ static struct xt_target log_tg6_reg __read_mostly = {
+diff --git a/net/ipv6/netfilter/ip6t_REJECT.c b/net/ipv6/netfilter/ip6t_REJECT.c
+index 5a7f00c..20d94d9 100644
+--- a/net/ipv6/netfilter/ip6t_REJECT.c
++++ b/net/ipv6/netfilter/ip6t_REJECT.c
+@@ -213,23 +213,36 @@ reject_tg6(struct sk_buff *skb, const struct xt_target_param *par)
  	return NF_DROP;
  }
  
--static bool reject_tg_check(const struct xt_tgchk_param *par)
-+static unsigned int reject_tg_check(const struct xt_tgchk_param *par)
+-static bool reject_tg6_check(const struct xt_tgchk_param *par)
++static unsigned int reject_tg6_check(const struct xt_tgchk_param *par)
  {
- 	const struct ipt_reject_info *rejinfo = par->targinfo;
--	const struct ipt_entry *e = par->entryinfo;
+ 	const struct ip6t_reject_info *rejinfo = par->targinfo;
+ 	const struct ip6t_entry *e = par->entryinfo;
 -
-+	unsigned int valid_hooks = (1 << NF_INET_LOCAL_IN) | 
++	unsigned int valid_hooks = (1 << NF_INET_LOCAL_IN) |
 +		(1 << NF_INET_FORWARD) |
 +		(1 << NF_INET_LOCAL_OUT);
 +
 +	if (strcmp(par->table, "filter") != 0) {
 +		xt_compat_log(par, "REJECT target can only be used in the "
 +			      "\"filter\" table.");
-+	    	return IPT_REJECT_ERR_FILTER_TABLE;
++	    	return IP6T_REJECT_ERR_FILTER_TABLE;
 +	}
 +	if ((par->hook_mask & ~valid_hooks) != 0) {
 +		xt_compat_log(par, "REJECT target can only be used in the "
 +			      "INPUT, FORWARD and OUTPUT chains.");
-+		return IPT_REJECT_ERR_HOOKS_123;
++		return IP6T_REJECT_ERR_HOOKS_123;
 +	}
- 	if (rejinfo->with == IPT_ICMP_ECHOREPLY) {
--		printk("ipt_REJECT: ECHOREPLY no longer supported.\n");
+ 	if (rejinfo->with == IP6T_ICMP6_ECHOREPLY) {
+-		printk("ip6t_REJECT: ECHOREPLY is not supported.\n");
 -		return false;
-+		xt_compat_log(par, "ipt_REJECT: ECHOREPLY no longer supported.");
-+		return IPT_REJECT_ERR_ECHOREPLY;
- 	} else if (rejinfo->with == IPT_TCP_RESET) {
++		xt_compat_log(par, "ip6t_REJECT: ECHOREPLY is not supported.");
++		return IP6T_REJECT_ERR_ECHOREPLY;
+ 	} else if (rejinfo->with == IP6T_TCP_RESET) {
  		/* Must specify that it's a TCP packet */
--		if (e->ip.proto != IPPROTO_TCP
--		    || (e->ip.invflags & XT_INV_PROTO)) {
--			printk("ipt_REJECT: TCP_RESET invalid for non-tcp\n");
+ 		if (e->ipv6.proto != IPPROTO_TCP
+ 		    || (e->ipv6.invflags & XT_INV_PROTO)) {
+-			printk("ip6t_REJECT: TCP_RESET illegal for non-tcp\n");
 -			return false;
-+		if (par->proto != IPPROTO_TCP || par->inverted) {
-+			xt_compat_log(par, "ipt_REJECT: TCP_RESET invalid for non-tcp");
-+			return IPT_REJECT_ERR_NOT_TCP;
++			printk("ip6t_REJECT: TCP_RESET illegal for non-tcp");
++			return IP6T_REJECT_ERR_NOT_TCP;
  		}
  	}
 -	return true;
-+	return IPT_REJECT_ERR_NONE;
++	return IP6T_REJECT_ERR_NONE;
  }
  
- static struct xt_target reject_tg_reg __read_mostly = {
-@@ -198,9 +209,6 @@ static struct xt_target reject_tg_reg __read_mostly = {
- 	.family		= NFPROTO_IPV4,
- 	.target		= reject_tg,
- 	.targetsize	= sizeof(struct ipt_reject_info),
+ static struct xt_target reject_tg6_reg __read_mostly = {
+@@ -237,9 +250,6 @@ static struct xt_target reject_tg6_reg __read_mostly = {
+ 	.family		= NFPROTO_IPV6,
+ 	.target		= reject_tg6,
+ 	.targetsize	= sizeof(struct ip6t_reject_info),
 -	.table		= "filter",
 -	.hooks		= (1 << NF_INET_LOCAL_IN) | (1 << NF_INET_FORWARD) |
 -			  (1 << NF_INET_LOCAL_OUT),
- 	.checkentry	= reject_tg_check,
- 	.me		= THIS_MODULE,
+ 	.checkentry	= reject_tg6_check,
+ 	.me		= THIS_MODULE
  };
-diff --git a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
-index d32cc4b..7b68903 100644
---- a/net/ipv4/netfilter/ipt_ULOG.c
-+++ b/net/ipv4/netfilter/ipt_ULOG.c
-@@ -313,21 +313,23 @@ static void ipt_logfn(u_int8_t pf,
- 	ipt_ulog_packet(hooknum, skb, in, out, &loginfo, prefix);
+diff --git a/net/ipv6/netfilter/ip6t_ah.c b/net/ipv6/netfilter/ip6t_ah.c
+index 3a82f24..79879dd 100644
+--- a/net/ipv6/netfilter/ip6t_ah.c
++++ b/net/ipv6/netfilter/ip6t_ah.c
+@@ -90,15 +90,16 @@ static bool ah_mt6(const struct sk_buff *skb, const struct xt_match_param *par)
+ 	       !(ahinfo->hdrres && ah->reserved);
  }
  
--static bool ulog_tg_check(const struct xt_tgchk_param *par)
-+static unsigned int ulog_tg_check(const struct xt_tgchk_param *par)
+-static bool ah_mt6_check(const struct xt_mtchk_param *par)
++static unsigned int ah_mt6_check(const struct xt_mtchk_param *par)
  {
--	const struct ipt_ulog_info *loginfo = par->targinfo;
-+	struct ipt_ulog_info *loginfo = par->targinfo;
+-	const struct ip6t_ah *ahinfo = par->matchinfo;
++	struct ip6t_ah *ahinfo = par->matchinfo;
  
- 	if (loginfo->prefix[sizeof(loginfo->prefix) - 1] != '\0') {
- 		pr_debug("ipt_ULOG: prefix term %i\n",
- 			 loginfo->prefix[sizeof(loginfo->prefix) - 1]);
+ 	if (ahinfo->invflags & ~IP6T_AH_INV_MASK) {
+ 		pr_debug("ip6t_ah: unknown flags %X\n", ahinfo->invflags);
 -		return false;
-+		loginfo->prefix[sizeof(loginfo->prefix) - 1] = '\0';
-+		return IPT_ULOG_ERR_PREFIXLEN;
- 	}
- 	if (loginfo->qthreshold > ULOG_MAX_QLEN) {
- 		pr_debug("ipt_ULOG: queue threshold %Zu > MAX_QLEN\n",
- 			 loginfo->qthreshold);
--		return false;
-+		loginfo->qthreshold = ULOG_MAX_QLEN;
-+		return IPT_ULOG_ERR_QLEN;
++		ahinfo->invflags &= ~IP6T_AH_INV_MASK;
++		return IP6T_AH_ERR_FLAGS;
  	}
 -	return true;
-+	return IPT_ULOG_ERR_NONE;
++	return IP6T_AH_ERR_NONE;
  }
  
- #ifdef CONFIG_COMPAT
-diff --git a/net/ipv4/netfilter/ipt_addrtype.c b/net/ipv4/netfilter/ipt_addrtype.c
-index 3b216be..748cf75 100644
---- a/net/ipv4/netfilter/ipt_addrtype.c
-+++ b/net/ipv4/netfilter/ipt_addrtype.c
-@@ -70,34 +70,35 @@ addrtype_mt_v1(const struct sk_buff *skb, const struct xt_match_param *par)
- 	return ret;
+ static struct xt_match ah_mt6_reg __read_mostly = {
+diff --git a/net/ipv6/netfilter/ip6t_eui64.c b/net/ipv6/netfilter/ip6t_eui64.c
+index db610ba..837468e 100644
+--- a/net/ipv6/netfilter/ip6t_eui64.c
++++ b/net/ipv6/netfilter/ip6t_eui64.c
+@@ -14,6 +14,7 @@
+ 
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter_ipv6/ip6_tables.h>
++#include <linux/netfilter_ipv6/ip6t_eui64.h>
+ 
+ MODULE_DESCRIPTION("Xtables: IPv6 EUI64 address match");
+ MODULE_LICENSE("GPL");
+@@ -55,13 +56,26 @@ eui64_mt6(const struct sk_buff *skb, const struct xt_match_param *par)
+ 	return false;
  }
  
--static bool addrtype_mt_checkentry_v1(const struct xt_mtchk_param *par)
-+static unsigned int
-+addrtype_mt_checkentry_v1(const struct xt_mtchk_param *par)
- {
- 	struct ipt_addrtype_info_v1 *info = par->matchinfo;
- 
- 	if (info->flags & IPT_ADDRTYPE_LIMIT_IFACE_IN &&
- 	    info->flags & IPT_ADDRTYPE_LIMIT_IFACE_OUT) {
--		printk(KERN_ERR "ipt_addrtype: both incoming and outgoing "
--				"interface limitation cannot be selected\n");
--		return false;
-+		xt_compat_log(par, "ipt_addrtype: both incoming and outgoing "
-+			      "interface limitation cannot be selected");
-+		return IPT_ADDRTYPE_ERR_IFACE_BOTH;
- 	}
- 
- 	if (par->hook_mask & ((1 << NF_INET_PRE_ROUTING) |
- 	    (1 << NF_INET_LOCAL_IN)) &&
- 	    info->flags & IPT_ADDRTYPE_LIMIT_IFACE_OUT) {
--		printk(KERN_ERR "ipt_addrtype: output interface limitation "
--				"not valid in PRE_ROUTING and INPUT\n");
--		return false;
-+		xt_compat_log(par, "ipt_addrtype: output interface limitation "
-+			      "not valid in the PREROUTING and INPUT chains.");
-+		return IPT_ADDRTYPE_ERR_IFACE_OUT_HOOKS_01;
- 	}
- 
- 	if (par->hook_mask & ((1 << NF_INET_POST_ROUTING) |
- 	    (1 << NF_INET_LOCAL_OUT)) &&
- 	    info->flags & IPT_ADDRTYPE_LIMIT_IFACE_IN) {
--		printk(KERN_ERR "ipt_addrtype: input interface limitation "
--				"not valid in POST_ROUTING and OUTPUT\n");
--		return false;
-+		xt_compat_log(par, "ipt_addrtype: input interface limitation "
-+			      "not valid in the POSTROUTING and OUTPUT chains.");
-+		return IPT_ADDRTYPE_ERR_IFACE_IN_HOOKS_34;
- 	}
- 
--	return true;
-+	return IPT_ADDRTYPE_ERR_NONE;
- }
- 
- static struct xt_match addrtype_mt_reg[] __read_mostly = {
-diff --git a/net/ipv4/netfilter/ipt_ah.c b/net/ipv4/netfilter/ipt_ah.c
-index 0104c0b..8b70fcb 100644
---- a/net/ipv4/netfilter/ipt_ah.c
-+++ b/net/ipv4/netfilter/ipt_ah.c
-@@ -61,16 +61,21 @@ static bool ah_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 			 !!(ahinfo->invflags & IPT_AH_INV_SPI));
- }
- 
--static bool ah_mt_check(const struct xt_mtchk_param *par)
-+static unsigned int ah_mt_check(const struct xt_mtchk_param *par)
- {
--	const struct ipt_ah *ahinfo = par->matchinfo;
-+	struct ipt_ah *ahinfo = par->matchinfo;
- 
-+	if (par->proto != IPPROTO_AH || par->inverted) {
-+		xt_compat_log(par, "ah match: only valid for protocol AH");
-+		return IPT_AH_ERR_PROTO;
-+	}
- 	/* Must specify no unknown invflags */
- 	if (ahinfo->invflags & ~IPT_AH_INV_MASK) {
--		duprintf("ipt_ah: unknown flags %X\n", ahinfo->invflags);
--		return false;
-+		duprintf("ipt_ah: unknown flags %X", ahinfo->invflags);
-+		ahinfo->invflags &= ~IPT_AH_INV_MASK;
-+		return IPT_AH_ERR_FLAGS;
- 	}
--	return true;
-+	return IPT_AH_ERR_NONE;
- }
- 
- static struct xt_match ah_mt_reg __read_mostly = {
-@@ -78,7 +83,6 @@ static struct xt_match ah_mt_reg __read_mostly = {
- 	.family		= NFPROTO_IPV4,
- 	.match		= ah_mt,
- 	.matchsize	= sizeof(struct ipt_ah),
--	.proto		= IPPROTO_AH,
- 	.checkentry	= ah_mt_check,
- 	.me		= THIS_MODULE,
- };
-diff --git a/net/ipv4/netfilter/ipt_ecn.c b/net/ipv4/netfilter/ipt_ecn.c
-index 6289b64..71c37e0 100644
---- a/net/ipv4/netfilter/ipt_ecn.c
-+++ b/net/ipv4/netfilter/ipt_ecn.c
-@@ -85,25 +85,28 @@ static bool ecn_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	return true;
- }
- 
--static bool ecn_mt_check(const struct xt_mtchk_param *par)
-+static unsigned int ecn_mt_check(const struct xt_mtchk_param *par)
- {
--	const struct ipt_ecn_info *info = par->matchinfo;
--	const struct ipt_ip *ip = par->entryinfo;
-+	struct ipt_ecn_info *info = par->matchinfo;
- 
--	if (info->operation & IPT_ECN_OP_MATCH_MASK)
--		return false;
-+	if (info->operation & IPT_ECN_OP_MATCH_MASK) {
-+		info->operation &= IPT_ECN_OP_MATCH_MASK;
-+		return IPT_ECN_ERR_OPERATION;
-+	}
- 
--	if (info->invert & IPT_ECN_OP_MATCH_MASK)
--		return false;
-+	if (info->invert & IPT_ECN_OP_MATCH_MASK) {
-+		info->invert &= IPT_ECN_OP_MATCH_MASK;
-+		return IPT_ECN_ERR_INVERT;
-+	}
- 
- 	if (info->operation & (IPT_ECN_OP_MATCH_ECE|IPT_ECN_OP_MATCH_CWR)
--	    && ip->proto != IPPROTO_TCP) {
--		printk(KERN_WARNING "ipt_ecn: can't match TCP bits in rule for"
--		       " non-tcp packets\n");
--		return false;
-+	    && par->proto != IPPROTO_TCP) {
-+		xt_compat_log(par, "ipt_ecn: can't match TCP bits in rule for "
-+			      "non-tcp packets");
-+		return IPT_ECN_ERR_NOT_TCP;
- 	}
- 
--	return true;
-+	return IPT_ECN_ERR_NONE;
- }
- 
- static struct xt_match ecn_mt_reg __read_mostly = {
-diff --git a/net/ipv4/netfilter/nf_nat_rule.c b/net/ipv4/netfilter/nf_nat_rule.c
-index 6348a79..91db926 100644
---- a/net/ipv4/netfilter/nf_nat_rule.c
-+++ b/net/ipv4/netfilter/nf_nat_rule.c
-@@ -20,6 +20,7 @@
- #include <linux/bitops.h>
- 
- #include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netfilter_ipv4/ipt_NAT.h>
- #include <net/netfilter/nf_nat.h>
- #include <net/netfilter/nf_nat_core.h>
- #include <net/netfilter/nf_nat_rule.h>
-@@ -103,28 +104,51 @@ ipt_dnat_target(struct sk_buff *skb, const struct xt_target_param *par)
- 	return nf_nat_setup_info(ct, &mr->range[0], IP_NAT_MANIP_DST);
- }
- 
--static bool ipt_snat_checkentry(const struct xt_tgchk_param *par)
-+static unsigned int ipt_snat_checkentry(const struct xt_tgchk_param *par)
- {
- 	const struct nf_nat_multi_range_compat *mr = par->targinfo;
-+	unsigned int valid_hooks = 1 << NF_INET_POST_ROUTING;
- 
-+	if (strcmp(par->table, "nat") != 0) {
-+		xt_compat_log(par, "SNAT target can only be used in the "
-+			      "\"nat\" table.");
-+	    	return IPT_NAT_ERR_TABLE;
-+	}
-+	if ((par->hook_mask & ~valid_hooks) != 0) {
-+		xt_compat_log(par, "SNAT target can only be used in the "
-+			      "POSTROUTING chain.");
-+		return IPT_NAT_ERR_SNAT_HOOKS_4;
-+	}
- 	/* Must be a valid range */
- 	if (mr->rangesize != 1) {
--		printk("SNAT: multiple ranges no longer supported\n");
--		return false;
-+		xt_compat_log(par, "SNAT: multiple ranges no longer supported");
-+		return IPT_NAT_ERR_RANGESIZE;
- 	}
--	return true;
-+	return IPT_NAT_ERR_NONE;
- }
- 
--static bool ipt_dnat_checkentry(const struct xt_tgchk_param *par)
-+static unsigned int ipt_dnat_checkentry(const struct xt_tgchk_param *par)
- {
- 	const struct nf_nat_multi_range_compat *mr = par->targinfo;
++static unsigned int eui64_mt6_checkentry(const struct xt_mtchk_param *par)
++{
 +	unsigned int valid_hooks = (1 << NF_INET_PRE_ROUTING) |
-+		(1 << NF_INET_LOCAL_OUT);
- 
-+	if (strcmp(par->table, "nat") != 0) {
-+		xt_compat_log(par, "DNAT target can only be used in the "
-+			      "\"nat\" table.");
-+	    	return IPT_NAT_ERR_TABLE;
-+	}
++		(1 << NF_INET_LOCAL_IN) |
++		(1 << NF_INET_FORWARD);
++
 +	if ((par->hook_mask & ~valid_hooks) != 0) {
-+		xt_compat_log(par, "DNAT target can only be used in the "
-+			      "PREROUTING and OUTPUT chains.");
-+		return IPT_NAT_ERR_DNAT_HOOKS_03;
++		xt_compat_log(par, "eui64 match can only be used in the "
++			      "PREROUTING, INPUT and FORWARD chains.");
++		return IP6T_EUI64_ERR_HOOKS_012;
 +	}
- 	/* Must be a valid range */
- 	if (mr->rangesize != 1) {
--		printk("DNAT: multiple ranges no longer supported\n");
--		return false;
-+		xt_compat_log(par, "DNAT: multiple ranges no longer supported");
-+		return IPT_NAT_ERR_RANGESIZE;
- 	}
--	return true;
-+	return IPT_NAT_ERR_NONE;
++	return IP6T_EUI64_ERR_NONE;
++}
++
+ static struct xt_match eui64_mt6_reg __read_mostly = {
+ 	.name		= "eui64",
+ 	.family		= NFPROTO_IPV6,
+ 	.match		= eui64_mt6,
+ 	.matchsize	= sizeof(int),
+-	.hooks		= (1 << NF_INET_PRE_ROUTING) | (1 << NF_INET_LOCAL_IN) |
+-			  (1 << NF_INET_FORWARD),
++	.checkentry	= eui64_mt6_checkentry,
+ 	.me		= THIS_MODULE,
+ };
+ 
+diff --git a/net/ipv6/netfilter/ip6t_frag.c b/net/ipv6/netfilter/ip6t_frag.c
+index 673aa0a..465c5b5 100644
+--- a/net/ipv6/netfilter/ip6t_frag.c
++++ b/net/ipv6/netfilter/ip6t_frag.c
+@@ -107,15 +107,16 @@ frag_mt6(const struct sk_buff *skb, const struct xt_match_param *par)
+ 		 && (ntohs(fh->frag_off) & IP6_MF));
  }
  
- unsigned int
-@@ -168,8 +192,6 @@ static struct xt_target ipt_snat_reg __read_mostly = {
- 	.name		= "SNAT",
- 	.target		= ipt_snat_target,
- 	.targetsize	= sizeof(struct nf_nat_multi_range_compat),
--	.table		= "nat",
--	.hooks		= 1 << NF_INET_POST_ROUTING,
- 	.checkentry	= ipt_snat_checkentry,
- 	.family		= AF_INET,
+-static bool frag_mt6_check(const struct xt_mtchk_param *par)
++static unsigned int frag_mt6_check(const struct xt_mtchk_param *par)
+ {
+-	const struct ip6t_frag *fraginfo = par->matchinfo;
++	struct ip6t_frag *fraginfo = par->matchinfo;
+ 
+ 	if (fraginfo->invflags & ~IP6T_FRAG_INV_MASK) {
+ 		pr_debug("ip6t_frag: unknown flags %X\n", fraginfo->invflags);
+-		return false;
++		fraginfo->invflags &= ~IP6T_FRAG_INV_MASK;
++		return IP6T_FRAG_ERR_FLAGS;
+ 	}
+-	return true;
++	return IP6T_FRAG_ERR_NONE;
+ }
+ 
+ static struct xt_match frag_mt6_reg __read_mostly = {
+diff --git a/net/ipv6/netfilter/ip6t_hbh.c b/net/ipv6/netfilter/ip6t_hbh.c
+index cbe8dec..24c55db 100644
+--- a/net/ipv6/netfilter/ip6t_hbh.c
++++ b/net/ipv6/netfilter/ip6t_hbh.c
+@@ -160,21 +160,22 @@ hbh_mt6(const struct sk_buff *skb, const struct xt_match_param *par)
+ 	return false;
+ }
+ 
+-static bool hbh_mt6_check(const struct xt_mtchk_param *par)
++static unsigned int hbh_mt6_check(const struct xt_mtchk_param *par)
+ {
+-	const struct ip6t_opts *optsinfo = par->matchinfo;
++	struct ip6t_opts *optsinfo = par->matchinfo;
+ 
+ 	if (optsinfo->invflags & ~IP6T_OPTS_INV_MASK) {
+ 		pr_debug("ip6t_opts: unknown flags %X\n", optsinfo->invflags);
+-		return false;
++		optsinfo->invflags &= ~IP6T_OPTS_INV_MASK;
++		return IP6T_OPTS_ERR_FLAGS;
+ 	}
+ 
+ 	if (optsinfo->flags & IP6T_OPTS_NSTRICT) {
+ 		pr_debug("ip6t_opts: Not strict - not implemented");
+-		return false;
++		return IP6T_OPTS_ERR_STRICT;
+ 	}
+ 
+-	return true;
++	return IP6T_OPTS_ERR_NONE;
+ }
+ 
+ static struct xt_match hbh_mt6_reg[] __read_mostly = {
+diff --git a/net/ipv6/netfilter/ip6t_ipv6header.c b/net/ipv6/netfilter/ip6t_ipv6header.c
+index 91490ad..69b5d1f 100644
+--- a/net/ipv6/netfilter/ip6t_ipv6header.c
++++ b/net/ipv6/netfilter/ip6t_ipv6header.c
+@@ -118,16 +118,16 @@ ipv6header_mt6(const struct sk_buff *skb, const struct xt_match_param *par)
+ 	}
+ }
+ 
+-static bool ipv6header_mt6_check(const struct xt_mtchk_param *par)
++static unsigned int ipv6header_mt6_check(const struct xt_mtchk_param *par)
+ {
+ 	const struct ip6t_ipv6header_info *info = par->matchinfo;
+ 
+ 	/* invflags is 0 or 0xff in hard mode */
+ 	if ((!info->modeflag) && info->invflags != 0x00 &&
+ 	    info->invflags != 0xFF)
+-		return false;
++		return IP6T_IPV6HEADER_ERR_FLAGS;
+ 
+-	return true;
++	return IP6T_IPV6HEADER_ERR_NONE;
+ }
+ 
+ static struct xt_match ipv6header_mt6_reg __read_mostly = {
+diff --git a/net/ipv6/netfilter/ip6t_mh.c b/net/ipv6/netfilter/ip6t_mh.c
+index aafe4e6..b47ae46 100644
+--- a/net/ipv6/netfilter/ip6t_mh.c
++++ b/net/ipv6/netfilter/ip6t_mh.c
+@@ -67,12 +67,22 @@ static bool mh_mt6(const struct sk_buff *skb, const struct xt_match_param *par)
+ 			  !!(mhinfo->invflags & IP6T_MH_INV_TYPE));
+ }
+ 
+-static bool mh_mt6_check(const struct xt_mtchk_param *par)
++static unsigned int mh_mt6_check(const struct xt_mtchk_param *par)
+ {
+-	const struct ip6t_mh *mhinfo = par->matchinfo;
++	struct ip6t_mh *mhinfo = par->matchinfo;
++
++	if (par->proto != IPPROTO_MH || par->inverted) {
++		xt_compat_log(par, "mh match: only valid for protocol ipv6-mh");
++		return IP6T_MH_ERR_PROTO;
++	}
+ 
+ 	/* Must specify no unknown invflags */
+-	return !(mhinfo->invflags & ~IP6T_MH_INV_MASK);
++	if (mhinfo->invflags & ~IP6T_MH_INV_MASK) {
++		mhinfo->invflags &= ~IP6T_MH_INV_MASK;
++		return IP6T_MH_ERR_FLAGS;
++	}
++	
++	return IP6T_MH_ERR_NONE;
+ }
+ 
+ static struct xt_match mh_mt6_reg __read_mostly = {
+@@ -81,7 +91,6 @@ static struct xt_match mh_mt6_reg __read_mostly = {
+ 	.checkentry	= mh_mt6_check,
+ 	.match		= mh_mt6,
+ 	.matchsize	= sizeof(struct ip6t_mh),
+-	.proto		= IPPROTO_MH,
+ 	.me		= THIS_MODULE,
  };
-@@ -178,8 +200,6 @@ static struct xt_target ipt_dnat_reg __read_mostly = {
- 	.name		= "DNAT",
- 	.target		= ipt_dnat_target,
- 	.targetsize	= sizeof(struct nf_nat_multi_range_compat),
--	.table		= "nat",
--	.hooks		= (1 << NF_INET_PRE_ROUTING) | (1 << NF_INET_LOCAL_OUT),
- 	.checkentry	= ipt_dnat_checkentry,
- 	.family		= AF_INET,
- };
+ 
+diff --git a/net/ipv6/netfilter/ip6t_rt.c b/net/ipv6/netfilter/ip6t_rt.c
+index 356b8d6..998f0d4 100644
+--- a/net/ipv6/netfilter/ip6t_rt.c
++++ b/net/ipv6/netfilter/ip6t_rt.c
+@@ -186,23 +186,23 @@ static bool rt_mt6(const struct sk_buff *skb, const struct xt_match_param *par)
+ 	return false;
+ }
+ 
+-static bool rt_mt6_check(const struct xt_mtchk_param *par)
++static unsigned int rt_mt6_check(const struct xt_mtchk_param *par)
+ {
+ 	const struct ip6t_rt *rtinfo = par->matchinfo;
+ 
+ 	if (rtinfo->invflags & ~IP6T_RT_INV_MASK) {
+ 		pr_debug("ip6t_rt: unknown flags %X\n", rtinfo->invflags);
+-		return false;
++		return IP6T_RT_ERR_FLAGS;
+ 	}
+ 	if ((rtinfo->flags & (IP6T_RT_RES | IP6T_RT_FST_MASK)) &&
+ 	    (!(rtinfo->flags & IP6T_RT_TYP) ||
+ 	     (rtinfo->rt_type != 0) ||
+ 	     (rtinfo->invflags & IP6T_RT_INV_TYP))) {
+ 		pr_debug("`--rt-type 0' required before `--rt-0-*'");
+-		return false;
++		return IP6T_RT_ERR_RT0;
+ 	}
+ 
+-	return true;
++	return IP6T_RT_ERR_NONE;
+ }
+ 
+ static struct xt_match rt_mt6_reg __read_mostly = {
 
 
 Best regards,
