@@ -1,233 +1,91 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [PATCH 2/4] libipt_* extensions
-Date: Sun, 21 Jun 2009 00:06:10 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.0906210005090.11764@blackhole.kfki.hu>
+Subject: [PATCH 3/4] libip6t_* extensions
+Date: Sun, 21 Jun 2009 00:07:03 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.0906210006160.11764@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:57565 "EHLO smtp0.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.25]:57573 "EHLO smtp0.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754686AbZFTWGI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 20 Jun 2009 18:06:08 -0400
+	id S1754643AbZFTWHB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 20 Jun 2009 18:07:01 -0400
 Received: from localhost (localhost [127.0.0.1])
-	by smtp0.kfki.hu (Postfix) with ESMTP id 8DEC18828D
-	for <netfilter-devel@vger.kernel.org>; Sun, 21 Jun 2009 00:06:10 +0200 (CEST)
+	by smtp0.kfki.hu (Postfix) with ESMTP id 969698828D
+	for <netfilter-devel@vger.kernel.org>; Sun, 21 Jun 2009 00:07:03 +0200 (CEST)
 Received: from smtp0.kfki.hu ([127.0.0.1])
 	by localhost (smtp0.kfki.hu [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id 0YDRiWQI3Eqo for <netfilter-devel@vger.kernel.org>;
-	Sun, 21 Jun 2009 00:06:10 +0200 (CEST)
+	with ESMTP id N4I0p7ubJ6OE for <netfilter-devel@vger.kernel.org>;
+	Sun, 21 Jun 2009 00:07:03 +0200 (CEST)
 Received: from blackhole.kfki.hu (blackhole.kfki.hu [148.6.0.114])
-	by smtp0.kfki.hu (Postfix) with ESMTP id 6F4748828C
-	for <netfilter-devel@vger.kernel.org>; Sun, 21 Jun 2009 00:06:10 +0200 (CEST)
+	by smtp0.kfki.hu (Postfix) with ESMTP id 7C4168828C
+	for <netfilter-devel@vger.kernel.org>; Sun, 21 Jun 2009 00:07:03 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The libipt_* extensions with the error reporting function.
+The libip6t_* extensions with the error reporting function.
 
 Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 ---
 
- extensions/libipt_CLUSTERIP.c                |   52 ++++++++++++++++++++++++++
- extensions/libipt_DNAT.c                     |   35 ++++++++++++++++++
- extensions/libipt_ECN.c                      |   43 ++++++++++++++++++++++
- extensions/libipt_LOG.c                      |   25 +++++++++++++
- extensions/libipt_MASQUERADE.c               |   32 ++++++++++++++++
- extensions/libipt_NETMAP.c                   |   32 ++++++++++++++++
- extensions/libipt_REDIRECT.c                 |   32 ++++++++++++++++
- extensions/libipt_REJECT.c                   |   31 ++++++++++++++++
- extensions/libipt_SNAT.c                     |   35 ++++++++++++++++++
- extensions/libipt_TTL.c                      |   35 ++++++++++++++++++
- extensions/libipt_ULOG.c                     |   26 +++++++++++++
- extensions/libipt_addrtype.c                 |   28 ++++++++++++++
- extensions/libipt_ah.c                       |   26 +++++++++++++
- extensions/libipt_ecn.c                      |   38 +++++++++++++++++++
- extensions/libipt_icmp.c                     |   22 +++++++++++
- extensions/libipt_realm.c                    |   18 +++++++++
- include/linux/netfilter_ipv4/ipt_CLUSTERIP.h |   12 ++++++
- include/linux/netfilter_ipv4/ipt_ECN.h       |    9 +++++
- include/linux/netfilter_ipv4/ipt_LOG.h       |    7 ++++
- include/linux/netfilter_ipv4/ipt_NAT.h       |   17 +++++++++
- include/linux/netfilter_ipv4/ipt_REJECT.h    |    9 +++++
- include/linux/netfilter_ipv4/ipt_ULOG.h      |    7 ++++
- include/linux/netfilter_ipv4/ipt_addrtype.h  |    8 ++++
- include/linux/netfilter_ipv4/ipt_ah.h        |    7 ++++
- include/linux/netfilter_ipv4/ipt_ecn.h       |    8 ++++
- 25 files changed, 594 insertions(+), 0 deletions(-)
+ extensions/libip6t_HL.c                        |   34 ++++++++++++++++++++++++
+ extensions/libip6t_LOG.c                       |   25 ++++++++++++++++++
+ extensions/libip6t_REJECT.c                    |   31 ++++++++++++++++++++++
+ extensions/libip6t_ah.c                        |   21 +++++++++++++++
+ extensions/libip6t_dst.c                       |   22 ++++++++++++++++
+ extensions/libip6t_eui64.c                     |   18 +++++++++++++
+ extensions/libip6t_frag.c                      |   21 +++++++++++++++
+ extensions/libip6t_hbh.c                       |   26 ++++++++++++++++++
+ extensions/libip6t_icmp6.c                     |   22 ++++++++++++++++
+ extensions/libip6t_ipv6header.c                |   16 +++++++++++
+ extensions/libip6t_mh.c                        |   26 ++++++++++++++++++
+ extensions/libip6t_rt.c                        |   26 ++++++++++++++++++
+ include/linux/netfilter_ipv6/ip6t_HL.h         |    8 ++++++
+ include/linux/netfilter_ipv6/ip6t_LOG.h        |    7 +++++
+ include/linux/netfilter_ipv6/ip6t_REJECT.h     |    9 ++++++
+ include/linux/netfilter_ipv6/ip6t_ah.h         |    6 ++++
+ include/linux/netfilter_ipv6/ip6t_eui64.h      |   10 +++++++
+ include/linux/netfilter_ipv6/ip6t_frag.h       |    6 ++++
+ include/linux/netfilter_ipv6/ip6t_ipv6header.h |    6 ++++
+ include/linux/netfilter_ipv6/ip6t_mh.h         |    7 +++++
+ include/linux/netfilter_ipv6/ip6t_opts.h       |    7 +++++
+ include/linux/netfilter_ipv6/ip6t_rt.h         |    7 +++++
+ 22 files changed, 361 insertions(+), 0 deletions(-)
 
-diff --git a/extensions/libipt_CLUSTERIP.c b/extensions/libipt_CLUSTERIP.c
-index 279aacf..0339aaa 100644
---- a/extensions/libipt_CLUSTERIP.c
-+++ b/extensions/libipt_CLUSTERIP.c
-@@ -164,6 +164,57 @@ static void CLUSTERIP_check(unsigned int flags)
- 	xtables_error(PARAMETER_PROBLEM, "CLUSTERIP target: Invalid parameter combination\n");
+diff --git a/extensions/libip6t_HL.c b/extensions/libip6t_HL.c
+index 12d8e72..6382df3 100644
+--- a/extensions/libip6t_HL.c
++++ b/extensions/libip6t_HL.c
+@@ -89,6 +89,39 @@ static void HL_check(unsigned int flags)
+ 				"HL: You must specify an action");
  }
  
 +static void
-+CLUSTERIP_error(u_int8_t errcode, u_int8_t family,
-+		const struct xt_entry_target *target)
++HL_error(u_int8_t errcode, u_int8_t family,
++	 const struct xt_entry_target *target)
 +{
-+	const struct ipt_clusterip_tgt_info *info =
-+		(const struct ipt_clusterip_tgt_info *)target->data;
++	const struct ip6t_HL_info *info = 
++		(struct ip6t_HL_info *) target->data;
 +
 +	switch (errcode) {
-+	case IPT_CLUSTERIP_ERR_MODE:
++	case XT_HL_ERR_MANGLE_TABLE:
 +		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Mode `%s' is unknown for the kernel.",
-+			info->hash_mode == CLUSTERIP_HASHMODE_SIP
-+				? "sourceip" :
-+			info->hash_mode == CLUSTERIP_HASHMODE_SIP_SPT
-+				? "sourceip-sourceport" :
-+			info->hash_mode == CLUSTERIP_HASHMODE_SIP_SPT_DPT
-+				? "sourceip-sourceport-destport" :
-+			"fixme");
-+		break;
-+	case IPT_CLUSTERIP_ERR_DEST:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Destination IP not specfified.");
-+		break;
-+	case IPT_CLUSTERIP_ERR_CONFIG:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"No configuration found for the destination "
-+			"IP address, you need a rule with 'new' option first.");
-+		break;
-+	case IPT_CLUSTERIP_ERR_NO_IFACE:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Interface specification in the rule required.");
-+		break;
-+	case IPT_CLUSTERIP_ERR_UNKNOWN_IFACE:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Interface specified in the rule cannot be found.");
-+		break;
-+	case IPT_CLUSTERIP_ERR_ALLOC:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Kernel could not allocate memory area for private data.");
-+		break;
-+	case IPT_CLUSTERIP_ERR_CONNTRACK:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Can't load conntrack support for protocol %s.",
-+			family == AF_INET ? "IPv4" : "IPv6");
-+		break;
-+	default:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Internal error, unknown errcode: %u.", errcode);
-+	}
-+}
-+
- static char *hashmode2str(enum clusterip_hashmode mode)
- {
- 	char *retstr;
-@@ -238,6 +289,7 @@ static struct xtables_target clusterip_tg_reg = {
-  	.help		= CLUSTERIP_help,
- 	.parse		= CLUSTERIP_parse,
- 	.final_check	= CLUSTERIP_check,
-+	.kernel_error	= CLUSTERIP_error,
- 	.print		= CLUSTERIP_print,
- 	.save		= CLUSTERIP_save,
- 	.extra_opts	= CLUSTERIP_opts,
-diff --git a/extensions/libipt_DNAT.c b/extensions/libipt_DNAT.c
-index 8b2caec..96569ce 100644
---- a/extensions/libipt_DNAT.c
-+++ b/extensions/libipt_DNAT.c
-@@ -8,6 +8,7 @@
- #include <iptables.h> /* get_kernel_version */
- #include <limits.h> /* INT_MAX in ip_tables.h */
- #include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netfilter_ipv4/ipt_NAT.h>
- #include <net/netfilter/nf_nat.h>
- 
- #define IPT_DNAT_OPT_DEST 0x1
-@@ -216,6 +217,39 @@ static void print_range(const struct nf_nat_range *r)
- 	}
- }
- 
-+static void
-+DNAT_error(u_int8_t errcode, u_int8_t family,
-+	   const struct xt_entry_target *target)
-+{
-+	switch (errcode) {
-+	case IPT_NAT_ERR_TABLE:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Target can only be used in the "
-+			"\"nat\" table.");
-+		break;
-+	case IPT_NAT_ERR_DNAT_HOOKS_03:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Target can only be used in the "
-+			"PREROUTING and OUTPUT chains.");
-+		break;
-+	case IPT_NAT_ERR_RANGESIZE:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Multiple ranges no longer supported.");
-+		break;
-+	case IPT_NAT_ERR_MAP_IPS:
-+	case IPT_NAT_ERR_MASQ_HOOKS_4:
-+	case IPT_NAT_ERR_NETMAP_HOOKS_034:
-+	case IPT_NAT_ERR_REDIRECT_HOOKS_03:
-+	case IPT_NAT_ERR_SNAT_HOOKS_4:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Something screwed up: report it!");
-+		break;
-+	default:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Internal error, unknown errcode: %u.", errcode);
-+	}
-+}
-+
- static void DNAT_print(const void *ip, const struct xt_entry_target *target,
-                        int numeric)
- {
-@@ -258,6 +292,7 @@ static struct xtables_target dnat_tg_reg = {
- 	.help		= DNAT_help,
- 	.parse		= DNAT_parse,
- 	.final_check	= DNAT_check,
-+	.kernel_error	= DNAT_error,
- 	.print		= DNAT_print,
- 	.save		= DNAT_save,
- 	.extra_opts	= DNAT_opts,
-diff --git a/extensions/libipt_ECN.c b/extensions/libipt_ECN.c
-index bf1f8a5..dceb775 100644
---- a/extensions/libipt_ECN.c
-+++ b/extensions/libipt_ECN.c
-@@ -103,6 +103,48 @@ static void ECN_check(unsigned int flags)
- 		           "ECN target: Parameter --ecn-tcp-remove is required");
- }
- 
-+static inline const char * print_flags(u_int16_t flags)
-+{
-+	return (flags & IPT_ECN_OP_SET_CWR ? "--ecn-tcp-cwr" :
-+		flags & IPT_ECN_OP_SET_ECE ? "--ecn-tcp-ece" :
-+		flags & IPT_ECN_OP_SET_IP ? "--ecn-ip-ect" :
-+		"fixme");
-+}
-+
-+static void
-+ECN_error(u_int8_t errcode, u_int8_t family,
-+	  const struct xt_entry_target *target)
-+{
-+	const struct ipt_ECN_info *info =
-+		(const struct ipt_ECN_info *)target->data;
-+
-+	switch (errcode) {
-+	case IPT_ECN_ERR_MANGLE_TABLE:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"ECN target can only be used in the "
++			"HL target can only be used in the "
 +			"\"mangle\" table.");
 +		break;
-+	case IPT_ECN_ERR_OPERATION:
++	case XT_HL_ERR_MODE:
 +		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Unknown `%s' option for the kernel.",
-+			print_flags(info->operation));
++			"Mode `%s' is unknown for the kernel.",
++			info->mode == IP6T_HL_SET ? "--hl-set" :
++			info->mode == IP6T_HL_INC ? "--hl-inc" :
++			info->mode == IP6T_HL_DEC ? "--hl-dec" :
++			"fixme");
 +		break;
-+	case IPT_ECN_ERR_ECT:
++	case XT_HL_ERR_SET:
 +		xtables_error_tail(PARAMETER_PROBLEM,
-+			"New ECT codepoint `%x' is out of mask.",
-+			info->ip_ect);
-+		break;
-+	case IPT_ECN_ERR_NOT_TCP:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Cannot use TCP operation in a rule "
-+			"which does not match TCP packets.");
++			"HL value cannot be %s by zero.",
++			info->mode == IP6T_HL_INC ? "incremented" :
++			"decremented");
 +		break;
 +	default:
 +		xtables_error_tail(PARAMETER_PROBLEM,
@@ -235,21 +93,21 @@ index bf1f8a5..dceb775 100644
 +	}
 +}
 +
- static void ECN_print(const void *ip, const struct xt_entry_target *target,
-                       int numeric)
+ static void HL_save(const void *ip, const struct xt_entry_target *target)
  {
-@@ -158,6 +200,7 @@ static struct xtables_target ecn_tg_reg = {
- 	.help		= ECN_help,
- 	.parse		= ECN_parse,
- 	.final_check	= ECN_check,
-+	.kernel_error	= ECN_error,
- 	.print		= ECN_print,
- 	.save		= ECN_save,
- 	.extra_opts	= ECN_opts,
-diff --git a/extensions/libipt_LOG.c b/extensions/libipt_LOG.c
-index 5b90033..43b0b91 100644
---- a/extensions/libipt_LOG.c
-+++ b/extensions/libipt_LOG.c
+ 	const struct ip6t_HL_info *info = 
+@@ -146,6 +179,7 @@ static struct xtables_target hl_tg6_reg = {
+ 	.help		= HL_help,
+ 	.parse		= HL_parse,
+ 	.final_check	= HL_check,
++	.kernel_error	= HL_error,
+ 	.print		= HL_print,
+ 	.save		= HL_save,
+ 	.extra_opts	= HL_opts,
+diff --git a/extensions/libip6t_LOG.c b/extensions/libip6t_LOG.c
+index f713201..ad8cb61 100644
+--- a/extensions/libip6t_LOG.c
++++ b/extensions/libip6t_LOG.c
 @@ -186,6 +186,30 @@ static int LOG_parse(int c, char **argv, int invert, unsigned int *flags,
  	return 1;
  }
@@ -258,15 +116,15 @@ index 5b90033..43b0b91 100644
 +LOG_error(u_int8_t errcode, u_int8_t family,
 +	  const struct xt_entry_target *target)
 +{
-+	const struct ipt_log_info *info = 
-+		(struct ipt_log_info *)target->data;
++	const struct ip6t_log_info *info = 
++		(struct ip6t_log_info *)target->data;
 +
 +	switch (errcode) {
-+	case IPT_LOG_ERR_LEVEL:
++	case IP6T_LOG_ERR_LEVEL:
 +		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Invalid log level: %u >= 8.", info->level);
++			"Log level %u is >= 8.", info->level);
 +		break;
-+	case IPT_LOG_ERR_PREFIXLEN:
++	case IP6T_LOG_ERR_PREFIXLEN:
 +		xtables_error_tail(PARAMETER_PROBLEM,
 +			"Log prefix is too long for the kernel, "
 +			"it would be truncated to `%s'.",
@@ -281,7 +139,7 @@ index 5b90033..43b0b91 100644
  static void LOG_print(const void *ip, const struct xt_entry_target *target,
                        int numeric)
  {
-@@ -253,6 +277,7 @@ static struct xtables_target log_tg_reg = {
+@@ -251,6 +275,7 @@ static struct xtables_target log_tg6_reg = {
      .help          = LOG_help,
      .init          = LOG_init,
      .parse         = LOG_parse,
@@ -289,182 +147,11 @@ index 5b90033..43b0b91 100644
      .print         = LOG_print,
      .save          = LOG_save,
      .extra_opts    = LOG_opts,
-diff --git a/extensions/libipt_MASQUERADE.c b/extensions/libipt_MASQUERADE.c
-index 90084d8..3f37f69 100644
---- a/extensions/libipt_MASQUERADE.c
-+++ b/extensions/libipt_MASQUERADE.c
-@@ -7,6 +7,7 @@
- #include <xtables.h>
- #include <limits.h> /* INT_MAX in ip_tables.h */
- #include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netfilter_ipv4/ipt_NAT.h>
- #include <net/netfilter/nf_nat.h>
- 
- static void MASQUERADE_help(void)
-@@ -108,6 +109,36 @@ static int MASQUERADE_parse(int c, char **argv, int invert, unsigned int *flags,
- }
- 
- static void
-+MASQUERADE_error(u_int8_t errcode, u_int8_t family,
-+		 const struct xt_entry_target *target)
-+{
-+	switch (errcode) {
-+	case IPT_NAT_ERR_TABLE:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Target can only be used in the "
-+			"\"nat\" table.");
-+		break;
-+	case IPT_NAT_ERR_MASQ_HOOKS_4:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Target can only be used in the "
-+			"POSTROUTING chain.");
-+		break;
-+	case IPT_NAT_ERR_MAP_IPS:
-+	case IPT_NAT_ERR_RANGESIZE:
-+	case IPT_NAT_ERR_NETMAP_HOOKS_034:
-+	case IPT_NAT_ERR_REDIRECT_HOOKS_03:
-+	case IPT_NAT_ERR_SNAT_HOOKS_4:
-+	case IPT_NAT_ERR_DNAT_HOOKS_03:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Something screwed up: report it!");
-+		break;
-+	default:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Internal error, unknown errcode: %u.", errcode);
-+	}
-+}
-+
-+static void
- MASQUERADE_print(const void *ip, const struct xt_entry_target *target,
-                  int numeric)
- {
-@@ -152,6 +183,7 @@ static struct xtables_target masquerade_tg_reg = {
- 	.help		= MASQUERADE_help,
- 	.init		= MASQUERADE_init,
- 	.parse		= MASQUERADE_parse,
-+	.kernel_error	= MASQUERADE_error,
- 	.print		= MASQUERADE_print,
- 	.save		= MASQUERADE_save,
- 	.extra_opts	= MASQUERADE_opts,
-diff --git a/extensions/libipt_NETMAP.c b/extensions/libipt_NETMAP.c
-index f03c05b..fdb5c21 100644
---- a/extensions/libipt_NETMAP.c
-+++ b/extensions/libipt_NETMAP.c
-@@ -9,6 +9,7 @@
- #include <getopt.h>
- #include <xtables.h>
- #include <net/netfilter/nf_nat.h>
-+#include <linux/netfilter_ipv4/ipt_NAT.h>
- 
- #define MODULENAME "NETMAP"
- 
-@@ -137,6 +138,36 @@ static void NETMAP_check(unsigned int flags)
- 			   MODULENAME" needs --%s", NETMAP_opts[0].name);
- }
- 
-+static void
-+NETMAP_error(u_int8_t errcode, u_int8_t family,
-+	     const struct xt_entry_target *target)
-+{
-+	switch (errcode) {
-+	case IPT_NAT_ERR_TABLE:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Target can only be used in the "
-+			"\"nat\" table.");
-+		break;
-+	case IPT_NAT_ERR_NETMAP_HOOKS_034:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Target can only be used in the "
-+			"PREROUTING, OUTPUT and POSTROUTING chains.");
-+		break;
-+	case IPT_NAT_ERR_MAP_IPS:
-+	case IPT_NAT_ERR_RANGESIZE:
-+	case IPT_NAT_ERR_MASQ_HOOKS_4:
-+	case IPT_NAT_ERR_REDIRECT_HOOKS_03:
-+	case IPT_NAT_ERR_SNAT_HOOKS_4:
-+	case IPT_NAT_ERR_DNAT_HOOKS_03:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Something screwed up: report it!");
-+		break;
-+	default:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Internal error, unknown errcode: %u.", errcode);
-+	}
-+}
-+
- static void NETMAP_print(const void *ip, const struct xt_entry_target *target,
-                          int numeric)
- {
-@@ -171,6 +202,7 @@ static struct xtables_target netmap_tg_reg = {
- 	.init		= NETMAP_init,
- 	.parse		= NETMAP_parse,
- 	.final_check	= NETMAP_check,
-+	.kernel_error	= NETMAP_error,
- 	.print		= NETMAP_print,
- 	.save		= NETMAP_save,
- 	.extra_opts	= NETMAP_opts,
-diff --git a/extensions/libipt_REDIRECT.c b/extensions/libipt_REDIRECT.c
-index 01f9d0f..efbec5e 100644
---- a/extensions/libipt_REDIRECT.c
-+++ b/extensions/libipt_REDIRECT.c
-@@ -7,6 +7,7 @@
- #include <xtables.h>
- #include <limits.h> /* INT_MAX in ip_tables.h */
- #include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netfilter_ipv4/ipt_NAT.h>
- #include <net/netfilter/nf_nat.h>
- 
- #define IPT_REDIRECT_OPT_DEST	0x01
-@@ -121,6 +122,36 @@ static int REDIRECT_parse(int c, char **argv, int invert, unsigned int *flags,
- 	}
- }
- 
-+static void
-+REDIRECT_error(u_int8_t errcode, u_int8_t family,
-+	       const struct xt_entry_target *target)
-+{
-+	switch (errcode) {
-+	case IPT_NAT_ERR_TABLE:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Target can only be used in the "
-+			"\"nat\" table.");
-+		break;
-+	case IPT_NAT_ERR_REDIRECT_HOOKS_03:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Target can only be used in the "
-+			"PREROUTING and OUTPUT chains.");
-+		break;
-+	case IPT_NAT_ERR_MAP_IPS:
-+	case IPT_NAT_ERR_RANGESIZE:
-+	case IPT_NAT_ERR_MASQ_HOOKS_4:
-+	case IPT_NAT_ERR_NETMAP_HOOKS_034:
-+	case IPT_NAT_ERR_SNAT_HOOKS_4:
-+	case IPT_NAT_ERR_DNAT_HOOKS_03:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Something screwed up: report it!");
-+		break;
-+	default:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Internal error, unknown errcode: %u.", errcode);
-+	}
-+}
-+
- static void REDIRECT_print(const void *ip, const struct xt_entry_target *target,
-                            int numeric)
- {
-@@ -163,6 +194,7 @@ static struct xtables_target redirect_tg_reg = {
- 	.help		= REDIRECT_help,
- 	.init		= REDIRECT_init,
-  	.parse		= REDIRECT_parse,
-+ 	.kernel_error	= REDIRECT_error,
- 	.print		= REDIRECT_print,
- 	.save		= REDIRECT_save,
- 	.extra_opts	= REDIRECT_opts,
-diff --git a/extensions/libipt_REJECT.c b/extensions/libipt_REJECT.c
-index 888ff39..52d6707 100644
---- a/extensions/libipt_REJECT.c
-+++ b/extensions/libipt_REJECT.c
-@@ -121,6 +121,36 @@ static int REJECT_parse(int c, char **argv, int invert, unsigned int *flags,
+diff --git a/extensions/libip6t_REJECT.c b/extensions/libip6t_REJECT.c
+index 9ad3b68..8d93c5f 100644
+--- a/extensions/libip6t_REJECT.c
++++ b/extensions/libip6t_REJECT.c
+@@ -100,6 +100,36 @@ static int REJECT_parse(int c, char **argv, int invert, unsigned int *flags,
  	return 0;
  }
  
@@ -473,21 +160,21 @@ index 888ff39..52d6707 100644
 +	     const struct xt_entry_target *target)
 +{
 +	switch (errcode) {
-+	case IPT_REJECT_ERR_FILTER_TABLE:
++	case IP6T_REJECT_ERR_FILTER_TABLE:
 +		xtables_error_tail(PARAMETER_PROBLEM,
 +			"Target can only be used in the "
 +			"\"filter\" table.");
 +		break;
-+	case IPT_REJECT_ERR_HOOKS_123:
++	case IP6T_REJECT_ERR_HOOKS_123:
 +		xtables_error_tail(PARAMETER_PROBLEM,
 +			"Target can only be used in the "
 +			"INPUT, FORWARD and OUTPUT chains.");
 +		break;
-+	case IPT_REJECT_ERR_ECHOREPLY:
++	case IP6T_REJECT_ERR_ECHOREPLY:
 +		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Reject with echo-reply is no longer supported.");
++			"Reject with echo-reply is not supported.");
 +		break;
-+	case IPT_REJECT_ERR_NOT_TCP:
++	case IP6T_REJECT_ERR_NOT_TCP:
 +		xtables_error_tail(PARAMETER_PROBLEM,
 +			"Reject with TCP RESET cannot be used in a rule "
 +			"which does not match TCP packets.");
@@ -501,7 +188,7 @@ index 888ff39..52d6707 100644
  static void REJECT_print(const void *ip, const struct xt_entry_target *target,
                           int numeric)
  {
-@@ -156,6 +186,7 @@ static struct xtables_target reject_tg_reg = {
+@@ -135,6 +165,7 @@ static struct xtables_target reject_tg6_reg = {
  	.help		= REJECT_help,
  	.init		= REJECT_init,
  	.parse		= REJECT_parse,
@@ -509,243 +196,306 @@ index 888ff39..52d6707 100644
  	.print		= REJECT_print,
  	.save		= REJECT_save,
  	.extra_opts	= REJECT_opts,
-diff --git a/extensions/libipt_SNAT.c b/extensions/libipt_SNAT.c
-index e592d80..bdbddf7 100644
---- a/extensions/libipt_SNAT.c
-+++ b/extensions/libipt_SNAT.c
-@@ -8,6 +8,7 @@
- #include <iptables.h>
- #include <limits.h> /* INT_MAX in ip_tables.h */
- #include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netfilter_ipv4/ipt_NAT.h>
- #include <net/netfilter/nf_nat.h>
- 
- #define IPT_SNAT_OPT_SOURCE 0x01
-@@ -216,6 +217,39 @@ static void print_range(const struct nf_nat_range *r)
- 	}
- }
- 
-+static void
-+SNAT_error(u_int8_t errcode, u_int8_t family,
-+	   const struct xt_entry_target *target)
-+{
-+	switch (errcode) {
-+	case IPT_NAT_ERR_TABLE:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Target can only be used in the "
-+			"\"nat\" table.");
-+		break;
-+	case IPT_NAT_ERR_SNAT_HOOKS_4:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Target can only be used in the "
-+			"POSTROUTING chain.");
-+		break;
-+	case IPT_NAT_ERR_RANGESIZE:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Multiple ranges no longer supported.");
-+		break;
-+	case IPT_NAT_ERR_MAP_IPS:
-+	case IPT_NAT_ERR_MASQ_HOOKS_4:
-+	case IPT_NAT_ERR_NETMAP_HOOKS_034:
-+	case IPT_NAT_ERR_REDIRECT_HOOKS_03:
-+	case IPT_NAT_ERR_DNAT_HOOKS_03:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Something screwed up: report it!");
-+		break;
-+	default:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Internal error, unknown errcode: %u.", errcode);
-+	}
-+}
-+
- static void SNAT_print(const void *ip, const struct xt_entry_target *target,
-                        int numeric)
- {
-@@ -258,6 +292,7 @@ static struct xtables_target snat_tg_reg = {
- 	.help		= SNAT_help,
- 	.parse		= SNAT_parse,
- 	.final_check	= SNAT_check,
-+	.kernel_error	= SNAT_error,
- 	.print		= SNAT_print,
- 	.save		= SNAT_save,
- 	.extra_opts	= SNAT_opts,
-diff --git a/extensions/libipt_TTL.c b/extensions/libipt_TTL.c
-index 0e2be0b..411de1c 100644
---- a/extensions/libipt_TTL.c
-+++ b/extensions/libipt_TTL.c
-@@ -12,6 +12,7 @@
- #include <xtables.h>
- 
- #include <linux/netfilter_ipv4/ipt_TTL.h>
-+#include <linux/netfilter_ipv6/ip6t_HL.h>
- 
- #define IPT_TTL_USED	1
- 
-@@ -89,6 +90,39 @@ static void TTL_check(unsigned int flags)
- 				"TTL: You must specify an action");
- }
- 
-+static void
-+TTL_error(u_int8_t errcode, u_int8_t family,
-+	  const struct xt_entry_target *target)
-+{
-+	const struct ipt_TTL_info *info = 
-+		(struct ipt_TTL_info *) target->data;
-+
-+	switch (errcode) {
-+	case XT_HL_ERR_MANGLE_TABLE:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"TTL target can only be used in the "
-+			"\"mangle\" table.");
-+		break;
-+	case XT_HL_ERR_MODE:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Mode `%s' is unknown for the kernel.",
-+			info->mode == IPT_TTL_SET ? "--ttl-set" :
-+			info->mode == IPT_TTL_INC ? "--ttl-inc" :
-+			info->mode == IPT_TTL_DEC ? "--ttl-dec" :
-+			"fixme");
-+		break;
-+	case XT_HL_ERR_SET:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"TTL value cannot be %s by zero.",
-+			info->mode == IPT_TTL_INC ? "incremented" :
-+			"decremented");
-+		break;
-+	default:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Internal error, unknown errcode: %u.", errcode);
-+	}
-+}
-+
- static void TTL_save(const void *ip, const struct xt_entry_target *target)
- {
- 	const struct ipt_TTL_info *info = 
-@@ -146,6 +180,7 @@ static struct xtables_target ttl_tg_reg = {
- 	.help		= TTL_help,
- 	.parse		= TTL_parse,
- 	.final_check	= TTL_check,
-+	.kernel_error	= TTL_error,
- 	.print		= TTL_print,
- 	.save		= TTL_save,
- 	.extra_opts	= TTL_opts,
-diff --git a/extensions/libipt_ULOG.c b/extensions/libipt_ULOG.c
-index 3fa91f2..00bad82 100644
---- a/extensions/libipt_ULOG.c
-+++ b/extensions/libipt_ULOG.c
-@@ -143,6 +143,31 @@ static int ULOG_parse(int c, char **argv, int invert, unsigned int *flags,
- 	return 1;
- }
- 
-+static void
-+ULOG_error(u_int8_t errcode, u_int8_t family,
-+	   const struct xt_entry_target *target)
-+{
-+	const struct ipt_ulog_info *info = 
-+		(struct ipt_ulog_info *)target->data;
-+
-+	switch (errcode) {
-+	case IPT_ULOG_ERR_PREFIXLEN:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Log prefix is too long for the kernel, "
-+			"it would be truncated to `%s'.",
-+			info->prefix);
-+		break;
-+	case IPT_ULOG_ERR_QLEN:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"The value of the parameter `--ulog-qthreshold' cannot be "
-+			"larger than %zu.", info->qthreshold);
-+		break;
-+	default:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Internal error, unknown errcode: %u.", errcode);
-+	}
-+}
-+
- static void ULOG_save(const void *ip, const struct xt_entry_target *target)
- {
- 	const struct ipt_ulog_info *loginfo
-@@ -187,6 +212,7 @@ static struct xtables_target ulog_tg_reg = {
- 	.help		= ULOG_help,
- 	.init		= ULOG_init,
- 	.parse		= ULOG_parse,
-+	.kernel_error	= ULOG_error,
- 	.print		= ULOG_print,
- 	.save		= ULOG_save,
- 	.extra_opts	= ULOG_opts,
-diff --git a/extensions/libipt_addrtype.c b/extensions/libipt_addrtype.c
-index ecd51b5..5101184 100644
---- a/extensions/libipt_addrtype.c
-+++ b/extensions/libipt_addrtype.c
-@@ -197,6 +197,32 @@ static void addrtype_check_v1(unsigned int flags)
- 			   "and --limit-iface-out");
- }
- 
-+static void
-+addrtype_error(u_int8_t errcode, u_int8_t family,
-+	       const struct xt_entry_match *match)
-+{
-+	switch (errcode) {
-+	case IPT_ADDRTYPE_ERR_IFACE_BOTH:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Both incoming and outgoing  "
-+			"interface limitation cannot be selected.");
-+		break;
-+	case IPT_ADDRTYPE_ERR_IFACE_IN_HOOKS_34:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Input interface limitation "
-+			"not valid in the POSTROUTING and OUTPUT chains.");
-+		break;
-+	case IPT_ADDRTYPE_ERR_IFACE_OUT_HOOKS_01:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Output interface limitation "
-+			"not valid in the PREROUTING and INPUT chains.");
-+		break;
-+	default:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Internal error, unknown errcode: %u.", errcode);
-+	}
-+}
-+
- static void print_types(u_int16_t mask)
- {
- 	const char *sep = "";
-@@ -332,6 +358,7 @@ static struct xtables_match addrtype_mt_reg_v0 = {
- 	.help 		= addrtype_help_v0,
- 	.parse 		= addrtype_parse_v0,
- 	.final_check 	= addrtype_check_v0,
-+	.kernel_error	= addrtype_error,
- 	.print 		= addrtype_print_v0,
- 	.save 		= addrtype_save_v0,
- 	.extra_opts 	= addrtype_opts_v0,
-@@ -346,6 +373,7 @@ static struct xtables_match addrtype_mt_reg_v1 = {
- 	.help 		= addrtype_help_v1,
- 	.parse 		= addrtype_parse_v1,
- 	.final_check 	= addrtype_check_v1,
-+	.kernel_error	= addrtype_error,
- 	.print 		= addrtype_print_v1,
- 	.save 		= addrtype_save_v1,
- 	.extra_opts 	= addrtype_opts_v1,
-diff --git a/extensions/libipt_ah.c b/extensions/libipt_ah.c
-index d049b42..e049997 100644
---- a/extensions/libipt_ah.c
-+++ b/extensions/libipt_ah.c
-@@ -96,6 +96,31 @@ static int ah_parse(int c, char **argv, int invert, unsigned int *flags,
+diff --git a/extensions/libip6t_ah.c b/extensions/libip6t_ah.c
+index 19b7ad4..a05d5bc 100644
+--- a/extensions/libip6t_ah.c
++++ b/extensions/libip6t_ah.c
+@@ -117,6 +117,26 @@ static int ah_parse(int c, char **argv, int invert, unsigned int *flags,
  }
  
  static void
 +ah_error(u_int8_t errcode, u_int8_t family,
 +	 const struct xt_entry_match *match)
 +{
-+	const struct ipt_ah *info = (struct ipt_ah *)match->data;
++	const struct ip6t_ah *info = (struct ip6t_ah *)match->data;
 +
 +	switch (errcode) {
-+	case IPT_AH_ERR_PROTO:
++	case IP6T_AH_ERR_FLAGS:
 +		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Match is only valid for protocol AH.");
++			"Negation of `%s' is not recognized by the kernel.",
++			info->invflags & IP6T_AH_INV_SPI ? "--ahspi" :
++			info->invflags & IP6T_AH_INV_LEN ? "--ahlen" :
++			"fixme");
 +		break;
-+	case IPT_AH_ERR_FLAGS:
-+		if (info->invflags & IPT_AH_INV_SPI)
++	default:
++		xtables_error_tail(PARAMETER_PROBLEM,
++			"Internal error, unknown errcode: %u.", errcode);
++	}
++}
++
++static void
+ print_spis(const char *name, u_int32_t min, u_int32_t max,
+ 	    int invert)
+ {
+@@ -195,6 +215,7 @@ static struct xtables_match ah_mt6_reg = {
+ 	.help          = ah_help,
+ 	.init          = ah_init,
+ 	.parse         = ah_parse,
++	.kernel_error  = ah_error,
+ 	.print         = ah_print,
+ 	.save          = ah_save,
+ 	.extra_opts    = ah_opts,
+diff --git a/extensions/libip6t_dst.c b/extensions/libip6t_dst.c
+index a47e3a3..7354861 100644
+--- a/extensions/libip6t_dst.c
++++ b/extensions/libip6t_dst.c
+@@ -163,6 +163,27 @@ static int dst_parse(int c, char **argv, int invert, unsigned int *flags,
+ }
+ 
+ static void
++dst_error(u_int8_t errcode, u_int8_t family,
++	  const struct xt_entry_match *match)
++{
++	const struct ip6t_opts *info = (struct ip6t_opts *)match->data;
++
++	switch (errcode) {
++	case IP6T_OPTS_ERR_FLAGS:
++		if (info->invflags & IP6T_OPTS_INV_LEN)
++			xtables_error_tail(PARAMETER_PROBLEM,
++				"Mode ! --dst-len is unknown for the kernel.");
++		else
++			xtables_error_tail(PARAMETER_PROBLEM,
++				"Unknown invflags value `%u'.", info->invflags);
++		break;
++	default:
++		xtables_error_tail(PARAMETER_PROBLEM,
++			"Internal error, unknown errcode: %u.", errcode);
++	}
++}
++
++static void
+ print_options(unsigned int optsnr, u_int16_t *optsp)
+ {
+ 	unsigned int i;
+@@ -229,6 +250,7 @@ static struct xtables_match dst_mt6_reg = {
+ 	.help          = dst_help,
+ 	.init          = dst_init,
+ 	.parse         = dst_parse,
++	.kernel_error  = dst_error,
+ 	.print         = dst_print,
+ 	.save          = dst_save,
+ 	.extra_opts    = dst_opts,
+diff --git a/extensions/libip6t_eui64.c b/extensions/libip6t_eui64.c
+index c92c868..f337cdd 100644
+--- a/extensions/libip6t_eui64.c
++++ b/extensions/libip6t_eui64.c
+@@ -10,6 +10,7 @@
+ #include <linux/if_ether.h>
+ #endif
+ #include <xtables.h>
++#include <linux/netfilter_ipv6/ip6t_eui64.h>
+ 
+ static void eui64_help(void)
+ {
+@@ -25,6 +26,22 @@ static int eui64_parse(int c, char **argv, int invert, unsigned int *flags,
+ 	return 0;
+ }
+ 
++static void
++eui64_error(u_int8_t errcode, u_int8_t family,
++	    const struct xt_entry_match *match)
++{
++	switch (errcode) {
++	case IP6T_EUI64_ERR_HOOKS_012:
++		xtables_error_tail(PARAMETER_PROBLEM,
++			"Match can only be used in the "
++			"PREROUTING, INPUT and FORWARD chains.");
++		break;
++	default:
++		xtables_error_tail(PARAMETER_PROBLEM,
++			"Internal error, unknown errcode: %u.", errcode);
++	}
++}
++
+ static struct xtables_match eui64_mt6_reg = {
+ 	.name 		= "eui64",
+ 	.version	= XTABLES_VERSION,
+@@ -33,6 +50,7 @@ static struct xtables_match eui64_mt6_reg = {
+ 	.userspacesize	= XT_ALIGN(sizeof(int)),
+ 	.help		= eui64_help,
+ 	.parse		= eui64_parse,
++	.kernel_error	= eui64_error,
+ };
+ 
+ void _init(void)
+diff --git a/extensions/libip6t_frag.c b/extensions/libip6t_frag.c
+index 905b494..954da88 100644
+--- a/extensions/libip6t_frag.c
++++ b/extensions/libip6t_frag.c
+@@ -148,6 +148,26 @@ static int frag_parse(int c, char **argv, int invert, unsigned int *flags,
+ }
+ 
+ static void
++frag_error(u_int8_t errcode, u_int8_t family,
++	   const struct xt_entry_match *match)
++{ 
++	const struct ip6t_frag *info = (struct ip6t_frag *)match->data;
++
++	switch (errcode) {
++	case IP6T_FRAG_ERR_FLAGS:
++		xtables_error_tail(PARAMETER_PROBLEM,
++			"Negation of `%s' is not recognized by the kernel.",
++			info->invflags & IP6T_FRAG_INV_IDS ? "--fragid" :
++			info->invflags & IP6T_FRAG_INV_LEN ? "--fraglen" :
++			"fixme");
++		break;
++	default:
++		xtables_error_tail(PARAMETER_PROBLEM,
++			"Internal error, unknown errcode: %u.", errcode);
++	}
++}
++
++static void
+ print_ids(const char *name, u_int32_t min, u_int32_t max,
+ 	    int invert)
+ {
+@@ -240,6 +260,7 @@ static struct xtables_match frag_mt6_reg = {
+ 	.help          = frag_help,
+ 	.init          = frag_init,
+ 	.parse         = frag_parse,
++	.kernel_error  = frag_error,
+ 	.print         = frag_print,
+ 	.save          = frag_save,
+ 	.extra_opts    = frag_opts,
+diff --git a/extensions/libip6t_hbh.c b/extensions/libip6t_hbh.c
+index e08d84a..9028d2e 100644
+--- a/extensions/libip6t_hbh.c
++++ b/extensions/libip6t_hbh.c
+@@ -157,6 +157,31 @@ static int hbh_parse(int c, char **argv, int invert, unsigned int *flags,
+ }
+ 
+ static void
++hbh_error(u_int8_t errcode, u_int8_t family,
++	  const struct xt_entry_match *match)
++{
++	const struct ip6t_opts *info = (struct ip6t_opts *)match->data;
++
++	switch (errcode) {
++	case IP6T_OPTS_ERR_FLAGS:
++		if (info->invflags & IP6T_OPTS_INV_LEN)
++			xtables_error_tail(PARAMETER_PROBLEM,
++				"Mode ! --hbh-len is unknown for the kernel.");
++		else
++			xtables_error_tail(PARAMETER_PROBLEM,
++				"Unknown invflags value `%u'.", info->invflags);
++		break;
++	case IP6T_OPTS_ERR_STRICT:
++		xtables_error_tail(PARAMETER_PROBLEM,
++				"Strict mode is not implemented.");
++		break;
++	default:
++		xtables_error_tail(PARAMETER_PROBLEM,
++			"Internal error, unknown errcode: %u.", errcode);
++	}
++}
++
++static void
+ print_options(unsigned int optsnr, u_int16_t *optsp)
+ {
+ 	unsigned int i;
+@@ -216,6 +241,7 @@ static struct xtables_match hbh_mt6_reg = {
+ 	.help		= hbh_help,
+ 	.init		= hbh_init,
+ 	.parse		= hbh_parse,
++	.kernel_error	= hbh_error,
+ 	.print		= hbh_print,
+ 	.save		= hbh_save,
+ 	.extra_opts	= hbh_opts,
+diff --git a/extensions/libip6t_icmp6.c b/extensions/libip6t_icmp6.c
+index e41a670..e77c0d7 100644
+--- a/extensions/libip6t_icmp6.c
++++ b/extensions/libip6t_icmp6.c
+@@ -173,6 +173,27 @@ static int icmp6_parse(int c, char **argv, int invert, unsigned int *flags,
+ 	return 1;
+ }
+ 
++static void
++icmp6_error(u_int8_t errcode, u_int8_t family,
++	    const struct xt_entry_match *match)
++{
++	const struct ip6t_icmp *info = (struct ip6t_icmp *)match->data;
++
++	switch (errcode) {
++	case IP6T_ICMPV6_ERR_PROTO:
++		xtables_error_tail(PARAMETER_PROBLEM,
++			"icmpv6 match is only valid for protocol ICMPV6.");
++		break;
++	case IP6T_ICMPV6_ERR_FLAGS:
++		xtables_error_tail(PARAMETER_PROBLEM,
++			"Unknown invflags value `%u'.", info->invflags);
++		break;
++	default:
++		xtables_error_tail(PARAMETER_PROBLEM,
++			"Internal error, unknown errcode: %u.", errcode);
++	}
++}
++
+ static void print_icmpv6type(u_int8_t type,
+ 			   u_int8_t code_min, u_int8_t code_max,
+ 			   int invert,
+@@ -252,6 +273,7 @@ static struct xtables_match icmp6_mt6_reg = {
+ 	.init		= icmp6_init,
+ 	.parse		= icmp6_parse,
+ 	.final_check	= icmp6_check,
++	.kernel_error	= icmp6_error,
+ 	.print		= icmp6_print,
+ 	.save		= icmp6_save,
+ 	.extra_opts	= icmp6_opts,
+diff --git a/extensions/libip6t_ipv6header.c b/extensions/libip6t_ipv6header.c
+index 2674c8f..b41cbbd 100644
+--- a/extensions/libip6t_ipv6header.c
++++ b/extensions/libip6t_ipv6header.c
+@@ -216,6 +216,21 @@ static void ipv6header_check(unsigned int flags)
+ }
+ 
+ static void
++ipv6header_error(u_int8_t errcode, u_int8_t family,
++		 const struct xt_entry_match *match)
++{
++	switch (errcode) {
++	case IP6T_IPV6HEADER_ERR_FLAGS:
++		xtables_error_tail(PARAMETER_PROBLEM,
++			"Invalid --header flags in hard mode.");
++		break;
++	default:
++		xtables_error_tail(PARAMETER_PROBLEM,
++			"Internal error, unknown errcode: %u.", errcode);
++	}
++}
++
++static void
+ print_header(u_int8_t flags){
+         int have_flag = 0;
+ 
+@@ -279,6 +294,7 @@ static struct xtables_match ipv6header_mt6_reg = {
+ 	.init		= ipv6header_init,
+ 	.parse		= ipv6header_parse,
+ 	.final_check	= ipv6header_check,
++	.kernel_error	= ipv6header_error,
+ 	.print		= ipv6header_print,
+ 	.save		= ipv6header_save,
+ 	.extra_opts	= ipv6header_opts,
+diff --git a/extensions/libip6t_mh.c b/extensions/libip6t_mh.c
+index 47d5544..944b864 100644
+--- a/extensions/libip6t_mh.c
++++ b/extensions/libip6t_mh.c
+@@ -147,6 +147,31 @@ static int mh_parse(int c, char **argv, int invert, unsigned int *flags,
+ 	return 1;
+ }
+ 
++static void
++mh_error(u_int8_t errcode, u_int8_t family,
++	 const struct xt_entry_match *match)
++{
++	const struct ip6t_mh *info = (struct ip6t_mh *)match->data;
++
++	switch (errcode) {
++	case IP6T_MH_ERR_PROTO:
++		xtables_error_tail(PARAMETER_PROBLEM,
++			"mh match is only valid for protocol ipv6-mh.");
++		break;
++	case IP6T_MH_ERR_FLAGS:
++		if (info->invflags & IP6T_MH_INV_TYPE)
 +			xtables_error_tail(PARAMETER_PROBLEM,
 +				"Negation is not recognized by the kernel.");
 +		else
@@ -758,328 +508,239 @@ index d049b42..e049997 100644
 +	}
 +}
 +
+ static const char *type_to_name(u_int8_t type)
+ {
+ 	unsigned int i;
+@@ -229,6 +254,7 @@ static struct xtables_match mh_mt6_reg = {
+ 	.help		= mh_help,
+ 	.init		= mh_init,
+ 	.parse		= mh_parse,
++	.kernel_error	= mh_error,
+ 	.print		= mh_print,
+ 	.save		= mh_save,
+ 	.extra_opts	= mh_opts,
+diff --git a/extensions/libip6t_rt.c b/extensions/libip6t_rt.c
+index c9bf994..5744eaa 100644
+--- a/extensions/libip6t_rt.c
++++ b/extensions/libip6t_rt.c
+@@ -230,6 +230,31 @@ static int rt_parse(int c, char **argv, int invert, unsigned int *flags,
+ }
+ 
+ static void
++rt_error(u_int8_t errcode, u_int8_t family,
++	 const struct xt_entry_match *match)
++{
++	const struct ip6t_rt *info = (struct ip6t_rt *)match->data;
++
++	switch (errcode) {
++	case IP6T_RT_ERR_FLAGS:
++		xtables_error_tail(PARAMETER_PROBLEM,
++			"Negation of `%s' is not recognized by the kernel.",
++			info->invflags & IP6T_RT_INV_TYP ? "--rt-type" :
++			info->invflags & IP6T_RT_INV_SGS ? "--rt-seqsleft" :
++			info->invflags & IP6T_RT_INV_LEN ? "--rt-len" :
++			"fixme");
++		break;
++	case IP6T_RT_ERR_RT0:
++		xtables_error_tail(PARAMETER_PROBLEM,
++			"`--rt-type 0' required before using`--rt-0-*'.");
++		break;
++	default:
++		xtables_error_tail(PARAMETER_PROBLEM,
++			"Internal error, unknown errcode: %u.", errcode);
++	}
++}
++
 +static void
- print_spis(const char *name, u_int32_t min, u_int32_t max,
+ print_nums(const char *name, u_int32_t min, u_int32_t max,
  	    int invert)
  {
-@@ -158,6 +183,7 @@ static struct xtables_match ah_mt_reg = {
- 	.help 		= ah_help,
- 	.init 		= ah_init,
- 	.parse 		= ah_parse,
-+	.kernel_error	= ah_error,
- 	.print 		= ah_print,
- 	.save 		= ah_save,
- 	.extra_opts 	= ah_opts,
-diff --git a/extensions/libipt_ecn.c b/extensions/libipt_ecn.c
-index 3ee190e..20af30a 100644
---- a/extensions/libipt_ecn.c
-+++ b/extensions/libipt_ecn.c
-@@ -89,6 +89,43 @@ static void ecn_check(unsigned int flags)
- 		           "ECN match: some option required");
- }
+@@ -332,6 +357,7 @@ static struct xtables_match rt_mt6_reg = {
+ 	.help		= rt_help,
+ 	.init		= rt_init,
+ 	.parse		= rt_parse,
++	.kernel_error	= rt_error,
+ 	.print		= rt_print,
+ 	.save		= rt_save,
+ 	.extra_opts	= rt_opts,
+diff --git a/include/linux/netfilter_ipv6/ip6t_HL.h b/include/linux/netfilter_ipv6/ip6t_HL.h
+index afb7813..a529fc2 100644
+--- a/include/linux/netfilter_ipv6/ip6t_HL.h
++++ b/include/linux/netfilter_ipv6/ip6t_HL.h
+@@ -6,6 +6,14 @@
+ #define _IP6T_HL_H
  
-+static inline const char * print_flags(u_int16_t flags)
-+{
-+	return (flags & IPT_ECN_OP_MATCH_CWR ? "--ecn-tcp-cwr" :
-+		flags & IPT_ECN_OP_MATCH_ECE ? "--ecn-tcp-ece" :
-+		flags & IPT_ECN_OP_MATCH_IP ? "--ecn-ip-ect" :
-+		"fixme");
-+}
-+
-+static void
-+ecn_error(u_int8_t errcode, u_int8_t family,
-+	  const struct xt_entry_match *match)
-+{
-+	const struct ipt_ecn_info *info =
-+		(const struct ipt_ecn_info *)match->data;
-+
-+	switch (errcode) {
-+	case IPT_ECN_ERR_OPERATION:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Unknown `%s' option for the kernel.",
-+			 print_flags(info->operation));
-+		break;
-+	case IPT_ECN_ERR_INVERT:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Unknown `! %s' option for the kernel.",
-+			print_flags(info->invert));
-+		break;
-+	case IPT_ECN_ERR_NOT_TCP:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Can't match TCP bits in a rule "
-+			"which does not match TCP packets.");
-+		break;
-+	default:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Internal error, unknown errcode: %u.", errcode);
-+	}
-+}
-+
- static void ecn_print(const void *ip, const struct xt_entry_match *match,
-                       int numeric)
- {
-@@ -149,6 +186,7 @@ static struct xtables_match ecn_mt_reg = {
-     .help          = ecn_help,
-     .parse         = ecn_parse,
-     .final_check   = ecn_check,
-+    .kernel_error  = ecn_error,
-     .print         = ecn_print,
-     .save          = ecn_save,
-     .extra_opts    = ecn_opts,
-diff --git a/extensions/libipt_icmp.c b/extensions/libipt_icmp.c
-index 5667955..bfd5231 100644
---- a/extensions/libipt_icmp.c
-+++ b/extensions/libipt_icmp.c
-@@ -198,6 +198,27 @@ static int icmp_parse(int c, char **argv, int invert, unsigned int *flags,
- 	return 1;
- }
- 
-+static void
-+icmp_error(u_int8_t errcode, u_int8_t family,
-+	   const struct xt_entry_match *match)
-+{
-+	const struct ipt_icmp *info = (struct ipt_icmp *)match->data;
-+
-+	switch (errcode) {
-+	case IPT_ICMP_ERR_PROTO:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"icmp match is only valid for protocol ICMP.");
-+		break;
-+	case IPT_ICMP_ERR_FLAGS:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Unknown invflags value `%u'.", info->invflags);
-+		break;
-+	default:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Internal error, unknown errcode: %u.", errcode);
-+	}
-+}
-+
- static void print_icmptype(u_int8_t type,
- 			   u_int8_t code_min, u_int8_t code_max,
- 			   int invert,
-@@ -274,6 +295,7 @@ static struct xtables_match icmp_mt_reg = {
- 	.help		= icmp_help,
- 	.init		= icmp_init,
- 	.parse		= icmp_parse,
-+	.kernel_error	= icmp_error,
- 	.print		= icmp_print,
- 	.save		= icmp_save,
- 	.extra_opts	= icmp_opts,
-diff --git a/extensions/libipt_realm.c b/extensions/libipt_realm.c
-index c9e1760..b3aae1a 100644
---- a/extensions/libipt_realm.c
-+++ b/extensions/libipt_realm.c
-@@ -234,6 +234,23 @@ static void realm_check(unsigned int flags)
- 			   "realm match: You must specify `--realm'");
- }
- 
-+static void
-+realm_error(u_int8_t errcode, u_int8_t family,
-+	    const struct xt_entry_match *match)
-+{
-+
-+	switch (errcode) {
-+	case XT_REALM_ERR_HOOKS_1234:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Match can only be used in the "
-+			"POSTROUTING, FORWARD, INPUT and OUTPUT chains.");
-+		break;
-+	default:
-+		xtables_error_tail(PARAMETER_PROBLEM,
-+			"Internal error, unknown errcode: %u.", errcode);
-+	}
-+}
-+
- static struct xtables_match realm_mt_reg = {
- 	.name		= "realm",
- 	.version	= XTABLES_VERSION,
-@@ -243,6 +260,7 @@ static struct xtables_match realm_mt_reg = {
- 	.help		= realm_help,
- 	.parse		= realm_parse,
- 	.final_check	= realm_check,
-+	.kernel_error	= realm_error,
- 	.print		= realm_print,
- 	.save		= realm_save,
- 	.extra_opts	= realm_opts,
-diff --git a/include/linux/netfilter_ipv4/ipt_CLUSTERIP.h b/include/linux/netfilter_ipv4/ipt_CLUSTERIP.h
-index e5a3687..257a4bf 100644
---- a/include/linux/netfilter_ipv4/ipt_CLUSTERIP.h
-+++ b/include/linux/netfilter_ipv4/ipt_CLUSTERIP.h
-@@ -7,6 +7,18 @@ enum clusterip_hashmode {
-     CLUSTERIP_HASHMODE_SIP_SPT_DPT,
- };
- 
-+enum {
-+	IPT_CLUSTERIP_ERR_NONE,
-+	IPT_CLUSTERIP_ERR_MODE,
-+	IPT_CLUSTERIP_ERR_DEST,
-+	IPT_CLUSTERIP_ERR_CONFIG,
-+	IPT_CLUSTERIP_ERR_NO_IFACE,
-+	IPT_CLUSTERIP_ERR_UNKNOWN_IFACE,
-+	IPT_CLUSTERIP_ERR_ALLOC,
-+	IPT_CLUSTERIP_ERR_CONNTRACK,
-+	IPT_CLUSTERIP_ERR_MAX,
+ enum {
++	XT_HL_ERR_NONE,
++	XT_HL_ERR_MANGLE_TABLE,
++	XT_HL_ERR_MODE,
++	XT_HL_ERR_SET,
++	XT_HL_ERR_MAX,
 +};
 +
- #define CLUSTERIP_HASHMODE_MAX CLUSTERIP_HASHMODE_SIP_SPT_DPT
- 
- #define CLUSTERIP_MAX_NODES 16
-diff --git a/include/linux/netfilter_ipv4/ipt_ECN.h b/include/linux/netfilter_ipv4/ipt_ECN.h
-index 94e0d98..ddf4f6e 100644
---- a/include/linux/netfilter_ipv4/ipt_ECN.h
-+++ b/include/linux/netfilter_ipv4/ipt_ECN.h
-@@ -18,6 +18,15 @@
- 
- #define IPT_ECN_OP_MASK		0xce
- 
 +enum {
-+	IPT_ECN_ERR_NONE,
-+	IPT_ECN_ERR_MANGLE_TABLE,
-+	IPT_ECN_ERR_OPERATION,
-+	IPT_ECN_ERR_ECT,
-+	IPT_ECN_ERR_NOT_TCP,
-+	IPT_ECN_ERR_MAX,
-+};
-+
- struct ipt_ECN_info {
- 	u_int8_t operation;	/* bitset of operations */
- 	u_int8_t ip_ect;	/* ECT codepoint of IPv4 header, pre-shifted */
-diff --git a/include/linux/netfilter_ipv4/ipt_LOG.h b/include/linux/netfilter_ipv4/ipt_LOG.h
-index 90fa652..b227905 100644
---- a/include/linux/netfilter_ipv4/ipt_LOG.h
-+++ b/include/linux/netfilter_ipv4/ipt_LOG.h
+ 	IP6T_HL_SET = 0,
+ 	IP6T_HL_INC,
+ 	IP6T_HL_DEC
+diff --git a/include/linux/netfilter_ipv6/ip6t_LOG.h b/include/linux/netfilter_ipv6/ip6t_LOG.h
+index 0d0119b..17f3c4d 100644
+--- a/include/linux/netfilter_ipv6/ip6t_LOG.h
++++ b/include/linux/netfilter_ipv6/ip6t_LOG.h
 @@ -9,6 +9,13 @@
- #define IPT_LOG_NFLOG		0x10	/* Unsupported, don't reuse */
- #define IPT_LOG_MASK		0x1f
+ #define IP6T_LOG_NFLOG		0x10	/* Unsupported, don't use */
+ #define IP6T_LOG_MASK		0x1f
  
 +enum {
-+	IPT_LOG_ERR_NONE,
-+	IPT_LOG_ERR_LEVEL,
-+	IPT_LOG_ERR_PREFIXLEN,
-+	IPT_LOG_ERR_MAX,
++	IP6T_LOG_ERR_NONE,
++	IP6T_LOG_ERR_LEVEL,
++	IP6T_LOG_ERR_PREFIXLEN,
++	IP6T_LOG_ERR_MAX,
 +};
 +
- struct ipt_log_info {
+ struct ip6t_log_info {
  	unsigned char level;
  	unsigned char logflags;
-diff --git a/include/linux/netfilter_ipv4/ipt_NAT.h b/include/linux/netfilter_ipv4/ipt_NAT.h
-new file mode 100644
-index 0000000..564ecf4
---- /dev/null
-+++ b/include/linux/netfilter_ipv4/ipt_NAT.h
-@@ -0,0 +1,17 @@
-+#ifndef _IPT_NAT_H
-+#define _IPT_NAT_H
-+
-+enum {
-+	IPT_NAT_ERR_NONE,
-+	IPT_NAT_ERR_TABLE,
-+	IPT_NAT_ERR_MASQ_HOOKS_4,
-+	IPT_NAT_ERR_NETMAP_HOOKS_034,
-+	IPT_NAT_ERR_REDIRECT_HOOKS_03,
-+	IPT_NAT_ERR_SNAT_HOOKS_4,
-+	IPT_NAT_ERR_DNAT_HOOKS_03,
-+	IPT_NAT_ERR_MAP_IPS,
-+	IPT_NAT_ERR_RANGESIZE,
-+	IPT_NAT_ERR_MAX,
-+};
-+
-+#endif
-diff --git a/include/linux/netfilter_ipv4/ipt_REJECT.h b/include/linux/netfilter_ipv4/ipt_REJECT.h
-index 4293a1a..89ba84e 100644
---- a/include/linux/netfilter_ipv4/ipt_REJECT.h
-+++ b/include/linux/netfilter_ipv4/ipt_REJECT.h
-@@ -13,6 +13,15 @@ enum ipt_reject_with {
- 	IPT_ICMP_ADMIN_PROHIBITED
+diff --git a/include/linux/netfilter_ipv6/ip6t_REJECT.h b/include/linux/netfilter_ipv6/ip6t_REJECT.h
+index 6be6504..02f8dcd 100644
+--- a/include/linux/netfilter_ipv6/ip6t_REJECT.h
++++ b/include/linux/netfilter_ipv6/ip6t_REJECT.h
+@@ -11,6 +11,15 @@ enum ip6t_reject_with {
+ 	IP6T_TCP_RESET
  };
  
 +enum {
-+	IPT_REJECT_ERR_NONE,
-+	IPT_REJECT_ERR_FILTER_TABLE,
-+	IPT_REJECT_ERR_HOOKS_123,
-+	IPT_REJECT_ERR_ECHOREPLY,
-+	IPT_REJECT_ERR_NOT_TCP,
-+	IPT_REJECT_ERR_MAX,
++	IP6T_REJECT_ERR_NONE,
++	IP6T_REJECT_ERR_FILTER_TABLE,
++	IP6T_REJECT_ERR_HOOKS_123,
++	IP6T_REJECT_ERR_ECHOREPLY,
++	IP6T_REJECT_ERR_NOT_TCP,
++	IP6T_REJECT_ERR_MAX,
 +};
 +
- struct ipt_reject_info {
- 	enum ipt_reject_with with;      /* reject type */
+ struct ip6t_reject_info {
+ 	u_int32_t	with;	/* reject type */
  };
-diff --git a/include/linux/netfilter_ipv4/ipt_ULOG.h b/include/linux/netfilter_ipv4/ipt_ULOG.h
-index 417aad2..2129672 100644
---- a/include/linux/netfilter_ipv4/ipt_ULOG.h
-+++ b/include/linux/netfilter_ipv4/ipt_ULOG.h
-@@ -23,6 +23,13 @@
-  * Assuming a standard ethernet-mtu of 1500, we could define this up
-  * to 80... but even 50 seems to be big enough. */
+diff --git a/include/linux/netfilter_ipv6/ip6t_ah.h b/include/linux/netfilter_ipv6/ip6t_ah.h
+index 8531879..7c664c6 100644
+--- a/include/linux/netfilter_ipv6/ip6t_ah.h
++++ b/include/linux/netfilter_ipv6/ip6t_ah.h
+@@ -1,6 +1,12 @@
+ #ifndef _IP6T_AH_H
+ #define _IP6T_AH_H
  
 +enum {
-+	IPT_ULOG_ERR_NONE,
-+	IPT_ULOG_ERR_PREFIXLEN,
-+	IPT_ULOG_ERR_QLEN,
-+	IPT_ULOG_ERR_MAX,
++	IP6T_AH_ERR_NONE,
++	IP6T_AH_ERR_FLAGS,
++	IP6T_AH_ERR_MAX,
 +};
 +
- /* private data structure for each rule with a ULOG target */
- struct ipt_ulog_info {
- 	unsigned int nl_group;
-diff --git a/include/linux/netfilter_ipv4/ipt_addrtype.h b/include/linux/netfilter_ipv4/ipt_addrtype.h
-index 446de6a..59480c5 100644
---- a/include/linux/netfilter_ipv4/ipt_addrtype.h
-+++ b/include/linux/netfilter_ipv4/ipt_addrtype.h
-@@ -8,6 +8,14 @@ enum {
- 	IPT_ADDRTYPE_LIMIT_IFACE_OUT	= 0x0008,
- };
- 
-+enum {
-+	IPT_ADDRTYPE_ERR_NONE,
-+	IPT_ADDRTYPE_ERR_IFACE_BOTH,
-+	IPT_ADDRTYPE_ERR_IFACE_IN_HOOKS_34,
-+	IPT_ADDRTYPE_ERR_IFACE_OUT_HOOKS_01,
-+	IPT_ADDRTYPE_ERR_MAX,
-+};	
-+
- struct ipt_addrtype_info_v1 {
- 	u_int16_t	source;		/* source-type mask */
- 	u_int16_t	dest;		/* dest-type mask */
-diff --git a/include/linux/netfilter_ipv4/ipt_ah.h b/include/linux/netfilter_ipv4/ipt_ah.h
-index 7b9a2ac..5734201 100644
---- a/include/linux/netfilter_ipv4/ipt_ah.h
-+++ b/include/linux/netfilter_ipv4/ipt_ah.h
-@@ -1,6 +1,13 @@
- #ifndef _IPT_AH_H
- #define _IPT_AH_H
- 
-+enum {
-+	IPT_AH_ERR_NONE,
-+	IPT_AH_ERR_PROTO,
-+	IPT_AH_ERR_FLAGS,
-+	IPT_AH_ERR_MAX,
-+};
-+
- struct ipt_ah
+ struct ip6t_ah
  {
  	u_int32_t spis[2];			/* Security Parameter Index */
-diff --git a/include/linux/netfilter_ipv4/ipt_ecn.h b/include/linux/netfilter_ipv4/ipt_ecn.h
-index 1f0d9a4..57200c1 100644
---- a/include/linux/netfilter_ipv4/ipt_ecn.h
-+++ b/include/linux/netfilter_ipv4/ipt_ecn.h
-@@ -18,6 +18,14 @@
- 
- #define IPT_ECN_OP_MATCH_MASK	0xce
- 
+diff --git a/include/linux/netfilter_ipv6/ip6t_eui64.h b/include/linux/netfilter_ipv6/ip6t_eui64.h
+new file mode 100644
+index 0000000..b9fe28b
+--- /dev/null
++++ b/include/linux/netfilter_ipv6/ip6t_eui64.h
+@@ -0,0 +1,10 @@
++#ifndef _IP6T_EUI64_H
++#define _IP6T_EUI64_H
++
 +enum {
-+	IPT_ECN_ERR_NONE,
-+	IPT_ECN_ERR_OPERATION,
-+	IPT_ECN_ERR_INVERT,
-+	IPT_ECN_ERR_NOT_TCP,
-+	IPT_ECN_ERR_MAX,
++	IP6T_EUI64_ERR_NONE,
++	IP6T_EUI64_ERR_HOOKS_012,
++	IP6T_EUI64_ERR_MAX,
 +};
 +
- /* match info */
- struct ipt_ecn_info {
- 	u_int8_t operation;
++#endif /*_IP6T_EUI64_H*/
+diff --git a/include/linux/netfilter_ipv6/ip6t_frag.h b/include/linux/netfilter_ipv6/ip6t_frag.h
+index 66070a0..22be05c 100644
+--- a/include/linux/netfilter_ipv6/ip6t_frag.h
++++ b/include/linux/netfilter_ipv6/ip6t_frag.h
+@@ -1,6 +1,12 @@
+ #ifndef _IP6T_FRAG_H
+ #define _IP6T_FRAG_H
+ 
++enum {
++	IP6T_FRAG_ERR_NONE,
++	IP6T_FRAG_ERR_FLAGS,
++	IP6T_FRAG_ERR_MAX,
++};
++
+ struct ip6t_frag
+ {
+ 	u_int32_t ids[2];			/* Security Parameter Index */
+diff --git a/include/linux/netfilter_ipv6/ip6t_ipv6header.h b/include/linux/netfilter_ipv6/ip6t_ipv6header.h
+index 51c53fc..d516f67 100644
+--- a/include/linux/netfilter_ipv6/ip6t_ipv6header.h
++++ b/include/linux/netfilter_ipv6/ip6t_ipv6header.h
+@@ -8,6 +8,12 @@ on whether they contain certain headers */
+ #ifndef __IPV6HEADER_H
+ #define __IPV6HEADER_H
+ 
++enum {
++	IP6T_IPV6HEADER_ERR_NONE,
++	IP6T_IPV6HEADER_ERR_FLAGS,
++	IP6T_IPV6HEADER_ERR_MAX,
++};
++
+ struct ip6t_ipv6header_info
+ {
+ 	u_int8_t matchflags;
+diff --git a/include/linux/netfilter_ipv6/ip6t_mh.h b/include/linux/netfilter_ipv6/ip6t_mh.h
+index b9ca9a5..0da311c 100644
+--- a/include/linux/netfilter_ipv6/ip6t_mh.h
++++ b/include/linux/netfilter_ipv6/ip6t_mh.h
+@@ -1,6 +1,13 @@
+ #ifndef _IP6T_MH_H
+ #define _IP6T_MH_H
+ 
++enum {
++	IP6T_MH_ERR_NONE,
++	IP6T_MH_ERR_PROTO,
++	IP6T_MH_ERR_FLAGS,
++	IP6T_MH_ERR_MAX,
++};
++
+ /* MH matching stuff */
+ struct ip6t_mh
+ {
+diff --git a/include/linux/netfilter_ipv6/ip6t_opts.h b/include/linux/netfilter_ipv6/ip6t_opts.h
+index a07e363..21a4f60 100644
+--- a/include/linux/netfilter_ipv6/ip6t_opts.h
++++ b/include/linux/netfilter_ipv6/ip6t_opts.h
+@@ -3,6 +3,13 @@
+ 
+ #define IP6T_OPTS_OPTSNR 16
+ 
++enum {
++	IP6T_OPTS_ERR_NONE,
++	IP6T_OPTS_ERR_FLAGS,
++	IP6T_OPTS_ERR_STRICT,
++	IP6T_OPTS_ERR_MAX,
++};
++
+ struct ip6t_opts
+ {
+ 	u_int32_t hdrlen;			/* Header Length */
+diff --git a/include/linux/netfilter_ipv6/ip6t_rt.h b/include/linux/netfilter_ipv6/ip6t_rt.h
+index 5215602..ccd6185 100644
+--- a/include/linux/netfilter_ipv6/ip6t_rt.h
++++ b/include/linux/netfilter_ipv6/ip6t_rt.h
+@@ -5,6 +5,13 @@
+ 
+ #define IP6T_RT_HOPS 16
+ 
++enum {
++	IP6T_RT_ERR_NONE,
++	IP6T_RT_ERR_FLAGS,
++	IP6T_RT_ERR_RT0,
++	IP6T_RT_ERR_MAX,
++};
++
+ struct ip6t_rt
+ {
+ 	u_int32_t rt_type;			/* Routing Type */
 
 
 Best regards,
