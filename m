@@ -1,59 +1,60 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 07/07: xt_rateest: fix comparison with self
-Date: Mon, 22 Jun 2009 14:53:58 +0200 (MEST)
-Message-ID: <20090622125358.6531.72261.sendpatchset@x2.localnet>
-References: <20090622125349.6531.35515.sendpatchset@x2.localnet>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [ANNOUNCE] libnfnetlink 1.0.0 release
+Date: Mon, 22 Jun 2009 20:08:38 +0200
+Message-ID: <4A3FC8A6.4050904@netfilter.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org
-To: davem@davemloft.net
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20090622125349.6531.35515.sendpatchset@x2.localnet>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: multipart/mixed;
+ boundary="------------070303000004020308060001"
+Cc: netfilter-announce@lists.netfilter.org,
+	netfilter-devel@vger.kernel.org, lwn@lwn.net
+To: netfilter@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:48693 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751917AbZFVSIv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 22 Jun 2009 14:08:51 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 4d900f9df5f0569c2dc536701e2c11b6d50ebebf
-Author: Patrick McHardy <kaber@trash.net>
-Date:   Mon Jun 22 14:17:12 2009 +0200
+This is a multi-part message in MIME format.
+--------------070303000004020308060001
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-    netfilter: xt_rateest: fix comparison with self
-   =20
-    As noticed by T=F6r=F6k Edwin <edwintorok@gmail.com>:
-   =20
-    Compiling the kernel with clang has shown this warning:
-   =20
-    net/netfilter/xt_rateest.c:69:16: warning: self-comparison always r=
-esults in a
-    constant value
-                            ret &=3D pps2 =3D=3D pps2;
-                                        ^
-    Looking at the code:
-    if (info->flags & XT_RATEEST_MATCH_BPS)
-                ret &=3D bps1 =3D=3D bps2;
-            if (info->flags & XT_RATEEST_MATCH_PPS)
-                ret &=3D pps2 =3D=3D pps2;
-   =20
-    Judging from the MATCH_BPS case it seems to be a typo, with the int=
-ention of
-    comparing pps1 with pps2.
-   =20
-    http://bugzilla.kernel.org/show_bug.cgi?id=3D13535
-   =20
-    Signed-off-by: Patrick McHardy <kaber@trash.net>
+Hi!
 
-diff --git a/net/netfilter/xt_rateest.c b/net/netfilter/xt_rateest.c
-index 220a1d5..4fc6a91 100644
---- a/net/netfilter/xt_rateest.c
-+++ b/net/netfilter/xt_rateest.c
-@@ -66,7 +66,7 @@ xt_rateest_mt(const struct sk_buff *skb, const struct=
- xt_match_param *par)
- 		if (info->flags & XT_RATEEST_MATCH_BPS)
- 			ret &=3D bps1 =3D=3D bps2;
- 		if (info->flags & XT_RATEEST_MATCH_PPS)
--			ret &=3D pps2 =3D=3D pps2;
-+			ret &=3D pps1 =3D=3D pps2;
- 		break;
- 	}
-=20
+The Netfilter project presents:
+
+  * libnfnetlink-1.0.0
+
+libnfnetlink is the low-level library for netfilter related
+kernel/userspace communication. It provides a generic messaging
+infrastructure for in-kernel netfilter subsystems (such as
+nfnetlink_log, nfnetlink_queue, nfnetlink_conntrack) and their
+respective users and/or management tools in userspace.
+
+See ChangeLog (file attached) for more details on this release. You can
+download it from:
+
+http://www.netfilter.org/projects/libnfnetlink/downloads.html
+ftp://ftp.netfilter.org/pub/libnfnetlink/
+
+Happy firewalling,
+Pablo (on behalf of the Netfilter Core Team)
+
+--------------070303000004020308060001
+Content-Type: text/plain;
+ name="changes-libnfnetlink-1.0.0.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="changes-libnfnetlink-1.0.0.txt"
+
+Pablo Neira Ayuso (5):
+      rtnl: fix wrong netlink group bindings in the interface API
+      nfnl: add nfnl_portid() to get the Netlink portID of a socket
+      include: add recently added Netlink socket options
+      nfnl: add nfnl_addattr8() function
+      nfnl: release libnfnetlink 1.0 version
+
+
+--------------070303000004020308060001--
