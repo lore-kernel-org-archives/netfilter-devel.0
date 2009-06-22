@@ -1,42 +1,64 @@
-From: Philip Craig <philipc@snapgear.com>
-Subject: conntrack untracked match is broken
-Date: Mon, 22 Jun 2009 16:31:35 +1000
-Message-ID: <4A3F2547.30301@snapgear.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: netfilter 00/07: netfilter fixes
+Date: Mon, 22 Jun 2009 14:53:49 +0200 (MEST)
+Message-ID: <20090622125349.6531.35515.sendpatchset@x2.localnet>
+Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rex.securecomputing.com ([203.24.151.4]:59769 "EHLO
-	cyberguard.com.au" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751973AbZFVGbe (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:39226 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751796AbZFVMxr (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 22 Jun 2009 02:31:34 -0400
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by bne.snapgear.com (Postfix) with ESMTP id 4D812EBBB7
-	for <netfilter-devel@vger.kernel.org>; Mon, 22 Jun 2009 16:31:36 +1000 (EST)
-Received: from bne.snapgear.com ([127.0.0.1])
-	by localhost (bne.snapgear.com [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id uNbidU0q-4FG for <netfilter-devel@vger.kernel.org>;
-	Mon, 22 Jun 2009 16:31:35 +1000 (EST)
-Received: from [192.168.0.3] (philipc2.sw.moreton.com.au [10.46.1.58])
-	by bne.snapgear.com (Postfix) with ESMTP
-	for <netfilter-devel@vger.kernel.org>; Mon, 22 Jun 2009 16:31:35 +1000 (EST)
+	Mon, 22 Jun 2009 08:53:47 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-# iptables -I INPUT -m conntrack --ctstate UNTRACKED
-# iptables -L INPUT
-Chain INPUT (policy DROP)
-target     prot opt source               destination
-           all  --  anywhere             anywhere            ctstate
-(ctstate isn't matching anything.)
+Hi Dave,
 
-The problem is that state_mask in 'struct xt_conntrack_mtinfo1' is
-only 8 bit, but XT_CONNTRACK_STATE_UNTRACKED == 256.
-Unfortunately, gcc doesn't warn about this for '|=', only for '='.
+the following patches fix a number of netfilter bugs:
 
-A workaround is to use -m state --state UNTRACKED
+- a conntrack race condition in death_by_timeout() when moving dying entries
+  to the dying list. Fix from Eric Dumazet.
 
-Looks like we need a conntrack match v2 to fix this?
+- a conntrack confirmation race condition that might lead to new conntrack
+  entries becoming visible before they are fully set up.
 
+- a conntrack lookup race condition that might lead to deleted conntrack
+  entries being returned
+
+- some sparse endianess fixes
+
+- a fix for the nf_log proc handler, which is accessing userspace memory directly
+
+- an incomplete initialization in the quota match, fix from Jan Engelhardt
+
+- an incorrect comparison in the rateest match
+
+Please apply or pull from:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git master
+
+Thanks!
+
+
+ net/netfilter/nf_conntrack_core.c |   25 ++++++++++++++++++++-----
+ net/netfilter/nf_log.c            |   16 +++++++++++-----
+ net/netfilter/xt_NFQUEUE.c        |    8 ++++----
+ net/netfilter/xt_cluster.c        |    8 ++++----
+ net/netfilter/xt_quota.c          |    1 +
+ net/netfilter/xt_rateest.c        |    2 +-
+ 6 files changed, 41 insertions(+), 19 deletions(-)
+
+Eric Dumazet (1):
+      netfilter: nf_conntrack: death_by_timeout() fix
+
+Jan Engelhardt (1):
+      netfilter: xt_quota: fix incomplete initialization
+
+Patrick McHardy (5):
+      netfilter: nf_conntrack: fix confirmation race condition
+      netfilter: nf_conntrack: fix conntrack lookup race
+      netfilter: fix some sparse endianess warnings
+      netfilter: nf_log: fix direct userspace memory access in proc handler
+      netfilter: xt_rateest: fix comparison with self
