@@ -1,103 +1,76 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: null-pointer deref in ulogd2
-Date: Tue, 23 Jun 2009 17:40:39 +0200
-Message-ID: <4A40F777.7010505@netfilter.org>
-References: <h1q05h$o8h$1@ger.gmane.org> <h1q3tu$2vi$1@ger.gmane.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 10/10] nf_conntrack: Use rcu_barrier().
+Date: Tue, 23 Jun 2009 18:23:33 +0200
+Message-ID: <4A410185.3090706@trash.net>
+References: <20090623150330.22490.87327.stgit@localhost> <20090623150444.22490.27931.stgit@localhost>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------080300030502080509070703"
-Cc: netfilter-devel@vger.kernel.org
-To: Bernhard Schmidt <berni@birkenwald.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:42471 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753504AbZFWPks (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Jun 2009 11:40:48 -0400
-In-Reply-To: <h1q3tu$2vi$1@ger.gmane.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
-
-This is a multi-part message in MIME format.
---------------080300030502080509070703
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
+Cc: "David S. Miller" <davem@davemloft.net>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	dougthompson@xmission.com, bluesmoke-devel@lists.sourceforge.net,
+	axboe@kernel.dk, christine.caulfield@googlemail.com,
+	Trond.Myklebust@netapp.com, linux-wireless@vger.kernel.org,
+	johannes@sipsolutions.net, yoshfuji@linux-ipv6.org,
+	shemminger@linux-foundation.org, linux-nfs@vger.kernel.org,
+	bfields@fieldses.org, neilb@suse.de, linux-ext4@vger.kernel.org,
+	tytso@mit.edu, adilger@sun.com, netfilter-devel@vger.kernel.org
+To: Jesper Dangaard Brouer <hawk@comx.dk>
+Return-path: <linux-ext4-owner@vger.kernel.org>
+In-Reply-To: <20090623150444.22490.27931.stgit@localhost>
+Sender: linux-ext4-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Bernhard Schmidt wrote:
-> Bernhard Schmidt <berni@birkenwald.de> wrote:
+Jesper Dangaard Brouer wrote:
+> I'm not sure which is are most optimal place to call rcu_barrier().
+> The patch probably calls rcu_barrier() too much, but its a better
+> safe than sorry approach.
 > 
->> now it seems to work okay. In the database about 90% of the flows have
->> flow_end_sec NULL.
+> There is embedded some comments that I would like Patrick McHardy
+> to look at.
+> 
+> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+> index 5f72b94..cea4537 100644
+> --- a/net/netfilter/nf_conntrack_core.c
+> +++ b/net/netfilter/nf_conntrack_core.c
+> @@ -1084,6 +1084,8 @@ static void nf_conntrack_cleanup_init_net(void)
+>  {
+>  	nf_conntrack_helper_fini();
+>  	nf_conntrack_proto_fini();
+> +	rcu_barrier();
+> +	/* Need to wait for call_rcu() before dealloc the kmem_cache */
+>  	kmem_cache_destroy(nf_conntrack_cachep);
 
-Please, rise "netlink_socket_buffer_size" and
-"netlink_socket_buffer_maxsize". If you use the default buffer, it's
-likely to overrun and, thus, to lose events.
+Which call_rcu() is this referring to? If its the conntrack destruction,
+that one is gone in the current kernel and I think destruction is
+handled properly by the sl*b-allocators (SLAB_DESTROY_BY_RCU).
 
-[...]
-> What is happening here?
+> @@ -1118,6 +1120,9 @@ void nf_conntrack_cleanup(struct net *net)
+>  	/* This makes sure all current packets have passed through
+>  	   netfilter framework.  Roll on, two-stage module
+>  	   delete... */
+> +	/* hawk@comx.dk 2009-06-20: Think this should be replaced by a
+> +          rcu_barrier() ???
+> +	*/
+>  	synchronize_net();
 
-I think that you're using the default "hash_max_entries" which is too
-small. I suggest you to rise this value. I'm going to push a patch that
-includes information on these parameter tweaking to the example config file.
+AFAICT this one is used to make sure the old value of the ip_ct_attach
+hook is not visible anymore before beginning cleanup and is not needed
+for anything else.
 
-BTW, could you give a quick test to this patch, yours seems to leak
-memory since NFCT_CB_STOLEN means not to release the ct object (no
-problem, I guess that you're not familiar with libnetfilter_conntrack).
+>  	nf_conntrack_cleanup_net(net);
+> diff --git a/net/netfilter/nf_conntrack_standalone.c b/net/netfilter/nf_conntrack_standalone.c
+> index 1935153..29c6cd0 100644
+> --- a/net/netfilter/nf_conntrack_standalone.c
+> +++ b/net/netfilter/nf_conntrack_standalone.c
+> @@ -500,6 +500,8 @@ static void nf_conntrack_net_exit(struct net *net)
+>  	nf_conntrack_standalone_fini_sysctl(net);
+>  	nf_conntrack_standalone_fini_proc(net);
+>  	nf_conntrack_cleanup(net);
+> +	/* hawk@comx.dk: Think rcu_barrier() should to be called earlier? */
+> +	rcu_barrier(); /* Wait for completion of call_rcu()'s */
+>  }
 
-Thanks for testing.
-
---------------080300030502080509070703
-Content-Type: text/x-diff;
- name="fix.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="fix.patch"
-
-NFCT: fix NULL dereference when hashtable is full
-
-This patch fixes a NULL dereference to the timestamp structure when
-hashtable_add() fails, for example, because the hashtable is full.
-
-Reported-by: Bernhard Schmidt <berni@birkenwald.de>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
-
- input/flow/ulogd_inpflow_NFCT.c |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
-
-
-diff --git a/input/flow/ulogd_inpflow_NFCT.c b/input/flow/ulogd_inpflow_NFCT.c
-index b8278af..b16687e 100644
---- a/input/flow/ulogd_inpflow_NFCT.c
-+++ b/input/flow/ulogd_inpflow_NFCT.c
-@@ -596,6 +596,9 @@ static int event_handler(enum nf_conntrack_msg_type type,
- 	switch(type) {
- 	case NFCT_T_NEW:
- 		ts = hashtable_add(cpi->ct_active, &tmp);
-+		if (ts == NULL)
-+			return NFCT_CB_CONTINUE;
-+
- 		gettimeofday(&ts->time[START], NULL);
- 		return NFCT_CB_STOLEN;
- 	case NFCT_T_UPDATE:
-@@ -604,6 +607,9 @@ static int event_handler(enum nf_conntrack_msg_type type,
- 			nfct_copy(ts->ct, ct, NFCT_CP_META);
- 		else {
- 			ts = hashtable_add(cpi->ct_active, &tmp);
-+			if (ts == NULL)
-+				return NFCT_CB_CONTINUE;
-+
- 			gettimeofday(&ts->time[START], NULL);
- 			return NFCT_CB_STOLEN;
- 		}
-@@ -734,6 +740,9 @@ static int overrun_handler(enum nf_conntrack_msg_type type,
- 	/* if it does not exist, add it */
- 	if (!hashtable_get(cpi->ct_active, &tmp)) {
- 		ts = hashtable_add(cpi->ct_active, &tmp);
-+		if (ts == NULL)
-+			return NFCT_CB_CONTINUE;
-+
- 		gettimeofday(&ts->time[START], NULL); /* do our best here */
- 		return NFCT_CB_STOLEN;
- 	}
-
---------------080300030502080509070703--
+Which call_rcu() is this referring to? We should place them in
+the cleanup sub-functions to make this clearly visible.
