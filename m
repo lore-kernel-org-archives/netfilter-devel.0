@@ -1,67 +1,103 @@
-From: Jesper Dangaard Brouer <hawk@comx.dk>
-Subject: [PATCH 07/10] decnet: Use rcu_barrier() on module unload.
-Date: Tue, 23 Jun 2009 17:04:29 +0200
-Message-ID: <20090623150429.22490.15113.stgit@localhost>
-References: <20090623150330.22490.87327.stgit@localhost>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: null-pointer deref in ulogd2
+Date: Tue, 23 Jun 2009 17:40:39 +0200
+Message-ID: <4A40F777.7010505@netfilter.org>
+References: <h1q05h$o8h$1@ger.gmane.org> <h1q3tu$2vi$1@ger.gmane.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: Jesper Dangaard Brouer <hawk@comx.dk>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	dougthompson@xmission.com, bluesmoke-devel@lists.sourceforge.net,
-	axboe@kernel.dk, "Patrick McHardy" <kaber@trash.net>,
-	christine.caulfield@googlemail.com, Trond.Myklebust@netapp.com,
-	linux-wireless@vger.kernel.org, johannes@sipsolutions.net,
-	yoshfuji@linux-ipv6.org, shemminger@linux-foundation.org,
-	linux-nfs@vger.kernel.org, bfields@fieldses.org, neilb@suse.de,
-	linux-ext4@vger.kernel.org, tytso@mit.edu, adilger@sun.com,
-	netfilter-devel@vger.kernel.org
-To: "David S. Miller" <davem@davemloft.net>
+Content-Type: multipart/mixed;
+ boundary="------------080300030502080509070703"
+Cc: netfilter-devel@vger.kernel.org
+To: Bernhard Schmidt <berni@birkenwald.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from lanfw001a.cxnet.dk ([87.72.215.196]:49575 "EHLO
-	lanfw001a.cxnet.dk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756870AbZFWP3v (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Jun 2009 11:29:51 -0400
-In-Reply-To: <20090623150330.22490.87327.stgit@localhost>
+Received: from mail.us.es ([193.147.175.20]:42471 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753504AbZFWPks (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 23 Jun 2009 11:40:48 -0400
+In-Reply-To: <h1q3tu$2vi$1@ger.gmane.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The decnet module unloading as been disabled with a '#if 0' statement,
-because it have had issues.  Perhaps using rcu_barrier() will fix
-these issues?
+This is a multi-part message in MIME format.
+--------------080300030502080509070703
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Any maintainers with input?
+Bernhard Schmidt wrote:
+> Bernhard Schmidt <berni@birkenwald.de> wrote:
+> 
+>> now it seems to work okay. In the database about 90% of the flows have
+>> flow_end_sec NULL.
 
-Signed-off-by: Jesper Dangaard Brouer <hawk@comx.dk>
+Please, rise "netlink_socket_buffer_size" and
+"netlink_socket_buffer_maxsize". If you use the default buffer, it's
+likely to overrun and, thus, to lose events.
+
+[...]
+> What is happening here?
+
+I think that you're using the default "hash_max_entries" which is too
+small. I suggest you to rise this value. I'm going to push a patch that
+includes information on these parameter tweaking to the example config file.
+
+BTW, could you give a quick test to this patch, yours seems to leak
+memory since NFCT_CB_STOLEN means not to release the ct object (no
+problem, I guess that you're not familiar with libnetfilter_conntrack).
+
+Thanks for testing.
+
+--------------080300030502080509070703
+Content-Type: text/x-diff;
+ name="fix.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="fix.patch"
+
+NFCT: fix NULL dereference when hashtable is full
+
+This patch fixes a NULL dereference to the timestamp structure when
+hashtable_add() fails, for example, because the hashtable is full.
+
+Reported-by: Bernhard Schmidt <berni@birkenwald.de>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
 
- net/decnet/af_decnet.c |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+ input/flow/ulogd_inpflow_NFCT.c |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-diff --git a/net/decnet/af_decnet.c b/net/decnet/af_decnet.c
-index d351b8d..bff12da 100644
---- a/net/decnet/af_decnet.c
-+++ b/net/decnet/af_decnet.c
-@@ -2393,6 +2393,10 @@ module_init(decnet_init);
-  * Prevent DECnet module unloading until its fixed properly.
-  * Requires an audit of the code to check for memory leaks and
-  * initialisation problems etc.
-+ *
-+ * hawk@comx.dk 2009-06-19:
-+ *  I have added a rcu_barrier() which should plug some of your
-+ *  module unload issues.  Maintainers please try it out...
-  */
- #if 0
- static void __exit decnet_exit(void)
-@@ -2413,6 +2417,8 @@ static void __exit decnet_exit(void)
- 	proc_net_remove(&init_net, "decnet");
- 
- 	proto_unregister(&dn_proto);
+
+diff --git a/input/flow/ulogd_inpflow_NFCT.c b/input/flow/ulogd_inpflow_NFCT.c
+index b8278af..b16687e 100644
+--- a/input/flow/ulogd_inpflow_NFCT.c
++++ b/input/flow/ulogd_inpflow_NFCT.c
+@@ -596,6 +596,9 @@ static int event_handler(enum nf_conntrack_msg_type type,
+ 	switch(type) {
+ 	case NFCT_T_NEW:
+ 		ts = hashtable_add(cpi->ct_active, &tmp);
++		if (ts == NULL)
++			return NFCT_CB_CONTINUE;
 +
-+	rcu_barrier_bh(); /* Wait for completion of call_rcu_bh()'s */
- }
- module_exit(decnet_exit);
- #endif
+ 		gettimeofday(&ts->time[START], NULL);
+ 		return NFCT_CB_STOLEN;
+ 	case NFCT_T_UPDATE:
+@@ -604,6 +607,9 @@ static int event_handler(enum nf_conntrack_msg_type type,
+ 			nfct_copy(ts->ct, ct, NFCT_CP_META);
+ 		else {
+ 			ts = hashtable_add(cpi->ct_active, &tmp);
++			if (ts == NULL)
++				return NFCT_CB_CONTINUE;
++
+ 			gettimeofday(&ts->time[START], NULL);
+ 			return NFCT_CB_STOLEN;
+ 		}
+@@ -734,6 +740,9 @@ static int overrun_handler(enum nf_conntrack_msg_type type,
+ 	/* if it does not exist, add it */
+ 	if (!hashtable_get(cpi->ct_active, &tmp)) {
+ 		ts = hashtable_add(cpi->ct_active, &tmp);
++		if (ts == NULL)
++			return NFCT_CB_CONTINUE;
++
+ 		gettimeofday(&ts->time[START], NULL); /* do our best here */
+ 		return NFCT_CB_STOLEN;
+ 	}
 
+--------------080300030502080509070703--
