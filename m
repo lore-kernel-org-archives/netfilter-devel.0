@@ -1,43 +1,73 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: Bruno Fiss <bruno_fiss@yahoo.com.br>
 Subject: Re: nf_unregister_hook problem
-Date: Tue, 23 Jun 2009 21:49:05 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0906232147280.32190@fbirervta.pbzchgretzou.qr>
-References: <20090623154705.pm2z8cfi6oc4w0ow@webmail.inf.ufrgs.br>
+Date: Tue, 23 Jun 2009 14:02:01 -0700 (PDT)
+Message-ID: <384888.96768.qm@web52401.mail.re2.yahoo.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: gmoliveira@inf.ufrgs.br
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:49124 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754344AbZFWTtF (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Jun 2009 15:49:05 -0400
-In-Reply-To: <20090623154705.pm2z8cfi6oc4w0ow@webmail.inf.ufrgs.br>
+Received: from web52401.mail.re2.yahoo.com ([206.190.48.164]:36101 "HELO
+	web52401.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1753584AbZFWVIk convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 23 Jun 2009 17:08:40 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Tuesday 2009-06-23 20:47, gmoliveira@inf.ufrgs.br wrote:
+--- Em ter, 23/6/09, Jan Engelhardt <jengelh@medozas.de> escreveu:
+
+
 >
->im using this:
+> Does the problem go away if you call it indirectly? Like:
 >
->init_timer(&foo2);
->stop_trigger.function = nf_unregister_hook;
->stop_trigger.data = &nf_hook;
->stop_trigger.expires = jiffies + msecs_to_jiffies(HZ * 5000);
->add_timer(&foo2);
 >
->it works to every function until now, unless nf_unregister_hook.
+> stop_trigger.function =3D myfunc;
+> ...
+>
+> myfunc(void)
+> {
+>     nf_unregister_hook(&nf_hook);
+> }
+>
 
-Does the problem go away if you call it indirectly? Like:
 
+Hi,
 
-stop_trigger.function = myfunc;
-...
+I've got a very similar question, about scheduling nf_register_hook, an=
+d since I'm already calling it indirectly, I think this could prove use=
+ful to both of us. I'd appreciate if anybody could help.
 
-myfunc(void)
-{
-	nf_unregister_hook(&nf_hook);
+This is what I'm trying to do:
+
+void foo () {
+        unsigned long parameter;
+        ...
+        DEFINE_TIMER( timer, secfoo, jiffies + 250, parameter);
+        ...
+        add_timer(timer);
 }
 
+void secfoo( unsigned long param ) {
+        ...
+        nf_register_hook(...);
+        ...
+}
+
+If I comment the "add_timer(timer);" and put "secfoo( parameter );" ins=
+tead, it works out, though it doesn't help me, because I wanted to sche=
+dule it. The way it is, I get a kernel panic.
+
+Good day,
+
+Bruno Fiss
+
+
+      Veja quais s=E3o os assuntos do momento no Yahoo! +Buscados
+http://br.maisbuscados.yahoo.com
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
