@@ -1,34 +1,36 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: Ulogd2 beta3 +NFCT - unable to get working
-Date: Wed, 24 Jun 2009 20:02:04 +0200
-Message-ID: <4A426A1C.6050003@netfilter.org>
-References: <c4b050a10906231656u53e20855ud5cf5833ca5db7cc@mail.gmail.com>
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: Re: [PATCH -tip 0/3] expedited "big hammer" RCU grace periods
+Date: Wed, 24 Jun 2009 11:44:23 -0700
+Message-ID: <20090624184423.GK6779@linux.vnet.ibm.com>
+References: <20090624164535.GA13334@linux.vnet.ibm.com> <20090624180303.GE7576@elte.hu>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Anton VG <anton.vazir@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39533 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752631AbZFXSIy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 24 Jun 2009 14:08:54 -0400
-In-Reply-To: <c4b050a10906231656u53e20855ud5cf5833ca5db7cc@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, akpm@linux-foundation.org,
+	torvalds@linux-foundation.org, davem@davemloft.net,
+	dada1@cosmosbay.com, zbr@ioremap.net, jeff.chua.linux@gmail.com,
+	paulus@samba.org, laijs@cn.fujitsu.com, jengelh@medozas.de,
+	r000n@r000n.net, benh@kernel.crashing.org,
+	mathieu.desnoyers@polymtl.ca
+To: Ingo Molnar <mingo@elte.hu>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20090624180303.GE7576@elte.hu>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Anton VG wrote:
-> Hello!
+On Wed, Jun 24, 2009 at 08:03:03PM +0200, Ingo Molnar wrote:
 > 
-> Just spent all night trying to get the %SUBJ% working, but been
-> unable. There is no any other example in whole internet other than
-> included into a package and
-> http://software.inl.fr/trac/wiki/ulogd2/user
+> * Paul E. McKenney <paulmck@linux.vnet.ibm.com> wrote:
 > 
-> Ulogd starts, and tells that everything initialized - but
-> /var/log/ulogd_syslogemu.log - is always 0 bytes - no logging there.
+> >  include/linux/rcuclassic.h    |   15 ++-
+> 
+> heh, we dont have this file anymore ... as of today, right? :)
 
-Is nf_conntrack_netlink loaded?
+Ah, I was assuming that expedited RCU would happen before removal of
+Classic RCU.
 
-I still have to send a patch to autoload to the kernel to add support
-for this autoload.
+I will respin the expedited RCU patch.  ;-)
+
+							Thanx, Paul
