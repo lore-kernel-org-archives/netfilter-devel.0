@@ -1,36 +1,36 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [PATCH -tip 0/3] expedited "big hammer" RCU grace periods
-Date: Wed, 24 Jun 2009 11:44:23 -0700
-Message-ID: <20090624184423.GK6779@linux.vnet.ibm.com>
-References: <20090624164535.GA13334@linux.vnet.ibm.com> <20090624180303.GE7576@elte.hu>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Bruno Moreira Guedes <thbmatrix@gmail.com>
+Subject: Flux Between POST_ROUTING Verdicts and Packet Changes
+Date: Wed, 24 Jun 2009 17:06:01 -0300
+Message-ID: <3fdd6ce00906241306u633996f2n6219580ba8d12a74@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, akpm@linux-foundation.org,
-	torvalds@linux-foundation.org, davem@davemloft.net,
-	dada1@cosmosbay.com, zbr@ioremap.net, jeff.chua.linux@gmail.com,
-	paulus@samba.org, laijs@cn.fujitsu.com, jengelh@medozas.de,
-	r000n@r000n.net, benh@kernel.crashing.org,
-	mathieu.desnoyers@polymtl.ca
-To: Ingo Molnar <mingo@elte.hu>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20090624180303.GE7576@elte.hu>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: Netfilter <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from an-out-0708.google.com ([209.85.132.245]:28657 "EHLO
+	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751656AbZFXUF7 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 24 Jun 2009 16:05:59 -0400
+Received: by an-out-0708.google.com with SMTP id d40so1971653and.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 Jun 2009 13:06:02 -0700 (PDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 24, 2009 at 08:03:03PM +0200, Ingo Molnar wrote:
-> 
-> * Paul E. McKenney <paulmck@linux.vnet.ibm.com> wrote:
-> 
-> >  include/linux/rcuclassic.h    |   15 ++-
-> 
-> heh, we dont have this file anymore ... as of today, right? :)
+Hello all,
 
-Ah, I was assuming that expedited RCU would happen before removal of
-Classic RCU.
+Because I can't found many info about some problems, I want to know
+what happens betwen the moment I set the verdict in netfilter_queue,
+and the moment the packet is changed by the NAT part of netfilter.
 
-I will respin the expedited RCU patch.  ;-)
+Just to explain, I'm jumping all packets from nat::POSTROUTING and
+nat::PREROUTING to NFQUEUE, and creating conntrack entries to do
+SNAT/DNAT some packets. After creating the conntrack entries, I just
+set the verdict to NF_ACCEPT.
 
-							Thanx, Paul
+It seems to slow down my testing network, and I want to try to found
+why it's too slow.
+
+Thank you in the advance.
+
+--Bruno Moreira Guedes
