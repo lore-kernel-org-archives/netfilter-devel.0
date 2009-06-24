@@ -1,75 +1,116 @@
-From: "Paul E. McKenney" <paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org>
-Subject: Re: [PATCH 09/10] cfq-iosched: Uses its own open-coded rcu_barrier.
-Date: Wed, 24 Jun 2009 07:05:05 -0700
-Message-ID: <20090624140505.GA6779@linux.vnet.ibm.com>
-References: <20090623150330.22490.87327.stgit@localhost> <20090623150439.22490.14657.stgit@localhost> <20090624064236.GE31415@kernel.dk>
-Reply-To: paulmck-23VcF4HTsmIX0ybBhKVfKdBPR1lH4CV8@public.gmane.org
+From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Subject: [PATCH -tip 0/3] expedited "big hammer" RCU grace periods
+Date: Wed, 24 Jun 2009 09:45:36 -0700
+Message-ID: <20090624164535.GA13334@linux.vnet.ibm.com>
+Reply-To: paulmck@linux.vnet.ibm.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: Jesper Dangaard Brouer <hawk-4UpuNZONu4c@public.gmane.org>,
-	"David S. Miller" <davem-fT/PcQaiUtIeIZ0/mPfg9Q@public.gmane.org>, netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
-	linux-kernel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, dougthompson-aS9lmoZGLiVWk0Htik3J/w@public.gmane.org,
-	bluesmoke-devel-5NWGOfrQmneRv+LV9MX5uipxlwaOVQ5f@public.gmane.org,
-	Patrick McHardy <kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org>,
-	christine.caulfield-gM/Ye1E23mwN+BqQ9rBEUg@public.gmane.org, Trond.Myklebust-HgOvQuBEEgTQT0dZR+AlfA@public.gmane.org,
-	linux-wireless-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, johannes-cdvu00un1VgdHxzADdlk8Q@public.gmane.org,
-	yoshfuji-VfPWfsRibaP+Ru+s062T9g@public.gmane.org, shemminger-de/tnXTf+JLsfHDXvbKv3WD2FQJk+8+b@public.gmane.org,
-	linux-nfs-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, bfields-uC3wQj2KruNg9hUCZPvPmw@public.gmane.org, neilb-l3A5Bk7waGM@public.gmane.org,
-	linux-ext4-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, tytso-3s7WtUTddSA@public.gmane.org, adilger-xsfywfwIY+M@public.gmane.org,
-	netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-To: Jens Axboe <jens.axboe-QHcLZuEGTsvQT0dZR+AlfA@public.gmane.org>
-Return-path: <linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Cc: mingo@elte.hu, akpm@linux-foundation.org,
+	torvalds@linux-foundation.org, davem@davemloft.net,
+	dada1@cosmosbay.com, zbr@ioremap.net, jeff.chua.linux@gmail.com,
+	paulus@samba.org, laijs@cn.fujitsu.com, jengelh@medozas.de,
+	r000n@r000n.net, benh@kernel.crashing.org,
+	mathieu.desnoyers@polymtl.ca
+To: linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from e6.ny.us.ibm.com ([32.97.182.146]:41066 "EHLO e6.ny.us.ibm.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754061AbZFXQpi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 24 Jun 2009 12:45:38 -0400
 Content-Disposition: inline
-In-Reply-To: <20090624064236.GE31415-tSWWG44O7X1aa/9Udqfwiw@public.gmane.org>
-Sender: linux-nfs-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 24, 2009 at 08:42:37AM +0200, Jens Axboe wrote:
-> On Tue, Jun 23 2009, Jesper Dangaard Brouer wrote:
-> > This module cfq-iosched, has discovered the value of waiting for
-> > call_rcu() completion, but its has its own open-coded implementation
-> > of rcu_barrier(), which I don't think is 'strong' enough.
-> > 
-> > This patch only leaves a comment for the maintainers to consider.
-> 
-> We need a stronger primitive and rcu_barrier(), since we also need to
-> wait for the rcu calls to even be scheduled. So I don't think the below
-> can be improved, it's already fine.
+This patch set implements the "big hammer" expedited RCU grace periods.
+This leverages the existing per-CPU migration kthreads, as suggested
+by Ingo.  These are awakened in a loop, and waited for in a second loop.
+Not fully scalable, but removing the extra hop through smp_call_function
+reduces latency on systems with moderate numbers of CPUs.  The
+synchronize_rcu_expedited() and synchronize_bh_expedited() primitives
+invoke synchronize_sched_expedited(), except for CONFIG_PREEMPT_RCU,
+where they instead invoke synchronize_rcu() and synchronize_rcu_bh(),
+respectively.  This will be fixed in the future, after preemptable RCU
+is folded into the rcutree implementation.
 
-It is indeed important to first prevent new call_rcu() instances from
-being invoked, and only then invoke rcu_barrier().
+As before, this does nothing to expedite callbacks already registered
+with call_rcu() or call_rcu_bh(), but there is no need to.
 
-							Thanx, Paul
+Passes many hours of rcutorture testing in parallel with a script
+that randomly offlines and onlines CPUs in a number of configurations.
+Grace periods take about 40 microseconds on an 8-CPU Power machine, which
+I believe is good enough from a performance viewpoint for the near future.
+This represents some slowdown from v7, which was unfortunately necessary
+to fix some bugs.
 
-> > Signed-off-by: Jesper Dangaard Brouer <hawk-4UpuNZONu4c@public.gmane.org>
-> > ---
-> > 
-> >  block/cfq-iosched.c |    6 ++++++
-> >  1 files changed, 6 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/block/cfq-iosched.c b/block/cfq-iosched.c
-> > index 833ec18..c15555b 100644
-> > --- a/block/cfq-iosched.c
-> > +++ b/block/cfq-iosched.c
-> > @@ -2657,6 +2657,12 @@ static void __exit cfq_exit(void)
-> >  	/*
-> >  	 * this also protects us from entering cfq_slab_kill() with
-> >  	 * pending RCU callbacks
-> > +	 *
-> > +	 * hawk-4UpuNZONu4c@public.gmane.org 2009-06-18: Maintainer please consider using
-> > +	 *  rcu_barrier() instead of this open-coded wait for
-> > +	 *  completion implementation.  I think it provides a better
-> > +	 *  guarantee that all CPUs are finished, although
-> > +	 *  elv_ioc_count_read() do consider all CPUs.
-> >  	 */
-> >  	if (elv_ioc_count_read(ioc_count))
-> >  		wait_for_completion(&all_gone);
-> > 
-> 
-> -- 
-> Jens Axboe
-> 
---
-To unsubscribe from this list: send the line "unsubscribe linux-nfs" in
-the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+This is finally ready for inclusion.  ;-)
+
+Shortcomings:
+
+o	Does not address preemptable RCU (though synchronize_sched_expedited()
+	is in fact expedited in this configuration).
+
+o	Probably not helpful on systems with thousands of CPUs, but likely
+	quite helpful even on systems with a few hundred CPUs.
+
+Changes since v7:
+
+o	Fixed several embarrassing bugs turned up by tests on multiple
+	configurations.
+
+Changes since v6:
+
+o	Moved to using the migration threads, as suggested by Ingo.
+
+Changes since v5:
+
+o	Fixed several embarrassing locking bugs, including those
+	noted by Ingo and Lai.
+
+o	Added a missing set of braces.
+
+o	Cut out the extra kthread, so that synchronize_sched_expedited()
+	directly calls smp_call_function() and waits for the quiescent
+	states.
+
+o	Removed some debug code, but promoted one to production.
+
+o	Fix a compiler warning.
+
+Changes since v4:
+
+o	Use per-CPU kthreads to force the quiescent states in parallel.
+
+Changes since v3:
+
+o	Use a kthread that schedules itself on each CPU in turn to
+	force a grace period.  The synchronize_rcu() primitive
+	wakes up the kthread in order to avoid messing with affinity
+	masks on user tasks.
+
+o	Tried a number of additional variations on the v3 approach, none
+	of which helped much.
+
+Changes since v2:
+
+o	Use reschedule IPIs rather than a softirq.
+
+Changes since v1:
+
+o	Added rcutorture support, and added exports required by
+	rcutorture.
+
+o	Added comment stating that smp_call_function() implies a
+	memory barrier, suggested by Mathieu.
+
+o	Added #include for delay.h.
+
+ Documentation/RCU/torture.txt |   17 +++
+ include/linux/rcuclassic.h    |   15 ++-
+ include/linux/rcupdate.h      |   25 ++---
+ include/linux/rcupreempt.h    |   10 ++
+ include/linux/rcutree.h       |   12 ++
+ kernel/rcupdate.c             |   25 +++++
+ kernel/rcutorture.c           |  202 ++++++++++++++++++++++--------------------
+ kernel/sched.c                |  129 ++++++++++++++++++++++++++
+ 8 files changed, 327 insertions(+), 108 deletions(-)
