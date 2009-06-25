@@ -1,49 +1,43 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [PATCH -tip 0/3] expedited "big hammer" RCU grace periods
-Date: Thu, 25 Jun 2009 10:54:02 -0700
-Message-ID: <20090625175402.GB8852@linux.vnet.ibm.com>
-References: <20090624164535.GA13334@linux.vnet.ibm.com> <20090624180303.GE7576@elte.hu> <20090624184423.GK6779@linux.vnet.ibm.com> <20090625095953.GC29980@elte.hu> <alpine.LFD.2.01.0906250944511.3605@localhost.localdomain>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: iptables ERROR
+Date: Thu, 25 Jun 2009 20:08:32 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.0906252007200.19928@blackhole.kfki.hu>
+References: <1245934611.4518.58.camel@ripper.synapse.com> <1245938452.4518.63.camel@ripper.synapse.com> <alpine.LSU.2.00.0906251710030.20659@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Ingo Molnar <mingo@elte.hu>, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	akpm@linux-foundation.org, davem@davemloft.net,
-	dada1@cosmosbay.com, zbr@ioremap.net, jeff.chua.linux@gmail.com,
-	paulus@samba.org, laijs@cn.fujitsu.com, jengelh@medozas.de,
-	r000n@r000n.net, benh@kernel.crashing.org,
-	mathieu.desnoyers@polymtl.ca
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <alpine.LFD.2.01.0906250944511.3605@localhost.localdomain>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Ritesh Majumdar <r.majumdar@globallogic.com>,
+	netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp-in.kfki.hu ([148.6.0.26]:43317 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751021AbZFYSIb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 25 Jun 2009 14:08:31 -0400
+In-Reply-To: <alpine.LSU.2.00.0906251710030.20659@fbirervta.pbzchgretzou.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jun 25, 2009 at 09:47:02AM -0700, Linus Torvalds wrote:
-> 
-> 
-> On Thu, 25 Jun 2009, Ingo Molnar wrote:
-> > 
-> > Our general preference is to zap code.
-> > 
-> > /me stares at:
-> > 
-> >   $ git diff --stat -M v2.6.30..v2.6.31-rc1 | tail -1
-> >   7743 files changed, 782278 insertions(+), 403162 deletions(-)
-> > 
-> > /me corrects himself:
-> 
-> Yes. Our general preference is to zap code, if only because it's so damn 
-> unusual.
-> 
-> When one out of a hundred patches actually has more removals than 
-> additions, we make a big deal out of it ("Look - I actually simplified 
-> things"). For the 99 other patches we never size in polite company.
-> 
-> Oh well. But every time we add lines, we do it with the _best_ intentions.
+On Thu, 25 Jun 2009, Jan Engelhardt wrote:
 
-Indeed, I must confess that my recent patch removing about 1,000 lines
-of code is not all that typical of my submissions...
+> On Thursday 2009-06-25 16:00, Ritesh Majumdar wrote:
+> 
+> >As per my earlier mail.
+> >
+> >Here is error I get on my /var/log/messages.
+> >
+> >kernel: ip_tables: set match: invalid size 96 != 32
+> 
+> This could be related to http://markmail.org/message/dijxb6i6325t6hge
+> So be sure to use ipset 3.0 (it's out now) with iptables 1.4.4.
 
-							Thanx, Paul
+Yes, exactly: with ipset 3.0 you need iptables 1.4.4.
+
+I'm sorry for breaking backward compatibility.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
