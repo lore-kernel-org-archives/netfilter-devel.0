@@ -1,43 +1,28 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH v3 10/10] nf_conntrack: Use rcu_barrier()
-Date: Thu, 25 Jun 2009 16:33:44 +0200
-Message-ID: <4A438AC8.3010907@trash.net>
-References: <20090623150330.22490.87327.stgit@localhost>	 <20090623150444.22490.27931.stgit@localhost>  <4A410185.3090706@trash.net>	 <1245834139.6695.31.camel@localhost.localdomain>	 <1245836409.6695.35.camel@localhost.localdomain> <4A423108.60109@trash.net>	 <1245922153.24921.56.camel@localhost.localdomain> <1245924178.24921.61.camel@localhost.localdomain>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: iptables ERROR
+Date: Thu, 25 Jun 2009 17:11:28 +0200 (CEST)
+Message-ID: <alpine.LSU.2.00.0906251710030.20659@fbirervta.pbzchgretzou.qr>
+References: <1245934611.4518.58.camel@ripper.synapse.com> <1245938452.4518.63.camel@ripper.synapse.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Christoph Lameter <cl@linux-foundation.org>, linux-mm@kvack.org,
-	"David S. Miller" <davem@davemloft.net>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	dougthompson@xmission.com, bluesmoke-devel@lists.sourceforge.net,
-	axboe@kernel.dk, christine.caulfield@googlemail.com,
-	Trond.Myklebust@netapp.com, linux-wireless@vger.kernel.org,
-	johannes@sipsolutions.net, yoshfuji@linux-ipv6.org,
-	shemminger@linux-foundation.org, linux-nfs@vger.kernel.org,
-	bfields@fieldses.org, neilb@suse.de, linux-ext4@vger.kernel.org,
-	tytso@mit.edu, adilger@sun.com, netfilter-devel@vger.kernel.org
-To: jdb@comx.dk
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1245924178.24921.61.camel@localhost.localdomain>
-Sender: netdev-owner@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Ritesh Majumdar <r.majumdar@globallogic.com>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <1245938452.4518.63.camel@ripper.synapse.com>
+Sender: netfilter-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Jesper Dangaard Brouer wrote:
-> RCU barriers, rcu_barrier(), is inserted two places.
-> 
->  In nf_conntrack_expect.c nf_conntrack_expect_fini() before the
->  kmem_cache_destroy().  Firstly to make sure the callback to the
->  nf_ct_expect_free_rcu() code is still around.  Secondly because I'm
->  unsure about the consequence of having in flight
->  nf_ct_expect_free_rcu/kmem_cache_free() calls while doing a
->  kmem_cache_destroy() slab destroy.
-> 
->  And in nf_conntrack_extend.c nf_ct_extend_unregister(), inorder to
->  wait for completion of callbacks to __nf_ct_ext_free_rcu(), which is
->  invoked by __nf_ct_ext_add().  It might be more efficient to call
->  rcu_barrier() in nf_conntrack_core.c nf_conntrack_cleanup_net(), but
->  thats make it more difficult to read the code (as the callback code
->  in located in nf_conntrack_extend.c).
 
-Applied, thanks Jesper.
+On Thursday 2009-06-25 16:00, Ritesh Majumdar wrote:
+
+>Hello,
+>
+>As per my earlier mail.
+>
+>Here is error I get on my /var/log/messages.
+>
+>kernel: ip_tables: set match: invalid size 96 != 32
+
+This could be related to http://markmail.org/message/dijxb6i6325t6hge
+So be sure to use ipset 3.0 (it's out now) with iptables 1.4.4.
+
