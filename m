@@ -1,48 +1,42 @@
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: [PATCH -tip 0/3] expedited "big hammer" RCU grace periods
-Date: Thu, 25 Jun 2009 09:47:02 -0700 (PDT)
-Message-ID: <alpine.LFD.2.01.0906250944511.3605@localhost.localdomain>
-References: <20090624164535.GA13334@linux.vnet.ibm.com> <20090624180303.GE7576@elte.hu> <20090624184423.GK6779@linux.vnet.ibm.com> <20090625095953.GC29980@elte.hu>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 1/3] iptables: accept multiple IP address specifications
+ for -s, -d
+Date: Thu, 25 Jun 2009 19:08:13 +0200 (CEST)
+Message-ID: <alpine.LSU.2.00.0906251903520.26556@fbirervta.pbzchgretzou.qr>
+References: <1244229955-27642-1-git-send-email-jengelh@medozas.de> <1244229955-27642-2-git-send-email-jengelh@medozas.de> <4A2A1260.7050207@netfilter.org> <4A2D171E.9060401@trash.net> <alpine.LSU.2.00.0906101405590.30984@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, akpm@linux-foundation.org,
-	davem@davemloft.net, dada1@cosmosbay.com, zbr@ioremap.net,
-	jeff.chua.linux@gmail.com, paulus@samba.org, laijs@cn.fujitsu.com,
-	jengelh@medozas.de, r000n@r000n.net, benh@kernel.crashing.org,
-	mathieu.desnoyers@polymtl.ca
-To: Ingo Molnar <mingo@elte.hu>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:33690 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752974AbZFYQs3 (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:40629 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752005AbZFYRIL (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 25 Jun 2009 12:48:29 -0400
-In-Reply-To: <20090625095953.GC29980@elte.hu>
+	Thu, 25 Jun 2009 13:08:11 -0400
+In-Reply-To: <alpine.LSU.2.00.0906101405590.30984@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
+On   2009-06-10 12:19:59, Patrick wrote:
+>On Wednesday 2009-06-10 14:16, Jan Engelhardt wrote:
+>>
+>>Git is not as castrated as Hg when it comes to branches, so why not
+>>make a "stable" branch that is then regularly merged into master? :)
+>
+>I don't see why that would currently be necessary. We're talking
+>about a few days, and in fact I'd rather have people test the
+>current code before the release instead of hacking on new things :)
 
-On Thu, 25 Jun 2009, Ingo Molnar wrote:
-> 
-> Our general preference is to zap code.
-> 
-> /me stares at:
-> 
->   $ git diff --stat -M v2.6.30..v2.6.31-rc1 | tail -1
->   7743 files changed, 782278 insertions(+), 403162 deletions(-)
-> 
-> /me corrects himself:
+Yeah but in general? The - judging from their version numbers -
+x.y.z.S stable versions like 1.4.3.1 used to receive lots of new
+features because there is just master, in which case it should
+have been the new 1.4.4 already.
+So either z is bumped more often and S-versions will not
+be released, or S only receives fixes, necessiting a separate branch.
+Objections?
 
-Yes. Our general preference is to zap code, if only because it's so damn 
-unusual.
-
-When one out of a hundred patches actually has more removals than 
-additions, we make a big deal out of it ("Look - I actually simplified 
-things"). For the 99 other patches we never size in polite company.
-
-Oh well. But every time we add lines, we do it with the _best_ intentions.
-
-		Linus
+Jan
