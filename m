@@ -1,77 +1,43 @@
-From: Ritesh Majumdar <r.majumdar@globallogic.com>
-Subject: Re: iptables ERROR
-Date: Thu, 25 Jun 2009 19:30:52 +0530
-Message-ID: <1245938452.4518.63.camel@ripper.synapse.com>
-References: <1245934611.4518.58.camel@ripper.synapse.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH v3 10/10] nf_conntrack: Use rcu_barrier()
+Date: Thu, 25 Jun 2009 16:33:44 +0200
+Message-ID: <4A438AC8.3010907@trash.net>
+References: <20090623150330.22490.87327.stgit@localhost>	 <20090623150444.22490.27931.stgit@localhost>  <4A410185.3090706@trash.net>	 <1245834139.6695.31.camel@localhost.localdomain>	 <1245836409.6695.35.camel@localhost.localdomain> <4A423108.60109@trash.net>	 <1245922153.24921.56.camel@localhost.localdomain> <1245924178.24921.61.camel@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: netfilter@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx-del1-1.globallogic.com ([202.174.92.25]:59809 "EHLO
-	emailsecurity-del1-1.globallogic.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751499AbZFYO2m convert rfc822-to-8bit
-	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 25 Jun 2009 10:28:42 -0400
-In-Reply-To: <1245934611.4518.58.camel@ripper.synapse.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Christoph Lameter <cl@linux-foundation.org>, linux-mm@kvack.org,
+	"David S. Miller" <davem@davemloft.net>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	dougthompson@xmission.com, bluesmoke-devel@lists.sourceforge.net,
+	axboe@kernel.dk, christine.caulfield@googlemail.com,
+	Trond.Myklebust@netapp.com, linux-wireless@vger.kernel.org,
+	johannes@sipsolutions.net, yoshfuji@linux-ipv6.org,
+	shemminger@linux-foundation.org, linux-nfs@vger.kernel.org,
+	bfields@fieldses.org, neilb@suse.de, linux-ext4@vger.kernel.org,
+	tytso@mit.edu, adilger@sun.com, netfilter-devel@vger.kernel.org
+To: jdb@comx.dk
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1245924178.24921.61.camel@localhost.localdomain>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+Jesper Dangaard Brouer wrote:
+> RCU barriers, rcu_barrier(), is inserted two places.
+> 
+>  In nf_conntrack_expect.c nf_conntrack_expect_fini() before the
+>  kmem_cache_destroy().  Firstly to make sure the callback to the
+>  nf_ct_expect_free_rcu() code is still around.  Secondly because I'm
+>  unsure about the consequence of having in flight
+>  nf_ct_expect_free_rcu/kmem_cache_free() calls while doing a
+>  kmem_cache_destroy() slab destroy.
+> 
+>  And in nf_conntrack_extend.c nf_ct_extend_unregister(), inorder to
+>  wait for completion of callbacks to __nf_ct_ext_free_rcu(), which is
+>  invoked by __nf_ct_ext_add().  It might be more efficient to call
+>  rcu_barrier() in nf_conntrack_core.c nf_conntrack_cleanup_net(), but
+>  thats make it more difficult to read the code (as the callback code
+>  in located in nf_conntrack_extend.c).
 
-As per my earlier mail.
-
-Here is error I get on my /var/log/messages.
-
-kernel: ip_tables: set match: invalid size 96 !=3D 32
-
-
-
-Thanks,
-
-
-
-
-On Thu, 2009-06-25 at 18:26 +0530, Ritesh Majumdar wrote:
-> Hello List,
->=20
-> I have recently added ipset code in to my kernel, so all the ipset
-> ralated ko's can be compiled while I compile kernel.
-> my compilation works fine and I can add ipset rules successfully.
-> but when I add iptables rules to macth specific set I get error.
->=20
-> Here is what I am trying to do.
->=20
-> =EF=BB=BF
->=20
-> ipset -N a_ipset iphash=20
-> iptables -N a=20
-> iptables -N b=20
-> iptables -A a -p udp -m set --set a_ipset dst -j b=20
->=20
->=20
->=20
->=20
->=20
-> when I try to add the last rule,(=EF=BB=BFiptables -A a -p udp -m set=
- --set
-> a_ipset dst -j b)  it fails with the error as below.
->=20
-> iptables: Invalid argument
->=20
->=20
->=20
-> I am not sure if its ipset issue or iptables.
->=20
-> I am using "kernel 2.6.27" "ipset-2.4.9" and "iptables-1.4.1.91"
->=20
->=20
-> Many Thanks.
-> Ritesh.
->=20
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Applied, thanks Jesper.
