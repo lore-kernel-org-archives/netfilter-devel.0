@@ -1,179 +1,40 @@
-From: Krzysztof Oledzki <ole@ans.pl>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: netfilter 01/03: nf_conntrack_tcp: decrease timeouts while data
  in unacknowledged
-Date: Fri, 26 Jun 2009 16:39:21 +0200 (CEST)
-Message-ID: <alpine.LNX.1.10.0906261627500.2240@bizon.gios.gov.pl>
-References: <20080731063312.18150.49494.sendpatchset@localhost.localdomain> <20080731063313.18150.27237.sendpatchset@localhost.localdomain>
+Date: Fri, 26 Jun 2009 17:14:35 +0200
+Message-ID: <4A44E5DB.8000304@trash.net>
+References: <20080731063312.18150.49494.sendpatchset@localhost.localdomain> <20080731063313.18150.27237.sendpatchset@localhost.localdomain> <alpine.LNX.1.10.0906261627500.2240@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="-1144830174-745137407-1246027161=:2240"
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+To: Krzysztof Oledzki <ole@ans.pl>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bizon.gios.gov.pl ([195.187.34.71]:60335 "EHLO
-	bizon.gios.gov.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752546AbZFZOj1 (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:33499 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753096AbZFZPOg (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 26 Jun 2009 10:39:27 -0400
-In-Reply-To: <20080731063313.18150.27237.sendpatchset@localhost.localdomain>
+	Fri, 26 Jun 2009 11:14:36 -0400
+In-Reply-To: <alpine.LNX.1.10.0906261627500.2240@bizon.gios.gov.pl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Krzysztof Oledzki wrote:
+> This patch kills long living ftp transfers from one of my hosts. I'm not 
+> able to transfer large files if it takes more than 
+> net.netfilter.nf_conntrack_tcp_timeout_unacknowledged seconds.
+> 
+> After logging to the remote host and issuing any FTP command (ls or 
+> put/get for example) tuple's timeout is reduced. Additional commands are 
+> able to bump it but only upto 
+> net.netfilter.nf_conntrack_tcp_timeout_unacknowledged.
+> 
+> It seems that IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED flag is never cleard.
+> 
+> Tested on 2.6.28.10.
 
----1144830174-745137407-1246027161=:2240
-Content-Type: TEXT/PLAIN; charset=iso-8859-2; format=flowed
-Content-Transfer-Encoding: 8BIT
+Interesting, are you using the FTP NAT helper?
 
-
-
-On Thu, 31 Jul 2008, Patrick McHardy wrote:
-
-> netfilter: nf_conntrack_tcp: decrease timeouts while data in unacknowledged
->
-> In order to time out dead connections quicker, keep track of outstanding data
-> and cap the timeout.
->
-> Suggested by Herbert Xu.
->
-> Signed-off-by: Patrick McHardy <kaber@trash.net>
-
-<CUT>
-
-This patch kills long living ftp transfers from one of my hosts. I'm not 
-able to transfer large files if it takes more than 
-net.netfilter.nf_conntrack_tcp_timeout_unacknowledged seconds.
-
-After logging to the remote host and issuing any FTP command (ls or 
-put/get for example) tuple's timeout is reduced. Additional commands are 
-able to bump it but only upto 
-net.netfilter.nf_conntrack_tcp_timeout_unacknowledged.
-
-It seems that IP_CT_TCP_FLAG_DATA_UNACKNOWLEDGED flag is never cleard.
-
-Tested on 2.6.28.10.
-
-Attaching raw tcpdump from the session.
-
-Best regards,
-
-
- 				Krzysztof Olêdzki
----1144830174-745137407-1246027161=:2240
-Content-Type: APPLICATION/octet-stream; name=ae375044d31075a31de5a839e07ded7f67b660aa-bugreport1
-Content-Transfer-Encoding: BASE64
-Content-ID: <alpine.LNX.1.10.0906261639210.2240@bizon.gios.gov.pl>
-Content-Description: 
-Content-Disposition: attachment; filename=ae375044d31075a31de5a839e07ded7f67b660aa-bugreport1
-
-1MOyoQIABAAAAAAAAAAAAP//AAABAAAA9dhESnhfAwBKAAAASgAAAAAdCWdx
-FQATcjz9/ggARQAAPHE1QABABvF9wKiBjlPuQeSFBAAVlahHDgAAAACgAhbQ
-QocAAAIEBbQEAggKfpQ2OwAAAAABAwMH9dhESlukAwBOAAAATgAAAAATcjz9
-/gAdCWdxFQgARQAAQGchQAB8Br+NU+5B5MCogY4AFYUEcbIlN5WoRw+wEv//
-ZS0AAAIEBbQBAwMAAQEICgAAAAAAAAAAAQEEAvXYRErFpAMAQgAAAEIAAAAA
-HQlncRUAE3I8/f4IAEUAADRxNkAAQAbxhMCogY5T7kHkhQQAFZWoRw9xsiU4
-gBAALvDoAAABAQgKfpQ2TQAAAAD12ERKdPYDAGgAAABoAAAAABNyPP3+AB0J
-Z3EVCABFAABaZyJAAHwGv3JT7kHkwKiBjgAVhQRxsiU4lahHD4AY//9WeAAA
-AQEICgDZGqd+lDZNMjIwIFRpdGFuIEZUUCBTZXJ2ZXIgNS4zMi4zNzYgUmVh
-ZHkuDQr12ERKAPcDAEIAAABCAAAAAB0JZ3EVABNyPP3+CABFAAA0cTdAAEAG
-8YPAqIGOU+5B5IUEABWVqEcPcbIlXoAQAC7VLQAAAQEICn6UNmIA2Rqn9dhE
-SrD5AwBRAAAAUQAAAAAdCWdxFQATcjz9/ggARQAAQ3E4QABABvFzwKiBjlPu
-QeSFBAAVlahHD3GyJV6AGAAuVr0AAAEBCAp+lDZjANkap1VTRVIgKioqKioq
-KioNCvXYREq+WgQAZgAAAGYAAAAAE3I8/f4AHQlncRUIAEUAAFhnI0AAfAa/
-c1PuQeTAqIGOABWFBHGyJV6VqEcegBj/8CglAAABAQgKANkap36UNmMzMzEg
-VXNlciBuYW1lIG9rYXksIG5lZWQgcGFzc3dvcmQuDQr12ERKA/oEAEIAAABC
-AAAAAB0JZ3EVABNyPP3+CABFAAA0cTlAAEAG8YHAqIGOU+5B5IUEABWVqEce
-cbIlgoAQAC7UuAAAAQEICn6UNqQA2Rqn99hEStqyDQBVAAAAVQAAAAAdCWdx
-FQATcjz9/ggARQAAR3E6QABABvFtwKiBjlPuQeSFBAAVlahHHnGyJYKAGAAu
-bmYAAAEBCAp+lECwANkap1BBU1MgKioqKioqKipwYXNzDQr32ERKvFwOALAA
-AACwAAAAABNyPP3+AB0JZ3EVCABFAACiZ8FAAHwGvotT7kHkwKiBjgAVhQRx
-siWClahHMYAY/90ZnAAAAQEICgDZGsJ+lECwMjMwLVdlbGNvbWUgKioqKioq
-KiogZnJvbSAxOTUuMTc3LjIxMC4xMS4gWW91IGFyZSBub3cgbG9nZ2VkIGlu
-IHRvIHRoZSBzZXJ2ZXIuDQoyMzAgVXNlciBsb2dnZWQgaW4sIHByb2NlZWQu
-DQr32ERKR10OAEIAAABCAAAAAB0JZ3EVABNyPP3+CABFAAA0cTtAAEAG8X/A
-qIGOU+5B5IUEABWVqEcxcbIl8IAQAC7J5AAAAQEICn6UQNwA2RrC99hESuVd
-DgBHAAAARwAAAAAdCWdxFQATcjz9/ggARQAAOXE8QABABvF5wKiBjlPuQeSF
-BAAVlahHMXGyJfCAGAAuK3MAAAEBCAp+lEDcANkawlBXRA0K99hESrWnDgBh
-AAAAYQAAAAATcjz9/gAdCWdxFQgARQAAU2fCQAB8Br7ZU+5B5MCogY4AFYUE
-cbIl8JWoRzaAGP/YLhYAAAEBCAoA2RrCfpRA3DI1NyAiLyIgaXMgY3VycmVu
-dCBkaXJlY3RvcnkuDQr32ERKmagOAEgAAABIAAAAAB0JZ3EVABNyPP3+CABF
-AAA6cT1AAEAG8XfAqIGOU+5B5IUEABWVqEc2cbImD4AYAC40/AAAAQEICn6U
-QO8A2RrCRkVBVA0K99hESnDzDgDOAAAAzgAAAAATcjz9/gAdCWdxFQgARQAA
-wGfEQAB8Br5qU+5B5MCogY4AFYUEcbImD5WoRzyAGP/S5lsAAAEBCAoA2RrC
-fpRA7zIxMS1FeHRlbnNpb25zIFN1cHBvcnRlZA0KIENPTUINCiBNTFNUIHR5
-cGUqO3NpemUqO21vZGlmeSo7Y3JlYXRlKjtwZXJtKjsNCiBTSVpFDQogTURU
-TQ0KIFhDUkMNCiBSRVNUIFNUUkVBTQ0KIEVQUlQNCiBFUFNWDQogRFFUQQ0K
-MjExIEVuZA0K99hESsf0DgBNAAAATQAAAAAdCWdxFQATcjz9/ggARQAAP3E+
-QABABvFxwKiBjlPuQeSFBAAVlahHPHGyJpuAGAA2e6MAAAEBCAp+lEECANka
-wkhFTFAgU0lURQ0K+NhESgsDAACRAQAAkQEAAAATcjz9/gAdCWdxFQgARQAB
-g2fKQAB8Br2hU+5B5MCogY4AFYUEcbImm5WoR0eAGP/HWygAAAEBCAoA2RrC
-fpRBAjIxNC1UaGUgZm9sbG93aW5nIGNvbW1hbmRzIGFyZSByZWNvZ25pemVk
-ICgqID0+IHVuaW1wbGVtZW50ZWQpLg0KIEFCT1IgIEFDQ1QqIEFMTE8qIEFQ
-UEUgIENEVVAgIENXRCAgIERFTEUgIEhFTFANCiBMSVNUICBOTFNUICBNRFRN
-ICBNS0QgICBNT0RFICBOT09QICBQQVNTICBQQVNWDQogUE9SVCAgUFdEICAg
-UVVJVCAgUkVJTiAgUkVTVCAgUkVUUiAgUk1EICAgUk5GUg0KIFJOVE8gIFNJ
-VEUgIFNJWkUgIFNNTlQqIFNUQVQgIFNUT1IgIFNUT1UgIFNUUlUNCiBTWVNU
-ICBUWVBFICBVU0VSICBYQ1VQICBYQ1dEICBYTUtEICBYUFdEICBYUk1EDQog
-RFFUQQ0KMjE0IEVuZCBvZiBIZWxwLg0K+NhESroEAABnAAAAZwAAAAAdCWdx
-FQATcjz9/ggARQAAWXE/QABABvFWwKiBjlPuQeSFBAAVlahHR3GyJ+qAGAA/
-DM4AAAEBCAp+lEEXANkawkNMTlQgTmNGVFAgMy4yLjIgbGludXgteDg2LWds
-aWJjMi43DQr42ERKwUkAAFMAAABTAAAAABNyPP3+AB0JZ3EVCABFAABFZ8tA
-AHwGvt5T7kHkwKiBjgAVhQRxsifqlahHbIAY/6Jn0gAAAQEICgDZGsJ+lEEX
-MjAwIENvbW1hbmQgT0suDQr42ERK7eYAAEIAAABCAAAAAB0JZ3EVABNyPP3+
-CABFAAA0cUBAAEAG8XrAqIGOU+5B5IUEABWVqEdscbIn+4AQAD/HGAAAAQEI
-Cn6UQVEA2RrC/dhEShDDAwBkAAAAZAAAAAAdCWdxFQATcjz9/ggARQAAVnFB
-QABABvFXwKiBjlPuQeSFBAAVlahHbHGyJ/uAGAA/C8QAAAEBCAp+lFWVANka
-wk9QVFMgTUxTVCB0eXBlO3NpemU7bW9kaWZ5O3Blcm07DQr92ERKkQkEAHMA
-AABzAAAAABNyPP3+AB0JZ3EVCABFAABlaJ5AAHwGvetT7kHkwKiBjgAVhQRx
-sif7lahHjoAY/4BRyAAAAQEICgDZGvd+lFWVMjAwIG1sc3Qgb3B0cyB0eXBl
-KjtzaXplKjttb2RpZnkqO2NyZWF0ZTtwZXJtKjsNCv3YREoKCgQAQgAAAEIA
-AAAAHQlncRUAE3I8/f4IAEUAADRxQkAAQAbxeMCogY5T7kHkhQQAFZWoR45x
-sigsgBAAP7I6AAABAQgKfpRVpwDZGvf92ERKjQoEAGAAAABgAAAAAB0JZ3EV
-ABNyPP3+CABFAABScUNAAEAG8VnAqIGOU+5B5IUEABWVqEeOcbIoLIAYAD/F
-/gAAAQEICn6UVacA2Rr3UE9SVCAxOTIsMTY4LDEyOSwxNDIsMjM2LDE2NA0K
-/dhESoRTBABgAAAAYAAAAAATcjz9/gAdCWdxFQgARQAAUmifQAB8Br39U+5B
-5MCogY4AFYUEcbIoLJWoR6yAGP9j9ekAAAEBCAoA2Rr3fpRVpzIwMCBQT1JU
-IGNvbW1hbmQgc3VjY2Vzc2Z1bC4NCv3YREpNVAQASAAAAEgAAAAAHQlncRUA
-E3I8/f4IAEUAADpxREAAQAbxcMCogY5T7kHkhQQAFZWoR6xxsihKgBgAPwRD
-AAABAQgKfpRVugDZGvdNTFNEDQr92ERK3JsEAHgAAAB4AAAAABNyPP3+AB0J
-Z3EVCABFAABqaKFAAHwGveNT7kHkwKiBjgAVhQRxsihKlahHsoAY/10+gQAA
-AQEICgDZGvh+lFW6MTUwIEZpbGUgc3RhdHVzIG9rYXk7IGFib3V0IHRvIG9w
-ZW4gZGF0YSBjb25uZWN0aW9uLg0K/dhESsedBAA+AAAAPgAAAAATcjz9/gAd
-CWdxFQgARQAAMGiiQAB8Br4cU+5B5MCogY4AFOykiepqnwAAAABwAv//ydMA
-AAIEBbQBAQQC/dhESjqeBAA+AAAAPgAAAAAdCWdxFQATcjz9/ggARQAAMAAA
-QABABmK/wKiBjlPuQeTspAAUnagTl4nqaqBwEhbQAbMAAAIEBbQBAQQC/dhE
-SvrdBAA2AAAANgAAAAATcjz9/gAdCWdxFQgARQAAKGikQAB8Br4iU+5B5MCo
-gY4AFOykiepqoJ2oE5hQEP//RUcAAP3YREqy8AQAJwEAACcBAAAAE3I8/f4A
-HQlncRUIAEUAARlopUAAfAa9MFPuQeTAqIGOABTspInqaqCdqBOYUBj///rw
-AAB0eXBlPWRpcjtzaXplPTUxMjttb2RpZnk9MjAwOTA2MjYxMzQ0NDQ7cGVy
-bT1jZGVmbG1wOyAuDQp0eXBlPWRpcjtzaXplPTUxMjttb2RpZnk9MjAwOTA2
-MjYxMzQ0NDQ7cGVybT1jZGVmbG1wOyAuLg0KdHlwZT1kaXI7c2l6ZT01MTI7
-bW9kaWZ5PTIwMDkwNjI2MTM0NDQ0O3Blcm09Y2RlZmxtcDsgMjYuMDYuMjAw
-OQ0KdHlwZT1kaXI7c2l6ZT01MTI7bW9kaWZ5PTIwMDkwNjI1MTc1NzMyO3Bl
-cm09Y2RlZmxtcDsgYXJjaA0K/dhESizxBAA8AAAAPAAAAAAdCWdxFQATcjz9
-/ggARQAAKEZFQABABhyCwKiBjlPuQeTspAAUnagTmInqa5FQEBkgKzYAAAAA
-AAAAAP3YREpr8QQANgAAADYAAAAAE3I8/f4AHQlncRUIAEUAAChopkAAfAa+
-IFPuQeTAqIGOABTspInqa5GdqBOYUBH//0RVAAD92ERK4PEEADwAAAA8AAAA
-AB0JZ3EVABNyPP3+CABFAAAoRkZAAEAGHIHAqIGOU+5B5OykABSdqBOYiepr
-klARGSArNAAAAAAAAAAA/dhESi7zBAB3AAAAdwAAAAATcjz9/gAdCWdxFQgA
-RQAAaWinQAB8Br3eU+5B5MCogY4AFYUEcbIogJWoR7KAGP9d6WUAAAEBCAoA
-2Rr4fpRVujIyNiBDbG9zaW5nIGRhdGEgY29ubmVjdGlvbi4gVHJhbnNmZXJy
-ZWQgMjQxIGJ5dGVzLg0K/dhESovzBABCAAAAQgAAAAAdCWdxFQATcjz9/ggA
-RQAANHFFQABABvF1wKiBjlPuQeSFBAAVlahHsnGyKLWAEAA/sVAAAAEBCAp+
-lFXjANka+P3YREp2MgUANgAAADYAAAAAE3I8/f4AHQlncRUIAEUAAChoqEAA
-fAa+HlPuQeTAqIGOABTspInqa5KdqBOZUBD//0RUAAAG2URKnyoCAEgAAABI
-AAAAAB0JZ3EVABNyPP3+CABFAAA6cUZAAEAG8W7AqIGOU+5B5IUEABWVqEey
-cbIotYAYAD/nHQAAAQEICn6UeFQA2Rr4UVVJVA0KBtlESs11AgCaAAAAmgAA
-AAATcjz9/gAdCWdxFQgARQAAjGn4QAB8BrxqU+5B5MCogY4AFYUEcbIotZWo
-R7iAGP9X8+MAAAEBCAoA2RtQfpR4VDIyMSBTZXNzaW9uIEVuZGVkLiBEb3du
-bG9hZGVkIDBLQiwgVXBsb2FkZWQgMEtCLiBHb29kYnllICoqKioqKioqIGZy
-b20gMTk1LjE3Ny4yMTAuMTEuDQoG2URKZnYCAEIAAABCAAAAAB0JZ3EVABNy
-PP3+CABFAAA0cUdAAEAG8XPAqIGOU+5B5IUEABWVqEe4cbIpDYARAD+OFAAA
-AQEICn6UeGgA2RtQBtlESqJ2AgBCAAAAQgAAAAATcjz9/gAdCWdxFQgARQAA
-NGn5QAB8BrzBU+5B5MCogY4AFYUEcbIpDZWoR7iAEf9Xjw8AAAEBCAoA2RtQ
-fpR4VAbZREoIdwIAQgAAAEIAAAAAHQlncRUAE3I8/f4IAEUAADRxSEAAQAbx
-csCogY5T7kHkhQQAFZWoR7lxsikOgBAAP44TAAABAQgKfpR4aADZG1AG2URK
-FbcCAEIAAABCAAAAABNyPP3+AB0JZ3EVCABFAAA0afpAAHwGvMBT7kHkwKiB
-jgAVhQRxsikOlahHuYAQ/1eO+gAAAQEICgDZG1B+lHho
-
----1144830174-745137407-1246027161=:2240--
+I'm guessing there is some bad interaction between sequence number
+adjustments when changing the packet sizes and sequence number
+tracking in conntrack.
