@@ -1,74 +1,41 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 07/10] xtables: add multi-registration functions
-Date: Fri, 26 Jun 2009 21:19:49 +0200
-Message-ID: <1246043992-379-8-git-send-email-jengelh@medozas.de>
-References: <1246043992-379-1-git-send-email-jengelh@medozas.de>
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: Ulogd2 beta3 +NFCT - unable to get working
+Date: Sat, 27 Jun 2009 23:13:36 +0200
+Message-ID: <4A468B80.7090108@netfilter.org>
+References: <c4b050a10906231656u53e20855ud5cf5833ca5db7cc@mail.gmail.com>	 <4A426A1C.6050003@netfilter.org> <4A426B0F.3070309@netfilter.org> <c4b050a10906241354w648ffffo50bfa0305f08bee5@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Anton VG <anton.vazir@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:39674 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761323AbZFZTUM (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 26 Jun 2009 15:20:12 -0400
-In-Reply-To: <1246043992-379-1-git-send-email-jengelh@medozas.de>
+Received: from mail.us.es ([193.147.175.20]:47383 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751148AbZF0VNt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 27 Jun 2009 17:13:49 -0400
+In-Reply-To: <c4b050a10906241354w648ffffo50bfa0305f08bee5@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Similar to the ones that are present in the kernel.
+Anton VG wrote:
+> Yes, it's loaded, here is the list of loaded modules.
+> 
+> # lsmod|grep nf
+> nf_conntrack_netlink    17040  0
+> nfnetlink_log           9396  1 xt_NFLOG
+> nfnetlink               5176  5 nf_conntrack_netlink,nfnetlink_log
+> nf_nat                 19876  1 iptable_nat
+> nf_conntrack_ipv4      14472  7 iptable_nat,nf_nat
+> nf_defrag_ipv4          2240  1 nf_conntrack_ipv4
+> nf_conntrack           70624  7
+> xt_connbytes,nf_conntrack_netlink,xt_conntrack,iptable_nat,nf_nat,nf_conntrack_ipv4,sch_esfq
+> #
+> 
+> But I suppose it would not log any connections in case it's not? But
+> it does some, but in unpredictable manner.
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- include/xtables.h.in |    2 ++
- xtables.c            |   14 ++++++++++++++
- 2 files changed, 16 insertions(+), 0 deletions(-)
+What do you mean with "unpredictable manner"? Does `conntrack -E' show
+events? Did you set CONFIG_NF_CONNTRACK_EVENTS=y in your kernel?
 
-diff --git a/include/xtables.h.in b/include/xtables.h.in
-index 037fae1..222e2a9 100644
---- a/include/xtables.h.in
-+++ b/include/xtables.h.in
-@@ -233,7 +233,9 @@ extern struct xtables_target *xtables_find_target(const char *name,
- 
- /* Your shared library should call one of these. */
- extern void xtables_register_match(struct xtables_match *me);
-+extern void xtables_register_matches(struct xtables_match *, unsigned int);
- extern void xtables_register_target(struct xtables_target *me);
-+extern void xtables_register_targets(struct xtables_target *, unsigned int);
- 
- extern bool xtables_strtoul(const char *, char **, unsigned long *,
- 	unsigned long, unsigned long);
-diff --git a/xtables.c b/xtables.c
-index 05154dd..1ff6e82 100644
---- a/xtables.c
-+++ b/xtables.c
-@@ -794,6 +794,13 @@ void xtables_register_match(struct xtables_match *me)
- 	me->mflags = 0;
- }
- 
-+void xtables_register_matches(struct xtables_match *match, unsigned int n)
-+{
-+	do {
-+		xtables_register_match(&match[--n]);
-+	} while (n > 0);
-+}
-+
- void xtables_register_target(struct xtables_target *me)
- {
- 	struct xtables_target *old;
-@@ -868,6 +875,13 @@ void xtables_register_target(struct xtables_target *me)
- 	me->tflags = 0;
- }
- 
-+void xtables_register_targets(struct xtables_target *target, unsigned int n)
-+{
-+	do {
-+		xtables_register_target(&target[--n]);
-+	} while (n > 0);
-+}
-+
- /**
-  * xtables_param_act - act on condition
-  * @status:	a constant from enum xtables_exittype
--- 
-1.6.3.2
-
+BTW, you have an example config file inside the ulogd2 directory. Have a
+look at ulogd2.conf, it contains several useful examples.
