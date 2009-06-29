@@ -1,42 +1,77 @@
-From: Joe Perches <joe@perches.com>
-Subject: [PATCH] MAINTAINERS: Add NETFILTER git
-Date: Mon, 29 Jun 2009 08:59:58 -0700
-Message-ID: <1246291198.10129.19.camel@Joe-Laptop.home>
-References: <20090629142007.5728.63458.sendpatchset@x2.localnet>
+From: Nishit Shah <nsshah.82@gmail.com>
+Subject: Re: arptables ruleset not working when compiling on
+	fedora6,7,8/centos 5/redhat 5
+Date: Mon, 29 Jun 2009 21:48:20 +0530
+Message-ID: <b2d58cb80906290918q2da5af1ap87772755b3363032@mail.gmail.com>
+References: <b2d58cb80906290712k33c1ebbvfc8e661cb34c502c@mail.gmail.com>
+	 <56378e320906290721i63f969edm90aed19619decf71@mail.gmail.com>
+	 <b2d58cb80906290751j7fb3976bx9d04fed852c8b451@mail.gmail.com>
+	 <4A48D6AD.4010005@trash.net>
+	 <b2d58cb80906290818t66616f70k2fe7596b906a8a4e@mail.gmail.com>
+	 <4A48E14A.3060708@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: davem@davemloft.net, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Richard Horton <arimus.uk@googlemail.com>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 136-022.dsl.LABridge.com ([206.117.136.22]:2720 "EHLO
-	mail.perches.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751999AbZF2QAA (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 29 Jun 2009 12:00:00 -0400
-In-Reply-To: <20090629142007.5728.63458.sendpatchset@x2.localnet>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <4A48E14A.3060708@trash.net>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, 2009-06-29 at 16:20 +0200, Patrick McHardy wrote:
-> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git
+On Mon, Jun 29, 2009 at 9:14 PM, Patrick McHardy<kaber@trash.net> wrote=
+:
+> Nishit Shah wrote:
+>>
+>> On Mon, Jun 29, 2009 at 8:28 PM, Patrick McHardy<kaber@trash.net> wr=
+ote:
+>>>
+>>> Nishit Shah wrote:
+>>>>
+>>>> On Mon, Jun 29, 2009 at 7:51 PM, Richard
+>>>> Horton<arimus.uk@googlemail.com>
+>>>> wrote:
+>>>>>
+>>>>> 2009/6/29 Nishit Shah <nsshah.82@gmail.com>:
+>>>>>>
+>>>>>> Hi,
+>>>>>> =A0 =A0 =A0 I am compiling arptables-v0.0.3-3/arptables-v0.0.3-2=
+ on
+>>>>>> fedora6,7,8/centos 5/redhat 5. Module is compiled successfully.
+>>>>>> Following are the simple steps.
+>>>
+>>> Which kernel versions (the lowest) are these running?
+>>>
+>>
+>> lowest is 2.6.18.
+>
+> Ah, I remember, we had some breakage with of the ARPT codes with the
+> introduction of x_tables in 2.6.16. Please try to figure out the
+> difference of those values between working and non-working state
+> (ARPT_CONTINUE, ARPT_RETURN etc.)
+>
 
-Do you think this should be added to MAINTAINERS?
+Bingo !!!
 
-Signed-off-by: Joe Perches <joe@perches.com>
+It is due to the value of ARPT_RETURN. ARPT_RETURN defined in
+arptables-v0.0.3-3 is
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index fa2a16d..a5042de 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -4044,6 +4044,7 @@ L:	netfilter@vger.kernel.org
- L:	coreteam@netfilter.org
- W:	http://www.netfilter.org/
- W:	http://www.iptables.org/
-+T:	git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git
- S:	Supported
- F:	include/linux/netfilter*
- F:	include/linux/netfilter/
+=2E/include/linux/netfilter_arp/arp_tables.h:#define ARPT_RETURN
+(-NF_MAX_VERDICT - 1)
 
+and value of NF_MAX_VERDICT is different on machine running with gcc
+2.96/glibc 2.2.4 and above all machines.
 
+value of NF_MAX_VERDICT on machine running gcc 2.96 and glibc 2.2.4,
+
+        /usr/include/linux/netfilter.h:#define NF_MAX_VERDICT NF_REPEAT
+
+and same file on all above machines,
+
+        /usr/include/linux/netfilter.h:#define NF_MAX_VERDICT NF_STOP
+
+Thanks Patrick :)
+
+Rgds,
+Nishit Shah.
