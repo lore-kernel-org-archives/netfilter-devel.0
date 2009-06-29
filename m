@@ -1,50 +1,46 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re:
-Date: Mon, 29 Jun 2009 14:56:58 +0200
-Message-ID: <4A48BA1A.2010309@trash.net>
-References: <1246043992-379-1-git-send-email-jengelh@medozas.de>
+From: Nishit Shah <nsshah.82@gmail.com>
+Subject: arptables ruleset not working when compiling on fedora6,7,8/centos
+	5/redhat 5
+Date: Mon, 29 Jun 2009 19:42:11 +0530
+Message-ID: <b2d58cb80906290712k33c1ebbvfc8e661cb34c502c@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:36414 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751489AbZF2M5E (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 29 Jun 2009 08:57:04 -0400
-In-Reply-To: <1246043992-379-1-git-send-email-jengelh@medozas.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Jan Engelhardt wrote:
-> Hi,
-> 
-> 
-> here are a number of patches I am suggesting for the -master branch
-> (-stable is separate in my view and my management, but see other
-> discussion thread).
-> Pullable from
-> 	git://dev.medozas.de/iptables master
-> 
-> 
-> Jan Engelhardt (9):
->       libiptc: split v4 and v6
->       extensions: collapse registration structures
->       iptables: allow for parse-less extensions
->       iptables: allow for help-less extensions
->       extensions: remove empty help and parse functions
->       xtables: add multi-registration functions
->       extensions: collapse data variables to use multi-reg calls
->       xtables: warn of missing version identifier in extensions
->       COMMIT_NOTES: notice to check for soversion bumps
-> 
-> Michael Granzow (1):
->       iptables: accept multiple IP address specifications for -s, -d
+Hi,
+         I am compiling arptables-v0.0.3-3/arptables-v0.0.3-2 on
+fedora6,7,8/centos 5/redhat 5. Module is compiled successfully.
+Following are the simple steps.
 
-Looks good, pulled and pushed out again, thanks.
+        make
+        make install
 
-> (Shall I post the entire mergestat, or just the "X files changed" line?)
+        Now, I am applying following rules,
 
-This is fine, I mainly want something comparable to the git pull output.
+        arptables -N user1
+        arptables -N user2
+        arptables -N user3
+
+        arptables -A INPUT -j user1
+        arptables -A INPUT -j user2
+        arptables -A INPUT -j user3
+
+       when I am doing arptables -nvx -L, I am getting packet counts
+on only "arptables -A INPUT -j user1", no packet counts on user2 and
+user3 chains. If I remove the user1 chain, I am getting packet counts
+on user2 chain, not on user3 chain. It means only the first user
+defined chain is traversing.
+
+       all above machine contains gcc >= 4.1.2 and glibc >= 2.5
+
+       If i compile the same source with machine having gcc 2.96 and
+glibc 2.2.4 things are working properly on the above machines.
+       Is it something related to gcc and/or glibc ? as I am not
+seeing any issues with kernel space arptables code.
+
+Rgds,
+Nishit Shah.
