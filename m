@@ -1,46 +1,71 @@
-From: Nishit Shah <nsshah.82@gmail.com>
-Subject: arptables ruleset not working when compiling on fedora6,7,8/centos
-	5/redhat 5
-Date: Mon, 29 Jun 2009 19:42:11 +0530
-Message-ID: <b2d58cb80906290712k33c1ebbvfc8e661cb34c502c@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-Return-path: <netfilter-owner@vger.kernel.org>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: nf_conntrack 01/04: Use rcu_barrier()
+Date: Mon, 29 Jun 2009 16:20:14 +0200 (MEST)
+Message-ID: <20090629142009.5728.27914.sendpatchset@x2.localnet>
+References: <20090629142007.5728.63458.sendpatchset@x2.localnet>
+Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org
+To: davem@davemloft.net
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:38083 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752520AbZF2OUM (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 29 Jun 2009 10:20:12 -0400
+In-Reply-To: <20090629142007.5728.63458.sendpatchset@x2.localnet>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
-         I am compiling arptables-v0.0.3-3/arptables-v0.0.3-2 on
-fedora6,7,8/centos 5/redhat 5. Module is compiled successfully.
-Following are the simple steps.
+commit 308ff823ebd749a94d3b6ac26b95bc0eb114c39e
+Author: Jesper Dangaard Brouer <hawk@comx.dk>
+Date:   Thu Jun 25 16:32:52 2009 +0200
 
-        make
-        make install
+    nf_conntrack: Use rcu_barrier()
+    
+    RCU barriers, rcu_barrier(), is inserted two places.
+    
+     In nf_conntrack_expect.c nf_conntrack_expect_fini() before the
+     kmem_cache_destroy().  Firstly to make sure the callback to the
+     nf_ct_expect_free_rcu() code is still around.  Secondly because I'm
+     unsure about the consequence of having in flight
+     nf_ct_expect_free_rcu/kmem_cache_free() calls while doing a
+     kmem_cache_destroy() slab destroy.
+    
+     And in nf_conntrack_extend.c nf_ct_extend_unregister(), inorder to
+     wait for completion of callbacks to __nf_ct_ext_free_rcu(), which is
+     invoked by __nf_ct_ext_add().  It might be more efficient to call
+     rcu_barrier() in nf_conntrack_core.c nf_conntrack_cleanup_net(), but
+     thats make it more difficult to read the code (as the callback code
+     in located in nf_conntrack_extend.c).
+    
+    Signed-off-by: Jesper Dangaard Brouer <hawk@comx.dk>
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-        Now, I am applying following rules,
-
-        arptables -N user1
-        arptables -N user2
-        arptables -N user3
-
-        arptables -A INPUT -j user1
-        arptables -A INPUT -j user2
-        arptables -A INPUT -j user3
-
-       when I am doing arptables -nvx -L, I am getting packet counts
-on only "arptables -A INPUT -j user1", no packet counts on user2 and
-user3 chains. If I remove the user1 chain, I am getting packet counts
-on user2 chain, not on user3 chain. It means only the first user
-defined chain is traversing.
-
-       all above machine contains gcc >= 4.1.2 and glibc >= 2.5
-
-       If i compile the same source with machine having gcc 2.96 and
-glibc 2.2.4 things are working properly on the above machines.
-       Is it something related to gcc and/or glibc ? as I am not
-seeing any issues with kernel space arptables code.
-
-Rgds,
-Nishit Shah.
+diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
+index afde8f9..2032dfe 100644
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -617,8 +617,10 @@ err1:
+ void nf_conntrack_expect_fini(struct net *net)
+ {
+ 	exp_proc_remove(net);
+-	if (net_eq(net, &init_net))
++	if (net_eq(net, &init_net)) {
++		rcu_barrier(); /* Wait for call_rcu() before destroy */
+ 		kmem_cache_destroy(nf_ct_expect_cachep);
++	}
+ 	nf_ct_free_hashtable(net->ct.expect_hash, net->ct.expect_vmalloc,
+ 			     nf_ct_expect_hsize);
+ }
+diff --git a/net/netfilter/nf_conntrack_extend.c b/net/netfilter/nf_conntrack_extend.c
+index 4b2c769..fef95be 100644
+--- a/net/netfilter/nf_conntrack_extend.c
++++ b/net/netfilter/nf_conntrack_extend.c
+@@ -186,6 +186,6 @@ void nf_ct_extend_unregister(struct nf_ct_ext_type *type)
+ 	rcu_assign_pointer(nf_ct_ext_types[type->id], NULL);
+ 	update_alloc_size(type);
+ 	mutex_unlock(&nf_ct_ext_type_mutex);
+-	synchronize_rcu();
++	rcu_barrier(); /* Wait for completion of call_rcu()'s */
+ }
+ EXPORT_SYMBOL_GPL(nf_ct_extend_unregister);
