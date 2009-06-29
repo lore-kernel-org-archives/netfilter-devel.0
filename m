@@ -1,129 +1,80 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 02/04: tcp conntrack: fix unacknowledged data detection with NAT
-Date: Mon, 29 Jun 2009 16:20:15 +0200 (MEST)
-Message-ID: <20090629142010.5728.30435.sendpatchset@x2.localnet>
-References: <20090629142007.5728.63458.sendpatchset@x2.localnet>
-Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org
-To: davem@davemloft.net
+From: Richard Horton <arimus.uk@googlemail.com>
+Subject: Re: arptables ruleset not working when compiling on
+	fedora6,7,8/centos 5/redhat 5
+Date: Mon, 29 Jun 2009 15:21:52 +0100
+Message-ID: <56378e320906290721i63f969edm90aed19619decf71@mail.gmail.com>
+References: <b2d58cb80906290712k33c1ebbvfc8e661cb34c502c@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+To: Nishit Shah <nsshah.82@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:38088 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752972AbZF2OUN (ORCPT
+Received: from mail-fx0-f218.google.com ([209.85.220.218]:60997 "EHLO
+	mail-fx0-f218.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759933AbZF2OVv convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 29 Jun 2009 10:20:13 -0400
-In-Reply-To: <20090629142007.5728.63458.sendpatchset@x2.localnet>
+	Mon, 29 Jun 2009 10:21:51 -0400
+In-Reply-To: <b2d58cb80906290712k33c1ebbvfc8e661cb34c502c@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit a3a9f79e361e864f0e9d75ebe2a0cb43d17c4272
-Author: Patrick McHardy <kaber@trash.net>
-Date:   Mon Jun 29 14:07:56 2009 +0200
+2009/6/29 Nishit Shah <nsshah.82@gmail.com>:
+> Hi,
+> =A0 =A0 =A0 =A0 I am compiling arptables-v0.0.3-3/arptables-v0.0.3-2 =
+on
+> fedora6,7,8/centos 5/redhat 5. Module is compiled successfully.
+> Following are the simple steps.
+>
+> =A0 =A0 =A0 =A0make
+> =A0 =A0 =A0 =A0make install
+>
+> =A0 =A0 =A0 =A0Now, I am applying following rules,
+>
+> =A0 =A0 =A0 =A0arptables -N user1
+> =A0 =A0 =A0 =A0arptables -N user2
+> =A0 =A0 =A0 =A0arptables -N user3
+>
+> =A0 =A0 =A0 =A0arptables -A INPUT -j user1
+> =A0 =A0 =A0 =A0arptables -A INPUT -j user2
+> =A0 =A0 =A0 =A0arptables -A INPUT -j user3
+>
+> =A0 =A0 =A0 when I am doing arptables -nvx -L, I am getting packet co=
+unts
+> on only "arptables -A INPUT -j user1", no packet counts on user2 and
+> user3 chains. If I remove the user1 chain, I am getting packet counts
+> on user2 chain, not on user3 chain. It means only the first user
+> defined chain is traversing.
+>
+> =A0 =A0 =A0 all above machine contains gcc >=3D 4.1.2 and glibc >=3D =
+2.5
+>
+> =A0 =A0 =A0 If i compile the same source with machine having gcc 2.96=
+ and
+> glibc 2.2.4 things are working properly on the above machines.
+> =A0 =A0 =A0 Is it something related to gcc and/or glibc ? as I am not
+> seeing any issues with kernel space arptables code.
+>
+> Rgds,
+> Nishit Shah.
 
-    netfilter: tcp conntrack: fix unacknowledged data detection with NAT
-    
-    When NAT helpers change the TCP packet size, the highest seen sequence
-    number needs to be corrected. This is currently only done upwards, when
-    the packet size is reduced the sequence number is unchanged. This causes
-    TCP conntrack to falsely detect unacknowledged data and decrease the
-    timeout.
-    
-    Fix by updating the highest seen sequence number in both directions after
-    packet mangling.
-    
-    Tested-by: Krzysztof Piotr Oledzki <ole@ans.pl>
-    Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index a632689..cbdd628 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -258,8 +258,8 @@ static inline bool nf_ct_kill(struct nf_conn *ct)
- /* Update TCP window tracking data when NAT mangles the packet */
- extern void nf_conntrack_tcp_update(const struct sk_buff *skb,
- 				    unsigned int dataoff,
--				    struct nf_conn *ct,
--				    int dir);
-+				    struct nf_conn *ct, int dir,
-+				    s16 offset);
- 
- /* Fake conntrack entry for untracked connections */
- extern struct nf_conn nf_conntrack_untracked;
-diff --git a/net/ipv4/netfilter/nf_nat_helper.c b/net/ipv4/netfilter/nf_nat_helper.c
-index 155c008..09172a6 100644
---- a/net/ipv4/netfilter/nf_nat_helper.c
-+++ b/net/ipv4/netfilter/nf_nat_helper.c
-@@ -191,7 +191,8 @@ nf_nat_mangle_tcp_packet(struct sk_buff *skb,
- 				    ct, ctinfo);
- 		/* Tell TCP window tracking about seq change */
- 		nf_conntrack_tcp_update(skb, ip_hdrlen(skb),
--					ct, CTINFO2DIR(ctinfo));
-+					ct, CTINFO2DIR(ctinfo),
-+					(int)rep_len - (int)match_len);
- 
- 		nf_conntrack_event_cache(IPCT_NATSEQADJ, ct);
- 	}
-@@ -377,6 +378,7 @@ nf_nat_seq_adjust(struct sk_buff *skb,
- 	struct tcphdr *tcph;
- 	int dir;
- 	__be32 newseq, newack;
-+	s16 seqoff, ackoff;
- 	struct nf_conn_nat *nat = nfct_nat(ct);
- 	struct nf_nat_seq *this_way, *other_way;
- 
-@@ -390,15 +392,18 @@ nf_nat_seq_adjust(struct sk_buff *skb,
- 
- 	tcph = (void *)skb->data + ip_hdrlen(skb);
- 	if (after(ntohl(tcph->seq), this_way->correction_pos))
--		newseq = htonl(ntohl(tcph->seq) + this_way->offset_after);
-+		seqoff = this_way->offset_after;
- 	else
--		newseq = htonl(ntohl(tcph->seq) + this_way->offset_before);
-+		seqoff = this_way->offset_before;
- 
- 	if (after(ntohl(tcph->ack_seq) - other_way->offset_before,
- 		  other_way->correction_pos))
--		newack = htonl(ntohl(tcph->ack_seq) - other_way->offset_after);
-+		ackoff = other_way->offset_after;
- 	else
--		newack = htonl(ntohl(tcph->ack_seq) - other_way->offset_before);
-+		ackoff = other_way->offset_before;
-+
-+	newseq = htonl(ntohl(tcph->seq) + seqoff);
-+	newack = htonl(ntohl(tcph->ack_seq) - ackoff);
- 
- 	inet_proto_csum_replace4(&tcph->check, skb, tcph->seq, newseq, 0);
- 	inet_proto_csum_replace4(&tcph->check, skb, tcph->ack_seq, newack, 0);
-@@ -413,7 +418,7 @@ nf_nat_seq_adjust(struct sk_buff *skb,
- 	if (!nf_nat_sack_adjust(skb, tcph, ct, ctinfo))
- 		return 0;
- 
--	nf_conntrack_tcp_update(skb, ip_hdrlen(skb), ct, dir);
-+	nf_conntrack_tcp_update(skb, ip_hdrlen(skb), ct, dir, seqoff);
- 
- 	return 1;
- }
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 33fc0a4..97a82ba 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -720,8 +720,8 @@ static bool tcp_in_window(const struct nf_conn *ct,
- /* Caller must linearize skb at tcp header. */
- void nf_conntrack_tcp_update(const struct sk_buff *skb,
- 			     unsigned int dataoff,
--			     struct nf_conn *ct,
--			     int dir)
-+			     struct nf_conn *ct, int dir,
-+			     s16 offset)
- {
- 	const struct tcphdr *tcph = (const void *)skb->data + dataoff;
- 	const struct ip_ct_tcp_state *sender = &ct->proto.tcp.seen[dir];
-@@ -734,7 +734,7 @@ void nf_conntrack_tcp_update(const struct sk_buff *skb,
- 	/*
- 	 * We have to worry for the ack in the reply packet only...
- 	 */
--	if (after(end, ct->proto.tcp.seen[dir].td_end))
-+	if (ct->proto.tcp.seen[dir].td_end + offset == end)
- 		ct->proto.tcp.seen[dir].td_end = end;
- 	ct->proto.tcp.last_end = end;
- 	spin_unlock_bh(&ct->lock);
+I might be missing something obvious but all three rules are identical
+so traffic is going to hit the first rule and go down to user1 chain.
+
+
+Your user chains don't have any actions associated so looks to me like
+it enter the chain, nothing will happen - including not returning to
+the input chain so the other rules aren't being hit.
+--=20
+Richard Horton
+Users are like a virus: Each causing a thousand tiny crises until the
+host finally dies.
+http://www.solstans.co.uk - Solstans Japanese Bobtails and Norwegian Fo=
+rest Cats
+http://www.pbase.com/arimus - My online photogallery
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
