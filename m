@@ -1,43 +1,35 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: About libnetfilter_queue
-Date: Sat, 27 Jun 2009 23:18:10 +0200
-Message-ID: <4A468C92.3010605@netfilter.org>
-References: <20090618144650.GL14944@finnois.psycho-hazard.net> <alpine.LSU.2.00.0906191458570.18418@fbirervta.pbzchgretzou.qr> <4A3B9836.9010607@netfilter.org> <20090619141025.GU14944@finnois.psycho-hazard.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: netfilter 01/03: nf_conntrack_tcp: decrease timeouts while data
+ in unacknowledged
+Date: Mon, 29 Jun 2009 14:20:08 +0200
+Message-ID: <4A48B178.7050701@trash.net>
+References: <20080731063312.18150.49494.sendpatchset@localhost.localdomain> <20080731063313.18150.27237.sendpatchset@localhost.localdomain> <alpine.LNX.1.10.0906261627500.2240@bizon.gios.gov.pl> <4A44E5DB.8000304@trash.net> <alpine.LNX.1.10.0906261827540.2240@bizon.gios.gov.pl> <4A44FF44.5030006@trash.net> <alpine.LNX.1.10.0906261921480.19267@bizon.gios.gov.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: =?ISO-8859-15?Q?G=E9rald_Colangelo?= <binarym@psycho-hazard.net>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: Krzysztof Oledzki <ole@ans.pl>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47459 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751595AbZF0VSQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 27 Jun 2009 17:18:16 -0400
-In-Reply-To: <20090619141025.GU14944@finnois.psycho-hazard.net>
+Received: from stinky.trash.net ([213.144.137.162]:35662 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750860AbZF2MUO (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 29 Jun 2009 08:20:14 -0400
+In-Reply-To: <alpine.LNX.1.10.0906261921480.19267@bizon.gios.gov.pl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-G=E9rald Colangelo wrote:
-> On Fri, Jun 19, 2009 at 03:52:54PM +0200, Pablo Neira Ayuso wrote:
->> Jan Engelhardt wrote:
+Krzysztof Oledzki wrote:
+>> This patch changes TCP conntrack to update the highest sequence
+>> number when the old number matches the new one + the size offset,
+>> so it should effectively update it after NAT whenever the packet
+>> caused an update before NAT.
 >>
->> You still have to keep CAP_NET_ADMIN to make it. And you should get
->> EPERM when sending packets.
->=20
-> Ok, i didn't know for the CAP_NET_ADMIN.
-> But i didn't get EPERM, nfq_set_verdict just returned me a value more=
- than
-> 0... perhaps EPERM is stored in errno, but at least nfq_set_verdict()=
- reports
-> success.
+>> Please test whether this patch fixes the problem.
+> 
+> The patch fixes my problem. Thank you.
+> 
+> Tested-by: Krzysztof Piotr Oledzki <ole@ans.pl>
 
-You're right. We're sending the netlink message to kernel-space without
-the NLM_F_ACK flag set, that's why we don't get any error reporting
-back. I'm going to look into this.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks, I've queued the patch for upstream.
