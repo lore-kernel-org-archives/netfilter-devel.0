@@ -1,35 +1,49 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: netfilter 01/03: nf_conntrack_tcp: decrease timeouts while data
- in unacknowledged
-Date: Mon, 29 Jun 2009 14:20:08 +0200
-Message-ID: <4A48B178.7050701@trash.net>
-References: <20080731063312.18150.49494.sendpatchset@localhost.localdomain> <20080731063313.18150.27237.sendpatchset@localhost.localdomain> <alpine.LNX.1.10.0906261627500.2240@bizon.gios.gov.pl> <4A44E5DB.8000304@trash.net> <alpine.LNX.1.10.0906261827540.2240@bizon.gios.gov.pl> <4A44FF44.5030006@trash.net> <alpine.LNX.1.10.0906261921480.19267@bizon.gios.gov.pl>
+Subject: Re: conntrack untracked match is broken (kernel patch)
+Date: Mon, 29 Jun 2009 14:34:10 +0200
+Message-ID: <4A48B4C2.7080106@trash.net>
+References: <4A3F2547.30301@snapgear.com> <alpine.LSU.2.00.0906251841140.23831@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-To: Krzysztof Oledzki <ole@ans.pl>
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Philip Craig <philipc@snapgear.com>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:35662 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:35948 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750860AbZF2MUO (ORCPT
+	with ESMTP id S1751226AbZF2MeN (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 29 Jun 2009 08:20:14 -0400
-In-Reply-To: <alpine.LNX.1.10.0906261921480.19267@bizon.gios.gov.pl>
+	Mon, 29 Jun 2009 08:34:13 -0400
+In-Reply-To: <alpine.LSU.2.00.0906251841140.23831@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Krzysztof Oledzki wrote:
->> This patch changes TCP conntrack to update the highest sequence
->> number when the old number matches the new one + the size offset,
->> so it should effectively update it after NAT whenever the packet
->> caused an update before NAT.
->>
->> Please test whether this patch fixes the problem.
+Jan Engelhardt wrote:
+> On Monday 2009-06-22 08:31, Philip Craig wrote:
+>> The problem is that state_mask in 'struct xt_conntrack_mtinfo1' is
+>> only 8 bit, but XT_CONNTRACK_STATE_UNTRACKED == 256.
+>> Unfortunately, gcc doesn't warn about this for '|=', only for '='.
 > 
-> The patch fixes my problem. Thank you.
+> I smell a gcc-missing-feature there.
 > 
-> Tested-by: Krzysztof Piotr Oledzki <ole@ans.pl>
+>> Looks like we need a conntrack match v2 to fix this?
 
-Thanks, I've queued the patch for upstream.
+Sigh.
+
+> Here is the kernel patch, please apply. Userspace as a reply.
+> 
+> -----8<-----
+> parent deb9f8e170eff8fd0476536bac3bf9bdc222d4ed (v2.6.30-5372-gdeb9f8e)
+> commit 366d5a252fd0de33d7b3ef669551a8771748c9e3
+> Author: Jan Engelhardt <jengelh@medozas.de>
+> Date:   Thu Jun 25 18:35:39 2009 +0200
+> 
+> netfilter: xtables: conntrack revision 2
+> 
+> As reported by Philip, the UNTRACKED state bit does not fit within
+> the 8-bit state_mask member. Enlarge state_mask and give status_mask
+> a few more bits too.
+
+Applied.
