@@ -1,45 +1,32 @@
 From: Herbert Xu <herbert@gondor.apana.org.au>
 Subject: Re: [PATCH] bridge: make bridge-nf-call-*tables default
 	configurable
-Date: Wed, 1 Jul 2009 09:15:28 +0800
-Message-ID: <20090701011528.GA28676@gondor.apana.org.au>
-References: <1246379267.3749.42.camel@blaa> <20090630170027.GA22691@gondor.apana.org.au> <20090630.120608.193727499.davem@davemloft.net> <alpine.LSU.2.00.0906302211300.25417@fbirervta.pbzchgretzou.qr>
+Date: Wed, 1 Jul 2009 09:48:49 +0800
+Message-ID: <20090701014849.GA29088@gondor.apana.org.au>
+References: <1246379267.3749.42.camel@blaa> <20090630170027.GA22691@gondor.apana.org.au> <20090630.120608.193727499.davem@davemloft.net> <alpine.LSU.2.00.0906302211300.25417@fbirervta.pbzchgretzou.qr> <20090701062737.6cac2193.lk-netdev@lk-netdev.nosense.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: David Miller <davem@davemloft.net>, markmc@redhat.com,
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	David Miller <davem@davemloft.net>, markmc@redhat.com,
 	netdev@vger.kernel.org, kaber@trash.net,
 	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rhun.apana.org.au ([64.62.148.172]:40455 "EHLO
-	arnor.apana.org.au" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1760906AbZGABPe (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 30 Jun 2009 21:15:34 -0400
+To: Mark Smith <lk-netdev@lk-netdev.nosense.org>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <alpine.LSU.2.00.0906302211300.25417@fbirervta.pbzchgretzou.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <20090701062737.6cac2193.lk-netdev@lk-netdev.nosense.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jun 30, 2009 at 10:16:35PM +0200, Jan Engelhardt wrote:
+On Wed, Jul 01, 2009 at 06:27:37AM +0930, Mark Smith wrote:
 >
-> It makes sense absolutely. Consider:
-> 
-> * packet enters bridge
-> * NF_HOOK(PF_INET6, NF_INET_PRE_ROUTING, ...) is called by nr_netfilter.c
-> * (connection tracking entry is set up)
-> * let bridging decision be "local delivery"
+> I'm not sure if it supposed to work on IP traffic carried within
+> bridge PPPoE/PPP, but it does - and that was very, very confusing to
+> work out what had happened too. PPPoE comes up, as does PPP and IPCP,
+> but forwarded IP packets are dropped unless there is a FORWARD
+> iptables rule.
 
-No, my question is does it ever make sense to use conntrack as
-part of bridge netfilter.  That is, do you ever want to test it
-in your rules that are run as part of bridge netfilter.
-
-conntrack is inherently a security hole when used as part of
-bridging, because it ignores the Ethernet header so two unrelated
-connections can be tracked as one.
-
-It used to be an even bigger security hole when we ignored VLAN
-and PPPOE headers but at least that's now off by default.
+At least this bit should be off by default now, along as VLAN
+decoding which was a gaping hole.
 
 Cheers,
 -- 
