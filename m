@@ -1,36 +1,71 @@
-From: Herbert Xu <herbert@gondor.apana.org.au>
+From: Jan Engelhardt <jengelh@medozas.de>
 Subject: Re: [PATCH] bridge: make bridge-nf-call-*tables default
-	configurable
-Date: Wed, 1 Jul 2009 09:48:49 +0800
-Message-ID: <20090701014849.GA29088@gondor.apana.org.au>
-References: <1246379267.3749.42.camel@blaa> <20090630170027.GA22691@gondor.apana.org.au> <20090630.120608.193727499.davem@davemloft.net> <alpine.LSU.2.00.0906302211300.25417@fbirervta.pbzchgretzou.qr> <20090701062737.6cac2193.lk-netdev@lk-netdev.nosense.org>
+ configurable
+Date: Wed, 1 Jul 2009 05:50:18 +0200 (CEST)
+Message-ID: <alpine.LSU.2.00.0907010535170.6438@fbirervta.pbzchgretzou.qr>
+References: <1246379267.3749.42.camel@blaa> <20090630170027.GA22691@gondor.apana.org.au> <20090630.120608.193727499.davem@davemloft.net> <alpine.LSU.2.00.0906302211300.25417@fbirervta.pbzchgretzou.qr> <20090701011528.GA28676@gondor.apana.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	David Miller <davem@davemloft.net>, markmc@redhat.com,
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: David Miller <davem@davemloft.net>, markmc@redhat.com,
 	netdev@vger.kernel.org, kaber@trash.net,
 	netfilter-devel@vger.kernel.org
-To: Mark Smith <lk-netdev@lk-netdev.nosense.org>
+To: Herbert Xu <herbert@gondor.apana.org.au>
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20090701062737.6cac2193.lk-netdev@lk-netdev.nosense.org>
+In-Reply-To: <20090701011528.GA28676@gondor.apana.org.au>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Jul 01, 2009 at 06:27:37AM +0930, Mark Smith wrote:
+
+On Wednesday 2009-07-01 03:15, Herbert Xu wrote:
+>On Tue, Jun 30, 2009 at 10:16:35PM +0200, Jan Engelhardt wrote:
+>>
+>> It makes sense absolutely. Consider:
+>>=20
+>> * packet enters bridge
+>> * NF_HOOK(PF_INET6, NF_INET_PRE_ROUTING, ...) is called by nr_netfil=
+ter.c
+>> * (connection tracking entry is set up)
+>> * let bridging decision be "local delivery"
 >
-> I'm not sure if it supposed to work on IP traffic carried within
-> bridge PPPoE/PPP, but it does - and that was very, very confusing to
-> work out what had happened too. PPPoE comes up, as does PPP and IPCP,
-> but forwarded IP packets are dropped unless there is a FORWARD
-> iptables rule.
+>No, my question is does it ever make sense to use conntrack as
+>part of bridge netfilter.  That is, do you ever want to test it
+>in your rules that are run as part of bridge netfilter.
 
-At least this bit should be off by default now, along as VLAN
-decoding which was a gaping hole.
+There is the possibility that some users have -m conntrack in their
+mangle table in the PREROUTING chain. However, I am pretty sure that
+if there are such users, they do it because of the layer-3/4/5/7 part
+and not care about bridge so much.
 
-Cheers,
--- 
-Visit Openswan at http://www.openswan.org/
-Email: Herbert Xu ~{PmV>HI~} <herbert@gondor.apana.org.au>
-Home Page: http://gondor.apana.org.au/~herbert/
-PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
+>conntrack is inherently a security hole when used as part of
+>bridging, because it ignores the Ethernet header so two unrelated
+>connections can be tracked as one.
+
+On secondary thought, one could also argue that because conntrack=20
+ignores the interface, two unrelated connections happening to be routed=
+=20
+through the same machine(*) are tracked as one, too.
+
+
+
+
+(*)
+ip rule iif eth0 table 7
+ip rule iif eth1 table 7
+ip rule iif eth2 table 8
+ip rule iif eth3 table 8
+ip route add 2003::1/128 dev eth0 table 7
+ip route add 2003::2/128 dev eth1 table 7
+ip route add 2003::1/128 dev eth2 table 8
+ip route add 2003::2/128 dev eth3 table 8
+(four single nets, four single hosts)
+In Unicode:
+
+    A
+    0
+  =E2=94=8C=E2=94=80=E2=95=91=E2=94=80=E2=94=80=E2=94=80=E2=94=90
+B1=E2=95=90=E2=95=90=E2=95=9D   =E2=94=82
+  =E2=94=82   =E2=95=94=E2=95=90=E2=95=902C
+  =E2=94=94=E2=94=80=E2=94=80=E2=94=80=E2=95=91=E2=94=80=E2=94=98
+      3
+      D
