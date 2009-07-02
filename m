@@ -1,56 +1,42 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: arptables ruleset not working when compiling on  fedora6,7,8/centos
- 5/redhat 5
-Date: Wed, 01 Jul 2009 13:18:53 +0200
-Message-ID: <4A4B461D.5050407@trash.net>
-References: <b2d58cb80906290712k33c1ebbvfc8e661cb34c502c@mail.gmail.com>  <56378e320906290721i63f969edm90aed19619decf71@mail.gmail.com>  <b2d58cb80906290751j7fb3976bx9d04fed852c8b451@mail.gmail.com>  <4A48D6AD.4010005@trash.net>  <b2d58cb80906290818t66616f70k2fe7596b906a8a4e@mail.gmail.com>  <4A48E14A.3060708@trash.net>  <b2d58cb80906290918q2da5af1ap87772755b3363032@mail.gmail.com> <b2d58cb80906300108q2ee5a060gf8013a88560d8820@mail.gmail.com> <4A4B32C4.8050800@trash.net> <alpine.LSU.2.00.0907011302390.3504@fbirervta.pbzchgretzou.qr>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: conntrack segfault
+Date: Thu, 02 Jul 2009 18:30:38 +0200
+Message-ID: <4A4CE0AE.9030901@netfilter.org>
+References: <h1q05h$o8h$1@ger.gmane.org> <h1q3tu$2vi$1@ger.gmane.org> <4A40F777.7010505@netfilter.org> <4A4108D6.901@birkenwald.de> <4A4159BE.7040807@birkenwald.de> <20090624105915.GA8675@schleppi.birkenwald.de> <alpine.LNX.1.10.0906241315240.2240@bizon.gios.gov.pl> <alpine.LSU.2.00.0906241353160.16864@fbirervta.pbzchgretzou.qr> <4A42226A.4040502@birkenwald.de> <4A426932.1030607@netfilter.org> <20090624221845.GA16585@pest>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Nishit Shah <nsshah.82@gmail.com>,
-	Richard Horton <arimus.uk@googlemail.com>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, netfilter@vger.kernel.org,
-	Bart De Schuymer <bdschuym@pandora.be>,
-	Jay Fenlason <fenlason@redhat.com>, mt@suse.de,
-	jskala@redhat.com
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	Krzysztof Oledzki <ole@ans.pl>, netfilter-devel@vger.kernel.org
+To: Bernhard Schmidt <berni@birkenwald.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:56201 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750806AbZGALS7 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 1 Jul 2009 07:18:59 -0400
-In-Reply-To: <alpine.LSU.2.00.0907011302390.3504@fbirervta.pbzchgretzou.qr>
+Received: from mail.us.es ([193.147.175.20]:39877 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751027AbZGBQaq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 2 Jul 2009 12:30:46 -0400
+In-Reply-To: <20090624221845.GA16585@pest>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Wednesday 2009-07-01 11:56, Patrick McHardy wrote:
->> Nishit Shah wrote:
->>> On Mon, Jun 29, 2009 at 9:48 PM, Nishit Shah<nsshah.82@gmail.com> w=
-rote:
->>>> -/usr/include/linux/netfilter.h:#define NF_MAX_VERDICT NF_REPEAT
->>>> +/usr/include/linux/netfilter.h:#define NF_MAX_VERDICT NF_STOP
->>>>
->>> I am adding the patch for the same.
->> Please send this to Bart (CCed), who is maintaining arptables.
->=20
-> There is also a rogue arptables_jf clone by some RedHat person =E2=80=
-=94
-> no homepage, no point of download except distro .src.rpms =E2=80=94
-> and used by Fedora and openSUSE.
->=20
-> Ccing the relevant persons responsible for that clone, which I am als=
-o=20
-> hereby accusing of failing to submit their stuff upstream causing=20
-> unnecessary extra hurdles for users.
+Sorry for the late reply.
 
-Thanks for pointing this out. Jay, please elaborate on why you've
-chosen to fork this instead of working with upstream.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Bernhard Schmidt wrote:
+> vex amd64->IR: unhandled instruction bytes: 0x6 0xDF 0xA1 0xBF 0x8 0x0
+> ==24699== Invalid read of size 1
+> ==24699==    at 0x7FEFFD3E4: ???
+> ==24699==    by 0x7FEFFD3EB: ???
+> ==24699==    by 0x7FEFFD3F3: ???
+> ==24699==  Address 0x0 is not stack'd, malloc'd or (recently) free'd
+> ==24699== 
+> ==24699== Process terminating with default action of signal 11 (SIGSEGV)
+> ==24699==  Access not within mapped region at address 0x0
+> ==24699==    at 0x7FEFFD3E4: ???
+> ==24699==    by 0x7FEFFD3EB: ???
+> ==24699==    by 0x7FEFFD3F3: ???
+> ==24699== 
+> ==24699== ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 2 from 1)
+> Segmentation fault
+> 
+> Does this help any more?
+
+I still don't have a clear clue on what's wrong with this.
