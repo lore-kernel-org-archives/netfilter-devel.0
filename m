@@ -1,55 +1,38 @@
-From: Volker Poplawski <volker@openbios.org>
-Subject: Re: libnl: Unmatched NL_ACT_DEL and NL_ACT_CHANGE
-Date: Mon, 6 Jul 2009 14:17:40 +0200
-Message-ID: <200907061417.41282.volker@openbios.org>
-References: <200907051144.51967.volker@openbios.org> <4A51E024.8090402@trash.net>
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: Re: arptables ruleset not working when compiling on  fedora6,7,8/centos
+ 5/redhat 5
+Date: Mon, 06 Jul 2009 21:54:34 +0200
+Message-ID: <4A52567A.3080202@pandora.be>
+References: <b2d58cb80906290712k33c1ebbvfc8e661cb34c502c@mail.gmail.com>  <56378e320906290721i63f969edm90aed19619decf71@mail.gmail.com>  <b2d58cb80906290751j7fb3976bx9d04fed852c8b451@mail.gmail.com>  <4A48D6AD.4010005@trash.net>  <b2d58cb80906290818t66616f70k2fe7596b906a8a4e@mail.gmail.com>  <4A48E14A.3060708@trash.net>  <b2d58cb80906290918q2da5af1ap87772755b3363032@mail.gmail.com> <b2d58cb80906300108q2ee5a060gf8013a88560d8820@mail.gmail.com> <4A4B32C4.8050800@trash.net> <4A50A3BA.8060905@pandora.be> <alpine.LSU.2.00.0907051758550.22722@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-To: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+Cc: Patrick McHardy <kaber@trash.net>,
+	Nishit Shah <nsshah.82@gmail.com>,
+	Richard Horton <arimus.uk@googlemail.com>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from khepri.openbios.org ([80.190.231.112]:23777 "EHLO
-	khepri.openbios.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753907AbZGFMR3 (ORCPT
+Received: from juliette.telenet-ops.be ([195.130.137.74]:58839 "EHLO
+	juliette.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751799AbZGFTye (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Jul 2009 08:17:29 -0400
-In-Reply-To: <4A51E024.8090402@trash.net>
-Content-Disposition: inline
+	Mon, 6 Jul 2009 15:54:34 -0400
+In-Reply-To: <alpine.LSU.2.00.0907051758550.22722@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Monday 06 July 2009 13:29:40 you wrote:
-> Volker Poplawski wrote:
-> > Hi all.
-> >
-> > Could s.o. please  have a look at my (short) code at
-> > http://pastie.org/534637
-> >
-> > (maybe compile it with g++ -Wall test.c -o test -I ... -L ... -lnl
-> > -lnl-genl - lnl-nf -lnl-route)
-> >
-> > What the code does is to listen to changes in the ct-table using libnl.
-> > It keeps score of reported ctId in a lookup table.
-> >
-> > Problem is: I'm getting a lot of NL_ACT_CHANGE & NL_ACT_DEL without
-> > having seen a matching NL_ACT_NEW. (Also there seems to be no initial
-> > cache fill)
-> >
-> > kernel 2.6.27 (opensuse 11.1), libnl 2.0 (git master)
+Jan Engelhardt schreef:
+>> Nishit, please try the attached file. It uses more recent kernel headers that
+>> use x_tables. I prefer that approach...
+>>     
 >
-> I think I know whats happening - the ct objects don't define the
-> attribute(s) distinguishing different entries, so cache_include()
-> doesn't recognize them as new.
->
-> Does this patch make any difference?
+> You need to use the unifdef'ed headers or funny things like
+> compiler complaining about __user might pop up.
+>   
+The tarball I sent compiled fine on my (old) system. Does it give such 
+warnings on your system?
 
-Yes it does,  NL_ACT_DEL , _CHANGE and _DEL are now matching -- for ct-entries 
-created after i made my call to nl_cache_mngr_add( ... "netfilter/ct"... )
-
-However, i still don't get a NL_ACT_DEL on already existing connections 
-(CHANGE and DEL though)
-
-
-
+cheers,
+Bart
 
