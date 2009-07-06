@@ -1,32 +1,39 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: netfilter/iptables hashlimit query
-Date: Mon, 6 Jul 2009 10:55:08 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0907061054540.30256@fbirervta.pbzchgretzou.qr>
-References: <1246861636.19710.100.camel@ripper.synapse.com>
+From: Thomas Jacob <jacob@internet24.de>
+Subject: hashlimit supports only up to 10.000 pps
+Date: Mon, 06 Jul 2009 11:53:13 +0200
+Message-ID: <1246873993.8053.9.camel@enterprise.ims-firmen.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Ritesh Majumdar <r.majumdar@globallogic.com>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:49921 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753383AbZGFIzH (ORCPT
+Received: from mailout02.ims-firmen.de ([213.174.32.97]:52749 "EHLO
+	mailout02.ims-firmen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754968AbZGFJxM (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 6 Jul 2009 04:55:07 -0400
-In-Reply-To: <1246861636.19710.100.camel@ripper.synapse.com>
+	Mon, 6 Jul 2009 05:53:12 -0400
+Received: from mailin03.ims-firmen.de ([192.168.1.112])
+	by mailout02.ims-firmen.de with esmtp (Exim 4.69)
+	(envelope-from <jacob@internet24.de>)
+	id 1MNkss-00056I-Ji
+	for netfilter-devel@vger.kernel.org; Mon, 06 Jul 2009 11:53:14 +0200
+Received: from [213.174.32.254] (helo=[192.168.0.170])
+	by mailin03.ims-firmen.de with esmtpsa (TLSv1:DHE-RSA-AES256-SHA:256)
+	(Exim 4.69)
+	(envelope-from <jacob@internet24.de>)
+	id 1MNkss-0003PY-HY
+	for netfilter-devel@vger.kernel.org; Mon, 06 Jul 2009 11:53:14 +0200
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Since hashlimit has come up on the list today:
 
-On Monday 2009-07-06 08:27, Ritesh Majumdar wrote:
+Is there any technical reason why hashlimit has a built in maximum
+limit of only 10k pps? If not, are there any plans of some of the core
+developers to increase that limit in the near future? If not, I presume
+that patches would be welcome?
 
->Hello List,
->
->I using kernel 2.6.27 and iptables-1.4.1. I want to use the iptables
->hashlimit feature. while looking through haslimit mode options I found
->that it has srcip,srcport,dstip,dstport only. 
->
->I was wondering if this has any options like srcnet and dstnet also. or
->if not available , how can we include this fetaure ?
+10k pps isn't exactly a lot these days.
 
-See --hashlimit-{src,dst}mask.
+        Thomas
+
