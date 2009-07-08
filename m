@@ -1,84 +1,111 @@
-From: Volker Poplawski <volker@openbios.org>
-Subject: Re: libnl: Unmatched NL_ACT_DEL and NL_ACT_CHANGE
-Date: Tue, 7 Jul 2009 11:01:24 +0200
-Message-ID: <200907071101.24738.volker@openbios.org>
-References: <200907051144.51967.volker@openbios.org> <200907061417.41282.volker@openbios.org> <4A52DD46.5090501@snapgear.com>
+From: Amos Jeffries <squid3@treenet.co.nz>
+Subject: TPROXY / DIVERT
+Date: Wed, 08 Jul 2009 18:24:50 +1200
+Message-ID: <4A543BB2.5080906@treenet.co.nz>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-To: Philip Craig <philipc@snapgear.com>,
-	netfilter-devel@vger.kernel.org
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from khepri.openbios.org ([80.190.231.112]:9777 "EHLO
-	khepri.openbios.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754760AbZGGJBN (ORCPT
+Received: from ip-58-28-153-233.static-xdsl.xnet.co.nz ([58.28.153.233]:36789
+	"EHLO treenet.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752416AbZGHGfe (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 7 Jul 2009 05:01:13 -0400
-In-Reply-To: <4A52DD46.5090501@snapgear.com>
-Content-Disposition: inline
+	Wed, 8 Jul 2009 02:35:34 -0400
+Received: from troja.treenetnz.com. (121-72-7-177.dsl.telstraclear.net [121.72.7.177])
+	by treenet.co.nz (Postfix) with ESMTP id CCCC9205095
+	for <netfilter-devel@vger.kernel.org>; Wed,  8 Jul 2009 18:24:52 +1200 (NZST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tuesday 07 July 2009 07:29:42 you wrote:
-> Volker Poplawski wrote:
-> > On Monday 06 July 2009 13:29:40 you wrote:
-> >> Volker Poplawski wrote:
-> >>> Hi all.
-> >>>
-> >>> Could s.o. please  have a look at my (short) code at
-> >>> http://pastie.org/534637
-> >>>
-> >>> (maybe compile it with g++ -Wall test.c -o test -I ... -L ... -lnl
-> >>> -lnl-genl - lnl-nf -lnl-route)
-> >>>
-> >>> What the code does is to listen to changes in the ct-table using libnl.
-> >>> It keeps score of reported ctId in a lookup table.
-> >>>
-> >>> Problem is: I'm getting a lot of NL_ACT_CHANGE & NL_ACT_DEL without
-> >>> having seen a matching NL_ACT_NEW. (Also there seems to be no initial
-> >>> cache fill)
-> >>>
-> >>> kernel 2.6.27 (opensuse 11.1), libnl 2.0 (git master)
-> >>
-> >> I think I know whats happening - the ct objects don't define the
-> >> attribute(s) distinguishing different entries, so cache_include()
-> >> doesn't recognize them as new.
-> >>
-> >> Does this patch make any difference?
->
-> Yes that improves it.  We probably want to change libnl so that we
-> can specify a set of optional attributes to compare, so that
-> nl_object_identical does something like this:
->
-> 	if ((a->ce_mask & req_attrs) != req_attrs ||
-> 	    (b->ce_mask & req_attrs) != req_attrs)
-> 		return 0;
->
-> 	if ((a->ce_mask & opt_attrs) != (b->ce_mask & opt_attrs))
-> 		return 0;
-> 	...
-> 	return !(ops->oo_compare(a, b, (req_attrs | a->ce_mask & opt_attrs), 0));
->
->
-> This would let it work on older kernels that don't include the id too.
->
-> > Yes it does,  NL_ACT_DEL , _CHANGE and _DEL are now matching -- for
-> > ct-entries created after i made my call to nl_cache_mngr_add( ...
-> > "netfilter/ct"... )
-> >
-> > However, i still don't get a NL_ACT_DEL on already existing connections
-> > (CHANGE and DEL though)
->
-> I assume you meant you don't get NL_ACT_NEW events for existing
-> connections.  That's just how libnl works in general.  You can use
-> nl_cache_get_first/nl_cache_get_next to populate your hashtable
-> before you start polling.
-Uups, typo.
+TPROXY is turning out alright for most of our users. The iptables and 
+kernel changes seem to work perfectly. Thanks a lot guys.
 
-nl_cache_get_first/nl_cache_get_next did the trick.
-
-Thanx
+We are just working our way through how it needs to fit into various 
+other network toolchains and re-documenting.
 
 
+Two netfilter relevant questions have arisen:
 
+The old one: How long until IPv6 TPROXY support is available?
+
+
+The new one: How to configure TPROXY on a bridge?
+
+  Is anyone able to assist in providing a configuration change or a fix 
+that would get this going?
+
+  The info I have been given from the admin so far is this configuration 
+sort of works but is extremely slow at best. I suspect packet loops 
+somewhere, or maybe issues with related outbound streams which are not 
+spoofed:
+
+> ebtables -t broute -A BROUTING -i eth1 -p ipv4 --ip-proto tcp --ip-dport 80 -j redirect --redirect-target DROP
+> ebtables -t broute -A BROUTING -i eth0 -p ipv4 --ip-proto tcp --ip-sport 80 -j redirect --redirect-target DROP 
+
+>> iptables -t mangle -N DIVERT
+>> iptables -t mangle -A DIVERT -j MARK --set-mark 1
+>> iptables -t mangle -A DIVERT -j ACCEPT
+>> iptables -t mangle -A PREROUTING -p tcp -m socket -j DIVERT
+>> iptables -t mangle -A PREROUTING -i eth1 -p tcp --dport 80 -j TPROXY --tproxy-mark 0x1/0x1 --on-port 3129
+
+>> echo 1 > /proc/sys/net/ipv4/ip_forward
+>> ip rule add fwmark 1 lookup 100
+>> ip route add local 0.0.0.0/0 dev lo table 100
+
+>> cd /proc/sys/net/bridge/
+>> for i in *
+>> do
+>>  echo 0 > $i
+>> done
+>> unset i 
+
+
+ > Ok retested squid.  Here are the scenarios and results
+ >
+ > 1.  no ebtables--no entries in access.log  squid server is only acting
+ > as a bridge.
+ > 2.  with ebtables using ACCEPT for both source and destination--no
+ > entries in access.log  squid server is only acting as a bridge.
+ > 3.  with ebtables using ACCEPT for source and DROP for
+ > destination--entries in access.log squid slow to respond to requests
+ > 4. with ebtables using DROP for source and ACCEPT for destination--no
+ > entries in access.log  squid server is only acting as a bridge.
+ > 5. original setup with ebtables set to DROP for both source and
+ > destination--entries in access.log squid slow to respond to requests
+ > 6. with ebtables only for destination set to DROP and no entry for
+ > source--no internet
+ > 7. with ebtables only for source set to DROP and no entry for
+ > destination--no entries in access.log  squid server is only acting as a
+ > bridge.
+ > 8. with ebtables only for destination set to ACCEPT and no entry for
+ > source--no entries in access.log  squid server is only acting as a 
+bridge.
+ > 9. with ebtables only for source set to ACCEPT and no entry for
+ > destination----no entries in access.log  squid server is only acting as
+ > a bridge.
+ >
+ > According to testing the only way to get squid to work in bridge mode is
+ > either using scenario #3 or # 5.
+ >
+ > *scenario #3:*
+ >
+ > ebtables -t broute -A BROUTING -i eth1 -p ipv4 --ip-proto tcp --ip-dport
+ > 80 -j redirect --redirect-target DROP
+ > ebtables -t broute -A BROUTING -i eth0 -p ipv4 --ip-proto tcp --ip-sport
+ > 80 -j redirect --redirect-target ACCEPT
+ >
+ > *scenario #5:
+ > *
+ > ebtables -t broute -A BROUTING -i eth1 -p ipv4 --ip-proto tcp --ip-dport
+ > 80 -j redirect --redirect-target DROP
+ > ebtables -t broute -A BROUTING -i eth0 -p ipv4 --ip-proto tcp --ip-sport
+ > 80 -j redirect --redirect-target DROP
+ >
+ > Tom
+
+
+
+Cheers
+Amos Jeffries
+Squid Project
