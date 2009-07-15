@@ -1,61 +1,90 @@
-From: Amos Jeffries <squid3@treenet.co.nz>
-Subject: Re: TPROXY / DIVERT
-Date: Mon, 13 Jul 2009 10:22:53 +1200
-Message-ID: <f5c0fcbe39b48cd430b31abeb0d0c046@mail.treenet.co.nz>
-References: <4A543BB2.5080906@treenet.co.nz> <4A572C20.8020807@treenet.co.nz> <20090712171702.GA1668@sch.bme.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: KOVACS Krisztian <hidden@sch.bme.hu>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ip-58-28-153-233.static-xdsl.xnet.co.nz ([58.28.153.233]:44255
-	"EHLO treenet.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751636AbZGLWW4 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 12 Jul 2009 18:22:56 -0400
-In-Reply-To: <20090712171702.GA1668@sch.bme.hu>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Tobias Klauser <klto@zhaw.ch>
+Subject: [PATCH] netfilter: ebtables: Use print_mac instead of own function
+Date: Wed, 15 Jul 2009 12:55:06 +0200
+Message-ID: <1247655306-21337-1-git-send-email-klto@zhaw.ch>
+Cc: netdev@vger.kernel.org, Tobias Klauser <klto@zhaw.ch>
+To: bart.de.schuymer@pandora.be, shemminger@linux-foundation.org,
+	kaber@trash.net, davem@davemloft.net,
+	ebtables-devel@lists.sourceforge.net,
+	netfilter-devel@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Sun, 12 Jul 2009 19:17:02 +0200, KOVACS Krisztian <hidden@sch.bme.hu>
-wrote:
-> Hi,
-> 
-> On Fri, Jul 10, 2009 at 11:55:12PM +1200, Amos Jeffries wrote:
->> Amos Jeffries wrote:
->> >TPROXY is turning out alright for most of our users. The iptables and 
->> >kernel changes seem to work perfectly. Thanks a lot guys.
->> >
->> >We are just working our way through how it needs to fit into various 
->> >other network toolchains and re-documenting.
->> >
->> >
->> >Two netfilter relevant questions have arisen:
->> >
->> >The old one: How long until IPv6 TPROXY support is available?
->> >
->> >
->> >The new one: How to configure TPROXY on a bridge?
->> >
->> 
->> Alright Nevermind the bridge Q. has been resolved now.
-> 
-> Cool. What was the problem?
+ebt_log uses its own implementation of print_mac to print MAC addresses.
+This patch converts it to use print_mac from linux/if_ether.h
 
-Broken NIC drivers on the test machine. :(
+Signed-off-by: Tobias Klauser <klto@zhaw.ch>
+---
+ net/bridge/netfilter/ebt_log.c |   31 +++++++++++--------------------
+ 1 files changed, 11 insertions(+), 20 deletions(-)
 
-> 
->> The IPv6 Q. is still open. hint, hint :)
-> 
-> As far as I know noone is working on this. Theoretically, shouldn't be
-too
-> complicated, though.
-> 
-> I'll try to look into this once I find the time.
+diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
+index a94f3cc..70fd072 100644
+--- a/net/bridge/netfilter/ebt_log.c
++++ b/net/bridge/netfilter/ebt_log.c
+@@ -12,6 +12,7 @@
+ #include <linux/ip.h>
+ #include <linux/in.h>
+ #include <linux/if_arp.h>
++#include <linux/if_ether.h>
+ #include <linux/spinlock.h>
+ #include <net/netfilter/nf_log.h>
+ #include <linux/ipv6.h>
+@@ -50,14 +51,6 @@ struct arppayload
+ 	unsigned char ip_dst[4];
+ };
+ 
+-static void print_MAC(const unsigned char *p)
+-{
+-	int i;
+-
+-	for (i = 0; i < ETH_ALEN; i++, p++)
+-		printk("%02x%c", *p, i == ETH_ALEN - 1 ? ' ':':');
+-}
+-
+ static void
+ print_ports(const struct sk_buff *skb, uint8_t protocol, int offset)
+ {
+@@ -86,16 +79,16 @@ ebt_log_packet(u_int8_t pf, unsigned int hooknum,
+    const char *prefix)
+ {
+ 	unsigned int bitmask;
++	DECLARE_MAC_BUF(macbuf);
+ 
+ 	spin_lock_bh(&ebt_log_lock);
+-	printk("<%c>%s IN=%s OUT=%s MAC source = ", '0' + loginfo->u.log.level,
+-	       prefix, in ? in->name : "", out ? out->name : "");
+-
+-	print_MAC(eth_hdr(skb)->h_source);
+-	printk("MAC dest = ");
+-	print_MAC(eth_hdr(skb)->h_dest);
+-
+-	printk("proto = 0x%04x", ntohs(eth_hdr(skb)->h_proto));
++	printk("<%c>%s IN=%s OUT=%s MAC source = %s",
++	       '0' + loginfo->u.log.level, prefix,
++	       in ? in->name : "", out ? out->name : "",
++	       print_mac(macbuf, eth_hdr(skb)->h_source));
++	printk(" MAC dest = %s proto = 0x%04x",
++	       print_mac(macbuf, eth_hdr(skb)->h_dest),
++	       ntohs(eth_hdr(skb)->h_proto));
+ 
+ 	if (loginfo->type == NF_LOG_TYPE_LOG)
+ 		bitmask = loginfo->u.log.logflags;
+@@ -171,11 +164,9 @@ ebt_log_packet(u_int8_t pf, unsigned int hooknum,
+ 				printk(" INCOMPLETE ARP payload");
+ 				goto out;
+ 			}
+-			printk(" ARP MAC SRC=");
+-			print_MAC(ap->mac_src);
++			printk(" ARP MAC SRC=%s", print_mac(macbuf, ap->mac_src));
+ 			printk(" ARP IP SRC=%pI4", ap->ip_src);
+-			printk(" ARP MAC DST=");
+-			print_MAC(ap->mac_dst);
++			printk(" ARP MAC DST=%s", print_mac(macbuf, ap->mac_dst));
+ 			printk(" ARP IP DST=%pI4", ap->ip_dst);
+ 		}
+ 	}
+-- 
+1.6.0.4
 
-I keep hearing that, but don't have anywhere near the knowledge level or
-time to follow up myself. Thank you for anything you can do towards this.
-There seem to be a fair number of people seeking it.
-
-AYJ
