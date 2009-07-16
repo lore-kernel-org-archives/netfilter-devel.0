@@ -1,80 +1,55 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] libnetfilter_conntrack 0.0.100 release
-Date: Thu, 16 Jul 2009 12:23:20 +0200
-Message-ID: <4A5EFF98.2020705@netfilter.org>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: conntrack: fix English typo in documentation
+Date: Thu, 16 Jul 2009 12:49:36 +0200 (CEST)
+Message-ID: <alpine.LSU.2.00.0907161249180.8760@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------050108010806050100020705"
-Cc: netfilter-announce@lists.netfilter.org,
-	netfilter-devel@vger.kernel.org, lwn@lwn.net
-To: netfilter@vger.kernel.org
-Return-path: <netfilter-owner@vger.kernel.org>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: pablo@netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:57197 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755252AbZGPKti (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Jul 2009 06:49:38 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------050108010806050100020705
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+parent 9d57b20ca51ee4de21b938bc20f9e3345aa9b02b (conntrack-tools-0.9.12-38-g9d57b20)
+commit 88a98cc401541402283fa0354c1361505eed6406
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Thu Jul 16 12:48:42 2009 +0200
 
-Hi!
+conntrack: fix English typo in documentation
 
-The Netfilter project presents libnetfilter_conntrack-0.0.100.
+This is an update to commit 575fc906a302599cb9afeb136096dfd96bb57b17.
 
-libnetfilter_conntrack is a userspace library providing a programming
-interface (API) to the in-kernel connection tracking state table. This
-library requires a linux kernel >= 2.6.18.
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ doc/manual/conntrack-tools.tmpl |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-This release includes a couple of minor fixes. See ChangeLog for more
-details.
+diff --git a/doc/manual/conntrack-tools.tmpl b/doc/manual/conntrack-tools.tmpl
+index 50ae23f..b897318 100644
+--- a/doc/manual/conntrack-tools.tmpl
++++ b/doc/manual/conntrack-tools.tmpl
+@@ -181,14 +181,14 @@
+  # conntrack -L
+  tcp      6 431982 ESTABLISHED src=192.168.2.100 dst=123.59.27.117 sport=34846 dport=993 packets=169 bytes=14322 src=123.59.27.117 dst=192.168.2.100 sport=993 dport=34846 packets=113 bytes=34787 [ASSURED] mark=0 secmark=0 use=1
+  tcp      6 431698 ESTABLISHED src=192.168.2.100 dst=123.59.27.117 sport=34849 dport=993 packets=244 bytes=18723 src=123.59.27.117 dst=192.168.2.100 sport=993 dport=34849 packets=203 bytes=144731 [ASSURED] mark=0 secmark=0 use=1
+-conntrack v0.9.7 (conntrack-tools): 2 flow entries has been shown.
++conntrack v0.9.7 (conntrack-tools): 2 flow entries have been shown.
+  </programlisting>
+ 
+ <para>You can natively filter the output without using <emphasis>grep</emphasis>:</para>
+ <programlisting>
+  # conntrack -L -p tcp --dport 34856
+  tcp      6 431982 ESTABLISHED src=192.168.2.100 dst=123.59.27.117 sport=34846 dport=993 packets=169 bytes=14322 src=123.59.27.117 dst=192.168.2.100 sport=993 dport=34846 packets=113 bytes=34787 [ASSURED] mark=0 secmark=0 use=1
+-conntrack v0.9.7 (conntrack-tools): 1 flow entries has been shown.
++conntrack v0.9.7 (conntrack-tools): 1 flow entries have been shown.
+  </programlisting>
+ 
+ <para>Update the mark based on a selection, this allows you to change the mark of an entry without using the CONNMARK target:</para>
+-- 
+# Created with git-export-patch
 
-You can download it from:
-
-http://www.netfilter.org/projects/libnetfilter_conntrack/
-ftp://ftp.netfilter.org/pub/libnetfilter_conntrack/
-
-Pablo,
-on behalf of the Netfilter Core Team.
-
---------------050108010806050100020705
-Content-Type: text/plain;
- name="changes-libnetfilter_conntrack-0.0.100.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="changes-libnetfilter_conntrack-0.0.100.txt"
-
-Pablo Neira Ayuso (31):
-      src: remove old deprecated API
-      build: reset age interface since old API has been removed
-      src: remove reminiscent of NFCT_DIR_ORIGINAL and old prototypes
-      src: add support for GRE transport protocol
-      src: add support for UDPlite transport protocol
-      include: deprecate several header files with obsolete enums
-      src: remove debian/ directory
-      header: refresh nfnetlink_conntrack.h copy
-      src: add initial DCCP support
-      snprintf: remove duplicated protocol string definitions
-      snprintf: fix missing protocol state support in XML output
-      snprintf: fix output of GRE dstkey in XML
-      parse: fix SCTP vtag parsing
-      snprintf: fix missing port output in DCCP
-      copy: add missing ATTR_DCCP_STATE in nfct_copy()
-      src: add DCCP role attribute
-      api: add new callback interface while keeping backward compatibility
-      snprintf: perform strict checking for the protocol state value
-      include: shrink helper name field to 16 bytes
-      tcp: add support for SYN_SENT2 state
-      src: recover some obsolete enums and constants not to break backward
-      configure: this library requires libnfnetlink 1.0.0
-      build: remove unrequired checking in the protocol information
-      bsf: add support for IPv6 address filtering
-      src: add support for DCCP 64-bits sequence number tracking
-      headers: include u64 get/set prototype in libnetfilter_conntrack.h
-      src: rename ATTR_DCCP_SEQ by ATTR_DCCP_HANDSHAKE_SEQ
-      dccp: fix endianess in handshake_seq
-      expect: add new callback interface while keeping backward compatibility
-      src: unset all the callback handler in the nfct_close() path.
-      configure: bump version to 0.0.100
-
-
---------------050108010806050100020705--
