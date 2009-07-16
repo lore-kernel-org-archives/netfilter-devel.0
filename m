@@ -1,55 +1,44 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: conntrack: fix English typo in documentation
-Date: Thu, 16 Jul 2009 12:49:36 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0907161249180.8760@fbirervta.pbzchgretzou.qr>
+From: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>
+Subject: Re: xt_TCPMSS target dropping SYN packets with data: suggested mod
+Date: Thu, 16 Jul 2009 13:17:21 +0200
+Message-ID: <4A5F0C41.5030101@plouf.fr.eu.org>
+References: <873dce860907090641n31254e30g48886aefbbc6474e@mail.gmail.com>	 <4A5DF7DD.2050908@trash.net> <873dce860907160015n6a37715x10aae10249ece994@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: pablo@netfilter.org
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Luca Pesce <pesce.luca@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:57197 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755252AbZGPKti (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Jul 2009 06:49:38 -0400
+Received: from poutre.nerim.net ([62.4.16.124]:58165 "EHLO poutre.nerim.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754377AbZGPL2b (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 16 Jul 2009 07:28:31 -0400
+In-Reply-To: <873dce860907160015n6a37715x10aae10249ece994@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-parent 9d57b20ca51ee4de21b938bc20f9e3345aa9b02b (conntrack-tools-0.9.12-38-g9d57b20)
-commit 88a98cc401541402283fa0354c1361505eed6406
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Thu Jul 16 12:48:42 2009 +0200
+Hello,
 
-conntrack: fix English typo in documentation
+Luca Pesce a =E9crit :
+>=20
+>> It doesn't seem like a very useful feature,
+>> considering all the stacks supporting syn cookies.
+>=20
+> Did you mean that syn cookies would drop that SYN with data anyway?
 
-This is an update to commit 575fc906a302599cb9afeb136096dfd96bb57b17.
+When the receiver has SYN cookies enabled, it replies to a SYN with a=20
+SYN-ACK as usual, but does not keep any state for it. Instead the state=
+=20
+is stored in the ISN (used as a "cookie") of the SYN-ACK and will come=20
+back in the final ACK of the 3-way handshake. Not keeping state means=20
+that any data contained in the first SYN segment are discarded.
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- doc/manual/conntrack-tools.tmpl |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+> Or that MSS mangling itself would harm syn cookies tecniques?
 
-diff --git a/doc/manual/conntrack-tools.tmpl b/doc/manual/conntrack-tools.tmpl
-index 50ae23f..b897318 100644
---- a/doc/manual/conntrack-tools.tmpl
-+++ b/doc/manual/conntrack-tools.tmpl
-@@ -181,14 +181,14 @@
-  # conntrack -L
-  tcp      6 431982 ESTABLISHED src=192.168.2.100 dst=123.59.27.117 sport=34846 dport=993 packets=169 bytes=14322 src=123.59.27.117 dst=192.168.2.100 sport=993 dport=34846 packets=113 bytes=34787 [ASSURED] mark=0 secmark=0 use=1
-  tcp      6 431698 ESTABLISHED src=192.168.2.100 dst=123.59.27.117 sport=34849 dport=993 packets=244 bytes=18723 src=123.59.27.117 dst=192.168.2.100 sport=993 dport=34849 packets=203 bytes=144731 [ASSURED] mark=0 secmark=0 use=1
--conntrack v0.9.7 (conntrack-tools): 2 flow entries has been shown.
-+conntrack v0.9.7 (conntrack-tools): 2 flow entries have been shown.
-  </programlisting>
- 
- <para>You can natively filter the output without using <emphasis>grep</emphasis>:</para>
- <programlisting>
-  # conntrack -L -p tcp --dport 34856
-  tcp      6 431982 ESTABLISHED src=192.168.2.100 dst=123.59.27.117 sport=34846 dport=993 packets=169 bytes=14322 src=123.59.27.117 dst=192.168.2.100 sport=993 dport=34846 packets=113 bytes=34787 [ASSURED] mark=0 secmark=0 use=1
--conntrack v0.9.7 (conntrack-tools): 1 flow entries has been shown.
-+conntrack v0.9.7 (conntrack-tools): 1 flow entries have been shown.
-  </programlisting>
- 
- <para>Update the mark based on a selection, this allows you to change the mark of an entry without using the CONNMARK target:</para>
--- 
-# Created with git-export-patch
-
+I don't see why.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
