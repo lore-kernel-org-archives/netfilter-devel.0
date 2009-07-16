@@ -1,79 +1,80 @@
-From: Tobias Klauser <klto@zhaw.ch>
-Subject: [PATCH v2] netfilter: ebtables: Use %pM conversion specifier
-Date: Thu, 16 Jul 2009 09:25:51 +0200
-Message-ID: <1247729151-6210-1-git-send-email-klto@zhaw.ch>
-References: <1247655306-21337-1-git-send-email-klto@zhaw.ch>
-Cc: netdev@vger.kernel.org, Tobias Klauser <klto@zhaw.ch>
-To: bart.de.schuymer@pandora.be, shemminger@linux-foundation.org,
-	kaber@trash.net, davem@davemloft.net,
-	netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1247655306-21337-1-git-send-email-klto@zhaw.ch>
-Sender: netdev-owner@vger.kernel.org
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [ANNOUNCE] libnetfilter_conntrack 0.0.100 release
+Date: Thu, 16 Jul 2009 12:23:20 +0200
+Message-ID: <4A5EFF98.2020705@netfilter.org>
+Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------050108010806050100020705"
+Cc: netfilter-announce@lists.netfilter.org,
+	netfilter-devel@vger.kernel.org, lwn@lwn.net
+To: netfilter@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-ebt_log uses its own implementation of print_mac to print MAC addresses.
-This patch converts it to use the %pM conversion specifier for printk.
+This is a multi-part message in MIME format.
+--------------050108010806050100020705
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Tobias Klauser <klto@zhaw.ch>
----
- net/bridge/netfilter/ebt_log.c |   29 +++++++----------------------
- 1 files changed, 7 insertions(+), 22 deletions(-)
+Hi!
 
-diff --git a/net/bridge/netfilter/ebt_log.c b/net/bridge/netfilter/ebt_log.c
-index a94f3cc..e4ea3fd 100644
---- a/net/bridge/netfilter/ebt_log.c
-+++ b/net/bridge/netfilter/ebt_log.c
-@@ -50,14 +50,6 @@ struct arppayload
- 	unsigned char ip_dst[4];
- };
- 
--static void print_MAC(const unsigned char *p)
--{
--	int i;
--
--	for (i = 0; i < ETH_ALEN; i++, p++)
--		printk("%02x%c", *p, i == ETH_ALEN - 1 ? ' ':':');
--}
--
- static void
- print_ports(const struct sk_buff *skb, uint8_t protocol, int offset)
- {
-@@ -88,14 +80,11 @@ ebt_log_packet(u_int8_t pf, unsigned int hooknum,
- 	unsigned int bitmask;
- 
- 	spin_lock_bh(&ebt_log_lock);
--	printk("<%c>%s IN=%s OUT=%s MAC source = ", '0' + loginfo->u.log.level,
--	       prefix, in ? in->name : "", out ? out->name : "");
--
--	print_MAC(eth_hdr(skb)->h_source);
--	printk("MAC dest = ");
--	print_MAC(eth_hdr(skb)->h_dest);
--
--	printk("proto = 0x%04x", ntohs(eth_hdr(skb)->h_proto));
-+	printk("<%c>%s IN=%s OUT=%s MAC source = %pM MAC dest = %pM proto = 0x%04x",
-+	       '0' + loginfo->u.log.level, prefix,
-+	       in ? in->name : "", out ? out->name : "",
-+	       eth_hdr(skb)->h_source, eth_hdr(skb)->h_dest,
-+	       ntohs(eth_hdr(skb)->h_proto));
- 
- 	if (loginfo->type == NF_LOG_TYPE_LOG)
- 		bitmask = loginfo->u.log.logflags;
-@@ -171,12 +160,8 @@ ebt_log_packet(u_int8_t pf, unsigned int hooknum,
- 				printk(" INCOMPLETE ARP payload");
- 				goto out;
- 			}
--			printk(" ARP MAC SRC=");
--			print_MAC(ap->mac_src);
--			printk(" ARP IP SRC=%pI4", ap->ip_src);
--			printk(" ARP MAC DST=");
--			print_MAC(ap->mac_dst);
--			printk(" ARP IP DST=%pI4", ap->ip_dst);
-+			printk(" ARP MAC SRC=%pM ARP IP SRC=%pI4 ARP MAC DST=%pM ARP IP DST=%pI4",
-+					ap->mac_src, ap->ip_src, ap->mac_dst, ap->ip_dst);
- 		}
- 	}
- out:
--- 
-1.6.0.4
+The Netfilter project presents libnetfilter_conntrack-0.0.100.
 
+libnetfilter_conntrack is a userspace library providing a programming
+interface (API) to the in-kernel connection tracking state table. This
+library requires a linux kernel >= 2.6.18.
+
+This release includes a couple of minor fixes. See ChangeLog for more
+details.
+
+You can download it from:
+
+http://www.netfilter.org/projects/libnetfilter_conntrack/
+ftp://ftp.netfilter.org/pub/libnetfilter_conntrack/
+
+Pablo,
+on behalf of the Netfilter Core Team.
+
+--------------050108010806050100020705
+Content-Type: text/plain;
+ name="changes-libnetfilter_conntrack-0.0.100.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="changes-libnetfilter_conntrack-0.0.100.txt"
+
+Pablo Neira Ayuso (31):
+      src: remove old deprecated API
+      build: reset age interface since old API has been removed
+      src: remove reminiscent of NFCT_DIR_ORIGINAL and old prototypes
+      src: add support for GRE transport protocol
+      src: add support for UDPlite transport protocol
+      include: deprecate several header files with obsolete enums
+      src: remove debian/ directory
+      header: refresh nfnetlink_conntrack.h copy
+      src: add initial DCCP support
+      snprintf: remove duplicated protocol string definitions
+      snprintf: fix missing protocol state support in XML output
+      snprintf: fix output of GRE dstkey in XML
+      parse: fix SCTP vtag parsing
+      snprintf: fix missing port output in DCCP
+      copy: add missing ATTR_DCCP_STATE in nfct_copy()
+      src: add DCCP role attribute
+      api: add new callback interface while keeping backward compatibility
+      snprintf: perform strict checking for the protocol state value
+      include: shrink helper name field to 16 bytes
+      tcp: add support for SYN_SENT2 state
+      src: recover some obsolete enums and constants not to break backward
+      configure: this library requires libnfnetlink 1.0.0
+      build: remove unrequired checking in the protocol information
+      bsf: add support for IPv6 address filtering
+      src: add support for DCCP 64-bits sequence number tracking
+      headers: include u64 get/set prototype in libnetfilter_conntrack.h
+      src: rename ATTR_DCCP_SEQ by ATTR_DCCP_HANDSHAKE_SEQ
+      dccp: fix endianess in handshake_seq
+      expect: add new callback interface while keeping backward compatibility
+      src: unset all the callback handler in the nfct_close() path.
+      configure: bump version to 0.0.100
+
+
+--------------050108010806050100020705--
