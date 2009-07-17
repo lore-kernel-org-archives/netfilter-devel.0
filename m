@@ -1,60 +1,88 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 1/3] iptables: accept multiple IP address specifications
- for -s, -d
-Date: Fri, 17 Jul 2009 17:55:44 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0907171737410.11904@fbirervta.pbzchgretzou.qr>
-References: <1244229955-27642-1-git-send-email-jengelh@medozas.de> <1244229955-27642-2-git-send-email-jengelh@medozas.de> <4A2A1260.7050207@netfilter.org> <4A2D171E.9060401@trash.net> <alpine.LSU.2.00.0906101405590.30984@fbirervta.pbzchgretzou.qr>
- <alpine.LSU.2.00.0906251903520.26556@fbirervta.pbzchgretzou.qr> <alpine.LSU.2.00.0907161624140.22115@fbirervta.pbzchgretzou.qr> <4A608B3B.20702@trash.net>
+From: Stefan Hellkvist <hellkvist@gmail.com>
+Subject: Understanding execution context of netfilter hooks
+Date: Fri, 17 Jul 2009 18:50:52 +0200
+Message-ID: <704c29930907170950l6e2f9881j83dbe338b9c03bdf@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:55043 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964831AbZGQPzq (ORCPT
+Received: from mail-bw0-f228.google.com ([209.85.218.228]:33415 "EHLO
+	mail-bw0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934746AbZGQQuy convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 17 Jul 2009 11:55:46 -0400
-In-Reply-To: <4A608B3B.20702@trash.net>
+	Fri, 17 Jul 2009 12:50:54 -0400
+Received: by bwz28 with SMTP id 28so850162bwz.37
+        for <netfilter-devel@vger.kernel.org>; Fri, 17 Jul 2009 09:50:53 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi,
 
-On Friday 2009-07-17 16:31, Patrick McHardy wrote:
->>> Yeah but in general? The - judging from their version numbers -
->>> x.y.z.S stable versions like 1.4.3.1 used to receive lots of new
->>> features because there is just master, in which case it should
->>> have been the new 1.4.4 already.
->>> So either z is bumped more often and S-versions will not
->>> be released, or S only receives fixes, necessiting a separate branch.
->>> Objections?
->> 
->> It would be cool to get an answer here so I know how to twingle 
->> patchbranches that I'd like to submit.
->
->Well, I don't object to having a stable branch when we actually do
->need to release pure bug-fix versions. But I'd say those can be
->created on demand.
->
-Yes, but it requires that any bugfix commit does not have master as a
-descendent (otherwise it would be perturbed by dev commits). The core
-essential of a (de facto) stable branch is that solely the most
-recent tag, (or stable commits), are a parent.
+Could anyone help me understand the execution context under which
+netfilter hooks are being executed? I played around with some code in
+order to learn things and noticed that the code executed differently
+in a netfilter hook than in, for instance, the init method of a module
+and I fail to understand why that is (possibly due to lack of
+understanding of the kernel in general).
 
-That is what I want to be sure of, esp. when others send commits.
-Below's patches respect this.
+I can give a very simplified example. Take the following rediculous
+code which reads a few bytes from a file in the file system (yes, a
+very unlikely example I know, but the question about writing or
+reading files from kernel space is not in my interest right now):
+
+static void
+readshadow() {
+=A0 struct file *fp;
+=A0 char buf[1024];
+
+=A0 fp =3D filp_open("/etc/shadow", O_RDONLY, 0);
+=A0 if (fp !=3D NULL) {
+=A0=A0=A0 int retval =3D kernel_read(fp, 0, buf, 20);
+=A0=A0=A0 if (retval !=3D 20) {
+=A0=A0=A0=A0=A0 printk("disaster!\n");
+=A0=A0=A0 }
+=A0=A0=A0 buf[20] =3D '\0';
+=A0=A0=A0 printk("first 20 chars: \"%s\"\n", buf);
+=A0=A0=A0 filp_close(fp, 0);
+=A0 }
+}
 
 
-"Please pull from..."
-	git://dev.medozas.de/iptables stable
+The code opens a file, reads a few bytes from it and then closes the
+file after having logged the bytes with printk.
 
-the two (2) things that Jan Engelhardt piled up:
-      xt_conntrack: revision 2 for enlarged state_mask member
-      libxt_helper: fix invalid passed option to check_inverse
+If this method is run within for instance the init method of the
+module it performs as expected (it reads the file and shows the right
+bytes in the log). If it however is called from within a netfilter
+hook (registered for instance on NF_INET_LOCAL_OUT), such as this:
 
- extensions/libxt_conntrack.c           |  175 +++++++++++++++++++++++++++-----
- extensions/libxt_helper.c              |    2 +-
- include/linux/netfilter/xt_conntrack.h |   13 +++
- 3 files changed, 162 insertions(+), 28 deletions(-)
+static unsigned int
+hook(unsigned int hooknum,
+     struct sk_buff *skb,
+     const struct net_device *in,
+     const struct net_device *out,
+     int (*okfn) (struct sk_buff *)) {
+
+  readshadow();
+  return NF_ACCEPT;
+}
+
+
+Then it will fail with an "Oops: 0000 [#2]" "BUG: unable to handle
+kernel NULL pointer dereference at 0000000f" when you trigger it with
+some network traffic. The last call in the stack-trace of the OOPS
+shows vfs_read (called by kernel_read) being the culprit (possibly
+because it's being executed in the wrong context).
+
+So, the question, as mentioned in the beginning. What context is the
+hook executing in which causes the code to behave differently from
+when it executed in the module init method for instance?
+
+Kindest regards,
+Stefan
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
