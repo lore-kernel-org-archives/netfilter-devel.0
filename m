@@ -1,45 +1,34 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 1/3] iptables: accept multiple IP address specifications
- for -s, -d
-Date: Thu, 16 Jul 2009 16:24:38 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0907161624140.22115@fbirervta.pbzchgretzou.qr>
-References: <1244229955-27642-1-git-send-email-jengelh@medozas.de> <1244229955-27642-2-git-send-email-jengelh@medozas.de> <4A2A1260.7050207@netfilter.org> <4A2D171E.9060401@trash.net> <alpine.LSU.2.00.0906101405590.30984@fbirervta.pbzchgretzou.qr>
- <alpine.LSU.2.00.0906251903520.26556@fbirervta.pbzchgretzou.qr>
+From: David Miller <davem@davemloft.net>
+Subject: Re: netfilter 00/03: netfilter fixes
+Date: Thu, 16 Jul 2009 17:37:45 -0700 (PDT)
+Message-ID: <20090716.173745.187759558.davem@davemloft.net>
+References: <20090716122638.23343.77832.sendpatchset@x2.localnet>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:50947 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757212AbZGPOYk (ORCPT
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:60394
+	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932931AbZGQAhl (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 16 Jul 2009 10:24:40 -0400
-In-Reply-To: <alpine.LSU.2.00.0906251903520.26556@fbirervta.pbzchgretzou.qr>
+	Thu, 16 Jul 2009 20:37:41 -0400
+In-Reply-To: <20090716122638.23343.77832.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+From: Patrick McHardy <kaber@trash.net>
+Date: Thu, 16 Jul 2009 14:26:44 +0200 (MEST)
 
-On Thursday 2009-06-25 19:08, Jan Engelhardt wrote:
->On   2009-06-10 12:19:59, Patrick wrote:
->>On Wednesday 2009-06-10 14:16, Jan Engelhardt wrote:
->>>
->>>Git is not as castrated as Hg when it comes to branches, so why not
->>>make a "stable" branch that is then regularly merged into master? :)
->>
->>I don't see why that would currently be necessary. We're talking
->>about a few days, and in fact I'd rather have people test the
->>current code before the release instead of hacking on new things :)
->
->Yeah but in general? The - judging from their version numbers -
->x.y.z.S stable versions like 1.4.3.1 used to receive lots of new
->features because there is just master, in which case it should
->have been the new 1.4.4 already.
->So either z is bumped more often and S-versions will not
->be released, or S only receives fixes, necessiting a separate branch.
->Objections?
+> following are two netfilter fixes for 2.6.31 and a MAINTAINERS update:
+> 
+> - a fix for the nf_conntrack_alloc() race from Eric
+> - a fix for incorrect invocation of nf_log_packet() in the new osf match
+> - a patch to add my netfilter git tree to MAINTAINERS
+> 
+> Please apply or pull from:
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git master
 
-It would be cool to get an answer here so I know how to twingle 
-patchbranches that I'd like to submit.
+Pulled, thanks a lot Patrick!
