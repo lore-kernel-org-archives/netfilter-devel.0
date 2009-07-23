@@ -1,32 +1,67 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Only use libdl when shared builds are enabled
-Date: Thu, 23 Jul 2009 03:06:01 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0907230305140.11400@fbirervta.pbzchgretzou.qr>
-References: <alpine.LSU.2.00.0907201108470.27235@fbirervta.pbzchgretzou.qr>  <4A650A45.9070300@snapgear.com> <1248263655.1567.9.camel@localhost.localdomain> <alpine.LSU.2.00.0907221448370.6634@fbirervta.pbzchgretzou.qr> <4A67A9C8.4040103@snapgear.com>
+From: Giacomo <delleceste@gmail.com>
+Subject: A general question about IP fragmented packets and netfilter
+Date: Thu, 23 Jul 2009 08:40:07 +0200
+Message-ID: <885896af0907222340m77ef2d6p9767421a608cfdee@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Henrik Nordstrom <henrik@henriknordstrom.net>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Philip Craig <philipc@snapgear.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:34762 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751153AbZGWBGE (ORCPT
+Received: from mail-ew0-f226.google.com ([209.85.219.226]:54666 "EHLO
+	mail-ew0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752626AbZGWGkM (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 22 Jul 2009 21:06:04 -0400
-In-Reply-To: <4A67A9C8.4040103@snapgear.com>
+	Thu, 23 Jul 2009 02:40:12 -0400
+Received: by ewy26 with SMTP id 26so753675ewy.37
+        for <netfilter-devel@vger.kernel.org>; Wed, 22 Jul 2009 23:40:10 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Good morning to all.
 
-On Thursday 2009-07-23 02:07, Philip Craig wrote:
->Jan Engelhardt wrote:
->> I know, I hit this too. Needs more thought, disable-shared won't fix it 
->> atm.
->
->Is there any reason to support both --enable-shared and --enable-static
->at the same time?
+I would like to ask you some points concerning IP fragmented packets
+arriving on an interface and the
+way they are handled by the netfilter modules, in particular what is
+the situation in the netfilter hooks.
 
-Yes, it is just implemented suboptimally; --enable-static has an 
-overloaded meaning ATM.
+Starting from NF_IP_PRE_ROUTING, where destination NAT and
+de-masquerading takes place, do
+the packets arrive fragmented - and netfilter takes care of the
+fragments - or do they arrive already
+reassembled from the IP stack?
+
+In the first case, what is, generally speaking, the technique adopted
+to track fragmented IP packets
+and assign each of them to the correct flow?
+
+In the second case, if I register with netfilter NF_IP_PRE_ROUTING
+hook, which is the correct "priority"
+to assign during registration to receive packets already reassembled?
+
+Thanks in advance.
+
+Giacomo
+
+
+-- 
+Giacomo S.
+http://www.giacomos.it
+
+- - - - - - - - - - - - - - - - - - - - - -
+
+* Aprile 2008: iqfire-wall, un progetto
+  open source che implementa un
+  filtro di pacchetti di rete per Linux,
+  e` disponibile per il download qui:
+  http://sourceforge.net/projects/ipfire-wall
+
+* Informazioni e pagina web ufficiale:
+  http://www.giacomos.it/iqfire/index.html
+
+- - - - - - - - - - - - - - - - - - - - - -
+
+ . ''  `.
+:   :'    :
+ `.  ` '
+    `- Debian GNU/Linux -- The power of freedom
+        http://www.debian.org
