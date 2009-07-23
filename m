@@ -1,42 +1,54 @@
-From: Saikiran Madugula <hummerbliss@gmail.com>
-Subject: [PATCH] iptables: Add autoreconf step in INSTALL document.
-Date: Thu, 23 Jul 2009 14:26:31 +0100
-Message-ID: <4A686507.7010403@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Saikiran Madugula <hummerbliss@gmail.com>
-To: netfilter-devel@vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: netfilter -stable 00/08: netfilter -stable fixes
+Date: Thu, 23 Jul 2009 16:15:24 +0200 (MEST)
+Message-ID: <20090723141523.19029.89290.sendpatchset@x2.localnet>
+Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org
+To: stable@kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ew0-f226.google.com ([209.85.219.226]:49132 "EHLO
-	mail-ew0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754006AbZGWN0d (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:39706 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751866AbZGWOPZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Jul 2009 09:26:33 -0400
-Received: by ewy26 with SMTP id 26so971307ewy.37
-        for <netfilter-devel@vger.kernel.org>; Thu, 23 Jul 2009 06:26:32 -0700 (PDT)
+	Thu, 23 Jul 2009 10:15:25 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add autoreconf step in INSTALL document to clarify that one has
-to do autoreconf before they can do any ./configure.
+Following are couple of netfilter fixes for -stable, fixing
 
-Signed-off-by: Saikiran Madugula <hummerbliss@gmail.com>
----
- INSTALL |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+- various races in nf_conntrack introduced by the conversion to use
+  RCU for the conntrack hash and follow-up patch to use SLAB_DESTROY_BY_RCU
+  for the conntrack slab
 
-diff --git a/INSTALL b/INSTALL
-index 4a44989..a1da8ba 100644
---- a/INSTALL
-+++ b/INSTALL
-@@ -3,6 +3,7 @@ Installation instructions for iptables
- 
- iptables uses the well-known configure(autotools) infrastructure.
- 
-+	$ autoreconf -vfi
- 	$ ./configure
- 	$ make
- 	# make install
--- 
-1.5.6.3
+- direct userspace memory access in the nf_log /proc handler
+
+- a missing initialization in the quota match, possibly causing malfunction
+  on SMP
+
+- an incorrect comparison in the rateest match
+
+- unacknowledged data detection in TCP conntrack in combination with
+  NAT helpers reducing the packet size
+
+Please apply, thanks.
+
+
+ Documentation/RCU/rculist_nulls.txt    |    7 +++++-
+ include/net/netfilter/nf_conntrack.h   |    4 +-
+ net/ipv4/netfilter/nf_nat_helper.c     |   17 +++++++++-----
+ net/netfilter/nf_conntrack_core.c      |   36 ++++++++++++++++++++++++++-----
+ net/netfilter/nf_conntrack_proto_tcp.c |    6 ++--
+ net/netfilter/nf_log.c                 |   22 ++++++++++++-------
+ net/netfilter/xt_quota.c               |    1 +
+ net/netfilter/xt_rateest.c             |    2 +-
+ 8 files changed, 68 insertions(+), 27 deletions(-)
+
+Patrick McHardy (8):
+      netfilter: nf_log: fix sleeping function called from invalid context
+      netfilter: nf_conntrack: fix confirmation race condition
+      netfilter: nf_conntrack: fix conntrack lookup race
+      netfilter: nf_log: fix direct userspace memory access in proc handler
+      netfilter: xt_quota: fix incomplete initialization
+      netfilter: xt_rateest: fix comparison with self
+      netfilter: tcp conntrack: fix unacknowledged data detection with NAT
+      netfilter: nf_conntrack: nf_conntrack_alloc() fixes
