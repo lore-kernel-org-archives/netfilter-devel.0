@@ -1,41 +1,35 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] iptables: Add autoreconf step in INSTALL document.
-Date: Thu, 23 Jul 2009 17:47:36 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0907231745340.26578@fbirervta.pbzchgretzou.qr>
-References: <4A686507.7010403@gmail.com>
+Subject: Re: Only use libdl when shared builds are enabled
+Date: Thu, 23 Jul 2009 17:50:57 +0200 (CEST)
+Message-ID: <alpine.LSU.2.00.0907231749480.26578@fbirervta.pbzchgretzou.qr>
+References: <alpine.LSU.2.00.0907201108470.27235@fbirervta.pbzchgretzou.qr>  <4A650A45.9070300@snapgear.com> <1248263655.1567.9.camel@localhost.localdomain> <alpine.LSU.2.00.0907221448370.6634@fbirervta.pbzchgretzou.qr> <4A67A9C8.4040103@snapgear.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Saikiran Madugula <hummerbliss@gmail.com>
+Cc: Henrik Nordstrom <henrik@henriknordstrom.net>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Philip Craig <philipc@snapgear.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:39690 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:39693 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753117AbZGWPri (ORCPT
+	with ESMTP id S1752213AbZGWPu5 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 23 Jul 2009 11:47:38 -0400
-In-Reply-To: <4A686507.7010403@gmail.com>
+	Thu, 23 Jul 2009 11:50:57 -0400
+In-Reply-To: <4A67A9C8.4040103@snapgear.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Thursday 2009-07-23 15:26, Saikiran Madugula wrote:
+On Thursday 2009-07-23 02:07, Philip Craig wrote:
+>Jan Engelhardt wrote:
+>> I know, I hit this too. Needs more thought, disable-shared won't fix it 
+>> atm.
+>
+>Is there any reason to support both --enable-shared and --enable-static
+>at the same time?
 
->Add autoreconf step in INSTALL document to clarify that one has
->to do autoreconf before they can do any ./configure.
+Well yes. I fixed it now, please try
 
-The INSTALL document is written for users of the tarball, which has the 
-'configure' script present already.
-Developers know what they have to run. (That is to say, I would claim 
-that other software projects don't tell you to 
-autoreconf/autogen.sh/bootstraep.sh either.)
-So this is not needed IMO.
+	git://dev.medozas.de/iptables master
 
->@@ -3,6 +3,7 @@ Installation instructions for iptables
-> 
-> iptables uses the well-known configure(autotools) infrastructure.
-> 
->+	$ autoreconf -vfi
-> 	$ ./configure
-> 	$ make
-> 	# make install
->-- 
+for new instructions see `git log -p INSTALL`.
