@@ -1,122 +1,178 @@
-From: Hugo Miguel Mendes <hugo-m-mendes@ptinovacao.pt>
-Subject: NTP server
-Date: Fri, 24 Jul 2009 20:48:57 +0100
-Message-ID: <47A7F67C62706041BC49DB7822B1C9DB34D79A8733@INOAVREX11.ptin.corpPT.com>
+From: Leonardo Rodrigues <leolistas@solutti.com.br>
+Subject: Re: NTP server
+Date: Fri, 24 Jul 2009 17:16:26 -0300
+Message-ID: <4A6A169A.9090704@solutti.com.br>
+References: <47A7F67C62706041BC49DB7822B1C9DB34D79A8733@INOAVREX11.ptin.corpPT.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Content-Type: multipart/signed; protocol="application/x-pkcs7-signature"; micalg=sha1; boundary="------------ms030606030703030805000105"
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Hugo Miguel Mendes <hugo-m-mendes@ptinovacao.pt>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail6.ptinovacao.pt ([194.65.138.99]:4710 "EHLO
-	owa.ptinovacao.pt" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750962AbZGXTyf convert rfc822-to-8bit (ORCPT
+Received: from mail-ew0-f226.google.com ([209.85.219.226]:47977 "EHLO
+	mail-ew0-f226.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751432AbZGXUQp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 24 Jul 2009 15:54:35 -0400
-Content-Language: pt-PT
+	Fri, 24 Jul 2009 16:16:45 -0400
+Received: by ewy26 with SMTP id 26so2008421ewy.37
+        for <netfilter-devel@vger.kernel.org>; Fri, 24 Jul 2009 13:16:43 -0700 (PDT)
+In-Reply-To: <47A7F67C62706041BC49DB7822B1C9DB34D79A8733@INOAVREX11.ptin.corpPT.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Dear all,
+This is a cryptographically signed message in MIME format.
 
-I'm running netfilter on a router operating OpenWRT Kamikaze 8.09, kernel 2.6.25.17.
+--------------ms030606030703030805000105
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 
-I have two computers on the router LAN which are programmed to get the time from an NTP server. This NTP server has a load balancing mechanism, so the computer that responds to the NTP request is not the same to where was sent the request. So the response is blocked by netfilter, because that connection wasn't started from the LAN. But the NTP server always keeps the same ports and always listens on port 123. So if you make the request from port 1024 to the port 123 of the server the response will come from 123 to 1024.
-To overcome this situation I figured that a Connection Tracking Helper module would overcome the situation. I made the module based on the IRC conntrack module. The expectations are correctily entered on the conntrack expectations table, but the response packets from the NTP server all die on the router. For a first try I'm only using a single computer making the NTP requests.
+Hugo Miguel Mendes escreveu:
+> Dear all,
+>
+> I'm running netfilter on a router operating OpenWRT Kamikaze 8.09, kern=
+el 2.6.25.17.
+>
+> I have two computers on the router LAN which are programmed to get the =
+time from an NTP server. This NTP server has a load balancing mechanism, =
+so the computer that responds to the NTP request is not the same to where=
+ was sent the request. So the response is blocked by netfilter, because t=
+hat connection wasn't started from the LAN. But the NTP server always kee=
+ps the same ports and always listens on port 123. So if you make the requ=
+est from port 1024 to the port 123 of the server the response will come f=
+rom 123 to 1024.
 
-The module has the following key points:
+    the load balancing mechanism for this NTP server is fucking broke.=20
+The load balancing mechanism is the one that should be fixed, not your=20
+netfilter module.
 
-init function:
+    this kind of responde, coming from another ip, wont be allowed by=20
+any possible firewall, which in the last 6-7-8 years probably, are all=20
+statefull ones.
 
-static struct nf_conntrack_helper fcn __read_mostly;
 
-static int __init nf_conntrack_fcn_init(void)
-{
-    int ret = 0;
 
-    memset(&fcn, 0, sizeof(struct nf_conntrack_helper));
+--=20
 
-    fcn.name = "full_cone_nat";
-    fcn.me = THIS_MODULE;
-    fcn.max_expected = 1;
-    fcn.timeout = 10*60;
 
-    fcn.tuple.src.l3num = AF_INET;
+	Atenciosamente / Sincerily,
+	Leonardo Rodrigues
+	Solutti Tecnologia
+	http://www.solutti.com.br
 
-    fcn.tuple.dst.protonum = IPPROTO_UDP;
-    fcn.tuple.src.u.udp.port = htons(port);    //port variable initialized at module load time to 123
+	Minha armadilha de SPAM, N=C3O mandem email
+	gertrudes@solutti.com.br
+	My SPAMTRAP, do not email it
 
-    fcn.help = fcn_help;
 
-    ret = nf_conntrack_helper_register(&fcn);
 
-    if (ret) {
-        nf_conntrack_fcn_exit();
-        return ret;
-    }
 
-    return 0;
-}
 
-help function
+--------------ms030606030703030805000105
+Content-Type: application/x-pkcs7-signature; name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Description: S/MIME Cryptographic Signature
 
-if (dir == IP_CT_DIR_REPLY)
-        return NF_ACCEPT;
-
-    spin_lock_bh(&nf_fcn_lock);
-
-    exp = nf_ct_expect_alloc(ct);
-
-    if(exp == NULL) {
-        ret = NF_DROP;
-        goto out;
-    }
-
-    tuple = &ct->tuplehash[!dir].tuple;
-
-    nf_ct_expect_init(exp, tuple->src.l3num,
-              NULL, &tuple->dst.u3,
-                   IPPROTO_UDP, &tuple->src.u.udp.port,
-                &tuple->dst.u.udp.port);
-
-    nf_nat_fcn = rcu_dereference(nf_nat_fcn_hook);
-    if (nf_nat_fcn && ct->status & IPS_NAT_MASK) {
-        ret = nf_nat_fcn(skb, ctinfo, exp);
-    }
-    else {
-        if (nf_ct_expect_related(exp) != 0) {
-            ret = NF_DROP;
-        }
-        else {
-            ret = NF_ACCEPT;
-        }
-    }
-
-    nf_ct_expect_put(exp);
-
-out:
-    spin_unlock_bh(&nf_fcn_lock);
-    return ret;
-}
-
-The nf_nat_fcn function:
-
-    exp->saved_proto.udp.port = exp->tuple.dst.u.udp.port;
-    exp->dir = IP_CT_DIR_REPLY;
-
-    exp->expectfn = nf_nat_follow_master;
-
-    for (port = ntohs(exp->saved_proto.udp.port); port != 0; port++) {
-        exp->tuple.dst.u.udp.port = htons(port);
-        if (nf_ct_expect_related(exp) == 0)
-            break;
-    }
-
-    return NF_ACCEPT;
-
-Any idea why this doesn't work?
-
-Thanks for your time.
-
-Best Regards.
-
-Hugo Mendes
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIRDjCC
+BIowggNyoAMCAQICECf06hH0eobEbp27bqkXBwcwDQYJKoZIhvcNAQEFBQAwbzELMAkGA1UE
+BhMCU0UxFDASBgNVBAoTC0FkZFRydXN0IEFCMSYwJAYDVQQLEx1BZGRUcnVzdCBFeHRlcm5h
+bCBUVFAgTmV0d29yazEiMCAGA1UEAxMZQWRkVHJ1c3QgRXh0ZXJuYWwgQ0EgUm9vdDAeFw0w
+NTA2MDcwODA5MTBaFw0yMDA1MzAxMDQ4MzhaMIGuMQswCQYDVQQGEwJVUzELMAkGA1UECBMC
+VVQxFzAVBgNVBAcTDlNhbHQgTGFrZSBDaXR5MR4wHAYDVQQKExVUaGUgVVNFUlRSVVNUIE5l
+dHdvcmsxITAfBgNVBAsTGGh0dHA6Ly93d3cudXNlcnRydXN0LmNvbTE2MDQGA1UEAxMtVVRO
+LVVTRVJGaXJzdC1DbGllbnQgQXV0aGVudGljYXRpb24gYW5kIEVtYWlsMIIBIjANBgkqhkiG
+9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsjmFpPJ9q0E7YkY3rs3BYHW8OWX5ShpHornMSMxqmNVN
+NRm5pELlzkniii8efNIxB8dOtINknS4p1aJkxIW9hVE1eaROaJB7HHqkkqgX8pgV8pPMyaQy
+lbsMTzC9mKALi+VuG6JG+ni8om+rWV6lL8/K2m2qL+usobNqqrcuZzWLeeEeaYji5kbNoKXq
+vgvOdjp6Dpvq/NonWz1zHyLmSGHGTPNpsaguG7bUMSAsvIKKjqQOpdeJQ/wWWq8dcdcRWdq6
+hw2v+vPhwvCkxWeM1tZUOt4KpLoDd7NlyP0e03RiqhjKaJMeoYV+9Udly/hNVyh00jT/MLbu
+9mIwFIws6wIDAQABo4HhMIHeMB8GA1UdIwQYMBaAFK29mHo0tCb3+sQmVO8DveAky1QaMB0G
+A1UdDgQWBBSJgmd9xJ0mcABLtFBIfN49rgRufTAOBgNVHQ8BAf8EBAMCAQYwDwYDVR0TAQH/
+BAUwAwEB/zB7BgNVHR8EdDByMDigNqA0hjJodHRwOi8vY3JsLmNvbW9kb2NhLmNvbS9BZGRU
+cnVzdEV4dGVybmFsQ0FSb290LmNybDA2oDSgMoYwaHR0cDovL2NybC5jb21vZG8ubmV0L0Fk
+ZFRydXN0RXh0ZXJuYWxDQVJvb3QuY3JsMA0GCSqGSIb3DQEBBQUAA4IBAQAZ2IkRbyispgCi
+54fBm5AD236hEv0e8+LwAamUVEJrmgnEoG3XkJIEA2Z5Q3H8+G+v23ZF4jcaPd3kWQR4rBz0
+g0bzes9bhHIt5UbBuhgRKfPLSXmHPLptBZ2kbWhPrXIUNqi5sf2/z3/wpGqUNVCPz4FtVbHd
+WTBK322gnGQfSXzvNrv042n0+DmPWq1LhTq3Du3Tzw1EovsEv+QvcI4l+1pUBrPQxLxtjftz
+Mizpm4QkLdZ/kXpoAlAfDj9N6cz1u2fo3BwuO/xOzf4CjuOoEwqlJkRl6RDyTVKnrtw+ymsy
+XEFs/vVdoOr/0fqbhlhtPZZH5f4ulQTCAMyOofK7MIIGPDCCBSSgAwIBAgIQF2zWbK+0n9vV
+8uWqeAk8gjANBgkqhkiG9w0BAQUFADCBrjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAlVUMRcw
+FQYDVQQHEw5TYWx0IExha2UgQ2l0eTEeMBwGA1UEChMVVGhlIFVTRVJUUlVTVCBOZXR3b3Jr
+MSEwHwYDVQQLExhodHRwOi8vd3d3LnVzZXJ0cnVzdC5jb20xNjA0BgNVBAMTLVVUTi1VU0VS
+Rmlyc3QtQ2xpZW50IEF1dGhlbnRpY2F0aW9uIGFuZCBFbWFpbDAeFw0wOTA2MTAwMDAwMDBa
+Fw0xMDA2MTAyMzU5NTlaMIHmMTUwMwYDVQQLEyxDb21vZG8gVHJ1c3QgTmV0d29yayAtIFBF
+UlNPTkEgTk9UIFZBTElEQVRFRDFGMEQGA1UECxM9VGVybXMgYW5kIENvbmRpdGlvbnMgb2Yg
+dXNlOiBodHRwOi8vd3d3LmNvbW9kby5uZXQvcmVwb3NpdG9yeTEfMB0GA1UECxMWKGMpMjAw
+MyBDb21vZG8gTGltaXRlZDEbMBkGA1UEAxMSTGVvbmFyZG8gTWFnYWxoYWVzMScwJQYJKoZI
+hvcNAQkBFhhsZW9saXN0YXNAc29sdXR0aS5jb20uYnIwggEiMA0GCSqGSIb3DQEBAQUAA4IB
+DwAwggEKAoIBAQDjdPky3WNXit7frxXB9VIiAtyM+1Erqk1qsf/AJ2NTv4nKAYnF7259Wi8t
+TtimM5lezKYPcamxNrgrL+ouj4GynzNDXO2hjPrE++exQr39fLnpVpqpRAxaGp+8/ESb3bDU
+AI6imoeG4TKf53xjzkM//tgh8Uhb/j2bWZs7dqwioQ5XvN4M1JThtBqUWMh0h3kvsxdqLIDH
+sD04/psEmtB+Vgrs57GgvCHaH/FuDDbFpJxMRoDlbQiEePAzqEY1delTU/69TcYZr6NsGzmz
+G5aUXzFBhaksltDovkHlq1zRJ2UY/mYq8DK86OECl2he48VI7AIRFcQ05YORqAerFYEHAgMB
+AAGjggIaMIICFjAfBgNVHSMEGDAWgBSJgmd9xJ0mcABLtFBIfN49rgRufTAdBgNVHQ4EFgQU
+hvW0RQzFbpohCbvcUA0+NtapM8YwDgYDVR0PAQH/BAQDAgWgMAwGA1UdEwEB/wQCMAAwIAYD
+VR0lBBkwFwYIKwYBBQUHAwQGCysGAQQBsjEBAwUCMBEGCWCGSAGG+EIBAQQEAwIFIDBGBgNV
+HSAEPzA9MDsGDCsGAQQBsjEBAgEBATArMCkGCCsGAQUFBwIBFh1odHRwczovL3NlY3VyZS5j
+b21vZG8ubmV0L0NQUzCBpQYDVR0fBIGdMIGaMEygSqBIhkZodHRwOi8vY3JsLmNvbW9kb2Nh
+LmNvbS9VVE4tVVNFUkZpcnN0LUNsaWVudEF1dGhlbnRpY2F0aW9uYW5kRW1haWwuY3JsMEqg
+SKBGhkRodHRwOi8vY3JsLmNvbW9kby5uZXQvVVROLVVTRVJGaXJzdC1DbGllbnRBdXRoZW50
+aWNhdGlvbmFuZEVtYWlsLmNybDBsBggrBgEFBQcBAQRgMF4wNgYIKwYBBQUHMAKGKmh0dHA6
+Ly9jcnQuY29tb2RvY2EuY29tL1VUTkFBQUNsaWVudENBLmNydDAkBggrBgEFBQcwAYYYaHR0
+cDovL29jc3AuY29tb2RvY2EuY29tMCMGA1UdEQQcMBqBGGxlb2xpc3Rhc0Bzb2x1dHRpLmNv
+bS5icjANBgkqhkiG9w0BAQUFAAOCAQEAAj2KJ9hql4i03t0Z4TE4GhCzbUcvbpzqqOStdcuE
+IBXkFSh0OHho1l/ZH9hTzVgJNBqcwRgd5izEtmw3kYtEVO1Ss+BmvxHTgBHvHCghHsEj8PUF
+4PuSCWyZZUGqT2Ihcw1OOEoap59M3Zw5TJgKHvOY9G/Ulp8Y8hduW94cT0q8eTOzz8ZZmgIt
+q52iD5rbwxyJBbq0SArqSSOkYsn/YKEAXuSqprwzmWM3KACKAAtImI3VlAl0GoGfgLiFDfat
+f1knMNQa+kv3XkQj5KwZCiYJreLh3Aq+g2cI9eoipceI2St1GwCRmigAFKHtKZoDYbs1w+y/
+CQXg6+wB2go6FDCCBjwwggUkoAMCAQICEBds1myvtJ/b1fLlqngJPIIwDQYJKoZIhvcNAQEF
+BQAwga4xCzAJBgNVBAYTAlVTMQswCQYDVQQIEwJVVDEXMBUGA1UEBxMOU2FsdCBMYWtlIENp
+dHkxHjAcBgNVBAoTFVRoZSBVU0VSVFJVU1QgTmV0d29yazEhMB8GA1UECxMYaHR0cDovL3d3
+dy51c2VydHJ1c3QuY29tMTYwNAYDVQQDEy1VVE4tVVNFUkZpcnN0LUNsaWVudCBBdXRoZW50
+aWNhdGlvbiBhbmQgRW1haWwwHhcNMDkwNjEwMDAwMDAwWhcNMTAwNjEwMjM1OTU5WjCB5jE1
+MDMGA1UECxMsQ29tb2RvIFRydXN0IE5ldHdvcmsgLSBQRVJTT05BIE5PVCBWQUxJREFURUQx
+RjBEBgNVBAsTPVRlcm1zIGFuZCBDb25kaXRpb25zIG9mIHVzZTogaHR0cDovL3d3dy5jb21v
+ZG8ubmV0L3JlcG9zaXRvcnkxHzAdBgNVBAsTFihjKTIwMDMgQ29tb2RvIExpbWl0ZWQxGzAZ
+BgNVBAMTEkxlb25hcmRvIE1hZ2FsaGFlczEnMCUGCSqGSIb3DQEJARYYbGVvbGlzdGFzQHNv
+bHV0dGkuY29tLmJyMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA43T5Mt1jV4re
+368VwfVSIgLcjPtRK6pNarH/wCdjU7+JygGJxe9ufVovLU7YpjOZXsymD3GpsTa4Ky/qLo+B
+sp8zQ1ztoYz6xPvnsUK9/Xy56VaaqUQMWhqfvPxEm92w1ACOopqHhuEyn+d8Y85DP/7YIfFI
+W/49m1mbO3asIqEOV7zeDNSU4bQalFjIdId5L7MXaiyAx7A9OP6bBJrQflYK7OexoLwh2h/x
+bgw2xaScTEaA5W0IhHjwM6hGNXXpU1P+vU3GGa+jbBs5sxuWlF8xQYWpLJbQ6L5B5atc0Sdl
+GP5mKvAyvOjhApdoXuPFSOwCERXENOWDkagHqxWBBwIDAQABo4ICGjCCAhYwHwYDVR0jBBgw
+FoAUiYJnfcSdJnAAS7RQSHzePa4Ebn0wHQYDVR0OBBYEFIb1tEUMxW6aIQm73FANPjbWqTPG
+MA4GA1UdDwEB/wQEAwIFoDAMBgNVHRMBAf8EAjAAMCAGA1UdJQQZMBcGCCsGAQUFBwMEBgsr
+BgEEAbIxAQMFAjARBglghkgBhvhCAQEEBAMCBSAwRgYDVR0gBD8wPTA7BgwrBgEEAbIxAQIB
+AQEwKzApBggrBgEFBQcCARYdaHR0cHM6Ly9zZWN1cmUuY29tb2RvLm5ldC9DUFMwgaUGA1Ud
+HwSBnTCBmjBMoEqgSIZGaHR0cDovL2NybC5jb21vZG9jYS5jb20vVVROLVVTRVJGaXJzdC1D
+bGllbnRBdXRoZW50aWNhdGlvbmFuZEVtYWlsLmNybDBKoEigRoZEaHR0cDovL2NybC5jb21v
+ZG8ubmV0L1VUTi1VU0VSRmlyc3QtQ2xpZW50QXV0aGVudGljYXRpb25hbmRFbWFpbC5jcmww
+bAYIKwYBBQUHAQEEYDBeMDYGCCsGAQUFBzAChipodHRwOi8vY3J0LmNvbW9kb2NhLmNvbS9V
+VE5BQUFDbGllbnRDQS5jcnQwJAYIKwYBBQUHMAGGGGh0dHA6Ly9vY3NwLmNvbW9kb2NhLmNv
+bTAjBgNVHREEHDAagRhsZW9saXN0YXNAc29sdXR0aS5jb20uYnIwDQYJKoZIhvcNAQEFBQAD
+ggEBAAI9iifYapeItN7dGeExOBoQs21HL26c6qjkrXXLhCAV5BUodDh4aNZf2R/YU81YCTQa
+nMEYHeYsxLZsN5GLRFTtUrPgZr8R04AR7xwoIR7BI/D1BeD7kglsmWVBqk9iIXMNTjhKGqef
+TN2cOUyYCh7zmPRv1JafGPIXblveHE9KvHkzs8/GWZoCLaudog+a28MciQW6tEgK6kkjpGLJ
+/2ChAF7kqqa8M5ljNygAigALSJiN1ZQJdBqBn4C4hQ32rX9ZJzDUGvpL915EI+SsGQomCa3i
+4dwKvoNnCPXqIqXHiNkrdRsAkZooABSh7SmaA2G7NcPsvwkF4OvsAdoKOhQxggRQMIIETAIB
+ATCBwzCBrjELMAkGA1UEBhMCVVMxCzAJBgNVBAgTAlVUMRcwFQYDVQQHEw5TYWx0IExha2Ug
+Q2l0eTEeMBwGA1UEChMVVGhlIFVTRVJUUlVTVCBOZXR3b3JrMSEwHwYDVQQLExhodHRwOi8v
+d3d3LnVzZXJ0cnVzdC5jb20xNjA0BgNVBAMTLVVUTi1VU0VSRmlyc3QtQ2xpZW50IEF1dGhl
+bnRpY2F0aW9uIGFuZCBFbWFpbAIQF2zWbK+0n9vV8uWqeAk8gjAJBgUrDgMCGgUAoIICYTAY
+BgkqhkiG9w0BCQMxCwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0wOTA3MjQyMDE2MjZa
+MCMGCSqGSIb3DQEJBDEWBBTpJAsrfTrxdXjwZuUxqUKPYtufTjBSBgkqhkiG9w0BCQ8xRTBD
+MAoGCCqGSIb3DQMHMA4GCCqGSIb3DQMCAgIAgDANBggqhkiG9w0DAgIBQDAHBgUrDgMCBzAN
+BggqhkiG9w0DAgIBKDCB1AYJKwYBBAGCNxAEMYHGMIHDMIGuMQswCQYDVQQGEwJVUzELMAkG
+A1UECBMCVVQxFzAVBgNVBAcTDlNhbHQgTGFrZSBDaXR5MR4wHAYDVQQKExVUaGUgVVNFUlRS
+VVNUIE5ldHdvcmsxITAfBgNVBAsTGGh0dHA6Ly93d3cudXNlcnRydXN0LmNvbTE2MDQGA1UE
+AxMtVVROLVVTRVJGaXJzdC1DbGllbnQgQXV0aGVudGljYXRpb24gYW5kIEVtYWlsAhAXbNZs
+r7Sf29Xy5ap4CTyCMIHWBgsqhkiG9w0BCRACCzGBxqCBwzCBrjELMAkGA1UEBhMCVVMxCzAJ
+BgNVBAgTAlVUMRcwFQYDVQQHEw5TYWx0IExha2UgQ2l0eTEeMBwGA1UEChMVVGhlIFVTRVJU
+UlVTVCBOZXR3b3JrMSEwHwYDVQQLExhodHRwOi8vd3d3LnVzZXJ0cnVzdC5jb20xNjA0BgNV
+BAMTLVVUTi1VU0VSRmlyc3QtQ2xpZW50IEF1dGhlbnRpY2F0aW9uIGFuZCBFbWFpbAIQF2zW
+bK+0n9vV8uWqeAk8gjANBgkqhkiG9w0BAQEFAASCAQBY6Gpyc1FadIAwujN3Hl7EbjSqTNMV
+7Thuhs2MRgOp4WvWzsBv1lhCifZC8piUZKHVySDsGHND1SXS8sCmPGwxax+wx1hmWi8Ee3H+
+j3P7YdfmtJEbSLar6e0z8vWib+YclCvdvjaPqQvXAKYNR6ssY8lqskDAc2DiEDHnR2XcyVKT
+CzGoowO/J/z40gO5wk5acmwX6XZli4M583HzLptPdXpjZa7u7CjKihKt1s7V9z9Nhm4bWzgJ
+x5xDh4ayJGUD05cWW9kBfexU1mVWpx9ZrhFqX1K/rDm21YbrDubaLJPbLKhvkbp8mv7zmJVa
+K2veHP370prXKA8jHqaUEgwBAAAAAAAA
+--------------ms030606030703030805000105--
