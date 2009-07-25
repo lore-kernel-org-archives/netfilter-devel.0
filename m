@@ -1,154 +1,78 @@
-From: Kuzin Andrey <kuzinandrey@yandex.ru>
-Subject: Re[2]: size calculation wasted cpu time
-Date: Sat, 25 Jul 2009 09:10:56 +0400
-Message-ID: <1412506605.20090725091056@yandex.ru>
-References: <152544048.20090316160216@yandex.ru>
- <alpine.LSU.2.00.0907242054530.32211@fbirervta.pbzchgretzou.qr>
-Reply-To: Kuzin Andrey <kuzinandrey@yandex.ru>
+From: Hugo Miguel Mendes <hugo-m-mendes@ptinovacao.pt>
+Subject: RE: NTP server
+Date: Sat, 25 Jul 2009 20:43:13 +0100
+Message-ID: <47A7F67C62706041BC49DB7822B1C9DB34D79A8735@INOAVREX11.ptin.corpPT.com>
+References: <47A7F67C62706041BC49DB7822B1C9DB34D79A8733@INOAVREX11.ptin.corpPT.com>,<4A6A169A.9090704@solutti.com.br>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Leonardo Rodrigues <leolistas@solutti.com.br>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from forward1.yandex.ru ([77.88.46.6]:55803 "EHLO forward1.yandex.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751029AbZGYFNx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 25 Jul 2009 01:13:53 -0400
-In-Reply-To: <alpine.LSU.2.00.0907242054530.32211@fbirervta.pbzchgretzou.qr>
+Received: from mail6.ptinovacao.pt ([194.65.138.99]:59068 "EHLO
+	owa.ptinovacao.pt" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752423AbZGYTp5 convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 25 Jul 2009 15:45:57 -0400
+In-Reply-To: <4A6A169A.9090704@solutti.com.br>
+Content-Language: pt-PT
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
->>In /net/netfilter/nfnetlink_queue.c every call of nfqnl_build_packet_message()
->>make series of call nla_total_size() for 'size' calculations.
->>I think 'size' is constant value for kernel build and may be define static
->>variable for this ?
->>
->>        size =    NLMSG_SPACE(sizeof(struct nfgenmsg))
->>                + nla_total_size(sizeof(struct nfqnl_msg_packet_hdr))
->>                + nla_total_size(sizeof(u_int32_t))     /* ifindex */
->>                + nla_total_size(sizeof(u_int32_t))     /* ifindex */
+Thanks for you attention
 
-JE> The compiler will optimize it out.
+A response coming from another ip is exactly what happens in DCC protoc=
+ol of IRC, and the module nf_conntrack_irc.ko and nf_nat_irc.ko make it=
+ possible by using in the source ip of the expectation the address 0.0.=
+0.0 which works like a wildcard.
 
-Okey. It's easy to test.
+Best Regards
 
+Hugo Mendes
+________________________________________
+De: Leonardo Rodrigues [leolistas@solutti.com.br]
+Enviado: sexta-feira, 24 de Julho de 2009 21:16
+Para: Hugo Miguel Mendes
+Cc: netfilter-devel@vger.kernel.org
+Assunto: Re: NTP server
 
-=========== 1.c =======================
+Hugo Miguel Mendes escreveu:
+> Dear all,
+>
+> I'm running netfilter on a router operating OpenWRT Kamikaze 8.09, ke=
+rnel 2.6.25.17.
+>
+> I have two computers on the router LAN which are programmed to get th=
+e time from an NTP server. This NTP server has a load balancing mechani=
+sm, so the computer that responds to the NTP request is not the same to=
+ where was sent the request. So the response is blocked by netfilter, b=
+ecause that connection wasn't started from the LAN. But the NTP server =
+always keeps the same ports and always listens on port 123. So if you m=
+ake the request from port 1024 to the port 123 of the server the respon=
+se will come from 123 to 1024.
 
-#include <stdlib.h>
-#include <stdio.h>
-#define NLA_ALIGNTO             4
-#define NLA_ALIGN(len)          (((len) + NLA_ALIGNTO - 1) & ~(NLA_ALIGNTO - 1))
-#define NLA_HDRLEN              30
+    the load balancing mechanism for this NTP server is fucking broke.
+The load balancing mechanism is the one that should be fixed, not your
+netfilter module.
 
-static inline int nla_attr_size(int payload)
-{
-      return NLA_HDRLEN + payload;
-}
-
-static inline int nla_total_size(int payload)
-{
-      return NLA_ALIGN(nla_attr_size(payload));
-}
-
-size_t nfqnl_build_packet_message(int len) {
-      size_t size;
-
-      size = nla_total_size(sizeof(u_int32_t))     /* ifindex */
-            + nla_total_size(sizeof(u_int32_t))     /* ifindex */
-            + nla_total_size(sizeof(u_int32_t))     /* ifindex */
-            + nla_total_size(sizeof(u_int32_t))     /* ifindex */
-            + nla_total_size(sizeof(u_int32_t));     /* mark */
-
-      return size;
-};
-
-
-int main () {
-      long i;
-      size_t ret;
-
-      int r = 0;
-      for (i = 0; i < 100000000; i++) {
-            r = rand();
-            printf("%d",r);
-            ret = nfqnl_build_packet_message(r);
-      };
-}
-======================== end of 1.c ========================
-
-And other case
-
-===================== 2.c =============================
-
-#include <stdlib.h>
-#include <stdio.h>
-
-#define NLA_ALIGNTO             4
-#define NLA_ALIGN(len)          (((len) + NLA_ALIGNTO - 1) & ~(NLA_ALIGNTO - 1))
-#define NLA_HDRLEN              30
-
-static inline int nla_attr_size(int payload)
-{
-      return NLA_HDRLEN + payload;
-}
-
-static inline int nla_total_size(int payload)
-{
-      return NLA_ALIGN(nla_attr_size(payload));
-}
-
-size_t size_global = 0; ///// GLOBAL PRECALCULATED VALUE
-
-size_t nfqnl_build_packet_message(int len) {
-      size_t size;
-
-      size = size_global;
-
-      return size;
-};
-
-
-int main () {
-      long i;
-      size_t ret;
-
-      //////// calculations here
-      size_global = nla_total_size(sizeof(u_int32_t))     /* ifindex */
-            + nla_total_size(sizeof(u_int32_t))     /* ifindex */
-            + nla_total_size(sizeof(u_int32_t))     /* ifindex */
-            + nla_total_size(sizeof(u_int32_t))     /* ifindex */
-            + nla_total_size(sizeof(u_int32_t));     /* mark */
-
-      int r = 0;
-      for (i = 0; i < 100000000; i++) {
-            r = rand();
-            printf("%d",r);
-            ret = nfqnl_build_packet_message(r);
-      };
-}
-===========================================
-
-And some tests....
-
-
-root@bill:/src/1# gcc 1.c
-root@bill:/src/1# time ./a.out > /dev/null
-real    0m20.253s
-user    0m20.209s
-sys     0m0.041s
-
-root@bill:/src/1# gcc 2.c
-root@bill:/src/1# time ./a.out > /dev/null
-real    0m17.030s
-user    0m16.988s
-sys     0m0.040s
-
-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-Kuzin Andrey  -  kuzinandrey@yandex.ru
-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+    this kind of responde, coming from another ip, wont be allowed by
+any possible firewall, which in the last 6-7-8 years probably, are all
+statefull ones.
 
 
 
+--
 
+
+        Atenciosamente / Sincerily,
+        Leonardo Rodrigues
+        Solutti Tecnologia
+        http://www.solutti.com.br
+
+        Minha armadilha de SPAM, N=C3O mandem email
+        gertrudes@solutti.com.br
+        My SPAMTRAP, do not email it--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
