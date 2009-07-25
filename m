@@ -1,78 +1,45 @@
-From: Hugo Miguel Mendes <hugo-m-mendes@ptinovacao.pt>
-Subject: RE: NTP server
-Date: Sat, 25 Jul 2009 20:43:13 +0100
-Message-ID: <47A7F67C62706041BC49DB7822B1C9DB34D79A8735@INOAVREX11.ptin.corpPT.com>
-References: <47A7F67C62706041BC49DB7822B1C9DB34D79A8733@INOAVREX11.ptin.corpPT.com>,<4A6A169A.9090704@solutti.com.br>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Leonardo Rodrigues <leolistas@solutti.com.br>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: (unknown)
+Date: Sat, 25 Jul 2009 22:22:38 +0200
+Message-ID: <1248553363-26903-1-git-send-email-jengelh@medozas.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail6.ptinovacao.pt ([194.65.138.99]:59068 "EHLO
-	owa.ptinovacao.pt" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752423AbZGYTp5 convert rfc822-to-8bit (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:55091 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752477AbZGYUWq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 25 Jul 2009 15:45:57 -0400
-In-Reply-To: <4A6A169A.9090704@solutti.com.br>
-Content-Language: pt-PT
+	Sat, 25 Jul 2009 16:22:46 -0400
+Subject: 
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Thanks for you attention
 
-A response coming from another ip is exactly what happens in DCC protoc=
-ol of IRC, and the module nf_conntrack_irc.ko and nf_nat_irc.ko make it=
- possible by using in the source ip of the expectation the address 0.0.=
-0.0 which works like a wildcard.
+Hi Patrick,
 
-Best Regards
+Please pull from
+	git://dev.medozas.de/iptables master
 
-Hugo Mendes
-________________________________________
-De: Leonardo Rodrigues [leolistas@solutti.com.br]
-Enviado: sexta-feira, 24 de Julho de 2009 21:16
-Para: Hugo Miguel Mendes
-Cc: netfilter-devel@vger.kernel.org
-Assunto: Re: NTP server
+which contains a pack of patches to build iptables without libdl,
+obsoleting iptables-static (leaving -multi) and using the -multi
+program exclusively.
 
-Hugo Miguel Mendes escreveu:
-> Dear all,
->
-> I'm running netfilter on a router operating OpenWRT Kamikaze 8.09, ke=
-rnel 2.6.25.17.
->
-> I have two computers on the router LAN which are programmed to get th=
-e time from an NTP server. This NTP server has a load balancing mechani=
-sm, so the computer that responds to the NTP request is not the same to=
- where was sent the request. So the response is blocked by netfilter, b=
-ecause that connection wasn't started from the LAN. But the NTP server =
-always keeps the same ports and always listens on port 123. So if you m=
-ake the request from port 1024 to the port 123 of the server the respon=
-se will come from 123 to 1024.
+Jan Engelhardt (5):
+      build: order of dependent libs is sensitive
+      multi binary: allow subcommand via argv[1]
+      build: fix struct size mismatch
+      build: combine iptables-multi and iptables-static
+      build: build only iptables-multi
 
-    the load balancing mechanism for this NTP server is fucking broke.
-The load balancing mechanism is the one that should be fixed, not your
-netfilter module.
-
-    this kind of responde, coming from another ip, wont be allowed by
-any possible firewall, which in the last 6-7-8 years probably, are all
-statefull ones.
-
-
-
---
-
-
-        Atenciosamente / Sincerily,
-        Leonardo Rodrigues
-        Solutti Tecnologia
-        http://www.solutti.com.br
-
-        Minha armadilha de SPAM, N=C3O mandem email
-        gertrudes@solutti.com.br
-        My SPAMTRAP, do not email it--
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+ INSTALL                   |   41 ++++++++++++++++------
+ Makefile.am               |   84 ++++++++++++++-------------------------------
+ extensions/GNUmakefile.in |    4 +-
+ include/xtables.h.in      |    6 +---
+ ip6tables-multi.c         |   53 +++++++++++++++++-----------
+ ip6tables-restore.c       |    2 +-
+ ip6tables-save.c          |    2 +-
+ ip6tables-standalone.c    |    2 +-
+ iptables-multi.c          |   60 ++++++++++++++++++++------------
+ iptables-restore.c        |    2 +-
+ iptables-save.c           |    2 +-
+ iptables-standalone.c     |    2 +-
+ 12 files changed, 135 insertions(+), 125 deletions(-)
