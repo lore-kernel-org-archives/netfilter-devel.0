@@ -1,37 +1,39 @@
-From: Henrik Nordstrom <henrik@henriknordstrom.net>
-Subject: Re: Re[2]: size calculation wasted cpu time
-Date: Sun, 26 Jul 2009 01:41:50 +0200
-Message-ID: <1248565310.6510.0.camel@localhost.localdomain>
-References: <152544048.20090316160216@yandex.ru>
-	 <alpine.LSU.2.00.0907242054530.32211@fbirervta.pbzchgretzou.qr>
-	 <1412506605.20090725091056@yandex.ru>
+From: Amos Jeffries <squid3@treenet.co.nz>
+Subject: Re: NTP server
+Date: Sun, 26 Jul 2009 14:12:42 +1200
+Message-ID: <4A6BBB9A.909@treenet.co.nz>
+References: <47A7F67C62706041BC49DB7822B1C9DB34D79A8733@INOAVREX11.ptin.corpPT.com>,<4A6A169A.9090704@solutti.com.br> <47A7F67C62706041BC49DB7822B1C9DB34D79A8735@INOAVREX11.ptin.corpPT.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	netfilter-devel@vger.kernel.org
-To: Kuzin Andrey <kuzinandrey@yandex.ru>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Leonardo Rodrigues <leolistas@solutti.com.br>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Hugo Miguel Mendes <hugo-m-mendes@ptinovacao.pt>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from vps1.henriknordstrom.net ([195.20.207.177]:46822 "EHLO
-	vps1.henriknordstrom.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750893AbZGYXnz (ORCPT
+Received: from ip-58-28-153-233.static-xdsl.xnet.co.nz ([58.28.153.233]:47478
+	"EHLO treenet.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752262AbZGZCMv (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 25 Jul 2009 19:43:55 -0400
-In-Reply-To: <1412506605.20090725091056@yandex.ru>
+	Sat, 25 Jul 2009 22:12:51 -0400
+In-Reply-To: <47A7F67C62706041BC49DB7822B1C9DB34D79A8735@INOAVREX11.ptin.corpPT.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-l=C3=B6r 2009-07-25 klockan 09:10 +0400 skrev Kuzin Andrey:
+Hugo Miguel Mendes wrote:
+> Thanks for you attention
+> 
+> A response coming from another ip is exactly what happens in DCC protocol of IRC, and the module nf_conntrack_irc.ko and nf_nat_irc.ko make it possible by using in the source ip of the expectation the address 0.0.0.0 which works like a wildcard.
+> 
+> Best Regards
+> 
+> Hugo Mendes
 
-> root@bill:/src/1# gcc 1.c
+That being IRC, a protocol where such behaviour is defined.
 
-Now try the same with -O2
+NTP is direct trusted peer to prevent abuse and protect the little 
+structure that depends on it called The Internet.
 
-Regards
-Henrik
+What would you expect to happen if all your server clocks accepted 
+random non-requested packets as truth?
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Amos
