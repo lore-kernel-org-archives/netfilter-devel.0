@@ -1,114 +1,295 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: nftables: problem with sets (Object not found)
-Date: Tue, 28 Jul 2009 15:53:00 +0200
-Message-ID: <4A6F02BC.7080904@trash.net>
-References: <4A69FCC3.1070404@gmail.com> <4A6EEDBA.3010505@trash.net>
+From: Hannes Eder <heder@google.com>
+Subject: Re: [RFC][PATCH 2/5] netfilter: xt_ipvs (netfilter matcher for ipvs)
+Date: Tue, 28 Jul 2009 16:55:01 +0200
+Message-ID: <b5ddba180907280755k725440fag79d39f18ebc7d28d@mail.gmail.com>
+References: <20090727134457.12897.272.stgit@jazzy.zrh.corp.google.com>
+	 <20090727134621.12897.75558.stgit@jazzy.zrh.corp.google.com>
+	 <alpine.LSU.2.00.0907272017280.20984@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------080307030603020006080501"
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: "Christoph A." <casmls@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:54013 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754204AbZG1NxD (ORCPT
+Received: from smtp-out.google.com ([216.239.45.13]:1700 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751484AbZG1OzH convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 28 Jul 2009 09:53:03 -0400
-In-Reply-To: <4A6EEDBA.3010505@trash.net>
+	Tue, 28 Jul 2009 10:55:07 -0400
+In-Reply-To: <alpine.LSU.2.00.0907272017280.20984@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------080307030603020006080501
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+On Mon, Jul 27, 2009 at 20:35, Jan Engelhardt<jengelh@medozas.de> wrote=
+:
+>
+> On Monday 2009-07-27 15:46, Hannes Eder wrote:
+>>--- /dev/null
+>>+++ b/include/linux/netfilter/xt_ipvs.h
+>>@@ -0,0 +1,32 @@
+>>+#ifndef _XT_IPVS_H
+>>+#define _XT_IPVS_H 1
+>>+
+>>+#ifndef _IP_VS_H
+>
+> Do the definitions (should probably be enums) exist in
+> very old <linux/ip_vs.h>? Then maybe you can get rid of them
+> from xt_ipvs.h.
 
-Patrick McHardy wrote:
-> Christoph A. wrote:
->> Am I missing something in the kernel or do I have a syntax error in my
->> rules?
->> (kernel config attached)
-> 
-> I never pushed out the userspace changes for the new set API.
-> I just pushed out all the changes that should be needed, please
-> update your trees and try again.
+Definitions removed from xt_ipvs.h.  For xt_ipvs.c I just included
+linux/ip_vs.h.  For libxt_ipvs (user space library) I added the entire
+linux/ip_vs.h.  Do you think this is better?
 
-BTW, for reference, attached is an example script for the new
-features (included in the tree in files/examples/sets_and_maps).
-The named sets can then be updated dynamically like this:
+>>+#define IP_VS_CONN_F_FWD_MASK 0x0007 =A0 =A0 =A0 =A0 =A0/* mask for =
+the fwd methods */
+>>+#define IP_VS_CONN_F_MASQ =A0 =A0 0x0000 =A0 =A0 =A0 =A0 =A0/* masqu=
+erading/NAT */
+>>+#define IP_VS_CONN_F_LOCALNODE =A0 =A0 =A0 =A00x0001 =A0 =A0 =A0 =A0=
+ =A0/* local node */
+>>+#define IP_VS_CONN_F_TUNNEL =A0 0x0002 =A0 =A0 =A0 =A0 =A0/* tunneli=
+ng */
+>>+#define IP_VS_CONN_F_DROUTE =A0 0x0003 =A0 =A0 =A0 =A0 =A0/* direct =
+routing */
+>>+#define IP_VS_CONN_F_BYPASS =A0 0x0004 =A0 =A0 =A0 =A0 =A0/* cache b=
+ypass */
+>>+#endif
+>>+
+>>+#define XT_IPVS_IPVS =A0 =A0 =A0 =A0 =A00x01 /* this is implied by a=
+ll other options */
+>>+#define XT_IPVS_PROTO =A0 =A0 =A0 =A0 0x02
+>>+#define XT_IPVS_VADDR =A0 =A0 =A0 =A0 0x04
+>>+#define XT_IPVS_VPORT =A0 =A0 =A0 =A0 0x08
+>>+#define XT_IPVS_DIR =A0 =A0 =A0 =A0 =A0 0x10
+>>+#define XT_IPVS_METHOD =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A00x20
+>>+#define XT_IPVS_MASK =A0 =A0 =A0 =A0 =A0(0x40 - 1)
+>>+#define XT_IPVS_ONCE_MASK =A0 =A0 (XT_IPVS_MASK & ~XT_IPVS_IPVS)
+>>+
+>>+struct xt_ipvs {
+>>+ =A0 =A0 =A0union nf_inet_addr =A0 =A0 =A0vaddr, vmask;
+>>+ =A0 =A0 =A0__be16 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0vport;
+>>+ =A0 =A0 =A0u_int16_t =A0 =A0 =A0 =A0 =A0 =A0 =A0 l4proto;
+>>+ =A0 =A0 =A0u_int16_t =A0 =A0 =A0 =A0 =A0 =A0 =A0 fwd_method;
+>>+
+>>+ =A0 =A0 =A0u_int8_t invert;
+>>+ =A0 =A0 =A0u_int8_t bitmask;
+>>+};
+>
+> As per the "Writing Netfilter modules" e-book, __u16/__u8 is required=
+=2E
 
-# nft add element filter jump_map { eth0 => jump input_1, eth1 => jump
-input_2 }
+Done.
 
-# nft add element filter nat_map eth0 => 10.0.0.1
+>>+config NETFILTER_XT_MATCH_IPVS
+>>+ =A0 =A0 =A0tristate '"ipvs" match support'
+>>+ =A0 =A0 =A0depends on NETFILTER_ADVANCED
+>>+ =A0 =A0 =A0help
+>>+ =A0 =A0 =A0 =A0This option allows you to match against ipvs propert=
+ies of a packet.
+>>+
+>>+ =A0 =A0 =A0 =A0 =A0To compile it as a module, choos M here. =A0If u=
+nsure, say N.
+>>+
+>IMHO the "to compile it as a module, choos[e] M" is a relict from
+> old times and should just be dropped. These days, I stupilate,
+> everyone knows that M makes modules. And if it doesnot, then
+> it's not allowed by Kconfig :>
 
-# nft add element filter local_ifs { eth1, eth2, eth3 }
-# nft delete element filter local_ifs eth2
+Done.
 
-etc. For now, all sets and maps are bound to tables. This is actually
-only necessary for verdict maps, so this might change.
+>>+MODULE_AUTHOR("Hannes Eder <heder@google.com>");
+>>+MODULE_DESCRIPTION("Xtables: match ipvs");
+>
+> "Match IPVS connection properties" is what you previously stated,
+> and which I think is good. Use it here, too.
 
+Done.
 
+>>+bool ipvs_mt(const struct sk_buff *skb, const struct xt_match_param =
+*par)
+>>+{
+>>+ =A0 =A0 =A0const struct xt_ipvs *data =3D par->matchinfo;
+>>+ =A0 =A0 =A0const u_int8_t family =3D par->family;
+>>+ =A0 =A0 =A0struct ip_vs_iphdr iph;
+>>+ =A0 =A0 =A0struct ip_vs_protocol *pp;
+>>+ =A0 =A0 =A0struct ip_vs_conn *cp;
+>>+ =A0 =A0 =A0int af;
+>>+ =A0 =A0 =A0bool match =3D true;
+>>+
+>>+ =A0 =A0 =A0if (data->bitmask =3D=3D XT_IPVS_IPVS) {
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0match =3D !!(skb->ipvs_property)
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0^ !!(data->invert & XT_I=
+PVS_IPVS);
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0goto out;
+>>+ =A0 =A0 =A0}
+>
+> XT_IPVS_IPVS? What's that supposed to tell me...
 
---------------080307030603020006080501
-Content-Type: text/plain;
- name="sets_and_maps"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="sets_and_maps"
+Just matching aginst the skb->ipvs_property, I changed to name to
+XT_IPVS_IPVS_PROPERTY.
 
-#! /sbin/nft -nf
-#
-# Examples of set and map usage
-#
+> Anyway, this can be made much shorter, given that all following
+> the "out" label is a return:
 
-# symbolic anonymous set definition built from symbolic singleton definitions
-define int_if1	 = eth0
-define int_if2	 = eth1
-define int_ifs	 = { $int_if1, $int_if2 }
+You are right.  For the moment, I'll keep it as is.  Having a single
+entry/exit point makes it easier to instrument the function for
+debugging.
 
-define ext_if1	 = eth2
-define ext_if2	 = eth3
-define ext_ifs	 = { $ext_if1, $ext_if2 }
+>
+> =A0 =A0 =A0 =A0if (data->bitmask =3D=3D XT_IPVS_IPVS)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return skb->ipvs_property ^ !!(data->i=
+nvert & XT_IPVS_IPVS);
+>
+>>+ =A0 =A0 =A0/* other flags than XT_IPVS_IPVS are set */
+>>+ =A0 =A0 =A0if (!skb->ipvs_property) {
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0match =3D false;
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0goto out;
+>>+ =A0 =A0 =A0}
+>
+> =A0 =A0 =A0 =A0if (!skb->ipvs_property)
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return false;
+>
+>>+ =A0 =A0 =A0ip_vs_fill_iphdr(af, skb_network_header(skb), &iph);
+>>+
+>>+ =A0 =A0 =A0if (data->bitmask & XT_IPVS_PROTO)
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0if ((iph.protocol =3D=3D data->l4proto)
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0^ !(data->invert & XT_IPVS_PROTO=
+)) {
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0match =3D false;
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto out;
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0}
+>
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0if (iph.protocol =3D=3D data->l4proto =
+^
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0!(data->invert & XT_IPVS_PROTO=
+))
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return false;
+>
+>>+ =A0 =A0 =A0pp =3D ip_vs_proto_get(iph.protocol);
+>>+ =A0 =A0 =A0if (unlikely(!pp)) {
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0match =3D false;
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0goto out;
+>>+ =A0 =A0 =A0}
+>
+> =A0 =A0 =A0 =A0if (unlikely(pp =3D=3D NULL))
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return false;
+>
+> Only after here we really need goto (to put pp).
+>
+>>+ =A0 =A0 =A0/*
+>>+ =A0 =A0 =A0 * Check if the packet belongs to an existing entry
+>>+ =A0 =A0 =A0 */
+>>+ =A0 =A0 =A0/* TODO: why does it only match in inverse? */
+>
+> FIXME: Figure it out :)
 
-# recursive symbolic anonymous set definition
-define local_ifs = { $int_ifs, $ext_ifs }
+Still working on that ;)
 
-# symbolic anonymous set definition
-define tcp_ports = { ssh, domain, https, 123-125 }
+>>+ =A0 =A0 =A0cp =3D pp->conn_out_get(af, skb, pp, &iph, iph.len, 1 /*=
+ inverse */);
+>>+ =A0 =A0 =A0if (unlikely(!cp)) {
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0match =3D false;
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0goto out;
+>>+ =A0 =A0 =A0}
+>>+
+>>+ =A0 =A0 =A0/*
+>>+ =A0 =A0 =A0 * We found a connection, i.e. ct !=3D 0, make sure to c=
+all
+>>+ =A0 =A0 =A0 * __ip_vs_conn_put before returning. =A0In our case jum=
+p to out_put_con.
+>>+ =A0 =A0 =A0 */
+>>+
+>>+ =A0 =A0 =A0if (data->bitmask & XT_IPVS_VPORT)
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0if ((cp->vport =3D=3D data->vport)
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0^ !(data->invert & XT_IPVS_VPORT=
+)) {
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0match =3D false;
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto out_put_ct;
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0}
+>>+
+>>+ =A0 =A0 =A0if (data->bitmask & XT_IPVS_DIR) {
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0/* TODO: implement */
+>
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0/* Yes please */
 
-delete table filter
-table filter {
-	# named set of type ifindex
-	set local_ifs {
-		type ifindex
+Here we go:
+
+	if (data->bitmask & XT_IPVS_DIR) {
+		enum ip_conntrack_info ctinfo;
+		struct nf_conn *ct =3D nf_ct_get(skb, &ctinfo);
+
+		if (ct =3D=3D NULL || ct =3D=3D &nf_conntrack_untracked) {
+			match =3D false;
+			goto out_put_cp;
+		}
+
+		if ((ctinfo >=3D IP_CT_IS_REPLY) ^
+		    !!(data->invert & XT_IPVS_DIR)) {
+			match =3D false;
+			goto out_put_cp;
+		}
 	}
 
-	# named map of type ifindex => ipv4_address
-	map nat_map {
-		type ifindex => ipv4_address
-	}
+>>+ =A0 =A0 =A0}
+>>+
+>>+ =A0 =A0 =A0if (data->bitmask & XT_IPVS_METHOD)
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0if (((cp->flags & IP_VS_CONN_F_FWD_MASK)=
+ =3D=3D data->fwd_method)
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0^ !(data->invert & XT_IPVS_METHO=
+D)) {
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0match =3D false;
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto out_put_ct;
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0}
+>>+
+>>+ =A0 =A0 =A0if (data->bitmask & XT_IPVS_VADDR) {
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0if (af !=3D family) {
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0match =3D false;
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0goto out_put_ct;
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0}
+>>+
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0if (ipvs_mt_addrcmp(&cp->vaddr, &data->v=
+addr, &data->vmask, af)
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0^ !(data->invert & XT_IPVS_VADDR=
+)) {
+>
+> I think the operator (^ in this case) always goes onto the same line =
+as the ')'
+> ((a) ^\n(b), not ((a)\n ^(b)), though some legacy code seems to do it
+> random so-so.)
 
-	map jump_map {
-		type ifindex => verdict
-	}
+I changed it as suggested, though I could not find anything in
+Documentation/CodingStyle about that.
 
-	chain input_1 { counter; }
-	chain input_2 { counter; }
-	chain input {
-		hook NF_INET_LOCAL_IN 0
+>>+ =A0 =A0 =A0return match;
+>>+}
+>>+EXPORT_SYMBOL(ipvs_mt);
+>
+> What will be using ipvs_mt?
 
-		# symbolic anonymous sets
-		meta iif $local_ifs tcp dport $tcp_ports counter
+Nobody, EXPORT_SYMBOL removed.
 
-		# literal anonymous set
-		meta iif { eth0, eth1 } counter
+>>+static struct xt_match xt_ipvs_mt_reg[] __read_mostly =3D {
+>>+ =A0 =A0 =A0{
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.name =A0 =A0 =A0 =3D "ipvs",
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.revision =A0 =3D 0,
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.family =A0 =A0 =3D NFPROTO_UNSPEC,
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.match =A0 =A0 =A0=3D ipvs_mt,
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.matchsize =A0=3D sizeof(struct xt_ipvs)=
+,
+>>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0.me =A0 =A0 =A0 =A0 =3D THIS_MODULE,
+>>+ =A0 =A0 =A0},
+>>+};
+>
+> There is just one element, so no strict need for the [] array.
 
-		meta iif @local_ifs counter
-		meta iif vmap @jump_map
+You are right.  Done.
 
-		#meta iif vmap { eth0 => jump input1, eth1 => jump input2 }
-	}
-}
+Thanks for the review.
 
---------------080307030603020006080501--
+Cheers,
+-Hannes
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
