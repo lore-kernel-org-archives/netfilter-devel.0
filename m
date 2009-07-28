@@ -1,87 +1,114 @@
-From: Hannes Eder <heder@google.com>
-Subject: Re: [RFC][PATCH 5/5] libxt_ipvs: user space lib for netfilter matcher
-	xt_ipvs
-Date: Tue, 28 Jul 2009 14:34:26 +0200
-Message-ID: <b5ddba180907280534l78eaf951j53048ebfbef4258c@mail.gmail.com>
-References: <20090727134457.12897.272.stgit@jazzy.zrh.corp.google.com>
-	 <20090727134852.13319.39035.stgit@jazzy.zrh.corp.google.com>
-	 <alpine.LSU.2.00.0907272037500.20984@fbirervta.pbzchgretzou.qr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: nftables: problem with sets (Object not found)
+Date: Tue, 28 Jul 2009 15:53:00 +0200
+Message-ID: <4A6F02BC.7080904@trash.net>
+References: <4A69FCC3.1070404@gmail.com> <4A6EEDBA.3010505@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: multipart/mixed;
+ boundary="------------080307030603020006080501"
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: "Christoph A." <casmls@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.45.13]:43520 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753343AbZG1Meb convert rfc822-to-8bit (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:54013 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754204AbZG1NxD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 28 Jul 2009 08:34:31 -0400
-In-Reply-To: <alpine.LSU.2.00.0907272037500.20984@fbirervta.pbzchgretzou.qr>
+	Tue, 28 Jul 2009 09:53:03 -0400
+In-Reply-To: <4A6EEDBA.3010505@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jul 27, 2009 at 20:40, Jan Engelhardt<jengelh@medozas.de> wrote=
-:
->
-> On Monday 2009-07-27 15:48, Hannes Eder wrote:
->>+
->>+ =A0 =A0 =A0switch (c) {
->>+ =A0 =A0 =A0case '0': /* --ipvs */
->>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0/* Nothing to do here. */
->
-> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0Then why add it?
+This is a multi-part message in MIME format.
+--------------080307030603020006080501
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
-In the 'default' branch is an assert(false);  Call it defensive program=
-ming.
+Patrick McHardy wrote:
+> Christoph A. wrote:
+>> Am I missing something in the kernel or do I have a syntax error in my
+>> rules?
+>> (kernel config attached)
+> 
+> I never pushed out the userspace changes for the new set API.
+> I just pushed out all the changes that should be needed, please
+> update your trees and try again.
 
->>+ =A0 =A0 =A0char buf[BUFSIZ];
->>+
->>+ =A0 =A0 =A0if (family =3D=3D NFPROTO_IPV4) {
->>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0if (!numeric && addr->ip =3D=3D 0) {
->>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0printf("anywhere ");
->>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return;
->>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0}
->>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0if (numeric)
->>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0strcpy(buf, xtables_ipad=
-dr_to_numeric(&addr->in));
->>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0else
->>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0strcpy(buf, xtables_ipad=
-dr_to_anyname(&addr->in));
->>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0strcat(buf, xtables_ipmask_to_numeric(&m=
-ask->in));
->>+ =A0 =A0 =A0 =A0 =A0 =A0 =A0printf("%s ", buf);
->
-> There is no need to use the strcpy/strcat hacks. Just directly printf=
- it.
+BTW, for reference, attached is an example script for the new
+features (included in the tree in files/examples/sets_and_maps).
+The named sets can then be updated dynamically like this:
 
-As the comment says: "Shamelessly copied from libxt_conntrack.c". ;)
+# nft add element filter jump_map { eth0 => jump input_1, eth1 => jump
+input_2 }
 
-=46urthermore I think it is good that way, because
-xtables_ipaddr_to_numeric writes to a local static buffer, and
-xtables_ipaddr_to_numeric might get called by
-xtables_ipmask_to_numeric.
+# nft add element filter nat_map eth0 => 10.0.0.1
 
->>--- /dev/null
->>+++ b/extensions/libxt_ipvs.man
->>@@ -0,0 +1,7 @@
->>+ipvs tests where the packet was modified by IPVS, i.e. is the
->>+skb_buff->ipvs_property set.
->>+.TP
->>+[\fB!\fP] \fB--ipvs
->>+Does the packet have to IPVS property?
->>+
->>+TODO: Write proper documentation.
->
-> Yes.
+# nft add element filter local_ifs { eth1, eth2, eth3 }
+# nft delete element filter local_ifs eth2
 
-Sir, yes, sir ;) I am working on that.
+etc. For now, all sets and maps are bound to tables. This is actually
+only necessary for verdict maps, so this might change.
 
-Thanks,
--Hannes
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+--------------080307030603020006080501
+Content-Type: text/plain;
+ name="sets_and_maps"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="sets_and_maps"
+
+#! /sbin/nft -nf
+#
+# Examples of set and map usage
+#
+
+# symbolic anonymous set definition built from symbolic singleton definitions
+define int_if1	 = eth0
+define int_if2	 = eth1
+define int_ifs	 = { $int_if1, $int_if2 }
+
+define ext_if1	 = eth2
+define ext_if2	 = eth3
+define ext_ifs	 = { $ext_if1, $ext_if2 }
+
+# recursive symbolic anonymous set definition
+define local_ifs = { $int_ifs, $ext_ifs }
+
+# symbolic anonymous set definition
+define tcp_ports = { ssh, domain, https, 123-125 }
+
+delete table filter
+table filter {
+	# named set of type ifindex
+	set local_ifs {
+		type ifindex
+	}
+
+	# named map of type ifindex => ipv4_address
+	map nat_map {
+		type ifindex => ipv4_address
+	}
+
+	map jump_map {
+		type ifindex => verdict
+	}
+
+	chain input_1 { counter; }
+	chain input_2 { counter; }
+	chain input {
+		hook NF_INET_LOCAL_IN 0
+
+		# symbolic anonymous sets
+		meta iif $local_ifs tcp dport $tcp_ports counter
+
+		# literal anonymous set
+		meta iif { eth0, eth1 } counter
+
+		meta iif @local_ifs counter
+		meta iif vmap @jump_map
+
+		#meta iif vmap { eth0 => jump input1, eth1 => jump input2 }
+	}
+}
+
+--------------080307030603020006080501--
