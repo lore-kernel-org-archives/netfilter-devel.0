@@ -1,66 +1,41 @@
-From: Giacomo <delleceste@gmail.com>
-Subject: include netinet/tcp.h or linux/tcp.h in userspace applications?
-Date: Tue, 28 Jul 2009 13:43:06 +0200
-Message-ID: <885896af0907280443t5cf1553at5be4c0d07133185e@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: nftables: problem with sets (Object not found)
+Date: Tue, 28 Jul 2009 14:23:22 +0200
+Message-ID: <4A6EEDBA.3010505@trash.net>
+References: <4A69FCC3.1070404@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel <netfilter-devel@vger.kernel.org>
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: "Christoph A." <casmls@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ey-out-2122.google.com ([74.125.78.26]:48613 "EHLO
-	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752639AbZG1LnI (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:51343 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751581AbZG1MXY (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 28 Jul 2009 07:43:08 -0400
-Received: by ey-out-2122.google.com with SMTP id 9so994937eyd.37
-        for <netfilter-devel@vger.kernel.org>; Tue, 28 Jul 2009 04:43:07 -0700 (PDT)
+	Tue, 28 Jul 2009 08:23:24 -0400
+In-Reply-To: <4A69FCC3.1070404@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi to all.
+Christoph A. wrote:
+> when trying to use sets ({ ..., ...}) I get the error "Object not found".
+> 
+> This is my testscript:
+> #! /usr/local/sbin/nft -f
+> 
+> 
+> ...
+> In file included from internal:0:0-0:
+> ./set_problem:12:17-42: Error: Could not add rule: Object not found
+> 		tcp dport { 22, 80} accept
+>                 ^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 
+> Am I missing something in the kernel or do I have a syntax error in my
+> rules?
+> (kernel config attached)
 
-A simple question. Does anybody know what are linux/tcp.h (and friends
-- udp.h... ) netinet/tcp.h ... specifically aimed at?
-In particular, a userspace application which shares tcp/udp/icmp data
-structures with the kernel space, which include should
-include?
+I never pushed out the userspace changes for the new set API.
+I just pushed out all the changes that should be needed, please
+update your trees and try again.
 
-I used to include linux/  headers, but since kernel 2.6.30 and
-kernel-headers 2.6.30 g++ fails complaining
-
-/usr/include/linux/tcp.h:72: error: '__u32 __fswab32(__u32)' cannot
-appear in a constant-expression
-/usr/include/linux/tcp.h:72: error: a function call cannot appear in a
-constant-expression
-/usr/include/linux/tcp.h:73: error: '__u32 __fswab32(__u32)' cannot
-appear in a constant-expression
-/usr/include/linux/tcp.h:73: error: a function call cannot appear in a
-constant-expression
-....
-
-Thanks for any advice.
-
-Giacomo
-
--- 
-Giacomo S.
-http://www.giacomos.it
-
-- - - - - - - - - - - - - - - - - - - - - -
-
-* Aprile 2008: iqfire-wall, un progetto
-  open source che implementa un
-  filtro di pacchetti di rete per Linux,
-  e` disponibile per il download qui:
-  http://sourceforge.net/projects/ipfire-wall
-
-* Informazioni e pagina web ufficiale:
-  http://www.giacomos.it/iqfire/index.html
-
-- - - - - - - - - - - - - - - - - - - - - -
-
- . ''  `.
-:   :'    :
- `.  ` '
-    `- Debian GNU/Linux -- The power of freedom
-        http://www.debian.org
