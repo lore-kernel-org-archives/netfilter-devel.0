@@ -1,49 +1,67 @@
-From: Hugo Miguel Mendes <hugo-m-mendes@ptinovacao.pt>
-Subject: NTP Full cone NAT
-Date: Wed, 29 Jul 2009 17:34:04 +0100
-Message-ID: <47A7F67C62706041BC49DB7822B1C9DB34D79A873D@INOAVREX11.ptin.corpPT.com>
+From: "Christoph A." <casmls@gmail.com>
+Subject: nftables: logging
+Date: Wed, 29 Jul 2009 23:49:05 +0200
+Message-ID: <4A70C3D1.7040809@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Content-Type: multipart/signed; micalg=pgp-sha512;
+ protocol="application/pgp-signature";
+ boundary="------------enigD231E164BC4139B7C1B3C897"
+Cc: "Christoph A." <casmls@gmail.com>
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from owa.ptinovacao.pt ([194.65.138.99]:18915 "EHLO
-	owa.ptinovacao.pt" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755177AbZG2Qen convert rfc822-to-8bit (ORCPT
+Received: from mail-ew0-f214.google.com ([209.85.219.214]:41778 "EHLO
+	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753063AbZG2Vv2 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 29 Jul 2009 12:34:43 -0400
-Content-Language: pt-PT
+	Wed, 29 Jul 2009 17:51:28 -0400
+Received: by ewy10 with SMTP id 10so324939ewy.37
+        for <netfilter-devel@vger.kernel.org>; Wed, 29 Jul 2009 14:51:27 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Dear all,
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enigD231E164BC4139B7C1B3C897
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
 
-I'm operating netfilter on a router and I have a client on the LAN side which is making requests to an NTP server on the WAN side. The NTP server responds from a different IP from that where the client sends the request, but the response from the NTP server goes to the same port on the client from where it sent the request. 
-I developed a conntrack helper module and a nat helper module so that an expectation is created for the response from the server. These modules are identical to the modules used for TFTP.
+Hi,
 
-When the modules are operating the expectations are created when the request from the client is sent, but it immediatly disappears and in the conntrack table the connection coming from the server which is related to the one made by the request from the client never appears.
+from iptables I'm used to see the logging output in the default syslog
+files, with nftables this seams to be different.
+My rule looks like this:
 
-udp      17 17 src=188.80.107.154 dst=188.80.102.162 sport=1110 dport=33147 packets=1 bytes=544 [UNREPLIED] src=172.16.0.184 dst=188.80.107.154 sport=33147 dport=1110 packets=0 bytes=0 mark=0 use=1
-udp      17 37 src=172.16.0.184 dst=188.80.107.154 sport=33147 dport=69 packets=5 bytes=255 [UNREPLIED] src=188.80.107.154 dst=188.80.102.162 sport=69 dport=33147 packets=0 bytes=0 mark=0 use=2
+[...]
+ct state new log prefix "start: " accept
 
-These are two entries in the conntrack table for TFTP, where 172.16.0.184 requested a file from 188.80.102.162 in the second entry. In the first entry comes the requested file, which is the expected connection.
+but there are no log entries in the syslog file.
+Where does nftables writes its logs?
 
-Using my module I have the following entries in the conntrack
+The nft_log module is loaded:
+lsmod|grep nft_l
+nft_log                 1952  1
+nf_tables              25540  43
+nft_meta,nft_log,nft_payload,nft_ct,nft_rbtree,nft_hash,nf_tables_ipv4
 
-udp      17 55 src=172.16.0.184 dst=194.65.47.55 sport=37705 dport=123 packets=1 bytes=76 [UNREPLIED] src=194.65.47.55 dst=10.194.30.172 sport=123 dport=37705 packets=0 bytes=0 mark=0 use=1
+For testing it would be very handy to have a working logging setup.
 
-Here the client is 172.16.0.184 and is making the request to 194.65.47.55, the NTP server. The IP which answers from the server is 213.13.16.227 and goes to 10.194.30.172. The expectation which appears in the expectations table is:
+Is there already a way to dump the current rules from the kernel to
+stdout (like iptables -vnL) - if this is even possible?
 
-600 proto=17 src=0.0.0.0 dst=10.194.30.172 sport=0 dport=37705
+thanks,
+Christoph A.
 
-The problem is that the connection coming from 213.13.16.227 never appears on the conntrack table.
 
-I have logged the packets coming from the NTP server in the FORWARD chain of the filter table and I have the this:
+--------------enigD231E164BC4139B7C1B3C897
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-IN=eth0.12 OUT=br-lan SRC=213.13.16.227 DST=172.16.0.184 LEN=76 TOS=0x08 PREC=0x20 TTL=124 ID=31524 PROTO=UDP SPT=123 DPT=39843 LEN=56
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
 
-This means that the packets have been successfully NATed but they never arrive ate 172.16.0.184. I don't know why this is happening.
+iEYEAREKAAYFAkpww9YACgkQrq+riTAIEg1vowCgyZh6Cpg12wu6Yrgmhb07dMll
+cXcAoOT0Y85z7SxVS4b3sXtRNu6+5355
+=ND45
+-----END PGP SIGNATURE-----
 
-Best Regards
-
-Hugo Mendes
+--------------enigD231E164BC4139B7C1B3C897--
