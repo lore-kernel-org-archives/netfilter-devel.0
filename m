@@ -1,123 +1,49 @@
-From: Greg KH <gregkh@suse.de>
-Subject: [patch 64/71] nf_conntrack: nf_conntrack_alloc() fixes
-Date: Tue, 28 Jul 2009 16:41:33 -0700
-Message-ID: <20090728234201.430401674@mini.kroah.org>
-References: <20090728234029.868717854@mini.kroah.org>
-Cc: stable-review@kernel.org, torvalds@linux-foundation.org,
-	akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	Patrick McHardy <kaber@trash.net>,
-	Eric Dumazet <eric.dumazet@gmail.com>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-To: linux-kernel@vger.kernel.org, stable@kernel.org
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755129AbZG1Xun@vger.kernel.org>
-Content-Disposition: inline; filename=nf_conntrack-nf_conntrack_alloc-fixes.patch
-In-Reply-To: <20090728234756.GA11917@kroah.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Hugo Miguel Mendes <hugo-m-mendes@ptinovacao.pt>
+Subject: NTP Full cone NAT
+Date: Wed, 29 Jul 2009 17:34:04 +0100
+Message-ID: <47A7F67C62706041BC49DB7822B1C9DB34D79A873D@INOAVREX11.ptin.corpPT.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from owa.ptinovacao.pt ([194.65.138.99]:18915 "EHLO
+	owa.ptinovacao.pt" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755177AbZG2Qen convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 29 Jul 2009 12:34:43 -0400
+Content-Language: pt-PT
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-2.6.30-stable review patch.  If anyone has any objections, please let us know.
+Dear all,
 
-------------------
+I'm operating netfilter on a router and I have a client on the LAN side which is making requests to an NTP server on the WAN side. The NTP server responds from a different IP from that where the client sends the request, but the response from the NTP server goes to the same port on the client from where it sent the request. 
+I developed a conntrack helper module and a nat helper module so that an expectation is created for the response from the server. These modules are identical to the modules used for TFTP.
 
-From: Eric Dumazet <eric.dumazet@gmail.com>
+When the modules are operating the expectations are created when the request from the client is sent, but it immediatly disappears and in the conntrack table the connection coming from the server which is related to the one made by the request from the client never appears.
 
-commit 941297f443f871b8c3372feccf27a8733f6ce9e9 upstream.
+udp      17 17 src=188.80.107.154 dst=188.80.102.162 sport=1110 dport=33147 packets=1 bytes=544 [UNREPLIED] src=172.16.0.184 dst=188.80.107.154 sport=33147 dport=1110 packets=0 bytes=0 mark=0 use=1
+udp      17 37 src=172.16.0.184 dst=188.80.107.154 sport=33147 dport=69 packets=5 bytes=255 [UNREPLIED] src=188.80.107.154 dst=188.80.102.162 sport=69 dport=33147 packets=0 bytes=0 mark=0 use=2
 
-When a slab cache uses SLAB_DESTROY_BY_RCU, we must be careful when allocating
-objects, since slab allocator could give a freed object still used by lockless
-readers.
+These are two entries in the conntrack table for TFTP, where 172.16.0.184 requested a file from 188.80.102.162 in the second entry. In the first entry comes the requested file, which is the expected connection.
 
-In particular, nf_conntrack RCU lookups rely on ct->tuplehash[xxx].hnnode.next
-being always valid (ie containing a valid 'nulls' value, or a valid pointer to next
-object in hash chain.)
+Using my module I have the following entries in the conntrack
 
-kmem_cache_zalloc() setups object with NULL values, but a NULL value is not valid
-for ct->tuplehash[xxx].hnnode.next.
+udp      17 55 src=172.16.0.184 dst=194.65.47.55 sport=37705 dport=123 packets=1 bytes=76 [UNREPLIED] src=194.65.47.55 dst=10.194.30.172 sport=123 dport=37705 packets=0 bytes=0 mark=0 use=1
 
-Fix is to call kmem_cache_alloc() and do the zeroing ourself.
+Here the client is 172.16.0.184 and is making the request to 194.65.47.55, the NTP server. The IP which answers from the server is 213.13.16.227 and goes to 10.194.30.172. The expectation which appears in the expectations table is:
 
-As spotted by Patrick, we also need to make sure lookup keys are committed to
-memory before setting refcount to 1, or a lockless reader could get a reference
-on the old version of the object. Its key re-check could then pass the barrier.
+600 proto=17 src=0.0.0.0 dst=10.194.30.172 sport=0 dport=37705
 
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
-Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
-Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
+The problem is that the connection coming from 213.13.16.227 never appears on the conntrack table.
 
----
- Documentation/RCU/rculist_nulls.txt |    7 ++++++-
- net/netfilter/nf_conntrack_core.c   |   21 ++++++++++++++++++---
- 2 files changed, 24 insertions(+), 4 deletions(-)
+I have logged the packets coming from the NTP server in the FORWARD chain of the filter table and I have the this:
 
---- a/Documentation/RCU/rculist_nulls.txt
-+++ b/Documentation/RCU/rculist_nulls.txt
-@@ -83,11 +83,12 @@ not detect it missed following items in 
- obj = kmem_cache_alloc(...);
- lock_chain(); // typically a spin_lock()
- obj->key = key;
--atomic_inc(&obj->refcnt);
- /*
-  * we need to make sure obj->key is updated before obj->next
-+ * or obj->refcnt
-  */
- smp_wmb();
-+atomic_set(&obj->refcnt, 1);
- hlist_add_head_rcu(&obj->obj_node, list);
- unlock_chain(); // typically a spin_unlock()
- 
-@@ -159,6 +160,10 @@ out:
- obj = kmem_cache_alloc(cachep);
- lock_chain(); // typically a spin_lock()
- obj->key = key;
-+/*
-+ * changes to obj->key must be visible before refcnt one
-+ */
-+smp_wmb();
- atomic_set(&obj->refcnt, 1);
- /*
-  * insert obj in RCU way (readers might be traversing chain)
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -525,22 +525,37 @@ struct nf_conn *nf_conntrack_alloc(struc
- 		}
- 	}
- 
--	ct = kmem_cache_zalloc(nf_conntrack_cachep, gfp);
-+	/*
-+	 * Do not use kmem_cache_zalloc(), as this cache uses
-+	 * SLAB_DESTROY_BY_RCU.
-+	 */
-+	ct = kmem_cache_alloc(nf_conntrack_cachep, gfp);
- 	if (ct == NULL) {
- 		pr_debug("nf_conntrack_alloc: Can't alloc conntrack.\n");
- 		atomic_dec(&net->ct.count);
- 		return ERR_PTR(-ENOMEM);
- 	}
--
--	atomic_set(&ct->ct_general.use, 1);
-+	/*
-+	 * Let ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode.next
-+	 * and ct->tuplehash[IP_CT_DIR_REPLY].hnnode.next unchanged.
-+	 */
-+	memset(&ct->tuplehash[IP_CT_DIR_MAX], 0,
-+	       sizeof(*ct) - offsetof(struct nf_conn, tuplehash[IP_CT_DIR_MAX]));
- 	ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple = *orig;
-+	ct->tuplehash[IP_CT_DIR_ORIGINAL].hnnode.pprev = NULL;
- 	ct->tuplehash[IP_CT_DIR_REPLY].tuple = *repl;
-+	ct->tuplehash[IP_CT_DIR_REPLY].hnnode.pprev = NULL;
- 	/* Don't set timer yet: wait for confirmation */
- 	setup_timer(&ct->timeout, death_by_timeout, (unsigned long)ct);
- #ifdef CONFIG_NET_NS
- 	ct->ct_net = net;
- #endif
- 
-+	/*
-+	 * changes to lookup keys must be done before setting refcnt to 1
-+	 */
-+	smp_wmb();
-+	atomic_set(&ct->ct_general.use, 1);
- 	return ct;
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_alloc);
+IN=eth0.12 OUT=br-lan SRC=213.13.16.227 DST=172.16.0.184 LEN=76 TOS=0x08 PREC=0x20 TTL=124 ID=31524 PROTO=UDP SPT=123 DPT=39843 LEN=56
+
+This means that the packets have been successfully NATed but they never arrive ate 172.16.0.184. I don't know why this is happening.
+
+Best Regards
+
+Hugo Mendes
