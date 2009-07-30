@@ -1,122 +1,61 @@
-From: Bruno Moreira Guedes <thbmatrix@gmail.com>
-Subject: Re: Modifying packets in userspace using libnetfilter_queue
-Date: Thu, 30 Jul 2009 13:54:55 -0300
-Message-ID: <3fdd6ce00907300954y6d574251k64a9c5fee7e9719d@mail.gmail.com>
-References: <5BB67BF4A0D4544A918C2FD76487A1E13D8944D6@USNAVSXCHMBSB2.ndc.alcatel-lucent.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: "Srinivasan, Suman (Suman)** CTR **"
+From: "Srinivasan, Suman (Suman)** CTR **"
 	<suman.srinivasan@alcatel-lucent.com>
+Subject: RE: Modifying packets in userspace using libnetfilter_queue / got
+ it working
+Date: Thu, 30 Jul 2009 15:46:28 -0500
+Message-ID: <5BB67BF4A0D4544A918C2FD76487A1E13D894607@USNAVSXCHMBSB2.ndc.alcatel-lucent.com>
+References: <5BB67BF4A0D4544A918C2FD76487A1E13D8944D6@USNAVSXCHMBSB2.ndc.alcatel-lucent.com>
+ <1248966960.11586.30.camel@khasse.inl.fr>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Eric Leblond <eric@inl.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from an-out-0708.google.com ([209.85.132.250]:35736 "EHLO
-	an-out-0708.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751284AbZG3Qyz convert rfc822-to-8bit (ORCPT
+Received: from ihemail2.lucent.com ([135.245.0.35]:48892 "EHLO
+	ihemail2.lucent.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751611AbZG3Uqh convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 30 Jul 2009 12:54:55 -0400
-Received: by an-out-0708.google.com with SMTP id d40so1935819and.1
-        for <netfilter-devel@vger.kernel.org>; Thu, 30 Jul 2009 09:54:56 -0700 (PDT)
-In-Reply-To: <5BB67BF4A0D4544A918C2FD76487A1E13D8944D6@USNAVSXCHMBSB2.ndc.alcatel-lucent.com>
+	Thu, 30 Jul 2009 16:46:37 -0400
+In-Reply-To: <1248966960.11586.30.camel@khasse.inl.fr>
+Content-Language: en-US
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-2009/7/30 Srinivasan, Suman (Suman)** CTR **
-<suman.srinivasan@alcatel-lucent.com>:
-> Hi all,
->
-> Sorry for this elementary question, but I am new to the world of pack=
-et modification. I browsed the recent netfilter-devel archives and coul=
-dn't find much on this topic.
->
-> I am trying to modify TCP packets in userspace. I know it is ineffici=
-ent to do it in userspace, but I just need a prototype to test for now.
->
-> I couldn't find much documentation on doing this, except for the docu=
-mentation on the following URL, the nfqnl_test.c file and some modifica=
-tions on some mailing lists:
-> http://www.nufw.org/doc/libnetfilter_queue/
->
-> I have gotten this far:
-> 1. Have set up iptables rules to send the TCP packets I want to inter=
-cept down a NFQUEUE queue.
-> 2. Am able to use nfqnl_test.c to receive and print out packet info.
-> 3. Used netinet/tcp.h and sample code to check TCP headers
-> 4. Able to print out TCP payload using TCP and IP header information
-> 5. Able to modify the TCP payload (or at least the copy)
->
-> However, the modified packets are not really being transmitted! I ass=
-ume this is because I am getting a copy of the packets or the packet da=
-ta. Other than getting/setting the TCP and payload data, the rest of th=
-e code to intercept the packet is still the basic nfqnl_test.c code.
+Hi Eric,
 
-When I've done it the problem was the checksum. Try to verify if this
-is correct :)
+Thanks a lot! This works! The Python code is able to modify packets, and it is so much easier to handle and manipulate TCP packets using Python, dpkt and the netfilter bindings in userspace.
 
->
-> How do I actually modify the packet in userspace so that it is sent o=
-ut over the network?
+> For testing, the easiest way is :
+> http://software.inl.fr/trac/wiki/nfqueue-bindings
 
-You send it by calling nfq_set_verdict and passing in the last two
-arguments the packet length and the pointer to packet. Of course, you
-must accept the packet.
+I installed the Python bindings on Ubuntu using:
+sudo apt-get install nfqueue-bindings-python
 
->
-> Also, if I modify the TCP packets and add more data to the payload, w=
-hat would I change? I assume that I would only have to change the follo=
-wing:
->
-> - TCP payload length
-> - Checksum
-> - IP length (?, would I have to touch this field)
->
+pypcap and dpkt libraries for Python need to be installed to use it. pypcap can be installed using:
+sudo apt-get install pypcap
 
-The best problem I had with this in the past was the checksum. Check
-if your checksum is being right calculated by recalculating the
-checksum of a packet you already know the right sum, or running
-tcpdump -v.
+The downloadable version of dpkt does not work with my version of Python, I had to check out the latest version using svn and build it.
 
-Remember: anywhere you change you need to recalculate the TCP
-pseudo-header(TCP over IPV4 if it's the case) checksum, and if you
-change the IP header you also need to recompute the IP checksum.
+> You can do Proof of Concept in Python, perl ... for an example of packet
+> modification:
+> http://git.inl.fr/cgi-bin/gitweb.cgi?p=nfqueue-
+> bindings.git;a=blob;f=examples/rewrite.py;h=4086734e4483edd009f8333a1cc4d0
+> 23a365a797;hb=HEAD
 
-> Is there anything else that I am not thinking of?
->
-> By the way, the documentation available out there is a little hard fo=
-r a newcomer to the world of iptables/netfilter. I'm getting a little l=
-ost with all the talk about libipq, libiptc, etc. Is there any document=
-ation on the history of iptables/netfilter and which libraries have bee=
-n retired or are still active?
+This code *almost* works. I had to modify the qf_bind() and qf_unbind() calls and remove the AF_INET which was being passed as an argument - the two functions worked after the arguments were removed. Perhaps the library has changed slightly.
 
-http://www.netfilter.org/projects/index.html
-I think you getting from there you'll using the active.
+> Yes you need to recompute manually all checksum and length and send
+> decision with nfq_set_verdict providing pointer to modified data and
+> data length to the function.
 
->
-> Sorry for this long e-mail.
->
-> Thank you,
-> Suman
->
-> --
-> Falun Gong: www.falundafa.org | www.faluninfo.net
-> Peaceful meditation faces persecution in mainland China
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-d=
-evel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
+The sample code has code to change the length of the text - but it resets the checksum value to zero. Maybe the network layer regenerates the checksum? Anyway the sample code worked for me on a local network.
 
-And also, if you change some headers you'll need to care about
-connection tracking(my elbow hurts right now because of it).
+> To do short: ip_queue is deprecated and replaced by libnetfilter_queue.
 
-I also thanks if you successfully do NAT at user-space and say me how!!
+Thanks,
+Suman
 
-[]'s
---Bruno Moreira Guedes
-A boring child
 --
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Falun Gong: www.falundafa.org | www.faluninfo.net
+Peaceful meditation faces persecution in China
