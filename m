@@ -1,37 +1,26 @@
-From: Hugo Miguel Mendes <hugo-m-mendes@ptinovacao.pt>
-Subject: conntrack helper - expectations
-Date: Fri, 31 Jul 2009 12:58:54 +0100
-Message-ID: <47A7F67C62706041BC49DB7822B1C9DB34D79A8740@INOAVREX11.ptin.corpPT.com>
+From: Saikiran Madugula <hummerbliss@gmail.com>
+Subject: Question about CTA_NAT_SEQ_UNSPEC
+Date: Mon, 03 Aug 2009 11:25:21 +0100
+Message-ID: <4A76BB11.7050507@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from owa.ptinovacao.pt ([194.65.138.99]:24671 "EHLO
-	owa.ptinovacao.pt" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751947AbZGaL7d convert rfc822-to-8bit (ORCPT
+Received: from mail-ew0-f214.google.com ([209.85.219.214]:52988 "EHLO
+	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751496AbZHCKZY (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 31 Jul 2009 07:59:33 -0400
-Content-Language: pt-PT
+	Mon, 3 Aug 2009 06:25:24 -0400
+Received: by ewy10 with SMTP id 10so2898229ewy.37
+        for <netfilter-devel@vger.kernel.org>; Mon, 03 Aug 2009 03:25:23 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Dear all,
+Was checking diff of libnetfilter_conntrack/include/linux_nfnetlink_conntrack.h
+and stable linux-2.6.27.y/include/linux/netfilter/nfnetlink_conntrack.h and the
+latter is missing CTA_NAT_SEQ_UNSPEC which seems to have been fixed in the
+Commit 092cab7e2cd868cb0b30209a0337689c3ffd6133     netfilter: ctnetlink: fix
+missing CTA_NAT_SEQ_UNSPEC.
 
-I'm operating netfilter, kernel 2.6.25.17 on a router and I have noticed the following situation in using conntrack helper and NAT helper modules.
-
-When the reply connection which is expected by an expectation comes from a different IP and with the same source port as the destination port of the request, the reply connection gets dropped, although I have logged the connection in the FORWARD chain and it I could see it was successfully NATed.
-
-In my practical case the situation is the following:
-
--Send request to 194.65.47.55, src port random, dst port 123.
--Reply comes from 213.128.200.3, src port 123, dst port same as the src of the request.
-
-Expectation: 300 proto=17 src=0.0.0.0 dst=10.194.30.172 sport=123 dport=55437
-
-10.194.30.172 is my router IP, then this gets NATed to a PC on the LAN. 55437 is the source port of the request.
-
-Can anyone tell me where is the code that matches the incoming connections to the expectations tables?
-
-Best Regards
-Hugo Mendes
+Should this fix be also in .27 stable tree ? I haven't tested it but curious.
