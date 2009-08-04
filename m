@@ -1,338 +1,171 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 061/103] netfilter: xtables: add xt_quota revision 3
-Date: Tue,  4 Aug 2009 09:25:45 +0200
-Message-ID: <1249370787-17583-62-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 062/103] netfilter: xtables2: make a copy of the ipv6_filter table
+Date: Tue,  4 Aug 2009 09:25:46 +0200
+Message-ID: <1249370787-17583-63-git-send-email-jengelh@medozas.de>
 References: <1249370787-17583-1-git-send-email-jengelh@medozas.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:56944 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:56945 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932592AbZHDH1j (ORCPT
+	with ESMTP id S932591AbZHDH1k (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Aug 2009 03:27:39 -0400
+	Tue, 4 Aug 2009 03:27:40 -0400
 In-Reply-To: <1249370787-17583-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The quota match has been extended in an out-of-tree project, whereby
-it gained packet counting, upcounting support and procfs-based
-read/write support.
+A "filter2" table is temporarily added for testing and patching, so
+as to not break bisection operations where ip6table_filter needs to
+remain fully functional. It is compiled unconditionally alongside
+"filter" for simplicity, only developers see it anyhow while it lives.
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/linux/netfilter/xt_quota.h |   19 +++-
- net/netfilter/xt_quota.c           |  231 ++++++++++++++++++++++++++++++++++--
- 2 files changed, 236 insertions(+), 14 deletions(-)
+ include/net/netns/x_tables.h          |    1 +
+ net/ipv6/netfilter/Makefile           |    2 +-
+ net/ipv6/netfilter/ip6table_filter2.c |  108 +++++++++++++++++++++++++++++++++
+ 3 files changed, 110 insertions(+), 1 deletions(-)
+ create mode 100644 net/ipv6/netfilter/ip6table_filter2.c
 
-diff --git a/include/linux/netfilter/xt_quota.h b/include/linux/netfilter/xt_quota.h
-index 8dc89df..f14e36d 100644
---- a/include/linux/netfilter/xt_quota.h
-+++ b/include/linux/netfilter/xt_quota.h
-@@ -2,9 +2,11 @@
- #define _XT_QUOTA_H
- 
- enum xt_quota_flags {
--	XT_QUOTA_INVERT		= 0x1,
-+	XT_QUOTA_INVERT = 1 << 0,
-+	XT_QUOTA_GROW   = 1 << 1,
-+	XT_QUOTA_PACKET = 1 << 2,
-+	XT_QUOTA_MASK   = 0x7,
- };
--#define XT_QUOTA_MASK		0x1
- 
- struct xt_quota_priv;
- 
-@@ -17,4 +19,17 @@ struct xt_quota_info {
- 	struct xt_quota_priv	*master;
+diff --git a/include/net/netns/x_tables.h b/include/net/netns/x_tables.h
+index f2edc37..c4abab8 100644
+--- a/include/net/netns/x_tables.h
++++ b/include/net/netns/x_tables.h
+@@ -16,6 +16,7 @@ struct netns_xt {
+ struct netns_xt2 {
+ 	struct mutex table_lock;
+ 	struct list_head table_list[NFPROTO_NUMPROTO];
++	struct xt_table *ipv6_filter;
  };
  
-+struct xt_quota_counter;
+ #endif
+diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
+index aafbba3..35fa80f 100644
+--- a/net/ipv6/netfilter/Makefile
++++ b/net/ipv6/netfilter/Makefile
+@@ -4,7 +4,7 @@
+ 
+ # Link order matters here.
+ obj-$(CONFIG_IP6_NF_IPTABLES) += ip6_tables.o
+-obj-$(CONFIG_IP6_NF_FILTER) += ip6table_filter.o
++obj-$(CONFIG_IP6_NF_FILTER) += ip6table_filter.o ip6table_filter2.o
+ obj-$(CONFIG_IP6_NF_MANGLE) += ip6table_mangle.o
+ obj-$(CONFIG_IP6_NF_QUEUE) += ip6_queue.o
+ obj-$(CONFIG_IP6_NF_RAW) += ip6table_raw.o
+diff --git a/net/ipv6/netfilter/ip6table_filter2.c b/net/ipv6/netfilter/ip6table_filter2.c
+new file mode 100644
+index 0000000..790552b
+--- /dev/null
++++ b/net/ipv6/netfilter/ip6table_filter2.c
+@@ -0,0 +1,108 @@
++/*
++ * This is the 1999 rewrite of IP Firewalling, aiming for kernel 2.3.x.
++ *
++ * Copyright (C) 1999 Paul `Rusty' Russell & Michael J. Neuling
++ * Copyright (C) 2000-2004 Netfilter Core Team <coreteam@netfilter.org>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+struct xt_quota_mtinfo3 {
-+	char name[15];
-+	u_int8_t flags;
++#include <linux/module.h>
++#include <linux/moduleparam.h>
++#include <linux/netfilter_ipv6/ip6_tables.h>
 +
-+	/* Comparison-invariant */
-+	aligned_u64 quota;
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.org>");
++MODULE_DESCRIPTION("ip6tables filter table");
 +
-+	/* Used internally by the kernel */
-+	struct xt_quota_counter *master __attribute__((aligned(8)));
++#define FILTER_VALID_HOOKS ((1 << NF_INET_LOCAL_IN) | \
++			    (1 << NF_INET_FORWARD) | \
++			    (1 << NF_INET_LOCAL_OUT))
++
++static const struct xt_table packet_filter = {
++	.name		= "filter2",
++	.valid_hooks	= FILTER_VALID_HOOKS,
++	.me		= THIS_MODULE,
++	.af		= NFPROTO_IPV6,
++	.priority	= NF_IP6_PRI_FILTER,
 +};
 +
- #endif /* _XT_QUOTA_H */
-diff --git a/net/netfilter/xt_quota.c b/net/netfilter/xt_quota.c
-index 0de9fcf..33ce76a 100644
---- a/net/netfilter/xt_quota.c
-+++ b/net/netfilter/xt_quota.c
-@@ -3,8 +3,11 @@
-  *
-  * Sam Johnston <samj@samj.net>
-  */
-+#include <linux/list.h>
-+#include <linux/proc_fs.h>
- #include <linux/skbuff.h>
- #include <linux/spinlock.h>
-+#include <asm/atomic.h>
- 
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/xt_quota.h>
-@@ -13,14 +16,206 @@ struct xt_quota_priv {
- 	uint64_t quota;
- };
- 
-+struct xt_quota_counter {
-+	u_int64_t quota;
-+	spinlock_t lock;
-+	struct list_head list;
-+	atomic_t ref;
-+	char name[sizeof(((struct xt_quota_mtinfo3 *)NULL)->name)];
-+	struct proc_dir_entry *procfs_entry;
-+};
-+
- MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Jan Engelhardt <jengelh@medozas.de>");
- MODULE_AUTHOR("Sam Johnston <samj@samj.net>");
--MODULE_DESCRIPTION("Xtables: countdown quota match");
-+MODULE_DESCRIPTION("Xtables: counter match");
- MODULE_ALIAS("ipt_quota");
- MODULE_ALIAS("ip6t_quota");
- 
- static DEFINE_SPINLOCK(quota_lock);
- 
-+static LIST_HEAD(counter_list);
-+static DEFINE_SPINLOCK(counter_list_lock);
-+
-+static struct proc_dir_entry *proc_xt_quota;
-+static unsigned int quota_list_perms = S_IRUGO | S_IWUSR;
-+static unsigned int quota_list_uid;
-+static unsigned int quota_list_gid;
-+module_param_named(perms, quota_list_perms, uint, S_IRUGO | S_IWUSR);
-+module_param_named(uid, quota_list_uid, uint, S_IRUGO | S_IWUSR);
-+module_param_named(gid, quota_list_gid, uint, S_IRUGO | S_IWUSR);
-+
-+static int quota_proc_read(char *page, char **start, off_t offset,
-+                           int count, int *eof, void *data)
++/* The work comes in here from netfilter.c. */
++static unsigned int
++ip6table_filter_hook(unsigned int hook,
++		   struct sk_buff *skb,
++		   const struct net_device *in,
++		   const struct net_device *out,
++		   int (*okfn)(struct sk_buff *))
 +{
-+	struct xt_quota_counter *e = data;
++	const struct net *net = dev_net((in != NULL) ? in : out);
++	return ip6t_do_table(skb, hook, in, out, net->ipv6.ip6table_filter);
++}
++
++/* Default to forward because I got too much mail already. */
++static int forward = NF_ACCEPT;
++module_param(forward, bool, 0000);
++
++static int __net_init ip6table_filter_net_init(struct net *net)
++{
++	struct ip6t_replace *repl = xt_repldata_create(&packet_filter);
++
++	if (repl == NULL)
++		return -ENOMEM;
++	/* Entry 1 is the FORWARD hook */
++	((struct ip6t_standard *)repl->entries)[1].target.verdict =
++		-forward - 1;
++
++	net->xt2.ipv6_filter =
++		ip6t_register_table(net, &packet_filter, repl);
++	kfree(repl);
++	if (IS_ERR(net->xt2.ipv6_filter))
++		return PTR_ERR(net->xt2.ipv6_filter);
++	return 0;
++}
++
++static void __net_exit ip6table_filter_net_exit(struct net *net)
++{
++	ip6t_unregister_table(net->xt2.ipv6_filter);
++}
++
++static struct pernet_operations ip6table_filter_net_ops = {
++	.init = ip6table_filter_net_init,
++	.exit = ip6table_filter_net_exit,
++};
++
++static struct nf_hook_ops *filter_ops;
++
++static int __init ip6table_filter_init(void)
++{
 +	int ret;
 +
-+	spin_lock_bh(&e->lock);
-+	ret = snprintf(page, PAGE_SIZE, "%llu\n", e->quota);
-+	spin_unlock_bh(&e->lock);
++	if (forward < 0 || forward > NF_MAX_VERDICT) {
++		printk("iptables forward must be 0 or 1\n");
++		return -EINVAL;
++	}
++
++	ret = register_pernet_subsys(&ip6table_filter_net_ops);
++	if (ret < 0)
++		return ret;
++
++	/* Register hooks */
++	filter_ops = xt_hook_link(&packet_filter, ip6table_filter_hook);
++	if (IS_ERR(filter_ops)) {
++		unregister_pernet_subsys(&ip6table_filter_net_ops);
++		return PTR_ERR(filter_ops);
++	}
++
 +	return ret;
 +}
 +
-+static int quota_proc_write(struct file *file, const char __user *input,
-+                            unsigned long size, void *data)
++static void __exit ip6table_filter_fini(void)
 +{
-+	struct xt_quota_counter *e = data;
-+	char buf[sizeof("18446744073709551616")];
-+
-+	if (size > sizeof(buf))
-+		size = sizeof(buf);
-+	if (copy_from_user(buf, input, size) != 0)
-+		return -EFAULT;
-+	buf[sizeof(buf)-1] = '\0';
-+
-+	spin_lock_bh(&e->lock);
-+	e->quota = simple_strtoull(buf, NULL, 0);
-+	spin_unlock_bh(&e->lock);
-+	return size;
++	xt_hook_unlink(&packet_filter, filter_ops);
++	unregister_pernet_subsys(&ip6table_filter_net_ops);
 +}
 +
-+static struct xt_quota_counter *
-+q3_new_counter(const struct xt_quota_mtinfo3 *q, bool anon)
-+{
-+	struct xt_quota_counter *e;
-+	unsigned int size;
-+
-+	/* Do not need all the procfs things for anonymous counters. */
-+	size = anon ? offsetof(typeof(*e), list) : sizeof(*e);
-+	e = kmalloc(size, GFP_KERNEL);
-+	if (e == NULL)
-+		return NULL;
-+
-+	e->quota = q->quota;
-+	spin_lock_init(&e->lock);
-+	if (!anon) {
-+		INIT_LIST_HEAD(&e->list);
-+		atomic_set(&e->ref, 1);
-+		strncpy(e->name, q->name, sizeof(e->name));
-+	}
-+	return e;
-+}
-+
-+/**
-+ * q3_get_counter - get ref to counter or create new
-+ * @name:	name of counter
-+ */
-+static struct xt_quota_counter *
-+q3_get_counter(const struct xt_quota_mtinfo3 *q)
-+{
-+	struct proc_dir_entry *p;
-+	struct xt_quota_counter *e;
-+
-+	if (*q->name == '\0')
-+		return q3_new_counter(q, true);
-+
-+	spin_lock_bh(&counter_list_lock);
-+	list_for_each_entry(e, &counter_list, list)
-+		if (strcmp(e->name, q->name) == 0) {
-+			atomic_inc(&e->ref);
-+			spin_unlock_bh(&counter_list_lock);
-+			return e;
-+		}
-+
-+	e = q3_new_counter(q, false);
-+	if (e == NULL)
-+		goto out;
-+
-+	p = e->procfs_entry = create_proc_entry(e->name, quota_list_perms,
-+	                      proc_xt_quota);
-+	if (p == NULL || IS_ERR(p))
-+		goto out;
-+
-+	p->data         = e;
-+	p->read_proc    = quota_proc_read;
-+	p->write_proc   = quota_proc_write;
-+	p->uid          = quota_list_uid;
-+	p->gid          = quota_list_gid;
-+	list_add_tail(&e->list, &counter_list);
-+	spin_unlock_bh(&counter_list_lock);
-+	return e;
-+
-+ out:
-+	spin_unlock_bh(&counter_list_lock);
-+	kfree(e);
-+	return NULL;
-+}
-+
-+static bool quota_mt3_check(const struct xt_mtchk_param *par)
-+{
-+	struct xt_quota_mtinfo3 *q = par->matchinfo;
-+
-+	if (q->flags & ~XT_QUOTA_MASK)
-+		return false;
-+
-+	q->name[sizeof(q->name)-1] = '\0';
-+	if (*q->name == '.' || strchr(q->name, '/') != NULL) {
-+		printk(KERN_ERR "xt_quota<%u>: illegal name\n",
-+		       par->match->revision);
-+		return false;
-+	}
-+
-+	q->master = q3_get_counter(q);
-+	if (q->master == NULL) {
-+		printk(KERN_ERR "xt_quota<%u>: memory alloc failure\n",
-+		       par->match->revision);
-+		return false;
-+	}
-+
-+	return true;
-+}
-+
-+static void quota_mt3_destroy(const struct xt_mtdtor_param *par)
-+{
-+	struct xt_quota_mtinfo3 *q = par->matchinfo;
-+	struct xt_quota_counter *e = q->master;
-+
-+	if (*q->name == '\0') {
-+		/* anon counter */
-+		kfree(e);
-+		return;
-+	}
-+
-+	spin_lock_bh(&counter_list_lock);
-+	if (!atomic_dec_and_test(&e->ref)) {
-+		spin_unlock_bh(&counter_list_lock);
-+		return;
-+	}
-+
-+	list_del(&e->list);
-+	remove_proc_entry(e->name, proc_xt_quota);
-+	spin_unlock_bh(&counter_list_lock);
-+	kfree(e);
-+}
-+
-+static bool
-+quota_mt3(const struct sk_buff *skb, struct xt_action_param *par)
-+{
-+	struct xt_quota_mtinfo3 *q = (void *)par->matchinfo;
-+	struct xt_quota_counter *e = q->master;
-+	bool ret = q->flags & XT_QUOTA_INVERT;
-+
-+	spin_lock_bh(&e->lock);
-+	if (q->flags & XT_QUOTA_GROW) {
-+		e->quota += (q->flags & XT_QUOTA_PACKET) ? 1 : skb->len;
-+		q->quota = e->quota;
-+		ret = true;
-+	} else {
-+		if (e->quota >= skb->len) {
-+			e->quota -= (q->flags & XT_QUOTA_PACKET) ? 1 : skb->len;
-+			ret = !ret;
-+		} else {
-+			/* we do not allow even small packets from now on */
-+			e->quota = 0;
-+		}
-+		q->quota = e->quota;
-+	}
-+	spin_unlock_bh(&e->lock);
-+	return ret;
-+}
-+
-+
- static bool
- quota_mt(const struct sk_buff *skb, struct xt_action_param *par)
- {
-@@ -65,25 +260,37 @@ static void quota_mt_destroy(const struct xt_mtdtor_param *par)
- 	kfree(q->master);
- }
- 
--static struct xt_match quota_mt_reg __read_mostly = {
--	.name       = "quota",
--	.revision   = 0,
--	.family     = NFPROTO_UNSPEC,
--	.match      = quota_mt,
--	.checkentry = quota_mt_check,
--	.destroy    = quota_mt_destroy,
--	.matchsize  = sizeof(struct xt_quota_info),
--	.me         = THIS_MODULE,
-+static struct xt_match quota_mt_reg[] __read_mostly = {
-+	{
-+		.name       = "quota",
-+		.revision   = 0,
-+		.family     = NFPROTO_UNSPEC,
-+		.match      = quota_mt,
-+		.checkentry = quota_mt_check,
-+		.destroy    = quota_mt_destroy,
-+		.matchsize  = sizeof(struct xt_quota_info),
-+		.me         = THIS_MODULE,
-+	},
-+	{
-+		.name       = "quota",
-+		.revision   = 3,
-+		.family     = NFPROTO_UNSPEC,
-+		.checkentry = quota_mt3_check,
-+		.match      = quota_mt3,
-+		.destroy    = quota_mt3_destroy,
-+		.matchsize  = sizeof(struct xt_quota_mtinfo3),
-+		.me         = THIS_MODULE,
-+	},
- };
- 
- static int __init quota_mt_init(void)
- {
--	return xt_register_match(&quota_mt_reg);
-+	return xt_register_matches(quota_mt_reg, ARRAY_SIZE(quota_mt_reg));
- }
- 
- static void __exit quota_mt_exit(void)
- {
--	xt_unregister_match(&quota_mt_reg);
-+	xt_unregister_matches(quota_mt_reg, ARRAY_SIZE(quota_mt_reg));
- }
- 
- module_init(quota_mt_init);
++module_init(ip6table_filter_init);
++module_exit(ip6table_filter_fini);
 -- 
 1.6.3.3
 
