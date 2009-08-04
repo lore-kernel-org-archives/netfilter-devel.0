@@ -1,176 +1,243 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 058/103] netfilter: xtables2: jumpstack (de)allocation functions
-Date: Tue,  4 Aug 2009 09:25:42 +0200
-Message-ID: <1249370787-17583-59-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 055/103] netfilter: xtables2: per-rule match skeletal functions
+Date: Tue,  4 Aug 2009 09:25:39 +0200
+Message-ID: <1249370787-17583-56-git-send-email-jengelh@medozas.de>
 References: <1249370787-17583-1-git-send-email-jengelh@medozas.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:56942 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:56943 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932570AbZHDH1f (ORCPT
+	with ESMTP id S932578AbZHDH1d (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Aug 2009 03:27:35 -0400
+	Tue, 4 Aug 2009 03:27:33 -0400
 In-Reply-To: <1249370787-17583-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Notes: In xt2 rules, the layer-2/3 match structure (e.g. struct
+ip6t_ip6) is now a standalone entry_match, together with the
+recently-transformed layer-2/3 matches.
+
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/linux/netfilter/x_tables.h |   13 ++++++
- net/netfilter/x_tables.c           |   76 +++++++++++++++++++++++++++++++++++-
- 2 files changed, 88 insertions(+), 1 deletions(-)
+ include/linux/netfilter/x_tables.h |   34 +++++++++++
+ net/netfilter/x_tables.c           |  116 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 150 insertions(+), 0 deletions(-)
 
 diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index bba75b2..f94820c 100644
+index 8addd6f..fbea89c 100644
 --- a/include/linux/netfilter/x_tables.h
 +++ b/include/linux/netfilter/x_tables.h
-@@ -508,6 +508,14 @@ enum {
-  * @chain_list:		list of chains (struct xt2_chain)
-  * @name:		name of this table
-  * @nfproto:		nfproto the table is used exclusively with
-+ * @rq_stacksize:	Size of the jumpstack. This is usually set to the
-+ * 			number of user chains -- since tables cannot have
-+ * 			loops, at most that many jumps can possibly be made --
-+ * 			or a value dependent thereof, such as when it is
-+ * 			multiplied to allow for reentry.
-+ * @stacksize:		current size of the stack (@stackptr, @jumpstack)
-+ * @stackptr:		current stack pointer, one per CPU
-+ * @jumpstack:		our stack, also one per CPU
-  * @entrypoint:		start chains for hooks
-  * @underflow:		base chain policy (rule)
-  * @owner:		encompassing module
-@@ -516,6 +524,11 @@ struct xt2_table {
- 	struct list_head chain_list;
- 	char name[11];
- 	uint8_t nfproto;
+@@ -409,12 +409,34 @@ struct xt_table_info
+ 
+ struct xt2_table;
+ 
++enum {
++	XT2_INV_L4PROTO = 1 << 0,
++};
 +
-+	unsigned int rq_stacksize, stacksize;
-+	unsigned int *stackptr;
-+	const struct xt2_rule ***jumpstack;
+ /**
+  * @anchor:		list anchor for parent (xt2_chain.rule_list)
++ * @match_list:		list of called match extensions (xt2_entry_match)
++ * @l4proto:		layer-4 protocol used (needed for xt_check_*)
++ * @flags:		extra flags (see above)
+  */
+ struct xt2_rule {
+ 	struct list_head anchor;
++	struct list_head match_list;
+ 	struct xt2_chain *chain;
++	uint8_t l4proto, flags;
++};
 +
- 	const struct xt2_chain *entrypoint[NF_INET_NUMHOOKS];
- 	const struct xt2_rule *underflow[NF_INET_NUMHOOKS];
- 	struct module *owner;
++/**
++ * @anchor:	list anchor for parent (xt2_rule.match_list)
++ * @ext:	pointer to extension
++ * @data:	parameter block for extension (aka. "matchinfo")
++ * @dsize:	size of @data (since @ext->matchsize may be -1)
++ */
++struct xt2_entry_match {
++	struct list_head anchor;
++	const struct xt_match *ext;
++	void *data;
++	unsigned int dsize;
+ };
+ 
+ /**
+@@ -422,12 +444,15 @@ struct xt2_rule {
+  * @rule_list:	list of struct xt2_rule
+  * @name:	name of chain
+  * @table:	back link to table chain is contained in
++ * @comefrom:	bitmask from which hooks the chain is entered
++ * 		(currently needed for xt_check_*)
+  */
+ struct xt2_chain {
+ 	struct list_head anchor;
+ 	struct list_head rule_list;
+ 	char name[31];
+ 	struct xt2_table *table;
++	unsigned int comefrom;
+ };
+ 
+ /**
+@@ -613,6 +638,8 @@ extern void xt_hook_unlink(const struct xt_table *, struct nf_hook_ops *);
+ extern void *xt_repldata_create(const struct xt_table *);
+ 
+ extern struct xt2_rule *xt2_rule_new(struct xt2_chain *);
++extern int xt2_rule_add_match(struct xt2_rule *, const char *, uint8_t,
++	const void *, unsigned int, bool);
+ 
+ extern struct xt2_chain *xt2_chain_new(struct xt2_table *, const char *);
+ extern void xt2_chain_append(struct xt2_rule *);
+@@ -624,6 +651,13 @@ extern int xt2_table_register(struct net *, struct xt2_table *);
+ extern struct xt2_table *xt2_table_replace(struct net *, struct xt2_table *);
+ extern void xt2_table_destroy(struct net *, struct xt2_table *);
+ 
++static inline int
++xt2_rule_add_oldmatch(struct xt2_rule *rule, const struct xt_entry_match *m)
++{
++	return xt2_rule_add_match(rule, m->u.user.name, m->u.user.revision,
++	       m->data, m->u.match_size - sizeof(*m), true);
++}
++
+ static inline struct xt2_table *
+ xt2_table_lookup(struct net *net, const char *name, uint8_t nfproto,
+                  unsigned int lock_mask)
 diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 6e6ff1c..574d562 100644
+index 3906dfb..0d50942 100644
 --- a/net/netfilter/x_tables.c
 +++ b/net/netfilter/x_tables.c
-@@ -1513,6 +1513,7 @@ struct xt2_chain *xt2_chain_new(struct xt2_table *table, const char *name)
- 	if (chain == NULL)
+@@ -1308,15 +1308,131 @@ struct xt2_rule *xt2_rule_new(struct xt2_chain *chain)
+ 	if (rule == NULL)
  		return NULL;
  
-+	++table->rq_stacksize;
- 	chain->table = table;
- 	INIT_LIST_HEAD(&chain->anchor);
- 	INIT_LIST_HEAD(&chain->rule_list);
-@@ -1541,11 +1542,79 @@ static void xt2_chain_free(struct xt2_chain *chain)
- 	struct xt2_rule *rule, *next_rule;
- 
- 	list_del(&chain->anchor);
-+	--chain->table->rq_stacksize;
- 	list_for_each_entry_safe(rule, next_rule, &chain->rule_list, anchor)
- 		xt2_rule_free(rule);
- 	kfree(chain);
++	rule->l4proto = 0;
++	rule->flags = 0;
+ 	rule->chain = chain;
+ 	INIT_LIST_HEAD(&rule->anchor);
++	INIT_LIST_HEAD(&rule->match_list);
+ 	return rule;
  }
+ EXPORT_SYMBOL_GPL(xt2_rule_new);
  
 +/**
-+ * Allocate jumpstacks. This is normally called sometime after the chain
-+ * have all been added to the table.
++ * Find the struct ip6t_ip6 from an xt2 rule. Compat needs this, for now.
++ * Returns %NULL if not found.
 + */
-+static int xt2_jumpstack_alloc(struct xt2_table *table)
++static void *xt2_entryinfo_mt_get(const struct xt2_rule *rule)
 +{
-+	unsigned int size;
-+	int cpu;
++	const struct xt2_entry_match *ematch;
 +
-+	size = sizeof(unsigned int) * nr_cpu_ids;
-+	if (size > PAGE_SIZE)
-+		table->stackptr = vmalloc(size);
-+	else
-+		table->stackptr = kmalloc(size, GFP_KERNEL);
-+	if (table->stackptr == NULL)
-+		return -ENOMEM;
-+	memset(table->stackptr, 0, size);
++	if (list_empty(&rule->match_list))
++		return NULL;
++	ematch = list_first_entry(&rule->match_list, typeof(*ematch), anchor);
 +
-+	size = sizeof(struct xt2_rule **) * nr_cpu_ids;
-+	if (size > PAGE_SIZE)
-+		table->jumpstack = vmalloc(size);
-+	else
-+		table->jumpstack = kmalloc(size, GFP_KERNEL);
-+	if (table->jumpstack == NULL)
-+		return -ENOMEM;
-+	memset(table->jumpstack, 0, size);
-+
-+	table->stacksize = table->rq_stacksize * xt_jumpstack_multiplier;
-+	size = sizeof(struct xt2_rule *) * table->stacksize;
-+	for_each_possible_cpu(cpu) {
-+		if (size > PAGE_SIZE)
-+			table->jumpstack[cpu] = vmalloc_node(size,
-+				cpu_to_node(cpu));
-+		else
-+			table->jumpstack[cpu] = kmalloc_node(size,
-+				GFP_KERNEL, cpu_to_node(cpu));
-+		if (table->jumpstack[cpu] == NULL)
-+			return -ENOMEM;
++	/* The entryinfo is always in first place in xt1-compat mode. */
++	switch (rule->chain->table->nfproto) {
++	case NFPROTO_IPV4:
++		if (strcmp(ematch->ext->name, "ipv4") != 0)
++			return NULL;
++		break;
++	case NFPROTO_IPV6:
++		if (strcmp(ematch->ext->name, "ipv6") != 0)
++			return NULL;
++		break;
++	case NFPROTO_ARP:
++		if (strcmp(ematch->ext->name, "arp") != 0)
++			return NULL;
++		break;
++	case NFPROTO_BRIDGE:
++		if (strcmp(ematch->ext->name, "eth") != 0)
++			return NULL;
++		break;
++	default:
++		return NULL;
 +	}
 +
-+	return 0;
++	return ematch->data;
 +}
 +
-+static void xt2_jumpstack_free(struct xt2_table *table)
++/**
++ * @ext_name:	name of extension
++ * @ext_rev:	requested revision
++ * @data:	private extension data block (parameters, etc.)
++ * @dsize:	size of supplied data
++ */
++int xt2_rule_add_match(struct xt2_rule *rule, const char *ext_name,
++                       uint8_t ext_rev, const void *data, unsigned int dsize,
++                       bool check_pad)
 +{
-+	int cpu;
-+
-+	if (table->jumpstack != NULL) {
-+		if (sizeof(struct xt2_rule *) * table->stacksize > PAGE_SIZE) {
-+			for_each_possible_cpu(cpu)
-+				vfree(table->jumpstack[cpu]);
-+		} else {
-+			for_each_possible_cpu(cpu)
-+				kfree(table->jumpstack[cpu]);
-+		}
-+		if (sizeof(struct xt2_rule **) * nr_cpu_ids > PAGE_SIZE)
-+			vfree(table->jumpstack);
-+		else
-+			kfree(table->jumpstack);
-+	}
-+
-+	if (sizeof(unsigned int) * nr_cpu_ids > PAGE_SIZE)
-+		vfree(table->stackptr);
-+	else
-+		kfree(table->stackptr);
-+}
-+
- struct xt2_table *xt2_table_new(void)
- {
- 	struct xt2_table *table;
-@@ -1587,7 +1656,7 @@ EXPORT_SYMBOL_GPL(xt2_tlink_lookup);
- int xt2_table_register(struct net *net, struct xt2_table *table)
- {
- 	struct xt2_table_link *link;
--	int ret = 0;
++	const uint8_t nfproto = rule->chain->table->nfproto;
++	struct xt2_entry_match *ematch;
++	struct xt_mtchk_param mtpar;
++	const struct xt_match *ext;
 +	int ret;
- 
- 	if (*table->name == '\0')
- 		/* Empty names don't fly with our strcmp. */
-@@ -1600,6 +1669,10 @@ int xt2_table_register(struct net *net, struct xt2_table *table)
- 		goto out;
- 	}
- 
-+	ret = xt2_jumpstack_alloc(table);
-+	if (ret < 0)
-+		goto out;
 +
- 	link = kmalloc(sizeof(*link), GFP_KERNEL);
- 	if (link == NULL) {
- 		ret = -ENOMEM;
-@@ -1683,6 +1756,7 @@ void xt2_table_destroy(struct net *net, struct xt2_table *table)
- 	if (net != NULL)
- 		xt2_table_unregister(net, table);
++	ext = try_then_request_module(xt_find_match(nfproto,
++	      ext_name, ext_rev), "%st_%s", xt_prefix[nfproto], ext_name);
++	if (ext == NULL)
++		return -ENOENT;
++	if (IS_ERR(ext))
++		return PTR_ERR(ext);
++
++	ret = -ENOMEM;
++	ematch = kmalloc(sizeof(*ematch), GFP_KERNEL);
++	if (ematch == NULL)
++		goto put_module;
++	ematch->ext   = ext;
++	ematch->data  = kmemdup(data, dsize, GFP_KERNEL);
++	ematch->dsize = dsize;
++	if (ematch->data == NULL)
++		goto free_ematch;
++
++	mtpar.table     = rule->chain->table->name;
++	mtpar.match     = ext;
++	mtpar.matchinfo = ematch->data;
++	mtpar.hook_mask = rule->chain->comefrom;
++	mtpar.family    = rule->chain->table->nfproto;
++	mtpar.entryinfo = xt2_entryinfo_mt_get(rule);
++	ret = xt_check_match(&mtpar, dsize, rule->l4proto,
++	      rule->flags & XT2_INV_L4PROTO, check_pad);
++	if (ret < 0)
++		goto free_edata;
++
++	INIT_LIST_HEAD(&ematch->anchor);
++	list_add_tail(&ematch->anchor, &rule->match_list);
++	return 0;
++
++ free_edata:
++	kfree(ematch->data);
++ free_ematch:
++	kfree(ematch);
++ put_module:
++	module_put(ext->me);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(xt2_rule_add_match);
++
+ static void xt2_rule_free(struct xt2_rule *rule)
+ {
++	struct xt2_entry_match *ematch, *next_ematch;
++	struct xt_mtdtor_param mtpar;
++
++	mtpar.family = rule->chain->table->nfproto;
+ 	list_del(&rule->anchor);
++
++	list_for_each_entry_safe(ematch, next_ematch,
++	    &rule->match_list, anchor) {
++		list_del(&ematch->anchor);
++		/* Note: ematch->ext is never NULL. */
++		if (ematch->ext->destroy != NULL) {
++			mtpar.match     = ematch->ext;
++			mtpar.matchinfo = ematch->data;
++			ematch->ext->destroy(&mtpar);
++		}
++		module_put(ematch->ext->me);
++		kfree(ematch->data);
++		kfree(ematch);
++	}
+ 	kfree(rule);
+ }
  
-+	xt2_jumpstack_free(table);
- 	list_for_each_entry_safe(chain, next_chain, &table->chain_list, anchor)
- 		xt2_chain_free(chain);
- 	kfree(table);
 -- 
 1.6.3.3
 
