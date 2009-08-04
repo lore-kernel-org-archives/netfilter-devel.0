@@ -1,196 +1,511 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 066/103] netfilter: xtables2: xt1->xt2 translation - SET_REPLACE support
-Date: Tue,  4 Aug 2009 09:25:50 +0200
-Message-ID: <1249370787-17583-67-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 065/103] netfilter: xtables2: xt2->xt1 translation - GET_ENTRIES support
+Date: Tue,  4 Aug 2009 09:25:49 +0200
+Message-ID: <1249370787-17583-66-git-send-email-jengelh@medozas.de>
 References: <1249370787-17583-1-git-send-email-jengelh@medozas.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:56946 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:56948 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932576AbZHDH1o (ORCPT
+	with ESMTP id S932595AbZHDH1n (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Aug 2009 03:27:44 -0400
+	Tue, 4 Aug 2009 03:27:43 -0400
 In-Reply-To: <1249370787-17583-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Support table replacement from userspace. Currently without
-returning counters.
+With this, `ip6tables -L` can display xt2 tables (if they are
+representable in the old format, otherwise returns -EIO).
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/linux/netfilter/x_tables.h |    3 ++
- net/ipv6/netfilter/ip6_tables.c    |    9 ++++++
- net/netfilter/x_tables.c           |    3 +-
- net/netfilter/xt1_support.c        |   28 +++++++++++++++++++
- net/netfilter/xt1_translat.c       |   52 ++++++++++++++++++++++++++++++++++++
- 5 files changed, 94 insertions(+), 1 deletions(-)
+ include/linux/netfilter/x_tables.h |   37 +++++++++-
+ include/linux/netfilter/xt_quota.h |   11 +++
+ net/ipv6/netfilter/ip6_tables.c    |   13 +++-
+ net/netfilter/x_tables.c           |    1 +
+ net/netfilter/xt1_support.c        |  106 +++++++++++++++++++++++---
+ net/netfilter/xt1_translat.c       |  146 ++++++++++++++++++++++++++++++++++++
+ net/netfilter/xt_quota.c           |    9 --
+ 7 files changed, 300 insertions(+), 23 deletions(-)
 
 diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index 589e0dc..9514002 100644
+index 0c9d64f..589e0dc 100644
 --- a/include/linux/netfilter/x_tables.h
 +++ b/include/linux/netfilter/x_tables.h
-@@ -571,6 +571,8 @@ struct xt2_table_link {
- 	struct xt2_table *table;
+@@ -543,6 +543,7 @@ enum {
+  * @entrypoint:		start chains for hooks
+  * @underflow:		base chain policy (rule)
+  * @owner:		encompassing module
++ * @xt1_lock:		lock for updating chains' xt1_offset
+  */
+ struct xt2_table {
+ 	struct list_head chain_list;
+@@ -557,6 +558,8 @@ struct xt2_table {
+ 	const struct xt2_chain *entrypoint[NF_INET_NUMHOOKS];
+ 	const struct xt2_rule *underflow[NF_INET_NUMHOOKS];
+ 	struct module *owner;
++
++	struct mutex xt1_lock;
  };
  
-+extern const char *const xt_prefix[NFPROTO_NUMPROTO];
-+
- #define XT_TABLE_INFO_SZ (offsetof(struct xt_table_info, entries) \
- 			  + nr_cpu_ids * sizeof(char *))
- extern int xt_register_target(struct xt_target *target);
-@@ -727,6 +729,7 @@ extern int xts_starget_to_xt1(void __user **, int *, unsigned int *,
- 	const struct xt2_entry_target *, const struct xt1_xlat_info *);
- extern int xts_target_to_xt1(void __user **, int *, unsigned int *,
- 	const struct xt2_entry_target *);
-+extern int xts_table_replace(struct net *, struct xt2_table *);
+ /**
+@@ -713,9 +716,17 @@ extern void *xt_repldata_create(const struct xt_table *);
+ 
+ extern struct xt2_chain *xts_lookup_chain(const struct xt2_table *,
+ 	unsigned int);
+-extern unsigned int xts_blob_prep_table(const struct xt2_table *,
++extern const struct xt2_entry_match *
++	xts_rule_quota_ptr(const struct xt2_rule *);
++extern void xts_rule_get_quota(const struct xt2_entry_match *,
++	uint64_t *, uint64_t *);
++extern unsigned int xts_blob_prep_table(struct xt2_table *,
+ 	const struct xt1_xlat_info *, unsigned int *, unsigned int *,
+ 	unsigned int *);
++extern int xts_starget_to_xt1(void __user **, int *, unsigned int *,
++	const struct xt2_entry_target *, const struct xt1_xlat_info *);
++extern int xts_target_to_xt1(void __user **, int *, unsigned int *,
++	const struct xt2_entry_target *);
  
  extern struct xt2_rule *xt2_rule_new(struct xt2_chain *);
  extern int xt2_rule_add_match(struct xt2_rule *, const char *, uint8_t,
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 7f722a8..f6d4030 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -73,6 +73,7 @@ static int mark_source_chains(const struct xt_table_info *,
- #define xtsub_entry           ip6t_entry
- #define xtsub_replace         ip6t_replace
- #define xtsub_error_target    ip6t_error_target
-+#define XTSUB_NFPROTO         NFPROTO_IPV6
- #define XTSUB_NFPROTO_IPV6    1
- #define XTSUB(x)              ip6t_ ## x
- #define XTSUB2(x)             ip6t2_ ## x
-@@ -1398,6 +1399,14 @@ do_replace(struct net *net, const void __user *user, unsigned int len)
- 	if (copy_from_user(&tmp, user, sizeof(tmp)) != 0)
- 		return -EFAULT;
- 
-+	/*
-+	 * If the table goes away just moments later, no problem.
-+	 * Just dispatching here.
-+	 */
-+	if (xt2_table_lookup(net, tmp.name,
-+	    NFPROTO_IPV6, XT2_NO_RCULOCK) != NULL)
-+		return ip6t2_do_replace(net, user, len);
-+
- 	/* overflow check */
- 	if (tmp.num_counters >= INT_MAX / sizeof(struct xt_counters))
- 		return -ENOMEM;
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index d19eb56..0895016 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -72,13 +72,14 @@ enum {
- 	/* XT_CONTINUE = 0xFFFFFFFF, */ /* reminder (x_tables.h) */
- };
- 
--static const char *const xt_prefix[NFPROTO_NUMPROTO] = {
-+const char *const xt_prefix[NFPROTO_NUMPROTO] = {
- 	[NFPROTO_UNSPEC] = "x",
- 	[NFPROTO_IPV4]   = "ip",
- 	[NFPROTO_ARP]    = "arp",
- 	[NFPROTO_BRIDGE] = "eb",
- 	[NFPROTO_IPV6]   = "ip6",
- };
-+EXPORT_SYMBOL_GPL(xt_prefix);
- 
- /* Allow this many total entries. */
- static unsigned int xt_jumpstack_multiplier = 2;
-diff --git a/net/netfilter/xt1_support.c b/net/netfilter/xt1_support.c
-index d2124a3..d7270dc 100644
---- a/net/netfilter/xt1_support.c
-+++ b/net/netfilter/xt1_support.c
-@@ -239,4 +239,32 @@ int xts_target_to_xt1(void __user **user_ptr, int *len, unsigned int *z,
- }
- EXPORT_SYMBOL_GPL(xts_target_to_xt1);
+@@ -738,6 +749,30 @@ extern unsigned int xt2_do_table(struct sk_buff *, unsigned int,
+ 	const struct net_device *, const struct net_device *,
+ 	const struct xt2_table *);
  
 +/**
-+ * Load table module, check hook masks, replace table.
++ * @pptr:	user pointer
++ * @rem:	remaining bytes in user area
++ * @data:	source data
++ * @dsize:	size of @data
++ * @z:		bytes written so far
++ *
++ * Copy @data to userspace, advance pointer and offset,
++ * reduce remaining counter.
 + */
-+int xts_table_replace(struct net *net, struct xt2_table *table)
++static inline int
++xts_copy_to_user(void __user **pptr, int *rem, const void *data,
++                 unsigned int dsize, unsigned int *z)
 +{
-+	struct xt2_table *old_table;
++	if (*rem < dsize)
++		return -ENOSPC;
++	if (copy_to_user(*pptr, data, dsize) != 0)
++		return -EFAULT;
++	*pptr += dsize;
++	*z    += dsize;
++	*rem  -= dsize;
++	return 0;
++}
 +
-+	old_table = try_then_request_module(xt2_table_lookup(net,
-+	            table->name, table->nfproto, XT2_TAKE_RCULOCK),
-+	            "%stable_%s", xt_prefix[table->nfproto], table->name);
-+	if (old_table == NULL)
-+		return -ENOENT;
-+	if (table->valid_hooks != old_table->valid_hooks) {
-+		pr_err("Invalid hook mix: 0x%x (old) vs 0x%x (new)\n",
-+		       old_table->valid_hooks, table->valid_hooks);
+ static inline bool xt2_builtin_chain(const struct xt2_chain *c)
+ {
+ 	return *c->name == '\0';
+diff --git a/include/linux/netfilter/xt_quota.h b/include/linux/netfilter/xt_quota.h
+index f14e36d..7538cd2 100644
+--- a/include/linux/netfilter/xt_quota.h
++++ b/include/linux/netfilter/xt_quota.h
+@@ -32,4 +32,15 @@ struct xt_quota_mtinfo3 {
+ 	struct xt_quota_counter *master __attribute__((aligned(8)));
+ };
+ 
++#ifdef __KERNEL__
++struct xt_quota_counter {
++	u_int64_t quota;
++	spinlock_t lock;
++	struct list_head list;
++	atomic_t ref;
++	char name[sizeof(((struct xt_quota_mtinfo3 *)NULL)->name)];
++	struct proc_dir_entry *procfs_entry;
++};
++#endif
++
+ #endif /* _XT_QUOTA_H */
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 8dc507d..7f722a8 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -1176,7 +1176,7 @@ static const struct xt1_xlat_info ip6t_xlat_info = {
+ };
+ 
+ static int ip6t2_get_info(void __user *uptr, int len,
+-                          const struct xt2_table *table)
++                          struct xt2_table *table)
+ {
+ 	struct ip6t_getinfo info = {
+ 		.valid_hooks = table->valid_hooks,
+@@ -1267,6 +1267,7 @@ get_entries(struct net *net, struct ip6t_get_entries __user *uptr,
+ {
+ 	int ret;
+ 	struct ip6t_get_entries get;
++	struct xt2_table *xt2_table;
+ 	struct xt_table *t;
+ 
+ 	if (*len < sizeof(get)) {
+@@ -1281,6 +1282,16 @@ get_entries(struct net *net, struct ip6t_get_entries __user *uptr,
+ 		return -EINVAL;
+ 	}
+ 
++	xt2_table = xt2_table_lookup(net, get.name, NFPROTO_IPV6,
++	            XT2_TAKE_RCULOCK);
++	if (xt2_table != NULL) {
++		ret = ip6t2_table_to_xt1(uptr->entrytable, get.size,
++		      xt2_table, &ip6t_xlat_info);
 +		rcu_read_unlock();
-+		return -EINVAL;
++		return ret;
 +	}
 +	rcu_read_unlock();
 +
-+	old_table = xt2_table_replace(net, table);
-+	if (IS_ERR(old_table))
-+		return PTR_ERR(old_table);
-+	xt2_table_destroy(NULL, old_table);
-+	return 0;
+ 	t = xt_find_table_lock(net, AF_INET6, get.name);
+ 	if (t && !IS_ERR(t)) {
+ 		struct xt_table_info *private = t->private;
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index f8ff821..d19eb56 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -1636,6 +1636,7 @@ struct xt2_table *xt2_table_new(void)
+ 		return NULL;
+ 
+ 	INIT_LIST_HEAD(&table->chain_list);
++	mutex_init(&table->xt1_lock);
+ 	return table;
+ }
+ EXPORT_SYMBOL_GPL(xt2_table_new);
+diff --git a/net/netfilter/xt1_support.c b/net/netfilter/xt1_support.c
+index 5900880..d2124a3 100644
+--- a/net/netfilter/xt1_support.c
++++ b/net/netfilter/xt1_support.c
+@@ -11,6 +11,7 @@
+ #include <linux/module.h>
+ #include <linux/rcupdate.h>
+ #include <linux/netfilter/x_tables.h>
++#include <linux/netfilter/xt_quota.h>
+ 
+ /**
+  * @table:	table to search in
+@@ -42,7 +43,7 @@ EXPORT_SYMBOL_GPL(xts_lookup_chain);
+  * Also used for the xt2->xt1 converter. Generalized matches run until the two
+  * last quota matches.
+  */
+-static const struct xt2_entry_match *
++const struct xt2_entry_match *
+ xts_rule_quota_ptr(const struct xt2_rule *rule)
+ {
+ 	const struct xt2_entry_match *ematch;
+@@ -63,6 +64,29 @@ xts_rule_quota_ptr(const struct xt2_rule *rule)
+ 		return NULL;
+ 	return ematch;
+ }
++EXPORT_SYMBOL_GPL(xts_rule_quota_ptr);
++
++/**
++ * @ematch:	pointer to appropriate quota ematch (obtained from
++ * 		xt1_rule_quota_ptr)
++ */
++void xts_rule_get_quota(const struct xt2_entry_match *ematch,
++                        uint64_t *bytes, uint64_t *pkts)
++{
++	const struct xt_quota_mtinfo3 *q;
++
++	/* Bytes */
++	q = ematch->data;
++	spin_lock_bh(&q->master->lock);
++	*bytes = q->master->quota;
++	spin_unlock_bh(&q->master->lock);
++	/* Packets */
++	q = list_entry(ematch->anchor.next, typeof(*ematch), anchor)->data;
++	spin_lock_bh(&q->master->lock);
++	*pkts = q->master->quota;
++	spin_unlock_bh(&q->master->lock);
 +}
-+EXPORT_SYMBOL_GPL(xts_table_replace);
++EXPORT_SYMBOL_GPL(xts_rule_get_quota);
+ 
+ static int
+ xts_blob_prep_rule(const struct xt2_rule *rule, const struct xt1_xlat_info *io,
+@@ -89,9 +113,10 @@ xts_blob_prep_rule(const struct xt2_rule *rule, const struct xt1_xlat_info *io,
+ 		return -EIO;
+ 
+ 	/* Do underflow assign first before @z is increased. */
+-	for (h = 0; h < ARRAY_SIZE(table->underflow); ++h)
+-		if (rule == table->underflow[h])
+-			underflow[h] = z;
++	if (underflow != NULL)
++		for (h = 0; h < ARRAY_SIZE(table->underflow); ++h)
++			if (rule == table->underflow[h])
++				underflow[h] = z;
+ 
+ 	/* Subtracting, because it will already be added in the loop. */
+ 	z += io->entry_hdr_size - io->ematch_size - io->pmatch_size;
+@@ -120,22 +145,25 @@ xts_blob_prep_rule(const struct xt2_rule *rule, const struct xt1_xlat_info *io,
+  * loss of information.
+  */
+ unsigned int
+-xts_blob_prep_table(const struct xt2_table *table,
+-                    const struct xt1_xlat_info *io,
++xts_blob_prep_table(struct xt2_table *table, const struct xt1_xlat_info *io,
+                     unsigned int *hook_entry, unsigned int *underflow,
+                     unsigned int *entries_ptr)
+ {
+-	const struct xt2_chain *chain;
++	struct xt2_chain *chain;
+ 	const struct xt2_rule *rule;
+ 	unsigned int hook, entries = 0;
+ 	int z = 0;
+ 
+ 	rcu_read_lock();
+ 	list_for_each_entry(chain, &table->chain_list, anchor) {
+-		for (hook = 0; hook < ARRAY_SIZE(table->entrypoint); ++hook)
+-			if (table->entrypoint[hook] == chain)
+-				hook_entry[hook] = z;
+-
++		if (hook_entry != NULL)
++			for (hook = 0; hook < ARRAY_SIZE(table->entrypoint);
++			     ++hook)
++				if (table->entrypoint[hook] == chain)
++					hook_entry[hook] = z;
++
++		/* Caller needs to take xt1_lock if xt1_offset is needed. */
++		chain->xt1_offset = z;
+ 		if (!xt2_builtin_chain(chain)) {
+ 			z += io->entry_hdr_size + io->marker_size;
+ 			++entries;
+@@ -152,9 +180,63 @@ xts_blob_prep_table(const struct xt2_table *table,
+ 
+ 	/* Table terminator */
+ 	z += io->entry_hdr_size + io->marker_size;
+-	*entries_ptr = ++entries;
++	if (entries_ptr != NULL)
++		*entries_ptr = ++entries;
+ 	return z;
+ }
+ EXPORT_SYMBOL_GPL(xts_blob_prep_table);
+ 
++int xts_starget_to_xt1(void __user **user_ptr, int *len, unsigned int *z,
++                       const struct xt2_entry_target *etarget,
++                       const struct xt1_xlat_info *io)
++{
++	struct xt_standard_target blob = {
++		.target.u.user = {
++			.target_size = io->standard_tgsize,
++			.revision    = 0,
++		},
++	};
++
++	strncpy(blob.target.u.user.name, XT_STANDARD_TARGET,
++	        sizeof(blob.target.u.user.name));
++	if (etarget->ext == XT2_FINAL_VERDICT) {
++		if (etarget->verdict == XT_CONTINUE)
++			blob.verdict = *z + io->standard_tgsize;
++		else if (etarget->verdict == XT_RETURN)
++			blob.verdict = XT_RETURN;
++		else
++			blob.verdict = -etarget->verdict - 1;
++	} else if (etarget->ext == XT2_ACTION_GOTO) {
++		blob.verdict = etarget->r_goto->xt1_offset;
++	} else if (etarget->ext == XT2_ACTION_JUMP) {
++		blob.verdict = etarget->r_jump->xt1_offset;
++	} else {
++		return -EIO;
++	}
++	return xts_copy_to_user(user_ptr, len, &blob, io->standard_tgsize, z);
++}
++EXPORT_SYMBOL_GPL(xts_starget_to_xt1);
++
++int xts_target_to_xt1(void __user **user_ptr, int *len, unsigned int *z,
++                      const struct xt2_entry_target *etarget)
++{
++	int ret;
++	struct xt_entry_target blob = {
++		.u.user = {
++			.target_size = sizeof(blob) +
++			               XT_ALIGN(etarget->ext->targetsize),
++			.revision    = etarget->ext->revision,
++		},
++	};
++
++	strncpy(blob.u.user.name, etarget->ext->name,
++	        sizeof(blob.u.user.name));
++	ret = xts_copy_to_user(user_ptr, len, &blob, sizeof(blob), z);
++	if (ret < 0)
++		return ret;
++	return xts_copy_to_user(user_ptr, len, etarget->data,
++	       XT_ALIGN(etarget->ext->targetsize), z);
++}
++EXPORT_SYMBOL_GPL(xts_target_to_xt1);
 +
  MODULE_LICENSE("GPL");
 diff --git a/net/netfilter/xt1_translat.c b/net/netfilter/xt1_translat.c
-index f0a9c4d..af413f5 100644
+index a1663ba..f0a9c4d 100644
 --- a/net/netfilter/xt1_translat.c
 +++ b/net/netfilter/xt1_translat.c
-@@ -436,3 +436,55 @@ XTSUB2(table_to_xt1)(void __user *user_ptr, int len, struct xt2_table *table,
- 	mutex_unlock(&table->xt1_lock);
- 	return ret;
+@@ -290,3 +290,149 @@ static int XTSUB2(table_to_xt2)(struct xt2_table *table, void *entry0,
+ 
+ 	return 0;
  }
 +
 +static int
-+XTSUB2(do_replace)(struct net *net, const void __user *user, unsigned int len)
++XTSUB2(marker_to_xt1)(void __user **user_pptr, int *len,
++                      const struct xt2_chain *chain, unsigned int *z)
 +{
-+	struct xtsub_replace repl;
-+	struct xt2_table *table;
-+	void *blob;
++	/*
++	 * Must write structs separately, or otherwise there is padding between
++	 * (compat_)xtsub_entry and xtsub_error_target.
++	 */
++	struct xtsub_error_target target = {
++		.target.u.user = {
++			.target_size = sizeof(target),
++			.name        = "ERROR",
++			.revision    = 0,
++		},
++	};
++	struct xtsub_entry entry = {
++		.target_offset = sizeof(entry),
++		.next_offset   = sizeof(entry) + sizeof(target),
++	};
 +	int ret;
 +
-+	if (copy_from_user(&repl, user, sizeof(repl)) != 0)
-+		return -EFAULT;
++	strncpy(target.errorname, chain->name,
++	        min(sizeof(target.errorname), sizeof(chain->name)));
++	ret = xts_copy_to_user(user_pptr, len, &entry, sizeof(entry), z);
++	if (ret < 0)
++		return ret;
++	return xts_copy_to_user(user_pptr, len, &target, sizeof(target), z);
++}
 +
-+	/* overflow check */
-+	if (repl.num_counters >= INT_MAX / sizeof(struct xt_counters))
-+		return -ENOMEM;
++static int
++XTSUB2(rule_to_xt1)(void __user **user_ptr, int *len, unsigned int *z,
++                    const struct xt2_rule *rule,
++                    const struct xt1_xlat_info *io)
++{
++	const struct xt2_entry_match *ematch, *quota_ematch;
++	const struct xt2_entry_target *etarget;
++	struct xtsub_entry entry;
++	void __user *entry_uptr;
++	unsigned int z_start;
++	int ret;
 +
-+#define SMP_ALIGN(x) (((x) + SMP_CACHE_BYTES-1) & ~(SMP_CACHE_BYTES-1))
-+	/* Pedantry: prevent them from hitting BUG() in vmalloc.c --RR */
-+	if ((SMP_ALIGN(repl.size) >> PAGE_SHIFT) + 2 > num_physpages)
-+		return -ENOMEM;
-+#undef SMP_ALIGN
++	quota_ematch = xts_rule_quota_ptr(rule);
++	if (quota_ematch == NULL)
++		return -EIO;
 +
-+	table = xt2_table_new();
-+	if (table == NULL)
-+		return -ENOMEM;
-+	/* Need a writable copy for check_entry_and_size_hooks. */
-+	ret  = -ENOMEM;
-+	blob = vmalloc(repl.size);
-+	if (blob == NULL)
-+		goto out;
-+	if (copy_from_user(blob, user + sizeof(repl), repl.size) != 0) {
-+		ret = -EFAULT;
-+		goto out;
++	/* Must have exactly one target */
++	if (list_empty(&rule->target_list) ||
++	    rule->target_list.next->next != &rule->target_list)
++		return -EIO;
++
++	/* Entry master */
++	z_start = *z;
++	ematch = list_first_entry(&rule->match_list,
++	         typeof(*ematch), anchor);
++#ifdef XTSUB_NFPROTO_IPV6
++	if (strcmp(ematch->ext->name, "ipv6") != 0)
++		return -EIO;
++	memcpy(&entry.ipv6, ematch->data, sizeof(entry.ipv6));
++#endif
++	entry.comefrom = rule->chain->comefrom;
++	entry.nfcache  = 0;
++	xts_rule_get_quota(quota_ematch, &entry.counters.bcnt,
++		&entry.counters.pcnt);
++
++	/* Remember offset for entry header for later update of offsets. */
++	entry_uptr = *user_ptr;
++	ret = xts_copy_to_user(user_ptr, len, &entry, sizeof(entry), z);
++	if (ret < 0)
++		return ret;
++
++	list_for_each_entry_continue(ematch, &rule->match_list, anchor) {
++		struct xt_entry_match blob;
++
++		if (ematch == quota_ematch)
++			break;
++
++		blob.u.match_size    = sizeof(blob) + ematch->dsize;
++		blob.u.user.revision = ematch->ext->revision;
++		strncpy(blob.u.user.name, ematch->ext->name,
++		        sizeof(blob.u.user.name));
++		ret = xts_copy_to_user(user_ptr, len, &blob, sizeof(blob), z);
++		if (ret < 0)
++			return ret;
++		ret = xts_copy_to_user(user_ptr, len, ematch->data,
++		      ematch->dsize, z);
++		if (ret < 0)
++			return ret;
 +	}
-+	strncpy(table->name, repl.name, sizeof(table->name));
-+	table->name[sizeof(table->name)-1] = '\0';
-+	table->valid_hooks = repl.valid_hooks;
-+	table->nfproto     = XTSUB_NFPROTO;
 +
-+	ret = XTSUB2(table_to_xt2)(table, blob, &repl);
-+	vfree(blob);
-+	if (ret < 0)
-+		goto out;
-+	ret = xts_table_replace(net, table);
-+	if (ret < 0)
-+		goto out;
-+	return 0;
++	/* target and next offsets are relative to the start of the entry. */
++	entry.target_offset = *z - z_start;
 +
++	list_for_each_entry(etarget, &rule->target_list, anchor) {
++		ret = xt2_special_target(etarget->ext) ?
++		      xts_starget_to_xt1(user_ptr, len, z, etarget, io) :
++		      xts_target_to_xt1(user_ptr, len, z, etarget);
++		if (ret < 0)
++			return ret;
++	}
++
++	entry.next_offset = *z - z_start;
++	return copy_to_user(entry_uptr, &entry, sizeof(entry));
++}
++
++static int
++XTSUB2(table_to_xt1)(void __user *user_ptr, int len, struct xt2_table *table,
++                     const struct xt1_xlat_info *io)
++{
++	static const struct xt2_chain terminator = {.name = "ERROR"};
++	static const uint32_t filler = ~0U;
++	const struct xt2_rule *rule;
++	struct xt2_chain *chain;
++	unsigned int z = 0;
++	int i, ret;
++
++	for (i = 0; i <= len - sizeof(filler); i += sizeof(filler))
++		copy_to_user(user_ptr + i, &filler, sizeof(filler));
++
++	ret = mutex_lock_interruptible(&table->xt1_lock);
++	if (ret < 0)
++		return ret;
++
++	/* Calculate chain offsets. */
++	xts_blob_prep_table(table, io, NULL, NULL, NULL);
++
++	list_for_each_entry(chain, &table->chain_list, anchor) {
++		if (!xt2_builtin_chain(chain)) {
++			ret = XTSUB2(marker_to_xt1)(&user_ptr,
++			      &len, chain, &z);
++			if (ret < 0)
++				goto out;
++		}
++		list_for_each_entry(rule, &chain->rule_list, anchor) {
++			ret = XTSUB2(rule_to_xt1)(&user_ptr, &len, &z,
++			      rule, io);
++			if (ret < 0)
++				goto out;
++		}
++	}
++
++	ret = XTSUB2(marker_to_xt1)(&user_ptr, &len, &terminator, &z);
 + out:
-+	xt2_table_destroy(NULL, table);
++	mutex_unlock(&table->xt1_lock);
 +	return ret;
 +}
+diff --git a/net/netfilter/xt_quota.c b/net/netfilter/xt_quota.c
+index 33ce76a..69c8659 100644
+--- a/net/netfilter/xt_quota.c
++++ b/net/netfilter/xt_quota.c
+@@ -16,15 +16,6 @@ struct xt_quota_priv {
+ 	uint64_t quota;
+ };
+ 
+-struct xt_quota_counter {
+-	u_int64_t quota;
+-	spinlock_t lock;
+-	struct list_head list;
+-	atomic_t ref;
+-	char name[sizeof(((struct xt_quota_mtinfo3 *)NULL)->name)];
+-	struct proc_dir_entry *procfs_entry;
+-};
+-
+ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Jan Engelhardt <jengelh@medozas.de>");
+ MODULE_AUTHOR("Sam Johnston <samj@samj.net>");
 -- 
 1.6.3.3
 
