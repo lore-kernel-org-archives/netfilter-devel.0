@@ -1,152 +1,130 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 072/103] netfilter: xtables2: xt2<->xt1 translation - compat GET_ENTRIES/SET_REPLACE support
-Date: Tue,  4 Aug 2009 09:25:56 +0200
-Message-ID: <1249370787-17583-73-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 077/103] netfilter: xtables2: normal->compat target data translation
+Date: Tue,  4 Aug 2009 09:26:01 +0200
+Message-ID: <1249370787-17583-78-git-send-email-jengelh@medozas.de>
 References: <1249370787-17583-1-git-send-email-jengelh@medozas.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:56951 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:56954 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932601AbZHDH1v (ORCPT
+	with ESMTP id S932608AbZHDH14 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Aug 2009 03:27:51 -0400
+	Tue, 4 Aug 2009 03:27:56 -0400
 In-Reply-To: <1249370787-17583-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This commit wires up the compat path to the translator. The
-translator currently deals with the base entry, e.g. ip6t_entry.
-compat<->normal translation of matchinfo data of arbitrary extensions
-is done in an upcoming commit.
-
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/linux/netfilter_ipv6/ip6_tables.h |   12 +++++++++
- net/ipv6/netfilter/ip6_tables.c           |   38 +++++++++++++++++++---------
- net/netfilter/xt1_translat.c              |    3 +-
- 3 files changed, 40 insertions(+), 13 deletions(-)
+ include/linux/netfilter/x_tables.h |    2 +
+ net/netfilter/xt1_support.c        |   42 ++++++++++++++++++++++++++++++++++-
+ net/netfilter/xt1_translat.c       |    5 +++-
+ 3 files changed, 46 insertions(+), 3 deletions(-)
 
-diff --git a/include/linux/netfilter_ipv6/ip6_tables.h b/include/linux/netfilter_ipv6/ip6_tables.h
-index 421c2d5..bad5135 100644
---- a/include/linux/netfilter_ipv6/ip6_tables.h
-+++ b/include/linux/netfilter_ipv6/ip6_tables.h
-@@ -346,6 +346,18 @@ struct compat_ip6t_entry
- 	unsigned char elems[0];
- };
- 
-+struct compat_ip6t_replace {
-+	char			name[IP6T_TABLE_MAXNAMELEN];
-+	u32			valid_hooks;
-+	u32			num_entries;
-+	u32			size;
-+	u32			hook_entry[NF_INET_NUMHOOKS];
-+	u32			underflow[NF_INET_NUMHOOKS];
-+	u32			num_counters;
-+	compat_uptr_t		counters;	/* struct ip6t_counters * */
-+	struct compat_ip6t_entry entries[0];
-+};
-+
- static inline struct ip6t_entry_target *
- compat_ip6t_get_target(struct compat_ip6t_entry *e)
- {
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 464930a..b7901e3 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -68,6 +68,7 @@ do {								\
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index ccd012a..77573a5 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -745,6 +745,8 @@ extern int xts_rule_add_ctarget(struct xt2_rule *,
+ 	const struct xt_entry_target *);
+ extern int xts_cmatch_to_xt1(void __user **, int *, unsigned int *,
+ 	const struct xt2_entry_match *);
++extern int xts_ctarget_to_xt1(void __user **, int *, unsigned int *,
++	const struct xt2_entry_target *);
  #endif
  
- #define xtsub_entry           ip6t_entry
-+#define xtsub_entry_nocompat  ip6t_entry
- #define xtsub_replace         ip6t_replace
- #define xtsub_error_target    ip6t_error_target
- #define XTSUB_NFPROTO         NFPROTO_IPV6
-@@ -77,6 +78,16 @@ do {								\
+ extern struct xt2_rule *xt2_rule_new(struct xt2_chain *);
+diff --git a/net/netfilter/xt1_support.c b/net/netfilter/xt1_support.c
+index 48cfaba..f02eff8 100644
+--- a/net/netfilter/xt1_support.c
++++ b/net/netfilter/xt1_support.c
+@@ -154,8 +154,15 @@ xts_blob_prep_rule(const struct xt2_rule *rule, const struct xt1_xlat_info *io,
  
- #include "../../netfilter/xt1_translat.c"
- #include "../../netfilter/xt1_postshared.c"
-+#undef XTSUB2
-+#undef xtsub_entry
-+#undef xtsub_replace
-+
+ 	etarget = list_first_entry(&rule->target_list,
+ 	          typeof(*etarget), anchor);
+-	z += xt2_special_target(etarget->ext) ? io->standard_tgsize :
+-	     io->etarget_size + XT_ALIGN(etarget->ext->targetsize);
++	if (xt2_special_target(etarget->ext))
++		z += io->standard_tgsize;
 +#ifdef CONFIG_COMPAT
-+#define xtsub_entry           compat_ip6t_entry
-+#define xtsub_replace         compat_ip6t_replace
-+#define XTSUB2(x)             ip6t2_compat_ ## x
-+#include "../../netfilter/xt1_translat.c"
++	else if (io->compat && etarget->ext->compatsize != 0)
++		z += io->etarget_size +
++		     COMPAT_XT_ALIGN(etarget->ext->compatsize);
 +#endif
- 
- /*
-    We keep a set of rules for each CPU, so we can avoid write-locking
-@@ -1444,18 +1455,6 @@ do_add_counters(struct net *net, const void __user *user, unsigned int len,
++	else
++		z += io->etarget_size + XT_ALIGN(etarget->ext->targetsize);
+ 	return z;
  }
  
- #ifdef CONFIG_COMPAT
--struct compat_ip6t_replace {
--	char			name[IP6T_TABLE_MAXNAMELEN];
--	u32			valid_hooks;
--	u32			num_entries;
--	u32			size;
--	u32			hook_entry[NF_INET_NUMHOOKS];
--	u32			underflow[NF_INET_NUMHOOKS];
--	u32			num_counters;
--	compat_uptr_t		counters;	/* struct ip6t_counters * */
--	struct compat_ip6t_entry entries[0];
--};
--
- static int
- compat_copy_entry_to_user(struct ip6t_entry *e, void __user **dstptr,
- 			  unsigned int *size, struct xt_counters *counters,
-@@ -1859,6 +1858,10 @@ compat_do_replace(struct net *net, void __user *user, unsigned int len)
- 	if (copy_from_user(&tmp, user, sizeof(tmp)) != 0)
- 		return -EFAULT;
- 
-+	if (xt2_table_lookup(net, tmp.name, NFPROTO_IPV6,
-+	    XT2_NO_RCULOCK) != NULL)
-+		return ip6t2_compat_do_replace(net, user, len);
+@@ -547,6 +554,37 @@ int xts_cmatch_to_xt1(void __user **user_ptr, int *len, unsigned int *z,
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(xts_cmatch_to_xt1);
 +
- 	/* overflow check */
- 	if (tmp.size >= INT_MAX / num_possible_cpus())
- 		return -ENOMEM;
-@@ -1973,6 +1976,7 @@ compat_get_entries(struct net *net, struct compat_ip6t_get_entries __user *uptr,
- {
- 	int ret;
- 	struct compat_ip6t_get_entries get;
-+	struct xt2_table *xt2_table;
- 	struct xt_table *t;
- 
- 	if (*len < sizeof(get)) {
-@@ -1989,6 +1993,16 @@ compat_get_entries(struct net *net, struct compat_ip6t_get_entries __user *uptr,
- 		return -EINVAL;
- 	}
- 
-+	xt2_table = xt2_table_lookup(net, get.name, NFPROTO_IPV6,
-+	            XT2_TAKE_RCULOCK);
-+	if (xt2_table != NULL) {
-+		ret = ip6t2_compat_table_to_xt1(uptr->entrytable, get.size,
-+		      xt2_table, &ip6t_compat_xlat_info);
-+		rcu_read_unlock();
++int xts_ctarget_to_xt1(void __user **user_ptr, int *len, unsigned int *z,
++                       const struct xt2_entry_target *etarget)
++{
++	struct xt_entry_target blob;
++	unsigned int dsize;
++	int ret;
++
++	if (etarget->ext->compatsize == 0)
++		return xts_target_to_xt1(user_ptr, len, z, etarget);
++
++	dsize = COMPAT_XT_ALIGN(etarget->ext->compatsize);
++	blob.u.target_size   = sizeof(blob) + dsize;
++	blob.u.user.revision = etarget->ext->revision;
++	strncpy(blob.u.user.name, etarget->ext->name,
++	        sizeof(blob.u.user.name));
++	ret = xts_copy_to_user(user_ptr, len, &blob, sizeof(blob), z);
++	if (ret < 0)
 +		return ret;
-+	}
-+	rcu_read_unlock();
 +
- 	xt_compat_lock(AF_INET6);
- 	t = xt_find_table_lock(net, AF_INET6, get.name);
- 	if (t && !IS_ERR(t)) {
++	if (*len < dsize)
++		return -ENOSPC;
++	ret = etarget->ext->compat_to_user(*user_ptr, etarget->data);
++	if (ret < 0)
++		return ret;
++	*user_ptr += dsize;
++	*z        += dsize;
++	*len      -= dsize;
++	return 0;
++}
++EXPORT_SYMBOL_GPL(xts_ctarget_to_xt1);
+ #endif
+ 
+ MODULE_LICENSE("GPL");
 diff --git a/net/netfilter/xt1_translat.c b/net/netfilter/xt1_translat.c
-index a975a41..7719d8b 100644
+index ebcc3df..994fcc5 100644
 --- a/net/netfilter/xt1_translat.c
 +++ b/net/netfilter/xt1_translat.c
-@@ -588,7 +588,8 @@ XTSUB2(do_replace)(struct net *net, const void __user *user, unsigned int len)
- 	vfree(blob);
- 	if (ret < 0)
- 		goto out;
--	ret = xts_table_replace(repl.counters, repl.num_counters, net, table);
-+	ret = xts_table_replace((void __user *)(unsigned long)repl.counters,
-+	      repl.num_counters, net, table);
- 	if (ret < 0)
- 		goto out;
- 	return 0;
+@@ -20,10 +20,12 @@
+ #	define xtsub_rule_add_match  xts_rule_add_cmatch
+ #	define xtsub_rule_add_target xts_rule_add_ctarget
+ #	define xtsub_match_to_xt1    xts_cmatch_to_xt1
++#	define xtsub_target_to_xt1   xts_ctarget_to_xt1
+ #else
+ #	define xtsub_rule_add_match  xt2_rule_add_oldmatch
+ #	define xtsub_rule_add_target xt2_rule_add_oldtarget
+ #	define xtsub_match_to_xt1    xts_match_to_xt1
++#	define xtsub_target_to_xt1   xts_target_to_xt1
+ #endif
+ 
+ #ifdef XTSUB_NFPROTO_IPV6
+@@ -493,7 +495,7 @@ XTSUB2(rule_to_xt1)(void __user **user_ptr, int *len, unsigned int *z,
+ 	list_for_each_entry(etarget, &rule->target_list, anchor) {
+ 		ret = xt2_special_target(etarget->ext) ?
+ 		      xts_starget_to_xt1(user_ptr, len, z, etarget, io) :
+-		      xts_target_to_xt1(user_ptr, len, z, etarget);
++		      xtsub_target_to_xt1(user_ptr, len, z, etarget);
+ 		if (ret < 0)
+ 			return ret;
+ 	}
+@@ -600,3 +602,4 @@ XTSUB2(do_replace)(struct net *net, const void __user *user, unsigned int len)
+ #undef xtsub_rule_add_match
+ #undef xtsub_rule_add_target
+ #undef xtsub_match_to_xt1
++#undef xtsub_target_to_xt1
 -- 
 1.6.3.3
 
