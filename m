@@ -1,226 +1,259 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 002/103] netfilter: xtables: remove xt_CONNMARK v0
-Date: Tue,  4 Aug 2009 09:24:46 +0200
-Message-ID: <1249370787-17583-3-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 003/103] netfilter: xtables: remove xt_MARK v0, v1
+Date: Tue,  4 Aug 2009 09:24:47 +0200
+Message-ID: <1249370787-17583-4-git-send-email-jengelh@medozas.de>
 References: <1249370787-17583-1-git-send-email-jengelh@medozas.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:50615 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:50616 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932515AbZHDH0g (ORCPT
+	with ESMTP id S932516AbZHDH0h (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Aug 2009 03:26:36 -0400
+	Tue, 4 Aug 2009 03:26:37 -0400
 In-Reply-To: <1249370787-17583-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Superseded by xt_CONNMARK v1 (v2.6.24-2917-g0dc8c76).
+Superseded by xt_MARK v2 (v2.6.24-2918-ge0a812a).
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
  Documentation/feature-removal-schedule.txt |    3 -
- include/linux/netfilter/xt_CONNMARK.h      |    6 --
- net/netfilter/xt_CONNMARK.c                |  134 +++-------------------------
- 3 files changed, 11 insertions(+), 132 deletions(-)
+ include/linux/netfilter/xt_MARK.h          |   17 ---
+ net/netfilter/xt_MARK.c                    |  163 ++--------------------------
+ 3 files changed, 9 insertions(+), 174 deletions(-)
 
 diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
-index 3aa4a77..7eccf94 100644
+index 7eccf94..121e19c 100644
 --- a/Documentation/feature-removal-schedule.txt
 +++ b/Documentation/feature-removal-schedule.txt
 @@ -238,9 +238,6 @@ What (Why):
  	- "forwarding" header files like ipt_mac.h in
  	  include/linux/netfilter_ipv4/ and include/linux/netfilter_ipv6/
  
--	- xt_CONNMARK match revision 0
--	  (superseded by xt_CONNMARK match revision 1)
+-	- xt_MARK target revisions 0 and 1
+-	  (superseded by xt_MARK match revision 2)
 -
- 	- xt_MARK target revisions 0 and 1
- 	  (superseded by xt_MARK match revision 2)
+ 	- xt_connmark match revision 0
+ 	  (superseded by xt_connmark match revision 1)
  
-diff --git a/include/linux/netfilter/xt_CONNMARK.h b/include/linux/netfilter/xt_CONNMARK.h
-index 7635c8f..0a85458 100644
---- a/include/linux/netfilter/xt_CONNMARK.h
-+++ b/include/linux/netfilter/xt_CONNMARK.h
-@@ -18,12 +18,6 @@ enum {
- 	XT_CONNMARK_RESTORE
- };
+diff --git a/include/linux/netfilter/xt_MARK.h b/include/linux/netfilter/xt_MARK.h
+index 028304b..bc9561b 100644
+--- a/include/linux/netfilter/xt_MARK.h
++++ b/include/linux/netfilter/xt_MARK.h
+@@ -3,23 +3,6 @@
  
--struct xt_connmark_target_info {
+ #include <linux/types.h>
+ 
+-/* Version 0 */
+-struct xt_mark_target_info {
 -	unsigned long mark;
--	unsigned long mask;
+-};
+-
+-/* Version 1 */
+-enum {
+-	XT_MARK_SET=0,
+-	XT_MARK_AND,
+-	XT_MARK_OR,
+-};
+-
+-struct xt_mark_target_info_v1 {
+-	unsigned long mark;
 -	__u8 mode;
 -};
 -
- struct xt_connmark_tginfo1 {
- 	__u32 ctmark, ctmask, nfmask;
- 	__u8 mode;
-diff --git a/net/netfilter/xt_CONNMARK.c b/net/netfilter/xt_CONNMARK.c
-index d6e5ab4..5934570 100644
---- a/net/netfilter/xt_CONNMARK.c
-+++ b/net/netfilter/xt_CONNMARK.c
-@@ -36,45 +36,6 @@ MODULE_ALIAS("ip6t_CONNMARK");
- #include <net/netfilter/nf_conntrack_ecache.h>
+ struct xt_mark_tginfo2 {
+ 	__u32 mark, mask;
+ };
+diff --git a/net/netfilter/xt_MARK.c b/net/netfilter/xt_MARK.c
+index 67574bc..225f8d1 100644
+--- a/net/netfilter/xt_MARK.c
++++ b/net/netfilter/xt_MARK.c
+@@ -25,39 +25,6 @@ MODULE_ALIAS("ipt_MARK");
+ MODULE_ALIAS("ip6t_MARK");
  
  static unsigned int
--connmark_tg_v0(struct sk_buff *skb, const struct xt_target_param *par)
+-mark_tg_v0(struct sk_buff *skb, const struct xt_target_param *par)
 -{
--	const struct xt_connmark_target_info *markinfo = par->targinfo;
--	struct nf_conn *ct;
--	enum ip_conntrack_info ctinfo;
--	u_int32_t diff;
--	u_int32_t mark;
--	u_int32_t newmark;
+-	const struct xt_mark_target_info *markinfo = par->targinfo;
 -
--	ct = nf_ct_get(skb, &ctinfo);
--	if (ct) {
--		switch(markinfo->mode) {
--		case XT_CONNMARK_SET:
--			newmark = (ct->mark & ~markinfo->mask) | markinfo->mark;
--			if (newmark != ct->mark) {
--				ct->mark = newmark;
--				nf_conntrack_event_cache(IPCT_MARK, ct);
--			}
--			break;
--		case XT_CONNMARK_SAVE:
--			newmark = (ct->mark & ~markinfo->mask) |
--				  (skb->mark & markinfo->mask);
--			if (ct->mark != newmark) {
--				ct->mark = newmark;
--				nf_conntrack_event_cache(IPCT_MARK, ct);
--			}
--			break;
--		case XT_CONNMARK_RESTORE:
--			mark = skb->mark;
--			diff = (ct->mark ^ mark) & markinfo->mask;
--			skb->mark = mark ^ diff;
--			break;
--		}
--	}
--
+-	skb->mark = markinfo->mark;
 -	return XT_CONTINUE;
 -}
 -
 -static unsigned int
- connmark_tg(struct sk_buff *skb, const struct xt_target_param *par)
+-mark_tg_v1(struct sk_buff *skb, const struct xt_target_param *par)
+-{
+-	const struct xt_mark_target_info_v1 *markinfo = par->targinfo;
+-	int mark = 0;
+-
+-	switch (markinfo->mode) {
+-	case XT_MARK_SET:
+-		mark = markinfo->mark;
+-		break;
+-
+-	case XT_MARK_AND:
+-		mark = skb->mark & markinfo->mark;
+-		break;
+-
+-	case XT_MARK_OR:
+-		mark = skb->mark | markinfo->mark;
+-		break;
+-	}
+-
+-	skb->mark = mark;
+-	return XT_CONTINUE;
+-}
+-
+-static unsigned int
+ mark_tg(struct sk_buff *skb, const struct xt_target_param *par)
  {
- 	const struct xt_connmark_tginfo1 *info = par->targinfo;
-@@ -112,30 +73,6 @@ connmark_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ 	const struct xt_mark_tginfo2 *info = par->targinfo;
+@@ -66,135 +33,23 @@ mark_tg(struct sk_buff *skb, const struct xt_target_param *par)
  	return XT_CONTINUE;
  }
  
--static bool connmark_tg_check_v0(const struct xt_tgchk_param *par)
+-static bool mark_tg_check_v0(const struct xt_tgchk_param *par)
 -{
--	const struct xt_connmark_target_info *matchinfo = par->targinfo;
+-	const struct xt_mark_target_info *markinfo = par->targinfo;
 -
--	if (matchinfo->mode == XT_CONNMARK_RESTORE) {
--		if (strcmp(par->table, "mangle") != 0) {
--			printk(KERN_WARNING "CONNMARK: restore can only be "
--			       "called from \"mangle\" table, not \"%s\"\n",
--			       par->table);
--			return false;
--		}
--	}
--	if (matchinfo->mark > 0xffffffff || matchinfo->mask > 0xffffffff) {
--		printk(KERN_WARNING "CONNMARK: Only supports 32bit mark\n");
--		return false;
--	}
--	if (nf_ct_l3proto_try_module_get(par->family) < 0) {
--		printk(KERN_WARNING "can't load conntrack support for "
--				    "proto=%u\n", par->family);
+-	if (markinfo->mark > 0xffffffff) {
+-		printk(KERN_WARNING "MARK: Only supports 32bit wide mark\n");
 -		return false;
 -	}
 -	return true;
 -}
 -
- static bool connmark_tg_check(const struct xt_tgchk_param *par)
- {
- 	if (nf_ct_l3proto_try_module_get(par->family) < 0) {
-@@ -151,74 +88,25 @@ static void connmark_tg_destroy(const struct xt_tgdtor_param *par)
- 	nf_ct_l3proto_module_put(par->family);
- }
- 
+-static bool mark_tg_check_v1(const struct xt_tgchk_param *par)
+-{
+-	const struct xt_mark_target_info_v1 *markinfo = par->targinfo;
+-
+-	if (markinfo->mode != XT_MARK_SET
+-	    && markinfo->mode != XT_MARK_AND
+-	    && markinfo->mode != XT_MARK_OR) {
+-		printk(KERN_WARNING "MARK: unknown mode %u\n",
+-		       markinfo->mode);
+-		return false;
+-	}
+-	if (markinfo->mark > 0xffffffff) {
+-		printk(KERN_WARNING "MARK: Only supports 32bit wide mark\n");
+-		return false;
+-	}
+-	return true;
+-}
+-
 -#ifdef CONFIG_COMPAT
--struct compat_xt_connmark_target_info {
--	compat_ulong_t	mark, mask;
+-struct compat_xt_mark_target_info {
+-	compat_ulong_t	mark;
+-};
+-
+-static void mark_tg_compat_from_user_v0(void *dst, void *src)
+-{
+-	const struct compat_xt_mark_target_info *cm = src;
+-	struct xt_mark_target_info m = {
+-		.mark	= cm->mark,
+-	};
+-	memcpy(dst, &m, sizeof(m));
+-}
+-
+-static int mark_tg_compat_to_user_v0(void __user *dst, void *src)
+-{
+-	const struct xt_mark_target_info *m = src;
+-	struct compat_xt_mark_target_info cm = {
+-		.mark	= m->mark,
+-	};
+-	return copy_to_user(dst, &cm, sizeof(cm)) ? -EFAULT : 0;
+-}
+-
+-struct compat_xt_mark_target_info_v1 {
+-	compat_ulong_t	mark;
 -	u_int8_t	mode;
 -	u_int8_t	__pad1;
 -	u_int16_t	__pad2;
 -};
 -
--static void connmark_tg_compat_from_user_v0(void *dst, void *src)
+-static void mark_tg_compat_from_user_v1(void *dst, void *src)
 -{
--	const struct compat_xt_connmark_target_info *cm = src;
--	struct xt_connmark_target_info m = {
+-	const struct compat_xt_mark_target_info_v1 *cm = src;
+-	struct xt_mark_target_info_v1 m = {
 -		.mark	= cm->mark,
--		.mask	= cm->mask,
 -		.mode	= cm->mode,
 -	};
 -	memcpy(dst, &m, sizeof(m));
 -}
 -
--static int connmark_tg_compat_to_user_v0(void __user *dst, void *src)
+-static int mark_tg_compat_to_user_v1(void __user *dst, void *src)
 -{
--	const struct xt_connmark_target_info *m = src;
--	struct compat_xt_connmark_target_info cm = {
+-	const struct xt_mark_target_info_v1 *m = src;
+-	struct compat_xt_mark_target_info_v1 cm = {
 -		.mark	= m->mark,
--		.mask	= m->mask,
 -		.mode	= m->mode,
 -	};
 -	return copy_to_user(dst, &cm, sizeof(cm)) ? -EFAULT : 0;
 -}
 -#endif /* CONFIG_COMPAT */
 -
--static struct xt_target connmark_tg_reg[] __read_mostly = {
+-static struct xt_target mark_tg_reg[] __read_mostly = {
 -	{
--		.name		= "CONNMARK",
--		.revision	= 0,
+-		.name		= "MARK",
 -		.family		= NFPROTO_UNSPEC,
--		.checkentry	= connmark_tg_check_v0,
--		.destroy	= connmark_tg_destroy,
--		.target		= connmark_tg_v0,
--		.targetsize	= sizeof(struct xt_connmark_target_info),
+-		.revision	= 0,
+-		.checkentry	= mark_tg_check_v0,
+-		.target		= mark_tg_v0,
+-		.targetsize	= sizeof(struct xt_mark_target_info),
 -#ifdef CONFIG_COMPAT
--		.compatsize	= sizeof(struct compat_xt_connmark_target_info),
--		.compat_from_user = connmark_tg_compat_from_user_v0,
--		.compat_to_user	= connmark_tg_compat_to_user_v0,
+-		.compatsize	= sizeof(struct compat_xt_mark_target_info),
+-		.compat_from_user = mark_tg_compat_from_user_v0,
+-		.compat_to_user	= mark_tg_compat_to_user_v0,
 -#endif
--		.me		= THIS_MODULE
+-		.table		= "mangle",
+-		.me		= THIS_MODULE,
 -	},
 -	{
--		.name           = "CONNMARK",
--		.revision       = 1,
+-		.name		= "MARK",
+-		.family		= NFPROTO_UNSPEC,
+-		.revision	= 1,
+-		.checkentry	= mark_tg_check_v1,
+-		.target		= mark_tg_v1,
+-		.targetsize	= sizeof(struct xt_mark_target_info_v1),
+-#ifdef CONFIG_COMPAT
+-		.compatsize	= sizeof(struct compat_xt_mark_target_info_v1),
+-		.compat_from_user = mark_tg_compat_from_user_v1,
+-		.compat_to_user	= mark_tg_compat_to_user_v1,
+-#endif
+-		.table		= "mangle",
+-		.me		= THIS_MODULE,
+-	},
+-	{
+-		.name           = "MARK",
+-		.revision       = 2,
 -		.family         = NFPROTO_UNSPEC,
--		.checkentry     = connmark_tg_check,
--		.target         = connmark_tg,
--		.targetsize     = sizeof(struct xt_connmark_tginfo1),
--		.destroy        = connmark_tg_destroy,
+-		.target         = mark_tg,
+-		.targetsize     = sizeof(struct xt_mark_tginfo2),
 -		.me             = THIS_MODULE,
 -	},
-+static struct xt_target connmark_tg_reg __read_mostly = {
-+	.name           = "CONNMARK",
-+	.revision       = 1,
++static struct xt_target mark_tg_reg __read_mostly = {
++	.name           = "MARK",
++	.revision       = 2,
 +	.family         = NFPROTO_UNSPEC,
-+	.checkentry     = connmark_tg_check,
-+	.target         = connmark_tg,
-+	.targetsize     = sizeof(struct xt_connmark_tginfo1),
-+	.destroy        = connmark_tg_destroy,
++	.target         = mark_tg,
++	.targetsize     = sizeof(struct xt_mark_tginfo2),
 +	.me             = THIS_MODULE,
  };
  
- static int __init connmark_tg_init(void)
+ static int __init mark_tg_init(void)
  {
--	return xt_register_targets(connmark_tg_reg,
--	       ARRAY_SIZE(connmark_tg_reg));
-+	return xt_register_target(&connmark_tg_reg);
+-	return xt_register_targets(mark_tg_reg, ARRAY_SIZE(mark_tg_reg));
++	return xt_register_target(&mark_tg_reg);
  }
  
- static void __exit connmark_tg_exit(void)
+ static void __exit mark_tg_exit(void)
  {
--	xt_unregister_targets(connmark_tg_reg, ARRAY_SIZE(connmark_tg_reg));
-+	xt_unregister_target(&connmark_tg_reg);
+-	xt_unregister_targets(mark_tg_reg, ARRAY_SIZE(mark_tg_reg));
++	xt_unregister_target(&mark_tg_reg);
  }
  
- module_init(connmark_tg_init);
+ module_init(mark_tg_init);
 -- 
 1.6.3.3
 
