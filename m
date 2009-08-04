@@ -1,490 +1,324 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 038/103] netfilter: xtables2: make ip_tables reentrant
-Date: Tue,  4 Aug 2009 09:25:22 +0200
-Message-ID: <1249370787-17583-39-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 046/103] netfilter: xtables: combine built-in extension structs
+Date: Tue,  4 Aug 2009 09:25:30 +0200
+Message-ID: <1249370787-17583-47-git-send-email-jengelh@medozas.de>
 References: <1249370787-17583-1-git-send-email-jengelh@medozas.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:50630 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:56939 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932567AbZHDH1O (ORCPT
+	with ESMTP id S932574AbZHDH1X (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Aug 2009 03:27:14 -0400
+	Tue, 4 Aug 2009 03:27:23 -0400
 In-Reply-To: <1249370787-17583-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Currently, the table traverser stores return addresses in the ruleset
-itself (struct ip6t_entry->comefrom). This has a well-known drawback:
-the jumpstack is overwritten on reentry, making it necessary for
-targets to return absolute verdicts. Also, the ruleset (which might
-be heavy memory-wise) needs to be replicated for each CPU that can
-possibly invoke ip6t_do_table.
-
-This patch decouples the jumpstack from struct ip6t_entry and instead
-puts it into xt_table_info. Not being restricted by 'comefrom'
-anymore, we can set up a stack as needed. By default, there is room
-allocated for two entries into the traverser. The setting is
-configurable at runtime through sysfs and will take effect when a
-table is replaced by a new one.
-
-arp_tables is not touched though, because there is just one/two
-modules and further patches seek to collapse the table traverser
-anyhow.
+Prepare the arrays for use with the multiregister function. The
+future layer-3 xt matches can then be easily added to it without
+needing more (un)register code.
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/linux/netfilter/x_tables.h |    7 +++
- net/ipv4/netfilter/arp_tables.c    |    6 ++-
- net/ipv4/netfilter/ip_tables.c     |   65 +++++++++++++++++--------------
- net/ipv6/netfilter/ip6_tables.c    |   56 +++++++++++----------------
- net/netfilter/x_tables.c           |   74 ++++++++++++++++++++++++++++++++++++
- 5 files changed, 142 insertions(+), 66 deletions(-)
+ net/ipv4/netfilter/arp_tables.c |   41 +++++++++++--------------
+ net/ipv4/netfilter/ip_tables.c  |   65 ++++++++++++++++++---------------------
+ net/ipv6/netfilter/ip6_tables.c |   64 ++++++++++++++++++--------------------
+ 3 files changed, 78 insertions(+), 92 deletions(-)
 
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index b4499d9..d5ff621 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -402,6 +402,13 @@ struct xt_table_info
- 	unsigned int hook_entry[NF_INET_NUMHOOKS];
- 	unsigned int underflow[NF_INET_NUMHOOKS];
- 
-+	/*
-+	 * Number of user chains. Since tables cannot have loops, at
-+	 * most @user_chain jumps can possibly be made.
-+	 */
-+	unsigned int stacksize;
-+	unsigned int *stackptr;
-+	void ***jumpstack;
- 	/* ipt_entry tables: one per CPU */
- 	/* Note : this field MUST be the last one, see XT_TABLE_INFO_SZ */
- 	void *entries[1];
 diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 79ee12f..0150944 100644
+index c5bba1f..81e5b50 100644
 --- a/net/ipv4/netfilter/arp_tables.c
 +++ b/net/ipv4/netfilter/arp_tables.c
-@@ -643,6 +643,9 @@ static int translate_table(struct xt_table_info *newinfo, void *entry0,
- 		if (ret != 0)
- 			break;
- 		++i;
-+		if (strcmp(arpt_get_target(iter)->u.user.name,
-+		    XT_ERROR_TARGET) == 0)
-+			++newinfo->stacksize;
- 	}
- 	duprintf("translate_table: ARPT_ENTRY_ITERATE gives %d\n", ret);
- 	if (ret != 0)
-@@ -1767,8 +1770,7 @@ struct xt_table *arpt_register_table(struct net *net,
- {
- 	int ret;
- 	struct xt_table_info *newinfo;
--	struct xt_table_info bootstrap
--		= { 0, 0, 0, { 0 }, { 0 }, { } };
-+	struct xt_table_info bootstrap = {};
- 	void *loc_cpu_entry;
- 	struct xt_table *new_table;
- 
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index bde4754..55dd8ef 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -315,8 +315,6 @@ ipt_do_table(struct sk_buff *skb,
- 	     const struct net_device *out,
- 	     struct xt_table *table)
- {
--#define tb_comefrom ((struct ipt_entry *)table_base)->comefrom
--
- 	static const char nulldevname[IFNAMSIZ] __attribute__((aligned(sizeof(long))));
- 	const struct iphdr *ip;
- 	bool hotdrop = false;
-@@ -324,7 +322,8 @@ ipt_do_table(struct sk_buff *skb,
- 	unsigned int verdict = NF_DROP;
- 	const char *indev, *outdev;
- 	const void *table_base;
--	struct ipt_entry *e, *back;
-+	struct ipt_entry *e, **jumpstack;
-+	unsigned int *stackptr, origptr, cpu;
- 	const struct xt_table_info *private;
- 	struct xt_match_param mtpar;
- 	struct xt_target_param tgpar;
-@@ -350,19 +349,23 @@ ipt_do_table(struct sk_buff *skb,
- 	IP_NF_ASSERT(table->valid_hooks & (1 << hook));
- 	xt_info_rdlock_bh();
- 	private = table->private;
--	table_base = private->entries[smp_processor_id()];
-+	cpu        = smp_processor_id();
-+	table_base = private->entries[cpu];
-+	jumpstack  = (struct ipt_entry **)private->jumpstack[cpu];
-+	stackptr   = &private->stackptr[cpu];
-+	origptr    = *stackptr;
- 
- 	e = get_entry(table_base, private->hook_entry[hook]);
- 
--	/* For return from builtin chain */
--	back = get_entry(table_base, private->underflow[hook]);
-+	pr_devel("Entering %s(hook %u); sp at %u (UF %p)\n", table->name,
-+	         hook, origptr,
-+	         get_entry(table_base, private->underflow[hook]));
- 
- 	do {
- 		const struct ipt_entry_target *t;
- 		const struct xt_entry_match *ematch;
- 
- 		IP_NF_ASSERT(e);
--		IP_NF_ASSERT(back);
- 		if (!ip_packet_match(ip, indev, outdev,
- 		    &e->ip, mtpar.fragoff)) {
-  no_match:
-@@ -397,17 +400,28 @@ ipt_do_table(struct sk_buff *skb,
- 					verdict = (unsigned)(-v) - 1;
- 					break;
- 				}
--				e = back;
--				back = get_entry(table_base, back->comefrom);
-+				if (*stackptr == 0) {
-+					e = get_entry(table_base,
-+					    private->underflow[hook]);
-+					pr_devel("Underflow (this is normal) "
-+					         "to %p\n", e);
-+				} else {
-+					e = jumpstack[--*stackptr];
-+					pr_devel("Pulled %p out from pos %u\n",
-+					         e, *stackptr);
-+					e = ipt_next_entry(e);
-+				}
- 				continue;
- 			}
- 			if (table_base + v != ipt_next_entry(e)
- 			    && !(e->ip.flags & IPT_F_GOTO)) {
--				/* Save old back ptr in next entry */
--				struct ipt_entry *next = ipt_next_entry(e);
--				next->comefrom = (void *)back - table_base;
--				/* set back pointer to next entry */
--				back = next;
-+				if (*stackptr >= private->stacksize) {
-+					verdict = NF_DROP;
-+					break;
-+				}
-+				jumpstack[(*stackptr)++] = e;
-+				pr_devel("Pushed %p into pos %u\n",
-+				         e, *stackptr - 1);
- 			}
- 
- 			e = get_entry(table_base, v);
-@@ -420,18 +434,7 @@ ipt_do_table(struct sk_buff *skb,
- 		tgpar.targinfo = t->data;
- 
- 
--#ifdef CONFIG_NETFILTER_DEBUG
--		tb_comefrom = 0xeeeeeeec;
--#endif
- 		verdict = t->u.kernel.target->target(skb, &tgpar);
--#ifdef CONFIG_NETFILTER_DEBUG
--		if (tb_comefrom != 0xeeeeeeec && verdict == IPT_CONTINUE) {
--			printk("Target %s reentered!\n",
--			       t->u.kernel.target->name);
--			verdict = NF_DROP;
--		}
--		tb_comefrom = 0x57acc001;
--#endif
- 		/* Target might have changed stuff. */
- 		ip = ip_hdr(skb);
- 		if (verdict == IPT_CONTINUE)
-@@ -441,7 +444,9 @@ ipt_do_table(struct sk_buff *skb,
- 			break;
- 	} while (!hotdrop);
- 	xt_info_rdunlock_bh();
--
-+	pr_devel("Exiting %s; resetting sp from %u to %u\n",
-+	         __func__, *stackptr, origptr);
-+	*stackptr = origptr;
- #ifdef DEBUG_ALLOW_ALL
- 	return NF_ACCEPT;
- #else
-@@ -449,8 +454,6 @@ ipt_do_table(struct sk_buff *skb,
- 		return NF_DROP;
- 	else return verdict;
- #endif
--
--#undef tb_comefrom
+@@ -1817,22 +1817,23 @@ void arpt_unregister_table(struct xt_table *table)
  }
  
- /* Figures out from what hook each rule can be called: returns 0 if
-@@ -829,6 +832,9 @@ translate_table(struct xt_table_info *newinfo, void *entry0,
- 		if (ret != 0)
- 			return ret;
- 		++i;
-+		if (strcmp(ipt_get_target(iter)->u.user.name,
-+		    XT_ERROR_TARGET) == 0)
-+			++newinfo->stacksize;
- 	}
- 
- 	if (i != repl->num_entries) {
-@@ -2076,8 +2082,7 @@ struct xt_table *ipt_register_table(struct net *net,
- {
- 	int ret;
- 	struct xt_table_info *newinfo;
--	struct xt_table_info bootstrap
--		= { 0, 0, 0, { 0 }, { 0 }, { } };
-+	struct xt_table_info bootstrap = {};
- 	void *loc_cpu_entry;
- 	struct xt_table *new_table;
- 
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index c491249..f7570cd 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -345,15 +345,14 @@ ip6t_do_table(struct sk_buff *skb,
- 	      const struct net_device *out,
- 	      struct xt_table *table)
- {
--#define tb_comefrom ((struct ip6t_entry *)table_base)->comefrom
--
- 	static const char nulldevname[IFNAMSIZ] __attribute__((aligned(sizeof(long))));
- 	bool hotdrop = false;
- 	/* Initializing verdict to NF_DROP keeps gcc happy. */
- 	unsigned int verdict = NF_DROP;
- 	const char *indev, *outdev;
- 	const void *table_base;
--	struct ip6t_entry *e, *back;
-+	struct ip6t_entry *e, **jumpstack;
-+	unsigned int *stackptr, origptr, cpu;
- 	const struct xt_table_info *private;
- 	struct xt_match_param mtpar;
- 	struct xt_target_param tgpar;
-@@ -377,19 +376,19 @@ ip6t_do_table(struct sk_buff *skb,
- 
- 	xt_info_rdlock_bh();
- 	private = table->private;
--	table_base = private->entries[smp_processor_id()];
-+	cpu        = smp_processor_id();
-+	table_base = private->entries[cpu];
-+	jumpstack  = (struct ip6t_entry **)private->jumpstack[cpu];
-+	stackptr   = &private->stackptr[cpu];
-+	origptr    = *stackptr;
- 
- 	e = get_entry(table_base, private->hook_entry[hook]);
- 
--	/* For return from builtin chain */
--	back = get_entry(table_base, private->underflow[hook]);
--
- 	do {
- 		const struct ip6t_entry_target *t;
- 		const struct xt_entry_match *ematch;
- 
- 		IP_NF_ASSERT(e);
--		IP_NF_ASSERT(back);
- 		if (!ip6_packet_match(skb, indev, outdev, &e->ipv6,
- 		    &mtpar.thoff, &mtpar.fragoff, &hotdrop)) {
-  no_match:
-@@ -426,17 +425,20 @@ ip6t_do_table(struct sk_buff *skb,
- 					verdict = (unsigned)(-v) - 1;
- 					break;
- 				}
--				e = back;
--				back = get_entry(table_base, back->comefrom);
-+				if (*stackptr == 0)
-+					e = get_entry(table_base,
-+					    private->underflow[hook]);
-+				else
-+					e = ip6t_next_entry(jumpstack[--*stackptr]);
- 				continue;
- 			}
- 			if (table_base + v != ip6t_next_entry(e)
- 			    && !(e->ipv6.flags & IP6T_F_GOTO)) {
--				/* Save old back ptr in next entry */
--				struct ip6t_entry *next = ip6t_next_entry(e);
--				next->comefrom = (void *)back - table_base;
--				/* set back pointer to next entry */
--				back = next;
-+				if (*stackptr >= private->stacksize) {
-+					verdict = NF_DROP;
-+					break;
-+				}
-+				jumpstack[(*stackptr)++] = e;
- 			}
- 
- 			e = get_entry(table_base, v);
-@@ -448,19 +450,7 @@ ip6t_do_table(struct sk_buff *skb,
- 		tgpar.target   = t->u.kernel.target;
- 		tgpar.targinfo = t->data;
- 
--#ifdef CONFIG_NETFILTER_DEBUG
--		tb_comefrom = 0xeeeeeeec;
--#endif
- 		verdict = t->u.kernel.target->target(skb, &tgpar);
--
--#ifdef CONFIG_NETFILTER_DEBUG
--		if (tb_comefrom != 0xeeeeeeec && verdict == IP6T_CONTINUE) {
--			printk("Target %s reentered!\n",
--			       t->u.kernel.target->name);
--			verdict = NF_DROP;
--		}
--		tb_comefrom = 0x57acc001;
--#endif
- 		if (verdict == IP6T_CONTINUE)
- 			e = ip6t_next_entry(e);
- 		else
-@@ -468,10 +458,8 @@ ip6t_do_table(struct sk_buff *skb,
- 			break;
- 	} while (!hotdrop);
- 
--#ifdef CONFIG_NETFILTER_DEBUG
--	tb_comefrom = NETFILTER_LINK_POISON;
--#endif
- 	xt_info_rdunlock_bh();
-+	*stackptr = origptr;
- 
- #ifdef DEBUG_ALLOW_ALL
- 	return NF_ACCEPT;
-@@ -480,8 +468,6 @@ ip6t_do_table(struct sk_buff *skb,
- 		return NF_DROP;
- 	else return verdict;
+ /* The built-in targets: standard (NULL) and error. */
+-static struct xt_target arpt_standard_target __read_mostly = {
+-	.name		= ARPT_STANDARD_TARGET,
+-	.targetsize	= sizeof(int),
+-	.family		= NFPROTO_ARP,
++static struct xt_target arpt_builtin_tg[] __read_mostly = {
++	{
++		.name             = ARPT_STANDARD_TARGET,
++		.targetsize       = sizeof(int),
++		.family           = NFPROTO_ARP,
+ #ifdef CONFIG_COMPAT
+-	.compatsize	= sizeof(compat_int_t),
+-	.compat_from_user = compat_standard_from_user,
+-	.compat_to_user	= compat_standard_to_user,
++		.compatsize       = sizeof(compat_int_t),
++		.compat_from_user = compat_standard_from_user,
++		.compat_to_user   = compat_standard_to_user,
  #endif
+-};
 -
--#undef tb_comefrom
- }
- 
- /* Figures out from what hook each rule can be called: returns 0 if
-@@ -859,6 +845,9 @@ translate_table(struct xt_table_info *newinfo, void *entry0,
- 		if (ret != 0)
- 			return ret;
- 		++i;
-+		if (strcmp(ip6t_get_target(iter)->u.user.name,
-+		    XT_ERROR_TARGET) == 0)
-+			++newinfo->stacksize;
- 	}
- 
- 	if (i != repl->num_entries) {
-@@ -2108,8 +2097,7 @@ struct xt_table *ip6t_register_table(struct net *net,
- {
- 	int ret;
- 	struct xt_table_info *newinfo;
--	struct xt_table_info bootstrap
--		= { 0, 0, 0, { 0 }, { 0 }, { } };
-+	struct xt_table_info bootstrap = {};
- 	void *loc_cpu_entry;
- 	struct xt_table *new_table;
- 
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 478e9c8..1f6b078 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -68,6 +68,11 @@ static const char *const xt_prefix[NFPROTO_NUMPROTO] = {
- 	[NFPROTO_IPV6]   = "ip6",
+-static struct xt_target arpt_error_target __read_mostly = {
+-	.name		= ARPT_ERROR_TARGET,
+-	.target		= arpt_error,
+-	.targetsize	= ARPT_FUNCTION_MAXNAMELEN,
+-	.family		= NFPROTO_ARP,
++	},
++	{
++		.name             = ARPT_ERROR_TARGET,
++		.target           = arpt_error,
++		.targetsize       = ARPT_FUNCTION_MAXNAMELEN,
++		.family           = NFPROTO_ARP,
++	},
  };
  
-+/* Allow this many total entries. */
-+static unsigned int xt_jumpstack_multiplier = 2;
-+module_param_named(jumpstack_multiplier, xt_jumpstack_multiplier,
-+	uint, S_IRUGO | S_IWUSR);
-+
- /* Registration hooks for targets. */
- int
- xt_register_target(struct xt_target *target)
-@@ -661,6 +666,26 @@ void xt_free_table_info(struct xt_table_info *info)
- 		else
- 			vfree(info->entries[cpu]);
- 	}
-+
-+	if (info->jumpstack != NULL) {
-+		if (sizeof(void *) * info->stacksize > PAGE_SIZE) {
-+			for_each_possible_cpu(cpu)
-+				vfree(info->jumpstack[cpu]);
-+		} else {
-+			for_each_possible_cpu(cpu)
-+				kfree(info->jumpstack[cpu]);
-+		}
-+	}
-+
-+	if (sizeof(void **) * nr_cpu_ids > PAGE_SIZE)
-+		vfree(info->jumpstack);
-+	else
-+		kfree(info->jumpstack);
-+	if (sizeof(unsigned int) * nr_cpu_ids > PAGE_SIZE)
-+		vfree(info->stackptr);
-+	else
-+		kfree(info->stackptr);
-+
- 	kfree(info);
- }
- EXPORT_SYMBOL(xt_free_table_info);
-@@ -705,6 +730,44 @@ EXPORT_SYMBOL_GPL(xt_compat_unlock);
- DEFINE_PER_CPU(struct xt_info_lock, xt_info_locks);
- EXPORT_PER_CPU_SYMBOL_GPL(xt_info_locks);
+ static struct nf_sockopt_ops arpt_sockopts = {
+@@ -1876,12 +1877,9 @@ static int __init arp_tables_init(void)
+ 		goto err1;
  
-+static int xt_jumpstack_alloc(struct xt_table_info *i)
-+{
-+	unsigned int size;
-+	int cpu;
-+
-+	size = sizeof(unsigned int) * nr_cpu_ids;
-+	if (size > PAGE_SIZE)
-+		i->stackptr = vmalloc(size);
-+	else
-+		i->stackptr = kmalloc(size, GFP_KERNEL);
-+	if (i->stackptr == NULL)
-+		return -ENOMEM;
-+	memset(i->stackptr, 0, size);
-+
-+	size = sizeof(void **) * nr_cpu_ids;
-+	if (size > PAGE_SIZE)
-+		i->jumpstack = vmalloc(size);
-+	else
-+		i->jumpstack = kmalloc(size, GFP_KERNEL);
-+	if (i->jumpstack == NULL)
-+		return -ENOMEM;
-+	memset(i->jumpstack, 0, size);
-+
-+	i->stacksize *= xt_jumpstack_multiplier;
-+	size = sizeof(void *) * i->stacksize;
-+	for_each_possible_cpu(cpu) {
-+		if (size > PAGE_SIZE)
-+			i->jumpstack[cpu] = vmalloc_node(size,
-+				cpu_to_node(cpu));
-+		else
-+			i->jumpstack[cpu] = kmalloc_node(size,
-+				GFP_KERNEL, cpu_to_node(cpu));
-+		if (i->jumpstack[cpu] == NULL)
-+			return -ENOMEM;
-+	}
-+
-+	return 0;
-+}
+ 	/* Noone else will be downing sem now, so we won't sleep */
+-	ret = xt_register_target(&arpt_standard_target);
++	ret = xt_register_targets(arpt_builtin_tg, ARRAY_SIZE(arpt_builtin_tg));
+ 	if (ret < 0)
+ 		goto err2;
+-	ret = xt_register_target(&arpt_error_target);
+-	if (ret < 0)
+-		goto err3;
  
- struct xt_table_info *
- xt_replace_table(struct xt_table *table,
-@@ -713,6 +776,7 @@ xt_replace_table(struct xt_table *table,
- 	      int *error)
+ 	/* Register setsockopt */
+ 	ret = nf_register_sockopt(&arpt_sockopts);
+@@ -1892,9 +1890,7 @@ static int __init arp_tables_init(void)
+ 	return 0;
+ 
+ err4:
+-	xt_unregister_target(&arpt_error_target);
+-err3:
+-	xt_unregister_target(&arpt_standard_target);
++	xt_unregister_targets(arpt_builtin_tg, ARRAY_SIZE(arpt_builtin_tg));
+ err2:
+ 	unregister_pernet_subsys(&arp_tables_net_ops);
+ err1:
+@@ -1904,8 +1900,7 @@ err1:
+ static void __exit arp_tables_fini(void)
  {
- 	struct xt_table_info *private;
-+	int ret;
+ 	nf_unregister_sockopt(&arpt_sockopts);
+-	xt_unregister_target(&arpt_error_target);
+-	xt_unregister_target(&arpt_standard_target);
++	xt_unregister_targets(arpt_builtin_tg, ARRAY_SIZE(arpt_builtin_tg));
+ 	unregister_pernet_subsys(&arp_tables_net_ops);
+ }
  
- 	/* Do the substitution. */
- 	local_bh_disable();
-@@ -727,6 +791,12 @@ xt_replace_table(struct xt_table *table,
- 		return NULL;
- 	}
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index 8bc1b65..7192e89 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -2158,23 +2158,23 @@ static bool icmp_checkentry(const struct xt_mtchk_param *par)
+ 	return !(icmpinfo->invflags & ~IPT_ICMP_INV);
+ }
  
-+	ret = xt_jumpstack_alloc(newinfo);
-+	if (ret < 0) {
-+		*error = ret;
-+		return NULL;
-+	}
-+
- 	table->private = newinfo;
- 	newinfo->initial_entries = private->initial_entries;
+-/* The built-in targets: standard (NULL) and error. */
+-static struct xt_target ipt_standard_target __read_mostly = {
+-	.name		= IPT_STANDARD_TARGET,
+-	.targetsize	= sizeof(int),
+-	.family		= NFPROTO_IPV4,
++static struct xt_target ipt_builtin_tg[] __read_mostly = {
++	{
++		.name             = IPT_STANDARD_TARGET,
++		.targetsize       = sizeof(int),
++		.family           = NFPROTO_IPV4,
+ #ifdef CONFIG_COMPAT
+-	.compatsize	= sizeof(compat_int_t),
+-	.compat_from_user = compat_standard_from_user,
+-	.compat_to_user	= compat_standard_to_user,
++		.compatsize       = sizeof(compat_int_t),
++		.compat_from_user = compat_standard_from_user,
++		.compat_to_user   = compat_standard_to_user,
+ #endif
+-};
+-
+-static struct xt_target ipt_error_target __read_mostly = {
+-	.name		= IPT_ERROR_TARGET,
+-	.target		= ipt_error,
+-	.targetsize	= IPT_FUNCTION_MAXNAMELEN,
+-	.family		= NFPROTO_IPV4,
++	},
++	{
++		.name             = IPT_ERROR_TARGET,
++		.target           = ipt_error,
++		.targetsize       = IPT_FUNCTION_MAXNAMELEN,
++		.family           = NFPROTO_IPV4,
++	},
+ };
  
-@@ -751,6 +821,10 @@ struct xt_table *xt_register_table(struct net *net,
- 	struct xt_table_info *private;
- 	struct xt_table *t, *table;
+ static struct nf_sockopt_ops ipt_sockopts = {
+@@ -2194,13 +2194,15 @@ static struct nf_sockopt_ops ipt_sockopts = {
+ 	.owner		= THIS_MODULE,
+ };
  
-+	ret = xt_jumpstack_alloc(newinfo);
-+	if (ret < 0)
-+		return ERR_PTR(ret);
-+
- 	/* Don't add one object to multiple lists. */
- 	table = kmemdup(input_table, sizeof(struct xt_table), GFP_KERNEL);
- 	if (!table) {
+-static struct xt_match icmp_matchstruct __read_mostly = {
+-	.name		= "icmp",
+-	.match		= icmp_match,
+-	.matchsize	= sizeof(struct ipt_icmp),
+-	.checkentry	= icmp_checkentry,
+-	.proto		= IPPROTO_ICMP,
+-	.family		= NFPROTO_IPV4,
++static struct xt_match ipt_builtin_mt[] __read_mostly = {
++	{
++		.name       = "icmp",
++		.match      = icmp_match,
++		.matchsize  = sizeof(struct ipt_icmp),
++		.checkentry = icmp_checkentry,
++		.proto      = IPPROTO_ICMP,
++		.family     = NFPROTO_IPV4,
++	},
+ };
+ 
+ static int __net_init ip_tables_net_init(struct net *net)
+@@ -2227,13 +2229,10 @@ static int __init ip_tables_init(void)
+ 		goto err1;
+ 
+ 	/* Noone else will be downing sem now, so we won't sleep */
+-	ret = xt_register_target(&ipt_standard_target);
++	ret = xt_register_targets(ipt_builtin_tg, ARRAY_SIZE(ipt_builtin_tg));
+ 	if (ret < 0)
+ 		goto err2;
+-	ret = xt_register_target(&ipt_error_target);
+-	if (ret < 0)
+-		goto err3;
+-	ret = xt_register_match(&icmp_matchstruct);
++	ret = xt_register_matches(ipt_builtin_mt, ARRAY_SIZE(ipt_builtin_mt));
+ 	if (ret < 0)
+ 		goto err4;
+ 
+@@ -2246,11 +2245,9 @@ static int __init ip_tables_init(void)
+ 	return 0;
+ 
+ err5:
+-	xt_unregister_match(&icmp_matchstruct);
++	xt_unregister_matches(ipt_builtin_mt, ARRAY_SIZE(ipt_builtin_mt));
+ err4:
+-	xt_unregister_target(&ipt_error_target);
+-err3:
+-	xt_unregister_target(&ipt_standard_target);
++	xt_unregister_targets(ipt_builtin_tg, ARRAY_SIZE(ipt_builtin_tg));
+ err2:
+ 	unregister_pernet_subsys(&ip_tables_net_ops);
+ err1:
+@@ -2261,10 +2258,8 @@ static void __exit ip_tables_fini(void)
+ {
+ 	nf_unregister_sockopt(&ipt_sockopts);
+ 
+-	xt_unregister_match(&icmp_matchstruct);
+-	xt_unregister_target(&ipt_error_target);
+-	xt_unregister_target(&ipt_standard_target);
+-
++	xt_unregister_matches(ipt_builtin_mt, ARRAY_SIZE(ipt_builtin_mt));
++	xt_unregister_targets(ipt_builtin_tg, ARRAY_SIZE(ipt_builtin_tg));
+ 	unregister_pernet_subsys(&ip_tables_net_ops);
+ }
+ 
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 1b9ba79..a34819b 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -2174,22 +2174,23 @@ static bool icmp6_checkentry(const struct xt_mtchk_param *par)
+ }
+ 
+ /* The built-in targets: standard (NULL) and error. */
+-static struct xt_target ip6t_standard_target __read_mostly = {
+-	.name		= IP6T_STANDARD_TARGET,
+-	.targetsize	= sizeof(int),
+-	.family		= NFPROTO_IPV6,
++static struct xt_target ip6t_builtin_tg[] __read_mostly = {
++	{
++		.name             = IP6T_STANDARD_TARGET,
++		.targetsize       = sizeof(int),
++		.family           = NFPROTO_IPV6,
+ #ifdef CONFIG_COMPAT
+-	.compatsize	= sizeof(compat_int_t),
+-	.compat_from_user = compat_standard_from_user,
+-	.compat_to_user	= compat_standard_to_user,
++		.compatsize       = sizeof(compat_int_t),
++		.compat_from_user = compat_standard_from_user,
++		.compat_to_user   = compat_standard_to_user,
+ #endif
+-};
+-
+-static struct xt_target ip6t_error_target __read_mostly = {
+-	.name		= IP6T_ERROR_TARGET,
+-	.target		= ip6t_error,
+-	.targetsize	= IP6T_FUNCTION_MAXNAMELEN,
+-	.family		= NFPROTO_IPV6,
++	},
++	{
++		.name             = IP6T_ERROR_TARGET,
++		.target           = ip6t_error,
++		.targetsize       = IP6T_FUNCTION_MAXNAMELEN,
++		.family           = NFPROTO_IPV6,
++	},
+ };
+ 
+ static struct nf_sockopt_ops ip6t_sockopts = {
+@@ -2209,13 +2210,15 @@ static struct nf_sockopt_ops ip6t_sockopts = {
+ 	.owner		= THIS_MODULE,
+ };
+ 
+-static struct xt_match icmp6_matchstruct __read_mostly = {
+-	.name		= "icmp6",
+-	.match		= icmp6_match,
+-	.matchsize	= sizeof(struct ip6t_icmp),
+-	.checkentry	= icmp6_checkentry,
+-	.proto		= IPPROTO_ICMPV6,
+-	.family		= NFPROTO_IPV6,
++static struct xt_match ip6t_builtin_mt[] __read_mostly = {
++	{
++		.name       = "icmp6",
++		.match      = icmp6_match,
++		.matchsize  = sizeof(struct ip6t_icmp),
++		.checkentry = icmp6_checkentry,
++		.proto      = IPPROTO_ICMPV6,
++		.family     = NFPROTO_IPV6,
++	},
+ };
+ 
+ static int __net_init ip6_tables_net_init(struct net *net)
+@@ -2242,13 +2245,10 @@ static int __init ip6_tables_init(void)
+ 		goto err1;
+ 
+ 	/* Noone else will be downing sem now, so we won't sleep */
+-	ret = xt_register_target(&ip6t_standard_target);
++	ret = xt_register_targets(ip6t_builtin_tg, ARRAY_SIZE(ip6t_builtin_tg));
+ 	if (ret < 0)
+ 		goto err2;
+-	ret = xt_register_target(&ip6t_error_target);
+-	if (ret < 0)
+-		goto err3;
+-	ret = xt_register_match(&icmp6_matchstruct);
++	ret = xt_register_matches(ip6t_builtin_mt, ARRAY_SIZE(ip6t_builtin_mt));
+ 	if (ret < 0)
+ 		goto err4;
+ 
+@@ -2261,11 +2261,9 @@ static int __init ip6_tables_init(void)
+ 	return 0;
+ 
+ err5:
+-	xt_unregister_match(&icmp6_matchstruct);
++	xt_unregister_matches(ip6t_builtin_mt, ARRAY_SIZE(ip6t_builtin_mt));
+ err4:
+-	xt_unregister_target(&ip6t_error_target);
+-err3:
+-	xt_unregister_target(&ip6t_standard_target);
++	xt_unregister_targets(ip6t_builtin_tg, ARRAY_SIZE(ip6t_builtin_tg));
+ err2:
+ 	unregister_pernet_subsys(&ip6_tables_net_ops);
+ err1:
+@@ -2276,10 +2274,8 @@ static void __exit ip6_tables_fini(void)
+ {
+ 	nf_unregister_sockopt(&ip6t_sockopts);
+ 
+-	xt_unregister_match(&icmp6_matchstruct);
+-	xt_unregister_target(&ip6t_error_target);
+-	xt_unregister_target(&ip6t_standard_target);
+-
++	xt_unregister_matches(ip6t_builtin_mt, ARRAY_SIZE(ip6t_builtin_mt));
++	xt_unregister_targets(ip6t_builtin_tg, ARRAY_SIZE(ip6t_builtin_tg));
+ 	unregister_pernet_subsys(&ip6_tables_net_ops);
+ }
+ 
 -- 
 1.6.3.3
 
