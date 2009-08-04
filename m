@@ -1,200 +1,301 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 090/103] netfilter: iptables: include xt1_perproto code in ip_tables
-Date: Tue,  4 Aug 2009 09:26:14 +0200
-Message-ID: <1249370787-17583-91-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 100/103] netfilter: arptables: remove remaining xt1 code
+Date: Tue,  4 Aug 2009 09:26:24 +0200
+Message-ID: <1249370787-17583-101-git-send-email-jengelh@medozas.de>
 References: <1249370787-17583-1-git-send-email-jengelh@medozas.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:56961 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:56966 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932619AbZHDH2K (ORCPT
+	with ESMTP id S932622AbZHDH2V (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Aug 2009 03:28:10 -0400
+	Tue, 4 Aug 2009 03:28:21 -0400
 In-Reply-To: <1249370787-17583-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/linux/netfilter_ipv4/ip_tables.h |   15 ++++++++++++
- net/ipv4/netfilter/Kconfig               |    1 +
- net/ipv4/netfilter/ip_tables.c           |   35 +++++++++++++++++++----------
- net/netfilter/xt1_translat.c             |   35 +++++++++++++++++++++++++----
- 4 files changed, 69 insertions(+), 17 deletions(-)
+ include/linux/netfilter_arp/arp_tables.h |   16 ---
+ net/ipv4/netfilter/arp_tables.c          |  191 ------------------------------
+ 2 files changed, 0 insertions(+), 207 deletions(-)
 
-diff --git a/include/linux/netfilter_ipv4/ip_tables.h b/include/linux/netfilter_ipv4/ip_tables.h
-index f50c06f..ab81dbe 100644
---- a/include/linux/netfilter_ipv4/ip_tables.h
-+++ b/include/linux/netfilter_ipv4/ip_tables.h
-@@ -251,6 +251,9 @@ extern struct xt_table *ipt_register_table(struct net *net,
- 					   const struct ipt_replace *repl);
- extern void ipt_unregister_table(struct xt_table *table);
- 
-+extern struct xt2_table *ipt2_register_table(struct net *,
-+	const struct xt_table *, const struct ipt_replace *);
-+
- /* Standard entry. */
- struct ipt_standard
- {
-@@ -314,6 +317,18 @@ struct compat_ipt_entry
- 	unsigned char elems[0];
- };
- 
-+struct compat_ipt_replace {
-+	char			name[IPT_TABLE_MAXNAMELEN];
-+	u32			valid_hooks;
-+	u32			num_entries;
-+	u32			size;
-+	u32			hook_entry[NF_INET_NUMHOOKS];
-+	u32			underflow[NF_INET_NUMHOOKS];
-+	u32			num_counters;
-+	compat_uptr_t		counters;	/* struct ipt_counters * */
-+	struct compat_ipt_entry	entries[0];
-+};
-+
- /* Helper functions */
- static inline struct ipt_entry_target *
- compat_ipt_get_target(struct compat_ipt_entry *e)
-diff --git a/net/ipv4/netfilter/Kconfig b/net/ipv4/netfilter/Kconfig
-index 1833bdb..b960bbd 100644
---- a/net/ipv4/netfilter/Kconfig
-+++ b/net/ipv4/netfilter/Kconfig
-@@ -53,6 +53,7 @@ config IP_NF_IPTABLES
- 	tristate "IP tables support (required for filtering/masq/NAT)"
- 	default m if NETFILTER_ADVANCED=n
- 	select NETFILTER_XTABLES
-+	select NETFILTER_XT1_SUPPORT
- 	help
- 	  iptables is a general, extensible packet identification framework.
- 	  The packet filtering and full NAT (masquerading, port forwarding,
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index f409fcd..7b7f1c3 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -66,6 +66,29 @@ do {								\
- #define inline
- #endif
- 
-+#define xtsub_entry           ipt_entry
-+#define xtsub_entry_nocompat  ipt_entry
-+#define xtsub_replace         ipt_replace
-+#define xtsub_error_target    ipt_error_target
-+#define XTSUB_NFPROTO         NFPROTO_IPV4
-+#define XTSUB_NFPROTO_IPV4    1
-+#define XTSUB(x)              ipt_ ## x
-+#define XTSUB2(x)             ipt2_ ## x
-+
-+#include "../../netfilter/xt1_translat.c"
-+#include "../../netfilter/xt1_postshared.c"
-+#undef XTSUB2
-+#undef xtsub_entry
-+#undef xtsub_replace
-+
-+#ifdef CONFIG_COMPAT
-+#define XTSUB_DO_COMPAT
-+#define xtsub_entry           compat_ipt_entry
-+#define xtsub_replace         compat_ipt_replace
-+#define XTSUB2(x)             ipt2_compat_ ## x
-+#include "../../netfilter/xt1_translat.c"
-+#endif
-+
- /*
-    We keep a set of rules for each CPU, so we can avoid write-locking
-    them in the softirq when updating the counters and therefore
-@@ -1478,18 +1501,6 @@ do_add_counters(struct net *net, const void __user *user,
+diff --git a/include/linux/netfilter_arp/arp_tables.h b/include/linux/netfilter_arp/arp_tables.h
+index b480fa6..6d896ff 100644
+--- a/include/linux/netfilter_arp/arp_tables.h
++++ b/include/linux/netfilter_arp/arp_tables.h
+@@ -266,17 +266,9 @@ struct arpt_error
+ 	.target.errorname = "ERROR",					       \
  }
  
+-extern unsigned int arpt_do_table(struct sk_buff *skb,
+-				  unsigned int hook,
+-				  const struct net_device *in,
+-				  const struct net_device *out,
+-				  struct xt_table *table);
+-
+ extern struct xt2_table *arpt2_register_table(struct net *,
+ 	const struct xt_table *, const struct arpt_replace *);
+ 
+-#define ARPT_ALIGN(s) XT_ALIGN(s)
+-
  #ifdef CONFIG_COMPAT
--struct compat_ipt_replace {
--	char			name[IPT_TABLE_MAXNAMELEN];
--	u32			valid_hooks;
--	u32			num_entries;
--	u32			size;
--	u32			hook_entry[NF_INET_NUMHOOKS];
--	u32			underflow[NF_INET_NUMHOOKS];
--	u32			num_counters;
--	compat_uptr_t		counters;	/* struct ipt_counters * */
--	struct compat_ipt_entry	entries[0];
+ #include <net/compat.h>
+ 
+@@ -302,14 +294,6 @@ struct compat_arpt_replace {
+ 	struct compat_arpt_entry	entries[0];
+ };
+ 
+-static inline struct arpt_entry_target *
+-compat_arpt_get_target(struct compat_arpt_entry *e)
+-{
+-	return (void *)e + e->target_offset;
+-}
+-
+-#define COMPAT_ARPT_ALIGN(s)	COMPAT_XT_ALIGN(s)
+-
+ #endif /* CONFIG_COMPAT */
+ #endif /*__KERNEL__*/
+ #endif /* _ARPTABLES_H */
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index b82a831..200dcb6 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -47,17 +47,6 @@ MODULE_DESCRIPTION("arptables core");
+ #define duprintf(format, args...)
+ #endif
+ 
+-#ifdef CONFIG_NETFILTER_DEBUG
+-#define ARP_NF_ASSERT(x)					\
+-do {								\
+-	if (!(x))						\
+-		printk("ARP_NF_ASSERT: %s:%s:%u\n",		\
+-		       __func__, __FILE__, __LINE__);	\
+-} while(0)
+-#else
+-#define ARP_NF_ASSERT(x)
+-#endif
+-
+ #define xtsub_entry           arpt_entry
+ #define xtsub_entry_nocompat  arpt_entry
+ #define xtsub_replace         arpt_replace
+@@ -241,55 +230,6 @@ static bool arp_checkentry(const struct xt_mtchk_param *par)
+ 	return true;
+ }
+ 
+-#ifdef CONFIG_COMPAT
+-static void compat_standard_from_user(void *dst, const void *src)
+-{
+-	int v = *(compat_int_t *)src;
+-
+-	if (v > 0)
+-		v += xt_compat_calc_jump(NFPROTO_ARP, v);
+-	memcpy(dst, &v, sizeof(v));
+-}
+-
+-static int compat_standard_to_user(void __user *dst, const void *src)
+-{
+-	compat_int_t cv = *(int *)src;
+-
+-	if (cv > 0)
+-		cv -= xt_compat_calc_jump(NFPROTO_ARP, cv);
+-	return copy_to_user(dst, &cv, sizeof(cv)) ? -EFAULT : 0;
+-}
+-#endif
+-
+-static unsigned int
+-arpt_error(struct sk_buff *skb, const struct xt_action_param *par)
+-{
+-	if (net_ratelimit())
+-		printk("arp_tables: error: '%s'\n",
+-		       (const char *)par->targinfo);
+-
+-	return NF_DROP;
+-}
+-
+-static struct xt_target arpt_builtin_tg[] __read_mostly = {
+-	{
+-		.name             = ARPT_STANDARD_TARGET,
+-		.targetsize       = sizeof(int),
+-		.family           = NFPROTO_ARP,
+-#ifdef CONFIG_COMPAT
+-		.compatsize       = sizeof(compat_int_t),
+-		.compat_from_user = compat_standard_from_user,
+-		.compat_to_user   = compat_standard_to_user,
+-#endif
+-	},
+-	{
+-		.name             = ARPT_ERROR_TARGET,
+-		.target           = arpt_error,
+-		.targetsize       = ARPT_FUNCTION_MAXNAMELEN,
+-		.family           = NFPROTO_ARP,
+-	},
 -};
 -
- static int
- compat_copy_entry_to_user(struct ipt_entry *e, void __user **dstptr,
- 			  unsigned int *size, struct xt_counters *counters,
-diff --git a/net/netfilter/xt1_translat.c b/net/netfilter/xt1_translat.c
-index 994fcc5..d45e674 100644
---- a/net/netfilter/xt1_translat.c
-+++ b/net/netfilter/xt1_translat.c
-@@ -12,8 +12,9 @@
- #include <linux/slab.h>
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/xt_quota.h>
-+#include <linux/netfilter_ipv4/ip_tables.h>
- #include <linux/netfilter_ipv6/ip6_tables.h>
--#if !defined(XTSUB_NFPROTO_IPV6)
-+#if !defined(XTSUB_NFPROTO_IPV4) && !defined(XTSUB_NFPROTO_IPV6)
- #	error Need to define XTSUB_NFPROTO_xxx.
- #endif
- #ifdef XTSUB_DO_COMPAT
-@@ -28,7 +29,14 @@
- #	define xtsub_target_to_xt1   xts_target_to_xt1
- #endif
+ static struct xt_match arpt_builtin_mt __read_mostly = {
+ 	.name       = "arp",
+ 	.revision   = 0,
+@@ -299,129 +239,6 @@ static struct xt_match arpt_builtin_mt __read_mostly = {
+ 	.checkentry = arp_checkentry,
+ };
  
--#ifdef XTSUB_NFPROTO_IPV6
-+#ifdef XTSUB_NFPROTO_IPV4
-+static const struct ipt_ip xtsub_uncond;
-+
-+static inline bool XTSUB2(unconditional)(const struct xtsub_entry *e)
-+{
-+	return memcmp(&e->ip, &xtsub_uncond, sizeof(xtsub_uncond)) == 0;
-+}
-+#elif defined(XTSUB_NFPROTO_IPV6)
- static const struct ip6t_ip6 xtsub_uncond;
+-static inline const struct arpt_entry_target *
+-arpt_get_target_c(const struct arpt_entry *e)
+-{
+-	return arpt_get_target((struct arpt_entry *)e);
+-}
+-
+-static inline struct arpt_entry *
+-get_entry(const void *base, unsigned int offset)
+-{
+-	return (struct arpt_entry *)(base + offset);
+-}
+-
+-static inline __pure
+-struct arpt_entry *arpt_next_entry(const struct arpt_entry *entry)
+-{
+-	return (void *)entry + entry->next_offset;
+-}
+-
+-unsigned int arpt_do_table(struct sk_buff *skb,
+-			   unsigned int hook,
+-			   const struct net_device *in,
+-			   const struct net_device *out,
+-			   struct xt_table *table)
+-{
+-	unsigned int verdict = NF_DROP;
+-	const struct arphdr *arp;
+-	struct arpt_entry *e, *back;
+-	void *table_base;
+-	const struct xt_table_info *private;
+-	struct xt_action_param acpar;
+-
+-	if (!pskb_may_pull(skb, arp_hdr_len(skb->dev)))
+-		return NF_DROP;
+-
+-	xt_info_rdlock_bh();
+-	private = table->private;
+-	table_base = private->entries[smp_processor_id()];
+-
+-	e = get_entry(table_base, private->hook_entry[hook]);
+-	back = get_entry(table_base, private->underflow[hook]);
+-
+-	acpar.in      = in;
+-	acpar.out     = out;
+-	acpar.hooknum = hook;
+-	acpar.family  = NFPROTO_ARP;
+-	acpar.hotdrop = false;
+-
+-	/*
+-	 * For arptables, do these two outside the loop because arp_tables
+-	 * does not support other matches anyway.
+-	 */
+-	acpar.match     = &arpt_builtin_mt;
+-	acpar.matchinfo = &e->arp;
+-
+-	arp = arp_hdr(skb);
+-	do {
+-		const struct arpt_entry_target *t;
+-		int hdr_len;
+-
+-		if (!arp_packet_match(skb, &acpar)) {
+-			e = arpt_next_entry(e);
+-			continue;
+-		}
+-
+-		hdr_len = sizeof(*arp) + (2 * sizeof(struct in_addr)) +
+-			(2 * skb->dev->addr_len);
+-		ADD_COUNTER(e->counters, hdr_len, 1);
+-
+-		t = arpt_get_target_c(e);
+-
+-		/* Standard target? */
+-		if (!t->u.kernel.target->target) {
+-			int v;
+-
+-			v = ((struct arpt_standard_target *)t)->verdict;
+-			if (v < 0) {
+-				/* Pop from stack? */
+-				if (v != ARPT_RETURN) {
+-					verdict = (unsigned)(-v) - 1;
+-					break;
+-				}
+-				e = back;
+-				back = get_entry(table_base, back->comefrom);
+-				continue;
+-			}
+-			if (table_base + v
+-			    != arpt_next_entry(e)) {
+-				/* Save old back ptr in next entry */
+-				struct arpt_entry *next = arpt_next_entry(e);
+-				next->comefrom = (void *)back - table_base;
+-
+-				/* set back pointer to next entry */
+-				back = next;
+-			}
+-
+-			e = get_entry(table_base, v);
+-			continue;
+-		}
+-
+-		/* Targets which reenter must return
+-		 * abs. verdicts
+-		 */
+-		acpar.target   = t->u.kernel.target;
+-		acpar.targinfo = t->data;
+-		verdict = t->u.kernel.target->target(skb, &acpar);
+-
+-		/* Target might have changed stuff. */
+-		arp = arp_hdr(skb);
+-
+-		if (verdict == ARPT_CONTINUE)
+-			e = arpt_next_entry(e);
+-		else
+-			/* Verdict */
+-			break;
+-	} while (!acpar.hotdrop);
+-	xt_info_rdunlock_bh();
+-
+-	if (acpar.hotdrop)
+-		return NF_DROP;
+-	else
+-		return verdict;
+-}
+-
+ static const struct xt1_xlat_info arpt_compat_xlat_info = {
+ #ifdef CONFIG_COMPAT
+ 	.marker_size     = XT_ALIGN(sizeof(struct arpt_error_target)),
+@@ -757,9 +574,6 @@ static int __init arp_tables_init(void)
+ 		goto err1;
  
- static inline bool XTSUB2(unconditional)(const struct xtsub_entry *e)
-@@ -147,7 +155,14 @@ XTSUB2(target_to_xt2)(struct xt2_rule *rule, const struct xtsub_entry *entry,
- 	} else if (st->verdict == entry_offset + entry->next_offset) {
- 		ntarget->ext     = XT2_FINAL_VERDICT;
- 		ntarget->verdict = XT_CONTINUE;
--#ifdef XTSUB_NFPROTO_IPV6
-+#if defined(XTSUB_NFPROTO_IPV4)
-+	} else if (entry->ip.flags & IPT_F_GOTO) {
-+		ntarget->ext     = XT2_ACTION_GOTO;
-+		ntarget->r_goto  = xts_lookup_chain(rule->chain->table,
-+		                   st->verdict);
-+		if (ntarget->r_goto == rule->chain)
-+			return -ELOOP;
-+#elif defined(XTSUB_NFPROTO_IPV6)
- 	} else if (entry->ipv6.flags & IP6T_F_GOTO) {
- 		ntarget->ext     = XT2_ACTION_GOTO;
- 		ntarget->r_goto  = xts_lookup_chain(rule->chain->table,
-@@ -187,7 +202,13 @@ XTSUB2(rule_to_xt2)(struct xt2_chain *chain, const struct xtsub_entry *entry,
- 		return ERR_PTR(-ENOMEM);
+ 	/* Noone else will be downing sem now, so we won't sleep */
+-	ret = xt_register_targets(arpt_builtin_tg, ARRAY_SIZE(arpt_builtin_tg));
+-	if (ret < 0)
+-		goto err2;
+ 	ret = xt_register_match(&arpt_builtin_mt);
+ 	if (ret < 0)
+ 		goto err3;
+@@ -775,8 +589,6 @@ static int __init arp_tables_init(void)
+ err4:
+ 	xt_unregister_match(&arpt_builtin_mt);
+ err3:
+-	xt_unregister_targets(arpt_builtin_tg, ARRAY_SIZE(arpt_builtin_tg));
+-err2:
+ 	unregister_pernet_subsys(&arp_tables_net_ops);
+ err1:
+ 	return ret;
+@@ -786,11 +598,8 @@ static void __exit arp_tables_fini(void)
+ {
+ 	nf_unregister_sockopt(&arpt_sockopts);
+ 	xt_unregister_match(&arpt_builtin_mt);
+-	xt_unregister_targets(arpt_builtin_tg, ARRAY_SIZE(arpt_builtin_tg));
+ 	unregister_pernet_subsys(&arp_tables_net_ops);
+ }
  
- 	rule->chain->comefrom = entry->comefrom;
--#ifdef XTSUB_NFPROTO_IPV6
-+#if defined(XTSUB_NFPROTO_IPV4)
-+	rule->l4proto = entry->ip.proto;
-+	if (entry->ip.flags & IPT_INV_PROTO)
-+		rule->flags |= XT2_INV_L4PROTO;
-+	ret = xt2_rule_add_match(rule, "ipv4", 0, &entry->ip,
-+	      sizeof(entry->ip), false);
-+#elif defined(XTSUB_NFPROTO_IPV6)
- 	rule->l4proto = entry->ipv6.proto;
- 	if (entry->ipv6.flags & IP6T_INV_PROTO)
- 		rule->flags |= XT2_INV_L4PROTO;
-@@ -465,7 +486,11 @@ XTSUB2(rule_to_xt1)(void __user **user_ptr, int *len, unsigned int *z,
- 	z_start = *z;
- 	ematch = list_first_entry(&rule->match_list,
- 	         typeof(*ematch), anchor);
--#ifdef XTSUB_NFPROTO_IPV6
-+#if defined(XTSUB_NFPROTO_IPV4)
-+	if (strcmp(ematch->ext->name, "ipv4") != 0)
-+		return -EIO;
-+	memcpy(&entry.ip, ematch->data, sizeof(entry.ip));
-+#elif defined(XTSUB_NFPROTO_IPV6)
- 	if (strcmp(ematch->ext->name, "ipv6") != 0)
- 		return -EIO;
- 	memcpy(&entry.ipv6, ematch->data, sizeof(entry.ipv6));
+-EXPORT_SYMBOL(arpt_do_table);
+-
+ module_init(arp_tables_init);
+ module_exit(arp_tables_fini);
 -- 
 1.6.3.3
 
