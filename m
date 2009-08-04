@@ -1,289 +1,338 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 064/103] netfilter: xtables2: xt2->xt1 translation - GET_INFO support
-Date: Tue,  4 Aug 2009 09:25:48 +0200
-Message-ID: <1249370787-17583-65-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 061/103] netfilter: xtables: add xt_quota revision 3
+Date: Tue,  4 Aug 2009 09:25:45 +0200
+Message-ID: <1249370787-17583-62-git-send-email-jengelh@medozas.de>
 References: <1249370787-17583-1-git-send-email-jengelh@medozas.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:56947 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:56944 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932572AbZHDH1m (ORCPT
+	with ESMTP id S932592AbZHDH1j (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Aug 2009 03:27:42 -0400
+	Tue, 4 Aug 2009 03:27:39 -0400
 In-Reply-To: <1249370787-17583-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Part 1 of the backwards translation. Calculates size and
-hook_entry/underflow points.
+The quota match has been extended in an out-of-tree project, whereby
+it gained packet counting, upcounting support and procfs-based
+read/write support.
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/linux/netfilter/x_tables.h |   28 ++++++++
- net/ipv6/netfilter/ip6_tables.c    |   41 +++++++++++-
- net/netfilter/xt1_support.c        |  123 ++++++++++++++++++++++++++++++++++++
- 3 files changed, 190 insertions(+), 2 deletions(-)
+ include/linux/netfilter/xt_quota.h |   19 +++-
+ net/netfilter/xt_quota.c           |  231 ++++++++++++++++++++++++++++++++++--
+ 2 files changed, 236 insertions(+), 14 deletions(-)
 
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index cf8e65e..0c9d64f 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -414,6 +414,26 @@ struct xt_table_info
- 	void *entries[1];
+diff --git a/include/linux/netfilter/xt_quota.h b/include/linux/netfilter/xt_quota.h
+index 8dc89df..f14e36d 100644
+--- a/include/linux/netfilter/xt_quota.h
++++ b/include/linux/netfilter/xt_quota.h
+@@ -2,9 +2,11 @@
+ #define _XT_QUOTA_H
+ 
+ enum xt_quota_flags {
+-	XT_QUOTA_INVERT		= 0x1,
++	XT_QUOTA_INVERT = 1 << 0,
++	XT_QUOTA_GROW   = 1 << 1,
++	XT_QUOTA_PACKET = 1 << 2,
++	XT_QUOTA_MASK   = 0x7,
+ };
+-#define XT_QUOTA_MASK		0x1
+ 
+ struct xt_quota_priv;
+ 
+@@ -17,4 +19,17 @@ struct xt_quota_info {
+ 	struct xt_quota_priv	*master;
  };
  
-+/**
-+ * xt1 size definitions
-+ *
-+ * @marker_size:	size of a user-chain and end-of-ruleset marker
-+ * @entry_hdr_size:	size of struct ip6t_entry
-+ * @pmatch_size:	size of struct ip6t_ip6
-+ * @first_match:	required name of the first match
-+ * @ematch_size:	size of the ematch header
-+ * @etarget_size:	size of the etarget header
-+ * @standard_tgsize:	size of the complete standard target, includes
-+ * 			etarget_size and alignment padding
-+ */
-+struct xt1_xlat_info {
-+	unsigned int marker_size;
-+	unsigned int entry_hdr_size, pmatch_size;
-+	unsigned int ematch_size, etarget_size;
-+	unsigned int standard_tgsize;
-+	const char *first_match;
++struct xt_quota_counter;
++
++struct xt_quota_mtinfo3 {
++	char name[15];
++	u_int8_t flags;
++
++	/* Comparison-invariant */
++	aligned_u64 quota;
++
++	/* Used internally by the kernel */
++	struct xt_quota_counter *master __attribute__((aligned(8)));
 +};
 +
- /*
-  * The use of low negative numbers means we can use IS_ERR()
-  * (See xt2_special_target below.)
-@@ -693,6 +713,9 @@ extern void *xt_repldata_create(const struct xt_table *);
- 
- extern struct xt2_chain *xts_lookup_chain(const struct xt2_table *,
- 	unsigned int);
-+extern unsigned int xts_blob_prep_table(const struct xt2_table *,
-+	const struct xt1_xlat_info *, unsigned int *, unsigned int *,
-+	unsigned int *);
- 
- extern struct xt2_rule *xt2_rule_new(struct xt2_chain *);
- extern int xt2_rule_add_match(struct xt2_rule *, const char *, uint8_t,
-@@ -715,6 +738,11 @@ extern unsigned int xt2_do_table(struct sk_buff *, unsigned int,
- 	const struct net_device *, const struct net_device *,
- 	const struct xt2_table *);
- 
-+static inline bool xt2_builtin_chain(const struct xt2_chain *c)
-+{
-+	return *c->name == '\0';
-+}
-+
- static inline bool xt2_special_target(const struct xt_target *t)
- {
- 	return IS_ERR(t);
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index edb00ad..8dc507d 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -1164,10 +1164,36 @@ static int compat_table_info(const struct xt_table_info *info,
- }
- #endif
- 
-+static const struct xt1_xlat_info ip6t_xlat_info = {
-+	.marker_size     = sizeof(struct ip6t_error_target),
-+	.entry_hdr_size  = sizeof(struct ip6t_entry),
-+	.pmatch_size     = sizeof(struct ip6t_ip6),
-+	.first_match     = "ipv6",
-+	.ematch_size     = sizeof(struct xt_entry_match),
-+	.etarget_size    = sizeof(struct xt_entry_target),
-+	.standard_tgsize = XT_ALIGN(sizeof(struct xt_entry_target) +
-+	                   sizeof(int)),
-+};
-+
-+static int ip6t2_get_info(void __user *uptr, int len,
-+                          const struct xt2_table *table)
-+{
-+	struct ip6t_getinfo info = {
-+		.valid_hooks = table->valid_hooks,
-+	};
-+
-+	strncpy(info.name, table->name,
-+	        min(sizeof(info.name), sizeof(table->name)));
-+	info.size = xts_blob_prep_table(table, &ip6t_xlat_info,
-+	            info.hook_entry, info.underflow, &info.num_entries);
-+	return (copy_to_user(uptr, &info, sizeof(info)) != 0) ? -EFAULT : 0;
-+}
-+
- static int get_info(struct net *net, void __user *user,
-                     const int *len, int compat)
- {
- 	char name[IP6T_TABLE_MAXNAMELEN];
-+	struct xt2_table *xt2_table;
- 	struct xt_table *t;
- 	int ret;
- 
-@@ -1181,12 +1207,23 @@ static int get_info(struct net *net, void __user *user,
- 		return -EFAULT;
- 
- 	name[IP6T_TABLE_MAXNAMELEN-1] = '\0';
-+	t = try_then_request_module(xt_find_table_lock(net, AF_INET6, name),
-+				    "ip6table_%s", name);
-+	xt2_table = xt2_table_lookup(net, name, NFPROTO_IPV6,
-+	            XT2_TAKE_RCULOCK);
-+	if (xt2_table != NULL) {
-+		ret = ip6t2_get_info(user, *len, xt2_table);
-+		rcu_read_unlock();
-+		if (t != NULL)
-+			module_put(t->me);
-+		return ret;
-+	}
-+	rcu_read_unlock();
-+
- #ifdef CONFIG_COMPAT
- 	if (compat)
- 		xt_compat_lock(AF_INET6);
- #endif
--	t = try_then_request_module(xt_find_table_lock(net, AF_INET6, name),
--				    "ip6table_%s", name);
- 	if (t && !IS_ERR(t)) {
- 		struct ip6t_getinfo info;
- 		const struct xt_table_info *private = t->private;
-diff --git a/net/netfilter/xt1_support.c b/net/netfilter/xt1_support.c
-index d15bfb7..5900880 100644
---- a/net/netfilter/xt1_support.c
-+++ b/net/netfilter/xt1_support.c
-@@ -7,7 +7,9 @@
-  *	the Free Software Foundation, either version 2 of the License, or
-  *	(at your option) any later version.
+ #endif /* _XT_QUOTA_H */
+diff --git a/net/netfilter/xt_quota.c b/net/netfilter/xt_quota.c
+index 0de9fcf..33ce76a 100644
+--- a/net/netfilter/xt_quota.c
++++ b/net/netfilter/xt_quota.c
+@@ -3,8 +3,11 @@
+  *
+  * Sam Johnston <samj@samj.net>
   */
 +#include <linux/list.h>
- #include <linux/module.h>
-+#include <linux/rcupdate.h>
++#include <linux/proc_fs.h>
+ #include <linux/skbuff.h>
+ #include <linux/spinlock.h>
++#include <asm/atomic.h>
+ 
  #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter/xt_quota.h>
+@@ -13,14 +16,206 @@ struct xt_quota_priv {
+ 	uint64_t quota;
+ };
  
- /**
-@@ -34,4 +36,125 @@ xts_lookup_chain(const struct xt2_table *table, unsigned int needle)
- }
- EXPORT_SYMBOL_GPL(xts_lookup_chain);
- 
-+/**
-+ * get pointer to quota ematches
-+ *
-+ * Also used for the xt2->xt1 converter. Generalized matches run until the two
-+ * last quota matches.
-+ */
-+static const struct xt2_entry_match *
-+xts_rule_quota_ptr(const struct xt2_rule *rule)
-+{
-+	const struct xt2_entry_match *ematch;
-+
-+	/* Need at least two ematches */
-+	if (list_empty(&rule->match_list) ||
-+	    rule->match_list.next->next == &rule->match_list)
-+		return NULL;
-+
-+	/* Now need exactly two trailing quota matches */
-+	ematch = list_entry(rule->match_list.prev, typeof(*ematch), anchor);
-+	if (strcmp(ematch->ext->name, "quota") != 0 &&
-+	    ematch->ext->revision != 3)
-+		return NULL;
-+	ematch = list_entry(ematch->anchor.prev, typeof(*ematch), anchor);
-+	if (strcmp(ematch->ext->name, "quota") != 0 &&
-+	    ematch->ext->revision != 3)
-+		return NULL;
-+	return ematch;
-+}
-+
-+static int
-+xts_blob_prep_rule(const struct xt2_rule *rule, const struct xt1_xlat_info *io,
-+                   unsigned int *underflow, unsigned int z)
-+{
-+	const struct xt2_table *table = rule->chain->table;
-+	const struct xt2_entry_match *ematch, *quota_stop;
-+	const struct xt2_entry_target *etarget;
-+	unsigned int h;
-+
-+	/* Quota check implies ematch list empty check. */
-+	quota_stop = xts_rule_quota_ptr(rule);
-+	if (quota_stop == NULL)
-+		return -EIO;
-+
-+	/* Must have exactly one target */
-+	if (list_empty(&rule->target_list) ||
-+	    rule->target_list.next->next != &rule->target_list)
-+		return -EIO;
-+
-+	ematch = list_first_entry(&rule->match_list,
-+	         typeof(*ematch), anchor);
-+	if (strcmp(ematch->ext->name, io->first_match) != 0)
-+		return -EIO;
-+
-+	/* Do underflow assign first before @z is increased. */
-+	for (h = 0; h < ARRAY_SIZE(table->underflow); ++h)
-+		if (rule == table->underflow[h])
-+			underflow[h] = z;
-+
-+	/* Subtracting, because it will already be added in the loop. */
-+	z += io->entry_hdr_size - io->ematch_size - io->pmatch_size;
-+
-+	list_for_each_entry(ematch, &rule->match_list, anchor) {
-+		if (ematch == quota_stop)
-+			/* quotas included in entry_hdr */
-+			break;
-+		z += io->ematch_size + ematch->dsize;
-+	}
-+
-+	etarget = list_first_entry(&rule->target_list,
-+	          typeof(*etarget), anchor);
-+	z += xt2_special_target(etarget->ext) ? io->standard_tgsize :
-+	     io->etarget_size + XT_ALIGN(etarget->ext->targetsize);
-+	return z;
-+}
-+
-+/**
-+ * - calculate details for GETINFO ioctl from xt2 table
-+ * @table:	the xt2 table
-+ * @io:		info block on blob's field sizes
-+ *
-+ * Calculate the details for a GETINFO ioctl from the supplied xt2 table.
-+ * Returns -1 if the table cannot be converted to an xt1 blob without
-+ * loss of information.
-+ */
-+unsigned int
-+xts_blob_prep_table(const struct xt2_table *table,
-+                    const struct xt1_xlat_info *io,
-+                    unsigned int *hook_entry, unsigned int *underflow,
-+                    unsigned int *entries_ptr)
-+{
-+	const struct xt2_chain *chain;
-+	const struct xt2_rule *rule;
-+	unsigned int hook, entries = 0;
-+	int z = 0;
-+
-+	rcu_read_lock();
-+	list_for_each_entry(chain, &table->chain_list, anchor) {
-+		for (hook = 0; hook < ARRAY_SIZE(table->entrypoint); ++hook)
-+			if (table->entrypoint[hook] == chain)
-+				hook_entry[hook] = z;
-+
-+		if (!xt2_builtin_chain(chain)) {
-+			z += io->entry_hdr_size + io->marker_size;
-+			++entries;
-+		}
-+
-+		list_for_each_entry(rule, &chain->rule_list, anchor) {
-+			++entries;
-+			z = xts_blob_prep_rule(rule, io, underflow, z);
-+			if (z < 0)
-+				return z;
-+		}
-+	}
-+	rcu_read_unlock();
-+
-+	/* Table terminator */
-+	z += io->entry_hdr_size + io->marker_size;
-+	*entries_ptr = ++entries;
-+	return z;
-+}
-+EXPORT_SYMBOL_GPL(xts_blob_prep_table);
++struct xt_quota_counter {
++	u_int64_t quota;
++	spinlock_t lock;
++	struct list_head list;
++	atomic_t ref;
++	char name[sizeof(((struct xt_quota_mtinfo3 *)NULL)->name)];
++	struct proc_dir_entry *procfs_entry;
++};
 +
  MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Jan Engelhardt <jengelh@medozas.de>");
+ MODULE_AUTHOR("Sam Johnston <samj@samj.net>");
+-MODULE_DESCRIPTION("Xtables: countdown quota match");
++MODULE_DESCRIPTION("Xtables: counter match");
+ MODULE_ALIAS("ipt_quota");
+ MODULE_ALIAS("ip6t_quota");
+ 
+ static DEFINE_SPINLOCK(quota_lock);
+ 
++static LIST_HEAD(counter_list);
++static DEFINE_SPINLOCK(counter_list_lock);
++
++static struct proc_dir_entry *proc_xt_quota;
++static unsigned int quota_list_perms = S_IRUGO | S_IWUSR;
++static unsigned int quota_list_uid;
++static unsigned int quota_list_gid;
++module_param_named(perms, quota_list_perms, uint, S_IRUGO | S_IWUSR);
++module_param_named(uid, quota_list_uid, uint, S_IRUGO | S_IWUSR);
++module_param_named(gid, quota_list_gid, uint, S_IRUGO | S_IWUSR);
++
++static int quota_proc_read(char *page, char **start, off_t offset,
++                           int count, int *eof, void *data)
++{
++	struct xt_quota_counter *e = data;
++	int ret;
++
++	spin_lock_bh(&e->lock);
++	ret = snprintf(page, PAGE_SIZE, "%llu\n", e->quota);
++	spin_unlock_bh(&e->lock);
++	return ret;
++}
++
++static int quota_proc_write(struct file *file, const char __user *input,
++                            unsigned long size, void *data)
++{
++	struct xt_quota_counter *e = data;
++	char buf[sizeof("18446744073709551616")];
++
++	if (size > sizeof(buf))
++		size = sizeof(buf);
++	if (copy_from_user(buf, input, size) != 0)
++		return -EFAULT;
++	buf[sizeof(buf)-1] = '\0';
++
++	spin_lock_bh(&e->lock);
++	e->quota = simple_strtoull(buf, NULL, 0);
++	spin_unlock_bh(&e->lock);
++	return size;
++}
++
++static struct xt_quota_counter *
++q3_new_counter(const struct xt_quota_mtinfo3 *q, bool anon)
++{
++	struct xt_quota_counter *e;
++	unsigned int size;
++
++	/* Do not need all the procfs things for anonymous counters. */
++	size = anon ? offsetof(typeof(*e), list) : sizeof(*e);
++	e = kmalloc(size, GFP_KERNEL);
++	if (e == NULL)
++		return NULL;
++
++	e->quota = q->quota;
++	spin_lock_init(&e->lock);
++	if (!anon) {
++		INIT_LIST_HEAD(&e->list);
++		atomic_set(&e->ref, 1);
++		strncpy(e->name, q->name, sizeof(e->name));
++	}
++	return e;
++}
++
++/**
++ * q3_get_counter - get ref to counter or create new
++ * @name:	name of counter
++ */
++static struct xt_quota_counter *
++q3_get_counter(const struct xt_quota_mtinfo3 *q)
++{
++	struct proc_dir_entry *p;
++	struct xt_quota_counter *e;
++
++	if (*q->name == '\0')
++		return q3_new_counter(q, true);
++
++	spin_lock_bh(&counter_list_lock);
++	list_for_each_entry(e, &counter_list, list)
++		if (strcmp(e->name, q->name) == 0) {
++			atomic_inc(&e->ref);
++			spin_unlock_bh(&counter_list_lock);
++			return e;
++		}
++
++	e = q3_new_counter(q, false);
++	if (e == NULL)
++		goto out;
++
++	p = e->procfs_entry = create_proc_entry(e->name, quota_list_perms,
++	                      proc_xt_quota);
++	if (p == NULL || IS_ERR(p))
++		goto out;
++
++	p->data         = e;
++	p->read_proc    = quota_proc_read;
++	p->write_proc   = quota_proc_write;
++	p->uid          = quota_list_uid;
++	p->gid          = quota_list_gid;
++	list_add_tail(&e->list, &counter_list);
++	spin_unlock_bh(&counter_list_lock);
++	return e;
++
++ out:
++	spin_unlock_bh(&counter_list_lock);
++	kfree(e);
++	return NULL;
++}
++
++static bool quota_mt3_check(const struct xt_mtchk_param *par)
++{
++	struct xt_quota_mtinfo3 *q = par->matchinfo;
++
++	if (q->flags & ~XT_QUOTA_MASK)
++		return false;
++
++	q->name[sizeof(q->name)-1] = '\0';
++	if (*q->name == '.' || strchr(q->name, '/') != NULL) {
++		printk(KERN_ERR "xt_quota<%u>: illegal name\n",
++		       par->match->revision);
++		return false;
++	}
++
++	q->master = q3_get_counter(q);
++	if (q->master == NULL) {
++		printk(KERN_ERR "xt_quota<%u>: memory alloc failure\n",
++		       par->match->revision);
++		return false;
++	}
++
++	return true;
++}
++
++static void quota_mt3_destroy(const struct xt_mtdtor_param *par)
++{
++	struct xt_quota_mtinfo3 *q = par->matchinfo;
++	struct xt_quota_counter *e = q->master;
++
++	if (*q->name == '\0') {
++		/* anon counter */
++		kfree(e);
++		return;
++	}
++
++	spin_lock_bh(&counter_list_lock);
++	if (!atomic_dec_and_test(&e->ref)) {
++		spin_unlock_bh(&counter_list_lock);
++		return;
++	}
++
++	list_del(&e->list);
++	remove_proc_entry(e->name, proc_xt_quota);
++	spin_unlock_bh(&counter_list_lock);
++	kfree(e);
++}
++
++static bool
++quota_mt3(const struct sk_buff *skb, struct xt_action_param *par)
++{
++	struct xt_quota_mtinfo3 *q = (void *)par->matchinfo;
++	struct xt_quota_counter *e = q->master;
++	bool ret = q->flags & XT_QUOTA_INVERT;
++
++	spin_lock_bh(&e->lock);
++	if (q->flags & XT_QUOTA_GROW) {
++		e->quota += (q->flags & XT_QUOTA_PACKET) ? 1 : skb->len;
++		q->quota = e->quota;
++		ret = true;
++	} else {
++		if (e->quota >= skb->len) {
++			e->quota -= (q->flags & XT_QUOTA_PACKET) ? 1 : skb->len;
++			ret = !ret;
++		} else {
++			/* we do not allow even small packets from now on */
++			e->quota = 0;
++		}
++		q->quota = e->quota;
++	}
++	spin_unlock_bh(&e->lock);
++	return ret;
++}
++
++
+ static bool
+ quota_mt(const struct sk_buff *skb, struct xt_action_param *par)
+ {
+@@ -65,25 +260,37 @@ static void quota_mt_destroy(const struct xt_mtdtor_param *par)
+ 	kfree(q->master);
+ }
+ 
+-static struct xt_match quota_mt_reg __read_mostly = {
+-	.name       = "quota",
+-	.revision   = 0,
+-	.family     = NFPROTO_UNSPEC,
+-	.match      = quota_mt,
+-	.checkentry = quota_mt_check,
+-	.destroy    = quota_mt_destroy,
+-	.matchsize  = sizeof(struct xt_quota_info),
+-	.me         = THIS_MODULE,
++static struct xt_match quota_mt_reg[] __read_mostly = {
++	{
++		.name       = "quota",
++		.revision   = 0,
++		.family     = NFPROTO_UNSPEC,
++		.match      = quota_mt,
++		.checkentry = quota_mt_check,
++		.destroy    = quota_mt_destroy,
++		.matchsize  = sizeof(struct xt_quota_info),
++		.me         = THIS_MODULE,
++	},
++	{
++		.name       = "quota",
++		.revision   = 3,
++		.family     = NFPROTO_UNSPEC,
++		.checkentry = quota_mt3_check,
++		.match      = quota_mt3,
++		.destroy    = quota_mt3_destroy,
++		.matchsize  = sizeof(struct xt_quota_mtinfo3),
++		.me         = THIS_MODULE,
++	},
+ };
+ 
+ static int __init quota_mt_init(void)
+ {
+-	return xt_register_match(&quota_mt_reg);
++	return xt_register_matches(quota_mt_reg, ARRAY_SIZE(quota_mt_reg));
+ }
+ 
+ static void __exit quota_mt_exit(void)
+ {
+-	xt_unregister_match(&quota_mt_reg);
++	xt_unregister_matches(quota_mt_reg, ARRAY_SIZE(quota_mt_reg));
+ }
+ 
+ module_init(quota_mt_init);
 -- 
 1.6.3.3
 
