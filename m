@@ -1,53 +1,126 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 016/103] netfilter: iptables: remove unused datalen variable
-Date: Tue,  4 Aug 2009 09:25:00 +0200
-Message-ID: <1249370787-17583-17-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 018/103] netfilter: xtables: ignore unassigned hooks in check_entry_size_and_hooks
+Date: Tue,  4 Aug 2009 09:25:02 +0200
+Message-ID: <1249370787-17583-19-git-send-email-jengelh@medozas.de>
 References: <1249370787-17583-1-git-send-email-jengelh@medozas.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:50622 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:50624 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932539AbZHDH0v (ORCPT
+	with ESMTP id S932548AbZHDH0x (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Aug 2009 03:26:51 -0400
+	Tue, 4 Aug 2009 03:26:53 -0400
 In-Reply-To: <1249370787-17583-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+The "hook_entry" and "underflow" array contains values even for hooks
+not provided, such as PREROUTING in conjunction with the "filter"
+table. Usually, the values point to whatever the next rule is. For
+the upcoming unconditionality and underflow checking patches however,
+we must not inspect that arbitrary rule.
+
+Skipping unassigned hooks seems like a good idea, also because
+newinfo->hook_entry and newinfo->underflow will then continue to have
+the poison value for detecting abnormalities.
+
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- net/ipv4/netfilter/ip_tables.c |    4 ----
- 1 files changed, 0 insertions(+), 4 deletions(-)
+ net/ipv4/netfilter/arp_tables.c |    5 ++++-
+ net/ipv4/netfilter/ip_tables.c  |    5 ++++-
+ net/ipv6/netfilter/ip6_tables.c |    5 ++++-
+ 3 files changed, 12 insertions(+), 3 deletions(-)
 
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index b9f7243..d91f083 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -539,6 +539,7 @@ static inline int check_entry_size_and_hooks(struct arpt_entry *e,
+ 					     unsigned char *limit,
+ 					     const unsigned int *hook_entries,
+ 					     const unsigned int *underflows,
++					     unsigned int valid_hooks,
+ 					     unsigned int *i)
+ {
+ 	unsigned int h;
+@@ -558,6 +559,8 @@ static inline int check_entry_size_and_hooks(struct arpt_entry *e,
+ 
+ 	/* Check hooks & underflows */
+ 	for (h = 0; h < NF_ARP_NUMHOOKS; h++) {
++		if (!(valid_hooks & (1 << h)))
++			continue;
+ 		if ((unsigned char *)e - base == hook_entries[h])
+ 			newinfo->hook_entry[h] = hook_entries[h];
+ 		if ((unsigned char *)e - base == underflows[h])
+@@ -626,7 +629,7 @@ static int translate_table(const char *name,
+ 				 newinfo,
+ 				 entry0,
+ 				 entry0 + size,
+-				 hook_entries, underflows, &i);
++				 hook_entries, underflows, valid_hooks, &i);
+ 	duprintf("translate_table: ARPT_ENTRY_ITERATE gives %d\n", ret);
+ 	if (ret != 0)
+ 		return ret;
 diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index fdefae6..3856aa3 100644
+index 3431a77..6e7b7e8 100644
 --- a/net/ipv4/netfilter/ip_tables.c
 +++ b/net/ipv4/netfilter/ip_tables.c
-@@ -315,7 +315,6 @@ ipt_do_table(struct sk_buff *skb,
+@@ -714,6 +714,7 @@ check_entry_size_and_hooks(struct ipt_entry *e,
+ 			   unsigned char *limit,
+ 			   const unsigned int *hook_entries,
+ 			   const unsigned int *underflows,
++			   unsigned int valid_hooks,
+ 			   unsigned int *i)
+ {
+ 	unsigned int h;
+@@ -733,6 +734,8 @@ check_entry_size_and_hooks(struct ipt_entry *e,
  
- 	static const char nulldevname[IFNAMSIZ] __attribute__((aligned(sizeof(long))));
- 	const struct iphdr *ip;
--	u_int16_t datalen;
- 	bool hotdrop = false;
- 	/* Initializing verdict to NF_DROP keeps gcc happy. */
- 	unsigned int verdict = NF_DROP;
-@@ -328,7 +327,6 @@ ipt_do_table(struct sk_buff *skb,
+ 	/* Check hooks & underflows */
+ 	for (h = 0; h < NF_INET_NUMHOOKS; h++) {
++		if (!(valid_hooks & (1 << h)))
++			continue;
+ 		if ((unsigned char *)e - base == hook_entries[h])
+ 			newinfo->hook_entry[h] = hook_entries[h];
+ 		if ((unsigned char *)e - base == underflows[h])
+@@ -804,7 +807,7 @@ translate_table(const char *name,
+ 				newinfo,
+ 				entry0,
+ 				entry0 + size,
+-				hook_entries, underflows, &i);
++				hook_entries, underflows, valid_hooks, &i);
+ 	if (ret != 0)
+ 		return ret;
  
- 	/* Initialization */
- 	ip = ip_hdr(skb);
--	datalen = skb->len - ip->ihl * 4;
- 	indev = in ? in->name : nulldevname;
- 	outdev = out ? out->name : nulldevname;
- 	/* We handle fragments by dealing with the first fragment as
-@@ -427,8 +425,6 @@ ipt_do_table(struct sk_buff *skb,
- #endif
- 		/* Target might have changed stuff. */
- 		ip = ip_hdr(skb);
--		datalen = skb->len - ip->ihl * 4;
--
- 		if (verdict == IPT_CONTINUE)
- 			e = ipt_next_entry(e);
- 		else
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 1389ad9..8e4921a 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -747,6 +747,7 @@ check_entry_size_and_hooks(struct ip6t_entry *e,
+ 			   unsigned char *limit,
+ 			   const unsigned int *hook_entries,
+ 			   const unsigned int *underflows,
++			   unsigned int valid_hooks,
+ 			   unsigned int *i)
+ {
+ 	unsigned int h;
+@@ -766,6 +767,8 @@ check_entry_size_and_hooks(struct ip6t_entry *e,
+ 
+ 	/* Check hooks & underflows */
+ 	for (h = 0; h < NF_INET_NUMHOOKS; h++) {
++		if (!(valid_hooks & (1 << h)))
++			continue;
+ 		if ((unsigned char *)e - base == hook_entries[h])
+ 			newinfo->hook_entry[h] = hook_entries[h];
+ 		if ((unsigned char *)e - base == underflows[h])
+@@ -837,7 +840,7 @@ translate_table(const char *name,
+ 				newinfo,
+ 				entry0,
+ 				entry0 + size,
+-				hook_entries, underflows, &i);
++				hook_entries, underflows, valid_hooks, &i);
+ 	if (ret != 0)
+ 		return ret;
+ 
 -- 
 1.6.3.3
 
