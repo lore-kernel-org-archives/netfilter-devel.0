@@ -1,231 +1,353 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 031/103] netfilter: xtables: constify args in compat copying functions
-Date: Tue,  4 Aug 2009 09:25:15 +0200
-Message-ID: <1249370787-17583-32-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 037/103] netfilter: xtables: reduce arguments to translate_table
+Date: Tue,  4 Aug 2009 09:25:21 +0200
+Message-ID: <1249370787-17583-38-git-send-email-jengelh@medozas.de>
 References: <1249370787-17583-1-git-send-email-jengelh@medozas.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:50628 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:50631 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932551AbZHDH1H (ORCPT
+	with ESMTP id S932539AbZHDH1N (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Aug 2009 03:27:07 -0400
+	Tue, 4 Aug 2009 03:27:13 -0400
 In-Reply-To: <1249370787-17583-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Just pass in the entire repl struct. In case of a new table (e.g.
+ip6t_register_table), the repldata has been previously filled with
+table->name and table->size already (in xt_repldata_create).
+
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/linux/netfilter/x_tables.h |   12 ++++++------
- net/ipv4/netfilter/arp_tables.c    |    4 ++--
- net/ipv4/netfilter/ip_tables.c     |    4 ++--
- net/ipv4/netfilter/ipt_ULOG.c      |    4 ++--
- net/ipv6/netfilter/ip6_tables.c    |    4 ++--
- net/netfilter/x_tables.c           |    8 ++++----
- net/netfilter/xt_hashlimit.c       |    4 ++--
- net/netfilter/xt_limit.c           |    4 ++--
- 8 files changed, 22 insertions(+), 22 deletions(-)
+ net/ipv4/netfilter/arp_tables.c |   42 +++++++++++++-------------------------
+ net/ipv4/netfilter/ip_tables.c  |   41 +++++++++++++------------------------
+ net/ipv6/netfilter/ip6_tables.c |   41 +++++++++++++------------------------
+ 3 files changed, 45 insertions(+), 79 deletions(-)
 
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index bdcb2f6..5e434a1 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -291,8 +291,8 @@ struct xt_match
- 	void (*destroy)(const struct xt_mtdtor_param *);
- 
- 	/* Called when userspace align differs from kernel space one */
--	void (*compat_from_user)(void *dst, void *src);
--	int (*compat_to_user)(void __user *dst, void *src);
-+	void (*compat_from_user)(void *dst, const void *src);
-+	int (*compat_to_user)(void __user *dst, const void *src);
- 
- 	/* Set this to THIS_MODULE if you are a module, otherwise NULL */
- 	struct module *me;
-@@ -332,8 +332,8 @@ struct xt_target
- 	void (*destroy)(const struct xt_tgdtor_param *);
- 
- 	/* Called when userspace align differs from kernel space one */
--	void (*compat_from_user)(void *dst, void *src);
--	int (*compat_to_user)(void __user *dst, void *src);
-+	void (*compat_from_user)(void *dst, const void *src);
-+	int (*compat_to_user)(void __user *dst, const void *src);
- 
- 	/* Set this to THIS_MODULE if you are a module, otherwise NULL */
- 	struct module *me;
-@@ -600,13 +600,13 @@ extern short xt_compat_calc_jump(u_int8_t af, unsigned int offset);
- extern int xt_compat_match_offset(const struct xt_match *match);
- extern int xt_compat_match_from_user(struct xt_entry_match *m,
- 				     void **dstptr, unsigned int *size);
--extern int xt_compat_match_to_user(struct xt_entry_match *m,
-+extern int xt_compat_match_to_user(const struct xt_entry_match *m,
- 				   void __user **dstptr, unsigned int *size);
- 
- extern int xt_compat_target_offset(const struct xt_target *target);
- extern void xt_compat_target_from_user(struct xt_entry_target *t,
- 				       void **dstptr, unsigned int *size);
--extern int xt_compat_target_to_user(struct xt_entry_target *t,
-+extern int xt_compat_target_to_user(const struct xt_entry_target *t,
- 				    void __user **dstptr, unsigned int *size);
- 
- #endif /* CONFIG_COMPAT */
 diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 27774c9..e6ea3e5 100644
+index 26b7157..79ee12f 100644
 --- a/net/ipv4/netfilter/arp_tables.c
 +++ b/net/ipv4/netfilter/arp_tables.c
-@@ -835,7 +835,7 @@ static int copy_entries_to_user(unsigned int total_size,
- }
- 
- #ifdef CONFIG_COMPAT
--static void compat_standard_from_user(void *dst, void *src)
-+static void compat_standard_from_user(void *dst, const void *src)
+@@ -616,21 +616,15 @@ static inline void cleanup_entry(struct arpt_entry *e)
+ /* Checks and translates the user-supplied table segment (held in
+  * newinfo).
+  */
+-static int translate_table(const char *name,
+-			   unsigned int valid_hooks,
+-			   struct xt_table_info *newinfo,
+-			   void *entry0,
+-			   unsigned int size,
+-			   unsigned int number,
+-			   const unsigned int *hook_entries,
+-			   const unsigned int *underflows)
++static int translate_table(struct xt_table_info *newinfo, void *entry0,
++                           const struct arpt_replace *repl)
  {
- 	int v = *(compat_int_t *)src;
+ 	struct arpt_entry *iter;
+ 	unsigned int i;
+ 	int ret = 0;
  
-@@ -844,7 +844,7 @@ static void compat_standard_from_user(void *dst, void *src)
- 	memcpy(dst, &v, sizeof(v));
- }
+-	newinfo->size = size;
+-	newinfo->number = number;
++	newinfo->size = repl->size;
++	newinfo->number = repl->num_entries;
  
--static int compat_standard_to_user(void __user *dst, void *src)
-+static int compat_standard_to_user(void __user *dst, const void *src)
- {
- 	compat_int_t cv = *(int *)src;
+ 	/* Init all hooks to impossible value. */
+ 	for (i = 0; i < NF_ARP_NUMHOOKS; i++) {
+@@ -644,7 +638,8 @@ static int translate_table(const char *name,
+ 	/* Walk through entries, checking offsets. */
+ 	xt_entry_foreach(iter, entry0, newinfo->size) {
+ 		ret = check_entry_size_and_hooks(iter, newinfo, entry0,
+-		      entry0 + size, hook_entries, underflows, valid_hooks);
++		      entry0 + repl->size, repl->hook_entry, repl->underflow,
++		      repl->valid_hooks);
+ 		if (ret != 0)
+ 			break;
+ 		++i;
+@@ -653,30 +648,30 @@ static int translate_table(const char *name,
+ 	if (ret != 0)
+ 		return ret;
  
+-	if (i != number) {
++	if (i != repl->num_entries) {
+ 		duprintf("translate_table: %u not %u entries\n",
+-			 i, number);
++			 i, repl->num_entries);
+ 		return -EINVAL;
+ 	}
+ 
+ 	/* Check hooks all assigned */
+ 	for (i = 0; i < NF_ARP_NUMHOOKS; i++) {
+ 		/* Only hooks which are valid */
+-		if (!(valid_hooks & (1 << i)))
++		if (!(repl->valid_hooks & (1 << i)))
+ 			continue;
+ 		if (newinfo->hook_entry[i] == 0xFFFFFFFF) {
+ 			duprintf("Invalid hook entry %u %u\n",
+-				 i, hook_entries[i]);
++				 i, repl->hook_entry[i]);
+ 			return -EINVAL;
+ 		}
+ 		if (newinfo->underflow[i] == 0xFFFFFFFF) {
+ 			duprintf("Invalid underflow %u %u\n",
+-				 i, underflows[i]);
++				 i, repl->underflow[i]);
+ 			return -EINVAL;
+ 		}
+ 	}
+ 
+-	if (!mark_source_chains(newinfo, valid_hooks, entry0)) {
++	if (!mark_source_chains(newinfo, repl->valid_hooks, entry0)) {
+ 		duprintf("Looping hook\n");
+ 		return -ELOOP;
+ 	}
+@@ -684,7 +679,7 @@ static int translate_table(const char *name,
+ 	/* Finally, each sanity check must pass */
+ 	i = 0;
+ 	xt_entry_foreach(iter, entry0, newinfo->size) {
+-		ret = find_check_entry(iter, name, size);
++		ret = find_check_entry(iter, repl->name, repl->size);
+ 		if (ret != 0)
+ 			break;
+ 		++i;
+@@ -1095,9 +1090,7 @@ static int do_replace(struct net *net, const void __user *user,
+ 		goto free_newinfo;
+ 	}
+ 
+-	ret = translate_table(tmp.name, tmp.valid_hooks,
+-			      newinfo, loc_cpu_entry, tmp.size, tmp.num_entries,
+-			      tmp.hook_entry, tmp.underflow);
++	ret = translate_table(newinfo, loc_cpu_entry, &tmp);
+ 	if (ret != 0)
+ 		goto free_newinfo;
+ 
+@@ -1789,12 +1782,7 @@ struct xt_table *arpt_register_table(struct net *net,
+ 	loc_cpu_entry = newinfo->entries[raw_smp_processor_id()];
+ 	memcpy(loc_cpu_entry, repl->entries, repl->size);
+ 
+-	ret = translate_table(table->name, table->valid_hooks,
+-			      newinfo, loc_cpu_entry, repl->size,
+-			      repl->num_entries,
+-			      repl->hook_entry,
+-			      repl->underflow);
+-
++	ret = translate_table(newinfo, loc_cpu_entry, repl);
+ 	duprintf("arpt_register_table: translate table gives %d\n", ret);
+ 	if (ret != 0)
+ 		goto out_free;
 diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index cde755d..4a0f22c 100644
+index 5e92076..bde4754 100644
 --- a/net/ipv4/netfilter/ip_tables.c
 +++ b/net/ipv4/netfilter/ip_tables.c
-@@ -1035,7 +1035,7 @@ copy_entries_to_user(unsigned int total_size,
- }
- 
- #ifdef CONFIG_COMPAT
--static void compat_standard_from_user(void *dst, void *src)
-+static void compat_standard_from_user(void *dst, const void *src)
+@@ -803,21 +803,15 @@ cleanup_entry(struct ipt_entry *e)
+ /* Checks and translates the user-supplied table segment (held in
+    newinfo) */
+ static int
+-translate_table(const char *name,
+-		unsigned int valid_hooks,
+-		struct xt_table_info *newinfo,
+-		void *entry0,
+-		unsigned int size,
+-		unsigned int number,
+-		const unsigned int *hook_entries,
+-		const unsigned int *underflows)
++translate_table(struct xt_table_info *newinfo, void *entry0,
++                const struct ipt_replace *repl)
  {
- 	int v = *(compat_int_t *)src;
+ 	struct ipt_entry *iter;
+ 	unsigned int i;
+ 	int ret = 0;
  
-@@ -1044,7 +1044,7 @@ static void compat_standard_from_user(void *dst, void *src)
- 	memcpy(dst, &v, sizeof(v));
- }
+-	newinfo->size = size;
+-	newinfo->number = number;
++	newinfo->size = repl->size;
++	newinfo->number = repl->num_entries;
  
--static int compat_standard_to_user(void __user *dst, void *src)
-+static int compat_standard_to_user(void __user *dst, const void *src)
- {
- 	compat_int_t cv = *(int *)src;
+ 	/* Init all hooks to impossible value. */
+ 	for (i = 0; i < NF_INET_NUMHOOKS; i++) {
+@@ -830,42 +824,43 @@ translate_table(const char *name,
+ 	/* Walk through entries, checking offsets. */
+ 	xt_entry_foreach(iter, entry0, newinfo->size) {
+ 		ret = check_entry_size_and_hooks(iter, newinfo, entry0,
+-		      entry0 + size, hook_entries, underflows, valid_hooks);
++		      entry0 + repl->size, repl->hook_entry, repl->underflow,
++		      repl->valid_hooks);
+ 		if (ret != 0)
+ 			return ret;
+ 		++i;
+ 	}
  
-diff --git a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
-index d32cc4b..0b02768 100644
---- a/net/ipv4/netfilter/ipt_ULOG.c
-+++ b/net/ipv4/netfilter/ipt_ULOG.c
-@@ -338,7 +338,7 @@ struct compat_ipt_ulog_info {
- 	char		prefix[ULOG_PREFIX_LEN];
- };
+-	if (i != number) {
++	if (i != repl->num_entries) {
+ 		duprintf("translate_table: %u not %u entries\n",
+-			 i, number);
++			 i, repl->num_entries);
+ 		return -EINVAL;
+ 	}
  
--static void ulog_tg_compat_from_user(void *dst, void *src)
-+static void ulog_tg_compat_from_user(void *dst, const void *src)
- {
- 	const struct compat_ipt_ulog_info *cl = src;
- 	struct ipt_ulog_info l = {
-@@ -351,7 +351,7 @@ static void ulog_tg_compat_from_user(void *dst, void *src)
- 	memcpy(dst, &l, sizeof(l));
- }
+ 	/* Check hooks all assigned */
+ 	for (i = 0; i < NF_INET_NUMHOOKS; i++) {
+ 		/* Only hooks which are valid */
+-		if (!(valid_hooks & (1 << i)))
++		if (!(repl->valid_hooks & (1 << i)))
+ 			continue;
+ 		if (newinfo->hook_entry[i] == 0xFFFFFFFF) {
+ 			duprintf("Invalid hook entry %u %u\n",
+-				 i, hook_entries[i]);
++				 i, repl->hook_entry[i]);
+ 			return -EINVAL;
+ 		}
+ 		if (newinfo->underflow[i] == 0xFFFFFFFF) {
+ 			duprintf("Invalid underflow %u %u\n",
+-				 i, underflows[i]);
++				 i, repl->underflow[i]);
+ 			return -EINVAL;
+ 		}
+ 	}
  
--static int ulog_tg_compat_to_user(void __user *dst, void *src)
-+static int ulog_tg_compat_to_user(void __user *dst, const void *src)
- {
- 	const struct ipt_ulog_info *l = src;
- 	struct compat_ipt_ulog_info cl = {
+-	if (!mark_source_chains(newinfo, valid_hooks, entry0))
++	if (!mark_source_chains(newinfo, repl->valid_hooks, entry0))
+ 		return -ELOOP;
+ 
+ 	/* Finally, each sanity check must pass */
+ 	i = 0;
+ 	xt_entry_foreach(iter, entry0, newinfo->size) {
+-		ret = find_check_entry(iter, name, size);
++		ret = find_check_entry(iter, repl->name, repl->size);
+ 		if (ret != 0)
+ 			break;
+ 		++i;
+@@ -1299,9 +1294,7 @@ do_replace(struct net *net, const void __user *user, unsigned int len)
+ 		goto free_newinfo;
+ 	}
+ 
+-	ret = translate_table(tmp.name, tmp.valid_hooks,
+-			      newinfo, loc_cpu_entry, tmp.size, tmp.num_entries,
+-			      tmp.hook_entry, tmp.underflow);
++	ret = translate_table(newinfo, loc_cpu_entry, &tmp);
+ 	if (ret != 0)
+ 		goto free_newinfo;
+ 
+@@ -2098,11 +2091,7 @@ struct xt_table *ipt_register_table(struct net *net,
+ 	loc_cpu_entry = newinfo->entries[raw_smp_processor_id()];
+ 	memcpy(loc_cpu_entry, repl->entries, repl->size);
+ 
+-	ret = translate_table(table->name, table->valid_hooks,
+-			      newinfo, loc_cpu_entry, repl->size,
+-			      repl->num_entries,
+-			      repl->hook_entry,
+-			      repl->underflow);
++	ret = translate_table(newinfo, loc_cpu_entry, repl);
+ 	if (ret != 0)
+ 		goto out_free;
+ 
 diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index cc9f8ef..47ed731 100644
+index b335ce7..c491249 100644
 --- a/net/ipv6/netfilter/ip6_tables.c
 +++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -1067,7 +1067,7 @@ copy_entries_to_user(unsigned int total_size,
- }
- 
- #ifdef CONFIG_COMPAT
--static void compat_standard_from_user(void *dst, void *src)
-+static void compat_standard_from_user(void *dst, const void *src)
+@@ -833,21 +833,15 @@ static void cleanup_entry(struct ip6t_entry *e)
+ /* Checks and translates the user-supplied table segment (held in
+    newinfo) */
+ static int
+-translate_table(const char *name,
+-		unsigned int valid_hooks,
+-		struct xt_table_info *newinfo,
+-		void *entry0,
+-		unsigned int size,
+-		unsigned int number,
+-		const unsigned int *hook_entries,
+-		const unsigned int *underflows)
++translate_table(struct xt_table_info *newinfo, void *entry0,
++                const struct ip6t_replace *repl)
  {
- 	int v = *(compat_int_t *)src;
+ 	struct ip6t_entry *iter;
+ 	unsigned int i;
+ 	int ret = 0;
  
-@@ -1076,7 +1076,7 @@ static void compat_standard_from_user(void *dst, void *src)
- 	memcpy(dst, &v, sizeof(v));
- }
+-	newinfo->size = size;
+-	newinfo->number = number;
++	newinfo->size = repl->size;
++	newinfo->number = repl->num_entries;
  
--static int compat_standard_to_user(void __user *dst, void *src)
-+static int compat_standard_to_user(void __user *dst, const void *src)
- {
- 	compat_int_t cv = *(int *)src;
+ 	/* Init all hooks to impossible value. */
+ 	for (i = 0; i < NF_INET_NUMHOOKS; i++) {
+@@ -860,42 +854,43 @@ translate_table(const char *name,
+ 	/* Walk through entries, checking offsets. */
+ 	xt_entry_foreach(iter, entry0, newinfo->size) {
+ 		ret = check_entry_size_and_hooks(iter, newinfo, entry0,
+-		      entry0 + size, hook_entries, underflows, valid_hooks);
++		      entry0 + repl->size, repl->hook_entry, repl->underflow,
++		      repl->valid_hooks);
+ 		if (ret != 0)
+ 			return ret;
+ 		++i;
+ 	}
  
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index ff4bd71..478e9c8 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -485,8 +485,8 @@ int xt_compat_match_from_user(struct xt_entry_match *m, void **dstptr,
- }
- EXPORT_SYMBOL_GPL(xt_compat_match_from_user);
+-	if (i != number) {
++	if (i != repl->num_entries) {
+ 		duprintf("translate_table: %u not %u entries\n",
+-			 i, number);
++			 i, repl->num_entries);
+ 		return -EINVAL;
+ 	}
  
--int xt_compat_match_to_user(struct xt_entry_match *m, void __user **dstptr,
--			    unsigned int *size)
-+int xt_compat_match_to_user(const struct xt_entry_match *m,
-+			    void __user **dstptr, unsigned int *size)
- {
- 	const struct xt_match *match = m->u.kernel.match;
- 	struct compat_xt_entry_match __user *cm = *dstptr;
-@@ -588,8 +588,8 @@ void xt_compat_target_from_user(struct xt_entry_target *t, void **dstptr,
- }
- EXPORT_SYMBOL_GPL(xt_compat_target_from_user);
+ 	/* Check hooks all assigned */
+ 	for (i = 0; i < NF_INET_NUMHOOKS; i++) {
+ 		/* Only hooks which are valid */
+-		if (!(valid_hooks & (1 << i)))
++		if (!(repl->valid_hooks & (1 << i)))
+ 			continue;
+ 		if (newinfo->hook_entry[i] == 0xFFFFFFFF) {
+ 			duprintf("Invalid hook entry %u %u\n",
+-				 i, hook_entries[i]);
++				 i, repl->hook_entry[i]);
+ 			return -EINVAL;
+ 		}
+ 		if (newinfo->underflow[i] == 0xFFFFFFFF) {
+ 			duprintf("Invalid underflow %u %u\n",
+-				 i, underflows[i]);
++				 i, repl->underflow[i]);
+ 			return -EINVAL;
+ 		}
+ 	}
  
--int xt_compat_target_to_user(struct xt_entry_target *t, void __user **dstptr,
--			     unsigned int *size)
-+int xt_compat_target_to_user(const struct xt_entry_target *t,
-+			     void __user **dstptr, unsigned int *size)
- {
- 	const struct xt_target *target = t->u.kernel.target;
- 	struct compat_xt_entry_target __user *ct = *dstptr;
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index 219dcdb..91ddabb 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -767,7 +767,7 @@ struct compat_xt_hashlimit_info {
- 	compat_uptr_t master;
- };
+-	if (!mark_source_chains(newinfo, valid_hooks, entry0))
++	if (!mark_source_chains(newinfo, repl->valid_hooks, entry0))
+ 		return -ELOOP;
  
--static void hashlimit_mt_compat_from_user(void *dst, void *src)
-+static void hashlimit_mt_compat_from_user(void *dst, const void *src)
- {
- 	int off = offsetof(struct compat_xt_hashlimit_info, hinfo);
+ 	/* Finally, each sanity check must pass */
+ 	i = 0;
+ 	xt_entry_foreach(iter, entry0, newinfo->size) {
+-		ret = find_check_entry(iter, name, size);
++		ret = find_check_entry(iter, repl->name, repl->size);
+ 		if (ret != 0)
+ 			break;
+ 		++i;
+@@ -1330,9 +1325,7 @@ do_replace(struct net *net, const void __user *user, unsigned int len)
+ 		goto free_newinfo;
+ 	}
  
-@@ -775,7 +775,7 @@ static void hashlimit_mt_compat_from_user(void *dst, void *src)
- 	memset(dst + off, 0, sizeof(struct compat_xt_hashlimit_info) - off);
- }
+-	ret = translate_table(tmp.name, tmp.valid_hooks,
+-			      newinfo, loc_cpu_entry, tmp.size, tmp.num_entries,
+-			      tmp.hook_entry, tmp.underflow);
++	ret = translate_table(newinfo, loc_cpu_entry, &tmp);
+ 	if (ret != 0)
+ 		goto free_newinfo;
  
--static int hashlimit_mt_compat_to_user(void __user *dst, void *src)
-+static int hashlimit_mt_compat_to_user(void __user *dst, const void *src)
- {
- 	int off = offsetof(struct compat_xt_hashlimit_info, hinfo);
+@@ -2130,11 +2123,7 @@ struct xt_table *ip6t_register_table(struct net *net,
+ 	loc_cpu_entry = newinfo->entries[raw_smp_processor_id()];
+ 	memcpy(loc_cpu_entry, repl->entries, repl->size);
  
-diff --git a/net/netfilter/xt_limit.c b/net/netfilter/xt_limit.c
-index 2e8089e..dad26f9 100644
---- a/net/netfilter/xt_limit.c
-+++ b/net/netfilter/xt_limit.c
-@@ -148,7 +148,7 @@ struct compat_xt_rateinfo {
+-	ret = translate_table(table->name, table->valid_hooks,
+-			      newinfo, loc_cpu_entry, repl->size,
+-			      repl->num_entries,
+-			      repl->hook_entry,
+-			      repl->underflow);
++	ret = translate_table(newinfo, loc_cpu_entry, repl);
+ 	if (ret != 0)
+ 		goto out_free;
  
- /* To keep the full "prev" timestamp, the upper 32 bits are stored in the
-  * master pointer, which does not need to be preserved. */
--static void limit_mt_compat_from_user(void *dst, void *src)
-+static void limit_mt_compat_from_user(void *dst, const void *src)
- {
- 	const struct compat_xt_rateinfo *cm = src;
- 	struct xt_rateinfo m = {
-@@ -162,7 +162,7 @@ static void limit_mt_compat_from_user(void *dst, void *src)
- 	memcpy(dst, &m, sizeof(m));
- }
- 
--static int limit_mt_compat_to_user(void __user *dst, void *src)
-+static int limit_mt_compat_to_user(void __user *dst, const void *src)
- {
- 	const struct xt_rateinfo *m = src;
- 	struct compat_xt_rateinfo cm = {
 -- 
 1.6.3.3
 
