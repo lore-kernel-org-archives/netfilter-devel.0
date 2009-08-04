@@ -1,452 +1,377 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 094/103] netfilter: iptables: remove remaining xt1 code
-Date: Tue,  4 Aug 2009 09:26:18 +0200
-Message-ID: <1249370787-17583-95-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 097/103] netfilter: arptables: switch to xt2 tables
+Date: Tue,  4 Aug 2009 09:26:21 +0200
+Message-ID: <1249370787-17583-98-git-send-email-jengelh@medozas.de>
 References: <1249370787-17583-1-git-send-email-jengelh@medozas.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:56961 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:56963 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932567AbZHDH2O (ORCPT
+	with ESMTP id S932627AbZHDH2S (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Aug 2009 03:28:14 -0400
+	Tue, 4 Aug 2009 03:28:18 -0400
 In-Reply-To: <1249370787-17583-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/linux/netfilter_ipv4/ip_tables.h |   17 --
- net/ipv4/netfilter/ip_tables.c           |  344 ------------------------------
- 2 files changed, 0 insertions(+), 361 deletions(-)
+ include/net/netns/x_tables.h         |    1 +
+ net/ipv4/netfilter/arp_tables.c      |  201 ++++++++++++----------------------
+ net/ipv4/netfilter/arptable_filter.c |   22 +++-
+ 3 files changed, 87 insertions(+), 137 deletions(-)
 
-diff --git a/include/linux/netfilter_ipv4/ip_tables.h b/include/linux/netfilter_ipv4/ip_tables.h
-index 73a8f55..fdc7e4e 100644
---- a/include/linux/netfilter_ipv4/ip_tables.h
-+++ b/include/linux/netfilter_ipv4/ip_tables.h
-@@ -290,14 +290,6 @@ struct ipt_error
- 	.target.errorname = "ERROR",					       \
- }
- 
--extern unsigned int ipt_do_table(struct sk_buff *skb,
--				 unsigned int hook,
--				 const struct net_device *in,
--				 const struct net_device *out,
--				 struct xt_table *table);
--
--#define IPT_ALIGN(s) XT_ALIGN(s)
--
- #ifdef CONFIG_COMPAT
- #include <net/compat.h>
- 
-@@ -324,15 +316,6 @@ struct compat_ipt_replace {
- 	struct compat_ipt_entry	entries[0];
+diff --git a/include/net/netns/x_tables.h b/include/net/netns/x_tables.h
+index 68b0b4f..f472744 100644
+--- a/include/net/netns/x_tables.h
++++ b/include/net/netns/x_tables.h
+@@ -21,6 +21,7 @@ struct netns_xt2 {
+ 		*ipv4_nat;
+ 	struct xt2_table_link
+ 		*ipv6_filter, *ipv6_mangle, *ipv6_raw, *ipv6_security;
++	struct xt2_table_link *arp_filter;
  };
  
--/* Helper functions */
--static inline struct ipt_entry_target *
--compat_ipt_get_target(struct compat_ipt_entry *e)
--{
--	return (void *)e + e->target_offset;
--}
--
--#define COMPAT_IPT_ALIGN(s) 	COMPAT_XT_ALIGN(s)
--
- #endif /* CONFIG_COMPAT */
- #endif /*__KERNEL__*/
- #endif /* _IPTABLES_H */
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index ed3056b..c58b5a1 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -49,23 +49,6 @@ MODULE_DESCRIPTION("IPv4 packet filter");
- #define duprintf(format, args...)
+ #endif
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 850b248..8d59b2a 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -955,11 +955,51 @@ static int compat_table_info(const struct xt_table_info *info,
+ }
  #endif
  
--#ifdef CONFIG_NETFILTER_DEBUG
--#define IP_NF_ASSERT(x)						\
--do {								\
--	if (!(x))						\
--		printk("IP_NF_ASSERT: %s:%s:%u\n",		\
--		       __func__, __FILE__, __LINE__);	\
--} while(0)
--#else
--#define IP_NF_ASSERT(x)
--#endif
--
--#if 0
--/* All the better to debug you with... */
--#define static
--#define inline
--#endif
--
- #define xtsub_entry           ipt_entry
- #define xtsub_entry_nocompat  ipt_entry
- #define xtsub_replace         ipt_replace
-@@ -228,55 +211,6 @@ static bool icmp_checkentry(const struct xt_mtchk_param *par)
- 	return !(icmpinfo->invflags & ~IPT_ICMP_INV);
- }
++static const struct xt1_xlat_info arpt_compat_xlat_info = {
++#ifdef CONFIG_COMPAT
++	.marker_size     = XT_ALIGN(sizeof(struct arpt_error_target)),
++	.entry_hdr_size  = sizeof(struct compat_arpt_entry),
++	.pmatch_size     = sizeof(struct arpt_arp),
++	.first_match     = "arp",
++	.ematch_size     = sizeof(struct xt_entry_match),
++	.etarget_size    = sizeof(struct xt_entry_target),
++	.standard_tgsize = COMPAT_XT_ALIGN(sizeof(struct xt_entry_target) +
++	                   sizeof(compat_uint_t)),
++	.compat          = true,
++#endif
++};
++
++static const struct xt1_xlat_info arpt_xlat_info = {
++	.marker_size     = XT_ALIGN(sizeof(struct arpt_error_target)),
++	.entry_hdr_size  = sizeof(struct arpt_entry),
++	.pmatch_size     = sizeof(struct arpt_arp),
++	.first_match     = "arp",
++	.ematch_size     = sizeof(struct xt_entry_match),
++	.etarget_size    = sizeof(struct xt_entry_target),
++	.standard_tgsize = XT_ALIGN(sizeof(struct xt_entry_target) +
++	                   sizeof(int)),
++};
++
++static int arpt2_get_info(void __user *uptr, int len,
++                          struct xt2_table *table, bool compat)
++{
++	struct arpt_getinfo info = {
++		.valid_hooks = table->valid_hooks,
++	};
++
++	strncpy(info.name, table->name,
++	        min(sizeof(info.name), sizeof(table->name)));
++	info.size = xts_blob_prep_table(table,
++	            compat ? &arpt_compat_xlat_info : &arpt_xlat_info,
++	            info.hook_entry, info.underflow, &info.num_entries);
++	return (copy_to_user(uptr, &info, sizeof(info)) != 0) ? -EFAULT : 0;
++}
++
+ static int get_info(struct net *net, void __user *user,
+                     const int *len, int compat)
+ {
+ 	char name[ARPT_TABLE_MAXNAMELEN];
+-	struct xt_table *t;
++	struct xt2_table *table;
+ 	int ret;
  
--#ifdef CONFIG_COMPAT
--static void compat_standard_from_user(void *dst, const void *src)
--{
--	int v = *(compat_int_t *)src;
--
--	if (v > 0)
--		v += xt_compat_calc_jump(AF_INET, v);
--	memcpy(dst, &v, sizeof(v));
--}
--
--static int compat_standard_to_user(void __user *dst, const void *src)
--{
--	compat_int_t cv = *(int *)src;
--
--	if (cv > 0)
--		cv -= xt_compat_calc_jump(AF_INET, cv);
--	return copy_to_user(dst, &cv, sizeof(cv)) ? -EFAULT : 0;
--}
--#endif
--
--static unsigned int
--ipt_error(struct sk_buff *skb, const struct xt_action_param *par)
--{
--	if (net_ratelimit())
--		printk("ip_tables: error: `%s'\n",
--		       (const char *)par->targinfo);
--
--	return NF_DROP;
--}
--
--static struct xt_target ipt_builtin_tg[] __read_mostly = {
--	{
--		.name             = IPT_STANDARD_TARGET,
--		.targetsize       = sizeof(int),
--		.family           = NFPROTO_IPV4,
--#ifdef CONFIG_COMPAT
--		.compatsize       = sizeof(compat_int_t),
--		.compat_from_user = compat_standard_from_user,
--		.compat_to_user   = compat_standard_to_user,
--#endif
--	},
--	{
--		.name             = IPT_ERROR_TARGET,
--		.target           = ipt_error,
--		.targetsize       = IPT_FUNCTION_MAXNAMELEN,
--		.family           = NFPROTO_IPV4,
--	},
--};
--
- static struct xt_match ipt_builtin_mt[] __read_mostly = {
- 	{
- 		.name       = "ipv4",
-@@ -296,277 +230,6 @@ static struct xt_match ipt_builtin_mt[] __read_mostly = {
- 	},
- };
+ 	if (*len != sizeof(struct arpt_getinfo)) {
+@@ -972,45 +1012,13 @@ static int get_info(struct net *net, void __user *user,
+ 		return -EFAULT;
  
--/* Performance critical */
--static inline struct ipt_entry *
--get_entry(const void *base, unsigned int offset)
--{
--	return (struct ipt_entry *)(base + offset);
--}
--
--/* All zeroes == unconditional rule. */
--/* Mildly perf critical (only if packet tracing is on) */
--static inline bool unconditional(const struct ipt_ip *ip)
--{
--	static const struct ipt_ip uncond;
--
--	return memcmp(ip, &uncond, sizeof(uncond)) == 0;
--#undef FWINV
--}
--
--/* for const-correctness */
--static inline const struct ipt_entry_target *
--ipt_get_target_c(const struct ipt_entry *e)
--{
--	return ipt_get_target((struct ipt_entry *)e);
--}
--
--#if defined(CONFIG_NETFILTER_XT_TARGET_TRACE) || \
--    defined(CONFIG_NETFILTER_XT_TARGET_TRACE_MODULE)
--static const char *const hooknames[] = {
--	[NF_INET_PRE_ROUTING]		= "PREROUTING",
--	[NF_INET_LOCAL_IN]		= "INPUT",
--	[NF_INET_FORWARD]		= "FORWARD",
--	[NF_INET_LOCAL_OUT]		= "OUTPUT",
--	[NF_INET_POST_ROUTING]		= "POSTROUTING",
--};
--
--enum nf_ip_trace_comments {
--	NF_IP_TRACE_COMMENT_RULE,
--	NF_IP_TRACE_COMMENT_RETURN,
--	NF_IP_TRACE_COMMENT_POLICY,
--};
--
--static const char *const comments[] = {
--	[NF_IP_TRACE_COMMENT_RULE]	= "rule",
--	[NF_IP_TRACE_COMMENT_RETURN]	= "return",
--	[NF_IP_TRACE_COMMENT_POLICY]	= "policy",
--};
--
--static struct nf_loginfo trace_loginfo = {
--	.type = NF_LOG_TYPE_LOG,
--	.u = {
--		.log = {
--			.level = 4,
--			.logflags = NF_LOG_MASK,
--		},
--	},
--};
--
--/* Mildly perf critical (only if packet tracing is on) */
--static inline int
--get_chainname_rulenum(const struct ipt_entry *s, const struct ipt_entry *e,
--		      const char *hookname, const char **chainname,
--		      const char **comment, unsigned int *rulenum)
--{
--	const struct ipt_standard_target *t = (void *)ipt_get_target_c(s);
--
--	if (strcmp(t->target.u.kernel.target->name, IPT_ERROR_TARGET) == 0) {
--		/* Head of user chain: ERROR target with chainname */
--		*chainname = t->target.data;
--		(*rulenum) = 0;
--	} else if (s == e) {
--		(*rulenum)++;
--
--		if (s->target_offset == sizeof(struct ipt_entry)
--		   && strcmp(t->target.u.kernel.target->name,
--			     IPT_STANDARD_TARGET) == 0
--		   && t->verdict < 0
--		   && unconditional(&s->ip)) {
--			/* Tail of chains: STANDARD target (return/policy) */
--			*comment = *chainname == hookname
--				? comments[NF_IP_TRACE_COMMENT_POLICY]
--				: comments[NF_IP_TRACE_COMMENT_RETURN];
--		}
--		return 1;
--	} else
--		(*rulenum)++;
--
--	return 0;
--}
--
--static void trace_packet(const struct sk_buff *skb,
--			 unsigned int hook,
--			 const struct net_device *in,
--			 const struct net_device *out,
--			 const char *tablename,
--			 const struct xt_table_info *private,
--			 const struct ipt_entry *e)
--{
--	const void *table_base;
--	const struct ipt_entry *root;
--	const char *hookname, *chainname, *comment;
--	const struct ipt_entry *iter;
--	unsigned int rulenum = 0;
--
--	table_base = private->entries[smp_processor_id()];
--	root = get_entry(table_base, private->hook_entry[hook]);
--
--	hookname = chainname = hooknames[hook];
--	comment = comments[NF_IP_TRACE_COMMENT_RULE];
--
--	xt_entry_foreach(iter, root, private->size - private->hook_entry[hook])
--		if (get_chainname_rulenum(iter, e, hookname,
--		    &chainname, &comment, &rulenum) != 0)
--			break;
--
--	nf_log_packet(AF_INET, hook, skb, in, out, &trace_loginfo,
--		      "TRACE: %s:%s:%s:%u ",
--		      tablename, chainname, comment, rulenum);
--}
+ 	name[ARPT_TABLE_MAXNAMELEN-1] = '\0';
+-#ifdef CONFIG_COMPAT
+-	if (compat)
+-		xt_compat_lock(NFPROTO_ARP);
 -#endif
+-	t = try_then_request_module(xt_find_table_lock(net, NFPROTO_ARP, name),
+-				    "arptable_%s", name);
+-	if (t && !IS_ERR(t)) {
+-		struct arpt_getinfo info;
+-		const struct xt_table_info *private = t->private;
 -
--static inline __pure
--struct ipt_entry *ipt_next_entry(const struct ipt_entry *entry)
--{
--	return (void *)entry + entry->next_offset;
--}
--
--/* Returns one of the generic firewall policies, like NF_ACCEPT. */
--unsigned int
--ipt_do_table(struct sk_buff *skb,
--	     unsigned int hook,
--	     const struct net_device *in,
--	     const struct net_device *out,
--	     struct xt_table *table)
--{
--	const struct iphdr *ip;
--	/* Initializing verdict to NF_DROP keeps gcc happy. */
--	unsigned int verdict = NF_DROP;
--	const void *table_base;
--	struct ipt_entry *e, **jumpstack;
--	unsigned int *stackptr, origptr, cpu;
--	const struct xt_table_info *private;
--	struct xt_action_param acpar;
--
--	/* Initialization */
--	ip = ip_hdr(skb);
--	/* We handle fragments by dealing with the first fragment as
--	 * if it was a normal packet.  All other fragments are treated
--	 * normally, except that they will NEVER match rules that ask
--	 * things we don't know, ie. tcp syn flag or ports).  If the
--	 * rule is also a fragment-specific rule, non-fragments won't
--	 * match it. */
--	acpar.fragoff = ntohs(ip->frag_off) & IP_OFFSET;
--	acpar.thoff   = ip_hdrlen(skb);
--	acpar.hotdrop = false;
--	acpar.in      = in;
--	acpar.out     = out;
--	acpar.family  = NFPROTO_IPV4;
--	acpar.hooknum = hook;
--
--	IP_NF_ASSERT(table->valid_hooks & (1 << hook));
--	xt_info_rdlock_bh();
--	private = table->private;
--	cpu        = smp_processor_id();
--	table_base = private->entries[cpu];
--	jumpstack  = (struct ipt_entry **)private->jumpstack[cpu];
--	stackptr   = &private->stackptr[cpu];
--	origptr    = *stackptr;
--
--	e = get_entry(table_base, private->hook_entry[hook]);
--
--	pr_devel("Entering %s(hook %u); sp at %u (UF %p)\n", table->name,
--	         hook, origptr,
--	         get_entry(table_base, private->underflow[hook]));
--
--	do {
--		const struct ipt_entry_target *t;
--		const struct xt_entry_match *ematch;
--
--		IP_NF_ASSERT(e);
--		acpar.match     = &ipt_builtin_mt[0]; /* "ipv4" itself */
--		acpar.matchinfo = &e->ip;
--		if (!ip_packet_match(skb, &acpar)) {
-- no_match:
--			e = ipt_next_entry(e);
--			continue;
+-#ifdef CONFIG_COMPAT
+-		if (compat) {
+-			struct xt_table_info tmp;
+-			ret = compat_table_info(private, &tmp);
+-			xt_compat_flush_offsets(NFPROTO_ARP);
+-			private = &tmp;
 -		}
--
--		xt_ematch_foreach(ematch, e) {
--			acpar.match     = ematch->u.kernel.match;
--			acpar.matchinfo = ematch->data;
--			if (!acpar.match->match(skb, &acpar))
--				goto no_match;
--		}
--
--		ADD_COUNTER(e->counters, ntohs(ip->tot_len), 1);
--
--		t = ipt_get_target(e);
--		IP_NF_ASSERT(t->u.kernel.target);
--
--#if defined(CONFIG_NETFILTER_XT_TARGET_TRACE) || \
--    defined(CONFIG_NETFILTER_XT_TARGET_TRACE_MODULE)
--		/* The packet is traced: log it */
--		if (unlikely(skb->nf_trace))
--			trace_packet(skb, hook, in, out,
--				     table->name, private, e);
 -#endif
--		/* Standard target? */
--		if (!t->u.kernel.target->target) {
--			int v;
+-		info.valid_hooks = t->valid_hooks;
+-		memcpy(info.hook_entry, private->hook_entry,
+-		       sizeof(info.hook_entry));
+-		memcpy(info.underflow, private->underflow,
+-		       sizeof(info.underflow));
+-		info.num_entries = private->number;
+-		info.size = private->size;
+-		strcpy(info.name, name);
 -
--			v = ((struct ipt_standard_target *)t)->verdict;
--			if (v < 0) {
--				/* Pop from stack? */
--				if (v != IPT_RETURN) {
--					verdict = (unsigned)(-v) - 1;
--					break;
--				}
--				if (*stackptr == 0) {
--					e = get_entry(table_base,
--					    private->underflow[hook]);
--					pr_devel("Underflow (this is normal) "
--					         "to %p\n", e);
--				} else {
--					e = jumpstack[--*stackptr];
--					pr_devel("Pulled %p out from pos %u\n",
--					         e, *stackptr);
--					e = ipt_next_entry(e);
--				}
--				continue;
--			}
--			if (table_base + v != ipt_next_entry(e)
--			    && !(e->ip.flags & IPT_F_GOTO)) {
--				if (*stackptr >= private->stacksize) {
--					verdict = NF_DROP;
--					break;
--				}
--				jumpstack[(*stackptr)++] = e;
--				pr_devel("Pushed %p into pos %u\n",
--				         e, *stackptr - 1);
--			}
--
--			e = get_entry(table_base, v);
--			continue;
--		}
--
--		/* Targets which reenter must return
--		   abs. verdicts */
--		acpar.target   = t->u.kernel.target;
--		acpar.targinfo = t->data;
--
--		verdict = t->u.kernel.target->target(skb, &acpar);
--		/* Target might have changed stuff. */
--		ip = ip_hdr(skb);
--		if (verdict == IPT_CONTINUE)
--			e = ipt_next_entry(e);
+-		if (copy_to_user(user, &info, *len) != 0)
+-			ret = -EFAULT;
 -		else
--			/* Verdict */
--			break;
--	} while (!acpar.hotdrop);
--	xt_info_rdunlock_bh();
--	pr_devel("Exiting %s; resetting sp from %u to %u\n",
--	         __func__, *stackptr, origptr);
--	*stackptr = origptr;
--#ifdef DEBUG_ALLOW_ALL
--	return NF_ACCEPT;
--#else
--	if (acpar.hotdrop)
--		return NF_DROP;
--	else return verdict;
+-			ret = 0;
+-		xt_table_unlock(t);
+-		module_put(t->me);
+-	} else
+-		ret = t ? PTR_ERR(t) : -ENOENT;
+-#ifdef CONFIG_COMPAT
+-	if (compat)
+-		xt_compat_unlock(NFPROTO_ARP);
 -#endif
--}
--
- static const struct xt1_xlat_info ipt_compat_xlat_info = {
- #ifdef CONFIG_COMPAT
- 	.marker_size     = XT_ALIGN(sizeof(struct ipt_error_target)),
-@@ -919,9 +582,6 @@ static int __init ip_tables_init(void)
- 		goto err1;
- 
- 	/* Noone else will be downing sem now, so we won't sleep */
--	ret = xt_register_targets(ipt_builtin_tg, ARRAY_SIZE(ipt_builtin_tg));
--	if (ret < 0)
--		goto err2;
- 	ret = xt_register_matches(ipt_builtin_mt, ARRAY_SIZE(ipt_builtin_mt));
- 	if (ret < 0)
- 		goto err4;
-@@ -937,8 +597,6 @@ static int __init ip_tables_init(void)
- err5:
- 	xt_unregister_matches(ipt_builtin_mt, ARRAY_SIZE(ipt_builtin_mt));
- err4:
--	xt_unregister_targets(ipt_builtin_tg, ARRAY_SIZE(ipt_builtin_tg));
--err2:
- 	unregister_pernet_subsys(&ip_tables_net_ops);
- err1:
++	table = try_then_request_module(
++	        xt2_table_lookup(net, name, NFPROTO_ARP, XT2_TAKE_RCULOCK),
++	        "arptable_%s", name);
++	if (table == NULL)
++		return -ENOENT;
++	ret = arpt2_get_info(user, *len, table, compat);
++	rcu_read_unlock();
  	return ret;
-@@ -949,10 +607,8 @@ static void __exit ip_tables_fini(void)
- 	nf_unregister_sockopt(&ipt_sockopts);
- 
- 	xt_unregister_matches(ipt_builtin_mt, ARRAY_SIZE(ipt_builtin_mt));
--	xt_unregister_targets(ipt_builtin_tg, ARRAY_SIZE(ipt_builtin_tg));
- 	unregister_pernet_subsys(&ip_tables_net_ops);
  }
  
--EXPORT_SYMBOL(ipt_do_table);
- module_init(ip_tables_init);
- module_exit(ip_tables_fini);
+@@ -1019,7 +1027,7 @@ static int get_entries(struct net *net, struct arpt_get_entries __user *uptr,
+ {
+ 	int ret;
+ 	struct arpt_get_entries get;
+-	struct xt_table *t;
++	struct xt2_table *table;
+ 
+ 	if (*len < sizeof(get)) {
+ 		duprintf("get_entries: %u < %Zu\n", *len, sizeof(get));
+@@ -1033,25 +1041,12 @@ static int get_entries(struct net *net, struct arpt_get_entries __user *uptr,
+ 		return -EINVAL;
+ 	}
+ 
+-	t = xt_find_table_lock(net, NFPROTO_ARP, get.name);
+-	if (t && !IS_ERR(t)) {
+-		const struct xt_table_info *private = t->private;
+-
+-		duprintf("t->private->number = %u\n",
+-			 private->number);
+-		if (get.size == private->size)
+-			ret = copy_entries_to_user(private->size,
+-						   t, uptr->entrytable);
+-		else {
+-			duprintf("get_entries: I've got %u not %u!\n",
+-				 private->size, get.size);
+-			ret = -EAGAIN;
+-		}
+-		module_put(t->me);
+-		xt_table_unlock(t);
+-	} else
+-		ret = t ? PTR_ERR(t) : -ENOENT;
+-
++	table = xt2_table_lookup(net, get.name, NFPROTO_ARP, XT2_TAKE_RCULOCK);
++	if (table == NULL)
++		return -ENOENT;
++	ret = arpt2_table_to_xt1(uptr->entrytable, get.size,
++	      table, &arpt_xlat_info);
++	rcu_read_unlock();
+ 	return ret;
+ }
+ 
+@@ -1181,18 +1176,13 @@ static int do_replace(struct net *net, const void __user *user,
+ static int do_add_counters(struct net *net, const void __user *user,
+ 			   unsigned int len, int compat)
+ {
+-	unsigned int i, curcpu;
+ 	struct xt_counters_info tmp;
+-	struct xt_counters *paddc;
+ 	unsigned int num_counters;
+ 	const char *name;
+ 	int size;
+ 	void *ptmp;
+-	struct xt_table *t;
+-	const struct xt_table_info *private;
+ 	int ret = 0;
+-	void *loc_cpu_entry;
+-	struct arpt_entry *iter;
++	struct xt2_table *table;
+ #ifdef CONFIG_COMPAT
+ 	struct compat_xt_counters_info compat_tmp;
+ 
+@@ -1223,45 +1213,11 @@ static int do_add_counters(struct net *net, const void __user *user,
+ 	if (len != size + num_counters * sizeof(struct xt_counters))
+ 		return -EINVAL;
+ 
+-	paddc = vmalloc_node(len - size, numa_node_id());
+-	if (!paddc)
+-		return -ENOMEM;
+-
+-	if (copy_from_user(paddc, user + size, len - size) != 0) {
+-		ret = -EFAULT;
+-		goto free;
+-	}
+-
+-	t = xt_find_table_lock(net, NFPROTO_ARP, name);
+-	if (!t || IS_ERR(t)) {
+-		ret = t ? PTR_ERR(t) : -ENOENT;
+-		goto free;
+-	}
+-
+-	local_bh_disable();
+-	private = t->private;
+-	if (private->number != num_counters) {
+-		ret = -EINVAL;
+-		goto unlock_up_free;
+-	}
+-
+-	i = 0;
+-	/* Choose the copy that is on our node */
+-	curcpu = smp_processor_id();
+-	loc_cpu_entry = private->entries[curcpu];
+-	xt_info_wrlock(curcpu);
+-	xt_entry_foreach(iter, loc_cpu_entry, private->size) {
+-		ADD_COUNTER(iter->counters, paddc[i].bcnt, paddc[i].pcnt);
+-		++i;
+-	}
+-	xt_info_wrunlock(curcpu);
+- unlock_up_free:
+-	local_bh_enable();
+-	xt_table_unlock(t);
+-	module_put(t->me);
+- free:
+-	vfree(paddc);
+-
++	table = xt2_table_lookup(net, name, NFPROTO_ARP, XT2_TAKE_RCULOCK);
++	if (table == NULL)
++		return -ENOENT;
++	ret = xts_get_counters(table, user + size, num_counters);
++	rcu_read_unlock();
+ 	return ret;
+ }
+ 
+@@ -1600,7 +1556,7 @@ static int compat_do_arpt_set_ctl(struct sock *sk, int cmd, void __user *user,
+ 
+ 	switch (cmd) {
+ 	case ARPT_SO_SET_REPLACE:
+-		ret = compat_do_replace(sock_net(sk), user, len);
++		ret = arpt2_compat_do_replace(sock_net(sk), user, len);
+ 		break;
+ 
+ 	case ARPT_SO_SET_ADD_COUNTERS:
+@@ -1692,7 +1648,7 @@ static int compat_get_entries(struct net *net,
+ {
+ 	int ret;
+ 	struct compat_arpt_get_entries get;
+-	struct xt_table *t;
++	struct xt2_table *table;
+ 
+ 	if (*len < sizeof(get)) {
+ 		duprintf("compat_get_entries: %u < %zu\n", *len, sizeof(get));
+@@ -1706,29 +1662,12 @@ static int compat_get_entries(struct net *net,
+ 		return -EINVAL;
+ 	}
+ 
+-	xt_compat_lock(NFPROTO_ARP);
+-	t = xt_find_table_lock(net, NFPROTO_ARP, get.name);
+-	if (t && !IS_ERR(t)) {
+-		const struct xt_table_info *private = t->private;
+-		struct xt_table_info info;
+-
+-		duprintf("t->private->number = %u\n", private->number);
+-		ret = compat_table_info(private, &info);
+-		if (!ret && get.size == info.size) {
+-			ret = compat_copy_entries_to_user(private->size,
+-							  t, uptr->entrytable);
+-		} else if (!ret) {
+-			duprintf("compat_get_entries: I've got %u not %u!\n",
+-				 private->size, get.size);
+-			ret = -EAGAIN;
+-		}
+-		xt_compat_flush_offsets(NFPROTO_ARP);
+-		module_put(t->me);
+-		xt_table_unlock(t);
+-	} else
+-		ret = t ? PTR_ERR(t) : -ENOENT;
+-
+-	xt_compat_unlock(NFPROTO_ARP);
++	table = xt2_table_lookup(net, get.name, NFPROTO_ARP, XT2_TAKE_RCULOCK);
++	if (table == NULL)
++		return -ENOENT;
++	ret = arpt2_compat_table_to_xt1(uptr->entrytable, get.size,
++	      table, &arpt_compat_xlat_info);
++	rcu_read_unlock();
+ 	return ret;
+ }
+ 
+@@ -1765,7 +1704,7 @@ static int do_arpt_set_ctl(struct sock *sk, int cmd, void __user *user, unsigned
+ 
+ 	switch (cmd) {
+ 	case ARPT_SO_SET_REPLACE:
+-		ret = do_replace(sock_net(sk), user, len);
++		ret = arpt2_do_replace(sock_net(sk), user, len);
+ 		break;
+ 
+ 	case ARPT_SO_SET_ADD_COUNTERS:
+diff --git a/net/ipv4/netfilter/arptable_filter.c b/net/ipv4/netfilter/arptable_filter.c
+index 1299f08..341c0c8 100644
+--- a/net/ipv4/netfilter/arptable_filter.c
++++ b/net/ipv4/netfilter/arptable_filter.c
+@@ -6,6 +6,7 @@
+  */
+ 
+ #include <linux/module.h>
++#include <linux/rcupdate.h>
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter_arp/arp_tables.h>
+ 
+@@ -32,26 +33,35 @@ static unsigned int arptable_filter_hook(unsigned int hook,
+ 				 int (*okfn)(struct sk_buff *))
+ {
+ 	const struct net *net = dev_net((in != NULL) ? in : out);
+-	return arpt_do_table(skb, hook, in, out, net->ipv4.arptable_filter);
++	const struct xt2_table_link *link;
++	unsigned int verdict;
++
++	rcu_read_lock();
++	link    = rcu_dereference(net->xt2.arp_filter);
++	verdict = xt2_do_table(skb, hook, in, out, link->table);
++	rcu_read_unlock();
++	return verdict;
+ }
+ 
+ static int __net_init arptable_filter_net_init(struct net *net)
+ {
+ 	struct arpt_replace *repl = xt_repldata_create(&packet_filter);
++	struct xt2_table *table;
+ 
+ 	if (repl == NULL)
+ 		return -ENOMEM;
+-	net->ipv4.arptable_filter =
+-		arpt_register_table(net, &packet_filter, repl);
++	table = arpt2_register_table(net, &packet_filter, repl);
+ 	kfree(repl);
+-	if (IS_ERR(net->ipv4.arptable_filter))
+-		return PTR_ERR(net->ipv4.arptable_filter);
++	if (IS_ERR(table))
++		return PTR_ERR(table);
++	net->xt2.arp_filter = xt2_tlink_lookup(net, table->name,
++		table->nfproto, XT2_NO_RCULOCK);
+ 	return 0;
+ }
+ 
+ static void __net_exit arptable_filter_net_exit(struct net *net)
+ {
+-	arpt_unregister_table(net->ipv4.arptable_filter);
++	xt2_table_destroy(net, net->xt2.arp_filter->table);
+ }
+ 
+ static struct pernet_operations arptable_filter_net_ops = {
 -- 
 1.6.3.3
 
