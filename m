@@ -1,216 +1,290 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 008/103] netfilter: xtables: remove obsolete /proc/net/ipt_recent
-Date: Tue,  4 Aug 2009 09:24:52 +0200
-Message-ID: <1249370787-17583-9-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 009/103] netfilter: xtables: remove xt_owner v0
+Date: Tue,  4 Aug 2009 09:24:53 +0200
+Message-ID: <1249370787-17583-10-git-send-email-jengelh@medozas.de>
 References: <1249370787-17583-1-git-send-email-jengelh@medozas.de>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:50617 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:50618 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932525AbZHDH0l (ORCPT
+	with ESMTP id S932532AbZHDH0n (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Aug 2009 03:26:41 -0400
+	Tue, 4 Aug 2009 03:26:43 -0400
 In-Reply-To: <1249370787-17583-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The directory has been superseded by /proc/net/xt_recent
-(v2.6.27-rc8-889-g079aa88).
+Superseded by xt_owner v1 (v2.6.24-2388-g0265ab4).
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- Documentation/feature-removal-schedule.txt |    3 -
- net/netfilter/Kconfig                      |    7 --
- net/netfilter/xt_recent.c                  |  109 ----------------------------
- 3 files changed, 0 insertions(+), 119 deletions(-)
+ include/linux/netfilter_ipv4/Kbuild       |    1 -
+ include/linux/netfilter_ipv4/ipt_owner.h  |   20 -----
+ include/linux/netfilter_ipv6/Kbuild       |    1 -
+ include/linux/netfilter_ipv6/ip6t_owner.h |   18 ----
+ net/netfilter/xt_owner.c                  |  130 +++------------------=
+--------
+ 5 files changed, 12 insertions(+), 158 deletions(-)
+ delete mode 100644 include/linux/netfilter_ipv4/ipt_owner.h
+ delete mode 100644 include/linux/netfilter_ipv6/ip6t_owner.h
 
-diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
-index 5556d23..420ea83 100644
---- a/Documentation/feature-removal-schedule.txt
-+++ b/Documentation/feature-removal-schedule.txt
-@@ -238,9 +238,6 @@ What (Why):
- 	- "forwarding" header files like ipt_mac.h in
- 	  include/linux/netfilter_ipv4/ and include/linux/netfilter_ipv6/
- 
--	- xt_recent: the old ipt_recent proc dir
--	  (superseded by /proc/net/xt_recent)
+diff --git a/include/linux/netfilter_ipv4/Kbuild b/include/linux/netfil=
+ter_ipv4/Kbuild
+index 5e361ef..5413005 100644
+--- a/include/linux/netfilter_ipv4/Kbuild
++++ b/include/linux/netfilter_ipv4/Kbuild
+@@ -28,7 +28,6 @@ header-y +=3D ipt_limit.h
+ header-y +=3D ipt_mac.h
+ header-y +=3D ipt_mark.h
+ header-y +=3D ipt_multiport.h
+-header-y +=3D ipt_owner.h
+ header-y +=3D ipt_physdev.h
+ header-y +=3D ipt_pkttype.h
+ header-y +=3D ipt_policy.h
+diff --git a/include/linux/netfilter_ipv4/ipt_owner.h b/include/linux/n=
+etfilter_ipv4/ipt_owner.h
+deleted file mode 100644
+index a78445b..0000000
+--- a/include/linux/netfilter_ipv4/ipt_owner.h
++++ /dev/null
+@@ -1,20 +0,0 @@
+-#ifndef _IPT_OWNER_H
+-#define _IPT_OWNER_H
 -
- When:	January 2009 or Linux 2.7.0, whichever comes first
- Why:	Superseded by newer revisions or modules
- Who:	Jan Engelhardt <jengelh@computergmbh.de>
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 634d14a..773c360 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -811,13 +811,6 @@ config NETFILTER_XT_MATCH_RECENT
- 	Short options are available by using 'iptables -m recent -h'
- 	Official Website: <http://snowman.net/projects/ipt_recent/>
- 
--config NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
--	bool 'Enable obsolete /proc/net/ipt_recent'
--	depends on NETFILTER_XT_MATCH_RECENT && PROC_FS
--	---help---
--	This option enables the old /proc/net/ipt_recent interface,
--	which has been obsoleted by /proc/net/xt_recent.
+-/* match and invert flags */
+-#define IPT_OWNER_UID	0x01
+-#define IPT_OWNER_GID	0x02
+-#define IPT_OWNER_PID	0x04
+-#define IPT_OWNER_SID	0x08
+-#define IPT_OWNER_COMM	0x10
 -
- config NETFILTER_XT_MATCH_SCTP
- 	tristate  '"sctp" protocol match support (EXPERIMENTAL)'
- 	depends on EXPERIMENTAL
-diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
-index eb0ceb8..350bede 100644
---- a/net/netfilter/xt_recent.c
-+++ b/net/netfilter/xt_recent.c
-@@ -83,9 +83,6 @@ static DEFINE_SPINLOCK(recent_lock);
- static DEFINE_MUTEX(recent_mutex);
- 
- #ifdef CONFIG_PROC_FS
--#ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
--static struct proc_dir_entry *proc_old_dir;
--#endif
- static struct proc_dir_entry *recent_proc_dir;
- static const struct file_operations recent_old_fops, recent_mt_fops;
- #endif
-@@ -326,17 +323,6 @@ static bool recent_mt_check(const struct xt_mtchk_param *par)
- 	}
- 	pde->uid = ip_list_uid;
- 	pde->gid = ip_list_gid;
--#ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
--	pde = proc_create_data(t->name, ip_list_perms, proc_old_dir,
--		      &recent_old_fops, t);
--	if (pde == NULL) {
--		remove_proc_entry(t->name, proc_old_dir);
--		kfree(t);
--		goto out;
--	}
--	pde->uid = ip_list_uid;
--	pde->gid = ip_list_gid;
--#endif
- #endif
- 	spin_lock_bh(&recent_lock);
- 	list_add_tail(&t->list, &tables);
-@@ -359,9 +345,6 @@ static void recent_mt_destroy(const struct xt_mtdtor_param *par)
- 		list_del(&t->list);
- 		spin_unlock_bh(&recent_lock);
- #ifdef CONFIG_PROC_FS
--#ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
--		remove_proc_entry(t->name, proc_old_dir);
--#endif
- 		remove_proc_entry(t->name, recent_proc_dir);
- #endif
- 		recent_table_flush(t);
-@@ -453,85 +436,6 @@ static int recent_seq_open(struct inode *inode, struct file *file)
- 	return 0;
- }
- 
--#ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
--static int recent_old_seq_open(struct inode *inode, struct file *filp)
--{
--	static bool warned_of_old;
--
--	if (unlikely(!warned_of_old)) {
--		printk(KERN_INFO KBUILD_MODNAME ": Use of /proc/net/ipt_recent"
--		       " is deprecated; use /proc/net/xt_recent.\n");
--		warned_of_old = true;
--	}
--	return recent_seq_open(inode, filp);
--}
--
--static ssize_t recent_old_proc_write(struct file *file,
--				     const char __user *input,
--				     size_t size, loff_t *loff)
--{
--	const struct proc_dir_entry *pde = PDE(file->f_path.dentry->d_inode);
--	struct recent_table *t = pde->data;
--	struct recent_entry *e;
--	char buf[sizeof("+255.255.255.255")], *c = buf;
--	union nf_inet_addr addr = {};
--	int add;
--
--	if (size > sizeof(buf))
--		size = sizeof(buf);
--	if (copy_from_user(buf, input, size))
--		return -EFAULT;
--
--	while (isspace(*c))
--		c++;
--
--	if (size - (c - buf) < 5)
--		return c - buf;
--	if (!strncmp(c, "clear", 5)) {
--		c += 5;
--		spin_lock_bh(&recent_lock);
--		recent_table_flush(t);
--		spin_unlock_bh(&recent_lock);
--		return c - buf;
--	}
--
--	switch (*c) {
--	case '-':
--		add = 0;
--		c++;
--		break;
--	case '+':
--		c++;
--	default:
--		add = 1;
--		break;
--	}
--	addr.ip = in_aton(c);
--
--	spin_lock_bh(&recent_lock);
--	e = recent_entry_lookup(t, &addr, NFPROTO_IPV4, 0);
--	if (e == NULL) {
--		if (add)
--			recent_entry_init(t, &addr, NFPROTO_IPV4, 0);
--	} else {
--		if (add)
--			recent_entry_update(t, e);
--		else
--			recent_entry_remove(t, e);
--	}
--	spin_unlock_bh(&recent_lock);
--	return size;
--}
--
--static const struct file_operations recent_old_fops = {
--	.open		= recent_old_seq_open,
--	.read		= seq_read,
--	.write		= recent_old_proc_write,
--	.release	= seq_release_private,
--	.owner		= THIS_MODULE,
+-struct ipt_owner_info {
+-    __kernel_uid32_t uid;
+-    __kernel_gid32_t gid;
+-    __kernel_pid_t pid;
+-    __kernel_pid_t sid;
+-    char comm[16];
+-    u_int8_t match, invert;	/* flags */
 -};
--#endif
 -
- static ssize_t
- recent_mt_proc_write(struct file *file, const char __user *input,
- 		     size_t size, loff_t *loff)
-@@ -654,16 +558,6 @@ static int __init recent_mt_init(void)
- 		xt_unregister_matches(recent_mt_reg, ARRAY_SIZE(recent_mt_reg));
- 		err = -ENOMEM;
- 	}
--#ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
--	if (err < 0)
--		return err;
--	proc_old_dir = proc_mkdir("ipt_recent", init_net.proc_net);
--	if (proc_old_dir == NULL) {
--		remove_proc_entry("xt_recent", init_net.proc_net);
--		xt_unregister_matches(recent_mt_reg, ARRAY_SIZE(recent_mt_reg));
--		err = -ENOMEM;
+-#endif /*_IPT_OWNER_H*/
+diff --git a/include/linux/netfilter_ipv6/Kbuild b/include/linux/netfil=
+ter_ipv6/Kbuild
+index aca4bd1..4610a16 100644
+--- a/include/linux/netfilter_ipv6/Kbuild
++++ b/include/linux/netfilter_ipv6/Kbuild
+@@ -14,7 +14,6 @@ header-y +=3D ip6t_mark.h
+ header-y +=3D ip6t_mh.h
+ header-y +=3D ip6t_multiport.h
+ header-y +=3D ip6t_opts.h
+-header-y +=3D ip6t_owner.h
+ header-y +=3D ip6t_physdev.h
+ header-y +=3D ip6t_policy.h
+ header-y +=3D ip6t_rt.h
+diff --git a/include/linux/netfilter_ipv6/ip6t_owner.h b/include/linux/=
+netfilter_ipv6/ip6t_owner.h
+deleted file mode 100644
+index ec5cc7a..0000000
+--- a/include/linux/netfilter_ipv6/ip6t_owner.h
++++ /dev/null
+@@ -1,18 +0,0 @@
+-#ifndef _IP6T_OWNER_H
+-#define _IP6T_OWNER_H
+-
+-/* match and invert flags */
+-#define IP6T_OWNER_UID	0x01
+-#define IP6T_OWNER_GID	0x02
+-#define IP6T_OWNER_PID	0x04
+-#define IP6T_OWNER_SID	0x08
+-
+-struct ip6t_owner_info {
+-    __kernel_uid32_t uid;
+-    __kernel_gid32_t gid;
+-    __kernel_pid_t pid;
+-    __kernel_pid_t sid;
+-    u_int8_t match, invert;	/* flags */
+-};
+-
+-#endif /*_IPT_OWNER_H*/
+diff --git a/net/netfilter/xt_owner.c b/net/netfilter/xt_owner.c
+index 22b2a5e..d24c76d 100644
+--- a/net/netfilter/xt_owner.c
++++ b/net/netfilter/xt_owner.c
+@@ -5,7 +5,6 @@
+  * (C) 2000 Marc Boucher <marc@mbsi.ca>
+  *
+  * Copyright =C2=A9 CC Computer Consultants GmbH, 2007 - 2008
+- * <jengelh@computergmbh.de>
+  *
+  * This program is free software; you can redistribute it and/or modif=
+y
+  * it under the terms of the GNU General Public License version 2 as
+@@ -17,60 +16,6 @@
+ #include <net/sock.h>
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter/xt_owner.h>
+-#include <linux/netfilter_ipv4/ipt_owner.h>
+-#include <linux/netfilter_ipv6/ip6t_owner.h>
+-
+-static bool
+-owner_mt_v0(const struct sk_buff *skb, const struct xt_match_param *pa=
+r)
+-{
+-	const struct ipt_owner_info *info =3D par->matchinfo;
+-	const struct file *filp;
+-
+-	if (skb->sk =3D=3D NULL || skb->sk->sk_socket =3D=3D NULL)
+-		return false;
+-
+-	filp =3D skb->sk->sk_socket->file;
+-	if (filp =3D=3D NULL)
+-		return false;
+-
+-	if (info->match & IPT_OWNER_UID)
+-		if ((filp->f_cred->fsuid !=3D info->uid) ^
+-		    !!(info->invert & IPT_OWNER_UID))
+-			return false;
+-
+-	if (info->match & IPT_OWNER_GID)
+-		if ((filp->f_cred->fsgid !=3D info->gid) ^
+-		    !!(info->invert & IPT_OWNER_GID))
+-			return false;
+-
+-	return true;
+-}
+-
+-static bool
+-owner_mt6_v0(const struct sk_buff *skb, const struct xt_match_param *p=
+ar)
+-{
+-	const struct ip6t_owner_info *info =3D par->matchinfo;
+-	const struct file *filp;
+-
+-	if (skb->sk =3D=3D NULL || skb->sk->sk_socket =3D=3D NULL)
+-		return false;
+-
+-	filp =3D skb->sk->sk_socket->file;
+-	if (filp =3D=3D NULL)
+-		return false;
+-
+-	if (info->match & IP6T_OWNER_UID)
+-		if ((filp->f_cred->fsuid !=3D info->uid) ^
+-		    !!(info->invert & IP6T_OWNER_UID))
+-			return false;
+-
+-	if (info->match & IP6T_OWNER_GID)
+-		if ((filp->f_cred->fsgid !=3D info->gid) ^
+-		    !!(info->invert & IP6T_OWNER_GID))
+-			return false;
+-
+-	return true;
+-}
+=20
+ static bool
+ owner_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+@@ -107,81 +52,30 @@ owner_mt(const struct sk_buff *skb, const struct x=
+t_match_param *par)
+ 	return true;
+ }
+=20
+-static bool owner_mt_check_v0(const struct xt_mtchk_param *par)
+-{
+-	const struct ipt_owner_info *info =3D par->matchinfo;
+-
+-	if (info->match & (IPT_OWNER_PID | IPT_OWNER_SID | IPT_OWNER_COMM)) {
+-		printk(KERN_WARNING KBUILD_MODNAME
+-		       ": PID, SID and command matching is not "
+-		       "supported anymore\n");
+-		return false;
 -	}
--#endif
- #endif
- 	return err;
+-
+-	return true;
+-}
+-
+-static bool owner_mt6_check_v0(const struct xt_mtchk_param *par)
+-{
+-	const struct ip6t_owner_info *info =3D par->matchinfo;
+-
+-	if (info->match & (IP6T_OWNER_PID | IP6T_OWNER_SID)) {
+-		printk(KERN_WARNING KBUILD_MODNAME
+-		       ": PID and SID matching is not supported anymore\n");
+-		return false;
+-	}
+-
+-	return true;
+-}
+-
+-static struct xt_match owner_mt_reg[] __read_mostly =3D {
+-	{
+-		.name       =3D "owner",
+-		.revision   =3D 0,
+-		.family     =3D NFPROTO_IPV4,
+-		.match      =3D owner_mt_v0,
+-		.matchsize  =3D sizeof(struct ipt_owner_info),
+-		.checkentry =3D owner_mt_check_v0,
+-		.hooks      =3D (1 << NF_INET_LOCAL_OUT) |
+-		              (1 << NF_INET_POST_ROUTING),
+-		.me         =3D THIS_MODULE,
+-	},
+-	{
+-		.name       =3D "owner",
+-		.revision   =3D 0,
+-		.family     =3D NFPROTO_IPV6,
+-		.match      =3D owner_mt6_v0,
+-		.matchsize  =3D sizeof(struct ip6t_owner_info),
+-		.checkentry =3D owner_mt6_check_v0,
+-		.hooks      =3D (1 << NF_INET_LOCAL_OUT) |
+-		              (1 << NF_INET_POST_ROUTING),
+-		.me         =3D THIS_MODULE,
+-	},
+-	{
+-		.name       =3D "owner",
+-		.revision   =3D 1,
+-		.family     =3D NFPROTO_UNSPEC,
+-		.match      =3D owner_mt,
+-		.matchsize  =3D sizeof(struct xt_owner_match_info),
+-		.hooks      =3D (1 << NF_INET_LOCAL_OUT) |
+-		              (1 << NF_INET_POST_ROUTING),
+-		.me         =3D THIS_MODULE,
+-	},
++static struct xt_match owner_mt_reg __read_mostly =3D {
++	.name       =3D "owner",
++	.revision   =3D 1,
++	.family     =3D NFPROTO_UNSPEC,
++	.match      =3D owner_mt,
++	.matchsize  =3D sizeof(struct xt_owner_match_info),
++	.hooks      =3D (1 << NF_INET_LOCAL_OUT) |
++	              (1 << NF_INET_POST_ROUTING),
++	.me         =3D THIS_MODULE,
+ };
+=20
+ static int __init owner_mt_init(void)
+ {
+-	return xt_register_matches(owner_mt_reg, ARRAY_SIZE(owner_mt_reg));
++	return xt_register_match(&owner_mt_reg);
  }
-@@ -673,9 +567,6 @@ static void __exit recent_mt_exit(void)
- 	BUG_ON(!list_empty(&tables));
- 	xt_unregister_matches(recent_mt_reg, ARRAY_SIZE(recent_mt_reg));
- #ifdef CONFIG_PROC_FS
--#ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
--	remove_proc_entry("ipt_recent", init_net.proc_net);
--#endif
- 	remove_proc_entry("xt_recent", init_net.proc_net);
- #endif
+=20
+ static void __exit owner_mt_exit(void)
+ {
+-	xt_unregister_matches(owner_mt_reg, ARRAY_SIZE(owner_mt_reg));
++	xt_unregister_match(&owner_mt_reg);
  }
--- 
+=20
+ module_init(owner_mt_init);
+ module_exit(owner_mt_exit);
+-MODULE_AUTHOR("Jan Engelhardt <jengelh@computergmbh.de>");
++MODULE_AUTHOR("Jan Engelhardt <jengelh@medozas.de>");
+ MODULE_DESCRIPTION("Xtables: socket owner matching");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ipt_owner");
+--=20
 1.6.3.3
 
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
