@@ -1,131 +1,57 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 102/103] netfilter: xtables1: remove info lock
-Date: Tue,  4 Aug 2009 09:26:26 +0200
-Message-ID: <1249370787-17583-103-git-send-email-jengelh@medozas.de>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Xtables2 snapshot 20090804
+Date: Tue, 04 Aug 2009 14:47:36 +0200
+Message-ID: <4A782DE8.90300@trash.net>
 References: <1249370787-17583-1-git-send-email-jengelh@medozas.de>
-To: netfilter-devel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:56965 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932607AbZHDH2W (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:40634 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755439AbZHDMrh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Aug 2009 03:28:22 -0400
+	Tue, 4 Aug 2009 08:47:37 -0400
 In-Reply-To: <1249370787-17583-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- include/linux/netfilter/x_tables.h |   68 ------------------------------------
- net/netfilter/x_tables.c           |    9 -----
- 2 files changed, 0 insertions(+), 77 deletions(-)
+Jan Engelhardt wrote:
+> here is my prospected patch queue for 2.6.32. The important changes
+> are the start of a patch-wise overhaul of the firewall(s), eventually
+> leading to what I would bless as Xtables2 - a logical continuation of
+> the x_tables consolidation work done by Patrick McHardy et al in
+> 2006/2007. (Of course it does not yet have everything I wanted, so
+> it's not a final v2. But it is usable.)
+> 
+> The internal structure of the ruleset is switched from the serialized
+> blob format (concatenated packed structs) to linked lists. Whereas
+> classic iptables always exchanges complete tables with the kernel
+> even if you just add a single rule from userspace, the linked-list
+> preparatory spadework allows the manipulation of single rules in the
+> future. Currently, only table-granularity swapping is supported;
+> appropriate RCU for chains and rules is absent at this time.
+> 
+> iptables compatibility is retained by means of a translation layer.
+> ip_tables has shown itself to be very forkable, leading to 4 firewall
+> subimplementations, supporting 7 data formats. The new translation
+> layer was written in a template fashion (hopefully not too ugly),
+> consolidating most of ip_tables, ip6_tables, arp_tables and their
+> compat variants, leading to a drop of LOC by ~50%. Ebtables has not
+> been touched yet.
+> 
+> 
+> It can be retrieved from
+> 
+> 	git://dev.medozas.de/linux  xt2-20090804
+> 
+>  181 files changed, 4060 insertions(+), 8823 deletions(-)
 
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index 1c37428..7befc66 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -607,74 +607,6 @@ extern int xt_proto_init(struct net *net, u_int8_t af);
- extern void xt_proto_fini(struct net *net, u_int8_t af);
- 
- /*
-- * Per-CPU spinlock associated with per-cpu table entries, and
-- * with a counter for the "reading" side that allows a recursive
-- * reader to avoid taking the lock and deadlocking.
-- *
-- * "reading" is used by ip/arp/ip6 tables rule processing which runs per-cpu.
-- * It needs to ensure that the rules are not being changed while the packet
-- * is being processed. In some cases, the read lock will be acquired
-- * twice on the same CPU; this is okay because of the count.
-- *
-- * "writing" is used when reading counters.
-- *  During replace any readers that are using the old tables have to complete
-- *  before freeing the old table. This is handled by the write locking
-- *  necessary for reading the counters.
-- */
--struct xt_info_lock {
--	spinlock_t lock;
--	unsigned char readers;
--};
--DECLARE_PER_CPU(struct xt_info_lock, xt_info_locks);
--
--/*
-- * Note: we need to ensure that preemption is disabled before acquiring
-- * the per-cpu-variable, so we do it as a two step process rather than
-- * using "spin_lock_bh()".
-- *
-- * We _also_ need to disable bottom half processing before updating our
-- * nesting count, to make sure that the only kind of re-entrancy is this
-- * code being called by itself: since the count+lock is not an atomic
-- * operation, we can allow no races.
-- *
-- * _Only_ that special combination of being per-cpu and never getting
-- * re-entered asynchronously means that the count is safe.
-- */
--static inline void xt_info_rdlock_bh(void)
--{
--	struct xt_info_lock *lock;
--
--	local_bh_disable();
--	lock = &__get_cpu_var(xt_info_locks);
--	if (likely(!lock->readers++))
--		spin_lock(&lock->lock);
--}
--
--static inline void xt_info_rdunlock_bh(void)
--{
--	struct xt_info_lock *lock = &__get_cpu_var(xt_info_locks);
--
--	if (likely(!--lock->readers))
--		spin_unlock(&lock->lock);
--	local_bh_enable();
--}
--
--/*
-- * The "writer" side needs to get exclusive access to the lock,
-- * regardless of readers.  This must be called with bottom half
-- * processing (and thus also preemption) disabled.
-- */
--static inline void xt_info_wrlock(unsigned int cpu)
--{
--	spin_lock(&per_cpu(xt_info_locks, cpu).lock);
--}
--
--static inline void xt_info_wrunlock(unsigned int cpu)
--{
--	spin_unlock(&per_cpu(xt_info_locks, cpu).lock);
--}
--
--/*
-  * This helper is performance critical and must be inlined
-  */
- static inline unsigned long ifname_compare_aligned(const char *_a,
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 167332c..1e43ab3 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -664,9 +664,6 @@ void xt_compat_unlock(u_int8_t af)
- EXPORT_SYMBOL_GPL(xt_compat_unlock);
- #endif
- 
--DEFINE_PER_CPU(struct xt_info_lock, xt_info_locks);
--EXPORT_PER_CPU_SYMBOL_GPL(xt_info_locks);
--
- #ifdef CONFIG_PROC_FS
- struct xt_names_priv {
- 	struct seq_net_private p;
-@@ -1803,12 +1800,6 @@ static int __init xt_init(void)
- 	unsigned int i;
- 	int rv;
- 
--	for_each_possible_cpu(i) {
--		struct xt_info_lock *lock = &per_cpu(xt_info_locks, i);
--		spin_lock_init(&lock->lock);
--		lock->readers = 0;
--	}
--
- 	xt = kmalloc(sizeof(struct xt_af) * NFPROTO_NUMPROTO, GFP_KERNEL);
- 	if (!xt)
- 		return -ENOMEM;
--- 
-1.6.3.3
+I suggest you begin by submitting the removal patches of old
+revisions in a first series, then we can continue on with
+cleanups and finally discuss your proposed functional changes.
+But this is just too big to reasonably review in one go.
+Thanks.
 
