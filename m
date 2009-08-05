@@ -1,56 +1,34 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Xtables2 snapshot 20090804
-Date: Tue, 4 Aug 2009 15:26:45 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0908041518580.15352@fbirervta.pbzchgretzou.qr>
-References: <1249370787-17583-1-git-send-email-jengelh@medozas.de> <4A782DE8.90300@trash.net>
+From: Giacomo <delleceste@gmail.com>
+Subject: NF_INET_LOCAL_OUT and packet checksum
+Date: Wed, 5 Aug 2009 10:20:32 +0200
+Message-ID: <885896af0908050120k5b0d839fj65fe1aa4e6ac754c@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:44238 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755527AbZHDN0p (ORCPT
+Received: from mail-ew0-f214.google.com ([209.85.219.214]:53013 "EHLO
+	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933741AbZHEIUc (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 Aug 2009 09:26:45 -0400
-In-Reply-To: <4A782DE8.90300@trash.net>
+	Wed, 5 Aug 2009 04:20:32 -0400
+Received: by ewy10 with SMTP id 10so937644ewy.37
+        for <netfilter-devel@vger.kernel.org>; Wed, 05 Aug 2009 01:20:32 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Patrick,
+Hi to all.
+I would like to know wether in NF_INET_LOCAL_OUT packets arrive
+already checksummed
+(both IP and layer4 checksums).
 
-On Tuesday 2009-08-04 14:47, Patrick McHardy wrote:
->Jan Engelhardt wrote:
->> 
->> It can be retrieved from
->> 
->> 	git://dev.medozas.de/linux  xt2-20090804
->> 
->>  181 files changed, 4060 insertions(+), 8823 deletions(-)
->
->I suggest you begin by submitting the removal patches of old
->revisions in a first series, then we can continue on with
->cleanups and finally discuss your proposed functional changes.
->But this is just too big to reasonably review in one go.
+Actually I noticed, in nf_nat_core.c and nf_nat_proto_tcp/udp.c the use of
 
-Well, true. I did not expect you to look at it all at once. But that
-should not stop you from being able to piece-wise reply to the first,
-say, 20-or-so patches.
+csum_replace4() and csum_replace2().
 
-The cleanups obviously come first because I assumed they are relatively 
-easy to gulp.
+Is the checksum in all cases already correctly calculated in this hook?
+Does netfilter recalculate it afterwards? (post routing?)
 
-  01-16  cleanups
-     \__ 01-10  removals
-     \__ 11-16  cosmetics
+Thanks in advance.
 
-If there is overly large discussion potential in a patch (and there
-probably is), just stop at the one, and we'll take it from there, ok?
-I do not think resending the first group (01-16) makes much sense
-given there is no discussion preceding it as there would be for
-patches 20+.
-
-
-
-thank you very much,
-Jan
+Giacomo
