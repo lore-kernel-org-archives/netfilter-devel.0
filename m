@@ -1,52 +1,53 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: "Christoph A." <casmls@gmail.com>
 Subject: Re: security impact of creating rulesets with iptables (cmd)
-Date: Mon, 10 Aug 2009 00:18:34 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0908100000110.23833@fbirervta.pbzchgretzou.qr>
-References: <4A7F431E.70706@gmail.com>
+Date: Mon, 10 Aug 2009 01:28:09 +0200
+Message-ID: <4A7F5B89.9030105@gmail.com>
+References: <4A7F431E.70706@gmail.com> <alpine.LSU.2.00.0908100000110.23833@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha512;
+ protocol="application/pgp-signature";
+ boundary="------------enigD70CED07018D2DCA3550C14B"
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: "Christoph A." <casmls@gmail.com>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:42053 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751112AbZHIWSf (ORCPT
+Received: from mail-ew0-f214.google.com ([209.85.219.214]:50998 "EHLO
+	mail-ew0-f214.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751519AbZHIXbN (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 9 Aug 2009 18:18:35 -0400
-In-Reply-To: <4A7F431E.70706@gmail.com>
+	Sun, 9 Aug 2009 19:31:13 -0400
+Received: by ewy10 with SMTP id 10so2682780ewy.37
+        for <netfilter-devel@vger.kernel.org>; Sun, 09 Aug 2009 16:31:13 -0700 (PDT)
+In-Reply-To: <alpine.LSU.2.00.0908100000110.23833@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enigD70CED07018D2DCA3550C14B
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-On Sunday 2009-08-09 23:43, Christoph A. wrote:
->
->and I would have a question about the mentioned security risk when 
->creating hole rulesets with the iptables command (chapter 3).
->
->The second and more interesting point is that this would also introduce 
->a timeframe where packets could slip through while these exchanges 
->between kernel and userspace are happening. Why does setting the policy 
->to DROP not solve this problem?
->
->I asume these commands are processed from top to bottom, I couldn't 
->imagine of a opportunity when packets could slip through
+On 10.08.2009 00:18, Jan Engelhardt wrote:
+> Even if you manage to avoid temporary Windows Of Opportunity For=20
+> Attackers does not mean all novice users are able to do the same. Hence=
+=20
+> it is easier to just use iptables-restore and need not worry about=20
+> atomicity within a given table.
 
-Even if you manage to avoid temporary Windows Of Opportunity For 
-Attackers does not mean all novice users are able to do the same. Hence 
-it is easier to just use iptables-restore and need not worry about 
-atomicity within a given table.
+thanks for your fast reply!
+Christoph A.
 
-Assume this poor_user's script. It's got policies-first that you deem 
-the ultimate solution, and still there is a window of opportunity.
 
-#!/bin/sh
-iptables -P INPUT DROP
-iptables -A INPUT -p esp -j ACCEPT
-iptables -P FORWARD DROP
-iptables -A FORWARD -m policy --tunnel-src $remote_vpn_peer -o eth1 -j ACCEPT
+--------------enigD70CED07018D2DCA3550C14B
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
 
-Of course you could also make this specific one opportunity-window-free, 
-but my mathematical gut tells me there's always a way to thwart the 
-user's smartness by another ruleset. A circular dependency is the 
-"easiest example" to always have a hole, tho I am not going to try and 
-construct a scientifically-sound case and proof of that right now.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEAREKAAYFAkp/W5sACgkQrq+riTAIEg1pQwCbBiHK25wnE6vrhqqmcN4w7Qgu
+5igAoMMg9sUtxhYp+NQNQONp7RN94wKl
+=vsyy
+-----END PGP SIGNATURE-----
+
+--------------enigD70CED07018D2DCA3550C14B--
