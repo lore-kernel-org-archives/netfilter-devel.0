@@ -1,43 +1,49 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: security impact of creating rulesets with iptables (cmd)
-Date: Mon, 10 Aug 2009 08:58:18 +0200
-Message-ID: <4A7FC50A.80608@trash.net>
-References: <4A7F431E.70706@gmail.com>
+Subject: Re: [PATCH] SO_ORIGINAL_DST for getsockopt() in SCTP
+Date: Mon, 10 Aug 2009 10:09:27 +0200
+Message-ID: <4A7FD5B7.10705@trash.net>
+References: <4A4D504A.6080506@cs.ucla.edu> <20090702.184033.127910800.davem@davemloft.net> <4A4D6C71.5080005@cs.ucla.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: "Christoph A." <casmls@gmail.com>
+Cc: David Miller <davem@davemloft.net>, netfilter-devel@vger.kernel.org
+To: Rafael Laufer <rlaufer@cs.ucla.edu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:56116 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:58120 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751572AbZHJG6V (ORCPT
+	with ESMTP id S1750912AbZHJIJa (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 10 Aug 2009 02:58:21 -0400
-In-Reply-To: <4A7F431E.70706@gmail.com>
+	Mon, 10 Aug 2009 04:09:30 -0400
+In-Reply-To: <4A4D6C71.5080005@cs.ucla.edu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Christoph A. wrote:
-> Hi,
+Rafael Laufer wrote:
+> David Miller wrote:
+>> Thunderbird has severely mangled your patch beyond usability.
+>>
+>> Please read Documentation/email-clients.txt in the kernel sources.
 > 
-> I read Jan's "Towards the perfect ruleset" paper [1]
+> Trying again:
 > 
-> [1] http://jengelh.medozas.de/documents/Perfect_Ruleset.pdf
 > 
-> and I would have a question about the mentioned security risk when
-> creating hole rulesets with the iptables command (chapter 3).
-> 
-> I understand why it is a bad idea to create n rules by using multiple
-> times iptables -A... (instead of iptables-restore) because it
-> "downloads" the entire table n-times and sets the entire table n-times
-> (performing n*2 operations) while passing n^2 rules between kernel and
-> userspace.
-> 
-> The second and more interesting point is that this would also introduce
-> a timeframe where packets could slip through while these exchanges
-> between kernel and userspace are happening. Why does setting the policy
-> to DROP not solve this problem?
+> diff -rup linux-2.6.28.orig/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c linux-2.6.28/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+> --- linux-2.6.28.orig/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c	2008-12-24 15:26:37.000000000 -0800
+> +++ linux-2.6.28/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c	2009-07-02 17:07:09.000000000 -0700
+> @@ -258,11 +258,11 @@ getorigdst(struct sock *sk, int optval, 
+>  	tuple.dst.u3.ip = inet->daddr;
+>  	tuple.dst.u.tcp.port = inet->dport;
+>  	tuple.src.l3num = PF_INET;
+> -	tuple.dst.protonum = IPPROTO_TCP;
+> +	tuple.dst.protonum = sk->sk_protocol;
+>  
+> -	/* We only do TCP at the moment: is there a better way? */
+> -	if (strcmp(sk->sk_prot->name, "TCP")) {
+> -		pr_debug("SO_ORIGINAL_DST: Not a TCP socket\n");
+> +	/* We only do TCP and SCTP at the moment: is there a better way? */
+> +	if ((sk->sk_protocol != IPPROTO_TCP) && (sk->sk_protocol != IPPROTO_SCTP)) {
+> +		pr_debug("SO_ORIGINAL_DST: Not a TCP/SCTP socket\n");
+>  		return -ENOPROTOOPT;
+>  	}
 
-This is not correct, the replacement is atomic.
-
+Applied with minor stylistic changes.
