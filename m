@@ -1,744 +1,443 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 6/6] netfilter: xtables: generate initial table on-demand
-Date: Mon, 10 Aug 2009 21:19:52 +0200
-Message-ID: <1249931992-18761-7-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 4/6] netfilter: xtables: mark initial tables constant
+Date: Mon, 10 Aug 2009 21:19:50 +0200
+Message-ID: <1249931992-18761-5-git-send-email-jengelh@medozas.de>
 References: <1249931992-18761-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:33982 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:33985 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751822AbZHJTUF (ORCPT
+	with ESMTP id S1751753AbZHJTUD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 10 Aug 2009 15:20:05 -0400
+	Mon, 10 Aug 2009 15:20:03 -0400
 In-Reply-To: <1249931992-18761-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The static initial tables are pretty large, and after the net
-namespace has been instantiated, they just hang around for nothing.
-This commit removes them and creates tables on-demand at runtime when
-needed.
-
-Some numbers:
-    text    data     bss     dec     hex filename
--4043674  563169  512000 5118843  4e1b7b ./vmlinux[x86_64](before)
-+4045071  550177  512000 5107248  4dee30 ./vmlinux[x86_64](after)
-=  +1397  -12992
-=== -11595
+The inputted table is never modified, so should be considered const.
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/linux/netfilter/x_tables.h     |    1 +
- net/ipv4/netfilter/arptable_filter.c   |   39 ++++-------------------
- net/ipv4/netfilter/iptable_filter.c    |   45 ++++++--------------------
- net/ipv4/netfilter/iptable_mangle.c    |   45 +++-----------------------
- net/ipv4/netfilter/iptable_raw.c       |   35 +++-----------------
- net/ipv4/netfilter/iptable_security.c  |   38 +++-------------------
- net/ipv4/netfilter/nf_nat_rule.c       |   38 +++-------------------
- net/ipv6/netfilter/ip6table_filter.c   |   45 ++++++--------------------
- net/ipv6/netfilter/ip6table_mangle.c   |   44 +++----------------------
- net/ipv6/netfilter/ip6table_raw.c      |   35 +++-----------------
- net/ipv6/netfilter/ip6table_security.c |   38 +++-------------------
- net/netfilter/x_tables.c               |   54 +++++++++++++++++++++++++++++++-
- 12 files changed, 123 insertions(+), 334 deletions(-)
+ include/linux/netfilter/x_tables.h        |    2 +-
+ include/linux/netfilter_arp/arp_tables.h  |    2 +-
+ include/linux/netfilter_bridge/ebtables.h |    2 +-
+ include/linux/netfilter_ipv4/ip_tables.h  |    2 +-
+ include/linux/netfilter_ipv6/ip6_tables.h |    2 +-
+ net/bridge/netfilter/ebtable_broute.c     |    2 +-
+ net/bridge/netfilter/ebtable_filter.c     |    2 +-
+ net/bridge/netfilter/ebtables.c           |   13 +++++++------
+ net/ipv4/netfilter/arp_tables.c           |    3 ++-
+ net/ipv4/netfilter/arptable_filter.c      |    4 ++--
+ net/ipv4/netfilter/ip_tables.c            |    3 ++-
+ net/ipv4/netfilter/iptable_filter.c       |    2 +-
+ net/ipv4/netfilter/iptable_mangle.c       |    4 ++--
+ net/ipv4/netfilter/iptable_raw.c          |    4 ++--
+ net/ipv4/netfilter/iptable_security.c     |    4 ++--
+ net/ipv4/netfilter/nf_nat_rule.c          |    4 ++--
+ net/ipv6/netfilter/ip6_tables.c           |    3 ++-
+ net/ipv6/netfilter/ip6table_filter.c      |    2 +-
+ net/ipv6/netfilter/ip6table_mangle.c      |    4 ++--
+ net/ipv6/netfilter/ip6table_raw.c         |    4 ++--
+ net/ipv6/netfilter/ip6table_security.c    |    4 ++--
+ net/netfilter/x_tables.c                  |    7 ++++---
+ 22 files changed, 42 insertions(+), 37 deletions(-)
 
 diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index 2a47a01..bdcb2f6 100644
+index 1a1e4d2..b71d9fa 100644
 --- a/include/linux/netfilter/x_tables.h
 +++ b/include/linux/netfilter/x_tables.h
-@@ -528,6 +528,7 @@ static inline unsigned long ifname_compare_aligned(const char *_a,
+@@ -407,7 +407,7 @@ extern int xt_check_target(struct xt_tgchk_param *,
+ 			   unsigned int size, u_int8_t proto, bool inv_proto);
  
- extern struct nf_hook_ops *xt_hook_link(const struct xt_table *, nf_hookfn *);
- extern void xt_hook_unlink(const struct xt_table *, struct nf_hook_ops *);
-+extern void *xt_repldata_create(const struct xt_table *);
+ extern struct xt_table *xt_register_table(struct net *net,
+-					  struct xt_table *table,
++					  const struct xt_table *table,
+ 					  struct xt_table_info *bootstrap,
+ 					  struct xt_table_info *newinfo);
+ extern void *xt_unregister_table(struct xt_table *table);
+diff --git a/include/linux/netfilter_arp/arp_tables.h b/include/linux/netfilter_arp/arp_tables.h
+index 590ac3d..6fe3e6a 100644
+--- a/include/linux/netfilter_arp/arp_tables.h
++++ b/include/linux/netfilter_arp/arp_tables.h
+@@ -265,7 +265,7 @@ struct arpt_error
+ }
  
- #ifdef CONFIG_COMPAT
- #include <net/compat.h>
+ extern struct xt_table *arpt_register_table(struct net *net,
+-					    struct xt_table *table,
++					    const struct xt_table *table,
+ 					    const struct arpt_replace *repl);
+ extern void arpt_unregister_table(struct xt_table *table);
+ extern unsigned int arpt_do_table(struct sk_buff *skb,
+diff --git a/include/linux/netfilter_bridge/ebtables.h b/include/linux/netfilter_bridge/ebtables.h
+index e40ddb9..ea281e6 100644
+--- a/include/linux/netfilter_bridge/ebtables.h
++++ b/include/linux/netfilter_bridge/ebtables.h
+@@ -301,7 +301,7 @@ struct ebt_table
+ #define EBT_ALIGN(s) (((s) + (__alignof__(struct ebt_replace)-1)) & \
+ 		     ~(__alignof__(struct ebt_replace)-1))
+ extern struct ebt_table *ebt_register_table(struct net *net,
+-					    struct ebt_table *table);
++					    const struct ebt_table *table);
+ extern void ebt_unregister_table(struct ebt_table *table);
+ extern unsigned int ebt_do_table(unsigned int hook, struct sk_buff *skb,
+    const struct net_device *in, const struct net_device *out,
+diff --git a/include/linux/netfilter_ipv4/ip_tables.h b/include/linux/netfilter_ipv4/ip_tables.h
+index 092bd50..61fafc8 100644
+--- a/include/linux/netfilter_ipv4/ip_tables.h
++++ b/include/linux/netfilter_ipv4/ip_tables.h
+@@ -245,7 +245,7 @@ ipt_get_target(struct ipt_entry *e)
+ extern void ipt_init(void) __init;
+ 
+ extern struct xt_table *ipt_register_table(struct net *net,
+-					   struct xt_table *table,
++					   const struct xt_table *table,
+ 					   const struct ipt_replace *repl);
+ extern void ipt_unregister_table(struct xt_table *table);
+ 
+diff --git a/include/linux/netfilter_ipv6/ip6_tables.h b/include/linux/netfilter_ipv6/ip6_tables.h
+index 1089e33..a64e145 100644
+--- a/include/linux/netfilter_ipv6/ip6_tables.h
++++ b/include/linux/netfilter_ipv6/ip6_tables.h
+@@ -306,7 +306,7 @@ ip6t_get_target(struct ip6t_entry *e)
+ extern void ip6t_init(void) __init;
+ 
+ extern struct xt_table *ip6t_register_table(struct net *net,
+-					    struct xt_table *table,
++					    const struct xt_table *table,
+ 					    const struct ip6t_replace *repl);
+ extern void ip6t_unregister_table(struct xt_table *table);
+ extern unsigned int ip6t_do_table(struct sk_buff *skb,
+diff --git a/net/bridge/netfilter/ebtable_broute.c b/net/bridge/netfilter/ebtable_broute.c
+index c751111..d32ab13 100644
+--- a/net/bridge/netfilter/ebtable_broute.c
++++ b/net/bridge/netfilter/ebtable_broute.c
+@@ -41,7 +41,7 @@ static int check(const struct ebt_table_info *info, unsigned int valid_hooks)
+ 	return 0;
+ }
+ 
+-static struct ebt_table broute_table =
++static const struct ebt_table broute_table =
+ {
+ 	.name		= "broute",
+ 	.table		= &initial_table,
+diff --git a/net/bridge/netfilter/ebtable_filter.c b/net/bridge/netfilter/ebtable_filter.c
+index 4b988db..60b1a6c 100644
+--- a/net/bridge/netfilter/ebtable_filter.c
++++ b/net/bridge/netfilter/ebtable_filter.c
+@@ -50,7 +50,7 @@ static int check(const struct ebt_table_info *info, unsigned int valid_hooks)
+ 	return 0;
+ }
+ 
+-static struct ebt_table frame_filter =
++static const struct ebt_table frame_filter =
+ {
+ 	.name		= "filter",
+ 	.table		= &initial_table,
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index 37928d5..bd1c654 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -1103,23 +1103,24 @@ free_newinfo:
+ 	return ret;
+ }
+ 
+-struct ebt_table *ebt_register_table(struct net *net, struct ebt_table *table)
++struct ebt_table *
++ebt_register_table(struct net *net, const struct ebt_table *input_table)
+ {
+ 	struct ebt_table_info *newinfo;
+-	struct ebt_table *t;
++	struct ebt_table *t, *table;
+ 	struct ebt_replace_kernel *repl;
+ 	int ret, i, countersize;
+ 	void *p;
+ 
+-	if (!table || !(repl = table->table) || !repl->entries ||
+-	    repl->entries_size == 0 ||
+-	    repl->counters || table->private) {
++	if (input_table == NULL || (repl = input_table->table) == NULL ||
++	    repl->entries == 0 || repl->entries_size == 0 ||
++	    repl->counters != NULL || input_table->private != NULL) {
+ 		BUGPRINT("Bad table data for ebt_register_table!!!\n");
+ 		return ERR_PTR(-EINVAL);
+ 	}
+ 
+ 	/* Don't add one table to multiple lists. */
+-	table = kmemdup(table, sizeof(struct ebt_table), GFP_KERNEL);
++	table = kmemdup(input_table, sizeof(struct ebt_table), GFP_KERNEL);
+ 	if (!table) {
+ 		ret = -ENOMEM;
+ 		goto out;
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 7bc11ff..27774c9 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -1778,7 +1778,8 @@ static int do_arpt_get_ctl(struct sock *sk, int cmd, void __user *user, int *len
+ 	return ret;
+ }
+ 
+-struct xt_table *arpt_register_table(struct net *net, struct xt_table *table,
++struct xt_table *arpt_register_table(struct net *net,
++				     const struct xt_table *table,
+ 				     const struct arpt_replace *repl)
+ {
+ 	int ret;
 diff --git a/net/ipv4/netfilter/arptable_filter.c b/net/ipv4/netfilter/arptable_filter.c
-index d5e822a..c68a65e 100644
+index e07045b..1828a77 100644
 --- a/net/ipv4/netfilter/arptable_filter.c
 +++ b/net/ipv4/netfilter/arptable_filter.c
-@@ -6,6 +6,7 @@
-  */
- 
- #include <linux/module.h>
-+#include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_arp/arp_tables.h>
- 
- MODULE_LICENSE("GPL");
-@@ -15,36 +16,6 @@ MODULE_DESCRIPTION("arptables filter table");
+@@ -15,7 +15,7 @@ MODULE_DESCRIPTION("arptables filter table");
  #define FILTER_VALID_HOOKS ((1 << NF_ARP_IN) | (1 << NF_ARP_OUT) | \
  			   (1 << NF_ARP_FORWARD))
  
--static const struct
--{
--	struct arpt_replace repl;
--	struct arpt_standard entries[3];
--	struct arpt_error term;
--} initial_table __net_initdata = {
--	.repl = {
--		.name = "filter",
--		.valid_hooks = FILTER_VALID_HOOKS,
--		.num_entries = 4,
--		.size = sizeof(struct arpt_standard) * 3 + sizeof(struct arpt_error),
--		.hook_entry = {
--			[NF_ARP_IN] = 0,
--			[NF_ARP_OUT] = sizeof(struct arpt_standard),
--			[NF_ARP_FORWARD] = 2 * sizeof(struct arpt_standard),
--		},
--		.underflow = {
--			[NF_ARP_IN] = 0,
--			[NF_ARP_OUT] = sizeof(struct arpt_standard),
--			[NF_ARP_FORWARD] = 2 * sizeof(struct arpt_standard),
--		},
--	},
--	.entries = {
--		ARPT_STANDARD_INIT(NF_ACCEPT),	/* ARP_IN */
--		ARPT_STANDARD_INIT(NF_ACCEPT),	/* ARP_OUT */
--		ARPT_STANDARD_INIT(NF_ACCEPT),	/* ARP_FORWARD */
--	},
--	.term = ARPT_ERROR_INIT,
--};
--
- static const struct xt_table packet_filter = {
+-static struct
++static const struct
+ {
+ 	struct arpt_replace repl;
+ 	struct arpt_standard entries[3];
+@@ -45,7 +45,7 @@ static struct
+ 	.term = ARPT_ERROR_INIT,
+ };
+ 
+-static struct xt_table packet_filter = {
++static const struct xt_table packet_filter = {
  	.name		= "filter",
  	.valid_hooks	= FILTER_VALID_HOOKS,
-@@ -67,9 +38,13 @@ static unsigned int arptable_filter_hook(unsigned int hook,
+ 	.me		= THIS_MODULE,
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index 0b43fd7..cde755d 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -2065,7 +2065,8 @@ do_ipt_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
+ 	return ret;
+ }
  
- static int __net_init arptable_filter_net_init(struct net *net)
+-struct xt_table *ipt_register_table(struct net *net, struct xt_table *table,
++struct xt_table *ipt_register_table(struct net *net,
++				    const struct xt_table *table,
+ 				    const struct ipt_replace *repl)
  {
--	/* Register table */
-+	struct arpt_replace *repl = xt_repldata_create(&packet_filter);
-+
-+	if (repl == NULL)
-+		return -ENOMEM;
- 	net->ipv4.arptable_filter =
--		arpt_register_table(net, &packet_filter, &initial_table.repl);
-+		arpt_register_table(net, &packet_filter, repl);
-+	kfree(repl);
- 	if (IS_ERR(net->ipv4.arptable_filter))
- 		return PTR_ERR(net->ipv4.arptable_filter);
- 	return 0;
+ 	int ret;
 diff --git a/net/ipv4/netfilter/iptable_filter.c b/net/ipv4/netfilter/iptable_filter.c
-index 7f631a3..aac6d18 100644
+index edfa552..18bd254 100644
 --- a/net/ipv4/netfilter/iptable_filter.c
 +++ b/net/ipv4/netfilter/iptable_filter.c
-@@ -23,36 +23,6 @@ MODULE_DESCRIPTION("iptables filter table");
- 			    (1 << NF_INET_FORWARD) | \
- 			    (1 << NF_INET_LOCAL_OUT))
+@@ -53,7 +53,7 @@ static struct
+ 	.term = IPT_ERROR_INIT,			/* ERROR */
+ };
  
--static struct
--{
--	struct ipt_replace repl;
--	struct ipt_standard entries[3];
--	struct ipt_error term;
--} initial_table __net_initdata = {
--	.repl = {
--		.name = "filter",
--		.valid_hooks = FILTER_VALID_HOOKS,
--		.num_entries = 4,
--		.size = sizeof(struct ipt_standard) * 3 + sizeof(struct ipt_error),
--		.hook_entry = {
--			[NF_INET_LOCAL_IN] = 0,
--			[NF_INET_FORWARD] = sizeof(struct ipt_standard),
--			[NF_INET_LOCAL_OUT] = sizeof(struct ipt_standard) * 2,
--		},
--		.underflow = {
--			[NF_INET_LOCAL_IN] = 0,
--			[NF_INET_FORWARD] = sizeof(struct ipt_standard),
--			[NF_INET_LOCAL_OUT] = sizeof(struct ipt_standard) * 2,
--		},
--	},
--	.entries = {
--		IPT_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_IN */
--		IPT_STANDARD_INIT(NF_ACCEPT),	/* FORWARD */
--		IPT_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_OUT */
--	},
--	.term = IPT_ERROR_INIT,			/* ERROR */
--};
--
- static const struct xt_table packet_filter = {
+-static struct xt_table packet_filter = {
++static const struct xt_table packet_filter = {
  	.name		= "filter",
  	.valid_hooks	= FILTER_VALID_HOOKS,
-@@ -85,9 +55,17 @@ module_param(forward, bool, 0000);
- 
- static int __net_init iptable_filter_net_init(struct net *net)
- {
--	/* Register table */
-+	struct ipt_replace *repl = xt_repldata_create(&packet_filter);
-+
-+	if (repl == NULL)
-+		return -ENOMEM;
-+	/* Entry 1 is the FORWARD hook */
-+	((struct ipt_standard *)repl->entries)[1].target.verdict =
-+		-forward - 1;
-+
- 	net->ipv4.iptable_filter =
--		ipt_register_table(net, &packet_filter, &initial_table.repl);
-+		ipt_register_table(net, &packet_filter, repl);
-+	kfree(repl);
- 	if (IS_ERR(net->ipv4.iptable_filter))
- 		return PTR_ERR(net->ipv4.iptable_filter);
- 	return 0;
-@@ -114,9 +92,6 @@ static int __init iptable_filter_init(void)
- 		return -EINVAL;
- 	}
- 
--	/* Entry 1 is the FORWARD hook */
--	initial_table.entries[1].target.verdict = -forward - 1;
--
- 	ret = register_pernet_subsys(&iptable_filter_net_ops);
- 	if (ret < 0)
- 		return ret;
+ 	.me		= THIS_MODULE,
 diff --git a/net/ipv4/netfilter/iptable_mangle.c b/net/ipv4/netfilter/iptable_mangle.c
-index 02be0d9..86f38d9 100644
+index a6840f6..a217de4 100644
 --- a/net/ipv4/netfilter/iptable_mangle.c
 +++ b/net/ipv4/netfilter/iptable_mangle.c
-@@ -27,43 +27,6 @@ MODULE_DESCRIPTION("iptables mangle table");
- 			    (1 << NF_INET_LOCAL_OUT) | \
+@@ -28,7 +28,7 @@ MODULE_DESCRIPTION("iptables mangle table");
  			    (1 << NF_INET_POST_ROUTING))
  
--/* Ouch - five different hooks? Maybe this should be a config option..... -- BC */
--static const struct
--{
--	struct ipt_replace repl;
--	struct ipt_standard entries[5];
--	struct ipt_error term;
--} initial_table __net_initdata = {
--	.repl = {
--		.name = "mangle",
--		.valid_hooks = MANGLE_VALID_HOOKS,
--		.num_entries = 6,
--		.size = sizeof(struct ipt_standard) * 5 + sizeof(struct ipt_error),
--		.hook_entry = {
--			[NF_INET_PRE_ROUTING] 	= 0,
--			[NF_INET_LOCAL_IN] 	= sizeof(struct ipt_standard),
--			[NF_INET_FORWARD] 	= sizeof(struct ipt_standard) * 2,
--			[NF_INET_LOCAL_OUT] 	= sizeof(struct ipt_standard) * 3,
--			[NF_INET_POST_ROUTING] 	= sizeof(struct ipt_standard) * 4,
--		},
--		.underflow = {
--			[NF_INET_PRE_ROUTING] 	= 0,
--			[NF_INET_LOCAL_IN] 	= sizeof(struct ipt_standard),
--			[NF_INET_FORWARD] 	= sizeof(struct ipt_standard) * 2,
--			[NF_INET_LOCAL_OUT] 	= sizeof(struct ipt_standard) * 3,
--			[NF_INET_POST_ROUTING]	= sizeof(struct ipt_standard) * 4,
--		},
--	},
--	.entries = {
--		IPT_STANDARD_INIT(NF_ACCEPT),	/* PRE_ROUTING */
--		IPT_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_IN */
--		IPT_STANDARD_INIT(NF_ACCEPT),	/* FORWARD */
--		IPT_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_OUT */
--		IPT_STANDARD_INIT(NF_ACCEPT),	/* POST_ROUTING */
--	},
--	.term = IPT_ERROR_INIT,			/* ERROR */
--};
--
- static const struct xt_table packet_mangler = {
+ /* Ouch - five different hooks? Maybe this should be a config option..... -- BC */
+-static struct
++static const struct
+ {
+ 	struct ipt_replace repl;
+ 	struct ipt_standard entries[5];
+@@ -64,7 +64,7 @@ static struct
+ 	.term = IPT_ERROR_INIT,			/* ERROR */
+ };
+ 
+-static struct xt_table packet_mangler = {
++static const struct xt_table packet_mangler = {
  	.name		= "mangle",
  	.valid_hooks	= MANGLE_VALID_HOOKS,
-@@ -132,9 +95,13 @@ iptable_mangle_hook(unsigned int hook,
- 
- static int __net_init iptable_mangle_net_init(struct net *net)
- {
--	/* Register table */
-+	struct ipt_replace *repl = xt_repldata_create(&packet_mangler);
-+
-+	if (repl == NULL)
-+		return -ENOMEM;
- 	net->ipv4.iptable_mangle =
--		ipt_register_table(net, &packet_mangler, &initial_table.repl);
-+		ipt_register_table(net, &packet_mangler, repl);
-+	kfree(repl);
- 	if (IS_ERR(net->ipv4.iptable_mangle))
- 		return PTR_ERR(net->ipv4.iptable_mangle);
- 	return 0;
+ 	.me		= THIS_MODULE,
 diff --git a/net/ipv4/netfilter/iptable_raw.c b/net/ipv4/netfilter/iptable_raw.c
-index 8828ba5..76d00bf 100644
+index 9f85c9a..7767253 100644
 --- a/net/ipv4/netfilter/iptable_raw.c
 +++ b/net/ipv4/netfilter/iptable_raw.c
-@@ -9,33 +9,6 @@
+@@ -9,7 +9,7 @@
  
  #define RAW_VALID_HOOKS ((1 << NF_INET_PRE_ROUTING) | (1 << NF_INET_LOCAL_OUT))
  
--static const struct
--{
--	struct ipt_replace repl;
--	struct ipt_standard entries[2];
--	struct ipt_error term;
--} initial_table __net_initdata = {
--	.repl = {
--		.name = "raw",
--		.valid_hooks = RAW_VALID_HOOKS,
--		.num_entries = 3,
--		.size = sizeof(struct ipt_standard) * 2 + sizeof(struct ipt_error),
--		.hook_entry = {
--			[NF_INET_PRE_ROUTING] = 0,
--			[NF_INET_LOCAL_OUT] = sizeof(struct ipt_standard)
--		},
--		.underflow = {
--			[NF_INET_PRE_ROUTING] = 0,
--			[NF_INET_LOCAL_OUT]  = sizeof(struct ipt_standard)
--		},
--	},
--	.entries = {
--		IPT_STANDARD_INIT(NF_ACCEPT),	/* PRE_ROUTING */
--		IPT_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_OUT */
--	},
--	.term = IPT_ERROR_INIT,			/* ERROR */
--};
--
- static const struct xt_table packet_raw = {
+-static struct
++static const struct
+ {
+ 	struct ipt_replace repl;
+ 	struct ipt_standard entries[2];
+@@ -36,7 +36,7 @@ static struct
+ 	.term = IPT_ERROR_INIT,			/* ERROR */
+ };
+ 
+-static struct xt_table packet_raw = {
++static const struct xt_table packet_raw = {
  	.name = "raw",
  	.valid_hooks =  RAW_VALID_HOOKS,
-@@ -65,9 +38,13 @@ iptable_raw_hook(unsigned int hook,
- 
- static int __net_init iptable_raw_net_init(struct net *net)
- {
--	/* Register table */
-+	struct ipt_replace *repl = xt_repldata_create(&packet_raw);
-+
-+	if (repl == NULL)
-+		return -ENOMEM;
- 	net->ipv4.iptable_raw =
--		ipt_register_table(net, &packet_raw, &initial_table.repl);
-+		ipt_register_table(net, &packet_raw, repl);
-+	kfree(repl);
- 	if (IS_ERR(net->ipv4.iptable_raw))
- 		return PTR_ERR(net->ipv4.iptable_raw);
- 	return 0;
+ 	.me = THIS_MODULE,
 diff --git a/net/ipv4/netfilter/iptable_security.c b/net/ipv4/netfilter/iptable_security.c
-index 175cf0f..40c7e53 100644
+index ccb527e..118e514 100644
 --- a/net/ipv4/netfilter/iptable_security.c
 +++ b/net/ipv4/netfilter/iptable_security.c
-@@ -27,36 +27,6 @@ MODULE_DESCRIPTION("iptables security table, for MAC rules");
+@@ -27,7 +27,7 @@ MODULE_DESCRIPTION("iptables security table, for MAC rules");
  				(1 << NF_INET_FORWARD) | \
  				(1 << NF_INET_LOCAL_OUT)
  
--static const struct
--{
--	struct ipt_replace repl;
--	struct ipt_standard entries[3];
--	struct ipt_error term;
--} initial_table __net_initdata = {
--	.repl = {
--		.name = "security",
--		.valid_hooks = SECURITY_VALID_HOOKS,
--		.num_entries = 4,
--		.size = sizeof(struct ipt_standard) * 3 + sizeof(struct ipt_error),
--		.hook_entry = {
--			[NF_INET_LOCAL_IN] 	= 0,
--			[NF_INET_FORWARD] 	= sizeof(struct ipt_standard),
--			[NF_INET_LOCAL_OUT] 	= sizeof(struct ipt_standard) * 2,
--		},
--		.underflow = {
--			[NF_INET_LOCAL_IN] 	= 0,
--			[NF_INET_FORWARD] 	= sizeof(struct ipt_standard),
--			[NF_INET_LOCAL_OUT] 	= sizeof(struct ipt_standard) * 2,
--		},
--	},
--	.entries = {
--		IPT_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_IN */
--		IPT_STANDARD_INIT(NF_ACCEPT),	/* FORWARD */
--		IPT_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_OUT */
--	},
--	.term = IPT_ERROR_INIT,			/* ERROR */
--};
--
- static const struct xt_table security_table = {
+-static struct
++static const struct
+ {
+ 	struct ipt_replace repl;
+ 	struct ipt_standard entries[3];
+@@ -57,7 +57,7 @@ static struct
+ 	.term = IPT_ERROR_INIT,			/* ERROR */
+ };
+ 
+-static struct xt_table security_table = {
++static const struct xt_table security_table = {
  	.name		= "security",
  	.valid_hooks	= SECURITY_VALID_HOOKS,
-@@ -85,9 +55,13 @@ iptable_security_hook(unsigned int hook,
- 
- static int __net_init iptable_security_net_init(struct net *net)
- {
--	net->ipv4.iptable_security =
--		ipt_register_table(net, &security_table, &initial_table.repl);
-+	struct ipt_replace *repl = xt_repldata_create(&security_table);
- 
-+	if (repl == NULL)
-+		return -ENOMEM;
-+	net->ipv4.iptable_security =
-+		ipt_register_table(net, &security_table, repl);
-+	kfree(repl);
- 	if (IS_ERR(net->ipv4.iptable_security))
- 		return PTR_ERR(net->ipv4.iptable_security);
- 
+ 	.me		= THIS_MODULE,
 diff --git a/net/ipv4/netfilter/nf_nat_rule.c b/net/ipv4/netfilter/nf_nat_rule.c
-index 9e81e0d..57f9d1d 100644
+index 6448a9b..9e81e0d 100644
 --- a/net/ipv4/netfilter/nf_nat_rule.c
 +++ b/net/ipv4/netfilter/nf_nat_rule.c
-@@ -28,36 +28,6 @@
+@@ -28,7 +28,7 @@
  			 (1 << NF_INET_POST_ROUTING) | \
  			 (1 << NF_INET_LOCAL_OUT))
  
--static const struct
--{
--	struct ipt_replace repl;
--	struct ipt_standard entries[3];
--	struct ipt_error term;
--} nat_initial_table __net_initdata = {
--	.repl = {
--		.name = "nat",
--		.valid_hooks = NAT_VALID_HOOKS,
--		.num_entries = 4,
--		.size = sizeof(struct ipt_standard) * 3 + sizeof(struct ipt_error),
--		.hook_entry = {
--			[NF_INET_PRE_ROUTING] = 0,
--			[NF_INET_POST_ROUTING] = sizeof(struct ipt_standard),
--			[NF_INET_LOCAL_OUT] = sizeof(struct ipt_standard) * 2
--		},
--		.underflow = {
--			[NF_INET_PRE_ROUTING] = 0,
--			[NF_INET_POST_ROUTING] = sizeof(struct ipt_standard),
--			[NF_INET_LOCAL_OUT] = sizeof(struct ipt_standard) * 2
--		},
--	},
--	.entries = {
--		IPT_STANDARD_INIT(NF_ACCEPT),	/* PRE_ROUTING */
--		IPT_STANDARD_INIT(NF_ACCEPT),	/* POST_ROUTING */
--		IPT_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_OUT */
--	},
--	.term = IPT_ERROR_INIT,			/* ERROR */
--};
--
- static const struct xt_table nat_table = {
+-static struct
++static const struct
+ {
+ 	struct ipt_replace repl;
+ 	struct ipt_standard entries[3];
+@@ -58,7 +58,7 @@ static struct
+ 	.term = IPT_ERROR_INIT,			/* ERROR */
+ };
+ 
+-static struct xt_table nat_table = {
++static const struct xt_table nat_table = {
  	.name		= "nat",
  	.valid_hooks	= NAT_VALID_HOOKS,
-@@ -186,8 +156,12 @@ static struct xt_target ipt_dnat_reg __read_mostly = {
+ 	.me		= THIS_MODULE,
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index a5d0c27..cc9f8ef 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -2100,7 +2100,8 @@ do_ip6t_get_ctl(struct sock *sk, int cmd, void __user *user, int *len)
+ 	return ret;
+ }
  
- static int __net_init nf_nat_rule_net_init(struct net *net)
+-struct xt_table *ip6t_register_table(struct net *net, struct xt_table *table,
++struct xt_table *ip6t_register_table(struct net *net,
++				     const struct xt_table *table,
+ 				     const struct ip6t_replace *repl)
  {
--	net->ipv4.nat_table = ipt_register_table(net, &nat_table,
--						 &nat_initial_table.repl);
-+	struct ipt_replace *repl = xt_repldata_create(&nat_table);
-+
-+	if (repl == NULL)
-+		return -ENOMEM;
-+	net->ipv4.nat_table = ipt_register_table(net, &nat_table, repl);
-+	kfree(repl);
- 	if (IS_ERR(net->ipv4.nat_table))
- 		return PTR_ERR(net->ipv4.nat_table);
- 	return 0;
+ 	int ret;
 diff --git a/net/ipv6/netfilter/ip6table_filter.c b/net/ipv6/netfilter/ip6table_filter.c
-index 90cf866..dec2f7a 100644
+index 2be11ee..c01d7c2 100644
 --- a/net/ipv6/netfilter/ip6table_filter.c
 +++ b/net/ipv6/netfilter/ip6table_filter.c
-@@ -21,36 +21,6 @@ MODULE_DESCRIPTION("ip6tables filter table");
- 			    (1 << NF_INET_FORWARD) | \
- 			    (1 << NF_INET_LOCAL_OUT))
+@@ -51,7 +51,7 @@ static struct
+ 	.term = IP6T_ERROR_INIT,		/* ERROR */
+ };
  
--static struct
--{
--	struct ip6t_replace repl;
--	struct ip6t_standard entries[3];
--	struct ip6t_error term;
--} initial_table __net_initdata = {
--	.repl = {
--		.name = "filter",
--		.valid_hooks = FILTER_VALID_HOOKS,
--		.num_entries = 4,
--		.size = sizeof(struct ip6t_standard) * 3 + sizeof(struct ip6t_error),
--		.hook_entry = {
--			[NF_INET_LOCAL_IN] = 0,
--			[NF_INET_FORWARD] = sizeof(struct ip6t_standard),
--			[NF_INET_LOCAL_OUT] = sizeof(struct ip6t_standard) * 2
--		},
--		.underflow = {
--			[NF_INET_LOCAL_IN] = 0,
--			[NF_INET_FORWARD] = sizeof(struct ip6t_standard),
--			[NF_INET_LOCAL_OUT] = sizeof(struct ip6t_standard) * 2
--		},
--	},
--	.entries = {
--		IP6T_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_IN */
--		IP6T_STANDARD_INIT(NF_ACCEPT),	/* FORWARD */
--		IP6T_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_OUT */
--	},
--	.term = IP6T_ERROR_INIT,		/* ERROR */
--};
--
- static const struct xt_table packet_filter = {
+-static struct xt_table packet_filter = {
++static const struct xt_table packet_filter = {
  	.name		= "filter",
  	.valid_hooks	= FILTER_VALID_HOOKS,
-@@ -78,9 +48,17 @@ module_param(forward, bool, 0000);
- 
- static int __net_init ip6table_filter_net_init(struct net *net)
- {
--	/* Register table */
-+	struct ip6t_replace *repl = xt_repldata_create(&packet_filter);
-+
-+	if (repl == NULL)
-+		return -ENOMEM;
-+	/* Entry 1 is the FORWARD hook */
-+	((struct ip6t_standard *)repl->entries)[1].target.verdict =
-+		-forward - 1;
-+
- 	net->ipv6.ip6table_filter =
--		ip6t_register_table(net, &packet_filter, &initial_table.repl);
-+		ip6t_register_table(net, &packet_filter, repl);
-+	kfree(repl);
- 	if (IS_ERR(net->ipv6.ip6table_filter))
- 		return PTR_ERR(net->ipv6.ip6table_filter);
- 	return 0;
-@@ -107,9 +85,6 @@ static int __init ip6table_filter_init(void)
- 		return -EINVAL;
- 	}
- 
--	/* Entry 1 is the FORWARD hook */
--	initial_table.entries[1].target.verdict = -forward - 1;
--
- 	ret = register_pernet_subsys(&ip6table_filter_net_ops);
- 	if (ret < 0)
- 		return ret;
+ 	.me		= THIS_MODULE,
 diff --git a/net/ipv6/netfilter/ip6table_mangle.c b/net/ipv6/netfilter/ip6table_mangle.c
-index f6ca1b7..33ea3f5 100644
+index 500bfbe..8765824 100644
 --- a/net/ipv6/netfilter/ip6table_mangle.c
 +++ b/net/ipv6/netfilter/ip6table_mangle.c
-@@ -21,42 +21,6 @@ MODULE_DESCRIPTION("ip6tables mangle table");
+@@ -21,7 +21,7 @@ MODULE_DESCRIPTION("ip6tables mangle table");
  			    (1 << NF_INET_LOCAL_OUT) | \
  			    (1 << NF_INET_POST_ROUTING))
  
--static const struct
--{
--	struct ip6t_replace repl;
--	struct ip6t_standard entries[5];
--	struct ip6t_error term;
--} initial_table __net_initdata = {
--	.repl = {
--		.name = "mangle",
--		.valid_hooks = MANGLE_VALID_HOOKS,
--		.num_entries = 6,
--		.size = sizeof(struct ip6t_standard) * 5 + sizeof(struct ip6t_error),
--		.hook_entry = {
--			[NF_INET_PRE_ROUTING] 	= 0,
--			[NF_INET_LOCAL_IN]	= sizeof(struct ip6t_standard),
--			[NF_INET_FORWARD]	= sizeof(struct ip6t_standard) * 2,
--			[NF_INET_LOCAL_OUT] 	= sizeof(struct ip6t_standard) * 3,
--			[NF_INET_POST_ROUTING]	= sizeof(struct ip6t_standard) * 4,
--		},
--		.underflow = {
--			[NF_INET_PRE_ROUTING] 	= 0,
--			[NF_INET_LOCAL_IN]	= sizeof(struct ip6t_standard),
--			[NF_INET_FORWARD]	= sizeof(struct ip6t_standard) * 2,
--			[NF_INET_LOCAL_OUT] 	= sizeof(struct ip6t_standard) * 3,
--			[NF_INET_POST_ROUTING]	= sizeof(struct ip6t_standard) * 4,
--		},
--	},
--	.entries = {
--		IP6T_STANDARD_INIT(NF_ACCEPT),	/* PRE_ROUTING */
--		IP6T_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_IN */
--		IP6T_STANDARD_INIT(NF_ACCEPT),	/* FORWARD */
--		IP6T_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_OUT */
--		IP6T_STANDARD_INIT(NF_ACCEPT),	/* POST_ROUTING */
--	},
--	.term = IP6T_ERROR_INIT,		/* ERROR */
--};
--
- static const struct xt_table packet_mangler = {
+-static struct
++static const struct
+ {
+ 	struct ip6t_replace repl;
+ 	struct ip6t_standard entries[5];
+@@ -57,7 +57,7 @@ static struct
+ 	.term = IP6T_ERROR_INIT,		/* ERROR */
+ };
+ 
+-static struct xt_table packet_mangler = {
++static const struct xt_table packet_mangler = {
  	.name		= "mangle",
  	.valid_hooks	= MANGLE_VALID_HOOKS,
-@@ -128,9 +92,13 @@ ip6table_mangle_hook(unsigned int hook,
- 
- static int __net_init ip6table_mangle_net_init(struct net *net)
- {
--	/* Register table */
-+	struct ip6t_replace *repl = xt_repldata_create(&packet_mangler);
-+
-+	if (repl == NULL)
-+		return -ENOMEM;
- 	net->ipv6.ip6table_mangle =
--		ip6t_register_table(net, &packet_mangler, &initial_table.repl);
-+		ip6t_register_table(net, &packet_mangler, repl);
-+	kfree(repl);
- 	if (IS_ERR(net->ipv6.ip6table_mangle))
- 		return PTR_ERR(net->ipv6.ip6table_mangle);
- 	return 0;
+ 	.me		= THIS_MODULE,
 diff --git a/net/ipv6/netfilter/ip6table_raw.c b/net/ipv6/netfilter/ip6table_raw.c
-index 4ddc1ff..345bbe9 100644
+index b8f9b41..228a665 100644
 --- a/net/ipv6/netfilter/ip6table_raw.c
 +++ b/net/ipv6/netfilter/ip6table_raw.c
-@@ -8,33 +8,6 @@
+@@ -8,7 +8,7 @@
  
  #define RAW_VALID_HOOKS ((1 << NF_INET_PRE_ROUTING) | (1 << NF_INET_LOCAL_OUT))
  
--static const struct
--{
--	struct ip6t_replace repl;
--	struct ip6t_standard entries[2];
--	struct ip6t_error term;
--} initial_table __net_initdata = {
--	.repl = {
--		.name = "raw",
--		.valid_hooks = RAW_VALID_HOOKS,
--		.num_entries = 3,
--		.size = sizeof(struct ip6t_standard) * 2 + sizeof(struct ip6t_error),
--		.hook_entry = {
--			[NF_INET_PRE_ROUTING] = 0,
--			[NF_INET_LOCAL_OUT] = sizeof(struct ip6t_standard)
--		},
--		.underflow = {
--			[NF_INET_PRE_ROUTING] = 0,
--			[NF_INET_LOCAL_OUT] = sizeof(struct ip6t_standard)
--		},
--	},
--	.entries = {
--		IP6T_STANDARD_INIT(NF_ACCEPT),	/* PRE_ROUTING */
--		IP6T_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_OUT */
--	},
--	.term = IP6T_ERROR_INIT,		/* ERROR */
--};
--
- static const struct xt_table packet_raw = {
+-static struct
++static const struct
+ {
+ 	struct ip6t_replace repl;
+ 	struct ip6t_standard entries[2];
+@@ -35,7 +35,7 @@ static struct
+ 	.term = IP6T_ERROR_INIT,		/* ERROR */
+ };
+ 
+-static struct xt_table packet_raw = {
++static const struct xt_table packet_raw = {
  	.name = "raw",
  	.valid_hooks = RAW_VALID_HOOKS,
-@@ -58,9 +31,13 @@ ip6table_raw_hook(unsigned int hook,
- 
- static int __net_init ip6table_raw_net_init(struct net *net)
- {
--	/* Register table */
-+	struct ip6t_replace *repl = xt_repldata_create(&packet_raw);
-+
-+	if (repl == NULL)
-+		return -ENOMEM;
- 	net->ipv6.ip6table_raw =
--		ip6t_register_table(net, &packet_raw, &initial_table.repl);
-+		ip6t_register_table(net, &packet_raw, repl);
-+	kfree(repl);
- 	if (IS_ERR(net->ipv6.ip6table_raw))
- 		return PTR_ERR(net->ipv6.ip6table_raw);
- 	return 0;
+ 	.me = THIS_MODULE,
 diff --git a/net/ipv6/netfilter/ip6table_security.c b/net/ipv6/netfilter/ip6table_security.c
-index 82f56a0..2fb2d4d 100644
+index 6eab20d..7928087 100644
 --- a/net/ipv6/netfilter/ip6table_security.c
 +++ b/net/ipv6/netfilter/ip6table_security.c
-@@ -26,36 +26,6 @@ MODULE_DESCRIPTION("ip6tables security table, for MAC rules");
+@@ -26,7 +26,7 @@ MODULE_DESCRIPTION("ip6tables security table, for MAC rules");
  				(1 << NF_INET_FORWARD) | \
  				(1 << NF_INET_LOCAL_OUT)
  
--static const struct
--{
--	struct ip6t_replace repl;
--	struct ip6t_standard entries[3];
--	struct ip6t_error term;
--} initial_table __net_initdata = {
--	.repl = {
--		.name = "security",
--		.valid_hooks = SECURITY_VALID_HOOKS,
--		.num_entries = 4,
--		.size = sizeof(struct ip6t_standard) * 3 + sizeof(struct ip6t_error),
--		.hook_entry = {
--			[NF_INET_LOCAL_IN] 	= 0,
--			[NF_INET_FORWARD] 	= sizeof(struct ip6t_standard),
--			[NF_INET_LOCAL_OUT] 	= sizeof(struct ip6t_standard) * 2,
--		},
--		.underflow = {
--			[NF_INET_LOCAL_IN] 	= 0,
--			[NF_INET_FORWARD] 	= sizeof(struct ip6t_standard),
--			[NF_INET_LOCAL_OUT] 	= sizeof(struct ip6t_standard) * 2,
--		},
--	},
--	.entries = {
--		IP6T_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_IN */
--		IP6T_STANDARD_INIT(NF_ACCEPT),	/* FORWARD */
--		IP6T_STANDARD_INIT(NF_ACCEPT),	/* LOCAL_OUT */
--	},
--	.term = IP6T_ERROR_INIT,		/* ERROR */
--};
--
- static const struct xt_table security_table = {
+-static struct
++static const struct
+ {
+ 	struct ip6t_replace repl;
+ 	struct ip6t_standard entries[3];
+@@ -56,7 +56,7 @@ static struct
+ 	.term = IP6T_ERROR_INIT,		/* ERROR */
+ };
+ 
+-static struct xt_table security_table = {
++static const struct xt_table security_table = {
  	.name		= "security",
  	.valid_hooks	= SECURITY_VALID_HOOKS,
-@@ -78,9 +48,13 @@ ip6table_security_hook(unsigned int hook,
- 
- static int __net_init ip6table_security_net_init(struct net *net)
- {
--	net->ipv6.ip6table_security =
--		ip6t_register_table(net, &security_table, &initial_table.repl);
-+	struct ip6t_replace *repl = xt_repldata_create(&security_table);
- 
-+	if (repl == NULL)
-+		return -ENOMEM;
-+	net->ipv6.ip6table_security =
-+		ip6t_register_table(net, &security_table, repl);
-+	kfree(repl);
- 	if (IS_ERR(net->ipv6.ip6table_security))
- 		return PTR_ERR(net->ipv6.ip6table_security);
- 
+ 	.me		= THIS_MODULE,
 diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 46e0120..eff972f 100644
+index 7e3f51d..f7c4c39 100644
 --- a/net/netfilter/x_tables.c
 +++ b/net/netfilter/x_tables.c
-@@ -26,7 +26,9 @@
- 
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_arp.h>
--
-+#include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netfilter_ipv6/ip6_tables.h>
-+#include <linux/netfilter_arp/arp_tables.h>
- 
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
-@@ -1155,6 +1157,56 @@ void xt_hook_unlink(const struct xt_table *table, struct nf_hook_ops *ops)
+@@ -736,16 +736,17 @@ xt_replace_table(struct xt_table *table,
  }
- EXPORT_SYMBOL_GPL(xt_hook_unlink);
+ EXPORT_SYMBOL_GPL(xt_replace_table);
  
-+/*
-+ * Today's hack: quantum tunneling in structs
-+ *
-+ * 'entries' and 'term' are never anywhere referenced by word in code. In fact,
-+ * they serve as the hanging-off data accessed through repl.data[]!
-+ */
-+#define xt_repldata_mk(type, typ2) \
-+	struct { \
-+		struct type##_replace repl; \
-+		struct type##_standard entries[nhooks]; \
-+		struct type##_error term; \
-+	} *tbl = kzalloc(sizeof(*tbl), GFP_KERNEL); \
-+	if (tbl == NULL) \
-+		return NULL; \
-+	strncpy(tbl->repl.name, info->name, sizeof(tbl->repl.name)); \
-+	tbl->term = (struct type##_error)typ2##_ERROR_INIT;  \
-+	tbl->repl.valid_hooks = hook_mask; \
-+	tbl->repl.num_entries = nhooks + 1; \
-+	tbl->repl.size = nhooks * sizeof(struct type##_standard) + \
-+	                 sizeof(struct type##_error); \
-+	for (; hook_mask != 0; hook_mask >>= 1, ++hooknum) { \
-+		if (!(hook_mask & 1)) \
-+			continue; \
-+		tbl->repl.hook_entry[hooknum] = bytes; \
-+		tbl->repl.underflow[hooknum]  = bytes; \
-+		tbl->entries[i++] = (struct type##_standard) \
-+			typ2##_STANDARD_INIT(NF_ACCEPT); \
-+		bytes += sizeof(struct type##_standard); \
-+	}
-+
-+void *xt_repldata_create(const struct xt_table *info)
-+{
-+	unsigned int hook_mask = info->valid_hooks;
-+	unsigned int nhooks = xt_hookmask_bitcount(hook_mask);
-+	unsigned int bytes = 0, hooknum = 0, i = 0;
-+
-+	if (info->af == NFPROTO_IPV6) {
-+		xt_repldata_mk(ip6t, IP6T);
-+		return tbl;
-+	} else if (info->af == NFPROTO_IPV4) {
-+		xt_repldata_mk(ipt, IPT);
-+		return tbl;
-+	} else if (info->af == NFPROTO_ARP) {
-+		xt_repldata_mk(arpt, ARPT);
-+		return tbl;
-+	}
-+	return NULL;
-+}
-+EXPORT_SYMBOL_GPL(xt_repldata_create);
-+
- int xt_proto_init(struct net *net, u_int8_t af)
+-struct xt_table *xt_register_table(struct net *net, struct xt_table *table,
++struct xt_table *xt_register_table(struct net *net,
++				   const struct xt_table *input_table,
+ 				   struct xt_table_info *bootstrap,
+ 				   struct xt_table_info *newinfo)
  {
- #ifdef CONFIG_PROC_FS
+ 	int ret;
+ 	struct xt_table_info *private;
+-	struct xt_table *t;
++	struct xt_table *t, *table;
+ 
+ 	/* Don't add one object to multiple lists. */
+-	table = kmemdup(table, sizeof(struct xt_table), GFP_KERNEL);
++	table = kmemdup(input_table, sizeof(struct xt_table), GFP_KERNEL);
+ 	if (!table) {
+ 		ret = -ENOMEM;
+ 		goto out;
 -- 
 1.6.4
 
