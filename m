@@ -1,56 +1,52 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 021/103] netfilter: xtables: consolidate table hook functions
-Date: Mon, 10 Aug 2009 11:51:00 +0200
-Message-ID: <4A7FED84.4010900@trash.net>
-References: <1249370787-17583-1-git-send-email-jengelh@medozas.de> <1249370787-17583-22-git-send-email-jengelh@medozas.de> <4A7FE131.5040901@trash.net> <alpine.LSU.2.00.0908101128160.23752@fbirervta.pbzchgretzou.qr>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: pom-ng and different iptables versions
+Date: Mon, 10 Aug 2009 12:42:54 +0200
+Message-ID: <200908101242.54570.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60665 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753285AbZHJJvD (ORCPT
+Received: from rs02.intra2net.com ([81.169.173.116]:40119 "EHLO
+	rs02.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752953AbZHJK4i (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 10 Aug 2009 05:51:03 -0400
-In-Reply-To: <alpine.LSU.2.00.0908101128160.23752@fbirervta.pbzchgretzou.qr>
+	Mon, 10 Aug 2009 06:56:38 -0400
+Received: from intranator.m.i2n (unknown [172.16.1.99])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by rs02.intra2net.com (Postfix) with ESMTP id DF3B2A1D1
+	for <netfilter-devel@vger.kernel.org>; Mon, 10 Aug 2009 12:42:57 +0200 (CEST)
+Received: from localhost (intranator.m.i2n [127.0.0.1])
+	by localhost (Postfix) with ESMTP id 8DD4D2AC52
+	for <netfilter-devel@vger.kernel.org>; Mon, 10 Aug 2009 12:42:57 +0200 (CEST)
+Received: from storm.localnet (storm.m.i2n [172.16.1.2])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by intranator.m.i2n (Postfix) with ESMTPS id 21A3E2AC50
+	for <netfilter-devel@vger.kernel.org>; Mon, 10 Aug 2009 12:42:55 +0200 (CEST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Monday 2009-08-10 10:58, Patrick McHardy wrote:
->> Jan Engelhardt wrote:
->>> For a following patch in this series, we will be requiring that a
->>> single hook function per table does the processing.
->> Which one?
-> 
-> "generate nf_hook_ops on-demand"
-> 
->>>  {
->>> -	return arpt_do_table(skb, hook, in, out,
->>> -			     dev_net(in)->ipv4.arptable_filter);
->>> -}
->>> +	if (hook == NF_ARP_OUT)
->>> +		return arpt_do_table(skb, hook, in, out,
->>> +		       dev_net(out)->ipv4.arptable_filter);
->> I have to say, I really dislike this strange formatting style (I
->> think its an emacs thing, you're not the only one doing this).
->> The arguments are all neatly aligned so far, please keep it that
->> way.
-> 
-> Well only good I am not into Emacs ;)
+Hello,
 
-That was only a guess :)
+pom-ng supports to apply the kernel part of a patchlet
+depending on the kernel version via different file names:
 
-> The reasoning for such unconscious action may simply be that some
-> function names are a bit long and cause an unnecessary indentation to
-> the right in such cases. Or you could argue all "arguments" to 'return'
-> are actually aligned - with respect to the return keyword that is.
+linux-2.6.patch
+linux-2.6.16.patch
+linux-2.6.19.patch
+...
 
-One could .. but that argument doesn't make much sense to me :)
+Is something like this also possible for the "iptables" extension part?
 
-I've been letting this slip for too long, but these style
-inconsistencies do bother me, so please keep it aligned to
-the left parenthesis (or change it so it will be that way when
-touching code).
+The internal API changed after iptables 1.4.2. A user sent me a patch
+for iptables 1.4.4, if possible I'd like to keep 1.4.2 support
+at the same time. What's the best approach to do this?
+#ifdefs? :o)
+
+Thanks in advance,
+Thomas
+
