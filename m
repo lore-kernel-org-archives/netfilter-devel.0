@@ -1,75 +1,49 @@
-From: "Christoph A." <casmls@gmail.com>
-Subject: Re: arbitrary address mask matching
-Date: Mon, 10 Aug 2009 11:06:51 +0200
-Message-ID: <4A7FE32B.4040409@gmail.com>
-References: <4A7F5CF1.8030708@gmail.com> <4A7FDEFA.3020009@plouf.fr.eu.org>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 017/103] netfilter: xtables: use better unconditional
+ check
+Date: Mon, 10 Aug 2009 11:27:44 +0200 (CEST)
+Message-ID: <alpine.LSU.2.00.0908101117010.23752@fbirervta.pbzchgretzou.qr>
+References: <1249370787-17583-1-git-send-email-jengelh@medozas.de> <1249370787-17583-18-git-send-email-jengelh@medozas.de> <4A7FE031.3090506@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha512;
- protocol="application/pgp-signature";
- boundary="------------enig9BF1F91356F031E91A425F91"
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Jan Engelhardt <jengelh@medozas.de>,
-	"Christoph A." <casmls@gmail.com>
-To: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f228.google.com ([209.85.220.228]:37656 "EHLO
-	mail-fx0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751883AbZHJJJb (ORCPT
+Received: from sovereign.computergmbh.de ([85.214.69.204]:57523 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752840AbZHJJ1o (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 10 Aug 2009 05:09:31 -0400
-Received: by fxm28 with SMTP id 28so791119fxm.17
-        for <netfilter-devel@vger.kernel.org>; Mon, 10 Aug 2009 02:09:31 -0700 (PDT)
-In-Reply-To: <4A7FDEFA.3020009@plouf.fr.eu.org>
+	Mon, 10 Aug 2009 05:27:44 -0400
+In-Reply-To: <4A7FE031.3090506@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig9BF1F91356F031E91A425F91
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: quoted-printable
 
-On 10.08.2009 10:48, Pascal Hambourg wrote:
->> iptables -A OUTPUT -d 10.10.97.1/255.255.255.253 -m iprange --dst-rang=
-e
->> 10.10.97.1-10.10.97.7 -j REJECT
->>
->> this should match on 10.10.97.1,3,5,7 but matches only 1 and 3
->=20
-> 253 is binary 11111101, so this is the expected behaviour.
-> BTW, what is the use of iprange in this rule ?
+On Monday 2009-08-10 10:54, Patrick McHardy wrote:
+>Jan Engelhardt wrote:
+>> The use of memcmp should enable architecture-preferred comparison
+>> methods, for example 64-bit comparisons that would complete in [more
+>> than] half the time than inspecting just each u32/char.
+>
+>I don't object to the change as cleanup, but that reasoning makes
+>no sense. memcmp can't assume alignment,
 
-The rule is mainly a copy n paste from
-http://jengelh.medozas.de/documents/Perfect_Ruleset.pdf page 7 (just
-changing the input to output direction)
+Right, memcmp itself cannot, and there is usually a prealignment check
+in libcs that clears a few bytes and advances the pointer until it is
+aligned.
 
-to get the desired/described behaviour one should set this mask:
-255.255.255.1
+>so unless there's a
+>version checking for compile-time known alignment, this won't happen.
 
-the line
--A INPUT -s 10.10.97.1/255.255.255.253
+	static void func(int r)
+	{
+		static int q = 1234;
+		memcmp(&q, &r, sizeof(q));
+	}
 
-should be changed to
--A INPUT -s 10.10.97.1/255.255.255.1
+There is GCC's __builtin_memcmp, which should generally have
+knowledge about alignment. q and r are known here.
 
-Jan, would you correct this in the paper (if you agree with my
-correction of the mask)
+>Please fix up the changelog and label this as cleanup.
 
-thanks
-Christoph A.
-
-
---------------enig9BF1F91356F031E91A425F91
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iEYEAREKAAYFAkp/4ysACgkQrq+riTAIEg2oTQCeNm44clNZwVo1RU/D6ndvXqDU
-f8YAni/WqxJax9BNn40r/U79rAmPHHj0
-=5/4m
------END PGP SIGNATURE-----
-
---------------enig9BF1F91356F031E91A425F91--
+Will do.
