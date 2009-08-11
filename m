@@ -1,49 +1,64 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: resend|stable: netfilter: xt_quota: fix wrong return value (error
- case)
-Date: Tue, 11 Aug 2009 19:50:45 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0908111949130.1698@fbirervta.pbzchgretzou.qr>
+From: "Christoph A." <casmls@gmail.com>
+Subject: [nft] numeric ip protocol values and omitting filter tablename
+Date: Tue, 11 Aug 2009 23:52:01 +0200
+Message-ID: <4A81E801.606@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
+Content-Type: multipart/signed; micalg=pgp-sha512;
+ protocol="application/pgp-signature";
+ boundary="------------enig25BEBDFF905EF9E0246E15F6"
+Cc: "Christoph A." <casmls@gmail.com>
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:53838 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752485AbZHKRuq (ORCPT
+Received: from mail-fx0-f228.google.com ([209.85.220.228]:52385 "EHLO
+	mail-fx0-f228.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753983AbZHKVy6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 11 Aug 2009 13:50:46 -0400
+	Tue, 11 Aug 2009 17:54:58 -0400
+Received: by fxm28 with SMTP id 28so1804715fxm.17
+        for <netfilter-devel@vger.kernel.org>; Tue, 11 Aug 2009 14:54:56 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-parent 244e5a09ed31c698654a7f9a2150b4c79efe46fd (v2.6.31-rc1-59-g244e5a0)
-commit 8240c9c836726615e9fb164fb7637c0156560b2e
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Wed Jul 22 04:42:09 2009 +0200
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig25BEBDFF905EF9E0246E15F6
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: quoted-printable
 
-netfilter: xt_quota: fix wrong return value (error case)
+Hi,
 
-Success was indicated on a memory allocation failure, thereby causing
-a crash due to a later NULL deref.
-(Affects v2.6.30-rc1 up to here.)
+Is the default table (filter) also mandatory?
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- net/netfilter/xt_quota.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+# nft add rule filter input meta iifname eth0 accept  (works)
+# nft add rule input meta iifname eth0 accept
+<cmdline>:1:16-19: Error: syntax error, unexpected meta, expecting string=
 
-diff --git a/net/netfilter/xt_quota.c b/net/netfilter/xt_quota.c
-index ad0ed79..0de9fcf 100644
---- a/net/netfilter/xt_quota.c
-+++ b/net/netfilter/xt_quota.c
-@@ -52,7 +52,7 @@ static bool quota_mt_check(const struct xt_mtchk_param *par)
- 
- 	q->master = kmalloc(sizeof(*q->master), GFP_KERNEL);
- 	if (q->master == NULL)
--		return -ENOMEM;
-+		return false;
- 
- 	q->master->quota = q->quota;
- 	return true;
--- 
-# Created with git-export-patch
+add rule input meta iifname eth0 accept
+               ^^^^
+
+
+just in case this is not expected:
+
+# nft add rule filter input ip protocol 6 accept
+<cmdline>:1:35-35: Error: Could not resolve protocol name
+add rule filter input ip protocol 6 accept
+
+ip protocol TCP accept (works)
+
+kind regards,
+Christoph
+
+
+--------------enig25BEBDFF905EF9E0246E15F6
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iEYEAREKAAYFAkqB6BQACgkQrq+riTAIEg3bPACeLZ7TP0eL35oZJL3pfYBTeX47
+T6EAniOy9Y9FlccDRQyI4j15WoaJvWwo
+=G6Hv
+-----END PGP SIGNATURE-----
+
+--------------enig25BEBDFF905EF9E0246E15F6--
