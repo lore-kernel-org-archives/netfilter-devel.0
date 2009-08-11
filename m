@@ -1,65 +1,49 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: codesize: netfilter/iptables vs. nftables
-Date: Tue, 11 Aug 2009 18:53:20 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0908111845370.14528@fbirervta.pbzchgretzou.qr>
-References: <4A8146C4.5090108@gmail.com>
+Subject: resend|stable: netfilter: xt_quota: fix wrong return value (error
+ case)
+Date: Tue, 11 Aug 2009 19:50:45 +0200 (CEST)
+Message-ID: <alpine.LSU.2.00.0908111949130.1698@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: "Christoph A." <casmls@gmail.com>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:43974 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:53838 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755247AbZHKQxV (ORCPT
+	with ESMTP id S1752485AbZHKRuq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 11 Aug 2009 12:53:21 -0400
-In-Reply-To: <4A8146C4.5090108@gmail.com>
+	Tue, 11 Aug 2009 13:50:46 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+parent 244e5a09ed31c698654a7f9a2150b4c79efe46fd (v2.6.31-rc1-59-g244e5a0)
+commit 8240c9c836726615e9fb164fb7637c0156560b2e
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Wed Jul 22 04:42:09 2009 +0200
 
-On Tuesday 2009-08-11 12:24, Christoph A. wrote:
->
->unlike the iptables kernel approach, nftables does not have a 1-to-1
->mapping of matches with modules in the kernel and provides only basic
->functionality/operations, userspace can use to combine to build
->matches/rules. (intelligence moves from kernel to userspace)
->The kernelcode size of nftables would be constant regardless of how many
->matches it supports.
->Is this assumption correct?
+netfilter: xt_quota: fix wrong return value (error case)
 
-Certain fundamentals do require kernel support such as "store this
-in the nfmark now" or "store this in the ctmark now". This won't
-change. (See Patrick's reply too.)
+Success was indicated on a memory allocation failure, thereby causing
+a crash due to a later NULL deref.
+(Affects v2.6.30-rc1 up to here.)
 
-What iptables currently does is ask the kernel to match on tcp,
-but it could very well ask "check byte X in the network header
-for 6" to test for tcp. That is what nftables does, and there is
-also xt_u32 for iptables.
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ net/netfilter/xt_quota.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
->Another thing I would like to know is the current codesize of
->netfilter/iptables (including ip6tables and ebtables modules) compared
->to nftables kernelsize (sloc) (although the current featureset may defer)
->
->I compared them like this:
->
->1. step:
->count lines with sloccount in the following directories:
->net/ipv4/netfilter/
->net/ipv6/netfilter/
->net/bridge/netfilter/
->net/netfilter/
-
-With that you would be counting Conntrack and NAT too, which is not
-useful in the comparison. And realistically, counting all extensions
-too perturbs the statistics, since iptables, right now, _can_ do
-more (TPROXY, just to name one).
-
-Hence I counted by
-
-	net/{bridge,ipv4,ipv6,}/netfilter/*tables.c
-	net/{bridge,ipv4,ipv6}/netfilter/*table_{filter,raw,security,mangle}.c
-
-Something like that. iptables clocks in at some 9 kLOC IIRC (~5k
-after my large consolidation), and nftables somewhere at 2.5k, but
-that's only because I have not yet started trimming down ebtables.
+diff --git a/net/netfilter/xt_quota.c b/net/netfilter/xt_quota.c
+index ad0ed79..0de9fcf 100644
+--- a/net/netfilter/xt_quota.c
++++ b/net/netfilter/xt_quota.c
+@@ -52,7 +52,7 @@ static bool quota_mt_check(const struct xt_mtchk_param *par)
+ 
+ 	q->master = kmalloc(sizeof(*q->master), GFP_KERNEL);
+ 	if (q->master == NULL)
+-		return -ENOMEM;
++		return false;
+ 
+ 	q->master->quota = q->quota;
+ 	return true;
+-- 
+# Created with git-export-patch
