@@ -1,78 +1,62 @@
-From: Daniel Huhardeaux <daniel.huhardeaux@tootai.com>
-Subject: Re: IP traffic rerouting
-Date: Fri, 14 Aug 2009 12:57:38 +0200
-Message-ID: <4A854322.8050705@tootai.com>
-References: <4A849733.4020404@tootai.com> <alpine.LSU.2.00.0908140126250.28623@fbirervta.pbzchgretzou.qr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [nftables] optimization steps before rules get send to the kernel
+Date: Fri, 14 Aug 2009 14:38:25 +0200
+Message-ID: <4A855AC1.9040904@trash.net>
+References: <4A8486B7.2070308@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: "Christoph A." <casmls@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ns1.tootai.net ([82.231.69.24]:38143 "EHLO mail1.tootai.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753540AbZHNK5k (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 14 Aug 2009 06:57:40 -0400
-Received: from [192.168.0.4] (unknown [192.168.0.4])
-	by mail1.tootai.net (Postfix) with ESMTP id BF018398D80
-	for <netfilter-devel@vger.kernel.org>; Fri, 14 Aug 2009 12:57:38 +0200 (CEST)
-In-Reply-To: <alpine.LSU.2.00.0908140126250.28623@fbirervta.pbzchgretzou.qr>
+Received: from stinky.trash.net ([213.144.137.162]:57981 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755424AbZHNMib (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 14 Aug 2009 08:38:31 -0400
+In-Reply-To: <4A8486B7.2070308@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt a =E9crit :
-> On Friday 2009-08-14 00:44, Daniel Huhardeaux wrote:
->  =20
->> is there a solution to reroute all traffic (icmp, udp, tcp, ...) fro=
-m
->> one IP address to another one?
->>    =20
->
->
-> Routing tables are controlled with iproute2. Replace the variables by=
-=20
-> something appropriate. The freely choosable $number usually wants to =
-be =20
->  =20
->> =3D 1 to avoid surprises.
->>    =20
->
-> ip rule add from $srcaddr table $number prio $prio
-> ip route add default via $toaddr table $number
->
-> (The main routing table has number 254, and is usually at the lowest=20
-> prio of 32767. The "prio $prio" part is thus usually optional in=20
-> practice.)
->  =20
-Thanks for your answer Jan.
+Christoph A. wrote:
+> Hi,
+> 
+> from the nftables announcement:
+> 
+>> Redundant information might get lost before it is sent to the kernel,
+>> but both the kernel and the reconstructed ruleset are semantically
+>> equivalent.
+> 
+> As I'm currently not aware of a possibility to dump the actual rules
+> currently used by the kernel, to investigate this myself, I would have
+> another question:
 
-This means that if I want to redirect all traffic to an IP to another=20
-one, and changing the sorce address as if packet came from the IP from=20
-redirected machine I would have to create:
+nft list table filter
+nft list chain filter output
+nft list sets filter
+nft list set filter xyz
 
-ip rule add to $iptoredirect table $number prio $prio
-ip route add default via $toaddr src $iptoredirect table $number
+> Does the optimization which removes redundant information also remove
+> entire redundant rules or redundant checks within rules?
+> 
+> example:
+> 
+> ip saddr 1.1.1.1 tcp dport 22 accept
+> tcp dport 22 accept
+> 
+> would become
+> tcp dport 22 accept
+> 
+> 
+> tcp sport 0-65535 tcp dport 80 accept
+> would become
+> tcp dport 80 accept
+> 
+> if not: is something like this planed for the future or will the
+> stupidity of big rulesets never be removed by nftables? ;)
 
-Without changing the source address it would be:
+It does not currently. Its planned for the future to perform
+optimizations across the entire ruleset. It requires a few
+limitations though, f.i. in your example, it needs to make
+sure you won't insert a rule between those two later on.
 
-ip rule add to $iptoredirect table $number prio $prio
-ip route add default via $toaddr table $number
-
-Would be the NAT option not a possibility? Something like
-
-ip route add nat $iptoredirect via $toaddr
-
-Regards
-
---=20
-Daniel Huhardeaux       _____ ____ ____ _____ _____ _
-enum   +33 368 460 088 (_  __) _  ) _  (_  __) _  _(_)  +48 222 472 472
-iaxtel  1-700-849-6983  / / / // / // / / / / /_/ / /  GIZMO,SKYPE,GTAL=
-K
-sip/iax:callto 101@sip./_/ ( ___( ___/ /_/ (_/ (_/_/.net   tootaiNET
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
