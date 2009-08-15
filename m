@@ -1,132 +1,217 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [patch] ipvs: Use atomic operations atomicly
-Date: Sat, 19 Sep 2009 19:51:23 +1000
-Message-ID: <20090919095122.GA480@verge.net.au>
-References: <20090828023722.GA12136@verge.net.au>
- <4A9BC082.3090804@trash.net>
- <20090901015909.GA12252@verge.net.au>
- <4A9E6B62.8080208@trash.net>
+From: Balazs Scheidler <bazsi@balabit.hu>
+Subject: [PATCH 02/13] TProxy: add lookup type checks for UDP in
+ nf_tproxy_get_sock_v4()
+Date: Sat, 15 Aug 2009 14:01:51 +0200
+Message-ID: <1253548005.12519.2.camel@bzorp.balabit>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, ?? shin hong <hongshin@gmail.com>,
-	David Miller <davem@davemloft.net>
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4A9E6B62.8080208@trash.net>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from support.balabit.hu ([195.70.41.86]:35406 "EHLO lists.balabit.hu"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1750867AbZIUPvo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 21 Sep 2009 11:51:44 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-[ re-post with CC list ]
+Also, inline this function as the lookup_type is always a literal
+and inlineing removes branches performed at runtime.
 
-On Wed, Sep 02, 2009 at 02:56:02PM +0200, Patrick McHardy wrote:
-> Simon Horman wrote:
-> > On Mon, Aug 31, 2009 at 02:22:26PM +0200, Patrick McHardy wrote:
-> >> It seems that proc_do_sync_threshold() should check whether this value
-> >> is zero. The current checks also look racy since incorrect values are
-> >> first updated, then overwritten again.
-> > 
-> > I'm wondering if an approach along the lines of the following is valid.
-> > The idea is that the value in the ctl_table is essentially a scratch
-> > value that is used by the parser and then copied into ip_vs_sync_threshold
-> > if it is valid.
-> 
-> Even simpler would be to use a temporary buffer on the stack for copying
-> the values from userspace and then copy them to the final buffer after
-> validation.
+Signed-off-by: Balazs Scheidler <bazsi@balabit.hu>
+---
+ include/net/netfilter/nf_tproxy_core.h |  116 +++++++++++++++++++++++++++++++-
+ net/netfilter/nf_tproxy_core.c         |   48 -------------
+ 2 files changed, 114 insertions(+), 50 deletions(-)
 
-Do you mean something like what I have done using read_table in
-the new patch below?
-
-> > I'm concerned that there are atomicity issues
-> > surrounding writing ip_vs_sync_threshold while there might be readers.
-> 
-> That might be a problem if they are required to be "synchronized".
-
-I don't think that the sychronisation needs extend beyond their
-use in this snippet.
-
-> 
-> > --- a/net/netfilter/ipvs/ip_vs_core.c
-> > +++ b/net/netfilter/ipvs/ip_vs_core.c
-> > @@ -1362,8 +1362,7 @@ ip_vs_in(unsigned int hooknum, struct sk_buff *skb,
-> >  	    (ip_vs_sync_state & IP_VS_STATE_MASTER) &&
-> >  	    (((cp->protocol != IPPROTO_TCP ||
-> >  	       cp->state == IP_VS_TCP_S_ESTABLISHED) &&
-> > -	      (pkts % sysctl_ip_vs_sync_threshold[1]
-> > -	       == sysctl_ip_vs_sync_threshold[0])) ||
-> > +	      (pkts % ip_vs_sync_threshold[1] == ip_vs_sync_threshold[0])) ||
-> >  	     ((cp->protocol == IPPROTO_TCP) && (cp->old_state != cp->state) &&
-> >  	      ((cp->state == IP_VS_TCP_S_FIN_WAIT) ||
-> >  	       (cp->state == IP_VS_TCP_S_CLOSE_WAIT) ||
-> > diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-> > index fba2892..8a9ff21 100644
-> > --- a/net/netfilter/ipvs/ip_vs_ctl.c
-> > +++ b/net/netfilter/ipvs/ip_vs_ctl.c
-> > @@ -76,6 +76,11 @@ static atomic_t ip_vs_dropentry = ATOMIC_INIT(0);
-> >  /* number of virtual services */
-> >  static int ip_vs_num_services = 0;
-> >  
-> > +/* threshold handling */
-> > +static int ip_vs_sync_threshold_min = 0;
-> > +static int ip_vs_sync_threshold_max = INT_MAX;
-> > +int ip_vs_sync_threshold[2] = { 3, 50 };
-> > +
-> 
-> min should be 1 I guess or you still need to manually check
-> that ip_vs_sync_threshold[1] != 0 to avoid a division be zero.
-
-I think that the check that val[0] < val[1] ensures this.
-
-Something that I noticed while putting this new patch together,
-should the code be checking the value of rc and only assigning  values if
-its 0. If so, I probably needs to be changed in a few places.
-
-diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
-index fba2892..c33ef7d 100644
---- a/net/netfilter/ipvs/ip_vs_ctl.c
-+++ b/net/netfilter/ipvs/ip_vs_ctl.c
-@@ -76,6 +76,9 @@ static atomic_t ip_vs_dropentry = ATOMIC_INIT(0);
- /* number of virtual services */
- static int ip_vs_num_services = 0;
+diff --git a/include/net/netfilter/nf_tproxy_core.h b/include/net/netfilter/nf_tproxy_core.h
+index b3a8942..4064f35 100644
+--- a/include/net/netfilter/nf_tproxy_core.h
++++ b/include/net/netfilter/nf_tproxy_core.h
+@@ -13,11 +13,123 @@
+ #define NFT_LOOKUP_ESTABLISHED 2
  
-+static int ip_vs_sync_threshold_min = 0;
-+static int ip_vs_sync_threshold_max = INT_MAX;
+ /* look up and get a reference to a matching socket */
+-extern struct sock *
 +
- /* sysctl variables */
- static int sysctl_ip_vs_drop_entry = 0;
- static int sysctl_ip_vs_drop_packet = 0;
-@@ -1520,18 +1523,17 @@ static int
- proc_do_sync_threshold(ctl_table *table, int write, struct file *filp,
- 		       void __user *buffer, size_t *lenp, loff_t *ppos)
- {
-+	struct ctl_table read_table;
- 	int *valp = table->data;
- 	int val[2];
- 	int rc;
++
++/* This function is used by the 'TPROXY' target and the 'socket'
++ * match. The following lookups are supported:
++ *
++ * Explicit TProxy target rule
++ * ===========================
++ *
++ * This is used when the user wants to intercept a connection matching
++ * an explicit iptables rule. In this case the sockets are assumed
++ * matching in preference order:
++ *
++ *   - match: if there's a fully established connection matching the
++ *     _packet_ tuple, it is returned, assuming the redirection
++ *     already took place and we process a packet belonging to an
++ *     established connection
++ *
++ *   - match: if there's a listening socket matching the redirection
++ *     (e.g. on-port & on-ip of the connection), it is returned,
++ *     regardless if it was bound to 0.0.0.0 or an explicit
++ *     address. The reasoning is that if there's an explicit rule, it
++ *     does not really matter if the listener is bound to an interface
++ *     or to 0. The user already stated that he wants redirection
++ *     (since he added the rule).
++ *
++ * "socket" match based redirection (no specific rule)
++ * ===================================================
++ * 
++ * There are connections with dynamic endpoints (e.g. FTP data
++ * connection) that the user is unable to add explicit rules
++ * for. These are taken care of by a generic "socket" rule. It is
++ * assumed that the proxy application is trusted to open such
++ * connections without explicit iptables rule (except of course the
++ * generic 'socket' rule). In this case the following sockets are
++ * matched in preference order:
++ *
++ *   - match: if there's a fully established connection matching the
++ *     _packet_ tuple
++ * 
++ *   - match: if there's a non-zero bound listener (possibly with a
++ *     non-local address) We don't accept zero-bound listeners, since
++ *     then local services could intercept traffic going through the
++ *     box.
++ *
++ * Please note that there's an overlap between what a TPROXY target
++ * and a socket match will match. Normally if you have both rules the
++ * "socket" match will be the first one, effectively all packets
++ * belonging to established connections going through that one.
++ */
++static inline struct sock *
+ nf_tproxy_get_sock_v4(struct net *net, const u8 protocol,
+ 		      const __be32 saddr, const __be32 daddr,
+ 		      const __be16 sport, const __be16 dport,
+-		      const struct net_device *in, int lookup_type);
++		      const struct net_device *in, int lookup_type)
++{
++	struct sock *sk;
++
++	/* look up socket */
++	switch (protocol) {
++	case IPPROTO_TCP:
++		switch (lookup_type) {
++		case NFT_LOOKUP_ANY:
++			sk = __inet_lookup(net, &tcp_hashinfo,
++					   saddr, sport, daddr, dport,
++					   in->ifindex);
++			break;
++		case NFT_LOOKUP_LISTENER:
++			sk = inet_lookup_listener(net, &tcp_hashinfo,
++						    daddr, dport,
++						    in->ifindex);
++
++                        /* NOTE: we return listeners even if bound to
++                         * 0.0.0.0, those are filtered out in
++                         * xt_socket, since xt_TPROXY needs 0 bound
++                         * listeners too */
++
++			break;
++		case NFT_LOOKUP_ESTABLISHED:
++			sk = inet_lookup_established(net, &tcp_hashinfo,
++						    saddr, sport, daddr, dport,
++						    in->ifindex);
++			break;
++		default:
++			WARN_ON(1);
++			sk = NULL;
++			break;
++		}
++		break;
++	case IPPROTO_UDP:
++		sk = udp4_lib_lookup(net, saddr, sport, daddr, dport,
++				     in->ifindex);
++                if (sk && lookup_type != NFT_LOOKUP_ANY) {
++                        int connected = (sk->sk_state == TCP_ESTABLISHED);
++                        int wildcard = (inet_sk(sk)->rcv_saddr == 0);
++                        
++                        /* NOTE: we return listeners even if bound to
++                         * 0.0.0.0, those are filtered out in
++                         * xt_socket, since xt_TPROXY needs 0 bound
++                         * listeners too */
++                        if ((lookup_type == NFT_LOOKUP_ESTABLISHED && (!connected || wildcard)) ||
++			    (lookup_type == NFT_LOOKUP_LISTENER && connected)) {
++				sock_put(sk);
++				sk = NULL;
++                        }
++		}
++		break;
++	default:
++		WARN_ON(1);
++		sk = NULL;
++	}
++
++	pr_debug("tproxy socket lookup: proto %u %08x:%u -> %08x:%u, lookup type: %d, sock %p\n",
++		 protocol, ntohl(saddr), ntohs(sport), ntohl(daddr), ntohs(dport), lookup_type, sk);
++
++	return sk;
++}
++
  
--	/* backup the value first */
--	memcpy(val, valp, sizeof(val));
-+	memcpy(&read_table, table, sizeof(read_table));
-+	read_table.data = &val;
+ static inline void
+ nf_tproxy_put_sock(struct sock *sk)
+diff --git a/net/netfilter/nf_tproxy_core.c b/net/netfilter/nf_tproxy_core.c
+index 8589e5e..db65563 100644
+--- a/net/netfilter/nf_tproxy_core.c
++++ b/net/netfilter/nf_tproxy_core.c
+@@ -18,54 +18,6 @@
+ #include <net/udp.h>
+ #include <net/netfilter/nf_tproxy_core.h>
  
--	rc = proc_dointvec(table, write, filp, buffer, lenp, ppos);
--	if (write && (valp[0] < 0 || valp[1] < 0 || valp[0] >= valp[1])) {
--		/* Restore the correct value */
-+	rc = proc_dointvec_minmax(&read_table, write, filp, buffer, lenp, ppos);
-+	if (write && (val[0] >= val[1]))
- 		memcpy(valp, val, sizeof(val));
+-struct sock *
+-nf_tproxy_get_sock_v4(struct net *net, const u8 protocol,
+-		      const __be32 saddr, const __be32 daddr,
+-		      const __be16 sport, const __be16 dport,
+-		      const struct net_device *in, int lookup_type)
+-{
+-	struct sock *sk;
+-
+-	/* look up socket */
+-	switch (protocol) {
+-	case IPPROTO_TCP:
+-		switch (lookup_type) {
+-		case NFT_LOOKUP_ANY:
+-			sk = __inet_lookup(net, &tcp_hashinfo,
+-					   saddr, sport, daddr, dport,
+-					   in->ifindex);
+-			break;
+-		case NFT_LOOKUP_LISTENER:
+-			sk = inet_lookup_listener(net, &tcp_hashinfo,
+-						    daddr, dport,
+-						    in->ifindex);
+-			break;
+-		case NFT_LOOKUP_ESTABLISHED:
+-			sk = inet_lookup_established(net, &tcp_hashinfo,
+-						    saddr, sport, daddr, dport,
+-						    in->ifindex);
+-			break;
+-		default:
+-			WARN_ON(1);
+-			sk = NULL;
+-			break;
+-		}
+-		break;
+-	case IPPROTO_UDP:
+-		sk = udp4_lib_lookup(net, saddr, sport, daddr, dport,
+-				     in->ifindex);
+-		break;
+-	default:
+-		WARN_ON(1);
+-		sk = NULL;
 -	}
- 	return rc;
- }
+-
+-	pr_debug("tproxy socket lookup: proto %u %08x:%u -> %08x:%u, lookup type: %d, sock %p\n",
+-		 protocol, ntohl(saddr), ntohs(sport), ntohl(daddr), ntohs(dport), lookup_type, sk);
+-
+-	return sk;
+-}
+-EXPORT_SYMBOL_GPL(nf_tproxy_get_sock_v4);
  
-@@ -1698,6 +1700,8 @@ static struct ctl_table vs_vars[] = {
- 		.maxlen		= sizeof(sysctl_ip_vs_sync_threshold),
- 		.mode		= 0644,
- 		.proc_handler	= proc_do_sync_threshold,
-+		.extra1		= &ip_vs_sync_threshold_min,
-+		.extra2		= &ip_vs_sync_threshold_max,
- 	},
- 	{
- 		.procname	= "nat_icmp_send",
+ static void
+ nf_tproxy_destructor(struct sk_buff *skb)
+-- 
+1.6.0.4
+
