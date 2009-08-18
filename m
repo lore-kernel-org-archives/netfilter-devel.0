@@ -1,40 +1,45 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [ANNOUNCEMENT] ipset-3.1
-Date: Tue, 18 Aug 2009 20:54:13 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.0908182049460.3452@blackhole.kfki.hu>
+From: =?ISO-8859-15?Q?Timo_Ter=E4s?= <timo.teras@iki.fi>
+Subject: Re: bad nat connection tracking performance with ip_gre
+Date: Tue, 18 Aug 2009 22:36:50 +0300
+Message-ID: <4A8B02D2.2090400@iki.fi>
+References: <4A8A7F14.3010103@iki.fi> <4A8A84AF.7050901@trash.net> <4A8AA253.8090300@iki.fi> <4A8AA63D.4000702@trash.net> <4A8AB25A.4000105@iki.fi> <4A8AC1A0.6000602@trash.net> <4A8AE76D.7040707@iki.fi>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:38925 "EHLO smtp2.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751048AbZHRSyN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 Aug 2009 14:54:13 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-15;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <4A8AE76D.7040707@iki.fi>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+Timo Ter=E4s wrote:
+> Yes. But my observation was that for the same amount of packets
+> sent locally the CPU usage is significantly higher than if they
+> are forwarded from physical interface. That's what made me
+> curious.
+>=20
+> If I had remember that icmp conn track entries get pruned right
+> when they get icmp reply back, I would not have probably bothered
+> to bug you. But that made me think it was more of generic problem
+> than my patch.
+>=20
+> I'll also double check with oprofile the local sendto() approach=20
+> where it dies.
 
-I'm happy to announce ipset release 3.1. A few minor bugs were fixed and 
-some cleanups added:
+Ok, finally figured out the difference. Looks like depending
+on the sendto() / local route / forward route / my patched mrt
+the skb that gets passed to ipgre_tunnel_xmit() seems to have
+nfctinfo either 0 or 2. This value is not modified; nf_reset()
+is called just before ip_local_out(). Looks like nf_reset()
+clears nfct to NULL, but does not touch nfctinfo.
 
-- Nonexistent sets were reported as existing sets when testing
-  from userspace in setlist type of sets (bug reported by Victor A.
-  Safronov)
-- When saving sets, setlist type of sets must come last in order
-  to satisfy the dependency from the elements (bug reported by Marty B.)
-- Sparse insists that the flags argument to kmalloc() is gfp_t
-  (Stephen Hemminger)
-- Correct format specifiers and change %i to %d (Jan Engelhardt)
-- Fix the definition of 'bool' for kernels <= 2.6.18 (Jan Engelhardt)
+So when LOCAL_OUT hook for the GRE packet is hit, depending
+where the packet came: it has nfct=3DNULL and nfctinfo=3DESTABLISHED
+or NEW. This also seems to affect if that specific skb gets
+the nat/OUTPUT hook called.
 
-As usual, you can download it from http://ipset.netfilter.org or from 
-git://git.netfilter.org/ipset.git
+Is this behaviour for nf_reset() intentional?
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+- Timo
