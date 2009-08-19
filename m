@@ -1,45 +1,54 @@
-From: =?ISO-8859-15?Q?Timo_Ter=E4s?= <timo.teras@iki.fi>
-Subject: Re: bad nat connection tracking performance with ip_gre
-Date: Wed, 19 Aug 2009 11:40:09 +0300
-Message-ID: <4A8BBA69.4060500@iki.fi>
-References: <4A8A7F14.3010103@iki.fi> <4A8A84AF.7050901@trash.net> <4A8AA253.8090300@iki.fi> <4A8AA63D.4000702@trash.net> <4A8AB25A.4000105@iki.fi> <4A8AC1A0.6000602@trash.net> <4A8AE76D.7040707@iki.fi> <4A8B02D2.2090400@iki.fi>
+From: fender <frozenspot@gmail.com>
+Subject: Re: Couldn't load match `pknock':(null)
+Date: Wed, 19 Aug 2009 13:15:03 -0300
+Message-ID: <7e36c7130908190915j5faa812fy34fc70626de69761@mail.gmail.com>
+References: <7e36c7130908181531r3262c9b6kf3f038f9092cc34f@mail.gmail.com>
+	 <alpine.LSU.2.00.0908190407200.24013@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4A8B02D2.2090400@iki.fi>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from fg-out-1718.google.com ([72.14.220.155]:48146 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752785AbZHSQPD (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 19 Aug 2009 12:15:03 -0400
+Received: by fg-out-1718.google.com with SMTP id e21so1090240fga.17
+        for <netfilter-devel@vger.kernel.org>; Wed, 19 Aug 2009 09:15:03 -0700 (PDT)
+In-Reply-To: <alpine.LSU.2.00.0908190407200.24013@fbirervta.pbzchgretzou.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Timo Ter=E4s wrote:
-> Ok, finally figured out the difference. Looks like depending
-> on the sendto() / local route / forward route / my patched mrt
-> the skb that gets passed to ipgre_tunnel_xmit() seems to have
-> nfctinfo either 0 or 2. This value is not modified; nf_reset()
-> is called just before ip_local_out(). Looks like nf_reset()
-> clears nfct to NULL, but does not touch nfctinfo.
->=20
-> So when LOCAL_OUT hook for the GRE packet is hit, depending
-> where the packet came: it has nfct=3DNULL and nfctinfo=3DESTABLISHED
-> or NEW. This also seems to affect if that specific skb gets
-> the nat/OUTPUT hook called.
->=20
-> Is this behaviour for nf_reset() intentional?
+On Tue, Aug 18, 2009 at 11:07 PM, Jan Engelhardt<jengelh@medozas.de> wrote:
+>
+> On Wednesday 2009-08-19 00:31, fender wrote:
+>
+>>Hi people,
+>>
+>>I've just applied some patches to the pknock match module to work with
+>>kernel > 2.6.28 and iptables 1.4.x.
+>>
+>>What I get when I try to execute this module is:
+>>
+>># iptables -m pknock --help
+>>iptables v1.4.3: Couldn't load match `pknock':(null)
+>>
+>>
+>>Does anyone have any clue about this issue?
+>
+> My guess that this had been addressed with commit v1.4.3.1-3-gc4edfa6.
 
-Apparently it does not matter.
+Ok, thanks Jan, I'll try with the 1.4.4.
 
-The real problem seems to be bug that did not account for
-irq times properly. It was fixed by "sched: account system time
-properly" f5f293a4e3d0a0c52cec31de6762c95050156516 and that
-caused biased CPU usage measurements.
+Cheers,
 
-Testing with kernel having that, I'm getting the same CPU
-readings. And oprofile in timer mode didn't help noticing this.
+-- 
+Federico
 
-Sorry for the noise.
-
-- Timo
-
+/*
+ *  J. Federico Hernandez (fender) {frozenspot; at; gmail; dot; com;}
+ *  GPG PubKey: wwwkeys.eu.pgp.net key 6AE78BF2
+ *  FP: 26AB 7A1B C2C4 70F8 0E7D  C3F4 9736 5CE2 6AE7 8BF2
+ */
