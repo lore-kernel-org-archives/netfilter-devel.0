@@ -1,42 +1,68 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] iptables: expose option to zero packet and byte counters
- for a specific rule using iptables/ip6tables
-Date: Wed, 19 Aug 2009 22:41:07 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0908192232020.9285@fbirervta.pbzchgretzou.qr>
-References: <23915168.171071250704593343.JavaMail.root@tahiti.vyatta.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: netfilter 01/01: xt_quota: fix wrong return value (error case)
+Date: Thu, 20 Aug 2009 14:47:34 +0200
+Message-ID: <4A8D45E6.6050800@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
-To: Mohit Mehta <mohit.mehta@vyatta.com>
+Content-Type: multipart/mixed;
+ boundary="------------020003060509020103050206"
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Linux Netdev List <netdev@vger.kernel.org>
+To: "David S. Miller" <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:52270 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752731AbZHSUlI (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:45796 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754103AbZHTMrg (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 19 Aug 2009 16:41:08 -0400
-In-Reply-To: <23915168.171071250704593343.JavaMail.root@tahiti.vyatta.com>
+	Thu, 20 Aug 2009 08:47:36 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This is a multi-part message in MIME format.
+--------------020003060509020103050206
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
-On Wednesday 2009-08-19 19:56, Mohit Mehta wrote:
+Hi Dave,
 
->I was able to cleanly apply the attached modified patches to the
-> latest iptables code. Also, below is the code in text if attachment
-> doesn't reach.
->
->build-vm:/# cat iptables.c.patch
->>From 4dbfcfeb9fc65df7fac1f16230871c02a85b4ea1 Mon Sep 17 00:00:00 2001
->From: root <root@build-vm.(none)>
->Date: Tue, 7 Jul 2009 14:03:50 -0700
->Subject: [PATCH] expose option to zero packet and byte counters for a specific rule using iptables
+the following patch for 2.6.31 fixes a regression in the xt_quota module
+introduced in 2.6.30-rc1, causing a crash when memory allocation fails.
 
-
-I wonder what the real-world use of this is, apart from
-rule debugging (for which -j TRACE seems better anyhow).
+Please apply, thanks.
 
 
-I queued these patches (since I guess they won't apply elsewhere
-again ;-) with reservation provision, fixed the trailing whitespace, and 
-added the missing manpage updates. Pull requests follows soon.
-(It's in git://dev.medozas.de/iptables master already)
+--------------020003060509020103050206
+Content-Type: text/x-patch;
+ name="01.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="01.diff"
+
+commit 53fa59e004cd02b1bd97edff965d063222bd0171
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Thu Aug 13 15:42:17 2009 +0200
+
+    netfilter: xt_quota: fix wrong return value (error case)
+    
+    Success was indicated on a memory allocation failure, thereby causing
+    a crash due to a later NULL deref.
+    (Affects v2.6.30-rc1 up to here.)
+    
+    Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+diff --git a/net/netfilter/xt_quota.c b/net/netfilter/xt_quota.c
+index 98fc190..390b7d0 100644
+--- a/net/netfilter/xt_quota.c
++++ b/net/netfilter/xt_quota.c
+@@ -52,7 +52,7 @@ static bool quota_mt_check(const struct xt_mtchk_param *par)
+ 
+ 	q->master = kmalloc(sizeof(*q->master), GFP_KERNEL);
+ 	if (q->master == NULL)
+-		return -ENOMEM;
++		return false;
+ 
+ 	q->master->quota = q->quota;
+ 	return true;
+
+--------------020003060509020103050206--
