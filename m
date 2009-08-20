@@ -1,55 +1,58 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Manpage updates for iptables
-Date: Thu, 20 Aug 2009 17:09:34 +0200
-Message-ID: <1250780978-14013-1-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 3/4] manpage: fix lintian warnings
+Date: Thu, 20 Aug 2009 17:09:37 +0200
+Message-ID: <1250780978-14013-4-git-send-email-jengelh@medozas.de>
+References: <1250780978-14013-1-git-send-email-jengelh@medozas.de>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:40278 "EHLO
+Received: from sovereign.computergmbh.de ([85.214.69.204]:40287 "EHLO
 	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754756AbZHTPJn (ORCPT
+	with ESMTP id S1754779AbZHTPJp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Aug 2009 11:09:43 -0400
+	Thu, 20 Aug 2009 11:09:45 -0400
+In-Reply-To: <1250780978-14013-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+From: Laurence J. Lane <ljlane@debian.org>
 
-The following changes since commit 8e4dacaed17701cb1891b962bb856e0e8cfbb5c8:
-  Jan Engelhardt (1):
-        Merge branch 'stable'
+Description: extraneous slash caused this lintian warning:
+  W: iptables: manpage-has-errors-from-man usr/share/man/man8/iptables.8.gz
+     220: cannot use newline as a starting delimiter
+  W: iptables: manpage-has-errors-from-man usr/share/man/man8/ip6tables.8.gz
+     1823: warning: `precedence'' not defined
 
-are available in the git repository at:
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ extensions/libxt_TOS.man |    2 +-
+ iptables.8.in            |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-  git://dev.medozas.de/iptables master
+diff --git a/extensions/libxt_TOS.man b/extensions/libxt_TOS.man
+index a42a73d..d5cbfcb 100644
+--- a/extensions/libxt_TOS.man
++++ b/extensions/libxt_TOS.man
+@@ -1,5 +1,5 @@
+ This module sets the Type of Service field in the IPv4 header (including the
+-'precedence' bits) or the Priority field in the IPv6 header. Note that TOS
++"precedence" bits) or the Priority field in the IPv6 header. Note that TOS
+ shares the same bits as DSCP and ECN. The TOS target is only valid in the
+ \fBmangle\fR table.
+ .TP
+diff --git a/iptables.8.in b/iptables.8.in
+index 14fc23a..cb6e6b0 100644
+--- a/iptables.8.in
++++ b/iptables.8.in
+@@ -217,7 +217,7 @@ targets.
+ Rename the user specified chain to the user supplied name.  This is
+ cosmetic, and has no effect on the structure of the table.
+ .TP
+-\fB\-\h\fP
++\fB\-h\fP
+ Help.
+ Give a (currently very brief) description of the command syntax.
+ .SS PARAMETERS
+-- 
+1.6.4
 
-Jan Engelhardt (2):
-      length: support semi-infinite length description
-      manpages: more fixes to minuses, hyphens, dashes
-
-Laurence J. Lane (1):
-      manpage: fix lintian warnings
-
-Trent W. Buck (1):
-      ipt_set: fix a typo in the manpage
-
- extensions/libipt_set.man      |    2 +-
- extensions/libxt_NFLOG.man     |    2 +-
- extensions/libxt_TOS.man       |    2 +-
- extensions/libxt_connbytes.man |    2 +-
- extensions/libxt_length.c      |   18 +++++++++++-------
- extensions/libxt_length.man    |   13 ++++++++++---
- ip6tables-restore.8            |    7 +++----
- ip6tables-save.8               |    4 ++--
- ip6tables.8.in                 |    6 +++---
- iptables-restore.8             |    7 +++----
- iptables-save.8                |    4 ++--
- iptables-xml.8                 |   10 ++++------
- iptables.8.in                  |    6 +++---
- libipq/ipq_create_handle.3     |    4 ++--
- libipq/ipq_errstr.3            |    2 +-
- libipq/ipq_message_type.3      |    2 +-
- libipq/ipq_read.3              |    4 ++--
- libipq/ipq_set_mode.3          |    4 ++--
- libipq/ipq_set_verdict.3       |    4 ++--
- libipq/libipq.3                |    4 ++--
- 20 files changed, 57 insertions(+), 50 deletions(-)
