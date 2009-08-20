@@ -1,68 +1,36 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 01/01: xt_quota: fix wrong return value (error case)
-Date: Thu, 20 Aug 2009 14:47:34 +0200
-Message-ID: <4A8D45E6.6050800@trash.net>
+Subject: Re: [PATCH] libxt_NFQUEUE: add new v1 version with queue-balance
+ option
+Date: Thu, 20 Aug 2009 14:50:50 +0200
+Message-ID: <4A8D46AA.8020303@trash.net>
+References: <1245541351-18513-1-git-send-email-fw@strlen.de> <1245541351-18513-3-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------020003060509020103050206"
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Linux Netdev List <netdev@vger.kernel.org>
-To: "David S. Miller" <davem@davemloft.net>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org,
+	Florian Westphal <fwestphal@astaro.com>
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45796 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:45860 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754103AbZHTMrg (ORCPT
+	with ESMTP id S1754117AbZHTMuw (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 Aug 2009 08:47:36 -0400
+	Thu, 20 Aug 2009 08:50:52 -0400
+In-Reply-To: <1245541351-18513-3-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------020003060509020103050206
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Florian Westphal wrote:
+> New version that adds support for specifying a queue range instead
+> of a single queue id.
+> The kernel will distribute flows across the given queue range.
+> 
+> This is useful for multicore systems, simply start multiple instances
+> of the userspace program on queues x, x+1, .. x+n and use
+> "--queue-balance x:x+n".
+> Packets belonging to the same connection are put into the same queue.
+> 
+> With fixes from Jan Engelhardt.
 
-Hi Dave,
-
-the following patch for 2.6.31 fixes a regression in the xt_quota module
-introduced in 2.6.30-rc1, causing a crash when memory allocation fails.
-
-Please apply, thanks.
-
-
---------------020003060509020103050206
-Content-Type: text/x-patch;
- name="01.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="01.diff"
-
-commit 53fa59e004cd02b1bd97edff965d063222bd0171
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Thu Aug 13 15:42:17 2009 +0200
-
-    netfilter: xt_quota: fix wrong return value (error case)
-    
-    Success was indicated on a memory allocation failure, thereby causing
-    a crash due to a later NULL deref.
-    (Affects v2.6.30-rc1 up to here.)
-    
-    Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
-    Signed-off-by: Patrick McHardy <kaber@trash.net>
-
-diff --git a/net/netfilter/xt_quota.c b/net/netfilter/xt_quota.c
-index 98fc190..390b7d0 100644
---- a/net/netfilter/xt_quota.c
-+++ b/net/netfilter/xt_quota.c
-@@ -52,7 +52,7 @@ static bool quota_mt_check(const struct xt_mtchk_param *par)
- 
- 	q->master = kmalloc(sizeof(*q->master), GFP_KERNEL);
- 	if (q->master == NULL)
--		return -ENOMEM;
-+		return false;
- 
- 	q->master->quota = q->quota;
- 	return true;
-
---------------020003060509020103050206--
+This patch does not apply anymore, could you rediff against -git
+please? Thanks!
