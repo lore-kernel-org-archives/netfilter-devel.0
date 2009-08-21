@@ -1,31 +1,26 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [ANNOUNCEMENT] ipset-3.2
-Date: Fri, 21 Aug 2009 16:12:27 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.0908211609150.6879@blackhole.kfki.hu>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [ANNOUNCEMENT] ipset-3.2
+Date: Fri, 21 Aug 2009 20:12:46 +0200 (CEST)
+Message-ID: <alpine.LSU.2.00.0908212012250.24079@fbirervta.pbzchgretzou.qr>
+References: <alpine.DEB.2.00.0908211609150.6879@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-Return-path: <netfilter-owner@vger.kernel.org>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from sovereign.computergmbh.de ([85.214.69.204]:51533 "EHLO
+	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752616AbZHUSMq (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 21 Aug 2009 14:12:46 -0400
+In-Reply-To: <alpine.DEB.2.00.0908211609150.6879@blackhole.kfki.hu>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
 
-Some small issues needed fixing, so here comes the new ipset release with 
-the tiny changelog:
+On Friday 2009-08-21 16:12, Jozsef Kadlecsik wrote:
+>
+>- Mixed up formats in ip_set_iptree.c fixed (Rob Sterenborg)
+>- Don't use 'bool' for backward compatibility reasons (Rob Sterenborg)
 
-- Mixed up formats in ip_set_iptree.c fixed (Rob Sterenborg)
-- Don't use 'bool' for backward compatibility reasons (Rob Sterenborg)
-
-[It seems holidays are over :-).]
-
-As usual, you can download it from http://ipset.netfilter.org or from 
-git://git.netfilter.org/ipset.git.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+What actually is it that bool can't be used?
