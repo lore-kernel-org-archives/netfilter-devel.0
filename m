@@ -1,39 +1,39 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Couldn't load match `pknock':(null)
-Date: Sat, 22 Aug 2009 02:17:08 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0908220211070.7095@fbirervta.pbzchgretzou.qr>
-References: <7e36c7130908181531r3262c9b6kf3f038f9092cc34f@mail.gmail.com>  <alpine.LSU.2.00.0908190407200.24013@fbirervta.pbzchgretzou.qr>  <7e36c7130908190915j5faa812fy34fc70626de69761@mail.gmail.com>
- <7e36c7130908211431n538a0b3kf83051b77b0d5b56@mail.gmail.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [ANNOUNCEMENT] ipset-3.2
+Date: Sat, 22 Aug 2009 15:35:59 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.0908221527190.7819@blackhole.kfki.hu>
+References: <alpine.DEB.2.00.0908211609150.6879@blackhole.kfki.hu> <alpine.LSU.2.00.0908212012250.24079@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Luis Floreani <lucholaf@gmail.com>
-To: fender <frozenspot@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from sovereign.computergmbh.de ([85.214.69.204]:44885 "EHLO
-	sovereign.computergmbh.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932981AbZHVARI (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 Aug 2009 20:17:08 -0400
-In-Reply-To: <7e36c7130908211431n538a0b3kf83051b77b0d5b56@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <alpine.LSU.2.00.0908212012250.24079@fbirervta.pbzchgretzou.qr>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+On Fri, 21 Aug 2009, Jan Engelhardt wrote:
 
-On Friday 2009-08-21 23:31, fender wrote:
->
->I've tried with the version 1.4.4 and I've got the same result:
->
->iptables v1.4.4: Couldn't load match `pknock':(null)
->
->So, iptables finds the libipt_pknock module, but it isn't able to load
->the ipt_pknock.ko. Do you have any hint to solve this?
+> 
+> On Friday 2009-08-21 16:12, Jozsef Kadlecsik wrote:
+> >
+> >- Mixed up formats in ip_set_iptree.c fixed (Rob Sterenborg)
+> >- Don't use 'bool' for backward compatibility reasons (Rob Sterenborg)
+> 
+> What actually is it that bool can't be used?
 
-Have you built knock against a version >= 1.4.3.2?
+The 'bool' typedef was introduced in 2.6.19. However, some centos kernel 
+releases versioned as 2.6.18 included the patch too. So without 
+autoconfig it is not possible to figure out, just by checking the kernel 
+version numbers, whether the kernel supports bool or not.
 
-(A commit just prior to the iptables 1.4.3.2 tries to ensure that
-modules built against 1.4.3.2 or newer have matching internal ABIs,
-which should hopefully ease in finding causes for errors like
-(null).)
+I want to support kernels as widely as possible and I do not really rely 
+on 'bool', therefore decided to avoid it in the kernel part of ipset.
 
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
