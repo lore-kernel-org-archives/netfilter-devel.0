@@ -1,198 +1,136 @@
 From: Pierre Chifflier <chifflier@inl.fr>
-Subject: [PATCH 1/3] Remove debian directory
-Date: Sun, 23 Aug 2009 21:36:06 +0200
-Message-ID: <1251056168-7073-2-git-send-email-chifflier@inl.fr>
+Subject: [PATCH 3/3] Add helper script pcap2ulog
+Date: Sun, 23 Aug 2009 21:36:08 +0200
+Message-ID: <1251056168-7073-4-git-send-email-chifflier@inl.fr>
 References: <1251056168-7073-1-git-send-email-chifflier@inl.fr>
 Cc: eleblond@inl.fr, Pierre Chifflier <chifflier@inl.fr>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:45402 "EHLO smtp1-g21.free.fr"
+Received: from smtp1-g21.free.fr ([212.27.42.1]:45423 "EHLO smtp1-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933868AbZHWTgd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 23 Aug 2009 15:36:33 -0400
+	id S933901AbZHWTgh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 23 Aug 2009 15:36:37 -0400
 Received: from smtp1-g21.free.fr (localhost [127.0.0.1])
-	by smtp1-g21.free.fr (Postfix) with ESMTP id 38073940128
-	for <netfilter-devel@vger.kernel.org>; Sun, 23 Aug 2009 21:36:29 +0200 (CEST)
+	by smtp1-g21.free.fr (Postfix) with ESMTP id 3272A940167
+	for <netfilter-devel@vger.kernel.org>; Sun, 23 Aug 2009 21:36:33 +0200 (CEST)
 Received: from fydelkass.edenwall.com (fydelkass.inl.fr [88.171.131.12])
-	by smtp1-g21.free.fr (Postfix) with ESMTP id 50120940152
-	for <netfilter-devel@vger.kernel.org>; Sun, 23 Aug 2009 21:36:27 +0200 (CEST)
+	by smtp1-g21.free.fr (Postfix) with ESMTP id 14094940158
+	for <netfilter-devel@vger.kernel.org>; Sun, 23 Aug 2009 21:36:31 +0200 (CEST)
 In-Reply-To: <1251056168-7073-1-git-send-email-chifflier@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Remove Debian packaging files, it is easier to maintain the packaging
-files outside of the sources.
+This script uses the Net::Pcap Perl library to parse an pcap file and
+send packets to ulogd2 throught the UNIXSOCK input module.
 
 Signed-off-by: Pierre Chifflier <chifflier@inl.fr>
 ---
- debian/changelog                    |    5 ---
- debian/control                      |   54 -----------------------------------
- debian/rules                        |   11 -------
- debian/ulogd-input-nfct.install     |    1 -
- debian/ulogd-input-nflog.install    |    1 -
- debian/ulogd-output-mysql.install   |    1 -
- debian/ulogd-output-pcap.install    |    1 -
- debian/ulogd-output-pgsql.install   |    1 -
- debian/ulogd-output-sqlite3.install |    1 -
- debian/ulogd.install                |   10 ------
- 10 files changed, 0 insertions(+), 86 deletions(-)
- delete mode 100644 debian/changelog
- delete mode 100644 debian/control
- delete mode 100755 debian/rules
- delete mode 100644 debian/ulogd-input-nfct.install
- delete mode 100644 debian/ulogd-input-nflog.install
- delete mode 100644 debian/ulogd-output-mysql.install
- delete mode 100644 debian/ulogd-output-pcap.install
- delete mode 100644 debian/ulogd-output-pgsql.install
- delete mode 100644 debian/ulogd-output-sqlite3.install
- delete mode 100644 debian/ulogd.install
+ contrib/pcap2ulog |   96 +++++++++++++++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 96 insertions(+), 0 deletions(-)
+ create mode 100755 contrib/pcap2ulog
 
-diff --git a/debian/changelog b/debian/changelog
-deleted file mode 100644
-index d71ceba..0000000
---- a/debian/changelog
-+++ /dev/null
-@@ -1,5 +0,0 @@
--ulogd (2.00beta1) unstable; urgency=low
--
--  * initial debian release
--
-- -- Harald Welte <laforge@netfilter.org>  Sat, 07 Jan 2006 15:55:51 +0100
-diff --git a/debian/control b/debian/control
-deleted file mode 100644
-index 0118862..0000000
---- a/debian/control
-+++ /dev/null
-@@ -1,54 +0,0 @@
--Source: ulogd
--Section: net
--Priority: optional
--Maintainer: Harald Welte <laforge@netfilter.org>
--Build-Depends: cdbs (>= 0.4), debhelper (>= 4.2), gcc (>= 3.4), libnfnetlink-dev (>= 0.0.13), libnetfilter-conntrack-dev (>= 0.0.28), libnetfilter-log-dev (>= 0.0.12), libmysqlclient-dev, libpq-dev, libpcap-dev, libsqlite-dev
--Standards-Version: 3.6.2
--
--Package: ulogd
--Architecture: any
--Depends: ${shlibs:Depends}
--Description: Userspace logging daemon for netfilter/iptables
--
--Package: ulogd-output-pgsql
--Architecture: any
--Depends: ${shlibs:Depends}, ulogd (= ${Source-Version})
--Description: Userspace logging daemon for netfilter/iptables
-- The userspace connection tracking table administration program.
-- .
-- This package provides the PostgreSQL output plugin.
--
--Package: ulogd-output-mysql
--Architecture: any
--Depends: ${shlibs:Depends}, ulogd (= ${Source-Version})
--Description: Userspace logging daemon for netfilter/iptables
-- .
-- This package provides the MySQL output plugin.
--
--Package: ulogd-output-pcap
--Architecture: any
--Depends: ${shlibs:Depends}, ulogd (= ${Source-Version})
--Description: Userspace logging daemon for netfilter/iptables
-- .
-- This package provides the PCAP output plugin.
--
--Package: ulogd-output-sqlite3
--Architecture: any
--Depends: ${shlibs:Depends}, ulogd (= ${Source-Version})
--Description: Userspace logging daemon for netfilter/iptables
-- .
-- This package provides the SQLITE3 output plugin.
--
--Package: ulogd-input-nflog
--Architecture: any
--Depends: ${shlibs:Depends}, ulogd (= ${Source-Version})
--Description: Userspace logging daemon for netfilter/iptables
-- .
-- This package provides the NFLOG input plugin.
--
--Package: ulogd-input-nfct
--Architecture: any
--Depends: ${shlibs:Depends}, ulogd (= ${Source-Version})
--Description: Userspace logging daemon for netfilter/iptables
-- .
-- This package provides the conntrack_netlink input plugin.
-diff --git a/debian/rules b/debian/rules
-deleted file mode 100755
-index 138a976..0000000
---- a/debian/rules
-+++ /dev/null
-@@ -1,11 +0,0 @@
--#!/usr/bin/make -f
--# -*- mode: makefile; coding: utf-8 -*-
--
--UPSTREAM_VERSION := $(shell dpkg-parsechangelog | egrep '^Version:' | cut -f2 -d' ' | cut -f1 -d-)
--DEB_TARBALL := ulogd-$(UPSTREAM_VERSION).tar.bz2
--DEB_TAR_SRCDIR := ulogd-$(UPSTREAM_VERSION)
--
--include /usr/share/cdbs/1/rules/debhelper.mk
--include /usr/share/cdbs/1/class/autotools.mk
--
--DEB_DH_INSTALL_SOURCEDIR := debian/tmp
-diff --git a/debian/ulogd-input-nfct.install b/debian/ulogd-input-nfct.install
-deleted file mode 100644
-index 4fa02c3..0000000
---- a/debian/ulogd-input-nfct.install
-+++ /dev/null
-@@ -1 +0,0 @@
--usr/lib/ulogd/ulogd_input_NFCT.so*
-diff --git a/debian/ulogd-input-nflog.install b/debian/ulogd-input-nflog.install
-deleted file mode 100644
-index e99af30..0000000
---- a/debian/ulogd-input-nflog.install
-+++ /dev/null
-@@ -1 +0,0 @@
--usr/lib/ulogd/ulogd_input_NFLOG.so*
-diff --git a/debian/ulogd-output-mysql.install b/debian/ulogd-output-mysql.install
-deleted file mode 100644
-index 19eb379..0000000
---- a/debian/ulogd-output-mysql.install
-+++ /dev/null
-@@ -1 +0,0 @@
--usr/lib/ulogd/ulogd_output_MYSQL.so*
-diff --git a/debian/ulogd-output-pcap.install b/debian/ulogd-output-pcap.install
-deleted file mode 100644
-index de25c45..0000000
---- a/debian/ulogd-output-pcap.install
-+++ /dev/null
-@@ -1 +0,0 @@
--usr/lib/ulogd/ulogd_output_PCAP.so*
-diff --git a/debian/ulogd-output-pgsql.install b/debian/ulogd-output-pgsql.install
-deleted file mode 100644
-index eddd68b..0000000
---- a/debian/ulogd-output-pgsql.install
-+++ /dev/null
-@@ -1 +0,0 @@
--usr/lib/ulogd/ulogd_output_PGSQL.so*
-diff --git a/debian/ulogd-output-sqlite3.install b/debian/ulogd-output-sqlite3.install
-deleted file mode 100644
-index 9ea3344..0000000
---- a/debian/ulogd-output-sqlite3.install
-+++ /dev/null
-@@ -1 +0,0 @@
--usr/lib/ulogd/ulogd_output_SQLITE3.so*
-diff --git a/debian/ulogd.install b/debian/ulogd.install
-deleted file mode 100644
-index dec8583..0000000
---- a/debian/ulogd.install
-+++ /dev/null
-@@ -1,10 +0,0 @@
--usr/sbin
--usr/share/man
--usr/lib/ulogd/ulogd_filter_IFINDEX.so*
--usr/lib/ulogd/ulogd_filter_PWSNIFF.so*
--usr/lib/ulogd/ulogd_inppkt_ULOG.so*
--usr/lib/ulogd/ulogd_output_IPFIX.so*
--usr/lib/ulogd/ulogd_output_LOGEMU.so*
--usr/lib/ulogd/ulogd_output_OPRINT.so*
--usr/lib/ulogd/ulogd_output_SYSLOG.so*
--usr/lib/ulogd/ulogd_raw2packet_BASE.so*
+diff --git a/contrib/pcap2ulog b/contrib/pcap2ulog
+new file mode 100755
+index 0000000..0a42b89
+--- /dev/null
++++ b/contrib/pcap2ulog
+@@ -0,0 +1,96 @@
++#!/usr/bin/perl -w
++
++# Copyright (C) 2009 Pierre Chifflier <chifflier@inl.fr>
++#
++# This program is free software; you can redistribute it and/or modify
++# it under the same terms as Perl itself, either Perl version 5.8.4 or,
++# at your option, any later version of Perl 5 you may have available.
++
++use strict;
++
++use IO::Socket;
++use Net::Pcap;
++
++
++my $dumpfile = shift or die "Unable to open pcap file";
++my($pcap_t, $err);
++my($ulogd_client);
++my $socketfile = "/var/run/ulogd2.sock";
++
++sub connect_ulogd2 {
++    (-S $socketfile) or die "ulogd2 socket $socketfile does not exist - is ulogd running ?";
++
++    $ulogd_client = IO::Socket::UNIX->new(Peer  => $socketfile,
++                                          Type      => SOCK_STREAM ) or die $!;
++}
++
++sub process_pkt {
++    my($user, $hdr, $pkt) = @_;
++
++    if (($user ne "xyz") or !defined($hdr) or !defined($pkt)) {
++        print("Bad args passed to callback\n");
++        print("Bad user data\n"), if ($user ne "xyz");
++        print("Bad pkthdr\n"), if (!defined($hdr));
++        print("Bad pkt data\n"), if (!defined($pkt));
++        print("not ok\n");
++        exit;
++    }
++
++    #print "Header: len $hdr->{len}\n";
++    #my $len = length $pkt;
++    #print "Packet length: $len\n";
++
++    # decode packet
++    # packet type (sent by us: 4)
++    # link layer address type: 1
++    # link layer address length: 6
++    # src dst
++    # protocol (IP, ARP, PPP, SNMP ...)
++    # data
++    my $ignored = substr ($pkt, 0, 6);
++    my $srcmac = substr ($pkt, 6, 6);
++    my $protocol = unpack ("n", substr ($pkt, 12, 2));
++    my $size = length($pkt) - 16;
++
++    (my $hex_src = unpack("H*", $srcmac)) =~ s/(..)/$1:/g;
++    chop $hex_src;
++    #printf "source mac: $hex_src\n";
++
++    my $hex_dst = "\0";
++
++    # format data
++    my $data;
++
++    my $options_num=2;
++    my $options_len=length($hex_src) + length($hex_dst);
++    # total length
++    $data = pack ('n', $size + 4 + (4*$options_num) + ($options_len));
++    print $ulogd_client $data;
++    # payload length + payload
++    $data = pack ('na*', $size, substr($pkt,16,$size));
++    print $ulogd_client $data;
++    # options
++    my $OOB_IN = 2;
++    $data = pack ('nna*', $OOB_IN, length($hex_src), $hex_src);
++    print $ulogd_client $data;
++    my $OOB_OUT = 3;
++    $data = pack ('nna*', $OOB_OUT, length($hex_dst), $hex_dst);
++    print $ulogd_client $data;
++
++    #exit;
++}
++
++
++connect_ulogd2 or die $!;
++
++$pcap_t = Net::Pcap::open_offline($dumpfile, \$err);
++if (!defined($pcap_t)) {
++    print("Net::Pcap::dump_open failed: ", Net::Pcap::geterr($pcap_t), "\n");
++    exit;
++}
++
++Net::Pcap::loop($pcap_t, 10, \&process_pkt, "xyz");
++Net::Pcap::close($pcap_t);
++
++
++
 -- 
 1.6.3.3
 
