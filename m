@@ -1,136 +1,754 @@
 From: Pierre Chifflier <chifflier@inl.fr>
-Subject: [PATCH 3/3] Add helper script pcap2ulog
-Date: Sun, 23 Aug 2009 21:36:08 +0200
-Message-ID: <1251056168-7073-4-git-send-email-chifflier@inl.fr>
+Subject: [PATCH 2/3] Add new input plugin UNIXSOCK
+Date: Sun, 23 Aug 2009 21:36:07 +0200
+Message-ID: <1251056168-7073-3-git-send-email-chifflier@inl.fr>
 References: <1251056168-7073-1-git-send-email-chifflier@inl.fr>
 Cc: eleblond@inl.fr, Pierre Chifflier <chifflier@inl.fr>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:45423 "EHLO smtp1-g21.free.fr"
+Received: from smtp1-g21.free.fr ([212.27.42.1]:45427 "EHLO smtp1-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933901AbZHWTgh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 23 Aug 2009 15:36:37 -0400
+	id S933919AbZHWTgi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 23 Aug 2009 15:36:38 -0400
 Received: from smtp1-g21.free.fr (localhost [127.0.0.1])
-	by smtp1-g21.free.fr (Postfix) with ESMTP id 3272A940167
-	for <netfilter-devel@vger.kernel.org>; Sun, 23 Aug 2009 21:36:33 +0200 (CEST)
+	by smtp1-g21.free.fr (Postfix) with ESMTP id B44D194007C
+	for <netfilter-devel@vger.kernel.org>; Sun, 23 Aug 2009 21:36:34 +0200 (CEST)
 Received: from fydelkass.edenwall.com (fydelkass.inl.fr [88.171.131.12])
-	by smtp1-g21.free.fr (Postfix) with ESMTP id 14094940158
+	by smtp1-g21.free.fr (Postfix) with ESMTP id 6DDC9940163
 	for <netfilter-devel@vger.kernel.org>; Sun, 23 Aug 2009 21:36:31 +0200 (CEST)
 In-Reply-To: <1251056168-7073-1-git-send-email-chifflier@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This script uses the Net::Pcap Perl library to parse an pcap file and
-send packets to ulogd2 throught the UNIXSOCK input module.
+This input plugins creates a unix socket which can be used to log packets.
+Scripts or applications can connect to the socket (only one client allowed
+per socket) and send data in a Key-Length-Value format (including the
+payload).
 
 Signed-off-by: Pierre Chifflier <chifflier@inl.fr>
 ---
- contrib/pcap2ulog |   96 +++++++++++++++++++++++++++++++++++++++++++++++++++++
- 1 files changed, 96 insertions(+), 0 deletions(-)
- create mode 100755 contrib/pcap2ulog
+ input/packet/Makefile.am             |    5 +-
+ input/packet/ulogd_inppkt_UNIXSOCK.c |  658 ++++++++++++++++++++++++++++++++++
+ ulogd.conf.in                        |    7 +
+ 3 files changed, 669 insertions(+), 1 deletions(-)
+ create mode 100644 input/packet/ulogd_inppkt_UNIXSOCK.c
 
-diff --git a/contrib/pcap2ulog b/contrib/pcap2ulog
-new file mode 100755
-index 0000000..0a42b89
+diff --git a/input/packet/Makefile.am b/input/packet/Makefile.am
+index e90e46e..566b817 100644
+--- a/input/packet/Makefile.am
++++ b/input/packet/Makefile.am
+@@ -3,7 +3,7 @@ AM_CPPFLAGS = $(all_includes) -I$(top_srcdir)/include
+ AM_CFLAGS=-fPIC -Wall
+ LIBS=
+ 
+-pkglib_LTLIBRARIES = ulogd_inppkt_NFLOG.la ulogd_inppkt_ULOG.la
++pkglib_LTLIBRARIES = ulogd_inppkt_NFLOG.la ulogd_inppkt_ULOG.la ulogd_inppkt_UNIXSOCK.la
+ 
+ ulogd_inppkt_NFLOG_la_SOURCES = ulogd_inppkt_NFLOG.c
+ ulogd_inppkt_NFLOG_la_LDFLAGS = -avoid-version -module $(LIBNETFILTER_LOG_LIBS)
+@@ -12,3 +12,6 @@ ulogd_inppkt_NFLOG_la_CFLAGS = $(AM_CFLAGS) $(LIBNETFILTER_LOG_CFLAGS)
+ ulogd_inppkt_ULOG_la_SOURCES = ulogd_inppkt_ULOG.c
+ ulogd_inppkt_ULOG_la_LDFLAGS = -avoid-version -module
+ ulogd_inppkt_ULOG_la_LIBADD = ../../libipulog/libipulog.la
++
++ulogd_inppkt_UNIXSOCK_la_SOURCES = ulogd_inppkt_UNIXSOCK.c
++ulogd_inppkt_UNIXSOCK_la_LDFLAGS = -avoid-version -module
+diff --git a/input/packet/ulogd_inppkt_UNIXSOCK.c b/input/packet/ulogd_inppkt_UNIXSOCK.c
+new file mode 100644
+index 0000000..cf58d6f
 --- /dev/null
-+++ b/contrib/pcap2ulog
-@@ -0,0 +1,96 @@
-+#!/usr/bin/perl -w
++++ b/input/packet/ulogd_inppkt_UNIXSOCK.c
+@@ -0,0 +1,658 @@
++/*
++ ** Copyright(C) 2008 INL
++ ** Written by  Pierre Chifflier <chifflier@inl.fr>
++*/
 +
-+# Copyright (C) 2009 Pierre Chifflier <chifflier@inl.fr>
-+#
-+# This program is free software; you can redistribute it and/or modify
-+# it under the same terms as Perl itself, either Perl version 5.8.4 or,
-+# at your option, any later version of Perl 5 you may have available.
++#include <unistd.h>
++#include <stdlib.h>
++#include <netinet/in.h>
++#include <netinet/ip.h>
++#include <netinet/ip6.h>
++#include <sys/types.h>
++#include <sys/socket.h>
++#include <sys/un.h>
++#include <errno.h>
 +
-+use strict;
++#include <ulogd/ulogd.h>
 +
-+use IO::Socket;
-+use Net::Pcap;
++/* Size of the receive buffer for the unix socket. */
++#define UNIXSOCK_BUFSIZE_DEFAULT	150000
++
++/* Default unix socket path */
++#define UNIXSOCK_UNIXPATH_DEFAULT	"/tmp/ulogd2.sock"
 +
 +
-+my $dumpfile = shift or die "Unable to open pcap file";
-+my($pcap_t, $err);
-+my($ulogd_client);
-+my $socketfile = "/var/run/ulogd2.sock";
++#define UNIX_PATH_MAX	108
 +
-+sub connect_ulogd2 {
-+    (-S $socketfile) or die "ulogd2 socket $socketfile does not exist - is ulogd running ?";
 +
-+    $ulogd_client = IO::Socket::UNIX->new(Peer  => $socketfile,
-+                                          Type      => SOCK_STREAM ) or die $!;
++struct unixsock_input {
++	char *path;
++	char *unixsock_buf;
++	unsigned int unixsock_buf_avail;
++	unsigned int unixsock_buf_size;
++	struct ulogd_fd unixsock_server_fd;
++	struct ulogd_fd unixsock_instance_fd;
++};
++
++enum nflog_keys {
++	UNIXSOCK_KEY_RAW_MAC = 0,
++	UNIXSOCK_KEY_RAW_PCKT,
++	UNIXSOCK_KEY_RAW_PCKTLEN,
++	UNIXSOCK_KEY_RAW_PCKTCOUNT,
++	UNIXSOCK_KEY_OOB_PREFIX,
++	UNIXSOCK_KEY_OOB_TIME_SEC,
++	UNIXSOCK_KEY_OOB_TIME_USEC,
++	UNIXSOCK_KEY_OOB_MARK,
++	UNIXSOCK_KEY_OOB_IN,
++	UNIXSOCK_KEY_OOB_OUT,
++	UNIXSOCK_KEY_OOB_HOOK,
++	UNIXSOCK_KEY_RAW_MAC_LEN,
++	UNIXSOCK_KEY_OOB_SEQ_LOCAL,
++	UNIXSOCK_KEY_OOB_SEQ_GLOBAL,
++	UNIXSOCK_KEY_OOB_FAMILY,
++	UNIXSOCK_KEY_OOB_PROTOCOL,
++	UNIXSOCK_KEY_OOB_UID,
++	UNIXSOCK_KEY_OOB_GID,
++	UNIXSOCK_KEY_RAW_LABEL,
++	UNIXSOCK_KEY_RAW_TYPE,
++	UNIXSOCK_KEY_RAW_MAC_SADDR,
++	UNIXSOCK_KEY_RAW_MAC_ADDRLEN,
++	UNIXSOCK_KEY_NUFW_USER_NAME,
++	UNIXSOCK_KEY_NUFW_USER_ID,
++	UNIXSOCK_KEY_NUFW_OS_NAME,
++	UNIXSOCK_KEY_NUFW_OS_REL,
++	UNIXSOCK_KEY_NUFW_OS_VERS,
++	UNIXSOCK_KEY_NUFW_APP_NAME,
++};
++
++static struct ulogd_key output_keys[] = {
++	[UNIXSOCK_KEY_RAW_MAC] = {
++		.type = ULOGD_RET_RAW,
++		.flags = ULOGD_RETF_NONE,
++		.name = "raw.mac",
++	},
++	[UNIXSOCK_KEY_RAW_MAC_SADDR] = {
++		.type = ULOGD_RET_RAW,
++		.flags = ULOGD_RETF_NONE,
++		.name = "raw.mac.saddr",
++		.ipfix = {
++			.vendor = IPFIX_VENDOR_IETF,
++			.field_id = IPFIX_sourceMacAddress,
++		},
++	},
++	[UNIXSOCK_KEY_RAW_PCKT] = {
++		.type = ULOGD_RET_RAW,
++		.flags = ULOGD_RETF_NONE,
++		.name = "raw.pkt",
++		.ipfix = {
++			.vendor = IPFIX_VENDOR_NETFILTER,
++			.field_id = IPFIX_NF_rawpacket,
++		},
++	},
++	[UNIXSOCK_KEY_RAW_PCKTLEN] = {
++		.type = ULOGD_RET_UINT32,
++		.flags = ULOGD_RETF_NONE,
++		.name = "raw.pktlen",
++		.ipfix = {
++			.vendor = IPFIX_VENDOR_NETFILTER,
++			.field_id = IPFIX_NF_rawpacket_length,
++		},
++	},
++	[UNIXSOCK_KEY_RAW_PCKTCOUNT] = {
++		.type = ULOGD_RET_UINT32,
++		.flags = ULOGD_RETF_NONE,
++		.name = "raw.pktcount",
++		.ipfix = {
++			.vendor = IPFIX_VENDOR_IETF,
++			.field_id = IPFIX_packetDeltaCount,
++		},
++	},
++	[UNIXSOCK_KEY_OOB_PREFIX] = {
++		.type = ULOGD_RET_STRING,
++		.flags = ULOGD_RETF_NONE,
++		.name = "oob.prefix",
++		.ipfix = {
++			.vendor = IPFIX_VENDOR_NETFILTER,
++			.field_id = IPFIX_NF_prefix,
++		},
++	},
++	[UNIXSOCK_KEY_OOB_TIME_SEC] = {
++		.type = ULOGD_RET_UINT32,
++		.flags = ULOGD_RETF_NONE,
++		.name = "oob.time.sec",
++		.ipfix = {
++			.vendor = IPFIX_VENDOR_IETF,
++			.field_id = IPFIX_flowStartSeconds,
++		},
++	},
++	[UNIXSOCK_KEY_OOB_TIME_USEC] = {
++		.type = ULOGD_RET_UINT32,
++		.flags = ULOGD_RETF_NONE,
++		.name = "oob.time.usec",
++		.ipfix = {
++			.vendor = IPFIX_VENDOR_IETF,
++			.field_id = IPFIX_flowStartMicroSeconds,
++		},
++	},
++	[UNIXSOCK_KEY_OOB_MARK] = {
++		.type = ULOGD_RET_UINT32,
++		.flags = ULOGD_RETF_NONE,
++		.name = "oob.mark",
++		.ipfix = {
++			.vendor = IPFIX_VENDOR_NETFILTER,
++			.field_id = IPFIX_NF_mark,
++		},
++	},
++	[UNIXSOCK_KEY_OOB_IN] = {
++		.type = ULOGD_RET_STRING,
++		.flags = ULOGD_RETF_NONE,
++		.name = "oob.in",
++		.ipfix = {
++			.vendor = IPFIX_VENDOR_IETF,
++			.field_id = IPFIX_ingressInterface,
++		},
++	},
++	[UNIXSOCK_KEY_OOB_OUT] = {
++		.type = ULOGD_RET_STRING,
++		.flags = ULOGD_RETF_NONE,
++		.name = "oob.out",
++		.ipfix = {
++			.vendor = IPFIX_VENDOR_IETF,
++			.field_id = IPFIX_egressInterface,
++		},
++	},
++	[UNIXSOCK_KEY_OOB_HOOK] = {
++		.type = ULOGD_RET_UINT8,
++		.flags = ULOGD_RETF_NONE,
++		.name = "oob.hook",
++		.ipfix = {
++			.vendor = IPFIX_VENDOR_NETFILTER,
++			.field_id = IPFIX_NF_hook,
++		},
++	},
++	[UNIXSOCK_KEY_RAW_MAC_LEN] = {
++		.type = ULOGD_RET_UINT16,
++		.flags = ULOGD_RETF_NONE,
++		.name = "raw.mac_len",
++	},
++	[UNIXSOCK_KEY_RAW_MAC_ADDRLEN] = {
++		.type = ULOGD_RET_UINT16,
++		.flags = ULOGD_RETF_NONE,
++		.name = "raw.mac.addrlen",
++	},
++
++	[UNIXSOCK_KEY_OOB_SEQ_LOCAL] = {
++		.type = ULOGD_RET_UINT32,
++		.flags = ULOGD_RETF_NONE,
++		.name = "oob.seq.local",
++		.ipfix = {
++			.vendor = IPFIX_VENDOR_NETFILTER,
++			.field_id = IPFIX_NF_seq_local,
++		},
++	},
++	[UNIXSOCK_KEY_OOB_SEQ_GLOBAL] = {
++		.type = ULOGD_RET_UINT32,
++		.flags = ULOGD_RETF_NONE,
++		.name = "oob.seq.global",
++		.ipfix = {
++			.vendor = IPFIX_VENDOR_NETFILTER,
++			.field_id = IPFIX_NF_seq_global,
++		},
++	},
++	[UNIXSOCK_KEY_OOB_FAMILY] = {
++		.type = ULOGD_RET_UINT8,
++		.flags = ULOGD_RETF_NONE,
++		.name = "oob.family",
++	},
++	[UNIXSOCK_KEY_OOB_PROTOCOL] = {
++		.type = ULOGD_RET_UINT16,
++		.flags = ULOGD_RETF_NONE,
++		.name = "oob.protocol",
++	},
++	[UNIXSOCK_KEY_OOB_UID] = {
++		.type = ULOGD_RET_UINT32,
++		.flags = ULOGD_RETF_NONE,
++		.name = "oob.uid",
++	},
++	[UNIXSOCK_KEY_OOB_GID] = {
++		.type = ULOGD_RET_UINT32,
++		.flags = ULOGD_RETF_NONE,
++		.name = "oob.gid",
++	},
++	[UNIXSOCK_KEY_RAW_LABEL] = {
++		.type = ULOGD_RET_UINT8,
++		.flags = ULOGD_RETF_NONE,
++		.name = "raw.label",
++	},
++	[UNIXSOCK_KEY_RAW_TYPE] = {
++		.type = ULOGD_RET_UINT16,
++		.flags = ULOGD_RETF_NONE,
++		.name = "raw.type",
++	},
++	[UNIXSOCK_KEY_NUFW_USER_NAME] = {
++		.type = ULOGD_RET_STRING,
++		.flags = ULOGD_RETF_NONE,
++		.name = "nufw.user.name",
++	},
++	[UNIXSOCK_KEY_NUFW_USER_ID] = {
++		.type = ULOGD_RET_UINT32,
++		.flags = ULOGD_RETF_NONE,
++		.name = "nufw.user.id",
++	},
++	[UNIXSOCK_KEY_NUFW_OS_NAME] = {
++		.type = ULOGD_RET_STRING,
++		.flags = ULOGD_RETF_NONE,
++		.name = "nufw.os.name",
++	},
++	[UNIXSOCK_KEY_NUFW_OS_REL] = {
++		.type = ULOGD_RET_STRING,
++		.flags = ULOGD_RETF_NONE,
++		.name = "nufw.os.rel",
++	},
++	[UNIXSOCK_KEY_NUFW_OS_VERS] = {
++		.type = ULOGD_RET_STRING,
++		.flags = ULOGD_RETF_NONE,
++		.name = "nufw.os.vers",
++	},
++	[UNIXSOCK_KEY_NUFW_APP_NAME] = {
++		.type = ULOGD_RET_STRING,
++		.flags = ULOGD_RETF_NONE,
++		.name = "nufw.app.name",
++	},
++};
++
++static struct config_keyset libunixsock_kset = {
++	.num_ces = 2,
++	.ces = {
++		{
++			.key 	 = "socket_path",
++			.type 	 = CONFIG_TYPE_STRING,
++			.options = CONFIG_OPT_NONE,
++			.u.string = UNIXSOCK_UNIXPATH_DEFAULT,
++		},
++		{
++			.key 	 = "bufsize",
++			.type 	 = CONFIG_TYPE_INT,
++			.options = CONFIG_OPT_NONE,
++			.u.value = UNIXSOCK_BUFSIZE_DEFAULT,
++		},
++	},
++};
++
++#define unixpath_ce(x)		(x->ces[0])
++#define bufsize_ce(x)		(x->ces[1])
++
++
++enum ulogd2_option_type {
++	ULOGD2_OPT_UNUSED = 0,
++	ULOGD2_OPT_PREFIX,	/* log prefix (string) */
++	ULOGD2_OPT_OOB_IN,	/* input device (string) */
++	ULOGD2_OPT_OOB_OUT,	/* output device (string) */
++
++	ULOGD2_OPT_USER=200,	/* user name (string) */
++	ULOGD2_OPT_USERID,	/* user id (u_int32_t) */
++	ULOGD2_OPT_OSNAME,	/* OS name (string) */
++	ULOGD2_OPT_OSREL,	/* OS release (string) */
++	ULOGD2_OPT_OSVERS,	/* OS version (string) */
++	ULOGD2_OPT_APPNAME,	/* application name (string) */
++};
++
++static int handle_packet(struct ulogd_pluginstance *upi, u_int16_t total_len)
++{
++	struct unixsock_input *ui = (struct unixsock_input *)upi->private;
++	char *data;
++	struct iphdr *ip;
++	struct ulogd_key *ret = upi->output.keys;
++	u_int8_t oob_family;
++	u_int16_t payload_len;
++	u_int16_t option_number;
++	u_int16_t option_length;
++	char *buf;
++
++	ulogd_log(ULOGD_ERROR,
++			"ulogd2: handling packet\n");
++
++	data = ui->unixsock_buf + sizeof(u_int16_t);
++	payload_len = ntohs(*(u_int16_t*)data);
++	data += sizeof(u_int16_t);
++
++
++	ip = (struct iphdr *) data;
++
++	if (ip->version == 4)
++		oob_family = AF_INET;
++	else if (ip->version == 6)
++		oob_family = AF_INET6;
++	else oob_family = 0;
++
++	okey_set_u8(&ret[UNIXSOCK_KEY_OOB_FAMILY], oob_family);
++
++	okey_set_ptr(&ret[UNIXSOCK_KEY_RAW_PCKT], ip);
++	okey_set_u32(&ret[UNIXSOCK_KEY_RAW_PCKTLEN], payload_len);
++
++	/* options */
++	if (total_len > payload_len + sizeof(u_int16_t)) {
++		data = ui->unixsock_buf + payload_len + 2*sizeof(u_int16_t);
++
++		while ( (data - ui->unixsock_buf) < total_len) {
++
++			option_number = ntohs(*(u_int16_t*)(data));
++			data += sizeof(u_int16_t);
++			option_length = ntohs(*(u_int16_t*)(data));
++			data += sizeof(u_int16_t);
++			buf = data;
++			data += option_length;
++
++			ulogd_log(ULOGD_DEBUG,
++					"ulogd2: option %d (len %d) `%s'\n",
++					option_number, option_length, buf);
++
++			switch(option_number) {
++				case ULOGD2_OPT_PREFIX:
++					okey_set_ptr(&ret[UNIXSOCK_KEY_OOB_PREFIX], buf);
++					break;
++				case ULOGD2_OPT_OOB_IN:
++					okey_set_ptr(&ret[UNIXSOCK_KEY_OOB_IN], buf);
++					break;
++				case ULOGD2_OPT_OOB_OUT:
++					okey_set_ptr(&ret[UNIXSOCK_KEY_OOB_OUT], buf);
++					break;
++				case ULOGD2_OPT_USER:
++					okey_set_ptr(&ret[UNIXSOCK_KEY_NUFW_USER_NAME], buf);
++					break;
++				case ULOGD2_OPT_USERID:
++					okey_set_u32(&ret[UNIXSOCK_KEY_NUFW_USER_ID], *(u_int32_t*)buf);
++					break;
++				case ULOGD2_OPT_OSNAME:
++					okey_set_ptr(&ret[UNIXSOCK_KEY_NUFW_OS_NAME], buf);
++					break;
++				case ULOGD2_OPT_OSREL:
++					okey_set_ptr(&ret[UNIXSOCK_KEY_NUFW_OS_REL], buf);
++					break;
++				case ULOGD2_OPT_OSVERS:
++					okey_set_ptr(&ret[UNIXSOCK_KEY_NUFW_OS_VERS], buf);
++					break;
++				case ULOGD2_OPT_APPNAME:
++					okey_set_ptr(&ret[UNIXSOCK_KEY_NUFW_APP_NAME], buf);
++					break;
++				default:
++					ulogd_log(ULOGD_NOTICE,
++							"ulogd2: unknown option %d\n",
++							option_number);
++					break;
++			};
++		}
++	}
++
++	/* number of packets */
++	okey_set_u32(&ret[UNIXSOCK_KEY_RAW_PCKTCOUNT], 1);
++
++	ulogd_propagate_results(upi);
++
++	/* consume data */
++	ui->unixsock_buf_avail -= total_len;
++	if (ui->unixsock_buf_avail > 0) {
++		/* we need to shift data .. */
++		memmove(ui->unixsock_buf,
++			ui->unixsock_buf + total_len ,
++			ui->unixsock_buf_avail);
++	}
++
++	return 0;
 +}
 +
-+sub process_pkt {
-+    my($user, $hdr, $pkt) = @_;
++static int _create_unix_socket(const char *unix_path)
++{
++	int ret = -1;
++	struct sockaddr_un server_sock;
++	int s;
++	socklen_t len;
 +
-+    if (($user ne "xyz") or !defined($hdr) or !defined($pkt)) {
-+        print("Bad args passed to callback\n");
-+        print("Bad user data\n"), if ($user ne "xyz");
-+        print("Bad pkthdr\n"), if (!defined($hdr));
-+        print("Bad pkt data\n"), if (!defined($pkt));
-+        print("not ok\n");
-+        exit;
-+    }
++	s = socket(AF_UNIX, SOCK_STREAM, 0);
++	if (s < 0)
++		return -1;
 +
-+    #print "Header: len $hdr->{len}\n";
-+    #my $len = length $pkt;
-+    #print "Packet length: $len\n";
++	server_sock.sun_family = AF_UNIX;
++	strncpy(server_sock.sun_path, unix_path, UNIX_PATH_MAX-1);
++	len = strlen(server_sock.sun_path) + sizeof(server_sock.sun_family);
 +
-+    # decode packet
-+    # packet type (sent by us: 4)
-+    # link layer address type: 1
-+    # link layer address length: 6
-+    # src dst
-+    # protocol (IP, ARP, PPP, SNMP ...)
-+    # data
-+    my $ignored = substr ($pkt, 0, 6);
-+    my $srcmac = substr ($pkt, 6, 6);
-+    my $protocol = unpack ("n", substr ($pkt, 12, 2));
-+    my $size = length($pkt) - 16;
++	/* remove existing socket, if any */
++	unlink(unix_path);
 +
-+    (my $hex_src = unpack("H*", $srcmac)) =~ s/(..)/$1:/g;
-+    chop $hex_src;
-+    #printf "source mac: $hex_src\n";
++	ret = bind(s, (struct sockaddr *)&server_sock, len);
++	if (ret < 0) {
++		ulogd_log(ULOGD_ERROR,
++				"ulogd2: could not bind to unix socket \'%s\'\n",
++				server_sock.sun_path);
++		close(s);
++		return -1;
++	}
 +
-+    my $hex_dst = "\0";
++	ret = listen(s, 10);
++	if (ret < 0) {
++		ulogd_log(ULOGD_ERROR,
++				"ulogd2: could not bind to unix socket \'%s\'\n",
++				server_sock.sun_path);
++		close(s);
++		return -1;
++	}
 +
-+    # format data
-+    my $data;
 +
-+    my $options_num=2;
-+    my $options_len=length($hex_src) + length($hex_dst);
-+    # total length
-+    $data = pack ('n', $size + 4 + (4*$options_num) + ($options_len));
-+    print $ulogd_client $data;
-+    # payload length + payload
-+    $data = pack ('na*', $size, substr($pkt,16,$size));
-+    print $ulogd_client $data;
-+    # options
-+    my $OOB_IN = 2;
-+    $data = pack ('nna*', $OOB_IN, length($hex_src), $hex_src);
-+    print $ulogd_client $data;
-+    my $OOB_OUT = 3;
-+    $data = pack ('nna*', $OOB_OUT, length($hex_dst), $hex_dst);
-+    print $ulogd_client $data;
++	return s;
++}
 +
-+    #exit;
++/* warning: this code is NOT reentrant ! */
++static void _timer_unregister_cb(struct ulogd_timer *a, void *param)
++{
++	struct unixsock_input *ui = (struct unixsock_input *)param;
++
++	if (ui->unixsock_instance_fd.fd >= 0) {
++		ulogd_log(ULOGD_DEBUG, "  removing client from list\n");
++		ulogd_unregister_fd(&ui->unixsock_instance_fd);
++		close(ui->unixsock_instance_fd.fd);
++		ui->unixsock_instance_fd.fd = -1;
++	}
++}
++
++/* callback called from ulogd core when fd is readable */
++static int unixsock_instance_read_cb(int fd, unsigned int what, void *param)
++{
++	struct ulogd_pluginstance *upi = (struct ulogd_pluginstance *)param;
++	struct unixsock_input *ui = (struct unixsock_input *)upi->private;
++	int len;
++	u_int16_t needed_len;
++
++	char buf[4096];
++
++	if (!(what & ULOGD_FD_READ))
++		return 0;
++
++	len = read(fd, buf, sizeof(buf));
++	if (len < 0) {
++		ulogd_log(ULOGD_NOTICE, "  read returned %d, errno is %d (%s)\n",
++					len, errno, strerror(errno));
++		exit(-1);
++		return len;
++	}
++	if (len == 0) {
++		struct ulogd_timer *t = malloc(sizeof(struct ulogd_timer));
++
++		ulogd_log(ULOGD_DEBUG, "  client disconnected\n");
++		/* we can't call ulogd_unregister_fd fd, it will segfault
++		 * (unable to remove an entry while inside llist_for_each_entry)
++		 * so we schedule removal for next loop
++		 */
++		ulogd_init_timer(t, ui, _timer_unregister_cb);
++		ulogd_add_timer(t, 0);
++		return 0;
++	}
++
++	buf[len] = '\0';
++
++	ulogd_log(ULOGD_DEBUG, "  read %d bytes\n", len);
++	//ulogd_log(ULOGD_DEBUG, "  buffer [%s]\n", buf);
++
++	if (ui->unixsock_buf_avail + len > ui->unixsock_buf_size) {
++		ulogd_log(ULOGD_NOTICE,
++			  "We are losing events. Please consider using the clause "
++			  "bufsize\n");
++		return -1;
++	}
++
++	memcpy(ui->unixsock_buf + ui->unixsock_buf_avail,
++	       buf,
++	       len);
++	ui->unixsock_buf_avail += len;
++
++	needed_len = ntohs(*(u_int16_t*)ui->unixsock_buf);
++
++	if (ui->unixsock_buf_avail >= needed_len) {
++		ulogd_log(ULOGD_DEBUG, "  We have enough data, handling packet\n");
++
++		return handle_packet(upi, needed_len);
++	}
++	ulogd_log(ULOGD_DEBUG, "  We have %d bytes, but need %d. Requesting more\n",
++		  ui->unixsock_buf_avail, needed_len);
++
++	return 0;
++}
++
++/* callback called from ulogd core when fd is readable */
++static int unixsock_server_read_cb(int fd, unsigned int what, void *param)
++{
++	struct ulogd_pluginstance *upi = (struct ulogd_pluginstance *)param;
++	struct unixsock_input *ui = (struct unixsock_input *)upi->private;
++	socklen_t len;
++	int s;
++	struct sockaddr_storage saddr;
++
++	if (!(what & ULOGD_FD_READ))
++		return 0;
++
++	ulogd_log(ULOGD_DEBUG, "New server connected on unixsock socket\n");
++
++	len = sizeof(saddr);
++	s = accept(fd, (struct sockaddr*)&saddr, &len);
++	if (s < 0) {
++		ulogd_log(ULOGD_NOTICE,
++				"  error while accepting new unixsock client, errno is %d (%s)\n",
++				errno, strerror(errno));
++		return len;
++	}
++
++	if (ui->unixsock_instance_fd.fd >= 0) {
++		ulogd_log(ULOGD_NOTICE, "a client is already connecting, rejecting new connection");
++		close(s);
++		return 0;
++	}
++
++	ui->unixsock_instance_fd.fd = s;
++	ui->unixsock_instance_fd.cb = &unixsock_instance_read_cb;
++	ui->unixsock_instance_fd.data = upi;
++	ui->unixsock_instance_fd.when = ULOGD_FD_READ;
++
++	if (ulogd_register_fd(&ui->unixsock_instance_fd) < 0) {
++		ulogd_log(ULOGD_ERROR, "unable to register client fd to ulogd\n");
++		return -1;
++	}
++
++	return 0;
 +}
 +
 +
-+connect_ulogd2 or die $!;
 +
-+$pcap_t = Net::Pcap::open_offline($dumpfile, \$err);
-+if (!defined($pcap_t)) {
-+    print("Net::Pcap::dump_open failed: ", Net::Pcap::geterr($pcap_t), "\n");
-+    exit;
++
++static int configure(struct ulogd_pluginstance *upi,
++		     struct ulogd_pluginstance_stack *stack)
++{
++	ulogd_log(ULOGD_DEBUG, "parsing config file section `%s', "
++		  "plugin `%s'\n", upi->id, upi->plugin->name);
++
++	config_parse_file(upi->id, upi->config_kset);
++	return 0;
 +}
 +
-+Net::Pcap::loop($pcap_t, 10, \&process_pkt, "xyz");
-+Net::Pcap::close($pcap_t);
++static int start(struct ulogd_pluginstance *upi)
++{
++	struct unixsock_input *ui = (struct unixsock_input *) upi->private;
++	int fd;
++
++	ulogd_log(ULOGD_DEBUG, "Starting plugin `%s'\n",
++		  upi->plugin->name);
++
++	ui->path = unixpath_ce(upi->config_kset).u.string;
++
++	ulogd_log(ULOGD_DEBUG, "Creating Unix socket `%s'\n",
++		  ui->path);
++	fd = _create_unix_socket(unixpath_ce(upi->config_kset).u.string);
++	if (fd < 0) {
++		ulogd_log(ULOGD_ERROR, "unable to create unix socket on `%s'\n",
++			  ui->path);
++		return -1;
++	}
++
++	ui->unixsock_buf_avail = 0;
++	ui->unixsock_buf_size = bufsize_ce(upi->config_kset).u.value;
++	ui->unixsock_buf = malloc(ui->unixsock_buf_size);
++
++	ui->unixsock_server_fd.fd = fd;
++	ui->unixsock_server_fd.cb = &unixsock_server_read_cb;
++	ui->unixsock_server_fd.data = upi;
++	ui->unixsock_server_fd.when = ULOGD_FD_READ;
++
++	ui->unixsock_instance_fd.fd = -1;
++	ui->unixsock_instance_fd.cb = &unixsock_instance_read_cb;
++	ui->unixsock_instance_fd.data = upi;
++	ui->unixsock_instance_fd.when = ULOGD_FD_READ;
++
++	if (ulogd_register_fd(&ui->unixsock_server_fd) < 0) {
++		ulogd_log(ULOGD_ERROR, "unable to register fd to ulogd\n");
++		return -1;
++	}
++
++	return 0;
++}
++
++static int stop(struct ulogd_pluginstance *upi)
++{
++	struct unixsock_input *ui = (struct unixsock_input *) upi->private;
++	char *unix_path = unixpath_ce(upi->config_kset).u.string;
++
++	ulogd_log(ULOGD_DEBUG, "Stopping plugin `%s'\n",
++		  upi->plugin->name);
++
++	if (unix_path)
++		unlink(unix_path);
++
++	free(ui->unixsock_buf);
++
++	return 0;
++}
 +
 +
 +
++
++struct ulogd_plugin libunixsock_plugin = {
++	.name = "UNIXSOCK",
++	.input = {
++		.type = ULOGD_DTYPE_SOURCE,
++	},
++	.output = {
++		.type = ULOGD_DTYPE_RAW,
++		.keys = output_keys,
++		.num_keys = sizeof(output_keys)/sizeof(struct ulogd_key),
++	},
++	.priv_size 	= sizeof(struct unixsock_input),
++	.configure 	= &configure,
++	.start 		= &start,
++	.stop 		= &stop,
++	.config_kset 	= &libunixsock_kset,
++	.version	= ULOGD_VERSION,
++};
++
++void __attribute__ ((constructor)) init(void);
++
++void init(void)
++{
++	ulogd_register_plugin(&libunixsock_plugin);
++}
+diff --git a/ulogd.conf.in b/ulogd.conf.in
+index 4542fc4..603efff 100644
+--- a/ulogd.conf.in
++++ b/ulogd.conf.in
+@@ -27,6 +27,7 @@ loglevel=1
+ 
+ plugin="@libdir@/ulogd/ulogd_inppkt_NFLOG.so"
+ #plugin="@libdir@/ulogd/ulogd_inppkt_ULOG.so"
++#plugin="@libdir@/ulogd/ulogd_inppkt_UNIXSOCK.so"
+ plugin="@libdir@/ulogd/ulogd_inpflow_NFCT.so"
+ plugin="@libdir@/ulogd/ulogd_filter_IFINDEX.so"
+ plugin="@libdir@/ulogd/ulogd_filter_IP2STR.so"
+@@ -75,6 +76,9 @@ plugin="@libdir@/ulogd/ulogd_raw2packet_BASE.so"
+ # this is a stack for logging packets to syslog after a collect via NFLOG
+ #stack=log3:NFLOG,base1:BASE,ifi1:IFINDEX,ip2str1:IP2STR,print1:PRINTPKT,sys1:SYSLOG
+ 
++# this is a stack for logging packets to syslog after a collect via NuFW
++#stack=nuauth1:UNIXSOCK,base1:BASE,ifi1:IFINDEX,ip2str1:IP2STR,print1:PRINTPKT,sys1:SYSLOG
++
+ # this is a stack for flow-based logging to MySQL
+ #stack=ct1:NFCT,ip2bin1:IP2BIN,mysql2:MYSQL
+ 
+@@ -137,6 +141,9 @@ numeric_label=1 # you can label the log info based on the packet verdict
+ nlgroup=1
+ #numeric_label=0 # optional argument
+ 
++[nuauth1]
++socket_path="/tmp/nuauth_ulogd2.sock"
++
+ [emu1]
+ file="/var/log/ulogd_syslogemu.log"
+ sync=1
 -- 
 1.6.3.3
 
