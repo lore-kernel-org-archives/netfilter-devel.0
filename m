@@ -1,34 +1,36 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [ANNOUNCEMENT] ipset-3.2
-Date: Sun, 23 Aug 2009 00:21:43 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0908222330200.2057@fbirervta.pbzchgretzou.qr>
-References: <alpine.DEB.2.00.0908211609150.6879@blackhole.kfki.hu>  <alpine.LSU.2.00.0908212012250.24079@fbirervta.pbzchgretzou.qr>  <alpine.DEB.2.00.0908221527190.7819@blackhole.kfki.hu>  <alpine.LSU.2.00.0908221549540.11168@fbirervta.pbzchgretzou.qr>
- <1250969455.12729.4.camel@kushiel.sterenborg.org>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Rob Sterenborg <rob@sterenborg.info>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <1250969455.12729.4.camel@kushiel.sterenborg.org>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pierre Chifflier <chifflier@inl.fr>
+Subject: Remove debian directory, and add new UNIXSOCK input plugin
+Date: Sun, 23 Aug 2009 21:36:05 +0200
+Message-ID: <1251056168-7073-1-git-send-email-chifflier@inl.fr>
+Cc: eleblond@inl.fr
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp1-g21.free.fr ([212.27.42.1]:45350 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933820AbZHWTgX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 23 Aug 2009 15:36:23 -0400
+Received: from smtp1-g21.free.fr (localhost [127.0.0.1])
+	by smtp1-g21.free.fr (Postfix) with ESMTP id 23D759400CB
+	for <netfilter-devel@vger.kernel.org>; Sun, 23 Aug 2009 21:36:19 +0200 (CEST)
+Received: from fydelkass.edenwall.com (fydelkass.inl.fr [88.171.131.12])
+	by smtp1-g21.free.fr (Postfix) with ESMTP id 4810B94014D
+	for <netfilter-devel@vger.kernel.org>; Sun, 23 Aug 2009 21:36:17 +0200 (CEST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi,
 
-On Saturday 2009-08-22 21:30, Rob Sterenborg wrote:
+[1] remove debian directory: the packaging is outdated, and not used in
+Debian anyway. It is easier to maintain it outside sources, so delete it.
 
->On Sat, 2009-08-22 at 15:57 +0200, Jan Engelhardt wrote:
->> Ah right. CentOS. Should have known. The platform where you can't
->> deploy any modules, because during their backport spree, they failed
->> to realize that external modules do rely on, say, < 2.6.22 _not_
->> having skb_*_header(), but skb->nh. I've given up on them.
->> 
->> But thanks for the reminder. :)
->
->Since, as far as I understood, Centos is supposed to be a free and as
->much as possible binary compatible replacement for RHEL, does this also
->go for RHEL or is this behaviour Centos specific?
+(These patches are not related)
 
-With high probability this breakage extends to all RedHat Enterprise 
-products with 2.6.18.
-(As a side note, they are not running a -stable either.
-v2.6.18.4-7-gfaed318 is absent, for example.)
+[2] add new input plugin UNISOCK, using a unix socket. This allows userspace
+applications to send packets to ulogd, for example to send packets offline.
+It uses a key-length-value protocol to handle optional fields or extensions.
+[3] is a Perl script to load a PCAP file and send it to ulogd using the
+UNIXSOCK plugin.
+
+Regards,
+Pierre
+
