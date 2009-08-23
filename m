@@ -1,181 +1,350 @@
 From: Balazs Scheidler <bazsi@balabit.hu>
-Subject: [PATCH] TProxy: added IPv6 support for socket match
-Date: Fri, 28 Aug 2009 07:56:39 +0200
-Message-ID: <611922658001654b08214cc17ac47e2aa53f88fb.1251439150.git.bazsi@balabit.hu>
-References: <cover.1251439150.git.bazsi@balabit.hu>
+Subject: [PATCH 04/11] TProxy: split off ipv6 defragmentation to a separate
+ module
+Date: Sun, 23 Aug 2009 11:11:15 +0200
+Message-ID: <895a91b092112df31ed45e4f89f6f3fe9272bde0.1251295408.git.bazsi@balabit.hu>
+References: <cover.1251295408.git.bazsi@balabit.hu>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Cc: Harry Mason <harry.mason@smoothwall.net>
 To: netfilter-devel@vger.kernel.org, tproxy@lists.balabit.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from support.balabit.hu ([195.70.41.86]:58542 "EHLO lists.balabit.hu"
+Received: from support.balabit.hu ([195.70.41.86]:58546 "EHLO lists.balabit.hu"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751944AbZH2Pu0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 29 Aug 2009 11:50:26 -0400
+	id S1751967AbZH2Pu1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 29 Aug 2009 11:50:27 -0400
 Received: from balabit.hu (unknown [10.80.0.254])
-	by lists.balabit.hu (Postfix) with ESMTP id E20EE13A250
-	for <netfilter-devel@vger.kernel.org>; Sat, 29 Aug 2009 17:21:44 +0200 (CEST)
-In-Reply-To: <cover.1251439150.git.bazsi@balabit.hu>
+	by lists.balabit.hu (Postfix) with ESMTP id 9908E13A19B
+	for <netfilter-devel@vger.kernel.org>; Sat, 29 Aug 2009 17:21:37 +0200 (CEST)
+In-Reply-To: <cover.1251295408.git.bazsi@balabit.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch also adds userspace support for the --transparent mode
-of matching, which the kernel already supports, but the iptables userspace
-doesn't.
+Like with IPv4, TProxy needs IP defragmentation but does not
+require connection tracking. Since defragmentation was coupled
+with conntrack, I split off the two, creating an nf_defrag_ipv6 module,
+similar to the already existing nf_defrag_ipv4.
 
 Signed-off-by: Balazs Scheidler <bazsi@balabit.hu>
 ---
- extensions/libxt_socket.c           |  103 ++++++++++++++++++++++++++++++++---
- extensions/libxt_socket.man         |    6 ++-
- include/linux/netfilter/xt_socket.h |    8 +++
- 3 files changed, 108 insertions(+), 9 deletions(-)
- create mode 100644 include/linux/netfilter/xt_socket.h
+ include/net/netfilter/ipv6/nf_defrag_ipv6.h    |    6 ++
+ net/ipv6/netfilter/Makefile                    |    5 +-
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |   58 +------------
+ net/ipv6/netfilter/nf_conntrack_reasm.c        |   12 ++-
+ net/ipv6/netfilter/nf_defrag_ipv6_hooks.c      |  109 ++++++++++++++++++++++++
+ 5 files changed, 131 insertions(+), 59 deletions(-)
+ create mode 100644 include/net/netfilter/ipv6/nf_defrag_ipv6.h
+ create mode 100644 net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
 
-diff --git a/extensions/libxt_socket.c b/extensions/libxt_socket.c
-index 1490473..b1e2a4c 100644
---- a/extensions/libxt_socket.c
-+++ b/extensions/libxt_socket.c
-@@ -1,19 +1,106 @@
- /*
-  * Shared library add-on to iptables to add early socket matching support.
-  *
-- * Copyright (C) 2007 BalaBit IT Ltd.
-+ * Copyright (C) 2007, 2009 BalaBit IT Ltd.
-  */
-+#include <stdio.h>
-+#include <getopt.h>
- #include <xtables.h>
-+#include <linux/netfilter/xt_socket.h>
+diff --git a/include/net/netfilter/ipv6/nf_defrag_ipv6.h b/include/net/netfilter/ipv6/nf_defrag_ipv6.h
+new file mode 100644
+index 0000000..94dd54d
+--- /dev/null
++++ b/include/net/netfilter/ipv6/nf_defrag_ipv6.h
+@@ -0,0 +1,6 @@
++#ifndef _NF_DEFRAG_IPV6_H
++#define _NF_DEFRAG_IPV6_H
++
++extern void nf_defrag_ipv6_enable(void);
++
++#endif /* _NF_DEFRAG_IPV6_H */
+diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
+index aafbba3..a78ee59 100644
+--- a/net/ipv6/netfilter/Makefile
++++ b/net/ipv6/netfilter/Makefile
+@@ -11,10 +11,11 @@ obj-$(CONFIG_IP6_NF_RAW) += ip6table_raw.o
+ obj-$(CONFIG_IP6_NF_SECURITY) += ip6table_security.o
  
--static struct xtables_match socket_mt_reg = {
--	.name	       = "socket",
--	.version       = XTABLES_VERSION,
--	.family	       = NFPROTO_IPV4,
--	.size	       = XT_ALIGN(0),
--	.userspacesize = XT_ALIGN(0),
-+static void socket_mt_help_v0(void)
-+{
-+	printf("socket match has no options.\n\n");
-+}
-+
-+static void socket_mt_help_v1(void)
-+{
-+	printf("socket match options:\n"
-+"--transparent      Matches only if the socket's transparent option is set\n");
-+}
-+
-+static const struct option socket_opts_v1[] = {
-+	{ "transparent", 0, NULL, '1' },
-+	{ }
-+};
-+
-+static int socket_mt_parse_v0(int c, char **argv, int invert,
-+			      unsigned int *flags, const void *entry,
-+			      struct xt_entry_match **match)
-+{
-+	return 0;
-+}
-+
-+static int socket_mt_parse_v1(int c, char **argv, int invert,
-+			      unsigned int *flags, const void *entry,
-+			      struct xt_entry_match **match)
-+{
-+	struct xt_socket_match_info1 *info = (void *) (*match)->data;
-+
-+	switch (c) {
-+	case '1':
-+		if (*flags)
-+			xtables_error(PARAMETER_PROBLEM,
-+				      "Can't specify multiple --transparent");
-+		info->transparent = 1;
-+		*flags = 1;
-+		break;
-+	default:
-+		return 0;
-+	}
-+	return 1;
-+}
-+
-+static void socket_mt_check(unsigned int flags)
-+{
-+}
-+
-+static void socket_mt_print_v1(const void *ip,
-+			       const struct xt_entry_match *match,
-+			       int numeric)
-+{
-+	const struct xt_socket_match_info1 *info = (const void *)match->data;
-+	printf("socket ");
-+	if (info->transparent)
-+		printf("transparent ");
-+}
-+
-+static void socket_mt_save_v1(const void *ip,
-+			      const struct xt_entry_match *match)
-+{
-+	const struct xt_socket_match_info1 *info = (const void *)match->data;
-+
-+	if (info->transparent)
-+		printf("--transparent ");
-+}
-+
-+static struct xtables_match socket_matches[] = {
-+        {
-+		.name		= "socket",
-+		.revision	= 0,
-+		.version	= XTABLES_VERSION,
-+		.family		= NFPROTO_IPV4,
-+		.parse		= socket_mt_parse_v0,
-+		.final_check	= socket_mt_check,
-+		.help		= socket_mt_help_v0,
-+	},
-+	{
-+		.name		= "socket",
-+		.version	= XTABLES_VERSION,
-+		.revision	= 1,
-+		.family		= NFPROTO_UNSPEC,
-+		.size		= XT_ALIGN(sizeof(struct xt_socket_match_info1)),
-+		.userspacesize	= XT_ALIGN(sizeof(struct xt_socket_match_info1)),
-+		.parse		= socket_mt_parse_v1,
-+		.print		= socket_mt_print_v1,
-+		.save		= socket_mt_save_v1,
-+		.final_check	= socket_mt_check,
-+		.help		= socket_mt_help_v1,
-+		.extra_opts	= socket_opts_v1,
-+	}
+ # objects for l3 independent conntrack
+-nf_conntrack_ipv6-objs  :=  nf_conntrack_l3proto_ipv6.o nf_conntrack_proto_icmpv6.o nf_conntrack_reasm.o
++nf_conntrack_ipv6-objs  :=  nf_conntrack_l3proto_ipv6.o nf_conntrack_proto_icmpv6.o 
++nf_defrag_ipv6-objs := nf_defrag_ipv6_hooks.o nf_conntrack_reasm.o
+ 
+ # l3 independent conntrack
+-obj-$(CONFIG_NF_CONNTRACK_IPV6) += nf_conntrack_ipv6.o
++obj-$(CONFIG_NF_CONNTRACK_IPV6) += nf_conntrack_ipv6.o nf_defrag_ipv6.o
+ 
+ # matches
+ obj-$(CONFIG_IP6_NF_MATCH_AH) += ip6t_ah.o
+diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+index 2a15c2d..158d14c 100644
+--- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+@@ -27,6 +27,7 @@
+ #include <net/netfilter/nf_conntrack_l3proto.h>
+ #include <net/netfilter/nf_conntrack_core.h>
+ #include <net/netfilter/ipv6/nf_conntrack_ipv6.h>
++#include <net/netfilter/ipv6/nf_defrag_ipv6.h>
+ 
+ static bool ipv6_pkt_to_tuple(const struct sk_buff *skb, unsigned int nhoff,
+ 			      struct nf_conntrack_tuple *tuple)
+@@ -183,34 +184,6 @@ out:
+ 	return nf_conntrack_confirm(skb);
+ }
+ 
+-static unsigned int ipv6_defrag(unsigned int hooknum,
+-				struct sk_buff *skb,
+-				const struct net_device *in,
+-				const struct net_device *out,
+-				int (*okfn)(struct sk_buff *))
+-{
+-	struct sk_buff *reasm;
+-
+-	/* Previously seen (loopback)?  */
+-	if (skb->nfct)
+-		return NF_ACCEPT;
+-
+-	reasm = nf_ct_frag6_gather(skb);
+-
+-	/* queued */
+-	if (reasm == NULL)
+-		return NF_STOLEN;
+-
+-	/* error occured or not fragmented */
+-	if (reasm == skb)
+-		return NF_ACCEPT;
+-
+-	nf_ct_frag6_output(hooknum, reasm, (struct net_device *)in,
+-			   (struct net_device *)out, okfn);
+-
+-	return NF_STOLEN;
+-}
+-
+ static unsigned int __ipv6_conntrack_in(struct net *net,
+ 					unsigned int hooknum,
+ 					struct sk_buff *skb,
+@@ -263,13 +236,6 @@ static unsigned int ipv6_conntrack_local(unsigned int hooknum,
+ 
+ static struct nf_hook_ops ipv6_conntrack_ops[] __read_mostly = {
+ 	{
+-		.hook		= ipv6_defrag,
+-		.owner		= THIS_MODULE,
+-		.pf		= PF_INET6,
+-		.hooknum	= NF_INET_PRE_ROUTING,
+-		.priority	= NF_IP6_PRI_CONNTRACK_DEFRAG,
+-	},
+-	{
+ 		.hook		= ipv6_conntrack_in,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= PF_INET6,
+@@ -284,13 +250,6 @@ static struct nf_hook_ops ipv6_conntrack_ops[] __read_mostly = {
+ 		.priority	= NF_IP6_PRI_CONNTRACK,
+ 	},
+ 	{
+-		.hook		= ipv6_defrag,
+-		.owner		= THIS_MODULE,
+-		.pf		= PF_INET6,
+-		.hooknum	= NF_INET_LOCAL_OUT,
+-		.priority	= NF_IP6_PRI_CONNTRACK_DEFRAG,
+-	},
+-	{
+ 		.hook		= ipv6_confirm,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= PF_INET6,
+@@ -362,10 +321,6 @@ struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6 __read_mostly = {
+ 	.nlattr_to_tuple	= ipv6_nlattr_to_tuple,
+ 	.nla_policy		= ipv6_nla_policy,
+ #endif
+-#ifdef CONFIG_SYSCTL
+-	.ctl_table_path		= nf_net_netfilter_sysctl_path,
+-	.ctl_table		= nf_ct_ipv6_sysctl_table,
+-#endif
+ 	.me			= THIS_MODULE,
  };
  
- void _init(void)
- {
--	xtables_register_match(&socket_mt_reg);
-+	xtables_register_matches(socket_matches, ARRAY_SIZE(socket_matches));
+@@ -378,16 +333,12 @@ static int __init nf_conntrack_l3proto_ipv6_init(void)
+ 	int ret = 0;
+ 
+ 	need_conntrack();
++	nf_defrag_ipv6_enable();
+ 
+-	ret = nf_ct_frag6_init();
+-	if (ret < 0) {
+-		printk("nf_conntrack_ipv6: can't initialize frag6.\n");
+-		return ret;
+-	}
+ 	ret = nf_conntrack_l4proto_register(&nf_conntrack_l4proto_tcp6);
+ 	if (ret < 0) {
+ 		printk("nf_conntrack_ipv6: can't register tcp.\n");
+-		goto cleanup_frag6;
++                return ret;
+ 	}
+ 
+ 	ret = nf_conntrack_l4proto_register(&nf_conntrack_l4proto_udp6);
+@@ -425,8 +376,6 @@ static int __init nf_conntrack_l3proto_ipv6_init(void)
+ 	nf_conntrack_l4proto_unregister(&nf_conntrack_l4proto_udp6);
+  cleanup_tcp:
+ 	nf_conntrack_l4proto_unregister(&nf_conntrack_l4proto_tcp6);
+- cleanup_frag6:
+-	nf_ct_frag6_cleanup();
+ 	return ret;
  }
-diff --git a/extensions/libxt_socket.man b/extensions/libxt_socket.man
-index 50c8854..edc9d75 100644
---- a/extensions/libxt_socket.man
-+++ b/extensions/libxt_socket.man
-@@ -1,2 +1,6 @@
- This matches if an open socket can be found by doing a socket lookup on the
--packet.
-+packet which doesn\'t listen on the \'any\' IP address (0.0.0.0).
-+.TP
-+.BI "\-\-transparent"
-+Enables additional check, that the actual socket's transparent socket option
-+has to be set.
-diff --git a/include/linux/netfilter/xt_socket.h b/include/linux/netfilter/xt_socket.h
-new file mode 100644
-index 0000000..8b2b2f0
---- /dev/null
-+++ b/include/linux/netfilter/xt_socket.h
-@@ -0,0 +1,8 @@
-+#ifndef _XT_SOCKET_H_match
-+#define _XT_SOCKET_H_match
+ 
+@@ -438,7 +387,6 @@ static void __exit nf_conntrack_l3proto_ipv6_fini(void)
+ 	nf_conntrack_l4proto_unregister(&nf_conntrack_l4proto_icmpv6);
+ 	nf_conntrack_l4proto_unregister(&nf_conntrack_l4proto_udp6);
+ 	nf_conntrack_l4proto_unregister(&nf_conntrack_l4proto_tcp6);
+-	nf_ct_frag6_cleanup();
+ }
+ 
+ module_init(nf_conntrack_l3proto_ipv6_init);
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index f3aba25..b7b08fe 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -73,8 +73,8 @@ struct nf_ct_frag6_queue
+ static struct inet_frags nf_frags;
+ static struct netns_frags nf_init_frags;
+ 
+-#ifdef CONFIG_SYSCTL
+-struct ctl_table nf_ct_ipv6_sysctl_table[] = {
++#if defined(CONFIG_SYSCTL)
++struct ctl_table nf_ct_frag6_sysctl_table[] = {
+ 	{
+ 		.procname	= "nf_conntrack_frag6_timeout",
+ 		.data		= &nf_init_frags.timeout,
+@@ -100,6 +100,8 @@ struct ctl_table nf_ct_ipv6_sysctl_table[] = {
+ 	},
+ 	{ .ctl_name = 0 }
+ };
 +
-+struct xt_socket_match_info1 {
-+	__u8 transparent:1;
++static struct ctl_table_header *nf_ct_frag6_sysctl_header = NULL;
+ #endif
+ 
+ static unsigned int nf_hashfn(struct inet_frag_queue *q)
+@@ -675,11 +677,17 @@ int nf_ct_frag6_init(void)
+ 	inet_frags_init_net(&nf_init_frags);
+ 	inet_frags_init(&nf_frags);
+ 
++        if (!(nf_ct_frag6_sysctl_header = register_sysctl_paths(nf_net_netfilter_sysctl_path, nf_ct_frag6_sysctl_table))) {
++		return -ENOMEM;
++	}
+ 	return 0;
+ }
+ 
+ void nf_ct_frag6_cleanup(void)
+ {
++	unregister_sysctl_table(nf_ct_frag6_sysctl_header);
++	nf_ct_frag6_sysctl_header = NULL;
++
+ 	inet_frags_fini(&nf_frags);
+ 
+ 	nf_init_frags.low_thresh = 0;
+diff --git a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
+new file mode 100644
+index 0000000..6f07971
+--- /dev/null
++++ b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
+@@ -0,0 +1,109 @@
++/* (C) 1999-2001 Paul `Rusty' Russell
++ * (C) 2002-2004 Netfilter Core Team <coreteam@netfilter.org>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/types.h>
++#include <linux/ipv6.h>
++#include <linux/in6.h>
++#include <linux/netfilter.h>
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/icmp.h>
++#include <linux/sysctl.h>
++#include <net/ipv6.h>
++#include <net/inet_frag.h>
++
++#include <linux/netfilter_ipv6.h>
++#include <net/netfilter/nf_conntrack.h>
++#include <net/netfilter/nf_conntrack_helper.h>
++#include <net/netfilter/nf_conntrack_l4proto.h>
++#include <net/netfilter/nf_conntrack_l3proto.h>
++#include <net/netfilter/nf_conntrack_core.h>
++#include <net/netfilter/ipv6/nf_conntrack_ipv6.h>
++#include <net/netfilter/ipv6/nf_defrag_ipv6.h>
++
++static unsigned int ipv6_defrag(unsigned int hooknum,
++				struct sk_buff *skb,
++				const struct net_device *in,
++				const struct net_device *out,
++				int (*okfn)(struct sk_buff *))
++{
++	struct sk_buff *reasm;
++
++	/* Previously seen (loopback)?  */
++	if (skb->nfct)
++		return NF_ACCEPT;
++
++	reasm = nf_ct_frag6_gather(skb);
++
++	/* queued */
++	if (reasm == NULL)
++		return NF_STOLEN;
++
++	/* error occured or not fragmented */
++	if (reasm == skb)
++		return NF_ACCEPT;
++
++	nf_ct_frag6_output(hooknum, reasm, (struct net_device *)in,
++			   (struct net_device *)out, okfn);
++
++	return NF_STOLEN;
++}
++
++static struct nf_hook_ops ipv6_defrag_ops[] = {
++	{
++		.hook		= ipv6_defrag,
++		.owner		= THIS_MODULE,
++		.pf		= PF_INET6,
++		.hooknum	= NF_INET_PRE_ROUTING,
++		.priority	= NF_IP6_PRI_CONNTRACK_DEFRAG,
++	},
++	{
++		.hook		= ipv6_defrag,
++		.owner		= THIS_MODULE,
++		.pf		= PF_INET6,
++		.hooknum	= NF_INET_LOCAL_OUT,
++		.priority	= NF_IP6_PRI_CONNTRACK_DEFRAG,
++	},
 +};
 +
-+#endif /* _XT_SOCKET_H_match */
++static int __init nf_defrag_init(void)
++{
++        int ret = 0;
++
++	ret = nf_ct_frag6_init();
++	if (ret < 0) {
++		printk("nf_conntrack_ipv6: can't initialize frag6.\n");
++		return ret;
++	}
++	ret = nf_register_hooks(ipv6_defrag_ops, ARRAY_SIZE(ipv6_defrag_ops));
++	if (ret < 0) {
++	        printk("nf_defrag_ipv6: can't register hooks\n");
++	        goto cleanup_frag6;
++	}
++	return ret;
++ cleanup_frag6:
++	nf_ct_frag6_cleanup();
++	return ret;
++ 
++}
++
++static void __exit nf_defrag_fini(void)
++{
++	nf_unregister_hooks(ipv6_defrag_ops, ARRAY_SIZE(ipv6_defrag_ops));
++	nf_ct_frag6_cleanup();
++}
++
++void nf_defrag_ipv6_enable(void)
++{
++}
++EXPORT_SYMBOL_GPL(nf_defrag_ipv6_enable);
++
++module_init(nf_defrag_init);
++module_exit(nf_defrag_fini);
++
++MODULE_LICENSE("GPL");
 -- 
 1.6.0.4
 
