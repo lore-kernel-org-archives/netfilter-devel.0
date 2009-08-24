@@ -1,38 +1,121 @@
 From: Balazs Scheidler <bazsi@balabit.hu>
-Subject: [PATCH] userspace support for IPv6 TProxy
-Date: Fri, 28 Aug 2009 07:59:10 +0200
-Message-ID: <cover.1251439150.git.bazsi@balabit.hu>
+Subject: [PATCH 09/11] TProxy: added IPv6 socket lookup function to
+ nf_tproxy_core
+Date: Mon, 24 Aug 2009 14:51:02 +0200
+Message-ID: <d37a4a9f44191e54953b92852948f09c186eb4f6.1251295408.git.bazsi@balabit.hu>
+References: <cover.1251295408.git.bazsi@balabit.hu>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Cc: Harry Mason <harry.mason@smoothwall.net>
 To: netfilter-devel@vger.kernel.org, tproxy@lists.balabit.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from support.balabit.hu ([195.70.41.86]:58470 "EHLO lists.balabit.hu"
+Received: from support.balabit.hu ([195.70.41.86]:58475 "EHLO lists.balabit.hu"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751890AbZH2PuY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1751850AbZH2PuY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Sat, 29 Aug 2009 11:50:24 -0400
 Received: from balabit.hu (unknown [10.80.0.254])
-	by lists.balabit.hu (Postfix) with ESMTP id 45EF413A244
-	for <netfilter-devel@vger.kernel.org>; Sat, 29 Aug 2009 17:21:43 +0200 (CEST)
+	by lists.balabit.hu (Postfix) with ESMTP id 0BD2E13A232
+	for <netfilter-devel@vger.kernel.org>; Sat, 29 Aug 2009 17:21:41 +0200 (CEST)
+In-Reply-To: <cover.1251295408.git.bazsi@balabit.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-[ Sorry if this reaches you twice, I sent to the wrong address the first time ]
+Signed-off-by: Balazs Scheidler <bazsi@balabit.hu>
+---
+ include/net/netfilter/nf_tproxy_core.h |   72 +++++++++++++++++++++++++++++++-
+ 1 files changed, 71 insertions(+), 1 deletions(-)
 
-This patchset implements support for the IPv6 TProxy functionality. It also
-includes the still missing option to the socket match (--transparent) which
-is already present in the kernel but not in the userspace sources.
-
-Balazs Scheidler (2):
-  TProxy: added IPv6 support for socket match
-  TProxy: added IPv6 support to the TPROXY target
-
- extensions/libxt_TPROXY.c           |  213 +++++++++++++++++++++++++++++------
- extensions/libxt_socket.c           |  103 ++++++++++++++++--
- extensions/libxt_socket.man         |    6 +-
- include/linux/netfilter/xt_TPROXY.h |   15 ++-
- include/linux/netfilter/xt_socket.h |    8 ++
- 5 files changed, 295 insertions(+), 50 deletions(-)
- create mode 100644 include/linux/netfilter/xt_socket.h
+diff --git a/include/net/netfilter/nf_tproxy_core.h b/include/net/netfilter/nf_tproxy_core.h
+index 4064f35..101cc34 100644
+--- a/include/net/netfilter/nf_tproxy_core.h
++++ b/include/net/netfilter/nf_tproxy_core.h
+@@ -5,7 +5,8 @@
+ #include <linux/in.h>
+ #include <linux/skbuff.h>
+ #include <net/sock.h>
+-#include <net/inet_sock.h>
++#include <net/inet_hashtables.h>
++#include <net/inet6_hashtables.h>
+ #include <net/tcp.h>
+ 
+ #define NFT_LOOKUP_ANY         0
+@@ -130,6 +131,75 @@ nf_tproxy_get_sock_v4(struct net *net, const u8 protocol,
+ 	return sk;
+ }
+ 
++#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
++static inline struct sock *
++nf_tproxy_get_sock_v6(struct net *net, const u8 protocol,
++		      const struct in6_addr *saddr, const struct in6_addr *daddr,
++		      const __be16 sport, const __be16 dport,
++		      const struct net_device *in, int lookup_type)
++{
++	struct sock *sk;
++
++	/* look up socket */
++	switch (protocol) {
++	case IPPROTO_TCP:
++		switch (lookup_type) {
++		case NFT_LOOKUP_ANY:
++			sk = inet6_lookup(net, &tcp_hashinfo,
++                                          saddr, sport, daddr, dport,
++                                          in->ifindex);
++			break;
++		case NFT_LOOKUP_LISTENER:
++			sk = inet6_lookup_listener(net, &tcp_hashinfo,
++                                                   daddr, ntohs(dport),
++                                                   in->ifindex);
++
++                        /* NOTE: we return listeners even if bound to
++                         * 0.0.0.0, those are filtered out in
++                         * xt_socket, since xt_TPROXY needs 0 bound
++                         * listeners too */
++
++			break;
++		case NFT_LOOKUP_ESTABLISHED:
++			sk = __inet6_lookup_established(net, &tcp_hashinfo,
++                                                        saddr, sport, daddr, ntohs(dport),
++                                                        in->ifindex);
++			break;
++		default:
++			WARN_ON(1);
++			sk = NULL;
++			break;
++		}
++		break;
++	case IPPROTO_UDP:
++		sk = udp6_lib_lookup(net, saddr, sport, daddr, dport,
++				     in->ifindex);
++                if (sk && lookup_type != NFT_LOOKUP_ANY) {
++                        int connected = (sk->sk_state == TCP_ESTABLISHED);
++                        int wildcard = ipv6_addr_any(&inet6_sk(sk)->rcv_saddr);
++                        
++                        /* NOTE: we return listeners even if bound to
++                         * 0.0.0.0, those are filtered out in
++                         * xt_socket, since xt_TPROXY needs 0 bound
++                         * listeners too */
++                        if ((lookup_type == NFT_LOOKUP_ESTABLISHED && (!connected || wildcard)) ||
++			    (lookup_type == NFT_LOOKUP_LISTENER && connected)) {
++				sock_put(sk);
++				sk = NULL;
++                        }
++		}
++		break;
++	default:
++		WARN_ON(1);
++		sk = NULL;
++	}
++
++	pr_debug("tproxy socket lookup: proto %u %pI6:%u -> %pI6:%u, lookup type: %d, sock %p\n",
++		 protocol, saddr, ntohs(sport), daddr, ntohs(dport), lookup_type, sk);
++
++	return sk;
++}
++#endif
+ 
+ static inline void
+ nf_tproxy_put_sock(struct sock *sk)
+-- 
+1.6.0.4
 
 
