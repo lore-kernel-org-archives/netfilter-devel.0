@@ -1,390 +1,213 @@
 From: Balazs Scheidler <bazsi@balabit.hu>
-Subject: [PATCH 10/11] TProxy: added IPv6 support to the TPROXY target
-Date: Mon, 24 Aug 2009 14:51:47 +0200
-Message-ID: <90e493a26bd828507e00d4bfd454d70ea0dd35cd.1251295408.git.bazsi@balabit.hu>
+Subject: [PATCH 11/11] TProxy: added IPv6 support to the socket match
+Date: Mon, 24 Aug 2009 14:52:07 +0200
+Message-ID: <700c31ea135cebf4b431117540d8dba7b2fc34ab.1251295408.git.bazsi@balabit.hu>
 References: <cover.1251295408.git.bazsi@balabit.hu>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Cc: Harry Mason <harry.mason@smoothwall.net>
 To: netfilter-devel@vger.kernel.org, tproxy@lists.balabit.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from support.balabit.hu ([195.70.41.86]:58469 "EHLO lists.balabit.hu"
+Received: from support.balabit.hu ([195.70.41.86]:58545 "EHLO lists.balabit.hu"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751861AbZH2PuY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 29 Aug 2009 11:50:24 -0400
+	id S1751956AbZH2Pu0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 29 Aug 2009 11:50:26 -0400
 Received: from balabit.hu (unknown [10.80.0.254])
-	by lists.balabit.hu (Postfix) with ESMTP id 7519A13A231
-	for <netfilter-devel@vger.kernel.org>; Sat, 29 Aug 2009 17:21:42 +0200 (CEST)
+	by lists.balabit.hu (Postfix) with ESMTP id ACF6813A249
+	for <netfilter-devel@vger.kernel.org>; Sat, 29 Aug 2009 17:21:43 +0200 (CEST)
 In-Reply-To: <cover.1251295408.git.bazsi@balabit.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This requires a new revision as the old target structure was
-IPv4 specific.
-
 Signed-off-by: Balazs Scheidler <bazsi@balabit.hu>
 ---
- include/linux/netfilter/xt_TPROXY.h |   15 ++-
- net/netfilter/xt_TPROXY.c           |  248 +++++++++++++++++++++++++++++------
- 2 files changed, 218 insertions(+), 45 deletions(-)
+ net/netfilter/xt_socket.c |  111 ++++++++++++++++++++++++++++++++++++++++++---
+ 1 files changed, 105 insertions(+), 6 deletions(-)
 
-diff --git a/include/linux/netfilter/xt_TPROXY.h b/include/linux/netfilter/xt_TPROXY.h
-index 152e8f9..7b4e06d 100644
---- a/include/linux/netfilter/xt_TPROXY.h
-+++ b/include/linux/netfilter/xt_TPROXY.h
-@@ -1,14 +1,21 @@
--#ifndef _XT_TPROXY_H_target
--#define _XT_TPROXY_H_target
-+#ifndef _XT_TPROXY_H
-+#define _XT_TPROXY_H
- 
- /* TPROXY target is capable of marking the packet to perform
-  * redirection. We can get rid of that whenever we get support for
-  * mutliple targets in the same rule. */
--struct xt_tproxy_target_info {
-+struct xt_tproxy_target_info_v0 {
- 	u_int32_t mark_mask;
- 	u_int32_t mark_value;
- 	__be32 laddr;
- 	__be16 lport;
- };
- 
--#endif /* _XT_TPROXY_H_target */
-+struct xt_tproxy_target_info_v1 {
-+	u_int32_t mark_mask;
-+	u_int32_t mark_value;
-+	union nf_inet_addr laddr;
-+	__be16 lport;
-+};
-+
-+#endif /* _XT_TPROXY_H */
-diff --git a/net/netfilter/xt_TPROXY.c b/net/netfilter/xt_TPROXY.c
-index 5592b72..9e00f4d 100644
---- a/net/netfilter/xt_TPROXY.c
-+++ b/net/netfilter/xt_TPROXY.c
-@@ -10,6 +10,8 @@
-  *
-  */
- 
-+#define DEBUG 1
-+
- #include <linux/module.h>
+diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
+index 12a7140..41a8383 100644
+--- a/net/netfilter/xt_socket.c
++++ b/net/netfilter/xt_socket.c
+@@ -14,6 +14,7 @@
  #include <linux/skbuff.h>
- #include <linux/ip.h>
-@@ -19,52 +21,173 @@
- 
  #include <linux/netfilter/x_tables.h>
  #include <linux/netfilter_ipv4/ip_tables.h>
 +#include <linux/netfilter_ipv6/ip6_tables.h>
- #include <linux/netfilter/xt_TPROXY.h>
- 
+ #include <net/tcp.h>
+ #include <net/udp.h>
+ #include <net/icmp.h>
+@@ -21,6 +22,7 @@
+ #include <net/inet_sock.h>
+ #include <net/netfilter/nf_tproxy_core.h>
  #include <net/netfilter/ipv4/nf_defrag_ipv4.h>
 +#include <net/netfilter/ipv6/nf_defrag_ipv6.h>
- #include <net/netfilter/nf_tproxy_core.h>
  
- static unsigned int
--tproxy_tg(struct sk_buff *skb, const struct xt_target_param *par)
-+tproxy_tg4(struct sk_buff *skb, __be32 laddr, __be16 lport, u_int32_t mark_mask, u_int32_t mark_value)
+ #include <linux/netfilter/xt_socket.h>
+ 
+@@ -30,7 +32,7 @@
+ #endif
+ 
+ static int
+-extract_icmp_fields(const struct sk_buff *skb,
++extract_icmp4_fields(const struct sk_buff *skb,
+ 		    u8 *protocol,
+ 		    __be32 *raddr,
+ 		    __be32 *laddr,
+@@ -115,7 +117,7 @@ socket_match(const struct sk_buff *skb, const struct xt_match_param *par,
+ 		dport = hp->dest;
+ 
+ 	} else if (iph->protocol == IPPROTO_ICMP) {
+-		if (extract_icmp_fields(skb, &protocol, &saddr, &daddr,
++		if (extract_icmp4_fields(skb, &protocol, &saddr, &daddr,
+ 					&sport, &dport))
+ 			return false;
+ 	} else {
+@@ -175,23 +177,107 @@ socket_match(const struct sk_buff *skb, const struct xt_match_param *par,
+ }
+ 
+ static bool
+-socket_mt_v0(const struct sk_buff *skb, const struct xt_match_param *par)
++socket_mt4_v0(const struct sk_buff *skb, const struct xt_match_param *par)
  {
- 	const struct iphdr *iph = ip_hdr(skb);
--	const struct xt_tproxy_target_info *tgi = par->targinfo;
--	struct tcphdr _hdr, *hp;
-+	struct udphdr _hdr, *hp;
- 	struct sock *sk;
+ 	return socket_match(skb, par, NULL);
+ }
  
- 	hp = skb_header_pointer(skb, ip_hdrlen(skb), sizeof(_hdr), &_hdr);
--	if (hp == NULL)
-+	if (hp == NULL) {
-+		pr_debug("TPROXY: packet is too short to contain a transport header, dropping\n");
- 		return NF_DROP;
-+	}
+ static bool
+-socket_mt_v1(const struct sk_buff *skb, const struct xt_match_param *par)
++socket_mt4_v1(const struct sk_buff *skb, const struct xt_match_param *par)
+ {
+ 	return socket_match(skb, par, par->matchinfo);
+ }
  
-+        /* check if there's an ongoing connection on the packet
-+	 * addresses, this happens if the redirect already happened
-+	 * and the current packet belongs to an already established
-+	 * connection */
- 	sk = nf_tproxy_get_sock_v4(dev_net(skb->dev), iph->protocol,
- 				   iph->saddr, iph->daddr,
- 				   hp->source, hp->dest,
--				   par->in, NFT_LOOKUP_ESTABLISHED);
-+				   skb->dev, NFT_LOOKUP_ESTABLISHED);
- 
- 	/* udp has no TCP_TIME_WAIT state, so we never enter here */
--	if (sk && sk->sk_state == TCP_TIME_WAIT &&
--	    hp->syn && !hp->rst && !hp->ack && !hp->fin) {
--		struct sock *sk2;
--
--		/* Hm.. we got a SYN to a TIME_WAIT socket, let's see if
--		 * there's a listener on the redirected port
--		 */
--		sk2 = nf_tproxy_get_sock_v4(dev_net(skb->dev), iph->protocol,
--					   iph->saddr, tgi->laddr ? tgi->laddr : iph->daddr,
--					   hp->source, tgi->lport ? tgi->lport : hp->dest,
--					   par->in, NFT_LOOKUP_LISTENER);
--		if (sk2) {
-+	if (sk && sk->sk_state == TCP_TIME_WAIT) {
-+		struct tcphdr _hdr, *hp;
- 
--			/* yeah, there's one, let's kill the TIME_WAIT
--			 * socket and redirect to the listener
-+		hp = skb_header_pointer(skb, ip_hdrlen(skb), sizeof(_hdr), &_hdr);
-+		if (hp == NULL)
-+			return NF_DROP;
-+		
-+		if (hp->syn && !hp->rst && !hp->ack && !hp->fin) {
-+			struct sock *sk2;
-+			
-+			/* Hm.. we got a SYN to a TIME_WAIT socket, let's see if
-+			 * there's a listener on the redirected port
- 			 */
--			inet_twsk_deschedule(inet_twsk(sk), &tcp_death_row);
--			inet_twsk_put(inet_twsk(sk));
--			sk = sk2;
-+			sk2 = nf_tproxy_get_sock_v4(dev_net(skb->dev), iph->protocol,
-+						    iph->saddr, laddr ? laddr : iph->daddr,
-+						    hp->source, lport ? lport : hp->dest,
-+						    skb->dev, NFT_LOOKUP_LISTENER);
-+			if (sk2) {
-+				
-+				/* yeah, there's one, let's kill the TIME_WAIT
-+				 * socket and redirect to the listener
-+				 */
-+				inet_twsk_deschedule(inet_twsk(sk), &tcp_death_row);
-+				inet_twsk_put(inet_twsk(sk));
-+				sk = sk2;
-+			}
- 		}
- 	} else if (!sk) {
-+		/* no there's no established connection, check if
-+		 * there's a listener on the redirected addr/port */
- 		sk = nf_tproxy_get_sock_v4(dev_net(skb->dev), iph->protocol,
--					   iph->saddr, tgi->laddr ? tgi->laddr : iph->daddr,
-+					   iph->saddr, laddr ? laddr : iph->daddr,
-+					   hp->source, lport ? lport : hp->dest,
-+					   skb->dev, NFT_LOOKUP_LISTENER);
-+	}
-+	/* NOTE: assign_sock consumes our sk reference */
-+	if (sk && nf_tproxy_assign_sock(skb, sk)) {
-+		/* This should be in a separate target, but we don't do multiple
-+		   targets on the same rule yet */
-+		skb->mark = (skb->mark & ~mark_mask) ^ mark_value;
-+
-+		pr_debug("TPROXY: redirecting: proto %u %08x:%u -> %08x:%u, mark: %x\n",
-+			 iph->protocol, ntohl(iph->daddr), ntohs(hp->dest),
-+			 ntohl(laddr), ntohs(lport), skb->mark);
-+		return NF_ACCEPT;
-+	}
-+
-+	pr_debug("TPROXY: no socket, dropping: proto %u %08x:%u -> %08x:%u, mark: %x\n",
-+		 iph->protocol, ntohl(iph->daddr), ntohs(hp->dest),
-+		 ntohl(laddr), ntohs(lport), skb->mark);
-+	return NF_DROP;
-+}
-+
-+static unsigned int
-+tproxy_tg4_v0(struct sk_buff *skb, const struct xt_target_param *par)
-+{
-+	const struct xt_tproxy_target_info_v0 *tgi = par->targinfo;
-+
-+	return tproxy_tg4(skb, tgi->laddr, tgi->lport, tgi->mark_mask, tgi->mark_value);
-+}
-+
-+static unsigned int
-+tproxy_tg4_v1(struct sk_buff *skb, const struct xt_target_param *par)
-+{
-+	const struct xt_tproxy_target_info_v1 *tgi = par->targinfo;
-+
-+	return tproxy_tg4(skb, tgi->laddr.ip, tgi->lport, tgi->mark_mask, tgi->mark_value);
-+}
-+
 +#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
-+static unsigned int
-+tproxy_tg6_v1(struct sk_buff *skb, const struct xt_target_param *par)
-+{
-+	const struct ipv6hdr *iph = ipv6_hdr(skb);
-+	const struct xt_tproxy_target_info_v1 *tgi = par->targinfo;
-+	struct udphdr _hdr, *hp;
-+	struct sock *sk;
-+        int thoff;
-+        int tproto;
 +
++static int
++extract_icmp6_fields(const struct sk_buff *skb,
++		     u8 *protocol,
++		     struct in6_addr **raddr,
++		     struct in6_addr **laddr,
++		     __be16 *rport,
++		     __be16 *lport)
++{
++	return 1;
++}
++
++static bool
++socket_mt6_v1(const struct sk_buff *skb, const struct xt_match_param *par)
++{
++	struct ipv6hdr *iph = ipv6_hdr(skb);
++	struct udphdr _hdr, *hp = NULL;
++	struct sock *sk;
++	struct in6_addr *daddr, *saddr;
++	__be16 dport, sport;
++        int thoff;
++	u8 tproto;
++        const struct xt_socket_mtinfo1 *info = (struct xt_socket_mtinfo1 *) par->matchinfo;
++        
 +        tproto = ipv6_find_hdr(skb, &thoff, -1, NULL);
 +        if (tproto < 0) {
-+		pr_debug("TPROXY: Unable to find transport header in IPv6 packet, dropping\n");
++		pr_debug("socket match: Unable to find transport header in IPv6 packet, dropping\n");
 +		return NF_DROP;
 +        }
 +
-+	hp = skb_header_pointer(skb, thoff, sizeof(_hdr), &_hdr);
-+	if (hp == NULL) {
-+		pr_debug("TPROXY: Unable to grab transport header contents in IPv6 packet, dropping\n");
-+		return NF_DROP;
++	if (tproto == IPPROTO_UDP || tproto == IPPROTO_TCP) {
++		hp = skb_header_pointer(skb, thoff,
++					sizeof(_hdr), &_hdr);
++		if (hp == NULL)
++			return false;
++
++		saddr = &iph->saddr;
++		sport = hp->source;
++		daddr = &iph->daddr;
++		dport = hp->dest;
++
++	} else if (tproto == IPPROTO_ICMP) {
++		if (extract_icmp6_fields(skb, &tproto, &saddr, &daddr,
++					&sport, &dport))
++			return false;
++	} else {
++		return false;
 +	}
 +
-+        /* check if there's an ongoing connection on the packet
-+	 * addresses, this happens if the redirect already happened
-+	 * and the current packet belongs to an already established
-+	 * connection */
 +	sk = nf_tproxy_get_sock_v6(dev_net(skb->dev), tproto,
-+				   &iph->saddr, &iph->daddr,
-+				   hp->source, hp->dest,
-+				   par->in, NFT_LOOKUP_ESTABLISHED);
++				   saddr, daddr, sport, dport, par->in, NFT_LOOKUP_ANY);
++	if (sk != NULL) {
++		bool wildcard;
++		bool transparent = true;
 +
-+	/* udp has no TCP_TIME_WAIT state, so we never enter here */
-+	if (sk && sk->sk_state == TCP_TIME_WAIT) {
-+		struct tcphdr _hdr, *hp;
++		/* Ignore sockets listening on INADDR_ANY */
++		wildcard = (sk->sk_state != TCP_TIME_WAIT &&
++			    ipv6_addr_any(&inet6_sk(sk)->rcv_saddr));
 +
-+		hp = skb_header_pointer(skb, thoff, sizeof(_hdr), &_hdr);
-+		if (hp == NULL) {
-+			pr_debug("TPROXY: Unable to grab TCP transport header contents in IPv6 packet, dropping\n");
-+			return NF_DROP;
-+		}
++		/* Ignore non-transparent sockets,
++		   if XT_SOCKET_TRANSPARENT is used */
++		if (info && info->flags & XT_SOCKET_TRANSPARENT)
++			transparent = ((sk->sk_state != TCP_TIME_WAIT &&
++					inet_sk(sk)->transparent) ||
++				       (sk->sk_state == TCP_TIME_WAIT &&
++					inet_twsk(sk)->tw_transparent));
 +
-+		if (hp->syn && !hp->rst && !hp->ack && !hp->fin) {
-+			struct sock *sk2;
-+			
++		nf_tproxy_put_sock(sk);
 +
-+			/* Hm.. we got a SYN to a TIME_WAIT socket, let's see if
-+			 * there's a listener on the redirected port
-+			 */
-+			sk2 = nf_tproxy_get_sock_v6(dev_net(skb->dev), tproto,
-+						    &iph->saddr, !ipv6_addr_any(&tgi->laddr.in6) ? &tgi->laddr.in6 : &iph->daddr,
-+						    hp->source, tgi->lport ? tgi->lport : hp->dest,
-+						    par->in, NFT_LOOKUP_LISTENER);
-+			if (sk2) {
-+				
-+				/* yeah, there's one, let's kill the TIME_WAIT
-+				 * socket and redirect to the listener
-+				 */
-+				inet_twsk_deschedule(inet_twsk(sk), &tcp_death_row);
-+				inet_twsk_put(inet_twsk(sk));
-+				sk = sk2;
-+			}
-+		}
-+	} else if (!sk) {
-+		/* no there's no established connection, check if
-+		 * there's a listener on the redirected addr/port */
-+		sk = nf_tproxy_get_sock_v6(dev_net(skb->dev), tproto,
-+					   &iph->saddr, !ipv6_addr_any(&tgi->laddr.in6) ? &tgi->laddr.in6 : &iph->daddr,
- 					   hp->source, tgi->lport ? tgi->lport : hp->dest,
- 					   par->in, NFT_LOOKUP_LISTENER);
- 	}
-@@ -74,51 +197,93 @@ tproxy_tg(struct sk_buff *skb, const struct xt_target_param *par)
- 		   targets on the same rule yet */
- 		skb->mark = (skb->mark & ~tgi->mark_mask) ^ tgi->mark_value;
- 
--		pr_debug("redirecting: proto %u %08x:%u -> %08x:%u, mark: %x\n",
--			 iph->protocol, ntohl(iph->daddr), ntohs(hp->dest),
--			 ntohl(tgi->laddr), ntohs(tgi->lport), skb->mark);
-+		pr_debug("TPROXY: redirecting: proto %u %pI6:%u -> %pI6:%u, mark: %x\n",
-+			 tproto, &iph->saddr, ntohs(hp->dest),
-+			 &tgi->laddr.in6, ntohs(tgi->lport), skb->mark);
- 		return NF_ACCEPT;
- 	}
- 
--	pr_debug("no socket, dropping: proto %u %08x:%u -> %08x:%u, mark: %x\n",
--		 iph->protocol, ntohl(iph->daddr), ntohs(hp->dest),
--		 ntohl(tgi->laddr), ntohs(tgi->lport), skb->mark);
-+	pr_debug("TPROXY: no socket, dropping: proto %u %pI6:%u -> %pI6:%u, mark: %x\n",
-+		 tproto, &iph->saddr, ntohs(hp->dest),
-+		 &tgi->laddr.in6, ntohs(tgi->lport), skb->mark);
- 	return NF_DROP;
- }
++		if (wildcard || !transparent)
++			sk = NULL;
++	}
++
++	pr_debug("socket match: proto %u %pI6:%u -> %pI6:%u "
++		 "(orig %pI6:%u) sock %p\n",
++		 tproto, saddr, ntohs(sport),
++		 daddr, ntohs(dport),
++		 &iph->daddr, hp ? ntohs(hp->dest) : 0, sk);
++
++	return (sk != NULL);
++}
 +#endif
 +
- 
--static bool tproxy_tg_check(const struct xt_tgchk_param *par)
-+static bool tproxy_tg4_check(const struct xt_tgchk_param *par)
- {
- 	const struct ipt_ip *i = par->entryinfo;
- 
- 	if ((i->proto == IPPROTO_TCP || i->proto == IPPROTO_UDP)
- 	    && !(i->invflags & IPT_INV_PROTO))
- 		return true;
-+	pr_info("xt_TPROXY: Can be used only in combination with "
-+		"either -p tcp or -p udp\n");
-+	return false;
-+}
-+
-+static bool tproxy_tg6_check(const struct xt_tgchk_param *par)
-+{
-+	const struct ip6t_ip6 *i = par->entryinfo;
- 
-+	if ((i->proto == IPPROTO_TCP || i->proto == IPPROTO_UDP)
-+	    && !(i->flags & IP6T_INV_PROTO))
-+		return true;
- 	pr_info("xt_TPROXY: Can be used only in combination with "
- 		"either -p tcp or -p udp\n");
- 	return false;
- }
- 
--static struct xt_target tproxy_tg_reg __read_mostly = {
--	.name		= "TPROXY",
--	.family		= AF_INET,
--	.table		= "mangle",
--	.target		= tproxy_tg,
--	.targetsize	= sizeof(struct xt_tproxy_target_info),
--	.checkentry	= tproxy_tg_check,
--	.hooks		= 1 << NF_INET_PRE_ROUTING,
--	.me		= THIS_MODULE,
-+static struct xt_target tproxy_tg_reg[] __read_mostly = {
-+	{
-+		.name		= "TPROXY",
-+		.family		= NFPROTO_IPV4,
-+		.table		= "mangle",
-+		.target		= tproxy_tg4_v0,
-+		.revision       = 0,
-+		.targetsize	= sizeof(struct xt_tproxy_target_info_v0),
-+		.checkentry	= tproxy_tg4_check,
-+		.hooks		= 1 << NF_INET_PRE_ROUTING,
-+		.me		= THIS_MODULE,
-+	},
-+	{
-+		.name		= "TPROXY",
-+		.family		= NFPROTO_IPV4,
-+		.table		= "mangle",
-+		.target		= tproxy_tg4_v1,
-+		.revision       = 1,
-+		.targetsize	= sizeof(struct xt_tproxy_target_info_v1),
-+		.checkentry	= tproxy_tg4_check,
+ static struct xt_match socket_mt_reg[] __read_mostly = {
+ 	{
+ 		.name		= "socket",
+ 		.revision	= 0,
+ 		.family		= NFPROTO_IPV4,
+-		.match		= socket_mt_v0,
++		.match		= socket_mt4_v0,
+ 		.hooks		= 1 << NF_INET_PRE_ROUTING,
+ 		.me		= THIS_MODULE,
+ 	},
+@@ -199,16 +285,28 @@ static struct xt_match socket_mt_reg[] __read_mostly = {
+ 		.name		= "socket",
+ 		.revision	= 1,
+ 		.family		= NFPROTO_IPV4,
+-		.match		= socket_mt_v1,
++		.match		= socket_mt4_v1,
++		.matchsize	= sizeof(struct xt_socket_mtinfo1),
 +		.hooks		= 1 << NF_INET_PRE_ROUTING,
 +		.me		= THIS_MODULE,
 +	},
 +#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
 +	{
-+		.name		= "TPROXY",
++		.name		= "socket",
++		.revision	= 1,
 +		.family		= NFPROTO_IPV6,
-+		.table		= "mangle",
-+		.target		= tproxy_tg6_v1,
-+		.revision       = 1,
-+		.targetsize	= sizeof(struct xt_tproxy_target_info_v1),
-+		.checkentry	= tproxy_tg6_check,
-+		.hooks		= 1 << NF_INET_PRE_ROUTING,
-+		.me		= THIS_MODULE,
-+	},
++		.match		= socket_mt6_v1,
+ 		.matchsize	= sizeof(struct xt_socket_mtinfo1),
+ 		.hooks		= 1 << NF_INET_PRE_ROUTING,
+ 		.me		= THIS_MODULE,
+ 	},
 +#endif
-+
  };
  
- static int __init tproxy_tg_init(void)
+ static int __init socket_mt_init(void)
  {
  	nf_defrag_ipv4_enable();
--	return xt_register_target(&tproxy_tg_reg);
 +	nf_defrag_ipv6_enable();
-+	return xt_register_targets(tproxy_tg_reg, ARRAY_SIZE(tproxy_tg_reg));
+ 	return xt_register_matches(socket_mt_reg, ARRAY_SIZE(socket_mt_reg));
  }
  
- static void __exit tproxy_tg_exit(void)
- {
--	xt_unregister_target(&tproxy_tg_reg);
-+	xt_unregister_targets(tproxy_tg_reg, ARRAY_SIZE(tproxy_tg_reg));
- }
- 
- module_init(tproxy_tg_init);
-@@ -127,3 +292,4 @@ MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Krisztian Kovacs");
- MODULE_DESCRIPTION("Netfilter transparent proxy (TPROXY) target module.");
- MODULE_ALIAS("ipt_TPROXY");
-+MODULE_ALIAS("ip6t_TPROXY");
+@@ -224,3 +322,4 @@ MODULE_LICENSE("GPL");
+ MODULE_AUTHOR("Krisztian Kovacs, Balazs Scheidler");
+ MODULE_DESCRIPTION("x_tables socket match module");
+ MODULE_ALIAS("ipt_socket");
++MODULE_ALIAS("ip6t_socket");
 -- 
 1.6.0.4
 
