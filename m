@@ -1,42 +1,50 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/4] ipt_set: fix a typo in the manpage
-Date: Mon, 24 Aug 2009 14:19:13 +0200
-Message-ID: <4A928541.6070802@trash.net>
-References: <1250780978-14013-1-git-send-email-jengelh@medozas.de> <1250780978-14013-3-git-send-email-jengelh@medozas.de> <20090820164732.GA27954@linuxace.com>
+Subject: Re: [PATCH 1/6] netfilter: xtables: consolidate table hook functions
+Date: Mon, 24 Aug 2009 14:53:14 +0200
+Message-ID: <4A928D3A.1000502@trash.net>
+References: <1249931992-18761-1-git-send-email-jengelh@medozas.de> <1249931992-18761-2-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	netfilter-devel@vger.kernel.org
-To: Phil Oester <kernel@linuxace.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:50706 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:51358 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752308AbZHXMTP (ORCPT
+	with ESMTP id S1752349AbZHXMxP (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 24 Aug 2009 08:19:15 -0400
-In-Reply-To: <20090820164732.GA27954@linuxace.com>
+	Mon, 24 Aug 2009 08:53:15 -0400
+In-Reply-To: <1249931992-18761-2-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Phil Oester wrote:
-> On Thu, Aug 20, 2009 at 05:09:36PM +0200, Jan Engelhardt wrote:
->> From: Trent W. Buck <trentbuck@gmail.com>
->>
->> References: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=539101
->> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
->> ---
->>  extensions/libipt_set.man |    2 +-
->>  1 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/extensions/libipt_set.man b/extensions/libipt_set.man
->> index 6df6b29..455706c 100644
->> --- a/extensions/libipt_set.man
->> +++ b/extensions/libipt_set.man
->> @@ -1,4 +1,4 @@
->> -This modules macthes IP sets which can be defined by ipset(8).
->> +This modules matches IP sets which can be defined by ipset(8).
-> 
-> While in there, modules should be singular.  
+Jan Engelhardt wrote:
+> For a following patch in this series ("generate nf hook ops on
+> demand"), we will be requiring that a single hook entry function per
+> table does the processing. Would this not be done would I need to
+> pass multiple hook functions as arguments in that later patch, which
+> would have been not so nice.
+>=20
+> This also removes exact duplicates of some hook functions =E2=80=94
+> ipt_pre_routing_hook, ipt_local_in_hook and ipt_forward_hook in
+> iptable_mangle.c all did the same.
 
-Fixed, thanks.
+Removing duplicates is fine of course, but I don't like the
+"consolidation" of multiple different hook functions very much.
+You're trading more runtime overhead (admittedly not that much,
+but those functions are heavily used) for a small "unification",
+which doesn't seem like a good trade to me.
+
+The second problem is that your automatically generated hook ops
+can't even represent all the cases we have since some tables
+actually do use different priorities for the different hooks.
+And I'm not sure where the memory savings you claim should come
+from, the hook ops are still required at runtime.
+
+So please explain the benefit of these patches (1-3) in more
+detail.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
