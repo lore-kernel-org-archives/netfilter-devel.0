@@ -1,99 +1,102 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 6/6] netfilter: xtables: generate initial table on-demand
-Date: Mon, 24 Aug 2009 15:12:44 +0200
-Message-ID: <4A9291CC.3000606@trash.net>
-References: <1249931992-18761-1-git-send-email-jengelh@medozas.de> <1249931992-18761-7-git-send-email-jengelh@medozas.de>
+Subject: netfilter: nf_conntrack: log packets dropped by helpers
+Date: Tue, 25 Aug 2009 14:24:55 +0200
+Message-ID: <4A93D817.4080706@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: multipart/mixed;
+ boundary="------------040608070703070204040701"
+To: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:51753 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:45049 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752409AbZHXNMq (ORCPT
+	with ESMTP id S1751027AbZHYMY4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 24 Aug 2009 09:12:46 -0400
-In-Reply-To: <1249931992-18761-7-git-send-email-jengelh@medozas.de>
+	Tue, 25 Aug 2009 08:24:56 -0400
+Received: from [IPv6:2001:6f8:974:0:215:f2ff:fe24:91f8] (unknown [IPv6:2001:6f8:974:0:215:f2ff:fe24:91f8])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by stinky.trash.net (Postfix) with ESMTPSA id 50BBBB2C55
+	for <netfilter-devel@vger.kernel.org>; Tue, 25 Aug 2009 14:24:57 +0200 (MEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> The static initial tables are pretty large, and after the net
-> namespace has been instantiated, they just hang around for nothing.
-> This commit removes them and creates tables on-demand at runtime when
-> needed.
-> 
-> Some numbers:
->     text    data     bss     dec     hex filename
-> -4043674  563169  512000 5118843  4e1b7b ./vmlinux[x86_64](before)
-> +4045071  550177  512000 5107248  4dee30 ./vmlinux[x86_64](after)
-> =  +1397  -12992
-> === -11595
+This is a multi-part message in MIME format.
+--------------040608070703070204040701
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
-They are actually freed when no network namespaces are used.
-But I agree that this makes sense since distributors are going
-to enable them.
+I'm about to commit a couple of patches from some private trees
+to my nf-next-2.6.git tree. Any comments welcome.
 
-> +/*
-> + * Today's hack: quantum tunneling in structs
-> + *
-> + * 'entries' and 'term' are never anywhere referenced by word in code. In fact,
-> + * they serve as the hanging-off data accessed through repl.data[]!
-> + */
-> +#define xt_repldata_mk(type, typ2) \
-> +	struct { \
-> +		struct type##_replace repl; \
-> +		struct type##_standard entries[nhooks]; \
-> +		struct type##_error term; \
-> +	} *tbl = kzalloc(sizeof(*tbl), GFP_KERNEL); \
-> +	if (tbl == NULL) \
-> +		return NULL; \
-> +	strncpy(tbl->repl.name, info->name, sizeof(tbl->repl.name)); \
-> +	tbl->term = (struct type##_error)typ2##_ERROR_INIT;  \
-> +	tbl->repl.valid_hooks = hook_mask; \
-> +	tbl->repl.num_entries = nhooks + 1; \
-> +	tbl->repl.size = nhooks * sizeof(struct type##_standard) + \
-> +	                 sizeof(struct type##_error); \
-> +	for (; hook_mask != 0; hook_mask >>= 1, ++hooknum) { \
-> +		if (!(hook_mask & 1)) \
-> +			continue; \
-> +		tbl->repl.hook_entry[hooknum] = bytes; \
-> +		tbl->repl.underflow[hooknum]  = bytes; \
-> +		tbl->entries[i++] = (struct type##_standard) \
-> +			typ2##_STANDARD_INIT(NF_ACCEPT); \
-> +		bytes += sizeof(struct type##_standard); \
-> +	}
-> +
-> +void *xt_repldata_create(const struct xt_table *info)
-> +{
-> +	unsigned int hook_mask = info->valid_hooks;
-> +	unsigned int nhooks = xt_hookmask_bitcount(hook_mask);
-> +	unsigned int bytes = 0, hooknum = 0, i = 0;
-> +
-> +	if (info->af == NFPROTO_IPV6) {
-> +		xt_repldata_mk(ip6t, IP6T);
-> +		return tbl;
+--------------040608070703070204040701
+Content-Type: text/x-patch;
+ name="01.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="01.diff"
 
-Would look slightly nicer if the above macro would "return"
-the table, then you could simply do "return xt_repldata_mk(..);"
-without using variables declared within the macro.
+commit ec4988f91a1750b181cfc87461c3df48b0ab0fc7
+Author: Patrick McHardy <kaber@trash.net>
+Date:   Tue Aug 25 14:21:24 2009 +0200
 
-> +	} else if (info->af == NFPROTO_IPV4) {
-> +		xt_repldata_mk(ipt, IPT);
-> +		return tbl;
-> +	} else if (info->af == NFPROTO_ARP) {
-> +		xt_repldata_mk(arpt, ARPT);
-> +		return tbl;
-> +	}
-> +	return NULL;
-> +}
-> +EXPORT_SYMBOL_GPL(xt_repldata_create);
+    netfilter: nf_conntrack: log packets dropped by helpers
+    
+    Log packets dropped by helpers using the netfilter logging API. This
+    is useful in combination with nfnetlink_log to analyze those packets
+    in userspace for debugging.
+    
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-How about adding this beauty to the respective address-family
-specific files (ip_tables.c etc)? That would avoid some of the
-bloat of the new function (apparently almost 1300bytes) when
-only some of those modules are used.
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+index 7d2ead7..44fa394 100644
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+@@ -26,6 +26,7 @@
+ #include <net/netfilter/ipv4/nf_conntrack_ipv4.h>
+ #include <net/netfilter/nf_nat_helper.h>
+ #include <net/netfilter/ipv4/nf_defrag_ipv4.h>
++#include <net/netfilter/nf_log.h>
+ 
+ int (*nf_nat_seq_adjust_hook)(struct sk_buff *skb,
+ 			      struct nf_conn *ct,
+@@ -113,8 +114,11 @@ static unsigned int ipv4_confirm(unsigned int hooknum,
+ 
+ 	ret = helper->help(skb, skb_network_offset(skb) + ip_hdrlen(skb),
+ 			   ct, ctinfo);
+-	if (ret != NF_ACCEPT)
++	if (ret != NF_ACCEPT) {
++		nf_log_packet(AF_INET, hooknum, skb, in, out, NULL,
++			      "nf_ct_%s: dropping packet", helper->name);
+ 		return ret;
++	}
+ 
+ 	if (test_bit(IPS_SEQ_ADJUST_BIT, &ct->status)) {
+ 		typeof(nf_nat_seq_adjust_hook) seq_adjust;
+diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+index 2a15c2d..6b76778 100644
+--- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
++++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+@@ -27,6 +27,7 @@
+ #include <net/netfilter/nf_conntrack_l3proto.h>
+ #include <net/netfilter/nf_conntrack_core.h>
+ #include <net/netfilter/ipv6/nf_conntrack_ipv6.h>
++#include <net/netfilter/nf_log.h>
+ 
+ static bool ipv6_pkt_to_tuple(const struct sk_buff *skb, unsigned int nhoff,
+ 			      struct nf_conntrack_tuple *tuple)
+@@ -176,8 +177,11 @@ static unsigned int ipv6_confirm(unsigned int hooknum,
+ 	}
+ 
+ 	ret = helper->help(skb, protoff, ct, ctinfo);
+-	if (ret != NF_ACCEPT)
++	if (ret != NF_ACCEPT) {
++		nf_log_packet(AF_INET6, hooknum, skb, in, out, NULL,
++			      "nf_ct_%s: dropping packet", helper->name);
+ 		return ret;
++	}
+ out:
+ 	/* We've seen it coming out the other side: confirm it */
+ 	return nf_conntrack_confirm(skb);
 
-I also would prefer a nicer name, something like
-xt_alloc_initial_table().
+--------------040608070703070204040701--
