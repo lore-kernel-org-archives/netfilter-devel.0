@@ -1,102 +1,144 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter: nf_conntrack: log packets dropped by helpers
-Date: Tue, 25 Aug 2009 14:24:55 +0200
-Message-ID: <4A93D817.4080706@trash.net>
+Subject: netlink: constify nlmsghdr arguments
+Date: Tue, 25 Aug 2009 14:39:56 +0200
+Message-ID: <4A93DB9C.40305@trash.net>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------040608070703070204040701"
+ boundary="------------040303090005030609080105"
 To: Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45049 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:45354 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751027AbZHYMY4 (ORCPT
+	with ESMTP id S1754842AbZHYMj7 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 Aug 2009 08:24:56 -0400
+	Tue, 25 Aug 2009 08:39:59 -0400
 Received: from [IPv6:2001:6f8:974:0:215:f2ff:fe24:91f8] (unknown [IPv6:2001:6f8:974:0:215:f2ff:fe24:91f8])
 	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
 	(No client certificate requested)
-	by stinky.trash.net (Postfix) with ESMTPSA id 50BBBB2C55
-	for <netfilter-devel@vger.kernel.org>; Tue, 25 Aug 2009 14:24:57 +0200 (MEST)
+	by stinky.trash.net (Postfix) with ESMTPSA id D58A9B2C4A
+	for <netfilter-devel@vger.kernel.org>; Tue, 25 Aug 2009 14:39:57 +0200 (MEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 This is a multi-part message in MIME format.
---------------040608070703070204040701
+--------------040303090005030609080105
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 
-I'm about to commit a couple of patches from some private trees
-to my nf-next-2.6.git tree. Any comments welcome.
 
---------------040608070703070204040701
+--------------040303090005030609080105
 Content-Type: text/x-patch;
- name="01.diff"
+ name="02.diff"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="01.diff"
+ filename="02.diff"
 
-commit ec4988f91a1750b181cfc87461c3df48b0ab0fc7
+commit ceb6cc09fb87f82c5302204f39d0d2e84208c67b
 Author: Patrick McHardy <kaber@trash.net>
-Date:   Tue Aug 25 14:21:24 2009 +0200
+Date:   Tue Aug 25 14:28:35 2009 +0200
 
-    netfilter: nf_conntrack: log packets dropped by helpers
+    netlink: constify nlmsghdr arguments
     
-    Log packets dropped by helpers using the netfilter logging API. This
-    is useful in combination with nfnetlink_log to analyze those packets
-    in userspace for debugging.
+    Consitfy nlmsghdr arguments to a couple of functions as preparation
+    for the next patch, which will constify the netlink message data in
+    all nfnetlink users.
     
     Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-index 7d2ead7..44fa394 100644
---- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-+++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
-@@ -26,6 +26,7 @@
- #include <net/netfilter/ipv4/nf_conntrack_ipv4.h>
- #include <net/netfilter/nf_nat_helper.h>
- #include <net/netfilter/ipv4/nf_defrag_ipv4.h>
-+#include <net/netfilter/nf_log.h>
+diff --git a/include/linux/netlink.h b/include/linux/netlink.h
+index 5ba398e..0fbecbb 100644
+--- a/include/linux/netlink.h
++++ b/include/linux/netlink.h
+@@ -217,12 +217,13 @@ int netlink_sendskb(struct sock *sk, struct sk_buff *skb);
  
- int (*nf_nat_seq_adjust_hook)(struct sk_buff *skb,
- 			      struct nf_conn *ct,
-@@ -113,8 +114,11 @@ static unsigned int ipv4_confirm(unsigned int hooknum,
+ struct netlink_callback
+ {
+-	struct sk_buff	*skb;
+-	struct nlmsghdr	*nlh;
+-	int		(*dump)(struct sk_buff * skb, struct netlink_callback *cb);
+-	int		(*done)(struct netlink_callback *cb);
+-	int		family;
+-	long		args[6];
++	struct sk_buff		*skb;
++	const struct nlmsghdr	*nlh;
++	int			(*dump)(struct sk_buff * skb,
++					struct netlink_callback *cb);
++	int			(*done)(struct netlink_callback *cb);
++	int			family;
++	long			args[6];
+ };
  
- 	ret = helper->help(skb, skb_network_offset(skb) + ip_hdrlen(skb),
- 			   ct, ctinfo);
--	if (ret != NF_ACCEPT)
-+	if (ret != NF_ACCEPT) {
-+		nf_log_packet(AF_INET, hooknum, skb, in, out, NULL,
-+			      "nf_ct_%s: dropping packet", helper->name);
- 		return ret;
-+	}
+ struct netlink_notify
+@@ -258,7 +259,7 @@ __nlmsg_put(struct sk_buff *skb, u32 pid, u32 seq, int type, int len, int flags)
+ 	NLMSG_NEW(skb, pid, seq, type, len, 0)
  
- 	if (test_bit(IPS_SEQ_ADJUST_BIT, &ct->status)) {
- 		typeof(nf_nat_seq_adjust_hook) seq_adjust;
-diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-index 2a15c2d..6b76778 100644
---- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-@@ -27,6 +27,7 @@
- #include <net/netfilter/nf_conntrack_l3proto.h>
- #include <net/netfilter/nf_conntrack_core.h>
- #include <net/netfilter/ipv6/nf_conntrack_ipv6.h>
-+#include <net/netfilter/nf_log.h>
+ extern int netlink_dump_start(struct sock *ssk, struct sk_buff *skb,
+-			      struct nlmsghdr *nlh,
++			      const struct nlmsghdr *nlh,
+ 			      int (*dump)(struct sk_buff *skb, struct netlink_callback*),
+ 			      int (*done)(struct netlink_callback*));
  
- static bool ipv6_pkt_to_tuple(const struct sk_buff *skb, unsigned int nhoff,
- 			      struct nf_conntrack_tuple *tuple)
-@@ -176,8 +177,11 @@ static unsigned int ipv6_confirm(unsigned int hooknum,
- 	}
+diff --git a/include/net/netlink.h b/include/net/netlink.h
+index 007bdb0..a63b219 100644
+--- a/include/net/netlink.h
++++ b/include/net/netlink.h
+@@ -365,7 +365,7 @@ static inline struct nlmsghdr *nlmsg_next(struct nlmsghdr *nlh, int *remaining)
+  *
+  * See nla_parse()
+  */
+-static inline int nlmsg_parse(struct nlmsghdr *nlh, int hdrlen,
++static inline int nlmsg_parse(const struct nlmsghdr *nlh, int hdrlen,
+ 			      struct nlattr *tb[], int maxtype,
+ 			      const struct nla_policy *policy)
+ {
+@@ -414,7 +414,7 @@ static inline int nlmsg_validate(struct nlmsghdr *nlh, int hdrlen, int maxtype,
+  *
+  * Returns 1 if a report back to the application is requested.
+  */
+-static inline int nlmsg_report(struct nlmsghdr *nlh)
++static inline int nlmsg_report(const struct nlmsghdr *nlh)
+ {
+ 	return !!(nlh->nlmsg_flags & NLM_F_ECHO);
+ }
+diff --git a/include/net/rtnetlink.h b/include/net/rtnetlink.h
+index 3c1895e..85ba560 100644
+--- a/include/net/rtnetlink.h
++++ b/include/net/rtnetlink.h
+@@ -14,7 +14,7 @@ extern void	rtnl_register(int protocol, int msgtype,
+ extern int	rtnl_unregister(int protocol, int msgtype);
+ extern void	rtnl_unregister_all(int protocol);
  
- 	ret = helper->help(skb, protoff, ct, ctinfo);
--	if (ret != NF_ACCEPT)
-+	if (ret != NF_ACCEPT) {
-+		nf_log_packet(AF_INET6, hooknum, skb, in, out, NULL,
-+			      "nf_ct_%s: dropping packet", helper->name);
- 		return ret;
-+	}
- out:
- 	/* We've seen it coming out the other side: confirm it */
- 	return nf_conntrack_confirm(skb);
+-static inline int rtnl_msg_family(struct nlmsghdr *nlh)
++static inline int rtnl_msg_family(const struct nlmsghdr *nlh)
+ {
+ 	if (nlmsg_len(nlh) >= sizeof(struct rtgenmsg))
+ 		return ((struct rtgenmsg *) nlmsg_data(nlh))->rtgen_family;
+diff --git a/net/netlink/af_netlink.c b/net/netlink/af_netlink.c
+index da3163d..d0ff382 100644
+--- a/net/netlink/af_netlink.c
++++ b/net/netlink/af_netlink.c
+@@ -1705,7 +1705,7 @@ errout:
+ }
+ 
+ int netlink_dump_start(struct sock *ssk, struct sk_buff *skb,
+-		       struct nlmsghdr *nlh,
++		       const struct nlmsghdr *nlh,
+ 		       int (*dump)(struct sk_buff *skb,
+ 				   struct netlink_callback *),
+ 		       int (*done)(struct netlink_callback *))
+diff --git a/net/sched/act_api.c b/net/sched/act_api.c
+index 9d03cc3..2dfb3e7 100644
+--- a/net/sched/act_api.c
++++ b/net/sched/act_api.c
+@@ -1011,7 +1011,7 @@ replay:
+ }
+ 
+ static struct nlattr *
+-find_dump_kind(struct nlmsghdr *n)
++find_dump_kind(const struct nlmsghdr *n)
+ {
+ 	struct nlattr *tb1, *tb2[TCA_ACT_MAX+1];
+ 	struct nlattr *tb[TCA_ACT_MAX_PRIO + 1];
 
---------------040608070703070204040701--
+--------------040303090005030609080105--
