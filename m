@@ -1,59 +1,57 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: netfilter: nf_conntrack: log packets dropped by helpers
-Date: Wed, 26 Aug 2009 21:19:16 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.0908262028050.14819@blackhole.kfki.hu>
-References: <4A93D817.4080706@trash.net> <4A94073B.80106@plouf.fr.eu.org> <4A9530C1.50200@trash.net> <alpine.LSU.2.00.0908261503340.32385@fbirervta.pbzchgretzou.qr> <alpine.DEB.2.00.0908261506460.13716@blackhole.kfki.hu> <4A954A16.6040803@plouf.fr.eu.org>
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: [PATCH] netfilter: conntrack: netns fix re reliable conntrack
+	event delivery
+Date: Thu, 27 Aug 2009 02:24:25 +0400
+Message-ID: <20090826222425.GA7523@x200.localdomain>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	Patrick McHardy <kaber@trash.net>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org, pablo@netfilter.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2.kfki.hu ([148.6.0.28]:47531 "EHLO smtp2.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750761AbZHZTTQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 Aug 2009 15:19:16 -0400
-In-Reply-To: <4A954A16.6040803@plouf.fr.eu.org>
+Received: from ey-out-2122.google.com ([74.125.78.26]:7700 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753881AbZHZWY0 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 26 Aug 2009 18:24:26 -0400
+Received: by ey-out-2122.google.com with SMTP id 25so137560eya.19
+        for <netfilter-devel@vger.kernel.org>; Wed, 26 Aug 2009 15:24:28 -0700 (PDT)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 26 Aug 2009, Pascal Hambourg wrote:
+Conntracks in netns other than init_net dying list were never killed.
 
-> Jozsef Kadlecsik a ?crit :
-> > 
-> > I usually say that conntrack is not a policy-decision machine and 
-> > therefore should not drop packets.
-> 
-> I strongly agree.
-> 
-> > However, for the protocol helpers I strongly believe if the helper can't 
-> > figure out the protocol elements due to any kind of parser error, then 
-> > the packet should be dropped. Otherwise we may open up possible DoS attack 
-> > vectors to sloppy server/client implementations.
-> 
-> As a user, I do not expect packets to be dropped when I just enable
-> conntrack without loading any filtering rule. Wouldn't it be better (if
-> possible) to flag these packets so they can be dropped - or not - by
-> iptables ?
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+---
 
-There are a few cases when the conntrack core cannot but drop packets. But 
-those are very exceptional indeed.
+ net/netfilter/nf_conntrack_core.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-But here we are discussing the protocol helpers: in order to reliably and 
-safely handle the related connection - and prevent to be fooled by 
-deliberately broken, mangled, etc patterns - the helpers too may have no 
-choice but to drop the unparseable packet. And it's not up to the user to 
-decide whether the packet should still be let through, because it could 
-defeat the access control rules. For a good example just have a look at 
-the article 'Breaking through a Firewall using a forged FTP command' in 
-Phrack #63.
-
-Best regards, 
-Jozsef 
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1089,14 +1089,14 @@ void nf_conntrack_flush_report(struct net *net, u32 pid, int report)
+ }
+ EXPORT_SYMBOL_GPL(nf_conntrack_flush_report);
+ 
+-static void nf_ct_release_dying_list(void)
++static void nf_ct_release_dying_list(struct net *net)
+ {
+ 	struct nf_conntrack_tuple_hash *h;
+ 	struct nf_conn *ct;
+ 	struct hlist_nulls_node *n;
+ 
+ 	spin_lock_bh(&nf_conntrack_lock);
+-	hlist_nulls_for_each_entry(h, n, &init_net.ct.dying, hnnode) {
++	hlist_nulls_for_each_entry(h, n, &net->ct.dying, hnnode) {
+ 		ct = nf_ct_tuplehash_to_ctrack(h);
+ 		/* never fails to remove them, no listeners at this point */
+ 		nf_ct_kill(ct);
+@@ -1115,7 +1115,7 @@ static void nf_conntrack_cleanup_net(struct net *net)
+ {
+  i_see_dead_people:
+ 	nf_ct_iterate_cleanup(net, kill_all, NULL);
+-	nf_ct_release_dying_list();
++	nf_ct_release_dying_list(net);
+ 	if (atomic_read(&net->ct.count) != 0) {
+ 		schedule();
+ 		goto i_see_dead_people;
