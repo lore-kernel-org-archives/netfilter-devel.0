@@ -1,192 +1,90 @@
 From: Balazs Scheidler <bazsi@balabit.hu>
-Subject: [PATCH 01/11] TProxy: kick out TIME_WAIT sockets in case a new
- connection comes in with the same tuple
-Date: Sat, 15 Aug 2009 10:00:21 +0200
-Message-ID: <217fe666821204c201654f5cc4664cf2424128df.1251295408.git.bazsi@balabit.hu>
-References: <cover.1251295408.git.bazsi@balabit.hu>
+Subject: [PATCH 00/11] TProxy for IPv6
+Date: Wed, 26 Aug 2009 16:03:28 +0200
+Message-ID: <cover.1251295408.git.bazsi@balabit.hu>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Cc: Harry Mason <harry.mason@smoothwall.net>
 To: netfilter-devel@vger.kernel.org, tproxy@lists.balabit.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from support.balabit.hu ([195.70.41.86]:58477 "EHLO lists.balabit.hu"
+Received: from support.balabit.hu ([195.70.41.86]:58543 "EHLO lists.balabit.hu"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751865AbZH2PuY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 29 Aug 2009 11:50:24 -0400
+	id S1751850AbZH2Pu0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 29 Aug 2009 11:50:26 -0400
 Received: from balabit.hu (unknown [10.80.0.254])
-	by lists.balabit.hu (Postfix) with ESMTP id 51D6211E158
-	for <netfilter-devel@vger.kernel.org>; Sat, 29 Aug 2009 17:21:35 +0200 (CEST)
-In-Reply-To: <cover.1251295408.git.bazsi@balabit.hu>
+	by lists.balabit.hu (Postfix) with ESMTP id 2D5E211E156
+	for <netfilter-devel@vger.kernel.org>; Sat, 29 Aug 2009 17:21:34 +0200 (CEST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Without tproxy redirections an incoming SYN kicks out conflicting
-TIME_WAIT sockets, in order to handle clients that reuse ports
-within the TIME_WAIT period.
+[ Sorry if this reaches you twice, I sent to the wrong address the first time ]
 
-The same mechanism didn't work in case TProxy is involved in finding
-the proper socket, as the time_wait processing code looked up the
-listening socket assuming that the listener addr/port matches those
-of the established connection.
+I've just pushed a set of patches that implement TProxy for IPv6 to
 
-This is not the case with TProxy as the listener addr/port is possibly
-changed with the tproxy rule.
+http://git.balabit.hu/bazsi/tproxy-2.6.git
 
-Signed-off-by: Balazs Scheidler <bazsi@balabit.hu>
----
- include/net/netfilter/nf_tproxy_core.h |    6 ++++-
- net/netfilter/nf_tproxy_core.c         |   29 +++++++++++++++++++-------
- net/netfilter/xt_TPROXY.c              |   35 ++++++++++++++++++++++++++++---
- net/netfilter/xt_socket.c              |    2 +-
- 4 files changed, 58 insertions(+), 14 deletions(-)
+The patches are also posted in reply to this mail.
 
-diff --git a/include/net/netfilter/nf_tproxy_core.h b/include/net/netfilter/nf_tproxy_core.h
-index 208b46f..b3a8942 100644
---- a/include/net/netfilter/nf_tproxy_core.h
-+++ b/include/net/netfilter/nf_tproxy_core.h
-@@ -8,12 +8,16 @@
- #include <net/inet_sock.h>
- #include <net/tcp.h>
- 
-+#define NFT_LOOKUP_ANY         0
-+#define NFT_LOOKUP_LISTENER    1
-+#define NFT_LOOKUP_ESTABLISHED 2
-+
- /* look up and get a reference to a matching socket */
- extern struct sock *
- nf_tproxy_get_sock_v4(struct net *net, const u8 protocol,
- 		      const __be32 saddr, const __be32 daddr,
- 		      const __be16 sport, const __be16 dport,
--		      const struct net_device *in, bool listening);
-+		      const struct net_device *in, int lookup_type);
- 
- static inline void
- nf_tproxy_put_sock(struct sock *sk)
-diff --git a/net/netfilter/nf_tproxy_core.c b/net/netfilter/nf_tproxy_core.c
-index 5490fc3..8589e5e 100644
---- a/net/netfilter/nf_tproxy_core.c
-+++ b/net/netfilter/nf_tproxy_core.c
-@@ -22,21 +22,34 @@ struct sock *
- nf_tproxy_get_sock_v4(struct net *net, const u8 protocol,
- 		      const __be32 saddr, const __be32 daddr,
- 		      const __be16 sport, const __be16 dport,
--		      const struct net_device *in, bool listening_only)
-+		      const struct net_device *in, int lookup_type)
- {
- 	struct sock *sk;
- 
- 	/* look up socket */
- 	switch (protocol) {
- 	case IPPROTO_TCP:
--		if (listening_only)
--			sk = __inet_lookup_listener(net, &tcp_hashinfo,
--						    daddr, ntohs(dport),
--						    in->ifindex);
--		else
-+		switch (lookup_type) {
-+		case NFT_LOOKUP_ANY:
- 			sk = __inet_lookup(net, &tcp_hashinfo,
- 					   saddr, sport, daddr, dport,
- 					   in->ifindex);
-+			break;
-+		case NFT_LOOKUP_LISTENER:
-+			sk = inet_lookup_listener(net, &tcp_hashinfo,
-+						    daddr, dport,
-+						    in->ifindex);
-+			break;
-+		case NFT_LOOKUP_ESTABLISHED:
-+			sk = inet_lookup_established(net, &tcp_hashinfo,
-+						    saddr, sport, daddr, dport,
-+						    in->ifindex);
-+			break;
-+		default:
-+			WARN_ON(1);
-+			sk = NULL;
-+			break;
-+		}
- 		break;
- 	case IPPROTO_UDP:
- 		sk = udp4_lib_lookup(net, saddr, sport, daddr, dport,
-@@ -47,8 +60,8 @@ nf_tproxy_get_sock_v4(struct net *net, const u8 protocol,
- 		sk = NULL;
- 	}
- 
--	pr_debug("tproxy socket lookup: proto %u %08x:%u -> %08x:%u, listener only: %d, sock %p\n",
--		 protocol, ntohl(saddr), ntohs(sport), ntohl(daddr), ntohs(dport), listening_only, sk);
-+	pr_debug("tproxy socket lookup: proto %u %08x:%u -> %08x:%u, lookup type: %d, sock %p\n",
-+		 protocol, ntohl(saddr), ntohs(sport), ntohl(daddr), ntohs(dport), lookup_type, sk);
- 
- 	return sk;
- }
-diff --git a/net/netfilter/xt_TPROXY.c b/net/netfilter/xt_TPROXY.c
-index 1340c2f..5592b72 100644
---- a/net/netfilter/xt_TPROXY.c
-+++ b/net/netfilter/xt_TPROXY.c
-@@ -29,7 +29,7 @@ tproxy_tg(struct sk_buff *skb, const struct xt_target_param *par)
- {
- 	const struct iphdr *iph = ip_hdr(skb);
- 	const struct xt_tproxy_target_info *tgi = par->targinfo;
--	struct udphdr _hdr, *hp;
-+	struct tcphdr _hdr, *hp;
- 	struct sock *sk;
- 
- 	hp = skb_header_pointer(skb, ip_hdrlen(skb), sizeof(_hdr), &_hdr);
-@@ -37,10 +37,37 @@ tproxy_tg(struct sk_buff *skb, const struct xt_target_param *par)
- 		return NF_DROP;
- 
- 	sk = nf_tproxy_get_sock_v4(dev_net(skb->dev), iph->protocol,
--				   iph->saddr, tgi->laddr ? tgi->laddr : iph->daddr,
--				   hp->source, tgi->lport ? tgi->lport : hp->dest,
--				   par->in, true);
--
-+				   iph->saddr, iph->daddr,
-+				   hp->source, hp->dest,
-+				   par->in, NFT_LOOKUP_ESTABLISHED);
-+
-+	/* udp has no TCP_TIME_WAIT state, so we never enter here */
-+	if (sk && sk->sk_state == TCP_TIME_WAIT &&
-+	    hp->syn && !hp->rst && !hp->ack && !hp->fin) {
-+		struct sock *sk2;
-+
-+		/* Hm.. we got a SYN to a TIME_WAIT socket, let's see if
-+		 * there's a listener on the redirected port
-+		 */
-+		sk2 = nf_tproxy_get_sock_v4(dev_net(skb->dev), iph->protocol,
-+					   iph->saddr, tgi->laddr ? tgi->laddr : iph->daddr,
-+					   hp->source, tgi->lport ? tgi->lport : hp->dest,
-+					   par->in, NFT_LOOKUP_LISTENER);
-+		if (sk2) {
-+
-+			/* yeah, there's one, let's kill the TIME_WAIT
-+			 * socket and redirect to the listener
-+			 */
-+			inet_twsk_deschedule(inet_twsk(sk), &tcp_death_row);
-+			inet_twsk_put(inet_twsk(sk));
-+			sk = sk2;
-+		}
-+	} else if (!sk) {
-+		sk = nf_tproxy_get_sock_v4(dev_net(skb->dev), iph->protocol,
-+					   iph->saddr, tgi->laddr ? tgi->laddr : iph->daddr,
-+					   hp->source, tgi->lport ? tgi->lport : hp->dest,
-+					   par->in, NFT_LOOKUP_LISTENER);
-+	}
- 	/* NOTE: assign_sock consumes our sk reference */
- 	if (sk && nf_tproxy_assign_sock(skb, sk)) {
- 		/* This should be in a separate target, but we don't do multiple
-diff --git a/net/netfilter/xt_socket.c b/net/netfilter/xt_socket.c
-index ebf00ad..12a7140 100644
---- a/net/netfilter/xt_socket.c
-+++ b/net/netfilter/xt_socket.c
-@@ -142,7 +142,7 @@ socket_match(const struct sk_buff *skb, const struct xt_match_param *par,
- #endif
- 
- 	sk = nf_tproxy_get_sock_v4(dev_net(skb->dev), protocol,
--				   saddr, daddr, sport, dport, par->in, false);
-+				   saddr, daddr, sport, dport, par->in, NFT_LOOKUP_ANY);
- 	if (sk != NULL) {
- 		bool wildcard;
- 		bool transparent = true;
--- 
-1.6.0.4
+Although some work is still needed, basic testing shows that it works all
+right.  
+
+The accompanying iptables patches are available at
+
+http://git.balabit.hu/bazsi/iptables-tproxy.git
+
+There are some things left to do:
+
+  * the recognition of related ICMPv6 packets missing (from xt_socket.c)
+
+  * I should probably split xt_TPROXY/xt_socket to IPv4 and IPv6 modules, as
+    right now those depend on both stacks at the same time.
+
+I'm on a holiday right now, thus I might not respond to comments in a timely
+manner, however I'm interested in any comments/feedback nevertheless.
+
+Harry, I didn't remember that you actually wanted to work on TProxy for
+IPv6, I just vaguely remembered that there was someone asking for IPv6
+support, thus I implemented this without being in the know.  If you started
+hacking, I hope that we didn't completely duplicate effort.  I'd appreciate
+help in the missing bits and/or testing whichever fits you best.
+
+Also, I have written a Python test script to test TProxy functionality
+automatically both for IPv4 and IPv6, I can post that as well if anyone is
+interested.
+
+
+Balazs Scheidler (11):
+  TProxy: kick out TIME_WAIT sockets in case a new connection comes in
+    with the same tuple
+  TProxy: add lookup type checks for UDP in nf_tproxy_get_sock_v4()
+  TProxy: reuse a 32bit hole in struct ipv6_pinfo
+  TProxy: split off ipv6 defragmentation to a separate module
+  TProxy: added const specifiers to udp lookup functions
+  TProxy: added udp6_lib_lookup function
+  TProxy: implement IPv6 "local" routing type
+  TProxy: allow non-local binds of IPv6 sockets if IP_TRANSPARENT is
+    enabled
+  TProxy: added IPv6 socket lookup function to nf_tproxy_core
+  TProxy: added IPv6 support to the TPROXY target
+  TProxy: added IPv6 support to the socket match
+
+ include/linux/ipv6.h                           |    3 +-
+ include/linux/netfilter/xt_TPROXY.h            |   15 +-
+ include/net/netfilter/ipv6/nf_defrag_ipv6.h    |    6 +
+ include/net/netfilter/nf_tproxy_core.h         |  192 +++++++++++++++++++-
+ include/net/udp.h                              |    3 +
+ net/ipv6/af_inet6.c                            |    2 +-
+ net/ipv6/netfilter/Makefile                    |    5 +-
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |   58 +------
+ net/ipv6/netfilter/nf_conntrack_reasm.c        |   12 +-
+ net/ipv6/netfilter/nf_defrag_ipv6_hooks.c      |  109 +++++++++++
+ net/ipv6/route.c                               |    6 +-
+ net/ipv6/udp.c                                 |   16 ++-
+ net/netfilter/nf_tproxy_core.c                 |   35 ----
+ net/netfilter/xt_TPROXY.c                      |  239 +++++++++++++++++++++---
+ net/netfilter/xt_socket.c                      |  113 +++++++++++-
+ 15 files changed, 675 insertions(+), 139 deletions(-)
+ create mode 100644 include/net/netfilter/ipv6/nf_defrag_ipv6.h
+ create mode 100644 net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
 
 
