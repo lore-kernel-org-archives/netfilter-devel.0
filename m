@@ -1,131 +1,148 @@
-From: "Michael Lawson (mshindo)" <michael@sphinix.com>
-Subject: Fwd: Modifying TCP packets with libnetfilter_queue
-Date: Thu, 27 Aug 2009 16:16:41 +1200
-Message-ID: <c97a47b90908262116q61d4a77fif52cb49880a4d3d1@mail.gmail.com>
+From: Kuzin Andrey <kuzinandrey@yandex.ru>
+Subject: Re: Fwd: Modifying TCP packets with libnetfilter_queue
+Date: Thu, 27 Aug 2009 09:34:10 +0400
+Message-ID: <804829123.20090827093410@yandex.ru>
 References: <c97a47b90908262115l1dc29b78q7c02661b64af8cd9@mail.gmail.com>
+ <c97a47b90908262116q61d4a77fif52cb49880a4d3d1@mail.gmail.com>
+Reply-To: Kuzin Andrey <kuzinandrey@yandex.ru>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: "Michael Lawson (mshindo)" <michael@sphinix.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ew0-f206.google.com ([209.85.219.206]:36010 "EHLO
-	mail-ew0-f206.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750833AbZH0ERA convert rfc822-to-8bit (ORCPT
+Received: from forward15.yandex.ru ([95.108.130.119]:54985 "EHLO
+	forward15.yandex.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751098AbZH0FkP (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 27 Aug 2009 00:17:00 -0400
-Received: by ewy2 with SMTP id 2so829177ewy.17
-        for <netfilter-devel@vger.kernel.org>; Wed, 26 Aug 2009 21:17:01 -0700 (PDT)
-In-Reply-To: <c97a47b90908262115l1dc29b78q7c02661b64af8cd9@mail.gmail.com>
+	Thu, 27 Aug 2009 01:40:15 -0400
+In-Reply-To: <c97a47b90908262116q61d4a77fif52cb49880a4d3d1@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
-I am attempting to adjust contents of tcp packets using the nf queue
-system, the queue part is working as I expected, however I am running
-into problems recalculating the tcp checksum. At the moment, the
-packet isnt being changed, and I am simply reading the checksum, then
-trying to regenerate it, these values arent matching and I am at a
-loss as to where I am going wrong.
+MLm> Hi,
+MLm> I am attempting to adjust contents of tcp packets using the nf queue
+MLm> system, the queue part is working as I expected, however I am running
+MLm> into problems recalculating the tcp checksum. At the moment, the
+MLm> packet isnt being changed, and I am simply reading the checksum, then
+MLm> trying to regenerate it, these values arent matching and I am at a
+MLm> loss as to where I am going wrong.
+MLm> Any help or suggestions please? I am at a loss
 
-Here is the checksum code at the moment:
-struct tcp_pseudo /*the tcp pseudo header*/
+Try this code stolen from tcpdump and other cool stuff.
+
+/*
+ * IP header checksum.
+ * don't modifiy the packet.
+ */
+u_short
+in_cksum(const u_short *addr, register u_int len, int csum)
 {
-=A0=A0=A0 =A0 __u32 src_addr;
-=A0=A0=A0 =A0 __u32 dst_addr;
-=A0=A0=A0 =A0 __u8 zero;
-=A0=A0=A0 =A0 __u8 proto;
-=A0=A0=A0 =A0 __u16 length;
-}pseudohead;
+        int nleft = len;
+        const u_short *w = addr;
+        u_short answer;
+        int sum = csum;
 
+        /*
+         *  Our algorithm is simple, using a 32 bit accumulator (sum),
+         *  we add sequential 16 bit words to it, and at the end, fold
+         *  back all the carry bits from the top 16 bits into the lower
+         *  16 bits.
+         */
+        while (nleft > 1)  {
+                sum += *w++;
+                nleft -= 2;
+        }
+        if (nleft == 1)
+                sum += htons(*(u_char *)w<<8);
 
-long checksum(unsigned short *addr, unsigned int count) {
-=A0=A0=A0 register long sum =3D 0;
-=A0=A0=A0 while( count > 1 )=A0 {
-=A0=A0=A0 /*=A0 This is the inner loop */
-=A0=A0=A0 =A0=A0=A0 sum +=3D * addr++;
-=A0=A0=A0 =A0=A0=A0 count -=3D 2;
-=A0=A0=A0 }
-
-=A0=A0=A0 /*=A0 Add left-over byte, if any */
-=A0=A0=A0 if( count > 0 )
-=A0=A0=A0 =A0=A0=A0 sum +=3D * (unsigned char *) addr;
-
-=A0=A0=A0 /*=A0 Fold 32-bit sum to 16 bits */
-=A0=A0=A0 while (sum>>16)
-=A0=A0=A0 =A0=A0=A0 sum =3D (sum & 0xffff) + (sum >> 16);
-
-=A0=A0=A0 return ~sum;
+        /*
+         * add back carry outs from top 16 bits to low 16 bits
+         */
+        sum = (sum >> 16) + (sum & 0xffff);     /* add hi 16 to low 16 */
+        sum += (sum >> 16);                     /* add carry */
+        answer = ~sum;                          /* truncate to 16 bits */
+        return (answer);
 }
 
-long get_tcp_checksum(struct iphdr * myip, struct tcphdr * mytcp) {
-=A0=A0=A0 mytcp->check =3D 0;
+static int tcp_cksum(register const struct ip *ip,
+                     register const struct tcphdr *tp,
+                     register u_int len)
+{
+        union phu {
+                struct phdr {
+                        u_int32_t src;
+                        u_int32_t dst;
+                        u_char mbz;
+                        u_char proto;
+                        u_int16_t len;
+                } ph;
+                u_int16_t pa[6];
+        } phu;
+        const u_int16_t *sp;
 
-=A0=A0=A0 u16 total_len =3D ntohs(myip->tot_len);
-=A0=A0=A0 int tcpopt_len =3D mytcp->doff*4 - 20;
-=A0=A0=A0 int tcpdatalen =3D total_len - (mytcp->doff*4) - (myip->ihl*4=
-);
+        /* pseudo-header.. */
+        phu.ph.len = htons((u_int16_t)len);
+        phu.ph.mbz = 0;
+        phu.ph.proto = IPPROTO_TCP;
+        memcpy(&phu.ph.src, &ip->ip_src.s_addr, sizeof(u_int32_t));
+        if ( (ip->ip_hl & 0x0f) == 5)
+                memcpy(&phu.ph.dst, &ip->ip_dst.s_addr, sizeof(u_int32_t));
+        else
+                phu.ph.dst = ip_finddst(ip);
 
-=A0=A0=A0 /*Setup the pseudo header*/
-=A0=A0=A0 pseudohead.src_addr=3Dmyip->saddr;
-=A0=A0=A0 pseudohead.dst_addr=3Dmyip->daddr;
-=A0=A0=A0 pseudohead.zero=3D0;
-=A0=A0=A0 pseudohead.proto=3DIPPROTO_TCP;
-=A0=A0=A0 pseudohead.length=3Dhtons(sizeof(struct tcphdr) + tcpopt_len =
-+ tcpdatalen);
-
-=A0=A0=A0 /*Calc lengths*/
-=A0=A0=A0 int totaltcp_len =3D sizeof(struct tcp_pseudo) + sizeof(struc=
-t
-tcphdr) + tcpopt_len + tcpdatalen;
-=A0=A0=A0 unsigned short * tcp =3D new unsigned short[totaltcp_len];
-
-=A0=A0=A0 /*Copy to required mem*/
-=A0=A0=A0 memcpy((unsigned char *)tcp,&pseudohead,sizeof(struct tcp_pse=
-udo));
-=A0=A0=A0 memcpy((unsigned char *)tcp+sizeof(struct tcp_pseudo),(unsign=
-ed
-char *)mytcp,sizeof(struct tcphdr));
-
-=A0=A0=A0 if(tcpopt_len > 0)
-=A0=A0=A0 =A0=A0=A0 memcpy((unsigned char *)tcp+sizeof(struct
-tcp_pseudo)+sizeof(struct tcphdr), (unsigned char
-*)myip+(myip->ihl*4)+(sizeof(struct tcphdr)), tcpopt_len);
-
-=A0=A0=A0 if(tcpdatalen > 0)
-=A0=A0=A0 =A0=A0=A0 memcpy((unsigned char *)tcp+sizeof(struct
-tcp_pseudo)+sizeof(struct tcphdr), (unsigned char
-*)mytcp+(mytcp->doff*4), tcpdatalen);
-
-//=A0=A0=A0 =A0=A0=A0 =A0=A0=A0 memcpy((unsigned char *)tcp+sizeof(stru=
-ct
-tcp_pseudo)+sizeof(struct tcphdr)+tcpopt_len, (unsigned char
-*)mytcp+(mytcp->doff*4), tcpdatalen);
-
-=A0=A0=A0 return checksum(tcp, totaltcp_len);
+        sp = &phu.pa[0];
+        return in_cksum((u_short *)tp, len,
+                        sp[0]+sp[1]+sp[2]+sp[3]+sp[4]+sp[5]);
 }
 
-and the whole file, although not much bigger is here:
-http://pastebin.com/m2bc636ed
 
-An example of the output values I am getting at the moment is:
-=A0packet size =3D 529 ip->checksum =3D 22679 tcp->checksum =3D 14964 n=
-ew
-ip->checksum =3D 22679 new tcp->checksum =3D 8007
-=A0packet size =3D 52 ip->checksum =3D 13465 tcp->checksum =3D 8007 new
-ip->checksum =3D 13465 new tcp->checksum =3D 31444
-=A0packet size =3D 52 ip->checksum =3D 13209 tcp->checksum =3D 31444 ne=
-w
-ip->checksum =3D 13209 new tcp->checksum =3D 50105
-=A0packet size =3D 52 ip->checksum =3D 12953 tcp->checksum =3D 50105 ne=
-w
-ip->checksum =3D 12953 new tcp->checksum =3D 12783
+void recalculate_tcp_checksum(unsigned char *packet)
+{
+    struct ip *ip_packet = NULL;
+    struct tcphdr *tcp_packet = NULL;
+    u_int16_t word16, padd = 0, i, sum = 0, tcp_len;
+    unsigned char *buff;
+    if (!packet) return;
 
-Any help or suggestions please? I am at a loss
+    ip_packet = (struct ip *)packet;
+    tcp_packet = (struct tcphdr *)(packet + (ip_packet->ip_hl << 2));
+    tcp_len = ntohs(ip_packet->ip_len) - (ip_packet->ip_hl << 2);
 
---
-Michael Lawson (mshindo)
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+    sum = tcp_cksum(ip_packet,tcp_packet,tcp_len);
+    tcp_packet->check = sum; //ntohs(sum);
+}
+
+
+Use recalculate_tcp_checksum() on your modified payload in this way:
+
+
+    void *packet;
+    struct ip *ip_packet = NULL;
+    struct tcphdr *tcp_packet = NULL;
+    unsigned char *tcp_packet_content = NULL;
+
+.......
+    ip_packet = ((struct ip *)packet);
+
+    if (ip_packet->ip_p == IPPROTO_TCP) {
+        tcp_packet = (struct tcphdr *)(packet + sizeof(struct ip));
+        tcp_packet_content = (unsigned char *)(packet + sizeof(struct ip) + sizeof(struct tcphdr));
+        tcp_packet_content_size = htons(ip_packet->ip_len) - sizeof(struct ip) - sizeof(struct tcphdr);
+        .......
+        // modify payload...
+        .......
+        // calculate
+        tcp_packet->check = 0;
+        recalculate_tcp_checksum(packet);
+   }
+
+You also can move some of this code to recalculate_tcp_checksum() and
+simply call recalculate_tcp_checksum() without any payload preparations.
+   
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+Kuzin Andrey  -  kuzinandrey@yandex.ru
+=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+
+
+
