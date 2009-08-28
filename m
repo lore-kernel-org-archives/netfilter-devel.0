@@ -1,29 +1,47 @@
-From: Bruno Moreira Guedes <thbmatrix@gmail.com>
+From: "Michael Lawson (mshindo)" <michael@sphinix.com>
 Subject: Re: Modifying TCP packets with libnetfilter_queue
-Date: Fri, 28 Aug 2009 17:51:32 -0300
-Message-ID: <3fdd6ce00908281351y443063fete4ebd8052c18bddd@mail.gmail.com>
+Date: Sat, 29 Aug 2009 10:48:48 +1200
+Message-ID: <c97a47b90908281548t5b31fb36i374e53ca27693d69@mail.gmail.com>
 References: <c97a47b90908262115l1dc29b78q7c02661b64af8cd9@mail.gmail.com>
-	 <c97a47b90908262116q61d4a77fif52cb49880a4d3d1@mail.gmail.com>
-	 <005e01ca2819$2a1e1b30$e76ed48d@zhiyunpc>
+	<c97a47b90908262116q61d4a77fif52cb49880a4d3d1@mail.gmail.com>
+	<005e01ca2819$2a1e1b30$e76ed48d@zhiyunpc>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: "Michael Lawson (mshindo)" <michael@sphinix.com>,
-	netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
 To: Zhiyun Qian <zhiyunq@umich.edu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-gx0-f205.google.com ([209.85.217.205]:42149 "EHLO
-	mail-gx0-f205.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753194AbZH1Uva convert rfc822-to-8bit (ORCPT
+Received: from ey-out-2122.google.com ([74.125.78.26]:19094 "EHLO
+	ey-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750980AbZH1WtH convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 28 Aug 2009 16:51:30 -0400
-Received: by gxk1 with SMTP id 1so2817902gxk.17
-        for <netfilter-devel@vger.kernel.org>; Fri, 28 Aug 2009 13:51:32 -0700 (PDT)
+	Fri, 28 Aug 2009 18:49:07 -0400
+Received: by ey-out-2122.google.com with SMTP id 25so517900eya.19
+        for <netfilter-devel@vger.kernel.org>; Fri, 28 Aug 2009 15:49:08 -0700 (PDT)
 In-Reply-To: <005e01ca2819$2a1e1b30$e76ed48d@zhiyunpc>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-2009/8/28 Zhiyun Qian <zhiyunq@umich.edu>:
+I have made some form of progress late last night, basically a core
+problem I found was in how I was getting struct tcphdr, once I fixed
+this after a bit if fiddling round and some dirty string manipulation
+I was able to match the checksums, so the packets get send out onto
+the wire.
+
+However this has led to another problem (perhaps the one you are
+referring to) that ethereal picks up, but tcpdump does not. Under
+SEQ/ACK Analysis, ethereal notes that the packets being transmitted
+are duplicate ACK's. This might simply require some dirty hacks to
+fix.
+
+The code so far is on: http://pastebin.org/13016
+
+Sadly, I have to jump a 5 hour train shortly, so not much work will be
+done this afternoon.
+
+Regards
+
+On Sat, Aug 29, 2009 at 7:53 AM, Zhiyun Qian<zhiyunq@umich.edu> wrote:
 > Have you solved your problem? I've run into the same problem before a=
 nd then even if I successfully set the TCP checksum. The packet cannot =
 be delivered.
@@ -35,13 +53,6 @@ t never get sent out according to TCPDUMP. I've posted my question here=
  before but no one answers... I am guess you might also encounter the s=
 ame problem. If you can let me know if you have made any progress, that=
 'll be great.
-
-I had the same problem in the past. So it was because I was changing
-source/destination information. If you want to do it take a look at
-libnetfilter_conntrack. But I don't have ever make it works fine for
-me. I don't know why but the connection gets too slow when I do
-SNAT/DNAT with libnetfilter_conntrack.
-
 >
 > -Zhiyun
 > -----=E9=82=AE=E4=BB=B6=E5=8E=9F=E4=BB=B6-----
@@ -170,13 +181,12 @@ ml
 >
 >
 >
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-d=
-evel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
-ml
 >
+
+
+
+--=20
+Michael Lawson (mshindo)
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
