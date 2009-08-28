@@ -1,350 +1,362 @@
 From: Balazs Scheidler <bazsi@balabit.hu>
-Subject: [PATCH 04/11] TProxy: split off ipv6 defragmentation to a separate
- module
-Date: Sun, 23 Aug 2009 11:11:15 +0200
-Message-ID: <895a91b092112df31ed45e4f89f6f3fe9272bde0.1251295408.git.bazsi@balabit.hu>
-References: <cover.1251295408.git.bazsi@balabit.hu>
+Subject: [PATCH] TProxy: added IPv6 support to the TPROXY target
+Date: Fri, 28 Aug 2009 07:58:08 +0200
+Message-ID: <efc1dd245b2f83e0e52a3b0f12e2e79d956c94ce.1251439150.git.bazsi@balabit.hu>
+References: <cover.1251439150.git.bazsi@balabit.hu>
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Cc: Harry Mason <harry.mason@smoothwall.net>
 To: netfilter-devel@vger.kernel.org, tproxy@lists.balabit.hu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from support.balabit.hu ([195.70.41.86]:58546 "EHLO lists.balabit.hu"
+Received: from support.balabit.hu ([195.70.41.86]:58540 "EHLO lists.balabit.hu"
 	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751967AbZH2Pu1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 29 Aug 2009 11:50:27 -0400
+	id S1751919AbZH2Pu0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 29 Aug 2009 11:50:26 -0400
 Received: from balabit.hu (unknown [10.80.0.254])
-	by lists.balabit.hu (Postfix) with ESMTP id 9908E13A19B
-	for <netfilter-devel@vger.kernel.org>; Sat, 29 Aug 2009 17:21:37 +0200 (CEST)
-In-Reply-To: <cover.1251295408.git.bazsi@balabit.hu>
+	by lists.balabit.hu (Postfix) with ESMTP id 58C8813A252
+	for <netfilter-devel@vger.kernel.org>; Sat, 29 Aug 2009 17:21:45 +0200 (CEST)
+In-Reply-To: <cover.1251439150.git.bazsi@balabit.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Like with IPv4, TProxy needs IP defragmentation but does not
-require connection tracking. Since defragmentation was coupled
-with conntrack, I split off the two, creating an nf_defrag_ipv6 module,
-similar to the already existing nf_defrag_ipv4.
-
-Signed-off-by: Balazs Scheidler <bazsi@balabit.hu>
 ---
- include/net/netfilter/ipv6/nf_defrag_ipv6.h    |    6 ++
- net/ipv6/netfilter/Makefile                    |    5 +-
- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |   58 +------------
- net/ipv6/netfilter/nf_conntrack_reasm.c        |   12 ++-
- net/ipv6/netfilter/nf_defrag_ipv6_hooks.c      |  109 ++++++++++++++++++++++++
- 5 files changed, 131 insertions(+), 59 deletions(-)
- create mode 100644 include/net/netfilter/ipv6/nf_defrag_ipv6.h
- create mode 100644 net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
+ extensions/libxt_TPROXY.c           |  213 +++++++++++++++++++++++++++++------
+ include/linux/netfilter/xt_TPROXY.h |   15 ++-
+ 2 files changed, 187 insertions(+), 41 deletions(-)
 
-diff --git a/include/net/netfilter/ipv6/nf_defrag_ipv6.h b/include/net/netfilter/ipv6/nf_defrag_ipv6.h
-new file mode 100644
-index 0000000..94dd54d
---- /dev/null
-+++ b/include/net/netfilter/ipv6/nf_defrag_ipv6.h
-@@ -0,0 +1,6 @@
-+#ifndef _NF_DEFRAG_IPV6_H
-+#define _NF_DEFRAG_IPV6_H
-+
-+extern void nf_defrag_ipv6_enable(void);
-+
-+#endif /* _NF_DEFRAG_IPV6_H */
-diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
-index aafbba3..a78ee59 100644
---- a/net/ipv6/netfilter/Makefile
-+++ b/net/ipv6/netfilter/Makefile
-@@ -11,10 +11,11 @@ obj-$(CONFIG_IP6_NF_RAW) += ip6table_raw.o
- obj-$(CONFIG_IP6_NF_SECURITY) += ip6table_security.o
- 
- # objects for l3 independent conntrack
--nf_conntrack_ipv6-objs  :=  nf_conntrack_l3proto_ipv6.o nf_conntrack_proto_icmpv6.o nf_conntrack_reasm.o
-+nf_conntrack_ipv6-objs  :=  nf_conntrack_l3proto_ipv6.o nf_conntrack_proto_icmpv6.o 
-+nf_defrag_ipv6-objs := nf_defrag_ipv6_hooks.o nf_conntrack_reasm.o
- 
- # l3 independent conntrack
--obj-$(CONFIG_NF_CONNTRACK_IPV6) += nf_conntrack_ipv6.o
-+obj-$(CONFIG_NF_CONNTRACK_IPV6) += nf_conntrack_ipv6.o nf_defrag_ipv6.o
- 
- # matches
- obj-$(CONFIG_IP6_NF_MATCH_AH) += ip6t_ah.o
-diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-index 2a15c2d..158d14c 100644
---- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-@@ -27,6 +27,7 @@
- #include <net/netfilter/nf_conntrack_l3proto.h>
- #include <net/netfilter/nf_conntrack_core.h>
- #include <net/netfilter/ipv6/nf_conntrack_ipv6.h>
-+#include <net/netfilter/ipv6/nf_defrag_ipv6.h>
- 
- static bool ipv6_pkt_to_tuple(const struct sk_buff *skb, unsigned int nhoff,
- 			      struct nf_conntrack_tuple *tuple)
-@@ -183,34 +184,6 @@ out:
- 	return nf_conntrack_confirm(skb);
+diff --git a/extensions/libxt_TPROXY.c b/extensions/libxt_TPROXY.c
+index d410c52..72edd4f 100644
+--- a/extensions/libxt_TPROXY.c
++++ b/extensions/libxt_TPROXY.c
+@@ -1,7 +1,7 @@
+ /*
+  * Shared library add-on to iptables to add TPROXY target support.
+  *
+- * Copyright (C) 2002-2008 BalaBit IT Ltd.
++ * Copyright (C) 2002-2009 BalaBit IT Ltd.
+  */
+ #include <getopt.h>
+ #include <stdbool.h>
+@@ -36,65 +36,114 @@ static void tproxy_tg_help(void)
+ "  --tproxy-mark value[/mask]	    Mark packets with the given value/mask\n\n");
  }
  
--static unsigned int ipv6_defrag(unsigned int hooknum,
--				struct sk_buff *skb,
--				const struct net_device *in,
--				const struct net_device *out,
--				int (*okfn)(struct sk_buff *))
--{
--	struct sk_buff *reasm;
--
--	/* Previously seen (loopback)?  */
--	if (skb->nfct)
--		return NF_ACCEPT;
--
--	reasm = nf_ct_frag6_gather(skb);
--
--	/* queued */
--	if (reasm == NULL)
--		return NF_STOLEN;
--
--	/* error occured or not fragmented */
--	if (reasm == skb)
--		return NF_ACCEPT;
--
--	nf_ct_frag6_output(hooknum, reasm, (struct net_device *)in,
--			   (struct net_device *)out, okfn);
--
--	return NF_STOLEN;
--}
--
- static unsigned int __ipv6_conntrack_in(struct net *net,
- 					unsigned int hooknum,
- 					struct sk_buff *skb,
-@@ -263,13 +236,6 @@ static unsigned int ipv6_conntrack_local(unsigned int hooknum,
+-static void parse_tproxy_lport(const char *s, struct xt_tproxy_target_info *info)
++static void parse_tproxy_lport(const char *s, unsigned short *lport)
+ {
+-	unsigned int lport;
++	unsigned int value;
  
- static struct nf_hook_ops ipv6_conntrack_ops[] __read_mostly = {
- 	{
--		.hook		= ipv6_defrag,
--		.owner		= THIS_MODULE,
--		.pf		= PF_INET6,
--		.hooknum	= NF_INET_PRE_ROUTING,
--		.priority	= NF_IP6_PRI_CONNTRACK_DEFRAG,
--	},
--	{
- 		.hook		= ipv6_conntrack_in,
- 		.owner		= THIS_MODULE,
- 		.pf		= PF_INET6,
-@@ -284,13 +250,6 @@ static struct nf_hook_ops ipv6_conntrack_ops[] __read_mostly = {
- 		.priority	= NF_IP6_PRI_CONNTRACK,
- 	},
- 	{
--		.hook		= ipv6_defrag,
--		.owner		= THIS_MODULE,
--		.pf		= PF_INET6,
--		.hooknum	= NF_INET_LOCAL_OUT,
--		.priority	= NF_IP6_PRI_CONNTRACK_DEFRAG,
--	},
--	{
- 		.hook		= ipv6_confirm,
- 		.owner		= THIS_MODULE,
- 		.pf		= PF_INET6,
-@@ -362,10 +321,6 @@ struct nf_conntrack_l3proto nf_conntrack_l3proto_ipv6 __read_mostly = {
- 	.nlattr_to_tuple	= ipv6_nlattr_to_tuple,
- 	.nla_policy		= ipv6_nla_policy,
- #endif
--#ifdef CONFIG_SYSCTL
--	.ctl_table_path		= nf_net_netfilter_sysctl_path,
--	.ctl_table		= nf_ct_ipv6_sysctl_table,
--#endif
- 	.me			= THIS_MODULE,
- };
- 
-@@ -378,16 +333,12 @@ static int __init nf_conntrack_l3proto_ipv6_init(void)
- 	int ret = 0;
- 
- 	need_conntrack();
-+	nf_defrag_ipv6_enable();
- 
--	ret = nf_ct_frag6_init();
--	if (ret < 0) {
--		printk("nf_conntrack_ipv6: can't initialize frag6.\n");
--		return ret;
--	}
- 	ret = nf_conntrack_l4proto_register(&nf_conntrack_l4proto_tcp6);
- 	if (ret < 0) {
- 		printk("nf_conntrack_ipv6: can't register tcp.\n");
--		goto cleanup_frag6;
-+                return ret;
- 	}
- 
- 	ret = nf_conntrack_l4proto_register(&nf_conntrack_l4proto_udp6);
-@@ -425,8 +376,6 @@ static int __init nf_conntrack_l3proto_ipv6_init(void)
- 	nf_conntrack_l4proto_unregister(&nf_conntrack_l4proto_udp6);
-  cleanup_tcp:
- 	nf_conntrack_l4proto_unregister(&nf_conntrack_l4proto_tcp6);
-- cleanup_frag6:
--	nf_ct_frag6_cleanup();
- 	return ret;
+-	if (xtables_strtoui(s, NULL, &lport, 0, UINT16_MAX))
+-		info->lport = htons(lport);
++	if (xtables_strtoui(s, NULL, &value, 0, UINT16_MAX))
++		*lport = htons(value);
+ 	else
+ 		xtables_param_act(XTF_BAD_VALUE, "TPROXY", "--on-port", s);
  }
  
-@@ -438,7 +387,6 @@ static void __exit nf_conntrack_l3proto_ipv6_fini(void)
- 	nf_conntrack_l4proto_unregister(&nf_conntrack_l4proto_icmpv6);
- 	nf_conntrack_l4proto_unregister(&nf_conntrack_l4proto_udp6);
- 	nf_conntrack_l4proto_unregister(&nf_conntrack_l4proto_tcp6);
--	nf_ct_frag6_cleanup();
+-static void parse_tproxy_laddr(const char *s, struct xt_tproxy_target_info *info)
++static void parse_tproxy_laddr_v0(const char *s, __be32 *laddr)
+ {
+-	struct in_addr *laddr;
++	struct in_addr *ina;
+ 
+-	if ((laddr = xtables_numeric_to_ipaddr(s)) == NULL)
++	if ((ina = xtables_numeric_to_ipaddr(s)) == NULL)
+ 		xtables_param_act(XTF_BAD_VALUE, "TPROXY", "--on-ip", s);
+ 
+-	info->laddr = laddr->s_addr;
++	*laddr = ina->s_addr;
  }
  
- module_init(nf_conntrack_l3proto_ipv6_init);
-diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index f3aba25..b7b08fe 100644
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -73,8 +73,8 @@ struct nf_ct_frag6_queue
- static struct inet_frags nf_frags;
- static struct netns_frags nf_init_frags;
- 
--#ifdef CONFIG_SYSCTL
--struct ctl_table nf_ct_ipv6_sysctl_table[] = {
-+#if defined(CONFIG_SYSCTL)
-+struct ctl_table nf_ct_frag6_sysctl_table[] = {
- 	{
- 		.procname	= "nf_conntrack_frag6_timeout",
- 		.data		= &nf_init_frags.timeout,
-@@ -100,6 +100,8 @@ struct ctl_table nf_ct_ipv6_sysctl_table[] = {
- 	},
- 	{ .ctl_name = 0 }
- };
+-static void parse_tproxy_mark(char *s, struct xt_tproxy_target_info *info)
++static void parse_tproxy_laddr(const char *s, int family, union nf_inet_addr *laddr)
++{
 +
-+static struct ctl_table_header *nf_ct_frag6_sysctl_header = NULL;
- #endif
- 
- static unsigned int nf_hashfn(struct inet_frag_queue *q)
-@@ -675,11 +677,17 @@ int nf_ct_frag6_init(void)
- 	inet_frags_init_net(&nf_init_frags);
- 	inet_frags_init(&nf_frags);
- 
-+        if (!(nf_ct_frag6_sysctl_header = register_sysctl_paths(nf_net_netfilter_sysctl_path, nf_ct_frag6_sysctl_table))) {
-+		return -ENOMEM;
++	if (family == NFPROTO_IPV6) {
++		struct in6_addr *addr6;
++
++		if ((addr6 = xtables_numeric_to_ip6addr(s))) {
++			laddr->in6 = *addr6;
++		} else {
++			xtables_param_act(XTF_BAD_VALUE, "TPROXY", "--on-ip", s);
++		}
++	} else {
++		struct in_addr *addr;
++
++		if ((addr = xtables_numeric_to_ipaddr(s))) {
++			laddr->in = *addr;
++		} else {
++			xtables_param_act(XTF_BAD_VALUE, "TPROXY", "--on-ip", s);
++		}
++
 +	}
++}
++
++static void parse_tproxy_mark(char *s, unsigned int *value, unsigned int *mask)
+ {
+-	unsigned int value, mask = UINT32_MAX;
+ 	char *end;
+ 
+-	if (!xtables_strtoui(s, &end, &value, 0, UINT32_MAX))
++	*mask = UINT32_MAX;
++	if (!xtables_strtoui(s, &end, value, 0, UINT32_MAX))
+ 		xtables_param_act(XTF_BAD_VALUE, "TPROXY", "--tproxy-mark", s);
+ 	if (*end == '/')
+-		if (!xtables_strtoui(end + 1, &end, &mask, 0, UINT32_MAX))
++		if (!xtables_strtoui(end + 1, &end, mask, 0, UINT32_MAX))
+ 			xtables_param_act(XTF_BAD_VALUE, "TPROXY", "--tproxy-mark", s);
+ 	if (*end != '\0')
+ 		xtables_param_act(XTF_BAD_VALUE, "TPROXY", "--tproxy-mark", s);
++}
++
++static int tproxy_tg_parse_v0(int c, char **argv, int invert, unsigned int *flags,
++			const void *entry, struct xt_entry_target **target)
++{
++	struct xt_tproxy_target_info_v0 *tproxyinfo = (void *)(*target)->data;
++
++	switch (c) {
++	case '1':
++		xtables_param_act(XTF_ONLY_ONCE, "TPROXY", "--on-port", *flags & PARAM_ONPORT);
++		xtables_param_act(XTF_NO_INVERT, "TPROXY", "--on-port", invert);
++		parse_tproxy_lport(optarg, &tproxyinfo->lport);
++		*flags |= PARAM_ONPORT;
++		return 1;
++	case '2':
++		xtables_param_act(XTF_ONLY_ONCE, "TPROXY", "--on-ip", *flags & PARAM_ONIP);
++		xtables_param_act(XTF_NO_INVERT, "TPROXY", "--on-ip", invert);
++		parse_tproxy_laddr_v0(optarg, &tproxyinfo->laddr);
++		*flags |= PARAM_ONIP;
++		return 1;
++	case '3':
++		xtables_param_act(XTF_ONLY_ONCE, "TPROXY", "--tproxy-mark", *flags & PARAM_MARK);
++		xtables_param_act(XTF_NO_INVERT, "TPROXY", "--tproxy-mark", invert);
++		parse_tproxy_mark(optarg, &tproxyinfo->mark_value, &tproxyinfo->mark_mask);
++		*flags |= PARAM_MARK;
++		return 1;
++	}
+ 
+-	info->mark_mask = mask;
+-	info->mark_value = value;
++	return 0;
+ }
+ 
+-static int tproxy_tg_parse(int c, char **argv, int invert, unsigned int *flags,
++static int tproxy_tg_parse_v1(int family, int c, char **argv, int invert, unsigned int *flags,
+ 			const void *entry, struct xt_entry_target **target)
+ {
+-	struct xt_tproxy_target_info *tproxyinfo = (void *)(*target)->data;
++	struct xt_tproxy_target_info_v1 *tproxyinfo = (void *)(*target)->data;
+ 
+ 	switch (c) {
+ 	case '1':
+ 		xtables_param_act(XTF_ONLY_ONCE, "TPROXY", "--on-port", *flags & PARAM_ONPORT);
+ 		xtables_param_act(XTF_NO_INVERT, "TPROXY", "--on-port", invert);
+-		parse_tproxy_lport(optarg, tproxyinfo);
++		parse_tproxy_lport(optarg, &tproxyinfo->lport);
+ 		*flags |= PARAM_ONPORT;
+ 		return 1;
+ 	case '2':
+ 		xtables_param_act(XTF_ONLY_ONCE, "TPROXY", "--on-ip", *flags & PARAM_ONIP);
+ 		xtables_param_act(XTF_NO_INVERT, "TPROXY", "--on-ip", invert);
+-		parse_tproxy_laddr(optarg, tproxyinfo);
++		parse_tproxy_laddr(optarg, family, &tproxyinfo->laddr);
+ 		*flags |= PARAM_ONIP;
+ 		return 1;
+ 	case '3':
+ 		xtables_param_act(XTF_ONLY_ONCE, "TPROXY", "--tproxy-mark", *flags & PARAM_MARK);
+ 		xtables_param_act(XTF_NO_INVERT, "TPROXY", "--tproxy-mark", invert);
+-		parse_tproxy_mark(optarg, tproxyinfo);
++		parse_tproxy_mark(optarg, &tproxyinfo->mark_value, &tproxyinfo->mark_mask);
+ 		*flags |= PARAM_MARK;
+ 		return 1;
+ 	}
+@@ -102,6 +151,18 @@ static int tproxy_tg_parse(int c, char **argv, int invert, unsigned int *flags,
  	return 0;
  }
  
- void nf_ct_frag6_cleanup(void)
- {
-+	unregister_sysctl_table(nf_ct_frag6_sysctl_header);
-+	nf_ct_frag6_sysctl_header = NULL;
-+
- 	inet_frags_fini(&nf_frags);
- 
- 	nf_init_frags.low_thresh = 0;
-diff --git a/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
-new file mode 100644
-index 0000000..6f07971
---- /dev/null
-+++ b/net/ipv6/netfilter/nf_defrag_ipv6_hooks.c
-@@ -0,0 +1,109 @@
-+/* (C) 1999-2001 Paul `Rusty' Russell
-+ * (C) 2002-2004 Netfilter Core Team <coreteam@netfilter.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/types.h>
-+#include <linux/ipv6.h>
-+#include <linux/in6.h>
-+#include <linux/netfilter.h>
-+#include <linux/module.h>
-+#include <linux/skbuff.h>
-+#include <linux/icmp.h>
-+#include <linux/sysctl.h>
-+#include <net/ipv6.h>
-+#include <net/inet_frag.h>
-+
-+#include <linux/netfilter_ipv6.h>
-+#include <net/netfilter/nf_conntrack.h>
-+#include <net/netfilter/nf_conntrack_helper.h>
-+#include <net/netfilter/nf_conntrack_l4proto.h>
-+#include <net/netfilter/nf_conntrack_l3proto.h>
-+#include <net/netfilter/nf_conntrack_core.h>
-+#include <net/netfilter/ipv6/nf_conntrack_ipv6.h>
-+#include <net/netfilter/ipv6/nf_defrag_ipv6.h>
-+
-+static unsigned int ipv6_defrag(unsigned int hooknum,
-+				struct sk_buff *skb,
-+				const struct net_device *in,
-+				const struct net_device *out,
-+				int (*okfn)(struct sk_buff *))
++static int tproxy_tg_parse4_v1(int c, char **argv, int invert, unsigned int *flags,
++			const void *entry, struct xt_entry_target **target)
 +{
-+	struct sk_buff *reasm;
-+
-+	/* Previously seen (loopback)?  */
-+	if (skb->nfct)
-+		return NF_ACCEPT;
-+
-+	reasm = nf_ct_frag6_gather(skb);
-+
-+	/* queued */
-+	if (reasm == NULL)
-+		return NF_STOLEN;
-+
-+	/* error occured or not fragmented */
-+	if (reasm == skb)
-+		return NF_ACCEPT;
-+
-+	nf_ct_frag6_output(hooknum, reasm, (struct net_device *)in,
-+			   (struct net_device *)out, okfn);
-+
-+	return NF_STOLEN;
++	return tproxy_tg_parse_v1(NFPROTO_IPV4, c, argv, invert, flags, entry, target);
 +}
 +
-+static struct nf_hook_ops ipv6_defrag_ops[] = {
++static int tproxy_tg_parse6_v1(int c, char **argv, int invert, unsigned int *flags,
++			const void *entry, struct xt_entry_target **target)
++{
++	return tproxy_tg_parse_v1(NFPROTO_IPV6, c, argv, invert, flags, entry, target);
++}
++
+ static void tproxy_tg_check(unsigned int flags)
+ {
+ 	if (!(flags & PARAM_ONPORT))
+@@ -109,19 +170,43 @@ static void tproxy_tg_check(unsigned int flags)
+ 			   "TPROXY target: Parameter --on-port is required");
+ }
+ 
+-static void tproxy_tg_print(const void *ip, const struct xt_entry_target *target,
++static void tproxy_tg_print_v0(const void *ip, const struct xt_entry_target *target,
+ 			 int numeric)
+ {
+-	const struct xt_tproxy_target_info *info = (const void *)target->data;
++	const struct xt_tproxy_target_info_v0 *info = (const void *)target->data;
+ 	printf("TPROXY redirect %s:%u mark 0x%x/0x%x",
+ 	       xtables_ipaddr_to_numeric((const struct in_addr *)&info->laddr),
+ 	       ntohs(info->lport), (unsigned int)info->mark_value,
+ 	       (unsigned int)info->mark_mask);
+ }
+ 
+-static void tproxy_tg_save(const void *ip, const struct xt_entry_target *target)
++static void tproxy_tg_print_v1(int family, const void *ip, const struct xt_entry_target *target,
++			 int numeric)
+ {
+-	const struct xt_tproxy_target_info *info = (const void *)target->data;
++	const struct xt_tproxy_target_info_v1 *info = (const void *)target->data;
++	printf("TPROXY redirect %s:%u mark 0x%x/0x%x",
++	       family == AF_INET 
++	       ? xtables_ipaddr_to_numeric(&info->laddr.in) 
++	       : xtables_ip6addr_to_numeric(&info->laddr.in6),
++	       ntohs(info->lport), (unsigned int)info->mark_value,
++	       (unsigned int)info->mark_mask);
++}
++
++static void tproxy_tg_print4_v1(const void *ip, const struct xt_entry_target *target,
++			       int numeric)
++{
++	return tproxy_tg_print_v1(NFPROTO_IPV4, ip, target, numeric);
++}
++
++static void tproxy_tg_print6_v1(const void *ip, const struct xt_entry_target *target,
++			       int numeric)
++{
++	return tproxy_tg_print_v1(NFPROTO_IPV6, ip, target, numeric);
++}
++
++static void tproxy_tg_save_v0(const void *ip, const struct xt_entry_target *target)
++{
++	const struct xt_tproxy_target_info_v0 *info = (const void *)target->data;
+ 
+ 	printf("--on-port %u ", ntohs(info->lport));
+ 	printf("--on-ip %s ",
+@@ -130,21 +215,75 @@ static void tproxy_tg_save(const void *ip, const struct xt_entry_target *target)
+ 	       (unsigned int)info->mark_value, (unsigned int)info->mark_mask);
+ }
+ 
+-static struct xtables_target tproxy_tg_reg = {
+-	.name	       = "TPROXY",
+-	.family	       = NFPROTO_IPV4,
+-	.version       = XTABLES_VERSION,
+-	.size	       = XT_ALIGN(sizeof(struct xt_tproxy_target_info)),
+-	.userspacesize = XT_ALIGN(sizeof(struct xt_tproxy_target_info)),
+-	.help	       = tproxy_tg_help,
+-	.parse	       = tproxy_tg_parse,
+-	.final_check   = tproxy_tg_check,
+-	.print	       = tproxy_tg_print,
+-	.save	       = tproxy_tg_save,
+-	.extra_opts    = tproxy_tg_opts,
++static void tproxy_tg_save_v1(int family, const void *ip, const struct xt_entry_target *target)
++{
++	const struct xt_tproxy_target_info_v1 *info = (const void *)target->data;
++
++	printf("--on-port %u ", ntohs(info->lport));
++	printf("--on-ip %s ",
++	       family == AF_INET 
++	       ? xtables_ipaddr_to_numeric(&info->laddr.in) 
++	       : xtables_ip6addr_to_numeric(&info->laddr.in6));
++	printf("--tproxy-mark 0x%x/0x%x ",
++	       (unsigned int)info->mark_value, (unsigned int)info->mark_mask);
++}
++
++static void tproxy_tg_save4_v1(const void *ip, const struct xt_entry_target *target)
++{
++	return tproxy_tg_save_v1(NFPROTO_IPV4, ip, target);
++}
++
++static void tproxy_tg_save6_v1(const void *ip, const struct xt_entry_target *target)
++{
++	return tproxy_tg_save_v1(NFPROTO_IPV6, ip, target);
++}
++
++
++static struct xtables_target tproxy_tg_reg[] = {
 +	{
-+		.hook		= ipv6_defrag,
-+		.owner		= THIS_MODULE,
-+		.pf		= PF_INET6,
-+		.hooknum	= NF_INET_PRE_ROUTING,
-+		.priority	= NF_IP6_PRI_CONNTRACK_DEFRAG,
++		.name	       = "TPROXY",
++		.family	       = NFPROTO_IPV4,
++		.version       = XTABLES_VERSION,
++		.size	       = XT_ALIGN(sizeof(struct xt_tproxy_target_info_v0)),
++		.userspacesize = XT_ALIGN(sizeof(struct xt_tproxy_target_info_v0)),
++		.help	       = tproxy_tg_help,
++		.parse	       = tproxy_tg_parse_v0,
++		.final_check   = tproxy_tg_check,
++		.print	       = tproxy_tg_print_v0,
++		.save	       = tproxy_tg_save_v0,
++		.extra_opts    = tproxy_tg_opts,
 +	},
 +	{
-+		.hook		= ipv6_defrag,
-+		.owner		= THIS_MODULE,
-+		.pf		= PF_INET6,
-+		.hooknum	= NF_INET_LOCAL_OUT,
-+		.priority	= NF_IP6_PRI_CONNTRACK_DEFRAG,
++		.name	       = "TPROXY",
++		.family	       = NFPROTO_IPV4,
++		.version       = XTABLES_VERSION,
++		.revision      = 1,
++		.size	       = XT_ALIGN(sizeof(struct xt_tproxy_target_info_v1)),
++		.userspacesize = XT_ALIGN(sizeof(struct xt_tproxy_target_info_v1)),
++		.help	       = tproxy_tg_help,
++		.parse	       = tproxy_tg_parse4_v1,
++		.final_check   = tproxy_tg_check,
++		.print	       = tproxy_tg_print4_v1,
++		.save	       = tproxy_tg_save4_v1,
++		.extra_opts    = tproxy_tg_opts,
 +	},
++	{
++		.name	       = "TPROXY",
++		.family	       = NFPROTO_IPV6,
++		.version       = XTABLES_VERSION,
++		.revision      = 1,
++		.size	       = XT_ALIGN(sizeof(struct xt_tproxy_target_info_v1)),
++		.userspacesize = XT_ALIGN(sizeof(struct xt_tproxy_target_info_v1)),
++		.help	       = tproxy_tg_help,
++		.parse	       = tproxy_tg_parse6_v1,
++		.final_check   = tproxy_tg_check,
++		.print	       = tproxy_tg_print6_v1,
++		.save	       = tproxy_tg_save6_v1,
++		.extra_opts    = tproxy_tg_opts,
++	},
+ };
+ 
+ void _init(void)
+ {
+-	xtables_register_target(&tproxy_tg_reg);
++	xtables_register_targets(tproxy_tg_reg, ARRAY_SIZE(tproxy_tg_reg));
+ }
+diff --git a/include/linux/netfilter/xt_TPROXY.h b/include/linux/netfilter/xt_TPROXY.h
+index 152e8f9..7b4e06d 100644
+--- a/include/linux/netfilter/xt_TPROXY.h
++++ b/include/linux/netfilter/xt_TPROXY.h
+@@ -1,14 +1,21 @@
+-#ifndef _XT_TPROXY_H_target
+-#define _XT_TPROXY_H_target
++#ifndef _XT_TPROXY_H
++#define _XT_TPROXY_H
+ 
+ /* TPROXY target is capable of marking the packet to perform
+  * redirection. We can get rid of that whenever we get support for
+  * mutliple targets in the same rule. */
+-struct xt_tproxy_target_info {
++struct xt_tproxy_target_info_v0 {
+ 	u_int32_t mark_mask;
+ 	u_int32_t mark_value;
+ 	__be32 laddr;
+ 	__be16 lport;
+ };
+ 
+-#endif /* _XT_TPROXY_H_target */
++struct xt_tproxy_target_info_v1 {
++	u_int32_t mark_mask;
++	u_int32_t mark_value;
++	union nf_inet_addr laddr;
++	__be16 lport;
 +};
 +
-+static int __init nf_defrag_init(void)
-+{
-+        int ret = 0;
-+
-+	ret = nf_ct_frag6_init();
-+	if (ret < 0) {
-+		printk("nf_conntrack_ipv6: can't initialize frag6.\n");
-+		return ret;
-+	}
-+	ret = nf_register_hooks(ipv6_defrag_ops, ARRAY_SIZE(ipv6_defrag_ops));
-+	if (ret < 0) {
-+	        printk("nf_defrag_ipv6: can't register hooks\n");
-+	        goto cleanup_frag6;
-+	}
-+	return ret;
-+ cleanup_frag6:
-+	nf_ct_frag6_cleanup();
-+	return ret;
-+ 
-+}
-+
-+static void __exit nf_defrag_fini(void)
-+{
-+	nf_unregister_hooks(ipv6_defrag_ops, ARRAY_SIZE(ipv6_defrag_ops));
-+	nf_ct_frag6_cleanup();
-+}
-+
-+void nf_defrag_ipv6_enable(void)
-+{
-+}
-+EXPORT_SYMBOL_GPL(nf_defrag_ipv6_enable);
-+
-+module_init(nf_defrag_init);
-+module_exit(nf_defrag_fini);
-+
-+MODULE_LICENSE("GPL");
++#endif /* _XT_TPROXY_H */
 -- 
 1.6.0.4
 
