@@ -1,45 +1,54 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [patch] ipvs: Use atomic operations atomicly
-Date: Tue, 1 Sep 2009 00:49:09 +1000
-Message-ID: <20090831144909.GB2271@verge.net.au>
-References: <20090828023722.GA12136@verge.net.au>
- <4A9BC082.3090804@trash.net>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: Re: initial (im)port of ipt_ACCOUNT, ipt_pknock and ipt_stealth to xtables-addons-1.17
+Date: Mon, 31 Aug 2009 17:27:26 +0200
+Message-ID: <200908311727.26512.thomas.jarosch@intra2net.com>
+References: <alpine.LNX.2.00.0908262011580.20390@cedric.unob.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	=?utf-8?B?7ZmN7Iug?= shin hong <hongshin@gmail.com>,
-	David Miller <davem@davemloft.net>
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: "Jan Engelhardt / xtables-addons" <jengelh@medozas.de>,
+	netfilter-devel@vger.kernel.org
+To: Jan Rafaj <jr+netfilter-devel@cedric.unob.cz>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from rs02.intra2net.com ([81.169.173.116]:36252 "EHLO
+	rs02.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750929AbZHaP10 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 31 Aug 2009 11:27:26 -0400
+In-Reply-To: <alpine.LNX.2.00.0908262011580.20390@cedric.unob.cz>
 Content-Disposition: inline
-In-Reply-To: <4A9BC082.3090804@trash.net>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Aug 31, 2009 at 02:22:26PM +0200, Patrick McHardy wrote:
-> Simon Horman wrote:
-> > A pointed out by Shin Hong, IPVS doesn't always use atomic operatio=
-ns
-> > in an atomic manner. While this seems unlikely to be manifest in
-> > strange behaviour, it seems appropriate to clean this up.
-> >=20
-> > Cc: =ED=99=8D=EC=8B=A0 shin hong <hongshin@gmail.com>
-> > Signed-off-by: Simon Horman <horms@verge.net.au>
->=20
-> Applied, thanks.
->=20
-> >  	if (af =3D=3D AF_INET &&
-> >  	    (ip_vs_sync_state & IP_VS_STATE_MASTER) &&
-> >  	    (((cp->protocol !=3D IPPROTO_TCP ||
-> >  	       cp->state =3D=3D IP_VS_TCP_S_ESTABLISHED) &&
-> > -	      (atomic_read(&cp->in_pkts) % sysctl_ip_vs_sync_threshold[1]
-> > +	      (pkts % sysctl_ip_vs_sync_threshold[1]
->=20
-> It seems that proc_do_sync_threshold() should check whether this valu=
-e
-> is zero. The current checks also look racy since incorrect values are
-> first updated, then overwritten again.
+Hello Jan Rafaj,
 
-Thanks, I'll look into that.
+On Thursday, 27. August 2009 17:53:33 Jan Rafaj wrote:
+> - files have all been renamed from {lib,}ipt_* to {lib,}xt_*
+>    (I know, they are still IPv4-only projects, but thats the policy
+>    of Xt-a)
+
+Thanks for your effort.
+
+ipt_ACCOUNT is IPv4 only. Giving it a name of xt_ACCOUNT
+will give the impression it works for IPv6, right?
+
+> By releasing this, I only strongly (and selfishly, I admit) hope the
+> authors of these projects will eventually see advantages of being part of
+> xtables-addons, and will hopefully start to maintain these projects in
+> xtables-addons tree from now on.
+
+Well, I don't use xtables-addons myself :o)
+
+ipt_ACCOUNT is maintained in it's own git tree here: 
+http://www.intra2net.com/en/developer/ipt_ACCOUNT/repository.php
+
+As development is currently in maintenance mode only,
+it shouldn't hurt to have a copy in Xtables-addons, too.
+
+Though I'm not sure if having two versions with different names
+(xt_ACCOUNT, ipt_ACCOUNT) is a good idea.
+
+Best regards,
+Thomas Jarosch
+
