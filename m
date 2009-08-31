@@ -1,61 +1,49 @@
-From: Balazs Scheidler <bazsi@balabit.hu>
-Subject: Re: [PATCH] TProxy: added IPv6 support for socket match
-Date: Mon, 31 Aug 2009 10:41:40 +0000
-Message-ID: <1251715300.5659.128.camel@bzorp.balabit>
-References: <cover.1251439150.git.bazsi@balabit.hu>
-	 <611922658001654b08214cc17ac47e2aa53f88fb.1251439150.git.bazsi@balabit.hu>
-	 <alpine.LSU.2.00.0908301426390.4073@fbirervta.pbzchgretzou.qr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [patch] ipvs: Use atomic operations atomicly
+Date: Mon, 31 Aug 2009 14:22:26 +0200
+Message-ID: <4A9BC082.3090804@trash.net>
+References: <20090828023722.GA12136@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, tproxy@lists.balabit.hu,
-	Harry Mason <harry.mason@smoothwall.net>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	=?UTF-8?B?7ZmN7IugIHNoaW4gaG9uZw==?= <hongshin@gmail.com>,
+	David Miller <davem@davemloft.net>
+To: Simon Horman <horms@verge.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from support.balabit.hu ([195.70.41.86]:49472 "EHLO lists.balabit.hu"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750715AbZHaKlm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 31 Aug 2009 06:41:42 -0400
-Received: from balabit.hu (unknown [10.80.0.254])
-	by lists.balabit.hu (Postfix) with ESMTP id CEDE913A13F
-	for <netfilter-devel@vger.kernel.org>; Mon, 31 Aug 2009 12:41:41 +0200 (CEST)
-In-Reply-To: <alpine.LSU.2.00.0908301426390.4073@fbirervta.pbzchgretzou.qr>
+Received: from stinky.trash.net ([213.144.137.162]:60588 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752492AbZHaMWb (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 31 Aug 2009 08:22:31 -0400
+In-Reply-To: <20090828023722.GA12136@verge.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, 2009-08-30 at 14:26 +0200, Jan Engelhardt wrote:
-> On Friday 2009-08-28 07:56, Balazs Scheidler wrote:
-> >+++ b/include/linux/netfilter/xt_socket.h
-> >@@ -0,0 +1,8 @@
-> >+#ifndef _XT_SOCKET_H_match
-> >+#define _XT_SOCKET_H_match
-> >+
-> >+struct xt_socket_match_info1 {
-> >+	__u8 transparent:1;
-> >+};
-> >+
-> >+#endif /* _XT_SOCKET_H_match */
-> 
-> Bitfields are a no-no in the ABI.
-> 
+Simon Horman wrote:
+> A pointed out by Shin Hong, IPVS doesn't always use atomic operations
+> in an atomic manner. While this seems unlikely to be manifest in
+> strange behaviour, it seems appropriate to clean this up.
+>=20
+> Cc: =ED=99=8D=EC=8B=A0 shin hong <hongshin@gmail.com>
+> Signed-off-by: Simon Horman <horms@verge.net.au>
 
-Ops, I took that patch from an ancient userspace patch created earlier
-by Panther.
+Applied, thanks.
 
-It did work for me, as the kernel uses:
+>  	if (af =3D=3D AF_INET &&
+>  	    (ip_vs_sync_state & IP_VS_STATE_MASTER) &&
+>  	    (((cp->protocol !=3D IPPROTO_TCP ||
+>  	       cp->state =3D=3D IP_VS_TCP_S_ESTABLISHED) &&
+> -	      (atomic_read(&cp->in_pkts) % sysctl_ip_vs_sync_threshold[1]
+> +	      (pkts % sysctl_ip_vs_sync_threshold[1]
 
-enum {
-        XT_SOCKET_TRANSPARENT = 1 << 0,
-};
+It seems that proc_do_sync_threshold() should check whether this value
+is zero. The current checks also look racy since incorrect values are
+first updated, then overwritten again.
 
-struct xt_socket_mtinfo1 {
-        __u8 flags;
-};
-
-
-Thanks for noticing.
-
--- 
-Bazsi
-
-
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
