@@ -1,101 +1,158 @@
-From: Jan Rafaj <jr+netfilter-devel@cedric.unob.cz>
-Subject: Re: initial (im)port of ipt_ACCOUNT, ipt_pknock and ipt_stealth to
- xtables-addons-1.17
-Date: Mon, 31 Aug 2009 18:34:00 +0200 (MEST)
-Message-ID: <alpine.LNX.2.00.0908311728240.28790@cedric.unob.cz>
-References: <alpine.LNX.2.00.0908262011580.20390@cedric.unob.cz> <200908311727.26512.thomas.jarosch@intra2net.com>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [patch] ipvs: Use atomic operations atomicly
+Date: Tue, 1 Sep 2009 11:59:12 +1000
+Message-ID: <20090901015909.GA12252@verge.net.au>
+References: <20090828023722.GA12136@verge.net.au> <4A9BC082.3090804@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: Jan Rafaj <jr+netfilter-devel@cedric.unob.cz>,
-	Jan Engelhardt / xtables-addons <jengelh@medozas.de>,
-	netfilter-devel@vger.kernel.org
-To: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cedric.unob.cz ([160.216.40.10]:35189 "EHLO cedric.unob.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751848AbZHaQeK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 31 Aug 2009 12:34:10 -0400
-In-Reply-To: <200908311727.26512.thomas.jarosch@intra2net.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	=?utf-8?B?7ZmN7Iug?= shin hong <hongshin@gmail.com>,
+	David Miller <davem@davemloft.net>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4A9BC082.3090804@trash.net>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+On Mon, Aug 31, 2009 at 02:22:26PM +0200, Patrick McHardy wrote:
+> Simon Horman wrote:
+> > A pointed out by Shin Hong, IPVS doesn't always use atomic operatio=
+ns
+> > in an atomic manner. While this seems unlikely to be manifest in
+> > strange behaviour, it seems appropriate to clean this up.
+> >=20
+> > Cc: =ED=99=8D=EC=8B=A0 shin hong <hongshin@gmail.com>
+> > Signed-off-by: Simon Horman <horms@verge.net.au>
+>=20
+> Applied, thanks.
+>=20
+> >  	if (af =3D=3D AF_INET &&
+> >  	    (ip_vs_sync_state & IP_VS_STATE_MASTER) &&
+> >  	    (((cp->protocol !=3D IPPROTO_TCP ||
+> >  	       cp->state =3D=3D IP_VS_TCP_S_ESTABLISHED) &&
+> > -	      (atomic_read(&cp->in_pkts) % sysctl_ip_vs_sync_threshold[1]
+> > +	      (pkts % sysctl_ip_vs_sync_threshold[1]
+>=20
+> It seems that proc_do_sync_threshold() should check whether this valu=
+e
+> is zero. The current checks also look racy since incorrect values are
+> first updated, then overwritten again.
 
-Hello Thomas,
+Hi,
 
-On Mon, 31 Aug 2009, Thomas Jarosch wrote:
+I'm wondering if an approach along the lines of the following is valid.
+The idea is that the value in the ctl_table is essentially a scratch
+value that is used by the parser and then copied into ip_vs_sync_thresh=
+old
+if it is valid. I'm concerned that there are atomicity issues
+surrounding writing ip_vs_sync_threshold while there might be readers.
 
-> Hello Jan Rafaj,
->
-> On Thursday, 27. August 2009 17:53:33 Jan Rafaj wrote:
->> - files have all been renamed from {lib,}ipt_* to {lib,}xt_*
->>    (I know, they are still IPv4-only projects, but thats the policy
->>    of Xt-a)
->
-> Thanks for your effort.
-
-NP.
-
-> ipt_ACCOUNT is IPv4 only. Giving it a name of xt_ACCOUNT
-> will give the impression it works for IPv6, right?
-
-Well, yes and no - as you can see, some other target/match modules 
-in xtables-addons are IPv4-only too, yet all of them have name {lib,}xt_* .
-The apparent aim is to have them all internally prepared for adding IPv6
-later, though. Feel free to ask Jan Engelhardt, who does good job in 
-maintaining Xt-a.
-
->> By releasing this, I only strongly (and selfishly, I admit) hope the
->> authors of these projects will eventually see advantages of being part of
->> xtables-addons, and will hopefully start to maintain these projects in
->> xtables-addons tree from now on.
->
-> Well, I don't use xtables-addons myself :o)
->
-> ipt_ACCOUNT is maintained in it's own git tree here:
-> http://www.intra2net.com/en/developer/ipt_ACCOUNT/repository.php
->
-> As development is currently in maintenance mode only,
-> it shouldn't hurt to have a copy in Xtables-addons, too.
-
-That alone would already be great I think, thanks.
-
-> Though I'm not sure if having two versions with different names
-> (xt_ACCOUNT, ipt_ACCOUNT) is a good idea.
-
-I hope having it in Xt-a primarily would be for the benefit of most other 
-people who dont like to patch their kernel with varying success using 
-pom-ng, like me. My intention was (and is) to have every useful 
-third-party extension in just 1 place. I was always unhappy with pom-ng, 
-as it never gave me the level of confidentiality that it would work with 
-whatever newer kernel I'd decide to use (besides - from developer's PoV - 
-the need to hack in support for whatever kernel I pick up, myself, becouse 
-the original author didnt care, using a ton of those ugly #if's to 
-interface with particular kernel API). 
-In Xtables-addons, all appears to be maintained uniformly and towards the 
-latest netfilter API, so I can be sure that anything thats part of it I'd 
-want to use, will just work for me (plus eventual added benefit of 
-*someone else* porting my favourite extension in it forward in the 
-future... :).
-But I also understand your eventual concerns - you may want not to
-allow diverting the development line somewhere where you do not prefer to.
-
-If you prefer to maintain ACCOUNT in a separate tree, well of course I
-can't object. But first please try to realise the benefits of Xt-a model
-over pom-ng, and what this can mean for other people (I hardly see anyone 
-using pom-ng these days). Perhaps you could try to maintain it in a 
-standalone branch of Xt-a git tree? (Please do not under any circumstance
-take this as that I'm forcing you to do something; God save, I'm far 
-from that. I just wish if you could give it a try to *start* maintaining 
-it in the framework used for majority of other projects, even if you
-though do not find Xt-a useful right now...).
-
-All in all, I did this port with the hope many people will find this 
-effort towards unifying base of all third-party extensions useful. At 
-least I do. And also becouse I want to use ACCOUNT, but I'm not 
-simply willing to patch my kernel (and hand fix what didnt apply) using 
-pom-ng just becouse 1 or 2 extra extensions do require it, becouse
-that has always been a nightmare for me.
-
-Best regards,
-
-Jan
+diff --git a/include/net/ip_vs.h b/include/net/ip_vs.h
+index 98978e7..28d0c4f 100644
+--- a/include/net/ip_vs.h
++++ b/include/net/ip_vs.h
+@@ -774,8 +774,8 @@ extern int ip_vs_leave(struct ip_vs_service *svc, s=
+truct sk_buff *skb,
+ extern int sysctl_ip_vs_cache_bypass;
+ extern int sysctl_ip_vs_expire_nodest_conn;
+ extern int sysctl_ip_vs_expire_quiescent_template;
+-extern int sysctl_ip_vs_sync_threshold[2];
+ extern int sysctl_ip_vs_nat_icmp_send;
++extern int ip_vs_sync_threshold[2];
+ extern struct ip_vs_stats ip_vs_stats;
+ extern const struct ctl_path net_vs_ctl_path[];
+=20
+diff --git a/net/netfilter/ipvs/ip_vs_core.c b/net/netfilter/ipvs/ip_vs=
+_core.c
+index b95699f..f3572b6 100644
+--- a/net/netfilter/ipvs/ip_vs_core.c
++++ b/net/netfilter/ipvs/ip_vs_core.c
+@@ -1362,8 +1362,7 @@ ip_vs_in(unsigned int hooknum, struct sk_buff *sk=
+b,
+ 	    (ip_vs_sync_state & IP_VS_STATE_MASTER) &&
+ 	    (((cp->protocol !=3D IPPROTO_TCP ||
+ 	       cp->state =3D=3D IP_VS_TCP_S_ESTABLISHED) &&
+-	      (pkts % sysctl_ip_vs_sync_threshold[1]
+-	       =3D=3D sysctl_ip_vs_sync_threshold[0])) ||
++	      (pkts % ip_vs_sync_threshold[1] =3D=3D ip_vs_sync_threshold[0])=
+) ||
+ 	     ((cp->protocol =3D=3D IPPROTO_TCP) && (cp->old_state !=3D cp->st=
+ate) &&
+ 	      ((cp->state =3D=3D IP_VS_TCP_S_FIN_WAIT) ||
+ 	       (cp->state =3D=3D IP_VS_TCP_S_CLOSE_WAIT) ||
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_=
+ctl.c
+index fba2892..8a9ff21 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -76,6 +76,11 @@ static atomic_t ip_vs_dropentry =3D ATOMIC_INIT(0);
+ /* number of virtual services */
+ static int ip_vs_num_services =3D 0;
+=20
++/* threshold handling */
++static int ip_vs_sync_threshold_min =3D 0;
++static int ip_vs_sync_threshold_max =3D INT_MAX;
++int ip_vs_sync_threshold[2] =3D { 3, 50 };
++
+ /* sysctl variables */
+ static int sysctl_ip_vs_drop_entry =3D 0;
+ static int sysctl_ip_vs_drop_packet =3D 0;
+@@ -85,7 +90,7 @@ static int sysctl_ip_vs_am_droprate =3D 10;
+ int sysctl_ip_vs_cache_bypass =3D 0;
+ int sysctl_ip_vs_expire_nodest_conn =3D 0;
+ int sysctl_ip_vs_expire_quiescent_template =3D 0;
+-int sysctl_ip_vs_sync_threshold[2] =3D { 3, 50 };
++static int sysctl_ip_vs_sync_threshold[2];
+ int sysctl_ip_vs_nat_icmp_send =3D 0;
+=20
+=20
+@@ -1521,17 +1526,12 @@ proc_do_sync_threshold(ctl_table *table, int wr=
+ite, struct file *filp,
+ 		       void __user *buffer, size_t *lenp, loff_t *ppos)
+ {
+ 	int *valp =3D table->data;
+-	int val[2];
+ 	int rc;
+=20
+-	/* backup the value first */
+-	memcpy(val, valp, sizeof(val));
+-
+-	rc =3D proc_dointvec(table, write, filp, buffer, lenp, ppos);
+-	if (write && (valp[0] < 0 || valp[1] < 0 || valp[0] >=3D valp[1])) {
+-		/* Restore the correct value */
+-		memcpy(valp, val, sizeof(val));
+-	}
++	rc =3D proc_dointvec_minmax(table, write, filp, buffer, lenp, ppos);
++	if (write && (valp[0] < valp[1]))
++		memcpy(ip_vs_sync_threshold, valp,
++		       sizeof(ip_vs_sync_threshold));
+ 	return rc;
+ }
+=20
+@@ -1698,6 +1698,8 @@ static struct ctl_table vs_vars[] =3D {
+ 		.maxlen		=3D sizeof(sysctl_ip_vs_sync_threshold),
+ 		.mode		=3D 0644,
+ 		.proc_handler	=3D proc_do_sync_threshold,
++		.extra1		=3D &ip_vs_sync_threshold_min,
++		.extra2		=3D &ip_vs_sync_threshold_max,
+ 	},
+ 	{
+ 		.procname	=3D "nat_icmp_send",
+diff --git a/net/netfilter/ipvs/ip_vs_sync.c b/net/netfilter/ipvs/ip_vs=
+_sync.c
+index e177f0d..d3322fb 100644
+--- a/net/netfilter/ipvs/ip_vs_sync.c
++++ b/net/netfilter/ipvs/ip_vs_sync.c
+@@ -438,7 +438,7 @@ static void ip_vs_process_message(const char *buffe=
+r, const size_t buflen)
+=20
+ 		if (opt)
+ 			memcpy(&cp->in_seq, opt, sizeof(*opt));
+-		atomic_set(&cp->in_pkts, sysctl_ip_vs_sync_threshold[0]);
++		atomic_set(&cp->in_pkts, ip_vs_sync_threshold[0]);
+ 		cp->state =3D state;
+ 		cp->old_state =3D cp->state;
+ 		/*
