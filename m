@@ -1,27 +1,71 @@
-From: Ramunas Vabolis <ramuva@openoffice.lt>
-Subject: wishlist - IMQ in xtable-addons
-Date: Wed, 2 Sep 2009 10:18:42 +0300
-Message-ID: <20090902071842.GA561@openoffice.lt>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [patch] ipvs: Use atomic operations atomicly
+Date: Wed, 02 Sep 2009 14:56:02 +0200
+Message-ID: <4A9E6B62.8080208@trash.net>
+References: <20090828023722.GA12136@verge.net.au> <4A9BC082.3090804@trash.net> <20090901015909.GA12252@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	=?ISO-8859-15?Q?=3F=3F_shin_hong?= <hongshin@gmail.com>,
+	David Miller <davem@davemloft.net>
+To: Simon Horman <horms@verge.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ubikas.lt ([82.135.208.137]:54202 "EHLO ubikas.lt"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755918AbZIBH1C (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Sep 2009 03:27:02 -0400
-Received: from ubikas.lt (ramuva@localhost [127.0.0.1])
-	by ubikas.lt (8.13.8/8.13.8/Debian-3) with ESMTP id n827Ih5q006720
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NOT)
-	for <netfilter-devel@vger.kernel.org>; Wed, 2 Sep 2009 10:18:43 +0300
-Received: (from ramuva@localhost)
-	by ubikas.lt (8.13.8/8.13.8/Submit) id n827Ig0U006718
-	for netfilter-devel@vger.kernel.org; Wed, 2 Sep 2009 10:18:42 +0300
-Content-Disposition: inline
+Received: from stinky.trash.net ([213.144.137.162]:45791 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751778AbZIBM4G (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 2 Sep 2009 08:56:06 -0400
+In-Reply-To: <20090901015909.GA12252@verge.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-	Hello there,
+Simon Horman wrote:
+> On Mon, Aug 31, 2009 at 02:22:26PM +0200, Patrick McHardy wrote:
+>> It seems that proc_do_sync_threshold() should check whether this value
+>> is zero. The current checks also look racy since incorrect values are
+>> first updated, then overwritten again.
+> 
+> I'm wondering if an approach along the lines of the following is valid.
+> The idea is that the value in the ctl_table is essentially a scratch
+> value that is used by the parser and then copied into ip_vs_sync_threshold
+> if it is valid.
 
-	Is there any chances that IMQ might appear as another supported
-module in xtable-addons? 
+Even simpler would be to use a temporary buffer on the stack for copying
+the values from userspace and then copy them to the final buffer after
+validation.
+
+> I'm concerned that there are atomicity issues
+> surrounding writing ip_vs_sync_threshold while there might be readers.
+
+That might be a problem if they are required to be "synchronized".
+
+> --- a/net/netfilter/ipvs/ip_vs_core.c
+> +++ b/net/netfilter/ipvs/ip_vs_core.c
+> @@ -1362,8 +1362,7 @@ ip_vs_in(unsigned int hooknum, struct sk_buff *skb,
+>  	    (ip_vs_sync_state & IP_VS_STATE_MASTER) &&
+>  	    (((cp->protocol != IPPROTO_TCP ||
+>  	       cp->state == IP_VS_TCP_S_ESTABLISHED) &&
+> -	      (pkts % sysctl_ip_vs_sync_threshold[1]
+> -	       == sysctl_ip_vs_sync_threshold[0])) ||
+> +	      (pkts % ip_vs_sync_threshold[1] == ip_vs_sync_threshold[0])) ||
+>  	     ((cp->protocol == IPPROTO_TCP) && (cp->old_state != cp->state) &&
+>  	      ((cp->state == IP_VS_TCP_S_FIN_WAIT) ||
+>  	       (cp->state == IP_VS_TCP_S_CLOSE_WAIT) ||
+> diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+> index fba2892..8a9ff21 100644
+> --- a/net/netfilter/ipvs/ip_vs_ctl.c
+> +++ b/net/netfilter/ipvs/ip_vs_ctl.c
+> @@ -76,6 +76,11 @@ static atomic_t ip_vs_dropentry = ATOMIC_INIT(0);
+>  /* number of virtual services */
+>  static int ip_vs_num_services = 0;
+>  
+> +/* threshold handling */
+> +static int ip_vs_sync_threshold_min = 0;
+> +static int ip_vs_sync_threshold_max = INT_MAX;
+> +int ip_vs_sync_threshold[2] = { 3, 50 };
+> +
+
+min should be 1 I guess or you still need to manually check
+that ip_vs_sync_threshold[1] != 0 to avoid a division be zero.
