@@ -1,137 +1,108 @@
-From: Pierre Chifflier <pchifflier@edenwall.com>
-Subject: Re: [PATCH 2/3] Add new input plugin UNIXSOCK
-Date: Wed, 2 Sep 2009 22:45:39 +0200
-Message-ID: <20090902204538.GA1837@piche.inl.fr>
-References: <1251056168-7073-1-git-send-email-chifflier@inl.fr>
- <1251056168-7073-3-git-send-email-chifflier@inl.fr>
- <alpine.LSU.2.00.0908240031330.30556@fbirervta.pbzchgretzou.qr>
+From: Zdenek Kabelac <zdenek.kabelac@gmail.com>
+Subject: Re: System freeze on reboot - general protection fault
+Date: Wed, 2 Sep 2009 23:45:03 +0200
+Message-ID: <c4e36d110909021445l5f44183es9e338437dfbbd195@mail.gmail.com>
+References: <c4e36d110908110542l3de51aaepcbd62c84b9848f2b@mail.gmail.com>
+	 <c4e36d110908110832y21fba830ub8804613df571228@mail.gmail.com>
+	 <20090811154853.GF2763@sgi.com>
+	 <c4e36d110908111410y29b922ceod6871fda2514f6e6@mail.gmail.com>
+	 <c4e36d110908121516u504809e9y537e9babfa95df1d@mail.gmail.com>
+	 <alpine.DEB.1.10.0908121820410.3257@gentwo.org>
+	 <c4e36d110908131009l78b29bffvb4d41b90f9b83288@mail.gmail.com>
+	 <c4e36d110908140233v59421ba6y82192b858210370d@mail.gmail.com>
+	 <4A87CE60.4020506@gmail.com> <4A896324.3040104@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, eleblond@inl.fr
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:50744 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753049AbZIBUsw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Sep 2009 16:48:52 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LSU.2.00.0908240031330.30556@fbirervta.pbzchgretzou.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	Christoph Lameter <cl@linux-foundation.org>,
+	Robin Holt <holt@sgi.com>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Pekka Enberg <penberg@cs.helsinki.fi>,
+	Jesper Dangaard Brouer <hawk@comx.dk>,
+	Linux Netdev List <netdev@vger.kernel.org>,
+	Netfilter Developers <netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753535AbZIBVpI@vger.kernel.org>
+In-Reply-To: <4A896324.3040104@trash.net>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
+
+2009/8/17 Patrick McHardy <kaber@trash.net>:
+> Eric Dumazet wrote:
+>> Zdenek Kabelac a =E9crit :
+>>> =A0[<ffffffffa02c502f>] nf_conntrack_ftp_fini+0x2f/0x70 [nf_conntra=
+ck_ftp]
+>>> =A0[<ffffffff8027bcc5>] sys_delete_module+0x1a5/0x270
+>>> =A0[<ffffffff8020d329>] ? retint_swapgs+0xe/0x13
+>>> =A0[<ffffffff80271bf2>] ? trace_hardirqs_on_caller+0x162/0x1b0
+>>> =A0[<ffffffff80292121>] ? audit_syscall_entry+0x191/0x1c0
+>>> =A0[<ffffffff80526dae>] ? trace_hardirqs_on_thunk+0x3a/0x3f
+>>> =A0[<ffffffff8020c84b>] system_call_fastpath+0x16/0x1b
+>>> Code: c6 00 00 0f 82 66 ff ff ff 49 8b 9e d8 05 00 00 48 85 db 75 1=
+6
+>>> e9 8e 00 00 00 0f 1f 44 00 00 48 85 c0 0f 84 80 00 00 00 48 89 c3 <=
+0f>
+>>> b6 4b 37 48 8b 03 48 8d 14 cd 00 00 00 00 0f 18 08 48 29 ca
+>>> RIP =A0[<ffffffffa02b2c2c>] nf_conntrack_helper_unregister+0x16c/0x=
+320
+>>> [nf_conntrack]
+>>> =A0RSP <ffff88013982fe68>
+>>> CR2: 0000000000000038
+>>> ---[ end trace bc3a0ede3d0084db ]---
+>>>
+>> I am currently traveling and wont be able to help you before next we=
+ek.
+>>
+>> I added netdev, Patrick, and netfilter-devel in CC so that more eyes=
+ can take a look.
+>
+> Thanks for the report, I'll have a look at this. Zdenek, please
+> send me the nf_conntrack.ko file used in the above oops. Thanks.
+>
+
+Ok
+
+I've found the solution for my problem.
+
+http://thread.gmane.org/gmane.comp.security.firewalls.netfilter.devel/3=
+0483
+
+I've made this small fix from this thread:
+
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_connt=
+rack_core
+index b5869b9..68488f8 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1108,6 +1108,7 @@ static void nf_conntrack_cleanup_init_net(void)
+ {
+        nf_conntrack_helper_fini();
+        nf_conntrack_proto_fini();
++       rcu_barrier();
+        kmem_cache_destroy(nf_conntrack_cachep);
+ }
+
+@@ -1266,7 +1267,7 @@ static int nf_conntrack_init_init_net(void)
+
+        nf_conntrack_cachep =3D kmem_cache_create("nf_conntrack",
+                                                sizeof(struct nf_conn),
+-                                               0, SLAB_DESTROY_BY_RCU,=
+ NULL);
++                                               0, 0, NULL);
+        if (!nf_conntrack_cachep) {
+                printk(KERN_ERR "Unable to create nf_conn slab cache\n"=
+);
+                ret =3D -ENOMEM;
 
 
-Hi Jan,
+As the thread nf_conntrack: Use rcu_barrier() and fix kmem_cache_create=
+ flags
+seems to be samewhat 'unfinished'  and already a bit old and I've no
+idea whether it actually fixes problem completely or just hides it in
+my case - I'm leaving it to some RCU gurus to fix this issue.
 
-Thanks for your feedback.
-I'm currently working on a new version of the patch with the changes
-(and some other fixes that were found after some real-life tests)
-I will send the updated parts ASAP.
+All I could say is - this this extra rcu_barrier() and removal of
+SLAB_DESTROY removes my GPF on reboot.
 
-Regards,
-Pierre
-
-On Mon, Aug 24, 2009 at 12:45:11AM +0200, Jan Engelhardt wrote:
-> 
-> On Sunday 2009-08-23 21:36, Pierre Chifflier wrote:
-> >+
-> >+/* Size of the receive buffer for the unix socket. */
-> >+#define UNIXSOCK_BUFSIZE_DEFAULT	150000
-> 
-> Hm. Would it make some sene to '(ab)use' getsockopt(SO_RCVBUF) as the
-> (runtime!) value for the default buffer size?
-> 
-> >+/* Default unix socket path */
-> >+#define UNIXSOCK_UNIXPATH_DEFAULT	"/tmp/ulogd2.sock"
-> >+
-> >+
-> >+#define UNIX_PATH_MAX	108
-> >...
-> >+static int _create_unix_socket(const char *unix_path)
-> >+{
-> >+	int ret = -1;
-> >+	struct sockaddr_un server_sock;
-> >+	int s;
-> >+	socklen_t len;
-> >+
-> >+	s = socket(AF_UNIX, SOCK_STREAM, 0);
-> >+	if (s < 0)
-> >+		return -1;
-> >+
-> >+	server_sock.sun_family = AF_UNIX;
-> >+	strncpy(server_sock.sun_path, unix_path, UNIX_PATH_MAX-1);
-> 
-> You can use sizeof(server_sock.sun_path) instead,
-> obviating the need for UNIX_PATH_MAX.
-> 
-> Also you should - as printf is called in the error case below -
-> ensure it is '\0'-terminated.
-> 
-> >+	len = strlen(server_sock.sun_path) + sizeof(server_sock.sun_family);
-> 
-> len should be sizeof(server_sock)...
-> 
-> >+	ret = bind(s, (struct sockaddr *)&server_sock, len);
-> 
-> ... and since it can be directly passed in:
-> 
-> 	ret = bind(s, server_sock, sizeof(server_sock));
-> 
-> >+/* callback called from ulogd core when fd is readable */
-> >+static int unixsock_instance_read_cb(int fd, unsigned int what, void *param)
-> >+{
-> >+	struct ulogd_pluginstance *upi = (struct ulogd_pluginstance *)param;
-> 
-> There is no cast needed for void*s.
-> 
-> >+/* callback called from ulogd core when fd is readable */
-> >+static int unixsock_server_read_cb(int fd, unsigned int what, void *param)
-> >+{
-> >+	struct ulogd_pluginstance *upi = (struct ulogd_pluginstance *)param;
-> 
-> Same
-> 
-> >+	struct sockaddr_storage saddr;
-> >+
-> >+	if (!(what & ULOGD_FD_READ))
-> >+		return 0;
-> >+
-> >+	ulogd_log(ULOGD_DEBUG, "New server connected on unixsock socket\n");
-> >+
-> >+	len = sizeof(saddr);
-> >+	s = accept(fd, (struct sockaddr*)&saddr, &len);
-> 
-> Since only unix sockets can connect, one could probably
-> use sockaddr_un over sockaddr_storage (though _storage is always
-> a good fallback).
-> 
-> >+struct ulogd_plugin libunixsock_plugin = {
-> >+	.name = "UNIXSOCK",
-> >+	.input = {
-> >+		.type = ULOGD_DTYPE_SOURCE,
-> >+	},
-> >+	.output = {
-> >+		.type = ULOGD_DTYPE_RAW,
-> >+		.keys = output_keys,
-> >+		.num_keys = sizeof(output_keys)/sizeof(struct ulogd_key),
-> 
-> Hmmm. Does ulogd have an ARRAY_SIZE that could make .num_keys easier?
-> 
-> >+void __attribute__ ((constructor)) init(void);
-> >+
-> >+void init(void)
-> >+{
-> >+	ulogd_register_plugin(&libunixsock_plugin);
-> >+}
-> 
-> This can become
-> 
-> static void __attribute__((constructor)) init(void) { ... }
-> 
-> Modules are always self-contained shared libraries if I read
-> the Makefiles right, so there should not be any benefit of
-> giving them 'extern'al linkage.
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Zdenek
