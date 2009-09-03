@@ -1,84 +1,72 @@
-From: Pekka Enberg <penberg@cs.helsinki.fi>
-Subject: Re: [PATCH] slub: fix slab_pad_check() and SLAB_DESTROY_BY_RCU
-Date: Thu, 3 Sep 2009 10:51:47 +0300
-Message-ID: <84144f020909030051u6cf6ae01he25c268f718ff3af@mail.gmail.com>
-References: <c4e36d110908110542l3de51aaepcbd62c84b9848f2b@mail.gmail.com>
-	 <c4e36d110908140233v59421ba6y82192b858210370d@mail.gmail.com>
-	 <4A87CE60.4020506@gmail.com> <4A896324.3040104@trash.net>
-	 <c4e36d110909021445l5f44183es9e338437dfbbd195@mail.gmail.com>
-	 <4A9EEF07.5070800@gmail.com>
-	 <c4e36d110909021531v324a9ce2x3ff2c93b7c5a57de@mail.gmail.com>
-	 <4A9F1620.2080105@gmail.com>
-	 <84144f020909022331x2b275aa5n428f88670e0ae8bc@mail.gmail.com>
-	 <4A9F7283.1090306@gmail.com>
+From: Hannes Eder <heder@google.com>
+Subject: Re: [PATCH 2/3] IPVS: make friends with nf_conntrack
+Date: Thu, 3 Sep 2009 12:22:53 +0200
+Message-ID: <b5ddba180909030322h42aa9337o4c20696b86029b71@mail.gmail.com>
+References: <20090902101417.11561.45663.stgit@jazzy.zrh.corp.google.com>
+	 <20090902101538.11561.11911.stgit@jazzy.zrh.corp.google.com>
+	 <4A9E8788.1090901@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Zdenek Kabelac <zdenek.kabelac@gmail.com>,
-	Patrick McHardy <kaber@trash.net>,
-	Christoph Lameter <cl@linux-foundation.org>,
-	Robin Holt <holt@sgi.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Jesper Dangaard Brouer <hawk@comx.dk>,
-	Linux Netdev List <netdev@vger.kernel.org>,
-	Netfilter Developers <netfilter-devel@vger.kernel.org>,
-	paulmck@linux.vnet.ibm.com
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1752407AbZICHvs@vger.kernel.org>
-In-Reply-To: <4A9F7283.1090306@gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
+Cc: lvs-devel@vger.kernel.org, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	=?ISO-8859-1?Q?Fabien_Duch=EAne?= <mad_fab@skynet.be>,
+	Jan Engelhardt <jengelh@medozas.de>,
+	Jean-Luc Fortemaison <jl.fortemaison@uclouvain.be>,
+	Julian Anastasov <ja@ssi.bg>,
+	Julius Volz <julius.volz@gmail.com>,
+	Laurent Grawet <laurent.grawet@uclouvain.be>,
+	Simon Horman <horms@verge.net.au>,
+	Wensong Zhang <wensong@linux-vs.org>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <4A9E8788.1090901@trash.net>
+Sender: lvs-devel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi Eric,
-
-On Thu, Sep 3, 2009 at 10:38 AM, Eric Dumazet<eric.dumazet@gmail.com> w=
-rote:
->> The rcu_barrier() call was added by this commit:
+On Wed, Sep 2, 2009 at 16:56, Patrick McHardy<kaber@trash.net> wrote:
+> Hannes Eder wrote:
+>> Update the nf_conntrack tuple in reply direction, as we will see
+>> traffic from the real server (RIP) to the client (CIP). =A0Once this=
+ is
+>> done we can use netfilters SNAT in POSTROUTING, especially with
+>> xt_ipvs, to do source NAT, e.g.:
 >>
->> http://git.kernel.org/?p=3Dlinux/kernel/git/torvalds/linux-2.6.git;a=
-=3Dcommitdiff;h=3D7ed9f7e5db58c6e8c2b4b738a75d5dcd8e17aad5
+>> % iptables -t nat -A POSTROUTING -m ipvs --vaddr 192.168.100.30/32 -=
+-vport 8080 \
+>>> -j SNAT --to-source 192.168.10.10
 >>
->> I guess we should CC Paul as well.
 >
-> Sure !
+>> +static void
+>> +ip_vs_update_conntrack(struct sk_buff *skb, struct ip_vs_conn *cp)
+>> +{
+>> + =A0 =A0 struct nf_conn *ct =3D (struct nf_conn *)skb->nfct;
+>> +
+>> + =A0 =A0 if (ct =3D=3D NULL || ct =3D=3D &nf_conntrack_untracked ||
+>> + =A0 =A0 =A0 =A0 nf_ct_is_confirmed(ct))
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return;
+>> +
+>> + =A0 =A0 /*
+>> + =A0 =A0 =A0* The connection is not yet in the hashtable, so we upd=
+ate it.
+>> + =A0 =A0 =A0* CIP->VIP will remain the same, so leave the tuple in
+>> + =A0 =A0 =A0* IP_CT_DIR_ORIGINAL untouched. =A0When the reply comes=
+ back from the
+>> + =A0 =A0 =A0* real-server we will see RIP->DIP.
+>> + =A0 =A0 =A0*/
+>> + =A0 =A0 ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.u3 =3D cp->daddr;
+>> + =A0 =A0 /*
+>> + =A0 =A0 =A0* This will also take care of UDP and other protocols.
+>> + =A0 =A0 =A0*/
+>> + =A0 =A0 ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.u.tcp.port =3D cp=
+->dport;
+>> +}
 >
-> rcu_barrier() is definitly better than synchronize_rcu() in
-> kmem_cache_destroy()
->
-> But its location was not really right (for SLUB at least)
->
-> SLAB_DESTROY_BY_RCU means subsystem will call kfree(elems) without wa=
-iting RCU
-> grace period.
->
-> By the time subsystem calls kmem_cache_destroy(), all previously allo=
-cated
-> elems must have already be kfreed() by this subsystem.
->
-> We must however wait that all slabs, queued for freeing by rcu_free_s=
-lab(),
-> are indeed freed, since this freeing needs access to kmem_cache point=
-er.
->
-> As kmem_cache_close() might clean/purge the cache and call rcu_free_s=
-lab(),
-> we must call rcu_barrier() *after* kmem_cache_close(), and before kfr=
-ee(kmem_cache *s)
->
-> Alternatively we could delay this final kfree(s) (with call_rcu()) bu=
-t would
-> have to copy s->name in kmem_cache_create() instead of keeping a poin=
-ter to
-> =A0a string that might be in a module, and freed at rmmod time.
->
-> Given that there is few uses in current tree that call kmem_cache_des=
-troy()
-> on a SLAB_DESTROY_BY_RCU cache, there is no need to try to optimize t=
-his
-> rcu_barrier() call, unless we want superfast reboot/halt sequences...
+> How does IPVS interact with conntrack helpers? If it does actually
+> intend to use them (which will happen automatically), it might make
+> sense to use nf_conntrack_alter_reply(), which will perform a new
+> helper lookup based on the changed tuple.
 
-Oh, sure, the fix looks sane to me. It's just that I am a complete
-coward when it comes to merging RCU related patches so I always try to
-fish an Acked-by from Paul or Christoph ;).
-
-                        Pekka
+Good point, I'll use nf_conntrack_alter_reply().  IHMO IPVS only deals
+with ftp in a special way, I think something need to be done there as
+well, I'll investigate that.
