@@ -1,89 +1,81 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: [PATCH] slub: Fix kmem_cache_destroy() with SLAB_DESTROY_BY_RCU
-Date: Thu, 03 Sep 2009 16:18:47 +0200
-Message-ID: <4A9FD047.9000002@gmail.com>
-References: <c4e36d110908110542l3de51aaepcbd62c84b9848f2b@mail.gmail.com>	 <4A896324.3040104@trash.net>	 <c4e36d110909021445l5f44183es9e338437dfbbd195@mail.gmail.com>	 <4A9EEF07.5070800@gmail.com>	 <c4e36d110909021531v324a9ce2x3ff2c93b7c5a57de@mail.gmail.com>	 <4A9F1620.2080105@gmail.com>	 <84144f020909022331x2b275aa5n428f88670e0ae8bc@mail.gmail.com>	 <4A9F7283.1090306@gmail.com>	 <84144f020909030051u6cf6ae01he25c268f718ff3af@mail.gmail.com>	 <alpine.DEB.1.10.0909031246010.27903@V090114053VZO-1> <84144f020909030705x7909cf07w7ea0d3662a66c5cc@mail.gmail.com>
+From: Zdenek Kabelac <zdenek.kabelac@gmail.com>
+Subject: Re: [PATCH] slub: fix slab_pad_check() and SLAB_DESTROY_BY_RCU
+Date: Thu, 3 Sep 2009 16:35:08 +0200
+Message-ID: <c4e36d110909030735q338efd00m2f6fe0b973c68e7b@mail.gmail.com>
+References: <c4e36d110908110542l3de51aaepcbd62c84b9848f2b@mail.gmail.com>
+	 <c4e36d110908140233v59421ba6y82192b858210370d@mail.gmail.com>
+	 <4A87CE60.4020506@gmail.com> <4A896324.3040104@trash.net>
+	 <c4e36d110909021445l5f44183es9e338437dfbbd195@mail.gmail.com>
+	 <4A9EEF07.5070800@gmail.com>
+	 <c4e36d110909021531v324a9ce2x3ff2c93b7c5a57de@mail.gmail.com>
+	 <4A9F1620.2080105@gmail.com>
+	 <c4e36d110909030628j53cc0abfq6c1eef7e5e97565b@mail.gmail.com>
+	 <4A9FC8B1.904@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Christoph Lameter <cl@linux-foundation.org>,
-	Zdenek Kabelac <zdenek.kabelac@gmail.com>,
-	Patrick McHardy <kaber@trash.net>, Robin Holt <holt@sgi.com>,
+Cc: Patrick McHardy <kaber@trash.net>,
+	Christoph Lameter <cl@linux-foundation.org>,
+	Robin Holt <holt@sgi.com>,
 	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Pekka Enberg <penberg@cs.helsinki.fi>,
 	Jesper Dangaard Brouer <hawk@comx.dk>,
 	Linux Netdev List <netdev@vger.kernel.org>,
-	Netfilter Developers <netfilter-devel@vger.kernel.org>,
-	paulmck@linux.vnet.ibm.com, "stable@kernel.org" <stable@kernel.org>
-To: Pekka Enberg <penberg@cs.helsinki.fi>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755612AbZICOTy@vger.kernel.org>
-In-Reply-To: <84144f020909030705x7909cf07w7ea0d3662a66c5cc@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+	Netfilter Developers <netfilter-devel@vger.kernel.org>
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-fx0-f217.google.com ([209.85.220.217]:39233 "EHLO
+	mail-fx0-f217.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754222AbZICOfH convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 3 Sep 2009 10:35:07 -0400
+In-Reply-To: <4A9FC8B1.904@gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Pekka Enberg a =E9crit :
-> Hi Christoph,
->=20
-> On Thu, 3 Sep 2009, Pekka Enberg wrote:
->>> Oh, sure, the fix looks sane to me. It's just that I am a complete
->>> coward when it comes to merging RCU related patches so I always try=
- to
->>> fish an Acked-by from Paul or Christoph ;).
->=20
-> On Thu, Sep 3, 2009 at 8:50 PM, Christoph
-> Lameter<cl@linux-foundation.org> wrote:
->> I am fine with acking the poison piece.
->=20
-> Ok.
->=20
-> On Thu, Sep 3, 2009 at 8:50 PM, Christoph
-> Lameter<cl@linux-foundation.org> wrote:
->> I did not ack the patch that added rcu to kmem_cache_destroy() and I
->> likely wont ack that piece either.
->=20
-> Right. I didn't remember that I merged that over your NAK but I don't
-> share your view that kmem_cache_destroy() callers should do
-> rcu_barrier() or whatever is necessary if we can do it from
-> kmem_cache_destroy(). So I am happy to take both changes but I would
-> appreciate them being split into two separate patches.
->=20
+2009/9/3 Eric Dumazet <eric.dumazet@gmail.com>:
+> Zdenek Kabelac a =E9crit :
+>> 2009/9/3 Eric Dumazet <eric.dumazet@gmail.com>:
+>>> Zdenek Kabelac a =E9crit :
+>>>> Well I'm not noticing any ill behavior - also note - rcu_barrier()=
+ is
+>>>> there before the cache is destroyed.
+>>>> But as I said - it's just my shot into the dark - which seems to w=
+ork for me...
+>>>>
+>>> Reading again your traces, I do believe there are two bugs in slub
+>>>
+>>> Maybe not explaining your problem, but worth to fix !
+>>>
+>>> Thank you
+>>>
+>>> [PATCH] slub: fix slab_pad_check() and SLAB_DESTROY_BY_RCU
+>>>
+>>
+>>
+>> Ok - I can confirm that this patch fixes my reboot problem.
+>>
+>> Thanks
+>>
+>> Zdenek
+>
+> Good news !
+>
+> Hmm... but you had a problem with a 2.6.29.something kernel if I reme=
+mber well ?
+>
+> At that time, conntrack did not use SLAB_DESTROY_BY_RCU yet.
 
-Here is the second patch (RCU thing). Stable candidate
+Yes - but it was also giving different error message - which even not
+loaded ftp conntrack module. Basically it has been fine until
+conntrack started to use rcu. From that moment various errors started
+to appear with slub and some kernel debugging options - slab was fine.
+With your recent patch it's the first time I do not see oops with nf
+after 2.6.29 kernel.
 
-[PATCH] slub: Fix kmem_cache_destroy() with SLAB_DESTROY_BY_RCU
-
-kmem_cache_destroy() should call rcu_barrier() *after* kmem_cache_close=
-()
-and *before* sysfs_slab_remove() or risk rcu_free_slab()
-being called after kmem_cache is deleted (kfreed).
-
-rmmod nf_conntrack can crash the machine because it has to
-kmem_cache_destroy() a SLAB_DESTROY_BY_RCU enabled cache.
-
-Reported-by: Zdenek Kabelac <zdenek.kabelac@gmail.com>
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
-Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
----
-
-diff --git a/mm/slub.c b/mm/slub.c
-index b9f1491..b627675 100644
---- a/mm/slub.c
-+++ b/mm/slub.c
-@@ -2594,8 +2594,6 @@ static inline int kmem_cache_close(struct kmem_ca=
-che *s)
-  */
- void kmem_cache_destroy(struct kmem_cache *s)
- {
--	if (s->flags & SLAB_DESTROY_BY_RCU)
--		rcu_barrier();
- 	down_write(&slub_lock);
- 	s->refcount--;
- 	if (!s->refcount) {
-@@ -2606,6 +2604,8 @@ void kmem_cache_destroy(struct kmem_cache *s)
- 				"still has objects.\n", s->name, __func__);
- 			dump_stack();
- 		}
-+		if (s->flags & SLAB_DESTROY_BY_RCU)
-+			rcu_barrier();
- 		sysfs_slab_remove(s);
- 	} else
- 		up_write(&slub_lock);
+Zdenek
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
