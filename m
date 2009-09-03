@@ -1,20 +1,12 @@
-From: Pekka Enberg <penberg@cs.helsinki.fi>
-Subject: Re: [PATCH] slub: fix slab_pad_check() and SLAB_DESTROY_BY_RCU
-Date: Thu, 3 Sep 2009 17:05:30 +0300
-Message-ID: <84144f020909030705x7909cf07w7ea0d3662a66c5cc@mail.gmail.com>
-References: <c4e36d110908110542l3de51aaepcbd62c84b9848f2b@mail.gmail.com>
-	 <4A896324.3040104@trash.net>
-	 <c4e36d110909021445l5f44183es9e338437dfbbd195@mail.gmail.com>
-	 <4A9EEF07.5070800@gmail.com>
-	 <c4e36d110909021531v324a9ce2x3ff2c93b7c5a57de@mail.gmail.com>
-	 <4A9F1620.2080105@gmail.com>
-	 <84144f020909022331x2b275aa5n428f88670e0ae8bc@mail.gmail.com>
-	 <4A9F7283.1090306@gmail.com>
-	 <84144f020909030051u6cf6ae01he25c268f718ff3af@mail.gmail.com>
-	 <alpine.DEB.1.10.0909031246010.27903@V090114053VZO-1>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: [PATCH] slub: fix slab_pad_check()
+Date: Thu, 03 Sep 2009 16:08:06 +0200
+Message-ID: <4A9FCDC6.3060003@gmail.com>
+References: <c4e36d110908110542l3de51aaepcbd62c84b9848f2b@mail.gmail.com>  <alpine.DEB.1.10.0908121820410.3257@gentwo.org>  <c4e36d110908131009l78b29bffvb4d41b90f9b83288@mail.gmail.com>  <c4e36d110908140233v59421ba6y82192b858210370d@mail.gmail.com>  <4A87CE60.4020506@gmail.com> <4A896324.3040104@trash.net>  <c4e36d110909021445l5f44183es9e338437dfbbd195@mail.gmail.com>  <4A9EEF07.5070800@gmail.com>  <c4e36d110909021531v324a9ce2x3ff2c93b7c5a57de@mail.gmail.com>  <4A9F1620.2080105@gmail.com> <84144f020909022331x2b275aa5n428f88670e0ae8bc@mail.gmail.com> <4A9F7283.1090306@gmail.com> <alpine.DEB.1.10.0909031244230.27903@V090114053VZO-1>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Pekka Enberg <penberg@cs.helsinki.fi>,
 	Zdenek Kabelac <zdenek.kabelac@gmail.com>,
 	Patrick McHardy <kaber@trash.net>, Robin Holt <holt@sgi.com>,
 	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
@@ -23,38 +15,65 @@ Cc: Eric Dumazet <eric.dumazet@gmail.com>,
 	Netfilter Developers <netfilter-devel@vger.kernel.org>,
 	paulmck@linux.vnet.ibm.com
 To: Christoph Lameter <cl@linux-foundation.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-bw0-f219.google.com ([209.85.218.219]:60703 "EHLO
-	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754497AbZICOF3 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Sep 2009 10:05:29 -0400
-In-Reply-To: <alpine.DEB.1.10.0909031246010.27903@V090114053VZO-1>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1755503AbZICOLe@vger.kernel.org>
+In-Reply-To: <alpine.DEB.1.10.0909031244230.27903@V090114053VZO-1>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Christoph,
+Christoph Lameter a =E9crit :
+> On Thu, 3 Sep 2009, Eric Dumazet wrote:
+>=20
+>> on a SLAB_DESTROY_BY_RCU cache, there is no need to try to optimize =
+this
+>> rcu_barrier() call, unless we want superfast reboot/halt sequences..=
+=2E
+>=20
+> I stilll think that the action to quiesce rcu is something that the c=
+aller
+> of kmem_cache_destroy must take care of.
 
-On Thu, 3 Sep 2009, Pekka Enberg wrote:
->> Oh, sure, the fix looks sane to me. It's just that I am a complete
->> coward when it comes to merging RCU related patches so I always try to
->> fish an Acked-by from Paul or Christoph ;).
+Do you mean :
 
-On Thu, Sep 3, 2009 at 8:50 PM, Christoph
-Lameter<cl@linux-foundation.org> wrote:
-> I am fine with acking the poison piece.
+if (kmem_cache_shrink(s) =3D=3D 0) {
+	rcu_barrier();
+	kmem_cache_destroy_no_rcu_barrier(s);
+} else {
+	kmem_cache_destroy_with_rcu_barrier_because_SLAB_DESTROY_BY_RCU_cache(=
+s);
+}
 
-Ok.
+What would be the point ?
 
-On Thu, Sep 3, 2009 at 8:50 PM, Christoph
-Lameter<cl@linux-foundation.org> wrote:
-> I did not ack the patch that added rcu to kmem_cache_destroy() and I
-> likely wont ack that piece either.
 
-Right. I didn't remember that I merged that over your NAK but I don't
-share your view that kmem_cache_destroy() callers should do
-rcu_barrier() or whatever is necessary if we can do it from
-kmem_cache_destroy(). So I am happy to take both changes but I would
-appreciate them being split into two separate patches.
 
-                        Pekka
+>=20
+> Could you split this into two patches: One that addresses the poison =
+and
+> another that deals with rcu?
+>=20
+
+Sure, here is the poison thing
+
+[PATCH] slub: fix slab_pad_check()
+
+When SLAB_POISON is used and slab_pad_check() finds an overwrite of the
+slab padding, we call restore_bytes() on the whole slab, not only
+on the padding.
+
+Reported-by: Zdenek Kabelac <zdenek.kabelac@gmail.com>
+Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+---
+diff --git a/mm/slub.c b/mm/slub.c
+index b9f1491..0ac839f 100644
+--- a/mm/slub.c
++++ b/mm/slub.c
+@@ -646,7 +646,7 @@ static int slab_pad_check(struct kmem_cache *s, str=
+uct page *page)
+ 	slab_err(s, page, "Padding overwritten. 0x%p-0x%p", fault, end - 1);
+ 	print_section("Padding", end - remainder, remainder);
+=20
+-	restore_bytes(s, "slab padding", POISON_INUSE, start, end);
++	restore_bytes(s, "slab padding", POISON_INUSE, end - remainder, end);
+ 	return 0;
+ }
+=20
