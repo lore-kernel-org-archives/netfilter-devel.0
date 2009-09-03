@@ -1,16 +1,8 @@
-From: Zdenek Kabelac <zdenek.kabelac@gmail.com>
-Subject: Re: System freeze on reboot - general protection fault
-Date: Thu, 3 Sep 2009 00:31:07 +0200
-Message-ID: <c4e36d110909021531v324a9ce2x3ff2c93b7c5a57de@mail.gmail.com>
-References: <c4e36d110908110542l3de51aaepcbd62c84b9848f2b@mail.gmail.com>
-	 <c4e36d110908111410y29b922ceod6871fda2514f6e6@mail.gmail.com>
-	 <c4e36d110908121516u504809e9y537e9babfa95df1d@mail.gmail.com>
-	 <alpine.DEB.1.10.0908121820410.3257@gentwo.org>
-	 <c4e36d110908131009l78b29bffvb4d41b90f9b83288@mail.gmail.com>
-	 <c4e36d110908140233v59421ba6y82192b858210370d@mail.gmail.com>
-	 <4A87CE60.4020506@gmail.com> <4A896324.3040104@trash.net>
-	 <c4e36d110909021445l5f44183es9e338437dfbbd195@mail.gmail.com>
-	 <4A9EEF07.5070800@gmail.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: [PATCH] slub: fix slab_pad_check() and SLAB_DESTROY_BY_RCU
+Date: Thu, 03 Sep 2009 03:04:32 +0200
+Message-ID: <4A9F1620.2080105@gmail.com>
+References: <c4e36d110908110542l3de51aaepcbd62c84b9848f2b@mail.gmail.com>	 <c4e36d110908111410y29b922ceod6871fda2514f6e6@mail.gmail.com>	 <c4e36d110908121516u504809e9y537e9babfa95df1d@mail.gmail.com>	 <alpine.DEB.1.10.0908121820410.3257@gentwo.org>	 <c4e36d110908131009l78b29bffvb4d41b90f9b83288@mail.gmail.com>	 <c4e36d110908140233v59421ba6y82192b858210370d@mail.gmail.com>	 <4A87CE60.4020506@gmail.com> <4A896324.3040104@trash.net>	 <c4e36d110909021445l5f44183es9e338437dfbbd195@mail.gmail.com>	 <4A9EEF07.5070800@gmail.com> <c4e36d110909021531v324a9ce2x3ff2c93b7c5a57de@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
@@ -22,109 +14,73 @@ Cc: Patrick McHardy <kaber@trash.net>,
 	Jesper Dangaard Brouer <hawk@comx.dk>,
 	Linux Netdev List <netdev@vger.kernel.org>,
 	Netfilter Developers <netfilter-devel@vger.kernel.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753696AbZIBWbJ@vger.kernel.org>
-In-Reply-To: <4A9EEF07.5070800@gmail.com>
+To: Zdenek Kabelac <zdenek.kabelac@gmail.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753995AbZICBIX@vger.kernel.org>
+In-Reply-To: <c4e36d110909021531v324a9ce2x3ff2c93b7c5a57de@mail.gmail.com>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-2009/9/3 Eric Dumazet <eric.dumazet@gmail.com>:
-> Zdenek Kabelac a =E9crit :
->> 2009/8/17 Patrick McHardy <kaber@trash.net>:
->>> Eric Dumazet wrote:
->>>> Zdenek Kabelac a =E9crit :
->>>>> =A0[<ffffffffa02c502f>] nf_conntrack_ftp_fini+0x2f/0x70 [nf_connt=
-rack_ftp]
->>>>> =A0[<ffffffff8027bcc5>] sys_delete_module+0x1a5/0x270
->>>>> =A0[<ffffffff8020d329>] ? retint_swapgs+0xe/0x13
->>>>> =A0[<ffffffff80271bf2>] ? trace_hardirqs_on_caller+0x162/0x1b0
->>>>> =A0[<ffffffff80292121>] ? audit_syscall_entry+0x191/0x1c0
->>>>> =A0[<ffffffff80526dae>] ? trace_hardirqs_on_thunk+0x3a/0x3f
->>>>> =A0[<ffffffff8020c84b>] system_call_fastpath+0x16/0x1b
->>>>> Code: c6 00 00 0f 82 66 ff ff ff 49 8b 9e d8 05 00 00 48 85 db 75=
- 16
->>>>> e9 8e 00 00 00 0f 1f 44 00 00 48 85 c0 0f 84 80 00 00 00 48 89 c3=
- <0f>
->>>>> b6 4b 37 48 8b 03 48 8d 14 cd 00 00 00 00 0f 18 08 48 29 ca
->>>>> RIP =A0[<ffffffffa02b2c2c>] nf_conntrack_helper_unregister+0x16c/=
-0x320
->>>>> [nf_conntrack]
->>>>> =A0RSP <ffff88013982fe68>
->>>>> CR2: 0000000000000038
->>>>> ---[ end trace bc3a0ede3d0084db ]---
->>>>>
->>>> I am currently traveling and wont be able to help you before next =
-week.
->>>>
->>>> I added netdev, Patrick, and netfilter-devel in CC so that more ey=
-es can take a look.
->>> Thanks for the report, I'll have a look at this. Zdenek, please
->>> send me the nf_conntrack.ko file used in the above oops. Thanks.
->>>
->>
->> Ok
->>
->> I've found the solution for my problem.
->>
->> http://thread.gmane.org/gmane.comp.security.firewalls.netfilter.deve=
-l/30483
->>
->> I've made this small fix from this thread:
->>
->> diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_co=
-nntrack_core
->> index b5869b9..68488f8 100644
->> --- a/net/netfilter/nf_conntrack_core.c
->> +++ b/net/netfilter/nf_conntrack_core.c
->> @@ -1108,6 +1108,7 @@ static void nf_conntrack_cleanup_init_net(void=
-)
->> =A0{
->> =A0 =A0 =A0 =A0 nf_conntrack_helper_fini();
->> =A0 =A0 =A0 =A0 nf_conntrack_proto_fini();
->> + =A0 =A0 =A0 rcu_barrier();
->> =A0 =A0 =A0 =A0 kmem_cache_destroy(nf_conntrack_cachep);
->> =A0}
->>
->> @@ -1266,7 +1267,7 @@ static int nf_conntrack_init_init_net(void)
->>
->> =A0 =A0 =A0 =A0 nf_conntrack_cachep =3D kmem_cache_create("nf_conntr=
-ack",
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =
-=A0 =A0 =A0 =A0 =A0 =A0 =A0 sizeof(struct nf_conn),
->> - =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 0, SLAB_DESTROY_BY_RCU, NULL);
->> + =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0=
- =A0 =A0 =A0 =A0 =A0 =A0 0, 0, NULL);
->> =A0 =A0 =A0 =A0 if (!nf_conntrack_cachep) {
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 printk(KERN_ERR "Unable to create nf=
-_conn slab cache\n");
->> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 ret =3D -ENOMEM;
->>
->>
->> As the thread nf_conntrack: Use rcu_barrier() and fix kmem_cache_cre=
-ate flags
->> seems to be samewhat 'unfinished' =A0and already a bit old and I've =
-no
->> idea whether it actually fixes problem completely or just hides it i=
-n
->> my case - I'm leaving it to some RCU gurus to fix this issue.
->>
->> All I could say is - this this extra rcu_barrier() and removal of
->> SLAB_DESTROY removes my GPF on reboot.
->>
->> Zdenek
->
-> Ouch..
->
-> Dont think such a patch makes your kernel better, it'll crash too.
->
-> You cannot remove SLAB_DESTROY_BY_RCU like this, it's there for very =
-good reasons.
->
+Zdenek Kabelac a =E9crit :
+>=20
+> Well I'm not noticing any ill behavior - also note - rcu_barrier() is
+> there before the cache is destroyed.
+> But as I said - it's just my shot into the dark - which seems to work=
+ for me...
+>=20
 
-Well I'm not noticing any ill behavior - also note - rcu_barrier() is
-there before the cache is destroyed.
-But as I said - it's just my shot into the dark - which seems to work f=
-or me...
+Reading again your traces, I do believe there are two bugs in slub
 
-Zdenek
+Maybe not explaining your problem, but worth to fix !
+
+Thank you
+
+[PATCH] slub: fix slab_pad_check() and SLAB_DESTROY_BY_RCU
+
+When SLAB_POISON is used and slab_pad_check() finds an overwrite of the
+slab padding, we call restore_bytes() on the whole slab, not only
+on the padding.
+
+kmem_cache_destroy() should call rcu_barrier() *after* kmem_cache_close=
+()
+and *before* sysfs_slab_remove() or risk rcu_free_slab()
+being called after kmem_cache is deleted (kfreed).
+
+rmmod nf_conntrack can crash the machine because it has to
+kmem_cache_destroy() a SLAB_DESTROY_BY_RCU enabled cache.
+
+Reported-by: Zdenek Kabelac <zdenek.kabelac@gmail.com>
+Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+---
+diff --git a/mm/slub.c b/mm/slub.c
+index b9f1491..0ac839f 100644
+--- a/mm/slub.c
++++ b/mm/slub.c
+@@ -646,7 +646,7 @@ static int slab_pad_check(struct kmem_cache *s, str=
+uct page *page)
+ 	slab_err(s, page, "Padding overwritten. 0x%p-0x%p", fault, end - 1);
+ 	print_section("Padding", end - remainder, remainder);
+=20
+-	restore_bytes(s, "slab padding", POISON_INUSE, start, end);
++	restore_bytes(s, "slab padding", POISON_INUSE, end - remainder, end);
+ 	return 0;
+ }
+=20
+@@ -2594,8 +2594,6 @@ static inline int kmem_cache_close(struct kmem_ca=
+che *s)
+  */
+ void kmem_cache_destroy(struct kmem_cache *s)
+ {
+-	if (s->flags & SLAB_DESTROY_BY_RCU)
+-		rcu_barrier();
+ 	down_write(&slub_lock);
+ 	s->refcount--;
+ 	if (!s->refcount) {
+@@ -2606,6 +2604,8 @@ void kmem_cache_destroy(struct kmem_cache *s)
+ 				"still has objects.\n", s->name, __func__);
+ 			dump_stack();
+ 		}
++		if (s->flags & SLAB_DESTROY_BY_RCU)
++			rcu_barrier();
+ 		sysfs_slab_remove(s);
+ 	} else
+ 		up_write(&slub_lock);
