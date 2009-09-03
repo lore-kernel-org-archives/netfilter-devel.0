@@ -1,84 +1,55 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH 2/3] IPVS: make friends with nf_conntrack
-Date: Thu, 3 Sep 2009 21:04:13 +1000
-Message-ID: <20090903110349.GA5393@verge.net.au>
-References: <20090902101417.11561.45663.stgit@jazzy.zrh.corp.google.com>
- <20090902101538.11561.11911.stgit@jazzy.zrh.corp.google.com>
- <4A9E8788.1090901@trash.net>
- <b5ddba180909030322h42aa9337o4c20696b86029b71@mail.gmail.com>
+From: Zdenek Kabelac <zdenek.kabelac@gmail.com>
+Subject: Re: [PATCH] slub: fix slab_pad_check() and SLAB_DESTROY_BY_RCU
+Date: Thu, 3 Sep 2009 15:28:30 +0200
+Message-ID: <c4e36d110909030628j53cc0abfq6c1eef7e5e97565b@mail.gmail.com>
+References: <c4e36d110908110542l3de51aaepcbd62c84b9848f2b@mail.gmail.com>
+	 <alpine.DEB.1.10.0908121820410.3257@gentwo.org>
+	 <c4e36d110908131009l78b29bffvb4d41b90f9b83288@mail.gmail.com>
+	 <c4e36d110908140233v59421ba6y82192b858210370d@mail.gmail.com>
+	 <4A87CE60.4020506@gmail.com> <4A896324.3040104@trash.net>
+	 <c4e36d110909021445l5f44183es9e338437dfbbd195@mail.gmail.com>
+	 <4A9EEF07.5070800@gmail.com>
+	 <c4e36d110909021531v324a9ce2x3ff2c93b7c5a57de@mail.gmail.com>
+	 <4A9F1620.2080105@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>, lvs-devel@vger.kernel.org,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Fabien =?iso-8859-1?Q?Duch=EAne?= <mad_fab@skynet.be>,
-	Jan Engelhardt <jengelh@medozas.de>,
-	Jean-Luc Fortemaison <jl.fortemaison@uclouvain.be>,
-	Julian Anastasov <ja@ssi.bg>,
-	Julius Volz <julius.volz@gmail.com>,
-	Laurent Grawet <laurent.grawet@uclouvain.be>,
-	Wensong Zhang <wensong@linux-vs.org>
-To: Hannes Eder <heder@google.com>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <b5ddba180909030322h42aa9337o4c20696b86029b71@mail.gmail.com>
-Sender: lvs-devel-owner@vger.kernel.org
+Cc: Patrick McHardy <kaber@trash.net>,
+	Christoph Lameter <cl@linux-foundation.org>,
+	Robin Holt <holt@sgi.com>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Pekka Enberg <penberg@cs.helsinki.fi>,
+	Jesper Dangaard Brouer <hawk@comx.dk>,
+	Linux Netdev List <netdev@vger.kernel.org>,
+	Netfilter Developers <netfilter-devel@vger.kernel.org>
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1753879AbZICN2c@vger.kernel.org>
+In-Reply-To: <4A9F1620.2080105@gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, Sep 03, 2009 at 12:22:53PM +0200, Hannes Eder wrote:
-> On Wed, Sep 2, 2009 at 16:56, Patrick McHardy<kaber@trash.net> wrote:
-> > Hannes Eder wrote:
-> >> Update the nf_conntrack tuple in reply direction, as we will see
-> >> traffic from the real server (RIP) to the client (CIP). =A0Once th=
-is is
-> >> done we can use netfilters SNAT in POSTROUTING, especially with
-> >> xt_ipvs, to do source NAT, e.g.:
-> >>
-> >> % iptables -t nat -A POSTROUTING -m ipvs --vaddr 192.168.100.30/32=
- --vport 8080 \
-> >>> -j SNAT --to-source 192.168.10.10
-> >>
-> >
-> >> +static void
-> >> +ip_vs_update_conntrack(struct sk_buff *skb, struct ip_vs_conn *cp=
-)
-> >> +{
-> >> + =A0 =A0 struct nf_conn *ct =3D (struct nf_conn *)skb->nfct;
-> >> +
-> >> + =A0 =A0 if (ct =3D=3D NULL || ct =3D=3D &nf_conntrack_untracked =
-||
-> >> + =A0 =A0 =A0 =A0 nf_ct_is_confirmed(ct))
-> >> + =A0 =A0 =A0 =A0 =A0 =A0 return;
-> >> +
-> >> + =A0 =A0 /*
-> >> + =A0 =A0 =A0* The connection is not yet in the hashtable, so we u=
-pdate it.
-> >> + =A0 =A0 =A0* CIP->VIP will remain the same, so leave the tuple i=
-n
-> >> + =A0 =A0 =A0* IP_CT_DIR_ORIGINAL untouched. =A0When the reply com=
-es back from the
-> >> + =A0 =A0 =A0* real-server we will see RIP->DIP.
-> >> + =A0 =A0 =A0*/
-> >> + =A0 =A0 ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.u3 =3D cp->dadd=
-r;
-> >> + =A0 =A0 /*
-> >> + =A0 =A0 =A0* This will also take care of UDP and other protocols=
-=2E
-> >> + =A0 =A0 =A0*/
-> >> + =A0 =A0 ct->tuplehash[IP_CT_DIR_REPLY].tuple.src.u.tcp.port =3D =
-cp->dport;
-> >> +}
-> >
-> > How does IPVS interact with conntrack helpers? If it does actually
-> > intend to use them (which will happen automatically), it might make
-> > sense to use nf_conntrack_alter_reply(), which will perform a new
-> > helper lookup based on the changed tuple.
->=20
-> Good point, I'll use nf_conntrack_alter_reply().  IHMO IPVS only deal=
+2009/9/3 Eric Dumazet <eric.dumazet@gmail.com>:
+> Zdenek Kabelac a =E9crit :
+>>
+>> Well I'm not noticing any ill behavior - also note - rcu_barrier() i=
 s
-> with ftp in a special way, I think something need to be done there as
-> well, I'll investigate that.
+>> there before the cache is destroyed.
+>> But as I said - it's just my shot into the dark - which seems to wor=
+k for me...
+>>
+>
+> Reading again your traces, I do believe there are two bugs in slub
+>
+> Maybe not explaining your problem, but worth to fix !
+>
+> Thank you
+>
+> [PATCH] slub: fix slab_pad_check() and SLAB_DESTROY_BY_RCU
+>
 
-Yes, I think that is correct. FTP is the only protocol helper in IPVS.
 
+Ok - I can confirm that this patch fixes my reboot problem.
+
+Thanks
+
+Zdenek
