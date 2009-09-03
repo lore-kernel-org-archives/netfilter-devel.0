@@ -1,59 +1,46 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [PATCH] slub: fix slab_pad_check()
-Date: Thu, 3 Sep 2009 16:17:57 -0700
-Message-ID: <20090903231757.GP6761@linux.vnet.ibm.com>
-References: <4A9F1620.2080105@gmail.com> <84144f020909022331x2b275aa5n428f88670e0ae8bc@mail.gmail.com> <4A9F7283.1090306@gmail.com> <alpine.DEB.1.10.0909031244230.27903@V090114053VZO-1> <4A9FCDC6.3060003@gmail.com> <alpine.DEB.1.10.0909031335430.29881@V090114053VZO-1> <4A9FDA72.8060001@gmail.com> <alpine.DEB.1.10.0909031414310.29881@V090114053VZO-1> <4AA00400.1030005@gmail.com> <alpine.DEB.1.10.0909031731540.24199@V090114053VZO-1>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 2/3] Add new input plugin UNIXSOCK
+Date: Fri, 4 Sep 2009 01:54:42 +0200 (CEST)
+Message-ID: <alpine.LSU.2.00.0909040147210.29902@obet.zrqbmnf.qr>
+References: <alpine.LSU.2.00.0908240031330.30556@fbirervta.pbzchgretzou.qr> <1252013004-9029-2-git-send-email-chifflier@inl.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	Pekka Enberg <penberg@cs.helsinki.fi>,
-	Zdenek Kabelac <zdenek.kabelac@gmail.com>,
-	Patrick McHardy <kaber@trash.net>, Robin Holt <holt@sgi.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Jesper Dangaard Brouer <hawk@comx.dk>,
-	Linux Netdev List <netdev@vger.kernel.org>,
-	Netfilter Developers <netfilter-devel@vger.kernel.org>
-To: Christoph Lameter <cl@linux-foundation.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org, eleblond@inl.fr
+To: Pierre Chifflier <chifflier@inl.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from e6.ny.us.ibm.com ([32.97.182.146]:60886 "EHLO e6.ny.us.ibm.com"
+Received: from borg.medozas.de ([188.40.89.202]:39990 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755288AbZICXR4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Sep 2009 19:17:56 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.1.10.0909031731540.24199@V090114053VZO-1>
+	id S1755390AbZIDADf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 3 Sep 2009 20:03:35 -0400
+In-Reply-To: <1252013004-9029-2-git-send-email-chifflier@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Sep 03, 2009 at 05:44:54PM -0500, Christoph Lameter wrote:
-> On Thu, 3 Sep 2009, Eric Dumazet wrote:
-> 
-> > It seems very smart, but needs review of all callers to make sure no slabs
-> > are waiting for final freeing in call_rcu queue on some cpu.
-> 
-> Yes. Again this is the first time we encounter a situation where a
-> DESTROY_BY_RCU slab has to be destroyed. So the review is quite short.
-> 
-> > I suspect most of them will then have to use rcu_barrier() before calling
-> > kmem_cache_destroy(), so why not factorizing code in one place ?
-> 
-> There are different forms of RCU which require different forms of
-> barriers. Its best to leave that up to the user. Again the user must make
-> sure that no objects are in use before a slab is destroyed. For
-> SLAB_DESTROY_BY_RCU this means that there are no potential outstanding
-> reads on the structure. You may need an rcu_barrier() to accomplish that.
-> 
-> Slight variations in the use of RCU could require different method. Better
-> reduce the entanglement of slabs to RCU to a mininum possible.
 
-If it were the user of the slab who was invoking some variant of
-call_rcu(), then I would agree with you.
+On Thursday 2009-09-03 23:23, Pierre Chifflier wrote:
+>+#include <ulogd/ulogd.h>
+>+
+>+/* Default size of the receive buffer for the unix socket
+>+   0 means that ulogd will use getsockopt(SO_RCVBUF) to determine it
+>+   at runtime */
+>+#define UNIXSOCK_BUFSIZE_DEFAULT	0
+>+
+>+/* Default unix socket path */
+>+#define UNIXSOCK_UNIXPATH_DEFAULT	"/tmp/ulogd2.sock"
 
-However, call_rcu() is instead being invoked by the slab itself in the
-case of SLAB_DESTROY_BY_RCU, so that there is no variation in usage.
-Requiring that the user call rcu_barrier() is asking for subtle bugs.
-Therefore, the best approach is to have kmem_cache_destroy() handle
-the RCU cleanup, given that this cleanup is for actions taken by
-kmem_cache_free(), not by the user.
+That does not look like a good default path, though it might be
+configurable at runtime. It seems that, because sockets are
+world-connectable by default, random users could spam your socket.
 
-							Thanx, Paul
+Subsequently, there also seems to be an easy DoS whereby a user process 
+only needs to connect to block a legitimate program from sending packets 
+to the module.
+
+Finally, but this is not so much of a problem, a user could also create 
+ulogd2.sock first and then receive potentially interesting packets from 
+a legitimate program that thought it would connect to ulogd2.
+
+I would just move it out to, for example, /var/run/ulogd/ulogd2.sock
+so one can set restrictions on /var/run/ulogd as needed.
+
+What are your thoughts?
