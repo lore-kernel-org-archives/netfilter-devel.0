@@ -1,42 +1,48 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 00/11] TProxy for IPv6
-Date: Fri, 4 Sep 2009 11:28:00 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0909041124090.27609@obet.zrqbmnf.qr>
-References: <cover.1251295408.git.bazsi@balabit.hu> <4AA0AE8C.30203@treenet.co.nz>
+From: Christoph Lameter <cl@linux-foundation.org>
+Subject: Re: [PATCH] slub: fix slab_pad_check()
+Date: Fri, 4 Sep 2009 11:33:26 -0400 (EDT)
+Message-ID: <alpine.DEB.1.10.0909041130030.9781@V090114053VZO-1>
+References: <4A9F1620.2080105@gmail.com> <84144f020909022331x2b275aa5n428f88670e0ae8bc@mail.gmail.com> <4A9F7283.1090306@gmail.com> <alpine.DEB.1.10.0909031244230.27903@V090114053VZO-1> <4A9FCDC6.3060003@gmail.com> <alpine.DEB.1.10.0909031335430.29881@V090114053VZO-1>
+ <4A9FDA72.8060001@gmail.com> <alpine.DEB.1.10.0909031414310.29881@V090114053VZO-1> <20090903174435.GF6761@linux.vnet.ibm.com> <alpine.DEB.1.10.0909031736340.24199@V090114053VZO-1> <20090903220300.GN6761@linux.vnet.ibm.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Balazs Scheidler <bazsi@balabit.hu>,
-	netfilter-devel@vger.kernel.org, tproxy@lists.balabit.hu,
-	Harry Mason <harry.mason@smoothwall.net>
-To: Amos Jeffries <squid3@treenet.co.nz>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:54137 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933298AbZIDJ16 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 4 Sep 2009 05:27:58 -0400
-In-Reply-To: <4AA0AE8C.30203@treenet.co.nz>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	Pekka Enberg <penberg@cs.helsinki.fi>,
+	Zdenek Kabelac <zdenek.kabelac@gmail.com>,
+	Patrick McHardy <kaber@trash.net>, Robin Holt <holt@sgi.com>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Jesper Dangaard Brouer <hawk@comx.dk>,
+	Linux Netdev List <netdev@vger.kernel.org>,
+	Netfilter Developers <netfilter-devel@vger.kernel.org>
+To: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S933866AbZIDS4r@vger.kernel.org>
+In-Reply-To: <20090903220300.GN6761@linux.vnet.ibm.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+On Thu, 3 Sep 2009, Paul E. McKenney wrote:
 
-On Friday 2009-09-04 08:07, Amos Jeffries wrote:
->>
->> Also, I have written a Python test script to test TProxy functionality
->> automatically both for IPv4 and IPv6, I can post that as well if anyone is
->> interested.
+> > You need to ensure that no objects are in use before destroying a slab. In
+> > case of DESTROY_BY_RCU you must ensure that there are no potential
+> > readers. So use a suitable rcu barrier or something else like a
+> > synchronize_rcu...
 >
-> I'm interested :)
->
-> Now that you have done this I'm going to have to find a robust userland
-> run-time test to see if the underlying TPROXY is v4-only or v6-enabled. If
-> anyone has suggestions they would be welcome.
+> If by "you must ensure" you mean "kmem_cache_destroy must ensure", then
+> we are in complete agreement.  Otherwise, not a chance.
 
-Would this perhaps suffice?
+Well then we are going down to a crappy interface and mixing rcu with slab
+semantics. More bugs to follow in the future.
 
-assert(socket(PF_INET6, ...) >= 0);
-assert(setsockopt(fd, SOL_IP, IP_TRANSPARENT, ...) == 0);
-assert(bind(fd, {::2}) == 0);
+> If by "must ensure that no objects are in use", you mean "must have
+> no further references to them", then we are in agreement.  And in my
+> scenario above, it is not the -user- who later references the memory,
+> but rather the slab code itself.
 
-At least something like that I remember to have used to determine
-tproxy-2.x ipv4 availability in the days. (I.e. seeing if setsockopt
-failed.)
+The slab code itself is not referencing the later memory with my patch. It
+can only be the user.
+
+> Put the rcu_barrier() in kmem_cache_free().  Please.
+
+Guess we are doing this ... Sigh. Are you going to add support other rcu
+versions to slab as well as time permits and as the need arises? Should we
+add you as a maintainer? ;-)
