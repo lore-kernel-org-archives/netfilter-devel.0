@@ -1,71 +1,68 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [PATCH] slub: fix slab_pad_check()
-Date: Fri, 4 Sep 2009 13:43:35 -0700
-Message-ID: <20090904204335.GG6751@linux.vnet.ibm.com>
-References: <4A9F7283.1090306@gmail.com> <alpine.DEB.1.10.0909031244230.27903@V090114053VZO-1> <4A9FCDC6.3060003@gmail.com> <alpine.DEB.1.10.0909031335430.29881@V090114053VZO-1> <4A9FDA72.8060001@gmail.com> <alpine.DEB.1.10.0909031414310.29881@V090114053VZO-1> <4AA00400.1030005@gmail.com> <alpine.DEB.1.10.0909031731540.24199@V090114053VZO-1> <20090903231757.GP6761@linux.vnet.ibm.com> <alpine.DEB.1.10.0909041140040.9781@V090114053VZO-1>
-Reply-To: paulmck@linux.vnet.ibm.com
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	Pekka Enberg <penberg@cs.helsinki.fi>,
-	Zdenek Kabelac <zdenek.kabelac@gmail.com>,
-	Patrick McHardy <kaber@trash.net>, Robin Holt <holt@sgi.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Jesper Dangaard Brouer <hawk@comx.dk>,
-	Linux Netdev List <netdev@vger.kernel.org>,
-	Netfilter Developers <netfilter-devel@vger.kernel.org>
-To: Christoph Lameter <cl@linux-foundation.org>
+From: Michal Soltys <soltys@ziu.info>
+Subject: [PATCH] xt_u32.c - make negative offsets work near / at the end of packet
+Date: Sun,  6 Sep 2009 02:36:37 +0200
+Message-ID: <1252197398-23863-1-git-send-email-soltys@ziu.info>
+Cc: netfilter-devel@vger.kernel.org
+To: jengelh@medozas.de
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from e5.ny.us.ibm.com ([32.97.182.145]:54085 "EHLO e5.ny.us.ibm.com"
+Received: from relay.ppgk.com.pl ([80.53.243.36]:11506 "EHLO relay.ppgk.com.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933979AbZIDUnd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 4 Sep 2009 16:43:33 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.1.10.0909041140040.9781@V090114053VZO-1>
+	id S1751799AbZIFAr0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 5 Sep 2009 20:47:26 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Sep 04, 2009 at 11:42:17AM -0400, Christoph Lameter wrote:
-> On Thu, 3 Sep 2009, Paul E. McKenney wrote:
-> 
-> > If it were the user of the slab who was invoking some variant of
-> > call_rcu(), then I would agree with you.
-> 
-> The user already has to deal with it as explained by Eric.
+In the older version of u32 match there was a possibility to succesfully
+use negative offsets while being at or near the end of the packet.
 
-I didn't read his email that way.  Perhaps I misinterpreted it.
+For example - a method presented in:
 
-> > However, call_rcu() is instead being invoked by the slab itself in the
-> > case of SLAB_DESTROY_BY_RCU, so that there is no variation in usage.
-> > Requiring that the user call rcu_barrier() is asking for subtle bugs.
-> > Therefore, the best approach is to have kmem_cache_destroy() handle
-> > the RCU cleanup, given that this cleanup is for actions taken by
-> > kmem_cache_free(), not by the user.
-> 
-> The user already has to properly handle barriers and rcu logic in order to
-> use objects handled with RCU properly. Moreover the user even has to check
-> that the object is not suddenly checked under it. Its already complex.
+http://www.stearns.org/doc/iptables-u32.v0.1.7.html
 
-mm/slab.c has had RCU calls since 2.6.9, so this is not new.
+... to find a tcp packet with no payload :
 
-> Guess we are doing this ... Sigh. Are you going to add support other rcu
-> versions to slab as well as time permits and as the need arises? Should
-> we add you as a maintainer? ;-)
+0>>22&0x3C @ 12>>26&0x3C @ -3&0xFF=0:255
 
-I don't see any point in adding anything resembling SLAB_DESTROY_BY_RCU_BH,
-SLAB_DESTROY_BY_RCU_SCHED, or SLAB_DESTROY_BY_SRCU unless and until
-someone needs it.  And I most especially don't see the point of adding
-(say) SLAB_DESTROY_BY_RCU_BH_SCHED until someone convinces me of the
-need for it.  I would prefer to put the energy into further streamlining
-the underlying RCU implementation, maybe someday collapsing RCU-BH back
-into RCU.  ;-)
+But with current xt_u32.c code this is impossible due to subsequent
+sanity checks:
 
-We have gotten along fine with only SLAB_DESTROY_BY_RCU for almost
-five years, so I think we are plenty fine with what we have.  So, as
-you say, "as the need arises".
+        if (at + val < at)
+                return false;
+        at += val;
+        pos = number;
+        if (at + 4 < at || skb->len < at + 4 (#3) ||
+            pos > skb->len - at - 4 (#4) )
+                return false;
 
-I don't see any more need to add me as maintainer of slab and friends
-than of btrfs, netfilter, selinux, decnet, afs, wireless, or any of a
-number of other subsystems that use RCU.
+        if (skb_copy_bits(skb, at + pos, &n,
+            sizeof(n)) < 0)
 
-							Thanx, Paul
+In particular, condition (#3) will make the function return false, if
+'at' is at / near the end of packet, regardless of the 'pos' value used.
+Furthermore, (#4) would inhibit any "negative" 'pos' value anyway.
+
+If I haven't missed anything, the whole sequence could be changed to:
+
+        at += val;
+        if (at + number + 4 < 4 || skb->len < at + number + 4)
+                return false;
+
+        if (skb_copy_bits(skb, at + number, &n,
+                            sizeof(n)) < 0)
+
+This allows both 'pos' and 'val' to be interpreted in any (+/-) way.
+Sanity checks will keep the read in bounds, and the first condition will
+be fine for unsigned values. I'm not sure how that approach would behave
+on non-x86 architectures though.
+
+Iptables doesn't complain about using negative values with -m u32, so I
+assumed that original intent was to allow them.
+
+Tiny patch below implements proposed changes.
+
+Michal Soltys (1):
+  xt_u32.c - make negative offsets work near / at the end of packet
+
+ net/netfilter/xt_u32.c |    8 ++------
+ 1 files changed, 2 insertions(+), 6 deletions(-)
+
