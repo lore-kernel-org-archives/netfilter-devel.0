@@ -1,44 +1,38 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: [PATCH] slub: fix slab_pad_check()
-Date: Wed, 9 Sep 2009 08:09:45 -0700
-Message-ID: <20090909150945.GB6749@linux.vnet.ibm.com>
-References: <20090903231757.GP6761@linux.vnet.ibm.com> <alpine.DEB.1.10.0909041140040.9781@V090114053VZO-1> <20090904204335.GG6751@linux.vnet.ibm.com> <alpine.DEB.1.10.0909081555410.26382@V090114053VZO-1> <20090908222036.GM6753@linux.vnet.ibm.com> <alpine.DEB.1.10.0909081839090.7733@V090114053VZO-1> <20090908225937.GO6753@linux.vnet.ibm.com> <alpine.DEB.1.10.0909091002440.28070@V090114053VZO-1> <20090909144238.GA6749@linux.vnet.ibm.com> <alpine.DEB.1.10.0909091052380.28070@V090114053VZO-1>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Xtables-addons 1.18 released
+Date: Wed, 9 Sep 2009 17:54:17 +0200 (CEST)
+Message-ID: <alpine.LSU.2.00.0909091747080.23602@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	Pekka Enberg <penberg@cs.helsinki.fi>,
-	Zdenek Kabelac <zdenek.kabelac@gmail.com>,
-	Patrick McHardy <kaber@trash.net>, Robin Holt <holt@sgi.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Jesper Dangaard Brouer <hawk@comx.dk>,
-	Linux Netdev List <netdev@vger.kernel.org>,
-	Netfilter Developers <netfilter-devel@vger.kernel.org>,
-	dhowells@redhat.com, lethal@linux-sh.org, kernel@wantstofly.org,
-	mpm@selenic.com
-To: Christoph Lameter <cl@linux-foundation.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from e2.ny.us.ibm.com ([32.97.182.142]:41280 "EHLO e2.ny.us.ibm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752709AbZIIPQN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Sep 2009 11:16:13 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.DEB.1.10.0909091052380.28070@V090114053VZO-1>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: jr+netfilter-devel@cedric.unob.cz
+To: netfilter@vger.kernel.org,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Sep 09, 2009 at 10:53:22AM -0400, Christoph Lameter wrote:
-> On Wed, 9 Sep 2009, Paul E. McKenney wrote:
-> 
-> > If the embedded guys are OK with an additional pointer in the slab data
-> > structure, I have no objection to this approach.  I am assuming that we
-> > would use the usual ops-style structure full of pointers to functions
-> > in order to avoid a pair of extra pointers.
-> 
-> This would also allow us to get rid of the ctor pointer in
-> kmem_cache_create(). We can put it into the same structure.
+Hi everyone,
 
-Sounds good -- that would result in no increase in size.  Could even
-add a dtor if people want it.  ;-)  (Sorry, couldn't resist...)
 
-						Thanx, Paul
+Coinciding with the imminent release of Linux kernel 2.6.31, here is
+Xtables-addons 1.18. Of the numerous submissions I have received
+recently (thank you!), I got to merge the "ACCOUNT" and "psd"
+modules. The rest still needs review, but did not want to hold up
+some release here. There are also a number of fixes to the
+(already-existing) quota2 match=C2=A0=E2=80=94 which can be used for sm=
+all-scale
+accounting too.
+
+Boilerplate:
+http://downloads.sf.net/xtables-addons/xtables-addons-1.18.tar.bz2 {,.a=
+sc}
+
+REMINDER that the Sourceforge GIT URL changed due to multi-repo support=
+=2E
+The new one is:
+git://xtables-addons.git.sf.net/gitroot/xtables-addons/xtables-addons
+
+If in doubt, just visit the frontpage at
+http://xtables-addons.sf.net/
