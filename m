@@ -1,26 +1,41 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: iptables release
-Date: Thu, 10 Sep 2009 15:29:13 +0200
-Message-ID: <4AA8FF29.1030607@trash.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH] iptables: expose option to zero packet and byte counters
+ for a specific rule using iptables/ip6tables
+Date: Thu, 10 Sep 2009 16:26:37 +0200 (CEST)
+Message-ID: <alpine.LSU.2.00.0909101620240.24353@obet.zrqbmnf.qr>
+References: <23915168.171071250704593343.JavaMail.root@tahiti.vyatta.com> <alpine.LSU.2.00.0908192232020.9285@fbirervta.pbzchgretzou.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-To: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Mohit Mehta <mohit.mehta@vyatta.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:61868 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755651AbZIJN3P (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Sep 2009 09:29:15 -0400
-Received: from [IPv6:2001:6f8:974:0:215:f2ff:fe24:91f8] (unknown [IPv6:2001:6f8:974:0:215:f2ff:fe24:91f8])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by stinky.trash.net (Postfix) with ESMTPSA id 28391B2C5A
-	for <netfilter-devel@vger.kernel.org>; Thu, 10 Sep 2009 15:29:18 +0200 (MEST)
+Received: from borg.medozas.de ([188.40.89.202]:33101 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755786AbZIJO0f (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Sep 2009 10:26:35 -0400
+In-Reply-To: <alpine.LSU.2.00.0908192232020.9285@fbirervta.pbzchgretzou.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-I'll probably release the next iptables version tommorrow.
-Anyone who still wants to get fixes in, please send them
-now. Test results are also welcome :)
+Hi Mohit,
+
+
+On Wednesday 2009-08-19 22:41, Jan Engelhardt wrote:
+>
+>>I was able to cleanly apply the attached modified patches to the
+>> latest iptables code. Also, below is the code in text if attachment
+>> doesn't reach.
+>>
+>>Subject: [PATCH] expose option to zero packet and byte counters for a specific rule using iptables
+>
+>
+>I wonder what the real-world use of this is, apart from
+>rule debugging (for which -j TRACE seems better anyhow).
+
+That was meant to be a question. Could you please let me know why 
+exactly -Z # was needed? I guess there was some large value seen in it 
+given you were sending it from Vyatta, so I would like to know. If it 
+was just an experiment and TRACE and/or quota2 (Xta) was sufficient in 
+regards to you accomplishing whatever the intention was to, please also 
+let me know so that I can possibly discard the branch with your -Z#
+submission.
