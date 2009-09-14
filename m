@@ -1,65 +1,51 @@
-From: Balazs Scheidler <bazsi@balabit.hu>
+From: Amos Jeffries <squid3@treenet.co.nz>
 Subject: Re: [PATCH 00/11] TProxy for IPv6
-Date: Mon, 14 Sep 2009 07:41:19 +0000
-Message-ID: <1252914079.12904.32.camel@bzorp.balabit>
-References: <cover.1251295408.git.bazsi@balabit.hu>
-	 <4AA0AE8C.30203@treenet.co.nz>  <1252059564.7452.17.camel@nyarlathotep>
-	 <1252435673.32029.45.camel@bzorp.balabit>
+Date: Tue, 15 Sep 2009 00:20:00 +1200
+Message-ID: <4AAE34F0.2080301@treenet.co.nz>
+References: <cover.1251295408.git.bazsi@balabit.hu> <4AA0AE8C.30203@treenet.co.nz> <alpine.LSU.2.00.0909041124090.27609@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Amos Jeffries <squid3@treenet.co.nz>,
-	netfilter-devel@vger.kernel.org
-To: Harry Mason <harry.mason@smoothwall.net>
+Cc: Balazs Scheidler <bazsi@balabit.hu>,
+	netfilter-devel@vger.kernel.org, tproxy@lists.balabit.hu,
+	Harry Mason <harry.mason@smoothwall.net>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from support.balabit.hu ([195.70.41.86]:46355 "EHLO lists.balabit.hu"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751246AbZINHlX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Sep 2009 03:41:23 -0400
-Received: from balabit.hu (unknown [10.80.0.254])
-	by lists.balabit.hu (Postfix) with ESMTP id 5969B39D177
-	for <netfilter-devel@vger.kernel.org>; Mon, 14 Sep 2009 09:41:24 +0200 (CEST)
-In-Reply-To: <1252435673.32029.45.camel@bzorp.balabit>
+Received: from ip-58-28-153-233.static-xdsl.xnet.co.nz ([58.28.153.233]:57015
+	"EHLO treenet.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752425AbZINMUH (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 Sep 2009 08:20:07 -0400
+In-Reply-To: <alpine.LSU.2.00.0909041124090.27609@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
-
-This is just a short note that I've updated the git repository and added
-your patches to the tree (the UDP and ICMP related bits), although I
-haven't had time to write proper changelogs and integrate related
-patches to one, I figured it's better to say I did so instead of waiting
-for code to rot in the git repo.
-
-I hope I get another shot to do a formal release in the coming days.
-
-On Tue, 2009-09-08 at 20:47 +0200, Balazs Scheidler wrote:
-> On Fri, 2009-09-04 at 11:19 +0100, Harry Mason wrote:
-> > On Fri, 2009-09-04 at 18:07 +1200, Amos Jeffries wrote:
-> > > Balazs Scheidler wrote:
-> > > 
-> > > > I've just pushed a set of patches that implement TProxy for IPv6 to
-> > > > 
-> > > > http://git.balabit.hu/bazsi/tproxy-2.6.git
-> > > 
-> > > I'm interested :)
-> > > 
-> > > Amos Jeffries
-> > > Squid Proxy Project
-> > 
-> > In TProxy for IPv4 there's support for the SO_ORIGINAL_DST sockopt, which returns
-> > the original destination of the request. I needed this option in my prototype to
-> > do TRT but I assume Squid will need it too for transparent proxying.
-> > 
-> > I've ported this feature to Balazs's implementation; Git bundle attached.
-> > 
-> > Balazs, does this look OK to be merged with your patches?
-> > Amos, this might help you test Squid with IPv6; hopefully the API I chose won't
-> > need to change but I'm very new to kernel development.
+Jan Engelhardt wrote:
+> On Friday 2009-09-04 08:07, Amos Jeffries wrote:
+>>> Also, I have written a Python test script to test TProxy functionality
+>>> automatically both for IPv4 and IPv6, I can post that as well if anyone is
+>>> interested.
+>> I'm interested :)
+>>
+>> Now that you have done this I'm going to have to find a robust userland
+>> run-time test to see if the underlying TPROXY is v4-only or v6-enabled. If
+>> anyone has suggestions they would be welcome.
 > 
-> I'll check what I could pick from this and your previous bundle (which
-> as I see was only sent in private) and push another round of patches.
+> Would this perhaps suffice?
 > 
--- 
-Bazsi
+> assert(socket(PF_INET6, ...) >= 0);
+> assert(setsockopt(fd, SOL_IP, IP_TRANSPARENT, ...) == 0);
+> assert(bind(fd, {::2}) == 0);
+> 
+> At least something like that I remember to have used to determine
+> tproxy-2.x ipv4 availability in the days. (I.e. seeing if setsockopt
+> failed.)
 
+Thanks Jan. I gave a variant that a try. It does seem to detect the 
+feature support nicely.
+
+However, trying to bind the real IP:port soon after results in "(98) 
+Address already in use" even with a shutdown(tmp_sock,...) added to 
+clean up after the test.
+
+AYJ
