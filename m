@@ -1,99 +1,47 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: : Release of iptables-1.4.5
-Date: Mon, 14 Sep 2009 19:05:11 +0200
-Message-ID: <4AAE77C7.200@trash.net>
+From: Amos Jeffries <squid3@treenet.co.nz>
+Subject: Re: [PATCH 00/11] TProxy for IPv6
+Date: Tue, 15 Sep 2009 23:58:44 +1200
+Message-ID: <4AAF8174.5080904@treenet.co.nz>
+References: <cover.1251295408.git.bazsi@balabit.hu> <4AA0AE8C.30203@treenet.co.nz> <alpine.LSU.2.00.0909041124090.27609@obet.zrqbmnf.qr> <4AAE34F0.2080301@treenet.co.nz> <alpine.LSU.2.00.0909141429060.6887@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="------------000005020408020500020003"
-To: Netfilter Development Mailinglist <netfilter-devel@vger.kernel.org>,
-	Linux Netdev List <netdev@vger.kernel.org>,
-	"'netfilter@vger.kernel.org'" <netfilter@vger.kernel.org>,
-	netfilter
-Return-path: <netfilter-announce-bounces@lists.netfilter.org>
-List-Unsubscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
-	<mailto:netfilter-announce-request@lists.netfilter.org?subject=unsubscribe>
-List-Archive: <http://lists.netfilter.org/pipermail/netfilter-announce>
-List-Post: <mailto:netfilter-announce@lists.netfilter.org>
-List-Help: <mailto:netfilter-announce-request@lists.netfilter.org?subject=help>
-List-Subscribe: <https://lists.netfilter.org/mailman/listinfo/netfilter-announce>,
-	<mailto:netfilter-announce-request@lists.netfilter.org?subject=subscribe>
-Sender: netfilter-announce-bounces@lists.netfilter.org
-Errors-To: netfilter-announce-bounces@lists.netfilter.org
-List-Id: netfilter-devel.vger.kernel.org
-
-This is a multi-part message in MIME format.
---------------000005020408020500020003
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
+Cc: Balazs Scheidler <bazsi@balabit.hu>,
+	netfilter-devel@vger.kernel.org, tproxy@lists.balabit.hu,
+	Harry Mason <harry.mason@smoothwall.net>
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ip-58-28-153-233.static-xdsl.xnet.co.nz ([58.28.153.233]:36871
+	"EHLO treenet.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750862AbZIOL6p (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 15 Sep 2009 07:58:45 -0400
+In-Reply-To: <alpine.LSU.2.00.0909141429060.6887@obet.zrqbmnf.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-The netfilter coreteam presents:
+Jan Engelhardt wrote:
+> On Monday 2009-09-14 14:20, Amos Jeffries wrote:
+>>> assert(socket(PF_INET6, ...) >= 0);
+>>> assert(setsockopt(fd, SOL_IP, IP_TRANSPARENT, ...) == 0);
+>>> assert(bind(fd, {::2}) == 0);
+>>>
+>>> At least something like that I remember to have used to determine
+>>> tproxy-2.x ipv4 availability in the days. (I.e. seeing if setsockopt
+>>> failed.)
+>> Thanks Jan. I gave a variant that a try. It does seem to detect the feature
+>> support nicely.
+>>
+>> However, trying to bind the real IP:port soon after results in "(98) Address
+>> already in use" even with a shutdown(tmp_sock,...) added to clean up after the
+>> test.
+> 
+> Odd, since binding to port 0 should give you a random one,
+> and there are plenty.
+> Does SO_REUSEADDR help it a bit?
 
-    iptables version 1.4.5
+um... thanks for the hint.
+I was re-using a handy address object without un-setting the port.
+It works fully now.
 
-the iptables release for the 2.6.31 kernel. Changes include:
-
-- support for nfnetlink_queue queue balancing
-
-- support for revision 2 of the conntrack match, which fixes a
-  regression in state matching
-
-- support for multiple IP address specifications with -s/-d
-
-- various internal cleanups and improvements
-
-- manpage updates
-
-Version 1.4.5 can be obtained from:
-
-http://www.netfilter.org/projects/iptables/downloads.html
-ftp://ftp.netfilter.org/pub/iptables/
-git://git.netfilter.org/iptables.git
-
-On behalf of the Netfilter Core Team.
-Happy firewalling!
-
-
---------------000005020408020500020003
-Content-Type: text/plain;
- name="changes-iptables-1.4.5.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="changes-iptables-1.4.5.txt"
-
-Florian Westphal (1):
-      libxt_NFQUEUE: add new v1 version with queue-balance option
-
-Jan Engelhardt (18):
-      xt_conntrack: revision 2 for enlarged state_mask member
-      libxt_helper: fix invalid passed option to check_inverse
-      libiptc: split v4 and v6
-      extensions: collapse registration structures
-      iptables: allow for parse-less extensions
-      iptables: allow for help-less extensions
-      extensions: remove empty help and parse functions
-      xtables: add multi-registration functions
-      extensions: collapse data variables to use multi-reg calls
-      xtables: warn of missing version identifier in extensions
-      COMMIT_NOTES: notice to check for soversion bumps
-      build: order of dependent libs is sensitive
-      multi binary: allow subcommand via argv[1]
-      build: fix struct size mismatch
-      build: combine iptables-multi and iptables-static
-      build: build only iptables-multi
-      Merge branch 'stable'
-      manpages: more fixes to minuses, hyphens, dashes
-
-Laurence J. Lane (1):
-      manpage: fix lintian warnings
-
-Michael Granzow (1):
-      iptables: accept multiple IP address specifications for -s, -d
-
-Patrick McHardy (2):
-      man: fix incorrect plural in libipt_set.man
-      Bump version number to 1.4.5
-
-Trent W. Buck (1):
-      ipt_set: fix a typo in the manpage
-
-
---------------000005020408020500020003--
+AYJ
