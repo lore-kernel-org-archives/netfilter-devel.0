@@ -1,47 +1,42 @@
-From: Amos Jeffries <squid3@treenet.co.nz>
-Subject: Re: [PATCH 00/11] TProxy for IPv6
-Date: Tue, 15 Sep 2009 23:58:44 +1200
-Message-ID: <4AAF8174.5080904@treenet.co.nz>
-References: <cover.1251295408.git.bazsi@balabit.hu> <4AA0AE8C.30203@treenet.co.nz> <alpine.LSU.2.00.0909041124090.27609@obet.zrqbmnf.qr> <4AAE34F0.2080301@treenet.co.nz> <alpine.LSU.2.00.0909141429060.6887@obet.zrqbmnf.qr>
+From: Ritesh Majumdar <r.majumdar@globallogic.com>
+Subject: Enabling Netfilter LOG hangs the System
+Date: Tue, 15 Sep 2009 18:13:03 +0530
+Message-ID: <1253018583.16585.8.camel@ripper.synapse.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Balazs Scheidler <bazsi@balabit.hu>,
-	netfilter-devel@vger.kernel.org, tproxy@lists.balabit.hu,
-	Harry Mason <harry.mason@smoothwall.net>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ip-58-28-153-233.static-xdsl.xnet.co.nz ([58.28.153.233]:36871
-	"EHLO treenet.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750862AbZIOL6p (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Sep 2009 07:58:45 -0400
-In-Reply-To: <alpine.LSU.2.00.0909141429060.6887@obet.zrqbmnf.qr>
+Received: from mx-del1-1.globallogic.com ([202.174.92.25]:41985 "EHLO
+	emailsecurity-del1-1.globallogic.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752178AbZIONXe convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 15 Sep 2009 09:23:34 -0400
+Received: from emailsecurity-del1-1.globallogic.com (127.0.0.1) by emailsecurity-del1-1.globallogic.com (MlfMTA v3.2r9) id hlua4i0171st for <netfilter-devel@vger.kernel.org>; Tue, 15 Sep 2009 18:27:55 +0530 (envelope-from <R.Majumdar@globallogic.com>)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Monday 2009-09-14 14:20, Amos Jeffries wrote:
->>> assert(socket(PF_INET6, ...) >= 0);
->>> assert(setsockopt(fd, SOL_IP, IP_TRANSPARENT, ...) == 0);
->>> assert(bind(fd, {::2}) == 0);
->>>
->>> At least something like that I remember to have used to determine
->>> tproxy-2.x ipv4 availability in the days. (I.e. seeing if setsockopt
->>> failed.)
->> Thanks Jan. I gave a variant that a try. It does seem to detect the feature
->> support nicely.
->>
->> However, trying to bind the real IP:port soon after results in "(98) Address
->> already in use" even with a shutdown(tmp_sock,...) added to clean up after the
->> test.
-> 
-> Odd, since binding to port 0 should give you a random one,
-> and there are plenty.
-> Does SO_REUSEADDR help it a bit?
+Hello List,
 
-um... thanks for the hint.
-I was re-using a handy address object without un-setting the port.
-It works fully now.
+I am using kernel =EF=BB=BF2.6.11 and =EF=BB=BFiptables v1.2.9.
 
-AYJ
+I have LOG enabled to log tcp packets. and configured syslog to write
+into /var/log/messages.
+
+Every time logrotate restarts syslogd the system goes for a reboot. I a=
+m
+not getting to know the exact problem with the system.
+
+But when I disable iptables Logging, syslogd restart fine.
+
+Please help !!!
+
+
+Many Thanks,
+Ritesh.
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
