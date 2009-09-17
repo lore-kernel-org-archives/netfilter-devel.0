@@ -1,198 +1,113 @@
 From: Pierre Chifflier <chifflier@inl.fr>
-Subject: [PATCH 1/2] Remove debian directory
-Date: Thu, 17 Sep 2009 21:28:19 +0200
-Message-ID: <1253215700-15032-2-git-send-email-chifflier@inl.fr>
+Subject: [PATCH 2/2] Fix wrong definition of views in flat DB schema
+Date: Thu, 17 Sep 2009 21:28:20 +0200
+Message-ID: <1253215700-15032-3-git-send-email-chifflier@inl.fr>
 References: <1253215700-15032-1-git-send-email-chifflier@inl.fr>
 Cc: eleblond@inl.fr, Pierre Chifflier <chifflier@inl.fr>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:49109 "EHLO smtp1-g21.free.fr"
+Received: from smtp1-g21.free.fr ([212.27.42.1]:49116 "EHLO smtp1-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754896AbZIQT2c (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1753239AbZIQT2c (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Thu, 17 Sep 2009 15:28:32 -0400
 Received: from smtp1-g21.free.fr (localhost [127.0.0.1])
-	by smtp1-g21.free.fr (Postfix) with ESMTP id 3D220940140
-	for <netfilter-devel@vger.kernel.org>; Thu, 17 Sep 2009 21:28:30 +0200 (CEST)
+	by smtp1-g21.free.fr (Postfix) with ESMTP id EDF989401F2
+	for <netfilter-devel@vger.kernel.org>; Thu, 17 Sep 2009 21:28:31 +0200 (CEST)
 Received: from fydelkass.edenwall.com (fydelkass.inl.fr [88.171.131.12])
-	by smtp1-g21.free.fr (Postfix) with ESMTP id 550EC9400C2
+	by smtp1-g21.free.fr (Postfix) with ESMTP id C5D4A9401C0
 	for <netfilter-devel@vger.kernel.org>; Thu, 17 Sep 2009 21:28:28 +0200 (CEST)
 In-Reply-To: <1253215700-15032-1-git-send-email-chifflier@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Remove Debian packaging files, it is easier to maintain the packaging
-files outside of the sources.
+Create views using the ip_protocol field (and not the oob_family).
 
 Signed-off-by: Pierre Chifflier <chifflier@inl.fr>
 ---
- debian/changelog                    |    5 ---
- debian/control                      |   54 -----------------------------------
- debian/rules                        |   11 -------
- debian/ulogd-input-nfct.install     |    1 -
- debian/ulogd-input-nflog.install    |    1 -
- debian/ulogd-output-mysql.install   |    1 -
- debian/ulogd-output-pcap.install    |    1 -
- debian/ulogd-output-pgsql.install   |    1 -
- debian/ulogd-output-sqlite3.install |    1 -
- debian/ulogd.install                |   10 ------
- 10 files changed, 0 insertions(+), 86 deletions(-)
- delete mode 100644 debian/changelog
- delete mode 100644 debian/control
- delete mode 100755 debian/rules
- delete mode 100644 debian/ulogd-input-nfct.install
- delete mode 100644 debian/ulogd-input-nflog.install
- delete mode 100644 debian/ulogd-output-mysql.install
- delete mode 100644 debian/ulogd-output-pcap.install
- delete mode 100644 debian/ulogd-output-pgsql.install
- delete mode 100644 debian/ulogd-output-sqlite3.install
- delete mode 100644 debian/ulogd.install
+ doc/mysql-ulogd2-flat.sql |   12 ++++++------
+ doc/pgsql-ulogd2-flat.sql |   12 ++++++------
+ 2 files changed, 12 insertions(+), 12 deletions(-)
 
-diff --git a/debian/changelog b/debian/changelog
-deleted file mode 100644
-index d71ceba..0000000
---- a/debian/changelog
-+++ /dev/null
-@@ -1,5 +0,0 @@
--ulogd (2.00beta1) unstable; urgency=low
--
--  * initial debian release
--
-- -- Harald Welte <laforge@netfilter.org>  Sat, 07 Jan 2006 15:55:51 +0100
-diff --git a/debian/control b/debian/control
-deleted file mode 100644
-index 0118862..0000000
---- a/debian/control
-+++ /dev/null
-@@ -1,54 +0,0 @@
--Source: ulogd
--Section: net
--Priority: optional
--Maintainer: Harald Welte <laforge@netfilter.org>
--Build-Depends: cdbs (>= 0.4), debhelper (>= 4.2), gcc (>= 3.4), libnfnetlink-dev (>= 0.0.13), libnetfilter-conntrack-dev (>= 0.0.28), libnetfilter-log-dev (>= 0.0.12), libmysqlclient-dev, libpq-dev, libpcap-dev, libsqlite-dev
--Standards-Version: 3.6.2
--
--Package: ulogd
--Architecture: any
--Depends: ${shlibs:Depends}
--Description: Userspace logging daemon for netfilter/iptables
--
--Package: ulogd-output-pgsql
--Architecture: any
--Depends: ${shlibs:Depends}, ulogd (= ${Source-Version})
--Description: Userspace logging daemon for netfilter/iptables
-- The userspace connection tracking table administration program.
-- .
-- This package provides the PostgreSQL output plugin.
--
--Package: ulogd-output-mysql
--Architecture: any
--Depends: ${shlibs:Depends}, ulogd (= ${Source-Version})
--Description: Userspace logging daemon for netfilter/iptables
-- .
-- This package provides the MySQL output plugin.
--
--Package: ulogd-output-pcap
--Architecture: any
--Depends: ${shlibs:Depends}, ulogd (= ${Source-Version})
--Description: Userspace logging daemon for netfilter/iptables
-- .
-- This package provides the PCAP output plugin.
--
--Package: ulogd-output-sqlite3
--Architecture: any
--Depends: ${shlibs:Depends}, ulogd (= ${Source-Version})
--Description: Userspace logging daemon for netfilter/iptables
-- .
-- This package provides the SQLITE3 output plugin.
--
--Package: ulogd-input-nflog
--Architecture: any
--Depends: ${shlibs:Depends}, ulogd (= ${Source-Version})
--Description: Userspace logging daemon for netfilter/iptables
-- .
-- This package provides the NFLOG input plugin.
--
--Package: ulogd-input-nfct
--Architecture: any
--Depends: ${shlibs:Depends}, ulogd (= ${Source-Version})
--Description: Userspace logging daemon for netfilter/iptables
-- .
-- This package provides the conntrack_netlink input plugin.
-diff --git a/debian/rules b/debian/rules
-deleted file mode 100755
-index 138a976..0000000
---- a/debian/rules
-+++ /dev/null
-@@ -1,11 +0,0 @@
--#!/usr/bin/make -f
--# -*- mode: makefile; coding: utf-8 -*-
--
--UPSTREAM_VERSION := $(shell dpkg-parsechangelog | egrep '^Version:' | cut -f2 -d' ' | cut -f1 -d-)
--DEB_TARBALL := ulogd-$(UPSTREAM_VERSION).tar.bz2
--DEB_TAR_SRCDIR := ulogd-$(UPSTREAM_VERSION)
--
--include /usr/share/cdbs/1/rules/debhelper.mk
--include /usr/share/cdbs/1/class/autotools.mk
--
--DEB_DH_INSTALL_SOURCEDIR := debian/tmp
-diff --git a/debian/ulogd-input-nfct.install b/debian/ulogd-input-nfct.install
-deleted file mode 100644
-index 4fa02c3..0000000
---- a/debian/ulogd-input-nfct.install
-+++ /dev/null
-@@ -1 +0,0 @@
--usr/lib/ulogd/ulogd_input_NFCT.so*
-diff --git a/debian/ulogd-input-nflog.install b/debian/ulogd-input-nflog.install
-deleted file mode 100644
-index e99af30..0000000
---- a/debian/ulogd-input-nflog.install
-+++ /dev/null
-@@ -1 +0,0 @@
--usr/lib/ulogd/ulogd_input_NFLOG.so*
-diff --git a/debian/ulogd-output-mysql.install b/debian/ulogd-output-mysql.install
-deleted file mode 100644
-index 19eb379..0000000
---- a/debian/ulogd-output-mysql.install
-+++ /dev/null
-@@ -1 +0,0 @@
--usr/lib/ulogd/ulogd_output_MYSQL.so*
-diff --git a/debian/ulogd-output-pcap.install b/debian/ulogd-output-pcap.install
-deleted file mode 100644
-index de25c45..0000000
---- a/debian/ulogd-output-pcap.install
-+++ /dev/null
-@@ -1 +0,0 @@
--usr/lib/ulogd/ulogd_output_PCAP.so*
-diff --git a/debian/ulogd-output-pgsql.install b/debian/ulogd-output-pgsql.install
-deleted file mode 100644
-index eddd68b..0000000
---- a/debian/ulogd-output-pgsql.install
-+++ /dev/null
-@@ -1 +0,0 @@
--usr/lib/ulogd/ulogd_output_PGSQL.so*
-diff --git a/debian/ulogd-output-sqlite3.install b/debian/ulogd-output-sqlite3.install
-deleted file mode 100644
-index 9ea3344..0000000
---- a/debian/ulogd-output-sqlite3.install
-+++ /dev/null
-@@ -1 +0,0 @@
--usr/lib/ulogd/ulogd_output_SQLITE3.so*
-diff --git a/debian/ulogd.install b/debian/ulogd.install
-deleted file mode 100644
-index dec8583..0000000
---- a/debian/ulogd.install
-+++ /dev/null
-@@ -1,10 +0,0 @@
--usr/sbin
--usr/share/man
--usr/lib/ulogd/ulogd_filter_IFINDEX.so*
--usr/lib/ulogd/ulogd_filter_PWSNIFF.so*
--usr/lib/ulogd/ulogd_inppkt_ULOG.so*
--usr/lib/ulogd/ulogd_output_IPFIX.so*
--usr/lib/ulogd/ulogd_output_LOGEMU.so*
--usr/lib/ulogd/ulogd_output_OPRINT.so*
--usr/lib/ulogd/ulogd_output_SYSLOG.so*
--usr/lib/ulogd/ulogd_raw2packet_BASE.so*
+diff --git a/doc/mysql-ulogd2-flat.sql b/doc/mysql-ulogd2-flat.sql
+index 11474c0..acac6aa 100644
+--- a/doc/mysql-ulogd2-flat.sql
++++ b/doc/mysql-ulogd2-flat.sql
+@@ -107,19 +107,19 @@ ALTER TABLE ulog2 ADD KEY `sctp_dport` (`sctp_dport`);
+ 
+ DROP VIEW IF EXISTS `view_tcp`;
+ CREATE SQL SECURITY INVOKER VIEW `view_tcp` AS
+-        SELECT * FROM ulog2 WHERE ulog2.oob_family = 6;
++        SELECT * FROM ulog2 WHERE ulog2.ip_protocol = 6;
+ 
+ DROP VIEW IF EXISTS `view_udp`;
+ CREATE SQL SECURITY INVOKER VIEW `view_udp` AS
+-        SELECT * FROM ulog2 WHERE ulog2.oob_family = 17;
++        SELECT * FROM ulog2 WHERE ulog2.ip_protocol = 17;
+ 
+ DROP VIEW IF EXISTS `view_icmp`;
+ CREATE SQL SECURITY INVOKER VIEW `view_icmp` AS
+-        SELECT * FROM ulog2 WHERE ulog2.oob_family = 1;
++        SELECT * FROM ulog2 WHERE ulog2.ip_protocol = 1;
+ 
+ DROP VIEW IF EXISTS `view_icmpv6`;
+ CREATE SQL SECURITY INVOKER VIEW `view_icmpv6` AS
+-        SELECT * FROM ulog2 WHERE ulog2.oob_family = 58;
++        SELECT * FROM ulog2 WHERE ulog2.ip_protocol = 58;
+ 
+ -- ulog view
+ DROP VIEW IF EXISTS `ulog`;
+@@ -222,11 +222,11 @@ delimiter ;
+ 
+ DROP VIEW IF EXISTS `view_tcp_quad`;
+ CREATE SQL SECURITY INVOKER VIEW `view_tcp_quad` AS
+-	SELECT _id,BIN_TO_IPV6(ip_saddr_bin) AS ip_saddr_str,tcp_sport,BIN_TO_IPV6(ip_daddr_bin) AS ip_daddr_str,tcp_dport FROM ulog2 WHERE ulog2.oob_family = 6;
++	SELECT _id,BIN_TO_IPV6(ip_saddr_bin) AS ip_saddr_str,tcp_sport,BIN_TO_IPV6(ip_daddr_bin) AS ip_daddr_str,tcp_dport FROM ulog2 WHERE ulog2.ip_protocol = 6;
+ 
+ DROP VIEW IF EXISTS `view_udp_quad`;
+ CREATE SQL SECURITY INVOKER VIEW `view_udp_quad` AS
+-	SELECT _id,BIN_TO_IPV6(ip_saddr_bin) AS ip_saddr_str,udp_sport,BIN_TO_IPV6(ip_daddr_bin) AS ip_daddr_str,udp_dport FROM ulog2 WHERE ulog2.oob_family = 17;
++	SELECT _id,BIN_TO_IPV6(ip_saddr_bin) AS ip_saddr_str,udp_sport,BIN_TO_IPV6(ip_daddr_bin) AS ip_daddr_str,udp_dport FROM ulog2 WHERE ulog2.ip_protocol = 17;
+ 
+ 
+ 
+diff --git a/doc/pgsql-ulogd2-flat.sql b/doc/pgsql-ulogd2-flat.sql
+index cf1a07f..9ff0ec6 100644
+--- a/doc/pgsql-ulogd2-flat.sql
++++ b/doc/pgsql-ulogd2-flat.sql
+@@ -108,16 +108,16 @@ CREATE INDEX sctp_dport ON ulog2(sctp_dport);
+ --
+ 
+ CREATE OR REPLACE VIEW view_tcp AS
+-        SELECT * FROM ulog2 WHERE ulog2.oob_family = 6;
++        SELECT * FROM ulog2 WHERE ulog2.ip_protocol = 6;
+ 
+ CREATE OR REPLACE VIEW view_udp AS
+-        SELECT * FROM ulog2 WHERE ulog2.oob_family = 17;
++        SELECT * FROM ulog2 WHERE ulog2.ip_protocol = 17;
+ 
+ CREATE OR REPLACE VIEW view_icmp AS
+-        SELECT * FROM ulog2 WHERE ulog2.oob_family = 1;
++        SELECT * FROM ulog2 WHERE ulog2.ip_protocol = 1;
+ 
+ CREATE OR REPLACE VIEW view_icmpv6 AS
+-        SELECT * FROM ulog2 WHERE ulog2.oob_family = 58;
++        SELECT * FROM ulog2 WHERE ulog2.ip_protocol = 58;
+ 
+ -- complete view
+ CREATE OR REPLACE VIEW ulog AS
+@@ -179,10 +179,10 @@ CREATE OR REPLACE VIEW ulog AS
+ 
+ -- shortcuts
+ CREATE OR REPLACE VIEW view_tcp_quad AS
+-        SELECT _id,ip_saddr_str,tcp_sport,ip_daddr_str,tcp_dport FROM ulog2 WHERE ulog2.oob_family = 6;
++        SELECT _id,ip_saddr_str,tcp_sport,ip_daddr_str,tcp_dport FROM ulog2 WHERE ulog2.ip_protocol = 6;
+ 
+ CREATE OR REPLACE VIEW view_udp_quad AS
+-        SELECT _id,ip_saddr_str,udp_sport,ip_daddr_str,udp_dport FROM ulog2 WHERE ulog2.oob_family = 17;
++        SELECT _id,ip_saddr_str,udp_sport,ip_daddr_str,udp_dport FROM ulog2 WHERE ulog2.ip_protocol = 17;
+ 
+ --
+ -- conntrack
 -- 
 1.6.4.3
 
