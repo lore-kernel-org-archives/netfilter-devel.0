@@ -1,42 +1,336 @@
-From: Ritesh Majumdar <r.majumdar@globallogic.com>
-Subject: Enabling Netfilter LOG hangs the System
-Date: Tue, 15 Sep 2009 18:13:03 +0530
-Message-ID: <1253018583.16585.8.camel@ripper.synapse.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] Fix NAT issue in 2.6.30.4+
+Date: Thu, 17 Sep 2009 13:06:55 +0200
+Message-ID: <4AB2184F.9090208@trash.net>
+References: <alpine.DEB.2.00.0909102134290.12124@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
+Content-Type: multipart/mixed;
+ boundary="------------090609000102020107030000"
+Cc: netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx-del1-1.globallogic.com ([202.174.92.25]:41985 "EHLO
-	emailsecurity-del1-1.globallogic.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752178AbZIONXe convert rfc822-to-8bit
-	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Sep 2009 09:23:34 -0400
-Received: from emailsecurity-del1-1.globallogic.com (127.0.0.1) by emailsecurity-del1-1.globallogic.com (MlfMTA v3.2r9) id hlua4i0171st for <netfilter-devel@vger.kernel.org>; Tue, 15 Sep 2009 18:27:55 +0530 (envelope-from <R.Majumdar@globallogic.com>)
+Received: from stinky.trash.net ([213.144.137.162]:58245 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752368AbZIQLG4 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 17 Sep 2009 07:06:56 -0400
+In-Reply-To: <alpine.DEB.2.00.0909102134290.12124@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello List,
+This is a multi-part message in MIME format.
+--------------090609000102020107030000
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
-I am using kernel =EF=BB=BF2.6.11 and =EF=BB=BFiptables v1.2.9.
+Jozsef Kadlecsik wrote:
+> Hi Patrick,
+> 
+> Please consider applying and submitting the patch below.
+> 
+> Vitezslav Samel discovered that since 2.6.30.4+ active FTP can not work
+> over NAT. The "cause" of the problem was a fix of unacknowledged data 
+> detection with NAT (commit a3a9f79e361e864f0e9d75ebe2a0cb43d17c4272).
+> However, actually, that fix uncovered a long standing bug in TCP conntrack:
+> when NAT was enabled, we simply updated the max of the right edge of
+> the segments we have seen (td_end), by the offset NAT produced with
+> changing IP/port in the data. However, we did not update the other parameter
+> (td_maxend) which is affected by the NAT offset. Thus that could drift
+> away from the correct value and thus resulted breaking active FTP.
+> 
+> The patch below fixes the issue by *not* updating the conntrack parameters
+> from NAT, but instead taking into account the NAT offsets in conntrack in a 
+> consistent way. (Updating from NAT would be more harder and expensive because
+> it'd need to re-calculate parameters we already calculated in conntrack.)
 
-I have LOG enabled to log tcp packets. and configured syslog to write
-into /var/log/messages.
+Applied, thanks a lot Jozsef.
 
-Every time logrotate restarts syslogd the system goes for a reboot. I a=
-m
-not getting to know the exact problem with the system.
-
-But when I disable iptables Logging, syslogd restart fine.
-
-Please help !!!
+I got one reject in the removal of nf_conntrack_tcp_update() due
+to the use of write_lock() instead of spin_lock() in your patch
+(seems to be based on an old tree), this is the patch I committed:
 
 
-Many Thanks,
-Ritesh.
+--------------090609000102020107030000
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+commit 0132f9835c1c19a369954e1eb56dca80a1382369
+Author: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Date:   Thu Sep 17 13:05:15 2009 +0200
+
+    netfilter: nf_nat: fix NAT issue in 2.6.30.4+
+    
+    Vitezslav Samel discovered that since 2.6.30.4+ active FTP can not work
+    over NAT. The "cause" of the problem was a fix of unacknowledged data
+    detection with NAT (commit a3a9f79e361e864f0e9d75ebe2a0cb43d17c4272).
+    However, actually, that fix uncovered a long standing bug in TCP conntrack:
+    when NAT was enabled, we simply updated the max of the right edge of
+    the segments we have seen (td_end), by the offset NAT produced with
+    changing IP/port in the data. However, we did not update the other parameter
+    (td_maxend) which is affected by the NAT offset. Thus that could drift
+    away from the correct value and thus resulted breaking active FTP.
+    
+    The patch below fixes the issue by *not* updating the conntrack parameters
+    from NAT, but instead taking into account the NAT offsets in conntrack in a
+    consistent way. (Updating from NAT would be more harder and expensive because
+    it'd need to re-calculate parameters we already calculated in conntrack.)
+    
+    Signed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index cbdd628..5cf7270 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -255,11 +255,9 @@ static inline bool nf_ct_kill(struct nf_conn *ct)
+ }
+ 
+ /* These are for NAT.  Icky. */
+-/* Update TCP window tracking data when NAT mangles the packet */
+-extern void nf_conntrack_tcp_update(const struct sk_buff *skb,
+-				    unsigned int dataoff,
+-				    struct nf_conn *ct, int dir,
+-				    s16 offset);
++extern s16 (*nf_ct_nat_offset)(const struct nf_conn *ct,
++			       enum ip_conntrack_dir dir,
++			       u32 seq);
+ 
+ /* Fake conntrack entry for untracked connections */
+ extern struct nf_conn nf_conntrack_untracked;
+diff --git a/include/net/netfilter/nf_nat_helper.h b/include/net/netfilter/nf_nat_helper.h
+index 237a961..4222220 100644
+--- a/include/net/netfilter/nf_nat_helper.h
++++ b/include/net/netfilter/nf_nat_helper.h
+@@ -32,4 +32,8 @@ extern int (*nf_nat_seq_adjust_hook)(struct sk_buff *skb,
+  * to port ct->master->saved_proto. */
+ extern void nf_nat_follow_master(struct nf_conn *ct,
+ 				 struct nf_conntrack_expect *this);
++
++extern s16 nf_nat_get_offset(const struct nf_conn *ct,
++			     enum ip_conntrack_dir dir,
++			     u32 seq);
+ #endif
+diff --git a/net/ipv4/netfilter/nf_nat_core.c b/net/ipv4/netfilter/nf_nat_core.c
+index 68afc6e..fe1a644 100644
+--- a/net/ipv4/netfilter/nf_nat_core.c
++++ b/net/ipv4/netfilter/nf_nat_core.c
+@@ -750,6 +750,8 @@ static int __init nf_nat_init(void)
+ 	BUG_ON(nfnetlink_parse_nat_setup_hook != NULL);
+ 	rcu_assign_pointer(nfnetlink_parse_nat_setup_hook,
+ 			   nfnetlink_parse_nat_setup);
++	BUG_ON(nf_ct_nat_offset != NULL);
++	rcu_assign_pointer(nf_ct_nat_offset, nf_nat_get_offset);
+ 	return 0;
+ 
+  cleanup_extend:
+@@ -764,6 +766,7 @@ static void __exit nf_nat_cleanup(void)
+ 	nf_ct_extend_unregister(&nat_extend);
+ 	rcu_assign_pointer(nf_nat_seq_adjust_hook, NULL);
+ 	rcu_assign_pointer(nfnetlink_parse_nat_setup_hook, NULL);
++	rcu_assign_pointer(nf_ct_nat_offset, NULL);
+ 	synchronize_net();
+ }
+ 
+diff --git a/net/ipv4/netfilter/nf_nat_helper.c b/net/ipv4/netfilter/nf_nat_helper.c
+index 09172a6..f9520fa 100644
+--- a/net/ipv4/netfilter/nf_nat_helper.c
++++ b/net/ipv4/netfilter/nf_nat_helper.c
+@@ -73,6 +73,28 @@ adjust_tcp_sequence(u32 seq,
+ 	DUMP_OFFSET(this_way);
+ }
+ 
++/* Get the offset value, for conntrack */
++s16 nf_nat_get_offset(const struct nf_conn *ct,
++		      enum ip_conntrack_dir dir,
++		      u32 seq)
++{
++	struct nf_conn_nat *nat = nfct_nat(ct);
++	struct nf_nat_seq *this_way;
++	s16 offset;
++
++	if (!nat)
++		return 0;
++
++	this_way = &nat->seq[dir];
++	spin_lock_bh(&nf_nat_seqofs_lock);
++	offset = after(seq, this_way->correction_pos)
++		 ? this_way->offset_after : this_way->offset_before;
++	spin_unlock_bh(&nf_nat_seqofs_lock);
++
++	return offset;
++}
++EXPORT_SYMBOL_GPL(nf_nat_get_offset);
++
+ /* Frobs data inside this packet, which is linear. */
+ static void mangle_contents(struct sk_buff *skb,
+ 			    unsigned int dataoff,
+@@ -189,11 +211,6 @@ nf_nat_mangle_tcp_packet(struct sk_buff *skb,
+ 		adjust_tcp_sequence(ntohl(tcph->seq),
+ 				    (int)rep_len - (int)match_len,
+ 				    ct, ctinfo);
+-		/* Tell TCP window tracking about seq change */
+-		nf_conntrack_tcp_update(skb, ip_hdrlen(skb),
+-					ct, CTINFO2DIR(ctinfo),
+-					(int)rep_len - (int)match_len);
+-
+ 		nf_conntrack_event_cache(IPCT_NATSEQADJ, ct);
+ 	}
+ 	return 1;
+@@ -415,12 +432,7 @@ nf_nat_seq_adjust(struct sk_buff *skb,
+ 	tcph->seq = newseq;
+ 	tcph->ack_seq = newack;
+ 
+-	if (!nf_nat_sack_adjust(skb, tcph, ct, ctinfo))
+-		return 0;
+-
+-	nf_conntrack_tcp_update(skb, ip_hdrlen(skb), ct, dir, seqoff);
+-
+-	return 1;
++	return nf_nat_sack_adjust(skb, tcph, ct, ctinfo);
+ }
+ 
+ /* Setup NAT on this expected conntrack so it follows master. */
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index b371098..805b6a9 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1350,6 +1350,11 @@ err_stat:
+ 	return ret;
+ }
+ 
++s16 (*nf_ct_nat_offset)(const struct nf_conn *ct,
++			enum ip_conntrack_dir dir,
++			u32 seq);
++EXPORT_SYMBOL_GPL(nf_ct_nat_offset);
++
+ int nf_conntrack_init(struct net *net)
+ {
+ 	int ret;
+@@ -1367,6 +1372,9 @@ int nf_conntrack_init(struct net *net)
+ 		/* For use by REJECT target */
+ 		rcu_assign_pointer(ip_ct_attach, nf_conntrack_attach);
+ 		rcu_assign_pointer(nf_ct_destroy, destroy_conntrack);
++
++		/* Howto get NAT offsets */
++		rcu_assign_pointer(nf_ct_nat_offset, NULL);
+ 	}
+ 	return 0;
+ 
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 97a82ba..ba2b769 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -492,6 +492,21 @@ static void tcp_sack(const struct sk_buff *skb, unsigned int dataoff,
+ 	}
+ }
+ 
++#ifdef CONFIG_NF_NAT_NEEDED
++static inline s16 nat_offset(const struct nf_conn *ct,
++			     enum ip_conntrack_dir dir,
++			     u32 seq)
++{
++	typeof(nf_ct_nat_offset) get_offset = rcu_dereference(nf_ct_nat_offset);
++
++	return get_offset != NULL ? get_offset(ct, dir, seq) : 0;
++}
++#define NAT_OFFSET(pf, ct, dir, seq) \
++	(pf == NFPROTO_IPV4 ? nat_offset(ct, dir, seq) : 0)
++#else
++#define NAT_OFFSET(pf, ct, dir, seq)	0
++#endif
++
+ static bool tcp_in_window(const struct nf_conn *ct,
+ 			  struct ip_ct_tcp *state,
+ 			  enum ip_conntrack_dir dir,
+@@ -506,6 +521,7 @@ static bool tcp_in_window(const struct nf_conn *ct,
+ 	struct ip_ct_tcp_state *receiver = &state->seen[!dir];
+ 	const struct nf_conntrack_tuple *tuple = &ct->tuplehash[dir].tuple;
+ 	__u32 seq, ack, sack, end, win, swin;
++	s16 receiver_offset;
+ 	bool res;
+ 
+ 	/*
+@@ -519,11 +535,16 @@ static bool tcp_in_window(const struct nf_conn *ct,
+ 	if (receiver->flags & IP_CT_TCP_FLAG_SACK_PERM)
+ 		tcp_sack(skb, dataoff, tcph, &sack);
+ 
++	/* Take into account NAT sequence number mangling */
++	receiver_offset = NAT_OFFSET(pf, ct, !dir, ack - 1);
++	ack -= receiver_offset;
++	sack -= receiver_offset;
++
+ 	pr_debug("tcp_in_window: START\n");
+ 	pr_debug("tcp_in_window: ");
+ 	nf_ct_dump_tuple(tuple);
+-	pr_debug("seq=%u ack=%u sack=%u win=%u end=%u\n",
+-		 seq, ack, sack, win, end);
++	pr_debug("seq=%u ack=%u+(%d) sack=%u+(%d) win=%u end=%u\n",
++		 seq, ack, receiver_offset, sack, receiver_offset, win, end);
+ 	pr_debug("tcp_in_window: sender end=%u maxend=%u maxwin=%u scale=%i "
+ 		 "receiver end=%u maxend=%u maxwin=%u scale=%i\n",
+ 		 sender->td_end, sender->td_maxend, sender->td_maxwin,
+@@ -613,8 +634,8 @@ static bool tcp_in_window(const struct nf_conn *ct,
+ 
+ 	pr_debug("tcp_in_window: ");
+ 	nf_ct_dump_tuple(tuple);
+-	pr_debug("seq=%u ack=%u sack =%u win=%u end=%u\n",
+-		 seq, ack, sack, win, end);
++	pr_debug("seq=%u ack=%u+(%d) sack=%u+(%d) win=%u end=%u\n",
++		 seq, ack, receiver_offset, sack, receiver_offset, win, end);
+ 	pr_debug("tcp_in_window: sender end=%u maxend=%u maxwin=%u scale=%i "
+ 		 "receiver end=%u maxend=%u maxwin=%u scale=%i\n",
+ 		 sender->td_end, sender->td_maxend, sender->td_maxwin,
+@@ -700,7 +721,7 @@ static bool tcp_in_window(const struct nf_conn *ct,
+ 			before(seq, sender->td_maxend + 1) ?
+ 			after(end, sender->td_end - receiver->td_maxwin - 1) ?
+ 			before(sack, receiver->td_end + 1) ?
+-			after(ack, receiver->td_end - MAXACKWINDOW(sender)) ? "BUG"
++			after(sack, receiver->td_end - MAXACKWINDOW(sender) - 1) ? "BUG"
+ 			: "ACK is under the lower bound (possible overly delayed ACK)"
+ 			: "ACK is over the upper bound (ACKed data not seen yet)"
+ 			: "SEQ is under the lower bound (already ACKed data retransmitted)"
+@@ -715,39 +736,6 @@ static bool tcp_in_window(const struct nf_conn *ct,
+ 	return res;
+ }
+ 
+-#ifdef CONFIG_NF_NAT_NEEDED
+-/* Update sender->td_end after NAT successfully mangled the packet */
+-/* Caller must linearize skb at tcp header. */
+-void nf_conntrack_tcp_update(const struct sk_buff *skb,
+-			     unsigned int dataoff,
+-			     struct nf_conn *ct, int dir,
+-			     s16 offset)
+-{
+-	const struct tcphdr *tcph = (const void *)skb->data + dataoff;
+-	const struct ip_ct_tcp_state *sender = &ct->proto.tcp.seen[dir];
+-	const struct ip_ct_tcp_state *receiver = &ct->proto.tcp.seen[!dir];
+-	__u32 end;
+-
+-	end = segment_seq_plus_len(ntohl(tcph->seq), skb->len, dataoff, tcph);
+-
+-	spin_lock_bh(&ct->lock);
+-	/*
+-	 * We have to worry for the ack in the reply packet only...
+-	 */
+-	if (ct->proto.tcp.seen[dir].td_end + offset == end)
+-		ct->proto.tcp.seen[dir].td_end = end;
+-	ct->proto.tcp.last_end = end;
+-	spin_unlock_bh(&ct->lock);
+-	pr_debug("tcp_update: sender end=%u maxend=%u maxwin=%u scale=%i "
+-		 "receiver end=%u maxend=%u maxwin=%u scale=%i\n",
+-		 sender->td_end, sender->td_maxend, sender->td_maxwin,
+-		 sender->td_scale,
+-		 receiver->td_end, receiver->td_maxend, receiver->td_maxwin,
+-		 receiver->td_scale);
+-}
+-EXPORT_SYMBOL_GPL(nf_conntrack_tcp_update);
+-#endif
+-
+ #define	TH_FIN	0x01
+ #define	TH_SYN	0x02
+ #define	TH_RST	0x04
+
+--------------090609000102020107030000--
