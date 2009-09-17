@@ -1,57 +1,85 @@
 From: Eric Leblond <eric@inl.fr>
-Subject: Re: misc ulogd2 fixes
-Date: Thu, 17 Sep 2009 21:40:32 +0200
-Message-ID: <1253216432.21074.4.camel@ice-age>
-References: <1253215700-15032-1-git-send-email-chifflier@inl.fr>
+Subject: Re: [ANNOUNCE] new iptables module match large amount of ip
+ addresses
+Date: Thu, 17 Sep 2009 22:03:37 +0200
+Message-ID: <1253217817.21074.9.camel@ice-age>
+References: <Pine.LNX.4.64.0909172100220.27299@artax.karlin.mff.cuni.cz>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-0RUtfDzEtynen7wvf4Jo"
-Cc: netfilter-devel@vger.kernel.org
-To: Pierre Chifflier <chifflier@inl.fr>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-H3g82aLcxsv9S0OuloLS"
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:34733 "EHLO smtp1-g21.free.fr"
+Received: from smtp1-g21.free.fr ([212.27.42.1]:48856 "EHLO smtp1-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751194AbZIQTks (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Sep 2009 15:40:48 -0400
-Received: from smtp1-g21.free.fr (localhost [127.0.0.1])
-	by smtp1-g21.free.fr (Postfix) with ESMTP id CAE49940167
-	for <netfilter-devel@vger.kernel.org>; Thu, 17 Sep 2009 21:40:47 +0200 (CEST)
-Received: from fydelkass.edenwall.com (fydelkass.inl.fr [88.171.131.12])
-	by smtp1-g21.free.fr (Postfix) with ESMTP id EE65394018A
-	for <netfilter-devel@vger.kernel.org>; Thu, 17 Sep 2009 21:40:44 +0200 (CEST)
-In-Reply-To: <1253215700-15032-1-git-send-email-chifflier@inl.fr>
+	id S1751260AbZIQUDu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 17 Sep 2009 16:03:50 -0400
+In-Reply-To: <Pine.LNX.4.64.0909172100220.27299@artax.karlin.mff.cuni.cz>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
---=-0RUtfDzEtynen7wvf4Jo
+--=-H3g82aLcxsv9S0OuloLS
 Content-Type: text/plain; charset="ISO-8859-15"
 Content-Transfer-Encoding: quoted-printable
 
 Hi,
 
-Le jeudi 17 septembre 2009 =E0 21:28 +0200, Pierre Chifflier a =E9crit :
-> Hi,
+Le jeudi 17 septembre 2009 =E0 21:15 +0200, Mikulas Patocka a =E9crit :
+> Hi
 >=20
-> These patches fix two problems in ulogd:
-> - the debian directory in ulogd sources is outdated, and useless (it has
->   errors and is not maintained). It's easy to maintain it outside the
->   sources anyway
+> Here I submit an iptables module that can match large amounts (millions)=20
+> of ip addresses efficiently using binary search.
 
-And as you are one of the debian maintainner of ulogd, I trust you on
-this.
-
-> - some views in the flat SQL schema are wrong, they use ip_protocol
->   instead of oob_family
-
-Both patches have been applied to the tree.
+What are the differences with ipset ? (http://ipset.netfilter.org/)
 
 BR,
+
+>  I needed it to protect my=20
+> home network from spam. It may be useful for other people too, so if you=20
+> want it, you can take it and add it to the kernel.
+>=20
+> Get the patches for netfilter and kernel at:
+> http://artax.karlin.mff.cuni.cz/~mikulas/xt_ipfile/
+> (you need to copy the file include/linux/netfilter/xt_ipfile.h from kerne=
+l=20
+> sources to /usr/include/linux/netfilter/ to compile the userspace)
+>=20
+> The main features:
+> - fast matching of large amount of ip addresses using binary search.
+> - an ability to match ranges of addresses or address/mask subnets.
+> - fast loading of the addresses (on Pentium 3 850, 2 million addresses=20
+> load in 5.5s, if they are already sorted in the file, the load time is=20
+> just 1.5s).
+> - memory efficient --- consumes only 8 bytes per address.
+>=20
+> USAGE:
+>=20
+> prepare a file with addreses, in this example /root/firewall/bad-ips. One=
+=20
+> entry per line, the allowed formats are:
+> 1.2.3.4
+> 1.2.3.0/24
+> 1.2.3.4-1.2.3.8
+>=20
+> insert it into iptables with:
+> iptables -A SPAM -m ipfile --src-file /root/firewall/bad-ips -j DROP
+>=20
+> The module doesn't support ipv6 because I don't use it, but it's generic=20
+> enough that it could be extended for it. It could be also extended to=20
+> match ethernet MAC addresses.
+>=20
+> Mikulas
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel=
+" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 --=20
 Eric Leblond <eric@inl.fr>
 INL: http://www.inl.fr/
 NuFW: http://www.nufw.org/
 
---=-0RUtfDzEtynen7wvf4Jo
+--=-H3g82aLcxsv9S0OuloLS
 Content-Type: application/pgp-signature; name="signature.asc"
 Content-Description: Ceci est une partie de message
  =?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
@@ -59,10 +87,10 @@ Content-Description: Ceci est une partie de message
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1.4.9 (GNU/Linux)
 
-iD8DBQBKspCtnxA7CdMWjzIRAh4xAJ4/vY9B/L5t54c5F8XKDCfB7IPlNwCdG7qs
-LFd4JNp+3L8Agb4/iOC+MZo=
-=tiFT
+iD8DBQBKspYWnxA7CdMWjzIRAmdCAJ4r8ajggUeKdq0PKlwW7/Gm+3T9OACfbOGc
+KPQLamFjHvXq3FQIO3/lHhE=
+=GPlT
 -----END PGP SIGNATURE-----
 
---=-0RUtfDzEtynen7wvf4Jo--
+--=-H3g82aLcxsv9S0OuloLS--
 
