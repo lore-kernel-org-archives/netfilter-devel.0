@@ -1,48 +1,68 @@
-From: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
-Subject: [ANNOUNCE] new iptables module match large amount of ip addresses
-Date: Thu, 17 Sep 2009 21:15:31 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0909172100220.27299@artax.karlin.mff.cuni.cz>
+From: Eric Leblond <eric@inl.fr>
+Subject: Re: misc ulogd2 fixes
+Date: Thu, 17 Sep 2009 21:40:32 +0200
+Message-ID: <1253216432.21074.4.camel@ice-age>
+References: <1253215700-15032-1-git-send-email-chifflier@inl.fr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netdev@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-0RUtfDzEtynen7wvf4Jo"
+Cc: netfilter-devel@vger.kernel.org
+To: Pierre Chifflier <chifflier@inl.fr>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp1-g21.free.fr ([212.27.42.1]:34733 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751194AbZIQTks (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 17 Sep 2009 15:40:48 -0400
+Received: from smtp1-g21.free.fr (localhost [127.0.0.1])
+	by smtp1-g21.free.fr (Postfix) with ESMTP id CAE49940167
+	for <netfilter-devel@vger.kernel.org>; Thu, 17 Sep 2009 21:40:47 +0200 (CEST)
+Received: from fydelkass.edenwall.com (fydelkass.inl.fr [88.171.131.12])
+	by smtp1-g21.free.fr (Postfix) with ESMTP id EE65394018A
+	for <netfilter-devel@vger.kernel.org>; Thu, 17 Sep 2009 21:40:44 +0200 (CEST)
+In-Reply-To: <1253215700-15032-1-git-send-email-chifflier@inl.fr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi
 
-Here I submit an iptables module that can match large amounts (millions) 
-of ip addresses efficiently using binary search. I needed it to protect my 
-home network from spam. It may be useful for other people too, so if you 
-want it, you can take it and add it to the kernel.
+--=-0RUtfDzEtynen7wvf4Jo
+Content-Type: text/plain; charset="ISO-8859-15"
+Content-Transfer-Encoding: quoted-printable
 
-Get the patches for netfilter and kernel at:
-http://artax.karlin.mff.cuni.cz/~mikulas/xt_ipfile/
-(you need to copy the file include/linux/netfilter/xt_ipfile.h from kernel 
-sources to /usr/include/linux/netfilter/ to compile the userspace)
+Hi,
 
-The main features:
-- fast matching of large amount of ip addresses using binary search.
-- an ability to match ranges of addresses or address/mask subnets.
-- fast loading of the addresses (on Pentium 3 850, 2 million addresses 
-load in 5.5s, if they are already sorted in the file, the load time is 
-just 1.5s).
-- memory efficient --- consumes only 8 bytes per address.
+Le jeudi 17 septembre 2009 =E0 21:28 +0200, Pierre Chifflier a =E9crit :
+> Hi,
+>=20
+> These patches fix two problems in ulogd:
+> - the debian directory in ulogd sources is outdated, and useless (it has
+>   errors and is not maintained). It's easy to maintain it outside the
+>   sources anyway
 
-USAGE:
+And as you are one of the debian maintainner of ulogd, I trust you on
+this.
 
-prepare a file with addreses, in this example /root/firewall/bad-ips. One 
-entry per line, the allowed formats are:
-1.2.3.4
-1.2.3.0/24
-1.2.3.4-1.2.3.8
+> - some views in the flat SQL schema are wrong, they use ip_protocol
+>   instead of oob_family
 
-insert it into iptables with:
-iptables -A SPAM -m ipfile --src-file /root/firewall/bad-ips -j DROP
+Both patches have been applied to the tree.
 
-The module doesn't support ipv6 because I don't use it, but it's generic 
-enough that it could be extended for it. It could be also extended to 
-match ethernet MAC addresses.
+BR,
+--=20
+Eric Leblond <eric@inl.fr>
+INL: http://www.inl.fr/
+NuFW: http://www.nufw.org/
 
-Mikulas
+--=-0RUtfDzEtynen7wvf4Jo
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Ceci est une partie de message
+ =?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iD8DBQBKspCtnxA7CdMWjzIRAh4xAJ4/vY9B/L5t54c5F8XKDCfB7IPlNwCdG7qs
+LFd4JNp+3L8Agb4/iOC+MZo=
+=tiFT
+-----END PGP SIGNATURE-----
+
+--=-0RUtfDzEtynen7wvf4Jo--
+
