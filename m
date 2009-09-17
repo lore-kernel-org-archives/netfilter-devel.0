@@ -1,33 +1,42 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: libipq_compat not work ?
-Date: Thu, 17 Sep 2009 13:47:51 +0200
-Message-ID: <4AB221E7.1040109@trash.net>
-References: <4AAE532C.1010100@nitrosecurity.com> <2af341ab0909140734g4ac9a696o4fb54a1827edd02c@mail.gmail.com> <09853F7CBDC04312ABC7E869B2E967F3@kerio.local> <4AAE7836.3020406@trash.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Ondrej Slanina <oslanina@gmail.com>
+Subject: netfilter -stable 00/04: Netfilter -stable fixes
+Date: Thu, 17 Sep 2009 13:58:25 +0200 (MEST)
+Message-ID: <20090917115823.12728.87778.sendpatchset@x2.localnet>
+Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org, davem@davemloft.net
+To: stable@kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59221 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:59483 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756913AbZIQLru (ORCPT
+	with ESMTP id S1754109AbZIQL6W (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Sep 2009 07:47:50 -0400
-In-Reply-To: <4AAE7836.3020406@trash.net>
+	Thu, 17 Sep 2009 07:58:22 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy wrote:
-> Ondrej Slanina wrote:
->> Hi,
->> thanks for response. In my code I can use it, but as I said, I tried to
->> compile Snort inline which is third - party software and which is still
->> depended on libipq. And I think that we can find more old software which
->> depends on libipq. I only want to know, if I just missed something or if
->> I'am doing something wrong or if it's not implemented yet.
-> 
-> It has never been finished and does not work. snort inline supports
-> nfnetlink_queue nowadays however.
+The following four patches fix a couple of netfilter regressions:
 
-I've removed it from the git tree to avoid confusion in the future.
+- inverted logic for persistent NAT mappings, causing source mappings to
+  multiple addresses to incorrectly use persistent addresses unless
+  configured to do so
+
+- conntrack cleanup in non-init namespaces
+
+- a bridge netfilter in_device refcount leak
+
+- an inverted return value in the ebt_ulog checkentry function, causing
+  validation to fail unconditionally
+
+Please apply, thanks!
+
+ net/bridge/br_netfilter.c         |    2 +-
+ net/bridge/netfilter/ebt_ulog.c   |    2 +-
+ net/ipv4/netfilter/nf_nat_core.c  |    2 +-
+ net/netfilter/nf_conntrack_core.c |    6 +++---
+ 4 files changed, 6 insertions(+), 6 deletions(-)
+
+Patrick McHardy (4):
+      netfilter: nf_nat: fix inverted logic for persistent NAT mappings
+      netfilter: nf_conntrack: netns fix re reliable conntrack event delivery
+      netfilter: bridge: refcount fix
+      netfilter: ebt_ulog: fix checkentry return value
