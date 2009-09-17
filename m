@@ -1,29 +1,34 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: [PATCH] Fix NAT issue in 2.6.30.4+
-Date: Thu, 17 Sep 2009 12:51:41 +0200
-Message-ID: <200909171251.41577.thomas.jarosch@intra2net.com>
-References: <alpine.DEB.2.00.0909102134290.12124@blackhole.kfki.hu>
+Date: Thu, 17 Sep 2009 13:22:57 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.0909171319040.5343@blackhole.kfki.hu>
+References: <alpine.DEB.2.00.0909102134290.12124@blackhole.kfki.hu> <4AB2184F.9090208@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from re01.intra2net.com ([82.165.28.202]:39905 "EHLO
-	re01.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754328AbZIQLP7 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Sep 2009 07:15:59 -0400
-In-Reply-To: <alpine.DEB.2.00.0909102134290.12124@blackhole.kfki.hu>
-Content-Disposition: inline
+Received: from smtp0.kfki.hu ([148.6.0.25]:39788 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753786AbZIQLWz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 17 Sep 2009 07:22:55 -0400
+In-Reply-To: <4AB2184F.9090208@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> Vitezslav Samel discovered that since 2.6.30.4+ active FTP can not work
-> over NAT. 
+On Thu, 17 Sep 2009, Patrick McHardy wrote:
 
-Confirmed on 2.6.30.5 ;-) I haven't tried the patch yet...
+> I got one reject in the removal of nf_conntrack_tcp_update() due
+> to the use of write_lock() instead of spin_lock() in your patch
+> (seems to be based on an old tree), this is the patch I committed:
 
-Thomas
+Uhh, I forgot to forward-port the patch, sorry: I used the 2.6.30.5 tree 
+for verifying the bug and testing the fix.
 
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
