@@ -1,96 +1,55 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: Re: [ANNOUNCE] new iptables module match large amount of ip
- addresses
-Date: Thu, 17 Sep 2009 22:03:37 +0200
-Message-ID: <1253217817.21074.9.camel@ice-age>
+From: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
+Subject: Re: [ANNOUNCE] new iptables module match large amount of ip addresses
+Date: Thu, 17 Sep 2009 22:36:57 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0909172232340.32723@artax.karlin.mff.cuni.cz>
 References: <Pine.LNX.4.64.0909172100220.27299@artax.karlin.mff.cuni.cz>
+ <1253217817.21074.9.camel@ice-age>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-H3g82aLcxsv9S0OuloLS"
+Content-Type: MULTIPART/MIXED; BOUNDARY="1908654874-237646716-1253219817=:32723"
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
+To: Eric Leblond <eric@inl.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:48856 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751260AbZIQUDu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Sep 2009 16:03:50 -0400
-In-Reply-To: <Pine.LNX.4.64.0909172100220.27299@artax.karlin.mff.cuni.cz>
+Received: from artax.karlin.mff.cuni.cz ([195.113.26.195]:40165 "EHLO
+	artax.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754098AbZIQUgy (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 17 Sep 2009 16:36:54 -0400
+In-Reply-To: <1253217817.21074.9.camel@ice-age>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
---=-H3g82aLcxsv9S0OuloLS
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: quoted-printable
+--1908654874-237646716-1253219817=:32723
+Content-Type: TEXT/PLAIN; charset=ISO-8859-2
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-Hi,
+On Thu, 17 Sep 2009, Eric Leblond wrote:
 
-Le jeudi 17 septembre 2009 =E0 21:15 +0200, Mikulas Patocka a =E9crit :
-> Hi
+> Hi,
 >=20
-> Here I submit an iptables module that can match large amounts (millions)=20
-> of ip addresses efficiently using binary search.
+> Le jeudi 17 septembre 2009 a 21:15 +0200, Mikulas Patocka a =E9crit :
+> > Hi
+> >=20
+> > Here I submit an iptables module that can match large amounts (millions=
+)=20
+> > of ip addresses efficiently using binary search.
+>=20
+> What are the differences with ipset ? (http://ipset.netfilter.org/)
+>=20
+> BR,
 
-What are the differences with ipset ? (http://ipset.netfilter.org/)
-
-BR,
-
->  I needed it to protect my=20
-> home network from spam. It may be useful for other people too, so if you=20
-> want it, you can take it and add it to the kernel.
->=20
-> Get the patches for netfilter and kernel at:
-> http://artax.karlin.mff.cuni.cz/~mikulas/xt_ipfile/
-> (you need to copy the file include/linux/netfilter/xt_ipfile.h from kerne=
-l=20
-> sources to /usr/include/linux/netfilter/ to compile the userspace)
->=20
-> The main features:
-> - fast matching of large amount of ip addresses using binary search.
-> - an ability to match ranges of addresses or address/mask subnets.
-> - fast loading of the addresses (on Pentium 3 850, 2 million addresses=20
-> load in 5.5s, if they are already sorted in the file, the load time is=20
-> just 1.5s).
-> - memory efficient --- consumes only 8 bytes per address.
->=20
-> USAGE:
->=20
-> prepare a file with addreses, in this example /root/firewall/bad-ips. One=
+What I wrote is static --- once loaded, then used. The only way to update=
 =20
-> entry per line, the allowed formats are:
-> 1.2.3.4
-> 1.2.3.0/24
-> 1.2.3.4-1.2.3.8
->=20
-> insert it into iptables with:
-> iptables -A SPAM -m ipfile --src-file /root/firewall/bad-ips -j DROP
->=20
-> The module doesn't support ipv6 because I don't use it, but it's generic=20
-> enough that it could be extended for it. It could be also extended to=20
-> match ethernet MAC addresses.
->=20
-> Mikulas
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel=
-" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
---=20
-Eric Leblond <eric@inl.fr>
-INL: http://www.inl.fr/
-NuFW: http://www.nufw.org/
+the addresses is to reload it. Ipset is dynamic (and has more memory=20
+consumption because of it). In my implementation, the kernel reads the ip=
+=20
+addresses, in ipset, the userspace tool reads them.=20
 
---=-H3g82aLcxsv9S0OuloLS
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Ceci est une partie de message
- =?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
+I didn't know about ipset before because it is not in the kernel (will it=
+=20
+ever be?)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iD8DBQBKspYWnxA7CdMWjzIRAmdCAJ4r8ajggUeKdq0PKlwW7/Gm+3T9OACfbOGc
-KPQLamFjHvXq3FQIO3/lHhE=
-=GPlT
------END PGP SIGNATURE-----
-
---=-H3g82aLcxsv9S0OuloLS--
-
+Mikulas
+--1908654874-237646716-1253219817=:32723--
