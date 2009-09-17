@@ -1,50 +1,86 @@
-From: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
+From: Fred Moyer <fred@redhotpenguin.com>
 Subject: Re: [ANNOUNCE] new iptables module match large amount of ip addresses
-Date: Fri, 18 Sep 2009 01:01:22 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0909180054410.21427@artax.karlin.mff.cuni.cz>
+Date: Thu, 17 Sep 2009 16:05:23 -0700
+Message-ID: <ad28918e0909171605m67a899b9l6c37483cba79628f@mail.gmail.com>
 References: <Pine.LNX.4.64.0909172100220.27299@artax.karlin.mff.cuni.cz>
- <alpine.LSU.2.00.0909180046410.20781@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from artax.karlin.mff.cuni.cz ([195.113.26.195]:40411 "EHLO
-	artax.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750974AbZIQXBT (ORCPT
+Received: from mail-pz0-f179.google.com ([209.85.222.179]:62058 "EHLO
+	mail-pz0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751117AbZIQXMQ convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Sep 2009 19:01:19 -0400
-In-Reply-To: <alpine.LSU.2.00.0909180046410.20781@obet.zrqbmnf.qr>
+	Thu, 17 Sep 2009 19:12:16 -0400
+Received: by pzk9 with SMTP id 9so153804pzk.33
+        for <netfilter-devel@vger.kernel.org>; Thu, 17 Sep 2009 16:12:20 -0700 (PDT)
+In-Reply-To: <Pine.LNX.4.64.0909172100220.27299@artax.karlin.mff.cuni.cz>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 18 Sep 2009, Jan Engelhardt wrote:
+On Thu, Sep 17, 2009 at 12:15 PM, Mikulas Patocka
+<mikulas@artax.karlin.mff.cuni.cz> wrote:
+> Hi
+>
+> Here I submit an iptables module that can match large amounts (millio=
+ns)
+> of ip addresses efficiently using binary search. I needed it to prote=
+ct my
+> home network from spam. It may be useful for other people too, so if =
+you
+> want it, you can take it and add it to the kernel.
 
-> On Thursday 2009-09-17 21:15, Mikulas Patocka wrote:
-> >
-> >Here I submit an iptables module that can match large amounts (millions) 
-> >of ip addresses efficiently using binary search.
-> 
-> So you just reinvented xt_geoip...
+I'm not familiar with xt_geoip or ipset, but from the first look at
+this module I want to say thank you!  This is the perfect tool for a
+problem I have been wanting to solve for a while.
 
-I am wondering, if there are two approaches for matching large amounts of 
-addresses (xt_geoip and ipset), why is none of them in the kernel?
 
-I was saying how OpenBSD is better than Linux because OpenBSD has 
-tree-based firewall tables --- hmm --- well --- Linux has them too, except 
-that noone can really find them because they are not in the kernel.
 
-> >- fast matching of large amount of ip addresses using binary search.
-> >- an ability to match ranges of addresses or address/mask subnets.
-> >- fast loading of the addresses (on Pentium 3 850, 2 million addresses 
-> >load in 5.5s, if they are already sorted in the file, the load time is 
-> >just 1.5s).
-> >- memory efficient --- consumes only 8 bytes per address.
-> 
-> xt_geoip uses less than that -- 8 bytes per range. Of course it depends 
-> on the data, but on the average, since large netblocks is used, it's 
-> much better than 8 per address.
-
-My code uses 8 bytes per range too, not really per address.
-
-Mikulas
+>
+> Get the patches for netfilter and kernel at:
+> http://artax.karlin.mff.cuni.cz/~mikulas/xt_ipfile/
+> (you need to copy the file include/linux/netfilter/xt_ipfile.h from k=
+ernel
+> sources to /usr/include/linux/netfilter/ to compile the userspace)
+>
+> The main features:
+> - fast matching of large amount of ip addresses using binary search.
+> - an ability to match ranges of addresses or address/mask subnets.
+> - fast loading of the addresses (on Pentium 3 850, 2 million addresse=
+s
+> load in 5.5s, if they are already sorted in the file, the load time i=
+s
+> just 1.5s).
+> - memory efficient --- consumes only 8 bytes per address.
+>
+> USAGE:
+>
+> prepare a file with addreses, in this example /root/firewall/bad-ips.=
+ One
+> entry per line, the allowed formats are:
+> 1.2.3.4
+> 1.2.3.0/24
+> 1.2.3.4-1.2.3.8
+>
+> insert it into iptables with:
+> iptables -A SPAM -m ipfile --src-file /root/firewall/bad-ips -j DROP
+>
+> The module doesn't support ipv6 because I don't use it, but it's gene=
+ric
+> enough that it could be extended for it. It could be also extended to
+> match ethernet MAC addresses.
+>
+> Mikulas
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-d=
+evel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
