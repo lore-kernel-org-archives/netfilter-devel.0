@@ -1,33 +1,48 @@
-From: Pierre Chifflier <chifflier@inl.fr>
-Subject: (unknown)
-Date: Thu, 17 Sep 2009 21:28:18 +0200
-Message-ID: <1253215700-15032-1-git-send-email-chifflier@inl.fr>
-Cc: eleblond@inl.fr
+From: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
+Subject: [ANNOUNCE] new iptables module match large amount of ip addresses
+Date: Thu, 17 Sep 2009 21:15:31 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.0909172100220.27299@artax.karlin.mff.cuni.cz>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netdev@vger.kernel.org
 To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:49033 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753182AbZIQT21 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Sep 2009 15:28:27 -0400
-Received: from smtp1-g21.free.fr (localhost [127.0.0.1])
-	by smtp1-g21.free.fr (Postfix) with ESMTP id D35BC940148
-	for <netfilter-devel@vger.kernel.org>; Thu, 17 Sep 2009 21:28:26 +0200 (CEST)
-Received: from fydelkass.edenwall.com (fydelkass.inl.fr [88.171.131.12])
-	by smtp1-g21.free.fr (Postfix) with ESMTP id F3ED49400C2
-	for <netfilter-devel@vger.kernel.org>; Thu, 17 Sep 2009 21:28:23 +0200 (CEST)
-Subject: 
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
+Hi
 
-These patches fix two problems in ulogd:
-- the debian directory in ulogd sources is outdated, and useless (it has
-  errors and is not maintained). It's easy to maintain it outside the
-  sources anyway
-- some views in the flat SQL schema are wrong, they use ip_protocol
-  instead of oob_family
+Here I submit an iptables module that can match large amounts (millions) 
+of ip addresses efficiently using binary search. I needed it to protect my 
+home network from spam. It may be useful for other people too, so if you 
+want it, you can take it and add it to the kernel.
 
-Cheers,
-Pierre
+Get the patches for netfilter and kernel at:
+http://artax.karlin.mff.cuni.cz/~mikulas/xt_ipfile/
+(you need to copy the file include/linux/netfilter/xt_ipfile.h from kernel 
+sources to /usr/include/linux/netfilter/ to compile the userspace)
 
+The main features:
+- fast matching of large amount of ip addresses using binary search.
+- an ability to match ranges of addresses or address/mask subnets.
+- fast loading of the addresses (on Pentium 3 850, 2 million addresses 
+load in 5.5s, if they are already sorted in the file, the load time is 
+just 1.5s).
+- memory efficient --- consumes only 8 bytes per address.
+
+USAGE:
+
+prepare a file with addreses, in this example /root/firewall/bad-ips. One 
+entry per line, the allowed formats are:
+1.2.3.4
+1.2.3.0/24
+1.2.3.4-1.2.3.8
+
+insert it into iptables with:
+iptables -A SPAM -m ipfile --src-file /root/firewall/bad-ips -j DROP
+
+The module doesn't support ipv6 because I don't use it, but it's generic 
+enough that it could be extended for it. It could be also extended to 
+match ethernet MAC addresses.
+
+Mikulas
