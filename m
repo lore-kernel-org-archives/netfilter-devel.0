@@ -1,33 +1,29 @@
-From: Mikulas Patocka <mikulas@artax.karlin.mff.cuni.cz>
-Subject: Re: [ANNOUNCE] new iptables module match large amount of ip addresses
-Date: Fri, 18 Sep 2009 01:46:45 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.0909180142130.27543@artax.karlin.mff.cuni.cz>
-References: <Pine.LNX.4.64.0909172100220.27299@artax.karlin.mff.cuni.cz>
- <alpine.LSU.2.00.0909180046410.20781@obet.zrqbmnf.qr>
- <Pine.LNX.4.64.0909180054410.21427@artax.karlin.mff.cuni.cz>
- <alpine.LSU.2.00.0909180130110.20781@obet.zrqbmnf.qr>
+From: Justin Yaple <yaplej@gmail.com>
+Subject: Source for tracking tcp sessions?
+Date: Thu, 17 Sep 2009 22:01:46 -0700
+Message-ID: <8363055a0909172201l4ba0499fw9d102721c76c0c83@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from artax.karlin.mff.cuni.cz ([195.113.26.195]:47974 "EHLO
-	artax.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751745AbZIQXqm (ORCPT
+Received: from mail-yw0-f175.google.com ([209.85.211.175]:42490 "EHLO
+	mail-yw0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753412AbZIRFBm (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Sep 2009 19:46:42 -0400
-In-Reply-To: <alpine.LSU.2.00.0909180130110.20781@obet.zrqbmnf.qr>
+	Fri, 18 Sep 2009 01:01:42 -0400
+Received: by ywh5 with SMTP id 5so899407ywh.4
+        for <netfilter-devel@vger.kernel.org>; Thu, 17 Sep 2009 22:01:46 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> >I was saying how OpenBSD is better than Linux because OpenBSD has 
-> >tree-based firewall tables --- hmm --- well --- Linux has them too, except 
-> >that noone can really find them because they are not in the kernel.
-> 
-> You can build trees of chains with iptables. (Which would be quite a 
-> fast thing if you do not have modules at hand.)
+Hello,
 
-I thought about this too but I realized that building the tree in kernel 
-would be easier to write than building it with a shell script :)
+I am just playing around with a kernel module to sniff network
+traffic, but I would also like to enable it to save session
+information.  I was trying to find the source that shows what
+netfilter does to uniquly identify a session, and then how it saves it
+so it can be matched to packets later.
 
-Mikulas
+My end goal prevents me from just using anything that already in conntrack.
+
+Thanks.
