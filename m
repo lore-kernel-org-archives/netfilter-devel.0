@@ -1,29 +1,132 @@
-From: Justin Yaple <yaplej@gmail.com>
-Subject: Source for tracking tcp sessions?
-Date: Thu, 17 Sep 2009 22:01:46 -0700
-Message-ID: <8363055a0909172201l4ba0499fw9d102721c76c0c83@mail.gmail.com>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [patch] ipvs: Use atomic operations atomicly
+Date: Sat, 19 Sep 2009 19:51:23 +1000
+Message-ID: <20090919095122.GA480@verge.net.au>
+References: <20090828023722.GA12136@verge.net.au>
+ <4A9BC082.3090804@trash.net>
+ <20090901015909.GA12252@verge.net.au>
+ <4A9E6B62.8080208@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yw0-f175.google.com ([209.85.211.175]:42490 "EHLO
-	mail-yw0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753412AbZIRFBm (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 18 Sep 2009 01:01:42 -0400
-Received: by ywh5 with SMTP id 5so899407ywh.4
-        for <netfilter-devel@vger.kernel.org>; Thu, 17 Sep 2009 22:01:46 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, ?? shin hong <hongshin@gmail.com>,
+	David Miller <davem@davemloft.net>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4A9E6B62.8080208@trash.net>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+[ re-post with CC list ]
 
-I am just playing around with a kernel module to sniff network
-traffic, but I would also like to enable it to save session
-information.  I was trying to find the source that shows what
-netfilter does to uniquly identify a session, and then how it saves it
-so it can be matched to packets later.
+On Wed, Sep 02, 2009 at 02:56:02PM +0200, Patrick McHardy wrote:
+> Simon Horman wrote:
+> > On Mon, Aug 31, 2009 at 02:22:26PM +0200, Patrick McHardy wrote:
+> >> It seems that proc_do_sync_threshold() should check whether this value
+> >> is zero. The current checks also look racy since incorrect values are
+> >> first updated, then overwritten again.
+> > 
+> > I'm wondering if an approach along the lines of the following is valid.
+> > The idea is that the value in the ctl_table is essentially a scratch
+> > value that is used by the parser and then copied into ip_vs_sync_threshold
+> > if it is valid.
+> 
+> Even simpler would be to use a temporary buffer on the stack for copying
+> the values from userspace and then copy them to the final buffer after
+> validation.
 
-My end goal prevents me from just using anything that already in conntrack.
+Do you mean something like what I have done using read_table in
+the new patch below?
 
-Thanks.
+> > I'm concerned that there are atomicity issues
+> > surrounding writing ip_vs_sync_threshold while there might be readers.
+> 
+> That might be a problem if they are required to be "synchronized".
+
+I don't think that the sychronisation needs extend beyond their
+use in this snippet.
+
+> 
+> > --- a/net/netfilter/ipvs/ip_vs_core.c
+> > +++ b/net/netfilter/ipvs/ip_vs_core.c
+> > @@ -1362,8 +1362,7 @@ ip_vs_in(unsigned int hooknum, struct sk_buff *skb,
+> >  	    (ip_vs_sync_state & IP_VS_STATE_MASTER) &&
+> >  	    (((cp->protocol != IPPROTO_TCP ||
+> >  	       cp->state == IP_VS_TCP_S_ESTABLISHED) &&
+> > -	      (pkts % sysctl_ip_vs_sync_threshold[1]
+> > -	       == sysctl_ip_vs_sync_threshold[0])) ||
+> > +	      (pkts % ip_vs_sync_threshold[1] == ip_vs_sync_threshold[0])) ||
+> >  	     ((cp->protocol == IPPROTO_TCP) && (cp->old_state != cp->state) &&
+> >  	      ((cp->state == IP_VS_TCP_S_FIN_WAIT) ||
+> >  	       (cp->state == IP_VS_TCP_S_CLOSE_WAIT) ||
+> > diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+> > index fba2892..8a9ff21 100644
+> > --- a/net/netfilter/ipvs/ip_vs_ctl.c
+> > +++ b/net/netfilter/ipvs/ip_vs_ctl.c
+> > @@ -76,6 +76,11 @@ static atomic_t ip_vs_dropentry = ATOMIC_INIT(0);
+> >  /* number of virtual services */
+> >  static int ip_vs_num_services = 0;
+> >  
+> > +/* threshold handling */
+> > +static int ip_vs_sync_threshold_min = 0;
+> > +static int ip_vs_sync_threshold_max = INT_MAX;
+> > +int ip_vs_sync_threshold[2] = { 3, 50 };
+> > +
+> 
+> min should be 1 I guess or you still need to manually check
+> that ip_vs_sync_threshold[1] != 0 to avoid a division be zero.
+
+I think that the check that val[0] < val[1] ensures this.
+
+Something that I noticed while putting this new patch together,
+should the code be checking the value of rc and only assigning  values if
+its 0. If so, I probably needs to be changed in a few places.
+
+diff --git a/net/netfilter/ipvs/ip_vs_ctl.c b/net/netfilter/ipvs/ip_vs_ctl.c
+index fba2892..c33ef7d 100644
+--- a/net/netfilter/ipvs/ip_vs_ctl.c
++++ b/net/netfilter/ipvs/ip_vs_ctl.c
+@@ -76,6 +76,9 @@ static atomic_t ip_vs_dropentry = ATOMIC_INIT(0);
+ /* number of virtual services */
+ static int ip_vs_num_services = 0;
+ 
++static int ip_vs_sync_threshold_min = 0;
++static int ip_vs_sync_threshold_max = INT_MAX;
++
+ /* sysctl variables */
+ static int sysctl_ip_vs_drop_entry = 0;
+ static int sysctl_ip_vs_drop_packet = 0;
+@@ -1520,18 +1523,17 @@ static int
+ proc_do_sync_threshold(ctl_table *table, int write, struct file *filp,
+ 		       void __user *buffer, size_t *lenp, loff_t *ppos)
+ {
++	struct ctl_table read_table;
+ 	int *valp = table->data;
+ 	int val[2];
+ 	int rc;
+ 
+-	/* backup the value first */
+-	memcpy(val, valp, sizeof(val));
++	memcpy(&read_table, table, sizeof(read_table));
++	read_table.data = &val;
+ 
+-	rc = proc_dointvec(table, write, filp, buffer, lenp, ppos);
+-	if (write && (valp[0] < 0 || valp[1] < 0 || valp[0] >= valp[1])) {
+-		/* Restore the correct value */
++	rc = proc_dointvec_minmax(&read_table, write, filp, buffer, lenp, ppos);
++	if (write && (val[0] >= val[1]))
+ 		memcpy(valp, val, sizeof(val));
+-	}
+ 	return rc;
+ }
+ 
+@@ -1698,6 +1700,8 @@ static struct ctl_table vs_vars[] = {
+ 		.maxlen		= sizeof(sysctl_ip_vs_sync_threshold),
+ 		.mode		= 0644,
+ 		.proc_handler	= proc_do_sync_threshold,
++		.extra1		= &ip_vs_sync_threshold_min,
++		.extra2		= &ip_vs_sync_threshold_max,
+ 	},
+ 	{
+ 		.procname	= "nat_icmp_send",
