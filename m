@@ -1,35 +1,75 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: Re: [PATCH] Fix NAT issue in 2.6.30.4+
-Date: Tue, 22 Sep 2009 17:34:09 +0200
-Message-ID: <200909221734.09452.thomas.jarosch@intra2net.com>
-References: <alpine.DEB.2.00.0909102134290.12124@blackhole.kfki.hu> <alpine.DEB.2.00.0909171319040.5343@blackhole.kfki.hu> <4AB21C77.1010306@trash.net>
+From: Hannes Eder <heder@google.com>
+Subject: [PATCH] netfilter: nf_nat_helper: tidy up adjust_tcp_sequence
+Date: Tue, 22 Sep 2009 18:00:55 +0200
+Message-ID: <20090922155911.20008.96214.stgit@jazzy.zrh.corp.google.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+Content-Type: text/plain; charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
+To: netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from re01.intra2net.com ([82.165.28.202]:41080 "EHLO
-	re01.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753676AbZIVPeJ (ORCPT
+Received: from smtp-out.google.com ([216.239.45.13]:22072 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932307AbZIVQHA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Sep 2009 11:34:09 -0400
-In-Reply-To: <4AB21C77.1010306@trash.net>
-Content-Disposition: inline
+	Tue, 22 Sep 2009 12:07:00 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday, 17. September 2009 13:24:39 Patrick McHardy wrote:
-> I double checked and it looks fine, apart from the minor reject.
-> I'll give it some testing myself before pushing upstream.
+The variable 'other_way' gets initialized but is not read afterwards,
+so remove it.  Pass the right arguments to a pr_debug call.
 
-Just a short side note: I extracted the patch from your git tree and voila, 
-it solves a passive FTP NAT issue with stuck connections using 2.6.30.6.
+While being at tidy up a bit and it fix this checkpatch warning:
+  WARNING: suspect code indent for conditional statements
 
-The patch runs stable on our main internet gateway for two days, too.
+Signed-off-by: Hannes Eder <heder@google.com>
 
-Cheers,
-Thomas
+ net/ipv4/netfilter/nf_nat_helper.c |   21 ++++++++-------------
+ 1 files changed, 8 insertions(+), 13 deletions(-)
+
+diff --git a/net/ipv4/netfilter/nf_nat_helper.c b/net/ipv4/netfilter/nf_nat_helper.c
+index 09172a6..56daa1b 100644
+--- a/net/ipv4/netfilter/nf_nat_helper.c
++++ b/net/ipv4/netfilter/nf_nat_helper.c
+@@ -41,18 +41,13 @@ adjust_tcp_sequence(u32 seq,
+ 		    struct nf_conn *ct,
+ 		    enum ip_conntrack_info ctinfo)
+ {
+-	int dir;
+-	struct nf_nat_seq *this_way, *other_way;
++	int dir = CTINFO2DIR(ctinfo);
+ 	struct nf_conn_nat *nat = nfct_nat(ct);
++	struct nf_nat_seq *this_way = &nat->seq[dir];
+ 
+-	pr_debug("adjust_tcp_sequence: seq = %u, sizediff = %d\n", seq, seq);
+-
+-	dir = CTINFO2DIR(ctinfo);
+-
+-	this_way = &nat->seq[dir];
+-	other_way = &nat->seq[!dir];
++	pr_debug("%s(): seq = %u, sizediff = %d\n", __func__, seq, sizediff);
+ 
+-	pr_debug("nf_nat_resize_packet: Seq_offset before: ");
++	pr_debug("%s(): Seq_offset before: ", __func__);
+ 	DUMP_OFFSET(this_way);
+ 
+ 	spin_lock_bh(&nf_nat_seqofs_lock);
+@@ -63,13 +58,13 @@ adjust_tcp_sequence(u32 seq,
+ 	 * retransmit */
+ 	if (this_way->offset_before == this_way->offset_after ||
+ 	    before(this_way->correction_pos, seq)) {
+-		   this_way->correction_pos = seq;
+-		   this_way->offset_before = this_way->offset_after;
+-		   this_way->offset_after += sizediff;
++		this_way->correction_pos = seq;
++		this_way->offset_before = this_way->offset_after;
++		this_way->offset_after += sizediff;
+ 	}
+ 	spin_unlock_bh(&nf_nat_seqofs_lock);
+ 
+-	pr_debug("nf_nat_resize_packet: Seq_offset after: ");
++	pr_debug("%s(): Seq_offset after: ", __func__);
+ 	DUMP_OFFSET(this_way);
+ }
+ 
 
