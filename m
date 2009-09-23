@@ -1,75 +1,72 @@
-From: Hannes Eder <heder@google.com>
-Subject: [PATCH] netfilter: nf_nat_helper: tidy up adjust_tcp_sequence
-Date: Tue, 22 Sep 2009 18:00:55 +0200
-Message-ID: <20090922155911.20008.96214.stgit@jazzy.zrh.corp.google.com>
+From: "Chang, Richard (Cont, ARL/CISD)" <rachang@arl.army.mil>
+Subject: dev_queue_xmit is hanging on packet delivery (UNCLASSIFIED)
+Date: Wed, 23 Sep 2009 13:41:59 -0400
+Message-ID: <8B40037CAD71384FBD524ED1E5351A9E01C1F7@ADLCAML01.DS.ARL.ARMY.MIL>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, linux-kernel@vger.kernel.org
-To: netdev@vger.kernel.org
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 8BIT
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.45.13]:22072 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932307AbZIVQHA (ORCPT
+Received: from arlabbh01.ds.arl.army.mil ([192.12.65.18]:1364 "EHLO
+	ARLABBH01.ds.arl.army.mil" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751333AbZIWR5I convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Sep 2009 12:07:00 -0400
+	Wed, 23 Sep 2009 13:57:08 -0400
+Content-class: urn:content-classes:message
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The variable 'other_way' gets initialized but is not read afterwards,
-so remove it.  Pass the right arguments to a pr_debug call.
+Classification: UNCLASSIFIED
+Caveats: NONE
 
-While being at tidy up a bit and it fix this checkpatch warning:
-  WARNING: suspect code indent for conditional statements
+I'm not sure if this is the right group, but my question is about
+reinjecting packets  after modification.   I wrote a simple kernel
+module which took a skb, copied it with skb_clone(skb), called
+dev_queue_xmit(cloned_skb) and returned NF_STOLEN.  
 
-Signed-off-by: Hannes Eder <heder@google.com>
+unsigned int process_outgoing( unsigned int hooknum,
+				struct sk_buff **skb,
+				...
+)
+struct sk_buff *skbuf = skb_copy(*skb, GFP_ATOMIC);
+...
+...
+int rtval;
 
- net/ipv4/netfilter/nf_nat_helper.c |   21 ++++++++-------------
- 1 files changed, 8 insertions(+), 13 deletions(-)
+If(!skbuf)
+	Return NF_ACCEPT;
+...
+...
 
-diff --git a/net/ipv4/netfilter/nf_nat_helper.c b/net/ipv4/netfilter/nf_nat_helper.c
-index 09172a6..56daa1b 100644
---- a/net/ipv4/netfilter/nf_nat_helper.c
-+++ b/net/ipv4/netfilter/nf_nat_helper.c
-@@ -41,18 +41,13 @@ adjust_tcp_sequence(u32 seq,
- 		    struct nf_conn *ct,
- 		    enum ip_conntrack_info ctinfo)
- {
--	int dir;
--	struct nf_nat_seq *this_way, *other_way;
-+	int dir = CTINFO2DIR(ctinfo);
- 	struct nf_conn_nat *nat = nfct_nat(ct);
-+	struct nf_nat_seq *this_way = &nat->seq[dir];
- 
--	pr_debug("adjust_tcp_sequence: seq = %u, sizediff = %d\n", seq, seq);
--
--	dir = CTINFO2DIR(ctinfo);
--
--	this_way = &nat->seq[dir];
--	other_way = &nat->seq[!dir];
-+	pr_debug("%s(): seq = %u, sizediff = %d\n", __func__, seq, sizediff);
- 
--	pr_debug("nf_nat_resize_packet: Seq_offset before: ");
-+	pr_debug("%s(): Seq_offset before: ", __func__);
- 	DUMP_OFFSET(this_way);
- 
- 	spin_lock_bh(&nf_nat_seqofs_lock);
-@@ -63,13 +58,13 @@ adjust_tcp_sequence(u32 seq,
- 	 * retransmit */
- 	if (this_way->offset_before == this_way->offset_after ||
- 	    before(this_way->correction_pos, seq)) {
--		   this_way->correction_pos = seq;
--		   this_way->offset_before = this_way->offset_after;
--		   this_way->offset_after += sizediff;
-+		this_way->correction_pos = seq;
-+		this_way->offset_before = this_way->offset_after;
-+		this_way->offset_after += sizediff;
- 	}
- 	spin_unlock_bh(&nf_nat_seqofs_lock);
- 
--	pr_debug("nf_nat_resize_packet: Seq_offset after: ");
-+	pr_debug("%s(): Seq_offset after: ", __func__);
- 	DUMP_OFFSET(this_way);
- }
- 
+rtval = dev_queue_xmit(skbuf);
+if( rtval == NET_XMIT_SUCCESS)
+	printk("Great packet queued\n");
+else
+{
+	printk("packet not resent\n")
+}
+
+return NF_STOLEN;
+}
+
+After installing this module, my client/server application transmits the
+first packet then hangs.  Nothing else is received on both ends.  If I
+remove the module, packet will slowly begin to be received.  Admittedly
+there is a lot that I don't understand about netfilters, but this makes
+absolutely no sense to me.  I can't seem find a lot of documentation
+about reinjecting packets.  I came across the function
+nf_reinject(skb,nf_info,verdict)  but I have no idea where the middle
+parameter is coming from or how this verdict is affecting the return
+value of my process_outgoing function of my kernel mod.  Both
+documentation lacks sample implementation.  Again, I simply want to
+capture packets, modify them, then reinject them to their incoming or
+outgoing queue.
+
+I appreciate any help.
+
+Thanx Richard  
+Classification: UNCLASSIFIED
+Caveats: NONE
+
 
