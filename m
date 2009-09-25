@@ -1,48 +1,29 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: Jan Rafaj <jr+netfilter-devel@cedric.unob.cz>
 Subject: Re: xtables-addons ACCOUNT - userspace
-Date: Fri, 25 Sep 2009 09:53:51 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0909250950130.10538@obet.zrqbmnf.qr>
-References: <4ABA69F3.9010907@ttx.sk> <alpine.LNX.2.00.0909232154500.25578@cedric.unob.cz> <alpine.LSU.2.00.0909240150350.30035@obet.zrqbmnf.qr> <4ABBDD8E.1030703@ttx.sk>
+Date: Fri, 25 Sep 2009 14:34:03 +0200 (MEST)
+Message-ID: <alpine.LNX.2.00.0909251431590.27290@cedric.unob.cz>
+References: <4ABA69F3.9010907@ttx.sk> <alpine.LNX.2.00.0909232154500.25578@cedric.unob.cz> <alpine.LSU.2.00.0909240150350.30035@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Jan Rafaj <jr+netfilter-devel@cedric.unob.cz>,
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: =?ISO-8859-15?Q?Vlado_Dr=B8=EDk?= <vlado@ttx.sk>,
 	netfilter-devel@vger.kernel.org
-To: =?UTF-8?Q?Vlado_Dr=C5=BE=C3=ADk?= <vlado@ttx.sk>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:56460 "EHLO borg.medozas.de"
+Received: from cedric.unob.cz ([160.216.40.10]:34894 "EHLO cedric.unob.cz"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752575AbZIYHxs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 25 Sep 2009 03:53:48 -0400
-In-Reply-To: <4ABBDD8E.1030703@ttx.sk>
+	id S1752540AbZIYMeN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 25 Sep 2009 08:34:13 -0400
+In-Reply-To: <alpine.LSU.2.00.0909240150350.30035@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Thursday 2009-09-24 22:58, Vlado Dr=C5=BE=C3=ADk wrote:
+On Thu, 24 Sep 2009, Jan Engelhardt wrote:
 
->Thanks for that!,
->I was able to get also the userspace part working with snapshot from
->ACCOUNT branch but I'm not able to compile whole xtables-addons from
->this branch.
->
->Compile was running on CentOS 5 (x86 and x86_64)
->
->I've recieved following when trying compile:
->  CC     libxt_RAWDNAT.oo
->In file included from libxt_RAWDNAT.c:17:
->xt_RAWNAT.h:5: error: field =E2=80=98addr=E2=80=99 has incomplete type
->
->Do you have any clue what can be possibly wrong?
+> Please test the latest ACCOUNT-e37985b.
 
-I could imagine that, on systems with a /usr/include/linux older than=20
-2.6.25, you need to point it to the iptables source tree, which has a=20
-timely copy of linux/netfilter.h shipping said type; in other words,=20
-please try:
+Done. It works fine here (linux 2.6.29.6, iptables 1.4.4).
 
-	./configure --with-xtables=3D/path/to/iptables.src
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks,
+
+Jan
