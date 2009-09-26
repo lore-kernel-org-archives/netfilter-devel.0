@@ -1,85 +1,41 @@
-From: Balazs Scheidler <bazsi@balabit.hu>
-Subject: Re: [PATCH 13/13] TProxy: use the interface primary IP address as
- a default value for --on-ip
-Date: Fri, 25 Sep 2009 20:07:48 +0200
-Message-ID: <1253902068.10105.1.camel@bzorp.balabit>
-References: <1253548005.12519.13.camel@bzorp.balabit>
-	 <4AB7BF47.2030404@hp.com> <1253601509.6883.5.camel@bzorp.balabit>
-	 <4AB8DC6F.90602@hp.com>
+From: Pasi =?iso-8859-1?Q?K=E4rkk=E4inen?= <pasik@iki.fi>
+Subject: Re: H.239 support in the H.323 helper?
+Date: Sat, 26 Sep 2009 12:17:47 +0300
+Message-ID: <20090926091747.GV31123@reaktio.net>
+References: <alpine.DEB.2.00.0909221132150.16779@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Brian Haley <brian.haley@hp.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4AB8DC6F.90602@hp.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Jing Min Zhao <zhaojingmin@users.sourceforge.net>,
+	netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from reaktio.net ([194.89.68.22]:46188 "EHLO ydin.reaktio.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750890AbZIZJl6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 26 Sep 2009 05:41:58 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.DEB.2.00.0909221132150.16779@blackhole.kfki.hu>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 2009-09-22 at 10:17 -0400, Brian Haley wrote:
-> Balazs Scheidler wrote:
-> > On Mon, 2009-09-21 at 14:00 -0400, Brian Haley wrote:
-> >> Balazs Scheidler wrote: 
-> >>>  #if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
-> >>> +
-> >>> +static inline const struct in6_addr *
-> >>> +tproxy_laddr6(struct sk_buff *skb, const struct in6_addr *user_laddr, const struct in6_addr *daddr)
-> >>> +{
-> >>> +	struct inet6_dev *indev;
-> >>> +	struct inet6_ifaddr *ifa;
-> >>> +	struct in6_addr *laddr;
-> >>> +	
-> >>> +        if (!ipv6_addr_any(user_laddr))
-> >>> +                return user_laddr;
-> >>> +	
-> >>> +        laddr = NULL;
-> >>> +        rcu_read_lock();
-> >>> +        indev = __in6_dev_get(skb->dev);
-> >>> +        if (indev && (ifa = indev->addr_list)) {
-> >>> +		laddr = &ifa->addr;
-> >>> +	}
-> >>> +        rcu_read_unlock();
-> >>> +        
-> >>> +        return laddr ? laddr : daddr;
-> >>> +}
-> >> You should call ipv6_dev_get_saddr() to get a source address based on the target
-> >> destination address.
-> > 
-> > Thanks for this hint, however this is not selecting a source address for
-> > a given destination, rather it selects the address where tproxy is
-> > redirecting the connection in case the user specified no --on-ip
-> > parameter.
-> > 
-> > e.g. 
-> > 
-> > ip6tables -A PREROUTING -p tcp --dport 80 -j TPROXY --on-port 50080
-> > 
-> > This should redirect the connection to the primary IP address of the
-> > incoming interface. In fact I spent 2 hours to figure out how to find
-> > the proper address, and at the end I used the first IP address
-> > configured to the interface, seeing that those addresses are sorted in
-> > 'scope' order, e.g. link-local and site-local addresses are at the end
-> > of the list, thus the front should be ok.
+On Tue, Sep 22, 2009 at 11:44:45AM +0200, Jozsef Kadlecsik wrote:
+> Hi,
 > 
-> Yes, the addresses are sorted by scope, but just because they're in the
-> list doesn't mean they can be used, for example that address might have
-> failed DAD or be Deprecated.  ipv6_dev_get_saddr() will follow the rules
-> from RFC 3484 in picking the best address to use, or none if there isn't
-> anything appropriate.
+> With the H.323 conntrack helper enabled on a machine running Gnugk, it 
+> cannot establish multiple channels for conferencing and presentation with 
+> a Polycom MGC MCU. The device wants to use H.239 and the helper cannot 
+> decode/interpret the protocol:
 > 
-> > Since I'm not that much into IPv6, I'd appreciate some help, is
-> > ipv6_dev_get_saddr(client_ip_address) indeed the best solution here?
+> Sep 21 13:41:48 caladan kernel: nf_ct_h323: incomplete TPKT (fragmented?)
 > 
-> Probably.  An alternative might be to use ip6_dst_lookup() (see tcp_v6_connect()),
-> but a lot more code for you.
+> Could you consider to add H.239 support to the H.323 helper?
+> 
 
-One question, how fast is ipv6_dev_get_saddr()? Since the TPROXY target
-can execute on a per-packet path (although the socket match should take
-care of packets that belong to already-established connections), this
-may be performance critical. Is ipv6_dev_get_saddr() something that I
-can call so often?
+Hello.
 
--- 
-Bazsi
+I don't know if anyone is working on adding H.239, but you could always
+start working on it yourself. You seem to have the needed equipment to
+test it :)
 
+-- Pasi
 
