@@ -1,29 +1,31 @@
-From: Brian Haley <brian.haley@hp.com>
-Subject: Re: [PATCH 13/13] TProxy: use the interface primary IP address as
- a default value for --on-ip
-Date: Mon, 28 Sep 2009 12:16:10 -0400
-Message-ID: <4AC0E14A.10108@hp.com>
-References: <1253548005.12519.13.camel@bzorp.balabit>	 <4AB7BF47.2030404@hp.com> <1253601509.6883.5.camel@bzorp.balabit>	 <4AB8DC6F.90602@hp.com> <1253902068.10105.1.camel@bzorp.balabit>
+From: "Florian Fuessl" <flo@degnet.de>
+Subject: T.38 FAX support via nf_nat_sip,nf_conntrack_sip
+Date: Mon, 28 Sep 2009 19:10:24 +0200
+Message-ID: <002401ca405e$91c4ae90$b54e0bb0$@de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Balazs Scheidler <bazsi@balabit.hu>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1253902068.10105.1.camel@bzorp.balabit>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail04.viruscheckservice.de ([80.73.96.84]:51210 "EHLO
+	mail04.viruscheckservice.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752433AbZI1RRB (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Sep 2009 13:17:01 -0400
+Content-Language: de
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Balazs Scheidler wrote:
-> One question, how fast is ipv6_dev_get_saddr()? Since the TPROXY target
-> can execute on a per-packet path (although the socket match should take
-> care of packets that belong to already-established connections), this
-> may be performance critical. Is ipv6_dev_get_saddr() something that I
-> can call so often?
+Hi,
 
-It probably isn't the best thing to be calling on a per-packet basis, it's
-mainly called now on a per-connection basis.  I guess if it's really bad
-for you we could do something like ipv6_get_lladdr() does for finding
-a link-local address, it might be good enough in this case.
+T.38 FAX support via nf_nat_sip,nf_conntraack_sip does currently not seem to
+work, because the REINVITE for the codec change is not handled correctly at
+the moment (Figure: Fax Pass-Through and Call Flow diagram i.e. at
+http://docwiki.cisco.com/wiki/Cisco_IOS_Voice_Troubleshooting_and_Monitoring
+_--_Fax_Call_Flow )
 
--Brian
+Do you have an idea how to patch this problem?
+
+-Florian
+
