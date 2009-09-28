@@ -1,20 +1,29 @@
-From: Alvin Baptiste <alvinsb@gmail.com>
-Subject: (unknown)
-Date: Sat, 26 Sep 2009 10:17:57 -0400
-Message-ID: <72de95900909260717tb50a7ccl41390bd6c3f292e2@mail.gmail.com>
+From: Brian Haley <brian.haley@hp.com>
+Subject: Re: [PATCH 13/13] TProxy: use the interface primary IP address as
+ a default value for --on-ip
+Date: Mon, 28 Sep 2009 12:16:10 -0400
+Message-ID: <4AC0E14A.10108@hp.com>
+References: <1253548005.12519.13.camel@bzorp.balabit>	 <4AB7BF47.2030404@hp.com> <1253601509.6883.5.camel@bzorp.balabit>	 <4AB8DC6F.90602@hp.com> <1253902068.10105.1.camel@bzorp.balabit>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yx0-f173.google.com ([209.85.210.173]:41034 "EHLO
-	mail-yx0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751363AbZIZORx (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 26 Sep 2009 10:17:53 -0400
-Received: by yxe3 with SMTP id 3so1379649yxe.4
-        for <netfilter-devel@vger.kernel.org>; Sat, 26 Sep 2009 07:17:57 -0700 (PDT)
-Subject: 
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Balazs Scheidler <bazsi@balabit.hu>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1253902068.10105.1.camel@bzorp.balabit>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-unsubscribe
+Balazs Scheidler wrote:
+> One question, how fast is ipv6_dev_get_saddr()? Since the TPROXY target
+> can execute on a per-packet path (although the socket match should take
+> care of packets that belong to already-established connections), this
+> may be performance critical. Is ipv6_dev_get_saddr() something that I
+> can call so often?
+
+It probably isn't the best thing to be calling on a per-packet basis, it's
+mainly called now on a per-connection basis.  I guess if it's really bad
+for you we could do something like ipv6_get_lladdr() does for finding
+a link-local address, it might be good enough in this case.
+
+-Brian
