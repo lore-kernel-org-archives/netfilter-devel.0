@@ -1,100 +1,61 @@
-From: Joe Perches <joe@perches.com>
-Subject: Re: [PATCH 1/2] net/netfilter/ipvs: Move #define KMSG_COMPONENT to
- Makefile
-Date: Thu, 01 Oct 2009 08:55:57 -0700
-Message-ID: <1254412557.1799.68.camel@Joe-Laptop.home>
-References: <cover.1254349374.git.joe@perches.com>
-	 <0026bcf5aad9ae5036e68fc2dcda9c778d30dc47.1254349375.git.joe@perches.com>
-	 <alpine.LSU.2.00.0910010042540.782@obet.zrqbmnf.qr>
-	 <1254352160.2960.119.camel@Joe-Laptop.home>
-	 <alpine.LSU.2.00.0910010219100.7559@obet.zrqbmnf.qr>
-	 <1254358235.2960.145.camel@Joe-Laptop.home>
-	 <alpine.LSU.2.00.0910011016480.24025@obet.zrqbmnf.qr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	Simon Horman <horms@verge.net.au>,
-	Julian Anastasov <ja@ssi.bg>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, netdev@vger.kernel.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	lvs-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <alpine.LSU.2.00.0910011016480.24025@obet.zrqbmnf.qr>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Greg KH <gregkh@suse.de>
+Subject: [patch 8/9] netfilter: bridge: refcount fix
+Date: Thu, 01 Oct 2009 16:16:41 -0700
+Message-ID: <20091001231805.637821425@mini.kroah.org>
+References: <20091001231633.719696398@mini.kroah.org>
+Cc: stable-review@kernel.org, torvalds@linux-foundation.org,
+	akpm@linux-foundation.org, alan@lxorguk.ukuu.org.uk,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	Patrick McHardy <kaber@trash.net>, davem@davemloft.net,
+	Eric Dumazet <eric.dumazet@gmail.com>
+To: linux-kernel@vger.kernel.org, stable@kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from kroah.org ([198.145.64.141]:39686 "EHLO coco.kroah.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754794AbZJAXXW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 1 Oct 2009 19:23:22 -0400
+Content-Disposition: inline; filename=netfilter-bridge-refcount-fix.patch
+In-Reply-To: <20091001231938.GA29593@kroah.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 2009-10-01 at 10:27 +0200, Jan Engelhardt wrote:
-> On Thursday 2009-10-01 02:50, Joe Perches wrote:
-> >I imagine an eventual goal of standardizing the default
-> >pr_fmt define in kernel.h to
-> >	#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-> >so that all pr_<level> calls get this unless otherwise
-> >specified.
-> 
-> I like that approach. Saves me adding that line to .c
-> files repeatedly.
 
-There aren't too many existing pr_<level> calls so
-that this couldn't be considered.
+2.6.27-stable review patch.  If anyone has any objections, please let us know.
 
-Files with pr_<level> without pr_fmt:
+------------------
 
-$ grep -rPl --include=*.[ch] \
-	"\bpr_(info|warning|err|alert|notice|crit)\b" * |
-  xargs grep -Lw "pr_fmt" | wc -l
-569
+From: Patrick McHardy <kaber@trash.net>
 
-Uses of pr_<level> without pr_fmt:
+netfilter: bridge: refcount fix
 
-$ grep -rPl --include=*.[ch] \
-	"\bpr_(info|warning|err|alert|notice|crit)\b" * |
-  xargs grep -Lw "pr_fmt" |
-  xargs grep -P "\bpr_(info|warning|err|alert|notice|crit)\b" |
-  wc -l
-2885
+Upstream commit f3abc9b9:
 
-If you look at the pr_<levels>, it's nearly
-a mechanical thing to strip the ones with
-some sort of prefix and add a #define pr_fmt
-to replace them.  Most all of them without
-prefixes might benefit by using a standardized
-#define pr_fmt(etc...) in kernel.h, so the
-actual count of changes isn't that high.
+commit f216f082b2b37c4943f1e7c393e2786648d48f6f
+([NETFILTER]: bridge netfilter: deal with martians correctly)
+added a refcount leak on in_dev.
 
-> >Or perhaps better, to get rid of pr_fmt(fmt) altogether and
-> >have printk emit the filename/modulename, function and/or
-> >code offset by using something like %pS after the level.
-> I object to that. You would be spamming the dmesg ring buffer
-> with all that info
+Instead of using in_dev_get(), we can use __in_dev_get_rcu(),
+as netfilter hooks are running under rcu_read_lock(), as pointed
+by Patrick.
 
-Of course printks could not change, there are way too
-many of those to consider doing that globally.
+Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+Signed-off-by: Greg Kroah-Hartman <gregkh@suse.de>
 
-But the printks emitted by pr_<level> might change.
-Maybe by setting a bit in the string "<level>" or by
-some other mechanism.
+---
+ net/bridge/br_netfilter.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-> filename: you would have to keep filename strings in the kernel.
-> Surely I do not find that thrilling when there are ~18000
-> non-arch .[ch] files whose pathnames amount to 542K.
-> Same goes similar for functions.
-> 
-> modulename: obj-y files would only get "<built-in>" or something
-> for KBUILD_MODNAME. Printing that to dmesg is not too useful.
+--- a/net/bridge/br_netfilter.c
++++ b/net/bridge/br_netfilter.c
+@@ -358,7 +358,7 @@ static int br_nf_pre_routing_finish(stru
+ 				},
+ 				.proto = 0,
+ 			};
+-			struct in_device *in_dev = in_dev_get(dev);
++			struct in_device *in_dev = __in_dev_get_rcu(dev);
+ 
+ 			/* If err equals -EHOSTUNREACH the error is due to a
+ 			 * martian destination or due to the fact that
 
-The removal of KBUILD_MODNAME could only be done
-for builds with CONFIG_KALLSYMS or
-CONFIG_DYNAMIC_DEBUG.
-
-It might also be possible to use something like
-CONFIG_DYNAMIC_DEBUG to control which modules get
-MODNAME, __func__, __LINE__ or offset emitted
-by the pr_<level> via some boot/module/sysconf
-or FTRACE like parameters.
-
-cheers, Joe
 
