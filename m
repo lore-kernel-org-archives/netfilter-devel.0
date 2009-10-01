@@ -1,58 +1,90 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 1/2] net/netfilter/ipvs: Move #define KMSG_COMPONENT to
- Makefile
-Date: Thu, 1 Oct 2009 10:27:48 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0910011016480.24025@obet.zrqbmnf.qr>
-References: <cover.1254349374.git.joe@perches.com>  <0026bcf5aad9ae5036e68fc2dcda9c778d30dc47.1254349375.git.joe@perches.com>  <alpine.LSU.2.00.0910010042540.782@obet.zrqbmnf.qr>  <1254352160.2960.119.camel@Joe-Laptop.home>  <alpine.LSU.2.00.0910010219100.7559@obet.zrqbmnf.qr>
- <1254358235.2960.145.camel@Joe-Laptop.home>
+From: "Florian Fuessl" <flo@degnet.de>
+Subject: RE: T.38 FAX support via nf_nat_sip,nf_conntrack_sip
+Date: Thu, 1 Oct 2009 17:48:19 +0200
+Message-ID: <003201ca42ae$998651e0$cc92f5a0$@de>
+References: <002401ca405e$91c4ae90$b54e0bb0$@de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	Simon Horman <horms@verge.net.au>,
-	Julian Anastasov <ja@ssi.bg>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, netdev@vger.kernel.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	lvs-devel@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S932150AbZJAI1s@vger.kernel.org>
-In-Reply-To: <1254358235.2960.145.camel@Joe-Laptop.home>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: "'Florian Fuessl'" <flo@degnet.de>
+To: <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail04.viruscheckservice.de ([80.73.96.84]:65217 "EHLO
+	mail04.viruscheckservice.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751226AbZJAPsP (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 1 Oct 2009 11:48:15 -0400
+In-Reply-To: <002401ca405e$91c4ae90$b54e0bb0$@de>
+Content-Language: de
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+I've an update regarding this issue:
 
-On Thursday 2009-10-01 02:50, Joe Perches wrote:
->On Thu, 2009-10-01 at 02:31 +0200, Jan Engelhardt wrote:
->> Well I personally prefer the #include instead of hiding such in 
->> Makefiles. You know, when newcomers could start doing `grep 
->> KMSG_COMPONENT *.[ch]`. Perhaps GCC's -include flag in a Makefile
->> to avoid #includes in .c files?
->
->I imagine an eventual goal of standardizing the default
->pr_fmt define in kernel.h to
->
->	#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
->
->so that all pr_<level> calls get this unless otherwise
->specified.
+According to my packet dumps the nf_conntrack_sip.c function:
 
-I like that approach. Saves me adding that line to .c
-files repeatedly.
+static int process_sdp(struct sk_buff *skb,
+                       const char **dptr, unsigned int *datalen,
+                       unsigned int cseq)
+{
+[...]
+        /* Update session connection and owner addresses */
+        nf_nat_sdp_session = rcu_dereference(nf_nat_sdp_session_hook);
+        if (nf_nat_sdp_session && ct->status & IPS_NAT_MASK)
+                ret = nf_nat_sdp_session(skb, dptr, sdpoff, datalen,
+&rtp_addr);
 
->Or perhaps better, to get rid of pr_fmt(fmt) altogether and
->have printk emit the filename/modulename, function and/or
->code offset by using something like %pS after the level.
+        if (ret == NF_ACCEPT && i > 0)
+                help->help.ct_sip_info.invite_cseq = cseq;
 
-I object to that. You would be spamming the dmesg ring buffer
-with all that info, plus
+        return ret;
+}
 
-filename: you would have to keep filename strings in the kernel.
-Surely I do not find that thrilling when there are ~18000
-non-arch .[ch] files whose pathnames amount to 542K.
-Same goes similar for functions.
+... seems to rewrite the SIP/SDP (IN IP4) owner address and connection
+address with garbage IP data on REINVITE packets sourcing from NAT outbound
+to NAT inbound.
 
-modulename: obj-y files would only get "<built-in>" or something
-for KBUILD_MODNAME. Printing that to dmesg is not too useful.
+For example:
+REINVITE packet sourcing from NAT outbound with connection information:
+SIP Call IN IP4 212.77.188.67
+... will be rewritten by the garbage IP address:
+SIP Call IN IP4 128.41.188.128
 
-I would rather keep plain printk as-is.
+Should this information not only be rewritten for packets sourcing from NAT
+inbound to NAT outbound? 
+What information does nf_nat_sip,nf_conntrack_sip read in order to determine
+the garbage IP? Is this maybe a security (buffer) problem, too?
+
+Sorry I'm no coder, so any help is very welcome :)
+
+-Florian
+
+> -----Original Message-----
+> From: netfilter-devel-owner@vger.kernel.org [mailto:netfilter-devel-
+> owner@vger.kernel.org] On Behalf Of Florian Fuessl
+> Sent: Monday, September 28, 2009 7:10 PM
+> To: netfilter-devel@vger.kernel.org
+> Subject: T.38 FAX support via nf_nat_sip,nf_conntrack_sip
+> 
+> Hi,
+> 
+> T.38 FAX support via nf_nat_sip,nf_conntraack_sip does currently not
+> seem to
+> work, because the REINVITE for the codec change is not handled
+> correctly at
+> the moment (Figure: Fax Pass-Through and Call Flow diagram i.e. at
+> http://docwiki.cisco.com/wiki/Cisco_IOS_Voice_Troubleshooting_and_Monit
+> oring
+> _--_Fax_Call_Flow )
+> 
+> Do you have an idea how to patch this problem?
+> 
+> -Florian
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-
+> devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
