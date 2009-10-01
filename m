@@ -1,51 +1,59 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: Joe Perches <joe@perches.com>
 Subject: Re: [PATCH 1/2] net/netfilter/ipvs: Move #define KMSG_COMPONENT to
  Makefile
-Date: Thu, 1 Oct 2009 02:31:24 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0910010219100.7559@obet.zrqbmnf.qr>
-References: <cover.1254349374.git.joe@perches.com>  <0026bcf5aad9ae5036e68fc2dcda9c778d30dc47.1254349375.git.joe@perches.com>  <alpine.LSU.2.00.0910010042540.782@obet.zrqbmnf.qr> <1254352160.2960.119.camel@Joe-Laptop.home>
+Date: Wed, 30 Sep 2009 17:50:35 -0700
+Message-ID: <1254358235.2960.145.camel@Joe-Laptop.home>
+References: <cover.1254349374.git.joe@perches.com>
+	 <0026bcf5aad9ae5036e68fc2dcda9c778d30dc47.1254349375.git.joe@perches.com>
+	 <alpine.LSU.2.00.0910010042540.782@obet.zrqbmnf.qr>
+	 <1254352160.2960.119.camel@Joe-Laptop.home>
+	 <alpine.LSU.2.00.0910010219100.7559@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Cc: Patrick McHardy <kaber@trash.net>,
 	"David S. Miller" <davem@davemloft.net>,
 	Simon Horman <horms@verge.net.au>,
 	Julian Anastasov <ja@ssi.bg>, netfilter-devel@vger.kernel.org,
 	coreteam@netfilter.org, netdev@vger.kernel.org,
 	linux-kernel@vger.kernel.org, lvs-devel@vger.kernel.org
-To: Joe Perches <joe@perches.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:39003 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755241AbZJAAbZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Sep 2009 20:31:25 -0400
-In-Reply-To: <1254352160.2960.119.camel@Joe-Laptop.home>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <alpine.LSU.2.00.0910010219100.7559@obet.zrqbmnf.qr>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
+
+On Thu, 2009-10-01 at 02:31 +0200, Jan Engelhardt wrote:
+> KBUILD_MODNAME is special in that it is derived from the actual
+> source filename.
+
+Kind of.  It's derived from the module name, not the filename.
+
+> Of course you could put #define KBUILD_MODNAME "foo"
+> in your source file, but that is like putting changelogs there
+> when they belong into the git log.
+
+I agree with that.
+
+> Well I personally prefer the #include instead of hiding such in 
+> Makefiles. You know, when newcomers could start doing `grep 
+> KMSG_COMPONENT *.[ch]`. Perhaps GCC's -include flag in a Makefile
+> to avoid #includes in .c files?
+
+I imagine an eventual goal of standardizing the default
+pr_fmt define in kernel.h to
+
+	#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+
+so that all pr_<level> calls get this unless otherwise
+specified.
+
+Or perhaps better, to get rid of pr_fmt(fmt) altogether and
+have printk emit the filename/modulename, function and/or
+code offset by using something like %pS after the level.
+
+I see the Makefile use, which I don't really like too much
+because of the information hiding, as an intermediate step
+until that's possible.
 
 
-On Thursday 2009-10-01 01:09, Joe Perches wrote:
->On Thu, 2009-10-01 at 00:46 +0200, Jan Engelhardt wrote:
->> On Thursday 2009-10-01 00:37, Joe Perches wrote:
->> >This centralizes the definition and removes the
->> >replicated #defines from all files
->
->I think this increased command line length hardly matters.
->
->I think a reasonable complaint might be that it separates
->the definition of a macro from the code.  I think it's
->similar to the already used KBUILD_MODNAME macro though.
-
-KBUILD_MODNAME is special in that it is derived from the actual
-source filename. Of course you could put #define KBUILD_MODNAME "foo"
-in your source file, but that is like putting changelogs there
-when they belong into the git log.
-
->> How about an #include file for the ipvs private things?
->
->It's not just IPVS, this style could be used treewide
->without requiring extra #includes.
-
-Well I personally prefer the #include instead of hiding such in 
-Makefiles. You know, when newcomers could start doing `grep 
-KMSG_COMPONENT *.[ch]`. Perhaps GCC's -include flag in a Makefile
-to avoid #includes in .c files?
