@@ -1,24 +1,26 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Doubts in netfilter limit match
-Date: Tue, 13 Oct 2009 22:25:38 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0910132221130.1767@obet.zrqbmnf.qr>
+From: =?UTF-8?B?0JDQvdC00YDQtdC5INCT0YDQuNCz0L7RgNGM0LXQsg==?=
+	<andrew@ei-grad.ru>
+Subject: Ulogd2 documentation format
+Date: Thu, 15 Oct 2009 01:53:52 +0600
+Message-ID: <9645506d0910141253o51112e1am9dcbc60c5676434@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Balaji Venkatamohan <bvenkat@ncsu.edu>
+Content-Type: text/plain; charset=UTF-8
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:51137 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751787AbZJMU0P (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 Oct 2009 16:26:15 -0400
+Received: from mail-fx0-f227.google.com ([209.85.220.227]:59271 "EHLO
+	mail-fx0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756701AbZJNTzE (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 14 Oct 2009 15:55:04 -0400
+Received: by fxm27 with SMTP id 27so168899fxm.17
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Oct 2009 12:53:52 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-iptables -A INPUT -s 127.0.0.1 -m limit --limit-burst 5
+Hello!
 
->I want to know how and where the count is stored. Are they checked for
->previous entries using netfilter log?
-
-The count is stored within the private data associated with each
--m limit instance. Actually it's not a count but some bucket fill level 
-value. See xt_limit.c for details.
+There is no sgml2txt binary in many linux distributions at all. Could
+someone move documentation of ulogd2 to any other, more popular,
+documentation format?
+(or I can help you with that, if someone could send me that
+documentation in '.txt')
