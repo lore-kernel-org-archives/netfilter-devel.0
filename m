@@ -1,44 +1,46 @@
-From: =?ISO-8859-2?Q?Krzysztof_Ol=EAdzki?= <ole@ans.pl>
-Subject: Re: [Patch] (updated) netfilter: remove deprecated CONFIG_NF_CT_ACCT
-Date: Thu, 15 Oct 2009 14:04:18 +0200
-Message-ID: <4AD70FC2.5050302@ans.pl>
-References: <20091015080211.4561.78538.sendpatchset@localhost.localdomain>
+From: Bryan Duff <bduff@ecessa.com>
+Subject: Packet cloning
+Date: Fri, 16 Oct 2009 11:36:57 -0500
+Message-ID: <4AD8A129.8080606@ecessa.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	akpm@linux-foundation.org, netfilter-devel@vger.kernel.org
-To: Amerigo Wang <amwang@redhat.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20091015080211.4561.78538.sendpatchset@localhost.localdomain>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.ecessa.com ([173.11.54.145]:29124 "EHLO mail.astrocorp.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751613AbZJPRez (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 16 Oct 2009 13:34:55 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by mail.astrocorp.com (Postfix) with ESMTP id C418D630D2
+	for <netfilter-devel@vger.kernel.org>; Fri, 16 Oct 2009 11:36:51 -0500 (CDT)
+Received: from mail.astrocorp.com ([127.0.0.1])
+	by localhost (mail.astrocorp.com [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id jWfmBf9T5C1A for <netfilter-devel@vger.kernel.org>;
+	Fri, 16 Oct 2009 11:36:46 -0500 (CDT)
+Received: from Win2003.astrocorp.com (unknown [192.168.1.146])
+	by mail.astrocorp.com (Postfix) with ESMTP id B6227630CE
+	for <netfilter-devel@vger.kernel.org>; Fri, 16 Oct 2009 11:36:46 -0500 (CDT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-[resend, previously I incorrectly copied netfilter-devel-owner]
+Is it possible to have a CLONE target?
 
-Adding CC to netfilter-devel@vger.kernel.org, where netfilter
-related issues are discussed.
+Where matching packets will be cloned and 2 packets will emerge and
+continue traversing the chain?
 
-On Thu, 15 Oct 2009, Amerigo Wang wrote:
+Is it as simple as:
+struct sk_buff *skb_new = skb_clone(skb, GFP_ATOMIC);
+//and then change the prev/next pointers of the sk_buff's appropriately
+to add them to the list
+skb_new->next = skb->next;
+skb_new->prev= skb;
+skb->next = skb_new;
+//and now my packet will be traversing the same chain as the original
+packet.
 
->
-> CONFIG_NF_CT_ACCT is scheduled to be removed in 2.6.29.
->
-> Cc: Krzysztof Piotr Oledzki <ole@ans.pl>
-> Signed-off-by: WANG Cong <amwang@redhat.com>
+I'm sure I'm missing something else that I have to do.
 
-This is not so easy - it was decided that we don't want to remove it=20
-just that because of connbytes. The final conclusion was to keep it=20
-disabled by default (if not enabled by kernel/modules/sysctl option) bu=
-t=20
-enabling it automatically for the current NS if nefilter rules contains=
-=20
-"-m connbytes".
+Thanks.
 
-Sorry, I should have gotten into this and finished it earlier, my bad. =
-:(
-
-Best regards,
-
-  				Krzysztof Ol=EAdzki
+-Bryan
