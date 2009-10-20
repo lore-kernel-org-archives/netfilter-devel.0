@@ -1,41 +1,59 @@
-From: Daniel Huhardeaux <tech@tootai.net>
-Subject: DNAT and source IP
-Date: Tue, 20 Oct 2009 10:16:23 +0200
-Message-ID: <4ADD71D7.7090502@tootai.net>
+From: Cong Wang <amwang@redhat.com>
+Subject: Re: [Patch] (updated) netfilter: remove deprecated CONFIG_NF_CT_ACCT
+Date: Tue, 20 Oct 2009 17:58:47 +0800
+Message-ID: <4ADD89D7.3050902@redhat.com>
+References: <20091015080211.4561.78538.sendpatchset@localhost.localdomain> <4AD70FC2.5050302@ans.pl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-To: Netfilter list <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-2;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+	akpm@linux-foundation.org, netfilter-devel@vger.kernel.org
+To: =?ISO-8859-2?Q?Krzysztof_Ol=EAdzki?= <ole@ans.pl>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ns1.tootai.net ([82.231.69.24]:54530 "EHLO mail1.tootai.net"
+Received: from mx1.redhat.com ([209.132.183.28]:42868 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751233AbZJTIpc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 20 Oct 2009 04:45:32 -0400
-Received: from [192.168.0.59] (lns-bzn-51f-81-56-133-203.adsl.proxad.net [81.56.133.203])
-	by mail1.tootai.net (Postfix) with ESMTP id 9A60039891F
-	for <netfilter-devel@vger.kernel.org>; Tue, 20 Oct 2009 10:16:22 +0200 (CEST)
+	id S1750776AbZJTJ4R (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 20 Oct 2009 05:56:17 -0400
+In-Reply-To: <4AD70FC2.5050302@ans.pl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello everybody,
 
-I'm running few virtual machines (kvm+libvirt) on a server (Debian Lenny 
-+ backport kernel 2.6.30) with one public IP and having IP private range 
-10.99.0.1 for host, one for mail and web VM (10.99.0.13), another for 
-telephony VM (10.99.0.11).
+Sorry that I lost this thread. :(
 
-Everything is working well (DNAT) but something is disturbing me: for 
-instance, on smtp server, all incoming tcp packets are marked with 
-10.99.0.1 source IP and I would like to have "transparent DNAT" which 
-keep the original IP.
+Krzysztof Ol=EAdzki wrote:
+> [resend, previously I incorrectly copied netfilter-devel-owner]
+>=20
+> Adding CC to netfilter-devel@vger.kernel.org, where netfilter
+> related issues are discussed.
+>=20
+> On Thu, 15 Oct 2009, Amerigo Wang wrote:
+>=20
+>>
+>> CONFIG_NF_CT_ACCT is scheduled to be removed in 2.6.29.
+>>
+>> Cc: Krzysztof Piotr Oledzki <ole@ans.pl>
+>> Signed-off-by: WANG Cong <amwang@redhat.com>
+>=20
+> This is not so easy - it was decided that we don't want to remove it=20
+> just that because of connbytes. The final conclusion was to keep it=20
+> disabled by default (if not enabled by kernel/modules/sysctl option) =
+but=20
+> enabling it automatically for the current NS if nefilter rules contai=
+ns=20
+> "-m connbytes".
+>=20
+> Sorry, I should have gotten into this and finished it earlier, my bad=
+=2E :(
 
-I also tried with xinetd and his redirect feature, same problem. For 
-telephony, using udp, it's also a problem.
+No problem.
 
-My question is: is there a way to achive my needs with iptables (other 
-solution?) or is bridging the only way?
+So we just want CONFIG_NF_CT_ACCT=3Dn in default configs?
 
-Thanks for any feedback/idea
-
--- 
-Daniel
+Thanks!
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
