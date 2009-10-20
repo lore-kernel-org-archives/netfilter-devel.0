@@ -1,7 +1,7 @@
 From: Daniel Huhardeaux <tech@tootai.net>
 Subject: Re: DNAT and source IP
-Date: Tue, 20 Oct 2009 16:17:01 +0200
-Message-ID: <4ADDC65D.3080507@tootai.net>
+Date: Tue, 20 Oct 2009 16:50:06 +0200
+Message-ID: <4ADDCE1E.7080700@tootai.net>
 References: <4ADD71D7.7090502@tootai.net> <alpine.LSU.2.00.0910201212490.16728@obet.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1;
@@ -9,13 +9,13 @@ Content-Type: text/plain; charset=ISO-8859-1;
 Content-Transfer-Encoding: QUOTED-PRINTABLE
 To: Netfilter list <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ns1.tootai.net ([82.231.69.24]:54762 "EHLO mail1.tootai.net"
+Received: from ns1.tootai.net ([82.231.69.24]:54785 "EHLO mail1.tootai.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751190AbZJTOQ6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 20 Oct 2009 10:16:58 -0400
+	id S1752470AbZJTOuD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 20 Oct 2009 10:50:03 -0400
 Received: from [192.168.0.4] (unknown [192.168.0.4])
-	by mail1.tootai.net (Postfix) with ESMTP id 018A6398C16
-	for <netfilter-devel@vger.kernel.org>; Tue, 20 Oct 2009 16:17:00 +0200 (CEST)
+	by mail1.tootai.net (Postfix) with ESMTP id 0690C398C16
+	for <netfilter-devel@vger.kernel.org>; Tue, 20 Oct 2009 16:50:06 +0200 (CEST)
 In-Reply-To: <alpine.LSU.2.00.0910201212490.16728@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
@@ -39,36 +39,18 @@ IP.
 >=20
 > You need tproxy then, and not NAT.
 >=20
+|[...]
+|Others say it's a target rule but I can't get it work
+|
+|~$ sudo iptables -t mangle -A PREROUTING -p tcp --dport 25 -j TPROXY
+|--on-port 25 --on-ip 10.1.70.13
+|iptables v1.4.2: Unknown arg `(null)'
+|Try `iptables -h' or 'iptables --help' for more information.
+|
+|Thanks for any hint and good and complete doc if any.
 
-Hi Jan,
-
-I think I loaded the well known modules
-
-~$sudo lsmod|grep nf
-nf_tproxy_core          3040  1 xt_TPROXY,[permanent]
-nf_nat                 20068  2 ipt_MASQUERADE,iptable_nat
-nf_conntrack_ipv4      15240  15 iptable_nat,nf_nat
-nf_conntrack           70000  5=20
-ipt_MASQUERADE,xt_state,iptable_nat,nf_nat,nf_conntrack_ipv4
-nf_defrag_ipv4          2288  2 xt_TPROXY,nf_conntrack_ipv4
-
-but can't get it work.
-
- From some doc a table should exist (?)
-
-sudo /sbin/iptables -t tproxy -F
-iptables v1.4.2: can't initialize iptables table `tproxy': Table does=20
-not exist (do you need to insmod?)
-Perhaps iptables or your kernel needs to be upgraded.
-
-Others say it's a target rule but I can't get it work
-
-~$ sudo iptables -t mangle -A PREROUTING -p tcp --dport 25 -j TPROXY=20
---on-port 25 --on-ip 10.1.70.13
-iptables v1.4.2: Unknown arg `(null)'
-Try `iptables -h' or 'iptables --help' for more information.
-
-Thanks for any hint and good and complete doc if any.
+Got it, sorry for the noise: forgot to upgrade iptables to version=20
+1.4.4-2 from backports.
 
 --=20
 Daniel
