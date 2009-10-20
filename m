@@ -1,59 +1,32 @@
-From: Cong Wang <amwang@redhat.com>
-Subject: Re: [Patch] (updated) netfilter: remove deprecated CONFIG_NF_CT_ACCT
-Date: Tue, 20 Oct 2009 17:58:47 +0800
-Message-ID: <4ADD89D7.3050902@redhat.com>
-References: <20091015080211.4561.78538.sendpatchset@localhost.localdomain> <4AD70FC2.5050302@ans.pl>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: DNAT and source IP
+Date: Tue, 20 Oct 2009 12:13:35 +0200 (CEST)
+Message-ID: <alpine.LSU.2.00.0910201212490.16728@obet.zrqbmnf.qr>
+References: <4ADD71D7.7090502@tootai.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-2;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	akpm@linux-foundation.org, netfilter-devel@vger.kernel.org
-To: =?ISO-8859-2?Q?Krzysztof_Ol=EAdzki?= <ole@ans.pl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter list <netfilter-devel@vger.kernel.org>
+To: Daniel Huhardeaux <tech@tootai.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:42868 "EHLO mx1.redhat.com"
+Received: from borg.medozas.de ([188.40.89.202]:44479 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750776AbZJTJ4R (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 20 Oct 2009 05:56:17 -0400
-In-Reply-To: <4AD70FC2.5050302@ans.pl>
+	id S1750874AbZJTKNc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 20 Oct 2009 06:13:32 -0400
+In-Reply-To: <4ADD71D7.7090502@tootai.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-Sorry that I lost this thread. :(
+On Tuesday 2009-10-20 10:16, Daniel Huhardeaux wrote:
+>
+> I'm running few virtual machines (kvm+libvirt) on a server (Debian Lenny +
+> backport kernel 2.6.30) with one public IP and having IP private range
+> 10.99.0.1 for host, one for mail and web VM (10.99.0.13), another for telephony
+> VM (10.99.0.11).
+>
+> Everything is working well (DNAT) but something is disturbing me: for instance,
+> on smtp server, all incoming tcp packets are marked with 10.99.0.1 source IP
+> and I would like to have "transparent DNAT" which keep the original IP.
 
-Krzysztof Ol=EAdzki wrote:
-> [resend, previously I incorrectly copied netfilter-devel-owner]
->=20
-> Adding CC to netfilter-devel@vger.kernel.org, where netfilter
-> related issues are discussed.
->=20
-> On Thu, 15 Oct 2009, Amerigo Wang wrote:
->=20
->>
->> CONFIG_NF_CT_ACCT is scheduled to be removed in 2.6.29.
->>
->> Cc: Krzysztof Piotr Oledzki <ole@ans.pl>
->> Signed-off-by: WANG Cong <amwang@redhat.com>
->=20
-> This is not so easy - it was decided that we don't want to remove it=20
-> just that because of connbytes. The final conclusion was to keep it=20
-> disabled by default (if not enabled by kernel/modules/sysctl option) =
-but=20
-> enabling it automatically for the current NS if nefilter rules contai=
-ns=20
-> "-m connbytes".
->=20
-> Sorry, I should have gotten into this and finished it earlier, my bad=
-=2E :(
+You need tproxy then, and not NAT.
 
-No problem.
-
-So we just want CONFIG_NF_CT_ACCT=3Dn in default configs?
-
-Thanks!
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
