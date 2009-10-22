@@ -1,39 +1,40 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: stomping static data pull
-Date: Tue, 20 Oct 2009 17:44:35 +0200 (CEST)
-Message-ID: <alpine.LSU.2.00.0910201741060.3452@obet.zrqbmnf.qr>
-References: <1255166535-6386-1-git-send-email-jengelh@medozas.de>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: Re: [PATCH] Fix NAT issue in 2.6.30.4+
+Date: Thu, 22 Oct 2009 12:55:15 +0200
+Message-ID: <200910221255.15936.thomas.jarosch@intra2net.com>
+References: <alpine.DEB.2.00.0909102134290.12124@blackhole.kfki.hu> <alpine.DEB.2.00.0909171319040.5343@blackhole.kfki.hu> <4AB21C77.1010306@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, davem@davemloft.net
-To: kaber@trash.net
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: Patrick McHardy <kaber@trash.net>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:57810 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750958AbZJTPob (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 20 Oct 2009 11:44:31 -0400
-In-Reply-To: <1255166535-6386-1-git-send-email-jengelh@medozas.de>
+Received: from rs02.intra2net.com ([81.169.173.116]:38063 "EHLO
+	rs02.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753837AbZJVLQd (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 22 Oct 2009 07:16:33 -0400
+In-Reply-To: <4AB21C77.1010306@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Thursday, 17. September 2009 13:24:39 you wrote:
+> Jozsef Kadlecsik wrote:
+> > On Thu, 17 Sep 2009, Patrick McHardy wrote:
+> >> I got one reject in the removal of nf_conntrack_tcp_update() due
+> >> to the use of write_lock() instead of spin_lock() in your patch
+> >> (seems to be based on an old tree), this is the patch I committed:
+> >
+> > Uhh, I forgot to forward-port the patch, sorry: I used the 2.6.30.5
+> > tree for verifying the bug and testing the fix.
+> 
+> I double checked and it looks fine, apart from the minor reject.
+> I'll give it some testing myself before pushing upstream.
 
-On Saturday 2009-10-10 11:22, Jan Engelhardt wrote:
->Hi Patrick,
->
->
->I incorporated your suggestions and propose this new 4-series set.
->The following changes since commit 374576a8b6f865022c0fd1ca62396889b23d66dd:
->  Linus Torvalds (1):
->        Linux 2.6.32-rc3
->are available in the git repository at:
->  git://dev.medozas.de/linux master
->Jan Engelhardt (4):
->      netfilter: xtables: compact table hook functions (1/2)
->      netfilter: xtables: compact table hook functions (2/2)
->      netfilter: xtables: use xt_table for hook instantiation
->      netfilter: xtables: generate initial table on-demand
+Maybe that's something for -stable?
 
+Kernel 2.6.30.9 still seems affected (the patch applies cleanly).
 
-The continuing silence on Xtables/iptables makes me worry. Do we need 
-new part-time maintainers?
+Cheers,
+Thomas
