@@ -1,37 +1,35 @@
-From: Harald Welte <laforge@netfilter.org>
-Subject: Re: [PATCH 00/13] TProxy IPv6 support 2nd round
-Date: Sun, 25 Oct 2009 11:16:12 +0100
-Message-ID: <20091025101612.GS29852@prithivi.gnumonks.org>
-References: <1253548300.12519.20.camel@bzorp.balabit>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: iprange non-range recognition
+Date: Sun, 25 Oct 2009 11:28:12 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0910251123490.3852@obet.zrqbmnf.qr>
+References: <1253741194-26060-1-git-send-email-jengelh@medozas.de> <20091025100943.GR29852@prithivi.gnumonks.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Balazs Scheidler <bazsi@balabit.hu>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1253548300.12519.20.camel@bzorp.balabit>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+To: Harald Welte <laforge@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from borg.medozas.de ([188.40.89.202]:46966 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753240AbZJYK2I (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 25 Oct 2009 06:28:08 -0400
+In-Reply-To: <20091025100943.GR29852@prithivi.gnumonks.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Dear Balazs,
+Hi Harald,
 
-as you might have read from other mails (and by the long period of silence),
-Patrick McHardy is currently unavailable to perform his usual maintainer
-role.
+On Sunday 2009-10-25 11:09, Harald Welte wrote:
+>On Wed, Sep 23, 2009 at 11:26:30PM +0200, Jan Engelhardt wrote:
+> 
+>> here is a fix and subsequent cleanups to Debian bug #547139.
+>> Please merge.
+>
+>sorry for the long delay, I've merged your patches into iptables master.
 
-I personally am too much out of touch with recent developments in
-netfitler-land to be able to confidently review your patches...  
+[Re the other message] I took the freedom to continue to push to my 
+master while Patrick is now unfortunately away, and did not expect that 
+anyone would still consider all the merge requests valid.
 
-So unless somebody else from the team (Jozsef?, Pablo?) feels confident in
-ACKing your patchset, I will have to ask for your patience until Patrick is
-back and can do it by himself.
-
-Regards,
-	Harald
-
--- 
-- Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
-============================================================================
-  "Fragmentation is like classful addressing -- an interesting early
-   architectural error that shows how much experimentation was going
-   on while IP was being designed."                    -- Paul Vixie
+Ok so they got merged, though you seemed to have done that with 
+cherry-pick rather than merge (they are the same after all). Just a note 
+- you c-p'd them all in _reverse_. I hope they applied though.
