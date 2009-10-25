@@ -1,31 +1,34 @@
 From: Harald Welte <laforge@netfilter.org>
-Subject: Re: iprange non-range recognition
-Date: Sun, 25 Oct 2009 11:09:43 +0100
-Message-ID: <20091025100943.GR29852@prithivi.gnumonks.org>
-References: <1253741194-26060-1-git-send-email-jengelh@medozas.de>
+Subject: Re: [PATCH 00/13] TProxy IPv6 support 2nd round
+Date: Sun, 25 Oct 2009 11:16:12 +0100
+Message-ID: <20091025101612.GS29852@prithivi.gnumonks.org>
+References: <1253548300.12519.20.camel@bzorp.balabit>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ganesha.gnumonks.org ([213.95.27.120]:37114 "EHLO
-	ganesha.gnumonks.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753204AbZJYKUU (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 25 Oct 2009 06:20:20 -0400
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Balazs Scheidler <bazsi@balabit.hu>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <1253741194-26060-1-git-send-email-jengelh@medozas.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <1253548300.12519.20.camel@bzorp.balabit>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi Jan,
+Dear Balazs,
 
-On Wed, Sep 23, 2009 at 11:26:30PM +0200, Jan Engelhardt wrote:
- 
-> here is a fix and subsequent cleanups to Debian bug #547139.
-> Please merge.
+as you might have read from other mails (and by the long period of silence),
+Patrick McHardy is currently unavailable to perform his usual maintainer
+role.
 
-sorry for the long delay, I've merged your patches into iptables master.
+I personally am too much out of touch with recent developments in
+netfitler-land to be able to confidently review your patches...  
+
+So unless somebody else from the team (Jozsef?, Pablo?) feels confident in
+ACKing your patchset, I will have to ask for your patience until Patrick is
+back and can do it by himself.
+
+Regards,
+	Harald
+
 -- 
 - Harald Welte <laforge@netfilter.org>                 http://netfilter.org/
 ============================================================================
