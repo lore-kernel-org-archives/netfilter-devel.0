@@ -1,55 +1,52 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: Re: xt_ACCOUNT and big endian machines
-Date: Tue, 27 Oct 2009 11:49:10 +0100
-Message-ID: <200910271149.10969.thomas.jarosch@intra2net.com>
-References: <200910231623.42725.thomas.jarosch@intra2net.com> <200910261003.01234.thomas.jarosch@intra2net.com> <alpine.LSU.2.00.0910271038170.13188@obet.zrqbmnf.qr>
+From: Jiri Kosina <jkosina@suse.cz>
+Subject: Re: [PATCH] netfilter: remove CONFIG_NF_CT_ACCT
+Date: Tue, 27 Oct 2009 13:39:17 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0910271337120.19847@wotan.suse.de>
+References: <alpine.LSU.2.00.0910221615360.8582@wotan.suse.de>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org
+To: Krzysztof Piotr Oledzki <ole@ans.pl>,
+	Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from re01.intra2net.com ([82.165.28.202]:60738 "EHLO
-	re01.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752924AbZJ0KtJ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 27 Oct 2009 06:49:09 -0400
-In-Reply-To: <alpine.LSU.2.00.0910271038170.13188@obet.zrqbmnf.qr>
+Received: from cantor.suse.de ([195.135.220.2]:52556 "EHLO mx1.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754121AbZJ0MjN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 27 Oct 2009 08:39:13 -0400
+In-Reply-To: <alpine.LSU.2.00.0910221615360.8582@wotan.suse.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello Jan,
+On Thu, 22 Oct 2009, Jiri Kosina wrote:
 
-On Tuesday, 27. October 2009 11:04:38 Jan Engelhardt wrote:
-> On Monday 2009-10-26 10:03, Thomas Jarosch wrote:
-> >On Friday, 23. October 2009 17:48:04 you wrote:
-> >> >I'm wondering if this is the best approach to support big endian
-> >> > machines with all those #ifdefs?
-> >>
-> >> The second is ok, though I dunno why he did not chose to do the
-> >> same in the first. Hence:
-> >
-> >Thanks for the fix! What about the left shift operations f.e. in
-> >ipt_acc_handle_get_data()? The original patch touched those, too.
+> I can see several issues with CONFIG_NF_CT_ACCT and I think it should be 
+> removed for the following reasons:
 > 
-> Adding this in.
+> 1) the netlink seems broken for the (CONFIG_NF_CT_ACCT unset && 
+>    net.netfilter.nf_conntrack_acct set) scenario. In such case, 
+>    ctnetlink_nlmsg_size() seems to miscompute the size of the message, as 
+>    the CTA_COUNTERS_* are not counted in at all. Seems quite serious on a 
+>    first glance.
+> 2) It has been marked as deprecated for quite some time, and was supposed 
+>    to be removed in 2.6.29, but is apparently still with us.
+> 3) Spits confusing warnings into dmesg.
+> 
+> All this since commit 584015727a3b ("netfilter: accounting rework: 
+> ct_extend + 64bit counters (v4)").
+> 
+> Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+> --- 
+>  Documentation/feature-removal-schedule.txt |    9 ---------
+>  Documentation/kernel-parameters.txt        |    3 +--
+>  net/netfilter/Kconfig                      |   22 ----------------------
+>  net/netfilter/nf_conntrack_acct.c          |   10 ----------
+>  net/netfilter/nf_conntrack_netlink.c       |    2 --
+>  5 files changed, 1 insertions(+), 45 deletions(-)
 
-Thanks! See one little remark below.
+Has this one been lost? (aka "ping").
 
-> @@ -817,7 +817,7 @@ static int ipt_acc_handle_get_data(uint32_t handle,
->  void *to_user) struct ipt_acc_mask_24 *network =
->  					network_16->mask_24[b];
->  				if (ipt_acc_handle_copy_data(to_user, &to_user_pos,
-> -				    &tmpbuf_pos, network, net_ip, (b << 16)))
-> +				    &tmpbuf_pos, network, ntohl(net_ip), (b << 16)))
->  					return -1;
->  			}
->  		}
-
-I'm starting to get my mind ready for endian issues :)
-The "net_OR_mask" is in host order if I understood it correctly,
-so shouldn't this read "(b << 8)"?
-
-Cheers,
-Thomas
+-- 
+Jiri Kosina
+SUSE Labs, Novell Inc.
