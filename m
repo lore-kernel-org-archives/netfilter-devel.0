@@ -1,40 +1,35 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: How to register conntrack notifier
-Date: Wed, 28 Oct 2009 13:14:31 +0100
-Message-ID: <4AE835A7.7040400@netfilter.org>
-References: <894367326@web.de>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] [BRIDGE-NETFILTER] make IP DNAT work on bridged vlan/pppoe
+ packets
+Date: Wed, 28 Oct 2009 16:50:03 +0100
+Message-ID: <4AE8682B.4070807@trash.net>
+References: <4AE2E8E5.3040605@pandora.be>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Nils Rennebarth <Nils.Rennebarth@web.de>
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Bart De Schuymer <bdschuym@pandora.be>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:43436 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753449AbZJ1MOa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 28 Oct 2009 08:14:30 -0400
-In-Reply-To: <894367326@web.de>
+Received: from stinky.trash.net ([213.144.137.162]:60265 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754338AbZJ1PuF (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 28 Oct 2009 11:50:05 -0400
+In-Reply-To: <4AE2E8E5.3040605@pandora.be>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Nils Rennebarth wrote:
+Bart De Schuymer wrote:
 > Hi,
 > 
-> The help text for NF_CONNTRACK_EVENTS reads:
->   If this option is enabled, the connection tracking code will
->   provide a notifier chain that can be used by other kernel code
->   to get notified about changes in the connection tracking state.
-> which sounds just like what I need: I want to execute a callback
-> whenever a conntrack gets destroyed. However studying
-> nf_conntrack_netlink.c, nf_conntrack_ecache.c and related header files
-> for quite a while now, i am still unable to figure out how to do that.
-> 
-> Can someone enlighten me?
+> The attached patch makes IP DNAT work on bridged IP packets encapsulated
+> in a VLAN/PPoE packet. I only tested that it works for VLAN, but the
+> PPoE case should be fixed too.
+> This bug was introduced by commit
+> 2948d2ebbb98747b912ac6d0c864b4d02be8a6f5 on January 12, 2008.
+> The patch also makes IP DNATing more transparent on a bridge: for
+> bridged-and-dnated traffic, the source MAC address is no longer changed
+> to the MAC address of the bridge port. If one wants, ebtables snat can
+> be used to change the source MAC address in the POSTROUTING chain.
 
-You have to register a structure nf_ct_event_notifier with the callback
-function, you have to look at nf_conntrack_ecache.c and
-nf_conntrack_netlink.c. There one problem though since you can only
-register one callback and that one is usually used by nf_conntrack_netlink.c
-
-You can also catch events from user-space by means of
-libnetfilter_conntrack, have a look at utils/, it includes some examples.
+Applied, thanks Bart.
