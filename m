@@ -1,35 +1,38 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] [BRIDGE-NETFILTER] make IP DNAT work on bridged vlan/pppoe
- packets
-Date: Wed, 28 Oct 2009 16:50:03 +0100
-Message-ID: <4AE8682B.4070807@trash.net>
-References: <4AE2E8E5.3040605@pandora.be>
+Subject: Re: [PATCH] Fix NAT issue in 2.6.30.4+
+Date: Wed, 28 Oct 2009 16:54:23 +0100
+Message-ID: <4AE8692F.6050503@trash.net>
+References: <alpine.DEB.2.00.0909102134290.12124@blackhole.kfki.hu> <alpine.DEB.2.00.0909171319040.5343@blackhole.kfki.hu> <4AB21C77.1010306@trash.net> <200910221255.15936.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Bart De Schuymer <bdschuym@pandora.be>
+Cc: netfilter-devel@vger.kernel.org
+To: Thomas Jarosch <thomas.jarosch@intra2net.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60265 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:60333 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754338AbZJ1PuF (ORCPT
+	with ESMTP id S1752351AbZJ1PyZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 28 Oct 2009 11:50:05 -0400
-In-Reply-To: <4AE2E8E5.3040605@pandora.be>
+	Wed, 28 Oct 2009 11:54:25 -0400
+In-Reply-To: <200910221255.15936.thomas.jarosch@intra2net.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Bart De Schuymer wrote:
-> Hi,
+Thomas Jarosch wrote:
+> On Thursday, 17. September 2009 13:24:39 you wrote:
+>> Jozsef Kadlecsik wrote:
+>>> On Thu, 17 Sep 2009, Patrick McHardy wrote:
+>>>> I got one reject in the removal of nf_conntrack_tcp_update() due
+>>>> to the use of write_lock() instead of spin_lock() in your patch
+>>>> (seems to be based on an old tree), this is the patch I committed:
+>>> Uhh, I forgot to forward-port the patch, sorry: I used the 2.6.30.5
+>>> tree for verifying the bug and testing the fix.
+>> I double checked and it looks fine, apart from the minor reject.
+>> I'll give it some testing myself before pushing upstream.
 > 
-> The attached patch makes IP DNAT work on bridged IP packets encapsulated
-> in a VLAN/PPoE packet. I only tested that it works for VLAN, but the
-> PPoE case should be fixed too.
-> This bug was introduced by commit
-> 2948d2ebbb98747b912ac6d0c864b4d02be8a6f5 on January 12, 2008.
-> The patch also makes IP DNATing more transparent on a bridge: for
-> bridged-and-dnated traffic, the source MAC address is no longer changed
-> to the MAC address of the bridge port. If one wants, ebtables snat can
-> be used to change the source MAC address in the POSTROUTING chain.
+> Maybe that's something for -stable?
+> 
+> Kernel 2.6.30.9 still seems affected (the patch applies cleanly).
 
-Applied, thanks Bart.
+Yes, I'll pass it on to -stable once its upstream (which should be
+very soon now).
