@@ -1,38 +1,48 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Fix NAT issue in 2.6.30.4+
-Date: Wed, 28 Oct 2009 16:54:23 +0100
-Message-ID: <4AE8692F.6050503@trash.net>
-References: <alpine.DEB.2.00.0909102134290.12124@blackhole.kfki.hu> <alpine.DEB.2.00.0909171319040.5343@blackhole.kfki.hu> <4AB21C77.1010306@trash.net> <200910221255.15936.thomas.jarosch@intra2net.com>
+Subject: Re: resend your pending patches, please
+Date: Wed, 28 Oct 2009 16:44:57 +0100
+Message-ID: <4AE866F9.5040503@trash.net>
+References: <4AE6FD76.40705@netfilter.org> <4AE6FDB5.4060500@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>, jkosina@suse.cz,
+	"David S. Miller" <davem@davemloft.net>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60333 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:60351 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752351AbZJ1PyZ (ORCPT
+	with ESMTP id S1754037AbZJ1PzI (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 28 Oct 2009 11:54:25 -0400
-In-Reply-To: <200910221255.15936.thomas.jarosch@intra2net.com>
+	Wed, 28 Oct 2009 11:55:08 -0400
+In-Reply-To: <4AE6FDB5.4060500@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Thomas Jarosch wrote:
-> On Thursday, 17. September 2009 13:24:39 you wrote:
->> Jozsef Kadlecsik wrote:
->>> On Thu, 17 Sep 2009, Patrick McHardy wrote:
->>>> I got one reject in the removal of nf_conntrack_tcp_update() due
->>>> to the use of write_lock() instead of spin_lock() in your patch
->>>> (seems to be based on an old tree), this is the patch I committed:
->>> Uhh, I forgot to forward-port the patch, sorry: I used the 2.6.30.5
->>> tree for verifying the bug and testing the fix.
->> I double checked and it looks fine, apart from the minor reject.
->> I'll give it some testing myself before pushing upstream.
+Pablo Neira Ayuso wrote:
+> Pablo Neira Ayuso wrote:
+>> Hi all,
+>>
+>> While Patrick is recovering, I'll temporarily do the netfilter/iptables
+>> kernel-space maintainance. While spinning on the mailing list, I have
+>> found two pending patches that can be qualified as bugfixes:
+>>
+>> [PATCH] netfilter: remove CONFIG_NF_CT_ACCT from Jiri Kosina
+>> [PATCH] netfilter: nf_nat: fix NAT issue in 2.6.30.4+
+>>
+>> If I'm missing any other patch, please let me know.
+>>
+>> Once this bugfix round is done, I'll look at net-next-2.6 patches. I
+>> have seen one patchset from Jan Engelhardt so far.
 > 
-> Maybe that's something for -stable?
+> I forgot to say that I have set a couple of git trees at:
 > 
-> Kernel 2.6.30.9 still seems affected (the patch applies cleanly).
+> http://1984.lsi.us.es/git/
 
-Yes, I'll pass it on to -stable once its upstream (which should be
-very soon now).
+Thanks for taking care of this.
+
+I'm working through my backlog, I'll simply start pickup all patches
+that are not in your tree yet, unless you want me to submit those as
+well.
