@@ -1,31 +1,33 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: stomping static data pull
-Date: Wed, 28 Oct 2009 18:37:50 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0910281817210.15948@obet.zrqbmnf.qr>
-References: <1255166535-6386-1-git-send-email-jengelh@medozas.de> <4AE869FB.1000506@trash.net>
+Subject: Re: Data rate of a connection using conntrack
+Date: Wed, 28 Oct 2009 18:39:10 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0910281839000.15948@obet.zrqbmnf.qr>
+References: <4d5b51f60910060816i35c9ffd8y9bf2695f9d28bca3@mail.gmail.com> <4AE8706A.30205@trash.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
+Cc: Anand Raj Manickam <anandrm@gmail.com>,
+	netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:41512 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:59931 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753468AbZJ1Rhq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 28 Oct 2009 13:37:46 -0400
-In-Reply-To: <4AE869FB.1000506@trash.net>
+	id S1753672AbZJ1RjF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 28 Oct 2009 13:39:05 -0400
+In-Reply-To: <4AE8706A.30205@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Wednesday 2009-10-28 17:25, Patrick McHardy wrote:
 
-On Wednesday 2009-10-28 16:57, Patrick McHardy wrote:
->Jan Engelhardt wrote:
->> I incorporated your suggestions and propose this new 4-series set.
+>Anand Raj Manickam wrote:
+>> I understand from RATEEST that data rate of an interface is estimated
+>> using the gen_new_estimator , which is also used by the TC , qdisc n
+>> folks ...
+>> Has anybody tried to estimate the data rate of a connection using conntrack ?
+>> Anyone's previous attempts or experiences  are welcome.
 >
->Could you give me a short description of the changes relative
->to the first incarnation? Thanks.
+>There has been a patch a (long) while ago which was somehow
+>based on conntrack. You should be able to find it in the
+>old patch-o-matic (not -ng) repository.
 
-http://osdir.com/ml/general/2009-08/msg10540.html
-- splitting xt_repldata_create
-- giving it a name of your choice
-- return semantics (found a missing return keyword; just refreshed top 
-is commit v2.6.32-rc3-4-g7891b6c)
+The extension's name was "connrate" and was in -ng.
