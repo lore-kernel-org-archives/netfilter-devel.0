@@ -1,43 +1,40 @@
-From: Nils Rennebarth <Nils.Rennebarth@web.de>
-Subject: How to register conntrack notifier
-Date: Tue, 27 Oct 2009 16:03:52 +0100
-Message-ID: <894367326@web.de>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: How to register conntrack notifier
+Date: Wed, 28 Oct 2009 13:14:31 +0100
+Message-ID: <4AE835A7.7040400@netfilter.org>
+References: <894367326@web.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Nils Rennebarth <Nils.Rennebarth@web.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fmmailgate04.web.de ([217.72.192.242]:38545 "EHLO
-	fmmailgate04.web.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754954AbZJ0PDt convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 27 Oct 2009 11:03:49 -0400
-Received: from web.de
-	by fmmailgate04.web.de (Postfix) with SMTP id A4D2561F8145
-	for <netfilter-devel@vger.kernel.org>; Tue, 27 Oct 2009 16:03:53 +0100 (CET)
+Received: from mail.us.es ([193.147.175.20]:43436 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753449AbZJ1MOa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 28 Oct 2009 08:14:30 -0400
+In-Reply-To: <894367326@web.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Nils Rennebarth wrote:
+> Hi,
+> 
+> The help text for NF_CONNTRACK_EVENTS reads:
+>   If this option is enabled, the connection tracking code will
+>   provide a notifier chain that can be used by other kernel code
+>   to get notified about changes in the connection tracking state.
+> which sounds just like what I need: I want to execute a callback
+> whenever a conntrack gets destroyed. However studying
+> nf_conntrack_netlink.c, nf_conntrack_ecache.c and related header files
+> for quite a while now, i am still unable to figure out how to do that.
+> 
+> Can someone enlighten me?
 
-The help text for NF_CONNTRACK_EVENTS reads:
-  If this option is enabled, the connection tracking code will
-  provide a notifier chain that can be used by other kernel code
-  to get notified about changes in the connection tracking state.
-which sounds just like what I need: I want to execute a callback
-whenever a conntrack gets destroyed. However studying
-nf_conntrack_netlink.c, nf_conntrack_ecache.c and related header files
-for quite a while now, i am still unable to figure out how to do that.
+You have to register a structure nf_ct_event_notifier with the callback
+function, you have to look at nf_conntrack_ecache.c and
+nf_conntrack_netlink.c. There one problem though since you can only
+register one callback and that one is usually used by nf_conntrack_netlink.c
 
-Can someone enlighten me?
-
-
-______________________________________________________
-GRATIS f=FCr alle WEB.DE-Nutzer: Die maxdome Movie-FLAT!
-Jetzt freischalten unter http://movieflat.web.de
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+You can also catch events from user-space by means of
+libnetfilter_conntrack, have a look at utils/, it includes some examples.
