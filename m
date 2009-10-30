@@ -1,46 +1,70 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 3/3] iptables: fix undersized deletion mask creation
-Date: Thu, 29 Oct 2009 23:55:51 +0100
-Message-ID: <4AEA1D77.3020706@trash.net>
-References: <1256839878-24358-1-git-send-email-jengelh@medozas.de> <1256839878-24358-4-git-send-email-jengelh@medozas.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: iptables optarg fix
+Date: Fri, 30 Oct 2009 09:39:25 +0100
+Message-ID: <1256891969-18437-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:61346 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756779AbZJ2Wzy (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 29 Oct 2009 18:55:54 -0400
-In-Reply-To: <1256839878-24358-4-git-send-email-jengelh@medozas.de>
+Received: from borg.medozas.de ([188.40.89.202]:46755 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756227AbZJ3Ija (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 30 Oct 2009 04:39:30 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> The mask created for the -D rulespec is simply too small.
-> xtables_targets points to whatever target has last been loaded, so
-> xtables_targets->size is quite almost wrong, as we need to use the
-> size of the target for the specific rule that is about to be deleted.
-> 
-> This bug existed ever since iptables history is tracked, and requires
-> certain circumstances to be visible, where the deletion operation is
-> one. Furthermore, multiple userspace target extensions must have been
-> loaded, and a target B whose .size is smaller than the target A of
-> the rule we are about to delete must have been loaded more recently
-> than target A. The minimal testcase is (rule 60007 gets wrongly
-> removed)
-> 
-> 	*nat
-> 	-F
-> 	-X
-> 	-A POSTROUTING -p udp -j SNAT --to 192.168.1.1:60007
-> 	-A POSTROUTING -p udp -j SNAT --to 192.168.1.1:60008
-> 	-A POSTROUTING -p udp -j CONNMARK --set-mark 0
-> 	-D POSTROUTING -p udp -j SNAT --to 192.168.1.1:60008
-> 	COMMIT
-> 
-> References: http://bugzilla.netfilter.org/show_bug.cgi?id=606
 
-Very nice catch, thanks Jan.
+
+The following changes since commit 4f0d7b660e0ae8f678142fd2a1722b27ad472169:
+  Jan Engelhardt (1):
+        iptables: fix undersized deletion mask creation
+
+are available in the git repository at:
+
+  git://dev.medozas.de/iptables master
+
+Jan Engelhardt (3):
+      style: reduce indent in xtables_check_inverse
+      xtables: deactivate intrapositional support
+      iptables/extensions: make bundled options work again
+
+ extensions/libip6t_ah.c         |    4 ++--
+ extensions/libip6t_dst.c        |    4 ++--
+ extensions/libip6t_frag.c       |    4 ++--
+ extensions/libip6t_hbh.c        |    4 ++--
+ extensions/libip6t_hl.c         |    2 +-
+ extensions/libip6t_icmp6.c      |    2 +-
+ extensions/libip6t_ipv6header.c |    2 +-
+ extensions/libip6t_mh.c         |    2 +-
+ extensions/libip6t_rt.c         |    8 ++++----
+ extensions/libipt_SET.c         |    6 +++---
+ extensions/libipt_addrtype.c    |    8 ++++----
+ extensions/libipt_ah.c          |    2 +-
+ extensions/libipt_icmp.c        |    2 +-
+ extensions/libipt_realm.c       |    4 ++--
+ extensions/libipt_set.c         |    6 +++---
+ extensions/libxt_comment.c      |    4 ++--
+ extensions/libxt_connbytes.c    |    2 +-
+ extensions/libxt_connlimit.c    |    4 ++--
+ extensions/libxt_conntrack.c    |   18 +++++++++---------
+ extensions/libxt_dccp.c         |    8 ++++----
+ extensions/libxt_dscp.c         |    4 ++--
+ extensions/libxt_esp.c          |    2 +-
+ extensions/libxt_hashlimit.c    |   16 ++++++++--------
+ extensions/libxt_length.c       |    2 +-
+ extensions/libxt_limit.c        |    4 ++--
+ extensions/libxt_mac.c          |    2 +-
+ extensions/libxt_multiport.c    |   24 ++++++++++++------------
+ extensions/libxt_physdev.c      |    4 ++--
+ extensions/libxt_pkttype.c      |    2 +-
+ extensions/libxt_rateest.c      |    6 +++---
+ extensions/libxt_sctp.c         |    6 +++---
+ extensions/libxt_state.c        |    2 +-
+ extensions/libxt_string.c       |    4 ++--
+ extensions/libxt_tcp.c          |    8 ++++----
+ extensions/libxt_tcpmss.c       |    2 +-
+ extensions/libxt_u32.c          |    2 +-
+ extensions/libxt_udp.c          |    4 ++--
+ ip6tables.c                     |   12 ++++++------
+ iptables.c                      |   15 ++++++---------
+ xtables.c                       |   25 +++++++------------------
+ 40 files changed, 114 insertions(+), 128 deletions(-)
