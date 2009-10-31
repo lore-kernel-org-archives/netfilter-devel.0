@@ -1,66 +1,94 @@
-From: Fred Leeflang <fredl@dutchie.org>
-Subject: Re: ulogd extension
-Date: Sat, 31 Oct 2009 00:11:05 +0100
-Message-ID: <30defc5b0910301611i1cbd6993h2846a5b7167f023b@mail.gmail.com>
-References: <30defc5b0910301317u331d641cgec85c6a225bb37ab@mail.gmail.com>
-	 <20091030222312.GA11601@piche.inl.fr>
+From: Luca Pesce <pesce.luca@gmail.com>
+Subject: Questions about early_drop()
+Date: Sat, 31 Oct 2009 13:07:18 +0100
+Message-ID: <873dce860910310507v756ce39nf68bb102afb28658@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Cc: netfilter-devel@vger.kernel.org,
-	vuurmuur-devel@lists.sourceforge.net
-To: Pierre Chifflier <chifflier@inl.fr>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pz0-f188.google.com ([209.85.222.188]:60641 "EHLO
-	mail-pz0-f188.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933070AbZJ3XLB (ORCPT
+Received: from mail-bw0-f227.google.com ([209.85.218.227]:46818 "EHLO
+	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932106AbZJaMHP (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 30 Oct 2009 19:11:01 -0400
-Received: by pzk26 with SMTP id 26so2188532pzk.4
-        for <netfilter-devel@vger.kernel.org>; Fri, 30 Oct 2009 16:11:06 -0700 (PDT)
-In-Reply-To: <20091030222312.GA11601@piche.inl.fr>
+	Sat, 31 Oct 2009 08:07:15 -0400
+Received: by bwz27 with SMTP id 27so4517436bwz.21
+        for <netfilter-devel@vger.kernel.org>; Sat, 31 Oct 2009 05:07:18 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-2009/10/30 Pierre Chifflier <chifflier@inl.fr>:
-> On Fri, Oct 30, 2009 at 09:17:26PM +0100, Fred Leeflang wrote:
->> Hi,
->>
->> For vuurmuur I would like to write an ulogd extension that writes out
->> a log somewhat comparable to syslog. Currently vuurmuur parses syslog
->> line generated with the LOG target, we are considering changing this
->> to having ulogd do this for us through the ULOG target and said
->> extension. What's the best way to go about doing this to keep the
->> extension maintainable?
->>
->
-> Hi Fred,
->
-> Have you looked at the SYSLOG or LOGEMU output plugins ? Writing a
-> similar plugin should be fairly easy.
-> Writing external plugins is not supported. It's very easy, yet Pablo
-> prefers [1] to keep things in mainline when possible, which is of course
-> a good thing [2].
->
-> Pierre
->
-> [1] http://marc.info/?t=123996560400005&r=1&w=2
-> [2] external plugins would require us to create, document, and
-> maintain a stable API, for ex. Not that it can't be done, but I'm not
-> sure it was part of the original plans :)
->
+Hi all,
+    today I was looking at early_drop() code in nf_conntrack_core.c, and I came
+up with some questions, due to the fact that I am not such a netfilter expert...
+I am not running the latest kernel:  I am cutting&pasting early_drop()
+of my kernel
+at the end of this mail, note that compared to 2.6.31.x this is quite different.
+
+1- why does early_drop() increase the ct_general.use count of the ct
+to be dropped
+before calling death_by_timeout(), and then decreases it with nf_ct_put(ct)? Is
+this a way to postpone ct death? What for?
+
+2- I see that 2.6.31.5 version of early_drop() is more complex: it crosses more
+than one bucket looking for not assured connections to be killed. I like that
+approach, but I was wondering if this is not burning too much CPU when the
+conntrack table is overly saturated persistently (and so when this function is
+called very often)...any experience about that?
+Can I port the whole early_drop() of 2.6.31.5 on my kernel?
+
+3- on 2.6.31.5 version of early_drop(), there are two added checks
+before killing
+the conntrack:
+
+ if (ct && unlikely(nf_ct_is_dying(ct) ||
+				   !atomic_inc_not_zero(&ct->ct_general.use)))
+			ct = NULL;
+			
+I understand that these are to ensure that the ct is not already dying
+for itself:
+should I add those to early_drop() which I am currently using to avoid races?
+
+4- I was thinking about temporarily modifying the early_drop()
+behaviour, only to
+see the results of a test tool which tries to create NATed ftp download sessions
+with a given connection rate (say X per second) - only to experiment a bit!
+With early_drop() as is, after a while there are no NOT_ASSURED
+conntracks in the
+hastable, so no no new connections are established. If I remove the check on the
+ASSURED bit, I would kill a ct regardlessly of its status to make room for the
+new one. Would that harm in some way the conntrack code logic?
+Again, this would be experimental only - not to be used in real life.
+
+Thanks for your time,
+Luca
 
 
 
-Hi Pierre,
+static int early_drop(struct list_head *chain)
+{
+	/* Traverse backwards: gives us oldest, which is roughly LRU */
+	struct nf_conntrack_tuple_hash *h;
+	struct nf_conn *ct = NULL, *tmp;
+	int dropped = 0;
 
-Yes I was looking at those although I looked at the ulogd 1 source and
-only very briefly at ulogd 2, looking at those actually gave somebody
-else in #vuurmuur the idea to check into this way. It's far easier for
-us to make such an extension and require ulogd to run and parse
-packets for us than it is to parse a syslog text file. So if I were to
-write an extension that would do what we want it to do, could that
-extension be part of the builltin extensions of ulogd[1|2] ? I'm more
-than happy to hack something together and let the list have a look at
-it.
+	read_lock_bh(&nf_conntrack_lock);
+	list_for_each_entry_reverse(h, chain, list) {
+		tmp = nf_ct_tuplehash_to_ctrack(h);
+		if (!test_bit(IPS_ASSURED_BIT, &tmp->status)) {
+			ct = tmp;
+			atomic_inc(&ct->ct_general.use);
+			break;
+		}
+	}
+	read_unlock_bh(&nf_conntrack_lock);
 
--Fred
+	if (!ct)
+		return dropped;
+
+	if (del_timer(&ct->timeout)) {
+		death_by_timeout((unsigned long)ct);
+		dropped = 1;
+		NF_CT_STAT_INC_ATOMIC(early_drop);
+	}
+	nf_ct_put(ct);
+	return dropped;
+}
