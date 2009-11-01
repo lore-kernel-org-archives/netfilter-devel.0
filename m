@@ -1,71 +1,104 @@
-From: Fred Leeflang <fredl@dutchie.org>
-Subject: Re: ulogd extension
-Date: Sun, 1 Nov 2009 12:08:47 +0100
-Message-ID: <30defc5b0911010308r6aa0f62cl6f910148932b924e@mail.gmail.com>
-References: <30defc5b0910301317u331d641cgec85c6a225bb37ab@mail.gmail.com>
-	 <20091030222312.GA11601@piche.inl.fr>
-	 <30defc5b0910301611i1cbd6993h2846a5b7167f023b@mail.gmail.com>
-	 <20091101103612.GB11601@piche.inl.fr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 1/2] Add new input plugin UNIXSOCK
+Date: Sun, 1 Nov 2009 13:45:45 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0911011336330.22807@obet.zrqbmnf.qr>
+References: <1257072828-11028-1-git-send-email-chifflier@inl.fr> <1257072828-11028-2-git-send-email-chifflier@inl.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: netfilter-devel@vger.kernel.org,
-	vuurmuur-devel@lists.sourceforge.net
-To: Pierre Chifflier <pchifflier@edenwall.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org, eleblond@inl.fr
+To: Pierre Chifflier <chifflier@inl.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:37758 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751447AbZKALIn (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 1 Nov 2009 06:08:43 -0500
-Received: by pwj9 with SMTP id 9so1368375pwj.21
-        for <netfilter-devel@vger.kernel.org>; Sun, 01 Nov 2009 03:08:48 -0800 (PST)
-In-Reply-To: <20091101103612.GB11601@piche.inl.fr>
+Received: from borg.medozas.de ([188.40.89.202]:59266 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752037AbZKAMpl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 1 Nov 2009 07:45:41 -0500
+In-Reply-To: <1257072828-11028-2-git-send-email-chifflier@inl.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-2009/11/1 Pierre Chifflier <pchifflier@edenwall.com>:
-> On Sat, Oct 31, 2009 at 12:11:05AM +0100, Fred Leeflang wrote:
->> Yes I was looking at those although I looked at the ulogd 1 source and
->> only very briefly at ulogd 2, looking at those actually gave somebody
->> else in #vuurmuur the idea to check into this way. It's far easier for
+On Sunday 2009-11-01 11:53, Pierre Chifflier wrote:
+
+>This input plugins creates a unix socket which can be used to log packets.
+>Scripts or applications can connect to the socket (only one client allowed
+>per socket) and send data in a Key-Length-Value format (including the
+>payload).
 >
-> Hi Fred,
->
-> I'd suggest to look only for ulogd2 if possible. The architecture is
-> very different, and I think adding a plugin will be far easier.
->
+>+#define UNIX_PATH_MAX	108
 
-I had already decided to do so and checked out
-git://git.netfilter.org/ulogd2.git (couldn't get to your personal git
-repo at the time) so I have a pretty decent idea what I'm looking at
-already.
+This is nowhere used and can be removed. (Also since 108 may be
+wrong for a given arch.)
 
->> us to make such an extension and require ulogd to run and parse
->> packets for us than it is to parse a syslog text file. So if I were to
->> write an extension that would do what we want it to do, could that
->> extension be part of the builltin extensions of ulogd[1|2] ? I'm more
->> than happy to hack something together and let the list have a look at
->> it.
->
-> If the plugin is generic, it should not be a problem. Ulogd2 has 3 types
-> of plugins: input, filter, and output. So, from what you are telling,
-> I suppose it would be an input plugin ?
->
+>+#define unixpath_ce(x)		(x->ces[0])
+>+#define bufsize_ce(x)		(x->ces[1])
+>+#define perms_ce(x)		(x->ces[2])
+>+#define owner_ce(x)		(x->ces[3])
+>+#define group_ce(x)		(x->ces[4])
 
-I suppose it would be an output plugin :) It should essentially do
-similar stuff from what I could see, kinda like the
-ulogd_output_SYSLOG.c. It would not do syslogging however but instead
-write out a logfile for vuurmuur UI displaying.
+x should be guarded with ((x)->ces[0])
 
-I just discussed that this morning with the other developers and the
-project leader feels that we might be better off using
-libnetfilter_log directly from libvuurmuur as there's apparently a
-bigger chunk of library code in libvuurmuur that would have to be
-either ported to the plugin or we'd create a dependency on libvuurmuur
-in ulogd2, which he was pretty sure you wouldn't like :)
+>+static int handle_packet(struct ulogd_pluginstance *upi, char *packet_buf, u_int16_t total_len)
+>+{
+>+	char *data;
+>+	struct iphdr *ip;
+>+	struct ulogd_key *ret = upi->output.keys;
+>+	u_int8_t oob_family;
+>+	u_int16_t payload_len;
+>+	u_int16_t option_number;
+>+	u_int16_t option_length;
+>+	char *buf;
+>+
+>+	ulogd_log(ULOGD_DEBUG,
+>+			"ulogd2: handling packet\n");
+>+
+>+	data = packet_buf + sizeof(u_int16_t);
+>+
+>+	payload_len = ntohs(*(u_int16_t*)data);
+>+	data += sizeof(u_int16_t);
+>+
+>+
+>+	ip = (struct iphdr *) data;
 
-So for now we'll stick to the approach of using libnetfilter_log from
-within our own library.
+If data is not aligned, later dereferencing can fail :(
 
-Thanks,
--Fred Leeflang
+>+	if (ip->version == 4)
+>+		oob_family = AF_INET;
+>+	else if (ip->version == 6)
+>+		oob_family = AF_INET6;
+>+	else oob_family = 0;
+>+
+>+	okey_set_u8(&ret[UNIXSOCK_KEY_OOB_FAMILY], oob_family);
+>+
+>+	okey_set_ptr(&ret[UNIXSOCK_KEY_RAW_PCKT], ip);
+>+	okey_set_u32(&ret[UNIXSOCK_KEY_RAW_PCKTLEN], payload_len);
+>+
+>+	/* options */
+>+	if (total_len > payload_len + sizeof(u_int16_t)) {
+>+		data = packet_buf + payload_len + 2*sizeof(u_int16_t);
+>+		total_len -= 2*sizeof(u_int16_t);
+>+
+>+		while ( (data - packet_buf) < total_len) {
+>+
+>+			option_number = ntohs(*(u_int16_t*)(data));
+
+This can fail even if packet_buf _is_ aligned, all it takes
+is that payload_len is an odd number.
+Unfortunately, I see no way to easily address this without
+lame bitshifting :(
+
+>+static int _unix_socket_set_permissions(struct ulogd_pluginstance *upi)
+>+{
+>+	const char *socket_path;
+>+	char *owner = owner_ce(upi->config_kset).u.string;
+>+	char *group = group_ce(upi->config_kset).u.string;
+
+const char *, I guess
+
+>+	int uid = -1;
+>+	int gid = -1;
+
+uit_t, gid_t.
+
+>+	if (uid >= 0 || gid >= 0) {
+
+Subsequently, uid != -1 || gid != -1. However, you could also ignore
+this check entirely since chown checks for -1 already.
