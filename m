@@ -1,44 +1,56 @@
-From: Patrick McHardy <kaber@trash.net>
+From: ebiederm@xmission.com (Eric W. Biederman)
 Subject: Re: Connection tracking and vlan
-Date: Mon, 02 Nov 2009 17:48:41 +0100
-Message-ID: <4AEF0D69.7070205@trash.net>
-References: <20091030152054.GA7936@gondor.apana.org.au>	 <4AEB06E6.6020206@gmail.com>	 <fb7befa20910301220y53e43608u3b37de17661feb4e@mail.gmail.com>	 <m1639wmq1f.fsf@fess.ebiederm.org> <4AEB75DD.8050204@candelatech.com> <fb7befa20911020814q2c4bcd1bj7e2b5a4c17ba0f89@mail.gmail.com> <4AEF09E7.2010004@trash.net> <4AEF0BAA.7050800@gmail.com>
+Date: Mon, 02 Nov 2009 09:02:29 -0800
+Message-ID: <m14opcj1wa.fsf@fess.ebiederm.org>
+References: <20091030152054.GA7936@gondor.apana.org.au>
+	<4AEB06E6.6020206@gmail.com>
+	<fb7befa20910301220y53e43608u3b37de17661feb4e@mail.gmail.com>
+	<m1639wmq1f.fsf@fess.ebiederm.org> <4AEB75DD.8050204@candelatech.com>
+	<fb7befa20911020814q2c4bcd1bj7e2b5a4c17ba0f89@mail.gmail.com>
+	<4AEF09E7.2010004@trash.net> <4AEF0BAA.7050800@gmail.com>
+	<4AEF0D69.7070205@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=utf-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Adayadil Thomas <adayadil.thomas@gmail.com>,
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	Adayadil Thomas <adayadil.thomas@gmail.com>,
 	Ben Greear <greearb@candelatech.com>,
-	"Eric W. Biederman" <ebiederm@xmission.com>,
 	Herbert Xu <herbert@gondor.apana.org.au>,
 	Linux Netdev List <netdev@vger.kernel.org>,
 	Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:54655 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755277AbZKBQsj (ORCPT
+Received: from out02.mta.xmission.com ([166.70.13.232]:36170 "EHLO
+	out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755871AbZKBRCd convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Nov 2009 11:48:39 -0500
-In-Reply-To: <4AEF0BAA.7050800@gmail.com>
+	Mon, 2 Nov 2009 12:02:33 -0500
+In-Reply-To: <4AEF0D69.7070205@trash.net> (Patrick McHardy's message of "Mon\, 02 Nov 2009 17\:48\:41 +0100")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Dumazet wrote:
-> Patrick McHardy a =E9crit :
->> But it would be preferrable if we could do this using network
->> namespaces somehow.
->=20
-> eg eth0.100 and eth0.101 on namespace 1,  eth0.200 and eth0.201 on na=
-mespace 2 ?
->=20
-> Can we do that with current kernel ? (different vlans on an unique ph=
-ysical device)
+Patrick McHardy <kaber@trash.net> writes:
 
-By default the underlying device needs to exist in the same namespace
-in which the VLAN device is created. I believe it should be possible
-to move the VLAN device to a different namespace after creating it,
-but I'm not sure about that.
+> Eric Dumazet wrote:
+>> Patrick McHardy a =C3=A9crit :
+>>> But it would be preferrable if we could do this using network
+>>> namespaces somehow.
+>>=20
+>> eg eth0.100 and eth0.101 on namespace 1,  eth0.200 and eth0.201 on n=
+amespace 2 ?
+>>=20
+>> Can we do that with current kernel ? (different vlans on an unique p=
+hysical device)
+>
+> By default the underlying device needs to exist in the same namespace
+> in which the VLAN device is created. I believe it should be possible
+> to move the VLAN device to a different namespace after creating it,
+> but I'm not sure about that.
+
+There should be no problem moving the vlan device after it is created.
+
+Eric
 
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
