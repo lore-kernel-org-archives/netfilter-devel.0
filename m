@@ -1,59 +1,44 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: Connection tracking and vlan
-Date: Mon, 02 Nov 2009 09:02:29 -0800
-Message-ID: <m14opcj1wa.fsf@fess.ebiederm.org>
-References: <20091030152054.GA7936@gondor.apana.org.au>
-	<4AEB06E6.6020206@gmail.com>
-	<fb7befa20910301220y53e43608u3b37de17661feb4e@mail.gmail.com>
-	<m1639wmq1f.fsf@fess.ebiederm.org> <4AEB75DD.8050204@candelatech.com>
-	<fb7befa20911020814q2c4bcd1bj7e2b5a4c17ba0f89@mail.gmail.com>
-	<4AEF09E7.2010004@trash.net> <4AEF0BAA.7050800@gmail.com>
-	<4AEF0D69.7070205@trash.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 2/3] xtables: deactivate intrapositional support
+Date: Mon, 2 Nov 2009 19:59:08 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0911021958480.18000@obet.zrqbmnf.qr>
+References: <1256891969-18437-1-git-send-email-jengelh@medozas.de> <1256891969-18437-3-git-send-email-jengelh@medozas.de> <4AEF0636.6010604@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	Adayadil Thomas <adayadil.thomas@gmail.com>,
-	Ben Greear <greearb@candelatech.com>,
-	Herbert Xu <herbert@gondor.apana.org.au>,
-	Linux Netdev List <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org,
+	Netfilter Core Team <coreteam@netfilter.org>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out02.mta.xmission.com ([166.70.13.232]:36170 "EHLO
-	out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755871AbZKBRCd convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 2 Nov 2009 12:02:33 -0500
-In-Reply-To: <4AEF0D69.7070205@trash.net> (Patrick McHardy's message of "Mon\, 02 Nov 2009 17\:48\:41 +0100")
+Received: from borg.medozas.de ([188.40.89.202]:38373 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756638AbZKBS7F (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 2 Nov 2009 13:59:05 -0500
+In-Reply-To: <4AEF0636.6010604@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy <kaber@trash.net> writes:
+On Monday 2009-11-02 17:17, Patrick McHardy wrote:
 
-> Eric Dumazet wrote:
->> Patrick McHardy a =C3=A9crit :
->>> But it would be preferrable if we could do this using network
->>> namespaces somehow.
->>=20
->> eg eth0.100 and eth0.101 on namespace 1,  eth0.200 and eth0.201 on n=
-amespace 2 ?
->>=20
->> Can we do that with current kernel ? (different vlans on an unique p=
-hysical device)
+>Jan Engelhardt wrote:
+>> In going to fix NF bug #611, "argv" would be needed in
+>> xtables_check_inverse to set "optarg" to the right spot in case of an
+>> intrapositional negation. Adding argv to the parameter list would
+>> cause an API change, which I would like to avoid because it is
+>> planned to be thrown out anyway.
+>> 
+>> So deactive intrapositional support now already, but leave the error
+>> message (which has already been there for two releases). Slightly
+>> adjust it, because some users have been wondering whether iptables
+>> or they are at "fault".
 >
-> By default the underlying device needs to exist in the same namespace
-> in which the VLAN device is created. I believe it should be possible
-> to move the VLAN device to a different namespace after creating it,
-> but I'm not sure about that.
-
-There should be no problem moving the vlan device after it is created.
-
-Eric
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>I'm worried that this is too early, two releases is not particulary
+>long and I'd expect a lot of people haven't noticed the warning yet,
+>especially on headless systems. Looking at bug #611, we've never
+>claimed "-ptcp" would be supported, so this hardly justifies the
+>risk IMO.
+>
+>At least this needs more discussion, I'd like to hear a few more
+>opinions on this.
+>
+Given the ultimate shortage of developers on NF these days, I am unsure 
+there are that many opinions left.
