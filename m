@@ -1,49 +1,70 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/3] xtables: deactivate intrapositional support
-Date: Tue, 03 Nov 2009 19:39:49 +0100
-Message-ID: <4AF078F5.2090509@trash.net>
-References: <1256891969-18437-1-git-send-email-jengelh@medozas.de> <1256891969-18437-3-git-send-email-jengelh@medozas.de> <4AEF0636.6010604@trash.net> <alpine.DEB.2.00.0911022142340.8139@blackhole.kfki.hu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	netfilter-devel@vger.kernel.org,
-	Netfilter Core Team <coreteam@netfilter.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: [PATCH 1/3] style: reduce indent in xtables_check_inverse
+Date: Tue,  3 Nov 2009 21:58:18 +0100
+Message-ID: <1257281901-5063-2-git-send-email-jengelh@medozas.de>
+References: <1257281901-5063-1-git-send-email-jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:50879 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754102AbZKCSjr (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 3 Nov 2009 13:39:47 -0500
-In-Reply-To: <alpine.DEB.2.00.0911022142340.8139@blackhole.kfki.hu>
+Received: from borg.medozas.de ([188.40.89.202]:50740 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751051AbZKCU6T (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 3 Nov 2009 15:58:19 -0500
+In-Reply-To: <1257281901-5063-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jozsef Kadlecsik wrote:
-> On Mon, 2 Nov 2009, Patrick McHardy wrote:
-> 
->> Jan Engelhardt wrote:
->>> In going to fix NF bug #611, "argv" would be needed in
->>> xtables_check_inverse to set "optarg" to the right spot in case of an
->>> intrapositional negation. Adding argv to the parameter list would
->>> cause an API change, which I would like to avoid because it is
->>> planned to be thrown out anyway.
->>>
->>> So deactive intrapositional support now already, but leave the error
->>> message (which has already been there for two releases). Slightly
->>> adjust it, because some users have been wondering whether iptables
->>> or they are at "fault".
->> I'm worried that this is too early, two releases is not particulary
->> long and I'd expect a lot of people haven't noticed the warning yet,
->> especially on headless systems. Looking at bug #611, we've never
->> claimed "-ptcp" would be supported, so this hardly justifies the
->> risk IMO.
-> 
-> I agree with Patrick - it's no good to break unknown number of firewall 
-> setups out there. We did support intrapositional negation and a lot of 
-> scripts may use that syntax. It's a too high price for "fixing" what's 
-> actually a feature request.
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ xtables.c |   32 ++++++++++++++++----------------
+ 1 files changed, 16 insertions(+), 16 deletions(-)
 
-OK, lets leave the warning in for now and reconsider this in a year
-or something like that.
+diff --git a/xtables.c b/xtables.c
+index bda49f8..35a87e8 100644
+--- a/xtables.c
++++ b/xtables.c
+@@ -1645,25 +1645,25 @@ void xtables_save_string(const char *value)
+ int xtables_check_inverse(const char option[], int *invert,
+ 			  int *my_optind, int argc)
+ {
+-	if (option && strcmp(option, "!") == 0) {
+-		fprintf(stderr, "Using intrapositioned negation "
+-		        "(`--option ! this`) is deprecated in favor of "
+-		        "extrapositioned (`! --option this`).\n");
++	if (option == NULL || strcmp(option, "!") != 0)
++		return false;
+ 
+-		if (*invert)
+-			xt_params->exit_err(PARAMETER_PROBLEM,
+-				   "Multiple `!' flags not allowed");
+-		*invert = true;
+-		if (my_optind != NULL) {
+-			++*my_optind;
+-			if (argc && *my_optind > argc)
+-				xt_params->exit_err(PARAMETER_PROBLEM,
+-					   "no argument following `!'");
+-		}
++	fprintf(stderr, "Using intrapositioned negation "
++	        "(`--option ! this`) is deprecated in favor of "
++	        "extrapositioned (`! --option this`).\n");
+ 
+-		return true;
++	if (*invert)
++		xt_params->exit_err(PARAMETER_PROBLEM,
++			   "Multiple `!' flags not allowed");
++	*invert = true;
++	if (my_optind != NULL) {
++		++*my_optind;
++		if (argc && *my_optind > argc)
++			xt_params->exit_err(PARAMETER_PROBLEM,
++				   "no argument following `!'");
+ 	}
+-	return false;
++
++	return true;
+ }
+ 
+ const struct xtables_pprot xtables_chain_protos[] = {
+-- 
+1.6.5.2
+
