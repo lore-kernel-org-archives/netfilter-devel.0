@@ -1,53 +1,231 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Xtables cleanup patches
-Date: Tue,  3 Nov 2009 19:04:36 +0100
-Message-ID: <1257271483-26772-1-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 5/6] netfilter: xtables: constify args in compat copying functions
+Date: Tue,  3 Nov 2009 19:04:41 +0100
+Message-ID: <1257271483-26772-6-git-send-email-jengelh@medozas.de>
+References: <1257271483-26772-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:43219 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:43242 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751101AbZKCSEj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 3 Nov 2009 13:04:39 -0500
+	id S1753493AbZKCSEp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 3 Nov 2009 13:04:45 -0500
+In-Reply-To: <1257271483-26772-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ include/linux/netfilter/x_tables.h |   12 ++++++------
+ net/ipv4/netfilter/arp_tables.c    |    4 ++--
+ net/ipv4/netfilter/ip_tables.c     |    4 ++--
+ net/ipv4/netfilter/ipt_ULOG.c      |    4 ++--
+ net/ipv6/netfilter/ip6_tables.c    |    4 ++--
+ net/netfilter/x_tables.c           |    8 ++++----
+ net/netfilter/xt_hashlimit.c       |    4 ++--
+ net/netfilter/xt_limit.c           |    4 ++--
+ 8 files changed, 22 insertions(+), 22 deletions(-)
 
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index db92d8e..ebec4a5 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -291,8 +291,8 @@ struct xt_match
+ 	void (*destroy)(const struct xt_mtdtor_param *);
+ 
+ 	/* Called when userspace align differs from kernel space one */
+-	void (*compat_from_user)(void *dst, void *src);
+-	int (*compat_to_user)(void __user *dst, void *src);
++	void (*compat_from_user)(void *dst, const void *src);
++	int (*compat_to_user)(void __user *dst, const void *src);
+ 
+ 	/* Set this to THIS_MODULE if you are a module, otherwise NULL */
+ 	struct module *me;
+@@ -332,8 +332,8 @@ struct xt_target
+ 	void (*destroy)(const struct xt_tgdtor_param *);
+ 
+ 	/* Called when userspace align differs from kernel space one */
+-	void (*compat_from_user)(void *dst, void *src);
+-	int (*compat_to_user)(void __user *dst, void *src);
++	void (*compat_from_user)(void *dst, const void *src);
++	int (*compat_to_user)(void __user *dst, const void *src);
+ 
+ 	/* Set this to THIS_MODULE if you are a module, otherwise NULL */
+ 	struct module *me;
+@@ -600,13 +600,13 @@ extern short xt_compat_calc_jump(u_int8_t af, unsigned int offset);
+ extern int xt_compat_match_offset(const struct xt_match *match);
+ extern int xt_compat_match_from_user(struct xt_entry_match *m,
+ 				     void **dstptr, unsigned int *size);
+-extern int xt_compat_match_to_user(struct xt_entry_match *m,
++extern int xt_compat_match_to_user(const struct xt_entry_match *m,
+ 				   void __user **dstptr, unsigned int *size);
+ 
+ extern int xt_compat_target_offset(const struct xt_target *target);
+ extern void xt_compat_target_from_user(struct xt_entry_target *t,
+ 				       void **dstptr, unsigned int *size);
+-extern int xt_compat_target_to_user(struct xt_entry_target *t,
++extern int xt_compat_target_to_user(const struct xt_entry_target *t,
+ 				    void __user **dstptr, unsigned int *size);
+ 
+ #endif /* CONFIG_COMPAT */
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index f5aa65d..52c96b3 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -842,7 +842,7 @@ static int copy_entries_to_user(unsigned int total_size,
+ }
+ 
+ #ifdef CONFIG_COMPAT
+-static void compat_standard_from_user(void *dst, void *src)
++static void compat_standard_from_user(void *dst, const void *src)
+ {
+ 	int v = *(compat_int_t *)src;
+ 
+@@ -851,7 +851,7 @@ static void compat_standard_from_user(void *dst, void *src)
+ 	memcpy(dst, &v, sizeof(v));
+ }
+ 
+-static int compat_standard_to_user(void __user *dst, void *src)
++static int compat_standard_to_user(void __user *dst, const void *src)
+ {
+ 	compat_int_t cv = *(int *)src;
+ 
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index f2f6552..3e355fe 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -1042,7 +1042,7 @@ copy_entries_to_user(unsigned int total_size,
+ }
+ 
+ #ifdef CONFIG_COMPAT
+-static void compat_standard_from_user(void *dst, void *src)
++static void compat_standard_from_user(void *dst, const void *src)
+ {
+ 	int v = *(compat_int_t *)src;
+ 
+@@ -1051,7 +1051,7 @@ static void compat_standard_from_user(void *dst, void *src)
+ 	memcpy(dst, &v, sizeof(v));
+ }
+ 
+-static int compat_standard_to_user(void __user *dst, void *src)
++static int compat_standard_to_user(void __user *dst, const void *src)
+ {
+ 	compat_int_t cv = *(int *)src;
+ 
+diff --git a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
+index d32cc4b..0b02768 100644
+--- a/net/ipv4/netfilter/ipt_ULOG.c
++++ b/net/ipv4/netfilter/ipt_ULOG.c
+@@ -338,7 +338,7 @@ struct compat_ipt_ulog_info {
+ 	char		prefix[ULOG_PREFIX_LEN];
+ };
+ 
+-static void ulog_tg_compat_from_user(void *dst, void *src)
++static void ulog_tg_compat_from_user(void *dst, const void *src)
+ {
+ 	const struct compat_ipt_ulog_info *cl = src;
+ 	struct ipt_ulog_info l = {
+@@ -351,7 +351,7 @@ static void ulog_tg_compat_from_user(void *dst, void *src)
+ 	memcpy(dst, &l, sizeof(l));
+ }
+ 
+-static int ulog_tg_compat_to_user(void __user *dst, void *src)
++static int ulog_tg_compat_to_user(void __user *dst, const void *src)
+ {
+ 	const struct ipt_ulog_info *l = src;
+ 	struct compat_ipt_ulog_info cl = {
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index b311d87..07efff1 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -1074,7 +1074,7 @@ copy_entries_to_user(unsigned int total_size,
+ }
+ 
+ #ifdef CONFIG_COMPAT
+-static void compat_standard_from_user(void *dst, void *src)
++static void compat_standard_from_user(void *dst, const void *src)
+ {
+ 	int v = *(compat_int_t *)src;
+ 
+@@ -1083,7 +1083,7 @@ static void compat_standard_from_user(void *dst, void *src)
+ 	memcpy(dst, &v, sizeof(v));
+ }
+ 
+-static int compat_standard_to_user(void __user *dst, void *src)
++static int compat_standard_to_user(void __user *dst, const void *src)
+ {
+ 	compat_int_t cv = *(int *)src;
+ 
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index c8845d1..dbfc32d 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -485,8 +485,8 @@ int xt_compat_match_from_user(struct xt_entry_match *m, void **dstptr,
+ }
+ EXPORT_SYMBOL_GPL(xt_compat_match_from_user);
+ 
+-int xt_compat_match_to_user(struct xt_entry_match *m, void __user **dstptr,
+-			    unsigned int *size)
++int xt_compat_match_to_user(const struct xt_entry_match *m,
++			    void __user **dstptr, unsigned int *size)
+ {
+ 	const struct xt_match *match = m->u.kernel.match;
+ 	struct compat_xt_entry_match __user *cm = *dstptr;
+@@ -588,8 +588,8 @@ void xt_compat_target_from_user(struct xt_entry_target *t, void **dstptr,
+ }
+ EXPORT_SYMBOL_GPL(xt_compat_target_from_user);
+ 
+-int xt_compat_target_to_user(struct xt_entry_target *t, void __user **dstptr,
+-			     unsigned int *size)
++int xt_compat_target_to_user(const struct xt_entry_target *t,
++			     void __user **dstptr, unsigned int *size)
+ {
+ 	const struct xt_target *target = t->u.kernel.target;
+ 	struct compat_xt_entry_target __user *ct = *dstptr;
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index dd16e40..abba093 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -767,7 +767,7 @@ struct compat_xt_hashlimit_info {
+ 	compat_uptr_t master;
+ };
+ 
+-static void hashlimit_mt_compat_from_user(void *dst, void *src)
++static void hashlimit_mt_compat_from_user(void *dst, const void *src)
+ {
+ 	int off = offsetof(struct compat_xt_hashlimit_info, hinfo);
+ 
+@@ -775,7 +775,7 @@ static void hashlimit_mt_compat_from_user(void *dst, void *src)
+ 	memset(dst + off, 0, sizeof(struct compat_xt_hashlimit_info) - off);
+ }
+ 
+-static int hashlimit_mt_compat_to_user(void __user *dst, void *src)
++static int hashlimit_mt_compat_to_user(void __user *dst, const void *src)
+ {
+ 	int off = offsetof(struct compat_xt_hashlimit_info, hinfo);
+ 
+diff --git a/net/netfilter/xt_limit.c b/net/netfilter/xt_limit.c
+index 2e8089e..dad26f9 100644
+--- a/net/netfilter/xt_limit.c
++++ b/net/netfilter/xt_limit.c
+@@ -148,7 +148,7 @@ struct compat_xt_rateinfo {
+ 
+ /* To keep the full "prev" timestamp, the upper 32 bits are stored in the
+  * master pointer, which does not need to be preserved. */
+-static void limit_mt_compat_from_user(void *dst, void *src)
++static void limit_mt_compat_from_user(void *dst, const void *src)
+ {
+ 	const struct compat_xt_rateinfo *cm = src;
+ 	struct xt_rateinfo m = {
+@@ -162,7 +162,7 @@ static void limit_mt_compat_from_user(void *dst, void *src)
+ 	memcpy(dst, &m, sizeof(m));
+ }
+ 
+-static int limit_mt_compat_to_user(void __user *dst, void *src)
++static int limit_mt_compat_to_user(void __user *dst, const void *src)
+ {
+ 	const struct xt_rateinfo *m = src;
+ 	struct compat_xt_rateinfo cm = {
+-- 
+1.6.5.2
 
-I am posting here already the next round of pullable patches
-(that I originally wanted to get in _much_ faster) for review.
-
-This block is mostly cleanups, simplifications. It might be worth
-testing these together with the previous set if there are concerns
-about speed.
-
------
-The following changes since commit 7891b6c280d01d52be5ecefe0db79d4b1f671a1e:
-  Jan Engelhardt (1):
-        netfilter: xtables: generate initial table on-demand
-
-are available in the git repository at:
-
-  git://dev.medozas.de/linux next
-
-Jan Engelhardt (6):
-      netfilter: iptables: remove unused function arguments
-      netfilter: reduce NF_HOOK by one argument
-      netfilter: get rid of the grossness in netfilter.h
-      netfilter: xtables: print details on size mismatch
-      netfilter: xtables: constify args in compat copying functions
-      netfilter: xtables: add const qualifiers
-
- include/linux/netfilter.h            |   55 +++++++++++---------
- include/linux/netfilter/x_tables.h   |   12 ++--
- net/bridge/netfilter/ebtables.c      |   56 +++++++++++---------
- net/ipv4/netfilter/arp_tables.c      |   73 +++++++++++++++------------
- net/ipv4/netfilter/ip_tables.c       |   92 +++++++++++++++++++---------------
- net/ipv4/netfilter/ipt_ULOG.c        |    4 +-
- net/ipv4/netfilter/iptable_mangle.c  |   10 +---
- net/ipv6/netfilter/ip6_tables.c      |   92 ++++++++++++++++++---------------
- net/ipv6/netfilter/ip6table_mangle.c |   10 +---
- net/netfilter/x_tables.c             |   16 ++++--
- net/netfilter/xt_hashlimit.c         |    4 +-
- net/netfilter/xt_limit.c             |    4 +-
- 12 files changed, 232 insertions(+), 196 deletions(-)
