@@ -1,40 +1,67 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Bug 611, plan B
-Date: Wed, 04 Nov 2009 12:53:21 +0100
-Message-ID: <4AF16B31.90705@trash.net>
-References: <1257281901-5063-1-git-send-email-jengelh@medozas.de>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: CONNMARK 0xffffffff patch
+Date: Wed, 4 Nov 2009 13:13:20 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0911041311300.10500@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:36404 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755592AbZKDLxT (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 4 Nov 2009 06:53:19 -0500
-In-Reply-To: <1257281901-5063-1-git-send-email-jengelh@medozas.de>
+Received: from borg.medozas.de ([188.40.89.202]:36705 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753538AbZKDMNP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 4 Nov 2009 07:13:15 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> Of course there is a plan B that is, given the recent input, is
-> undoubtly less intrusive. Intra-! support is retained while option
-> bundling is now supported.
-> 
-> -----
-> The following changes since commit 4f0d7b660e0ae8f678142fd2a1722b27ad472169:
->   Jan Engelhardt (1):
->         iptables: fix undersized deletion mask creation
-> 
-> are available in the git repository at:
-> 
->   git://dev.medozas.de/iptables bug611
-> 
-> Jan Engelhardt (3):
->       style: reduce indent in xtables_check_inverse
->       libxtables: hand argv to xtables_check_inverse
->       iptables/extensions: make bundled options work again
+Hi Patrick,
 
-This looks better. Pulled and pushed back out, thanks Jan.
+
+I just saw your patch to libxt_MARK.c and remembered that CONNMARK needs 
+the same.
+
+
+
+The following changes since commit 3d915e1ac610bce44250b4aea556f4726387388d:
+  Patrick McHardy (1):
+        MARK: print mark rules with mask 0xffffffff as --set-mark instead of --set-xmark
+
+are available in the git repository at:
+
+  git://dev.medozas.de/iptables master
+
+Jan Engelhardt (1):
+      CONNMARK: print mark rules with mask 0xffffffff as set instead of xset
+
+ extensions/libxt_CONNMARK.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+-----
+
+parent 3d915e1ac610bce44250b4aea556f4726387388d (v1.4.5-22-g3d915e1)
+commit 5fdf032a02b671bc1a18cec0e803c17c64175ab1
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Wed Nov 4 13:10:50 2009 +0100
+
+CONNMARK: print mark rules with mask 0xffffffff as set instead of xset
+
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ extensions/libxt_CONNMARK.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/extensions/libxt_CONNMARK.c b/extensions/libxt_CONNMARK.c
+index 3cf62f0..1951e67 100644
+--- a/extensions/libxt_CONNMARK.c
++++ b/extensions/libxt_CONNMARK.c
+@@ -312,6 +312,8 @@ connmark_tg_print(const void *ip, const struct xt_entry_target *target,
+ 			printf("CONNMARK or 0x%x ", info->ctmark);
+ 		else if (info->ctmask == 0)
+ 			printf("CONNMARK xor 0x%x ", info->ctmark);
++		else if (info->ctmask == 0xFFFFFFFFU)
++			printf("CONNMARK set 0x%x ", info->ctmark);
+ 		else
+ 			printf("CONNMARK xset 0x%x/0x%x ",
+ 			       info->ctmark, info->ctmask);
+-- 
+# Created with git-export-patch
