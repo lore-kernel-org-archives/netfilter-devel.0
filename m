@@ -1,49 +1,37 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: Re: [PATCH] netfilter: avoid additional compare.
-Date: Wed, 4 Nov 2009 21:27:47 +0800
-Message-ID: <412e6f7f0911040527x5aee566i73ac98880bb430d5@mail.gmail.com>
-References: <4AEF9D99.5070804@gmail.com> <4AF1700F.1090401@trash.net>
+From: aidan mcgurn <a_mcgurn@yahoo.co.uk>
+Subject: ipt ROUTE lib
+Date: Wed, 4 Nov 2009 13:51:26 +0000 (GMT)
+Message-ID: <747472.83765.qm@web24103.mail.ird.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:48297 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753750AbZKDN1m convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 4 Nov 2009 08:27:42 -0500
-Received: by pwj9 with SMTP id 9so3167539pwj.21
-        for <netfilter-devel@vger.kernel.org>; Wed, 04 Nov 2009 05:27:47 -0800 (PST)
-In-Reply-To: <4AF1700F.1090401@trash.net>
+Received: from web24103.mail.ird.yahoo.com ([87.248.114.167]:38965 "HELO
+	web24103.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1755834AbZKDN6D convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 4 Nov 2009 08:58:03 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Nov 4, 2009 at 8:14 PM, Patrick McHardy <kaber@trash.net> wrote=
-:
-> Changli Gao wrote:
->> avoid additional compare.
->>
->> avoid additional compare.
->
-> This doesn't even compile:
->
-> net/netfilter/nf_conntrack_core.c: In function 'early_drop':
-> net/netfilter/nf_conntrack_core.c:522: error: 'NF_CT_EVICITON_RANGE'
-> undeclared (first use in this function)
->
-> Please don't send me untested patches.
->
+(sent this query to user list: not sure if its applicable here instead)
+Hi,
+I had looked through the archives and did again but i'm fairly new to netfilters iptables and i can't see
+any other way of routing using dst:port via different gateways besides using the ipt ROUTE lib.
 
-Oh, I am sorry. I sent the wrong version. :( The macro
-NF_CT_EVICITON_RANGE should be NF_CT_EVICITION_RANGE.
+That been the case, can u please directme on how to build the ipt_ROUTE kernel object for this or is it a patch thats required?
+As i said i downloaded 1.3.5 iptables code from netfilter and did a make but it only builds the shared objects, no kernel objects which
+i presume i need to install a ipt_ROUTE.ko to get the -j ROUTE option to work?
+alternatively is there any iptables package which includes this?
 
---=20
-Regards=EF=BC=8C
-Changli Gao(xiaosuo@gmail.com)
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+thanks for any help here,
+/aidan
+
+
+
+
+
+
+      
