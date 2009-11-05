@@ -1,37 +1,35 @@
-From: Thomas Jarosch <thomas.jarosch@intra2net.com>
-Subject: Re: xt_ACCOUNT and big endian machines
-Date: Thu, 5 Nov 2009 17:06:46 +0100
-Message-ID: <200911051706.46071.thomas.jarosch@intra2net.com>
-References: <200910231623.42725.thomas.jarosch@intra2net.com> <200911041045.46239.thomas.jarosch@intra2net.com> <alpine.LSU.2.00.0911042337570.19869@obet.zrqbmnf.qr>
+From: "Chini, Georg (HP App Services)" <georg.chini@hp.com>
+Subject: Another issue with ipset on sparc64
+Date: Thu, 5 Nov 2009 17:57:07 +0000
+Message-ID: <4513233BE7DF454BB62D30017EEE55436CFB992FEF@GVW1115EXC.americas.hpqcorp.net>
+References: <alpine.LSU.2.00.0911051229590.28909@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Cc: "davem@davemloft.net" <davem@davemloft.net>,
+	Jan Engelhardt <jengelh@medozas.de>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from re01.intra2net.com ([82.165.28.202]:58575 "EHLO
-	re01.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755867AbZKEQGn (ORCPT
+Received: from g1t0029.austin.hp.com ([15.216.28.36]:23795 "EHLO
+	g1t0029.austin.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757529AbZKER5U convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Nov 2009 11:06:43 -0500
-In-Reply-To: <alpine.LSU.2.00.0911042337570.19869@obet.zrqbmnf.qr>
+	Thu, 5 Nov 2009 12:57:20 -0500
+In-Reply-To: <alpine.LSU.2.00.0911051229590.28909@obet.zrqbmnf.qr>
+Content-Language: de-DE
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wednesday, 4. November 2009 23:38:03 Jan Engelhardt wrote:
-> >> >This really looks like network order for
-> >> >the kernel -> userspace transfer.
-> >>
-> >> Blame that on the original submission, which changed that ;-)
-> >
-> >Would you bet on it? ;)
-> 
-> No, but I can fix it anyway.
+Hello,
 
-Thanks for fixing it! I'll port your changes to my tree (including proper 
-credits) the next days and will give the new code a test run.
-Leonardo Secci will also test the changes on a big endian box.
+I found another issue with ipset on sparc64 (Ultra2, 2 CPU, 2.6.31.5,
+Debian5).
+When I flush an iptreemap, one (of two) ksoftirqd goes up to 25% CPU
+load and remains there until I delete the set. I don't have to place
+anything in the map, just doing "ipset -N abc iptreemap; ipset -F abc" is
+enough. Doing that again with another map will add 25% load to the
+second ksoftirqd. Adding more maps will not change things further.
 
-Cheers,
-Thomas
+Regards
+       Georg Chini
