@@ -1,33 +1,33 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Problem with ipset on sparc64
-Date: Thu, 5 Nov 2009 21:10:54 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0911052110040.30403@obet.zrqbmnf.qr>
-References: <4513233BE7DF454BB62D30017EEE55436CFB9228E4@GVW1115EXC.americas.hpqcorp.net> <alpine.LSU.2.00.0911042258430.16456@obet.zrqbmnf.qr> <alpine.DEB.2.00.0911052100010.14609@blackhole.kfki.hu>
+From: Adam Nielsen <a.nielsen@shikadi.net>
+Subject: Re: Avoiding multiple calls to xt_target.checkentry
+Date: Fri, 06 Nov 2009 08:04:51 +1000
+Message-ID: <4AF34C03.7020907@shikadi.net>
+References: <4A18A70F.50808@shikadi.net> <alpine.LSU.2.00.0905240933050.18758@fbirervta.pbzchgretzou.qr> <4A1DC798.1090604@shikadi.net> <4A26418C.5090707@trash.net> <4A265891.4050201@shikadi.net> <4AF2E8A5.7020409@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "Chini, Georg (HP App Services)" <georg.chini@hp.com>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:49152 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757906AbZKEUKt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Nov 2009 15:10:49 -0500
-In-Reply-To: <alpine.DEB.2.00.0911052100010.14609@blackhole.kfki.hu>
+Received: from vitalin.sorra.shikadi.net ([64.71.152.201]:4397 "EHLO
+	vitalin.sorra.shikadi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758993AbZKEWXU (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 5 Nov 2009 17:23:20 -0500
+In-Reply-To: <4AF2E8A5.7020409@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 2009-11-05 21:03, Jozsef Kadlecsik wrote:
-
->On Wed, 4 Nov 2009, Jan Engelhardt wrote:
+> Just wondering whether there's still hope for this issue to get fixed.
 >
->> To workaround the alignedness issue, you could take an x86_64 machine
->> and compile a strictly 32-bit ipset on it, and see whether the values
->> are also off.
->
->On x86_64 using a 32-bit ipset, the listed values are correct.
+> I haven't added the LED extension to iptables yet, so if there's no
+> interest in fixing this, we can remove the LED target again.
 
-But that would not tell you if there are 64-bit quantities that
-do not fulfill the 64-bit alignment, because x86 handles misaligned
-reads transparently in hardware. Then again, the number of 64-bit
-items is probably manageable and statically analyzable.
+Sorry Patrick, it's still on my to-do list I just haven't had a chance to get 
+back to it yet!  But yes I still fully intend to fix the issue.  I'll see if I 
+can spend some more time on it this weekend.
+
+Cheers,
+Adam.
