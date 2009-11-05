@@ -1,37 +1,39 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Problem with ipset on sparc64
-Date: Thu, 5 Nov 2009 12:30:55 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0911051229590.28909@obet.zrqbmnf.qr>
-References: <4513233BE7DF454BB62D30017EEE55436CFB9228E4@GVW1115EXC.americas.hpqcorp.net> <alpine.LSU.2.00.0911042258430.16456@obet.zrqbmnf.qr> <alpine.DEB.2.00.0911050924280.13373@blackhole.kfki.hu> <alpine.DEB.2.00.0911051134520.13373@blackhole.kfki.hu>
- <alpine.LSU.2.00.0911051202050.23132@obet.zrqbmnf.qr> <alpine.DEB.2.00.0911051220090.13373@blackhole.kfki.hu>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: R:Re: Questions about early_drop()
+Date: Thu, 05 Nov 2009 13:23:56 +0100
+Message-ID: <4AF2C3DC.7070200@trash.net>
+References: <0016e6d7ea70951fbb04779150de@google.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: davem@davemloft.net,
-	"Chini, Georg (HP App Services)" <georg.chini@hp.com>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: pesce.luca@gmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:36183 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753212AbZKELax (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Nov 2009 06:30:53 -0500
-In-Reply-To: <alpine.DEB.2.00.0911051220090.13373@blackhole.kfki.hu>
+Received: from stinky.trash.net ([213.144.137.162]:33105 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751092AbZKEMXx (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 5 Nov 2009 07:23:53 -0500
+In-Reply-To: <0016e6d7ea70951fbb04779150de@google.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+pesce.luca@gmail.com wrote:
+> Hi Patrick,
+> thanks for the explanation. The only thing I do not understand is:
+> 
+>> It does greatly improve robustness under DoS since with jhash() and a
+>> properly sized
+>> hash table there's likely only a single entry per bucket.
+> 
+> I understand that this comes from hash tables theory, but I don't get
+> it... When conntrack_core module is loaded, the maximum number of
+> conntrack entries is calculated as (hashsize * 8), so when early_drop()
+> kicks in, the table is full and is containing (hashsize*8) entries...
+> how is it possible that in that situation every bucket contains just one
+> entry? Shouldn't it contain about 8 entries, as a mean value?
 
-On Thursday 2009-11-05 12:21, Jozsef Kadlecsik wrote:
->> >In a few days I'll be able to use an Ultra 10 for testing - that'll settle 
->> >the validating on big endian hardware.
->> 
->> Does not Dave have some 64-bit sparks in the basement that may
->> be shared and given remote access to?
->> (It seems Netfilter is one of the subsystems most plagued by endianess, 
->> aligning and sizeof(long) variances ;-)
->
->Dave don't need to dig into his SPARC collection :-) - I'll setup this 
->machine as a testbed for netfilter/ipset.
+The default is not properly sized, its a trade-off between memory
+use and performance. A good size would be 2 * max_entries since
+each conntrack is hashed twice.
 
-But since the Ultra10 is just 32-bit IIRC, you would not have a
-chance to hit the rare 64-bit alignment problems (both in terms of
-SIGBUS and "invalid match size 16 != 12"), should there be any.
