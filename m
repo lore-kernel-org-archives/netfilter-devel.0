@@ -1,42 +1,60 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: Another issue with ipset on sparc64
-Date: Thu, 5 Nov 2009 19:38:54 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.0911051936080.14280@blackhole.kfki.hu>
-References: <4513233BE7DF454BB62D30017EEE55436CFB992FEF@GVW1115EXC.americas.hpqcorp.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: Avoiding multiple calls to xt_target.checkentry
+Date: Thu, 5 Nov 2009 19:40:46 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0911051923510.25147@obet.zrqbmnf.qr>
+References: <4A18A70F.50808@shikadi.net> <alpine.LSU.2.00.0905240933050.18758@fbirervta.pbzchgretzou.qr> <4A1DC798.1090604@shikadi.net> <4A26418C.5090707@trash.net> <4A265891.4050201@shikadi.net> <4AF2E8A5.7020409@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"davem@davemloft.net" <davem@davemloft.net>,
-	Jan Engelhardt <jengelh@medozas.de>
-To: "Chini, Georg (HP App Services)" <georg.chini@hp.com>
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Adam Nielsen <a.nielsen@shikadi.net>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.26]:41390 "EHLO smtp1.kfki.hu"
+Received: from borg.medozas.de ([188.40.89.202]:57317 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757262AbZKESit (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Nov 2009 13:38:49 -0500
-In-Reply-To: <4513233BE7DF454BB62D30017EEE55436CFB992FEF@GVW1115EXC.americas.hpqcorp.net>
+	id S1758288AbZKESkl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 5 Nov 2009 13:40:41 -0500
+In-Reply-To: <4AF2E8A5.7020409@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 5 Nov 2009, Chini, Georg (HP App Services) wrote:
 
-> I found another issue with ipset on sparc64 (Ultra2, 2 CPU, 2.6.31.5,
-> Debian5).
-> When I flush an iptreemap, one (of two) ksoftirqd goes up to 25% CPU
-> load and remains there until I delete the set. I don't have to place
-> anything in the map, just doing "ipset -N abc iptreemap; ipset -F abc" is
-> enough. Doing that again with another map will add 25% load to the
-> second ksoftirqd. Adding more maps will not change things further.
+On Thursday 2009-11-05 16:00, Patrick McHardy wrote:
+>Adam Nielsen wrote in summer 2009:
+>>>> Thanks for the explanation!  So - to get it straight in my mind - =
+the
+>>>> checkentry function will be called multiple times while the trigge=
+r
+>>>> exists,
+>>>> but is the destroy function also called multiple times?  Or is che=
+ckentry
+>>>> called whenever tables are created, but destroy only ever called o=
+nce
+>>>> when the
+>>>> table is removed for the last time?
+>>> They will always be called an equal amount of times - each one
+>>> once per target instance.
+>>=20
+>> Great, thanks for the info (thanks Jan too!)  I'm working on a patch=
+ so I'll
+>> post it when I think I've solved the issue correctly.
+>
+>Just wondering whether there's still hope for this issue to get fixed.
+>
+>I haven't added the LED extension to iptables yet, so if there's no
+>interest in fixing this, we can remove the LED target again.
 
-Thanks the reports! 
-
-Tomorrow I'll setup the testbed and I'll be able to run the full test 
-suite in ipset. Then I can work on cleaning up all bigendian issues.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+An increasing number of modules want to keep a global state.
+Currently, xt_recent and xt_RATEEST do that in the kernel; xt_quota3
+(Xt-a) also does its own management=C2=A0=E2=80=94 basically just a
+name=3D>personal_struct mapping=C2=A0=E2=80=94, and xt_LED would now ne=
+ed such state
+keeping too. It seems preferable to somehow join that together and
+funnel that into xtables.c. What do you think?
+Meanwhile, let me prep some commit.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
