@@ -1,33 +1,31 @@
-From: Adam Nielsen <a.nielsen@shikadi.net>
-Subject: Re: Avoiding multiple calls to xt_target.checkentry
-Date: Fri, 06 Nov 2009 08:04:51 +1000
-Message-ID: <4AF34C03.7020907@shikadi.net>
-References: <4A18A70F.50808@shikadi.net> <alpine.LSU.2.00.0905240933050.18758@fbirervta.pbzchgretzou.qr> <4A1DC798.1090604@shikadi.net> <4A26418C.5090707@trash.net> <4A265891.4050201@shikadi.net> <4AF2E8A5.7020409@trash.net>
+From: David Miller <davem@davemloft.net>
+Subject: Re: Problem with ipset on sparc64
+Date: Thu, 05 Nov 2009 14:48:30 -0800 (PST)
+Message-ID: <20091105.144830.268358661.davem@davemloft.net>
+References: <alpine.LSU.2.00.0911051202050.23132@obet.zrqbmnf.qr>
+	<alpine.DEB.2.00.0911051220090.13373@blackhole.kfki.hu>
+	<alpine.LSU.2.00.0911051229590.28909@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Cc: kadlec@blackhole.kfki.hu, georg.chini@hp.com,
+	netfilter-devel@vger.kernel.org
+To: jengelh@medozas.de
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from vitalin.sorra.shikadi.net ([64.71.152.201]:4397 "EHLO
-	vitalin.sorra.shikadi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758993AbZKEWXU (ORCPT
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:56794
+	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751104AbZKEWsG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 5 Nov 2009 17:23:20 -0500
-In-Reply-To: <4AF2E8A5.7020409@trash.net>
+	Thu, 5 Nov 2009 17:48:06 -0500
+In-Reply-To: <alpine.LSU.2.00.0911051229590.28909@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> Just wondering whether there's still hope for this issue to get fixed.
->
-> I haven't added the LED extension to iptables yet, so if there's no
-> interest in fixing this, we can remove the LED target again.
+From: Jan Engelhardt <jengelh@medozas.de>
+Date: Thu, 5 Nov 2009 12:30:55 +0100 (CET)
 
-Sorry Patrick, it's still on my to-do list I just haven't had a chance to get 
-back to it yet!  But yes I still fully intend to fix the issue.  I'll see if I 
-can spend some more time on it this weekend.
+> But since the Ultra10 is just 32-bit IIRC, you would not have a
+> chance to hit the rare 64-bit alignment problems (both in terms of
+> SIGBUS and "invalid match size 16 != 12"), should there be any.
 
-Cheers,
-Adam.
+Ultra10 is sparc64 and thus 64-bit
