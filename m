@@ -1,37 +1,69 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH][BRIDGE-NETFILTER] fix REJECT for bridged traffic
-Date: Fri, 6 Nov 2009 20:51:14 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0911062050580.25631@obet.zrqbmnf.qr>
-References: <4AF1D08C.2030907@pandora.be> <4AF2E21B.4050801@trash.net> <4AF32544.2060709@pandora.be> <4AF448C8.80701@trash.net> <4AF45DFB.3070606@pandora.be> <4AF45E91.9050203@trash.net> <4AF460F2.30300@trash.net>
+From: Pierre Chifflier <pchifflier@edenwall.com>
+Subject: Re: [PATCH 1/2] Add new input plugin UNIXSOCK
+Date: Fri, 6 Nov 2009 21:09:07 +0100
+Message-ID: <20091106200907.GB3089@piche.inl.fr>
+References: <alpine.LSU.2.00.0911011336330.22807@obet.zrqbmnf.qr>
+ <20091101130739.GC11601@piche.inl.fr>
+ <alpine.LSU.2.00.0911011432160.26262@obet.zrqbmnf.qr>
+ <20091101.222249.93035620.davem@davemloft.net>
+ <alpine.LSU.2.00.0911031759340.24979@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Bart De Schuymer <bdschuym@pandora.be>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: David Miller <davem@davemloft.net>, pchifflier@edenwall.com,
+	netfilter-devel@vger.kernel.org, eleblond@inl.fr
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:39741 "EHLO borg.medozas.de"
+Received: from smtp1-g21.free.fr ([212.27.42.1]:44631 "EHLO smtp1-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759618AbZKFTvK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 6 Nov 2009 14:51:10 -0500
-In-Reply-To: <4AF460F2.30300@trash.net>
+	id S1756341AbZKFUJO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 6 Nov 2009 15:09:14 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.LSU.2.00.0911031759340.24979@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Tue, Nov 03, 2009 at 06:01:46PM +0100, Jan Engelhardt wrote:
+> >
+> >If GCC can see at the inlining point that 'ptr' is of a type that
+> >should be properly aligned it can inline the memcpy and still emit
+> >the very unaligned load or store that you're trying to avoid.
+> 
+> Hi Dave,
+> 
+> Indeed it seems to be this way. Hm, bad.
+> 
+> What codes are you using on your alignment-sensitive SPARCs -
+> the standard bitshifting, "char *p; p[0]<<24 | p[1]<<16 | p[2]<<8 | p[3]"?
 
-On Friday 2009-11-06 18:46, Patrick McHardy wrote:
->> 
->> I'm not sure I understand what you're getting at. The above
->> line of code would do exactly that, attach the nf_bridge
->> data from the original packet to the newly created one.
->> But for this to work we need to make sure its valid in all
->> hooks, hence my suggestion to save it in PREROUTING instead
->> of POSTROUTING.
->
->This patch demonstrates the idea. Its not compile tested
->and incomplete, just to make more clear what I'm suggesting.
->
+Hi all,
 
-[patch in non-inlined form]
+I am not very familiar with these kind of problems (alignment). If I
+understand correctly, what I need to avoid is playing with pointers on a
+buffer, especially if trying to read a structure.
 
-For a final one you also want to modify ip6t_REJECT.
+Since what I am trying to read is formatted as following:
+
+marker (uint32)
+total_size (uint16)
+payload_length (uint16)
+payload (struct iphdr)
+
+Followed by a sequence of
+option_id (uint16)
+option_length (uint16)
+option_value (variable, equal to option_length)
+
+Am I right to assume that:
+- I can define a (packed) structure for the first part, and that I can
+  set the pointer on the data buffer which was allocated by malloc
+  without problems ? [*]
+- For the second part, there are 2 cases:
+  + integers must be read byte per byte
+  + strings can be used directly ?
+
+[*] none of the iphdr, ip or similar structures are defined as packed in
+netinet/ip.h
+
+Thanks,
+Pierre
+
