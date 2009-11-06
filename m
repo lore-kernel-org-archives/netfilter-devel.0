@@ -1,43 +1,107 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: [PATCH] netfiler: remove the write permission of nf_conntrack/acct
-Date: Fri, 06 Nov 2009 17:34:26 +0800
-Message-ID: <4AF3EDA2.6060103@gmail.com>
-Reply-To: xiaosuo@gmail.com
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: netfilter 02/02: xt_connlimit: fix regression caused by zero
+ family value
+Date: Fri, 6 Nov 2009 11:17:57 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0911061115480.6160@obet.zrqbmnf.qr>
+References: <4AF31818.3030103@trash.net> <alpine.LSU.2.00.0911051943130.25147@obet.zrqbmnf.qr> <20091106.004418.54906158.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=GB2312
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, xiaosuo <xiaosuo@gmail.com>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: kaber@trash.net, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:48369 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754124AbZKFJeG (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 6 Nov 2009 04:34:06 -0500
-Received: by pwj9 with SMTP id 9so546311pwj.21
-        for <netfilter-devel@vger.kernel.org>; Fri, 06 Nov 2009 01:34:12 -0800 (PST)
+Received: from borg.medozas.de ([188.40.89.202]:43431 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753824AbZKFKRx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 6 Nov 2009 05:17:53 -0500
+In-Reply-To: <20091106.004418.54906158.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
- remove write permission of nf_conntrack/acct
 
-This option only works when initialization.
+On Friday 2009-11-06 09:44, David Miller wrote:
 
-Signed-off-by: Changli Gao <xiaosuo@gmail.com>
-----
-net/netfilter/nf_conntrack_acct.c | 2 +-
-1 file changed, 1 insertion(+), 1 deletion(-)
+>From: Jan Engelhardt <jengelh@medozas.de>
+>Date: Thu, 5 Nov 2009 19:45:25 +0100 (CET)
+>
+>> On Thursday 2009-11-05 19:23, Patrick McHardy wrote:
+>>>
+>>>    netfilter: xt_connlimit: fix regression caused by zero family value
+>>>    
+>>>    Commit v2.6.28-rc1~7172~1092~2 was slightly incomplete; not all
+>>>    instances of par->match->family were changed to par->family.
+>>>    
+>>>    Netfilter bugzilla #610.
+>> 
+>> Hold it.
+>> git would never output ~7172~1092~2 because ~8266 would be much simpler.
+>> 
+>> I originally wrote "Commit v2.6.28-rc1~717^2~109^2~2", but one of your 
+>> programs seems to eat commit messages or more.
+>
+>Guys, please sort this out so I can add this fix to net-2.6
+>
+>Thanks.
 
---- a/net/netfilter/nf_conntrack_acct.c.orig	2009-11-06 17:27:31.000000000 +0800
-+++ b/net/netfilter/nf_conntrack_acct.c	2009-11-06 17:27:47.000000000 +0800
-@@ -20,7 +20,7 @@
+This should.
+
+
+commit ffffffffffffffffffffffffffffffffffffffff
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Wed Nov 4 14:27:30 2009 +0100
+
+netfilter: xt_connlimit: fix regression caused by zero family value
+Commit v2.6.28-rc1~717^2~109^2~2 was slightly incomplete; not all
+instances of par->match->family were changed to par->family.
+
+References: http://bugzilla.netfilter.org/show_bug.cgi?id=610
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+---
+ net/netfilter/xt_connlimit.c |   10 ++++------
+ 1 files changed, 4 insertions(+), 6 deletions(-)
+
+diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
+index 6809809..38f03f7 100644
+--- a/net/netfilter/xt_connlimit.c
++++ b/net/netfilter/xt_connlimit.c
+@@ -103,7 +103,7 @@ static int count_them(struct xt_connlimit_data *data,
+ 		      const struct nf_conntrack_tuple *tuple,
+ 		      const union nf_inet_addr *addr,
+ 		      const union nf_inet_addr *mask,
+-		      const struct xt_match *match)
++		      u_int8_t family)
+ {
+ 	const struct nf_conntrack_tuple_hash *found;
+ 	struct xt_connlimit_conn *conn;
+@@ -113,8 +113,7 @@ static int count_them(struct xt_connlimit_data *data,
+ 	bool addit = true;
+ 	int matches = 0;
  
- static int nf_ct_acct __read_mostly = NF_CT_ACCT_DEFAULT;
+-
+-	if (match->family == NFPROTO_IPV6)
++	if (family == NFPROTO_IPV6)
+ 		hash = &data->iphash[connlimit_iphash6(addr, mask)];
+ 	else
+ 		hash = &data->iphash[connlimit_iphash(addr->ip & mask->ip)];
+@@ -157,8 +156,7 @@ static int count_them(struct xt_connlimit_data *data,
+ 			continue;
+ 		}
  
--module_param_named(acct, nf_ct_acct, bool, 0644);
-+module_param_named(acct, nf_ct_acct, bool, 0444);
- MODULE_PARM_DESC(acct, "Enable connection tracking flow accounting.");
+-		if (same_source_net(addr, mask, &conn->tuple.src.u3,
+-		    match->family))
++		if (same_source_net(addr, mask, &conn->tuple.src.u3, family))
+ 			/* same source network -> be counted! */
+ 			++matches;
+ 		nf_ct_put(found_ct);
+@@ -207,7 +205,7 @@ connlimit_mt(const struct sk_buff *skb, const struct xt_match_param *par)
  
- #ifdef CONFIG_SYSCTL
-
-
+ 	spin_lock_bh(&info->data->lock);
+ 	connections = count_them(info->data, tuple_ptr, &addr,
+-	                         &info->mask, par->match);
++	                         &info->mask, par->family);
+ 	spin_unlock_bh(&info->data->lock);
+ 
+ 	if (connections < 0) {
+-- 
+# Created with git-export-patch
