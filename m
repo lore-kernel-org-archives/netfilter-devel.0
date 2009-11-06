@@ -1,30 +1,38 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: remove CONFIG_NF_CT_ACCT
-Date: Fri, 06 Nov 2009 15:57:14 +0100
-Message-ID: <4AF4394A.2070807@trash.net>
-References: <4AF3E5A3.1080805@gmail.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: netfilter 02/02: xt_connlimit: fix regression caused by zero
+ family value
+Date: Fri, 06 Nov 2009 16:14:12 +0100
+Message-ID: <4AF43D44.3030105@gmail.com>
+References: <4AF31818.3030103@trash.net> <alpine.LSU.2.00.0911051943130.25147@obet.zrqbmnf.qr> <4AF43782.50604@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	Krzysztof Piotr Oledzki <ole@ans.pl>
-To: xiaosuo@gmail.com
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	"David S. Miller" <davem@davemloft.net>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Linux Netdev List <netdev@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:63952 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752093AbZKFO5L (ORCPT
+Received: from gw1.cosmosbay.com ([212.99.114.194]:51955 "EHLO
+	gw1.cosmosbay.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757587AbZKFPOQ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 6 Nov 2009 09:57:11 -0500
-In-Reply-To: <4AF3E5A3.1080805@gmail.com>
+	Fri, 6 Nov 2009 10:14:16 -0500
+In-Reply-To: <4AF43782.50604@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Changli Gao wrote:
-> remove CONFIG_NF_CT_ACCT
-> 
-> Accounting can now be enabled/disabled without kernel recompilation.
-> Currently used only to set a default value for a feature that is also
-> controlled by a kernel/module/sysfs/sysctl parameter.
+Patrick McHardy a =E9crit :
 
-We need to automatically enable this when the connbytes match is used.
-Krzysztof is working on a patch to do that.
+> Indeed, my email client displays ^2 as =B2, which cut and paste trans=
+forms
+> to 2 :)
+>
+
+One more Thunderbird addict^Wvictim :)
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
