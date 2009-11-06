@@ -1,50 +1,33 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: netfilter 02/02: xt_connlimit: fix regression caused by zero
- family value
-Date: Fri, 06 Nov 2009 15:49:38 +0100
-Message-ID: <4AF43782.50604@trash.net>
-References: <4AF31818.3030103@trash.net> <alpine.LSU.2.00.0911051943130.25147@obet.zrqbmnf.qr>
+Subject: Re: Avoiding multiple calls to xt_target.checkentry
+Date: Fri, 06 Nov 2009 15:56:22 +0100
+Message-ID: <4AF43916.5010408@trash.net>
+References: <4A18A70F.50808@shikadi.net> <alpine.LSU.2.00.0905240933050.18758@fbirervta.pbzchgretzou.qr> <4A1DC798.1090604@shikadi.net> <4A26418C.5090707@trash.net> <4A265891.4050201@shikadi.net> <4AF2E8A5.7020409@trash.net> <4AF34C03.7020907@shikadi.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Linux Netdev List <netdev@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Transfer-Encoding: 7bit
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Adam Nielsen <a.nielsen@shikadi.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:63810 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:63930 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754058AbZKFOte (ORCPT
+	with ESMTP id S1757307AbZKFO4S (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 6 Nov 2009 09:49:34 -0500
-In-Reply-To: <alpine.LSU.2.00.0911051943130.25147@obet.zrqbmnf.qr>
+	Fri, 6 Nov 2009 09:56:18 -0500
+In-Reply-To: <4AF34C03.7020907@shikadi.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Thursday 2009-11-05 19:23, Patrick McHardy wrote:
->>    netfilter: xt_connlimit: fix regression caused by zero family val=
-ue
->>   =20
->>    Commit v2.6.28-rc1~7172~1092~2 was slightly incomplete; not all
->>    instances of par->match->family were changed to par->family.
->>   =20
->>    Netfilter bugzilla #610.
->=20
-> Hold it.
-> git would never output ~7172~1092~2 because ~8266 would be much simpl=
-er.
->=20
-> I originally wrote "Commit v2.6.28-rc1~717^2~109^2~2", but one of you=
-r=20
-> programs seems to eat commit messages or more.
+Adam Nielsen wrote:
+>> Just wondering whether there's still hope for this issue to get fixed.
+>>
+>> I haven't added the LED extension to iptables yet, so if there's no
+>> interest in fixing this, we can remove the LED target again.
+> 
+> Sorry Patrick, it's still on my to-do list I just haven't had a chance
+> to get back to it yet!  But yes I still fully intend to fix the issue. 
+> I'll see if I can spend some more time on it this weekend.
 
-Indeed, my email client displays ^2 as =B2, which cut and paste transfo=
-rms
-to 2 :)
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+OK thanks.
