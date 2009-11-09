@@ -1,144 +1,57 @@
-From: Julia Lawall <julia@diku.dk>
-Subject: Re: [PATCH v4 12/12] tree-wide: convert open calls
- to remove spaces to skip_spaces() lib function
-Date: Sun, 8 Nov 2009 21:23:07 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0911082103000.8143@ask.diku.dk>
-References: <cover.1257602781.git.andre.goddard@gmail.com>
-	<7d5883637aa976b54e944998f635d47a41618a75.1257602781.git.andre.goddard@gmail.com>
-	<20091108184722.GA1647@mit.edu>
-Reply-To: Linux filesystem caching discussion list <linux-cachefs@redhat.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 1/2] Add new input plugin UNIXSOCK
+Date: Mon, 09 Nov 2009 14:09:38 +0100
+Message-ID: <4AF81492.7040604@trash.net>
+References: <alpine.LSU.2.00.0911011336330.22807@obet.zrqbmnf.qr> <20091101130739.GC11601@piche.inl.fr> <alpine.LSU.2.00.0911011432160.26262@obet.zrqbmnf.qr> <20091101.222249.93035620.davem@davemloft.net> <alpine.LSU.2.00.0911031759340.24979@obet.zrqbmnf.qr> <20091106200907.GB3089@piche.inl.fr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pavel Roskin <proski@gnu.org>,
-	Stefan Haberland <stefan.haberland@de.ibm.com>,
-	Jan Kara <jack@suse.cz>, linux-cachefs@redhat.com,
-	Mike Snitzer <snitzer@redhat.com>, Neil Brown <neilb@suse.de>,
-	Frederic Weisbecker <fweisbec@gmail.com>,
-	Jens Axboe <jens.axboe@oracle.com>,
-	Heiko Carstens <heiko.carstens@de.ibm.com>,
-	"James E . J . Bottomley" <jejb@parisc-linux.org>,
-	ibm-acpi-devel@lists.sourceforge.net, dm-devel@redhat.com,
-	"H . Peter Anvin" <hpa@zytor.com>,
-	Daire Byrne <Daire.Byrne@framestore.com>,
-	Alasdair G Kergon <agk@redhat.com>, Greg Banks <gnb@melbourne.sgi.com>,
-	Stefan Weinhuber <wein@de.ibm.com>,
-	Eric Sandeen <sandeen@redhat.com>, Adam Belay <abelay@mit.edu>,
-	Helge Deller <deller@gmx.de>, x86@kernel.org,
-	James Morris <jmorris@namei.org>, Takashi Iwai <tiwai@suse.de>,
-	=?iso-8859-1?Q?Andr=E9?= Goddard Rosa <andre.goddard@gmail.com>,
-	Alan Cox <alan@lxorguk.ukuu.or
-To: Theodore Tso <tytso@mit.edu>
-Return-path: <linux-cachefs-bounces@redhat.com>
-In-Reply-To: <20091108184722.GA1647@mit.edu>
-List-Unsubscribe: <https://www.redhat.com/mailman/listinfo/linux-cachefs>,
-	<mailto:linux-cachefs-request@redhat.com?subject=unsubscribe>
-List-Archive: <https://www.redhat.com/archives/linux-cachefs>
-List-Post: <mailto:linux-cachefs@redhat.com>
-List-Help: <mailto:linux-cachefs-request@redhat.com?subject=help>
-List-Subscribe: <https://www.redhat.com/mailman/listinfo/linux-cachefs>,
-	<mailto:linux-cachefs-request@redhat.com?subject=subscribe>
-Sender: linux-cachefs-bounces@redhat.com
-Errors-To: linux-cachefs-bounces@redhat.com
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	David Miller <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org, eleblond@inl.fr
+To: Pierre Chifflier <pchifflier@edenwall.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:39109 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754308AbZKINJh (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 9 Nov 2009 08:09:37 -0500
+In-Reply-To: <20091106200907.GB3089@piche.inl.fr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-> > Also, while at it, if we see (*str && isspace(*str)), we can be sure to
-> > remove the first condition (*str) as the second one (isspace(*str)) also
-> > evaluates to 0 whenever *str == 0, making it redundant. In other words,
-> > "a char equals zero is never a space".
+Pierre Chifflier wrote:
+> I am not very familiar with these kind of problems (alignment). If I
+> understand correctly, what I need to avoid is playing with pointers on a
+> buffer, especially if trying to read a structure.
+> 
+> Since what I am trying to read is formatted as following:
+> 
+> marker (uint32)
+> total_size (uint16)
+> payload_length (uint16)
+> payload (struct iphdr)
 
-I tried the following semantic patch (http://coccinelle.lip6.fr), and got 
-the results below.
+This looks fine. Your input buffer should be suitably aligned
+by the allocator and these members are all well-aligned
+themselves.
 
-@@
-expression str;
-@@
+> Followed by a sequence of
+> option_id (uint16)
+> option_length (uint16)
+> option_value (variable, equal to option_length)
 
-( // ignore skip_spaces cases
- while (*str &&  isspace(*str)) { \(str++;\|++str;\) }
-|
-- *str && 
-  isspace(*str)
-)
+> Am I right to assume that:
+> - I can define a (packed) structure for the first part, and that I can
+>   set the pointer on the data buffer which was allocated by malloc
+>   without problems ? [*]
 
-I haven't checked the results in any way, however.
+You don't even need packing.
 
-julia
+> - For the second part, there are 2 cases:
+>   + integers must be read byte per byte
+>   + strings can be used directly ?
 
-diff -u -p a/drivers/leds/led-class.c b/drivers/leds/led-class.c
---- a/drivers/leds/led-class.c
-+++ b/drivers/leds/led-class.c
-@@ -50,7 +50,7 @@ static ssize_t led_brightness_store(stru
- 	unsigned long state = simple_strtoul(buf, &after, 10);
- 	size_t count = after - buf;
- 
--	if (*after && isspace(*after))
-+	if (isspace(*after))
- 		count++;
- 
- 	if (count == size) {
-diff -u -p a/drivers/leds/ledtrig-timer.c b/drivers/leds/ledtrig-timer.c
---- a/drivers/leds/ledtrig-timer.c
-+++ b/drivers/leds/ledtrig-timer.c
-@@ -83,7 +83,7 @@ static ssize_t led_delay_on_store(struct
- 	unsigned long state = simple_strtoul(buf, &after, 10);
- 	size_t count = after - buf;
- 
--	if (*after && isspace(*after))
-+	if (isspace(*after))
- 		count++;
- 
- 	if (count == size) {
-@@ -127,7 +127,7 @@ static ssize_t led_delay_off_store(struc
- 	unsigned long state = simple_strtoul(buf, &after, 10);
- 	size_t count = after - buf;
- 
--	if (*after && isspace(*after))
-+	if (isspace(*after))
- 		count++;
- 
- 	if (count == size) {
-diff -u -p a/drivers/video/backlight/lcd.c b/drivers/video/backlight/lcd.c
---- a/drivers/video/backlight/lcd.c
-+++ b/drivers/video/backlight/lcd.c
-@@ -101,7 +101,7 @@ static ssize_t lcd_store_power(struct de
- 	int power = simple_strtoul(buf, &endp, 0);
- 	size_t size = endp - buf;
- 
--	if (*endp && isspace(*endp))
-+	if (isspace(*endp))
- 		size++;
- 	if (size != count)
- 		return -EINVAL;
-@@ -140,7 +140,7 @@ static ssize_t lcd_store_contrast(struct
- 	int contrast = simple_strtoul(buf, &endp, 0);
- 	size_t size = endp - buf;
- 
--	if (*endp && isspace(*endp))
-+	if (isspace(*endp))
- 		size++;
- 	if (size != count)
- 		return -EINVAL;
-diff -u -p a/drivers/video/display/display-sysfs.c b/drivers/video/display/display-sysfs.c
---- a/drivers/video/display/display-sysfs.c
-+++ b/drivers/video/display/display-sysfs.c
-@@ -67,7 +67,7 @@ static ssize_t display_store_contrast(st
- 	contrast = simple_strtoul(buf, &endp, 0);
- 	size = endp - buf;
- 
--	if (*endp && isspace(*endp))
-+	if (isspace(*endp))
- 		size++;
- 
- 	if (size != count)
-diff -u -p a/drivers/video/output.c b/drivers/video/output.c
---- a/drivers/video/output.c
-+++ b/drivers/video/output.c
-@@ -50,7 +50,7 @@ static ssize_t video_output_store_state(
- 	int request_state = simple_strtoul(buf,&endp,0);
- 	size_t size = endp - buf;
- 
--	if (*endp && isspace(*endp))
-+	if (isspace(*endp))
- 		size++;
- 	if (size != count)
- 		return -EINVAL;
+Assuming integers do not exceed 32 bit, just make sure the entire
+sequence is aligned to a multiple of four (which it is for the
+first entry, further ones need to use padding).
