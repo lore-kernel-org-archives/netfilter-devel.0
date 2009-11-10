@@ -1,75 +1,49 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter -stable 02/02: xt_connlimit: fix regression caused by zero family value
-Date: Tue, 10 Nov 2009 11:40:21 +0100 (MET)
-Message-ID: <20091110104017.8250.88301.sendpatchset@x2.localnet>
-References: <20091110104014.8250.89589.sendpatchset@x2.localnet>
-Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org, davem@davemloft.net
-To: stable@kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:63916 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751038AbZKJKkQ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 10 Nov 2009 05:40:16 -0500
-In-Reply-To: <20091110104014.8250.89589.sendpatchset@x2.localnet>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: [ANNOUNCE] ipset 4.0 released
+Date: Tue, 10 Nov 2009 22:15:58 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.0911102208000.23130@blackhole.kfki.hu>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-commit 4dcaa8fa124a6d8ab0f64dc1c289b13a724f8fc1
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Tue Nov 10 10:53:33 2009 +0100
+Hi,
 
-    netfilter: xt_connlimit: fix regression caused by zero family value
-    
-    Upstream commit 539054a8:
-    
-    Commit v2.6.28-rc1~717^2~109^2~2 was slightly incomplete; not all
-    instances of par->match->family were changed to par->family.
-    
-    References: http://bugzilla.netfilter.org/show_bug.cgi?id=610
-    Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
-    Signed-off-by: Patrick McHardy <kaber@trash.net>
+I'm happy to announce the new ipset release which fixes kernel version 
+compatibility and alignment issues:
 
-diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
-index 6809809..38f03f7 100644
---- a/net/netfilter/xt_connlimit.c
-+++ b/net/netfilter/xt_connlimit.c
-@@ -103,7 +103,7 @@ static int count_them(struct xt_connlimit_data *data,
- 		      const struct nf_conntrack_tuple *tuple,
- 		      const union nf_inet_addr *addr,
- 		      const union nf_inet_addr *mask,
--		      const struct xt_match *match)
-+		      u_int8_t family)
- {
- 	const struct nf_conntrack_tuple_hash *found;
- 	struct xt_connlimit_conn *conn;
-@@ -113,8 +113,7 @@ static int count_them(struct xt_connlimit_data *data,
- 	bool addit = true;
- 	int matches = 0;
- 
+Userspace changes:
+  - New protocol is introduced to handle aligment issues properly
+    (bug reported by Georg Chini)
+  - Binding support is removed
+
+Kernel part changes:
+  - Compilation of ip_set_iptree.c fails with kernel 2.6.20 due to
+    missing include of linux/jiffies.h (Jan Engelhardt)
+  - Do not use DECLARE_MUTEX (compatibility fix on 2.6.31-rt, Jan
+    Engelhardt)
+  - Flushing iptreemap type of sets caused high ksoftirqd load due to
+    zeroed out gc parameter (bug reported by Georg Chini)
+  - New protocol is introduced to handle aligment issues properly
+    (bug reported by Georg Chini)
+  - Binding support is removed
+
+Except the removed binding support, the new release contains backward 
+compatibility support both in userspace (i.e. ipset 4.0 work with kernel 
+modules from the 3.x releases) and in kernel space (similarly, kernel 
+modules from 4.0 work with ipset binaries from the 3.x releases).
+
+As usual, the source can be download from
+
+	http://ipset.netfilter.org
+	git://git.netfilter.org/ipset.git
+
+Best regards,
+Jozsef
 -
--	if (match->family == NFPROTO_IPV6)
-+	if (family == NFPROTO_IPV6)
- 		hash = &data->iphash[connlimit_iphash6(addr, mask)];
- 	else
- 		hash = &data->iphash[connlimit_iphash(addr->ip & mask->ip)];
-@@ -157,8 +156,7 @@ static int count_them(struct xt_connlimit_data *data,
- 			continue;
- 		}
- 
--		if (same_source_net(addr, mask, &conn->tuple.src.u3,
--		    match->family))
-+		if (same_source_net(addr, mask, &conn->tuple.src.u3, family))
- 			/* same source network -> be counted! */
- 			++matches;
- 		nf_ct_put(found_ct);
-@@ -207,7 +205,7 @@ connlimit_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 
- 	spin_lock_bh(&info->data->lock);
- 	connections = count_them(info->data, tuple_ptr, &addr,
--	                         &info->mask, par->match);
-+	                         &info->mask, par->family);
- 	spin_unlock_bh(&info->data->lock);
- 
- 	if (connections < 0) {
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
