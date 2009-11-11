@@ -1,46 +1,69 @@
-From: "Chini, Georg (HP App Services)" <georg.chini@hp.com>
-Subject: AW: Another issue with ipset on sparc64
-Date: Wed, 11 Nov 2009 06:51:36 +0000
-Message-ID: <4513233BE7DF454BB62D30017EEE55436CFC34911E@GVW1115EXC.americas.hpqcorp.net>
-References: <alpine.DEB.2.00.0911102217060.23130@blackhole.kfki.hu>
+From: Husnu Demir <hdemir@metu.edu.tr>
+Subject: RE: [ANNOUNCE] ipset 4.0 released
+Date: Wed, 11 Nov 2009 09:39:49 +0200
+Message-ID: <4AFA6A45.2030107@metu.edu.tr>
+Reply-To: hdemir@metu.edu.tr
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: multipart/mixed;
+ boundary="------------040205070006050903090107"
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:42851 "EHLO
-	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750869AbZKKGwg convert rfc822-to-8bit (ORCPT
+Received: from likya.general.services.metu.edu.tr ([144.122.144.158]:35327
+	"EHLO mail.metu.edu.tr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755159AbZKKHtj (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Nov 2009 01:52:36 -0500
-In-Reply-To: <alpine.DEB.2.00.0911102217060.23130@blackhole.kfki.hu>
-Content-Language: de-DE
+	Wed, 11 Nov 2009 02:49:39 -0500
+Received: from [144.122.3.228] (nebula.cc.metu.edu.tr [144.122.3.228])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mail.metu.edu.tr (Postfix) with ESMTPSA id 280B04108C
+	for <netfilter-devel@vger.kernel.org>; Wed, 11 Nov 2009 09:39:51 +0200 (EET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Jozsef,
+This is a multi-part message in MIME format.
+--------------040205070006050903090107
+Content-Type: text/plain; charset=ISO-8859-9
+Content-Transfer-Encoding: 7bit
 
------Urspr=FCngliche Nachricht-----
-Von: Jozsef Kadlecsik [mailto:kadlec@blackhole.kfki.hu]=20
-Gesendet: Dienstag, 10. November 2009 22:18
-An: Chini, Georg (HP App Services)
-Cc: netfilter-devel@vger.kernel.org
-Betreff: Re: Another issue with ipset on sparc64
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
 
-> Please give a try to the new ipset release - it should fix all of the=
-=20
-> issues you reported.
+Hi,
 
-Works nicely! Both issues are fixed. Thanks a lot.
+What about the xtables add-on. When will you update that?
 
-Do you have any idea when you will have IPv6 support implemented?
 
-Regards
-       Georg
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thanks.
+
+hdemir.
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org
+
+iEYEARECAAYFAkr6aj8ACgkQHgR50XBBy+nM4QCgr6lwQevMcMszj4zWpLqei+tl
+nnEAn3gYYFMo829rZTTLYdLGya0ZQ9VL
+=W45o
+-----END PGP SIGNATURE-----
+
+--------------040205070006050903090107
+Content-Type: text/x-vcard; charset=utf-8;
+ name="hdemir.vcf"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="hdemir.vcf"
+
+begin:vcard
+fn:Husnu Demir
+n:Demir;Husnu
+email;internet:hdemir@metu.edu.tr
+tel;work:+903122103330
+tel;fax:+903122103303
+x-mozilla-html:FALSE
+version:2.1
+end:vcard
+
+
+--------------040205070006050903090107--
