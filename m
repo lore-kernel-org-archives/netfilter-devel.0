@@ -1,34 +1,34 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [ANNOUNCE] ipset 4.1 released
-Date: Wed, 11 Nov 2009 20:35:47 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.0911112030200.25564@blackhole.kfki.hu>
+Subject: Re: ipset manpage adjustments
+Date: Wed, 11 Nov 2009 20:38:30 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.0911112035570.25564@blackhole.kfki.hu>
+References: <1257944062-6988-1-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:44580 "EHLO smtp2.kfki.hu"
+Received: from smtp1.kfki.hu ([148.6.0.26]:44324 "EHLO smtp1.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758662AbZKKTfn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Nov 2009 14:35:43 -0500
+	id S1758732AbZKKTiZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 11 Nov 2009 14:38:25 -0500
+In-Reply-To: <1257944062-6988-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Hi Jan,
 
-A minor fix and little improvement, but it worths a new release :-):
+On Wed, 11 Nov 2009, Jan Engelhardt wrote:
 
-Kernel part changes:
-  - Do not use init_MUTEX either (Jan Engelhardt)
-  - Improve listing/saving hash type of sets by not copying empty
-    entries unnecessarily to userspace.
+> Jan Engelhardt (4):
+>       doc: fix an unbalanced tag
+>       doc: make emphasis markup consistent
+>       doc: escape dashes in manpage
+>       doc: clarify terms "ip" and "cidrsize"
 
-Userspace changes:
-  - Manpage fixes and corrections (Jan Engelhardt)
-
-As usual, the source code can be download from
-
-        http://ipset.netfilter.org
-        git://git.netfilter.org/ipset.git
+Thanks both the semaphore fix and the manpage corrections: I applied all 
+of them. Based on your adjustments I refined the manpage a little 
+bit further.
 
 Best regards,
 Jozsef
