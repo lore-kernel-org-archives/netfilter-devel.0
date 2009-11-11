@@ -1,33 +1,34 @@
 From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: AW: Another issue with ipset on sparc64
-Date: Wed, 11 Nov 2009 19:27:32 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.0911111354290.24658@blackhole.kfki.hu>
-References: <4513233BE7DF454BB62D30017EEE55436CFC34911E@GVW1115EXC.americas.hpqcorp.net>
+Subject: [ANNOUNCE] ipset 4.1 released
+Date: Wed, 11 Nov 2009 20:35:47 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.0911112030200.25564@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: "Chini, Georg (HP App Services)" <georg.chini@hp.com>
+To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:41695 "EHLO smtp0.kfki.hu"
+Received: from smtp-in.kfki.hu ([148.6.0.28]:44580 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757707AbZKKS11 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 11 Nov 2009 13:27:27 -0500
-In-Reply-To: <4513233BE7DF454BB62D30017EEE55436CFC34911E@GVW1115EXC.americas.hpqcorp.net>
+	id S1758662AbZKKTfn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 11 Nov 2009 14:35:43 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 11 Nov 2009, Chini, Georg (HP App Services) wrote:
+Hi,
 
-> > Please give a try to the new ipset release - it should fix all of the 
-> > issues you reported.
-> 
-> Works nicely! Both issues are fixed. Thanks a lot.
+A minor fix and little improvement, but it worths a new release :-):
 
-Great!
- 
-> Do you have any idea when you will have IPv6 support implemented?
+Kernel part changes:
+  - Do not use init_MUTEX either (Jan Engelhardt)
+  - Improve listing/saving hash type of sets by not copying empty
+    entries unnecessarily to userspace.
 
-I hope by the end of year, if nothing defers me.
+Userspace changes:
+  - Manpage fixes and corrections (Jan Engelhardt)
+
+As usual, the source code can be download from
+
+        http://ipset.netfilter.org
+        git://git.netfilter.org/ipset.git
 
 Best regards,
 Jozsef
