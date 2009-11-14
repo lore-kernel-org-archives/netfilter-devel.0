@@ -1,46 +1,49 @@
-From: Justin Yaple <yaplej@gmail.com>
-Subject: Moving sk_buff manipulation to userspace?
-Date: Fri, 13 Nov 2009 23:24:18 -0800
-Message-ID: <8363055a0911132324sbc60466h1c8f45fddf48b21a@mail.gmail.com>
+From: Werner Pawlitschko <werner.pawlitschko@arcor.de>
+Subject: iptables-1.4.5 REPLACE rule problem
+Date: Sat, 14 Nov 2009 10:25:16 +0100
+Message-ID: <4AFE777C.8090106@net.wpww>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yw0-f202.google.com ([209.85.211.202]:49328 "EHLO
-	mail-yw0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752758AbZKNHYM convert rfc822-to-8bit (ORCPT
+Received: from mail-in-16.arcor-online.net ([151.189.21.56]:55146 "EHLO
+	mail-in-16.arcor-online.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755017AbZKNJZP (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 14 Nov 2009 02:24:12 -0500
-Received: by ywh40 with SMTP id 40so1923762ywh.33
-        for <netfilter-devel@vger.kernel.org>; Fri, 13 Nov 2009 23:24:18 -0800 (PST)
+	Sat, 14 Nov 2009 04:25:15 -0500
+Received: from mail-in-19-z2.arcor-online.net (mail-in-19-z2.arcor-online.net [151.189.8.36])
+	by mx.arcor.de (Postfix) with ESMTP id 03F0125717F
+	for <netfilter-devel@vger.kernel.org>; Sat, 14 Nov 2009 10:25:20 +0100 (CET)
+Received: from mail-in-02.arcor-online.net (mail-in-02.arcor-online.net [151.189.21.42])
+	by mail-in-19-z2.arcor-online.net (Postfix) with ESMTP id DA18B6C014
+	for <netfilter-devel@vger.kernel.org>; Sat, 14 Nov 2009 10:25:19 +0100 (CET)
+Received: from snoopy.net.wpww (u26-245.dsl.vianetworks.de [212.168.165.245])
+	(Authenticated sender: werner.pawlitschko@arcor.de)
+	by mail-in-02.arcor-online.net (Postfix) with ESMTPSA id C72513FE4A5
+	for <netfilter-devel@vger.kernel.org>; Sat, 14 Nov 2009 10:25:19 +0100 (CET)
+Received: from [172.16.3.196] (dell-nb3.net.wpww [172.16.3.196])
+	by snoopy.net.wpww (8.14.3/8.14.3) with ESMTP id nAE9PIsH003818
+	for <netfilter-devel@vger.kernel.org>; Sat, 14 Nov 2009 10:25:18 +0100
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Greetings,
+Hi dear netfilter team,
+I just upgraded from iptables-1.4.3 to 1.4.5 and found the following 
+problem. Probably it has already been reported.
 
-I have finished a prototype for a WAN accelerator that users netfilter
-hooks to intercept packets that are being forwarded.=A0 It then does
-some checks, and potentially compresses the TCP data segment using an
-LZ compression method.=A0 Pretty neat stuff you guys have done here.
+ I think it should be just as simple as doing this at the prompt:
+iptables -A OUPUT -j LOG -d 10.11.12.13
+then iptables-save shows
+-A OUPUT -d 10.11.12.13/32 -j LOG
+that's ok.
+Then doing:
+iptables -R OUTPUT 1 -j LOG -d 10.11.12.13
+then iptables-save shows
+-A OUTPUT -d 10.11.12.13/0 -j LOG
+Looks bad. As you see the mask is set to zero for all bits.
+But redirecting the output of iptables-save into a file, editing the 
+mask manually and restoring the rules by iptables-restore works perfectly.
 
-I would like to do more than strictly compressing the data, but due to
-the netfilter hook running in an interrupt context I am quite limited.
- So I found that using NF_QUEUE its possible to move processing to a
-userspace process.
-
-Will moving the processing to a userspace application prevent me from
-directly modifying the sk_buff though?=A0 Particularly I need to
-maintain the capability of modifying the TCP data segment, and TCP
-header section.=A0 I was looking at the example
-trunk/libnetfilter_queue/utils/nfqnl_test.c, but there is nothing in
-there about how to manipulate the sk_buff once its been received.=A0 Is
-this even possible using the NF_QUEUE?
-
-Thanks,
-Jusitn.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Your sincerely,
+  Werner
