@@ -1,31 +1,36 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: xtables crashed
-Date: Sun, 15 Nov 2009 11:09:10 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0911151108530.21283@obet.zrqbmnf.qr>
-References: <328fe7150911131753x38a1b46dg5e16e2cf08efc357@mail.gmail.com>
+Subject: Re: iptables-1.4.5 REPLACE rule problem
+Date: Sun, 15 Nov 2009 16:05:40 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0911151601220.24638@obet.zrqbmnf.qr>
+References: <4AFE777C.8090106@net.wpww>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: basteon <basteon@gmail.com>
+To: Werner Pawlitschko <werner.pawlitschko@arcor.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:48164 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:48474 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752568AbZKOKJF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 15 Nov 2009 05:09:05 -0500
-In-Reply-To: <328fe7150911131753x38a1b46dg5e16e2cf08efc357@mail.gmail.com>
+	id S1752242AbZKOPFg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 15 Nov 2009 10:05:36 -0500
+In-Reply-To: <4AFE777C.8090106@net.wpww>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Saturday 2009-11-14 02:53, basteon wrote:
+On Saturday 2009-11-14 10:25, Werner Pawlitschko wrote:
 
->hello every1,
->why if I tried to use this code, I've got segfault everytime?
->int main(void){
->printf("AFTER\n");
->xtables_error(PARAMETER_PROBLEM, "unexpected ! flag");
->printf("BEFORE\n");
->exit(1);
->}
+> iptables -A OUPUT -j LOG -d 10.11.12.13
+> then iptables-save shows
+> -A OUPUT -d 10.11.12.13/32 -j LOG
+> that's ok.
+> Then doing:
+> iptables -R OUTPUT 1 -j LOG -d 10.11.12.13
+> then iptables-save shows
+> -A OUTPUT -d 10.11.12.13/0 -j LOG
+> Looks bad. As you see the mask is set to zero for all bits.
 
-You are not allowed to just call xtables_error without the 
-initialization that iptables.c etc. do.
+It turns out -R always put /0 in there. A bug of course, that I fixed 
+now. Patch at git://dev.medozas.de/iptables for the wary, otherwise 
+will be submitted in my semiregular pushes.
+
+thanks,
+Jan
