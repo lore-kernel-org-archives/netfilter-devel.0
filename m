@@ -1,36 +1,35 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: iptables-1.4.5 REPLACE rule problem
-Date: Sun, 15 Nov 2009 16:05:40 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0911151601220.24638@obet.zrqbmnf.qr>
-References: <4AFE777C.8090106@net.wpww>
+Subject: Re: iptables-xml
+Date: Sun, 15 Nov 2009 16:07:11 +0100 (CET)
+Message-ID: <alpine.LSU.2.00.0911151606110.24638@obet.zrqbmnf.qr>
+References: <20091113144219.09c8c2a3@hobbes.loria.fr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Werner Pawlitschko <werner.pawlitschko@arcor.de>
+To: Frederic Beck <frederic.beck@loria.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:48474 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:48485 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752242AbZKOPFg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 15 Nov 2009 10:05:36 -0500
-In-Reply-To: <4AFE777C.8090106@net.wpww>
+	id S1751629AbZKOPHH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 15 Nov 2009 10:07:07 -0500
+In-Reply-To: <20091113144219.09c8c2a3@hobbes.loria.fr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Saturday 2009-11-14 10:25, Werner Pawlitschko wrote:
+On Friday 2009-11-13 14:42, Frederic Beck wrote:
+>
+>I'm thinking about writing a configuration tool for iptables/ip6tables
+>that would generate the rules according to a definition of services
+>running on a network and other parameters.
+>
+>i saw that within netfilter there is already an XML format used by
+>iptables-xml that can be converted back to the rules via an XSLT form.
+>
+>I was thinking of using that same XML representation (we are planning
+>to use Netconf to configure remotely the devices), but i couldn't find
+>it anywhere.
+>
+>Where can i get it ?
 
-> iptables -A OUPUT -j LOG -d 10.11.12.13
-> then iptables-save shows
-> -A OUPUT -d 10.11.12.13/32 -j LOG
-> that's ok.
-> Then doing:
-> iptables -R OUTPUT 1 -j LOG -d 10.11.12.13
-> then iptables-save shows
-> -A OUTPUT -d 10.11.12.13/0 -j LOG
-> Looks bad. As you see the mask is set to zero for all bits.
-
-It turns out -R always put /0 in there. A bug of course, that I fixed 
-now. Patch at git://dev.medozas.de/iptables for the wary, otherwise 
-will be submitted in my semiregular pushes.
-
-thanks,
-Jan
+There is neither a DTD nor XSLT defined. Currently most projects just 
+generate the rules directly, since that is easier than parsing them.
