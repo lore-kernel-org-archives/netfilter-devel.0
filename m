@@ -1,71 +1,32 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [Fwd: Re: [netfilter-core] Bug on conntrack?]
-Date: Thu, 19 Nov 2009 17:17:56 +0100
-Message-ID: <4B056FB4.4050201@trash.net>
-References: <422110e23c4d48d73c9162967345ea58.squirrel@mail.dhost.ro>
+From: David Miller <davem@davemloft.net>
+Subject: Re: netfilter 02/02: nf_log: fix sleeping function called from
+ invalid context in seq_show()
+Date: Thu, 19 Nov 2009 12:28:15 -0800 (PST)
+Message-ID: <20091119.122815.257534442.davem@davemloft.net>
+References: <20091119145902.18633.28666.sendpatchset@x2.localnet>
+	<20091119145904.18633.11963.sendpatchset@x2.localnet>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------010200070803000309050908"
-Cc: netfilter-devel@vger.kernel.org
-To: alex@dhost.ro
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:46096 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753706AbZKSQRv (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 19 Nov 2009 11:17:51 -0500
-In-Reply-To: <422110e23c4d48d73c9162967345ea58.squirrel@mail.dhost.ro>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
-
-This is a multi-part message in MIME format.
---------------010200070803000309050908
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: kaber@trash.net
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20091119145904.18633.11963.sendpatchset@x2.localnet>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-alex@dhost.ro wrote:
->  Hy i'm trying to add a rule in firewall but i receive this error:
+From: Patrick McHardy <kaber@trash.net>
+Date: Thu, 19 Nov 2009 15:59:05 +0100 (MET)
+
+> commit 7378396cd172cc058fa62220c6486419046c4e0c
+> Author: Wu Fengguang <fengguang.wu@intel.com>
+> Date:   Fri Nov 13 09:34:44 2009 +0100
 > 
->  iptables v1.4.2: conntrack: Bad value for "--expires" option: "1:1000"
->  Try `iptables -h' or 'iptables --help' for more information.
->  iptables v1.4.2: conntrack: Bad value for "--expires" option: "1:1000"
->  Try `iptables -h' or 'iptables --help' for more information.
+>     netfilter: nf_log: fix sleeping function called from invalid context in seq_show()
+...
+>     Reported-by: "Yin, Kangkai" <kangkai.yin@intel.com>
+>     Signed-off-by: Wu Fengguang <fengguang.wu@intel.com>
+>     Signed-off-by: Patrick McHardy <kaber@trash.net>
 > 
->  The lines that i want to add are:
->  $IPTABLES -A RST_LOOP_OUT -d $IP_LOOP -p tcp --sport $PORT_LOOP
-> --tcp-flags ALL PSH,ACK -m conntrack --ctexpire 1:1000 -j REJECT
-> --reject-with tcp-reset
-> 
->  $IPTABLES -A RST_LOOP_OUT -d $IP_LOOP -p tcp --sport $PORT_LOOP
-> --tcp-flags ALL FIN,PSH,ACK -j REJECT -m conntrack --ctexpire 1:1000
-> --reject-with tcp-reset
-> 
->  If  i give a single value to --ctexpire it works (ex: --ctexpire 1 ) I've
-> searched on google a lot of days but without any result. could you help
-> me? Thank's
 
-Does this patch help?
-
-
---------------010200070803000309050908
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
-
-diff --git a/extensions/libxt_conntrack.c b/extensions/libxt_conntrack.c
-index d30871f..5ca734d 100644
---- a/extensions/libxt_conntrack.c
-+++ b/extensions/libxt_conntrack.c
-@@ -273,7 +273,7 @@ conntrack_ps_expires(struct xt_conntrack_mtinfo2 *info, const char *s)
- 		xtables_param_act(XTF_BAD_VALUE, "conntrack", "--expires", s);
- 	max = min;
- 	if (*end == ':')
--		if (!xtables_strtoui(s, &end, &max, 0, UINT32_MAX))
-+		if (!xtables_strtoui(end + 1, &end, &max, 0, UINT32_MAX))
- 			xtables_param_act(XTF_BAD_VALUE, "conntrack", "--expires", s);
- 	if (*end != '\0')
- 		xtables_param_act(XTF_BAD_VALUE, "conntrack", "--expires", s);
-
---------------010200070803000309050908--
+Applied.
