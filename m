@@ -1,70 +1,122 @@
-From: Justin Yaple <yaplej@gmail.com>
-Subject: Re: Sending packets from netfilter modules
-Date: Thu, 19 Nov 2009 18:25:05 -0800
-Message-ID: <8363055a0911191825g286103cm3ed0bbf35163f13d@mail.gmail.com>
-References: <932717060@web.de>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: [PATCH] nf_queue: Put devs after calling handler
+Date: Fri, 20 Nov 2009 10:27:44 +0800
+Message-ID: <4B05FEA0.402@gmail.com>
+Reply-To: xiaosuo@gmail.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=GB2312
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, xiaosuo <xiaosuo@gmail.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yx0-f187.google.com ([209.85.210.187]:60410 "EHLO
+Received: from mail-yx0-f187.google.com ([209.85.210.187]:42094 "EHLO
 	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755756AbZKTCZH convert rfc822-to-8bit (ORCPT
+	with ESMTP id S1758132AbZKTC1u (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 19 Nov 2009 21:25:07 -0500
-Received: by yxe17 with SMTP id 17so2597600yxe.33
-        for <netfilter-devel@vger.kernel.org>; Thu, 19 Nov 2009 18:25:12 -0800 (PST)
-In-Reply-To: <932717060@web.de>
+	Thu, 19 Nov 2009 21:27:50 -0500
+Received: by yxe17 with SMTP id 17so2598996yxe.33
+        for <netfilter-devel@vger.kernel.org>; Thu, 19 Nov 2009 18:27:56 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello Nils,
+Put devs after calling handler.
 
-I am pretty new to this stuff, but if you would like your packet to
-travel through all the paths an inbound packet would take maybe you
-can insert it into the stack using ip_rcv()?  I think that should
-treat it just like any other inbound packet.
+If we put the devs before calling handler, the devs may disappear when the handler is running.
 
-Justin.
+Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+----
+ include/net/netfilter/nf_queue.h |    4 ++++
+ net/netfilter/nf_queue.c         |   36 +++++++++++++++---------------------
+ 2 files changed, 19 insertions(+), 21 deletions(-)
 
-On Tue, Nov 17, 2009 at 7:13 AM, Nils Rennebarth <Nils.Rennebarth@web.d=
-e> wrote:
-> Hi,
->
-> I want to send a new packet that was created from scratch from within=
- a netfilter module.
->
-> There are already examples in the kernel tree, e.g. in net/ipv4/netfi=
-lter/ipt_REJECT.c, so I modeled my code after these and got it working:=
- The packets appear on the wire and are received by other hosts.
->
-> However, the packet is finally sent using ip_local_out, so from a fir=
-ewall perspective, the packet appears out of thin air and then travels =
-through the OUTPUT chain and out to the network device. What I want ins=
-tead, is for the packet to take the same way as an incoming packet, i.e=
-=2E travel through the PREROUTING chain, gets routed, travels through F=
-ORWARD, routed again travels through POSTROUTING and be sent out.
->
-> The reason is that my netfilter module acts as a man-in-the-middle in=
- a router, and the self-generated packets should not circumvent the fir=
-ewall or need a duplicated ruleset in the OUTPUT chain, etc.
->
-> I thought, something like netif_receive_skb or netif_rx may do what I=
- want, but those rely on a prepared skb. Can someone point me into the =
-right direction?
-> ______________________________________________________
-> GRATIS f=FCr alle WEB.DE-Nutzer: Die maxdome Movie-FLAT!
-> Jetzt freischalten unter http://movieflat.web.de
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-d=
-evel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/include/net/netfilter/nf_queue.h b/include/net/netfilter/nf_queue.h
+index 252fd10..6886a2a 100644
+--- a/include/net/netfilter/nf_queue.h
++++ b/include/net/netfilter/nf_queue.h
+@@ -12,6 +12,10 @@ struct nf_queue_entry {
+ 	unsigned int		hook;
+ 	struct net_device	*indev;
+ 	struct net_device	*outdev;
++#ifdef CONFIG_BRIDGE_NETFILTER
++	struct net_device	*physindev;
++	struct net_device	*physoutdev;
++#endif
+ 	int			(*okfn)(struct sk_buff *);
+ };
+ 
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index 3a6fd77..f65d3b0 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -88,14 +88,10 @@ static void nf_queue_entry_release_refs(struct nf_queue_entry *entry)
+ 	if (entry->outdev)
+ 		dev_put(entry->outdev);
+ #ifdef CONFIG_BRIDGE_NETFILTER
+-	if (entry->skb->nf_bridge) {
+-		struct nf_bridge_info *nf_bridge = entry->skb->nf_bridge;
+-
+-		if (nf_bridge->physindev)
+-			dev_put(nf_bridge->physindev);
+-		if (nf_bridge->physoutdev)
+-			dev_put(nf_bridge->physoutdev);
+-	}
++	if (entry->physindev)
++		dev_put(entry->physindev);
++	if (entry->physoutdev)
++		dev_put(entry->physoutdev);
+ #endif
+ 	/* Drop reference to owner of hook which queued us. */
+ 	module_put(entry->elem->owner);
+@@ -115,10 +111,6 @@ static int __nf_queue(struct sk_buff *skb,
+ {
+ 	int status;
+ 	struct nf_queue_entry *entry = NULL;
+-#ifdef CONFIG_BRIDGE_NETFILTER
+-	struct net_device *physindev;
+-	struct net_device *physoutdev;
+-#endif
+ 	const struct nf_afinfo *afinfo;
+ 	const struct nf_queue_handler *qh;
+ 
+@@ -161,12 +153,15 @@ static int __nf_queue(struct sk_buff *skb,
+ 		dev_hold(outdev);
+ #ifdef CONFIG_BRIDGE_NETFILTER
+ 	if (skb->nf_bridge) {
+-		physindev = skb->nf_bridge->physindev;
+-		if (physindev)
+-			dev_hold(physindev);
+-		physoutdev = skb->nf_bridge->physoutdev;
+-		if (physoutdev)
+-			dev_hold(physoutdev);
++		entry->physindev = skb->nf_bridge->physindev;
++		if (entry->physindev)
++			dev_hold(entry->physindev);
++		entry->physoutdev = skb->nf_bridge->physoutdev;
++		if (entry->physoutdev)
++			dev_hold(entry->physoutdev);
++	} else {
++		entry->physindev = NULL;
++		entry->physoutdev = NULL;
+ 	}
+ #endif
+ 	afinfo->saveroute(skb, entry);
+@@ -236,9 +231,6 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ 	const struct nf_afinfo *afinfo;
+ 
+ 	rcu_read_lock();
+-
+-	nf_queue_entry_release_refs(entry);
+-
+ 	/* Continue traversal iff userspace said ok... */
+ 	if (verdict == NF_REPEAT) {
+ 		elem = elem->prev;
+@@ -277,6 +269,8 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ 		kfree_skb(skb);
+ 	}
+ 	rcu_read_unlock();
++
++	nf_queue_entry_release_refs(entry);
+ 	kfree(entry);
+ 	return;
+ }
+
