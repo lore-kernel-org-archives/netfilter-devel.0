@@ -1,25 +1,187 @@
-From: Krzysztof <k4chim@gmail.com>
-Subject: todo list
-Date: Sat, 21 Nov 2009 16:30:38 +0000
-Message-ID: <cfc8c630911210830h69df263cvf41a77d512143b28@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH 1/1] netfilter: xtables: fix conntrack match v1 ipt-save output
+Date: Sun, 22 Nov 2009 01:56:06 +0100
+Message-ID: <1258851366-1512-1-git-send-email-fw@strlen.de>
+References: <1258529958.2810.36.camel@localhost>
+Cc: ben@decadent.org.uk, lists@michel-messerschmidt.de,
+	Florian Westphal <fw@strlen.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f221.google.com ([209.85.220.221]:46592 "EHLO
-	mail-fx0-f221.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755400AbZKUQad (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:50011 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750936AbZKVA5o (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 21 Nov 2009 11:30:33 -0500
-Received: by fxm21 with SMTP id 21so4573123fxm.21
-        for <netfilter-devel@vger.kernel.org>; Sat, 21 Nov 2009 08:30:38 -0800 (PST)
+	Sat, 21 Nov 2009 19:57:44 -0500
+In-Reply-To: <1258529958.2810.36.camel@localhost>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-hi,
-I'm quite newbie in netfilter, I wonder what can I do to improve my
-skills. I was looking for a TODO list but I couldn't find it. Please
-give me some information. Thanks for advices in advance.
+commit d6d3f08b0fd998b647a05540cedd11a067b72867
+(netfilter: xtables: conntrack match revision 2) does break the
+v1 conntrack match iptables-save output in a subtle way.
 
-Regards,
-Krzychu
+Problem is as follows:
+
+    up = kmalloc(sizeof(*up), GFP_KERNEL);
+[..]
+   /*
+    * The strategy here is to minimize the overhead of v1 matching,
+    * by prebuilding a v2 struct and putting the pointer into the
+    * v1 dataspace.
+    */
+    memcpy(up, info, offsetof(typeof(*info), state_mask));
+[..]
+    *(void **)info  = up;
+
+As the v2 struct pointer is saved in the match data space,
+it clobbers the first structure member (->origsrc_addr).
+
+Because the _v1 match function grabs this pointer and does not actually
+look at the v1 origsrc, run time functionality does not break.
+But iptables -nvL (or iptables-save) cannot know that v1 origsrc_addr
+has been overloaded in this way:
+
+$ iptables -p tcp -A OUTPUT -m conntrack --ctorigsrc 10.0.0.1 -j ACCEPT
+$ iptables-save
+-A OUTPUT -p tcp -m conntrack --ctorigsrc 128.173.134.206 -j ACCEPT
+
+(128.173... is the address to the v2 match structure).
+
+To fix this, we take advantage of the fact that the v1 and v2 structures
+are identical with exception of the last two structure members (u8 in v1,
+u16 in v2).
+
+We extract them as early as possible and prevent the v2 matching function
+from looking at those two members directly.
+
+Previously reported by Michel Messerschmidt via Ben Hutchings, also
+see Debian Bug tracker #556587.
+
+Signed-off-by: Florian Westphal <fw@strlen.de>
+---
+ net/netfilter/xt_conntrack.c |   61 +++++++++++------------------------------
+ 1 files changed, 17 insertions(+), 44 deletions(-)
+
+diff --git a/net/netfilter/xt_conntrack.c b/net/netfilter/xt_conntrack.c
+index 6dc4652..ae66305 100644
+--- a/net/netfilter/xt_conntrack.c
++++ b/net/netfilter/xt_conntrack.c
+@@ -113,7 +113,8 @@ ct_proto_port_check(const struct xt_conntrack_mtinfo2 *info,
+ }
+ 
+ static bool
+-conntrack_mt(const struct sk_buff *skb, const struct xt_match_param *par)
++conntrack_mt(const struct sk_buff *skb, const struct xt_match_param *par,
++             u16 state_mask, u16 status_mask)
+ {
+ 	const struct xt_conntrack_mtinfo2 *info = par->matchinfo;
+ 	enum ip_conntrack_info ctinfo;
+@@ -136,7 +137,7 @@ conntrack_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+ 			if (test_bit(IPS_DST_NAT_BIT, &ct->status))
+ 				statebit |= XT_CONNTRACK_STATE_DNAT;
+ 		}
+-		if (!!(info->state_mask & statebit) ^
++		if (!!(state_mask & statebit) ^
+ 		    !(info->invert_flags & XT_CONNTRACK_STATE))
+ 			return false;
+ 	}
+@@ -172,7 +173,7 @@ conntrack_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+ 		return false;
+ 
+ 	if ((info->match_flags & XT_CONNTRACK_STATUS) &&
+-	    (!!(info->status_mask & ct->status) ^
++	    (!!(status_mask & ct->status) ^
+ 	    !(info->invert_flags & XT_CONNTRACK_STATUS)))
+ 		return false;
+ 
+@@ -192,11 +193,17 @@ conntrack_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+ static bool
+ conntrack_mt_v1(const struct sk_buff *skb, const struct xt_match_param *par)
+ {
+-	const struct xt_conntrack_mtinfo2 *const *info = par->matchinfo;
+-	struct xt_match_param newpar = *par;
++	const struct xt_conntrack_mtinfo1 *info = par->matchinfo;
+ 
+-	newpar.matchinfo = *info;
+-	return conntrack_mt(skb, &newpar);
++	return conntrack_mt(skb, par, info->state_mask, info->status_mask);
++}
++
++static bool
++conntrack_mt_v2(const struct sk_buff *skb, const struct xt_match_param *par)
++{
++	const struct xt_conntrack_mtinfo2 *info = par->matchinfo;
++
++	return conntrack_mt(skb, par, info->state_mask, info->status_mask);
+ }
+ 
+ static bool conntrack_mt_check(const struct xt_mtchk_param *par)
+@@ -209,45 +216,11 @@ static bool conntrack_mt_check(const struct xt_mtchk_param *par)
+ 	return true;
+ }
+ 
+-static bool conntrack_mt_check_v1(const struct xt_mtchk_param *par)
+-{
+-	struct xt_conntrack_mtinfo1 *info = par->matchinfo;
+-	struct xt_conntrack_mtinfo2 *up;
+-	int ret = conntrack_mt_check(par);
+-
+-	if (ret < 0)
+-		return ret;
+-
+-	up = kmalloc(sizeof(*up), GFP_KERNEL);
+-	if (up == NULL) {
+-		nf_ct_l3proto_module_put(par->family);
+-		return -ENOMEM;
+-	}
+-
+-	/*
+-	 * The strategy here is to minimize the overhead of v1 matching,
+-	 * by prebuilding a v2 struct and putting the pointer into the
+-	 * v1 dataspace.
+-	 */
+-	memcpy(up, info, offsetof(typeof(*info), state_mask));
+-	up->state_mask  = info->state_mask;
+-	up->status_mask = info->status_mask;
+-	*(void **)info  = up;
+-	return true;
+-}
+-
+ static void conntrack_mt_destroy(const struct xt_mtdtor_param *par)
+ {
+ 	nf_ct_l3proto_module_put(par->family);
+ }
+ 
+-static void conntrack_mt_destroy_v1(const struct xt_mtdtor_param *par)
+-{
+-	struct xt_conntrack_mtinfo2 **info = par->matchinfo;
+-	kfree(*info);
+-	conntrack_mt_destroy(par);
+-}
+-
+ static struct xt_match conntrack_mt_reg[] __read_mostly = {
+ 	{
+ 		.name       = "conntrack",
+@@ -255,8 +228,8 @@ static struct xt_match conntrack_mt_reg[] __read_mostly = {
+ 		.family     = NFPROTO_UNSPEC,
+ 		.matchsize  = sizeof(struct xt_conntrack_mtinfo1),
+ 		.match      = conntrack_mt_v1,
+-		.checkentry = conntrack_mt_check_v1,
+-		.destroy    = conntrack_mt_destroy_v1,
++		.checkentry = conntrack_mt_check,
++		.destroy    = conntrack_mt_destroy,
+ 		.me         = THIS_MODULE,
+ 	},
+ 	{
+@@ -264,7 +237,7 @@ static struct xt_match conntrack_mt_reg[] __read_mostly = {
+ 		.revision   = 2,
+ 		.family     = NFPROTO_UNSPEC,
+ 		.matchsize  = sizeof(struct xt_conntrack_mtinfo2),
+-		.match      = conntrack_mt,
++		.match      = conntrack_mt_v2,
+ 		.checkentry = conntrack_mt_check,
+ 		.destroy    = conntrack_mt_destroy,
+ 		.me         = THIS_MODULE,
+-- 
+1.6.4.4
+
