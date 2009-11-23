@@ -1,49 +1,78 @@
-From: "kendo" <kendo999@sohu.com>
-Subject: re:re: Is this nf_conn "use" counter bug???
-Date: Mon, 23 Nov 2009 19:20:35 +0800
-Message-ID: <7EEFA75B664A4BAFB3D6946823690567@kendo74746f2c0>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: Is this nf_conn "use" counter bug???
+Date: Mon, 23 Nov 2009 13:05:04 +0100
+Message-ID: <4B0A7A70.2020702@trash.net>
+References: <7EEFA75B664A4BAFB3D6946823690567@kendo74746f2c0>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
-To: <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: kendo <kendo999@sohu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.sohu.com ([220.181.26.195]:60286 "EHLO smtp.sohu.com"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753791AbZKWLUj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Nov 2009 06:20:39 -0500
-Received: from kendo74746f2c0 (unknown [113.249.37.107])
-	by smtp.sohu.com (Postfix) with ESMTP id 5E09112BA74
-	for <netfilter-devel@vger.kernel.org>; Mon, 23 Nov 2009 19:20:42 +0800 (CST)
+Received: from stinky.trash.net ([213.144.137.162]:38468 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757354AbZKWME7 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 23 Nov 2009 07:04:59 -0500
+In-Reply-To: <7EEFA75B664A4BAFB3D6946823690567@kendo74746f2c0>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-DQotLS0tLSBPcmlnaW5hbCBNZXNzYWdlIC0tLS0tIA0KRnJvbTogImtlbmRvIiA8a2VuZG85OTlA
-c29odS5jb20+DQpUbzogIlBhdHJpY2sgTWNIYXJkeSIgPGthYmVyQHRyYXNoLm5ldD4NClNlbnQ6
-IE1vbmRheSwgTm92ZW1iZXIgMjMsIDIwMDkgNzoxMiBQTQ0KU3ViamVjdDogUmU6IElzIHRoaXMg
-bmZfY29ubiAidXNlIiBjb3VudGVyIGJ1Zz8/Pw0KDQoNCj4gDQo+PiBUaGlzIGNvZGUgbG9va3Mg
-bGlrZSBmcm9tIHRoZSAyLjQgZXJhLg0KPiAtLS0tSSdtIHNvcnJ5LCBJIGNvcHkgZnJvbSAyLjYu
-MTIsbm90IDIuNi4zMC45LkJlY2F1c2UgSSBhbHNvIG9wZW5lZCB1cCB0aGVtLg0KPiANCj4+IE1v
-c3QgbGlrZWx5IHRoZXJlJ3MgYW4gc2tiIGxlYWsgc29tZXdoZXJlIGFuZCB0aGUgY29ubnRyYWNr
-IHJlZmVyZW5jZXMNCj4+IGFyZSBub3QgcmVsZWFzZWQuDQo+IC0tLS1ZZXMsIEkgdGhpbmsgc28u
-QnV0IHdoeSBpcyB0aGF0IHNvPz9rZnJlZV9za2IgZnVuY3Rpb24gaGFzIG5vdCBiZWVuIHByb3Bl
-cmx5IGludm9rZWQgd2hlbiBza2IgbGVhdmU/DQo+IA0KPj4+IEVudmlyb25tZW50Og0KPj4+IC0t
-LS0taW50ZXJuZXQtLWNpc2NvIHN3aXRjaCAodHdvIHBvcnQgYm9uZGluZyktLS0tLWxpbnV4IGJv
-eCh0d28gYnJpZGdlKS0tLS1jaXNjbyBzd2l0Y2godHdvIHBvcnQgYm9uZ2luZyktLS1zZXJ2ZXIN
-Cj4+PiANCj4+PiBDaXNjbyBzd2l0Y2ggbGluayBhZ2dyZWdhdGlvbu+8jHVzZSB0d28gcG9ydC5M
-aW51eCBib3ggaGF2ZSB0d28gSW5kZXBlbmRlbnQgbmV0d29yayBicmlkZ2UuDQo+PiANCj4gICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgKGdlMC8xKSAtLS0tLS0tLS0t
-LS0tLS0oZXRoMCkgKGV0aDEpLS0tLS0tLS0tLS0tKGdlMS8wLzEpDQo+IC0tLWludGVyZmFjZS0t
-LS0tY2lzY28gc3dpdGNoIDEgICAgICAgICAgICAgICAgICAgICAgICAgICBsaW51eCBib3ggICAg
-ICAgICAgICAgICAgICAgICAgICAgICBjaXNjbyBzd2l0Y2ggMi0tLS0tLS0tc2VydmVycw0KPiAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAoZ2UwLzIpLS0tLS0tLS0t
-LS0tLS0tLShldGgyKSAoZXRoMyktLS0tLS0tLS0tLS0oZ2UxLzAvMSkNCj4gDQo+IHN3aXRjaCAx
-Og0KPiBwb3J0IDAvMSBhbmQgcG9ydCAwLzIgbGluayBhZ2dyZWdhdGlvbg0KPiANCj4gc3dpdGNo
-IDI6DQo+IHBvcnQgMS8wLzEgYW5kIHBvcnQgMS8wLzIgbGluayBhZ2dyZWdhdGlvbg0KPiANCj4g
-bGludXggY29uZmlnOg0KPiAgICBldGgwLCBldGgxID0+IGJyaWRnZTAgdXAsIG5vIGlwLCBzdHAg
-b2ZmLg0KPiAgICBldGgyLCBldGgzID0+IGJyaWRnZTEgdXAsIG5vIGlwLCBzdHAgb2ZmLg0KPiAg
-ICAyLjYuMzAuOQ0KPiAgICB4ZW9uIDU0MjAgKjgNCj4gICAgaW50ZWwgODI1NzUgKiA4KHZlcnNp
-b24gMi4wLjYgb3IgbGludXggMi42LjMwLjkgaW5zaWRlKQ0KPiBpcHRhYmxlcyBydWxlOg0KPiAg
-ICBubyBhbnkgdGhpbmcNCj4gDQo+IG5vIG90aGVyIGNvbmZpZy4NCj4gDQo+IHRoYW5rcw0KPiAN
-Cj4ga2VuZG8=
+kendo wrote:
+> ----- Original Message -----=20
+> From: "kendo" <kendo999@sohu.com>
+> To: "Patrick McHardy" <kaber@trash.net>
+> Sent: Monday, November 23, 2009 7:12 PM
+> Subject: Re: Is this nf_conn "use" counter bug???
+>=20
+>=20
+>>> This code looks like from the 2.4 era.
+>> ----I'm sorry, I copy from 2.6.12,not 2.6.30.9.Because I also opened=
+ up them.
+>>
+>>> Most likely there's an skb leak somewhere and the conntrack referen=
+ces
+>>> are not released.
+>> ----Yes, I think so.But why is that so??kfree_skb function has not b=
+een properly invoked when skb leave?
 
+Possibly. You can check the skbuff caches in /proc/slabinfo to see
+whether this is the case.
+
+>>>> Environment:
+>>>> -----internet--cisco switch (two port bonding)-----linux box(two b=
+ridge)----cisco switch(two port bonging)---server
+>>>>
+>>>> Cisco switch link aggregation=EF=BC=8Cuse two port.Linux box have =
+two Independent network bridge.
+>>                                           (ge0/1) ---------------(et=
+h0) (eth1)------------(ge1/0/1)
+>> ---interface-----cisco switch 1                           linux box =
+                          cisco switch 2--------servers
+>>                                           (ge0/2)----------------(et=
+h2) (eth3)------------(ge1/0/1)
+>>
+>> switch 1:
+>> port 0/1 and port 0/2 link aggregation
+>>
+>> switch 2:
+>> port 1/0/1 and port 1/0/2 link aggregation
+
+So you're bridging two ports which are connected to aggregated links?
+What is the purpose of doing this?
+
+>> linux config:
+>>    eth0, eth1 =3D> bridge0 up, no ip, stp off.
+>>    eth2, eth3 =3D> bridge1 up, no ip, stp off.
+>>    2.6.30.9
+>>    xeon 5420 *8
+>>    intel 82575 * 8(version 2.0.6 or linux 2.6.30.9 inside)
+>> iptables rule:
+>>    no any thing
+>>
+>> no other config.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
