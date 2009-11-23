@@ -1,114 +1,49 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Is this nf_conn "use" counter bug???
-Date: Mon, 23 Nov 2009 10:56:50 +0100
-Message-ID: <4B0A5C62.4040606@trash.net>
-References: <20091123031259.B666712B9D3@smtp.sohu.com>
+From: "kendo" <kendo999@sohu.com>
+Subject: re:re: Is this nf_conn "use" counter bug???
+Date: Mon, 23 Nov 2009 19:20:35 +0800
+Message-ID: <7EEFA75B664A4BAFB3D6946823690567@kendo74746f2c0>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: kendo <kendo999@sohu.com>
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:36134 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756431AbZKWJ4v (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 23 Nov 2009 04:56:51 -0500
-In-Reply-To: <20091123031259.B666712B9D3@smtp.sohu.com>
+Received: from smtp.sohu.com ([220.181.26.195]:60286 "EHLO smtp.sohu.com"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1753791AbZKWLUj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 23 Nov 2009 06:20:39 -0500
+Received: from kendo74746f2c0 (unknown [113.249.37.107])
+	by smtp.sohu.com (Postfix) with ESMTP id 5E09112BA74
+	for <netfilter-devel@vger.kernel.org>; Mon, 23 Nov 2009 19:20:42 +0800 (CST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-kendo wrote:
->  In my linux 2.6.30.9,I found a strange question about netfilter:
->  =20
-> [root@localhost ~]# conntrack -L | grep flow
-> conntrack v0.9.13 (conntrack-tools): 321 flow entries have been shown=
-=2E
->=20
-> [root@localhost ~]# conntrack -C
-> 14360
->=20
-> ct.count(14360) is far greater than the conntrack hash table number(3=
-21).Final,table full...game over.
->=20
-> Further analysis of statistics counters:
->=20
-> [root@localhost ~]# cat /proc/net/stat/nf_conntrack
-> entries  searched found new invalid ignore delete delete_list insert =
-insert_failed drop early_drop icmp_error  expect_new expect_create expe=
-ct_delete
-> 0000392c  00000078 00036049 000042b9 000005f7 0000037f 00000468 00003=
-9af 00004291 0000002a 00000000 00000000 0000015c  00000000 00000000 000=
-00000=20
-> 0000392c  00000003 0000873e 00000012 00000061 00000414 00000053 00000=
-7a5 00000012 00000000 00000000 00000000 00000002  00000000 00000000 000=
-00000=20
-> 0000392c  00000000 000017c4 00000002 00000012 00000eb8 00000103 00000=
-009 00000002 00000000 00000000 00000000 00000000  00000000 00000000 000=
-00000=20
-> 0000392c  00000004 00002a4d 00000004 00000018 000005a3 000000f6 00000=
-011 00000003 00000000 00000000 00000000 00000003  00000000 00000000 000=
-00000=20
-> 0000392c  00000006 000034d6 0000007d 0000004f 00000197 000000a5 00000=
-031 00000030 00000051 00000000 00000000 0000000c  00000000 00000000 000=
-00000=20
-> 0000392c  00000004 000038a8 00000004 00000055 00000383 000000cf 00000=
-016 00000004 00000000 00000000 00000000 00000002  00000000 00000000 000=
-00000=20
-> 0000392c  00000004 00002e82 00000004 0000000d 0000179c 0000010e 00000=
-014 00000004 00000000 00000000 00000000 00000000  00000000 00000000 000=
-00000=20
-> 0000392c  00000001 00003911 00000005 0000006d 000002fd 000000f9 00000=
-011 00000005 00000000 00000000 00000000 00000002  00000000 00000000 000=
-00000
->=20
-> I found "delete_list"(16868) countres is far greater than the "delete=
-"(2607) counters.Is cant't be release when a conntrack be delete from c=
-onntrack hash table???
->=20
-> static void death_by_timeout(unsigned long ul_conntrack)
-> {
->  struct ip_conntrack *ct =3D (void *)ul_conntrack;
->=20
->  WRITE_LOCK(&ip_conntrack_lock);
->  /* Inside lock so preempt is disabled on module removal path.
->   * Otherwise we can get spurious warnings. */
->  CONNTRACK_STAT_INC(delete_list);
->  clean_from_lists(ct);
->  WRITE_UNLOCK(&ip_conntrack_lock);
->  ip_conntrack_put(ct);
-> }
+DQotLS0tLSBPcmlnaW5hbCBNZXNzYWdlIC0tLS0tIA0KRnJvbTogImtlbmRvIiA8a2VuZG85OTlA
+c29odS5jb20+DQpUbzogIlBhdHJpY2sgTWNIYXJkeSIgPGthYmVyQHRyYXNoLm5ldD4NClNlbnQ6
+IE1vbmRheSwgTm92ZW1iZXIgMjMsIDIwMDkgNzoxMiBQTQ0KU3ViamVjdDogUmU6IElzIHRoaXMg
+bmZfY29ubiAidXNlIiBjb3VudGVyIGJ1Zz8/Pw0KDQoNCj4gDQo+PiBUaGlzIGNvZGUgbG9va3Mg
+bGlrZSBmcm9tIHRoZSAyLjQgZXJhLg0KPiAtLS0tSSdtIHNvcnJ5LCBJIGNvcHkgZnJvbSAyLjYu
+MTIsbm90IDIuNi4zMC45LkJlY2F1c2UgSSBhbHNvIG9wZW5lZCB1cCB0aGVtLg0KPiANCj4+IE1v
+c3QgbGlrZWx5IHRoZXJlJ3MgYW4gc2tiIGxlYWsgc29tZXdoZXJlIGFuZCB0aGUgY29ubnRyYWNr
+IHJlZmVyZW5jZXMNCj4+IGFyZSBub3QgcmVsZWFzZWQuDQo+IC0tLS1ZZXMsIEkgdGhpbmsgc28u
+QnV0IHdoeSBpcyB0aGF0IHNvPz9rZnJlZV9za2IgZnVuY3Rpb24gaGFzIG5vdCBiZWVuIHByb3Bl
+cmx5IGludm9rZWQgd2hlbiBza2IgbGVhdmU/DQo+IA0KPj4+IEVudmlyb25tZW50Og0KPj4+IC0t
+LS0taW50ZXJuZXQtLWNpc2NvIHN3aXRjaCAodHdvIHBvcnQgYm9uZGluZyktLS0tLWxpbnV4IGJv
+eCh0d28gYnJpZGdlKS0tLS1jaXNjbyBzd2l0Y2godHdvIHBvcnQgYm9uZ2luZyktLS1zZXJ2ZXIN
+Cj4+PiANCj4+PiBDaXNjbyBzd2l0Y2ggbGluayBhZ2dyZWdhdGlvbu+8jHVzZSB0d28gcG9ydC5M
+aW51eCBib3ggaGF2ZSB0d28gSW5kZXBlbmRlbnQgbmV0d29yayBicmlkZ2UuDQo+PiANCj4gICAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgKGdlMC8xKSAtLS0tLS0tLS0t
+LS0tLS0oZXRoMCkgKGV0aDEpLS0tLS0tLS0tLS0tKGdlMS8wLzEpDQo+IC0tLWludGVyZmFjZS0t
+LS0tY2lzY28gc3dpdGNoIDEgICAgICAgICAgICAgICAgICAgICAgICAgICBsaW51eCBib3ggICAg
+ICAgICAgICAgICAgICAgICAgICAgICBjaXNjbyBzd2l0Y2ggMi0tLS0tLS0tc2VydmVycw0KPiAg
+ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAoZ2UwLzIpLS0tLS0tLS0t
+LS0tLS0tLShldGgyKSAoZXRoMyktLS0tLS0tLS0tLS0oZ2UxLzAvMSkNCj4gDQo+IHN3aXRjaCAx
+Og0KPiBwb3J0IDAvMSBhbmQgcG9ydCAwLzIgbGluayBhZ2dyZWdhdGlvbg0KPiANCj4gc3dpdGNo
+IDI6DQo+IHBvcnQgMS8wLzEgYW5kIHBvcnQgMS8wLzIgbGluayBhZ2dyZWdhdGlvbg0KPiANCj4g
+bGludXggY29uZmlnOg0KPiAgICBldGgwLCBldGgxID0+IGJyaWRnZTAgdXAsIG5vIGlwLCBzdHAg
+b2ZmLg0KPiAgICBldGgyLCBldGgzID0+IGJyaWRnZTEgdXAsIG5vIGlwLCBzdHAgb2ZmLg0KPiAg
+ICAyLjYuMzAuOQ0KPiAgICB4ZW9uIDU0MjAgKjgNCj4gICAgaW50ZWwgODI1NzUgKiA4KHZlcnNp
+b24gMi4wLjYgb3IgbGludXggMi42LjMwLjkgaW5zaWRlKQ0KPiBpcHRhYmxlcyBydWxlOg0KPiAg
+ICBubyBhbnkgdGhpbmcNCj4gDQo+IG5vIG90aGVyIGNvbmZpZy4NCj4gDQo+IHRoYW5rcw0KPiAN
+Cj4ga2VuZG8=
 
-This code looks like from the 2.4 era.
-
-> static inline void nf_conntrack_put(struct nf_conntrack *nfct)
-> {
->  if (nfct && atomic_dec_and_test(&nfct->use))
->   nf_conntrack_destroy(nfct);
-> }
->=20
-> What is wrong with the nfct->use counter may be the problem,Lead to n=
-f_conntrack_destroy functions can not properly be called? From a statis=
-tical counter to the results of,clean_from_lists have been implemented,=
-but the nf_conntrack_destroy does not seem to be running.
->=20
-> This is only my guess,I didn't fond any thing from the source code.Ho=
-wever,if it is not so,What causes my connection to track the total numb=
-er of non-stop to rise=EF=BC=8Ctable full and memory has been eaten?
-
-Most likely there's an skb leak somewhere and the conntrack references
-are not released.
-
-> Environment:
-> -----internet--cisco switch (two port bonding)-----linux box(two brid=
-ge)----cisco switch(two port bonging)---server
->=20
-> Cisco switch link aggregation=EF=BC=8Cuse two port.Linux box have two=
- Independent network bridge.
-
-Please post your full network settings and netfilter rules.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
