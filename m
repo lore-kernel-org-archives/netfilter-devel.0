@@ -1,80 +1,55 @@
-From: "kendo" <kendo999@sohu.com>
-Subject: =?utf-8?B?SXMgdGhpcyBuZl9jb25uICJ1c2UiIGNvdW50ZXIgYnVnPz8/IA==?=
-Date: Mon, 23 Nov 2009 11:13:00 +0800
-Message-ID: <20091123031259.B666712B9D3@smtp.sohu.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] netfilter: conntrack: improve out-of-sync situation in
+ TCP tracking
+Date: Mon, 23 Nov 2009 10:38:07 +0100
+Message-ID: <4B0A57FF.4020901@trash.net>
+References: <20091114110651.7461.84924.stgit@decadence> <20091114111004.7461.37215.stgit@decadence> <4B0560CF.9000400@trash.net> <alpine.DEB.2.00.0911202038280.10259@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
-To: "netfilter-devel" <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.sohu.com ([220.181.26.195]:52785 "EHLO smtp.sohu.com"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1756126AbZKWDM5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 22 Nov 2009 22:12:57 -0500
-Received: from kendo-home (unknown [125.85.149.73])
-	by smtp.sohu.com (Postfix) with ESMTP id B666712B9D3
-	for <netfilter-devel@vger.kernel.org>; Mon, 23 Nov 2009 11:12:59 +0800 (CST)
+Received: from stinky.trash.net ([213.144.137.162]:35689 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756584AbZKWJiD (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 23 Nov 2009 04:38:03 -0500
+In-Reply-To: <alpine.DEB.2.00.0911202038280.10259@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-DQpIaS4NCg0KIEknbSBzb3JyeSxiZWZvcmUgYW4gRS1tYWlsIGVuY29kaW5nIGZvcm1hdCBlcnJv
-ciwgcmVwZWF0IGl0IQ0KIA0KIEluIG15IGxpbnV4IDIuNi4zMC45LEkgZm91bmQgYSBzdHJhbmdl
-IHF1ZXN0aW9uIGFib3V0IG5ldGZpbHRlcjoNCiAgDQpbcm9vdEBsb2NhbGhvc3Qgfl0jIGNvbm50
-cmFjayAtTCB8IGdyZXAgZmxvdw0KY29ubnRyYWNrIHYwLjkuMTMgKGNvbm50cmFjay10b29scyk6
-IDMyMSBmbG93IGVudHJpZXMgaGF2ZSBiZWVuIHNob3duLg0KDQpbcm9vdEBsb2NhbGhvc3Qgfl0j
-IGNvbm50cmFjayAtQw0KMTQzNjANCg0KY3QuY291bnQoMTQzNjApIGlzIGZhciBncmVhdGVyIHRo
-YW4gdGhlIGNvbm50cmFjayBoYXNoIHRhYmxlIG51bWJlcigzMjEpLkZpbmFsLHRhYmxlIGZ1bGwu
-Li5nYW1lIG92ZXIuDQoNCkZ1cnRoZXIgYW5hbHlzaXMgb2Ygc3RhdGlzdGljcyBjb3VudGVyczoN
-Cg0KW3Jvb3RAbG9jYWxob3N0IH5dIyBjYXQgL3Byb2MvbmV0L3N0YXQvbmZfY29ubnRyYWNrDQpl
-bnRyaWVzICBzZWFyY2hlZCBmb3VuZCBuZXcgaW52YWxpZCBpZ25vcmUgZGVsZXRlIGRlbGV0ZV9s
-aXN0IGluc2VydCBpbnNlcnRfZmFpbGVkIGRyb3AgZWFybHlfZHJvcCBpY21wX2Vycm9yICBleHBl
-Y3RfbmV3IGV4cGVjdF9jcmVhdGUgZXhwZWN0X2RlbGV0ZQ0KMDAwMDM5MmMgIDAwMDAwMDc4IDAw
-MDM2MDQ5IDAwMDA0MmI5IDAwMDAwNWY3IDAwMDAwMzdmIDAwMDAwNDY4IDAwMDAzOWFmIDAwMDA0
-MjkxIDAwMDAwMDJhIDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAwMTVjICAwMDAwMDAwMCAwMDAwMDAw
-MCAwMDAwMDAwMCANCjAwMDAzOTJjICAwMDAwMDAwMyAwMDAwODczZSAwMDAwMDAxMiAwMDAwMDA2
-MSAwMDAwMDQxNCAwMDAwMDA1MyAwMDAwMDdhNSAwMDAwMDAxMiAwMDAwMDAwMCAwMDAwMDAwMCAw
-MDAwMDAwMCAwMDAwMDAwMiAgMDAwMDAwMDAgMDAwMDAwMDAgMDAwMDAwMDAgDQowMDAwMzkyYyAg
-MDAwMDAwMDAgMDAwMDE3YzQgMDAwMDAwMDIgMDAwMDAwMTIgMDAwMDBlYjggMDAwMDAxMDMgMDAw
-MDAwMDkgMDAwMDAwMDIgMDAwMDAwMDAgMDAwMDAwMDAgMDAwMDAwMDAgMDAwMDAwMDAgIDAwMDAw
-MDAwIDAwMDAwMDAwIDAwMDAwMDAwIA0KMDAwMDM5MmMgIDAwMDAwMDA0IDAwMDAyYTRkIDAwMDAw
-MDA0IDAwMDAwMDE4IDAwMDAwNWEzIDAwMDAwMGY2IDAwMDAwMDExIDAwMDAwMDAzIDAwMDAwMDAw
-IDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAwMDAzICAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAwMCAN
-CjAwMDAzOTJjICAwMDAwMDAwNiAwMDAwMzRkNiAwMDAwMDA3ZCAwMDAwMDA0ZiAwMDAwMDE5NyAw
-MDAwMDBhNSAwMDAwMDAzMSAwMDAwMDAzMCAwMDAwMDA1MSAwMDAwMDAwMCAwMDAwMDAwMCAwMDAw
-MDAwYyAgMDAwMDAwMDAgMDAwMDAwMDAgMDAwMDAwMDAgDQowMDAwMzkyYyAgMDAwMDAwMDQgMDAw
-MDM4YTggMDAwMDAwMDQgMDAwMDAwNTUgMDAwMDAzODMgMDAwMDAwY2YgMDAwMDAwMTYgMDAwMDAw
-MDQgMDAwMDAwMDAgMDAwMDAwMDAgMDAwMDAwMDAgMDAwMDAwMDIgIDAwMDAwMDAwIDAwMDAwMDAw
-IDAwMDAwMDAwIA0KMDAwMDM5MmMgIDAwMDAwMDA0IDAwMDAyZTgyIDAwMDAwMDA0IDAwMDAwMDBk
-IDAwMDAxNzljIDAwMDAwMTBlIDAwMDAwMDE0IDAwMDAwMDA0IDAwMDAwMDAwIDAwMDAwMDAwIDAw
-MDAwMDAwIDAwMDAwMDAwICAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAwMCANCjAwMDAzOTJjICAw
-MDAwMDAwMSAwMDAwMzkxMSAwMDAwMDAwNSAwMDAwMDA2ZCAwMDAwMDJmZCAwMDAwMDBmOSAwMDAw
-MDAxMSAwMDAwMDAwNSAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAwMiAgMDAwMDAw
-MDAgMDAwMDAwMDAgMDAwMDAwMDANCg0KSSBmb3VuZCAiZGVsZXRlX2xpc3QiKDE2ODY4KSBjb3Vu
-dHJlcyBpcyBmYXIgZ3JlYXRlciB0aGFuIHRoZSAiZGVsZXRlIigyNjA3KSBjb3VudGVycy5JcyBj
-YW50J3QgYmUgcmVsZWFzZSB3aGVuIGEgY29ubnRyYWNrIGJlIGRlbGV0ZSBmcm9tIGNvbm50cmFj
-ayBoYXNoIHRhYmxlPz8/DQoNCnN0YXRpYyB2b2lkIGRlYXRoX2J5X3RpbWVvdXQodW5zaWduZWQg
-bG9uZyB1bF9jb25udHJhY2spDQp7DQogc3RydWN0IGlwX2Nvbm50cmFjayAqY3QgPSAodm9pZCAq
-KXVsX2Nvbm50cmFjazsNCg0KIFdSSVRFX0xPQ0soJmlwX2Nvbm50cmFja19sb2NrKTsNCiAvKiBJ
-bnNpZGUgbG9jayBzbyBwcmVlbXB0IGlzIGRpc2FibGVkIG9uIG1vZHVsZSByZW1vdmFsIHBhdGgu
-DQogICogT3RoZXJ3aXNlIHdlIGNhbiBnZXQgc3B1cmlvdXMgd2FybmluZ3MuICovDQogQ09OTlRS
-QUNLX1NUQVRfSU5DKGRlbGV0ZV9saXN0KTsNCiBjbGVhbl9mcm9tX2xpc3RzKGN0KTsNCiBXUklU
-RV9VTkxPQ0soJmlwX2Nvbm50cmFja19sb2NrKTsNCiBpcF9jb25udHJhY2tfcHV0KGN0KTsNCn0N
-Cg0Kc3RhdGljIGlubGluZSB2b2lkIG5mX2Nvbm50cmFja19wdXQoc3RydWN0IG5mX2Nvbm50cmFj
-ayAqbmZjdCkNCnsNCiBpZiAobmZjdCAmJiBhdG9taWNfZGVjX2FuZF90ZXN0KCZuZmN0LT51c2Up
-KQ0KICBuZl9jb25udHJhY2tfZGVzdHJveShuZmN0KTsNCn0NCg0KV2hhdCBpcyB3cm9uZyB3aXRo
-IHRoZSBuZmN0LT51c2UgY291bnRlciBtYXkgYmUgdGhlIHByb2JsZW0sTGVhZCB0byBuZl9jb25u
-dHJhY2tfZGVzdHJveSBmdW5jdGlvbnMgY2FuIG5vdCBwcm9wZXJseSBiZSBjYWxsZWQ/IEZyb20g
-YSBzdGF0aXN0aWNhbCBjb3VudGVyIHRvIHRoZSByZXN1bHRzIG9mLGNsZWFuX2Zyb21fbGlzdHMg
-aGF2ZSBiZWVuIGltcGxlbWVudGVkLGJ1dCB0aGUgbmZfY29ubnRyYWNrX2Rlc3Ryb3kgZG9lcyBu
-b3Qgc2VlbSB0byBiZSBydW5uaW5nLg0KDQpUaGlzIGlzIG9ubHkgbXkgZ3Vlc3MsSSBkaWRuJ3Qg
-Zm9uZCBhbnkgdGhpbmcgZnJvbSB0aGUgc291cmNlIGNvZGUuSG93ZXZlcixpZiBpdCBpcyBub3Qg
-c28sV2hhdCBjYXVzZXMgbXkgY29ubmVjdGlvbiB0byB0cmFjayB0aGUgdG90YWwgbnVtYmVyIG9m
-IG5vbi1zdG9wIHRvIHJpc2XvvIx0YWJsZSBmdWxsIGFuZCBtZW1vcnkgaGFzIGJlZW4gZWF0ZW4/
-DQoNClRoYW5rcyxIb3BlIHRvIGdldCB5b3VyIGhlbHAhDQoNCkVudmlyb25tZW50Og0KLS0tLS1p
-bnRlcm5ldC0tY2lzY28gc3dpdGNoICh0d28gcG9ydCBib25kaW5nKS0tLS0tbGludXggYm94KHR3
-byBicmlkZ2UpLS0tLWNpc2NvIHN3aXRjaCh0d28gcG9ydCBib25naW5nKS0tLXNlcnZlcg0KDQpD
-aXNjbyBzd2l0Y2ggbGluayBhZ2dyZWdhdGlvbu+8jHVzZSB0d28gcG9ydC5MaW51eCBib3ggaGF2
-ZSB0d28gSW5kZXBlbmRlbnQgbmV0d29yayBicmlkZ2UuDQoNCmtlbmRvDQoNCmtlbmRvOTk5QHNv
-aHUuY29tDQo=
+Jozsef Kadlecsik wrote:
+> On Thu, 19 Nov 2009, Patrick McHardy wrote:
+> 
+>> Pablo Neira Ayuso wrote:
+>>> Without this patch, if we receive a SYN packet from the client while
+>>> the firewall is out-of-sync, we let it go through. Then, if we see
+>>> the SYN/ACK reply coming from the server, we destroy the conntrack
+>>> entry and drop the packet to trigger a new retransmission. Then,
+>>> the retransmision from the client is used to start a new clean
+>>> session.
+>>>
+>>> This patch improves the current handling. Basically, if we see an
+>>> unexpected SYN packet, we annotate the TCP options. Then, if we
+>>> see the reply SYN/ACK, this means that the firewall was indeed
+>>> out-of-sync. Therefore, we set a clean new session from the existing
+>>> entry based on the annotated values.
+>>>
+>>> This patch adds two new 8-bits fields that fit in a 16-bits gap of
+>>> the ip_ct_tcp structure.
+>>>
+>>> This patch is particularly useful for conntrackd since the
+>>> asynchronous nature of the state-synchronization allows to have
+>>> backup nodes that are not perfect copies of the master. This helps
+>>> to improve the recovery under some worst-case scenarios.
+>> This seems like a good idea to me. I'd like to get an ACK from
+>> Jozsef before I apply this though since he knows this code way
+>> better than I do :)
+> 
+> Yes, it's a good idea and looks fine to me:
+> 
+> Acked-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 
+Applied, thanks everyone.
