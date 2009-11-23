@@ -1,187 +1,81 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 1/1] netfilter: xtables: fix conntrack match v1 ipt-save output
-Date: Sun, 22 Nov 2009 01:56:06 +0100
-Message-ID: <1258851366-1512-1-git-send-email-fw@strlen.de>
-References: <1258529958.2810.36.camel@localhost>
-Cc: ben@decadent.org.uk, lists@michel-messerschmidt.de,
-	Florian Westphal <fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
+From: "=?utf-8?B?a2VuZG8=?=" <kendo999@sohu.com>
+Subject: =?utf-8?B?SXMgdGhpcyBkZWF0aF9ieV90aW1lb3V0J3MgYnVnPz8/IA==?=
+Date: Mon, 23 Nov 2009 09:33:59 +0800
+Message-ID: <20091123013358.60DFA1F0C65@smtp.sohu.com>
+Mime-Version: 1.0
+Content-Type: text/plain;
+	charset="utf-8"
+Content-Transfer-Encoding: base64
+To: "=?utf-8?B?bmV0ZmlsdGVyLWRldmVs?=" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:50011 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750936AbZKVA5o (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 21 Nov 2009 19:57:44 -0500
-In-Reply-To: <1258529958.2810.36.camel@localhost>
+Received: from smtp.sohu.com ([220.181.26.195]:60561 "EHLO smtp.sohu.com"
+	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755994AbZKWBdy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 22 Nov 2009 20:33:54 -0500
+Received: from kendo-home (unknown [125.85.149.73])
+	by smtp.sohu.com (Postfix) with ESMTP id 60DFA1F0C65
+	for <netfilter-devel@vger.kernel.org>; Mon, 23 Nov 2009 09:33:58 +0800 (CST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit d6d3f08b0fd998b647a05540cedd11a067b72867
-(netfilter: xtables: conntrack match revision 2) does break the
-v1 conntrack match iptables-save output in a subtle way.
-
-Problem is as follows:
-
-    up = kmalloc(sizeof(*up), GFP_KERNEL);
-[..]
-   /*
-    * The strategy here is to minimize the overhead of v1 matching,
-    * by prebuilding a v2 struct and putting the pointer into the
-    * v1 dataspace.
-    */
-    memcpy(up, info, offsetof(typeof(*info), state_mask));
-[..]
-    *(void **)info  = up;
-
-As the v2 struct pointer is saved in the match data space,
-it clobbers the first structure member (->origsrc_addr).
-
-Because the _v1 match function grabs this pointer and does not actually
-look at the v1 origsrc, run time functionality does not break.
-But iptables -nvL (or iptables-save) cannot know that v1 origsrc_addr
-has been overloaded in this way:
-
-$ iptables -p tcp -A OUTPUT -m conntrack --ctorigsrc 10.0.0.1 -j ACCEPT
-$ iptables-save
--A OUTPUT -p tcp -m conntrack --ctorigsrc 128.173.134.206 -j ACCEPT
-
-(128.173... is the address to the v2 match structure).
-
-To fix this, we take advantage of the fact that the v1 and v2 structures
-are identical with exception of the last two structure members (u8 in v1,
-u16 in v2).
-
-We extract them as early as possible and prevent the v2 matching function
-from looking at those two members directly.
-
-Previously reported by Michel Messerschmidt via Ben Hutchings, also
-see Debian Bug tracker #556587.
-
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- net/netfilter/xt_conntrack.c |   61 +++++++++++------------------------------
- 1 files changed, 17 insertions(+), 44 deletions(-)
-
-diff --git a/net/netfilter/xt_conntrack.c b/net/netfilter/xt_conntrack.c
-index 6dc4652..ae66305 100644
---- a/net/netfilter/xt_conntrack.c
-+++ b/net/netfilter/xt_conntrack.c
-@@ -113,7 +113,8 @@ ct_proto_port_check(const struct xt_conntrack_mtinfo2 *info,
- }
- 
- static bool
--conntrack_mt(const struct sk_buff *skb, const struct xt_match_param *par)
-+conntrack_mt(const struct sk_buff *skb, const struct xt_match_param *par,
-+             u16 state_mask, u16 status_mask)
- {
- 	const struct xt_conntrack_mtinfo2 *info = par->matchinfo;
- 	enum ip_conntrack_info ctinfo;
-@@ -136,7 +137,7 @@ conntrack_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 			if (test_bit(IPS_DST_NAT_BIT, &ct->status))
- 				statebit |= XT_CONNTRACK_STATE_DNAT;
- 		}
--		if (!!(info->state_mask & statebit) ^
-+		if (!!(state_mask & statebit) ^
- 		    !(info->invert_flags & XT_CONNTRACK_STATE))
- 			return false;
- 	}
-@@ -172,7 +173,7 @@ conntrack_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 		return false;
- 
- 	if ((info->match_flags & XT_CONNTRACK_STATUS) &&
--	    (!!(info->status_mask & ct->status) ^
-+	    (!!(status_mask & ct->status) ^
- 	    !(info->invert_flags & XT_CONNTRACK_STATUS)))
- 		return false;
- 
-@@ -192,11 +193,17 @@ conntrack_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- static bool
- conntrack_mt_v1(const struct sk_buff *skb, const struct xt_match_param *par)
- {
--	const struct xt_conntrack_mtinfo2 *const *info = par->matchinfo;
--	struct xt_match_param newpar = *par;
-+	const struct xt_conntrack_mtinfo1 *info = par->matchinfo;
- 
--	newpar.matchinfo = *info;
--	return conntrack_mt(skb, &newpar);
-+	return conntrack_mt(skb, par, info->state_mask, info->status_mask);
-+}
-+
-+static bool
-+conntrack_mt_v2(const struct sk_buff *skb, const struct xt_match_param *par)
-+{
-+	const struct xt_conntrack_mtinfo2 *info = par->matchinfo;
-+
-+	return conntrack_mt(skb, par, info->state_mask, info->status_mask);
- }
- 
- static bool conntrack_mt_check(const struct xt_mtchk_param *par)
-@@ -209,45 +216,11 @@ static bool conntrack_mt_check(const struct xt_mtchk_param *par)
- 	return true;
- }
- 
--static bool conntrack_mt_check_v1(const struct xt_mtchk_param *par)
--{
--	struct xt_conntrack_mtinfo1 *info = par->matchinfo;
--	struct xt_conntrack_mtinfo2 *up;
--	int ret = conntrack_mt_check(par);
--
--	if (ret < 0)
--		return ret;
--
--	up = kmalloc(sizeof(*up), GFP_KERNEL);
--	if (up == NULL) {
--		nf_ct_l3proto_module_put(par->family);
--		return -ENOMEM;
--	}
--
--	/*
--	 * The strategy here is to minimize the overhead of v1 matching,
--	 * by prebuilding a v2 struct and putting the pointer into the
--	 * v1 dataspace.
--	 */
--	memcpy(up, info, offsetof(typeof(*info), state_mask));
--	up->state_mask  = info->state_mask;
--	up->status_mask = info->status_mask;
--	*(void **)info  = up;
--	return true;
--}
--
- static void conntrack_mt_destroy(const struct xt_mtdtor_param *par)
- {
- 	nf_ct_l3proto_module_put(par->family);
- }
- 
--static void conntrack_mt_destroy_v1(const struct xt_mtdtor_param *par)
--{
--	struct xt_conntrack_mtinfo2 **info = par->matchinfo;
--	kfree(*info);
--	conntrack_mt_destroy(par);
--}
--
- static struct xt_match conntrack_mt_reg[] __read_mostly = {
- 	{
- 		.name       = "conntrack",
-@@ -255,8 +228,8 @@ static struct xt_match conntrack_mt_reg[] __read_mostly = {
- 		.family     = NFPROTO_UNSPEC,
- 		.matchsize  = sizeof(struct xt_conntrack_mtinfo1),
- 		.match      = conntrack_mt_v1,
--		.checkentry = conntrack_mt_check_v1,
--		.destroy    = conntrack_mt_destroy_v1,
-+		.checkentry = conntrack_mt_check,
-+		.destroy    = conntrack_mt_destroy,
- 		.me         = THIS_MODULE,
- 	},
- 	{
-@@ -264,7 +237,7 @@ static struct xt_match conntrack_mt_reg[] __read_mostly = {
- 		.revision   = 2,
- 		.family     = NFPROTO_UNSPEC,
- 		.matchsize  = sizeof(struct xt_conntrack_mtinfo2),
--		.match      = conntrack_mt,
-+		.match      = conntrack_mt_v2,
- 		.checkentry = conntrack_mt_check,
- 		.destroy    = conntrack_mt_destroy,
- 		.me         = THIS_MODULE,
--- 
-1.6.4.4
+bmV0ZmlsdGVyLWRldmVsOg0KDQoJSGkhDQogICAgDQpJbiBteSBsaW51eCAyLjYuMzAuOe+8jEkg
+Zm91bmQgYSBzdHJhbmdlIHF1ZXN0aW9uIGFib3V0IG5ldGZpbHRlcu+8mg0KIA0KW3Jvb3RAbG9j
+YWxob3N0IH5dIyBjb25udHJhY2sgLUwgfCBncmVwIGZsb3cNCmNvbm50cmFjayB2MC45LjEzIChj
+b25udHJhY2stdG9vbHMpOiAzMjEgZmxvdyBlbnRyaWVzIGhhdmUgYmVlbiBzaG93bi4NCg0KW3Jv
+b3RAbG9jYWxob3N0IH5dIyBjb25udHJhY2sgLUMNCjE0MzYwDQoNCmN0LmNvdW50KDE0MzYwKSBp
+cyBmYXIgZ3JlYXRlciB0aGFuIHRoZSBjb25udHJhY2sgaGFzaCB0YWJsZSBudW1iZXIoMzIxKS4g
+RmluYWzvvIx0YWJsZSBmdWxs4oCm4oCmZ2FtZSBvdmVyLg0KDQpGdXJ0aGVyIGFuYWx5c2lzIG9m
+IHN0YXRpc3RpY3MgY291bnRlcnPvvJoNCg0KW3Jvb3RAbG9jYWxob3N0IH5dIyBjYXQgL3Byb2Mv
+bmV0L3N0YXQvbmZfY29ubnRyYWNrDQplbnRyaWVzICBzZWFyY2hlZCBmb3VuZCBuZXcgaW52YWxp
+ZCBpZ25vcmUgZGVsZXRlIGRlbGV0ZV9saXN0IGluc2VydCBpbnNlcnRfZmFpbGVkIGRyb3AgZWFy
+bHlfZHJvcCBpY21wX2Vycm9yICBleHBlY3RfbmV3IGV4cGVjdF9jcmVhdGUgZXhwZWN0X2RlbGV0
+ZQ0KMDAwMDM5MmMgIDAwMDAwMDc4IDAwMDM2MDQ5IDAwMDA0MmI5IDAwMDAwNWY3IDAwMDAwMzdm
+IDAwMDAwNDY4IDAwMDAzOWFmIDAwMDA0MjkxIDAwMDAwMDJhIDAwMDAwMDAwIDAwMDAwMDAwIDAw
+MDAwMTVjICAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAwMCANCjAwMDAzOTJjICAwMDAwMDAwMyAw
+MDAwODczZSAwMDAwMDAxMiAwMDAwMDA2MSAwMDAwMDQxNCAwMDAwMDA1MyAwMDAwMDdhNSAwMDAw
+MDAxMiAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAwMiAgMDAwMDAwMDAgMDAwMDAw
+MDAgMDAwMDAwMDAgDQowMDAwMzkyYyAgMDAwMDAwMDAgMDAwMDE3YzQgMDAwMDAwMDIgMDAwMDAw
+MTIgMDAwMDBlYjggMDAwMDAxMDMgMDAwMDAwMDkgMDAwMDAwMDIgMDAwMDAwMDAgMDAwMDAwMDAg
+MDAwMDAwMDAgMDAwMDAwMDAgIDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAwMDAwIA0KMDAwMDM5MmMg
+IDAwMDAwMDA0IDAwMDAyYTRkIDAwMDAwMDA0IDAwMDAwMDE4IDAwMDAwNWEzIDAwMDAwMGY2IDAw
+MDAwMDExIDAwMDAwMDAzIDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAwMDAzICAwMDAw
+MDAwMCAwMDAwMDAwMCAwMDAwMDAwMCANCjAwMDAzOTJjICAwMDAwMDAwNiAwMDAwMzRkNiAwMDAw
+MDA3ZCAwMDAwMDA0ZiAwMDAwMDE5NyAwMDAwMDBhNSAwMDAwMDAzMSAwMDAwMDAzMCAwMDAwMDA1
+MSAwMDAwMDAwMCAwMDAwMDAwMCAwMDAwMDAwYyAgMDAwMDAwMDAgMDAwMDAwMDAgMDAwMDAwMDAg
+DQowMDAwMzkyYyAgMDAwMDAwMDQgMDAwMDM4YTggMDAwMDAwMDQgMDAwMDAwNTUgMDAwMDAzODMg
+MDAwMDAwY2YgMDAwMDAwMTYgMDAwMDAwMDQgMDAwMDAwMDAgMDAwMDAwMDAgMDAwMDAwMDAgMDAw
+MDAwMDIgIDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAwMDAwIA0KMDAwMDM5MmMgIDAwMDAwMDA0IDAw
+MDAyZTgyIDAwMDAwMDA0IDAwMDAwMDBkIDAwMDAxNzljIDAwMDAwMTBlIDAwMDAwMDE0IDAwMDAw
+MDA0IDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAwMDAwICAwMDAwMDAwMCAwMDAwMDAw
+MCAwMDAwMDAwMCANCjAwMDAzOTJjICAwMDAwMDAwMSAwMDAwMzkxMSAwMDAwMDAwNSAwMDAwMDA2
+ZCAwMDAwMDJmZCAwMDAwMDBmOSAwMDAwMDAxMSAwMDAwMDAwNSAwMDAwMDAwMCAwMDAwMDAwMCAw
+MDAwMDAwMCAwMDAwMDAwMiAgMDAwMDAwMDAgMDAwMDAwMDAgMDAwMDAwMDANCg0KSSBmb3VuZCAi
+ZGVsZXRlX2xpc3QiKDE2ODY4KSBjb3VudHJlcyBpcyBmYXIgZ3JlYXRlciB0aGFuIHRoZSAiZGVs
+ZXRlIigyNjA3KSBjb3VudGVycy5JcyBjYW50J3QgYmUgcmVsZWFzZSB3aGVuIGEgY29ubnRyYWNr
+IGJlIGRlbGV0ZSBmcm9tIGNvbm50cmFjayBoYXNoIHRhYmxl77yf77yf77yfDQoNCnN0YXRpYyB2
+b2lkIGRlYXRoX2J5X3RpbWVvdXQodW5zaWduZWQgbG9uZyB1bF9jb25udHJhY2spDQp7DQogc3Ry
+dWN0IGlwX2Nvbm50cmFjayAqY3QgPSAodm9pZCAqKXVsX2Nvbm50cmFjazsNCg0KIFdSSVRFX0xP
+Q0soJmlwX2Nvbm50cmFja19sb2NrKTsNCiAvKiBJbnNpZGUgbG9jayBzbyBwcmVlbXB0IGlzIGRp
+c2FibGVkIG9uIG1vZHVsZSByZW1vdmFsIHBhdGguDQogICogT3RoZXJ3aXNlIHdlIGNhbiBnZXQg
+c3B1cmlvdXMgd2FybmluZ3MuICovDQogQ09OTlRSQUNLX1NUQVRfSU5DKGRlbGV0ZV9saXN0KTsN
+CiBjbGVhbl9mcm9tX2xpc3RzKGN0KTsNCiBXUklURV9VTkxPQ0soJmlwX2Nvbm50cmFja19sb2Nr
+KTsNCiBpcF9jb25udHJhY2tfcHV0KGN0KTsNCn0NCg0Kc3RhdGljIGlubGluZSB2b2lkIG5mX2Nv
+bm50cmFja19wdXQoc3RydWN0IG5mX2Nvbm50cmFjayAqbmZjdCkNCnsNCiBpZiAobmZjdCAmJiBh
+dG9taWNfZGVjX2FuZF90ZXN0KCZuZmN0LT51c2UpKQ0KICBuZl9jb25udHJhY2tfZGVzdHJveShu
+ZmN0KTsNCn0NCg0KV2hhdCBpcyB3cm9uZyB3aXRoIHRoZSBuZmN0LT51c2UgY291bnRlciBtYXkg
+YmUgdGhlIHByb2JsZW0sIExlYWQgdG8gbmZfY29ubnRyYWNrX2Rlc3Ryb3kgZnVuY3Rpb25zIGNh
+biBub3QgcHJvcGVybHkgYmUgY2FsbGVkPyBGcm9tIGEgc3RhdGlzdGljYWwgY291bnRlciB0byB0
+aGUgcmVzdWx0cyBvZixjbGVhbl9mcm9tX2xpc3RzIGhhdmUgYmVlbiBpbXBsZW1lbnRlZCwgYnV0
+IHRoZSBuZl9jb25udHJhY2tfZGVzdHJveSBkb2VzIG5vdCBzZWVtIHRvIGJlIHJ1bm5pbmcuDQoN
+ClRoaXMgaXMgb25seSBteSBndWVzc++8jEkgZGlkbid0IGZvbmQgYW55IHRoaW5nIGZyb20gdGhl
+IHNvdXJjZSBjb2RlLkhvd2V2ZXIsIGlmIGl0IGlzIG5vdCBzb++8jFdoYXQgY2F1c2VzIG15IGNv
+bm5lY3Rpb24gdG8gdHJhY2sgdGhlIHRvdGFsIG51bWJlciBvZiBub24tc3RvcCB0byByaXNl77yM
+dGFibGUgZnVsbCBhbmQgbWVtb3J5IGhhcyBiZWVuIGVhdGVu77yf77yfDQoNClRoYW5rcywgSG9w
+ZSB0byBnZXQgeW91ciBoZWxwIQ0KDQpFbnZpcm9ubWVudO+8mg0KLS0tLS0tLS0taW50ZXJuZXQt
+LWNpc2NvIHN3aXRjaCAodHdvIHBvcnQgYm9uZGluZyktLS0tLS0tbGludXggYm94KHR3byBicmlk
+Z2UpLS0tLS0tLWNpc2NvIHN3aXRjaCh0d28gcG9ydCBib25naW5nKS0tLS0tc2VydmVyDQoNCkNp
+c2NvIHN3aXRjaCBsaW5rIGFnZ3JlZ2F0aW9u77yMdXNlIHR3byBwb3J044CCTGludXggYm94IGhh
+dmUgdHdvIEluZGVwZW5kZW50IG5ldHdvcmsgYnJpZGdl44CCDQoNCiAJCQkJDQoNCuOAgOOAgOOA
+gOOAgOOAgOOAgOOAgOOAgGtlbmRvDQrjgIDjgIDjgIDjgIDjgIDjgIDjgIDjgIBrZW5kbzk5OUBz
+b2h1LmNvbQ0K44CA44CA44CA44CA44CA44CA44CA44CA44CA44CAMjAwOS0xMS0yMw0K
 
