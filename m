@@ -1,24 +1,39 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: next iptables release
-Date: Tue, 24 Nov 2009 12:19:49 +0100
-Message-ID: <4B0BC155.5070501@trash.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter <netfilter@lists.netfilter.org>
-To: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: [PATCH 2/3] doc: explain experienced --hitcount limit
+Date: Tue, 24 Nov 2009 16:07:33 +0100
+Message-ID: <1259075255-25781-3-git-send-email-jengelh@medozas.de>
+References: <1259075255-25781-1-git-send-email-jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:32943 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932718AbZKXLTp (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 24 Nov 2009 06:19:45 -0500
+Received: from borg.medozas.de ([188.40.89.202]:36326 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933216AbZKXPHd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 24 Nov 2009 10:07:33 -0500
+In-Reply-To: <1259075255-25781-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The next iptables version (1.4.6) will be released shortly (an
-estimated week or something like that). Please send any fixes
-you would like to get in soon. Test results are also welcome :)
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ extensions/libxt_recent.man |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-Thanks.
+diff --git a/extensions/libxt_recent.man b/extensions/libxt_recent.man
+index 9d5a64e..aa138df 100644
+--- a/extensions/libxt_recent.man
++++ b/extensions/libxt_recent.man
+@@ -44,7 +44,9 @@ This option must be used in conjunction with one of \fB\-\-rcheck\fP or
+ address is in the list and packets had been received greater than or equal to
+ the given value. This option may be used along with \fB\-\-seconds\fP to create
+ an even narrower match requiring a certain number of hits within a specific
+-time frame.
++time frame. The maximum value for the hitcount parameter is given by the
++"ip_pkt_list_tot" parameter of the xt_recent kernel module. Exceeding this
++value on the command line will cause the rule to be rejected.
+ .TP
+ \fB\-\-rttl\fP
+ This option may only be used in conjunction with one of \fB\-\-rcheck\fP or
+-- 
+1.6.5.2
+
