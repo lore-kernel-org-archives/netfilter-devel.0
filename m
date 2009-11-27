@@ -1,40 +1,84 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [xtables-addons] [SOLVED] "unknown option `--gw'" for target
- TEE
-Date: Wed, 25 Nov 2009 11:46:55 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0911251146470.30088@obet.zrqbmnf.qr>
-References: <20091125083434.GC4295@lxiv.inria.fr> <20091125101012.GD4295@lxiv.inria.fr>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: Add seperated timeout for the connections that only receive packets
+ in one direction
+Date: Fri, 27 Nov 2009 17:09:11 +0800
+Message-ID: <4B0F9737.8050606@gmail.com>
+Reply-To: xiaosuo@gmail.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org,
-	=?UTF-8?Q?Sebastian_Cla=C3=9Fen?= <sebastian.classen@freenet.de>
-To: Olivier Mehani <shtrom@ssji.net>
+Content-Type: text/plain; charset=GB2312
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, xiaosuo <xiaosuo@gmail.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:36310 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758447AbZKYKqu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 25 Nov 2009 05:46:50 -0500
-In-Reply-To: <20091125101012.GD4295@lxiv.inria.fr>
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:41646 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752196AbZK0JJT (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 27 Nov 2009 04:09:19 -0500
+Received: by pwi3 with SMTP id 3so889664pwi.21
+        for <netfilter-devel@vger.kernel.org>; Fri, 27 Nov 2009 01:09:26 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
->Replying to self, funny how a night's sleep help find new approaches.
->
->On Wed, Nov 25, 2009 at 09:34:34AM +0100, Olivier Mehani wrote:
->> # ip6tables -t mangle -A PREROUTING -i eth0 -j TEE --gw PFX1:46ff:fee0:dfcc
->> ip6tables v1.4.5: unknown option `--gw'
->> Try `ip6tables -h' or 'ip6tables --help' for more information.
->> 
->> As far as my understanding of the doc goes, my command is valid, but it
->> doesn't work.
->
->In contradiction with the documentation, the proper parameter is
->actually --gateway, thus
-># ip6tables -t mangle -A PREROUTING -i eth0 -j TEE --gateway PFX1:EUI64
->works like a charm.
->
->Maybe the documentation should be udpated as per the attached patch?
->It removes all occurences of --gw in the dor and error messages, and
->adds a quick example (quite similar to my scenario).
+Add seperated timeout for the connections that only receive packets in one direction.
 
-Yes fixed.
+If we use tcp_timeouts[TCP_CONNTRACK_ESTABLISHED] to timeout the connections that only receive packets in one direction, ACK flood attack with fake source address A will exhaust A's connection limit, and A is DoSed. After the attack is stopped, A can't recover quickly due to the large timeout value.
+
+This patch adds a new timeout value: nf_ct_tcp_timeout_loose_unreply for this kind of connections. It can help A to recover quickly after the attack is over.
+
+Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+----
+ nf_conntrack_proto_tcp.c |   19 +++++++++++++++++++
+ 1 file changed, 19 insertions(+)
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 7eda8b8..471045a 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -70,6 +70,8 @@ static const char *const tcp_conntrack_names[] = {
+ static unsigned int nf_ct_tcp_timeout_max_retrans __read_mostly    =   5 MINS;
+ static unsigned int nf_ct_tcp_timeout_unacknowledged __read_mostly =   5 MINS;
+ 
++static unsigned int nf_ct_tcp_timeout_loose_unreply __read_mostly  =   30 SECS;
++
+ static unsigned int tcp_timeouts[TCP_CONNTRACK_MAX] __read_mostly = {
+ 	[TCP_CONNTRACK_SYN_SENT]	= 2 MINS,
+ 	[TCP_CONNTRACK_SYN_RECV]	= 60 SECS,
+@@ -1006,6 +1008,9 @@ static int tcp_packet(struct nf_conn *ct,
+ 			nf_ct_kill_acct(ct, ctinfo, skb);
+ 			return NF_ACCEPT;
+ 		}
++		if (new_state == TCP_CONNTRACK_ESTABLISHED &&
++		    timeout > nf_ct_tcp_timeout_loose_unreply)
++			timeout = nf_ct_tcp_timeout_loose_unreply;
+ 	} else if (!test_bit(IPS_ASSURED_BIT, &ct->status)
+ 		   && (old_state == TCP_CONNTRACK_SYN_RECV
+ 		       || old_state == TCP_CONNTRACK_ESTABLISHED)
+@@ -1298,6 +1303,13 @@ static struct ctl_table tcp_sysctl_table[] = {
+ 		.proc_handler	= proc_dointvec,
+ 	},
+ 	{
++		.procname	= "nf_conntrack_tcp_timeout_loose_unreply",
++		.data		= &nf_ct_tcp_timeout_loose_unreply,
++		.maxlen		= sizeof(unsigned int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec_jiffies,
++	},
++	{
+ 		.procname       = "nf_conntrack_tcp_be_liberal",
+ 		.data           = &nf_ct_tcp_be_liberal,
+ 		.maxlen         = sizeof(unsigned int),
+@@ -1394,6 +1406,13 @@ static struct ctl_table tcp_compat_sysctl_table[] = {
+ 		.proc_handler	= proc_dointvec,
+ 	},
+ 	{
++		.procname	= "ip_conntrack_tcp_timeout_loose_unreply",
++		.data		= &nf_ct_tcp_timeout_loose_unreply,
++		.maxlen		= sizeof(unsigned int),
++		.mode		= 0644,
++		.proc_handler	= proc_dointvec_jiffies,
++	},
++	{
+ 		.procname	= "ip_conntrack_tcp_be_liberal",
+ 		.data		= &nf_ct_tcp_be_liberal,
+ 		.maxlen		= sizeof(unsigned int),
+
