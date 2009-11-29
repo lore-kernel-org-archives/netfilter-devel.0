@@ -1,56 +1,51 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: Adam Nielsen <a.nielsen@shikadi.net>
 Subject: Re: [PATCH] Add refcounts to LED target
-Date: Sun, 29 Nov 2009 11:12:41 +0100 (CET)
-Message-ID: <alpine.LSU.2.00.0911291055020.24432@obet.zrqbmnf.qr>
-References: <4A18A70F.50808@shikadi.net> <alpine.LSU.2.00.0905240933050.18758@fbirervta.pbzchgretzou.qr> <4A1DC798.1090604@shikadi.net> <4A26418C.5090707@trash.net> <4A265891.4050201@shikadi.net> <4AF2E8A5.7020409@trash.net> <4AF34C03.7020907@shikadi.net>
- <4AF43916.5010408@trash.net> <4B11D1B5.2060306@shikadi.net>
+Date: Sun, 29 Nov 2009 21:33:44 +1000
+Message-ID: <4B125C18.7060802@shikadi.net>
+References: <4A18A70F.50808@shikadi.net> <alpine.LSU.2.00.0905240933050.18758@fbirervta.pbzchgretzou.qr> <4A1DC798.1090604@shikadi.net> <4A26418C.5090707@trash.net> <4A265891.4050201@shikadi.net> <4AF2E8A5.7020409@trash.net> <4AF34C03.7020907@shikadi.net> <4AF43916.5010408@trash.net> <4B11D1B5.2060306@shikadi.net> <alpine.LSU.2.00.0911291055020.24432@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Cc: Patrick McHardy <kaber@trash.net>,
 	Netfilter Developer Mailing List
 	<netfilter-devel@vger.kernel.org>
-To: Adam Nielsen <a.nielsen@shikadi.net>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:60333 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753275AbZK2KMg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 29 Nov 2009 05:12:36 -0500
-In-Reply-To: <4B11D1B5.2060306@shikadi.net>
+Received: from vitalin.sorra.shikadi.net ([64.71.152.201]:3067 "EHLO
+	vitalin.sorra.shikadi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752173AbZK2Ldm (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 29 Nov 2009 06:33:42 -0500
+In-Reply-To: <alpine.LSU.2.00.0911291055020.24432@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-On Sunday 2009-11-29 02:43, Adam Nielsen wrote:
+>> static bool led_tg_check(const struct xt_tgchk_param *par)
+>> {
+>> 	struct xt_led_info *ledinfo = par->targinfo;
+>> -	struct xt_led_info_internal *ledinternal;
+>> +	struct xt_led_info_internal *ledinternal = ledinfo->internal_data;
+>> 	int err;
 >
->>>> Just wondering whether there's still hope for this issue to get fixed.
->>>>
->>>> I haven't added the LED extension to iptables yet, so if there's no
->>>> interest in fixing this, we can remove the LED target again.
->
-> I am relying on the xt_tgchk_param passed to the .checkentry function being
-> zero'd out the first time.  One of the members is a pointer which becomes valid
-> when the LED trigger is created, and I'm assuming if that pointer is NULL then
-> the LED trigger hasn't yet been created.  Providing that iptables sets this
-> field to NULL before the first call, and leaves it unchanged when replacing
-> rules/tables then it will work fine.
->
->@@ -83,43 +84,52 @@ static void led_timeout_callback(unsigned long data)
-> static bool led_tg_check(const struct xt_tgchk_param *par)
-> {
-> 	struct xt_led_info *ledinfo = par->targinfo;
->-	struct xt_led_info_internal *ledinternal;
->+	struct xt_led_info_internal *ledinternal = ledinfo->internal_data;
-> 	int err;
+> You cannot rely on ledinfo->internal_data having any meaningful
+> value when iptables prepares the rule.
 
-You cannot rely on ledinfo->internal_data having any meaningful
-value when iptables prepares the rule.
+Hmm ok, so in led_tg_check (the .checkentry function) how do you tell whether 
+the xt_tgchk_param is pointing to an existing ruleset or not?  Or is it always 
+referring to a new ruleset and you have to handle it yourself?
 
-1. iptables1 loads ruleset (-j LED exists somewhere)
-2. someone does -A INPUT something
-3. iptables1 blocks for some reason (say, DNS..)
-		4. iptables2 loads ruleset (-j LED exists)
-		5. someone does -D .. -j LED
-		6. iptables2 submits ruleset
-7. iptables1 becomes runnable again and submits ruleset
+I guess my question comes from this point of view:
 
- -> ledinfo->internal_data now points to a freed area.
+   $ iptables -A scroll_lock -j LED --led-trigger-id http
+
+This calls led_tg_check() with a new xt_tgchk_param structure.
+
+   $ iptables -I INPUT 1 -p tcp --sport 80 -j scroll_lock
+
+Now led_tg_check() gets called again with an xt_tgchk_param structure 
+containing the trigger name etc. even though this was not specified on the 
+command line.  Where does that second xt_tgchk_param come from if it's not a 
+pointer to the first one?
+
+Thanks,
+Adam.
