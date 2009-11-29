@@ -1,58 +1,123 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Add seperated timeout for the connections that only receive
- packets in one direction
-Date: Fri, 27 Nov 2009 12:47:43 +0100
-Message-ID: <4B0FBC5F.8030108@trash.net>
-References: <4B0FA3AA.4070702@trash.net>
+From: Adam Nielsen <a.nielsen@shikadi.net>
+Subject: [PATCH] Add refcounts to LED target
+Date: Sun, 29 Nov 2009 11:43:17 +1000
+Message-ID: <4B11D1B5.2060306@shikadi.net>
+References: <4A18A70F.50808@shikadi.net> <alpine.LSU.2.00.0905240933050.18758@fbirervta.pbzchgretzou.qr> <4A1DC798.1090604@shikadi.net> <4A26418C.5090707@trash.net> <4A265891.4050201@shikadi.net> <4AF2E8A5.7020409@trash.net> <4AF34C03.7020907@shikadi.net> <4AF43916.5010408@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@vger.kernel.org
-To: Changli Gao <xiaosuo@gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------030508030509040008080802"
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:44136 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751541AbZK0Lri (ORCPT
+Received: from vitalin.sorra.shikadi.net ([64.71.152.201]:3667 "EHLO
+	vitalin.sorra.shikadi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751852AbZK2BnT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 27 Nov 2009 06:47:38 -0500
-In-Reply-To: <4B0FA3AA.4070702@trash.net>
+	Sat, 28 Nov 2009 20:43:19 -0500
+In-Reply-To: <4AF43916.5010408@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Changli Gao wrote:
-> It is not easy to spoof in both directions. Routers won't forward it =
-if the destination is at the same side.
+This is a multi-part message in MIME format.
+--------------030508030509040008080802
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Please don't top post.
+>>> Just wondering whether there's still hope for this issue to get fixed.
+>>>
+>>> I haven't added the LED extension to iptables yet, so if there's no
+>>> interest in fixing this, we can remove the LED target again.
 
-They don't need to forward anything, conntrack handles the packet befor=
-e
-routing.
+Sorry again it has taken me so long to get around to this, but hopefully the 
+attached patch is acceptable.  It fixes the issue for me, however I would just 
+like to confirm one thing will work as expected.
 
-> Patrick McHardy <kaber@trash.net>=E5=86=99=E9=81=93=EF=BC=9A
->=20
->> Changli Gao wrote:
->>> On Fri, Nov 27, 2009 at 5:42 PM, Jozsef Kadlecsik
->>> <kadlec@blackhole.kfki.hu> wrote:
->>>> On Fri, 27 Nov 2009, Changli Gao wrote:
->>>>
->>>>> Yes, as nf_conntrack_tcp_timeout_loose_unreply implied, it is for
->>>>> picked up connections.
->>>> Connection pickup can be disabled by proper rules or by setting
->>>> nf_ct_tcp_loose to zero. So in which environment this third method=
- is
->>>> required? I'm curious what triggered you to write your patch.
->>>>
->>> In some condition, you can't disable it. It's why we export
->>> nf_ct_tcp_loose. As a bridge, if its booting breaks connections, us=
-ers
->>> won't happy, so we must allow loose mode.
->> That won't help much. If you're able to spoof packets, you might
->> as well spoof packets for both direction so SEEN_REPLY is set.
+I am relying on the xt_tgchk_param passed to the .checkentry function being 
+zero'd out the first time.  One of the members is a pointer which becomes 
+valid when the LED trigger is created, and I'm assuming if that pointer is 
+NULL then the LED trigger hasn't yet been created.  Providing that iptables 
+sets this field to NULL before the first call, and leaves it unchanged when 
+replacing rules/tables then it will work fine.
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The patch is against the latest git version of nf-next-2.6.
+
+Thanks,
+Adam.
+
+--------------030508030509040008080802
+Content-Type: text/plain;
+ name="led_target_refcount.patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="led_target_refcount.patch"
+
+QWRkIHJlZmVyZW5jZSBjb3VudGluZyB0byB0aGUgbmV0ZmlsdGVyIExFRCB0YXJnZXQsIHRv
+IGZpeCBlcnJvcnMgd2hlbgptdWx0aXBsZSBydWxlcyBwb2ludCB0byB0aGUgc2FtZSB0YXJn
+ZXQgKCJMRUQgdHJpZ2dlciBhbHJlYWR5IGV4aXN0cyIpLgoKU2lnbmVkLW9mZi1ieTogQWRh
+bSBOaWVsc2VuIDxhLm5pZWxzZW5Ac2hpa2FkaS5uZXQ+CgotLS0KCmRpZmYgLS1naXQgYS9u
+ZXQvbmV0ZmlsdGVyL3h0X0xFRC5jIGIvbmV0L25ldGZpbHRlci94dF9MRUQuYwppbmRleCA4
+ZmY3ODQzLi4xODc3ZDZiIDEwMDY0NAotLS0gYS9uZXQvbmV0ZmlsdGVyL3h0X0xFRC5jCisr
+KyBiL25ldC9uZXRmaWx0ZXIveHRfTEVELmMKQEAgLTM3LDYgKzM3LDcgQEAgTU9EVUxFX0RF
+U0NSSVBUSU9OKCJYdGFibGVzOiB0cmlnZ2VyIExFRCBkZXZpY2VzIG9uIHBhY2tldCBtYXRj
+aCIpOwogICogcG9pbnRzIHRvLgogICovCiBzdHJ1Y3QgeHRfbGVkX2luZm9faW50ZXJuYWwg
+eworCWF0b21pY190IHJlZmNvdW50OwogCXN0cnVjdCBsZWRfdHJpZ2dlciBuZXRmaWx0ZXJf
+bGVkX3RyaWdnZXI7CiAJc3RydWN0IHRpbWVyX2xpc3QgdGltZXI7CiB9OwpAQCAtODMsNDMg
+Kzg0LDUyIEBAIHN0YXRpYyB2b2lkIGxlZF90aW1lb3V0X2NhbGxiYWNrKHVuc2lnbmVkIGxv
+bmcgZGF0YSkKIHN0YXRpYyBib29sIGxlZF90Z19jaGVjayhjb25zdCBzdHJ1Y3QgeHRfdGdj
+aGtfcGFyYW0gKnBhcikKIHsKIAlzdHJ1Y3QgeHRfbGVkX2luZm8gKmxlZGluZm8gPSBwYXIt
+PnRhcmdpbmZvOwotCXN0cnVjdCB4dF9sZWRfaW5mb19pbnRlcm5hbCAqbGVkaW50ZXJuYWw7
+CisJc3RydWN0IHh0X2xlZF9pbmZvX2ludGVybmFsICpsZWRpbnRlcm5hbCA9IGxlZGluZm8t
+PmludGVybmFsX2RhdGE7CiAJaW50IGVycjsKIAotCWlmIChsZWRpbmZvLT5pZFswXSA9PSAn
+XDAnKSB7Ci0JCXByaW50ayhLRVJOX0VSUiBLQlVJTERfTU9ETkFNRSAiOiBObyAnaWQnIHBh
+cmFtZXRlciBnaXZlbi5cbiIpOwotCQlyZXR1cm4gZmFsc2U7Ci0JfQotCi0JbGVkaW50ZXJu
+YWwgPSBremFsbG9jKHNpemVvZihzdHJ1Y3QgeHRfbGVkX2luZm9faW50ZXJuYWwpLCBHRlBf
+S0VSTkVMKTsKLQlpZiAoIWxlZGludGVybmFsKSB7Ci0JCXByaW50ayhLRVJOX0NSSVQgS0JV
+SUxEX01PRE5BTUUgIjogb3V0IG9mIG1lbW9yeVxuIik7Ci0JCXJldHVybiBmYWxzZTsKLQl9
+Ci0KLQlsZWRpbnRlcm5hbC0+bmV0ZmlsdGVyX2xlZF90cmlnZ2VyLm5hbWUgPSBsZWRpbmZv
+LT5pZDsKLQotCWVyciA9IGxlZF90cmlnZ2VyX3JlZ2lzdGVyKCZsZWRpbnRlcm5hbC0+bmV0
+ZmlsdGVyX2xlZF90cmlnZ2VyKTsKLQlpZiAoZXJyKSB7Ci0JCXByaW50ayhLRVJOX0NSSVQg
+S0JVSUxEX01PRE5BTUUKLQkJCSI6IGxlZF90cmlnZ2VyX3JlZ2lzdGVyKCkgZmFpbGVkXG4i
+KTsKLQkJaWYgKGVyciA9PSAtRUVYSVNUKQotCQkJcHJpbnRrKEtFUk5fRVJSIEtCVUlMRF9N
+T0ROQU1FCi0JCQkJIjogVHJpZ2dlciBuYW1lIGlzIGFscmVhZHkgaW4gdXNlLlxuIik7Ci0J
+CWdvdG8gZXhpdF9hbGxvYzsKKwlpZiAobGVkaW50ZXJuYWwpIHsKKwkJLyogUnVsZSBhbHJl
+YWR5IGV4aXN0cyAqLworCQlhdG9taWNfaW5jKCZsZWRpbnRlcm5hbC0+cmVmY291bnQpOwor
+CX0gZWxzZSB7CisJCS8qIE5ldyBydWxlLCBjaGVjayBldmVyeXRoaW5nIGlzIE9LICovCisJ
+CWlmIChsZWRpbmZvLT5pZFswXSA9PSAnXDAnKSB7CisJCQlwcmludGsoS0VSTl9FUlIgS0JV
+SUxEX01PRE5BTUUgIjogTm8gJ2lkJyBwYXJhbWV0ZXIgZ2l2ZW4uXG4iKTsKKwkJCXJldHVy
+biBmYWxzZTsKKwkJfQorCisJCWxlZGludGVybmFsID0ga3phbGxvYyhzaXplb2Yoc3RydWN0
+IHh0X2xlZF9pbmZvX2ludGVybmFsKSwgR0ZQX0tFUk5FTCk7CisJCWlmICghbGVkaW50ZXJu
+YWwpIHsKKwkJCXByaW50ayhLRVJOX0NSSVQgS0JVSUxEX01PRE5BTUUgIjogb3V0IG9mIG1l
+bW9yeVxuIik7CisJCQlyZXR1cm4gZmFsc2U7CisJCX0KKworCQlsZWRpbnRlcm5hbC0+bmV0
+ZmlsdGVyX2xlZF90cmlnZ2VyLm5hbWUgPSBsZWRpbmZvLT5pZDsKKworCQllcnIgPSBsZWRf
+dHJpZ2dlcl9yZWdpc3RlcigmbGVkaW50ZXJuYWwtPm5ldGZpbHRlcl9sZWRfdHJpZ2dlcik7
+CisJCWlmIChlcnIpIHsKKwkJCXByaW50ayhLRVJOX0NSSVQgS0JVSUxEX01PRE5BTUUKKwkJ
+CQkiOiBsZWRfdHJpZ2dlcl9yZWdpc3RlcigpIGZhaWxlZFxuIik7CisJCQlpZiAoZXJyID09
+IC1FRVhJU1QpCisJCQkJcHJpbnRrKEtFUk5fRVJSIEtCVUlMRF9NT0ROQU1FCisJCQkJCSI6
+IFRyaWdnZXIgbmFtZSBpcyBhbHJlYWR5IGluIHVzZS5cbiIpOworCQkJZ290byBleGl0X2Fs
+bG9jOworCQl9CisKKwkJLyogU2VlIGlmIHdlIG5lZWQgdG8gc2V0IHVwIGEgdGltZXIgKi8K
+KwkJaWYgKGxlZGluZm8tPmRlbGF5ID4gMCkKKwkJCXNldHVwX3RpbWVyKCZsZWRpbnRlcm5h
+bC0+dGltZXIsIGxlZF90aW1lb3V0X2NhbGxiYWNrLAorCQkJCQkJKHVuc2lnbmVkIGxvbmcp
+bGVkaW5mbyk7CisKKwkJYXRvbWljX3NldCgmbGVkaW50ZXJuYWwtPnJlZmNvdW50LCAxKTsK
+KworCQlsZWRpbmZvLT5pbnRlcm5hbF9kYXRhID0gbGVkaW50ZXJuYWw7CiAJfQogCi0JLyog
+U2VlIGlmIHdlIG5lZWQgdG8gc2V0IHVwIGEgdGltZXIgKi8KLQlpZiAobGVkaW5mby0+ZGVs
+YXkgPiAwKQotCQlzZXR1cF90aW1lcigmbGVkaW50ZXJuYWwtPnRpbWVyLCBsZWRfdGltZW91
+dF9jYWxsYmFjaywKLQkJCSAgICAodW5zaWduZWQgbG9uZylsZWRpbmZvKTsKLQotCWxlZGlu
+Zm8tPmludGVybmFsX2RhdGEgPSBsZWRpbnRlcm5hbDsKLQogCXJldHVybiB0cnVlOwogCiBl
+eGl0X2FsbG9jOgogCWtmcmVlKGxlZGludGVybmFsKTsKKwlsZWRpbmZvLT5pbnRlcm5hbF9k
+YXRhID0gTlVMTDsKIAogCXJldHVybiBmYWxzZTsKIH0KQEAgLTEyOSwxMSArMTM5LDE0IEBA
+IHN0YXRpYyB2b2lkIGxlZF90Z19kZXN0cm95KGNvbnN0IHN0cnVjdCB4dF90Z2R0b3JfcGFy
+YW0gKnBhcikKIAljb25zdCBzdHJ1Y3QgeHRfbGVkX2luZm8gKmxlZGluZm8gPSBwYXItPnRh
+cmdpbmZvOwogCXN0cnVjdCB4dF9sZWRfaW5mb19pbnRlcm5hbCAqbGVkaW50ZXJuYWwgPSBs
+ZWRpbmZvLT5pbnRlcm5hbF9kYXRhOwogCi0JaWYgKGxlZGluZm8tPmRlbGF5ID4gMCkKLQkJ
+ZGVsX3RpbWVyX3N5bmMoJmxlZGludGVybmFsLT50aW1lcik7CisJaWYgKGF0b21pY19kZWNf
+YW5kX3Rlc3QoJmxlZGludGVybmFsLT5yZWZjb3VudCkpIHsKKwkJLyogTm8gbW9yZSBydWxl
+cyB1c2UgdGhpcyBMRUQgdHJpZ2dlciwgc28gcmVtb3ZlIGl0ICovCisJCWlmIChsZWRpbmZv
+LT5kZWxheSA+IDApCisJCQlkZWxfdGltZXJfc3luYygmbGVkaW50ZXJuYWwtPnRpbWVyKTsK
+IAotCWxlZF90cmlnZ2VyX3VucmVnaXN0ZXIoJmxlZGludGVybmFsLT5uZXRmaWx0ZXJfbGVk
+X3RyaWdnZXIpOwotCWtmcmVlKGxlZGludGVybmFsKTsKKwkJbGVkX3RyaWdnZXJfdW5yZWdp
+c3RlcigmbGVkaW50ZXJuYWwtPm5ldGZpbHRlcl9sZWRfdHJpZ2dlcik7CisJCWtmcmVlKGxl
+ZGludGVybmFsKTsKKwl9CiB9CiAKIHN0YXRpYyBzdHJ1Y3QgeHRfdGFyZ2V0IGxlZF90Z19y
+ZWcgX19yZWFkX21vc3RseSA9IHsK
+--------------030508030509040008080802--
