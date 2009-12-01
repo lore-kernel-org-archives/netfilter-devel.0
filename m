@@ -1,60 +1,50 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Changli Gao <xiaosuo@gmail.com>
 Subject: Re: Add seperated timeout for the connections that only receive
- packets in one direction
-Date: Tue, 1 Dec 2009 10:14:21 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.0912010940390.575@blackhole.kfki.hu>
-References: <4B0FA3AA.4070702@trash.net> <4B0FBC5F.8030108@trash.net> <412e6f7f0911292039v74b89b4cieca5e2a043bad43d@mail.gmail.com>
+	packets in one direction
+Date: Tue, 1 Dec 2009 17:29:46 +0800
+Message-ID: <412e6f7f0912010129l10386c75y5109578caf83147c@mail.gmail.com>
+References: <4B0FA3AA.4070702@trash.net> <4B0FBC5F.8030108@trash.net>
+	 <412e6f7f0911292039v74b89b4cieca5e2a043bad43d@mail.gmail.com>
+	 <alpine.DEB.2.00.0912010940390.575@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
-To: Changli Gao <xiaosuo@gmail.com>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:54643 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753389AbZLAJOQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Dec 2009 04:14:16 -0500
-In-Reply-To: <412e6f7f0911292039v74b89b4cieca5e2a043bad43d@mail.gmail.com>
+Received: from mail-pw0-f42.google.com ([209.85.160.42]:50787 "EHLO
+	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753619AbZLAJ3j convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 1 Dec 2009 04:29:39 -0500
+Received: by pwi3 with SMTP id 3so2437846pwi.21
+        for <netfilter-devel@vger.kernel.org>; Tue, 01 Dec 2009 01:29:46 -0800 (PST)
+In-Reply-To: <alpine.DEB.2.00.0912010940390.575@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 30 Nov 2009, Changli Gao wrote:
+On Tue, Dec 1, 2009 at 5:14 PM, Jozsef Kadlecsik
+<kadlec@blackhole.kfki.hu> wrote:
+> On Mon, 30 Nov 2009, Changli Gao wrote:
+>
+>> Think about this topologic:
+>>
+>> Attacker -> router1 -> router2 -> ... -> Linux Router -> Apache.
+>>
+>> the packets in the other direction won't be sent to the Linux Router=
+,
+>> as the other routers will routed them to the other place.
+>
+> Sorry, I don't get it.
 
-> Think about this topologic:
-> 
-> Attacker -> router1 -> router2 -> ... -> Linux Router -> Apache.
-> 
-> the packets in the other direction won't be sent to the Linux Router,
-> as the other routers will routed them to the other place.
+There is a assumption: the final receiver doesn't reply any packet for
+this packet in the invalid state.
 
-Sorry, I don't get it. 
-
-If the attacker forges the source IP of the packet so that Apache thinks 
-it's a local machine from its own point of view and answers it on the LAN, 
-then that's the fault of the Linux Router operator: ingress and egress 
-filtering is a must, period.
-
-If the attacker forges the source IP of the packet otherwise so that 
-Apache thinks it's a non local machine, then Apache will send the answer 
-via the Linux Router regardless of the routing table of any router out 
-there.
- 
-> Case 2:
-> 
-> Attacker ---+
->                 +-- Linux Router --> WAN
-> Victim-------+
-> 
-> If we do sth. like RPF before entering conntrack, the packets in the
-> other direction won't be in.
-
-Here again I don't understand it completely: if there's an attacker on the 
-LAN, then the point is not to mitigate the load for the Linux Router but 
-first to find the attacker and then to prevent source IP forging.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+--=20
+Regards=EF=BC=8C
+Changli Gao(xiaosuo@gmail.com)
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
