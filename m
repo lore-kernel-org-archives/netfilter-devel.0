@@ -1,52 +1,60 @@
-From: Changli Gao <xiaosuo@gmail.com>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: Add seperated timeout for the connections that only receive
-	packets in one direction
-Date: Tue, 1 Dec 2009 09:26:39 +0800
-Message-ID: <412e6f7f0911301726w654e8075v4a802cb8437938dd@mail.gmail.com>
-References: <4B0FA3AA.4070702@trash.net> <4B0FBC5F.8030108@trash.net>
-	 <412e6f7f0911292039v74b89b4cieca5e2a043bad43d@mail.gmail.com>
-	 <4B13A80C.6070607@trash.net>
+ packets in one direction
+Date: Tue, 1 Dec 2009 10:14:21 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.0912010940390.575@blackhole.kfki.hu>
+References: <4B0FA3AA.4070702@trash.net> <4B0FBC5F.8030108@trash.net> <412e6f7f0911292039v74b89b4cieca5e2a043bad43d@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: Changli Gao <xiaosuo@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pw0-f42.google.com ([209.85.160.42]:50825 "EHLO
-	mail-pw0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750937AbZLAB0c convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 30 Nov 2009 20:26:32 -0500
-Received: by pwi3 with SMTP id 3so2207711pwi.21
-        for <netfilter-devel@vger.kernel.org>; Mon, 30 Nov 2009 17:26:39 -0800 (PST)
-In-Reply-To: <4B13A80C.6070607@trash.net>
+Received: from smtp-in.kfki.hu ([148.6.0.25]:54643 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753389AbZLAJOQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 1 Dec 2009 04:14:16 -0500
+In-Reply-To: <412e6f7f0911292039v74b89b4cieca5e2a043bad43d@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Nov 30, 2009 at 7:10 PM, Patrick McHardy <kaber@trash.net> wrot=
-e:
-> Changli Gao wrote:
->> Case 2:
->>
->> Attacker ---+
->> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 +-- Linux Ro=
-uter --> WAN
->> Victim-------+
->>
->> If we do sth. like RPF before entering conntrack, the packets in the
->> other direction won't be in.
->
-> RPF doesn't help since its also done after conntrack.
->
+On Mon, 30 Nov 2009, Changli Gao wrote:
 
-I didn't mean RPF. I meaned some other thing like RPF before conntrack.
+> Think about this topologic:
+> 
+> Attacker -> router1 -> router2 -> ... -> Linux Router -> Apache.
+> 
+> the packets in the other direction won't be sent to the Linux Router,
+> as the other routers will routed them to the other place.
 
---=20
-Regards=EF=BC=8C
-Changli Gao(xiaosuo@gmail.com)
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Sorry, I don't get it. 
+
+If the attacker forges the source IP of the packet so that Apache thinks 
+it's a local machine from its own point of view and answers it on the LAN, 
+then that's the fault of the Linux Router operator: ingress and egress 
+filtering is a must, period.
+
+If the attacker forges the source IP of the packet otherwise so that 
+Apache thinks it's a non local machine, then Apache will send the answer 
+via the Linux Router regardless of the routing table of any router out 
+there.
+ 
+> Case 2:
+> 
+> Attacker ---+
+>                 +-- Linux Router --> WAN
+> Victim-------+
+> 
+> If we do sth. like RPF before entering conntrack, the packets in the
+> other direction won't be in.
+
+Here again I don't understand it completely: if there's an attacker on the 
+LAN, then the point is not to mitigate the load for the Linux Router but 
+first to find the attacker and then to prevent source IP forging.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
