@@ -1,41 +1,60 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: nflog_bind_group() question
-Date: Tue, 01 Dec 2009 11:49:10 +0100
-Message-ID: <4B14F4A6.1040306@trash.net>
-References: <30defc5b0912010244i385afe45gac6bc521c19a75da@mail.gmail.com>
+From: dansirbu101@yahoo.ca
+Subject: postrouting - it fails after change pkt via libipq
+Date: Wed, 2 Dec 2009 14:06:16 -0800 (PST)
+Message-ID: <577596.29550.qm@web51106.mail.re2.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	vuurmuur-devel@lists.sourceforge.net
-To: Fred Leeflang <fredl@dutchie.org>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:40536 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752801AbZLAKtH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 1 Dec 2009 05:49:07 -0500
-In-Reply-To: <30defc5b0912010244i385afe45gac6bc521c19a75da@mail.gmail.com>
+Received: from web51106.mail.re2.yahoo.com ([206.190.38.148]:23043 "HELO
+	web51106.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751988AbZLBWGK convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 2 Dec 2009 17:06:10 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Fred Leeflang wrote:
-> Hi devs,
-> 
-> We've recently implemented NFLOG support in vuurmuur, I've written an
-> article on the effort here
-> http://wordpress.3dn.nl/2009/11/25/iptabes-nflog-support-in-vuurmuur/
-> 
-> I'm curious about something I found out in the process. I've had
-> ulogd2 running alongside vuurmuur for a while and configured it to
-> listen to a specific nflog-group. When I had ulogd2 running I would
-> not be able to run vuurmuur_log which also listens to an nflog-group.
-> It took me a while to realize that it would not work because of having
-> ulogd2 running and both trying to listen to the SAME nflog-group.
-> 
-> Does this mean that it's not possible for two applications at the same
-> time to get netfilter_log messages from the same nflog-group?
+Hi,
 
-That is correct, nfnetlink_log uses unicast messages to the process
-bound to the group. I'd also prefer if we had used multicast messaging,
-but that can't be easily changed now.
+=A0=A0=A0 I have wrote a program to handle some IP packets using libipq=
+ (linux 2.6.10 / iptables 1.3.3).
+=A0=A0 =A0So I setup the NAT table with :
+
+iptables -t nat -I PREROUTING -p sctp -j QUEUE
+iptables -t nat -I POSTROUTING -p sctp -j QUEUE
+
+=A0=A0=A0 The incoming packet go OK through my user space program and h=
+ave the DST address changed to get forwarded to the server location. No=
+w the server replies back, the rsp packet arrives within the POSTROUTIN=
+G rule and gets sent by the kernel to my userspace program.
+=A0=A0=A0=A0=A0Userspace program=A0applies the required changes - meani=
+ng=A0it changes the SRC address and sends it back to the kernel. The ip=
+_set_verdict response > 0 =3D> which means success.
+=A0=A0=A0=A0 So far so good.
+
+=A0=A0=A0=A0 The problem is that the mangled packet does not come out .=
+=2E... (tcpdump does not capture it neither on the local machine neithe=
+r on the receiver machine) !=20
+=A0=A0=A0=A0 So to me is like the kernel is "dropping" the=A0packet ...=
+=2E..
+
+=A0=A0=A0=A0=A0 Any idea how can I debug this ?!?
+=A0=A0=A0=A0 =A0I have no option to upgrade to a latest linux kernel - =
+unfortunately.=A0
+
+BR,
+Dan S.
+
+
+
+      _________________________________________________________________=
+_
+The new Internet Explorer=AE 8 - Faster, safer, easier.  Optimized for =
+Yahoo!  Get it Now for Free! at http://downloads.yahoo.com/ca/internete=
+xplorer/
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
