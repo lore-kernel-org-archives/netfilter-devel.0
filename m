@@ -1,60 +1,28 @@
-From: dansirbu101@yahoo.ca
-Subject: postrouting - it fails after change pkt via libipq
-Date: Wed, 2 Dec 2009 14:06:16 -0800 (PST)
-Message-ID: <577596.29550.qm@web51106.mail.re2.yahoo.com>
+From: Wiktor Kolodziej <wiktor@zhr.pl>
+Subject: [xtables-addons] extensions in a non-modular kernel
+Date: Thu, 3 Dec 2009 11:54:38 +0100
+Message-ID: <6fbd78aa0912030254p2382b23do6bc7a8700a013e47@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org, netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from web51106.mail.re2.yahoo.com ([206.190.38.148]:23043 "HELO
-	web51106.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751988AbZLBWGK convert rfc822-to-8bit
-	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Dec 2009 17:06:10 -0500
+Received: from mail-yw0-f182.google.com ([209.85.211.182]:57373 "EHLO
+	mail-yw0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754040AbZLCKyc (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 3 Dec 2009 05:54:32 -0500
+Received: by ywh12 with SMTP id 12so1293608ywh.21
+        for <netfilter-devel@vger.kernel.org>; Thu, 03 Dec 2009 02:54:38 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Hello,
 
-=A0=A0=A0 I have wrote a program to handle some IP packets using libipq=
- (linux 2.6.10 / iptables 1.3.3).
-=A0=A0 =A0So I setup the NAT table with :
+Is there any easy way to compile extensions into a non-modular kernel?
 
-iptables -t nat -I PREROUTING -p sctp -j QUEUE
-iptables -t nat -I POSTROUTING -p sctp -j QUEUE
+I've found in Jan's "An Introduction to Xtables-addons" that this is
+possible, but can you please give me some more info how to do it?
+What do you mean by "editing some kernel Makefile to descend into
+xtables-addons/extensions" ?
 
-=A0=A0=A0 The incoming packet go OK through my user space program and h=
-ave the DST address changed to get forwarded to the server location. No=
-w the server replies back, the rsp packet arrives within the POSTROUTIN=
-G rule and gets sent by the kernel to my userspace program.
-=A0=A0=A0=A0=A0Userspace program=A0applies the required changes - meani=
-ng=A0it changes the SRC address and sends it back to the kernel. The ip=
-_set_verdict response > 0 =3D> which means success.
-=A0=A0=A0=A0 So far so good.
-
-=A0=A0=A0=A0 The problem is that the mangled packet does not come out .=
-=2E... (tcpdump does not capture it neither on the local machine neithe=
-r on the receiver machine) !=20
-=A0=A0=A0=A0 So to me is like the kernel is "dropping" the=A0packet ...=
-=2E..
-
-=A0=A0=A0=A0=A0 Any idea how can I debug this ?!?
-=A0=A0=A0=A0 =A0I have no option to upgrade to a latest linux kernel - =
-unfortunately.=A0
-
-BR,
-Dan S.
-
-
-
-      _________________________________________________________________=
-_
-The new Internet Explorer=AE 8 - Faster, safer, easier.  Optimized for =
-Yahoo!  Get it Now for Free! at http://downloads.yahoo.com/ca/internete=
-xplorer/
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Wiktor
