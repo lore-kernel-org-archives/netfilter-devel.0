@@ -1,79 +1,26 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 04/08: nf_nat_helper: tidy up adjust_tcp_sequence
-Date: Thu,  3 Dec 2009 21:19:37 +0100 (MET)
-Message-ID: <20091203201936.8831.52977.sendpatchset@x2.localnet>
+From: David Miller <davem@davemloft.net>
+Subject: Re: netfilter 00/08: Netfilter Update
+Date: Thu, 03 Dec 2009 13:00:35 -0800 (PST)
+Message-ID: <20091203.130035.01303942.davem@davemloft.net>
 References: <20091203201931.8831.92922.sendpatchset@x2.localnet>
-Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org
-To: davem@davemloft.net
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:37701 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754623AbZLCUTb (ORCPT
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:42219
+	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751429AbZLCVA2 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Dec 2009 15:19:31 -0500
+	Thu, 3 Dec 2009 16:00:28 -0500
 In-Reply-To: <20091203201931.8831.92922.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 76ac894080019c6619d3c3bf615db42a43a77f32
-Author: Hannes Eder <heder@google.com>
-Date:   Thu Nov 5 15:51:19 2009 +0100
+From: Patrick McHardy <kaber@trash.net>
+Date: Thu,  3 Dec 2009 21:19:32 +0100 (MET)
 
-    netfilter: nf_nat_helper: tidy up adjust_tcp_sequence
-    
-    The variable 'other_way' gets initialized but is not read afterwards,
-    so remove it.  Pass the right arguments to a pr_debug call.
-    
-    While being at tidy up a bit and it fix this checkpatch warning:
-      WARNING: suspect code indent for conditional statements
-    
-    Signed-off-by: Hannes Eder <heder@google.com>
-    Signed-off-by: Patrick McHardy <kaber@trash.net>
+> following is a small netfilter update for 2.6.32, containing:
 
-diff --git a/net/ipv4/netfilter/nf_nat_helper.c b/net/ipv4/netfilter/nf_nat_helper.c
-index 09172a6..5bf6a92 100644
---- a/net/ipv4/netfilter/nf_nat_helper.c
-+++ b/net/ipv4/netfilter/nf_nat_helper.c
-@@ -41,18 +41,14 @@ adjust_tcp_sequence(u32 seq,
- 		    struct nf_conn *ct,
- 		    enum ip_conntrack_info ctinfo)
- {
--	int dir;
--	struct nf_nat_seq *this_way, *other_way;
-+	enum ip_conntrack_dir dir = CTINFO2DIR(ctinfo);
- 	struct nf_conn_nat *nat = nfct_nat(ct);
-+	struct nf_nat_seq *this_way = &nat->seq[dir];
- 
--	pr_debug("adjust_tcp_sequence: seq = %u, sizediff = %d\n", seq, seq);
--
--	dir = CTINFO2DIR(ctinfo);
--
--	this_way = &nat->seq[dir];
--	other_way = &nat->seq[!dir];
-+	pr_debug("adjust_tcp_sequence: seq = %u, sizediff = %d\n",
-+		 seq, sizediff);
- 
--	pr_debug("nf_nat_resize_packet: Seq_offset before: ");
-+	pr_debug("adjust_tcp_sequence: Seq_offset before: ");
- 	DUMP_OFFSET(this_way);
- 
- 	spin_lock_bh(&nf_nat_seqofs_lock);
-@@ -63,13 +59,13 @@ adjust_tcp_sequence(u32 seq,
- 	 * retransmit */
- 	if (this_way->offset_before == this_way->offset_after ||
- 	    before(this_way->correction_pos, seq)) {
--		   this_way->correction_pos = seq;
--		   this_way->offset_before = this_way->offset_after;
--		   this_way->offset_after += sizediff;
-+		this_way->correction_pos = seq;
-+		this_way->offset_before = this_way->offset_after;
-+		this_way->offset_after += sizediff;
- 	}
- 	spin_unlock_bh(&nf_nat_seqofs_lock);
- 
--	pr_debug("nf_nat_resize_packet: Seq_offset after: ");
-+	pr_debug("adjust_tcp_sequence: Seq_offset after: ");
- 	DUMP_OFFSET(this_way);
- }
- 
+2.6.32 was just released, surely you mean 2.6.33 :-)
