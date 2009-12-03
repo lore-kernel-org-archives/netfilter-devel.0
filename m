@@ -1,28 +1,92 @@
-From: Wiktor Kolodziej <wiktor@zhr.pl>
-Subject: [xtables-addons] extensions in a non-modular kernel
-Date: Thu, 3 Dec 2009 11:54:38 +0100
-Message-ID: <6fbd78aa0912030254p2382b23do6bc7a8700a013e47@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yw0-f182.google.com ([209.85.211.182]:57373 "EHLO
-	mail-yw0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754040AbZLCKyc (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 3 Dec 2009 05:54:32 -0500
-Received: by ywh12 with SMTP id 12so1293608ywh.21
-        for <netfilter-devel@vger.kernel.org>; Thu, 03 Dec 2009 02:54:38 -0800 (PST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: netfilter 00/08: Netfilter Update
+Date: Thu,  3 Dec 2009 21:19:32 +0100 (MET)
+Message-ID: <20091203201931.8831.92922.sendpatchset@x2.localnet>
+Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org
+To: davem@davemloft.net
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hello,
+Hi Dave,
 
-Is there any easy way to compile extensions into a non-modular kernel?
+following is a small netfilter update for 2.6.32, containing:
 
-I've found in Jan's "An Introduction to Xtables-addons" that this is
-possible, but can you please give me some more info how to do it?
-What do you mean by "editing some kernel Makefile to descend into
-xtables-addons/extensions" ?
+- various cleanups by Changli Gao, Hannes Eder and Joe Perches
 
-Wiktor
+- a patch from Pablo to improve TCP window tracking behaviour
+  when connection tracking is out-of-sync with the connection
+  endpoints.
+
+- INPUT chain support for the xt_socket match
+
+- a fix for dumping the revision 1 data of the conntrack match
+  by Florian Westphal.
+
+- Removal of some unnecessary code by myself and Eric
+
+Please apply or pull from:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git master
+
+Thanks!
+
+
+ include/linux/netfilter/nf_conntrack_tcp.h     |    3 +
+ net/ipv4/netfilter/arp_tables.c                |   22 ++++----
+ net/ipv4/netfilter/ip_queue.c                  |    5 +-
+ net/ipv4/netfilter/ip_tables.c                 |   46 +++++++++---------
+ net/ipv4/netfilter/ipt_CLUSTERIP.c             |   20 ++++----
+ net/ipv4/netfilter/ipt_ECN.c                   |    8 ++--
+ net/ipv4/netfilter/ipt_LOG.c                   |   22 ++++----
+ net/ipv4/netfilter/ipt_MASQUERADE.c            |    4 +-
+ net/ipv4/netfilter/ipt_REJECT.c                |    4 +-
+ net/ipv4/netfilter/ipt_ULOG.c                  |    6 +-
+ net/ipv4/netfilter/ipt_ecn.c                   |    4 +-
+ net/ipv4/netfilter/iptable_mangle.c            |    4 +-
+ net/ipv4/netfilter/iptable_security.c          |    4 +-
+ net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |   28 +++++-----
+ net/ipv4/netfilter/nf_nat_helper.c             |   22 ++++-----
+ net/ipv4/netfilter/nf_nat_standalone.c         |   10 ++--
+ net/ipv6/netfilter/ip6_queue.c                 |    5 +-
+ net/ipv6/netfilter/ip6_tables.c                |   42 ++++++++--------
+ net/ipv6/netfilter/ip6t_LOG.c                  |    4 +-
+ net/ipv6/netfilter/ip6t_REJECT.c               |    4 +-
+ net/ipv6/netfilter/ip6t_ah.c                   |   19 +++----
+ net/ipv6/netfilter/ip6t_frag.c                 |   47 ++++++++----------
+ net/ipv6/netfilter/ip6t_rt.c                   |    9 +--
+ net/ipv6/netfilter/ip6table_filter.c           |    4 +-
+ net/ipv6/netfilter/ip6table_mangle.c           |   14 +++---
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |   12 ++--
+ net/netfilter/nf_conntrack_core.c              |   14 ++++--
+ net/netfilter/nf_conntrack_proto_tcp.c         |   51 ++++++++++++++++----
+ net/netfilter/nfnetlink_log.c                  |    3 +-
+ net/netfilter/nfnetlink_queue.c                |    3 +-
+ net/netfilter/xt_conntrack.c                   |   61 +++++++-----------------
+ net/netfilter/xt_socket.c                      |    6 ++-
+ 32 files changed, 253 insertions(+), 257 deletions(-)
+
+Changli Gao (1):
+      netfilter: nf_conntrack: avoid additional compare.
+
+Eric Dumazet (1):
+      netfilter: remove synchronize_net() calls in ip_queue/ip6_queue
+
+Florian Westphal (1):
+      netfilter: xtables: fix conntrack match v1 ipt-save output
+
+Hannes Eder (1):
+      netfilter: nf_nat_helper: tidy up adjust_tcp_sequence
+
+Jan Engelhardt (1):
+      netfilter: xt_socket: make module available for INPUT chain
+
+Joe Perches (1):
+      netfilter: net/ipv[46]/netfilter: Move && and || to end of previous line
+
+Pablo Neira Ayuso (1):
+      netfilter: nf_ct_tcp: improve out-of-sync situation in TCP tracking
+
+Patrick McHardy (1):
+      netfilter: remove unneccessary checks from netlink notifiers
