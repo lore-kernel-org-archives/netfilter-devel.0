@@ -1,63 +1,41 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: SNMP conntrack module a la netbios_ns
-Date: Fri, 04 Dec 2009 11:22:21 +0100
-Message-ID: <4B18E2DD.1090405@trash.net>
-References: <1259920389.2510.30.camel@localhost.localdomain> <4B18E270.8090408@trash.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: stomping static data pull
+Date: Fri, 4 Dec 2009 13:06:47 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.0912041305280.23887@obet.zrqbmnf.qr>
+References: <1255166535-6386-1-git-send-email-jengelh@medozas.de> <4AE869FB.1000506@trash.net> <alpine.LSU.2.00.0910281817210.15948@obet.zrqbmnf.qr> <4AE9BBFE.400@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter@vger.kernel.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Tim Waugh <twaugh@redhat.com>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <4B18E270.8090408@trash.net>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from borg.medozas.de ([188.40.89.202]:43249 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756016AbZLDMGm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 4 Dec 2009 07:06:42 -0500
+In-Reply-To: <4AE9BBFE.400@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy wrote:
-> [netfilter-devel is the correct list for development questions, CCed]
-> 
-> Tim Waugh wrote:
->> I maintain the printing stack for Fedora and Red Hat Enterprise Linux,
->> and I've become aware of a need for another conntrack module very
->> similar to nf_conntrack_netbios_ns.
->>
->> When CUPS searches for network printers it issues an SNMP broadcast
->> query from a random source port and to the SNMP destination port, and
->> waits for (unicast) replies from printers, following up each reply with
->> a set of unicast SNMP queries.
->>
->> The problem is that the iptables rules discard the replies to the
->> initial broadcast query.
->>
->> It looks like a conntrack module is what's needed to fix the problem,
->> and the netbios_ns module very nearly solves it: the only changes I can
->> see would be needed are the port number and the maximum number of
->> expected replies.
-> 
-> Yes, I think Samir Bellabes mentioned this as well back when I added
-> that module.
-> 
->> Is this something that warrants a more generic module so that code can
->> be shared between them, or would it be better to just copy the code and
->> make the changes?
-> 
-> The best solution would be to add generic broadcast tracking, the
-> use of expectations for this is a bit of abuse.
-> 
-> The second best choice I guess would be to move the help() function
-> to a shared module and generalize it so it can be used for both.
-> Basically I think it would come down to changing:
-> 
-> exp->tuple.dst.u.udp.port = htons(NMBD_PORT);
-> 
-> to:
-> 
-> struct nf_conn_help *help = nfct_help(ct);
-> ...
-> exp->tuple.dst.u.udp.port = help->helper->tuple.src.u.udp.port;
+On Thursday 2009-10-29 16:59, Patrick McHardy wrote:
+>> On Wednesday 2009-10-28 16:57, Patrick McHardy wrote:
+>>> Jan Engelhardt wrote:
+>>>> I incorporated your suggestions and propose this new 4-series set.
+>>> Could you give me a short description of the changes relative
+>>> to the first incarnation? Thanks.
+>> 
+>> http://osdir.com/ml/general/2009-08/msg10540.html
+>> - splitting xt_repldata_create
+>> - giving it a name of your choice
+>> - return semantics (found a missing return keyword; just refreshed top 
+>> is commit v2.6.32-rc3-4-g7891b6c)
+>> 
+>
+>OK thanks, that leaves my worries about adding additional runtime
+>overhead. I'll do some quick benchmarks to see if it really has
+>a measurable impact.
+>
+How would one measure this in a meaningful way? rdtsc? (that would only 
+work on x86, in fact.)
 
-There is one problem however, we already have the SNMP NAT helper,
-which also registers for the SNMP port. Those would clash if you
-add a second registration.
+And I guess that one could 
+always construct a case whereby the patched result looks 'slow'. :/
