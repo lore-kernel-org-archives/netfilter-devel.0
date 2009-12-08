@@ -1,47 +1,37 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: netfilter: xtables: document minimal required version
-Date: Tue, 8 Dec 2009 10:52:15 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.0912081051350.15041@obet.zrqbmnf.qr>
+Subject: Re: [xtables-addons] extensions in a non-modular kernel
+Date: Tue, 8 Dec 2009 10:59:49 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.0912081057250.15262@obet.zrqbmnf.qr>
+References: <6fbd78aa0912030254p2382b23do6bc7a8700a013e47@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
+Cc: netfilter-devel@vger.kernel.org
+To: Wiktor Kolodziej <wiktor@zhr.pl>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:60077 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:55765 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753071AbZLHJwK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Dec 2009 04:52:10 -0500
+	id S1752688AbZLHJ7n (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 8 Dec 2009 04:59:43 -0500
+In-Reply-To: <6fbd78aa0912030254p2382b23do6bc7a8700a013e47@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-For both .33 and .32-stable.
+On Thursday 2009-12-03 11:54, Wiktor Kolodziej wrote:
 
----
-parent 22763c5cf3690a681551162c15d34d935308c8d7 (v2.6.32)
-commit 49313cdac7b34c9f7ecbb1780cfc648b1c082cd7
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Tue Dec 8 10:51:25 2009 +0100
+>Is there any easy way to compile extensions into a non-modular kernel?
 
-netfilter: xtables: document minimal required version
+Depends on the definition of easy.
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- Documentation/Changes |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+>I've found in Jan's "An Introduction to Xtables-addons" that this is
+>possible, but can you please give me some more info how to do it?
+>What do you mean by "editing some kernel Makefile to descend into
+>xtables-addons/extensions" ?
 
-diff --git a/Documentation/Changes b/Documentation/Changes
-index 6d0f1ef..f08b313 100644
---- a/Documentation/Changes
-+++ b/Documentation/Changes
-@@ -49,6 +49,8 @@ o  oprofile               0.9                     # oprofiled --version
- o  udev                   081                     # udevinfo -V
- o  grub                   0.93                    # grub --version
- o  mcelog		  0.6
-+o  iptables               1.4.1                   # iptables -V
-+
- 
- Kernel compilation
- ==================
--- 
-# Created with git-export-patch
+ln -s ~/xtables-addons ~/linux/net/netfilter/
+echo "obj-y += xtables-addons/extensions/" 
+	>>~/linux/net/netfilter/Makefile
+
+Granted it does not stop there, one needs to modify extensions/Kbuild 
+because it depends on symbols from mconfig (oh my) which would need to
+be exchanged to obj-y or something.
 
