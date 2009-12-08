@@ -1,38 +1,47 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [patch] ipvs: fwmark services don't have ports
-Date: Mon, 7 Dec 2009 19:48:00 +1100
-Message-ID: <20091207084800.GA9529@verge.net.au>
-References: <20091207035505.GC419@verge.net.au>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: netfilter: xtables: document minimal required version
+Date: Tue, 8 Dec 2009 10:52:15 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.0912081051350.15041@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Deon van der Merwe <dvdm@truteq.co.za>,
-	Julian Anastasov <ja@ssi.bg>, Patrick McHardy <kaber@trash.net>
-To: lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20091207035505.GC419@verge.net.au>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: kaber@trash.net
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from borg.medozas.de ([188.40.89.202]:60077 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753071AbZLHJwK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 8 Dec 2009 04:52:10 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Dec 07, 2009 at 02:55:05PM +1100, Simon Horman wrote:
-> Make sure that the port for fwmark services is always zero, it seems that
-> in some cases ipvsadm provides bogus port values for fwmark services.  As
-> observed by Deon van der Merwe, this manifests as a clients not being able
-> to connect to the virtual service if persistence is set.
-> 
-> Tested-by: Deon van der Merwe <dvdm@truteq.co.za>
-> Signed-off-by: Simon Horman <horms@verge.net.au>
-> 
-> --- 
-> 
-> I believe that this fixes a bug and as such is suitable for -stable.
-> However, Its taken a few release for anyone to bring this to our attention,
-> so it doesn't seem to be causing much pain in the wild.
-> 
-> Discussion of this problem:
-> http://archive.linuxvirtualserver.org/html/lvs-users/2009-11/msg00043.html
+For both .33 and .32-stable.
 
-Sorry for the noise. Please hold on this.
-There is still not consensus in the original thread.
+---
+parent 22763c5cf3690a681551162c15d34d935308c8d7 (v2.6.32)
+commit 49313cdac7b34c9f7ecbb1780cfc648b1c082cd7
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Tue Dec 8 10:51:25 2009 +0100
+
+netfilter: xtables: document minimal required version
+
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ Documentation/Changes |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/Documentation/Changes b/Documentation/Changes
+index 6d0f1ef..f08b313 100644
+--- a/Documentation/Changes
++++ b/Documentation/Changes
+@@ -49,6 +49,8 @@ o  oprofile               0.9                     # oprofiled --version
+ o  udev                   081                     # udevinfo -V
+ o  grub                   0.93                    # grub --version
+ o  mcelog		  0.6
++o  iptables               1.4.1                   # iptables -V
++
+ 
+ Kernel compilation
+ ==================
+-- 
+# Created with git-export-patch
 
