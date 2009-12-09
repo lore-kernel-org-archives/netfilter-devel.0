@@ -1,99 +1,49 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [ANNOUNCE]: Release of iptables-1.4.6
-Date: Wed, 09 Dec 2009 15:48:08 +0100
-Message-ID: <4B1FB8A8.10505@trash.net>
+From: Aviad Lahav <aviad.lahav@gmail.com>
+Subject: Netfilter injects network headers
+Date: Wed, 9 Dec 2009 18:50:32 +0200
+Message-ID: <85ce6a220912090850n2bc9827sfd90a82e7be6b587@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------040609050500060703000306"
-Cc: Linux Netdev List <netdev@vger.kernel.org>,
-	"'netfilter@vger.kernel.org'" <netfilter@vger.kernel.org>,
-	netfilter-announce@lists.netfilter.org
-To: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-owner@vger.kernel.org>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ew0-f209.google.com ([209.85.219.209]:41456 "EHLO
+	mail-ew0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750745AbZLIQub (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 9 Dec 2009 11:50:31 -0500
+Received: by ewy1 with SMTP id 1so4491308ewy.28
+        for <netfilter-devel@vger.kernel.org>; Wed, 09 Dec 2009 08:50:35 -0800 (PST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------040609050500060703000306
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-
-The netfilter coreteam presents:
-
-    iptables version 1.4.6
-
-the iptables release for the 2.6.32 kernel. Changes include:
-
-- manpage updates
-
-- multiple smaller fixes for xt_iprange, xt_conntrack, iptables
-  rule deletion and replacement, inverted argument parsing
-
-- addition of the xt_osf extension
-
-- code cleanups
-
-See the changelog for more details.
-
-Version 1.4.6 can be obtained from:
-
-http://www.netfilter.org/projects/iptables/downloads.html
-ftp://ftp.netfilter.org/pub/iptables/
-git://git.netfilter.org/iptables.git
-
-On behalf of the Netfilter Core Team.
-Happy firewalling!
-
---------------040609050500060703000306
-Content-Type: text/plain;
- name="changes-iptables-1.4.6.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="changes-iptables-1.4.6.txt"
-
-Jan Engelhardt (20):
-      iptables: manpage updates for augmented -Z syntax
-      doc: mention maximum mark size in manpages
-      Support for nommu arches
-      realm: remove static initializations
-      libiptc: remove unused functions
-      libiptc: avoid strict-aliasing warnings
-      iprange: do accept non-ranges for xt_iprange v1
-      iprange: warn on reverse range
-      iprange: roll address parsing into a loop
-      iprange: do accept non-ranges for xt_iprange v1 (log)
-      iprange: warn on reverse range (log)
-      libiptc: fix wrong maptype of base chain counters on restore
-      iptables: fix undersized deletion mask creation
-      style: reduce indent in xtables_check_inverse
-      libxtables: hand argv to xtables_check_inverse
-      iptables/extensions: make bundled options work again
-      CONNMARK: print mark rules with mask 0xffffffff as set instead of xset
-      iptables: take masks into consideration for replace command
-      doc: explain experienced --hitcount limit
-      doc: name resolution clarification
-
-Mohit Mehta (1):
-      iptables: expose option to zero packet/byte counters for a specific rule
-
-Olaf Rempel (1):
-      build: restore --disable-ipv6 functionality on system w/o v6 headers
-
-Patrick McHardy (7):
-      Merge branch 'zero' of git://dev.medozas.de/iptables
-      MARK: print mark rules with mask 0xffffffff as --set-mark instead of --set-xmark
-      DNAT: fix incorrect check during parsing
-      extensions: add osf extension
-      conntrack: fix --expires parsing
-      Merge branch 'master' of git://dev.medozas.de/iptables
-      Bump version to v1.4.6
-
-Tim Small (1):
-      doc: update TCPMSS manpage with Linux 2.6.25 changes
-
-sobtwmxt (1):
-      doc: fix typo in length manpage
+Hi all,
+I've posted this to the netfilter-users but got no response, hope I
+can get more help here.
 
 
---------------040609050500060703000306--
+I'm trying to set up an SSL transparent proxy, and I've seen very
+bizarre behavior on my system.
+I've added two NAT rules to  the PREROUTING chain, looking like this:
+
+# iptables -L -v -t nat
+Chain PREROUTING (policy ACCEPT 561 packets, 70236 bytes)
+ pkts bytes target     prot opt in     out     source               destination
+   20  1280 REDIRECT   tcp  --  ppp0   any     anywhere
+anywhere            tcp dpt:4309 redir ports 4443
+    8   512 REDIRECT   tcp  --  ppp0   any     anywhere
+anywhere            tcp dpt:https redir ports 4443
+
+So I've got a listener on port 4443, accepting connections from both
+ports 443 and 4309.
+When I'm doing the first recv() in my accepting server, I get the
+incoming connections to port 443 very well, BUT:
+Incoming connections to port 4309 gets *3 extra bytes* in the
+beginning of the connection (maybe also to subsequent packets, but I
+haven't had the chance to see this data yet...()
+
+The first 3 bytes I'm getting is:
+0x00 0x01 0x05
+
+My machine is an up-to-date Ubuntu 9.10 (karmic), and the packets are
+coming from a client connected thru pptpd.
+Anyone has a clue?
