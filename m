@@ -1,45 +1,80 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH] netfilter: Fix compiler warning.
-Date: Thu, 10 Dec 2009 20:31:52 +0100
-Message-ID: <4B214CA8.7010902@gmail.com>
-References: <pvmhbrzboyb.fsf@chavey.mtv.corp.google.com> <4B207840.7080603@gmail.com> <97949e3e0912100950u51f627c9r515d9b69a02430f4@mail.gmail.com> <alpine.LSU.2.01.0912101953360.23791@obet.zrqbmnf.qr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Laurent Chavey <chavey@google.com>, davem@davemloft.net,
-	netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	Netfilter Developers <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+From: chavey@google.com
+Subject: [PATCH] netfilter: Fix compiler warning.
+Date: Thu, 10 Dec 2009 13:44:50 -0800
+Message-ID: <pvmein2bj1p.fsf@chavey.mtv.corp.google.com>
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	chavey@google.com, eric.dumazet@gmail.com, akpm@google.com
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from gw1.cosmosbay.com ([212.99.114.194]:46240 "EHLO
-	gw1.cosmosbay.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752112AbZLJTb5 (ORCPT
+Received: from smtp-out.google.com ([216.239.45.13]:41693 "EHLO
+	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761709AbZLJVow (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Dec 2009 14:31:57 -0500
-In-Reply-To: <alpine.LSU.2.01.0912101953360.23791@obet.zrqbmnf.qr>
+	Thu, 10 Dec 2009 16:44:52 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le 10/12/2009 19:53, Jan Engelhardt a =E9crit :
->=20
-> On Donnerstag 2009-12-10 18:50, Laurent Chavey wrote:
->>
->> good point.  I  agree with the need for the exception, I would just
->> like it to be more explicit in the code itself (like a turn off
->> check around that particular statement) so we do not have to scrub
->> thru the compiler output to filter out good / bad warning. question:
->>  why do we not force the timestamp in the skb before going thru the
->> chain ?
->=20
-> Because it is probably too expensive to do, unless you employ
-> things like xt_time?
+Fix compiler warning "discards qualifiers from pointer target type",
+by allowing explicit discard of const qualifier thru type casting.
+The const_cast() macro is taken from a patch from Kaveh R. Ghazi
+[PATCH]: Fix problematic -Wcast-qual cases using new CONST_CAST macro
+posted on 
+http://old.nabble.com/-PATCH-:-Fix-problematic--Wcast-qual-cases-using-new-CONST_CAST--macro-td11824676.html
+The proposed __nowarn__ keyword has not yet been implemented, 
+(see http://gcc.gnu.org/ml/gcc-patches/2009-11/msg01261.html).
 
-Right. On some platforms, timestamps are quite expensive (say, a fracti=
-on=20
-of one micro second to get one of them), we try to avoid them as much a=
-s possible.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+Signed-off-by: Laurent Chavey <chavey@google.com>
+---
+ include/linux/kernel.h        |   12 ++++++++++++
+ net/ipv4/netfilter/ipt_ULOG.c |    2 +-
+ net/netfilter/xt_time.c       |    2 +-
+ 3 files changed, 14 insertions(+), 2 deletions(-)
+
+diff --git a/include/linux/kernel.h b/include/linux/kernel.h
+index 3fa4c59..0246771 100644
+--- a/include/linux/kernel.h
++++ b/include/linux/kernel.h
+@@ -710,4 +710,16 @@ struct sysinfo {
+ # define REBUILD_DUE_TO_FTRACE_MCOUNT_RECORD
+ #endif
+ 
++/* Cast away const-ness to pass -Wcast-qual */
++#ifdef __GNUC__
++union gcc_constcast
++{
++	const void *cv;
++	void *v;
++};
++#define const_cast(X) ((__extension__(union gcc_constcast)(const void *)(X)).v)
++#else
++#define const_cast(X) ((void *)(X))
++#endif
++
+ #endif
+diff --git a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
+index d32cc4b..c8f8b8b 100644
+--- a/net/ipv4/netfilter/ipt_ULOG.c
++++ b/net/ipv4/netfilter/ipt_ULOG.c
+@@ -210,7 +210,7 @@ static void ipt_ulog_packet(unsigned int hooknum,
+ 
+ 	/* We might not have a timestamp, get one */
+ 	if (skb->tstamp.tv64 == 0)
+-		__net_timestamp((struct sk_buff *)skb);
++		__net_timestamp((struct sk_buff *)const_cast(skb));
+ 
+ 	/* copy hook, prefix, timestamp, payload, etc. */
+ 	pm->data_len = copy_len;
+diff --git a/net/netfilter/xt_time.c b/net/netfilter/xt_time.c
+index 93acaa5..8f34a4a 100644
+--- a/net/netfilter/xt_time.c
++++ b/net/netfilter/xt_time.c
+@@ -170,7 +170,7 @@ time_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+ 	 * it arrived at the right moment before 13:00.
+ 	 */
+ 	if (skb->tstamp.tv64 == 0)
+-		__net_timestamp((struct sk_buff *)skb);
++		__net_timestamp((struct sk_buff *)const_cast(skb));
+ 
+ 	stamp = ktime_to_ns(skb->tstamp);
+ 	stamp = div_s64(stamp, NSEC_PER_SEC);
