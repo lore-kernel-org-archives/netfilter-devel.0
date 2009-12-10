@@ -1,49 +1,87 @@
-From: Aviad Lahav <aviad.lahav@gmail.com>
-Subject: Netfilter injects network headers
-Date: Wed, 9 Dec 2009 18:50:32 +0200
-Message-ID: <85ce6a220912090850n2bc9827sfd90a82e7be6b587@mail.gmail.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] netfilter: Fix compiler warning.
+Date: Wed, 09 Dec 2009 18:07:17 -0800 (PST)
+Message-ID: <20091209.180717.193708062.davem@davemloft.net>
+References: <pvmhbrzboyb.fsf@chavey.mtv.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ew0-f209.google.com ([209.85.219.209]:41456 "EHLO
-	mail-ew0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750745AbZLIQub (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Dec 2009 11:50:31 -0500
-Received: by ewy1 with SMTP id 1so4491308ewy.28
-        for <netfilter-devel@vger.kernel.org>; Wed, 09 Dec 2009 08:50:35 -0800 (PST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: chavey@google.com
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <pvmhbrzboyb.fsf@chavey.mtv.corp.google.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi all,
-I've posted this to the netfilter-users but got no response, hope I
-can get more help here.
+From: chavey@google.com
+Date: Wed, 09 Dec 2009 17:25:00 -0800
 
+> Fix compiler warning "discards qualifiers from pointer target type".
+> The function prototype defines parameters as pointer to a constant.
+> Such parameters should not have their content modified in the
+> function.
+> 
+> Signed-off-by: Laurent Chavey <chavey@google.com>
 
-I'm trying to set up an SSL transparent proxy, and I've seen very
-bizarre behavior on my system.
-I've added two NAT rules to  the PREROUTING chain, looking like this:
+Please CC: netfilter patches to netfilter-devel, added...
 
-# iptables -L -v -t nat
-Chain PREROUTING (policy ACCEPT 561 packets, 70236 bytes)
- pkts bytes target     prot opt in     out     source               destination
-   20  1280 REDIRECT   tcp  --  ppp0   any     anywhere
-anywhere            tcp dpt:4309 redir ports 4443
-    8   512 REDIRECT   tcp  --  ppp0   any     anywhere
-anywhere            tcp dpt:https redir ports 4443
-
-So I've got a listener on port 4443, accepting connections from both
-ports 443 and 4309.
-When I'm doing the first recv() in my accepting server, I get the
-incoming connections to port 443 very well, BUT:
-Incoming connections to port 4309 gets *3 extra bytes* in the
-beginning of the connection (maybe also to subsequent packets, but I
-haven't had the chance to see this data yet...()
-
-The first 3 bytes I'm getting is:
-0x00 0x01 0x05
-
-My machine is an up-to-date Ubuntu 9.10 (karmic), and the packets are
-coming from a client connected thru pptpd.
-Anyone has a clue?
+> ---
+>  net/ipv4/netfilter/ipt_ULOG.c |    6 ++++--
+>  net/netfilter/xt_time.c       |    6 ++++--
+>  2 files changed, 8 insertions(+), 4 deletions(-)
+> 
+> diff --git a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
+> index d32cc4b..8490f9f 100644
+> --- a/net/ipv4/netfilter/ipt_ULOG.c
+> +++ b/net/ipv4/netfilter/ipt_ULOG.c
+> @@ -166,6 +166,7 @@ static void ipt_ulog_packet(unsigned int hooknum,
+>  	size_t size, copy_len;
+>  	struct nlmsghdr *nlh;
+>  	struct timeval tv;
+> +	ktime_t	tstamp;
+>  
+>  	/* ffs == find first bit set, necessary because userspace
+>  	 * is already shifting groupnumber, but we need unshifted.
+> @@ -208,13 +209,14 @@ static void ipt_ulog_packet(unsigned int hooknum,
+>  
+>  	pm = NLMSG_DATA(nlh);
+>  
+> +	tstamp = skb->tstamp;
+>  	/* We might not have a timestamp, get one */
+>  	if (skb->tstamp.tv64 == 0)
+> -		__net_timestamp((struct sk_buff *)skb);
+> +		tstamp = ktime_get_real();
+>  
+>  	/* copy hook, prefix, timestamp, payload, etc. */
+>  	pm->data_len = copy_len;
+> -	tv = ktime_to_timeval(skb->tstamp);
+> +	tv = ktime_to_timeval(tstamp);
+>  	put_unaligned(tv.tv_sec, &pm->timestamp_sec);
+>  	put_unaligned(tv.tv_usec, &pm->timestamp_usec);
+>  	put_unaligned(skb->mark, &pm->mark);
+> diff --git a/net/netfilter/xt_time.c b/net/netfilter/xt_time.c
+> index 93acaa5..66e2a75 100644
+> --- a/net/netfilter/xt_time.c
+> +++ b/net/netfilter/xt_time.c
+> @@ -159,6 +159,7 @@ time_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+>  	unsigned int packet_time;
+>  	struct xtm current_time;
+>  	s64 stamp;
+> +	ktime_t	tstamp;
+>  
+>  	/*
+>  	 * We cannot use get_seconds() instead of __net_timestamp() here.
+> @@ -169,10 +170,11 @@ time_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+>  	 * may happen that the same packet matches both rules if
+>  	 * it arrived at the right moment before 13:00.
+>  	 */
+> +	tstamp = skb->tstamp;
+>  	if (skb->tstamp.tv64 == 0)
+> -		__net_timestamp((struct sk_buff *)skb);
+> +		tstamp = ktime_get_real();
+>  
+> -	stamp = ktime_to_ns(skb->tstamp);
+> +	stamp = ktime_to_ns(tstamp);
+>  	stamp = div_s64(stamp, NSEC_PER_SEC);
+>  
+>  	if (info->flags & XT_TIME_LOCAL_TZ)
