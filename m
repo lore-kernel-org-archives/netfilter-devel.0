@@ -1,47 +1,55 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: Fix compiler warning.
-Date: Thu, 10 Dec 2009 12:26:38 +0100
-Message-ID: <4B20DAEE.1050802@trash.net>
-References: <pvmhbrzboyb.fsf@chavey.mtv.corp.google.com> <4B207840.7080603@gmail.com>
+Subject: Re: Netfilter injects network headers
+Date: Thu, 10 Dec 2009 12:33:55 +0100
+Message-ID: <4B20DCA3.1050108@trash.net>
+References: <85ce6a220912090850n2bc9827sfd90a82e7be6b587@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: chavey@google.com, davem@davemloft.net, netdev@vger.kernel.org,
-	Netfilter Developers <netfilter-devel@vger.kernel.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Aviad Lahav <aviad.lahav@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:35683 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:35913 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760679AbZLJL0e (ORCPT
+	with ESMTP id S1760679AbZLJLdu (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Dec 2009 06:26:34 -0500
-In-Reply-To: <4B207840.7080603@gmail.com>
+	Thu, 10 Dec 2009 06:33:50 -0500
+In-Reply-To: <85ce6a220912090850n2bc9827sfd90a82e7be6b587@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Dumazet wrote:
-> Le 10/12/2009 02:25, chavey@google.com a =E9crit :
->> Fix compiler warning "discards qualifiers from pointer target type".
->> The function prototype defines parameters as pointer to a constant.
->> Such parameters should not have their content modified in the
->> function.
->>
->> Signed-off-by: Laurent Chavey <chavey@google.com>
->=20
-> This is not the right fix IMHO.
->=20
-> We want an unique timestamp for the whole netfilter matches, because =
-several 'time' rules
-> could get 'interesting' effects.
->=20
-> The 'const' attribute is a debugging aid, and the skb->tstamp 'write-=
-once' is a valid exception.
+Aviad Lahav wrote:
+> Hi all,
+> I've posted this to the netfilter-users but got no response, hope I
+> can get more help here.
+> 
+> 
+> I'm trying to set up an SSL transparent proxy, and I've seen very
+> bizarre behavior on my system.
+> I've added two NAT rules to  the PREROUTING chain, looking like this:
+> 
+> # iptables -L -v -t nat
+> Chain PREROUTING (policy ACCEPT 561 packets, 70236 bytes)
+>  pkts bytes target     prot opt in     out     source               destination
+>    20  1280 REDIRECT   tcp  --  ppp0   any     anywhere
+> anywhere            tcp dpt:4309 redir ports 4443
+>     8   512 REDIRECT   tcp  --  ppp0   any     anywhere
+> anywhere            tcp dpt:https redir ports 4443
+> 
+> So I've got a listener on port 4443, accepting connections from both
+> ports 443 and 4309.
+> When I'm doing the first recv() in my accepting server, I get the
+> incoming connections to port 443 very well, BUT:
+> Incoming connections to port 4309 gets *3 extra bytes* in the
+> beginning of the connection (maybe also to subsequent packets, but I
+> haven't had the chance to see this data yet...()
+> 
+> The first 3 bytes I'm getting is:
+> 0x00 0x01 0x05
+> 
+> My machine is an up-to-date Ubuntu 9.10 (karmic), and the packets are
+> coming from a client connected thru pptpd.
+> Anyone has a clue?
 
-I agree, the timestamps should be consistent among multiple
-matches. The cast should also surpress the warning, but some
-gcc versions ignore it.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+My first guess would be that pptpd does something wrong, that's
+where I'd start debugging.
