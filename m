@@ -1,80 +1,41 @@
-From: chavey@google.com
-Subject: [PATCH] netfilter: Fix compiler warning.
-Date: Thu, 10 Dec 2009 13:44:50 -0800
-Message-ID: <pvmein2bj1p.fsf@chavey.mtv.corp.google.com>
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	chavey@google.com, eric.dumazet@gmail.com, akpm@google.com
-To: davem@davemloft.net
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH] netfilter: Fix compiler warning.
+Date: Thu, 10 Dec 2009 23:06:32 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.0912102301380.5189@obet.zrqbmnf.qr>
+References: <pvmein2bj1p.fsf@chavey.mtv.corp.google.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: davem@davemloft.net, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, eric.dumazet@gmail.com,
+	akpm@google.com
+To: chavey@google.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-out.google.com ([216.239.45.13]:41693 "EHLO
-	smtp-out.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761709AbZLJVow (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Dec 2009 16:44:52 -0500
+Received: from borg.medozas.de ([188.40.89.202]:38358 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1761878AbZLJWG0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Dec 2009 17:06:26 -0500
+In-Reply-To: <pvmein2bj1p.fsf@chavey.mtv.corp.google.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Fix compiler warning "discards qualifiers from pointer target type",
-by allowing explicit discard of const qualifier thru type casting.
-The const_cast() macro is taken from a patch from Kaveh R. Ghazi
-[PATCH]: Fix problematic -Wcast-qual cases using new CONST_CAST macro
-posted on 
-http://old.nabble.com/-PATCH-:-Fix-problematic--Wcast-qual-cases-using-new-CONST_CAST--macro-td11824676.html
-The proposed __nowarn__ keyword has not yet been implemented, 
-(see http://gcc.gnu.org/ml/gcc-patches/2009-11/msg01261.html).
 
+On Donnerstag 2009-12-10 22:44, chavey@google.com wrote:
 
-Signed-off-by: Laurent Chavey <chavey@google.com>
----
- include/linux/kernel.h        |   12 ++++++++++++
- net/ipv4/netfilter/ipt_ULOG.c |    2 +-
- net/netfilter/xt_time.c       |    2 +-
- 3 files changed, 14 insertions(+), 2 deletions(-)
+>Fix compiler warning "discards qualifiers from pointer target type",
+>by allowing explicit discard of const qualifier thru type casting.
+>The const_cast() macro is taken from a patch from Kaveh R. Ghazi
 
-diff --git a/include/linux/kernel.h b/include/linux/kernel.h
-index 3fa4c59..0246771 100644
---- a/include/linux/kernel.h
-+++ b/include/linux/kernel.h
-@@ -710,4 +710,16 @@ struct sysinfo {
- # define REBUILD_DUE_TO_FTRACE_MCOUNT_RECORD
- #endif
- 
-+/* Cast away const-ness to pass -Wcast-qual */
-+#ifdef __GNUC__
-+union gcc_constcast
-+{
-+	const void *cv;
-+	void *v;
-+};
-+#define const_cast(X) ((__extension__(union gcc_constcast)(const void *)(X)).v)
-+#else
-+#define const_cast(X) ((void *)(X))
-+#endif
-+
- #endif
-diff --git a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
-index d32cc4b..c8f8b8b 100644
---- a/net/ipv4/netfilter/ipt_ULOG.c
-+++ b/net/ipv4/netfilter/ipt_ULOG.c
-@@ -210,7 +210,7 @@ static void ipt_ulog_packet(unsigned int hooknum,
- 
- 	/* We might not have a timestamp, get one */
- 	if (skb->tstamp.tv64 == 0)
--		__net_timestamp((struct sk_buff *)skb);
-+		__net_timestamp((struct sk_buff *)const_cast(skb));
- 
- 	/* copy hook, prefix, timestamp, payload, etc. */
- 	pm->data_len = copy_len;
-diff --git a/net/netfilter/xt_time.c b/net/netfilter/xt_time.c
-index 93acaa5..8f34a4a 100644
---- a/net/netfilter/xt_time.c
-+++ b/net/netfilter/xt_time.c
-@@ -170,7 +170,7 @@ time_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	 * it arrived at the right moment before 13:00.
- 	 */
- 	if (skb->tstamp.tv64 == 0)
--		__net_timestamp((struct sk_buff *)skb);
-+		__net_timestamp((struct sk_buff *)const_cast(skb));
- 
- 	stamp = ktime_to_ns(skb->tstamp);
- 	stamp = div_s64(stamp, NSEC_PER_SEC);
+Uhm, I am not getting any warning on xt_time with either gcc-4.4.1
+or gcc-4.5_20091126, so what case are we actually trying to fix?
+
+>--- a/net/netfilter/xt_time.c
+>+++ b/net/netfilter/xt_time.c
+>@@ -170,7 +170,7 @@ time_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+> 	 * it arrived at the right moment before 13:00.
+> 	 */
+> 	if (skb->tstamp.tv64 == 0)
+>-		__net_timestamp((struct sk_buff *)skb);
+>+		__net_timestamp((struct sk_buff *)const_cast(skb));
+> 
+> 	stamp = ktime_to_ns(skb->tstamp);
+> 	stamp = div_s64(stamp, NSEC_PER_SEC);
