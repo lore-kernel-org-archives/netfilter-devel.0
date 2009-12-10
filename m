@@ -1,82 +1,32 @@
-From: Andrew Morton <akpm@linux-foundation.org>
+From: Jan Engelhardt <jengelh@medozas.de>
 Subject: Re: [PATCH] netfilter: Fix compiler warning.
-Date: Thu, 10 Dec 2009 14:13:14 -0800
-Message-ID: <20091210141314.7be114d9.akpm@linux-foundation.org>
-References: <pvmein2bj1p.fsf@chavey.mtv.corp.google.com>
+Date: Fri, 11 Dec 2009 00:23:40 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.0912110022440.10311@obet.zrqbmnf.qr>
+References: <pvmein2bj1p.fsf@chavey.mtv.corp.google.com> <alpine.LSU.2.01.0912102301380.5189@obet.zrqbmnf.qr> <20091210.140843.142337259.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: davem@davemloft.net, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, eric.dumazet@gmail.com
-To: chavey@google.com
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:46878 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1761886AbZLJWNO (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Dec 2009 17:13:14 -0500
-In-Reply-To: <pvmein2bj1p.fsf@chavey.mtv.corp.google.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
-
-On Thu, 10 Dec 2009 13:44:50 -0800
-chavey@google.com wrote:
-
-> Fix compiler warning "discards qualifiers from pointer target type",
-> by allowing explicit discard of const qualifier thru type casting.
-> The const_cast() macro is taken from a patch from Kaveh R. Ghazi
-> [PATCH]: Fix problematic -Wcast-qual cases using new CONST_CAST macro
-> posted on 
-> http://old.nabble.com/-PATCH-:-Fix-problematic--Wcast-qual-cases-using-new-CONST_CAST--macro-td11824676.html
-> The proposed __nowarn__ keyword has not yet been implemented, 
-> (see http://gcc.gnu.org/ml/gcc-patches/2009-11/msg01261.html).
-> 
-> 
-> Signed-off-by: Laurent Chavey <chavey@google.com>
-> ---
->  include/linux/kernel.h        |   12 ++++++++++++
->  net/ipv4/netfilter/ipt_ULOG.c |    2 +-
->  net/netfilter/xt_time.c       |    2 +-
->  3 files changed, 14 insertions(+), 2 deletions(-)
-> 
-> diff --git a/include/linux/kernel.h b/include/linux/kernel.h
-> index 3fa4c59..0246771 100644
-> --- a/include/linux/kernel.h
-> +++ b/include/linux/kernel.h
-> @@ -710,4 +710,16 @@ struct sysinfo {
->  # define REBUILD_DUE_TO_FTRACE_MCOUNT_RECORD
->  #endif
->  
-> +/* Cast away const-ness to pass -Wcast-qual */
-
-This comment simply doesn't make sense.
-
-I don't think it adequately explains why the macro exists, how and when
-one should use it, etc.
-
-> +#ifdef __GNUC__
-> +union gcc_constcast
-> +{
-
-union gcc_constcast {
-
-> +	const void *cv;
-> +	void *v;
-> +};
-> +#define const_cast(X) ((__extension__(union gcc_constcast)(const void *)(X)).v)
-> +#else
-> +#define const_cast(X) ((void *)(X))
-> +#endif
-
-Why don't we just use the simple version on all compilers?  What's the
-advantage in using the gcc-specific extension?
-
-And I was wrong - this should be implemented in linux/compiler.h.  We
-have infrastructure there to separate gcc-specific and non-gcc
-implementations of the same interface.
-
-Finally, are we sure that __extension__(union gcc_constcast) is
-available on all gcc versions mentioned in Documentation/Changes?  If
-not, this patch should use include/linux/compiler-gcc4.h, etc.
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: chavey@google.com, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, eric.dumazet@gmail.com,
+	akpm@google.com
+To: David Miller <davem@davemloft.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20091210.140843.142337259.davem@davemloft.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 
+On Donnerstag 2009-12-10 23:08, David Miller wrote:
+>> 
+>>>Fix compiler warning "discards qualifiers from pointer target type",
+>>>by allowing explicit discard of const qualifier thru type casting.
+>>>The const_cast() macro is taken from a patch from Kaveh R. Ghazi
+>> 
+>> Uhm, I am not getting any warning on xt_time with either gcc-4.4.1
+>> or gcc-4.5_20091126, so what case are we actually trying to fix?
+>
+>I get this warning with gcc-4.3.x all the time.
+
+Ok. Still, assuming it was a "bug" which got fixed in gcc-4.4,
+should we really bother with it anymore? (Thankfully it's just
+a warning, and not an error.)
+If so, we can probably do better code-wise.
