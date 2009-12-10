@@ -1,87 +1,59 @@
-From: David Miller <davem@davemloft.net>
+From: Eric Dumazet <eric.dumazet@gmail.com>
 Subject: Re: [PATCH] netfilter: Fix compiler warning.
-Date: Wed, 09 Dec 2009 18:07:17 -0800 (PST)
-Message-ID: <20091209.180717.193708062.davem@davemloft.net>
+Date: Thu, 10 Dec 2009 05:25:36 +0100
+Message-ID: <4B207840.7080603@gmail.com>
 References: <pvmhbrzboyb.fsf@chavey.mtv.corp.google.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: davem@davemloft.net, netdev@vger.kernel.org,
+	Patrick McHardy <kaber@trash.net>,
+	Netfilter Developers <netfilter-devel@vger.kernel.org>
 To: chavey@google.com
 Return-path: <netdev-owner@vger.kernel.org>
 In-Reply-To: <pvmhbrzboyb.fsf@chavey.mtv.corp.google.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: chavey@google.com
-Date: Wed, 09 Dec 2009 17:25:00 -0800
-
+Le 10/12/2009 02:25, chavey@google.com a =E9crit :
 > Fix compiler warning "discards qualifiers from pointer target type".
 > The function prototype defines parameters as pointer to a constant.
 > Such parameters should not have their content modified in the
 > function.
-> 
+>=20
 > Signed-off-by: Laurent Chavey <chavey@google.com>
 
-Please CC: netfilter patches to netfilter-devel, added...
+This is not the right fix IMHO.
 
-> ---
->  net/ipv4/netfilter/ipt_ULOG.c |    6 ++++--
->  net/netfilter/xt_time.c       |    6 ++++--
->  2 files changed, 8 insertions(+), 4 deletions(-)
-> 
-> diff --git a/net/ipv4/netfilter/ipt_ULOG.c b/net/ipv4/netfilter/ipt_ULOG.c
-> index d32cc4b..8490f9f 100644
-> --- a/net/ipv4/netfilter/ipt_ULOG.c
-> +++ b/net/ipv4/netfilter/ipt_ULOG.c
-> @@ -166,6 +166,7 @@ static void ipt_ulog_packet(unsigned int hooknum,
->  	size_t size, copy_len;
->  	struct nlmsghdr *nlh;
->  	struct timeval tv;
-> +	ktime_t	tstamp;
->  
->  	/* ffs == find first bit set, necessary because userspace
->  	 * is already shifting groupnumber, but we need unshifted.
-> @@ -208,13 +209,14 @@ static void ipt_ulog_packet(unsigned int hooknum,
->  
->  	pm = NLMSG_DATA(nlh);
->  
-> +	tstamp = skb->tstamp;
->  	/* We might not have a timestamp, get one */
->  	if (skb->tstamp.tv64 == 0)
-> -		__net_timestamp((struct sk_buff *)skb);
-> +		tstamp = ktime_get_real();
->  
->  	/* copy hook, prefix, timestamp, payload, etc. */
->  	pm->data_len = copy_len;
-> -	tv = ktime_to_timeval(skb->tstamp);
-> +	tv = ktime_to_timeval(tstamp);
->  	put_unaligned(tv.tv_sec, &pm->timestamp_sec);
->  	put_unaligned(tv.tv_usec, &pm->timestamp_usec);
->  	put_unaligned(skb->mark, &pm->mark);
-> diff --git a/net/netfilter/xt_time.c b/net/netfilter/xt_time.c
-> index 93acaa5..66e2a75 100644
-> --- a/net/netfilter/xt_time.c
-> +++ b/net/netfilter/xt_time.c
-> @@ -159,6 +159,7 @@ time_mt(const struct sk_buff *skb, const struct xt_match_param *par)
->  	unsigned int packet_time;
->  	struct xtm current_time;
->  	s64 stamp;
-> +	ktime_t	tstamp;
->  
->  	/*
->  	 * We cannot use get_seconds() instead of __net_timestamp() here.
-> @@ -169,10 +170,11 @@ time_mt(const struct sk_buff *skb, const struct xt_match_param *par)
->  	 * may happen that the same packet matches both rules if
->  	 * it arrived at the right moment before 13:00.
->  	 */
-> +	tstamp = skb->tstamp;
->  	if (skb->tstamp.tv64 == 0)
-> -		__net_timestamp((struct sk_buff *)skb);
-> +		tstamp = ktime_get_real();
->  
-> -	stamp = ktime_to_ns(skb->tstamp);
-> +	stamp = ktime_to_ns(tstamp);
->  	stamp = div_s64(stamp, NSEC_PER_SEC);
->  
->  	if (info->flags & XT_TIME_LOCAL_TZ)
+We want an unique timestamp for the whole netfilter matches, because se=
+veral 'time' rules
+could get 'interesting' effects.
+
+The 'const' attribute is a debugging aid, and the skb->tstamp 'write-on=
+ce' is a valid exception.
+
+Read again the comment in time_mt() :
+
+vi +163 net/netfilter/xt_time.c
+
+static bool
+time_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+{
+        const struct xt_time_info *info =3D par->matchinfo;
+        unsigned int packet_time;
+        struct xtm current_time;
+        s64 stamp;
+
+        /*
+         * We cannot use get_seconds() instead of __net_timestamp() her=
+e.
+         * Suppose you have two rules:
+         *      1. match before 13:00
+         *      2. match after 13:00
+         * If you match against processing time (get_seconds) it
+         * may happen that the same packet matches both rules if
+         * it arrived at the right moment before 13:00.
+         */
+        if (skb->tstamp.tv64 =3D=3D 0)
+                __net_timestamp((struct sk_buff *)skb);
+
