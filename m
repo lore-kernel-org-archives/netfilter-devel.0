@@ -1,68 +1,59 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] netfilter: Fix compiler warning.
-Date: Fri, 11 Dec 2009 00:44:03 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.0912110043320.11964@obet.zrqbmnf.qr>
-References: <pvmein2bj1p.fsf@chavey.mtv.corp.google.com> <alpine.LSU.2.01.0912102301380.5189@obet.zrqbmnf.qr> <20091210.140843.142337259.davem@davemloft.net>
+From: "Balaji Venkatamohan" <bvenkat@ncsu.edu>
+Subject: Need help with inserting match extension files using xtables-addons
+Date: Sat, 12 Dec 2009 19:16:31 -0500 (EST)
+Message-ID: <4523.152.1.223.36.1260663391.squirrel@webmail.ncsu.edu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: chavey@google.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, eric.dumazet@gmail.com,
-	akpm@google.com
-To: David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:60597 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754891AbZLJXn6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Dec 2009 18:43:58 -0500
-In-Reply-To: <20091210.140843.142337259.davem@davemloft.net>
+Received: from uni13mr.unity.ncsu.edu ([152.1.224.171]:37496 "HELO
+	uni13mr.unity.ncsu.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751952AbZLMB1f (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 12 Dec 2009 20:27:35 -0500
+Received: from uni25wi.unity.ncsu.edu (uni25wi.unity.ncsu.edu [152.1.227.130])
+	by uni13mr.unity.ncsu.edu (8.13.7/8.13.8/Nv5.2008.0610.1) with ESMTP id nBD0GWTf022822
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <netfilter-devel@vger.kernel.org>; Sat, 12 Dec 2009 19:16:32 -0500 (EST)
+Received: from uni25wi.unity.ncsu.edu (localhost.localdomain [127.0.0.1])
+	by uni25wi.unity.ncsu.edu (8.13.8/8.13.8) with ESMTP id nBD0GWSb000404
+	for <netfilter-devel@vger.kernel.org>; Sat, 12 Dec 2009 19:16:32 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi, I am trying to install a new xtables match extension. Its a simple one
+which I am coding for my understanding.
 
-On Donnerstag 2009-12-10 23:08, David Miller wrote:
->> On Donnerstag 2009-12-10 22:44, chavey@google.com wrote:
->> 
->>>Fix compiler warning "discards qualifiers from pointer target type",
->>>by allowing explicit discard of const qualifier thru type casting.
->>>The const_cast() macro is taken from a patch from Kaveh R. Ghazi
->> 
->> Uhm, I am not getting any warning on xt_time with either gcc-4.4.1
->> or gcc-4.5_20091126, so what case are we actually trying to fix?
->
->I get this warning with gcc-4.3.x all the time.
+I am done with the coding for my kernel space '.c ' and '.h' files and am
+also done with userspace 'libxt_*.c' file. As per the tutorial 'writing
+netfilter modules', I am using xtable-addons to insert my module.
 
-Seems they fixed it in gcc-4.3 too?
+I am done with downloading the xtables-addons package. I also put my three
+files in extensions/ folder. I have also made changes to Kbuild, Mbuild
+and mconfig files. When I run the command './configure' from the
+xtables-addons folder, I am getting the error after sometime stating the
+following:
 
-00:41 borg:~/code/linux > make net/netfilter/xt_time.o -j8 CC=gcc-4.3
-  CHK     include/linux/version.h
-  CHK     include/linux/utsrelease.h
-  SYMLINK include/asm -> include/asm-x86
-  CC      scripts/mod/empty.o
-  MKELF   scripts/mod/elfconfig.h
-  HOSTCC  scripts/mod/file2alias.o
-  HOSTCC  scripts/mod/modpost.o
-  HOSTCC  scripts/mod/sumversion.o
-  HOSTLD  scripts/mod/modpost
-  CC      kernel/bounds.s
-  GEN     include/linux/bounds.h
-  CC      arch/x86/kernel/asm-offsets.s
-  GEN     include/asm/asm-offsets.h
-  CALL    scripts/checksyscalls.sh
-  CC [M]  net/netfilter/xt_time.o
-00:42 borg:~/code/linux > gcc-4.3 -v
-Using built-in specs.
-Target: x86_64-suse-linux
-Configured with: ../configure --prefix=/usr --infodir=/usr/share/info 
---mandir=/usr/share/man --libdir=/usr/lib64 --libexecdir=/usr/lib64 
---enable-languages=c,c++,objc,fortran,obj-c++,java,ada 
---enable-checking=release --with-gxx-include-dir=/usr/include/c++/4.3 
---enable-ssp --disable-libssp --with-bugurl=http://bugs.opensuse.org/ 
---with-pkgversion='SUSE Linux' --disable-libgcj --disable-libmudflap 
---with-slibdir=/lib64 --with-system-zlib --enable-__cxa_atexit 
---enable-libstdcxx-allocator=new --disable-libstdcxx-pch 
---enable-version-specific-runtime-libs --program-suffix=-4.3 
---enable-linux-futex --without-system-libunwind --with-cpu=generic 
---build=x86_64-suse-linux
-Thread model: posix
-gcc version 4.3.4 (SUSE Linux)
+**************************************************************************
+"checking for libxtables... configure: error: Package requirements
+(xtables >= 1.4.3) were not met:
 
+No package 'xtables' found
+
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+Alternatively, you may set the environment variables libxtables_CFLAGS
+and libxtables_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details."
+*************************************************************************
+I know that my system does not have xtables.h in the /usr/include folder.
+I also tried to download xtables.h from the internet. Strangely I was nt
+able to find anything. Please help me with fixing the error and also do
+tell me where I can find xtables.h header file.
+Also is it enough that I do the above specified steps for using xtables
+match extension.
+
+Thanks
+Balaji
