@@ -1,34 +1,32 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: nfbz 621 - 3 kernel patches
-Date: Mon, 14 Dec 2009 14:51:28 +0100
-Message-ID: <4B2642E0.9030601@trash.net>
-References: <1260044785-20962-1-git-send-email-jengelh@medozas.de>
+Subject: Re: netfilter: xtables: document minimal required version
+Date: Mon, 14 Dec 2009 14:56:07 +0100
+Message-ID: <4B2643F7.20205@trash.net>
+References: <alpine.LSU.2.01.0912081051350.15041@obet.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:62920 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:63000 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755916AbZLNNvb (ORCPT
+	with ESMTP id S1757271AbZLNN4K (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Dec 2009 08:51:31 -0500
-In-Reply-To: <1260044785-20962-1-git-send-email-jengelh@medozas.de>
+	Mon, 14 Dec 2009 08:56:10 -0500
+In-Reply-To: <alpine.LSU.2.01.0912081051350.15041@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Jan Engelhardt wrote:
-> a few simple commits that turned up while processing NF bug 621.
-> Thanks for taking care of them :)
+> For both .33 and .32-stable.
 > 
+> ---
+> parent 22763c5cf3690a681551162c15d34d935308c8d7 (v2.6.32)
+> commit 49313cdac7b34c9f7ecbb1780cfc648b1c082cd7
+> Author: Jan Engelhardt <jengelh@medozas.de>
+> Date:   Tue Dec 8 10:51:25 2009 +0100
 > 
-> The following changes since commit 22763c5cf3690a681551162c15d34d935308c8d7:
->   Linus Torvalds (1):
->         Linux 2.6.32
-> 
-> are available in the git repository at:
-> 
->   git://dev.medozas.de/linux master
+> netfilter: xtables: document minimal required version
 
-I'll apply those once the net-next tree opens up.
+Applied, thanks Jan.
