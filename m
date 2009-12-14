@@ -1,32 +1,30 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: netfilter: xtables: document minimal required version
-Date: Mon, 14 Dec 2009 14:56:07 +0100
-Message-ID: <4B2643F7.20205@trash.net>
-References: <alpine.LSU.2.01.0912081051350.15041@obet.zrqbmnf.qr>
+From: Tobias Koeck <tobias.koeck@gmail.com>
+Subject: netfilter kernel modules question
+Date: Mon, 14 Dec 2009 16:20:23 +0100
+Message-ID: <4B2657B7.5070405@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:63000 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757271AbZLNN4K (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.152]:11144 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757501AbZLNPU0 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Dec 2009 08:56:10 -0500
-In-Reply-To: <alpine.LSU.2.01.0912081051350.15041@obet.zrqbmnf.qr>
+	Mon, 14 Dec 2009 10:20:26 -0500
+Received: by fg-out-1718.google.com with SMTP id e21so30437fga.4
+        for <netfilter-devel@vger.kernel.org>; Mon, 14 Dec 2009 07:20:25 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> For both .33 and .32-stable.
-> 
-> ---
-> parent 22763c5cf3690a681551162c15d34d935308c8d7 (v2.6.32)
-> commit 49313cdac7b34c9f7ecbb1780cfc648b1c082cd7
-> Author: Jan Engelhardt <jengelh@medozas.de>
-> Date:   Tue Dec 8 10:51:25 2009 +0100
-> 
-> netfilter: xtables: document minimal required version
+I have two netfilter kernel modules (xt_RQS.c, xt_RQD.c, both include 
+a header file with a data structure in it).
 
-Applied, thanks Jan.
+Does both kernel modules use the same datastructures or do they use 
+seperate ones (in normal C programming I know that but I'm not sure 
+about the kernel scopes).
+
+If I want to use one datastructure how can I do that (export? - 
+concurrency issues left aside)?
+
+Greetings and thanks
