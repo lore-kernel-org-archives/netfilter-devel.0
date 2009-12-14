@@ -1,32 +1,67 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: netfilter kernel modules question
-Date: Mon, 14 Dec 2009 21:52:33 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.0912142151310.15986@obet.zrqbmnf.qr>
-References: <4B2657B7.5070405@gmail.com> <alpine.LSU.2.01.0912142115290.14355@obet.zrqbmnf.qr> <4B269FD2.4020807@gmail.com> <alpine.LSU.2.01.0912142130020.14802@obet.zrqbmnf.qr> <4B26A497.8000900@gmail.com>
+From: Simon Horman <horms@verge.net.au>
+Subject: [patch] ipvs: zero usvc and udest
+Date: Tue, 15 Dec 2009 09:39:03 +1100
+Message-ID: <20091214223902.GA3784@verge.net.au>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Tobias Koeck <tobias.koeck@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: Deon van der Merwe <dvdm@truteq.co.za>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>,
+	Patrick McHardy <kaber@trash.net>,
+	David Miller <davem@davemloft.org>
+To: lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:51648 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754219AbZLNUwf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Dec 2009 15:52:35 -0500
-In-Reply-To: <4B26A497.8000900@gmail.com>
+Received: from kirsty.vergenet.net ([202.4.237.240]:40884 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753676AbZLNWjI (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 Dec 2009 17:39:08 -0500
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Make sure that any otherwise uninitialised fields of usvc are zero.
 
-On Monday 2009-12-14 21:48, Tobias Koeck wrote:
->>
->> You can argue what a data structure is or what it is not; a header
->> file should not include any definitions, only declarations. (And
->> perhaps static-inlines, but that's probably too expert for you at
->> this stage.) Various C-related forums or IRC channels can enlighten
->> you towards the reasoning for that.
->
-> 'int a' is declaration (only used in a function it's a definition).
+This has been obvserved to cause a problem whereby the port of
+fwmark services may end up as a non-zero value which causes
+scheduling of a destination server to fail for persisitent services.
 
-"int a" is always a definition. Inside a function it makes for an 
-automatic variable, and outside a function it makes for one with static 
-linkage.
+As observed by Deon van der Merwe <dvdm@truteq.co.za>.
+This fix suggested by Julian Anastasov <ja@ssi.bg>.
+
+For good measure also zero udest.
+
+Cc: Deon van der Merwe <dvdm@truteq.co.za>
+Acked-by: Julian Anastasov <ja@ssi.bg>
+Signed-off-by: Simon Horman <horms@verge.net.au>
+
+--- 
+
+This bug has been present since the netlink interface to IPVS was
+introduced in 2.6.28. I think it is relevant for 2.6.33 as well
+as -stable.
+
+Index: linux-2.6/net/netfilter/ipvs/ip_vs_ctl.c
+===================================================================
+--- linux-2.6.orig/net/netfilter/ipvs/ip_vs_ctl.c	2009-12-11 14:22:23.000000000 +0900
++++ linux-2.6/net/netfilter/ipvs/ip_vs_ctl.c	2009-12-14 11:05:50.000000000 +0900
+@@ -2714,6 +2714,8 @@ static int ip_vs_genl_parse_service(stru
+ 	if (!(nla_af && (nla_fwmark || (nla_port && nla_protocol && nla_addr))))
+ 		return -EINVAL;
+ 
++	memset(usvc, 0, sizeof(*usvc));
++
+ 	usvc->af = nla_get_u16(nla_af);
+ #ifdef CONFIG_IP_VS_IPV6
+ 	if (usvc->af != AF_INET && usvc->af != AF_INET6)
+@@ -2901,6 +2903,8 @@ static int ip_vs_genl_parse_dest(struct 
+ 	if (!(nla_addr && nla_port))
+ 		return -EINVAL;
+ 
++	memset(udest, 0, sizeof(*udest));
++
+ 	nla_memcpy(&udest->addr, nla_addr, sizeof(udest->addr));
+ 	udest->port = nla_get_u16(nla_port);
+ 
+
