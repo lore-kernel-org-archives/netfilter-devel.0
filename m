@@ -1,43 +1,43 @@
-From: Rocky Chan <rocky.chan@nwstor.com>
-Subject: Availability of libiptc in iptables-1.4.4 or above
-Date: Tue, 15 Dec 2009 01:17:33 -0800 (PST)
-Message-ID: <949864.93400.qm@web1108.biz.mail.sk1.yahoo.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [patch] ipvs: zero usvc and udest
+Date: Tue, 15 Dec 2009 17:02:37 +0100
+Message-ID: <4B27B31D.3050207@trash.net>
+References: <20091214223902.GA3784@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Shing Yee Chu <shingyee.chu@nwstor.com>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from web1108.biz.mail.sk1.yahoo.com ([74.6.114.40]:34972 "HELO
-	web1108.biz.mail.sk1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1759462AbZLOJYR convert rfc822-to-8bit
-	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Dec 2009 04:24:17 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org, Deon van der Merwe <dvdm@truteq.co.za>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>,
+	David Miller <davem@davemloft.org>
+To: Simon Horman <horms@verge.net.au>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <20091214223902.GA3784@verge.net.au>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hello there. I am currently working on a project which uses libiptc for=
- modifying iptables rules within a Ubuntu PC. As I upgraded the distrib=
-ution to Ubuntu 9.10, which includes iptables-1.4.4. When I try to incl=
-ude the header files to my program, I found that the definition of "str=
-uct iptc_handle_t" has been removed and replaced by "struct iptc_handle=
-" or simply "STRUCT_TC_HANDLE", which is significantly different from t=
-he one defined in iptables-1.3.3 where I can run my codes perfectly. Mo=
-reover, the structure definition is moved into libiptc.c, which might h=
-ave caused the compilation error below:
+Simon Horman wrote:
+> Make sure that any otherwise uninitialised fields of usvc are zero.
+> 
+> This has been obvserved to cause a problem whereby the port of
+> fwmark services may end up as a non-zero value which causes
+> scheduling of a destination server to fail for persisitent services.
+> 
+> As observed by Deon van der Merwe <dvdm@truteq.co.za>.
+> This fix suggested by Julian Anastasov <ja@ssi.bg>.
+> 
+> For good measure also zero udest.
+> 
+> Cc: Deon van der Merwe <dvdm@truteq.co.za>
+> Acked-by: Julian Anastasov <ja@ssi.bg>
+> Signed-off-by: Simon Horman <horms@verge.net.au>
+> 
+> --- 
+> 
+> This bug has been present since the netlink interface to IPVS was
+> introduced in 2.6.28. I think it is relevant for 2.6.33 as well
+> as -stable.
 
-iptc_policy.c:6: error: storage size of =E2=80=98h=E2=80=99 isn=E2=80=99=
-t known
+Applied, thanks. I'll push it to -stable as well.
 
-where 'h' is the "struct iptc_handle" I have declared in my codes.=20
-
-Is there any way to make my codes work like before without making a lot=
- of modifications? Or simply libiptc is no longer available for us to m=
-anipulate iptables?  Thanks in advance and sorry for my poor English.
-
-Rocky
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
