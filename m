@@ -1,43 +1,63 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [patch] ipvs: zero usvc and udest
-Date: Tue, 15 Dec 2009 17:02:37 +0100
-Message-ID: <4B27B31D.3050207@trash.net>
-References: <20091214223902.GA3784@verge.net.au>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org, Deon van der Merwe <dvdm@truteq.co.za>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>,
-	David Miller <davem@davemloft.org>
-To: Simon Horman <horms@verge.net.au>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <20091214223902.GA3784@verge.net.au>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Subject: netfilter 00/05: netfilter fixes
+Date: Tue, 15 Dec 2009 17:14:27 +0100 (MET)
+Message-ID: <20091215161426.4146.55284.sendpatchset@x2.localnet>
+Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org
+To: davem@davemloft.net
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:59639 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759435AbZLOQO2 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 15 Dec 2009 11:14:28 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Simon Horman wrote:
-> Make sure that any otherwise uninitialised fields of usvc are zero.
-> 
-> This has been obvserved to cause a problem whereby the port of
-> fwmark services may end up as a non-zero value which causes
-> scheduling of a destination server to fail for persisitent services.
-> 
-> As observed by Deon van der Merwe <dvdm@truteq.co.za>.
-> This fix suggested by Julian Anastasov <ja@ssi.bg>.
-> 
-> For good measure also zero udest.
-> 
-> Cc: Deon van der Merwe <dvdm@truteq.co.za>
-> Acked-by: Julian Anastasov <ja@ssi.bg>
-> Signed-off-by: Simon Horman <horms@verge.net.au>
-> 
-> --- 
-> 
-> This bug has been present since the netlink interface to IPVS was
-> introduced in 2.6.28. I think it is relevant for 2.6.33 as well
-> as -stable.
+Hi Dave,
 
-Applied, thanks. I'll push it to -stable as well.
+the following patches fix a couple of bugs in netfilter and IPVS:
 
+- a fix for a crash triggered by fragmentes received by bridge netfilter being
+  combined with fragments received on non-bridge devices from myself
+
+- a fix for IPVS synchronization on connection close from Xiaotian Feng
+
+- a fix for use of uninitialized fields in IPVS from Simon Horman
+
+- a patch to document the minimal required iptables version from Jan Engelhardt
+
+I'll also push the fragment fix to stable (forgot to add CC before committing)
+once it hits mainline.
+
+Please apply or pull from:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git master
+
+Thanks!
+
+
+ Documentation/Changes                          |    2 ++
+ include/net/ip.h                               |    1 +
+ include/net/ipv6.h                             |    8 ++++++++
+ include/net/netfilter/ipv6/nf_conntrack_ipv6.h |    2 +-
+ net/ipv4/netfilter/nf_defrag_ipv4.c            |   21 +++++++++++++++++----
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |   19 +++++++++++++++++--
+ net/ipv6/netfilter/nf_conntrack_reasm.c        |    7 ++++---
+ net/ipv6/reassembly.c                          |    5 ++++-
+ net/netfilter/ipvs/ip_vs_core.c                |    1 +
+ net/netfilter/ipvs/ip_vs_ctl.c                 |    4 ++++
+ 10 files changed, 59 insertions(+), 11 deletions(-)
+
+Jan Engelhardt (1):
+      netfilter: xtables: document minimal required version
+
+Patrick McHardy (2):
+      ipv6: reassembly: use seperate reassembly queues for conntrack and local delivery
+      netfilter: fix crashes in bridge netfilter caused by fragment jumps
+
+Simon Horman (1):
+      ipvs: zero usvc and udest
+
+Xiaotian Feng (1):
+      ipvs: fix synchronization on connection close
