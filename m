@@ -1,26 +1,33 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: netfilter 00/05: netfilter fixes
-Date: Tue, 15 Dec 2009 21:12:53 -0800 (PST)
-Message-ID: <20091215.211253.71098096.davem@davemloft.net>
-References: <20091215161426.4146.55284.sendpatchset@x2.localnet>
+From: ratheesh k <ratheesh.ksz@gmail.com>
+Subject: connection tracking module
+Date: Wed, 16 Dec 2009 21:57:32 +0530
+Message-ID: <cfeab66d0912160827m729076bbx95189395cd4529a8@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: kaber@trash.net
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:39264
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751838AbZLPFMv (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 16 Dec 2009 00:12:51 -0500
-In-Reply-To: <20091215161426.4146.55284.sendpatchset@x2.localnet>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: netfilter-devel@vger.kernel.org
+To: netfilter@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Tue, 15 Dec 2009 17:14:27 +0100 (MET)
+Hi ,
 
-> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git master
+      I am a little confused about connection tracking .  I would like
+to clarify those with your valuable inputs . If you can find some time
+, i will be grateful .
 
-Pulled, thanks a lot Patrick.
+
+      1. Each connection tacking module ( example  - nf_conntrack_ftp
+) will keep its own independent tuple hash tables ??
+      2. Suppose i have  nf_conntrack_ftp , nf_conntrack_proto_tcp
+modules  loaded . If i initiate a data transfer using ftp protocol ,
+which connection tracking module will have tuple information .?
+          { My question is :- > if i dont have nf_conntrack_proto_ftp
+loaded , it will be tracked by nf_conntrack_proto_tcp }
+      3. for the question 2 , which will be skb->nfct contains ?
+      4. what exactly helper routines does ? is it only find out
+related connection .or any other functionality ?
+      5. nf_conntrack_proto_tcp also has helper routines ?
+
+Thanks,
+Ratheesh
