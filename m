@@ -1,61 +1,53 @@
-From: Fred Moyer <fred@redhotpenguin.com>
-Subject: Re: ipset query
-Date: Thu, 17 Dec 2009 18:25:07 -0800
-Message-ID: <ad28918e0912171825k2065c56p4306d3d0d752a425@mail.gmail.com>
-References: <alpine.LSU.2.01.0912172134440.24028@obet.zrqbmnf.qr>
+From: Zdenek Vasicek <vzdenek@seznam.cz>
+Subject: [Fwd: Re: libnetfilter_conntrack]
+Date: Fri, 18 Dec 2009 10:29:07 +0100
+Message-ID: <4B2B4B63.20509@seznam.cz>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, Kevin Fenzi <kevin@scrye.com>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.216.174]:49099 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756101AbZLRCZI convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 17 Dec 2009 21:25:08 -0500
-Received: by pxi4 with SMTP id 4so1917091pxi.33
-        for <netfilter-devel@vger.kernel.org>; Thu, 17 Dec 2009 18:25:07 -0800 (PST)
-In-Reply-To: <alpine.LSU.2.01.0912172134440.24028@obet.zrqbmnf.qr>
+Received: from kazi.fit.vutbr.cz ([147.229.8.12]:58808 "EHLO kazi.fit.vutbr.cz"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751247AbZLRJh1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 18 Dec 2009 04:37:27 -0500
+Received: from [147.229.13.122] (pcvasicek.fit.vutbr.cz [147.229.13.122])
+	(user=vasicek mech=PLAIN bits=0)
+	by kazi.fit.vutbr.cz (envelope-from vzdenek@seznam.cz) (8.14.3/8.14.3) with ESMTP id nBI9T6Rl085182
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <netfilter-devel@vger.kernel.org>; Fri, 18 Dec 2009 10:29:12 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-+1 from a user who would like to ipset merged into mainstream.
+Dear authors,
+I would like to ask you about help. I have installed latest version of 
+the libnetfilter_conntrack (libnetfilter_conntrack-0.0.100, 
+libnfnetlink-1.0.0) and I have found that the src and dest address 
+(ipv4) as well as src and dest port are always empty (zero). However, if 
+I look into /proc/net/nf_conntrack, everything is ok. The kernel version 
+is 2.6.32.
 
+Example:
+  libnetfilter_conntrack-0.0.100/utils/conntrack_dump
+  ipv4     2 tcp      6 431999 src=0.0.0.0 dst=0.0.0.0 sport=0 dport=0 
+packets=13087 bytes=851624 src=0.0.0.0 dst=0.0.0.0 sport=0 dport=0 
+packets=14940 bytes=8636188 [ASSURED] mark=0 use=2
 
-On Thu, Dec 17, 2009 at 12:35 PM, Jan Engelhardt <jengelh@medozas.de> w=
-rote:
-> ---------- Forwarded message ----------
-> Date: Thu, 17 Dec 2009 20:13:47
-> From: Kevin Fenzi
-> Subject: ipset query
->
-> greetings.
->
-> I see from the ipset changelog that you [Jan] were last to update it.=
- ;)
-> http://ipset.netfilter.org/changelog.html
->
-> I was just wondering if there are any plans to try and merge ipset in
-> the mainstream kernel? Forgive me if you are not the person to ask, a=
-s
-> the above site has no contact info, nor does the source download.
->
-> It would be nice to get this merged so everyone could use it. ;)
->
-> Thanks for your time.
->
-> kevin
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-d=
-evel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+  /proc/net/nf_conntrack
+  ipv4     2 tcp      6 431999 ESTABLISHED src=147.229.13.xx 
+dst=147.229.14.xx sport=40868 dport=22 packets=13236 bytes=861344 
+src=147.229.14.xx dst=147.229.....
+
+Can you please help me to solve this bug? I didn't have any problems 
+with conntrack and ulog before. I suppose that there must to be 
+incompatibility between kernel and libnetfilter.
+
+Best regards,
+Zdenek Vasicek
+
+>pleaes contact netfilter-devel@vger.kernel.org
+>-- 
+>- Harald Welte <laforge@gnumonks.org>           http://laforge.gnumonks.org/
+>============================================================================
+>"Privacy in residential applications is a desirable marketing option."
+
