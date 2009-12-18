@@ -1,7 +1,7 @@
 From: "Domsch, Matt" <Matt_Domsch@Dell.com>
 Subject: Re: [PROPOSAL]: Alias names for network interfaces
-Date: Fri, 18 Dec 2009 08:02:34 -0600
-Message-ID: <20091218140233.GA16035@mdomsch-pws380.us.dell.com>
+Date: Fri, 18 Dec 2009 08:08:29 -0600
+Message-ID: <20091218140828.GB16035@mdomsch-pws380.us.dell.com>
 References: <EDA0A4495861324DA2618B4C45DCB3EE5898BB@blrx3m08.blr.amer.dell.com>
  <alpine.LSU.2.01.0912171506130.5925@obet.zrqbmnf.qr>
  <20091218020241.GA18168@lina.inka.de>
@@ -20,47 +20,37 @@ Cc: "K, Narendra" <Narendra_K@Dell.com>,
 	"Shandilya, Sandeep K" <Sandeep_K_Shandilya@Dell.com>
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ausc60ps301.us.dell.com ([143.166.148.206]:45299 "EHLO
+Received: from ausc60ps301.us.dell.com ([143.166.148.206]:60321 "EHLO
 	ausc60ps301.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753213AbZLROCh (ORCPT
+	with ESMTP id S1753144AbZLROIa (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 18 Dec 2009 09:02:37 -0500
+	Fri, 18 Dec 2009 09:08:30 -0500
 Content-Disposition: inline
 In-Reply-To: <alpine.LSU.2.01.0912181433230.5810@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 On Fri, Dec 18, 2009 at 07:42:22AM -0600, Jan Engelhardt wrote:
-> What is wrong with just renaming the actual interface? In fact you
-> could use udev itself for just that.
+> >I suppose the ifrename would rename network interfaces from ethN to ethN
+> >and that would cause issues.
+> 
+> What issues?
 
-a) The disk image then becomes 'stateful' with respect to MAC
-addresses for NICs.  It breaks the scenario of hardware maintenance
-whereby you remove the disks from one server, plug them into an
-identical server, and power it back on.  Or replacing a NIC.  Or
-booting the same image on multiple systems.
+historically, udev would wind up with NICs named:
 
-b) I'd really like to be able to use the platform-defined name
-(e.g. Embedded_NIC_1) early in the installers, long before udev would
-have set up 70-persistent-net.rules, for doing network-based installs.
-The syslinux IPAPPEND 2 option is quite helpful I'll admit, but that
-only sets up a deterministic mapping for one of the N NICs in a system
-(N>=4 commonplace on all our servers).
+eth0
+eth0_rename
+eth2
+eth2_rename
 
-c) it requires the user to make a choice as to what they want that
-one-and-only name to be, either at install time (which the anaconda
-team rejected), or later (meaning it's not really the one-and-only
-name).
+instead of eth[0-4].  The renames running in parallel would conflict.
+I'm told that DavidZ fixed this a recent udev, but I haven't
+confirmed this is the case.
 
-> Mapping MACs to interface names is a sort of determinism -- it
-> remains the same over time.
-
-Only so long as you don't replace any hardware components.
-
-With the method we're proposing, the image remains stateless with respect to MAC addresses.
-
-Thanks,
-Matt
+Regardless, this begs the question of how to name newly added NICs.
+Today's method involves a human fixing up 70-persistent-net.rules to
+match what they want it to be.  I hate that, when the platform itself
+can provide a perfectly good answer.
 
 -- 
 Matt Domsch
