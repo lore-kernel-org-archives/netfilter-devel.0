@@ -1,34 +1,108 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: ipset query
-Date: Sat, 19 Dec 2009 20:14:44 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.0912192011170.10933@blackhole.kfki.hu>
-References: <alpine.LSU.2.01.0912172134440.24028@obet.zrqbmnf.qr> <ad28918e0912171825k2065c56p4306d3d0d752a425@mail.gmail.com>
+From: Wiktor Kolodziej <wiktor@zhr.pl>
+Subject: Re: [xtables-addons] extensions in a non-modular kernel
+Date: Sat, 19 Dec 2009 21:45:08 +0100
+Message-ID: <6fbd78aa0912191245ja7a06c8wb07c2910ca9245ad@mail.gmail.com>
+References: <6fbd78aa0912030254p2382b23do6bc7a8700a013e47@mail.gmail.com>
+	 <alpine.LSU.2.01.0912081057250.15262@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, Kevin Fenzi <kevin@scrye.com>
-To: Fred Moyer <fred@redhotpenguin.com>
+Content-Type: multipart/mixed; boundary=000e0cd6a8a09512aa047b1aee72
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:40211 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753048AbZLSTOr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 19 Dec 2009 14:14:47 -0500
-In-Reply-To: <ad28918e0912171825k2065c56p4306d3d0d752a425@mail.gmail.com>
+Received: from mail-yx0-f187.google.com ([209.85.210.187]:60938 "EHLO
+	mail-yx0-f187.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753382AbZLSUpL (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 19 Dec 2009 15:45:11 -0500
+Received: by yxe17 with SMTP id 17so3885398yxe.33
+        for <netfilter-devel@vger.kernel.org>; Sat, 19 Dec 2009 12:45:10 -0800 (PST)
+In-Reply-To: <alpine.LSU.2.01.0912081057250.15262@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 17 Dec 2009, Fred Moyer wrote:
+--000e0cd6a8a09512aa047b1aee72
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-> +1 from a user who would like to ipset merged into mainstream.
+2009/12/8 Jan Engelhardt <jengelh@medozas.de>:
+> On Thursday 2009-12-03 11:54, Wiktor Kolodziej wrote:
+>
+>>Is there any easy way to compile extensions into a non-modular kernel?
+>
+> Depends on the definition of easy.
+>
+>>I've found in Jan's "An Introduction to Xtables-addons" that this is
+>>possible, but can you please give me some more info how to do it?
+>>What do you mean by "editing some kernel Makefile to descend into
+>>xtables-addons/extensions" ?
+>
+> ln -s ~/xtables-addons ~/linux/net/netfilter/
+> echo "obj-y +=3D xtables-addons/extensions/"
+> =A0 =A0 =A0 =A0>>~/linux/net/netfilter/Makefile
+>
+> Granted it does not stop there, one needs to modify extensions/Kbuild
+> because it depends on symbols from mconfig (oh my) which would need to
+> be exchanged to obj-y or something.
 
-I plan to submit ipset for kernel inclusion somewhere around the 
-first quarter of next year.
+Thanks for helping with that.
+I've created a script that does it automatically.
+I'm attaching it if somebody needs to quickly build a non-modular
+kernel with xtables-addons.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+Wiktor.
+
+--000e0cd6a8a09512aa047b1aee72
+Content-Type: application/x-sh; name="xtables.sh"
+Content-Disposition: attachment; filename="xtables.sh"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_g3euxu690
+
+IyEvYmluL2Jhc2gKCiMKIyBieSBXaWt0b3IgS29sb2R6aWVqICh3aWt0b3JAemhyLnBsKQojCiMg
+VGhpcyBzY3JpcHQgYWRkcyB4dGFibGVzLWFkZG9ucyBjb21waWxhdGlvbiBzdXBwb3J0IGZvciBu
+b24tbW9kdWxhciBrZXJuZWxzLgojIEl0IGlzIHdyaXR0ZW4gdGhhbmtzIHRvIGluc3RydWN0aW9u
+cyBnaXZlbiBieSBKYW4gRW5nZWxoYXJkdAojCiMgSG93IGRvZXMgaXQgd29yaz8KIyBCeSBhZGRp
+bmcgIm9iai0iIHRvIE1ha2VmaWxlcyBhbmQgb3B0aW9ucyB0byBLY29uZmlncwojIGl0IGlzIHBv
+c3NpYmxlIHRvIHNlbGVjdCB4dGFibGVzLWFkZG9ucyBmZWF0dXJlcyBpbiBtZW51Y29uZmlnLgoj
+CiMgTGltaXRhdGlvbnMKIyBJcHNldCBpbmNsdWRlZCBpbiB4dGFibGVzLWV4dGVuc2lvbnMgd29u
+J3Qgd29yawojIChJIHN1Z2dlc3QgdXNpbmcgaXBzZXQgZGlyZWN0bHkgZnJvbSBnaXQgcmVwbywK
+IyAgd2hlcmUgeW91IGhhdmUgYSBzY3JpcHQgZm9yIGtlcm5lbCBwYXRjaGluZykuCiMKIyBUZXN0
+ZWQgb24gMi42LjMxLngsIGJ1dCBwbGVhc2UgdXNlIGl0IGZvciB5b3VyIG93biByZXNwb25zaWJp
+bGl0eS4KIwojIFVzYWdlOgojCiMgSnVzdCBlZGl0IEtFUk5FTF9ESVIgYW5kIEFERE9OU19ESVIg
+aWYgcmVxdWlyZWQgYW5kIHJ1biB0aGUgc2NyaXB0LgojCgojbGludXggc291cmNlCktFUk5FTF9E
+SVI9L3Vzci9zcmMvbGludXgKI2FkZG9ucyBzb3VyY2UKQURET05TX0RJUj0vdXNyL3NyYy94dGFi
+bGVzLWFkZG9ucwoKY2QgJEtFUk5FTF9ESVIvbmV0L25ldGZpbHRlcgoKI2xpbmsgdG8geHRhYmxl
+cy1hZGRvbnMKbG4gLXMgJEFERE9OU19ESVIgeHRhYmxlcy1hZGRvbnMKCmFkZF9tYWtlZmlsZSgp
+IHsKICAgIGlmIFsgImBncmVwIENPTkZJR19JUF9YVF9FWFQgTWFrZWZpbGVgIiBdCiAgICB0aGVu
+CiAgICAgICAgcmV0dXJuCiAgICBlbHNlCiAgICAgICAgZWNobyAnb2JqLSR7Q09ORklHX0lQX1hU
+X0VYVH0gKz0geHRhYmxlcy1hZGRvbnMvZXh0ZW5zaW9ucy8nID4+IE1ha2VmaWxlCiAgICBmaQp9
+CgphZGRfa2NvbmZpZygpIHsKICAgIGlmIFsgImBncmVwIG5ldC9uZXRmaWx0ZXIveHRhYmxlcy1h
+ZGRvbnMvZXh0ZW5zaW9ucy9LY29uZmlnIEtjb25maWdgIiBdCiAgICB0aGVuCiAgICAgICAgcmV0
+dXJuCiAgICBlbHNlCiAgICAgICAgZWNobyAnc291cmNlICJuZXQvbmV0ZmlsdGVyL3h0YWJsZXMt
+YWRkb25zL2V4dGVuc2lvbnMvS2NvbmZpZyInID4+IEtjb25maWcKICAgIGZpCn0KCmNwX3N1YmRp
+cnMoKSB7CiAgICBjZCB4dGFibGVzLWFkZG9ucy9leHRlbnNpb25zCiAgICBmb3IgaSBpbiAkKgog
+ICAgZG8KICAgICAgICBjZCAkaQogICAgICAgIGNwICouS2NvbmZpZyAuLgogICAgICAgIGNwIHh0
+XyogLi4KICAgICAgICBjZCAuLgogICAgZG9uZQogICAgY2QgLi4vLi4KfQoKZ2VuX2tjb25maWco
+KSB7CiAgICBtZW51Y29uZj0nCiMKIyBYVEFCTEVTIEVYVEVOU0lPTlMgY29uZmlndXJhdGlvbgoj
+Cm1lbnVjb25maWcgSVBfWFRfRVhUCiAgICAgICAgdHJpc3RhdGUgIlh0YWJsZXMgZXh0ZW5zaW9u
+cyBmb3Igbm9uLW1vZHVsYXIga2VybmVscyIKICAgICAgICBkZXBlbmRzIG9uIE5FVCAmJiBJTkVU
+ICYmIE5FVEZJTFRFUgogICAgICAgIC0tLWhlbHAtLS0KICAgICAgICBTZWxlY3QgdGhpcyBvcHRp
+b24gdG8gY29tcGlsZSB4dGFibGVzIGV4dGVuc2lvbnMgaW50byBhIG5vbi1tb2R1bGFyIGtlcm5l
+bAoKaWYgSVBfWFRfRVhUCicKICAgIGNkIHh0YWJsZXMtYWRkb25zL2V4dGVuc2lvbnMKICAgIGVj
+aG8gIiRtZW51Y29uZiIgPnRtcAoKICAgIGZvciBpIGluICouS2NvbmZpZwogICAgZG8KICAgICAg
+ICBlY2hvICRpCiAgICAgICAgY2F0ICRpID4+IHRtcAogICAgZG9uZQoKICAgIGVjaG8gImVuZGlm
+IiA+PiB0bXAKICAgIG12IHRtcCBLY29uZmlnCn0KCmdlbl9rYnVpbGQoKSB7CiAgICBpZiBbICEg
+LWYgS2J1aWxkLmJhY2t1cCBdCiAgICB0aGVuCiAgICAgICAgY3AgS2J1aWxkIEtidWlsZC5iYWNr
+dXAKICAgIGZpCgogICAgb3B0cz1gY2F0IEtjb25maWd8Z3JlcCBeY29uZmlnfGF3ayAne3ByaW50
+ICQyfSdgCiAgICAjZWNobyAkb3B0cwogICAgY2F0IEtidWlsZC5iYWNrdXAgfGdyZXAgIm9iai1t
+InxzZWQgInMvb2JqLW0vb2JqLXkvIiA+IEtidWlsZC50bXAKCiAgICBmb3IgaSBpbiAkb3B0cwog
+ICAgZG8KICAgICAgICAjZ2V0IG9wdGlvbiBuYW1lcwogICAgICAgIHNvcHQ9JHtpIyNORVRGSUxU
+RVIqX30KICAgICAgICBjYXQgS2J1aWxkLmJhY2t1cCB8Z3JlcCAtaSAkc29wdCB8IHNlZCAicy97
+YnVpbGRfLip9L3tDT05GSUdfJHtpfX0vZyIgPj5LYnVpbGQudG1wCiAgICBkb25lCiAgICAjZ2l2
+ZW4gc3ViZGlyZWN0b3JpZXMgKGlmIGFueSkKICAgIHN0cj0iICIKICAgIGlmIFsgIiQqIiBdCiAg
+ICB0aGVuCiAgICAgICAgZm9yIGkgaW4gJCoKICAgICAgICBkbwogICAgICAgICAgICBzdHI9JHN0
+ciJzZWQgJ3MvJHtpfVwvL3h0XyR7aX0uby8nIHwgIgogICAgICAgIGRvbmUKICAgICAgICBjYXQg
+S2J1aWxkLnRtcCB8IGV2YWwgJHtzdHIlfCp9ID4gS2J1aWxkCiAgICBlbHNlCiAgICAgICAgY3Ag
+S2J1aWxkLnRtcCBLYnVpbGQKICAgIGZpCiAgICBjcCBLYnVpbGQgTWFrZWZpbGUKfQoKYWRkX21h
+a2VmaWxlCmFkZF9rY29uZmlnCiNmb3Igbm93IGFkZCBBQ0NPVU5UIGFuZCBwa25vY2sgYnkgaGFu
+ZApjcF9zdWJkaXJzIEFDQ09VTlQgcGtub2NrCmdlbl9rY29uZmlnCmdlbl9rYnVpbGQgQUNDT1VO
+VCBwa25vY2sK
+--000e0cd6a8a09512aa047b1aee72--
