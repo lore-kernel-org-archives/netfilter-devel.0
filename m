@@ -1,44 +1,50 @@
-From: Stephen Hemminger <shemminger@linux-foundation.org>
-Subject: Re: [PROPOSAL]: Alias names for network interfaces
-Date: Fri, 18 Dec 2009 09:38:45 -0800
-Message-ID: <20091218093845.00d7e918@nehalam>
-References: <EDA0A4495861324DA2618B4C45DCB3EE5898BB@blrx3m08.blr.amer.dell.com>
-	<alpine.LSU.2.01.0912171506130.5925@obet.zrqbmnf.qr>
-	<20091218020241.GA18168@lina.inka.de>
-	<EDA0A4495861324DA2618B4C45DCB3EE5898C7@blrx3m08.blr.amer.dell.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH] allow nf_tproxy_core module to unload
+Date: Fri, 18 Dec 2009 19:41:46 -0800 (PST)
+Message-ID: <20091218.194146.104066031.davem@davemloft.net>
+References: <20091218162440.22480.3383.sendpatchset@localhost.localdomain>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: <be-mail2009@lina.inka.de>, <jengelh@medozas.de>,
-	<net-tools@lina.inka.de>, <netfilter-devel@vger.kernel.org>,
-	<jgarzik@users.sourceforge.net>, <Matt_Domsch@Dell.com>,
-	<Charles_Rose@Dell.com>, <Jordan_Hargrave@Dell.com>,
-	<Sandeep_K_Shandilya@Dell.com>
-To: <Narendra_K@Dell.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.linux-foundation.org ([140.211.169.13]:57974 "EHLO
-	smtp1.linux-foundation.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753635AbZLRRkP (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 18 Dec 2009 12:40:15 -0500
-In-Reply-To: <EDA0A4495861324DA2618B4C45DCB3EE5898C7@blrx3m08.blr.amer.dell.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: netdev@vger.kernel.org, sassmann@redhat.com,
+	netfilter-devel@vger.kernel.org
+To: emcnabb@redhat.com
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20091218162440.22480.3383.sendpatchset@localhost.localdomain>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 18 Dec 2009 18:49:15 +0530
-<Narendra_K@Dell.com> wrote:
+From: Evan McNabb <emcnabb@redhat.com>
+Date: Fri, 18 Dec 2009 11:24:40 -0500
 
-> The installer solution involved renaming the network interface names
-> from ethN to something else based on the naming convention that the user
-> specified. For example, if the user chose "smbios names" as the the
-> naming convention then all ethN would be renamed to Embedded_NIC_N.
-> ifconfig would show Embedded_NIC_N instead of ethN.
+> From: Evan McNabb <emcnabb@redhat.com>
+> 
+> Include exit function so nf_tproxy_core module can be removed.
+> 
+> Signed-off-by: Evan McNabb <emcnabb@redhat.com>
 
-Renaming away from ethN causes some applications like net-snmp to get confused,
-and others have special sorting rules based on existing model (like quagga).
+netfilter-devel is the best place to CC: netfilter
+patches, added...
 
-I would argue that the "ethN" convention is part of existing system
-ABI and should not get changed in a visible way to applications.
-
-
--- 
+> 
+> diff --git a/net/netfilter/nf_tproxy_core.c b/net/netfilter/nf_tproxy_core.c
+> index 5490fc3..ec6737c 100644
+> --- a/net/netfilter/nf_tproxy_core.c
+> +++ b/net/netfilter/nf_tproxy_core.c
+> @@ -89,7 +89,12 @@ static int __init nf_tproxy_init(void)
+>  	return 0;
+>  }
+>  
+> +static void __exit nf_tproxy_exit(void)
+> +{
+> +}
+> +
+>  module_init(nf_tproxy_init);
+> +module_exit(nf_tproxy_exit);
+>  
+>  MODULE_LICENSE("GPL");
+>  MODULE_AUTHOR("Krisztian Kovacs");
+> --
+> To unsubscribe from this list: send the line "unsubscribe netdev" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
