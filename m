@@ -1,50 +1,34 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH] allow nf_tproxy_core module to unload
-Date: Fri, 18 Dec 2009 19:41:46 -0800 (PST)
-Message-ID: <20091218.194146.104066031.davem@davemloft.net>
-References: <20091218162440.22480.3383.sendpatchset@localhost.localdomain>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: ipset query
+Date: Sat, 19 Dec 2009 20:14:44 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.0912192011170.10933@blackhole.kfki.hu>
+References: <alpine.LSU.2.01.0912172134440.24028@obet.zrqbmnf.qr> <ad28918e0912171825k2065c56p4306d3d0d752a425@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, sassmann@redhat.com,
-	netfilter-devel@vger.kernel.org
-To: emcnabb@redhat.com
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20091218162440.22480.3383.sendpatchset@localhost.localdomain>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, Kevin Fenzi <kevin@scrye.com>
+To: Fred Moyer <fred@redhotpenguin.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp-in.kfki.hu ([148.6.0.25]:40211 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753048AbZLSTOr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 19 Dec 2009 14:14:47 -0500
+In-Reply-To: <ad28918e0912171825k2065c56p4306d3d0d752a425@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Evan McNabb <emcnabb@redhat.com>
-Date: Fri, 18 Dec 2009 11:24:40 -0500
+On Thu, 17 Dec 2009, Fred Moyer wrote:
 
-> From: Evan McNabb <emcnabb@redhat.com>
-> 
-> Include exit function so nf_tproxy_core module can be removed.
-> 
-> Signed-off-by: Evan McNabb <emcnabb@redhat.com>
+> +1 from a user who would like to ipset merged into mainstream.
 
-netfilter-devel is the best place to CC: netfilter
-patches, added...
+I plan to submit ipset for kernel inclusion somewhere around the 
+first quarter of next year.
 
-> 
-> diff --git a/net/netfilter/nf_tproxy_core.c b/net/netfilter/nf_tproxy_core.c
-> index 5490fc3..ec6737c 100644
-> --- a/net/netfilter/nf_tproxy_core.c
-> +++ b/net/netfilter/nf_tproxy_core.c
-> @@ -89,7 +89,12 @@ static int __init nf_tproxy_init(void)
->  	return 0;
->  }
->  
-> +static void __exit nf_tproxy_exit(void)
-> +{
-> +}
-> +
->  module_init(nf_tproxy_init);
-> +module_exit(nf_tproxy_exit);
->  
->  MODULE_LICENSE("GPL");
->  MODULE_AUTHOR("Krisztian Kovacs");
-> --
-> To unsubscribe from this list: send the line "unsubscribe netdev" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
