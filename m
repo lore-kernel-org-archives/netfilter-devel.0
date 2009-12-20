@@ -1,71 +1,69 @@
-From: <Jordan_Hargrave@Dell.com>
-Subject: RE: [PROPOSAL]: Alias names for network interfaces
-Date: Sat, 19 Dec 2009 18:12:46 -0600
-Message-ID: <71C661ECA80E7B428057125B644033D0084A695637@AUSX7MCPS303.AMER.DELL.COM>
-References: <EDA0A4495861324DA2618B4C45DCB3EE5898BB@blrx3m08.blr.amer.dell.com>
- <alpine.LSU.2.01.0912171506130.5925@obet.zrqbmnf.qr>
- <20091218020241.GA18168@lina.inka.de>
- <EDA0A4495861324DA2618B4C45DCB3EE5898C7@blrx3m08.blr.amer.dell.com>
- <alpine.LSU.2.01.0912181433230.5810@obet.zrqbmnf.qr>
- <20091218140828.GB16035@mdomsch-pws380.us.dell.com>
- <alpine.LSU.2.01.0912181513060.6400@obet.zrqbmnf.qr>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [xtables-addons][PATCH 0/2] Misc ipset issues
+Date: Sun, 20 Dec 2009 10:36:36 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.0912201029550.11541@blackhole.kfki.hu>
+References: <1261255847-16395-1-git-send-email-kevin@kevinlocke.name>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-Cc: <Narendra_K@Dell.com>, <be-mail2009@lina.inka.de>,
-	<net-tools@lina.inka.de>, <shemminger@osdl.org>,
-	<netfilter-devel@vger.kernel.org>, <jgarzik@users.sourceforge.net>,
-	<Charles_Rose@Dell.com>, <Sandeep_K_Shandilya@Dell.com>
-To: <jengelh@medozas.de>, <Matt_Domsch@Dell.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Kevin Locke <kevin@kevinlocke.name>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ausxipps301.us.dell.com ([143.166.148.223]:13877 "EHLO
-	ausxipps301.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753735AbZLTAWl convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 19 Dec 2009 19:22:41 -0500
-In-Reply-To: <alpine.LSU.2.01.0912181513060.6400@obet.zrqbmnf.qr>
-Content-Language: en-US
+Received: from smtp-in.kfki.hu ([148.6.0.28]:53176 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752553AbZLTJgj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 20 Dec 2009 04:36:39 -0500
+In-Reply-To: <1261255847-16395-1-git-send-email-kevin@kevinlocke.name>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-One proposal we are looking at is a kernel change to add an extra attribute to the /sys/devices/pciXXX directories.  SMBIOS Type 9 and 41 contain mapping between slot number/device name and PCI BDF.  Creating an extra attribute called 'slotname' or 'smbiosname' would allow accessing the desired name by /sys/class/net/ethX/device/smbiosname
+Hi,
 
+On Sat, 19 Dec 2009, Kevin Locke wrote:
 
---jordan Hargrave
-Dell Enterprise Linux Engineering
+> I ran across a few issues getting ipset to work on my system and
+> wanted to bring them up here for consideration.
+> 
+> The first is that in 2.6.33-rc1, sk_buff->iff was renamed to
+> sk_buff->skb_iif, which breaks compilation on kernels going forward.
+> 
+> The second issue is that the setlist module is currently not being
+> built which results in "ipset v4.1: Unknown set type" when attempting
+> to create a set of this type (as documented in the man page).  I'm not
+> sure if this is intentional (if it is, feel free to ignore that
+> patch), but in my experience it has worked quite well with the
+> exception of -T not working as expected (or at all AFAICT).
 
------Original Message-----
-From: Jan Engelhardt [mailto:jengelh@medozas.de] 
-Sent: Friday, December 18, 2009 8:15 AM
-To: Domsch, Matt
-Cc: K, Narendra; be-mail2009@lina.inka.de; net-tools@lina.inka.de; shemminger@osdl.org; netfilter-devel@vger.kernel.org; jgarzik@users.sourceforge.net; Rose, Charles; Hargrave, Jordan; Shandilya, Sandeep K
-Subject: Re: [PROPOSAL]: Alias names for network interfaces
+These are xtables-addons related issues, Jan'll take care of them.
+ 
+> Another issue, for which I did not include a patch, is how automatic
+> resizing of hash tables is handled.  If I restore a file (created
+> outside ipset) which contains somewhere near (but less than) 65000
+> entries which do not hash to unique values I start getting log
+> messages like the following:
+> 
+> /usr/src/modules/xtables-addons/ipset/ip_set_nethash.c: nethash_retry: rehashing of set setname triggered: hashsize grows from 44319 to 66478
+> /usr/src/modules/xtables-addons/ipset/ip_set_nethash.c: nethash_retry: rehashing of set setname triggered: hashsize grows from 66478 to 99717
+> 
+> and ipset -R silently fails to restore the rest of the file (returning
+> exit code 0).  I realize that there may be some code to deal with this
+> during save (or when adding entries using -A), but it would be very
+> helpful if the user could be warned about the failure during -R as
+> well. 
 
+You are hitting the internal (and somewhat artifical) limit of max 65535 
+entries in a set. When rehashing, the next tried hash size was larger than 
+the limit so it failed. It should be reported back, you are right.
 
-On Friday 2009-12-18 15:08, Domsch, Matt wrote:
->On Fri, Dec 18, 2009 at 07:42:22AM -0600, Jan Engelhardt wrote:
->> >I suppose the ifrename would rename network interfaces from ethN to ethN
->> >and that would cause issues.
->> 
->> What issues?
->
->historically, udev would wind up with NICs named:
->
->eth0
->eth0_rename
->eth2
->eth2_rename
->
->instead of eth[0-4].  The renames running in parallel would conflict.
->I'm told that DavidZ fixed this a recent udev, but I haven't
->confirmed this is the case.
->
->Regardless, this begs the question of how to name newly added NICs.
->Today's method involves a human fixing up 70-persistent-net.rules to
->match what they want it to be.  I hate that, when the platform itself
->can provide a perfectly good answer.
+> As a side note:  One use case is when building a large set it
+> is significantly (on the order of 1000 times on my test system) faster
+> to build the list and use -R than individually with -A).
 
-Of course. If the user chose to want SMBIOS names by default,
-why not.
+That's normal, restore mode spares a lot of system calls.
 
-Except when the BIOS manufacturer left the SMBIOS info blank again.
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
