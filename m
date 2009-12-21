@@ -1,69 +1,66 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [xtables-addons][PATCH 0/2] Misc ipset issues
-Date: Sun, 20 Dec 2009 10:36:36 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.0912201029550.11541@blackhole.kfki.hu>
-References: <1261255847-16395-1-git-send-email-kevin@kevinlocke.name>
+From: Michal Soltys <soltys@ziu.info>
+Subject: Re: u32 question
+Date: Mon, 21 Dec 2009 08:49:39 +0100
+Message-ID: <4B2F2893.6090905@ziu.info>
+References: <20091219231018.B79C41A8193@isis.cs3-inc.com>	<19245.36072.654916.551426@isis.cs3-inc.com>	<4B2F0D0F.8030100@ziu.info> <19247.5724.521673.970517@isis.cs3-inc.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Kevin Locke <kevin@kevinlocke.name>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Mail List - Netfilter <netfilter@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org, mike@kuketz.de
+To: Don Cohen <don-nfil2@isis.cs3-inc.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:53176 "EHLO smtp2.kfki.hu"
+Received: from relay.ppgk.com.pl ([80.53.243.36]:40083 "EHLO relay.ppgk.com.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752553AbZLTJgj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 20 Dec 2009 04:36:39 -0500
-In-Reply-To: <1261255847-16395-1-git-send-email-kevin@kevinlocke.name>
+	id S1752375AbZLUH6I (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 21 Dec 2009 02:58:08 -0500
+In-Reply-To: <19247.5724.521673.970517@isis.cs3-inc.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
-
-On Sat, 19 Dec 2009, Kevin Locke wrote:
-
-> I ran across a few issues getting ipset to work on my system and
-> wanted to bring them up here for consideration.
+Don Cohen wrote:
+> Michal Soltys writes:
 > 
-> The first is that in 2.6.33-rc1, sk_buff->iff was renamed to
-> sk_buff->skb_iif, which breaks compilation on kernels going forward.
+>  > This match in its current version does plenty of sanity checks, and 
+>  > moving back using negative offsets don't work (as negative offsets 
+>  > are not allowed and the data is internally treated as big >0 value 
+>  > - thus failing the match). You have two options: 
 > 
-> The second issue is that the setlist module is currently not being
-> built which results in "ipset v4.1: Unknown set type" when attempting
-> to create a set of this type (as documented in the man page).  I'm not
-> sure if this is intentional (if it is, feel free to ignore that
-> patch), but in my experience it has worked quite well with the
-> exception of -T not working as expected (or at all AFAICT).
-
-These are xtables-addons related issues, Jan'll take care of them.
- 
-> Another issue, for which I did not include a patch, is how automatic
-> resizing of hash tables is handled.  If I restore a file (created
-> outside ipset) which contains somewhere near (but less than) 65000
-> entries which do not hash to unique values I start getting log
-> messages like the following:
+> I thought the original version did plenty of checks and specifically 
+> DID allow negative offsets, which is intentional because, as we see 
+> from published examples (that no longer work), that's useful.
+> Is there any reason that capability shouldn't be restored as the
+> normal version that appears in linux distributions?
 > 
-> /usr/src/modules/xtables-addons/ipset/ip_set_nethash.c: nethash_retry: rehashing of set setname triggered: hashsize grows from 44319 to 66478
-> /usr/src/modules/xtables-addons/ipset/ip_set_nethash.c: nethash_retry: rehashing of set setname triggered: hashsize grows from 66478 to 99717
+
+I'm just reporting - as I can see somebody ran into the same problem as me 
+a while ago. I've added netfilter-devel to CC, as it's a better place for 
+the discussion.
+
+>  > - patch the xt_u32.c to allow earlier behavior
+>  > - use match2 from xtables-addons (separate options for matching)
+
+(I meant length2 - separate options for matching 0 payload packets).
+
 > 
-> and ipset -R silently fails to restore the rest of the file (returning
-> exit code 0).  I realize that there may be some code to deal with this
-> during save (or when adding entries using -A), but it would be very
-> helpful if the user could be warned about the failure during -R as
-> well. 
+>  > For reference:
+>  > 
+>  > http://xtables-addons.sourceforge.net/
+>  > http://marc.info/?t=125219819200001&r=1&w=2
+> 
+> I see that the patch is available here.  It's just relatively
+> inconvenient to use it compared to things working as intended out of
+> the box.  I have to say that it's not all that obvious in EITHER of
+> the two options just what you have to do in order to fix the problem
+> on your own machine.  Where can I find such instructions?
+> 
+> 
+> BTW, in response to some of the comments I see in the second
+> reference, 
+> - I would be very surprised to see frames of 2GB any time in the
+> foreseeable future
+> - If you're worried about that I suggest that (at least on a 64 bit
+> machine) you allow 64 bit offsets so on a 64 bit machine
+>  -3 => 0xfffffffffffffffd.
+> --
 
-You are hitting the internal (and somewhat artifical) limit of max 65535 
-entries in a set. When rehashing, the next tried hash size was larger than 
-the limit so it failed. It should be reported back, you are right.
-
-> As a side note:  One use case is when building a large set it
-> is significantly (on the order of 1000 times on my test system) faster
-> to build the list and use -R than individually with -A).
-
-That's normal, restore mode spares a lot of system calls.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
