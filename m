@@ -1,49 +1,71 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [Fwd: Re: libnetfilter_conntrack]
-Date: Wed, 23 Dec 2009 23:08:49 +0100
-Message-ID: <4B3294F1.4010202@netfilter.org>
-References: <4B2B4B63.20509@seznam.cz>
+Subject: Re: conntrack -B undocumented
+Date: Thu, 24 Dec 2009 00:25:15 +0100
+Message-ID: <4B32A6DB.1050004@netfilter.org>
+References: <20091216174205.GA30937@tkeitel002.bln.innominate.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Zdenek Vasicek <vzdenek@seznam.cz>
+Content-Type: multipart/mixed;
+ boundary="------------000803010808000903060002"
+Cc: netfilter-devel@vger.kernel.org
+To: Tino Keitel <tkeitel@innominate.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:46984 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:52875 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753612AbZLWWIj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Dec 2009 17:08:39 -0500
-In-Reply-To: <4B2B4B63.20509@seznam.cz>
+	id S1755768AbZLWXZF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 23 Dec 2009 18:25:05 -0500
+In-Reply-To: <20091216174205.GA30937@tkeitel002.bln.innominate.local>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Zdenek Vasicek wrote:
-> Dear authors,
-> I would like to ask you about help. I have installed latest version of 
-> the libnetfilter_conntrack (libnetfilter_conntrack-0.0.100, 
-> libnfnetlink-1.0.0) and I have found that the src and dest address 
-> (ipv4) as well as src and dest port are always empty (zero). However, if 
-> I look into /proc/net/nf_conntrack, everything is ok. The kernel version 
-> is 2.6.32.
-> 
-> Example:
->  libnetfilter_conntrack-0.0.100/utils/conntrack_dump
->  ipv4     2 tcp      6 431999 src=0.0.0.0 dst=0.0.0.0 sport=0 dport=0 
-> packets=13087 bytes=851624 src=0.0.0.0 dst=0.0.0.0 sport=0 dport=0 
-> packets=14940 bytes=8636188 [ASSURED] mark=0 use=2
-> 
->  /proc/net/nf_conntrack
->  ipv4     2 tcp      6 431999 ESTABLISHED src=147.229.13.xx 
-> dst=147.229.14.xx sport=40868 dport=22 packets=13236 bytes=861344 
-> src=147.229.14.xx dst=147.229.....
-> 
-> Can you please help me to solve this bug? I didn't have any problems 
-> with conntrack and ulog before. I suppose that there must to be 
-> incompatibility between kernel and libnetfilter.
+This is a multi-part message in MIME format.
+--------------000803010808000903060002
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-There's a similar bug in bugzilla.netfilter.org [1], for some reason the 
-kernel is not including the address and the port in the messages sent to 
-userspace. Could you send me your .config file?
+Tino Keitel wrote:
+> Hi,
+> 
+> the example scripts for conntrackd (like primary-backup.sh) use a -B
+> option, which seems to be undocumented in the manual page and in the
+> command help.  What exactly is it intended for?
 
-[1] http://bugzilla.netfilter.org/show_bug.cgi?id=612
+It forces a bulk send to other cluster nodes. I have applied the 
+following patch to the manpage.
+
+--------------000803010808000903060002
+Content-Type: text/x-patch;
+ name="doc.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="doc.patch"
+
+conntrackd: document `-B' command
+
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+
+This patch documents the `-B' command in conntrackd that allows you
+to force a bulk send to other firewall nodes in the cluster.
+
+Reported-by: Tino Keitel <tkeitel@innominate.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ conntrackd.8 |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/conntrackd.8 b/conntrackd.8
+index f741bc9..0c9054e 100644
+--- a/conntrackd.8
++++ b/conntrackd.8
+@@ -41,6 +41,10 @@ Flush the internal and/or external cache
+ Flush the kernel conntrack table (if you use a Linux kernel >= 2.6.29, this
+ option will not flush your internal and external cache).
+ .TP
++.BI "-B "
++Force a bulk send to other replica firewalls. With this command, you will
++ask conntrackd to send the state-entries that it owns to others.
++.TP
+ .BI "-k "
+ Kill the daemon
+ .TP
+
+--------------000803010808000903060002--
