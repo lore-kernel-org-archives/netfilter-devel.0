@@ -1,56 +1,49 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] libnetfilter_conntrack 0.0.101 release
-Date: Wed, 23 Dec 2009 21:32:58 +0100
-Message-ID: <4B327E7A.6060100@netfilter.org>
+Subject: Re: [Fwd: Re: libnetfilter_conntrack]
+Date: Wed, 23 Dec 2009 23:08:49 +0100
+Message-ID: <4B3294F1.4010202@netfilter.org>
+References: <4B2B4B63.20509@seznam.cz>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------070109050508010705060503"
-Cc: netfilter-announce@lists.netfilter.org,
-	netfilter-devel@vger.kernel.org, lwn@lwn.net
-To: netfilter@vger.kernel.org
-Return-path: <netfilter-owner@vger.kernel.org>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
-
-This is a multi-part message in MIME format.
---------------070109050508010705060503
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Zdenek Vasicek <vzdenek@seznam.cz>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:46984 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753612AbZLWWIj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 23 Dec 2009 17:08:39 -0500
+In-Reply-To: <4B2B4B63.20509@seznam.cz>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi!
+Zdenek Vasicek wrote:
+> Dear authors,
+> I would like to ask you about help. I have installed latest version of 
+> the libnetfilter_conntrack (libnetfilter_conntrack-0.0.100, 
+> libnfnetlink-1.0.0) and I have found that the src and dest address 
+> (ipv4) as well as src and dest port are always empty (zero). However, if 
+> I look into /proc/net/nf_conntrack, everything is ok. The kernel version 
+> is 2.6.32.
+> 
+> Example:
+>  libnetfilter_conntrack-0.0.100/utils/conntrack_dump
+>  ipv4     2 tcp      6 431999 src=0.0.0.0 dst=0.0.0.0 sport=0 dport=0 
+> packets=13087 bytes=851624 src=0.0.0.0 dst=0.0.0.0 sport=0 dport=0 
+> packets=14940 bytes=8636188 [ASSURED] mark=0 use=2
+> 
+>  /proc/net/nf_conntrack
+>  ipv4     2 tcp      6 431999 ESTABLISHED src=147.229.13.xx 
+> dst=147.229.14.xx sport=40868 dport=22 packets=13236 bytes=861344 
+> src=147.229.14.xx dst=147.229.....
+> 
+> Can you please help me to solve this bug? I didn't have any problems 
+> with conntrack and ulog before. I suppose that there must to be 
+> incompatibility between kernel and libnetfilter.
 
-The Netfilter project presents libnetfilter_conntrack-0.0.101.
+There's a similar bug in bugzilla.netfilter.org [1], for some reason the 
+kernel is not including the address and the port in the messages sent to 
+userspace. Could you send me your .config file?
 
-libnetfilter_conntrack is a userspace library providing a programming 
-interface (API) to the in-kernel connection tracking state table. This 
-library requires a linux kernel >= 2.6.18.
-
-This release includes a one fix and several cleanups from Hannes Eder. 
-See ChangeLog for more details.
-
-You can download it from:
-
-http://www.netfilter.org/projects/libnetfilter_conntrack/
-ftp://ftp.netfilter.org/pub/libnetfilter_conntrack/
-
-Pablo,
-on behalf of the Netfilter Core Team.
-
---------------070109050508010705060503
-Content-Type: text/plain;
- name="changes-libnetfilter_conntrack-0.0.101.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="changes-libnetfilter_conntrack-0.0.101.txt"
-
-Hannes Eder (3):
-      api: use ANSI style function
-      src: make symbols used only in file scope static
-      snprintf: remove duplicate initializer entry
-
-Pablo Neira Ayuso (2):
-      setobjopt: don't autocomplete the reply tuple for ICMP[v6]
-      configure: bump version to 0.0.101
-
-
---------------070109050508010705060503--
+[1] http://bugzilla.netfilter.org/show_bug.cgi?id=612
