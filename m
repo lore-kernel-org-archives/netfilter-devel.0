@@ -1,71 +1,44 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: conntrack -B undocumented
-Date: Thu, 24 Dec 2009 00:25:15 +0100
-Message-ID: <4B32A6DB.1050004@netfilter.org>
-References: <20091216174205.GA30937@tkeitel002.bln.innominate.local>
+From: basteon <basteon@gmail.com>
+Subject: payload length
+Date: Thu, 24 Dec 2009 16:34:18 +1000
+Message-ID: <328fe7150912232234g7381efafre6ad8b0825762f05@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------000803010808000903060002"
-Cc: netfilter-devel@vger.kernel.org
-To: Tino Keitel <tkeitel@innominate.com>
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:52875 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755768AbZLWXZF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Dec 2009 18:25:05 -0500
-In-Reply-To: <20091216174205.GA30937@tkeitel002.bln.innominate.local>
+Received: from mail-iw0-f171.google.com ([209.85.223.171]:44665 "EHLO
+	mail-iw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754250AbZLXGeT (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 24 Dec 2009 01:34:19 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------000803010808000903060002
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+greetings,
+perhaps someone be able assist me?
+I made tine embedded tool so as to customize iptables rules, but I
+can't add rules with proto and langth, only proto or length. what so I
+did...
 
-Tino Keitel wrote:
-> Hi,
-> 
-> the example scripts for conntrackd (like primary-backup.sh) use a -B
-> option, which seems to be undocumented in the manual page and in the
-> command help.  What exactly is it intended for?
+struct ipt_entry_match *match = NULL, *mlength = NULL,*tmp=NULL;
+//whatever ******************************
+//tmp = realloc( match, match->u.match_size + mlength->u.match_size );
+tmp = realloc( mlength, mlength->u.match_size + match->u.match_size );
+if( tmp ){
+//memcpy( tmp + mlength->u.match_size, mlength, mlength->u.match_size );
+memcpy( tmp + match->u.match_size, match, match->u.match_size );
+match=malloc(tmp->u.match_size );
+memcpy(match, tmp, tmp->u.match_size );
+}
+//whatever ******************************
+if(match) memcpy(chain_entry->elems, match,match->u.match_size);
 
-It forces a bulk send to other cluster nodes. I have applied the 
-following patch to the manpage.
+e.g. it works well it I use only match or mlength
+ACCEPT     udp  --  10.20.30.40          anywhere            udp
+spt:8889 dpt:555
+ACCEPT     udp  --  10.20.30.40          anywhere            length 0:5
+but I looking something like that...
+ACCEPT     udp  --  10.20.30.40             anywhere            length
+0:5 udp spt:666 dpt:777
 
---------------000803010808000903060002
-Content-Type: text/x-patch;
- name="doc.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="doc.patch"
-
-conntrackd: document `-B' command
-
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-
-This patch documents the `-B' command in conntrackd that allows you
-to force a bulk send to other firewall nodes in the cluster.
-
-Reported-by: Tino Keitel <tkeitel@innominate.com>
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
----
- conntrackd.8 |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
-
-diff --git a/conntrackd.8 b/conntrackd.8
-index f741bc9..0c9054e 100644
---- a/conntrackd.8
-+++ b/conntrackd.8
-@@ -41,6 +41,10 @@ Flush the internal and/or external cache
- Flush the kernel conntrack table (if you use a Linux kernel >= 2.6.29, this
- option will not flush your internal and external cache).
- .TP
-+.BI "-B "
-+Force a bulk send to other replica firewalls. With this command, you will
-+ask conntrackd to send the state-entries that it owns to others.
-+.TP
- .BI "-k "
- Kill the daemon
- .TP
-
---------------000803010808000903060002--
+I guess it had little bit specific with sequence or so?
