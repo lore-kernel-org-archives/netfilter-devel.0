@@ -1,44 +1,75 @@
-From: basteon <basteon@gmail.com>
-Subject: payload length
-Date: Thu, 24 Dec 2009 16:34:18 +1000
-Message-ID: <328fe7150912232234g7381efafre6ad8b0825762f05@mail.gmail.com>
+From: Holger Freyther <zecke@selfish.org>
+Subject: [PATCH] netfilter: Fix typo in nf_queue.c
+Date: Sat, 26 Dec 2009 04:22:51 +0100
+Message-ID: <200912260422.52186.zecke@selfish.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_MGYNLpD+fA6Jl7N"
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-iw0-f171.google.com ([209.85.223.171]:44665 "EHLO
-	mail-iw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754250AbZLXGeT (ORCPT
+Received: from gandharva.secretlabs.de ([78.46.147.237]:59921 "EHLO
+	gandharva.secretlabs.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757548AbZLZDcu (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 24 Dec 2009 01:34:19 -0500
+	Fri, 25 Dec 2009 22:32:50 -0500
+Received: from tamarin.localnet (123-192-180-176.dynamic.kbronet.com.tw [123.192.180.176])
+	by gandharva.secretlabs.de (Postfix) with ESMTPSA id 198661B10C04
+	for <netfilter-devel@vger.kernel.org>; Sat, 26 Dec 2009 03:19:29 +0000 (UTC)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-greetings,
-perhaps someone be able assist me?
-I made tine embedded tool so as to customize iptables rules, but I
-can't add rules with proto and langth, only proto or length. what so I
-did...
+--Boundary-00=_MGYNLpD+fA6Jl7N
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-struct ipt_entry_match *match = NULL, *mlength = NULL,*tmp=NULL;
-//whatever ******************************
-//tmp = realloc( match, match->u.match_size + mlength->u.match_size );
-tmp = realloc( mlength, mlength->u.match_size + match->u.match_size );
-if( tmp ){
-//memcpy( tmp + mlength->u.match_size, mlength, mlength->u.match_size );
-memcpy( tmp + match->u.match_size, match, match->u.match_size );
-match=malloc(tmp->u.match_size );
-memcpy(match, tmp, tmp->u.match_size );
-}
-//whatever ******************************
-if(match) memcpy(chain_entry->elems, match,match->u.match_size);
+Hi all,
 
-e.g. it works well it I use only match or mlength
-ACCEPT     udp  --  10.20.30.40          anywhere            udp
-spt:8889 dpt:555
-ACCEPT     udp  --  10.20.30.40          anywhere            length 0:5
-but I looking something like that...
-ACCEPT     udp  --  10.20.30.40             anywhere            length
-0:5 udp spt:666 dpt:777
+LaF0rge pointed me to libnetfilter_queue earlier this week and today I
+started to read the kernel code of it. I stumbled across a small typo in
+the code. I'm sorry that I take your attention away from a real issue for
+this but maybe it is still worth applying.
 
-I guess it had little bit specific with sequence or so?
+regards
+	holger
+
+
+
+
+--Boundary-00=_MGYNLpD+fA6Jl7N
+Content-Type: text/x-patch;
+  charset="UTF-8";
+  name="0001-netfilter-Fix-typo-in-nf_queue.c.patch"
+Content-Transfer-Encoding: quoted-printable
+Content-Disposition: attachment;
+	filename="0001-netfilter-Fix-typo-in-nf_queue.c.patch"
+
+=46rom e2046abf4c9d09dff4e2e45135b1feac4086f2b7 Mon Sep 17 00:00:00 2001
+=46rom: Holger Hans Peter Freyther <zecke@selfish.org>
+Date: Sat, 26 Dec 2009 04:10:41 +0100
+Subject: [PATCH] netfilter: Fix typo in nf_queue.c
+
+Signed-of-by: Holger Hans Peter Freyther <zecke@selfish.org>
+=2D--
+ net/netfilter/nf_queue.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index 3a6fd77..b3f76f9 100644
+=2D-- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -239,7 +239,7 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned=
+ int verdict)
+=20
+ 	nf_queue_entry_release_refs(entry);
+=20
+=2D	/* Continue traversal iff userspace said ok... */
++	/* Continue traversal if userspace said ok... */
+ 	if (verdict =3D=3D NF_REPEAT) {
+ 		elem =3D elem->prev;
+ 		verdict =3D NF_ACCEPT;
+=2D-=20
+1.6.3.3
+
+
+--Boundary-00=_MGYNLpD+fA6Jl7N--
