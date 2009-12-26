@@ -1,28 +1,33 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: Holger Freyther <zecke@selfish.org>
 Subject: Re: [PATCH] netfilter: Fix typo in nf_queue.c
-Date: Sat, 26 Dec 2009 12:22:46 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.0912261222200.14216@obet.zrqbmnf.qr>
-References: <200912260422.52186.zecke@selfish.org>
+Date: Sat, 26 Dec 2009 12:41:07 +0100
+Message-ID: <200912261241.07351.zecke@selfish.org>
+References: <200912260422.52186.zecke@selfish.org> <alpine.LSU.2.01.0912261222200.14216@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Holger Freyther <zecke@selfish.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:51848 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751920AbZLZLWu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 26 Dec 2009 06:22:50 -0500
-In-Reply-To: <200912260422.52186.zecke@selfish.org>
+Received: from gandharva.secretlabs.de ([78.46.147.237]:49634 "EHLO
+	gandharva.secretlabs.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751902AbZLZLlS (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 26 Dec 2009 06:41:18 -0500
+In-Reply-To: <alpine.LSU.2.01.0912261222200.14216@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Saturday 2009-12-26 04:22, Holger Freyther wrote:
+On Saturday 26 December 2009 12:22:46 Jan Engelhardt wrote:
+> On Saturday 2009-12-26 04:22, Holger Freyther wrote:
 
->Hi all,
->
->LaF0rge pointed me to libnetfilter_queue earlier this week and today I
->started to read the kernel code of it. I stumbled across a small typo in
->the code. I'm sorry that I take your attention away from a real issue for
->this but maybe it is still worth applying.
+> 
+> "iff" is 'defined' in hacker dictionaries as "if and only if".
 
-"iff" is 'defined' in hacker dictionaries as "if and only if".
+
+haha, and I googled/yahooed before posting the patch...
+
+thanks a lot.
+
+z.
