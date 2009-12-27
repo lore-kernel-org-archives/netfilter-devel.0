@@ -1,88 +1,148 @@
-From: Holger Freyther <zecke@selfish.org>
-Subject: [PATCH] doxygen.cfg.in: Make the file Work with doxygen 1.6.1
-Date: Sun, 27 Dec 2009 06:53:08 +0100
-Message-ID: <200912270653.09352.zecke@selfish.org>
+From: =?UTF-8?B?0KDQvtC80LDQvSDQptC40YHRi9C6?= <roman@tsisyk.com>
+Subject: Bypass rules using conntrack helpers
+Date: Sun, 27 Dec 2009 14:11:06 +0600
+Message-ID: <faefb3f10912270011l48b955cejbbafc3f8a6e55c97@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_FZvNLq4XqPVn4oi"
+Content-Type: text/plain; charset=KOI8-R
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from gandharva.secretlabs.de ([78.46.147.237]:55984 "EHLO
-	gandharva.secretlabs.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750743AbZL0FxU (ORCPT
+Received: from mail-iw0-f171.google.com ([209.85.223.171]:54533 "EHLO
+	mail-iw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751004AbZL0ILI convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 27 Dec 2009 00:53:20 -0500
-Received: from tamarin.localnet (123-192-180-176.dynamic.kbronet.com.tw [123.192.180.176])
-	by gandharva.secretlabs.de (Postfix) with ESMTPSA id F2A331B10C04
-	for <netfilter-devel@vger.kernel.org>; Sun, 27 Dec 2009 05:49:52 +0000 (UTC)
+	Sun, 27 Dec 2009 03:11:08 -0500
+Received: by iwn1 with SMTP id 1so6805989iwn.33
+        for <netfilter-devel@vger.kernel.org>; Sun, 27 Dec 2009 00:11:07 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
---Boundary-00=_FZvNLq4XqPVn4oi
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+Dear, Netfilter developers!
 
-Hi,
+Recently, I wondered how conntrack's helpers work.
 
-this is slighly more useful than the previous attempt. doxygen version 1.6.1 
-(as of Ubuntu Karmic) will refuse to generate the documentation as the 
-referenced header.html does not exist. This file was never in the repository 
-and emptying that option makes it work for 1.6 and keeps working for 1.5.6 
-(this version is included in Debian Lenny).
+=E1 questionable point exists in the conntrack expectations design. Wha=
+t
+happens if somebody opened fake outgoing connection which would match
+conntrack helpers' signatures? Conntrack module will be able to add
+records in expectation table. And somebody would connect to this port
+from outside and come through iptables rules.
 
+If you think that this is just a joke, I intend to show that it is a
+really serious problem and I founded two ways to exploit it.
 
-regards
-	holger
+In the first case, we have a single Linux host connected directly to
+the public network.
+Usually, iptables config for the workstation are similar to this:
+------
+iptables -A INPUT -i lo -j ACCEPT
+iptables -A INPUT -p icmp -j ACCEPT
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT #
+accept established connections
+iptables -A INPUT -p tcp --dport 80 -j ACCEPT # allow access to http se=
+rver
+iptables -P INPUT DROP # drop other incoming connections
 
---Boundary-00=_FZvNLq4XqPVn4oi
-Content-Type: text/x-patch;
-  charset="UTF-8";
-  name="0001-doxygen.cfg.in-Make-the-file-Work-with-doxygen-1.6.1.patch"
-Content-Transfer-Encoding: quoted-printable
-Content-Disposition: attachment;
-	filename="0001-doxygen.cfg.in-Make-the-file-Work-with-doxygen-1.6.1.patch"
+iptables -P OUTPUT -j ACCEPT # allow any connection from the host
+------
+Also nf_conntrack_ftp module loaded in order to enable active ftp
+work. You can argue that this configuration so stupid, and I must
+specify --dport in -m state rule. I understand, but anyway, I found
+plenty of manuals on the Internet which look like above described,
+e.g. https://help.ubuntu.com/community/IptablesHowTo
 
-=46rom 5876d2d3790c92ab76927947a7d0f78db48481d9 Mon Sep 17 00:00:00 2001
-=46rom: Holger Hans Peter Freyther <zecke@selfish.org>
-Date: Sat, 26 Dec 2009 17:29:11 +0100
-Subject: [PATCH] doxygen.cfg.in: Make the file Work with doxygen 1.6.1
+If malicious software could initiate connection to remote 21 port and
+send tcp packets like this
+------
+> USER anonymous
+> PASS test@example.com
+> PORT x,x,x,x,y,z
+------
+where x,x,x,x is host ip on external network, then (y << 8 | z) port
+will be OPENED from the sender ip address.
+=46or example, we can use y=3D0, z=3D22 to open a ssh port, or, y=3D21,=
+ z=3D56
+to open a database server.
 
-* DETAILS_AT_TOP is deprecated and newer versions of
-  doxygens are warning about this. Remove this option.
-* Empty HTML_HEADER as newer versions of doxygen check
-  if the file exists and fail if it doesn't. Looking at
-  the history of this project the file never existed.
-* This continues to work with doxygen 1.5.6.
+In the second case, we have host in local network masquared by Linux NA=
+T.
+Regular iptables config for NAT looks like this:
+------
+iptables -A FORWARD -s 192.168.0.0/24 -o eth1 -j ACCEPT
+iptables -A FORWARD -d 192.168.0.0/24 -i eth1 -j ACCEPT
+iptables -P FORWARD DROP
 
-Signed-off-by: Holger Hans Peter Freyther <zecke@selfish.org>
-=2D--
- doxygen.cfg.in |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+iptables -t nat -A POSTROUTING -s 192.168.0.0/24 -o eth1 -j SNAT
+--to-source x.x.x.x
+sysctl -w net.ipv4.conf.all.forwarding=3D1
+------
+where 192.168.0.0/24 internal network and x.x.x.x external ip address.
 
-diff --git a/doxygen.cfg.in b/doxygen.cfg.in
-index bb39a6d..37bfa7c 100644
-=2D-- a/doxygen.cfg.in
-+++ b/doxygen.cfg.in
-@@ -16,7 +16,6 @@ SHORT_NAMES            =3D NO
- JAVADOC_AUTOBRIEF      =3D NO
- QT_AUTOBRIEF           =3D NO
- MULTILINE_CPP_IS_BRIEF =3D NO
-=2DDETAILS_AT_TOP         =3D NO
- INHERIT_DOCS           =3D YES
- SEPARATE_MEMBER_PAGES  =3D NO
- TAB_SIZE               =3D 8
-@@ -95,7 +94,7 @@ IGNORE_PREFIX          =3D
- GENERATE_HTML          =3D YES
- HTML_OUTPUT            =3D html
- HTML_FILE_EXTENSION    =3D .html
-=2DHTML_HEADER            =3D "header.html"
-+HTML_HEADER            =3D=20
- HTML_STYLESHEET        =3D=20
- HTML_ALIGN_MEMBERS     =3D YES
- GENERATE_HTMLHELP      =3D NO
-=2D-=20
-1.6.3.3
+Unfortunately, all users from 192.168.0.0/24 will have problems with
+an active FTP. Users will force administrators to read boring manuals
+as alredy founded and load nf_connrack_ftp + nf_nat_ftp to "overcome"
+the problem.
 
+Next, if malicious software would initiate connection as in the
+previous case, NAT subsystem will forward (y << 8 | z) port to outside
+by changing source PORT command and, in fact, forwarding a port
+inside. So, if we something would open connections to remote 21 port
+and send our PORT commands, we can transparently open ANY port from
+INTERNAL server to the public Internet, regardless NAT. Hereinafter,
+I'll call this "conntrack back-connection issue".
 
---Boundary-00=_FZvNLq4XqPVn4oi--
+=46urthermore, various ways to inititate connections from client exists=
+=2E
+It can be malicious software, that needs only user permisions to open
+connection outgoing connection, or user himself, or ... surprise, just
+a web-browser.
+Contemporary HTML standards support for outgoing socket connections in
+web applications. Moreover, now you can use Adobe Flash, Java Applets,
+XMLHTTPRequest and so on to start an outgoing connection and to send
+appropriate signatures through conntrack helpers.
+
+I have made simple exploit of this issue. This is just a simple HTML
+page on client and fake FTP server on the side of attacker. Currently,
+no browsers in production supported WebSockets and I decided to use
+flash-based jSocket library to initiate back-connections.
+
+A small protection exists in nf_conntrack_ftp code. It checks if ip
+address in PORT command exactly same as a sender ip address. So, we
+can't get internal client ip address in a browser, it's absolutely
+impossible. If you knew how to do it, please tell me. So my code
+blindly probes all fake ip addresses. It transmits about 3-4 megabytes
+for /16 network (its just nothing for contemporary speeds).
+
+I have published all at a my git repo
+(http://gitorious.org/art1x/conntrack-issue). I tested this code with
+various versions of kernel, incl. 2.4.x and current 2.6.x. A lot of
+network devices loads nf_conntrack_* modules by default, because users
+have problems with old protocols such as active ftp. I think, usually
+administrators of various corporate' routers also enables it.
+
+All that I have described above are not bug, it just ftp protocol
+design drawbacks.
+=46TP is a application level protocol (in terms of OSI model) that send=
+s
+information about level 3 connection (ip address in PORT command).
+BTW, a file transfer protocol was invented in the 70s before any
+established network models. There are a lot of application level
+protocols which also have some problems and can't be transparently
+transfered over the NAT without additional efforts, e.g. sip, p2p,
+etc. But anyway, only nf_conntrack_ftp adds tcp exceptions to
+Netfilter, and udp proto isn't really interested.
+
+Code of nf_conntrack_ftp.c is perfect and I've no idea what we can
+additionaly check here. Somebody also uses other helpers, not only the
+nf_conntrack_ftp. This modules is really needed for normal work, but
+its unsecury at the sometime. May be, we should add a large warning
+message to it? I've blacklisted application layer helpers at my
+router, but I haven't found real solution of the problem yet.
+
+--=20
+WBR, Tsisyk Roman
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
