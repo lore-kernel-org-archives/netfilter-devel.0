@@ -1,256 +1,128 @@
-From: Michael Farrell <micolous+nf@gmail.com>
-Subject: xtables-addons: patch for addition of "no-change" option for
- xt_quota2
-Date: Tue, 29 Dec 2009 01:53:57 +1030
-Message-ID: <1262013837.19823.48.camel@milliways>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [ANNOUNCE] conntrack-tools 0.9.14 released
+Date: Mon, 28 Dec 2009 19:56:46 +0100
+Message-ID: <4B38FF6E.3050803@netfilter.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-uY2y0dIB+oHfLyFODpEN"
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bld-mail12.adl6.internode.on.net ([150.101.137.97]:60418 "EHLO
-	mail.internode.on.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751727AbZL1Pi5 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Dec 2009 10:38:57 -0500
-Received: from [172.20.0.3] (unverified [203.122.251.29])
-	by mail.internode.on.net (SurgeMail 3.8f2) with ESMTP id 10788532-1927428
-	for <netfilter-devel@vger.kernel.org>; Tue, 29 Dec 2009 01:53:47 +1030 (CDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: multipart/mixed;
+ boundary="------------000407040207040206070607"
+Cc: netfilter-announce@lists.netfilter.org, lwn@lwn.net
+To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
+Return-path: <netfilter-owner@vger.kernel.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-
---=-uY2y0dIB+oHfLyFODpEN
-Content-Type: text/plain; charset="UTF-8"
+This is a multi-part message in MIME format.
+--------------000407040207040206070607
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 
-Hello,
+Hi!
 
-I've written a patch to add an option to xt_quota2 called "no-change".
-The effect of this option, while it is enabled, is that it will skip
-incrementing or decrementing the quota counter.
+The Netfilter project presents another development release of the 
+conntrack-tools. This release includes several fixes for the command 
+line tool and lots of improvements for the daemon. Specifically I'd like 
+to thank Hannes Eder, Vincent Jardin and Samuel Gauthier for their 
+suggestions and contributions.
 
-The reason for implementing this is so that I could have a rule check if
-quota is available for a rule in the PREROUTING tables, without actually
-decrementing the amount of available quota.  I only wanted to decrement
-the amount of available quota in the FORWARD rule.  Otherwise, the first
-packet of every connection would be counted twice.
+Please, see changelog attached for more details.
 
-My goal was to be able to use this to implement a captive portal for
-users who did not have sufficient quota available to otherwise have
-their requests forwarded to the internet.
+I'd also like to thank 6WIND <www.6wind.com> for sponsoring the 
+development of two new features that are included in this release: the 
+new TCP-based state-synchronization approach and a new feature that 
+allows to disable the internal and the external caches. They have also 
+helped auditing the code and doing bug hunting.
 
-While I implemented the no-change option for both the quota and grow /
-counter modes of xt_quota2, it is only really useful in quota mode.  I
-implemented it in both modes to be consistent.
+Q: How stable are the conntrack-tools?
+A: The daemon that allows to synchronize states between firewalls has 
+been tested in a cluster environment composed of two stateful firewalls 
+running Debian 5.0 (Lenny) with a Linux kernel 2.6.32, keepalived 
+1.1.15, using conntrackd in FT-FW mode. The test consisted of 
+downloading the Linux kernel source code in a tarball file via HTTP and 
+randomly (in periods of 10 seconds) unplugging cablelinks to force the 
+fail-over between the nodes. The results has shown no hangs/closure in 
+any TCP connection.
 
-This patch is against the current git version of xtables-addons.  I've
-successfully built the patch on i386 and amd64, and tested it on i386,
-though I don't believe there to be any architecture-specific additions
-that would cause problems.
+Q: What are the conntrack-tools?
+A: The conntrack-tools are:
 
+- The userspace daemon so-called conntrackd that covers the specific
+aspects of stateful Linux firewalls to enable high availability
+solutions. It can be used as statistics collector of the firewall use as
+well. The daemon is highly configurable and easily extensible.
 
---Michael Farrell
+- The command line interface (CLI) conntrack that provides an interface
+to add, delete and update flow entries, list current active flows in
+plain text/XML, current IPv4 NAT'ed flows, reset counters, and flush the
+complete connection tracking table among many other.
 
+Q: Where can I download it from?
+A: http://www.netfilter.org/projects/conntrack-tools/downloads.html
 
+Q: Where can I get more information about them?
+A: http://conntrack-tools.netfilter.org
 
---=-uY2y0dIB+oHfLyFODpEN
-Content-Disposition: attachment; filename="xt-quota2-no-change.patch"
-Content-Type: text/x-patch; name="xt-quota2-no-change.patch"; charset="UTF-8"
+Q: Where can I have a look at the user manual?
+A: http://conntrack-tools.netfilter.org/manual.html
+
+On behalf of the Netfilter Core Team,
+Pablo.
+
+--------------000407040207040206070607
+Content-Type: text/plain;
+ name="changes-conntrack-tools-0.9.14.txt"
 Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="changes-conntrack-tools-0.9.14.txt"
 
-diff --git a/extensions/libxt_quota2.c b/extensions/libxt_quota2.c
-index db144f9..4bbb04b 100644
---- a/extensions/libxt_quota2.c
-+++ b/extensions/libxt_quota2.c
-@@ -2,6 +2,7 @@
-  *	"quota2" match extension for iptables
-  *	Sam Johnston <samj [at] samj net>
-  *	Jan Engelhardt <jengelh [at] medozas de>, 2008
-+ *	Michael Farrell <micolous+nf [at] gmail com>, 2009
-  *
-  *	This program is free software; you can redistribute it and/or
-  *	modify it under the terms of the GNU General Public License; either
-@@ -17,17 +18,19 @@
- #include "xt_quota2.h"
- 
- enum {
--	FL_QUOTA  = 1 << 0,
--	FL_NAME   = 1 << 1,
--	FL_GROW   = 1 << 2,
--	FL_PACKET = 1 << 3,
-+	FL_QUOTA     = 1 << 0,
-+	FL_NAME      = 1 << 1,
-+	FL_GROW      = 1 << 2,
-+	FL_PACKET    = 1 << 3,
-+	FL_NO_CHANGE = 1 << 4,
- };
- 
- static const struct option quota_mt2_opts[] = {
--	{.name = "grow",    .has_arg = false, .val = 'g'},
--	{.name = "name",    .has_arg = true,  .val = 'n'},
--	{.name = "quota",   .has_arg = true,  .val = 'q'},
--	{.name = "packets", .has_arg = false, .val = 'p'},
-+	{.name = "grow",      .has_arg = false, .val = 'g'},
-+	{.name = "no-change", .has_arg = false, .val = 'c'},
-+	{.name = "name",      .has_arg = true,  .val = 'n'},
-+	{.name = "quota",     .has_arg = true,  .val = 'q'},
-+	{.name = "packets",   .has_arg = false, .val = 'p'},
- 	{NULL},
- };
- 
-@@ -36,6 +39,7 @@ static void quota_mt2_help(void)
- 	printf(
- 	"quota match options:\n"
- 	"    --grow           provide an increasing counter\n"
-+	"    --no-change      never change counter/quota value for matching packets\n"
- 	"    --name name      name for the file in sysfs\n"
- 	"[!] --quota quota    initial quota (bytes or packets)\n"
- 	"    --packets        count packets instead of bytes\n"
-@@ -56,6 +60,12 @@ quota_mt2_parse(int c, char **argv, int invert, unsigned int *flags,
- 		info->flags |= XT_QUOTA_GROW;
- 		*flags |= FL_GROW;
- 		return true;
-+	case 'c': // no-change
-+		xtables_param_act(XTF_ONLY_ONCE, "quota", "--no-change", *flags & FL_NO_CHANGE);
-+		xtables_param_act(XTF_NO_INVERT, "quota", "--no-change", invert);
-+		info->flags |= XT_QUOTA_NO_CHANGE;
-+		*flags |= FL_NO_CHANGE;
-+		return true;
- 	case 'n':
- 		/* zero termination done on behalf of the kernel module */
- 		xtables_param_act(XTF_ONLY_ONCE, "quota", "--name", *flags & FL_NAME);
-@@ -92,6 +102,8 @@ quota_mt2_save(const void *ip, const struct xt_entry_match *match)
- 		printf("! ");
- 	if (q->flags & XT_QUOTA_GROW)
- 		printf("--grow ");
-+	if (q->flags & XT_QUOTA_NO_CHANGE)
-+	  printf("--no-change ");
- 	if (q->flags & XT_QUOTA_PACKET)
- 		printf("--packets ");
- 	if (*q->name != '\0')
-@@ -117,11 +129,13 @@ static void quota_mt2_print(const void *ip, const struct xt_entry_match *match,
- 		printf("packets ");
- 	else
- 		printf("bytes ");
-+	if (q->flags & XT_QUOTA_NO_CHANGE)
-+		printf("(no-change mode) ");
- }
- 
- static struct xtables_match quota_mt2_reg = {
- 	.family        = AF_UNSPEC,
--	.revision      = 3,
-+	.revision      = 4,
- 	.name          = "quota2",
- 	.version       = XTABLES_VERSION,
- 	.size          = XT_ALIGN(sizeof (struct xt_quota_mtinfo2)),
-diff --git a/extensions/libxt_quota2.man b/extensions/libxt_quota2.man
-index affa32f..3fa2f5b 100644
---- a/extensions/libxt_quota2.man
-+++ b/extensions/libxt_quota2.man
-@@ -10,6 +10,12 @@ the match will return false, just like the original "quota" match. In growing
- \fB\-\-grow\fP
- Count upwards instead of downwards.
- .TP
-+\fB\-\-no\-change\fP
-+Makes it so the counter or quota amount is never changed by packets matching
-+this rule.  This is only really useful in "quota" mode, as it will allow you
-+to use complex prerouting rules in association with the quota system, without
-+counting a packet twice.  In "grow" mode, this option is entirely pointless.
-+.TP
- \fB\-\-name\fP \fIname\fP
- Assign the counter a specific name. This option must be present, as an empty
- name is not allowed. Names starting with a dot or names containing a slash are
-diff --git a/extensions/xt_quota2.Kconfig b/extensions/xt_quota2.Kconfig
-index 74744af..3b9b42b 100644
---- a/extensions/xt_quota2.Kconfig
-+++ b/extensions/xt_quota2.Kconfig
-@@ -5,4 +5,5 @@ config NETFILTER_XT_MATCH_QUOTA2
- 	This option adds the "quota2" match which is an advanced form of
- 	xt_quota that also allows counting upwards, and where the counter can
- 	be set through procfs. This allows for simple interfacing of
--	accounting information.
-+	accounting information. It also allows for no-change quota, allowing advanced
-+	prerouting and postrounting rules based on quota amounts.
-diff --git a/extensions/xt_quota2.c b/extensions/xt_quota2.c
-index fbc8aab..a34dfbf 100644
---- a/extensions/xt_quota2.c
-+++ b/extensions/xt_quota2.c
-@@ -3,6 +3,8 @@
-  * as a minimal accounting match.
-  * by Jan Engelhardt <jengelh@medozas.de>, 2008
-  *
-+ * no-change option added by Michael Farrell <micolous+nf@gmail.com>, 2009
-+ *
-  * Originally based on xt_quota.c:
-  * 	netfilter module to enforce network quotas
-  * 	Sam Johnston <samj@samj.net>
-@@ -199,12 +201,17 @@ quota_mt2(const struct sk_buff *skb, const struct xt_match_param *par)
- 
- 	spin_lock_bh(&e->lock);
- 	if (q->flags & XT_QUOTA_GROW) {
--		e->quota += (q->flags & XT_QUOTA_PACKET) ? 1 : skb->len;
--		q->quota = e->quota;
-+		// while no_change is pointless in "grow" mode, we'll implement it here
-+		// simply to have consistent behaviour.
-+		if (!(q->flags & XT_QUOTA_NO_CHANGE)) {
-+			e->quota += (q->flags & XT_QUOTA_PACKET) ? 1 : skb->len;
-+			q->quota = e->quota;
-+		}
- 		ret = true;
- 	} else {
- 		if (e->quota >= skb->len) {
--			e->quota -= (q->flags & XT_QUOTA_PACKET) ? 1 : skb->len;
-+			if (!(q->flags & XT_QUOTA_NO_CHANGE))
-+				e->quota -= (q->flags & XT_QUOTA_PACKET) ? 1 : skb->len;
- 			ret = !ret;
- 		} else {
- 			/* we do not allow even small packets from now on */
-@@ -219,7 +226,7 @@ quota_mt2(const struct sk_buff *skb, const struct xt_match_param *par)
- static struct xt_match quota_mt2_reg[] __read_mostly = {
- 	{
- 		.name       = "quota2",
--		.revision   = 3,
-+		.revision   = 4,
- 		.family     = NFPROTO_IPV4,
- 		.checkentry = quota_mt2_check,
- 		.match      = quota_mt2,
-@@ -229,7 +236,7 @@ static struct xt_match quota_mt2_reg[] __read_mostly = {
- 	},
- 	{
- 		.name       = "quota2",
--		.revision   = 3,
-+		.revision   = 4,
- 		.family     = NFPROTO_IPV6,
- 		.checkentry = quota_mt2_check,
- 		.match      = quota_mt2,
-@@ -264,6 +271,7 @@ module_exit(quota_mt2_exit);
- MODULE_DESCRIPTION("Xtables: countdown quota match; up counter");
- MODULE_AUTHOR("Sam Johnston <samj@samj.net>");
- MODULE_AUTHOR("Jan Engelhardt <jengelh@medozas.de>");
-+MODULE_AUTHOR("Michael Farrell <micolous+nf@gmail.com>");
- MODULE_LICENSE("GPL");
- MODULE_ALIAS("ipt_quota2");
- MODULE_ALIAS("ip6t_quota2");
-diff --git a/extensions/xt_quota2.h b/extensions/xt_quota2.h
-index 05e3e20..eadc690 100644
---- a/extensions/xt_quota2.h
-+++ b/extensions/xt_quota2.h
-@@ -2,10 +2,11 @@
- #define _XT_QUOTA_H
- 
- enum xt_quota_flags {
--	XT_QUOTA_INVERT = 1 << 0,
--	XT_QUOTA_GROW   = 1 << 1,
--	XT_QUOTA_PACKET = 1 << 2,
--	XT_QUOTA_MASK   = 0x7,
-+	XT_QUOTA_INVERT    = 1 << 0,
-+	XT_QUOTA_GROW      = 1 << 1,
-+	XT_QUOTA_PACKET    = 1 << 2,
-+	XT_QUOTA_NO_CHANGE = 1 << 3,
-+	XT_QUOTA_MASK      = 0x0F,
- };
- 
- struct xt_quota_counter;
+Hannes Eder (3):
+      conntrack: fix output when no arguments are passed
+      conntrack: avoid error with expectations when using 'conntrack -E -e ALL ...'
+      conntrack: use fscanf() instead of read() for showing counter
 
---=-uY2y0dIB+oHfLyFODpEN--
+Jan Engelhardt (1):
+      doc: spell fix in conntrack(8) manpage
 
+Pablo Neira Ayuso (36):
+      build: update library version requirements
+      local: add LOCAL_RET_* return values for UNIX sockets callbacks
+      conntrackd: add iterators with limited steps in hash and cache types
+      conntrackd: rework commit not to fork a child process
+      conntrackd: improve handling of external messages
+      conntrackd: reset event limit iteration counter
+      conntrackd: add clause to enable ctnetlink reliable event delivery
+      conntrackd: add support for IPv6 kernel-space filtering via BSF
+      conntrackd: use conntrack ID in the cache lookup
+      conntrackd: fix crash for unubuffered channel on exit path
+      conntrackd: more robust sanity checking on synchronization messages
+      conntrackd: add `DisableExternalCache' clause
+      conntrackd: reduce the number of gettimeofday() syscalls
+      conntrackd: allow to remove file descriptors from set
+      conntrackd: add support state-replication based on TCP
+      conntrackd: net message memory allocation is unsafe
+      conntrackd: fix MTU for TCP channels
+      conntrackd: fix return value in notrack_local()
+      conntrackd: improve error handling in tcp_send
+      conntrackd: fix `conf' local variable in channel.c that shadows global
+      conntrackd: fix re-connect with multiple TCP channels
+      conntrackd: break lines at 80 characters in example config files
+      conntrackd: rate-limit the amount of connect() calls
+      conntrackd: add retention queue for TCP errors
+      conntrackd: add alive control messages to notrack mode
+      conntrackd: fix wrong calculation of new maxfd on unregister_fds()
+      conntrackd: add statistics when the external cache is disabled
+      conntrackd: add missing external statistics
+      conntrackd: add `DisableInternalCache' clause
+      conntrackd: use indirect call to build layer 4 protocol information
+      conntrackd: add ICMP support for state-synchronization
+      conntrackd: fix flow-state filtering for TCP
+      conntrackd: document internal cache disabling and TCP-based synchronization
+      conntrack: fix manually created TCP entries with window tracking enabled
+      conntrackd: document `-B' command
+      build: bump version to 0.9.14
+
+Samuel Gauthier (2):
+      conntrackd: better parse_payload protection against corrupted packets
+      conntrackd: fix bad configuration file for DisableExternalCache statement
+
+
+--------------000407040207040206070607--
