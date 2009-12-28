@@ -1,101 +1,256 @@
-From: Roman Tsisyk <roman@tsisyk.com>
-Subject: Re: Bypass rules using conntrack helpers
-Date: Sun, 27 Dec 2009 21:12:56 +0600
-Message-ID: <faefb3f10912270712w35657bc4s6bd037e899211010@mail.gmail.com>
-References: <faefb3f10912270011l48b955cejbbafc3f8a6e55c97@mail.gmail.com>
-	 <alpine.LSU.2.01.0912271303490.6911@obet.zrqbmnf.qr>
+From: Michael Farrell <micolous+nf@gmail.com>
+Subject: xtables-addons: patch for addition of "no-change" option for
+ xt_quota2
+Date: Tue, 29 Dec 2009 01:53:57 +1030
+Message-ID: <1262013837.19823.48.camel@milliways>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: multipart/mixed; boundary="=-uY2y0dIB+oHfLyFODpEN"
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-iw0-f171.google.com ([209.85.223.171]:46435 "EHLO
-	mail-iw0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751831AbZL0PM4 convert rfc822-to-8bit (ORCPT
+Received: from bld-mail12.adl6.internode.on.net ([150.101.137.97]:60418 "EHLO
+	mail.internode.on.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751727AbZL1Pi5 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 27 Dec 2009 10:12:56 -0500
-Received: by iwn1 with SMTP id 1so6885223iwn.33
-        for <netfilter-devel@vger.kernel.org>; Sun, 27 Dec 2009 07:12:56 -0800 (PST)
-In-Reply-To: <alpine.LSU.2.01.0912271303490.6911@obet.zrqbmnf.qr>
+	Mon, 28 Dec 2009 10:38:57 -0500
+Received: from [172.20.0.3] (unverified [203.122.251.29])
+	by mail.internode.on.net (SurgeMail 3.8f2) with ESMTP id 10788532-1927428
+	for <netfilter-devel@vger.kernel.org>; Tue, 29 Dec 2009 01:53:47 +1030 (CDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Dec 27, 2009 at 6:16 PM, Jan Engelhardt <jengelh@medozas.de> wr=
-ote:
->
-> On Sunday 2009-12-27 09:11, =D0=A0=D0=BE=D0=BC=D0=B0=D0=BD =D0=A6=D0=B8=
-=D1=81=D1=8B=D0=BA wrote:
->>
->>=D0=90 questionable point exists in the conntrack expectations design=
-=2E What
->>happens if somebody opened fake outgoing connection which would match
->>conntrack helpers' signatures? Conntrack module will be able to add
->>records in expectation table.
->>Unfortunately, all users from 192.168.0.0/24 will have problems with
->>an active FTP. Users will force administrators to read boring manuals
->>as alredy founded and load nf_connrack_ftp + nf_nat_ftp to "overcome"
->>the problem.
->>Next, if malicious software would initiate connection as in the
->>previous case, NAT subsystem will forward (y << 8 | z) port to outsid=
-e
->>by changing source PORT command and, in fact, forwarding a port
->>inside. So, if we something would open connections to remote 21 port
->>and send our PORT commands, we can transparently open ANY port from
->>INTERNAL server to the public Internet, regardless NAT. Hereinafter,
->>I'll call this "conntrack back-connection issue".
->
-> That is what helpers are supposed to do. If that poses a security ris=
-k,
-> to your network, I advise not to use them. In case of FTP that is eas=
-ily
-> worked around by using passive ftp.
->
-> Furthermore, the problems NAT brings with itself (ETE connectivity is
-> just one) are well-known. Getting your own IPv6 tunnel is a
-> no-brainer these days.
->
->>Furthermore, various ways to inititate connections from client exists=
-=2E
->>It can be malicious software, that needs only user permisions to open
->>connection outgoing connection, or user himself, or ... surprise, jus=
-t
->>a web-browser.
->
-> That is why, as far as I gather, security standards advise to use
-> proxies for the connections from the internal network to the
-> Internet.
->
 
-Of course, various solution exists, as you already pointed out a
-passive FTP and a directly connection using IPv4 or IPv6.
-However, NAT is still being widely used today. Sometimes this scheme
-includes transparent squid with REDIRECT rule. Moreover, I noticed
-that other helpers also can create problems like these, not just ftp
-helper. Not everyone will think how helpers works, so a lot of manual
-errors and buggy configurations exists.
+--=-uY2y0dIB+oHfLyFODpEN
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 
-=46or first case we can avoid problem by changing
-net.ipv4.ip_local_port_range and specifying  only these values in
---dport at the "-m state --state" rule.
-=46or second case, we can play with FORWARD chain rules and make its
-conntrack-based (and specify --dport for tcp / udp).
-We can simple unload conntrack_ftp too.
+Hello,
 
-BTW, I've never seen such settings in small, especially in the box
-Linux routers (e.g. Linksys, D-link, etc.), but ip/nf_conntrack_ftp
-was loaded or built-in. I've just asked friend of mine to connect
-remote ftp through a particular 2.4.x ADSL router with probably loaded
-ip_conntrack_ftp, and his records showed me, that active ftp worked
-without any problems, lsmod was almost empty (i.e. modules really
-built-in), but no appropriate rules existed in iptables.
+I've written a patch to add an option to xt_quota2 called "no-change".
+The effect of this option, while it is enabled, is that it will skip
+incrementing or decrementing the quota counter.
 
-PS: it seems that Dan Carpenter has founded another problem with the mo=
-dule
---=20
-WBR, Tsisyk Roman
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The reason for implementing this is so that I could have a rule check if
+quota is available for a rule in the PREROUTING tables, without actually
+decrementing the amount of available quota.  I only wanted to decrement
+the amount of available quota in the FORWARD rule.  Otherwise, the first
+packet of every connection would be counted twice.
+
+My goal was to be able to use this to implement a captive portal for
+users who did not have sufficient quota available to otherwise have
+their requests forwarded to the internet.
+
+While I implemented the no-change option for both the quota and grow /
+counter modes of xt_quota2, it is only really useful in quota mode.  I
+implemented it in both modes to be consistent.
+
+This patch is against the current git version of xtables-addons.  I've
+successfully built the patch on i386 and amd64, and tested it on i386,
+though I don't believe there to be any architecture-specific additions
+that would cause problems.
+
+
+--Michael Farrell
+
+
+
+--=-uY2y0dIB+oHfLyFODpEN
+Content-Disposition: attachment; filename="xt-quota2-no-change.patch"
+Content-Type: text/x-patch; name="xt-quota2-no-change.patch"; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+
+diff --git a/extensions/libxt_quota2.c b/extensions/libxt_quota2.c
+index db144f9..4bbb04b 100644
+--- a/extensions/libxt_quota2.c
++++ b/extensions/libxt_quota2.c
+@@ -2,6 +2,7 @@
+  *	"quota2" match extension for iptables
+  *	Sam Johnston <samj [at] samj net>
+  *	Jan Engelhardt <jengelh [at] medozas de>, 2008
++ *	Michael Farrell <micolous+nf [at] gmail com>, 2009
+  *
+  *	This program is free software; you can redistribute it and/or
+  *	modify it under the terms of the GNU General Public License; either
+@@ -17,17 +18,19 @@
+ #include "xt_quota2.h"
+ 
+ enum {
+-	FL_QUOTA  = 1 << 0,
+-	FL_NAME   = 1 << 1,
+-	FL_GROW   = 1 << 2,
+-	FL_PACKET = 1 << 3,
++	FL_QUOTA     = 1 << 0,
++	FL_NAME      = 1 << 1,
++	FL_GROW      = 1 << 2,
++	FL_PACKET    = 1 << 3,
++	FL_NO_CHANGE = 1 << 4,
+ };
+ 
+ static const struct option quota_mt2_opts[] = {
+-	{.name = "grow",    .has_arg = false, .val = 'g'},
+-	{.name = "name",    .has_arg = true,  .val = 'n'},
+-	{.name = "quota",   .has_arg = true,  .val = 'q'},
+-	{.name = "packets", .has_arg = false, .val = 'p'},
++	{.name = "grow",      .has_arg = false, .val = 'g'},
++	{.name = "no-change", .has_arg = false, .val = 'c'},
++	{.name = "name",      .has_arg = true,  .val = 'n'},
++	{.name = "quota",     .has_arg = true,  .val = 'q'},
++	{.name = "packets",   .has_arg = false, .val = 'p'},
+ 	{NULL},
+ };
+ 
+@@ -36,6 +39,7 @@ static void quota_mt2_help(void)
+ 	printf(
+ 	"quota match options:\n"
+ 	"    --grow           provide an increasing counter\n"
++	"    --no-change      never change counter/quota value for matching packets\n"
+ 	"    --name name      name for the file in sysfs\n"
+ 	"[!] --quota quota    initial quota (bytes or packets)\n"
+ 	"    --packets        count packets instead of bytes\n"
+@@ -56,6 +60,12 @@ quota_mt2_parse(int c, char **argv, int invert, unsigned int *flags,
+ 		info->flags |= XT_QUOTA_GROW;
+ 		*flags |= FL_GROW;
+ 		return true;
++	case 'c': // no-change
++		xtables_param_act(XTF_ONLY_ONCE, "quota", "--no-change", *flags & FL_NO_CHANGE);
++		xtables_param_act(XTF_NO_INVERT, "quota", "--no-change", invert);
++		info->flags |= XT_QUOTA_NO_CHANGE;
++		*flags |= FL_NO_CHANGE;
++		return true;
+ 	case 'n':
+ 		/* zero termination done on behalf of the kernel module */
+ 		xtables_param_act(XTF_ONLY_ONCE, "quota", "--name", *flags & FL_NAME);
+@@ -92,6 +102,8 @@ quota_mt2_save(const void *ip, const struct xt_entry_match *match)
+ 		printf("! ");
+ 	if (q->flags & XT_QUOTA_GROW)
+ 		printf("--grow ");
++	if (q->flags & XT_QUOTA_NO_CHANGE)
++	  printf("--no-change ");
+ 	if (q->flags & XT_QUOTA_PACKET)
+ 		printf("--packets ");
+ 	if (*q->name != '\0')
+@@ -117,11 +129,13 @@ static void quota_mt2_print(const void *ip, const struct xt_entry_match *match,
+ 		printf("packets ");
+ 	else
+ 		printf("bytes ");
++	if (q->flags & XT_QUOTA_NO_CHANGE)
++		printf("(no-change mode) ");
+ }
+ 
+ static struct xtables_match quota_mt2_reg = {
+ 	.family        = AF_UNSPEC,
+-	.revision      = 3,
++	.revision      = 4,
+ 	.name          = "quota2",
+ 	.version       = XTABLES_VERSION,
+ 	.size          = XT_ALIGN(sizeof (struct xt_quota_mtinfo2)),
+diff --git a/extensions/libxt_quota2.man b/extensions/libxt_quota2.man
+index affa32f..3fa2f5b 100644
+--- a/extensions/libxt_quota2.man
++++ b/extensions/libxt_quota2.man
+@@ -10,6 +10,12 @@ the match will return false, just like the original "quota" match. In growing
+ \fB\-\-grow\fP
+ Count upwards instead of downwards.
+ .TP
++\fB\-\-no\-change\fP
++Makes it so the counter or quota amount is never changed by packets matching
++this rule.  This is only really useful in "quota" mode, as it will allow you
++to use complex prerouting rules in association with the quota system, without
++counting a packet twice.  In "grow" mode, this option is entirely pointless.
++.TP
+ \fB\-\-name\fP \fIname\fP
+ Assign the counter a specific name. This option must be present, as an empty
+ name is not allowed. Names starting with a dot or names containing a slash are
+diff --git a/extensions/xt_quota2.Kconfig b/extensions/xt_quota2.Kconfig
+index 74744af..3b9b42b 100644
+--- a/extensions/xt_quota2.Kconfig
++++ b/extensions/xt_quota2.Kconfig
+@@ -5,4 +5,5 @@ config NETFILTER_XT_MATCH_QUOTA2
+ 	This option adds the "quota2" match which is an advanced form of
+ 	xt_quota that also allows counting upwards, and where the counter can
+ 	be set through procfs. This allows for simple interfacing of
+-	accounting information.
++	accounting information. It also allows for no-change quota, allowing advanced
++	prerouting and postrounting rules based on quota amounts.
+diff --git a/extensions/xt_quota2.c b/extensions/xt_quota2.c
+index fbc8aab..a34dfbf 100644
+--- a/extensions/xt_quota2.c
++++ b/extensions/xt_quota2.c
+@@ -3,6 +3,8 @@
+  * as a minimal accounting match.
+  * by Jan Engelhardt <jengelh@medozas.de>, 2008
+  *
++ * no-change option added by Michael Farrell <micolous+nf@gmail.com>, 2009
++ *
+  * Originally based on xt_quota.c:
+  * 	netfilter module to enforce network quotas
+  * 	Sam Johnston <samj@samj.net>
+@@ -199,12 +201,17 @@ quota_mt2(const struct sk_buff *skb, const struct xt_match_param *par)
+ 
+ 	spin_lock_bh(&e->lock);
+ 	if (q->flags & XT_QUOTA_GROW) {
+-		e->quota += (q->flags & XT_QUOTA_PACKET) ? 1 : skb->len;
+-		q->quota = e->quota;
++		// while no_change is pointless in "grow" mode, we'll implement it here
++		// simply to have consistent behaviour.
++		if (!(q->flags & XT_QUOTA_NO_CHANGE)) {
++			e->quota += (q->flags & XT_QUOTA_PACKET) ? 1 : skb->len;
++			q->quota = e->quota;
++		}
+ 		ret = true;
+ 	} else {
+ 		if (e->quota >= skb->len) {
+-			e->quota -= (q->flags & XT_QUOTA_PACKET) ? 1 : skb->len;
++			if (!(q->flags & XT_QUOTA_NO_CHANGE))
++				e->quota -= (q->flags & XT_QUOTA_PACKET) ? 1 : skb->len;
+ 			ret = !ret;
+ 		} else {
+ 			/* we do not allow even small packets from now on */
+@@ -219,7 +226,7 @@ quota_mt2(const struct sk_buff *skb, const struct xt_match_param *par)
+ static struct xt_match quota_mt2_reg[] __read_mostly = {
+ 	{
+ 		.name       = "quota2",
+-		.revision   = 3,
++		.revision   = 4,
+ 		.family     = NFPROTO_IPV4,
+ 		.checkentry = quota_mt2_check,
+ 		.match      = quota_mt2,
+@@ -229,7 +236,7 @@ static struct xt_match quota_mt2_reg[] __read_mostly = {
+ 	},
+ 	{
+ 		.name       = "quota2",
+-		.revision   = 3,
++		.revision   = 4,
+ 		.family     = NFPROTO_IPV6,
+ 		.checkentry = quota_mt2_check,
+ 		.match      = quota_mt2,
+@@ -264,6 +271,7 @@ module_exit(quota_mt2_exit);
+ MODULE_DESCRIPTION("Xtables: countdown quota match; up counter");
+ MODULE_AUTHOR("Sam Johnston <samj@samj.net>");
+ MODULE_AUTHOR("Jan Engelhardt <jengelh@medozas.de>");
++MODULE_AUTHOR("Michael Farrell <micolous+nf@gmail.com>");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ipt_quota2");
+ MODULE_ALIAS("ip6t_quota2");
+diff --git a/extensions/xt_quota2.h b/extensions/xt_quota2.h
+index 05e3e20..eadc690 100644
+--- a/extensions/xt_quota2.h
++++ b/extensions/xt_quota2.h
+@@ -2,10 +2,11 @@
+ #define _XT_QUOTA_H
+ 
+ enum xt_quota_flags {
+-	XT_QUOTA_INVERT = 1 << 0,
+-	XT_QUOTA_GROW   = 1 << 1,
+-	XT_QUOTA_PACKET = 1 << 2,
+-	XT_QUOTA_MASK   = 0x7,
++	XT_QUOTA_INVERT    = 1 << 0,
++	XT_QUOTA_GROW      = 1 << 1,
++	XT_QUOTA_PACKET    = 1 << 2,
++	XT_QUOTA_NO_CHANGE = 1 << 3,
++	XT_QUOTA_MASK      = 0x0F,
+ };
+ 
+ struct xt_quota_counter;
+
+--=-uY2y0dIB+oHfLyFODpEN--
+
