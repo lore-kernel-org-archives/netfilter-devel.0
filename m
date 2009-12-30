@@ -1,114 +1,86 @@
-From: Julia Lawall <julia@diku.dk>
-Subject: [PATCH 5/5] net/ipv4 : Correct the size argument to kzalloc
-Date: Tue, 29 Dec 2009 20:16:49 +0100 (CET)
-Message-ID: <Pine.LNX.4.64.0912292016230.4001@ask.diku.dk>
+From: Bin Liang <liangbin1978@gmail.com>
+Subject: Re: Question about ipt_REJECT
+Date: Wed, 30 Dec 2009 11:36:07 +0800
+Message-ID: <708ca0e40912291936r3468e82fxc2f97339da4af7a0@mail.gmail.com>
+References: <c794cd670912282337v5a57508cwbc4c815cf53d363b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-To: Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-	"Pekka Savola (ipv6)" <pekkas@netcore.fi>,
-	James Morris <jmorris@
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Xiong Wu <xiong.wu1981@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mgw2.diku.dk ([130.225.96.92]:45176 "EHLO mgw2.diku.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752444AbZL2TQw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Dec 2009 14:16:52 -0500
+Received: from mail-px0-f189.google.com ([209.85.216.189]:52425 "EHLO
+	mail-px0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751686AbZL3DgJ convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 29 Dec 2009 22:36:09 -0500
+Received: by pxi27 with SMTP id 27so6598270pxi.4
+        for <netfilter-devel@vger.kernel.org>; Tue, 29 Dec 2009 19:36:08 -0800 (PST)
+In-Reply-To: <c794cd670912282337v5a57508cwbc4c815cf53d363b@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Julia Lawall <julia@diku.dk>
+Hi,
 
-obj has type struct snmp_object **, not struct snmp_object *.  But indeed
-it is not even clear why kmalloc is needed.  The memory is freed by the end
-of the function, so the local variable of pointer type should be sufficient.
+If the conntrack is in ESTABLISHED state, will it still in this state
+after the ipt_REJECT send the RST packet?
+If yes, I think this is an issue.
 
-The semantic patch that makes this change is as follows:
-(http://coccinelle.lip6.fr/)
+Thanks,
+-Bryan
 
-// <smpl>
-@disable sizeof_type_expr@
-type T;
-T **x;
-@@
+On Tue, Dec 29, 2009 at 3:37 PM, Xiong Wu <xiong.wu1981@gmail.com> wrot=
+e:
+>
+> Hi All,
+>
+> I found the TCP RST packet sent from ipt_REJECT target isn't able to
+> update related conntrack state.
+>
+> I install a 2.6.30.10 kernel as a router and add a iptables rule with
+> REJECT target to reset specific connections. =A0However =A0I found =A0=
+when
+> the packets is handled by the ipt_REJECT and the TCP RST packet is
+> sent, the related conntrack state isn't updated to CLOSE state.
+>
+> Then I review the ipt_REJECT codes. I found the target attach the old
+> conntrack to RST packet as:
+> {
+> =A0 nf_ct_attach(nskb, oldskb);
+> =A0 ip_local_out(nskb);
+> }
+>
+> Therefor the nf_conntrack_in() will ignore this RST packet due to the
+> nfct is valid in skb.
+> {
+> =A0 =A0 if (skb->nfct) {
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0NF_CT_STAT_INC_ATOMIC(net, ign=
+ore);
+> =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0return NF_ACCEPT;
+> =A0 =A0 }
+> }
+>
+>
+> Is there any reason to attach the old conntrack to new RST skb? =A0I
+> think let the RST packet lookup and update related conntrack is
+> better.
+>
+>
+> Thanks,
+> Sean
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-d=
+evel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
 
-  x =
-  <+...sizeof(
-- T
-+ *x
-  )...+>
-// </smpl>
 
-Signed-off-by: Julia Lawall <julia@diku.dk>
 
----
- net/ipv4/netfilter/nf_nat_snmp_basic.c         |   31 +++++++-------------
- 1 files changed, 11 insertions(+), 20 deletions(-)
-
-diff --git a/net/ipv4/netfilter/nf_nat_snmp_basic.c b/net/ipv4/netfilter/nf_nat_snmp_basic.c
-index d9521f6..0b9c7ce 100644
---- a/net/ipv4/netfilter/nf_nat_snmp_basic.c
-+++ b/net/ipv4/netfilter/nf_nat_snmp_basic.c
-@@ -1038,7 +1038,7 @@ static int snmp_parse_mangle(unsigned char *msg,
- 	unsigned int cls, con, tag, vers, pdutype;
- 	struct asn1_ctx ctx;
- 	struct asn1_octstr comm;
--	struct snmp_object **obj;
-+	struct snmp_object *obj;
- 
- 	if (debug > 1)
- 		hex_dump(msg, len);
-@@ -1148,43 +1148,34 @@ static int snmp_parse_mangle(unsigned char *msg,
- 	if (cls != ASN1_UNI || con != ASN1_CON || tag != ASN1_SEQ)
- 		return 0;
- 
--	obj = kmalloc(sizeof(struct snmp_object), GFP_ATOMIC);
--	if (obj == NULL) {
--		if (net_ratelimit())
--			printk(KERN_WARNING "OOM in bsalg(%d)\n", __LINE__);
--		return 0;
--	}
--
- 	while (!asn1_eoc_decode(&ctx, eoc)) {
- 		unsigned int i;
- 
--		if (!snmp_object_decode(&ctx, obj)) {
--			if (*obj) {
--				kfree((*obj)->id);
--				kfree(*obj);
-+		if (!snmp_object_decode(&ctx, &obj)) {
-+			if (obj) {
-+				kfree(obj->id);
-+				kfree(obj);
- 			}
--			kfree(obj);
- 			return 0;
- 		}
- 
- 		if (debug > 1) {
- 			printk(KERN_DEBUG "bsalg: object: ");
--			for (i = 0; i < (*obj)->id_len; i++) {
-+			for (i = 0; i < obj->id_len; i++) {
- 				if (i > 0)
- 					printk(".");
--				printk("%lu", (*obj)->id[i]);
-+				printk("%lu", obj->id[i]);
- 			}
--			printk(": type=%u\n", (*obj)->type);
-+			printk(": type=%u\n", obj->type);
- 
- 		}
- 
--		if ((*obj)->type == SNMP_IPADDR)
-+		if (obj->type == SNMP_IPADDR)
- 			mangle_address(ctx.begin, ctx.pointer - 4 , map, check);
- 
--		kfree((*obj)->id);
--		kfree(*obj);
-+		kfree(obj->id);
-+		kfree(obj);
- 	}
--	kfree(obj);
- 
- 	if (!asn1_eoc_decode(&ctx, eoc))
- 		return 0;
+--
+Thanks,
+-Bin
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
