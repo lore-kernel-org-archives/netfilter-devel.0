@@ -1,106 +1,156 @@
-From: Evgeniy Polyakov <zbr@ioremap.net>
-Subject: Re: [RFC 6/9] snet: introduce snet_hooks.c and snet_hook.h
-Date: Sat, 2 Jan 2010 23:13:03 +0300
-Message-ID: <20100102201303.GB27402@ioremap.net>
-References: <1262437456-24476-1-git-send-email-sam@synack.fr> <1262437456-24476-7-git-send-email-sam@synack.fr>
+From: Samir Bellabes <sam@synack.fr>
+Subject: Re: [RFC 5/9] snet: introduce snet_event.c and snet_event.h
+Date: Sun, 03 Jan 2010 00:38:21 +0100
+Message-ID: <m2ws00oz6a.fsf@ssh.synack.fr>
+References: <1262437456-24476-1-git-send-email-sam@synack.fr>
+	<1262437456-24476-6-git-send-email-sam@synack.fr>
+	<20100102200900.GA27402@ioremap.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: linux-security-module@vger.kernel.org,
 	Patrick McHardy <kaber@trash.net>, jamal <hadi@cyberus.ca>,
 	Neil Horman <nhorman@tuxdriver.com>, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
-To: Samir Bellabes <sam@synack.fr>
+To: Evgeniy Polyakov <zbr@ioremap.net>
 Return-path: <linux-security-module-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1262437456-24476-7-git-send-email-sam@synack.fr>
+In-Reply-To: <20100102200900.GA27402@ioremap.net> (Evgeniy Polyakov's message
+	of "Sat, 2 Jan 2010 23:09:00 +0300")
 Sender: linux-security-module-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Hi.
+Hello Evgeniy,
 
-On Sat, Jan 02, 2010 at 02:04:13PM +0100, Samir Bellabes (sam@synack.fr) wrote:
-> This patch adds the snet LSM's subsystem
-> 
-> snet_hooks provides the security hook's functions and the security_operations
-> structure. Currently hook functions are only related to network stack.
-> 
-> For each hook function, there is a generic mecanism:
->  0. check if the event [syscall, protocol] is registered
->  1. prepare informations for userspace
->  2. send informations to userspace (snet_netlink)
->  3. wait for verdict from userspace (snet_verdict)
->  4. apply verdict for the syscall
-> 
-> steps 3 and 4 are only valid for LSM hooks which are returning a value (a way to
-> 'filter' the syscall). For hooks returning 'void', steps 3 and 4 don't exist,
-> but snet sends security informations to userspace (step 2) to update the global
-> security policy.
-> 
-> Signed-off-by: Samir Bellabes <sam@synack.fr>
-> ---
+Evgeniy Polyakov <zbr@ioremap.net> writes:
+>> +
+>> +extern unsigned int event_hash_size;
+>> +
+>
+>> +
+>> +static struct list_head *event_hash;
+>> +static rwlock_t event_hash_lock = __RW_LOCK_UNLOCKED();
+>> +
+>
+> Those are way too generic names, please use snet_ prefix as you did in
+> other places.
 
-> +#define SNET_DBG_V4()							\
-> +	snet_dbg("%u.%u.%u.%u:%u->%u.%u.%u.%u:%u\n",			\
-> +		 NIPQUAD(info.src.u3.ip), info.src.u.port,		\
-> +		 NIPQUAD(info.dst.u3.ip), info.dst.u.port)
-> +
-> +#define SNET_DBG_V6()							\
-> +	snet_dbg("%pI6:%u->%pI6:%u\n",					\
-> +		 &info.src.u3.ip, info.src.u.port,			\
-> +		 &info.dst.u3.ip, info.dst.u.port)
-> +
+done. thank you
 
-There are cool %pi4 and %pi6 format modifiers for IP addresses.
+> I believe snet should be converted to RCU instead of rw locks.
 
-> +#define SNET_CHECK_LISTENERS()						\
-> +do {									\
-> +	if (atomic_read(&snet_num_listeners) < 0) {			\
-> +		snet_dbg("number of listeners is negative\n");		\
-> +		verdict = SNET_VERDICT_GRANT;				\
-> +		goto out;						\
-> +	} else if (atomic_read(&snet_num_listeners) == 0) {		\
-> +		verdict = SNET_VERDICT_GRANT;				\
-> +		goto out;						\
-> +	}								\
-> +} while (0)
-> +
-> +#define SNET_DO_VERDICT(sys, family)					\
-> +do {									\
-> +	if (verdict_id == 0)						\
-> +		goto skip_send_wait;					\
-> +	/* sending networking informations to userspace */		\
-> +	snet_nl_send_event(verdict_id, sys, protocol,			\
-> +			   family, (void *)&info,			\
-> +			   sizeof(struct snet_sock_info));		\
-> +	/* waiting for userspace reply or timeout */			\
-> +	verdict = snet_verdict_wait(verdict_id);			\
-> +		/* removing verdict */					\
-> +	snet_verdict_remove(verdict_id);				\
-> +} while (0)
-> +
-> +#define SNET_CHECK_LISTENERS_NOVERDICT()				\
-> +do {									\
-> +	if (atomic_read(&snet_num_listeners) < 0) {			\
-> +		snet_dbg("number of listeners is negative\n");		\
-> +		goto out;						\
-> +	} else if (atomic_read(&snet_num_listeners) == 0) {		\
-> +		goto out;						\
-> +	}								\
-> +} while (0)
-> +
-> +#define SNET_DO_SEND_EVENT(sys, family)					\
-> +do {									\
-> +	/* sending networking informations to userspace */		\
-> +	snet_nl_send_event(0, sys, protocol,				\
-> +			   family, (void *)&info,			\
-> +			   sizeof(struct snet_sock_info));		\
-> +} while (0)
-> +
+I see, I will investigated this idea.
 
-Why do you need those ugly macroses which reference external objects?
-Can it be refactored into some inline function with common error value
-instead?
+>> +/* lookup for a event_hash - before using this function, lock event_hash_lock */
+>> +static struct snet_event_entry *__snet_event_lookup(const enum snet_syscall syscall,
+>> +						   const u8 protocol)
+>> +{
+>> +	unsigned int h = 0;
+>> +	struct list_head *l;
+>> +	struct snet_event_entry *s;
+>> +	struct snet_event t;
+>> +
+>> +	if (!event_hash)
+>> +		return NULL;
+>> +
+>> +	/* building the element to look for */
+>> +	t.syscall = syscall;
+>> +	t.protocol = protocol;
+>> +
+>> +	/* computing its hash value */
+>> +	h = jhash(&t, sizeof(struct snet_event), 0) % event_hash_size;
+>
+> You can have better distribution if not simply cut off the remainder.
+> Also it is a rather expensive operation.
 
+true, I replaced the modulo operation to a bitmask operations.
 
--- 
-	Evgeniy Polyakov
+>> +	l = &event_hash[h];
+>> +
+>> +	list_for_each_entry(s, l, list) {
+>> +		if ((s->se.protocol == protocol) &&
+>> +		    (s->se.syscall == syscall)) {
+>> +			return s;
+>> +		}
+>> +	}
+>> +	return NULL;
+>> +}
+>
+> Below comments looks a little bit weird, was it generated automatically
+> by editor?
+
+no, it's was a unused debug function. I deleted this comment.
+
+>> +/* void snet_event_dumpall() */
+>> +/* { */
+>> +/*	unsigned int i = 0; */
+>> +/*	struct list_head *l; */
+>> +/*	struct snet_event_entry *s; */
+>> +
+>> +/*	snet_dbg("entering\n"); */
+>> +/*	read_lock_bh(&event_hash_lock); */
+>> +/*	for (i = 0; i < (event_hash_size - 1); i++) { */
+>> +/*		l = &hash[i]; */
+>> +/*		list_for_each_entry(s, l, list) { */
+>> +/*			snet_dbg("[%d, %d, %d]\n", i, */
+>> +/*				 s->se.protocol, s->se.syscall); */
+>> +/*		} */
+>> +/*	} */
+>> +/*	read_unlock_bh(&event_hash_lock); */
+>> +/*	snet_dbg("exiting\n"); */
+>> +/*	return; */
+>> +/* } */
+>
+>> +int snet_event_insert(const enum snet_syscall syscall, const u8 protocol)
+>> +{
+>> +	struct snet_event_entry *data = NULL;
+>> +	unsigned int h = 0;
+>> +
+>> +	data = kzalloc(sizeof(struct snet_event_entry), GFP_KERNEL);
+>> +	if (!data)
+>> +		return -ENOMEM;
+>> +
+>> +	write_lock_bh(&event_hash_lock);
+>> +	/* check if event is already registered */
+>> +	if (!event_hash || __snet_event_lookup(syscall, protocol) != NULL) {
+>> +		write_unlock_bh(&event_hash_lock);
+>> +		kfree(data);
+>> +		return -EINVAL;
+>> +	}
+>
+> What about single error exiting point?
+
+done, thanks
+
+>> +
+>> +	data->se.syscall = syscall;
+>> +	data->se.protocol = protocol;
+>> +	INIT_LIST_HEAD(&(data->list));
+>> +	h = jhash(&(data->se), sizeof(struct snet_event), 0) % event_hash_size;
+>> +	list_add_tail(&data->list, &event_hash[h]);
+>> +	write_unlock_bh(&event_hash_lock);
+>> +
+>> +	return 0;
+>> +}
+>
+>> +/* init function */
+>> +int snet_event_init(void)
+>> +{
+>> +	int err = 0, i = 0;
+>> +
+>> +	event_hash = kzalloc(sizeof(struct list_head) * event_hash_size,
+>> +			     GFP_KERNEL);
+>> +	if (!event_hash) {
+>> +		printk(KERN_WARNING
+>> +		       "snet: can't alloc memory for event_hash\n");
+>> +		err = -ENOMEM;
+>> +		goto out;
+>> +	}
+>> +
+>> +	for (i = 0; i < event_hash_size; i++)
+>> +		INIT_LIST_HEAD(&(event_hash[i]));
+>
+> No need for double braces.
+
+again fixed.
+
+thanks for your time Evgeniy,
+sam
