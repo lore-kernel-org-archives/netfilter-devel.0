@@ -1,767 +1,295 @@
 From: Samir Bellabes <sam@synack.fr>
-Subject: [RFC 6/9] snet: introduce snet_hooks.c and snet_hook.h
-Date: Sat,  2 Jan 2010 14:04:13 +0100
-Message-ID: <1262437456-24476-7-git-send-email-sam@synack.fr>
+Subject: [RFC 8/9] snet: introduce snet_verdict.c and snet_verdict.h
+Date: Sat,  2 Jan 2010 14:04:15 +0100
+Message-ID: <1262437456-24476-9-git-send-email-sam@synack.fr>
 References: <1262437456-24476-1-git-send-email-sam@synack.fr>
 Cc: Patrick McHardy <kaber@trash.net>, jamal <hadi@cyberus.ca>,
 	Evgeniy Polyakov <zbr@ioremap.net>,
 	Neil Horman <nhorman@tuxdriver.com>, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org, Samir Bellabes <sam@synack.fr>
 To: linux-security-module@vger.kernel.org
-Return-path: <netdev-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from bob75-7-88-160-5-175.fbx.proxad.net ([88.160.5.175]:57896 "EHLO
+	cerbere.dyndns.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752477Ab0ABNRK (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 2 Jan 2010 08:17:10 -0500
 In-Reply-To: <1262437456-24476-1-git-send-email-sam@synack.fr>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds the snet LSM's subsystem
+This patch adds the snet's subsystem responsive of managing verdicts
 
-snet_hooks provides the security hook's functions and the security_operations
-structure. Currently hook functions are only related to network stack.
+snet is using the word 'verdict' for the returning value of LSM hooks.
+Different states exist (grant/deny/pending/none).
 
-For each hook function, there is a generic mecanism:
- 0. check if the event [syscall, protocol] is registered
- 1. prepare informations for userspace
- 2. send informations to userspace (snet_netlink)
- 3. wait for verdict from userspace (snet_verdict)
- 4. apply verdict for the syscall
-
-steps 3 and 4 are only valid for LSM hooks which are returning a value (a way to
-'filter' the syscall). For hooks returning 'void', steps 3 and 4 don't exist,
-but snet sends security informations to userspace (step 2) to update the global
-security policy.
+This patch introduces a hashtable 'verdict_hash' and operations (set/get/search..)
+in order to manage verdicts. Syscalls are waiting, inside a classical waitqueue,
+for theirs verdicts or for a timeout. Timeout value and the default verdict
+policy are configurable at boot.
+With the help of the communication's subsystem, verdicts are coming from userspace.
 
 Signed-off-by: Samir Bellabes <sam@synack.fr>
 ---
- security/snet/include/snet_hooks.h |   28 ++
- security/snet/snet_hooks.c         |  686 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 714 insertions(+), 0 deletions(-)
- create mode 100644 security/snet/include/snet_hooks.h
- create mode 100644 security/snet/snet_hooks.c
+ security/snet/include/snet_verdict.h |   33 ++++++
+ security/snet/snet_verdict.c         |  210 ++++++++++++++++++++++++++++++++++
+ 2 files changed, 243 insertions(+), 0 deletions(-)
+ create mode 100644 security/snet/include/snet_verdict.h
+ create mode 100644 security/snet/snet_verdict.c
 
-diff --git a/security/snet/include/snet_hooks.h b/security/snet/include/snet_hooks.h
+diff --git a/security/snet/include/snet_verdict.h b/security/snet/include/snet_verdict.h
 new file mode 100644
-index 0000000..fbda5ed
+index 0000000..fd9a5e5
 --- /dev/null
-+++ b/security/snet/include/snet_hooks.h
-@@ -0,0 +1,28 @@
-+#ifndef _SNET_HOOKS_H
-+#define _SNET_HOOKS_H
++++ b/security/snet/include/snet_verdict.h
+@@ -0,0 +1,33 @@
++#ifndef _SNET_VERDICT_H
++#define _SNET_VERDICT_H
 +
-+extern atomic_t snet_num_listeners;
-+extern unsigned int snet_verdict_policy;
++extern unsigned int verdict_hash_size;
++extern unsigned int snet_verdict_delay;
 +
-+enum snet_syscall {
-+	SNET_SOCKET_CREATE = 0,
-+	SNET_SOCKET_BIND,
-+	SNET_SOCKET_CONNECT,
-+	SNET_SOCKET_LISTEN,
-+	SNET_SOCKET_ACCEPT,
-+	SNET_SOCKET_POST_ACCEPT,
-+	SNET_SOCKET_SENDMSG,
-+	SNET_SOCKET_RECVMSG,
-+	SNET_SOCKET_SOCK_RCV_SKB,
-+	SNET_SOCKET_CLOSE,
-+	SNET_SOCKET_INVALID,
++enum snet_verdict {
++	SNET_VERDICT_GRANT = 0,	/* grant the syscall */
++	SNET_VERDICT_DENY,	/* deny the syscall */
++	SNET_VERDICT_PENDING,	/* waiting for a decision */
++	SNET_VERDICT_NONE,	/* no decision can be set */
++	SNET_VERDICT_INVALID,
 +};
 +
-+#define SNET_NR_SOCKET_TYPES SNET_SOCKET_INVALID
++#define SNET_NR_VERDICT_TYPES SNET_VERDICT_INVALID
++
++/* helper functions */
++const enum snet_verdict snet_verdict_wait(const u32 verdict_id);
++
++/* manipulate the verdicts hash table */
++const enum snet_verdict snet_verdict_get(const u32 verdict_id);
++int snet_verdict_set(const u32 verdict_id, const enum snet_verdict verdict);
++int snet_verdict_insert(void);
++int snet_verdict_remove(const u32 verdict_id);
++int snet_verdict_insert(void);
++void snet_verdict_flush(void);
 +
 +/* init function */
-+int snet_hooks_init(void);
++int snet_verdict_init(void);
 +/* exit function */
-+int snet_hooks_exit(void);
++int snet_verdict_exit(void);
 +
-+#endif /* _SNET_HOOK_H */
-diff --git a/security/snet/snet_hooks.c b/security/snet/snet_hooks.c
++#endif /* _SNET_VERDICT_H */
+diff --git a/security/snet/snet_verdict.c b/security/snet/snet_verdict.c
 new file mode 100644
-index 0000000..9c249ab
+index 0000000..55dccea
 --- /dev/null
-+++ b/security/snet/snet_hooks.c
-@@ -0,0 +1,686 @@
-+/*
-+ * snet_hook.c
-+ *
-+ * here are interesting informations which can be picked up from hooks.
-+ *
-+ *
-+ * SOCKET_CREATE:
-+ *	family, type, protocol
-+ * SOCKET_BIND:
-+ *	family, protocol, saddr, sport
-+ * SOCKET_CONNECT:
-+ *	family, protocol, saddr, sport, daddr, dport
-+ * SOCKET_LISTEN:
-+ *	family, protocol, saddr, sport
-+ * SOCKET_ACCEPT:
-+ *	family, protocol, saddr, sport
-+ *
-+ * SOCKET_SENDMSG:
-+ * SOCKET_RECVMSG:
-+ * SOCKET_SOCK_RCV_SKB:
-+ *
-+ *
-+ */
-+
-+#include <linux/skbuff.h>
-+#include <linux/security.h>
-+#include <linux/net.h>
-+#include <net/sock.h>
-+#include <linux/in.h>
-+#include <linux/in6.h>
-+#include <net/inet_sock.h>
-+#include <linux/ipv6.h>
++++ b/security/snet/snet_verdict.c
+@@ -0,0 +1,210 @@
++#include <linux/sched.h>
++#include <linux/spinlock.h>
++#include <linux/random.h>
++#include <linux/wait.h>
++#include <linux/jhash.h>
++#include <asm/atomic.h>
 +
 +#include "snet.h"
-+#include "snet_hooks.h"
 +#include "snet_verdict.h"
-+#include "snet_netlink.h"
-+#include "snet_event.h"
-+
-+#define SNET_DBG_V4()							\
-+	snet_dbg("%u.%u.%u.%u:%u->%u.%u.%u.%u:%u\n",			\
-+		 NIPQUAD(info.src.u3.ip), info.src.u.port,		\
-+		 NIPQUAD(info.dst.u3.ip), info.dst.u.port)
-+
-+#define SNET_DBG_V6()							\
-+	snet_dbg("%pI6:%u->%pI6:%u\n",					\
-+		 &info.src.u3.ip, info.src.u.port,			\
-+		 &info.dst.u3.ip, info.dst.u.port)
-+
-+#define SNET_CHECK_LISTENERS()						\
-+do {									\
-+	if (atomic_read(&snet_num_listeners) < 0) {			\
-+		snet_dbg("number of listeners is negative\n");		\
-+		verdict = SNET_VERDICT_GRANT;				\
-+		goto out;						\
-+	} else if (atomic_read(&snet_num_listeners) == 0) {		\
-+		verdict = SNET_VERDICT_GRANT;				\
-+		goto out;						\
-+	}								\
-+} while (0)
-+
-+#define SNET_DO_VERDICT(sys, family)					\
-+do {									\
-+	if (verdict_id == 0)						\
-+		goto skip_send_wait;					\
-+	/* sending networking informations to userspace */		\
-+	snet_nl_send_event(verdict_id, sys, protocol,			\
-+			   family, (void *)&info,			\
-+			   sizeof(struct snet_sock_info));		\
-+	/* waiting for userspace reply or timeout */			\
-+	verdict = snet_verdict_wait(verdict_id);			\
-+		/* removing verdict */					\
-+	snet_verdict_remove(verdict_id);				\
-+} while (0)
-+
-+#define SNET_CHECK_LISTENERS_NOVERDICT()				\
-+do {									\
-+	if (atomic_read(&snet_num_listeners) < 0) {			\
-+		snet_dbg("number of listeners is negative\n");		\
-+		goto out;						\
-+	} else if (atomic_read(&snet_num_listeners) == 0) {		\
-+		goto out;						\
-+	}								\
-+} while (0)
-+
-+#define SNET_DO_SEND_EVENT(sys, family)					\
-+do {									\
-+	/* sending networking informations to userspace */		\
-+	snet_nl_send_event(0, sys, protocol,				\
-+			   family, (void *)&info,			\
-+			   sizeof(struct snet_sock_info));		\
-+} while (0)
-+
-+/*
-+ * security operations helper functions
-+ */
-+
-+/*
-+ * security operations functions members
-+ */
-+
-+static int snet_socket_create(int family, int type, int protocol, int kern)
-+{
-+	u32 verdict_id = 0;
-+	enum snet_verdict verdict = SNET_VERDICT_NONE;
-+
-+	/* if (kern) */
-+	/*	;		/\* do something smart *\/ */
-+
-+	SNET_CHECK_LISTENERS();
-+
-+	if (snet_event_is_registered(SNET_SOCKET_CREATE, protocol)) {
-+		struct snet_sock_info info;
-+
-+		/* inserting verdict PENDING */
-+		verdict_id = snet_verdict_insert();
-+
-+		/* prepare networking informations for userspace */
-+		info.type = type;
-+
-+		snet_dbg("family=%u type=%u protocol=%u kern=%u\n",
-+			 family, type, protocol, kern);
-+
-+		SNET_DO_VERDICT(SNET_SOCKET_CREATE, family);
-+
-+	} else {
-+		verdict = SNET_VERDICT_GRANT;
-+	}
-+
-+	if (verdict == SNET_VERDICT_NONE)
-+		verdict = snet_verdict_policy;
-+
-+skip_send_wait:
-+out:
-+	return verdict;
-+}
-+
-+static int snet_socket_bind(struct socket *sock,
-+			    struct sockaddr *address, int addrlen)
-+{
-+	u32 verdict_id = 0;
-+	enum snet_verdict verdict = SNET_VERDICT_NONE;
-+	u8 protocol = 0;
-+
-+	SNET_CHECK_LISTENERS();
-+
-+	protocol = sock->sk->sk_protocol;
-+
-+	if (snet_event_is_registered(SNET_SOCKET_BIND, protocol)) {
-+		struct snet_sock_info info;
-+		struct inet_sock *inet = inet_sk(sock->sk);
-+		struct sockaddr_in *a = (struct sockaddr_in *) address;
-+		struct sockaddr_in6 *a6 = (struct sockaddr_in6 *) address;
-+
-+		/* prepare networking informations for userspace */
-+		info.dst.u.port = ntohs(inet->inet_dport);
-+
-+		switch (sock->sk->sk_family) {
-+		case PF_INET:
-+			/* inserting verdict PENDING  */
-+			verdict_id = snet_verdict_insert();
-+
-+			info.src.u3.ip = a->sin_addr.s_addr;
-+			info.dst.u3.ip = inet->inet_daddr;
-+			info.src.u.port = ntohs(a->sin_port);
-+
-+			SNET_DBG_V4();
-+			break;
-+#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
-+		case PF_INET6:
-+			/* inserting verdict PENDING  */
-+			verdict_id = snet_verdict_insert();
-+
-+			memcpy(&info.src.u3.ip6, (void *)&a6->sin6_addr,
-+			       sizeof(info.src.u3.ip6));
-+			memcpy(&info.dst.u3.ip6, (void *)&inet->pinet6->daddr,
-+			       sizeof(info.dst.u3.ip6));
-+			info.src.u.port = ntohs(a6->sin6_port);
-+
-+			SNET_DBG_V6();
-+			break;
-+#endif
-+		default:
-+			verdict = SNET_VERDICT_NONE;
-+			goto skip_send_wait;
-+			break;
-+		}
-+
-+		SNET_DO_VERDICT(SNET_SOCKET_BIND, sock->sk->sk_family);
-+	} else {
-+		verdict = SNET_VERDICT_GRANT;
-+	}
-+
-+skip_send_wait:
-+	if (verdict == SNET_VERDICT_NONE)
-+		verdict = snet_verdict_policy;
-+out:
-+	return verdict;
-+}
-+
-+static int snet_socket_connect(struct socket *sock,
-+			       struct sockaddr *address, int addrlen)
-+{
-+	u32 verdict_id = 0;
-+	enum snet_verdict verdict = SNET_VERDICT_NONE;
-+	u8 protocol = 0;
-+
-+	SNET_CHECK_LISTENERS();
-+
-+	protocol = sock->sk->sk_protocol;
-+
-+	if (snet_event_is_registered(SNET_SOCKET_CONNECT, protocol)) {
-+		struct snet_sock_info info;
-+		struct inet_sock *inet = inet_sk(sock->sk);
-+		struct sockaddr_in *a = (struct sockaddr_in *) address;
-+		struct sockaddr_in6 *a6 = (struct sockaddr_in6 *) address;
-+
-+		/* prepare networking informations for userspace */
-+		info.src.u.port = ntohs(inet->inet_sport);
-+
-+		switch (sock->sk->sk_family) {
-+		case PF_INET:
-+			/* inserting verdict PENDING */
-+			verdict_id = snet_verdict_insert();
-+
-+			info.src.u3.ip = inet->inet_saddr;
-+			info.dst.u3.ip = a->sin_addr.s_addr;
-+			info.dst.u.port = ntohs(a->sin_port);
-+
-+			SNET_DBG_V4();
-+			break;
-+#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
-+		case PF_INET6:
-+			/* inserting verdict PENDING */
-+			verdict_id = snet_verdict_insert();
-+
-+			memcpy(&info.src.u3.ip6, (void *)&inet->pinet6->saddr,
-+			       sizeof(info.src.u3.ip6));
-+			memcpy(&info.dst.u3.ip6, (void *)&a6->sin6_addr,
-+			       sizeof(info.dst.u3.ip6));
-+			info.dst.u.port = ntohs(a6->sin6_port);
-+
-+			SNET_DBG_V6();
-+			break;
-+#endif
-+		default:
-+			verdict = SNET_VERDICT_NONE;
-+			goto skip_send_wait;
-+			break;
-+		}
-+
-+		SNET_DO_VERDICT(SNET_SOCKET_CONNECT, sock->sk->sk_family);
-+	} else {
-+		verdict = SNET_VERDICT_GRANT;
-+	}
-+
-+skip_send_wait:
-+	if (verdict == SNET_VERDICT_NONE)
-+		verdict = snet_verdict_policy;
-+out:
-+	return verdict;
-+}
-+
-+static int snet_socket_listen(struct socket *sock, int backlog)
-+{
-+	u32 verdict_id = 0;
-+	enum snet_verdict verdict = SNET_VERDICT_NONE;
-+	u8 protocol = 0;
-+
-+	SNET_CHECK_LISTENERS();
-+
-+	protocol = sock->sk->sk_protocol;
-+
-+	if (snet_event_is_registered(SNET_SOCKET_LISTEN, protocol)) {
-+		struct snet_sock_info info;
-+		struct inet_sock *inet = inet_sk(sock->sk);
-+
-+		/* prepare networking informations for userspace */
-+		info.src.u.port = ntohs(inet->inet_sport);
-+		info.dst.u.port = ntohs(inet->inet_dport);
-+
-+		switch (sock->sk->sk_family) {
-+		case PF_INET:
-+			/* inserting verdict PENDING  */
-+			verdict_id = snet_verdict_insert();
-+
-+			info.src.u3.ip = inet->inet_saddr;
-+			info.dst.u3.ip = inet->inet_daddr;
-+
-+			SNET_DBG_V4();
-+			break;
-+#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
-+		case PF_INET6:
-+			/* inserting verdict PENDING  */
-+			verdict_id = snet_verdict_insert();
-+
-+			memcpy(&info.src.u3.ip6, (void *)&inet->pinet6->saddr,
-+			       sizeof(info.src.u3.ip6));
-+			memcpy(&info.dst.u3.ip6, (void *)&inet->pinet6->daddr,
-+			       sizeof(info.dst.u3.ip6));
-+
-+			SNET_DBG_V6();
-+			break;
-+#endif
-+		default:
-+			verdict = SNET_VERDICT_NONE;
-+			goto skip_send_wait;
-+			break;
-+		}
-+
-+		SNET_DO_VERDICT(SNET_SOCKET_LISTEN, sock->sk->sk_family);
-+	} else {
-+		verdict = SNET_VERDICT_GRANT;
-+	}
-+
-+skip_send_wait:
-+	if (verdict == SNET_VERDICT_NONE)
-+		verdict = snet_verdict_policy;
-+out:
-+	return verdict;
-+}
-+
-+static int snet_socket_accept(struct socket *sock, struct socket *newsock)
-+{
-+	u32 verdict_id = 0;
-+	enum snet_verdict verdict = SNET_VERDICT_NONE;
-+	u8 protocol = 0;
-+
-+	SNET_CHECK_LISTENERS();
-+
-+	protocol = sock->sk->sk_protocol;
-+
-+	if (snet_event_is_registered(SNET_SOCKET_ACCEPT, protocol)) {
-+		struct snet_sock_info info;
-+		struct inet_sock *inet = inet_sk(sock->sk);
-+
-+		/* prepare networking informations for userspace */
-+		info.src.u.port = ntohs(inet->inet_sport);
-+		info.dst.u.port = ntohs(inet->inet_dport);
-+
-+		switch (sock->sk->sk_family) {
-+		case PF_INET:
-+			/* inserting verdict PENDING  */
-+			verdict_id = snet_verdict_insert();
-+
-+			info.src.u3.ip = inet->inet_saddr;
-+			info.dst.u3.ip = inet->inet_daddr;
-+
-+			SNET_DBG_V4();
-+			break;
-+#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
-+		case PF_INET6:
-+			/* inserting verdict PENDING  */
-+			verdict_id = snet_verdict_insert();
-+
-+			memcpy(&info.src.u3.ip6, (void *)&inet->pinet6->saddr,
-+			       sizeof(info.src.u3.ip6));
-+			memcpy(&info.dst.u3.ip6, (void *)&inet->pinet6->daddr,
-+			       sizeof(info.dst.u3.ip6));
-+
-+			SNET_DBG_V6();
-+			break;
-+#endif
-+		default:
-+			verdict = SNET_VERDICT_NONE;
-+			goto skip_send_wait;
-+			break;
-+		}
-+
-+		SNET_DO_VERDICT(SNET_SOCKET_ACCEPT, sock->sk->sk_family);
-+	} else {
-+		verdict = SNET_VERDICT_GRANT;
-+	}
-+
-+skip_send_wait:
-+	if (verdict == SNET_VERDICT_NONE)
-+		verdict = snet_verdict_policy;
-+out:
-+	return verdict;
-+}
-+
-+static void snet_socket_post_accept(struct socket *sock, struct socket *newsock)
-+{
-+	u8 protocol = 0;
-+
-+	SNET_CHECK_LISTENERS_NOVERDICT();
-+
-+	protocol = sock->sk->sk_protocol;
-+
-+	if (snet_event_is_registered(SNET_SOCKET_POST_ACCEPT, protocol)) {
-+		struct snet_sock_info info;
-+		struct inet_sock *inet = inet_sk(newsock->sk);
-+
-+		/* prepare networking informations for userspace */
-+		info.src.u.port = ntohs(inet->inet_sport);
-+		info.dst.u.port = ntohs(inet->inet_dport);
-+
-+		switch (sock->sk->sk_family) {
-+		case PF_INET:
-+			info.src.u3.ip = inet->inet_saddr;
-+			info.dst.u3.ip = inet->inet_daddr;
-+
-+			SNET_DBG_V4();
-+			break;
-+#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
-+		case PF_INET6:
-+			memcpy(&info.src.u3.ip6, (void *)&inet->pinet6->saddr,
-+			       sizeof(info.src.u3.ip6));
-+			memcpy(&info.dst.u3.ip6, (void *)&inet->pinet6->daddr,
-+			       sizeof(info.dst.u3.ip6));
-+
-+			SNET_DBG_V6();
-+			break;
-+#endif
-+		default:
-+			goto out;
-+			break;
-+		}
-+
-+		SNET_DO_SEND_EVENT(SNET_SOCKET_POST_ACCEPT, sock->sk->sk_family);
-+	}
-+out:
-+	return;
-+}
-+
-+static int snet_socket_sendmsg(struct socket *sock,
-+			       struct msghdr *msg, int size)
-+{
-+	u32 verdict_id = 0;
-+	enum snet_verdict verdict = SNET_VERDICT_NONE;
-+	u8 protocol = 0;
-+
-+	SNET_CHECK_LISTENERS();
-+
-+	protocol = sock->sk->sk_protocol;
-+
-+	if (snet_event_is_registered(SNET_SOCKET_SENDMSG, protocol)) {
-+		struct snet_sock_info info;
-+		struct inet_sock *inet = inet_sk(sock->sk);
-+
-+		/* prepare networking informations for userspace */
-+		info.src.u.port = ntohs(inet->inet_sport);
-+		info.dst.u.port = ntohs(inet->inet_dport);
-+
-+		switch (sock->sk->sk_family) {
-+		case PF_INET:
-+			/* inserting verdict PENDING */
-+			verdict_id = snet_verdict_insert();
-+
-+			info.src.u3.ip = inet->inet_saddr;
-+			info.dst.u3.ip = inet->inet_daddr;
-+
-+			SNET_DBG_V4();
-+			break;
-+#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
-+		case PF_INET6:
-+			/* inserting verdict PENDING */
-+			verdict_id = snet_verdict_insert();
-+
-+			memcpy(&info.src.u3.ip6, (void *)&inet->pinet6->saddr,
-+			       sizeof(info.src.u3.ip6));
-+			memcpy(&info.dst.u3.ip6, (void *)&inet->pinet6->daddr,
-+			       sizeof(info.dst.u3.ip6));
-+
-+			SNET_DBG_V6();
-+			break;
-+#endif
-+		default:
-+			verdict = SNET_VERDICT_NONE;
-+			goto skip_send_wait;
-+			break;
-+		}
-+
-+		SNET_DO_VERDICT(SNET_SOCKET_SENDMSG, sock->sk->sk_family);
-+	} else {
-+		verdict = SNET_VERDICT_GRANT;
-+	}
-+
-+skip_send_wait:
-+	if (verdict == SNET_VERDICT_NONE)
-+		verdict = snet_verdict_policy;
-+out:
-+	return verdict;
-+}
-+
-+static int snet_socket_recvmsg(struct socket *sock,
-+			       struct msghdr *msg, int size, int flags)
-+{
-+	u32 verdict_id = 0;
-+	enum snet_verdict verdict = SNET_VERDICT_NONE;
-+	u8 protocol = 0;
-+
-+	SNET_CHECK_LISTENERS();
-+
-+	protocol = sock->sk->sk_protocol;
-+
-+	if (snet_event_is_registered(SNET_SOCKET_RECVMSG, protocol)) {
-+		struct snet_sock_info info;
-+		struct inet_sock *inet = inet_sk(sock->sk);
-+
-+		/* prepare networking informations for userspace */
-+		info.src.u.port = ntohs(inet->inet_sport);
-+		info.dst.u.port = ntohs(inet->inet_dport);
-+
-+		switch (sock->sk->sk_family) {
-+		case PF_INET:
-+			/* inserting verdict PENDING  */
-+			verdict_id = snet_verdict_insert();
-+
-+			info.src.u3.ip = inet->inet_saddr;
-+			info.dst.u3.ip = inet->inet_daddr;
-+
-+			SNET_DBG_V4();
-+			break;
-+#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
-+		case PF_INET6:
-+			/* inserting verdict PENDING  */
-+			verdict_id = snet_verdict_insert();
-+
-+			memcpy(&info.src.u3.ip6, (void *)&inet->pinet6->saddr,
-+			       sizeof(info.src.u3.ip6));
-+			memcpy(&info.dst.u3.ip6, (void *)&inet->pinet6->daddr,
-+			       sizeof(info.dst.u3.ip6));
-+
-+			SNET_DBG_V6();
-+			break;
-+#endif
-+		default:
-+			verdict = SNET_VERDICT_NONE;
-+			goto skip_send_wait;
-+			break;
-+		}
-+
-+		SNET_DO_VERDICT(SNET_SOCKET_RECVMSG, sock->sk->sk_family);
-+	} else {
-+		verdict = SNET_VERDICT_GRANT;
-+	}
-+
-+skip_send_wait:
-+	if (verdict == SNET_VERDICT_NONE)
-+		verdict = snet_verdict_policy;
-+out:
-+	return verdict;
-+}
-+
-+static int snet_socket_sock_rcv_skb(struct sock *sk, struct sk_buff *skb)
-+{
-+	/* u32 verdict_id = 0; */
-+	enum snet_verdict verdict = SNET_VERDICT_NONE;
-+	u8 protocol = 0;
-+
-+	SNET_CHECK_LISTENERS();
-+
-+	protocol = sk->sk_protocol;
-+
-+	if (snet_event_is_registered(SNET_SOCKET_SOCK_RCV_SKB, protocol)) {
-+		struct snet_sock_info info;
-+		struct inet_sock *inet = inet_sk(sk);
-+
-+		/* prepare networking informations for userspace */
-+		info.src.u.port = ntohs(inet->inet_sport);
-+		info.dst.u.port = ntohs(inet->inet_dport);
-+
-+		switch (sk->sk_family) {
-+		case PF_INET:
-+			/* inserting verdict PENDING  */
-+			/* verdict_id = snet_verdict_insert(); */
-+
-+			info.src.u3.ip = inet->inet_saddr;
-+			info.dst.u3.ip = inet->inet_daddr;
-+
-+			SNET_DBG_V4();
-+			break;
-+#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
-+		case PF_INET6:
-+			/* inserting verdict PENDING  */
-+			/* verdict_id = snet_verdict_insert(); */
-+
-+			memcpy(&info.src.u3.ip6, (void *)&inet->pinet6->saddr,
-+			       sizeof(info.src.u3.ip6));
-+			memcpy(&info.dst.u3.ip6, (void *)&inet->pinet6->daddr,
-+			       sizeof(info.dst.u3.ip6));
-+
-+			SNET_DBG_V6();
-+			break;
-+#endif
-+		default:
-+			verdict = SNET_VERDICT_NONE;
-+			goto skip_send_wait;
-+			break;
-+		}
-+
-+		/* SNET_DOC_VERDICT(SNET_SOCKET_SOCK_RCV_SKB, sk->sk_family); */
-+	} else {
-+		verdict = SNET_VERDICT_GRANT;
-+	}
-+
-+skip_send_wait:
-+	if (verdict == SNET_VERDICT_NONE)
-+		verdict = snet_verdict_policy;
-+out:
-+	return verdict;
-+}
-+
-+static void snet_socket_close(struct socket *sock)
-+{
-+	u8 protocol = 0;
-+
-+	if (sock == NULL || sock->sk == NULL) {
-+		goto out;
-+	}
-+
-+	SNET_CHECK_LISTENERS_NOVERDICT();
-+
-+	protocol = sock->sk->sk_protocol;
-+
-+	if (snet_event_is_registered(SNET_SOCKET_CLOSE, protocol)) {
-+		struct snet_sock_info info;
-+		struct inet_sock *inet = inet_sk(sock->sk);
-+
-+		/* prepare networking informations for userspace */
-+		info.src.u.port = ntohs(inet->inet_sport);
-+		info.dst.u.port = ntohs(inet->inet_dport);
-+
-+		switch (sock->sk->sk_family) {
-+		case PF_INET:
-+			info.src.u3.ip = inet->inet_saddr;
-+			info.dst.u3.ip = inet->inet_daddr;
-+
-+			SNET_DBG_V4();
-+			break;
-+#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
-+		case PF_INET6:
-+			memcpy(&info.src.u3.ip6, (void *)&inet->pinet6->saddr,
-+			       sizeof(info.src.u3.ip6));
-+			memcpy(&info.dst.u3.ip6, (void *)&inet->pinet6->daddr,
-+			       sizeof(info.dst.u3.ip6));
-+
-+			SNET_DBG_V6();
-+			break;
-+#endif
-+		default:
-+			goto out;
-+			break;
-+		}
-+
-+		SNET_DO_SEND_EVENT(SNET_SOCKET_CLOSE, sock->sk->sk_family);
-+	}
-+out:
-+	return;
-+}
-+
-+#undef SNET_DBG_V4
-+#undef SNET_DBG_V6
-+#undef SNET_CHECK_LISTENERS
-+
-+static struct security_operations snet_security_ops = {
-+	.name			= "snet",
-+
-+	.socket_create		= snet_socket_create,
-+	.socket_bind		= snet_socket_bind,
-+	.socket_connect		= snet_socket_connect,
-+	.socket_listen		= snet_socket_listen,
-+	.socket_accept		= snet_socket_accept,
-+	.socket_post_accept	= snet_socket_post_accept,
-+	.socket_sendmsg		= snet_socket_sendmsg,
-+	.socket_recvmsg		= snet_socket_recvmsg,
-+	.socket_sock_rcv_skb	= snet_socket_sock_rcv_skb,
-+	.socket_close		= snet_socket_close,
++#include "snet_utils.h"
++
++static struct list_head *verdict_hash;
++static rwlock_t verdict_hash_lock = __RW_LOCK_UNLOCKED();
++
++struct snet_verdict_entry {
++	struct list_head list;
++	u32 verdict_id;
++	enum snet_verdict verdict;
 +};
 +
-+int snet_hooks_init(void)
++static atomic_t value = ATOMIC_INIT(1);
++
++/* when waiting for a verdict, process is added to this queue */
++static DECLARE_WAIT_QUEUE_HEAD(snet_wq);
++
++/* lookup for a verdict - before using this function, lock verdict_hash_lock */
++static struct snet_verdict_entry *__snet_verdict_lookup(const u32 verdict_id)
 +{
-+	if (!security_module_enable(&snet_security_ops))
-+		return 0;
++	unsigned int h = 0;
++	struct list_head *l = NULL;
++	struct snet_verdict_entry *s = NULL;
++	u32 vid = 0;
 +
-+	if (register_security(&snet_security_ops))
-+		panic("snet: failed to register security_ops\n");
++	if (!verdict_hash)
++		return NULL;
 +
++	vid = verdict_id;
++	/* computing its hash value */
++	h = jhash(&vid, sizeof(u32), 0) % verdict_hash_size;
++	l = &verdict_hash[h];
++
++	list_for_each_entry(s, l, list) {
++		if (s->verdict_id == vid) {
++			return s;
++		}
++	}
++	return NULL;
++}
++
++const enum snet_verdict snet_verdict_wait(const u32 verdict_id)
++{
++	enum snet_verdict verdict = SNET_VERDICT_NONE;
++	long ret = 0;
++
++	ret = wait_event_timeout(snet_wq,
++				 (verdict = snet_verdict_get(verdict_id))
++				 != SNET_VERDICT_PENDING,
++				 snet_verdict_delay * HZ);
++	if (ret)
++		return snet_verdict_get(verdict_id);
++	else
++		return SNET_VERDICT_NONE;
++}
++
++const enum snet_verdict snet_verdict_get(const u32 verdict_id)
++{
++	enum snet_verdict v = SNET_VERDICT_NONE;
++	struct snet_verdict_entry *data = NULL;
++
++	read_lock_bh(&verdict_hash_lock);
++	data = __snet_verdict_lookup(verdict_id);
++	if (data != NULL)
++		v = data->verdict;
++
++	read_unlock_bh(&verdict_hash_lock);
++	return v;
++}
++
++int snet_verdict_set(const u32 verdict_id, const enum snet_verdict verdict)
++{
++	struct snet_verdict_entry *data = NULL;
++	int ret = -EINVAL;
++
++	if (verdict >= SNET_NR_VERDICT_TYPES)
++		goto out;
++
++	write_lock_bh(&verdict_hash_lock);
++	data = __snet_verdict_lookup(verdict_id);
++	if (data != NULL) {
++		/* if verdict is already set because of
++		   timeout, we won't modify it */
++		if (data->verdict == SNET_VERDICT_PENDING) {
++			data->verdict = verdict;
++			ret = 0;
++		}
++	}
++	write_unlock_bh(&verdict_hash_lock);
++	wake_up(&snet_wq);
++out:
++	return ret;
++}
++
++int snet_verdict_remove(const u32 verdict_id)
++{
++	struct snet_verdict_entry *data = NULL;
++
++	write_lock_bh(&verdict_hash_lock);
++	data = __snet_verdict_lookup(verdict_id);
++	if (data == NULL) {
++		write_unlock_bh(&verdict_hash_lock);
++		return -EINVAL;
++	}
++
++	list_del(&data->list);
++	write_unlock_bh(&verdict_hash_lock);
++	kfree(data);
 +	return 0;
 +}
 +
-+int snet_hooks_exit(void)
++int snet_verdict_insert(void)
 +{
++	struct snet_verdict_entry *data = NULL;
++	unsigned int h = 0;
++	u32 verdict_id = 0;
++
++	data = kzalloc(sizeof(struct snet_verdict_entry), GFP_KERNEL);
++	if (!data)
++		return -ENOMEM;
++
++	do {
++		verdict_id = atomic_inc_return(&value);
++	} while (verdict_id == 0);
++
++	data->verdict_id = verdict_id;
++	data->verdict = SNET_VERDICT_PENDING;
++	INIT_LIST_HEAD(&(data->list));
++	h = jhash(&(data->verdict_id), sizeof(u32), 0) % verdict_hash_size;
++
++	write_lock_bh(&verdict_hash_lock);
++	if (verdict_hash) {
++		list_add_tail(&data->list, &verdict_hash[h]);
++		write_unlock_bh(&verdict_hash_lock);
++	} else {
++		write_unlock_bh(&verdict_hash_lock);
++		kfree(data);
++		verdict_id = 0;
++	}
++
++	return verdict_id;
++}
++
++void __snet_verdict_flush(void)
++{
++	struct snet_verdict_entry *data = NULL;
++	unsigned int i = 0;
++
++	for (i = 0; i < verdict_hash_size; i++) {
++		while (!list_empty(&verdict_hash[i])) {
++			data = list_entry(verdict_hash[i].next,
++					  struct snet_verdict_entry, list);
++			list_del(&data->list);
++			kfree(data);
++		}
++	}
++	return;
++}
++
++void snet_verdict_flush(void)
++{
++	write_lock_bh(&verdict_hash_lock);
++	if (verdict_hash)
++		__snet_verdict_flush();
++	write_unlock_bh(&verdict_hash_lock);
++	return;
++}
++
++/* init function */
++int snet_verdict_init(void)
++{
++	int err = 0, i = 0;
++
++	verdict_hash = kzalloc(sizeof(struct list_head) * verdict_hash_size,
++			  GFP_KERNEL);
++	if (!verdict_hash) {
++		printk(KERN_WARNING
++		       "snet: can't alloc memory for verdict\n");
++		err = -ENOMEM;
++		goto out;
++	}
++
++	for (i = 0; i < verdict_hash_size; i++)
++		INIT_LIST_HEAD(&(verdict_hash[i]));
++
++out:
++	return err;
++}
++
++/* exit function */
++int snet_verdict_exit(void)
++{
++	write_lock_bh(&verdict_hash_lock);
++	if (verdict_hash) {
++		__snet_verdict_flush();
++		kfree(verdict_hash);
++		verdict_hash = NULL;
++	}
++	write_unlock_bh(&verdict_hash_lock);
++
 +	return 0;
 +}
 -- 
