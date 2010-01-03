@@ -1,36 +1,119 @@
-From: Michael Farrell <micolous+nf@gmail.com>
-Subject: Re: xtables-addons: patch for addition of "no-change" option for
-	xt_quota2
-Date: Sun, 3 Jan 2010 18:22:07 +1100
-Message-ID: <cdd9a51a1001022322k3ba3d224ne4837eaa454281c7@mail.gmail.com>
-References: <1262013837.19823.48.camel@milliways>
-	 <alpine.LSU.2.01.0912311629560.17265@obet.zrqbmnf.qr>
+From: Samir Bellabes <sam@synack.fr>
+Subject: Re: [RFC 6/9] snet: introduce snet_hooks.c and snet_hook.h
+Date: Sun, 03 Jan 2010 12:10:53 +0100
+Message-ID: <m2skanphoi.fsf@ssh.synack.fr>
+References: <1262437456-24476-1-git-send-email-sam@synack.fr>
+	<1262437456-24476-7-git-send-email-sam@synack.fr>
+	<20100102201303.GB27402@ioremap.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yw0-f176.google.com ([209.85.211.176]:63934 "EHLO
-	mail-yw0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750969Ab0ACHWI (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 3 Jan 2010 02:22:08 -0500
-Received: by ywh6 with SMTP id 6so14504316ywh.4
-        for <netfilter-devel@vger.kernel.org>; Sat, 02 Jan 2010 23:22:07 -0800 (PST)
-In-Reply-To: <alpine.LSU.2.01.0912311629560.17265@obet.zrqbmnf.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: linux-security-module@vger.kernel.org,
+	Patrick McHardy <kaber@trash.net>, jamal <hadi@cyberus.ca>,
+	Neil Horman <nhorman@tuxdriver.com>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Evgeniy Polyakov <zbr@ioremap.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20100102201303.GB27402@ioremap.net> (Evgeniy Polyakov's message
+	of "Sat, 2 Jan 2010 23:13:03 +0300")
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-2010/1/1 Jan Engelhardt <jengelh@medozas.de>:
-> On Monday 2009-12-28 16:23, Michael Farrell wrote:
->>
->>I've written a patch to add an option to xt_quota2 called "no-change".
->>The effect of this option, while it is enabled, is that it will skip
->>incrementing or decrementing the quota counter.
+hello Evgeniy
+
+Evgeniy Polyakov <zbr@ioremap.net> writes:
+
+> Hi.
 >
-> I applied the patch, with a number of changes.
+> On Sat, Jan 02, 2010 at 02:04:13PM +0100, Samir Bellabes (sam@synack.fr) wrote:
+>> This patch adds the snet LSM's subsystem
+>> 
+>> snet_hooks provides the security hook's functions and the security_operations
+>> structure. Currently hook functions are only related to network stack.
+>> 
+>> For each hook function, there is a generic mecanism:
+>>  0. check if the event [syscall, protocol] is registered
+>>  1. prepare informations for userspace
+>>  2. send informations to userspace (snet_netlink)
+>>  3. wait for verdict from userspace (snet_verdict)
+>>  4. apply verdict for the syscall
+>> 
+>> steps 3 and 4 are only valid for LSM hooks which are returning a value (a way to
+>> 'filter' the syscall). For hooks returning 'void', steps 3 and 4 don't exist,
+>> but snet sends security informations to userspace (step 2) to update the global
+>> security policy.
+>> 
+>> Signed-off-by: Samir Bellabes <sam@synack.fr>
+>> ---
 >
-> [snip]
+>> +#define SNET_DBG_V4()							\
+>> +	snet_dbg("%u.%u.%u.%u:%u->%u.%u.%u.%u:%u\n",			\
+>> +		 NIPQUAD(info.src.u3.ip), info.src.u.port,		\
+>> +		 NIPQUAD(info.dst.u3.ip), info.dst.u.port)
+>> +
+>> +#define SNET_DBG_V6()							\
+>> +	snet_dbg("%pI6:%u->%pI6:%u\n",					\
+>> +		 &info.src.u3.ip, info.src.u.port,			\
+>> +		 &info.dst.u3.ip, info.dst.u.port)
+>> +
+>
+> There are cool %pi4 and %pi6 format modifiers for IP addresses.
 
-Okay, thanks for those changes, I wasn't entirely sure of the procedure.
+I moved %u.%u.%u.%u to %pI4
+thanks
 
---Michael Farrell
+>> +#define SNET_CHECK_LISTENERS()						\
+>> +do {									\
+>> +	if (atomic_read(&snet_num_listeners) < 0) {			\
+>> +		snet_dbg("number of listeners is negative\n");		\
+>> +		verdict = SNET_VERDICT_GRANT;				\
+>> +		goto out;						\
+>> +	} else if (atomic_read(&snet_num_listeners) == 0) {		\
+>> +		verdict = SNET_VERDICT_GRANT;				\
+>> +		goto out;						\
+>> +	}								\
+>> +} while (0)
+>> +
+>> +#define SNET_DO_VERDICT(sys, family)					\
+>> +do {									\
+>> +	if (verdict_id == 0)						\
+>> +		goto skip_send_wait;					\
+>> +	/* sending networking informations to userspace */		\
+>> +	snet_nl_send_event(verdict_id, sys, protocol,			\
+>> +			   family, (void *)&info,			\
+>> +			   sizeof(struct snet_sock_info));		\
+>> +	/* waiting for userspace reply or timeout */			\
+>> +	verdict = snet_verdict_wait(verdict_id);			\
+>> +		/* removing verdict */					\
+>> +	snet_verdict_remove(verdict_id);				\
+>> +} while (0)
+>> +
+>> +#define SNET_CHECK_LISTENERS_NOVERDICT()				\
+>> +do {									\
+>> +	if (atomic_read(&snet_num_listeners) < 0) {			\
+>> +		snet_dbg("number of listeners is negative\n");		\
+>> +		goto out;						\
+>> +	} else if (atomic_read(&snet_num_listeners) == 0) {		\
+>> +		goto out;						\
+>> +	}								\
+>> +} while (0)
+>> +
+>> +#define SNET_DO_SEND_EVENT(sys, family)					\
+>> +do {									\
+>> +	/* sending networking informations to userspace */		\
+>> +	snet_nl_send_event(0, sys, protocol,				\
+>> +			   family, (void *)&info,			\
+>> +			   sizeof(struct snet_sock_info));		\
+>> +} while (0)
+>> +
+>
+> Why do you need those ugly macroses which reference external objects?
+> Can it be refactored into some inline function with common error value
+> instead?
+
+I know it's ugly, but code in security hooks are duplicated.
+functions (inline or not), which replace this macros, will resulte of
+having lots of parameters. macros with external object seems to be the
+most simple at this point.
+
+thanks for your time Evgeniy.
+sam
