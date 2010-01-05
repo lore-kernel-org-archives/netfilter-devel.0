@@ -1,105 +1,32 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: off by one in update_nl_seq()
-Date: Tue, 05 Jan 2010 08:43:24 +0100
-Message-ID: <4B42ED9C.6070304@trash.net>
-References: <20091227131229.GH6075@bicker>
+From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Subject: Re: [RFC 0/9] snet: Security for NETwork syscalls
+Date: Tue, 05 Jan 2010 17:20:55 +0900
+Message-ID: <201001050820.o058Kuwx087793@www262.sakura.ne.jp>
+References: <1262437456-24476-1-git-send-email-sam@synack.fr> <1262537872.10218.27.camel@bigi> <m2r5q5nhbc.fsf@ssh.synack.fr>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------050805020004060408090803"
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Dan Carpenter <error27@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:50737 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753674Ab0AEHn1 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 5 Jan 2010 02:43:27 -0500
-In-Reply-To: <20091227131229.GH6075@bicker>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
-
-This is a multi-part message in MIME format.
---------------050805020004060408090803
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset="ISO-2022-JP"
 Content-Transfer-Encoding: 7bit
+Cc: linux-security-module@vger.kernel.org, kaber@trash.net,
+	zbr@ioremap.net, nhorman@tuxdriver.com, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, hadi@cyberus.ca
+To: sam@synack.fr
+Return-path: <linux-security-module-owner@vger.kernel.org>
+In-Reply-To: <m2r5q5nhbc.fsf@ssh.synack.fr>
+Sender: linux-security-module-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Dan Carpenter wrote:
-> net/netfilter/nf_conntrack_ftp.c
->    321  /* We don't update if it's older than what we have. */
->    322  static void update_nl_seq(struct nf_conn *ct, u32 nl_seq,
->    323                            struct nf_ct_ftp_master *info, int dir,
->    324                            struct sk_buff *skb)
->    325  {
->    326          unsigned int i, oldest = NUM_SEQ_TO_REMEMBER;
-> 
-> Should this be oldest = NUM_SEQ_TO_REMEMBER - 1;?  The array is 
-> defined as:
-> u_int32_t seq_aft_nl[IP_CT_DIR_MAX][NUM_SEQ_TO_REMEMBER];
+Samir Bellabes wrote:
+> I'm currently testing security_sock_rcv_skb() hook - which is inside
+> sk_filter() - to get skbuffs when then are arriving, and so trying to
+> push the buffer to userspace. In case this is not userfull, userspace
+> is able to use the NFQUEUE of netfilter to get skbuff, and deal
+> with incoming datas.
 
-That would break the logic further down below.
-
->    327
->    328          /* Look for oldest: if we find exact match, we're done. */
->    329          for (i = 0; i < info->seq_aft_nl_num[dir]; i++) {
->    330                  if (info->seq_aft_nl[dir][i] == nl_seq)
->    331                          return;
->    332
->    333                  if (oldest == info->seq_aft_nl_num[dir] ||
->    334                      before(info->seq_aft_nl[dir][i],
->    335                             info->seq_aft_nl[dir][oldest]))  
-> 
-> Line 335 has the possible array out of bounds I am concerned about. 
-
-Good catch, this is definitely a bug. The entire function seems
-overly complicated to select one of two possible positions. I'll
-commit the attached patch to fix this after some testing.
-
-
---------------050805020004060408090803
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
-
-diff --git a/net/netfilter/nf_conntrack_ftp.c b/net/netfilter/nf_conntrack_ftp.c
-index 38ea7ef..44b8d67 100644
---- a/net/netfilter/nf_conntrack_ftp.c
-+++ b/net/netfilter/nf_conntrack_ftp.c
-@@ -323,24 +323,25 @@ static void update_nl_seq(struct nf_conn *ct, u32 nl_seq,
- 			  struct nf_ct_ftp_master *info, int dir,
- 			  struct sk_buff *skb)
- {
--	unsigned int i, oldest = NUM_SEQ_TO_REMEMBER;
-+	unsigned int i, oldest;
- 
- 	/* Look for oldest: if we find exact match, we're done. */
- 	for (i = 0; i < info->seq_aft_nl_num[dir]; i++) {
- 		if (info->seq_aft_nl[dir][i] == nl_seq)
- 			return;
--
--		if (oldest == info->seq_aft_nl_num[dir] ||
--		    before(info->seq_aft_nl[dir][i],
--			   info->seq_aft_nl[dir][oldest]))
--			oldest = i;
- 	}
- 
- 	if (info->seq_aft_nl_num[dir] < NUM_SEQ_TO_REMEMBER) {
- 		info->seq_aft_nl[dir][info->seq_aft_nl_num[dir]++] = nl_seq;
--	} else if (oldest != NUM_SEQ_TO_REMEMBER &&
--		   after(nl_seq, info->seq_aft_nl[dir][oldest])) {
--		info->seq_aft_nl[dir][oldest] = nl_seq;
-+	} else {
-+		if (before(info->seq_aft_nl[dir][0],
-+			   info->seq_aft_nl[dir][1]))
-+			oldest = 0;
-+		else
-+			oldest = 1;
-+
-+		if (after(nl_seq, info->seq_aft_nl[dir][oldest]))
-+			info->seq_aft_nl[dir][oldest] = nl_seq;
- 	}
- }
- 
-
---------------050805020004060408090803--
+Pushing buffer to userspace and wait for userspace's decision will sleep.
+sk_filter() which calls security_sock_rcv_skb() hook is called from
+(e.g.) tcp_v6_do_rcv() and comment of tcp_v6_do_rcv() says that
+"The socket must have it's spinlock held when we get here." 
+Also, comment of rxrpc_queue_rcv_skb() says that
+"the caller must hold a lock on call->lock".
+I think it is not permitted to do sleeping operation inside
+security_sock_rcv_skb().
