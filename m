@@ -1,58 +1,53 @@
-From: "Serge E. Hallyn" <serue@us.ibm.com>
-Subject: Re: [RFC 2/9] Revert "lsm: Remove the socket_post_accept() hook"
-Date: Mon, 4 Jan 2010 18:38:49 -0600
-Message-ID: <20100105003849.GA13053@us.ibm.com>
-References: <1262437456-24476-1-git-send-email-sam@synack.fr>
- <1262437456-24476-3-git-send-email-sam@synack.fr>
- <20100104183619.GA6034@us.ibm.com>
- <201001050031.o050VhTU002668@www262.sakura.ne.jp>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [RFC][PATCH] IP: Send a fragment reassembly time exceeded packet
+ when enabling connection track
+Date: Tue, 05 Jan 2010 06:44:35 +0100
+Message-ID: <4B42D1C3.3020207@trash.net>
+References: <4B3191E7.8060509@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: sam@synack.fr, linux-security-module@vger.kernel.org,
-	kaber@trash.net, hadi@cyberus.ca, zbr@ioremap.net,
-	nhorman@tuxdriver.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: David Miller <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: Shan Wei <shanwei@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from e7.ny.us.ibm.com ([32.97.182.137]:47684 "EHLO e7.ny.us.ibm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754339Ab0AEAiw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 4 Jan 2010 19:38:52 -0500
-Content-Disposition: inline
-In-Reply-To: <201001050031.o050VhTU002668@www262.sakura.ne.jp>
+Received: from stinky.trash.net ([213.144.137.162]:48964 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750773Ab0AEFok (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 5 Jan 2010 00:44:40 -0500
+In-Reply-To: <4B3191E7.8060509@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Quoting Tetsuo Handa (penguin-kernel@I-love.SAKURA.ne.jp):
-> Serge E. Hallyn wrote:
-> > Quoting Samir Bellabes (sam@synack.fr):
-> > > This reverts commit 8651d5c0b1f874c5b8307ae2b858bc40f9f02482.
-> > > 
-> > > snet needs to reintroduce this hook, as it was designed to be: a hook for
-> > > updating security informations on objects.
-> > > 
-> > > Signed-off-by: Samir Bellabes <sam@synack.fr>
-> > 
-> > Acked-by: Serge Hallyn <serue@us.ibm.com>
-> > 
-> > (contingent of course on the proposed user actually going in :)
-> > 
-> > > diff --git a/net/socket.c b/net/socket.c
-> > > index 8984973..fcd4f2b 100644
-> > > --- a/net/socket.c
-> > > +++ b/net/socket.c
-> > > @@ -1557,6 +1557,8 @@ SYSCALL_DEFINE4(accept4, int, fd, struct sockaddr __user *, upeer_sockaddr,
-> > >  	fd_install(newfd, newfile);
-> > >  	err = newfd;
-> > > 
-> > > +	security_socket_post_accept(sock, newsock);
-> > > +
-> > >  out_put:
-> > >  	fput_light(sock->file, fput_needed);
-> > >  out:
+Shan Wei wrote:
+> Default, a host may send a fragment reassembly time exceeded packet
+> (ICMP Time Exceeded Message with code value of 1) when defraging fragments timeout.
+> But, when enabling connection track, a host can't send the packet.
 > 
-> I think we should call security_socket_post_accept() before fd_install().
-> Otherwise, other threads which share fd tables can use
-> security-informations-not-yet-updated accept()ed sockets.
+> Because, the module of nf_defrag_ipv4 selected by connection track is registered 
+> in PRE_ROUTING HOOK and assembles all accepted fragments(here, not begin to routing).
+> After defrag timeout, the host can't send fragment reassembly time exceeded packet, 
+> because of lack of router information.
+> 
+> RFC 792 says:
+>>>>>   If a host reassembling a fragmented datagram cannot complete the
+>>>>>   reassembly due to missing fragments within its time limit it
+>>>>>   discards the datagram, and it may send a time exceeded message.
+>>>>>
+>>>>>   If fragment zero is not available then no time exceeded need be
+>>>>>   sent at all.
+>>>>>
+>>>>>
+>>>>> Read more: http://www.faqs.org/rfcs/rfc792.html#ixzz0aOXRD7Wp
+> 
+> So, the patch try to fix it with filling router information before sending fragment reassembly
+> time exceeded packet when defrag timeout.
 
-That makes sense.
+I guess the question is whether we really want to send an ICMP
+message in this case. The above quote applies to end hosts,
+while conntrack is also (probably more commonly) used on routers,
+which normally shouldn't attempt reassembly. I can see no real
+downside to this though except that it makes it quite easy to
+discover firewalls, but that shouldn't be a real problem.
