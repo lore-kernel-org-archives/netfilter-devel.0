@@ -1,61 +1,53 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH 6/8] net/netfilter/ipvs/ip_vs_ftp.c: Use standardized
- format in sprintf
-Date: Wed, 6 Jan 2010 13:34:16 +1100
-Message-ID: <20100106023416.GB18557@verge.net.au>
-References: <cover.1262726222.git.joe@perches.com>
- <da25f48ee7959e83a18e3705c223c8619e508bf4.1262726222.git.joe@perches.com>
+From: "Serge E. Hallyn" <serue@us.ibm.com>
+Subject: Re: [PATCH] LSM: Update comment on security_sock_rcv_skb
+Date: Tue, 5 Jan 2010 21:27:42 -0600
+Message-ID: <20100106032742.GA8627@us.ibm.com>
+References: <1262437456-24476-1-git-send-email-sam@synack.fr>
+ <1262537872.10218.27.camel@bigi>
+ <m2r5q5nhbc.fsf@ssh.synack.fr>
+ <201001050820.o058Kuwx087793@www262.sakura.ne.jp>
+ <20100105140917.GA6624@us.ibm.com>
+ <201001060023.o060Ns76078068@www262.sakura.ne.jp>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: linux-kernel@vger.kernel.org, Wensong Zhang <wensong@linux-vs.org>,
-	Julian Anastasov <ja@ssi.bg>,
-	Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>, netdev@vger.kernel.org,
-	lvs-devel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org, coreteam@netfilter.org
-To: Joe Perches <joe@perches.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from kirsty.vergenet.net ([202.4.237.240]:37220 "EHLO
-	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753087Ab0AFCeT (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 5 Jan 2010 21:34:19 -0500
+Cc: linux-security-module@vger.kernel.org, jmorris@namei.org,
+	sam@synack.fr, kaber@trash.net, zbr@ioremap.net,
+	nhorman@tuxdriver.com, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, hadi@cyberus.ca
+To: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+Return-path: <linux-security-module-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <da25f48ee7959e83a18e3705c223c8619e508bf4.1262726222.git.joe@perches.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+In-Reply-To: <201001060023.o060Ns76078068@www262.sakura.ne.jp>
+Sender: linux-security-module-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tue, Jan 05, 2010 at 05:20:18PM -0800, Joe Perches wrote:
-> Use the same format string as net/ipv4/netfilter/nf_nat_ftp.c
-> to encode an ipv4 address and port.
+Quoting Tetsuo Handa (penguin-kernel@I-love.SAKURA.ne.jp):
+> [PATCH] LSM: Update comment on security_sock_rcv_skb
 > 
-> Both uses should be a single common function.
+> It is not permitted to do sleeping operation inside security_sock_rcv_skb().
 > 
-> Signed-off-by: Joe Perches <joe@perches.com>
+> Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
 
-Acked-by: Simon Horman <horms@verge.net.au>
+Acked-by: Serge Hallyn <serue@us.ibm.com>
 
-> ---
->  net/netfilter/ipvs/ip_vs_ftp.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/net/netfilter/ipvs/ip_vs_ftp.c b/net/netfilter/ipvs/ip_vs_ftp.c
-> index 33e2c79..73f38ea 100644
-> --- a/net/netfilter/ipvs/ip_vs_ftp.c
-> +++ b/net/netfilter/ipvs/ip_vs_ftp.c
-> @@ -208,7 +208,7 @@ static int ip_vs_ftp_out(struct ip_vs_app *app, struct ip_vs_conn *cp,
->  		 */
->  		from.ip = n_cp->vaddr.ip;
->  		port = n_cp->vport;
-> -		sprintf(buf, "%d,%d,%d,%d,%d,%d", NIPQUAD(from.ip),
-> +		sprintf(buf, "%u,%u,%u,%u,%u,%u", NIPQUAD(from.ip),
->  			(ntohs(port)>>8)&255, ntohs(port)&255);
->  		buf_len = strlen(buf);
->  
-> -- 
-> 1.6.6.rc0.57.gad7a
-> 
+Thank you for sending this.
+
+-serge
+
 > --
-> To unsubscribe from this list: send the line "unsubscribe lvs-devel" in
+> diff --git a/include/linux/security.h b/include/linux/security.h
+> index 466cbad..3696ca3 100644
+> --- a/include/linux/security.h
+> +++ b/include/linux/security.h
+> @@ -978,6 +978,7 @@ static inline void security_free_mnt_opts(struct security_mnt_opts *opts)
+>   *	Check permissions on incoming network packets.  This hook is distinct
+>   *	from Netfilter's IP input hooks since it is the first time that the
+>   *	incoming sk_buff @skb has been associated with a particular socket, @sk.
+> + *	Must not sleep inside this hook because some callers hold spinlocks.
+>   *	@sk contains the sock (not socket) associated with the incoming sk_buff.
+>   *	@skb contains the incoming network data.
+>   * @socket_getpeersec_stream:
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-security-module" in
 > the body of a message to majordomo@vger.kernel.org
 > More majordomo info at  http://vger.kernel.org/majordomo-info.html
