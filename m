@@ -1,35 +1,63 @@
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: [PATCH] LSM: Update comment on security_sock_rcv_skb
-Date: Wed, 06 Jan 2010 09:23:54 +0900
-Message-ID: <201001060023.o060Ns76078068@www262.sakura.ne.jp>
-References: <1262437456-24476-1-git-send-email-sam@synack.fr> <1262537872.10218.27.camel@bigi> <m2r5q5nhbc.fsf@ssh.synack.fr> <201001050820.o058Kuwx087793@www262.sakura.ne.jp> <20100105140917.GA6624@us.ibm.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
-Content-Transfer-Encoding: 7bit
-Cc: serue@us.ibm.com, sam@synack.fr, kaber@trash.net, zbr@ioremap.net,
-	nhorman@tuxdriver.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, hadi@cyberus.ca
-To: linux-security-module@vger.kernel.org, jmorris@namei.org
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <20100105140917.GA6624@us.ibm.com>
-Sender: linux-security-module-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Joe Perches <joe@perches.com>
+Subject: [PATCH 0/8] Remove most uses of NIPQUAD and NIPQUAD_FMT
+Date: Tue,  5 Jan 2010 17:20:12 -0800
+Message-ID: <cover.1262726222.git.joe@perches.com>
+Cc: "James E.J. Bottomley" <James.Bottomley@suse.de>,
+	Greg Kroah-Hartman <gregkh@suse.de>,
+	Mark Fasheh <mfasheh@suse.com>,
+	Joel Becker <joel.becker@oracle.com>,
+	Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	"Pekka Savola (ipv6)" <pekkas@netcore.fi>,
+	James Morris <jmorris@namei.org>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Simon Horman <horms@verge.net.au>,
+	Julian Anastasov <ja@ssi.bg>,
+	Andy Grover <andy.grover@oracle.com>,
+	"J. Bruce Fields" <bfields@fieldses.org>,
+	Neil Brown <neilb@suse.de>,
+	Trond Myklebust <Trond.Myklebust@netapp.com>,
+	linux-scsi@vger.kernel.org, devel@driverdev.osuosl.org,
+	ocfs2-devel@oss.oracle.com, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+	rds
+To: linux-kernel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.perches.com ([173.55.12.10]:1531 "EHLO mail.perches.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755241Ab0AFBUZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 5 Jan 2010 20:20:25 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-[PATCH] LSM: Update comment on security_sock_rcv_skb
+Convert them to the %pI4 format extension where possible
+Only a couple uses are left in netfilter.
 
-It is not permitted to do sleeping operation inside security_sock_rcv_skb().
+Joe Perches (8):
+  drivers/scsi: Remove uses of NIPQUAD, use %pI4
+  drivers/staging/pohmelfs/inode.c: Remove uses of NIPQUAD, use %pI4
+  net/rds: Remove uses of NIPQUAD, use %pI4
+  net/sunrpc: Remove uses of NIPQUAD, use %pI4
+  net/ipv4/netfilter/nf_nat_ftp.c: Convert NIPQUAD to %pI4
+  net/netfilter/ipvs/ip_vs_ftp.c: Use standardized format in sprintf
+  fs/ocfs2/cluster/tcp.c: Remove use of NIPQUAD, use %pI4
+  drivers/firmware/iscsi_ibft.c: Remove NIPQUAD_FMT, use %pI4
 
-Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
---
-diff --git a/include/linux/security.h b/include/linux/security.h
-index 466cbad..3696ca3 100644
---- a/include/linux/security.h
-+++ b/include/linux/security.h
-@@ -978,6 +978,7 @@ static inline void security_free_mnt_opts(struct security_mnt_opts *opts)
-  *	Check permissions on incoming network packets.  This hook is distinct
-  *	from Netfilter's IP input hooks since it is the first time that the
-  *	incoming sk_buff @skb has been associated with a particular socket, @sk.
-+ *	Must not sleep inside this hook because some callers hold spinlocks.
-  *	@sk contains the sock (not socket) associated with the incoming sk_buff.
-  *	@skb contains the incoming network data.
-  * @socket_getpeersec_stream:
+ drivers/firmware/iscsi_ibft.c        |    8 +++-----
+ drivers/scsi/bnx2i/bnx2i_iscsi.c     |    4 ++--
+ drivers/scsi/cxgb3i/cxgb3i_iscsi.c   |    5 ++---
+ drivers/scsi/cxgb3i/cxgb3i_offload.c |    7 ++++---
+ drivers/staging/pohmelfs/inode.c     |    3 +--
+ fs/ocfs2/cluster/tcp.c               |    4 ++--
+ net/ipv4/netfilter/nf_nat_ftp.c      |    2 +-
+ net/netfilter/ipvs/ip_vs_ftp.c       |    2 +-
+ net/rds/tcp_connect.c                |    7 +++----
+ net/rds/tcp_listen.c                 |    6 +++---
+ net/rds/tcp_send.c                   |    4 ++--
+ net/sunrpc/xprtrdma/transport.c      |    3 +--
+ net/sunrpc/xprtsock.c                |    5 ++---
+ 13 files changed, 27 insertions(+), 33 deletions(-)
+
