@@ -1,188 +1,140 @@
-From: Joe Perches <joe@perches.com>
-Subject: [PATCH v2 5/8] net/ipv4/netfilter/nf_nat_ftp.c: Remove (*mangle[])
- array and functions, use %pI4
-Date: Wed, 06 Jan 2010 11:23:18 -0800
-Message-ID: <1262805798.1952.105.camel@Joe-Laptop.home>
-References: <cover.1262726222.git.joe@perches.com>
-	 <bccf36219f3ea5a9b7565734bc87095bc986dbe0.1262726222.git.joe@perches.com>
+From: Samir Bellabes <sam@synack.fr>
+Subject: Re: [RFC 4/9] snet: introduce snet_core.c and snet.h
+Date: Wed, 06 Jan 2010 20:46:35 +0100
+Message-ID: <m2y6kbm2xw.fsf@ssh.synack.fr>
+References: <1262437456-24476-1-git-send-email-sam@synack.fr>
+	<1262437456-24476-5-git-send-email-sam@synack.fr>
+	<4B41FE9D.2070708@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
-	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-	"Pekka Savola (ipv6)" <pekkas@netcore.fi>,
-	James Morris <jmorris@namei.org>,
-	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, netdev@vger.kernel.org
-To: linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: linux-security-module@vger.kernel.org, jamal <hadi@cyberus.ca>,
+	Evgeniy Polyakov <zbr@ioremap.net>,
+	Neil Horman <nhorman@tuxdriver.com>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.perches.com ([173.55.12.10]:1592 "EHLO mail.perches.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754862Ab0AFTXU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 6 Jan 2010 14:23:20 -0500
-In-Reply-To: <bccf36219f3ea5a9b7565734bc87095bc986dbe0.1262726222.git.joe@perches.com>
+Received: from bob75-7-88-160-5-175.fbx.proxad.net ([88.160.5.175]:52508 "EHLO
+	cerbere.dyndns.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932538Ab0AFTqh (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 6 Jan 2010 14:46:37 -0500
+In-Reply-To: <4B41FE9D.2070708@trash.net> (Patrick McHardy's message of "Mon,
+	04 Jan 2010 15:43:41 +0100")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-These functions merely exist to format a buffer and call
-nf_nat_mangle_tcp_packet.
+Patrick McHardy <kaber@trash.net> writes:
 
-Format the buffer and perform the call in nf_nat_ftp instead.
+>> +struct snet_event {
+>> +	enum snet_syscall syscall;
+>> +	u8 protocol;
+>> +} __attribute__ ((packed));
+>
+> Does this really need to be packed? You're using it in a
+> struct snet_event_entry, which is padded anyways.
 
-Use %pI4 for the IP address.
+I think that that members needs to be aligned, because this struct is
+used for the jhash() computation.
+when testing on x86_64, I discovered that jhash value wasn't the same,
+for a same struct snet_event. Then I thougth about misaligned data, and
+possible 'hole' between syscall and protocol.
 
-Saves ~600 bytes of text
+anyway, I patched the code to use jhash_2words() or jhash_1word().
+here is a patch, which apply on top of initial serie
 
-old:
-$ size net/ipv4/netfilter/nf_nat_ftp.o
-   text	   data	    bss	    dec	    hex	filename
-   2187	    160	    408	   2755	    ac3	net/ipv4/netfilter/nf_nat_ftp.o
-new:
-$ size net/ipv4/netfilter/nf_nat_ftp.o
-   text    data     bss     dec     hex filename
-   1532     112     288    1932     78c net/ipv4/netfilter/nf_nat_ftp.o
+thank you Patrick,
+sam
 
-Signed-off-by: Joe Perches <joe@perches.com>
+commit bacdb6b62549b58370298f89f908d66c5a3cab66
+Author: Samir Bellabes <sam@synack.fr>
+Date:   Wed Jan 6 20:36:06 2010 +0100
 
- net/ipv4/netfilter/nf_nat_ftp.c |  105 +++++++++++++--------------------------
- 1 files changed, 35 insertions(+), 70 deletions(-)
+    snet : delete attribute packed for snet_event and use proper jash functions
+    
+    the structure snet_event was using the attribute packed, which seems to be
+    unnecessary.
+    this patch also fix the good compute of hashes, by moving jash() to
+    jash_1word() and jash_2words()
+    
+    Noticed by Patrick McHardy <kaber@trash.net>
+    
+    Signed-off-by: Samir Bellabes <sam@synack.fr>
 
-diff --git a/net/ipv4/netfilter/nf_nat_ftp.c b/net/ipv4/netfilter/nf_nat_ftp.c
-index a1d5d58..86e0e84 100644
---- a/net/ipv4/netfilter/nf_nat_ftp.c
-+++ b/net/ipv4/netfilter/nf_nat_ftp.c
-@@ -27,76 +27,29 @@ MODULE_ALIAS("ip_nat_ftp");
+diff --git a/security/snet/include/snet.h b/security/snet/include/snet.h
+index 47da614..75b32d5 100644
+--- a/security/snet/include/snet.h
++++ b/security/snet/include/snet.h
+@@ -9,6 +9,6 @@
+ struct snet_event {
+ 	enum snet_syscall syscall;
+ 	u8 protocol;
+-} __attribute__ ((packed));
++};
  
- /* FIXME: Time out? --RR */
+ #endif /* _SNET_H */
+diff --git a/security/snet/snet_event.c b/security/snet/snet_event.c
+index 9f0b0f3..cc3b6a2 100644
+--- a/security/snet/snet_event.c
++++ b/security/snet/snet_event.c
+@@ -24,17 +24,12 @@ static struct snet_event_entry *__snet_event_lookup(const enum snet_syscall sysc
+ 	unsigned int h = 0;
+ 	struct list_head *l;
+ 	struct snet_event_entry *s;
+-	struct snet_event t;
  
--static int
--mangle_rfc959_packet(struct sk_buff *skb,
--		     __be32 newip,
--		     u_int16_t port,
--		     unsigned int matchoff,
--		     unsigned int matchlen,
--		     struct nf_conn *ct,
--		     enum ip_conntrack_info ctinfo)
-+static int nf_nat_ftp_fmt_cmd(enum nf_ct_ftp_type type,
-+			      char *buffer, size_t buflen,
-+			      __be32 addr, u16 port)
- {
--	char buffer[sizeof("nnn,nnn,nnn,nnn,nnn,nnn")];
--
--	sprintf(buffer, "%u,%u,%u,%u,%u,%u",
--		NIPQUAD(newip), port>>8, port&0xFF);
--
--	pr_debug("calling nf_nat_mangle_tcp_packet\n");
--
--	return nf_nat_mangle_tcp_packet(skb, ct, ctinfo, matchoff,
--					matchlen, buffer, strlen(buffer));
--}
--
--/* |1|132.235.1.2|6275| */
--static int
--mangle_eprt_packet(struct sk_buff *skb,
--		   __be32 newip,
--		   u_int16_t port,
--		   unsigned int matchoff,
--		   unsigned int matchlen,
--		   struct nf_conn *ct,
--		   enum ip_conntrack_info ctinfo)
--{
--	char buffer[sizeof("|1|255.255.255.255|65535|")];
--
--	sprintf(buffer, "|1|%u.%u.%u.%u|%u|", NIPQUAD(newip), port);
--
--	pr_debug("calling nf_nat_mangle_tcp_packet\n");
--
--	return nf_nat_mangle_tcp_packet(skb, ct, ctinfo, matchoff,
--					matchlen, buffer, strlen(buffer));
--}
--
--/* |1|132.235.1.2|6275| */
--static int
--mangle_epsv_packet(struct sk_buff *skb,
--		   __be32 newip,
--		   u_int16_t port,
--		   unsigned int matchoff,
--		   unsigned int matchlen,
--		   struct nf_conn *ct,
--		   enum ip_conntrack_info ctinfo)
--{
--	char buffer[sizeof("|||65535|")];
--
--	sprintf(buffer, "|||%u|", port);
--
--	pr_debug("calling nf_nat_mangle_tcp_packet\n");
-+	switch (type) {
-+	case NF_CT_FTP_PORT:
-+	case NF_CT_FTP_PASV:
-+		return snprintf(buffer, buflen, "%u,%u,%u,%u,%u,%u",
-+				((unsigned char *)&addr)[0],
-+				((unsigned char *)&addr)[1],
-+				((unsigned char *)&addr)[2],
-+				((unsigned char *)&addr)[3],
-+				port >> 8,
-+				port & 0xFF);
-+	case NF_CT_FTP_EPRT:
-+		return snprintf(buffer, buflen, "|1|%pI4|%u|", &addr, port);
-+	case NF_CT_FTP_EPSV:
-+		return snprintf(buffer, buflen, "|||%u|", port);
-+	}
+ 	if (!snet_evh)
+ 		return NULL;
  
--	return nf_nat_mangle_tcp_packet(skb, ct, ctinfo, matchoff,
--					matchlen, buffer, strlen(buffer));
-+	return 0;
- }
- 
--static int (*mangle[])(struct sk_buff *, __be32, u_int16_t,
--		       unsigned int, unsigned int, struct nf_conn *,
--		       enum ip_conntrack_info)
--= {
--	[NF_CT_FTP_PORT] = mangle_rfc959_packet,
--	[NF_CT_FTP_PASV] = mangle_rfc959_packet,
--	[NF_CT_FTP_EPRT] = mangle_eprt_packet,
--	[NF_CT_FTP_EPSV] = mangle_epsv_packet
--};
+-	/* building the element to look for */
+-	t.syscall = syscall;
+-	t.protocol = protocol;
 -
- /* So, this packet has hit the connection tracking matching code.
-    Mangle it, and change the expectation to match the new version. */
- static unsigned int nf_nat_ftp(struct sk_buff *skb,
-@@ -110,6 +63,8 @@ static unsigned int nf_nat_ftp(struct sk_buff *skb,
- 	u_int16_t port;
- 	int dir = CTINFO2DIR(ctinfo);
- 	struct nf_conn *ct = exp->master;
-+	char buffer[sizeof("|1|255.255.255.255|65535|")];
-+	unsigned int buflen;
+ 	/* computing its hash value */
+-	h = jhash(&t, sizeof(struct snet_event), 0) % snet_evh_size;
++	h = jhash_2words(syscall, protocol, 0) % snet_evh_size;
+ 	l = &snet_evh[h];
  
- 	pr_debug("FTP_NAT: type %i, off %u len %u\n", type, matchoff, matchlen);
+ 	list_for_each_entry(s, l, list) {
+@@ -127,7 +122,7 @@ int snet_event_insert(const enum snet_syscall syscall, const u8 protocol)
+ 	data->se.syscall = syscall;
+ 	data->se.protocol = protocol;
+ 	INIT_LIST_HEAD(&(data->list));
+-	h = jhash(&(data->se), sizeof(struct snet_event), 0) % snet_evh_size;
++	h = jhash_2words(data->se.syscall, data->se.protocol, 0) % snet_evh_size;
+ 	list_add_tail(&data->list, &snet_evh[h]);
+ 	write_unlock_bh(&snet_evh_lock);
+ 	pr_debug("[%u]=(syscall=%s, protocol=%u)\n",
+diff --git a/security/snet/snet_verdict.c b/security/snet/snet_verdict.c
+index 0cad06b..477af3b 100644
+--- a/security/snet/snet_verdict.c
++++ b/security/snet/snet_verdict.c
+@@ -29,18 +29,16 @@ static struct snet_verdict_entry *__snet_verdict_lookup(const u32 verdict_id)
+ 	unsigned int h = 0;
+ 	struct list_head *l = NULL;
+ 	struct snet_verdict_entry *s = NULL;
+-	u32 vid = 0;
  
-@@ -132,11 +87,21 @@ static unsigned int nf_nat_ftp(struct sk_buff *skb,
- 	if (port == 0)
- 		return NF_DROP;
+ 	if (!snet_vdh)
+ 		return NULL;
  
--	if (!mangle[type](skb, newip, port, matchoff, matchlen, ct, ctinfo)) {
--		nf_ct_unexpect_related(exp);
--		return NF_DROP;
--	}
-+	buflen = nf_nat_ftp_fmt_cmd(type, buffer, sizeof(buffer), newip, port);
-+	if (!buflen)
-+		goto out;
-+
-+	pr_debug("calling nf_nat_mangle_tcp_packet\n");
-+
-+	if (!nf_nat_mangle_tcp_packet(skb, ct, ctinfo, matchoff,
-+				      matchlen, buffer, buflen))
-+		goto out;
-+
- 	return NF_ACCEPT;
-+
-+out:
-+	nf_ct_unexpect_related(exp);
-+	return NF_DROP;
- }
+-	vid = verdict_id;
+ 	/* computing its hash value */
+-	h = jhash(&vid, sizeof(u32), 0) % snet_vdh_size;
++	h = jhash_1word(verdict_id, 0) % snet_vdh_size;
+ 	l = &snet_vdh[h];
  
- static void __exit nf_nat_ftp_fini(void)
-
-
+ 	list_for_each_entry(s, l, list) {
+-		if (s->verdict_id == vid) {
++		if (s->verdict_id == verdict_id) {
+ 			return s;
+ 		}
+ 	}
+@@ -134,7 +132,7 @@ int snet_verdict_insert(void)
+ 	data->verdict_id = verdict_id;
+ 	data->verdict = SNET_VERDICT_PENDING;
+ 	INIT_LIST_HEAD(&(data->list));
+-	h = jhash(&(data->verdict_id), sizeof(u32), 0) % snet_vdh_size;
++	h = jhash_1word(data->verdict_id, 0) % snet_vdh_size;
+ 
+ 	write_lock_bh(&snet_vdh_lock);
+ 	if (snet_vdh) {
