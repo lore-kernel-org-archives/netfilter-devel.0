@@ -1,53 +1,72 @@
-From: "Serge E. Hallyn" <serue@us.ibm.com>
-Subject: Re: [PATCH] LSM: Update comment on security_sock_rcv_skb
-Date: Tue, 5 Jan 2010 21:27:42 -0600
-Message-ID: <20100106032742.GA8627@us.ibm.com>
+From: Samir Bellabes <sam@synack.fr>
+Subject: Re: [RFC 3/9] snet: introduce security/snet, Makefile and Kconfig changes
+Date: Wed, 06 Jan 2010 07:04:07 +0100
+Message-ID: <m2bph7ojl4.fsf@ssh.synack.fr>
 References: <1262437456-24476-1-git-send-email-sam@synack.fr>
- <1262537872.10218.27.camel@bigi>
- <m2r5q5nhbc.fsf@ssh.synack.fr>
- <201001050820.o058Kuwx087793@www262.sakura.ne.jp>
- <20100105140917.GA6624@us.ibm.com>
- <201001060023.o060Ns76078068@www262.sakura.ne.jp>
+	<1262437456-24476-4-git-send-email-sam@synack.fr>
+	<20100104183943.GB6034@us.ibm.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: linux-security-module@vger.kernel.org, jmorris@namei.org,
-	sam@synack.fr, kaber@trash.net, zbr@ioremap.net,
-	nhorman@tuxdriver.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, hadi@cyberus.ca
-To: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Return-path: <linux-security-module-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <201001060023.o060Ns76078068@www262.sakura.ne.jp>
-Sender: linux-security-module-owner@vger.kernel.org
+Cc: linux-security-module@vger.kernel.org,
+	Patrick McHardy <kaber@trash.net>, jamal <hadi@cyberus.ca>,
+	Evgeniy Polyakov <zbr@ioremap.net>,
+	Neil Horman <nhorman@tuxdriver.com>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, sam@synack.fr
+To: "Serge E. Hallyn" <serue@us.ibm.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20100104183943.GB6034@us.ibm.com> (Serge E. Hallyn's message of
+	"Mon, 4 Jan 2010 12:39:43 -0600")
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Quoting Tetsuo Handa (penguin-kernel@I-love.SAKURA.ne.jp):
-> [PATCH] LSM: Update comment on security_sock_rcv_skb
-> 
-> It is not permitted to do sleeping operation inside security_sock_rcv_skb().
-> 
-> Signed-off-by: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
+"Serge E. Hallyn" <serue@us.ibm.com> writes:
 
-Acked-by: Serge Hallyn <serue@us.ibm.com>
+>> diff --git a/security/snet/Kconfig b/security/snet/Kconfig
+>> new file mode 100644
+>> index 0000000..e1516a1
+>> --- /dev/null
+>> +++ b/security/snet/Kconfig
+>> @@ -0,0 +1,22 @@
+>> +#
+>> +# snet
+>> +#
+>> +
+>> +config SECURITY_SNET
+>> +	bool "snet - Security for NETwork syscalls"
+>> +	depends on SECURITY_NETWORK && IPV6
+>
+> Why depend on IPV6?
 
-Thank you for sending this.
+right, no need.
 
--serge
+>
+>> +	default n
+>> +	---help---
+>> +	Provide a generic netlink that reports networking's syscalls
+>> +	to userspace
+>
+> And also wait for userspace to decide whether to authorize the
+> syscall, right?  'report on' is very different.
 
-> --
-> diff --git a/include/linux/security.h b/include/linux/security.h
-> index 466cbad..3696ca3 100644
-> --- a/include/linux/security.h
-> +++ b/include/linux/security.h
-> @@ -978,6 +978,7 @@ static inline void security_free_mnt_opts(struct security_mnt_opts *opts)
->   *	Check permissions on incoming network packets.  This hook is distinct
->   *	from Netfilter's IP input hooks since it is the first time that the
->   *	incoming sk_buff @skb has been associated with a particular socket, @sk.
-> + *	Must not sleep inside this hook because some callers hold spinlocks.
->   *	@sk contains the sock (not socket) associated with the incoming sk_buff.
->   *	@skb contains the incoming network data.
->   * @socket_getpeersec_stream:
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-security-module" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I'm proposing this patch, which applies on top of previous
+
+diff --git a/security/snet/Kconfig b/security/snet/Kconfig
+index e1516a1..8ac7778 100644
+--- a/security/snet/Kconfig
++++ b/security/snet/Kconfig
+@@ -4,11 +4,11 @@
+ 
+ config SECURITY_SNET
+ 	bool "snet - Security for NETwork syscalls"
+-	depends on SECURITY_NETWORK && IPV6
++	depends on SECURITY_NETWORK
+ 	default n
+ 	---help---
+-	Provide a generic netlink that reports networking's syscalls
+-	to userspace
++	If this option is enabled, the kernel will include support for reporting
++	networking's syscalls to userspace and wait for a verdict
+ 
+ config SECURITY_SNET_DEBUG
+        bool "snet debug messages"
+
