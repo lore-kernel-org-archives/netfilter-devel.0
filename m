@@ -1,83 +1,109 @@
-From: Joe Perches <joe@perches.com>
-Subject: [PATCH V3] MAINTAINERS: Document list types, add "A:" section
- type, update NETFILTER
-Date: Tue, 12 Jan 2010 10:46:34 -0800
-Message-ID: <1263321994.25973.15.camel@Joe-Laptop.home>
-References: <cover.1262726222.git.joe@perches.com>
-	 <bccf36219f3ea5a9b7565734bc87095bc986dbe0.1262726222.git.joe@perches.com>
-	 <1262805798.1952.105.camel@Joe-Laptop.home>  <4B4B02BE.5060209@trash.net>
-	 <1263208183.1907.50.camel@Joe-Laptop.home>  <4B4B0806.40801@trash.net>
-	 <1263209269.1907.61.camel@Joe-Laptop.home>
-	 <alpine.LSU.2.01.1001111229460.26235@obet.zrqbmnf.qr>
+From: Narendra K <Narendra_K@dell.com>
+Subject: Re:[PROPOSAL]: Alias names for network interfaces
+Date: Tue, 12 Jan 2010 13:49:56 -0600
+Message-ID: <20100112194955.GA11752@mock.linuxdev.us.dell.com>
+References: <EDA0A4495861324DA2618B4C45DCB3EE5899AC@blrx3m08.blr.amer.dell.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>, linux-kernel@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: be-mail2009@lina.inka.de, jengelh@medozas.de,
+	net-tools@lina.inka.de, netfilter-devel@vger.kernel.org,
+	jgarzik@users.sourceforge.net, charles_rose@dell.com,
+	matt_domsch@dell.com, shyam_iyer@dell.com,
+	jordan_hargrave@dell.com, sandeep_k_shandilya@dell.com
+To: shemminger@linux-foundation.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.perches.com ([173.55.12.10]:1071 "EHLO mail.perches.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754401Ab0ALTbD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Jan 2010 14:31:03 -0500
-In-Reply-To: <alpine.LSU.2.01.1001111229460.26235@obet.zrqbmnf.qr>
+Received: from ausc60ps301.us.dell.com ([143.166.148.206]:62015 "EHLO
+	ausc60ps301.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753722Ab0ALTt6 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 12 Jan 2010 14:49:58 -0500
+Content-Disposition: inline
+In-Reply-To: <EDA0A4495861324DA2618B4C45DCB3EE5899AC@blrx3m08.blr.amer.dell.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 2010-01-11 at 12:31 +0100, Jan Engelhardt wrote:
-> This is a little stab-through-the-back -
-> rather than "subscribers-only", I'd use "subscriber-free" or FFA,
-> or just leave it blank and use "subscribers-only" instead
-> for these.
+> > > > > ifconfig would show Embedded_NIC_N instead of ethN.
+> > > >
+> > > > Renaming away from ethN causes some applications like net-snmp to
+> > get
+> > > > confused,
+> > > > and others have special sorting rules based on existing model
+> (like
+> > > > quagga).
+> > > >
+> > > > I would argue that the "ethN" convention is part of existing
+> system
+> > > > ABI and should not get changed in a visible way to applications.
+> > >
+> > > Stephen,
+> > >
+> > > Thanks. What are your views on the current proposal we are making
+> > where
+> > > ethN names are not changed (or renamed) and libnetdevname would
+> > suggest
+> > > alias names for the ethN names ( and also alias to ethN names) in
+> > user
+> > > space. Applications like ip, ethtool etc can use these aliases, make
+> > > calls to libnetdevname and get the ethN name.
+> > >
+> > > Libnetdevname would read from sysfs the smbios names of the network
+> > > interface devices as Jordan mentioned
+> > > (/sys/class/net/ethX/device/smbiosname). Would this be acceptable ?
+> > 
+> > I have no need or use for them, but if it doesn't break other things
+> > then sure.
+> 
+> Jeff / netfilter-devel,
+> 
+> It would greatly help to know your views on this proposal.
 
-Here's another option:
+The proposal is to enhance iptables (and other tools which might fail if
+integrated port 1 does not get named as eth0) to support something like
 
-Signed-off-by: Joe Perches <joe@perches.com>
+iptables -A INPUT -i Embedded_NIC_1 -j ACCEPT 
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 745643b..8abf3be 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -69,7 +69,20 @@ Descriptions of section entries:
+in addition to what it already supports 
+
+iptables -A INPUT -i eth0 -j ACCEPT.
+
+Below is how the iptables code that handles the "-i ethN" would look
+like (Only a part of the code to demonstrate the idea shown here) -
+
+diff -Naru iptables-1.4.5/xtables.c iptables-1.4.5-new/xtables.c
+--- iptables-1.4.5/xtables.c	2010-01-12 02:47:16.293249537 +0530
++++ iptables-1.4.5-new/xtables.c	2010-01-13 06:14:12.130185117 +0530
+@@ -455,8 +455,8 @@
+ void xtables_parse_interface(const char *arg, char *vianame,
+ 			     unsigned char *mask)
+ {
+-	int vialen = strlen(arg);
+ 	unsigned int i;
++	static char kernel_name[IFNAMSIZ];
  
- 	P: Person (obsolete)
- 	M: Mail patches to: FullName <address@domain>
--	L: Mailing list that is relevant to this area
-+	L: Mailing list that should receive patches, bug reports or
-+	   developer questions.
-+	   Mailing lists can be one of:
-+	   (open list):	the default, unmarked case
-+			Subscription to the list is not required, but emails
-+			may be rejected by spam filters without notification.
-+	   (moderated for non-subscribers):
-+			emails from non-subscribers are actively filtered
-+			and may be arbitrarily delayed or rejected without
-+			notification if off-topic.  Upon receipt of the email,
-+			a moderation notification email may be automatically
-+			sent by the list manager.
-+	   (subscribers-only):
-+			emails from non-subscribers are not accepted.
- 	W: Web-page with status/info
- 	T: SCM tree type and location.  Type is one of: git, hg, quilt, stgit.
- 	S: Status, one of the following:
-@@ -102,6 +115,7 @@ Descriptions of section entries:
- 	      matches patches or files that contain one or more of the words
- 	      printk, pr_info or pr_err
- 	   One regex pattern per line.  Multiple K: lines acceptable.
-+	A: Additional useful unstructured information.
+ 	memset(mask, 0, IFNAMSIZ);
+ 	memset(vianame, 0, IFNAMSIZ);
+@@ -466,7 +466,11 @@
+ 			   "interface name `%s' must be shorter than IFNAMSIZ"
+ 			   " (%i)", arg, IFNAMSIZ-1);
  
- Note: For the hard of thinking, this list is meant to remain in alphabetical
- order. If you could add yourselves to it in alphabetical order that would be
-@@ -3742,8 +3756,8 @@ P:	Harald Welte
- P:	Jozsef Kadlecsik
- M:	Patrick McHardy <kaber@trash.net>
- L:	netfilter-devel@vger.kernel.org
--L:	netfilter@vger.kernel.org
--L:	coreteam@netfilter.org
-+A:	netfilter@vger.kernel.org	(email list for user issues)
-+A:	coreteam@netfilter.org		(private emails to core developers)
- W:	http://www.netfilter.org/
- W:	http://www.iptables.org/
- T:	git git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git
+-	strcpy(vianame, arg);
++	if (netdev_alias_to_kernel_name(arg, kernel_name) < 0)
++		show_alias_name_usage();
++	
++	strcpy(vianame, kernel_name);
++	int vialen = strlen(kernel_name);
+ 	if ((vialen == 0) || (vialen == 1 && vianame[0] == '+'))
+ 		memset(mask, 0, IFNAMSIZ);
+ 	else if (vianame[vialen - 1] == '+') {
 
+
+where kernel_name is the ethN name that will be returned by a library
+like libnetdevname which will map the user supplied "Embedded_NIC_1"
+name to the corresponding ethN name, thus bringing in determinism while
+referring to the network interfaces.
+
+Netfilter-devel, would this be acceptable ?
+
+With regards,
+Narendra K
 
