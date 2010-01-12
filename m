@@ -1,88 +1,83 @@
-From: Nils Rennebarth <nils.rennebarth@funkwerk-ec.com>
-Subject: Kernel generated packets and ipsec policies
-Date: Mon, 11 Jan 2010 17:49:13 +0100
-Message-ID: <4B4B5689.502@funkwerk-ec.com>
+From: Joe Perches <joe@perches.com>
+Subject: [PATCH V3] MAINTAINERS: Document list types, add "A:" section
+ type, update NETFILTER
+Date: Tue, 12 Jan 2010 10:46:34 -0800
+Message-ID: <1263321994.25973.15.camel@Joe-Laptop.home>
+References: <cover.1262726222.git.joe@perches.com>
+	 <bccf36219f3ea5a9b7565734bc87095bc986dbe0.1262726222.git.joe@perches.com>
+	 <1262805798.1952.105.camel@Joe-Laptop.home>  <4B4B02BE.5060209@trash.net>
+	 <1263208183.1907.50.camel@Joe-Laptop.home>  <4B4B0806.40801@trash.net>
+	 <1263209269.1907.61.camel@Joe-Laptop.home>
+	 <alpine.LSU.2.01.1001111229460.26235@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: Netfilter Devel List <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Patrick McHardy <kaber@trash.net>, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from virgo.stuttgart.de.funkwerk-ec.com ([85.93.77.62]:56714 "EHLO
-	virgo.stuttgart.de.funkwerk-ec.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751560Ab0AKQyk convert rfc822-to-8bit
-	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 11 Jan 2010 11:54:40 -0500
+Received: from mail.perches.com ([173.55.12.10]:1071 "EHLO mail.perches.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754401Ab0ALTbD (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 12 Jan 2010 14:31:03 -0500
+In-Reply-To: <alpine.LSU.2.01.1001111229460.26235@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+On Mon, 2010-01-11 at 12:31 +0100, Jan Engelhardt wrote:
+> This is a little stab-through-the-back -
+> rather than "subscribers-only", I'd use "subscriber-free" or FFA,
+> or just leave it blank and use "subscribers-only" instead
+> for these.
 
-I am writing a netfilter module which is supposed to run on a firewall,
-and protect some servers behind it.
+Here's another option:
 
-The module is manipulating TCP connections that are routed through the
-box, i.e. passing through the FORWARD chain. Occasionally it needs to
-generate and send a packets itself, pretending to come from the other
-end of the connection.
+Signed-off-by: Joe Perches <joe@perches.com>
 
-To send a packet itself, it allocates an skb, puts together ip and tcp
-header, a fake mac header, and then calls netif_rx(skb)
-It does not use ip_local_out like in the other places in the kernel
-(e.g. send_reset in ipt_REJECT.c) that send out kernel generated
-packets, because to the rest of the firewall, the packet should appear
-as much as possible to be part of the original connection.
+diff --git a/MAINTAINERS b/MAINTAINERS
+index 745643b..8abf3be 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -69,7 +69,20 @@ Descriptions of section entries:
+ 
+ 	P: Person (obsolete)
+ 	M: Mail patches to: FullName <address@domain>
+-	L: Mailing list that is relevant to this area
++	L: Mailing list that should receive patches, bug reports or
++	   developer questions.
++	   Mailing lists can be one of:
++	   (open list):	the default, unmarked case
++			Subscription to the list is not required, but emails
++			may be rejected by spam filters without notification.
++	   (moderated for non-subscribers):
++			emails from non-subscribers are actively filtered
++			and may be arbitrarily delayed or rejected without
++			notification if off-topic.  Upon receipt of the email,
++			a moderation notification email may be automatically
++			sent by the list manager.
++	   (subscribers-only):
++			emails from non-subscribers are not accepted.
+ 	W: Web-page with status/info
+ 	T: SCM tree type and location.  Type is one of: git, hg, quilt, stgit.
+ 	S: Status, one of the following:
+@@ -102,6 +115,7 @@ Descriptions of section entries:
+ 	      matches patches or files that contain one or more of the words
+ 	      printk, pr_info or pr_err
+ 	   One regex pattern per line.  Multiple K: lines acceptable.
++	A: Additional useful unstructured information.
+ 
+ Note: For the hard of thinking, this list is meant to remain in alphabetical
+ order. If you could add yourselves to it in alphabetical order that would be
+@@ -3742,8 +3756,8 @@ P:	Harald Welte
+ P:	Jozsef Kadlecsik
+ M:	Patrick McHardy <kaber@trash.net>
+ L:	netfilter-devel@vger.kernel.org
+-L:	netfilter@vger.kernel.org
+-L:	coreteam@netfilter.org
++A:	netfilter@vger.kernel.org	(email list for user issues)
++A:	coreteam@netfilter.org		(private emails to core developers)
+ W:	http://www.netfilter.org/
+ W:	http://www.iptables.org/
+ T:	git git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git
 
-Now the actual question:
 
-Normally this works well, except if the connection passes through an
-ipsec tunnel, which ends on the firewall. In this case, the following
-code in net/ipv4/ip_forward.c
-
-        if (!xfrm4_policy_check(NULL, XFRM_POLICY_FWD, skb))
-                goto drop;
-
-will drop the packet.
-
-Is there some way to prevent the xfrm4_policy_check from rejecting
-the packet? The only way I could think of was to somehow mark the
-skb and then check the marker in ip_forward:
-
-       if (marker_present(skb) || !xfrm4_policy_check(NULL, XFRM_POLICY=
-_FWD, skb))
-               goto drop;
-
-but that seems too much ad hoc, besides I want to keep the number of
-changes to the kernel at a minimum.
-
-
---=20
-
-Mit freundlichen Gr=FC=DFen / with kind regards
-
-Nils Rennebarth, Software Developer
-
---
-=46unkwerk IP-Appliances GmbH
-M=F6nchhaldenstra=DFe 28
-D-70191 Stuttgart
-
-Tel: +49 711 900300 - 0
-=46ax: +49 711 900300 - 90
-
-E-Mail: Nils.Rennebarth@funkwerk-ec.com
-
-Location: GmbH Nuernberg, Local Court Nuernberg, HRB 25481
-Managing Directors: Torsten Urban
---------------------------------
-The information contained in this e-mail has been carefully researched,
-but the possibility of it being inapplicable in individual cases cannot
-be ruled out. We therefore regret that we cannot accept responsibility
-or liability of any kind whatsoever for the correctness of the
-information given. Please notify us if you discover that information is
-inapplicable.
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
