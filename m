@@ -1,40 +1,140 @@
-From: Samir Bellabes <sam@synack.fr>
-Subject: Re: [RFC 7/9] snet: introduce snet_netlink.c and snet_netlink.h
-Date: Wed, 13 Jan 2010 07:20:22 +0100
-Message-ID: <m2d41eil09.fsf@ssh.synack.fr>
-References: <1262437456-24476-1-git-send-email-sam@synack.fr>
-	<1262437456-24476-8-git-send-email-sam@synack.fr>
-	<4B420464.3040301@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: BUG? a possible race between htable_find_get() and htable_put()
+Date: Wed, 13 Jan 2010 07:39:10 +0100
+Message-ID: <4B4D6A8E.8000303@trash.net>
+References: <2014bcab1001121851g28e8e7d3x5ed3604b6854a0ed@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-security-module@vger.kernel.org, jamal <hadi@cyberus.ca>,
-	Evgeniy Polyakov <zbr@ioremap.net>,
-	Neil Horman <nhorman@tuxdriver.com>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <4B420464.3040301@trash.net> (Patrick McHardy's message of "Mon,
-	04 Jan 2010 16:08:20 +0100")
-Sender: linux-security-module-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: multipart/mixed;
+ boundary="------------020904060505090905070908"
+Cc: netfilter-devel@vger.kernel.org
+To: =?UTF-8?B?7ZmN7IugIHNoaW4gaG9uZw==?= <hongshin@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:35643 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752220Ab0AMGjN (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 13 Jan 2010 01:39:13 -0500
+In-Reply-To: <2014bcab1001121851g28e8e7d3x5ed3604b6854a0ed@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy <kaber@trash.net> writes:
+This is a multi-part message in MIME format.
+--------------020904060505090905070908
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 
-> Samir Bellabes wrote:
->> +static const struct nla_policy snet_genl_policy[SNET_A_MAX + 1]
->> +__read_mostly = {
->
-> You don't need __read_mostly for const. If I recall correctly, it even
-> causes an error with certain compiler or linker versions.
+홍신 shin hong wrote:
+> Hi. I am reporting a suspected race between htable_find_get()
+> and htable_put() in net/netfilter/xt_hashlimit.c.
+> 
+> I found this issue while I read the code so that it might not realistic.
+> But, please examine the code to check possibility of race condition.
+> 
+> htable_put() first updates hinfo->use and then unlink the object from the list.
+> But, htable_find_get() first searches an object from the list,
+> and then updates hinfo->use.
 
-fixed, thanks Patrick
+Nice catch, this does indeed look like a bug. The entire locking
+concept seems a bit strange, we neither need an atomic_t for the
+reference count nor two locks to protect the list. This patch
+changes the code to use the hashlimit_mutex for list and reference
+count protection.
 
-I didn't had errors with (fedora core 11):
-gcc (GCC) 4.4.1 20090725 (Red Hat 4.4.1-2)
-GNU ld version 2.19.51.0.2-17.fc11 20090204
+I'll commit this later unless someone can spot further bugs :)
 
-nor (ubuntu 9.10):
-gcc (Ubuntu 4.4.1-4ubuntu8) 4.4.1 
-GNU ld (GNU Binutils for Ubuntu) 2.20 (2.20-0ubuntu2)
+--------------020904060505090905070908
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: base64
+Content-Disposition: inline;
+ filename="x"
 
-sam
+ZGlmZiAtLWdpdCBhL25ldC9uZXRmaWx0ZXIveHRfaGFzaGxpbWl0LmMgYi9uZXQvbmV0Zmls
+dGVyL3h0X2hhc2hsaW1pdC5jCmluZGV4IGRkMTZlNDAuLjAyZDk1ZGYgMTAwNjQ0Ci0tLSBh
+L25ldC9uZXRmaWx0ZXIveHRfaGFzaGxpbWl0LmMKKysrIGIvbmV0L25ldGZpbHRlci94dF9o
+YXNobGltaXQuYwpAQCAtNzksNyArNzksNyBAQCBzdHJ1Y3QgZHN0aGFzaF9lbnQgewogCiBz
+dHJ1Y3QgeHRfaGFzaGxpbWl0X2h0YWJsZSB7CiAJc3RydWN0IGhsaXN0X25vZGUgbm9kZTsJ
+CS8qIGdsb2JhbCBsaXN0IG9mIGFsbCBodGFibGVzICovCi0JYXRvbWljX3QgdXNlOworCWlu
+dCB1c2U7CiAJdV9pbnQ4X3QgZmFtaWx5OwogCiAJc3RydWN0IGhhc2hsaW1pdF9jZmcxIGNm
+ZzsJLyogY29uZmlnICovCkBAIC05Nyw4ICs5Nyw3IEBAIHN0cnVjdCB4dF9oYXNobGltaXRf
+aHRhYmxlIHsKIAlzdHJ1Y3QgaGxpc3RfaGVhZCBoYXNoWzBdOwkvKiBoYXNodGFibGUgaXRz
+ZWxmICovCiB9OwogCi1zdGF0aWMgREVGSU5FX1NQSU5MT0NLKGhhc2hsaW1pdF9sb2NrKTsJ
+LyogcHJvdGVjdHMgaHRhYmxlcyBsaXN0ICovCi1zdGF0aWMgREVGSU5FX01VVEVYKGhsaW1p
+dF9tdXRleCk7CS8qIGFkZGl0aW9uYWwgY2hlY2tlbnRyeSBwcm90ZWN0aW9uICovCitzdGF0
+aWMgREVGSU5FX01VVEVYKGhhc2hsaW1pdF9tdXRleCk7CS8qIHByb3RlY3RzIGh0YWJsZXMg
+bGlzdCAqLwogc3RhdGljIEhMSVNUX0hFQUQoaGFzaGxpbWl0X2h0YWJsZXMpOwogc3RhdGlj
+IHN0cnVjdCBrbWVtX2NhY2hlICpoYXNobGltaXRfY2FjaGVwIF9fcmVhZF9tb3N0bHk7CiAK
+QEAgLTIzMiw3ICsyMzEsNyBAQCBzdGF0aWMgaW50IGh0YWJsZV9jcmVhdGVfdjAoc3RydWN0
+IHh0X2hhc2hsaW1pdF9pbmZvICptaW5mbywgdV9pbnQ4X3QgZmFtaWx5KQogCWZvciAoaSA9
+IDA7IGkgPCBoaW5mby0+Y2ZnLnNpemU7IGkrKykKIAkJSU5JVF9ITElTVF9IRUFEKCZoaW5m
+by0+aGFzaFtpXSk7CiAKLQlhdG9taWNfc2V0KCZoaW5mby0+dXNlLCAxKTsKKwloaW5mby0+
+dXNlID0gMTsKIAloaW5mby0+Y291bnQgPSAwOwogCWhpbmZvLT5mYW1pbHkgPSBmYW1pbHk7
+CiAJaGluZm8tPnJuZF9pbml0aWFsaXplZCA9IDA7CkBAIC0yNTAsOSArMjQ5LDkgQEAgc3Rh
+dGljIGludCBodGFibGVfY3JlYXRlX3YwKHN0cnVjdCB4dF9oYXNobGltaXRfaW5mbyAqbWlu
+Zm8sIHVfaW50OF90IGZhbWlseSkKIAloaW5mby0+dGltZXIuZXhwaXJlcyA9IGppZmZpZXMg
+KyBtc2Vjc190b19qaWZmaWVzKGhpbmZvLT5jZmcuZ2NfaW50ZXJ2YWwpOwogCWFkZF90aW1l
+cigmaGluZm8tPnRpbWVyKTsKIAotCXNwaW5fbG9ja19iaCgmaGFzaGxpbWl0X2xvY2spOwor
+CW11dGV4X2xvY2soJmhhc2hsaW1pdF9tdXRleCk7CiAJaGxpc3RfYWRkX2hlYWQoJmhpbmZv
+LT5ub2RlLCAmaGFzaGxpbWl0X2h0YWJsZXMpOwotCXNwaW5fdW5sb2NrX2JoKCZoYXNobGlt
+aXRfbG9jayk7CisJbXV0ZXhfdW5sb2NrKCZoYXNobGltaXRfbXV0ZXgpOwogCiAJcmV0dXJu
+IDA7CiB9CkBAIC0yOTMsNyArMjkyLDcgQEAgc3RhdGljIGludCBodGFibGVfY3JlYXRlKHN0
+cnVjdCB4dF9oYXNobGltaXRfbXRpbmZvMSAqbWluZm8sIHVfaW50OF90IGZhbWlseSkKIAlm
+b3IgKGkgPSAwOyBpIDwgaGluZm8tPmNmZy5zaXplOyBpKyspCiAJCUlOSVRfSExJU1RfSEVB
+RCgmaGluZm8tPmhhc2hbaV0pOwogCi0JYXRvbWljX3NldCgmaGluZm8tPnVzZSwgMSk7CisJ
+aGluZm8tPnVzZSA9IDE7CiAJaGluZm8tPmNvdW50ID0gMDsKIAloaW5mby0+ZmFtaWx5ID0g
+ZmFtaWx5OwogCWhpbmZvLT5ybmRfaW5pdGlhbGl6ZWQgPSAwOwpAQCAtMzEyLDkgKzMxMSw5
+IEBAIHN0YXRpYyBpbnQgaHRhYmxlX2NyZWF0ZShzdHJ1Y3QgeHRfaGFzaGxpbWl0X210aW5m
+bzEgKm1pbmZvLCB1X2ludDhfdCBmYW1pbHkpCiAJaGluZm8tPnRpbWVyLmV4cGlyZXMgPSBq
+aWZmaWVzICsgbXNlY3NfdG9famlmZmllcyhoaW5mby0+Y2ZnLmdjX2ludGVydmFsKTsKIAlh
+ZGRfdGltZXIoJmhpbmZvLT50aW1lcik7CiAKLQlzcGluX2xvY2tfYmgoJmhhc2hsaW1pdF9s
+b2NrKTsKKwltdXRleF9sb2NrKCZoYXNobGltaXRfbXV0ZXgpOwogCWhsaXN0X2FkZF9oZWFk
+KCZoaW5mby0+bm9kZSwgJmhhc2hsaW1pdF9odGFibGVzKTsKLQlzcGluX3VubG9ja19iaCgm
+aGFzaGxpbWl0X2xvY2spOworCW11dGV4X3VubG9jaygmaGFzaGxpbWl0X211dGV4KTsKIAog
+CXJldHVybiAwOwogfQpAQCAtMzgwLDI1ICszNzksMjAgQEAgc3RhdGljIHN0cnVjdCB4dF9o
+YXNobGltaXRfaHRhYmxlICpodGFibGVfZmluZF9nZXQoY29uc3QgY2hhciAqbmFtZSwKIAlz
+dHJ1Y3QgeHRfaGFzaGxpbWl0X2h0YWJsZSAqaGluZm87CiAJc3RydWN0IGhsaXN0X25vZGUg
+KnBvczsKIAotCXNwaW5fbG9ja19iaCgmaGFzaGxpbWl0X2xvY2spOwogCWhsaXN0X2Zvcl9l
+YWNoX2VudHJ5KGhpbmZvLCBwb3MsICZoYXNobGltaXRfaHRhYmxlcywgbm9kZSkgewogCQlp
+ZiAoIXN0cmNtcChuYW1lLCBoaW5mby0+cGRlLT5uYW1lKSAmJgogCQkgICAgaGluZm8tPmZh
+bWlseSA9PSBmYW1pbHkpIHsKLQkJCWF0b21pY19pbmMoJmhpbmZvLT51c2UpOwotCQkJc3Bp
+bl91bmxvY2tfYmgoJmhhc2hsaW1pdF9sb2NrKTsKKwkJCWhpbmZvLT51c2UrKzsKIAkJCXJl
+dHVybiBoaW5mbzsKIAkJfQogCX0KLQlzcGluX3VubG9ja19iaCgmaGFzaGxpbWl0X2xvY2sp
+OwogCXJldHVybiBOVUxMOwogfQogCiBzdGF0aWMgdm9pZCBodGFibGVfcHV0KHN0cnVjdCB4
+dF9oYXNobGltaXRfaHRhYmxlICpoaW5mbykKIHsKLQlpZiAoYXRvbWljX2RlY19hbmRfdGVz
+dCgmaGluZm8tPnVzZSkpIHsKLQkJc3Bpbl9sb2NrX2JoKCZoYXNobGltaXRfbG9jayk7CisJ
+aWYgKC0taGluZm8tPnVzZSA9PSAwKSB7CiAJCWhsaXN0X2RlbCgmaGluZm8tPm5vZGUpOwot
+CQlzcGluX3VubG9ja19iaCgmaGFzaGxpbWl0X2xvY2spOwogCQlodGFibGVfZGVzdHJveSho
+aW5mbyk7CiAJfQogfQpAQCAtNjg3LDE5ICs2ODEsMTMgQEAgc3RhdGljIGJvb2wgaGFzaGxp
+bWl0X210X2NoZWNrX3YwKGNvbnN0IHN0cnVjdCB4dF9tdGNoa19wYXJhbSAqcGFyKQogCWlm
+IChyLT5uYW1lW3NpemVvZihyLT5uYW1lKSAtIDFdICE9ICdcMCcpCiAJCXJldHVybiBmYWxz
+ZTsKIAotCS8qIFRoaXMgaXMgdGhlIGJlc3Qgd2UndmUgZ290OiBXZSBjYW5ub3QgcmVsZWFz
+ZSBhbmQgcmUtZ3JhYiBsb2NrLAotCSAqIHNpbmNlIGNoZWNrZW50cnkoKSBpcyBjYWxsZWQg
+YmVmb3JlIHhfdGFibGVzLmMgZ3JhYnMgeHRfbXV0ZXguCi0JICogV2UgYWxzbyBjYW5ub3Qg
+Z3JhYiB0aGUgaGFzaHRhYmxlIHNwaW5sb2NrLCBzaW5jZSBodGFibGVfY3JlYXRlIHdpbGwK
+LQkgKiBjYWxsIHZtYWxsb2MsIGFuZCB0aGF0IGNhbiBzbGVlcC4gIEFuZCB3ZSBjYW5ub3Qg
+anVzdCByZS1zZWFyY2gKLQkgKiB0aGUgbGlzdCBvZiBodGFibGUncyBpbiBodGFibGVfY3Jl
+YXRlKCksIHNpbmNlIHRoZW4gd2Ugd291bGQKLQkgKiBjcmVhdGUgZHVwbGljYXRlIHByb2Mg
+ZmlsZXMuIC1IVyAqLwotCW11dGV4X2xvY2soJmhsaW1pdF9tdXRleCk7CisJbXV0ZXhfbG9j
+aygmaGFzaGxpbWl0X211dGV4KTsKIAlyLT5oaW5mbyA9IGh0YWJsZV9maW5kX2dldChyLT5u
+YW1lLCBwYXItPm1hdGNoLT5mYW1pbHkpOwogCWlmICghci0+aGluZm8gJiYgaHRhYmxlX2Ny
+ZWF0ZV92MChyLCBwYXItPm1hdGNoLT5mYW1pbHkpICE9IDApIHsKLQkJbXV0ZXhfdW5sb2Nr
+KCZobGltaXRfbXV0ZXgpOworCQltdXRleF91bmxvY2soJmhhc2hsaW1pdF9tdXRleCk7CiAJ
+CXJldHVybiBmYWxzZTsKIAl9Ci0JbXV0ZXhfdW5sb2NrKCZobGltaXRfbXV0ZXgpOworCW11
+dGV4X3VubG9jaygmaGFzaGxpbWl0X211dGV4KTsKIAogCXJldHVybiB0cnVlOwogfQpAQCAt
+NzI4LDE5ICs3MTYsMTMgQEAgc3RhdGljIGJvb2wgaGFzaGxpbWl0X210X2NoZWNrKGNvbnN0
+IHN0cnVjdCB4dF9tdGNoa19wYXJhbSAqcGFyKQogCQkJcmV0dXJuIGZhbHNlOwogCX0KIAot
+CS8qIFRoaXMgaXMgdGhlIGJlc3Qgd2UndmUgZ290OiBXZSBjYW5ub3QgcmVsZWFzZSBhbmQg
+cmUtZ3JhYiBsb2NrLAotCSAqIHNpbmNlIGNoZWNrZW50cnkoKSBpcyBjYWxsZWQgYmVmb3Jl
+IHhfdGFibGVzLmMgZ3JhYnMgeHRfbXV0ZXguCi0JICogV2UgYWxzbyBjYW5ub3QgZ3JhYiB0
+aGUgaGFzaHRhYmxlIHNwaW5sb2NrLCBzaW5jZSBodGFibGVfY3JlYXRlIHdpbGwKLQkgKiBj
+YWxsIHZtYWxsb2MsIGFuZCB0aGF0IGNhbiBzbGVlcC4gIEFuZCB3ZSBjYW5ub3QganVzdCBy
+ZS1zZWFyY2gKLQkgKiB0aGUgbGlzdCBvZiBodGFibGUncyBpbiBodGFibGVfY3JlYXRlKCks
+IHNpbmNlIHRoZW4gd2Ugd291bGQKLQkgKiBjcmVhdGUgZHVwbGljYXRlIHByb2MgZmlsZXMu
+IC1IVyAqLwotCW11dGV4X2xvY2soJmhsaW1pdF9tdXRleCk7CisJbXV0ZXhfbG9jaygmaGFz
+aGxpbWl0X211dGV4KTsKIAlpbmZvLT5oaW5mbyA9IGh0YWJsZV9maW5kX2dldChpbmZvLT5u
+YW1lLCBwYXItPm1hdGNoLT5mYW1pbHkpOwogCWlmICghaW5mby0+aGluZm8gJiYgaHRhYmxl
+X2NyZWF0ZShpbmZvLCBwYXItPm1hdGNoLT5mYW1pbHkpICE9IDApIHsKLQkJbXV0ZXhfdW5s
+b2NrKCZobGltaXRfbXV0ZXgpOworCQltdXRleF91bmxvY2soJmhhc2hsaW1pdF9tdXRleCk7
+CiAJCXJldHVybiBmYWxzZTsKIAl9Ci0JbXV0ZXhfdW5sb2NrKCZobGltaXRfbXV0ZXgpOwor
+CW11dGV4X3VubG9jaygmaGFzaGxpbWl0X211dGV4KTsKIAlyZXR1cm4gdHJ1ZTsKIH0KIAo=
+--------------020904060505090905070908--
