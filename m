@@ -1,45 +1,82 @@
-From: =?UTF-8?B?7ZmN7IugIHNoaW4gaG9uZw==?= <hongshin@gmail.com>
-Subject: BUG? a possible race between htable_find_get() and htable_put()
-Date: Wed, 13 Jan 2010 11:51:49 +0900
-Message-ID: <2014bcab1001121851g28e8e7d3x5ed3604b6854a0ed@mail.gmail.com>
+From: Shan Wei <shanwei@cn.fujitsu.com>
+Subject: Re: [RFC][PATCH] IP: Send a fragment reassembly time exceeded packet
+ when enabling connection track
+Date: Wed, 13 Jan 2010 11:15:31 +0800
+Message-ID: <4B4D3AD3.6050403@cn.fujitsu.com>
+References: <4B3191E7.8060509@cn.fujitsu.com> <4B42D1C3.3020207@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Cc: David Miller <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.216.174]:41185 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932070Ab0AMCvu (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Jan 2010 21:51:50 -0500
-Received: by pxi4 with SMTP id 4so5145724pxi.33
-        for <netfilter-devel@vger.kernel.org>; Tue, 12 Jan 2010 18:51:50 -0800 (PST)
+Received: from cn.fujitsu.com ([222.73.24.84]:50839 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1751249Ab0AMDSv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 12 Jan 2010 22:18:51 -0500
+In-Reply-To: <4B42D1C3.3020207@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi. I am reporting a suspected race between htable_find_get()
-and htable_put() in net/netfilter/xt_hashlimit.c.
+Patrick McHardy wrote, at 01/05/2010 01:44 PM:
+> Shan Wei wrote:
+>> Default, a host may send a fragment reassembly time exceeded packet
+>> (ICMP Time Exceeded Message with code value of 1) when defraging fragments timeout.
+>> But, when enabling connection track, a host can't send the packet.
+>>
+>> Because, the module of nf_defrag_ipv4 selected by connection track is registered 
+>> in PRE_ROUTING HOOK and assembles all accepted fragments(here, not begin to routing).
+>> After defrag timeout, the host can't send fragment reassembly time exceeded packet, 
+>> because of lack of router information.
+>>
+>> RFC 792 says:
+>>>>>>   If a host reassembling a fragmented datagram cannot complete the
+>>>>>>   reassembly due to missing fragments within its time limit it
+>>>>>>   discards the datagram, and it may send a time exceeded message.
+>>>>>>
+>>>>>>   If fragment zero is not available then no time exceeded need be
+>>>>>>   sent at all.
+>>>>>>
+>>>>>>
+>>>>>> Read more: http://www.faqs.org/rfcs/rfc792.html#ixzz0aOXRD7Wp
+>> So, the patch try to fix it with filling router information before sending fragment reassembly
+>> time exceeded packet when defrag timeout.
+> 
+> I guess the question is whether we really want to send an ICMP
+> message in this case. The above quote applies to end hosts,
 
-I found this issue while I read the code so that it might not realistic.
-But, please examine the code to check possibility of race condition.
+Yes, what you guess is what i want to ask. :-)
+Should end hosts which are using conntrack send a fragment reassembly time exceeded message?
 
-htable_put() first updates hinfo->use and then unlink the object from the list.
-But, htable_find_get() first searches an object from the list,
-and then updates hinfo->use.
-Therefore, race would be possible for the following situation.
+> while conntrack is also (probably more commonly) used on routers,
+> which normally shouldn't attempt reassembly.  
 
-hinfo->use == 1.
+There are two point:
+1.Take security into account, end hosts also used conntrack. 
 
-htable_put()                                      |  htable_find_get()
---------------------------------------------------------------------------------------------------------------
-  atomic_dec_and_test(&hinfo->use) ; |
-                                                       |
-spin_lock_bh(&hashlimit_lock) ;
-                                                       |
-hlist_for_each_entry(...) ;
-                                                       | ...
-                                                       |
-atomic_inc(&hinfo->use) ;
-                                                       |
-spin_unlock_bh(&hashlimit_lock) ;
-  spin_lock_bh(&hashlimit_lock) ;       |
-  hlist_del(&hinfo->node) ;                  |
+  For example: When a host is attacked by denial of service TCP flaws, RedHat used the conntrack&recent
+  match to limit the TCP connections.
+  
+  About details, see the phenomenon description:
+    http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2008-4609
+    http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2008-4609
+
+  See RedHat's solution:
+    http://kbase.redhat.com/faq/docs/DOC-18730
+ 
+
+2.On the latest kernel, a router on which the conntrack is used, reassemble fragments and 
+  forward reassembled intact packet. This implementation is not coincide with what you said.
+
+  nf_defrag_ipv4 module is registered on PRE_ROUTING hook with the highest priority. So, search router table 
+  after completing the reassembly and forward it to destination host.
+
+
+If I miss something, please tell me.
+
+Thanks.
+-----
+Shan Wei
+
