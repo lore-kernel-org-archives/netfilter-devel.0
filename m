@@ -1,7 +1,7 @@
 From: Samir Bellabes <sam@synack.fr>
 Subject: Re: [RFC 7/9] snet: introduce snet_netlink.c and snet_netlink.h
-Date: Wed, 13 Jan 2010 05:28:30 +0100
-Message-ID: <m2vdf6iq6p.fsf@ssh.synack.fr>
+Date: Wed, 13 Jan 2010 05:36:29 +0100
+Message-ID: <m2r5puipte.fsf@ssh.synack.fr>
 References: <1262437456-24476-1-git-send-email-sam@synack.fr>
 	<1262437456-24476-8-git-send-email-sam@synack.fr>
 	<4B420464.3040301@trash.net>
@@ -12,33 +12,44 @@ Cc: linux-security-module@vger.kernel.org, jamal <hadi@cyberus.ca>,
 	Neil Horman <nhorman@tuxdriver.com>, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from bob75-7-88-160-5-175.fbx.proxad.net ([88.160.5.175]:48593 "EHLO
-	cerbere.dyndns.info" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751536Ab0AME2c (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Jan 2010 23:28:32 -0500
+Return-path: <linux-security-module-owner@vger.kernel.org>
 In-Reply-To: <4B420464.3040301@trash.net> (Patrick McHardy's message of "Mon,
 	04 Jan 2010 16:08:20 +0100")
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Sender: linux-security-module-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 Patrick McHardy <kaber@trash.net> writes:
 
 > Samir Bellabes wrote:
 >> +++ b/security/snet/include/snet_netlink.h
->> +	SNET_A_VERSION,		/* (NLA_U32) the snet protocol version	*/
+>> +
+>> +struct snet_sock_half {
+>> +	struct {
+>> +		union {
+>> +			__be32 ip;
+>> +			struct in6_addr ip6;
+>> +		};
+>> +	} u3;
+>> +	struct {
+>> +		__be16 port;
+>> +	} u;
+>> +};
+>> +
+>> +struct snet_sock_info {
+>> +	struct snet_sock_half src;
+>> +	struct snet_sock_half dst;
+>> +	int type;
+>> +};
 >
-> You're using this to check for a "compliant protocol version" below.
-> This shouldn't be needed as any protocol changes need to be done
-> in a compatible fashion.
+> How about using a struct sockaddr or encoding the values within
+> netlink attributes? That would provide a bit more flexibility in
+> case you want to support more protocols in the future.
 
-what if userspace lib is using a old protocol version ? kernel and
-userspace will use incompatible protocol, which may result in errors.
+indeed, I already move to the encoding of values independantly within
+netlink attributes. This had to be done before, and it was in the
+TODO, so now it's done. 
 
-The idea of this 'version' mecanism is to prevent such
-incompatibilities, even if the userspace is (un)volontary not using the
-good library (which may be the one tagged in the same time as the kernel
-running)
-
-sam
+At first, I tried to use a attribute NLA_BINARY with all the datas
+inside snet_sock_info, so it won't break the netlink protocol between
+userspace and kernel, at each modification (adding/removing element
+inside the structure) 
