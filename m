@@ -1,111 +1,43 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PROPOSAL]: Alias names for network interfaces
-Date: Wed, 13 Jan 2010 14:24:39 +0100
-Message-ID: <4B4DC997.20306@trash.net>
-References: <EDA0A4495861324DA2618B4C45DCB3EE5899AC@blrx3m08.blr.amer.dell.com> <20100112194955.GA11752@mock.linuxdev.us.dell.com>
+Subject: Re: [PATCH 1/2] nfnetlink: add netns support
+Date: Wed, 13 Jan 2010 14:27:08 +0100
+Message-ID: <4B4DCA2C.7020000@trash.net>
+References: <20100113122420.GA5790@x200> <4B4DC469.5000408@trash.net> <20100113132255.GA16975@x200>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: shemminger@linux-foundation.org, be-mail2009@lina.inka.de,
-	jengelh@medozas.de, net-tools@lina.inka.de,
-	netfilter-devel@vger.kernel.org, jgarzik@users.sourceforge.net,
-	charles_rose@dell.com, matt_domsch@dell.com, shyam_iyer@dell.com,
-	jordan_hargrave@dell.com, sandeep_k_shandilya@dell.com
-To: Narendra K <Narendra_K@dell.com>
+Cc: netfilter-devel@vger.kernel.org,
+	containers@lists.linux-foundation.org
+To: Alexey Dobriyan <adobriyan@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:42748 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:42798 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753306Ab0AMNYn (ORCPT
+	with ESMTP id S1753455Ab0AMN1L (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 13 Jan 2010 08:24:43 -0500
-In-Reply-To: <20100112194955.GA11752@mock.linuxdev.us.dell.com>
+	Wed, 13 Jan 2010 08:27:11 -0500
+In-Reply-To: <20100113132255.GA16975@x200>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Narendra K wrote:
->>>>>> ifconfig would show Embedded_NIC_N instead of ethN.
->>>>> Renaming away from ethN causes some applications like net-snmp to
->>> get
->>>>> confused,
->>>>> and others have special sorting rules based on existing model
->> (like
->>>>> quagga).
->>>>>
->>>>> I would argue that the "ethN" convention is part of existing
->> system
->>>>> ABI and should not get changed in a visible way to applications.
->>>> Stephen,
->>>>
->>>> Thanks. What are your views on the current proposal we are making
->>> where
->>>> ethN names are not changed (or renamed) and libnetdevname would
->>> suggest
->>>> alias names for the ethN names ( and also alias to ethN names) in
->>> user
->>>> space. Applications like ip, ethtool etc can use these aliases, make
->>>> calls to libnetdevname and get the ethN name.
->>>>
->>>> Libnetdevname would read from sysfs the smbios names of the network
->>>> interface devices as Jordan mentioned
->>>> (/sys/class/net/ethX/device/smbiosname). Would this be acceptable ?
->>> I have no need or use for them, but if it doesn't break other things
->>> then sure.
->> Jeff / netfilter-devel,
->>
->> It would greatly help to know your views on this proposal.
+Alexey Dobriyan wrote:
+> On Wed, Jan 13, 2010 at 02:02:33PM +0100, Patrick McHardy wrote:
+>> Alexey Dobriyan wrote:
 > 
-> The proposal is to enhance iptables (and other tools which might fail if
-> integrated port 1 does not get named as eth0) to support something like
+>>> +	struct sock		*nfnl;
+>>> +	struct sock		*nfnl_stash;
+>> Shouldn't this be contained in an ifdef(CONFIG_NETFILTER_NETLINK)
+>> (_MODULE) ?
 > 
-> iptables -A INPUT -i Embedded_NIC_1 -j ACCEPT 
-> 
-> in addition to what it already supports 
-> 
-> iptables -A INPUT -i eth0 -j ACCEPT.
-> 
-> Below is how the iptables code that handles the "-i ethN" would look
-> like (Only a part of the code to demonstrate the idea shown here) -
-> 
-> diff -Naru iptables-1.4.5/xtables.c iptables-1.4.5-new/xtables.c
-> --- iptables-1.4.5/xtables.c	2010-01-12 02:47:16.293249537 +0530
-> +++ iptables-1.4.5-new/xtables.c	2010-01-13 06:14:12.130185117 +0530
-> @@ -455,8 +455,8 @@
->  void xtables_parse_interface(const char *arg, char *vianame,
->  			     unsigned char *mask)
->  {
-> -	int vialen = strlen(arg);
->  	unsigned int i;
-> +	static char kernel_name[IFNAMSIZ];
->  
->  	memset(mask, 0, IFNAMSIZ);
->  	memset(vianame, 0, IFNAMSIZ);
-> @@ -466,7 +466,11 @@
->  			   "interface name `%s' must be shorter than IFNAMSIZ"
->  			   " (%i)", arg, IFNAMSIZ-1);
->  
-> -	strcpy(vianame, arg);
-> +	if (netdev_alias_to_kernel_name(arg, kernel_name) < 0)
-> +		show_alias_name_usage();
+> No, otherwise you won't be able to start using, e. g., nfnetlink_log
+> module on NETFILTER_NETLINK=n kernels without reboot.
 
-Is this able to deal with non-existant devices?
+You mean after enabling CONFIG_NETFILTER_NETLINK? That seems like a
+pretty poor argument, you have to do a reboot after changing a lot
+of config options.
 
-> +	
-> +	strcpy(vianame, kernel_name);
-> +	int vialen = strlen(kernel_name);
->  	if ((vialen == 0) || (vialen == 1 && vianame[0] == '+'))
->  		memset(mask, 0, IFNAMSIZ);
->  	else if (vianame[vialen - 1] == '+') {
+>> The remaining parts look good to me.
 > 
-> 
-> where kernel_name is the ethN name that will be returned by a library
-> like libnetdevname which will map the user supplied "Embedded_NIC_1"
-> name to the corresponding ethN name, thus bringing in determinism while
-> referring to the network interfaces.
-> 
-> Netfilter-devel, would this be acceptable ?
+> OK, I'll resend shortly.
 
-What I don't like very much is that you can't decide whether to
-map the interface names back in order to display a rule the same
-way it was specified. Anyone looking at the output will have to
-know the alias mapping, which seems to defeat the purpose of
-this patch.
+Thanks.
+
