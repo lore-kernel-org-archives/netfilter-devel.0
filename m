@@ -1,48 +1,52 @@
 From: Patrick McHardy <kaber@trash.net>
 Subject: Re: BUG? a possible race between htable_find_get() and htable_put()
-Date: Wed, 13 Jan 2010 07:39:10 +0100
-Message-ID: <4B4D6A8E.8000303@trash.net>
-References: <2014bcab1001121851g28e8e7d3x5ed3604b6854a0ed@mail.gmail.com>
+Date: Wed, 13 Jan 2010 07:41:15 +0100
+Message-ID: <4B4D6B0B.1070106@trash.net>
+References: <2014bcab1001121851g28e8e7d3x5ed3604b6854a0ed@mail.gmail.com> <4B4D6A8E.8000303@trash.net>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------020904060505090905070908"
+ boundary="------------030801060700020807060802"
 Cc: netfilter-devel@vger.kernel.org
 To: =?UTF-8?B?7ZmN7IugIHNoaW4gaG9uZw==?= <hongshin@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:35643 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:35670 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752220Ab0AMGjN (ORCPT
+	with ESMTP id S1751118Ab0AMGlS (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 13 Jan 2010 01:39:13 -0500
-In-Reply-To: <2014bcab1001121851g28e8e7d3x5ed3604b6854a0ed@mail.gmail.com>
+	Wed, 13 Jan 2010 01:41:18 -0500
+In-Reply-To: <4B4D6A8E.8000303@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 This is a multi-part message in MIME format.
---------------020904060505090905070908
+--------------030801060700020807060802
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 
-홍신 shin hong wrote:
-> Hi. I am reporting a suspected race between htable_find_get()
-> and htable_put() in net/netfilter/xt_hashlimit.c.
+Patrick McHardy wrote:
+> 홍신 shin hong wrote:
+>> Hi. I am reporting a suspected race between htable_find_get()
+>> and htable_put() in net/netfilter/xt_hashlimit.c.
+>>
+>> I found this issue while I read the code so that it might not realistic.
+>> But, please examine the code to check possibility of race condition.
+>>
+>> htable_put() first updates hinfo->use and then unlink the object from the list.
+>> But, htable_find_get() first searches an object from the list,
+>> and then updates hinfo->use.
 > 
-> I found this issue while I read the code so that it might not realistic.
-> But, please examine the code to check possibility of race condition.
+> Nice catch, this does indeed look like a bug. The entire locking
+> concept seems a bit strange, we neither need an atomic_t for the
+> reference count nor two locks to protect the list. This patch
+> changes the code to use the hashlimit_mutex for list and reference
+> count protection.
 > 
-> htable_put() first updates hinfo->use and then unlink the object from the list.
-> But, htable_find_get() first searches an object from the list,
-> and then updates hinfo->use.
+> I'll commit this later unless someone can spot further bugs :)
 
-Nice catch, this does indeed look like a bug. The entire locking
-concept seems a bit strange, we neither need an atomic_t for the
-reference count nor two locks to protect the list. This patch
-changes the code to use the hashlimit_mutex for list and reference
-count protection.
+Locking around list removal and destruction was missing from the
+previous patch, fixed version attached.
 
-I'll commit this later unless someone can spot further bugs :)
-
---------------020904060505090905070908
+--------------030801060700020807060802
 Content-Type: text/plain;
  name="x"
 Content-Transfer-Encoding: base64
@@ -50,7 +54,7 @@ Content-Disposition: inline;
  filename="x"
 
 ZGlmZiAtLWdpdCBhL25ldC9uZXRmaWx0ZXIveHRfaGFzaGxpbWl0LmMgYi9uZXQvbmV0Zmls
-dGVyL3h0X2hhc2hsaW1pdC5jCmluZGV4IGRkMTZlNDAuLjAyZDk1ZGYgMTAwNjQ0Ci0tLSBh
+dGVyL3h0X2hhc2hsaW1pdC5jCmluZGV4IGRkMTZlNDAuLjRhNzIwNDQgMTAwNjQ0Ci0tLSBh
 L25ldC9uZXRmaWx0ZXIveHRfaGFzaGxpbWl0LmMKKysrIGIvbmV0L25ldGZpbHRlci94dF9o
 YXNobGltaXQuYwpAQCAtNzksNyArNzksNyBAQCBzdHJ1Y3QgZHN0aGFzaF9lbnQgewogCiBz
 dHJ1Y3QgeHRfaGFzaGxpbWl0X2h0YWJsZSB7CiAJc3RydWN0IGhsaXN0X25vZGUgbm9kZTsJ
@@ -90,7 +94,7 @@ ZGRfdGltZXIoJmhpbmZvLT50aW1lcik7CiAKLQlzcGluX2xvY2tfYmgoJmhhc2hsaW1pdF9s
 b2NrKTsKKwltdXRleF9sb2NrKCZoYXNobGltaXRfbXV0ZXgpOwogCWhsaXN0X2FkZF9oZWFk
 KCZoaW5mby0+bm9kZSwgJmhhc2hsaW1pdF9odGFibGVzKTsKLQlzcGluX3VubG9ja19iaCgm
 aGFzaGxpbWl0X2xvY2spOworCW11dGV4X3VubG9jaygmaGFzaGxpbWl0X211dGV4KTsKIAog
-CXJldHVybiAwOwogfQpAQCAtMzgwLDI1ICszNzksMjAgQEAgc3RhdGljIHN0cnVjdCB4dF9o
+CXJldHVybiAwOwogfQpAQCAtMzgwLDI3ICszNzksMjQgQEAgc3RhdGljIHN0cnVjdCB4dF9o
 YXNobGltaXRfaHRhYmxlICpodGFibGVfZmluZF9nZXQoY29uc3QgY2hhciAqbmFtZSwKIAlz
 dHJ1Y3QgeHRfaGFzaGxpbWl0X2h0YWJsZSAqaGluZm87CiAJc3RydWN0IGhsaXN0X25vZGUg
 KnBvczsKIAotCXNwaW5fbG9ja19iaCgmaGFzaGxpbWl0X2xvY2spOwogCWhsaXN0X2Zvcl9l
@@ -102,39 +106,42 @@ dHVybiBoaW5mbzsKIAkJfQogCX0KLQlzcGluX3VubG9ja19iaCgmaGFzaGxpbWl0X2xvY2sp
 OwogCXJldHVybiBOVUxMOwogfQogCiBzdGF0aWMgdm9pZCBodGFibGVfcHV0KHN0cnVjdCB4
 dF9oYXNobGltaXRfaHRhYmxlICpoaW5mbykKIHsKLQlpZiAoYXRvbWljX2RlY19hbmRfdGVz
 dCgmaGluZm8tPnVzZSkpIHsKLQkJc3Bpbl9sb2NrX2JoKCZoYXNobGltaXRfbG9jayk7CisJ
-aWYgKC0taGluZm8tPnVzZSA9PSAwKSB7CiAJCWhsaXN0X2RlbCgmaGluZm8tPm5vZGUpOwot
-CQlzcGluX3VubG9ja19iaCgmaGFzaGxpbWl0X2xvY2spOwogCQlodGFibGVfZGVzdHJveSho
-aW5mbyk7CiAJfQogfQpAQCAtNjg3LDE5ICs2ODEsMTMgQEAgc3RhdGljIGJvb2wgaGFzaGxp
-bWl0X210X2NoZWNrX3YwKGNvbnN0IHN0cnVjdCB4dF9tdGNoa19wYXJhbSAqcGFyKQogCWlm
-IChyLT5uYW1lW3NpemVvZihyLT5uYW1lKSAtIDFdICE9ICdcMCcpCiAJCXJldHVybiBmYWxz
-ZTsKIAotCS8qIFRoaXMgaXMgdGhlIGJlc3Qgd2UndmUgZ290OiBXZSBjYW5ub3QgcmVsZWFz
-ZSBhbmQgcmUtZ3JhYiBsb2NrLAotCSAqIHNpbmNlIGNoZWNrZW50cnkoKSBpcyBjYWxsZWQg
-YmVmb3JlIHhfdGFibGVzLmMgZ3JhYnMgeHRfbXV0ZXguCi0JICogV2UgYWxzbyBjYW5ub3Qg
-Z3JhYiB0aGUgaGFzaHRhYmxlIHNwaW5sb2NrLCBzaW5jZSBodGFibGVfY3JlYXRlIHdpbGwK
-LQkgKiBjYWxsIHZtYWxsb2MsIGFuZCB0aGF0IGNhbiBzbGVlcC4gIEFuZCB3ZSBjYW5ub3Qg
-anVzdCByZS1zZWFyY2gKLQkgKiB0aGUgbGlzdCBvZiBodGFibGUncyBpbiBodGFibGVfY3Jl
-YXRlKCksIHNpbmNlIHRoZW4gd2Ugd291bGQKLQkgKiBjcmVhdGUgZHVwbGljYXRlIHByb2Mg
-ZmlsZXMuIC1IVyAqLwotCW11dGV4X2xvY2soJmhsaW1pdF9tdXRleCk7CisJbXV0ZXhfbG9j
-aygmaGFzaGxpbWl0X211dGV4KTsKIAlyLT5oaW5mbyA9IGh0YWJsZV9maW5kX2dldChyLT5u
-YW1lLCBwYXItPm1hdGNoLT5mYW1pbHkpOwogCWlmICghci0+aGluZm8gJiYgaHRhYmxlX2Ny
-ZWF0ZV92MChyLCBwYXItPm1hdGNoLT5mYW1pbHkpICE9IDApIHsKLQkJbXV0ZXhfdW5sb2Nr
-KCZobGltaXRfbXV0ZXgpOworCQltdXRleF91bmxvY2soJmhhc2hsaW1pdF9tdXRleCk7CiAJ
-CXJldHVybiBmYWxzZTsKIAl9Ci0JbXV0ZXhfdW5sb2NrKCZobGltaXRfbXV0ZXgpOworCW11
-dGV4X3VubG9jaygmaGFzaGxpbWl0X211dGV4KTsKIAogCXJldHVybiB0cnVlOwogfQpAQCAt
-NzI4LDE5ICs3MTYsMTMgQEAgc3RhdGljIGJvb2wgaGFzaGxpbWl0X210X2NoZWNrKGNvbnN0
-IHN0cnVjdCB4dF9tdGNoa19wYXJhbSAqcGFyKQogCQkJcmV0dXJuIGZhbHNlOwogCX0KIAot
-CS8qIFRoaXMgaXMgdGhlIGJlc3Qgd2UndmUgZ290OiBXZSBjYW5ub3QgcmVsZWFzZSBhbmQg
-cmUtZ3JhYiBsb2NrLAotCSAqIHNpbmNlIGNoZWNrZW50cnkoKSBpcyBjYWxsZWQgYmVmb3Jl
-IHhfdGFibGVzLmMgZ3JhYnMgeHRfbXV0ZXguCi0JICogV2UgYWxzbyBjYW5ub3QgZ3JhYiB0
-aGUgaGFzaHRhYmxlIHNwaW5sb2NrLCBzaW5jZSBodGFibGVfY3JlYXRlIHdpbGwKLQkgKiBj
-YWxsIHZtYWxsb2MsIGFuZCB0aGF0IGNhbiBzbGVlcC4gIEFuZCB3ZSBjYW5ub3QganVzdCBy
-ZS1zZWFyY2gKLQkgKiB0aGUgbGlzdCBvZiBodGFibGUncyBpbiBodGFibGVfY3JlYXRlKCks
-IHNpbmNlIHRoZW4gd2Ugd291bGQKLQkgKiBjcmVhdGUgZHVwbGljYXRlIHByb2MgZmlsZXMu
-IC1IVyAqLwotCW11dGV4X2xvY2soJmhsaW1pdF9tdXRleCk7CisJbXV0ZXhfbG9jaygmaGFz
-aGxpbWl0X211dGV4KTsKIAlpbmZvLT5oaW5mbyA9IGh0YWJsZV9maW5kX2dldChpbmZvLT5u
-YW1lLCBwYXItPm1hdGNoLT5mYW1pbHkpOwogCWlmICghaW5mby0+aGluZm8gJiYgaHRhYmxl
-X2NyZWF0ZShpbmZvLCBwYXItPm1hdGNoLT5mYW1pbHkpICE9IDApIHsKLQkJbXV0ZXhfdW5s
-b2NrKCZobGltaXRfbXV0ZXgpOworCQltdXRleF91bmxvY2soJmhhc2hsaW1pdF9tdXRleCk7
-CiAJCXJldHVybiBmYWxzZTsKIAl9Ci0JbXV0ZXhfdW5sb2NrKCZobGltaXRfbXV0ZXgpOwor
-CW11dGV4X3VubG9jaygmaGFzaGxpbWl0X211dGV4KTsKIAlyZXR1cm4gdHJ1ZTsKIH0KIAo=
---------------020904060505090905070908--
+bXV0ZXhfbG9jaygmaGFzaGxpbWl0X211dGV4KTsKKwlpZiAoLS1oaW5mby0+dXNlID09IDAp
+IHsKIAkJaGxpc3RfZGVsKCZoaW5mby0+bm9kZSk7Ci0JCXNwaW5fdW5sb2NrX2JoKCZoYXNo
+bGltaXRfbG9jayk7CiAJCWh0YWJsZV9kZXN0cm95KGhpbmZvKTsKIAl9CisJbXV0ZXhfdW5s
+b2NrKCZoYXNobGltaXRfbXV0ZXgpOwogfQogCiAvKiBUaGUgYWxnb3JpdGhtIHVzZWQgaXMg
+dGhlIFNpbXBsZSBUb2tlbiBCdWNrZXQgRmlsdGVyIChUQkYpCkBAIC02ODcsMTkgKzY4Mywx
+MyBAQCBzdGF0aWMgYm9vbCBoYXNobGltaXRfbXRfY2hlY2tfdjAoY29uc3Qgc3RydWN0IHh0
+X210Y2hrX3BhcmFtICpwYXIpCiAJaWYgKHItPm5hbWVbc2l6ZW9mKHItPm5hbWUpIC0gMV0g
+IT0gJ1wwJykKIAkJcmV0dXJuIGZhbHNlOwogCi0JLyogVGhpcyBpcyB0aGUgYmVzdCB3ZSd2
+ZSBnb3Q6IFdlIGNhbm5vdCByZWxlYXNlIGFuZCByZS1ncmFiIGxvY2ssCi0JICogc2luY2Ug
+Y2hlY2tlbnRyeSgpIGlzIGNhbGxlZCBiZWZvcmUgeF90YWJsZXMuYyBncmFicyB4dF9tdXRl
+eC4KLQkgKiBXZSBhbHNvIGNhbm5vdCBncmFiIHRoZSBoYXNodGFibGUgc3BpbmxvY2ssIHNp
+bmNlIGh0YWJsZV9jcmVhdGUgd2lsbAotCSAqIGNhbGwgdm1hbGxvYywgYW5kIHRoYXQgY2Fu
+IHNsZWVwLiAgQW5kIHdlIGNhbm5vdCBqdXN0IHJlLXNlYXJjaAotCSAqIHRoZSBsaXN0IG9m
+IGh0YWJsZSdzIGluIGh0YWJsZV9jcmVhdGUoKSwgc2luY2UgdGhlbiB3ZSB3b3VsZAotCSAq
+IGNyZWF0ZSBkdXBsaWNhdGUgcHJvYyBmaWxlcy4gLUhXICovCi0JbXV0ZXhfbG9jaygmaGxp
+bWl0X211dGV4KTsKKwltdXRleF9sb2NrKCZoYXNobGltaXRfbXV0ZXgpOwogCXItPmhpbmZv
+ID0gaHRhYmxlX2ZpbmRfZ2V0KHItPm5hbWUsIHBhci0+bWF0Y2gtPmZhbWlseSk7CiAJaWYg
+KCFyLT5oaW5mbyAmJiBodGFibGVfY3JlYXRlX3YwKHIsIHBhci0+bWF0Y2gtPmZhbWlseSkg
+IT0gMCkgewotCQltdXRleF91bmxvY2soJmhsaW1pdF9tdXRleCk7CisJCW11dGV4X3VubG9j
+aygmaGFzaGxpbWl0X211dGV4KTsKIAkJcmV0dXJuIGZhbHNlOwogCX0KLQltdXRleF91bmxv
+Y2soJmhsaW1pdF9tdXRleCk7CisJbXV0ZXhfdW5sb2NrKCZoYXNobGltaXRfbXV0ZXgpOwog
+CiAJcmV0dXJuIHRydWU7CiB9CkBAIC03MjgsMTkgKzcxOCwxMyBAQCBzdGF0aWMgYm9vbCBo
+YXNobGltaXRfbXRfY2hlY2soY29uc3Qgc3RydWN0IHh0X210Y2hrX3BhcmFtICpwYXIpCiAJ
+CQlyZXR1cm4gZmFsc2U7CiAJfQogCi0JLyogVGhpcyBpcyB0aGUgYmVzdCB3ZSd2ZSBnb3Q6
+IFdlIGNhbm5vdCByZWxlYXNlIGFuZCByZS1ncmFiIGxvY2ssCi0JICogc2luY2UgY2hlY2tl
+bnRyeSgpIGlzIGNhbGxlZCBiZWZvcmUgeF90YWJsZXMuYyBncmFicyB4dF9tdXRleC4KLQkg
+KiBXZSBhbHNvIGNhbm5vdCBncmFiIHRoZSBoYXNodGFibGUgc3BpbmxvY2ssIHNpbmNlIGh0
+YWJsZV9jcmVhdGUgd2lsbAotCSAqIGNhbGwgdm1hbGxvYywgYW5kIHRoYXQgY2FuIHNsZWVw
+LiAgQW5kIHdlIGNhbm5vdCBqdXN0IHJlLXNlYXJjaAotCSAqIHRoZSBsaXN0IG9mIGh0YWJs
+ZSdzIGluIGh0YWJsZV9jcmVhdGUoKSwgc2luY2UgdGhlbiB3ZSB3b3VsZAotCSAqIGNyZWF0
+ZSBkdXBsaWNhdGUgcHJvYyBmaWxlcy4gLUhXICovCi0JbXV0ZXhfbG9jaygmaGxpbWl0X211
+dGV4KTsKKwltdXRleF9sb2NrKCZoYXNobGltaXRfbXV0ZXgpOwogCWluZm8tPmhpbmZvID0g
+aHRhYmxlX2ZpbmRfZ2V0KGluZm8tPm5hbWUsIHBhci0+bWF0Y2gtPmZhbWlseSk7CiAJaWYg
+KCFpbmZvLT5oaW5mbyAmJiBodGFibGVfY3JlYXRlKGluZm8sIHBhci0+bWF0Y2gtPmZhbWls
+eSkgIT0gMCkgewotCQltdXRleF91bmxvY2soJmhsaW1pdF9tdXRleCk7CisJCW11dGV4X3Vu
+bG9jaygmaGFzaGxpbWl0X211dGV4KTsKIAkJcmV0dXJuIGZhbHNlOwogCX0KLQltdXRleF91
+bmxvY2soJmhsaW1pdF9tdXRleCk7CisJbXV0ZXhfdW5sb2NrKCZoYXNobGltaXRfbXV0ZXgp
+OwogCXJldHVybiB0cnVlOwogfQogCg==
+--------------030801060700020807060802--
