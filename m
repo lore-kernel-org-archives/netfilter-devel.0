@@ -1,82 +1,32 @@
-From: Shan Wei <shanwei@cn.fujitsu.com>
-Subject: Re: [RFC][PATCH] IP: Send a fragment reassembly time exceeded packet
- when enabling connection track
-Date: Wed, 13 Jan 2010 11:15:31 +0800
-Message-ID: <4B4D3AD3.6050403@cn.fujitsu.com>
-References: <4B3191E7.8060509@cn.fujitsu.com> <4B42D1C3.3020207@trash.net>
+From: Samir Bellabes <sam@synack.fr>
+Subject: Re: [RFC 7/9] snet: introduce snet_netlink.c and snet_netlink.h
+Date: Wed, 13 Jan 2010 05:19:07 +0100
+Message-ID: <m2zl4iiqmc.fsf@ssh.synack.fr>
+References: <1262437456-24476-1-git-send-email-sam@synack.fr>
+	<1262437456-24476-8-git-send-email-sam@synack.fr>
+	<4B420464.3040301@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: David Miller <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: linux-security-module@vger.kernel.org, jamal <hadi@cyberus.ca>,
+	Evgeniy Polyakov <zbr@ioremap.net>,
+	Neil Horman <nhorman@tuxdriver.com>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:50839 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1751249Ab0AMDSv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 12 Jan 2010 22:18:51 -0500
-In-Reply-To: <4B42D1C3.3020207@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <linux-security-module-owner@vger.kernel.org>
+In-Reply-To: <4B420464.3040301@trash.net> (Patrick McHardy's message of "Mon,
+	04 Jan 2010 16:08:20 +0100")
+Sender: linux-security-module-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote, at 01/05/2010 01:44 PM:
-> Shan Wei wrote:
->> Default, a host may send a fragment reassembly time exceeded packet
->> (ICMP Time Exceeded Message with code value of 1) when defraging fragments timeout.
->> But, when enabling connection track, a host can't send the packet.
->>
->> Because, the module of nf_defrag_ipv4 selected by connection track is registered 
->> in PRE_ROUTING HOOK and assembles all accepted fragments(here, not begin to routing).
->> After defrag timeout, the host can't send fragment reassembly time exceeded packet, 
->> because of lack of router information.
->>
->> RFC 792 says:
->>>>>>   If a host reassembling a fragmented datagram cannot complete the
->>>>>>   reassembly due to missing fragments within its time limit it
->>>>>>   discards the datagram, and it may send a time exceeded message.
->>>>>>
->>>>>>   If fragment zero is not available then no time exceeded need be
->>>>>>   sent at all.
->>>>>>
->>>>>>
->>>>>> Read more: http://www.faqs.org/rfcs/rfc792.html#ixzz0aOXRD7Wp
->> So, the patch try to fix it with filling router information before sending fragment reassembly
->> time exceeded packet when defrag timeout.
-> 
-> I guess the question is whether we really want to send an ICMP
-> message in this case. The above quote applies to end hosts,
+Patrick McHardy <kaber@trash.net> writes:
 
-Yes, what you guess is what i want to ask. :-)
-Should end hosts which are using conntrack send a fragment reassembly time exceeded message?
+> Samir Bellabes wrote:
+>> +++ b/security/snet/include/snet_netlink.h
+>> +	SNET_A_SYSCALL,		/* (NLA_U8)  a syscall identifier	*/
+>
+> We're already using 299 syscalls on x86, so perhaps a larger type
+> would be better suited.
 
-> while conntrack is also (probably more commonly) used on routers,
-> which normally shouldn't attempt reassembly.  
+I moved all references to u16
 
-There are two point:
-1.Take security into account, end hosts also used conntrack. 
-
-  For example: When a host is attacked by denial of service TCP flaws, RedHat used the conntrack&recent
-  match to limit the TCP connections.
-  
-  About details, see the phenomenon description:
-    http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2008-4609
-    http://web.nvd.nist.gov/view/vuln/detail?vulnId=CVE-2008-4609
-
-  See RedHat's solution:
-    http://kbase.redhat.com/faq/docs/DOC-18730
- 
-
-2.On the latest kernel, a router on which the conntrack is used, reassemble fragments and 
-  forward reassembled intact packet. This implementation is not coincide with what you said.
-
-  nf_defrag_ipv4 module is registered on PRE_ROUTING hook with the highest priority. So, search router table 
-  after completing the reassembly and forward it to destination host.
-
-
-If I miss something, please tell me.
-
-Thanks.
------
-Shan Wei
-
+thanks
