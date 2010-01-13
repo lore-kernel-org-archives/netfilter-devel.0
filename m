@@ -1,38 +1,43 @@
-From: Samir Bellabes <sam@synack.fr>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [RFC 7/9] snet: introduce snet_netlink.c and snet_netlink.h
-Date: Wed, 13 Jan 2010 05:41:20 +0100
-Message-ID: <m2my0iiplb.fsf@ssh.synack.fr>
-References: <1262437456-24476-1-git-send-email-sam@synack.fr>
-	<1262437456-24476-8-git-send-email-sam@synack.fr>
-	<4B420464.3040301@trash.net>
+Date: Wed, 13 Jan 2010 06:36:21 +0100
+Message-ID: <4B4D5BD5.4090903@trash.net>
+References: <1262437456-24476-1-git-send-email-sam@synack.fr>	<1262437456-24476-8-git-send-email-sam@synack.fr>	<4B420464.3040301@trash.net> <m2vdf6iq6p.fsf@ssh.synack.fr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Cc: linux-security-module@vger.kernel.org, jamal <hadi@cyberus.ca>,
 	Evgeniy Polyakov <zbr@ioremap.net>,
 	Neil Horman <nhorman@tuxdriver.com>, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <4B420464.3040301@trash.net> (Patrick McHardy's message of "Mon,
-	04 Jan 2010 16:08:20 +0100")
-Sender: linux-security-module-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: Samir Bellabes <sam@synack.fr>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:34819 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751560Ab0AMFgZ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 13 Jan 2010 00:36:25 -0500
+In-Reply-To: <m2vdf6iq6p.fsf@ssh.synack.fr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy <kaber@trash.net> writes:
+Samir Bellabes wrote:
+> Patrick McHardy <kaber@trash.net> writes:
+> 
+>> Samir Bellabes wrote:
+>>> +++ b/security/snet/include/snet_netlink.h
+>>> +	SNET_A_VERSION,		/* (NLA_U32) the snet protocol version	*/
+>> You're using this to check for a "compliant protocol version" below.
+>> This shouldn't be needed as any protocol changes need to be done
+>> in a compatible fashion.
+> 
+> what if userspace lib is using a old protocol version ? kernel and
+> userspace will use incompatible protocol, which may result in errors.
 
->> +atomic_t snet_nl_seq = ATOMIC_INIT(0);
->> +static uint32_t snet_nl_pid;
->> +static struct genl_family snet_genl_family;
->> +atomic_t snet_num_listeners = ATOMIC_INIT(0);
->
-> The num_listeners seem to be redundant as you only support a
-> single listener anyways, whose presence is indicated by
-> snet_nl_pid != 0.
+Any protocol changes need to be done in a compatible fashion once
+this is in the upstream kernel, so that case should never happen.
 
-Actually, I may want to support multiple listeners, or simultaneous
-communication with userspace, as we may want to listen for event and
-reply for verdict in the same time as adding or deleting events.
-I will fix this mecanism.
-
-thanks Patrick,
-sam
+> The idea of this 'version' mecanism is to prevent such
+> incompatibilities, even if the userspace is (un)volontary not using the
+> good library (which may be the one tagged in the same time as the kernel
+> running)
