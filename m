@@ -1,8 +1,8 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/2] ctnetlink: add netns support
-Date: Wed, 13 Jan 2010 13:58:02 +0100
-Message-ID: <4B4DC35A.9000600@trash.net>
-References: <20100113122637.GB5790@x200>
+Subject: Re: [PATCH 1/2] nfnetlink: add netns support
+Date: Wed, 13 Jan 2010 14:02:33 +0100
+Message-ID: <4B4DC469.5000408@trash.net>
+References: <20100113122420.GA5790@x200>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
@@ -10,19 +10,61 @@ Cc: netfilter-devel@vger.kernel.org,
 	containers@lists.linux-foundation.org
 To: Alexey Dobriyan <adobriyan@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:42319 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:42381 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753277Ab0AMM6I (ORCPT
+	with ESMTP id S1751312Ab0AMNCg (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 13 Jan 2010 07:58:08 -0500
-In-Reply-To: <20100113122637.GB5790@x200>
+	Wed, 13 Jan 2010 08:02:36 -0500
+In-Reply-To: <20100113122420.GA5790@x200>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Alexey Dobriyan wrote:
-> Allow conntrack program to operate correctly in netns.
-> Note: passing events is not done in this patch.
+> Make nfnetlink socket per-netns.
+> 
+> --- a/include/net/net_namespace.h
+> +++ b/include/net/net_namespace.h
+> @@ -81,6 +81,8 @@ struct net {
+>  #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+>  	struct netns_ct		ct;
+>  #endif
+> +	struct sock		*nfnl;
+> +	struct sock		*nfnl_stash;
 
-Why not? It seems like a small change and without this the netns
-support will still be incomplete.
+Shouldn't this be contained in an ifdef(CONFIG_NETFILTER_NETLINK)
+(_MODULE) ?
 
+>  #endif
+
+> +static void __net_exit nfnetlink_net_exit_batch(struct list_head *net_exit_list)
+>  {
+> -	printk("Netfilter messages via NETLINK v%s.\n", nfversion);
+> +	struct net *net;
+>  
+> -	nfnl = netlink_kernel_create(&init_net, NETLINK_NETFILTER, NFNLGRP_MAX,
+> -				     nfnetlink_rcv, NULL, THIS_MODULE);
+> -	if (!nfnl) {
+> -		printk(KERN_ERR "cannot initialize nfnetlink!\n");
+> -		return -ENOMEM;
+> +	list_for_each_entry(net, net_exit_list, exit_list) {
+> +		rcu_assign_pointer(net->nfnl, NULL);
+> +	}
+> +	synchronize_net();
+> +	list_for_each_entry(net, net_exit_list, exit_list) {
+> +		netlink_kernel_release(net->nfnl_stash);
+>  	}
+
+No parenthesis around single statements please.
+
+> --- a/net/netfilter/nfnetlink_log.c
+> +++ b/net/netfilter/nfnetlink_log.c
+> @@ -323,7 +323,7 @@ __nfulnl_send(struct nfulnl_instance *inst)
+>  			  NLMSG_DONE,
+>  			  sizeof(struct nfgenmsg));
+>  
+> -	status = nfnetlink_unicast(inst->skb, inst->peer_pid, MSG_DONTWAIT);
+> +	status = nfnetlink_unicast(inst->skb, &init_net, inst->peer_pid, MSG_DONTWAIT);
+
+Overly long line.
+
+The remaining parts look good to me.
