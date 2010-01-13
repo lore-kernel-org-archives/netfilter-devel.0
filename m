@@ -1,57 +1,64 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Port back 2.6 kernel patch to 2.4 which fixed bridge module panic
- 	when received special fragments
-Date: Wed, 13 Jan 2010 10:44:57 +0100
-Message-ID: <4B4D9619.1010803@trash.net>
-References: <3104bfb61001130130s4fbf1649oa9a12e7c855cc6e@mail.gmail.com>	 <4B4D9355.5000907@trash.net> <3104bfb61001130142p5011c1cj6b01bf80ea9aee21@mail.gmail.com>
+From: Bernd Eckenfels <be-mail2010@lina.inka.de>
+Subject: Re: [PROPOSAL]: Alias names for network interfaces
+Date: Wed, 13 Jan 2010 12:04:25 +0100
+Message-ID: <20100113110425.GA5095@lina.inka.de>
+References: <EDA0A4495861324DA2618B4C45DCB3EE5899AC@blrx3m08.blr.amer.dell.com> <20100112194955.GA11752@mock.linuxdev.us.dell.com> <alpine.LSU.2.01.1001130039020.4567@obet.zrqbmnf.qr> <EDA0A4495861324DA2618B4C45DCB3EE5899B5@blrx3m08.blr.amer.dell.com>
+Reply-To: net-tools@lina.inka.de
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Dong Wei <dwei.zh@gmail.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: jengelh@medozas.de, shemminger@linux-foundation.org,
+	net-tools@lina.inka.de, netfilter-devel@vger.kernel.org,
+	jgarzik@users.sourceforge.net, Charles_Rose@Dell.com,
+	Matt_Domsch@Dell.com, Shyam_Iyer@Dell.com,
+	Jordan_Hargrave@Dell.com, Sandeep_K_Shandilya@Dell.com
+To: Narendra_K@Dell.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:39001 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932070Ab0AMJpD (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 13 Jan 2010 04:45:03 -0500
-In-Reply-To: <3104bfb61001130142p5011c1cj6b01bf80ea9aee21@mail.gmail.com>
+Received: from quechua.inka.de ([193.197.184.2]:36867 "EHLO mail.inka.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755543Ab0AMLEa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 13 Jan 2010 06:04:30 -0500
+Content-Disposition: inline
+In-Reply-To: <EDA0A4495861324DA2618B4C45DCB3EE5899B5@blrx3m08.blr.amer.dell.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Dong Wei wrote:
-> Hi, Patrick
-> 
-> Thanks for your reply.
-> 
-> I checked the ebtables website, but the mail-list just point to the
-> netfilter mail list.
-> 
-> So, would you please tell me who should I send this mail to ?
+Hello,
 
-Try Bart De Schuymer <bdschuym@pandora.be>.
+On Wed, Jan 13, 2010 at 12:17:16PM +0530, Narendra_K@Dell.com wrote:
+> The implementation is for char device node solution we proposed earli=
+er.
+> It would be extended to handle the current proposal if it is acceptab=
+le.
 
-> 
-> 2010/1/13 Patrick McHardy <kaber@trash.net>:
->> Dong Wei wrote:
->>> Hi, All
->>>
->>> linux-2.6.32.3 fixed a kernel panic problem in bridge module when
->>> received special fragments.
->>>
->>> see: http://git.kernel.org/?p=linux/kernel/git/hpa/linux-2.6-allstable.git;a=commit;h=8fa9ff6849bb86c59cc2ea9faadf3cb2d5223497
->>>
->>> There is a ebtables kernel patch ebtables-brnf-11-2_vs_2.4.31.diff.gz
->>> which port back bridge netfilter.  After applied the kernel patch, the
->>> kernel panic problem will be introduced to the kernel. I made a kernel
->>> patch on 2.4.37.7 which can fix this problem. I think this patch
->>> should be merged to the ebtables-brnf-11-2_vs_2.4.31.diff.gz .
->> You need to send this to whomever is maintaining that patch,
->> probably Bart.
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+=46or the record: I still dont like the idea to add another namespace (=
+besides
+interface index number and kernel names (possibly renamed)) to network
+devices (especially in usermode), however if nobody else objects I will=
+ keep
+quiet and accept the patches.
 
+One thing for the library: the smbname of the devices can be the defaul=
+t
+alias, but please allow usermode to configure patterns (based on driver=
+,
+mac) or maps for using even better interface names. The quality of syst=
+em
+management informations, especially when mixing hardware, tends to be l=
+ess
+than optimal.
+
+Gruss
+Bernd
+--=20
+  (OO)     -- Bernd_Eckenfels@M=F6rscher_Strasse_8.76185Karlsruhe.de --
+ ( .. )    ecki@{inka.de,linux.de,debian.org}  http://www.eckes.org/
+  o--o   1024D/E383CD7E  eckes@IRCNet  v:+497211603874  f:+497211515161=
+29
+(O____O)  When cryptography is outlawed, bayl bhgynjf jvyy unir cevinpl=
+!
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
