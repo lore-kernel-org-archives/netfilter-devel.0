@@ -1,188 +1,265 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH 1/6] NFCT: cleanup constructor and destructor functions
-Date: Wed, 13 Jan 2010 12:42:24 +0100
-Message-ID: <20100113114224.12994.79855.stgit@decadence>
-References: <20100113114009.12994.26386.stgit@decadence>
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: [PATCH 1/2] nfnetlink: add netns support
+Date: Wed, 13 Jan 2010 14:24:20 +0200
+Message-ID: <20100113122420.GA5790@x200>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org,
+	containers@lists.linux-foundation.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:39640 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752556Ab0AMLzH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 13 Jan 2010 06:55:07 -0500
-In-Reply-To: <20100113114009.12994.26386.stgit@decadence>
+Received: from mail-fx0-f225.google.com ([209.85.220.225]:51656 "EHLO
+	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753319Ab0AMMY1 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 13 Jan 2010 07:24:27 -0500
+Received: by fxm25 with SMTP id 25so88094fxm.21
+        for <netfilter-devel@vger.kernel.org>; Wed, 13 Jan 2010 04:24:26 -0800 (PST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch cleans up the destructor and the destructor functions
-in the NFCT plugin. I know, this patch isn't easy to review
-because it includes too many changes in one.
+Make nfnetlink socket per-netns.
 
-Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 ---
- input/flow/ulogd_inpflow_NFCT.c |   97 +++++++++++++++++++++++----------------
- 1 files changed, 56 insertions(+), 41 deletions(-)
 
-diff --git a/input/flow/ulogd_inpflow_NFCT.c b/input/flow/ulogd_inpflow_NFCT.c
-index 8d6347f..9ef4eae 100644
---- a/input/flow/ulogd_inpflow_NFCT.c
-+++ b/input/flow/ulogd_inpflow_NFCT.c
-@@ -3,7 +3,7 @@
-  * ulogd input plugin for ctnetlink
-  *
-  * (C) 2005 by Harald Welte <laforge@netfilter.org>
-- * (C) 2008 by Pablo Neira Ayuso <pablo@netfilter.org>
-+ * (C) 2008-2010 by Pablo Neira Ayuso <pablo@netfilter.org>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License version 2
-@@ -852,7 +852,7 @@ static int constructor_nfct(struct ulogd_pluginstance *upi)
- 			     eventmask_ce(upi->config_kset).u.value);
- 	if (!cpi->cth) {
- 		ulogd_log(ULOGD_FATAL, "error opening ctnetlink\n");
--		return -1;
-+		goto err_cth;
- 	}
+ include/linux/netfilter/nfnetlink.h  |    8 ++--
+ include/net/net_namespace.h          |    2 +
+ net/netfilter/nf_conntrack_netlink.c |   13 +++----
+ net/netfilter/nfnetlink.c            |   65 +++++++++++++++++++++++------------
+ net/netfilter/nfnetlink_log.c        |    2 -
+ net/netfilter/nfnetlink_queue.c      |    2 -
+ 6 files changed, 58 insertions(+), 34 deletions(-)
+
+--- a/include/linux/netfilter/nfnetlink.h
++++ b/include/linux/netfilter/nfnetlink.h
+@@ -73,11 +73,11 @@ struct nfnetlink_subsystem {
+ extern int nfnetlink_subsys_register(const struct nfnetlink_subsystem *n);
+ extern int nfnetlink_subsys_unregister(const struct nfnetlink_subsystem *n);
  
- 	nfct_callback_register(cpi->cth, NFCT_T_ALL, &event_handler, upi);
-@@ -863,25 +863,6 @@ static int constructor_nfct(struct ulogd_pluginstance *upi)
- 					"set to %d\n", cpi->nlbufsiz);
- 	}
+-extern int nfnetlink_has_listeners(unsigned int group);
+-extern int nfnetlink_send(struct sk_buff *skb, u32 pid, unsigned group, 
++extern int nfnetlink_has_listeners(struct net *net, unsigned int group);
++extern int nfnetlink_send(struct sk_buff *skb, struct net *net, u32 pid, unsigned group,
+ 			  int echo, gfp_t flags);
+-extern void nfnetlink_set_err(u32 pid, u32 group, int error);
+-extern int nfnetlink_unicast(struct sk_buff *skb, u_int32_t pid, int flags);
++extern void nfnetlink_set_err(struct net *net, u32 pid, u32 group, int error);
++extern int nfnetlink_unicast(struct sk_buff *skb, struct net *net, u_int32_t pid, int flags);
  
--	if (usehash_ce(upi->config_kset).u.value != 0) {
--		cpi->ovh = nfct_open(NFNL_SUBSYS_CTNETLINK, 0);
--		if (!cpi->ovh) {
--			ulogd_log(ULOGD_FATAL, "error opening ctnetlink\n");
--			return -1;
--		}
--
--		nfct_callback_register(cpi->ovh, NFCT_T_ALL,
--				       &overrun_handler, upi);
--	}
--
--	cpi->pgh = nfct_open(NFNL_SUBSYS_CTNETLINK, 0);
--	if (!cpi->pgh) {
--		ulogd_log(ULOGD_FATAL, "error opening ctnetlink\n");
--		return -1;
--	}
--
--	ulogd_init_timer(&cpi->ov_timer, upi, overrun_timeout);
--
- 	cpi->nfct_fd.fd = nfct_fd(cpi->cth);
- 	cpi->nfct_fd.cb = &read_cb_nfct;
- 	cpi->nfct_fd.data = cpi;
-@@ -890,13 +871,9 @@ static int constructor_nfct(struct ulogd_pluginstance *upi)
- 	ulogd_register_fd(&cpi->nfct_fd);
+ extern void nfnl_lock(void);
+ extern void nfnl_unlock(void);
+--- a/include/net/net_namespace.h
++++ b/include/net/net_namespace.h
+@@ -81,6 +81,8 @@ struct net {
+ #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ 	struct netns_ct		ct;
+ #endif
++	struct sock		*nfnl;
++	struct sock		*nfnl_stash;
+ #endif
+ #ifdef CONFIG_XFRM
+ 	struct netns_xfrm	xfrm;
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -482,7 +482,7 @@ ctnetlink_conntrack_event(unsigned int events, struct nf_ct_event *item)
+ 	} else
+ 		return 0;
  
- 	if (usehash_ce(upi->config_kset).u.value != 0) {
--		cpi->nfct_ov.fd = nfct_fd(cpi->ovh);
--		cpi->nfct_ov.cb = &read_cb_ovh;
--		cpi->nfct_ov.data = cpi;
--		cpi->nfct_ov.when = ULOGD_FD_READ;
--
--		ulogd_register_fd(&cpi->nfct_ov);
-+		int family = AF_UNSPEC;
+-	if (!item->report && !nfnetlink_has_listeners(group))
++	if (!item->report && !nfnetlink_has_listeners(&init_net, group))
+ 		return 0;
  
-+		/* we use a hashtable to cache entries in userspace. */
- 		cpi->ct_active =
- 		     hashtable_create(buckets_ce(upi->config_kset).u.value,
- 				      maxentries_ce(upi->config_kset).u.value,
-@@ -905,14 +882,52 @@ static int constructor_nfct(struct ulogd_pluginstance *upi)
- 				      compare);
- 		if (!cpi->ct_active) {
- 			ulogd_log(ULOGD_FATAL, "error allocating hash\n");
--			nfct_close(cpi->cth);
--			nfct_close(cpi->ovh);
--			nfct_close(cpi->pgh);
--			return -1;
-+			goto err_hashtable;
-+		}
-+
-+		/* populate the hashtable. */
-+		nfct_query(cpi->cth, NFCT_Q_DUMP, &family);
-+
-+		/* the overrun handler only make sense with the hashtable,
-+		 * if we hit overrun, we resync with ther kernel table. */
-+		cpi->ovh = nfct_open(NFNL_SUBSYS_CTNETLINK, 0);
-+		if (!cpi->ovh) {
-+			ulogd_log(ULOGD_FATAL, "error opening ctnetlink\n");
-+			goto err_ovh;
-+		}
-+
-+		nfct_callback_register(cpi->ovh, NFCT_T_ALL,
-+				       &overrun_handler, upi);
-+
-+		ulogd_init_timer(&cpi->ov_timer, upi, overrun_timeout);
-+
-+		cpi->nfct_ov.fd = nfct_fd(cpi->ovh);
-+		cpi->nfct_ov.cb = &read_cb_ovh;
-+		cpi->nfct_ov.data = cpi;
-+		cpi->nfct_ov.when = ULOGD_FD_READ;
-+
-+		ulogd_register_fd(&cpi->nfct_ov);
-+
-+		/* we use this to purge old entries during overruns.*/
-+		cpi->pgh = nfct_open(NFNL_SUBSYS_CTNETLINK, 0);
-+		if (!cpi->pgh) {
-+			ulogd_log(ULOGD_FATAL, "error opening ctnetlink\n");
-+			goto err_pgh;
- 		}
- 	}
+ 	skb = nlmsg_new(ctnetlink_nlmsg_size(ct), GFP_ATOMIC);
+@@ -559,7 +559,8 @@ ctnetlink_conntrack_event(unsigned int events, struct nf_ct_event *item)
+ 	rcu_read_unlock();
  
+ 	nlmsg_end(skb, nlh);
+-	err = nfnetlink_send(skb, item->pid, group, item->report, GFP_ATOMIC);
++	err = nfnetlink_send(skb, &init_net, item->pid, group, item->report,
++			     GFP_ATOMIC);
+ 	if (err == -ENOBUFS || err == -EAGAIN)
+ 		return -ENOBUFS;
+ 
+@@ -571,7 +572,7 @@ nla_put_failure:
+ nlmsg_failure:
+ 	kfree_skb(skb);
+ errout:
+-	nfnetlink_set_err(0, group, -ENOBUFS);
++	nfnetlink_set_err(&init_net, 0, group, -ENOBUFS);
  	return 0;
-+
-+err_pgh:
-+	ulogd_unregister_fd(&cpi->nfct_ov);
-+	nfct_close(cpi->ovh);
-+err_ovh:
-+	hashtable_destroy(cpi->ct_active);
-+err_hashtable:
-+	ulogd_unregister_fd(&cpi->nfct_fd);
-+	nfct_close(cpi->cth);
-+err_cth:
-+	return -1;
+ }
+ #endif /* CONFIG_NF_CONNTRACK_EVENTS */
+@@ -1539,7 +1540,7 @@ ctnetlink_expect_event(unsigned int events, struct nf_exp_event *item)
+ 		return 0;
+ 
+ 	if (!item->report &&
+-	    !nfnetlink_has_listeners(NFNLGRP_CONNTRACK_EXP_NEW))
++	    !nfnetlink_has_listeners(&init_net, NFNLGRP_CONNTRACK_EXP_NEW))
+ 		return 0;
+ 
+ 	skb = nlmsg_new(NLMSG_DEFAULT_SIZE, GFP_ATOMIC);
+@@ -1562,7 +1563,7 @@ ctnetlink_expect_event(unsigned int events, struct nf_exp_event *item)
+ 	rcu_read_unlock();
+ 
+ 	nlmsg_end(skb, nlh);
+-	nfnetlink_send(skb, item->pid, NFNLGRP_CONNTRACK_EXP_NEW,
++	nfnetlink_send(skb, &init_net, item->pid, NFNLGRP_CONNTRACK_EXP_NEW,
+ 		       item->report, GFP_ATOMIC);
+ 	return 0;
+ 
+@@ -1572,7 +1573,7 @@ nla_put_failure:
+ nlmsg_failure:
+ 	kfree_skb(skb);
+ errout:
+-	nfnetlink_set_err(0, 0, -ENOBUFS);
++	nfnetlink_set_err(&init_net, 0, 0, -ENOBUFS);
+ 	return 0;
+ }
+ #endif
+--- a/net/netfilter/nfnetlink.c
++++ b/net/netfilter/nfnetlink.c
+@@ -40,7 +40,6 @@ MODULE_ALIAS_NET_PF_PROTO(PF_NETLINK, NETLINK_NETFILTER);
+ 
+ static char __initdata nfversion[] = "0.30";
+ 
+-static struct sock *nfnl = NULL;
+ static const struct nfnetlink_subsystem *subsys_table[NFNL_SUBSYS_COUNT];
+ static DEFINE_MUTEX(nfnl_mutex);
+ 
+@@ -101,34 +100,35 @@ nfnetlink_find_client(u_int16_t type, const struct nfnetlink_subsystem *ss)
+ 	return &ss->cb[cb_id];
  }
  
- static int destructor_nfct(struct ulogd_pluginstance *pi)
-@@ -920,12 +935,7 @@ static int destructor_nfct(struct ulogd_pluginstance *pi)
- 	struct nfct_pluginstance *cpi = (void *) pi->private;
- 	int rc;
+-int nfnetlink_has_listeners(unsigned int group)
++int nfnetlink_has_listeners(struct net *net, unsigned int group)
+ {
+-	return netlink_has_listeners(nfnl, group);
++	return netlink_has_listeners(net->nfnl, group);
+ }
+ EXPORT_SYMBOL_GPL(nfnetlink_has_listeners);
  
--	/* free existent entries */
--	hashtable_iterate(cpi->ct_active, NULL, do_free);
--
--	hashtable_destroy(cpi->ct_active);
--
--	ulogd_del_timer(&cpi->ov_timer);
-+	ulogd_unregister_fd(&cpi->nfct_fd);
+-int nfnetlink_send(struct sk_buff *skb, u32 pid,
++int nfnetlink_send(struct sk_buff *skb, struct net *net, u32 pid,
+ 		   unsigned group, int echo, gfp_t flags)
+ {
+-	return nlmsg_notify(nfnl, skb, pid, group, echo, flags);
++	return nlmsg_notify(net->nfnl, skb, pid, group, echo, flags);
+ }
+ EXPORT_SYMBOL_GPL(nfnetlink_send);
  
- 	rc = nfct_close(cpi->cth);
- 	if (rc < 0)
-@@ -933,15 +943,20 @@ static int destructor_nfct(struct ulogd_pluginstance *pi)
+-void nfnetlink_set_err(u32 pid, u32 group, int error)
++void nfnetlink_set_err(struct net *net, u32 pid, u32 group, int error)
+ {
+-	netlink_set_err(nfnl, pid, group, error);
++	netlink_set_err(net->nfnl, pid, group, error);
+ }
+ EXPORT_SYMBOL_GPL(nfnetlink_set_err);
  
+-int nfnetlink_unicast(struct sk_buff *skb, u_int32_t pid, int flags)
++int nfnetlink_unicast(struct sk_buff *skb, struct net *net, u_int32_t pid, int flags)
+ {
+-	return netlink_unicast(nfnl, skb, pid, flags);
++	return netlink_unicast(net->nfnl, skb, pid, flags);
+ }
+ EXPORT_SYMBOL_GPL(nfnetlink_unicast);
  
- 	if (usehash_ce(pi->config_kset).u.value != 0) {
-+		ulogd_del_timer(&cpi->ov_timer);
-+		ulogd_unregister_fd(&cpi->nfct_ov);
+ /* Process one complete nfnetlink message. */
+ static int nfnetlink_rcv_msg(struct sk_buff *skb, struct nlmsghdr *nlh)
+ {
++	struct net *net = sock_net(skb->sk);
+ 	const struct nfnl_callback *nc;
+ 	const struct nfnetlink_subsystem *ss;
+ 	int type, err;
+@@ -170,7 +170,7 @@ replay:
+ 		if (err < 0)
+ 			return err;
+ 
+-		err = nc->call(nfnl, skb, nlh, (const struct nlattr **)cda);
++		err = nc->call(net->nfnl, skb, nlh, (const struct nlattr **)cda);
+ 		if (err == -EAGAIN)
+ 			goto replay;
+ 		return err;
+@@ -184,26 +184,47 @@ static void nfnetlink_rcv(struct sk_buff *skb)
+ 	nfnl_unlock();
+ }
+ 
+-static void __exit nfnetlink_exit(void)
++static int __net_init nfnetlink_net_init(struct net *net)
+ {
+-	printk("Removing netfilter NETLINK layer.\n");
+-	netlink_kernel_release(nfnl);
+-	return;
++	struct sock *nfnl;
 +
- 		rc = nfct_close(cpi->ovh);
- 		if (rc < 0)
- 			return rc;
--	}
++	nfnl = netlink_kernel_create(net, NETLINK_NETFILTER, NFNLGRP_MAX,
++				     nfnetlink_rcv, NULL, THIS_MODULE);
++	if (!nfnl)
++		return -ENOMEM;
++	net->nfnl_stash = nfnl;
++	rcu_assign_pointer(net->nfnl, nfnl);
++	return 0;
+ }
  
--	rc = nfct_close(cpi->pgh);
--	if (rc < 0)
--		return rc;
-+		rc = nfct_close(cpi->pgh);
-+		if (rc < 0)
-+			return rc;
+-static int __init nfnetlink_init(void)
++static void __net_exit nfnetlink_net_exit_batch(struct list_head *net_exit_list)
+ {
+-	printk("Netfilter messages via NETLINK v%s.\n", nfversion);
++	struct net *net;
  
-+		hashtable_iterate(cpi->ct_active, NULL, do_free);
-+		hashtable_destroy(cpi->ct_active);
+-	nfnl = netlink_kernel_create(&init_net, NETLINK_NETFILTER, NFNLGRP_MAX,
+-				     nfnetlink_rcv, NULL, THIS_MODULE);
+-	if (!nfnl) {
+-		printk(KERN_ERR "cannot initialize nfnetlink!\n");
+-		return -ENOMEM;
++	list_for_each_entry(net, net_exit_list, exit_list) {
++		rcu_assign_pointer(net->nfnl, NULL);
 +	}
- 	return 0;
++	synchronize_net();
++	list_for_each_entry(net, net_exit_list, exit_list) {
++		netlink_kernel_release(net->nfnl_stash);
+ 	}
++}
+ 
+-	return 0;
++static struct pernet_operations nfnetlink_net_ops = {
++	.init		= nfnetlink_net_init,
++	.exit_batch	= nfnetlink_net_exit_batch,
++};
++
++static int __init nfnetlink_init(void)
++{
++	printk("Netfilter messages via NETLINK v%s.\n", nfversion);
++	return register_pernet_subsys(&nfnetlink_net_ops);
  }
  
-
++static void __exit nfnetlink_exit(void)
++{
++	printk("Removing netfilter NETLINK layer.\n");
++	unregister_pernet_subsys(&nfnetlink_net_ops);
++}
+ module_init(nfnetlink_init);
+ module_exit(nfnetlink_exit);
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -323,7 +323,7 @@ __nfulnl_send(struct nfulnl_instance *inst)
+ 			  NLMSG_DONE,
+ 			  sizeof(struct nfgenmsg));
+ 
+-	status = nfnetlink_unicast(inst->skb, inst->peer_pid, MSG_DONTWAIT);
++	status = nfnetlink_unicast(inst->skb, &init_net, inst->peer_pid, MSG_DONTWAIT);
+ 
+ 	inst->qlen = 0;
+ 	inst->skb = NULL;
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -420,7 +420,7 @@ nfqnl_enqueue_packet(struct nf_queue_entry *entry, unsigned int queuenum)
+ 	}
+ 
+ 	/* nfnetlink_unicast will either free the nskb or add it to a socket */
+-	err = nfnetlink_unicast(nskb, queue->peer_pid, MSG_DONTWAIT);
++	err = nfnetlink_unicast(nskb, &init_net, queue->peer_pid, MSG_DONTWAIT);
+ 	if (err < 0) {
+ 		queue->queue_user_dropped++;
+ 		goto err_out_unlock;
