@@ -1,43 +1,38 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Port back 2.6 kernel patch to 2.4 which fixed bridge module panic
- 	when received special fragments
-Date: Thu, 14 Jan 2010 09:46:01 +0100
-Message-ID: <4B4ED9C9.90309@trash.net>
-References: <3104bfb61001130130s4fbf1649oa9a12e7c855cc6e@mail.gmail.com>	 <4B4D9355.5000907@trash.net> <3104bfb61001130142p5011c1cj6b01bf80ea9aee21@mail.gmail.com> <4B4D9619.1010803@trash.net> <4B4E22B1.2020207@pandora.be>
+From: Shan Wei <shanwei@cn.fujitsu.com>
+Subject: Re: [RFC][PATCH] IP: Send a fragment reassembly time exceeded packet
+ when enabling connection track
+Date: Thu, 14 Jan 2010 17:18:52 +0800
+Message-ID: <4B4EE17C.60708@cn.fujitsu.com>
+References: <4B3191E7.8060509@cn.fujitsu.com> <4B42D1C3.3020207@trash.net> <4B4D3AD3.6050403@cn.fujitsu.com> <4B4D83FD.5040604@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: Dong Wei <dwei.zh@gmail.com>, netfilter-devel@vger.kernel.org
-To: Bart De Schuymer <bdschuym@pandora.be>
+Cc: David Miller <davem@davemloft.net>,
+	netfilter-devel@vger.kernel.org,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60487 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756529Ab0ANIqD (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 Jan 2010 03:46:03 -0500
-In-Reply-To: <4B4E22B1.2020207@pandora.be>
+Received: from cn.fujitsu.com ([222.73.24.84]:64682 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1755785Ab0ANJWA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 14 Jan 2010 04:22:00 -0500
+In-Reply-To: <4B4D83FD.5040604@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Bart De Schuymer wrote:
-> Patrick McHardy schreef:
->> Dong Wei wrote:
->>   
->>> Hi, Patrick
->>>
->>> Thanks for your reply.
->>>
->>> I checked the ebtables website, but the mail-list just point to the
->>> netfilter mail list.
->>>
->>> So, would you please tell me who should I send this mail to ?
->>>     
->> Try Bart De Schuymer <bdschuym@pandora.be>.
->>   
-> netfilter-devel works too :)
-> I didn't know the patch was still in use, nice to hear... I'll add the
-> fix and put a new file on the website. I should be able to do this by
-> the end of the upcoming weekend.
+Patrick McHardy wrote, at 01/13/2010 04:27 PM:
+>> Should end hosts which are using conntrack send a fragment reassembly time exceeded message?
+> 
+> Yes, they should.
 
-I guess you should include the patch to check CAP_NET_ADMIN in
-ebtables sent by Florian Westphal a couple of days ago as well.
+OK. Please ignore the patch, because the patch is wrong.
+With the patch, a router also send a fragment reassembly time exceeded message
+when reassembling timeout.
+
+I'll make a new patch to fix the problem. After testing, then submit it. 
+
+-- 
+Best Regards
+-----
+Shan Wei
+
