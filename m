@@ -1,128 +1,66 @@
-From: jamal <hadi@cyberus.ca>
+From: Ben Greear <greearb-my8/4N5VtI7c+919tysfdA@public.gmane.org>
 Subject: Re: RFC: netfilter: nf_conntrack: add support for "conntrack zones"
-Date: Thu, 14 Jan 2010 12:33:23 -0500
-Message-ID: <1263490403.23480.109.camel@bigi>
+Date: Thu, 14 Jan 2010 10:32:18 -0800
+Message-ID: <4B4F6332.50606@candelatech.com>
 References: <4B4F24AC.70105@trash.net> <1263481549.23480.24.camel@bigi>
-	 <4B4F3A50.1050400@trash.net>
-Reply-To: hadi@cyberus.ca
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Linux Netdev List <netdev@vger.kernel.org>,
-	containers@lists.linux-foundation.org,
-	Ben Greear <greearb@candelatech.com>
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from qw-out-2122.google.com ([74.125.92.25]:45845 "EHLO
-	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756229Ab0ANRd0 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 Jan 2010 12:33:26 -0500
-In-Reply-To: <4B4F3A50.1050400@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: Linux Netdev List <netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>,
+        containers-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org,
+        Netfilter Development Mailinglist <netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+To: hadi-fAAogVwAN2Kw5LPnMra/2Q@public.gmane.org
+Return-path: <containers-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+In-Reply-To: <1263481549.23480.24.camel@bigi>
+List-Unsubscribe: <https://lists.linux-foundation.org/mailman/listinfo/containers>,
+	<mailto:containers-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=unsubscribe>
+List-Archive: <http://lists.linux-foundation.org/pipermail/containers>
+List-Post: <mailto:containers-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org>
+List-Help: <mailto:containers-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=help>
+List-Subscribe: <https://lists.linux-foundation.org/mailman/listinfo/containers>,
+	<mailto:containers-request-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org?subject=subscribe>
+Sender: containers-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+Errors-To: containers-bounces-cunTk1MwBs9QetFLy7KEm3xJsTq8ys+cHZ5vskTnxNA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 2010-01-14 at 16:37 +0100, Patrick McHardy wrote:
-> jamal wrote:
+On 01/14/2010 07:05 AM, jamal wrote:
+>
+> Ive had an equivalent discussion with B Greear (CCed) at one point on
+> something similar, curious if you solve things differently - couldnt
+> tell from the patch if you address it.
+> Comments inline:
+>
+> On Thu, 2010-01-14 at 15:05 +0100, Patrick McHardy wrote:
+>> The attached largish patch adds support for "conntrack zones",
+>> which are virtual conntrack tables that can be used to seperate
+>> connections from different zones, allowing to handle multiple
+>> connections with equal identities in conntrack and NAT.
+>>
+>> A zone is simply a numerical identifier associated with a network
+>> device that is incorporated into the various hashes and used to
+>> distinguish entries in addition to the connection tuples. Additionally
+>> it is used to seperate conntrack defragmentation queues. An iptables
+>> target for the raw table could be used alternatively to the network
+>> device for assigning conntrack entries to zones.
+>>
+>>
+>> This is mainly useful when connecting multiple private networks using
+>> the same addresses (which unfortunately happens occasionally)
+>
+> Agreed that this would be a main driver of such a feature.
+> Which means that you need zones (or whatever noun other people use) to
+> work on not just netfilter, but also routing, ipsec etc.
+> As a digression: this is trivial to solve with network namespaces.
 
-> > Agreed that this would be a main driver of such a feature.
-> > Which means that you need zones (or whatever noun other people use) to
-> > work on not just netfilter, but also routing, ipsec etc.
-> 
-> Routing already works fine. I believe IPsec should also work already,
-> but I haven't tried it.
+For small or simple cases, this may be true..but there is a lot of work
+to make a complex user-space app that manages arbitrary amounts of interfaces
+routing tables in an arbitrary amount of network namespaces.  With the contrack-zones
+approach, user-space apps do not require any significant changes, and you do not
+need the rest of the namespace overhead to accomplish the task.
 
-maybe further discussion  would clarify this point..
+Thanks,
+Ben
 
-> The zone is set based on some other criteria (in this case the
-> incoming device).
-
-If you are using a netdev as a reference point, then I take it 
-if you add vlans should be possible to do multiple zones on a single
-physical netdev? Or is there some other way to satisfy that?
-
->  The packets make one pass through the stack
-> to a veth device and are SNATed in POSTROUTING to non-clashing
-> addresses. 
-
-Ok - makes sense. 
-i.e NAT would work; and policy routing as well as arp would be fine.
-Also it looks to be sufficiently useful to fit a specific use case you
-are interested in.
-But back to my question on routing, ipsec etc (and you may not be
-interested in solving this problem, but it is what i was getting to
-earlier). Lets take for example: 
-a) network tables like SAD/SPD tables: how you would separate those on a
-per-zone basis? i.e 10.0.0.1/zone1 could use different
-policy/association than 10.0.0.1/zone2
-b) dynamic protocols (routing, IKE etc): how do you do that without 
-making both sides understand what is going on?
-
-> > This is a valid concern against the namespace approach. Existing tools
-> > of course could be taught to know about namespaces - and one could
-> > argue that if you can resolve the overlap IP address issue, then you
-> > _have to_ modify user space anyways.
-> 
-> I don't think thats true. 
-
-Refer to my statements above for an example.
-
-> In any case its completely impractical
-> to modify every userspace tool that does something with networking
-> and potentially make complex configuration changes to have all
-> those namespaces interact nicely. 
-
-Agreed. But the major ones like iproute2 etc could be taught. We have
-namespaces in the kernel already, over a period of time I think changing
-the user space tools would a sensible evolution.
-
-> Currently they are simply not
-> very well suited for virtualizing selected parts of networking.
-
-My contention is that it is a lot less headache to just virtualize 
-all the network stack and then use what you want than it is to go and
-selectively changing the network objects.
-Note: if i wanted today i could run racoon on every namespace 
-unchanged and it would work or i could modify racoon to understand
-namespaces...
-
-> I'm not sure whether there is a typical user for overlapping
-> networks :) I know of setups with ~150 overlapping networks.
-> 
-> The number of conntracks per zone doesn't matter since the
-> table is shared between all zones. network namespaces would
-> allocate 150 tables, each of the same size, which might be
-> quite large.
-
-Thats what i was looking for ..
-So the difference, to pick the 150 zones example so as to put a number
-around it, is namespaces will consume 150.X bytes (where X is the
-overhead of a conntrack table) and you approach will be (X + 152) bytes,
-correct?
-What is the typical sizeof X?
-
-> > You may also wanna look as a metric at code complexity/maintainability
-> > of this scheme vs namespace (which adds zero changes to the kernel).
-> 
-> There's not a lot of complexity, its basically passing a numeric
-> identifier around in a few spots and comparing it. Something like
-> TOS handling in the routing code.
-
-I think the challenge is whether zones will have to encroach on other
-net stack objects or not. You are already touching structure netdev...
-A digression: TOS is different really - it has network level semantic. This 
-would be more like mark or in some cases ifindex (i.e local semantics)
- 
-> > BTW, why not use skb->mark instead of creating a new semantic construct?
-> 
-> Because people are already using it for different purposes.
-
-tru dat - it only gives you one semantical axis and you need an
-additional dimension in your case (namespace have that resolved via
-struct net).
-
-cheers,
-jamal
-
+-- 
+Ben Greear <greearb-my8/4N5VtI7c+919tysfdA@public.gmane.org>
+Candela Technologies Inc  http://www.candelatech.com
