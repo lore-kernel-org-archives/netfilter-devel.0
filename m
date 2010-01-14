@@ -1,61 +1,43 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PROPOSAL]: Alias names for network interfaces
-Date: Thu, 14 Jan 2010 09:44:40 +0100
-Message-ID: <4B4ED978.9030700@trash.net>
-References: <EDA0A4495861324DA2618B4C45DCB3EE5899AC@blrx3m08.blr.amer.dell.com> <20100112194955.GA11752@mock.linuxdev.us.dell.com> <alpine.LSU.2.01.1001130039020.4567@obet.zrqbmnf.qr> <EDA0A4495861324DA2618B4C45DCB3EE5899B5@blrx3m08.blr.amer.dell.com> <20100113110425.GA5095@lina.inka.de> <4B4E0158.4050102@oracle.com> <20100113174610.GA10130@mdomsch-pws380.us.dell.com> <alpine.LSU.2.01.1001131908530.18981@obet.zrqbmnf.qr>
+Subject: Re: Port back 2.6 kernel patch to 2.4 which fixed bridge module panic
+ 	when received special fragments
+Date: Thu, 14 Jan 2010 09:46:01 +0100
+Message-ID: <4B4ED9C9.90309@trash.net>
+References: <3104bfb61001130130s4fbf1649oa9a12e7c855cc6e@mail.gmail.com>	 <4B4D9355.5000907@trash.net> <3104bfb61001130142p5011c1cj6b01bf80ea9aee21@mail.gmail.com> <4B4D9619.1010803@trash.net> <4B4E22B1.2020207@pandora.be>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: "Domsch, Matt" <Matt_Domsch@Dell.com>,
-	John Haxby <john.haxby@oracle.com>,
-	"net-tools@lina.inka.de" <net-tools@lina.inka.de>,
-	Bernd Eckenfels <be-mail2010@lina.inka.de>,
-	"K, Narendra" <Narendra_K@Dell.com>,
-	"shemminger@linux-foundation.org" <shemminger@linux-foundation.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"jgarzik@users.sourceforge.net" <jgarzik@users.sourceforge.net>,
-	"Rose, Charles" <Charles_Rose@Dell.com>,
-	"Iyer, Shyam" <Shyam_Iyer@Dell.com>,
-	"Hargrave, Jordan" <Jordan_Hargrave@Dell.com>,
-	"Shandilya, Sandeep K" <Sandeep_K_Shandilya@Dell.com>
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: Dong Wei <dwei.zh@gmail.com>, netfilter-devel@vger.kernel.org
+To: Bart De Schuymer <bdschuym@pandora.be>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60459 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:60487 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756310Ab0ANIon (ORCPT
+	with ESMTP id S1756529Ab0ANIqD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 Jan 2010 03:44:43 -0500
-In-Reply-To: <alpine.LSU.2.01.1001131908530.18981@obet.zrqbmnf.qr>
+	Thu, 14 Jan 2010 03:46:03 -0500
+In-Reply-To: <4B4E22B1.2020207@pandora.be>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Wednesday 2010-01-13 18:46, Domsch, Matt wrote:
->>> I am less than enthusiastic about the idea as well.  I've come across 
->>> numerous userspace scripts and whatnot that have enough trouble with the 
->>> default route not being through "eth0" let alone anything more 
->>> complex.   Aliases are going to cause a lot of problems for a lot of 
->>> people for little actual gain.
->> The "actual gain" is to provide a deterministic method of naming
->> network devices, in a stateless manner (e.g. w/o hard-coding MAC
->> addresses).  We don't have deterministic naming today.  It only gets
->> worse as we add more NIC ports.
->>
->> The kernel doesn't provide deterministic naming.
->>
->> Renaming from ethN to ethM is racy; often we wind up with devices named
->> 'eth0_rename'.
->>
->> Stephen noted (echoed in Bernd's comment) that the ethN namespace is
->> effectively an ABI (and certainly the 15-character IFNAMESZ is).
->> Userspace tools today expect ethN names.
-> 
-> Let's get things straight at least. Userspace does not expect eth#.
-> You may get away with claiming feature-incompleteness if your program
-> has no idea of tun#, sit# gre# and such, but there is also wlan#,
-> tap#, and others that are a link/ether device. If a program relies on
-> eth#, it is broken and should either be fixed or left dead in its
-> corner.
+Bart De Schuymer wrote:
+> Patrick McHardy schreef:
+>> Dong Wei wrote:
+>>   
+>>> Hi, Patrick
+>>>
+>>> Thanks for your reply.
+>>>
+>>> I checked the ebtables website, but the mail-list just point to the
+>>> netfilter mail list.
+>>>
+>>> So, would you please tell me who should I send this mail to ?
+>>>     
+>> Try Bart De Schuymer <bdschuym@pandora.be>.
+>>   
+> netfilter-devel works too :)
+> I didn't know the patch was still in use, nice to hear... I'll add the
+> fix and put a new file on the website. I should be able to do this by
+> the end of the upcoming weekend.
 
-I agree, this is simply broken. iptraf is one of these sad examples
-which has been annoying me for years.
+I guess you should include the patch to check CAP_NET_ADMIN in
+ebtables sent by Florian Westphal a couple of days ago as well.
