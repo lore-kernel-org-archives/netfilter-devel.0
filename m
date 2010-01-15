@@ -1,44 +1,65 @@
-From: Pierre Chifflier <pchifflier@edenwall.com>
-Subject: Re: [ULOGD2] UNIXSOCK plugin (v4)
-Date: Thu, 14 Jan 2010 21:13:45 +0100
-Message-ID: <20100114201345.GA32383@piche.inl.fr>
-References: <1263498088-32555-1-git-send-email-chifflier@inl.fr>
- <alpine.LSU.2.01.1001142056280.12046@obet.zrqbmnf.qr>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: Re: [PATCH v5] rps: Receive Packet Steering
+Date: Fri, 15 Jan 2010 10:22:03 +0800
+Message-ID: <412e6f7f1001141822pffa070ap15c73e2931402294@mail.gmail.com>
+References: <alpine.DEB.1.00.1001141353140.19018@pokey.mtv.corp.google.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pierre Chifflier <chifflier@inl.fr>,
-	netfilter-devel@vger.kernel.org, eleblond@inl.fr
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+Cc: davem@davemloft.net, netdev@vger.kernel.org,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Tom Herbert <therbert@google.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:60578 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754152Ab0ANUNy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 Jan 2010 15:13:54 -0500
-Content-Disposition: inline
-In-Reply-To: <alpine.LSU.2.01.1001142056280.12046@obet.zrqbmnf.qr>
+Received: from fg-out-1718.google.com ([72.14.220.152]:28176 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750695Ab0AOCWF (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 14 Jan 2010 21:22:05 -0500
+In-Reply-To: <alpine.DEB.1.00.1001141353140.19018@pokey.mtv.corp.google.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jan 14, 2010 at 08:57:27PM +0100, Jan Engelhardt wrote:
-> 
-> On Thursday 2010-01-14 20:41, Pierre Chifflier wrote:
-> >
-> >Here is an updated version of the UNIXSOCK plugin.
-> >
-> >Changes for v4:
-> >- use structures instead of reading integers directly
-> >- all structures and fields are now aligned (4 bytes)
-> 
-> Are there any 64-bit quantities or pointers in these structs?
-> If so, this may need 8 bytes.
-> 
-
-Hi Jan,
-
-Currently there are only uint16_t, uint32_t and strings (char*) stored
-in these structs.
-
-Alignment is defined using a constant (ALIGN_SIZE) so changing to 8
-bytes shouldn't be a problem if required later.
-
-Pierre
+T24gRnJpLCBKYW4gMTUsIDIwMTAgYXQgNTo1NiBBTSwgVG9tIEhlcmJlcnQgPHRoZXJiZXJ0QGdv
+b2dsZS5jb20+IHdyb3RlOgo+ICsKPiArIMKgIMKgIMKgIGlmIChza2ItPnJ4aGFzaCkKPiArIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIGdvdG8gZ290X2hhc2g7IC8qIFNraXAgaGFzaCBjb21wdXRhdGlv
+biBvbiBwYWNrZXQgaGVhZGVyICovCj4gKwo+ICsgwqAgwqAgwqAgc3dpdGNoIChza2ItPnByb3Rv
+Y29sKSB7Cj4gKyDCoCDCoCDCoCBjYXNlIF9fY29uc3RhbnRfaHRvbnMoRVRIX1BfSVApOgo+ICsg
+wqAgwqAgwqAgwqAgwqAgwqAgwqAgaWYgKCFwc2tiX21heV9wdWxsKHNrYiwgc2l6ZW9mKCppcCkp
+KQo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgZ290byBkb25lOwo+ICsKPiAr
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIGlwID0gKHN0cnVjdCBpcGhkciAqKSBza2ItPmRhdGE7Cj4g
+KyDCoCDCoCDCoCDCoCDCoCDCoCDCoCBpcF9wcm90byA9IGlwLT5wcm90b2NvbDsKPiArIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIGFkZHIxID0gaXAtPnNhZGRyOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgYWRkcjIgPSBpcC0+ZGFkZHI7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCBpaGwgPSBpcC0+
+aWhsOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgYnJlYWs7Cj4gKyDCoCDCoCDCoCBjYXNlIF9f
+Y29uc3RhbnRfaHRvbnMoRVRIX1BfSVBWNik6Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCBpZiAo
+IXBza2JfbWF5X3B1bGwoc2tiLCBzaXplb2YoKmlwNikpKQo+ICsgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgZ290byBkb25lOwo+ICsKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGlw
+NiA9IChzdHJ1Y3QgaXB2NmhkciAqKSBza2ItPmRhdGE7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDC
+oCBpcF9wcm90byA9IGlwNi0+bmV4dGhkcjsKVGhpcyBjb2RlIGNhbid0IHdvcmssIHdoZW4gdGhl
+cmUgYXJlIGV4dHJhIGhlYWRlcnMuIGlwdjZfc2tpcF9leHRoZHIoKQpjYW4gYmUgdXNlZCB0byBn
+ZXQgdGhlIGw0IGhlYWRlci4KCj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCBhZGRyMSA9IGlwNi0+
+c2FkZHIuczZfYWRkcjMyWzNdOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgYWRkcjIgPSBpcDYt
+PmRhZGRyLnM2X2FkZHIzMlszXTsKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGlobCA9ICg0MCA+
+PiAyKTsKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGJyZWFrOwo+ICsgwqAgwqAgwqAgZGVmYXVs
+dDoKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGdvdG8gZG9uZTsKPiArIMKgIMKgIMKgIH0KPiAr
+IMKgIMKgIMKgIHBvcnRzID0gMDsKPiArIMKgIMKgIMKgIHN3aXRjaCAoaXBfcHJvdG8pIHsKPiAr
+IMKgIMKgIMKgIGNhc2UgSVBQUk9UT19UQ1A6Cj4gKyDCoCDCoCDCoCBjYXNlIElQUFJPVE9fVURQ
+Ogo+ICsgwqAgwqAgwqAgY2FzZSBJUFBST1RPX0RDQ1A6Cj4gKyDCoCDCoCDCoCBjYXNlIElQUFJP
+VE9fRVNQOgo+ICsgwqAgwqAgwqAgY2FzZSBJUFBST1RPX0FIOgo+ICsgwqAgwqAgwqAgY2FzZSBJ
+UFBST1RPX1NDVFA6Cj4gKyDCoCDCoCDCoCBjYXNlIElQUFJPVE9fVURQTElURToKPiArIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIGlmIChwc2tiX21heV9wdWxsKHNrYiwgKGlobCAqIDQpICsgNCkpCj4g
+KyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBwb3J0cyA9ICooKHUzMiAqKSAoc2ti
+LT5kYXRhICsgKGlobCAqIDQpKSk7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCBicmVhazsKPiAr
+Cj4gKyDCoCDCoCDCoCBkZWZhdWx0Ogo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgYnJlYWs7Cj4g
+KyDCoCDCoCDCoCB9Cj4gKwo+ICsgwqAgwqAgwqAgc2tiLT5yeGhhc2ggPSBqaGFzaF8zd29yZHMo
+YWRkcjEsIGFkZHIyLCBwb3J0cywgaGFzaHJuZCk7CkZvciBjb25uZWN0aW9uIGJhc2VkIHBhY2tl
+dCBwcm9jZXNzaW5nLCBzdWNoIGFzIG5ldGZpbHRlciwKZGlzdHJpYnV0aW5nIHRoZSBwYWNrZXRz
+IGluIHR3byBkaXJlY3Rpb25zIGludG8gb25lIENQVSB3aWxsIHJlZHVjZQpjYWNoZSBtaXNzLCB3
+aGVuIE5BVCBpc24ndCB1c2VkLiBJIHRoaW5rIHRoZSBjb2RlIGJlbGxvdyB3aWxsIGhlbHA6Cmlm
+IChhZGRyMSA+IGFkZHIyKQogIHN3YXAoYWRkcjEsIGFkZHIyKTsKCj4gKyDCoCDCoCDCoCBpZiAo
+IXNrYi0+cnhoYXNoKQo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgc2tiLT5yeGhhc2ggPSAxOwoK
+V2h5IG5vdCBwdXQgdGhlIGFib3ZlIGNvZGUgaW50byBhIG5ldyBmdW5jdGlvbiwgYW5kIGFkZCBt
+b3JlIHByb3RvY29scwpzdXBwb3J0LCBzdWNoIGFzIDgwMi4xUS4gIFRob3VnaCByeGhhc2ggaXMg
+YmFzZWQgb24gNC10dXBsZSwgSSB0aGluawpuZXRmaWx0ZXIgd2lsbCBiZW5lZml0IGZyb20gaXQu
+CgotLSAKUmVnYXJkc++8jApDaGFuZ2xpIEdhbyh4aWFvc3VvQGdtYWlsLmNvbSkK
