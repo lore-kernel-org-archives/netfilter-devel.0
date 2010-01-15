@@ -1,38 +1,151 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: Re: [PATCH v5] rps: Receive Packet Steering
-Date: Fri, 15 Jan 2010 17:05:35 +0800
-Message-ID: <412e6f7f1001150105q2ae70fb2u2e2cfba39a250dc0@mail.gmail.com>
-References: <alpine.DEB.1.00.1001141353140.19018@pokey.mtv.corp.google.com>
-	 <412e6f7f1001141822pffa070ap15c73e2931402294@mail.gmail.com>
-	 <20100115.005029.214418777.davem@davemloft.net>
+From: Samir Bellabes <sam@synack.fr>
+Subject: Re: [RFC 7/9] snet: introduce snet_netlink.c and snet_netlink.h
+Date: Fri, 15 Jan 2010 10:15:57 +0100
+Message-ID: <m2k4vjhgoi.fsf@ssh.synack.fr>
+References: <1262437456-24476-1-git-send-email-sam@synack.fr>
+	<1262437456-24476-8-git-send-email-sam@synack.fr>
+	<4B420464.3040301@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: therbert@google.com, netdev@vger.kernel.org,
+Content-Type: text/plain; charset=us-ascii
+Cc: linux-security-module@vger.kernel.org, jamal <hadi@cyberus.ca>,
+	Evgeniy Polyakov <zbr@ioremap.net>,
+	Neil Horman <nhorman@tuxdriver.com>, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20100115.005029.214418777.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <linux-security-module-owner@vger.kernel.org>
+In-Reply-To: <4B420464.3040301@trash.net> (Patrick McHardy's message of "Mon,
+	04 Jan 2010 16:08:20 +0100")
+Sender: linux-security-module-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, Jan 15, 2010 at 4:50 PM, David Miller <davem@davemloft.net> wro=
-te:
-> From: Changli Gao <xiaosuo@gmail.com>
-> Date: Fri, 15 Jan 2010 10:22:03 +0800
->
->> For connection based packet processing, such as netfilter,
->> distributing the packets in two directions into one CPU will reduce
->> cache miss, when NAT isn't used. I think the code bellow will help:
->> if (addr1 > addr2)
->> =C2=A0 swap(addr1, addr2);
->
-> You can't just do the addresses, the ports will swap too.
->
+Patrick McHardy <kaber@trash.net> writes:
 
-Yea, and it is just an example.
+>> +static struct genl_ops snet_genl_ops[] = {
+>> +	{
+>> +		.cmd		= SNET_C_VERSION,
+>> +		.flags		= GENL_ADMIN_PERM,
+>> +		.policy		= snet_genl_policy,
+>> +		.doit		= snet_nl_version,
+>> +		.dumpit		= NULL,
+>
+> The NULL initializations aren't neccessary.
+>
+[...]
+Instead of dropping lines with the NULL initializations, I reduced the
+code with a declaration macro
 
+Patricks, thanks
+sam
+ 
+commit f8539d466dbe081b35f6813cfedd91947615bee9
+Author: Samir Bellabes <sam@synack.fr>
+Date:   Fri Jan 15 09:53:09 2010 +0100
 
---=20
-Regards=EF=BC=8C
-Changli Gao(xiaosuo@gmail.com)
+    snet: reducing code by using macros to define snet_genl_ops
+    
+    This patch introduces the macro SNET_GENL_OPS. This reduces the code of the
+    declaration struct genl_ops snet_genl_ops[]
+    
+    Signed-off-by: Samir Bellabes <sam@synack.fr>
+
+diff --git a/security/snet/snet_netlink.c b/security/snet/snet_netlink.c
+index e108e7a..ba6a26d 100644
+--- a/security/snet/snet_netlink.c
++++ b/security/snet/snet_netlink.c
+@@ -400,70 +400,33 @@ out:
+ 	return ret;
+ }
+ 
++#define SNET_GENL_OPS(_cmd, _flags, _policy, _op, _opname)		\
++	{							\
++		.cmd	= _cmd,					\
++		.flags	= _flags,				\
++		.policy	= _policy,				\
++		._op	= snet_nl_##_opname,			\
++	}
++
+ static struct genl_ops snet_genl_ops[] = {
+-	{
+-		.cmd		= SNET_C_VERSION,
+-		.flags		= GENL_ADMIN_PERM,
+-		.policy		= snet_genl_policy,
+-		.doit		= snet_nl_version,
+-		.dumpit		= NULL,
+-	},
+-	{
+-		.cmd		= SNET_C_REGISTER,
+-		.flags		= GENL_ADMIN_PERM,
+-		.policy		= snet_genl_policy,
+-		.doit		= snet_nl_register,
+-		.dumpit		= NULL,
+-	},
+-	{
+-		.cmd		= SNET_C_UNREGISTER,
+-		.flags		= GENL_ADMIN_PERM,
+-		.policy		= snet_genl_policy,
+-		.doit		= snet_nl_unregister,
+-		.dumpit		= NULL,
+-	},
+-	{
+-		.cmd		= SNET_C_INSERT,
+-		.flags		= GENL_ADMIN_PERM,
+-		.policy		= snet_genl_policy,
+-		.doit		= snet_nl_insert,
+-		.dumpit		= NULL,
+-	},
+-	{
+-		.cmd		= SNET_C_REMOVE,
+-		.flags		= GENL_ADMIN_PERM,
+-		.policy		= snet_genl_policy,
+-		.doit		= snet_nl_remove,
+-		.dumpit		= NULL,
+-	},
+-	{
+-		.cmd		= SNET_C_FLUSH,
+-		.flags		= GENL_ADMIN_PERM,
+-		.policy		= snet_genl_policy,
+-		.doit		= snet_nl_flush,
+-		.dumpit		= NULL,
+-	},
+-	{
+-		.cmd		= SNET_C_LIST,
+-		.flags		= GENL_ADMIN_PERM,
+-		.policy		= snet_genl_policy,
+-		.doit		= NULL,
+-		.dumpit		= snet_nl_list,
+-	},
+-	{
+-		.cmd		= SNET_C_VERDICT,
+-		.flags		= GENL_ADMIN_PERM,
+-		.policy		= snet_genl_policy,
+-		.doit		= snet_nl_verdict,
+-		.dumpit		= NULL,
+-	},
+-	{
+-		.cmd		= SNET_C_VERDICT_DELAY,
+-		.flags		= GENL_ADMIN_PERM,
+-		.policy		= snet_genl_policy,
+-		.doit		= snet_nl_verdict_delay,
+-		.dumpit		= NULL,
+-	},
++	SNET_GENL_OPS(SNET_C_VERSION, GENL_ADMIN_PERM, snet_genl_policy,
++		      doit, version),
++	SNET_GENL_OPS(SNET_C_REGISTER, GENL_ADMIN_PERM, snet_genl_policy,
++		      doit, register),
++	SNET_GENL_OPS(SNET_C_UNREGISTER, GENL_ADMIN_PERM, snet_genl_policy,
++		      doit, unregister),
++	SNET_GENL_OPS(SNET_C_INSERT, GENL_ADMIN_PERM, snet_genl_policy,
++		      doit, insert),
++	SNET_GENL_OPS(SNET_C_REMOVE, GENL_ADMIN_PERM, snet_genl_policy,
++		      doit, remove),
++	SNET_GENL_OPS(SNET_C_FLUSH, GENL_ADMIN_PERM, snet_genl_policy,
++		      doit, flush),
++	SNET_GENL_OPS(SNET_C_REGISTER, GENL_ADMIN_PERM, snet_genl_policy,
++		      dumpit, list),
++	SNET_GENL_OPS(SNET_C_REGISTER, GENL_ADMIN_PERM, snet_genl_policy,
++		      doit, verdict),
++	SNET_GENL_OPS(SNET_C_VERDICT_DELAY, GENL_ADMIN_PERM, snet_genl_policy,
++		      doit, verdict_delay),
+ };
+ 
+ static __init int snet_netlink_init(void)
