@@ -1,108 +1,98 @@
-From: jamal <hadi@cyberus.ca>
-Subject: Re: RFC: netfilter: nf_conntrack: add support for "conntrack zones"
-Date: Fri, 15 Jan 2010 10:19:14 -0500
-Message-ID: <1263568754.23480.142.camel@bigi>
-References: <4B4F24AC.70105@trash.net> <1263481549.23480.24.camel@bigi>
-	 <4B4F3A50.1050400@trash.net> <1263490403.23480.109.camel@bigi>
-	 <4B50403A.6010507@trash.net>
-Reply-To: hadi@cyberus.ca
+From: <Narendra_K@Dell.com>
+Subject: RE: [PROPOSAL]: Alias names for network interfaces
+Date: Sat, 16 Jan 2010 00:44:41 +0530
+Message-ID: <EDA0A4495861324DA2618B4C45DCB3EE5899F1@blrx3m08.blr.amer.dell.com>
+References: <EDA0A4495861324DA2618B4C45DCB3EE5899AC@blrx3m08.blr.amer.dell.com> <20100112194955.GA11752@mock.linuxdev.us.dell.com> <alpine.LSU.2.01.1001130039020.4567@obet.zrqbmnf.qr> <EDA0A4495861324DA2618B4C45DCB3EE5899B5@blrx3m08.blr.amer.dell.com> <20100113110425.GA5095@lina.inka.de> <4B4E0158.4050102@oracle.com> <20100113174610.GA10130@mdomsch-pws380.us.dell.com> <alpine.LSU.2.01.1001131908530.18981@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Linux Netdev List <netdev@vger.kernel.org>,
-	containers@lists.linux-foundation.org,
-	Ben Greear <greearb@candelatech.com>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain;
+	charset="US-ASCII"
+Content-Transfer-Encoding: 8BIT
+Cc: <john.haxby@oracle.com>, <net-tools@lina.inka.de>,
+	<be-mail2010@lina.inka.de>, <shemminger@linux-foundation.org>,
+	<netfilter-devel@vger.kernel.org>, <jgarzik@users.sourceforge.net>,
+	<Charles_Rose@Dell.com>, <Shyam_Iyer@Dell.com>,
+	<Jordan_Hargrave@Dell.com>, <Sandeep_K_Shandilya@Dell.com>
+To: <jengelh@medozas.de>, <Matt_Domsch@Dell.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yw0-f176.google.com ([209.85.211.176]:55215 "EHLO
-	mail-yw0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751750Ab0AOPTR (ORCPT
+Received: from ausc60pc101.us.dell.com ([143.166.85.206]:8327 "EHLO
+	ausc60pc101.us.dell.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758062Ab0AOTOv convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 15 Jan 2010 10:19:17 -0500
-In-Reply-To: <4B50403A.6010507@trash.net>
+	Fri, 15 Jan 2010 14:14:51 -0500
+Content-class: urn:content-classes:message
+In-Reply-To: <alpine.LSU.2.01.1001131908530.18981@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 2010-01-15 at 11:15 +0100, Patrick McHardy wrote:
-> jamal wrote:
 
-> > b) dynamic protocols (routing, IKE etc): how do you do that without 
-> > making both sides understand what is going on?
+> -----Original Message-----
+> From: Jan Engelhardt [mailto:jengelh@medozas.de]
+> Sent: Wednesday, January 13, 2010 11:52 PM
+> To: Domsch, Matt
+> Cc: John Haxby; net-tools@lina.inka.de; Bernd Eckenfels; K, Narendra;
+> shemminger@linux-foundation.org; netfilter-devel@vger.kernel.org;
+> jgarzik@users.sourceforge.net; Rose, Charles; Iyer, Shyam; Hargrave,
+> Jordan; Shandilya, Sandeep K
+> Subject: Re: [PROPOSAL]: Alias names for network interfaces
 > 
-> In case of IPsec the outer addresses are different, its only the
-> selectors which will have similar addresses. A keying deamon should
-> have no trouble with this. The ifindex would be needed in the
-> selectors though to make sure each policy is used for the correct
-> traffic.
-
-you need to have user space knowledgeable of the mapping between an
-ifindex and a zone. It may work with perhaps that info explicitly in
-config with tunnel mode/ESP.
-
-> A routing daemon is unrealistic to be used in this scenario, at
-> least a single one for all the overlapping networks.
-
-I think in general, it would be hard to deal with anything that requires
-dynamic control where one or more peers have to discover each other once
-you have IP overlap. You will have to change those user space apps.
-
-In any case, for what you seem to intend this for, i think it works.
-
-> > Agreed. But the major ones like iproute2 etc could be taught. We have
-> > namespaces in the kernel already, over a period of time I think changing
-> > the user space tools would a sensible evolution.
 > 
-> Yes, that might be useful in any case. But I don't think it would
-> even work for iproute or other standalone programs, a process can't
-> associate to an existing namespace except through clone(). So it
-> needs to run as child of a process already associated with the
-> namespace.
-
-The mechanics are not there, yet. But if i had sufficient permission,
-and was able to find the namespaces when i ask and/or get events when it
-is created it should be an issue of sending it a message.
-The current approach to say migrate a veth via iproute2 requires we 
-know the pid of the target namespace. Thats a usability issue.
-I tried to muck with namespaces and if you use a library like lxc
-you can do it - but it is a hack as it stands today (and merging
-iproute2 with lxc is questionable).
-
-
->  (X + 152) bytes,
-> > correct?
-> > What is the typical sizeof X?
+> On Wednesday 2010-01-13 18:46, Domsch, Matt wrote:
+> >>
+> >> I am less than enthusiastic about the idea as well.  I've come
+> across
+> >> numerous userspace scripts and whatnot that have enough trouble
+with
+> the
+> >> default route not being through "eth0" let alone anything more
+> >> complex.   Aliases are going to cause a lot of problems for a lot
+of
+> >> people for little actual gain.
+> >
+> >The "actual gain" is to provide a deterministic method of naming
+> >network devices, in a stateless manner (e.g. w/o hard-coding MAC
+> >addresses).  We don't have deterministic naming today.  It only gets
+> >worse as we add more NIC ports.
+> >
+> >The kernel doesn't provide deterministic naming.
+> >
+> >Renaming from ethN to ethM is racy; often we wind up with devices
+> named
+> >'eth0_rename'.
+> >
+> >Stephen noted (echoed in Bernd's comment) that the ethN namespace is
+> >effectively an ABI (and certainly the 15-character IFNAMESZ is).
+> >Userspace tools today expect ethN names.
 > 
-> No, to give some correct number. Assuming a conntrack table of
-> 10MB (large, but reasonable depending on the number of connections)
-> we get an overhead of:
+> Let's get things straight at least. Userspace does not expect eth#.
+> You may get away with claiming feature-incompleteness if your program
+> has no idea of tun#, sit# gre# and such, but there is also wlan#,
+> tap#, and others that are a link/ether device. If a program relies on
+> eth#, it is broken and should either be fixed or left dead in its
+> corner.
 > 
-> namespaces: 150 * 10MB memory use
-> "zones": 152 bytes increased code size
 
-That is substantial if you are doing an embedded device.
-But otherwise, RAM is so cheap that i would take usability
-any day for an extra $5.
+I am aware of many data center scenarios where lot of systems(large
+numbers) are already pre-wired where Integrated Port 1 is connected to 
+public network and Integrated Port 2 is connected to private network.
+With the existing OS image, Integrated Port 1 is eth0 and Integrated
+Port 2 is eth1. So everything is working as expected. Now there is a
+need to upgrade to a new OS image and with this image Integrated Port 1
+gets named eth1
+and Integrated Port 2 gets eth0. Scripts (for example firewall) are
+written for a scenario of Integrated Port 1 (eth0) is public 
+network and Integrated Port 2 (eth1) as private network. 
 
-BTW, I think the zones approach will still use more than 10MB
-in this case given it encompasses all "zones" whereas namespace only
-does it for a single mapped "zone".
+Also, in case of large scale image based deployment scenarios embedding
+HWADDR in config files or udev rules is not an option. Though HWADDR
+helps in 
+ensuring persistency in naming, it doesn't help in achieving expected
+naming. 
 
-> Both approaches additionally need one extra connection tracking
-> entry of ~300 bytes per connection that is actually handled twice.
+I might be missing something, but I think this is the real issue. So by
+referring to interfaces by their BIOS given name Embedded_NIC_1 will
+always refer to the right interface irrespective of whether it is eth0
+or eth1. I think which of the tools need to be modified and which need
+to be left out of this can be debated.
 
-Ok, so computation is not a differentiator.
-
-> That will go away once I add a target for classification. 
-
-Makes sense 
-On a side note: I wouldnt mind seeing some field in struct
-netdev for some general purpose grouping/IDing which could be
-set from user space. 
-
-cheers,
-jamal
-
-
-
+With regards,
+Narendra K
