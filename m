@@ -1,151 +1,63 @@
-From: Samir Bellabes <sam@synack.fr>
-Subject: Re: [RFC 7/9] snet: introduce snet_netlink.c and snet_netlink.h
-Date: Fri, 15 Jan 2010 10:15:57 +0100
-Message-ID: <m2k4vjhgoi.fsf@ssh.synack.fr>
-References: <1262437456-24476-1-git-send-email-sam@synack.fr>
-	<1262437456-24476-8-git-send-email-sam@synack.fr>
-	<4B420464.3040301@trash.net>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: Re: [PATCH v5] rps: Receive Packet Steering
+Date: Fri, 15 Jan 2010 17:20:43 +0800
+Message-ID: <412e6f7f1001150120r622450eem2d9f54da27c42fba@mail.gmail.com>
+References: <4B5008F5.6090007@gmail.com>
+	 <412e6f7f1001142239n704d2827q614f59255e85e328@mail.gmail.com>
+	 <4B5011F4.8010204@gmail.com>
+	 <20100115.004915.64525965.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: linux-security-module@vger.kernel.org, jamal <hadi@cyberus.ca>,
-	Evgeniy Polyakov <zbr@ioremap.net>,
-	Neil Horman <nhorman@tuxdriver.com>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <4B420464.3040301@trash.net> (Patrick McHardy's message of "Mon,
-	04 Jan 2010 16:08:20 +0100")
-Sender: linux-security-module-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: eric.dumazet@gmail.com, therbert@google.com,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from fg-out-1718.google.com ([72.14.220.158]:53268 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753394Ab0AOJUp convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 15 Jan 2010 04:20:45 -0500
+In-Reply-To: <20100115.004915.64525965.davem@davemloft.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy <kaber@trash.net> writes:
-
->> +static struct genl_ops snet_genl_ops[] = {
->> +	{
->> +		.cmd		= SNET_C_VERSION,
->> +		.flags		= GENL_ADMIN_PERM,
->> +		.policy		= snet_genl_policy,
->> +		.doit		= snet_nl_version,
->> +		.dumpit		= NULL,
+On Fri, Jan 15, 2010 at 4:49 PM, David Miller <davem@davemloft.net> wro=
+te:
 >
-> The NULL initializations aren't neccessary.
+> Actually, no thanks. =C2=A0Have you actually taken a look at
+> ipv6_skip_exthdr()?
 >
-[...]
-Instead of dropping lines with the NULL initializations, I reduced the
-code with a declaration macro
+> Do that, then tell me that you want the extra function call, plus all
+> of the processing and data touching that that function does, just to
+> handle the case that there "might" be ipv6 extension headers there.
+>
 
-Patricks, thanks
-sam
- 
-commit f8539d466dbe081b35f6813cfedd91947615bee9
-Author: Samir Bellabes <sam@synack.fr>
-Date:   Fri Jan 15 09:53:09 2010 +0100
+I don't think ipv6_skip_exthdr() is too weight. If there isn't any
+extra header, only some compare and jump instruments are added, and no
+more data references. If there are some headers, I think distributing
+packets among CPUs is more important than the extra cost introduced by
+calling ipv6_skip_exthdr().
 
-    snet: reducing code by using macros to define snet_genl_ops
-    
-    This patch introduces the macro SNET_GENL_OPS. This reduces the code of the
-    declaration struct genl_ops snet_genl_ops[]
-    
-    Signed-off-by: Samir Bellabes <sam@synack.fr>
+> It is the exception rather than the rule, and I think it's just
+> assume we have a real protocol header next.
+>
+> And that's what skb_tx_hash() used to do too before we started using
+> the recorded RX queue and socket hash values.
+>
+> Nobody cared and nobody complained. =C2=A0Guess why? =C2=A0Because in=
+ practice
+> it doesn't matter.
+>
 
-diff --git a/security/snet/snet_netlink.c b/security/snet/snet_netlink.c
-index e108e7a..ba6a26d 100644
---- a/security/snet/snet_netlink.c
-+++ b/security/snet/snet_netlink.c
-@@ -400,70 +400,33 @@ out:
- 	return ret;
- }
- 
-+#define SNET_GENL_OPS(_cmd, _flags, _policy, _op, _opname)		\
-+	{							\
-+		.cmd	= _cmd,					\
-+		.flags	= _flags,				\
-+		.policy	= _policy,				\
-+		._op	= snet_nl_##_opname,			\
-+	}
-+
- static struct genl_ops snet_genl_ops[] = {
--	{
--		.cmd		= SNET_C_VERSION,
--		.flags		= GENL_ADMIN_PERM,
--		.policy		= snet_genl_policy,
--		.doit		= snet_nl_version,
--		.dumpit		= NULL,
--	},
--	{
--		.cmd		= SNET_C_REGISTER,
--		.flags		= GENL_ADMIN_PERM,
--		.policy		= snet_genl_policy,
--		.doit		= snet_nl_register,
--		.dumpit		= NULL,
--	},
--	{
--		.cmd		= SNET_C_UNREGISTER,
--		.flags		= GENL_ADMIN_PERM,
--		.policy		= snet_genl_policy,
--		.doit		= snet_nl_unregister,
--		.dumpit		= NULL,
--	},
--	{
--		.cmd		= SNET_C_INSERT,
--		.flags		= GENL_ADMIN_PERM,
--		.policy		= snet_genl_policy,
--		.doit		= snet_nl_insert,
--		.dumpit		= NULL,
--	},
--	{
--		.cmd		= SNET_C_REMOVE,
--		.flags		= GENL_ADMIN_PERM,
--		.policy		= snet_genl_policy,
--		.doit		= snet_nl_remove,
--		.dumpit		= NULL,
--	},
--	{
--		.cmd		= SNET_C_FLUSH,
--		.flags		= GENL_ADMIN_PERM,
--		.policy		= snet_genl_policy,
--		.doit		= snet_nl_flush,
--		.dumpit		= NULL,
--	},
--	{
--		.cmd		= SNET_C_LIST,
--		.flags		= GENL_ADMIN_PERM,
--		.policy		= snet_genl_policy,
--		.doit		= NULL,
--		.dumpit		= snet_nl_list,
--	},
--	{
--		.cmd		= SNET_C_VERDICT,
--		.flags		= GENL_ADMIN_PERM,
--		.policy		= snet_genl_policy,
--		.doit		= snet_nl_verdict,
--		.dumpit		= NULL,
--	},
--	{
--		.cmd		= SNET_C_VERDICT_DELAY,
--		.flags		= GENL_ADMIN_PERM,
--		.policy		= snet_genl_policy,
--		.doit		= snet_nl_verdict_delay,
--		.dumpit		= NULL,
--	},
-+	SNET_GENL_OPS(SNET_C_VERSION, GENL_ADMIN_PERM, snet_genl_policy,
-+		      doit, version),
-+	SNET_GENL_OPS(SNET_C_REGISTER, GENL_ADMIN_PERM, snet_genl_policy,
-+		      doit, register),
-+	SNET_GENL_OPS(SNET_C_UNREGISTER, GENL_ADMIN_PERM, snet_genl_policy,
-+		      doit, unregister),
-+	SNET_GENL_OPS(SNET_C_INSERT, GENL_ADMIN_PERM, snet_genl_policy,
-+		      doit, insert),
-+	SNET_GENL_OPS(SNET_C_REMOVE, GENL_ADMIN_PERM, snet_genl_policy,
-+		      doit, remove),
-+	SNET_GENL_OPS(SNET_C_FLUSH, GENL_ADMIN_PERM, snet_genl_policy,
-+		      doit, flush),
-+	SNET_GENL_OPS(SNET_C_REGISTER, GENL_ADMIN_PERM, snet_genl_policy,
-+		      dumpit, list),
-+	SNET_GENL_OPS(SNET_C_REGISTER, GENL_ADMIN_PERM, snet_genl_policy,
-+		      doit, verdict),
-+	SNET_GENL_OPS(SNET_C_VERDICT_DELAY, GENL_ADMIN_PERM, snet_genl_policy,
-+		      doit, verdict_delay),
- };
- 
- static __init int snet_netlink_init(void)
+Maybe they don't know it.If it was a performance regression, I think
+more people might pay attention on it.
+
+--=20
+Regards=EF=BC=8C
+Changli Gao(xiaosuo@gmail.com)
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
