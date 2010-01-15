@@ -1,65 +1,109 @@
-From: Changli Gao <xiaosuo@gmail.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
 Subject: Re: [PATCH v5] rps: Receive Packet Steering
-Date: Fri, 15 Jan 2010 10:22:03 +0800
-Message-ID: <412e6f7f1001141822pffa070ap15c73e2931402294@mail.gmail.com>
-References: <alpine.DEB.1.00.1001141353140.19018@pokey.mtv.corp.google.com>
+Date: Fri, 15 Jan 2010 07:19:33 +0100
+Message-ID: <4B5008F5.6090007@gmail.com>
+References: <alpine.DEB.1.00.1001141353140.19018@pokey.mtv.corp.google.com> <412e6f7f1001141822pffa070ap15c73e2931402294@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: base64
-Cc: davem@davemloft.net, netdev@vger.kernel.org,
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Tom Herbert <therbert@google.com>, davem@davemloft.net,
+	netdev@vger.kernel.org,
 	Netfilter Developer Mailing List
 	<netfilter-devel@vger.kernel.org>
-To: Tom Herbert <therbert@google.com>
+To: Changli Gao <xiaosuo@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from fg-out-1718.google.com ([72.14.220.152]:28176 "EHLO
-	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750695Ab0AOCWF (ORCPT
+Received: from gw1.cosmosbay.com ([212.99.114.194]:38237 "EHLO
+	gw1.cosmosbay.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751001Ab0AOGTn (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 14 Jan 2010 21:22:05 -0500
-In-Reply-To: <alpine.DEB.1.00.1001141353140.19018@pokey.mtv.corp.google.com>
+	Fri, 15 Jan 2010 01:19:43 -0500
+In-Reply-To: <412e6f7f1001141822pffa070ap15c73e2931402294@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-T24gRnJpLCBKYW4gMTUsIDIwMTAgYXQgNTo1NiBBTSwgVG9tIEhlcmJlcnQgPHRoZXJiZXJ0QGdv
-b2dsZS5jb20+IHdyb3RlOgo+ICsKPiArIMKgIMKgIMKgIGlmIChza2ItPnJ4aGFzaCkKPiArIMKg
-IMKgIMKgIMKgIMKgIMKgIMKgIGdvdG8gZ290X2hhc2g7IC8qIFNraXAgaGFzaCBjb21wdXRhdGlv
-biBvbiBwYWNrZXQgaGVhZGVyICovCj4gKwo+ICsgwqAgwqAgwqAgc3dpdGNoIChza2ItPnByb3Rv
-Y29sKSB7Cj4gKyDCoCDCoCDCoCBjYXNlIF9fY29uc3RhbnRfaHRvbnMoRVRIX1BfSVApOgo+ICsg
-wqAgwqAgwqAgwqAgwqAgwqAgwqAgaWYgKCFwc2tiX21heV9wdWxsKHNrYiwgc2l6ZW9mKCppcCkp
-KQo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgZ290byBkb25lOwo+ICsKPiAr
-IMKgIMKgIMKgIMKgIMKgIMKgIMKgIGlwID0gKHN0cnVjdCBpcGhkciAqKSBza2ItPmRhdGE7Cj4g
-KyDCoCDCoCDCoCDCoCDCoCDCoCDCoCBpcF9wcm90byA9IGlwLT5wcm90b2NvbDsKPiArIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIGFkZHIxID0gaXAtPnNhZGRyOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgYWRkcjIgPSBpcC0+ZGFkZHI7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCBpaGwgPSBpcC0+
-aWhsOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgYnJlYWs7Cj4gKyDCoCDCoCDCoCBjYXNlIF9f
-Y29uc3RhbnRfaHRvbnMoRVRIX1BfSVBWNik6Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCBpZiAo
-IXBza2JfbWF5X3B1bGwoc2tiLCBzaXplb2YoKmlwNikpKQo+ICsgwqAgwqAgwqAgwqAgwqAgwqAg
-wqAgwqAgwqAgwqAgwqAgZ290byBkb25lOwo+ICsKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGlw
-NiA9IChzdHJ1Y3QgaXB2NmhkciAqKSBza2ItPmRhdGE7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDC
-oCBpcF9wcm90byA9IGlwNi0+bmV4dGhkcjsKVGhpcyBjb2RlIGNhbid0IHdvcmssIHdoZW4gdGhl
-cmUgYXJlIGV4dHJhIGhlYWRlcnMuIGlwdjZfc2tpcF9leHRoZHIoKQpjYW4gYmUgdXNlZCB0byBn
-ZXQgdGhlIGw0IGhlYWRlci4KCj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCBhZGRyMSA9IGlwNi0+
-c2FkZHIuczZfYWRkcjMyWzNdOwo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgYWRkcjIgPSBpcDYt
-PmRhZGRyLnM2X2FkZHIzMlszXTsKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGlobCA9ICg0MCA+
-PiAyKTsKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGJyZWFrOwo+ICsgwqAgwqAgwqAgZGVmYXVs
-dDoKPiArIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGdvdG8gZG9uZTsKPiArIMKgIMKgIMKgIH0KPiAr
-IMKgIMKgIMKgIHBvcnRzID0gMDsKPiArIMKgIMKgIMKgIHN3aXRjaCAoaXBfcHJvdG8pIHsKPiAr
-IMKgIMKgIMKgIGNhc2UgSVBQUk9UT19UQ1A6Cj4gKyDCoCDCoCDCoCBjYXNlIElQUFJPVE9fVURQ
-Ogo+ICsgwqAgwqAgwqAgY2FzZSBJUFBST1RPX0RDQ1A6Cj4gKyDCoCDCoCDCoCBjYXNlIElQUFJP
-VE9fRVNQOgo+ICsgwqAgwqAgwqAgY2FzZSBJUFBST1RPX0FIOgo+ICsgwqAgwqAgwqAgY2FzZSBJ
-UFBST1RPX1NDVFA6Cj4gKyDCoCDCoCDCoCBjYXNlIElQUFJPVE9fVURQTElURToKPiArIMKgIMKg
-IMKgIMKgIMKgIMKgIMKgIGlmIChwc2tiX21heV9wdWxsKHNrYiwgKGlobCAqIDQpICsgNCkpCj4g
-KyDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBwb3J0cyA9ICooKHUzMiAqKSAoc2ti
-LT5kYXRhICsgKGlobCAqIDQpKSk7Cj4gKyDCoCDCoCDCoCDCoCDCoCDCoCDCoCBicmVhazsKPiAr
-Cj4gKyDCoCDCoCDCoCBkZWZhdWx0Ogo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgYnJlYWs7Cj4g
-KyDCoCDCoCDCoCB9Cj4gKwo+ICsgwqAgwqAgwqAgc2tiLT5yeGhhc2ggPSBqaGFzaF8zd29yZHMo
-YWRkcjEsIGFkZHIyLCBwb3J0cywgaGFzaHJuZCk7CkZvciBjb25uZWN0aW9uIGJhc2VkIHBhY2tl
-dCBwcm9jZXNzaW5nLCBzdWNoIGFzIG5ldGZpbHRlciwKZGlzdHJpYnV0aW5nIHRoZSBwYWNrZXRz
-IGluIHR3byBkaXJlY3Rpb25zIGludG8gb25lIENQVSB3aWxsIHJlZHVjZQpjYWNoZSBtaXNzLCB3
-aGVuIE5BVCBpc24ndCB1c2VkLiBJIHRoaW5rIHRoZSBjb2RlIGJlbGxvdyB3aWxsIGhlbHA6Cmlm
-IChhZGRyMSA+IGFkZHIyKQogIHN3YXAoYWRkcjEsIGFkZHIyKTsKCj4gKyDCoCDCoCDCoCBpZiAo
-IXNrYi0+cnhoYXNoKQo+ICsgwqAgwqAgwqAgwqAgwqAgwqAgwqAgc2tiLT5yeGhhc2ggPSAxOwoK
-V2h5IG5vdCBwdXQgdGhlIGFib3ZlIGNvZGUgaW50byBhIG5ldyBmdW5jdGlvbiwgYW5kIGFkZCBt
-b3JlIHByb3RvY29scwpzdXBwb3J0LCBzdWNoIGFzIDgwMi4xUS4gIFRob3VnaCByeGhhc2ggaXMg
-YmFzZWQgb24gNC10dXBsZSwgSSB0aGluawpuZXRmaWx0ZXIgd2lsbCBiZW5lZml0IGZyb20gaXQu
-CgotLSAKUmVnYXJkc++8jApDaGFuZ2xpIEdhbyh4aWFvc3VvQGdtYWlsLmNvbSkK
+Le 15/01/2010 03:22, Changli Gao a =C3=A9crit :
+> On Fri, Jan 15, 2010 at 5:56 AM, Tom Herbert <therbert@google.com> wr=
+ote:
+>> +
+>> +       if (skb->rxhash)
+>> +               goto got_hash; /* Skip hash computation on packet he=
+ader */
+>> +
+>> +       switch (skb->protocol) {
+>> +       case __constant_htons(ETH_P_IP):
+>> +               if (!pskb_may_pull(skb, sizeof(*ip)))
+>> +                       goto done;
+>> +
+>> +               ip =3D (struct iphdr *) skb->data;
+>> +               ip_proto =3D ip->protocol;
+>> +               addr1 =3D ip->saddr;
+>> +               addr2 =3D ip->daddr;
+>> +               ihl =3D ip->ihl;
+>> +               break;
+>> +       case __constant_htons(ETH_P_IPV6):
+>> +               if (!pskb_may_pull(skb, sizeof(*ip6)))
+>> +                       goto done;
+>> +
+>> +               ip6 =3D (struct ipv6hdr *) skb->data;
+>> +               ip_proto =3D ip6->nexthdr;
+> This code can't work, when there are extra headers. ipv6_skip_exthdr(=
+)
+> can be used to get the l4 header.
+
+Could you give exact code please ?
+
+>=20
+>> +               addr1 =3D ip6->saddr.s6_addr32[3];
+>> +               addr2 =3D ip6->daddr.s6_addr32[3];
+>> +               ihl =3D (40 >> 2);
+>> +               break;
+>> +       default:
+>> +               goto done;
+>> +       }
+>> +       ports =3D 0;
+>> +       switch (ip_proto) {
+>> +       case IPPROTO_TCP:
+>> +       case IPPROTO_UDP:
+>> +       case IPPROTO_DCCP:
+>> +       case IPPROTO_ESP:
+>> +       case IPPROTO_AH:
+>> +       case IPPROTO_SCTP:
+>> +       case IPPROTO_UDPLITE:
+>> +               if (pskb_may_pull(skb, (ihl * 4) + 4))
+>> +                       ports =3D *((u32 *) (skb->data + (ihl * 4)))=
+;
+>> +               break;
+>> +
+>> +       default:
+>> +               break;
+>> +       }
+>> +
+>> +       skb->rxhash =3D jhash_3words(addr1, addr2, ports, hashrnd);
+> For connection based packet processing, such as netfilter,
+> distributing the packets in two directions into one CPU will reduce
+> cache miss, when NAT isn't used. I think the code bellow will help:
+> if (addr1 > addr2)
+>   swap(addr1, addr2);
+
+Yes, I already gave this hint in a previous review, but this adds a tes=
+t
+and I suspect Google is not using NAT :)
+
+>=20
+>> +       if (!skb->rxhash)
+>> +               skb->rxhash =3D 1;
+>=20
+> Why not put the above code into a new function, and add more protocol=
+s
+> support, such as 802.1Q.  Though rxhash is based on 4-tuple, I think
+> netfilter will benefit from it.
+>=20
+
+Sure, this can be done in a followup patch.
+
+Thanks
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
