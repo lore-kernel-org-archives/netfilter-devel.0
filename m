@@ -1,588 +1,288 @@
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: [PATCH 2/4] netfilter: add struct xt_mtdtor_param::net
-Date: Sat, 16 Jan 2010 20:56:43 +0200
-Message-ID: <20100116185643.GC24605@x200>
+Subject: [PATCH 3/4] xt_recent: netns support
+Date: Sat, 16 Jan 2010 20:58:06 +0200
+Message-ID: <20100116185806.GD24605@x200>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f225.google.com ([209.85.220.225]:38108 "EHLO
+Received: from mail-fx0-f225.google.com ([209.85.220.225]:63200 "EHLO
 	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753738Ab0APS5C (ORCPT
+	with ESMTP id S1750973Ab0APS6T (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 16 Jan 2010 13:57:02 -0500
-Received: by fxm25 with SMTP id 25so1127228fxm.21
-        for <netfilter-devel@vger.kernel.org>; Sat, 16 Jan 2010 10:57:00 -0800 (PST)
+	Sat, 16 Jan 2010 13:58:19 -0500
+Received: by fxm25 with SMTP id 25so1127795fxm.21
+        for <netfilter-devel@vger.kernel.org>; Sat, 16 Jan 2010 10:58:16 -0800 (PST)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add ->net to match destructor list like ->net in constructor list.
-
-Make sure it's set in ebtables/iptables/ip6tables, this requires to
-propagate netns up to *_unregister_table().
+Make recent table list per-netns.
+Make proc files per-netns.
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 ---
 
- include/linux/netfilter/x_tables.h        |    1 
- include/linux/netfilter_bridge/ebtables.h |    2 -
- include/linux/netfilter_ipv4/ip_tables.h  |    2 -
- include/linux/netfilter_ipv6/ip6_tables.h |    2 -
- net/bridge/netfilter/ebtable_broute.c     |    2 -
- net/bridge/netfilter/ebtable_filter.c     |    2 -
- net/bridge/netfilter/ebtable_nat.c        |    2 -
- net/bridge/netfilter/ebtables.c           |   19 ++++++++-------
- net/ipv4/netfilter/ip_tables.c            |   25 ++++++++++----------
- net/ipv4/netfilter/iptable_filter.c       |    2 -
- net/ipv4/netfilter/iptable_mangle.c       |    2 -
- net/ipv4/netfilter/iptable_raw.c          |    2 -
- net/ipv4/netfilter/iptable_security.c     |    2 -
- net/ipv4/netfilter/nf_nat_rule.c          |    2 -
- net/ipv6/netfilter/ip6_tables.c           |   37 ++++++++++++++++--------------
- net/ipv6/netfilter/ip6table_filter.c      |    2 -
- net/ipv6/netfilter/ip6table_mangle.c      |    2 -
- net/ipv6/netfilter/ip6table_raw.c         |    2 -
- net/ipv6/netfilter/ip6table_security.c    |    2 -
- 19 files changed, 59 insertions(+), 53 deletions(-)
+ net/netfilter/xt_recent.c |  136 ++++++++++++++++++++++++++++++++--------------
+ 1 file changed, 95 insertions(+), 41 deletions(-)
 
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -216,6 +216,7 @@ struct xt_mtchk_param {
+--- a/net/netfilter/xt_recent.c
++++ b/net/netfilter/xt_recent.c
+@@ -28,6 +28,7 @@
+ #include <linux/skbuff.h>
+ #include <linux/inet.h>
+ #include <net/net_namespace.h>
++#include <net/netns/generic.h>
  
- /* Match destructor parameters */
- struct xt_mtdtor_param {
-+	struct net *net;
- 	const struct xt_match *match;
- 	void *matchinfo;
- 	u_int8_t family;
---- a/include/linux/netfilter_bridge/ebtables.h
-+++ b/include/linux/netfilter_bridge/ebtables.h
-@@ -289,7 +289,7 @@ struct ebt_table {
- 		     ~(__alignof__(struct ebt_replace)-1))
- extern struct ebt_table *ebt_register_table(struct net *net,
- 					    const struct ebt_table *table);
--extern void ebt_unregister_table(struct ebt_table *table);
-+extern void ebt_unregister_table(struct net *net, struct ebt_table *table);
- extern unsigned int ebt_do_table(unsigned int hook, struct sk_buff *skb,
-    const struct net_device *in, const struct net_device *out,
-    struct ebt_table *table);
---- a/include/linux/netfilter_ipv4/ip_tables.h
-+++ b/include/linux/netfilter_ipv4/ip_tables.h
-@@ -242,7 +242,7 @@ extern void ipt_init(void) __init;
- extern struct xt_table *ipt_register_table(struct net *net,
- 					   const struct xt_table *table,
- 					   const struct ipt_replace *repl);
--extern void ipt_unregister_table(struct xt_table *table);
-+extern void ipt_unregister_table(struct net *net, struct xt_table *table);
+ #include <linux/netfilter/x_tables.h>
+ #include <linux/netfilter/xt_recent.h>
+@@ -78,15 +79,26 @@ struct recent_table {
+ 	struct list_head	iphash[0];
+ };
  
- /* Standard entry. */
- struct ipt_standard {
---- a/include/linux/netfilter_ipv6/ip6_tables.h
-+++ b/include/linux/netfilter_ipv6/ip6_tables.h
-@@ -300,7 +300,7 @@ extern void ip6t_init(void) __init;
- extern struct xt_table *ip6t_register_table(struct net *net,
- 					    const struct xt_table *table,
- 					    const struct ip6t_replace *repl);
--extern void ip6t_unregister_table(struct xt_table *table);
-+extern void ip6t_unregister_table(struct net *net, struct xt_table *table);
- extern unsigned int ip6t_do_table(struct sk_buff *skb,
- 				  unsigned int hook,
- 				  const struct net_device *in,
---- a/net/bridge/netfilter/ebtable_broute.c
-+++ b/net/bridge/netfilter/ebtable_broute.c
-@@ -71,7 +71,7 @@ static int __net_init broute_net_init(struct net *net)
+-static LIST_HEAD(tables);
++struct recent_net {
++	struct list_head	tables;
++#ifdef CONFIG_PROC_FS
++	struct proc_dir_entry	*xt_recent;
++#ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
++	struct proc_dir_entry	*ipt_recent;
++#endif
++#endif
++};
++
++static int recent_net_id;
++static inline struct recent_net *recent_pernet(struct net *net)
++{
++	return net_generic(net, recent_net_id);
++}
++
+ static DEFINE_SPINLOCK(recent_lock);
+ static DEFINE_MUTEX(recent_mutex);
  
- static void __net_exit broute_net_exit(struct net *net)
+ #ifdef CONFIG_PROC_FS
+-#ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
+-static struct proc_dir_entry *proc_old_dir;
+-#endif
+-static struct proc_dir_entry *recent_proc_dir;
+ static const struct file_operations recent_old_fops, recent_mt_fops;
+ #endif
+ 
+@@ -180,11 +192,12 @@ static void recent_entry_update(struct recent_table *t, struct recent_entry *e)
+ 	list_move_tail(&e->lru_list, &t->lru_list);
+ }
+ 
+-static struct recent_table *recent_table_lookup(const char *name)
++static struct recent_table *recent_table_lookup(struct recent_net *recent_net,
++						const char *name)
  {
--	ebt_unregister_table(net->xt.broute_table);
-+	ebt_unregister_table(net, net->xt.broute_table);
- }
+ 	struct recent_table *t;
  
- static struct pernet_operations broute_net_ops = {
---- a/net/bridge/netfilter/ebtable_filter.c
-+++ b/net/bridge/netfilter/ebtable_filter.c
-@@ -107,7 +107,7 @@ static int __net_init frame_filter_net_init(struct net *net)
- 
- static void __net_exit frame_filter_net_exit(struct net *net)
+-	list_for_each_entry(t, &tables, list)
++	list_for_each_entry(t, &recent_net->tables, list)
+ 		if (!strcmp(t->name, name))
+ 			return t;
+ 	return NULL;
+@@ -203,6 +216,8 @@ static void recent_table_flush(struct recent_table *t)
+ static bool
+ recent_mt(const struct sk_buff *skb, const struct xt_match_param *par)
  {
--	ebt_unregister_table(net->xt.frame_filter);
-+	ebt_unregister_table(net, net->xt.frame_filter);
- }
++	struct net *net = dev_net(par->in ? par->in : par->out);
++	struct recent_net *recent_net = recent_pernet(net);
+ 	const struct xt_recent_mtinfo *info = par->matchinfo;
+ 	struct recent_table *t;
+ 	struct recent_entry *e;
+@@ -235,7 +250,7 @@ recent_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+ 		ttl++;
  
- static struct pernet_operations frame_filter_net_ops = {
---- a/net/bridge/netfilter/ebtable_nat.c
-+++ b/net/bridge/netfilter/ebtable_nat.c
-@@ -107,7 +107,7 @@ static int __net_init frame_nat_net_init(struct net *net)
+ 	spin_lock_bh(&recent_lock);
+-	t = recent_table_lookup(info->name);
++	t = recent_table_lookup(recent_net, info->name);
+ 	e = recent_entry_lookup(t, &addr, par->match->family,
+ 				(info->check_set & XT_RECENT_TTL) ? ttl : 0);
+ 	if (e == NULL) {
+@@ -279,6 +294,7 @@ out:
  
- static void __net_exit frame_nat_net_exit(struct net *net)
+ static bool recent_mt_check(const struct xt_mtchk_param *par)
  {
--	ebt_unregister_table(net->xt.frame_nat);
-+	ebt_unregister_table(net, net->xt.frame_nat);
- }
++	struct recent_net *recent_net = recent_pernet(par->net);
+ 	const struct xt_recent_mtinfo *info = par->matchinfo;
+ 	struct recent_table *t;
+ #ifdef CONFIG_PROC_FS
+@@ -301,7 +317,7 @@ static bool recent_mt_check(const struct xt_mtchk_param *par)
+ 		return false;
  
- static struct pernet_operations frame_nat_net_ops = {
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -561,13 +561,14 @@ ebt_get_udc_positions(struct ebt_entry *e, struct ebt_table_info *newinfo,
- }
- 
- static inline int
--ebt_cleanup_match(struct ebt_entry_match *m, unsigned int *i)
-+ebt_cleanup_match(struct ebt_entry_match *m, struct net *net, unsigned int *i)
- {
- 	struct xt_mtdtor_param par;
- 
- 	if (i && (*i)-- == 0)
- 		return 1;
- 
-+	par.net       = net;
- 	par.match     = m->u.match;
- 	par.matchinfo = m->data;
- 	par.family    = NFPROTO_BRIDGE;
-@@ -595,7 +596,7 @@ ebt_cleanup_watcher(struct ebt_entry_watcher *w, unsigned int *i)
- }
- 
- static inline int
--ebt_cleanup_entry(struct ebt_entry *e, unsigned int *cnt)
-+ebt_cleanup_entry(struct ebt_entry *e, struct net *net, unsigned int *cnt)
- {
- 	struct xt_tgdtor_param par;
- 	struct ebt_entry_target *t;
-@@ -606,7 +607,7 @@ ebt_cleanup_entry(struct ebt_entry *e, unsigned int *cnt)
- 	if (cnt && (*cnt)-- == 0)
- 		return 1;
- 	EBT_WATCHER_ITERATE(e, ebt_cleanup_watcher, NULL);
--	EBT_MATCH_ITERATE(e, ebt_cleanup_match, NULL);
-+	EBT_MATCH_ITERATE(e, ebt_cleanup_match, net, NULL);
- 	t = (struct ebt_entry_target *)(((char *)e) + e->target_offset);
- 
- 	par.target   = t->u.target;
-@@ -731,7 +732,7 @@ ebt_check_entry(struct ebt_entry *e,
- cleanup_watchers:
- 	EBT_WATCHER_ITERATE(e, ebt_cleanup_watcher, &j);
- cleanup_matches:
--	EBT_MATCH_ITERATE(e, ebt_cleanup_match, &i);
-+	EBT_MATCH_ITERATE(e, ebt_cleanup_match, net, &i);
- 	return ret;
- }
- 
-@@ -923,7 +924,7 @@ static int translate_table(struct net *net, char *name, struct ebt_table_info *n
- 	   ebt_check_entry, net, newinfo, name, &i, cl_s, udc_cnt);
- 	if (ret != 0) {
- 		EBT_ENTRY_ITERATE(newinfo->entries, newinfo->entries_size,
--		   ebt_cleanup_entry, &i);
-+				  ebt_cleanup_entry, net, &i);
+ 	mutex_lock(&recent_mutex);
+-	t = recent_table_lookup(info->name);
++	t = recent_table_lookup(recent_net, info->name);
+ 	if (t != NULL) {
+ 		t->refcnt++;
+ 		ret = true;
+@@ -318,7 +334,7 @@ static bool recent_mt_check(const struct xt_mtchk_param *par)
+ 	for (i = 0; i < ip_list_hash_size; i++)
+ 		INIT_LIST_HEAD(&t->iphash[i]);
+ #ifdef CONFIG_PROC_FS
+-	pde = proc_create_data(t->name, ip_list_perms, recent_proc_dir,
++	pde = proc_create_data(t->name, ip_list_perms, recent_net->xt_recent,
+ 		  &recent_mt_fops, t);
+ 	if (pde == NULL) {
+ 		kfree(t);
+@@ -327,10 +343,10 @@ static bool recent_mt_check(const struct xt_mtchk_param *par)
+ 	pde->uid = ip_list_uid;
+ 	pde->gid = ip_list_gid;
+ #ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
+-	pde = proc_create_data(t->name, ip_list_perms, proc_old_dir,
++	pde = proc_create_data(t->name, ip_list_perms, recent_net->ipt_recent,
+ 		      &recent_old_fops, t);
+ 	if (pde == NULL) {
+-		remove_proc_entry(t->name, proc_old_dir);
++		remove_proc_entry(t->name, recent_net->xt_recent);
+ 		kfree(t);
+ 		goto out;
  	}
- 	vfree(cl_s);
- 	return ret;
-@@ -1073,7 +1074,7 @@ static int do_replace(struct net *net, void __user *user, unsigned int len)
+@@ -339,7 +355,7 @@ static bool recent_mt_check(const struct xt_mtchk_param *par)
+ #endif
+ #endif
+ 	spin_lock_bh(&recent_lock);
+-	list_add_tail(&t->list, &tables);
++	list_add_tail(&t->list, &recent_net->tables);
+ 	spin_unlock_bh(&recent_lock);
+ 	ret = true;
+ out:
+@@ -349,20 +365,21 @@ out:
  
- 	/* decrease module count and free resources */
- 	EBT_ENTRY_ITERATE(table->entries, table->entries_size,
--	   ebt_cleanup_entry, NULL);
-+			  ebt_cleanup_entry, net, NULL);
- 
- 	vfree(table->entries);
- 	if (table->chainstack) {
-@@ -1090,7 +1091,7 @@ free_unlock:
- 	mutex_unlock(&ebt_mutex);
- free_iterate:
- 	EBT_ENTRY_ITERATE(newinfo->entries, newinfo->entries_size,
--	   ebt_cleanup_entry, NULL);
-+			  ebt_cleanup_entry, net, NULL);
- free_counterstmp:
- 	vfree(counterstmp);
- 	/* can be initialized in translate_table() */
-@@ -1207,7 +1208,7 @@ out:
- 	return ERR_PTR(ret);
- }
- 
--void ebt_unregister_table(struct ebt_table *table)
-+void ebt_unregister_table(struct net *net, struct ebt_table *table)
+ static void recent_mt_destroy(const struct xt_mtdtor_param *par)
  {
- 	int i;
++	struct recent_net *recent_net = recent_pernet(par->net);
+ 	const struct xt_recent_mtinfo *info = par->matchinfo;
+ 	struct recent_table *t;
  
-@@ -1219,7 +1220,7 @@ void ebt_unregister_table(struct ebt_table *table)
- 	list_del(&table->list);
- 	mutex_unlock(&ebt_mutex);
- 	EBT_ENTRY_ITERATE(table->private->entries, table->private->entries_size,
--			  ebt_cleanup_entry, NULL);
-+			  ebt_cleanup_entry, net, NULL);
- 	if (table->private->nentries)
- 		module_put(table->me);
- 	vfree(table->private->entries);
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -553,13 +553,14 @@ mark_source_chains(struct xt_table_info *newinfo,
+ 	mutex_lock(&recent_mutex);
+-	t = recent_table_lookup(info->name);
++	t = recent_table_lookup(recent_net, info->name);
+ 	if (--t->refcnt == 0) {
+ 		spin_lock_bh(&recent_lock);
+ 		list_del(&t->list);
+ 		spin_unlock_bh(&recent_lock);
+ #ifdef CONFIG_PROC_FS
+ #ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
+-		remove_proc_entry(t->name, proc_old_dir);
++		remove_proc_entry(t->name, recent_net->ipt_recent);
+ #endif
+-		remove_proc_entry(t->name, recent_proc_dir);
++		remove_proc_entry(t->name, recent_net->xt_recent);
+ #endif
+ 		recent_table_flush(t);
+ 		kfree(t);
+@@ -611,8 +628,65 @@ static const struct file_operations recent_mt_fops = {
+ 	.release = seq_release_private,
+ 	.owner   = THIS_MODULE,
+ };
++
++static int __net_init recent_proc_net_init(struct net *net)
++{
++	struct recent_net *recent_net = recent_pernet(net);
++
++	recent_net->xt_recent = proc_mkdir("xt_recent", net->proc_net);
++	if (!recent_net->xt_recent)
++		return -ENOMEM;
++#ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
++	recent_net->ipt_recent = proc_mkdir("ipt_recent", net->proc_net);
++	if (!recent_net->ipt_recent) {
++		proc_net_remove(net, "xt_recent");
++		return -ENOMEM;
++	}
++#endif
++	return 0;
++}
++
++static void __net_exit recent_proc_net_exit(struct net *net)
++{
++#ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
++	proc_net_remove(net, "ipt_recent");
++#endif
++	proc_net_remove(net, "xt_recent");
++}
++#else
++static inline int recent_proc_net_init(struct net *net)
++{
++	return 0;
++}
++
++static inline void recent_proc_net_exit(struct net *net)
++{
++}
+ #endif /* CONFIG_PROC_FS */
+ 
++static int __net_init recent_net_init(struct net *net)
++{
++	struct recent_net *recent_net = recent_pernet(net);
++
++	INIT_LIST_HEAD(&recent_net->tables);
++	return recent_proc_net_init(net);
++}
++
++static void __net_exit recent_net_exit(struct net *net)
++{
++	struct recent_net *recent_net = recent_pernet(net);
++
++	BUG_ON(!list_empty(&recent_net->tables));
++	recent_proc_net_exit(net);
++}
++
++static struct pernet_operations recent_net_ops = {
++	.init	= recent_net_init,
++	.exit	= recent_net_exit,
++	.id	= &recent_net_id,
++	.size	= sizeof(struct recent_net),
++};
++
+ static struct xt_match recent_mt_reg[] __read_mostly = {
+ 	{
+ 		.name       = "recent",
+@@ -644,39 +718,19 @@ static int __init recent_mt_init(void)
+ 		return -EINVAL;
+ 	ip_list_hash_size = 1 << fls(ip_list_tot);
+ 
+-	err = xt_register_matches(recent_mt_reg, ARRAY_SIZE(recent_mt_reg));
+-#ifdef CONFIG_PROC_FS
++	err = register_pernet_subsys(&recent_net_ops);
+ 	if (err)
+ 		return err;
+-	recent_proc_dir = proc_mkdir("xt_recent", init_net.proc_net);
+-	if (recent_proc_dir == NULL) {
+-		xt_unregister_matches(recent_mt_reg, ARRAY_SIZE(recent_mt_reg));
+-		err = -ENOMEM;
+-	}
+-#ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
+-	if (err < 0)
+-		return err;
+-	proc_old_dir = proc_mkdir("ipt_recent", init_net.proc_net);
+-	if (proc_old_dir == NULL) {
+-		remove_proc_entry("xt_recent", init_net.proc_net);
+-		xt_unregister_matches(recent_mt_reg, ARRAY_SIZE(recent_mt_reg));
+-		err = -ENOMEM;
+-	}
+-#endif
+-#endif
++	err = xt_register_matches(recent_mt_reg, ARRAY_SIZE(recent_mt_reg));
++	if (err)
++		unregister_pernet_subsys(&recent_net_ops);
+ 	return err;
  }
  
- static int
--cleanup_match(struct ipt_entry_match *m, unsigned int *i)
-+cleanup_match(struct ipt_entry_match *m, struct net *net, unsigned int *i)
+ static void __exit recent_mt_exit(void)
  {
- 	struct xt_mtdtor_param par;
- 
- 	if (i && (*i)-- == 0)
- 		return 1;
- 
-+	par.net       = net;
- 	par.match     = m->u.kernel.match;
- 	par.matchinfo = m->data;
- 	par.family    = NFPROTO_IPV4;
-@@ -705,7 +706,7 @@ find_check_entry(struct ipt_entry *e, struct net *net, const char *name, unsigne
-  err:
- 	module_put(t->u.kernel.target->me);
-  cleanup_matches:
--	IPT_MATCH_ITERATE(e, cleanup_match, &j);
-+	IPT_MATCH_ITERATE(e, cleanup_match, net, &j);
- 	return ret;
+-	BUG_ON(!list_empty(&tables));
+ 	xt_unregister_matches(recent_mt_reg, ARRAY_SIZE(recent_mt_reg));
+-#ifdef CONFIG_PROC_FS
+-#ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
+-	remove_proc_entry("ipt_recent", init_net.proc_net);
+-#endif
+-	remove_proc_entry("xt_recent", init_net.proc_net);
+-#endif
++	unregister_pernet_subsys(&recent_net_ops);
  }
  
-@@ -775,7 +776,7 @@ check_entry_size_and_hooks(struct ipt_entry *e,
- }
- 
- static int
--cleanup_entry(struct ipt_entry *e, unsigned int *i)
-+cleanup_entry(struct ipt_entry *e, struct net *net, unsigned int *i)
- {
- 	struct xt_tgdtor_param par;
- 	struct ipt_entry_target *t;
-@@ -784,7 +785,7 @@ cleanup_entry(struct ipt_entry *e, unsigned int *i)
- 		return 1;
- 
- 	/* Cleanup all matches */
--	IPT_MATCH_ITERATE(e, cleanup_match, NULL);
-+	IPT_MATCH_ITERATE(e, cleanup_match, net, NULL);
- 	t = ipt_get_target(e);
- 
- 	par.target   = t->u.kernel.target;
-@@ -866,7 +867,7 @@ translate_table(struct net *net,
- 
- 	if (ret != 0) {
- 		IPT_ENTRY_ITERATE(entry0, newinfo->size,
--				cleanup_entry, &i);
-+				cleanup_entry, net, &i);
- 		return ret;
- 	}
- 
-@@ -1260,7 +1261,7 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
- 	/* Decrease module usage counts and free resource */
- 	loc_cpu_old_entry = oldinfo->entries[raw_smp_processor_id()];
- 	IPT_ENTRY_ITERATE(loc_cpu_old_entry, oldinfo->size, cleanup_entry,
--			  NULL);
-+			  net, NULL);
- 	xt_free_table_info(oldinfo);
- 	if (copy_to_user(counters_ptr, counters,
- 			 sizeof(struct xt_counters) * num_counters) != 0)
-@@ -1320,7 +1321,7 @@ do_replace(struct net *net, void __user *user, unsigned int len)
- 	return 0;
- 
-  free_newinfo_untrans:
--	IPT_ENTRY_ITERATE(loc_cpu_entry, newinfo->size, cleanup_entry, NULL);
-+	IPT_ENTRY_ITERATE(loc_cpu_entry, newinfo->size, cleanup_entry, net, NULL);
-  free_newinfo:
- 	xt_free_table_info(newinfo);
- 	return ret;
-@@ -1682,7 +1683,7 @@ compat_check_entry(struct ipt_entry *e, struct net *net, const char *name,
- 	return 0;
- 
-  cleanup_matches:
--	IPT_MATCH_ITERATE(e, cleanup_match, &j);
-+	IPT_MATCH_ITERATE(e, cleanup_match, net, &j);
- 	return ret;
- }
- 
-@@ -1782,7 +1783,7 @@ translate_compat_table(struct net *net,
- 		j -= i;
- 		COMPAT_IPT_ENTRY_ITERATE_CONTINUE(entry0, newinfo->size, i,
- 						  compat_release_entry, &j);
--		IPT_ENTRY_ITERATE(entry1, newinfo->size, cleanup_entry, &i);
-+		IPT_ENTRY_ITERATE(entry1, newinfo->size, cleanup_entry, net, &i);
- 		xt_free_table_info(newinfo);
- 		return ret;
- 	}
-@@ -1853,7 +1854,7 @@ compat_do_replace(struct net *net, void __user *user, unsigned int len)
- 	return 0;
- 
-  free_newinfo_untrans:
--	IPT_ENTRY_ITERATE(loc_cpu_entry, newinfo->size, cleanup_entry, NULL);
-+	IPT_ENTRY_ITERATE(loc_cpu_entry, newinfo->size, cleanup_entry, net, NULL);
-  free_newinfo:
- 	xt_free_table_info(newinfo);
- 	return ret;
-@@ -2112,7 +2113,7 @@ out:
- 	return ERR_PTR(ret);
- }
- 
--void ipt_unregister_table(struct xt_table *table)
-+void ipt_unregister_table(struct net *net, struct xt_table *table)
- {
- 	struct xt_table_info *private;
- 	void *loc_cpu_entry;
-@@ -2122,7 +2123,7 @@ void ipt_unregister_table(struct xt_table *table)
- 
- 	/* Decrease module usage counts and free resources */
- 	loc_cpu_entry = private->entries[raw_smp_processor_id()];
--	IPT_ENTRY_ITERATE(loc_cpu_entry, private->size, cleanup_entry, NULL);
-+	IPT_ENTRY_ITERATE(loc_cpu_entry, private->size, cleanup_entry, net, NULL);
- 	if (private->number > private->initial_entries)
- 		module_put(table_owner);
- 	xt_free_table_info(private);
---- a/net/ipv4/netfilter/iptable_filter.c
-+++ b/net/ipv4/netfilter/iptable_filter.c
-@@ -138,7 +138,7 @@ static int __net_init iptable_filter_net_init(struct net *net)
- 
- static void __net_exit iptable_filter_net_exit(struct net *net)
- {
--	ipt_unregister_table(net->ipv4.iptable_filter);
-+	ipt_unregister_table(net, net->ipv4.iptable_filter);
- }
- 
- static struct pernet_operations iptable_filter_net_ops = {
---- a/net/ipv4/netfilter/iptable_mangle.c
-+++ b/net/ipv4/netfilter/iptable_mangle.c
-@@ -208,7 +208,7 @@ static int __net_init iptable_mangle_net_init(struct net *net)
- 
- static void __net_exit iptable_mangle_net_exit(struct net *net)
- {
--	ipt_unregister_table(net->ipv4.iptable_mangle);
-+	ipt_unregister_table(net, net->ipv4.iptable_mangle);
- }
- 
- static struct pernet_operations iptable_mangle_net_ops = {
---- a/net/ipv4/netfilter/iptable_raw.c
-+++ b/net/ipv4/netfilter/iptable_raw.c
-@@ -100,7 +100,7 @@ static int __net_init iptable_raw_net_init(struct net *net)
- 
- static void __net_exit iptable_raw_net_exit(struct net *net)
- {
--	ipt_unregister_table(net->ipv4.iptable_raw);
-+	ipt_unregister_table(net, net->ipv4.iptable_raw);
- }
- 
- static struct pernet_operations iptable_raw_net_ops = {
---- a/net/ipv4/netfilter/iptable_security.c
-+++ b/net/ipv4/netfilter/iptable_security.c
-@@ -138,7 +138,7 @@ static int __net_init iptable_security_net_init(struct net *net)
- 
- static void __net_exit iptable_security_net_exit(struct net *net)
- {
--	ipt_unregister_table(net->ipv4.iptable_security);
-+	ipt_unregister_table(net, net->ipv4.iptable_security);
- }
- 
- static struct pernet_operations iptable_security_net_ops = {
---- a/net/ipv4/netfilter/nf_nat_rule.c
-+++ b/net/ipv4/netfilter/nf_nat_rule.c
-@@ -195,7 +195,7 @@ static int __net_init nf_nat_rule_net_init(struct net *net)
- 
- static void __net_exit nf_nat_rule_net_exit(struct net *net)
- {
--	ipt_unregister_table(net->ipv4.nat_table);
-+	ipt_unregister_table(net, net->ipv4.nat_table);
- }
- 
- static struct pernet_operations nf_nat_rule_net_ops = {
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -585,13 +585,14 @@ mark_source_chains(struct xt_table_info *newinfo,
- }
- 
- static int
--cleanup_match(struct ip6t_entry_match *m, unsigned int *i)
-+cleanup_match(struct ip6t_entry_match *m, struct net *net, unsigned int *i)
- {
- 	struct xt_mtdtor_param par;
- 
- 	if (i && (*i)-- == 0)
- 		return 1;
- 
-+	par.net       = net;
- 	par.match     = m->u.kernel.match;
- 	par.matchinfo = m->data;
- 	par.family    = NFPROTO_IPV6;
-@@ -737,7 +738,7 @@ find_check_entry(struct ip6t_entry *e, struct net *net, const char *name,
-  err:
- 	module_put(t->u.kernel.target->me);
-  cleanup_matches:
--	IP6T_MATCH_ITERATE(e, cleanup_match, &j);
-+	IP6T_MATCH_ITERATE(e, cleanup_match, net, &j);
- 	return ret;
- }
- 
-@@ -807,7 +808,7 @@ check_entry_size_and_hooks(struct ip6t_entry *e,
- }
- 
- static int
--cleanup_entry(struct ip6t_entry *e, unsigned int *i)
-+cleanup_entry(struct ip6t_entry *e, struct net *net, unsigned int *i)
- {
- 	struct xt_tgdtor_param par;
- 	struct ip6t_entry_target *t;
-@@ -816,7 +817,7 @@ cleanup_entry(struct ip6t_entry *e, unsigned int *i)
- 		return 1;
- 
- 	/* Cleanup all matches */
--	IP6T_MATCH_ITERATE(e, cleanup_match, NULL);
-+	IP6T_MATCH_ITERATE(e, cleanup_match, net, NULL);
- 	t = ip6t_get_target(e);
- 
- 	par.target   = t->u.kernel.target;
-@@ -898,7 +899,7 @@ translate_table(struct net *net,
- 
- 	if (ret != 0) {
- 		IP6T_ENTRY_ITERATE(entry0, newinfo->size,
--				   cleanup_entry, &i);
-+				   cleanup_entry, net, &i);
- 		return ret;
- 	}
- 
-@@ -1293,7 +1294,7 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
- 	/* Decrease module usage counts and free resource */
- 	loc_cpu_old_entry = oldinfo->entries[raw_smp_processor_id()];
- 	IP6T_ENTRY_ITERATE(loc_cpu_old_entry, oldinfo->size, cleanup_entry,
--			   NULL);
-+			   net, NULL);
- 	xt_free_table_info(oldinfo);
- 	if (copy_to_user(counters_ptr, counters,
- 			 sizeof(struct xt_counters) * num_counters) != 0)
-@@ -1353,7 +1354,7 @@ do_replace(struct net *net, void __user *user, unsigned int len)
- 	return 0;
- 
-  free_newinfo_untrans:
--	IP6T_ENTRY_ITERATE(loc_cpu_entry, newinfo->size, cleanup_entry, NULL);
-+	IP6T_ENTRY_ITERATE(loc_cpu_entry, newinfo->size, cleanup_entry, net, NULL);
-  free_newinfo:
- 	xt_free_table_info(newinfo);
- 	return ret;
-@@ -1692,14 +1693,15 @@ compat_copy_entry_from_user(struct compat_ip6t_entry *e, void **dstptr,
- 	return ret;
- }
- 
--static int compat_check_entry(struct ip6t_entry *e, const char *name,
--				     unsigned int *i)
-+static int compat_check_entry(struct ip6t_entry *e, struct net *net,
-+			      const char *name, unsigned int *i)
- {
- 	unsigned int j;
- 	int ret;
- 	struct xt_mtchk_param mtpar;
- 
- 	j = 0;
-+	mtpar.net	= net;
- 	mtpar.table     = name;
- 	mtpar.entryinfo = &e->ipv6;
- 	mtpar.hook_mask = e->comefrom;
-@@ -1716,12 +1718,13 @@ static int compat_check_entry(struct ip6t_entry *e, const char *name,
- 	return 0;
- 
-  cleanup_matches:
--	IP6T_MATCH_ITERATE(e, cleanup_match, &j);
-+	IP6T_MATCH_ITERATE(e, cleanup_match, net, &j);
- 	return ret;
- }
- 
- static int
--translate_compat_table(const char *name,
-+translate_compat_table(struct net *net,
-+		       const char *name,
- 		       unsigned int valid_hooks,
- 		       struct xt_table_info **pinfo,
- 		       void **pentry0,
-@@ -1810,12 +1813,12 @@ translate_compat_table(const char *name,
- 
- 	i = 0;
- 	ret = IP6T_ENTRY_ITERATE(entry1, newinfo->size, compat_check_entry,
--				 name, &i);
-+				 net, name, &i);
- 	if (ret) {
- 		j -= i;
- 		COMPAT_IP6T_ENTRY_ITERATE_CONTINUE(entry0, newinfo->size, i,
- 						   compat_release_entry, &j);
--		IP6T_ENTRY_ITERATE(entry1, newinfo->size, cleanup_entry, &i);
-+		IP6T_ENTRY_ITERATE(entry1, newinfo->size, cleanup_entry, net, &i);
- 		xt_free_table_info(newinfo);
- 		return ret;
- 	}
-@@ -1870,7 +1873,7 @@ compat_do_replace(struct net *net, void __user *user, unsigned int len)
- 		goto free_newinfo;
- 	}
- 
--	ret = translate_compat_table(tmp.name, tmp.valid_hooks,
-+	ret = translate_compat_table(net, tmp.name, tmp.valid_hooks,
- 				     &newinfo, &loc_cpu_entry, tmp.size,
- 				     tmp.num_entries, tmp.hook_entry,
- 				     tmp.underflow);
-@@ -1886,7 +1889,7 @@ compat_do_replace(struct net *net, void __user *user, unsigned int len)
- 	return 0;
- 
-  free_newinfo_untrans:
--	IP6T_ENTRY_ITERATE(loc_cpu_entry, newinfo->size, cleanup_entry, NULL);
-+	IP6T_ENTRY_ITERATE(loc_cpu_entry, newinfo->size, cleanup_entry, net, NULL);
-  free_newinfo:
- 	xt_free_table_info(newinfo);
- 	return ret;
-@@ -2144,7 +2147,7 @@ out:
- 	return ERR_PTR(ret);
- }
- 
--void ip6t_unregister_table(struct xt_table *table)
-+void ip6t_unregister_table(struct net *net, struct xt_table *table)
- {
- 	struct xt_table_info *private;
- 	void *loc_cpu_entry;
-@@ -2154,7 +2157,7 @@ void ip6t_unregister_table(struct xt_table *table)
- 
- 	/* Decrease module usage counts and free resources */
- 	loc_cpu_entry = private->entries[raw_smp_processor_id()];
--	IP6T_ENTRY_ITERATE(loc_cpu_entry, private->size, cleanup_entry, NULL);
-+	IP6T_ENTRY_ITERATE(loc_cpu_entry, private->size, cleanup_entry, net, NULL);
- 	if (private->number > private->initial_entries)
- 		module_put(table_owner);
- 	xt_free_table_info(private);
---- a/net/ipv6/netfilter/ip6table_filter.c
-+++ b/net/ipv6/netfilter/ip6table_filter.c
-@@ -131,7 +131,7 @@ static int __net_init ip6table_filter_net_init(struct net *net)
- 
- static void __net_exit ip6table_filter_net_exit(struct net *net)
- {
--	ip6t_unregister_table(net->ipv6.ip6table_filter);
-+	ip6t_unregister_table(net, net->ipv6.ip6table_filter);
- }
- 
- static struct pernet_operations ip6table_filter_net_ops = {
---- a/net/ipv6/netfilter/ip6table_mangle.c
-+++ b/net/ipv6/netfilter/ip6table_mangle.c
-@@ -182,7 +182,7 @@ static int __net_init ip6table_mangle_net_init(struct net *net)
- 
- static void __net_exit ip6table_mangle_net_exit(struct net *net)
- {
--	ip6t_unregister_table(net->ipv6.ip6table_mangle);
-+	ip6t_unregister_table(net, net->ipv6.ip6table_mangle);
- }
- 
- static struct pernet_operations ip6table_mangle_net_ops = {
---- a/net/ipv6/netfilter/ip6table_raw.c
-+++ b/net/ipv6/netfilter/ip6table_raw.c
-@@ -94,7 +94,7 @@ static int __net_init ip6table_raw_net_init(struct net *net)
- 
- static void __net_exit ip6table_raw_net_exit(struct net *net)
- {
--	ip6t_unregister_table(net->ipv6.ip6table_raw);
-+	ip6t_unregister_table(net, net->ipv6.ip6table_raw);
- }
- 
- static struct pernet_operations ip6table_raw_net_ops = {
---- a/net/ipv6/netfilter/ip6table_security.c
-+++ b/net/ipv6/netfilter/ip6table_security.c
-@@ -134,7 +134,7 @@ static int __net_init ip6table_security_net_init(struct net *net)
- 
- static void __net_exit ip6table_security_net_exit(struct net *net)
- {
--	ip6t_unregister_table(net->ipv6.ip6table_security);
-+	ip6t_unregister_table(net, net->ipv6.ip6table_security);
- }
- 
- static struct pernet_operations ip6table_security_net_ops = {
+ module_init(recent_mt_init);
