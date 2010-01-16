@@ -1,65 +1,54 @@
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: [PATCH] xt_connlimit: netns support
-Date: Sat, 16 Jan 2010 17:50:19 +0200
-Message-ID: <20100116155019.GA4086@x200>
+Subject: [PATCH] #ifdef ->iptable_security, ->ip6table_security
+Date: Sat, 16 Jan 2010 20:04:17 +0200
+Message-ID: <20100116180417.GA9527@x200>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org,
-	containers@lists.linux-foundation.org
+Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f225.google.com ([209.85.220.225]:58451 "EHLO
-	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752868Ab0APPu0 (ORCPT
+Received: from mail-fx0-f215.google.com ([209.85.220.215]:36432 "EHLO
+	mail-fx0-f215.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753317Ab0APSEZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 16 Jan 2010 10:50:26 -0500
-Received: by fxm25 with SMTP id 25so1032769fxm.21
-        for <netfilter-devel@vger.kernel.org>; Sat, 16 Jan 2010 07:50:25 -0800 (PST)
+	Sat, 16 Jan 2010 13:04:25 -0500
+Received: by fxm7 with SMTP id 7so202134fxm.28
+        for <netfilter-devel@vger.kernel.org>; Sat, 16 Jan 2010 10:04:23 -0800 (PST)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+'security' tables depend on SECURITY, so ifdef them.
+
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 ---
 
- net/netfilter/xt_connlimit.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ include/net/netns/ipv4.h |    2 ++
+ include/net/netns/ipv6.h |    2 ++
+ 2 files changed, 4 insertions(+)
 
---- a/net/netfilter/xt_connlimit.c
-+++ b/net/netfilter/xt_connlimit.c
-@@ -99,7 +99,8 @@ same_source_net(const union nf_inet_addr *addr,
- 	}
- }
- 
--static int count_them(struct xt_connlimit_data *data,
-+static int count_them(struct net *net,
-+		      struct xt_connlimit_data *data,
- 		      const struct nf_conntrack_tuple *tuple,
- 		      const union nf_inet_addr *addr,
- 		      const union nf_inet_addr *mask,
-@@ -122,7 +123,7 @@ static int count_them(struct xt_connlimit_data *data,
- 
- 	/* check the saved connections */
- 	list_for_each_entry_safe(conn, tmp, hash, list) {
--		found    = nf_conntrack_find_get(&init_net, &conn->tuple);
-+		found    = nf_conntrack_find_get(net, &conn->tuple);
- 		found_ct = NULL;
- 
- 		if (found != NULL)
-@@ -180,6 +181,7 @@ static int count_them(struct xt_connlimit_data *data,
- static bool
- connlimit_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- {
-+	struct net *net = dev_net(par->in ? par->in : par->out);
- 	const struct xt_connlimit_info *info = par->matchinfo;
- 	union nf_inet_addr addr;
- 	struct nf_conntrack_tuple tuple;
-@@ -204,7 +206,7 @@ connlimit_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	}
- 
- 	spin_lock_bh(&info->data->lock);
--	connections = count_them(info->data, tuple_ptr, &addr,
-+	connections = count_them(net, info->data, tuple_ptr, &addr,
- 	                         &info->mask, par->family);
- 	spin_unlock_bh(&info->data->lock);
- 
+--- a/include/net/netns/ipv4.h
++++ b/include/net/netns/ipv4.h
+@@ -37,7 +37,9 @@ struct netns_ipv4 {
+ 	struct xt_table		*iptable_mangle;
+ 	struct xt_table		*iptable_raw;
+ 	struct xt_table		*arptable_filter;
++#ifdef CONFIG_SECURITY
+ 	struct xt_table		*iptable_security;
++#endif
+ 	struct xt_table		*nat_table;
+ 	struct hlist_head	*nat_bysource;
+ 	int			nat_vmalloced;
+--- a/include/net/netns/ipv6.h
++++ b/include/net/netns/ipv6.h
+@@ -36,8 +36,10 @@ struct netns_ipv6 {
+ 	struct xt_table		*ip6table_filter;
+ 	struct xt_table		*ip6table_mangle;
+ 	struct xt_table		*ip6table_raw;
++#ifdef CONFIG_SECURITY
+ 	struct xt_table		*ip6table_security;
+ #endif
++#endif
+ 	struct rt6_info         *ip6_null_entry;
+ 	struct rt6_statistics   *rt6_stats;
+ 	struct timer_list       ip6_fib_timer;
