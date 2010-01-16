@@ -1,326 +1,63 @@
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: [PATCH 4/4] xt_hashlimit: netns support
-Date: Sat, 16 Jan 2010 20:59:23 +0200
-Message-ID: <20100116185923.GE24605@x200>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: pom: remove superseded patchlets
+Date: Sat, 16 Jan 2010 22:52:30 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.1001162247110.4057@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Nicolas Bouliane <acidfu@netfilter.org>, max@nucleus.it,
+	ole@ans.pl, frozenspot@gmail.com
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f225.google.com ([209.85.220.225]:43294 "EHLO
-	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752282Ab0APS7f (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 16 Jan 2010 13:59:35 -0500
-Received: by fxm25 with SMTP id 25so1128381fxm.21
-        for <netfilter-devel@vger.kernel.org>; Sat, 16 Jan 2010 10:59:34 -0800 (PST)
-Content-Disposition: inline
+Received: from borg.medozas.de ([188.40.89.202]:46324 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750948Ab0APVwc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 16 Jan 2010 16:52:32 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Make hashtable per-netns.
-Make proc files per-netns.
 
-Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
----
+People are still on the old trail. Another attempt at reducing the
+pitfalls with /svn/patch-o-matic-ng.
 
- net/netfilter/xt_hashlimit.c |  141 +++++++++++++++++++++++++++++--------------
- 1 file changed, 98 insertions(+), 43 deletions(-)
 
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -26,6 +26,7 @@
- #endif
- 
- #include <net/net_namespace.h>
-+#include <net/netns/generic.h>
- 
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter_ipv4/ip_tables.h>
-@@ -40,9 +41,19 @@ MODULE_DESCRIPTION("Xtables: per hash-bucket rate-limit match");
- MODULE_ALIAS("ipt_hashlimit");
- MODULE_ALIAS("ip6t_hashlimit");
- 
-+struct hashlimit_net {
-+	struct hlist_head	htables;
-+	struct proc_dir_entry	*ipt_hashlimit;
-+	struct proc_dir_entry	*ip6t_hashlimit;
-+};
-+
-+static int hashlimit_net_id;
-+static inline struct hashlimit_net *hashlimit_pernet(struct net *net)
-+{
-+	return net_generic(net, hashlimit_net_id);
-+}
-+
- /* need to declare this at the top */
--static struct proc_dir_entry *hashlimit_procdir4;
--static struct proc_dir_entry *hashlimit_procdir6;
- static const struct file_operations dl_file_ops;
- 
- /* hash table crap */
-@@ -93,13 +104,13 @@ struct xt_hashlimit_htable {
- 
- 	/* seq_file stuff */
- 	struct proc_dir_entry *pde;
-+	struct net *net;
- 
- 	struct hlist_head hash[0];	/* hashtable itself */
- };
- 
- static DEFINE_SPINLOCK(hashlimit_lock);	/* protects htables list */
- static DEFINE_MUTEX(hlimit_mutex);	/* additional checkentry protection */
--static HLIST_HEAD(hashlimit_htables);
- static struct kmem_cache *hashlimit_cachep __read_mostly;
- 
- static inline bool dst_cmp(const struct dsthash_ent *ent,
-@@ -185,8 +196,9 @@ dsthash_free(struct xt_hashlimit_htable *ht, struct dsthash_ent *ent)
- }
- static void htable_gc(unsigned long htlong);
- 
--static int htable_create_v0(struct xt_hashlimit_info *minfo, u_int8_t family)
-+static int htable_create_v0(struct net *net, struct xt_hashlimit_info *minfo, u_int8_t family)
- {
-+	struct hashlimit_net *hashlimit_net = hashlimit_pernet(net);
- 	struct xt_hashlimit_htable *hinfo;
- 	unsigned int size;
- 	unsigned int i;
-@@ -239,26 +251,29 @@ static int htable_create_v0(struct xt_hashlimit_info *minfo, u_int8_t family)
- 	spin_lock_init(&hinfo->lock);
- 	hinfo->pde = proc_create_data(minfo->name, 0,
- 		(family == NFPROTO_IPV4) ?
--		hashlimit_procdir4 : hashlimit_procdir6,
-+		hashlimit_net->ipt_hashlimit : hashlimit_net->ip6t_hashlimit,
- 		&dl_file_ops, hinfo);
- 	if (!hinfo->pde) {
- 		vfree(hinfo);
- 		return -1;
- 	}
-+	hinfo->net = net;
- 
- 	setup_timer(&hinfo->timer, htable_gc, (unsigned long )hinfo);
- 	hinfo->timer.expires = jiffies + msecs_to_jiffies(hinfo->cfg.gc_interval);
- 	add_timer(&hinfo->timer);
- 
- 	spin_lock_bh(&hashlimit_lock);
--	hlist_add_head(&hinfo->node, &hashlimit_htables);
-+	hlist_add_head(&hinfo->node, &hashlimit_net->htables);
- 	spin_unlock_bh(&hashlimit_lock);
- 
- 	return 0;
- }
- 
--static int htable_create(struct xt_hashlimit_mtinfo1 *minfo, u_int8_t family)
-+static int htable_create(struct net *net, struct xt_hashlimit_mtinfo1 *minfo,
-+			 u_int8_t family)
- {
-+	struct hashlimit_net *hashlimit_net = hashlimit_pernet(net);
- 	struct xt_hashlimit_htable *hinfo;
- 	unsigned int size;
- 	unsigned int i;
-@@ -301,19 +316,20 @@ static int htable_create(struct xt_hashlimit_mtinfo1 *minfo, u_int8_t family)
- 
- 	hinfo->pde = proc_create_data(minfo->name, 0,
- 		(family == NFPROTO_IPV4) ?
--		hashlimit_procdir4 : hashlimit_procdir6,
-+		hashlimit_net->ipt_hashlimit : hashlimit_net->ip6t_hashlimit,
- 		&dl_file_ops, hinfo);
- 	if (hinfo->pde == NULL) {
- 		vfree(hinfo);
- 		return -1;
- 	}
-+	hinfo->net = net;
- 
- 	setup_timer(&hinfo->timer, htable_gc, (unsigned long)hinfo);
- 	hinfo->timer.expires = jiffies + msecs_to_jiffies(hinfo->cfg.gc_interval);
- 	add_timer(&hinfo->timer);
- 
- 	spin_lock_bh(&hashlimit_lock);
--	hlist_add_head(&hinfo->node, &hashlimit_htables);
-+	hlist_add_head(&hinfo->node, &hashlimit_net->htables);
- 	spin_unlock_bh(&hashlimit_lock);
- 
- 	return 0;
-@@ -364,24 +380,30 @@ static void htable_gc(unsigned long htlong)
- 
- static void htable_destroy(struct xt_hashlimit_htable *hinfo)
- {
-+	struct hashlimit_net *hashlimit_net = hashlimit_pernet(hinfo->net);
-+	struct proc_dir_entry *parent;
-+
- 	del_timer_sync(&hinfo->timer);
- 
--	/* remove proc entry */
--	remove_proc_entry(hinfo->pde->name,
--			  hinfo->family == NFPROTO_IPV4 ? hashlimit_procdir4 :
--						     hashlimit_procdir6);
-+	if (hinfo->family == NFPROTO_IPV4)
-+		parent = hashlimit_net->ipt_hashlimit;
-+	else
-+		parent = hashlimit_net->ip6t_hashlimit;
-+	remove_proc_entry(hinfo->pde->name, parent);
- 	htable_selective_cleanup(hinfo, select_all);
- 	vfree(hinfo);
- }
- 
--static struct xt_hashlimit_htable *htable_find_get(const char *name,
-+static struct xt_hashlimit_htable *htable_find_get(struct net *net,
-+						   const char *name,
- 						   u_int8_t family)
- {
-+	struct hashlimit_net *hashlimit_net = hashlimit_pernet(net);
- 	struct xt_hashlimit_htable *hinfo;
- 	struct hlist_node *pos;
- 
- 	spin_lock_bh(&hashlimit_lock);
--	hlist_for_each_entry(hinfo, pos, &hashlimit_htables, node) {
-+	hlist_for_each_entry(hinfo, pos, &hashlimit_net->htables, node) {
- 		if (!strcmp(name, hinfo->pde->name) &&
- 		    hinfo->family == family) {
- 			atomic_inc(&hinfo->use);
-@@ -665,6 +687,7 @@ hashlimit_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 
- static bool hashlimit_mt_check_v0(const struct xt_mtchk_param *par)
- {
-+	struct net *net = par->net;
- 	struct xt_hashlimit_info *r = par->matchinfo;
- 
- 	/* Check for overflow. */
-@@ -694,8 +717,8 @@ static bool hashlimit_mt_check_v0(const struct xt_mtchk_param *par)
- 	 * the list of htable's in htable_create(), since then we would
- 	 * create duplicate proc files. -HW */
- 	mutex_lock(&hlimit_mutex);
--	r->hinfo = htable_find_get(r->name, par->match->family);
--	if (!r->hinfo && htable_create_v0(r, par->match->family) != 0) {
-+	r->hinfo = htable_find_get(net, r->name, par->match->family);
-+	if (!r->hinfo && htable_create_v0(net, r, par->match->family) != 0) {
- 		mutex_unlock(&hlimit_mutex);
- 		return false;
- 	}
-@@ -706,6 +729,7 @@ static bool hashlimit_mt_check_v0(const struct xt_mtchk_param *par)
- 
- static bool hashlimit_mt_check(const struct xt_mtchk_param *par)
- {
-+	struct net *net = par->net;
- 	struct xt_hashlimit_mtinfo1 *info = par->matchinfo;
- 
- 	/* Check for overflow. */
-@@ -735,8 +759,8 @@ static bool hashlimit_mt_check(const struct xt_mtchk_param *par)
- 	 * the list of htable's in htable_create(), since then we would
- 	 * create duplicate proc files. -HW */
- 	mutex_lock(&hlimit_mutex);
--	info->hinfo = htable_find_get(info->name, par->match->family);
--	if (!info->hinfo && htable_create(info, par->match->family) != 0) {
-+	info->hinfo = htable_find_get(net, info->name, par->match->family);
-+	if (!info->hinfo && htable_create(net, info, par->match->family) != 0) {
- 		mutex_unlock(&hlimit_mutex);
- 		return false;
- 	}
-@@ -953,10 +977,61 @@ static const struct file_operations dl_file_ops = {
- 	.release = seq_release
- };
- 
-+static int __net_init hashlimit_proc_net_init(struct net *net)
-+{
-+	struct hashlimit_net *hashlimit_net = hashlimit_pernet(net);
-+
-+	hashlimit_net->ipt_hashlimit = proc_mkdir("ipt_hashlimit", net->proc_net);
-+	if (!hashlimit_net->ipt_hashlimit)
-+		return -ENOMEM;
-+#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
-+	hashlimit_net->ip6t_hashlimit = proc_mkdir("ip6t_hashlimit", net->proc_net);
-+	if (!hashlimit_net->ip6t_hashlimit) {
-+		proc_net_remove(net, "ipt_hashlimit");
-+		return -ENOMEM;
-+	}
-+#endif
-+	return 0;
-+}
-+
-+static void __net_exit hashlimit_proc_net_exit(struct net *net)
-+{
-+	proc_net_remove(net, "ipt_hashlimit");
-+#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
-+	proc_net_remove(net, "ip6t_hashlimit");
-+#endif
-+}
-+
-+static int __net_init hashlimit_net_init(struct net *net)
-+{
-+	struct hashlimit_net *hashlimit_net = hashlimit_pernet(net);
-+
-+	INIT_HLIST_HEAD(&hashlimit_net->htables);
-+	return hashlimit_proc_net_init(net);
-+}
-+
-+static void __net_exit hashlimit_net_exit(struct net *net)
-+{
-+	struct hashlimit_net *hashlimit_net = hashlimit_pernet(net);
-+
-+	BUG_ON(!hlist_empty(&hashlimit_net->htables));
-+	hashlimit_proc_net_exit(net);
-+}
-+
-+static struct pernet_operations hashlimit_net_ops = {
-+	.init	= hashlimit_net_init,
-+	.exit	= hashlimit_net_exit,
-+	.id	= &hashlimit_net_id,
-+	.size	= sizeof(struct hashlimit_net),
-+};
-+
- static int __init hashlimit_mt_init(void)
- {
- 	int err;
- 
-+	err = register_pernet_subsys(&hashlimit_net_ops);
-+	if (err < 0)
-+		return err;
- 	err = xt_register_matches(hashlimit_mt_reg,
- 	      ARRAY_SIZE(hashlimit_mt_reg));
- 	if (err < 0)
-@@ -970,41 +1045,21 @@ static int __init hashlimit_mt_init(void)
- 		printk(KERN_ERR "xt_hashlimit: unable to create slab cache\n");
- 		goto err2;
- 	}
--	hashlimit_procdir4 = proc_mkdir("ipt_hashlimit", init_net.proc_net);
--	if (!hashlimit_procdir4) {
--		printk(KERN_ERR "xt_hashlimit: unable to create proc dir "
--				"entry\n");
--		goto err3;
--	}
--	err = 0;
--#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
--	hashlimit_procdir6 = proc_mkdir("ip6t_hashlimit", init_net.proc_net);
--	if (!hashlimit_procdir6) {
--		printk(KERN_ERR "xt_hashlimit: unable to create proc dir "
--				"entry\n");
--		err = -ENOMEM;
--	}
--#endif
--	if (!err)
--		return 0;
--	remove_proc_entry("ipt_hashlimit", init_net.proc_net);
--err3:
--	kmem_cache_destroy(hashlimit_cachep);
-+	return 0;
-+
- err2:
- 	xt_unregister_matches(hashlimit_mt_reg, ARRAY_SIZE(hashlimit_mt_reg));
- err1:
-+	unregister_pernet_subsys(&hashlimit_net_ops);
- 	return err;
- 
- }
- 
- static void __exit hashlimit_mt_exit(void)
- {
--	remove_proc_entry("ipt_hashlimit", init_net.proc_net);
--#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
--	remove_proc_entry("ip6t_hashlimit", init_net.proc_net);
--#endif
- 	kmem_cache_destroy(hashlimit_cachep);
- 	xt_unregister_matches(hashlimit_mt_reg, ARRAY_SIZE(hashlimit_mt_reg));
-+	unregister_pernet_subsys(&hashlimit_net_ops);
- }
- 
- module_init(hashlimit_mt_init);
+---=E2=9C=82---
+Remove patchlets that have been merged into Xtables-addons
+
+All deleted modules have either been merged upstream in the kernel,
+or merged into Xtables-addons with the authors' consent, and have
+been improved from there. We should not been offering outdated
+versions. It happens that people still run across this.
+
+diff -dpru patch-o-matic-ng-20100115~/sources.list patch-o-matic-ng-201=
+00115/sources.list
+--- patch-o-matic-ng-20100115~/sources.list	2010-01-15 23:55:58.0000000=
+00 +0100
++++ patch-o-matic-ng-20100115/sources.list	2010-01-16 22:45:32.20296535=
+4 +0100
+@@ -1,17 +1,5 @@
+ # Add the URLs for external patchlets here
+ #=20
+=20
+-# geoip, maintained by Nicolas Bouliane <nicboul@gmail.com>
+-http://people.netfilter.org/acidfu/patchlets/
+-
+-# condition, maintained by Massimiliano Hofer <max@nucleus.it>
+-http://www.nucleus.it/pom-repo
+-
+-# ipp2p, time, IPMARK and connlimit maintained by Krzysztof Oledzki <o=
+le@ans.pl>
+-http://people.netfilter.org/ole/pom/
+-
+ # ACCOUNT, maintained by Intra2net AG <opensource@intra2net.com>
+ http://www.intra2net.com/en/developer/ipt_ACCOUNT/download/
+-
+-# Portknocking and SPA (J. Federico Hernandez <frozenspot@gmail.com>)
+-http://svn.berlios.de/svnroot/repos/portknocko/trunk/pom/
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
