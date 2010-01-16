@@ -1,288 +1,326 @@
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: [PATCH 3/4] xt_recent: netns support
-Date: Sat, 16 Jan 2010 20:58:06 +0200
-Message-ID: <20100116185806.GD24605@x200>
+Subject: [PATCH 4/4] xt_hashlimit: netns support
+Date: Sat, 16 Jan 2010 20:59:23 +0200
+Message-ID: <20100116185923.GE24605@x200>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f225.google.com ([209.85.220.225]:63200 "EHLO
+Received: from mail-fx0-f225.google.com ([209.85.220.225]:43294 "EHLO
 	mail-fx0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750973Ab0APS6T (ORCPT
+	with ESMTP id S1752282Ab0APS7f (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 16 Jan 2010 13:58:19 -0500
-Received: by fxm25 with SMTP id 25so1127795fxm.21
-        for <netfilter-devel@vger.kernel.org>; Sat, 16 Jan 2010 10:58:16 -0800 (PST)
+	Sat, 16 Jan 2010 13:59:35 -0500
+Received: by fxm25 with SMTP id 25so1128381fxm.21
+        for <netfilter-devel@vger.kernel.org>; Sat, 16 Jan 2010 10:59:34 -0800 (PST)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Make recent table list per-netns.
+Make hashtable per-netns.
 Make proc files per-netns.
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 ---
 
- net/netfilter/xt_recent.c |  136 ++++++++++++++++++++++++++++++++--------------
- 1 file changed, 95 insertions(+), 41 deletions(-)
+ net/netfilter/xt_hashlimit.c |  141 +++++++++++++++++++++++++++++--------------
+ 1 file changed, 98 insertions(+), 43 deletions(-)
 
---- a/net/netfilter/xt_recent.c
-+++ b/net/netfilter/xt_recent.c
-@@ -28,6 +28,7 @@
- #include <linux/skbuff.h>
- #include <linux/inet.h>
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -26,6 +26,7 @@
+ #endif
+ 
  #include <net/net_namespace.h>
 +#include <net/netns/generic.h>
  
  #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/xt_recent.h>
-@@ -78,15 +79,26 @@ struct recent_table {
- 	struct list_head	iphash[0];
- };
+ #include <linux/netfilter_ipv4/ip_tables.h>
+@@ -40,9 +41,19 @@ MODULE_DESCRIPTION("Xtables: per hash-bucket rate-limit match");
+ MODULE_ALIAS("ipt_hashlimit");
+ MODULE_ALIAS("ip6t_hashlimit");
  
--static LIST_HEAD(tables);
-+struct recent_net {
-+	struct list_head	tables;
-+#ifdef CONFIG_PROC_FS
-+	struct proc_dir_entry	*xt_recent;
-+#ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
-+	struct proc_dir_entry	*ipt_recent;
-+#endif
-+#endif
++struct hashlimit_net {
++	struct hlist_head	htables;
++	struct proc_dir_entry	*ipt_hashlimit;
++	struct proc_dir_entry	*ip6t_hashlimit;
 +};
 +
-+static int recent_net_id;
-+static inline struct recent_net *recent_pernet(struct net *net)
++static int hashlimit_net_id;
++static inline struct hashlimit_net *hashlimit_pernet(struct net *net)
 +{
-+	return net_generic(net, recent_net_id);
++	return net_generic(net, hashlimit_net_id);
 +}
 +
- static DEFINE_SPINLOCK(recent_lock);
- static DEFINE_MUTEX(recent_mutex);
+ /* need to declare this at the top */
+-static struct proc_dir_entry *hashlimit_procdir4;
+-static struct proc_dir_entry *hashlimit_procdir6;
+ static const struct file_operations dl_file_ops;
  
- #ifdef CONFIG_PROC_FS
--#ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
--static struct proc_dir_entry *proc_old_dir;
--#endif
--static struct proc_dir_entry *recent_proc_dir;
- static const struct file_operations recent_old_fops, recent_mt_fops;
- #endif
+ /* hash table crap */
+@@ -93,13 +104,13 @@ struct xt_hashlimit_htable {
  
-@@ -180,11 +192,12 @@ static void recent_entry_update(struct recent_table *t, struct recent_entry *e)
- 	list_move_tail(&e->lru_list, &t->lru_list);
+ 	/* seq_file stuff */
+ 	struct proc_dir_entry *pde;
++	struct net *net;
+ 
+ 	struct hlist_head hash[0];	/* hashtable itself */
+ };
+ 
+ static DEFINE_SPINLOCK(hashlimit_lock);	/* protects htables list */
+ static DEFINE_MUTEX(hlimit_mutex);	/* additional checkentry protection */
+-static HLIST_HEAD(hashlimit_htables);
+ static struct kmem_cache *hashlimit_cachep __read_mostly;
+ 
+ static inline bool dst_cmp(const struct dsthash_ent *ent,
+@@ -185,8 +196,9 @@ dsthash_free(struct xt_hashlimit_htable *ht, struct dsthash_ent *ent)
+ }
+ static void htable_gc(unsigned long htlong);
+ 
+-static int htable_create_v0(struct xt_hashlimit_info *minfo, u_int8_t family)
++static int htable_create_v0(struct net *net, struct xt_hashlimit_info *minfo, u_int8_t family)
+ {
++	struct hashlimit_net *hashlimit_net = hashlimit_pernet(net);
+ 	struct xt_hashlimit_htable *hinfo;
+ 	unsigned int size;
+ 	unsigned int i;
+@@ -239,26 +251,29 @@ static int htable_create_v0(struct xt_hashlimit_info *minfo, u_int8_t family)
+ 	spin_lock_init(&hinfo->lock);
+ 	hinfo->pde = proc_create_data(minfo->name, 0,
+ 		(family == NFPROTO_IPV4) ?
+-		hashlimit_procdir4 : hashlimit_procdir6,
++		hashlimit_net->ipt_hashlimit : hashlimit_net->ip6t_hashlimit,
+ 		&dl_file_ops, hinfo);
+ 	if (!hinfo->pde) {
+ 		vfree(hinfo);
+ 		return -1;
+ 	}
++	hinfo->net = net;
+ 
+ 	setup_timer(&hinfo->timer, htable_gc, (unsigned long )hinfo);
+ 	hinfo->timer.expires = jiffies + msecs_to_jiffies(hinfo->cfg.gc_interval);
+ 	add_timer(&hinfo->timer);
+ 
+ 	spin_lock_bh(&hashlimit_lock);
+-	hlist_add_head(&hinfo->node, &hashlimit_htables);
++	hlist_add_head(&hinfo->node, &hashlimit_net->htables);
+ 	spin_unlock_bh(&hashlimit_lock);
+ 
+ 	return 0;
  }
  
--static struct recent_table *recent_table_lookup(const char *name)
-+static struct recent_table *recent_table_lookup(struct recent_net *recent_net,
-+						const char *name)
+-static int htable_create(struct xt_hashlimit_mtinfo1 *minfo, u_int8_t family)
++static int htable_create(struct net *net, struct xt_hashlimit_mtinfo1 *minfo,
++			 u_int8_t family)
  {
- 	struct recent_table *t;
++	struct hashlimit_net *hashlimit_net = hashlimit_pernet(net);
+ 	struct xt_hashlimit_htable *hinfo;
+ 	unsigned int size;
+ 	unsigned int i;
+@@ -301,19 +316,20 @@ static int htable_create(struct xt_hashlimit_mtinfo1 *minfo, u_int8_t family)
  
--	list_for_each_entry(t, &tables, list)
-+	list_for_each_entry(t, &recent_net->tables, list)
- 		if (!strcmp(t->name, name))
- 			return t;
- 	return NULL;
-@@ -203,6 +216,8 @@ static void recent_table_flush(struct recent_table *t)
- static bool
- recent_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- {
-+	struct net *net = dev_net(par->in ? par->in : par->out);
-+	struct recent_net *recent_net = recent_pernet(net);
- 	const struct xt_recent_mtinfo *info = par->matchinfo;
- 	struct recent_table *t;
- 	struct recent_entry *e;
-@@ -235,7 +250,7 @@ recent_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 		ttl++;
- 
- 	spin_lock_bh(&recent_lock);
--	t = recent_table_lookup(info->name);
-+	t = recent_table_lookup(recent_net, info->name);
- 	e = recent_entry_lookup(t, &addr, par->match->family,
- 				(info->check_set & XT_RECENT_TTL) ? ttl : 0);
- 	if (e == NULL) {
-@@ -279,6 +294,7 @@ out:
- 
- static bool recent_mt_check(const struct xt_mtchk_param *par)
- {
-+	struct recent_net *recent_net = recent_pernet(par->net);
- 	const struct xt_recent_mtinfo *info = par->matchinfo;
- 	struct recent_table *t;
- #ifdef CONFIG_PROC_FS
-@@ -301,7 +317,7 @@ static bool recent_mt_check(const struct xt_mtchk_param *par)
- 		return false;
- 
- 	mutex_lock(&recent_mutex);
--	t = recent_table_lookup(info->name);
-+	t = recent_table_lookup(recent_net, info->name);
- 	if (t != NULL) {
- 		t->refcnt++;
- 		ret = true;
-@@ -318,7 +334,7 @@ static bool recent_mt_check(const struct xt_mtchk_param *par)
- 	for (i = 0; i < ip_list_hash_size; i++)
- 		INIT_LIST_HEAD(&t->iphash[i]);
- #ifdef CONFIG_PROC_FS
--	pde = proc_create_data(t->name, ip_list_perms, recent_proc_dir,
-+	pde = proc_create_data(t->name, ip_list_perms, recent_net->xt_recent,
- 		  &recent_mt_fops, t);
- 	if (pde == NULL) {
- 		kfree(t);
-@@ -327,10 +343,10 @@ static bool recent_mt_check(const struct xt_mtchk_param *par)
- 	pde->uid = ip_list_uid;
- 	pde->gid = ip_list_gid;
- #ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
--	pde = proc_create_data(t->name, ip_list_perms, proc_old_dir,
-+	pde = proc_create_data(t->name, ip_list_perms, recent_net->ipt_recent,
- 		      &recent_old_fops, t);
- 	if (pde == NULL) {
--		remove_proc_entry(t->name, proc_old_dir);
-+		remove_proc_entry(t->name, recent_net->xt_recent);
- 		kfree(t);
- 		goto out;
+ 	hinfo->pde = proc_create_data(minfo->name, 0,
+ 		(family == NFPROTO_IPV4) ?
+-		hashlimit_procdir4 : hashlimit_procdir6,
++		hashlimit_net->ipt_hashlimit : hashlimit_net->ip6t_hashlimit,
+ 		&dl_file_ops, hinfo);
+ 	if (hinfo->pde == NULL) {
+ 		vfree(hinfo);
+ 		return -1;
  	}
-@@ -339,7 +355,7 @@ static bool recent_mt_check(const struct xt_mtchk_param *par)
- #endif
- #endif
- 	spin_lock_bh(&recent_lock);
--	list_add_tail(&t->list, &tables);
-+	list_add_tail(&t->list, &recent_net->tables);
- 	spin_unlock_bh(&recent_lock);
- 	ret = true;
- out:
-@@ -349,20 +365,21 @@ out:
++	hinfo->net = net;
  
- static void recent_mt_destroy(const struct xt_mtdtor_param *par)
+ 	setup_timer(&hinfo->timer, htable_gc, (unsigned long)hinfo);
+ 	hinfo->timer.expires = jiffies + msecs_to_jiffies(hinfo->cfg.gc_interval);
+ 	add_timer(&hinfo->timer);
+ 
+ 	spin_lock_bh(&hashlimit_lock);
+-	hlist_add_head(&hinfo->node, &hashlimit_htables);
++	hlist_add_head(&hinfo->node, &hashlimit_net->htables);
+ 	spin_unlock_bh(&hashlimit_lock);
+ 
+ 	return 0;
+@@ -364,24 +380,30 @@ static void htable_gc(unsigned long htlong)
+ 
+ static void htable_destroy(struct xt_hashlimit_htable *hinfo)
  {
-+	struct recent_net *recent_net = recent_pernet(par->net);
- 	const struct xt_recent_mtinfo *info = par->matchinfo;
- 	struct recent_table *t;
++	struct hashlimit_net *hashlimit_net = hashlimit_pernet(hinfo->net);
++	struct proc_dir_entry *parent;
++
+ 	del_timer_sync(&hinfo->timer);
  
- 	mutex_lock(&recent_mutex);
--	t = recent_table_lookup(info->name);
-+	t = recent_table_lookup(recent_net, info->name);
- 	if (--t->refcnt == 0) {
- 		spin_lock_bh(&recent_lock);
- 		list_del(&t->list);
- 		spin_unlock_bh(&recent_lock);
- #ifdef CONFIG_PROC_FS
- #ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
--		remove_proc_entry(t->name, proc_old_dir);
-+		remove_proc_entry(t->name, recent_net->ipt_recent);
- #endif
--		remove_proc_entry(t->name, recent_proc_dir);
-+		remove_proc_entry(t->name, recent_net->xt_recent);
- #endif
- 		recent_table_flush(t);
- 		kfree(t);
-@@ -611,8 +628,65 @@ static const struct file_operations recent_mt_fops = {
- 	.release = seq_release_private,
- 	.owner   = THIS_MODULE,
+-	/* remove proc entry */
+-	remove_proc_entry(hinfo->pde->name,
+-			  hinfo->family == NFPROTO_IPV4 ? hashlimit_procdir4 :
+-						     hashlimit_procdir6);
++	if (hinfo->family == NFPROTO_IPV4)
++		parent = hashlimit_net->ipt_hashlimit;
++	else
++		parent = hashlimit_net->ip6t_hashlimit;
++	remove_proc_entry(hinfo->pde->name, parent);
+ 	htable_selective_cleanup(hinfo, select_all);
+ 	vfree(hinfo);
+ }
+ 
+-static struct xt_hashlimit_htable *htable_find_get(const char *name,
++static struct xt_hashlimit_htable *htable_find_get(struct net *net,
++						   const char *name,
+ 						   u_int8_t family)
+ {
++	struct hashlimit_net *hashlimit_net = hashlimit_pernet(net);
+ 	struct xt_hashlimit_htable *hinfo;
+ 	struct hlist_node *pos;
+ 
+ 	spin_lock_bh(&hashlimit_lock);
+-	hlist_for_each_entry(hinfo, pos, &hashlimit_htables, node) {
++	hlist_for_each_entry(hinfo, pos, &hashlimit_net->htables, node) {
+ 		if (!strcmp(name, hinfo->pde->name) &&
+ 		    hinfo->family == family) {
+ 			atomic_inc(&hinfo->use);
+@@ -665,6 +687,7 @@ hashlimit_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+ 
+ static bool hashlimit_mt_check_v0(const struct xt_mtchk_param *par)
+ {
++	struct net *net = par->net;
+ 	struct xt_hashlimit_info *r = par->matchinfo;
+ 
+ 	/* Check for overflow. */
+@@ -694,8 +717,8 @@ static bool hashlimit_mt_check_v0(const struct xt_mtchk_param *par)
+ 	 * the list of htable's in htable_create(), since then we would
+ 	 * create duplicate proc files. -HW */
+ 	mutex_lock(&hlimit_mutex);
+-	r->hinfo = htable_find_get(r->name, par->match->family);
+-	if (!r->hinfo && htable_create_v0(r, par->match->family) != 0) {
++	r->hinfo = htable_find_get(net, r->name, par->match->family);
++	if (!r->hinfo && htable_create_v0(net, r, par->match->family) != 0) {
+ 		mutex_unlock(&hlimit_mutex);
+ 		return false;
+ 	}
+@@ -706,6 +729,7 @@ static bool hashlimit_mt_check_v0(const struct xt_mtchk_param *par)
+ 
+ static bool hashlimit_mt_check(const struct xt_mtchk_param *par)
+ {
++	struct net *net = par->net;
+ 	struct xt_hashlimit_mtinfo1 *info = par->matchinfo;
+ 
+ 	/* Check for overflow. */
+@@ -735,8 +759,8 @@ static bool hashlimit_mt_check(const struct xt_mtchk_param *par)
+ 	 * the list of htable's in htable_create(), since then we would
+ 	 * create duplicate proc files. -HW */
+ 	mutex_lock(&hlimit_mutex);
+-	info->hinfo = htable_find_get(info->name, par->match->family);
+-	if (!info->hinfo && htable_create(info, par->match->family) != 0) {
++	info->hinfo = htable_find_get(net, info->name, par->match->family);
++	if (!info->hinfo && htable_create(net, info, par->match->family) != 0) {
+ 		mutex_unlock(&hlimit_mutex);
+ 		return false;
+ 	}
+@@ -953,10 +977,61 @@ static const struct file_operations dl_file_ops = {
+ 	.release = seq_release
  };
-+
-+static int __net_init recent_proc_net_init(struct net *net)
+ 
++static int __net_init hashlimit_proc_net_init(struct net *net)
 +{
-+	struct recent_net *recent_net = recent_pernet(net);
++	struct hashlimit_net *hashlimit_net = hashlimit_pernet(net);
 +
-+	recent_net->xt_recent = proc_mkdir("xt_recent", net->proc_net);
-+	if (!recent_net->xt_recent)
++	hashlimit_net->ipt_hashlimit = proc_mkdir("ipt_hashlimit", net->proc_net);
++	if (!hashlimit_net->ipt_hashlimit)
 +		return -ENOMEM;
-+#ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
-+	recent_net->ipt_recent = proc_mkdir("ipt_recent", net->proc_net);
-+	if (!recent_net->ipt_recent) {
-+		proc_net_remove(net, "xt_recent");
++#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
++	hashlimit_net->ip6t_hashlimit = proc_mkdir("ip6t_hashlimit", net->proc_net);
++	if (!hashlimit_net->ip6t_hashlimit) {
++		proc_net_remove(net, "ipt_hashlimit");
 +		return -ENOMEM;
 +	}
 +#endif
 +	return 0;
 +}
 +
-+static void __net_exit recent_proc_net_exit(struct net *net)
++static void __net_exit hashlimit_proc_net_exit(struct net *net)
 +{
-+#ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
-+	proc_net_remove(net, "ipt_recent");
++	proc_net_remove(net, "ipt_hashlimit");
++#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
++	proc_net_remove(net, "ip6t_hashlimit");
 +#endif
-+	proc_net_remove(net, "xt_recent");
 +}
-+#else
-+static inline int recent_proc_net_init(struct net *net)
++
++static int __net_init hashlimit_net_init(struct net *net)
 +{
-+	return 0;
++	struct hashlimit_net *hashlimit_net = hashlimit_pernet(net);
++
++	INIT_HLIST_HEAD(&hashlimit_net->htables);
++	return hashlimit_proc_net_init(net);
 +}
 +
-+static inline void recent_proc_net_exit(struct net *net)
++static void __net_exit hashlimit_net_exit(struct net *net)
 +{
-+}
- #endif /* CONFIG_PROC_FS */
- 
-+static int __net_init recent_net_init(struct net *net)
-+{
-+	struct recent_net *recent_net = recent_pernet(net);
++	struct hashlimit_net *hashlimit_net = hashlimit_pernet(net);
 +
-+	INIT_LIST_HEAD(&recent_net->tables);
-+	return recent_proc_net_init(net);
++	BUG_ON(!hlist_empty(&hashlimit_net->htables));
++	hashlimit_proc_net_exit(net);
 +}
 +
-+static void __net_exit recent_net_exit(struct net *net)
-+{
-+	struct recent_net *recent_net = recent_pernet(net);
-+
-+	BUG_ON(!list_empty(&recent_net->tables));
-+	recent_proc_net_exit(net);
-+}
-+
-+static struct pernet_operations recent_net_ops = {
-+	.init	= recent_net_init,
-+	.exit	= recent_net_exit,
-+	.id	= &recent_net_id,
-+	.size	= sizeof(struct recent_net),
++static struct pernet_operations hashlimit_net_ops = {
++	.init	= hashlimit_net_init,
++	.exit	= hashlimit_net_exit,
++	.id	= &hashlimit_net_id,
++	.size	= sizeof(struct hashlimit_net),
 +};
 +
- static struct xt_match recent_mt_reg[] __read_mostly = {
- 	{
- 		.name       = "recent",
-@@ -644,39 +718,19 @@ static int __init recent_mt_init(void)
- 		return -EINVAL;
- 	ip_list_hash_size = 1 << fls(ip_list_tot);
- 
--	err = xt_register_matches(recent_mt_reg, ARRAY_SIZE(recent_mt_reg));
--#ifdef CONFIG_PROC_FS
-+	err = register_pernet_subsys(&recent_net_ops);
- 	if (err)
- 		return err;
--	recent_proc_dir = proc_mkdir("xt_recent", init_net.proc_net);
--	if (recent_proc_dir == NULL) {
--		xt_unregister_matches(recent_mt_reg, ARRAY_SIZE(recent_mt_reg));
--		err = -ENOMEM;
--	}
--#ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
--	if (err < 0)
--		return err;
--	proc_old_dir = proc_mkdir("ipt_recent", init_net.proc_net);
--	if (proc_old_dir == NULL) {
--		remove_proc_entry("xt_recent", init_net.proc_net);
--		xt_unregister_matches(recent_mt_reg, ARRAY_SIZE(recent_mt_reg));
--		err = -ENOMEM;
--	}
--#endif
--#endif
-+	err = xt_register_matches(recent_mt_reg, ARRAY_SIZE(recent_mt_reg));
-+	if (err)
-+		unregister_pernet_subsys(&recent_net_ops);
- 	return err;
- }
- 
- static void __exit recent_mt_exit(void)
+ static int __init hashlimit_mt_init(void)
  {
--	BUG_ON(!list_empty(&tables));
- 	xt_unregister_matches(recent_mt_reg, ARRAY_SIZE(recent_mt_reg));
--#ifdef CONFIG_PROC_FS
--#ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
--	remove_proc_entry("ipt_recent", init_net.proc_net);
+ 	int err;
+ 
++	err = register_pernet_subsys(&hashlimit_net_ops);
++	if (err < 0)
++		return err;
+ 	err = xt_register_matches(hashlimit_mt_reg,
+ 	      ARRAY_SIZE(hashlimit_mt_reg));
+ 	if (err < 0)
+@@ -970,41 +1045,21 @@ static int __init hashlimit_mt_init(void)
+ 		printk(KERN_ERR "xt_hashlimit: unable to create slab cache\n");
+ 		goto err2;
+ 	}
+-	hashlimit_procdir4 = proc_mkdir("ipt_hashlimit", init_net.proc_net);
+-	if (!hashlimit_procdir4) {
+-		printk(KERN_ERR "xt_hashlimit: unable to create proc dir "
+-				"entry\n");
+-		goto err3;
+-	}
+-	err = 0;
+-#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
+-	hashlimit_procdir6 = proc_mkdir("ip6t_hashlimit", init_net.proc_net);
+-	if (!hashlimit_procdir6) {
+-		printk(KERN_ERR "xt_hashlimit: unable to create proc dir "
+-				"entry\n");
+-		err = -ENOMEM;
+-	}
 -#endif
--	remove_proc_entry("xt_recent", init_net.proc_net);
--#endif
-+	unregister_pernet_subsys(&recent_net_ops);
+-	if (!err)
+-		return 0;
+-	remove_proc_entry("ipt_hashlimit", init_net.proc_net);
+-err3:
+-	kmem_cache_destroy(hashlimit_cachep);
++	return 0;
++
+ err2:
+ 	xt_unregister_matches(hashlimit_mt_reg, ARRAY_SIZE(hashlimit_mt_reg));
+ err1:
++	unregister_pernet_subsys(&hashlimit_net_ops);
+ 	return err;
+ 
  }
  
- module_init(recent_mt_init);
+ static void __exit hashlimit_mt_exit(void)
+ {
+-	remove_proc_entry("ipt_hashlimit", init_net.proc_net);
+-#if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
+-	remove_proc_entry("ip6t_hashlimit", init_net.proc_net);
+-#endif
+ 	kmem_cache_destroy(hashlimit_cachep);
+ 	xt_unregister_matches(hashlimit_mt_reg, ARRAY_SIZE(hashlimit_mt_reg));
++	unregister_pernet_subsys(&hashlimit_net_ops);
+ }
+ 
+ module_init(hashlimit_mt_init);
