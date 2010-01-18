@@ -1,26 +1,47 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: xtables-addons: fix installation in case only modules in subdirs
- of extensions are enabled
-Date: Mon, 18 Jan 2010 17:53:08 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.1001181753030.21972@obet.zrqbmnf.qr>
-References: <1263805716.31396.1018.camel@tablet>
+From: Marco Innocenti <m.innocenti@cineca.it>
+Subject: Re: [PROPOSAL]: Alias names for network interfaces
+Date: Mon, 18 Jan 2010 18:07:21 +0100 (MET)
+Message-ID: <4B54953D.5030005@cineca.it>
+References: <EDA0A4495861324DA2618B4C45DCB3EE5899AC@blrx3m08.blr.amer.dell.com> <20100112194955.GA11752@mock.linuxdev.us.dell.com> <alpine.LSU.2.01.1001130039020.4567@obet.zrqbmnf.qr> <EDA0A4495861324DA2618B4C45DCB3EE5899B5@blrx3m08.blr.amer.dell.com> <20100113110425.GA5095@lina.inka.de> <4B4E0158.4050102@oracle.com> <20100113174610.GA10130@mdomsch-pws380.us.dell.com> <alpine.LSU.2.01.1001131908530.18981@obet.zrqbmnf.qr> <EDA0A4495861324DA2618B4C45DCB3EE5899F1@blrx3m08.blr.amer.dell.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Peter Volkov <pva@gentoo.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: jengelh@medozas.de, Matt_Domsch@Dell.com, john.haxby@oracle.com,
+	net-tools@lina.inka.de, be-mail2010@lina.inka.de,
+	shemminger@linux-foundation.org, netfilter-devel@vger.kernel.org,
+	jgarzik@users.sourceforge.net, Charles_Rose@Dell.com,
+	Shyam_Iyer@Dell.com, Jordan_Hargrave@Dell.com,
+	Sandeep_K_Shandilya@Dell.com
+To: Narendra_K@Dell.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:45010 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752748Ab0ARQxK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 18 Jan 2010 11:53:10 -0500
-In-Reply-To: <1263805716.31396.1018.camel@tablet>
+Received: from avas-cineca-2.cineca.com ([130.186.81.105]:21091 "EHLO
+	avas-cineca-2.cineca.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754067Ab0ARRRH (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 18 Jan 2010 12:17:07 -0500
+In-Reply-To: <EDA0A4495861324DA2618B4C45DCB3EE5899F1@blrx3m08.blr.amer.dell.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Monday 2010-01-18 10:08, Peter Volkov wrote:
+Narendra_K@Dell.com wrote:
+> Also, in case of large scale image based deployment scenarios embedding
+> HWADDR in config files or udev rules is not an option. Though HWADDR
+> helps in 
+> ensuring persistency in naming, it doesn't help in achieving expected
+> naming.
 
->In case only modules that are built in subdirectories of extensions are
->enabled (and thus nothing is build in extensions directory itself)
->installation fails with the error (only build_ACCOUNT=y in mconfig):
+HWADDR is not the only way to use udev to name a network interface. You 
+can do something like:
 
-Applied, thanks.
+SUBSYSTEM=="net", SUBSYSTEMS=="pci", KERNELS=="0000:04:00.0", NAME="eth0"
+SUBSYSTEM=="net", SUBSYSTEMS=="pci", KERNELS=="0000:06:00.0", NAME="eth1"
+
+
+> 
+-- 
+**********************************************************************
+Marco Innocenti              Dipartimento Sistemi E Tecnologie
+CINECA                       phone:+39 0516171553 / fax:+39 0516132198
+Via Magnanelli 6/3           e-mail: innocenti@cineca.it
+40033 Casalecchio di Reno    Bologna (Italia)
+**********************************************************************
