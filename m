@@ -1,44 +1,36 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] xt_TCPMSS: SYN packets are allowed to contain data
-Date: Tue, 19 Jan 2010 10:30:10 +0100
-Message-ID: <4B557BA2.7080407@trash.net>
-References: <4B54CDE5.3070100@simon.arlott.org.uk> <4B5578A5.50705@gmail.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: RFC: netfilter: xtables: add CT target
+Date: Tue, 19 Jan 2010 10:55:37 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.1001191047480.13020@obet.zrqbmnf.qr>
+References: <4B5575CB.5050207@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Simon Arlott <simon@fire.lp0.eu>, netdev <netdev@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Netfilter Development Mailinglist
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
-To: William Allen Simpson <william.allen.simpson@gmail.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:41868 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755423Ab0ASJaN (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 19 Jan 2010 04:30:13 -0500
-In-Reply-To: <4B5578A5.50705@gmail.com>
+Received: from borg.medozas.de ([188.40.89.202]:39621 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756571Ab0ASJzj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 19 Jan 2010 04:55:39 -0500
+In-Reply-To: <4B5575CB.5050207@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-William Allen Simpson wrote:
-> Simon Arlott wrote:
->> The check for data only needs to apply where the packet length
->> could be increased by adding the MSS option. (The MSS option
->> itself applies to the sender's maximum receive size which is
->> not relevant to any data in its own packet.)
->>
->> This moves the check for (header size != packet size) to after
->> attempting to modify an existing MSS option. Another check is
->> needed before looking through the header to ensure it doesn't
->> claim to be larger than the packet size.
->>
-> What's the path from tcp_v[4,6]_rcv() to these tests?
-> 
-> 1) Header larger than the packet is already tested in about 5 places,
-> and my patch "tcp: harmonize tcp_vx_rcv header length assumptions"
-> tries to get them all down to just *one* test.
 
-We're talking about a netfilter module here, which has to deal
-with forwarded traffic and can only rely on the IP header checks
-done in ip_rcv().
+On Tuesday 2010-01-19 10:05, Patrick McHardy wrote:
+
+>The attached two patches add a 'CT' target to specify parameters
+>used during conntrack creation. This can be used to manually attach
+>a helper to a connection. A couple of patches I'm still working
+>on will additionally use this for the "conntrack zones" classification.
+>
+>I'm wondering if anyone has further ideas of parameters that might
+>make sense to support.
+
+Phil Oester/Pablo had proposed an earlier conntrack target to do just 
+that.
+
+[3] 
+http://thread.gmane.org/gmane.comp.security.firewalls.netfilter.devel/21499
+(Can't find Pablo's update to that)
