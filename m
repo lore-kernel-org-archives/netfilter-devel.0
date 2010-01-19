@@ -1,94 +1,84 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: Re: libnetfilter_queue - remove packet from kernel buffer, and
- reinject   later
-Date: Tue, 19 Jan 2010 23:54:57 +0100
-Message-ID: <1263941697.4571.46.camel@ice-age>
-References: <6c279bde1001191125u28fa13a4i4fd7973cf950cccc@mail.gmail.com>
+From: "Florian Fuessl" <flo@degnet.de>
+Subject: RE: Group consensus sought on nf_conntrack_sip behavior
+Date: Wed, 20 Jan 2010 00:40:40 +0100
+Message-ID: <002c01ca9960$cf812d20$6e838760$@de>
+References: <20100116103640.GB11547@goonies.be> <4B541272.8040001@trash.net> <20100118174919.GD11547@goonies.be> <4B54A4E7.6020200@trash.net> <20100118193654.GE11547@goonies.be> <4B556C5D.3000006@trash.net> <20100119172306.GF11547@goonies.be> <4B55F54E.4020205@trash.net> <20100119182535.GG11547@goonies.be> <4B55FC78.80001@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-5dxCDQ8qA4EA/zyBX8tC"
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Mistick Levi <gmistick@gmail.com>
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Cc: <netfilter-devel@vger.kernel.org>
+To: "'Patrick McHardy'" <kaber@trash.net>,
+	"'Greg Alexander'" <greqcs@galexander.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:42720 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752297Ab0ASWzH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 19 Jan 2010 17:55:07 -0500
-In-Reply-To: <6c279bde1001191125u28fa13a4i4fd7973cf950cccc@mail.gmail.com>
+Received: from mail04.viruscheckservice.de ([80.73.96.84]:61258 "EHLO
+	mail04.viruscheckservice.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755962Ab0ASXr0 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 19 Jan 2010 18:47:26 -0500
+In-Reply-To: <4B55FC78.80001@trash.net>
+Content-Language: de
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi Patrick, Hi Greg,
 
---=-5dxCDQ8qA4EA/zyBX8tC
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: quoted-printable
+as you know, the aspects of NAT have definitely not been considered on the
+development of SIP (RFC 3261); so this topic has unfortunately much room for
+discussions how to handle problematical issues in detail.
 
-Hello,
+In fact, using SIP together with NAT is still a tricky pain requiring
+uncomely workarounds (STUN, keepalive, ...) from the user side.
 
-Le mardi 19 janvier 2010 =E0 21:25 +0200, Mistick Levi a =E9crit :
-> Hi,
-> I've worked with libipq, and libnetfilter_queue, and i got to a place
-> where my userspace code can't get anymore packets( with the message:
-> netlink message: no buffer space available ) .
->=20
-> Now what i want to do is this:
-> Read a packet from the queue, copy it to my own queue/location in my
-> program, and re injecting the packet later on with my verdict, after i
-> finished.
+Nf_conntrack_sip has helped to reduce the issues of SIP with NAT a lot from
+the user side; but beyond doubt there are still open traps and unsolved Bugs
+requiring some review on the code in some cases. :-/
 
-This is how it works ;)
+Patrick McHardy wrote:
+> Greg Alexander wrote:
+> > Is there anyone else on this mailing list who cares to chime in?
+> >
 
-In fact, the 'no buffer space available' message is due to your program
-not getting packets as fast as needed: The kernel is sending packet to a
-netlink socket and the internal buffer of the socket gets filled with
-the packets waiting to be read.
+I guess almost everyone on this list does not suffer from this problem
+regarding no need for this code on the own "home" installation.
 
-What you need to do is:
-      * read packet as fast as you can (your callback function has to be
-        fast)
-      * do the intensive or delay needing work outside of the callback
-        (via a thread or something)
+> > I believe it is more important to conform to standards and common
+> > practice, especially since they are the same in this case and
+> > present no undue burden or risk.
+> >
 
-It last option is not possible, you can increase the netlink buffer size
-via the nfnl_rcvbufsiz function. "Standard" syntax is the following:
-	nfnl_rcvbufsiz(nfq_nfnlh(my_nfq_handle), NFQ_NF_BUFSIZE);
+Nf_conntrack_sip should conform to the standards as far as possible; but on
+the other side - as it's enabled by default on many distros - it's required
+not to open potential security holes on a default installation.
 
-BR,
+> > Patrick McHardy seems to believe it is more important to enforce a
+> > rule of thumb prohibiting wildcard expectations.
+> >
+> > We each have precedent in other NAT helpers to support our position.
+> 
+> Well, I'll add one final point. You mentioned the IRC helper
+> as precedent, without referring to anything concrete. You're
+> mistaken though, the destination address is fixed. But I see
+> where your misunderstanding might come from.
+> 
+> What the SIP helper does is allow expectations between *arbitrary*
+> hosts when the direct_media option is off - the destination address
+> originates from the SDP payload, the source address is a wildcard.
+> 
 
->=20
-> but to my best of my understanding, until i send a verdict the packet
-> still takes place in the queue.
-> and i've read something about using NF_STOLEN and then reinject, but i
-> dont think that NF_STOLEN is a valid verdict.
->=20
-> Any ideas on how i can do what it is i wish to do? ( Clear the kernel
-> queue by transferring the packets to my queue ).
->=20
-> Kind regards
-> Levi Yechiel
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel=
-" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+IMHO the available options should be documented with examples requiring a
+change of the default parameters.
 
+Unfortunately using the default settings results in for most users hardly to
+debug problems in some cases.
 
---=20
-Eric Leblond <eric@inl.fr>
-INL: http://www.inl.fr/
-NuFW: http://www.nufw.org/
+> > Any other opinions?  Linux is a group effort.
+> >
+> > [...]
+> 
+> Have fun.
 
---=-5dxCDQ8qA4EA/zyBX8tC
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Ceci est une partie de message
- =?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
+sure: Yes, we have ;)
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iD8DBQBLVjg8nxA7CdMWjzIRAlqQAJ98gmAhKw3kGP38im4CnuMCS6GGrgCfVicL
-RDw2BkbtBTezonVBMgaxWao=
-=7fbg
------END PGP SIGNATURE-----
-
---=-5dxCDQ8qA4EA/zyBX8tC--
+-Florian
 
