@@ -1,53 +1,150 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter: nf_conntrack_sip: fix ct_sip_parse_request() REGISTER request parsing
-Date: Wed, 20 Jan 2010 20:18:29 +0100 (MET)
-Message-ID: <20100120191827.25922.10679.sendpatchset@x2.localnet>
+Subject: netfilter: nf_nat: support mangling a single TCP packet multiple times
+Date: Wed, 20 Jan 2010 20:18:33 +0100 (MET)
+Message-ID: <20100120191831.25922.18127.sendpatchset@x2.localnet>
 References: <20100120191824.25922.36663.sendpatchset@x2.localnet>
 Cc: flo@degnet.de, Patrick McHardy <kaber@trash.net>,
 	madduck@debian.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:43281 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:43285 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752273Ab0ATTSa (ORCPT
+	with ESMTP id S1753921Ab0ATTSe (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 Jan 2010 14:18:30 -0500
+	Wed, 20 Jan 2010 14:18:34 -0500
 In-Reply-To: <20100120191824.25922.36663.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 854e013100d88995a6e25896bd426c303c888682
+commit ce005af4d5545746ecbf64ddd23e62f52c67bd2b
 Author: Patrick McHardy <kaber@trash.net>
-Date:   Wed Jan 20 18:23:05 2010 +0100
+Date:   Wed Jan 20 20:12:30 2010 +0100
 
-    netfilter: nf_conntrack_sip: fix ct_sip_parse_request() REGISTER request parsing
+    netfilter: nf_nat: support mangling a single TCP packet multiple times
     
-    When requests are parsed, the "sip:" part of the SIP URI should be skipped.
+    nf_nat_mangle_tcp_packet() can currently only handle a single mangling
+    per window because it only maintains two sequence adjustment positions:
+    the one before the last adjustment and the one after.
     
-    Usually this doesn't matter because address parsing skips forward until after
-    the username part, but in case REGISTER requests it doesn't contain a username
-    and the address can not be parsed.
+    This patch makes sequence number adjustment tracking in
+    nf_nat_mangle_tcp_packet() optional and allows a helper to manually
+    update the offsets after the packet has been fully handled.
     
     Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index 5b1c24e..ac71fa8 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -236,12 +236,13 @@ int ct_sip_parse_request(const struct nf_conn *ct,
- 		return 0;
+diff --git a/include/net/netfilter/nf_nat_helper.h b/include/net/netfilter/nf_nat_helper.h
+index 4222220..02bb6c2 100644
+--- a/include/net/netfilter/nf_nat_helper.h
++++ b/include/net/netfilter/nf_nat_helper.h
+@@ -7,13 +7,27 @@
+ struct sk_buff;
  
- 	/* Find SIP URI */
--	limit -= strlen("sip:");
--	for (; dptr < limit; dptr++) {
-+	for (; dptr < limit - strlen("sip:"); dptr++) {
- 		if (*dptr == '\r' || *dptr == '\n')
- 			return -1;
--		if (strnicmp(dptr, "sip:", strlen("sip:")) == 0)
-+		if (strnicmp(dptr, "sip:", strlen("sip:")) == 0) {
-+			dptr += strlen("sip:");
- 			break;
-+		}
- 	}
- 	if (!skp_epaddr_len(ct, dptr, limit, &shift))
- 		return 0;
+ /* These return true or false. */
+-extern int nf_nat_mangle_tcp_packet(struct sk_buff *skb,
+-				    struct nf_conn *ct,
+-				    enum ip_conntrack_info ctinfo,
+-				    unsigned int match_offset,
+-				    unsigned int match_len,
+-				    const char *rep_buffer,
+-				    unsigned int rep_len);
++extern int __nf_nat_mangle_tcp_packet(struct sk_buff *skb,
++				      struct nf_conn *ct,
++				      enum ip_conntrack_info ctinfo,
++				      unsigned int match_offset,
++				      unsigned int match_len,
++				      const char *rep_buffer,
++				      unsigned int rep_len, bool adjust);
++
++static inline int nf_nat_mangle_tcp_packet(struct sk_buff *skb,
++					   struct nf_conn *ct,
++					   enum ip_conntrack_info ctinfo,
++					   unsigned int match_offset,
++					   unsigned int match_len,
++					   const char *rep_buffer,
++					   unsigned int rep_len)
++{
++	return __nf_nat_mangle_tcp_packet(skb, ct, ctinfo,
++					  match_offset, match_len,
++					  rep_buffer, rep_len, true);
++}
++
+ extern int nf_nat_mangle_udp_packet(struct sk_buff *skb,
+ 				    struct nf_conn *ct,
+ 				    enum ip_conntrack_info ctinfo,
+@@ -21,6 +35,10 @@ extern int nf_nat_mangle_udp_packet(struct sk_buff *skb,
+ 				    unsigned int match_len,
+ 				    const char *rep_buffer,
+ 				    unsigned int rep_len);
++
++extern void nf_nat_set_seq_adjust(struct nf_conn *ct,
++				  enum ip_conntrack_info ctinfo,
++				  __be32 seq, s16 off);
+ extern int nf_nat_seq_adjust(struct sk_buff *skb,
+ 			     struct nf_conn *ct,
+ 			     enum ip_conntrack_info ctinfo);
+diff --git a/net/ipv4/netfilter/nf_nat_helper.c b/net/ipv4/netfilter/nf_nat_helper.c
+index 7f10a6b..4b6af4b 100644
+--- a/net/ipv4/netfilter/nf_nat_helper.c
++++ b/net/ipv4/netfilter/nf_nat_helper.c
+@@ -141,6 +141,17 @@ static int enlarge_skb(struct sk_buff *skb, unsigned int extra)
+ 	return 1;
+ }
+ 
++void nf_nat_set_seq_adjust(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
++			   __be32 seq, s16 off)
++{
++	if (!off)
++		return;
++	set_bit(IPS_SEQ_ADJUST_BIT, &ct->status);
++	adjust_tcp_sequence(ntohl(seq), off, ct, ctinfo);
++	nf_conntrack_event_cache(IPCT_NATSEQADJ, ct);
++}
++EXPORT_SYMBOL_GPL(nf_nat_set_seq_adjust);
++
+ /* Generic function for mangling variable-length address changes inside
+  * NATed TCP connections (like the PORT XXX,XXX,XXX,XXX,XXX,XXX
+  * command in FTP).
+@@ -149,14 +160,13 @@ static int enlarge_skb(struct sk_buff *skb, unsigned int extra)
+  * skb enlargement, ...
+  *
+  * */
+-int
+-nf_nat_mangle_tcp_packet(struct sk_buff *skb,
+-			 struct nf_conn *ct,
+-			 enum ip_conntrack_info ctinfo,
+-			 unsigned int match_offset,
+-			 unsigned int match_len,
+-			 const char *rep_buffer,
+-			 unsigned int rep_len)
++int __nf_nat_mangle_tcp_packet(struct sk_buff *skb,
++			       struct nf_conn *ct,
++			       enum ip_conntrack_info ctinfo,
++			       unsigned int match_offset,
++			       unsigned int match_len,
++			       const char *rep_buffer,
++			       unsigned int rep_len, bool adjust)
+ {
+ 	struct rtable *rt = skb_rtable(skb);
+ 	struct iphdr *iph;
+@@ -202,16 +212,13 @@ nf_nat_mangle_tcp_packet(struct sk_buff *skb,
+ 		inet_proto_csum_replace2(&tcph->check, skb,
+ 					 htons(oldlen), htons(datalen), 1);
+ 
+-	if (rep_len != match_len) {
+-		set_bit(IPS_SEQ_ADJUST_BIT, &ct->status);
+-		adjust_tcp_sequence(ntohl(tcph->seq),
+-				    (int)rep_len - (int)match_len,
+-				    ct, ctinfo);
+-		nf_conntrack_event_cache(IPCT_NATSEQADJ, ct);
+-	}
++	if (adjust && rep_len != match_len)
++		nf_nat_set_seq_adjust(ct, ctinfo, tcph->seq,
++				      (int)rep_len - (int)match_len);
++
+ 	return 1;
+ }
+-EXPORT_SYMBOL(nf_nat_mangle_tcp_packet);
++EXPORT_SYMBOL(__nf_nat_mangle_tcp_packet);
+ 
+ /* Generic function for mangling variable-length address changes inside
+  * NATed UDP connections (like the CONNECT DATA XXXXX MESG XXXXX INDEX XXXXX
