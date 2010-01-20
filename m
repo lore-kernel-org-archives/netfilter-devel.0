@@ -1,125 +1,35 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter: nf_conntrack_sip: add T.38 FAX support
-Date: Wed, 20 Jan 2010 20:18:36 +0100 (MET)
-Message-ID: <20100120191834.25922.81341.sendpatchset@x2.localnet>
-References: <20100120191824.25922.36663.sendpatchset@x2.localnet>
-Cc: flo@degnet.de, Patrick McHardy <kaber@trash.net>,
-	madduck@debian.org
-To: netfilter-devel@vger.kernel.org
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: netfilter: nf_conntrack: show helper and class in
+ /proc/net/nf_conntrack_expect
+Date: Wed, 20 Jan 2010 20:37:15 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.1001202037020.8723@obet.zrqbmnf.qr>
+References: <20100120191824.25922.36663.sendpatchset@x2.localnet> <20100120191826.25922.78583.sendpatchset@x2.localnet>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org, flo@degnet.de, madduck@debian.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:43298 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753924Ab0ATTSh (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 Jan 2010 14:18:37 -0500
-In-Reply-To: <20100120191824.25922.36663.sendpatchset@x2.localnet>
+Received: from borg.medozas.de ([188.40.89.202]:52358 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752700Ab0ATThQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 20 Jan 2010 14:37:16 -0500
+In-Reply-To: <20100120191826.25922.78583.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit ff1e37680b0c9ee1454cfeee6f0f97452dd7daf5
-Author: Patrick McHardy <kaber@trash.net>
-Date:   Wed Jan 20 20:12:30 2010 +0100
 
-    netfilter: nf_conntrack_sip: add T.38 FAX support
-    
-    Signed-off-by: Patrick McHardy <kaber@trash.net>
+On Wednesday 2010-01-20 20:18, Patrick McHardy wrote:
 
-diff --git a/include/linux/netfilter/nf_conntrack_sip.h b/include/linux/netfilter/nf_conntrack_sip.h
-index cd84d6f..ff8cfbc 100644
---- a/include/linux/netfilter/nf_conntrack_sip.h
-+++ b/include/linux/netfilter/nf_conntrack_sip.h
-@@ -14,6 +14,7 @@ enum sip_expectation_classes {
- 	SIP_EXPECT_SIGNALLING,
- 	SIP_EXPECT_AUDIO,
- 	SIP_EXPECT_VIDEO,
-+	SIP_EXPECT_IMAGE,
- 	__SIP_EXPECT_MAX
- };
- #define SIP_EXPECT_MAX	(__SIP_EXPECT_MAX - 1)
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index a0904ad..ba56119 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -70,7 +70,7 @@ union nf_conntrack_help {
- struct nf_conntrack_helper;
- 
- /* Must be kept in sync with the classes defined by helpers */
--#define NF_CT_MAX_EXPECT_CLASSES	3
-+#define NF_CT_MAX_EXPECT_CLASSES	4
- 
- /* nf_conn feature for connections that have a helper */
- struct nf_conn_help {
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index 1869127..64f5393 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -907,6 +907,7 @@ err1:
- static const struct sdp_media_type sdp_media_types[] = {
- 	SDP_MEDIA_TYPE("audio ", SIP_EXPECT_AUDIO),
- 	SDP_MEDIA_TYPE("video ", SIP_EXPECT_VIDEO),
-+	SDP_MEDIA_TYPE("image ", SIP_EXPECT_IMAGE),
- };
- 
- static const struct sdp_media_type *sdp_media_type(const char *dptr,
-@@ -932,7 +933,6 @@ static int process_sdp(struct sk_buff *skb, unsigned int dataoff,
- {
- 	enum ip_conntrack_info ctinfo;
- 	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
--	struct nf_conn_help *help = nfct_help(ct);
- 	unsigned int matchoff, matchlen;
- 	unsigned int mediaoff, medialen;
- 	unsigned int sdpoff;
-@@ -1024,9 +1024,6 @@ static int process_sdp(struct sk_buff *skb, unsigned int dataoff,
- 		ret = nf_nat_sdp_session(skb, dataoff, dptr, datalen, sdpoff,
- 					 &rtp_addr);
- 
--	if (ret == NF_ACCEPT && i > 0)
--		help->help.ct_sip_info.invite_cseq = cseq;
--
- 	return ret;
- }
- static int process_invite_response(struct sk_buff *skb, unsigned int dataoff,
-@@ -1077,6 +1074,22 @@ static int process_prack_response(struct sk_buff *skb, unsigned int dataoff,
- 	return NF_ACCEPT;
- }
- 
-+static int process_invite_request(struct sk_buff *skb, unsigned int dataoff,
-+				  const char **dptr, unsigned int *datalen,
-+				  unsigned int cseq)
-+{
-+	enum ip_conntrack_info ctinfo;
-+	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
-+	struct nf_conn_help *help = nfct_help(ct);
-+	unsigned int ret;
-+
-+	flush_expectations(ct, true);
-+	ret = process_sdp(skb, dataoff, dptr, datalen, cseq);
-+	if (ret == NF_ACCEPT)
-+		help->help.ct_sip_info.invite_cseq = cseq;
-+	return ret;
-+}
-+
- static int process_bye_request(struct sk_buff *skb, unsigned int dataoff,
- 			       const char **dptr, unsigned int *datalen,
- 			       unsigned int cseq)
-@@ -1257,7 +1270,7 @@ flush:
- }
- 
- static const struct sip_handler sip_handlers[] = {
--	SIP_HANDLER("INVITE", process_sdp, process_invite_response),
-+	SIP_HANDLER("INVITE", process_invite_request, process_invite_response),
- 	SIP_HANDLER("UPDATE", process_sdp, process_update_response),
- 	SIP_HANDLER("ACK", process_sdp, NULL),
- 	SIP_HANDLER("PRACK", process_sdp, process_prack_response),
-@@ -1479,6 +1492,11 @@ static const struct nf_conntrack_expect_policy sip_exp_policy[SIP_EXPECT_MAX + 1
- 		.max_expected	= 2 * IP_CT_DIR_MAX,
- 		.timeout	= 3 * 60,
- 	},
-+	[SIP_EXPECT_IMAGE] = {
-+		.name		= "image",
-+		.max_expected	= IP_CT_DIR_MAX,
-+		.timeout	= 3 * 60,
-+	},
- };
- 
- static void nf_conntrack_sip_fini(void)
+>commit 8a96ae7fda648925254899ad997d5fe3984d3cf6
+>Author: Patrick McHardy <kaber@trash.net>
+>Date:   Wed Jan 20 17:38:16 2010 +0100
+>
+>    netfilter: nf_conntrack: show helper and class in /proc/net/nf_conntrack_expect
+>    
+>    Make the output a bit more informative by showing the helper an expectation
+>    belongs to and the expectation class.
+>    
+>    Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+Should not we extend on conntrack(8) instead?
+
