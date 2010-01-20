@@ -1,90 +1,46 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter: nf_conntrack: show helper and class in /proc/net/nf_conntrack_expect
-Date: Wed, 20 Jan 2010 20:18:27 +0100 (MET)
-Message-ID: <20100120191826.25922.78583.sendpatchset@x2.localnet>
-References: <20100120191824.25922.36663.sendpatchset@x2.localnet>
+Subject: netfilter 00/07: SIP TCP & T.38 support
+Date: Wed, 20 Jan 2010 20:18:26 +0100 (MET)
+Message-ID: <20100120191824.25922.36663.sendpatchset@x2.localnet>
 Cc: flo@degnet.de, Patrick McHardy <kaber@trash.net>,
 	madduck@debian.org
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:43278 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:43276 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752300Ab0ATTSa (ORCPT
+	with ESMTP id S1752234Ab0ATTS3 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 Jan 2010 14:18:30 -0500
-In-Reply-To: <20100120191824.25922.36663.sendpatchset@x2.localnet>
+	Wed, 20 Jan 2010 14:18:29 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 8a96ae7fda648925254899ad997d5fe3984d3cf6
-Author: Patrick McHardy <kaber@trash.net>
-Date:   Wed Jan 20 17:38:16 2010 +0100
+The attached patches add TCP and T.38 FAX support to the SIP conntrack helper.
 
-    netfilter: nf_conntrack: show helper and class in /proc/net/nf_conntrack_expect
-    
-    Make the output a bit more informative by showing the helper an expectation
-    belongs to and the expectation class.
-    
-    Signed-off-by: Patrick McHardy <kaber@trash.net>
+The patches are still work-in-progress, but they already work fine in all
+my tests and I know some people have been waiting for these features, so
+here's a snapshot of my current tree for anyone interested in testing.
 
-diff --git a/include/net/netfilter/nf_conntrack_expect.h b/include/net/netfilter/nf_conntrack_expect.h
-index 9a2b9cb..917e170 100644
---- a/include/net/netfilter/nf_conntrack_expect.h
-+++ b/include/net/netfilter/nf_conntrack_expect.h
-@@ -66,6 +66,7 @@ static inline struct net *nf_ct_exp_net(struct nf_conntrack_expect *exp)
- struct nf_conntrack_expect_policy {
- 	unsigned int	max_expected;
- 	unsigned int	timeout;
-+	const char	*name;
- };
- 
- #define NF_CT_EXPECT_CLASS_DEFAULT	0
-diff --git a/net/netfilter/nf_conntrack_expect.c b/net/netfilter/nf_conntrack_expect.c
-index fdf5d2a..5f5f29a 100644
---- a/net/netfilter/nf_conntrack_expect.c
-+++ b/net/netfilter/nf_conntrack_expect.c
-@@ -500,6 +500,7 @@ static void exp_seq_stop(struct seq_file *seq, void *v)
- static int exp_seq_show(struct seq_file *s, void *v)
- {
- 	struct nf_conntrack_expect *expect;
-+	struct nf_conntrack_helper *helper;
- 	struct hlist_node *n = v;
- 	char *delim = "";
- 
-@@ -525,6 +526,14 @@ static int exp_seq_show(struct seq_file *s, void *v)
- 	if (expect->flags & NF_CT_EXPECT_INACTIVE)
- 		seq_printf(s, "%sINACTIVE", delim);
- 
-+	helper = rcu_dereference(nfct_help(expect->master)->helper);
-+	if (helper) {
-+		seq_printf(s, "%s%s", expect->flags ? " " : "", helper->name);
-+		if (helper->expect_policy[expect->class].name)
-+			seq_printf(s, "/%s",
-+				   helper->expect_policy[expect->class].name);
-+	}
-+
- 	return seq_putc(s, '\n');
- }
- 
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index 4b57216..5b1c24e 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -1305,14 +1305,17 @@ static char sip_names[MAX_PORTS][2][sizeof("sip-65535")] __read_mostly;
- 
- static const struct nf_conntrack_expect_policy sip_exp_policy[SIP_EXPECT_MAX + 1] = {
- 	[SIP_EXPECT_SIGNALLING] = {
-+		.name		= "signalling",
- 		.max_expected	= 1,
- 		.timeout	= 3 * 60,
- 	},
- 	[SIP_EXPECT_AUDIO] = {
-+		.name		= "audio",
- 		.max_expected	= 2 * IP_CT_DIR_MAX,
- 		.timeout	= 3 * 60,
- 	},
- 	[SIP_EXPECT_VIDEO] = {
-+		.name		= "video",
- 		.max_expected	= 2 * IP_CT_DIR_MAX,
- 		.timeout	= 3 * 60,
- 	},
+They're based on the nf-next-2.6.git tree, but they also apply to the 2.6.32
+release (might not compile though :).
+
+Please report any test results.
+
+
+ include/linux/netfilter/nf_conntrack_sip.h  |   19 ++-
+ include/net/netfilter/nf_conntrack.h        |    2 +-
+ include/net/netfilter/nf_conntrack_expect.h |    1 +
+ include/net/netfilter/nf_nat_helper.h       |   32 ++-
+ net/ipv4/netfilter/nf_nat_helper.c          |   39 ++--
+ net/ipv4/netfilter/nf_nat_sip.c             |  158 ++++++++-----
+ net/netfilter/nf_conntrack_expect.c         |    9 +
+ net/netfilter/nf_conntrack_sip.c            |  333 +++++++++++++++++++++------
+ 8 files changed, 435 insertions(+), 158 deletions(-)
+
+Patrick McHardy (7):
+      netfilter: nf_conntrack: show helper and class in /proc/net/nf_conntrack_expect
+      netfilter: nf_conntrack_sip: fix ct_sip_parse_request() REGISTER request parsing
+      netfilter: nf_conntrack_sip: pass data offset to NAT functions
+      netfilter: nf_conntrack_sip: add TCP support
+      netfilter: nf_nat: support mangling a single TCP packet multiple times
+      netfilter: nf_nat_sip: add TCP support
+      netfilter: nf_conntrack_sip: add T.38 FAX support
