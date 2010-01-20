@@ -1,115 +1,210 @@
-From: Mistick Levi <gmistick@gmail.com>
-Subject: Re: libnetfilter_queue - remove packet from kernel buffer, and
-	reinject later
-Date: Wed, 20 Jan 2010 22:13:14 +0200
-Message-ID: <6c279bde1001201213h724a22cfvc9c8e51538156ec2@mail.gmail.com>
-References: <6c279bde1001191125u28fa13a4i4fd7973cf950cccc@mail.gmail.com>
-	 <1263941697.4571.46.camel@ice-age>
+From: Simon Arlott <simon@fire.lp0.eu>
+Subject: [PATCH] xt_TCPMSS: SYN packets are allowed to contain data
+Date: Wed, 20 Jan 2010 21:21:06 +0000
+Message-ID: <4B5773C2.2010000@simon.arlott.org.uk>
+References: <4B54CDE5.3070100@simon.arlott.org.uk> <4B5578A5.50705@gmail.com>    <dad314e12c5750b1b5d70c3ea3c6f6134b8fa0f3@8b5064a13e22126c1b9329f0dc35b8915774b7c3.invalid>    <4B55D372.4020807@gmail.com> <710ab0ca79305c82013982d43250b0a1fd45824d@8b5064a13e22126c1b9329f0dc35b8915774b7c3.invalid>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Eric Leblond <eric@inl.fr>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Cc: William Allen Simpson <william.allen.simpson@gmail.com>,
+	netdev <netdev@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-bw0-f222.google.com ([209.85.218.222]:52094 "EHLO
-	mail-bw0-f222.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754332Ab0ATUU7 convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 Jan 2010 15:20:59 -0500
-Received: by bwz22 with SMTP id 22so1597322bwz.25
-        for <netfilter-devel@vger.kernel.org>; Wed, 20 Jan 2010 12:20:58 -0800 (PST)
-In-Reply-To: <1263941697.4571.46.camel@ice-age>
+Received: from proxima.lp0.eu ([81.2.80.65]:43411 "EHLO proxima.lp0.eu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754536Ab0ATVVN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 20 Jan 2010 16:21:13 -0500
+In-Reply-To: <710ab0ca79305c82013982d43250b0a1fd45824d@8b5064a13e22126c1b9329f0dc35b8915774b7c3.invalid>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-2010/1/20 Eric Leblond <eric@inl.fr>:
-> Hello,
->
-> Le mardi 19 janvier 2010 =E0 21:25 +0200, Mistick Levi a =E9crit :
->> Hi,
->> I've worked with libipq, and libnetfilter_queue, and i got to a plac=
-e
->> where my userspace code can't get anymore packets( with the message:
->> netlink message: no buffer space available ) .
->>
->> Now what i want to do is this:
->> Read a packet from the queue, copy it to my own queue/location in my
->> program, and re injecting the packet later on with my verdict, after=
- i
->> finished.
->
-> This is how it works ;)
->
-> In fact, the 'no buffer space available' message is due to your progr=
-am
-> not getting packets as fast as needed: The kernel is sending packet t=
-o a
-> netlink socket and the internal buffer of the socket gets filled with
-> the packets waiting to be read.
->
-> What you need to do is:
-> =A0 =A0 =A0* read packet as fast as you can (your callback function h=
-as to be
-> =A0 =A0 =A0 =A0fast)
-> =A0 =A0 =A0* do the intensive or delay needing work outside of the ca=
-llback
-> =A0 =A0 =A0 =A0(via a thread or something)
+The TCPMSS target is dropping SYN packets where:
+  1) There is data, or
+  2) The data offset makes the TCP header larger than
+  the packet.
 
-What do you mean by doing the delay needing work outside of the
-callback? in the end of the callback i should give a verdict, no ?
+Both of these result in an error level printk.
 
->
-> It last option is not possible, you can increase the netlink buffer s=
-ize
-> via the nfnl_rcvbufsiz function. "Standard" syntax is the following:
-> =A0 =A0 =A0 =A0nfnl_rcvbufsiz(nfq_nfnlh(my_nfq_handle), NFQ_NF_BUFSIZ=
-E);
->
+This change fixes the drop of SYN packets with data
+(because the MSS option can safely be modified) and
+passes packets with no MSS option instead of adding
+one (which is not valid).
 
-I will try that. what i have tried so far is increasing the:
-wmem_default, wmem_max, rmem_default and rmem_max.
-> BR,
->
->>
->> but to my best of my understanding, until i send a verdict the packe=
-t
->> still takes place in the queue.
->> and i've read something about using NF_STOLEN and then reinject, but=
- i
->> dont think that NF_STOLEN is a valid verdict.
->>
->> Any ideas on how i can do what it is i wish to do? ( Clear the kerne=
-l
->> queue by transferring the packets to my queue ).
->>
->> Kind regards
->> Levi Yechiel
->> --
->> To unsubscribe from this list: send the line "unsubscribe netfilter-=
-devel" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
->
-> --
-> Eric Leblond <eric@inl.fr>
-> INL: http://www.inl.fr/
-> NuFW: http://www.nufw.org/
->
-Well, I have to do some logic before deciding if the packet ACCEPTED
-or DROPPED. and the callback is the one that decide that(send the
-verdict),
+Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
+---
+Tested mangle OUTPUT rule with IPv4 and IPv6.
+SYN with data not tested.
 
-My original phrasing was bad so :
-Question: is it possible to take the packet out from the internal
-socket(as with nfq_handle packet or recv() ) and return some verdict
-like: "NF_STOLEN" ,then do the delay needing work, and then re inject
-the packet to continue its normal traversal.
+ net/netfilter/xt_TCPMSS.c |   82 +++++++-------------------------------------
+ 1 files changed, 13 insertions(+), 69 deletions(-)
 
-Thanks in advance,
-Levi Yechiel
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
+index eda64c1..3648761 100644
+--- a/net/netfilter/xt_TCPMSS.c
++++ b/net/netfilter/xt_TCPMSS.c
+@@ -41,7 +41,7 @@ optlen(const u_int8_t *opt, unsigned int offset)
+ 		return opt[offset+1];
+ }
+ 
+-static int
++static unsigned int
+ tcpmss_mangle_packet(struct sk_buff *skb,
+ 		     const struct xt_tcpmss_info *info,
+ 		     unsigned int in_mtu,
+@@ -50,27 +50,18 @@ tcpmss_mangle_packet(struct sk_buff *skb,
+ {
+ 	struct tcphdr *tcph;
+ 	unsigned int tcplen, i;
+-	__be16 oldval;
+ 	u16 newmss;
+ 	u8 *opt;
+ 
+ 	if (!skb_make_writable(skb, skb->len))
+-		return -1;
++		return NF_DROP;
+ 
+ 	tcplen = skb->len - tcphoff;
+ 	tcph = (struct tcphdr *)(skb_network_header(skb) + tcphoff);
+ 
+-	/* Since it passed flags test in tcp match, we know it is is
+-	   not a fragment, and has data >= tcp header length.  SYN
+-	   packets should not contain data: if they did, then we risk
+-	   running over MTU, sending Frag Needed and breaking things
+-	   badly. --RR */
+-	if (tcplen != tcph->doff*4) {
+-		if (net_ratelimit())
+-			printk(KERN_ERR "xt_TCPMSS: bad length (%u bytes)\n",
+-			       skb->len);
+-		return -1;
+-	}
++	/* Header cannot be larger than the packet */
++	if (tcplen < tcph->doff*4)
++		return NF_DROP;
+ 
+ 	if (info->mss == XT_TCPMSS_CLAMP_PMTU) {
+ 		if (dst_mtu(skb_dst(skb)) <= minlen) {
+@@ -78,13 +69,13 @@ tcpmss_mangle_packet(struct sk_buff *skb,
+ 				printk(KERN_ERR "xt_TCPMSS: "
+ 				       "unknown or invalid path-MTU (%u)\n",
+ 				       dst_mtu(skb_dst(skb)));
+-			return -1;
++			return NF_DROP;
+ 		}
+ 		if (in_mtu <= minlen) {
+ 			if (net_ratelimit())
+ 				printk(KERN_ERR "xt_TCPMSS: unknown or "
+ 				       "invalid path-MTU (%u)\n", in_mtu);
+-			return -1;
++			return NF_DROP;
+ 		}
+ 		newmss = min(dst_mtu(skb_dst(skb)), in_mtu) - minlen;
+ 	} else
+@@ -103,7 +94,7 @@ tcpmss_mangle_packet(struct sk_buff *skb,
+ 			 * on MSS being set correctly.
+ 			 */
+ 			if (oldmss <= newmss)
+-				return 0;
++				return XT_CONTINUE;
+ 
+ 			opt[i+2] = (newmss & 0xff00) >> 8;
+ 			opt[i+3] = newmss & 0x00ff;
+@@ -111,40 +102,12 @@ tcpmss_mangle_packet(struct sk_buff *skb,
+ 			inet_proto_csum_replace2(&tcph->check, skb,
+ 						 htons(oldmss), htons(newmss),
+ 						 0);
+-			return 0;
++			return XT_CONTINUE;
+ 		}
+ 	}
+ 
+-	/*
+-	 * MSS Option not found ?! add it..
+-	 */
+-	if (skb_tailroom(skb) < TCPOLEN_MSS) {
+-		if (pskb_expand_head(skb, 0,
+-				     TCPOLEN_MSS - skb_tailroom(skb),
+-				     GFP_ATOMIC))
+-			return -1;
+-		tcph = (struct tcphdr *)(skb_network_header(skb) + tcphoff);
+-	}
+-
+-	skb_put(skb, TCPOLEN_MSS);
+-
+-	opt = (u_int8_t *)tcph + sizeof(struct tcphdr);
+-	memmove(opt + TCPOLEN_MSS, opt, tcplen - sizeof(struct tcphdr));
+-
+-	inet_proto_csum_replace2(&tcph->check, skb,
+-				 htons(tcplen), htons(tcplen + TCPOLEN_MSS), 1);
+-	opt[0] = TCPOPT_MSS;
+-	opt[1] = TCPOLEN_MSS;
+-	opt[2] = (newmss & 0xff00) >> 8;
+-	opt[3] = newmss & 0x00ff;
+-
+-	inet_proto_csum_replace4(&tcph->check, skb, 0, *((__be32 *)opt), 0);
+-
+-	oldval = ((__be16 *)tcph)[6];
+-	tcph->doff += TCPOLEN_MSS/4;
+-	inet_proto_csum_replace2(&tcph->check, skb,
+-				 oldval, ((__be16 *)tcph)[6], 0);
+-	return TCPOLEN_MSS;
++	/* MSS Option not found */
++	return XT_CONTINUE;
+ }
+ 
+ static u_int32_t tcpmss_reverse_mtu(const struct sk_buff *skb,
+@@ -177,22 +140,11 @@ static unsigned int
+ tcpmss_tg4(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+ 	struct iphdr *iph = ip_hdr(skb);
+-	__be16 newlen;
+-	int ret;
+ 
+-	ret = tcpmss_mangle_packet(skb, par->targinfo,
++	return tcpmss_mangle_packet(skb, par->targinfo,
+ 				   tcpmss_reverse_mtu(skb, PF_INET),
+ 				   iph->ihl * 4,
+ 				   sizeof(*iph) + sizeof(struct tcphdr));
+-	if (ret < 0)
+-		return NF_DROP;
+-	if (ret > 0) {
+-		iph = ip_hdr(skb);
+-		newlen = htons(ntohs(iph->tot_len) + ret);
+-		csum_replace2(&iph->check, iph->tot_len, newlen);
+-		iph->tot_len = newlen;
+-	}
+-	return XT_CONTINUE;
+ }
+ 
+ #if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
+@@ -202,23 +154,15 @@ tcpmss_tg6(struct sk_buff *skb, const struct xt_target_param *par)
+ 	struct ipv6hdr *ipv6h = ipv6_hdr(skb);
+ 	u8 nexthdr;
+ 	int tcphoff;
+-	int ret;
+ 
+ 	nexthdr = ipv6h->nexthdr;
+ 	tcphoff = ipv6_skip_exthdr(skb, sizeof(*ipv6h), &nexthdr);
+ 	if (tcphoff < 0)
+ 		return NF_DROP;
+-	ret = tcpmss_mangle_packet(skb, par->targinfo,
++	return tcpmss_mangle_packet(skb, par->targinfo,
+ 				   tcpmss_reverse_mtu(skb, PF_INET6),
+ 				   tcphoff,
+ 				   sizeof(*ipv6h) + sizeof(struct tcphdr));
+-	if (ret < 0)
+-		return NF_DROP;
+-	if (ret > 0) {
+-		ipv6h = ipv6_hdr(skb);
+-		ipv6h->payload_len = htons(ntohs(ipv6h->payload_len) + ret);
+-	}
+-	return XT_CONTINUE;
+ }
+ #endif
+ 
+-- 
+1.6.3.3
+
+-- 
+Simon Arlott
