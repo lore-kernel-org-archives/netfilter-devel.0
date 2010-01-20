@@ -1,52 +1,63 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: RFC: netfilter: xtables: add CT target
-Date: Wed, 20 Jan 2010 10:52:59 +0100
-Message-ID: <4B56D27B.6070505@trash.net>
-References: <4B5575CB.5050207@trash.net> <alpine.DEB.2.00.1001191115160.3138@blackhole.kfki.hu> <4B558C11.9020607@trash.net> <alpine.DEB.2.00.1001200941070.8728@blackhole.kfki.hu> <4B56CED1.1070109@trash.net> <alpine.DEB.2.00.1001201039071.8728@blackhole.kfki.hu>
+From: "Simon Arlott" <simon@fire.lp0.eu>
+Subject: Re: [PATCH] xt_TCPMSS: SYN packets are allowed to contain data
+Date: Wed, 20 Jan 2010 12:59:16 -0000
+Message-ID: <710ab0ca79305c82013982d43250b0a1fd45824d@8b5064a13e22126c1b9329f0dc35b8915774b7c3.invalid>
+References: <4B54CDE5.3070100@simon.arlott.org.uk> <4B5578A5.50705@gmail.com>
+    <dad314e12c5750b1b5d70c3ea3c6f6134b8fa0f3@8b5064a13e22126c1b9329f0dc35b8915774b7c3.invalid>
+    <4B55D372.4020807@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:32866 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753164Ab0ATJxE (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 Jan 2010 04:53:04 -0500
-In-Reply-To: <alpine.DEB.2.00.1001201039071.8728@blackhole.kfki.hu>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain;charset=utf-8
+Content-Transfer-Encoding: 8bit
+Cc: "netdev" <netdev@vger.kernel.org>,
+	"Linux Kernel Mailing List" <linux-kernel@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org
+To: "William Allen Simpson" <william.allen.simpson@gmail.com>,
+	"Patrick McHardy" <kaber@trash.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <4B55D372.4020807@gmail.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Jozsef Kadlecsik wrote:
-> On Wed, 20 Jan 2010, Patrick McHardy wrote:
-> 
->> Jozsef Kadlecsik wrote:
->>> On Tue, 19 Jan 2010, Patrick McHardy wrote:
->>>
->>>> Adding an event mask to the ecache extension also looks unproblematic.
->>>> You could then use a rule like this:
->>>>
->>>> iptables -t raw .. -j CT --ctevents new,related,protoinfo,helper
->>>>
->>>> or something like that. Are the existing event types fine grained
->>>> enough for this?
->>> The possible events were cut back strongly and now the conntrack state 
->>> changes ASSURED and SEEN_REPLY cannot be distinguished. In my opinion 
->>> either SEEN_REPLY should not trigger an event at all or IPCT_ASSURED 
->>> should be put back.
->> I think it makes sense to generate an event for SEEN_REPLY since
->> its a synchronizable event (ctnetlink can also set the SEEN_REPLY
->> bit). I'm not opposed to add back IPCT_ASSURED, but I'm wondering,
->> in what case would userspace be interested in only one of both
->> updates?
-> 
-> I have only one case, but I think that's worth it: "sparse" conntrack 
-> replication. Start replicating the conntrack entry after it reached the 
-> ASSURED state and that way it's SYN-flood resistant. (Of course conntrack 
-> could filter out the NEW/SEEN_REPLY state changes and wait for ASSURED, 
-> but then the events are just sent unnecessarily.)
+On Tue, January 19, 2010 15:44, William Allen Simpson wrote:
+> Simon Arlott wrote:
+>> On Tue, January 19, 2010 09:17, William Allen Simpson wrote:
+>> I could change the comment too, but the same logic applies when
+>> there is data and no MSS option - the packet can't be increased
+>> in size if it would then exceed 576 bytes and/or the destination
+>> MTU.
+>>
+> Please change the comment.
 
-Sounds reasonable :) I'll add back the IPCT_ASSURED bit and will
-post the entire series for review.
+I've made a new version of the patch which I'll be able to test
+tonight.
+
+> If there is no MSS option, it should *not* be added, under *ANY*
+> circumstances.  That violates the end-to-end arguments (some call
+> them principles).
+
+Agreed. The added MSS is likely to be larger than 536 too... I've
+removed this code.
+
+> MSS isn't about the _destination_ MTU, it's about the *source*.
+> If you cannot guarantee you know the source MTU, there's no basis
+> for deciding the MSS.
+
+I was referring to the SYN packet itself. It wouldn't always be
+possible to add an option without exceeding the MTU of that packet's
+destination if it had data.
+
+
+On 19/01/10 12:53, Patrick McHardy wrote:
+> Simon Arlott wrote:
+>> If this is 20 (IPv4 Header) + 20 (TCP Header) = 40 bytes, then
+>> there is no data and the header offset is wrong so it hasn't been
+>> checked.
+>
+> That's odd. If the packet is really only 40 bytes large, then there
+> are no TCP options, so your patch shouldn't have any effect.
+
+Except to remove the printk which fills up my serial console (because
+the header offset is wrong).
+
+-- 
+Simon Arlott
