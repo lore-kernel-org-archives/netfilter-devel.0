@@ -1,52 +1,70 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] xt_TCPMSS: SYN packets are allowed to contain data
-Date: Thu, 21 Jan 2010 00:14:33 +0100
-Message-ID: <4B578E59.8090203@trash.net>
-References: <4B54CDE5.3070100@simon.arlott.org.uk> <4B5578A5.50705@gmail.com>    <dad314e12c5750b1b5d70c3ea3c6f6134b8fa0f3@8b5064a13e22126c1b9329f0dc35b8915774b7c3.invalid>    <4B55D372.4020807@gmail.com> <710ab0ca79305c82013982d43250b0a1fd45824d@8b5064a13e22126c1b9329f0dc35b8915774b7c3.invalid> <4B5773C2.2010000@simon.arlott.org.uk> <alpine.LSU.2.01.1001202238400.18680@obet.zrqbmnf.qr> <alpine.LSU.2.01.1001202240350.18680@obet.zrqbmnf.qr>
+From: "Florian Fuessl" <flo@degnet.de>
+Subject: RE: netfilter 00/07: SIP TCP & T.38 support
+Date: Thu, 21 Jan 2010 00:57:31 +0100
+Message-ID: <000001ca9a2c$54a44250$fdecc6f0$@de>
+References: <20100120191824.25922.36663.sendpatchset@x2.localnet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain;
+	charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: Simon Arlott <simon@fire.lp0.eu>,
-	William Allen Simpson <william.allen.simpson@gmail.com>,
-	netdev <netdev@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <alpine.LSU.2.01.1001202240350.18680@obet.zrqbmnf.qr>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: <netfilter-devel@vger.kernel.org>, <madduck@debian.org>
+To: "'Patrick McHardy'" <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail04.viruscheckservice.de ([80.73.96.84]:54161 "EHLO
+	mail04.viruscheckservice.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754692Ab0ATX5h (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 20 Jan 2010 18:57:37 -0500
+In-Reply-To: <20100120191824.25922.36663.sendpatchset@x2.localnet>
+Content-Language: de
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Wednesday 2010-01-20 22:39, Jan Engelhardt wrote:
+Thank you, Patrick :)
+
+Patrick McHardy wrote:
 > 
->> On Wednesday 2010-01-20 22:21, Simon Arlott wrote:
->>
->>> The TCPMSS target is dropping SYN packets where:
->>>  1) There is data, or
->>>  2) The data offset makes the TCP header larger than
->>>  the packet.
->>>
->>> Both of these result in an error level printk.
->>>
->>> This change fixes the drop of SYN packets with data
->>> (because the MSS option can safely be modified) and
->>> passes packets with no MSS option instead of adding
->>> one (which is not valid).
->> Can you explain why the automatic addition of a MSS option is removed?
+> The attached patches add TCP and T.38 FAX support to the SIP conntrack
+> helper.
 > 
-> That is, of course, for the git log. If I followed the thread right, it 
-> was that adding the option could exceed the MTU. Well, can't we check 
-> for the outgoing MTU?
+> The patches are still work-in-progress, but they already work fine in
+> all my tests and I know some people have been waiting for these
+> features, so here's a snapshot of my current tree for anyone
+> interested in testing.
+> 
+Leave me a note when heading to Munich next time; the beer will be on my
+bill ;)
 
-We certainly can, and in fact the packet would get fragmented
-by the IP layer in case we would exceed the PMTU. Additionally
-we currently check that the packet contains no data, even with
-the first version of this patch, so there's no way the packet
-could exceed the MTU.
+> They're based on the nf-next-2.6.git tree, but they also apply to the
+> 2.6.32 release (might not compile though :).
+> 
+I'll give it a try within the next days ...
 
-This feature has been there from day one since the TCPMSS target
-has been merged and people are using this with knowledge of their
-MTUs to work around broken ISPs. I'm not apply this.
+> Please report any test results.
+> 
+... and leave you a message with my results.
 
-The first version seemed fine to me though :)
+> 
+>  include/linux/netfilter/nf_conntrack_sip.h  |   19 ++-
+>  include/net/netfilter/nf_conntrack.h        |    2 +-
+>  include/net/netfilter/nf_conntrack_expect.h |    1 +
+>  include/net/netfilter/nf_nat_helper.h       |   32 ++-
+>  net/ipv4/netfilter/nf_nat_helper.c          |   39 ++--
+>  net/ipv4/netfilter/nf_nat_sip.c             |  158 ++++++++-----
+>  net/netfilter/nf_conntrack_expect.c         |    9 +
+>  net/netfilter/nf_conntrack_sip.c            |  333
+> +++++++++++++++++++++------
+>  8 files changed, 435 insertions(+), 158 deletions(-)
+> 
+> Patrick McHardy (7):
+>       netfilter: nf_conntrack: show helper and class in
+> /proc/net/nf_conntrack_expect
+>       netfilter: nf_conntrack_sip: fix ct_sip_parse_request() REGISTER
+> request parsing
+>       netfilter: nf_conntrack_sip: pass data offset to NAT functions
+>       netfilter: nf_conntrack_sip: add TCP support
+>       netfilter: nf_nat: support mangling a single TCP packet multiple
+> times
+>       netfilter: nf_nat_sip: add TCP support
+>       netfilter: nf_conntrack_sip: add T.38 FAX support
+
