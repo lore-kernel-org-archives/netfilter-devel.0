@@ -1,86 +1,64 @@
-From: Eric Leblond <eric@inl.fr>
-Subject: Re: libnetfilter_queue - remove packet from kernel buffer, and  
- reinject later
-Date: Thu, 21 Jan 2010 08:08:42 +0100
-Message-ID: <1264057722.4571.48.camel@ice-age>
-References: <6c279bde1001191125u28fa13a4i4fd7973cf950cccc@mail.gmail.com>
-	 <1263941697.4571.46.camel@ice-age>
-	 <6c279bde1001201213h724a22cfvc9c8e51538156ec2@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: netfilter: ctnetlink: fix expectation mask dump
+Date: Thu, 21 Jan 2010 11:19:23 +0100
+Message-ID: <4B582A2B.10105@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-Lv2nzqfae60Dxx3Rnobc"
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Mistick Levi <gmistick@gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------080102010406060503070702"
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>
+To: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:41708 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751801Ab0AUHIx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Jan 2010 02:08:53 -0500
-In-Reply-To: <6c279bde1001201213h724a22cfvc9c8e51538156ec2@mail.gmail.com>
+Received: from stinky.trash.net ([213.144.137.162]:56641 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752974Ab0AUKTb (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 21 Jan 2010 05:19:31 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This is a multi-part message in MIME format.
+--------------080102010406060503070702
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
---=-Lv2nzqfae60Dxx3Rnobc
-Content-Type: text/plain; charset="ISO-8859-15"
-Content-Transfer-Encoding: quoted-printable
+I'm about to commit the following two bugfixes to nf-2.6.git.
 
-Hello,
+I'll wait for a few hours in case someone wants to comment or
+add an Ack.
 
-Le mercredi 20 janvier 2010 =E0 22:13 +0200, Mistick Levi a =E9crit :
-> 2010/1/20 Eric Leblond <eric@inl.fr>:
-> > Hello,
-> >
-> > Le mardi 19 janvier 2010 =E0 21:25 +0200, Mistick Levi a =E9crit :
-> >> Hi,
-> >> I've worked with libipq, and libnetfilter_queue, and i got to a place
-> >> where my userspace code can't get anymore packets( with the message:
-> >> netlink message: no buffer space available ) .
-> >>
-> >> Now what i want to do is this:
-> >> Read a packet from the queue, copy it to my own queue/location in my
-> >> program, and re injecting the packet later on with my verdict, after i
-> >> finished.
-> >
-> > This is how it works ;)
-> >
-> > In fact, the 'no buffer space available' message is due to your program
-> > not getting packets as fast as needed: The kernel is sending packet to =
-a
-> > netlink socket and the internal buffer of the socket gets filled with
-> > the packets waiting to be read.
-> >
-> > What you need to do is:
-> >      * read packet as fast as you can (your callback function has to be
-> >        fast)
-> >      * do the intensive or delay needing work outside of the callback
-> >        (via a thread or something)
->=20
-> What do you mean by doing the delay needing work outside of the
-> callback? in the end of the callback i should give a verdict, no ?
+--------------080102010406060503070702
+Content-Type: text/x-patch;
+ name="01.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="01.diff"
 
-No, this is not necessary. The verdict can be called from anywhere else
-in your program.
+commit 0f682015a83fad33869f49b941adf682b4b4394c
+Author: Patrick McHardy <kaber@trash.net>
+Date:   Thu Jan 21 11:08:52 2010 +0100
 
-BR,
+    netfilter: ctnetlink: fix expectation mask dump
+    
+    The protocol number is not initialized, so userspace can't interpret
+    the layer 4 data properly.
+    
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
 
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 79478df..5443a04 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -1446,8 +1446,9 @@ ctnetlink_exp_dump_mask(struct sk_buff *skb,
+ 	struct nlattr *nest_parms;
+ 
+ 	memset(&m, 0xFF, sizeof(m));
+-	m.src.u.all = mask->src.u.all;
+ 	memcpy(&m.src.u3, &mask->src.u3, sizeof(m.src.u3));
++	m.src.u.all = mask->src.u.all;
++	m.dst.protonum = tuple->dst.protonum;
+ 
+ 	nest_parms = nla_nest_start(skb, CTA_EXPECT_MASK | NLA_F_NESTED);
+ 	if (!nest_parms)
 
---=20
-Eric Leblond <eric@inl.fr>
-INL: http://www.inl.fr/
-NuFW: http://www.nufw.org/
-
---=-Lv2nzqfae60Dxx3Rnobc
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Ceci est une partie de message
- =?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.9 (GNU/Linux)
-
-iD4DBQBLV/12nxA7CdMWjzIRAo6kAJwIsfquAolo2L97dhW3ba3lwuaAfwCY/Lbq
-JDPo8EACF3BDFNIjKRYq3g==
-=RUR2
------END PGP SIGNATURE-----
-
---=-Lv2nzqfae60Dxx3Rnobc--
-
+--------------080102010406060503070702--
