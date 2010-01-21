@@ -1,70 +1,113 @@
-From: "Florian Fuessl" <flo@degnet.de>
-Subject: RE: netfilter 00/07: SIP TCP & T.38 support
-Date: Thu, 21 Jan 2010 00:57:31 +0100
-Message-ID: <000001ca9a2c$54a44250$fdecc6f0$@de>
-References: <20100120191824.25922.36663.sendpatchset@x2.localnet>
+From: Shan Wei <shanwei@cn.fujitsu.com>
+Subject: [PATCH]IP: Send  an ICMP "Fragment Reassembly Timeout" message when
+ enabling connection track
+Date: Thu, 21 Jan 2010 09:21:57 +0800
+Message-ID: <4B57AC35.8070902@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@vger.kernel.org>, <madduck@debian.org>
-To: "'Patrick McHardy'" <kaber@trash.net>
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org
+To: David Miller <davem@davemloft.net>, kuznet@ms2.inr.ac.ru,
+	pekkas@netcore.fi, jmorris@namei.org, yoshfuji@linux-ipv6.org,
+	Patrick McHardy <kaber@trash.net>, eric.dumazet@gmail.com,
+	dav
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail04.viruscheckservice.de ([80.73.96.84]:54161 "EHLO
-	mail04.viruscheckservice.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754692Ab0ATX5h (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 Jan 2010 18:57:37 -0500
-In-Reply-To: <20100120191824.25922.36663.sendpatchset@x2.localnet>
-Content-Language: de
+Received: from cn.fujitsu.com ([222.73.24.84]:62289 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1751669Ab0AUBYC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 20 Jan 2010 20:24:02 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Thank you, Patrick :)
+No matter whether connection track is enabled, an end host should send 
+an ICMPv4 "Fragment Reassembly Timeout" message when defrag timeout. 
+The reasons are following two points:  
 
-Patrick McHardy wrote:
-> 
-> The attached patches add TCP and T.38 FAX support to the SIP conntrack
-> helper.
-> 
-> The patches are still work-in-progress, but they already work fine in
-> all my tests and I know some people have been waiting for these
-> features, so here's a snapshot of my current tree for anyone
-> interested in testing.
-> 
-Leave me a note when heading to Munich next time; the beer will be on my
-bill ;)
+1. RFC 792 says:
+   >>>> >> > >   If a host reassembling a fragmented datagram cannot complete the
+   >>>> >> > >   reassembly due to missing fragments within its time limit it
+   >>>> >> > >   discards the datagram, and it may send a time exceeded message.
+   >>>> >> > > 
+   >>>> >> > >   If fragment zero is not available then no time exceeded need be
+   >>>> >> > >   sent at all.
+   >>>> >> > > 
+   >>>> >> > > Read more: http://www.faqs.org/rfcs/rfc792.html#ixzz0aOXRD7Wp
 
-> They're based on the nf-next-2.6.git tree, but they also apply to the
-> 2.6.32 release (might not compile though :).
-> 
-I'll give it a try within the next days ...
+2. Patrick McHardy also agrees with this opinion. :-) 
+   About the discussion of this opinion, refer to http://patchwork.ozlabs.org/patch/41649
 
-> Please report any test results.
-> 
-... and leave you a message with my results.
+The patch fixed the problem like this:
+When enabling connection track, fragments are received at PRE_ROUTING HOOK.
+If they are failed to reassemble, ip_expire() will be called. 
+Before sending an ICMP "Fragment Reassembly Timeout" message, 
+the patch searches router table to get the destination entry only for host type.
 
-> 
->  include/linux/netfilter/nf_conntrack_sip.h  |   19 ++-
->  include/net/netfilter/nf_conntrack.h        |    2 +-
->  include/net/netfilter/nf_conntrack_expect.h |    1 +
->  include/net/netfilter/nf_nat_helper.h       |   32 ++-
->  net/ipv4/netfilter/nf_nat_helper.c          |   39 ++--
->  net/ipv4/netfilter/nf_nat_sip.c             |  158 ++++++++-----
->  net/netfilter/nf_conntrack_expect.c         |    9 +
->  net/netfilter/nf_conntrack_sip.c            |  333
-> +++++++++++++++++++++------
->  8 files changed, 435 insertions(+), 158 deletions(-)
-> 
-> Patrick McHardy (7):
->       netfilter: nf_conntrack: show helper and class in
-> /proc/net/nf_conntrack_expect
->       netfilter: nf_conntrack_sip: fix ct_sip_parse_request() REGISTER
-> request parsing
->       netfilter: nf_conntrack_sip: pass data offset to NAT functions
->       netfilter: nf_conntrack_sip: add TCP support
->       netfilter: nf_nat: support mangling a single TCP packet multiple
-> times
->       netfilter: nf_nat_sip: add TCP support
->       netfilter: nf_conntrack_sip: add T.38 FAX support
+The patch has been tested on both host type and route type.
+
+
+Signed-off-by: Shan Wei <shanwei@cn.fujitsu.com> 
+---
+ net/ipv4/ip_fragment.c |   35 +++++++++++++++++++++++++++++++----
+ 1 files changed, 31 insertions(+), 4 deletions(-)
+
+diff --git a/net/ipv4/ip_fragment.c b/net/ipv4/ip_fragment.c
+index 86964b3..bee6905 100644
+--- a/net/ipv4/ip_fragment.c
++++ b/net/ipv4/ip_fragment.c
+@@ -32,6 +32,8 @@
+ #include <linux/netdevice.h>
+ #include <linux/jhash.h>
+ #include <linux/random.h>
++#include <net/route.h>
++#include <net/dst.h>
+ #include <net/sock.h>
+ #include <net/ip.h>
+ #include <net/icmp.h>
+@@ -205,13 +207,38 @@ static void ip_expire(unsigned long arg)
+ 	if ((qp->q.last_in & INET_FRAG_FIRST_IN) && qp->q.fragments != NULL) {
+ 		struct sk_buff *head = qp->q.fragments;
+ 
+-		/* Send an ICMP "Fragment Reassembly Timeout" message. */
+ 		rcu_read_lock();
+ 		head->dev = dev_get_by_index_rcu(net, qp->iif);
+-		if (head->dev)
+-			icmp_send(head, ICMP_TIME_EXCEEDED, ICMP_EXC_FRAGTIME, 0);
+-		rcu_read_unlock();
++		if (!head->dev)
++			goto out_rcu_unlock;
++
++		/*
++		 * Only search router table for the head fragment,
++		 * when defraging timeout at PRE_ROUTING HOOK.
++		 */
++		if (qp->user == IP_DEFRAG_CONNTRACK_IN && !skb_dst(head)) {
++			const struct iphdr *iph = ip_hdr(head);
++			int err = ip_route_input(head, iph->daddr, iph->saddr,
++						 iph->tos, head->dev);
++			if (unlikely(err))
++				goto out_rcu_unlock;
++
++			/*
++			 * Only an end host needs to send an ICMP
++			 * "Fragment Reassembly Timeout" message, per RFC792.
++			 */
++			if (skb_rtable(head)->rt_type != RTN_LOCAL) {
++				skb_dst_drop(head);
++				goto out_rcu_unlock;
++			}
++		}
++
++		/* Send an ICMP "Fragment Reassembly Timeout" message. */
++		icmp_send(head, ICMP_TIME_EXCEEDED, ICMP_EXC_FRAGTIME, 0);
+ 	}
++
++out_rcu_unlock:
++	rcu_read_unlock();
+ out:
+ 	spin_unlock(&qp->q.lock);
+ 	ipq_put(qp);
+-- 
+1.6.3.3
+
 
