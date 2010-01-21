@@ -1,89 +1,86 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: Re: [PATCH v5] rps: Receive Packet Steering
-Date: Thu, 21 Jan 2010 15:04:13 +0800
-Message-ID: <412e6f7f1001202304n5e34aaebu6c052687ce355582@mail.gmail.com>
-References: <4B5011F4.8010204@gmail.com>
-	 <20100115.004915.64525965.davem@davemloft.net>
-	 <412e6f7f1001150120r622450eem2d9f54da27c42fba@mail.gmail.com>
-	 <20100115.012613.223485835.davem@davemloft.net>
+From: Eric Leblond <eric@inl.fr>
+Subject: Re: libnetfilter_queue - remove packet from kernel buffer, and  
+ reinject later
+Date: Thu, 21 Jan 2010 08:08:42 +0100
+Message-ID: <1264057722.4571.48.camel@ice-age>
+References: <6c279bde1001191125u28fa13a4i4fd7973cf950cccc@mail.gmail.com>
+	 <1263941697.4571.46.camel@ice-age>
+	 <6c279bde1001201213h724a22cfvc9c8e51538156ec2@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: eric.dumazet@gmail.com, therbert@google.com,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-Lv2nzqfae60Dxx3Rnobc"
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Mistick Levi <gmistick@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f220.google.com ([209.85.220.220]:53039 "EHLO
-	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752506Ab0AUHEQ convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Jan 2010 02:04:16 -0500
-In-Reply-To: <20100115.012613.223485835.davem@davemloft.net>
+Received: from smtp1-g21.free.fr ([212.27.42.1]:41708 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751801Ab0AUHIx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 21 Jan 2010 02:08:53 -0500
+In-Reply-To: <6c279bde1001201213h724a22cfvc9c8e51538156ec2@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Jan 15, 2010 at 5:26 PM, David Miller <davem@davemloft.net> wro=
-te:
-> From: Changli Gao <xiaosuo@gmail.com>
-> Date: Fri, 15 Jan 2010 17:20:43 +0800
->
-> Calling a function is expensive.
->
-> What was now a leaf function deep in the call chain, will no longer
-> be, so GCC will need to push all live registers onto the stack,
-> then reload them back into registers when ipv6_skip_exthdr() returns.
->
-> And that function is expensive, it's a lot of code that %99 of the
-> time serves no purpose at all.
->
-> This will be executed for every single packet we process, and Linux
-> can process millions of packets per second, so every cycle and every
-> memory reference matters.
->
 
-We can write a new inline function like this:
+--=-Lv2nzqfae60Dxx3Rnobc
+Content-Type: text/plain; charset="ISO-8859-15"
+Content-Transfer-Encoding: quoted-printable
 
-static inline int ipv6_get_ports(const struct sk_buff *skb, u16 *port1,
-                u16 *port2)
-{
-        u8 nexthdr;
-        int hdrlen;
+Hello,
 
-        nexthdr =3D ipv6_hdr(skb)->nexthdr;
-        hdrlen =3D sizeof(struct ipv6hdr);
-        while (1) {
-                switch (nexthdr) {
-                case IPPROTO_TCP:
-                case IPPROTO_UDP:
-                case IPPROTO_DCCP:
-                case IPPROTO_ESP:
-                case IPPROTO_AH:
-                case IPPROTO_SCTP:
-                case IPPROTO_UDPLITE:
-                        skb_copy_bits(skb, hdrlen, port1, 2);
-                        skb_copy_bits(skb, hdrlen + 2, port2, 2);
-                        return 0;
-                case NEXTHDR_HOP:
-                case NEXTHDR_ROUTING:
-                case NEXTHDR_FRAGMENT:
-                case NEXTHDR_AUTH:
-                case NEXTHDR_DEST:
-                        // some code like ipv6_skip_exthdr()
-                        ....
-                        break;
-                case NEXTHDR_NONE:
-                        return -1;
-                default:
-                        return -1;
-                }
-        }
-}
+Le mercredi 20 janvier 2010 =E0 22:13 +0200, Mistick Levi a =E9crit :
+> 2010/1/20 Eric Leblond <eric@inl.fr>:
+> > Hello,
+> >
+> > Le mardi 19 janvier 2010 =E0 21:25 +0200, Mistick Levi a =E9crit :
+> >> Hi,
+> >> I've worked with libipq, and libnetfilter_queue, and i got to a place
+> >> where my userspace code can't get anymore packets( with the message:
+> >> netlink message: no buffer space available ) .
+> >>
+> >> Now what i want to do is this:
+> >> Read a packet from the queue, copy it to my own queue/location in my
+> >> program, and re injecting the packet later on with my verdict, after i
+> >> finished.
+> >
+> > This is how it works ;)
+> >
+> > In fact, the 'no buffer space available' message is due to your program
+> > not getting packets as fast as needed: The kernel is sending packet to =
+a
+> > netlink socket and the internal buffer of the socket gets filled with
+> > the packets waiting to be read.
+> >
+> > What you need to do is:
+> >      * read packet as fast as you can (your callback function has to be
+> >        fast)
+> >      * do the intensive or delay needing work outside of the callback
+> >        (via a thread or something)
+>=20
+> What do you mean by doing the delay needing work outside of the
+> callback? in the end of the callback i should give a verdict, no ?
+
+No, this is not necessary. The verdict can be called from anywhere else
+in your program.
+
+BR,
+
 
 --=20
-Regards=EF=BC=8C
-Changli Gao(xiaosuo@gmail.com)
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Eric Leblond <eric@inl.fr>
+INL: http://www.inl.fr/
+NuFW: http://www.nufw.org/
+
+--=-Lv2nzqfae60Dxx3Rnobc
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Ceci est une partie de message
+ =?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iD4DBQBLV/12nxA7CdMWjzIRAo6kAJwIsfquAolo2L97dhW3ba3lwuaAfwCY/Lbq
+JDPo8EACF3BDFNIjKRYq3g==
+=RUR2
+-----END PGP SIGNATURE-----
+
+--=-Lv2nzqfae60Dxx3Rnobc--
+
