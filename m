@@ -1,113 +1,89 @@
-From: Shan Wei <shanwei@cn.fujitsu.com>
-Subject: [PATCH]IP: Send  an ICMP "Fragment Reassembly Timeout" message when
- enabling connection track
-Date: Thu, 21 Jan 2010 09:21:57 +0800
-Message-ID: <4B57AC35.8070902@cn.fujitsu.com>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: Re: [PATCH v5] rps: Receive Packet Steering
+Date: Thu, 21 Jan 2010 15:04:13 +0800
+Message-ID: <412e6f7f1001202304n5e34aaebu6c052687ce355582@mail.gmail.com>
+References: <4B5011F4.8010204@gmail.com>
+	 <20100115.004915.64525965.davem@davemloft.net>
+	 <412e6f7f1001150120r622450eem2d9f54da27c42fba@mail.gmail.com>
+	 <20100115.012613.223485835.davem@davemloft.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>, kuznet@ms2.inr.ac.ru,
-	pekkas@netcore.fi, jmorris@namei.org, yoshfuji@linux-ipv6.org,
-	Patrick McHardy <kaber@trash.net>, eric.dumazet@gmail.com,
-	dav
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: eric.dumazet@gmail.com, therbert@google.com,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:62289 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1751669Ab0AUBYC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 20 Jan 2010 20:24:02 -0500
+Received: from mail-fx0-f220.google.com ([209.85.220.220]:53039 "EHLO
+	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752506Ab0AUHEQ convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 21 Jan 2010 02:04:16 -0500
+In-Reply-To: <20100115.012613.223485835.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-No matter whether connection track is enabled, an end host should send 
-an ICMPv4 "Fragment Reassembly Timeout" message when defrag timeout. 
-The reasons are following two points:  
+On Fri, Jan 15, 2010 at 5:26 PM, David Miller <davem@davemloft.net> wro=
+te:
+> From: Changli Gao <xiaosuo@gmail.com>
+> Date: Fri, 15 Jan 2010 17:20:43 +0800
+>
+> Calling a function is expensive.
+>
+> What was now a leaf function deep in the call chain, will no longer
+> be, so GCC will need to push all live registers onto the stack,
+> then reload them back into registers when ipv6_skip_exthdr() returns.
+>
+> And that function is expensive, it's a lot of code that %99 of the
+> time serves no purpose at all.
+>
+> This will be executed for every single packet we process, and Linux
+> can process millions of packets per second, so every cycle and every
+> memory reference matters.
+>
 
-1. RFC 792 says:
-   >>>> >> > >   If a host reassembling a fragmented datagram cannot complete the
-   >>>> >> > >   reassembly due to missing fragments within its time limit it
-   >>>> >> > >   discards the datagram, and it may send a time exceeded message.
-   >>>> >> > > 
-   >>>> >> > >   If fragment zero is not available then no time exceeded need be
-   >>>> >> > >   sent at all.
-   >>>> >> > > 
-   >>>> >> > > Read more: http://www.faqs.org/rfcs/rfc792.html#ixzz0aOXRD7Wp
+We can write a new inline function like this:
 
-2. Patrick McHardy also agrees with this opinion. :-) 
-   About the discussion of this opinion, refer to http://patchwork.ozlabs.org/patch/41649
+static inline int ipv6_get_ports(const struct sk_buff *skb, u16 *port1,
+                u16 *port2)
+{
+        u8 nexthdr;
+        int hdrlen;
 
-The patch fixed the problem like this:
-When enabling connection track, fragments are received at PRE_ROUTING HOOK.
-If they are failed to reassemble, ip_expire() will be called. 
-Before sending an ICMP "Fragment Reassembly Timeout" message, 
-the patch searches router table to get the destination entry only for host type.
+        nexthdr =3D ipv6_hdr(skb)->nexthdr;
+        hdrlen =3D sizeof(struct ipv6hdr);
+        while (1) {
+                switch (nexthdr) {
+                case IPPROTO_TCP:
+                case IPPROTO_UDP:
+                case IPPROTO_DCCP:
+                case IPPROTO_ESP:
+                case IPPROTO_AH:
+                case IPPROTO_SCTP:
+                case IPPROTO_UDPLITE:
+                        skb_copy_bits(skb, hdrlen, port1, 2);
+                        skb_copy_bits(skb, hdrlen + 2, port2, 2);
+                        return 0;
+                case NEXTHDR_HOP:
+                case NEXTHDR_ROUTING:
+                case NEXTHDR_FRAGMENT:
+                case NEXTHDR_AUTH:
+                case NEXTHDR_DEST:
+                        // some code like ipv6_skip_exthdr()
+                        ....
+                        break;
+                case NEXTHDR_NONE:
+                        return -1;
+                default:
+                        return -1;
+                }
+        }
+}
 
-The patch has been tested on both host type and route type.
-
-
-Signed-off-by: Shan Wei <shanwei@cn.fujitsu.com> 
----
- net/ipv4/ip_fragment.c |   35 +++++++++++++++++++++++++++++++----
- 1 files changed, 31 insertions(+), 4 deletions(-)
-
-diff --git a/net/ipv4/ip_fragment.c b/net/ipv4/ip_fragment.c
-index 86964b3..bee6905 100644
---- a/net/ipv4/ip_fragment.c
-+++ b/net/ipv4/ip_fragment.c
-@@ -32,6 +32,8 @@
- #include <linux/netdevice.h>
- #include <linux/jhash.h>
- #include <linux/random.h>
-+#include <net/route.h>
-+#include <net/dst.h>
- #include <net/sock.h>
- #include <net/ip.h>
- #include <net/icmp.h>
-@@ -205,13 +207,38 @@ static void ip_expire(unsigned long arg)
- 	if ((qp->q.last_in & INET_FRAG_FIRST_IN) && qp->q.fragments != NULL) {
- 		struct sk_buff *head = qp->q.fragments;
- 
--		/* Send an ICMP "Fragment Reassembly Timeout" message. */
- 		rcu_read_lock();
- 		head->dev = dev_get_by_index_rcu(net, qp->iif);
--		if (head->dev)
--			icmp_send(head, ICMP_TIME_EXCEEDED, ICMP_EXC_FRAGTIME, 0);
--		rcu_read_unlock();
-+		if (!head->dev)
-+			goto out_rcu_unlock;
-+
-+		/*
-+		 * Only search router table for the head fragment,
-+		 * when defraging timeout at PRE_ROUTING HOOK.
-+		 */
-+		if (qp->user == IP_DEFRAG_CONNTRACK_IN && !skb_dst(head)) {
-+			const struct iphdr *iph = ip_hdr(head);
-+			int err = ip_route_input(head, iph->daddr, iph->saddr,
-+						 iph->tos, head->dev);
-+			if (unlikely(err))
-+				goto out_rcu_unlock;
-+
-+			/*
-+			 * Only an end host needs to send an ICMP
-+			 * "Fragment Reassembly Timeout" message, per RFC792.
-+			 */
-+			if (skb_rtable(head)->rt_type != RTN_LOCAL) {
-+				skb_dst_drop(head);
-+				goto out_rcu_unlock;
-+			}
-+		}
-+
-+		/* Send an ICMP "Fragment Reassembly Timeout" message. */
-+		icmp_send(head, ICMP_TIME_EXCEEDED, ICMP_EXC_FRAGTIME, 0);
- 	}
-+
-+out_rcu_unlock:
-+	rcu_read_unlock();
- out:
- 	spin_unlock(&qp->q.lock);
- 	ipq_put(qp);
--- 
-1.6.3.3
-
-
+--=20
+Regards=EF=BC=8C
+Changli Gao(xiaosuo@gmail.com)
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
