@@ -1,81 +1,121 @@
-From: Simon Arlott <simon@fire.lp0.eu>
-Subject: [PATCH] xt_TCPMSS: SYN packets are allowed to contain data
-Date: Thu, 21 Jan 2010 20:13:44 +0000
-Message-ID: <4B58B578.9080505@simon.arlott.org.uk>
-References: <4B54CDE5.3070100@simon.arlott.org.uk> <4B5578A5.50705@gmail.com>    <dad314e12c5750b1b5d70c3ea3c6f6134b8fa0f3@8b5064a13e22126c1b9329f0dc35b8915774b7c3.invalid>    <4B55D372.4020807@gmail.com>    <710ab0ca79305c82013982d43250b0a1fd45824d@8b5064a13e22126c1b9329f0dc35b8915774b7c3.invalid>    <4B5773C2.2010000@simon.arlott.org.uk>    <alpine.LSU.2.01.1001202238400.18680@obet.zrqbmnf.qr>    <alpine.LSU.2.01.1001202240350.18680@obet.zrqbmnf.qr>    <4B578E59.8090203@trash.net> <0b01c450344abffd72a5b1b037ee6584e6db6b82@8b5064a13e22126c1b9329f0dc35b8915774b7c3.invalid> <4B585079.1070904@trash.net>
+From: Shan Wei <shanwei@cn.fujitsu.com>
+Subject: Re: [PATCH v2]IP: Send  an ICMP "Fragment Reassembly Timeout" message
+ when enabling connection track
+Date: Fri, 22 Jan 2010 10:22:27 +0800
+Message-ID: <4B590BE3.40509@cn.fujitsu.com>
+References: <4B57AC35.8070902@cn.fujitsu.com> <4B5844F2.30104@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	William Allen Simpson <william.allen.simpson@gmail.com>,
-	netdev <netdev@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+Cc: David Miller <davem@davemloft.net>, kuznet@ms2.inr.ac.ru,
+	pekkas@netcore.fi, jmorris@namei.org, yoshfuji@linux-ipv6.org,
+	eric.dumazet@gmail.com, david@blue-labs.org, jorge@dti2.net,
+	opurdila@ixiacom.com,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
 	netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from proxima.lp0.eu ([81.2.80.65]:57929 "EHLO proxima.lp0.eu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754970Ab0AUUNu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 21 Jan 2010 15:13:50 -0500
-In-Reply-To: <4B585079.1070904@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <4B5844F2.30104@trash.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-The TCPMSS target is dropping SYN packets where:
-  1) There is data, or
-  2) The data offset makes the TCP header larger than the packet.
+Patrick McHardy wrote, at 01/21/2010 08:13 PM:
+>> +			if (skb_rtable(head)->rt_type != RTN_LOCAL) {
+>> +				skb_dst_drop(head);
+> 
+> Is manually dropping the dst entry necessary here? It will get released
+> by the fragment destructor anyways if I'm not mistaken.
 
-Both of these result in an error level printk. This printk has been
-removed.
+Yes, you are right.
 
-This change avoids dropping SYN packets containing data. If there
-is also no MSS option (as well as data), one will not be added
-because of possible complications due to the increased packet size.
+--
+[PATCH v2]IP: Send an ICMP "Fragment Reassembly Timeout" message when enabling connection track
 
-Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
+No matter whether connection track is enabled, an end host should send 
+an ICMPv4 "Fragment Reassembly Timeout" message when defrag timeout. 
+The reasons are following two points:  
+
+1. RFC 792 says:
+   >>>> >> > >   If a host reassembling a fragmented datagram cannot complete the
+   >>>> >> > >   reassembly due to missing fragments within its time limit it
+   >>>> >> > >   discards the datagram, and it may send a time exceeded message.
+   >>>> >> > > 
+   >>>> >> > >   If fragment zero is not available then no time exceeded need be
+   >>>> >> > >   sent at all.
+   >>>> >> > > 
+   >>>> >> > > Read more: http://www.faqs.org/rfcs/rfc792.html#ixzz0aOXRD7Wp
+
+2. Patrick McHardy also agrees with this opinion.   :-)   
+   About the discussion of this opinion, refer to http://patchwork.ozlabs.org/patch/41649
+
+The patch fixed the problem like this:
+When enabling connection track, fragments are received at PRE_ROUTING HOOK.
+If they are failed to reassemble, ip_expire() will be called. 
+Before sending an ICMP "Fragment Reassembly Timeout" message, 
+the patch searches router table to get the destination entry only for host type.
+
+The patch has been tested on both host type and route type.
+
+
+Signed-off-by: Shan Wei <shanwei@cn.fujitsu.com> 
 ---
- net/netfilter/xt_TCPMSS.c |   18 ++++++++----------
- 1 files changed, 8 insertions(+), 10 deletions(-)
+ net/ipv4/ip_fragment.c |   34 ++++++++++++++++++++++++++++++----
+ 1 files changed, 30 insertions(+), 4 deletions(-)
 
-diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
-index eda64c1..6f21b43 100644
---- a/net/netfilter/xt_TCPMSS.c
-+++ b/net/netfilter/xt_TCPMSS.c
-@@ -60,17 +60,9 @@ tcpmss_mangle_packet(struct sk_buff *skb,
- 	tcplen = skb->len - tcphoff;
- 	tcph = (struct tcphdr *)(skb_network_header(skb) + tcphoff);
+diff --git a/net/ipv4/ip_fragment.c b/net/ipv4/ip_fragment.c
+index 86964b3..19aeef4 100644
+--- a/net/ipv4/ip_fragment.c
++++ b/net/ipv4/ip_fragment.c
+@@ -32,6 +32,8 @@
+ #include <linux/netdevice.h>
+ #include <linux/jhash.h>
+ #include <linux/random.h>
++#include <net/route.h>
++#include <net/dst.h>
+ #include <net/sock.h>
+ #include <net/ip.h>
+ #include <net/icmp.h>
+@@ -205,13 +207,37 @@ static void ip_expire(unsigned long arg)
+ 	if ((qp->q.last_in & INET_FRAG_FIRST_IN) && qp->q.fragments != NULL) {
+ 		struct sk_buff *head = qp->q.fragments;
  
--	/* Since it passed flags test in tcp match, we know it is is
--	   not a fragment, and has data >= tcp header length.  SYN
--	   packets should not contain data: if they did, then we risk
--	   running over MTU, sending Frag Needed and breaking things
--	   badly. --RR */
--	if (tcplen != tcph->doff*4) {
--		if (net_ratelimit())
--			printk(KERN_ERR "xt_TCPMSS: bad length (%u bytes)\n",
--			       skb->len);
-+	/* Header cannot be larger than the packet */
-+	if (tcplen < tcph->doff*4)
- 		return -1;
--	}
- 
- 	if (info->mss == XT_TCPMSS_CLAMP_PMTU) {
- 		if (dst_mtu(skb_dst(skb)) <= minlen) {
-@@ -115,6 +107,12 @@ tcpmss_mangle_packet(struct sk_buff *skb,
- 		}
- 	}
- 
-+	/* There is data after the header so the option can't be added
-+	   without moving it, and doing so may make the SYN packet
-+	   itself too large. Accept the packet unmodified instead. */
-+	if (tcplen > tcph->doff*4)
-+		return 0;
+-		/* Send an ICMP "Fragment Reassembly Timeout" message. */
+ 		rcu_read_lock();
+ 		head->dev = dev_get_by_index_rcu(net, qp->iif);
+-		if (head->dev)
+-			icmp_send(head, ICMP_TIME_EXCEEDED, ICMP_EXC_FRAGTIME, 0);
+-		rcu_read_unlock();
++		if (!head->dev)
++			goto out_rcu_unlock;
 +
- 	/*
- 	 * MSS Option not found ?! add it..
- 	 */
--- 
-1.6.3.3
-
--- 
-Simon Arlott
++		/*
++		 * Only search router table for the head fragment,
++		 * when defraging timeout at PRE_ROUTING HOOK.
++		 */
++		if (qp->user == IP_DEFRAG_CONNTRACK_IN && !skb_dst(head)) {
++			const struct iphdr *iph = ip_hdr(head);
++			int err = ip_route_input(head, iph->daddr, iph->saddr,
++						 iph->tos, head->dev);
++			if (unlikely(err))
++				goto out_rcu_unlock;
++
++			/*
++			 * Only an end host needs to send an ICMP
++			 * "Fragment Reassembly Timeout" message, per RFC792.
++			 */
++			if (skb_rtable(head)->rt_type != RTN_LOCAL)
++				goto out_rcu_unlock;
++
++		}
++
++		/* Send an ICMP "Fragment Reassembly Timeout" message. */
++		icmp_send(head, ICMP_TIME_EXCEEDED, ICMP_EXC_FRAGTIME, 0);
+ 	}
++
++out_rcu_unlock:
++	rcu_read_unlock();
+ out:
+ 	spin_unlock(&qp->q.lock);
+ 	ipq_put(qp);
+--
+1.6.3.3 
