@@ -1,38 +1,42 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH v2]IP: Send an ICMP "Fragment Reassembly Timeout"
- message when enabling connection track
-Date: Sat, 23 Jan 2010 01:58:08 -0800 (PST)
-Message-ID: <20100123.015808.196441033.davem@davemloft.net>
-References: <4B5844F2.30104@trash.net>
-	<4B590BE3.40509@cn.fujitsu.com>
-	<4B599084.1060406@trash.net>
+From: Samir Bellabes <sam@synack.fr>
+Subject: Re: [RFC 7/9] snet: introduce snet_netlink.c and snet_netlink.h
+Date: Sat, 23 Jan 2010 20:33:56 +0100
+Message-ID: <m2my04d3a3.fsf@ssh.synack.fr>
+References: <1262437456-24476-1-git-send-email-sam@synack.fr>
+	<1262437456-24476-8-git-send-email-sam@synack.fr>
+	<4B420464.3040301@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: shanwei@cn.fujitsu.com, kuznet@ms2.inr.ac.ru, pekkas@netcore.fi,
-	jmorris@namei.org, yoshfuji@linux-ipv6.org, eric.dumazet@gmail.com,
-	david@blue-labs.org, jorge@dti2.net, opurdila@ixiacom.com,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: kaber@trash.net
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:37129
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751671Ab0AWJ55 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 23 Jan 2010 04:57:57 -0500
-In-Reply-To: <4B599084.1060406@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: linux-security-module@vger.kernel.org, jamal <hadi@cyberus.ca>,
+	Evgeniy Polyakov <zbr@ioremap.net>,
+	Neil Horman <nhorman@tuxdriver.com>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <4B420464.3040301@trash.net> (Patrick McHardy's message of "Mon,
+	04 Jan 2010 16:08:20 +0100")
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Fri, 22 Jan 2010 12:48:20 +0100
+Patrick McHardy <kaber@trash.net> writes:
 
-> Shan Wei wrote:
->> [PATCH v2]IP: Send an ICMP "Fragment Reassembly Timeout" message when enabling connection track
- ...
->> The patch has been tested on both host type and route type.
-> 
-> Looks good to me. Would you mind adding a similar change to IPv6
-> (net/ipv6/netfilter/nf_conntrack_reasm.c)?
+> Samir Bellabes wrote:
+>> +++ b/security/snet/include/snet_netlink.h
+>> @@ -0,0 +1,201 @@
+>> +#ifndef _SNET_NETLINK_H
+>> +#define _SNET_NETLINK_H
+>> +
+>> +#include <linux/in6.h>
+>> +#include "snet_hooks.h"
+>> +
+>> +extern unsigned int snet_verdict_delay;
+>
+> As this file defines the userspace interface, it probably shouldn't
+> contain declarations of kernel-internal variables (same for
+> snet_hooks.h). It would also be better placed in include/linux as
+> the other netlink API definitions.
 
-Applied to net-next-2.6, thanks.
+sorry the the delay on this.
+indeed, this is fixed now, thanks Patrick
+
+sam
