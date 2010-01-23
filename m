@@ -1,25 +1,38 @@
-From: Evgeniy Polyakov <zbr@ioremap.net>
-Subject: Re: [RFC 4/9] snet: introduce snet_core.c and snet.h
-Date: Sat, 23 Jan 2010 05:18:05 +0300
-Message-ID: <20100123021805.GA28179@ioremap.net>
-References: <1262437456-24476-1-git-send-email-sam@synack.fr> <1262437456-24476-5-git-send-email-sam@synack.fr> <4B41FE9D.2070708@trash.net> <m2y6kbm2xw.fsf@ssh.synack.fr> <20100106195830.GA17510@ioremap.net> <m21vhhefpz.fsf@ssh.synack.fr>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH v2]IP: Send an ICMP "Fragment Reassembly Timeout"
+ message when enabling connection track
+Date: Sat, 23 Jan 2010 01:58:08 -0800 (PST)
+Message-ID: <20100123.015808.196441033.davem@davemloft.net>
+References: <4B5844F2.30104@trash.net>
+	<4B590BE3.40509@cn.fujitsu.com>
+	<4B599084.1060406@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>,
-	linux-security-module@vger.kernel.org, jamal <hadi@cyberus.ca>,
-	Neil Horman <nhorman@tuxdriver.com>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Samir Bellabes <sam@synack.fr>
-Return-path: <linux-security-module-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <m21vhhefpz.fsf@ssh.synack.fr>
-Sender: linux-security-module-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: shanwei@cn.fujitsu.com, kuznet@ms2.inr.ac.ru, pekkas@netcore.fi,
+	jmorris@namei.org, yoshfuji@linux-ipv6.org, eric.dumazet@gmail.com,
+	david@blue-labs.org, jorge@dti2.net, opurdila@ixiacom.com,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: kaber@trash.net
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:37129
+	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751671Ab0AWJ55 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 23 Jan 2010 04:57:57 -0500
+In-Reply-To: <4B599084.1060406@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sat, Jan 23, 2010 at 03:07:36AM +0100, Samir Bellabes (sam@synack.fr) wrote:
-> I'm sorry for the delay I missed this one.
+From: Patrick McHardy <kaber@trash.net>
+Date: Fri, 22 Jan 2010 12:48:20 +0100
 
-:)
+> Shan Wei wrote:
+>> [PATCH v2]IP: Send an ICMP "Fragment Reassembly Timeout" message when enabling connection track
+ ...
+>> The patch has been tested on both host type and route type.
+> 
+> Looks good to me. Would you mind adding a similar change to IPv6
+> (net/ipv6/netfilter/nf_conntrack_reasm.c)?
 
--- 
-	Evgeniy Polyakov
+Applied to net-next-2.6, thanks.
