@@ -1,47 +1,47 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 06/09]: netfilter: xtables: add CT target
-Date: Mon, 25 Jan 2010 17:53:38 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.1001251753170.20906@obet.zrqbmnf.qr>
-References: <20100125153732.15305.68011.sendpatchset@x2.localnet> <20100125153740.15305.76374.sendpatchset@x2.localnet> <alpine.LSU.2.01.1001251745350.20906@obet.zrqbmnf.qr> <4B5DCB63.7020704@trash.net>
+Subject: Re: ebtables extension 'http'
+Date: Mon, 25 Jan 2010 17:55:33 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.1001251753560.20906@obet.zrqbmnf.qr>
+References: <8a87046f1001250546w1dec4136nc509510e8ac15eb8@mail.gmail.com>  <alpine.LSU.2.01.1001251453460.10705@obet.zrqbmnf.qr> <8a87046f1001250632hd4220d1s9f44cad2c3b268a8@mail.gmail.com> <alpine.LSU.2.01.1001251707500.20906@obet.zrqbmnf.qr>
+ <4B5DCBEA.5000501@trash.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
+Cc: Felipe W Damasio <felipewd@gmail.com>,
+	netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:45052 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:45071 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753089Ab0AYQxk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Jan 2010 11:53:40 -0500
-In-Reply-To: <4B5DCB63.7020704@trash.net>
+	id S1753971Ab0AYQze (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 25 Jan 2010 11:55:34 -0500
+In-Reply-To: <4B5DCBEA.5000501@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Monday 2010-01-25 17:48, Patrick McHardy wrote:
->Jan Engelhardt wrote:
->> On Monday 2010-01-25 16:37, Patrick McHardy wrote:
+On Monday 2010-01-25 17:50, Patrick McHardy wrote:
+>>>> http://l7-filter.sourceforge.net/FAQ#usage
+>>>  Right, thanks!
+>>>
+>>>  But I just don't see the point of letting all the http traffic flows
+>>> through squid since it'll only care about a handful of domains...
+>>>
+>>>  I don't suppose there is a way  of "putting" the connection back on
+>>> the forwarding-state on the bridge after ebtables already dropped it
+>>> on the broute table, is there?
 >> 
->>>    netfilter: xtables: add CT target
->>>    
->>>    Add a new target for the raw table, which can be used to specify conntrack
->>>    parameters for specific connections, f.i. the conntrack helper.
->>>    
->>>    The target attaches a "template" connection tracking entry to the skb, which
->>>    is used by the conntrack core when initializing the new conntrack.
->> 
->>> include/linux/netfilter/xt_CT.h             |   13 ++
->>> include/net/netfilter/nf_conntrack_helper.h |    3 
->>> net/netfilter/Kconfig                       |    6 +
->>> net/netfilter/Makefile                      |    1 
->>> net/netfilter/nf_conntrack_helper.c         |   19 +++
->>> net/netfilter/xt_CT.c                       |  142 ++++++++++++++++++++++++++++
->>> 6 files changed, 184 insertions(+)
->> 
->> Is it perhaps feasible to put the xt_CT code into an already existing
->> .c file (e.g. xt_conntrack.c) to cut on module overhead?
+>> Once you decided which machine handles the packet stream, it's decided. 
+>> The twist is, you have to decide when you see the very first packet.
 >
->They're quite different, so those two don't fit together very well.
->We could add NOTRACK support to xt_CT and deprecate the NOTRACK module.
->
-Sounds like a plan. Will you take care of that, or should I add it
-to my list?
+>CT actually doesn't really care, it should be possible with TPROXY
+>if the local socket could be persuaded to close silently.
+
+The issue is that you would need to replay the tcp handshake.
+
+Case 1:
+- do TCP handshake
+- read out Host: header
+- if proxied
+  - good
+- if not,
+  - have to replay TCP handshake to next host (eww :-)
