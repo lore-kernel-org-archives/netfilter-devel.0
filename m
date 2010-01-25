@@ -1,41 +1,66 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: [ANNOUNCE] ipset-4.2 released
-Date: Sun, 24 Jan 2010 15:58:41 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1001241554550.19199@blackhole.kfki.hu>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH v2]IP: Send an ICMP "Fragment Reassembly Timeout"
+ message when enabling connection track
+Date: Mon, 25 Jan 2010 09:57:06 +0900 (JST)
+Message-ID: <201001250057.o0P0v8E7021320@toshiba.co.jp>
+References: <4B5844F2.30104@trash.net>
+	<4B590BE3.40509@cn.fujitsu.com>
+	<4B599084.1060406@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-To: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp1.kfki.hu ([148.6.0.26]:42268 "EHLO smtp1.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751342Ab0AXO6n (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 24 Jan 2010 09:58:43 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: shanwei@cn.fujitsu.com, davem@davemloft.net, kuznet@ms2.inr.ac.ru,
+	pekkas@netcore.fi, jmorris@namei.org, yoshfuji@linux-ipv6.org,
+	eric.dumazet@gmail.com, david@blue-labs.org, jorge@dti2.net,
+	opurdila@ixiacom.com, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: kaber@trash.net
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <4B599084.1060406@trash.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
+
 
 Hi,
 
-A new version of ipset released, which fixes a listing/saving bug. Here 
-follows the changelog:
+From: Patrick McHardy <kaber@trash.net>
+Date: Fri, 22 Jan 2010 12:48:20 +0100
 
-kernel part:
-  - nethash and ipportnethash types counted every entry twice
-    which could produce bogus entries when listing/saving these types
-    of sets (bug reported by Husnu Demir)
+> Shan Wei wrote:
+> > [PATCH v2]IP: Send an ICMP "Fragment Reassembly Timeout" message when enabling connection track
+> > 
+> > No matter whether connection track is enabled, an end host should send 
+> > an ICMPv4 "Fragment Reassembly Timeout" message when defrag timeout. 
+> > The reasons are following two points:  
+> > 
+> > 1. RFC 792 says:
+> >    >>>> >> > >   If a host reassembling a fragmented datagram cannot complete the
+> >    >>>> >> > >   reassembly due to missing fragments within its time limit it
+> >    >>>> >> > >   discards the datagram, and it may send a time exceeded message.
+> >    >>>> >> > > 
+> >    >>>> >> > >   If fragment zero is not available then no time exceeded need be
+> >    >>>> >> > >   sent at all.
+> >    >>>> >> > > 
+> >    >>>> >> > > Read more: http://www.faqs.org/rfcs/rfc792.html#ixzz0aOXRD7Wp
+> > 
+> > 2. Patrick McHardy also agrees with this opinion.   :-)   
+> >    About the discussion of this opinion, refer to http://patchwork.ozlabs.org/patch/41649
+> > 
+> > The patch fixed the problem like this:
+> > When enabling connection track, fragments are received at PRE_ROUTING HOOK.
+> > If they are failed to reassemble, ip_expire() will be called. 
+> > Before sending an ICMP "Fragment Reassembly Timeout" message, 
+> > the patch searches router table to get the destination entry only for host type.
+> > 
+> > The patch has been tested on both host type and route type.
+> 
+> Looks good to me. Would you mind adding a similar change to IPv6
+> (net/ipv6/netfilter/nf_conntrack_reasm.c)?
 
-userspace:
-  - Checking null entries when listing/saving hash types of sets
-    deleted because it's unnecessary and can mask possible errors.
+It sounds good. Please take care that IPv6 router does not reassemble
+fragmented packets. IIRC the current nf_conntrack_{ipv6,reasm}.c
+reassembles the cloned skbs for tracking, discard the cloned skbs after
+tracking and forward the original skbs to IPv6 stack to keep the size of
+fragmented packets.
 
-As usual, the source can be download from
-
-        http://ipset.netfilter.org
-        git://git.netfilter.org/ipset.git
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+-- Yasuyuki Kozakai
