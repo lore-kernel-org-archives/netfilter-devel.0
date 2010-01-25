@@ -1,142 +1,271 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: [PATCH 07/09]: netfilter: nf_conntrack: pass template to l4proto ->error handler
-Date: Mon, 25 Jan 2010 16:37:42 +0100 (MET)
-Message-ID: <20100125153741.15305.8736.sendpatchset@x2.localnet>
+Subject: [PATCH 06/09]: netfilter: xtables: add CT target
+Date: Mon, 25 Jan 2010 16:37:40 +0100 (MET)
+Message-ID: <20100125153740.15305.76374.sendpatchset@x2.localnet>
 References: <20100125153732.15305.68011.sendpatchset@x2.localnet>
 Cc: Patrick McHardy <kaber@trash.net>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45984 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:45982 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754035Ab0AYPhn (ORCPT
+	with ESMTP id S1753886Ab0AYPhm (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Jan 2010 10:37:43 -0500
+	Mon, 25 Jan 2010 10:37:42 -0500
 In-Reply-To: <20100125153732.15305.68011.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 1ce077bf1a71309d206b29a02be326013735faca
+commit b5d677bfd7e8a26652c83df29c2375161cecd958
 Author: Patrick McHardy <kaber@trash.net>
 Date:   Mon Jan 25 15:25:04 2010 +0100
 
-    netfilter: nf_conntrack: pass template to l4proto ->error handler
+    netfilter: xtables: add CT target
     
-    The error handlers might need the template to get the conntrack zone
-    introduced in the next patches to perform a conntrack lookup.
+    Add a new target for the raw table, which can be used to specify conntrack
+    parameters for specific connections, f.i. the conntrack helper.
+    
+    The target attaches a "template" connection tracking entry to the skb, which
+    is used by the conntrack core when initializing the new conntrack.
     
     Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-diff --git a/include/net/netfilter/nf_conntrack_l4proto.h b/include/net/netfilter/nf_conntrack_l4proto.h
-index ca6dcf3..e3d3ee3 100644
---- a/include/net/netfilter/nf_conntrack_l4proto.h
-+++ b/include/net/netfilter/nf_conntrack_l4proto.h
-@@ -49,8 +49,8 @@ struct nf_conntrack_l4proto {
- 	/* Called when a conntrack entry is destroyed */
- 	void (*destroy)(struct nf_conn *ct);
+diff --git a/include/linux/netfilter/xt_CT.h b/include/linux/netfilter/xt_CT.h
+new file mode 100644
+index 0000000..a4c1880
+--- /dev/null
++++ b/include/linux/netfilter/xt_CT.h
+@@ -0,0 +1,13 @@
++#ifndef _XT_CT_H
++#define _XT_CT_H
++
++struct xt_ct_target_info {
++	u_int32_t	ct_events;
++	u_int32_t	exp_events;
++	char		helper[16];
++
++	/* Used internally by the kernel */
++	struct nf_conn	*ct __attribute__((aligned(8)));
++};
++
++#endif /* _XT_CT_H */
+diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
+index e17aaa3..32c305d 100644
+--- a/include/net/netfilter/nf_conntrack_helper.h
++++ b/include/net/netfilter/nf_conntrack_helper.h
+@@ -42,6 +42,9 @@ struct nf_conntrack_helper {
+ extern struct nf_conntrack_helper *
+ __nf_conntrack_helper_find(const char *name, u16 l3num, u8 protonum);
  
--	int (*error)(struct net *net, struct sk_buff *skb, unsigned int dataoff,
--		     enum ip_conntrack_info *ctinfo,
-+	int (*error)(struct net *net, struct nf_conn *tmpl, struct sk_buff *skb,
-+		     unsigned int dataoff, enum ip_conntrack_info *ctinfo,
- 		     u_int8_t pf, unsigned int hooknum);
++extern struct nf_conntrack_helper *
++nf_conntrack_helper_try_module_get(const char *name, u16 l3num, u8 protonum);
++
+ extern int nf_conntrack_helper_register(struct nf_conntrack_helper *);
+ extern void nf_conntrack_helper_unregister(struct nf_conntrack_helper *);
  
- 	/* Print out the per-protocol part of the tuple. Return like seq_* */
-diff --git a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-index 7afd39b..327826a 100644
---- a/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-+++ b/net/ipv4/netfilter/nf_conntrack_proto_icmp.c
-@@ -163,7 +163,8 @@ icmp_error_message(struct net *net, struct sk_buff *skb,
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 634d14a..710a33b 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -341,6 +341,12 @@ config NETFILTER_XT_TARGET_CONNSECMARK
  
- /* Small and modified version of icmp_rcv */
- static int
--icmp_error(struct net *net, struct sk_buff *skb, unsigned int dataoff,
-+icmp_error(struct net *net, struct nf_conn *tmpl,
-+	   struct sk_buff *skb, unsigned int dataoff,
- 	   enum ip_conntrack_info *ctinfo, u_int8_t pf, unsigned int hooknum)
- {
- 	const struct icmphdr *icmph;
-diff --git a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-index c7b8bd1..d772dc2 100644
---- a/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c
-@@ -179,7 +179,8 @@ icmpv6_error_message(struct net *net,
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
++config NETFILTER_XT_TARGET_CT
++	tristate '"CT" target support'
++	depends on NF_CONNTRACK
++	depends on IP_NF_RAW || IP6_NF_RAW
++	depends on NETFILTER_ADVANCED
++
+ config NETFILTER_XT_TARGET_DSCP
+ 	tristate '"DSCP" and "TOS" target support'
+ 	depends on IP_NF_MANGLE || IP6_NF_MANGLE
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 49f62ee..f873644 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -44,6 +44,7 @@ obj-$(CONFIG_NETFILTER_XTABLES) += x_tables.o xt_tcpudp.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_CLASSIFY) += xt_CLASSIFY.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_CONNMARK) += xt_CONNMARK.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_CONNSECMARK) += xt_CONNSECMARK.o
++obj-$(CONFIG_NETFILTER_XT_TARGET_CT) += xt_CT.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_DSCP) += xt_DSCP.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_HL) += xt_HL.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_LED) += xt_LED.o
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index 8144b0d..a74a576 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -83,6 +83,25 @@ __nf_conntrack_helper_find(const char *name, u16 l3num, u8 protonum)
  }
+ EXPORT_SYMBOL_GPL(__nf_conntrack_helper_find);
  
- static int
--icmpv6_error(struct net *net, struct sk_buff *skb, unsigned int dataoff,
-+icmpv6_error(struct net *net, struct nf_conn *tmpl,
-+	     struct sk_buff *skb, unsigned int dataoff,
- 	     enum ip_conntrack_info *ctinfo, u_int8_t pf, unsigned int hooknum)
++struct nf_conntrack_helper *
++nf_conntrack_helper_try_module_get(const char *name, u16 l3num, u8 protonum)
++{
++	struct nf_conntrack_helper *h;
++
++	h = __nf_conntrack_helper_find(name, l3num, protonum);
++#ifdef CONFIG_MODULES
++	if (h == NULL) {
++		if (request_module("nfct-helper-%s", name) == 0)
++			h = __nf_conntrack_helper_find(name, l3num, protonum);
++	}
++#endif
++	if (h != NULL && !try_module_get(h->me))
++		h = NULL;
++
++	return h;
++}
++EXPORT_SYMBOL_GPL(nf_conntrack_helper_try_module_get);
++
+ struct nf_conn_help *nf_ct_helper_ext_add(struct nf_conn *ct, gfp_t gfp)
  {
- 	const struct icmp6hdr *icmp6h;
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 19c95ff..b8b52da 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -798,7 +798,8 @@ nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
- 	 * inverse of the return code tells to the netfilter
- 	 * core what to do with the packet. */
- 	if (l4proto->error != NULL) {
--		ret = l4proto->error(net, skb, dataoff, &ctinfo, pf, hooknum);
-+		ret = l4proto->error(net, tmpl, skb, dataoff, &ctinfo,
-+				     pf, hooknum);
- 		if (ret <= 0) {
- 			NF_CT_STAT_INC_ATOMIC(net, error);
- 			NF_CT_STAT_INC_ATOMIC(net, invalid);
-diff --git a/net/netfilter/nf_conntrack_proto_dccp.c b/net/netfilter/nf_conntrack_proto_dccp.c
-index dd37550..9a28155 100644
---- a/net/netfilter/nf_conntrack_proto_dccp.c
-+++ b/net/netfilter/nf_conntrack_proto_dccp.c
-@@ -561,8 +561,9 @@ static int dccp_packet(struct nf_conn *ct, const struct sk_buff *skb,
- 	return NF_ACCEPT;
- }
- 
--static int dccp_error(struct net *net, struct sk_buff *skb,
--		      unsigned int dataoff, enum ip_conntrack_info *ctinfo,
-+static int dccp_error(struct net *net, struct nf_conn *tmpl,
-+		      struct sk_buff *skb, unsigned int dataoff,
-+		      enum ip_conntrack_info *ctinfo,
- 		      u_int8_t pf, unsigned int hooknum)
- {
- 	struct dccp_hdr _dh, *dh;
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index ad11805..9dd8cd4 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -760,7 +760,7 @@ static const u8 tcp_valid_flags[(TH_FIN|TH_SYN|TH_RST|TH_ACK|TH_URG) + 1] =
- };
- 
- /* Protect conntrack agaist broken packets. Code taken from ipt_unclean.c.  */
--static int tcp_error(struct net *net,
-+static int tcp_error(struct net *net, struct nf_conn *tmpl,
- 		     struct sk_buff *skb,
- 		     unsigned int dataoff,
- 		     enum ip_conntrack_info *ctinfo,
-diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
-index 8d38f9a..8289088 100644
---- a/net/netfilter/nf_conntrack_proto_udp.c
-+++ b/net/netfilter/nf_conntrack_proto_udp.c
-@@ -91,8 +91,8 @@ static bool udp_new(struct nf_conn *ct, const struct sk_buff *skb,
- 	return true;
- }
- 
--static int udp_error(struct net *net, struct sk_buff *skb, unsigned int dataoff,
--		     enum ip_conntrack_info *ctinfo,
-+static int udp_error(struct net *net, struct nf_conn *tmpl, struct sk_buff *skb,
-+		     unsigned int dataoff, enum ip_conntrack_info *ctinfo,
- 		     u_int8_t pf,
- 		     unsigned int hooknum)
- {
-diff --git a/net/netfilter/nf_conntrack_proto_udplite.c b/net/netfilter/nf_conntrack_proto_udplite.c
-index 0b1bc9b..263b5a7 100644
---- a/net/netfilter/nf_conntrack_proto_udplite.c
-+++ b/net/netfilter/nf_conntrack_proto_udplite.c
-@@ -89,7 +89,7 @@ static bool udplite_new(struct nf_conn *ct, const struct sk_buff *skb,
- 	return true;
- }
- 
--static int udplite_error(struct net *net,
-+static int udplite_error(struct net *net, struct nf_conn *tmpl,
- 			 struct sk_buff *skb,
- 			 unsigned int dataoff,
- 			 enum ip_conntrack_info *ctinfo,
+ 	struct nf_conn_help *help;
+diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
+new file mode 100644
+index 0000000..55e0713
+--- /dev/null
++++ b/net/netfilter/xt_CT.c
+@@ -0,0 +1,142 @@
++/*
++ * Copyright (c) 2010 Patrick McHardy <kaber@trash.net>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/selinux.h>
++#include <linux/netfilter_ipv4/ip_tables.h>
++#include <linux/netfilter_ipv6/ip6_tables.h>
++#include <linux/netfilter/x_tables.h>
++#include <linux/netfilter/xt_CT.h>
++#include <net/netfilter/nf_conntrack.h>
++#include <net/netfilter/nf_conntrack_helper.h>
++#include <net/netfilter/nf_conntrack_ecache.h>
++
++static unsigned int xt_ct_target(struct sk_buff *skb,
++				 const struct xt_target_param *par)
++{
++	const struct xt_ct_target_info *info = par->targinfo;
++	struct nf_conn *ct = info->ct;
++
++	atomic_inc(&ct->ct_general.use);
++	skb->nfct = &ct->ct_general;
++	skb->nfctinfo = IP_CT_NEW;
++
++	return XT_CONTINUE;
++}
++
++static u8 xt_ct_find_proto(const struct xt_tgchk_param *par)
++{
++
++	if (par->family == AF_INET) {
++		const struct ipt_entry *e = par->entryinfo;
++
++		if (e->ip.invflags & IPT_INV_PROTO)
++			return 0;
++		return e->ip.proto;
++	} else if (par->family == AF_INET6) {
++		const struct ip6t_entry *e = par->entryinfo;
++
++		if (e->ipv6.invflags & IP6T_INV_PROTO)
++			return 0;
++		return e->ipv6.proto;
++	} else
++		return 0;
++}
++
++static bool xt_ct_tg_check(const struct xt_tgchk_param *par)
++{
++	struct xt_ct_target_info *info = par->targinfo;
++	struct nf_conntrack_tuple t;
++	struct nf_conn_help *help;
++	struct nf_conn *ct;
++	u8 proto;
++
++	if (nf_ct_l3proto_try_module_get(par->family) < 0)
++		goto err1;
++
++	memset(&t, 0, sizeof(t));
++	ct = nf_conntrack_alloc(par->net, &t, &t, GFP_KERNEL);
++	if (IS_ERR(ct))
++		goto err2;
++
++	if ((info->ct_events || info->exp_events) &&
++	    !nf_ct_ecache_ext_add(ct, info->ct_events, info->exp_events,
++				  GFP_KERNEL))
++		goto err3;
++
++	if (info->helper[0]) {
++		proto = xt_ct_find_proto(par);
++		if (!proto)
++			goto err3;
++
++		help = nf_ct_helper_ext_add(ct, GFP_KERNEL);
++		if (help == NULL)
++			goto err3;
++
++		help->helper = nf_conntrack_helper_try_module_get(info->helper, par->family, proto);
++		if (help->helper == NULL)
++			goto err3;
++	}
++
++	__set_bit(IPS_TEMPLATE_BIT, &ct->status);
++	__set_bit(IPS_CONFIRMED_BIT, &ct->status);
++
++	info->ct = ct;
++	return true;
++
++err3:
++	nf_conntrack_free(ct);
++err2:
++	nf_ct_l3proto_module_put(par->family);
++err1:
++	return false;
++}
++
++static void xt_ct_tg_destroy(const struct xt_tgdtor_param *par)
++{
++	struct xt_ct_target_info *info = par->targinfo;
++	struct nf_conn *ct = info->ct;
++	struct nf_conn_help *help;
++
++	help = nfct_help(ct);
++	if (help)
++		module_put(help->helper->me);
++
++	nf_ct_l3proto_module_put(par->family);
++	nf_ct_put(info->ct);
++}
++
++static struct xt_target xt_ct_tg __read_mostly = {
++	.name		= "CT",
++	.family		= NFPROTO_UNSPEC,
++	.targetsize	= XT_ALIGN(sizeof(struct xt_ct_target_info)),
++	.checkentry	= xt_ct_tg_check,
++	.destroy	= xt_ct_tg_destroy,
++	.target		= xt_ct_target,
++	.table		= "raw",
++	.me		= THIS_MODULE,
++};
++
++static int __init xt_ct_tg_init(void)
++{
++	return xt_register_target(&xt_ct_tg);
++}
++
++static void __exit xt_ct_tg_exit(void)
++{
++	return xt_unregister_target(&xt_ct_tg);
++}
++
++module_init(xt_ct_tg_init);
++module_exit(xt_ct_tg_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("Xtables: connection tracking target");
++MODULE_ALIAS("ipt_CT");
++MODULE_ALIAS("ip6t_CT");
