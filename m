@@ -1,40 +1,38 @@
-From: Shan Wei <shanwei@cn.fujitsu.com>
-Subject: Re: [PATCH v2]IP: Send  an ICMP "Fragment Reassembly Timeout" message
- when enabling connection track
-Date: Mon, 25 Jan 2010 16:18:29 +0800
-Message-ID: <4B5D53D5.9080803@cn.fujitsu.com>
-References: <4B57AC35.8070902@cn.fujitsu.com> <4B5844F2.30104@trash.net> <4B590BE3.40509@cn.fujitsu.com> <4B599084.1060406@trash.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: ipset problem.
+Date: Mon, 25 Jan 2010 11:24:37 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1001251121370.21525@blackhole.kfki.hu>
+References: <4B5991E2.4090700@metu.edu.tr> <alpine.DEB.2.00.1001221419550.13886@blackhole.kfki.hu> <alpine.DEB.2.00.1001232157230.18023@blackhole.kfki.hu> <alpine.DEB.2.00.1001232243150.18342@blackhole.kfki.hu> <alpine.DEB.2.00.1001242243560.20757@blackhole.kfki.hu>
+ <4B5D4582.2030603@metu.edu.tr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: David Miller <davem@davemloft.net>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: "netfilter-devel@vger.kernel.org >> Netfilter Developer Mailing List"
+	<netfilter-devel@vger.kernel.org>
+To: Husnu Demir <hdemir@metu.edu.tr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:53047 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1752009Ab0AYIT6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Jan 2010 03:19:58 -0500
-In-Reply-To: <4B599084.1060406@trash.net>
+Received: from smtp-in.kfki.hu ([148.6.0.28]:59505 "EHLO smtp2.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753456Ab0AYKYi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 25 Jan 2010 05:24:38 -0500
+In-Reply-To: <4B5D4582.2030603@metu.edu.tr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy wrote, at 01/22/2010 07:48 PM:
-> Looks good to me. Would you mind adding a similar change to IPv6
-> (net/ipv6/netfilter/nf_conntrack_reasm.c)?
+On Mon, 25 Jan 2010, Husnu Demir wrote:
 
-Sorry to reply to you so late. 
-I'm grade to send a patch to change IPv6 conntrack.
+> I do download xtables-addons-1.22.tar.bz2 and installed it. It has the 
+> same problem. 
 
-I also find that reassembly queues of IPv6 conntrack are broken 
-when be initialed by ip6_frag_init(). After testing, I will send all patches.
+xtables-addons-1.22 was released two days ago, before ipset-4.2.
 
--- 
-Best Regards
------
-Shan Wei
+> I could not try ipset-4.2.tar.bz2.
 
+Why can't you install ipset itself? What's the problem?
 
-
-
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
