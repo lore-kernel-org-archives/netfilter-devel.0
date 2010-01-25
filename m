@@ -1,48 +1,30 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ebtables extension 'http'
-Date: Mon, 25 Jan 2010 17:57:48 +0100
-Message-ID: <4B5DCD8C.4010201@trash.net>
-References: <8a87046f1001250546w1dec4136nc509510e8ac15eb8@mail.gmail.com>  <alpine.LSU.2.01.1001251453460.10705@obet.zrqbmnf.qr> <8a87046f1001250632hd4220d1s9f44cad2c3b268a8@mail.gmail.com> <alpine.LSU.2.01.1001251707500.20906@obet.zrqbmnf.qr> <4B5DCBEA.5000501@trash.net> <alpine.LSU.2.01.1001251753560.20906@obet.zrqbmnf.qr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 06/09]: netfilter: xtables: add CT target
+Date: Mon, 25 Jan 2010 18:33:02 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.1001251832200.17690@obet.zrqbmnf.qr>
+References: <20100125153732.15305.68011.sendpatchset@x2.localnet> <20100125153740.15305.76374.sendpatchset@x2.localnet> <alpine.LSU.2.01.1001251745350.20906@obet.zrqbmnf.qr> <4B5DCB63.7020704@trash.net> <alpine.LSU.2.01.1001251753170.20906@obet.zrqbmnf.qr>
+ <4B5DCD6E.4070103@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Felipe W Damasio <felipewd@gmail.com>,
-	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:47584 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752351Ab0AYQ5u (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Jan 2010 11:57:50 -0500
-In-Reply-To: <alpine.LSU.2.01.1001251753560.20906@obet.zrqbmnf.qr>
+Received: from borg.medozas.de ([188.40.89.202]:51131 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752875Ab0AYRdE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 25 Jan 2010 12:33:04 -0500
+In-Reply-To: <4B5DCD6E.4070103@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Monday 2010-01-25 17:50, Patrick McHardy wrote:
->>>>> http://l7-filter.sourceforge.net/FAQ#usage
->>>>  Right, thanks!
->>>>
->>>>  But I just don't see the point of letting all the http traffic flows
->>>> through squid since it'll only care about a handful of domains...
->>>>
->>>>  I don't suppose there is a way  of "putting" the connection back on
->>>> the forwarding-state on the bridge after ebtables already dropped it
->>>> on the broute table, is there?
->>> Once you decided which machine handles the packet stream, it's decided. 
->>> The twist is, you have to decide when you see the very first packet.
->> CT actually doesn't really care, it should be possible with TPROXY
->> if the local socket could be persuaded to close silently.
-> 
-> The issue is that you would need to replay the tcp handshake.
-> 
-> Case 1:
-> - do TCP handshake
-> - read out Host: header
-> - if proxied
->   - good
-> - if not,
->   - have to replay TCP handshake to next host (eww :-)
 
-You're right, that wouldn't work without even mory ugly.
+On Monday 2010-01-25 17:57, Patrick McHardy wrote:
+>
+>Does anyone have an opinion on supporting specifying helper parameters?
+>I'm considering adding something like 5 generically usable u32s and have
+>helpers initialize parameters like FTP "loose" or SIP "direct_media"
+>based on those.
+>
+Is there a case where someone wants to loosen just half of their
+FTP connections? Well yes maybe there is, but anyone ever request
+it?
