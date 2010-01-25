@@ -1,39 +1,52 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ebtables extension 'http'
-Date: Mon, 25 Jan 2010 17:50:50 +0100
-Message-ID: <4B5DCBEA.5000501@trash.net>
-References: <8a87046f1001250546w1dec4136nc509510e8ac15eb8@mail.gmail.com>  <alpine.LSU.2.01.1001251453460.10705@obet.zrqbmnf.qr> <8a87046f1001250632hd4220d1s9f44cad2c3b268a8@mail.gmail.com> <alpine.LSU.2.01.1001251707500.20906@obet.zrqbmnf.qr>
+Subject: Re: [PATCH 08/09]: netfilter: nf_conntrack: add support for "conntrack
+ zones"
+Date: Mon, 25 Jan 2010 17:51:18 +0100
+Message-ID: <4B5DCC06.3020109@trash.net>
+References: <20100125153732.15305.68011.sendpatchset@x2.localnet> <20100125153742.15305.79058.sendpatchset@x2.localnet> <alpine.LSU.2.01.1001251747250.20906@obet.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Felipe W Damasio <felipewd@gmail.com>,
-	netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:47470 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:47481 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754067Ab0AYQux (ORCPT
+	with ESMTP id S1753767Ab0AYQvU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Jan 2010 11:50:53 -0500
-In-Reply-To: <alpine.LSU.2.01.1001251707500.20906@obet.zrqbmnf.qr>
+	Mon, 25 Jan 2010 11:51:20 -0500
+In-Reply-To: <alpine.LSU.2.01.1001251747250.20906@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Jan Engelhardt wrote:
-> On Monday 2010-01-25 15:32, Felipe W Damasio wrote:
->>> For the same reason:
->>> http://l7-filter.sourceforge.net/FAQ#usage
->>  Right, thanks!
+> On Monday 2010-01-25 16:37, Patrick McHardy wrote:
+>> diff --git a/include/linux/netfilter/xt_CT.h b/include/linux/netfilter/xt_CT.h
+>> index a4c1880..fe4ee76 100644
+>> --- a/include/linux/netfilter/xt_CT.h
+>> +++ b/include/linux/netfilter/xt_CT.h
+>> @@ -5,6 +5,7 @@ struct xt_ct_target_info {
+>> 	u_int32_t	ct_events;
+>> 	u_int32_t	exp_events;
+>> 	char		helper[16];
+>> +	u_int16_t	zone;
 >>
->>  But I just don't see the point of letting all the http traffic flows
->> through squid since it'll only care about a handful of domains...
->>
->>  I don't suppose there is a way  of "putting" the connection back on
->> the forwarding-state on the bridge after ebtables already dropped it
->> on the broute table, is there?
+>> 	/* Used internally by the kernel */
+>> 	struct nf_conn	*ct __attribute__((aligned(8)));
 > 
-> Once you decided which machine handles the packet stream, it's decided. 
-> The twist is, you have to decide when you see the very first packet.
+>> diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+>> index d171b12..9c1560d 100644
+>> --- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+>> +++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+>> @@ -266,7 +266,7 @@ getorigdst(struct sock *sk, int optval, void __user *user, int *len)
+>> 		return -EINVAL;
+>> 	}
+>>
+>> -	h = nf_conntrack_find_get(sock_net(sk), &tuple);
+>> +	h = nf_conntrack_find_get(sock_net(sk), 0, &tuple);
+> 
+> I would prefer to avoid literal numbers where doing so meaningful;
+> perhaps we can introduce a symbolic constant NF_CT_GLOBAL_ZONE
+> or similar here.
 
-CT actually doesn't really care, it should be possible with TPROXY
-if the local socket could be persuaded to close silently.
+Sure, I'll add that.
