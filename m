@@ -1,34 +1,32 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: ebtables extension 'http'
-Date: Mon, 25 Jan 2010 17:35:42 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.1001251707500.20906@obet.zrqbmnf.qr>
-References: <8a87046f1001250546w1dec4136nc509510e8ac15eb8@mail.gmail.com>  <alpine.LSU.2.01.1001251453460.10705@obet.zrqbmnf.qr> <8a87046f1001250632hd4220d1s9f44cad2c3b268a8@mail.gmail.com>
+Subject: Re: [PATCH 00/09]: netfilter: CT target/conntrack zones
+Date: Mon, 25 Jan 2010 17:37:32 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.1001251736170.20906@obet.zrqbmnf.qr>
+References: <20100125153732.15305.68011.sendpatchset@x2.localnet>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Felipe W Damasio <felipewd@gmail.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:59310 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:54577 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753502Ab0AYQfn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Jan 2010 11:35:43 -0500
-In-Reply-To: <8a87046f1001250632hd4220d1s9f44cad2c3b268a8@mail.gmail.com>
+	id S1753679Ab0AYQhd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 25 Jan 2010 11:37:33 -0500
+In-Reply-To: <20100125153732.15305.68011.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Monday 2010-01-25 15:32, Felipe W Damasio wrote:
->> For the same reason:
->> http://l7-filter.sourceforge.net/FAQ#usage
+On Monday 2010-01-25 16:37, Patrick McHardy wrote:
 >
->  Right, thanks!
->
->  But I just don't see the point of letting all the http traffic flows
->through squid since it'll only care about a handful of domains...
->
->  I don't suppose there is a way  of "putting" the connection back on
->the forwarding-state on the bridge after ebtables already dropped it
->on the broute table, is there?
+> include/linux/netfilter/nf_conntrack_common.h  |   22 +++
+> include/linux/netfilter/nfnetlink_conntrack.h  |    2 +
+> include/linux/netfilter/x_tables.h             |    2 +
+> include/linux/netfilter/xt_CT.h                |   14 ++
 
-Once you decided which machine handles the packet stream, it's decided. 
-The twist is, you have to decide when you see the very first packet.
+Is there anything that prohibits using a little-more descriptive
+name, like xt_CONNTRACK?
+That btw reminds me that, perhaps, we could/should avoid
+same-name different-case (cf. xt_conntrack) in future,
+so xt_CONNTRACK would not fly too well.
+
