@@ -1,87 +1,106 @@
-From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Subject: Re: [PATCH v2]IP: Send an ICMP "Fragment Reassembly Timeout"
- message when enabling connection track
-Date: Tue, 26 Jan 2010 11:34:44 +0900 (JST)
-Message-ID: <201001260234.o0Q2YjZk007947@toshiba.co.jp>
-References: <4B599084.1060406@trash.net>
-	<201001250057.o0P0v76J005243@toshiba.co.jp>
-	<4B5E44A2.2080006@cn.fujitsu.com>
+From: Tomasz Tomkowiak <bloodman@gmail.com>
+Subject: xtables-addons: ipp2p: bittorrent commands patch
+Date: Tue, 26 Jan 2010 06:16:04 +0100
+Message-ID: <1202414722.20100126061604@gmail.com>
+Reply-To: bloodman@gmail.com
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: yasuyuki.kozakai@toshiba.co.jp, kaber@trash.net,
-	davem@davemloft.net, kuznet@ms2.inr.ac.ru, pekkas@netcore.fi,
-	jmorris@namei.org, yoshfuji@linux-ipv6.org, eric.dumazet@gmail.com,
-	david@blue-labs.org, jorge@dti2.net, opurdila@ixiacom.com,
-	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: shanwei@cn.fujitsu.com
+Content-Type: multipart/mixed;
+ boundary="----------E719710B36EE479E"
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from inet-tsb5.toshiba.co.jp ([202.33.96.24]:47819 "EHLO
-	imx2.toshiba.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752257Ab0AZCes (ORCPT
+Received: from mail-fx0-f220.google.com ([209.85.220.220]:48888 "EHLO
+	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750719Ab0AZFQJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Jan 2010 21:34:48 -0500
-In-Reply-To: <4B5E44A2.2080006@cn.fujitsu.com>
+	Tue, 26 Jan 2010 00:16:09 -0500
+Received: by fxm20 with SMTP id 20so4345796fxm.21
+        for <netfilter-devel@vger.kernel.org>; Mon, 25 Jan 2010 21:16:07 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+------------E719710B36EE479E
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 
-Hi,
+Hello guys,
 
-From: Shan Wei <shanwei@cn.fujitsu.com>
-Date: Tue, 26 Jan 2010 09:25:54 +0800
-
-> Yasuyuki KOZAKAI wrote, at 01/25/2010 08:57 AM:
-> > It sounds good. Please take care that IPv6 router does not reassemble
-> > fragmented packets. 
-> 
-> I don't know the details about IPv6 router implement.
-> Did you mean that we can not directly use ip6_route_input(skb) to find
-> Routing type(host/router)? 
-
-I just talked about RFC2460.
-
-4.5  Fragment Header
-
-   The Fragment header is used by an IPv6 source to send a packet larger
-   than would fit in the path MTU to its destination.  (Note: unlike
-   IPv4, fragmentation in IPv6 is performed only by source nodes, not by
-   routers along a packet's delivery path -- see section 5.) 
+After testing I decide to write my patch to bittorrent
+GET commands from xt_ipp2p.c because old procedure is
+useless for modified and/or private trackers. teh new
+works fine but maybe someone can rewrite it to better C
+(yeah, im C/C++ n00b ;)
+btw. info_hash may be 3rd argument, passkey (private trackers)
+may be 1st argument (or not) etc. etc. so we need to search.
 
 
-> > IIRC the current nf_conntrack_{ipv6,reasm}.c
-> > reassembles the cloned skbs for tracking, discard the cloned skbs after
-> > tracking and forward the original skbs to IPv6 stack to keep the size of
-> > fragmented packets.
-> 
-> Indeed, after assembling fragments successfully in IPv6 connection track,
-> original fragments are forwarded to IPv6 stack. And then IPv6 stack
-> also assembles those received fragments again.
-> Thus fragments are assembled twice. 
+---
+--- xtables-addons-1.22.old/extensions/xt_ipp2p.c       2010-01-22 20:14:37.000000000 +0100
++++ xtables-addons-1.22/extensions/xt_ipp2p.c   2010-01-26 06:05:47.000000000 +0100
+@@ -505,19 +505,18 @@
+  if (payload[0] == 0x13)
+    if (memcmp(payload + 1, "BitTorrent protocol", 19) == 0)
+      return IPP2P_BIT * 100;
+-
+    /*
+-    * get tracker commandos, all starts with GET /
+-    * then it can follow: scrape| announce
+-    * and then ?hash_info=
++    * any tracker command starts with GET / then *may be* some file on web server
++    * (eg. announce.php or dupa.pl or whatever.cgi or NOTHING for tracker on root dir)
++    * but *must have* one (or more) of strings listed below (true for scrape and announce)
+     */
+    if (memcmp(payload, "GET /", 5) == 0) {
+-     /* message scrape */
+-     if (memcmp(payload + 5, "scrape?info_hash=", 17) == 0)
+-       return IPP2P_BIT * 100 + 1;
+-     /* message announce */
+-     if (memcmp(payload + 5, "announce?info_hash=", 19) == 0)
+-       return IPP2P_BIT * 100 + 2;
++     if(strstr(payload, "info_hash=") != NULL)
++       return IPP2P_BIT * 100 + 1;
++     if(strstr(payload, "peer_id=") != NULL)
++       return IPP2P_BIT * 100 + 2;
++     if(strstr(payload, "passkey=") != NULL)
++       return IPP2P_BIT * 100 + 4;
+    }
+  } else {
+    /* bitcomet encryptes the first packet, so we have to detect another
+---
 
-Yes, in the case that Linux is IPv6 host.
+-- 
+Tomasz 'BloodMan' Tomkowiak
 
+------------E719710B36EE479E
+Content-Type: application/octet-stream;
+ name="xt_ipp2p.patch"
+Content-transfer-encoding: base64
+Content-Disposition: attachment;
+ filename="xt_ipp2p.patch"
 
-> But IPv4 only assembly once. IPv4 connection track assembles fragments
-> > successfully and then just forwards assembled intact packet to IPv4
-> > stack. 
-> Do you know why is IPv6 designed like that?
+LS0tIHh0YWJsZXMtYWRkb25zLTEuMjIub2xkL2V4dGVuc2lvbnMveHRfaXBwMnAuYwkyMDEw
+LTAxLTIyIDIwOjE0OjM3LjAwMDAwMDAwMCArMDEwMAorKysgeHRhYmxlcy1hZGRvbnMtMS4y
+Mi9leHRlbnNpb25zL3h0X2lwcDJwLmMJMjAxMC0wMS0yNiAwNjowNTo0Ny4wMDAwMDAwMDAg
+KzAxMDAKQEAgLTUwNSwxOSArNTA1LDE4IEBACiAJCWlmIChwYXlsb2FkWzBdID09IDB4MTMp
+CiAJCQlpZiAobWVtY21wKHBheWxvYWQgKyAxLCAiQml0VG9ycmVudCBwcm90b2NvbCIsIDE5
+KSA9PSAwKQogCQkJCXJldHVybiBJUFAyUF9CSVQgKiAxMDA7Ci0KIAkJLyoKLQkJICogZ2V0
+IHRyYWNrZXIgY29tbWFuZG9zLCBhbGwgc3RhcnRzIHdpdGggR0VUIC8KLQkJICogdGhlbiBp
+dCBjYW4gZm9sbG93OiBzY3JhcGV8IGFubm91bmNlCi0JCSAqIGFuZCB0aGVuID9oYXNoX2lu
+Zm89CisJCSAqIGFueSB0cmFja2VyIGNvbW1hbmQgc3RhcnRzIHdpdGggR0VUIC8gdGhlbiAq
+bWF5IGJlKiBzb21lIGZpbGUgb24gd2ViIHNlcnZlcgorCQkgKiAoZWcuIGFubm91bmNlLnBo
+cCBvciBkdXBhLnBsIG9yIHdoYXRldmVyLmNnaSBvciBOT1RISU5HIGZvciB0cmFja2VyIG9u
+IHJvb3QgZGlyKQorCQkgKiBidXQgKm11c3QgaGF2ZSogb25lIChvciBtb3JlKSBvZiBzdHJp
+bmdzIGxpc3RlZCBiZWxvdyAodHJ1ZSBmb3Igc2NyYXBlIGFuZCBhbm5vdW5jZSkKIAkJICov
+CiAJCWlmIChtZW1jbXAocGF5bG9hZCwgIkdFVCAvIiwgNSkgPT0gMCkgewotCQkJLyogbWVz
+c2FnZSBzY3JhcGUgKi8KLQkJCWlmIChtZW1jbXAocGF5bG9hZCArIDUsICJzY3JhcGU/aW5m
+b19oYXNoPSIsIDE3KSA9PSAwKQotCQkJCXJldHVybiBJUFAyUF9CSVQgKiAxMDAgKyAxOwot
+CQkJLyogbWVzc2FnZSBhbm5vdW5jZSAqLwotCQkJaWYgKG1lbWNtcChwYXlsb2FkICsgNSwg
+ImFubm91bmNlP2luZm9faGFzaD0iLCAxOSkgPT0gMCkKLQkJCQlyZXR1cm4gSVBQMlBfQklU
+ICogMTAwICsgMjsKKwkJCWlmKHN0cnN0cihwYXlsb2FkLCAiaW5mb19oYXNoPSIpICE9IE5V
+TEwpCisJCQkgICAgcmV0dXJuIElQUDJQX0JJVCAqIDEwMCArIDE7CisJCQlpZihzdHJzdHIo
+cGF5bG9hZCwgInBlZXJfaWQ9IikgIT0gTlVMTCkKKwkJCSAgICByZXR1cm4gSVBQMlBfQklU
+ICogMTAwICsgMjsKKwkJCWlmKHN0cnN0cihwYXlsb2FkLCAicGFzc2tleT0iKSAhPSBOVUxM
+KQorCQkJICAgIHJldHVybiBJUFAyUF9CSVQgKiAxMDAgKyA0OwogCQl9CiAJfSBlbHNlIHsK
+IAkgICAgCS8qIGJpdGNvbWV0IGVuY3J5cHRlcyB0aGUgZmlyc3QgcGFja2V0LCBzbyB3ZSBo
+YXZlIHRvIGRldGVjdCBhbm90aGVyCg==
+------------E719710B36EE479E--
 
-General speaking, IPv6 router just forwards the fragmented packets and
-it's up to IPv6 host to handle them. And nf_conntrack is not packet filter,
-but it just tracks packets. So I designed that nf_contrack_ipv6 forwards
-fragments to IPv6 stack even if nf_conntrack detects missing piece
-of fragments. This resulted in twice reassembly in the case that
-Linux is IPv6 host, but I tolerated that.
-
-I think that your improvement can remove such inefficient processing.
-
-BTW, I explained the reason why nf_conntrack does not re-fragment
-the reassembled skb like nf_conntrack_ipv4 and forwards the original
-fragments to IPv6 stack in
-
-	http://conferences.sigcomm.org/sigcomm/2007/ipv6/1569042997.pdf
-
-Regards,
-
--- Yasuyuki Kozakai
