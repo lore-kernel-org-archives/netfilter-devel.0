@@ -1,44 +1,86 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 1/2] IPv6: conntrack: Use protocol-related
- initialization routine to initial queues of IPv6 connection track
-Date: Tue, 26 Jan 2010 05:11:47 -0800 (PST)
-Message-ID: <20100126.051147.256313206.davem@davemloft.net>
-References: <20100125.233254.35824860.davem@davemloft.net>
-	<4B5EE2C6.6010802@cn.fujitsu.com>
-	<4B5EE436.3040204@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 00/09]: netfilter: CT target/conntrack zones
+Date: Tue, 26 Jan 2010 15:05:24 +0100
+Message-ID: <4B5EF6A4.6000201@netfilter.org>
+References: <20100125153732.15305.68011.sendpatchset@x2.localnet>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: shanwei@cn.fujitsu.com, yasuyuki.kozakai@toshiba.co.jp,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: kaber@trash.net
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:41169
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753405Ab0AZNLf (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 26 Jan 2010 08:11:35 -0500
-In-Reply-To: <4B5EE436.3040204@trash.net>
+Received: from mail.us.es ([193.147.175.20]:37895 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752229Ab0AZOFF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 26 Jan 2010 09:05:05 -0500
+In-Reply-To: <20100125153732.15305.68011.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Tue, 26 Jan 2010 13:46:46 +0100
+Hi Patrick,
 
-> Oops, sorry. Not sure why I missed this, I've successfully
-> tested that change multiple times.
+Sorry for the silence, we're in the exams season since last week and
+that nuts a lot.
 
-This situation is error prone, and I don't blame you for not catching
-it, because these common ipv6 fragmentation functions are assuming
-things about the layout of the first few struct members of the
-container in which the top level data structure lives.
+Patrick McHardy wrote:
+> The following patches contain a new version of the conntrack zones
+> patchset, including a new xtables target to (among other things) assign
+> conntracks to a specific zone, replacing the device attribute used
+> in the previous version.
+> 
+> Quick overview:
+> 
+> - Patch 1 adds a struct net * parameter to the xtables target parameter
+>   structures as preparation for the CT target, which needs to allocate
+>   a conntrack entry in the proper namespace
+> 
+> - Patch 2 splits up the IPCT_STATUS event as requested by Jozsef. The
+>   CT target can be used for selective conntrack event delivery, this
+>   allows more fine grained control over the delivered events.
 
-What should happen is that when such an assumption exists, it should
-be explicitly codified.
+This is indeed interesting.
 
-Just like how we embed struct sock_common in both struct socket
-and in the TCP time-wait minisockets.
+> - Patch 3 adds selective conntrack event delivery by adding two masks
+>   for conntrack and expectation events to struct nf_conntrack_ecache,
+>   which are used to filter out events.
 
-Anyways, meanwhile I'll apply the fix.  And yes I know it needs
-to go to stable too... :-)
+This feature is something that I wanted since time ago. We can reduce
+the CPU consumption by reducing the amount of events. This is
+particularly good for ulogd2 and conntrackd.
 
+My experiments showed that the BSF-based filtering does not provide any
+significant gain from filtering Netlink message in user-space. The
+problem is that we have to spend cycles building the message which seems
+to be costly.
+
+AFAICS, this approach has one minor threat since it applies to all
+processes (I'm sure you're aware of it). I'm fine with this anyway, but
+maybe we should think of some way to make it per-process at some point?
+Some netlink unicast-based reporting similar to what NFLOG and NFQUEUE
+would solve this issue although they are implementing multicast over
+netlink unicast.
+
+> - Patch 4 fixes ctnetlink to only assign helpers for matching protocols
+>   to conntrack entries and fixes expectation deletion by helper name.
+>   This is also preparation for the CT target, which can also assign
+>   helpers to new connections.
+> 
+> - Patch 5 adds support for conntrack templates, which are specially marked
+>   conntrack entries attached to the skb that are used to initialize
+>   specific parameters of new connections.
+> 
+> - Patch 6 adds the CT target
+> 
+> - Patch 7 contains preparatory work for assigning conntracks to zones:
+>   the template needs to be passed to L4 ->error handlers for ICMP and
+>   ICMPv6 to perform the conntrack lookup in the correct zone
+> 
+> - Patch 8 adds zone support to nf_conntrack and the CT target. This works
+>   by incorporating a numerical "zone" identifier into the conntrack/NAT
+>   hashes and comparing it during lookups.
+> 
+> - Patch 9 adds zone support to ctnetlink by dumping and parsing a new
+>   CTA_ZONE attribute that contains the zone ID.
+
+This conntrack zone stuff seems interesting. I'll add support for this
+to libnetfilter_conntrack. Kudos on you.
