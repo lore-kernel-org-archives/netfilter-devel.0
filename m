@@ -1,106 +1,78 @@
-From: Tomasz Tomkowiak <bloodman@gmail.com>
-Subject: xtables-addons: ipp2p: bittorrent commands patch
-Date: Tue, 26 Jan 2010 06:16:04 +0100
-Message-ID: <1202414722.20100126061604@gmail.com>
-Reply-To: bloodman@gmail.com
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: Re: ebtables extension 'http'
+Date: Tue, 26 Jan 2010 14:29:37 +0800
+Message-ID: <412e6f7f1001252229q6e8afde1r474939fadeea57ae@mail.gmail.com>
+References: <8a87046f1001250546w1dec4136nc509510e8ac15eb8@mail.gmail.com>
+	 <alpine.LSU.2.01.1001251453460.10705@obet.zrqbmnf.qr>
+	 <8a87046f1001250632hd4220d1s9f44cad2c3b268a8@mail.gmail.com>
+	 <alpine.LSU.2.01.1001251707500.20906@obet.zrqbmnf.qr>
+	 <4B5DCBEA.5000501@trash.net>
+	 <alpine.LSU.2.01.1001251753560.20906@obet.zrqbmnf.qr>
+	 <8a87046f1001250945p2e666b32m7c2051e00454f8e4@mail.gmail.com>
+	 <4B5DEAB0.6080401@plouf.fr.eu.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="----------E719710B36EE479E"
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f220.google.com ([209.85.220.220]:48888 "EHLO
+Received: from mail-fx0-f220.google.com ([209.85.220.220]:49719 "EHLO
 	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750719Ab0AZFQJ (ORCPT
+	with ESMTP id S1750754Ab0AZG3j convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 26 Jan 2010 00:16:09 -0500
-Received: by fxm20 with SMTP id 20so4345796fxm.21
-        for <netfilter-devel@vger.kernel.org>; Mon, 25 Jan 2010 21:16:07 -0800 (PST)
+	Tue, 26 Jan 2010 01:29:39 -0500
+Received: by fxm20 with SMTP id 20so7429fxm.21
+        for <netfilter-devel@vger.kernel.org>; Mon, 25 Jan 2010 22:29:38 -0800 (PST)
+In-Reply-To: <4B5DEAB0.6080401@plouf.fr.eu.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-------------E719710B36EE479E
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+On Tue, Jan 26, 2010 at 3:02 AM, Pascal Hambourg
+<pascal.mail@plouf.fr.eu.org> wrote:
+> Hello,
+>
+> Felipe W Damasio a =C3=A9crit :
+>>
+>> 2010/1/25 Jan Engelhardt <jengelh@medozas.de>:
+>>> The issue is that you would need to replay the tcp handshake.
+>>>
+>>> Case 1:
+>>> - do TCP handshake
+>>> - read out Host: header
+>>> - if proxied
+>>> =C2=A0- good
+>>> - if not,
+>>> =C2=A0- have to replay TCP handshake to next host (eww :-)
+>>
+>> =C2=A0 Would this be so bad? :-)
+>
+> Yes, quite, because it must be transparent to the client. However the
+> new server may have a lower MSS and not support some TCP options such=
+ as
+> windows scaling, ECN, selective ACK, window scaling, timestamps... th=
+at
+> the previous one supported and which are transmitted only during the
+> handshake, so the client would not know about.
 
-Hello guys,
+how about learning this info from the next hop by sending a SYN packet
+with all options set and the largest MSS. It sounds like TCP splicing
+and SYN proxy. And I heard some one had implemented SYN proxy in
+Linux, and xBSD also support SYN proxy. Is there any chance to
+integrate SYN proxy and TCP splicing into Linux?
 
-After testing I decide to write my patch to bittorrent
-GET commands from xt_ipp2p.c because old procedure is
-useless for modified and/or private trackers. teh new
-works fine but maybe someone can rewrite it to better C
-(yeah, im C/C++ n00b ;)
-btw. info_hash may be 3rd argument, passkey (private trackers)
-may be 1st argument (or not) etc. etc. so we need to search.
+> Not to mention that of
+> course it will use a different initial sequence number and it would h=
+ave
+> to be translated by the bridge in each packet.
 
+NAT also need to take care of this, so we can reuse the code already
+in the kernel maybe.
 
----
---- xtables-addons-1.22.old/extensions/xt_ipp2p.c       2010-01-22 20:14:37.000000000 +0100
-+++ xtables-addons-1.22/extensions/xt_ipp2p.c   2010-01-26 06:05:47.000000000 +0100
-@@ -505,19 +505,18 @@
-  if (payload[0] == 0x13)
-    if (memcmp(payload + 1, "BitTorrent protocol", 19) == 0)
-      return IPP2P_BIT * 100;
--
-    /*
--    * get tracker commandos, all starts with GET /
--    * then it can follow: scrape| announce
--    * and then ?hash_info=
-+    * any tracker command starts with GET / then *may be* some file on web server
-+    * (eg. announce.php or dupa.pl or whatever.cgi or NOTHING for tracker on root dir)
-+    * but *must have* one (or more) of strings listed below (true for scrape and announce)
-     */
-    if (memcmp(payload, "GET /", 5) == 0) {
--     /* message scrape */
--     if (memcmp(payload + 5, "scrape?info_hash=", 17) == 0)
--       return IPP2P_BIT * 100 + 1;
--     /* message announce */
--     if (memcmp(payload + 5, "announce?info_hash=", 19) == 0)
--       return IPP2P_BIT * 100 + 2;
-+     if(strstr(payload, "info_hash=") != NULL)
-+       return IPP2P_BIT * 100 + 1;
-+     if(strstr(payload, "peer_id=") != NULL)
-+       return IPP2P_BIT * 100 + 2;
-+     if(strstr(payload, "passkey=") != NULL)
-+       return IPP2P_BIT * 100 + 4;
-    }
-  } else {
-    /* bitcomet encryptes the first packet, so we have to detect another
----
-
--- 
-Tomasz 'BloodMan' Tomkowiak
-
-------------E719710B36EE479E
-Content-Type: application/octet-stream;
- name="xt_ipp2p.patch"
-Content-transfer-encoding: base64
-Content-Disposition: attachment;
- filename="xt_ipp2p.patch"
-
-LS0tIHh0YWJsZXMtYWRkb25zLTEuMjIub2xkL2V4dGVuc2lvbnMveHRfaXBwMnAuYwkyMDEw
-LTAxLTIyIDIwOjE0OjM3LjAwMDAwMDAwMCArMDEwMAorKysgeHRhYmxlcy1hZGRvbnMtMS4y
-Mi9leHRlbnNpb25zL3h0X2lwcDJwLmMJMjAxMC0wMS0yNiAwNjowNTo0Ny4wMDAwMDAwMDAg
-KzAxMDAKQEAgLTUwNSwxOSArNTA1LDE4IEBACiAJCWlmIChwYXlsb2FkWzBdID09IDB4MTMp
-CiAJCQlpZiAobWVtY21wKHBheWxvYWQgKyAxLCAiQml0VG9ycmVudCBwcm90b2NvbCIsIDE5
-KSA9PSAwKQogCQkJCXJldHVybiBJUFAyUF9CSVQgKiAxMDA7Ci0KIAkJLyoKLQkJICogZ2V0
-IHRyYWNrZXIgY29tbWFuZG9zLCBhbGwgc3RhcnRzIHdpdGggR0VUIC8KLQkJICogdGhlbiBp
-dCBjYW4gZm9sbG93OiBzY3JhcGV8IGFubm91bmNlCi0JCSAqIGFuZCB0aGVuID9oYXNoX2lu
-Zm89CisJCSAqIGFueSB0cmFja2VyIGNvbW1hbmQgc3RhcnRzIHdpdGggR0VUIC8gdGhlbiAq
-bWF5IGJlKiBzb21lIGZpbGUgb24gd2ViIHNlcnZlcgorCQkgKiAoZWcuIGFubm91bmNlLnBo
-cCBvciBkdXBhLnBsIG9yIHdoYXRldmVyLmNnaSBvciBOT1RISU5HIGZvciB0cmFja2VyIG9u
-IHJvb3QgZGlyKQorCQkgKiBidXQgKm11c3QgaGF2ZSogb25lIChvciBtb3JlKSBvZiBzdHJp
-bmdzIGxpc3RlZCBiZWxvdyAodHJ1ZSBmb3Igc2NyYXBlIGFuZCBhbm5vdW5jZSkKIAkJICov
-CiAJCWlmIChtZW1jbXAocGF5bG9hZCwgIkdFVCAvIiwgNSkgPT0gMCkgewotCQkJLyogbWVz
-c2FnZSBzY3JhcGUgKi8KLQkJCWlmIChtZW1jbXAocGF5bG9hZCArIDUsICJzY3JhcGU/aW5m
-b19oYXNoPSIsIDE3KSA9PSAwKQotCQkJCXJldHVybiBJUFAyUF9CSVQgKiAxMDAgKyAxOwot
-CQkJLyogbWVzc2FnZSBhbm5vdW5jZSAqLwotCQkJaWYgKG1lbWNtcChwYXlsb2FkICsgNSwg
-ImFubm91bmNlP2luZm9faGFzaD0iLCAxOSkgPT0gMCkKLQkJCQlyZXR1cm4gSVBQMlBfQklU
-ICogMTAwICsgMjsKKwkJCWlmKHN0cnN0cihwYXlsb2FkLCAiaW5mb19oYXNoPSIpICE9IE5V
-TEwpCisJCQkgICAgcmV0dXJuIElQUDJQX0JJVCAqIDEwMCArIDE7CisJCQlpZihzdHJzdHIo
-cGF5bG9hZCwgInBlZXJfaWQ9IikgIT0gTlVMTCkKKwkJCSAgICByZXR1cm4gSVBQMlBfQklU
-ICogMTAwICsgMjsKKwkJCWlmKHN0cnN0cihwYXlsb2FkLCAicGFzc2tleT0iKSAhPSBOVUxM
-KQorCQkJICAgIHJldHVybiBJUFAyUF9CSVQgKiAxMDAgKyA0OwogCQl9CiAJfSBlbHNlIHsK
-IAkgICAgCS8qIGJpdGNvbWV0IGVuY3J5cHRlcyB0aGUgZmlyc3QgcGFja2V0LCBzbyB3ZSBo
-YXZlIHRvIGRldGVjdCBhbm90aGVyCg==
-------------E719710B36EE479E--
-
+--=20
+Regards=EF=BC=8C
+Changli Gao(xiaosuo@gmail.com)
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
