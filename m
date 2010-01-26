@@ -1,46 +1,44 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 2/2] IPv6: conntrack: Use protocol-related match
- routine in IPv6 connection track
-Date: Mon, 25 Jan 2010 23:35:45 -0800 (PST)
-Message-ID: <20100125.233545.219640402.davem@davemloft.net>
-References: <4B5E53F4.4020106@cn.fujitsu.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: nfbz 621 - 3 kernel patches
+Date: Tue, 26 Jan 2010 12:08:10 +0100
+Message-ID: <4B5ECD1A.7000902@trash.net>
+References: <1260044785-20962-1-git-send-email-jengelh@medozas.de> <4B2642E0.9030601@trash.net> <alpine.LSU.2.01.1001251201260.31060@obet.zrqbmnf.qr> <4B5D89FE.2060809@trash.net> <alpine.LSU.2.01.1001260005260.12427@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: kaber@trash.net, yasuyuki.kozakai@toshiba.co.jp,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: shanwei@cn.fujitsu.com
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4B5E53F4.4020106@cn.fujitsu.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:64697 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752703Ab0AZLIO (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 26 Jan 2010 06:08:14 -0500
+In-Reply-To: <alpine.LSU.2.01.1001260005260.12427@obet.zrqbmnf.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Shan Wei <shanwei@cn.fujitsu.com>
-Date: Tue, 26 Jan 2010 10:31:16 +0800
-
+Jan Engelhardt wrote:
+> On Monday 2010-01-25 13:09, Patrick McHardy wrote:
+>> Jan Engelhardt wrote:
+>>> On Monday 2009-12-14 14:51, Patrick McHardy wrote:
+>>>> Jan Engelhardt wrote:
+>>>>> a few simple commits that turned up while processing NF bug 621.
+>>>>> Thanks for taking care of them :)
+>>>>>
+>>>>> The following changes since commit 22763c5cf3690a681551162c15d34d935308c8d7:
+>>>>>   Linus Torvalds (1):
+>>>>>         Linux 2.6.32
+>>>>>
+>>>>> are available in the git repository at:
+>>>>>
+>>>>>   git://dev.medozas.de/linux master
+>>>> I'll apply those once the net-next tree opens up.
+>>> Is it open already? :)
+>> Yes, but I don't have those patches in my inbox anymore. Please
+>> resend based on nf-next-2.6.git.
 > 
-> IPv6 connection track and IPv6 stack separately use a different queue to 
-> manage received fragments. So using protocol-related match routine.
-> 
-> 
-> Signed-off-by: Shan Wei <shanwei@cn.fujitsu.com>
+> Seems they've already got merged.
 
-This problem was also introduced by:
-
-commit 0b5ccb2ee250136dd7385b1c7da28417d0d4d32d
-Author: Patrick McHardy <kaber@trash.net>
-Date:   Tue Dec 15 16:59:18 2009 +0100
-
-    ipv6: reassembly: use seperate reassembly queues for conntrack and local delivery
-    
-    Currently the same reassembly queue might be used for packets reassembled
-    by conntrack in different positions in the stack (PREROUTING/LOCAL_OUT),
-    as well as local delivery. This can cause "packet jumps" when the fragment
-    completing a reassembled packet is queued from a different position in the
-    stack than the previous ones.
-    
-    Add a "user" identifier to the reassembly queue key to seperate the queues
-    of each caller, similar to what we do for IPv4.
-    
-    Signed-off-by: Patrick McHardy <kaber@trash.net>
+Ah, right, just as I wrote on the 4th :)
 
