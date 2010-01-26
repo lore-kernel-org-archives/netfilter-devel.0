@@ -1,41 +1,45 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: nfbz 621 - 3 kernel patches
-Date: Tue, 26 Jan 2010 00:05:58 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.1001260005260.12427@obet.zrqbmnf.qr>
-References: <1260044785-20962-1-git-send-email-jengelh@medozas.de> <4B2642E0.9030601@trash.net> <alpine.LSU.2.01.1001251201260.31060@obet.zrqbmnf.qr> <4B5D89FE.2060809@trash.net>
+From: Shan Wei <shanwei@cn.fujitsu.com>
+Subject: Re: [PATCH v2]IP: Send an ICMP "Fragment Reassembly Timeout" message
+ when enabling connection track
+Date: Tue, 26 Jan 2010 09:25:54 +0800
+Message-ID: <4B5E44A2.2080006@cn.fujitsu.com>
+References: <4B5844F2.30104@trash.net>	<4B590BE3.40509@cn.fujitsu.com>	<4B599084.1060406@trash.net> <201001250057.o0P0v76J005243@toshiba.co.jp>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:39331 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752810Ab0AYXGA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 25 Jan 2010 18:06:00 -0500
-In-Reply-To: <4B5D89FE.2060809@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net, davem@davemloft.net, kuznet@ms2.inr.ac.ru,
+	pekkas@netcore.fi, jmorris@namei.org, yoshfuji@linux-ipv6.org,
+	eric.dumazet@gmail.com, david@blue-labs.org, jorge@dti2.net,
+	opurdila@ixiacom.com, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <201001250057.o0P0v76J005243@toshiba.co.jp>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
+
+Yasuyuki KOZAKAI wrote, at 01/25/2010 08:57 AM:
+> It sounds good. Please take care that IPv6 router does not reassemble
+> fragmented packets. 
+
+I don't know the details about IPv6 router implement.
+Did you mean that we can not directly use ip6_route_input(skb) to find Routing type(host/router)? 
+
+> IIRC the current nf_conntrack_{ipv6,reasm}.c
+> reassembles the cloned skbs for tracking, discard the cloned skbs after
+> tracking and forward the original skbs to IPv6 stack to keep the size of
+> fragmented packets.
+
+Indeed, after assembling fragments successfully in IPv6 connection track, original fragments are forwarded to IPv6 stack. And then IPv6 stack also assembles those received fragments again.
+Thus fragments are assembled twice. 
+
+But IPv4 only assembly once. IPv4 connection track assembles fragments successfully and then just forwards assembled intact packet to IPv4 stack. 
+Do you know why is IPv6 designed like that?
 
 
-On Monday 2010-01-25 13:09, Patrick McHardy wrote:
->Jan Engelhardt wrote:
->> On Monday 2009-12-14 14:51, Patrick McHardy wrote:
->>> Jan Engelhardt wrote:
->>>> a few simple commits that turned up while processing NF bug 621.
->>>> Thanks for taking care of them :)
->>>>
->>>> The following changes since commit 22763c5cf3690a681551162c15d34d935308c8d7:
->>>>   Linus Torvalds (1):
->>>>         Linux 2.6.32
->>>>
->>>> are available in the git repository at:
->>>>
->>>>   git://dev.medozas.de/linux master
->>> I'll apply those once the net-next tree opens up.
->> 
->> Is it open already? :)
->
->Yes, but I don't have those patches in my inbox anymore. Please
->resend based on nf-next-2.6.git.
+-- 
+Best Regards
+-----
+Shan Wei
 
-Seems they've already got merged.
+
