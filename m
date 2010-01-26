@@ -1,97 +1,87 @@
-From: Shan Wei <shanwei@cn.fujitsu.com>
-Subject: [PATCH 2/2] IPv6: conntrack: Use protocol-related match routine in
- IPv6 connection track
-Date: Tue, 26 Jan 2010 10:31:16 +0800
-Message-ID: <4B5E53F4.4020106@cn.fujitsu.com>
+From: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Subject: Re: [PATCH v2]IP: Send an ICMP "Fragment Reassembly Timeout"
+ message when enabling connection track
+Date: Tue, 26 Jan 2010 11:34:44 +0900 (JST)
+Message-ID: <201001260234.o0Q2YjZk007947@toshiba.co.jp>
+References: <4B599084.1060406@trash.net>
+	<201001250057.o0P0v76J005243@toshiba.co.jp>
+	<4B5E44A2.2080006@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>,
-	David Miller <davem@davemloft.net>,
-	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: yasuyuki.kozakai@toshiba.co.jp, kaber@trash.net,
+	davem@davemloft.net, kuznet@ms2.inr.ac.ru, pekkas@netcore.fi,
+	jmorris@namei.org, yoshfuji@linux-ipv6.org, eric.dumazet@gmail.com,
+	david@blue-labs.org, jorge@dti2.net, opurdila@ixiacom.com,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: shanwei@cn.fujitsu.com
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from inet-tsb5.toshiba.co.jp ([202.33.96.24]:47819 "EHLO
+	imx2.toshiba.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752257Ab0AZCes (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 25 Jan 2010 21:34:48 -0500
+In-Reply-To: <4B5E44A2.2080006@cn.fujitsu.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
 
-IPv6 connection track and IPv6 stack separately use a different queue to 
-manage received fragments. So using protocol-related match routine.
+Hi,
+
+From: Shan Wei <shanwei@cn.fujitsu.com>
+Date: Tue, 26 Jan 2010 09:25:54 +0800
+
+> Yasuyuki KOZAKAI wrote, at 01/25/2010 08:57 AM:
+> > It sounds good. Please take care that IPv6 router does not reassemble
+> > fragmented packets. 
+> 
+> I don't know the details about IPv6 router implement.
+> Did you mean that we can not directly use ip6_route_input(skb) to find
+> Routing type(host/router)? 
+
+I just talked about RFC2460.
+
+4.5  Fragment Header
+
+   The Fragment header is used by an IPv6 source to send a packet larger
+   than would fit in the path MTU to its destination.  (Note: unlike
+   IPv4, fragmentation in IPv6 is performed only by source nodes, not by
+   routers along a packet's delivery path -- see section 5.) 
 
 
-Signed-off-by: Shan Wei <shanwei@cn.fujitsu.com>
----
- include/net/ipv6.h                      |    1 -
- net/ipv6/netfilter/nf_conntrack_reasm.c |   13 ++++++++++++-
- net/ipv6/reassembly.c                   |    3 +--
- 3 files changed, 13 insertions(+), 4 deletions(-)
+> > IIRC the current nf_conntrack_{ipv6,reasm}.c
+> > reassembles the cloned skbs for tracking, discard the cloned skbs after
+> > tracking and forward the original skbs to IPv6 stack to keep the size of
+> > fragmented packets.
+> 
+> Indeed, after assembling fragments successfully in IPv6 connection track,
+> original fragments are forwarded to IPv6 stack. And then IPv6 stack
+> also assembles those received fragments again.
+> Thus fragments are assembled twice. 
 
-diff --git a/include/net/ipv6.h b/include/net/ipv6.h
-index ccab594..cbd768b 100644
---- a/include/net/ipv6.h
-+++ b/include/net/ipv6.h
-@@ -365,7 +365,6 @@ struct ip6_create_arg {
- };
- 
- void ip6_frag_init(struct inet_frag_queue *q, void *a);
--int ip6_frag_match(struct inet_frag_queue *q, void *a);
- 
- static inline int ipv6_addr_any(const struct in6_addr *a)
- {
-diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index 312c20a..66b6161 100644
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -146,6 +146,17 @@ static void nf_ct_frag6_evictor(void)
- 	local_bh_enable();
- }
- 
-+static int nf_ct_frag_match(struct inet_frag_queue *q, void *a)
-+{
-+	struct nf_ct_frag6_queue *fq;
-+	struct ip6_create_arg *arg = a;
-+	fq = container_of(q, struct nf_ct_frag6_queue, q);
-+
-+	return (fq->id == arg->id &&
-+		ipv6_addr_equal(&fq->saddr, arg->src) &&
-+		ipv6_addr_equal(&fq->daddr, arg->dst));
-+}
-+
- static void nf_ct_frag6_expire(unsigned long data)
- {
- 	struct nf_ct_frag6_queue *fq;
-@@ -665,7 +676,7 @@ int nf_ct_frag6_init(void)
- 	nf_frags.destructor = NULL;
- 	nf_frags.skb_free = nf_skb_free;
- 	nf_frags.qsize = sizeof(struct nf_ct_frag6_queue);
--	nf_frags.match = ip6_frag_match;
-+	nf_frags.match = nf_ct_frag_match;
- 	nf_frags.frag_expire = nf_ct_frag6_expire;
- 	nf_frags.secret_interval = 10 * 60 * HZ;
- 	nf_init_frags.timeout = IPV6_FRAG_TIMEOUT;
-diff --git a/net/ipv6/reassembly.c b/net/ipv6/reassembly.c
-index 2cddea3..2fa4355 100644
---- a/net/ipv6/reassembly.c
-+++ b/net/ipv6/reassembly.c
-@@ -136,7 +136,7 @@ static unsigned int ip6_hashfn(struct inet_frag_queue *q)
- 	return inet6_hash_frag(fq->id, &fq->saddr, &fq->daddr, ip6_frags.rnd);
- }
- 
--int ip6_frag_match(struct inet_frag_queue *q, void *a)
-+static int ip6_frag_match(struct inet_frag_queue *q, void *a)
- {
- 	struct frag_queue *fq;
- 	struct ip6_create_arg *arg = a;
-@@ -146,7 +146,6 @@ int ip6_frag_match(struct inet_frag_queue *q, void *a)
- 			ipv6_addr_equal(&fq->saddr, arg->src) &&
- 			ipv6_addr_equal(&fq->daddr, arg->dst));
- }
--EXPORT_SYMBOL(ip6_frag_match);
- 
- /* Memory Tracking Functions. */
- static inline void frag_kfree_skb(struct netns_frags *nf,
--- 
-1.6.3.3
+Yes, in the case that Linux is IPv6 host.
 
 
+> But IPv4 only assembly once. IPv4 connection track assembles fragments
+> > successfully and then just forwards assembled intact packet to IPv4
+> > stack. 
+> Do you know why is IPv6 designed like that?
+
+General speaking, IPv6 router just forwards the fragmented packets and
+it's up to IPv6 host to handle them. And nf_conntrack is not packet filter,
+but it just tracks packets. So I designed that nf_contrack_ipv6 forwards
+fragments to IPv6 stack even if nf_conntrack detects missing piece
+of fragments. This resulted in twice reassembly in the case that
+Linux is IPv6 host, but I tolerated that.
+
+I think that your improvement can remove such inefficient processing.
+
+BTW, I explained the reason why nf_conntrack does not re-fragment
+the reassembled skb like nf_conntrack_ipv4 and forwards the original
+fragments to IPv6 stack in
+
+	http://conferences.sigcomm.org/sigcomm/2007/ipv6/1569042997.pdf
+
+Regards,
+
+-- Yasuyuki Kozakai
