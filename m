@@ -1,44 +1,57 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/2] IPv6: conntrack: Use protocol-related initialization
- routine to initial queues of IPv6 connection track
-Date: Tue, 26 Jan 2010 16:46:06 +0100
-Message-ID: <4B5F0E3E.2070001@trash.net>
-References: <20100125.233254.35824860.davem@davemloft.net>	<4B5EE2C6.6010802@cn.fujitsu.com>	<4B5EE436.3040204@trash.net> <20100126.051147.256313206.davem@davemloft.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [PATCH 00/09]: netfilter: CT target/conntrack zones
+Date: Tue, 26 Jan 2010 19:44:32 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1001261600200.24370@blackhole.kfki.hu>
+References: <20100125153732.15305.68011.sendpatchset@x2.localnet> <4B5EF6A4.6000201@netfilter.org> <4B5F0283.4030401@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: shanwei@cn.fujitsu.com, yasuyuki.kozakai@toshiba.co.jp,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: David Miller <davem@davemloft.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20100126.051147.256313206.davem@davemloft.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp0.kfki.hu ([148.6.0.25]:60476 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751323Ab0AZSod (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 26 Jan 2010 13:44:33 -0500
+In-Reply-To: <4B5F0283.4030401@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-David Miller wrote:
-> From: Patrick McHardy <kaber@trash.net>
-> Date: Tue, 26 Jan 2010 13:46:46 +0100
-> 
->> Oops, sorry. Not sure why I missed this, I've successfully
->> tested that change multiple times.
-> 
-> This situation is error prone, and I don't blame you for not catching
-> it, because these common ipv6 fragmentation functions are assuming
-> things about the layout of the first few struct members of the
-> container in which the top level data structure lives.
-> 
-> What should happen is that when such an assumption exists, it should
-> be explicitly codified.
-> 
-> Just like how we embed struct sock_common in both struct socket
-> and in the TCP time-wait minisockets.
+On Tue, 26 Jan 2010, Patrick McHardy wrote:
 
-I'll see if I can come up with something to catch this kind of mistake
-in the future.
-
+> Pablo Neira Ayuso wrote:
+> >> - Patch 3 adds selective conntrack event delivery by adding two masks
+> >>   for conntrack and expectation events to struct nf_conntrack_ecache,
+> >>   which are used to filter out events.
+> > 
+> > This feature is something that I wanted since time ago. We can reduce
+> > the CPU consumption by reducing the amount of events. This is
+> > particularly good for ulogd2 and conntrackd.
+> > 
+> > My experiments showed that the BSF-based filtering does not provide any
+> > significant gain from filtering Netlink message in user-space. The
+> > problem is that we have to spend cycles building the message which seems
+> > to be costly.
+> > 
+> > AFAICS, this approach has one minor threat since it applies to all
+> > processes (I'm sure you're aware of it). I'm fine with this anyway, but
+> > maybe we should think of some way to make it per-process at some point?
+> > Some netlink unicast-based reporting similar to what NFLOG and NFQUEUE
+> > would solve this issue although they are implementing multicast over
+> > netlink unicast.
 > 
-> Anyways, meanwhile I'll apply the fix.  And yes I know it needs
-> to go to stable too... :-)
+> The question is whether that would really reduce overhead
+> since we'd like would have to construct messages multiple
+> times ourselves in that case. But yes, it might help.
 
-Thanks :)
+I think the current way is one of the best: the interesting events are 
+selected by CT, sent to userspace and the userspace processes pick the 
+ones they are interested in. Or do I miss something?
 
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
