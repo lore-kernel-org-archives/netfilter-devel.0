@@ -1,43 +1,37 @@
-From: Jon Masters <jonathan@jonmasters.org>
-Subject: Re: PROBLEM: reproducible crash KVM+nf_conntrack all recent 2.6
- kernels
-Date: Thu, 28 Jan 2010 06:21:00 -0500
-Message-ID: <1264677660.2793.128.camel@tonnant>
-References: <b6fcc0a1001280119t1394d956paa4865c078b52c9f@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: PROBLEM: reproducible crash KVM+nf_conntrack all recent 2.6 kernels
+Date: Thu, 28 Jan 2010 13:19:29 +0100
+Message-ID: <4B6180D1.6050609@trash.net>
+References: <1264657559.2793.103.camel@tonnant> <1264658364.2793.105.camel@tonnant>
 Mime-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-To: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: linux-kernel <linux-kernel@vger.kernel.org>,
+	netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org
+To: Jon Masters <jonathan@jonmasters.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from dallas.jonmasters.org ([72.29.103.172]:42651 "EHLO
-	dallas.jonmasters.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752741Ab0A1LVJ (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:47928 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750972Ab0A1MTe (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 28 Jan 2010 06:21:09 -0500
-In-Reply-To: <b6fcc0a1001280119t1394d956paa4865c078b52c9f@mail.gmail.com>
+	Thu, 28 Jan 2010 07:19:34 -0500
+In-Reply-To: <1264658364.2793.105.camel@tonnant>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 2010-01-28 at 11:19 +0200, Alexey Dobriyan wrote:
-> > RIP: 0010:[<ffffffff813b4115>]  [<ffffffff813b4115>] destroy_conntrack+0x82/0x114
+Jon Masters wrote:
+> On Thu, 2010-01-28 at 00:46 -0500, Jon Masters wrote:
 > 
-> Rebuild kernel with CONFIG_DEBUG_INFO=y.
-> Double sure conntracking is compiled-in.
-> Then run
+>> A number of people seem to have reported this crash in various forms,
+>> but I have yet to see a solution, and can reproduce on 2.6.33-rc5 this
+>> evening so I know it's still present in the latest upstream kernels too.
+>> Userspace is Fedora 12, and this happens on both all recent F12 kernels
+>> (sporadic in 2.6.31 until recently, solidly reproducible on 2.6.32) and
+>> upstream 2.6.32, and 2.6.33-rc5 also - hard to find a "known good".
 > 
->     addr2line -e vmlinux $RIP
-> 
-> it will tell exact line where kernel is oopsing.
+> Now I can capture the panic()s, I'm rebuilding the 2.6.33-rc5 kernel
+> with some better debugging options to at least get some more data.
 
-I posted a followup with that detail later in the thread. In every case
-the kernel has CONFIG_DEBUG_INFO set, and in the latter example I posted
-I had turned on almost every other debugging option. I currently have a
-kernel with netfilter debugging turned on but that's proving harder to
-cause to fall over (likely because I changed several other options, so I
-will rebuild it to be identical to earlier with just NF debug on).
-
-Jon.
-
-
+Could you try "ip6tables -t raw -I PREROUTING -j TRACE" after loading
+the ip6t_LOG module? That way we can hopefully see the entire packet
+paths through netfilter.
