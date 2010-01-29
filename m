@@ -1,74 +1,39 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
+From: Jon Masters <jonathan@jonmasters.org>
 Subject: Re: PROBLEM: reproducible crash KVM+nf_conntrack all recent 2.6
  kernels
-Date: Fri, 29 Jan 2010 10:10:32 +0100
-Message-ID: <1264756232.3184.10.camel@edumazet-laptop>
+Date: Fri, 29 Jan 2010 05:57:35 -0500
+Message-ID: <1264762655.2793.409.camel@tonnant>
 References: <1264657559.2793.103.camel@tonnant>
 	 <1264658364.2793.105.camel@tonnant>  <4B6180D1.6050609@trash.net>
 	 <1264720891.2793.205.camel@tonnant>  <1264727492.2793.207.camel@tonnant>
 	 <1264754565.2793.405.camel@tonnant>
+	 <1264756232.3184.10.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Cc: Patrick McHardy <kaber@trash.net>,
 	linux-kernel <linux-kernel@vger.kernel.org>,
 	netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org
-To: Jon Masters <jonathan@jonmasters.org>
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-bw0-f227.google.com ([209.85.218.227]:41039 "EHLO
-	mail-bw0-f227.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752540Ab0A2JKh (ORCPT
+Received: from dallas.jonmasters.org ([72.29.103.172]:40237 "EHLO
+	dallas.jonmasters.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752172Ab0A2K5p (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 Jan 2010 04:10:37 -0500
-In-Reply-To: <1264754565.2793.405.camel@tonnant>
+	Fri, 29 Jan 2010 05:57:45 -0500
+In-Reply-To: <1264756232.3184.10.camel@edumazet-laptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le vendredi 29 janvier 2010 =C3=A0 03:42 -0500, Jon Masters a =C3=A9cri=
-t :
-> Hi,
->=20
-> So I did some poking (still trying to figure out netfilter a little
-> internally) and looked over the handling of connection tracking. The
-> oops reports I have been getting generally lie in __nf_conntrack_find=
-,
-> specifically within a hlist iterator that looks up the information fo=
-r
-> the current connection in a per-net namespace hashtable (under RCU, i=
-t's
-> been locked already by the time we get in here). Here's the piece:
->=20
->         hlist_nulls_for_each_entry_rcu(h, n, &net->ct.hash[hash],
-> hnnode) {
->                 if (nf_ct_tuple_equal(tuple, &h->tuple)) {
->                         NF_CT_STAT_INC(net, found);
->                         local_bh_enable();
->                         return h;
->                 }
->                 NF_CT_STAT_INC(net, searched);
->         }
->=20
-> Instrumenting the kernel at the moment and then setting up more of a
-> debugging environment to poke at what goes wrong here. Perhaps there'=
-s
-> some broken RCU assumption - I just spent the last few hours reading
-> over netfilter source and Paul's RCU docs again to brush up.
->=20
-> Perhaps you netdev folks can let me know if there's a handy netfilter
-> debugging guide somewhere.
->=20
-> Jon.
->=20
->=20
+On Fri, 2010-01-29 at 10:10 +0100, Eric Dumazet wrote:
 
-Jon, do you have multiple network namespace active on your machine, whe=
-n
-crash occurs ?
+> Jon, do you have multiple network namespace active on your machine, when
+> crash occurs ?
+
+I don't believe so. I just built in Jason's latest kgdb/kdb patches and
+am going to give them a whirl to see if I can get anything more out of
+this panic than I currently have.
+
+Jon.
 
 
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
