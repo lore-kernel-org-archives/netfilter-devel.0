@@ -1,48 +1,28 @@
 From: Jon Masters <jonathan@jonmasters.org>
-Subject: Re: debug: nt_conntrack and KVM crash
-Date: Fri, 29 Jan 2010 20:59:37 -0500
-Message-ID: <1264816777.2793.510.camel@tonnant>
-References: <1264813832.2793.446.camel@tonnant>
-	 <1264816634.2793.505.camel@tonnant>
+Subject: why is nf_conntrack_htable_size exported?
+Date: Fri, 29 Jan 2010 23:32:11 -0500
+Message-ID: <1264825931.7156.2.camel@tonnant>
 Mime-Version: 1.0
 Content-Type: text/plain
 Content-Transfer-Encoding: 7bit
-Cc: netdev <netdev@vger.kernel.org>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	Eric Dumazet <eric.dumazet@gmail.com>,
-	Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
 To: linux-kernel <linux-kernel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from dallas.jonmasters.org ([72.29.103.172]:54345 "EHLO
-	dallas.jonmasters.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754614Ab0A3B7q (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 29 Jan 2010 20:59:46 -0500
-In-Reply-To: <1264816634.2793.505.camel@tonnant>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751772Ab0A3EcW@vger.kernel.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 2010-01-29 at 20:57 -0500, Jon Masters wrote:
+Folks,
 
-> Ah so I should have realized before but I wasn't looking at valid values
-> for the range of the hashtable yet, nf_conntrack_htable_size is getting
-> wildly out of whack. It goes from:
-> 
-> (gdb) print nf_conntrack_hash_rnd
-> $1 = 2688505299
-> (gdb) print nf_conntrack_htable_size
-> $2 = 16384
-> 
-> nf_conntrack_events: 1
-> nf_conntrack_max: 65536
-> 
-> Shortly after booting, before being NULLed shortly after starting some
-> virtual machines (the hash isn't reset, whereas it is recomputed if the
-> hashtable is re-initialized after an intentional resizing operation):
+Can someone tell me why nf_conntrack_htable_size is both an exported
+symbol, and available in sysfs to be changed? Doing so will surely cause
+the system to fall over immediately since this is value is used within
+the hashing code in conntrack. It is /supposed/ to only be changed under
+a lock, or at init time when there is not a need to lock it.
 
-I mean the *seed* isn't changed, so I don't think it was resized
-intentionally. I wonder where else htable_size is fiddled with.
+Perhaps we can get this unexported asap and the value replaced with a
+function that returns the current value instead? Same goes for the
+module parameter that can freely be messed around with.
+
+Thanks,
 
 Jon.
-
-
