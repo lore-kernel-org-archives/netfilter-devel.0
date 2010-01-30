@@ -1,27 +1,66 @@
-From: Jon Masters <jonathan@jonmasters.org>
-Subject: Re: why is nf_conntrack_htable_size exported?
-Date: Fri, 29 Jan 2010 23:38:36 -0500
-Message-ID: <1264826316.7499.1.camel@tonnant>
-References: <1264825931.7156.2.camel@tonnant>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: debug: nt_conntrack and KVM crash
+Date: Sat, 30 Jan 2010 07:58:24 +0100
+Message-ID: <1264834704.2919.3.camel@edumazet-laptop>
+References: <1264813832.2793.446.camel@tonnant>
+	 <1264816634.2793.505.camel@tonnant>  <1264816777.2793.510.camel@tonnant>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: linux-kernel <linux-kernel@vger.kernel.org>
-Return-path: <linux-kernel-owner+glk-linux-kernel-3=40m.gmane.org-S1751874Ab0A3Eiq@vger.kernel.org>
-In-Reply-To: <1264825931.7156.2.camel@tonnant>
-Sender: linux-kernel-owner@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: linux-kernel <linux-kernel@vger.kernel.org>,
+	netdev <netdev@vger.kernel.org>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>,
+	Patrick McHardy <kaber@trash.net>
+To: Jon Masters <jonathan@jonmasters.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1264816777.2793.510.camel@tonnant>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, 2010-01-29 at 23:32 -0500, Jon Masters wrote:
+Le vendredi 29 janvier 2010 =C3=A0 20:59 -0500, Jon Masters a =C3=A9cri=
+t :
+> On Fri, 2010-01-29 at 20:57 -0500, Jon Masters wrote:
+>=20
+> > Ah so I should have realized before but I wasn't looking at valid v=
+alues
+> > for the range of the hashtable yet, nf_conntrack_htable_size is get=
+ting
+> > wildly out of whack. It goes from:
+> >=20
+> > (gdb) print nf_conntrack_hash_rnd
+> > $1 =3D 2688505299
+> > (gdb) print nf_conntrack_htable_size
+> > $2 =3D 16384
+> >=20
+> > nf_conntrack_events: 1
+> > nf_conntrack_max: 65536
+> >=20
+> > Shortly after booting, before being NULLed shortly after starting s=
+ome
+> > virtual machines (the hash isn't reset, whereas it is recomputed if=
+ the
+> > hashtable is re-initialized after an intentional resizing operation=
+):
+>=20
+> I mean the *seed* isn't changed, so I don't think it was resized
+> intentionally. I wonder where else htable_size is fiddled with.
+>=20
+> Jon.
+>=20
+>=20
 
-> Can someone tell me why nf_conntrack_htable_size is both an exported
-> symbol, and available in sysfs to be changed?
+This rings a bell here, since another crash analysis on another problem
+suggested to me a potential problem with read_mostly and modules, but I
+had no time to confirm the thing yet.
 
-Ah, ignore me, it does go through a function, it's just that if it's
-already zero we assume it's "init time", which isn't true if the value
-has otherwise been fiddled with - I think that assumption probably is
-worth looking at anyway, and it's worth the hashing functions looking to
-see if the value is NULL, to catch that aswell.
+Could you try changing
 
-Jon.
+
+net/netfilter/nf_conntrack_core.c:57:unsigned int nf_conntrack_htable_s=
+ize __read_mostly;
+to
+net/netfilter/nf_conntrack_core.c:57:unsigned int nf_conntrack_htable_s=
+ize ;
+
+
+
