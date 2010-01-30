@@ -1,9 +1,10 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
+From: Jon Masters <jonathan@jonmasters.org>
 Subject: Re: debug: nt_conntrack and KVM crash
-Date: Sat, 30 Jan 2010 07:58:24 +0100
-Message-ID: <1264834704.2919.3.camel@edumazet-laptop>
+Date: Sat, 30 Jan 2010 02:36:11 -0500
+Message-ID: <1264836971.7499.4.camel@tonnant>
 References: <1264813832.2793.446.camel@tonnant>
 	 <1264816634.2793.505.camel@tonnant>  <1264816777.2793.510.camel@tonnant>
+	 <1264834704.2919.3.camel@edumazet-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
@@ -11,56 +12,67 @@ Cc: linux-kernel <linux-kernel@vger.kernel.org>,
 	netdev <netdev@vger.kernel.org>,
 	netfilter-devel <netfilter-devel@vger.kernel.org>,
 	Patrick McHardy <kaber@trash.net>
-To: Jon Masters <jonathan@jonmasters.org>
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1264816777.2793.510.camel@tonnant>
+In-Reply-To: <1264834704.2919.3.camel@edumazet-laptop>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Le vendredi 29 janvier 2010 =C3=A0 20:59 -0500, Jon Masters a =C3=A9cri=
-t :
-> On Fri, 2010-01-29 at 20:57 -0500, Jon Masters wrote:
->=20
-> > Ah so I should have realized before but I wasn't looking at valid v=
-alues
-> > for the range of the hashtable yet, nf_conntrack_htable_size is get=
-ting
-> > wildly out of whack. It goes from:
+On Sat, 2010-01-30 at 07:58 +0100, Eric Dumazet wrote:
+> Le vendredi 29 janvier 2010 =C3=A0 20:59 -0500, Jon Masters a =C3=A9c=
+rit :
+> > On Fri, 2010-01-29 at 20:57 -0500, Jon Masters wrote:
 > >=20
-> > (gdb) print nf_conntrack_hash_rnd
-> > $1 =3D 2688505299
-> > (gdb) print nf_conntrack_htable_size
-> > $2 =3D 16384
+> > > Ah so I should have realized before but I wasn't looking at valid=
+ values
+> > > for the range of the hashtable yet, nf_conntrack_htable_size is g=
+etting
+> > > wildly out of whack. It goes from:
+> > >=20
+> > > (gdb) print nf_conntrack_hash_rnd
+> > > $1 =3D 2688505299
+> > > (gdb) print nf_conntrack_htable_size
+> > > $2 =3D 16384
+> > >=20
+> > > nf_conntrack_events: 1
+> > > nf_conntrack_max: 65536
+> > >=20
+> > > Shortly after booting, before being NULLed shortly after starting=
+ some
+> > > virtual machines (the hash isn't reset, whereas it is recomputed =
+if the
+> > > hashtable is re-initialized after an intentional resizing operati=
+on):
 > >=20
-> > nf_conntrack_events: 1
-> > nf_conntrack_max: 65536
-> >=20
-> > Shortly after booting, before being NULLed shortly after starting s=
-ome
-> > virtual machines (the hash isn't reset, whereas it is recomputed if=
- the
-> > hashtable is re-initialized after an intentional resizing operation=
-):
+> > I mean the *seed* isn't changed, so I don't think it was resized
+> > intentionally. I wonder where else htable_size is fiddled with.
+
+> This rings a bell here, since another crash analysis on another probl=
+em
+> suggested to me a potential problem with read_mostly and modules, but=
+ I
+> had no time to confirm the thing yet.
 >=20
-> I mean the *seed* isn't changed, so I don't think it was resized
-> intentionally. I wonder where else htable_size is fiddled with.
->=20
-> Jon.
+> Could you try changing
 >=20
 >=20
+> net/netfilter/nf_conntrack_core.c:57:unsigned int nf_conntrack_htable=
+_size __read_mostly;
+> to
+> net/netfilter/nf_conntrack_core.c:57:unsigned int nf_conntrack_htable=
+_size ;
 
-This rings a bell here, since another crash analysis on another problem
-suggested to me a potential problem with read_mostly and modules, but I
-had no time to confirm the thing yet.
+I'll play later. Right now, I'm looking over every iptables/ip call
+libvirt makes - it explicitly plays with the netns for the loopback,
+which looks interesting. Supposing it does cause the hashtables to get
+unintentionally zereod or the sizing to get wiped out, we should also
+nonetheless catch the case that the hash function generates a whacko
+number or that the hash size is set to zero when we want to use it.
 
-Could you try changing
+Amazing more people aren't talking about this, happens on several Fedor=
+a
+boxes that I know of, and I'm sure many more too using KVM+nf.
 
-
-net/netfilter/nf_conntrack_core.c:57:unsigned int nf_conntrack_htable_s=
-ize __read_mostly;
-to
-net/netfilter/nf_conntrack_core.c:57:unsigned int nf_conntrack_htable_s=
-ize ;
-
+Jon.
 
 
