@@ -1,52 +1,119 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH] netfilter: per netns nf_conntrack_cachep
-Date: Mon, 01 Feb 2010 16:02:28 +0100
-Message-ID: <1265036548.2848.55.camel@edumazet-laptop>
-References: <1264813832.2793.446.camel@tonnant>
-	 <1264816634.2793.505.camel@tonnant> <1264816777.2793.510.camel@tonnant>
-	 <1264834704.2919.3.camel@edumazet-laptop>
-	 <1265016745.7499.144.camel@tonnant>
-	 <b6fcc0a1002010136k7e78a998p31a9e7464c2e8d44@mail.gmail.com>
-	 <1265019160.2848.14.camel@edumazet-laptop>
-	 <b6fcc0a1002010225u4e74f9f0q633d73038234dc37@mail.gmail.com>
-	 <1265023437.2848.30.camel@edumazet-laptop>
-	 <1265035970.2848.50.camel@edumazet-laptop>
-	 <b6fcc0a1002010658j4f52a9b8kf10e4bb07a2f1075@mail.gmail.com>
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: [PATCH] netfilter: CONFIG_COMPAT redux
+Date: Mon, 1 Feb 2010 21:43:00 +0200
+Message-ID: <20100201194259.GA21315@x200>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>,
-	Jon Masters <jonathan@jonmasters.org>,
-	linux-kernel <linux-kernel@vger.kernel.org>,
-	netdev <netdev@vger.kernel.org>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-To: Alexey Dobriyan <adobriyan@gmail.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <b6fcc0a1002010658j4f52a9b8kf10e4bb07a2f1075@mail.gmail.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-fx0-f220.google.com ([209.85.220.220]:46516 "EHLO
+	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754697Ab0BATnG (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 1 Feb 2010 14:43:06 -0500
+Received: by mail-fx0-f220.google.com with SMTP id 20so4637957fxm.21
+        for <netfilter-devel@vger.kernel.org>; Mon, 01 Feb 2010 11:43:05 -0800 (PST)
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Le lundi 01 f=C3=A9vrier 2010 =C3=A0 16:58 +0200, Alexey Dobriyan a =C3=
-=A9crit :
-> On Mon, Feb 1, 2010 at 4:52 PM, Eric Dumazet <eric.dumazet@gmail.com>=
- wrote:
-> > +       net->ct.nf_conntrack_cachep =3D kmem_cache_create("nf_connt=
-rack",
-> > +                                                       sizeof(stru=
-ct nf_conn), 0,
-> > +                                                       SLAB_DESTRO=
-Y_BY_RCU, NULL);
->=20
-> Duplicate slab name detected.
->=20
+Ifdef out
+	struct nf_sockopt_ops::compat_set
+	struct nf_sockopt_ops::compat_get
+	struct xt_match::compat_from_user
+	struct xt_match::compat_to_user
+	struct xt_match::compatsize
+to make structures smaller on COMPAT=n kernels.
 
-OK, need to build an unique name I guess... "nf_conntrack-%d", net->id
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+---
 
-> Can we clarify this?
->=20
-> Is checking for ct->ct_net enough to avoid the bug
-> while maintaining per-netns/global status quo?
+ include/linux/netfilter.h          |    9 ++++++---
+ include/linux/netfilter/x_tables.h |   12 ++++++++----
+ 2 files changed, 14 insertions(+), 7 deletions(-)
 
-No, I am afraid its not possible without adding big overhead in
-fastpath.
+--- a/include/linux/netfilter.h
++++ b/include/linux/netfilter.h
+@@ -114,15 +114,17 @@ struct nf_sockopt_ops {
+ 	int set_optmin;
+ 	int set_optmax;
+ 	int (*set)(struct sock *sk, int optval, void __user *user, unsigned int len);
++#ifdef CONFIG_COMPAT
+ 	int (*compat_set)(struct sock *sk, int optval,
+ 			void __user *user, unsigned int len);
+-
++#endif
+ 	int get_optmin;
+ 	int get_optmax;
+ 	int (*get)(struct sock *sk, int optval, void __user *user, int *len);
++#ifdef CONFIG_COMPAT
+ 	int (*compat_get)(struct sock *sk, int optval,
+ 			void __user *user, int *len);
+-
++#endif
+ 	/* Use the module struct to lock set/get code in place */
+ 	struct module *owner;
+ };
+@@ -222,11 +224,12 @@ int nf_setsockopt(struct sock *sk, u_int8_t pf, int optval, char __user *opt,
+ 		  unsigned int len);
+ int nf_getsockopt(struct sock *sk, u_int8_t pf, int optval, char __user *opt,
+ 		  int *len);
+-
++#ifdef CONFIG_COMPAT
+ int compat_nf_setsockopt(struct sock *sk, u_int8_t pf, int optval,
+ 		char __user *opt, unsigned int len);
+ int compat_nf_getsockopt(struct sock *sk, u_int8_t pf, int optval,
+ 		char __user *opt, int *len);
++#endif
+ 
+ /* Call this before modifying an existing packet: ensures it is
+    modifiable and linear to the point you care about (writable_len).
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -283,11 +283,11 @@ struct xt_match {
+ 
+ 	/* Called when entry of this type deleted. */
+ 	void (*destroy)(const struct xt_mtdtor_param *);
+-
++#ifdef CONFIG_COMPAT
+ 	/* Called when userspace align differs from kernel space one */
+ 	void (*compat_from_user)(void *dst, void *src);
+ 	int (*compat_to_user)(void __user *dst, void *src);
+-
++#endif
+ 	/* Set this to THIS_MODULE if you are a module, otherwise NULL */
+ 	struct module *me;
+ 
+@@ -296,7 +296,9 @@ struct xt_match {
+ 
+ 	const char *table;
+ 	unsigned int matchsize;
++#ifdef CONFIG_COMPAT
+ 	unsigned int compatsize;
++#endif
+ 	unsigned int hooks;
+ 	unsigned short proto;
+ 
+@@ -323,17 +325,19 @@ struct xt_target {
+ 
+ 	/* Called when entry of this type deleted. */
+ 	void (*destroy)(const struct xt_tgdtor_param *);
+-
++#ifdef CONFIG_COMPAT
+ 	/* Called when userspace align differs from kernel space one */
+ 	void (*compat_from_user)(void *dst, void *src);
+ 	int (*compat_to_user)(void __user *dst, void *src);
+-
++#endif
+ 	/* Set this to THIS_MODULE if you are a module, otherwise NULL */
+ 	struct module *me;
+ 
+ 	const char *table;
+ 	unsigned int targetsize;
++#ifdef CONFIG_COMPAT
+ 	unsigned int compatsize;
++#endif
+ 	unsigned int hooks;
+ 	unsigned short proto;
+ 
