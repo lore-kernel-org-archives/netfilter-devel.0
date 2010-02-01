@@ -1,32 +1,56 @@
-From: Alexey Dobriyan <adobriyan@gmail.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
 Subject: Re: debug: nt_conntrack and KVM crash
-Date: Mon, 1 Feb 2010 11:36:42 +0200
-Message-ID: <b6fcc0a1002010136k7e78a998p31a9e7464c2e8d44@mail.gmail.com>
+Date: Mon, 01 Feb 2010 11:12:40 +0100
+Message-ID: <1265019160.2848.14.camel@edumazet-laptop>
 References: <1264813832.2793.446.camel@tonnant>
-	 <1264816634.2793.505.camel@tonnant>
-	 <1264816777.2793.510.camel@tonnant>
+	 <1264816634.2793.505.camel@tonnant> <1264816777.2793.510.camel@tonnant>
 	 <1264834704.2919.3.camel@edumazet-laptop>
 	 <1265016745.7499.144.camel@tonnant>
+	 <b6fcc0a1002010136k7e78a998p31a9e7464c2e8d44@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Jon Masters <jonathan@jonmasters.org>,
 	linux-kernel <linux-kernel@vger.kernel.org>,
 	netdev <netdev@vger.kernel.org>,
 	netfilter-devel <netfilter-devel@vger.kernel.org>,
 	Patrick McHardy <kaber@trash.net>
-To: Jon Masters <jonathan@jonmasters.org>
+To: Alexey Dobriyan <adobriyan@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-iw0-f173.google.com ([209.85.223.173]:61323 "EHLO
-	mail-iw0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751011Ab0BAJgn (ORCPT
+Received: from mail-bw0-f219.google.com ([209.85.218.219]:41044 "EHLO
+	mail-bw0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750910Ab0BAKMq (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 1 Feb 2010 04:36:43 -0500
-In-Reply-To: <1265016745.7499.144.camel@tonnant>
+	Mon, 1 Feb 2010 05:12:46 -0500
+In-Reply-To: <b6fcc0a1002010136k7e78a998p31a9e7464c2e8d44@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Feb 1, 2010 at 11:32 AM, Jon Masters <jonathan@jonmasters.org> wrote:
-> I hacked up a per-namespace version of hashtables (this needs doing
-> anyway, since the global stuff is just waiting to break)
+Le lundi 01 f=C3=A9vrier 2010 =C3=A0 11:36 +0200, Alexey Dobriyan a =C3=
+=A9crit :
+> On Mon, Feb 1, 2010 at 11:32 AM, Jon Masters <jonathan@jonmasters.org=
+> wrote:
+> > I hacked up a per-namespace version of hashtables (this needs doing
+> > anyway, since the global stuff is just waiting to break)
+>=20
+> Which ones? Conntrack hashtables are per-netns.
 
-Which ones? Conntrack hashtables are per-netns.
+It seems they are, but this is not a complete work :
+
+1) Global settings (shared by all netns)
+2) nf_conntrack_cachep is shared, it should be not shared.
+3) nf_conntrack_untracked shared by all netns, it should be local.
+
+nf_conntrack_cleanup_net() can block forever because of this.
+
+while (atomic_read(&nf_conntrack_untracked.ct_general.use) > 1)
+	schedule();
+
+=2E..
+
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
