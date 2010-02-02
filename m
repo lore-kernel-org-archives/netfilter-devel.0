@@ -1,171 +1,151 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 02/06: nf_conntrack: split up IPCT_STATUS event
-Date: Tue,  2 Feb 2010 17:52:56 +0100 (MET)
-Message-ID: <20100202165256.25160.33608.sendpatchset@x2.localnet>
+Subject: netfilter 04/06: ctnetlink: only assign helpers for matching protocols
+Date: Tue,  2 Feb 2010 17:52:59 +0100 (MET)
+Message-ID: <20100202165258.25160.58213.sendpatchset@x2.localnet>
 References: <20100202165253.25160.18314.sendpatchset@x2.localnet>
 Cc: Patrick McHardy <kaber@trash.net>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:33889 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:33893 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754301Ab0BBQw6 (ORCPT
+	with ESMTP id S1753572Ab0BBQxA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Feb 2010 11:52:58 -0500
+	Tue, 2 Feb 2010 11:53:00 -0500
 In-Reply-To: <20100202165253.25160.18314.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 8d7aeb2c974994fe106c0c072063de6667ecbc34
+commit 331b603738531949ab227d0671e204080231166c
 Author: Patrick McHardy <kaber@trash.net>
-Date:   Tue Feb 2 17:17:16 2010 +0100
+Date:   Tue Feb 2 17:17:17 2010 +0100
 
-    netfilter: nf_conntrack: split up IPCT_STATUS event
+    netfilter: ctnetlink: only assign helpers for matching protocols
     
-    Split up the IPCT_STATUS event into an IPCT_REPLY event, which is generated
-    when the IPS_SEEN_REPLY bit is set, and an IPCT_ASSURED event, which is
-    generated when the IPS_ASSURED bit is set.
+    Make sure not to assign a helper for a different network or transport
+    layer protocol to a connection.
     
-    In combination with a following patch to support selective event delivery,
-    this can be used for "sparse" conntrack replication: start replicating the
-    conntrack entry after it reached the ASSURED state and that way it's SYN-flood
-    resistant.
+    Additionally change expectation deletion by helper to compare the name
+    directly - there might be multiple helper registrations using the same
+    name, currently one of them is chosen in an unpredictable manner and
+    only those expectations are removed.
     
     Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-diff --git a/include/net/netfilter/nf_conntrack_ecache.h b/include/net/netfilter/nf_conntrack_ecache.h
-index 475facc..5e05fb8 100644
---- a/include/net/netfilter/nf_conntrack_ecache.h
-+++ b/include/net/netfilter/nf_conntrack_ecache.h
-@@ -14,19 +14,20 @@
- 
- /* Connection tracking event types */
- enum ip_conntrack_events {
--	IPCT_NEW		= 0,	/* new conntrack */
--	IPCT_RELATED		= 1,	/* related conntrack */
--	IPCT_DESTROY		= 2,	/* destroyed conntrack */
--	IPCT_STATUS		= 3,	/* status has changed */
--	IPCT_PROTOINFO		= 4,	/* protocol information has changed */
--	IPCT_HELPER		= 5,	/* new helper has been set */
--	IPCT_MARK		= 6,	/* new mark has been set */
--	IPCT_NATSEQADJ		= 7,	/* NAT is doing sequence adjustment */
--	IPCT_SECMARK		= 8,	/* new security mark has been set */
-+	IPCT_NEW,		/* new conntrack */
-+	IPCT_RELATED,		/* related conntrack */
-+	IPCT_DESTROY,		/* destroyed conntrack */
-+	IPCT_REPLY,		/* connection has seen two-way traffic */
-+	IPCT_ASSURED,		/* connection status has changed to assured */
-+	IPCT_PROTOINFO,		/* protocol information has changed */
-+	IPCT_HELPER,		/* new helper has been set */
-+	IPCT_MARK,		/* new mark has been set */
-+	IPCT_NATSEQADJ,		/* NAT is doing sequence adjustment */
-+	IPCT_SECMARK,		/* new security mark has been set */
+diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
+index d015de9..86be7c4 100644
+--- a/include/net/netfilter/nf_conntrack_helper.h
++++ b/include/net/netfilter/nf_conntrack_helper.h
+@@ -40,7 +40,7 @@ struct nf_conntrack_helper {
  };
  
- enum ip_conntrack_expect_events {
--	IPEXP_NEW		= 0,	/* new expectation */
-+	IPEXP_NEW,		/* new expectation */
- };
+ extern struct nf_conntrack_helper *
+-__nf_conntrack_helper_find_byname(const char *name);
++__nf_conntrack_helper_find(const char *name, u16 l3num, u8 protonum);
  
- struct nf_conntrack_ecache {
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 0e98c32..091ff77 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -825,7 +825,7 @@ nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
- 	}
- 
- 	if (set_reply && !test_and_set_bit(IPS_SEEN_REPLY_BIT, &ct->status))
--		nf_conntrack_event_cache(IPCT_STATUS, ct);
-+		nf_conntrack_event_cache(IPCT_REPLY, ct);
- 
- 	return ret;
+ extern int nf_conntrack_helper_register(struct nf_conntrack_helper *);
+ extern void nf_conntrack_helper_unregister(struct nf_conntrack_helper *);
+diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
+index 65c2a7b..c0e461f 100644
+--- a/net/netfilter/nf_conntrack_helper.c
++++ b/net/netfilter/nf_conntrack_helper.c
+@@ -65,7 +65,7 @@ __nf_ct_helper_find(const struct nf_conntrack_tuple *tuple)
  }
+ 
+ struct nf_conntrack_helper *
+-__nf_conntrack_helper_find_byname(const char *name)
++__nf_conntrack_helper_find(const char *name, u16 l3num, u8 protonum)
+ {
+ 	struct nf_conntrack_helper *h;
+ 	struct hlist_node *n;
+@@ -73,13 +73,15 @@ __nf_conntrack_helper_find_byname(const char *name)
+ 
+ 	for (i = 0; i < nf_ct_helper_hsize; i++) {
+ 		hlist_for_each_entry_rcu(h, n, &nf_ct_helper_hash[i], hnode) {
+-			if (!strcmp(h->name, name))
++			if (!strcmp(h->name, name) &&
++			    h->tuple.src.l3num == l3num &&
++			    h->tuple.dst.protonum == protonum)
+ 				return h;
+ 		}
+ 	}
+ 	return NULL;
+ }
+-EXPORT_SYMBOL_GPL(__nf_conntrack_helper_find_byname);
++EXPORT_SYMBOL_GPL(__nf_conntrack_helper_find);
+ 
+ struct nf_conn_help *nf_ct_helper_ext_add(struct nf_conn *ct, gfp_t gfp)
+ {
 diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 79478df..73ff79b 100644
+index 20e49ab..f5c0b09 100644
 --- a/net/netfilter/nf_conntrack_netlink.c
 +++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1366,7 +1366,8 @@ ctnetlink_new_conntrack(struct sock *ctnl, struct sk_buff *skb,
- 			else
- 				events = IPCT_NEW;
- 
--			nf_conntrack_eventmask_report((1 << IPCT_STATUS) |
-+			nf_conntrack_eventmask_report((1 << IPCT_REPLY) |
-+						      (1 << IPCT_ASSURED) |
- 						      (1 << IPCT_HELPER) |
- 						      (1 << IPCT_PROTOINFO) |
- 						      (1 << IPCT_NATSEQADJ) |
-@@ -1391,7 +1392,8 @@ ctnetlink_new_conntrack(struct sock *ctnl, struct sk_buff *skb,
- 		if (err == 0) {
- 			nf_conntrack_get(&ct->ct_general);
- 			spin_unlock_bh(&nf_conntrack_lock);
--			nf_conntrack_eventmask_report((1 << IPCT_STATUS) |
-+			nf_conntrack_eventmask_report((1 << IPCT_REPLY) |
-+						      (1 << IPCT_ASSURED) |
- 						      (1 << IPCT_HELPER) |
- 						      (1 << IPCT_PROTOINFO) |
- 						      (1 << IPCT_NATSEQADJ) |
-diff --git a/net/netfilter/nf_conntrack_proto_gre.c b/net/netfilter/nf_conntrack_proto_gre.c
-index c99cfba..d899b1a 100644
---- a/net/netfilter/nf_conntrack_proto_gre.c
-+++ b/net/netfilter/nf_conntrack_proto_gre.c
-@@ -241,7 +241,7 @@ static int gre_packet(struct nf_conn *ct,
- 				   ct->proto.gre.stream_timeout);
- 		/* Also, more likely to be important, and not a probe. */
- 		set_bit(IPS_ASSURED_BIT, &ct->status);
--		nf_conntrack_event_cache(IPCT_STATUS, ct);
-+		nf_conntrack_event_cache(IPCT_ASSURED, ct);
- 	} else
- 		nf_ct_refresh_acct(ct, ctinfo, skb,
- 				   ct->proto.gre.timeout);
-diff --git a/net/netfilter/nf_conntrack_proto_sctp.c b/net/netfilter/nf_conntrack_proto_sctp.c
-index f9d930f..b68ff15 100644
---- a/net/netfilter/nf_conntrack_proto_sctp.c
-+++ b/net/netfilter/nf_conntrack_proto_sctp.c
-@@ -377,7 +377,7 @@ static int sctp_packet(struct nf_conn *ct,
- 	    new_state == SCTP_CONNTRACK_ESTABLISHED) {
- 		pr_debug("Setting assured bit\n");
- 		set_bit(IPS_ASSURED_BIT, &ct->status);
--		nf_conntrack_event_cache(IPCT_STATUS, ct);
-+		nf_conntrack_event_cache(IPCT_ASSURED, ct);
+@@ -1001,7 +1001,8 @@ ctnetlink_change_helper(struct nf_conn *ct, const struct nlattr * const cda[])
+ 		return 0;
  	}
  
- 	return NF_ACCEPT;
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 3c96437..ad11805 100644
---- a/net/netfilter/nf_conntrack_proto_tcp.c
-+++ b/net/netfilter/nf_conntrack_proto_tcp.c
-@@ -1045,7 +1045,7 @@ static int tcp_packet(struct nf_conn *ct,
- 		   after SYN_RECV or a valid answer for a picked up
- 		   connection. */
- 		set_bit(IPS_ASSURED_BIT, &ct->status);
--		nf_conntrack_event_cache(IPCT_STATUS, ct);
-+		nf_conntrack_event_cache(IPCT_ASSURED, ct);
- 	}
- 	nf_ct_refresh_acct(ct, ctinfo, skb, timeout);
+-	helper = __nf_conntrack_helper_find_byname(helpname);
++	helper = __nf_conntrack_helper_find(helpname, nf_ct_l3num(ct),
++					    nf_ct_protonum(ct));
+ 	if (helper == NULL) {
+ #ifdef CONFIG_MODULES
+ 		spin_unlock_bh(&nf_conntrack_lock);
+@@ -1012,7 +1013,8 @@ ctnetlink_change_helper(struct nf_conn *ct, const struct nlattr * const cda[])
+ 		}
  
-diff --git a/net/netfilter/nf_conntrack_proto_udp.c b/net/netfilter/nf_conntrack_proto_udp.c
-index 5c5518b..8d38f9a 100644
---- a/net/netfilter/nf_conntrack_proto_udp.c
-+++ b/net/netfilter/nf_conntrack_proto_udp.c
-@@ -77,7 +77,7 @@ static int udp_packet(struct nf_conn *ct,
- 		nf_ct_refresh_acct(ct, ctinfo, skb, nf_ct_udp_timeout_stream);
- 		/* Also, more likely to be important, and not a probe */
- 		if (!test_and_set_bit(IPS_ASSURED_BIT, &ct->status))
--			nf_conntrack_event_cache(IPCT_STATUS, ct);
-+			nf_conntrack_event_cache(IPCT_ASSURED, ct);
- 	} else
- 		nf_ct_refresh_acct(ct, ctinfo, skb, nf_ct_udp_timeout);
+ 		spin_lock_bh(&nf_conntrack_lock);
+-		helper = __nf_conntrack_helper_find_byname(helpname);
++		helper = __nf_conntrack_helper_find(helpname, nf_ct_l3num(ct),
++						    nf_ct_protonum(ct));
+ 		if (helper)
+ 			return -EAGAIN;
+ #endif
+@@ -1211,7 +1213,8 @@ ctnetlink_create_conntrack(struct net *net,
+  		if (err < 0)
+ 			goto err2;
  
-diff --git a/net/netfilter/nf_conntrack_proto_udplite.c b/net/netfilter/nf_conntrack_proto_udplite.c
-index 458655b..0b1bc9b 100644
---- a/net/netfilter/nf_conntrack_proto_udplite.c
-+++ b/net/netfilter/nf_conntrack_proto_udplite.c
-@@ -75,7 +75,7 @@ static int udplite_packet(struct nf_conn *ct,
- 				   nf_ct_udplite_timeout_stream);
- 		/* Also, more likely to be important, and not a probe */
- 		if (!test_and_set_bit(IPS_ASSURED_BIT, &ct->status))
--			nf_conntrack_event_cache(IPCT_STATUS, ct);
-+			nf_conntrack_event_cache(IPCT_ASSURED, ct);
- 	} else
- 		nf_ct_refresh_acct(ct, ctinfo, skb, nf_ct_udplite_timeout);
+-		helper = __nf_conntrack_helper_find_byname(helpname);
++		helper = __nf_conntrack_helper_find(helpname, nf_ct_l3num(ct),
++						    nf_ct_protonum(ct));
+ 		if (helper == NULL) {
+ 			rcu_read_unlock();
+ #ifdef CONFIG_MODULES
+@@ -1221,7 +1224,9 @@ ctnetlink_create_conntrack(struct net *net,
+ 			}
  
+ 			rcu_read_lock();
+-			helper = __nf_conntrack_helper_find_byname(helpname);
++			helper = __nf_conntrack_helper_find(helpname,
++							    nf_ct_l3num(ct),
++							    nf_ct_protonum(ct));
+ 			if (helper) {
+ 				err = -EAGAIN;
+ 				goto err2;
+@@ -1716,7 +1721,6 @@ ctnetlink_del_expect(struct sock *ctnl, struct sk_buff *skb,
+ 	struct net *net = sock_net(ctnl);
+ 	struct nf_conntrack_expect *exp;
+ 	struct nf_conntrack_tuple tuple;
+-	struct nf_conntrack_helper *h;
+ 	struct nfgenmsg *nfmsg = nlmsg_data(nlh);
+ 	struct hlist_node *n, *next;
+ 	u_int8_t u3 = nfmsg->nfgen_family;
+@@ -1753,18 +1757,13 @@ ctnetlink_del_expect(struct sock *ctnl, struct sk_buff *skb,
+ 
+ 		/* delete all expectations for this helper */
+ 		spin_lock_bh(&nf_conntrack_lock);
+-		h = __nf_conntrack_helper_find_byname(name);
+-		if (!h) {
+-			spin_unlock_bh(&nf_conntrack_lock);
+-			return -EOPNOTSUPP;
+-		}
+ 		for (i = 0; i < nf_ct_expect_hsize; i++) {
+ 			hlist_for_each_entry_safe(exp, n, next,
+ 						  &net->ct.expect_hash[i],
+ 						  hnode) {
+ 				m_help = nfct_help(exp->master);
+-				if (m_help->helper == h
+-				    && del_timer(&exp->timeout)) {
++				if (!strcmp(m_help->helper->name, name) &&
++				    del_timer(&exp->timeout)) {
+ 					nf_ct_unlink_expect(exp);
+ 					nf_ct_expect_put(exp);
+ 				}
