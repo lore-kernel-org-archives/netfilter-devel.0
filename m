@@ -1,260 +1,85 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 05/06: nf_conntrack: support conntrack templates
-Date: Tue,  2 Feb 2010 17:53:00 +0100 (MET)
-Message-ID: <20100202165300.25160.11194.sendpatchset@x2.localnet>
-References: <20100202165253.25160.18314.sendpatchset@x2.localnet>
-Cc: Patrick McHardy <kaber@trash.net>
-To: netfilter-devel@vger.kernel.org
+From: Jon Masters <jonathan@jonmasters.org>
+Subject: PROBLEM with summary: Re: [PATCH] netfilter: per netns
+ nf_conntrack_cachep
+Date: Tue, 02 Feb 2010 11:58:23 -0500
+Message-ID: <1265129903.2861.150.camel@tonnant>
+References: <1264813832.2793.446.camel@tonnant>
+	 <1264816634.2793.505.camel@tonnant> <1264816777.2793.510.camel@tonnant>
+	 <1264834704.2919.3.camel@edumazet-laptop>
+	 <1265016745.7499.144.camel@tonnant>
+	 <b6fcc0a1002010136k7e78a998p31a9e7464c2e8d44@mail.gmail.com>
+	 <1265019160.2848.14.camel@edumazet-laptop>
+	 <b6fcc0a1002010225u4e74f9f0q633d73038234dc37@mail.gmail.com>
+	 <1265023437.2848.30.camel@edumazet-laptop>
+	 <1265035970.2848.50.camel@edumazet-laptop>
+	 <b6fcc0a1002010658j4f52a9b8kf10e4bb07a2f1075@mail.gmail.com>
+	 <1265036548.2848.55.camel@edumazet-laptop>
+	 <1265108690.2861.118.camel@tonnant>  <1265110504.2861.135.camel@tonnant>
+	 <1265129192.2861.141.camel@tonnant>
+Mime-Version: 1.0
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Alexey Dobriyan <adobriyan@gmail.com>,
+	Patrick McHardy <kaber@trash.net>,
+	linux-kernel <linux-kernel@vger.kernel.org>,
+	netdev <netdev@vger.kernel.org>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:33897 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756295Ab0BBQxB (ORCPT
+Received: from dallas.jonmasters.org ([72.29.103.172]:43681 "EHLO
+	dallas.jonmasters.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756664Ab0BBQ6m (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Feb 2010 11:53:01 -0500
-In-Reply-To: <20100202165253.25160.18314.sendpatchset@x2.localnet>
+	Tue, 2 Feb 2010 11:58:42 -0500
+In-Reply-To: <1265129192.2861.141.camel@tonnant>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 294e5293455427625020f101c366f0624322ccfa
-Author: Patrick McHardy <kaber@trash.net>
-Date:   Tue Feb 2 17:17:18 2010 +0100
+On Tue, 2010-02-02 at 11:46 -0500, Jon Masters wrote:
+> On Tue, 2010-02-02 at 06:35 -0500, Jon Masters wrote:
+> 
+> > I think there's something more fundamental going on here.
+> 
+> What happens is the conntrack code attempts to free
+> nf_conntrack_untracked back into the SL[U]B cache from which it
+> allocates other ct's. There's just one problem...that's a static struct
+> not from the cache. So, this is why we end up with the SLAB being
+> corrupted and the address immediately following the
+> nf_conntrack_untracked being corrupted.
+> 
+> I shoved some debug comments into the destroy code to see if we were
+> trying to free nf_conntrack_untracked, and bingo. I have shoved a panic
+> in there now, will send you a backtrace.
 
-    netfilter: nf_conntrack: support conntrack templates
-    
-    Support initializing selected parameters of new conntrack entries from a
-    "conntrack template", which is a specially marked conntrack entry attached
-    to the skb.
-    
-    Currently the helper and the event delivery masks can be initialized this
-    way.
-    
-    Signed-off-by: Patrick McHardy <kaber@trash.net>
+So we attach after starting a VM due to icmpv6_error setting the ct in
+some incoming skb to the "untracked" catchall one. Then we panic when I
+force a panic if attempting to free the nf_conntrack_untracked static
+struct with this backtrace:
 
-diff --git a/include/linux/netfilter/nf_conntrack_common.h b/include/linux/netfilter/nf_conntrack_common.h
-index ebfed90..c608677 100644
---- a/include/linux/netfilter/nf_conntrack_common.h
-+++ b/include/linux/netfilter/nf_conntrack_common.h
-@@ -72,6 +72,10 @@ enum ip_conntrack_status {
- 	/* Connection has fixed timeout. */
- 	IPS_FIXED_TIMEOUT_BIT = 10,
- 	IPS_FIXED_TIMEOUT = (1 << IPS_FIXED_TIMEOUT_BIT),
-+
-+	/* Conntrack is a template */
-+	IPS_TEMPLATE_BIT = 11,
-+	IPS_TEMPLATE = (1 << IPS_TEMPLATE_BIT),
- };
- 
- /* Connection tracking event types */
-diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
-index 86be7c4..e17aaa3 100644
---- a/include/net/netfilter/nf_conntrack_helper.h
-+++ b/include/net/netfilter/nf_conntrack_helper.h
-@@ -47,7 +47,8 @@ extern void nf_conntrack_helper_unregister(struct nf_conntrack_helper *);
- 
- extern struct nf_conn_help *nf_ct_helper_ext_add(struct nf_conn *ct, gfp_t gfp);
- 
--extern int __nf_ct_try_assign_helper(struct nf_conn *ct, gfp_t flags);
-+extern int __nf_ct_try_assign_helper(struct nf_conn *ct, struct nf_conn *tmpl,
-+				     gfp_t flags);
- 
- extern void nf_ct_helper_destroy(struct nf_conn *ct);
- 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 53b8da6..19c95ff 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -618,7 +618,7 @@ EXPORT_SYMBOL_GPL(nf_conntrack_free);
- /* Allocate a new conntrack: we return -ENOMEM if classification
-    failed due to stress.  Otherwise it really is unclassifiable. */
- static struct nf_conntrack_tuple_hash *
--init_conntrack(struct net *net,
-+init_conntrack(struct net *net, struct nf_conn *tmpl,
- 	       const struct nf_conntrack_tuple *tuple,
- 	       struct nf_conntrack_l3proto *l3proto,
- 	       struct nf_conntrack_l4proto *l4proto,
-@@ -628,6 +628,7 @@ init_conntrack(struct net *net,
- 	struct nf_conn *ct;
- 	struct nf_conn_help *help;
- 	struct nf_conntrack_tuple repl_tuple;
-+	struct nf_conntrack_ecache *ecache;
- 	struct nf_conntrack_expect *exp;
- 
- 	if (!nf_ct_invert_tuple(&repl_tuple, tuple, l3proto, l4proto)) {
-@@ -648,7 +649,11 @@ init_conntrack(struct net *net,
- 	}
- 
- 	nf_ct_acct_ext_add(ct, GFP_ATOMIC);
--	nf_ct_ecache_ext_add(ct, 0, 0, GFP_ATOMIC);
-+
-+	ecache = tmpl ? nf_ct_ecache_find(tmpl) : NULL;
-+	nf_ct_ecache_ext_add(ct, ecache ? ecache->ctmask : 0,
-+				 ecache ? ecache->expmask : 0,
-+			     GFP_ATOMIC);
- 
- 	spin_lock_bh(&nf_conntrack_lock);
- 	exp = nf_ct_find_expectation(net, tuple);
-@@ -673,7 +678,7 @@ init_conntrack(struct net *net,
- 		nf_conntrack_get(&ct->master->ct_general);
- 		NF_CT_STAT_INC(net, expect_new);
- 	} else {
--		__nf_ct_try_assign_helper(ct, GFP_ATOMIC);
-+		__nf_ct_try_assign_helper(ct, tmpl, GFP_ATOMIC);
- 		NF_CT_STAT_INC(net, new);
- 	}
- 
-@@ -694,7 +699,7 @@ init_conntrack(struct net *net,
- 
- /* On success, returns conntrack ptr, sets skb->nfct and ctinfo */
- static inline struct nf_conn *
--resolve_normal_ct(struct net *net,
-+resolve_normal_ct(struct net *net, struct nf_conn *tmpl,
- 		  struct sk_buff *skb,
- 		  unsigned int dataoff,
- 		  u_int16_t l3num,
-@@ -718,7 +723,8 @@ resolve_normal_ct(struct net *net,
- 	/* look for tuple match */
- 	h = nf_conntrack_find_get(net, &tuple);
- 	if (!h) {
--		h = init_conntrack(net, &tuple, l3proto, l4proto, skb, dataoff);
-+		h = init_conntrack(net, tmpl, &tuple, l3proto, l4proto,
-+				   skb, dataoff);
- 		if (!h)
- 			return NULL;
- 		if (IS_ERR(h))
-@@ -755,7 +761,7 @@ unsigned int
- nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
- 		struct sk_buff *skb)
- {
--	struct nf_conn *ct;
-+	struct nf_conn *ct, *tmpl = NULL;
- 	enum ip_conntrack_info ctinfo;
- 	struct nf_conntrack_l3proto *l3proto;
- 	struct nf_conntrack_l4proto *l4proto;
-@@ -764,10 +770,14 @@ nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
- 	int set_reply = 0;
- 	int ret;
- 
--	/* Previously seen (loopback or untracked)?  Ignore. */
- 	if (skb->nfct) {
--		NF_CT_STAT_INC_ATOMIC(net, ignore);
--		return NF_ACCEPT;
-+		/* Previously seen (loopback or untracked)?  Ignore. */
-+		tmpl = (struct nf_conn *)skb->nfct;
-+		if (!test_bit(IPS_TEMPLATE_BIT, &tmpl->status)) {
-+			NF_CT_STAT_INC_ATOMIC(net, ignore);
-+			return NF_ACCEPT;
-+		}
-+		skb->nfct = NULL;
- 	}
- 
- 	/* rcu_read_lock()ed by nf_hook_slow */
-@@ -778,7 +788,8 @@ nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
- 		pr_debug("not prepared to track yet or error occured\n");
- 		NF_CT_STAT_INC_ATOMIC(net, error);
- 		NF_CT_STAT_INC_ATOMIC(net, invalid);
--		return -ret;
-+		ret = -ret;
-+		goto out;
- 	}
- 
- 	l4proto = __nf_ct_l4proto_find(pf, protonum);
-@@ -791,22 +802,25 @@ nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
- 		if (ret <= 0) {
- 			NF_CT_STAT_INC_ATOMIC(net, error);
- 			NF_CT_STAT_INC_ATOMIC(net, invalid);
--			return -ret;
-+			ret = -ret;
-+			goto out;
- 		}
- 	}
- 
--	ct = resolve_normal_ct(net, skb, dataoff, pf, protonum,
-+	ct = resolve_normal_ct(net, tmpl, skb, dataoff, pf, protonum,
- 			       l3proto, l4proto, &set_reply, &ctinfo);
- 	if (!ct) {
- 		/* Not valid part of a connection */
- 		NF_CT_STAT_INC_ATOMIC(net, invalid);
--		return NF_ACCEPT;
-+		ret = NF_ACCEPT;
-+		goto out;
- 	}
- 
- 	if (IS_ERR(ct)) {
- 		/* Too stressed to deal. */
- 		NF_CT_STAT_INC_ATOMIC(net, drop);
--		return NF_DROP;
-+		ret = NF_DROP;
-+		goto out;
- 	}
- 
- 	NF_CT_ASSERT(skb->nfct);
-@@ -821,11 +835,15 @@ nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
- 		NF_CT_STAT_INC_ATOMIC(net, invalid);
- 		if (ret == -NF_DROP)
- 			NF_CT_STAT_INC_ATOMIC(net, drop);
--		return -ret;
-+		ret = -ret;
-+		goto out;
- 	}
- 
- 	if (set_reply && !test_and_set_bit(IPS_SEEN_REPLY_BIT, &ct->status))
- 		nf_conntrack_event_cache(IPCT_REPLY, ct);
-+out:
-+	if (tmpl)
-+		nf_ct_put(tmpl);
- 
- 	return ret;
- }
-@@ -864,7 +882,7 @@ void nf_conntrack_alter_reply(struct nf_conn *ct,
- 		return;
- 
- 	rcu_read_lock();
--	__nf_ct_try_assign_helper(ct, GFP_ATOMIC);
-+	__nf_ct_try_assign_helper(ct, NULL, GFP_ATOMIC);
- 	rcu_read_unlock();
- }
- EXPORT_SYMBOL_GPL(nf_conntrack_alter_reply);
-diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index c0e461f..8144b0d 100644
---- a/net/netfilter/nf_conntrack_helper.c
-+++ b/net/netfilter/nf_conntrack_helper.c
-@@ -96,13 +96,22 @@ struct nf_conn_help *nf_ct_helper_ext_add(struct nf_conn *ct, gfp_t gfp)
- }
- EXPORT_SYMBOL_GPL(nf_ct_helper_ext_add);
- 
--int __nf_ct_try_assign_helper(struct nf_conn *ct, gfp_t flags)
-+int __nf_ct_try_assign_helper(struct nf_conn *ct, struct nf_conn *tmpl,
-+			      gfp_t flags)
- {
-+	struct nf_conntrack_helper *helper = NULL;
-+	struct nf_conn_help *help;
- 	int ret = 0;
--	struct nf_conntrack_helper *helper;
--	struct nf_conn_help *help = nfct_help(ct);
- 
--	helper = __nf_ct_helper_find(&ct->tuplehash[IP_CT_DIR_REPLY].tuple);
-+	if (tmpl != NULL) {
-+		help = nfct_help(tmpl);
-+		if (help != NULL)
-+			helper = help->helper;
-+	}
-+
-+	help = nfct_help(ct);
-+	if (helper == NULL)
-+		helper = __nf_ct_helper_find(&ct->tuplehash[IP_CT_DIR_REPLY].tuple);
- 	if (helper == NULL) {
- 		if (help)
- 			rcu_assign_pointer(help->helper, NULL);
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index f5c0b09..09044f9 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1249,7 +1249,7 @@ ctnetlink_create_conntrack(struct net *net,
- 		}
- 	} else {
- 		/* try an implicit helper assignation */
--		err = __nf_ct_try_assign_helper(ct, GFP_ATOMIC);
-+		err = __nf_ct_try_assign_helper(ct, NULL, GFP_ATOMIC);
- 		if (err < 0)
- 			goto err2;
- 	}
+#5  0xffffffff81455884 in panic (
+    fmt=0xffffffff81ec51e0 "JCM: nf_conntrack_destroy: trying to destroy
+nf_conntrack_untracked!\n")
+    at kernel/panic.c:73
+#6  0xffffffff813d266c in nf_conntrack_destroy (nfct=<value optimized
+out>) at net/netfilter/core.c:244
+#7  0xffffffff813abd97 in nf_conntrack_put (skb=0xffff880223b8b700) at
+include/linux/skbuff.h:1924
+#8  skb_release_head_state (skb=0xffff880223b8b700) at
+net/core/skbuff.c:402
+#9  0xffffffff813abaf9 in skb_release_all (skb=0xffff880223b8b700) at
+net/core/skbuff.c:420
+#10 __kfree_skb (skb=0xffff880223b8b700) at net/core/skbuff.c:435
+#11 0xffffffff813abbfe in kfree_skb (skb=0xffff880223b8b700) at
+net/core/skbuff.c:456
+
+Could you please add (or recommend for me to test) some logic to catch
+attempts to free the nf_conntrack_untracked and prevent it? Also, maybe
+in the init_net code you could remove the re-initialization of the
+untracked conntrack each time a namespace is created?
+
+Thanks!
+
+Jon.
+
+
