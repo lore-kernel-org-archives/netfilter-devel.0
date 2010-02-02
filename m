@@ -1,22 +1,54 @@
-From: tingwei liu <tingw.liu@gmail.com>
-Subject: nfqueue return to iptables
-Date: Tue, 2 Feb 2010 18:43:09 +0800
-Message-ID: <237044a41002020243n5a4f7066s23e7d2bdc6418393@mail.gmail.com>
+From: Jon Masters <jonathan@jonmasters.org>
+Subject: Re: [PATCH] netfilter: per netns nf_conntrack_cachep
+Date: Tue, 02 Feb 2010 05:47:45 -0500
+Message-ID: <1265107666.2861.117.camel@tonnant>
+References: <1264813832.2793.446.camel@tonnant>
+	 <1264816634.2793.505.camel@tonnant> <1264816777.2793.510.camel@tonnant>
+	 <1264834704.2919.3.camel@edumazet-laptop>
+	 <1265016745.7499.144.camel@tonnant>
+	 <b6fcc0a1002010136k7e78a998p31a9e7464c2e8d44@mail.gmail.com>
+	 <1265019160.2848.14.camel@edumazet-laptop>
+	 <b6fcc0a1002010225u4e74f9f0q633d73038234dc37@mail.gmail.com>
+	 <1265023437.2848.30.camel@edumazet-laptop>
+	 <1265035970.2848.50.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-px0-f182.google.com ([209.85.216.182]:47663 "EHLO
-	mail-px0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752899Ab0BBKnL (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Feb 2010 05:43:11 -0500
-Received: by pxi12 with SMTP id 12so5610421pxi.33
-        for <netfilter-devel@vger.kernel.org>; Tue, 02 Feb 2010 02:43:10 -0800 (PST)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Alexey Dobriyan <adobriyan@gmail.com>,
+	Patrick McHardy <kaber@trash.net>,
+	linux-kernel <linux-kernel@vger.kernel.org>,
+	netdev <netdev@vger.kernel.org>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1265035970.2848.50.camel@edumazet-laptop>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-How can I reinsert the skb to netfilter which is dealed by nfqueue target.
-Videlicet, how can let the nfqueue requeue XT_CONTINUE.
-thanks.
-tony
+On Mon, 2010-02-01 at 15:52 +0100, Eric Dumazet wrote:
+
+> [PATCH] netfilter: per netns nf_conntrack_cachep
+> 
+> nf_conntrack_cachep is currently shared by all netns instances, but
+> because of SLAB_DESTROY_BY_RCU special semantics, this is wrong.
+> 
+> If we use a shared slab cache, one object can instantly flight between
+> one hash table (netns ONE) to another one (netns TWO), and concurrent
+> reader (doing a lookup in netns ONE, 'finding' an object of netns TWO)
+> can be fooled without notice, because no RCU grace period has to be
+> observed between object freeing and its reuse.
+
+I'll test this patch.
+
+After some lengthy debugging, what actually happens here is that the
+nf_conntrack_cachep SL*U*B gets corrupted such that the contained
+per-cpu cpu_slabs are all pointing to the address of htable_size, which
+is then helpfully set to be the value of the individual freelists (the
+address of the base of the kmem_cache), or offset '51' into the table.
+The worrying thing is it looks like this is actually corrupting other
+random memory too, it just happens to bite once we get this far.
+
+Jon.
+
+
