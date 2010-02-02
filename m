@@ -1,151 +1,301 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 04/06: ctnetlink: only assign helpers for matching protocols
-Date: Tue,  2 Feb 2010 17:52:59 +0100 (MET)
-Message-ID: <20100202165258.25160.58213.sendpatchset@x2.localnet>
+Subject: netfilter 06/06: xtables: add CT target
+Date: Tue,  2 Feb 2010 17:53:01 +0100 (MET)
+Message-ID: <20100202165301.25160.97855.sendpatchset@x2.localnet>
 References: <20100202165253.25160.18314.sendpatchset@x2.localnet>
 Cc: Patrick McHardy <kaber@trash.net>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:33893 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:33903 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753572Ab0BBQxA (ORCPT
+	with ESMTP id S1753572Ab0BBQxD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Feb 2010 11:53:00 -0500
+	Tue, 2 Feb 2010 11:53:03 -0500
 In-Reply-To: <20100202165253.25160.18314.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 331b603738531949ab227d0671e204080231166c
+commit ee07b4f51b64d68eb35725b3fc033175cbdfc14e
 Author: Patrick McHardy <kaber@trash.net>
-Date:   Tue Feb 2 17:17:17 2010 +0100
+Date:   Tue Feb 2 17:32:08 2010 +0100
 
-    netfilter: ctnetlink: only assign helpers for matching protocols
+    netfilter: xtables: add CT target
     
-    Make sure not to assign a helper for a different network or transport
-    layer protocol to a connection.
+    Add a new target for the raw table, which can be used to specify conntrack
+    parameters for specific connections, f.i. the conntrack helper.
     
-    Additionally change expectation deletion by helper to compare the name
-    directly - there might be multiple helper registrations using the same
-    name, currently one of them is chosen in an unpredictable manner and
-    only those expectations are removed.
+    The target attaches a "template" connection tracking entry to the skb, which
+    is used by the conntrack core when initializing the new conntrack.
     
     Signed-off-by: Patrick McHardy <kaber@trash.net>
 
+diff --git a/include/linux/netfilter/Kbuild b/include/linux/netfilter/Kbuild
+index 2aea503..a5a63e4 100644
+--- a/include/linux/netfilter/Kbuild
++++ b/include/linux/netfilter/Kbuild
+@@ -6,6 +6,7 @@ header-y += nfnetlink_queue.h
+ header-y += xt_CLASSIFY.h
+ header-y += xt_CONNMARK.h
+ header-y += xt_CONNSECMARK.h
++header-y += xt_CT.h
+ header-y += xt_DSCP.h
+ header-y += xt_LED.h
+ header-y += xt_MARK.h
+diff --git a/include/linux/netfilter/xt_CT.h b/include/linux/netfilter/xt_CT.h
+new file mode 100644
+index 0000000..a827074
+--- /dev/null
++++ b/include/linux/netfilter/xt_CT.h
+@@ -0,0 +1,16 @@
++#ifndef _XT_CT_H
++#define _XT_CT_H
++
++#define XT_CT_NOTRACK	0x1
++
++struct xt_ct_target_info {
++	u_int16_t	flags;
++	u_int32_t	ct_events;
++	u_int32_t	exp_events;
++	char		helper[16];
++
++	/* Used internally by the kernel */
++	struct nf_conn	*ct __attribute__((aligned(8)));
++};
++
++#endif /* _XT_CT_H */
 diff --git a/include/net/netfilter/nf_conntrack_helper.h b/include/net/netfilter/nf_conntrack_helper.h
-index d015de9..86be7c4 100644
+index e17aaa3..32c305d 100644
 --- a/include/net/netfilter/nf_conntrack_helper.h
 +++ b/include/net/netfilter/nf_conntrack_helper.h
-@@ -40,7 +40,7 @@ struct nf_conntrack_helper {
- };
- 
+@@ -42,6 +42,9 @@ struct nf_conntrack_helper {
  extern struct nf_conntrack_helper *
--__nf_conntrack_helper_find_byname(const char *name);
-+__nf_conntrack_helper_find(const char *name, u16 l3num, u8 protonum);
+ __nf_conntrack_helper_find(const char *name, u16 l3num, u8 protonum);
  
++extern struct nf_conntrack_helper *
++nf_conntrack_helper_try_module_get(const char *name, u16 l3num, u8 protonum);
++
  extern int nf_conntrack_helper_register(struct nf_conntrack_helper *);
  extern void nf_conntrack_helper_unregister(struct nf_conntrack_helper *);
+ 
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 634d14a..4469d45 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -341,6 +341,18 @@ config NETFILTER_XT_TARGET_CONNSECMARK
+ 
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 
++config NETFILTER_XT_TARGET_CT
++	tristate '"CT" target support'
++	depends on NF_CONNTRACK
++	depends on IP_NF_RAW || IP6_NF_RAW
++	depends on NETFILTER_ADVANCED
++	help
++	  This options adds a `CT' target, which allows to specify initial
++	  connection tracking parameters like events to be delivered and
++	  the helper to be used.
++
++	  To compile it as a module, choose M here.  If unsure, say N.
++
+ config NETFILTER_XT_TARGET_DSCP
+ 	tristate '"DSCP" and "TOS" target support'
+ 	depends on IP_NF_MANGLE || IP6_NF_MANGLE
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 49f62ee..f873644 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -44,6 +44,7 @@ obj-$(CONFIG_NETFILTER_XTABLES) += x_tables.o xt_tcpudp.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_CLASSIFY) += xt_CLASSIFY.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_CONNMARK) += xt_CONNMARK.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_CONNSECMARK) += xt_CONNSECMARK.o
++obj-$(CONFIG_NETFILTER_XT_TARGET_CT) += xt_CT.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_DSCP) += xt_DSCP.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_HL) += xt_HL.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_LED) += xt_LED.o
 diff --git a/net/netfilter/nf_conntrack_helper.c b/net/netfilter/nf_conntrack_helper.c
-index 65c2a7b..c0e461f 100644
+index 8144b0d..a74a576 100644
 --- a/net/netfilter/nf_conntrack_helper.c
 +++ b/net/netfilter/nf_conntrack_helper.c
-@@ -65,7 +65,7 @@ __nf_ct_helper_find(const struct nf_conntrack_tuple *tuple)
+@@ -83,6 +83,25 @@ __nf_conntrack_helper_find(const char *name, u16 l3num, u8 protonum)
  }
+ EXPORT_SYMBOL_GPL(__nf_conntrack_helper_find);
  
- struct nf_conntrack_helper *
--__nf_conntrack_helper_find_byname(const char *name)
-+__nf_conntrack_helper_find(const char *name, u16 l3num, u8 protonum)
- {
- 	struct nf_conntrack_helper *h;
- 	struct hlist_node *n;
-@@ -73,13 +73,15 @@ __nf_conntrack_helper_find_byname(const char *name)
- 
- 	for (i = 0; i < nf_ct_helper_hsize; i++) {
- 		hlist_for_each_entry_rcu(h, n, &nf_ct_helper_hash[i], hnode) {
--			if (!strcmp(h->name, name))
-+			if (!strcmp(h->name, name) &&
-+			    h->tuple.src.l3num == l3num &&
-+			    h->tuple.dst.protonum == protonum)
- 				return h;
- 		}
- 	}
- 	return NULL;
- }
--EXPORT_SYMBOL_GPL(__nf_conntrack_helper_find_byname);
-+EXPORT_SYMBOL_GPL(__nf_conntrack_helper_find);
- 
++struct nf_conntrack_helper *
++nf_conntrack_helper_try_module_get(const char *name, u16 l3num, u8 protonum)
++{
++	struct nf_conntrack_helper *h;
++
++	h = __nf_conntrack_helper_find(name, l3num, protonum);
++#ifdef CONFIG_MODULES
++	if (h == NULL) {
++		if (request_module("nfct-helper-%s", name) == 0)
++			h = __nf_conntrack_helper_find(name, l3num, protonum);
++	}
++#endif
++	if (h != NULL && !try_module_get(h->me))
++		h = NULL;
++
++	return h;
++}
++EXPORT_SYMBOL_GPL(nf_conntrack_helper_try_module_get);
++
  struct nf_conn_help *nf_ct_helper_ext_add(struct nf_conn *ct, gfp_t gfp)
  {
-diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
-index 20e49ab..f5c0b09 100644
---- a/net/netfilter/nf_conntrack_netlink.c
-+++ b/net/netfilter/nf_conntrack_netlink.c
-@@ -1001,7 +1001,8 @@ ctnetlink_change_helper(struct nf_conn *ct, const struct nlattr * const cda[])
- 		return 0;
- 	}
- 
--	helper = __nf_conntrack_helper_find_byname(helpname);
-+	helper = __nf_conntrack_helper_find(helpname, nf_ct_l3num(ct),
-+					    nf_ct_protonum(ct));
- 	if (helper == NULL) {
- #ifdef CONFIG_MODULES
- 		spin_unlock_bh(&nf_conntrack_lock);
-@@ -1012,7 +1013,8 @@ ctnetlink_change_helper(struct nf_conn *ct, const struct nlattr * const cda[])
- 		}
- 
- 		spin_lock_bh(&nf_conntrack_lock);
--		helper = __nf_conntrack_helper_find_byname(helpname);
-+		helper = __nf_conntrack_helper_find(helpname, nf_ct_l3num(ct),
-+						    nf_ct_protonum(ct));
- 		if (helper)
- 			return -EAGAIN;
- #endif
-@@ -1211,7 +1213,8 @@ ctnetlink_create_conntrack(struct net *net,
-  		if (err < 0)
- 			goto err2;
- 
--		helper = __nf_conntrack_helper_find_byname(helpname);
-+		helper = __nf_conntrack_helper_find(helpname, nf_ct_l3num(ct),
-+						    nf_ct_protonum(ct));
- 		if (helper == NULL) {
- 			rcu_read_unlock();
- #ifdef CONFIG_MODULES
-@@ -1221,7 +1224,9 @@ ctnetlink_create_conntrack(struct net *net,
- 			}
- 
- 			rcu_read_lock();
--			helper = __nf_conntrack_helper_find_byname(helpname);
-+			helper = __nf_conntrack_helper_find(helpname,
-+							    nf_ct_l3num(ct),
-+							    nf_ct_protonum(ct));
- 			if (helper) {
- 				err = -EAGAIN;
- 				goto err2;
-@@ -1716,7 +1721,6 @@ ctnetlink_del_expect(struct sock *ctnl, struct sk_buff *skb,
- 	struct net *net = sock_net(ctnl);
- 	struct nf_conntrack_expect *exp;
- 	struct nf_conntrack_tuple tuple;
--	struct nf_conntrack_helper *h;
- 	struct nfgenmsg *nfmsg = nlmsg_data(nlh);
- 	struct hlist_node *n, *next;
- 	u_int8_t u3 = nfmsg->nfgen_family;
-@@ -1753,18 +1757,13 @@ ctnetlink_del_expect(struct sock *ctnl, struct sk_buff *skb,
- 
- 		/* delete all expectations for this helper */
- 		spin_lock_bh(&nf_conntrack_lock);
--		h = __nf_conntrack_helper_find_byname(name);
--		if (!h) {
--			spin_unlock_bh(&nf_conntrack_lock);
--			return -EOPNOTSUPP;
--		}
- 		for (i = 0; i < nf_ct_expect_hsize; i++) {
- 			hlist_for_each_entry_safe(exp, n, next,
- 						  &net->ct.expect_hash[i],
- 						  hnode) {
- 				m_help = nfct_help(exp->master);
--				if (m_help->helper == h
--				    && del_timer(&exp->timeout)) {
-+				if (!strcmp(m_help->helper->name, name) &&
-+				    del_timer(&exp->timeout)) {
- 					nf_ct_unlink_expect(exp);
- 					nf_ct_expect_put(exp);
- 				}
+ 	struct nf_conn_help *help;
+diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
+new file mode 100644
+index 0000000..5ae3d88
+--- /dev/null
++++ b/net/netfilter/xt_CT.c
+@@ -0,0 +1,151 @@
++/*
++ * Copyright (c) 2010 Patrick McHardy <kaber@trash.net>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#include <linux/module.h>
++#include <linux/skbuff.h>
++#include <linux/selinux.h>
++#include <linux/netfilter_ipv4/ip_tables.h>
++#include <linux/netfilter_ipv6/ip6_tables.h>
++#include <linux/netfilter/x_tables.h>
++#include <linux/netfilter/xt_CT.h>
++#include <net/netfilter/nf_conntrack.h>
++#include <net/netfilter/nf_conntrack_helper.h>
++#include <net/netfilter/nf_conntrack_ecache.h>
++
++static unsigned int xt_ct_target(struct sk_buff *skb,
++				 const struct xt_target_param *par)
++{
++	const struct xt_ct_target_info *info = par->targinfo;
++	struct nf_conn *ct = info->ct;
++
++	atomic_inc(&ct->ct_general.use);
++	skb->nfct = &ct->ct_general;
++	skb->nfctinfo = IP_CT_NEW;
++
++	return XT_CONTINUE;
++}
++
++static u8 xt_ct_find_proto(const struct xt_tgchk_param *par)
++{
++	if (par->family == AF_INET) {
++		const struct ipt_entry *e = par->entryinfo;
++
++		if (e->ip.invflags & IPT_INV_PROTO)
++			return 0;
++		return e->ip.proto;
++	} else if (par->family == AF_INET6) {
++		const struct ip6t_entry *e = par->entryinfo;
++
++		if (e->ipv6.invflags & IP6T_INV_PROTO)
++			return 0;
++		return e->ipv6.proto;
++	} else
++		return 0;
++}
++
++static bool xt_ct_tg_check(const struct xt_tgchk_param *par)
++{
++	struct xt_ct_target_info *info = par->targinfo;
++	struct nf_conntrack_tuple t;
++	struct nf_conn_help *help;
++	struct nf_conn *ct;
++	u8 proto;
++
++	if (info->flags & XT_CT_NOTRACK) {
++		ct = &nf_conntrack_untracked;
++		atomic_inc(&ct->ct_general.use);
++		goto out;
++	}
++
++	if (nf_ct_l3proto_try_module_get(par->family) < 0)
++		goto err1;
++
++	memset(&t, 0, sizeof(t));
++	ct = nf_conntrack_alloc(par->net, &t, &t, GFP_KERNEL);
++	if (IS_ERR(ct))
++		goto err2;
++
++	if ((info->ct_events || info->exp_events) &&
++	    !nf_ct_ecache_ext_add(ct, info->ct_events, info->exp_events,
++				  GFP_KERNEL))
++		goto err3;
++
++	if (info->helper[0]) {
++		proto = xt_ct_find_proto(par);
++		if (!proto)
++			goto err3;
++
++		help = nf_ct_helper_ext_add(ct, GFP_KERNEL);
++		if (help == NULL)
++			goto err3;
++
++		help->helper = nf_conntrack_helper_try_module_get(info->helper,
++								  par->family,
++								  proto);
++		if (help->helper == NULL)
++			goto err3;
++	}
++
++	__set_bit(IPS_TEMPLATE_BIT, &ct->status);
++	__set_bit(IPS_CONFIRMED_BIT, &ct->status);
++out:
++	info->ct = ct;
++	return true;
++
++err3:
++	nf_conntrack_free(ct);
++err2:
++	nf_ct_l3proto_module_put(par->family);
++err1:
++	return false;
++}
++
++static void xt_ct_tg_destroy(const struct xt_tgdtor_param *par)
++{
++	struct xt_ct_target_info *info = par->targinfo;
++	struct nf_conn *ct = info->ct;
++	struct nf_conn_help *help;
++
++	if (ct != &nf_conntrack_untracked) {
++		help = nfct_help(ct);
++		if (help)
++			module_put(help->helper->me);
++
++		nf_ct_l3proto_module_put(par->family);
++	}
++	nf_ct_put(info->ct);
++}
++
++static struct xt_target xt_ct_tg __read_mostly = {
++	.name		= "CT",
++	.family		= NFPROTO_UNSPEC,
++	.targetsize	= XT_ALIGN(sizeof(struct xt_ct_target_info)),
++	.checkentry	= xt_ct_tg_check,
++	.destroy	= xt_ct_tg_destroy,
++	.target		= xt_ct_target,
++	.table		= "raw",
++	.me		= THIS_MODULE,
++};
++
++static int __init xt_ct_tg_init(void)
++{
++	return xt_register_target(&xt_ct_tg);
++}
++
++static void __exit xt_ct_tg_exit(void)
++{
++	return xt_unregister_target(&xt_ct_tg);
++}
++
++module_init(xt_ct_tg_init);
++module_exit(xt_ct_tg_exit);
++
++MODULE_LICENSE("GPL");
++MODULE_DESCRIPTION("Xtables: connection tracking target");
++MODULE_ALIAS("ipt_CT");
++MODULE_ALIAS("ip6t_CT");
