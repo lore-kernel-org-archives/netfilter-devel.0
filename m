@@ -1,48 +1,93 @@
-From: Jon Masters <jonathan@jonmasters.org>
-Subject: Re: [PATCH] netfilter: per netns nf_conntrack_cachep
-Date: Wed, 03 Feb 2010 15:21:19 -0500
-Message-ID: <1265228479.2861.312.camel@tonnant>
-References: <1264813832.2793.446.camel@tonnant>
-	 <1265023437.2848.30.camel@edumazet-laptop>
-	 <1265035970.2848.50.camel@edumazet-laptop>
-	 <b6fcc0a1002010658j4f52a9b8kf10e4bb07a2f1075@mail.gmail.com>
-	 <1265036548.2848.55.camel@edumazet-laptop>
-	 <1265108690.2861.118.camel@tonnant> <1265110504.2861.135.camel@tonnant>
-	 <1265129192.2861.141.camel@tonnant> <4B685756.8010107@trash.net>
-	 <1265130426.2861.158.camel@tonnant>
-	 <b6fcc0a1002020958u17315624u4d54d06a413be6bb@mail.gmail.com>
-	 <1265134598.2861.191.camel@tonnant> <4B6870AF.6060109@trash.net>
-	 <4B6967BC.600@trash.net>
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: [PATCH for 2.6.33] conntrack: restrict runtime hashsize
+ modifications
+Date: Wed, 3 Feb 2010 22:39:29 +0200
+Message-ID: <20100203203929.GA6168@x200>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Alexey Dobriyan <adobriyan@gmail.com>,
-	Eric Dumazet <eric.dumazet@gmail.com>,
-	linux-kernel <linux-kernel@vger.kernel.org>,
-	netdev <netdev@vger.kernel.org>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii
+Cc: jonathan@jonmasters.org, eric.dumazet@gmail.com,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: davem@davemloft.net, kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from dallas.jonmasters.org ([72.29.103.172]:33551 "EHLO
-	dallas.jonmasters.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757687Ab0BCUVj (ORCPT
+Received: from mail-fx0-f220.google.com ([209.85.220.220]:36445 "EHLO
+	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932343Ab0BCUjf (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 3 Feb 2010 15:21:39 -0500
-In-Reply-To: <4B6967BC.600@trash.net>
+	Wed, 3 Feb 2010 15:39:35 -0500
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 2010-02-03 at 13:10 +0100, Patrick McHardy wrote:
+Jon Masters correctly points out that conntrack hash sizes
+(nf_conntrack_htable_size) are global (not per-netns) and
+modifiable at runtime via /sys/module/nf_conntrack/hashsize .
 
-> Jon, could you give this patch a try please?
-> plain text document attachment (x)
-> commit 056ff3e3bd1563969a311697323ff929df94415c
-> Author: Patrick McHardy <kaber@trash.net>
-> Date:   Wed Feb 3 12:58:06 2010 +0100
+Steps to reproduce:
+	clone(CLONE_NEWNET)
+	[grow /sys/module/nf_conntrack/hashsize]
+	exit()
 
-Patrick, can I regard this as the official fix for 2.6.33?
+At netns exit we are going to scan random memory for conntracks to be killed.
 
-Jon.
+Apparently there is a code which deals with hashtable resize for
+init_net (and it was there befode netns conntrack code), so prohibit
+hashsize modification if there is more than one netns exists.
 
+To change hashtable sizes, you need to reload module.
 
+Expectation hashtable size was simply glued to a variable with no code
+to rehash expectations, so it was a bug to allow writing to it.
+Make "expect_hashsize" readonly.
+
+This is temporarily until we figure out what to do.
+
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+Cc: stable@kernel.org
+---
+
+ net/netfilter/nf_conntrack_core.c   |   15 +++++++++++++++
+ net/netfilter/nf_conntrack_expect.c |    2 +-
+ 2 files changed, 16 insertions(+), 1 deletion(-)
+
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -21,6 +21,7 @@
+ #include <linux/stddef.h>
+ #include <linux/slab.h>
+ #include <linux/random.h>
++#include <linux/rtnetlink.h>
+ #include <linux/jhash.h>
+ #include <linux/err.h>
+ #include <linux/percpu.h>
+@@ -1198,6 +1199,20 @@ int nf_conntrack_set_hashsize(const char *val, struct kernel_param *kp)
+ 	if (!nf_conntrack_htable_size)
+ 		return param_set_uint(val, kp);
+ 
++	{
++		struct net *net;
++		unsigned int nr;
++
++		nr = 0;
++		rtnl_lock();
++		for_each_net(net)
++			nr++;
++		rtnl_unlock();
++		/* init_net always exists */
++		if (nr != 1)
++			return -EINVAL;
++	}
++
+ 	hashsize = simple_strtoul(val, NULL, 0);
+ 	if (!hashsize)
+ 		return -EINVAL;
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -569,7 +569,7 @@ static void exp_proc_remove(struct net *net)
+ #endif /* CONFIG_PROC_FS */
+ }
+ 
+-module_param_named(expect_hashsize, nf_ct_expect_hsize, uint, 0600);
++module_param_named(expect_hashsize, nf_ct_expect_hsize, uint, 0400);
+ 
+ int nf_conntrack_expect_init(struct net *net)
+ {
