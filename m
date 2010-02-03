@@ -1,65 +1,36 @@
-From: Jon Masters <jonathan@jonmasters.org>
-Subject: Re: [PATCH] netfilter: per netns nf_conntrack_cachep
-Date: Tue, 02 Feb 2010 13:42:03 -0500
-Message-ID: <1265136123.2861.200.camel@tonnant>
-References: <1264813832.2793.446.camel@tonnant>
-	 <1265023437.2848.30.camel@edumazet-laptop>
-	 <1265035970.2848.50.camel@edumazet-laptop>
-	 <b6fcc0a1002010658j4f52a9b8kf10e4bb07a2f1075@mail.gmail.com>
-	 <1265036548.2848.55.camel@edumazet-laptop>
-	 <1265108690.2861.118.camel@tonnant> <1265110504.2861.135.camel@tonnant>
-	 <1265129192.2861.141.camel@tonnant> <4B685756.8010107@trash.net>
-	 <1265130426.2861.158.camel@tonnant>
-	 <b6fcc0a1002020958u17315624u4d54d06a413be6bb@mail.gmail.com>
-	 <1265134598.2861.191.camel@tonnant>  <4B6870AF.6060109@trash.net>
-	 <1265135982.2861.199.camel@tonnant>
+From: jennifer kohne <janifer.khone@btinternet.com>
+Subject: Donation to Haiti.
+Date: Wed, 3 Feb 2010 11:00:20 +0000 (GMT)
+Message-ID: <449545.63432.qm__31373.6061136753$1265195152$gmane$org@web87010.mail.ird.yahoo.com>
+Reply-To: jennifakohne@yahoo.co.jp
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Alexey Dobriyan <adobriyan@gmail.com>,
-	Eric Dumazet <eric.dumazet@gmail.com>,
-	linux-kernel <linux-kernel@vger.kernel.org>,
-	netdev <netdev@vger.kernel.org>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
+To: undisclosed recipients:;
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from dallas.jonmasters.org ([72.29.103.172]:56986 "EHLO
-	dallas.jonmasters.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756827Ab0BBSmW (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 2 Feb 2010 13:42:22 -0500
-In-Reply-To: <1265135982.2861.199.camel@tonnant>
+Received: from n28.bullet.mail.ukl.yahoo.com ([87.248.110.145]:20944 "HELO
+	n28.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754761Ab0BCLFp convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 3 Feb 2010 06:05:45 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 2010-02-02 at 13:39 -0500, Jon Masters wrote:
-> On Tue, 2010-02-02 at 19:36 +0100, Patrick McHardy wrote:
-> > Jon Masters wrote:
-> > > On Tue, 2010-02-02 at 19:58 +0200, Alexey Dobriyan wrote:
-> > > 
-> > >> Yes, moving to init_net-only function is fine.
-> > > 
-> > > So moving the "setup up fake conntrack" bits to init_init_net from
-> > > init_net still results in the panic, which means that the use count
-> > > really is dropping to zero and we really are trying to free it when
-> > > using multiple namespaces. Per ns is probably an easier way to go.
-> > 
-> > Agreed, that will also avoid problems in the future with the
-> > ct_net pointer pointing to &init_net. I'll take care of this
-> > tommorrow.
-> 
-> Ok. I'll leave this box running with the hack. I think at the very least
-> that this specific issue needs to get fixed and in the stable tree, then
-> the other bits (per namespace cachep...) are probably a good idea at the
-> same time but that's up to you.
-
-FYI, my box has the quick don't free untracked hack *and* per-ns cachep.
-I don't think the latter has anything specific to do with this (though
-it needs fixing also), but worth knowing my test is using both.
-
-Back to the podcasts tonight instead of this ;)
-
-Jon.
-
+Donation to Haiti.
+ 
+I have a proposal for you,this however is not  mandatory nor will I in any manner compel you to honor against your will. Your profile pushed me to send you this mail,
+ I am Mrs Jennifer Kohne. from Kuwait. I am married to Mr. Jean Kohne who worked with Kuwait embassy i Ivory Coast for nine years before he died in the year 2006. We were married for eleven years without a child. He died after a brief illness that lasted for only four days. 
+ 
+ Since his death I decided not to remarry or get a child outside my matrimonial home which. When my late husband was alive he deposited the sum of US$3.8million dollars in a Bank here in Abidjan Cote d'Ivoire. Presently, this money is still in bank. Recently, my Doctor told me that I would not last for the next Eight months due to cancer problem. 
+ 
+The one that disturbs me most is my stroke sickness. Having known my condition I decided to donate this fund to a charity organization that will utilize this money the way I am going to instruct herein. I want to donate this fund to Haiti toward recoery efforts.
+ 
+ I took this decision because I don't have any child that will inherit this money. This is why I am taking this decision, And I don't need any telephone communication in this regard because of my health,
+ 
+ As soon as I receive your reply I shall give you the contact of the Bank here in  Abidjan Cote d'Ivoire. I will also issue you an authority  letter that will prove you the present beneficiary of this fund. I want you and the organization to always pray for me. 
+ 
+Any  delay in your reply will give me room in sourcing  of another organization or good person for this same  purpose. Please assure me that you will act accordingly as I Stated herein. Hoping to receive your reply. 
+ 
+Thank Yours 
+Mrs Jennifer Kohne
 
