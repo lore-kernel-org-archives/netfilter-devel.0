@@ -1,56 +1,29 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] IPv6:Send an ICMPv6 "Fragment Reassembly Timeout" message
- when enabling connection track
-Date: Wed, 03 Feb 2010 17:42:02 +0100
-Message-ID: <4B69A75A.2020908@trash.net>
-References: <4B62A338.6020106@cn.fujitsu.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: xtables-addon to staging?
+Date: Wed, 3 Feb 2010 18:20:17 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.1002031819350.24095@obet.zrqbmnf.qr>
+References: <970285.36202.qm@web23907.mail.ird.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: David Miller <davem@davemloft.net>,
-	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>,
-	eric.dumazet@gmail.com, randy.dunlap@oracle.com, mst@redhat.com,
-	johannes@sipsolutions.net, kuznet@ms2.inr.ac.ru, pekkas@netcore.fi,
-	jmorris@namei.org, yoshfuji@linux-ipv6.org, pablo@netfilter.org,
-	ebiederm@xmission.com, adobriyan@gmail.com, brian.haley@hp.com,
-	shemminger@vyatta.com, akpm@linux-foundation.org,
-	netfilter-devel@vger.kernel.org,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
-To: Shan Wei <shanwei@cn.fujitsu.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: John Labite <john_labite@yahoo.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:57625 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932557Ab0BCQmG (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 3 Feb 2010 11:42:06 -0500
-In-Reply-To: <4B62A338.6020106@cn.fujitsu.com>
+Received: from borg.medozas.de ([188.40.89.202]:52533 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932610Ab0BCRUT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 3 Feb 2010 12:20:19 -0500
+In-Reply-To: <970285.36202.qm@web23907.mail.ird.yahoo.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Shan Wei wrote:
-> @@ -349,17 +378,20 @@ static int nf_ct_frag6_queue(struct nf_ct_frag6_queue *fq, struct sk_buff *skb,
->  	else
->  		fq->q.fragments = skb;
->  
-> -	skb->dev = NULL;
->  	fq->q.stamp = skb->tstamp;
->  	fq->q.meat += skb->len;
->  	atomic_add(skb->truesize, &nf_init_frags.mem);
->  
->  	/* The first fragment.
->  	 * nhoffset is obtained from the first fragment, of course.
-> +	 * Reserve dev for sending an ICMP "Fragment Reassembly Timeout"
-> +	 * message.
->  	 */
->  	if (offset == 0) {
->  		fq->nhoffset = nhoff;
->  		fq->q.last_in |= INET_FRAG_FIRST_IN;
-> +	} else {
-> +		skb->dev = NULL;
->  	}
+On Monday 2010-02-01 21:30, John Labite wrote:
 
-We need to store the iif and perform a lookup later just as in IPv4
-because the device is not reference counted and might disappear while
-the fragments are queued.
+>hello,
+>
+>what's the interest of xtables-addon or patch-o-matic now that we have "sta=
+>ging" tree in mainline?
+>->it would be much easier for users like me to test "experimental"
+>and much needed modules like ipset, RTSP ... and developpers would get more feedback, quality will improve etc etc ...
 
-Besides this, the patch looks good.
+We don't really need to go through staging, but as usual, it's Patrick's 
+decision whether any of the modules can go in at all.
