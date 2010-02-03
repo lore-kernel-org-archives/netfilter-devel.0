@@ -1,36 +1,134 @@
-From: jennifer kohne <janifer.khone@btinternet.com>
-Subject: Donation to Haiti.
-Date: Wed, 3 Feb 2010 11:00:20 +0000 (GMT)
-Message-ID: <449545.63432.qm__31373.6061136753$1265195152$gmane$org@web87010.mail.ird.yahoo.com>
-Reply-To: jennifakohne@yahoo.co.jp
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] netfilter: per netns nf_conntrack_cachep
+Date: Wed, 03 Feb 2010 13:10:36 +0100
+Message-ID: <4B6967BC.600@trash.net>
+References: <1264813832.2793.446.camel@tonnant>	 <1265023437.2848.30.camel@edumazet-laptop>	 <1265035970.2848.50.camel@edumazet-laptop>	 <b6fcc0a1002010658j4f52a9b8kf10e4bb07a2f1075@mail.gmail.com>	 <1265036548.2848.55.camel@edumazet-laptop>	 <1265108690.2861.118.camel@tonnant> <1265110504.2861.135.camel@tonnant>	 <1265129192.2861.141.camel@tonnant> <4B685756.8010107@trash.net>	 <1265130426.2861.158.camel@tonnant>	 <b6fcc0a1002020958u17315624u4d54d06a413be6bb@mail.gmail.com> <1265134598.2861.191.camel@tonnant> <4B6870AF.6060109@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-To: undisclosed recipients:;
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from n28.bullet.mail.ukl.yahoo.com ([87.248.110.145]:20944 "HELO
-	n28.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754761Ab0BCLFp convert rfc822-to-8bit
-	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 3 Feb 2010 06:05:45 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: multipart/mixed;
+ boundary="------------070806000507070702070402"
+Cc: Alexey Dobriyan <adobriyan@gmail.com>,
+	Eric Dumazet <eric.dumazet@gmail.com>,
+	linux-kernel <linux-kernel@vger.kernel.org>,
+	netdev <netdev@vger.kernel.org>,
+	netfilter-devel <netfilter-devel@vger.kernel.org>,
+	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+To: Jon Masters <jonathan@jonmasters.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <4B6870AF.6060109@trash.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Donation to Haiti.
- 
-I have a proposal for you,this however is not  mandatory nor will I in any manner compel you to honor against your will. Your profile pushed me to send you this mail,
- I am Mrs Jennifer Kohne. from Kuwait. I am married to Mr. Jean Kohne who worked with Kuwait embassy i Ivory Coast for nine years before he died in the year 2006. We were married for eleven years without a child. He died after a brief illness that lasted for only four days. 
- 
- Since his death I decided not to remarry or get a child outside my matrimonial home which. When my late husband was alive he deposited the sum of US$3.8million dollars in a Bank here in Abidjan Cote d'Ivoire. Presently, this money is still in bank. Recently, my Doctor told me that I would not last for the next Eight months due to cancer problem. 
- 
-The one that disturbs me most is my stroke sickness. Having known my condition I decided to donate this fund to a charity organization that will utilize this money the way I am going to instruct herein. I want to donate this fund to Haiti toward recoery efforts.
- 
- I took this decision because I don't have any child that will inherit this money. This is why I am taking this decision, And I don't need any telephone communication in this regard because of my health,
- 
- As soon as I receive your reply I shall give you the contact of the Bank here in  Abidjan Cote d'Ivoire. I will also issue you an authority  letter that will prove you the present beneficiary of this fund. I want you and the organization to always pray for me. 
- 
-Any  delay in your reply will give me room in sourcing  of another organization or good person for this same  purpose. Please assure me that you will act accordingly as I Stated herein. Hoping to receive your reply. 
- 
-Thank Yours 
-Mrs Jennifer Kohne
+This is a multi-part message in MIME format.
+--------------070806000507070702070402
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
+Patrick McHardy wrote:
+> Jon Masters wrote:
+>> On Tue, 2010-02-02 at 19:58 +0200, Alexey Dobriyan wrote:
+>>
+>>> Yes, moving to init_net-only function is fine.
+>> So moving the "setup up fake conntrack" bits to init_init_net from
+>> init_net still results in the panic, which means that the use count
+>> really is dropping to zero and we really are trying to free it when
+>> using multiple namespaces. Per ns is probably an easier way to go.
+> 
+> Agreed, that will also avoid problems in the future with the
+> ct_net pointer pointing to &init_net. I'll take care of this
+> tommorrow.
+
+Unfortunately a per-namespace conntrack is not easily possible without
+larger changes (most of which are already queued in nf-next-2.6.git
+though). So for now I just moved the untrack handling to the init_net
+setup and cleanup functions and we can try to fix the remainder in
+2.6.34.
+
+Jon, could you give this patch a try please?
+
+--------------070806000507070702070402
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+commit 056ff3e3bd1563969a311697323ff929df94415c
+Author: Patrick McHardy <kaber@trash.net>
+Date:   Wed Feb 3 12:58:06 2010 +0100
+
+    netfilter: nf_conntrack: fix memory corruption with multiple namespaces
+    
+    As discovered by Jon Masters <jonathan@jonmasters.org>, the "untracked"
+    conntrack, which is located in the data section, might be accidentally
+    freed when a new namespace is instantiated while the untracked conntrack
+    is attached to a skb because the reference count it re-initialized.
+    
+    The best fix would be to use a seperate untracked conntrack per
+    namespace since it includes a namespace pointer. Unfortunately this is
+    not possible without larger changes since the namespace is not easily
+    available everywhere we need it. For now move the untracked conntrack
+    initialization to the init_net setup function to make sure the reference
+    count is not re-initialized and handle cleanup in the init_net cleanup
+    function to make sure namespaces can exit properly while the untracked
+    conntrack is in use in other namespaces.
+    
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 0e98c32..37e2b88 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1113,6 +1113,10 @@ static void nf_ct_release_dying_list(struct net *net)
+ 
+ static void nf_conntrack_cleanup_init_net(void)
+ {
++	/* wait until all references to nf_conntrack_untracked are dropped */
++	while (atomic_read(&nf_conntrack_untracked.ct_general.use) > 1)
++		schedule();
++
+ 	nf_conntrack_helper_fini();
+ 	nf_conntrack_proto_fini();
+ 	kmem_cache_destroy(nf_conntrack_cachep);
+@@ -1127,9 +1131,6 @@ static void nf_conntrack_cleanup_net(struct net *net)
+ 		schedule();
+ 		goto i_see_dead_people;
+ 	}
+-	/* wait until all references to nf_conntrack_untracked are dropped */
+-	while (atomic_read(&nf_conntrack_untracked.ct_general.use) > 1)
+-		schedule();
+ 
+ 	nf_ct_free_hashtable(net->ct.hash, net->ct.hash_vmalloc,
+ 			     nf_conntrack_htable_size);
+@@ -1288,6 +1289,14 @@ static int nf_conntrack_init_init_net(void)
+ 	if (ret < 0)
+ 		goto err_helper;
+ 
++	/* Set up fake conntrack: to never be deleted, not in any hashes */
++#ifdef CONFIG_NET_NS
++	nf_conntrack_untracked.ct_net = &init_net;
++#endif
++	atomic_set(&nf_conntrack_untracked.ct_general.use, 1);
++	/*  - and look it like as a confirmed connection */
++	set_bit(IPS_CONFIRMED_BIT, &nf_conntrack_untracked.status);
++
+ 	return 0;
+ 
+ err_helper:
+@@ -1333,15 +1342,6 @@ static int nf_conntrack_init_net(struct net *net)
+ 	if (ret < 0)
+ 		goto err_ecache;
+ 
+-	/* Set up fake conntrack:
+-	    - to never be deleted, not in any hashes */
+-#ifdef CONFIG_NET_NS
+-	nf_conntrack_untracked.ct_net = &init_net;
+-#endif
+-	atomic_set(&nf_conntrack_untracked.ct_general.use, 1);
+-	/*  - and look it like as a confirmed connection */
+-	set_bit(IPS_CONFIRMED_BIT, &nf_conntrack_untracked.status);
+-
+ 	return 0;
+ 
+ err_ecache:
+
+--------------070806000507070702070402--
