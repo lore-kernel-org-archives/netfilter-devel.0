@@ -1,24 +1,56 @@
-From: "Darrin 7 Allred" <judy34@gmail.com>
-Subject: I have a list of 788k doctors in America
-Date: 3 Feb 2010 16:47:10 +0100
-Message-ID: <SERVEURxwNVBw0f0gh0000006e6@serveur.fretvite.local>
-Reply-To: johnhurt2007@gmail.com
-To: news@northwestern.edu, news@leducrep.com,
-	netfilter-devel@vger.kernel.org, nancy.brainard@health-first.org,
-	newmarket@caci.co.nz
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] IPv6:Send an ICMPv6 "Fragment Reassembly Timeout" message
+ when enabling connection track
+Date: Wed, 03 Feb 2010 17:42:02 +0100
+Message-ID: <4B69A75A.2020908@trash.net>
+References: <4B62A338.6020106@cn.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: David Miller <davem@davemloft.net>,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>,
+	eric.dumazet@gmail.com, randy.dunlap@oracle.com, mst@redhat.com,
+	johannes@sipsolutions.net, kuznet@ms2.inr.ac.ru, pekkas@netcore.fi,
+	jmorris@namei.org, yoshfuji@linux-ipv6.org, pablo@netfilter.org,
+	ebiederm@xmission.com, adobriyan@gmail.com, brian.haley@hp.com,
+	shemminger@vyatta.com, akpm@linux-foundation.org,
+	netfilter-devel@vger.kernel.org,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: Shan Wei <shanwei@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2f.orange.fr ([80.12.242.152]:31836 "EHLO smtp2f.orange.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756050Ab0BCP5k (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 3 Feb 2010 10:57:40 -0500
+Received: from stinky.trash.net ([213.144.137.162]:57625 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932557Ab0BCQmG (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 3 Feb 2010 11:42:06 -0500
+In-Reply-To: <4B62A338.6020106@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-I have many good quality lists at decent prices. Drop me a line here:  Neva.Beard@leadsparadise.com
-I'll get you all the details and samples. 
-  
+Shan Wei wrote:
+> @@ -349,17 +378,20 @@ static int nf_ct_frag6_queue(struct nf_ct_frag6_queue *fq, struct sk_buff *skb,
+>  	else
+>  		fq->q.fragments = skb;
+>  
+> -	skb->dev = NULL;
+>  	fq->q.stamp = skb->tstamp;
+>  	fq->q.meat += skb->len;
+>  	atomic_add(skb->truesize, &nf_init_frags.mem);
+>  
+>  	/* The first fragment.
+>  	 * nhoffset is obtained from the first fragment, of course.
+> +	 * Reserve dev for sending an ICMP "Fragment Reassembly Timeout"
+> +	 * message.
+>  	 */
+>  	if (offset == 0) {
+>  		fq->nhoffset = nhoff;
+>  		fq->q.last_in |= INET_FRAG_FIRST_IN;
+> +	} else {
+> +		skb->dev = NULL;
+>  	}
 
+We need to store the iif and perform a lookup later just as in IPv4
+because the device is not reference counted and might disappear while
+the fragments are queued.
 
-Send us an email to disappear@leadsparadise.com we will discontinue from the list
-
-
+Besides this, the patch looks good.
