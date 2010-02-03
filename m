@@ -1,29 +1,40 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: xtables-addon to staging?
-Date: Wed, 3 Feb 2010 18:20:17 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.1002031819350.24095@obet.zrqbmnf.qr>
-References: <970285.36202.qm@web23907.mail.ird.yahoo.com>
+From: Dominik Kaspar <dokaspar.ietf@gmail.com>
+Subject: Question about the "dst" field in sk_buff
+Date: Wed, 3 Feb 2010 19:15:36 +0100
+Message-ID: <2a3692de1002031015l7ff6e1a1w61caa03d46afb55b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: John Labite <john_labite@yahoo.fr>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:52533 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932610Ab0BCRUT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 3 Feb 2010 12:20:19 -0500
-In-Reply-To: <970285.36202.qm@web23907.mail.ird.yahoo.com>
+Received: from gv-out-0910.google.com ([216.239.58.191]:63587 "EHLO
+	gv-out-0910.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752792Ab0BCSPi convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 3 Feb 2010 13:15:38 -0500
+Received: by gv-out-0910.google.com with SMTP id l14so136311gvf.37
+        for <netfilter-devel@vger.kernel.org>; Wed, 03 Feb 2010 10:15:37 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Monday 2010-02-01 21:30, John Labite wrote:
+Hi,
 
->hello,
->
->what's the interest of xtables-addon or patch-o-matic now that we have "sta=
->ging" tree in mainline?
->->it would be much easier for users like me to test "experimental"
->and much needed modules like ipset, RTSP ... and developpers would get more feedback, quality will improve etc etc ...
+I'm trying to compile various xt_*.c files that try to access
+skb->dst. However, the sk_buff structure has no "dst" field in the
+kernel version I am using (2.6.31), only a "_skb_dst" field. So when I
+run "make", for example to compile the xt_ECHO.c example from the
+netfilter tutorial, I always encounter errors like this:
 
-We don't really need to go through staging, but as usual, it's Patrick's 
-decision whether any of the modules can go in at all.
+error: =91struct sk_buff=92 has no member named =91dst=92
+
+What do I have to do to solve this? I guess it has something to do
+with those "compat" files, but I don't how they are used... Any hint
+would be highly appreciated.
+
+Best regards,
+Dominik
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
