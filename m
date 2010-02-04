@@ -1,50 +1,48 @@
-From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: Re: [PATCH] netfilter: per netns nf_conntrack_cachep
-Date: Thu, 4 Feb 2010 14:35:56 +0200
-Message-ID: <b6fcc0a1002040435t150aa7axf2dc0b139ed8f258@mail.gmail.com>
-References: <1265108690.2861.118.camel@tonnant>
-	 <1265134598.2861.191.camel@tonnant> <4B6870AF.6060109@trash.net>
-	 <4B6967BC.600@trash.net> <1265222289.2861.290.camel@tonnant>
-	 <20100203190948.GA5182@x200> <1265226227.2861.302.camel@tonnant>
-	 <4B6ABCB8.4080904@trash.net>
-	 <b6fcc0a1002040427n221da433n755350b4a41bbf9b@mail.gmail.com>
-	 <4B6ABDEF.8090005@trash.net>
+From: Thomas Woerner <twoerner@redhat.com>
+Subject: netfilter/iptables and network interface names
+Date: Thu, 04 Feb 2010 13:58:15 +0100
+Message-ID: <4B6AC467.7020209@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: Jon Masters <jonathan@jonmasters.org>,
-	Eric Dumazet <eric.dumazet@gmail.com>,
-	linux-kernel <linux-kernel@vger.kernel.org>,
-	netdev <netdev@vger.kernel.org>,
-	netfilter-devel <netfilter-devel@vger.kernel.org>,
-	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-iw0-f189.google.com ([209.85.223.189]:63002 "EHLO
-	mail-iw0-f189.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757910Ab0BDMf7 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Feb 2010 07:35:59 -0500
-In-Reply-To: <4B6ABDEF.8090005@trash.net>
+Received: from mx1.redhat.com ([209.132.183.28]:63603 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756508Ab0BDM6S (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 4 Feb 2010 07:58:18 -0500
+Received: from int-mx05.intmail.prod.int.phx2.redhat.com (int-mx05.intmail.prod.int.phx2.redhat.com [10.5.11.18])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o14CwHAd006462
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <netfilter-devel@vger.kernel.org>; Thu, 4 Feb 2010 07:58:18 -0500
+Received: from neo.tm.hn.org (vpn1-5-192.ams2.redhat.com [10.36.5.192])
+	by int-mx05.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o14CwFHB027884
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <netfilter-devel@vger.kernel.org>; Thu, 4 Feb 2010 07:58:17 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Feb 4, 2010 at 2:30 PM, Patrick McHardy <kaber@trash.net> wrote:
-> Alexey Dobriyan wrote:
->> On Thu, Feb 4, 2010 at 2:25 PM, Patrick McHardy <kaber@trash.net> wrote:
->>> Jon Masters wrote:
->>>> On Wed, 2010-02-03 at 21:09 +0200, Alexey Dobriyan wrote:
->>>>> On Wed, Feb 03, 2010 at 01:38:09PM -0500, Jon Masters wrote:
->>>>>> *). Per namespace cacheing allocation (the cachep bits). We know it's
->>>>>> still possible for weirdness to happen in the SLAB cache here.
->>>>> Tiny race, needs reproducer.
->>>> Maybe. I think it's worth fixing anyway.
->>> Absolutely, I'll also apply Eric's patch with the %p fix for the
->>> slab name.
->>
->> This would show kernel pointers in userspace ;-)
->> So, net->id is required.
->
-> I don't see the problem. But yes, it would be nicer to have an ID.
+Hello,
 
-This is done (or rather, not done) to not show attackers
-where data structures are.
+I just fell over network interface definitions in kernel and 
+netfilter/iptables.
+
+Interfaces names in the kernel have few limits: Only spaces and slashes 
+are not allowed, but everything else, even Ctrl characters are.
+
+In iptables, there are other limits: Colon, exclamation mark and 
+asterisk are not allowed. The plus is treated special for matching. But 
+what will be matched if the interface starts with or contains a plus?
+
+iptables allows to use interfaces containing spaces and slashes. 
+iptables-save is not escaping interface names. The interface "+" will be 
+treated as no interface limit at all and will be dropped, therefore all 
+interfaces match.
+
+I think there should be some discussion about interface names and limits 
+in kernel and netfilter/iptables.
+
+What do you think?
+
+Thanks in advance,
+Thomas Woerner
