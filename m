@@ -1,29 +1,28 @@
-From: Alexey Dobriyan <adobriyan@gmail.com>
+From: Jon Masters <jonathan@jonmasters.org>
 Subject: Re: [PATCH for 2.6.33] conntrack: restrict runtime hashsize
  modifications
-Date: Thu, 4 Feb 2010 21:47:44 +0200
-Message-ID: <20100204194744.GA4185@x200>
-References: <20100203203929.GA6168@x200>
- <4B6AF36A.3050402@trash.net>
- <4B6AFE22.20304@trash.net>
+Date: Thu, 04 Feb 2010 15:18:54 -0500
+Message-ID: <1265314734.2861.521.camel@tonnant>
+References: <20100203203929.GA6168@x200> <4B6AF36A.3050402@trash.net>
+	 <4B6AF58A.202@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: davem@davemloft.net, jonathan@jonmasters.org,
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
+Cc: Alexey Dobriyan <adobriyan@gmail.com>, davem@davemloft.net,
 	eric.dumazet@gmail.com, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f220.google.com ([209.85.220.220]:54505 "EHLO
-	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932592Ab0BDTru (ORCPT
+Received: from dallas.jonmasters.org ([72.29.103.172]:49012 "EHLO
+	dallas.jonmasters.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751633Ab0BDUTR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Feb 2010 14:47:50 -0500
-Content-Disposition: inline
-In-Reply-To: <4B6AFE22.20304@trash.net>
+	Thu, 4 Feb 2010 15:19:17 -0500
+In-Reply-To: <4B6AF58A.202@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Feb 04, 2010 at 06:04:34PM +0100, Patrick McHardy wrote:
+On Thu, 2010-02-04 at 17:27 +0100, Patrick McHardy wrote:
 > Patrick McHardy wrote:
 > > Alexey Dobriyan wrote:
 > >> Jon Masters correctly points out that conntrack hash sizes
@@ -54,17 +53,11 @@ On Thu, Feb 04, 2010 at 06:04:34PM +0100, Patrick McHardy wrote:
 > > intrusive and would allow to still change the init_net
 > > hashsize. Also seems less hackish :)
 > 
-> How about this (so far untested) patch? The htable_size is moved into
-> the per-namespace struct and initialized from the current (global)
-> value of nf_conntrack_htable_size. Changes through sysfs are still
-> permitted, but only affect the init namespace and newly created ones.
+> Just to avoid duplicate work, I'm currently trying that.
 
-No matter what we do, it's a hack!
+Bah. I already worked a set of patches to do that as I mentioned, but
+you've probably done it by now - can clean up and post if not :)
 
-> Additionally I removed reinitializing the hash random value when
-> changing the hash size since that also requires to rehash in all
-> namespaces.
+Jon.
 
-I'm not fond of this, because we're not even closely going to allow changing
-hashtable size per-netns. As such having actual per-netns hashtable size
-just slows down everything.
+
