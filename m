@@ -1,132 +1,59 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 7/7] netfilter: ebtables: mark: add CONFIG_COMPAT support
-Date: Fri,  5 Feb 2010 02:43:15 +0100
-Message-ID: <1265334195-28120-8-git-send-email-fw@strlen.de>
-References: <1265334195-28120-1-git-send-email-fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH for 2.6.33] conntrack: restrict runtime hashsize modifications
+Date: Fri, 05 Feb 2010 11:00:36 +0100
+Message-ID: <4B6BEC44.5000101@trash.net>
+References: <20100203203929.GA6168@x200> <4B6AF36A.3050402@trash.net>	 <4B6AF58A.202@trash.net> <1265314734.2861.521.camel@tonnant>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Alexey Dobriyan <adobriyan@gmail.com>, davem@davemloft.net,
+	eric.dumazet@gmail.com, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Jon Masters <jonathan@jonmasters.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:59379 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757266Ab0BEBoU (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:32832 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932080Ab0BEKAj (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Feb 2010 20:44:20 -0500
-In-Reply-To: <1265334195-28120-1-git-send-email-fw@strlen.de>
+	Fri, 5 Feb 2010 05:00:39 -0500
+In-Reply-To: <1265314734.2861.521.camel@tonnant>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add the required handlers to convert 32 bit
-ebtables mark match and match target structs to 64 bit layout.
+Jon Masters wrote:
+> On Thu, 2010-02-04 at 17:27 +0100, Patrick McHardy wrote:
+>> Patrick McHardy wrote:
+>>> Alexey Dobriyan wrote:
+>>>> Jon Masters correctly points out that conntrack hash sizes
+>>>> (nf_conntrack_htable_size) are global (not per-netns) and
+>>>> modifiable at runtime via /sys/module/nf_conntrack/hashsize .
+>>>>
+>>>> Steps to reproduce:
+>>>> 	clone(CLONE_NEWNET)
+>>>> 	[grow /sys/module/nf_conntrack/hashsize]
+>>>> 	exit()
+>>>>
+>>>> At netns exit we are going to scan random memory for conntracks to be killed.
+>>>>
+>>>> Apparently there is a code which deals with hashtable resize for
+>>>> init_net (and it was there befode netns conntrack code), so prohibit
+>>>> hashsize modification if there is more than one netns exists.
+>>>>
+>>>> To change hashtable sizes, you need to reload module.
+>>>>
+>>>> Expectation hashtable size was simply glued to a variable with no code
+>>>> to rehash expectations, so it was a bug to allow writing to it.
+>>>> Make "expect_hashsize" readonly.
+>>>>
+>>>> This is temporarily until we figure out what to do.
+>>> How about alternatively moving nf_conntrack_hsize into the
+>>> per-namespace struct? It doesn't look more complicated or
+>>> intrusive and would allow to still change the init_net
+>>> hashsize. Also seems less hackish :)
+>> Just to avoid duplicate work, I'm currently trying that.
+> 
+> Bah. I already worked a set of patches to do that as I mentioned, but
+> you've probably done it by now - can clean up and post if not :)
 
-Signed-off-by: Florian Westphal <fwestphal@astaro.com>
----
- net/bridge/netfilter/ebt_mark.c   |   31 +++++++++++++++++++++++++++++++
- net/bridge/netfilter/ebt_mark_m.c |   37 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 68 insertions(+), 0 deletions(-)
-
-diff --git a/net/bridge/netfilter/ebt_mark.c b/net/bridge/netfilter/ebt_mark.c
-index 153e167..21404b8 100644
---- a/net/bridge/netfilter/ebt_mark.c
-+++ b/net/bridge/netfilter/ebt_mark.c
-@@ -52,6 +52,32 @@ static bool ebt_mark_tg_check(const struct xt_tgchk_param *par)
- 		return false;
- 	return true;
- }
-+#ifdef CONFIG_COMPAT
-+struct compat_ebt_mark_t_info {
-+	compat_ulong_t mark;
-+	compat_uint_t target;
-+};
-+
-+static void mark_tg_compat_from_user(void *dst, void *src)
-+{
-+	const struct compat_ebt_mark_t_info *user = src;
-+	struct ebt_mark_t_info *kern = dst;
-+
-+	kern->mark = user->mark;
-+	kern->target = user->target;
-+}
-+
-+static int mark_tg_compat_to_user(void __user *dst, void *src)
-+{
-+	struct compat_ebt_mark_t_info __user *user = dst;
-+	const struct ebt_mark_t_info *kern = src;
-+
-+	if (put_user(kern->mark, &user->mark) ||
-+	    put_user(kern->target, &user->target))
-+		return -EFAULT;
-+	return 0;
-+}
-+#endif
- 
- static struct xt_target ebt_mark_tg_reg __read_mostly = {
- 	.name		= "mark",
-@@ -60,6 +86,11 @@ static struct xt_target ebt_mark_tg_reg __read_mostly = {
- 	.target		= ebt_mark_tg,
- 	.checkentry	= ebt_mark_tg_check,
- 	.targetsize	= sizeof(struct ebt_mark_t_info),
-+#ifdef CONFIG_COMPAT
-+	.compatsize	= sizeof(struct compat_ebt_mark_t_info),
-+	.compat_from_user = mark_tg_compat_from_user,
-+	.compat_to_user	= mark_tg_compat_to_user,
-+#endif
- 	.me		= THIS_MODULE,
- };
- 
-diff --git a/net/bridge/netfilter/ebt_mark_m.c b/net/bridge/netfilter/ebt_mark_m.c
-index 89abf40..ea89d95 100644
---- a/net/bridge/netfilter/ebt_mark_m.c
-+++ b/net/bridge/netfilter/ebt_mark_m.c
-@@ -35,6 +35,38 @@ static bool ebt_mark_mt_check(const struct xt_mtchk_param *par)
- 	return true;
- }
- 
-+
-+#ifdef CONFIG_COMPAT
-+struct compat_ebt_mark_m_info {
-+	compat_ulong_t mark, mask;
-+	uint8_t invert, bitmask;
-+};
-+
-+static void mark_mt_compat_from_user(void *dst, void *src)
-+{
-+	const struct compat_ebt_mark_m_info *user = src;
-+	struct ebt_mark_m_info *kern = dst;
-+
-+	kern->mark = user->mark;
-+	kern->mask = user->mask;
-+	kern->invert = user->invert;
-+	kern->bitmask = user->bitmask;
-+}
-+
-+static int mark_mt_compat_to_user(void __user *dst, void *src)
-+{
-+	struct compat_ebt_mark_m_info __user *user = dst;
-+	const struct ebt_mark_m_info *kern = src;
-+
-+	if (put_user(kern->mark, &user->mark) ||
-+	    put_user(kern->mask, &user->mask) ||
-+	    put_user(kern->invert, &user->invert) ||
-+	    put_user(kern->bitmask,&user->bitmask))
-+		return -EFAULT;
-+	return 0;
-+}
-+#endif
-+
- static struct xt_match ebt_mark_mt_reg __read_mostly = {
- 	.name		= "mark_m",
- 	.revision	= 0,
-@@ -42,6 +74,11 @@ static struct xt_match ebt_mark_mt_reg __read_mostly = {
- 	.match		= ebt_mark_mt,
- 	.checkentry	= ebt_mark_mt_check,
- 	.matchsize	= sizeof(struct ebt_mark_m_info),
-+#ifdef CONFIG_COMPAT
-+	.compatsize	= sizeof(struct compat_ebt_mark_m_info),
-+	.compat_from_user = mark_mt_compat_from_user,
-+	.compat_to_user	= mark_mt_compat_to_user,
-+#endif
- 	.me		= THIS_MODULE,
- };
- 
--- 
-1.6.4.4
-
+Sorry, I missed that in your mail. I'm pretty much done, will finish
+testing shortly.
