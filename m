@@ -1,40 +1,49 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 0/7] netfilter: ebtables: CONFIG_COMPAT support
-Date: Fri, 5 Feb 2010 21:07:23 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.1002052059110.8804@obet.zrqbmnf.qr>
-References: <1265334195-28120-1-git-send-email-fw@strlen.de> <alpine.LSU.2.01.1002050807580.16226@obet.zrqbmnf.qr> <20100205140021.GB21611@Chamillionaire.breakpoint.cc> <4B6C5231.7040702@pandora.be> <20100205195305.GA25763@Chamillionaire.breakpoint.cc>
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: Re: [PATCH for 2.6.33] conntrack: restrict runtime hashsize
+ modifications
+Date: Sat, 6 Feb 2010 00:04:07 +0200
+Message-ID: <20100205220407.GA27953@x200>
+References: <20100203203929.GA6168@x200>
+ <4B6AF36A.3050402@trash.net>
+ <4B6AFE22.20304@trash.net>
+ <20100204194744.GA4185@x200>
+ <4B6BEC23.8020101@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Bart De Schuymer <bdschuym@pandora.be>,
+Content-Type: text/plain; charset=us-ascii
+Cc: davem@davemloft.net, jonathan@jonmasters.org,
+	eric.dumazet@gmail.com, netdev@vger.kernel.org,
 	netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:42727 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757325Ab0BEUHY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Feb 2010 15:07:24 -0500
-In-Reply-To: <20100205195305.GA25763@Chamillionaire.breakpoint.cc>
+Received: from mail-fx0-f220.google.com ([209.85.220.220]:59584 "EHLO
+	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933863Ab0BEWEQ (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 5 Feb 2010 17:04:16 -0500
+Content-Disposition: inline
+In-Reply-To: <4B6BEC23.8020101@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Fri, Feb 05, 2010 at 11:00:03AM +0100, Patrick McHardy wrote:
+> Actually it doesn't seem like much more work to allow changing
+> table size, the main problem is that sysfs module parameters
+> don't seem to fit into the network namespace model at all.
 
-On Friday 2010-02-05 20:53, Florian Westphal wrote:
->
->> Can't you decide on installation
->> time of the Linux system which binary to provide?
->
->It should still work when the kernel is changed later.
->
->The 'easiest' solution would be to ship both 64 and 32bit binaries
->and have some wrapper that picks the right one depending on kernel.
+Well, they "fit" as they're global because modules are global.
+So we can make every netns hashtable size equals to module param,
+or make it bounded by module param
+or make initial hashtable size and not bounded
+or million other things.
 
-Why ship two? There is a preferred userspace for each kernel
-architecture (that I have seen). If you try to install ebtables on a
-x86_64 distro, it generally offers you ebtables.x86_64.
+> Please be more specific about your suspected slowdowns.
 
->But this has other issues (e.g. need for 64bit libc) or,
->when using a statically linked binary, the drawback that you need to use
->e.g. "6" instead of "tcp" due to missing libraries glibc wants to load
->at run time.
+I meant net->ct.htable_size in hash functions _if_ you're not allowing
+changing it from inside netns.
 
-Anything that is dlopened is not strictly required for execution.
+> What's "everything"? What's different about the hashsize
+> compared to the many members we already moved to per-netns
+> structs?
+
+But whatever. I think per-netns hashtable size shouldn't be done
+that late.
