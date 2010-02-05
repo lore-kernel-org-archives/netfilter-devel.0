@@ -1,49 +1,45 @@
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: Re: [PATCH for 2.6.33] conntrack: restrict runtime hashsize
- modifications
-Date: Sat, 6 Feb 2010 00:04:07 +0200
-Message-ID: <20100205220407.GA27953@x200>
-References: <20100203203929.GA6168@x200>
- <4B6AF36A.3050402@trash.net>
- <4B6AFE22.20304@trash.net>
- <20100204194744.GA4185@x200>
- <4B6BEC23.8020101@trash.net>
+Subject: xtables: consistent struct compat_xt_counters definition
+Date: Sat, 6 Feb 2010 00:11:42 +0200
+Message-ID: <20100205221142.GB27953@x200>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: davem@davemloft.net, jonathan@jonmasters.org,
-	eric.dumazet@gmail.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f220.google.com ([209.85.220.220]:59584 "EHLO
+Received: from mail-fx0-f220.google.com ([209.85.220.220]:59948 "EHLO
 	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933863Ab0BEWEQ (ORCPT
+	with ESMTP id S933863Ab0BEWLs (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Feb 2010 17:04:16 -0500
+	Fri, 5 Feb 2010 17:11:48 -0500
+Received: by fxm20 with SMTP id 20so4486370fxm.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 05 Feb 2010 14:11:47 -0800 (PST)
 Content-Disposition: inline
-In-Reply-To: <4B6BEC23.8020101@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Feb 05, 2010 at 11:00:03AM +0100, Patrick McHardy wrote:
-> Actually it doesn't seem like much more work to allow changing
-> table size, the main problem is that sysfs module parameters
-> don't seem to fit into the network namespace model at all.
+There is compat_u64 type which deals with different u64 type alignment
+on different compat-capable platforms, so use it and removed some
+hardcoded assumptions.
 
-Well, they "fit" as they're global because modules are global.
-So we can make every netns hashtable size equals to module param,
-or make it bounded by module param
-or make initial hashtable size and not bounded
-or million other things.
+Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
+---
 
-> Please be more specific about your suspected slowdowns.
+ include/linux/netfilter/x_tables.h |    6 +-----
+ 1 file changed, 1 insertion(+), 5 deletions(-)
 
-I meant net->ct.htable_size in hash functions _if_ you're not allowing
-changing it from inside netns.
-
-> What's "everything"? What's different about the hashsize
-> compared to the many members we already moved to per-netns
-> structs?
-
-But whatever. I think per-netns hashtable size shouldn't be done
-that late.
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -562,11 +562,7 @@ struct compat_xt_entry_target {
+  * current task alignment */
+ 
+ struct compat_xt_counters {
+-#if defined(CONFIG_X86_64) || defined(CONFIG_IA64)
+-	u_int32_t cnt[4];
+-#else
+-	u_int64_t cnt[2];
+-#endif
++	compat_u64 pcnt, bcnt;			/* Packet and byte counters */
+ };
+ 
+ struct compat_xt_counters_info {
