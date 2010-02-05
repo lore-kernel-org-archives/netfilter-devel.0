@@ -1,68 +1,33 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
+From: David Miller <davem@davemloft.net>
 Subject: Re: [PATCH 0/7] netfilter: ebtables: CONFIG_COMPAT support
-Date: Fri, 05 Feb 2010 18:15:29 +0100
-Message-ID: <4B6C5231.7040702@pandora.be>
-References: <1265334195-28120-1-git-send-email-fw@strlen.de> <alpine.LSU.2.01.1002050807580.16226@obet.zrqbmnf.qr> <20100205140021.GB21611@Chamillionaire.breakpoint.cc>
+Date: Fri, 05 Feb 2010 10:02:41 -0800 (PST)
+Message-ID: <20100205.100241.17593999.davem@davemloft.net>
+References: <alpine.LSU.2.01.1002050807580.16226@obet.zrqbmnf.qr>
+	<20100205140021.GB21611@Chamillionaire.breakpoint.cc>
+	<4B6C5231.7040702@pandora.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Cc: fw@strlen.de, netfilter-devel@vger.kernel.org
+To: bdschuym@pandora.be
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from georges.telenet-ops.be ([195.130.137.68]:42583 "EHLO
-	georges.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756252Ab0BERUf (ORCPT
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:42771
+	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933516Ab0BESC2 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Feb 2010 12:20:35 -0500
-In-Reply-To: <20100205140021.GB21611@Chamillionaire.breakpoint.cc>
+	Fri, 5 Feb 2010 13:02:28 -0500
+In-Reply-To: <4B6C5231.7040702@pandora.be>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello Florian,
+From: Bart De Schuymer <bdschuym@pandora.be>
+Date: Fri, 05 Feb 2010 18:15:29 +0100
 
-First of all, thanks for pointing out these problems.
+> At this time I am more in favor of fixing userland...
 
-Florian Westphal schreef:
-> Jan Engelhardt <jengelh@medozas.de> wrote:
->   
->> In a quick look, ebtables 2.0.8-2 seems to just work there in both
->> 32/64 and 64/64 [U/K-bitness] combinations:
->>     
-> [..]
->   
->> So I wonder whether extra patches are really needed for x86_64.
->>     
->
-> I did investigate the "lets pad the structures in userspace" scenario.
-> It has two problems.
->
-> First of all, support for a few targets/matches is missing.
->
->   
-I would certainly accept patches to the userland code to fix these
-remaining problems that I was unaware of. I don't have access to such a
-machine.
+Compatability issues between 32-bit and 64-bit interfaces
+when running on a 64-bit kernel should _always_ be handled
+in the kernel via the compat layer.
 
-> Second, the point is to run unmodified binaries with either a 32
-> or 64 bit kernel without recompiling.
->
-> Solving this transparently (i.e. same binary) would thus
-> require a run-time check for the kernel architecture before the
-> set/getsockopt can be made.
->
-> As far as I could see this would require a lot of changes to the ebtables
-> userland code base, too.
->   
-Could you elaborate why having to distribute two compiled versions of
-ebtables for different platform configurations is more overhead than the
-overhead added by your kernel patches? Can't you decide on installation
-time of the Linux system which binary to provide?
-At this time I am more in favor of fixing userland...
-
-cheers,
-Bart
-
--- 
-Bart De Schuymer
-www.artinalgorithms.be
-
+Every attempt to do this in userspace somehow been ugly and has
+utterly failed.
