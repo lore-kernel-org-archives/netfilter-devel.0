@@ -1,41 +1,53 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 1/7] netfilter: ebtables: abort if next_offset is too small
-Date: Fri,  5 Feb 2010 02:43:09 +0100
-Message-ID: <1265334195-28120-2-git-send-email-fw@strlen.de>
-References: <1265334195-28120-1-git-send-email-fw@strlen.de>
+Subject: [PATCH 0/7] netfilter: ebtables: CONFIG_COMPAT support
+Date: Fri,  5 Feb 2010 02:43:08 +0100
+Message-ID: <1265334195-28120-1-git-send-email-fw@strlen.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:59373 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:59372 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756708Ab0BEBoK (ORCPT
+	by vger.kernel.org with ESMTP id S1756606Ab0BEBoK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
 	Thu, 4 Feb 2010 20:44:10 -0500
-In-Reply-To: <1265334195-28120-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-next_offset must be > 0, otherwise this loops forever.
-The offset also contains the size of the ebt_entry structure
-itself, so anything smaller is invalid.
+Hello netfilter team,
 
-Signed-off-by: Florian Westphal <fwestphal@astaro.com>
----
- net/bridge/netfilter/ebtables.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
+following patch series adds CONFIG_COMPAT
+support to ebtables (unfortunately tested on x86_64 only).
 
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 12beb58..1939041 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -442,6 +442,8 @@ static int ebt_verify_pointers(struct ebt_replace *repl,
- 				break;
- 			if (left < e->next_offset)
- 				break;
-+			if (e->next_offset < sizeof(struct ebt_entry))
-+				return -EINVAL;
- 			offset += e->next_offset;
- 		}
- 	}
--- 
-1.6.4.4
+First patches are minor bug fixes/preparation patches,
+patch 5 is the main CONFIG_COMPAT hunk, 6 and 7 add CONFIG_COMPAT
+support to the targets/matches that need special handling (maybe
+I missed some, though).
 
+ include/linux/netfilter/x_tables.h  |    2 +-
+ net/bridge/netfilter/ebt_802_3.c    |    2 +-
+ net/bridge/netfilter/ebt_arp.c      |    2 +-
+ net/bridge/netfilter/ebt_arpreply.c |    2 +-
+ net/bridge/netfilter/ebt_dnat.c     |    2 +-
+ net/bridge/netfilter/ebt_ip.c       |    2 +-
+ net/bridge/netfilter/ebt_ip6.c      |    2 +-
+ net/bridge/netfilter/ebt_limit.c    |   18 +-
+ net/bridge/netfilter/ebt_log.c      |    2 +-
+ net/bridge/netfilter/ebt_mark.c     |   33 +-
+ net/bridge/netfilter/ebt_mark_m.c   |   39 ++-
+ net/bridge/netfilter/ebt_nflog.c    |    2 +-
+ net/bridge/netfilter/ebt_pkttype.c  |    2 +-
+ net/bridge/netfilter/ebt_redirect.c |    2 +-
+ net/bridge/netfilter/ebt_snat.c     |    2 +-
+ net/bridge/netfilter/ebt_stp.c      |    2 +-
+ net/bridge/netfilter/ebt_ulog.c     |    2 +-
+ net/bridge/netfilter/ebt_vlan.c     |    2 +-
+ net/bridge/netfilter/ebtables.c     | 1064 ++++++++++++++++++++++++++++++++---
+ net/netfilter/x_tables.c            |    6 +-
+
+Florian Westphal (7):
+      netfilter: ebtables: abort if next_offset is too small
+      netfilter: ebtables: avoid explicit XT_ALIGN() in match/targets
+      netfilter: CONFIG_COMPAT: allow delta to exceed 32767
+      netfilter: ebtables: split do_replace into two functions
+      netfilter: ebtables: add CONFIG_COMPAT support
+      netfilter: ebt_limit: add CONFIG_COMPAT support
+      netfilter: ebtables: mark: add CONFIG_COMPAT support
