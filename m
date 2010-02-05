@@ -1,44 +1,41 @@
-From: Jon Masters <jonathan@jonmasters.org>
-Subject: Re: [PATCH for 2.6.33] conntrack: restrict runtime hashsize
- modifications
-Date: Thu, 04 Feb 2010 15:23:34 -0500
-Message-ID: <1265315014.2861.531.camel@tonnant>
-References: <20100203203929.GA6168@x200> <4B6AF36A.3050402@trash.net>
-	 <4B6AFE22.20304@trash.net>  <20100204194744.GA4185@x200>
-Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>, davem@davemloft.net,
-	eric.dumazet@gmail.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Alexey Dobriyan <adobriyan@gmail.com>
+From: Florian Westphal <fw@strlen.de>
+Subject: [PATCH 1/7] netfilter: ebtables: abort if next_offset is too small
+Date: Fri,  5 Feb 2010 02:43:09 +0100
+Message-ID: <1265334195-28120-2-git-send-email-fw@strlen.de>
+References: <1265334195-28120-1-git-send-email-fw@strlen.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from dallas.jonmasters.org ([72.29.103.172]:56722 "EHLO
-	dallas.jonmasters.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753018Ab0BDUXy (ORCPT
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:59373 "EHLO
+	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756708Ab0BEBoK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Feb 2010 15:23:54 -0500
-In-Reply-To: <20100204194744.GA4185@x200>
+	Thu, 4 Feb 2010 20:44:10 -0500
+In-Reply-To: <1265334195-28120-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 2010-02-04 at 21:47 +0200, Alexey Dobriyan wrote:
-> On Thu, Feb 04, 2010 at 06:04:34PM +0100, Patrick McHardy wrote:
-> > Patrick McHardy wrote:
-> > > Alexey Dobriyan wrote:
+next_offset must be > 0, otherwise this loops forever.
+The offset also contains the size of the ebt_entry structure
+itself, so anything smaller is invalid.
 
-> > Additionally I removed reinitializing the hash random value when
-> > changing the hash size since that also requires to rehash in all
-> > namespaces.
-> 
-> I'm not fond of this, because we're not even closely going to allow changing
-> hashtable size per-netns. As such having actual per-netns hashtable size
-> just slows down everything.
+Signed-off-by: Florian Westphal <fwestphal@astaro.com>
+---
+ net/bridge/netfilter/ebtables.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
 
-Are you sure, as compared with a shared global size that this is really
-going to slow things down all that much? We already need to poke in that
-struct to pull out various things just hash. I haven't profiled to see.
-
-Jon.
-
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index 12beb58..1939041 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -442,6 +442,8 @@ static int ebt_verify_pointers(struct ebt_replace *repl,
+ 				break;
+ 			if (left < e->next_offset)
+ 				break;
++			if (e->next_offset < sizeof(struct ebt_entry))
++				return -EINVAL;
+ 			offset += e->next_offset;
+ 		}
+ 	}
+-- 
+1.6.4.4
 
