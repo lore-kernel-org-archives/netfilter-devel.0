@@ -1,54 +1,28 @@
-From: Jon Masters <jonathan@jonmasters.org>
-Subject: Re: [PATCH for 2.6.33] conntrack: restrict runtime hashsize
- modifications
-Date: Fri, 05 Feb 2010 06:51:02 -0500
-Message-ID: <1265370662.2861.769.camel@tonnant>
-References: <20100203203929.GA6168@x200> <4B6AF36A.3050402@trash.net>
-	 <4B6AFE22.20304@trash.net> <20100204194744.GA4185@x200>
-	 <4B6BEC23.8020101@trash.net> <4B6BFE29.1040204@trash.net>
-	 <b6fcc0a1002050319p2ba0ff30y4bc8bdba08ff65d9@mail.gmail.com>
-	 <4B6BFF69.6050503@trash.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: kernel panic with ip_conntrack with kernel 2.6.16.13
+Date: Fri, 5 Feb 2010 13:24:55 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.1002051323130.7363@obet.zrqbmnf.qr>
+References: <001301caa5ca$2b50e8a0$81f2b9e0$@com>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
-Cc: Alexey Dobriyan <adobriyan@gmail.com>, davem@davemloft.net,
-	eric.dumazet@gmail.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Nishit Shah <nishit@elitecore.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from dallas.jonmasters.org ([72.29.103.172]:48336 "EHLO
-	dallas.jonmasters.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753385Ab0BELvW (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Feb 2010 06:51:22 -0500
-In-Reply-To: <4B6BFF69.6050503@trash.net>
+Received: from borg.medozas.de ([188.40.89.202]:60404 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932145Ab0BEMY5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 5 Feb 2010 07:24:57 -0500
+In-Reply-To: <001301caa5ca$2b50e8a0$81f2b9e0$@com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 2010-02-05 at 12:22 +0100, Patrick McHardy wrote:
-> Alexey Dobriyan wrote:
-> > On Fri, Feb 5, 2010 at 1:16 PM, Patrick McHardy <kaber@trash.net> wrote:
-> >> OK testing looks fine, although I'm quite surprised that its actually
-> >> possible to change module parameters from within non-init namespaces.
-> >> How is this supposed to work at all? I don't see how sysfs could
-> >> possibly provide a network namespace context ...
-> > 
-> > 
-> > You can do in write hook
-> > 
-> >     if (!net_eq(current->nsproxy->net_ns, &init_net))
-> >             return -EINVAL;
-> 
-> Right, I see. So we could actually make resizing work for all
-> namespaces quite easily. Is there any reason not to do this?
+On Thursday 2010-02-04 19:45, Nishit Shah wrote:
 
-Yes, but I think (2.6.34) there also needs to be a better way to expose
-netns topology and visualize all the hashtables on a system - if you're
-the admin you really want to be able to see all of them, not just for a
-particular namespace you might be in, in addition to the perns views.
+>Hi,
+>
+>	Please find the panic below. I am not able to reproduce it but I am
+>getting it very frequently.
+>	Kernel version is ? 2.6.16.13
+>	Any suggestions/directions ??
 
-We already discussed 2.6.34, I'm only mentioning this "for the record".
-
-Jon.
-
-
+Try a newer kernel, it could be fixed long already.
