@@ -1,60 +1,128 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 6/7] netfilter: ebt_limit: add CONFIG_COMPAT support
-Date: Fri,  5 Feb 2010 02:43:14 +0100
-Message-ID: <1265334195-28120-7-git-send-email-fw@strlen.de>
+Subject: [PATCH 7/7] netfilter: ebtables: mark: add CONFIG_COMPAT support
+Date: Fri,  5 Feb 2010 02:43:15 +0100
+Message-ID: <1265334195-28120-8-git-send-email-fw@strlen.de>
 References: <1265334195-28120-1-git-send-email-fw@strlen.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:59378 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:59379 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757240Ab0BEBoT (ORCPT
+	by vger.kernel.org with ESMTP id S1757266Ab0BEBoU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 4 Feb 2010 20:44:19 -0500
+	Thu, 4 Feb 2010 20:44:20 -0500
 In-Reply-To: <1265334195-28120-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-ebt_limit structure is larger on 64 bit systems due
-to "long" type used in the (kernel-only) data section.
-
-Setting .compatsize is enough in this case, these values
-have no meaning in userspace.
+Add the required handlers to convert 32 bit
+ebtables mark match and match target structs to 64 bit layout.
 
 Signed-off-by: Florian Westphal <fwestphal@astaro.com>
 ---
- net/bridge/netfilter/ebt_limit.c |   16 ++++++++++++++++
- 1 files changed, 16 insertions(+), 0 deletions(-)
+ net/bridge/netfilter/ebt_mark.c   |   31 +++++++++++++++++++++++++++++++
+ net/bridge/netfilter/ebt_mark_m.c |   37 +++++++++++++++++++++++++++++++++++++
+ 2 files changed, 68 insertions(+), 0 deletions(-)
 
-diff --git a/net/bridge/netfilter/ebt_limit.c b/net/bridge/netfilter/ebt_limit.c
-index 9dd16e6..7a81827 100644
---- a/net/bridge/netfilter/ebt_limit.c
-+++ b/net/bridge/netfilter/ebt_limit.c
-@@ -84,6 +84,19 @@ static bool ebt_limit_mt_check(const struct xt_mtchk_param *par)
+diff --git a/net/bridge/netfilter/ebt_mark.c b/net/bridge/netfilter/ebt_mark.c
+index 153e167..21404b8 100644
+--- a/net/bridge/netfilter/ebt_mark.c
++++ b/net/bridge/netfilter/ebt_mark.c
+@@ -52,6 +52,32 @@ static bool ebt_mark_tg_check(const struct xt_tgchk_param *par)
+ 		return false;
+ 	return true;
+ }
++#ifdef CONFIG_COMPAT
++struct compat_ebt_mark_t_info {
++	compat_ulong_t mark;
++	compat_uint_t target;
++};
++
++static void mark_tg_compat_from_user(void *dst, void *src)
++{
++	const struct compat_ebt_mark_t_info *user = src;
++	struct ebt_mark_t_info *kern = dst;
++
++	kern->mark = user->mark;
++	kern->target = user->target;
++}
++
++static int mark_tg_compat_to_user(void __user *dst, void *src)
++{
++	struct compat_ebt_mark_t_info __user *user = dst;
++	const struct ebt_mark_t_info *kern = src;
++
++	if (put_user(kern->mark, &user->mark) ||
++	    put_user(kern->target, &user->target))
++		return -EFAULT;
++	return 0;
++}
++#endif
+ 
+ static struct xt_target ebt_mark_tg_reg __read_mostly = {
+ 	.name		= "mark",
+@@ -60,6 +86,11 @@ static struct xt_target ebt_mark_tg_reg __read_mostly = {
+ 	.target		= ebt_mark_tg,
+ 	.checkentry	= ebt_mark_tg_check,
+ 	.targetsize	= sizeof(struct ebt_mark_t_info),
++#ifdef CONFIG_COMPAT
++	.compatsize	= sizeof(struct compat_ebt_mark_t_info),
++	.compat_from_user = mark_tg_compat_from_user,
++	.compat_to_user	= mark_tg_compat_to_user,
++#endif
+ 	.me		= THIS_MODULE,
+ };
+ 
+diff --git a/net/bridge/netfilter/ebt_mark_m.c b/net/bridge/netfilter/ebt_mark_m.c
+index 89abf40..ea89d95 100644
+--- a/net/bridge/netfilter/ebt_mark_m.c
++++ b/net/bridge/netfilter/ebt_mark_m.c
+@@ -35,6 +35,38 @@ static bool ebt_mark_mt_check(const struct xt_mtchk_param *par)
  	return true;
  }
  
 +
 +#ifdef CONFIG_COMPAT
-+/*
-+ * no conversion function needed --
-+ * only avg/burst have meaningful values in userspace.
-+ */
-+struct ebt_compat_limit_info {
-+	compat_uint_t avg, burst;
-+	compat_ulong_t prev;
-+	compat_uint_t credit, credit_cap, cost;
++struct compat_ebt_mark_m_info {
++	compat_ulong_t mark, mask;
++	uint8_t invert, bitmask;
 +};
++
++static void mark_mt_compat_from_user(void *dst, void *src)
++{
++	const struct compat_ebt_mark_m_info *user = src;
++	struct ebt_mark_m_info *kern = dst;
++
++	kern->mark = user->mark;
++	kern->mask = user->mask;
++	kern->invert = user->invert;
++	kern->bitmask = user->bitmask;
++}
++
++static int mark_mt_compat_to_user(void __user *dst, void *src)
++{
++	struct compat_ebt_mark_m_info __user *user = dst;
++	const struct ebt_mark_m_info *kern = src;
++
++	if (put_user(kern->mark, &user->mark) ||
++	    put_user(kern->mask, &user->mask) ||
++	    put_user(kern->invert, &user->invert) ||
++	    put_user(kern->bitmask,&user->bitmask))
++		return -EFAULT;
++	return 0;
++}
 +#endif
 +
- static struct xt_match ebt_limit_mt_reg __read_mostly = {
- 	.name		= "limit",
+ static struct xt_match ebt_mark_mt_reg __read_mostly = {
+ 	.name		= "mark_m",
  	.revision	= 0,
-@@ -91,6 +104,9 @@ static struct xt_match ebt_limit_mt_reg __read_mostly = {
- 	.match		= ebt_limit_mt,
- 	.checkentry	= ebt_limit_mt_check,
- 	.matchsize	= sizeof(struct ebt_limit_info),
+@@ -42,6 +74,11 @@ static struct xt_match ebt_mark_mt_reg __read_mostly = {
+ 	.match		= ebt_mark_mt,
+ 	.checkentry	= ebt_mark_mt_check,
+ 	.matchsize	= sizeof(struct ebt_mark_m_info),
 +#ifdef CONFIG_COMPAT
-+	.compatsize	= sizeof(struct ebt_compat_limit_info),
++	.compatsize	= sizeof(struct compat_ebt_mark_m_info),
++	.compat_from_user = mark_mt_compat_from_user,
++	.compat_to_user	= mark_mt_compat_to_user,
 +#endif
  	.me		= THIS_MODULE,
  };
