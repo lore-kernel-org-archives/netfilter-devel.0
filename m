@@ -1,47 +1,50 @@
-From: Webmail Upgrade Team <upgradecct01@w.cn>
-Subject: Upgrade Your Email Account
-Date: Sat, 06 Feb 2010 06:07:26 +0300
-Message-ID: <20100206060726.10247bpnigs4m9cs@msvr2.muhas.ac.tz>
-Reply-To: upgradecct@w.cn
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: Re: [PATCH] xtables: symmetric COMPAT_XT_ALIGN definition
+Date: Sat, 6 Feb 2010 08:30:15 +0200
+Message-ID: <20100206063015.GA4129@x200>
+References: <20100205221331.GC27953@x200>
+ <alpine.LSU.2.01.1002060018530.32310@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset=ISO-8859-1;
-	DelSp="Yes";
-	format="flowed"
-Content-Transfer-Encoding: 7bit
-To: undisclosed-recipients:;
+Content-Type: text/plain; charset=us-ascii
+Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from [41.222.158.196] ([41.222.158.196]:51288 "EHLO
-	msvr2.muchs.ac.tz" rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1751914Ab0BFDkl (ORCPT
+Received: from mail-fx0-f220.google.com ([209.85.220.220]:51579 "EHLO
+	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751522Ab0BFGaR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 5 Feb 2010 22:40:41 -0500
+	Sat, 6 Feb 2010 01:30:17 -0500
+Received: by fxm20 with SMTP id 20so4769119fxm.1
+        for <netfilter-devel@vger.kernel.org>; Fri, 05 Feb 2010 22:30:16 -0800 (PST)
 Content-Disposition: inline
+In-Reply-To: <alpine.LSU.2.01.1002060018530.32310@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-ATTENTION:
-WEBMAIL SUBSCRIBER:
-This mail is to inform all our {WEBMAIL} users that we will be upgrading
-our site in a couple of days from now. So you as a Subscriber of our site
-you are required to send us your Email account details so as to enable us
-know if you are still making use of your mail box. Further informed that
-we will be deleting all mail account that is not functioning so as to
-create more space for new user. so you are to send us your mail account
-details which are as follows:
+On Sat, Feb 06, 2010 at 12:22:54AM +0100, Jan Engelhardt wrote:
+> On Friday 2010-02-05 23:13, Alexey Dobriyan wrote:
+> >@@ -514,7 +514,7 @@ int xt_check_target(struct xt_tgchk_param *par,
+> > 		    unsigned int size, u_int8_t proto, bool inv_proto)
+> > {
+> > 	if (XT_ALIGN(par->target->targetsize) != size) {
+> >-		pr_err("%s_tables: %s target: invalid size %Zu != %u\n",
+> >+		pr_err("%s_tables: %s target: invalid size %u != %u\n",
+> > 		       xt_prefix[par->family], par->target->name,
+> > 		       XT_ALIGN(par->target->targetsize), size);
+> > 		return -EINVAL;
+> >@@ -364,7 +364,7 @@ int xt_check_match(struct xt_mtchk_param *par,
+> > 		 * ebt_among is exempt from centralized matchsize checking
+> > 		 * because it uses a dynamic-size data set.
+> > 		 */
+> >-		pr_err("%s_tables: %s match: invalid size %Zu != %u\n",
+> >+		pr_err("%s_tables: %s match: invalid size %u != %u\n",
+> > 		       xt_prefix[par->family], par->match->name,
+> > 		       XT_ALIGN(par->match->matchsize), size);
+> > 		return -EINVAL;
+> 
+> Why are you changing this? __alignof__ still returns a size_t,
+> and this type promotes through the course of the ALIGN macro.
 
-*User name:
-*Password:
-*Date of Birth:
+alignment is casted to the type of alignee, so it's unsigned int now:
 
-Failure to do this will immediately render your email address deactivated
-from our database. Your response should be send to the following e-mail
-address. Your AdminManager:upgradecct@w.cn
-
-Yours In Service.
-Webmail Upgrade Team
-
-
-----------------------------------------------------------------
-This message was sent using IMP, the Internet Messaging Program.
-
+	#define ALIGN(x,a) __ALIGN_MASK(x,(typeof(x))(a)-1)
