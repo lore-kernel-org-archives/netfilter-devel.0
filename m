@@ -1,70 +1,62 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: Re: [PATCH 0/7] netfilter: ebtables: CONFIG_COMPAT support
-Date: Sun, 7 Feb 2010 23:38:02 +0100
-Message-ID: <20100207223802.GA27427@Chamillionaire.breakpoint.cc>
-References: <alpine.LSU.2.01.1002050807580.16226@obet.zrqbmnf.qr>
- <20100205140021.GB21611@Chamillionaire.breakpoint.cc>
- <4B6C5231.7040702@pandora.be>
- <20100205.100241.17593999.davem@davemloft.net>
- <4B6D69D3.7050008@pandora.be>
+Subject: Re: [PATCH 5/7] netfilter: ebtables: add CONFIG_COMPAT support
+Date: Sun, 7 Feb 2010 23:43:45 +0100
+Message-ID: <20100207224345.GB27427@Chamillionaire.breakpoint.cc>
+References: <1265334195-28120-1-git-send-email-fw@strlen.de>
+ <1265334195-28120-6-git-send-email-fw@strlen.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Cc: David Miller <davem@davemloft.net>, netfilter-devel@vger.kernel.org
-To: Bart De Schuymer <bdschuym@pandora.be>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:59834 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:60228 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754941Ab0BGWiG (ORCPT
+	by vger.kernel.org with ESMTP id S1753104Ab0BGWnr (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 7 Feb 2010 17:38:06 -0500
+	Sun, 7 Feb 2010 17:43:47 -0500
+Received: id: fw by Chamillionaire.breakpoint.cc with local
+	(easymta 1.00 BETA 1)
+	id 1NeFqz-0001rV-Ty
+	for netfilter-devel@vger.kernel.org; Sun, 07 Feb 2010 23:43:45 +0100
 Content-Disposition: inline
-In-Reply-To: <4B6D69D3.7050008@pandora.be>
+In-Reply-To: <1265334195-28120-6-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Bart De Schuymer <bdschuym@pandora.be> wrote:
-> I can't tell how many of these systems are running ebtables but
-> considering most of the functionality has been working on a
-> user32/kernel64 system since 2004 I think it's safe to say that
-> Florian's patch will break a few systems.
+Florian Westphal <fw@strlen.de> wrote:
+> From: Florian Westphal <fwestphal@astaro.com>
+> 
+> Main code for 32 bit userland ebtables binary with 64 bit kernels
+> support.
 
-Yes, I had feared that.
-The way I see it we have a couple of alternatives.
+[..]
 
-One way would be to disable the in-kernel ebt-compat layer for
-sparc64. Of course this assumes that this userland-side padding
-is only used on the sparc platform.
+> +static int compat_copy_everything_to_user(struct ebt_table *t, void __user *user,
+> +   int *len, int cmd)
+[..]
 
-> I'm not familiar with the way this compat layer works, but is there a
-> standard way to ensure that old ebtables binaries don't use the compat
-> layer, while a new version of the userspace program would?
+> +	if (tmp.num_counters) {
+> +		if (tmp.num_counters != tinfo.nentries) {
+> +			BUGPRINT("Num_counters wrong\n");
+> +			return -EINVAL;
+> +		}
+> +		counterstmp = vmalloc(tinfo.nentries * sizeof(*counterstmp));
+> +		if (!counterstmp)
+> +			return -ENOMEM;
+> +
+> +		write_lock_bh(&t->lock);
+> +		get_counters(oldcounters, counterstmp, tinfo.nentries);
+> +		write_unlock_bh(&t->lock);
+> +
+> +		buf = compat_ptr(tmp.counters);
+> +		if (copy_to_user(buf, counterstmp, tinfo.nentries * sizeof(*counterstmp))) {
+> +			vfree(counterstmp);
+> +			return -EFAULT;
+> +		}
+> +		vfree(counterstmp);
+> +	}
 
-It should be possible to figure out if we need to do fixups,
-because struct ebt_replace size differs (and the sockopt *len
-includes this value).
+This almost identical to the non-compat case; I'll move this to a common
+helper in the next iteration.
 
-In some cases this is as simple as "if (*len == sizeof(struct
-ebt_replace)". But even in case of EBT_SO_GET_ENTRIES it seems
-possible. We can try the "native" getsockopt call first, it should
-then error out early due to this check:
-
-if (*len != sizeof(struct ebt_replace) + entries_size +
-           (tmp.num_counters? nentries * sizeof(struct ebt_counter): 0)) {
-				    sizeof(struct ebt_counter): 0)) {
-	/* -EINVAL */
-
-we can then re-try with all the compat fixups.
-
-What do you think?
-
-I'll do some tests with this in the next couple of days;
-if everything looks good (and there are no objections) I'll post a revised
-patch set.
-
-> If all else fails, we could do this with a special flag in struct
-> ebt_replace::valid_hooks, as this member has some unused bits.
-
-Thanks, its good to know there is some kind of "last resort".
-But I'd like to avoid any incompatibilities, if possible.
-
-Regards, Florian
+Also, compat_do_ebt_get_ctl() does not have the required *len check.
+Will fix in next revision.
