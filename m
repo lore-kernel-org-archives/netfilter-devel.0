@@ -1,58 +1,210 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Stomping Static Data pull, 2010-02-07
-Date: Sun,  7 Feb 2010 12:49:40 +0100
-Message-ID: <1265543385-7420-1-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 2/4] netfilter: xtables: compact table hook functions (2/2)
+Date: Sun,  7 Feb 2010 12:49:42 +0100
+Message-ID: <1265543385-7420-3-git-send-email-jengelh@medozas.de>
+References: <1265543385-7420-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:50116 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:50124 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750741Ab0BGLts (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 7 Feb 2010 06:49:48 -0500
+	id S1755025Ab0BGLtu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 7 Feb 2010 06:49:50 -0500
+In-Reply-To: <1265543385-7420-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+The calls to ip6t_do_table only show minimal differences, so it seems
+like a good cleanup to merge them to a single one too.
+Space saving obtained by both patches: 6807725->6807373
+("Total" column from `size -A`.)
 
-Hi,
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ net/ipv4/netfilter/arptable_filter.c   |    8 ++------
+ net/ipv4/netfilter/iptable_filter.c    |   18 +++++++-----------
+ net/ipv4/netfilter/iptable_raw.c       |   16 +++++++---------
+ net/ipv4/netfilter/iptable_security.c  |   18 +++++++-----------
+ net/ipv6/netfilter/ip6table_filter.c   |    8 ++------
+ net/ipv6/netfilter/ip6table_raw.c      |    8 ++------
+ net/ipv6/netfilter/ip6table_security.c |    8 ++------
+ 7 files changed, 29 insertions(+), 55 deletions(-)
 
+diff --git a/net/ipv4/netfilter/arptable_filter.c b/net/ipv4/netfilter/arptable_filter.c
+index 78bb72e..6e94b41 100644
+--- a/net/ipv4/netfilter/arptable_filter.c
++++ b/net/ipv4/netfilter/arptable_filter.c
+@@ -59,13 +59,9 @@ static unsigned int arptable_filter_hook(unsigned int hook,
+ 				 const struct net_device *out,
+ 				 int (*okfn)(struct sk_buff *))
+ {
+-	if (hook == NF_ARP_OUT)
+-		return arpt_do_table(skb, hook, in, out,
+-				     dev_net(out)->ipv4.arptable_filter);
++	const struct net *net = dev_net((in != NULL) ? in : out);
+ 
+-	/* INPUT/FORWARD: */
+-	return arpt_do_table(skb, hook, in, out,
+-			     dev_net(in)->ipv4.arptable_filter);
++	return arpt_do_table(skb, hook, in, out, net->ipv4.arptable_filter);
+ }
+ 
+ static struct nf_hook_ops arpt_ops[] __read_mostly = {
+diff --git a/net/ipv4/netfilter/iptable_filter.c b/net/ipv4/netfilter/iptable_filter.c
+index b320208..7f64ea5 100644
+--- a/net/ipv4/netfilter/iptable_filter.c
++++ b/net/ipv4/netfilter/iptable_filter.c
+@@ -67,19 +67,15 @@ iptable_filter_hook(unsigned int hook,
+ 	 const struct net_device *out,
+ 	 int (*okfn)(struct sk_buff *))
+ {
+-	if (hook == NF_INET_LOCAL_OUT) {
+-		if (skb->len < sizeof(struct iphdr) ||
+-		    ip_hdrlen(skb) < sizeof(struct iphdr))
+-			/* root is playing with raw sockets. */
+-			return NF_ACCEPT;
+-
+-		return ipt_do_table(skb, hook, in, out,
+-				    dev_net(out)->ipv4.iptable_filter);
+-	}
++	const struct net *net;
++
++	if (hook == NF_INET_LOCAL_OUT && (skb->len < sizeof(struct iphdr) ||
++	    ip_hdrlen(skb) < sizeof(struct iphdr)))
++		/* root is playing with raw sockets. */
++		return NF_ACCEPT;
+ 
+-	/* LOCAL_IN/FORWARD: */
+-	return ipt_do_table(skb, hook, in, out,
+-			    dev_net(in)->ipv4.iptable_filter);
++	net = dev_net((in != NULL) ? in : out);
++	return ipt_do_table(skb, hook, in, out, net->ipv4.iptable_filter);
+ }
+ 
+ static struct nf_hook_ops ipt_ops[] __read_mostly = {
+diff --git a/net/ipv4/netfilter/iptable_raw.c b/net/ipv4/netfilter/iptable_raw.c
+index 2e5d4fc..766c6fd 100644
+--- a/net/ipv4/netfilter/iptable_raw.c
++++ b/net/ipv4/netfilter/iptable_raw.c
+@@ -51,17 +51,15 @@ iptable_raw_hook(unsigned int hook,
+ 	 const struct net_device *out,
+ 	 int (*okfn)(struct sk_buff *))
+ {
+-	if (hook == NF_INET_PRE_ROUTING)
+-		return ipt_do_table(skb, hook, in, out,
+-				    dev_net(in)->ipv4.iptable_raw);
+-
+-	/* OUTPUT: */
+-	/* root is playing with raw sockets. */
+-	if (skb->len < sizeof(struct iphdr) ||
+-	    ip_hdrlen(skb) < sizeof(struct iphdr))
++	const struct net *net;
++
++	if (hook == NF_INET_LOCAL_OUT && (skb->len < sizeof(struct iphdr) ||
++	    ip_hdrlen(skb) < sizeof(struct iphdr)))
++		/* root is playing with raw sockets. */
+ 		return NF_ACCEPT;
+-	return ipt_do_table(skb, hook, in, out,
+-			    dev_net(out)->ipv4.iptable_raw);
++
++	net = dev_net((in != NULL) ? in : out);
++	return ipt_do_table(skb, hook, in, out, net->ipv4.iptable_raw);
+ }
+ 
+ /* 'raw' is the very first table. */
+diff --git a/net/ipv4/netfilter/iptable_security.c b/net/ipv4/netfilter/iptable_security.c
+index 78aa2a3..02c5140 100644
+--- a/net/ipv4/netfilter/iptable_security.c
++++ b/net/ipv4/netfilter/iptable_security.c
+@@ -71,19 +71,15 @@ iptable_security_hook(unsigned int hook,
+ 		  const struct net_device *out,
+ 		  int (*okfn)(struct sk_buff *))
+ {
+-	if (hook == NF_INET_LOCAL_OUT) {
+-		if (skb->len < sizeof(struct iphdr) ||
+-		    ip_hdrlen(skb) < sizeof(struct iphdr))
+-			/* Somebody is playing with raw sockets. */
+-			return NF_ACCEPT;
+-
+-		return ipt_do_table(skb, hook, in, out,
+-				    dev_net(out)->ipv4.iptable_security);
+-	}
+-
+-	/* INPUT/FORWARD: */
+-	return ipt_do_table(skb, hook, in, out,
+-			    dev_net(in)->ipv4.iptable_security);
++	const struct net *net;
++
++	if (hook == NF_INET_LOCAL_OUT && (skb->len < sizeof(struct iphdr) ||
++	    ip_hdrlen(skb) < sizeof(struct iphdr)))
++		/* Somebody is playing with raw sockets. */
++		return NF_ACCEPT;
++
++	net = dev_net((in != NULL) ? in : out);
++	return ipt_do_table(skb, hook, in, out, net->ipv4.iptable_security);
+ }
+ 
+ static struct nf_hook_ops ipt_ops[] __read_mostly = {
+diff --git a/net/ipv6/netfilter/ip6table_filter.c b/net/ipv6/netfilter/ip6table_filter.c
+index c442e33..51b79bf 100644
+--- a/net/ipv6/netfilter/ip6table_filter.c
++++ b/net/ipv6/netfilter/ip6table_filter.c
+@@ -66,13 +66,9 @@ ip6table_filter_hook(unsigned int hook,
+ 		   const struct net_device *out,
+ 		   int (*okfn)(struct sk_buff *))
+ {
+-	if (hook == NF_INET_LOCAL_OUT)
+-		return ip6t_do_table(skb, hook, in, out,
+-				     dev_net(out)->ipv6.ip6table_filter);
++	const struct net *net = dev_net((in != NULL) ? in : out);
+ 
+-	/* INPUT/FORWARD: */
+-	return ip6t_do_table(skb, hook, in, out,
+-			     dev_net(in)->ipv6.ip6table_filter);
++	return ip6t_do_table(skb, hook, in, out, net->ipv6.ip6table_filter);
+ }
+ 
+ static struct nf_hook_ops ip6t_ops[] __read_mostly = {
+diff --git a/net/ipv6/netfilter/ip6table_raw.c b/net/ipv6/netfilter/ip6table_raw.c
+index 5ef3e1f..6b9e6dd 100644
+--- a/net/ipv6/netfilter/ip6table_raw.c
++++ b/net/ipv6/netfilter/ip6table_raw.c
+@@ -50,13 +50,9 @@ ip6table_raw_hook(unsigned int hook,
+ 	 const struct net_device *out,
+ 	 int (*okfn)(struct sk_buff *))
+ {
+-	if (hook == NF_INET_PRE_ROUTING)
+-		return ip6t_do_table(skb, hook, in, out,
+-				     dev_net(in)->ipv6.ip6table_raw);
++	const struct net *net = dev_net((in != NULL) ? in : out);
+ 
+-	/* OUTPUT: */
+-	return ip6t_do_table(skb, hook, in, out,
+-			     dev_net(out)->ipv6.ip6table_raw);
++	return ip6t_do_table(skb, hook, in, out, net->ipv6.ip6table_raw);
+ }
+ 
+ static struct nf_hook_ops ip6t_ops[] __read_mostly = {
+diff --git a/net/ipv6/netfilter/ip6table_security.c b/net/ipv6/netfilter/ip6table_security.c
+index 456bd63..b45a616 100644
+--- a/net/ipv6/netfilter/ip6table_security.c
++++ b/net/ipv6/netfilter/ip6table_security.c
+@@ -70,13 +70,9 @@ ip6table_security_hook(unsigned int hook,
+ 		   const struct net_device *out,
+ 		   int (*okfn)(struct sk_buff *))
+ {
+-	if (hook == NF_INET_LOCAL_OUT)
+-		return ip6t_do_table(skb, hook, in, out,
+-				     dev_net(out)->ipv6.ip6table_security);
++	const struct net *net = dev_net((in != NULL) ? in : out);
+ 
+-	/* INPUT/FORWARD: */
+-	return ip6t_do_table(skb, hook, in, out,
+-			     dev_net(in)->ipv6.ip6table_security);
++	return ip6t_do_table(skb, hook, in, out, net->ipv6.ip6table_security);
+ }
+ 
+ static struct nf_hook_ops ip6t_ops[] __read_mostly = {
+-- 
+1.6.6.1
 
-as previously tested, the hook function compaction has no measurable
-difference in execution speed. I thus propose this submission that
-has been updated to kaber-next/2.6.33.
-
-
-The following changes since commit 84f3bb9ae9db90f7fb15d98b55279a58ab1b2363:
-  Patrick McHardy (1):
-        netfilter: xtables: add CT target
-
-are available in the git repository at:
-
-  git://dev.medozas.de/linux master
-
-Jan Engelhardt (4):
-      netfilter: xtables: compact table hook functions (1/2)
-      netfilter: xtables: compact table hook functions (2/2)
-      netfilter: xtables: use xt_table for hook instantiation
-      netfilter: xtables: generate initial table on-demand
-
- include/linux/netfilter/x_tables.h        |    5 +
- include/linux/netfilter_arp/arp_tables.h  |    1 +
- include/linux/netfilter_ipv4/ip_tables.h  |    1 +
- include/linux/netfilter_ipv6/ip6_tables.h |    1 +
- net/ipv4/netfilter/arp_tables.c           |    7 ++
- net/ipv4/netfilter/arptable_filter.c      |   87 +++-------------
- net/ipv4/netfilter/ip_tables.c            |    7 ++
- net/ipv4/netfilter/iptable_filter.c       |  114 +++++-----------------
- net/ipv4/netfilter/iptable_mangle.c       |  153 ++++++-----------------------
- net/ipv4/netfilter/iptable_raw.c          |   86 ++++------------
- net/ipv4/netfilter/iptable_security.c     |  106 ++++----------------
- net/ipv4/netfilter/nf_nat_rule.c          |   38 +------
- net/ipv6/netfilter/ip6_tables.c           |    7 ++
- net/ipv6/netfilter/ip6table_filter.c      |  104 ++++----------------
- net/ipv6/netfilter/ip6table_mangle.c      |  132 ++++++-------------------
- net/ipv6/netfilter/ip6table_raw.c         |   77 +++------------
- net/ipv6/netfilter/ip6table_security.c    |   99 +++----------------
- net/netfilter/x_tables.c                  |   70 +++++++++++++-
- net/netfilter/xt_repldata.h               |   35 +++++++
- 19 files changed, 333 insertions(+), 797 deletions(-)
- create mode 100644 net/netfilter/xt_repldata.h
