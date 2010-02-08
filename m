@@ -1,26 +1,33 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH nf-next] netfilter: fix build failure with CONNTRACK=y
- NAT=n
-Date: Mon, 08 Feb 2010 15:39:57 +0100
-Message-ID: <4B70223D.70701@trash.net>
-References: <1265626669-24689-1-git-send-email-fwestphal@astaro.com>
+Subject: Re: [PATCH] netfiler: compat out of scope fix
+Date: Mon, 08 Feb 2010 15:45:31 +0100
+Message-ID: <4B70238B.3050102@trash.net>
+References: <20100205221757.GD27953@x200>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fwestphal@astaro.com>
+Cc: netfilter-devel@vger.kernel.org, viro@zeniv.linux.org.uk
+To: Alexey Dobriyan <adobriyan@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:36000 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:36138 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752643Ab0BHOkA (ORCPT
+	with ESMTP id S1752676Ab0BHOpe (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 8 Feb 2010 09:40:00 -0500
-In-Reply-To: <1265626669-24689-1-git-send-email-fwestphal@astaro.com>
+	Mon, 8 Feb 2010 09:45:34 -0500
+In-Reply-To: <20100205221757.GD27953@x200>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Florian Westphal wrote:
-> net/ipv4/netfilter/nf_defrag_ipv4.c: In function 'ipv4_conntrack_defrag':
-> net/ipv4/netfilter/nf_defrag_ipv4.c:62: error: implicit declaration of function 'nf_ct_is_template'
+Alexey Dobriyan wrote:
+> As per 6.2.4(2) when temporary table data goes out of scope,
+> the behaviour is undefined:
+> 
+> 	if (compat) {
+> 		struct foo tmp;
+> 		...
+> 		private = &tmp;
+> 	}
+> 	[dereference private]
 
-Applied, thanks Florian.
+I fixed the changelog to explicitly refer to C99 and applied
+your patch, thanks.
