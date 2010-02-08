@@ -1,41 +1,38 @@
-From: "Webmail Upgrade Teamn" <info@upgrade.com>
-Subject: Upgrade Your Email Account
-Date: Mon, 8 Feb 2010 07:01:29 +0800 (CST)
-Message-ID: <f6eb602a200238accea154a732179717.squirrel@mail.loongson.cn>
-Reply-To: upgradecct@w.cn
-Mime-Version: 1.0
-Content-Type: text/plain;charset=gb2312
-Content-Transfer-Encoding: 8bit
-To: undisclosed-recipients:;
+From: Florian Westphal <fwestphal@astaro.com>
+Subject: [PATCH nf-next] netfilter: fix build failure with CONNTRACK=y NAT=n
+Date: Mon,  8 Feb 2010 11:57:49 +0100
+Message-ID: <1265626669-24689-1-git-send-email-fwestphal@astaro.com>
+Cc: Florian Westphal <fwestphal@astaro.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from [159.226.40.154] ([159.226.40.154]:45970 "EHLO mail.loongson.cn"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1757055Ab0BGXil (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 7 Feb 2010 18:38:41 -0500
+Received: from exsmtpd002-1.dex002.intermedia.net ([64.78.19.133]:1956 "EHLO
+	EXSMTPD002-1.dex002.intermedia.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750772Ab0BHLMq (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 8 Feb 2010 06:12:46 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+net/ipv4/netfilter/nf_defrag_ipv4.c: In function 'ipv4_conntrack_defrag':
+net/ipv4/netfilter/nf_defrag_ipv4.c:62: error: implicit declaration of function 'nf_ct_is_template'
 
+Signed-off-by: Florian Westphal <fwestphal@astaro.com>
+---
+ net/ipv4/netfilter/nf_defrag_ipv4.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-
-ATTENTION:
-WEBMAIL SUBSCRIBER:
-This mail is to inform all our {WEBMAIL} users that we will be upgrading
-our site in a couple of days from now. So you as a Subscriber of our site
-you are required to send us your Email account details so as to enable us
-know if you are still making use of your mail box. Further informed that
-we will be deleting all mail account that is not functioning so as to
-create more space for new user. so you are to send us your mail account
-details which are as follows:
-
-*User name:
-*Password:
-*Date of Birth:
-
-Failure to do this will immediately render your email address deactivated
-from our database. Your response should be send to the following e-mail
-address. Your AdminManager:upgradecct@w.cn
-
-Yours In Service.
-Webmail Upgrade Team
+diff --git a/net/ipv4/netfilter/nf_defrag_ipv4.c b/net/ipv4/netfilter/nf_defrag_ipv4.c
+index 77627fa..f6f4668 100644
+--- a/net/ipv4/netfilter/nf_defrag_ipv4.c
++++ b/net/ipv4/netfilter/nf_defrag_ipv4.c
+@@ -17,6 +17,7 @@
+ #include <linux/netfilter_bridge.h>
+ #include <linux/netfilter_ipv4.h>
+ #include <net/netfilter/ipv4/nf_defrag_ipv4.h>
++#include <net/netfilter/nf_conntrack.h>
+ 
+ /* Returns new sk_buff, or NULL */
+ static int nf_ct_ipv4_gather_frags(struct sk_buff *skb, u_int32_t user)
+-- 
+1.6.3.3
 
