@@ -1,38 +1,46 @@
-From: Florian Westphal <fwestphal@astaro.com>
-Subject: [PATCH nf-next] netfilter: fix build failure with CONNTRACK=y NAT=n
-Date: Mon,  8 Feb 2010 11:57:49 +0100
-Message-ID: <1265626669-24689-1-git-send-email-fwestphal@astaro.com>
-Cc: Florian Westphal <fwestphal@astaro.com>
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from exsmtpd002-1.dex002.intermedia.net ([64.78.19.133]:1956 "EHLO
-	EXSMTPD002-1.dex002.intermedia.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750772Ab0BHLMq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 8 Feb 2010 06:12:46 -0500
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH for 2.6.33] conntrack: restrict runtime hashsize modifications
+Date: Mon, 08 Feb 2010 14:34:05 +0100
+Message-ID: <4B7012CD.8030108@trash.net>
+References: <20100203203929.GA6168@x200> <4B6AF36A.3050402@trash.net> <4B6AFE22.20304@trash.net> <20100204194744.GA4185@x200> <4B6BEC23.8020101@trash.net> <20100205220407.GA27953@x200>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: davem@davemloft.net, jonathan@jonmasters.org,
+	eric.dumazet@gmail.com, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Alexey Dobriyan <adobriyan@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <20100205220407.GA27953@x200>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-net/ipv4/netfilter/nf_defrag_ipv4.c: In function 'ipv4_conntrack_defrag':
-net/ipv4/netfilter/nf_defrag_ipv4.c:62: error: implicit declaration of function 'nf_ct_is_template'
+Alexey Dobriyan wrote:
+> On Fri, Feb 05, 2010 at 11:00:03AM +0100, Patrick McHardy wrote:
+>> Actually it doesn't seem like much more work to allow changing
+>> table size, the main problem is that sysfs module parameters
+>> don't seem to fit into the network namespace model at all.
+> 
+> Well, they "fit" as they're global because modules are global.
+> So we can make every netns hashtable size equals to module param,
+> or make it bounded by module param
+> or make initial hashtable size and not bounded
+> or million other things.
 
-Signed-off-by: Florian Westphal <fwestphal@astaro.com>
----
- net/ipv4/netfilter/nf_defrag_ipv4.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+Feel free to suggest your preferred method.
 
-diff --git a/net/ipv4/netfilter/nf_defrag_ipv4.c b/net/ipv4/netfilter/nf_defrag_ipv4.c
-index 77627fa..f6f4668 100644
---- a/net/ipv4/netfilter/nf_defrag_ipv4.c
-+++ b/net/ipv4/netfilter/nf_defrag_ipv4.c
-@@ -17,6 +17,7 @@
- #include <linux/netfilter_bridge.h>
- #include <linux/netfilter_ipv4.h>
- #include <net/netfilter/ipv4/nf_defrag_ipv4.h>
-+#include <net/netfilter/nf_conntrack.h>
- 
- /* Returns new sk_buff, or NULL */
- static int nf_ct_ipv4_gather_frags(struct sk_buff *skb, u_int32_t user)
--- 
-1.6.3.3
+>> Please be more specific about your suspected slowdowns.
+> 
+> I meant net->ct.htable_size in hash functions _if_ you're not allowing
+> changing it from inside netns.
+> 
+>> What's "everything"? What's different about the hashsize
+>> compared to the many members we already moved to per-netns
+>> structs?
+> 
+> But whatever. I think per-netns hashtable size shouldn't be done
+> that late.
+
+This is a regression. You can not simply disable resizing and call
+it a bugfix.
 
