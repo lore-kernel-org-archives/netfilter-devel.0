@@ -1,92 +1,63 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 01/05: nf_conntrack: fix memory corruption with multiple namespaces
-Date: Mon,  8 Feb 2010 18:10:27 +0100 (MET)
-Message-ID: <20100208171025.15522.74.sendpatchset@x2.localnet>
-References: <20100208171024.15522.8136.sendpatchset@x2.localnet>
-Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org
-To: davem@davemloft.net
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20100208171024.15522.8136.sendpatchset@x2.localnet>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Subject: netfilter 00/03: conntrack zones
+Date: Mon,  8 Feb 2010 18:39:03 +0100 (MET)
+Message-ID: <20100208173902.16167.8881.sendpatchset@x2.localnet>
+Cc: Patrick McHardy <kaber@trash.net>
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:39370 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750962Ab0BHRjF (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 8 Feb 2010 12:39:05 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 056ff3e3bd1563969a311697323ff929df94415c
-Author: Patrick McHardy <kaber@trash.net>
-Date:   Wed Feb 3 12:58:06 2010 +0100
+Following is the latest version of my conntrack zone patches.
+Changes since the last posting are:
 
-    netfilter: nf_conntrack: fix memory corruption with multiple namespaces
-    
-    As discovered by Jon Masters <jonathan@jonmasters.org>, the "untracked"
-    conntrack, which is located in the data section, might be accidentally
-    freed when a new namespace is instantiated while the untracked conntrack
-    is attached to a skb because the reference count it re-initialized.
-    
-    The best fix would be to use a seperate untracked conntrack per
-    namespace since it includes a namespace pointer. Unfortunately this is
-    not possible without larger changes since the namespace is not easily
-    available everywhere we need it. For now move the untracked conntrack
-    initialization to the init_net setup function to make sure the reference
-    count is not re-initialized and handle cleanup in the init_net cleanup
-    function to make sure namespaces can exit properly while the untracked
-    conntrack is in use in other namespaces.
-    
-    Cc: stable@kernel.org
-    Signed-off-by: Patrick McHardy <kaber@trash.net>
+- incorporate feedback from Jan
+- complete zone support in all missing spots
+- fixed warning with CONFIG_NF_CONNTRACK_ZONES=n
 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 0e98c32..37e2b88 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -1113,6 +1113,10 @@ static void nf_ct_release_dying_list(struct net *net)
- 
- static void nf_conntrack_cleanup_init_net(void)
- {
-+	/* wait until all references to nf_conntrack_untracked are dropped */
-+	while (atomic_read(&nf_conntrack_untracked.ct_general.use) > 1)
-+		schedule();
-+
- 	nf_conntrack_helper_fini();
- 	nf_conntrack_proto_fini();
- 	kmem_cache_destroy(nf_conntrack_cachep);
-@@ -1127,9 +1131,6 @@ static void nf_conntrack_cleanup_net(struct net *net)
- 		schedule();
- 		goto i_see_dead_people;
- 	}
--	/* wait until all references to nf_conntrack_untracked are dropped */
--	while (atomic_read(&nf_conntrack_untracked.ct_general.use) > 1)
--		schedule();
- 
- 	nf_ct_free_hashtable(net->ct.hash, net->ct.hash_vmalloc,
- 			     nf_conntrack_htable_size);
-@@ -1288,6 +1289,14 @@ static int nf_conntrack_init_init_net(void)
- 	if (ret < 0)
- 		goto err_helper;
- 
-+	/* Set up fake conntrack: to never be deleted, not in any hashes */
-+#ifdef CONFIG_NET_NS
-+	nf_conntrack_untracked.ct_net = &init_net;
-+#endif
-+	atomic_set(&nf_conntrack_untracked.ct_general.use, 1);
-+	/*  - and look it like as a confirmed connection */
-+	set_bit(IPS_CONFIRMED_BIT, &nf_conntrack_untracked.status);
-+
- 	return 0;
- 
- err_helper:
-@@ -1333,15 +1342,6 @@ static int nf_conntrack_init_net(struct net *net)
- 	if (ret < 0)
- 		goto err_ecache;
- 
--	/* Set up fake conntrack:
--	    - to never be deleted, not in any hashes */
--#ifdef CONFIG_NET_NS
--	nf_conntrack_untracked.ct_net = &init_net;
--#endif
--	atomic_set(&nf_conntrack_untracked.ct_general.use, 1);
--	/*  - and look it like as a confirmed connection */
--	set_bit(IPS_CONFIRMED_BIT, &nf_conntrack_untracked.status);
--
- 	return 0;
- 
- err_ecache:
+Further comments welcome.
+
+
+ include/linux/netfilter/nfnetlink_conntrack.h  |    2 +
+ include/linux/netfilter/xt_CT.h                |    2 +-
+ include/net/ip.h                               |    3 +
+ include/net/ipv6.h                             |    3 +
+ include/net/netfilter/nf_conntrack.h           |    5 +-
+ include/net/netfilter/nf_conntrack_core.h      |    3 +-
+ include/net/netfilter/nf_conntrack_expect.h    |    9 ++-
+ include/net/netfilter/nf_conntrack_extend.h    |    2 +
+ include/net/netfilter/nf_conntrack_l4proto.h   |    4 +-
+ include/net/netfilter/nf_conntrack_zones.h     |   23 +++++
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    3 +-
+ net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |   11 ++-
+ net/ipv4/netfilter/nf_defrag_ipv4.c            |   12 ++-
+ net/ipv4/netfilter/nf_nat_core.c               |   23 +++--
+ net/ipv4/netfilter/nf_nat_pptp.c               |    3 +-
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |   12 ++-
+ net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |   11 ++-
+ net/netfilter/Kconfig                          |    9 ++
+ net/netfilter/nf_conntrack_core.c              |  113 ++++++++++++++++++------
+ net/netfilter/nf_conntrack_expect.c            |   21 +++--
+ net/netfilter/nf_conntrack_h323_main.c         |    3 +-
+ net/netfilter/nf_conntrack_netlink.c           |   92 +++++++++++++++----
+ net/netfilter/nf_conntrack_pptp.c              |   14 ++--
+ net/netfilter/nf_conntrack_proto_dccp.c        |    5 +-
+ net/netfilter/nf_conntrack_proto_tcp.c         |    2 +-
+ net/netfilter/nf_conntrack_proto_udp.c         |    4 +-
+ net/netfilter/nf_conntrack_proto_udplite.c     |    2 +-
+ net/netfilter/nf_conntrack_sip.c               |    3 +-
+ net/netfilter/nf_conntrack_standalone.c        |    6 ++
+ net/netfilter/xt_CT.c                          |    8 ++-
+ net/netfilter/xt_connlimit.c                   |    4 +-
+ 31 files changed, 312 insertions(+), 105 deletions(-)
+ create mode 100644 include/net/netfilter/nf_conntrack_zones.h
+
+Patrick McHardy (3):
+      netfilter: nf_conntrack: pass template to l4proto ->error handler
+      netfilter: nf_conntrack: add support for "conntrack zones"
+      netfilter: ctnetlink: add zone support
