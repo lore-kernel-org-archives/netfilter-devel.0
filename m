@@ -1,46 +1,74 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH for 2.6.33] conntrack: restrict runtime hashsize modifications
-Date: Mon, 08 Feb 2010 14:34:05 +0100
-Message-ID: <4B7012CD.8030108@trash.net>
-References: <20100203203929.GA6168@x200> <4B6AF36A.3050402@trash.net> <4B6AFE22.20304@trash.net> <20100204194744.GA4185@x200> <4B6BEC23.8020101@trash.net> <20100205220407.GA27953@x200>
+From: Shan Wei <shanwei@cn.fujitsu.com>
+Subject: Re: [PATCH] IPv6:Send an ICMPv6 "Fragment Reassembly Timeout" message
+ when enabling connection track
+Date: Mon, 08 Feb 2010 22:18:38 +0800
+Message-ID: <4B701D3E.6000305@cn.fujitsu.com>
+References: <4B62A338.6020106@cn.fujitsu.com> <4B69A75A.2020908@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: davem@davemloft.net, jonathan@jonmasters.org,
-	eric.dumazet@gmail.com, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: Alexey Dobriyan <adobriyan@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20100205220407.GA27953@x200>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: David Miller <davem@davemloft.net>,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>,
+	eric.dumazet@gmail.com, randy.dunlap@oracle.com, mst@redhat.com,
+	johannes@sipsolutions.net, kuznet@ms2.inr.ac.ru, pekkas@netcore.fi,
+	jmorris@namei.org, yoshfuji@linux-ipv6.org, pablo@netfilter.org,
+	ebiederm@xmission.com, adobriyan@gmail.com, brian.haley@hp.com,
+	shemminger@vyatta.com, akpm@linux-foundation.org,
+	netfilter-devel@vger.kernel.org,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from cn.fujitsu.com ([222.73.24.84]:58353 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1751884Ab0BHOTA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 8 Feb 2010 09:19:00 -0500
+In-Reply-To: <4B69A75A.2020908@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Alexey Dobriyan wrote:
-> On Fri, Feb 05, 2010 at 11:00:03AM +0100, Patrick McHardy wrote:
->> Actually it doesn't seem like much more work to allow changing
->> table size, the main problem is that sysfs module parameters
->> don't seem to fit into the network namespace model at all.
+Patrick McHardy wrote, at 02/04/2010 12:42 AM:
+> Shan Wei wrote:
+>> @@ -349,17 +378,20 @@ static int nf_ct_frag6_queue(struct nf_ct_frag6_queue *fq, struct sk_buff *skb,
+>>  	else
+>>  		fq->q.fragments = skb;
+>>  
+>> -	skb->dev = NULL;
+>>  	fq->q.stamp = skb->tstamp;
+>>  	fq->q.meat += skb->len;
+>>  	atomic_add(skb->truesize, &nf_init_frags.mem);
+>>  
+>>  	/* The first fragment.
+>>  	 * nhoffset is obtained from the first fragment, of course.
+>> +	 * Reserve dev for sending an ICMP "Fragment Reassembly Timeout"
+>> +	 * message.
+>>  	 */
+>>  	if (offset == 0) {
+>>  		fq->nhoffset = nhoff;
+>>  		fq->q.last_in |= INET_FRAG_FIRST_IN;
+>> +	} else {
+>> +		skb->dev = NULL;
+>>  	}
 > 
-> Well, they "fit" as they're global because modules are global.
-> So we can make every netns hashtable size equals to module param,
-> or make it bounded by module param
-> or make initial hashtable size and not bounded
-> or million other things.
+> We need to store the iif and perform a lookup later just as in IPv4
+> because the device is not reference counted and might disappear while
+> the fragments are queued.
 
-Feel free to suggest your preferred method.
+There is no net namespace in nf_conntrack_reasm,
+So we can't look up net device according to stored iif.
 
->> Please be more specific about your suspected slowdowns.
-> 
-> I meant net->ct.htable_size in hash functions _if_ you're not allowing
-> changing it from inside netns.
-> 
->> What's "everything"? What's different about the hashsize
->> compared to the many members we already moved to per-netns
->> structs?
-> 
-> But whatever. I think per-netns hashtable size shouldn't be done
-> that late.
+How about introducing net namespace to nf_conntrack_reasm?
+There are the following two advantages:
+1. nf_init_frags can be deleted, because net structure includes netns_frags structure member.
 
-This is a regression. You can not simply disable resizing and call
-it a bugfix.
+2. Record counter value, e.g. IPSTATS_MIB_REASMFAILS if reassamble with fail.
+   Since IPv6 conntrack fails to reassamble fragments, then the original fragment is not forwarded to IPv6 stack. 
+   The counter value can't be recorded. But IPv4 conntrack uses IPv4 defrag code, and records
+   counter value correctly.
+
+These are just my thoughts, no practice.
+
+-- 
+Best Regards
+-----
+Shan Wei
 
