@@ -1,25 +1,96 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: static data reduction
-Date: Wed, 10 Feb 2010 17:54:59 +0100
-Message-ID: <4B72E4E3.2000706@trash.net>
-References: <1265820716-3886-1-git-send-email-jengelh@medozas.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: [PATCH 1/6] netfilter: iptables: remove unused function arguments
+Date: Wed, 10 Feb 2010 18:39:01 +0100
+Message-ID: <1265823547-10358-2-git-send-email-jengelh@medozas.de>
+References: <1265823547-10358-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:54833 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755714Ab0BJQzD (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Feb 2010 11:55:03 -0500
-In-Reply-To: <1265820716-3886-1-git-send-email-jengelh@medozas.de>
+Received: from borg.medozas.de ([188.40.89.202]:57296 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755894Ab0BJRjP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 10 Feb 2010 12:39:15 -0500
+In-Reply-To: <1265823547-10358-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> I incorporated the desired changes and hope it's right now.
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ net/ipv4/netfilter/iptable_mangle.c  |   10 +++-------
+ net/ipv6/netfilter/ip6table_mangle.c |   10 +++-------
+ 2 files changed, 6 insertions(+), 14 deletions(-)
 
-Looks fine on first sight. I'll give it some testing myself and
-will merge if everything works fine.
+diff --git a/net/ipv4/netfilter/iptable_mangle.c b/net/ipv4/netfilter/iptable_mangle.c
+index 58d7097..78c62c8 100644
+--- a/net/ipv4/netfilter/iptable_mangle.c
++++ b/net/ipv4/netfilter/iptable_mangle.c
+@@ -36,11 +36,7 @@ static const struct xt_table packet_mangler = {
+ };
+ 
+ static unsigned int
+-ipt_local_hook(unsigned int hook,
+-		   struct sk_buff *skb,
+-		   const struct net_device *in,
+-		   const struct net_device *out,
+-		   int (*okfn)(struct sk_buff *))
++ipt_mangle_out(struct sk_buff *skb, const struct net_device *out)
+ {
+ 	unsigned int ret;
+ 	const struct iphdr *iph;
+@@ -60,7 +56,7 @@ ipt_local_hook(unsigned int hook,
+ 	daddr = iph->daddr;
+ 	tos = iph->tos;
+ 
+-	ret = ipt_do_table(skb, hook, in, out,
++	ret = ipt_do_table(skb, NF_INET_LOCAL_OUT, NULL, out,
+ 			   dev_net(out)->ipv4.iptable_mangle);
+ 	/* Reroute for ANY change. */
+ 	if (ret != NF_DROP && ret != NF_STOLEN && ret != NF_QUEUE) {
+@@ -86,7 +82,7 @@ iptable_mangle_hook(unsigned int hook,
+ 		     int (*okfn)(struct sk_buff *))
+ {
+ 	if (hook == NF_INET_LOCAL_OUT)
+-		return ipt_local_hook(hook, skb, in, out, okfn);
++		return ipt_mangle_out(skb, out);
+ 
+ 	/* PREROUTING/INPUT/FORWARD: */
+ 	return ipt_do_table(skb, hook, in, out,
+diff --git a/net/ipv6/netfilter/ip6table_mangle.c b/net/ipv6/netfilter/ip6table_mangle.c
+index dc803b7..e530038 100644
+--- a/net/ipv6/netfilter/ip6table_mangle.c
++++ b/net/ipv6/netfilter/ip6table_mangle.c
+@@ -30,12 +30,8 @@ static const struct xt_table packet_mangler = {
+ };
+ 
+ static unsigned int
+-ip6t_local_out_hook(unsigned int hook,
+-		   struct sk_buff *skb,
+-		   const struct net_device *out,
+-		   int (*okfn)(struct sk_buff *))
++ip6t_mangle_out(struct sk_buff *skb, const struct net_device *out)
+ {
+-
+ 	unsigned int ret;
+ 	struct in6_addr saddr, daddr;
+ 	u_int8_t hop_limit;
+@@ -60,7 +56,7 @@ ip6t_local_out_hook(unsigned int hook,
+ 	/* flowlabel and prio (includes version, which shouldn't change either */
+ 	flowlabel = *((u_int32_t *)ipv6_hdr(skb));
+ 
+-	ret = ip6t_do_table(skb, hook, NULL, out,
++	ret = ip6t_do_table(skb, NF_INET_LOCAL_OUT, NULL, out,
+ 			    dev_net(out)->ipv6.ip6table_mangle);
+ 
+ 	if (ret != NF_DROP && ret != NF_STOLEN &&
+@@ -80,7 +76,7 @@ ip6table_mangle_hook(unsigned int hook, struct sk_buff *skb,
+ 		     int (*okfn)(struct sk_buff *))
+ {
+ 	if (hook == NF_INET_LOCAL_OUT)
+-		return ip6t_local_out_hook(hook, skb, out, okfn);
++		return ip6t_mangle_out(skb, out);
+ 
+ 	/* INPUT/FORWARD */
+ 	return ip6t_do_table(skb, hook, in, out,
+-- 
+1.6.6.1
+
