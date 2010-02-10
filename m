@@ -1,29 +1,58 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: netfilter 00/05: netfilter fixes
-Date: Tue, 09 Feb 2010 12:38:05 -0800 (PST)
-Message-ID: <20100209.123805.261202056.davem@davemloft.net>
-References: <20100208171024.15522.8136.sendpatchset@x2.localnet>
-	<20100208.111517.197143656.davem@davemloft.net>
-	<4B719C5D.9060402@trash.net>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: ct: will ct be stalled in rcu read critical section?
+Date: Wed, 10 Feb 2010 11:16:20 +0800
+Message-ID: <412e6f7f1002091916h5663057bq56b81d6ceec478a7@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:37892
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751596Ab0BIUhv (ORCPT
+Received: from mail-fx0-f220.google.com ([209.85.220.220]:50365 "EHLO
+	mail-fx0-f220.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755270Ab0BJDQX convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 9 Feb 2010 15:37:51 -0500
-In-Reply-To: <4B719C5D.9060402@trash.net>
+	Tue, 9 Feb 2010 22:16:23 -0500
+Received: by fxm20 with SMTP id 20so786833fxm.21
+        for <netfilter-devel@vger.kernel.org>; Tue, 09 Feb 2010 19:16:21 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Tue, 09 Feb 2010 18:33:17 +0100
+in http://git.kernel.org/?p=3Dlinux/kernel/git/next/linux-next.git;a=3D=
+commitdiff;h=3Dea781f197d6a835cbb93a0bf88ee1696296ed8aa#patch6
+, I don't understand the patch bellow.
 
-> If you could merge net-2.6 into net-next-2.6 I'll
-> resolve them and send a pull request.
+@@ -275,11 +291,18 @@ nf_conntrack_find_get(struct net *net, const
+struct nf_conntrack_tuple *tuple)
+        struct nf_conn *ct;
 
-Done.
+        rcu_read_lock();
++begin:
+        h =3D __nf_conntrack_find(net, tuple);
+        if (h) {
+                ct =3D nf_ct_tuplehash_to_ctrack(h);
+                if (unlikely(!atomic_inc_not_zero(&ct->ct_general.use))=
+)
+                        h =3D NULL;
++               else {
++                       if (unlikely(!nf_ct_tuple_equal(tuple, &h->tupl=
+e))) {
++                               nf_ct_put(ct);
++                               goto begin;
++                       }
++               }
+        }
+        rcu_read_unlock();
+
+will ct be stalled in rcu read critical section?
+
+Would you explain it for me? Thanks!
+
+--=20
+Regards=EF=BC=8C
+Changli Gao(xiaosuo@gmail.com)
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
