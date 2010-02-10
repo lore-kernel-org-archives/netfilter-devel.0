@@ -1,57 +1,42 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 3/4] netfilter: xtables: use xt_table for hook instantiation
-Date: Wed, 10 Feb 2010 16:27:37 +0100
-Message-ID: <4B72D069.2040106@trash.net>
-References: <1265813954-13854-1-git-send-email-jengelh@medozas.de> <1265813954-13854-4-git-send-email-jengelh@medozas.de>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 1/4] netfilter: xtables: compact table hook functions
+ (1/2)
+Date: Wed, 10 Feb 2010 16:32:12 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.1002101631500.15347@obet.zrqbmnf.qr>
+References: <1265813954-13854-1-git-send-email-jengelh@medozas.de> <1265813954-13854-2-git-send-email-jengelh@medozas.de> <4B72CF34.6000701@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:53081 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753355Ab0BJP1m (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Feb 2010 10:27:42 -0500
-In-Reply-To: <1265813954-13854-4-git-send-email-jengelh@medozas.de>
+Received: from borg.medozas.de ([188.40.89.202]:43403 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752464Ab0BJPcN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 10 Feb 2010 10:32:13 -0500
+In-Reply-To: <4B72CF34.6000701@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> diff --git a/net/ipv4/netfilter/iptable_raw.c b/net/ipv4/netfilter/iptable_raw.c
-> index 766c6fd..2367953 100644
-> --- a/net/ipv4/netfilter/iptable_raw.c
-> +++ b/net/ipv4/netfilter/iptable_raw.c
-> @@ -41,6 +41,7 @@ static const struct xt_table packet_raw = {
->  	.valid_hooks =  RAW_VALID_HOOKS,
->  	.me = THIS_MODULE,
->  	.af = NFPROTO_IPV4,
-> +	.priority = NF_IP_PRI_FIRST,
+On Wednesday 2010-02-10 16:22, Patrick McHardy wrote:
 
-You're changing priorities here, NF_IP_PRI_RAW is not NF_IP_PRI_FIRST.
+>Jan Engelhardt wrote:
+>> diff --git a/net/ipv4/netfilter/arptable_filter.c b/net/ipv4/netfilter/arptable_filter.c
+>> index 9733760..78bb72e 100644
+>> --- a/net/ipv4/netfilter/arptable_filter.c
+>> +++ b/net/ipv4/netfilter/arptable_filter.c
+>> @@ -53,43 +53,38 @@ static const struct xt_table packet_filter = {
+>>  };
+>>  
+>>  /* The work comes in here from netfilter.c */
+>> -static unsigned int arpt_in_hook(unsigned int hook,
+>> +static unsigned int arptable_filter_hook(unsigned int hook,
+>>  				 struct sk_buff *skb,
+>>  				 const struct net_device *in,
+>>  				 const struct net_device *out,
+>>  				 int (*okfn)(struct sk_buff *))
+>
+>I'm fine with this patch, but can we please keep the arguments aligned
+>neatly? As I said previously, I've let this slip too often, but intend
+>not to in the future.
 
->  };
->  
->  /* The work comes in here from netfilter.c. */
-> @@ -62,23 +63,7 @@ iptable_raw_hook(unsigned int hook,
->  	return ipt_do_table(skb, hook, in, out, net->ipv4.iptable_raw);
->  }
->  
-> -/* 'raw' is the very first table. */
-> -static struct nf_hook_ops ipt_ops[] __read_mostly = {
-> -	{
-> -		.hook = iptable_raw_hook,
-> -		.pf = NFPROTO_IPV4,
-> -		.hooknum = NF_INET_PRE_ROUTING,
-> -		.priority = NF_IP_PRI_RAW,
-> -		.owner = THIS_MODULE,
-> -	},
-> -	{
-> -		.hook = iptable_raw_hook,
-> -		.pf = NFPROTO_IPV4,
-> -		.hooknum = NF_INET_LOCAL_OUT,
-> -		.priority = NF_IP_PRI_RAW,
-> -		.owner = THIS_MODULE,
-> -	},
-> -};
+Was not sure whether that would only apply to lines modified.
