@@ -1,213 +1,723 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 2/4] netfilter: xtables: compact table hook functions (2/2)
-Date: Wed, 10 Feb 2010 17:51:53 +0100
-Message-ID: <1265820716-3886-3-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 1/4] netfilter: xtables: compact table hook functions (1/2)
+Date: Wed, 10 Feb 2010 17:51:52 +0100
+Message-ID: <1265820716-3886-2-git-send-email-jengelh@medozas.de>
 References: <1265820716-3886-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:36340 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:36338 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755565Ab0BJQwB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1755564Ab0BJQwB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Wed, 10 Feb 2010 11:52:01 -0500
 In-Reply-To: <1265820716-3886-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The calls to ip6t_do_table only show minimal differences, so it seems
-like a good cleanup to merge them to a single one too.
-Space saving obtained by both patches: 6807725->6807373
-("Total" column from `size -A`.)
+This patch combines all the per-hook functions in a given table into
+a single function. Together with the 2nd patch, further
+simplifications are possible up to the point of output code reduction.
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- net/ipv4/netfilter/arptable_filter.c   |    8 ++------
- net/ipv4/netfilter/iptable_filter.c    |   19 ++++++++-----------
- net/ipv4/netfilter/iptable_raw.c       |   17 ++++++++---------
- net/ipv4/netfilter/iptable_security.c  |   19 ++++++++-----------
- net/ipv6/netfilter/ip6table_filter.c   |    8 ++------
- net/ipv6/netfilter/ip6table_raw.c      |    8 ++------
- net/ipv6/netfilter/ip6table_security.c |    8 ++------
- 7 files changed, 32 insertions(+), 55 deletions(-)
+ net/ipv4/netfilter/arptable_filter.c   |   30 +++++--------
+ net/ipv4/netfilter/iptable_filter.c    |   50 +++++++---------------
+ net/ipv4/netfilter/iptable_mangle.c    |   71 +++++++++----------------------
+ net/ipv4/netfilter/iptable_raw.c       |   26 ++++--------
+ net/ipv4/netfilter/iptable_security.c  |   50 ++++++++---------------
+ net/ipv6/netfilter/ip6table_filter.c   |   40 +++++-------------
+ net/ipv6/netfilter/ip6table_mangle.c   |   50 +++++++++-------------
+ net/ipv6/netfilter/ip6table_raw.c      |   26 ++++--------
+ net/ipv6/netfilter/ip6table_security.c |   41 +++++-------------
+ 9 files changed, 126 insertions(+), 258 deletions(-)
 
 diff --git a/net/ipv4/netfilter/arptable_filter.c b/net/ipv4/netfilter/arptable_filter.c
-index e9d823b..deeda9b 100644
+index 9733760..e9d823b 100644
 --- a/net/ipv4/netfilter/arptable_filter.c
 +++ b/net/ipv4/netfilter/arptable_filter.c
-@@ -58,13 +58,9 @@ arptable_filter_hook(unsigned int hook, struct sk_buff *skb,
- 		     const struct net_device *in, const struct net_device *out,
- 		     int (*okfn)(struct sk_buff *))
- {
--	if (hook == NF_ARP_OUT)
--		return arpt_do_table(skb, hook, in, out,
--				     dev_net(out)->ipv4.arptable_filter);
-+	const struct net *net = dev_net((in != NULL) ? in : out);
+@@ -53,43 +53,37 @@ static const struct xt_table packet_filter = {
+ };
  
--	/* INPUT/FORWARD: */
+ /* The work comes in here from netfilter.c */
+-static unsigned int arpt_in_hook(unsigned int hook,
+-				 struct sk_buff *skb,
+-				 const struct net_device *in,
+-				 const struct net_device *out,
+-				 int (*okfn)(struct sk_buff *))
++static unsigned int
++arptable_filter_hook(unsigned int hook, struct sk_buff *skb,
++		     const struct net_device *in, const struct net_device *out,
++		     int (*okfn)(struct sk_buff *))
+ {
 -	return arpt_do_table(skb, hook, in, out,
 -			     dev_net(in)->ipv4.arptable_filter);
-+	return arpt_do_table(skb, hook, in, out, net->ipv4.arptable_filter);
+-}
++	if (hook == NF_ARP_OUT)
++		return arpt_do_table(skb, hook, in, out,
++				     dev_net(out)->ipv4.arptable_filter);
+ 
+-static unsigned int arpt_out_hook(unsigned int hook,
+-				  struct sk_buff *skb,
+-				  const struct net_device *in,
+-				  const struct net_device *out,
+-				  int (*okfn)(struct sk_buff *))
+-{
++	/* INPUT/FORWARD: */
+ 	return arpt_do_table(skb, hook, in, out,
+-			     dev_net(out)->ipv4.arptable_filter);
++			     dev_net(in)->ipv4.arptable_filter);
  }
  
  static struct nf_hook_ops arpt_ops[] __read_mostly = {
+ 	{
+-		.hook		= arpt_in_hook,
++		.hook		= arptable_filter_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NFPROTO_ARP,
+ 		.hooknum	= NF_ARP_IN,
+ 		.priority	= NF_IP_PRI_FILTER,
+ 	},
+ 	{
+-		.hook		= arpt_out_hook,
++		.hook		= arptable_filter_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NFPROTO_ARP,
+ 		.hooknum	= NF_ARP_OUT,
+ 		.priority	= NF_IP_PRI_FILTER,
+ 	},
+ 	{
+-		.hook		= arpt_in_hook,
++		.hook		= arptable_filter_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NFPROTO_ARP,
+ 		.hooknum	= NF_ARP_FORWARD,
 diff --git a/net/ipv4/netfilter/iptable_filter.c b/net/ipv4/netfilter/iptable_filter.c
-index 5369833..1bfeaae 100644
+index dee90eb..5369833 100644
 --- a/net/ipv4/netfilter/iptable_filter.c
 +++ b/net/ipv4/netfilter/iptable_filter.c
-@@ -65,19 +65,16 @@ iptable_filter_hook(unsigned int hook, struct sk_buff *skb,
- 		    const struct net_device *in, const struct net_device *out,
- 		    int (*okfn)(struct sk_buff *))
- {
--	if (hook == NF_INET_LOCAL_OUT) {
--		if (skb->len < sizeof(struct iphdr) ||
--		    ip_hdrlen(skb) < sizeof(struct iphdr))
--			/* root is playing with raw sockets. */
--			return NF_ACCEPT;
--
--		return ipt_do_table(skb, hook, in, out,
--				    dev_net(out)->ipv4.iptable_filter);
--	}
-+	const struct net *net;
-+
-+	if (hook == NF_INET_LOCAL_OUT &&
-+	    (skb->len < sizeof(struct iphdr) ||
-+	     ip_hdrlen(skb) < sizeof(struct iphdr)))
-+		/* root is playing with raw sockets. */
-+		return NF_ACCEPT;
+@@ -60,61 +60,43 @@ static const struct xt_table packet_filter = {
+ 	.af		= NFPROTO_IPV4,
+ };
  
--	/* LOCAL_IN/FORWARD: */
+-/* The work comes in here from netfilter.c. */
+ static unsigned int
+-ipt_local_in_hook(unsigned int hook,
+-		  struct sk_buff *skb,
+-		  const struct net_device *in,
+-		  const struct net_device *out,
+-		  int (*okfn)(struct sk_buff *))
++iptable_filter_hook(unsigned int hook, struct sk_buff *skb,
++		    const struct net_device *in, const struct net_device *out,
++		    int (*okfn)(struct sk_buff *))
+ {
 -	return ipt_do_table(skb, hook, in, out,
 -			    dev_net(in)->ipv4.iptable_filter);
-+	net = dev_net((in != NULL) ? in : out);
-+	return ipt_do_table(skb, hook, in, out, net->ipv4.iptable_filter);
+-}
++	if (hook == NF_INET_LOCAL_OUT) {
++		if (skb->len < sizeof(struct iphdr) ||
++		    ip_hdrlen(skb) < sizeof(struct iphdr))
++			/* root is playing with raw sockets. */
++			return NF_ACCEPT;
++
++		return ipt_do_table(skb, hook, in, out,
++				    dev_net(out)->ipv4.iptable_filter);
++	}
+ 
+-static unsigned int
+-ipt_hook(unsigned int hook,
+-	 struct sk_buff *skb,
+-	 const struct net_device *in,
+-	 const struct net_device *out,
+-	 int (*okfn)(struct sk_buff *))
+-{
++	/* LOCAL_IN/FORWARD: */
+ 	return ipt_do_table(skb, hook, in, out,
+ 			    dev_net(in)->ipv4.iptable_filter);
  }
  
- static struct nf_hook_ops ipt_ops[] __read_mostly = {
-diff --git a/net/ipv4/netfilter/iptable_raw.c b/net/ipv4/netfilter/iptable_raw.c
-index 2c55575..d16e437 100644
---- a/net/ipv4/netfilter/iptable_raw.c
-+++ b/net/ipv4/netfilter/iptable_raw.c
-@@ -49,17 +49,16 @@ iptable_raw_hook(unsigned int hook, struct sk_buff *skb,
- 		 const struct net_device *in, const struct net_device *out,
- 		 int (*okfn)(struct sk_buff *))
- {
--	if (hook == NF_INET_PRE_ROUTING)
--		return ipt_do_table(skb, hook, in, out,
--				    dev_net(in)->ipv4.iptable_raw);
--
--	/* OUTPUT: */
+-static unsigned int
+-ipt_local_out_hook(unsigned int hook,
+-		   struct sk_buff *skb,
+-		   const struct net_device *in,
+-		   const struct net_device *out,
+-		   int (*okfn)(struct sk_buff *))
+-{
 -	/* root is playing with raw sockets. */
 -	if (skb->len < sizeof(struct iphdr) ||
 -	    ip_hdrlen(skb) < sizeof(struct iphdr))
-+	const struct net *net;
-+
-+	if (hook == NF_INET_LOCAL_OUT && 
-+	    (skb->len < sizeof(struct iphdr) ||
-+	     ip_hdrlen(skb) < sizeof(struct iphdr)))
-+		/* root is playing with raw sockets. */
- 		return NF_ACCEPT;
+-		return NF_ACCEPT;
 -	return ipt_do_table(skb, hook, in, out,
--			    dev_net(out)->ipv4.iptable_raw);
-+
-+	net = dev_net((in != NULL) ? in : out);
-+	return ipt_do_table(skb, hook, in, out, net->ipv4.iptable_raw);
+-			    dev_net(out)->ipv4.iptable_filter);
+-}
+-
+ static struct nf_hook_ops ipt_ops[] __read_mostly = {
+ 	{
+-		.hook		= ipt_local_in_hook,
++		.hook		= iptable_filter_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NFPROTO_IPV4,
+ 		.hooknum	= NF_INET_LOCAL_IN,
+ 		.priority	= NF_IP_PRI_FILTER,
+ 	},
+ 	{
+-		.hook		= ipt_hook,
++		.hook		= iptable_filter_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NFPROTO_IPV4,
+ 		.hooknum	= NF_INET_FORWARD,
+ 		.priority	= NF_IP_PRI_FILTER,
+ 	},
+ 	{
+-		.hook		= ipt_local_out_hook,
++		.hook		= iptable_filter_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NFPROTO_IPV4,
+ 		.hooknum	= NF_INET_LOCAL_OUT,
+diff --git a/net/ipv4/netfilter/iptable_mangle.c b/net/ipv4/netfilter/iptable_mangle.c
+index e07bf24..4e699cd 100644
+--- a/net/ipv4/netfilter/iptable_mangle.c
++++ b/net/ipv4/netfilter/iptable_mangle.c
+@@ -71,51 +71,6 @@ static const struct xt_table packet_mangler = {
+ 	.af		= NFPROTO_IPV4,
+ };
+ 
+-/* The work comes in here from netfilter.c. */
+-static unsigned int
+-ipt_pre_routing_hook(unsigned int hook,
+-		     struct sk_buff *skb,
+-		     const struct net_device *in,
+-		     const struct net_device *out,
+-		     int (*okfn)(struct sk_buff *))
+-{
+-	return ipt_do_table(skb, hook, in, out,
+-			    dev_net(in)->ipv4.iptable_mangle);
+-}
+-
+-static unsigned int
+-ipt_post_routing_hook(unsigned int hook,
+-		      struct sk_buff *skb,
+-		      const struct net_device *in,
+-		      const struct net_device *out,
+-		      int (*okfn)(struct sk_buff *))
+-{
+-	return ipt_do_table(skb, hook, in, out,
+-			    dev_net(out)->ipv4.iptable_mangle);
+-}
+-
+-static unsigned int
+-ipt_local_in_hook(unsigned int hook,
+-		  struct sk_buff *skb,
+-		  const struct net_device *in,
+-		  const struct net_device *out,
+-		  int (*okfn)(struct sk_buff *))
+-{
+-	return ipt_do_table(skb, hook, in, out,
+-			    dev_net(in)->ipv4.iptable_mangle);
+-}
+-
+-static unsigned int
+-ipt_forward_hook(unsigned int hook,
+-	 struct sk_buff *skb,
+-	 const struct net_device *in,
+-	 const struct net_device *out,
+-	 int (*okfn)(struct sk_buff *))
+-{
+-	return ipt_do_table(skb, hook, in, out,
+-			    dev_net(in)->ipv4.iptable_mangle);
+-}
+-
+ static unsigned int
+ ipt_local_hook(unsigned int hook,
+ 		   struct sk_buff *skb,
+@@ -158,37 +113,53 @@ ipt_local_hook(unsigned int hook,
+ 	return ret;
  }
  
++/* The work comes in here from netfilter.c. */
++static unsigned int
++iptable_mangle_hook(unsigned int hook,
++		     struct sk_buff *skb,
++		     const struct net_device *in,
++		     const struct net_device *out,
++		     int (*okfn)(struct sk_buff *))
++{
++	if (hook == NF_INET_LOCAL_OUT)
++		return ipt_local_hook(hook, skb, in, out, okfn);
++
++	/* PREROUTING/INPUT/FORWARD: */
++	return ipt_do_table(skb, hook, in, out,
++			    dev_net(in)->ipv4.iptable_mangle);
++}
++
+ static struct nf_hook_ops ipt_ops[] __read_mostly = {
+ 	{
+-		.hook		= ipt_pre_routing_hook,
++		.hook		= iptable_mangle_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NFPROTO_IPV4,
+ 		.hooknum	= NF_INET_PRE_ROUTING,
+ 		.priority	= NF_IP_PRI_MANGLE,
+ 	},
+ 	{
+-		.hook		= ipt_local_in_hook,
++		.hook		= iptable_mangle_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NFPROTO_IPV4,
+ 		.hooknum	= NF_INET_LOCAL_IN,
+ 		.priority	= NF_IP_PRI_MANGLE,
+ 	},
+ 	{
+-		.hook		= ipt_forward_hook,
++		.hook		= iptable_mangle_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NFPROTO_IPV4,
+ 		.hooknum	= NF_INET_FORWARD,
+ 		.priority	= NF_IP_PRI_MANGLE,
+ 	},
+ 	{
+-		.hook		= ipt_local_hook,
++		.hook		= iptable_mangle_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NFPROTO_IPV4,
+ 		.hooknum	= NF_INET_LOCAL_OUT,
+ 		.priority	= NF_IP_PRI_MANGLE,
+ 	},
+ 	{
+-		.hook		= ipt_post_routing_hook,
++		.hook		= iptable_mangle_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NFPROTO_IPV4,
+ 		.hooknum	= NF_INET_POST_ROUTING,
+diff --git a/net/ipv4/netfilter/iptable_raw.c b/net/ipv4/netfilter/iptable_raw.c
+index 40f2b9f..2c55575 100644
+--- a/net/ipv4/netfilter/iptable_raw.c
++++ b/net/ipv4/netfilter/iptable_raw.c
+@@ -45,23 +45,15 @@ static const struct xt_table packet_raw = {
+ 
+ /* The work comes in here from netfilter.c. */
+ static unsigned int
+-ipt_hook(unsigned int hook,
+-	 struct sk_buff *skb,
+-	 const struct net_device *in,
+-	 const struct net_device *out,
+-	 int (*okfn)(struct sk_buff *))
++iptable_raw_hook(unsigned int hook, struct sk_buff *skb,
++		 const struct net_device *in, const struct net_device *out,
++		 int (*okfn)(struct sk_buff *))
+ {
+-	return ipt_do_table(skb, hook, in, out,
+-			    dev_net(in)->ipv4.iptable_raw);
+-}
++	if (hook == NF_INET_PRE_ROUTING)
++		return ipt_do_table(skb, hook, in, out,
++				    dev_net(in)->ipv4.iptable_raw);
+ 
+-static unsigned int
+-ipt_local_hook(unsigned int hook,
+-	       struct sk_buff *skb,
+-	       const struct net_device *in,
+-	       const struct net_device *out,
+-	       int (*okfn)(struct sk_buff *))
+-{
++	/* OUTPUT: */
+ 	/* root is playing with raw sockets. */
+ 	if (skb->len < sizeof(struct iphdr) ||
+ 	    ip_hdrlen(skb) < sizeof(struct iphdr))
+@@ -73,14 +65,14 @@ ipt_local_hook(unsigned int hook,
  /* 'raw' is the very first table. */
+ static struct nf_hook_ops ipt_ops[] __read_mostly = {
+ 	{
+-		.hook = ipt_hook,
++		.hook = iptable_raw_hook,
+ 		.pf = NFPROTO_IPV4,
+ 		.hooknum = NF_INET_PRE_ROUTING,
+ 		.priority = NF_IP_PRI_RAW,
+ 		.owner = THIS_MODULE,
+ 	},
+ 	{
+-		.hook = ipt_local_hook,
++		.hook = iptable_raw_hook,
+ 		.pf = NFPROTO_IPV4,
+ 		.hooknum = NF_INET_LOCAL_OUT,
+ 		.priority = NF_IP_PRI_RAW,
 diff --git a/net/ipv4/netfilter/iptable_security.c b/net/ipv4/netfilter/iptable_security.c
-index 1c666ba..324505a 100644
+index 7ce2366..1c666ba 100644
 --- a/net/ipv4/netfilter/iptable_security.c
 +++ b/net/ipv4/netfilter/iptable_security.c
-@@ -70,19 +70,16 @@ iptable_security_hook(unsigned int hook, struct sk_buff *skb,
- 		      const struct net_device *out,
- 		      int (*okfn)(struct sk_buff *))
+@@ -65,59 +65,43 @@ static const struct xt_table security_table = {
+ };
+ 
+ static unsigned int
+-ipt_local_in_hook(unsigned int hook,
+-		  struct sk_buff *skb,
+-		  const struct net_device *in,
+-		  const struct net_device *out,
+-		  int (*okfn)(struct sk_buff *))
++iptable_security_hook(unsigned int hook, struct sk_buff *skb,
++		      const struct net_device *in,
++		      const struct net_device *out,
++		      int (*okfn)(struct sk_buff *))
  {
--	if (hook == NF_INET_LOCAL_OUT) {
--		if (skb->len < sizeof(struct iphdr) ||
--		    ip_hdrlen(skb) < sizeof(struct iphdr))
--			/* Somebody is playing with raw sockets. */
--			return NF_ACCEPT;
--
--		return ipt_do_table(skb, hook, in, out,
--				    dev_net(out)->ipv4.iptable_security);
--	}
--
--	/* INPUT/FORWARD: */
 -	return ipt_do_table(skb, hook, in, out,
 -			    dev_net(in)->ipv4.iptable_security);
-+	const struct net *net;
-+
-+	if (hook == NF_INET_LOCAL_OUT &&
-+	    (skb->len < sizeof(struct iphdr) ||
-+	     ip_hdrlen(skb) < sizeof(struct iphdr)))
-+		/* Somebody is playing with raw sockets. */
-+		return NF_ACCEPT;
-+
-+	net = dev_net((in != NULL) ? in : out);
-+	return ipt_do_table(skb, hook, in, out, net->ipv4.iptable_security);
+-}
++	if (hook == NF_INET_LOCAL_OUT) {
++		if (skb->len < sizeof(struct iphdr) ||
++		    ip_hdrlen(skb) < sizeof(struct iphdr))
++			/* Somebody is playing with raw sockets. */
++			return NF_ACCEPT;
+ 
+-static unsigned int
+-ipt_forward_hook(unsigned int hook,
+-		 struct sk_buff *skb,
+-		 const struct net_device *in,
+-		 const struct net_device *out,
+-		 int (*okfn)(struct sk_buff *))
+-{
+-	return ipt_do_table(skb, hook, in, out,
+-			    dev_net(in)->ipv4.iptable_security);
+-}
++		return ipt_do_table(skb, hook, in, out,
++				    dev_net(out)->ipv4.iptable_security);
++	}
+ 
+-static unsigned int
+-ipt_local_out_hook(unsigned int hook,
+-		   struct sk_buff *skb,
+-		   const struct net_device *in,
+-		   const struct net_device *out,
+-		   int (*okfn)(struct sk_buff *))
+-{
+-	/* Somebody is playing with raw sockets. */
+-	if (skb->len < sizeof(struct iphdr) ||
+-	    ip_hdrlen(skb) < sizeof(struct iphdr))
+-		return NF_ACCEPT;
++	/* INPUT/FORWARD: */
+ 	return ipt_do_table(skb, hook, in, out,
+-			    dev_net(out)->ipv4.iptable_security);
++			    dev_net(in)->ipv4.iptable_security);
  }
  
  static struct nf_hook_ops ipt_ops[] __read_mostly = {
+ 	{
+-		.hook		= ipt_local_in_hook,
++		.hook		= iptable_security_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NFPROTO_IPV4,
+ 		.hooknum	= NF_INET_LOCAL_IN,
+ 		.priority	= NF_IP_PRI_SECURITY,
+ 	},
+ 	{
+-		.hook		= ipt_forward_hook,
++		.hook		= iptable_security_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NFPROTO_IPV4,
+ 		.hooknum	= NF_INET_FORWARD,
+ 		.priority	= NF_IP_PRI_SECURITY,
+ 	},
+ 	{
+-		.hook		= ipt_local_out_hook,
++		.hook		= iptable_security_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NFPROTO_IPV4,
+ 		.hooknum	= NF_INET_LOCAL_OUT,
 diff --git a/net/ipv6/netfilter/ip6table_filter.c b/net/ipv6/netfilter/ip6table_filter.c
-index 38074e9..866f34a 100644
+index 33ddfe5..38074e9 100644
 --- a/net/ipv6/netfilter/ip6table_filter.c
 +++ b/net/ipv6/netfilter/ip6table_filter.c
-@@ -64,13 +64,9 @@ ip6table_filter_hook(unsigned int hook, struct sk_buff *skb,
- 		     const struct net_device *in, const struct net_device *out,
- 		     int (*okfn)(struct sk_buff *))
- {
--	if (hook == NF_INET_LOCAL_OUT)
--		return ip6t_do_table(skb, hook, in, out,
--				     dev_net(out)->ipv6.ip6table_filter);
-+	const struct net *net = dev_net((in != NULL) ? in : out);
+@@ -60,54 +60,36 @@ static const struct xt_table packet_filter = {
  
--	/* INPUT/FORWARD: */
+ /* The work comes in here from netfilter.c. */
+ static unsigned int
+-ip6t_in_hook(unsigned int hook,
+-		   struct sk_buff *skb,
+-		   const struct net_device *in,
+-		   const struct net_device *out,
+-		   int (*okfn)(struct sk_buff *))
++ip6table_filter_hook(unsigned int hook, struct sk_buff *skb,
++		     const struct net_device *in, const struct net_device *out,
++		     int (*okfn)(struct sk_buff *))
+ {
 -	return ip6t_do_table(skb, hook, in, out,
 -			     dev_net(in)->ipv6.ip6table_filter);
-+	return ip6t_do_table(skb, hook, in, out, net->ipv6.ip6table_filter);
+-}
+-
+-static unsigned int
+-ip6t_local_out_hook(unsigned int hook,
+-		   struct sk_buff *skb,
+-		   const struct net_device *in,
+-		   const struct net_device *out,
+-		   int (*okfn)(struct sk_buff *))
+-{
+-#if 0
+-	/* root is playing with raw sockets. */
+-	if (skb->len < sizeof(struct iphdr) ||
+-	    ip_hdrlen(skb) < sizeof(struct iphdr)) {
+-		if (net_ratelimit())
+-			printk("ip6t_hook: happy cracking.\n");
+-		return NF_ACCEPT;
+-	}
+-#endif
++	if (hook == NF_INET_LOCAL_OUT)
++		return ip6t_do_table(skb, hook, in, out,
++				     dev_net(out)->ipv6.ip6table_filter);
+ 
++	/* INPUT/FORWARD: */
+ 	return ip6t_do_table(skb, hook, in, out,
+-			     dev_net(out)->ipv6.ip6table_filter);
++			     dev_net(in)->ipv6.ip6table_filter);
  }
  
  static struct nf_hook_ops ip6t_ops[] __read_mostly = {
+ 	{
+-		.hook		= ip6t_in_hook,
++		.hook		= ip6table_filter_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NFPROTO_IPV6,
+ 		.hooknum	= NF_INET_LOCAL_IN,
+ 		.priority	= NF_IP6_PRI_FILTER,
+ 	},
+ 	{
+-		.hook		= ip6t_in_hook,
++		.hook		= ip6table_filter_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NFPROTO_IPV6,
+ 		.hooknum	= NF_INET_FORWARD,
+ 		.priority	= NF_IP6_PRI_FILTER,
+ 	},
+ 	{
+-		.hook		= ip6t_local_out_hook,
++		.hook		= ip6table_filter_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NFPROTO_IPV6,
+ 		.hooknum	= NF_INET_LOCAL_OUT,
+diff --git a/net/ipv6/netfilter/ip6table_mangle.c b/net/ipv6/netfilter/ip6table_mangle.c
+index 9bc483f..405ac1f 100644
+--- a/net/ipv6/netfilter/ip6table_mangle.c
++++ b/net/ipv6/netfilter/ip6table_mangle.c
+@@ -64,33 +64,9 @@ static const struct xt_table packet_mangler = {
+ 	.af		= NFPROTO_IPV6,
+ };
+ 
+-/* The work comes in here from netfilter.c. */
+-static unsigned int
+-ip6t_in_hook(unsigned int hook,
+-	 struct sk_buff *skb,
+-	 const struct net_device *in,
+-	 const struct net_device *out,
+-	 int (*okfn)(struct sk_buff *))
+-{
+-	return ip6t_do_table(skb, hook, in, out,
+-			     dev_net(in)->ipv6.ip6table_mangle);
+-}
+-
+-static unsigned int
+-ip6t_post_routing_hook(unsigned int hook,
+-		struct sk_buff *skb,
+-		const struct net_device *in,
+-		const struct net_device *out,
+-		int (*okfn)(struct sk_buff *))
+-{
+-	return ip6t_do_table(skb, hook, in, out,
+-			     dev_net(out)->ipv6.ip6table_mangle);
+-}
+-
+ static unsigned int
+ ip6t_local_out_hook(unsigned int hook,
+ 		   struct sk_buff *skb,
+-		   const struct net_device *in,
+ 		   const struct net_device *out,
+ 		   int (*okfn)(struct sk_buff *))
+ {
+@@ -119,7 +95,7 @@ ip6t_local_out_hook(unsigned int hook,
+ 	/* flowlabel and prio (includes version, which shouldn't change either */
+ 	flowlabel = *((u_int32_t *)ipv6_hdr(skb));
+ 
+-	ret = ip6t_do_table(skb, hook, in, out,
++	ret = ip6t_do_table(skb, hook, NULL, out,
+ 			    dev_net(out)->ipv6.ip6table_mangle);
+ 
+ 	if (ret != NF_DROP && ret != NF_STOLEN &&
+@@ -132,37 +108,51 @@ ip6t_local_out_hook(unsigned int hook,
+ 	return ret;
+ }
+ 
++/* The work comes in here from netfilter.c. */
++static unsigned int
++ip6table_mangle_hook(unsigned int hook, struct sk_buff *skb,
++		     const struct net_device *in, const struct net_device *out,
++		     int (*okfn)(struct sk_buff *))
++{
++	if (hook == NF_INET_LOCAL_OUT)
++		return ip6t_local_out_hook(hook, skb, out, okfn);
++
++	/* INPUT/FORWARD */
++	return ip6t_do_table(skb, hook, in, out,
++			     dev_net(in)->ipv6.ip6table_mangle);
++}
++
+ static struct nf_hook_ops ip6t_ops[] __read_mostly = {
+ 	{
+-		.hook		= ip6t_in_hook,
++		.hook		= ip6table_mangle_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NFPROTO_IPV6,
+ 		.hooknum	= NF_INET_PRE_ROUTING,
+ 		.priority	= NF_IP6_PRI_MANGLE,
+ 	},
+ 	{
+-		.hook		= ip6t_in_hook,
++		.hook		= ip6table_mangle_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NFPROTO_IPV6,
+ 		.hooknum	= NF_INET_LOCAL_IN,
+ 		.priority	= NF_IP6_PRI_MANGLE,
+ 	},
+ 	{
+-		.hook		= ip6t_in_hook,
++		.hook		= ip6table_mangle_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NFPROTO_IPV6,
+ 		.hooknum	= NF_INET_FORWARD,
+ 		.priority	= NF_IP6_PRI_MANGLE,
+ 	},
+ 	{
+-		.hook		= ip6t_local_out_hook,
++		.hook		= ip6table_mangle_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NFPROTO_IPV6,
+ 		.hooknum	= NF_INET_LOCAL_OUT,
+ 		.priority	= NF_IP6_PRI_MANGLE,
+ 	},
+ 	{
+-		.hook		= ip6t_post_routing_hook,
++		.hook		= ip6table_mangle_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NFPROTO_IPV6,
+ 		.hooknum	= NF_INET_POST_ROUTING,
 diff --git a/net/ipv6/netfilter/ip6table_raw.c b/net/ipv6/netfilter/ip6table_raw.c
-index 985e27c..5451a36 100644
+index 4c90b55..985e27c 100644
 --- a/net/ipv6/netfilter/ip6table_raw.c
 +++ b/net/ipv6/netfilter/ip6table_raw.c
-@@ -48,13 +48,9 @@ ip6table_raw_hook(unsigned int hook, struct sk_buff *skb,
- 		  const struct net_device *in, const struct net_device *out,
- 		  int (*okfn)(struct sk_buff *))
- {
--	if (hook == NF_INET_PRE_ROUTING)
--		return ip6t_do_table(skb, hook, in, out,
--				     dev_net(in)->ipv6.ip6table_raw);
-+	const struct net *net = dev_net((in != NULL) ? in : out);
+@@ -44,37 +44,29 @@ static const struct xt_table packet_raw = {
  
--	/* OUTPUT: */
+ /* The work comes in here from netfilter.c. */
+ static unsigned int
+-ip6t_pre_routing_hook(unsigned int hook,
+-	 struct sk_buff *skb,
+-	 const struct net_device *in,
+-	 const struct net_device *out,
+-	 int (*okfn)(struct sk_buff *))
++ip6table_raw_hook(unsigned int hook, struct sk_buff *skb,
++		  const struct net_device *in, const struct net_device *out,
++		  int (*okfn)(struct sk_buff *))
+ {
 -	return ip6t_do_table(skb, hook, in, out,
--			     dev_net(out)->ipv6.ip6table_raw);
-+	return ip6t_do_table(skb, hook, in, out, net->ipv6.ip6table_raw);
+-			     dev_net(in)->ipv6.ip6table_raw);
+-}
++	if (hook == NF_INET_PRE_ROUTING)
++		return ip6t_do_table(skb, hook, in, out,
++				     dev_net(in)->ipv6.ip6table_raw);
+ 
+-static unsigned int
+-ip6t_local_out_hook(unsigned int hook,
+-	 struct sk_buff *skb,
+-	 const struct net_device *in,
+-	 const struct net_device *out,
+-	 int (*okfn)(struct sk_buff *))
+-{
++	/* OUTPUT: */
+ 	return ip6t_do_table(skb, hook, in, out,
+ 			     dev_net(out)->ipv6.ip6table_raw);
  }
  
  static struct nf_hook_ops ip6t_ops[] __read_mostly = {
+ 	{
+-	  .hook = ip6t_pre_routing_hook,
++	  .hook = ip6table_raw_hook,
+ 	  .pf = NFPROTO_IPV6,
+ 	  .hooknum = NF_INET_PRE_ROUTING,
+ 	  .priority = NF_IP6_PRI_FIRST,
+ 	  .owner = THIS_MODULE,
+ 	},
+ 	{
+-	  .hook = ip6t_local_out_hook,
++	  .hook = ip6table_raw_hook,
+ 	  .pf = NFPROTO_IPV6,
+ 	  .hooknum = NF_INET_LOCAL_OUT,
+ 	  .priority = NF_IP6_PRI_FIRST,
 diff --git a/net/ipv6/netfilter/ip6table_security.c b/net/ipv6/netfilter/ip6table_security.c
-index 8358589..841ea77 100644
+index baa8d4e..8358589 100644
 --- a/net/ipv6/netfilter/ip6table_security.c
 +++ b/net/ipv6/netfilter/ip6table_security.c
-@@ -69,13 +69,9 @@ ip6table_security_hook(unsigned int hook, struct sk_buff *skb,
- 		       const struct net_device *out,
- 		       int (*okfn)(struct sk_buff *))
- {
--	if (hook == NF_INET_LOCAL_OUT)
--		return ip6t_do_table(skb, hook, in, out,
--				     dev_net(out)->ipv6.ip6table_security);
-+	const struct net *net = dev_net((in != NULL) ? in : out);
+@@ -64,56 +64,37 @@ static const struct xt_table security_table = {
+ };
  
--	/* INPUT/FORWARD: */
+ static unsigned int
+-ip6t_local_in_hook(unsigned int hook,
+-		   struct sk_buff *skb,
+-		   const struct net_device *in,
+-		   const struct net_device *out,
+-		   int (*okfn)(struct sk_buff *))
++ip6table_security_hook(unsigned int hook, struct sk_buff *skb,
++		       const struct net_device *in,
++		       const struct net_device *out,
++		       int (*okfn)(struct sk_buff *))
+ {
 -	return ip6t_do_table(skb, hook, in, out,
 -			     dev_net(in)->ipv6.ip6table_security);
-+	return ip6t_do_table(skb, hook, in, out, net->ipv6.ip6table_security);
+-}
++	if (hook == NF_INET_LOCAL_OUT)
++		return ip6t_do_table(skb, hook, in, out,
++				     dev_net(out)->ipv6.ip6table_security);
+ 
+-static unsigned int
+-ip6t_forward_hook(unsigned int hook,
+-		  struct sk_buff *skb,
+-		  const struct net_device *in,
+-		  const struct net_device *out,
+-		  int (*okfn)(struct sk_buff *))
+-{
++	/* INPUT/FORWARD: */
+ 	return ip6t_do_table(skb, hook, in, out,
+ 			     dev_net(in)->ipv6.ip6table_security);
  }
  
+-static unsigned int
+-ip6t_local_out_hook(unsigned int hook,
+-		    struct sk_buff *skb,
+-		    const struct net_device *in,
+-		    const struct net_device *out,
+-		    int (*okfn)(struct sk_buff *))
+-{
+-	/* TBD: handle short packets via raw socket */
+-	return ip6t_do_table(skb, hook, in, out,
+-			     dev_net(out)->ipv6.ip6table_security);
+-}
+-
  static struct nf_hook_ops ip6t_ops[] __read_mostly = {
+ 	{
+-		.hook		= ip6t_local_in_hook,
++		.hook		= ip6table_security_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NFPROTO_IPV6,
+ 		.hooknum	= NF_INET_LOCAL_IN,
+ 		.priority	= NF_IP6_PRI_SECURITY,
+ 	},
+ 	{
+-		.hook		= ip6t_forward_hook,
++		.hook		= ip6table_security_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NFPROTO_IPV6,
+ 		.hooknum	= NF_INET_FORWARD,
+ 		.priority	= NF_IP6_PRI_SECURITY,
+ 	},
+ 	{
+-		.hook		= ip6t_local_out_hook,
++		.hook		= ip6table_security_hook,
+ 		.owner		= THIS_MODULE,
+ 		.pf		= NFPROTO_IPV6,
+ 		.hooknum	= NF_INET_LOCAL_OUT,
 -- 
 1.6.6.1
 
