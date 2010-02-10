@@ -1,36 +1,46 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 3/6] netfilter: get rid of the grossness in netfilter.h
-Date: Wed, 10 Feb 2010 22:07:47 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.1002102205480.29603@obet.zrqbmnf.qr>
-References: <1265823547-10358-1-git-send-email-jengelh@medozas.de> <1265823547-10358-4-git-send-email-jengelh@medozas.de> <4B72F060.4050606@trash.net>
+Subject: Re: Code cleanups
+Date: Wed, 10 Feb 2010 22:10:07 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.1002102209360.24621@obet.zrqbmnf.qr>
+References: <1265823547-10358-1-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:49060 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:49079 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756206Ab0BJVHt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Feb 2010 16:07:49 -0500
-In-Reply-To: <4B72F060.4050606@trash.net>
+	id S1756394Ab0BJVKI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 10 Feb 2010 16:10:08 -0500
+In-Reply-To: <1265823547-10358-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wednesday 2010-02-10 18:44, Patrick McHardy wrote:
+On Wednesday 2010-02-10 18:39, Jan Engelhardt wrote:
 
->Jan Engelhardt wrote:
->> GCC is now smart enough to follow the inline trail correctly.
->> vmlinux size remain the same.
+>the next patch pack is mostly about cleanups, and there is one
+>commit for improving debug a little.
+>Pull URL will be posted once the previous request has been
+>merged, but I am already posting them now for review.
 >
->Which one? The kernel currently supports 3.2+.
+>The following changes since commit e3eaa9910b380530cfd2c0670fcd3f627674da8a:
+>are available in the git repository at:
 
--rw-r--r-- 1 jengelh users 12659677 Feb 10 21:58 linux-gcc33/vmlinux.o.before
--rw-r--r-- 1 jengelh users 12659557 Feb 10 22:00 linux-gcc33/vmlinux.o
--rw-r--r-- 1 jengelh users 12874092 Feb 10 21:58 linux-gcc41/vmlinux.o.before
--rw-r--r-- 1 jengelh users 12874005 Feb 10 22:01 linux-gcc41/vmlinux.o
--rw-r--r-- 1 jengelh users 12986285 Feb 10 21:58 linux-gcc43/vmlinux.o.before
--rw-r--r-- 1 jengelh users 12986236 Feb 10 22:02 linux-gcc43/vmlinux.o
--rw-r--r-- 1 jengelh users 12915901 Feb 10 21:58 linux-gcc44/vmlinux.o.before
--rw-r--r-- 1 jengelh users 12915884 Feb 10 22:03 linux-gcc44/vmlinux.o
--rw-r--r-- 1 jengelh users 12946544 Feb 10 21:58 linux-gcc45/vmlinux.o.before
--rw-r--r-- 1 jengelh users 12946520 Feb 10 22:04 linux-gcc45/vmlinux.o
+
+	git://dev.medozas.de/linux master
+
+
+
+> include/linux/netfilter.h            |   55 +++++++++++---------
+> include/linux/netfilter/x_tables.h   |   12 ++--
+> net/bridge/netfilter/ebtables.c      |   59 ++++++++++++----------
+> net/ipv4/netfilter/arp_tables.c      |   73 +++++++++++++++------------
+> net/ipv4/netfilter/ip_tables.c       |   92 +++++++++++++++++++---------------
+> net/ipv4/netfilter/ipt_ULOG.c        |    4 +-
+> net/ipv4/netfilter/iptable_mangle.c  |   10 +---
+> net/ipv6/netfilter/ip6_tables.c      |   92 ++++++++++++++++++---------------
+> net/ipv6/netfilter/ip6table_mangle.c |   10 +---
+> net/netfilter/x_tables.c             |   16 ++++--
+> net/netfilter/xt_hashlimit.c         |    4 +-
+> net/netfilter/xt_limit.c             |    4 +-
+> 12 files changed, 233 insertions(+), 198 deletions(-)
