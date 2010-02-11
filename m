@@ -1,40 +1,44 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 3/4] netfilter: xtables: use xt_table for hook
- instantiation
-Date: Wed, 10 Feb 2010 23:10:52 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.1002102310470.26190@obet.zrqbmnf.qr>
-References: <1265813954-13854-1-git-send-email-jengelh@medozas.de> <1265813954-13854-4-git-send-email-jengelh@medozas.de> <4B72D069.2040106@trash.net> <alpine.LSU.2.01.1002101705260.12673@obet.zrqbmnf.qr> <4B72DA65.4040308@trash.net>
- <alpine.DEB.2.00.1002102013450.13645@blackhole.kfki.hu> <alpine.LSU.2.01.1002102042190.28163@obet.zrqbmnf.qr> <alpine.DEB.2.00.1002102210040.13883@blackhole.kfki.hu> <alpine.LSU.2.01.1002102307110.26190@obet.zrqbmnf.qr>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+From: Patrick McHardy <kaber@trash.net>
+Subject: netfilter 00/08: SIP conntrack TCP/T.38 FAX support
+Date: Thu, 11 Feb 2010 08:39:36 +0100 (MET)
+Message-ID: <20100211073932.7894.23544.sendpatchset@x2.localnet>
+Cc: Patrick McHardy <kaber@trash.net>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:38751 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756060Ab0BJWKx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Feb 2010 17:10:53 -0500
-In-Reply-To: <alpine.LSU.2.01.1002102307110.26190@obet.zrqbmnf.qr>
+Received: from stinky.trash.net ([213.144.137.162]:35438 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751890Ab0BKHji (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 11 Feb 2010 02:39:38 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wednesday 2010-02-10 23:07, Jan Engelhardt wrote:
+Following is the final version of my SIP conntrack TCP/T.38 FAX patches.
 
->
->On Wednesday 2010-02-10 22:32, Jozsef Kadlecsik wrote:
->>> 
->>> How so? If I untrack something in the raw table, I would have
->>> assumed it skips all conntracking - including defrag.
->>
->>Let's assume that you don't want to track the UDP DNS lookups to your busy 
->>DNS server but want to track all other connections:
->>
->>iptables -t raw -A PREROUTING -d dns.server -p udp --dport 53 -j NOTRACK
->>iptables -t raw -A PREROUTING -s dns.server -p udp --sport 53 -j NOTRACK
->>
->>If the fragments were visible in the raw table, what rule would you 
->>use to handle them?
->
->Hm, -t raw -A PREROUTING -f -d dns.server -p udp --d/sport 53 -j NOTRACK?
+I've done some more testing and everything appears to work fine, so I'll
+commit them to the nf-next tree sometime today. If anyone has comments
+or wants to add a Tested-by: tag, please do so within the next hours.
 
-Ha. I see...
+The only change since the last posting is removal of some debugging code.
+
+
+ include/linux/netfilter/nf_conntrack_sip.h  |   19 ++-
+ include/net/netfilter/nf_conntrack.h        |    2 +-
+ include/net/netfilter/nf_conntrack_expect.h |    1 +
+ include/net/netfilter/nf_nat_helper.h       |   32 ++-
+ net/ipv4/netfilter/nf_nat_helper.c          |   39 ++--
+ net/ipv4/netfilter/nf_nat_sip.c             |  158 ++++++++-----
+ net/netfilter/nf_conntrack_expect.c         |    9 +
+ net/netfilter/nf_conntrack_netlink.c        |    4 +
+ net/netfilter/nf_conntrack_sip.c            |  327 +++++++++++++++++++++------
+ 9 files changed, 433 insertions(+), 158 deletions(-)
+
+Patrick McHardy (8):
+      netfilter: ctnetlink: dump expectation helper name
+      netfilter: nf_conntrack: show helper and class in /proc/net/nf_conntrack_expect
+      netfilter: nf_conntrack_sip: fix ct_sip_parse_request() REGISTER request parsing
+      netfilter: nf_conntrack_sip: pass data offset to NAT functions
+      netfilter: nf_conntrack_sip: add TCP support
+      netfilter: nf_nat: support mangling a single TCP packet multiple times
+      netfilter: nf_nat_sip: add TCP support
+      netfilter: nf_conntrack_sip: add T.38 FAX support
