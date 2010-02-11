@@ -1,49 +1,43 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: fix mangle tables back
-Date: Thu, 11 Feb 2010 17:34:30 +0100
-Message-ID: <4B743196.6020005@trash.net>
-References: <20100211161235.GA4099@x200> <alpine.LSU.2.01.1002111724250.11348@obet.zrqbmnf.qr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 6/6] netfilter: xtables: add const qualifiers
+Date: Thu, 11 Feb 2010 18:04:58 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.1002111801260.15668@obet.zrqbmnf.qr>
+References: <1265823547-10358-1-git-send-email-jengelh@medozas.de> <1265823547-10358-7-git-send-email-jengelh@medozas.de> <4B73C740.5020003@trash.net> <alpine.LSU.2.01.1002111427490.32310@obet.zrqbmnf.qr> <4B742B21.9040300@trash.net>
+ <alpine.LSU.2.01.1002111717001.11348@obet.zrqbmnf.qr> <4B742FD4.5010801@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Alexey Dobriyan <adobriyan@gmail.com>,
-	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45500 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756228Ab0BKQec (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Feb 2010 11:34:32 -0500
-In-Reply-To: <alpine.LSU.2.01.1002111724250.11348@obet.zrqbmnf.qr>
+Received: from borg.medozas.de ([188.40.89.202]:35447 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753336Ab0BKRE7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 11 Feb 2010 12:04:59 -0500
+In-Reply-To: <4B742FD4.5010801@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Thursday 2010-02-11 17:12, Alexey Dobriyan wrote:
-> 
->> Calling POST_ROUTING hook with NULL input device is not going to work.
->>
->> --- a/net/ipv4/netfilter/iptable_mangle.c
->> +++ b/net/ipv4/netfilter/iptable_mangle.c
->> @@ -85,7 +85,7 @@ iptable_mangle_hook(unsigned int hook,
->> 		     const struct net_device *out,
->> 		     int (*okfn)(struct sk_buff *))
->> {
->> -	if (hook == NF_INET_LOCAL_OUT)
->> +	if (hook == NF_INET_LOCAL_OUT || hook == NF_INET_POST_ROUTING)
->> 		return ipt_local_hook(hook, skb, in, out, okfn);
->>
->> 	/* PREROUTING/INPUT/FORWARD: */
-> 
-> postrouting did not call ipt_local_hook before, so why now?
 
-What Alexey meant is that
+On Thursday 2010-02-11 17:27, Patrick McHardy wrote:
+>>>>> I would prefer a macro over these get_target_c functions.
+>>>> Why so?
+>>> Because it avoids having a function for const and one for non-const.
+>> 
+>> Well, I need two. One that returns const and one that does not;
+>> ip6t_get_target_c is signaturally-incompatible with ip6t_get_target.
+>
+>Yes, but you wouldn't if you'd use a macro.
+>
+>#define ip6t_get_target(e)	((void *)e + e->target_offset)
 
-	/* PREROUTING/INPUT/FORWARD: */
-	return ipt_do_table(skb, hook, in, out,
-			    dev_net(in)->ipv4.iptable_mangle);
+That would remove the const from a const e, which is what I
+expressly wanted to avoid because it's already a little hairy.
 
-dev_net(in) for a NULL device won't work. Passing them to the local
-hook won't work either however since we perform rerouting there.
-I'm confused now why this didn't crash here so far ...
+>> FWIW, the function is removed later on anyway ("remove remaining xt1 
+>> code").
+>
+>This is patch 6/6, what do you mean with "later"?
+
+Patch 094/103 from the original submission
+http://markmail.org/browse/org.kernel.vger.netfilter-devel/2009-08
+that I am trying to push to you all the time :)
