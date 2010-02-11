@@ -1,149 +1,124 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 06/08: nf_nat: support mangling a single TCP packet multiple times
-Date: Thu, 11 Feb 2010 08:39:43 +0100 (MET)
-Message-ID: <20100211073940.7894.34120.sendpatchset@x2.localnet>
+Subject: netfilter 08/08: nf_conntrack_sip: add T.38 FAX support
+Date: Thu, 11 Feb 2010 08:39:46 +0100 (MET)
+Message-ID: <20100211073942.7894.23154.sendpatchset@x2.localnet>
 References: <20100211073932.7894.23544.sendpatchset@x2.localnet>
 Cc: Patrick McHardy <kaber@trash.net>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
 Received: from stinky.trash.net ([213.144.137.162]:35450 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751943Ab0BKHjo (ORCPT
+	with ESMTP id S1751890Ab0BKHjr (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Feb 2010 02:39:44 -0500
+	Thu, 11 Feb 2010 02:39:47 -0500
 In-Reply-To: <20100211073932.7894.23544.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-commit dd724e4ee502dc31747453025a8a113d3e2f1a62
+commit 9811ea1e1a05af3cde40d4dca040c03a0c10540e
 Author: Patrick McHardy <kaber@trash.net>
-Date:   Thu Feb 11 07:40:33 2010 +0100
+Date:   Thu Feb 11 07:40:34 2010 +0100
 
-    netfilter: nf_nat: support mangling a single TCP packet multiple times
-    
-    nf_nat_mangle_tcp_packet() can currently only handle a single mangling
-    per window because it only maintains two sequence adjustment positions:
-    the one before the last adjustment and the one after.
-    
-    This patch makes sequence number adjustment tracking in
-    nf_nat_mangle_tcp_packet() optional and allows a helper to manually
-    update the offsets after the packet has been fully handled.
+    netfilter: nf_conntrack_sip: add T.38 FAX support
     
     Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-diff --git a/include/net/netfilter/nf_nat_helper.h b/include/net/netfilter/nf_nat_helper.h
-index 4222220..02bb6c2 100644
---- a/include/net/netfilter/nf_nat_helper.h
-+++ b/include/net/netfilter/nf_nat_helper.h
-@@ -7,13 +7,27 @@
- struct sk_buff;
+diff --git a/include/linux/netfilter/nf_conntrack_sip.h b/include/linux/netfilter/nf_conntrack_sip.h
+index cd84d6f..ff8cfbc 100644
+--- a/include/linux/netfilter/nf_conntrack_sip.h
++++ b/include/linux/netfilter/nf_conntrack_sip.h
+@@ -14,6 +14,7 @@ enum sip_expectation_classes {
+ 	SIP_EXPECT_SIGNALLING,
+ 	SIP_EXPECT_AUDIO,
+ 	SIP_EXPECT_VIDEO,
++	SIP_EXPECT_IMAGE,
+ 	__SIP_EXPECT_MAX
+ };
+ #define SIP_EXPECT_MAX	(__SIP_EXPECT_MAX - 1)
+diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
+index 5043d61..5b7d883 100644
+--- a/include/net/netfilter/nf_conntrack.h
++++ b/include/net/netfilter/nf_conntrack.h
+@@ -70,7 +70,7 @@ union nf_conntrack_help {
+ struct nf_conntrack_helper;
  
- /* These return true or false. */
--extern int nf_nat_mangle_tcp_packet(struct sk_buff *skb,
--				    struct nf_conn *ct,
--				    enum ip_conntrack_info ctinfo,
--				    unsigned int match_offset,
--				    unsigned int match_len,
--				    const char *rep_buffer,
--				    unsigned int rep_len);
-+extern int __nf_nat_mangle_tcp_packet(struct sk_buff *skb,
-+				      struct nf_conn *ct,
-+				      enum ip_conntrack_info ctinfo,
-+				      unsigned int match_offset,
-+				      unsigned int match_len,
-+				      const char *rep_buffer,
-+				      unsigned int rep_len, bool adjust);
-+
-+static inline int nf_nat_mangle_tcp_packet(struct sk_buff *skb,
-+					   struct nf_conn *ct,
-+					   enum ip_conntrack_info ctinfo,
-+					   unsigned int match_offset,
-+					   unsigned int match_len,
-+					   const char *rep_buffer,
-+					   unsigned int rep_len)
-+{
-+	return __nf_nat_mangle_tcp_packet(skb, ct, ctinfo,
-+					  match_offset, match_len,
-+					  rep_buffer, rep_len, true);
-+}
-+
- extern int nf_nat_mangle_udp_packet(struct sk_buff *skb,
- 				    struct nf_conn *ct,
- 				    enum ip_conntrack_info ctinfo,
-@@ -21,6 +35,10 @@ extern int nf_nat_mangle_udp_packet(struct sk_buff *skb,
- 				    unsigned int match_len,
- 				    const char *rep_buffer,
- 				    unsigned int rep_len);
-+
-+extern void nf_nat_set_seq_adjust(struct nf_conn *ct,
-+				  enum ip_conntrack_info ctinfo,
-+				  __be32 seq, s16 off);
- extern int nf_nat_seq_adjust(struct sk_buff *skb,
- 			     struct nf_conn *ct,
- 			     enum ip_conntrack_info ctinfo);
-diff --git a/net/ipv4/netfilter/nf_nat_helper.c b/net/ipv4/netfilter/nf_nat_helper.c
-index 7f10a6b..4b6af4b 100644
---- a/net/ipv4/netfilter/nf_nat_helper.c
-+++ b/net/ipv4/netfilter/nf_nat_helper.c
-@@ -141,6 +141,17 @@ static int enlarge_skb(struct sk_buff *skb, unsigned int extra)
- 	return 1;
- }
+ /* Must be kept in sync with the classes defined by helpers */
+-#define NF_CT_MAX_EXPECT_CLASSES	3
++#define NF_CT_MAX_EXPECT_CLASSES	4
  
-+void nf_nat_set_seq_adjust(struct nf_conn *ct, enum ip_conntrack_info ctinfo,
-+			   __be32 seq, s16 off)
-+{
-+	if (!off)
-+		return;
-+	set_bit(IPS_SEQ_ADJUST_BIT, &ct->status);
-+	adjust_tcp_sequence(ntohl(seq), off, ct, ctinfo);
-+	nf_conntrack_event_cache(IPCT_NATSEQADJ, ct);
-+}
-+EXPORT_SYMBOL_GPL(nf_nat_set_seq_adjust);
-+
- /* Generic function for mangling variable-length address changes inside
-  * NATed TCP connections (like the PORT XXX,XXX,XXX,XXX,XXX,XXX
-  * command in FTP).
-@@ -149,14 +160,13 @@ static int enlarge_skb(struct sk_buff *skb, unsigned int extra)
-  * skb enlargement, ...
-  *
-  * */
--int
--nf_nat_mangle_tcp_packet(struct sk_buff *skb,
--			 struct nf_conn *ct,
--			 enum ip_conntrack_info ctinfo,
--			 unsigned int match_offset,
--			 unsigned int match_len,
--			 const char *rep_buffer,
--			 unsigned int rep_len)
-+int __nf_nat_mangle_tcp_packet(struct sk_buff *skb,
-+			       struct nf_conn *ct,
-+			       enum ip_conntrack_info ctinfo,
-+			       unsigned int match_offset,
-+			       unsigned int match_len,
-+			       const char *rep_buffer,
-+			       unsigned int rep_len, bool adjust)
+ /* nf_conn feature for connections that have a helper */
+ struct nf_conn_help {
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index 3bb3aaf..fbe8ff5 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -907,6 +907,7 @@ err1:
+ static const struct sdp_media_type sdp_media_types[] = {
+ 	SDP_MEDIA_TYPE("audio ", SIP_EXPECT_AUDIO),
+ 	SDP_MEDIA_TYPE("video ", SIP_EXPECT_VIDEO),
++	SDP_MEDIA_TYPE("image ", SIP_EXPECT_IMAGE),
+ };
+ 
+ static const struct sdp_media_type *sdp_media_type(const char *dptr,
+@@ -932,7 +933,6 @@ static int process_sdp(struct sk_buff *skb, unsigned int dataoff,
  {
- 	struct rtable *rt = skb_rtable(skb);
- 	struct iphdr *iph;
-@@ -202,16 +212,13 @@ nf_nat_mangle_tcp_packet(struct sk_buff *skb,
- 		inet_proto_csum_replace2(&tcph->check, skb,
- 					 htons(oldlen), htons(datalen), 1);
+ 	enum ip_conntrack_info ctinfo;
+ 	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+-	struct nf_conn_help *help = nfct_help(ct);
+ 	unsigned int matchoff, matchlen;
+ 	unsigned int mediaoff, medialen;
+ 	unsigned int sdpoff;
+@@ -1024,9 +1024,6 @@ static int process_sdp(struct sk_buff *skb, unsigned int dataoff,
+ 		ret = nf_nat_sdp_session(skb, dataoff, dptr, datalen, sdpoff,
+ 					 &rtp_addr);
  
--	if (rep_len != match_len) {
--		set_bit(IPS_SEQ_ADJUST_BIT, &ct->status);
--		adjust_tcp_sequence(ntohl(tcph->seq),
--				    (int)rep_len - (int)match_len,
--				    ct, ctinfo);
--		nf_conntrack_event_cache(IPCT_NATSEQADJ, ct);
--	}
-+	if (adjust && rep_len != match_len)
-+		nf_nat_set_seq_adjust(ct, ctinfo, tcph->seq,
-+				      (int)rep_len - (int)match_len);
-+
- 	return 1;
+-	if (ret == NF_ACCEPT && i > 0)
+-		help->help.ct_sip_info.invite_cseq = cseq;
+-
+ 	return ret;
  }
--EXPORT_SYMBOL(nf_nat_mangle_tcp_packet);
-+EXPORT_SYMBOL(__nf_nat_mangle_tcp_packet);
+ static int process_invite_response(struct sk_buff *skb, unsigned int dataoff,
+@@ -1077,6 +1074,22 @@ static int process_prack_response(struct sk_buff *skb, unsigned int dataoff,
+ 	return NF_ACCEPT;
+ }
  
- /* Generic function for mangling variable-length address changes inside
-  * NATed UDP connections (like the CONNECT DATA XXXXX MESG XXXXX INDEX XXXXX
++static int process_invite_request(struct sk_buff *skb, unsigned int dataoff,
++				  const char **dptr, unsigned int *datalen,
++				  unsigned int cseq)
++{
++	enum ip_conntrack_info ctinfo;
++	struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
++	struct nf_conn_help *help = nfct_help(ct);
++	unsigned int ret;
++
++	flush_expectations(ct, true);
++	ret = process_sdp(skb, dataoff, dptr, datalen, cseq);
++	if (ret == NF_ACCEPT)
++		help->help.ct_sip_info.invite_cseq = cseq;
++	return ret;
++}
++
+ static int process_bye_request(struct sk_buff *skb, unsigned int dataoff,
+ 			       const char **dptr, unsigned int *datalen,
+ 			       unsigned int cseq)
+@@ -1257,7 +1270,7 @@ flush:
+ }
+ 
+ static const struct sip_handler sip_handlers[] = {
+-	SIP_HANDLER("INVITE", process_sdp, process_invite_response),
++	SIP_HANDLER("INVITE", process_invite_request, process_invite_response),
+ 	SIP_HANDLER("UPDATE", process_sdp, process_update_response),
+ 	SIP_HANDLER("ACK", process_sdp, NULL),
+ 	SIP_HANDLER("PRACK", process_sdp, process_prack_response),
+@@ -1473,6 +1486,11 @@ static const struct nf_conntrack_expect_policy sip_exp_policy[SIP_EXPECT_MAX + 1
+ 		.max_expected	= 2 * IP_CT_DIR_MAX,
+ 		.timeout	= 3 * 60,
+ 	},
++	[SIP_EXPECT_IMAGE] = {
++		.name		= "image",
++		.max_expected	= IP_CT_DIR_MAX,
++		.timeout	= 3 * 60,
++	},
+ };
+ 
+ static void nf_conntrack_sip_fini(void)
