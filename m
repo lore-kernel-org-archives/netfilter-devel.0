@@ -1,43 +1,60 @@
 From: Alexey Dobriyan <adobriyan@gmail.com>
-Subject: [PATCH] netns nf_conntrack: elegantly simplify nf_ct_exp_net()
-Date: Thu, 11 Feb 2010 21:40:41 +0200
-Message-ID: <20100211194041.GA7515@x200>
+Subject: [PATCH] netfilter: don't use INIT_RCU_HEAD()
+Date: Thu, 11 Feb 2010 21:49:11 +0200
+Message-ID: <20100211194911.GA9756@x200>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f215.google.com ([209.85.220.215]:50030 "EHLO
-	mail-fx0-f215.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756405Ab0BKTkn (ORCPT
+Received: from fg-out-1718.google.com ([72.14.220.158]:61398 "EHLO
+	fg-out-1718.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756399Ab0BKTtV (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Feb 2010 14:40:43 -0500
-Received: by fxm7 with SMTP id 7so1661051fxm.28
-        for <netfilter-devel@vger.kernel.org>; Thu, 11 Feb 2010 11:40:42 -0800 (PST)
+	Thu, 11 Feb 2010 14:49:21 -0500
+Received: by fg-out-1718.google.com with SMTP id e21so79760fga.1
+        for <netfilter-devel@vger.kernel.org>; Thu, 11 Feb 2010 11:49:19 -0800 (PST)
 Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Remove #ifdef at nf_ct_exp_net() by using nf_ct_net().
+call_rcu() will unconditionally reinitialize RCU head anyway.
 
 Signed-off-by: Alexey Dobriyan <adobriyan@gmail.com>
 ---
 
- include/net/netfilter/nf_conntrack_expect.h |    6 +-----
- 1 file changed, 1 insertion(+), 5 deletions(-)
+ net/netfilter/nf_conntrack_expect.c |    1 -
+ net/netfilter/nf_conntrack_extend.c |    1 -
+ net/netfilter/nfnetlink_queue.c     |    1 -
+ 3 files changed, 3 deletions(-)
 
---- a/include/net/netfilter/nf_conntrack_expect.h
-+++ b/include/net/netfilter/nf_conntrack_expect.h
-@@ -56,11 +56,7 @@ struct nf_conntrack_expect {
+--- a/net/netfilter/nf_conntrack_expect.c
++++ b/net/netfilter/nf_conntrack_expect.c
+@@ -232,7 +232,6 @@ struct nf_conntrack_expect *nf_ct_expect_alloc(struct nf_conn *me)
  
- static inline struct net *nf_ct_exp_net(struct nf_conntrack_expect *exp)
- {
--#ifdef CONFIG_NET_NS
--	return exp->master->ct_net;	/* by definition */
--#else
--	return &init_net;
--#endif
-+	return nf_ct_net(exp->master);
+ 	new->master = me;
+ 	atomic_set(&new->use, 1);
+-	INIT_RCU_HEAD(&new->rcu);
+ 	return new;
  }
+ EXPORT_SYMBOL_GPL(nf_ct_expect_alloc);
+--- a/net/netfilter/nf_conntrack_extend.c
++++ b/net/netfilter/nf_conntrack_extend.c
+@@ -59,7 +59,6 @@ nf_ct_ext_create(struct nf_ct_ext **ext, enum nf_ct_ext_id id, gfp_t gfp)
+ 	if (!*ext)
+ 		return NULL;
  
- struct nf_conntrack_expect_policy {
+-	INIT_RCU_HEAD(&(*ext)->rcu);
+ 	(*ext)->offset[id] = off;
+ 	(*ext)->len = len;
+ 
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -112,7 +112,6 @@ instance_create(u_int16_t queue_num, int pid)
+ 	inst->copy_mode = NFQNL_COPY_NONE;
+ 	spin_lock_init(&inst->lock);
+ 	INIT_LIST_HEAD(&inst->queue_list);
+-	INIT_RCU_HEAD(&inst->rcu);
+ 
+ 	if (!try_module_get(THIS_MODULE)) {
+ 		err = -EAGAIN;
