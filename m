@@ -1,77 +1,80 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 03/10] netfilter: CONFIG_COMPAT: allow delta to exceed 32767
-Date: Thu, 11 Feb 2010 15:12:33 +0100
-Message-ID: <1265897559-10610-4-git-send-email-fw@strlen.de>
-References: <1265897559-10610-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
+Subject: [PATCH v2 0/10] netfilter: ebtables: CONFIG_COMPAT support
+Date: Thu, 11 Feb 2010 15:12:30 +0100
+Message-ID: <1265897559-10610-1-git-send-email-fw@strlen.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:53717 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:53713 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752381Ab0BKOMk (ORCPT
+	by vger.kernel.org with ESMTP id S1751397Ab0BKOMh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Feb 2010 09:12:40 -0500
-In-Reply-To: <1265897559-10610-1-git-send-email-fw@strlen.de>
+	Thu, 11 Feb 2010 09:12:37 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-with 32 bit userland and 64 bit kernels, it is unlikely but possible
-that insertion of new rules fails even tough there are only about 2000
-iptables rules.
+Hello everyone,
 
-This happens because the compat delta is using a short int.
-Easily reproducible via "iptables -m limit" ; after about 2050
-rules inserting new ones fails with -ELOOP.
+this is version 2 of the ebtables CONFIG_COMPAT patch set.
 
-Note that compat_delta included 2 bytes of padding on x86_64, so
-structure size remains the same.
+First patches are minor bug fixes/preparation patches.  Patch 7 is the
+main CONFIG_COMPAT hunk, 8 handles those ebtables binaries specifically
+built for 64 bit kernel (i.e. pad in userspace).
 
-Signed-off-by: Florian Westphal <fw@strlen.de>
----
- no changes since v1.
- include/linux/netfilter/x_tables.h |    2 +-
- net/netfilter/x_tables.c           |    6 +++---
- 2 files changed, 4 insertions(+), 4 deletions(-)
+Last two patches add CONFIG_COMPAT support to the targets/matches that
+need special handling (maybe I missed some, though).
 
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index a0a144a..b8877f1 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -588,7 +588,7 @@ extern void xt_compat_unlock(u_int8_t af);
- 
- extern int xt_compat_add_offset(u_int8_t af, unsigned int offset, short delta);
- extern void xt_compat_flush_offsets(u_int8_t af);
--extern short xt_compat_calc_jump(u_int8_t af, unsigned int offset);
-+extern int xt_compat_calc_jump(u_int8_t af, unsigned int offset);
- 
- extern int xt_compat_match_offset(const struct xt_match *match);
- extern int xt_compat_match_from_user(struct xt_entry_match *m,
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 255ab06..76d54cd 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -39,7 +39,7 @@ MODULE_DESCRIPTION("{ip,ip6,arp,eb}_tables backend module");
- struct compat_delta {
- 	struct compat_delta *next;
- 	unsigned int offset;
--	short delta;
-+	int delta;
- };
- 
- struct xt_af {
-@@ -437,10 +437,10 @@ void xt_compat_flush_offsets(u_int8_t af)
- }
- EXPORT_SYMBOL_GPL(xt_compat_flush_offsets);
- 
--short xt_compat_calc_jump(u_int8_t af, unsigned int offset)
-+int xt_compat_calc_jump(u_int8_t af, unsigned int offset)
- {
- 	struct compat_delta *tmp;
--	short delta;
-+	int delta;
- 
- 	for (tmp = xt[af].compat_offsets, delta = 0; tmp; tmp = tmp->next)
- 		if (tmp->offset < offset)
--- 
-1.6.3.3
+Tested on x86_64 with x86 userland by comparing output of 32 and 64 bit ebtables binaries.
+
+Changes since v1:
+ - also move handling of ebt counter set/getsockopt handling to helper functions to avoid
+   copy & pasting the same code in the COMPAT handlers.
+ - add missing length check to compat_do_ebt_get_ctl().
+ - add a patch to handle "userspace-side-padding" in some ebtables 32bit userspace binaries.
+ - add "const *" qualifiers to the compat_from/to user functions.
+
+At the moment this tree adds a few compiler warnings due to the presence of "const" qualifiers;
+those warnings should all go away once Jan Engelhardts patch that adds the qualifier to the
+declarations ("netfilter: xtables: constify args in compat copying functions") is merged.
+
+The following changes since commit a8c28d05150f758625c5da38199b247887735e65:
+  Patrick McHardy (1):
+        Merge branch 'master' of git://dev.medozas.de/linux
+
+are available in the git repository at:
+
+  git://chamillionaire.breakpoint.cc/fw/nf-next-2.6.git ebt_config_compat
+
+Florian Westphal (10):
+      netfilter: ebtables: abort if next_offset is too small
+      netfilter: ebtables: avoid explicit XT_ALIGN() in match/targets
+      netfilter: CONFIG_COMPAT: allow delta to exceed 32767
+      netfilter: ebtables: split do_replace into two functions
+      netfilter: ebtables: split copy_everything_to_user into two functions
+      netfilter: ebtables: split update_counters into two functions
+      netfilter: ebtables: add CONFIG_COMPAT support
+      netfilter: ebtables: try native set/getsockopt handlers, too
+      netfilter: ebt_limit: add CONFIG_COMPAT support
+      netfilter: ebtables: mark: add CONFIG_COMPAT support
+
+ include/linux/netfilter/x_tables.h  |    2 +-
+ net/bridge/netfilter/ebt_802_3.c    |    2 +-
+ net/bridge/netfilter/ebt_arp.c      |    2 +-
+ net/bridge/netfilter/ebt_arpreply.c |    2 +-
+ net/bridge/netfilter/ebt_dnat.c     |    2 +-
+ net/bridge/netfilter/ebt_ip.c       |    2 +-
+ net/bridge/netfilter/ebt_ip6.c      |    2 +-
+ net/bridge/netfilter/ebt_limit.c    |   18 +-
+ net/bridge/netfilter/ebt_log.c      |    2 +-
+ net/bridge/netfilter/ebt_mark.c     |   33 +-
+ net/bridge/netfilter/ebt_mark_m.c   |   39 ++-
+ net/bridge/netfilter/ebt_nflog.c    |    2 +-
+ net/bridge/netfilter/ebt_pkttype.c  |    2 +-
+ net/bridge/netfilter/ebt_redirect.c |    2 +-
+ net/bridge/netfilter/ebt_snat.c     |    2 +-
+ net/bridge/netfilter/ebt_stp.c      |    2 +-
+ net/bridge/netfilter/ebt_ulog.c     |    2 +-
+ net/bridge/netfilter/ebt_vlan.c     |    2 +-
+ net/bridge/netfilter/ebtables.c     | 1110 +++++++++++++++++++++++++++++++----
+ net/netfilter/x_tables.c            |    6 +-
+ 20 files changed, 1103 insertions(+), 133 deletions(-)
 
