@@ -1,58 +1,28 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 6/6] netfilter: xtables: add const qualifiers
-Date: Thu, 11 Feb 2010 10:56:59 +0100
-Message-ID: <4B73D46B.8090701@trash.net>
-References: <b6fcc0a1002110114n3961c1b7v4cb556e4827fc137@mail.gmail.com>	 <4B73CD6C.2090302@trash.net> <b6fcc0a1002110142p524de4ddm5260751cc68f4482@mail.gmail.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: netfilter 02/08: nf_conntrack: show helper and class in
+ /proc/net/nf_conntrack_expect
+Date: Thu, 11 Feb 2010 13:59:03 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.1002111358520.30927@obet.zrqbmnf.qr>
+References: <20100211073932.7894.23544.sendpatchset@x2.localnet> <20100211073935.7894.11114.sendpatchset@x2.localnet>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: jengelh@medozas.de, netfilter-devel@vger.kernel.org
-To: Alexey Dobriyan <adobriyan@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:38180 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753376Ab0BKJ5G (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Feb 2010 04:57:06 -0500
-In-Reply-To: <b6fcc0a1002110142p524de4ddm5260751cc68f4482@mail.gmail.com>
+Received: from borg.medozas.de ([188.40.89.202]:45951 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753293Ab0BKM7I (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 11 Feb 2010 07:59:08 -0500
+In-Reply-To: <20100211073935.7894.11114.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Alexey Dobriyan wrote:
-> On Thu, Feb 11, 2010 at 11:27 AM, Patrick McHardy <kaber@trash.net> wrote:
->> Alexey Dobriyan wrote:
->>>> -static inline int ebt_basic_match(struct ebt_entry *e, struct ethhdr *h,
->>>> -   const struct net_device *in, const struct net_device *out)
->>>> +static inline int
->>>> +ebt_basic_match(const struct ebt_entry *e, const struct ethhdr *h,
->>>> +                const struct net_device *in, const struct net_device *out)
->>> These const modifiers are pointless because compilers are smart enough
->>> to notice non-modifiability and generate the very same code in both cases.
->>>
->>> Nowadays, half of functions declarations in generic
->>> xtables/iptables/ip6tables/arptables
->>> code are littered with const which makes them pretty unpleasant to read.
->> Well, the benefit is that the compiler can catch accidental modification
->> of data that is supposed to be constant.
-> 
-> Did it ever? Realistically?
+On Thursday 2010-02-11 08:39, Patrick McHardy wrote:
 
-Yes, occasionally it has caught typos or other variable mixups for me.
-It also documents that a variable is only supposed to be read.
+>commit 4e4aa88c264e9f8d013e3742e48a6bea37ca1c4c
+>Author: Patrick McHardy <kaber@trash.net>
+>Date:   Thu Feb 11 07:40:30 2010 +0100
+>
+>    netfilter: nf_conntrack: show helper and class in /proc/net/nf_conntrack_expect
 
->>From what I see, const is used with string functions
-> (to make string literals go to rodata) and with structures full of hooks
-> (to make them go to rodata).
-
-Yes, that's also a reason.
-
->>>> -    struct ebt_entry *e = (struct ebt_entry *)chain->data;
->>>> +    const struct ebt_entry *e = (struct ebt_entry *)chain->data;
->>> And such things are wrong (not second const).
->> What's wrong about this?
-> 
-> Should it be (const struct ebt_entry *)?
-
-That's not necessary. Its just declaring the the memory should
-not be modified through e. The const qualification happens
-automatically.
+Were not there any plans on obsoleting these procfs files?
