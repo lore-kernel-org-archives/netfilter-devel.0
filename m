@@ -1,41 +1,38 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 3/6] netfilter: get rid of the grossness in netfilter.h
-Date: Thu, 11 Feb 2010 10:02:18 +0100
-Message-ID: <4B73C79A.2000706@trash.net>
-References: <1265823547-10358-1-git-send-email-jengelh@medozas.de> <1265823547-10358-4-git-send-email-jengelh@medozas.de> <4B72F060.4050606@trash.net> <alpine.LSU.2.01.1002102205480.29603@obet.zrqbmnf.qr>
+From: Alexey Dobriyan <adobriyan@gmail.com>
+Subject: Re: [PATCH 6/6] netfilter: xtables: add const qualifiers
+Date: Thu, 11 Feb 2010 11:14:41 +0200
+Message-ID: <b6fcc0a1002110114n3961c1b7v4cb556e4827fc137@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+To: jengelh@medozas.de
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:37126 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751259Ab0BKJCc (ORCPT
+Received: from mail-iw0-f185.google.com ([209.85.223.185]:34772 "EHLO
+	mail-iw0-f185.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752043Ab0BKJOm (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Feb 2010 04:02:32 -0500
-In-Reply-To: <alpine.LSU.2.01.1002102205480.29603@obet.zrqbmnf.qr>
+	Thu, 11 Feb 2010 04:14:42 -0500
+Received: by iwn15 with SMTP id 15so1056121iwn.19
+        for <netfilter-devel@vger.kernel.org>; Thu, 11 Feb 2010 01:14:41 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Wednesday 2010-02-10 18:44, Patrick McHardy wrote:
-> 
->> Jan Engelhardt wrote:
->>> GCC is now smart enough to follow the inline trail correctly.
->>> vmlinux size remain the same.
->> Which one? The kernel currently supports 3.2+.
-> 
-> -rw-r--r-- 1 jengelh users 12659677 Feb 10 21:58 linux-gcc33/vmlinux.o.before
-> -rw-r--r-- 1 jengelh users 12659557 Feb 10 22:00 linux-gcc33/vmlinux.o
-> -rw-r--r-- 1 jengelh users 12874092 Feb 10 21:58 linux-gcc41/vmlinux.o.before
-> -rw-r--r-- 1 jengelh users 12874005 Feb 10 22:01 linux-gcc41/vmlinux.o
-> -rw-r--r-- 1 jengelh users 12986285 Feb 10 21:58 linux-gcc43/vmlinux.o.before
-> -rw-r--r-- 1 jengelh users 12986236 Feb 10 22:02 linux-gcc43/vmlinux.o
-> -rw-r--r-- 1 jengelh users 12915901 Feb 10 21:58 linux-gcc44/vmlinux.o.before
-> -rw-r--r-- 1 jengelh users 12915884 Feb 10 22:03 linux-gcc44/vmlinux.o
-> -rw-r--r-- 1 jengelh users 12946544 Feb 10 21:58 linux-gcc45/vmlinux.o.before
-> -rw-r--r-- 1 jengelh users 12946520 Feb 10 22:04 linux-gcc45/vmlinux.o
-> 
+> -static inline int ebt_basic_match(struct ebt_entry *e, struct ethhdr *h,
+> -   const struct net_device *in, const struct net_device *out)
+> +static inline int
+> +ebt_basic_match(const struct ebt_entry *e, const struct ethhdr *h,
+> +                const struct net_device *in, const struct net_device *out)
 
-Thanks, this looks fine.
+These const modifiers are pointless because compilers are smart enough
+to notice non-modifiability and generate the very same code in both cases.
+
+Nowadays, half of functions declarations in generic
+xtables/iptables/ip6tables/arptables
+code are littered with const which makes them pretty unpleasant to read.
+
+> -	struct ebt_entry *e = (struct ebt_entry *)chain->data;
+> +	const struct ebt_entry *e = (struct ebt_entry *)chain->data;
+
+And such things are wrong (not second const).
+
+Please, at least, keep "struct net *" out of this.
