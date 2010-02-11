@@ -1,48 +1,49 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 6/6] netfilter: xtables: add const qualifiers
-Date: Thu, 11 Feb 2010 17:27:00 +0100
-Message-ID: <4B742FD4.5010801@trash.net>
-References: <1265823547-10358-1-git-send-email-jengelh@medozas.de> <1265823547-10358-7-git-send-email-jengelh@medozas.de> <4B73C740.5020003@trash.net> <alpine.LSU.2.01.1002111427490.32310@obet.zrqbmnf.qr> <4B742B21.9040300@trash.net> <alpine.LSU.2.01.1002111717001.11348@obet.zrqbmnf.qr>
+Subject: Re: [PATCH] netfilter: fix mangle tables back
+Date: Thu, 11 Feb 2010 17:34:30 +0100
+Message-ID: <4B743196.6020005@trash.net>
+References: <20100211161235.GA4099@x200> <alpine.LSU.2.01.1002111724250.11348@obet.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
+Cc: Alexey Dobriyan <adobriyan@gmail.com>,
+	netfilter-devel@vger.kernel.org
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45349 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:45500 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756337Ab0BKQ1E (ORCPT
+	with ESMTP id S1756228Ab0BKQec (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Feb 2010 11:27:04 -0500
-In-Reply-To: <alpine.LSU.2.01.1002111717001.11348@obet.zrqbmnf.qr>
+	Thu, 11 Feb 2010 11:34:32 -0500
+In-Reply-To: <alpine.LSU.2.01.1002111724250.11348@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Jan Engelhardt wrote:
-> On Thursday 2010-02-11 17:06, Patrick McHardy wrote:
+> On Thursday 2010-02-11 17:12, Alexey Dobriyan wrote:
 > 
->> Jan Engelhardt wrote:
->>> On Thursday 2010-02-11 10:00, Patrick McHardy wrote:
->>>
->>>> Jan Engelhardt wrote:
->>>>> +static inline const struct ip6t_entry_target *
->>>>> +ip6t_get_target_c(const struct ip6t_entry *e)
->>>>> +{
->>>>> +	return ip6t_get_target((struct ip6t_entry *)e);
->>>>> +}
->>>>> +
->>>> I would prefer a macro over these get_target_c functions.
->>> Why so?
->> Because it avoids having a function for const and one for non-const.
+>> Calling POST_ROUTING hook with NULL input device is not going to work.
+>>
+>> --- a/net/ipv4/netfilter/iptable_mangle.c
+>> +++ b/net/ipv4/netfilter/iptable_mangle.c
+>> @@ -85,7 +85,7 @@ iptable_mangle_hook(unsigned int hook,
+>> 		     const struct net_device *out,
+>> 		     int (*okfn)(struct sk_buff *))
+>> {
+>> -	if (hook == NF_INET_LOCAL_OUT)
+>> +	if (hook == NF_INET_LOCAL_OUT || hook == NF_INET_POST_ROUTING)
+>> 		return ipt_local_hook(hook, skb, in, out, okfn);
+>>
+>> 	/* PREROUTING/INPUT/FORWARD: */
 > 
-> Well, I need two. One that returns const and one that does not;
-> ip6t_get_target_c is signaturally-incompatible with ip6t_get_target.
+> postrouting did not call ipt_local_hook before, so why now?
 
-Yes, but you wouldn't if you'd use a macro.
+What Alexey meant is that
 
-#define ip6t_get_target(e)	((void *)e + e->target_offset)
+	/* PREROUTING/INPUT/FORWARD: */
+	return ipt_do_table(skb, hook, in, out,
+			    dev_net(in)->ipv4.iptable_mangle);
 
-> FWIW, the function is removed later on anyway ("remove remaining xt1 
-> code").
-
-This is patch 6/6, what do you mean with "later"?
+dev_net(in) for a NULL device won't work. Passing them to the local
+hook won't work either however since we perform rerouting there.
+I'm confused now why this didn't crash here so far ...
