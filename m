@@ -1,36 +1,35 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: netfilter 05/08: nf_conntrack_sip: add TCP support
-Date: Thu, 11 Feb 2010 17:03:51 +0100
-Message-ID: <4B742A67.6040400@trash.net>
-References: <20100211073932.7894.23544.sendpatchset@x2.localnet> <20100211073938.7894.59585.sendpatchset@x2.localnet> <alpine.LSU.2.01.1002111400310.30927@obet.zrqbmnf.qr>
+Subject: Re: [PATCH 6/6] netfilter: xtables: add const qualifiers
+Date: Thu, 11 Feb 2010 17:06:57 +0100
+Message-ID: <4B742B21.9040300@trash.net>
+References: <1265823547-10358-1-git-send-email-jengelh@medozas.de> <1265823547-10358-7-git-send-email-jengelh@medozas.de> <4B73C740.5020003@trash.net> <alpine.LSU.2.01.1002111427490.32310@obet.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:44919 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:44967 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751307Ab0BKQDw (ORCPT
+	with ESMTP id S1755859Ab0BKQHA (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Feb 2010 11:03:52 -0500
-In-Reply-To: <alpine.LSU.2.01.1002111400310.30927@obet.zrqbmnf.qr>
+	Thu, 11 Feb 2010 11:07:00 -0500
+In-Reply-To: <alpine.LSU.2.01.1002111427490.32310@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Jan Engelhardt wrote:
-> On Thursday 2010-02-11 08:39, Patrick McHardy wrote:
+> On Thursday 2010-02-11 10:00, Patrick McHardy wrote:
 > 
->>    netfilter: nf_conntrack_sip: add TCP support
->>    
->>    Add TCP support, which is mandated by RFC3261 for all SIP elements.
->>    
->>    SIP over TCP is similar to UDP, except that messages are delimited
->>    by Content-Length: headers and multiple messages may appear in one
->>    packet.
+>> Jan Engelhardt wrote:
+>>> +static inline const struct ip6t_entry_target *
+>>> +ip6t_get_target_c(const struct ip6t_entry *e)
+>>> +{
+>>> +	return ip6t_get_target((struct ip6t_entry *)e);
+>>> +}
+>>> +
+>> I would prefer a macro over these get_target_c functions.
 > 
-> Does it cope with TCP segmentation?
+> Why so?
 
-No, messages split over multiple packets can't be handled, similar
-to other helpers.
-
+Because it avoids having a function for const and one for non-const.
