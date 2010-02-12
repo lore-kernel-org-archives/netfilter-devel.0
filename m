@@ -1,50 +1,41 @@
-From: Alexey Dobriyan <adobriyan@gmail.com>
+From: Jan Engelhardt <jengelh@medozas.de>
 Subject: Re: [PATCH v0] netns NOTRACK
-Date: Fri, 12 Feb 2010 14:32:08 +0200
-Message-ID: <b6fcc0a1002120432t133ef769jc877d92b1f106af2@mail.gmail.com>
-References: <20100211173117.GD4099@x200> <4B744565.2010808@trash.net>
+Date: Fri, 12 Feb 2010 13:36:05 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.1002121331370.29248@obet.zrqbmnf.qr>
+References: <20100211173117.GD4099@x200> <4B744565.2010808@trash.net>  <alpine.LSU.2.01.1002111903100.19618@obet.zrqbmnf.qr> <b6fcc0a1002120424o17b278dqf0da86666bda7e62@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: Alexey Dobriyan <adobriyan@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-iw0-f201.google.com ([209.85.223.201]:45634 "EHLO
-	mail-iw0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751837Ab0BLMcI convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 12 Feb 2010 07:32:08 -0500
-Received: by iwn39 with SMTP id 39so554645iwn.1
-        for <netfilter-devel@vger.kernel.org>; Fri, 12 Feb 2010 04:32:08 -0800 (PST)
-In-Reply-To: <4B744565.2010808@trash.net>
+Received: from borg.medozas.de ([188.40.89.202]:54324 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751837Ab0BLMgI (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 12 Feb 2010 07:36:08 -0500
+In-Reply-To: <b6fcc0a1002120424o17b278dqf0da86666bda7e62@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Feb 11, 2010 at 7:59 PM, Patrick McHardy <kaber@trash.net> wrot=
-e:
-> Alexey Dobriyan wrote:
->> --- a/net/bridge/br_netfilter.c
->> +++ b/net/bridge/br_netfilter.c
->> @@ -792,9 +792,11 @@ static unsigned int br_nf_local_out(unsigned in=
-t hook, struct sk_buff *skb,
->> =A0}
->>
->> =A0#if defined(CONFIG_NF_CONNTRACK_IPV4) || defined(CONFIG_NF_CONNTR=
-ACK_IPV4_MODULE)
->> +#include <net/netfilter/nf_conntrack.h>
->> +
->> =A0static int br_nf_dev_queue_xmit(struct sk_buff *skb)
->> =A0{
->> - =A0 =A0 if (skb->nfct !=3D NULL &&
->> + =A0 =A0 if ((skb->nfct !=3D NULL || nf_ct_is_untracked(skb)) &&
->
-> Seems unnecessary since nfct should be NULL when the conntrack
-> is untracked.
+On Friday 2010-02-12 13:24, Alexey Dobriyan wrote:
 
-Before untracked connections would pass the test, so additional check r=
-equired.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>On Thu, Feb 11, 2010 at 8:04 PM, Jan Engelhardt <jengelh@medozas.de> wrote:
+>> On Thursday 2010-02-11 18:59, Patrick McHardy wrote:
+>>>Alexey Dobriyan wrote:
+>>>> This is netns NOTRACK fix we discussed earlier.
+>>>>
+>>>> The idea was to remove nf_conntrack_untracked and
+>>>> declare that ->nfct=NULL and ->nfctinfo=IP_CT_UNTRACKED are untracked
+>>>> connections.
+>>
+>> As invalid connections used nfct=NULL, how are they now
+>> checked for?
+>
+>Sorry? if ->nfct == NULL && ->nfctinfo == IP_CT_UNTRACKED,
+>then untracked, otherwise invalid.
+>Additional checks were inserted where necesary.
+
+I was under the impression that (before your commit), when ->nfct is 
+NULL, then ->nfctinfo is undefined, but in fact, net/core/skbuff.c 
+explicitly zeroes it, so invalid conncetions will have 
+nfctinfo==IP_CT_ESTABLISHED in practice.
+
