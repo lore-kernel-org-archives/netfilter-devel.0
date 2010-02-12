@@ -1,43 +1,53 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH v0] netns NOTRACK
-Date: Fri, 12 Feb 2010 15:45:50 +0100
-Message-ID: <4B75699E.9070901@trash.net>
-References: <20100211173117.GD4099@x200> <4B744565.2010808@trash.net> <b6fcc0a1002120432t133ef769jc877d92b1f106af2@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: [PATCH] netfilter: xt_recent: inform user when hitcount is too large
+Date: Fri, 12 Feb 2010 17:31:57 +0100
+Message-ID: <1265992318-14872-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
-To: Alexey Dobriyan <adobriyan@gmail.com>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:33495 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753437Ab0BLOpx (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 12 Feb 2010 09:45:53 -0500
-In-Reply-To: <b6fcc0a1002120432t133ef769jc877d92b1f106af2@mail.gmail.com>
+Received: from borg.medozas.de ([188.40.89.202]:46295 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756991Ab0BLQcA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 12 Feb 2010 11:32:00 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Alexey Dobriyan wrote:
-> On Thu, Feb 11, 2010 at 7:59 PM, Patrick McHardy <kaber@trash.net> wrote:
->> Alexey Dobriyan wrote:
->>> --- a/net/bridge/br_netfilter.c
->>> +++ b/net/bridge/br_netfilter.c
->>> @@ -792,9 +792,11 @@ static unsigned int br_nf_local_out(unsigned int hook, struct sk_buff *skb,
->>>  }
->>>
->>>  #if defined(CONFIG_NF_CONNTRACK_IPV4) || defined(CONFIG_NF_CONNTRACK_IPV4_MODULE)
->>> +#include <net/netfilter/nf_conntrack.h>
->>> +
->>>  static int br_nf_dev_queue_xmit(struct sk_buff *skb)
->>>  {
->>> -     if (skb->nfct != NULL &&
->>> +     if ((skb->nfct != NULL || nf_ct_is_untracked(skb)) &&
->> Seems unnecessary since nfct should be NULL when the conntrack
->> is untracked.
-> 
-> Before untracked connections would pass the test, so additional check required.
+It is one of these things that iptables cannot catch and which can
+cause "Invalid argument" to be printed. Without a hint in dmesg, it is
+not going to be helpful.
 
-Actually they are supposed to pass this test since they
-are also defragmented.
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ net/netfilter/xt_recent.c |    8 ++++++--
+ 1 files changed, 6 insertions(+), 2 deletions(-)
+
+diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
+index 2033331..132cfaa 100644
+--- a/net/netfilter/xt_recent.c
++++ b/net/netfilter/xt_recent.c
+@@ -53,7 +53,7 @@ module_param(ip_list_perms, uint, 0400);
+ module_param(ip_list_uid, uint, 0400);
+ module_param(ip_list_gid, uint, 0400);
+ MODULE_PARM_DESC(ip_list_tot, "number of IPs to remember per list");
+-MODULE_PARM_DESC(ip_pkt_list_tot, "number of packets per IP to remember (max. 255)");
++MODULE_PARM_DESC(ip_pkt_list_tot, "number of packets per IP address to remember (max. 255)");
+ MODULE_PARM_DESC(ip_list_hash_size, "size of hash table used to look up IPs");
+ MODULE_PARM_DESC(ip_list_perms, "permissions on /proc/net/xt_recent/* files");
+ MODULE_PARM_DESC(ip_list_uid,"owner of /proc/net/xt_recent/* files");
+@@ -306,8 +306,12 @@ static bool recent_mt_check(const struct xt_mtchk_param *par)
+ 	if ((info->check_set & (XT_RECENT_SET | XT_RECENT_REMOVE)) &&
+ 	    (info->seconds || info->hit_count))
+ 		return false;
+-	if (info->hit_count > ip_pkt_list_tot)
++	if (info->hit_count > ip_pkt_list_tot) {
++		pr_info(KBUILD_MODNAME ": hitcount (%u) is larger than "
++			"packets to be remembered (%u)\n",
++			info->hit_count, ip_pkt_list_tot);
+ 		return false;
++	}
+ 	if (info->name[0] == '\0' ||
+ 	    strnlen(info->name, XT_RECENT_NAME_LEN) == XT_RECENT_NAME_LEN)
+ 		return false;
+-- 
+1.6.6.1
 
