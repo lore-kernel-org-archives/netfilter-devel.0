@@ -1,53 +1,58 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH] netfilter: xt_recent: inform user when hitcount is too large
-Date: Fri, 12 Feb 2010 17:31:57 +0100
-Message-ID: <1265992318-14872-1-git-send-email-jengelh@medozas.de>
-Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+From: Amos Jeffries <squid3@treenet.co.nz>
+Subject: Re: [PATCH 1/6] netfilter: xtables: replace XT_ENTRY_ITERATE macro
+Date: Sat, 13 Feb 2010 23:29:15 +1300
+Message-ID: <4B767EFB.7030600@treenet.co.nz>
+References: <1265970044-19518-1-git-send-email-jengelh@medozas.de> <1265970044-19518-2-git-send-email-jengelh@medozas.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:46295 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756991Ab0BLQcA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 12 Feb 2010 11:32:00 -0500
+Received: from ip-58-28-153-233.static-xdsl.xnet.co.nz ([58.28.153.233]:48926
+	"EHLO treenet.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751673Ab0BMK3a (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 13 Feb 2010 05:29:30 -0500
+Received: from troja.treenetnz.com. (60-234-166-233.bitstream.orcon.net.nz [60.234.166.233])
+	by treenet.co.nz (Postfix) with ESMTP id F2BA5204F54
+	for <netfilter-devel@vger.kernel.org>; Sat, 13 Feb 2010 23:29:24 +1300 (NZDT)
+In-Reply-To: <1265970044-19518-2-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-It is one of these things that iptables cannot catch and which can
-cause "Invalid argument" to be printed. Without a hint in dmesg, it is
-not going to be helpful.
+Jan Engelhardt wrote:
+> The macro is replaced by a list.h-like foreach loop. This makes
+> the code much more inspectable.
+> 
+<snip>
+>  	if (IS_ERR(counters))
+> @@ -1967,9 +2009,12 @@ compat_copy_entries_to_user(unsigned int total_size, struct xt_table *table,
+>  	loc_cpu_entry = private->entries[raw_smp_processor_id()];
+>  	pos = userptr;
+>  	size = total_size;
+> -	ret = IP6T_ENTRY_ITERATE(loc_cpu_entry, total_size,
+> -				 compat_copy_entry_to_user,
+> -				 &pos, &size, counters, &i);
+> +	xt_entry_foreach(iter, loc_cpu_entry, total_size) {
+> +		ret = compat_copy_entry_to_user(iter, &pos,
+> +		      &size, counters, &i);
+> +		if (ret != 0)
+> +			break;
+> +	}
+>  
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- net/netfilter/xt_recent.c |    8 ++++++--
- 1 files changed, 6 insertions(+), 2 deletions(-)
+<snip>
 
-diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
-index 2033331..132cfaa 100644
---- a/net/netfilter/xt_recent.c
-+++ b/net/netfilter/xt_recent.c
-@@ -53,7 +53,7 @@ module_param(ip_list_perms, uint, 0400);
- module_param(ip_list_uid, uint, 0400);
- module_param(ip_list_gid, uint, 0400);
- MODULE_PARM_DESC(ip_list_tot, "number of IPs to remember per list");
--MODULE_PARM_DESC(ip_pkt_list_tot, "number of packets per IP to remember (max. 255)");
-+MODULE_PARM_DESC(ip_pkt_list_tot, "number of packets per IP address to remember (max. 255)");
- MODULE_PARM_DESC(ip_list_hash_size, "size of hash table used to look up IPs");
- MODULE_PARM_DESC(ip_list_perms, "permissions on /proc/net/xt_recent/* files");
- MODULE_PARM_DESC(ip_list_uid,"owner of /proc/net/xt_recent/* files");
-@@ -306,8 +306,12 @@ static bool recent_mt_check(const struct xt_mtchk_param *par)
- 	if ((info->check_set & (XT_RECENT_SET | XT_RECENT_REMOVE)) &&
- 	    (info->seconds || info->hit_count))
- 		return false;
--	if (info->hit_count > ip_pkt_list_tot)
-+	if (info->hit_count > ip_pkt_list_tot) {
-+		pr_info(KBUILD_MODNAME ": hitcount (%u) is larger than "
-+			"packets to be remembered (%u)\n",
-+			info->hit_count, ip_pkt_list_tot);
- 		return false;
-+	}
- 	if (info->name[0] == '\0' ||
- 	    strnlen(info->name, XT_RECENT_NAME_LEN) == XT_RECENT_NAME_LEN)
- 		return false;
--- 
-1.6.6.1
+>  	loc_cpu_entry = private->entries[raw_smp_processor_id()];
+> -	IP6T_ENTRY_ITERATE(loc_cpu_entry, private->size, cleanup_entry, net, NULL);
+> +	xt_entry_foreach(iter, loc_cpu_entry, private->size)
+> +		if (cleanup_entry(iter, net, NULL) != 0)
+> +			break;
+>  	if (private->number > private->initial_entries)
+>  		module_put(table_owner);
+>  	xt_free_table_info(private);
 
+Just my 2c, but you seem to be floating between several coding styles on 
+this one.
+
+AYJ
