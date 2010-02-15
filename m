@@ -1,140 +1,126 @@
 From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 2/7] netfilter: ebtables: split copy_everything_to_user into two functions
-Date: Mon, 15 Feb 2010 22:05:34 +0100
-Message-ID: <1266267939-7736-3-git-send-email-fw@strlen.de>
+Subject: [PATCH 5/7] netfilter: ebtables: try native set/getsockopt handlers, too
+Date: Mon, 15 Feb 2010 22:05:37 +0100
+Message-ID: <1266267939-7736-6-git-send-email-fw@strlen.de>
 References: <1266267939-7736-1-git-send-email-fw@strlen.de>
 Cc: Florian Westphal <fw@strlen.de>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:33311 "EHLO
+Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:33315 "EHLO
 	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932089Ab0BOVGs (ORCPT
+	by vger.kernel.org with ESMTP id S932123Ab0BOVGy (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Feb 2010 16:06:48 -0500
+	Mon, 15 Feb 2010 16:06:54 -0500
 In-Reply-To: <1266267939-7736-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-once CONFIG_COMPAT support is added to ebtables, the new
-copy_counters_to_user function can be called instead of duplicating
-code.
+ebtables can be compiled to perform userspace-side padding of
+structures. In that case, all the structures are already in the
+'native' format expected by the kernel.
 
-Also remove last use of MEMPRINT, as requested by Bart De Schuymer.
+This tries to determine what format the userspace program is
+using.
+
+For most set/getsockopts, this can be done by checking
+the len argument for sizeof(compat_ebt_replace) and
+re-trying the native handler on error.
+
+In case of EBT_SO_GET_ENTRIES, the native handler is tried first,
+it will error out early when checking the *len argument
+(the compat version has to defer this check until after
+ iterating over the kernel data set once, to adjust for all
+ the structure size differences).
+
+As this would cause error printks, remove those as well, as
+recommended by Bart de Schuymer.
 
 Signed-off-by: Florian Westphal <fw@strlen.de>
 ---
- net/bridge/netfilter/ebtables.c |   69 +++++++++++++++++++++------------------
- 1 files changed, 37 insertions(+), 32 deletions(-)
+ net/bridge/netfilter/ebtables.c |   34 ++++++++++++++++++++++++----------
+ 1 files changed, 24 insertions(+), 10 deletions(-)
 
 diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 60b70a6..8f3529a 100644
+index 3586228..1a540ef 100644
 --- a/net/bridge/netfilter/ebtables.c
 +++ b/net/bridge/netfilter/ebtables.c
-@@ -33,11 +33,6 @@
- #define BUGPRINT(format, args...) printk("kernel msg: ebtables bug: please "\
- 					 "report to author: "format, ## args)
- /* #define BUGPRINT(format, args...) */
--#define MEMPRINT(format, args...) printk("kernel msg: ebtables "\
--					 ": out of memory: "format, ## args)
--/* #define MEMPRINT(format, args...) */
--
--
- 
- /*
-  * Each cpu has its own set of counters, so there is no need for write_lock in
-@@ -1262,10 +1257,8 @@ static int update_counters(struct net *net, const void __user *user,
- 	if (hlp.num_counters == 0)
- 		return -EINVAL;
- 
--	if (!(tmp = vmalloc(hlp.num_counters * sizeof(*tmp)))) {
--		MEMPRINT("Update_counters && nomemory\n");
-+	if (!(tmp = vmalloc(hlp.num_counters * sizeof(*tmp))))
- 		return -ENOMEM;
--	}
- 
- 	t = find_table_lock(net, hlp.name, &ret, &ebt_mutex);
- 	if (!t)
-@@ -1344,14 +1337,45 @@ ebt_make_names(struct ebt_entry *e, const char *base, char __user *ubase)
- 	return 0;
- }
- 
-+static int copy_counters_to_user(struct ebt_table *t, const struct ebt_counter *oldcounters,
-+                                 void __user *user, unsigned int num_counters,
-+                                 unsigned int nentries)
-+{
-+	struct ebt_counter *counterstmp;
-+	int ret = 0;
-+
-+	/* userspace might not need the counters */
-+	if (num_counters == 0)
-+		return 0;
-+
-+	if (num_counters != nentries) {
-+		BUGPRINT("Num_counters wrong\n");
-+		return -EINVAL;
-+	}
-+
-+	counterstmp = vmalloc(nentries * sizeof(*counterstmp));
-+	if (!counterstmp)
-+		return -ENOMEM;
-+
-+	write_lock_bh(&t->lock);
-+	get_counters(oldcounters, counterstmp, nentries);
-+	write_unlock_bh(&t->lock);
-+
-+	if (copy_to_user(user, counterstmp,
-+	   nentries * sizeof(struct ebt_counter)))
-+		ret = -EFAULT;
-+	vfree(counterstmp);
-+	return ret;
-+}
-+
- /* called with ebt_mutex locked */
- static int copy_everything_to_user(struct ebt_table *t, void __user *user,
-     const int *len, int cmd)
- {
- 	struct ebt_replace tmp;
--	struct ebt_counter *counterstmp;
- 	const struct ebt_counter *oldcounters;
- 	unsigned int entries_size, nentries;
-+	int ret;
- 	char *entries;
- 
- 	if (cmd == EBT_SO_GET_ENTRIES) {
-@@ -1387,29 +1411,10 @@ static int copy_everything_to_user(struct ebt_table *t, void __user *user,
- 		return -EINVAL;
+@@ -1424,16 +1424,12 @@ static int copy_everything_to_user(struct ebt_table *t, void __user *user,
+ 		oldcounters = t->table->counters;
  	}
  
--	/* userspace might not need the counters */
--	if (tmp.num_counters) {
--		if (tmp.num_counters != nentries) {
--			BUGPRINT("Num_counters wrong\n");
--			return -EINVAL;
--		}
--		counterstmp = vmalloc(nentries * sizeof(*counterstmp));
--		if (!counterstmp) {
--			MEMPRINT("Couldn't copy counters, out of memory\n");
--			return -ENOMEM;
--		}
--		write_lock_bh(&t->lock);
--		get_counters(oldcounters, counterstmp, nentries);
--		write_unlock_bh(&t->lock);
--
--		if (copy_to_user(tmp.counters, counterstmp,
--		   nentries * sizeof(struct ebt_counter))) {
--			BUGPRINT("Couldn't copy counters to userspace\n");
--			vfree(counterstmp);
--			return -EFAULT;
--		}
--		vfree(counterstmp);
+-	if (copy_from_user(&tmp, user, sizeof(tmp))) {
+-		BUGPRINT("Cfu didn't work\n");
++	if (copy_from_user(&tmp, user, sizeof(tmp)))
+ 		return -EFAULT;
 -	}
-+	ret = copy_counters_to_user(t, oldcounters, tmp.counters,
-+					tmp.num_counters, nentries);
-+	if (ret)
-+		return ret;
  
- 	if (copy_to_user(tmp.entries, entries, entries_size)) {
- 		BUGPRINT("Couldn't copy entries to userspace\n");
+ 	if (*len != sizeof(struct ebt_replace) + entries_size +
+-	   (tmp.num_counters? nentries * sizeof(struct ebt_counter): 0)) {
+-		BUGPRINT("Wrong size\n");
++	   (tmp.num_counters? nentries * sizeof(struct ebt_counter): 0))
+ 		return -EINVAL;
+-	}
+ 
+ 	if (tmp.nentries != nentries) {
+ 		BUGPRINT("Nentries wrong\n");
+@@ -2173,8 +2169,12 @@ static int compat_do_replace(struct net *net, void __user *user, unsigned int le
+ 	void *entries_tmp;
+ 
+ 	ret = compat_copy_ebt_replace_from_user(&tmp, user, len);
+-	if (ret)
++	if (ret) {
++		/* try real handler in case userland supplied needed padding */
++		if (ret == -EINVAL && do_replace(net, user, len) == 0)
++			ret = 0;
+ 		return ret;
++	}
+ 
+ 	countersize = COUNTER_OFFSET(tmp.nentries) * nr_cpu_ids;
+ 	newinfo = vmalloc(sizeof(*newinfo) + countersize);
+@@ -2263,8 +2263,9 @@ static int compat_update_counters(struct net *net, void __user *user, unsigned i
+ 	if (copy_from_user(&hlp, user, sizeof(hlp)))
+ 		return -EFAULT;
+ 
++	/* try real handler in case userland supplied needed padding */
+ 	if (len != sizeof(hlp) + hlp.num_counters * sizeof(struct ebt_counter))
+-		return -EINVAL;
++		return update_counters(net, user, len);
+ 
+ 	return do_update_counters(net, hlp.name, compat_ptr(hlp.counters),
+ 					hlp.num_counters, user, len);
+@@ -2300,9 +2301,10 @@ static int compat_do_ebt_get_ctl(struct sock *sk, int cmd, void __user *user, in
+ 	if (!capable(CAP_NET_ADMIN))
+ 		return -EPERM;
+ 
++	/* try real handler in case userland supplied needed padding */
+ 	if ((cmd == EBT_SO_GET_INFO ||
+ 	     cmd == EBT_SO_GET_INIT_INFO) && *len != sizeof(tmp))
+-			return -EINVAL;
++			return do_ebt_get_ctl(sk, cmd, user, len);
+ 
+ 	if (copy_from_user(&tmp, user, sizeof(tmp)))
+ 		return -EFAULT;
+@@ -2339,7 +2341,19 @@ static int compat_do_ebt_get_ctl(struct sock *sk, int cmd, void __user *user, in
+ 		break;
+ 	case EBT_SO_GET_ENTRIES:
+ 	case EBT_SO_GET_INIT_ENTRIES:
+-		ret = compat_copy_everything_to_user(t, user, len, cmd);
++		/*
++		 * try real handler first in case userland supplied needed padding.
++		 * in case we are dealing with an 'ordinary' 32 bit binary without
++		 * 64bit compatibility padding, this will fail right after copy_from_user
++		 * when the *len argument is validated.
++		 *
++		 * the compat_ variant needs to do one pass over the kernel data set
++		 * to adjust for size differences before it can do the same check.
++		 */
++		if (copy_everything_to_user(t, user, len, cmd) == 0)
++			ret = 0;
++		else
++			ret = compat_copy_everything_to_user(t, user, len, cmd);
+ 		break;
+ 	default:
+ 		ret = -EINVAL;
 -- 
 1.6.4.4
 
