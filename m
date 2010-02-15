@@ -1,34 +1,39 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 03/10] netfilter: CONFIG_COMPAT: allow delta to exceed
- 32767
-Date: Mon, 15 Feb 2010 18:40:58 +0100
-Message-ID: <4B79872A.3090605@trash.net>
-References: <1265897559-10610-1-git-send-email-fw@strlen.de> <1265897559-10610-4-git-send-email-fw@strlen.de>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: nf_conntrack_count versus '/proc/net/nf_conntrack | wc -l'
+ count
+Date: Mon, 15 Feb 2010 18:46:21 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.1002151844400.18430@obet.zrqbmnf.qr>
+References: <48ceaa831002150927q166b5955gfa0e1e465903d29d@mail.gmail.com> <4B798487.6040304@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fw@strlen.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Afi Gjermund <afigjermund@gmail.com>,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:65359 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755843Ab0BORlD (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Feb 2010 12:41:03 -0500
-In-Reply-To: <1265897559-10610-4-git-send-email-fw@strlen.de>
+Received: from borg.medozas.de ([188.40.89.202]:43139 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755758Ab0BORqW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Feb 2010 12:46:22 -0500
+In-Reply-To: <4B798487.6040304@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Florian Westphal wrote:
-> with 32 bit userland and 64 bit kernels, it is unlikely but possible
-> that insertion of new rules fails even tough there are only about 2000
-> iptables rules.
-> 
-> This happens because the compat delta is using a short int.
-> Easily reproducible via "iptables -m limit" ; after about 2050
-> rules inserting new ones fails with -ELOOP.
-> 
-> Note that compat_delta included 2 bytes of padding on x86_64, so
-> structure size remains the same.
 
-Also applied, thanks Florian.
+On Monday 2010-02-15 18:29, Patrick McHardy wrote:
+>Afi Gjermund wrote:
+>> 
+>> I am running into an odd issue where the kernel begins to drop packets
+>> because the connection tracking table is full. (I am running
+>> 2.6.26.5).
+>> 
+>> A 'cat /proc/sys/net/netfilter/nf_conntrack_count' says 4096.  But if
+>> I do a 'cat /proc/net/nf_conntrack | wc -l' then it says 4.
+>
+>Conntracks might exist and not be in the global table anymore,
+>f.i. when referenced by a packet. The difference in your case
+>seems pretty extreme, so I'd guess that packets are leaked
+>somewhere.
+
+So, that would make for 4092 expected connections then?
+
+Afi, what would `conntrack -L expect` give?
