@@ -1,47 +1,58 @@
-From: Peter Volkov <pva@gentoo.org>
-Subject: xtables-addons fails to build xt_ECHO
-Date: Tue, 16 Feb 2010 23:03:13 +0300
-Message-ID: <1266350593.11044.23.camel@tablet>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: xtables-addons suggestions
+Date: Tue, 16 Feb 2010 21:23:28 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.1002162057390.20293@obet.zrqbmnf.qr>
+References: <20100216215128.1c154cdb@outerspace>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Jonas Berlin <xkr47@outerspace.dyndns.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.gentoo.org ([140.211.166.183]:53894 "EHLO smtp.gentoo.org"
+Received: from borg.medozas.de ([188.40.89.202]:44408 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756767Ab0BPUDs (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 16 Feb 2010 15:03:48 -0500
-Received: from [192.168.1.35] (unknown [77.246.104.171])
-	(using TLSv1 with cipher DHE-RSA-CAMELLIA256-SHA (256/256 bits))
-	(No client certificate requested)
-	by smtp.gentoo.org (Postfix) with ESMTP id 888FD1B4023
-	for <netfilter-devel@vger.kernel.org>; Tue, 16 Feb 2010 20:03:47 +0000 (UTC)
+	id S1755606Ab0BPUX3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 16 Feb 2010 15:23:29 -0500
+In-Reply-To: <20100216215128.1c154cdb@outerspace>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Attempt to build mod_ECHO in xtables_addons causes the following
-failure:
 
-if [ -n "/usr/src/linux" ]; then make -C /usr/src/linux M=/vt/portage/tmp/portage/net-firewall/xtables-addons-1.22/work/xtables-addons-1.22/extensions modules; fi;
-make[1]: Entering directory `/usr/src/linux-2.6.32-gentoo-r5'
-  CC [M]  /vt/portage/tmp/portage/net-firewall/xtables-addons-1.22/work/xtables-addons-1.22/extensions/xt_ECHO.o
-/vt/portage/tmp/portage/net-firewall/xtables-addons-1.22/work/xtables-addons-1.22/extensions/xt_ECHO.c: In function 'echo_tg4':
-/vt/portage/tmp/portage/net-firewall/xtables-addons-1.22/work/xtables-addons-1.22/extensions/xt_ECHO.c:35: error: 'struct sk_buff' has no member named 'dst'
-/vt/portage/tmp/portage/net-firewall/xtables-addons-1.22/work/xtables-addons-1.22/extensions/xt_ECHO.c:88: error: 'const struct sk_buff' has no member named 'dst'
-/vt/portage/tmp/portage/net-firewall/xtables-addons-1.22/work/xtables-addons-1.22/extensions/xt_ECHO.c:89: error: 'struct sk_buff' has no member named 'dst'
-/vt/portage/tmp/portage/net-firewall/xtables-addons-1.22/work/xtables-addons-1.22/extensions/xt_ECHO.c:89: error: 'const struct sk_buff' has no member named 'dst'
-/vt/portage/tmp/portage/net-firewall/xtables-addons-1.22/work/xtables-addons-1.22/extensions/xt_ECHO.c:94: error: 'struct sk_buff' has no member named 'dst'
-/vt/portage/tmp/portage/net-firewall/xtables-addons-1.22/work/xtables-addons-1.22/extensions/xt_ECHO.c:98: error: 'struct sk_buff' has no member named 'dst'
-make[2]: *** [/vt/portage/tmp/portage/net-firewall/xtables-addons-1.22/work/xtables-addons-1.22/extensions/xt_ECHO.o] Error 1
-make[1]: *** [_module_/vt/portage/tmp/portage/net-firewall/xtables-addons-1.22/work/xtables-addons-1.22/extensions] Error 2
-make[1]: Leaving directory `/usr/src/linux-2.6.32-gentoo-r5'
-make: *** [modules] Error 2
+On Tuesday 2010-02-16 20:51, Jonas Berlin wrote:
+>
+>Hi, I am using xtables-addons-1.22 and needed to do some changes to get
+>it to compile in my setup. I thus present a few suggestions below:
+>
+>1. When using --with-xtables, I got problems at linking time, failing
+>to find libxtables.. By changing configure.ac like below I was able to
+>solve the issue.
+>
+>  libxtables_LIBS="-lxtables";
+>   to
+>  libxtables_LIBS="-lxtables -L $xtables_location/lib";
 
-Searching mailing list I've noticed patch that fixes this error:
-http://www.spinics.net/lists/netfilter-devel/msg09981.html
+ --with-xtables is supposed to specify an iptables directory directly;
+if at all, -L$xtables_location/.libs would have been the right option
+(due to how libtool stores its files).
 
+I guess it makes more sense to just remove --with-xtables and let the
+user set PKG_CONFIG_PATH and/or CFLAGS,LDFLAGS accordingly instead,
+which should have the same result.
 
-Please apply,
--- 
-Peter.
+>Currently only the include search paths are affected by the
+>- --with-xtables argument. It seems there could have been an option to
+>instruct pkg-config to look for the xtables.pc file in the non-standard
+>location, but I noticed that too late.
+>
+>2. When using --with-kbuild, I got some strange compile errors which
+>ended up being because it used header files from /usr/include/linux
+>instead of from the path given to --with-kbuild.
 
+ --with-kbuild only affects the build of the kernel modules (which
+does not use /usr/include at all) and this is intentional. Userspace
+should only use exported headers such as those from /usr/include
+or linux-2.6.xy/usr/include.
+
+>In fact, I was unable
+>to find anything that would use the --with-kbuild argument.
+
+extensions/Makefile.am:_kcall = -C ${kbuilddir} M=${abs_srcdir}
