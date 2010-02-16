@@ -1,60 +1,70 @@
 From: Jonas Berlin <xkr47@outerspace.dyndns.org>
 Subject: xtables-addons suggestions
-Date: Tue, 16 Feb 2010 21:51:28 +0200
-Message-ID: <20100216215128.1c154cdb@outerspace>
+Date: Tue, 16 Feb 2010 21:32:34 +0200
+Message-ID: <20100216213234.330a6ff4@outerspace>
 Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/14G38eCdeqw8ygFdwIzM4GJ"
+Content-Type: multipart/signed; boundary="Sig_/T4FsPHd8aA83o8U2wRbWNXN";
+ protocol="application/pgp-signature"; micalg=PGP-SHA1
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from slashbox.net ([82.118.210.13]:43573 "EHLO slashbox.net"
+Received: from slashbox.net ([82.118.210.13]:55332 "EHLO slashbox.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933216Ab0BPTvj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 16 Feb 2010 14:51:39 -0500
+	id S933254Ab0BPUAP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 16 Feb 2010 15:00:15 -0500
 Received: from slashbox.net (localhost [127.0.0.1])
-	by slashbox.net (Postfix) with ESMTP id 3FFFA1C6F3
-	for <netfilter-devel@vger.kernel.org>; Tue, 16 Feb 2010 21:51:38 +0200 (EET)
+	by slashbox.net (Postfix) with ESMTP id AD9F11C0DB
+	for <netfilter-devel@vger.kernel.org>; Tue, 16 Feb 2010 21:32:43 +0200 (EET)
 Received: from outerspace (a88-114-29-229.elisa-laajakaista.fi [88.114.29.229])
-	by slashbox.net (Postfix) with ESMTP id 0BE6F1C6F2
-	for <netfilter-devel@vger.kernel.org>; Tue, 16 Feb 2010 21:51:38 +0200 (EET)
+	by slashbox.net (Postfix) with ESMTP id 745061C0B8
+	for <netfilter-devel@vger.kernel.org>; Tue, 16 Feb 2010 21:32:43 +0200 (EET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
---MP_/14G38eCdeqw8ygFdwIzM4GJ
+--Sig_/T4FsPHd8aA83o8U2wRbWNXN
+Content-Type: multipart/mixed; boundary="MP_/.brf15Cqe7Jj2.Gh0GTSs58"
+
+--MP_/.brf15Cqe7Jj2.Gh0GTSs58
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: base64
+Content-Transfer-Encoding: quoted-printable
 Content-Disposition: inline
 
-LS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0tLQ0KSGFzaDogU0hBMQ0KDQpIaSwgSSBh
-bSB1c2luZyB4dGFibGVzLWFkZG9ucy0xLjIyIGFuZCBuZWVkZWQgdG8gZG8gc29tZSBjaGFuZ2Vz
-IHRvIGdldA0KaXQgdG8gY29tcGlsZSBpbiBteSBzZXR1cC4gSSB0aHVzIHByZXNlbnQgYSBmZXcg
-c3VnZ2VzdGlvbnMgYmVsb3c6DQoNCjEuIFdoZW4gdXNpbmcgLS13aXRoLXh0YWJsZXMsIEkgZ290
-IHByb2JsZW1zIGF0IGxpbmtpbmcgdGltZSwgZmFpbGluZw0KdG8gZmluZCBsaWJ4dGFibGVzLi4g
-QnkgY2hhbmdpbmcgY29uZmlndXJlLmFjIGxpa2UgYmVsb3cgSSB3YXMgYWJsZSB0bw0Kc29sdmUg
-dGhlIGlzc3VlLg0KDQogIGxpYnh0YWJsZXNfTElCUz0iLWx4dGFibGVzIjsNCiAgIHRvDQogIGxp
-Ynh0YWJsZXNfTElCUz0iLWx4dGFibGVzIC1MICR4dGFibGVzX2xvY2F0aW9uL2xpYiI7DQoNCkN1
-cnJlbnRseSBvbmx5IHRoZSBpbmNsdWRlIHNlYXJjaCBwYXRocyBhcmUgYWZmZWN0ZWQgYnkgdGhl
-DQotIC0td2l0aC14dGFibGVzIGFyZ3VtZW50LiBJdCBzZWVtcyB0aGVyZSBjb3VsZCBoYXZlIGJl
-ZW4gYW4gb3B0aW9uIHRvDQppbnN0cnVjdCBwa2ctY29uZmlnIHRvIGxvb2sgZm9yIHRoZSB4dGFi
-bGVzLnBjIGZpbGUgaW4gdGhlIG5vbi1zdGFuZGFyZA0KbG9jYXRpb24sIGJ1dCBJIG5vdGljZWQg
-dGhhdCB0b28gbGF0ZS4NCg0KMi4gV2hlbiB1c2luZyAtLXdpdGgta2J1aWxkLCBJIGdvdCBzb21l
-IHN0cmFuZ2UgY29tcGlsZSBlcnJvcnMgd2hpY2gNCmVuZGVkIHVwIGJlaW5nIGJlY2F1c2UgaXQg
-dXNlZCBoZWFkZXIgZmlsZXMgZnJvbSAvdXNyL2luY2x1ZGUvbGludXgNCmluc3RlYWQgb2YgZnJv
-bSB0aGUgcGF0aCBnaXZlbiB0byAtLXdpdGgta2J1aWxkLiBJbiBmYWN0LCBJIHdhcyB1bmFibGUN
-CnRvIGZpbmQgYW55dGhpbmcgdGhhdCB3b3VsZCB1c2UgdGhlIC0td2l0aC1rYnVpbGQgYXJndW1l
-bnQuIEl0IGVuZGVkIHVwDQppbiB0aGUgTWFrZWZpbGVzIGFzIHZhcmlhYmxlcywgYnV0IG5vYm9k
-eSB1c2VkIHRoZW0uIEJ5IGNoYW5naW5nDQpNYWtlZmlsZS5pcHRydWxlcy5pbiBsaWtlIGJlbG93
-IEkgd2FzIGFibGUgdG8gc29sdmUgdGhlIGlzc3VlLg0KDQogIEFNX0NGTEFHUyAgICAgICAgID0g
-JHtyZWd1bGFyX0NGTEFHU30gJHtsaWJ4dGFibGVzX0NGTEFHU30NCiAgIHRvDQogIGtpbmNsdWRl
-X0NGTEFHUyAgID0gQGtpbmNsdWRlX0NGTEFHU0ANCiAgQU1fQ0ZMQUdTICAgICAgICAgPSAke3Jl
-Z3VsYXJfQ0ZMQUdTfSAke2xpYnh0YWJsZXNfQ0ZMQUdTfQ0KICAke2tpbmNsdWRlX0NGTEFHU30N
-Cg0KTXkgc3VnZ2VzdGlvbnMgYXMgc2VwYXJhdGUgcGF0Y2hlcyBhdHRhY2hlZC4NCg0KVGhhbmtz
-IGZvciBhIGdyZWF0IHByb2R1Y3QhDQoNCi0gLS0gDQotIC0geGtyNDcNCi0tLS0tQkVHSU4gUEdQ
-IFNJR05BVFVSRS0tLS0tDQpWZXJzaW9uOiBHbnVQRyB2Mi4wLjEwIChHTlUvTGludXgpDQoNCmlF
-WUVBUkVDQUFZRkFrdDY5MGdBQ2drUXh5RjQ4WlR2bis0SVNRQ2ZYNDhFbFc1OGV3NklYbHpUckpH
-cHkzcjcNClRRVUFvSWIzZmNmZDNxTlUxbVdBRVBvclk4aC9neGx4DQo9bWNCOQ0KLS0tLS1FTkQg
-UEdQIFNJR05BVFVSRS0tLS0tDQo=
+Hi, I am using xtables-addons-1.22 and needed to do some changes to get it =
+to compile in my setup. I thus present a few suggestions below:
 
---MP_/14G38eCdeqw8ygFdwIzM4GJ
+1. When using --with-xtables, I got problems at linking time, failing to fi=
+nd libxtables.. By changing configure.ac like below I was able to solve the=
+ issue.
+
+  libxtables_LIBS=3D"-lxtables";
+   to
+  libxtables_LIBS=3D"-lxtables -L $xtables_location/lib";
+
+Currently only the include search paths are affected by the --with-xtables =
+argument. It seems there could have been an option to instruct pkg-config t=
+o look for the xtables.pc file in the non-standard location, but I noticed =
+that too late.
+
+2. When using --with-kbuild, I got some strange compile errors which ended =
+up being because it used header files from /usr/include/linux instead of fr=
+om the path given to --with-kbuild. In fact, I was unable to find anything =
+that would use the --with-kbuild argument. It ended up in the Makefiles as =
+variables, but nobody used them. By changing Makefile.iptrules.in like belo=
+w I was able to solve the issue.
+
+  AM_CFLAGS         =3D ${regular_CFLAGS} ${libxtables_CFLAGS}
+   to
+  kinclude_CFLAGS   =3D @kinclude_CFLAGS@
+  AM_CFLAGS         =3D ${regular_CFLAGS} ${libxtables_CFLAGS} ${kinclude_C=
+FLAGS}
+
+My suggestions as separate patches attached.
+
+Thanks for a great product!
+
+--=20
+- xkr47
+
+--MP_/.brf15Cqe7Jj2.Gh0GTSs58
 Content-Type: text/x-patch
 Content-Transfer-Encoding: quoted-printable
 Content-Disposition: attachment; filename=kbuild-to-searchpath.patch
@@ -74,7 +84,7 @@ diff -u xtables-addons-1.22-orig/configure.ac xtables-addons-1.22/configure=
  	AC_SUBST([libxtables_LIBS])
  else
 
---MP_/14G38eCdeqw8ygFdwIzM4GJ
+--MP_/.brf15Cqe7Jj2.Gh0GTSs58
 Content-Type: text/x-patch
 Content-Transfer-Encoding: quoted-printable
 Content-Disposition: attachment; filename=libxtables-to-searchpath.patch
@@ -97,4 +107,18 @@ LAGS}
 =20
  AM_DEFAULT_VERBOSITY =3D 0
 
---MP_/14G38eCdeqw8ygFdwIzM4GJ--
+--MP_/.brf15Cqe7Jj2.Gh0GTSs58--
+
+--Sig_/T4FsPHd8aA83o8U2wRbWNXN
+Content-Type: application/pgp-signature; name=signature.asc
+Content-Disposition: attachment; filename=signature.asc
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.10 (GNU/Linux)
+
+iEYEARECAAYFAkt68toACgkQxyF48ZTvn+64OQCggWNUkWobRXGtepLtfKGoXdAe
+iF0An1yE3ud2pMZNALoEZ2HHe7ATMKTK
+=v7Mf
+-----END PGP SIGNATURE-----
+
+--Sig_/T4FsPHd8aA83o8U2wRbWNXN--
