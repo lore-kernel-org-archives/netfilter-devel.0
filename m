@@ -1,33 +1,37 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: xtables-addons suggestions
-Date: Tue, 16 Feb 2010 22:32:33 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.1002162230430.29148@obet.zrqbmnf.qr>
-References: <20100216215128.1c154cdb@outerspace> <alpine.LSU.2.01.1002162057390.20293@obet.zrqbmnf.qr>
+From: David Miller <davem@davemloft.net>
+Subject: [PATCH]: Sparc netfilter build fix
+Date: Tue, 16 Feb 2010 15:30:14 -0800 (PST)
+Message-ID: <20100216.153014.237194043.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Jonas Berlin <xkr47@outerspace.dyndns.org>
+Content-Type: Text/Plain; charset=iso-8859-7
+Content-Transfer-Encoding: base64
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:53124 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933065Ab0BPVcf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 16 Feb 2010 16:32:35 -0500
-In-Reply-To: <alpine.LSU.2.01.1002162057390.20293@obet.zrqbmnf.qr>
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:53264
+	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933267Ab0BPXaA (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 16 Feb 2010 18:30:00 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-On Tuesday 2010-02-16 21:23, Jan Engelhardt wrote:
->On Tuesday 2010-02-16 20:51, Jonas Berlin wrote:
->>
->>Hi, I am using xtables-addons-1.22 and needed to do some changes to get
->>it to compile in my setup. I thus present a few suggestions below:
->>
->>1. When using --with-xtables, I got problems at linking time, failing
->>to find libxtables.. By changing configure.ac like below I was able to
->>solve the issue.
-
-Well after all, libxtables_LIBS is currently never used.
-(Extension modules don't link to it.)
-So I cannot imagine linking problems, but that's the point
-where you have to provide logs.
+DQpJIGp1c3QgY2hlY2tlZCBpbiB0aGUgZm9sbG93aW5nIHBhdGNoIHRvIGZpeCB0aGUgYnVpbGQN
+CmFmdGVyIHRoaXMgbW9ybmluZydzIG5ldGZpbHRlciBtZXJnZSBpbnRvIG5ldC1uZXh0LTIuNg0K
+DQpKdXN0IEZZSS4uLg0KDQpzcGFyYzY0OiBLaWxsIGJvZ3VzIGlwX3RhYmxlcy5oIGluY2x1ZGUu
+DQoNCkZpeGVzIHRoZSBmb2xsb3dpbmcgYnVpbGQgZmFpbHVyZToNCg0KICBDQyAgICAgIGFyY2gv
+c3BhcmMva2VybmVsL3N5c19zcGFyYzMyLm8NCkluIGZpbGUgaW5jbHVkZWQgZnJvbSBpbmNsdWRl
+L2xpbnV4L25ldGZpbHRlcl9pcHY0L2lwX3RhYmxlcy5oOjI4LA0KICAgICAgICAgICAgICAgICBm
+cm9tIGFyY2gvc3BhcmMva2VybmVsL3N5c19zcGFyYzMyLmM6NDY6DQppbmNsdWRlL2xpbnV4L25l
+dGZpbHRlci94X3RhYmxlcy5oOjUyNTogZXJyb3I6IGV4cGVjdGVkIGRlY2xhcmF0aW9uIHNwZWNp
+ZmllcnMgb3IgoS4uLqIgYmVmb3JlIKFuZl9ob29rZm6iDQoNClNpZ25lZC1vZmYtYnk6IERhdmlk
+IFMuIE1pbGxlciA8ZGF2ZW1AZGF2ZW1sb2Z0Lm5ldD4NCi0tLQ0KIGFyY2gvc3BhcmMva2VybmVs
+L3N5c19zcGFyYzMyLmMgfCAgICAxIC0NCiAxIGZpbGVzIGNoYW5nZWQsIDAgaW5zZXJ0aW9ucygr
+KSwgMSBkZWxldGlvbnMoLSkNCg0KZGlmZiAtLWdpdCBhL2FyY2gvc3BhcmMva2VybmVsL3N5c19z
+cGFyYzMyLmMgYi9hcmNoL3NwYXJjL2tlcm5lbC9zeXNfc3BhcmMzMi5jDQppbmRleCBkYzBhYzE5
+Li5kYWRlZDNiIDEwMDY0NA0KLS0tIGEvYXJjaC9zcGFyYy9rZXJuZWwvc3lzX3NwYXJjMzIuYw0K
+KysrIGIvYXJjaC9zcGFyYy9rZXJuZWwvc3lzX3NwYXJjMzIuYw0KQEAgLTQzLDcgKzQzLDYgQEAN
+CiAjaW5jbHVkZSA8bGludXgvc2VjdXJpdHkuaD4NCiAjaW5jbHVkZSA8bGludXgvY29tcGF0Lmg+
+DQogI2luY2x1ZGUgPGxpbnV4L3Zmcy5oPg0KLSNpbmNsdWRlIDxsaW51eC9uZXRmaWx0ZXJfaXB2
+NC9pcF90YWJsZXMuaD4NCiAjaW5jbHVkZSA8bGludXgvcHRyYWNlLmg+DQogDQogI2luY2x1ZGUg
+PGFzbS90eXBlcy5oPg0KLS0gDQoxLjYuNi4xDQoNCg==
