@@ -1,133 +1,69 @@
-From: Florian Westphal <fw@strlen.de>
-Subject: [PATCH 7/7] netfilter: ebtables: mark: add CONFIG_COMPAT support
-Date: Tue, 16 Feb 2010 17:39:08 +0100
-Message-ID: <1266338348-6233-8-git-send-email-fw@strlen.de>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH v4] netfilter: ebtables: CONFIG_COMPAT support
+Date: Tue, 16 Feb 2010 18:10:09 +0100
+Message-ID: <4B7AD171.5090305@trash.net>
 References: <1266338348-6233-1-git-send-email-fw@strlen.de>
-Cc: Florian Westphal <fw@strlen.de>
-To: netfilter-devel@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Florian Westphal <fw@strlen.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from Chamillionaire.breakpoint.cc ([85.10.199.196]:40251 "EHLO
-	Chamillionaire.breakpoint.cc" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933081Ab0BPQjC (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:54538 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932304Ab0BPRKS (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 16 Feb 2010 11:39:02 -0500
+	Tue, 16 Feb 2010 12:10:18 -0500
 In-Reply-To: <1266338348-6233-1-git-send-email-fw@strlen.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Add the required handlers to convert 32 bit
-ebtables mark match and match target structs to 64bit layout.
+Florian Westphal wrote:
+> Version 4 of the ebtables CONFIG_COMPAT patch set.
+> 
+> Changes since v3:
+> - reformat to get rid of overly long lines.
+> 
+> One long line remains (a BUG_ON() ), fixing this would make this much
+> more ugly, so I'd rather remove the BUG_ON if that one line is still a
+> problem.
+> 
+> Changes since v2:
+> - remove last use of MEMPRINT macro
+> - remove BUGPRINT line instead of adding compat argument to copy_counters_to_user
+> 
+> First patches are preparation patches to reduce copy & paste in later
+> patches.  Patch 4 is the main CONFIG_COMPAT hunk, next ones
+> handles those ebtables binaries specifically built for 64 bit kernel
+> (i.e. pad in userspace).
+> Last two patches add CONFIG_COMPAT support to the targets/matches that
+> need special handling (maybe I missed some, though).
+> 
+> Tested on x86_64 with x86 userland by comparing output of 32 and 64 bit ebtables binaries.
+> 
+> Changes since v1 were:
+> - also move handling of ebt counter set/getsockopt handling to helper functions to avoid
+> copy & pasting the same code in the COMPAT handlers.
+> - add missing length check to compat_do_ebt_get_ctl().
+> - add a patch to handle "userspace-side-padding" in some ebtables 32bit userspace binaries.
+> - add "const *" qualifiers to the compat_from/to user functions.
+> 
+> The following changes since commit 3e5e524ffb5fcf2447eb5dd9f8e54ad22dd9baa7:
+>   Florian Westphal (1):
+>         netfilter: CONFIG_COMPAT: allow delta to exceed 32767
+> 
+> are available in the git repository at:
+> 
+>   git://git.breakpoint.cc/fw/nf-next-2.6.git ebt_config_compat_v4
+> 
+> Florian Westphal (7):
+>       netfilter: ebtables: split do_replace into two functions
+>       netfilter: ebtables: split copy_everything_to_user into two functions
+>       netfilter: ebtables: split update_counters into two functions
+>       netfilter: ebtables: add CONFIG_COMPAT support
+>       netfilter: ebtables: try native set/getsockopt handlers, too
+>       netfilter: ebt_limit: add CONFIG_COMPAT support
+>       netfilter: ebtables: mark: add CONFIG_COMPAT support
 
-Signed-off-by: Florian Westphal <fwestphal@astaro.com>
----
- net/bridge/netfilter/ebt_mark.c   |   31 +++++++++++++++++++++++++++++++
- net/bridge/netfilter/ebt_mark_m.c |   37 +++++++++++++++++++++++++++++++++++++
- 2 files changed, 68 insertions(+), 0 deletions(-)
-
-diff --git a/net/bridge/netfilter/ebt_mark.c b/net/bridge/netfilter/ebt_mark.c
-index 153e167..2b5ce53 100644
---- a/net/bridge/netfilter/ebt_mark.c
-+++ b/net/bridge/netfilter/ebt_mark.c
-@@ -52,6 +52,32 @@ static bool ebt_mark_tg_check(const struct xt_tgchk_param *par)
- 		return false;
- 	return true;
- }
-+#ifdef CONFIG_COMPAT
-+struct compat_ebt_mark_t_info {
-+	compat_ulong_t mark;
-+	compat_uint_t target;
-+};
-+
-+static void mark_tg_compat_from_user(void *dst, const void *src)
-+{
-+	const struct compat_ebt_mark_t_info *user = src;
-+	struct ebt_mark_t_info *kern = dst;
-+
-+	kern->mark = user->mark;
-+	kern->target = user->target;
-+}
-+
-+static int mark_tg_compat_to_user(void __user *dst, const void *src)
-+{
-+	struct compat_ebt_mark_t_info __user *user = dst;
-+	const struct ebt_mark_t_info *kern = src;
-+
-+	if (put_user(kern->mark, &user->mark) ||
-+	    put_user(kern->target, &user->target))
-+		return -EFAULT;
-+	return 0;
-+}
-+#endif
- 
- static struct xt_target ebt_mark_tg_reg __read_mostly = {
- 	.name		= "mark",
-@@ -60,6 +86,11 @@ static struct xt_target ebt_mark_tg_reg __read_mostly = {
- 	.target		= ebt_mark_tg,
- 	.checkentry	= ebt_mark_tg_check,
- 	.targetsize	= sizeof(struct ebt_mark_t_info),
-+#ifdef CONFIG_COMPAT
-+	.compatsize	= sizeof(struct compat_ebt_mark_t_info),
-+	.compat_from_user = mark_tg_compat_from_user,
-+	.compat_to_user	= mark_tg_compat_to_user,
-+#endif
- 	.me		= THIS_MODULE,
- };
- 
-diff --git a/net/bridge/netfilter/ebt_mark_m.c b/net/bridge/netfilter/ebt_mark_m.c
-index 89abf40..8de8c39 100644
---- a/net/bridge/netfilter/ebt_mark_m.c
-+++ b/net/bridge/netfilter/ebt_mark_m.c
-@@ -35,6 +35,38 @@ static bool ebt_mark_mt_check(const struct xt_mtchk_param *par)
- 	return true;
- }
- 
-+
-+#ifdef CONFIG_COMPAT
-+struct compat_ebt_mark_m_info {
-+	compat_ulong_t mark, mask;
-+	uint8_t invert, bitmask;
-+};
-+
-+static void mark_mt_compat_from_user(void *dst, const void *src)
-+{
-+	const struct compat_ebt_mark_m_info *user = src;
-+	struct ebt_mark_m_info *kern = dst;
-+
-+	kern->mark = user->mark;
-+	kern->mask = user->mask;
-+	kern->invert = user->invert;
-+	kern->bitmask = user->bitmask;
-+}
-+
-+static int mark_mt_compat_to_user(void __user *dst, const void *src)
-+{
-+	struct compat_ebt_mark_m_info __user *user = dst;
-+	const struct ebt_mark_m_info *kern = src;
-+
-+	if (put_user(kern->mark, &user->mark) ||
-+	    put_user(kern->mask, &user->mask) ||
-+	    put_user(kern->invert, &user->invert) ||
-+	    put_user(kern->bitmask, &user->bitmask))
-+		return -EFAULT;
-+	return 0;
-+}
-+#endif
-+
- static struct xt_match ebt_mark_mt_reg __read_mostly = {
- 	.name		= "mark_m",
- 	.revision	= 0,
-@@ -42,6 +74,11 @@ static struct xt_match ebt_mark_mt_reg __read_mostly = {
- 	.match		= ebt_mark_mt,
- 	.checkentry	= ebt_mark_mt_check,
- 	.matchsize	= sizeof(struct ebt_mark_m_info),
-+#ifdef CONFIG_COMPAT
-+	.compatsize	= sizeof(struct compat_ebt_mark_m_info),
-+	.compat_from_user = mark_mt_compat_from_user,
-+	.compat_to_user	= mark_mt_compat_to_user,
-+#endif
- 	.me		= THIS_MODULE,
- };
- 
--- 
-1.6.3.3
-
+Looks fine to me. I'll pull them in once Dave has merged the
+patches I've submitted so far.
