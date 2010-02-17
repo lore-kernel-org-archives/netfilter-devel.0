@@ -1,37 +1,65 @@
-From: David Miller <davem@davemloft.net>
-Subject: [PATCH]: Sparc netfilter build fix
-Date: Tue, 16 Feb 2010 15:30:14 -0800 (PST)
-Message-ID: <20100216.153014.237194043.davem@davemloft.net>
+From: Joe Perches <joe@perches.com>
+Subject: [PATCH] ipv6.h: reassembly: replace calculated magic number with
+ multiplication
+Date: Tue, 16 Feb 2010 20:40:04 -0800
+Message-ID: <1266381604.8446.17.camel@Joe-Laptop.home>
+References: <20100216145517.2796.40634.sendpatchset@x2.localnet>
+	 <20100216145545.2796.47717.sendpatchset@x2.localnet>
+	 <1266335018.29987.50.camel@Joe-Laptop.home>  <4B7ABDF8.8010004@trash.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-7
-Content-Transfer-Encoding: base64
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Shan Wei <shanwei@cn.fujitsu.com>, davem@davemloft.net,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:53264
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933267Ab0BPXaA (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 16 Feb 2010 18:30:00 -0500
+Received: from mail.perches.com ([173.55.12.10]:1118 "EHLO mail.perches.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934023Ab0BQEkG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 16 Feb 2010 23:40:06 -0500
+In-Reply-To: <4B7ABDF8.8010004@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-DQpJIGp1c3QgY2hlY2tlZCBpbiB0aGUgZm9sbG93aW5nIHBhdGNoIHRvIGZpeCB0aGUgYnVpbGQN
-CmFmdGVyIHRoaXMgbW9ybmluZydzIG5ldGZpbHRlciBtZXJnZSBpbnRvIG5ldC1uZXh0LTIuNg0K
-DQpKdXN0IEZZSS4uLg0KDQpzcGFyYzY0OiBLaWxsIGJvZ3VzIGlwX3RhYmxlcy5oIGluY2x1ZGUu
-DQoNCkZpeGVzIHRoZSBmb2xsb3dpbmcgYnVpbGQgZmFpbHVyZToNCg0KICBDQyAgICAgIGFyY2gv
-c3BhcmMva2VybmVsL3N5c19zcGFyYzMyLm8NCkluIGZpbGUgaW5jbHVkZWQgZnJvbSBpbmNsdWRl
-L2xpbnV4L25ldGZpbHRlcl9pcHY0L2lwX3RhYmxlcy5oOjI4LA0KICAgICAgICAgICAgICAgICBm
-cm9tIGFyY2gvc3BhcmMva2VybmVsL3N5c19zcGFyYzMyLmM6NDY6DQppbmNsdWRlL2xpbnV4L25l
-dGZpbHRlci94X3RhYmxlcy5oOjUyNTogZXJyb3I6IGV4cGVjdGVkIGRlY2xhcmF0aW9uIHNwZWNp
-ZmllcnMgb3IgoS4uLqIgYmVmb3JlIKFuZl9ob29rZm6iDQoNClNpZ25lZC1vZmYtYnk6IERhdmlk
-IFMuIE1pbGxlciA8ZGF2ZW1AZGF2ZW1sb2Z0Lm5ldD4NCi0tLQ0KIGFyY2gvc3BhcmMva2VybmVs
-L3N5c19zcGFyYzMyLmMgfCAgICAxIC0NCiAxIGZpbGVzIGNoYW5nZWQsIDAgaW5zZXJ0aW9ucygr
-KSwgMSBkZWxldGlvbnMoLSkNCg0KZGlmZiAtLWdpdCBhL2FyY2gvc3BhcmMva2VybmVsL3N5c19z
-cGFyYzMyLmMgYi9hcmNoL3NwYXJjL2tlcm5lbC9zeXNfc3BhcmMzMi5jDQppbmRleCBkYzBhYzE5
-Li5kYWRlZDNiIDEwMDY0NA0KLS0tIGEvYXJjaC9zcGFyYy9rZXJuZWwvc3lzX3NwYXJjMzIuYw0K
-KysrIGIvYXJjaC9zcGFyYy9rZXJuZWwvc3lzX3NwYXJjMzIuYw0KQEAgLTQzLDcgKzQzLDYgQEAN
-CiAjaW5jbHVkZSA8bGludXgvc2VjdXJpdHkuaD4NCiAjaW5jbHVkZSA8bGludXgvY29tcGF0Lmg+
-DQogI2luY2x1ZGUgPGxpbnV4L3Zmcy5oPg0KLSNpbmNsdWRlIDxsaW51eC9uZXRmaWx0ZXJfaXB2
-NC9pcF90YWJsZXMuaD4NCiAjaW5jbHVkZSA8bGludXgvcHRyYWNlLmg+DQogDQogI2luY2x1ZGUg
-PGFzbS90eXBlcy5oPg0KLS0gDQoxLjYuNi4xDQoNCg==
+On Tue, 2010-02-16 at 16:47 +0100, Patrick McHardy wrote:
+> Joe Perches wrote:
+> >> @@ -246,6 +246,8 @@ extern int ipv6_opt_accepted(struct sock *sk, struct sk_buff *skb);
+> >>  int ip6_frag_nqueues(struct net *net);
+> >>  int ip6_frag_mem(struct net *net);
+> >>  
+> >> +#define IPV6_FRAG_HIGH_THRESH	262144		/* == 256*1024 */
+> >> +#define IPV6_FRAG_LOW_THRESH	196608		/* == 192*1024 */
+> >>  #define IPV6_FRAG_TIMEOUT	(60*HZ)		/* 60 seconds */
+> > 
+> > 196608 isn't a number I want to remember.
+> > Is this better as:
+> > 
+> > #define IPV6_FRAG_HIGH_THRESH	(256 * 1024)	/* 262144 */
+> > #define IPV6_FRAG_LOW_THRESH	(192 * 1024)	/* 196608 */
+> 
+> Please send a patch, I'll apply it once these patches are in Dave's
+> tree.
+
+Signed-off-by: Joe Perches <joe@perches.com>
+
+diff --git a/include/net/ipv6.h b/include/net/ipv6.h
+index 639ec53..d067db1 100644
+--- a/include/net/ipv6.h
++++ b/include/net/ipv6.h
+@@ -246,9 +246,9 @@ extern int ipv6_opt_accepted(struct sock *sk, struct sk_buff *skb);
+ int ip6_frag_nqueues(struct net *net);
+ int ip6_frag_mem(struct net *net);
+ 
+-#define IPV6_FRAG_HIGH_THRESH	262144		/* == 256*1024 */
+-#define IPV6_FRAG_LOW_THRESH	196608		/* == 192*1024 */
+-#define IPV6_FRAG_TIMEOUT	(60*HZ)		/* 60 seconds */
++#define IPV6_FRAG_HIGH_THRESH	(256 * 1024)	/* 262144 */
++#define IPV6_FRAG_LOW_THRESH	(192 * 1024)	/* 196608 */
++#define IPV6_FRAG_TIMEOUT	(60 * HZ)	/* 60 seconds */
+ 
+ extern int __ipv6_addr_type(const struct in6_addr *addr);
+ static inline int ipv6_addr_type(const struct in6_addr *addr)
+
+
+
+
