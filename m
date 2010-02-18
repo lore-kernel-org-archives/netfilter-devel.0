@@ -1,43 +1,46 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: kernel stack  trace using conntrack
-Date: Thu, 18 Feb 2010 13:19:59 +0100
-Message-ID: <4B7D306F.9060808@trash.net>
-References: <7EF5DBE4C76A7B4DA655334E9F2BFD26CED7BC8D04@FRSPX100.fr01.awl.atosorigin.net>	 <1266313889.3045.1.camel@edumazet-laptop>	 <7EF5DBE4C76A7B4DA655334E9F2BFD26CED7BC8D54@FRSPX100.fr01.awl.atosorigin.net>	 <1266318928.3045.38.camel@edumazet-laptop>  <4B7A9E95.103@netfilter.org> <1266327917.3045.55.camel@edumazet-laptop> <7EF5DBE4C76A7B4DA655334E9F2BFD26CED7BC905D@FRSPX100.fr01.awl.atosorigin.net> <4B7D17CE.6010805@trash.net> <4B7D1E32.6000705@netfilter.org> <4B7D215A.6060400@trash.net> <4B7D3022.9030405@netfilter.org>
+From: "Dmitry V. Levin" <ldv@altlinux.org>
+Subject: [PATCH] libip4tc: Add static qualifier to dump_entry()
+Date: Thu, 18 Feb 2010 19:40:20 +0300
+Message-ID: <20100218164017.GA19949@wo.int.altlinux.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Ramblewski David <David.Ramblewski@atosorigin.com>,
-	Eric Dumazet <eric.dumazet@gmail.com>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	netdev <netdev@vger.kernel.org>
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:63892 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757986Ab0BRMUE (ORCPT
+Received: from vint.altlinux.org ([194.107.17.35]:59249 "EHLO
+	vint.altlinux.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757306Ab0BRQuh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Feb 2010 07:20:04 -0500
-In-Reply-To: <4B7D3022.9030405@netfilter.org>
+	Thu, 18 Feb 2010 11:50:37 -0500
+Received: from wo.int.altlinux.org (wo.int.altlinux.org [192.168.1.4])
+	by vint.altlinux.org (Postfix) with ESMTP id 044BF3F80EDE
+	for <netfilter-devel@vger.kernel.org>; Thu, 18 Feb 2010 16:40:21 +0000 (UTC)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pablo Neira Ayuso wrote:
-> Patrick McHardy wrote:
->>>> Pablo, please let me know whether you want me to apply this.
->>> ctnetlink_change_helper() also calls nf_ct_ext_add() for conntracks that
->>> are confirmed (in case of a helper update for an existing conntrack).
->>> That would also trigger the assertion. If we want to support helper
->>> assignation via ctnetlink for existing conntracks, we will need to add
->>> locking to the conntrack extension infrastructure to avoid races.
->>>
->>> I don't see a clear solution for this yet.
->> I see, this is indeed a problem. Since the helper is known at the
->> first event, we could restrict this to only allow manual assignment
->> for newly created conntracks. Most helpers probably can't properly
->> cope with connections not seen from the beginning anyways.
-> 
-> Indeed, changing the helper in the middle of the road doesn't make too
-> much sense to me either. I can send you a patch for this along today,
-> I'll find some spare time to do it.
+Change dump_entry() signature defined in libip4tc.c to match prototype
+declared in libiptc.c and another static dump_entry() function defined
+in libip6tc.c.  This function is not a part of the public libiptc API.
 
-Great, thanks Pablo.
+Signed-off-by: Dmitry V. Levin <ldv@altlinux.org>
+---
+ libiptc/libip4tc.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/libiptc/libip4tc.c b/libiptc/libip4tc.c
+index 3c7b073..0c64ac8 100644
+--- a/libiptc/libip4tc.c
++++ b/libiptc/libip4tc.c
+@@ -124,8 +124,8 @@ typedef unsigned int socklen_t;
+ 
+ #define IP_PARTS(n) IP_PARTS_NATIVE(ntohl(n))
+ 
+-int
+-dump_entry(STRUCT_ENTRY *e, struct iptc_handle *const handle)
++static int
++dump_entry(struct ipt_entry *e, struct iptc_handle *const handle)
+ {
+ 	size_t i;
+ 	STRUCT_ENTRY_TARGET *t;
+-- 
+ldv
