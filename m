@@ -1,76 +1,70 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: linux-next: Tree for February 18 (netfilter)
-Date: Thu, 18 Feb 2010 18:03:59 +0100
-Message-ID: <4B7D72FF.4010401@trash.net>
-References: <20100218204937.54a613d2.sfr@canb.auug.org.au> <4B7D70D0.9090003@oracle.com>
+Subject: Re: [IMPORTANT] !!! tun ifaces don't visible by nfnetlink library
+Date: Thu, 18 Feb 2010 18:07:11 +0100
+Message-ID: <4B7D73BF.4070908@trash.net>
+References: <1012927142.20100218091404@yandex.ru>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------020007050903060109090705"
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org, Netdev <netdev@vger.kernel.org>
-To: Randy Dunlap <randy.dunlap@oracle.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4B7D70D0.9090003@oracle.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
-
-This is a multi-part message in MIME format.
---------------020007050903060109090705
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Kuzin Andrey <kuzinandrey@yandex.ru>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:36665 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757762Ab0BRRHN (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Feb 2010 12:07:13 -0500
+In-Reply-To: <1012927142.20100218091404@yandex.ru>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Randy Dunlap wrote:
-> On 02/18/10 01:49, Stephen Rothwell wrote:
->> Hi all,
->>
->> Changes since 20100217:
->>
->> The net tree lost its build failure but gained a conflict against the kvm
->> tree.
+Kuzin Andrey wrote:
+> Hello! I wrote about this problem later, but no any effect.
+> Kernel somewhere or nfnetlink library has error.
+> In kernel 2.6.27.x all forking fine.
+> In kernel 2.6.30.5 only latest up tun iface was visible.
+> Now i use kernel 2.6.32.3 and all tun ifaces become invisible. 
 > 
+> root@banana:/tmp/tgz/libnfnetlink-1.0.0/utils# gcc iftest.c -lnfnetlink
+> root@banana:/tmp/tgz/libnfnetlink-1.0.0/utils# ./a.out
+> index (1) is lo (RUNNING)
+> index (2) is eth0 (RUNNING)
+> index (3) is eth1 (RUNNING)
+> index (4) is eth2 (RUNNING)
+> index (5) is eth3 (RUNNING)
+> index (6) is teql0 (NOT RUNNING)
+> index (7) is tunl0 (NOT RUNNING)
+> index (8) is gre0 (NOT RUNNING)
+> index (9) is eth0.11 (RUNNING)
+> index (10) is eth0.14 (RUNNING)
+> index (11) is eth0.15 (RUNNING)
+> index (12) is eth0.2 (RUNNING)
+> index (13) is eth0.3 (RUNNING)
 > 
-> include/net/netfilter/nf_conntrack.h:94: error: field 'ct_general' has incomplete type
-> include/net/netfilter/nf_conntrack.h:178: error: 'const struct sk_buff' has no member named 'nfct'
-> include/net/netfilter/nf_conntrack.h:185: error: implicit declaration of function 'nf_conntrack_put'
-> include/net/netfilter/nf_conntrack.h:294: error: 'const struct sk_buff' has no member named 'nfct'
-> net/ipv4/netfilter/nf_defrag_ipv4.c:45: error: 'struct sk_buff' has no member named 'nfct'
-> net/ipv4/netfilter/nf_defrag_ipv4.c:46: error: 'struct sk_buff' has no member named 'nfct'
+> iftest output ifaces with index from 0 to 64.
 > 
-> CONFIG_NF_CONNTRACK is not enabled
-> but CONFIG_NF_DEFRAG_IPV4=y.  It is "select"ed by
-> NETFILTER_XT_MATCH_SOCKET and NETFILTER_XT_TARGET_TPROXY,
-> both of which are enabled.
+> Here is ifaces list by ifconfig
+> ---------------------------------
+> root@banana:/tmp/tgz/libnfnetlink-1.0.0/utils# ifconfig | grep Link
+> eth0      Link encap:Ethernet  HWaddr 00:22:15:39:a3:33
+> eth1      Link encap:Ethernet  HWaddr 00:22:15:39:a3:34
+> eth2      Link encap:Ethernet  HWaddr 00:22:15:39:a3:35
+> eth3      Link encap:Ethernet  HWaddr 00:22:15:39:a3:36
+> eth0.2    Link encap:Ethernet  HWaddr 00:22:15:39:a3:33
+> eth0.3    Link encap:Ethernet  HWaddr 00:22:15:39:a3:33
+> eth0.5    Link encap:Ethernet  HWaddr 00:22:15:39:a3:33
+> eth0.11   Link encap:Ethernet  HWaddr 00:22:15:39:a3:33
+> eth0.14   Link encap:Ethernet  HWaddr 00:22:15:39:a3:33
+> eth0.15   Link encap:Ethernet  HWaddr 00:22:15:39:a3:33
+> lo        Link encap:Local Loopback
+> tun1      Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00
+> tun2      Link encap:UNSPEC  HWaddr 00-00-00-00-00-00-00-00-00-00-00-00-00-00-00-00
 > 
-> Hm, NETFILTER_XT_MATCH_SOCKET depends on !NF_CONNTRACK || NF_CONNTRACK.
-> Maybe NETFILTER_XT_TARGET_TPROXY needs to do that also.  No, that would
-> go against that config option's help text:
+> In my program uses NFQUEUE packets from tun1 and tun2 coming
+> with indexex 14 and 17. But iftest not output any information
+> about this (and such code in my program).
+> I don't know another way to get name of iface by his index.
 
-No, the problem is use of skb->nfct without CONFIG_NF_CONNTRACK.
-
-This patch should fix it.
-
---------------020007050903060109090705
-Content-Type: text/plain;
- name="x"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="x"
-
-diff --git a/net/ipv4/netfilter/nf_defrag_ipv4.c b/net/ipv4/netfilter/nf_defrag_ipv4.c
-index d498a70..b822ade 100644
---- a/net/ipv4/netfilter/nf_defrag_ipv4.c
-+++ b/net/ipv4/netfilter/nf_defrag_ipv4.c
-@@ -42,8 +42,10 @@ static enum ip_defrag_users nf_ct_defrag_user(unsigned int hooknum,
- {
- 	u16 zone = NF_CT_DEFAULT_ZONE;
- 
-+#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
- 	if (skb->nfct)
- 		zone = nf_ct_zone((struct nf_conn *)skb->nfct);
-+#endif
- 
- #ifdef CONFIG_BRIDGE_NETFILTER
- 	if (skb->nf_bridge &&
-
---------------020007050903060109090705--
+I can't reproduce this hear with tap devices. Please try to
+figure out whether there are no netlink messages for these
+devices or whether userspace ignores them.
