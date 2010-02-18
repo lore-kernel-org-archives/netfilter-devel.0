@@ -1,46 +1,223 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: nf_conntrack_count versus '/proc/net/nf_conntrack | wc -l' count
-Date: Thu, 18 Feb 2010 19:19:50 +0100
-Message-ID: <4B7D84C6.2040102@trash.net>
-References: <48ceaa831002150927q166b5955gfa0e1e465903d29d@mail.gmail.com>	 <48ceaa831002151308y5bb2606n2058599f3ec4b82@mail.gmail.com>	 <1266270757.2859.27.camel@edumazet-laptop>	 <48ceaa831002151400q4178d121h28887cfdf6625499@mail.gmail.com>	 <1266271377.2859.28.camel@edumazet-laptop>	 <48ceaa831002151410j1dbdfce3tcbdb5ceaa86b0e2b@mail.gmail.com>	 <48ceaa831002180940y65af65b4p5d887f2f1a50b4b@mail.gmail.com>	 <1266515463.2877.10.camel@edumazet-laptop>	 <48ceaa831002180955v4fd87e20o4e116c87f4f4b259@mail.gmail.com>	 <1266516452.2877.12.camel@edumazet-laptop> <48ceaa831002181013q46d4d623xcd88f6164a088729@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	Jan Engelhardt <jengelh@medozas.de>,
+Subject: netfilter 01/09: ebtables: split do_replace into two functions
+Date: Thu, 18 Feb 2010 19:21:04 +0100 (MET)
+Message-ID: <20100218182104.21826.28547.sendpatchset@x2.localnet>
+References: <20100218182103.21826.17908.sendpatchset@x2.localnet>
+Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
 	netfilter-devel@vger.kernel.org
-To: Afi Gjermund <afigjermund@gmail.com>
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:38121 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:38158 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751162Ab0BRSTx (ORCPT
+	with ESMTP id S1751823Ab0BRSVF (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Feb 2010 13:19:53 -0500
-In-Reply-To: <48ceaa831002181013q46d4d623xcd88f6164a088729@mail.gmail.com>
+	Thu, 18 Feb 2010 13:21:05 -0500
+In-Reply-To: <20100218182103.21826.17908.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Afi Gjermund wrote:
-> On Thu, Feb 18, 2010 at 10:07 AM, Eric Dumazet <eric.dumazet@gmail.com> wrote:
->>>>> Shouldn't the value after the flush be 0? The traffic that has created
->>>>> this mess is from a REDIRECT rule in the PREROUTING chain of the 'nat'
->>>>> table.
->>>> Could you post a copy of these rules ?
->>>>
->>> iptables -t nat -A PREROUTING -p tcp -s X.X.X.X -d X.X.X.X --sport X
->>> --dport X -j REDIRECT --to-port X
->> Yes I understood you were using such rules, but I cannot understand how
->> it can trigger without real nics being plugged. So I asked you some
->> details, apprently you dont want to provide them and prefer to hide from
->> us :)
->>
-> Lol, sorry. The X values are dynamic and depend on what network the
-> device happens to be on, as well as the ephemeral source port.
-> 
-> iptables -t nat -A PREROUTING -p tcp -s 172.168.8.45 -d 172.168.8.200
-> --sport 4351 --dport 4500 -j REDIRECT --to-port 45001
+commit e788759f44b29e5b1bc27a265dece7dcfa4234af
+Author: Florian Westphal <fw@strlen.de>
+Date:   Thu Feb 4 18:38:53 2010 +0100
 
-NAT is unlikely to be the cause since its widely used and there
-are no other reports of leaks. Please describe your full setup,
-especially things like traffic scheduling, network devices,
-userspace queueing etc etc.
+    netfilter: ebtables: split do_replace into two functions
+    
+    once CONFIG_COMPAT support is merged this allows
+    to call do_replace_finish() after doing the CONFIG_COMPAT conversion
+    instead of copy & pasting this.
+    
+    Signed-off-by: Florian Westphal <fw@strlen.de>
+
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index 4370e96..a707dbd 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -959,91 +959,45 @@ static void get_counters(const struct ebt_counter *oldcounters,
+ 	}
+ }
+ 
+-/* replace the table */
+-static int do_replace(struct net *net, const void __user *user,
+-		      unsigned int len)
++static int do_replace_finish(struct net *net, struct ebt_replace *repl,
++			      struct ebt_table_info *newinfo)
+ {
+-	int ret, i, countersize;
+-	struct ebt_table_info *newinfo;
+-	struct ebt_replace tmp;
+-	struct ebt_table *t;
++	int ret, i;
+ 	struct ebt_counter *counterstmp = NULL;
+ 	/* used to be able to unlock earlier */
+ 	struct ebt_table_info *table;
+-
+-	if (copy_from_user(&tmp, user, sizeof(tmp)) != 0)
+-		return -EFAULT;
+-
+-	if (len != sizeof(tmp) + tmp.entries_size) {
+-		BUGPRINT("Wrong len argument\n");
+-		return -EINVAL;
+-	}
+-
+-	if (tmp.entries_size == 0) {
+-		BUGPRINT("Entries_size never zero\n");
+-		return -EINVAL;
+-	}
+-	/* overflow check */
+-	if (tmp.nentries >= ((INT_MAX - sizeof(struct ebt_table_info)) / NR_CPUS -
+-			SMP_CACHE_BYTES) / sizeof(struct ebt_counter))
+-		return -ENOMEM;
+-	if (tmp.num_counters >= INT_MAX / sizeof(struct ebt_counter))
+-		return -ENOMEM;
+-
+-	countersize = COUNTER_OFFSET(tmp.nentries) * nr_cpu_ids;
+-	newinfo = vmalloc(sizeof(*newinfo) + countersize);
+-	if (!newinfo)
+-		return -ENOMEM;
+-
+-	if (countersize)
+-		memset(newinfo->counters, 0, countersize);
+-
+-	newinfo->entries = vmalloc(tmp.entries_size);
+-	if (!newinfo->entries) {
+-		ret = -ENOMEM;
+-		goto free_newinfo;
+-	}
+-	if (copy_from_user(
+-	   newinfo->entries, tmp.entries, tmp.entries_size) != 0) {
+-		BUGPRINT("Couldn't copy entries from userspace\n");
+-		ret = -EFAULT;
+-		goto free_entries;
+-	}
++	struct ebt_table *t;
+ 
+ 	/* the user wants counters back
+ 	   the check on the size is done later, when we have the lock */
+-	if (tmp.num_counters) {
+-		counterstmp = vmalloc(tmp.num_counters * sizeof(*counterstmp));
+-		if (!counterstmp) {
+-			ret = -ENOMEM;
+-			goto free_entries;
+-		}
++	if (repl->num_counters) {
++		unsigned long size = repl->num_counters * sizeof(*counterstmp);
++		counterstmp = vmalloc(size);
++		if (!counterstmp)
++			return -ENOMEM;
+ 	}
+-	else
+-		counterstmp = NULL;
+ 
+-	/* this can get initialized by translate_table() */
+ 	newinfo->chainstack = NULL;
+-	ret = ebt_verify_pointers(&tmp, newinfo);
++	ret = ebt_verify_pointers(repl, newinfo);
+ 	if (ret != 0)
+ 		goto free_counterstmp;
+ 
+-	ret = translate_table(net, tmp.name, newinfo);
++	ret = translate_table(net, repl->name, newinfo);
+ 
+ 	if (ret != 0)
+ 		goto free_counterstmp;
+ 
+-	t = find_table_lock(net, tmp.name, &ret, &ebt_mutex);
++	t = find_table_lock(net, repl->name, &ret, &ebt_mutex);
+ 	if (!t) {
+ 		ret = -ENOENT;
+ 		goto free_iterate;
+ 	}
+ 
+ 	/* the table doesn't like it */
+-	if (t->check && (ret = t->check(newinfo, tmp.valid_hooks)))
++	if (t->check && (ret = t->check(newinfo, repl->valid_hooks)))
+ 		goto free_unlock;
+ 
+-	if (tmp.num_counters && tmp.num_counters != t->private->nentries) {
++	if (repl->num_counters && repl->num_counters != t->private->nentries) {
+ 		BUGPRINT("Wrong nr. of counters requested\n");
+ 		ret = -EINVAL;
+ 		goto free_unlock;
+@@ -1059,7 +1013,7 @@ static int do_replace(struct net *net, const void __user *user,
+ 		module_put(t->me);
+ 	/* we need an atomic snapshot of the counters */
+ 	write_lock_bh(&t->lock);
+-	if (tmp.num_counters)
++	if (repl->num_counters)
+ 		get_counters(t->private->counters, counterstmp,
+ 		   t->private->nentries);
+ 
+@@ -1070,10 +1024,9 @@ static int do_replace(struct net *net, const void __user *user,
+ 	   allocation. Only reason why this is done is because this way the lock
+ 	   is held only once, while this doesn't bring the kernel into a
+ 	   dangerous state. */
+-	if (tmp.num_counters &&
+-	   copy_to_user(tmp.counters, counterstmp,
+-	   tmp.num_counters * sizeof(struct ebt_counter))) {
+-		BUGPRINT("Couldn't copy counters to userspace\n");
++	if (repl->num_counters &&
++	   copy_to_user(repl->counters, counterstmp,
++	   repl->num_counters * sizeof(struct ebt_counter))) {
+ 		ret = -EFAULT;
+ 	}
+ 	else
+@@ -1107,6 +1060,59 @@ free_counterstmp:
+ 			vfree(newinfo->chainstack[i]);
+ 		vfree(newinfo->chainstack);
+ 	}
++	return ret;
++}
++
++/* replace the table */
++static int do_replace(struct net *net, const void __user *user,
++		      unsigned int len)
++{
++	int ret, countersize;
++	struct ebt_table_info *newinfo;
++	struct ebt_replace tmp;
++
++	if (copy_from_user(&tmp, user, sizeof(tmp)) != 0)
++		return -EFAULT;
++
++	if (len != sizeof(tmp) + tmp.entries_size) {
++		BUGPRINT("Wrong len argument\n");
++		return -EINVAL;
++	}
++
++	if (tmp.entries_size == 0) {
++		BUGPRINT("Entries_size never zero\n");
++		return -EINVAL;
++	}
++	/* overflow check */
++	if (tmp.nentries >= ((INT_MAX - sizeof(struct ebt_table_info)) /
++			NR_CPUS - SMP_CACHE_BYTES) / sizeof(struct ebt_counter))
++		return -ENOMEM;
++	if (tmp.num_counters >= INT_MAX / sizeof(struct ebt_counter))
++		return -ENOMEM;
++
++	countersize = COUNTER_OFFSET(tmp.nentries) * nr_cpu_ids;
++	newinfo = vmalloc(sizeof(*newinfo) + countersize);
++	if (!newinfo)
++		return -ENOMEM;
++
++	if (countersize)
++		memset(newinfo->counters, 0, countersize);
++
++	newinfo->entries = vmalloc(tmp.entries_size);
++	if (!newinfo->entries) {
++		ret = -ENOMEM;
++		goto free_newinfo;
++	}
++	if (copy_from_user(
++	   newinfo->entries, tmp.entries, tmp.entries_size) != 0) {
++		BUGPRINT("Couldn't copy entries from userspace\n");
++		ret = -EFAULT;
++		goto free_entries;
++	}
++
++	ret = do_replace_finish(net, &tmp, newinfo);
++	if (ret == 0)
++		return ret;
+ free_entries:
+ 	vfree(newinfo->entries);
+ free_newinfo:
