@@ -1,86 +1,99 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: nf_conntrack_reasm: properly handle packets fragmented into a single
- fragment
-Date: Fri, 19 Feb 2010 18:28:10 +0100
-Message-ID: <4B7ECA2A.1070900@trash.net>
+From: Stephen Hemminger <shemminger@vyatta.com>
+Subject: Re: NAT regression in next tree
+Date: Fri, 19 Feb 2010 10:11:27 -0800
+Message-ID: <20100219101127.462f5fe2@nehalam>
+References: <20100216173658.519b6245@nehalam>
+	<201002171526.02493.arnd@arndb.de>
+	<20100218173633.30bb8c41@nehalam>
+	<4B7E2587.3050608@trash.net>
+	<20100218215106.557be6b0@nehalam>
+	<4B7E386E.4070502@trash.net>
+	<1266564056.2877.15.camel@edumazet-laptop>
+	<4B7E3D65.2030203@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------020801020904020702010107"
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	David Miller <davem@davemloft.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:63293 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754892Ab0BSR2P (ORCPT
+Received: from mail.vyatta.com ([76.74.103.46]:51877 "EHLO mail.vyatta.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750879Ab0BSSLj convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 19 Feb 2010 12:28:15 -0500
+	Fri, 19 Feb 2010 13:11:39 -0500
+In-Reply-To: <4B7E3D65.2030203@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------020801020904020702010107
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+On Fri, 19 Feb 2010 08:27:33 +0100
+Patrick McHardy <kaber@trash.net> wrote:
 
-Yasuyuki, could you please have a look whether this patch is fine?
-Thanks!
+> Eric Dumazet wrote:
+> > Le vendredi 19 f=C3=A9vrier 2010 =C3=A0 08:06 +0100, Patrick McHard=
+y a =C3=A9crit :
+> >>     netfilter: restore POST_ROUTING hook in NF_HOOK_COND
+> >>    =20
+> >>     Commit 2249065 ("netfilter: get rid of the grossness in netfil=
+ter.h")
+> >>     inverted the logic for conditional hook invocation, breaking t=
+he
+> >>     POST_ROUTING hook invoked by ip_output().
+> >>    =20
+> >>     Correct the logic and remove an unnecessary initialization.
+> >>    =20
+> >>     Reported-by: Stephen Hemminger <shemminger@vyatta.com>
+> >>     Signed-off-by: Patrick McHardy <kaber@trash.net>
+> >>
+> >> diff --git a/include/linux/netfilter.h b/include/linux/netfilter.h
+> >> index 7007945..89341c3 100644
+> >> --- a/include/linux/netfilter.h
+> >> +++ b/include/linux/netfilter.h
+> >> @@ -212,8 +212,9 @@ NF_HOOK_COND(uint8_t pf, unsigned int hook, st=
+ruct sk_buff *skb,
+> >>  	     struct net_device *in, struct net_device *out,
+> >>  	     int (*okfn)(struct sk_buff *), bool cond)
+> >>  {
+> >> -	int ret =3D 1;
+> >> -	if (cond ||
+> >> +	int ret;
+> >> +
+> >> +	if (!cond ||
+> >>  	    (ret =3D nf_hook_thresh(pf, hook, skb, in, out, okfn, INT_MI=
+N) =3D=3D 1))
+> >>  		ret =3D okfn(skb);
+> >>  	return ret;
+> >=20
+> > I dont quite get it
+> >=20
+> > Original code was :
+> >=20
+> >=20
+> > #define NF_HOOK_COND(pf, hook, skb, indev, outdev, okfn, cond)     =
+           \
+> > ({int __ret;                                                       =
+           \
+> > if ((cond) || (__ret =3D nf_hook_thresh(pf, hook, (skb), indev, out=
+dev, okfn, INT_MIN)) =3D=3D 1)\
+> >        __ret =3D (okfn)(skb);                                      =
+             \
+> > __ret;})
+> >=20
+> >=20
+> > There was no condition inversion.
+>=20
+> Right, I quoted the wrong patch, it was actually broken in
+> 23f3733 ("netfilter: reduce NF_HOOK by one argument"), which
+> moved the cond check from nf_hook_thresh() to NF_HOOK_COND().
 
+Yes, this fixes the problem I was seeing.
 
+Acked-by: Stephen Hemminger <shemminger@vyatta.com>
 
---------------020801020904020702010107
-Content-Type: text/x-patch;
- name="04.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="04.diff"
-
-commit 9e2dcf72023d1447f09c47d77c99b0c49659e5ce
-Author: Patrick McHardy <kaber@trash.net>
-Date:   Fri Feb 19 18:18:37 2010 +0100
-
-    netfilter: nf_conntrack_reasm: properly handle packets fragmented into a single fragment
-    
-    When an ICMPV6_PKT_TOOBIG message is received with a MTU below 1280,
-    all further packets include a fragment header.
-    
-    Unlike regular defragmentation, conntrack also needs to "reassemble"
-    those fragments in order to obtain a packet without the fragment
-    header for connection tracking. Currently nf_conntrack_reasm checks
-    whether a fragment has either IP6_MF set or an offset != 0, which
-    makes it ignore those fragments.
-    
-    Remove the invalid check and make reassembly handle fragment queues
-    containing only a single fragment.
-    
-    Reported-and-tested-by: Ulrich Weber <uweber@astaro.com>
-    Signed-off-by: Patrick McHardy <kaber@trash.net>
-
-diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index ad1fcda..f1171b7 100644
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -469,7 +469,7 @@ nf_ct_frag6_reasm(struct nf_ct_frag6_queue *fq, struct net_device *dev)
- 
- 	/* all original skbs are linked into the NFCT_FRAG6_CB(head).orig */
- 	fp = skb_shinfo(head)->frag_list;
--	if (NFCT_FRAG6_CB(fp)->orig == NULL)
-+	if (fp && NFCT_FRAG6_CB(fp)->orig == NULL)
- 		/* at above code, head skb is divided into two skbs. */
- 		fp = fp->next;
- 
-@@ -595,12 +595,6 @@ struct sk_buff *nf_ct_frag6_gather(struct sk_buff *skb, u32 user)
- 	hdr = ipv6_hdr(clone);
- 	fhdr = (struct frag_hdr *)skb_transport_header(clone);
- 
--	if (!(fhdr->frag_off & htons(0xFFF9))) {
--		pr_debug("Invalid fragment offset\n");
--		/* It is not a fragmented frame */
--		goto ret_orig;
--	}
--
- 	if (atomic_read(&nf_init_frags.mem) > nf_init_frags.high_thresh)
- 		nf_ct_frag6_evictor();
- 
-
---------------020801020904020702010107--
+--=20
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
