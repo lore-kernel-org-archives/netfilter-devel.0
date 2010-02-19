@@ -1,44 +1,26 @@
-From: timg@tpi.com (Tim Gardner)
-Subject: [PATCH] xt_recent: Fix false hit_count match
-Date: Fri, 19 Feb 2010 10:49:04 -0700 (MST)
-Message-ID: <20100219174904.1F62CF8C3F@sepang.rtg.net>
-Cc: coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org
+From: David Miller <davem@davemloft.net>
+Subject: Re: netfilter 00/03: netfilter fixes
+Date: Fri, 19 Feb 2010 12:46:01 -0800 (PST)
+Message-ID: <20100219.124601.07034011.davem@davemloft.net>
+References: <20100219170206.18096.12788.sendpatchset@x2.localnet>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.tpi.com ([70.99.223.143]:4734 "EHLO mail.tpi.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751617Ab0BSSRd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 19 Feb 2010 13:17:33 -0500
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:57377
+	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756092Ab0BSUpo (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 19 Feb 2010 15:45:44 -0500
+In-Reply-To: <20100219170206.18096.12788.sendpatchset@x2.localnet>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
->From 146111514a8c126268e848e45b7dd967329b072f Mon Sep 17 00:00:00 2001
-From: Tim Gardner <tim.gardner@canonical.com>
-Date: Thu, 18 Feb 2010 20:33:00 -0700
-Subject: [PATCH] xt_recent: Fix false match.
+From: Patrick McHardy <kaber@trash.net>
+Date: Fri, 19 Feb 2010 18:02:06 +0100 (MET)
 
-A rule with a zero hit_count will always match.
+> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git master
 
-Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
-Cc: stable@kernel.org
----
- net/netfilter/xt_recent.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
-index 1bb0d6c..43e83a4 100644
---- a/net/netfilter/xt_recent.c
-+++ b/net/netfilter/xt_recent.c
-@@ -260,7 +260,7 @@ recent_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 		for (i = 0; i < e->nstamps; i++) {
- 			if (info->seconds && time_after(time, e->stamps[i]))
- 				continue;
--			if (++hits >= info->hit_count) {
-+			if (info->hit_count && ++hits >= info->hit_count) {
- 				ret = !ret;
- 				break;
- 			}
--- 
-1.6.2.4
-
+Pulled, thanks patrick.
