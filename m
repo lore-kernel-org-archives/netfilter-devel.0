@@ -1,35 +1,35 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: xtables-addons: make ipv6 optional for RAWNAT and SYSRQ
-Date: Fri, 19 Feb 2010 14:14:38 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.1002191411280.17165@obet.zrqbmnf.qr>
-References: <1266580375.26314.6.camel@tablet>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: kernel stack  trace using conntrack
+Date: Fri, 19 Feb 2010 14:25:34 +0100
+Message-ID: <4B7E914E.50900@trash.net>
+References: <7EF5DBE4C76A7B4DA655334E9F2BFD26CED7BC8D04@FRSPX100.fr01.awl.atosorigin.net>	 <1266313889.3045.1.camel@edumazet-laptop>	 <7EF5DBE4C76A7B4DA655334E9F2BFD26CED7BC8D54@FRSPX100.fr01.awl.atosorigin.net>	 <1266318928.3045.38.camel@edumazet-laptop>  <4B7A9E95.103@netfilter.org>	 <1266327917.3045.55.camel@edumazet-laptop>	 <7EF5DBE4C76A7B4DA655334E9F2BFD26CED7BC905D@FRSPX100.fr01.awl.atosorigin.net>	 <4B7D17CE.6010805@trash.net> <4B7D1E32.6000705@netfilter.org>	 <4B7D215A.6060400@trash.net> <4B7D3022.9030405@netfilter.org>	 <4B7D306F.9060808@trash.net>  <4B7DF4DC.4000502@netfilter.org> <1266582824.3136.1.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Peter Volkov <peter.volkov@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:36478 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752062Ab0BSNOl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 19 Feb 2010 08:14:41 -0500
-In-Reply-To: <1266580375.26314.6.camel@tablet>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Ramblewski David <David.Ramblewski@atosorigin.com>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	netdev <netdev@vger.kernel.org>
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1266582824.3136.1.camel@edumazet-laptop>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Friday 2010-02-19 12:52, Peter Volkov wrote:
+Eric Dumazet wrote:
+> Le vendredi 19 f=E9vrier 2010 =E0 03:18 +0100, Pablo Neira Ayuso a =E9=
+crit :
+>> I have slightly tested the following patch here. I think it should f=
+ix
+>> the problem.
+>>
+>> We can revisit ctnetlink_change_helper() later, I think there's some
+>> code there that can be refactorized.
+>>
+>> Let me know if you're OK with it.
+>=20
+> I sucessfuly tested your patch Pablo, thanks.
+>=20
+> Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
 
->Hi, in case kernel was built without ipv6 support xt_RAWNAT and xt_SYSRQ
->fail to load with unknown symbols. Patches in attachment fix this issue.
->Please, apply.
-
-For ip6table_rawpost, we could probably do this in the Kbuild file:
-
-ifneq (${CONFIG_IPV6},)
-obj-${build_RAWNAT} += ip6table_rawpost.o
-endif
-
-Can you test?
-
-
-For the second patch, I would suggest to move around the structures in 
-rawnat_tg_reg to reduce the number of #ifdefs needed.
+Applied, thanks everyone.
