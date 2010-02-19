@@ -1,26 +1,24 @@
 From: timg@tpi.com (Tim Gardner)
-Subject: [PATCH] xt_recent: Fix buffer overflow
-Date: Fri, 19 Feb 2010 10:48:04 -0700 (MST)
-Message-ID: <20100219174804.43CD8F8C3F@sepang.rtg.net>
+Subject: [PATCH] xt_recent: Fix false hit_count match
+Date: Fri, 19 Feb 2010 10:49:04 -0700 (MST)
+Message-ID: <20100219174904.1F62CF8C3F@sepang.rtg.net>
 Cc: coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
 	netfilter@vger.kernel.org
 To: kaber@trash.net
-Return-path: <netfilter-owner@vger.kernel.org>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.tpi.com ([70.99.223.143]:4734 "EHLO mail.tpi.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751617Ab0BSSRd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 19 Feb 2010 13:17:33 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
->From 478a6cbbd7646c78370da48677e99cc602076dd7 Mon Sep 17 00:00:00 2001
+>From 146111514a8c126268e848e45b7dd967329b072f Mon Sep 17 00:00:00 2001
 From: Tim Gardner <tim.gardner@canonical.com>
-Date: Thu, 18 Feb 2010 20:04:51 -0700
-Subject: [PATCH] xt_recent: Fix buffer overflow
+Date: Thu, 18 Feb 2010 20:33:00 -0700
+Subject: [PATCH] xt_recent: Fix false match.
 
-e->index overflows e->stamps[] every ip_pkt_list_tot
-packets.
-
-Consider the case when ip_pkt_list_tot==1; the first packet received is stored
-in e->stamps[0] and e->index is initialized to 1. The next received packet
-timestamp is then stored at e->stamps[1] in recent_entry_update(),
-a buffer overflow because the maximum e->stamps[] index is 0.
+A rule with a zero hit_count will always match.
 
 Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
 Cc: stable@kernel.org
@@ -29,21 +27,18 @@ Cc: stable@kernel.org
  1 files changed, 1 insertions(+), 1 deletions(-)
 
 diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
-index fc70a49..1bb0d6c 100644
+index 1bb0d6c..43e83a4 100644
 --- a/net/netfilter/xt_recent.c
 +++ b/net/netfilter/xt_recent.c
-@@ -173,10 +173,10 @@ recent_entry_init(struct recent_table *t, const union nf_inet_addr *addr,
- 
- static void recent_entry_update(struct recent_table *t, struct recent_entry *e)
- {
-+	e->index %= ip_pkt_list_tot;
- 	e->stamps[e->index++] = jiffies;
- 	if (e->index > e->nstamps)
- 		e->nstamps = e->index;
--	e->index %= ip_pkt_list_tot;
- 	list_move_tail(&e->lru_list, &t->lru_list);
- }
- 
+@@ -260,7 +260,7 @@ recent_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+ 		for (i = 0; i < e->nstamps; i++) {
+ 			if (info->seconds && time_after(time, e->stamps[i]))
+ 				continue;
+-			if (++hits >= info->hit_count) {
++			if (info->hit_count && ++hits >= info->hit_count) {
+ 				ret = !ret;
+ 				break;
+ 			}
 -- 
 1.6.2.4
 
