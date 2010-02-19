@@ -1,48 +1,86 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: netfilter 03/03: nf_queue: fix NF_STOLEN skb leak
-Date: Fri, 19 Feb 2010 18:02:10 +0100 (MET)
-Message-ID: <20100219170210.18096.32795.sendpatchset@x2.localnet>
-References: <20100219170206.18096.12788.sendpatchset@x2.localnet>
-Cc: netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org
-To: davem@davemloft.net
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20100219170206.18096.12788.sendpatchset@x2.localnet>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Subject: nf_conntrack_reasm: properly handle packets fragmented into a single
+ fragment
+Date: Fri, 19 Feb 2010 18:28:10 +0100
+Message-ID: <4B7ECA2A.1070900@trash.net>
+Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------020801020904020702010107"
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:63293 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754892Ab0BSR2P (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 19 Feb 2010 12:28:15 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-commit 64507fdbc29c3a622180378210ecea8659b14e40
-Author: Eric Dumazet <eric.dumazet@gmail.com>
-Date:   Fri Feb 19 15:28:38 2010 +0100
+This is a multi-part message in MIME format.
+--------------020801020904020702010107
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
-    netfilter: nf_queue: fix NF_STOLEN skb leak
+Yasuyuki, could you please have a look whether this patch is fine?
+Thanks!
+
+
+
+--------------020801020904020702010107
+Content-Type: text/x-patch;
+ name="04.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="04.diff"
+
+commit 9e2dcf72023d1447f09c47d77c99b0c49659e5ce
+Author: Patrick McHardy <kaber@trash.net>
+Date:   Fri Feb 19 18:18:37 2010 +0100
+
+    netfilter: nf_conntrack_reasm: properly handle packets fragmented into a single fragment
     
-    commit 3bc38712e3a6e059 (handle NF_STOP and unknown verdicts in
-    nf_reinject) was a partial fix to packet leaks.
+    When an ICMPV6_PKT_TOOBIG message is received with a MTU below 1280,
+    all further packets include a fragment header.
     
-    If user asks NF_STOLEN status, we must free the skb as well.
+    Unlike regular defragmentation, conntrack also needs to "reassemble"
+    those fragments in order to obtain a packet without the fragment
+    header for connection tracking. Currently nf_conntrack_reasm checks
+    whether a fragment has either IP6_MF set or an offset != 0, which
+    makes it ignore those fragments.
     
-    Reported-by: Afi Gjermund <afigjermund@gmail.com>
-    Signed-off-by: Eric DUmazet <eric.dumazet@gmail.com>
+    Remove the invalid check and make reassembly handle fragment queues
+    containing only a single fragment.
+    
+    Reported-and-tested-by: Ulrich Weber <uweber@astaro.com>
     Signed-off-by: Patrick McHardy <kaber@trash.net>
 
-diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
-index 3a6fd77..ba095fd 100644
---- a/net/netfilter/nf_queue.c
-+++ b/net/netfilter/nf_queue.c
-@@ -265,7 +265,6 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- 		local_bh_disable();
- 		entry->okfn(skb);
- 		local_bh_enable();
--	case NF_STOLEN:
- 		break;
- 	case NF_QUEUE:
- 		if (!__nf_queue(skb, elem, entry->pf, entry->hook,
-@@ -273,6 +272,7 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
- 				verdict >> NF_VERDICT_BITS))
- 			goto next_hook;
- 		break;
-+	case NF_STOLEN:
- 	default:
- 		kfree_skb(skb);
- 	}
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index ad1fcda..f1171b7 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -469,7 +469,7 @@ nf_ct_frag6_reasm(struct nf_ct_frag6_queue *fq, struct net_device *dev)
+ 
+ 	/* all original skbs are linked into the NFCT_FRAG6_CB(head).orig */
+ 	fp = skb_shinfo(head)->frag_list;
+-	if (NFCT_FRAG6_CB(fp)->orig == NULL)
++	if (fp && NFCT_FRAG6_CB(fp)->orig == NULL)
+ 		/* at above code, head skb is divided into two skbs. */
+ 		fp = fp->next;
+ 
+@@ -595,12 +595,6 @@ struct sk_buff *nf_ct_frag6_gather(struct sk_buff *skb, u32 user)
+ 	hdr = ipv6_hdr(clone);
+ 	fhdr = (struct frag_hdr *)skb_transport_header(clone);
+ 
+-	if (!(fhdr->frag_off & htons(0xFFF9))) {
+-		pr_debug("Invalid fragment offset\n");
+-		/* It is not a fragmented frame */
+-		goto ret_orig;
+-	}
+-
+ 	if (atomic_read(&nf_init_frags.mem) > nf_init_frags.high_thresh)
+ 		nf_ct_frag6_evictor();
+ 
+
+--------------020801020904020702010107--
