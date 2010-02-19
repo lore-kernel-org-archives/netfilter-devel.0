@@ -1,136 +1,97 @@
-From: Afi Gjermund <afigjermund@gmail.com>
-Subject: Re: nf_conntrack_count versus '/proc/net/nf_conntrack | wc -l' count
-Date: Thu, 18 Feb 2010 16:53:51 -0800
-Message-ID: <48ceaa831002181653o549964c3w76bc27dd66864f8b@mail.gmail.com>
-References: <48ceaa831002150927q166b5955gfa0e1e465903d29d@mail.gmail.com>
-	 <1266271377.2859.28.camel@edumazet-laptop>
-	 <48ceaa831002151410j1dbdfce3tcbdb5ceaa86b0e2b@mail.gmail.com>
-	 <48ceaa831002180940y65af65b4p5d887f2f1a50b4b@mail.gmail.com>
-	 <1266515463.2877.10.camel@edumazet-laptop>
-	 <48ceaa831002180955v4fd87e20o4e116c87f4f4b259@mail.gmail.com>
-	 <1266516452.2877.12.camel@edumazet-laptop>
-	 <48ceaa831002181013q46d4d623xcd88f6164a088729@mail.gmail.com>
-	 <4B7D84C6.2040102@trash.net>
-	 <48ceaa831002181139k134dadbp2bc65857eac6af59@mail.gmail.com>
+From: "Dmitry V. Levin" <ldv@altlinux.org>
+Subject: [PATCH] REDIRECT: Fix --to-ports parser
+Date: Fri, 19 Feb 2010 04:31:22 +0300
+Message-ID: <20100219013122.GA31860@wo.int.altlinux.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	Jan Engelhardt <jengelh@medozas.de>,
-	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:44009 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750717Ab0BSAxx (ORCPT
+Received: from vint.altlinux.org ([194.107.17.35]:45602 "EHLO
+	vint.altlinux.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753113Ab0BSBbY (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Feb 2010 19:53:53 -0500
-Received: by pwj8 with SMTP id 8so1777292pwj.19
-        for <netfilter-devel@vger.kernel.org>; Thu, 18 Feb 2010 16:53:52 -0800 (PST)
-In-Reply-To: <48ceaa831002181139k134dadbp2bc65857eac6af59@mail.gmail.com>
+	Thu, 18 Feb 2010 20:31:24 -0500
+Received: from wo.int.altlinux.org (wo.int.altlinux.org [192.168.1.4])
+	by vint.altlinux.org (Postfix) with ESMTP id 84021226C001
+	for <netfilter-devel@vger.kernel.org>; Fri, 19 Feb 2010 01:31:23 +0000 (UTC)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Feb 18, 2010 at 11:39 AM, Afi Gjermund <afigjermund@gmail.com> wrote:
-> On Thu, Feb 18, 2010 at 10:19 AM, Patrick McHardy <kaber@trash.net> wrote:
->> Afi Gjermund wrote:
->>> On Thu, Feb 18, 2010 at 10:07 AM, Eric Dumazet <eric.dumazet@gmail.com> wrote:
->>>>>>> Shouldn't the value after the flush be 0? The traffic that has created
->>>>>>> this mess is from a REDIRECT rule in the PREROUTING chain of the 'nat'
->>>>>>> table.
->>>>>> Could you post a copy of these rules ?
->>>>>>
->>>>> iptables -t nat -A PREROUTING -p tcp -s X.X.X.X -d X.X.X.X --sport X
->>>>> --dport X -j REDIRECT --to-port X
->>>> Yes I understood you were using such rules, but I cannot understand how
->>>> it can trigger without real nics being plugged. So I asked you some
->>>> details, apprently you dont want to provide them and prefer to hide from
->>>> us :)
->>>>
->>> Lol, sorry. The X values are dynamic and depend on what network the
->>> device happens to be on, as well as the ephemeral source port.
->>>
->>> iptables -t nat -A PREROUTING -p tcp -s 172.168.8.45 -d 172.168.8.200
->>> --sport 4351 --dport 4500 -j REDIRECT --to-port 45001
->>
->> NAT is unlikely to be the cause since its widely used and there
->> are no other reports of leaks. Please describe your full setup,
->> especially things like traffic scheduling, network devices,
->> userspace queueing etc etc.
->>
->
-> The device has 2 network interfaces that are configured in a bridge
-> (eth0,eth1).  The traffic scheduling has not been changed from the
-> default kernel configuration.
->
-> Problem path:
-> The problem I am seeing is that my tcp connections enter the
-> /proc/net/nf_conntrack table, then disappear over time but the
-> nf_conntrack_count never decreases.  Over time, the nf_conntrack_count
-> hits the 4096 nf_conntrack_max and the kernel begins to drop packets
-> even though the /proc/net/nf_conntrack table is not full (has < 100
-> connections).
->
-> In testing I decided to set the nf_conntrack_max to 100, and fill the
-> table via the connections above.  Then remove both ethernet cables to
-> ensure no new connections could be made.  I also set the
-> nf_conntrack_tcp_timeout_established to 60 seconds.  I left this for 2
-> hours and saw that the /proc/net/nf_conntrack table was empty while
-> the nf_conntrack_count was still 100.
->
-> I also created a kernel module that calls the nf_conntrack_flush()
-> function, this seems to only clear the /proc/net/nf_conntrack table,
-> but not the count. If I also do an atomic_set(&nf_conntrack_count,0)
-> then (obviously) the count becomes 0.  It is as if the connections are
-> being removed from the table, but the count is not being decremented,
-> which I am not sure why.  As far as I understand it, they should be in
-> sync.
->
+Rewrite port range validator to use xtables_strtoui() and
+xtables_param_act().  Original check failed to recognize
+several types of port range errors, including:
+"-1", "-1a", "-1-a", "a-1", "1a-2", "1-2a", etc.
+Also, original parser erroneously denied using port 0,
+which is now allowed.
 
-I have found the issue that was causing this problem.  A userspace
-application that was using the NFQueue mechanism to queue data to
-userspace was returning a verdict of STOLEN on the first UDP packet
-seen.  This appears to have been leaving entries in the connection
-table that could not be flushed via nf_conntrack_flush().  When
-changing the verdict to DROP, the problem no longer existed.
+Signed-off-by: Dmitry V. Levin <ldv@altlinux.org>
+---
+ extensions/libipt_REDIRECT.c |   40 ++++++++++++++++++----------------------
+ 1 files changed, 18 insertions(+), 22 deletions(-)
 
-This was found as I noticed the Timer value of the connections within
-the table remained at 3000 (30 in nf_conntrack_udp_timeout x 100).
-
-Feb 18 22:56:31 titan user.info kernel:  ===========================
-Table Dump =========================
-Feb 18 22:56:31 titan user.info kernel:  ---- Set ----
-Feb 18 22:56:31 titan user.info kernel: Timer is : 3000
-Feb 18 22:56:31 titan user.info kernel:  tuple dump: IP_CT_DIR_ORIGINAL
-Feb 18 22:56:31 titan user.info kernel:
-Feb 18 22:56:31 titan user.warn kernel:  tuple c321cc70: l3num 2
-protonum 17  srcIP 172.16.8.45 srcPort 4858  -> dstIP 172.16.8.7
-dstPort 45001
-Feb 18 22:56:31 titan user.info kernel:  tuple dump: IP_CT_DIR_REPLY
-Feb 18 22:56:31 titan user.info kernel:
-Feb 18 22:56:31 titan user.warn kernel:  tuple c321cca8: l3num 2
-protonum 17  srcIP 172.16.8.7 srcPort 45001  -> dstIP 172.16.8.45
-dstPort 4858
-Feb 18 22:56:31 titan user.info kernel:  ---- End Set ----
-Feb 18 22:56:31 titan user.info kernel:  ===========================
-End Table Dump =========================
-Feb 18 22:57:03 titan user.info kernel:  ===========================
-Table Dump =========================
-Feb 18 22:57:03 titan user.info kernel:  ---- Set ----
-Feb 18 22:57:03 titan user.info kernel: Timer is : 3000
-Feb 18 22:57:03 titan user.info kernel:  tuple dump: IP_CT_DIR_ORIGINAL
-Feb 18 22:57:03 titan user.info kernel:
-Feb 18 22:57:03 titan user.warn kernel:  tuple c321cc70: l3num 2
-protonum 17  srcIP 172.16.8.45 srcPort 4858  -> dstIP 172.16.8.7
-dstPort 45001
-Feb 18 22:57:03 titan user.info kernel:  tuple dump: IP_CT_DIR_REPLY
-Feb 18 22:57:03 titan user.info kernel:
-Feb 18 22:57:03 titan user.warn kernel:  tuple c321cca8: l3num 2
-protonum 17  srcIP 172.16.8.7 srcPort 45001  -> dstIP 172.16.8.45
-dstPort 4858
-Feb 18 22:57:03 titan user.info kernel:  ---- End Set ----
-Feb 18 22:57:03 titan user.info kernel:  ===========================
-End Table Dump =========================
-
-Thank you all for your help!  Hopefully this may help other people as well.
-
-Afi
+diff --git a/extensions/libipt_REDIRECT.c b/extensions/libipt_REDIRECT.c
+index d39f0bd..3dfcadf 100644
+--- a/extensions/libipt_REDIRECT.c
++++ b/extensions/libipt_REDIRECT.c
+@@ -39,40 +39,36 @@ static void REDIRECT_init(struct xt_entry_target *t)
+ static void
+ parse_ports(const char *arg, struct nf_nat_multi_range *mr)
+ {
+-	const char *dash;
+-	int port;
++	char *end;
++	unsigned int port, maxport;
+ 
+ 	mr->range[0].flags |= IP_NAT_RANGE_PROTO_SPECIFIED;
+ 
+-	if (strchr(arg, '.'))
+-		xtables_error(PARAMETER_PROBLEM, "IP address not permitted\n");
++	if (!xtables_strtoui(arg, &end, &port, 0, UINT16_MAX) &&
++	    (port = xtables_service_to_port(arg, NULL)) == (unsigned)-1)
++		xtables_param_act(XTF_BAD_VALUE, "REDIRECT", "--to-ports", arg);
+ 
+-	port = atoi(arg);
+-	if (port == 0)
+-		port = xtables_service_to_port(arg, NULL);
+-
+-	if (port == 0 || port > 65535)
+-		xtables_error(PARAMETER_PROBLEM, "Port \"%s\" not valid\n", arg);
+-
+-	dash = strchr(arg, '-');
+-	if (!dash) {
++	switch (*end) {
++	case '\0':
+ 		mr->range[0].min.tcp.port
+ 			= mr->range[0].max.tcp.port
+ 			= htons(port);
+-	} else {
+-		int maxport;
++		return;
++	case '-':
++		if (!xtables_strtoui(end + 1, NULL, &maxport, 0, UINT16_MAX) &&
++		    (maxport = xtables_service_to_port(end + 1, NULL)) == (unsigned)-1)
++			break;
+ 
+-		maxport = atoi(dash + 1);
+-		if (maxport == 0 || maxport > 65535)
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "Port `%s' not valid\n", dash+1);
+ 		if (maxport < port)
+-			/* People are stupid. */
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "Port range `%s' funky\n", arg);
++			break;
++
+ 		mr->range[0].min.tcp.port = htons(port);
+ 		mr->range[0].max.tcp.port = htons(maxport);
++		return;
++	default:
++		break;
+ 	}
++	xtables_param_act(XTF_BAD_VALUE, "REDIRECT", "--to-ports", arg);
+ }
+ 
+ static int REDIRECT_parse(int c, char **argv, int invert, unsigned int *flags,
+-- 
+ldv
