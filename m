@@ -1,34 +1,136 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: netfilter 00/09: netfilter update part II
-Date: Thu, 18 Feb 2010 22:48:34 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.1002182247270.25853@obet.zrqbmnf.qr>
-References: <20100218182103.21826.17908.sendpatchset@x2.localnet> <20100218.121624.32079245.davem@davemloft.net>
+From: Afi Gjermund <afigjermund@gmail.com>
+Subject: Re: nf_conntrack_count versus '/proc/net/nf_conntrack | wc -l' count
+Date: Thu, 18 Feb 2010 16:53:51 -0800
+Message-ID: <48ceaa831002181653o549964c3w76bc27dd66864f8b@mail.gmail.com>
+References: <48ceaa831002150927q166b5955gfa0e1e465903d29d@mail.gmail.com>
+	 <1266271377.2859.28.camel@edumazet-laptop>
+	 <48ceaa831002151410j1dbdfce3tcbdb5ceaa86b0e2b@mail.gmail.com>
+	 <48ceaa831002180940y65af65b4p5d887f2f1a50b4b@mail.gmail.com>
+	 <1266515463.2877.10.camel@edumazet-laptop>
+	 <48ceaa831002180955v4fd87e20o4e116c87f4f4b259@mail.gmail.com>
+	 <1266516452.2877.12.camel@edumazet-laptop>
+	 <48ceaa831002181013q46d4d623xcd88f6164a088729@mail.gmail.com>
+	 <4B7D84C6.2040102@trash.net>
+	 <48ceaa831002181139k134dadbp2bc65857eac6af59@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netdev@vger.kernel.org, David Miller <davem@davemloft.net>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: kaber@trash.net
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	Jan Engelhardt <jengelh@medozas.de>,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:43227 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758570Ab0BRVsg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Feb 2010 16:48:36 -0500
-In-Reply-To: <20100218.121624.32079245.davem@davemloft.net>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:44009 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750717Ab0BSAxx (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Feb 2010 19:53:53 -0500
+Received: by pwj8 with SMTP id 8so1777292pwj.19
+        for <netfilter-devel@vger.kernel.org>; Thu, 18 Feb 2010 16:53:52 -0800 (PST)
+In-Reply-To: <48ceaa831002181139k134dadbp2bc65857eac6af59@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Thu, Feb 18, 2010 at 11:39 AM, Afi Gjermund <afigjermund@gmail.com> wrote:
+> On Thu, Feb 18, 2010 at 10:19 AM, Patrick McHardy <kaber@trash.net> wrote:
+>> Afi Gjermund wrote:
+>>> On Thu, Feb 18, 2010 at 10:07 AM, Eric Dumazet <eric.dumazet@gmail.com> wrote:
+>>>>>>> Shouldn't the value after the flush be 0? The traffic that has created
+>>>>>>> this mess is from a REDIRECT rule in the PREROUTING chain of the 'nat'
+>>>>>>> table.
+>>>>>> Could you post a copy of these rules ?
+>>>>>>
+>>>>> iptables -t nat -A PREROUTING -p tcp -s X.X.X.X -d X.X.X.X --sport X
+>>>>> --dport X -j REDIRECT --to-port X
+>>>> Yes I understood you were using such rules, but I cannot understand how
+>>>> it can trigger without real nics being plugged. So I asked you some
+>>>> details, apprently you dont want to provide them and prefer to hide from
+>>>> us :)
+>>>>
+>>> Lol, sorry. The X values are dynamic and depend on what network the
+>>> device happens to be on, as well as the ephemeral source port.
+>>>
+>>> iptables -t nat -A PREROUTING -p tcp -s 172.168.8.45 -d 172.168.8.200
+>>> --sport 4351 --dport 4500 -j REDIRECT --to-port 45001
+>>
+>> NAT is unlikely to be the cause since its widely used and there
+>> are no other reports of leaks. Please describe your full setup,
+>> especially things like traffic scheduling, network devices,
+>> userspace queueing etc etc.
+>>
+>
+> The device has 2 network interfaces that are configured in a bridge
+> (eth0,eth1).  The traffic scheduling has not been changed from the
+> default kernel configuration.
+>
+> Problem path:
+> The problem I am seeing is that my tcp connections enter the
+> /proc/net/nf_conntrack table, then disappear over time but the
+> nf_conntrack_count never decreases.  Over time, the nf_conntrack_count
+> hits the 4096 nf_conntrack_max and the kernel begins to drop packets
+> even though the /proc/net/nf_conntrack table is not full (has < 100
+> connections).
+>
+> In testing I decided to set the nf_conntrack_max to 100, and fill the
+> table via the connections above.  Then remove both ethernet cables to
+> ensure no new connections could be made.  I also set the
+> nf_conntrack_tcp_timeout_established to 60 seconds.  I left this for 2
+> hours and saw that the /proc/net/nf_conntrack table was empty while
+> the nf_conntrack_count was still 100.
+>
+> I also created a kernel module that calls the nf_conntrack_flush()
+> function, this seems to only clear the /proc/net/nf_conntrack table,
+> but not the count. If I also do an atomic_set(&nf_conntrack_count,0)
+> then (obviously) the count becomes 0.  It is as if the connections are
+> being removed from the table, but the count is not being decremented,
+> which I am not sure why.  As far as I understand it, they should be in
+> sync.
+>
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Thu, 18 Feb 2010 19:21:03 +0100 (MET)
-> following are a few more netfilter patches for 2.6.34, containing:
-> 
-> - bridge netfilter compat support from Florian Westphal
-> - IPVS SCTP load-balancing support from Venkata Mohan Reddy
-> - a build fix for nf_defrag_ipv4 from myself
-> 
-> Please apply or pull from:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git master
+I have found the issue that was causing this problem.  A userspace
+application that was using the NFQueue mechanism to queue data to
+userspace was returning a verdict of STOLEN on the first UDP packet
+seen.  This appears to have been leaving entries in the connection
+table that could not be flushed via nf_conntrack_flush().  When
+changing the verdict to DROP, the problem no longer existed.
 
-Can I send my next batch? :)
+This was found as I noticed the Timer value of the connections within
+the table remained at 3000 (30 in nf_conntrack_udp_timeout x 100).
+
+Feb 18 22:56:31 titan user.info kernel:  ===========================
+Table Dump =========================
+Feb 18 22:56:31 titan user.info kernel:  ---- Set ----
+Feb 18 22:56:31 titan user.info kernel: Timer is : 3000
+Feb 18 22:56:31 titan user.info kernel:  tuple dump: IP_CT_DIR_ORIGINAL
+Feb 18 22:56:31 titan user.info kernel:
+Feb 18 22:56:31 titan user.warn kernel:  tuple c321cc70: l3num 2
+protonum 17  srcIP 172.16.8.45 srcPort 4858  -> dstIP 172.16.8.7
+dstPort 45001
+Feb 18 22:56:31 titan user.info kernel:  tuple dump: IP_CT_DIR_REPLY
+Feb 18 22:56:31 titan user.info kernel:
+Feb 18 22:56:31 titan user.warn kernel:  tuple c321cca8: l3num 2
+protonum 17  srcIP 172.16.8.7 srcPort 45001  -> dstIP 172.16.8.45
+dstPort 4858
+Feb 18 22:56:31 titan user.info kernel:  ---- End Set ----
+Feb 18 22:56:31 titan user.info kernel:  ===========================
+End Table Dump =========================
+Feb 18 22:57:03 titan user.info kernel:  ===========================
+Table Dump =========================
+Feb 18 22:57:03 titan user.info kernel:  ---- Set ----
+Feb 18 22:57:03 titan user.info kernel: Timer is : 3000
+Feb 18 22:57:03 titan user.info kernel:  tuple dump: IP_CT_DIR_ORIGINAL
+Feb 18 22:57:03 titan user.info kernel:
+Feb 18 22:57:03 titan user.warn kernel:  tuple c321cc70: l3num 2
+protonum 17  srcIP 172.16.8.45 srcPort 4858  -> dstIP 172.16.8.7
+dstPort 45001
+Feb 18 22:57:03 titan user.info kernel:  tuple dump: IP_CT_DIR_REPLY
+Feb 18 22:57:03 titan user.info kernel:
+Feb 18 22:57:03 titan user.warn kernel:  tuple c321cca8: l3num 2
+protonum 17  srcIP 172.16.8.7 srcPort 45001  -> dstIP 172.16.8.45
+dstPort 4858
+Feb 18 22:57:03 titan user.info kernel:  ---- End Set ----
+Feb 18 22:57:03 titan user.info kernel:  ===========================
+End Table Dump =========================
+
+Thank you all for your help!  Hopefully this may help other people as well.
+
+Afi
