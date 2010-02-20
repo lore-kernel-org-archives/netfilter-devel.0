@@ -1,323 +1,272 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: ip_tables: foreachs and reentrancy
-Date: Wed, 24 Feb 2010 20:33:12 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.1002241952410.3301@obet.zrqbmnf.qr>
-References: <1265970044-19518-1-git-send-email-jengelh@medozas.de> <4B856498.9040202@trash.net>
+From: Peter Volkov <peter.volkov@gmail.com>
+Subject: Re: xtables-addons: make ipv6 optional for RAWNAT and SYSRQ
+Date: Sat, 20 Feb 2010 15:43:32 +0300
+Message-ID: <1266669812.2097.21.camel@tablet>
+References: <1266580375.26314.6.camel@tablet>
+	 <alpine.LSU.2.01.1002191411280.17165@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/mixed; boundary="=-JzbQQLlgDsuaZnI8Linq"
 Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:34778 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757775Ab0BXTdO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 24 Feb 2010 14:33:14 -0500
-In-Reply-To: <4B856498.9040202@trash.net>
+Received: from mail-fx0-f219.google.com ([209.85.220.219]:51207 "EHLO
+	mail-fx0-f219.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758420Ab0BXXo4 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 24 Feb 2010 18:44:56 -0500
+Received: by fxm19 with SMTP id 19so5711656fxm.21
+        for <netfilter-devel@vger.kernel.org>; Wed, 24 Feb 2010 15:44:54 -0800 (PST)
+In-Reply-To: <alpine.LSU.2.01.1002191411280.17165@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Wednesday 2010-02-24 18:40, Patrick McHardy wrote:
->> Jan Engelhardt (6):
->>       netfilter: xtables: replace XT_ENTRY_ITERATE macro
->>       netfilter: xtables: optimize call flow around xt_entry_foreach
->>       netfilter: xtables: replace XT_MATCH_ITERATE macro
->>       netfilter: xtables: optimize call flow around xt_ematch_foreach
->>       netfilter: xtables: reduce arguments to translate_table
->>       netfilter: xtables2: make ip_tables reentrant
->
->I've applied patch 1-5 for now. Patch 6 doesn't add any value
->so far, so it should go in a series that actually makes use of
->this
+--=-JzbQQLlgDsuaZnI8Linq
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 
-Rusty left a note "must return absolute verdict" in ipt_REJECT
-and ip6t_REJECT, so maybe he thought of something.
+В Птн, 19/02/2010 в 14:14 +0100, Jan Engelhardt пишет:
+> On Friday 2010-02-19 12:52, Peter Volkov wrote:
+> For ip6table_rawpost, we could probably do this in the Kbuild file:
+> 
+> ifneq (${CONFIG_IPV6},)
+> obj-${build_RAWNAT} += ip6table_rawpost.o
+> endif
+> 
+> Can you test?
 
-Irrespective of that however, there is xt_TEE in Xtables-addons which
-would greatly benefit in the 6th patch (which is standalone, nothing
-else is needed in the kernel to get it done), as it could then track
-both the original copy and the tee'd copy through the tables, instead
-of having to forget one.
+Works.
 
-Given the nftables snapshot also has some sort of reentrancy safety,
-I don't see why Xtables should not have that. And since the Xtables
-patch also makes it a runtime-tunable, we've got the best of all
-worlds.
+> For the second patch, I would suggest to move around the structures in 
+> rawnat_tg_reg to reduce the number of #ifdefs needed.
 
->(please note: I don't want any larger changes anymore in
->this release however).
+Done. Updated patch in attachment. Also added #ifdefs around ip6t
+MODULE_ALIAS.
 
-Uff. That was a pretty small patchstream NF produced this time
-towards upstream.
+Also I've updated SYSRQ patch a bit. Added ifdefs around another IPV6
+related code and around MODULE_ALIAS.
 
-My intention was to have the entire set merged by 2.6.32, only
-delayed by my own tinkering around with the get_cycle measurement of
-the data collapse. But it was ready on-time for the 2.6.34 window!
-What went wrong? Do we need to begin the merge-into-kabernext window
-much earlier?
-
->BTW, I noticed some minor cosmetic problems that I didn't fix
->up to avoid clashes, please send me a patch on top to fix up
->indentation in spots like this:
->
->	/* Walk through entries, checking offsets. */
->	xt_entry_foreach(iter, entry0, newinfo->size) {
->		ret = check_entry_size_and_hooks(iter, newinfo, entry0,
->		      entry0 + repl->size, repl->hook_entry, repl->underflow,
->		      repl->valid_hooks);
->
->Thanks!
-
-Heh, this drives it ad absurdum.
-
-	"Now, some people will claim that having 8-character
-	indentations makes the code move too far to the right,[...]
-	if you need more than 3 levels of indentation, you're screwed"
-
-Linus, I bet you did not envision a 3-level indent (which is what
-we have here in ip_tables.c) and still getting screwed in the end :-)
-
-But oh well what don't we all do just to get code merged at all.
-Here goes:
-
-parent 0f234214d15fa914436d304ecf5c3e43449e79f9 (v2.6.33-rc8-1216-g0f23421)
-commit 289654709ca94f8de4fa615b23f8e9e9f1527fae
-Author: Jan Engelhardt <jengelh@medozas.de>
-Date:   Wed Feb 24 20:29:05 2010 +0100
-
-iptables: restore maintainer's idea of indent
-
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- net/ipv4/netfilter/arp_tables.c |   23 ++++++++++++++---------
- net/ipv4/netfilter/ip_tables.c  |   25 +++++++++++++++----------
- net/ipv6/netfilter/ip6_tables.c |   25 +++++++++++++++----------
- 3 files changed, 44 insertions(+), 29 deletions(-)
-
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 57098dc..f07d77f 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -644,8 +644,10 @@ static int translate_table(struct xt_table_info *newinfo, void *entry0,
- 	/* Walk through entries, checking offsets. */
- 	xt_entry_foreach(iter, entry0, newinfo->size) {
- 		ret = check_entry_size_and_hooks(iter, newinfo, entry0,
--		      entry0 + repl->size, repl->hook_entry, repl->underflow,
--		      repl->valid_hooks);
-+						 entry0 + repl->size,
-+						 repl->hook_entry,
-+						 repl->underflow,
-+						 repl->valid_hooks);
- 		if (ret != 0)
- 			break;
- 		++i;
-@@ -730,7 +732,7 @@ static void get_counters(const struct xt_table_info *t,
- 	i = 0;
- 	xt_entry_foreach(iter, t->entries[curcpu], t->size) {
- 		SET_COUNTER(counters[i], iter->counters.bcnt,
--			iter->counters.pcnt);
-+			    iter->counters.pcnt);
- 		++i;
- 	}
- 
-@@ -741,7 +743,7 @@ static void get_counters(const struct xt_table_info *t,
- 		xt_info_wrlock(cpu);
- 		xt_entry_foreach(iter, t->entries[cpu], t->size) {
- 			ADD_COUNTER(counters[i], iter->counters.bcnt,
--				iter->counters.pcnt);
-+				    iter->counters.pcnt);
- 			++i;
- 		}
- 		xt_info_wrunlock(cpu);
-@@ -1356,8 +1358,11 @@ static int translate_compat_table(const char *name,
- 	/* Walk through entries, checking offsets. */
- 	xt_entry_foreach(iter0, entry0, total_size) {
- 		ret = check_compat_entry_size_and_hooks(iter0, info, &size,
--		      entry0, entry0 + total_size, hook_entries, underflows,
--		      name);
-+							entry0,
-+							entry0 + total_size,
-+							hook_entries,
-+							underflows,
-+							name);
- 		if (ret != 0)
- 			goto out_unlock;
- 		++j;
-@@ -1401,8 +1406,8 @@ static int translate_compat_table(const char *name,
- 	pos = entry1;
- 	size = total_size;
- 	xt_entry_foreach(iter0, entry0, total_size) {
--		ret = compat_copy_entry_from_user(iter0, &pos,
--		      &size, name, newinfo, entry1);
-+		ret = compat_copy_entry_from_user(iter0, &pos, &size,
-+						  name, newinfo, entry1);
- 		if (ret != 0)
- 			break;
- 	}
-@@ -1617,7 +1622,7 @@ static int compat_copy_entries_to_user(unsigned int total_size,
- 	size = total_size;
- 	xt_entry_foreach(iter, loc_cpu_entry, total_size) {
- 		ret = compat_copy_entry_to_user(iter, &pos,
--		      &size, counters, i++);
-+						&size, counters, i++);
- 		if (ret != 0)
- 			break;
- 	}
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index c92f4e5..b29c66d 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -836,8 +836,10 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
- 	/* Walk through entries, checking offsets. */
- 	xt_entry_foreach(iter, entry0, newinfo->size) {
- 		ret = check_entry_size_and_hooks(iter, newinfo, entry0,
--		      entry0 + repl->size, repl->hook_entry, repl->underflow,
--		      repl->valid_hooks);
-+						 entry0 + repl->size,
-+						 repl->hook_entry,
-+						 repl->underflow,
-+						 repl->valid_hooks);
- 		if (ret != 0)
- 			return ret;
- 		++i;
-@@ -918,7 +920,7 @@ get_counters(const struct xt_table_info *t,
- 	i = 0;
- 	xt_entry_foreach(iter, t->entries[curcpu], t->size) {
- 		SET_COUNTER(counters[i], iter->counters.bcnt,
--			iter->counters.pcnt);
-+			    iter->counters.pcnt);
- 		++i;
- 	}
- 
-@@ -929,7 +931,7 @@ get_counters(const struct xt_table_info *t,
- 		xt_info_wrlock(cpu);
- 		xt_entry_foreach(iter, t->entries[cpu], t->size) {
- 			ADD_COUNTER(counters[i], iter->counters.bcnt,
--				iter->counters.pcnt);
-+				    iter->counters.pcnt);
- 			++i; /* macro does multi eval of i */
- 		}
- 		xt_info_wrunlock(cpu);
-@@ -1540,7 +1542,7 @@ check_compat_entry_size_and_hooks(struct compat_ipt_entry *e,
- 	j = 0;
- 	xt_ematch_foreach(ematch, e) {
- 		ret = compat_find_calc_match(ematch, name,
--		      &e->ip, e->comefrom, &off);
-+					     &e->ip, e->comefrom, &off);
- 		if (ret != 0)
- 			goto release_matches;
- 		++j;
-@@ -1701,8 +1703,11 @@ translate_compat_table(struct net *net,
- 	/* Walk through entries, checking offsets. */
- 	xt_entry_foreach(iter0, entry0, total_size) {
- 		ret = check_compat_entry_size_and_hooks(iter0, info, &size,
--		      entry0, entry0 + total_size, hook_entries, underflows,
--		      name);
-+							entry0,
-+							entry0 + total_size,
-+							hook_entries,
-+							underflows,
-+							name);
- 		if (ret != 0)
- 			goto out_unlock;
- 		++j;
-@@ -1746,8 +1751,8 @@ translate_compat_table(struct net *net,
- 	pos = entry1;
- 	size = total_size;
- 	xt_entry_foreach(iter0, entry0, total_size) {
--		ret = compat_copy_entry_from_user(iter0, &pos,
--		      &size, name, newinfo, entry1);
-+		ret = compat_copy_entry_from_user(iter0, &pos, &size,
-+						  name, newinfo, entry1);
- 		if (ret != 0)
- 			break;
- 	}
-@@ -1927,7 +1932,7 @@ compat_copy_entries_to_user(unsigned int total_size, struct xt_table *table,
- 	size = total_size;
- 	xt_entry_foreach(iter, loc_cpu_entry, total_size) {
- 		ret = compat_copy_entry_to_user(iter, &pos,
--		      &size, counters, i++);
-+						&size, counters, i++);
- 		if (ret != 0)
- 			break;
- 	}
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index f704286..9210e31 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -866,8 +866,10 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
- 	/* Walk through entries, checking offsets. */
- 	xt_entry_foreach(iter, entry0, newinfo->size) {
- 		ret = check_entry_size_and_hooks(iter, newinfo, entry0,
--		      entry0 + repl->size, repl->hook_entry, repl->underflow,
--		      repl->valid_hooks);
-+						 entry0 + repl->size,
-+						 repl->hook_entry,
-+						 repl->underflow,
-+						 repl->valid_hooks);
- 		if (ret != 0)
- 			return ret;
- 		++i;
-@@ -948,7 +950,7 @@ get_counters(const struct xt_table_info *t,
- 	i = 0;
- 	xt_entry_foreach(iter, t->entries[curcpu], t->size) {
- 		SET_COUNTER(counters[i], iter->counters.bcnt,
--			iter->counters.pcnt);
-+			    iter->counters.pcnt);
- 		++i;
- 	}
- 
-@@ -959,7 +961,7 @@ get_counters(const struct xt_table_info *t,
- 		xt_info_wrlock(cpu);
- 		xt_entry_foreach(iter, t->entries[cpu], t->size) {
- 			ADD_COUNTER(counters[i], iter->counters.bcnt,
--				iter->counters.pcnt);
-+				    iter->counters.pcnt);
- 			++i;
- 		}
- 		xt_info_wrunlock(cpu);
-@@ -1573,7 +1575,7 @@ check_compat_entry_size_and_hooks(struct compat_ip6t_entry *e,
- 	j = 0;
- 	xt_ematch_foreach(ematch, e) {
- 		ret = compat_find_calc_match(ematch, name,
--		      &e->ipv6, e->comefrom, &off);
-+					     &e->ipv6, e->comefrom, &off);
- 		if (ret != 0)
- 			goto release_matches;
- 		++j;
-@@ -1734,8 +1736,11 @@ translate_compat_table(struct net *net,
- 	/* Walk through entries, checking offsets. */
- 	xt_entry_foreach(iter0, entry0, total_size) {
- 		ret = check_compat_entry_size_and_hooks(iter0, info, &size,
--		      entry0, entry0 + total_size, hook_entries, underflows,
--		      name);
-+							entry0,
-+							entry0 + total_size,
-+							hook_entries,
-+							underflows,
-+							name);
- 		if (ret != 0)
- 			goto out_unlock;
- 		++j;
-@@ -1779,8 +1784,8 @@ translate_compat_table(struct net *net,
- 	pos = entry1;
- 	size = total_size;
- 	xt_entry_foreach(iter0, entry0, total_size) {
--		ret = compat_copy_entry_from_user(iter0, &pos,
--		      &size, name, newinfo, entry1);
-+		ret = compat_copy_entry_from_user(iter0, &pos, &size,
-+						  name, newinfo, entry1);
- 		if (ret != 0)
- 			break;
- 	}
-@@ -1960,7 +1965,7 @@ compat_copy_entries_to_user(unsigned int total_size, struct xt_table *table,
- 	size = total_size;
- 	xt_entry_foreach(iter, loc_cpu_entry, total_size) {
- 		ret = compat_copy_entry_to_user(iter, &pos,
--		      &size, counters, i++);
-+						&size, counters, i++);
- 		if (ret != 0)
- 			break;
- 	}
 -- 
-# Created with git-export-patch
+Peter.
+
+--=-JzbQQLlgDsuaZnI8Linq
+Content-Disposition: attachment; filename="0001-RAWNAT-make-ipv6-support-conditional.patch"
+Content-Type: text/x-patch; name="0001-RAWNAT-make-ipv6-support-conditional.patch"; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+
+>From 097f838fe1abac456f61774a727861a719ac3df3 Mon Sep 17 00:00:00 2001
+From: Peter Volkov <pva@gentoo.org>
+Date: Sat, 20 Feb 2010 14:56:32 +0300
+Subject: [PATCH 1/2] RAWNAT: make ipv6 support conditional
+
+In case kernel is built without ipv6 support this module fails as it
+assumes ipv6. This patch makes kernel support conditional on kernel
+.config.
+---
+ extensions/Kbuild      |    5 ++++-
+ extensions/xt_RAWNAT.c |   24 ++++++++++++++++++------
+ 2 files changed, 22 insertions(+), 7 deletions(-)
+
+diff --git a/extensions/Kbuild b/extensions/Kbuild
+index 5588c2c..841332d 100644
+--- a/extensions/Kbuild
++++ b/extensions/Kbuild
+@@ -12,7 +12,10 @@ obj-${build_DHCPMAC}     += xt_DHCPMAC.o
+ obj-${build_ECHO}        += xt_ECHO.o
+ obj-${build_IPMARK}      += xt_IPMARK.o
+ obj-${build_LOGMARK}     += xt_LOGMARK.o
+-obj-${build_RAWNAT}      += xt_RAWNAT.o iptable_rawpost.o ip6table_rawpost.o
++obj-${build_RAWNAT}      += xt_RAWNAT.o iptable_rawpost.o
++ifneq (${CONFIG_IPV6},)
++obj-${build_RAWNAT} += ip6table_rawpost.o
++endif
+ obj-${build_SYSRQ}       += xt_SYSRQ.o
+ obj-${build_STEAL}       += xt_STEAL.o
+ obj-${build_TARPIT}      += xt_TARPIT.o
+diff --git a/extensions/xt_RAWNAT.c b/extensions/xt_RAWNAT.c
+index 18661a9..e743531 100644
+--- a/extensions/xt_RAWNAT.c
++++ b/extensions/xt_RAWNAT.c
+@@ -22,6 +22,10 @@
+ #include "compat_xtables.h"
+ #include "xt_RAWNAT.h"
+ 
++#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
++#	define WITH_IPV6 1
++#endif
++
+ static inline __be32
+ remask(__be32 addr, __be32 repl, unsigned int shift)
+ {
+@@ -29,6 +33,7 @@ remask(__be32 addr, __be32 repl, unsigned int shift)
+ 	return htonl((ntohl(addr) & mask) | (ntohl(repl) & ~mask));
+ }
+ 
++#ifdef WITH_IPV6
+ static void
+ rawnat_ipv6_mask(__be32 *addr, const __be32 *repl, unsigned int mask)
+ {
+@@ -72,6 +77,7 @@ rawnat_ipv6_mask(__be32 *addr, const __be32 *repl, unsigned int mask)
+ 		break;
+ 	}
+ }
++#endif
+ 
+ static void rawnat4_update_l4(struct sk_buff *skb, __be32 oldip, __be32 newip)
+ {
+@@ -162,6 +168,7 @@ rawdnat_tg4(struct sk_buff **pskb, const struct xt_target_param *par)
+ 	return XT_CONTINUE;
+ }
+ 
++#ifdef WITH_IPV6
+ static bool rawnat6_prepare_l4(struct sk_buff **pskb, unsigned int *l4offset,
+     unsigned int *l4proto)
+ {
+@@ -274,6 +281,7 @@ rawdnat_tg6(struct sk_buff **pskb, const struct xt_target_param *par)
+ 	memcpy(&iph->daddr, &new_addr, sizeof(new_addr));
+ 	return XT_CONTINUE;
+ }
++#endif
+ 
+ static bool rawnat_tg_check(const struct xt_tgchk_param *par)
+ {
+@@ -297,19 +305,20 @@ static struct xt_target rawnat_tg_reg[] __read_mostly = {
+ 		.me         = THIS_MODULE,
+ 	},
+ 	{
+-		.name       = "RAWSNAT",
++		.name       = "RAWDNAT",
+ 		.revision   = 0,
+-		.family     = NFPROTO_IPV6,
+-		.target     = rawsnat_tg6,
++		.family     = NFPROTO_IPV4,
++		.target     = rawdnat_tg4,
+ 		.targetsize = sizeof(struct xt_rawnat_tginfo),
+ 		.checkentry = rawnat_tg_check,
+ 		.me         = THIS_MODULE,
+ 	},
++#ifdef WITH_IPV6
+ 	{
+-		.name       = "RAWDNAT",
++		.name       = "RAWSNAT",
+ 		.revision   = 0,
+-		.family     = NFPROTO_IPV4,
+-		.target     = rawdnat_tg4,
++		.family     = NFPROTO_IPV6,
++		.target     = rawsnat_tg6,
+ 		.targetsize = sizeof(struct xt_rawnat_tginfo),
+ 		.checkentry = rawnat_tg_check,
+ 		.me         = THIS_MODULE,
+@@ -323,6 +332,7 @@ static struct xt_target rawnat_tg_reg[] __read_mostly = {
+ 		.checkentry = rawnat_tg_check,
+ 		.me         = THIS_MODULE,
+ 	},
++#endif
+ };
+ 
+ static int __init rawnat_tg_init(void)
+@@ -342,5 +352,7 @@ MODULE_DESCRIPTION("Xtables: conntrack-less raw NAT");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ipt_RAWSNAT");
+ MODULE_ALIAS("ipt_RAWDNAT");
++#ifdef WITH_IPV6
+ MODULE_ALIAS("ip6t_RAWSNAT");
+ MODULE_ALIAS("ip6t_RAWDNAT");
++#endif
+-- 
+1.6.4.4
+
+
+--=-JzbQQLlgDsuaZnI8Linq
+Content-Disposition: attachment; filename="0002-SYSRQ-make-ipv6-support-conditional.patch"
+Content-Type: text/x-patch; name="0002-SYSRQ-make-ipv6-support-conditional.patch"; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+
+>From 8dfafcf38940c4529845b28505439fd7f03349f0 Mon Sep 17 00:00:00 2001
+From: Peter Volkov <pva@gentoo.org>
+Date: Sat, 20 Feb 2010 14:57:20 +0300
+Subject: [PATCH 2/2] SYSRQ: make ipv6 support conditional
+
+In case kernel is built without ipv6 support this module fails as it
+assumes ipv6. This patch makes kernel support conditional on kernel
+.config.
+---
+ extensions/xt_SYSRQ.c |   12 ++++++++++++
+ 1 files changed, 12 insertions(+), 0 deletions(-)
+
+diff --git a/extensions/xt_SYSRQ.c b/extensions/xt_SYSRQ.c
+index 3cd223b..5557b41 100644
+--- a/extensions/xt_SYSRQ.c
++++ b/extensions/xt_SYSRQ.c
+@@ -23,6 +23,10 @@
+ #include <net/ip.h>
+ #include "compat_xtables.h"
+ 
++#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
++#	define WITH_IPV6 1
++#endif
++
+ static bool sysrq_once;
+ static char sysrq_password[64];
+ static char sysrq_hash[16] = "sha1";
+@@ -214,6 +218,7 @@ sysrq_tg4(struct sk_buff **pskb, const struct xt_target_param *par)
+ 	return sysrq_tg((void *)udph + sizeof(struct udphdr), len);
+ }
+ 
++#ifdef WITH_IPV6
+ static unsigned int
+ sysrq_tg6(struct sk_buff **pskb, const struct xt_target_param *par)
+ {
+@@ -242,6 +247,7 @@ sysrq_tg6(struct sk_buff **pskb, const struct xt_target_param *par)
+ 		       ntohs(udph->dest), len);
+ 	return sysrq_tg(udph + sizeof(struct udphdr), len);
+ }
++#endif
+ 
+ static bool sysrq_tg_check(const struct xt_tgchk_param *par)
+ {
+@@ -253,6 +259,7 @@ static bool sysrq_tg_check(const struct xt_tgchk_param *par)
+ 		    entry->ip.proto != IPPROTO_UDPLITE) ||
+ 		    entry->ip.invflags & XT_INV_PROTO)
+ 			goto out;
++#ifdef WITH_IPV6
+ 	} else if (par->target->family == NFPROTO_IPV6) {
+ 		const struct ip6t_entry *entry = par->entryinfo;
+ 
+@@ -260,6 +267,7 @@ static bool sysrq_tg_check(const struct xt_tgchk_param *par)
+ 		    entry->ipv6.proto != IPPROTO_UDPLITE) ||
+ 		    entry->ipv6.invflags & XT_INV_PROTO)
+ 			goto out;
++#endif
+ 	}
+ 
+ 	return true;
+@@ -278,6 +286,7 @@ static struct xt_target sysrq_tg_reg[] __read_mostly = {
+ 		.checkentry = sysrq_tg_check,
+ 		.me         = THIS_MODULE,
+ 	},
++#ifdef WITH_IPV6
+ 	{
+ 		.name       = "SYSRQ",
+ 		.revision   = 1,
+@@ -286,6 +295,7 @@ static struct xt_target sysrq_tg_reg[] __read_mostly = {
+ 		.checkentry = sysrq_tg_check,
+ 		.me         = THIS_MODULE,
+ 	},
++#endif
+ };
+ 
+ static int __init sysrq_tg_init(void)
+@@ -357,4 +367,6 @@ MODULE_DESCRIPTION("Xtables: triggering SYSRQ remotely");
+ MODULE_AUTHOR("Jan Engelhardt <jengelh@medozas.de>");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ipt_SYSRQ");
++#ifdef WITH_IPV6
+ MODULE_ALIAS("ip6t_SYSRQ");
++#endif
+-- 
+1.6.4.4
+
+
+--=-JzbQQLlgDsuaZnI8Linq--
+
