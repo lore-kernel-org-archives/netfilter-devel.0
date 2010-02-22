@@ -1,72 +1,68 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
+From: jamal <hadi@cyberus.ca>
 Subject: Re: RFC: netfilter: nf_conntrack: add support for "conntrack zones"
-Date: Mon, 22 Feb 2010 12:46:14 -0800
-Message-ID: <m13a0tf17t.fsf@fess.ebiederm.org>
+Date: Mon, 22 Feb 2010 16:55:29 -0500
+Message-ID: <1266875729.3673.12.camel@bigi>
 References: <4B4F24AC.70105@trash.net> <1263481549.23480.24.camel@bigi>
-	<4B4F3A50.1050400@trash.net> <1263490403.23480.109.camel@bigi>
-	<4B50403A.6010507@trash.net> <1263568754.23480.142.camel@bigi>
+	 <4B4F3A50.1050400@trash.net> <1263490403.23480.109.camel@bigi>
+	 <4B50403A.6010507@trash.net> <1263568754.23480.142.camel@bigi>
+	 <m13a0tf17t.fsf@fess.ebiederm.org>
+Reply-To: hadi@cyberus.ca
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain
+Content-Transfer-Encoding: 7bit
 Cc: Patrick McHardy <kaber@trash.net>,
 	Linux Netdev List <netdev@vger.kernel.org>,
 	containers@lists.linux-foundation.org,
 	Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>,
 	Ben Greear <greearb@candelatech.com>
-To: hadi@cyberus.ca
+To: "Eric W. Biederman" <ebiederm@xmission.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out01.mta.xmission.com ([166.70.13.231]:45427 "EHLO
-	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753153Ab0BVUqZ (ORCPT
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:32920 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753769Ab0BVVzh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 22 Feb 2010 15:46:25 -0500
-In-Reply-To: <1263568754.23480.142.camel@bigi> (jamal's message of "Fri\, 15 Jan 2010 10\:19\:14 -0500")
+	Mon, 22 Feb 2010 16:55:37 -0500
+In-Reply-To: <m13a0tf17t.fsf@fess.ebiederm.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-jamal <hadi@cyberus.ca> writes:
+On Mon, 2010-02-22 at 12:46 -0800, Eric W. Biederman wrote:
+> jamal <hadi@cyberus.ca> writes:
 
->> > Agreed. But the major ones like iproute2 etc could be taught. We have
->> > namespaces in the kernel already, over a period of time I think changing
->> > the user space tools would a sensible evolution.
->> 
->> Yes, that might be useful in any case. But I don't think it would
->> even work for iproute or other standalone programs, a process can't
->> associate to an existing namespace except through clone(). So it
->> needs to run as child of a process already associated with the
->> namespace.
->
-> The mechanics are not there, yet. But if i had sufficient permission,
-> and was able to find the namespaces when i ask and/or get events when it
-> is created it should be an issue of sending it a message.
-> The current approach to say migrate a veth via iproute2 requires we 
-> know the pid of the target namespace. Thats a usability issue.
-> I tried to muck with namespaces and if you use a library like lxc
-> you can do it - but it is a hack as it stands today (and merging
-> iproute2 with lxc is questionable).
+> 
+> This is one of the long standing issues that we have always known
+> we needed to solve, but have not taken the time to do it.  Now that
+> the need is more real it looks about time to solve this one.
+> 
+> There are currently two problems.
+> 1) A process is needed to hold a reference to the network namespace.
+> 2) We use pids which are an awkward way of talking about network
+>    namespaces.
+> 
+> The solution I have been playing with involves.
+> - Using a file descriptor to refer to a network namespace.
+> - Using a trivial virtual filesystem to persistently hold onto
+>   a namespace without the need of a process.
+> - Have a convention of mounting the fs at something like
+>   /var/run/netns/<name>
+> 
 
-This is one of the long standing issues that we have always known
-we needed to solve, but have not taken the time to do it.  Now that
-the need is more real it looks about time to solve this one.
+I didnt quiet follow how i could use the above to do:
+"ip ns <name/id> route add blah" from namespace0.
 
-There are currently two problems.
-1) A process is needed to hold a reference to the network namespace.
-2) We use pids which are an awkward way of talking about network
-   namespaces.
+I tend to think in packets and wires instead of files;
+How about just allowing a "control" channel from which
+i could discover the namespace?
+Example, assuming i have the right permissions:
+1) listen to async events example on a multicast bus when
+a namespace is created or destroyed. Provide me a little more info on
+the created namespace such as its pid, name(?), types of namespace, etc
+2) send a query to dump existing namespace or query by name, id etc.
+I get the same details as above.
 
-The solution I have been playing with involves.
-- Using a file descriptor to refer to a network namespace.
-- Using a trivial virtual filesystem to persistently hold onto
-  a namespace without the need of a process.
-- Have a convention of mounting the fs at something like
-  /var/run/netns/<name>
+using genetlink should provide you with sufficient ability to do this.
 
-That solves the naming problem, and it should allow iproute and
-it's kin to have support without being closely integrated with
-lxc or anything else that creates namespaces.
+cheers,
+jamal
 
-It is a big conversation, and it is something that has to done
-right but it looks like the problem is finally real enough that
-it is time to solve it.
-
-Eric
