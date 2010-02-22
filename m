@@ -1,68 +1,90 @@
-From: jamal <hadi@cyberus.ca>
+From: ebiederm@xmission.com (Eric W. Biederman)
 Subject: Re: RFC: netfilter: nf_conntrack: add support for "conntrack zones"
-Date: Mon, 22 Feb 2010 16:55:29 -0500
-Message-ID: <1266875729.3673.12.camel@bigi>
+Date: Mon, 22 Feb 2010 15:17:58 -0800
+Message-ID: <m1wry46es9.fsf@fess.ebiederm.org>
 References: <4B4F24AC.70105@trash.net> <1263481549.23480.24.camel@bigi>
-	 <4B4F3A50.1050400@trash.net> <1263490403.23480.109.camel@bigi>
-	 <4B50403A.6010507@trash.net> <1263568754.23480.142.camel@bigi>
-	 <m13a0tf17t.fsf@fess.ebiederm.org>
-Reply-To: hadi@cyberus.ca
+	<4B4F3A50.1050400@trash.net> <1263490403.23480.109.camel@bigi>
+	<4B50403A.6010507@trash.net> <1263568754.23480.142.camel@bigi>
+	<m13a0tf17t.fsf@fess.ebiederm.org> <1266875729.3673.12.camel@bigi>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: Patrick McHardy <kaber@trash.net>,
 	Linux Netdev List <netdev@vger.kernel.org>,
 	containers@lists.linux-foundation.org,
 	Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>,
 	Ben Greear <greearb@candelatech.com>
-To: "Eric W. Biederman" <ebiederm@xmission.com>
+To: hadi@cyberus.ca
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:32920 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753769Ab0BVVzh (ORCPT
+Received: from out02.mta.xmission.com ([166.70.13.232]:32850 "EHLO
+	out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755228Ab0BVXSJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 22 Feb 2010 16:55:37 -0500
-In-Reply-To: <m13a0tf17t.fsf@fess.ebiederm.org>
+	Mon, 22 Feb 2010 18:18:09 -0500
+In-Reply-To: <1266875729.3673.12.camel@bigi> (jamal's message of "Mon\, 22 Feb 2010 16\:55\:29 -0500")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 2010-02-22 at 12:46 -0800, Eric W. Biederman wrote:
-> jamal <hadi@cyberus.ca> writes:
+jamal <hadi@cyberus.ca> writes:
 
-> 
-> This is one of the long standing issues that we have always known
-> we needed to solve, but have not taken the time to do it.  Now that
-> the need is more real it looks about time to solve this one.
-> 
-> There are currently two problems.
-> 1) A process is needed to hold a reference to the network namespace.
-> 2) We use pids which are an awkward way of talking about network
->    namespaces.
-> 
-> The solution I have been playing with involves.
-> - Using a file descriptor to refer to a network namespace.
-> - Using a trivial virtual filesystem to persistently hold onto
->   a namespace without the need of a process.
-> - Have a convention of mounting the fs at something like
->   /var/run/netns/<name>
-> 
+> On Mon, 2010-02-22 at 12:46 -0800, Eric W. Biederman wrote:
+>> jamal <hadi@cyberus.ca> writes:
+>
+>> 
+>> This is one of the long standing issues that we have always known
+>> we needed to solve, but have not taken the time to do it.  Now that
+>> the need is more real it looks about time to solve this one.
+>> 
+>> There are currently two problems.
+>> 1) A process is needed to hold a reference to the network namespace.
+>> 2) We use pids which are an awkward way of talking about network
+>>    namespaces.
+>> 
+>> The solution I have been playing with involves.
+>> - Using a file descriptor to refer to a network namespace.
+>> - Using a trivial virtual filesystem to persistently hold onto
+>>   a namespace without the need of a process.
+>> - Have a convention of mounting the fs at something like
+>>   /var/run/netns/<name>
+>> 
+>
+> I didnt quiet follow how i could use the above to do:
+> "ip ns <name/id> route add blah" from namespace0.
+>
+> I tend to think in packets and wires instead of files;
+> How about just allowing a "control" channel from which
+> i could discover the namespace?
+> Example, assuming i have the right permissions:
+> 1) listen to async events example on a multicast bus when
+> a namespace is created or destroyed. Provide me a little more info on
+> the created namespace such as its pid, name(?), types of namespace, etc
+> 2) send a query to dump existing namespace or query by name, id etc.
+> I get the same details as above.
+>
+> using genetlink should provide you with sufficient ability to do this.
 
-I didnt quiet follow how i could use the above to do:
-"ip ns <name/id> route add blah" from namespace0.
+What I am thinking is:
 
-I tend to think in packets and wires instead of files;
-How about just allowing a "control" channel from which
-i could discover the namespace?
-Example, assuming i have the right permissions:
-1) listen to async events example on a multicast bus when
-a namespace is created or destroyed. Provide me a little more info on
-the created namespace such as its pid, name(?), types of namespace, etc
-2) send a query to dump existing namespace or query by name, id etc.
-I get the same details as above.
+"ip ns <name> route add blah" is:
+fd = open("/var/run/netns/<name>");
+sys_setns(fd);  /* Like unshare but takes an existing namespace */
+/* Then the rest of the existing ip command */
 
-using genetlink should provide you with sufficient ability to do this.
+"ip ns list" is:
+dfd = open("/var/run/netns", O_DIRECTORY);
+getdents(dfd, buf, count);
 
-cheers,
-jamal
+"ip ns new <name>" is:
+unshare(CLONE_NEWNS);
+fd = nsfd(NETNS);
+mkdir("/var/run/netns/<name>");
+mount("none", "/var/run/netns/<name>", "ns", 0, fd);
 
+Using unix domain names means that which namespaces you see is under
+control of userspace.  Which allows for nested containers (something I
+use today), and ultimately container migration.
+
+Using genetlink userspace doesn't result in a nestable implementation
+unless I introduce yet another namespace, ugh.
+
+Eric
