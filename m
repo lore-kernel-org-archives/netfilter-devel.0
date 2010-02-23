@@ -1,25 +1,31 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: xtables-addons: make ipv6 optional for RAWNAT and SYSRQ
-Date: Wed, 24 Feb 2010 00:34:40 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.1002240034360.11034@obet.zrqbmnf.qr>
-References: <1266580375.26314.6.camel@tablet>
+Subject: Re: xtables-addons: ipp2p: bittorrent commands patch
+Date: Wed, 24 Feb 2010 00:40:34 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.1002240039060.11283@obet.zrqbmnf.qr>
+References: <1202414722.20100126061604@gmail.com> <alpine.LSU.2.01.1002212207100.7948@obet.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Peter Volkov <peter.volkov@gmail.com>
+To: Tomasz Tomkowiak <bloodman@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:57109 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:38855 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754714Ab0BWXel (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Feb 2010 18:34:41 -0500
-In-Reply-To: <1266580375.26314.6.camel@tablet>
+	id S1754714Ab0BWXkf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 23 Feb 2010 18:40:35 -0500
+In-Reply-To: <alpine.LSU.2.01.1002212207100.7948@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Friday 2010-02-19 12:52, Peter Volkov wrote:
+On Sunday 2010-02-21 22:08, Jan Engelhardt wrote:
+>On Tuesday 2010-01-26 06:16, Tomasz Tomkowiak wrote:
+>>
+>>After testing I decide to write my patch to bittorrent
+>>GET commands from xt_ipp2p.c because old procedure is
+>>useless for modified and/or private trackers. teh new
+>>works fine but maybe someone can rewrite it to better C
+>>(yeah, im C/C++ n00b ;)
+>>btw. info_hash may be 3rd argument, passkey (private trackers)
+>>may be 1st argument (or not) etc. etc. so we need to search.
 
->Hi, in case kernel was built without ipv6 support xt_RAWNAT and xt_SYSRQ
->fail to load with unknown symbols. Patches in attachment fix this issue.
->Please, apply.
-
-Applied, thanks.
+Hm. This patch needs improvement. We cannot use strstr, because
+there may not be a NUL byte in the packet.
