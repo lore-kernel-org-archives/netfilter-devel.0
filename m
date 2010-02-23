@@ -1,17 +1,15 @@
-From: jamal <hadi@cyberus.ca>
+From: ebiederm@xmission.com (Eric W. Biederman)
 Subject: Re: RFC: netfilter: nf_conntrack: add support for "conntrack zones"
-Date: Tue, 23 Feb 2010 09:20:17 -0500
-Message-ID: <1266934817.3973.654.camel@bigi>
+Date: Tue, 23 Feb 2010 12:00:55 -0800
+Message-ID: <m1r5obbu2w.fsf@fess.ebiederm.org>
 References: <4B4F24AC.70105@trash.net> <1263481549.23480.24.camel@bigi>
-	 <4B4F3A50.1050400@trash.net> <1263490403.23480.109.camel@bigi>
-	 <4B50403A.6010507@trash.net> <1263568754.23480.142.camel@bigi>
-	 <m13a0tf17t.fsf@fess.ebiederm.org> <1266875729.3673.12.camel@bigi>
-	 <m1wry46es9.fsf@fess.ebiederm.org> <1266931623.3973.643.camel@bigi>
-	 <m1iq9ocafv.fsf@fess.ebiederm.org>
-Reply-To: hadi@cyberus.ca
+	<4B4F3A50.1050400@trash.net> <1263490403.23480.109.camel@bigi>
+	<4B50403A.6010507@trash.net> <1263568754.23480.142.camel@bigi>
+	<m13a0tf17t.fsf@fess.ebiederm.org> <1266875729.3673.12.camel@bigi>
+	<m1wry46es9.fsf@fess.ebiederm.org> <1266931623.3973.643.camel@bigi>
+	<m1iq9ocafv.fsf@fess.ebiederm.org> <1266934817.3973.654.camel@bigi>
 Mime-Version: 1.0
-Content-Type: text/plain
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
 Cc: Daniel Lezcano <dlezcano@fr.ibm.com>,
 	Patrick McHardy <kaber@trash.net>,
 	Linux Netdev List <netdev@vger.kernel.org>,
@@ -19,62 +17,51 @@ Cc: Daniel Lezcano <dlezcano@fr.ibm.com>,
 	Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>,
 	Ben Greear <greearb@candelatech.com>
-To: "Eric W. Biederman" <ebiederm@xmission.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:50941 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752868Ab0BWOUX (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Feb 2010 09:20:23 -0500
-In-Reply-To: <m1iq9ocafv.fsf@fess.ebiederm.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: hadi@cyberus.ca
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1266934817.3973.654.camel@bigi> (jamal's message of "Tue\, 23 Feb 2010 09\:20\:17 -0500")
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Added Daniel to the discussion..
+jamal <hadi@cyberus.ca> writes:
 
-On Tue, 2010-02-23 at 06:07 -0800, Eric W. Biederman wrote:
-> jamal <hadi@cyberus.ca> writes:
+> Added Daniel to the discussion..
+>
+> On Tue, 2010-02-23 at 06:07 -0800, Eric W. Biederman wrote:
+>> jamal <hadi@cyberus.ca> writes:
+>
+>> > Does the point after sys_setns(fd) allow me to do io inside
+>> > ns <name>? Can i do open() and get a fd from ns <name>?
+>> 
+>> Yes.  My intention is that current->nsproxy->net_ns be changed.
+>> We can already change it in unshare so this is feasible.
+>
+> I like it if it makes it as easy as it sounds;-> With lxc,
+> i essentially have to create a proxy process inside the
+> namespace that i use unix domain to open fds inside the ns.
+> Do i still need that?
 
-> > Does the point after sys_setns(fd) allow me to do io inside
-> > ns <name>? Can i do open() and get a fd from ns <name>?
-> 
-> Yes.  My intention is that current->nsproxy->net_ns be changed.
-> We can already change it in unshare so this is feasible.
+That point of the mount to hold a persistent reference to the
+namespace without using a process.
 
-I like it if it makes it as easy as it sounds;-> With lxc,
-i essentially have to create a proxy process inside the
-namespace that i use unix domain to open fds inside the ns.
-Do i still need that?
+The point of the of the to be written set_ns call is to change
+the default network namespace of the process such that all future
+open/bind/socket calls happen in the referenced network namespace.
 
-> > The only problem that i see is events are not as nice. I take it i am 
-> > going to get something like an inotify when a new namespace is created?
-> 
-> Yes.  Inotify would at the very least see that mkdir.  You could also
-> use poll on /proc/mounts to see the set of mounts change.
+The are a few stray places like sysfs where it is the mount point
+not current->nsproxy->net_ns that will determine what we see.
 
-It is not as nice but livable. I suppose attributes of the specific
-namespace are retrieved somewhere there as well..
+>> > The only problem that i see is events are not as nice. I take it i am 
+>> > going to get something like an inotify when a new namespace is created?
+>> 
+>> Yes.  Inotify would at the very least see that mkdir.  You could also
+>> use poll on /proc/mounts to see the set of mounts change.
+>
+> It is not as nice but livable. I suppose attributes of the specific
+> namespace are retrieved somewhere there as well..
 
-> > Is it not just a naming convention that you are dealing with?
-> > Example in your scheme above a nested namespace shows up as:
-> > /var/run/netns/<name>/<nestedname>, no?
-> 
-> No.  More like:
-> 
-> For the outer namespace:
-> /var/run/netns/<name>
-> 
-> For the inner namespace:
-> /some/random/fs/path/to/a/chroot/var/run/netns/<name>
-> 
-> For a doubly nested scenario:
-> /some/random/fs/path/to/a/chroot/some/other/random/fs/path/to/another/chroot/var/run/netns/<name>
-> 
-> Since I would be using mount namespaces instead of chroot it is not
-> strictly required that the fs paths nest at all.
+Attributes of the specific namespace?
 
-Ok.
+Eric
 
-cheers,
-jamal
 
