@@ -1,26 +1,92 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] xt_recent: Fix false hit_count match
-Date: Tue, 23 Feb 2010 14:59:46 +0100
-Message-ID: <4B83DF52.5000806@trash.net>
-References: <20100219174904.1F62CF8C3F@sepang.rtg.net>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: Re: RFC: netfilter: nf_conntrack: add support for "conntrack zones"
+Date: Tue, 23 Feb 2010 06:07:32 -0800
+Message-ID: <m1iq9ocafv.fsf@fess.ebiederm.org>
+References: <4B4F24AC.70105@trash.net> <1263481549.23480.24.camel@bigi>
+	<4B4F3A50.1050400@trash.net> <1263490403.23480.109.camel@bigi>
+	<4B50403A.6010507@trash.net> <1263568754.23480.142.camel@bigi>
+	<m13a0tf17t.fsf@fess.ebiederm.org> <1266875729.3673.12.camel@bigi>
+	<m1wry46es9.fsf@fess.ebiederm.org> <1266931623.3973.643.camel@bigi>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: coreteam@netfilter.org, netfilter-devel@vger.kernel.org,
-	netfilter@vger.kernel.org
-To: Tim Gardner <timg@tpi.com>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <20100219174904.1F62CF8C3F@sepang.rtg.net>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>,
+	Linux Netdev List <netdev@vger.kernel.org>,
+	containers@lists.linux-foundation.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Ben Greear <greearb@candelatech.com>
+To: hadi@cyberus.ca
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from out02.mta.xmission.com ([166.70.13.232]:43252 "EHLO
+	out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751879Ab0BWOHk (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 23 Feb 2010 09:07:40 -0500
+In-Reply-To: <1266931623.3973.643.camel@bigi> (jamal's message of "Tue\, 23 Feb 2010 08\:27\:03 -0500")
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Tim Gardner wrote:
->>From 146111514a8c126268e848e45b7dd967329b072f Mon Sep 17 00:00:00 2001
-> From: Tim Gardner <tim.gardner@canonical.com>
-> Date: Thu, 18 Feb 2010 20:33:00 -0700
-> Subject: [PATCH] xt_recent: Fix false match.
-> 
-> A rule with a zero hit_count will always match.
-> 
+jamal <hadi@cyberus.ca> writes:
 
-Also applied, thanks Tim.
+> On Mon, 2010-02-22 at 15:17 -0800, Eric W. Biederman wrote:
+>
+>> What I am thinking is:
+>> 
+>> "ip ns <name> route add blah" is:
+>> fd = open("/var/run/netns/<name>");
+>> sys_setns(fd);  /* Like unshare but takes an existing namespace */
+>> /* Then the rest of the existing ip command */
+>
+> The other two below make some sense; For the above:
+> Does the point after sys_setns(fd) allow me to do io inside
+> ns <name>? Can i do open() and get a fd from ns <name>?
+
+Yes.  My intention is that current->nsproxy->net_ns be changed.
+We can already change it in unshare so this is feasible.
+
+>> "ip ns list" is:
+>> dfd = open("/var/run/netns", O_DIRECTORY);
+>> getdents(dfd, buf, count);
+>> 
+>> "ip ns new <name>" is:
+>> unshare(CLONE_NEWNS);
+>> fd = nsfd(NETNS);
+>> mkdir("/var/run/netns/<name>");
+>> mount("none", "/var/run/netns/<name>", "ns", 0, fd);
+>> 
+>> Using unix domain names means that which namespaces you see is under
+>> control of userspace.  Which allows for nested containers (something I
+>> use today), and ultimately container migration.
+>
+> The only problem that i see is events are not as nice. I take it i am 
+> going to get something like an inotify when a new namespace is created?
+
+Yes.  Inotify would at the very least see that mkdir.  You could also
+use poll on /proc/mounts to see the set of mounts change.
+
+>> Using genetlink userspace doesn't result in a nestable implementation
+>> unless I introduce yet another namespace, ugh.
+>
+> Is it not just a naming convention that you are dealing with?
+> Example in your scheme above a nested namespace shows up as:
+> /var/run/netns/<name>/<nestedname>, no?
+
+No.  More like:
+
+For the outer namespace:
+/var/run/netns/<name>
+
+For the inner namespace:
+/some/random/fs/path/to/a/chroot/var/run/netns/<name>
+
+For a doubly nested scenario:
+/some/random/fs/path/to/a/chroot/some/other/random/fs/path/to/another/chroot/var/run/netns/<name>
+
+Since I would be using mount namespaces instead of chroot it is not
+strictly required that the fs paths nest at all.
+
+Eric
+
+
+
+
