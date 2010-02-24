@@ -1,44 +1,48 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Inclusion inquiry about remaining patches
-Date: Wed, 24 Feb 2010 15:57:51 +0100
-Message-ID: <4B853E6F.2060709@trash.net>
-References: <alpine.LSU.2.01.1002241115330.2414@obet.zrqbmnf.qr> <4B851E88.1010906@trash.net> <alpine.LSU.2.01.1002241411580.19195@obet.zrqbmnf.qr>
+Subject: Re: [RFC PATCH net-next 1/5]IPv6:netfilter: defrag:Introduce net
+ namespace to conntrack and share netns_frags with IPv6 stack
+Date: Wed, 24 Feb 2010 16:07:31 +0100
+Message-ID: <4B8540B3.8080404@trash.net>
+References: <4B84C235.4070601@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: David Miller <davem@davemloft.net>,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org
+To: Shan Wei <shanwei@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45280 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:45479 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755766Ab0BXO5x (ORCPT
+	with ESMTP id S1753073Ab0BXPHd (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 24 Feb 2010 09:57:53 -0500
-In-Reply-To: <alpine.LSU.2.01.1002241411580.19195@obet.zrqbmnf.qr>
+	Wed, 24 Feb 2010 10:07:33 -0500
+In-Reply-To: <4B84C235.4070601@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Wednesday 2010-02-24 13:41, Patrick McHardy wrote:
->>> there are about 70 patches left that I intended to submit, but it seems 
->>> Netfilter stagnated again this release. Is there still a chance for 
->>> inclusion in this round?
->> Well, the last batch didn't exactly fill me with confidence that
->> these patches have been sufficiently tested.
->>
->> I'll consider the cleanup batch if you can assure me that it
->> doesn't contain bugs similar to the "lost POSTROUTING chain"
->> problem contained in the last series that should have been
->> noticed with just some basic testing.
+Shan Wei wrote:
+> Introduce net namespace to conntrack and share netns_frags with IPv6 stack.  
 > 
-> They have had their testing, and the error had been caught too
-> by Changli merely by reading the patch:
+> Signed-off-by: Shan Wei <shanwei@cn.fujitsu.com>
+> ---
+>  net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |    7 +-
+>  net/ipv6/netfilter/nf_conntrack_reasm.c        |   79 +++++++-----------------
+>  2 files changed, 25 insertions(+), 61 deletions(-)
 > 
-> http://marc.info/?l=netfilter-devel&m=125732159605634&w=2
-> http://marc.info/?l=netfilter-devel&m=125733769630550&w=2
-> 
-> I still have blob 685400 in my working copy, though it seems unreachable 
-> at this time, which means it sometime got lost in a rebase.
+> diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+> index 996c3f4..f153b2c 100644
+> --- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+> +++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
+> @@ -221,7 +221,10 @@ static unsigned int ipv6_defrag(unsigned int hooknum,
+>  	if (skb->nfct && !nf_ct_is_template((struct nf_conn *)skb->nfct))
+>  		return NF_ACCEPT;
+>  
+> +	local_bh_disable();
+>  	reasm = nf_ct_frag6_gather(skb, nf_ct6_defrag_user(hooknum, skb));
+> +	local_bh_enable();
 
-OK fair enough, I'll have another look once I'm finished with
-my current work.
+Please seperate any locking changes from the introduction
+of network namespaces.
+
