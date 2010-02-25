@@ -1,54 +1,30 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Jan Engelhardt <jengelh@medozas.de>
 Subject: Re: macvlan device blocks traffic for 30 secs
-Date: Thu, 25 Feb 2010 18:19:46 +0100
-Message-ID: <4B86B132.9090906@trash.net>
-References: <alpine.LSU.2.01.1002251743590.30827@obet.zrqbmnf.qr> <4B86AB36.6090402@trash.net> <alpine.LSU.2.01.1002251817040.13151@obet.zrqbmnf.qr>
+Date: Thu, 25 Feb 2010 18:33:18 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.1002251832340.13151@obet.zrqbmnf.qr>
+References: <alpine.LSU.2.01.1002251743590.30827@obet.zrqbmnf.qr> <4B86AB36.6090402@trash.net> <alpine.LSU.2.01.1002251817040.13151@obet.zrqbmnf.qr> <4B86B132.9090906@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:37930 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932989Ab0BYRTr (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 25 Feb 2010 12:19:47 -0500
-In-Reply-To: <alpine.LSU.2.01.1002251817040.13151@obet.zrqbmnf.qr>
+Received: from borg.medozas.de ([188.40.89.202]:34270 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932947Ab0BYRdU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 25 Feb 2010 12:33:20 -0500
+In-Reply-To: <4B86B132.9090906@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Thursday 2010-02-25 17:54, Patrick McHardy wrote:
->> Jan Engelhardt wrote:
->>> it's a while since I have last toyed with macvlan, but for some 
->>> experimenting, it came up as something usable again. What I noticed 
->>> while testing:
->>>
->>> guest# ip link add link eth0 name mqv0 type macvlan
->>> guest# ip link set dev mqv0 up
->>>
->>> At this point, any connections drop for a specific amount of time.
->>>
->>> host$ ping 192.168.100.101
->>> PING 192.168.100.101 (192.168.100.101) 56(84) bytes of data.
->>> 64 bytes from 192.168.100.101: icmp_seq=1 ttl=64 time=4.87 ms
->>> 64 bytes from 192.168.100.101: icmp_seq=2 ttl=64 time=0.353 ms
->>> 64 bytes from 192.168.100.101: icmp_seq=3 ttl=64 time=0.341 ms
->>> 64 bytes from 192.168.100.101: icmp_seq=4 ttl=64 time=0.335 ms
->>> 64 bytes from 192.168.100.101: icmp_seq=5 ttl=64 time=0.345 ms
->>> 64 bytes from 192.168.100.101: icmp_seq=6 ttl=64 time=0.378 ms
->>> 64 bytes from 192.168.100.101: icmp_seq=7 ttl=64 time=0.283 ms
->>> 64 bytes from 192.168.100.101: icmp_seq=8 ttl=64 time=0.372 ms
->>> 64 bytes from 192.168.100.101: icmp_seq=37 ttl=64 time=5.04 ms
->>> 64 bytes from 192.168.100.101: icmp_seq=38 ttl=64 time=0.291 ms
->>>
->>> and I am not quite sure why that is. The ARP entries don't change.
->>> Can you reproduce this?
->> No, this works fine here. It might be related to filter reprogramming
->> of the NIC. Which driver are you using?
-> 
-> tap0 on one the host, e1000 inside the virtualbox.
+On Thursday 2010-02-25 18:19, Patrick McHardy wrote:
+>>>> Can you reproduce this?
+>>> No, this works fine here. It might be related to filter reprogramming
+>>> of the NIC. Which driver are you using?
+>> 
+>> tap0 on one the host, e1000 inside the virtualbox.
+>
+>I have no idea about virtualbox. I guess it might be related to
+>bridging.
 
-I have no idea about virtualbox. I guess it might be related to
-bridging.
+There is no vm bridging at all, it's plain routing between tap and eth 
+(aka "Host Only Networking" in VMware slingo).
