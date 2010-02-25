@@ -1,36 +1,46 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [question] ipt_CLUSTERIP and address length
-Date: Thu, 25 Feb 2010 14:03:13 +0100
-Message-ID: <4B867511.7050204@netfilter.org>
-References: <20100225101257.GC2667@psychotron.lab.eng.brq.redhat.com> <4B864F9A.90207@trash.net> <4B866A7F.7070205@netfilter.org> <alpine.LSU.2.01.1002251347580.11377@obet.zrqbmnf.qr> <20100225125631.GF2667@psychotron.lab.eng.brq.redhat.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: macvlan device blocks traffic for 30 secs
+Date: Thu, 25 Feb 2010 17:48:26 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.1002251743590.30827@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-To: Jiri Pirko <jpirko@redhat.com>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <20100225125631.GF2667@psychotron.lab.eng.brq.redhat.com>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: kaber@trash.net
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from borg.medozas.de ([188.40.89.202]:51029 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759405Ab0BYQs3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 25 Feb 2010 11:48:29 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Jiri Pirko wrote:
-> Thu, Feb 25, 2010 at 01:54:50PM CET, jengelh@medozas.de wrote:
->> On Thursday 2010-02-25 13:18, Pablo Neira Ayuso wrote:
->>>>> I want to ask if there is any particular reason for ipt_CLUSTERIP to support
->>>>> only address length of 6 (ETH_ALEN)? It seems to me reasonable for this to work
->>>>> even with another types of network hw with different addr_len.
->>>> None that I'm aware of, but the length is also used in the ABI,
->>>> so you presently can't supply larger addresses.
->>> Not directly related to this but I wanted to discuss this time ago. Now
->>> that we have xt_CLUSTER I think that we can deprecate ipt_CLUSTERIP.
->> xt_CLUSTER - where in the tree would that be?
-> 
-> I was trying to find it too. I guess it stands out of it (at least net-next).
+Hi,
 
-sorry, it's xt_cluster, no capitalization.
 
-pablo@decadence:~/devel/scm/git/nf-2.6$ ls net/netfilter/xt_cluster.c
+it's a while since I have last toyed with macvlan, but for some 
+experimenting, it came up as something usable again. What I noticed 
+while testing:
 
-It's there since quite some time.
+guest# ip link add link eth0 name mqv0 type macvlan
+guest# ip link set dev mqv0 up
+
+At this point, any connections drop for a specific amount of time.
+
+host$ ping 192.168.100.101
+PING 192.168.100.101 (192.168.100.101) 56(84) bytes of data.
+64 bytes from 192.168.100.101: icmp_seq=1 ttl=64 time=4.87 ms
+64 bytes from 192.168.100.101: icmp_seq=2 ttl=64 time=0.353 ms
+64 bytes from 192.168.100.101: icmp_seq=3 ttl=64 time=0.341 ms
+64 bytes from 192.168.100.101: icmp_seq=4 ttl=64 time=0.335 ms
+64 bytes from 192.168.100.101: icmp_seq=5 ttl=64 time=0.345 ms
+64 bytes from 192.168.100.101: icmp_seq=6 ttl=64 time=0.378 ms
+64 bytes from 192.168.100.101: icmp_seq=7 ttl=64 time=0.283 ms
+64 bytes from 192.168.100.101: icmp_seq=8 ttl=64 time=0.372 ms
+64 bytes from 192.168.100.101: icmp_seq=37 ttl=64 time=5.04 ms
+64 bytes from 192.168.100.101: icmp_seq=38 ttl=64 time=0.291 ms
+
+and I am not quite sure why that is. The ARP entries don't change.
+Can you reproduce this?
+
+
+Jan
