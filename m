@@ -1,35 +1,34 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ip_tables: foreachs and reentrancy
-Date: Thu, 25 Feb 2010 12:09:39 +0100
-Message-ID: <4B865A73.8020804@trash.net>
-References: <1265970044-19518-1-git-send-email-jengelh@medozas.de> <4B856498.9040202@trash.net> <alpine.LSU.2.01.1002241952410.3301@obet.zrqbmnf.qr> <4B864FC4.3000201@trash.net> <alpine.LSU.2.01.1002251205280.4362@obet.zrqbmnf.qr>
+From: John Haxby <john.haxby@oracle.com>
+Subject: SYSRQ in mainline kernel?
+Date: Thu, 25 Feb 2010 11:08:55 +0000
+Message-ID: <4B865A47.4080802@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:64250 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758862Ab0BYLJk (ORCPT
+Received: from rcsinet11.oracle.com ([148.87.113.123]:63262 "EHLO
+	rcsinet11.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758862Ab0BYLJu (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 25 Feb 2010 06:09:40 -0500
-In-Reply-To: <alpine.LSU.2.01.1002251205280.4362@obet.zrqbmnf.qr>
+	Thu, 25 Feb 2010 06:09:50 -0500
+Received: from acsinet15.oracle.com (acsinet15.oracle.com [141.146.126.227])
+	by rcsinet11.oracle.com (Switch-3.4.2/Switch-3.4.2) with ESMTP id o1PB9mmL003892
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <netfilter-devel@vger.kernel.org>; Thu, 25 Feb 2010 11:09:49 GMT
+Received: from acsmt353.oracle.com (acsmt353.oracle.com [141.146.40.153])
+	by acsinet15.oracle.com (Switch-3.4.2/Switch-3.4.1) with ESMTP id o1OJPkom018982
+	for <netfilter-devel@vger.kernel.org>; Thu, 25 Feb 2010 11:09:47 GMT
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Thursday 2010-02-25 11:24, Patrick McHardy wrote:
->>> My intention was to have the entire set merged by 2.6.32, only
->>> delayed by my own tinkering around with the get_cycle measurement of
->>> the data collapse. But it was ready on-time for the 2.6.34 window!
->>> What went wrong? Do we need to begin the merge-into-kabernext window
->>> much earlier?
->> Yes, you should begin submitting patches when net-next opens,
->> usually at -rc1.
-> 
-> Thanks for clearing this point of doubt up - I was under the
-> impression that submissions were only accepted when kaber-next
-> opens.
 
-It opens when submissions show up :)
+Some time ago, when I submitted changes to make SYSRQ a little more 
+secure, it was suggested that perhaps this should be submitted to the 
+mainline kernel.    I think it was Patrick McHardy that suggested it.  I 
+could've done with this a couple of days ago and the recent SYSRQ patch 
+jogged my memory.
+
+What do I need to do to make this happen (or at least begin to happen)?
+
+jch
