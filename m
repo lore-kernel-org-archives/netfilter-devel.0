@@ -1,38 +1,40 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [question] ipt_CLUSTERIP and address length
-Date: Thu, 25 Feb 2010 13:18:07 +0100
-Message-ID: <4B866A7F.7070205@netfilter.org>
-References: <20100225101257.GC2667@psychotron.lab.eng.brq.redhat.com> <4B864F9A.90207@trash.net>
+Date: Thu, 25 Feb 2010 13:23:33 +0100
+Message-ID: <4B866BC5.7030800@trash.net>
+References: <20100225101257.GC2667@psychotron.lab.eng.brq.redhat.com> <4B864F9A.90207@trash.net> <4B866A7F.7070205@netfilter.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: Jiri Pirko <jpirko@redhat.com>, netfilter-devel@vger.kernel.org,
 	coreteam@netfilter.org, netfilter@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:47484 "EHLO mail.us.es"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932234Ab0BYMSh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 25 Feb 2010 07:18:37 -0500
-In-Reply-To: <4B864F9A.90207@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <4B866A7F.7070205@netfilter.org>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Patrick McHardy wrote:
-> Jiri Pirko wrote:
->> Hi all.
->>
->> I want to ask if there is any particular reason for ipt_CLUSTERIP to support
->> only address length of 6 (ETH_ALEN)? It seems to me reasonable for this to work
->> even with another types of network hw with different addr_len.
+Pablo Neira Ayuso wrote:
+> Patrick McHardy wrote:
+>> Jiri Pirko wrote:
+>>> Hi all.
+>>>
+>>> I want to ask if there is any particular reason for ipt_CLUSTERIP to support
+>>> only address length of 6 (ETH_ALEN)? It seems to me reasonable for this to work
+>>> even with another types of network hw with different addr_len.
+>> None that I'm aware of, but the length is also used in the ABI,
+>> so you presently can't supply larger addresses.
 > 
-> None that I'm aware of, but the length is also used in the ABI,
-> so you presently can't supply larger addresses.
+> Not directly related to this but I wanted to discuss this time ago. Now
+> that we have xt_CLUSTER I think that we can deprecate ipt_CLUSTERIP.
 
-Not directly related to this but I wanted to discuss this time ago. Now
-that we have xt_CLUSTER I think that we can deprecate ipt_CLUSTERIP.
+If xt_cluster supports everything ipt_CLUSTERIP does, thats fine
+with me.
 
-With regards to this issue, it seems arptables only support EUI-48 (6
-bytes) for ethernet addresses, so xt_CLUSTER would inherit the same
-problem but the point would be to fix arptables (not sure if possible
-now without breaking ABI or adding some versioning like iptables).
+> With regards to this issue, it seems arptables only support EUI-48 (6
+> bytes) for ethernet addresses, so xt_CLUSTER would inherit the same
+> problem but the point would be to fix arptables (not sure if possible
+> now without breaking ABI or adding some versioning like iptables).
+
+arptables currently supports up to 16 byte long addresses. Increasing
+this is difficult since the addresses are embedded in struct arpt_arp.
