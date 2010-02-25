@@ -1,30 +1,37 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: macvlan device blocks traffic for 30 secs
-Date: Thu, 25 Feb 2010 18:33:18 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.1002251832340.13151@obet.zrqbmnf.qr>
-References: <alpine.LSU.2.01.1002251743590.30827@obet.zrqbmnf.qr> <4B86AB36.6090402@trash.net> <alpine.LSU.2.01.1002251817040.13151@obet.zrqbmnf.qr> <4B86B132.9090906@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: netfilter 00/08: netfilter update
+Date: Thu, 25 Feb 2010 18:35:25 +0100
+Message-ID: <4B86B4DD.6060006@trash.net>
+References: <20100224174927.16391.59798.sendpatchset@x2.localnet> <4B85D42E.5030304@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: davem@davemloft.net, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Shan Wei <shanwei@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:34270 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932947Ab0BYRdU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 25 Feb 2010 12:33:20 -0500
-In-Reply-To: <4B86B132.9090906@trash.net>
+Received: from stinky.trash.net ([213.144.137.162]:38214 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933076Ab0BYRf1 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 25 Feb 2010 12:35:27 -0500
+In-Reply-To: <4B85D42E.5030304@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 2010-02-25 18:19, Patrick McHardy wrote:
->>>> Can you reproduce this?
->>> No, this works fine here. It might be related to filter reprogramming
->>> of the NIC. Which driver are you using?
->> 
->> tap0 on one the host, e1000 inside the virtualbox.
->
->I have no idea about virtualbox. I guess it might be related to
->bridging.
+Shan Wei wrote:
+> Patrick McHardy wrote, at 02/25/2010 01:49 AM:
+>> Hi Dave,
+>>
+>> following is the probably final netfilter update for 2.6.34, containing:
+> 
+> 2.6.33 is just released, and Linus Torvalds said that
+> this merger window period is about ten-to-twelve days.
+> 
+> Is it enough for us to review patch-set with title "IPv6:netfilter: defragment"?
+> Is there hope to merger this patch-set for 2.6.34?
 
-There is no vm bridging at all, it's plain routing between tap and eth 
-(aka "Host Only Networking" in VMware slingo).
+The networking merge window closes earlier than that. These
+patches are quite small however and almost classify as bugfixes,
+so I'm fine with them if you send them over very quickly and
+Dave doesn't object.
