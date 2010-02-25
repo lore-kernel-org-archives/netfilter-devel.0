@@ -1,45 +1,50 @@
-From: John Haxby <john.haxby@oracle.com>
-Subject: Re: SYSRQ in mainline kernel?
-Date: Thu, 25 Feb 2010 11:33:05 +0000
-Message-ID: <4B865FF1.8020605@oracle.com>
-References: <4B865A47.4080802@oracle.com> <alpine.LSU.2.01.1002251220000.4362@obet.zrqbmnf.qr>
+From: Jiri Pirko <jpirko@redhat.com>
+Subject: Re: [question] ipt_CLUSTERIP and address length
+Date: Thu, 25 Feb 2010 12:37:52 +0100
+Message-ID: <20100225113751.GD2667@psychotron.lab.eng.brq.redhat.com>
+References: <20100225101257.GC2667@psychotron.lab.eng.brq.redhat.com>
+ <4B864F9A.90207@trash.net>
+ <alpine.LSU.2.01.1002251201360.4362@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org,
+	coreteam@netfilter.org, netfilter@vger.kernel.org
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rcsinet12.oracle.com ([148.87.113.124]:18242 "EHLO
-	rcsinet12.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759252Ab0BYLel (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 25 Feb 2010 06:34:41 -0500
-In-Reply-To: <alpine.LSU.2.01.1002251220000.4362@obet.zrqbmnf.qr>
+Received: from mx1.redhat.com ([209.132.183.28]:8382 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759286Ab0BYLiL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 25 Feb 2010 06:38:11 -0500
+Content-Disposition: inline
+In-Reply-To: <alpine.LSU.2.01.1002251201360.4362@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 25/02/10 11:21, Jan Engelhardt wrote:
-> On Thursday 2010-02-25 12:08, John Haxby wrote:
->    
->> What do I need to do to make this happen (or at least begin to
->> happen)?
->>      
-> 1. Since it's in Xt-a, you would notify me that you would like me to
-> submit it upstream.
->    
+Thu, Feb 25, 2010 at 12:04:23PM CET, jengelh@medozas.de wrote:
+>
+>On Thursday 2010-02-25 11:23, Patrick McHardy wrote:
+>>Jiri Pirko wrote:
+>>> Hi all.
+>>> 
+>>> I want to ask if there is any particular reason for ipt_CLUSTERIP
+>>> to support only address length of 6 (ETH_ALEN)? It seems to me
+>>> reasonable for this to work even with another types of network hw
+>>> with different addr_len.
+>>
+>>None that I'm aware of, but the length is also used in the ABI,
+>>so you presently can't supply larger addresses.
+>
+>The larger picture is that there seems to be quite a bit of ABI
+>even outside of the kernel that uses ETH_ALEN and/or ETH_HLEN
+>in many places; for example, the tcpdump cooked interface IIRC.
 
-"I would like to submit SYSRQ upstream, please"
+Hmm, thats sad :( IMHO this should be ETH independent...
 
-> 2. Bribe the NF maintainer to accept the posted inclusion.
->    
+>
+>Is there an _actual_ use case however? Is it suddenly possible
+>to use EUI-64s? Or a run on IPX? :-)
 
-I've recently discovered that a local hostelry sells Gales HSB and I'm 
-willing to stand the NF maintainer a pint of it as a bribe :-)
+Well for example Infiniband has 20-bytes address. But I do not know much about
+this kinds of hw & iptables use. I'm just looking at code and wondering :)
 
-> 3. ???
-> 4. Profit (SCNR!)
->    
-
-If there's anything I can do to help, please let me know.
-
-jch
+Jirka
