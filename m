@@ -1,41 +1,57 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [RFC][PATCH] ns: Syscalls for better namespace sharing control.
-Date: Thu, 25 Feb 2010 16:53:16 -0800
-Message-ID: <m1bpfczukj.fsf@fess.ebiederm.org>
-References: <1263568754.23480.142.camel@bigi>
-	<m13a0tf17t.fsf@fess.ebiederm.org> <1266875729.3673.12.camel@bigi>
-	<m1wry46es9.fsf@fess.ebiederm.org> <1266931623.3973.643.camel@bigi>
-	<m1iq9ocafv.fsf@fess.ebiederm.org> <1266934817.3973.654.camel@bigi>
-	<m1r5obbu2w.fsf@fess.ebiederm.org> <1266966581.3973.675.camel@bigi>
-	<m1pr3t2fvl.fsf_-_@fess.ebiederm.org>
-	<20100225214656.GS3604@count0.beaverton.ibm.com>
+From: Hari Hendaryanto <hari.h@csmcom.com>
+Subject: xtables-addons searching libipt_*.so instead of libxt_*.so
+Date: Fri, 26 Feb 2010 07:48:28 +0700
+Message-ID: <4B871A5C.5010409@csmcom.com>
+Reply-To: hari.h@csmcom.com
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: hadi@cyberus.ca, Daniel Lezcano <dlezcano@fr.ibm.com>,
-	Patrick McHardy <kaber@trash.net>,
-	Linux Netdev List <netdev@vger.kernel.org>,
-	containers@lists.linux-foundation.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Ben Greear <greearb@candelatech.com>,
-	Serge Hallyn <serue@us.ibm.com>
-To: Matt Helsley <matthltc@us.ibm.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20100225214656.GS3604@count0.beaverton.ibm.com> (Matt Helsley's message of "Thu\, 25 Feb 2010 13\:46\:56 -0800")
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from outgoing.corp.3g-net.net ([202.127.97.239]:41402 "EHLO
+	outgoing.corp.3g-net.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934786Ab0BZAyb (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 25 Feb 2010 19:54:31 -0500
+Received: from smtp.corp.3g-net.net (smtp.corp.3g-net.net [202.127.97.230])
+	by dev.corp.3g-net.net (Postfix) with ESMTP id 3003C23097
+	for <netfilter-devel@vger.kernel.org>; Fri, 26 Feb 2010 07:48:27 +0700 (WIT)
+Received: from [192.168.200.113] (ns1.ipv6.kutukupret.com [202.127.98.148])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by smtp.corp.3g-net.net (Postfix) with ESMTPSA id 2420724FC6
+	for <netfilter-devel@vger.kernel.org>; Fri, 26 Feb 2010 07:48:40 +0700 (WIT)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Matt Helsley <matthltc@us.ibm.com> writes:
+I was recently build xtables-addons-1.23
 
+my  platform:
+fedora 12 x86_64
+kernel 2.6.31.12-174.2.22.fc12.x86_64
+iptables 1.4.6-2.fc12.x86_64
 
-> 	Seems like an ok concept to me. Did you try doing this with
-> anon_inodes and bind mounting the /proc/<pid>/fd/N as above to keep
-> them alive and name them?
+I configure xtables with
 
-Of course this part doesn't work in my patch because I have the wrong
-mnt_ns on my mount MS_NOUSER on my superblock.
+./configure --with-kbuild=/lib/modules/`uname -r`/build 
+--with-xtlibdir=/lib64/xtables
+make
+make install
 
-MS_NOUSER is easy to get past.  Getting a vfsmount in the proper mnt
-namespace could be tricky.
+it was compiled cleanly
+no error produce until final step.
 
-Eric
+when i try to load match, i.e geoip match i found this error
+
+iptables v1.4.6: Couldn't load match 
+`geoip':/lib64/xtables/libipt_geoip.so: cannot open shared object file: 
+No such file or directory
+
+Try `iptables -h' or 'iptables --help' for more information.
+
+i've check /lib64/xtables and i see libxt_geoip.so is there
+
+why iptables search /lib64/xtables/libipt_geoip.so not 
+/lib64/xtables/libxt_geoip.so ?
+
+thanks in advance
