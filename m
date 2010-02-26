@@ -1,28 +1,61 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: netfilter 00/03: netfilter update
-Date: Fri, 26 Feb 2010 10:08:18 -0800 (PST)
-Message-ID: <20100226.100818.150882289.davem@davemloft.net>
-References: <20100226171521.30040.76590.sendpatchset@x2.localnet>
+From: ebiederm@xmission.com (Eric W. Biederman)
+Subject: Re: [RFC][PATCH] ns: Syscalls for better namespace sharing control.
+Date: Fri, 26 Feb 2010 12:35:56 -0800
+Message-ID: <m1k4tzwx8z.fsf@fess.ebiederm.org>
+References: <4B4F24AC.70105@trash.net> <1263481549.23480.24.camel@bigi>
+	<4B4F3A50.1050400@trash.net> <1263490403.23480.109.camel@bigi>
+	<4B50403A.6010507@trash.net> <1263568754.23480.142.camel@bigi>
+	<m13a0tf17t.fsf@fess.ebiederm.org> <1266875729.3673.12.camel@bigi>
+	<m1wry46es9.fsf@fess.ebiederm.org> <1266931623.3973.643.camel@bigi>
+	<m1iq9ocafv.fsf@fess.ebiederm.org> <1266934817.3973.654.camel@bigi>
+	<m1r5obbu2w.fsf@fess.ebiederm.org> <1266966581.3973.675.camel@bigi>
+	<m1pr3t2fvl.fsf_-_@fess.ebiederm.org> <4B86EC45.3060005@free.fr>
+	<m1mxyx0yv7.fsf@fess.ebiederm.org>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+Content-Type: text/plain; charset=us-ascii
+Cc: hadi@cyberus.ca, Linux Netdev List <netdev@vger.kernel.org>,
+	containers@lists.linux-foundation.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Ben Greear <greearb@candelatech.com>,
+	Daniel Lezcano <dlezcano@fr.ibm.com>
+To: Daniel Lezcano <daniel.lezcano@free.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:53416
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965634Ab0BZSH7 (ORCPT
+Received: from out01.mta.xmission.com ([166.70.13.231]:42533 "EHLO
+	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965982Ab0BZUgJ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 26 Feb 2010 13:07:59 -0500
-In-Reply-To: <20100226171521.30040.76590.sendpatchset@x2.localnet>
+	Fri, 26 Feb 2010 15:36:09 -0500
+In-Reply-To: <m1mxyx0yv7.fsf@fess.ebiederm.org> (Eric W. Biederman's message of "Thu\, 25 Feb 2010 13\:49\:48 -0800")
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Fri, 26 Feb 2010 18:15:21 +0100 (MET)
 
-> Please apply or pull from:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git master
+> No, the plan is only one namespace at a time.
 
-Pulled, thanks Patrick.
+Looking at this a bit more I am frustrated and relieved.
+
+I was looking at what it would take to join an arbitrary mount
+namespace and I realized it is completely non-obvious what fs->root
+and fs->pwd should be set to.
+
+If I leave them untouched the new mount namespace is useless,
+as all path lookups will give results in a different mount namespace,
+so not even mount or umount can be used.
+
+I can not change fs->root to mnt_ns->root as that is rootfs and there
+is always something mounted on top so I can not use that.
+
+In comparison an unshare of the mount namespace doesn't have to move
+fs->root or fs->pwd at all and only has to update their mounts to
+the corresponding mounts in the new mount namespace.
+
+I might be able to find the topmost root filesystem and put at least
+root there, but I'm not particularly fond of that option.
+
+Eric
+
+
+
+
+
