@@ -1,61 +1,55 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [RFC][PATCH] ns: Syscalls for better namespace sharing control.
-Date: Fri, 26 Feb 2010 12:35:56 -0800
-Message-ID: <m1k4tzwx8z.fsf@fess.ebiederm.org>
-References: <4B4F24AC.70105@trash.net> <1263481549.23480.24.camel@bigi>
-	<4B4F3A50.1050400@trash.net> <1263490403.23480.109.camel@bigi>
-	<4B50403A.6010507@trash.net> <1263568754.23480.142.camel@bigi>
-	<m13a0tf17t.fsf@fess.ebiederm.org> <1266875729.3673.12.camel@bigi>
-	<m1wry46es9.fsf@fess.ebiederm.org> <1266931623.3973.643.camel@bigi>
-	<m1iq9ocafv.fsf@fess.ebiederm.org> <1266934817.3973.654.camel@bigi>
-	<m1r5obbu2w.fsf@fess.ebiederm.org> <1266966581.3973.675.camel@bigi>
-	<m1pr3t2fvl.fsf_-_@fess.ebiederm.org> <4B86EC45.3060005@free.fr>
-	<m1mxyx0yv7.fsf@fess.ebiederm.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: hadi@cyberus.ca, Linux Netdev List <netdev@vger.kernel.org>,
-	containers@lists.linux-foundation.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Ben Greear <greearb@candelatech.com>,
-	Daniel Lezcano <dlezcano@fr.ibm.com>
-To: Daniel Lezcano <daniel.lezcano@free.fr>
+From: Pierre Chifflier <chifflier@edenwall.com>
+Subject: [ULOGD2] UNIXSOCK plugin (v5)
+Date: Fri, 26 Feb 2010 21:54:38 +0100
+Message-ID: <1267217680-22677-1-git-send-email-chifflier@edenwall.com>
+Cc: eleblond@edenwall.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out01.mta.xmission.com ([166.70.13.231]:42533 "EHLO
-	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965982Ab0BZUgJ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 26 Feb 2010 15:36:09 -0500
-In-Reply-To: <m1mxyx0yv7.fsf@fess.ebiederm.org> (Eric W. Biederman's message of "Thu\, 25 Feb 2010 13\:49\:48 -0800")
+Received: from smtp1-g21.free.fr ([212.27.42.1]:45261 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S966090Ab0BZUyw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 26 Feb 2010 15:54:52 -0500
+Received: from smtp1-g21.free.fr (localhost [127.0.0.1])
+	by smtp1-g21.free.fr (Postfix) with ESMTP id 3BAFD940019
+	for <netfilter-devel@vger.kernel.org>; Fri, 26 Feb 2010 21:54:46 +0100 (CET)
+Received: from fydelkass.edenwall.com (fydelkass.inl.fr [88.171.131.12])
+	by smtp1-g21.free.fr (Postfix) with ESMTP id 5572E94014C
+	for <netfilter-devel@vger.kernel.org>; Fri, 26 Feb 2010 21:54:44 +0100 (CET)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi,
 
-> No, the plan is only one namespace at a time.
+Here is an updated version of the UNIXSOCK plugin.
 
-Looking at this a bit more I am frustrated and relieved.
+Changes for v5:
+- align all structures on 64 bits instead of 32
+  This has been tested on a sparc64 (thanks to Jan)
+- update pcap2ulog to handle different pcap formats
 
-I was looking at what it would take to join an arbitrary mount
-namespace and I realized it is completely non-obvious what fs->root
-and fs->pwd should be set to.
+Changes for v4:
+- use structures instead of reading integers directly
+- all structures and fields are now aligned (4 bytes)
+- update pcap2ulog script to use aligned data as well
 
-If I leave them untouched the new mount namespace is useless,
-as all path lookups will give results in a different mount namespace,
-so not even mount or umount can be used.
+Changes for v3:
+- if the bufsize value (from conf) is 0, try to guess the buffer size
+  using getsockopt(SOL_SOCKET, SO_RCVBUF ..)
+- set default path to /var/run/ulogd/ulogd2.sock with mode 0600
+- add new configuration options perms, owner and group to be able
+  to set these parameters on the created socket
+- change the input algorithm to make it more robust against junk data (which
+  can happen if the client is desynchronized)
+- fixed a few bugs
 
-I can not change fs->root to mnt_ns->root as that is rootfs and there
-is always something mounted on top so I can not use that.
+Description:
 
-In comparison an unshare of the mount namespace doesn't have to move
-fs->root or fs->pwd at all and only has to update their mounts to
-the corresponding mounts in the new mount namespace.
+[1] add new input plugin UNISOCK, using a unix socket. This allows userspace
+applications to send packets to ulogd, for example to send packets offline.
+It uses a key-length-value protocol to handle optional fields or extensions.
 
-I might be able to find the topmost root filesystem and put at least
-root there, but I'm not particularly fond of that option.
+[2] is a Perl script to load a PCAP file and send it to ulogd using the
+UNIXSOCK plugin.
 
-Eric
-
-
-
-
+Pierre
 
