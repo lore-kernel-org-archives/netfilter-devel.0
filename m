@@ -1,43 +1,31 @@
-From: "Webmail Upgrade Team" <info@login.com>
-Subject: Upgrade Your Email Account
-Date: Thu, 25 Feb 2010 04:33:22 +0500 (YEKT)
-Message-ID: <39245.193.219.209.194.1267054402.squirrel@adm-ekburg.ru>
-Reply-To: upgradecct@w.cn
+From: Thomas Woerner <twoerner@redhat.com>
+Subject: Missing GPL headers
+Date: Fri, 26 Feb 2010 11:42:39 +0100
+Message-ID: <4B87A59F.60602@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain;charset=utf-8
-Content-Transfer-Encoding: 8bit
-To: undisclosed-recipients:;
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail2.adm-ekburg.ru ([87.229.134.6]:27062 "EHLO adm-ekburg.ru"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S935533Ab0BZIZd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 26 Feb 2010 03:25:33 -0500
+Received: from mx1.redhat.com ([209.132.183.28]:34116 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S934090Ab0BZKmm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 26 Feb 2010 05:42:42 -0500
+Received: from int-mx04.intmail.prod.int.phx2.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.17])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o1QAggZC022385
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <netfilter-devel@vger.kernel.org>; Fri, 26 Feb 2010 05:42:42 -0500
+Received: from [10.36.11.227] (vpn2-11-227.ams2.redhat.com [10.36.11.227])
+	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o1QAgeLO015327
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <netfilter-devel@vger.kernel.org>; Fri, 26 Feb 2010 05:42:42 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-ATTENTION:
+Hello,
 
-WEBMAIL SUBSCRIBER:
+lots of files in the iptables tree are missing the GPL header but contain copyright messages.
 
-This mail is to inform all our {WEBMAIL} users that we will be upgrading
-our site in a couple of days from now. So you as a Subscriber of our site
-you are required to send us your Email account details so as to enable us
-know if you are still making use of your mail box. Further informed that
-we will be deleting all mail account that is not functioning so as to
-create more space for new user. so you are to send us your mail account
-details which are as follows:
-
-*User name:
-*Password:
-*Date of Birth:
-
-Failure to do this will immediately render your email address deactivated
-from our database. Your response should be send to the following e-mail
-address. Your AdminManager:upgradecct@w.cn
-
-Yours In Service.
-Webmail Upgrade Team
-
-
-
-
+Thanks,
+Thomas
