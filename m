@@ -1,31 +1,30 @@
-From: Thomas Woerner <twoerner@redhat.com>
-Subject: Missing GPL headers
-Date: Fri, 26 Feb 2010 11:42:39 +0100
-Message-ID: <4B87A59F.60602@redhat.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: Missing GPL headers
+Date: Fri, 26 Feb 2010 11:55:31 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.1002261154001.29558@obet.zrqbmnf.qr>
+References: <4B87A59F.60602@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-To: Netfilter Development Mailinglist
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
+To: Thomas Woerner <twoerner@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:34116 "EHLO mx1.redhat.com"
+Received: from borg.medozas.de ([188.40.89.202]:48943 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934090Ab0BZKmm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 26 Feb 2010 05:42:42 -0500
-Received: from int-mx04.intmail.prod.int.phx2.redhat.com (int-mx04.intmail.prod.int.phx2.redhat.com [10.5.11.17])
-	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o1QAggZC022385
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <netfilter-devel@vger.kernel.org>; Fri, 26 Feb 2010 05:42:42 -0500
-Received: from [10.36.11.227] (vpn2-11-227.ams2.redhat.com [10.36.11.227])
-	by int-mx04.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o1QAgeLO015327
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <netfilter-devel@vger.kernel.org>; Fri, 26 Feb 2010 05:42:42 -0500
+	id S933370Ab0BZKzc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 26 Feb 2010 05:55:32 -0500
+In-Reply-To: <4B87A59F.60602@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello,
+On Friday 2010-02-26 11:42, Thomas Woerner wrote:
 
-lots of files in the iptables tree are missing the GPL header but contain copyright messages.
+> Hello,
+>
+> lots of files in the iptables tree are missing the GPL header but contain
+> copyright messages.
 
-Thanks,
-Thomas
+I don't speak authoritatively, but the Linux kernel also has some files 
+- usually those dating back to the initial years of Linux - that have no 
+GPL header either, and everybody seems to be fine with that. See 
+kernel/exit.c.
