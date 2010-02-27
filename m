@@ -1,50 +1,80 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [RFC][PATCH] ns: Syscalls for better namespace sharing control.
-Date: Fri, 26 Feb 2010 15:13:47 -0800
-Message-ID: <m1mxyvtwt0.fsf@fess.ebiederm.org>
-References: <4B4F24AC.70105@trash.net> <4B4F3A50.1050400@trash.net>
-	<1263490403.23480.109.camel@bigi> <4B50403A.6010507@trash.net>
-	<1263568754.23480.142.camel@bigi> <m13a0tf17t.fsf@fess.ebiederm.org>
-	<1266875729.3673.12.camel@bigi> <m1wry46es9.fsf@fess.ebiederm.org>
-	<1266931623.3973.643.camel@bigi> <m1iq9ocafv.fsf@fess.ebiederm.org>
-	<1266934817.3973.654.camel@bigi> <m1r5obbu2w.fsf@fess.ebiederm.org>
-	<1266966581.3973.675.camel@bigi> <m1pr3t2fvl.fsf_-_@fess.ebiederm.org>
-	<4B883987.6090408@parallels.com> <m1bpfbwuze.fsf@fess.ebiederm.org>
-	<4B883E6F.1060907@parallels.com> <m13a0nwu6p.fsf@fess.ebiederm.org>
-	<4B8843FE.4000404@cs.columbia.edu> <m1zl2vtzg4.fsf@fess.ebiederm.org>
-	<4B885093.4070807@cs.columbia.edu>
+From: Shan Wei <shanwei@cn.fujitsu.com>
+Subject: [RFC PATCH net-next 0/7 v2]IPv6:netfilter: defragment
+Date: Sat, 27 Feb 2010 14:39:44 +0800
+Message-ID: <4B88BE30.80206@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pavel Emelyanov <xemul@parallels.com>,
-	Ben Greear <greearb@candelatech.com>,
-	Linux Netdev List <netdev@vger.kernel.org>,
-	containers@lists.linux-foundation.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Daniel Lezcano <dlezcano@fr.ibm.com>
-To: Oren Laadan <orenl@cs.columbia.edu>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>,
+	David Miller <davem@davemloft.net>,
+	Alexey Dobriyan <adobriyan@gmail.com>,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out01.mta.xmission.com ([166.70.13.231]:45985 "EHLO
-	out01.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966522Ab0BZXN6 (ORCPT
+Received: from cn.fujitsu.com ([222.73.24.84]:54916 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1752467Ab0B0Gjr convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 26 Feb 2010 18:13:58 -0500
-In-Reply-To: <4B885093.4070807@cs.columbia.edu> (Oren Laadan's message of "Fri\, 26 Feb 2010 17\:52\:03 -0500")
+	Sat, 27 Feb 2010 01:39:47 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Oren Laadan <orenl@cs.columbia.edu> writes:
+ This patch-set solves the problem that an end host with IPv6 connectio=
+n track enable
+can't send an ICMP "Fragment Reassembly Timeout" message when defaging =
+timeout.
+And supports MIB counter about fragments reassembly e.g. Ip6ReasmTimeou=
+t, Ip6ReasmReqds,
+Ip6ReasmOKs, Ip6ReasmFails.
 
-> Can't think of a specific scenario, but I wonder if there would
-> be a problem (security or otherwise) with a process that only
-> partly belongs to a container, even if for a short time ?
+patch-1,2,3=EF=BC=9A Introduce net namespace to conntrack and share net=
+ns_frags with IPv6 stack. =20
+          But, IPv6 conntrack and IPv6 stack still keep separate fragme=
+nt queue.
+          Like IPv4, proc parameters of ip6frag_low_thresh, ip6frag_tim=
+e and ip6frag_high_thresh
+          manage numbers and memory thresh size of both IPv6 conntrack =
+fragment queue and=20
+          IPv6 stack fragment queue.
 
-If we can find an instance of that then there are fundamental problems
-with setns.
+patch-4: Send an ICMP "Fragment Reassembly Timeout" message and record =
+MIB counter=20
+         when defraging timeout.
 
-The driving use case right now is for things like network namespaces where
-userspace really wants to have several at once, and wants to be able to
-control them all.
+patch-5,6,7: According to RFC4293, record MIB counter about fragments r=
+eassembly.
 
-Eric
 
+This patch-set has been tested using IPv6 Ready Logo Phase-2 tool under=
+ host and router type.
+
+---
+Shan Wei <shanwei@cn.fujitsu.com> (7):
+      IPv6:netfilter: defrag: Handle sysctls about IPv6 conntrack defra=
+gment per-netns
+      IPv6:netfilter: defrag: Introduce per-netns to conntrack and kill=
+ nf_init_frags
+      IPv6:netfilter: defrag: Disable button half when reassembling a f=
+ragment=20
+      IPv6:netfilter: Send an ICMPv6 "Fragment Reassembly Timeout" mess=
+age when enabling connection track
+      IPv6:netfilter: Record MIB counter when reassembling all fragment=
+s
+      IPv6:netfilter: Record MIB counter after a fragment reached
+      IPv6:netfilter: Add IPSTATS_MIB_REASMFAILS MIB counter value when=
+ evicting fragment queue
+
+ Documentation/feature-removal-schedule.txt     |   19 ++
+ include/linux/skbuff.h                         |    5 +
+ include/net/netns/ipv6.h                       |    1 +
+ net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |    7 +-
+ net/ipv6/netfilter/nf_conntrack_reasm.c        |  221 ++++++++++++++++=
++++-----
+ net/ipv6/route.c                               |    1 +
+ 6 files changed, 208 insertions(+), 46 deletions(-)
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
