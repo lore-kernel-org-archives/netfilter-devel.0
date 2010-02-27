@@ -1,8 +1,8 @@
 From: Shan Wei <shanwei@cn.fujitsu.com>
-Subject: [RFC PATCH net-next 3/7 v2]IPv6:netfilter: defrag: Disable button
- half when reassembling a fragment
-Date: Sat, 27 Feb 2010 14:39:59 +0800
-Message-ID: <4B88BE3F.5020609__31821.2632708766$1267252823$gmane$org@cn.fujitsu.com>
+Subject: [RFC PATCH net-next 5/7 v2]IPv6:netfilter: Record MIB counter when
+ reassembling all fragments
+Date: Sat, 27 Feb 2010 14:40:04 +0800
+Message-ID: <4B88BE44.7030600__2040.35016145117$1267252827$gmane$org@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
@@ -12,86 +12,53 @@ To: Patrick McHardy <kaber@trash.net>,
 	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>,
 	"netdev@vger.kernel.o
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:59649 "EHLO song.cn.fujitsu.com"
+Received: from cn.fujitsu.com ([222.73.24.84]:58581 "EHLO song.cn.fujitsu.com"
 	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1753361Ab0B0Gj7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 27 Feb 2010 01:39:59 -0500
+	id S1753527Ab0B0GkF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 27 Feb 2010 01:40:05 -0500
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-After doing introduction of network name spaces to conntrack,
-disable button half when reassembling a fragment.
+According to RFC4293, this patch records MIB counter of IPSTATS_MIB_REASMFAILS, 
+IPSTATS_MIB_REASMOKS, when reassembling fragments after all fragments reached.
 
 
 Signed-off-by: Shan Wei <shanwei@cn.fujitsu.com>
 ---
- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |    3 +++
- net/ipv6/netfilter/nf_conntrack_reasm.c        |   11 ++++-------
- 2 files changed, 7 insertions(+), 7 deletions(-)
+ net/ipv6/netfilter/nf_conntrack_reasm.c |    7 +++++++
+ 1 files changed, 7 insertions(+), 0 deletions(-)
 
-diff --git a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-index 03a6b8d..f153b2c 100644
---- a/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-+++ b/net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c
-@@ -221,7 +221,10 @@ static unsigned int ipv6_defrag(unsigned int hooknum,
- 	if (skb->nfct && !nf_ct_is_template((struct nf_conn *)skb->nfct))
- 		return NF_ACCEPT;
- 
-+	local_bh_disable();
- 	reasm = nf_ct_frag6_gather(skb, nf_ct6_defrag_user(hooknum, skb));
-+	local_bh_enable();
-+
- 	/* queued */
- 	if (reasm == NULL)
- 		return NF_STOLEN;
 diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
-index 99ec35d..8f68373 100644
+index 27d8ac1..4640795 100644
 --- a/net/ipv6/netfilter/nf_conntrack_reasm.c
 +++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -199,9 +199,7 @@ static __inline__ void fq_kill(struct nf_ct_frag6_queue *fq)
- 
- static void nf_ct_frag6_evictor(struct net *net)
+@@ -485,6 +485,7 @@ static struct sk_buff *
+ nf_ct_frag6_reasm(struct nf_ct_frag6_queue *fq, struct net_device *dev)
  {
--	local_bh_disable();
- 	inet_frag_evictor(&net->ipv6.frags, &nf_frags);
--	local_bh_enable();
+ 	struct sk_buff *fp, *op, *head = fq->q.fragments;
++	struct net *net = container_of(fq->q.net, struct net, ipv6.frags);
+ 	int    payload_len;
+ 
+ 	fq_kill(fq);
+@@ -586,6 +587,9 @@ nf_ct_frag6_reasm(struct nf_ct_frag6_queue *fq, struct net_device *dev)
+ 		NFCT_FRAG6_CB(fp)->orig = NULL;
+ 	}
+ 
++	rcu_read_lock();
++	IP6_INC_STATS(net, __in6_dev_get(dev), IPSTATS_MIB_REASMOKS);
++	rcu_read_unlock();
+ 	return head;
+ 
+ out_oversize:
+@@ -596,6 +600,9 @@ out_oom:
+ 	if (net_ratelimit())
+ 		printk(KERN_DEBUG "nf_ct_frag6_reasm: no memory for reassembly\n");
+ out_fail:
++	rcu_read_lock();
++	IP6_INC_STATS(net, __in6_dev_get(dev), IPSTATS_MIB_REASMFAILS);
++	rcu_read_unlock();
+ 	return NULL;
  }
  
- static void nf_ct_frag6_expire(unsigned long data)
-@@ -238,11 +236,10 @@ fq_find(struct net *net, __be32 id, u32 user, struct in6_addr *src,
- 	arg.src = src;
- 	arg.dst = dst;
- 
--	read_lock_bh(&nf_frags.lock);
-+	read_lock(&nf_frags.lock);
- 	hash = inet6_hash_frag(id, src, dst, nf_frags.rnd);
- 
- 	q = inet_frag_find(&net->ipv6.frags, &nf_frags, &arg, hash);
--	local_bh_enable();
- 	if (q == NULL)
- 		goto oom;
- 
-@@ -666,10 +663,10 @@ struct sk_buff *nf_ct_frag6_gather(struct sk_buff *skb, u32 user)
- 		goto ret_orig;
- 	}
- 
--	spin_lock_bh(&fq->q.lock);
-+	spin_lock(&fq->q.lock);
- 
- 	if (nf_ct_frag6_queue(fq, clone, fhdr, nhoff) < 0) {
--		spin_unlock_bh(&fq->q.lock);
-+		spin_unlock(&fq->q.lock);
- 		pr_debug("Can't insert skb to queue\n");
- 		fq_put(fq);
- 		goto ret_orig;
-@@ -681,7 +678,7 @@ struct sk_buff *nf_ct_frag6_gather(struct sk_buff *skb, u32 user)
- 		if (ret_skb == NULL)
- 			pr_debug("Can't reassemble fragmented packets\n");
- 	}
--	spin_unlock_bh(&fq->q.lock);
-+	spin_unlock(&fq->q.lock);
- 
- 	fq_put(fq);
- 	return ret_skb;
 -- 
 1.6.3.3
