@@ -1,131 +1,61 @@
-From: Shan Wei <shanwei@cn.fujitsu.com>
-Subject: [RFC PATCH net-next 6/7 v2]IPv6:netfilter: Record MIB counter after
- a fragment reached
-Date: Sat, 27 Feb 2010 14:40:12 +0800
-Message-ID: <4B88BE4C.3000504__29262.4532747597$1267252843$gmane$org@cn.fujitsu.com>
+From: Pavel Emelyanov <xemul@parallels.com>
+Subject: Re: [RFC][PATCH] ns: Syscalls for better namespace sharing control.
+Date: Sat, 27 Feb 2010 11:30:02 +0300
+Message-ID: <4B88D80A.8010701@parallels.com>
+References: <4B4F24AC.70105@trash.net> <1263481549.23480.24.camel@bigi>	<4B4F3A50.1050400@trash.net> <1263490403.23480.109.camel@bigi>	<4B50403A.6010507@trash.net> <1263568754.23480.142.camel@bigi>	<m13a0tf17t.fsf@fess.ebiederm.org> <1266875729.3673.12.camel@bigi>	<m1wry46es9.fsf@fess.ebiederm.org> <1266931623.3973.643.camel@bigi>	<m1iq9ocafv.fsf@fess.ebiederm.org> <1266934817.3973.654.camel@bigi>	<m1r5obbu2w.fsf@fess.ebiederm.org> <1266966581.3973.675.camel@bigi>	<m1pr3t2fvl.fsf_-_@fess.ebiederm.org> <4B883987.6090408@parallels.com>	<m1bpfbwuze.fsf@fess.ebiederm.org> <4B883E6F.1060907@parallels.com> <m13a0nwu6p.fsf@fess.ebiederm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: Patrick McHardy <kaber@trash.net>,
-	David Miller <davem@davemloft.net>,
-	Alexey Dobriyan <adobriyan@gmail.com>,
-	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>,
-	"netdev@vger.kernel.o
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: hadi@cyberus.ca, Daniel Lezcano <dlezcano@fr.ibm.com>,
+	Patrick McHardy <kaber@trash.net>,
+	Linux Netdev List <netdev@vger.kernel.org>,
+	containers@lists.linux-foundation.org,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Ben Greear <greearb@candelatech.com>,
+	Serge Hallyn <serue@us.ibm.com>,
+	Matt Helsley <matthltc@us.ibm.com>
+To: "Eric W. Biederman" <ebiederm@xmission.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:50560 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1753650Ab0B0GkM convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 27 Feb 2010 01:40:12 -0500
+Received: from mailhub.sw.ru ([195.214.232.25]:19087 "EHLO relay.sw.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S967944Ab0B0Icl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 27 Feb 2010 03:32:41 -0500
+In-Reply-To: <m13a0nwu6p.fsf@fess.ebiederm.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch records MIB counter about fragments reassembly after a fragm=
-ent reached.
+Eric W. Biederman wrote:
+> Pavel Emelyanov <xemul@parallels.com> writes:
+> 
+>>>> Yet another set of per-namespace IDs along with CLONE_NEWXXX ones?
+>>>> I currently have a way to create all namespaces we have with one
+>>>> syscall. Why don't we have an ability to enter them all with one syscall?
+>>> The CLONE_NEWXXX series of bits has been an royal pain to work with,
+>>> and it appears to be unnecessary complications for no gain.
+>> That's the answer for the "Yet another set..." question.
+>> How about the "Why don't we have..." one?
+> 
+> I am not certain which question you are asking:
+> 
+> Why don't we have an ability to enter all namespaces with one syscall
+> invocation?
 
-Note:=20
-=46or the lack of memory, if fails to clone skb, pull skb or create fra=
-gment queue,
-then not to forward skb to IPv6 stack, and drop it, just like IPv4.
+Exactly. Please add at least the NSTYPE_NSPROXY or whatever, that will
+pin all namespaces of a given pid from the very beginning.
 
-v1->v2:
-1. Conntrack can track a single fragment with MF=3D0=EF=BC=8Coffset=3D0=
- now.
-   (applied patch with title [nf_conntrack_reasm: properly handle packe=
-ts fragmented into a single fragment])
-   So delete the changes when seeing a single fragment with MF=3D0=EF=BC=
-=8Coffset=3D0.
+> Why don't we have a syscall that allows us to enter every namespace?
 
+This one is done in the patch, no?
 
-Signed-off-by: Shan Wei <shanwei@cn.fujitsu.com>
----
- net/ipv6/netfilter/nf_conntrack_reasm.c |   25 ++++++++++++++++++++---=
---
- 1 files changed, 20 insertions(+), 5 deletions(-)
+Although the approach is OK for me, there's one design issue, that came
+up to my mind recently: can we use this fd to wail for a namespace to 
+stop? I currently don't see this ability, but this is something I require
+badly.
 
-diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilt=
-er/nf_conntrack_reasm.c
-index 4640795..fc97a68 100644
---- a/net/ipv6/netfilter/nf_conntrack_reasm.c
-+++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
-@@ -680,27 +680,31 @@ struct sk_buff *nf_ct_frag6_gather(struct sk_buff=
- *skb, u32 user)
- 	u8 prevhdr;
- 	struct sk_buff *ret_skb =3D NULL;
- 	struct net *net =3D dev ? dev_net(dev) : dev_net(skb_dst(skb)->dev);
-+	struct inet6_dev *idev;
-=20
-+	idev =3D dev ? in6_dev_get(dev) : ip6_dst_idev(skb_dst(skb));
- 	/* Jumbo payload inhibits frag. header */
- 	if (ipv6_hdr(skb)->payload_len =3D=3D 0) {
- 		pr_debug("payload len =3D 0\n");
--		return skb;
-+		goto out_nofrag;
- 	}
-=20
- 	if (find_prev_fhdr(skb, &prevhdr, &nhoff, &fhoff) < 0)
--		return skb;
-+		goto out_nofrag;
-+
-+	IP6_INC_STATS(net, idev, IPSTATS_MIB_REASMREQDS);
-=20
- 	clone =3D skb_clone(skb, GFP_ATOMIC);
- 	if (clone =3D=3D NULL) {
- 		pr_debug("Can't clone skb\n");
--		return skb;
-+		goto out_drop_skb;
- 	}
-=20
- 	NFCT_FRAG6_CB(clone)->orig =3D skb;
-=20
- 	if (!pskb_may_pull(clone, fhoff + sizeof(*fhdr))) {
- 		pr_debug("message is too short.\n");
--		goto ret_orig;
-+		goto out_drop_skb;
- 	}
-=20
- 	skb_set_transport_header(clone, fhoff);
-@@ -713,7 +717,7 @@ struct sk_buff *nf_ct_frag6_gather(struct sk_buff *=
-skb, u32 user)
- 	fq =3D fq_find(net, fhdr->identification, user, &hdr->saddr, &hdr->da=
-ddr);
- 	if (fq =3D=3D NULL) {
- 		pr_debug("Can't find and can't create new queue\n");
--		goto ret_orig;
-+		goto out_drop_skb;
- 	}
-=20
- 	spin_lock(&fq->q.lock);
-@@ -732,13 +736,24 @@ struct sk_buff *nf_ct_frag6_gather(struct sk_buff=
- *skb, u32 user)
- 			pr_debug("Can't reassemble fragmented packets\n");
- 	}
- 	spin_unlock(&fq->q.lock);
-+	if (dev && idev)
-+		in6_dev_put(idev);
-=20
- 	fq_put(fq);
- 	return ret_skb;
-=20
- ret_orig:
- 	kfree_skb(clone);
-+out_nofrag:
-+	if (dev && idev)
-+		in6_dev_put(idev);
- 	return skb;
-+out_drop_skb:
-+	IP6_INC_STATS(net, idev, IPSTATS_MIB_REASMFAILS);
-+	kfree_skb(clone);
-+	kfree_skb(skb);
-+	skb =3D NULL;
-+	goto out_nofrag;
- }
-=20
- void nf_ct_frag6_output(unsigned int hooknum, struct sk_buff *skb,
---=20
-1.6.3.3
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Thoughts?
+
+> Eric
+> 
+> 
+
