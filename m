@@ -1,73 +1,102 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [RFC][PATCH] ns: Syscalls for better namespace sharing control.
-Date: Sat, 27 Feb 2010 01:42:52 -0800
-Message-ID: <m1bpfbqajn.fsf@fess.ebiederm.org>
-References: <4B4F24AC.70105@trash.net> <4B4F3A50.1050400@trash.net>
-	<1263490403.23480.109.camel@bigi> <4B50403A.6010507@trash.net>
-	<1263568754.23480.142.camel@bigi> <m13a0tf17t.fsf@fess.ebiederm.org>
-	<1266875729.3673.12.camel@bigi> <m1wry46es9.fsf@fess.ebiederm.org>
-	<1266931623.3973.643.camel@bigi> <m1iq9ocafv.fsf@fess.ebiederm.org>
-	<1266934817.3973.654.camel@bigi> <m1r5obbu2w.fsf@fess.ebiederm.org>
-	<1266966581.3973.675.camel@bigi> <m1pr3t2fvl.fsf_-_@fess.ebiederm.org>
-	<4B883987.6090408@parallels.com> <m1bpfbwuze.fsf@fess.ebiederm.org>
-	<4B883E6F.1060907@parallels.com> <m13a0nwu6p.fsf@fess.ebiederm.org>
-	<4B88D80A.8010701@parallels.com> <m1mxyvrqvk.fsf@fess.ebiederm.org>
-	<4B88E431.6040609@parallels.com>
+From: Eric Leblond <eric@inl.fr>
+Subject: Re: [ULOGD2] UNIXSOCK plugin (v5)
+Date: Sat, 27 Feb 2010 11:46:23 +0100
+Message-ID: <1267267584.26341.25.camel@ice-age>
+References: <1267217680-22677-1-git-send-email-chifflier@edenwall.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: hadi@cyberus.ca, Daniel Lezcano <dlezcano@fr.ibm.com>,
-	Patrick McHardy <kaber@trash.net>,
-	Linux Netdev List <netdev@vger.kernel.org>,
-	containers@lists.linux-foundation.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Ben Greear <greearb@candelatech.com>,
-	Serge Hallyn <serue@us.ibm.com>,
-	Matt Helsley <matthltc@us.ibm.com>
-To: Pavel Emelyanov <xemul@parallels.com>
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-akGbITt91TwwOVv6o+5d"
+Cc: netfilter-devel@vger.kernel.org
+To: Pierre Chifflier <chifflier@edenwall.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from out02.mta.xmission.com ([166.70.13.232]:42690 "EHLO
-	out02.mta.xmission.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S968061Ab0B0JnD (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 27 Feb 2010 04:43:03 -0500
-In-Reply-To: <4B88E431.6040609@parallels.com> (Pavel Emelyanov's message of "Sat\, 27 Feb 2010 12\:21\:53 +0300")
+Received: from smtp1-g21.free.fr ([212.27.42.1]:51016 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965389Ab0B0Kqn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 27 Feb 2010 05:46:43 -0500
+Received: from smtp1-g21.free.fr (localhost [127.0.0.1])
+	by smtp1-g21.free.fr (Postfix) with ESMTP id 3BDFE94011F
+	for <netfilter-devel@vger.kernel.org>; Sat, 27 Feb 2010 11:46:37 +0100 (CET)
+Received: from fydelkass.edenwall.com (fydelkass.inl.fr [88.171.131.12])
+	by smtp1-g21.free.fr (Postfix) with ESMTP id 57B24940165
+	for <netfilter-devel@vger.kernel.org>; Sat, 27 Feb 2010 11:46:35 +0100 (CET)
+In-Reply-To: <1267217680-22677-1-git-send-email-chifflier@edenwall.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pavel Emelyanov <xemul@parallels.com> writes:
 
-> Thanks. What's the problem with setns?
+--=-akGbITt91TwwOVv6o+5d
+Content-Type: text/plain; charset="ISO-8859-15"
+Content-Transfer-Encoding: quoted-printable
 
-joining a preexisting namespace is roughly the same problem as
-unsharing a namespace.  We simply haven't figure out how to do it
-safely for the pid and the uid namespaces.
+Hi,
 
->> I have designed these file descriptors to pin the namespaces, so
->> waiting for them to exit isn't something they can do now.  It makes a
->> lot of sense to have similar ones that take  weak references to the namespaces
->> that we can use to wait for a namespace to exit.
->
-> Yes, I saw this from patches. Eric, I'd very much appreciate if we
-> workout a solution that will allow us to kill two birds with one stone.
-> I do not want to invent yet another bunch of system calls for "taking
-> weak reference".
+Le vendredi 26 f=E9vrier 2010 =E0 21:54 +0100, Pierre Chifflier a =E9crit :
+> Hi,
+>=20
+> Here is an updated version of the UNIXSOCK plugin.
+>=20
+> Changes for v5:
+> - align all structures on 64 bits instead of 32
+>   This has been tested on a sparc64 (thanks to Jan)
+> - update pcap2ulog to handle different pcap formats
 
-Definitely.  I only consider the current interface to be a mushy not
-set in stone.
+As change with previous version are quiet small, I don't think there
+will be a "long" discussion anymore.
 
-> As a "brain storm" start up. Can we use inotify/dnotify for this? 
-> Or maybe we should better equip the nsfd call with flags argument and 
-> add a flag for weak reference? In that case - how shall we get a 
-> notification about namespace is dead? With poll? Maybe worth making
-> the sys_close return only when the namespace is dead (by providing a
-> proper ->release callback of a file)?
+I will give it some tests and push this patchset to the tree if I did
+not detect problem with it.
 
-We would want poll to work, anything else is a weird work-around.
-The challenging part is that we don't have any infrastructure for
-notifying when a namespace goes away.  So that has to be built before
-we can wire it up to userspace.  I don't expect it is too difficult
-but there is work to be done.
+BR,
 
-Eric
+>=20
+> Changes for v4:
+> - use structures instead of reading integers directly
+> - all structures and fields are now aligned (4 bytes)
+> - update pcap2ulog script to use aligned data as well
+>=20
+> Changes for v3:
+> - if the bufsize value (from conf) is 0, try to guess the buffer size
+>   using getsockopt(SOL_SOCKET, SO_RCVBUF ..)
+> - set default path to /var/run/ulogd/ulogd2.sock with mode 0600
+> - add new configuration options perms, owner and group to be able
+>   to set these parameters on the created socket
+> - change the input algorithm to make it more robust against junk data (wh=
+ich
+>   can happen if the client is desynchronized)
+> - fixed a few bugs
+>=20
+> Description:
+>=20
+> [1] add new input plugin UNISOCK, using a unix socket. This allows usersp=
+ace
+> applications to send packets to ulogd, for example to send packets offlin=
+e.
+> It uses a key-length-value protocol to handle optional fields or extensio=
+ns.
+>=20
+> [2] is a Perl script to load a PCAP file and send it to ulogd using the
+> UNIXSOCK plugin.
+>=20
+> Pierre
+>=20
+
+
+--=20
+Eric Leblond <eric@inl.fr>
+INL: http://www.inl.fr/
+NuFW: http://www.nufw.org/
+
+--=-akGbITt91TwwOVv6o+5d
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Ceci est une partie de message
+ =?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.9 (GNU/Linux)
+
+iD8DBQBLiPf5nxA7CdMWjzIRAjPyAJ9CB31L84nsyx9/gOBBwXx2WSqGyQCfU7F6
+Uw6Wp3X4g+UZjww/x7FVNag=
+=Pp12
+-----END PGP SIGNATURE-----
+
+--=-akGbITt91TwwOVv6o+5d--
 
