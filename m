@@ -1,28 +1,34 @@
-From: Pasi =?iso-8859-1?Q?K=E4rkk=E4inen?= <pasik@iki.fi>
-Subject: Re: LART mailing list substitute
-Date: Mon, 1 Mar 2010 23:48:02 +0200
-Message-ID: <20100301214802.GV2761@reaktio.net>
-References: <56378e321002190307p3f25890dma2d9dc6841fb90c2@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Richard Horton <richard.horton@solstans.co.uk>
-Return-path: <netfilter-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <56378e321002190307p3f25890dma2d9dc6841fb90c2@mail.gmail.com>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Pierre Chifflier <chifflier@edenwall.com>
+Subject: [ULOGD2] UNIXSOCK plugin (v6)
+Date: Mon,  1 Mar 2010 23:16:30 +0100
+Message-ID: <1267481792-22729-1-git-send-email-chifflier@edenwall.com>
+References: <4B8C16A4.9010807@netfilter.org>
+Cc: eleblond@edenwall.com
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp1-g21.free.fr ([212.27.42.1]:41974 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751711Ab0CAWRK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 1 Mar 2010 17:17:10 -0500
+Received: from smtp1-g21.free.fr (localhost [127.0.0.1])
+	by smtp1-g21.free.fr (Postfix) with ESMTP id AFD3394011F
+	for <netfilter-devel@vger.kernel.org>; Mon,  1 Mar 2010 23:17:02 +0100 (CET)
+Received: from fydelkass.edenwall.com (fydelkass.inl.fr [88.171.131.12])
+	by smtp1-g21.free.fr (Postfix) with ESMTP id CC39194007C
+	for <netfilter-devel@vger.kernel.org>; Mon,  1 Mar 2010 23:16:59 +0100 (CET)
+In-Reply-To: <4B8C16A4.9010807@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, Feb 19, 2010 at 11:07:22AM +0000, Richard Horton wrote:
-> Asking in here in the vague hope someone might know of a suitable
-> mailing list for linux tc related queries - having problems with
-> filters on a mixed htb/prio queue.
-> 
-> The LART mailing list appears to all intents and purposes to be dead
-> :( - is there an alternate list?
-> 
 
-Please let us know if you find one.. :)
+Hi,
 
--- Pasi
+Here is the sixth version with (I think) every changed included.
+* empty lines removed,
+* enum added for future transition of xyz_ce macros,
+* alignment changed and tested,
+* socket no more automatically removed when starting,
+* code more 80-chars compliant
 
+BR,
+Pierre
