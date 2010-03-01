@@ -1,83 +1,73 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: linux-next netfilter: xt_recent: Add an entry reaper
-Date: Mon, 01 Mar 2010 03:17:35 +0100
-Message-ID: <1267409855.9082.103.camel@edumazet-laptop>
-References: <20100228033841.265CFF8BB0@sepang.rtg.net>
-	 <1267331677.9082.46.camel@edumazet-laptop>  <4B8AB4BE.7080206@tpi.com>
-	 <1267388436.9082.84.camel@edumazet-laptop>  <4B8AF877.4080001@tpi.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [ANNOUNCE]: Release of iptables-1.4.7
+Date: Mon, 01 Mar 2010 16:20:50 +0100
+Message-ID: <4B8BDB52.1020802@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: kaber@trash.net, coreteam@netfilter.org,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-To: timg@tpi.com
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <4B8AF877.4080001@tpi.com>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: multipart/mixed;
+ boundary="------------000308090800050003090502"
+To: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Linux Netdev List <netdev@vger.kernel.org>,
+	netfilter-announce@lists.netfilter.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:57828 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751033Ab0CAPUw (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 1 Mar 2010 10:20:52 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Le dimanche 28 f=C3=A9vrier 2010 =C3=A0 16:12 -0700, Tim Gardner a =C3=A9=
-crit :
+This is a multi-part message in MIME format.
+--------------000308090800050003090502
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
-> You are right about the reaper pointer. I'd forgotten that the LRU li=
-st
-> was already sorted oldest to newest. Doh! I've cleaned that up some.
->=20
-> This version adds the '--reap' flag and only looks at the head of the
-> LRU list once per ip_reaper_freq packets.
->=20
-> I also added a check that makes sure --rttl and --reap modify only th=
-e
-> --rcheck and --update options.
->=20
-> rtg
+The netfilter coreteam presents:
 
-@@ -272,6 +295,16 @@ recent_mt(const struct sk_buff *skb, const struct
-xt_match_param *par)
-                                break;
-                        }
-                }
-+
-+               /*
-+                * Run the reaper every ip_reaper_freq packets.
-+                */
-+               if ((info->check_set & XT_RECENT_REAP) &&
-+                   info->seconds &&
+    iptables version 1.4.7
 
-This (info->seconds) test is redundant, if you test it _once_ in
-recent_mt_check()
+the iptables release for the 2.6.33 kernel. Changes include:
 
-+                   (++t->reaper_cnt >=3D ip_reaper_freq)) {
-+                       t->reaper_cnt =3D 0;
-+                       recent_entry_reap(t, time);
-+               }
-        }
+- libipq is built as a shared library
+- removal of some restrictions on interface names
+- documentation updates
+- code cleanups
+
+See the changelog for more details.
+
+Version 1.4.7 can be obtained from:
+
+http://www.netfilter.org/projects/iptables/downloads.html
+ftp://ftp.netfilter.org/pub/iptables/
+git://git.netfilter.org/iptables.git
+
+On behalf of the Netfilter Core Team.
+Happy firewalling!
 
 
-ie :
+--------------000308090800050003090502
+Content-Type: text/plain;
+ name="changes-iptables-1.4.7.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="changes-iptables-1.4.7.txt"
 
-diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
-index fc70a49..66d68f3 100644
---- a/net/netfilter/xt_recent.c
-+++ b/net/netfilter/xt_recent.c
-@@ -294,6 +294,8 @@ static bool recent_mt_check(const struct
-xt_mtchk_param *par)
-        if ((info->check_set & (XT_RECENT_SET | XT_RECENT_REMOVE)) &&
-            (info->seconds || info->hit_count))
-                return false;
-+       if ((info->check_set & XT_RECENT_REAP) && !info->seconds)
-+               return false;
-        if (info->hit_count > ip_pkt_list_tot)
-                return false;
-        if (info->name[0] =3D=3D '\0' ||
+Dmitry V. Levin (1):
+      libip4tc: Add static qualifier to dump_entry()
 
+Jan Engelhardt (8):
+      libipq: build as shared library
+      recent: reorder cases in code (cosmetic cleanup)
+      doc: fix recent manpage to reflect actual supported syntax
+      doc: fix limit manpage to reflect actual supported syntax
+      doc: mention requirement of additional packages for ipset
+      policy: fix error message showing wrong option
+      includes: header updates
+      Lift restrictions on interface names
 
-
-Then, now that reaping is done as a rule option only, I am not sure we
-still need the reaper_cnt logic, since you probably want ip_reaper_freq
-=3D 1, or else table size will probably grow at its limit, even in non =
-DOS
-situation.
+Patrick McHardy (1):
+      iptables 1.4.7
 
 
-
+--------------000308090800050003090502--
