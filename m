@@ -1,57 +1,44 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [RFC v2 10/10] snet: introduce snet_utils
-Date: Wed, 3 Mar 2010 18:55:22 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.1003031854530.23267@obet.zrqbmnf.qr>
-References: <1267561394-13626-1-git-send-email-sam@synack.fr> <1267561394-13626-11-git-send-email-sam@synack.fr>
+Subject: git.netfilter.org upload-pack seems busy
+Date: Wed, 3 Mar 2010 18:59:09 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.1003031855490.26350@obet.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: linux-security-module@vger.kernel.org,
-	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, jamal <hadi@cyberus.ca>,
-	Patrick McHardy <kaber@trash.net>,
-	Evgeniy Polyakov <zbr@ioremap.net>,
-	Neil Horman <nhorman@tuxdriver.com>,
-	Grzegorz Nosek <root@localdomain.pl>
-To: Samir Bellabes <sam@synack.fr>
-Return-path: <linux-security-module-owner@vger.kernel.org>
-In-Reply-To: <1267561394-13626-11-git-send-email-sam@synack.fr>
-Sender: linux-security-module-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from borg.medozas.de ([188.40.89.202]:42708 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754490Ab0CCR7K (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 3 Mar 2010 12:59:10 -0500
+Received: from localhost (localhost [127.0.0.1])
+	by borg.medozas.de (Postfix) with ESMTP id 50AED64C7
+	for <netfilter-devel@vger.kernel.org>; Wed,  3 Mar 2010 18:59:09 +0100 (CET)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
+
+Hi,
 
 
-On Tuesday 2010-03-02 21:23, Samir Bellabes wrote:
+today I notice that cloning from git.netfilter.org has a slow start 
+(affects conntrack-tools and iptables, perhaps others). Not sure what it 
+does - directory indexing? Anyway, this is the interesting part of the 
+strace log:
 
->This patch provides helper functions for other subsystems
 
-What subsystems would that be? (Just trying to prevent premature code 
-bloat.)
 
-> security/snet/snet_utils.c |   38 ++++++++++++++++++++++++++++++++++++++
-> security/snet/snet_utils.h |   10 ++++++++++
-> 2 files changed, 48 insertions(+), 0 deletions(-)
-> create mode 100644 security/snet/snet_utils.c
-> create mode 100644 security/snet/snet_utils.h
->
->diff --git a/security/snet/snet_utils.c b/security/snet/snet_utils.c
->new file mode 100644
->index 0000000..e9178d7
->--- /dev/null
->+++ b/security/snet/snet_utils.c
->@@ -0,0 +1,38 @@
->+#include <linux/types.h>
->+#include <linux/snet.h>
->+
->+const char *snet_verdict_name(const enum snet_verdict cmd)
->+{
->+	static const char *const verdict_name[] = {
->+		[SNET_VERDICT_GRANT]	= "Grant",
->+		[SNET_VERDICT_DENY]	= "Deny",
->+		[SNET_VERDICT_PENDING]	= "Pending",
->+		[SNET_VERDICT_NONE]	= "None",
->+	};
->+
->+	if (cmd >= SNET_NR_VERDICT_TYPES)
->+		return "INVALID";
->+	else
->+		return verdict_name[cmd];
->+}
+
+1267638794.328685 execve("/usr/bin/git", ["git", "clone", "git://git.netfilter.org/conntrac"...], [/* 76 vars */]) = 0
+...
+1267638794.392196 socket(PF_INET6, SOCK_STREAM, IPPROTO_TCP) = 3
+1267638794.392227 connect(3, {sa_family=AF_INET6, sin6_port=htons(9418), inet_pton(AF_INET6, "2001:780:45:1d:20d:93ff:fe9b:e443", &sin6_addr), sin6_flowinfo=0, sin6_scope_id=0}, 28) = 0
+1267638794.666742 dup(3)                = 4
+1267638794.666782 write(4, "003cgit-upload-pack /conntrack-t"..., 60) = 60
+1267638794.666846 read(3, "007c", 4)    = 4
+1267638874.678481 read(3, "58b363d32bf9b8b504c5664ae4d8b3bb"..., 120) = 120
+1267638874.678549 read(3, "003f", 4)    = 4
+...
+1267638876.552753 exit_group(0)         = ?
+
+
+Note the high delay between the git-upload-pack request and the
+resulting answer.
