@@ -1,106 +1,93 @@
-From: Tetsuo Handa <penguin-kernel@I-love.SAKURA.ne.jp>
-Subject: Re: [RFC v2 00/10] snet: Security for NETwork syscalls
-Date: Wed, 03 Mar 2010 10:56:39 +0900
-Message-ID: <201003030156.o231udx1023055@www262.sakura.ne.jp>
-References: <1267561394-13626-1-git-send-email-sam@synack.fr>
+From: supercodeing35271 supercodeing35271 <supercodeing35271@gmail.com>
+Subject: Why this hook_func could not run correctly?
+Date: Wed, 3 Mar 2010 21:59:47 +0800
+Message-ID: <28efc0211003030559u7accf278n61535c8ef33b46e2@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="ISO-2022-JP"
-Content-Transfer-Encoding: 7bit
-Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, hadi@cyberus.ca, kaber@trash.net,
-	zbr@ioremap.net, nhorman@tuxdriver.com, root@localdomain.pl,
-	linux-security-module@vger.kernel.org
-To: sam@synack.fr
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1267561394-13626-1-git-send-email-sam@synack.fr>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from qw-out-2122.google.com ([74.125.92.24]:27195 "EHLO
+	qw-out-2122.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754124Ab0CCN7s (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 3 Mar 2010 08:59:48 -0500
+Received: by qw-out-2122.google.com with SMTP id 8so186974qwh.37
+        for <netfilter-devel@vger.kernel.org>; Wed, 03 Mar 2010 05:59:47 -0800 (PST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello.
+Hi,i am in trouble.what i do is that write a hook function which have
+the same impression of the iptables's rules below:
+# SYN and FIN are both set
+$IPT -A INPUT -p tcp --tcp-flags SYN,FIN SYN,FIN -j DROP
+# SYN and RST are both set
+$IPT -A INPUT -p tcp --tcp-flags SYN,RST SYN,RST -j DROP
+# FIN and RST are both set
+$IPT -A INPUT -p tcp --tcp-flags FIN,RST FIN,RST -j DROP
+# FIN is the only bit set, without the expected accompanying ACK
+$IPT -A INPUT -p tcp --tcp-flags ACK,FIN FIN -j DROP
+# PSH is the only bit set, without the expected accompanying ACK
+$IPT -A INPUT -p tcp --tcp-flags ACK,PSH PSH -j DROP
+# URG is the only bit set, without the expected accompanying ACK
+$IPT -A INPUT -p tcp --tcp-flags ACK,URG URG -j DROP
 
+this is my code:
+#include <linux/module.h>	
+#include <linux/kernel.h>	
+#include <linux/init.h>		
+#include <linux/netfilter.h>
+#include <linux/netfilter_ipv4.h>
+#include <linux/ip.h>
+#include <linux/tcp.h>
+static struct nf_hook_ops nfho;
+static struct tcphdr *tcp;
+static unsigned int hook_func(unsigned int hooknum,
+		       struct sk_buff *skb,
+		       const struct net_device *in,
+		       const struct net_device *out,
+		       int (*okfn)(struct sk_buff *))
+{
+    if(skb->dev == out)
+    {
+	return NF_ACCEPT;
+    }
+    tcp = tcp_hdr(skb);
+    if(tcp->syn == 1 && (tcp->fin == 1 || tcp->rst == 1))
+    {
+	printk("1drop1drop \n");
+	return NF_DROP;
+    }
+    if(tcp->fin == 1 && (tcp->rst == 1 || tcp->ack == 0))
+    {
+	printk("2drop2drop \n");
+	return NF_DROP;
+    }
+    if(tcp->ack == 0 && (tcp->psh == 1 || tcp->urg == 1))
+    {
+	printk("3drop3drop \n");
+	return NF_DROP;
+    }
+    return NF_ACCEPT;
+}
+static int __init myfirewall_init(void)
+{
+    /* Fill in our hook structure */
+    nfho.pf  = PF_INET;
+    nfho.priority = 1;
+    nfho.hooknum = NF_INET_PRE_ROUTING;
+    nfho.hook = hook_func;
+    nf_register_hook(&nfho);
+    return 0;	
+}
+static void __exit myfirewall_exit(void)
+{
+    nf_unregister_hook(&nfho);
+}
+module_init(myfirewall_init);
+module_exit(myfirewall_exit);
 
-
-Regarding [RFC v2 02/10] Revert "lsm: Remove the socket_post_accept() hook"
-@@ -1538,6 +1538,8 @@ SYSCALL_DEFINE4(accept4, int, fd, struct sockaddr __user *, upeer_sockaddr,
- 	fd_install(newfd, newfile);
- 	err = newfd;
- 
-+	security_socket_post_accept(sock, newsock);
-+
- out_put:
- 	fput_light(sock->file, fput_needed);
- out:
-
-Please move security_socket_post_accept() to before fd_install().
-Otherwise, other threads which share fd tables can use
-security-informations-not-yet-updated accept()ed sockets.
-
-
-
-
-
-Regarding [RFC v2 04/10] snet: introduce snet_core
-+static __init int snet_init(void)
-+{
-+	int ret;
-+
-+	pr_debug("initializing: event_hash_size=%u "
-+		 "verdict_hash_size=%u verdict_delay=%usecs "
-+		 "default_policy=%s\n",
-+		 snet_evh_size, snet_vdh_size, snet_verdict_delay,
-+		 snet_verdict_name(snet_verdict_policy));
-
-Why not to stop here if snet_evh_size == 0 or snet_vdh_size == 0 in order to
-avoid "division by 0".
-
-
-
-
-
-Regarding [RFC v2 05/10] snet: introduce snet_event
-+static rwlock_t snet_evh_lock = __RW_LOCK_UNLOCKED();
-
-You can use "static DEFINE_RWLOCK(snet_evh_lock);".
-
-+int snet_event_is_registered(const enum snet_syscall syscall, const u8 protocol)
-
-Maybe rcu_read_lock() is better than rw spinlock because this function is
-frequently called.
-
-
-
-
-
-Regarding [RFC v2 06/10] snet: introduce snet_hooks
-+                       if ((verdict = snet_ticket_check(&info)) != SNET_VERDICT_NONE)
-
-Please avoid assignment in "if" statement, as scripts/checkpatch.pl suggests.
-
-
-
-
-
-Regarding [RFC v2 09/10] snet: introduce snet_ticket
-+enum snet_verdict snet_ticket_check(struct snet_info *info)
-+{
-+       struct snet_ticket *st = NULL;
-+       unsigned int h = 0, verdict = SNET_VERDICT_NONE;
-+       struct list_head *l = NULL;
-+       struct snet_task_security *tsec = NULL;
-+
-+       if (snet_ticket_mode == SNET_TICKET_OFF)
-+               goto out;
-+
-+       tsec = (struct snet_task_security*) current_security();
-+
-+       h = jhash_2words(info->syscall, info->protocol, 0) % HSIZE;
-+       l = &tsec->hash[h];
-+
-+       read_lock_bh(&tsec->lock);
-
-Credentials are allocated for copy-on-write basis.
-Sharing "tsec" among multiple "struct task_struct" is what you intended?
-
-
-
-Regards.
+The iptables's rules is ok(which is found in the book <<Linux
+Firewalls, Third Edition>>),the problem is that my code could not run
+correctly in the kernel.When i insmod the code,the browser could not
+open any site.
+So who can tell me that where in my code is not right.........
