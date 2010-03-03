@@ -1,49 +1,43 @@
-From: Pavel Emelyanov <xemul@parallels.com>
-Subject: Re: [RFC][PATCH] ns: Syscalls for better namespace sharing control.
-Date: Wed, 03 Mar 2010 19:50:56 +0300
-Message-ID: <4B8E9370.3050300@parallels.com>
-References: <4B88E431.6040609@parallels.com>	<m1bpfbqajn.fsf@fess.ebiederm.org> <4B894564.7080104@parallels.com>	<m1iq9io5sc.fsf@fess.ebiederm.org> <4B89727C.9040602@parallels.com>	<m1ljeempk6.fsf@fess.ebiederm.org> <4B8AE8C1.1030305@free.fr>	<4B8D28CF.8060304@parallels.com> <20100302211942.GA17816@us.ibm.com>	<m1y6iaqsmm.fsf@fess.ebiederm.org> <20100303000743.GA13744@us.ibm.com> <m1ocj6qljj.fsf@fess.ebiederm.org>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 1/2] Add new input plugin UNIXSOCK
+Date: Wed, 3 Mar 2010 18:42:42 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.1003031841130.23267@obet.zrqbmnf.qr>
+References: <1267217680-22677-1-git-send-email-chifflier@edenwall.com> <1267217680-22677-2-git-send-email-chifflier@edenwall.com> <4B892440.7030002@netfilter.org> <20100228140655.GC16135@piche.inl.fr> <4B8A99B6.5080708@netfilter.org> <20100228180505.GD16135@piche.inl.fr>
+ <4B8C16A4.9010807@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Linux Netdev List <netdev@vger.kernel.org>,
-	containers@lists.linux-foundation.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Ben Greear <greearb@candelatech.com>
-To: "Eric W. Biederman" <ebiederm@xmission.com>,
-	Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>,
-	Daniel Lezcano <daniel.lezcano@free.fr>,
-	Serge Hallyn <serue@us.ibm.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <m1ocj6qljj.fsf@fess.ebiederm.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
-
-> I just played with this and if you make the semantics of unshare(CLONE_NEWPID)
-> to be that you become the idle task aka pid 0, and not the init task pid 1 the
-> implementation is trivial.
-
-This is not ... handy - if after enter you have pid 0 you obviously
-can't perform 2 parallel enters. The way I see it:
-
-As far as the numbers reported to the userspace are concerned:
-1. task, that enters is still visible by its old parent by old pid
-2. task, that enters gets some pid within the entering namespace
-   and reports its parent pid to have pid 1 (init obviously doesn't
-   care)
-3. we _can_ try to allocate new pid equal to the old one so that
-   glibc stays happy
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Pierre Chifflier <chifflier@edenwall.com>,
+	netfilter-devel@vger.kernel.org, eleblond@edenwall.com
+To: Pablo Neira Ayuso <pablo@netfilter.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from borg.medozas.de ([188.40.89.202]:52767 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754969Ab0CCRmn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 3 Mar 2010 12:42:43 -0500
+In-Reply-To: <4B8C16A4.9010807@netfilter.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
 
-As far as the pointers are concerned:
-1. parent pointer doesn't change
-2. task_pid(tsk) one (i.e. struct pid * one) _can_ change if
-   a) we don't allow threads enter (de_thread problem is handeled)
-   b) we don't allow leave the group/session, i.e. check, that there
-      is the only one task that enters lives in its pgid/sid
-   c) we wait for the quiescent state to pass by before destroying
-      the old pid to handle race with sys_kill()
+On Monday 2010-03-01 20:33, Pablo Neira Ayuso wrote:
 
-Thoughts/questions? ("This is a nasty problem" answer is not acceptable,
-the real code problems/races please)
+>>>>>> +#define ALIGN_SIZE 8
+>>>>> Minor question: why align this to 64 bits?
+>>>> I originally used an alignment to 32 bits, but Jan noticed it would
+>>>> break if using options/values on 64 bits (and a test confirmed that). I
+>>>> took 64 bits as the biggest allowed value for integers.
+>>> I would need to look into this in more detail, not sure where the
+>>> problem is. I think that you can use something like `struct nlattr' (see
+>>> include/linux/netlink.h) and then nla_put() to add attributes in the TLV
+>>> format (see lib/nlattr.c). Those are align-safe. I'm using something
+>>> similar for conntrackd for the synchronization messages (src/build.c and
+>>> src/parse.c).
+
+If they are align-safe, what's this? :-)
+
+18:41 ares:/home/jengelh # conntrack -L
+Bus error
+18:41 ares:/home/jengelh # file `which conntrack`
+/usr/sbin/conntrack: ELF 32-bit MSB executable, SPARC32PLUS, V8+ Required,
+version 1 (SYSV), dynamically linked (uses shared libs), for GNU/Linux 2.6.4,
+not stripped
