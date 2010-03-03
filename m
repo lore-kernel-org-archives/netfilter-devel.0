@@ -1,43 +1,57 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 1/2] Add new input plugin UNIXSOCK
-Date: Wed, 3 Mar 2010 18:42:42 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.1003031841130.23267@obet.zrqbmnf.qr>
-References: <1267217680-22677-1-git-send-email-chifflier@edenwall.com> <1267217680-22677-2-git-send-email-chifflier@edenwall.com> <4B892440.7030002@netfilter.org> <20100228140655.GC16135@piche.inl.fr> <4B8A99B6.5080708@netfilter.org> <20100228180505.GD16135@piche.inl.fr>
- <4B8C16A4.9010807@netfilter.org>
+Subject: Re: [RFC v2 10/10] snet: introduce snet_utils
+Date: Wed, 3 Mar 2010 18:55:22 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.1003031854530.23267@obet.zrqbmnf.qr>
+References: <1267561394-13626-1-git-send-email-sam@synack.fr> <1267561394-13626-11-git-send-email-sam@synack.fr>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Pierre Chifflier <chifflier@edenwall.com>,
-	netfilter-devel@vger.kernel.org, eleblond@edenwall.com
-To: Pablo Neira Ayuso <pablo@netfilter.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:52767 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754969Ab0CCRmn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 3 Mar 2010 12:42:43 -0500
-In-Reply-To: <4B8C16A4.9010807@netfilter.org>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: linux-security-module@vger.kernel.org,
+	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, jamal <hadi@cyberus.ca>,
+	Patrick McHardy <kaber@trash.net>,
+	Evgeniy Polyakov <zbr@ioremap.net>,
+	Neil Horman <nhorman@tuxdriver.com>,
+	Grzegorz Nosek <root@localdomain.pl>
+To: Samir Bellabes <sam@synack.fr>
+Return-path: <linux-security-module-owner@vger.kernel.org>
+In-Reply-To: <1267561394-13626-11-git-send-email-sam@synack.fr>
+Sender: linux-security-module-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
 
-On Monday 2010-03-01 20:33, Pablo Neira Ayuso wrote:
+On Tuesday 2010-03-02 21:23, Samir Bellabes wrote:
 
->>>>>> +#define ALIGN_SIZE 8
->>>>> Minor question: why align this to 64 bits?
->>>> I originally used an alignment to 32 bits, but Jan noticed it would
->>>> break if using options/values on 64 bits (and a test confirmed that). I
->>>> took 64 bits as the biggest allowed value for integers.
->>> I would need to look into this in more detail, not sure where the
->>> problem is. I think that you can use something like `struct nlattr' (see
->>> include/linux/netlink.h) and then nla_put() to add attributes in the TLV
->>> format (see lib/nlattr.c). Those are align-safe. I'm using something
->>> similar for conntrackd for the synchronization messages (src/build.c and
->>> src/parse.c).
+>This patch provides helper functions for other subsystems
 
-If they are align-safe, what's this? :-)
+What subsystems would that be? (Just trying to prevent premature code 
+bloat.)
 
-18:41 ares:/home/jengelh # conntrack -L
-Bus error
-18:41 ares:/home/jengelh # file `which conntrack`
-/usr/sbin/conntrack: ELF 32-bit MSB executable, SPARC32PLUS, V8+ Required,
-version 1 (SYSV), dynamically linked (uses shared libs), for GNU/Linux 2.6.4,
-not stripped
+> security/snet/snet_utils.c |   38 ++++++++++++++++++++++++++++++++++++++
+> security/snet/snet_utils.h |   10 ++++++++++
+> 2 files changed, 48 insertions(+), 0 deletions(-)
+> create mode 100644 security/snet/snet_utils.c
+> create mode 100644 security/snet/snet_utils.h
+>
+>diff --git a/security/snet/snet_utils.c b/security/snet/snet_utils.c
+>new file mode 100644
+>index 0000000..e9178d7
+>--- /dev/null
+>+++ b/security/snet/snet_utils.c
+>@@ -0,0 +1,38 @@
+>+#include <linux/types.h>
+>+#include <linux/snet.h>
+>+
+>+const char *snet_verdict_name(const enum snet_verdict cmd)
+>+{
+>+	static const char *const verdict_name[] = {
+>+		[SNET_VERDICT_GRANT]	= "Grant",
+>+		[SNET_VERDICT_DENY]	= "Deny",
+>+		[SNET_VERDICT_PENDING]	= "Pending",
+>+		[SNET_VERDICT_NONE]	= "None",
+>+	};
+>+
+>+	if (cmd >= SNET_NR_VERDICT_TYPES)
+>+		return "INVALID";
+>+	else
+>+		return verdict_name[cmd];
+>+}
