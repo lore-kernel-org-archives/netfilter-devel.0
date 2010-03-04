@@ -1,97 +1,40 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [RFC][PATCH] ns: Syscalls for better namespace sharing control.
-Date: Thu, 04 Mar 2010 13:45:23 -0800
-Message-ID: <m1pr3j92x8.fsf@fess.ebiederm.org>
-References: <4B894564.7080104@parallels.com>
-	<m1iq9io5sc.fsf@fess.ebiederm.org> <4B89727C.9040602@parallels.com>
-	<m1ljeempk6.fsf@fess.ebiederm.org> <4B8AE8C1.1030305@free.fr>
-	<4B8D28CF.8060304@parallels.com> <20100302211942.GA17816@us.ibm.com>
-	<m1y6iaqsmm.fsf@fess.ebiederm.org> <20100303000743.GA13744@us.ibm.com>
-	<m1ocj6qljj.fsf@fess.ebiederm.org> <20100303153800.GA937@us.ibm.com>
-	<m13a0hmblr.fsf@fess.ebiederm.org>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [RFC][PATCH] ns: Syscalls for better namespace sharing
+ control.
+Date: Thu, 4 Mar 2010 23:55:14 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.1003042352220.27392@obet.zrqbmnf.qr>
+References: <4B894564.7080104@parallels.com> <m1iq9io5sc.fsf@fess.ebiederm.org> <4B89727C.9040602@parallels.com> <m1ljeempk6.fsf@fess.ebiederm.org> <4B8AE8C1.1030305@free.fr> <4B8D28CF.8060304@parallels.com> <20100302211942.GA17816@us.ibm.com>
+ <m1y6iaqsmm.fsf@fess.ebiederm.org> <20100303000743.GA13744@us.ibm.com> <m1ocj6qljj.fsf@fess.ebiederm.org> <20100303153800.GA937@us.ibm.com> <m13a0hmblr.fsf@fess.ebiederm.org> <m1pr3j92x8.fsf@fess.ebiederm.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>,
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: "Serge E. Hallyn" <serue@us.ibm.com>,
+	Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>,
 	Pavel Emelyanov <xemul@parallels.com>,
 	Linux Netdev List <netdev@vger.kernel.org>,
 	containers@lists.linux-foundation.org,
 	Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>,
 	Ben Greear <greearb@candelatech.com>
-To: "Serge E. Hallyn" <serue@us.ibm.com>
+To: "Eric W. Biederman" <ebiederm@xmission.com>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <m13a0hmblr.fsf@fess.ebiederm.org> (Eric W. Biederman's message of "Wed\, 03 Mar 2010 11\:47\:12 -0800")
+In-Reply-To: <m1pr3j92x8.fsf@fess.ebiederm.org>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-ebiederm@xmission.com (Eric W. Biederman) writes:
 
-> "Serge E. Hallyn" <serue@us.ibm.com> writes:
+On Thursday 2010-03-04 22:45, Eric W. Biederman wrote:
 >
->> Quoting Eric W. Biederman (ebiederm@xmission.com):
->>> Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com> writes:
->>> 
->>> > Eric W. Biederman [ebiederm@xmission.com] wrote:
->>> > | 
->>> > | I think replacing a struct pid for another struct pid allocated in
->>> > | descendant pid_namespace (but has all of the same struct upid values
->>> > | as the first struct pid) is a disastrous idea.  It destroys the
->>> >
->>> > True. Sorry, I did not mean we would need a new 'struct pid' for an
->>> > existing process. I think we talked earlier of finding a way of attaching
->>> > additional pid numbers to the same struct pid.
->>> 
->>> I just played with this and if you make the semantics of unshare(CLONE_NEWPID)
->>> to be that you become the idle task aka pid 0, and not the init task pid 1 the
->>> implementation is trivial.
->>
->> Heh, and then (browsing through your copy_process() patch hunks) the next
->> forked task becomes the child reaper for the new pidns?  <shrug>  why not
->> I guess.
->>
->> Now if that child reaper then gets killed, will the idle task get killed too?
->
-> No.
->
->> And if not, then idle task can just re-populating the new pidns with new
->> idle tasks...
->
-> After zap_pid_namespace interesting...
->
->> If this brought us a step closer to entering an existing pidns that would
->> be one thing, but is there actually any advantage to being able to
->> unshare a new pidns?  Oh, I guess there is - PAM can then use it at
->> login, which might be neat.
->
-> I have to say that the semantics of my patch are unworkable for
-> unshare.  Unless I am mistaken for PAM to use it requires that the
-> current process fully change and become what it needs to be.
-> Requiring an extra fork to fully complete the process is a problem.
->
-> Scratch one bright idea.
+>So an unshare of the pid namespace that doesn't really take effect
+>until we fork may actually be usable from pam, and in fact is probably
+>the preferred implementation.  It looks like neither openssh nor login
+>from util-linux-ng will cope properly with getting any pid back from
+>wait() except the pid of their child.
 
-Maybe not.  I just looked and in the vast majority of cases the login
-process goes like this.
+Correct; I can tell from experience with pam_mount. GDM for example is 
+very unhappy if you fork/exit processes in PAM modules and don't hide 
+the fact by bending SIGCHLD from gdm_handler to mypam_handler (which 
+itself is racy, suppose GDM re-set the SIGCHLD handler midway through).
 
-{
-	setup stuff include pam
-	child = fork();
-	if (!child) {
-		setuid()
-                exec /bin/bash
-        }
-        waitpid(child);
-        
-        pam and other cleanup
-}
-
-So an unshare of the pid namespace that doesn't really take effect
-until we fork may actually be usable from pam, and in fact is probably
-the preferred implementation.  It looks like neither openssh nor login
-from util-linux-ng will cope properly with getting any pid back from
-wait() except the pid of their child.  It looks like they both with
-terminate.  Which means if you login in a new pid namespace (where the
-unsharing process becomes pid 1) and call nohup everything will get
-killed and you will be logged out.
-
-Eric
+(In this particular case however, I'd prefer if login programs like GDM 
+just ignored any PIDs they did not spawn in the first place instead of 
+moaning around.)
