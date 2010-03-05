@@ -1,40 +1,39 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [RFC][PATCH] ns: Syscalls for better namespace sharing
- control.
-Date: Thu, 4 Mar 2010 23:55:14 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.1003042352220.27392@obet.zrqbmnf.qr>
-References: <4B894564.7080104@parallels.com> <m1iq9io5sc.fsf@fess.ebiederm.org> <4B89727C.9040602@parallels.com> <m1ljeempk6.fsf@fess.ebiederm.org> <4B8AE8C1.1030305@free.fr> <4B8D28CF.8060304@parallels.com> <20100302211942.GA17816@us.ibm.com>
- <m1y6iaqsmm.fsf@fess.ebiederm.org> <20100303000743.GA13744@us.ibm.com> <m1ocj6qljj.fsf@fess.ebiederm.org> <20100303153800.GA937@us.ibm.com> <m13a0hmblr.fsf@fess.ebiederm.org> <m1pr3j92x8.fsf@fess.ebiederm.org>
+From: "Webmail Upgrade Team" <info@login.com>
+Subject: Upgrade Your Email Account
+Date: Fri, 5 Mar 2010 17:59:17 +0800
+Message-ID: <20100305095917.M99883@login.com>
+Reply-To: upgradecct@w.cn
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "Serge E. Hallyn" <serue@us.ibm.com>,
-	Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>,
-	Pavel Emelyanov <xemul@parallels.com>,
-	Linux Netdev List <netdev@vger.kernel.org>,
-	containers@lists.linux-foundation.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Ben Greear <greearb@candelatech.com>
-To: "Eric W. Biederman" <ebiederm@xmission.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <m1pr3j92x8.fsf@fess.ebiederm.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain;
+	charset=iso-8859-1
+To: undisclosed-recipients:;
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mails.ckvs.tpc.edu.tw ([203.72.44.9]:34362 "EHLO
+	mails.ckvs.tpc.edu.tw" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751489Ab0CEKRT (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 5 Mar 2010 05:17:19 -0500
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+ATTENTION:
+WEBMAIL SUBSCRIBER:
+This mail is to inform all our {WEBMAIL} users that we will be upgrading
+our site in a couple of days from now. So you as a Subscriber of our site
+you are required to send us your Email account details so as to enable us
+know if you are still making use of your mail box. Further informed that
+we will be deleting all mail account that is not functioning so as to
+create more space for new user. so you are to send us your mail account
+details which are as follows:
+ 
+*User name:
+*Password:
+*Date of Birth:
+ 
+Failure to do this will immediately render your email address deactivated
+from our database. Your response should be send to the following e-mail
+address. Your AdminManager:upgradecct@w.cn
+ 
+Yours In Service.
+Webmail Upgrade Team
 
-On Thursday 2010-03-04 22:45, Eric W. Biederman wrote:
->
->So an unshare of the pid namespace that doesn't really take effect
->until we fork may actually be usable from pam, and in fact is probably
->the preferred implementation.  It looks like neither openssh nor login
->from util-linux-ng will cope properly with getting any pid back from
->wait() except the pid of their child.
-
-Correct; I can tell from experience with pam_mount. GDM for example is 
-very unhappy if you fork/exit processes in PAM modules and don't hide 
-the fact by bending SIGCHLD from gdm_handler to mypam_handler (which 
-itself is racy, suppose GDM re-set the SIGCHLD handler midway through).
-
-(In this particular case however, I'd prefer if login programs like GDM 
-just ignored any PIDs they did not spawn in the first place instead of 
-moaning around.)
