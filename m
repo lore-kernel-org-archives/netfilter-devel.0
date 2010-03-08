@@ -1,99 +1,53 @@
-From: ebiederm@xmission.com (Eric W. Biederman)
-Subject: Re: [RFC][PATCH] ns: Syscalls for better namespace sharing control.
-Date: Mon, 08 Mar 2010 00:32:49 -0800
-Message-ID: <m1fx4bxlfy.fsf@fess.ebiederm.org>
-References: <4B88E431.6040609@parallels.com>
-	<m1bpfbqajn.fsf@fess.ebiederm.org> <4B894564.7080104@parallels.com>
-	<m1iq9io5sc.fsf@fess.ebiederm.org> <4B89727C.9040602@parallels.com>
-	<m1ljeempk6.fsf@fess.ebiederm.org> <4B8AE8C1.1030305@free.fr>
-	<4B8D28CF.8060304@parallels.com> <20100302211942.GA17816@us.ibm.com>
-	<m1y6iaqsmm.fsf@fess.ebiederm.org> <20100303000743.GA13744@us.ibm.com>
-	<m1ocj6qljj.fsf@fess.ebiederm.org> <4B8E9370.3050300@parallels.com>
-	<m17hptjh3m.fsf@fess.ebiederm.org> <4B9158F5.5040205@parallels.com>
-	<m1vdda1pmx.fsf@fess.ebiederm.org> <4B926B1B.5070207@free.fr>
-	<m1aaulyy5c.fsf@fess.ebiederm.org> <4B92C886.9020507@free.fr>
+From: Amos Jeffries <squid3@treenet.co.nz>
+Subject: Re: [PATCH 00/13] TProxy IPv6 support 2nd round
+Date: Mon, 08 Mar 2010 22:38:02 +1300
+Message-ID: <4B94C57A.5010605@treenet.co.nz>
+References: <1253548300.12519.20.camel@bzorp.balabit>	 <20091025101612.GS29852@prithivi.gnumonks.org> <1256547636.11361.18.camel@bzorp.balabit>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Pavel Emelyanov <xemul@parallels.com>,
-	Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>,
-	Serge Hallyn <serue@us.ibm.com>,
-	Linux Netdev List <netdev@vger.kernel.org>,
-	containers@lists.linux-foundation.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Ben Greear <greearb@candelatech.com>
-To: Daniel Lezcano <daniel.lezcano@free.fr>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4B92C886.9020507@free.fr> (Daniel Lezcano's message of "Sat\, 06 Mar 2010 22\:26\:30 +0100")
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Harald Welte <laforge@netfilter.org>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Balazs Scheidler <bazsi@balabit.hu>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from ip-58-28-153-233.static-xdsl.xnet.co.nz ([58.28.153.233]:48766
+	"EHLO treenet.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753564Ab0CHJiM (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 8 Mar 2010 04:38:12 -0500
+In-Reply-To: <1256547636.11361.18.camel@bzorp.balabit>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+Balazs Scheidler wrote:
+> On Sun, 2009-10-25 at 11:16 +0100, Harald Welte wrote:
+>> Dear Balazs,
+>>
+>> as you might have read from other mails (and by the long period of silence),
+>> Patrick McHardy is currently unavailable to perform his usual maintainer
+>> role.
+>>
+>> I personally am too much out of touch with recent developments in
+>> netfitler-land to be able to confidently review your patches...  
+>>
+>> So unless somebody else from the team (Jozsef?, Pablo?) feels confident in
+>> ACKing your patchset, I will have to ask for your patience until Patrick is
+>> back and can do it by himself.
+> 
+> Thanks for letting me know, hopefully Patrick gets better soon. I've
+> planned another round of the TProxy patches as I got some comments at
+> the previous round I'm yet to address.
+> 
+> So no need to hurry.
+> 
 
-I have take an snapshot of my development tree and placed it at.
+Just bumping this topic up again.
 
+What is the current status of these patches?
 
-git://git.kernel.org/pub/scm/linux/people/ebiederm/linux-2.6.33-nsfd-v5.git
+Our release which might make use of them goes into production sites in a 
+few weeks and I'm starting to see a little more interest in them from 
+our users.
 
-
->> I am going to explore a bit more.  Given that nsfd is using the same
->> permission checks as a proc file, I think I can just make it a proc
->> file.  Something like "/proc/<pid>/ns/net".  With a little luck that
->> won't suck too badly.
->>   
-> Ah ! yes. Good idea.
-
-It is a hair more code to use proc files but nothing worth counting.
-
-Probably the biggest thing I am aware of right now in my development
-tree is in getting uids to pass properly between unix domain sockets
-I would up writing this cred_to_ucred function.
-
-Serge can you take a look and check my logic, and do you have
-any idea of where we should place something like pid_vnr but
-for the uid namespace?
-
-void cred_to_ucred(struct pid *pid, const struct cred *cred,
-		   struct ucred *ucred)
-{
-	ucred->pid = pid_vnr(pid);
-	ucred->uid = ucred->gid = -1;
-	if (cred) {
-		struct user_namespace *cred_ns = cred->user->user_ns;
-		struct user_namespace *current_ns = current_user_ns();
-		struct user_namespace *tmp;
-
-		if (likely(cred_ns == current_ns)) {
-			ucred->uid = cred->euid;
-			ucred->gid = cred->egid;
-		} else {
-			/* Is cred in a child user namespace */
-			tmp = cred_ns;
-			do {
-				tmp = tmp->creator->user_ns;
-				if (tmp == current_ns) {
-					ucred->uid = tmp->creator->uid;
-					ucred->gid = overflowgid;
-					return;
-				}
-			} while (tmp != &init_user_ns);
-
-			/* Is cred the creator of my user namespace,
-			 * or the creator of one of it's parents?
-			 */
-			for( tmp = current_ns; tmp != &init_user_ns;
-			     tmp = tmp->creator->user_ns) {
-				if (cred->user == tmp->creator) {
-					ucred->uid = 0;
-					ucred->gid = 0;
-					return;
-				}
-			}
-
-			/* No user namespace relationship so no mapping */
-			ucred->uid = overflowuid;
-			ucred->gid = overflowgid;
-		}
-	}
-}
-
-Eric
+AYJ
+Squid Project
