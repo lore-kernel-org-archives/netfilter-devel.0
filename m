@@ -1,53 +1,31 @@
-From: Amos Jeffries <squid3@treenet.co.nz>
-Subject: Re: [PATCH 00/13] TProxy IPv6 support 2nd round
-Date: Mon, 08 Mar 2010 22:38:02 +1300
-Message-ID: <4B94C57A.5010605@treenet.co.nz>
-References: <1253548300.12519.20.camel@bzorp.balabit>	 <20091025101612.GS29852@prithivi.gnumonks.org> <1256547636.11361.18.camel@bzorp.balabit>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 1/2] Add new input plugin UNIXSOCK
+Date: Mon, 08 Mar 2010 12:13:39 +0100
+Message-ID: <4B94DBE3.60809@trash.net>
+References: <1267217680-22677-1-git-send-email-chifflier@edenwall.com> <1267217680-22677-2-git-send-email-chifflier@edenwall.com> <4B892440.7030002@netfilter.org> <20100228140655.GC16135@piche.inl.fr> <4B8A99B6.5080708@netfilter.org> <20100228180505.GD16135@piche.inl.fr> <4B90E7C2.6030208@trash.net> <4B913B04.6020701@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Harald Welte <laforge@netfilter.org>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Balazs Scheidler <bazsi@balabit.hu>
+Cc: Pierre Chifflier <chifflier@edenwall.com>,
+	netfilter-devel@vger.kernel.org, eleblond@edenwall.com
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from ip-58-28-153-233.static-xdsl.xnet.co.nz ([58.28.153.233]:48766
-	"EHLO treenet.co.nz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753564Ab0CHJiM (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:44708 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754100Ab0CHLNl (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 8 Mar 2010 04:38:12 -0500
-In-Reply-To: <1256547636.11361.18.camel@bzorp.balabit>
+	Mon, 8 Mar 2010 06:13:41 -0500
+In-Reply-To: <4B913B04.6020701@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Balazs Scheidler wrote:
-> On Sun, 2009-10-25 at 11:16 +0100, Harald Welte wrote:
->> Dear Balazs,
->>
->> as you might have read from other mails (and by the long period of silence),
->> Patrick McHardy is currently unavailable to perform his usual maintainer
->> role.
->>
->> I personally am too much out of touch with recent developments in
->> netfitler-land to be able to confidently review your patches...  
->>
->> So unless somebody else from the team (Jozsef?, Pablo?) feels confident in
->> ACKing your patchset, I will have to ask for your patience until Patrick is
->> back and can do it by himself.
+Pablo Neira Ayuso wrote:
+> Patrick McHardy wrote:
+>>> Or do you have any preferred solution ? Maybe using nlattr + one special
+>>> function for dealing with 64 bits variables ?
+>> I'd suggest to add a function that reads the data in 4 byte
+>> quantities.
 > 
-> Thanks for letting me know, hopefully Patrick gets better soon. I've
-> planned another round of the TProxy patches as I got some comments at
-> the previous round I'm yet to address.
-> 
-> So no need to hurry.
-> 
+> Would memcpy() be enough? If so, we can go back to the 4 bytes alignment.
 
-Just bumping this topic up again.
-
-What is the current status of these patches?
-
-Our release which might make use of them goes into production sites in a 
-few weeks and I'm starting to see a little more interest in them from 
-our users.
-
-AYJ
-Squid Project
+Both are fine.
