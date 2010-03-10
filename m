@@ -1,31 +1,109 @@
-From: Lutz Jaenicke <ljaenicke@innominate.com>
-Subject: [PATCH 0/1] Adjust nfnetlink structure size between kernel and user space
-Date: Tue,  9 Mar 2010 19:05:23 +0100
-Message-ID: <1268157924-4879-1-git-send-email-ljaenicke@innominate.com>
-Cc: Lutz Jaenicke <ljaenicke@innominate.com>
-To: netfilter-devel@vger.kernel.org
+From: YOSHIFUJI Hideaki <hideaki.yoshifuji@gmail.com>
+Subject: Re: [RFC PATCH net-next 0/7 v2]IPv6:netfilter: defragment
+Date: Thu, 11 Mar 2010 02:13:48 +0900
+Message-ID: <4B97D34C.4020509@gmail.com>
+References: <4B88BE30.80206@cn.fujitsu.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Patrick McHardy <kaber@trash.net>,
+	David Miller <davem@davemloft.net>,
+	Alexey Dobriyan <adobriyan@gmail.com>,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org,
+	"yoshfuji@linux-ipv6.org >> YOSHIFUJI Hideaki"
+	<yoshfuji@linux-ipv6.org>
+To: Shan Wei <shanwei@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from host2.bln.innominate.com ([77.245.32.75]:54882 "EHLO
-	home.innominate.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755190Ab0CISF0 (ORCPT
+Received: from 94.43.138.210.xn.2iij.net ([210.138.43.94]:51539 "EHLO
+	mail.st-paulia.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756909Ab0CJRZI (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 9 Mar 2010 13:05:26 -0500
+	Wed, 10 Mar 2010 12:25:08 -0500
+In-Reply-To: <4B88BE30.80206@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Revision 2:
-Move __attribute__ ((packed)) to the end of the structure definition as
-used in other locations allowing for simpler grep etc.
+Hi,
 
-The attached patch adjust the size of struct nf_ct_tcp_flags in the kernel
-to match the hardcoded size in the respective user space tools.
-This issue has so far only been visible for an Intel IXP4xx network
-processor (ARM big endian, gcc-4.2.4) while the same code and
-toolchain works fine on powerpc (32bit) and x86_64.
+Shan Wei wrote:
+>  This patch-set solves the problem that an end host with IPv6 connect=
+ion track enable
+> can't send an ICMP "Fragment Reassembly Timeout" message when defagin=
+g timeout.
+> And supports MIB counter about fragments reassembly e.g. Ip6ReasmTime=
+out, Ip6ReasmReqds,
+> Ip6ReasmOKs, Ip6ReasmFails.
 
-Lutz Jaenicke (1):
-  netfilter: nf_ct_tcp: pack nf_ct_tcp_flags to match user space
+Well, because the context of defragment are different
+from standard ones (e.g., In netfilter, defragment can
+happen even on forwarding path, and the result is always
+thrown away anyway), I think it is not a good idea to
+touch standard MIB here. However I'm okay to increment
+other stats like InDiscards, OurDiscards and netfilter
+specific stats.
+On the other hand, I'd even say we should NOT send
+icmp here (at least by default) because standard routers
+never send such packet.
 
- include/linux/netfilter/nf_conntrack_tcp.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+Regards,
 
+--yoshfuji
+
+> patch-1,2,3=EF=BC=9A Introduce net namespace to conntrack and share n=
+etns_frags with IPv6 stack. =20
+>           But, IPv6 conntrack and IPv6 stack still keep separate frag=
+ment queue.
+>           Like IPv4, proc parameters of ip6frag_low_thresh, ip6frag_t=
+ime and ip6frag_high_thresh
+>           manage numbers and memory thresh size of both IPv6 conntrac=
+k fragment queue and=20
+>           IPv6 stack fragment queue.
+>=20
+> patch-4: Send an ICMP "Fragment Reassembly Timeout" message and recor=
+d MIB counter=20
+>          when defraging timeout.
+>=20
+> patch-5,6,7: According to RFC4293, record MIB counter about fragments=
+ reassembly.
+>=20
+>=20
+> This patch-set has been tested using IPv6 Ready Logo Phase-2 tool und=
+er host and router type.
+>=20
+> ---
+> Shan Wei <shanwei@cn.fujitsu.com> (7):
+>       IPv6:netfilter: defrag: Handle sysctls about IPv6 conntrack def=
+ragment per-netns
+>       IPv6:netfilter: defrag: Introduce per-netns to conntrack and ki=
+ll nf_init_frags
+>       IPv6:netfilter: defrag: Disable button half when reassembling a=
+ fragment=20
+>       IPv6:netfilter: Send an ICMPv6 "Fragment Reassembly Timeout" me=
+ssage when enabling connection track
+>       IPv6:netfilter: Record MIB counter when reassembling all fragme=
+nts
+>       IPv6:netfilter: Record MIB counter after a fragment reached
+>       IPv6:netfilter: Add IPSTATS_MIB_REASMFAILS MIB counter value wh=
+en evicting fragment queue
+>=20
+>  Documentation/feature-removal-schedule.txt     |   19 ++
+>  include/linux/skbuff.h                         |    5 +
+>  include/net/netns/ipv6.h                       |    1 +
+>  net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |    7 +-
+>  net/ipv6/netfilter/nf_conntrack_reasm.c        |  221 ++++++++++++++=
++++++-----
+>  net/ipv6/route.c                               |    1 +
+>  6 files changed, 208 insertions(+), 46 deletions(-)
+> --
+> To unsubscribe from this list: send the line "unsubscribe netdev" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
