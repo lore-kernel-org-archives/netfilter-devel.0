@@ -1,53 +1,28 @@
-From: Daniel Lezcano <daniel.lezcano@free.fr>
-Subject: Re: [RFC][PATCH] ns: Syscalls for better namespace sharing control.
-Date: Wed, 10 Mar 2010 22:16:05 +0100
-Message-ID: <4B980C15.9000908@free.fr>
-References: <4B88E431.6040609@parallels.com> <4B8D28CF.8060304@parallels.com>	<20100302211942.GA17816@us.ibm.com> <m1y6iaqsmm.fsf@fess.ebiederm.org>	<20100303000743.GA13744@us.ibm.com> <m1ocj6qljj.fsf@fess.ebiederm.org>	<4B8E9370.3050300@parallels.com> <m17hptjh3m.fsf@fess.ebiederm.org>	<4B9158F5.5040205@parallels.com> <m1vdda1pmx.fsf@fess.ebiederm.org>	<4B926B1B.5070207@free.fr> <m1aaulyy5c.fsf@fess.ebiederm.org>	<4B92C886.9020507@free.fr> <m1fx4bxlfy.fsf@fess.ebiederm.org>	<4B952BBE.6070507@free.fr> <m11vfuvi1t.fsf@fess.ebiederm.org>	<4B9556A9.60206@free.fr> <m11vfusgsa.fsf@fess.ebiederm.org>	<4B95611C.5060403@free.fr> <m1sk8ar15b.fsf@fess.ebiederm.org>	<4B956852.7050804@free.fr> <m1lje2qzf4.fsf@fess.ebiederm.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Pavel Emelyanov <xemul@parallels.com>,
-	Sukadev Bhattiprolu <sukadev@linux.vnet.ibm.com>,
-	Serge Hallyn <serue@us.ibm.com>,
-	Linux Netdev List <netdev@vger.kernel.org>,
-	containers@lists.linux-foundation.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Ben Greear <greearb@candelatech.com>
-To: "Eric W. Biederman" <ebiederm@xmission.com>
+From: =?iso-8859-1?Q?Giuseppe_Macr=EC?= <gmacri2@uic.edu>
+Subject: Assignment port procedure
+Date: Wed, 10 Mar 2010 17:06:18 -0600
+Message-ID: <700FD7E4-E34D-4020-8748-F2DDCAA661A0@uic.edu>
+Mime-Version: 1.0 (Apple Message framework v1077)
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp2a.orange.fr ([80.12.242.139]:32705 "EHLO smtp2a.orange.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753422Ab0CJVQK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Mar 2010 16:16:10 -0500
-In-Reply-To: <m1lje2qzf4.fsf@fess.ebiederm.org>
+Received: from mail-1.cc.uic.edu ([128.248.155.182]:57404 "EHLO
+	mail-1.cc.uic.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932890Ab0CJXQG convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 10 Mar 2010 18:16:06 -0500
+Received: from [192.168.1.140] (erf2054merrifield.cs.uic.edu [131.193.37.153])
+	(authenticated bits=0)
+	by mail-1.cc.uic.edu (8.14.0/8.14.0) with ESMTP id o2AN6Lnb020689
+	(version=TLSv1/SSLv3 cipher=AES128-SHA bits=128 verify=NOT)
+	for <netfilter-devel@vger.kernel.org>; Wed, 10 Mar 2010 17:06:21 -0600
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric W. Biederman wrote:
-> Daniel Lezcano <daniel.lezcano@free.fr> writes:
->   
+Very new in netfilter developing.
+I would like change assignment port procedure into the nat part of netfilter. I'm looking at nf_nat_proto_common.c, exactly at get_unique_tuple function (linux/net/ipv4/netfilter).
+Is it the correct way to proceed?
+Last question: does iptables handle nat with the nf_nat.ko module or with something else?
 
-[ ... ]
-
-> I guess my meaning is I was expecting.
-> child = fork();
-> if (child == 0) {
-> 	execve(...);
-> }
-> waitpid(child);
->
-> This puts /bin/sh in the container as well.
->   
-
-Eric,
-
-at this point I did not fall in any obvious bug and I was able to enter 
-/ execute commands directly inside the container.
-
-Excellent !
-
-Thanks
-  -- Daniel
-
-
+Giuseppe
