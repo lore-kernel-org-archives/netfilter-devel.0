@@ -1,37 +1,60 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Assignment port procedure
-Date: Thu, 11 Mar 2010 01:37:16 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.1003110131090.6618@obet.zrqbmnf.qr>
-References: <700FD7E4-E34D-4020-8748-F2DDCAA661A0@uic.edu>
+From: Shan Wei <shanwei@cn.fujitsu.com>
+Subject: Re: [RFC PATCH net-next 0/7 v2]IPv6:netfilter: defragment
+Date: Thu, 11 Mar 2010 17:16:44 +0800
+Message-ID: <4B98B4FC.50904@cn.fujitsu.com>
+References: <4B88BE30.80206@cn.fujitsu.com> <4B97D34C.4020509@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: =?UTF-8?Q?Giuseppe_Macr=C3=AC?= <gmacri2@uic.edu>
+Cc: Patrick McHardy <kaber@trash.net>,
+	David Miller <davem@davemloft.net>,
+	Alexey Dobriyan <adobriyan@gmail.com>,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org,
+	"yoshfuji@linux-ipv6.org >> YOSHIFUJI Hideaki"
+	<yoshfuji@linux-ipv6.org>
+To: YOSHIFUJI Hideaki <hideaki.yoshifuji@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:43114 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932907Ab0CKAhS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 10 Mar 2010 19:37:18 -0500
-In-Reply-To: <700FD7E4-E34D-4020-8748-F2DDCAA661A0@uic.edu>
+Received: from cn.fujitsu.com ([222.73.24.84]:52191 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1753806Ab0CKJRD convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 11 Mar 2010 04:17:03 -0500
+In-Reply-To: <4B97D34C.4020509@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 2010-03-11 00:06, Giuseppe Macr=C3=AC wrote:
+yoshifuji-san:
 
->Very new in netfilter developing.
->I would like change assignment port procedure into the nat part of net=
-filter. I'm looking at nf_nat_proto_common.c, exactly at get_unique_tup=
-le function (linux/net/ipv4/netfilter).
->Is it the correct way to proceed?
->Last question: does iptables handle nat with the nf_nat.ko module or=20
->with something else?
+YOSHIFUJI Hideaki wrote, at 03/11/2010 01:13 AM:
+> Well, because the context of defragment are different
+> from standard ones (e.g., In netfilter, defragment can
+> happen even on forwarding path, and the result is always
+> thrown away anyway), I think it is not a good idea to
+> touch standard MIB here. However I'm okay to increment
+> other stats like InDiscards, OurDiscards and netfilter
+> specific stats.
 
-"iptables does not handle NAT with nf_nat,
-nf_nat handles NAT with iptables."
+Not only on router, but also on host, if conntrack fails to reassemble
+fragments, the fragments will not be forwarded to IPv4/IPv6 stack.
+So, these fragments can't be traced from MIB counter.
 
-More precisely, nf_nat works mostly autonomically, but consults
-the "nat" table from Xtables for new transformations.
+And, IPv4 conntrack records these fragments.
+Is the context of IPv4 defragment different from IPv6?
+
+> On the other hand, I'd even say we should NOT send
+> icmp here (at least by default) because standard routers
+> never send such packet.
+
+Yes=EF=BC=8Cfor routers, the patch-set does not send icmp message to
+source host. It only does on destination host with IPv6 connection=20
+track enable.
+
+--=20
+Best Regards
+-----
+Shan Wei
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
