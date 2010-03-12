@@ -1,62 +1,38 @@
-From: Shan Wei <shanwei@cn.fujitsu.com>
-Subject: Re: [RFC PATCH net-next 0/7 v2]IPv6:netfilter: defragment
-Date: Thu, 11 Mar 2010 17:16:44 +0800
-Message-ID: <4B98B4FC.50904@cn.fujitsu.com>
-References: <4B88BE30.80206@cn.fujitsu.com> <4B97D34C.4020509@gmail.com>
+From: Dominik Kaspar <dokaspar.ietf@gmail.com>
+Subject: Installing Xtables-Addons
+Date: Fri, 12 Mar 2010 13:39:18 +0100
+Message-ID: <2a3692de1003120439k75adfae3ie2bc484152c2b82b@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>,
-	David Miller <davem@davemloft.net>,
-	Alexey Dobriyan <adobriyan@gmail.com>,
-	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org,
-	"yoshfuji@linux-ipv6.org >> YOSHIFUJI Hideaki"
-	<yoshfuji@linux-ipv6.org>
-To: YOSHIFUJI Hideaki <hideaki.yoshifuji@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:52191 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1753806Ab0CKJRD convert rfc822-to-8bit (ORCPT
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:45044 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756935Ab0CLMjU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 11 Mar 2010 04:17:03 -0500
-In-Reply-To: <4B97D34C.4020509@gmail.com>
+	Fri, 12 Mar 2010 07:39:20 -0500
+Received: by bwz1 with SMTP id 1so984139bwz.21
+        for <netfilter-devel@vger.kernel.org>; Fri, 12 Mar 2010 04:39:19 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-yoshifuji-san:
+Hi,
 
-YOSHIFUJI Hideaki wrote, at 03/11/2010 01:13 AM:
-> Well, because the context of defragment are different
-> from standard ones (e.g., In netfilter, defragment can
-> happen even on forwarding path, and the result is always
-> thrown away anyway), I think it is not a good idea to
-> touch standard MIB here. However I'm okay to increment
-> other stats like InDiscards, OurDiscards and netfilter
-> specific stats.
+I tried installing the xtables-addons by first downloading it as follows:
 
-Not only on router, but also on host, if conntrack fails to reassemble
-fragments, the fragments will not be forwarded to IPv4/IPv6 stack.
-So, these fragments can't be traced from MIB counter.
+git clone git://xtables-addons.git.sf.net/gitroot/xtables-addons/xtables-addons/
 
-And, IPv4 conntrack records these fragments.
-Is the context of IPv4 defragment different from IPv6?
+Then I read the INSTALL file, where it says to do this:
 
-> On the other hand, I'd even say we should NOT send
-> icmp here (at least by default) because standard routers
-> never send such packet.
+$ ./configure
+$ make
+# make install
 
-Yes=EF=BC=8Cfor routers, the patch-set does not send icmp message to
-source host. It only does on destination host with IPv6 connection=20
-track enable.
+However, "./configure" does not work: "bash: ./configure: No such file
+or directory"
+There is no file "configure" in the repository, only a "configure.ac".
+I'm unfamiliar with "autotools"... what exactly is required to make
+this work?
 
---=20
-Best Regards
------
-Shan Wei
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Dominik
