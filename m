@@ -1,36 +1,73 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Installing Xtables-Addons
-Date: Fri, 12 Mar 2010 20:00:52 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.1003122000360.11322@obet.zrqbmnf.qr>
-References: <2a3692de1003120439k75adfae3ie2bc484152c2b82b@mail.gmail.com>  <alpine.LSU.2.01.1003121347200.32149@obet.zrqbmnf.qr> <2a3692de1003120455o3c00147dm22f7bf1b88b545fe@mail.gmail.com>
+From: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+Subject: Re: [RFC PATCH net-next 0/7 v2]IPv6:netfilter: defragment
+Date: Sat, 13 Mar 2010 22:47:18 +0900
+Message-ID: <4B9B9766.3090200@linux-ipv6.org>
+References: <4B88BE30.80206@cn.fujitsu.com> <4B97D34C.4020509@gmail.com> <4B98B4FC.50904@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Dominik Kaspar <dokaspar.ietf@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:47605 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752798Ab0CLTAy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 12 Mar 2010 14:00:54 -0500
-In-Reply-To: <2a3692de1003120455o3c00147dm22f7bf1b88b545fe@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: YOSHIFUJI Hideaki <hideaki.yoshifuji@gmail.com>,
+	Patrick McHardy <kaber@trash.net>,
+	David Miller <davem@davemloft.net>,
+	Alexey Dobriyan <adobriyan@gmail.com>,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org, yoshfuji@linux-ipv6.org
+To: Shan Wei <shanwei@cn.fujitsu.com>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <4B98B4FC.50904@cn.fujitsu.com>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+Hi.
 
-On Friday 2010-03-12 13:55, Dominik Kaspar wrote:
+(2010/03/11 18:16), Shan Wei wrote:
+> yoshifuji-san:
 >
->I have initially tried ./autogen.sh, but gave up on it because an
->error occurred, which made me conclude that ./autogen.sh wasn't the
->right script to run...
+> YOSHIFUJI Hideaki wrote, at 03/11/2010 01:13 AM:
+>> Well, because the context of defragment are different
+>> from standard ones (e.g., In netfilter, defragment can
+>> happen even on forwarding path, and the result is always
+>> thrown away anyway), I think it is not a good idea to
+>> touch standard MIB here. However I'm okay to increment
+>> other stats like InDiscards, OurDiscards and netfilter
+>> specific stats.
 >
->Can't exec "libtoolize": No such file or directory at
->/usr/bin/autoreconf line 190.
->Use of uninitialized value $libtoolize in pattern match (m//) at
->/usr/bin/autoreconf line 190.
->configure.ac:9: error: possibly undefined macro: AC_DISABLE_STATIC
->      If this token and others are legitimate, please use m4_pattern_allow.
->      See the Autoconf documentation.
->configure.ac:10: error: possibly undefined macro: AC_PROG_LIBTOOL
->autoreconf: /usr/bin/autoconf failed with exit status: 1
+> Not only on router, but also on host, if conntrack fails to reassembl=
+e
+> fragments, the fragments will not be forwarded to IPv4/IPv6 stack.
+> So, these fragments can't be traced from MIB counter.
+>
+> And, IPv4 conntrack records these fragments.
+> Is the context of IPv4 defragment different from IPv6?
 
-libtoolize is part of libtool.
+Yes, it is different.
+
+As you know, defragment can not happen on routers in IPv6.
+Because we do want to preserve hop-by-hop option etc,
+we preserve original packets in netfilter code.
+
+In IPv6, defragment in netfilter is a temporary just
+for conntrack.  The state (including defragmented packet)
+is not preserved, and original fragments are used in further
+process (including local processing or forwarding).
+
+So, please take that defragment failure is same as other
+random reasons what netfilter code thinks.  Of course,
+you can introduce nf-specific counters that show reasons
+why packets are discarded in netfilter module.
+
+>> On the other hand, I'd even say we should NOT send
+>> icmp here (at least by default) because standard routers
+>> never send such packet.
+>
+> Yes=EF=BC=8Cfor routers, the patch-set does not send icmp message to
+> source host. It only does on destination host with IPv6 connection
+> track enable.
+
+Please make it optional (via parameter) at least.
+
+Regards,
+
+--yoshfuji
