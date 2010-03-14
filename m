@@ -1,41 +1,23 @@
-From: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-Subject: Re: [RFC PATCH net-next 1/7 v2]IPv6:netfilter: defrag: Handle sysctls
- about IPv6 conntrack defragment per-netns
-Date: Sat, 13 Mar 2010 22:58:54 +0900
-Message-ID: <4B9B9A1E.8080102@linux-ipv6.org>
-References: <4B88BE39.6050307@cn.fujitsu.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+From: =?iso-8859-1?Q?Giuseppe_Macr=EC?= <macri.giuseppe.disk@gmail.com>
+Subject: Documentation
+Date: Sat, 13 Mar 2010 18:17:15 -0600
+Message-ID: <955FE8AF-8696-4253-8887-33922653F33D@gmail.com>
+Mime-Version: 1.0 (Apple Message framework v1077)
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>,
-	David Miller <davem@davemloft.net>,
-	Alexey Dobriyan <adobriyan@gmail.com>,
-	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org, yoshfuji@linux-ipv6.org
-To: Shan Wei <shanwei@cn.fujitsu.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 94.43.138.210.xn.2iij.net ([210.138.43.94]:34802 "EHLO
-	mail.st-paulia.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754101Ab0CMN7C (ORCPT
+Received: from mail-iw0-f136.google.com ([209.85.223.136]:59509 "EHLO
+	mail-iw0-f136.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759415Ab0CNAcu (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 13 Mar 2010 08:59:02 -0500
-In-Reply-To: <4B88BE39.6050307@cn.fujitsu.com>
+	Sat, 13 Mar 2010 19:32:50 -0500
+Received: by iwn42 with SMTP id 42so94051iwn.4
+        for <netfilter-devel@vger.kernel.org>; Sat, 13 Mar 2010 16:32:48 -0800 (PST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 Hi,
+is there some developing documentation about netfilter?
 
-(2010/02/27 15:39), Shan Wei wrote:
-> Register nf_conntrack_frag6_{timeout,high_thresh,low_thresh} sysctls per-netns.
-> nf_conntrack_frag6_timeout and ip6frag_time, nf_conntrack_frag6_low_thresh and ip6frag_low_thresh,
-> nf_conntrack_frag6_high_thresh and ip6frag_high_thresh, the three sets are equivalent.
-> The former sysctls are just an alias for he latter ones of IPv6.
->
-> More discussion about it, see http://marc.info/?l=netfilter-devel&m=126709777922959&w=2.
-
-As I mailed in reply to [0/7], I'm not for this,
-because the context (including parameters) should be kept
-separated between defragmentation in core ipv6 and one in netfilter.
-
---yoshfuji
+Giuseppe
