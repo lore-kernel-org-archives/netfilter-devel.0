@@ -1,7 +1,7 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 04/10] netfilter: xtables: merge xt_MARK into xt_mark
-Date: Tue, 16 Mar 2010 02:32:08 +0100
-Message-ID: <1268703135-2622-5-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 07/10] netfilter: update my email address
+Date: Tue, 16 Mar 2010 02:32:11 +0100
+Message-ID: <1268703135-2622-8-git-send-email-jengelh@medozas.de>
 References: <1268703135-2622-1-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
@@ -11,312 +11,177 @@ To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
 Received: from borg.medozas.de ([188.40.89.202]:49803 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965901Ab0CPBc2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Mar 2010 21:32:28 -0400
+	id S965929Ab0CPBcb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 15 Mar 2010 21:32:31 -0400
 In-Reply-To: <1268703135-2622-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Two arguments for combining the two:
-- xt_mark is pretty useless without xt_MARK
-- the actual code is so small anyway that the kmod metadata and the mod=
-ule
-  in its loaded state totally outweighs the combined actual code size.
-
-i586-before:
--rw-r--r-- 1 jengelh users 3821 Feb 10 01:01 xt_MARK.ko
--rw-r--r-- 1 jengelh users 2592 Feb 10 00:04 xt_MARK.o
--rw-r--r-- 1 jengelh users 3274 Feb 10 01:01 xt_mark.ko
--rw-r--r-- 1 jengelh users 2108 Feb 10 00:05 xt_mark.o
-   text    data     bss     dec     hex filename
-    354     264       0     618     26a xt_MARK.o
-    223     176       0     399     18f xt_mark.o
-And the runtime size is like 14 KB.
-
-i586-after:
--rw-r--r-- 1 jengelh users 3264 Feb 18 17:28 xt_mark.o
-
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/linux/netfilter/xt_MARK.h |    6 +---
- include/linux/netfilter/xt_mark.h |    4 ++
- net/netfilter/Kconfig             |   46 +++++++++++++++++++----------=
--
- net/netfilter/Makefile            |    5 ++-
- net/netfilter/xt_MARK.c           |   56 -----------------------------=
---------
- net/netfilter/xt_mark.c           |   35 +++++++++++++++++++++-
- 6 files changed, 70 insertions(+), 82 deletions(-)
- delete mode 100644 net/netfilter/xt_MARK.c
+ Documentation/feature-removal-schedule.txt |    2 +-
+ net/bridge/netfilter/ebt_ip6.c             |    2 +-
+ net/netfilter/xt_TCPOPTSTRIP.c             |    3 +--
+ net/netfilter/xt_connlimit.c               |    1 -
+ net/netfilter/xt_connmark.c                |    2 +-
+ net/netfilter/xt_hashlimit.c               |    2 +-
+ net/netfilter/xt_recent.c                  |    2 +-
+ net/netfilter/xt_time.c                    |    3 +--
+ net/netfilter/xt_u32.c                     |    3 +--
+ 9 files changed, 8 insertions(+), 12 deletions(-)
 
-diff --git a/include/linux/netfilter/xt_MARK.h b/include/linux/netfilte=
-r/xt_MARK.h
-index bc9561b..41c456d 100644
---- a/include/linux/netfilter/xt_MARK.h
-+++ b/include/linux/netfilter/xt_MARK.h
-@@ -1,10 +1,6 @@
- #ifndef _XT_MARK_H_target
- #define _XT_MARK_H_target
+diff --git a/Documentation/feature-removal-schedule.txt b/Documentation=
+/feature-removal-schedule.txt
+index 73ef30d..5078a65 100644
+--- a/Documentation/feature-removal-schedule.txt
++++ b/Documentation/feature-removal-schedule.txt
+@@ -241,7 +241,7 @@ What (Why):
 =20
--#include <linux/types.h>
--
--struct xt_mark_tginfo2 {
--	__u32 mark, mask;
--};
-+#include <linux/netfilter/xt_mark.h>
+ When:	January 2009 or Linux 2.7.0, whichever comes first
+ Why:	Superseded by newer revisions or modules
+-Who:	Jan Engelhardt <jengelh@computergmbh.de>
++Who:	Jan Engelhardt <jengelh@medozas.de>
 =20
- #endif /*_XT_MARK_H_target */
-diff --git a/include/linux/netfilter/xt_mark.h b/include/linux/netfilte=
-r/xt_mark.h
-index 6607c8f..ecadc40 100644
---- a/include/linux/netfilter/xt_mark.h
-+++ b/include/linux/netfilter/xt_mark.h
-@@ -3,6 +3,10 @@
+ ---------------------------
 =20
- #include <linux/types.h>
-=20
-+struct xt_mark_tginfo2 {
-+	__u32 mark, mask;
-+};
-+
- struct xt_mark_mtinfo1 {
- 	__u32 mark, mask;
- 	__u8 invert;
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index abf4ce6..236aa20 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -314,6 +314,23 @@ config NETFILTER_XTABLES
-=20
- if NETFILTER_XTABLES
-=20
-+comment "Xtables combined modules"
-+
-+config NETFILTER_XT_MARK
-+	tristate 'nfmark target and match support'
-+	default m if NETFILTER_ADVANCED=3Dn
-+	---help---
-+	This option adds the "MARK" target and "mark" match.
-+
-+	Netfilter mark matching allows you to match packets based on the
-+	"nfmark" value in the packet.
-+	The target allows you to create rules in the "mangle" table which alt=
-er
-+	the netfilter mark (nfmark) field associated with the packet.
-+
-+	Prior to routing, the nfmark can influence the routing method (see
-+	"Use netfilter MARK value as routing key") and can also be used by
-+	other subsystems to change their behavior.
-+
- # alphabetically ordered list of targets
-=20
- comment "Xtables targets"
-@@ -425,16 +442,12 @@ config NETFILTER_XT_TARGET_LED
-=20
- config NETFILTER_XT_TARGET_MARK
- 	tristate '"MARK" target support'
--	default m if NETFILTER_ADVANCED=3Dn
--	help
--	  This option adds a `MARK' target, which allows you to create rules
--	  in the `mangle' table which alter the netfilter mark (nfmark) field
--	  associated with the packet prior to routing. This can change
--	  the routing method (see `Use netfilter MARK value as routing
--	  key') and can also be used by other subsystems to change their
--	  behavior.
--
--	  To compile it as a module, choose M here.  If unsure, say N.
-+	depends on NETFILTER_ADVANCED
-+	select NETFILTER_XT_MARK
-+	---help---
-+	This is a backwards-compat option for the user's convenience
-+	(e.g. when running oldconfig). It selects
-+	CONFIG_NETFILTER_XT_MARK (combined mark/MARK module).
-=20
- config NETFILTER_XT_TARGET_NFLOG
- 	tristate '"NFLOG" target support'
-@@ -739,13 +752,12 @@ config NETFILTER_XT_MATCH_MAC
-=20
- config NETFILTER_XT_MATCH_MARK
- 	tristate '"mark" match support'
--	default m if NETFILTER_ADVANCED=3Dn
--	help
--	  Netfilter mark matching allows you to match packets based on the
--	  `nfmark' value in the packet.  This can be set by the MARK target
--	  (see below).
--
--	  To compile it as a module, choose M here.  If unsure, say N.
-+	depends on NETFILTER_ADVANCED
-+	select NETFILTER_XT_MARK
-+	---help---
-+	This is a backwards-compat option for the user's convenience
-+	(e.g. when running oldconfig). It selects
-+	CONFIG_NETFILTER_XT_MARK (combined mark/MARK module).
-=20
- config NETFILTER_XT_MATCH_MULTIPORT
- 	tristate '"multiport" Multiple port match support'
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index f873644..19775cc 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -40,6 +40,9 @@ obj-$(CONFIG_NETFILTER_TPROXY) +=3D nf_tproxy_core.o
- # generic X tables=20
- obj-$(CONFIG_NETFILTER_XTABLES) +=3D x_tables.o xt_tcpudp.o
-=20
-+# combos
-+obj-$(CONFIG_NETFILTER_XT_MARK) +=3D xt_mark.o
-+
- # targets
- obj-$(CONFIG_NETFILTER_XT_TARGET_CLASSIFY) +=3D xt_CLASSIFY.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_CONNMARK) +=3D xt_CONNMARK.o
-@@ -48,7 +51,6 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_CT) +=3D xt_CT.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_DSCP) +=3D xt_DSCP.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_HL) +=3D xt_HL.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_LED) +=3D xt_LED.o
--obj-$(CONFIG_NETFILTER_XT_TARGET_MARK) +=3D xt_MARK.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_NFLOG) +=3D xt_NFLOG.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_NFQUEUE) +=3D xt_NFQUEUE.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_NOTRACK) +=3D xt_NOTRACK.o
-@@ -76,7 +78,6 @@ obj-$(CONFIG_NETFILTER_XT_MATCH_IPRANGE) +=3D xt_ipra=
-nge.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_LENGTH) +=3D xt_length.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_LIMIT) +=3D xt_limit.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_MAC) +=3D xt_mac.o
--obj-$(CONFIG_NETFILTER_XT_MATCH_MARK) +=3D xt_mark.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_MULTIPORT) +=3D xt_multiport.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_OSF) +=3D xt_osf.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_OWNER) +=3D xt_owner.o
-diff --git a/net/netfilter/xt_MARK.c b/net/netfilter/xt_MARK.c
-deleted file mode 100644
-index 225f8d1..0000000
---- a/net/netfilter/xt_MARK.c
-+++ /dev/null
-@@ -1,56 +0,0 @@
--/*
-- *	xt_MARK - Netfilter module to modify the NFMARK field of an skb
-- *
-- *	(C) 1999-2001 Marc Boucher <marc@mbsi.ca>
-- *	Copyright =C2=A9 CC Computer Consultants GmbH, 2007 - 2008
+diff --git a/net/bridge/netfilter/ebt_ip6.c b/net/bridge/netfilter/ebt_=
+ip6.c
+index bbf2534..4cb60f1 100644
+--- a/net/bridge/netfilter/ebt_ip6.c
++++ b/net/bridge/netfilter/ebt_ip6.c
+@@ -4,7 +4,7 @@
+  *	Authors:
+  *	Manohar Castelino <manohar.r.castelino@intel.com>
+  *	Kuo-Lang Tseng <kuo-lang.tseng@intel.com>
 - *	Jan Engelhardt <jengelh@computergmbh.de>
-- *
-- *	This program is free software; you can redistribute it and/or modif=
++ *	Jan Engelhardt <jengelh@medozas.de>
+  *
+  * Summary:
+  * This is just a modification of the IPv4 code written by
+diff --git a/net/netfilter/xt_TCPOPTSTRIP.c b/net/netfilter/xt_TCPOPTST=
+RIP.c
+index 9dd8c8e..e8b5760 100644
+--- a/net/netfilter/xt_TCPOPTSTRIP.c
++++ b/net/netfilter/xt_TCPOPTSTRIP.c
+@@ -3,7 +3,6 @@
+  *
+  * Copyright (C) 2007 Sven Schnelle <svens@bitebene.org>
+  * Copyright =C2=A9 CC Computer Consultants GmbH, 2007
+- * Contact: Jan Engelhardt <jengelh@computergmbh.de>
+  *
+  * This program is free software; you can redistribute it and/or modif=
 y
-- *	it under the terms of the GNU General Public License version 2 as
-- *	published by the Free Software Foundation.
-- */
--
--#include <linux/module.h>
--#include <linux/skbuff.h>
--#include <linux/ip.h>
--#include <net/checksum.h>
--
--#include <linux/netfilter/x_tables.h>
--#include <linux/netfilter/xt_MARK.h>
--
--MODULE_LICENSE("GPL");
--MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
--MODULE_DESCRIPTION("Xtables: packet mark modification");
--MODULE_ALIAS("ipt_MARK");
--MODULE_ALIAS("ip6t_MARK");
--
--static unsigned int
--mark_tg(struct sk_buff *skb, const struct xt_target_param *par)
--{
--	const struct xt_mark_tginfo2 *info =3D par->targinfo;
--
--	skb->mark =3D (skb->mark & ~info->mask) ^ info->mark;
--	return XT_CONTINUE;
--}
--
--static struct xt_target mark_tg_reg __read_mostly =3D {
--	.name           =3D "MARK",
--	.revision       =3D 2,
--	.family         =3D NFPROTO_UNSPEC,
--	.target         =3D mark_tg,
--	.targetsize     =3D sizeof(struct xt_mark_tginfo2),
--	.me             =3D THIS_MODULE,
--};
--
--static int __init mark_tg_init(void)
--{
--	return xt_register_target(&mark_tg_reg);
--}
--
--static void __exit mark_tg_exit(void)
--{
--	xt_unregister_target(&mark_tg_reg);
--}
--
--module_init(mark_tg_init);
--module_exit(mark_tg_exit);
-diff --git a/net/netfilter/xt_mark.c b/net/netfilter/xt_mark.c
-index 1db07d8..035c468 100644
---- a/net/netfilter/xt_mark.c
-+++ b/net/netfilter/xt_mark.c
-@@ -18,9 +18,20 @@
+  * it under the terms of the GNU General Public License version 2 as
+@@ -136,7 +135,7 @@ static void __exit tcpoptstrip_tg_exit(void)
+=20
+ module_init(tcpoptstrip_tg_init);
+ module_exit(tcpoptstrip_tg_exit);
+-MODULE_AUTHOR("Sven Schnelle <svens@bitebene.org>, Jan Engelhardt <jen=
+gelh@computergmbh.de>");
++MODULE_AUTHOR("Sven Schnelle <svens@bitebene.org>, Jan Engelhardt <jen=
+gelh@medozas.de>");
+ MODULE_DESCRIPTION("Xtables: TCP option stripping");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ipt_TCPOPTSTRIP");
+diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.=
+c
+index 26997ce..9e624af 100644
+--- a/net/netfilter/xt_connlimit.c
++++ b/net/netfilter/xt_connlimit.c
+@@ -5,7 +5,6 @@
+  *   Nov 2002: Martin Bene <martin.bene@icomedias.com>:
+  *		only ignore TIME_WAIT or gone connections
+  *   (C) CC Computer Consultants GmbH, 2007
+- *   Contact: <jengelh@computergmbh.de>
+  *
+  * based on ...
+  *
+diff --git a/net/netfilter/xt_connmark.c b/net/netfilter/xt_connmark.c
+index d184515..97465a4 100644
+--- a/net/netfilter/xt_connmark.c
++++ b/net/netfilter/xt_connmark.c
+@@ -4,7 +4,7 @@
+  *	Copyright (C) 2002,2004 MARA Systems AB <http://www.marasystems.com=
+>
+  *	by Henrik Nordstrom <hno@marasystems.com>
+  *	Copyright =C2=A9 CC Computer Consultants GmbH, 2007 - 2008
+- *	Jan Engelhardt <jengelh@computergmbh.de>
++ *	Jan Engelhardt <jengelh@medozas.de>
+  *
+  * This program is free software; you can redistribute it and/or modif=
+y
+  * it under the terms of the GNU General Public License as published b=
+y
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.=
+c
+index d952806..8032463 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -36,7 +36,7 @@
 =20
  MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Marc Boucher <marc@mbsi.ca>");
--MODULE_DESCRIPTION("Xtables: packet mark match");
-+MODULE_DESCRIPTION("Xtables: packet mark operations");
- MODULE_ALIAS("ipt_mark");
- MODULE_ALIAS("ip6t_mark");
-+MODULE_ALIAS("ipt_MARK");
-+MODULE_ALIAS("ip6t_MARK");
-+
-+static unsigned int
-+mark_tg(struct sk_buff *skb, const struct xt_target_param *par)
-+{
-+	const struct xt_mark_tginfo2 *info =3D par->targinfo;
-+
-+	skb->mark =3D (skb->mark & ~info->mask) ^ info->mark;
-+	return XT_CONTINUE;
-+}
+ MODULE_AUTHOR("Harald Welte <laforge@netfilter.org>");
+-MODULE_AUTHOR("Jan Engelhardt <jengelh@computergmbh.de>");
++MODULE_AUTHOR("Jan Engelhardt <jengelh@medozas.de>");
+ MODULE_DESCRIPTION("Xtables: per hash-bucket rate-limit match");
+ MODULE_ALIAS("ipt_hashlimit");
+ MODULE_ALIAS("ip6t_hashlimit");
+diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
+index 7073dbb..1af74dd 100644
+--- a/net/netfilter/xt_recent.c
++++ b/net/netfilter/xt_recent.c
+@@ -34,7 +34,7 @@
+ #include <linux/netfilter/xt_recent.h>
 =20
- static bool
- mark_mt(const struct sk_buff *skb, const struct xt_match_param *par)
-@@ -30,6 +41,15 @@ mark_mt(const struct sk_buff *skb, const struct xt_m=
-atch_param *par)
- 	return ((skb->mark & info->mask) =3D=3D info->mark) ^ info->invert;
- }
+ MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
+-MODULE_AUTHOR("Jan Engelhardt <jengelh@computergmbh.de>");
++MODULE_AUTHOR("Jan Engelhardt <jengelh@medozas.de>");
+ MODULE_DESCRIPTION("Xtables: \"recently-seen\" host matching for IPv4"=
+);
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ipt_recent");
+diff --git a/net/netfilter/xt_time.c b/net/netfilter/xt_time.c
+index 93acaa5..9a9c9a3 100644
+--- a/net/netfilter/xt_time.c
++++ b/net/netfilter/xt_time.c
+@@ -1,7 +1,6 @@
+ /*
+  *	xt_time
+  *	Copyright =C2=A9 CC Computer Consultants GmbH, 2007
+- *	Contact: <jengelh@computergmbh.de>
+  *
+  *	based on ipt_time by Fabrice MARIE <fabrice@netfilter.org>
+  *	This is a module which is used for time matching
+@@ -264,7 +263,7 @@ static void __exit time_mt_exit(void)
 =20
-+static struct xt_target mark_tg_reg __read_mostly =3D {
-+	.name           =3D "MARK",
-+	.revision       =3D 2,
-+	.family         =3D NFPROTO_UNSPEC,
-+	.target         =3D mark_tg,
-+	.targetsize     =3D sizeof(struct xt_mark_tginfo2),
-+	.me             =3D THIS_MODULE,
-+};
-+
- static struct xt_match mark_mt_reg __read_mostly =3D {
- 	.name           =3D "mark",
- 	.revision       =3D 1,
-@@ -41,12 +61,23 @@ static struct xt_match mark_mt_reg __read_mostly =3D=
- {
+ module_init(time_mt_init);
+ module_exit(time_mt_exit);
+-MODULE_AUTHOR("Jan Engelhardt <jengelh@computergmbh.de>");
++MODULE_AUTHOR("Jan Engelhardt <jengelh@medozas.de>");
+ MODULE_DESCRIPTION("Xtables: time-based matching");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ipt_time");
+diff --git a/net/netfilter/xt_u32.c b/net/netfilter/xt_u32.c
+index 24a5276..d7c05f0 100644
+--- a/net/netfilter/xt_u32.c
++++ b/net/netfilter/xt_u32.c
+@@ -3,7 +3,6 @@
+  *
+  *	Original author: Don Cohen <don@isis.cs3-inc.com>
+  *	(C) CC Computer Consultants GmbH, 2007
+- *	Contact: <jengelh@computergmbh.de>
+  */
 =20
- static int __init mark_mt_init(void)
- {
--	return xt_register_match(&mark_mt_reg);
-+	int ret;
-+
-+	ret =3D xt_register_target(&mark_tg_reg);
-+	if (ret < 0)
-+		return ret;
-+	ret =3D xt_register_match(&mark_mt_reg);
-+	if (ret < 0) {
-+		xt_unregister_target(&mark_tg_reg);
-+		return ret;
-+	}
-+	return 0;
- }
+ #include <linux/module.h>
+@@ -117,7 +116,7 @@ static void __exit u32_mt_exit(void)
 =20
- static void __exit mark_mt_exit(void)
- {
- 	xt_unregister_match(&mark_mt_reg);
-+	xt_unregister_target(&mark_tg_reg);
- }
-=20
- module_init(mark_mt_init);
+ module_init(u32_mt_init);
+ module_exit(u32_mt_exit);
+-MODULE_AUTHOR("Jan Engelhardt <jengelh@computergmbh.de>");
++MODULE_AUTHOR("Jan Engelhardt <jengelh@medozas.de>");
+ MODULE_DESCRIPTION("Xtables: arbitrary byte matching");
+ MODULE_LICENSE("GPL");
+ MODULE_ALIAS("ipt_u32");
 --=20
 1.7.0.2
 
