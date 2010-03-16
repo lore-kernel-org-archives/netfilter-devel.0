@@ -1,60 +1,98 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: arptables 0.0.3-4 build fixes
-Date: Tue, 16 Mar 2010 16:27:58 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.1003161617120.10927@obet.zrqbmnf.qr>
-References: <alpine.LSU.2.01.1003161144290.27631@obet.zrqbmnf.qr> <4B9F8499.1060104@pandora.be>
+From: Thomas Woerner <twoerner@redhat.com>
+Subject: Chain name length inconsistent
+Date: Tue, 16 Mar 2010 16:35:29 +0100
+Message-ID: <4B9FA541.7080408@redhat.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Bart De Schuymer <bdschuym@pandora.be>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:54291 "EHLO borg.medozas.de"
+Received: from mx1.redhat.com ([209.132.183.28]:1281 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966335Ab0CPP2A (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 16 Mar 2010 11:28:00 -0400
-In-Reply-To: <4B9F8499.1060104@pandora.be>
+	id S933100Ab0CPPfc (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 16 Mar 2010 11:35:32 -0400
+Received: from int-mx08.intmail.prod.int.phx2.redhat.com (int-mx08.intmail.prod.int.phx2.redhat.com [10.5.11.21])
+	by mx1.redhat.com (8.13.8/8.13.8) with ESMTP id o2GFZVFp012508
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <netfilter-devel@vger.kernel.org>; Tue, 16 Mar 2010 11:35:31 -0400
+Received: from [10.32.5.53] (unused [10.32.5.53] (may be forged))
+	by int-mx08.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id o2GFZTFq027510
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <netfilter-devel@vger.kernel.org>; Tue, 16 Mar 2010 11:35:31 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hello,
 
-On Tuesday 2010-03-16 14:16, Bart De Schuymer wrote:
->> 
->> from my side two build patches for arptables.
->> 
->> (1) Do not call install with -o or -g, because it makes unprivileged 
->> installs (used by build chroots) fail. Autotools does not use -o or -g 
->> either, so the usage is consistent and does what was inteded when root
->> is running `make install`.
->> 
->> (2) Fixing all the compiler warnings that turned up about printf 
->> formatting and strict-aliasing.
->
->Someone once insisted using this -o -g usage long ago and no
->distributors have complained about it yet,
+the size of a chain name is not consistent:
 
-Fedora ships arptables_jf, which does not use -o,-g, thus does not have
-a problem to report.
+1) Adding a new chain name is checking for max length 30:
 
-OpenSUSE shipped arptables_jf. I moved it back to arptables
-because the jf fork is in an uncertain state.
+iptabels.c:1881 ( do_command):
+         if (chain && strlen(chain) > IPT_FUNCTION_MAXNAMELEN)
+                 xtables_error(PARAMETER_PROBLEM,
+                            "chain name `%s' too long (must be under %i chars)",
+                            chain, IPT_FUNCTION_MAXNAMELEN);
 
-Debian either builds with root or has patched install(1).
+include/linux/netfilter_ipv4/ip_tables.h
+#define IPT_FUNCTION_MAXNAMELEN XT_FUNCTION_MAXNAMELEN
 
->so I'm going to leave it in
->for now. Plenty of other projects do it this way too.
+include/linux/netfilter/x_tables.h:
+#define XT_FUNCTION_MAXNAMELEN 30
 
-Well it is wrong, and I can list many more projects (namely:
-everything using automake's built-in installation) that do it the
-right way instead.
 
-If you are still not convinced: running automake's `make install`
-as root will (which you will have to do to even be eligible to
-install it to system locations), surprise surprise, install the
-files as root. So it's doing the right thing in both cases.
+2) Using a jump target results in a check for max length 31:
 
->The warings that occur when using llu with 64-bit numbers should be
->resolved with the PRIu64 macro. Could you fix that and resubmit, please?
->Thanks.
+iptables.c:1564 (do_command):
+                         jumpto = parse_target(optarg);
 
-Hmm, iptables is not using PRI either so it seemed like the preferred
-approach.
+
+iptables.c:464 (parse_target):
+         if (strlen(targetname)+1 > sizeof(ipt_chainlabel))
+                 xtables_error(PARAMETER_PROBLEM,
+                            "Invalid target name `%s' (%u chars max)",
+                            targetname, (unsigned int)sizeof(ipt_chainlabel)-1);
+
+include/libiptc/libiptc.h:
+         typedef char ipt_chainlabel[32];
+
+
+3) But setting the target copies the name in an array of size 29:
+
+iptables.c:1576 (do_command):
+                                 strcpy(target->t->u.user.name, jumpto);
+
+include/linux/netfilter/x_tables.h:
+struct xt_entry_match {
+         union {
+                 struct {
+                         __u16 match_size;
+
+                         /* Used by userspace */
+                         char name[XT_FUNCTION_MAXNAMELEN-1];
+
+                         __u8 revision;
+                 } user;
+                 struct {
+                         __u16 match_size;
+
+                         /* Used inside the kernel */
+                         struct xt_match *match;
+                 } kernel;
+
+                 /* Total length */
+                 __u16 match_size;
+         } u;
+
+         unsigned char data[0];
+};
+
+Therefore all the checks should be for max length 29, right?
+
+Please also have a look at
+http://bugzilla.netfilter.org/show_bug.cgi?id=641
+https://bugzilla.redhat.com/show_bug.cgi?id=545600
+
+
+Thanks,
+Thomas
