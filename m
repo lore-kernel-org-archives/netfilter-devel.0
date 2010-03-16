@@ -1,216 +1,145 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 10/10] netfilter: xt_recent: remove old proc directory
-Date: Tue, 16 Mar 2010 02:32:14 +0100
-Message-ID: <1268703135-2622-11-git-send-email-jengelh@medozas.de>
-References: <1268703135-2622-1-git-send-email-jengelh@medozas.de>
-Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+From: Peter Volkov <pva@gentoo.org>
+Subject: ebtables-2.0.9-2: build fixes
+Date: Tue, 16 Mar 2010 10:52:57 +0300
+Message-ID: <1268725978.19121.3.camel@tablet>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="=-++C7r43Eq8tTV+/mODRS"
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:49823 "EHLO borg.medozas.de"
+Received: from smtp.gentoo.org ([140.211.166.183]:52254 "EHLO smtp.gentoo.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965933Ab0CPBcf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 15 Mar 2010 21:32:35 -0400
-In-Reply-To: <1268703135-2622-1-git-send-email-jengelh@medozas.de>
+	id S1757659Ab0CPHxK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 16 Mar 2010 03:53:10 -0400
+Received: from [192.168.1.35] (unknown [77.246.104.171])
+	(using TLSv1 with cipher DHE-RSA-CAMELLIA256-SHA (256/256 bits))
+	(No client certificate requested)
+	by smtp.gentoo.org (Postfix) with ESMTP id F009B67D3A
+	for <netfilter-devel@vger.kernel.org>; Tue, 16 Mar 2010 07:53:08 +0000 (UTC)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The compat option was introduced in October 2008.
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- Documentation/feature-removal-schedule.txt |   10 ---
- net/netfilter/Kconfig                      |    7 --
- net/netfilter/xt_recent.c                  |  105 ----------------------------
- 3 files changed, 0 insertions(+), 122 deletions(-)
+--=-++C7r43Eq8tTV+/mODRS
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 
-diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
-index 5078a65..671c354 100644
---- a/Documentation/feature-removal-schedule.txt
-+++ b/Documentation/feature-removal-schedule.txt
-@@ -235,16 +235,6 @@ Who:	Thomas Gleixner <tglx@linutronix.de>
- 
- ---------------------------
- 
--What (Why):
--	- xt_recent: the old ipt_recent proc dir
--	  (superseded by /proc/net/xt_recent)
--
--When:	January 2009 or Linux 2.7.0, whichever comes first
--Why:	Superseded by newer revisions or modules
--Who:	Jan Engelhardt <jengelh@medozas.de>
--
-----------------------------
--
- What:	GPIO autorequest on gpio_direction_{input,output}() in gpiolib
- When:	February 2010
- Why:	All callers should use explicit gpio_request()/gpio_free().
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index b68f2f9..19b7d87 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -850,13 +850,6 @@ config NETFILTER_XT_MATCH_RECENT
- 	Short options are available by using 'iptables -m recent -h'
- 	Official Website: <http://snowman.net/projects/ipt_recent/>
- 
--config NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
--	bool 'Enable obsolete /proc/net/ipt_recent'
--	depends on NETFILTER_XT_MATCH_RECENT && PROC_FS
--	---help---
--	This option enables the old /proc/net/ipt_recent interface,
--	which has been obsoleted by /proc/net/xt_recent.
--
- config NETFILTER_XT_MATCH_SCTP
- 	tristate  '"sctp" protocol match support (EXPERIMENTAL)'
- 	depends on EXPERIMENTAL
-diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
-index bcabfbc..2ff8aae 100644
---- a/net/netfilter/xt_recent.c
-+++ b/net/netfilter/xt_recent.c
-@@ -83,9 +83,6 @@ struct recent_net {
- 	struct list_head	tables;
- #ifdef CONFIG_PROC_FS
- 	struct proc_dir_entry	*xt_recent;
--#ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
--	struct proc_dir_entry	*ipt_recent;
--#endif
- #endif
- };
- 
-@@ -342,17 +339,6 @@ static bool recent_mt_check(const struct xt_mtchk_param *par)
- 	}
- 	pde->uid = ip_list_uid;
- 	pde->gid = ip_list_gid;
--#ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
--	pde = proc_create_data(t->name, ip_list_perms, recent_net->ipt_recent,
--		      &recent_old_fops, t);
--	if (pde == NULL) {
--		remove_proc_entry(t->name, recent_net->xt_recent);
--		kfree(t);
--		goto out;
--	}
--	pde->uid = ip_list_uid;
--	pde->gid = ip_list_gid;
--#endif
- #endif
- 	spin_lock_bh(&recent_lock);
- 	list_add_tail(&t->list, &recent_net->tables);
-@@ -376,9 +362,6 @@ static void recent_mt_destroy(const struct xt_mtdtor_param *par)
- 		list_del(&t->list);
- 		spin_unlock_bh(&recent_lock);
- #ifdef CONFIG_PROC_FS
--#ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
--		remove_proc_entry(t->name, recent_net->ipt_recent);
--#endif
- 		remove_proc_entry(t->name, recent_net->xt_recent);
- #endif
- 		recent_table_flush(t);
-@@ -470,84 +453,6 @@ static int recent_seq_open(struct inode *inode, struct file *file)
- 	return 0;
- }
- 
--#ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
--static int recent_old_seq_open(struct inode *inode, struct file *filp)
--{
--	static bool warned_of_old;
--
--	if (unlikely(!warned_of_old)) {
--		printk(KERN_INFO KBUILD_MODNAME ": Use of /proc/net/ipt_recent"
--		       " is deprecated; use /proc/net/xt_recent.\n");
--		warned_of_old = true;
--	}
--	return recent_seq_open(inode, filp);
--}
--
--static ssize_t recent_old_proc_write(struct file *file,
--				     const char __user *input,
--				     size_t size, loff_t *loff)
--{
--	const struct proc_dir_entry *pde = PDE(file->f_path.dentry->d_inode);
--	struct recent_table *t = pde->data;
--	struct recent_entry *e;
--	char buf[sizeof("+255.255.255.255")], *c = buf;
--	union nf_inet_addr addr = {};
--	int add;
--
--	if (size > sizeof(buf))
--		size = sizeof(buf);
--	if (copy_from_user(buf, input, size))
--		return -EFAULT;
--
--	c = skip_spaces(c);
--
--	if (size - (c - buf) < 5)
--		return c - buf;
--	if (!strncmp(c, "clear", 5)) {
--		c += 5;
--		spin_lock_bh(&recent_lock);
--		recent_table_flush(t);
--		spin_unlock_bh(&recent_lock);
--		return c - buf;
--	}
--
--	switch (*c) {
--	case '-':
--		add = 0;
--		c++;
--		break;
--	case '+':
--		c++;
--	default:
--		add = 1;
--		break;
--	}
--	addr.ip = in_aton(c);
--
--	spin_lock_bh(&recent_lock);
--	e = recent_entry_lookup(t, &addr, NFPROTO_IPV4, 0);
--	if (e == NULL) {
--		if (add)
--			recent_entry_init(t, &addr, NFPROTO_IPV4, 0);
--	} else {
--		if (add)
--			recent_entry_update(t, e);
--		else
--			recent_entry_remove(t, e);
--	}
--	spin_unlock_bh(&recent_lock);
--	return size;
--}
--
--static const struct file_operations recent_old_fops = {
--	.open		= recent_old_seq_open,
--	.read		= seq_read,
--	.write		= recent_old_proc_write,
--	.release	= seq_release_private,
--	.owner		= THIS_MODULE,
--};
--#endif
--
- static ssize_t
- recent_mt_proc_write(struct file *file, const char __user *input,
- 		     size_t size, loff_t *loff)
-@@ -636,21 +541,11 @@ static int __net_init recent_proc_net_init(struct net *net)
- 	recent_net->xt_recent = proc_mkdir("xt_recent", net->proc_net);
- 	if (!recent_net->xt_recent)
- 		return -ENOMEM;
--#ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
--	recent_net->ipt_recent = proc_mkdir("ipt_recent", net->proc_net);
--	if (!recent_net->ipt_recent) {
--		proc_net_remove(net, "xt_recent");
--		return -ENOMEM;
--	}
--#endif
- 	return 0;
- }
- 
- static void __net_exit recent_proc_net_exit(struct net *net)
- {
--#ifdef CONFIG_NETFILTER_XT_MATCH_RECENT_PROC_COMPAT
--	proc_net_remove(net, "ipt_recent");
--#endif
- 	proc_net_remove(net, "xt_recent");
- }
- #else
+Hello. I hope this is correct mailing list to post patches for ebtables.
+Please, review and apply attached patches for ebtables:
+
+1. ebtables-v2.0.9-2-LDFLAGS.diff - respect LDFLAGS during ebtables
+build.
+2. ebtables-v2.0.8-2-ethertype-DESTDIR-mkdir.patch - create directories
+to avoid build failure when DESTDIR is supplied.
+
+With best regards,
 -- 
-1.7.0.2
+Peter.
+
+--=-++C7r43Eq8tTV+/mODRS
+Content-Disposition: attachment; filename="ebtables-v2.0.8-2-ethertype-DESTDIR-mkdir.patch"
+Content-Type: text/x-patch; name="ebtables-v2.0.8-2-ethertype-DESTDIR-mkdir.patch"; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+
+=== modified file 'Makefile'
+--- Makefile	2008-08-13 04:20:07 +0000
++++ Makefile	2008-08-13 04:28:51 +0000
+@@ -153,10 +153,13 @@
+ .PHONY: scripts
+ scripts: ebtables-save ebtables.sysv ebtables-config
+ 	cat ebtables-save | sed 's/__EXEC_PATH__/$(tmp1)/g' > ebtables-save_
++	mkdir -p $(DESTDIR)$(BINDIR)
+ 	install -m 0755 -o root -g root ebtables-save_ $(DESTDIR)$(BINDIR)/ebtables-save
+ 	cat ebtables.sysv | sed 's/__EXEC_PATH__/$(tmp1)/g' | sed 's/__SYSCONFIG__/$(tmp2)/g' > ebtables.sysv_
++	mkdir -p $(DESTDIR)$(INITDIR)
+ 	install -m 0755 -o root -g root ebtables.sysv_ $(DESTDIR)$(INITDIR)/ebtables
+ 	cat ebtables-config | sed 's/__SYSCONFIG__/$(tmp2)/g' > ebtables-config_
++	mkdir -p $(DESTDIR)$(SYSCONFIGDIR)
+ 	install -m 0600 -o root -g root ebtables-config_ $(DESTDIR)$(SYSCONFIGDIR)/ebtables-config
+ 	rm -f ebtables-save_ ebtables.sysv_ ebtables-config_
+ 
+@@ -166,9 +169,9 @@
+ 	install -m 0644 -o root -g root ebtables.8_ $(DESTDIR)$@
+ 	rm -f ebtables.8_
+ 
+-$(ETHERTYPESFILE): ethertypes
+-	mkdir -p $(DESTDIR)$(@D)
+-	install -m 0644 -o root -g root $< $(DESTDIR)$@
++$(DESTDIR)$(ETHERTYPESFILE): ethertypes
++	mkdir -p $(@D)
++	install -m 0644 -o root -g root $< $@
+ 
+ .PHONY: exec
+ exec: ebtables ebtables-restore
+@@ -177,7 +180,7 @@
+ 	install -m 0755 -o root -g root ebtables-restore $(DESTDIR)$(BINDIR)/ebtables-restore
+ 
+ .PHONY: install
+-install: $(MANDIR)/man8/ebtables.8 $(ETHERTYPESFILE) exec scripts
++install: $(MANDIR)/man8/ebtables.8 $(DESTDIR)$(ETHERTYPESFILE) exec scripts
+ 	mkdir -p $(DESTDIR)$(LIBDIR)
+ 	install -m 0755 extensions/*.so $(DESTDIR)$(LIBDIR)
+ 	install -m 0755 *.so $(DESTDIR)$(LIBDIR)
+
+
+--=-++C7r43Eq8tTV+/mODRS
+Content-Disposition: attachment; filename="ebtables-v2.0.9-2-LDFLAGS.diff"
+Content-Type: text/x-patch; name="ebtables-v2.0.9-2-LDFLAGS.diff"; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+
+=== modified file 'Makefile'
+--- Makefile	2010-03-16 07:37:01 +0000
++++ Makefile	2010-03-16 07:39:15 +0000
+@@ -18,7 +18,6 @@
+ CFLAGS:=-Wall -Wunused
+ CFLAGS_SH_LIB:=-fPIC
+ CC:=gcc
+-LD:=ld
+ 
+ ifeq ($(shell uname -m),sparc64)
+ CFLAGS+=-DEBT_MIN_ALIGN=8 -DKERNEL_64_USERSPACE_32
+@@ -85,10 +84,10 @@
+ 
+ .PHONY: libebtc
+ libebtc: $(OBJECTS2)
+-	$(CC) -shared -Wl,-soname,libebtc.so -o libebtc.so -lc $(OBJECTS2)
++	$(CC) -shared $(LDFLAGS) -Wl,-soname,libebtc.so -o libebtc.so -lc $(OBJECTS2)
+ 
+ ebtables: $(OBJECTS) ebtables-standalone.o libebtc
+-	$(CC) $(CFLAGS) $(CFLAGS_SH_LIB) -o $@ ebtables-standalone.o -I$(KERNEL_INCLUDES) -L. -Lextensions -lebtc $(EXT_LIBSI) \
++	$(CC) $(CFLAGS) $(CFLAGS_SH_LIB) $(LDFLAGS) -o $@ ebtables-standalone.o -I$(KERNEL_INCLUDES) -L. -Lextensions -lebtc $(EXT_LIBSI) \
+ 	-Wl,-rpath,$(LIBDIR)
+ 
+ ebtablesu: ebtablesu.c
+@@ -105,7 +104,7 @@
+ 	$(CC) $(CFLAGS) $(PROGSPECS) -c $< -o $@  -I$(KERNEL_INCLUDES)
+ 
+ ebtables-restore: $(OBJECTS) ebtables-restore.o libebtc
+-	$(CC) $(CFLAGS) -o $@ ebtables-restore.o -I$(KERNEL_INCLUDES) -L. -Lextensions -lebtc $(EXT_LIBSI) \
++	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ ebtables-restore.o -I$(KERNEL_INCLUDES) -L. -Lextensions -lebtc $(EXT_LIBSI) \
+ 	-Wl,-rpath,$(LIBDIR)
+ 
+ .PHONY: daemon
+
+=== modified file 'extensions/Makefile'
+--- extensions/Makefile	2010-03-16 07:37:01 +0000
++++ extensions/Makefile	2010-03-16 07:37:43 +0000
+@@ -11,13 +11,13 @@
+ EXT_LIBSI+=$(foreach T,$(EXT_TABLES), -lebtable_$(T))
+ 
+ extensions/ebt_%.so: extensions/ebt_%.o
+-	$(CC) -shared -o $@ -lc $< -nostartfiles
++	$(CC) $(LDFLAGS) -shared -o $@ -lc $< -nostartfiles
+ 
+ extensions/libebt_%.so: extensions/ebt_%.so
+ 	mv $< $@
+ 
+ extensions/ebtable_%.so: extensions/ebtable_%.o
+-	$(CC) -shared -o $@ -lc $< -nostartfiles
++	$(CC) $(LDFLAGS) -shared -o $@ -lc $< -nostartfiles
+ 
+ extensions/libebtable_%.so: extensions/ebtable_%.so
+ 	mv $< $@
+
+
+--=-++C7r43Eq8tTV+/mODRS--
 
