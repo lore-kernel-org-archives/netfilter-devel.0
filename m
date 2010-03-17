@@ -1,7 +1,7 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 7/9] netfilter: xtables: inclusion of xt_SYSRQ
-Date: Wed, 17 Mar 2010 14:19:02 +0100
-Message-ID: <1268831945-6041-8-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 8/9] netfilter: xtables: inclusion of xt_TEE
+Date: Wed, 17 Mar 2010 14:19:03 +0100
+Message-ID: <1268831945-6041-9-git-send-email-jengelh@medozas.de>
 References: <1268831945-6041-1-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=ISO-8859-1
@@ -9,451 +9,409 @@ Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:59361 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:59364 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751011Ab0CQNTX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Mar 2010 09:19:23 -0400
+	id S1754856Ab0CQNTY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 17 Mar 2010 09:19:24 -0400
 In-Reply-To: <1268831945-6041-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The SYSRQ target will allow to remotely invoke sysrq on the local
-machine. Authentication is by means of a pre-shared key that can
-either be transmitted plaintext or digest-secured.
+xt_TEE can be used to clone and reroute a packet. This can for
+example be used to copy traffic at a router for logging purposes
+to another dedicated machine.
 
+References: http://www.gossamer-threads.com/lists/iptables/devel/68781
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- net/netfilter/Kconfig    |   12 ++
- net/netfilter/Makefile   |    1 +
- net/netfilter/xt_SYSRQ.c |  372 ++++++++++++++++++++++++++++++++++++++=
+ include/linux/netfilter/Kbuild   |    1 +
+ include/linux/netfilter/xt_TEE.h |    8 +
+ net/netfilter/Kconfig            |    7 +
+ net/netfilter/Makefile           |    1 +
+ net/netfilter/xt_TEE.c           |  304 ++++++++++++++++++++++++++++++=
 ++++++++
- 3 files changed, 385 insertions(+), 0 deletions(-)
- create mode 100644 net/netfilter/xt_SYSRQ.c
+ 5 files changed, 321 insertions(+), 0 deletions(-)
+ create mode 100644 include/linux/netfilter/xt_TEE.h
+ create mode 100644 net/netfilter/xt_TEE.c
 
+diff --git a/include/linux/netfilter/Kbuild b/include/linux/netfilter/K=
+build
+index a5a63e4..48767cd 100644
+--- a/include/linux/netfilter/Kbuild
++++ b/include/linux/netfilter/Kbuild
+@@ -16,6 +16,7 @@ header-y +=3D xt_RATEEST.h
+ header-y +=3D xt_SECMARK.h
+ header-y +=3D xt_TCPMSS.h
+ header-y +=3D xt_TCPOPTSTRIP.h
++header-y +=3D xt_TEE.h
+ header-y +=3D xt_TPROXY.h
+ header-y +=3D xt_comment.h
+ header-y +=3D xt_connbytes.h
+diff --git a/include/linux/netfilter/xt_TEE.h b/include/linux/netfilter=
+/xt_TEE.h
+new file mode 100644
+index 0000000..83fa768
+--- /dev/null
++++ b/include/linux/netfilter/xt_TEE.h
+@@ -0,0 +1,8 @@
++#ifndef _XT_TEE_TARGET_H
++#define _XT_TEE_TARGET_H
++
++struct xt_tee_tginfo {
++	union nf_inet_addr gw;
++};
++
++#endif /* _XT_TEE_TARGET_H */
 diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 8055786..3f2042b 100644
+index 3f2042b..bfd9b6f 100644
 --- a/net/netfilter/Kconfig
 +++ b/net/netfilter/Kconfig
-@@ -502,6 +502,18 @@ config NETFILTER_XT_TARGET_RATEEST
+@@ -514,6 +514,13 @@ config NETFILTER_XT_TARGET_SYSRQ
+ 	Besides plaintext packets, digest-secured SYSRQ requests will be
+ 	supported when CONFIG_CRYPTO is enabled.
 =20
- 	  To compile it as a module, choose M here.  If unsure, say N.
-=20
-+config NETFILTER_XT_TARGET_SYSRQ
-+	tristate '"SYSRQ" - remote sysrq invocation'
++config NETFILTER_XT_TARGET_TEE
++	tristate '"TEE" - packet cloning to alternate destiantion'
 +	depends on NETFILTER_ADVANCED
 +	---help---
-+	This option enables the "SYSRQ" target which can be used to trigger
-+	sysrq from a remote machine using a magic UDP packet with a pre-share=
-d
-+	password. This is useful when the receiving host has locked up in an
-+	Oops yet still can process incoming packets.
-+
-+	Besides plaintext packets, digest-secured SYSRQ requests will be
-+	supported when CONFIG_CRYPTO is enabled.
++	This option adds a "TEE" target with which a packet can be cloned and
++	this clone be rerouted to another nexthop.
 +
  config NETFILTER_XT_TARGET_TPROXY
  	tristate '"TPROXY" target support (EXPERIMENTAL)'
  	depends on EXPERIMENTAL
 diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index cd31afe..0bfd0af 100644
+index 0bfd0af..f032195 100644
 --- a/net/netfilter/Makefile
 +++ b/net/netfilter/Makefile
-@@ -56,6 +56,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_NFQUEUE) +=3D xt_NFQ=
-UEUE.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_NOTRACK) +=3D xt_NOTRACK.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_RATEEST) +=3D xt_RATEEST.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_SECMARK) +=3D xt_SECMARK.o
-+obj-$(CONFIG_NETFILTER_XT_TARGET_SYSRQ) +=3D xt_SYSRQ.o
+@@ -60,6 +60,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_SYSRQ) +=3D xt_SYSRQ=
+=2Eo
  obj-$(CONFIG_NETFILTER_XT_TARGET_TPROXY) +=3D xt_TPROXY.o
  obj-$(CONFIG_NETFILTER_XT_TARGET_TCPMSS) +=3D xt_TCPMSS.o
  obj-$(CONFIG_NETFILTER_XT_TARGET_TCPOPTSTRIP) +=3D xt_TCPOPTSTRIP.o
-diff --git a/net/netfilter/xt_SYSRQ.c b/net/netfilter/xt_SYSRQ.c
++obj-$(CONFIG_NETFILTER_XT_TARGET_TEE) +=3D xt_TEE.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_TRACE) +=3D xt_TRACE.o
+=20
+ # matches
+diff --git a/net/netfilter/xt_TEE.c b/net/netfilter/xt_TEE.c
 new file mode 100644
-index 0000000..a843643
+index 0000000..7b1cb42
 --- /dev/null
-+++ b/net/netfilter/xt_SYSRQ.c
-@@ -0,0 +1,372 @@
++++ b/net/netfilter/xt_TEE.c
+@@ -0,0 +1,304 @@
 +/*
-+ *	"SYSRQ" target extension for Netfilter
-+ *	Copyright =C2=A9 Jan Engelhardt <jengelh [at] medozas de>, 2008 - 2=
-010
++ *	"TEE" target extension for Xtables
++ *	Copyright =C2=A9 Sebastian Cla=C3=9Fen <sebastian.classen [at] free=
+net de>, 2007
++ *	Jan Engelhardt <jengelh [at] medozas de>, 2007 - 2008
 + *
-+ *	Based upon the ipt_SYSRQ idea by Marek Zalem <marek [at] terminus s=
-k>
++ *	based on ipt_ROUTE.c from C=C3=A9dric de Launois
++ *	<delaunois [at] info ucl ac be>
 + *
 + *	This program is free software; you can redistribute it and/or
 + *	modify it under the terms of the GNU General Public License
-+ *	version 2 or later as published by the Free Software Foundation.
++ *	version 2 or later, as published by the Free Software Foundation.
 + */
-+#include <linux/in.h>
 +#include <linux/ip.h>
-+#include <linux/ipv6.h>
 +#include <linux/module.h>
++#include <linux/route.h>
 +#include <linux/skbuff.h>
-+#include <linux/sysrq.h>
-+#include <linux/udp.h>
-+#include <linux/netfilter_ipv4/ip_tables.h>
-+#include <linux/netfilter_ipv6/ip6_tables.h>
-+#include <linux/netfilter/x_tables.h>
-+#include <linux/crypto.h>
-+#include <linux/scatterlist.h>
++#include <net/checksum.h>
++#include <net/icmp.h>
 +#include <net/ip.h>
++#include <net/ip6_route.h>
++#include <net/route.h>
++#include <linux/netfilter/x_tables.h>
++#include <linux/netfilter/xt_TEE.h>
 +
-+#if defined(CONFIG_CRYPTO) || defined(CRYPTO_CONFIG_MODULE)
-+#	define WITH_CRYPTO 1
++#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE=
+)
++#	define WITH_CONNTRACK 1
++#	include <net/netfilter/nf_conntrack.h>
++static struct nf_conn tee_track;
 +#endif
 +#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
 +#	define WITH_IPV6 1
 +#endif
 +
-+static bool sysrq_once;
-+static char sysrq_password[64];
-+static char sysrq_hash[16] =3D "sha1";
-+static long sysrq_seqno;
-+static int sysrq_debug;
-+module_param_string(password, sysrq_password, sizeof(sysrq_password),
-+	S_IRUSR | S_IWUSR);
-+module_param_string(hash, sysrq_hash, sizeof(sysrq_hash), S_IRUSR);
-+module_param_named(seqno, sysrq_seqno, long, S_IRUSR | S_IWUSR);
-+module_param_named(debug, sysrq_debug, int, S_IRUSR | S_IWUSR);
-+MODULE_PARM_DESC(password, "password for remote sysrq");
-+MODULE_PARM_DESC(hash, "hash algorithm, default sha1");
-+MODULE_PARM_DESC(seqno, "sequence number for remote sysrq");
-+MODULE_PARM_DESC(debug, "debugging: 0=3Doff, 1=3Don");
-+
-+#ifdef WITH_CRYPTO
-+static struct crypto_hash *sysrq_tfm;
-+static int sysrq_digest_size;
-+static unsigned char *sysrq_digest_password;
-+static unsigned char *sysrq_digest;
-+static char *sysrq_hexdigest;
++static const union nf_inet_addr tee_zero_address;
 +
 +/*
-+ * The data is of the form "<requests>,<seqno>,<salt>,<hash>" where <r=
-equests>
-+ * is a series of sysrq requests; <seqno> is a sequence number that mu=
-st be
-+ * greater than the last sequence number; <salt> is some random bytes;=
- and
-+ * <hash> is the hash of everything up to and including the preceding =
-","
-+ * together with the password.
++ * Try to route the packet according to the routing keys specified in
++ * route_info. Keys are :
++ *  - ifindex :
++ *      0 if no oif preferred,
++ *      otherwise set to the index of the desired oif
++ *  - route_info->gateway :
++ *      0 if no gateway specified,
++ *      otherwise set to the next host to which the pkt must be routed
++ * If success, skb->dev is the output device to which the packet must
++ * be sent and skb->dst is not NULL
 + *
-+ * For example
-+ *
-+ *   salt=3D$RANDOM
-+ *   req=3D"s,$(date +%s),$salt"
-+ *   echo "$req,$(echo -n $req,secret | sha1sum | cut -c1-40)"
-+ *
-+ * You will want a better salt and password than that though :-)
++ * RETURN: false - if an error occured
++ *         true  - if the packet was succesfully routed to the
++ *                 destination desired
 + */
-+static unsigned int sysrq_tg(const void *pdata, uint16_t len)
++static bool
++tee_tg_route4(struct sk_buff *skb, const struct xt_tee_tginfo *info)
 +{
-+	const char *data =3D pdata;
-+	int i, n;
-+	struct scatterlist sg[2];
-+	struct hash_desc desc;
-+	int ret;
-+	long new_seqno =3D 0;
++	const struct iphdr *iph =3D ip_hdr(skb);
++	struct rtable *rt;
++	struct flowi fl;
++	int err;
 +
-+	if (*sysrq_password =3D=3D '\0') {
-+		if (!sysrq_once)
-+			printk(KERN_INFO KBUILD_MODNAME ": No password set\n");
-+		sysrq_once =3D true;
-+		return NF_DROP;
-+	}
-+	if (len =3D=3D 0)
-+		return NF_DROP;
++	memset(&fl, 0, sizeof(fl));
++	fl.iif  =3D skb->skb_iif;
++	fl.mark =3D skb->mark;
++	fl.nl_u.ip4_u.daddr =3D info->gw.ip;
++	fl.nl_u.ip4_u.tos   =3D RT_TOS(iph->tos);
++	fl.nl_u.ip4_u.scope =3D RT_SCOPE_UNIVERSE;
 +
-+	for (i =3D 0; sysrq_password[i] !=3D '\0' &&
-+	     sysrq_password[i] !=3D '\n'; ++i)
-+		/* loop */;
-+	sysrq_password[i] =3D '\0';
++	/* Trying to route the packet using the standard routing table. */
++	err =3D ip_route_output_key(&init_net, &rt, &fl);
++	if (err !=3D 0)
++		return false;
 +
-+	i =3D 0;
-+	for (n =3D 0; n < len - 1; ++n) {
-+		if (i =3D=3D 1 && '0' <=3D data[n] && data[n] <=3D '9')
-+			new_seqno =3D 10L * new_seqno + data[n] - '0';
-+		if (data[n] =3D=3D ',' && ++i =3D=3D 3)
-+			break;
-+	}
-+	++n;
-+	if (i !=3D 3) {
-+		if (sysrq_debug)
-+			printk(KERN_WARNING KBUILD_MODNAME
-+				": badly formatted request\n");
-+		return NF_DROP;
-+	}
-+	if (sysrq_seqno >=3D new_seqno) {
-+		if (sysrq_debug)
-+			printk(KERN_WARNING KBUILD_MODNAME
-+				": old sequence number ignored\n");
-+		return NF_DROP;
-+	}
-+
-+	desc.tfm   =3D sysrq_tfm;
-+	desc.flags =3D 0;
-+	ret =3D crypto_hash_init(&desc);
-+	if (ret !=3D 0)
-+		goto hash_fail;
-+	sg_init_table(sg, 2);
-+	sg_set_buf(&sg[0], data, n);
-+	strcpy(sysrq_digest_password, sysrq_password);
-+	i =3D strlen(sysrq_digest_password);
-+	sg_set_buf(&sg[1], sysrq_digest_password, i);
-+	ret =3D crypto_hash_digest(&desc, sg, n + i, sysrq_digest);
-+	if (ret !=3D 0)
-+		goto hash_fail;
-+
-+	for (i =3D 0; i < sysrq_digest_size; ++i) {
-+		sysrq_hexdigest[2*i] =3D
-+			"0123456789abcdef"[(sysrq_digest[i] >> 4) & 0xf];
-+		sysrq_hexdigest[2*i+1] =3D
-+			"0123456789abcdef"[sysrq_digest[i] & 0xf];
-+	}
-+	sysrq_hexdigest[2*sysrq_digest_size] =3D '\0';
-+	if (len - n < sysrq_digest_size) {
-+		if (sysrq_debug)
-+			printk(KERN_INFO KBUILD_MODNAME ": Short digest,"
-+			       " expected %s\n", sysrq_hexdigest);
-+		return NF_DROP;
-+	}
-+	if (strncmp(data + n, sysrq_hexdigest, sysrq_digest_size) !=3D 0) {
-+		if (sysrq_debug)
-+			printk(KERN_INFO KBUILD_MODNAME ": Bad digest,"
-+			       " expected %s\n", sysrq_hexdigest);
-+		return NF_DROP;
-+	}
-+
-+	/* Now we trust the requester */
-+	sysrq_seqno =3D new_seqno;
-+	for (i =3D 0; i < len && data[i] !=3D ','; ++i) {
-+		printk(KERN_INFO KBUILD_MODNAME ": SysRq %c\n", data[i]);
-+		handle_sysrq(data[i], NULL);
-+	}
-+	return NF_ACCEPT;
-+
-+ hash_fail:
-+	printk(KERN_WARNING KBUILD_MODNAME ": digest failure\n");
-+	return NF_DROP;
++	dst_release(skb_dst(skb));
++	skb_dst_set(skb, &rt->u.dst);
++	skb->dev      =3D rt->u.dst.dev;
++	skb->protocol =3D htons(ETH_P_IP);
++	return true;
 +}
-+#else
-+static unsigned int sysrq_tg(const void *pdata, uint16_t len)
++
++/*
++ * Stolen from ip_finish_output2
++ * PRE : skb->dev is set to the device we are leaving by
++ *       skb->dst is not NULL
++ * POST: the packet is sent with the link layer header pushed
++ *       the packet is destroyed
++ */
++static void tee_tg_send(struct sk_buff *skb)
 +{
-+	const char *data =3D pdata;
-+	char c;
++	const struct dst_entry *dst  =3D skb_dst(skb);
++	const struct net_device *dev =3D dst->dev;
++	unsigned int hh_len =3D LL_RESERVED_SPACE(dev);
 +
-+	if (*sysrq_password =3D=3D '\0') {
-+		if (!sysrq_once)
-+			printk(KERN_INFO KBUILD_MODNAME "No password set\n");
-+		sysrq_once =3D true;
-+		return NF_DROP;
++	/* Be paranoid, rather than too clever. */
++	if (unlikely(skb_headroom(skb) < hh_len && dev->header_ops !=3D NULL)=
+) {
++		struct sk_buff *skb2;
++
++		skb2 =3D skb_realloc_headroom(skb, LL_RESERVED_SPACE(dev));
++		if (skb2 =3D=3D NULL) {
++			kfree_skb(skb);
++			return;
++		}
++		if (skb->sk !=3D NULL)
++			skb_set_owner_w(skb2, skb->sk);
++		kfree_skb(skb);
++		skb =3D skb2;
 +	}
 +
-+	if (len =3D=3D 0)
-+		return NF_DROP;
-+
-+	c =3D *data;
-+	if (strncmp(&data[1], sysrq_password, len - 1) !=3D 0) {
-+		printk(KERN_INFO KBUILD_MODNAME "Failed attempt - "
-+		       "password mismatch\n");
-+		return NF_DROP;
++	if (dst->hh !=3D NULL) {
++		neigh_hh_output(dst->hh, skb);
++	} else if (dst->neighbour !=3D NULL) {
++		dst->neighbour->output(skb);
++	} else {
++		if (net_ratelimit())
++			pr_debug(KBUILD_MODNAME
++				"no hdr & no neighbour cache!\n");
++		kfree_skb(skb);
 +	}
-+
-+	handle_sysrq(c, NULL);
-+	return NF_ACCEPT;
 +}
-+#endif
 +
++/*
++ * To detect and deter routed packet loopback when using the --tee opt=
+ion, we
++ * take a page out of the raw.patch book: on the copied skb, we set up=
+ a fake
++ * ->nfct entry, pointing to the local &route_tee_track. We skip routi=
+ng
++ * packets when we see they already have that ->nfct.
++ */
 +static unsigned int
-+sysrq_tg4(struct sk_buff *skb, const struct xt_target_param *par)
++tee_tg4(struct sk_buff *skb, const struct xt_target_param *par)
 +{
-+	const struct iphdr *iph;
-+	const struct udphdr *udph;
-+	uint16_t len;
++	const struct xt_tee_tginfo *info =3D par->targinfo;
 +
-+	if (skb_linearize(skb) < 0)
++#ifdef WITH_CONNTRACK
++	if (skb->nfct =3D=3D &tee_track.ct_general) {
++		/*
++		 * Loopback - a packet we already routed, is to be
++		 * routed another time. Avoid that, now.
++		 */
++		if (net_ratelimit())
++			pr_debug(KBUILD_MODNAME "loopback - DROP!\n");
 +		return NF_DROP;
++	}
++#endif
++	if (!skb_make_writable(skb, sizeof(struct iphdr)))
++		return XT_CONTINUE;
++	/*
++	 * If we are in INPUT, the checksum must be recalculated since
++	 * the length could have changed as a result of defragmentation.
++	 */
++	if (par->hooknum =3D=3D NF_INET_LOCAL_IN) {
++		struct iphdr *iph =3D ip_hdr(skb);
 +
-+	iph =3D ip_hdr(skb);
-+	if (iph->protocol !=3D IPPROTO_UDP && iph->protocol !=3D IPPROTO_UDPL=
-ITE)
-+		return NF_DROP;
++		iph->check =3D 0;
++		iph->check =3D ip_fast_csum((unsigned char *)iph, iph->ihl);
++	}
++	/*
++	 * Copy the skb, and route the copy. Will later return %XT_CONTINUE f=
+or
++	 * the original skb, which should continue on its way as if nothing h=
+as
++	 * happened. The copy should be independently delivered to the TEE
++	 * --gateway.
++	 */
++	skb =3D skb_copy(skb, GFP_ATOMIC);
++	if (skb =3D=3D NULL)
++		return XT_CONTINUE;
 +
-+	udph =3D (const void *)iph + ip_hdrlen(skb);
-+	len  =3D ntohs(udph->len) - sizeof(struct udphdr);
++#ifdef WITH_CONNTRACK
++	nf_conntrack_put(skb->nfct);
++	skb->nfct     =3D &tee_track.ct_general;
++	skb->nfctinfo =3D IP_CT_NEW;
++	nf_conntrack_get(skb->nfct);
++#endif
++	/*
++	 * Normally, we would just use ip_local_out. Because iph->check is
++	 * already correct, we could take a shortcut and call dst_output
++	 * [forwards to ip_output] directly. ip_output however will invoke
++	 * Netfilter hooks and cause reentrancy. So we skip that too and go
++	 * directly to ip_finish_output. Since we should not do XFRM, control
++	 * passes to ip_finish_output2. That function is not exported, so it =
+is
++	 * copied here as tee_ip_direct_send.
++	 *
++	 * We do no XFRM on the cloned packet on purpose! The choice of
++	 * iptables match options will control whether the raw packet or the
++	 * transformed version is cloned.
++	 *
++	 * Also on purpose, no fragmentation is done, to preserve the
++	 * packet as best as possible.
++	 */
++	if (tee_tg_route4(skb, info))
++		tee_tg_send(skb);
 +
-+	if (sysrq_debug)
-+		printk(KERN_INFO KBUILD_MODNAME
-+		       ": " NIPQUAD_FMT ":%u -> :%u len=3D%u\n",
-+		       NIPQUAD(iph->saddr), htons(udph->source),
-+		       htons(udph->dest), len);
-+	return sysrq_tg((void *)udph + sizeof(struct udphdr), len);
++	return XT_CONTINUE;
 +}
 +
 +#ifdef WITH_IPV6
-+static unsigned int
-+sysrq_tg6(struct sk_buff *skb, const struct xt_target_param *par)
++static bool
++tee_tg_route6(struct sk_buff *skb, const struct xt_tee_tginfo *info)
 +{
-+	const struct ipv6hdr *iph;
-+	const struct udphdr *udph;
-+	unsigned short frag_off;
-+	unsigned int th_off;
-+	uint16_t len;
++	const struct ipv6hdr *iph =3D ipv6_hdr(skb);
++	struct dst_entry *dst;
++	struct flowi fl;
 +
-+	if (skb_linearize(skb) < 0)
-+		return NF_DROP;
++	memset(&fl, 0, sizeof(fl));
++	fl.iif  =3D skb->skb_iif;
++	fl.mark =3D skb->mark;
++	fl.nl_u.ip6_u.daddr =3D info->gw.in6;
++	fl.nl_u.ip6_u.flowlabel =3D ((iph->flow_lbl[0] & 0xF) << 16) |
++				  (iph->flow_lbl[1] << 8) | iph->flow_lbl[2];
 +
-+	iph =3D ipv6_hdr(skb);
-+	if (ipv6_find_hdr(skb, &th_off, IPPROTO_UDP, &frag_off) < 0 ||
-+	    frag_off > 0)
-+		return NF_ACCEPT; /* sink it */
++	dst =3D ip6_route_output(dev_net(skb->dev), NULL, &fl);
++	if (dst =3D=3D NULL)
++		return false;
 +
-+	udph =3D (const void *)iph + th_off;
-+	len  =3D ntohs(udph->len) - sizeof(struct udphdr);
-+
-+	if (sysrq_debug)
-+		printk(KERN_INFO KBUILD_MODNAME
-+		       ": %pI6:%hu -> :%hu len=3D%u\n",
-+		       &iph->saddr, ntohs(udph->source),
-+		       ntohs(udph->dest), len);
-+	return sysrq_tg(udph + sizeof(struct udphdr), len);
-+}
-+#endif
-+
-+static int sysrq_tg_check(const struct xt_tgchk_param *par)
-+{
-+	if (par->target->family =3D=3D NFPROTO_IPV4) {
-+		const struct ipt_entry *entry =3D par->entryinfo;
-+
-+		if ((entry->ip.proto !=3D IPPROTO_UDP &&
-+		    entry->ip.proto !=3D IPPROTO_UDPLITE) ||
-+		    entry->ip.invflags & XT_INV_PROTO)
-+			goto out;
-+	} else if (par->target->family =3D=3D NFPROTO_IPV6) {
-+		const struct ip6t_entry *entry =3D par->entryinfo;
-+
-+		if ((entry->ipv6.proto !=3D IPPROTO_UDP &&
-+		    entry->ipv6.proto !=3D IPPROTO_UDPLITE) ||
-+		    entry->ipv6.invflags & XT_INV_PROTO)
-+			goto out;
-+	}
-+
++	dst_release(skb_dst(skb));
++	skb_dst_set(skb, dst);
++	skb->dev      =3D dst->dev;
++	skb->protocol =3D htons(ETH_P_IPV6);
 +	return true;
-+
-+ out:
-+	printk(KERN_ERR KBUILD_MODNAME ": only available for UDP and UDP-Lite=
-");
-+	return false;
 +}
 +
-+static struct xt_target sysrq_tg_reg[] __read_mostly =3D {
++static unsigned int
++tee_tg6(struct sk_buff *skb, const struct xt_target_param *par)
++{
++	const struct xt_tee_tginfo *info =3D par->targinfo;
++
++#ifdef WITH_CONNTRACK
++	if (skb->nfct =3D=3D &tee_track.ct_general)
++		return NF_DROP;
++#endif
++	if ((skb =3D skb_copy(skb, GFP_ATOMIC)) =3D=3D NULL)
++		return XT_CONTINUE;
++
++#ifdef WITH_CONNTRACK
++	nf_conntrack_put(skb->nfct);
++	skb->nfct     =3D &tee_track.ct_general;
++	skb->nfctinfo =3D IP_CT_NEW;
++	nf_conntrack_get(skb->nfct);
++#endif
++	if (tee_tg_route6(skb, info))
++		tee_tg_send(skb);
++
++	return XT_CONTINUE;
++}
++#endif /* WITH_IPV6 */
++
++static int tee_tg_check(const struct xt_tgchk_param *par)
++{
++	const struct xt_tee_tginfo *info =3D par->targinfo;
++
++	/* 0.0.0.0 and :: not allowed */
++	return memcmp(&info->gw, &tee_zero_address,
++	       sizeof(tee_zero_address)) !=3D 0;
++}
++
++static struct xt_target tee_tg_reg[] __read_mostly =3D {
 +	{
-+		.name       =3D "SYSRQ",
-+		.revision   =3D 1,
++		.name       =3D "TEE",
++		.revision   =3D 0,
 +		.family     =3D NFPROTO_IPV4,
-+		.target     =3D sysrq_tg4,
-+		.checkentry =3D sysrq_tg_check,
++		.target     =3D tee_tg4,
++		.targetsize =3D sizeof(struct xt_tee_tginfo),
++		.checkentry =3D tee_tg_check,
 +		.me         =3D THIS_MODULE,
 +	},
 +#ifdef WITH_IPV6
 +	{
-+		.name       =3D "SYSRQ",
-+		.revision   =3D 1,
++		.name       =3D "TEE",
++		.revision   =3D 0,
 +		.family     =3D NFPROTO_IPV6,
-+		.target     =3D sysrq_tg6,
-+		.checkentry =3D sysrq_tg_check,
++		.target     =3D tee_tg6,
++		.targetsize =3D sizeof(struct xt_tee_tginfo),
++		.checkentry =3D tee_tg_check,
 +		.me         =3D THIS_MODULE,
 +	},
 +#endif
 +};
 +
-+static void sysrq_crypto_exit(void)
++static int __init tee_tg_init(void)
 +{
-+#ifdef WITH_CRYPTO
-+	if (sysrq_tfm)
-+		crypto_free_hash(sysrq_tfm);
-+	if (sysrq_digest)
-+		kfree(sysrq_digest);
-+	if (sysrq_hexdigest)
-+		kfree(sysrq_hexdigest);
-+	if (sysrq_digest_password)
-+		kfree(sysrq_digest_password);
++#ifdef WITH_CONNTRACK
++	/*
++	 * Set up fake conntrack (stolen from raw.patch):
++	 * - to never be deleted, not in any hashes
++	 */
++	atomic_set(&tee_track.ct_general.use, 1);
++
++	/* - and look it like as a confirmed connection */
++	set_bit(IPS_CONFIRMED_BIT, &tee_track.status);
++
++	/* Initialize fake conntrack so that NAT will skip it */
++	tee_track.status |=3D IPS_NAT_DONE_MASK;
 +#endif
++	return xt_register_targets(tee_tg_reg, ARRAY_SIZE(tee_tg_reg));
 +}
 +
-+static int __init sysrq_crypto_init(void)
++static void __exit tee_tg_exit(void)
 +{
-+#if defined(WITH_CRYPTO)
-+	struct timeval now;
-+	int ret;
-+
-+	sysrq_tfm =3D crypto_alloc_hash(sysrq_hash, 0, CRYPTO_ALG_ASYNC);
-+	if (IS_ERR(sysrq_tfm)) {
-+		printk(KERN_WARNING KBUILD_MODNAME
-+			": Error: Could not find or load %s hash\n",
-+			sysrq_hash);
-+		sysrq_tfm =3D NULL;
-+		ret =3D PTR_ERR(sysrq_tfm);
-+		goto fail;
-+	}
-+	sysrq_digest_size =3D crypto_hash_digestsize(sysrq_tfm);
-+	sysrq_digest =3D kmalloc(sysrq_digest_size, GFP_KERNEL);
-+	ret =3D -ENOMEM;
-+	if (sysrq_digest =3D=3D NULL) {
-+		printk(KERN_WARNING KBUILD_MODNAME
-+			": Cannot allocate digest\n");
-+		goto fail;
-+	}
-+	sysrq_hexdigest =3D kmalloc(2 * sysrq_digest_size + 1, GFP_KERNEL);
-+	if (sysrq_hexdigest =3D=3D NULL) {
-+		printk(KERN_WARNING KBUILD_MODNAME
-+			": Cannot allocate hexdigest\n");
-+		goto fail;
-+	}
-+	sysrq_digest_password =3D kmalloc(sizeof(sysrq_password), GFP_KERNEL)=
-;
-+	if (sysrq_digest_password =3D=3D NULL) {
-+		printk(KERN_WARNING KBUILD_MODNAME
-+			": Cannot allocate password digest space\n");
-+		goto fail;
-+	}
-+	do_gettimeofday(&now);
-+	sysrq_seqno =3D now.tv_sec;
-+	ret =3D xt_register_targets(sysrq_tg_reg, ARRAY_SIZE(sysrq_tg_reg));
-+	if (ret < 0)
-+		goto fail;
-+	return ret;
-+
-+ fail:
-+	sysrq_crypto_exit();
-+	return ret;
-+#else
-+	printk(KERN_WARNING "xt_SYSRQ compiled without crypto\n");
-+#endif
-+	return -EINVAL;
++	xt_unregister_targets(tee_tg_reg, ARRAY_SIZE(tee_tg_reg));
 +}
 +
-+static int __init sysrq_tg_init(void)
-+{
-+	if (sysrq_crypto_init() < 0)
-+		printk(KERN_WARNING "xt_SYSRQ starting without crypto\n");
-+	return xt_register_targets(sysrq_tg_reg, ARRAY_SIZE(sysrq_tg_reg));
-+}
-+
-+static void __exit sysrq_tg_exit(void)
-+{
-+	sysrq_crypto_exit();
-+	xt_unregister_targets(sysrq_tg_reg, ARRAY_SIZE(sysrq_tg_reg));
-+}
-+
-+module_init(sysrq_tg_init);
-+module_exit(sysrq_tg_exit);
-+MODULE_DESCRIPTION("Xtables: triggering SYSRQ remotely");
++module_init(tee_tg_init);
++module_exit(tee_tg_exit);
++MODULE_AUTHOR("Sebastian Cla=C3=9Fen <sebastian.classen@freenet.ag>");
 +MODULE_AUTHOR("Jan Engelhardt <jengelh@medozas.de>");
++MODULE_DESCRIPTION("Xtables: Reroute packet copy");
 +MODULE_LICENSE("GPL");
-+MODULE_ALIAS("ipt_SYSRQ");
-+MODULE_ALIAS("ip6t_SYSRQ");
++MODULE_ALIAS("ipt_TEE");
++MODULE_ALIAS("ip6t_TEE");
 --=20
 1.7.0.2
 
