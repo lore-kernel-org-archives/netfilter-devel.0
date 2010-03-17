@@ -1,166 +1,57 @@
-From: timg@tpi.com (Tim Gardner)
-Subject: iptables pull request, add XT_RECENT_REAP support
-Date: Wed, 17 Mar 2010 12:48:52 -0600 (MDT)
-Message-ID: <20100317184852.89F0DF89BB@sepang.rtg.net>
-Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: iptables pull request, add XT_RECENT_REAP support
+Date: Wed, 17 Mar 2010 20:34:57 +0100
+Message-ID: <1268854497.2894.2.camel@edumazet-laptop>
+References: <20100317184852.89F0DF89BB@sepang.rtg.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
+To: Tim Gardner <timg@tpi.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.tpi.com ([70.99.223.143]:2414 "EHLO mail.tpi.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755534Ab0CQStN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Mar 2010 14:49:13 -0400
+Received: from mail-bw0-f212.google.com ([209.85.218.212]:59334 "EHLO
+	mail-bw0-f212.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755765Ab0CQTfD (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 17 Mar 2010 15:35:03 -0400
+Received: by bwz4 with SMTP id 4so1452221bwz.39
+        for <netfilter-devel@vger.kernel.org>; Wed, 17 Mar 2010 12:35:01 -0700 (PDT)
+In-Reply-To: <20100317184852.89F0DF89BB@sepang.rtg.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The following changes since commit 21d1283750d9c4df7ca80165d2b9dc0b9bd214eb:
-  Jan Engelhardt (1):
-        iptables: correctly check for too-long chain/target/match names
+Le mercredi 17 mars 2010 =C3=A0 12:48 -0600, Tim Gardner a =C3=A9crit :
+> diff --git a/extensions/libxt_recent.man b/extensions/libxt_recent.ma=
+n
+> index 532c328..26e4fb9 100644
+> --- a/extensions/libxt_recent.man
+> +++ b/extensions/libxt_recent.man
+> @@ -41,6 +41,11 @@ This option must be used in conjunction with one o=
+f \fB\-\-rcheck\fP or
+>  \fB\-\-update\fP. When used, this will narrow the match to only happ=
+en when the
+>  address is in the list and was seen within the last given number of =
+seconds.
+>  .TP
+> +\fB\-\-reap\fP \fIreap\fP
+> +This option must be used in conjunction with \fB\-\-seconds\fP. When=
+ used, this
+> +will remove entries with the most recent timestamp older then \fB\-\=
+-seconds\fP
+> +since the last packet was received.
+> +.TP
+>  \fB\-\-hitcount\fP \fIhits\fP
+>  This option must be used in conjunction with one of \fB\-\-rcheck\fP=
+ or
+>  \fB\-\-update\fP. When used, this will narrow the match to only happ=
+en when the
 
-are available in the git repository at:
+Are you sure this "most recent timestamp older then " is correct ? ;)
 
-  git://kernel.ubuntu.com/rtg/iptables xt_recent
 
-Tim Gardner (1):
-      xt_recent: Added XT_RECENT_REAP logic and man page documentation
 
- extensions/libxt_recent.c           |   20 ++++++++++++++++++++
- extensions/libxt_recent.man         |    5 +++++
- include/linux/netfilter/xt_recent.h |    7 +++++++
- 3 files changed, 32 insertions(+), 0 deletions(-)
-
->From 20c706d4cba3227c9c44fb61c4d93b0ae84e1464 Mon Sep 17 00:00:00 2001
-From: Tim Gardner <tim.gardner@canonical.com>
-Date: Mon, 1 Mar 2010 19:00:29 -0700
-Subject: [PATCH] xt_recent: Added XT_RECENT_REAP logic and man page documentation
-
-Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
----
- extensions/libxt_recent.c           |   20 ++++++++++++++++++++
- extensions/libxt_recent.man         |    5 +++++
- include/linux/netfilter/xt_recent.h |    7 +++++++
- 3 files changed, 32 insertions(+), 0 deletions(-)
-
-diff --git a/extensions/libxt_recent.c b/extensions/libxt_recent.c
-index 4ac32f7..7e3d280 100644
---- a/extensions/libxt_recent.c
-+++ b/extensions/libxt_recent.c
-@@ -19,6 +19,7 @@ static const struct option recent_opts[] = {
- 	{ .name = "name",     .has_arg = 1, .val = 208 },
- 	{ .name = "rsource",  .has_arg = 0, .val = 209 },
- 	{ .name = "rdest",    .has_arg = 0, .val = 210 },
-+	{ .name = "reap",     .has_arg = 0, .val = 211 },
- 	{ .name = NULL }
- };
- 
-@@ -36,6 +37,7 @@ static void recent_help(void)
- "    --hitcount hits             For check and update commands above.\n"
- "                                Specifies that the match will only occur if source address seen hits times.\n"
- "                                May be used in conjunction with the seconds option.\n"
-+"    --reap                      Remove entries that have expired. Can only be used with --seconds\n"
- "    --rttl                      For check and update commands above.\n"
- "                                Specifies that the match will only occur if the source address and the TTL\n"
- "                                match between this packet and the one which was set.\n"
-@@ -62,6 +64,8 @@ static void recent_init(struct xt_entry_match *match)
- 	(XT_RECENT_SET | XT_RECENT_CHECK | \
- 	XT_RECENT_UPDATE | XT_RECENT_REMOVE)
- 
-+#define XT_RECENT_SECONDS 1 << 31
-+
- static int recent_parse(int c, char **argv, int invert, unsigned int *flags,
-                         const void *entry, struct xt_entry_match **match)
- {
-@@ -103,6 +107,7 @@ static int recent_parse(int c, char **argv, int invert, unsigned int *flags,
- 
- 		case 204:
- 			info->seconds = atoi(optarg);
-+			*flags |= XT_RECENT_SECONDS;
- 			break;
- 
- 		case 205:
-@@ -138,6 +143,11 @@ static int recent_parse(int c, char **argv, int invert, unsigned int *flags,
- 			info->side = XT_RECENT_DEST;
- 			break;
- 
-+		case 211:
-+			info->check_set |= XT_RECENT_REAP;
-+			*flags |= XT_RECENT_REAP;
-+			break;
-+
- 		default:
- 			return 0;
- 	}
-@@ -156,6 +166,12 @@ static void recent_check(unsigned int flags)
- 		xtables_error(PARAMETER_PROBLEM,
- 		           "recent: --rttl may only be used with --rcheck or "
- 		           "--update");
-+	if ((flags & XT_RECENT_REAP) &&
-+	    ((flags & (XT_RECENT_SET | XT_RECENT_REMOVE)) ||
-+	    (!(flags & XT_RECENT_SECONDS))))
-+		xtables_error(PARAMETER_PROBLEM,
-+		           "recent: --reap may only be used with --rcheck or "
-+		           "--update and --seconds");
- }
- 
- static void recent_print(const void *ip, const struct xt_entry_match *match,
-@@ -184,6 +200,8 @@ static void recent_print(const void *ip, const struct xt_entry_match *match,
- 		printf("side: source ");
- 	if (info->side == XT_RECENT_DEST)
- 		printf("side: dest");
-+	if (info->check_set & XT_RECENT_REAP)
-+		printf("reap ");
- }
- 
- static void recent_save(const void *ip, const struct xt_entry_match *match)
-@@ -210,6 +228,8 @@ static void recent_save(const void *ip, const struct xt_entry_match *match)
- 		printf("--rsource ");
- 	if (info->side == XT_RECENT_DEST)
- 		printf("--rdest ");
-+	if (info->check_set & XT_RECENT_REAP)
-+		printf("--reap ");
- }
- 
- static struct xtables_match recent_mt_reg = {
-diff --git a/extensions/libxt_recent.man b/extensions/libxt_recent.man
-index 532c328..26e4fb9 100644
---- a/extensions/libxt_recent.man
-+++ b/extensions/libxt_recent.man
-@@ -41,6 +41,11 @@ This option must be used in conjunction with one of \fB\-\-rcheck\fP or
- \fB\-\-update\fP. When used, this will narrow the match to only happen when the
- address is in the list and was seen within the last given number of seconds.
- .TP
-+\fB\-\-reap\fP \fIreap\fP
-+This option must be used in conjunction with \fB\-\-seconds\fP. When used, this
-+will remove entries with the most recent timestamp older then \fB\-\-seconds\fP
-+since the last packet was received.
-+.TP
- \fB\-\-hitcount\fP \fIhits\fP
- This option must be used in conjunction with one of \fB\-\-rcheck\fP or
- \fB\-\-update\fP. When used, this will narrow the match to only happen when the
-diff --git a/include/linux/netfilter/xt_recent.h b/include/linux/netfilter/xt_recent.h
-index d2c2766..e21acdf 100644
---- a/include/linux/netfilter/xt_recent.h
-+++ b/include/linux/netfilter/xt_recent.h
-@@ -9,6 +9,7 @@ enum {
- 	XT_RECENT_UPDATE   = 1 << 2,
- 	XT_RECENT_REMOVE   = 1 << 3,
- 	XT_RECENT_TTL      = 1 << 4,
-+	XT_RECENT_REAP     = 1 << 5,
- 
- 	XT_RECENT_SOURCE   = 0,
- 	XT_RECENT_DEST     = 1,
-@@ -16,6 +17,12 @@ enum {
- 	XT_RECENT_NAME_LEN = 200,
- };
- 
-+/* Only allowed with --rcheck and --update */
-+#define XT_RECENT_MODIFIERS (XT_RECENT_TTL|XT_RECENT_REAP)
-+
-+#define XT_RECENT_VALID_FLAGS (XT_RECENT_CHECK|XT_RECENT_SET|XT_RECENT_UPDATE|\
-+	XT_RECENT_REMOVE|XT_RECENT_TTL|XT_RECENT_REAP)
-+
- struct xt_recent_mtinfo {
- 	__u32 seconds;
- 	__u32 hit_count;
--- 
-1.7.0
-
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
