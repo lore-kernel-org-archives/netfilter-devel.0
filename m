@@ -1,422 +1,344 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 8/9] netfilter: xtables: inclusion of xt_TEE
-Date: Wed, 17 Mar 2010 14:19:03 +0100
-Message-ID: <1268831945-6041-9-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 9/9] netfilter: xtables: inclusion of xt_condition
+Date: Wed, 17 Mar 2010 14:19:04 +0100
+Message-ID: <1268831945-6041-10-git-send-email-jengelh@medozas.de>
 References: <1268831945-6041-1-git-send-email-jengelh@medozas.de>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:59364 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:59368 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754856Ab0CQNTY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Mar 2010 09:19:24 -0400
+	id S1754862Ab0CQNTZ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 17 Mar 2010 09:19:25 -0400
 In-Reply-To: <1268831945-6041-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-xt_TEE can be used to clone and reroute a packet. This can for
-example be used to copy traffic at a router for logging purposes
-to another dedicated machine.
+xt_condition can be used by userspace to influence decisions in rules
+by means of togglable variables without having to reload the entire
+ruleset.
 
-References: http://www.gossamer-threads.com/lists/iptables/devel/68781
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/linux/netfilter/Kbuild   |    1 +
- include/linux/netfilter/xt_TEE.h |    8 +
- net/netfilter/Kconfig            |    7 +
- net/netfilter/Makefile           |    1 +
- net/netfilter/xt_TEE.c           |  304 ++++++++++++++++++++++++++++++=
-++++++++
- 5 files changed, 321 insertions(+), 0 deletions(-)
- create mode 100644 include/linux/netfilter/xt_TEE.h
- create mode 100644 net/netfilter/xt_TEE.c
+ include/linux/netfilter/Kbuild         |    1 +
+ include/linux/netfilter/xt_condition.h |   12 ++
+ net/netfilter/Kconfig                  |    8 +
+ net/netfilter/Makefile                 |    1 +
+ net/netfilter/xt_condition.c           |  243 ++++++++++++++++++++++++++++++++
+ 5 files changed, 265 insertions(+), 0 deletions(-)
+ create mode 100644 include/linux/netfilter/xt_condition.h
+ create mode 100644 net/netfilter/xt_condition.c
 
-diff --git a/include/linux/netfilter/Kbuild b/include/linux/netfilter/K=
-build
-index a5a63e4..48767cd 100644
+diff --git a/include/linux/netfilter/Kbuild b/include/linux/netfilter/Kbuild
+index 48767cd..6b67603 100644
 --- a/include/linux/netfilter/Kbuild
 +++ b/include/linux/netfilter/Kbuild
-@@ -16,6 +16,7 @@ header-y +=3D xt_RATEEST.h
- header-y +=3D xt_SECMARK.h
- header-y +=3D xt_TCPMSS.h
- header-y +=3D xt_TCPOPTSTRIP.h
-+header-y +=3D xt_TEE.h
- header-y +=3D xt_TPROXY.h
- header-y +=3D xt_comment.h
- header-y +=3D xt_connbytes.h
-diff --git a/include/linux/netfilter/xt_TEE.h b/include/linux/netfilter=
-/xt_TEE.h
+@@ -19,6 +19,7 @@ header-y += xt_TCPOPTSTRIP.h
+ header-y += xt_TEE.h
+ header-y += xt_TPROXY.h
+ header-y += xt_comment.h
++header-y += xt_condition.h
+ header-y += xt_connbytes.h
+ header-y += xt_connlimit.h
+ header-y += xt_connmark.h
+diff --git a/include/linux/netfilter/xt_condition.h b/include/linux/netfilter/xt_condition.h
 new file mode 100644
-index 0000000..83fa768
+index 0000000..0fd1b75
 --- /dev/null
-+++ b/include/linux/netfilter/xt_TEE.h
-@@ -0,0 +1,8 @@
-+#ifndef _XT_TEE_TARGET_H
-+#define _XT_TEE_TARGET_H
++++ b/include/linux/netfilter/xt_condition.h
+@@ -0,0 +1,12 @@
++#ifndef _XT_CONDITION_H
++#define _XT_CONDITION_H
 +
-+struct xt_tee_tginfo {
-+	union nf_inet_addr gw;
++struct xt_condition_mtinfo {
++	char name[31];
++	__u8 invert;
++
++	/* Used internally by the kernel */
++	void *condvar __attribute__((aligned(8)));
 +};
 +
-+#endif /* _XT_TEE_TARGET_H */
++#endif /* _XT_CONDITION_H */
 diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 3f2042b..bfd9b6f 100644
+index bfd9b6f..dd74e7d 100644
 --- a/net/netfilter/Kconfig
 +++ b/net/netfilter/Kconfig
-@@ -514,6 +514,13 @@ config NETFILTER_XT_TARGET_SYSRQ
- 	Besides plaintext packets, digest-secured SYSRQ requests will be
- 	supported when CONFIG_CRYPTO is enabled.
-=20
-+config NETFILTER_XT_TARGET_TEE
-+	tristate '"TEE" - packet cloning to alternate destiantion'
+@@ -624,6 +624,14 @@ config NETFILTER_XT_MATCH_COMMENT
+ 	  If you want to compile it as a module, say M here and read
+ 	  <file:Documentation/kbuild/modules.txt>.  If unsure, say `N'.
+ 
++config NETFILTER_XT_MATCH_CONDITION
++	tristate '"condition" match support'
 +	depends on NETFILTER_ADVANCED
++	depends on PROC_FS
 +	---help---
-+	This option adds a "TEE" target with which a packet can be cloned and
-+	this clone be rerouted to another nexthop.
++	This option allows you to match firewall rules against condition
++	variables stored in the /proc/net/nf_condition directory.
 +
- config NETFILTER_XT_TARGET_TPROXY
- 	tristate '"TPROXY" target support (EXPERIMENTAL)'
- 	depends on EXPERIMENTAL
+ config NETFILTER_XT_MATCH_CONNBYTES
+ 	tristate  '"connbytes" per-connection counter match support'
+ 	depends on NF_CONNTRACK
 diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 0bfd0af..f032195 100644
+index f032195..e75d5fa 100644
 --- a/net/netfilter/Makefile
 +++ b/net/netfilter/Makefile
-@@ -60,6 +60,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_SYSRQ) +=3D xt_SYSRQ=
-=2Eo
- obj-$(CONFIG_NETFILTER_XT_TARGET_TPROXY) +=3D xt_TPROXY.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_TCPMSS) +=3D xt_TCPMSS.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_TCPOPTSTRIP) +=3D xt_TCPOPTSTRIP.o
-+obj-$(CONFIG_NETFILTER_XT_TARGET_TEE) +=3D xt_TEE.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_TRACE) +=3D xt_TRACE.o
-=20
+@@ -66,6 +66,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_TRACE) += xt_TRACE.o
  # matches
-diff --git a/net/netfilter/xt_TEE.c b/net/netfilter/xt_TEE.c
+ obj-$(CONFIG_NETFILTER_XT_MATCH_CLUSTER) += xt_cluster.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_COMMENT) += xt_comment.o
++obj-$(CONFIG_NETFILTER_XT_MATCH_CONDITION) += xt_condition.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_CONNBYTES) += xt_connbytes.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_CONNLIMIT) += xt_connlimit.o
+ obj-$(CONFIG_NETFILTER_XT_MATCH_CONNTRACK) += xt_conntrack.o
+diff --git a/net/netfilter/xt_condition.c b/net/netfilter/xt_condition.c
 new file mode 100644
-index 0000000..7b1cb42
+index 0000000..f1ae67a
 --- /dev/null
-+++ b/net/netfilter/xt_TEE.c
-@@ -0,0 +1,304 @@
++++ b/net/netfilter/xt_condition.c
+@@ -0,0 +1,243 @@
 +/*
-+ *	"TEE" target extension for Xtables
-+ *	Copyright =C2=A9 Sebastian Cla=C3=9Fen <sebastian.classen [at] free=
-net de>, 2007
-+ *	Jan Engelhardt <jengelh [at] medozas de>, 2007 - 2008
++ *	"condition" match extension for Xtables
 + *
-+ *	based on ipt_ROUTE.c from C=C3=A9dric de Launois
-+ *	<delaunois [at] info ucl ac be>
++ *	Description: This module allows firewall rules to match using
++ *	condition variables available through procfs.
 + *
-+ *	This program is free software; you can redistribute it and/or
-+ *	modify it under the terms of the GNU General Public License
-+ *	version 2 or later, as published by the Free Software Foundation.
++ *	Authors:
++ *	Stephane Ouellette <ouellettes [at] videotron ca>, 2002-10-22
++ *	Massimiliano Hofer <max [at] nucleus it>, 2006-05-15
++ *
++ *	This program is free software; you can redistribute it and/or modify it
++ *	under the terms of the GNU General Public License; either version 2
++ *	or 3 of the License, as published by the Free Software Foundation.
 + */
-+#include <linux/ip.h>
++#include <linux/kernel.h>
++#include <linux/list.h>
 +#include <linux/module.h>
-+#include <linux/route.h>
-+#include <linux/skbuff.h>
-+#include <net/checksum.h>
-+#include <net/icmp.h>
-+#include <net/ip.h>
-+#include <net/ip6_route.h>
-+#include <net/route.h>
++#include <linux/proc_fs.h>
++#include <linux/spinlock.h>
++#include <linux/string.h>
++#include <linux/version.h>
 +#include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter/xt_TEE.h>
++#include <linux/netfilter/xt_condition.h>
++#include <asm/uaccess.h>
 +
-+#if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE=
-)
-+#	define WITH_CONNTRACK 1
-+#	include <net/netfilter/nf_conntrack.h>
-+static struct nf_conn tee_track;
-+#endif
-+#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
-+#	define WITH_IPV6 1
-+#endif
++/* Defaults, these can be overridden on the module command-line. */
++static unsigned int condition_list_perms = S_IRUSR | S_IWUSR;
++static unsigned int condition_uid_perms;
++static unsigned int condition_gid_perms;
 +
-+static const union nf_inet_addr tee_zero_address;
++MODULE_AUTHOR("Stephane Ouellette <ouellettes@videotron.ca>");
++MODULE_AUTHOR("Massimiliano Hofer <max@nucleus.it>");
++MODULE_AUTHOR("Jan Engelhardt <jengelh@medozas.de>");
++MODULE_DESCRIPTION("Allows rules to match against condition variables");
++MODULE_LICENSE("GPL");
++module_param(condition_list_perms, uint, S_IRUSR | S_IWUSR);
++MODULE_PARM_DESC(condition_list_perms, "permissions on /proc/net/nf_condition/* files");
++module_param(condition_uid_perms, uint, S_IRUSR | S_IWUSR);
++MODULE_PARM_DESC(condition_uid_perms, "user owner of /proc/net/nf_condition/* files");
++module_param(condition_gid_perms, uint, S_IRUSR | S_IWUSR);
++MODULE_PARM_DESC(condition_gid_perms, "group owner of /proc/net/nf_condition/* files");
++MODULE_ALIAS("ipt_condition");
++MODULE_ALIAS("ip6t_condition");
 +
-+/*
-+ * Try to route the packet according to the routing keys specified in
-+ * route_info. Keys are :
-+ *  - ifindex :
-+ *      0 if no oif preferred,
-+ *      otherwise set to the index of the desired oif
-+ *  - route_info->gateway :
-+ *      0 if no gateway specified,
-+ *      otherwise set to the next host to which the pkt must be routed
-+ * If success, skb->dev is the output device to which the packet must
-+ * be sent and skb->dst is not NULL
-+ *
-+ * RETURN: false - if an error occured
-+ *         true  - if the packet was succesfully routed to the
-+ *                 destination desired
-+ */
-+static bool
-+tee_tg_route4(struct sk_buff *skb, const struct xt_tee_tginfo *info)
-+{
-+	const struct iphdr *iph =3D ip_hdr(skb);
-+	struct rtable *rt;
-+	struct flowi fl;
-+	int err;
-+
-+	memset(&fl, 0, sizeof(fl));
-+	fl.iif  =3D skb->skb_iif;
-+	fl.mark =3D skb->mark;
-+	fl.nl_u.ip4_u.daddr =3D info->gw.ip;
-+	fl.nl_u.ip4_u.tos   =3D RT_TOS(iph->tos);
-+	fl.nl_u.ip4_u.scope =3D RT_SCOPE_UNIVERSE;
-+
-+	/* Trying to route the packet using the standard routing table. */
-+	err =3D ip_route_output_key(&init_net, &rt, &fl);
-+	if (err !=3D 0)
-+		return false;
-+
-+	dst_release(skb_dst(skb));
-+	skb_dst_set(skb, &rt->u.dst);
-+	skb->dev      =3D rt->u.dst.dev;
-+	skb->protocol =3D htons(ETH_P_IP);
-+	return true;
-+}
-+
-+/*
-+ * Stolen from ip_finish_output2
-+ * PRE : skb->dev is set to the device we are leaving by
-+ *       skb->dst is not NULL
-+ * POST: the packet is sent with the link layer header pushed
-+ *       the packet is destroyed
-+ */
-+static void tee_tg_send(struct sk_buff *skb)
-+{
-+	const struct dst_entry *dst  =3D skb_dst(skb);
-+	const struct net_device *dev =3D dst->dev;
-+	unsigned int hh_len =3D LL_RESERVED_SPACE(dev);
-+
-+	/* Be paranoid, rather than too clever. */
-+	if (unlikely(skb_headroom(skb) < hh_len && dev->header_ops !=3D NULL)=
-) {
-+		struct sk_buff *skb2;
-+
-+		skb2 =3D skb_realloc_headroom(skb, LL_RESERVED_SPACE(dev));
-+		if (skb2 =3D=3D NULL) {
-+			kfree_skb(skb);
-+			return;
-+		}
-+		if (skb->sk !=3D NULL)
-+			skb_set_owner_w(skb2, skb->sk);
-+		kfree_skb(skb);
-+		skb =3D skb2;
-+	}
-+
-+	if (dst->hh !=3D NULL) {
-+		neigh_hh_output(dst->hh, skb);
-+	} else if (dst->neighbour !=3D NULL) {
-+		dst->neighbour->output(skb);
-+	} else {
-+		if (net_ratelimit())
-+			pr_debug(KBUILD_MODNAME
-+				"no hdr & no neighbour cache!\n");
-+		kfree_skb(skb);
-+	}
-+}
-+
-+/*
-+ * To detect and deter routed packet loopback when using the --tee opt=
-ion, we
-+ * take a page out of the raw.patch book: on the copied skb, we set up=
- a fake
-+ * ->nfct entry, pointing to the local &route_tee_track. We skip routi=
-ng
-+ * packets when we see they already have that ->nfct.
-+ */
-+static unsigned int
-+tee_tg4(struct sk_buff *skb, const struct xt_target_param *par)
-+{
-+	const struct xt_tee_tginfo *info =3D par->targinfo;
-+
-+#ifdef WITH_CONNTRACK
-+	if (skb->nfct =3D=3D &tee_track.ct_general) {
-+		/*
-+		 * Loopback - a packet we already routed, is to be
-+		 * routed another time. Avoid that, now.
-+		 */
-+		if (net_ratelimit())
-+			pr_debug(KBUILD_MODNAME "loopback - DROP!\n");
-+		return NF_DROP;
-+	}
-+#endif
-+	if (!skb_make_writable(skb, sizeof(struct iphdr)))
-+		return XT_CONTINUE;
-+	/*
-+	 * If we are in INPUT, the checksum must be recalculated since
-+	 * the length could have changed as a result of defragmentation.
-+	 */
-+	if (par->hooknum =3D=3D NF_INET_LOCAL_IN) {
-+		struct iphdr *iph =3D ip_hdr(skb);
-+
-+		iph->check =3D 0;
-+		iph->check =3D ip_fast_csum((unsigned char *)iph, iph->ihl);
-+	}
-+	/*
-+	 * Copy the skb, and route the copy. Will later return %XT_CONTINUE f=
-or
-+	 * the original skb, which should continue on its way as if nothing h=
-as
-+	 * happened. The copy should be independently delivered to the TEE
-+	 * --gateway.
-+	 */
-+	skb =3D skb_copy(skb, GFP_ATOMIC);
-+	if (skb =3D=3D NULL)
-+		return XT_CONTINUE;
-+
-+#ifdef WITH_CONNTRACK
-+	nf_conntrack_put(skb->nfct);
-+	skb->nfct     =3D &tee_track.ct_general;
-+	skb->nfctinfo =3D IP_CT_NEW;
-+	nf_conntrack_get(skb->nfct);
-+#endif
-+	/*
-+	 * Normally, we would just use ip_local_out. Because iph->check is
-+	 * already correct, we could take a shortcut and call dst_output
-+	 * [forwards to ip_output] directly. ip_output however will invoke
-+	 * Netfilter hooks and cause reentrancy. So we skip that too and go
-+	 * directly to ip_finish_output. Since we should not do XFRM, control
-+	 * passes to ip_finish_output2. That function is not exported, so it =
-is
-+	 * copied here as tee_ip_direct_send.
-+	 *
-+	 * We do no XFRM on the cloned packet on purpose! The choice of
-+	 * iptables match options will control whether the raw packet or the
-+	 * transformed version is cloned.
-+	 *
-+	 * Also on purpose, no fragmentation is done, to preserve the
-+	 * packet as best as possible.
-+	 */
-+	if (tee_tg_route4(skb, info))
-+		tee_tg_send(skb);
-+
-+	return XT_CONTINUE;
-+}
-+
-+#ifdef WITH_IPV6
-+static bool
-+tee_tg_route6(struct sk_buff *skb, const struct xt_tee_tginfo *info)
-+{
-+	const struct ipv6hdr *iph =3D ipv6_hdr(skb);
-+	struct dst_entry *dst;
-+	struct flowi fl;
-+
-+	memset(&fl, 0, sizeof(fl));
-+	fl.iif  =3D skb->skb_iif;
-+	fl.mark =3D skb->mark;
-+	fl.nl_u.ip6_u.daddr =3D info->gw.in6;
-+	fl.nl_u.ip6_u.flowlabel =3D ((iph->flow_lbl[0] & 0xF) << 16) |
-+				  (iph->flow_lbl[1] << 8) | iph->flow_lbl[2];
-+
-+	dst =3D ip6_route_output(dev_net(skb->dev), NULL, &fl);
-+	if (dst =3D=3D NULL)
-+		return false;
-+
-+	dst_release(skb_dst(skb));
-+	skb_dst_set(skb, dst);
-+	skb->dev      =3D dst->dev;
-+	skb->protocol =3D htons(ETH_P_IPV6);
-+	return true;
-+}
-+
-+static unsigned int
-+tee_tg6(struct sk_buff *skb, const struct xt_target_param *par)
-+{
-+	const struct xt_tee_tginfo *info =3D par->targinfo;
-+
-+#ifdef WITH_CONNTRACK
-+	if (skb->nfct =3D=3D &tee_track.ct_general)
-+		return NF_DROP;
-+#endif
-+	if ((skb =3D skb_copy(skb, GFP_ATOMIC)) =3D=3D NULL)
-+		return XT_CONTINUE;
-+
-+#ifdef WITH_CONNTRACK
-+	nf_conntrack_put(skb->nfct);
-+	skb->nfct     =3D &tee_track.ct_general;
-+	skb->nfctinfo =3D IP_CT_NEW;
-+	nf_conntrack_get(skb->nfct);
-+#endif
-+	if (tee_tg_route6(skb, info))
-+		tee_tg_send(skb);
-+
-+	return XT_CONTINUE;
-+}
-+#endif /* WITH_IPV6 */
-+
-+static int tee_tg_check(const struct xt_tgchk_param *par)
-+{
-+	const struct xt_tee_tginfo *info =3D par->targinfo;
-+
-+	/* 0.0.0.0 and :: not allowed */
-+	return memcmp(&info->gw, &tee_zero_address,
-+	       sizeof(tee_zero_address)) !=3D 0;
-+}
-+
-+static struct xt_target tee_tg_reg[] __read_mostly =3D {
-+	{
-+		.name       =3D "TEE",
-+		.revision   =3D 0,
-+		.family     =3D NFPROTO_IPV4,
-+		.target     =3D tee_tg4,
-+		.targetsize =3D sizeof(struct xt_tee_tginfo),
-+		.checkentry =3D tee_tg_check,
-+		.me         =3D THIS_MODULE,
-+	},
-+#ifdef WITH_IPV6
-+	{
-+		.name       =3D "TEE",
-+		.revision   =3D 0,
-+		.family     =3D NFPROTO_IPV6,
-+		.target     =3D tee_tg6,
-+		.targetsize =3D sizeof(struct xt_tee_tginfo),
-+		.checkentry =3D tee_tg_check,
-+		.me         =3D THIS_MODULE,
-+	},
-+#endif
++struct condition_variable {
++	struct list_head list;
++	struct proc_dir_entry *status_proc;
++	unsigned int refcount;
++	bool enabled;
 +};
 +
-+static int __init tee_tg_init(void)
++/* proc_lock is a user context only semaphore used for write access */
++/*           to the conditions' list.                               */
++static struct mutex proc_lock;
++
++static LIST_HEAD(conditions_list);
++static struct proc_dir_entry *proc_net_condition;
++
++static int condition_proc_read(char __user *buffer, char **start, off_t offset,
++			       int length, int *eof, void *data)
 +{
-+#ifdef WITH_CONNTRACK
++	const struct condition_variable *var = data;
++
++	buffer[0] = var->enabled ? '1' : '0';
++	buffer[1] = '\n';
++	if (length >= 2)
++		*eof = true;
++	return 2;
++}
++
++static int condition_proc_write(struct file *file, const char __user *buffer,
++				unsigned long length, void *data)
++{
++	struct condition_variable *var = data;
++	char newval;
++
++	if (length > 0) {
++		if (get_user(newval, buffer) != 0)
++			return -EFAULT;
++		/* Match only on the first character */
++		switch (newval) {
++		case '0':
++			var->enabled = false;
++			break;
++		case '1':
++			var->enabled = true;
++			break;
++		}
++	}
++	return length;
++}
++
++static bool
++condition_mt(const struct sk_buff *skb, const struct xt_match_param *par)
++{
++	const struct xt_condition_mtinfo *info = par->matchinfo;
++	const struct condition_variable *var   = info->condvar;
++	bool x;
++
++	rcu_read_lock();
++	x = rcu_dereference(var->enabled);
++	rcu_read_unlock();
++
++	return x ^ info->invert;
++}
++
++static int condition_mt_check(const struct xt_mtchk_param *par)
++{
++	struct xt_condition_mtinfo *info = par->matchinfo;
++	struct condition_variable *var;
++
++	/* Forbid certain names */
++	if (*info->name == '\0' || *info->name == '.' ||
++	    info->name[sizeof(info->name)-1] != '\0' ||
++	    memchr(info->name, '/', sizeof(info->name)) != NULL) {
++		printk(KERN_INFO KBUILD_MODNAME ": name not allowed or too "
++		       "long: \"%.*s\"\n", (unsigned int)sizeof(info->name),
++		       info->name);
++		return false;
++	}
 +	/*
-+	 * Set up fake conntrack (stolen from raw.patch):
-+	 * - to never be deleted, not in any hashes
++	 * Let's acquire the lock, check for the condition and add it
++	 * or increase the reference counter.
 +	 */
-+	atomic_set(&tee_track.ct_general.use, 1);
++	if (mutex_lock_interruptible(&proc_lock) != 0)
++		return -EINTR;
 +
-+	/* - and look it like as a confirmed connection */
-+	set_bit(IPS_CONFIRMED_BIT, &tee_track.status);
++	list_for_each_entry(var, &conditions_list, list) {
++		if (strcmp(info->name, var->status_proc->name) == 0) {
++			++var->refcount;
++			mutex_unlock(&proc_lock);
++			info->condvar = var;
++			return true;
++		}
++	}
 +
-+	/* Initialize fake conntrack so that NAT will skip it */
-+	tee_track.status |=3D IPS_NAT_DONE_MASK;
-+#endif
-+	return xt_register_targets(tee_tg_reg, ARRAY_SIZE(tee_tg_reg));
++	/* At this point, we need to allocate a new condition variable. */
++	var = kmalloc(sizeof(struct condition_variable), GFP_KERNEL);
++	if (var == NULL) {
++		mutex_unlock(&proc_lock);
++		return -ENOMEM;
++	}
++
++	/* Create the condition variable's proc file entry. */
++	var->status_proc = create_proc_entry(info->name, condition_list_perms,
++			   proc_net_condition);
++	if (var->status_proc == NULL) {
++		kfree(var);
++		mutex_unlock(&proc_lock);
++		return -ENOMEM;
++	}
++
++	var->refcount = 1;
++	var->enabled  = false;
++	var->status_proc->data = var;
++	wmb();
++	var->status_proc->read_proc  = condition_proc_read;
++	var->status_proc->write_proc = condition_proc_write;
++	list_add_rcu(&var->list, &conditions_list);
++	var->status_proc->uid = condition_uid_perms;
++	var->status_proc->gid = condition_gid_perms;
++	mutex_unlock(&proc_lock);
++	info->condvar = var;
++	return true;
 +}
 +
-+static void __exit tee_tg_exit(void)
++static void condition_mt_destroy(const struct xt_mtdtor_param *par)
 +{
-+	xt_unregister_targets(tee_tg_reg, ARRAY_SIZE(tee_tg_reg));
++	const struct xt_condition_mtinfo *info = par->matchinfo;
++	struct condition_variable *var = info->condvar;
++
++	mutex_lock(&proc_lock);
++	if (--var->refcount == 0) {
++		list_del_rcu(&var->list);
++		remove_proc_entry(var->status_proc->name, proc_net_condition);
++		mutex_unlock(&proc_lock);
++		/*
++		 * synchronize_rcu() would be good enough, but
++		 * synchronize_net() guarantees that no packet
++		 * will go out with the old rule after
++		 * succesful removal.
++		 */
++		synchronize_net();
++		kfree(var);
++		return;
++	}
++	mutex_unlock(&proc_lock);
 +}
 +
-+module_init(tee_tg_init);
-+module_exit(tee_tg_exit);
-+MODULE_AUTHOR("Sebastian Cla=C3=9Fen <sebastian.classen@freenet.ag>");
-+MODULE_AUTHOR("Jan Engelhardt <jengelh@medozas.de>");
-+MODULE_DESCRIPTION("Xtables: Reroute packet copy");
-+MODULE_LICENSE("GPL");
-+MODULE_ALIAS("ipt_TEE");
-+MODULE_ALIAS("ip6t_TEE");
---=20
++static struct xt_match condition_mt_reg __read_mostly = {
++	.name       = "condition",
++	.revision   = 1,
++	.family     = NFPROTO_UNSPEC,
++	.matchsize  = sizeof(struct xt_condition_mtinfo),
++	.match      = condition_mt,
++	.checkentry = condition_mt_check,
++	.destroy    = condition_mt_destroy,
++	.me         = THIS_MODULE,
++};
++
++static const char *const dir_name = "nf_condition";
++
++static int __net_init condnet_mt_init(struct net *net)
++{
++	int ret;
++
++	proc_net_condition = proc_mkdir(dir_name, net->proc_net);
++	if (proc_net_condition == NULL)
++		return -EACCES;
++
++	ret = xt_register_match(&condition_mt_reg);
++	if (ret < 0) {
++		remove_proc_entry(dir_name, net->proc_net);
++		return ret;
++	}
++
++	return 0;
++}
++
++static void __net_exit condnet_mt_exit(struct net *net)
++{
++	xt_unregister_match(&condition_mt_reg);
++	remove_proc_entry(dir_name, net->proc_net);
++}
++
++static struct pernet_operations condition_mt_netops = {
++	.init = condnet_mt_init,
++	.exit = condnet_mt_exit,
++};
++
++static int __init condition_mt_init(void)
++{
++	mutex_init(&proc_lock);
++	return register_pernet_subsys(&condition_mt_netops);
++}
++
++static void __exit condition_mt_exit(void)
++{
++	unregister_pernet_subsys(&condition_mt_netops);
++}
++
++module_init(condition_mt_init);
++module_exit(condition_mt_exit);
+-- 
 1.7.0.2
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
