@@ -1,46 +1,48 @@
-From: wzt.wzt@gmail.com
-Subject: [PATCH] Netfilter: Remove unused headers in net/netfilter/nfnetlink.c
-Date: Wed, 17 Mar 2010 21:35:02 +0800
-Message-ID: <20100317133502.GB2696@localhost.localdomain>
+From: Dominik Kaspar <dokaspar.ietf@gmail.com>
+Subject: RAWDNAT and disappearing packets
+Date: Wed, 17 Mar 2010 10:40:52 +0100
+Message-ID: <2a3692de1003170240k1b5b4e88k6f447d8fd3cb213@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, Patrick McHardy <kaber@trash.net>
-To: linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:48707 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752219Ab0CQFgK (ORCPT
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:60633 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753860Ab0CQJky (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Mar 2010 01:36:10 -0400
-Content-Disposition: inline
+	Wed, 17 Mar 2010 05:40:54 -0400
+Received: by bwz1 with SMTP id 1so802316bwz.1
+        for <netfilter-devel@vger.kernel.org>; Wed, 17 Mar 2010 02:40:53 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Remove unused headers in net/netfilter/nfnetlink.c
+Hi,
 
-Signed-off-by: Zhitong Wang <zhitong.wangzt@alibaba-inc.com>
+I have a question about why packets are disappearing in my setup. My
+machine has two L2TP tunnels (10.6.1.2 and 10.6.1.3) to a Web server
+(10.6.1.1). The local machine uses a command such as "wget
+http://10.6.1.1/file --bind-address 10.6.1.2" to request a file from
+the server. On the server, outgoing packets are rewritten to 10.6.1.3,
+so that they travel back through the other tunnel. That works fine.
 
----
- net/netfilter/nfnetlink.c |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+At the client, I am using the RAWDNAT target to translate the address
+of incoming packets destined for 10.6.1.3 to be locally translated
+back to 10.6.1.2. This is the rule I use:
 
-diff --git a/net/netfilter/nfnetlink.c b/net/netfilter/nfnetlink.c
-index 8eb0cc2..0794f9a 100644
---- a/net/netfilter/nfnetlink.c
-+++ b/net/netfilter/nfnetlink.c
-@@ -18,12 +18,9 @@
- #include <linux/types.h>
- #include <linux/socket.h>
- #include <linux/kernel.h>
--#include <linux/major.h>
--#include <linux/timer.h>
- #include <linux/string.h>
- #include <linux/sockios.h>
- #include <linux/net.h>
--#include <linux/fcntl.h>
- #include <linux/skbuff.h>
- #include <asm/uaccess.h>
- #include <asm/system.h>
--- 
-1.6.5.3
+iptables -t raw -A PREROUTING -p tcp --sport 80 -d 10.6.1.3 -j RAWDNAT
+--to-destination 10.6.1.2
 
+I added a LOG rule before and after RAWDNAT to verify that the
+destination is changed to 10.6.1.2. Everything in PREROUTING works.
+According to the netfilter flow chart, a packet then travels into
+"conntrack" and then into MANGLE PREROUTING, where I can still log the
+packet (that is now going to 10.6.1.2 instead of 10.6.1.3).
+
+However, then it somehow disappears! I cannot find the packet in NAT
+PREROUTING and also not in any INPUT or FORWARD tables after the
+routing decision point. What happened? What made the packet suddenly
+disappear? Is there something going on that causes the packets to be
+dropped?
+
+Best regards,
+Dominik
