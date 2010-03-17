@@ -1,53 +1,54 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: RAWDNAT and disappearing packets
-Date: Wed, 17 Mar 2010 13:28:06 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.1003171323240.2731@obet.zrqbmnf.qr>
-References: <2a3692de1003170240k1b5b4e88k6f447d8fd3cb213@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Subject: [PATCH 1/9] netfilter: xtables: do without explicit XT_ALIGN
+Date: Wed, 17 Mar 2010 14:18:56 +0100
+Message-ID: <1268831945-6041-2-git-send-email-jengelh@medozas.de>
+References: <1268831945-6041-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
-To: Dominik Kaspar <dokaspar.ietf@gmail.com>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:46792 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:59340 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754769Ab0CQM2J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Mar 2010 08:28:09 -0400
-In-Reply-To: <2a3692de1003170240k1b5b4e88k6f447d8fd3cb213@mail.gmail.com>
+	id S1751011Ab0CQNTQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 17 Mar 2010 09:19:16 -0400
+In-Reply-To: <1268831945-6041-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+XT_ALIGN is already applied on matchsize/targetsize in x_tables.c,
+so it is not strictly needed in the extensions.
 
-On Wednesday 2010-03-17 10:40, Dominik Kaspar wrote:
->
->I have a question about why packets are disappearing in my setup. My
->machine has two L2TP tunnels (10.6.1.2 and 10.6.1.3) to a Web server
->(10.6.1.1). The local machine uses a command such as "wget
->http://10.6.1.1/file --bind-address 10.6.1.2" to request a file from
->the server. On the server, outgoing packets are rewritten to 10.6.1.3,
->so that they travel back through the other tunnel. That works fine.
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ net/netfilter/xt_CT.c  |    2 +-
+ net/netfilter/xt_LED.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-For asymmetric routing, you should not be using NAT, but proper
-policy routing.
+diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
+index fda603e..6509e03 100644
+--- a/net/netfilter/xt_CT.c
++++ b/net/netfilter/xt_CT.c
+@@ -137,7 +137,7 @@ static void xt_ct_tg_destroy(const struct xt_tgdtor_param *par)
+ static struct xt_target xt_ct_tg __read_mostly = {
+ 	.name		= "CT",
+ 	.family		= NFPROTO_UNSPEC,
+-	.targetsize	= XT_ALIGN(sizeof(struct xt_ct_target_info)),
++	.targetsize	= sizeof(struct xt_ct_target_info),
+ 	.checkentry	= xt_ct_tg_check,
+ 	.destroy	= xt_ct_tg_destroy,
+ 	.target		= xt_ct_target,
+diff --git a/net/netfilter/xt_LED.c b/net/netfilter/xt_LED.c
+index 8ff7843..f86dc52 100644
+--- a/net/netfilter/xt_LED.c
++++ b/net/netfilter/xt_LED.c
+@@ -141,7 +141,7 @@ static struct xt_target led_tg_reg __read_mostly = {
+ 	.revision	= 0,
+ 	.family		= NFPROTO_UNSPEC,
+ 	.target		= led_tg,
+-	.targetsize	= XT_ALIGN(sizeof(struct xt_led_info)),
++	.targetsize	= sizeof(struct xt_led_info),
+ 	.checkentry	= led_tg_check,
+ 	.destroy	= led_tg_destroy,
+ 	.me		= THIS_MODULE,
+-- 
+1.7.0.2
 
->At the client, I am using the RAWDNAT target to translate the address
->of incoming packets destined for 10.6.1.3 to be locally translated
->back to 10.6.1.2. This is the rule I use:
->
->iptables -t raw -A PREROUTING -p tcp --sport 80 -d 10.6.1.3 -j RAWDNAT
->--to-destination 10.6.1.2
-
-That might trip up rp_filter.
-
->According to the netfilter flow chart, a packet then travels into
->"conntrack" and then into MANGLE PREROUTING, where I can still log the
->packet (that is now going to 10.6.1.2 instead of 10.6.1.3).
->
->However, then it somehow disappears! I cannot find the packet in NAT
->PREROUTING and also not in any INPUT or FORWARD tables after the
->routing decision point. What happened? What made the packet suddenly
->disappear? Is there something going on that causes the packets to be
->dropped?
-
-My guess is that route lookup failed, or rp_filter.
-Unfortunately I don't know a way to make failed route lookups
-visible - perhaps the iproute2 guys have a magic command?
