@@ -1,37 +1,38 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 3/9] netfilter: xtables: restrict TCPMSS to mangle table
- as intended
-Date: Wed, 17 Mar 2010 14:36:58 +0100
-Message-ID: <4BA0DAFA.80104@trash.net>
-References: <1268831945-6041-1-git-send-email-jengelh@medozas.de> <1268831945-6041-4-git-send-email-jengelh@medozas.de> <4BA0D97D.6020701@trash.net> <alpine.LSU.2.01.1003171431420.6297@obet.zrqbmnf.qr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 5/9] netfilter: xtables: limit xt_mac to ethernet
+ devices
+Date: Wed, 17 Mar 2010 14:37:33 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.1003171434550.6297@obet.zrqbmnf.qr>
+References: <1268831945-6041-1-git-send-email-jengelh@medozas.de> <1268831945-6041-6-git-send-email-jengelh@medozas.de> <4BA0D9B1.4050809@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:57734 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753880Ab0CQNg7 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Mar 2010 09:36:59 -0400
-In-Reply-To: <alpine.LSU.2.01.1003171431420.6297@obet.zrqbmnf.qr>
+Received: from borg.medozas.de ([188.40.89.202]:34088 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753880Ab0CQNhe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 17 Mar 2010 09:37:34 -0400
+In-Reply-To: <4BA0D9B1.4050809@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Wednesday 2010-03-17 14:30, Patrick McHardy wrote:
->> Jan Engelhardt wrote:
->>> References: http://bugs.debian.org/567050
->>> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
->> So we removed those artificial restrictions in other modules
->> just to introduce them somewhere else?
-> 
-> Couldn't MSS be relevant to routing?
-> Just trying to figure out how the manpage came to mention it would need 
-> to be limited.
+On Wednesday 2010-03-17 14:31, Patrick McHardy wrote:
+>Jan Engelhardt wrote:
+>> I do not see a point of allowing the MAC module to work with devices
+>> that don't possibly have one, e.g. various tunnel interfaces such as
+>> tun and sit.
+>
+>> @@ -29,6 +30,8 @@ static bool mac_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+>>  	const struct xt_mac_info *info = par->matchinfo;
+>>  	bool ret;
+>>  
+>> +	if (skb->dev == NULL || skb->dev->type != ARPHRD_ETHER)
+>> +		return false;
+>
+>What about the ~60 ARPHRD values that are not tunnels and sit?
 
-Because it mangles the packet. But I don't see any point in restricting
-those modules to the mangle table, the only thing that is really special
-about it is rerouting.
+xt_mac uses eth_hdr(skb), so it makes sense to limit it to ethernet, as 
+we cannot be sure of the exact frame formats of other link layers.
+Do you have an alternate proposal?
 
