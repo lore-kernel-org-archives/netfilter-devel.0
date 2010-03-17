@@ -1,26 +1,54 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 7/9] netfilter: xtables: inclusion of xt_SYSRQ
-Date: Wed, 17 Mar 2010 14:56:17 +0100
-Message-ID: <4BA0DF81.3030204@trash.net>
-References: <1268831945-6041-1-git-send-email-jengelh@medozas.de> <1268831945-6041-8-git-send-email-jengelh@medozas.de>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 2/9] netfilter: xtables: slightly more detailed checkentry
+ return values
+Date: Wed, 17 Mar 2010 15:05:51 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.1003171443330.6297@obet.zrqbmnf.qr>
+References: <1268831945-6041-1-git-send-email-jengelh@medozas.de> <1268831945-6041-3-git-send-email-jengelh@medozas.de> <4BA0DB87.9040709@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:58168 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754861Ab0CQN4S (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 17 Mar 2010 09:56:18 -0400
-In-Reply-To: <1268831945-6041-8-git-send-email-jengelh@medozas.de>
+Received: from borg.medozas.de ([188.40.89.202]:56840 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754667Ab0CQOFx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 17 Mar 2010 10:05:53 -0400
+In-Reply-To: <4BA0DB87.9040709@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> The SYSRQ target will allow to remotely invoke sysrq on the local
-> machine. Authentication is by means of a pre-shared key that can
-> either be transmitted plaintext or digest-secured.
 
-Lets deal with the other modules first while I make up my mind.
+On Wednesday 2010-03-17 14:39, Patrick McHardy wrote:
+>Jan Engelhardt wrote:
+>> When extended status codes are available, such as ENOMEM on failed
+>> allocations, or subsequent functions (e.g. nf_ct_get_l3proto), passing
+>> them up to userspace seems like a good idea compared to just always
+>> EINVAL.
+>
+>> diff --git a/net/bridge/netfilter/ebt_802_3.c b/net/bridge/netfilter/ebt_802_3.c
+>> index 5d11767..7b6f4c4 100644
+>> --- a/net/bridge/netfilter/ebt_802_3.c
+>> +++ b/net/bridge/netfilter/ebt_802_3.c
+>> @@ -36,7 +36,7 @@ ebt_802_3_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+>>  	return true;
+>>  }
+>>  
+>> -static bool ebt_802_3_mt_check(const struct xt_mtchk_param *par)
+>> +static int ebt_802_3_mt_check(const struct xt_mtchk_param *par)
+>>  {
+>>  	const struct ebt_802_3_info *info = par->matchinfo;
+>
+>Sigh, so we're basically going back to the old signatures.
+
+To err is human :-)
+
+>I guess this makes sense, however iptables has special interpretations
+>of errno values. How will this interact?
+
+Since we are "just going back", the effect should be none - dig out
+an old iptables and kernel and you get the same environment.
+
+Well, libiptc prints a few specialized error messages for certain
+codes (cf libiptc.c, TC_STRERROR), else uses plain libc strerror.
+
+Besides handling EAGAIN, there seems to be no special errno handling.
