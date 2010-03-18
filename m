@@ -1,149 +1,95 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 1/7] netfilter: xtables: make use of caller family rather than match family
-Date: Thu, 18 Mar 2010 15:09:43 +0100
-Message-ID: <1268921390-30296-2-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 3/7] netfilter: xtables: remove almost-unused xt_match_param.data member
+Date: Thu, 18 Mar 2010 15:09:45 +0100
+Message-ID: <1268921390-30296-4-git-send-email-jengelh@medozas.de>
 References: <1268921390-30296-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:37313 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:37318 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753852Ab0CROJz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Mar 2010 10:09:55 -0400
+	id S1753852Ab0CROJ5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Mar 2010 10:09:57 -0400
 In-Reply-To: <1268921390-30296-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The matches can have .family = NFPROTO_UNSPEC, and though that is not
-the case for the touched modules, it seems better to just use the
-nfproto from the caller.
+This member is taking up a "long" per match, yet is only used by one
+module out of the roughly 90 modules, ip6t_hbh. ip6t_hbh can be
+restructured a little to accomodate for the lack of the .data member.
+This variant uses checking the par->match address, which should avoid
+having to add two extra functions, including calls, i.e.
+
+(hbh_mt6: call hbhdst_mt6(skb, par, NEXTHDR_OPT),
+dst_mt6: call hbhdst_mt6(skb, par, NEXTHDR_DEST))
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- net/netfilter/xt_dscp.c      |    2 +-
- net/netfilter/xt_hashlimit.c |   10 +++++-----
- net/netfilter/xt_policy.c    |    4 ++--
- net/netfilter/xt_recent.c    |    6 +++---
- net/netfilter/xt_state.c     |    6 +++---
- 5 files changed, 14 insertions(+), 14 deletions(-)
+ include/linux/netfilter/x_tables.h |    3 ---
+ net/ipv6/netfilter/ip6t_hbh.c      |    9 ++++++---
+ 2 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/net/netfilter/xt_dscp.c b/net/netfilter/xt_dscp.c
-index 0280d3a..fe58cd0 100644
---- a/net/netfilter/xt_dscp.c
-+++ b/net/netfilter/xt_dscp.c
-@@ -58,7 +58,7 @@ static bool tos_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index c68ff82..cf91473 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -315,9 +315,6 @@ struct xt_match {
+ 	/* Set this to THIS_MODULE if you are a module, otherwise NULL */
+ 	struct module *me;
+ 
+-	/* Free to use by each match */
+-	unsigned long data;
+-
+ 	const char *table;
+ 	unsigned int matchsize;
+ #ifdef CONFIG_COMPAT
+diff --git a/net/ipv6/netfilter/ip6t_hbh.c b/net/ipv6/netfilter/ip6t_hbh.c
+index cbe8dec..82593c8 100644
+--- a/net/ipv6/netfilter/ip6t_hbh.c
++++ b/net/ipv6/netfilter/ip6t_hbh.c
+@@ -41,6 +41,8 @@ MODULE_ALIAS("ip6t_dst");
+  *	5	-> RTALERT 2 x x
+  */
+ 
++static struct xt_match hbh_mt6_reg[] __read_mostly;
++
+ static bool
+ hbh_mt6(const struct sk_buff *skb, const struct xt_match_param *par)
  {
- 	const struct xt_tos_match_info *info = par->matchinfo;
+@@ -58,7 +60,9 @@ hbh_mt6(const struct sk_buff *skb, const struct xt_match_param *par)
+ 	unsigned int optlen;
+ 	int err;
  
--	if (par->match->family == NFPROTO_IPV4)
-+	if (par->family == NFPROTO_IPV4)
- 		return ((ip_hdr(skb)->tos & info->tos_mask) ==
- 		       info->tos_value) ^ !!info->invert;
- 	else
-diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index ba9601a..1fdb50a 100644
---- a/net/netfilter/xt_hashlimit.c
-+++ b/net/netfilter/xt_hashlimit.c
-@@ -703,8 +703,8 @@ static bool hashlimit_mt_check_v0(const struct xt_mtchk_param *par)
- 		return false;
- 
- 	mutex_lock(&hashlimit_mutex);
--	r->hinfo = htable_find_get(net, r->name, par->match->family);
--	if (!r->hinfo && htable_create_v0(net, r, par->match->family) != 0) {
-+	r->hinfo = htable_find_get(net, r->name, par->family);
-+	if (!r->hinfo && htable_create_v0(net, r, par->family) != 0) {
- 		mutex_unlock(&hashlimit_mutex);
- 		return false;
- 	}
-@@ -730,7 +730,7 @@ static bool hashlimit_mt_check(const struct xt_mtchk_param *par)
- 		return false;
- 	if (info->name[sizeof(info->name)-1] != '\0')
- 		return false;
--	if (par->match->family == NFPROTO_IPV4) {
-+	if (par->family == NFPROTO_IPV4) {
- 		if (info->cfg.srcmask > 32 || info->cfg.dstmask > 32)
- 			return false;
- 	} else {
-@@ -739,8 +739,8 @@ static bool hashlimit_mt_check(const struct xt_mtchk_param *par)
- 	}
- 
- 	mutex_lock(&hashlimit_mutex);
--	info->hinfo = htable_find_get(net, info->name, par->match->family);
--	if (!info->hinfo && htable_create(net, info, par->match->family) != 0) {
-+	info->hinfo = htable_find_get(net, info->name, par->family);
-+	if (!info->hinfo && htable_create(net, info, par->family) != 0) {
- 		mutex_unlock(&hashlimit_mutex);
- 		return false;
- 	}
-diff --git a/net/netfilter/xt_policy.c b/net/netfilter/xt_policy.c
-index 4cbfebd..cc033d2 100644
---- a/net/netfilter/xt_policy.c
-+++ b/net/netfilter/xt_policy.c
-@@ -116,9 +116,9 @@ policy_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	int ret;
- 
- 	if (info->flags & XT_POLICY_MATCH_IN)
--		ret = match_policy_in(skb, info, par->match->family);
-+		ret = match_policy_in(skb, info, par->family);
- 	else
--		ret = match_policy_out(skb, info, par->match->family);
-+		ret = match_policy_out(skb, info, par->family);
- 
- 	if (ret < 0)
- 		ret = info->flags & XT_POLICY_MATCH_NONE ? true : false;
-diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
-index d2e7c80..a0ea1a2 100644
---- a/net/netfilter/xt_recent.c
-+++ b/net/netfilter/xt_recent.c
-@@ -233,7 +233,7 @@ recent_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	u_int8_t ttl;
- 	bool ret = info->invert;
- 
--	if (par->match->family == NFPROTO_IPV4) {
-+	if (par->family == NFPROTO_IPV4) {
- 		const struct iphdr *iph = ip_hdr(skb);
- 
- 		if (info->side == XT_RECENT_DEST)
-@@ -259,12 +259,12 @@ recent_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 
- 	spin_lock_bh(&recent_lock);
- 	t = recent_table_lookup(recent_net, info->name);
--	e = recent_entry_lookup(t, &addr, par->match->family,
-+	e = recent_entry_lookup(t, &addr, par->family,
- 				(info->check_set & XT_RECENT_TTL) ? ttl : 0);
- 	if (e == NULL) {
- 		if (!(info->check_set & XT_RECENT_SET))
- 			goto out;
--		e = recent_entry_init(t, &addr, par->match->family, ttl);
-+		e = recent_entry_init(t, &addr, par->family, ttl);
- 		if (e == NULL)
+-	err = ipv6_find_hdr(skb, &ptr, par->match->data, NULL);
++	err = ipv6_find_hdr(skb, &ptr,
++			    (par->match == &hbh_mt6_reg[0]) ?
++			    NEXTHDR_HOP : NEXTHDR_DEST, NULL);
+ 	if (err < 0) {
+ 		if (err != -ENOENT)
  			*par->hotdrop = true;
- 		ret = !ret;
-diff --git a/net/netfilter/xt_state.c b/net/netfilter/xt_state.c
-index 4c946cb..ef09b2e 100644
---- a/net/netfilter/xt_state.c
-+++ b/net/netfilter/xt_state.c
-@@ -39,9 +39,9 @@ state_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+@@ -179,13 +183,13 @@ static bool hbh_mt6_check(const struct xt_mtchk_param *par)
  
- static bool state_mt_check(const struct xt_mtchk_param *par)
- {
--	if (nf_ct_l3proto_try_module_get(par->match->family) < 0) {
-+	if (nf_ct_l3proto_try_module_get(par->family) < 0) {
- 		printk(KERN_WARNING "can't load conntrack support for "
--				    "proto=%u\n", par->match->family);
-+				    "proto=%u\n", par->family);
- 		return false;
- 	}
- 	return true;
-@@ -49,7 +49,7 @@ static bool state_mt_check(const struct xt_mtchk_param *par)
+ static struct xt_match hbh_mt6_reg[] __read_mostly = {
+ 	{
++		/* Note, hbh_mt6 relies on the order of hbh_mt6_reg */
+ 		.name		= "hbh",
+ 		.family		= NFPROTO_IPV6,
+ 		.match		= hbh_mt6,
+ 		.matchsize	= sizeof(struct ip6t_opts),
+ 		.checkentry	= hbh_mt6_check,
+ 		.me		= THIS_MODULE,
+-		.data		= NEXTHDR_HOP,
+ 	},
+ 	{
+ 		.name		= "dst",
+@@ -194,7 +198,6 @@ static struct xt_match hbh_mt6_reg[] __read_mostly = {
+ 		.matchsize	= sizeof(struct ip6t_opts),
+ 		.checkentry	= hbh_mt6_check,
+ 		.me		= THIS_MODULE,
+-		.data		= NEXTHDR_DEST,
+ 	},
+ };
  
- static void state_mt_destroy(const struct xt_mtdtor_param *par)
- {
--	nf_ct_l3proto_module_put(par->match->family);
-+	nf_ct_l3proto_module_put(par->family);
- }
- 
- static struct xt_match state_mt_reg[] __read_mostly = {
 -- 
 1.7.0.2
 
