@@ -1,95 +1,64 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 3/7] netfilter: xtables: remove almost-unused xt_match_param.data member
-Date: Thu, 18 Mar 2010 15:09:45 +0100
-Message-ID: <1268921390-30296-4-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 2/7] netfilter: update documentation fields of x_tables.h
+Date: Thu, 18 Mar 2010 15:09:44 +0100
+Message-ID: <1268921390-30296-3-git-send-email-jengelh@medozas.de>
 References: <1268921390-30296-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:37318 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:37316 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753852Ab0CROJ5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 18 Mar 2010 10:09:57 -0400
+	id S1753851Ab0CROJ4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 18 Mar 2010 10:09:56 -0400
 In-Reply-To: <1268921390-30296-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This member is taking up a "long" per match, yet is only used by one
-module out of the roughly 90 modules, ip6t_hbh. ip6t_hbh can be
-restructured a little to accomodate for the lack of the .data member.
-This variant uses checking the par->match address, which should avoid
-having to add two extra functions, including calls, i.e.
-
-(hbh_mt6: call hbhdst_mt6(skb, par, NEXTHDR_OPT),
-dst_mt6: call hbhdst_mt6(skb, par, NEXTHDR_DEST))
-
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/linux/netfilter/x_tables.h |    3 ---
- net/ipv6/netfilter/ip6t_hbh.c      |    9 ++++++---
- 2 files changed, 6 insertions(+), 6 deletions(-)
+ include/linux/netfilter/x_tables.h |   10 ++++++++--
+ 1 files changed, 8 insertions(+), 2 deletions(-)
 
 diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index c68ff82..cf91473 100644
+index 84c7c92..c68ff82 100644
 --- a/include/linux/netfilter/x_tables.h
 +++ b/include/linux/netfilter/x_tables.h
-@@ -315,9 +315,6 @@ struct xt_match {
- 	/* Set this to THIS_MODULE if you are a module, otherwise NULL */
- 	struct module *me;
- 
--	/* Free to use by each match */
--	unsigned long data;
--
- 	const char *table;
- 	unsigned int matchsize;
- #ifdef CONFIG_COMPAT
-diff --git a/net/ipv6/netfilter/ip6t_hbh.c b/net/ipv6/netfilter/ip6t_hbh.c
-index cbe8dec..82593c8 100644
---- a/net/ipv6/netfilter/ip6t_hbh.c
-+++ b/net/ipv6/netfilter/ip6t_hbh.c
-@@ -41,6 +41,8 @@ MODULE_ALIAS("ip6t_dst");
-  *	5	-> RTALERT 2 x x
+@@ -197,6 +197,7 @@ struct xt_counters_info {
+  * @family:	Actual NFPROTO_* through which the function is invoked
+  * 		(helpful when match->family == NFPROTO_UNSPEC)
+  * @hotdrop:	drop packet if we had inspection problems
++ * Network namespace obtainable using dev_net(in/out)
   */
- 
-+static struct xt_match hbh_mt6_reg[] __read_mostly;
-+
- static bool
- hbh_mt6(const struct sk_buff *skb, const struct xt_match_param *par)
- {
-@@ -58,7 +60,9 @@ hbh_mt6(const struct sk_buff *skb, const struct xt_match_param *par)
- 	unsigned int optlen;
- 	int err;
- 
--	err = ipv6_find_hdr(skb, &ptr, par->match->data, NULL);
-+	err = ipv6_find_hdr(skb, &ptr,
-+			    (par->match == &hbh_mt6_reg[0]) ?
-+			    NEXTHDR_HOP : NEXTHDR_DEST, NULL);
- 	if (err < 0) {
- 		if (err != -ENOENT)
- 			*par->hotdrop = true;
-@@ -179,13 +183,13 @@ static bool hbh_mt6_check(const struct xt_mtchk_param *par)
- 
- static struct xt_match hbh_mt6_reg[] __read_mostly = {
- 	{
-+		/* Note, hbh_mt6 relies on the order of hbh_mt6_reg */
- 		.name		= "hbh",
- 		.family		= NFPROTO_IPV6,
- 		.match		= hbh_mt6,
- 		.matchsize	= sizeof(struct ip6t_opts),
- 		.checkentry	= hbh_mt6_check,
- 		.me		= THIS_MODULE,
--		.data		= NEXTHDR_HOP,
- 	},
- 	{
- 		.name		= "dst",
-@@ -194,7 +198,6 @@ static struct xt_match hbh_mt6_reg[] __read_mostly = {
- 		.matchsize	= sizeof(struct ip6t_opts),
- 		.checkentry	= hbh_mt6_check,
- 		.me		= THIS_MODULE,
--		.data		= NEXTHDR_DEST,
- 	},
+ struct xt_match_param {
+ 	const struct net_device *in, *out;
+@@ -213,12 +214,14 @@ struct xt_match_param {
+  * struct xt_mtchk_param - parameters for match extensions'
+  * checkentry functions
+  *
++ * @net:	network namespace through which the check was invoked
+  * @table:	table the rule is tried to be inserted into
+  * @entryinfo:	the family-specific rule data
+- * 		(struct ipt_ip, ip6t_ip, ebt_entry)
++ * 		(struct ipt_ip, ip6t_ip, arpt_arp or (note) ebt_entry)
+  * @match:	struct xt_match through which this function was invoked
+  * @matchinfo:	per-match data
+  * @hook_mask:	via which hooks the new rule is reachable
++ * Other fields as above.
+  */
+ struct xt_mtchk_param {
+ 	struct net *net;
+@@ -230,7 +233,10 @@ struct xt_mtchk_param {
+ 	u_int8_t family;
  };
  
+-/* Match destructor parameters */
++/**
++ * struct xt_mdtor_param - match destructor parameters
++ * Fields as above.
++ */
+ struct xt_mtdtor_param {
+ 	struct net *net;
+ 	const struct xt_match *match;
 -- 
 1.7.0.2
 
