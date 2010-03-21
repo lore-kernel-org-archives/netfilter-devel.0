@@ -1,61 +1,31 @@
-From: Christoph Paasch <christoph.paasch@gmail.com>
-Subject: [PATCH] Netfilter: remove inlining of resolve_normal_ct
-Date: Sat, 20 Mar 2010 15:55:19 +0100
-Message-ID: <1269096919-12193-1-git-send-email-christoph.paasch@gmail.com>
-Cc: Christoph Paasch <christoph.paasch@gmail.com>
-To: netfilter-devel@vger.kernel.org
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: nf-next: more cleanups, int error reporting
+Date: Sun, 21 Mar 2010 03:46:05 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.1003210345210.6476@obet.zrqbmnf.qr>
+References: <1269046942-31719-1-git-send-email-jengelh@medozas.de>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-bw0-f209.google.com ([209.85.218.209]:51647 "EHLO
-	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752661Ab0CTOzX (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 20 Mar 2010 10:55:23 -0400
-Received: by bwz1 with SMTP id 1so745159bwz.21
-        for <netfilter-devel@vger.kernel.org>; Sat, 20 Mar 2010 07:55:22 -0700 (PDT)
+Received: from borg.medozas.de ([188.40.89.202]:38031 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752932Ab0CUCqJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 20 Mar 2010 22:46:09 -0400
+In-Reply-To: <1269046942-31719-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-According to the Linux CodingStyle-Guidelines, inlining of functions with more
-than 3 lines is discouraged.
+On Saturday 2010-03-20 02:02, Jan Engelhardt wrote:
+>
+>I've split the big changes from the error reporting into three commits
+>so as to
+> - make patch 6 as small as possible
+> - separate patch 6 for bisecting
+>because it is a potentially error-prone part.
+>
+>
+>Please review. (And, if clear, pull :)
 
-Gcc is able to optimize itself the unique call to resolve_normal_ct. Thus, the
-inline statement just increases the complexity of the code.
-
-Signed-off-by: Christoph Paasch <christoph.paasch@gmail.com>
----
- net/netfilter/nf_conntrack_core.c |   19 +++++++++----------
- 1 files changed, 9 insertions(+), 10 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 0c9bbe9..9358025 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -730,16 +730,15 @@ init_conntrack(struct net *net, struct nf_conn *tmpl,
- }
- 
- /* On success, returns conntrack ptr, sets skb->nfct and ctinfo */
--static inline struct nf_conn *
--resolve_normal_ct(struct net *net, struct nf_conn *tmpl,
--		  struct sk_buff *skb,
--		  unsigned int dataoff,
--		  u_int16_t l3num,
--		  u_int8_t protonum,
--		  struct nf_conntrack_l3proto *l3proto,
--		  struct nf_conntrack_l4proto *l4proto,
--		  int *set_reply,
--		  enum ip_conntrack_info *ctinfo)
-+static struct nf_conn *resolve_normal_ct(struct net *net, struct nf_conn *tmpl,
-+					 struct sk_buff *skb,
-+					 unsigned int dataoff,
-+					 u_int16_t l3num,
-+					 u_int8_t protonum,
-+					 struct nf_conntrack_l3proto *l3proto,
-+					 struct nf_conntrack_l4proto *l4proto,
-+					 int *set_reply,
-+					 enum ip_conntrack_info *ctinfo)
- {
- 	struct nf_conntrack_tuple tuple;
- 	struct nf_conntrack_tuple_hash *h;
--- 
-1.6.3.3
-
+I'm retracting this for now due to the incompleteness of, you figured 
+it, number 6.
