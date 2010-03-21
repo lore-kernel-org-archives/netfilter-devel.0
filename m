@@ -1,31 +1,24 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: nf-next: more cleanups, int error reporting
-Date: Sun, 21 Mar 2010 03:46:05 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.1003210345210.6476@obet.zrqbmnf.qr>
-References: <1269046942-31719-1-git-send-email-jengelh@medozas.de>
+From: Andrew Watts <akwatts@ymail.com>
+Subject: More sophisticated NFQUEUE analysis
+Date: Sun, 21 Mar 2010 02:14:16 -0700 (PDT)
+Message-ID: <886428.5742.qm@web111011.mail.gq1.yahoo.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:38031 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752932Ab0CUCqJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 20 Mar 2010 22:46:09 -0400
-In-Reply-To: <1269046942-31719-1-git-send-email-jengelh@medozas.de>
+Received: from web111011.mail.gq1.yahoo.com ([67.195.15.188]:35842 "HELO
+	web111011.mail.gq1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751410Ab0CUJU6 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 21 Mar 2010 05:20:58 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Saturday 2010-03-20 02:02, Jan Engelhardt wrote:
->
->I've split the big changes from the error reporting into three commits
->so as to
-> - make patch 6 as small as possible
-> - separate patch 6 for bisecting
->because it is a potentially error-prone part.
->
->
->Please review. (And, if clear, pull :)
+I am interested in doing userland analysis on -j NFQUEUE packets but require more information than it seems libnetfilter_queue provides. Specifically, does the current implementation export the packet's owner socket structure (skbuff->sk) to userland? I would like to get inode info, in particular.
 
-I'm retracting this for now due to the incompleteness of, you figured 
-it, number 6.
+If not, can anyone suggest a simple way to achieve this? Many thanks.
+
+~Andy
+
+
+      
