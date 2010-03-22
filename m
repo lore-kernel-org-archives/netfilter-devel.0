@@ -1,47 +1,163 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 5/9] netfilter: xt_recent: allow changing ip_list_[ug]id at runtime
-Date: Mon, 22 Mar 2010 20:18:01 +0100
-Message-ID: <1269285486-22653-6-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 9/9] netfilter: xtables: shorten up return clause
+Date: Mon, 22 Mar 2010 20:18:05 +0100
+Message-ID: <1269285486-22653-10-git-send-email-jengelh@medozas.de>
 References: <1269285486-22653-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
 Received: from borg.medozas.de ([188.40.89.202]:42173 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755416Ab0CVTSP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 22 Mar 2010 15:18:15 -0400
+	id S1755705Ab0CVTST (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 22 Mar 2010 15:18:19 -0400
 In-Reply-To: <1269285486-22653-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+The return value of nf_ct_l3proto_get can directly be returned even in
+the case of success.
+
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- net/netfilter/xt_recent.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ net/ipv4/netfilter/ipt_CLUSTERIP.c |    7 ++-----
+ net/netfilter/xt_CONNSECMARK.c     |    6 ++----
+ net/netfilter/xt_connbytes.c       |    7 ++-----
+ net/netfilter/xt_connmark.c        |   12 ++++--------
+ net/netfilter/xt_conntrack.c       |    6 ++----
+ net/netfilter/xt_state.c           |    6 ++----
+ 6 files changed, 14 insertions(+), 30 deletions(-)
 
-diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
-index 72cbced..8530944 100644
---- a/net/netfilter/xt_recent.c
-+++ b/net/netfilter/xt_recent.c
-@@ -51,14 +51,14 @@ module_param(ip_list_tot, uint, 0400);
- module_param(ip_pkt_list_tot, uint, 0400);
- module_param(ip_list_hash_size, uint, 0400);
- module_param(ip_list_perms, uint, 0400);
--module_param(ip_list_uid, uint, 0400);
--module_param(ip_list_gid, uint, 0400);
-+module_param(ip_list_uid, uint, S_IRUGO | S_IWUSR);
-+module_param(ip_list_gid, uint, S_IRUGO | S_IWUSR);
- MODULE_PARM_DESC(ip_list_tot, "number of IPs to remember per list");
- MODULE_PARM_DESC(ip_pkt_list_tot, "number of packets per IP address to remember (max. 255)");
- MODULE_PARM_DESC(ip_list_hash_size, "size of hash table used to look up IPs");
- MODULE_PARM_DESC(ip_list_perms, "permissions on /proc/net/xt_recent/* files");
--MODULE_PARM_DESC(ip_list_uid,"owner of /proc/net/xt_recent/* files");
--MODULE_PARM_DESC(ip_list_gid,"owning group of /proc/net/xt_recent/* files");
-+MODULE_PARM_DESC(ip_list_uid, "default owner of /proc/net/xt_recent/* files");
-+MODULE_PARM_DESC(ip_list_gid, "default owning group of /proc/net/xt_recent/* files");
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+index 8bd4714..e6dccbf 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -404,13 +404,10 @@ static int clusterip_tg_check(const struct xt_tgchk_param *par)
+ 	cipinfo->config = config;
  
- struct recent_entry {
- 	struct list_head	list;
+ 	ret = nf_ct_l3proto_try_module_get(par->family);
+-	if (ret < 0) {
++	if (ret < 0)
+ 		pr_info("cannot load conntrack support for proto=%u\n",
+ 			par->family);
+-		return ret;
+-	}
+-
+-	return 0;
++	return ret;
+ }
+ 
+ /* drop reference count of cluster config when rule is deleted */
+diff --git a/net/netfilter/xt_CONNSECMARK.c b/net/netfilter/xt_CONNSECMARK.c
+index 99e0b84..cf1a835 100644
+--- a/net/netfilter/xt_CONNSECMARK.c
++++ b/net/netfilter/xt_CONNSECMARK.c
+@@ -107,12 +107,10 @@ static int connsecmark_tg_check(const struct xt_tgchk_param *par)
+ 	}
+ 
+ 	ret = nf_ct_l3proto_try_module_get(par->family);
+-	if (ret < 0) {
++	if (ret < 0)
+ 		pr_info("cannot load conntrack support for proto=%u\n",
+ 			par->family);
+-		return ret;
+-	}
+-	return 0;
++	return ret;
+ }
+ 
+ static void connsecmark_tg_destroy(const struct xt_tgdtor_param *par)
+diff --git a/net/netfilter/xt_connbytes.c b/net/netfilter/xt_connbytes.c
+index 2ff332e..ff738a5 100644
+--- a/net/netfilter/xt_connbytes.c
++++ b/net/netfilter/xt_connbytes.c
+@@ -109,13 +109,10 @@ static int connbytes_mt_check(const struct xt_mtchk_param *par)
+ 		return -EINVAL;
+ 
+ 	ret = nf_ct_l3proto_try_module_get(par->family);
+-	if (ret < 0) {
++	if (ret < 0)
+ 		pr_info("cannot load conntrack support for proto=%u\n",
+ 			par->family);
+-		return ret;
+-	}
+-
+-	return 0;
++	return ret;
+ }
+ 
+ static void connbytes_mt_destroy(const struct xt_mtdtor_param *par)
+diff --git a/net/netfilter/xt_connmark.c b/net/netfilter/xt_connmark.c
+index 71e38a1..ae10154 100644
+--- a/net/netfilter/xt_connmark.c
++++ b/net/netfilter/xt_connmark.c
+@@ -79,12 +79,10 @@ static int connmark_tg_check(const struct xt_tgchk_param *par)
+ 	int ret;
+ 
+ 	ret = nf_ct_l3proto_try_module_get(par->family);
+-	if (ret < 0) {
++	if (ret < 0)
+ 		pr_info("cannot load conntrack support for proto=%u\n",
+ 			par->family);
+-		return ret;
+-	}
+-	return 0;
++	return ret;
+ }
+ 
+ static void connmark_tg_destroy(const struct xt_tgdtor_param *par)
+@@ -111,12 +109,10 @@ static int connmark_mt_check(const struct xt_mtchk_param *par)
+ 	int ret;
+ 
+ 	ret = nf_ct_l3proto_try_module_get(par->family);
+-	if (ret < 0) {
++	if (ret < 0)
+ 		pr_info("cannot load conntrack support for proto=%u\n",
+ 			par->family);
+-		return ret;
+-	}
+-	return 0;
++	return ret;
+ }
+ 
+ static void connmark_mt_destroy(const struct xt_mtdtor_param *par)
+diff --git a/net/netfilter/xt_conntrack.c b/net/netfilter/xt_conntrack.c
+index e0bcf8d..3348706 100644
+--- a/net/netfilter/xt_conntrack.c
++++ b/net/netfilter/xt_conntrack.c
+@@ -211,12 +211,10 @@ static int conntrack_mt_check(const struct xt_mtchk_param *par)
+ 	int ret;
+ 
+ 	ret = nf_ct_l3proto_try_module_get(par->family);
+-	if (ret < 0) {
++	if (ret < 0)
+ 		pr_info("cannot load conntrack support for proto=%u\n",
+ 			par->family);
+-		return ret;
+-	}
+-	return 0;
++	return ret;
+ }
+ 
+ static void conntrack_mt_destroy(const struct xt_mtdtor_param *par)
+diff --git a/net/netfilter/xt_state.c b/net/netfilter/xt_state.c
+index 2b75230..be00d7b 100644
+--- a/net/netfilter/xt_state.c
++++ b/net/netfilter/xt_state.c
+@@ -42,12 +42,10 @@ static int state_mt_check(const struct xt_mtchk_param *par)
+ 	int ret;
+ 
+ 	ret = nf_ct_l3proto_try_module_get(par->family);
+-	if (ret < 0) {
++	if (ret < 0)
+ 		pr_info("cannot load conntrack support for proto=%u\n",
+ 			par->family);
+-		return ret;
+-	}
+-	return 0;
++	return ret;
+ }
+ 
+ static void state_mt_destroy(const struct xt_mtdtor_param *par)
 -- 
 1.7.0.2
 
