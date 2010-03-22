@@ -1,56 +1,53 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 8/9] netfilter: xtables: inclusion of xt_TEE
-Date: Mon, 22 Mar 2010 17:58:48 +0100
-Message-ID: <4BA7A1C8.8050402@trash.net>
-References: <1268831945-6041-1-git-send-email-jengelh@medozas.de> <1268831945-6041-9-git-send-email-jengelh@medozas.de> <4BA0DAB3.3000700@trash.net> <alpine.LSU.2.01.1003200252060.762@obet.zrqbmnf.qr>
+Subject: Re: [PATCH] Netfilter: Fix integer overflow in net/ipv6/netfilter/ip6_tables.c
+Date: Mon, 22 Mar 2010 18:07:27 +0100
+Message-ID: <4BA7A3CF.8070503@trash.net>
+References: <20100320143240.GB2942@localhost.localdomain>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
+To: wzt.wzt@gmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:39245 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:39410 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754753Ab0CVQ6v (ORCPT
+	with ESMTP id S1751347Ab0CVRH3 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 22 Mar 2010 12:58:51 -0400
-In-Reply-To: <alpine.LSU.2.01.1003200252060.762@obet.zrqbmnf.qr>
+	Mon, 22 Mar 2010 13:07:29 -0400
+In-Reply-To: <20100320143240.GB2942@localhost.localdomain>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Wednesday 2010-03-17 14:35, Patrick McHardy wrote:
->>> +	/*
->>> +	 * Normally, we would just use ip_local_out. Because iph->check is
->>> +	 * already correct, we could take a shortcut and call dst_output
->>> +	 * [forwards to ip_output] directly. ip_output however will invoke
->>> +	 * Netfilter hooks
->>>       
-> [ok we can skip these with IPSKB_REROUTED]
+wzt.wzt@gmail.com wrote:
+> The get.size field in the get_entries() interface is not bounded
+> correctly. The size is used to determine the total entry size.
+> The size is bounded, but can overflow and so the size checks may
+> not be sufficient to catch invalid size. Fix it by catching size
+> values that would cause overflows before calculating the size.
 >
->   
->>>         and cause reentrancy. So we skip that too and go
->>> +	 * directly to ip_finish_output.
->>>       
+> Signed-off-by: Zhitong Wang <zhitong.wangzt@alibaba-inc.com>
 >
-> And since we don't want fragmentation, we would need to call
-> ip_finish_output2. That function is not exported, so it is copied. I
-> am not even sure what the IPv4 layer does when it has to fragment a
-> fragment (because fragments don't seem to carry IP_DF).
->   
+> ---
+>  net/ipv4/netfilter/ip_tables.c  |    4 ++++
+>  net/ipv6/netfilter/ip6_tables.c |    4 ++++
+>  2 files changed, 8 insertions(+), 0 deletions(-)
+>
+> diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+> index 4e7c719..6abd3d2 100644
+> --- a/net/ipv4/netfilter/ip_tables.c
+> +++ b/net/ipv4/netfilter/ip_tables.c
+> @@ -1164,6 +1164,10 @@ get_entries(struct net *net, struct ipt_get_entries __user *uptr, int *len)
+>  	}
+>  	if (copy_from_user(&get, uptr, sizeof(get)) != 0)
+>  		return -EFAULT;
+> +
+> +	if (get.size >= INT_MAX / sizeof(struct ipt_get_entries))
+> +		return -EINVAL;
 
-I guess whether someone wants fragmentation is a question of the specific
-use case. In many possible cases conntrack might have defragmented the
-packet previously to reaching TEE, so it might actually be necessary to
-refragment the packet.
-> Setting IP_DF on the cloned skb could possibly lead to a Packet Too
-> Big being sent back to the original sender - which should probably be
-> avoided too.
->   
+I can see that the size might cause an overflow in the addition with
+sizeof(struct ipt_get_entries), but that would most likely cause a mismatch
+with the actual table size and get aborted (should be fixed anyways I
+guess). But I fail to find the overflow you're trying to prevent, which
+I guess would be the result of a multiplication.
 
-Indeed. This might also happen if the packet is passed through another
-router of course.
->
-> So removing the copied code does not look that easy.
->   
-Well, worst case export the original function in case of duplicating it.
+Please point me to the specific line in question. Thanks :)
