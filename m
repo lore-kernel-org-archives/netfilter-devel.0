@@ -1,43 +1,83 @@
-From: James King <t.james.king@gmail.com>
-Subject: Re: debugging kernel during packet drops
-Date: Tue, 23 Mar 2010 10:04:22 -0700
-Message-ID: <38bcb3ec1003231004y7672ad38v2c16f8c7d042f586@mail.gmail.com>
-References: <4BA74950.6000305@infopact.nl>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [RFC PATCH net-next 0/7 v2]IPv6:netfilter: defragment
+Date: Tue, 23 Mar 2010 18:16:14 +0100
+Message-ID: <4BA8F75E.2040303@trash.net>
+References: <4B88BE30.80206@cn.fujitsu.com> <4B97D34C.4020509@gmail.com> <4B98B4FC.50904@cn.fujitsu.com> <4B9B9766.3090200@linux-ipv6.org> <4B9E5FEC.9010002@trash.net> <4BA8EC4A.9070802@linux-ipv6.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: netfilter-devel@vger.kernel.org
-To: Jorrit Kronjee <j.kronjee@infopact.nl>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:55242 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752921Ab0CWREX (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Mar 2010 13:04:23 -0400
-Received: by vws6 with SMTP id 6so944404vws.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 23 Mar 2010 10:04:23 -0700 (PDT)
-In-Reply-To: <4BA74950.6000305@infopact.nl>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Shan Wei <shanwei@cn.fujitsu.com>,
+	YOSHIFUJI Hideaki <hideaki.yoshifuji@gmail.com>,
+	David Miller <davem@davemloft.net>,
+	Alexey Dobriyan <adobriyan@gmail.com>,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org
+To: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <4BA8EC4A.9070802@linux-ipv6.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Mon, Mar 22, 2010 at 3:41 AM, Jorrit Kronjee <j.kronjee@infopact.nl> wrote:
-> At around 300 kpps, the amount of packet drops is 40 kpps. For me, this
-> amount is too significant to ignore. I see the load average go from a
-> comfortable 0.00 to 1.78, mainly caused by ksoftirqd processes. At 200
-> kpps, the average amount of packet drops is 23 kpps. At 100 kpps, it's
-> still 2 kpps.
+YOSHIFUJI Hideaki wrote:
+> Hello.
 >
-> When I disable the hashlimit module the packet drops disappear again.
-> Now I know that hashlimit is made for more than one thing, namely
-> limiting packets based on source/destination host and source/destination
-> port, so it's not as efficient as it could be for my purposes. I could
-> rewrite it, but before I do that, I would like to know if the module
-> itself is really what's causing it, or if there's some underlying cause
-> that I'm not seeing. So my question in short: how can I discover why
-> it's dropping packets?
+> Sorry for my slow response.
+>
+> (2010/03/16 1:27), Patrick McHardy wrote:
+>> YOSHIFUJI Hideaki wrote:
+>>> (2010/03/11 18:16), Shan Wei wrote:
+>>>>> On the other hand, I'd even say we should NOT send
+>>>>> icmp here (at least by default) because standard routers
+>>>>> never send such packet.
+>>>>
+>>>> Yes=EF=BC=8Cfor routers, the patch-set does not send icmp message =
+to
+>>>> source host. It only does on destination host with IPv6 connection
+>>>> track enable.
+>>>
+>>> Please make it optional (via parameter) at least.
+>>
+>> The ICMP messages are only sent if the packet is destined for the
+>> local host, similar to what IPv6 defrag would do if conntrack wouldn=
+'t
+>> be used. So this patch increases consistency, why should we make thi=
+s
+>> optional?
+>
+> Well, in the first place, I do think conntrack should be
+> transparent as much as possible.  And, I cannot find other
+> netfilter conntrack code (ipv4 or ipv6) sending icmp e.g.
+> parameter problem etc.
 
-I'm not sure whether it's even related to the problem you're having,
-but I had a similar problem on a bnx2 interface with high packet rates
-when using l7-filter.  ifconfig reported huge numbers of dropped
-packets, corresponding to rx_fw_discards from "ethtool -S ethX"
-output.  I resolved this by bumping up the driver RX ring size (which
-was defaulting to 100 out of a maximum possible size of 1020).
+Agreed on the transparent part, however I consider silently dropping
+packets not transparent. In fact conntrack itself should never drop
+packets except under some very special circumstances when there's
+no other choice in order to operate correctly. Dropping packets is
+supposed to be a policy decision made by the user.
+
+In this case without conntrack, IPv6 would send an ICMPv6 message,
+so in my opinion the transparent thing to do would be to still send
+them. Of course only if reassembly is done on an end host.
+
+There's really no difference in sending these packets from conntrack
+compared to passing the incomplete fragments upwards to IPv6 and
+waiting for another timeout, except that its easier to implement
+consistently by generating the packets within conntrack.
+
+> As I said before, I agree that netfilter may drop packets
+> by any reasons, but I do think it should be done silently.
+> It can increment netfilter's own statistic counting etc.
+> but it should not increment the core's (especially,
+> specific) statistic counting.
+
+It really depends on what you define as "transparent".
+
+>
+> Reassembling processes are the same.  We should NOT send icmp, and
+> if ever desired, we might optionally send icmp (in other
+> module maybe).=20
+
+Please see above for my reasoning. There's also the matter of consisten=
+cy
+between IPv4 and IPv6 conntrack.
