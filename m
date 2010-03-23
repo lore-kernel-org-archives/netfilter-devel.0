@@ -1,49 +1,56 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 8/9] netfilter: xtables: inclusion of xt_TEE
-Date: Tue, 23 Mar 2010 02:55:47 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.1003230241580.12017@obet.zrqbmnf.qr>
-References: <1268831945-6041-1-git-send-email-jengelh@medozas.de> <1268831945-6041-9-git-send-email-jengelh@medozas.de> <4BA0DAB3.3000700@trash.net> <alpine.LSU.2.01.1003171437440.6297@obet.zrqbmnf.qr> <4BA0DF4D.5000504@trash.net>
+From: Xiaotian Feng <xtfeng@gmail.com>
+Subject: Re: [PATCH] Netfilter: Fix integer overflow in net/ipv6/netfilter/ip6_tables.c
+Date: Tue, 23 Mar 2010 10:29:53 +0800
+Message-ID: <7b6bb4a51003221929i16673523nd5f558ccbaace397@mail.gmail.com>
+References: <20100320143240.GB2942@localhost.localdomain>
+	 <4BA7A3CF.8070503@trash.net>
+	 <628d1651003221834g543e3e6cl4ea39c0886cb4ba1@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:47545 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754997Ab0CWBzt (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 22 Mar 2010 21:55:49 -0400
-In-Reply-To: <4BA0DF4D.5000504@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Patrick McHardy <kaber@trash.net>, linux-kernel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: wzt wzt <wzt.wzt@gmail.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <628d1651003221834g543e3e6cl4ea39c0886cb4ba1@mail.gmail.com>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
+On Tue, Mar 23, 2010 at 9:34 AM, wzt wzt <wzt.wzt@gmail.com> wrote:
+>> I can see that the size might cause an overflow in the addition with
+>> sizeof(struct ipt_get_entries)
+> That's the integer overflow i pointed.
+> get.size is copy from the user space, =C2=A0it can be set as 0x7fffff=
+ff,
+> addition with sizeof(struct ipt_get_entries) can be overflow.
 
-On Wednesday 2010-03-17 14:55, Patrick McHardy wrote:
->>>> +	if (dst->hh != NULL) {
->>>> +		neigh_hh_output(dst->hh, skb);
->>>> +	} else if (dst->neighbour != NULL) {
->>>> +		dst->neighbour->output(skb);
->>>> +	} else {
->>>> +		if (net_ratelimit())
->>>> +			pr_debug(KBUILD_MODNAME
->>>> +				"no hdr & no neighbour cache!\n");
->>>> +		kfree_skb(skb);
->>>> +	}
->>>> +}
->>> Remind me again why we need this duplicated output function?
+Patrick's point is that you're using "if (get.size >=3D INT_MAX /
+sizeof(struct ipt_get_entries))"
+So, did you find any chance that get.size * sizeof(struct
+ipt_get_entries) >=3D INT_MAX ?
+
+And, for the addition overflow, can it be caught by
+
+"if (*len !=3D sizeof(struct ipt_get_entries) + get.size)"  ???
+
 >
->You can use dst_output() and set IPSKB_REROUTED to skip the hook
->invocation. This will potentially perform fragmentation however.
-
-We don't have IPSKB_REROUTED for IPv6 currently.
-
-While I was pondering adding that, I noticed another upside-down
-world:
-
- - iptables POSTROUTING is invoked before outgoing fragmentation
-   (verified using ping -s 65000 localhost, and watching with both
-   ipt_LOG and tcpdump.)
-
- - ip6tables POSTROUTING is invoked after outgoing fragmentation
-
-Also, if I am reading right, POSTROUTING is invoked twice for v6
-multicast.
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0if (*len !=3D sizeof(struct ipt_get_entrie=
+s) + get.size) {
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0duprintf("get_=
+entries: %u !=3D %zu\n",
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 =C2=A0 *len, sizeof(get) + get.size);
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0return -EINVAL=
+;
+> =C2=A0 =C2=A0 =C2=A0 =C2=A0}
+>
+> so, check get.size max value before addition with sizeof(struct
+> ipt_get_entries) to prevent the integer overflow.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-kerne=
+l" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =C2=A0http://vger.kernel.org/majordomo-info.ht=
+ml
+> Please read the FAQ at =C2=A0http://www.tux.org/lkml/
+>
