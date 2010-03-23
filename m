@@ -1,75 +1,84 @@
-From: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-Subject: Re: [RFC PATCH net-next 0/7 v2]IPv6:netfilter: defragment
-Date: Wed, 24 Mar 2010 01:28:58 +0900
-Message-ID: <4BA8EC4A.9070802@linux-ipv6.org>
-References: <4B88BE30.80206@cn.fujitsu.com> <4B97D34C.4020509@gmail.com> <4B98B4FC.50904@cn.fujitsu.com> <4B9B9766.3090200@linux-ipv6.org> <4B9E5FEC.9010002@trash.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: nf-next: cleanups, err reporting (rd.2)
+Date: Tue, 23 Mar 2010 17:35:25 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.1003231734040.19672@obet.zrqbmnf.qr>
+References: <1269285486-22653-1-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
-	format=flowed
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Shan Wei <shanwei@cn.fujitsu.com>,
-	YOSHIFUJI Hideaki <hideaki.yoshifuji@gmail.com>,
-	David Miller <davem@davemloft.net>,
-	Alexey Dobriyan <adobriyan@gmail.com>,
-	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org,
-	YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 94.43.138.210.xn.2iij.net ([210.138.43.94]:60461 "EHLO
-	mail.st-paulia.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754512Ab0CWQ31 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Mar 2010 12:29:27 -0400
-In-Reply-To: <4B9E5FEC.9010002@trash.net>
+Received: from borg.medozas.de ([188.40.89.202]:50592 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755155Ab0CWQf0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 23 Mar 2010 12:35:26 -0400
+In-Reply-To: <1269285486-22653-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello.
 
-Sorry for my slow response.
-
-(2010/03/16 1:27), Patrick McHardy wrote:
-> YOSHIFUJI Hideaki wrote:
->> (2010/03/11 18:16), Shan Wei wrote:
->>>> On the other hand, I'd even say we should NOT send
->>>> icmp here (at least by default) because standard routers
->>>> never send such packet.
->>>
->>> Yes=EF=BC=8Cfor routers, the patch-set does not send icmp message t=
-o
->>> source host. It only does on destination host with IPv6 connection
->>> track enable.
->>
->> Please make it optional (via parameter) at least.
+On Monday 2010-03-22 20:17, Jan Engelhardt wrote:
 >
-> The ICMP messages are only sent if the packet is destined for the
-> local host, similar to what IPv6 defrag would do if conntrack wouldn'=
-t
-> be used. So this patch increases consistency, why should we make this
-> optional?
+>Jan Engelhardt (9):
+>      netfilter: xtables: make use of caller family rather than target family
+>      netfilter: xt extensions: use pr_<level> (2)
+>      netfilter: xtables: make use of xt_request_find_target
+>      netfilter: xtables: consolidate code into xt_request_find_match
+>      netfilter: xt_recent: allow changing ip_list_[ug]id at runtime
 
-Well, in the first place, I do think conntrack should be
-transparent as much as possible.  And, I cannot find other
-netfilter conntrack code (ipv4 or ipv6) sending icmp e.g.
-parameter problem etc.
+I have incorporated your comments; as I'm still on with the error reporting
+pieces, here is the batch of five instead:
+Please merge.
 
-As I said before, I agree that netfilter may drop packets
-by any reasons, but I do think it should be done silently.
-It can increment netfilter's own statistic counting etc.
-but it should not increment the core's (especially,
-specific) statistic counting.
 
-Reassembling processes are the same.  We should NOT send icmp, and
-if ever desired, we might optionally send icmp (in other
-module maybe).
+The following changes since commit 2c46cd8163b25bf6f38e612e9f1d162f0357c8f1:
+  Zhitong Wang (1):
+        netfilter: remove unused headers in net/ipv4/netfilter/nf_nat_h323.c
 
-Regards,
+are available in the git repository at:
 
---yoshfuji
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+  git://dev.medozas.de/linux master
+
+Jan Engelhardt (5):
+      netfilter: xtables: make use of caller family rather than target family
+      netfilter: xt extensions: use pr_<level> (2)
+      netfilter: xtables: make use of xt_request_find_target
+      netfilter: xtables: consolidate code into xt_request_find_match
+      netfilter: xt_recent: allow changing ip_list_[ug]id at runtime
+
+ include/linux/netfilter/x_tables.h  |    1 +
+ net/bridge/netfilter/ebt_among.c    |   15 ++++-----
+ net/bridge/netfilter/ebt_limit.c    |    3 +-
+ net/bridge/netfilter/ebt_ulog.c     |   26 +++++++++-------
+ net/bridge/netfilter/ebt_vlan.c     |   36 ++++++++--------------
+ net/bridge/netfilter/ebtables.c     |   23 +++-----------
+ net/ipv4/netfilter/arp_tables.c     |   20 +++++-------
+ net/ipv4/netfilter/ip_tables.c      |   56 +++++++++++++++--------------------
+ net/ipv4/netfilter/ipt_CLUSTERIP.c  |   47 +++++++++++++++--------------
+ net/ipv4/netfilter/ipt_ECN.c        |   11 ++----
+ net/ipv4/netfilter/ipt_LOG.c        |    7 ++--
+ net/ipv4/netfilter/ipt_MASQUERADE.c |    8 ++--
+ net/ipv4/netfilter/ipt_NETMAP.c     |    6 ++--
+ net/ipv4/netfilter/ipt_REDIRECT.c   |    6 ++--
+ net/ipv4/netfilter/ipt_REJECT.c     |    6 ++--
+ net/ipv4/netfilter/ipt_ULOG.c       |   40 ++++++++++++-------------
+ net/ipv4/netfilter/ipt_addrtype.c   |   14 ++++----
+ net/ipv4/netfilter/ipt_ecn.c        |    5 +--
+ net/ipv6/netfilter/ip6_tables.c     |   47 ++++++++++++-----------------
+ net/ipv6/netfilter/ip6t_LOG.c       |    7 ++--
+ net/ipv6/netfilter/ip6t_REJECT.c    |   20 ++++++------
+ net/ipv6/netfilter/ip6t_ah.c        |    6 ++--
+ net/ipv6/netfilter/ip6t_frag.c      |    6 ++--
+ net/ipv6/netfilter/ip6t_hbh.c       |    6 ++--
+ net/ipv6/netfilter/ip6t_rt.c        |    6 ++--
+ net/netfilter/x_tables.c            |   15 +++++++--
+ net/netfilter/xt_NFQUEUE.c          |    4 +-
+ net/netfilter/xt_TCPMSS.c           |    7 ++--
+ net/netfilter/xt_TPROXY.c           |    4 +-
+ net/netfilter/xt_esp.c              |    2 +-
+ net/netfilter/xt_iprange.c          |    1 +
+ net/netfilter/xt_recent.c           |   14 ++++----
+ net/netfilter/xt_socket.c           |    5 +--
+ net/netfilter/xt_time.c             |    4 +-
+ net/sched/act_ipt.c                 |    4 +-
+ 35 files changed, 224 insertions(+), 264 deletions(-)
