@@ -1,45 +1,36 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 3/9] netfilter: xtables: make use of
- xt_request_find_target
-Date: Tue, 23 Mar 2010 15:27:34 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.1003231526500.21464@obet.zrqbmnf.qr>
-References: <1269285486-22653-1-git-send-email-jengelh@medozas.de> <1269285486-22653-4-git-send-email-jengelh@medozas.de> <4BA8CF0D.1090707@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 4/9] netfilter: xtables: consolidate code into xt_request_find_match
+Date: Tue, 23 Mar 2010 15:27:08 +0100
+Message-ID: <4BA8CFBC.6020305@trash.net>
+References: <1269285486-22653-1-git-send-email-jengelh@medozas.de> <1269285486-22653-5-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:53525 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752315Ab0CWO1f (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Mar 2010 10:27:35 -0400
-In-Reply-To: <4BA8CF0D.1090707@trash.net>
+Received: from stinky.trash.net ([213.144.137.162]:58953 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752293Ab0CWO1L (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 23 Mar 2010 10:27:11 -0400
+In-Reply-To: <1269285486-22653-5-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tuesday 2010-03-23 15:24, Patrick McHardy wrote:
->Jan Engelhardt wrote:
->> diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
->> index f07d77f..0665e1b 100644
->> --- a/net/ipv4/netfilter/arp_tables.c
->> +++ b/net/ipv4/netfilter/arp_tables.c
->> @@ -523,13 +523,11 @@ find_check_entry(struct arpt_entry *e, const char *name, unsigned int size)
->>  		return ret;
->>  
->>  	t = arpt_get_target(e);
->> -	target = try_then_request_module(xt_find_target(NFPROTO_ARP,
->> -							t->u.user.name,
->> -							t->u.user.revision),
->> -					 "arpt_%s", t->u.user.name);
->> -	if (IS_ERR(target) || !target) {
->> +	target = xt_request_find_target(NFPROTO_ARP, t->u.user.name,
->> +	         t->u.user.revision);
->
->Indentation according to maintainers taste, please :)
+Jan Engelhardt wrote:
+> --- a/net/ipv4/netfilter/ip_tables.c
+> +++ b/net/ipv4/netfilter/ip_tables.c
+> @@ -629,12 +629,11 @@ find_check_match(struct ipt_entry_match *m, struct xt_mtchk_param *par)
+>  	struct xt_match *match;
+>  	int ret;
+>  
+> -	match = try_then_request_module(xt_find_match(AF_INET, m->u.user.name,
+> -						      m->u.user.revision),
+> -					"ipt_%s", m->u.user.name);
+> -	if (IS_ERR(match) || !match) {
+> +	match = xt_request_find_match(NFPROTO_IPV4, m->u.user.name,
+> +	        m->u.user.revision);
+>   
+Please fix indentation in this patch as well.
 
-With sugar on top?
-
-
-
-
-(SCNR)
