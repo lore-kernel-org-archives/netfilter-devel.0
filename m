@@ -1,107 +1,44 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 7/9] netfilter: xtables: slightly better error reporting
- (2/2)
-Date: Tue, 23 Mar 2010 16:02:41 +0100
-Message-ID: <4BA8D811.1060709@trash.net>
-References: <1269285486-22653-1-git-send-email-jengelh@medozas.de> <1269285486-22653-8-git-send-email-jengelh@medozas.de> <4BA8D3D1.7000409@trash.net> <alpine.LSU.2.01.1003231545390.21464@obet.zrqbmnf.qr>
+Subject: Re: [RFC PATCH net-next 0/7 v2]IPv6:netfilter: defragment
+Date: Tue, 23 Mar 2010 16:05:19 +0100
+Message-ID: <4BA8D8AF.1040307@trash.net>
+References: <4B88BE30.80206@cn.fujitsu.com> <4B97D34C.4020509@gmail.com> <4B98B4FC.50904@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: YOSHIFUJI Hideaki <hideaki.yoshifuji@gmail.com>,
+	David Miller <davem@davemloft.net>,
+	Alexey Dobriyan <adobriyan@gmail.com>,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org,
+	"yoshfuji@linux-ipv6.org >> YOSHIFUJI Hideaki"
+	<yoshfuji@linux-ipv6.org>
+To: Shan Wei <shanwei@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59720 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:59765 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754380Ab0CWPCm (ORCPT
+	with ESMTP id S1754397Ab0CWPFU (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Mar 2010 11:02:42 -0400
-In-Reply-To: <alpine.LSU.2.01.1003231545390.21464@obet.zrqbmnf.qr>
+	Tue, 23 Mar 2010 11:05:20 -0400
+In-Reply-To: <4B98B4FC.50904@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Tuesday 2010-03-23 15:44, Patrick McHardy wrote:
+Shan Wei wrote:
+>> On the other hand, I'd even say we should NOT send
+>> icmp here (at least by default) because standard routers
+>> never send such packet.
+>>    =20
+>
+> Yes=EF=BC=8Cfor routers, the patch-set does not send icmp message to
+> source host. It only does on destination host with IPv6 connection=20
+> track enable.
 >  =20
->> Jan Engelhardt wrote:
->>    =20
->>> diff --git a/net/ipv4/netfilter/ipt_LOG.c b/net/ipv4/netfilter/ipt_=
-LOG.c
->>> index c9ee5c4..33213d6 100644
->>> --- a/net/ipv4/netfilter/ipt_LOG.c
->>> +++ b/net/ipv4/netfilter/ipt_LOG.c
->>> @@ -445,7 +445,7 @@ static int log_tg_check(const struct xt_tgchk_p=
-aram *par)
->>> =20
->>>  	if (loginfo->level >=3D 8) {
->>>  		pr_debug("level %u >=3D 8\n", loginfo->level);
->>> -		return false;
->>> +		return -EDOM;
->>>  =20
->>>      =20
->> Mhh is that really a "Math argument out of domain of func"? ERANGE s=
-eems
->> slightly
->> better fitting to me.
->>    =20
->
-> I had to look up the difference too, but it's pretty obvious
-> (to me at least).
->
-> EDOM is for when a function is not defined at a point, such as log(0)
-> or divide(1.0, 0.0). Of course you could say "that's =C2=B1Inf", but =
-that
-> infinity argument I'll leave to academia.
->
-> However, "2^63 * 4" for example is well-defined in maths, but
-> computers are the limiting factor, hence ERANGE is appropriate in
-> this case.
->
->
->  =20
->>>  {
->>> +	int ret;
->>> +
->>>  	if (XT_ALIGN(par->match->matchsize) !=3D size &&
->>>  	    par->match->matchsize !=3D -1) {
->>>  		/*
->>> @@ -399,8 +401,13 @@ int xt_check_match(struct xt_mtchk_param *par,
->>>  		       par->match->proto);
->>>  		return -EINVAL;
->>>  	}
->>> -	if (par->match->checkentry !=3D NULL && !par->match->checkentry(p=
-ar))
->>> -		return -EINVAL;
->>> +	if (par->match->checkentry !=3D NULL) {
->>> +		ret =3D par->match->checkentry(par);
->>> +		if (ret < 0)
->>> +			return ret;
->>> +		else if (ret =3D=3D 0)
->>> +			return -EINVAL;
->>>      =20
->> I'd suggest to do the true/false conversion before this patch. Curre=
-ntly I
->> don't understand the split of these patches, this one keeps lots of =
-boolean
->> return values and initializations, but changes some.
->>    =20
->
-> I did this so that the two main changes,
->
->  A1. replacing 'return false' by "detailed" code
->  (EDOM, etc.)
->
->  A2. replacing all remaining bools that did not get a detailed_code
->  by EINVAL.
->
-> It is also possible to change the order, as in
->
->  B1. change everything to EINVAL first
->
->  B2. then change EINVAL -> detailed_code.
->
-> Should I switch?
-Yes, I think that would ease review. Thanks.
 
+The nf-next tree is open again, now would be a good time to resubmit
+these patches.
+Thanks!
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
