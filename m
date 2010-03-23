@@ -1,71 +1,96 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 5/9] netfilter: xt_recent: allow changing ip_list_[ug]id
- at runtime
-Date: Tue, 23 Mar 2010 16:10:15 +0100
-Message-ID: <4BA8D9D7.1080800@trash.net>
-References: <1269285486-22653-1-git-send-email-jengelh@medozas.de> <1269285486-22653-6-git-send-email-jengelh@medozas.de> <4BA8CDB9.1010304@trash.net> <alpine.LSU.2.01.1003231521460.21129@obet.zrqbmnf.qr> <4BA8D65B.5060700@trash.net> <alpine.LSU.2.01.1003231601250.21464@obet.zrqbmnf.qr>
+From: Jorrit Kronjee <j.kronjee@infopact.nl>
+Subject: Re: debugging kernel during packet drops
+Date: Tue, 23 Mar 2010 16:14:13 +0100
+Message-ID: <4BA8DAC5.6050002@infopact.nl>
+References: <4BA74950.6000305@infopact.nl> <4BA7A5D8.5080101@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59865 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754028Ab0CWPKQ (ORCPT
+Received: from smtp.infopact.nl ([212.29.160.177]:36965 "EHLO
+	smtp1.infopact.nl" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754432Ab0CWPOR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Mar 2010 11:10:16 -0400
-In-Reply-To: <alpine.LSU.2.01.1003231601250.21464@obet.zrqbmnf.qr>
+	Tue, 23 Mar 2010 11:14:17 -0400
+In-Reply-To: <4BA7A5D8.5080101@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Tuesday 2010-03-23 15:55, Patrick McHardy wrote:
->
+On 3/22/2010 6:16 PM, Patrick McHardy wrote:
+> Jorrit Kronjee wrote:
 >   
->>>>> -MODULE_PARM_DESC(ip_list_uid,"owner of /proc/net/xt_recent/* files");
->>>>> -MODULE_PARM_DESC(ip_list_gid,"owning group of /proc/net/xt_recent/* files");
->>>>> +MODULE_PARM_DESC(ip_list_uid, "default owner of /proc/net/xt_recent/* files");
->>>>> +MODULE_PARM_DESC(ip_list_gid, "default owning group of /proc/net/xt_recent/* files");
->>>>>       
->>>>>           
->>>> So what will be updating the permissions of the existing proc files?
->>>>         
->>> The administrator with the use of chmod/chown/chgrp.
->>>       
->> I'm not sure whether this will have the desired effect. I vaguely
->> recall that proc used to forget about permission changes. That might
->> have been fixed, but I was unable to find something in the
->> changelogs.
+>> Dear list,
+>>
+>> I've asked this question on the kernelnewbies forum, but I haven't got
+>> any responses. I hope someone here is able to help me. I'm trying to
+>> build a setup that allows me to limit the amount of packets/s per
+>> destination IP address. The setup I use for this is as follows: 
+>>
+>> [ DoS machine ] -> [ bridging firewall ] -> [ receiving network ] 
+>>
+>> I used brctl to build the bridge. The DoS machine has a custom built
+>> tool that allows me to send small packets at very fast rates. I've
+>> discovered that bridging still works reliably at around 300 kpackets/s
+>> (notice the 'k' in there). However, as said before, I was trying to
+>> limit the amount of packets/s, so I used netfilter's hashlimit module.
+>> This is when packet drops started to appear. 
+>>
+>> At around 300 kpps, the amount of packet drops is 40 kpps. For me, this
+>> amount is too significant to ignore. I see the load average go from a
+>> comfortable 0.00 to 1.78, mainly caused by ksoftirqd processes. At 200
+>> kpps, the average amount of packet drops is 23 kpps. At 100 kpps, it's
+>> still 2 kpps. 
+>>
+>> When I disable the hashlimit module the packet drops disappear again.
+>> Now I know that hashlimit is made for more than one thing, namely
+>> limiting packets based on source/destination host and source/destination
+>> port, so it's not as efficient as it could be for my purposes. I could
+>> rewrite it, but before I do that, I would like to know if the module
+>> itself is really what's causing it, or if there's some underlying cause
+>> that I'm not seeing. So my question in short: how can I discover why
+>> it's dropping packets? 
+>>   
 >>     
+> A couple of suggestions:
 >
-> I believe that the procfs alzheimer only applies to
-> entries that are dynamically created during dentry lookup,
-> e.g. all the things in /proc/1234. You will note that
-> the inode numbers of these entries changes over time.
+> - try the limit module in case you don't actually need per-source/dest etc.
+>   limiting but just a global limit
 >
-> This is not the case however for anything created with
-> proc_create_data AFAICT.
+> - try using TBF or ingress policing. Both limit and hashlimit suffer of
+> problems
+>   regarding the resolution of the applied TBF. I don't remember the
+> exact range
+>   of values it is able to handle, but IIRC you should be able to find it
+> in the
+>   netfilter bugzilla.
 >
-> 16:04 linux:~ # ls -il /proc/1/stat
-> 13294 -r--r--r-- 1 root root 0 Mar 23 16:04 /proc/1/stat
-> 16:04 linux:~ # ls -il /proc/net/xt_recent/foo
-> 4026532102 -rw-r--r-- 1 bin root 0 Mar 23 16:04
-> /proc/net/xt_recent/foo
+> - if you use TBF or ingress policing and don't need ip_tables specific
+> modules,
+>   disabling bridge netfilter invocation of ip_tables through /proc
+> should increase
+>   performance.
 >
-> # Drive out cached stuff
-> 16:04 linux:~ # find / -xdev -type f -print0 | xargs -0 cat >/dev/null
-> 16:04 linux:~ # echo 3 >/proc/sys/vm/drop_caches
->
-> 16:04 linux:~ # ls -il /proc/1/stat
-> 13399 -r--r--r-- 1 root root 0 Mar 23 16:04 /proc/1/stat
-> 16:04 linux:~ # ls -il /proc/net/xt_recent/foo
-> 4026532102 -rw-r--r-- 1 bin root 0 Mar 23 16:04 /proc/net/xt_recent/foo
->
-> As you can see, /proc/X was reinstantiated, while xt_recent's data
-> remained.
 >   
+Patrick,
 
-Sounds good. In any case its not directly related to your patch, so this
-seems fine.
+Although these are good suggestions, I really need to be able to limit
+per destination. The receiving network is a /15 which means I have to
+use something like a hashtable to keep track of destination IP
+addresses. Neither rateest or limit can do that. OTOH, that's also the
+only thing I need. This would make a low-cost ISP-grade DDoS filter,
+which is why I'm interested in it.
+
+The bug you're referring to is this one, I think: 
+http://bugzilla.netfilter.org/show_bug.cgi?id=523 but I'm not entirely
+sure if that is related to my problems.
+
+Is there any way I can figure out why ifconfig is reporting dropped
+packets?
+
+Thanks for all the help so far!
+
+Regards,
+
+Jorrit Kronjee
 
