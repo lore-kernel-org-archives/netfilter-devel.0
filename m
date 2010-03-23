@@ -1,42 +1,129 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 4/4] netfilter: xtables: schedule xt_state for removal
-Date: Tue, 23 Mar 2010 21:45:00 +0100
-Message-ID: <1269377101-13875-5-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 3/4] netfilter: xtables: remove xt_string revision 0
+Date: Tue, 23 Mar 2010 21:44:59 +0100
+Message-ID: <1269377101-13875-4-git-send-email-jengelh@medozas.de>
 References: <1269377101-13875-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:46046 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:46050 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754059Ab0CWUpN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Mar 2010 16:45:13 -0400
+	id S1753782Ab0CWUpM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 23 Mar 2010 16:45:12 -0400
 In-Reply-To: <1269377101-13875-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-xt_conntrack has been provided since v2.5.32.
+Superseded by xt_string revision 1 (linux v2.6.26-rc8-1127-g4ad3f26,
+iptables 1.4.2-rc1).
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- Documentation/feature-removal-schedule.txt |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+ Documentation/Changes     |    2 +-
+ net/netfilter/xt_string.c |   53 +++++++++++++++-----------------------------
+ 2 files changed, 19 insertions(+), 36 deletions(-)
 
-diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
-index ea227e3..0749a8f 100644
---- a/Documentation/feature-removal-schedule.txt
-+++ b/Documentation/feature-removal-schedule.txt
-@@ -587,3 +587,11 @@ Files:	net/netfilter/xt_NOTRACK.c
- When:	April 2011
- Why:	Superseded by xt_CT
- Who:	Netfilter developer team <netfilter-devel@vger.kernel.org>
-+
-+---------------------------
-+
-+What:	xt_state
-+Files:	net/netfilter/xt_state.c
-+When:	April 2011
-+Why:	Superseded by xt_conntrack
-+Who:	Jan Engelhardt <jengelh@medozas.de>
+diff --git a/Documentation/Changes b/Documentation/Changes
+index f08b313..eca9f6e 100644
+--- a/Documentation/Changes
++++ b/Documentation/Changes
+@@ -49,7 +49,7 @@ o  oprofile               0.9                     # oprofiled --version
+ o  udev                   081                     # udevinfo -V
+ o  grub                   0.93                    # grub --version
+ o  mcelog		  0.6
+-o  iptables               1.4.1                   # iptables -V
++o  iptables               1.4.2                   # iptables -V
+ 
+ 
+ Kernel compilation
+diff --git a/net/netfilter/xt_string.c b/net/netfilter/xt_string.c
+index b0f8292..488e368 100644
+--- a/net/netfilter/xt_string.c
++++ b/net/netfilter/xt_string.c
+@@ -26,12 +26,10 @@ string_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+ {
+ 	const struct xt_string_info *conf = par->matchinfo;
+ 	struct ts_state state;
+-	int invert;
++	bool invert;
+ 
+ 	memset(&state, 0, sizeof(struct ts_state));
+-
+-	invert = (par->match->revision == 0 ? conf->u.v0.invert :
+-				    conf->u.v1.flags & XT_STRING_FLAG_INVERT);
++	invert = conf->u.v1.flags & XT_STRING_FLAG_INVERT;
+ 
+ 	return (skb_find_text((struct sk_buff *)skb, conf->from_offset,
+ 			     conf->to_offset, conf->config, &state)
+@@ -53,13 +51,11 @@ static int string_mt_check(const struct xt_mtchk_param *par)
+ 		return -EINVAL;
+ 	if (conf->patlen > XT_STRING_MAX_PATTERN_SIZE)
+ 		return -EINVAL;
+-	if (par->match->revision == 1) {
+-		if (conf->u.v1.flags &
+-		    ~(XT_STRING_FLAG_IGNORECASE | XT_STRING_FLAG_INVERT))
+-			return -EINVAL;
+-		if (conf->u.v1.flags & XT_STRING_FLAG_IGNORECASE)
+-			flags |= TS_IGNORECASE;
+-	}
++	if (conf->u.v1.flags &
++	    ~(XT_STRING_FLAG_IGNORECASE | XT_STRING_FLAG_INVERT))
++		return -EINVAL;
++	if (conf->u.v1.flags & XT_STRING_FLAG_IGNORECASE)
++		flags |= TS_IGNORECASE;
+ 	ts_conf = textsearch_prepare(conf->algo, conf->pattern, conf->patlen,
+ 				     GFP_KERNEL, flags);
+ 	if (IS_ERR(ts_conf))
+@@ -74,38 +70,25 @@ static void string_mt_destroy(const struct xt_mtdtor_param *par)
+ 	textsearch_destroy(STRING_TEXT_PRIV(par->matchinfo)->config);
+ }
+ 
+-static struct xt_match xt_string_mt_reg[] __read_mostly = {
+-	{
+-		.name 		= "string",
+-		.revision	= 0,
+-		.family		= NFPROTO_UNSPEC,
+-		.checkentry	= string_mt_check,
+-		.match 		= string_mt,
+-		.destroy 	= string_mt_destroy,
+-		.matchsize	= sizeof(struct xt_string_info),
+-		.me 		= THIS_MODULE
+-	},
+-	{
+-		.name 		= "string",
+-		.revision	= 1,
+-		.family		= NFPROTO_UNSPEC,
+-		.checkentry	= string_mt_check,
+-		.match 		= string_mt,
+-		.destroy 	= string_mt_destroy,
+-		.matchsize	= sizeof(struct xt_string_info),
+-		.me 		= THIS_MODULE
+-	},
++static struct xt_match xt_string_mt_reg __read_mostly = {
++	.name       = "string",
++	.revision   = 1,
++	.family     = NFPROTO_UNSPEC,
++	.checkentry = string_mt_check,
++	.match      = string_mt,
++	.destroy    = string_mt_destroy,
++	.matchsize  = sizeof(struct xt_string_info),
++	.me         = THIS_MODULE,
+ };
+ 
+ static int __init string_mt_init(void)
+ {
+-	return xt_register_matches(xt_string_mt_reg,
+-				   ARRAY_SIZE(xt_string_mt_reg));
++	return xt_register_match(&xt_string_mt_reg);
+ }
+ 
+ static void __exit string_mt_exit(void)
+ {
+-	xt_unregister_matches(xt_string_mt_reg, ARRAY_SIZE(xt_string_mt_reg));
++	xt_unregister_match(&xt_string_mt_reg);
+ }
+ 
+ module_init(string_mt_init);
 -- 
 1.7.0.2
 
