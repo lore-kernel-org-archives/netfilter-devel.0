@@ -1,84 +1,43 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: nf-next: cleanups, err reporting (rd.2)
-Date: Tue, 23 Mar 2010 17:35:25 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.1003231734040.19672@obet.zrqbmnf.qr>
-References: <1269285486-22653-1-git-send-email-jengelh@medozas.de>
+From: James King <t.james.king@gmail.com>
+Subject: Re: debugging kernel during packet drops
+Date: Tue, 23 Mar 2010 10:04:22 -0700
+Message-ID: <38bcb3ec1003231004y7672ad38v2c16f8c7d042f586@mail.gmail.com>
+References: <4BA74950.6000305@infopact.nl>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=ISO-8859-1
 Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+To: Jorrit Kronjee <j.kronjee@infopact.nl>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:50592 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755155Ab0CWQf0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Mar 2010 12:35:26 -0400
-In-Reply-To: <1269285486-22653-1-git-send-email-jengelh@medozas.de>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:55242 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752921Ab0CWREX (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 23 Mar 2010 13:04:23 -0400
+Received: by vws6 with SMTP id 6so944404vws.19
+        for <netfilter-devel@vger.kernel.org>; Tue, 23 Mar 2010 10:04:23 -0700 (PDT)
+In-Reply-To: <4BA74950.6000305@infopact.nl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-On Monday 2010-03-22 20:17, Jan Engelhardt wrote:
+On Mon, Mar 22, 2010 at 3:41 AM, Jorrit Kronjee <j.kronjee@infopact.nl> wrote:
+> At around 300 kpps, the amount of packet drops is 40 kpps. For me, this
+> amount is too significant to ignore. I see the load average go from a
+> comfortable 0.00 to 1.78, mainly caused by ksoftirqd processes. At 200
+> kpps, the average amount of packet drops is 23 kpps. At 100 kpps, it's
+> still 2 kpps.
 >
->Jan Engelhardt (9):
->      netfilter: xtables: make use of caller family rather than target family
->      netfilter: xt extensions: use pr_<level> (2)
->      netfilter: xtables: make use of xt_request_find_target
->      netfilter: xtables: consolidate code into xt_request_find_match
->      netfilter: xt_recent: allow changing ip_list_[ug]id at runtime
+> When I disable the hashlimit module the packet drops disappear again.
+> Now I know that hashlimit is made for more than one thing, namely
+> limiting packets based on source/destination host and source/destination
+> port, so it's not as efficient as it could be for my purposes. I could
+> rewrite it, but before I do that, I would like to know if the module
+> itself is really what's causing it, or if there's some underlying cause
+> that I'm not seeing. So my question in short: how can I discover why
+> it's dropping packets?
 
-I have incorporated your comments; as I'm still on with the error reporting
-pieces, here is the batch of five instead:
-Please merge.
-
-
-The following changes since commit 2c46cd8163b25bf6f38e612e9f1d162f0357c8f1:
-  Zhitong Wang (1):
-        netfilter: remove unused headers in net/ipv4/netfilter/nf_nat_h323.c
-
-are available in the git repository at:
-
-  git://dev.medozas.de/linux master
-
-Jan Engelhardt (5):
-      netfilter: xtables: make use of caller family rather than target family
-      netfilter: xt extensions: use pr_<level> (2)
-      netfilter: xtables: make use of xt_request_find_target
-      netfilter: xtables: consolidate code into xt_request_find_match
-      netfilter: xt_recent: allow changing ip_list_[ug]id at runtime
-
- include/linux/netfilter/x_tables.h  |    1 +
- net/bridge/netfilter/ebt_among.c    |   15 ++++-----
- net/bridge/netfilter/ebt_limit.c    |    3 +-
- net/bridge/netfilter/ebt_ulog.c     |   26 +++++++++-------
- net/bridge/netfilter/ebt_vlan.c     |   36 ++++++++--------------
- net/bridge/netfilter/ebtables.c     |   23 +++-----------
- net/ipv4/netfilter/arp_tables.c     |   20 +++++-------
- net/ipv4/netfilter/ip_tables.c      |   56 +++++++++++++++--------------------
- net/ipv4/netfilter/ipt_CLUSTERIP.c  |   47 +++++++++++++++--------------
- net/ipv4/netfilter/ipt_ECN.c        |   11 ++----
- net/ipv4/netfilter/ipt_LOG.c        |    7 ++--
- net/ipv4/netfilter/ipt_MASQUERADE.c |    8 ++--
- net/ipv4/netfilter/ipt_NETMAP.c     |    6 ++--
- net/ipv4/netfilter/ipt_REDIRECT.c   |    6 ++--
- net/ipv4/netfilter/ipt_REJECT.c     |    6 ++--
- net/ipv4/netfilter/ipt_ULOG.c       |   40 ++++++++++++-------------
- net/ipv4/netfilter/ipt_addrtype.c   |   14 ++++----
- net/ipv4/netfilter/ipt_ecn.c        |    5 +--
- net/ipv6/netfilter/ip6_tables.c     |   47 ++++++++++++-----------------
- net/ipv6/netfilter/ip6t_LOG.c       |    7 ++--
- net/ipv6/netfilter/ip6t_REJECT.c    |   20 ++++++------
- net/ipv6/netfilter/ip6t_ah.c        |    6 ++--
- net/ipv6/netfilter/ip6t_frag.c      |    6 ++--
- net/ipv6/netfilter/ip6t_hbh.c       |    6 ++--
- net/ipv6/netfilter/ip6t_rt.c        |    6 ++--
- net/netfilter/x_tables.c            |   15 +++++++--
- net/netfilter/xt_NFQUEUE.c          |    4 +-
- net/netfilter/xt_TCPMSS.c           |    7 ++--
- net/netfilter/xt_TPROXY.c           |    4 +-
- net/netfilter/xt_esp.c              |    2 +-
- net/netfilter/xt_iprange.c          |    1 +
- net/netfilter/xt_recent.c           |   14 ++++----
- net/netfilter/xt_socket.c           |    5 +--
- net/netfilter/xt_time.c             |    4 +-
- net/sched/act_ipt.c                 |    4 +-
- 35 files changed, 224 insertions(+), 264 deletions(-)
+I'm not sure whether it's even related to the problem you're having,
+but I had a similar problem on a bnx2 interface with high packet rates
+when using l7-filter.  ifconfig reported huge numbers of dropped
+packets, corresponding to rx_fw_discards from "ethtool -S ethX"
+output.  I resolved this by bumping up the driver RX ring size (which
+was defaulting to 100 out of a maximum possible size of 1020).
