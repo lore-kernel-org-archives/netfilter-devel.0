@@ -1,81 +1,75 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: debugging kernel during packet drops
-Date: Tue, 23 Mar 2010 16:39:45 +0100
-Message-ID: <4BA8E0C1.2070007@trash.net>
-References: <4BA74950.6000305@infopact.nl> <4BA7A5D8.5080101@trash.net> <4BA8DAC5.6050002@infopact.nl>
+From: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+Subject: Re: [RFC PATCH net-next 0/7 v2]IPv6:netfilter: defragment
+Date: Wed, 24 Mar 2010 01:28:58 +0900
+Message-ID: <4BA8EC4A.9070802@linux-ipv6.org>
+References: <4B88BE30.80206@cn.fujitsu.com> <4B97D34C.4020509@gmail.com> <4B98B4FC.50904@cn.fujitsu.com> <4B9B9766.3090200@linux-ipv6.org> <4B9E5FEC.9010002@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jorrit Kronjee <j.kronjee@infopact.nl>
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Shan Wei <shanwei@cn.fujitsu.com>,
+	YOSHIFUJI Hideaki <hideaki.yoshifuji@gmail.com>,
+	David Miller <davem@davemloft.net>,
+	Alexey Dobriyan <adobriyan@gmail.com>,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org,
+	YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60439 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754133Ab0CWPjr (ORCPT
+Received: from 94.43.138.210.xn.2iij.net ([210.138.43.94]:60461 "EHLO
+	mail.st-paulia.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1754512Ab0CWQ31 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Mar 2010 11:39:47 -0400
-In-Reply-To: <4BA8DAC5.6050002@infopact.nl>
+	Tue, 23 Mar 2010 12:29:27 -0400
+In-Reply-To: <4B9E5FEC.9010002@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jorrit Kronjee wrote:
-> On 3/22/2010 6:16 PM, Patrick McHardy wrote:
->   
->>> When I disable the hashlimit module the packet drops disappear again.
->>> Now I know that hashlimit is made for more than one thing, namely
->>> limiting packets based on source/destination host and source/destination
->>> port, so it's not as efficient as it could be for my purposes. I could
->>> rewrite it, but before I do that, I would like to know if the module
->>> itself is really what's causing it, or if there's some underlying cause
->>> that I'm not seeing. So my question in short: how can I discover why
->>> it's dropping packets? 
->>>   
->>>     
->>>       
->> A couple of suggestions:
+Hello.
+
+Sorry for my slow response.
+
+(2010/03/16 1:27), Patrick McHardy wrote:
+> YOSHIFUJI Hideaki wrote:
+>> (2010/03/11 18:16), Shan Wei wrote:
+>>>> On the other hand, I'd even say we should NOT send
+>>>> icmp here (at least by default) because standard routers
+>>>> never send such packet.
+>>>
+>>> Yes=EF=BC=8Cfor routers, the patch-set does not send icmp message t=
+o
+>>> source host. It only does on destination host with IPv6 connection
+>>> track enable.
 >>
->> - try the limit module in case you don't actually need per-source/dest etc.
->>   limiting but just a global limit
->>
->> - try using TBF or ingress policing. Both limit and hashlimit suffer of
->> problems
->>   regarding the resolution of the applied TBF. I don't remember the
->> exact range
->>   of values it is able to handle, but IIRC you should be able to find it
->> in the
->>   netfilter bugzilla.
->>
->> - if you use TBF or ingress policing and don't need ip_tables specific
->> modules,
->>   disabling bridge netfilter invocation of ip_tables through /proc
->> should increase
->>   performance.
->>
->>   
->>     
-> Patrick,
+>> Please make it optional (via parameter) at least.
 >
-> Although these are good suggestions, I really need to be able to limit
-> per destination. The receiving network is a /15 which means I have to
-> use something like a hashtable to keep track of destination IP
-> addresses. Neither rateest or limit can do that. OTOH, that's also the
-> only thing I need. This would make a low-cost ISP-grade DDoS filter,
-> which is why I'm interested in it.
->
-> The bug you're referring to is this one, I think: 
-> http://bugzilla.netfilter.org/show_bug.cgi?id=523 but I'm not entirely
-> sure if that is related to my problems.
->   
+> The ICMP messages are only sent if the packet is destined for the
+> local host, similar to what IPv6 defrag would do if conntrack wouldn'=
+t
+> be used. So this patch increases consistency, why should we make this
+> optional?
 
-Yes, that's the one. Not specifically related to your problem, but to
-the general hashlimit limitations.
+Well, in the first place, I do think conntrack should be
+transparent as much as possible.  And, I cannot find other
+netfilter conntrack code (ipv4 or ipv6) sending icmp e.g.
+parameter problem etc.
 
-> Is there any way I can figure out why ifconfig is reporting dropped
-> packets?
+As I said before, I agree that netfilter may drop packets
+by any reasons, but I do think it should be done silently.
+It can increment netfilter's own statistic counting etc.
+but it should not increment the core's (especially,
+specific) statistic counting.
 
-Based on your description I'd say that the CPU simply can't keep up with
-traffic. Perhaps the hash is undersized. The default size depends on the
-amount of memory, you could try setting it manually to something appropriate
-for the amount of addresses you expect to see.
+Reassembling processes are the same.  We should NOT send icmp, and
+if ever desired, we might optionally send icmp (in other
+module maybe).
 
-If that doesn't help, I'd start by profiling the kernel.
+Regards,
+
+--yoshfuji
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
