@@ -1,46 +1,61 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC PATCH net-next 0/7 v2]IPv6:netfilter: defragment
-Date: Tue, 23 Mar 2010 16:05:19 +0100
-Message-ID: <4BA8D8AF.1040307@trash.net>
-References: <4B88BE30.80206@cn.fujitsu.com> <4B97D34C.4020509@gmail.com> <4B98B4FC.50904@cn.fujitsu.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 5/9] netfilter: xt_recent: allow changing ip_list_[ug]id
+ at runtime
+Date: Tue, 23 Mar 2010 16:06:45 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.1003231601250.21464@obet.zrqbmnf.qr>
+References: <1269285486-22653-1-git-send-email-jengelh@medozas.de> <1269285486-22653-6-git-send-email-jengelh@medozas.de> <4BA8CDB9.1010304@trash.net> <alpine.LSU.2.01.1003231521460.21129@obet.zrqbmnf.qr> <4BA8D65B.5060700@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: YOSHIFUJI Hideaki <hideaki.yoshifuji@gmail.com>,
-	David Miller <davem@davemloft.net>,
-	Alexey Dobriyan <adobriyan@gmail.com>,
-	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org,
-	"yoshfuji@linux-ipv6.org >> YOSHIFUJI Hideaki"
-	<yoshfuji@linux-ipv6.org>
-To: Shan Wei <shanwei@cn.fujitsu.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:59765 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754397Ab0CWPFU (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Mar 2010 11:05:20 -0400
-In-Reply-To: <4B98B4FC.50904@cn.fujitsu.com>
+Received: from borg.medozas.de ([188.40.89.202]:41766 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754465Ab0CWPGq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 23 Mar 2010 11:06:46 -0400
+In-Reply-To: <4BA8D65B.5060700@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Shan Wei wrote:
->> On the other hand, I'd even say we should NOT send
->> icmp here (at least by default) because standard routers
->> never send such packet.
->>    =20
->
-> Yes=EF=BC=8Cfor routers, the patch-set does not send icmp message to
-> source host. It only does on destination host with IPv6 connection=20
-> track enable.
->  =20
 
-The nf-next tree is open again, now would be a good time to resubmit
-these patches.
-Thanks!
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+On Tuesday 2010-03-23 15:55, Patrick McHardy wrote:
+
+>>>> -MODULE_PARM_DESC(ip_list_uid,"owner of /proc/net/xt_recent/* files");
+>>>> -MODULE_PARM_DESC(ip_list_gid,"owning group of /proc/net/xt_recent/* files");
+>>>> +MODULE_PARM_DESC(ip_list_uid, "default owner of /proc/net/xt_recent/* files");
+>>>> +MODULE_PARM_DESC(ip_list_gid, "default owning group of /proc/net/xt_recent/* files");
+>>>>       
+>>> So what will be updating the permissions of the existing proc files?
+>>
+>> The administrator with the use of chmod/chown/chgrp.
+>
+>I'm not sure whether this will have the desired effect. I vaguely
+>recall that proc used to forget about permission changes. That might
+>have been fixed, but I was unable to find something in the
+>changelogs.
+
+I believe that the procfs alzheimer only applies to
+entries that are dynamically created during dentry lookup,
+e.g. all the things in /proc/1234. You will note that
+the inode numbers of these entries changes over time.
+
+This is not the case however for anything created with
+proc_create_data AFAICT.
+
+16:04 linux:~ # ls -il /proc/1/stat
+13294 -r--r--r-- 1 root root 0 Mar 23 16:04 /proc/1/stat
+16:04 linux:~ # ls -il /proc/net/xt_recent/foo
+4026532102 -rw-r--r-- 1 bin root 0 Mar 23 16:04
+/proc/net/xt_recent/foo
+
+# Drive out cached stuff
+16:04 linux:~ # find / -xdev -type f -print0 | xargs -0 cat >/dev/null
+16:04 linux:~ # echo 3 >/proc/sys/vm/drop_caches
+
+16:04 linux:~ # ls -il /proc/1/stat
+13399 -r--r--r-- 1 root root 0 Mar 23 16:04 /proc/1/stat
+16:04 linux:~ # ls -il /proc/net/xt_recent/foo
+4026532102 -rw-r--r-- 1 bin root 0 Mar 23 16:04 /proc/net/xt_recent/foo
+
+As you can see, /proc/X was reinstantiated, while xt_recent's data
+remained.
