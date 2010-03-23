@@ -1,56 +1,150 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [RFC PATCH net-next 0/7 v2]IPv6:netfilter: defragment
-Date: Tue, 23 Mar 2010 21:10:22 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1003232050540.18241@blackhole.kfki.hu>
-References: <4B88BE30.80206@cn.fujitsu.com> <4B97D34C.4020509@gmail.com> <4B98B4FC.50904@cn.fujitsu.com> <4B9B9766.3090200@linux-ipv6.org> <4B9E5FEC.9010002@trash.net> <4BA8EC4A.9070802@linux-ipv6.org> <4BA8F75E.2040303@trash.net>
- <4BA90F72.6010404@linux-ipv6.org>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>,
-	Shan Wei <shanwei@cn.fujitsu.com>,
-	YOSHIFUJI Hideaki <hideaki.yoshifuji@gmail.com>,
-	David Miller <davem@davemloft.net>,
-	Alexey Dobriyan <adobriyan@gmail.com>,
-	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org
-To: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: [PATCH 2/4] netfilter: xtables: remove xt_multiport revision 0
+Date: Tue, 23 Mar 2010 21:44:58 +0100
+Message-ID: <1269377101-13875-3-git-send-email-jengelh@medozas.de>
+References: <1269377101-13875-1-git-send-email-jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:52058 "EHLO smtp2.kfki.hu"
+Received: from borg.medozas.de ([188.40.89.202]:46046 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751722Ab0CWUQg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Mar 2010 16:16:36 -0400
-In-Reply-To: <4BA90F72.6010404@linux-ipv6.org>
+	id S1753987Ab0CWUpL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 23 Mar 2010 16:45:11 -0400
+In-Reply-To: <1269377101-13875-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Superseded by xt_multiport revision 1 (introduction already predates
+linux.git).
 
-On Wed, 24 Mar 2010, YOSHIFUJI Hideaki wrote:
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ net/netfilter/xt_multiport.c |   77 ------------------------------------------
+ 1 files changed, 0 insertions(+), 77 deletions(-)
 
-> > In this case without conntrack, IPv6 would send an ICMPv6 message,
-> > so in my opinion the transparent thing to do would be to still send
-> > them. Of course only if reassembly is done on an end host.
-> 
-> Well, no.  conntrack should just forward even uncompleted fragments
-> to next process (e.g. core ipv6 code), and then the core would send
-> ICMP error back.  ICMP should be sent by the core ipv6 code according
-> to decision of itself, not according to netfilter.
-
-But what state could be associated by conntrack to the uncompleted 
-fragments but the INVALID state? In consequence, in any sane setup, the 
-uncompleted fragments will be dropped silently by a filter table rule
-and no ICMP error message will be sent back.
-
-Therefore I think iff the destination of the fragments is the host 
-itself, then conntrack should generate an ICMP error message. But that 
-error message must be processed by conntrack to set its state and then 
-the fate of the generated packet can be decided by a rule.
-
-Best regards,
-Jozsef
+diff --git a/net/netfilter/xt_multiport.c b/net/netfilter/xt_multiport.c
+index b446738..83b77ce 100644
+--- a/net/netfilter/xt_multiport.c
++++ b/net/netfilter/xt_multiport.c
+@@ -28,23 +28,6 @@ MODULE_ALIAS("ip6t_multiport");
+ 
+ /* Returns 1 if the port is matched by the test, 0 otherwise. */
+ static inline bool
+-ports_match_v0(const u_int16_t *portlist, enum xt_multiport_flags flags,
+-	       u_int8_t count, u_int16_t src, u_int16_t dst)
+-{
+-	unsigned int i;
+-	for (i = 0; i < count; i++) {
+-		if (flags != XT_MULTIPORT_DESTINATION && portlist[i] == src)
+-			return true;
 -
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+-		if (flags != XT_MULTIPORT_SOURCE && portlist[i] == dst)
+-			return true;
+-	}
+-
+-	return false;
+-}
+-
+-/* Returns 1 if the port is matched by the test, 0 otherwise. */
+-static inline bool
+ ports_match_v1(const struct xt_multiport_v1 *minfo,
+ 	       u_int16_t src, u_int16_t dst)
+ {
+@@ -89,30 +72,6 @@ ports_match_v1(const struct xt_multiport_v1 *minfo,
+ }
+ 
+ static bool
+-multiport_mt_v0(const struct sk_buff *skb, const struct xt_match_param *par)
+-{
+-	const __be16 *pptr;
+-	__be16 _ports[2];
+-	const struct xt_multiport *multiinfo = par->matchinfo;
+-
+-	if (par->fragoff != 0)
+-		return false;
+-
+-	pptr = skb_header_pointer(skb, par->thoff, sizeof(_ports), _ports);
+-	if (pptr == NULL) {
+-		/* We've been asked to examine this packet, and we
+-		 * can't.  Hence, no choice but to drop.
+-		 */
+-		pr_debug("Dropping evil offset=0 tinygram.\n");
+-		*par->hotdrop = true;
+-		return false;
+-	}
+-
+-	return ports_match_v0(multiinfo->ports, multiinfo->flags,
+-	       multiinfo->count, ntohs(pptr[0]), ntohs(pptr[1]));
+-}
+-
+-static bool
+ multiport_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+ {
+ 	const __be16 *pptr;
+@@ -152,15 +111,6 @@ check(u_int16_t proto,
+ 		&& count <= XT_MULTI_PORTS;
+ }
+ 
+-static int multiport_mt_check_v0(const struct xt_mtchk_param *par)
+-{
+-	const struct ipt_ip *ip = par->entryinfo;
+-	const struct xt_multiport *multiinfo = par->matchinfo;
+-
+-	return check(ip->proto, ip->invflags, multiinfo->flags,
+-		     multiinfo->count);
+-}
+-
+ static int multiport_mt_check(const struct xt_mtchk_param *par)
+ {
+ 	const struct ipt_ip *ip = par->entryinfo;
+@@ -170,15 +120,6 @@ static int multiport_mt_check(const struct xt_mtchk_param *par)
+ 		     multiinfo->count);
+ }
+ 
+-static int multiport_mt6_check_v0(const struct xt_mtchk_param *par)
+-{
+-	const struct ip6t_ip6 *ip = par->entryinfo;
+-	const struct xt_multiport *multiinfo = par->matchinfo;
+-
+-	return check(ip->proto, ip->invflags, multiinfo->flags,
+-		     multiinfo->count);
+-}
+-
+ static int multiport_mt6_check(const struct xt_mtchk_param *par)
+ {
+ 	const struct ip6t_ip6 *ip = par->entryinfo;
+@@ -192,15 +133,6 @@ static struct xt_match multiport_mt_reg[] __read_mostly = {
+ 	{
+ 		.name		= "multiport",
+ 		.family		= NFPROTO_IPV4,
+-		.revision	= 0,
+-		.checkentry	= multiport_mt_check_v0,
+-		.match		= multiport_mt_v0,
+-		.matchsize	= sizeof(struct xt_multiport),
+-		.me		= THIS_MODULE,
+-	},
+-	{
+-		.name		= "multiport",
+-		.family		= NFPROTO_IPV4,
+ 		.revision	= 1,
+ 		.checkentry	= multiport_mt_check,
+ 		.match		= multiport_mt,
+@@ -210,15 +142,6 @@ static struct xt_match multiport_mt_reg[] __read_mostly = {
+ 	{
+ 		.name		= "multiport",
+ 		.family		= NFPROTO_IPV6,
+-		.revision	= 0,
+-		.checkentry	= multiport_mt6_check_v0,
+-		.match		= multiport_mt_v0,
+-		.matchsize	= sizeof(struct xt_multiport),
+-		.me		= THIS_MODULE,
+-	},
+-	{
+-		.name		= "multiport",
+-		.family		= NFPROTO_IPV6,
+ 		.revision	= 1,
+ 		.checkentry	= multiport_mt6_check,
+ 		.match		= multiport_mt,
+-- 
+1.7.0.2
+
