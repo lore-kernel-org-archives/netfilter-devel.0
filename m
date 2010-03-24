@@ -1,129 +1,71 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 3/4] netfilter: xtables: remove xt_string revision 0
-Date: Tue, 23 Mar 2010 21:44:59 +0100
-Message-ID: <1269377101-13875-4-git-send-email-jengelh@medozas.de>
-References: <1269377101-13875-1-git-send-email-jengelh@medozas.de>
-Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+From: =?ISO-8859-1?Q?Fran=E7ois?= Delawarde
+	<fdelawarde@wirelessmundi.com>
+Subject: Re: Current state of nftables
+Date: Wed, 24 Mar 2010 10:15:29 +0100
+Message-ID: <1269422129.5701.18.camel@luna.tc.commsmundi.com>
+References: <4BA4C069.8050804@gmail.com>
+	 <1269352353.4717.143.camel@luna.tc.commsmundi.com>
+	 <4BA8CD2E.1020206@trash.net>
+Reply-To: fdelawarde@wirelessmundi.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:46050 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753782Ab0CWUpM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 23 Mar 2010 16:45:12 -0400
-In-Reply-To: <1269377101-13875-1-git-send-email-jengelh@medozas.de>
+Received: from mail.wirelessmundi.com ([91.121.102.180]:54713 "EHLO
+	mail.wirelessmundi.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753278Ab0CXJNb convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 24 Mar 2010 05:13:31 -0400
+In-Reply-To: <4BA8CD2E.1020206@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Superseded by xt_string revision 1 (linux v2.6.26-rc8-1127-g4ad3f26,
-iptables 1.4.2-rc1).
+You should name it "beta" this time for more testing will happen :-)
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- Documentation/Changes     |    2 +-
- net/netfilter/xt_string.c |   53 +++++++++++++++-----------------------------
- 2 files changed, 19 insertions(+), 36 deletions(-)
+I'll be happy to test as soon as you announce something new.
 
-diff --git a/Documentation/Changes b/Documentation/Changes
-index f08b313..eca9f6e 100644
---- a/Documentation/Changes
-+++ b/Documentation/Changes
-@@ -49,7 +49,7 @@ o  oprofile               0.9                     # oprofiled --version
- o  udev                   081                     # udevinfo -V
- o  grub                   0.93                    # grub --version
- o  mcelog		  0.6
--o  iptables               1.4.1                   # iptables -V
-+o  iptables               1.4.2                   # iptables -V
- 
- 
- Kernel compilation
-diff --git a/net/netfilter/xt_string.c b/net/netfilter/xt_string.c
-index b0f8292..488e368 100644
---- a/net/netfilter/xt_string.c
-+++ b/net/netfilter/xt_string.c
-@@ -26,12 +26,10 @@ string_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- {
- 	const struct xt_string_info *conf = par->matchinfo;
- 	struct ts_state state;
--	int invert;
-+	bool invert;
- 
- 	memset(&state, 0, sizeof(struct ts_state));
--
--	invert = (par->match->revision == 0 ? conf->u.v0.invert :
--				    conf->u.v1.flags & XT_STRING_FLAG_INVERT);
-+	invert = conf->u.v1.flags & XT_STRING_FLAG_INVERT;
- 
- 	return (skb_find_text((struct sk_buff *)skb, conf->from_offset,
- 			     conf->to_offset, conf->config, &state)
-@@ -53,13 +51,11 @@ static int string_mt_check(const struct xt_mtchk_param *par)
- 		return -EINVAL;
- 	if (conf->patlen > XT_STRING_MAX_PATTERN_SIZE)
- 		return -EINVAL;
--	if (par->match->revision == 1) {
--		if (conf->u.v1.flags &
--		    ~(XT_STRING_FLAG_IGNORECASE | XT_STRING_FLAG_INVERT))
--			return -EINVAL;
--		if (conf->u.v1.flags & XT_STRING_FLAG_IGNORECASE)
--			flags |= TS_IGNORECASE;
--	}
-+	if (conf->u.v1.flags &
-+	    ~(XT_STRING_FLAG_IGNORECASE | XT_STRING_FLAG_INVERT))
-+		return -EINVAL;
-+	if (conf->u.v1.flags & XT_STRING_FLAG_IGNORECASE)
-+		flags |= TS_IGNORECASE;
- 	ts_conf = textsearch_prepare(conf->algo, conf->pattern, conf->patlen,
- 				     GFP_KERNEL, flags);
- 	if (IS_ERR(ts_conf))
-@@ -74,38 +70,25 @@ static void string_mt_destroy(const struct xt_mtdtor_param *par)
- 	textsearch_destroy(STRING_TEXT_PRIV(par->matchinfo)->config);
- }
- 
--static struct xt_match xt_string_mt_reg[] __read_mostly = {
--	{
--		.name 		= "string",
--		.revision	= 0,
--		.family		= NFPROTO_UNSPEC,
--		.checkentry	= string_mt_check,
--		.match 		= string_mt,
--		.destroy 	= string_mt_destroy,
--		.matchsize	= sizeof(struct xt_string_info),
--		.me 		= THIS_MODULE
--	},
--	{
--		.name 		= "string",
--		.revision	= 1,
--		.family		= NFPROTO_UNSPEC,
--		.checkentry	= string_mt_check,
--		.match 		= string_mt,
--		.destroy 	= string_mt_destroy,
--		.matchsize	= sizeof(struct xt_string_info),
--		.me 		= THIS_MODULE
--	},
-+static struct xt_match xt_string_mt_reg __read_mostly = {
-+	.name       = "string",
-+	.revision   = 1,
-+	.family     = NFPROTO_UNSPEC,
-+	.checkentry = string_mt_check,
-+	.match      = string_mt,
-+	.destroy    = string_mt_destroy,
-+	.matchsize  = sizeof(struct xt_string_info),
-+	.me         = THIS_MODULE,
- };
- 
- static int __init string_mt_init(void)
- {
--	return xt_register_matches(xt_string_mt_reg,
--				   ARRAY_SIZE(xt_string_mt_reg));
-+	return xt_register_match(&xt_string_mt_reg);
- }
- 
- static void __exit string_mt_exit(void)
- {
--	xt_unregister_matches(xt_string_mt_reg, ARRAY_SIZE(xt_string_mt_reg));
-+	xt_unregister_match(&xt_string_mt_reg);
- }
- 
- module_init(string_mt_init);
--- 
-1.7.0.2
+=46ran=C3=A7ois.
 
+On Tue, 2010-03-23 at 15:16 +0100, Patrick McHardy wrote:
+> Fran=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=
+=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=
+=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=
+=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=
+=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=
+=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD=EF=BF=BD w=
+rote:
+> > Please answer this one!
+> >=20
+> > I am also very interested and badly want to use nftables.
+> >=20
+> > Thanks,
+> > Fran=C3=A7ois.
+> >=20
+> > On Sat, 2010-03-20 at 13:32 +0100, Marcus Tangermann wrote:
+> >> Hello,
+> >>
+> >> evaluating packet filters I came across nftables. Looking at the G=
+IT it
+> >> seems there haven't been much in input since last year.
+> >> Is this project still alive and actively developed? Is there a tim=
+e plan
+> >> for the next release?
+>=20
+> I had to spend some time on other work, but a new release is planned
+> as soon as I can finish a few more minor things. I guess I'll try to
+> update the trees before that, I there are a large number of changes
+> queued that are already worth testing.
+>=20
+> I'll send out an announcement once this has happened.
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-d=
+evel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
