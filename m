@@ -1,66 +1,100 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: [PATCH 4/4] netfilter: xtables: schedule xt_state for removal
-Date: Thu, 25 Mar 2010 11:17:38 +0100 (CET)
-Message-ID: <alpine.DEB.2.00.1003251109190.21938@blackhole.kfki.hu>
-References: <1269377101-13875-1-git-send-email-jengelh@medozas.de> <1269377101-13875-5-git-send-email-jengelh@medozas.de> <4BAA2969.8010106@trash.net> <alpine.LSU.2.01.1003241616120.20299@obet.zrqbmnf.qr> <4BAB359F.6030308@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [RFC PATCH net-next 0/7 v2]IPv6:netfilter: defragment
+Date: Thu, 25 Mar 2010 11:20:20 +0100
+Message-ID: <4BAB38E4.7050706@trash.net>
+References: <4B88BE30.80206@cn.fujitsu.com> <4B97D34C.4020509@gmail.com> <4B98B4FC.50904@cn.fujitsu.com> <4B9B9766.3090200@linux-ipv6.org> <4B9E5FEC.9010002@trash.net> <4BA8EC4A.9070802@linux-ipv6.org> <4BA8F75E.2040303@trash.net> <4BA90F72.6010404@linux-ipv6.org> <alpine.DEB.2.00.1003232050540.18241@blackhole.kfki.hu> <4BAB2121.2030503@plouf.fr.eu.org> <4BAB2954.9010608@cn.fujitsu.com> <alpine.DEB.2.00.1003251028580.21825@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Jan Engelhardt <jengelh@medozas.de>,
+Content-Type: multipart/mixed;
+ boundary="------------080304020808010602060808"
+Cc: Shan Wei <shanwei@cn.fujitsu.com>,
+	Pascal Hambourg <pascal.mail@plouf.fr.eu.org>,
+	YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>,
+	David Miller <davem@davemloft.net>,
+	Alexey Dobriyan <adobriyan@gmail.com>,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
 	netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.25]:40282 "EHLO smtp0.kfki.hu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753528Ab0CYKRj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 25 Mar 2010 06:17:39 -0400
-In-Reply-To: <4BAB359F.6030308@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.00.1003251028580.21825@blackhole.kfki.hu>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 25 Mar 2010, Patrick McHardy wrote:
+This is a multi-part message in MIME format.
+--------------080304020808010602060808
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
-> Jan Engelhardt wrote:
-> > On Wednesday 2010-03-24 16:02, Patrick McHardy wrote:
-> >> Jan Engelhardt wrote:
-> >>> xt_conntrack has been provided since v2.5.32.
-> >>>   
-> >> I'm fine with the removal of old revisions, but how are you planning on
-> >> informing users about removal of this module? Most people don't read
-> >> feature-removal-schedule, and distributions are unable to help with
-> >> user written scripts.
-> > 
-> > I would suggest to do the same as we did with disallowing DROP in the 
-> > nat table:
-> > 
-> >  - a message printed by iptables whenever -m state is used
-> > 
-> >  - a kernel message whenever whenever a rule with xt_state is created
-> > 
-> > We did not actually do the kernel side with nat-prohibit-DROP, but I
-> > regard it as very useful, as the community was very much able to help
-> > itself if only they got the word - and it turned out that dmesg is
-> > _the_ place people look in especially when they don't supervise
-> > iptables output directly, as with, for example, boot splash where
-> > messages are hidden, or server/router devices that one tends to
-> > forget about.
+Jozsef Kadlecsik wrote:
+> Why the order of the raw table and defragmentation is reversed for IPv6?
 > 
-> Yes, a kernel message sounds fine and less annoying than an
-> iptables message since we can limit it to print only once.
+> That makes impossible to use the NOTRACK target in IPv6: for example if 
+> someone enters
 > 
-> I'm not really convinced of removing state though, I has never
-> caused any maintenance overhead, it requires a lot less memory
-> than xt_conntrack and it seems more intuitive to write "-m state"
-> than "-m conntrack --ctstate" to me.
+> ip6tables -t raw -A PREROUTING -p tcp --dport 80 -j NOTRACK
+> 
+> and if we receive fragmented packets then the first fragment will be 
+> untracked and thus skip nf_ct_frag6_gather (and conntrack), while all 
+> subsequent fragments enter nf_ct_frag6_gather and reassembly will never 
+> successfully be finished.
+> 
+> IMHO this is a bug and should be fixed. Patrick, please consider applying 
+> the patch below.
 
-I oppose the removal of xt_state, *unless* the userspace "-m state" is 
-kept working and the conntrack module automatically supports it.
+Indeed. I've applied your patch with a minor fixup (attached) to
+apply cleanly to the current tree, thanks.
 
-It's such a basic match that it's simply overkill to remove it.
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
+--------------080304020808010602060808
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+commit 9c13886665c43600bd0af4b38e33c654e648e078
+Author: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Date:   Thu Mar 25 11:17:26 2010 +0100
+
+    netfilter: ip6table_raw: fix table priority
+    
+    The order of the IPv6 raw table is currently reversed, that makes impossible
+    to use the NOTRACK target in IPv6: for example if someone enters
+    
+    ip6tables -t raw -A PREROUTING -p tcp --dport 80 -j NOTRACK
+    
+    and if we receive fragmented packets then the first fragment will be
+    untracked and thus skip nf_ct_frag6_gather (and conntrack), while all
+    subsequent fragments enter nf_ct_frag6_gather and reassembly will never
+    successfully be finished.
+    
+    Singed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
+index d654873..1f7e300 100644
+--- a/include/linux/netfilter_ipv6.h
++++ b/include/linux/netfilter_ipv6.h
+@@ -59,6 +59,7 @@
+ enum nf_ip6_hook_priorities {
+ 	NF_IP6_PRI_FIRST = INT_MIN,
+ 	NF_IP6_PRI_CONNTRACK_DEFRAG = -400,
++	NF_IP6_PRI_RAW = -300,
+ 	NF_IP6_PRI_SELINUX_FIRST = -225,
+ 	NF_IP6_PRI_CONNTRACK = -200,
+ 	NF_IP6_PRI_MANGLE = -150,
+diff --git a/net/ipv6/netfilter/ip6table_raw.c b/net/ipv6/netfilter/ip6table_raw.c
+index aef31a2..b9cf7cd 100644
+--- a/net/ipv6/netfilter/ip6table_raw.c
++++ b/net/ipv6/netfilter/ip6table_raw.c
+@@ -13,7 +13,7 @@ static const struct xt_table packet_raw = {
+ 	.valid_hooks = RAW_VALID_HOOKS,
+ 	.me = THIS_MODULE,
+ 	.af = NFPROTO_IPV6,
+-	.priority = NF_IP6_PRI_FIRST,
++	.priority = NF_IP6_PRI_RAW,
+ };
+ 
+ /* The work comes in here from netfilter.c. */
+
+--------------080304020808010602060808--
