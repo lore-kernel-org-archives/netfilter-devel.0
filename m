@@ -1,51 +1,54 @@
-From: Shan Wei <shanwei@cn.fujitsu.com>
+From: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
 Subject: Re: [RFC PATCH net-next 0/7 v2]IPv6:netfilter: defragment
-Date: Thu, 25 Mar 2010 10:28:20 +0800
-Message-ID: <4BAACA44.6010306@cn.fujitsu.com>
-References: <4B88BE30.80206@cn.fujitsu.com> <4B97D34C.4020509@gmail.com> <4B98B4FC.50904@cn.fujitsu.com> <4BA8D8AF.1040307@trash.net>
+Date: Thu, 25 Mar 2010 13:19:49 +0900
+Message-ID: <4BAAE465.1070803@linux-ipv6.org>
+References: <4B88BE30.80206@cn.fujitsu.com> <4B97D34C.4020509@gmail.com> <4B98B4FC.50904@cn.fujitsu.com> <4BA8D8AF.1040307@trash.net> <4BAACA44.6010306@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=UTF-8;
+	format=flowed
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: YOSHIFUJI Hideaki <hideaki.yoshifuji@gmail.com>,
+Cc: Patrick McHardy <kaber@trash.net>,
+	YOSHIFUJI Hideaki <hideaki.yoshifuji@gmail.com>,
 	David Miller <davem@davemloft.net>,
 	Alexey Dobriyan <adobriyan@gmail.com>,
 	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>,
 	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
 	netfilter-devel@vger.kernel.org,
-	"yoshfuji@linux-ipv6.org >> YOSHIFUJI Hideaki"
-	<yoshfuji@linux-ipv6.org>
-To: Patrick McHardy <kaber@trash.net>
+	YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+To: Shan Wei <shanwei@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:61387 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1753083Ab0CYC3I convert rfc822-to-8bit (ORCPT
+Received: from 94.43.138.210.xn.2iij.net ([210.138.43.94]:41752 "EHLO
+	mail.st-paulia.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750774Ab0CYEU1 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 24 Mar 2010 22:29:08 -0400
-In-Reply-To: <4BA8D8AF.1040307@trash.net>
+	Thu, 25 Mar 2010 00:20:27 -0400
+In-Reply-To: <4BAACA44.6010306@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy wrote, at 03/23/2010 11:05 PM:
-> Shan Wei wrote:
->>> On the other hand, I'd even say we should NOT send
->>> icmp here (at least by default) because standard routers
->>> never send such packet.
->>>    =20
->> Yes=EF=BC=8Cfor routers, the patch-set does not send icmp message to
->> source host. It only does on destination host with IPv6 connection=20
->> track enable.
->>  =20
->=20
-> The nf-next tree is open again, now would be a good time to resubmit
-> these patches.
-> Thanks!
+(2010/03/25 11:28), Shan Wei wrote:
+> Patrick McHardy wrote, at 03/23/2010 11:05 PM:
+>> Shan Wei wrote:
+>>>> On the other hand, I'd even say we should NOT send
+>>>> icmp here (at least by default) because standard routers
+>>>> never send such packet.
+>>>>
+>>> Yes=EF=BC=8Cfor routers, the patch-set does not send icmp message t=
+o
+>>> source host. It only does on destination host with IPv6 connection
+>>> track enable.
+>>>
+>>
+>> The nf-next tree is open again, now would be a good time to resubmit
+>> these patches.
+>> Thanks!
+>
+> If no body opposes them, i will resubmit these patches with v3.
+>
 
-If no body opposes them, i will resubmit these patches with v3.=20
+I still disagree 4-7.
 
---=20
-Best Regards
------
-Shan Wei
+--yoshfuji
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
