@@ -1,41 +1,40 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 4/4] netfilter: xtables: schedule xt_state for removal
-Date: Thu, 25 Mar 2010 17:09:14 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.1003251706470.6356@obet.zrqbmnf.qr>
-References: <1269377101-13875-1-git-send-email-jengelh@medozas.de> <1269377101-13875-5-git-send-email-jengelh@medozas.de> <4BAA2969.8010106@trash.net> <alpine.LSU.2.01.1003241616120.20299@obet.zrqbmnf.qr> <4BAB359F.6030308@trash.net>
- <alpine.DEB.2.00.1003251109190.21938@blackhole.kfki.hu> <4BAB3A51.3060001@trash.net> <alpine.LSU.2.01.1003251335270.27347@obet.zrqbmnf.qr> <alpine.DEB.2.00.1003251339180.22672@blackhole.kfki.hu> <4BAB5BE3.3020703@trash.net>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: [PATCH] xt_hashlimit: IPV6 bugfix
+Date: Thu, 25 Mar 2010 17:17:49 +0100
+Message-ID: <1269533869.3626.41.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: netdev <netdev@vger.kernel.org>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	David Miller <davem@davemloft.net>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:36028 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752029Ab0CYQJP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 25 Mar 2010 12:09:15 -0400
-In-Reply-To: <4BAB5BE3.3020703@trash.net>
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:37765 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752192Ab0CYQR5 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 25 Mar 2010 12:17:57 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+A missing break statement in hashlimit_ipv6_mask(), and masks
+between /64 and /95 are not working at all...
 
-On Thursday 2010-03-25 13:49, Patrick McHardy wrote:
->> 
->>>>>> and it seems more intuitive to write "-m state"
->>>>>> than "-m conntrack --ctstate" to me.
+Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+---
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index 8f3e0c0..7ac6ea7 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -487,6 +487,7 @@ static void hashlimit_ipv6_mask(__be32 *i, unsigned int p)
+ 	case 64 ... 95:
+ 		i[2] = maskl(i[2], p - 64);
+ 		i[3] = 0;
++		break;
+ 	case 96 ... 127:
+ 		i[3] = maskl(i[3], p - 96);
+ 		break;
 
-But "-m state --ctorigsrc fe80::/64" does not seem as intuitive
-as "-m conntrack --ctorigsrc fe80::/64".
 
->>>>> It's such a basic match that it's simply overkill to remove it.
->>>> Agreed.
->>> So what now? Should xt_conntrack be perhaps rebranded as a new
->>> xt_state rev and let's obsolete xt_conntrack.c instead?
->> 
->> That's much more acceptable, also because of the usage patterns. And the 
->> migration can be made easier with module aliasing.
->
->Yes, I prefer that way as well. Both state and conntrack should
->continue to work in userspace.
-
-We should be settling for one name in the long run.
