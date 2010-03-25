@@ -1,31 +1,71 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 2/5] netfilter: xt extensions: use pr_<level> (2)
-Date: Thu, 25 Mar 2010 15:11:56 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.1003251510540.32573@obet.zrqbmnf.qr>
-References: <1269521809-29393-1-git-send-email-jengelh@medozas.de> <1269521809-29393-3-git-send-email-jengelh@medozas.de> <4BAB6EC4.9080006@pandora.be>
+From: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+Subject: Re: [RFC PATCH net-next 0/7 v2]IPv6:netfilter: defragment
+Date: Thu, 25 Mar 2010 23:14:57 +0900
+Message-ID: <4BAB6FE1.7030304@linux-ipv6.org>
+References: <4B88BE30.80206@cn.fujitsu.com> <4B97D34C.4020509@gmail.com> <4B98B4FC.50904@cn.fujitsu.com> <4B9B9766.3090200@linux-ipv6.org> <4B9E5FEC.9010002@trash.net> <4BA8EC4A.9070802@linux-ipv6.org> <4BA8F75E.2040303@trash.net> <4BA90F72.6010404@linux-ipv6.org> <alpine.DEB.2.00.1003232050540.18241@blackhole.kfki.hu> <4BAAE496.8000701@linux-ipv6.org> <alpine.DEB.2.00.1003251004200.21825@blackhole.kfki.hu>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
-To: Bart De Schuymer <bdschuym@pandora.be>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:52584 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754522Ab0CYOMB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 25 Mar 2010 10:12:01 -0400
-In-Reply-To: <4BAB6EC4.9080006@pandora.be>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Patrick McHardy <kaber@trash.net>,
+	Shan Wei <shanwei@cn.fujitsu.com>,
+	YOSHIFUJI Hideaki <hideaki.yoshifuji@gmail.com>,
+	David Miller <davem@davemloft.net>,
+	Alexey Dobriyan <adobriyan@gmail.com>,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org,
+	YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <alpine.DEB.2.00.1003251004200.21825@blackhole.kfki.hu>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Thursday 2010-03-25 15:10, Bart De Schuymer wrote:
+(2010/03/25 18:23), Jozsef Kadlecsik wrote:
 
->Hi Jan,
+>> First of all. in "sane" setup, people should configure according
+>> to their own requirements.  They may or may not want send back
+>> icmp packet.  And, even if the core is to send icmp back, the
+>> state would be correctly assigned.
 >
->You seem to be removing all information about which module is
->responsible for the message. Are you planning on a scheme to define the
->pr_fmt macro for each module or did I miss something?
+> I meant the state of the fragmented packets. If we let the uncompleted
+> fragments to enter conntrack, as far as I see their state will be INVALID.
+> Or should we add an exception and set their state to UNTRACKED in
+> conntrack?
 
-pr_fmt is appropriately defined at the top of the affected source files.
+Got it.  INVALID seems fine to me so far
+while further consideration might be needed.
 
-	#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+>> For my conclusion, first option is just to drop
+>> uncompleted fragments as we do today.  Second option
+>> would be  to forward them to the next process so that
+>> core code could send ICMPv6 etc. or, we could have
+>> new code to send ICMPV6_TIME_EXCEED in REJECT target.
+>> In longer term, I think it is better to introduce
+>> per-exthdr hooks.
+>
+> I agree with your conclusion too, except a few question.
+>
+> It is unclear for me how can you forward the packets to the next process:
+> above you pointed out that in defrag/reassembly before conntrack we do not
+> know yet whether the packets are destined to the host or not. So again,
+> how would you let through the fragments on conntrack then?
+>
+> I don't know how could the REJECT target help in any way.
 
-This is the format already used by some modules.
+Argh, more explanation.
+
+If you unconditionally send ICMPv6, behavior would be
+broken.
+
+If you do really want to send ICMP in netfilter,
+you could pretend additional rules in filter table.
+For example, ICMP to be sent back only if other exthdrs
+do not exist, and other packets to be silently dropped.
+
+This cannot be our clean/final/full answer, so I said it'd
+be better to introduce per-exthdr hooks in longer term.
+
+Regards,
+
+--yoshfuji
