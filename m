@@ -1,52 +1,125 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 4/4] netfilter: xtables: schedule xt_state for removal
-Date: Thu, 25 Mar 2010 11:06:23 +0100
-Message-ID: <4BAB359F.6030308@trash.net>
-References: <1269377101-13875-1-git-send-email-jengelh@medozas.de> <1269377101-13875-5-git-send-email-jengelh@medozas.de> <4BAA2969.8010106@trash.net> <alpine.LSU.2.01.1003241616120.20299@obet.zrqbmnf.qr>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: [RFC PATCH net-next 0/7 v2]IPv6:netfilter: defragment
+Date: Thu, 25 Mar 2010 11:07:55 +0100 (CET)
+Message-ID: <alpine.DEB.2.00.1003251028580.21825@blackhole.kfki.hu>
+References: <4B88BE30.80206@cn.fujitsu.com> <4B97D34C.4020509@gmail.com> <4B98B4FC.50904@cn.fujitsu.com> <4B9B9766.3090200@linux-ipv6.org> <4B9E5FEC.9010002@trash.net> <4BA8EC4A.9070802@linux-ipv6.org> <4BA8F75E.2040303@trash.net> <4BA90F72.6010404@linux-ipv6.org>
+ <alpine.DEB.2.00.1003232050540.18241@blackhole.kfki.hu> <4BAB2121.2030503@plouf.fr.eu.org> <4BAB2954.9010608@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>,
+	YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>,
+	Patrick McHardy <kaber@trash.net>,
+	David Miller <davem@davemloft.net>,
+	Alexey Dobriyan <adobriyan@gmail.com>,
+	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org
+To: Shan Wei <shanwei@cn.fujitsu.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:48131 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753246Ab0CYKGX (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 25 Mar 2010 06:06:23 -0400
-In-Reply-To: <alpine.LSU.2.01.1003241616120.20299@obet.zrqbmnf.qr>
+Received: from smtp1.kfki.hu ([148.6.0.26]:42117 "EHLO smtp1.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750851Ab0CYKH5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 25 Mar 2010 06:07:57 -0400
+In-Reply-To: <4BAB2954.9010608@cn.fujitsu.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Wednesday 2010-03-24 16:02, Patrick McHardy wrote:
->> Jan Engelhardt wrote:
->>> xt_conntrack has been provided since v2.5.32.
->>>   
->> I'm fine with the removal of old revisions, but how are you planning on
->> informing users about removal of this module? Most people don't read
->> feature-removal-schedule, and distributions are unable to help with
->> user written scripts.
-> 
-> I would suggest to do the same as we did with disallowing DROP in the 
-> nat table:
-> 
->  - a message printed by iptables whenever -m state is used
-> 
->  - a kernel message whenever whenever a rule with xt_state is created
-> 
-> We did not actually do the kernel side with nat-prohibit-DROP, but I
-> regard it as very useful, as the community was very much able to help
-> itself if only they got the word - and it turned out that dmesg is
-> _the_ place people look in especially when they don't supervise
-> iptables output directly, as with, for example, boot splash where
-> messages are hidden, or server/router devices that one tends to
-> forget about.
+On Thu, 25 Mar 2010, Shan Wei wrote:
 
-Yes, a kernel message sounds fine and less annoying than an
-iptables message since we can limit it to print only once.
+> Pascal Hambourg wrote, at 03/25/2010 04:38 PM:
+> > 
+> > Jozsef Kadlecsik a ?crit :
+> >> On Wed, 24 Mar 2010, YOSHIFUJI Hideaki wrote:
+> >>
+> >>>> In this case without conntrack, IPv6 would send an ICMPv6 message,
+> >>>> so in my opinion the transparent thing to do would be to still send
+> >>>> them. Of course only if reassembly is done on an end host.
+> >>> Well, no.  conntrack should just forward even uncompleted fragments
+> >>> to next process (e.g. core ipv6 code), and then the core would send
+> >>> ICMP error back.  ICMP should be sent by the core ipv6 code according
+> >>> to decision of itself, not according to netfilter.
+> >> But what state could be associated by conntrack to the uncompleted 
+> >> fragments but the INVALID state? In consequence, in any sane setup, the 
+> >> uncompleted fragments will be dropped silently by a filter table rule
+> >> and no ICMP error message will be sent back.
+> > 
+> > AFAIK, in the IPv4 stack the reassembly takes place before the INPUT
+> > chains (NF_IP_LOCAL_IN hook). Is it different in the IPv6 stack ?
+> 
+> Yes, they are different.
+> 
+> In IPv4 stack?for an end host, ip_local_deliver() reassemble 
+> fragments before LOCAL_IN hook .
+> 
+> But in IPv6 stack, ip6_input_finish() handles fragment extension headers
+> and try to reassemble them *after* LOCAL_IN hook.
 
-I'm not really convinced of removing state though, I has never
-caused any maintenance overhead, it requires a lot less memory
-than xt_conntrack and it seems more intuitive to write "-m state"
-than "-m conntrack --ctstate" to me.
+But we are discussing netfilter and (de)fragmentation: what should happen 
+when the packet reassembly in netfilter times out and the destination is 
+the host itself.
+
+In IPv4 the very first subsystem is ipv4_conntrack_defrag, called from 
+NF_INET_PRE_ROUTING. Then comes the raw table and after that conntrack.
+
+In IPv6 the very first is the raw table, then comes ipv6_defrag and then 
+conntrack.
+
+Why the order of the raw table and defragmentation is reversed for IPv6?
+
+That makes impossible to use the NOTRACK target in IPv6: for example if 
+someone enters
+
+ip6tables -t raw -A PREROUTING -p tcp --dport 80 -j NOTRACK
+
+and if we receive fragmented packets then the first fragment will be 
+untracked and thus skip nf_ct_frag6_gather (and conntrack), while all 
+subsequent fragments enter nf_ct_frag6_gather and reassembly will never 
+successfully be finished.
+
+IMHO this is a bug and should be fixed. Patrick, please consider applying 
+the patch below.
+
+Singed-off-by: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+
+diff --git a/include/linux/netfilter_ipv6.h b/include/linux/netfilter_ipv6.h
+index d654873..1f7e300 100644
+--- a/include/linux/netfilter_ipv6.h
++++ b/include/linux/netfilter_ipv6.h
+@@ -59,6 +59,7 @@
+ enum nf_ip6_hook_priorities {
+ 	NF_IP6_PRI_FIRST = INT_MIN,
+ 	NF_IP6_PRI_CONNTRACK_DEFRAG = -400,
++	NF_IP6_PRI_RAW = -300,
+ 	NF_IP6_PRI_SELINUX_FIRST = -225,
+ 	NF_IP6_PRI_CONNTRACK = -200,
+ 	NF_IP6_PRI_MANGLE = -150,
+diff --git a/net/ipv6/netfilter/ip6table_raw.c b/net/ipv6/netfilter/ip6table_raw.c
+index ed1a118..3d8c6f0 100644
+--- a/net/ipv6/netfilter/ip6table_raw.c
++++ b/net/ipv6/netfilter/ip6table_raw.c
+@@ -70,14 +70,14 @@ static struct nf_hook_ops ip6t_ops[] __read_mostly = {
+ 	  .hook = ip6t_pre_routing_hook,
+ 	  .pf = NFPROTO_IPV6,
+ 	  .hooknum = NF_INET_PRE_ROUTING,
+-	  .priority = NF_IP6_PRI_FIRST,
++	  .priority = NF_IP6_PRI_RAW,
+ 	  .owner = THIS_MODULE,
+ 	},
+ 	{
+ 	  .hook = ip6t_local_out_hook,
+ 	  .pf = NFPROTO_IPV6,
+ 	  .hooknum = NF_INET_LOCAL_OUT,
+-	  .priority = NF_IP6_PRI_FIRST,
++	  .priority = NF_IP6_PRI_RAW,
+ 	  .owner = THIS_MODULE,
+ 	},
+ };
+
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
