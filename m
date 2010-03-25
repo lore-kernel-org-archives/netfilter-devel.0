@@ -1,28 +1,53 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] xt_hashlimit: IPV6 bugfix
-Date: Thu, 25 Mar 2010 17:26:06 +0100
-Message-ID: <4BAB8E9E.3080509@trash.net>
-References: <1269533869.3626.41.camel@edumazet-laptop>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netdev <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	David Miller <davem@davemloft.net>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+From: kaber@trash.net
+Subject: [PATCH 1/4] netfilter: xt_recent: fix regression in rules using a zero hit_count
+Date: Thu, 25 Mar 2010 18:54:43 +0100
+Message-ID: <1269539686-3885-2-git-send-email-kaber@trash.net>
+References: <1269539686-3885-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55295 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:56919 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752933Ab0CYQ1Q (ORCPT
+	with ESMTP id S1753181Ab0CYRyu (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 25 Mar 2010 12:27:16 -0400
-In-Reply-To: <1269533869.3626.41.camel@edumazet-laptop>
+	Thu, 25 Mar 2010 13:54:50 -0400
+In-Reply-To: <1269539686-3885-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Dumazet wrote:
-> A missing break statement in hashlimit_ipv6_mask(), and masks
-> between /64 and /95 are not working at all...
+From: Patrick McHardy <kaber@trash.net>
 
-Applied, thanks Eric.
+Commit 8ccb92ad (netfilter: xt_recent: fix false match) fixed supposedly
+false matches in rules using a zero hit_count. As it turns out there is
+nothing false about these matches and people are actually using entries
+with a hit_count of zero to make rules dependant on addresses inserted
+manually through /proc.
+
+Since this slipped past the eyes of three reviewers, instead of
+reverting the commit in question, this patch explicitly checks
+for a hit_count of zero to make the intentions more clear.
+
+Reported-by: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Tested-by: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Cc: stable@kernel.org
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+---
+ net/netfilter/xt_recent.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
+index 7073dbb..971d172 100644
+--- a/net/netfilter/xt_recent.c
++++ b/net/netfilter/xt_recent.c
+@@ -267,7 +267,7 @@ recent_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+ 		for (i = 0; i < e->nstamps; i++) {
+ 			if (info->seconds && time_after(time, e->stamps[i]))
+ 				continue;
+-			if (info->hit_count && ++hits >= info->hit_count) {
++			if (!info->hit_count || ++hits >= info->hit_count) {
+ 				ret = !ret;
+ 				break;
+ 			}
+-- 
+1.6.5.7
+
