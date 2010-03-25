@@ -1,157 +1,233 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 04/12] netfilter: decnet: use NFPROTO values for NF_HOOK invocation
-Date: Thu, 25 Mar 2010 17:04:16 +0100
-Message-ID: <1269533065-22318-5-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 03/12] netfilter: ipv6: use NFPROTO values for NF_HOOK invocation
+Date: Thu, 25 Mar 2010 17:04:15 +0100
+Message-ID: <1269533065-22318-4-git-send-email-jengelh@medozas.de>
 References: <1269533065-22318-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:41687 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:41684 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751861Ab0CYQEf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 25 Mar 2010 12:04:35 -0400
+	id S1751587Ab0CYQEe (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 25 Mar 2010 12:04:34 -0400
 In-Reply-To: <1269533065-22318-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The semantic patch used was:
+The semantic patch that was used:
 // <smpl>
 @@
 @@
- NF_HOOK(
--PF_DECnet,
-+NFPROTO_DECNET,
+(NF_HOOK
+|NF_HOOK_THRESH
+|nf_hook
+)(
+-PF_INET6,
++NFPROTO_IPV6,
  ...)
 // </smpl>
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- net/decnet/dn_neigh.c  |    9 ++++++---
- net/decnet/dn_nsp_in.c |    3 ++-
- net/decnet/dn_route.c  |   28 ++++++++++++++++++++--------
- 3 files changed, 28 insertions(+), 12 deletions(-)
+ net/ipv6/ip6_input.c                    |    4 ++--
+ net/ipv6/ip6_output.c                   |   16 ++++++++--------
+ net/ipv6/ip6mr.c                        |    2 +-
+ net/ipv6/mcast.c                        |    4 ++--
+ net/ipv6/ndisc.c                        |    4 ++--
+ net/ipv6/netfilter/nf_conntrack_reasm.c |    2 +-
+ net/ipv6/raw.c                          |    4 ++--
+ net/ipv6/xfrm6_input.c                  |    2 +-
+ net/ipv6/xfrm6_output.c                 |    4 ++--
+ 9 files changed, 21 insertions(+), 21 deletions(-)
 
-diff --git a/net/decnet/dn_neigh.c b/net/decnet/dn_neigh.c
-index 794b5bf..76622c0 100644
---- a/net/decnet/dn_neigh.c
-+++ b/net/decnet/dn_neigh.c
-@@ -265,7 +265,8 @@ static int dn_long_output(struct sk_buff *skb)
+diff --git a/net/ipv6/ip6_input.c b/net/ipv6/ip6_input.c
+index e28f920..2c01dc6 100644
+--- a/net/ipv6/ip6_input.c
++++ b/net/ipv6/ip6_input.c
+@@ -142,7 +142,7 @@ int ipv6_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt
+ 	/* Must drop socket now because of tproxy. */
+ 	skb_orphan(skb);
  
- 	skb_reset_network_header(skb);
+-	return NF_HOOK(PF_INET6, NF_INET_PRE_ROUTING, skb, dev, NULL,
++	return NF_HOOK(NFPROTO_IPV6, NF_INET_PRE_ROUTING, skb, dev, NULL,
+ 		       ip6_rcv_finish);
+ err:
+ 	IP6_INC_STATS_BH(net, idev, IPSTATS_MIB_INHDRERRORS);
+@@ -235,7 +235,7 @@ discard:
  
--	return NF_HOOK(PF_DECnet, NF_DN_POST_ROUTING, skb, NULL, neigh->dev, dn_neigh_output_packet);
-+	return NF_HOOK(NFPROTO_DECNET, NF_DN_POST_ROUTING, skb, NULL,
-+		       neigh->dev, dn_neigh_output_packet);
- }
- 
- static int dn_short_output(struct sk_buff *skb)
-@@ -304,7 +305,8 @@ static int dn_short_output(struct sk_buff *skb)
- 
- 	skb_reset_network_header(skb);
- 
--	return NF_HOOK(PF_DECnet, NF_DN_POST_ROUTING, skb, NULL, neigh->dev, dn_neigh_output_packet);
-+	return NF_HOOK(NFPROTO_DECNET, NF_DN_POST_ROUTING, skb, NULL,
-+		       neigh->dev, dn_neigh_output_packet);
- }
- 
- /*
-@@ -346,7 +348,8 @@ static int dn_phase3_output(struct sk_buff *skb)
- 
- 	skb_reset_network_header(skb);
- 
--	return NF_HOOK(PF_DECnet, NF_DN_POST_ROUTING, skb, NULL, neigh->dev, dn_neigh_output_packet);
-+	return NF_HOOK(NFPROTO_DECNET, NF_DN_POST_ROUTING, skb, NULL,
-+		       neigh->dev, dn_neigh_output_packet);
- }
- 
- /*
-diff --git a/net/decnet/dn_nsp_in.c b/net/decnet/dn_nsp_in.c
-index 932408d..65531ad 100644
---- a/net/decnet/dn_nsp_in.c
-+++ b/net/decnet/dn_nsp_in.c
-@@ -809,7 +809,8 @@ free_out:
- 
- int dn_nsp_rx(struct sk_buff *skb)
+ int ip6_input(struct sk_buff *skb)
  {
--	return NF_HOOK(PF_DECnet, NF_DN_LOCAL_IN, skb, skb->dev, NULL, dn_nsp_rx_packet);
-+	return NF_HOOK(NFPROTO_DECNET, NF_DN_LOCAL_IN, skb, skb->dev, NULL,
-+		       dn_nsp_rx_packet);
+-	return NF_HOOK(PF_INET6, NF_INET_LOCAL_IN, skb, skb->dev, NULL,
++	return NF_HOOK(NFPROTO_IPV6, NF_INET_LOCAL_IN, skb, skb->dev, NULL,
+ 		       ip6_input_finish);
  }
  
- /*
-diff --git a/net/decnet/dn_route.c b/net/decnet/dn_route.c
-index a7bf03c..86eca5f 100644
---- a/net/decnet/dn_route.c
-+++ b/net/decnet/dn_route.c
-@@ -517,7 +517,8 @@ static int dn_route_rx_long(struct sk_buff *skb)
- 	ptr++;
- 	cb->hops = *ptr++; /* Visit Count */
+diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
+index dabf108..4535b7a 100644
+--- a/net/ipv6/ip6_output.c
++++ b/net/ipv6/ip6_output.c
+@@ -66,8 +66,8 @@ int __ip6_local_out(struct sk_buff *skb)
+ 		len = 0;
+ 	ipv6_hdr(skb)->payload_len = htons(len);
  
--	return NF_HOOK(PF_DECnet, NF_DN_PRE_ROUTING, skb, skb->dev, NULL, dn_route_rx_packet);
-+	return NF_HOOK(NFPROTO_DECNET, NF_DN_PRE_ROUTING, skb, skb->dev, NULL,
-+		       dn_route_rx_packet);
+-	return nf_hook(PF_INET6, NF_INET_LOCAL_OUT, skb, NULL, skb_dst(skb)->dev,
+-		       dst_output);
++	return nf_hook(NFPROTO_IPV6, NF_INET_LOCAL_OUT, skb, NULL,
++		       skb_dst(skb)->dev, dst_output);
+ }
  
- drop_it:
- 	kfree_skb(skb);
-@@ -543,7 +544,8 @@ static int dn_route_rx_short(struct sk_buff *skb)
- 	ptr += 2;
- 	cb->hops = *ptr & 0x3f;
+ int ip6_local_out(struct sk_buff *skb)
+@@ -134,8 +134,8 @@ static int ip6_output2(struct sk_buff *skb)
+ 			   is not supported in any case.
+ 			 */
+ 			if (newskb)
+-				NF_HOOK(PF_INET6, NF_INET_POST_ROUTING, newskb,
+-					NULL, newskb->dev,
++				NF_HOOK(NFPROTO_IPV6, NF_INET_POST_ROUTING,
++					newskb, NULL, newskb->dev,
+ 					ip6_dev_loopback_xmit);
  
--	return NF_HOOK(PF_DECnet, NF_DN_PRE_ROUTING, skb, skb->dev, NULL, dn_route_rx_packet);
-+	return NF_HOOK(NFPROTO_DECNET, NF_DN_PRE_ROUTING, skb, skb->dev, NULL,
-+		       dn_route_rx_packet);
+ 			if (ipv6_hdr(skb)->hop_limit == 0) {
+@@ -150,7 +150,7 @@ static int ip6_output2(struct sk_buff *skb)
+ 				skb->len);
+ 	}
  
- drop_it:
- 	kfree_skb(skb);
-@@ -645,16 +647,24 @@ int dn_route_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type
+-	return NF_HOOK(PF_INET6, NF_INET_POST_ROUTING, skb, NULL, skb->dev,
++	return NF_HOOK(NFPROTO_IPV6, NF_INET_POST_ROUTING, skb, NULL, skb->dev,
+ 		       ip6_output_finish);
+ }
  
- 		switch(flags & DN_RT_CNTL_MSK) {
- 			case DN_RT_PKT_HELO:
--				return NF_HOOK(PF_DECnet, NF_DN_HELLO, skb, skb->dev, NULL, dn_route_ptp_hello);
-+				return NF_HOOK(NFPROTO_DECNET, NF_DN_HELLO,
-+					       skb, skb->dev, NULL,
-+					       dn_route_ptp_hello);
+@@ -260,8 +260,8 @@ int ip6_xmit(struct sock *sk, struct sk_buff *skb, struct flowi *fl,
+ 	if ((skb->len <= mtu) || skb->local_df || skb_is_gso(skb)) {
+ 		IP6_UPD_PO_STATS(net, ip6_dst_idev(skb_dst(skb)),
+ 			      IPSTATS_MIB_OUT, skb->len);
+-		return NF_HOOK(PF_INET6, NF_INET_LOCAL_OUT, skb, NULL, dst->dev,
+-				dst_output);
++		return NF_HOOK(NFPROTO_IPV6, NF_INET_LOCAL_OUT, skb, NULL,
++			       dst->dev, dst_output);
+ 	}
  
- 			case DN_RT_PKT_L1RT:
- 			case DN_RT_PKT_L2RT:
--				return NF_HOOK(PF_DECnet, NF_DN_ROUTE, skb, skb->dev, NULL, dn_route_discard);
-+				return NF_HOOK(NFPROTO_DECNET, NF_DN_ROUTE,
-+					       skb, skb->dev, NULL,
-+					       dn_route_discard);
- 			case DN_RT_PKT_ERTH:
--				return NF_HOOK(PF_DECnet, NF_DN_HELLO, skb, skb->dev, NULL, dn_neigh_router_hello);
-+				return NF_HOOK(NFPROTO_DECNET, NF_DN_HELLO,
-+					       skb, skb->dev, NULL,
-+					       dn_neigh_router_hello);
+ 	if (net_ratelimit())
+@@ -537,7 +537,7 @@ int ip6_forward(struct sk_buff *skb)
+ 	hdr->hop_limit--;
  
- 			case DN_RT_PKT_EEDH:
--				return NF_HOOK(PF_DECnet, NF_DN_HELLO, skb, skb->dev, NULL, dn_neigh_endnode_hello);
-+				return NF_HOOK(NFPROTO_DECNET, NF_DN_HELLO,
-+					       skb, skb->dev, NULL,
-+					       dn_neigh_endnode_hello);
- 		}
- 	} else {
- 		if (dn->parms.state != DN_DEV_S_RU)
-@@ -703,7 +713,8 @@ static int dn_output(struct sk_buff *skb)
- 	cb->rt_flags |= DN_RT_F_IE;
- 	cb->hops = 0;
- 
--	return NF_HOOK(PF_DECnet, NF_DN_LOCAL_OUT, skb, NULL, dev, neigh->output);
-+	return NF_HOOK(NFPROTO_DECNET, NF_DN_LOCAL_OUT, skb, NULL, dev,
-+		       neigh->output);
+ 	IP6_INC_STATS_BH(net, ip6_dst_idev(dst), IPSTATS_MIB_OUTFORWDATAGRAMS);
+-	return NF_HOOK(PF_INET6, NF_INET_FORWARD, skb, skb->dev, dst->dev,
++	return NF_HOOK(NFPROTO_IPV6, NF_INET_FORWARD, skb, skb->dev, dst->dev,
+ 		       ip6_forward_finish);
  
  error:
- 	if (net_ratelimit())
-@@ -752,7 +763,8 @@ static int dn_forward(struct sk_buff *skb)
- 	if (rt->rt_flags & RTCF_DOREDIRECT)
- 		cb->rt_flags |= DN_RT_F_IE;
+diff --git a/net/ipv6/ip6mr.c b/net/ipv6/ip6mr.c
+index 52e0f74..430372e 100644
+--- a/net/ipv6/ip6mr.c
++++ b/net/ipv6/ip6mr.c
+@@ -1566,7 +1566,7 @@ static int ip6mr_forward2(struct sk_buff *skb, struct mfc6_cache *c, int vifi)
  
--	return NF_HOOK(PF_DECnet, NF_DN_FORWARD, skb, dev, skb->dev, neigh->output);
-+	return NF_HOOK(NFPROTO_DECNET, NF_DN_FORWARD, skb, dev, skb->dev,
-+		       neigh->output);
+ 	IP6CB(skb)->flags |= IP6SKB_FORWARDED;
  
- drop:
- 	kfree_skb(skb);
+-	return NF_HOOK(PF_INET6, NF_INET_FORWARD, skb, skb->dev, dev,
++	return NF_HOOK(NFPROTO_IPV6, NF_INET_FORWARD, skb, skb->dev, dev,
+ 		       ip6mr_forward2_finish);
+ 
+ out_free:
+diff --git a/net/ipv6/mcast.c b/net/ipv6/mcast.c
+index bcd9719..773b9d1 100644
+--- a/net/ipv6/mcast.c
++++ b/net/ipv6/mcast.c
+@@ -1479,7 +1479,7 @@ static void mld_sendpack(struct sk_buff *skb)
+ 
+ 	payload_len = skb->len;
+ 
+-	err = NF_HOOK(PF_INET6, NF_INET_LOCAL_OUT, skb, NULL, skb->dev,
++	err = NF_HOOK(NFPROTO_IPV6, NF_INET_LOCAL_OUT, skb, NULL, skb->dev,
+ 		      dst_output);
+ out:
+ 	if (!err) {
+@@ -1847,7 +1847,7 @@ static void igmp6_send(struct in6_addr *addr, struct net_device *dev, int type)
+ 		goto err_out;
+ 
+ 	skb_dst_set(skb, dst);
+-	err = NF_HOOK(PF_INET6, NF_INET_LOCAL_OUT, skb, NULL, skb->dev,
++	err = NF_HOOK(NFPROTO_IPV6, NF_INET_LOCAL_OUT, skb, NULL, skb->dev,
+ 		      dst_output);
+ out:
+ 	if (!err) {
+diff --git a/net/ipv6/ndisc.c b/net/ipv6/ndisc.c
+index 8bcc4b7..8e96a35 100644
+--- a/net/ipv6/ndisc.c
++++ b/net/ipv6/ndisc.c
+@@ -535,7 +535,7 @@ void ndisc_send_skb(struct sk_buff *skb,
+ 	idev = in6_dev_get(dst->dev);
+ 	IP6_UPD_PO_STATS(net, idev, IPSTATS_MIB_OUT, skb->len);
+ 
+-	err = NF_HOOK(PF_INET6, NF_INET_LOCAL_OUT, skb, NULL, dst->dev,
++	err = NF_HOOK(NFPROTO_IPV6, NF_INET_LOCAL_OUT, skb, NULL, dst->dev,
+ 		      dst_output);
+ 	if (!err) {
+ 		ICMP6MSGOUT_INC_STATS(net, idev, type);
+@@ -1617,7 +1617,7 @@ void ndisc_send_redirect(struct sk_buff *skb, struct neighbour *neigh,
+ 	skb_dst_set(buff, dst);
+ 	idev = in6_dev_get(dst->dev);
+ 	IP6_UPD_PO_STATS(net, idev, IPSTATS_MIB_OUT, skb->len);
+-	err = NF_HOOK(PF_INET6, NF_INET_LOCAL_OUT, buff, NULL, dst->dev,
++	err = NF_HOOK(NFPROTO_IPV6, NF_INET_LOCAL_OUT, buff, NULL, dst->dev,
+ 		      dst_output);
+ 	if (!err) {
+ 		ICMP6MSGOUT_INC_STATS(net, idev, NDISC_REDIRECT);
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index f1171b7..8f80e24 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -643,7 +643,7 @@ void nf_ct_frag6_output(unsigned int hooknum, struct sk_buff *skb,
+ 		s2 = s->next;
+ 		s->next = NULL;
+ 
+-		NF_HOOK_THRESH(PF_INET6, hooknum, s, in, out, okfn,
++		NF_HOOK_THRESH(NFPROTO_IPV6, hooknum, s, in, out, okfn,
+ 			       NF_IP6_PRI_CONNTRACK_DEFRAG + 1);
+ 		s = s2;
+ 	}
+diff --git a/net/ipv6/raw.c b/net/ipv6/raw.c
+index ed31c37..e9e1f77 100644
+--- a/net/ipv6/raw.c
++++ b/net/ipv6/raw.c
+@@ -636,8 +636,8 @@ static int rawv6_send_hdrinc(struct sock *sk, void *from, int length,
+ 		goto error_fault;
+ 
+ 	IP6_UPD_PO_STATS(sock_net(sk), rt->rt6i_idev, IPSTATS_MIB_OUT, skb->len);
+-	err = NF_HOOK(PF_INET6, NF_INET_LOCAL_OUT, skb, NULL, rt->u.dst.dev,
+-		      dst_output);
++	err = NF_HOOK(NFPROTO_IPV6, NF_INET_LOCAL_OUT, skb, NULL,
++		      rt->u.dst.dev, dst_output);
+ 	if (err > 0)
+ 		err = net_xmit_errno(err);
+ 	if (err)
+diff --git a/net/ipv6/xfrm6_input.c b/net/ipv6/xfrm6_input.c
+index 2bc98ed..f8c3cf8 100644
+--- a/net/ipv6/xfrm6_input.c
++++ b/net/ipv6/xfrm6_input.c
+@@ -42,7 +42,7 @@ int xfrm6_transport_finish(struct sk_buff *skb, int async)
+ 	ipv6_hdr(skb)->payload_len = htons(skb->len);
+ 	__skb_push(skb, skb->data - skb_network_header(skb));
+ 
+-	NF_HOOK(PF_INET6, NF_INET_PRE_ROUTING, skb, skb->dev, NULL,
++	NF_HOOK(NFPROTO_IPV6, NF_INET_PRE_ROUTING, skb, skb->dev, NULL,
+ 		ip6_rcv_finish);
+ 	return -1;
+ }
+diff --git a/net/ipv6/xfrm6_output.c b/net/ipv6/xfrm6_output.c
+index 0c92112..6434bd5 100644
+--- a/net/ipv6/xfrm6_output.c
++++ b/net/ipv6/xfrm6_output.c
+@@ -90,6 +90,6 @@ static int xfrm6_output_finish(struct sk_buff *skb)
+ 
+ int xfrm6_output(struct sk_buff *skb)
+ {
+-	return NF_HOOK(PF_INET6, NF_INET_POST_ROUTING, skb, NULL, skb_dst(skb)->dev,
+-		       xfrm6_output_finish);
++	return NF_HOOK(NFPROTO_IPV6, NF_INET_POST_ROUTING, skb, NULL,
++		       skb_dst(skb)->dev, xfrm6_output_finish);
+ }
 -- 
 1.7.0.2
 
