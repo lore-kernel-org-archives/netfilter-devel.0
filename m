@@ -1,90 +1,69 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 1/5] netfilter: xtables: make use of caller family rather than target family
-Date: Thu, 25 Mar 2010 13:56:44 +0100
-Message-ID: <1269521809-29393-2-git-send-email-jengelh@medozas.de>
-References: <1269521809-29393-1-git-send-email-jengelh@medozas.de>
+Subject: nf-next: cleanups (rd.3)
+Date: Thu, 25 Mar 2010 13:56:43 +0100
+Message-ID: <1269521809-29393-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:59861 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:59858 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753783Ab0CYM4w (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 25 Mar 2010 08:56:52 -0400
-In-Reply-To: <1269521809-29393-1-git-send-email-jengelh@medozas.de>
+	id S1753338Ab0CYM4v (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 25 Mar 2010 08:56:51 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Supplement to aa5fa3185791aac71c9172d4fda3e8729164b5d1.
-The semantic patch for this change is:
 
-// <smpl>
-@@
-struct xt_target_param *par;
-@@
--par->target->family
-+par->family
+This is a repost of the 5-set you requested.
 
-@@
-struct xt_tgchk_param *par;
-@@
--par->target->family
-+par->family
 
-@@
-struct xt_tgdtor_param *par;
-@@
--par->target->family
-+par->family
-// </smpl>
+The following changes since commit 2c46cd8163b25bf6f38e612e9f1d162f0357c8f1:
+  Zhitong Wang (1):
+        netfilter: remove unused headers in net/ipv4/netfilter/nf_nat_h323.c
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- net/ipv4/netfilter/ipt_CLUSTERIP.c |    6 +++---
- net/netfilter/xt_NFQUEUE.c         |    4 ++--
- 2 files changed, 5 insertions(+), 5 deletions(-)
+are available in the git repository at:
 
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index 0886f96..a20bee7 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -401,9 +401,9 @@ static bool clusterip_tg_check(const struct xt_tgchk_param *par)
- 	}
- 	cipinfo->config = config;
- 
--	if (nf_ct_l3proto_try_module_get(par->target->family) < 0) {
-+	if (nf_ct_l3proto_try_module_get(par->family) < 0) {
- 		printk(KERN_WARNING "can't load conntrack support for "
--				    "proto=%u\n", par->target->family);
-+				    "proto=%u\n", par->family);
- 		return false;
- 	}
- 
-@@ -421,7 +421,7 @@ static void clusterip_tg_destroy(const struct xt_tgdtor_param *par)
- 
- 	clusterip_config_put(cipinfo->config);
- 
--	nf_ct_l3proto_module_put(par->target->family);
-+	nf_ct_l3proto_module_put(par->family);
- }
- 
- #ifdef CONFIG_COMPAT
-diff --git a/net/netfilter/xt_NFQUEUE.c b/net/netfilter/xt_NFQUEUE.c
-index a37e216..7cc0de6 100644
---- a/net/netfilter/xt_NFQUEUE.c
-+++ b/net/netfilter/xt_NFQUEUE.c
-@@ -71,10 +71,10 @@ nfqueue_tg_v1(struct sk_buff *skb, const struct xt_target_param *par)
- 	u32 queue = info->queuenum;
- 
- 	if (info->queues_total > 1) {
--		if (par->target->family == NFPROTO_IPV4)
-+		if (par->family == NFPROTO_IPV4)
- 			queue = hash_v4(skb) % info->queues_total + queue;
- #if defined(CONFIG_IP6_NF_IPTABLES) || defined(CONFIG_IP6_NF_IPTABLES_MODULE)
--		else if (par->target->family == NFPROTO_IPV6)
-+		else if (par->family == NFPROTO_IPV6)
- 			queue = hash_v6(skb) % info->queues_total + queue;
- #endif
- 	}
--- 
-1.7.0.2
+  git://dev.medozas.de/linux master
 
+Jan Engelhardt (5):
+      netfilter: xtables: make use of caller family rather than target family
+      netfilter: xt extensions: use pr_<level> (2)
+      netfilter: xtables: make use of xt_request_find_target
+      netfilter: xtables: consolidate code into xt_request_find_match
+      netfilter: xt_recent: allow changing ip_list_[ug]id at runtime
+
+ include/linux/netfilter/x_tables.h  |    1 +
+ net/bridge/netfilter/ebt_among.c    |   15 ++++-----
+ net/bridge/netfilter/ebt_limit.c    |    3 +-
+ net/bridge/netfilter/ebt_ulog.c     |   26 +++++++++-------
+ net/bridge/netfilter/ebt_vlan.c     |   36 ++++++++--------------
+ net/bridge/netfilter/ebtables.c     |   23 +++-----------
+ net/ipv4/netfilter/arp_tables.c     |   20 +++++-------
+ net/ipv4/netfilter/ip_tables.c      |   56 +++++++++++++++--------------------
+ net/ipv4/netfilter/ipt_CLUSTERIP.c  |   47 +++++++++++++++--------------
+ net/ipv4/netfilter/ipt_ECN.c        |   11 ++----
+ net/ipv4/netfilter/ipt_LOG.c        |    7 ++--
+ net/ipv4/netfilter/ipt_MASQUERADE.c |    8 ++--
+ net/ipv4/netfilter/ipt_NETMAP.c     |    6 ++--
+ net/ipv4/netfilter/ipt_REDIRECT.c   |    6 ++--
+ net/ipv4/netfilter/ipt_REJECT.c     |    6 ++--
+ net/ipv4/netfilter/ipt_ULOG.c       |   40 ++++++++++++-------------
+ net/ipv4/netfilter/ipt_addrtype.c   |   14 ++++----
+ net/ipv4/netfilter/ipt_ecn.c        |    5 +--
+ net/ipv6/netfilter/ip6_tables.c     |   47 ++++++++++++-----------------
+ net/ipv6/netfilter/ip6t_LOG.c       |    7 ++--
+ net/ipv6/netfilter/ip6t_REJECT.c    |   20 ++++++------
+ net/ipv6/netfilter/ip6t_ah.c        |    6 ++--
+ net/ipv6/netfilter/ip6t_frag.c      |    6 ++--
+ net/ipv6/netfilter/ip6t_hbh.c       |    6 ++--
+ net/ipv6/netfilter/ip6t_rt.c        |    6 ++--
+ net/netfilter/x_tables.c            |   15 +++++++--
+ net/netfilter/xt_NFQUEUE.c          |    4 +-
+ net/netfilter/xt_TCPMSS.c           |    7 ++--
+ net/netfilter/xt_TPROXY.c           |    4 +-
+ net/netfilter/xt_esp.c              |    2 +-
+ net/netfilter/xt_iprange.c          |    1 +
+ net/netfilter/xt_recent.c           |   14 ++++----
+ net/netfilter/xt_socket.c           |    5 +--
+ net/netfilter/xt_time.c             |    4 +-
+ net/sched/act_ipt.c                 |    4 +-
+ 35 files changed, 224 insertions(+), 264 deletions(-)
