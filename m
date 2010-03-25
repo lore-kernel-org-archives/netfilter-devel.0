@@ -1,716 +1,745 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 07/12] netfilter: xtables: change xt_match.checkentry return type
-Date: Thu, 25 Mar 2010 17:04:19 +0100
-Message-ID: <1269533065-22318-8-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 11/12] netfilter: xtables: slightly better error reporting
+Date: Thu, 25 Mar 2010 17:04:23 +0100
+Message-ID: <1269533065-22318-12-git-send-email-jengelh@medozas.de>
 References: <1269533065-22318-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:41695 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:41698 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751968Ab0CYQEj (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 25 Mar 2010 12:04:39 -0400
+	id S1751853Ab0CYQEn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 25 Mar 2010 12:04:43 -0400
 In-Reply-To: <1269533065-22318-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Restore function signatures from bool to int so that we can report
-memory allocation failures or similar using -ENOMEM rather than
-always having to pass -EINVAL back.
-
-This semantic patch may not be too precise (checking for functions
-that use xt_mtchk_param rather than functions referenced by
-xt_match.checkentry), but reviewed, it produced the intended result.
-
-// <smpl>
-@@
-type bool;
-identifier check, par;
-@@
--bool check
-+int check
- (struct xt_mtchk_param *par) { ... }
-// </smpl>
+When extended status codes are available, such as ENOMEM on failed
+allocations, or subsequent functions (e.g. nf_ct_get_l3proto), passing
+them up to userspace seems like a good idea compared to just always
+EINVAL.
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/linux/netfilter/x_tables.h   |    2 +-
- net/bridge/netfilter/ebt_802_3.c     |    2 +-
- net/bridge/netfilter/ebt_among.c     |    2 +-
- net/bridge/netfilter/ebt_arp.c       |    2 +-
- net/bridge/netfilter/ebt_ip.c        |    2 +-
- net/bridge/netfilter/ebt_ip6.c       |    2 +-
- net/bridge/netfilter/ebt_limit.c     |    2 +-
- net/bridge/netfilter/ebt_mark_m.c    |    2 +-
- net/bridge/netfilter/ebt_pkttype.c   |    2 +-
- net/bridge/netfilter/ebt_stp.c       |    2 +-
- net/bridge/netfilter/ebt_vlan.c      |    2 +-
- net/ipv4/netfilter/ip_tables.c       |    2 +-
- net/ipv4/netfilter/ipt_addrtype.c    |    2 +-
- net/ipv4/netfilter/ipt_ah.c          |    2 +-
- net/ipv4/netfilter/ipt_ecn.c         |    2 +-
- net/ipv6/netfilter/ip6_tables.c      |    2 +-
- net/ipv6/netfilter/ip6t_ah.c         |    2 +-
- net/ipv6/netfilter/ip6t_frag.c       |    2 +-
- net/ipv6/netfilter/ip6t_hbh.c        |    2 +-
- net/ipv6/netfilter/ip6t_ipv6header.c |    2 +-
- net/ipv6/netfilter/ip6t_mh.c         |    2 +-
- net/ipv6/netfilter/ip6t_rt.c         |    2 +-
- net/netfilter/xt_cluster.c           |    2 +-
- net/netfilter/xt_connbytes.c         |    2 +-
- net/netfilter/xt_connlimit.c         |    2 +-
- net/netfilter/xt_connmark.c          |    2 +-
- net/netfilter/xt_conntrack.c         |    2 +-
- net/netfilter/xt_dccp.c              |    2 +-
- net/netfilter/xt_dscp.c              |    2 +-
- net/netfilter/xt_esp.c               |    2 +-
- net/netfilter/xt_hashlimit.c         |    4 ++--
- net/netfilter/xt_helper.c            |    2 +-
- net/netfilter/xt_limit.c             |    2 +-
- net/netfilter/xt_multiport.c         |    8 ++++----
- net/netfilter/xt_physdev.c           |    2 +-
- net/netfilter/xt_policy.c            |    2 +-
- net/netfilter/xt_quota.c             |    2 +-
- net/netfilter/xt_rateest.c           |    2 +-
- net/netfilter/xt_recent.c            |    2 +-
- net/netfilter/xt_sctp.c              |    2 +-
- net/netfilter/xt_state.c             |    2 +-
- net/netfilter/xt_statistic.c         |    2 +-
- net/netfilter/xt_string.c            |    2 +-
- net/netfilter/xt_tcpudp.c            |    4 ++--
- net/netfilter/xt_time.c              |    2 +-
- 45 files changed, 50 insertions(+), 50 deletions(-)
+ net/ipv4/netfilter/ipt_CLUSTERIP.c |   11 ++++++-----
+ net/netfilter/xt_CONNSECMARK.c     |    8 +++++---
+ net/netfilter/xt_CT.c              |   11 +++++++++--
+ net/netfilter/xt_DSCP.c            |    2 +-
+ net/netfilter/xt_HL.c              |    2 +-
+ net/netfilter/xt_LED.c             |    4 ++--
+ net/netfilter/xt_NFQUEUE.c         |    2 +-
+ net/netfilter/xt_RATEEST.c         |    9 ++++++---
+ net/netfilter/xt_SECMARK.c         |   16 +++++++++-------
+ net/netfilter/xt_cluster.c         |    2 +-
+ net/netfilter/xt_connbytes.c       |    6 ++++--
+ net/netfilter/xt_connlimit.c       |    8 +++++---
+ net/netfilter/xt_connmark.c        |   14 ++++++++++----
+ net/netfilter/xt_conntrack.c       |    7 +++++--
+ net/netfilter/xt_dscp.c            |    2 +-
+ net/netfilter/xt_hashlimit.c       |   32 ++++++++++++++++++++------------
+ net/netfilter/xt_helper.c          |    6 ++++--
+ net/netfilter/xt_limit.c           |    4 ++--
+ net/netfilter/xt_quota.c           |    2 +-
+ net/netfilter/xt_rateest.c         |    2 ++
+ net/netfilter/xt_recent.c          |    5 ++++-
+ net/netfilter/xt_state.c           |    7 +++++--
+ net/netfilter/xt_statistic.c       |    2 +-
+ net/netfilter/xt_string.c          |    2 +-
+ net/netfilter/xt_time.c            |    2 +-
+ 25 files changed, 107 insertions(+), 61 deletions(-)
 
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index dd9d15a..33c1a62 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -303,7 +303,7 @@ struct xt_match {
- 		      const struct xt_match_param *);
- 
- 	/* Called when user tries to insert an entry of this type. */
--	bool (*checkentry)(const struct xt_mtchk_param *);
-+	int (*checkentry)(const struct xt_mtchk_param *);
- 
- 	/* Called when entry of this type deleted. */
- 	void (*destroy)(const struct xt_mtdtor_param *);
-diff --git a/net/bridge/netfilter/ebt_802_3.c b/net/bridge/netfilter/ebt_802_3.c
-index 5d11767..7b6f4c4 100644
---- a/net/bridge/netfilter/ebt_802_3.c
-+++ b/net/bridge/netfilter/ebt_802_3.c
-@@ -36,7 +36,7 @@ ebt_802_3_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	return true;
- }
- 
--static bool ebt_802_3_mt_check(const struct xt_mtchk_param *par)
-+static int ebt_802_3_mt_check(const struct xt_mtchk_param *par)
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+index 1302de2..1faf5fa 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -351,8 +351,8 @@ static int clusterip_tg_check(const struct xt_tgchk_param *par)
  {
- 	const struct ebt_802_3_info *info = par->matchinfo;
+ 	struct ipt_clusterip_tgt_info *cipinfo = par->targinfo;
+ 	const struct ipt_entry *e = par->entryinfo;
+-
+ 	struct clusterip_config *config;
++	int ret;
  
-diff --git a/net/bridge/netfilter/ebt_among.c b/net/bridge/netfilter/ebt_among.c
-index 60ad630..8a75d39 100644
---- a/net/bridge/netfilter/ebt_among.c
-+++ b/net/bridge/netfilter/ebt_among.c
-@@ -172,7 +172,7 @@ ebt_among_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	return true;
- }
+ 	if (cipinfo->hash_mode != CLUSTERIP_HASHMODE_SIP &&
+ 	    cipinfo->hash_mode != CLUSTERIP_HASHMODE_SIP_SPT &&
+@@ -387,7 +387,7 @@ static int clusterip_tg_check(const struct xt_tgchk_param *par)
+ 			if (!dev) {
+ 				pr_info("no such interface %s\n",
+ 					e->ip.iniface);
+-				return -EINVAL;
++				return -ENOENT;
+ 			}
  
--static bool ebt_among_mt_check(const struct xt_mtchk_param *par)
-+static int ebt_among_mt_check(const struct xt_mtchk_param *par)
- {
- 	const struct ebt_among_info *info = par->matchinfo;
- 	const struct ebt_entry_match *em =
-diff --git a/net/bridge/netfilter/ebt_arp.c b/net/bridge/netfilter/ebt_arp.c
-index e727697..fc62055 100644
---- a/net/bridge/netfilter/ebt_arp.c
-+++ b/net/bridge/netfilter/ebt_arp.c
-@@ -100,7 +100,7 @@ ebt_arp_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	return true;
- }
- 
--static bool ebt_arp_mt_check(const struct xt_mtchk_param *par)
-+static int ebt_arp_mt_check(const struct xt_mtchk_param *par)
- {
- 	const struct ebt_arp_info *info = par->matchinfo;
- 	const struct ebt_entry *e = par->entryinfo;
-diff --git a/net/bridge/netfilter/ebt_ip.c b/net/bridge/netfilter/ebt_ip.c
-index 5de6df6..d1a555d 100644
---- a/net/bridge/netfilter/ebt_ip.c
-+++ b/net/bridge/netfilter/ebt_ip.c
-@@ -77,7 +77,7 @@ ebt_ip_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	return true;
- }
- 
--static bool ebt_ip_mt_check(const struct xt_mtchk_param *par)
-+static int ebt_ip_mt_check(const struct xt_mtchk_param *par)
- {
- 	const struct ebt_ip_info *info = par->matchinfo;
- 	const struct ebt_entry *e = par->entryinfo;
-diff --git a/net/bridge/netfilter/ebt_ip6.c b/net/bridge/netfilter/ebt_ip6.c
-index 63e3888..fa4ecf5 100644
---- a/net/bridge/netfilter/ebt_ip6.c
-+++ b/net/bridge/netfilter/ebt_ip6.c
-@@ -80,7 +80,7 @@ ebt_ip6_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	return true;
- }
- 
--static bool ebt_ip6_mt_check(const struct xt_mtchk_param *par)
-+static int ebt_ip6_mt_check(const struct xt_mtchk_param *par)
- {
- 	const struct ebt_entry *e = par->entryinfo;
- 	struct ebt_ip6_info *info = par->matchinfo;
-diff --git a/net/bridge/netfilter/ebt_limit.c b/net/bridge/netfilter/ebt_limit.c
-index 5b7330b..abfb0ec 100644
---- a/net/bridge/netfilter/ebt_limit.c
-+++ b/net/bridge/netfilter/ebt_limit.c
-@@ -65,7 +65,7 @@ user2credits(u_int32_t user)
- 	return (user * HZ * CREDITS_PER_JIFFY) / EBT_LIMIT_SCALE;
- }
- 
--static bool ebt_limit_mt_check(const struct xt_mtchk_param *par)
-+static int ebt_limit_mt_check(const struct xt_mtchk_param *par)
- {
- 	struct ebt_limit_info *info = par->matchinfo;
- 
-diff --git a/net/bridge/netfilter/ebt_mark_m.c b/net/bridge/netfilter/ebt_mark_m.c
-index 8de8c39..1e5b0b3 100644
---- a/net/bridge/netfilter/ebt_mark_m.c
-+++ b/net/bridge/netfilter/ebt_mark_m.c
-@@ -22,7 +22,7 @@ ebt_mark_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	return ((skb->mark & info->mask) == info->mark) ^ info->invert;
- }
- 
--static bool ebt_mark_mt_check(const struct xt_mtchk_param *par)
-+static int ebt_mark_mt_check(const struct xt_mtchk_param *par)
- {
- 	const struct ebt_mark_m_info *info = par->matchinfo;
- 
-diff --git a/net/bridge/netfilter/ebt_pkttype.c b/net/bridge/netfilter/ebt_pkttype.c
-index e2a07e6..9b3c645 100644
---- a/net/bridge/netfilter/ebt_pkttype.c
-+++ b/net/bridge/netfilter/ebt_pkttype.c
-@@ -20,7 +20,7 @@ ebt_pkttype_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	return (skb->pkt_type == info->pkt_type) ^ info->invert;
- }
- 
--static bool ebt_pkttype_mt_check(const struct xt_mtchk_param *par)
-+static int ebt_pkttype_mt_check(const struct xt_mtchk_param *par)
- {
- 	const struct ebt_pkttype_info *info = par->matchinfo;
- 
-diff --git a/net/bridge/netfilter/ebt_stp.c b/net/bridge/netfilter/ebt_stp.c
-index 92a93d3..521186f 100644
---- a/net/bridge/netfilter/ebt_stp.c
-+++ b/net/bridge/netfilter/ebt_stp.c
-@@ -153,7 +153,7 @@ ebt_stp_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	return true;
- }
- 
--static bool ebt_stp_mt_check(const struct xt_mtchk_param *par)
-+static int ebt_stp_mt_check(const struct xt_mtchk_param *par)
- {
- 	const struct ebt_stp_info *info = par->matchinfo;
- 	const uint8_t bridge_ula[6] = {0x01, 0x80, 0xc2, 0x00, 0x00, 0x00};
-diff --git a/net/bridge/netfilter/ebt_vlan.c b/net/bridge/netfilter/ebt_vlan.c
-index 5c44f51..04a9575 100644
---- a/net/bridge/netfilter/ebt_vlan.c
-+++ b/net/bridge/netfilter/ebt_vlan.c
-@@ -79,7 +79,7 @@ ebt_vlan_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	return true;
- }
- 
--static bool ebt_vlan_mt_check(const struct xt_mtchk_param *par)
-+static int ebt_vlan_mt_check(const struct xt_mtchk_param *par)
- {
- 	struct ebt_vlan_info *info = par->matchinfo;
- 	const struct ebt_entry *e = par->entryinfo;
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 09f6567..771ffa7 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -2176,7 +2176,7 @@ icmp_match(const struct sk_buff *skb, const struct xt_match_param *par)
- 				    !!(icmpinfo->invflags&IPT_ICMP_INV));
- }
- 
--static bool icmp_checkentry(const struct xt_mtchk_param *par)
-+static int icmp_checkentry(const struct xt_mtchk_param *par)
- {
- 	const struct ipt_icmp *icmpinfo = par->matchinfo;
- 
-diff --git a/net/ipv4/netfilter/ipt_addrtype.c b/net/ipv4/netfilter/ipt_addrtype.c
-index ea4f58a..81197f4 100644
---- a/net/ipv4/netfilter/ipt_addrtype.c
-+++ b/net/ipv4/netfilter/ipt_addrtype.c
-@@ -70,7 +70,7 @@ addrtype_mt_v1(const struct sk_buff *skb, const struct xt_match_param *par)
- 	return ret;
- }
- 
--static bool addrtype_mt_checkentry_v1(const struct xt_mtchk_param *par)
-+static int addrtype_mt_checkentry_v1(const struct xt_mtchk_param *par)
- {
- 	struct ipt_addrtype_info_v1 *info = par->matchinfo;
- 
-diff --git a/net/ipv4/netfilter/ipt_ah.c b/net/ipv4/netfilter/ipt_ah.c
-index 4f27e17..667ded1 100644
---- a/net/ipv4/netfilter/ipt_ah.c
-+++ b/net/ipv4/netfilter/ipt_ah.c
-@@ -55,7 +55,7 @@ static bool ah_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 			 !!(ahinfo->invflags & IPT_AH_INV_SPI));
- }
- 
--static bool ah_mt_check(const struct xt_mtchk_param *par)
-+static int ah_mt_check(const struct xt_mtchk_param *par)
- {
- 	const struct ipt_ah *ahinfo = par->matchinfo;
- 
-diff --git a/net/ipv4/netfilter/ipt_ecn.c b/net/ipv4/netfilter/ipt_ecn.c
-index e661108..d1e234f 100644
---- a/net/ipv4/netfilter/ipt_ecn.c
-+++ b/net/ipv4/netfilter/ipt_ecn.c
-@@ -85,7 +85,7 @@ static bool ecn_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	return true;
- }
- 
--static bool ecn_mt_check(const struct xt_mtchk_param *par)
-+static int ecn_mt_check(const struct xt_mtchk_param *par)
- {
- 	const struct ipt_ecn_info *info = par->matchinfo;
- 	const struct ipt_ip *ip = par->entryinfo;
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 41e2429..595b45d 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -2209,7 +2209,7 @@ icmp6_match(const struct sk_buff *skb, const struct xt_match_param *par)
- }
- 
- /* Called when user tries to insert an entry of this type. */
--static bool icmp6_checkentry(const struct xt_mtchk_param *par)
-+static int icmp6_checkentry(const struct xt_mtchk_param *par)
- {
- 	const struct ip6t_icmp *icmpinfo = par->matchinfo;
- 
-diff --git a/net/ipv6/netfilter/ip6t_ah.c b/net/ipv6/netfilter/ip6t_ah.c
-index 4429bfd..3d57044 100644
---- a/net/ipv6/netfilter/ip6t_ah.c
-+++ b/net/ipv6/netfilter/ip6t_ah.c
-@@ -87,7 +87,7 @@ static bool ah_mt6(const struct sk_buff *skb, const struct xt_match_param *par)
- 		!(ahinfo->hdrres && ah->reserved);
- }
- 
--static bool ah_mt6_check(const struct xt_mtchk_param *par)
-+static int ah_mt6_check(const struct xt_mtchk_param *par)
- {
- 	const struct ip6t_ah *ahinfo = par->matchinfo;
- 
-diff --git a/net/ipv6/netfilter/ip6t_frag.c b/net/ipv6/netfilter/ip6t_frag.c
-index 5c0da91..c2dba27 100644
---- a/net/ipv6/netfilter/ip6t_frag.c
-+++ b/net/ipv6/netfilter/ip6t_frag.c
-@@ -102,7 +102,7 @@ frag_mt6(const struct sk_buff *skb, const struct xt_match_param *par)
- 		  (ntohs(fh->frag_off) & IP6_MF));
- }
- 
--static bool frag_mt6_check(const struct xt_mtchk_param *par)
-+static int frag_mt6_check(const struct xt_mtchk_param *par)
- {
- 	const struct ip6t_frag *fraginfo = par->matchinfo;
- 
-diff --git a/net/ipv6/netfilter/ip6t_hbh.c b/net/ipv6/netfilter/ip6t_hbh.c
-index f4b7388..1b29431 100644
---- a/net/ipv6/netfilter/ip6t_hbh.c
-+++ b/net/ipv6/netfilter/ip6t_hbh.c
-@@ -164,7 +164,7 @@ hbh_mt6(const struct sk_buff *skb, const struct xt_match_param *par)
- 	return false;
- }
- 
--static bool hbh_mt6_check(const struct xt_mtchk_param *par)
-+static int hbh_mt6_check(const struct xt_mtchk_param *par)
- {
- 	const struct ip6t_opts *optsinfo = par->matchinfo;
- 
-diff --git a/net/ipv6/netfilter/ip6t_ipv6header.c b/net/ipv6/netfilter/ip6t_ipv6header.c
-index 91490ad..90e1e04 100644
---- a/net/ipv6/netfilter/ip6t_ipv6header.c
-+++ b/net/ipv6/netfilter/ip6t_ipv6header.c
-@@ -118,7 +118,7 @@ ipv6header_mt6(const struct sk_buff *skb, const struct xt_match_param *par)
+ 			config = clusterip_config_init(cipinfo,
+@@ -395,17 +395,18 @@ static int clusterip_tg_check(const struct xt_tgchk_param *par)
+ 			if (!config) {
+ 				pr_info("cannot allocate config\n");
+ 				dev_put(dev);
+-				return -EINVAL;
++				return -ENOMEM;
+ 			}
+ 			dev_mc_add(config->dev,config->clustermac, ETH_ALEN, 0);
+ 		}
  	}
+ 	cipinfo->config = config;
+ 
+-	if (nf_ct_l3proto_try_module_get(par->family) < 0) {
++	ret = nf_ct_l3proto_try_module_get(par->family);
++	if (ret < 0) {
+ 		pr_info("cannot load conntrack support for proto=%u\n",
+ 			par->family);
+-		return -EINVAL;
++		return ret;
+ 	}
+ 
+ 	return 0;
+diff --git a/net/netfilter/xt_CONNSECMARK.c b/net/netfilter/xt_CONNSECMARK.c
+index 2287a82..105a62e 100644
+--- a/net/netfilter/xt_CONNSECMARK.c
++++ b/net/netfilter/xt_CONNSECMARK.c
+@@ -87,6 +87,7 @@ connsecmark_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ static int connsecmark_tg_check(const struct xt_tgchk_param *par)
+ {
+ 	const struct xt_connsecmark_target_info *info = par->targinfo;
++	int ret;
+ 
+ 	if (strcmp(par->table, "mangle") != 0 &&
+ 	    strcmp(par->table, "security") != 0) {
+@@ -102,13 +103,14 @@ static int connsecmark_tg_check(const struct xt_tgchk_param *par)
+ 
+ 	default:
+ 		pr_info("invalid mode: %hu\n", info->mode);
+-		return false;
++		return -EINVAL;
+ 	}
+ 
+-	if (nf_ct_l3proto_try_module_get(par->family) < 0) {
++	ret = nf_ct_l3proto_try_module_get(par->family);
++	if (ret < 0) {
+ 		pr_info("cannot load conntrack support for proto=%u\n",
+ 			par->family);
+-		return -EINVAL;
++		return ret;
+ 	}
+ 	return 0;
+ }
+diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
+index ee566e2..65dd348 100644
+--- a/net/netfilter/xt_CT.c
++++ b/net/netfilter/xt_CT.c
+@@ -59,6 +59,7 @@ static int xt_ct_tg_check(const struct xt_tgchk_param *par)
+ 	struct nf_conntrack_tuple t;
+ 	struct nf_conn_help *help;
+ 	struct nf_conn *ct;
++	int ret = 0;
+ 	u8 proto;
+ 
+ 	if (info->flags & ~XT_CT_NOTRACK)
+@@ -75,28 +76,34 @@ static int xt_ct_tg_check(const struct xt_tgchk_param *par)
+ 		goto err1;
+ #endif
+ 
+-	if (nf_ct_l3proto_try_module_get(par->family) < 0)
++	ret = nf_ct_l3proto_try_module_get(par->family);
++	if (ret < 0)
+ 		goto err1;
+ 
+ 	memset(&t, 0, sizeof(t));
+ 	ct = nf_conntrack_alloc(par->net, info->zone, &t, &t, GFP_KERNEL);
++	ret = PTR_ERR(ct);
+ 	if (IS_ERR(ct))
+ 		goto err2;
+ 
++	ret = 0;
+ 	if ((info->ct_events || info->exp_events) &&
+ 	    !nf_ct_ecache_ext_add(ct, info->ct_events, info->exp_events,
+ 				  GFP_KERNEL))
+ 		goto err3;
+ 
+ 	if (info->helper[0]) {
++		ret = -ENOENT;
+ 		proto = xt_ct_find_proto(par);
+ 		if (!proto)
+ 			goto err3;
+ 
++		ret = -ENOMEM;
+ 		help = nf_ct_helper_ext_add(ct, GFP_KERNEL);
+ 		if (help == NULL)
+ 			goto err3;
+ 
++		ret = -ENOENT;
+ 		help->helper = nf_conntrack_helper_try_module_get(info->helper,
+ 								  par->family,
+ 								  proto);
+@@ -115,7 +122,7 @@ err3:
+ err2:
+ 	nf_ct_l3proto_module_put(par->family);
+ err1:
+-	return -EINVAL;
++	return ret;
  }
  
--static bool ipv6header_mt6_check(const struct xt_mtchk_param *par)
-+static int ipv6header_mt6_check(const struct xt_mtchk_param *par)
- {
- 	const struct ip6t_ipv6header_info *info = par->matchinfo;
+ static void xt_ct_tg_destroy(const struct xt_tgdtor_param *par)
+diff --git a/net/netfilter/xt_DSCP.c b/net/netfilter/xt_DSCP.c
+index aa263b8..969634f 100644
+--- a/net/netfilter/xt_DSCP.c
++++ b/net/netfilter/xt_DSCP.c
+@@ -66,7 +66,7 @@ static int dscp_tg_check(const struct xt_tgchk_param *par)
  
-diff --git a/net/ipv6/netfilter/ip6t_mh.c b/net/ipv6/netfilter/ip6t_mh.c
-index 0181eb8..d940804 100644
---- a/net/ipv6/netfilter/ip6t_mh.c
-+++ b/net/ipv6/netfilter/ip6t_mh.c
-@@ -62,7 +62,7 @@ static bool mh_mt6(const struct sk_buff *skb, const struct xt_match_param *par)
- 			  !!(mhinfo->invflags & IP6T_MH_INV_TYPE));
+ 	if (info->dscp > XT_DSCP_MAX) {
+ 		pr_info("dscp %x out of range\n", info->dscp);
+-		return -EINVAL;
++		return -EDOM;
+ 	}
+ 	return 0;
+ }
+diff --git a/net/netfilter/xt_HL.c b/net/netfilter/xt_HL.c
+index 7a47383..77b99f7 100644
+--- a/net/netfilter/xt_HL.c
++++ b/net/netfilter/xt_HL.c
+@@ -107,7 +107,7 @@ static int ttl_tg_check(const struct xt_tgchk_param *par)
+ 
+ 	if (info->mode > IPT_TTL_MAXMODE) {
+ 		pr_info("TTL: invalid or unknown mode %u\n", info->mode);
+-		return false;
++		return -EINVAL;
+ 	}
+ 	if (info->mode != IPT_TTL_SET && info->ttl == 0)
+ 		return -EINVAL;
+diff --git a/net/netfilter/xt_LED.c b/net/netfilter/xt_LED.c
+index 22b5b70..efcf56d 100644
+--- a/net/netfilter/xt_LED.c
++++ b/net/netfilter/xt_LED.c
+@@ -93,7 +93,7 @@ static int led_tg_check(const struct xt_tgchk_param *par)
+ 
+ 	ledinternal = kzalloc(sizeof(struct xt_led_info_internal), GFP_KERNEL);
+ 	if (!ledinternal)
+-		return -EINVAL;
++		return -ENOMEM;
+ 
+ 	ledinternal->netfilter_led_trigger.name = ledinfo->id;
+ 
+@@ -115,7 +115,7 @@ static int led_tg_check(const struct xt_tgchk_param *par)
+ 
+ exit_alloc:
+ 	kfree(ledinternal);
+-	return -EINVAL;
++	return err;
  }
  
--static bool mh_mt6_check(const struct xt_mtchk_param *par)
-+static int mh_mt6_check(const struct xt_mtchk_param *par)
- {
- 	const struct ip6t_mh *mhinfo = par->matchinfo;
+ static void led_tg_destroy(const struct xt_tgdtor_param *par)
+diff --git a/net/netfilter/xt_NFQUEUE.c b/net/netfilter/xt_NFQUEUE.c
+index add1789..f9217cb 100644
+--- a/net/netfilter/xt_NFQUEUE.c
++++ b/net/netfilter/xt_NFQUEUE.c
+@@ -98,7 +98,7 @@ static int nfqueue_tg_v1_check(const struct xt_tgchk_param *par)
+ 	if (maxid > 0xffff) {
+ 		pr_err("NFQUEUE: number of queues (%u) out of range (got %u)\n",
+ 		       info->queues_total, maxid);
+-		return -EINVAL;
++		return -ERANGE;
+ 	}
+ 	return 0;
+ }
+diff --git a/net/netfilter/xt_RATEEST.c b/net/netfilter/xt_RATEEST.c
+index 7af5fba..40751c6 100644
+--- a/net/netfilter/xt_RATEEST.c
++++ b/net/netfilter/xt_RATEEST.c
+@@ -93,6 +93,7 @@ static int xt_rateest_tg_checkentry(const struct xt_tgchk_param *par)
+ 		struct nlattr		opt;
+ 		struct gnet_estimator	est;
+ 	} cfg;
++	int ret;
  
-diff --git a/net/ipv6/netfilter/ip6t_rt.c b/net/ipv6/netfilter/ip6t_rt.c
-index c58d653..76397f3 100644
---- a/net/ipv6/netfilter/ip6t_rt.c
-+++ b/net/ipv6/netfilter/ip6t_rt.c
-@@ -183,7 +183,7 @@ static bool rt_mt6(const struct sk_buff *skb, const struct xt_match_param *par)
- 	return false;
+ 	if (unlikely(!rnd_inited)) {
+ 		get_random_bytes(&jhash_rnd, sizeof(jhash_rnd));
+@@ -115,6 +116,7 @@ static int xt_rateest_tg_checkentry(const struct xt_tgchk_param *par)
+ 		return 0;
+ 	}
+ 
++	ret = -ENOMEM;
+ 	est = kzalloc(sizeof(*est), GFP_KERNEL);
+ 	if (!est)
+ 		goto err1;
+@@ -130,8 +132,9 @@ static int xt_rateest_tg_checkentry(const struct xt_tgchk_param *par)
+ 	cfg.est.interval	= info->interval;
+ 	cfg.est.ewma_log	= info->ewma_log;
+ 
+-	if (gen_new_estimator(&est->bstats, &est->rstats, &est->lock,
+-			      &cfg.opt) < 0)
++	ret = gen_new_estimator(&est->bstats, &est->rstats,
++				&est->lock, &cfg.opt);
++	if (ret < 0)
+ 		goto err2;
+ 
+ 	info->est = est;
+@@ -141,7 +144,7 @@ static int xt_rateest_tg_checkentry(const struct xt_tgchk_param *par)
+ err2:
+ 	kfree(est);
+ err1:
+-	return -EINVAL;
++	return ret;
  }
  
--static bool rt_mt6_check(const struct xt_mtchk_param *par)
-+static int rt_mt6_check(const struct xt_mtchk_param *par)
- {
- 	const struct ip6t_rt *rtinfo = par->matchinfo;
+ static void xt_rateest_tg_destroy(const struct xt_tgdtor_param *par)
+diff --git a/net/netfilter/xt_SECMARK.c b/net/netfilter/xt_SECMARK.c
+index 39098fc..a91d4a7 100644
+--- a/net/netfilter/xt_SECMARK.c
++++ b/net/netfilter/xt_SECMARK.c
+@@ -50,7 +50,7 @@ secmark_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ 	return XT_CONTINUE;
+ }
  
+-static bool checkentry_selinux(struct xt_secmark_target_info *info)
++static int checkentry_selinux(struct xt_secmark_target_info *info)
+ {
+ 	int err;
+ 	struct xt_secmark_target_selinux_info *sel = &info->u.sel;
+@@ -62,27 +62,28 @@ static bool checkentry_selinux(struct xt_secmark_target_info *info)
+ 		if (err == -EINVAL)
+ 			pr_info("invalid SELinux context \'%s\'\n",
+ 				sel->selctx);
+-		return false;
++		return err;
+ 	}
+ 
+ 	if (!sel->selsid) {
+ 		pr_info("unable to map SELinux context \'%s\'\n", sel->selctx);
+-		return false;
++		return -ENOENT;
+ 	}
+ 
+ 	err = selinux_secmark_relabel_packet_permission(sel->selsid);
+ 	if (err) {
+ 		pr_info("unable to obtain relabeling permission\n");
+-		return false;
++		return err;
+ 	}
+ 
+ 	selinux_secmark_refcount_inc();
+-	return true;
++	return 0;
+ }
+ 
+ static int secmark_tg_check(const struct xt_tgchk_param *par)
+ {
+ 	struct xt_secmark_target_info *info = par->targinfo;
++	int err;
+ 
+ 	if (strcmp(par->table, "mangle") != 0 &&
+ 	    strcmp(par->table, "security") != 0) {
+@@ -99,8 +100,9 @@ static int secmark_tg_check(const struct xt_tgchk_param *par)
+ 
+ 	switch (info->mode) {
+ 	case SECMARK_MODE_SEL:
+-		if (!checkentry_selinux(info))
+-			return -EINVAL;
++		err = checkentry_selinux(info);
++		if (err <= 0)
++			return err;
+ 		break;
+ 
+ 	default:
 diff --git a/net/netfilter/xt_cluster.c b/net/netfilter/xt_cluster.c
-index 4c273e8..1f2c35e 100644
+index 30cb776..6c941e1 100644
 --- a/net/netfilter/xt_cluster.c
 +++ b/net/netfilter/xt_cluster.c
-@@ -132,7 +132,7 @@ xt_cluster_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	       !!(info->flags & XT_CLUSTER_F_INV);
+@@ -145,7 +145,7 @@ static int xt_cluster_mt_checkentry(const struct xt_mtchk_param *par)
+ 	if (info->node_mask >= (1ULL << info->total_nodes)) {
+ 		pr_info("this node mask cannot be "
+ 			"higher than the total number of nodes\n");
+-		return -EINVAL;
++		return -EDOM;
+ 	}
+ 	return 0;
  }
- 
--static bool xt_cluster_mt_checkentry(const struct xt_mtchk_param *par)
-+static int xt_cluster_mt_checkentry(const struct xt_mtchk_param *par)
- {
- 	struct xt_cluster_match_info *info = par->matchinfo;
- 
 diff --git a/net/netfilter/xt_connbytes.c b/net/netfilter/xt_connbytes.c
-index edb7bbd..136ef4c 100644
+index bf8e286..2ff332e 100644
 --- a/net/netfilter/xt_connbytes.c
 +++ b/net/netfilter/xt_connbytes.c
-@@ -93,7 +93,7 @@ connbytes_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 		return what >= sinfo->count.from;
- }
- 
--static bool connbytes_mt_check(const struct xt_mtchk_param *par)
-+static int connbytes_mt_check(const struct xt_mtchk_param *par)
+@@ -96,6 +96,7 @@ connbytes_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+ static int connbytes_mt_check(const struct xt_mtchk_param *par)
  {
  	const struct xt_connbytes_info *sinfo = par->matchinfo;
++	int ret;
  
+ 	if (sinfo->what != XT_CONNBYTES_PKTS &&
+ 	    sinfo->what != XT_CONNBYTES_BYTES &&
+@@ -107,10 +108,11 @@ static int connbytes_mt_check(const struct xt_mtchk_param *par)
+ 	    sinfo->direction != XT_CONNBYTES_DIR_BOTH)
+ 		return -EINVAL;
+ 
+-	if (nf_ct_l3proto_try_module_get(par->family) < 0) {
++	ret = nf_ct_l3proto_try_module_get(par->family);
++	if (ret < 0) {
+ 		pr_info("cannot load conntrack support for proto=%u\n",
+ 			par->family);
+-		return -EINVAL;
++		return ret;
+ 	}
+ 
+ 	return 0;
 diff --git a/net/netfilter/xt_connlimit.c b/net/netfilter/xt_connlimit.c
-index d5b26da..a9fec38 100644
+index 68e89f0..370088e 100644
 --- a/net/netfilter/xt_connlimit.c
 +++ b/net/netfilter/xt_connlimit.c
-@@ -216,7 +216,7 @@ connlimit_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	return false;
- }
- 
--static bool connlimit_mt_check(const struct xt_mtchk_param *par)
-+static int connlimit_mt_check(const struct xt_mtchk_param *par)
+@@ -220,22 +220,24 @@ static int connlimit_mt_check(const struct xt_mtchk_param *par)
  {
  	struct xt_connlimit_info *info = par->matchinfo;
  	unsigned int i;
++	int ret;
+ 
+ 	if (unlikely(!connlimit_rnd_inited)) {
+ 		get_random_bytes(&connlimit_rnd, sizeof(connlimit_rnd));
+ 		connlimit_rnd_inited = true;
+ 	}
+-	if (nf_ct_l3proto_try_module_get(par->family) < 0) {
++	ret = nf_ct_l3proto_try_module_get(par->family);
++	if (ret < 0) {
+ 		pr_info("cannot load conntrack support for "
+ 			"address family %u\n", par->family);
+-		return -EINVAL;
++		return ret;
+ 	}
+ 
+ 	/* init private data */
+ 	info->data = kmalloc(sizeof(struct xt_connlimit_data), GFP_KERNEL);
+ 	if (info->data == NULL) {
+ 		nf_ct_l3proto_module_put(par->family);
+-		return -EINVAL;
++		return -ENOMEM;
+ 	}
+ 
+ 	spin_lock_init(&info->data->lock);
 diff --git a/net/netfilter/xt_connmark.c b/net/netfilter/xt_connmark.c
-index 7a51ba6..df7eaff 100644
+index e137af5..71e38a1 100644
 --- a/net/netfilter/xt_connmark.c
 +++ b/net/netfilter/xt_connmark.c
-@@ -103,7 +103,7 @@ connmark_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	return ((ct->mark & info->mask) == info->mark) ^ info->invert;
- }
+@@ -76,10 +76,13 @@ connmark_tg(struct sk_buff *skb, const struct xt_target_param *par)
  
--static bool connmark_mt_check(const struct xt_mtchk_param *par)
-+static int connmark_mt_check(const struct xt_mtchk_param *par)
+ static int connmark_tg_check(const struct xt_tgchk_param *par)
  {
- 	if (nf_ct_l3proto_try_module_get(par->family) < 0) {
+-	if (nf_ct_l3proto_try_module_get(par->family) < 0) {
++	int ret;
++
++	ret = nf_ct_l3proto_try_module_get(par->family);
++	if (ret < 0) {
  		pr_info("cannot load conntrack support for proto=%u\n",
+ 			par->family);
+-		return -EINVAL;
++		return ret;
+ 	}
+ 	return 0;
+ }
+@@ -105,10 +108,13 @@ connmark_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+ 
+ static int connmark_mt_check(const struct xt_mtchk_param *par)
+ {
+-	if (nf_ct_l3proto_try_module_get(par->family) < 0) {
++	int ret;
++
++	ret = nf_ct_l3proto_try_module_get(par->family);
++	if (ret < 0) {
+ 		pr_info("cannot load conntrack support for proto=%u\n",
+ 			par->family);
+-		return -EINVAL;
++		return ret;
+ 	}
+ 	return 0;
+ }
 diff --git a/net/netfilter/xt_conntrack.c b/net/netfilter/xt_conntrack.c
-index 387172b..500e033 100644
+index 26e34aa..e0bcf8d 100644
 --- a/net/netfilter/xt_conntrack.c
 +++ b/net/netfilter/xt_conntrack.c
-@@ -206,7 +206,7 @@ conntrack_mt_v2(const struct sk_buff *skb, const struct xt_match_param *par)
- 	return conntrack_mt(skb, par, info->state_mask, info->status_mask);
- }
+@@ -208,10 +208,13 @@ conntrack_mt_v2(const struct sk_buff *skb, const struct xt_match_param *par)
  
--static bool conntrack_mt_check(const struct xt_mtchk_param *par)
-+static int conntrack_mt_check(const struct xt_mtchk_param *par)
+ static int conntrack_mt_check(const struct xt_mtchk_param *par)
  {
- 	if (nf_ct_l3proto_try_module_get(par->family) < 0) {
+-	if (nf_ct_l3proto_try_module_get(par->family) < 0) {
++	int ret;
++
++	ret = nf_ct_l3proto_try_module_get(par->family);
++	if (ret < 0) {
  		pr_info("cannot load conntrack support for proto=%u\n",
-diff --git a/net/netfilter/xt_dccp.c b/net/netfilter/xt_dccp.c
-index 8f6014f..da8c301 100644
---- a/net/netfilter/xt_dccp.c
-+++ b/net/netfilter/xt_dccp.c
-@@ -123,7 +123,7 @@ dccp_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 			   XT_DCCP_OPTION, info->flags, info->invflags);
+ 			par->family);
+-		return -EINVAL;
++		return ret;
+ 	}
+ 	return 0;
  }
- 
--static bool dccp_mt_check(const struct xt_mtchk_param *par)
-+static int dccp_mt_check(const struct xt_mtchk_param *par)
- {
- 	const struct xt_dccp_info *info = par->matchinfo;
- 
 diff --git a/net/netfilter/xt_dscp.c b/net/netfilter/xt_dscp.c
-index 6ecedc1..295da4c 100644
+index f355fb9..9db51fd 100644
 --- a/net/netfilter/xt_dscp.c
 +++ b/net/netfilter/xt_dscp.c
-@@ -42,7 +42,7 @@ dscp_mt6(const struct sk_buff *skb, const struct xt_match_param *par)
- 	return (dscp == info->dscp) ^ !!info->invert;
- }
+@@ -48,7 +48,7 @@ static int dscp_mt_check(const struct xt_mtchk_param *par)
  
--static bool dscp_mt_check(const struct xt_mtchk_param *par)
-+static int dscp_mt_check(const struct xt_mtchk_param *par)
- {
- 	const struct xt_dscp_info *info = par->matchinfo;
+ 	if (info->dscp > XT_DSCP_MAX) {
+ 		pr_info("dscp %x out of range\n", info->dscp);
+-		return -EINVAL;
++		return -EDOM;
+ 	}
  
-diff --git a/net/netfilter/xt_esp.c b/net/netfilter/xt_esp.c
-index 1a446d6..9f5da97 100644
---- a/net/netfilter/xt_esp.c
-+++ b/net/netfilter/xt_esp.c
-@@ -60,7 +60,7 @@ static bool esp_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 			 !!(espinfo->invflags & XT_ESP_INV_SPI));
- }
- 
--static bool esp_mt_check(const struct xt_mtchk_param *par)
-+static int esp_mt_check(const struct xt_mtchk_param *par)
- {
- 	const struct xt_esp *espinfo = par->matchinfo;
- 
+ 	return 0;
 diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
-index 8f3e0c0..d13800c 100644
+index 0c01529..c89fde7 100644
 --- a/net/netfilter/xt_hashlimit.c
 +++ b/net/netfilter/xt_hashlimit.c
-@@ -671,7 +671,7 @@ hashlimit_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	return false;
- }
+@@ -214,7 +214,7 @@ static int htable_create_v0(struct net *net, struct xt_hashlimit_info *minfo, u_
+ 	hinfo = vmalloc(sizeof(struct xt_hashlimit_htable) +
+ 			sizeof(struct list_head) * size);
+ 	if (!hinfo)
+-		return -1;
++		return -ENOMEM;
+ 	minfo->hinfo = hinfo;
  
--static bool hashlimit_mt_check_v0(const struct xt_mtchk_param *par)
-+static int hashlimit_mt_check_v0(const struct xt_mtchk_param *par)
+ 	/* copy match config into hashtable config */
+@@ -250,7 +250,7 @@ static int htable_create_v0(struct net *net, struct xt_hashlimit_info *minfo, u_
+ 		&dl_file_ops, hinfo);
+ 	if (!hinfo->pde) {
+ 		vfree(hinfo);
+-		return -1;
++		return -ENOMEM;
+ 	}
+ 	hinfo->net = net;
+ 
+@@ -285,7 +285,7 @@ static int htable_create(struct net *net, struct xt_hashlimit_mtinfo1 *minfo,
+ 	hinfo = vmalloc(sizeof(struct xt_hashlimit_htable) +
+ 	                sizeof(struct list_head) * size);
+ 	if (hinfo == NULL)
+-		return -1;
++		return -ENOMEM;
+ 	minfo->hinfo = hinfo;
+ 
+ 	/* copy match config into hashtable config */
+@@ -311,7 +311,7 @@ static int htable_create(struct net *net, struct xt_hashlimit_mtinfo1 *minfo,
+ 		&dl_file_ops, hinfo);
+ 	if (hinfo->pde == NULL) {
+ 		vfree(hinfo);
+-		return -1;
++		return -ENOMEM;
+ 	}
+ 	hinfo->net = net;
+ 
+@@ -675,13 +675,14 @@ static int hashlimit_mt_check_v0(const struct xt_mtchk_param *par)
  {
  	struct net *net = par->net;
  	struct xt_hashlimit_info *r = par->matchinfo;
-@@ -707,7 +707,7 @@ static bool hashlimit_mt_check_v0(const struct xt_mtchk_param *par)
- 	return true;
- }
++	int ret;
  
--static bool hashlimit_mt_check(const struct xt_mtchk_param *par)
-+static int hashlimit_mt_check(const struct xt_mtchk_param *par)
+ 	/* Check for overflow. */
+ 	if (r->cfg.burst == 0 ||
+ 	    user2credits(r->cfg.avg * r->cfg.burst) < user2credits(r->cfg.avg)) {
+ 		pr_info("overflow, try lower: %u/%u\n",
+ 			r->cfg.avg, r->cfg.burst);
+-		return -EINVAL;
++		return -ERANGE;
+ 	}
+ 	if (r->cfg.mode == 0 ||
+ 	    r->cfg.mode > (XT_HASHLIMIT_HASH_DPT |
+@@ -698,9 +699,12 @@ static int hashlimit_mt_check_v0(const struct xt_mtchk_param *par)
+ 
+ 	mutex_lock(&hashlimit_mutex);
+ 	r->hinfo = htable_find_get(net, r->name, par->family);
+-	if (!r->hinfo && htable_create_v0(net, r, par->family) != 0) {
+-		mutex_unlock(&hashlimit_mutex);
+-		return -EINVAL;
++	if (r->hinfo == NULL) {
++		ret = htable_create_v0(net, r, par->family);
++		if (ret < 0) {
++			mutex_unlock(&hashlimit_mutex);
++			return ret;
++		}
+ 	}
+ 	mutex_unlock(&hashlimit_mutex);
+ 	return 0;
+@@ -710,6 +714,7 @@ static int hashlimit_mt_check(const struct xt_mtchk_param *par)
  {
  	struct net *net = par->net;
  	struct xt_hashlimit_mtinfo1 *info = par->matchinfo;
++	int ret;
+ 
+ 	/* Check for overflow. */
+ 	if (info->cfg.burst == 0 ||
+@@ -717,7 +722,7 @@ static int hashlimit_mt_check(const struct xt_mtchk_param *par)
+ 	    user2credits(info->cfg.avg)) {
+ 		pr_info("overflow, try lower: %u/%u\n",
+ 			info->cfg.avg, info->cfg.burst);
+-		return -EINVAL;
++		return -ERANGE;
+ 	}
+ 	if (info->cfg.gc_interval == 0 || info->cfg.expire == 0)
+ 		return -EINVAL;
+@@ -733,9 +738,12 @@ static int hashlimit_mt_check(const struct xt_mtchk_param *par)
+ 
+ 	mutex_lock(&hashlimit_mutex);
+ 	info->hinfo = htable_find_get(net, info->name, par->family);
+-	if (!info->hinfo && htable_create(net, info, par->family) != 0) {
+-		mutex_unlock(&hashlimit_mutex);
+-		return -EINVAL;
++	if (info->hinfo == NULL) {
++		ret = htable_create(net, info, par->family);
++		if (ret < 0) {
++			mutex_unlock(&hashlimit_mutex);
++			return ret;
++		}
+ 	}
+ 	mutex_unlock(&hashlimit_mutex);
+ 	return 0;
 diff --git a/net/netfilter/xt_helper.c b/net/netfilter/xt_helper.c
-index 482aff2..6e177b2 100644
+index eb308b3..b8b3e13 100644
 --- a/net/netfilter/xt_helper.c
 +++ b/net/netfilter/xt_helper.c
-@@ -54,7 +54,7 @@ helper_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	return ret;
- }
- 
--static bool helper_mt_check(const struct xt_mtchk_param *par)
-+static int helper_mt_check(const struct xt_mtchk_param *par)
+@@ -57,11 +57,13 @@ helper_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+ static int helper_mt_check(const struct xt_mtchk_param *par)
  {
  	struct xt_helper_info *info = par->matchinfo;
++	int ret;
  
+-	if (nf_ct_l3proto_try_module_get(par->family) < 0) {
++	ret = nf_ct_l3proto_try_module_get(par->family);
++	if (ret < 0) {
+ 		pr_info("cannot load conntrack support for proto=%u\n",
+ 			par->family);
+-		return -EINVAL;
++		return ret;
+ 	}
+ 	info->name[29] = '\0';
+ 	return 0;
 diff --git a/net/netfilter/xt_limit.c b/net/netfilter/xt_limit.c
-index b3dfca6..138a324 100644
+index 5ff0580..e2a284e 100644
 --- a/net/netfilter/xt_limit.c
 +++ b/net/netfilter/xt_limit.c
-@@ -97,7 +97,7 @@ user2credits(u_int32_t user)
- 	return (user * HZ * CREDITS_PER_JIFFY) / XT_LIMIT_SCALE;
- }
+@@ -107,12 +107,12 @@ static int limit_mt_check(const struct xt_mtchk_param *par)
+ 	    || user2credits(r->avg * r->burst) < user2credits(r->avg)) {
+ 		pr_info("Overflow, try lower: %u/%u\n",
+ 			r->avg, r->burst);
+-		return -EINVAL;
++		return -ERANGE;
+ 	}
  
--static bool limit_mt_check(const struct xt_mtchk_param *par)
-+static int limit_mt_check(const struct xt_mtchk_param *par)
- {
- 	struct xt_rateinfo *r = par->matchinfo;
- 	struct xt_limit_priv *priv;
-diff --git a/net/netfilter/xt_multiport.c b/net/netfilter/xt_multiport.c
-index 4fa90c8..b446738 100644
---- a/net/netfilter/xt_multiport.c
-+++ b/net/netfilter/xt_multiport.c
-@@ -152,7 +152,7 @@ check(u_int16_t proto,
- 		&& count <= XT_MULTI_PORTS;
- }
+ 	priv = kmalloc(sizeof(*priv), GFP_KERNEL);
+ 	if (priv == NULL)
+-		return -EINVAL;
++		return -ENOMEM;
  
--static bool multiport_mt_check_v0(const struct xt_mtchk_param *par)
-+static int multiport_mt_check_v0(const struct xt_mtchk_param *par)
- {
- 	const struct ipt_ip *ip = par->entryinfo;
- 	const struct xt_multiport *multiinfo = par->matchinfo;
-@@ -161,7 +161,7 @@ static bool multiport_mt_check_v0(const struct xt_mtchk_param *par)
- 		     multiinfo->count);
- }
- 
--static bool multiport_mt_check(const struct xt_mtchk_param *par)
-+static int multiport_mt_check(const struct xt_mtchk_param *par)
- {
- 	const struct ipt_ip *ip = par->entryinfo;
- 	const struct xt_multiport_v1 *multiinfo = par->matchinfo;
-@@ -170,7 +170,7 @@ static bool multiport_mt_check(const struct xt_mtchk_param *par)
- 		     multiinfo->count);
- }
- 
--static bool multiport_mt6_check_v0(const struct xt_mtchk_param *par)
-+static int multiport_mt6_check_v0(const struct xt_mtchk_param *par)
- {
- 	const struct ip6t_ip6 *ip = par->entryinfo;
- 	const struct xt_multiport *multiinfo = par->matchinfo;
-@@ -179,7 +179,7 @@ static bool multiport_mt6_check_v0(const struct xt_mtchk_param *par)
- 		     multiinfo->count);
- }
- 
--static bool multiport_mt6_check(const struct xt_mtchk_param *par)
-+static int multiport_mt6_check(const struct xt_mtchk_param *par)
- {
- 	const struct ip6t_ip6 *ip = par->entryinfo;
- 	const struct xt_multiport_v1 *multiinfo = par->matchinfo;
-diff --git a/net/netfilter/xt_physdev.c b/net/netfilter/xt_physdev.c
-index 3d42a27..850e412 100644
---- a/net/netfilter/xt_physdev.c
-+++ b/net/netfilter/xt_physdev.c
-@@ -83,7 +83,7 @@ match_outdev:
- 	return (!!ret ^ !(info->invert & XT_PHYSDEV_OP_OUT));
- }
- 
--static bool physdev_mt_check(const struct xt_mtchk_param *par)
-+static int physdev_mt_check(const struct xt_mtchk_param *par)
- {
- 	const struct xt_physdev_info *info = par->matchinfo;
- 
-diff --git a/net/netfilter/xt_policy.c b/net/netfilter/xt_policy.c
-index de3aded..c9965b6 100644
---- a/net/netfilter/xt_policy.c
-+++ b/net/netfilter/xt_policy.c
-@@ -128,7 +128,7 @@ policy_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	return ret;
- }
- 
--static bool policy_mt_check(const struct xt_mtchk_param *par)
-+static int policy_mt_check(const struct xt_mtchk_param *par)
- {
- 	const struct xt_policy_info *info = par->matchinfo;
- 
+ 	/* For SMP, we only want to use one set of state. */
+ 	r->master = priv;
 diff --git a/net/netfilter/xt_quota.c b/net/netfilter/xt_quota.c
-index 390b7d0..2861fac 100644
+index 766e71c..3e5cbd8 100644
 --- a/net/netfilter/xt_quota.c
 +++ b/net/netfilter/xt_quota.c
-@@ -43,7 +43,7 @@ quota_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	return ret;
- }
+@@ -52,7 +52,7 @@ static int quota_mt_check(const struct xt_mtchk_param *par)
  
--static bool quota_mt_check(const struct xt_mtchk_param *par)
-+static int quota_mt_check(const struct xt_mtchk_param *par)
- {
- 	struct xt_quota_info *q = par->matchinfo;
+ 	q->master = kmalloc(sizeof(*q->master), GFP_KERNEL);
+ 	if (q->master == NULL)
+-		return -EINVAL;
++		return -ENOMEM;
  
+ 	q->master->quota = q->quota;
+ 	return 0;
 diff --git a/net/netfilter/xt_rateest.c b/net/netfilter/xt_rateest.c
-index 4fc6a91..3b5e3d6 100644
+index 0b5c612..23805f8 100644
 --- a/net/netfilter/xt_rateest.c
 +++ b/net/netfilter/xt_rateest.c
-@@ -74,7 +74,7 @@ xt_rateest_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	return ret;
- }
- 
--static bool xt_rateest_mt_checkentry(const struct xt_mtchk_param *par)
-+static int xt_rateest_mt_checkentry(const struct xt_mtchk_param *par)
+@@ -78,6 +78,7 @@ static int xt_rateest_mt_checkentry(const struct xt_mtchk_param *par)
  {
  	struct xt_rateest_match_info *info = par->matchinfo;
  	struct xt_rateest *est1, *est2;
++	int ret = false;
+ 
+ 	if (hweight32(info->flags & (XT_RATEEST_MATCH_ABS |
+ 				     XT_RATEEST_MATCH_REL)) != 1)
+@@ -95,6 +96,7 @@ static int xt_rateest_mt_checkentry(const struct xt_mtchk_param *par)
+ 		goto err1;
+ 	}
+ 
++	ret  = -ENOENT;
+ 	est1 = xt_rateest_lookup(info->name1);
+ 	if (!est1)
+ 		goto err1;
 diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
-index 8530944..52042c8 100644
+index 0994ff5..0d9f80b 100644
 --- a/net/netfilter/xt_recent.c
 +++ b/net/netfilter/xt_recent.c
-@@ -305,7 +305,7 @@ out:
- 	return ret;
- }
+@@ -355,8 +355,10 @@ static int recent_mt_check(const struct xt_mtchk_param *par)
  
--static bool recent_mt_check(const struct xt_mtchk_param *par)
-+static int recent_mt_check(const struct xt_mtchk_param *par)
- {
- 	struct recent_net *recent_net = recent_pernet(par->net);
- 	const struct xt_recent_mtinfo *info = par->matchinfo;
-diff --git a/net/netfilter/xt_sctp.c b/net/netfilter/xt_sctp.c
-index 977b182..5037a7a 100644
---- a/net/netfilter/xt_sctp.c
-+++ b/net/netfilter/xt_sctp.c
-@@ -144,7 +144,7 @@ sctp_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 			   XT_SCTP_CHUNK_TYPES, info->flags, info->invflags);
- }
- 
--static bool sctp_mt_check(const struct xt_mtchk_param *par)
-+static int sctp_mt_check(const struct xt_mtchk_param *par)
- {
- 	const struct xt_sctp_info *info = par->matchinfo;
- 
+ 	t = kzalloc(sizeof(*t) + sizeof(t->iphash[0]) * ip_list_hash_size,
+ 		    GFP_KERNEL);
+-	if (t == NULL)
++	if (t == NULL) {
++		ret = -ENOMEM;
+ 		goto out;
++	}
+ 	t->refcnt = 1;
+ 	strcpy(t->name, info->name);
+ 	INIT_LIST_HEAD(&t->lru_list);
+@@ -367,6 +369,7 @@ static int recent_mt_check(const struct xt_mtchk_param *par)
+ 		  &recent_mt_fops, t);
+ 	if (pde == NULL) {
+ 		kfree(t);
++		ret = -ENOMEM;
+ 		goto out;
+ 	}
+ 	pde->uid = ip_list_uid;
 diff --git a/net/netfilter/xt_state.c b/net/netfilter/xt_state.c
-index 94893be..8b15b13 100644
+index 8e8c9df..2b75230 100644
 --- a/net/netfilter/xt_state.c
 +++ b/net/netfilter/xt_state.c
-@@ -37,7 +37,7 @@ state_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	return (sinfo->statemask & statebit);
- }
+@@ -39,10 +39,13 @@ state_mt(const struct sk_buff *skb, const struct xt_match_param *par)
  
--static bool state_mt_check(const struct xt_mtchk_param *par)
-+static int state_mt_check(const struct xt_mtchk_param *par)
+ static int state_mt_check(const struct xt_mtchk_param *par)
  {
- 	if (nf_ct_l3proto_try_module_get(par->family) < 0) {
+-	if (nf_ct_l3proto_try_module_get(par->family) < 0) {
++	int ret;
++
++	ret = nf_ct_l3proto_try_module_get(par->family);
++	if (ret < 0) {
  		pr_info("cannot load conntrack support for proto=%u\n",
+ 			par->family);
+-		return -EINVAL;
++		return ret;
+ 	}
+ 	return 0;
+ }
 diff --git a/net/netfilter/xt_statistic.c b/net/netfilter/xt_statistic.c
-index 51ac1bb..a577ab0 100644
+index 29d76f8..8ed2b29 100644
 --- a/net/netfilter/xt_statistic.c
 +++ b/net/netfilter/xt_statistic.c
-@@ -52,7 +52,7 @@ statistic_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	return ret;
- }
+@@ -62,7 +62,7 @@ static int statistic_mt_check(const struct xt_mtchk_param *par)
  
--static bool statistic_mt_check(const struct xt_mtchk_param *par)
-+static int statistic_mt_check(const struct xt_mtchk_param *par)
- {
- 	struct xt_statistic_info *info = par->matchinfo;
+ 	info->master = kzalloc(sizeof(*info->master), GFP_KERNEL);
+ 	if (info->master == NULL)
+-		return -EINVAL;
++		return -ENOMEM;
+ 	info->master->count = info->u.nth.count;
  
+ 	return 0;
 diff --git a/net/netfilter/xt_string.c b/net/netfilter/xt_string.c
-index b4d7741..7d14121 100644
+index e1f22a7..b0f8292 100644
 --- a/net/netfilter/xt_string.c
 +++ b/net/netfilter/xt_string.c
-@@ -40,7 +40,7 @@ string_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+@@ -63,7 +63,7 @@ static int string_mt_check(const struct xt_mtchk_param *par)
+ 	ts_conf = textsearch_prepare(conf->algo, conf->pattern, conf->patlen,
+ 				     GFP_KERNEL, flags);
+ 	if (IS_ERR(ts_conf))
+-		return -EINVAL;
++		return PTR_ERR(ts_conf);
  
- #define STRING_TEXT_PRIV(m) ((struct xt_string_info *)(m))
- 
--static bool string_mt_check(const struct xt_mtchk_param *par)
-+static int string_mt_check(const struct xt_mtchk_param *par)
- {
- 	struct xt_string_info *conf = par->matchinfo;
- 	struct ts_config *ts_conf;
-diff --git a/net/netfilter/xt_tcpudp.c b/net/netfilter/xt_tcpudp.c
-index b53887f..0072841 100644
---- a/net/netfilter/xt_tcpudp.c
-+++ b/net/netfilter/xt_tcpudp.c
-@@ -120,7 +120,7 @@ static bool tcp_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	return true;
- }
- 
--static bool tcp_mt_check(const struct xt_mtchk_param *par)
-+static int tcp_mt_check(const struct xt_mtchk_param *par)
- {
- 	const struct xt_tcp *tcpinfo = par->matchinfo;
- 
-@@ -155,7 +155,7 @@ static bool udp_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 			      !!(udpinfo->invflags & XT_UDP_INV_DSTPT));
- }
- 
--static bool udp_mt_check(const struct xt_mtchk_param *par)
-+static int udp_mt_check(const struct xt_mtchk_param *par)
- {
- 	const struct xt_udp *udpinfo = par->matchinfo;
- 
+ 	conf->config = ts_conf;
+ 	return 0;
 diff --git a/net/netfilter/xt_time.c b/net/netfilter/xt_time.c
-index 45ed05b..db74f4f 100644
+index 8dde5e5..d8556fd 100644
 --- a/net/netfilter/xt_time.c
 +++ b/net/netfilter/xt_time.c
-@@ -217,7 +217,7 @@ time_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- 	return true;
- }
+@@ -225,7 +225,7 @@ static int time_mt_check(const struct xt_mtchk_param *par)
+ 	    info->daytime_stop > XT_TIME_MAX_DAYTIME) {
+ 		pr_info("invalid argument - start or "
+ 			"stop time greater than 23:59:59\n");
+-		return -EINVAL;
++		return -EDOM;
+ 	}
  
--static bool time_mt_check(const struct xt_mtchk_param *par)
-+static int time_mt_check(const struct xt_mtchk_param *par)
- {
- 	const struct xt_time_info *info = par->matchinfo;
- 
+ 	return 0;
 -- 
 1.7.0.2
 
