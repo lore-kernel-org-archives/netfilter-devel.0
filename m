@@ -1,98 +1,63 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC PATCH net-next 0/7 v2]IPv6:netfilter: defragment
-Date: Thu, 25 Mar 2010 11:25:05 +0100
-Message-ID: <4BAB3A01.1090909@trash.net>
-References: <4B88BE30.80206@cn.fujitsu.com> <4B97D34C.4020509@gmail.com> <4B98B4FC.50904@cn.fujitsu.com> <4B9B9766.3090200@linux-ipv6.org> <4B9E5FEC.9010002@trash.net> <4BA8EC4A.9070802@linux-ipv6.org> <4BA8F75E.2040303@trash.net> <4BA90F72.6010404@linux-ipv6.org> <alpine.DEB.2.00.1003232050540.18241@blackhole.kfki.hu> <4BAAE496.8000701@linux-ipv6.org>
+Subject: Re: [PATCH 4/4] netfilter: xtables: schedule xt_state for removal
+Date: Thu, 25 Mar 2010 11:26:25 +0100
+Message-ID: <4BAB3A51.3060001@trash.net>
+References: <1269377101-13875-1-git-send-email-jengelh@medozas.de> <1269377101-13875-5-git-send-email-jengelh@medozas.de> <4BAA2969.8010106@trash.net> <alpine.LSU.2.01.1003241616120.20299@obet.zrqbmnf.qr> <4BAB359F.6030308@trash.net> <alpine.DEB.2.00.1003251109190.21938@blackhole.kfki.hu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	Shan Wei <shanwei@cn.fujitsu.com>,
-	YOSHIFUJI Hideaki <hideaki.yoshifuji@gmail.com>,
-	David Miller <davem@davemloft.net>,
-	Alexey Dobriyan <adobriyan@gmail.com>,
-	Yasuyuki KOZAKAI <yasuyuki.kozakai@toshiba.co.jp>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+Cc: Jan Engelhardt <jengelh@medozas.de>,
 	netfilter-devel@vger.kernel.org
-To: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:48490 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:48513 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753165Ab0CYKZG (ORCPT
+	with ESMTP id S1753258Ab0CYK0Z (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 25 Mar 2010 06:25:06 -0400
-In-Reply-To: <4BAAE496.8000701@linux-ipv6.org>
+	Thu, 25 Mar 2010 06:26:25 -0400
+In-Reply-To: <alpine.DEB.2.00.1003251109190.21938@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-YOSHIFUJI Hideaki wrote:
-> (2010/03/24 5:10), Jozsef Kadlecsik wrote:
+Jozsef Kadlecsik wrote:
+> On Thu, 25 Mar 2010, Patrick McHardy wrote:
 > 
->> On Wed, 24 Mar 2010, YOSHIFUJI Hideaki wrote:
->>
->>>> In this case without conntrack, IPv6 would send an ICMPv6 message,
->>>> so in my opinion the transparent thing to do would be to still send
->>>> them. Of course only if reassembly is done on an end host.
+>> Jan Engelhardt wrote:
+>>> On Wednesday 2010-03-24 16:02, Patrick McHardy wrote:
+>>>> Jan Engelhardt wrote:
+>>>>> xt_conntrack has been provided since v2.5.32.
+>>>>>   
+>>>> I'm fine with the removal of old revisions, but how are you planning on
+>>>> informing users about removal of this module? Most people don't read
+>>>> feature-removal-schedule, and distributions are unable to help with
+>>>> user written scripts.
+>>> I would suggest to do the same as we did with disallowing DROP in the 
+>>> nat table:
 >>>
->>> Well, no.  conntrack should just forward even uncompleted fragments
->>> to next process (e.g. core ipv6 code), and then the core would send
->>> ICMP error back.  ICMP should be sent by the core ipv6 code according
->>> to decision of itself, not according to netfilter.
+>>>  - a message printed by iptables whenever -m state is used
+>>>
+>>>  - a kernel message whenever whenever a rule with xt_state is created
+>>>
+>>> We did not actually do the kernel side with nat-prohibit-DROP, but I
+>>> regard it as very useful, as the community was very much able to help
+>>> itself if only they got the word - and it turned out that dmesg is
+>>> _the_ place people look in especially when they don't supervise
+>>> iptables output directly, as with, for example, boot splash where
+>>> messages are hidden, or server/router devices that one tends to
+>>> forget about.
+>> Yes, a kernel message sounds fine and less annoying than an
+>> iptables message since we can limit it to print only once.
 >>
->> But what state could be associated by conntrack to the uncompleted
->> fragments but the INVALID state? In consequence, in any sane setup, the
->> uncompleted fragments will be dropped silently by a filter table rule
->> and no ICMP error message will be sent back.
->>
->> Therefore I think iff the destination of the fragments is the host
->> itself, then conntrack should generate an ICMP error message. But that
->> error message must be processed by conntrack to set its state and then
->> the fate of the generated packet can be decided by a rule.
+>> I'm not really convinced of removing state though, I has never
+>> caused any maintenance overhead, it requires a lot less memory
+>> than xt_conntrack and it seems more intuitive to write "-m state"
+>> than "-m conntrack --ctstate" to me.
 > 
-> Well.... no.
-> 
-> First of all. in "sane" setup, people should configure according
-> to their own requirements.  They may or may not want send back
-> icmp packet.  And, even if the core is to send icmp back, the
-> state would be correctly assigned.
-> 
-> We cannot (and should not) do something "cleaver" (excluding
-> packet drops) in conntrack in PRE_ROUTING chain.
-> 
-> One reason is that in PRE_ROUTING context, we can NOT determine
-> if the address we see in the IP header is really the final
-> destination.  The overall situation is the same even if the
-> routing entry corresponding the "current" destination points
-> the node itself, or even if the node is configured as host.
+> I oppose the removal of xt_state, *unless* the userspace "-m state" is 
+> kept working and the conntrack module automatically supports it.
 
-Agreed, that is a problem.
+Yes, that would be acceptable.
 
-> It might seems that we could do something in the "filter"
-> table in LOCAL_IN, FORWARD or LOCAL_OUT (after routing header
-> process).
-> 
-> But well, we unfortunately cannot do this (at least
-> automatically) because even in LOCAL_IN, the final
-> destination has not been decided until we process all
-> of extension headers.
-> 
-> Sending ICMP in netfilter (especially in conntrack) is too
-> patchy, and is not right.  If we do the right thing (and
-> I believe we should do so),  I'd propose to have hooks
-> around handlers inside ip6_input_finish().
-> 
-> ...I remember that I was thinking about this before.
-> 
-> For my conclusion, first option is just to drop
-> uncompleted fragments as we do today.  Second option
-> would be  to forward them to the next process so that
-> core code could send ICMPv6 etc. or, we could have
-> new code to send ICMPV6_TIME_EXCEED in REJECT target.
-> In longer term, I think it is better to introduce
-> per-exthdr hooks.
+> It's such a basic match that it's simply overkill to remove it.
 
-We'd need something that allows to process the incomplete fragments
-long enough so they can actually reach the IPv6 core (people usually
-don't allow incoming fragments when using conntrack).
-
-But for now you've convinced me that this patch is wrong.
+Agreed.
