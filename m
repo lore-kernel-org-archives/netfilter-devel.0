@@ -1,27 +1,44 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 02/12] netfilter: ipv4: use NFPROTO values for NF_HOOK invocation
-Date: Thu, 25 Mar 2010 17:04:14 +0100
-Message-ID: <1269533065-22318-3-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 01/12] netfilter: bridge: use NFPROTO values for NF_HOOK invocation
+Date: Thu, 25 Mar 2010 17:04:13 +0100
+Message-ID: <1269533065-22318-2-git-send-email-jengelh@medozas.de>
 References: <1269533065-22318-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:41680 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:41675 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751514Ab0CYQEd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1750938Ab0CYQEd (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Thu, 25 Mar 2010 12:04:33 -0400
 In-Reply-To: <1269533065-22318-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The semantic patch that was used:
+The first argument to NF_HOOK* is an nfproto since quite some time.
+Commit v2.6.27-2457-gfdc9314 was the first to practically start using
+the new names. Do that now for the remaining NF_HOOK calls.
+
+The semantic patch used was:
 // <smpl>
 @@
 @@
 (NF_HOOK
-|NF_HOOK_COND
-|nf_hook
+|NF_HOOK_THRESH
 )(
+-PF_BRIDGE,
++NFPROTO_BRIDGE,
+ ...)
+
+@@
+@@
+ NF_HOOK(
+-PF_INET6,
++NFPROTO_IPV6,
+ ...)
+
+@@
+@@
+ NF_HOOK(
 -PF_INET,
 +NFPROTO_IPV4,
  ...)
@@ -29,158 +46,173 @@ The semantic patch that was used:
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- net/ipv4/ip_forward.c   |    4 ++--
- net/ipv4/ip_input.c     |    4 ++--
- net/ipv4/ip_output.c    |   18 +++++++++---------
- net/ipv4/ipmr.c         |    2 +-
- net/ipv4/raw.c          |    4 ++--
- net/ipv4/xfrm4_input.c  |    2 +-
- net/ipv4/xfrm4_output.c |    2 +-
- 7 files changed, 18 insertions(+), 18 deletions(-)
+ net/bridge/br_forward.c   |   10 +++++-----
+ net/bridge/br_input.c     |    6 +++---
+ net/bridge/br_multicast.c |    2 +-
+ net/bridge/br_netfilter.c |   15 ++++++++-------
+ net/bridge/br_stp_bpdu.c  |    2 +-
+ 5 files changed, 18 insertions(+), 17 deletions(-)
 
-diff --git a/net/ipv4/ip_forward.c b/net/ipv4/ip_forward.c
-index a2991bc..9f2cd47 100644
---- a/net/ipv4/ip_forward.c
-+++ b/net/ipv4/ip_forward.c
-@@ -111,8 +111,8 @@ int ip_forward(struct sk_buff *skb)
+diff --git a/net/bridge/br_forward.c b/net/bridge/br_forward.c
+index 8dbec83..7ab52d0 100644
+--- a/net/bridge/br_forward.c
++++ b/net/bridge/br_forward.c
+@@ -58,7 +58,7 @@ int br_dev_queue_push_xmit(struct sk_buff *skb)
  
- 	skb->priority = rt_tos2priority(iph->tos);
+ int br_forward_finish(struct sk_buff *skb)
+ {
+-	return NF_HOOK(PF_BRIDGE, NF_BR_POST_ROUTING, skb, NULL, skb->dev,
++	return NF_HOOK(NFPROTO_BRIDGE, NF_BR_POST_ROUTING, skb, NULL, skb->dev,
+ 		       br_dev_queue_push_xmit);
  
--	return NF_HOOK(PF_INET, NF_INET_FORWARD, skb, skb->dev, rt->u.dst.dev,
--		       ip_forward_finish);
-+	return NF_HOOK(NFPROTO_IPV4, NF_INET_FORWARD, skb, skb->dev,
-+		       rt->u.dst.dev, ip_forward_finish);
- 
- sr_failed:
- 	/*
-diff --git a/net/ipv4/ip_input.c b/net/ipv4/ip_input.c
-index c29de98..091b5c7 100644
---- a/net/ipv4/ip_input.c
-+++ b/net/ipv4/ip_input.c
-@@ -265,7 +265,7 @@ int ip_local_deliver(struct sk_buff *skb)
- 			return 0;
- 	}
- 
--	return NF_HOOK(PF_INET, NF_INET_LOCAL_IN, skb, skb->dev, NULL,
-+	return NF_HOOK(NFPROTO_IPV4, NF_INET_LOCAL_IN, skb, skb->dev, NULL,
- 		       ip_local_deliver_finish);
+ }
+@@ -66,8 +66,8 @@ int br_forward_finish(struct sk_buff *skb)
+ static void __br_deliver(const struct net_bridge_port *to, struct sk_buff *skb)
+ {
+ 	skb->dev = to->dev;
+-	NF_HOOK(PF_BRIDGE, NF_BR_LOCAL_OUT, skb, NULL, skb->dev,
+-			br_forward_finish);
++	NF_HOOK(NFPROTO_BRIDGE, NF_BR_LOCAL_OUT, skb, NULL, skb->dev,
++		br_forward_finish);
  }
  
-@@ -443,7 +443,7 @@ int ip_rcv(struct sk_buff *skb, struct net_device *dev, struct packet_type *pt,
- 	/* Must drop socket now because of tproxy. */
- 	skb_orphan(skb);
+ static void __br_forward(const struct net_bridge_port *to, struct sk_buff *skb)
+@@ -83,8 +83,8 @@ static void __br_forward(const struct net_bridge_port *to, struct sk_buff *skb)
+ 	skb->dev = to->dev;
+ 	skb_forward_csum(skb);
  
--	return NF_HOOK(PF_INET, NF_INET_PRE_ROUTING, skb, dev, NULL,
-+	return NF_HOOK(NFPROTO_IPV4, NF_INET_PRE_ROUTING, skb, dev, NULL,
- 		       ip_rcv_finish);
- 
- inhdr_error:
-diff --git a/net/ipv4/ip_output.c b/net/ipv4/ip_output.c
-index 3451799..f09135e 100644
---- a/net/ipv4/ip_output.c
-+++ b/net/ipv4/ip_output.c
-@@ -95,8 +95,8 @@ int __ip_local_out(struct sk_buff *skb)
- 
- 	iph->tot_len = htons(skb->len);
- 	ip_send_check(iph);
--	return nf_hook(PF_INET, NF_INET_LOCAL_OUT, skb, NULL, skb_dst(skb)->dev,
--		       dst_output);
-+	return nf_hook(NFPROTO_IPV4, NF_INET_LOCAL_OUT, skb, NULL,
-+		       skb_dst(skb)->dev, dst_output);
+-	NF_HOOK(PF_BRIDGE, NF_BR_FORWARD, skb, indev, skb->dev,
+-			br_forward_finish);
++	NF_HOOK(NFPROTO_BRIDGE, NF_BR_FORWARD, skb, indev, skb->dev,
++		br_forward_finish);
  }
  
- int ip_local_out(struct sk_buff *skb)
-@@ -271,8 +271,8 @@ int ip_mc_output(struct sk_buff *skb)
- 		   ) {
- 			struct sk_buff *newskb = skb_clone(skb, GFP_ATOMIC);
- 			if (newskb)
--				NF_HOOK(PF_INET, NF_INET_POST_ROUTING, newskb,
--					NULL, newskb->dev,
-+				NF_HOOK(NFPROTO_IPV4, NF_INET_POST_ROUTING,
-+					newskb, NULL, newskb->dev,
- 					ip_dev_loopback_xmit);
- 		}
+ /* called with rcu_read_lock */
+diff --git a/net/bridge/br_input.c b/net/bridge/br_input.c
+index 333dfb7..c9018fc 100644
+--- a/net/bridge/br_input.c
++++ b/net/bridge/br_input.c
+@@ -32,7 +32,7 @@ static int br_pass_frame_up(struct sk_buff *skb)
+ 	indev = skb->dev;
+ 	skb->dev = brdev;
  
-@@ -287,12 +287,12 @@ int ip_mc_output(struct sk_buff *skb)
- 	if (rt->rt_flags&RTCF_BROADCAST) {
- 		struct sk_buff *newskb = skb_clone(skb, GFP_ATOMIC);
- 		if (newskb)
--			NF_HOOK(PF_INET, NF_INET_POST_ROUTING, newskb, NULL,
--				newskb->dev, ip_dev_loopback_xmit);
-+			NF_HOOK(NFPROTO_IPV4, NF_INET_POST_ROUTING, newskb,
-+				NULL, newskb->dev, ip_dev_loopback_xmit);
- 	}
- 
--	return NF_HOOK_COND(PF_INET, NF_INET_POST_ROUTING, skb, NULL, skb->dev,
--			    ip_finish_output,
-+	return NF_HOOK_COND(NFPROTO_IPV4, NF_INET_POST_ROUTING, skb, NULL,
-+			    skb->dev, ip_finish_output,
- 			    !(IPCB(skb)->flags & IPSKB_REROUTED));
+-	return NF_HOOK(PF_BRIDGE, NF_BR_LOCAL_IN, skb, indev, NULL,
++	return NF_HOOK(NFPROTO_BRIDGE, NF_BR_LOCAL_IN, skb, indev, NULL,
+ 		       netif_receive_skb);
  }
  
-@@ -305,7 +305,7 @@ int ip_output(struct sk_buff *skb)
- 	skb->dev = dev;
- 	skb->protocol = htons(ETH_P_IP);
+@@ -155,7 +155,7 @@ struct sk_buff *br_handle_frame(struct net_bridge_port *p, struct sk_buff *skb)
+ 		if (p->br->stp_enabled == BR_NO_STP && dest[5] == 0)
+ 			goto forward;
  
--	return NF_HOOK_COND(PF_INET, NF_INET_POST_ROUTING, skb, NULL, dev,
-+	return NF_HOOK_COND(NFPROTO_IPV4, NF_INET_POST_ROUTING, skb, NULL, dev,
- 			    ip_finish_output,
- 			    !(IPCB(skb)->flags & IPSKB_REROUTED));
- }
-diff --git a/net/ipv4/ipmr.c b/net/ipv4/ipmr.c
-index 8582e12..1d42f61 100644
---- a/net/ipv4/ipmr.c
-+++ b/net/ipv4/ipmr.c
-@@ -1319,7 +1319,7 @@ static void ipmr_queue_xmit(struct sk_buff *skb, struct mfc_cache *c, int vifi)
- 	 * not mrouter) cannot join to more than one interface - it will
- 	 * result in receiving multiple packets.
- 	 */
--	NF_HOOK(PF_INET, NF_INET_FORWARD, skb, skb->dev, dev,
-+	NF_HOOK(NFPROTO_IPV4, NF_INET_FORWARD, skb, skb->dev, dev,
- 		ipmr_forward_finish);
- 	return;
+-		if (NF_HOOK(PF_BRIDGE, NF_BR_LOCAL_IN, skb, skb->dev,
++		if (NF_HOOK(NFPROTO_BRIDGE, NF_BR_LOCAL_IN, skb, skb->dev,
+ 			    NULL, br_handle_local_finish))
+ 			return NULL;	/* frame consumed by filter */
+ 		else
+@@ -176,7 +176,7 @@ forward:
+ 		if (!compare_ether_addr(p->br->dev->dev_addr, dest))
+ 			skb->pkt_type = PACKET_HOST;
  
-diff --git a/net/ipv4/raw.c b/net/ipv4/raw.c
-index ce154b4..34d9adb 100644
---- a/net/ipv4/raw.c
-+++ b/net/ipv4/raw.c
-@@ -382,8 +382,8 @@ static int raw_send_hdrinc(struct sock *sk, void *from, size_t length,
- 		icmp_out_count(net, ((struct icmphdr *)
- 			skb_transport_header(skb))->type);
+-		NF_HOOK(PF_BRIDGE, NF_BR_PRE_ROUTING, skb, skb->dev, NULL,
++		NF_HOOK(NFPROTO_BRIDGE, NF_BR_PRE_ROUTING, skb, skb->dev, NULL,
+ 			br_handle_frame_finish);
+ 		break;
+ 	default:
+diff --git a/net/bridge/br_multicast.c b/net/bridge/br_multicast.c
+index 6980625..ed19b0a 100644
+--- a/net/bridge/br_multicast.c
++++ b/net/bridge/br_multicast.c
+@@ -608,7 +608,7 @@ static void br_multicast_send_query(struct net_bridge *br,
+ 	if (port) {
+ 		__skb_push(skb, sizeof(struct ethhdr));
+ 		skb->dev = port->dev;
+-		NF_HOOK(PF_BRIDGE, NF_BR_LOCAL_OUT, skb, NULL, skb->dev,
++		NF_HOOK(NFPROTO_BRIDGE, NF_BR_LOCAL_OUT, skb, NULL, skb->dev,
+ 			dev_queue_xmit);
+ 	} else
+ 		netif_rx(skb);
+diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
+index 268e2e7..bc6b572 100644
+--- a/net/bridge/br_netfilter.c
++++ b/net/bridge/br_netfilter.c
+@@ -246,7 +246,7 @@ static int br_nf_pre_routing_finish_ipv6(struct sk_buff *skb)
  
--	err = NF_HOOK(PF_INET, NF_INET_LOCAL_OUT, skb, NULL, rt->u.dst.dev,
--		      dst_output);
-+	err = NF_HOOK(NFPROTO_IPV4, NF_INET_LOCAL_OUT, skb, NULL,
-+		      rt->u.dst.dev, dst_output);
- 	if (err > 0)
- 		err = net_xmit_errno(err);
- 	if (err)
-diff --git a/net/ipv4/xfrm4_input.c b/net/ipv4/xfrm4_input.c
-index f9f922a..c3969e0 100644
---- a/net/ipv4/xfrm4_input.c
-+++ b/net/ipv4/xfrm4_input.c
-@@ -60,7 +60,7 @@ int xfrm4_transport_finish(struct sk_buff *skb, int async)
- 	iph->tot_len = htons(skb->len);
- 	ip_send_check(iph);
+ 	skb->dev = nf_bridge->physindev;
+ 	nf_bridge_push_encap_header(skb);
+-	NF_HOOK_THRESH(PF_BRIDGE, NF_BR_PRE_ROUTING, skb, skb->dev, NULL,
++	NF_HOOK_THRESH(NFPROTO_BRIDGE, NF_BR_PRE_ROUTING, skb, skb->dev, NULL,
+ 		       br_handle_frame_finish, 1);
+ 
+ 	return 0;
+@@ -396,7 +396,8 @@ bridged_dnat:
+ 				nf_bridge->mask |= BRNF_BRIDGED_DNAT;
+ 				skb->dev = nf_bridge->physindev;
+ 				nf_bridge_push_encap_header(skb);
+-				NF_HOOK_THRESH(PF_BRIDGE, NF_BR_PRE_ROUTING,
++				NF_HOOK_THRESH(NFPROTO_BRIDGE,
++					       NF_BR_PRE_ROUTING,
+ 					       skb, skb->dev, NULL,
+ 					       br_nf_pre_routing_finish_bridge,
+ 					       1);
+@@ -417,7 +418,7 @@ bridged_dnat:
+ 
+ 	skb->dev = nf_bridge->physindev;
+ 	nf_bridge_push_encap_header(skb);
+-	NF_HOOK_THRESH(PF_BRIDGE, NF_BR_PRE_ROUTING, skb, skb->dev, NULL,
++	NF_HOOK_THRESH(NFPROTO_BRIDGE, NF_BR_PRE_ROUTING, skb, skb->dev, NULL,
+ 		       br_handle_frame_finish, 1);
+ 
+ 	return 0;
+@@ -534,7 +535,7 @@ static unsigned int br_nf_pre_routing_ipv6(unsigned int hook,
+ 	if (!setup_pre_routing(skb))
+ 		return NF_DROP;
+ 
+-	NF_HOOK(PF_INET6, NF_INET_PRE_ROUTING, skb, skb->dev, NULL,
++	NF_HOOK(NFPROTO_IPV6, NF_INET_PRE_ROUTING, skb, skb->dev, NULL,
+ 		br_nf_pre_routing_finish_ipv6);
+ 
+ 	return NF_STOLEN;
+@@ -607,7 +608,7 @@ static unsigned int br_nf_pre_routing(unsigned int hook, struct sk_buff *skb,
+ 		return NF_DROP;
+ 	store_orig_dstaddr(skb);
  
 -	NF_HOOK(PF_INET, NF_INET_PRE_ROUTING, skb, skb->dev, NULL,
 +	NF_HOOK(NFPROTO_IPV4, NF_INET_PRE_ROUTING, skb, skb->dev, NULL,
- 		xfrm4_rcv_encap_finish);
+ 		br_nf_pre_routing_finish);
+ 
+ 	return NF_STOLEN;
+@@ -655,7 +656,7 @@ static int br_nf_forward_finish(struct sk_buff *skb)
+ 		in = *((struct net_device **)(skb->cb));
+ 	}
+ 	nf_bridge_push_encap_header(skb);
+-	NF_HOOK_THRESH(PF_BRIDGE, NF_BR_FORWARD, skb, in,
++	NF_HOOK_THRESH(NFPROTO_BRIDGE, NF_BR_FORWARD, skb, in,
+ 		       skb->dev, br_forward_finish, 1);
  	return 0;
  }
-diff --git a/net/ipv4/xfrm4_output.c b/net/ipv4/xfrm4_output.c
-index c908bd9..571aa96 100644
---- a/net/ipv4/xfrm4_output.c
-+++ b/net/ipv4/xfrm4_output.c
-@@ -86,7 +86,7 @@ static int xfrm4_output_finish(struct sk_buff *skb)
+@@ -786,7 +787,7 @@ static unsigned int br_nf_local_out(unsigned int hook, struct sk_buff *skb,
+ 	}
+ 	nf_bridge_push_encap_header(skb);
  
- int xfrm4_output(struct sk_buff *skb)
- {
--	return NF_HOOK_COND(PF_INET, NF_INET_POST_ROUTING, skb,
-+	return NF_HOOK_COND(NFPROTO_IPV4, NF_INET_POST_ROUTING, skb,
- 			    NULL, skb_dst(skb)->dev, xfrm4_output_finish,
- 			    !(IPCB(skb)->flags & IPSKB_REROUTED));
+-	NF_HOOK(PF_BRIDGE, NF_BR_FORWARD, skb, realindev, skb->dev,
++	NF_HOOK(NFPROTO_BRIDGE, NF_BR_FORWARD, skb, realindev, skb->dev,
+ 		br_forward_finish);
+ 	return NF_STOLEN;
  }
+diff --git a/net/bridge/br_stp_bpdu.c b/net/bridge/br_stp_bpdu.c
+index 81ae40b..11b0157 100644
+--- a/net/bridge/br_stp_bpdu.c
++++ b/net/bridge/br_stp_bpdu.c
+@@ -49,7 +49,7 @@ static void br_send_bpdu(struct net_bridge_port *p,
+ 
+ 	llc_mac_hdr_init(skb, p->dev->dev_addr, p->br->group_addr);
+ 
+-	NF_HOOK(PF_BRIDGE, NF_BR_LOCAL_OUT, skb, NULL, skb->dev,
++	NF_HOOK(NFPROTO_BRIDGE, NF_BR_LOCAL_OUT, skb, NULL, skb->dev,
+ 		dev_queue_xmit);
+ }
+ 
 -- 
 1.7.0.2
 
