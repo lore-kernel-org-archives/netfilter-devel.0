@@ -1,39 +1,31 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: [PATCH] netfilter: CLUSTERIP: clusterip_seq_stop() fix
-Date: Thu, 25 Mar 2010 20:47:22 +0100
-Message-ID: <1269546442.2894.5.camel@edumazet-laptop>
-References: <1269539686-3885-1-git-send-email-kaber@trash.net>
-	 <1269539686-3885-2-git-send-email-kaber@trash.net>
-	 <1269539686-3885-3-git-send-email-kaber@trash.net>
+From: wzt wzt <wzt.wzt@gmail.com>
+Subject: Re: [PATCH] Netfilter: Code cleanup on net/netfilter
+Date: Fri, 26 Mar 2010 08:52:09 +0800
+Message-ID: <628d1651003251752v3d49b8acs6b43d76b2477b8a3@mail.gmail.com>
+References: <20100325092154.GB29056@localhost.localdomain>
+	 <4BAB3C0D.4080906@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset=UTF-8
+Cc: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1269539686-3885-3-git-send-email-kaber@trash.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:45509 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752085Ab0CZAwM (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 25 Mar 2010 20:52:12 -0400
+In-Reply-To: <4BAB3C0D.4080906@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-If clusterip_seq_start() memory allocation fails, we crash later in
-clusterip_seq_start(), trying to kfree(ERR_PTR(-ENOMEM))
+ok, thx, i'll send a new patch soon.
 
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
----
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-index 0886f96..afa937b 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -600,7 +600,8 @@ static void *clusterip_seq_next(struct seq_file *s, void *v, loff_t *pos)
- 
- static void clusterip_seq_stop(struct seq_file *s, void *v)
- {
--	kfree(v);
-+	if (!IS_ERR(v))
-+		kfree(v);
- }
- 
- static int clusterip_seq_show(struct seq_file *s, void *v)
-
-
+On Thu, Mar 25, 2010 at 6:33 PM, Patrick McHardy <kaber@trash.net> wrote:
+> wzt.wzt@gmail.com wrote:
+>> Fix some coding styles and remove moduleparam.h
+>
+> I've already applied your patches to remove moduleparam.h.
+> Please base your patches on
+>
+> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git
+>
