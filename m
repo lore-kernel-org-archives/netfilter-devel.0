@@ -1,119 +1,41 @@
-From: Adam Nielsen <a.nielsen@shikadi.net>
+From: Jan Engelhardt <jengelh@medozas.de>
 Subject: Re: [PATCH] Add refcounts to LED target
-Date: Sat, 27 Mar 2010 21:39:22 +1000
-Message-ID: <4BADEE6A.5000103@shikadi.net>
-References: <4A18A70F.50808@shikadi.net> <alpine.LSU.2.00.0905240933050.18758@fbirervta.pbzchgretzou.qr> <4A1DC798.1090604@shikadi.net> <4A26418C.5090707@trash.net> <4A265891.4050201@shikadi.net> <4AF2E8A5.7020409@trash.net> <4AF34C03.7020907@shikadi.net> <4AF43916.5010408@trash.net> <4B11D1B5.2060306@shikadi.net> <alpine.LSU.2.00.0911291055020.24432@obet.zrqbmnf.qr> <4B125C18.7060802@shikadi.net> <alpine.LSU.2.00.0911291646380.6794@obet.zrqbmnf.qr> <4B14EA81.5030603@trash.net> <4B1B82D5.2070607@shikadi.net> <4B1BB086.3030700@trash.net> <4BAB6CB2.3050904@trash.net> <alpine.LSU.2.01.1003251504500.32573@obet.zrqbmnf.qr> <4BAB6E70.8090605@trash.net> <4BAD841A.9060103@shikadi.net> <alpine.LSU.2.01.1003271214440.13915@obet.zrqbmnf.qr>
+Date: Sat, 27 Mar 2010 12:55:07 +0100 (CET)
+Message-ID: <alpine.LSU.2.01.1003271253190.1149@obet.zrqbmnf.qr>
+References: <4A18A70F.50808@shikadi.net> <alpine.LSU.2.00.0905240933050.18758@fbirervta.pbzchgretzou.qr> <4A1DC798.1090604@shikadi.net> <4A26418C.5090707@trash.net> <4A265891.4050201@shikadi.net> <4AF2E8A5.7020409@trash.net> <4AF34C03.7020907@shikadi.net>
+ <4AF43916.5010408@trash.net> <4B11D1B5.2060306@shikadi.net> <alpine.LSU.2.00.0911291055020.24432@obet.zrqbmnf.qr> <4B125C18.7060802@shikadi.net> <alpine.LSU.2.00.0911291646380.6794@obet.zrqbmnf.qr> <4B14EA81.5030603@trash.net> <4B1B82D5.2070607@shikadi.net>
+ <4B1BB086.3030700@trash.net> <4BAB6CB2.3050904@trash.net> <alpine.LSU.2.01.1003251504500.32573@obet.zrqbmnf.qr> <4BAB6E70.8090605@trash.net> <4BAD841A.9060103@shikadi.net> <alpine.LSU.2.01.1003271214440.13915@obet.zrqbmnf.qr>
+ <4BADEE6A.5000103@shikadi.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------070004050408030208040508"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Patrick McHardy <kaber@trash.net>,
 	Netfilter Developer Mailing List
 	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Adam Nielsen <a.nielsen@shikadi.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from vitalin.sorra.shikadi.net ([64.71.152.201]:34323 "EHLO
-	vitalin.sorra.shikadi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752709Ab0C0Lj0 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 27 Mar 2010 07:39:26 -0400
-In-Reply-To: <alpine.LSU.2.01.1003271214440.13915@obet.zrqbmnf.qr>
+Received: from borg.medozas.de ([188.40.89.202]:52429 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752775Ab0C0LzJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 27 Mar 2010 07:55:09 -0400
+In-Reply-To: <4BADEE6A.5000103@shikadi.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------070004050408030208040508
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
 
-Add reference counting to the LED target so that multiple targets sharing the
-same trigger don't cause any problems.
+On Saturday 2010-03-27 12:39, Adam Nielsen wrote:
 
-Signed-off-by: Adam Nielsen <a.nielsen@shikadi.net>
+>Add reference counting to the LED target so that multiple targets sharing the
+>same trigger don't cause any problems.
+>
+>I have attached a patch based on nf-next-2.6.  It
+>adds the reference counting that was discussed and fixes a bug where it
+>referenced a null string once the original table/rule was destroyed.
+>
+>I've tested it and it works well for me, so subject to any feedback I believe
+>it is ready to be included.
 
---
+You need to protect the list_add/list_del from concurrent operation.
 
-> I removed that XT_ALIGN, as it is not necessary on the kernel side.
+You need to check the return value of
 
-Thanks Jan, in that case I have attached a patch based on nf-next-2.6.  It
-adds the reference counting that was discussed and fixes a bug where it
-referenced a null string once the original table/rule was destroyed.
-
-I've tested it and it works well for me, so subject to any feedback I believe
-it is ready to be included.
-
-Thanks,
-Adam.
-
---------------070004050408030208040508
-Content-Type: text/plain;
- name="netfilter-leds-add_refcount.patch"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="netfilter-leds-add_refcount.patch"
-
-ZGlmZiAtLWdpdCBhL25ldC9uZXRmaWx0ZXIveHRfTEVELmMgYi9uZXQvbmV0ZmlsdGVyL3h0
-X0xFRC5jCmluZGV4IGY1MTFiZWEuLmJiNmU1MzMgMTAwNjQ0Ci0tLSBhL25ldC9uZXRmaWx0
-ZXIveHRfTEVELmMKKysrIGIvbmV0L25ldGZpbHRlci94dF9MRUQuYwpAQCAtMzEsMTIgKzMx
-LDE3IEBAIE1PRFVMRV9MSUNFTlNFKCJHUEwiKTsKIE1PRFVMRV9BVVRIT1IoIkFkYW0gTmll
-bHNlbiA8YS5uaWVsc2VuQHNoaWthZGkubmV0PiIpOwogTU9EVUxFX0RFU0NSSVBUSU9OKCJY
-dGFibGVzOiB0cmlnZ2VyIExFRCBkZXZpY2VzIG9uIHBhY2tldCBtYXRjaCIpOwogCitzdGF0
-aWMgTElTVF9IRUFEKHh0X2xlZF90cmlnZ2Vycyk7CisKIC8qCiAgKiBUaGlzIGlzIGRlY2xh
-cmVkIGluIGhlcmUgKHRoZSBrZXJuZWwgbW9kdWxlKSBvbmx5LCB0byBhdm9pZCBoYXZpbmcg
-dGhlc2UKICAqIGRlcGVuZGVuY2llcyBpbiB1c2Vyc3BhY2UgY29kZS4gIFRoaXMgaXMgd2hh
-dCB4dF9sZWRfaW5mby5pbnRlcm5hbF9kYXRhCiAgKiBwb2ludHMgdG8uCiAgKi8KIHN0cnVj
-dCB4dF9sZWRfaW5mb19pbnRlcm5hbCB7CisJc3RydWN0IGxpc3RfaGVhZCBsaXN0OworCWlu
-dCByZWZjbnQ7CisJY2hhciAqdHJpZ2dlcl9pZDsKIAlzdHJ1Y3QgbGVkX3RyaWdnZXIgbmV0
-ZmlsdGVyX2xlZF90cmlnZ2VyOwogCXN0cnVjdCB0aW1lcl9saXN0IHRpbWVyOwogfTsKQEAg
-LTUzLDcgKzU4LDcgQEAgbGVkX3RnKHN0cnVjdCBza19idWZmICpza2IsIGNvbnN0IHN0cnVj
-dCB4dF90YXJnZXRfcGFyYW0gKnBhcikKIAkgKi8KIAlpZiAoKGxlZGluZm8tPmRlbGF5ID4g
-MCkgJiYgbGVkaW5mby0+YWx3YXlzX2JsaW5rICYmCiAJICAgIHRpbWVyX3BlbmRpbmcoJmxl
-ZGludGVybmFsLT50aW1lcikpCi0JCWxlZF90cmlnZ2VyX2V2ZW50KCZsZWRpbnRlcm5hbC0+
-bmV0ZmlsdGVyX2xlZF90cmlnZ2VyLExFRF9PRkYpOworCQlsZWRfdHJpZ2dlcl9ldmVudCgm
-bGVkaW50ZXJuYWwtPm5ldGZpbHRlcl9sZWRfdHJpZ2dlciwgTEVEX09GRik7CiAKIAlsZWRf
-dHJpZ2dlcl9ldmVudCgmbGVkaW50ZXJuYWwtPm5ldGZpbHRlcl9sZWRfdHJpZ2dlciwgTEVE
-X0ZVTEwpOwogCkBAIC03NCwxMiArNzksMjIgQEAgbGVkX3RnKHN0cnVjdCBza19idWZmICpz
-a2IsIGNvbnN0IHN0cnVjdCB4dF90YXJnZXRfcGFyYW0gKnBhcikKIAogc3RhdGljIHZvaWQg
-bGVkX3RpbWVvdXRfY2FsbGJhY2sodW5zaWduZWQgbG9uZyBkYXRhKQogewotCXN0cnVjdCB4
-dF9sZWRfaW5mbyAqbGVkaW5mbyA9IChzdHJ1Y3QgeHRfbGVkX2luZm8gKilkYXRhOwotCXN0
-cnVjdCB4dF9sZWRfaW5mb19pbnRlcm5hbCAqbGVkaW50ZXJuYWwgPSBsZWRpbmZvLT5pbnRl
-cm5hbF9kYXRhOworCXN0cnVjdCB4dF9sZWRfaW5mb19pbnRlcm5hbCAqbGVkaW50ZXJuYWwg
-PSAoc3RydWN0IHh0X2xlZF9pbmZvX2ludGVybmFsICopZGF0YTsKIAogCWxlZF90cmlnZ2Vy
-X2V2ZW50KCZsZWRpbnRlcm5hbC0+bmV0ZmlsdGVyX2xlZF90cmlnZ2VyLCBMRURfT0ZGKTsK
-IH0KIAorc3RhdGljIHN0cnVjdCB4dF9sZWRfaW5mb19pbnRlcm5hbCAqbGVkX3RyaWdnZXJf
-bG9va3VwKGNvbnN0IGNoYXIgKm5hbWUpCit7CisJc3RydWN0IHh0X2xlZF9pbmZvX2ludGVy
-bmFsICpsZWRpbnRlcm5hbDsKKworCWxpc3RfZm9yX2VhY2hfZW50cnkobGVkaW50ZXJuYWws
-ICZ4dF9sZWRfdHJpZ2dlcnMsIGxpc3QpIHsKKwkJaWYgKCFzdHJjbXAobmFtZSwgbGVkaW50
-ZXJuYWwtPm5ldGZpbHRlcl9sZWRfdHJpZ2dlci5uYW1lKSkKKwkJCXJldHVybiBsZWRpbnRl
-cm5hbDsKKwl9CisJcmV0dXJuIE5VTEw7Cit9CisKIHN0YXRpYyBib29sIGxlZF90Z19jaGVj
-ayhjb25zdCBzdHJ1Y3QgeHRfdGdjaGtfcGFyYW0gKnBhcikKIHsKIAlzdHJ1Y3QgeHRfbGVk
-X2luZm8gKmxlZGluZm8gPSBwYXItPnRhcmdpbmZvOwpAQCAtOTEsMTEgKzEwNiwyMCBAQCBz
-dGF0aWMgYm9vbCBsZWRfdGdfY2hlY2soY29uc3Qgc3RydWN0IHh0X3RnY2hrX3BhcmFtICpw
-YXIpCiAJCXJldHVybiBmYWxzZTsKIAl9CiAKKwlsZWRpbnRlcm5hbCA9IGxlZF90cmlnZ2Vy
-X2xvb2t1cChsZWRpbmZvLT5pZCk7CisJaWYgKGxlZGludGVybmFsKSB7CisJCWxlZGludGVy
-bmFsLT5yZWZjbnQrKzsKKwkJZ290byBvdXQ7CisJfQorCiAJbGVkaW50ZXJuYWwgPSBremFs
-bG9jKHNpemVvZihzdHJ1Y3QgeHRfbGVkX2luZm9faW50ZXJuYWwpLCBHRlBfS0VSTkVMKTsK
-IAlpZiAoIWxlZGludGVybmFsKQogCQlyZXR1cm4gZmFsc2U7CiAKLQlsZWRpbnRlcm5hbC0+
-bmV0ZmlsdGVyX2xlZF90cmlnZ2VyLm5hbWUgPSBsZWRpbmZvLT5pZDsKKwlsZWRpbnRlcm5h
-bC0+cmVmY250ID0gMTsKKwlsZWRpbnRlcm5hbC0+dHJpZ2dlcl9pZCA9IGt6YWxsb2Moc3Ry
-bGVuKGxlZGluZm8tPmlkKSArIDEsIEdGUF9LRVJORUwpOworCXN0cmNweShsZWRpbnRlcm5h
-bC0+dHJpZ2dlcl9pZCwgbGVkaW5mby0+aWQpOworCWxlZGludGVybmFsLT5uZXRmaWx0ZXJf
-bGVkX3RyaWdnZXIubmFtZSA9IGxlZGludGVybmFsLT50cmlnZ2VyX2lkOwogCiAJZXJyID0g
-bGVkX3RyaWdnZXJfcmVnaXN0ZXIoJmxlZGludGVybmFsLT5uZXRmaWx0ZXJfbGVkX3RyaWdn
-ZXIpOwogCWlmIChlcnIpIHsKQEAgLTEwOCw4ICsxMzIsMTAgQEAgc3RhdGljIGJvb2wgbGVk
-X3RnX2NoZWNrKGNvbnN0IHN0cnVjdCB4dF90Z2Noa19wYXJhbSAqcGFyKQogCS8qIFNlZSBp
-ZiB3ZSBuZWVkIHRvIHNldCB1cCBhIHRpbWVyICovCiAJaWYgKGxlZGluZm8tPmRlbGF5ID4g
-MCkKIAkJc2V0dXBfdGltZXIoJmxlZGludGVybmFsLT50aW1lciwgbGVkX3RpbWVvdXRfY2Fs
-bGJhY2ssCi0JCQkgICAgKHVuc2lnbmVkIGxvbmcpbGVkaW5mbyk7CisJCQkgICAgKHVuc2ln
-bmVkIGxvbmcpbGVkaW50ZXJuYWwpOwogCisJbGlzdF9hZGRfdGFpbCgmbGVkaW50ZXJuYWwt
-Pmxpc3QsICZ4dF9sZWRfdHJpZ2dlcnMpOworb3V0OgogCWxlZGluZm8tPmludGVybmFsX2Rh
-dGEgPSBsZWRpbnRlcm5hbDsKIAogCXJldHVybiB0cnVlOwpAQCAtMTI1LDEwICsxNTEsMTUg
-QEAgc3RhdGljIHZvaWQgbGVkX3RnX2Rlc3Ryb3koY29uc3Qgc3RydWN0IHh0X3RnZHRvcl9w
-YXJhbSAqcGFyKQogCWNvbnN0IHN0cnVjdCB4dF9sZWRfaW5mbyAqbGVkaW5mbyA9IHBhci0+
-dGFyZ2luZm87CiAJc3RydWN0IHh0X2xlZF9pbmZvX2ludGVybmFsICpsZWRpbnRlcm5hbCA9
-IGxlZGluZm8tPmludGVybmFsX2RhdGE7CiAKKwlpZiAoLS1sZWRpbnRlcm5hbC0+cmVmY250
-KQorCQlyZXR1cm47CisKKwlsaXN0X2RlbCgmbGVkaW50ZXJuYWwtPmxpc3QpOwogCWlmIChs
-ZWRpbmZvLT5kZWxheSA+IDApCiAJCWRlbF90aW1lcl9zeW5jKCZsZWRpbnRlcm5hbC0+dGlt
-ZXIpOwogCiAJbGVkX3RyaWdnZXJfdW5yZWdpc3RlcigmbGVkaW50ZXJuYWwtPm5ldGZpbHRl
-cl9sZWRfdHJpZ2dlcik7CisJa2ZyZWUobGVkaW50ZXJuYWwtPnRyaWdnZXJfaWQpOwogCWtm
-cmVlKGxlZGludGVybmFsKTsKIH0KIAo=
---------------070004050408030208040508--
+ledinternal->trigger_id = kzalloc(strlen(ledinfo->id) + 1, GFP_KERNEL);
