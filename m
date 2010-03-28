@@ -1,170 +1,144 @@
-From: Adam Nielsen <a.nielsen@shikadi.net>
-Subject: Re: [PATCH] Add refcounts to LED target
-Date: Sun, 28 Mar 2010 11:58:09 +1000
-Message-ID: <4BAEB7B1.6070209@shikadi.net>
-References: <4A18A70F.50808@shikadi.net> <alpine.LSU.2.00.0905240933050.18758@fbirervta.pbzchgretzou.qr> <4A1DC798.1090604@shikadi.net> <4A26418C.5090707@trash.net> <4A265891.4050201@shikadi.net> <4AF2E8A5.7020409@trash.net> <4AF34C03.7020907@shikadi.net> <4AF43916.5010408@trash.net> <4B11D1B5.2060306@shikadi.net> <alpine.LSU.2.00.0911291055020.24432@obet.zrqbmnf.qr> <4B125C18.7060802@shikadi.net> <alpine.LSU.2.00.0911291646380.6794@obet.zrqbmnf.qr> <4B14EA81.5030603@trash.net> <4B1B82D5.2070607@shikadi.net> <4B1BB086.3030700@trash.net> <4BAB6CB2.3050904@trash.net> <alpine.LSU.2.01.1003251504500.32573@obet.zrqbmnf.qr> <4BAB6E70.8090605@trash.net> <4BAD841A.9060103@shikadi.net> <alpine.LSU.2.01.1003271940470.3068@obet.zrqbmnf.qr>
+From: Peter Gordon <peter@pg-consultants.com>
+Subject: Modifying ebtables to read the commands from a file
+Date: Sun, 28 Mar 2010 13:07:57 +0300
+Message-ID: <1269770877.2563.9.camel@qed>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------050806030807050204020000"
-Cc: Patrick McHardy <kaber@trash.net>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from vitalin.sorra.shikadi.net ([64.71.152.201]:48243 "EHLO
-	vitalin.sorra.shikadi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751012Ab0C1B6N (ORCPT
+Received: from gold.securenet-server.net ([207.45.186.66]:58047 "EHLO
+	gold.securenet-server.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753198Ab0C1LGy (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 27 Mar 2010 21:58:13 -0400
-In-Reply-To: <alpine.LSU.2.01.1003271940470.3068@obet.zrqbmnf.qr>
+	Sun, 28 Mar 2010 07:06:54 -0400
+Received: from bzq-218-145-176.cablep.bezeqint.net ([81.218.145.176] helo=[192.168.234.3])
+	by gold.securenet-server.net with esmtpa (Exim 4.69)
+	(envelope-from <peter@pg-consultants.com>)
+	id 1NvpPV-0007k1-8B
+	for netfilter-devel@vger.kernel.org; Sun, 28 Mar 2010 06:08:01 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------050806030807050204020000
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+I need to add a number of rules to the ebtables and I cannot afford the
+fork overhead for each line. So what I want to do is to read each line
+from a file and have the program iterate over the file. 
 
->>> Correct, I didn't add it while this was still unfixed to keep
->>> the possibility of removing the module again. You should be able
->>> to find it in the mailing list archives.
->>
->> I can post this again if you'd like to take a look.  I also have a kernel
->> module that makes your keyboard LEDs available as LED devices if you want to
->> test it out too.  (I could certainly use some feedback on that!)
-> 
-> Yes that would be nice, as I don't have any other LED hardware around
-> other than a cramped WRT54 device.
+ebtables-save and ebtables-restore is not good enough for my
+application, because I can't add rules incrementally. ebtables-restore
+doesn't add add rules, but replaces all existing rules.
 
-I've attached the iptables patch (against the latest iptables git), no change
-since last time (other than ignoring xt_LED.h, which is already in git.)
+I have changed ebtables-standalone.c:
 
-I've uploaded the kernel module to make your keyboard LEDs accessible as LED
-devices here: http://www.shikadi.net/files/kernel/leds-input-20100328.tar.bz2
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+#include "include/ebtables_u.h"
 
-It's still a bit rough, but if you can see any obvious mistakes I've made
-please let me know!  There are a couple of minor issues I'm aware of listed at
-the top of the .c file.
+static struct ebt_u_replace replace;
+void ebt_early_init_once();
 
-Cheers,
-Adam.
+#define MAX_TOKENS 100
+int main(int argc, char *argv[])
+{
+	ebt_silent = 0;
+	ebt_early_init_once();
 
---------------050806030807050204020000
-Content-Type: text/plain;
- name="iptables-LED_target.patch"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="iptables-LED_target.patch"
+	char *tok ;
+	char **myArgv ;
+	char *delim = " " ; 
+	char *p ; 
+	FILE *fp ; 
+	char line[1000] ; 
+	int myArgc = 0 ; 
+	int i ; 
+	myArgv = malloc(MAX_TOKENS * sizeof(char *)) ; 
+	for (i=0 ; i<MAX_TOKENS ; i++) { 
+	  myArgv[i] = NULL ; 
+	} 
 
-ZGlmZiAtLWdpdCBhL2V4dGVuc2lvbnMvbGlieHRfTEVELmMgYi9leHRlbnNpb25zL2xpYnh0
-X0xFRC5jCm5ldyBmaWxlIG1vZGUgMTAwNjQ0CmluZGV4IDAwMDAwMDAuLjZlMDU2NmMKLS0t
-IC9kZXYvbnVsbAorKysgYi9leHRlbnNpb25zL2xpYnh0X0xFRC5jCkBAIC0wLDAgKzEsMTU4
-IEBACisvKgorICogbGlieHRfTEVELmMgLSBzaGFyZWQgbGlicmFyeSBhZGQtb24gdG8gaXB0
-YWJsZXMgdG8gYWRkIGN1c3RvbWl6ZWQgTEVECisgKiAgICAgICAgICAgICAgIHRyaWdnZXIg
-c3VwcG9ydC4KKyAqCisgKiAoQykgMjAwOCBBZGFtIE5pZWxzZW4gPGEubmllbHNlbkBzaGlr
-YWRpLm5ldD4KKyAqCisgKiBUaGlzIHByb2dyYW0gaXMgZnJlZSBzb2Z0d2FyZTsgeW91IGNh
-biByZWRpc3RyaWJ1dGUgaXQgYW5kL29yIG1vZGlmeQorICogaXQgdW5kZXIgdGhlIHRlcm1z
-IG9mIHRoZSBHTlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSB2ZXJzaW9uIDIgYXMKKyAqIHB1
-Ymxpc2hlZCBieSB0aGUgRnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9uLgorICoKKyAqLworCisj
-aW5jbHVkZSA8c3RkaW8uaD4KKyNpbmNsdWRlIDxzdHJpbmcuaD4KKyNpbmNsdWRlIDxzdGRs
-aWIuaD4KKyNpbmNsdWRlIDxnZXRvcHQuaD4KKyNpbmNsdWRlIDxzdGRkZWYuaD4KKworI2lu
-Y2x1ZGUgPHh0YWJsZXMuaD4KKworI2luY2x1ZGUgPGxpbnV4L25ldGZpbHRlci94dF9MRUQu
-aD4KKworc3RhdGljIGNvbnN0IHN0cnVjdCBvcHRpb24gTEVEX29wdHNbXSA9IHsKKwl7IC5u
-YW1lID0gImxlZC10cmlnZ2VyLWlkIiwJLmhhc19hcmcgPSAxLCAudmFsID0gJ2knIH0sCisJ
-eyAubmFtZSA9ICJsZWQtZGVsYXkiLAkJLmhhc19hcmcgPSAxLCAudmFsID0gJ2QnIH0sCisJ
-eyAubmFtZSA9ICJsZWQtYWx3YXlzLWJsaW5rIiwJLmhhc19hcmcgPSAwLCAudmFsID0gJ2En
-IH0sCisJeyAubmFtZSA9IE5VTEwgfQorfTsKKworc3RhdGljIHZvaWQgTEVEX2hlbHAodm9p
-ZCkKK3sKKwlwcmludGYoCisiTEVEIHRhcmdldCBvcHRpb25zOlxuIgorIi0tbGVkLXRyaWdn
-ZXItaWQgbmFtZSAgICAgICAgICAgc3VmZml4IGZvciBsZWQgdHJpZ2dlciBuYW1lXG4iCisi
-LS1sZWQtZGVsYXkgbXMgICAgICAgICAgICAgICAgICBsZWF2ZSB0aGUgTEVEIG9uIGZvciB0
-aGlzIG51bWJlciBvZlxuIgorIiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgbWls
-bGlzZWNvbmRzIGFmdGVyIHRyaWdnZXJpbmcuXG4iCisiLS1sZWQtYWx3YXlzLWJsaW5rICAg
-ICAgICAgICAgICBibGluayBvbiBhcnJpdmluZyBwYWNrZXRzLCBldmVuIGlmXG4iCisiICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICB0aGUgTEVEIGlzIGFscmVhZHkgb24uXG4i
-CisJKTsKK30KKworc3RhdGljIGludCBMRURfcGFyc2UoaW50IGMsIGNoYXIgKiphcmd2LCBp
-bnQgaW52ZXJ0LCB1bnNpZ25lZCBpbnQgKmZsYWdzLAorICAgICAgICAgICAgICAgICAgICAg
-Y29uc3Qgdm9pZCAqZW50cnksIHN0cnVjdCB4dF9lbnRyeV90YXJnZXQgKip0YXJnZXQpCit7
-CisJc3RydWN0IHh0X2xlZF9pbmZvICpsZWQgPSAoc3RydWN0IHh0X2xlZF9pbmZvICopKCp0
-YXJnZXQpLT5kYXRhOworCisJc3dpdGNoIChjKSB7CisJY2FzZSAnaSc6CisJCXh0YWJsZXNf
-cGFyYW1fYWN0KFhURl9OT19JTlZFUlQsICJMRUQiLCAiLS1sZWQtdHJpZ2dlci1pZCIsIGlu
-dmVydCk7CisKKwkJaWYgKHN0cmxlbigibmV0ZmlsdGVyLSIpICsgc3RybGVuKG9wdGFyZykg
-PiBzaXplb2YobGVkLT5pZCkpCisJCQl4dGFibGVzX2Vycm9yKFBBUkFNRVRFUl9QUk9CTEVN
-LAorCQkJCSItLWxlZC10cmlnZ2VyLWlkIG11c3QgYmUgMTYgY2hhcnMgb3IgbGVzcyIpOwor
-CisJCWlmIChvcHRhcmdbMF0gPT0gJ1wwJykKKwkJCXh0YWJsZXNfZXJyb3IoUEFSQU1FVEVS
-X1BST0JMRU0sCisJCQkJIi0tbGVkLXRyaWdnZXItaWQgY2Fubm90IGJlIGJsYW5rIik7CisK
-KwkJLyogIm5ldGZpbHRlci0iICsgMTYgY2hhciBpZCA9PSAyNiA9PSBzaXplb2YobGVkLT5p
-ZCkgKi8KKwkJc3RyY3B5KGxlZC0+aWQsICJuZXRmaWx0ZXItIik7CisJCXN0cmNhdChsZWQt
-PmlkLCBvcHRhcmcpOworCQkqZmxhZ3MgPSAxOworCQlyZXR1cm4gMTsKKworCWNhc2UgJ2Qn
-OgorCQl4dGFibGVzX3BhcmFtX2FjdChYVEZfTk9fSU5WRVJULCAiTEVEIiwgIi0tbGVkLWRl
-bGF5IiwgaW52ZXJ0KTsKKworCQlpZiAoc3RybmNhc2VjbXAob3B0YXJnLCAiaW5mIiwgMykg
-PT0gMCkKKwkJCWxlZC0+ZGVsYXkgPSAtMTsKKwkJZWxzZQorCQkJbGVkLT5kZWxheSA9IHN0
-cnRvdWwob3B0YXJnLCBOVUxMLCAwKTsKKworCQlyZXR1cm4gMTsKKworCWNhc2UgJ2EnOgor
-CQlpZiAoIWludmVydCkKKwkJCWxlZC0+YWx3YXlzX2JsaW5rID0gMTsKKworCQlyZXR1cm4g
-MTsKKworCX0KKwlyZXR1cm4gMDsKK30KKworc3RhdGljIHZvaWQgTEVEX2ZpbmFsX2NoZWNr
-KHVuc2lnbmVkIGludCBmbGFncykKK3sKKwlpZiAoIWZsYWdzKQorCQl4dGFibGVzX2Vycm9y
-KFBBUkFNRVRFUl9QUk9CTEVNLAorCQkJIi0tbGVkLXRyaWdnZXItaWQgbXVzdCBiZSBzcGVj
-aWZpZWQiKTsKK30KKworc3RhdGljIHZvaWQgTEVEX3ByaW50KGNvbnN0IHZvaWQgKmlwLCBj
-b25zdCBzdHJ1Y3QgeHRfZW50cnlfdGFyZ2V0ICp0YXJnZXQsCisgICAgICAgICAgICAgICAg
-ICAgICAgaW50IG51bWVyaWMpCit7CisJY29uc3Qgc3RydWN0IHh0X2xlZF9pbmZvICpsZWQg
-PSAoY29uc3Qgc3RydWN0IHh0X2xlZF9pbmZvICopdGFyZ2V0LT5kYXRhOworCWNvbnN0IGNo
-YXIgKmlkID0gbGVkLT5pZCArIHN0cmxlbigibmV0ZmlsdGVyLSIpOyAvKiB0cmltIG9mZiBw
-cmVmaXggKi8KKworCXByaW50ZigibGVkLXRyaWdnZXItaWQ6XCIiKTsKKwkvKiBFc2NhcGUg
-ZG91YmxlIHF1b3RlcyBhbmQgYmFja3NsYXNoZXMgaW4gdGhlIElEICovCisJd2hpbGUgKCpp
-ZCkgeworCQlpZiAoKCppZCA9PSAnIicpIHx8ICgqaWQgPT0gJ1xcJykpCisJCQlwcmludGYo
-IlxcIik7CisJCXByaW50ZigiJWMiLCAqaWQrKyk7CisJfQorCXByaW50ZigiXCIgIik7CisK
-KwlpZiAobGVkLT5kZWxheSA9PSAtMSkKKwkJcHJpbnRmKCJsZWQtZGVsYXk6aW5mICIpOwor
-CWVsc2UKKwkJcHJpbnRmKCJsZWQtZGVsYXk6JWRtcyAiLCBsZWQtPmRlbGF5KTsKKworCWlm
-IChsZWQtPmFsd2F5c19ibGluaykKKwkJcHJpbnRmKCJsZWQtYWx3YXlzLWJsaW5rICIpOwor
-fQorCitzdGF0aWMgdm9pZCBMRURfc2F2ZShjb25zdCB2b2lkICppcCwgY29uc3Qgc3RydWN0
-IHh0X2VudHJ5X3RhcmdldCAqdGFyZ2V0KQoreworCWNvbnN0IHN0cnVjdCB4dF9sZWRfaW5m
-byAqbGVkID0gKGNvbnN0IHN0cnVjdCB4dF9sZWRfaW5mbyAqKXRhcmdldC0+ZGF0YTsKKwlj
-b25zdCBjaGFyICppZCA9IGxlZC0+aWQgKyBzdHJsZW4oIm5ldGZpbHRlci0iKTsgLyogdHJp
-bSBvZmYgcHJlZml4ICovCisKKwlwcmludGYoIi0tbGVkLXRyaWdnZXItaWQgXCIiKTsKKwkv
-KiBFc2NhcGUgZG91YmxlIHF1b3RlcyBhbmQgYmFja3NsYXNoZXMgaW4gdGhlIElEICovCisJ
-d2hpbGUgKCppZCkgeworCQlpZiAoKCppZCA9PSAnIicpIHx8ICgqaWQgPT0gJ1xcJykpCisJ
-CQlwcmludGYoIlxcIik7CisJCXByaW50ZigiJWMiLCAqaWQrKyk7CisJfQorCXByaW50Zigi
-XCIgIik7CisKKwkvKiBPbmx5IHByaW50IHRoZSBkZWxheSBpZiBpdCdzIG5vdCB6ZXJvICh0
-aGUgZGVmYXVsdCkgKi8KKwlpZiAobGVkLT5kZWxheSA+IDApCisJCXByaW50ZigiLS1sZWQt
-ZGVsYXkgJWQgIiwgbGVkLT5kZWxheSk7CisJZWxzZSBpZiAobGVkLT5kZWxheSA9PSAtMSkK
-KwkJcHJpbnRmKCItLWxlZC1kZWxheSBpbmYgIik7CisKKwkvKiBPbmx5IHByaW50IGFsd2F5
-c19ibGluayBpZiBpdCdzIG5vdCBzZXQgdG8gdGhlIGRlZmF1bHQgKi8KKwlpZiAobGVkLT5h
-bHdheXNfYmxpbmspCisJCXByaW50ZigiLS1sZWQtYWx3YXlzLWJsaW5rICIpOworfQorCitz
-dGF0aWMgc3RydWN0IHh0YWJsZXNfdGFyZ2V0IGxlZF90Z19yZWcgPSB7CisJLmZhbWlseQkJ
-PSBQRl9VTlNQRUMsCisJLm5hbWUJCT0gIkxFRCIsCisJLnZlcnNpb24JPSBYVEFCTEVTX1ZF
-UlNJT04sCisJLnNpemUJCT0gWFRfQUxJR04oc2l6ZW9mKHN0cnVjdCB4dF9sZWRfaW5mbykp
-LAorCS51c2Vyc3BhY2VzaXplCT0gb2Zmc2V0b2Yoc3RydWN0IHh0X2xlZF9pbmZvLCBpbnRl
-cm5hbF9kYXRhKSwKKwkuaGVscAkJPSBMRURfaGVscCwKKwkucGFyc2UJCT0gTEVEX3BhcnNl
-LAorCS5maW5hbF9jaGVjawk9IExFRF9maW5hbF9jaGVjaywKKwkuZXh0cmFfb3B0cwk9IExF
-RF9vcHRzLAorCS5wcmludAkJPSBMRURfcHJpbnQsCisJLnNhdmUJCT0gTEVEX3NhdmUsCit9
-OworCit2b2lkIF9pbml0KHZvaWQpCit7CisJeHRhYmxlc19yZWdpc3Rlcl90YXJnZXQoJmxl
-ZF90Z19yZWcpOworfQpkaWZmIC0tZ2l0IGEvZXh0ZW5zaW9ucy9saWJ4dF9MRUQubWFuIGIv
-ZXh0ZW5zaW9ucy9saWJ4dF9MRUQubWFuCm5ldyBmaWxlIG1vZGUgMTAwNjQ0CmluZGV4IDAw
-MDAwMDAuLmI2NWIzYzIKLS0tIC9kZXYvbnVsbAorKysgYi9leHRlbnNpb25zL2xpYnh0X0xF
-RC5tYW4KQEAgLTAsMCArMSwzMCBAQAorVGhpcyBjcmVhdGVzIGFuIExFRC10cmlnZ2VyIHRo
-YXQgY2FuIHRoZW4gYmUgYXR0YWNoZWQgdG8gc3lzdGVtIGluZGljYXRvcgorbGlnaHRzLCB0
-byBibGluayBvciBpbGx1bWluYXRlIHRoZW0gd2hlbiBjZXJ0YWluIHBhY2tldHMgcGFzcyB0
-aHJvdWdoIHRoZQorc3lzdGVtLiAgT25lIGV4YW1wbGUgbWlnaHQgYmUgdG8gbGlnaHQgdXAg
-YW4gTEVEIGZvciBhIGZldyBtaW51dGVzIGV2ZXJ5IHRpbWUKK2FuIFNTSCBjb25uZWN0aW9u
-IGlzIG1hZGUgdG8gdGhlIGxvY2FsIG1hY2hpbmUuICBUaGUgZm9sbG93aW5nIG9wdGlvbnMg
-Y29udHJvbAordGhlIHRyaWdnZXIgYmVoYXZpb3VyOgorLlRQCitcZkItLWxlZC10cmlnZ2Vy
-LWlkXGZQIFxmSW5hbWVcZlAKK1RoaXMgaXMgdGhlIG5hbWUgZ2l2ZW4gdG8gdGhlIExFRCB0
-cmlnZ2VyLiAgVGhlIGFjdHVhbCBuYW1lIG9mIHRoZSB0cmlnZ2VyCit3aWxsIGJlIHByZWZp
-eGVkIHdpdGggIm5ldGZpbHRlci0iLgorLlRQCitcZkItLWxlZC1kZWxheVxmUCBcZkltc1xm
-UAorVGhpcyBpbmRpY2F0ZXMgaG93IGxvbmcgKGluIG1pbGxpc2Vjb25kcykgdGhlIExFRCBz
-aG91bGQgYmUgbGVmdCBpbGx1bWluYXRlZAord2hlbiBhIHBhY2tldCBhcnJpdmVzIGJlZm9y
-ZSBiZWluZyBzd2l0Y2hlZCBvZmYgYWdhaW4uICBUaGUgZGVmYXVsdCBpcyAwCisoYmxpbmsg
-YXMgZmFzdCBhcyBwb3NzaWJsZS4pICBUaGUgc3BlY2lhbCB2YWx1ZSBcZklpbmZcZlAgY2Fu
-IGJlIGdpdmVuIHRvCitsZWF2ZSB0aGUgTEVEIG9uIHBlcm1hbmVudGx5IG9uY2UgYWN0aXZh
-dGVkLiAgKEluIHRoaXMgY2FzZSB0aGUgdHJpZ2dlciB3aWxsCituZWVkIHRvIGJlIG1hbnVh
-bGx5IGRldGFjaGVkIGFuZCByZWF0dGFjaGVkIHRvIHRoZSBMRUQgZGV2aWNlIHRvIHN3aXRj
-aCBpdAorb2ZmIGFnYWluLikKKy5UUAorXGZCLS1sZWQtYWx3YXlzLWJsaW5rXGZQCitBbHdh
-eXMgbWFrZSB0aGUgTEVEIGJsaW5rIG9uIHBhY2tldCBhcnJpdmFsLCBldmVuIGlmIHRoZSBM
-RUQgaXMgYWxyZWFkeSBvbi4KK1RoaXMgYWxsb3dzIG5vdGlmaWNhdGlvbiBvZiBuZXcgcGFj
-a2V0cyBldmVuIHdpdGggbG9uZyBkZWxheSB2YWx1ZXMgKHdoaWNoCitvdGhlcndpc2Ugd291
-bGQgcmVzdWx0IGluIGEgc2lsZW50IHByb2xvbmdpbmcgb2YgdGhlIGRlbGF5IHRpbWUuKQor
-LlRQCitFeGFtcGxlOgorLlRQCitDcmVhdGUgYW4gTEVEIHRyaWdnZXIgZm9yIGluY29taW5n
-IFNTSCB0cmFmZmljOgoraXB0YWJsZXMgLUEgSU5QVVQgLXAgdGNwIC0tZHBvcnQgMjIgLWog
-TEVEIC0tbGVkLXRyaWdnZXItaWQgc3NoCisuVFAKK1RoZW4gYXR0YWNoIHRoZSBuZXcgdHJp
-Z2dlciB0byBhbiBMRUQ6CitlY2hvIG5ldGZpbHRlci1zc2ggPiAvc3lzL2NsYXNzL2xlZHMv
-PGxlZG5hbWU+L3RyaWdnZXIK
---------------050806030807050204020000--
+	if (argc == 3 && strcmp(argv[1],"-f") == 0) { 
+	  myArgv[0] = "ebtables" ; 
+	  myArgc = 1 ; 
+	  fp = fopen(argv[2],"r") ; 
+	  if (fp == NULL) { 
+	    fprintf(stderr,"Can't open file %s\n",argv[2]) ;
+	    exit(1);
+	  } 
+	  
+	  while(fgets(line,sizeof(line),fp)) { 
+	    /* Ignore comments */
+	    if (*line == '#' || *line == '\n') {
+	      continue ; 
+	    }
+	    *strchr(line, '\n') = '\0';
+	    p = line ; 
+	    while(1) { 
+	      tok = strtok(p,delim) ;
+	      if (tok == NULL) { 
+		break ; 
+	      } 
+	      p = NULL ; 
+	      /* printf("Token %s\n",tok) ; */
+	      if (myArgc >= MAX_TOKENS) { 
+		fprintf(stderr,"Too many tokens on line %s\n",line) ;
+		exit(1) ; 
+	      } 
+	      /* printf("TOKEN: number: %d name: %s\n",myArgc,tok) ;*/
+	      myArgv[myArgc++] = tok ;
+	    } 
+
+	    memset(&replace,0,sizeof(replace)) ; 
+	    strcpy(replace.name, "filter");
+	    do_command(myArgc, myArgv, EXEC_STYLE_PRG, &replace);
+	    myArgc = 1 ; 
+	  }
+	  return 0;
+	}
+
+	strcpy(replace.name, "filter");
+	do_command(argc, argv, EXEC_STYLE_PRG, &replace);
+	return 0;
+}
+
+I have also added some extra initialization to ebtables.c - the extra
+code added is the three for loops:
+	opterr = 0;
+	ebt_modprobe = NULL;
+	
+	for (m = ebt_matches; m; m = m->next) { 
+	  m->used = 0 ; 
+	  m->flags = 0 ; 
+	} 
+	for (t = ebt_targets; t; t = t->next) { 
+	  t->used = 0 ; 
+	  t->flags = 0 ; 
+	} 
+	for (w = ebt_watchers; w; w = w->next) { 
+	  w->used = 0 ; 
+	  w->flags = 0 ; 
+	} 
+
+	replace = replace_;
+
+	/* The daemon doesn't use the environment variable */
+	if (exec_style == EXEC_STYLE_PRG) {
+
+
+I am still missing some initializations - I am getting leftover
+information from previous rules. 
+
+The essential problem is to allow do_command to be called more than
+once.
+
+Can anyone tell me how to correctly initialize all the structures in the
+do_command.
+
+Thanks,
+
+Peter
+
+
+
+
+
