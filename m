@@ -1,37 +1,131 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] Add refcounts to LED target
-Date: Sat, 27 Mar 2010 19:42:33 +0100 (CET)
-Message-ID: <alpine.LSU.2.01.1003271940470.3068@obet.zrqbmnf.qr>
-References: <4A18A70F.50808@shikadi.net> <alpine.LSU.2.00.0905240933050.18758@fbirervta.pbzchgretzou.qr> <4A1DC798.1090604@shikadi.net> <4A26418C.5090707@trash.net> <4A265891.4050201@shikadi.net> <4AF2E8A5.7020409@trash.net> <4AF34C03.7020907@shikadi.net>
- <4AF43916.5010408@trash.net> <4B11D1B5.2060306@shikadi.net> <alpine.LSU.2.00.0911291055020.24432@obet.zrqbmnf.qr> <4B125C18.7060802@shikadi.net> <alpine.LSU.2.00.0911291646380.6794@obet.zrqbmnf.qr> <4B14EA81.5030603@trash.net> <4B1B82D5.2070607@shikadi.net>
- <4B1BB086.3030700@trash.net> <4BAB6CB2.3050904@trash.net> <alpine.LSU.2.01.1003251504500.32573@obet.zrqbmnf.qr> <4BAB6E70.8090605@trash.net> <4BAD841A.9060103@shikadi.net>
+From: Adam Nielsen <a.nielsen@shikadi.net>
+Subject: Re: [PATCH v2] Add refcounts to LED target
+Date: Sun, 28 Mar 2010 11:25:39 +1000
+Message-ID: <4BAEB013.6060001@shikadi.net>
+References: <4A18A70F.50808@shikadi.net> <alpine.LSU.2.00.0905240933050.18758@fbirervta.pbzchgretzou.qr> <4A1DC798.1090604@shikadi.net> <4A26418C.5090707@trash.net> <4A265891.4050201@shikadi.net> <4AF2E8A5.7020409@trash.net> <4AF34C03.7020907@shikadi.net> <4AF43916.5010408@trash.net> <4B11D1B5.2060306@shikadi.net> <alpine.LSU.2.00.0911291055020.24432@obet.zrqbmnf.qr> <4B125C18.7060802@shikadi.net> <alpine.LSU.2.00.0911291646380.6794@obet.zrqbmnf.qr> <4B14EA81.5030603@trash.net> <4B1B82D5.2070607@shikadi.net> <4B1BB086.3030700@trash.net> <4BAB6CB2.3050904@trash.net> <alpine.LSU.2.01.1003251504500.32573@obet.zrqbmnf.qr> <4BAB6E70.8090605@trash.net> <4BAD841A.9060103@shikadi.net> <alpine.LSU.2.01.1003271214440.13915@obet.zrqbmnf.qr> <4BADEE6A.5000103@shikadi.net> <alpine.LSU.2.01.100327125319
+ 0.1149@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/mixed;
+ boundary="------------010101050204040501020400"
 Cc: Patrick McHardy <kaber@trash.net>,
 	Netfilter Developer Mailing List
 	<netfilter-devel@vger.kernel.org>
-To: Adam Nielsen <a.nielsen@shikadi.net>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:59919 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753780Ab0C0Smg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 27 Mar 2010 14:42:36 -0400
-In-Reply-To: <4BAD841A.9060103@shikadi.net>
+Received: from vitalin.sorra.shikadi.net ([64.71.152.201]:45871 "EHLO
+	vitalin.sorra.shikadi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754469Ab0C1BZq (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 27 Mar 2010 21:25:46 -0400
+In-Reply-To: <alpine.LSU.2.01.1003271253190.1149@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This is a multi-part message in MIME format.
+--------------010101050204040501020400
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Saturday 2010-03-27 05:05, Adam Nielsen wrote:
->>> I want to give this a look, but I notice there's no iptables module
->>> files for xt_LED yet either.
->> 
->> Correct, I didn't add it while this was still unfixed to keep
->> the possibility of removing the module again. You should be able
->> to find it in the mailing list archives.
->
->I can post this again if you'd like to take a look.  I also have a kernel
->module that makes your keyboard LEDs available as LED devices if you want to
->test it out too.  (I could certainly use some feedback on that!)
+Add reference counting to the LED target so that multiple targets sharing the
+same trigger don't cause any problems.
 
-Yes that would be nice, as I don't have any other LED hardware around
-other than a cramped WRT54 device.
+Signed-off-by: Adam Nielsen <a.nielsen@shikadi.net>
+
+--
+
+>> I've tested it and it works well for me, so subject to any feedback I believe
+>> it is ready to be included.
+> 
+> You need to protect the list_add/list_del from concurrent operation.
+> 
+> You need to check the return value of
+> 
+> ledinternal->trigger_id = kzalloc(strlen(ledinfo->id) + 1, GFP_KERNEL);
+
+Thanks for looking at it so quickly!  I've attached an updated patch which
+hopefully addresses these issues.
+
+Cheers,
+Adam.
+
+--------------010101050204040501020400
+Content-Type: text/plain;
+ name="netfilter-leds-add_refcount_v2.patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="netfilter-leds-add_refcount_v2.patch"
+
+ZGlmZiAtLWdpdCBhL25ldC9uZXRmaWx0ZXIveHRfTEVELmMgYi9uZXQvbmV0ZmlsdGVyL3h0
+X0xFRC5jCmluZGV4IGY1MTFiZWEuLmZlY2UwNDkgMTAwNjQ0Ci0tLSBhL25ldC9uZXRmaWx0
+ZXIveHRfTEVELmMKKysrIGIvbmV0L25ldGZpbHRlci94dF9MRUQuYwpAQCAtMzEsMTIgKzMx
+LDE4IEBAIE1PRFVMRV9MSUNFTlNFKCJHUEwiKTsKIE1PRFVMRV9BVVRIT1IoIkFkYW0gTmll
+bHNlbiA8YS5uaWVsc2VuQHNoaWthZGkubmV0PiIpOwogTU9EVUxFX0RFU0NSSVBUSU9OKCJY
+dGFibGVzOiB0cmlnZ2VyIExFRCBkZXZpY2VzIG9uIHBhY2tldCBtYXRjaCIpOwogCitzdGF0
+aWMgTElTVF9IRUFEKHh0X2xlZF90cmlnZ2Vycyk7CitzdGF0aWMgREVGSU5FX01VVEVYKHh0
+X2xlZF9tdXRleCk7CisKIC8qCiAgKiBUaGlzIGlzIGRlY2xhcmVkIGluIGhlcmUgKHRoZSBr
+ZXJuZWwgbW9kdWxlKSBvbmx5LCB0byBhdm9pZCBoYXZpbmcgdGhlc2UKICAqIGRlcGVuZGVu
+Y2llcyBpbiB1c2Vyc3BhY2UgY29kZS4gIFRoaXMgaXMgd2hhdCB4dF9sZWRfaW5mby5pbnRl
+cm5hbF9kYXRhCiAgKiBwb2ludHMgdG8uCiAgKi8KIHN0cnVjdCB4dF9sZWRfaW5mb19pbnRl
+cm5hbCB7CisJc3RydWN0IGxpc3RfaGVhZCBsaXN0OworCWludCByZWZjbnQ7CisJY2hhciAq
+dHJpZ2dlcl9pZDsKIAlzdHJ1Y3QgbGVkX3RyaWdnZXIgbmV0ZmlsdGVyX2xlZF90cmlnZ2Vy
+OwogCXN0cnVjdCB0aW1lcl9saXN0IHRpbWVyOwogfTsKQEAgLTUzLDcgKzU5LDcgQEAgbGVk
+X3RnKHN0cnVjdCBza19idWZmICpza2IsIGNvbnN0IHN0cnVjdCB4dF90YXJnZXRfcGFyYW0g
+KnBhcikKIAkgKi8KIAlpZiAoKGxlZGluZm8tPmRlbGF5ID4gMCkgJiYgbGVkaW5mby0+YWx3
+YXlzX2JsaW5rICYmCiAJICAgIHRpbWVyX3BlbmRpbmcoJmxlZGludGVybmFsLT50aW1lcikp
+Ci0JCWxlZF90cmlnZ2VyX2V2ZW50KCZsZWRpbnRlcm5hbC0+bmV0ZmlsdGVyX2xlZF90cmln
+Z2VyLExFRF9PRkYpOworCQlsZWRfdHJpZ2dlcl9ldmVudCgmbGVkaW50ZXJuYWwtPm5ldGZp
+bHRlcl9sZWRfdHJpZ2dlciwgTEVEX09GRik7CiAKIAlsZWRfdHJpZ2dlcl9ldmVudCgmbGVk
+aW50ZXJuYWwtPm5ldGZpbHRlcl9sZWRfdHJpZ2dlciwgTEVEX0ZVTEwpOwogCkBAIC03NCwx
+MiArODAsMjYgQEAgbGVkX3RnKHN0cnVjdCBza19idWZmICpza2IsIGNvbnN0IHN0cnVjdCB4
+dF90YXJnZXRfcGFyYW0gKnBhcikKIAogc3RhdGljIHZvaWQgbGVkX3RpbWVvdXRfY2FsbGJh
+Y2sodW5zaWduZWQgbG9uZyBkYXRhKQogewotCXN0cnVjdCB4dF9sZWRfaW5mbyAqbGVkaW5m
+byA9IChzdHJ1Y3QgeHRfbGVkX2luZm8gKilkYXRhOwotCXN0cnVjdCB4dF9sZWRfaW5mb19p
+bnRlcm5hbCAqbGVkaW50ZXJuYWwgPSBsZWRpbmZvLT5pbnRlcm5hbF9kYXRhOworCXN0cnVj
+dCB4dF9sZWRfaW5mb19pbnRlcm5hbCAqbGVkaW50ZXJuYWwgPSAoc3RydWN0IHh0X2xlZF9p
+bmZvX2ludGVybmFsICopZGF0YTsKIAogCWxlZF90cmlnZ2VyX2V2ZW50KCZsZWRpbnRlcm5h
+bC0+bmV0ZmlsdGVyX2xlZF90cmlnZ2VyLCBMRURfT0ZGKTsKIH0KIAorc3RhdGljIHN0cnVj
+dCB4dF9sZWRfaW5mb19pbnRlcm5hbCAqbGVkX3RyaWdnZXJfbG9va3VwKGNvbnN0IGNoYXIg
+Km5hbWUpCit7CisJc3RydWN0IHh0X2xlZF9pbmZvX2ludGVybmFsICpsZWRpbnRlcm5hbDsK
+KworCW11dGV4X2xvY2soJnh0X2xlZF9tdXRleCk7CisJbGlzdF9mb3JfZWFjaF9lbnRyeShs
+ZWRpbnRlcm5hbCwgJnh0X2xlZF90cmlnZ2VycywgbGlzdCkgeworCQlpZiAoIXN0cmNtcChu
+YW1lLCBsZWRpbnRlcm5hbC0+bmV0ZmlsdGVyX2xlZF90cmlnZ2VyLm5hbWUpKSB7CisJCQlt
+dXRleF91bmxvY2soJnh0X2xlZF9tdXRleCk7CisJCQlyZXR1cm4gbGVkaW50ZXJuYWw7CisJ
+CX0KKwl9CisJbXV0ZXhfdW5sb2NrKCZ4dF9sZWRfbXV0ZXgpOworCXJldHVybiBOVUxMOwor
+fQorCiBzdGF0aWMgYm9vbCBsZWRfdGdfY2hlY2soY29uc3Qgc3RydWN0IHh0X3RnY2hrX3Bh
+cmFtICpwYXIpCiB7CiAJc3RydWN0IHh0X2xlZF9pbmZvICpsZWRpbmZvID0gcGFyLT50YXJn
+aW5mbzsKQEAgLTkxLDExICsxMTEsMjMgQEAgc3RhdGljIGJvb2wgbGVkX3RnX2NoZWNrKGNv
+bnN0IHN0cnVjdCB4dF90Z2Noa19wYXJhbSAqcGFyKQogCQlyZXR1cm4gZmFsc2U7CiAJfQog
+CisJbGVkaW50ZXJuYWwgPSBsZWRfdHJpZ2dlcl9sb29rdXAobGVkaW5mby0+aWQpOworCWlm
+IChsZWRpbnRlcm5hbCkgeworCQlsZWRpbnRlcm5hbC0+cmVmY250Kys7CisJCWdvdG8gb3V0
+OworCX0KKwogCWxlZGludGVybmFsID0ga3phbGxvYyhzaXplb2Yoc3RydWN0IHh0X2xlZF9p
+bmZvX2ludGVybmFsKSwgR0ZQX0tFUk5FTCk7CiAJaWYgKCFsZWRpbnRlcm5hbCkKIAkJcmV0
+dXJuIGZhbHNlOwogCi0JbGVkaW50ZXJuYWwtPm5ldGZpbHRlcl9sZWRfdHJpZ2dlci5uYW1l
+ID0gbGVkaW5mby0+aWQ7CisJbGVkaW50ZXJuYWwtPnRyaWdnZXJfaWQgPSBremFsbG9jKHN0
+cmxlbihsZWRpbmZvLT5pZCkgKyAxLCBHRlBfS0VSTkVMKTsKKwlpZiAoIWxlZGludGVybmFs
+LT50cmlnZ2VyX2lkKQorCQlnb3RvIGV4aXRfaW50ZXJuYWxfYWxsb2M7CisKKwlsZWRpbnRl
+cm5hbC0+cmVmY250ID0gMTsKKwlzdHJjcHkobGVkaW50ZXJuYWwtPnRyaWdnZXJfaWQsIGxl
+ZGluZm8tPmlkKTsKKwlsZWRpbnRlcm5hbC0+bmV0ZmlsdGVyX2xlZF90cmlnZ2VyLm5hbWUg
+PSBsZWRpbnRlcm5hbC0+dHJpZ2dlcl9pZDsKIAogCWVyciA9IGxlZF90cmlnZ2VyX3JlZ2lz
+dGVyKCZsZWRpbnRlcm5hbC0+bmV0ZmlsdGVyX2xlZF90cmlnZ2VyKTsKIAlpZiAoZXJyKSB7
+CkBAIC0xMDgsMTMgKzE0MCwyMSBAQCBzdGF0aWMgYm9vbCBsZWRfdGdfY2hlY2soY29uc3Qg
+c3RydWN0IHh0X3RnY2hrX3BhcmFtICpwYXIpCiAJLyogU2VlIGlmIHdlIG5lZWQgdG8gc2V0
+IHVwIGEgdGltZXIgKi8KIAlpZiAobGVkaW5mby0+ZGVsYXkgPiAwKQogCQlzZXR1cF90aW1l
+cigmbGVkaW50ZXJuYWwtPnRpbWVyLCBsZWRfdGltZW91dF9jYWxsYmFjaywKLQkJCSAgICAo
+dW5zaWduZWQgbG9uZylsZWRpbmZvKTsKKwkJCSAgICAodW5zaWduZWQgbG9uZylsZWRpbnRl
+cm5hbCk7CiAKKwltdXRleF9sb2NrKCZ4dF9sZWRfbXV0ZXgpOworCWxpc3RfYWRkX3RhaWwo
+JmxlZGludGVybmFsLT5saXN0LCAmeHRfbGVkX3RyaWdnZXJzKTsKKwltdXRleF91bmxvY2so
+Jnh0X2xlZF9tdXRleCk7CisKK291dDoKIAlsZWRpbmZvLT5pbnRlcm5hbF9kYXRhID0gbGVk
+aW50ZXJuYWw7CiAKIAlyZXR1cm4gdHJ1ZTsKIAogZXhpdF9hbGxvYzoKKwlrZnJlZShsZWRp
+bnRlcm5hbC0+dHJpZ2dlcl9pZCk7CisKK2V4aXRfaW50ZXJuYWxfYWxsb2M6CiAJa2ZyZWUo
+bGVkaW50ZXJuYWwpOwogCiAJcmV0dXJuIGZhbHNlOwpAQCAtMTI1LDEwICsxNjUsMTggQEAg
+c3RhdGljIHZvaWQgbGVkX3RnX2Rlc3Ryb3koY29uc3Qgc3RydWN0IHh0X3RnZHRvcl9wYXJh
+bSAqcGFyKQogCWNvbnN0IHN0cnVjdCB4dF9sZWRfaW5mbyAqbGVkaW5mbyA9IHBhci0+dGFy
+Z2luZm87CiAJc3RydWN0IHh0X2xlZF9pbmZvX2ludGVybmFsICpsZWRpbnRlcm5hbCA9IGxl
+ZGluZm8tPmludGVybmFsX2RhdGE7CiAKKwlpZiAoLS1sZWRpbnRlcm5hbC0+cmVmY250KQor
+CQlyZXR1cm47CisKKwltdXRleF9sb2NrKCZ4dF9sZWRfbXV0ZXgpOworCWxpc3RfZGVsKCZs
+ZWRpbnRlcm5hbC0+bGlzdCk7CisJbXV0ZXhfdW5sb2NrKCZ4dF9sZWRfbXV0ZXgpOworCiAJ
+aWYgKGxlZGluZm8tPmRlbGF5ID4gMCkKIAkJZGVsX3RpbWVyX3N5bmMoJmxlZGludGVybmFs
+LT50aW1lcik7CiAKIAlsZWRfdHJpZ2dlcl91bnJlZ2lzdGVyKCZsZWRpbnRlcm5hbC0+bmV0
+ZmlsdGVyX2xlZF90cmlnZ2VyKTsKKwlrZnJlZShsZWRpbnRlcm5hbC0+dHJpZ2dlcl9pZCk7
+CiAJa2ZyZWUobGVkaW50ZXJuYWwpOwogfQogCg==
+--------------010101050204040501020400--
