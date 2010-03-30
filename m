@@ -1,7 +1,7 @@
 From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: [PATCH/RFC 0/5] bridge-netfilter
-Date: Tue, 30 Mar 2010 16:15:37 +0200
-Message-ID: <4BB20789.7030307@pandora.be>
+Subject: [PATCH:RFC 1/5] bridge-netfilter: cleanup br_netfilter.c
+Date: Tue, 30 Mar 2010 16:15:44 +0200
+Message-ID: <4BB20790.6050300@pandora.be>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
@@ -11,91 +11,124 @@ To: Netfilter Developer Mailing List
 Return-path: <netfilter-devel-owner@vger.kernel.org>
 Received: from juliette.telenet-ops.be ([195.130.137.74]:53197 "EHLO
 	juliette.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752272Ab0C3OPk (ORCPT
+	with ESMTP id S1752272Ab0C3OPp (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 30 Mar 2010 10:15:40 -0400
+	Tue, 30 Mar 2010 10:15:45 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
-
-The following patches incorporate some cleanup and fixes for
-bridge-netfilter. Please comment or apply.
-
-[1/5] cleanup br_netfilter.c:
-  - remove some of the graffiti at the head of br_netfilter.c
-  - remove __br_dnat_complain()
-  - remove KERN_INFO messages when CONFIG_NETFILTER_DEBUG is defined
-
-[2/5] update a comment in br_forward.c about ip_fragment()
-ip_refrag isn't used anymore in the bridge-netfilter code
-
-[3/5] simplify IP DNAT and fix IP DNAT on encapsulated packets
-  - Add some code in br_device.c::br_dev_xmit() which enables the
-removal of br_netfilter.c::br_nf_local_out(). The function
-br_nf_local_out() was needed because the PF_BRIDGE::LOCAL_OUT hook could
-be called when IP DNAT happens on to-be-bridged traffic. The new scheme
-eliminates this mess.
-  - Speed up IP DNAT. To obtain the correct destination MAC address,
-neigh_hh_output() or dst->neighbour->output() is called. In both cases
-this results in the queueing of the packet. However, if dst->hh is
-available, we already know the MAC address so we can just copy it
-instead, removing the need for neigh_hh_output(). This MAC address is
-copied in the new function neigh_hh_bridge().
-  - fix IP DNAT on vlan- or pppoe-encapsulated traffic: The functions
-neigh_hh_output() or dst->neighbour->output() overwrite the complete
-Ethernet header, although we only need the destination MAC address. For
-encapsulated packets, they ended up overwriting the encapsulating
-header. The new code copies the Ethernet source MAC address and protocol
-number before calling dst->neighbour->output(). The Ethernet source MAC
-and protocol number are copied back in place in
-br_nf_pre_routing_finish_bridge_slow(). This also makes the IP DNAT more
-transparent because in the old scheme the source MAC of the bridge was
-copied into the source address in the Ethernet header. We also let
-skb->protocol equal ETH_P_IP resp. ETH_P_IPV6 during the execution of
-the PF_INET resp. PF_INET6 hooks.
-
-[4/5] fix refragmenting IP traffic encapsulated in PPPoE traffic:
-The MTU for IP traffic encapsulated inside PPPoE traffic is smaller than
-the MTU of the Ethernet device (1500). Connection tracking gathers all
-IP packets and sometimes will refragment them in ip_fragment(). We then
-need to subtract the length of the encapsulating header from the mtu
-used in ip_fragment(). The check in br_nf_dev_queue_xmit() which
-determines if ip_fragment() has to be called is also updated for the
-PPPoE-encapsulated packets. nf_bridge_copy_header() is also updated to
-make sure the PPPoE data length field has the correct value.
-
-[5/5] use the vlan id as part of the connection tracking tuple for
-bridged traffic:
-Currently connection tracking isn't aware of the vlan id that bridged
-encapsulated IP packets belong to. Since it's possible to enable
-filtering of bridged IP traffic encapsulated in a vlan header, we have a
-security risk if an overlapping IP network range is used on different
-vlan networks. By making the connection tracking code use the vlan id as
-part of the tuple, we eliminate this security risk. Something similar
-could be done for IP traffic encapsulated in PPPoE, but I'm not sure
-it's worth the effort.
-
- include/linux/netfilter_bridge.h           |   20 +-
- include/net/neighbour.h                    |   14 +
- include/net/netfilter/nf_conntrack_tuple.h |    9 -
- net/bridge/br_device.c                     |   15 +
- net/bridge/br_forward.c                    |    2
- net/bridge/br_netfilter.c                  |  250
-+++++++++--------------------
- net/ipv4/ip_output.c                       |    4
- net/netfilter/nf_conntrack_core.c          |    9 +
- 8 files changed, 144 insertions(+), 179 deletions(-)
-
-Bart De Schuymer (5):
 bridge-netfilter: cleanup br_netfilter.c
-bridge-netfilter: update a comment in br_forward.c about ip_fragment()
-bridge-netfilter: simplify IP DNAT and fix IP DNAT on encapsulated packets
-bridge-netfilter: fix refragmenting IP traffic encapsulated in PPPoE traffic
-bridge-netfilter: use the vlan id as part of the connection tracking
-tuple for bridged traffic
+
+- remove some of the graffiti at the head of br_netfilter.c
+- remove __br_dnat_complain()
+- remove KERN_INFO messages when CONFIG_NETFILTER_DEBUG is defined
+
+Signed-off-by: Bart De Schuymer <bdschuym@pandora.be>
+
+--- linux-2.6.33/net/bridge/br_netfilter.c	2010-02-24 19:52:17.000000000 +0100
++++ linux-2.6.33-uml/net/bridge/br_netfilter.c	2010-03-30 11:29:51.000000000 +0200
+@@ -3,15 +3,8 @@
+  *	Linux ethernet bridge
+  *
+  *	Authors:
+- *	Lennert Buytenhek               <buytenh@gnu.org>
+- *	Bart De Schuymer (maintainer)	<bdschuym@pandora.be>
+- *
+- *	Changes:
+- *	Apr 29 2003: physdev module support (bdschuym)
+- *	Jun 19 2003: let arptables see bridged ARP traffic (bdschuym)
+- *	Oct 06 2003: filter encapsulated IP/ARP VLAN traffic on untagged bridge
+- *	             (bdschuym)
+- *	Sep 01 2004: add IPv6 filtering (bdschuym)
++ *	Lennert Buytenhek		<buytenh@gnu.org>
++ *	Bart De Schuymer		<bdschuym@pandora.be>
+  *
+  *	This program is free software; you can redistribute it and/or
+  *	modify it under the terms of the GNU General Public License
+@@ -252,17 +245,6 @@ static int br_nf_pre_routing_finish_ipv6
+ 	return 0;
+ }
+ 
+-static void __br_dnat_complain(void)
+-{
+-	static unsigned long last_complaint;
+-
+-	if (jiffies - last_complaint >= 5 * HZ) {
+-		printk(KERN_WARNING "Performing cross-bridge DNAT requires IP "
+-		       "forwarding to be enabled\n");
+-		last_complaint = jiffies;
+-	}
+-}
+-
+ /* This requires some explaining. If DNAT has taken place,
+  * we will need to fix up the destination Ethernet address,
+  * and this is a tricky process.
+@@ -378,11 +360,6 @@ static int br_nf_pre_routing_finish(stru
+ 					skb_dst_set(skb, (struct dst_entry *)rt);
+ 					goto bridged_dnat;
+ 				}
+-				/* we are sure that forwarding is disabled, so printing
+-				 * this message is no problem. Note that the packet could
+-				 * still have a martian destination address, in which case
+-				 * the packet could be dropped even if forwarding were enabled */
+-				__br_dnat_complain();
+ 				dst_release((struct dst_entry *)rt);
+ 			}
+ free_skb:
+@@ -819,17 +796,6 @@ static unsigned int br_nf_post_routing(u
+ 	struct net_device *realoutdev = bridge_parent(skb->dev);
+ 	u_int8_t pf;
+ 
+-#ifdef CONFIG_NETFILTER_DEBUG
+-	/* Be very paranoid. This probably won't happen anymore, but let's
+-	 * keep the check just to be sure... */
+-	if (skb_mac_header(skb) < skb->head ||
+-	    skb_mac_header(skb) + ETH_HLEN > skb->data) {
+-		printk(KERN_CRIT "br_netfilter: Argh!! br_nf_post_routing: "
+-		       "bad mac.raw pointer.\n");
+-		goto print_error;
+-	}
+-#endif
+-
+ 	if (!nf_bridge)
+ 		return NF_ACCEPT;
+ 
+@@ -848,13 +814,6 @@ static unsigned int br_nf_post_routing(u
+ 	else
+ 		return NF_ACCEPT;
+ 
+-#ifdef CONFIG_NETFILTER_DEBUG
+-	if (skb_dst(skb) == NULL) {
+-		printk(KERN_INFO "br_netfilter post_routing: skb->dst == NULL\n");
+-		goto print_error;
+-	}
+-#endif
+-
+ 	/* We assume any code from br_dev_queue_push_xmit onwards doesn't care
+ 	 * about the value of skb->pkt_type. */
+ 	if (skb->pkt_type == PACKET_OTHERHOST) {
+@@ -869,19 +828,6 @@ static unsigned int br_nf_post_routing(u
+ 		br_nf_dev_queue_xmit);
+ 
+ 	return NF_STOLEN;
+-
+-#ifdef CONFIG_NETFILTER_DEBUG
+-print_error:
+-	if (skb->dev != NULL) {
+-		printk("[%s]", skb->dev->name);
+-		if (realoutdev)
+-			printk("[%s]", realoutdev->name);
+-	}
+-	printk(" head:%p, raw:%p, data:%p\n", skb->head, skb_mac_header(skb),
+-	       skb->data);
+-	dump_stack();
+-	return NF_ACCEPT;
+-#endif
+ }
+ 
+ /* IP/SABOTAGE *****************************************************/
+
 
 -- 
 Bart De Schuymer
 www.artinalgorithms.be
-
