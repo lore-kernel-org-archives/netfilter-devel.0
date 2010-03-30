@@ -1,67 +1,44 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: Modifying ebtables to read the commands from a file
-Date: Sun, 28 Mar 2010 17:43:19 +0200
-Message-ID: <4BAF7917.2030207@pandora.be>
-References: <1269770877.2563.9.camel@qed> <alpine.LSU.2.01.1003281457380.22298@obet.zrqbmnf.qr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: debugging kernel during packet drops
+Date: Tue, 30 Mar 2010 14:06:37 +0200 (CEST)
+Message-ID: <alpine.LSU.2.01.1003301405490.10802@obet.zrqbmnf.qr>
+References: <4BA74950.6000305@infopact.nl> <4BA7A5D8.5080101@trash.net>  <4BA8DAC5.6050002@infopact.nl> <1269364893.2983.296.camel@edumazet-laptop>  <4BAA2DC5.7000409@infopact.nl>  <1269447674.3213.64.camel@edumazet-laptop> <1269509574.3626.9.camel@edumazet-laptop>
+ <4BAB3C8B.3030104@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Peter Gordon <peter@pg-consultants.com>,
-	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	Jorrit Kronjee <j.kronjee@infopact.nl>,
+	netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from brigitte.telenet-ops.be ([195.130.137.66]:50149 "EHLO
-	brigitte.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753878Ab0C1PnX (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 28 Mar 2010 11:43:23 -0400
-In-Reply-To: <alpine.LSU.2.01.1003281457380.22298@obet.zrqbmnf.qr>
+Received: from borg.medozas.de ([188.40.89.202]:48849 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756492Ab0C3MGl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 30 Mar 2010 08:06:41 -0400
+In-Reply-To: <4BAB3C8B.3030104@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt schreef:
-> On Sunday 2010-03-28 12:07, Peter Gordon wrote:
->
->   
->> I need to add a number of rules to the ebtables and I cannot afford the
->> fork overhead for each line.
->>     
->
-> The larger part of the overhead is due to the tables recomputed (dumped, 
-> rule added, restored) every time you call it. That's why one should use 
-> xx-restore.
->
->   
->> So what I want to do is to read each line
->>     
-> >from a file and have the program iterate over the file. 
->   
->> ebtables-save and ebtables-restore is not good enough for my
->> application, because I can't add rules incrementally.
->>     
->
-> Dump the rules with ebtables-save to a buffer, add your rules,
-> and use -restore. That's sort of incrementally, and the fastest
-> way to put a ruleset in atomic fashion into place.
->   
-That's indeed the easiest way to do it. The only problem is that the
-counters of already existing rules won't always be correct because
-packets will traverse the chains between the -save and -restore time.
-It's probably not so hard to alter ebtables-restore to keep the counters
-correct.
-A few years ago I experimented with an ebtables 'daemon' that would run
-in the background and commands could be sent to it through a pipe. This
-has the advantage that the distinction between added and already
-existing rules is maintained, enabling correct counters. The changed
-table is updated in userspace and only committed to the kernel when a
-specific command is given. See ebtablesd.c and ebtablesu.c for the code.
-Performance tests are available in examples/perf_test/perf_test. I'm not
-maintaining these files for free, though.
+On Thursday 2010-03-25 11:35, Patrick McHardy wrote:
 
-cheers,
-Bart
+>Eric Dumazet wrote:
+>> Here is patch I cooked for xt_hashlimit (on top of net-next-2.6) to make
+>> it use RCU and scale better in your case (allowing several concurrent
+>> cpus once RPS is activated), but also on more general cases.
+>> 
+>> [PATCH] xt_hashlimit: RCU conversion
+>> 
+>> xt_hashlimit uses a central lock per hash table and suffers from
+>> contention on some workloads.
+>> 
+>> After RCU conversion, central lock is only used when a writer wants to
+>> add or delete an entry. For 'readers', updating an existing entry, they
+>> use an individual lock per entry.
+>
+>This clashes with some recent cleanups in nf-next-2.6.git. I'm
+>also expecting a patch from Jan to remove the old v0 revision
+>very soon (probably today). Please rediff once I've pushed that out.
 
--- 
-Bart De Schuymer
-www.artinalgorithms.be
+One 12-series request has been sitting there for a while. Was there 
+something not in order with it?
 
