@@ -1,32 +1,80 @@
-From: agashi shipora <gashipo@gmail.com>
-Subject: uisng L7 filter in ebtables commands
-Date: Wed, 31 Mar 2010 23:54:28 +0530
-Message-ID: <x2v861e3bca1003311124sa0aa2ab6y94fa42c650ef16f8@mail.gmail.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [net-next-2.6 PATCH] netfilter: ctnetlink: compute message
+ size properly
+Date: Wed, 31 Mar 2010 20:35:43 +0200
+Message-ID: <1270060543.1931.20.camel@edumazet-laptop>
+References: <20100331151102.GB8043@psychotron.lab.eng.brq.redhat.com>
+	 <4BB38A8A.9050501@trash.net>  <20100331182116.GB2822@psychotron.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: netfilter@vger.kernel.org
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	davem@davemloft.net, Krzysztof Oledzki <ole@ans.pl>
+To: Jiri Pirko <jpirko@redhat.com>
 Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <20100331182116.GB2822@psychotron.redhat.com>
 Sender: netfilter-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-I want to use L7 filter with ebtables for setting a MARK on the packet
-similar to how it is being done with iptables today.
+Le mercredi 31 mars 2010 =C3=A0 20:21 +0200, Jiri Pirko a =C3=A9crit :
+> Okay, I see your point. How about this:
+>=20
+> Subject: [net-next-2.6 PATCH] netfilter: ctnetlink: compute message s=
+ize properly V2
+>=20
+> Message size should be dependent on net->ct.sysctl_acct, not on
+> CONFIG_NF_CT_ACCT definition.
+>=20
 
-Using brouting the bridge packet can be re-directed to the routing
-path traversing the iptables.But all packets arriving on the interface
-enslaved to the bridge would have to be brouted.This may not be
-acceptable as a solution in my case.
+Then Changelog is not updated with the actual test :)
 
-example:
-Whats available:
-iptables -t filter -A FORWARD -m layer7 --l7proto edonkey -j MARK --set-mark 3
+> Signed-off-by: Jiri Pirko <jpirko@redhat.com>
+>=20
+> diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_=
+conntrack_netlink.c
+> index 569410a..44487d8 100644
+> --- a/net/netfilter/nf_conntrack_netlink.c
+> +++ b/net/netfilter/nf_conntrack_netlink.c
+> @@ -426,6 +426,17 @@ ctnetlink_proto_size(const struct nf_conn *ct)
+>  }
+> =20
+>  static inline size_t
+> +ctnetlink_counters_size(const struct nf_conn *ct)
+> +{
+> +	if (!nf_ct_ext_exist(ct, NF_CT_EXT_ACCT))
+> +		return 0;
+> +	return 2 * nla_total_size(0) /* CTA_COUNTERS_ORIG|REPL */
+> +	       + 2 * nla_total_size(sizeof(uint64_t)) /* CTA_COUNTERS_PACKE=
+TS */
+> +	       + 2 * nla_total_size(sizeof(uint64_t)) /* CTA_COUNTERS_BYTES=
+ */
+> +	       ;
+> +}
+> +
+> +static inline size_t
+>  ctnetlink_nlmsg_size(const struct nf_conn *ct)
+>  {
+>  	return NLMSG_ALIGN(sizeof(struct nfgenmsg))
+> @@ -435,11 +446,7 @@ ctnetlink_nlmsg_size(const struct nf_conn *ct)
+>  	       + 3 * nla_total_size(sizeof(u_int8_t)) /* CTA_PROTO_NUM */
+>  	       + nla_total_size(sizeof(u_int32_t)) /* CTA_ID */
+>  	       + nla_total_size(sizeof(u_int32_t)) /* CTA_STATUS */
+> -#ifdef CONFIG_NF_CT_ACCT
+> -	       + 2 * nla_total_size(0) /* CTA_COUNTERS_ORIG|REPL */
+> -	       + 2 * nla_total_size(sizeof(uint64_t)) /* CTA_COUNTERS_PACKE=
+TS */
+> -	       + 2 * nla_total_size(sizeof(uint64_t)) /* CTA_COUNTERS_BYTES=
+ */
+> -#endif
+> +	       + ctnetlink_counters_size(ct)
+>  	       + nla_total_size(sizeof(u_int32_t)) /* CTA_TIMEOUT */
+>  	       + nla_total_size(0) /* CTA_PROTOINFO */
+>  	       + nla_total_size(0) /* CTA_HELP */
+> --
+> To unsubscribe from this list: send the line "unsubscribe netdev" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>=20
 
-What needs to be supported:
-ebtables -t nat -A PRE-ROUTING -m layer7 --l7proto edonkey -j MARK --mark-set 3
 
-Is any work going on to port L7 filter to ebtables or does this port
-of L7 filter already exist?
-
-Thanks
-GP
