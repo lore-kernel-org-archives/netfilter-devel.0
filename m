@@ -1,129 +1,150 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 3/4] netfilter: xtables: remove xt_string revision 0
-Date: Wed, 31 Mar 2010 10:03:47 +0200
-Message-ID: <1270022629-2494-4-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 2/4] netfilter: xtables: remove xt_multiport revision 0
+Date: Wed, 31 Mar 2010 10:03:46 +0200
+Message-ID: <1270022629-2494-3-git-send-email-jengelh@medozas.de>
 References: <1270022629-2494-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:40390 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:40387 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751906Ab0CaIDz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 31 Mar 2010 04:03:55 -0400
+	id S1757013Ab0CaIDx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 31 Mar 2010 04:03:53 -0400
 In-Reply-To: <1270022629-2494-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Superseded by xt_string revision 1 (linux v2.6.26-rc8-1127-g4ad3f26,
-iptables 1.4.2-rc1).
+Superseded by xt_multiport revision 1 (introduction already predates
+linux.git).
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- Documentation/Changes     |    2 +-
- net/netfilter/xt_string.c |   53 +++++++++++++++-----------------------------
- 2 files changed, 19 insertions(+), 36 deletions(-)
+ net/netfilter/xt_multiport.c |   77 ------------------------------------------
+ 1 files changed, 0 insertions(+), 77 deletions(-)
 
-diff --git a/Documentation/Changes b/Documentation/Changes
-index f08b313..eca9f6e 100644
---- a/Documentation/Changes
-+++ b/Documentation/Changes
-@@ -49,7 +49,7 @@ o  oprofile               0.9                     # oprofiled --version
- o  udev                   081                     # udevinfo -V
- o  grub                   0.93                    # grub --version
- o  mcelog		  0.6
--o  iptables               1.4.1                   # iptables -V
-+o  iptables               1.4.2                   # iptables -V
+diff --git a/net/netfilter/xt_multiport.c b/net/netfilter/xt_multiport.c
+index b446738..83b77ce 100644
+--- a/net/netfilter/xt_multiport.c
++++ b/net/netfilter/xt_multiport.c
+@@ -28,23 +28,6 @@ MODULE_ALIAS("ip6t_multiport");
  
- 
- Kernel compilation
-diff --git a/net/netfilter/xt_string.c b/net/netfilter/xt_string.c
-index b0f8292..488e368 100644
---- a/net/netfilter/xt_string.c
-+++ b/net/netfilter/xt_string.c
-@@ -26,12 +26,10 @@ string_mt(const struct sk_buff *skb, const struct xt_match_param *par)
- {
- 	const struct xt_string_info *conf = par->matchinfo;
- 	struct ts_state state;
--	int invert;
-+	bool invert;
- 
- 	memset(&state, 0, sizeof(struct ts_state));
+ /* Returns 1 if the port is matched by the test, 0 otherwise. */
+ static inline bool
+-ports_match_v0(const u_int16_t *portlist, enum xt_multiport_flags flags,
+-	       u_int8_t count, u_int16_t src, u_int16_t dst)
+-{
+-	unsigned int i;
+-	for (i = 0; i < count; i++) {
+-		if (flags != XT_MULTIPORT_DESTINATION && portlist[i] == src)
+-			return true;
 -
--	invert = (par->match->revision == 0 ? conf->u.v0.invert :
--				    conf->u.v1.flags & XT_STRING_FLAG_INVERT);
-+	invert = conf->u.v1.flags & XT_STRING_FLAG_INVERT;
- 
- 	return (skb_find_text((struct sk_buff *)skb, conf->from_offset,
- 			     conf->to_offset, conf->config, &state)
-@@ -53,13 +51,11 @@ static int string_mt_check(const struct xt_mtchk_param *par)
- 		return -EINVAL;
- 	if (conf->patlen > XT_STRING_MAX_PATTERN_SIZE)
- 		return -EINVAL;
--	if (par->match->revision == 1) {
--		if (conf->u.v1.flags &
--		    ~(XT_STRING_FLAG_IGNORECASE | XT_STRING_FLAG_INVERT))
--			return -EINVAL;
--		if (conf->u.v1.flags & XT_STRING_FLAG_IGNORECASE)
--			flags |= TS_IGNORECASE;
+-		if (flags != XT_MULTIPORT_SOURCE && portlist[i] == dst)
+-			return true;
 -	}
-+	if (conf->u.v1.flags &
-+	    ~(XT_STRING_FLAG_IGNORECASE | XT_STRING_FLAG_INVERT))
-+		return -EINVAL;
-+	if (conf->u.v1.flags & XT_STRING_FLAG_IGNORECASE)
-+		flags |= TS_IGNORECASE;
- 	ts_conf = textsearch_prepare(conf->algo, conf->pattern, conf->patlen,
- 				     GFP_KERNEL, flags);
- 	if (IS_ERR(ts_conf))
-@@ -74,38 +70,25 @@ static void string_mt_destroy(const struct xt_mtdtor_param *par)
- 	textsearch_destroy(STRING_TEXT_PRIV(par->matchinfo)->config);
+-
+-	return false;
+-}
+-
+-/* Returns 1 if the port is matched by the test, 0 otherwise. */
+-static inline bool
+ ports_match_v1(const struct xt_multiport_v1 *minfo,
+ 	       u_int16_t src, u_int16_t dst)
+ {
+@@ -89,30 +72,6 @@ ports_match_v1(const struct xt_multiport_v1 *minfo,
  }
  
--static struct xt_match xt_string_mt_reg[] __read_mostly = {
--	{
--		.name 		= "string",
+ static bool
+-multiport_mt_v0(const struct sk_buff *skb, const struct xt_match_param *par)
+-{
+-	const __be16 *pptr;
+-	__be16 _ports[2];
+-	const struct xt_multiport *multiinfo = par->matchinfo;
+-
+-	if (par->fragoff != 0)
+-		return false;
+-
+-	pptr = skb_header_pointer(skb, par->thoff, sizeof(_ports), _ports);
+-	if (pptr == NULL) {
+-		/* We've been asked to examine this packet, and we
+-		 * can't.  Hence, no choice but to drop.
+-		 */
+-		pr_debug("Dropping evil offset=0 tinygram.\n");
+-		*par->hotdrop = true;
+-		return false;
+-	}
+-
+-	return ports_match_v0(multiinfo->ports, multiinfo->flags,
+-	       multiinfo->count, ntohs(pptr[0]), ntohs(pptr[1]));
+-}
+-
+-static bool
+ multiport_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+ {
+ 	const __be16 *pptr;
+@@ -152,15 +111,6 @@ check(u_int16_t proto,
+ 		&& count <= XT_MULTI_PORTS;
+ }
+ 
+-static int multiport_mt_check_v0(const struct xt_mtchk_param *par)
+-{
+-	const struct ipt_ip *ip = par->entryinfo;
+-	const struct xt_multiport *multiinfo = par->matchinfo;
+-
+-	return check(ip->proto, ip->invflags, multiinfo->flags,
+-		     multiinfo->count);
+-}
+-
+ static int multiport_mt_check(const struct xt_mtchk_param *par)
+ {
+ 	const struct ipt_ip *ip = par->entryinfo;
+@@ -170,15 +120,6 @@ static int multiport_mt_check(const struct xt_mtchk_param *par)
+ 		     multiinfo->count);
+ }
+ 
+-static int multiport_mt6_check_v0(const struct xt_mtchk_param *par)
+-{
+-	const struct ip6t_ip6 *ip = par->entryinfo;
+-	const struct xt_multiport *multiinfo = par->matchinfo;
+-
+-	return check(ip->proto, ip->invflags, multiinfo->flags,
+-		     multiinfo->count);
+-}
+-
+ static int multiport_mt6_check(const struct xt_mtchk_param *par)
+ {
+ 	const struct ip6t_ip6 *ip = par->entryinfo;
+@@ -192,15 +133,6 @@ static struct xt_match multiport_mt_reg[] __read_mostly = {
+ 	{
+ 		.name		= "multiport",
+ 		.family		= NFPROTO_IPV4,
 -		.revision	= 0,
--		.family		= NFPROTO_UNSPEC,
--		.checkentry	= string_mt_check,
--		.match 		= string_mt,
--		.destroy 	= string_mt_destroy,
--		.matchsize	= sizeof(struct xt_string_info),
--		.me 		= THIS_MODULE
+-		.checkentry	= multiport_mt_check_v0,
+-		.match		= multiport_mt_v0,
+-		.matchsize	= sizeof(struct xt_multiport),
+-		.me		= THIS_MODULE,
 -	},
 -	{
--		.name 		= "string",
--		.revision	= 1,
--		.family		= NFPROTO_UNSPEC,
--		.checkentry	= string_mt_check,
--		.match 		= string_mt,
--		.destroy 	= string_mt_destroy,
--		.matchsize	= sizeof(struct xt_string_info),
--		.me 		= THIS_MODULE
+-		.name		= "multiport",
+-		.family		= NFPROTO_IPV4,
+ 		.revision	= 1,
+ 		.checkentry	= multiport_mt_check,
+ 		.match		= multiport_mt,
+@@ -210,15 +142,6 @@ static struct xt_match multiport_mt_reg[] __read_mostly = {
+ 	{
+ 		.name		= "multiport",
+ 		.family		= NFPROTO_IPV6,
+-		.revision	= 0,
+-		.checkentry	= multiport_mt6_check_v0,
+-		.match		= multiport_mt_v0,
+-		.matchsize	= sizeof(struct xt_multiport),
+-		.me		= THIS_MODULE,
 -	},
-+static struct xt_match xt_string_mt_reg __read_mostly = {
-+	.name       = "string",
-+	.revision   = 1,
-+	.family     = NFPROTO_UNSPEC,
-+	.checkentry = string_mt_check,
-+	.match      = string_mt,
-+	.destroy    = string_mt_destroy,
-+	.matchsize  = sizeof(struct xt_string_info),
-+	.me         = THIS_MODULE,
- };
- 
- static int __init string_mt_init(void)
- {
--	return xt_register_matches(xt_string_mt_reg,
--				   ARRAY_SIZE(xt_string_mt_reg));
-+	return xt_register_match(&xt_string_mt_reg);
- }
- 
- static void __exit string_mt_exit(void)
- {
--	xt_unregister_matches(xt_string_mt_reg, ARRAY_SIZE(xt_string_mt_reg));
-+	xt_unregister_match(&xt_string_mt_reg);
- }
- 
- module_init(string_mt_init);
+-	{
+-		.name		= "multiport",
+-		.family		= NFPROTO_IPV6,
+ 		.revision	= 1,
+ 		.checkentry	= multiport_mt6_check,
+ 		.match		= multiport_mt,
 -- 
 1.7.0.2
 
