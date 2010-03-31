@@ -1,36 +1,63 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: nf-next: obsolete old extension revisions
-Date: Wed, 31 Mar 2010 10:31:45 +0200
-Message-ID: <4BB30871.1040801@trash.net>
-References: <1270022629-2494-1-git-send-email-jengelh@medozas.de>
+Subject: Re: [PATCH:RFC 5/5] bridge-netfilter: use the vlan id as part of
+ the connection tracking tuple for bridged traffic
+Date: Wed, 31 Mar 2010 10:35:24 +0200
+Message-ID: <4BB3094C.7000505@trash.net>
+References: <4BB207B5.2020001@pandora.be> <1269962855.10116.15.camel@edumazet-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Bart De Schuymer <bdschuym@pandora.be>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Stephen Hemminger <shemminger@linux-foundation.org>
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:56952 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:57086 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932486Ab0CaIbq (ORCPT
+	with ESMTP id S932439Ab0CaIfZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 31 Mar 2010 04:31:46 -0400
-In-Reply-To: <1270022629-2494-1-git-send-email-jengelh@medozas.de>
+	Wed, 31 Mar 2010 04:35:25 -0400
+In-Reply-To: <1269962855.10116.15.camel@edumazet-laptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> The following changes since commit f95c74e33eff5e3fe9798e2dc0a7749150ea3f80:
->   Jan Engelhardt (1):
->         netfilter: xtables: shorten up return clause
-> 
-> are available in the git repository at:
-> 
->   git://dev.medozas.de/linux master
-> 
-> Jan Engelhardt (4):
->       netfilter: xtables: remove xt_hashlimit revision 0
->       netfilter: xtables: remove xt_multiport revision 0
->       netfilter: xtables: remove xt_string revision 0
->       netfilter: xtables: merge registration structure to NFPROTO_UNSPEC
+Eric Dumazet wrote:
+> Le mardi 30 mars 2010 =E0 16:16 +0200, Bart De Schuymer a =E9crit :
+>> @@ -163,7 +166,11 @@ static inline bool __nf_ct_tuple_dst_equ
+>>  {
+>>  	return (nf_inet_addr_cmp(&t1->dst.u3, &t2->dst.u3) &&
+>>  		t1->dst.u.all =3D=3D t2->dst.u.all &&
+>> -		t1->dst.protonum =3D=3D t2->dst.protonum);
+>> +		t1->dst.protonum =3D=3D t2->dst.protonum
+>> +#ifdef CONFIG_BRIDGE_NETFILTER
+>> +		&& likely(t1->dst.vlan_id =3D=3D t2->dst.vlan_id)
+>> +#endif
+>> +		);
+>>  }
+>> =20
+>>  static inline bool nf_ct_tuple_equal(const struct nf_conntrack_tupl=
+e *t1,
+>>
+>=20
+> This really sounds very strange, layering violation or something.
+>=20
+> You mix conntracking, bridge and vlan here.
 
-Pulled, thanks Jan.
+I agree, this is really wrong.
+
+> Why setups without bridge should not care of vlan + conntracking side
+> effects ?
+>=20
+> This whole idea was discussed last November :=20
+>=20
+> http://www.spinics.net/lists/netfilter-devel/msg10692.html
+>=20
+> Patrick spoke of 'conntrack zone', and we added this concept.
+
+Indeed, this seems like a better way.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
