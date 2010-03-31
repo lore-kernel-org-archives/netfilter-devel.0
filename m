@@ -1,45 +1,87 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: nf-next: obsolete old extension revisions
-Date: Wed, 31 Mar 2010 08:38:26 +0200
-Message-ID: <4BB2EDE2.5010607@trash.net>
-References: <1269533065-22318-1-git-send-email-jengelh@medozas.de> <4BB2E4E8.1070809@trash.net> <alpine.LSU.2.01.1003310804450.31767@obet.zrqbmnf.qr>
+From: Peter Gordon <peter@pg-consultants.com>
+Subject: Re: Modifying ebtables to read the commands from a file
+Date: Wed, 31 Mar 2010 10:23:54 +0300
+Message-ID: <1270020234.2792.11.camel@qed>
+References: <1269770877.2563.9.camel@qed>
+	 <alpine.LSU.2.01.1003281457380.22298@obet.zrqbmnf.qr>
+	 <4BAF7917.2030207@pandora.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	netfilter-devel@vger.kernel.org
+To: Bart De Schuymer <bdschuym@pandora.be>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:54650 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932451Ab0CaGi2 (ORCPT
+Received: from gold.securenet-server.net ([207.45.186.66]:60204 "EHLO
+	gold.securenet-server.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756335Ab0CaHYD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 31 Mar 2010 02:38:28 -0400
-In-Reply-To: <alpine.LSU.2.01.1003310804450.31767@obet.zrqbmnf.qr>
+	Wed, 31 Mar 2010 03:24:03 -0400
+In-Reply-To: <4BAF7917.2030207@pandora.be>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Wednesday 2010-03-31 08:00, Patrick McHardy wrote:
->> Jan Engelhardt wrote:
->>> (JFYI, the next pull group will be hashlimit v0 removal.)
->>>
->>> The following changes since commit 5dc7a6d5749d3ddbf9fbea9512cb45762428512c:
->>>   Jan Engelhardt (1):
->>>         netfilter: xt_recent: allow changing ip_list_[ug]id at runtime
-> 
-> 
-> The following changes since commit f95c74e33eff5e3fe9798e2dc0a7749150ea3f80:
->   Jan Engelhardt (1):
->         netfilter: xtables: shorten up return clause
-> 
-> are available in the git repository at:
-> 
->   git://dev.medozas.de/linux master
-> 
-> Jan Engelhardt (4):
->       netfilter: xtables: remove xt_hashlimit revision 0
->       netfilter: xtables: remove xt_multiport revision 0
->       netfilter: xtables: remove xt_string revision 0
->       netfilter: xtables: merge registration structure to NFPROTO_UNSPEC
+Thanks for the reply.
 
-It seems you forgot to post these patches.
+The counters are not particularly interesting in my application, so that
+isn't a problem.
+
+ebtables-restore replaces the rules atomically. There are two meanings
+in this context to "atomic".
+
+a) The old ruleset is deleted, and after, the new ruleset is applied
+atomically, at a single instant in time.
+
+or 
+
+b) The old ruleset is deleted and replaced by the new ruleset as one
+action - with no time gap between them.
+
+Peter
+
+
+On Sun, 2010-03-28 at 17:43 +0200, Bart De Schuymer wrote:
+> Jan Engelhardt schreef:
+> > On Sunday 2010-03-28 12:07, Peter Gordon wrote:
+> >
+> >   
+> >> I need to add a number of rules to the ebtables and I cannot afford the
+> >> fork overhead for each line.
+> >>     
+> >
+> > The larger part of the overhead is due to the tables recomputed (dumped, 
+> > rule added, restored) every time you call it. That's why one should use 
+> > xx-restore.
+> >
+> >   
+> >> So what I want to do is to read each line
+> >>     
+> > >from a file and have the program iterate over the file. 
+> >   
+> >> ebtables-save and ebtables-restore is not good enough for my
+> >> application, because I can't add rules incrementally.
+> >>     
+> >
+> > Dump the rules with ebtables-save to a buffer, add your rules,
+> > and use -restore. That's sort of incrementally, and the fastest
+> > way to put a ruleset in atomic fashion into place.
+> >   
+> That's indeed the easiest way to do it. The only problem is that the
+> counters of already existing rules won't always be correct because
+> packets will traverse the chains between the -save and -restore time.
+> It's probably not so hard to alter ebtables-restore to keep the counters
+> correct.
+> A few years ago I experimented with an ebtables 'daemon' that would run
+> in the background and commands could be sent to it through a pipe. This
+> has the advantage that the distinction between added and already
+> existing rules is maintained, enabling correct counters. The changed
+> table is updated in userspace and only committed to the kernel when a
+> specific command is given. See ebtablesd.c and ebtablesu.c for the code.
+> Performance tests are available in examples/perf_test/perf_test. I'm not
+> maintaining these files for free, though.
+> 
+> cheers,
+> Bart
+> 
+
+
