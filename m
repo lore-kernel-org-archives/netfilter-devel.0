@@ -1,48 +1,91 @@
-From: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>
-Subject: Re: [PATCH:RFC 5/5] bridge-netfilter: use the vlan id as part of
- the connection tracking tuple for bridged traffic
-Date: Wed, 31 Mar 2010 12:17:06 +0200
-Message-ID: <4BB32122.8070101@plouf.fr.eu.org>
-References: <4BB207B5.2020001@pandora.be> <1269962855.10116.15.camel@edumazet-laptop>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Bart De Schuymer <bdschuym@pandora.be>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Stephen Hemminger <shemminger@linux-foundation.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: [PATCH 5/5] netfilter: xt_TEE: have cloned packet travel through Xtables too
+Date: Wed, 31 Mar 2010 12:31:26 +0200
+Message-ID: <1270031487-15094-6-git-send-email-jengelh@medozas.de>
+References: <1270031487-15094-1-git-send-email-jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from poutre.nerim.net ([62.4.16.124]:64878 "EHLO poutre.nerim.net"
+Received: from borg.medozas.de ([188.40.89.202]:52726 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933151Ab0CaKRJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 31 Mar 2010 06:17:09 -0400
-In-Reply-To: <1269962855.10116.15.camel@edumazet-laptop>
+	id S933223Ab0CaKbg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 31 Mar 2010 06:31:36 -0400
+In-Reply-To: <1270031487-15094-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Dumazet a =E9crit :
->=20
-> This really sounds very strange, layering violation or something.
+Since Xtables is now reentrant/nestable, the cloned packet can also go
+through Xtables and be subject to rules itself.
 
-Isn't the whole bridge-netfilter concept already a layering violation b=
-y
-design ?
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ net/ipv4/ip_output.c   |    1 -
+ net/ipv6/ip6_output.c  |    1 -
+ net/netfilter/xt_TEE.c |   18 ++----------------
+ 3 files changed, 2 insertions(+), 18 deletions(-)
 
-> You mix conntracking, bridge and vlan here.
->=20
-> Why setups without bridge should not care of vlan + conntracking side
-> effects ?
+diff --git a/net/ipv4/ip_output.c b/net/ipv4/ip_output.c
+index 0abfdde..f09135e 100644
+--- a/net/ipv4/ip_output.c
++++ b/net/ipv4/ip_output.c
+@@ -309,7 +309,6 @@ int ip_output(struct sk_buff *skb)
+ 			    ip_finish_output,
+ 			    !(IPCB(skb)->flags & IPSKB_REROUTED));
+ }
+-EXPORT_SYMBOL_GPL(ip_output);
+ 
+ int ip_queue_xmit(struct sk_buff *skb, int ipfragok)
+ {
+diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
+index 307d8bf..7e10f62 100644
+--- a/net/ipv6/ip6_output.c
++++ b/net/ipv6/ip6_output.c
+@@ -176,7 +176,6 @@ int ip6_output(struct sk_buff *skb)
+ 			    ip6_finish_output,
+ 			    !(IP6CB(skb)->flags & IPSKB_REROUTED));
+ }
+-EXPORT_SYMBOL_GPL(ip6_output);
+ 
+ /*
+  *	xmit an sk_buff (used by TCP)
+diff --git a/net/netfilter/xt_TEE.c b/net/netfilter/xt_TEE.c
+index 96dd746..70078f1 100644
+--- a/net/netfilter/xt_TEE.c
++++ b/net/netfilter/xt_TEE.c
+@@ -130,21 +130,8 @@ tee_tg4(struct sk_buff *skb, const struct xt_target_param *par)
+ 	skb->nfctinfo = IP_CT_NEW;
+ 	nf_conntrack_get(skb->nfct);
+ #endif
+-	/*
+-	 * Xtables is not reentrant currently, so a choice has to be made:
+-	 * 1. return absolute verdict for the original and let the cloned
+-	 *    packet travel through the chains
+-	 * 2. let the original continue travelling and not pass the clone
+-	 *    to Xtables.
+-	 * #2 is chosen. Normally, we would use ip_local_out for the clone.
+-	 * Because iph->check is already correct and we don't pass it to
+-	 * Xtables anyway, a shortcut to dst_output [forwards to ip_output] can
+-	 * be taken. %IPSKB_REROUTED needs to be set so that ip_output does not
+-	 * invoke POSTROUTING on the cloned packet.
+-	 */
+-	IPCB(skb)->flags |= IPSKB_REROUTED;
+ 	if (tee_tg_route4(skb, info))
+-		ip_output(skb);
++		ip_local_out(skb);
+ 
+ 	return XT_CONTINUE;
+ }
+@@ -199,9 +186,8 @@ tee_tg6(struct sk_buff *skb, const struct xt_target_param *par)
+ 		struct ipv6hdr *iph = ipv6_hdr(skb);
+ 		--iph->hop_limit;
+ 	}
+-	IP6CB(skb)->flags |= IPSKB_REROUTED;
+ 	if (tee_tg_route6(skb, info))
+-		ip6_output(skb);
++		ip6_local_out(skb);
+ 
+ 	return XT_CONTINUE;
+ }
+-- 
+1.7.0.2
 
-Because without bridge, the host is attached at the IP layer level to
-the VLANs, so their IP ranges are not supposed to overlap.
-
-Anyway your objection applies to hosts with multiple bridges without
-VLAN so the bridges may see overlapping IP ranges. Conntrack zones with
-a dedicated target seems a more generic approach.
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
