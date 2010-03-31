@@ -1,87 +1,35 @@
-From: Peter Gordon <peter@pg-consultants.com>
-Subject: Re: Modifying ebtables to read the commands from a file
-Date: Wed, 31 Mar 2010 10:23:54 +0300
-Message-ID: <1270020234.2792.11.camel@qed>
-References: <1269770877.2563.9.camel@qed>
-	 <alpine.LSU.2.01.1003281457380.22298@obet.zrqbmnf.qr>
-	 <4BAF7917.2030207@pandora.be>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	netfilter-devel@vger.kernel.org
-To: Bart De Schuymer <bdschuym@pandora.be>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: nf-next: obsolete old extension revisions
+Date: Wed, 31 Mar 2010 10:03:44 +0200
+Message-ID: <1270022629-2494-1-git-send-email-jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from gold.securenet-server.net ([207.45.186.66]:60204 "EHLO
-	gold.securenet-server.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756335Ab0CaHYD (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 31 Mar 2010 03:24:03 -0400
-In-Reply-To: <4BAF7917.2030207@pandora.be>
+Received: from borg.medozas.de ([188.40.89.202]:40381 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751906Ab0CaIDw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 31 Mar 2010 04:03:52 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Thanks for the reply.
 
-The counters are not particularly interesting in my application, so that
-isn't a problem.
+The following changes since commit f95c74e33eff5e3fe9798e2dc0a7749150ea3f80:
+  Jan Engelhardt (1):
+        netfilter: xtables: shorten up return clause
 
-ebtables-restore replaces the rules atomically. There are two meanings
-in this context to "atomic".
+are available in the git repository at:
 
-a) The old ruleset is deleted, and after, the new ruleset is applied
-atomically, at a single instant in time.
+  git://dev.medozas.de/linux master
 
-or 
+Jan Engelhardt (4):
+      netfilter: xtables: remove xt_hashlimit revision 0
+      netfilter: xtables: remove xt_multiport revision 0
+      netfilter: xtables: remove xt_string revision 0
+      netfilter: xtables: merge registration structure to NFPROTO_UNSPEC
 
-b) The old ruleset is deleted and replaced by the new ruleset as one
-action - with no time gap between them.
-
-Peter
-
-
-On Sun, 2010-03-28 at 17:43 +0200, Bart De Schuymer wrote:
-> Jan Engelhardt schreef:
-> > On Sunday 2010-03-28 12:07, Peter Gordon wrote:
-> >
-> >   
-> >> I need to add a number of rules to the ebtables and I cannot afford the
-> >> fork overhead for each line.
-> >>     
-> >
-> > The larger part of the overhead is due to the tables recomputed (dumped, 
-> > rule added, restored) every time you call it. That's why one should use 
-> > xx-restore.
-> >
-> >   
-> >> So what I want to do is to read each line
-> >>     
-> > >from a file and have the program iterate over the file. 
-> >   
-> >> ebtables-save and ebtables-restore is not good enough for my
-> >> application, because I can't add rules incrementally.
-> >>     
-> >
-> > Dump the rules with ebtables-save to a buffer, add your rules,
-> > and use -restore. That's sort of incrementally, and the fastest
-> > way to put a ruleset in atomic fashion into place.
-> >   
-> That's indeed the easiest way to do it. The only problem is that the
-> counters of already existing rules won't always be correct because
-> packets will traverse the chains between the -save and -restore time.
-> It's probably not so hard to alter ebtables-restore to keep the counters
-> correct.
-> A few years ago I experimented with an ebtables 'daemon' that would run
-> in the background and commands could be sent to it through a pipe. This
-> has the advantage that the distinction between added and already
-> existing rules is maintained, enabling correct counters. The changed
-> table is updated in userspace and only committed to the kernel when a
-> specific command is given. See ebtablesd.c and ebtablesu.c for the code.
-> Performance tests are available in examples/perf_test/perf_test. I'm not
-> maintaining these files for free, though.
-> 
-> cheers,
-> Bart
-> 
-
-
+ Documentation/Changes        |    2 +-
+ net/netfilter/xt_hashlimit.c |  221 ------------------------------------------
+ net/netfilter/xt_multiport.c |   77 ---------------
+ net/netfilter/xt_state.c     |   31 ++----
+ net/netfilter/xt_string.c    |   53 ++++-------
+ 5 files changed, 29 insertions(+), 355 deletions(-)
