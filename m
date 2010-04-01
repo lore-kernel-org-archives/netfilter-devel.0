@@ -1,63 +1,52 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/5] netfilter: ipv6: move POSTROUTING invocation before
- fragmentation
-Date: Thu, 01 Apr 2010 13:56:23 +0200
-Message-ID: <4BB489E7.6050109@trash.net>
-References: <1270031487-15094-1-git-send-email-jengelh@medozas.de> <1270031487-15094-2-git-send-email-jengelh@medozas.de> <4BB47A5E.6090205@linux-ipv6.org> <4BB480C6.9080604@trash.net> <alpine.LSU.2.01.1004011340120.17429@obet.zrqbmnf.qr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: netfilter module and shared libraries
+Date: Thu, 1 Apr 2010 14:01:10 +0200 (CEST)
+Message-ID: <alpine.LSU.2.01.1004011358350.17429@obet.zrqbmnf.qr>
+References: <m2zdac45061004010446o99e12733m645008caac88873c@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>,
-	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, Mark Ryden <markryde@gmail.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:50769 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755743Ab0DAL4Z (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 1 Apr 2010 07:56:25 -0400
-In-Reply-To: <alpine.LSU.2.01.1004011340120.17429@obet.zrqbmnf.qr>
+Received: from borg.medozas.de ([188.40.89.202]:33912 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755765Ab0DAMBM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 1 Apr 2010 08:01:12 -0400
+In-Reply-To: <m2zdac45061004010446o99e12733m645008caac88873c@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Thursday 2010-04-01 13:17, Patrick McHardy wrote:
->>> (2010/03/31 19:31), Jan Engelhardt wrote:
->>>> Patrick McHardy notes: "We used to invoke IPv4 POST_ROUTING after
->>>> fragmentation as well just to defragment the packets in conntrack
->>>> immediately afterwards, but that got changed during the
->>>> netfilter-ipsec integration. Ideally IPv6 would behave like IPv4."
->>>>
->>>> This patch makes it so. Sending an oversized frame (e.g. `ping6
->>>> -s64000 -c1 ::1`) will now show up in POSTROUTING as a single skb
->>>> rather than multiple ones.
->>> I am not in favor doing this
->>> because we theoretically make fragments __before__ routing
->>> in output path (as we reassemble __after__ routing in input path).
->> That's true, but is symetry for fragment handling really something
->> worth keeping? Besides avoiding one refragmentation pass in conntrack,
-> 
-> I am not quite following where this extra refragmentation is
-> happening.
+On Thursday 2010-04-01 13:46, Mark Ryden wrote:
 
-This was supposed to read "one more *de*fragmentation pass. In
-IPv6 we don't have to refragment, but simply output the original
-fragments.
+>Hello,
+>
+>I wrote a simple, short (35 lines) netfilter module (XTable target)
+>The code is below.
+>I build it and insmoded it.
+>When I try to add this iptables rule:
+>
+>iptables -A OUTPUT -p UDP --dport 9998 -j ECHO
 
-> Assuming [nf-packet-flow.png] as a base, there are two
-> spots in which conntrack/defrag happens: PREROUTING and OUTPUT.
-> 
-> This translates to:
-> 
->> its a lot easier to construct your ruleset when you don't have to
->> take care of fragments.
-> 
-> We never see fragments in the ruleset
-> 
->  a) for netif_rx received packets, defrag will be run early
->     (yes, there's raw, but that's special anyway)
-> 
->  b) locally-generated packets are fragmented only after all of
->     Netfilter is done.
+(Note that there is already an "ECHO" target in Xtables-addons ;-))
 
-You're assuming conntrack is used.
+>I get this error:
+>
+>iptables v1.4.5: Couldn't load target `ECHO':/lib64/xtables/libipt_ECHO.so:
+>cannot open shared object file: No such file or directory
+>
+>
+>My question is: for a simple netfilter module like this ("ECHO"), must
+>I create a
+>corresponding shared library  (libipt_ECHO.so)?
+
+Yes.
+
+>Is there a way to avoid this when adding such a rule,
+>using some default mechansim ?
+
+Let's ask Patrick:
+
+What do you think of enabling iptables to assume targets with .size=0 
+(which don't have options by design) if there was no libxt_XYZ.so found? 
+That would make things like libxt_NOTRACK.c obsolete, too.
