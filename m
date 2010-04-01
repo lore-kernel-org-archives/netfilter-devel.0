@@ -1,47 +1,44 @@
-From: /dev/rob0 <rob0@gmx.co.uk>
-Subject: Re: uisng L7 filter in ebtables commands
-Date: Thu, 1 Apr 2010 11:09:40 -0500
-Message-ID: <20100401160940.GG7051@cardinal>
-References: <x2v861e3bca1003311124sa0aa2ab6y94fa42c650ef16f8@mail.gmail.com> <4BB4427A.3020706@pandora.be> <n2z861e3bca1004010050j7063cee8ya8c27ac73458b8bf@mail.gmail.com> <alpine.LSU.2.01.1004010958390.18225@obet.zrqbmnf.qr> <z2t861e3bca1004010248z4bbaf9b7ld414baa09a4153ff@mail.gmail.com> <4BB4737E.7000602@pandora.be> <s2m861e3bca1004010714g502e3c9esaf8832979c0a8bbf@mail.gmail.com>
-Reply-To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+From: Jiri Pirko <jpirko@redhat.com>
+Subject: Re: [net-next-2.6 PATCH] netfilter: ctnetlink: compute message size
+ properly
+Date: Thu, 1 Apr 2010 12:43:57 +0200
+Message-ID: <20100401104356.GD2879@psychotron.redhat.com>
+References: <20100331151102.GB8043@psychotron.lab.eng.brq.redhat.com>
+ <4BB38A8A.9050501@trash.net>
+ <20100331182116.GB2822@psychotron.redhat.com>
+ <1270060543.1931.20.camel@edumazet-laptop>
+ <4BB47817.4060902@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
-Return-path: <netfilter-owner@vger.kernel.org>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	davem@davemloft.net, Krzysztof Oledzki <ole@ans.pl>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netdev-owner@vger.kernel.org>
 Content-Disposition: inline
-In-Reply-To: <s2m861e3bca1004010714g502e3c9esaf8832979c0a8bbf@mail.gmail.com>
-Sender: netfilter-owner@vger.kernel.org
+In-Reply-To: <4BB47817.4060902@trash.net>
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-[ Top-posting fixed ]
+Thu, Apr 01, 2010 at 12:40:23PM CEST, kaber@trash.net wrote:
+>Eric Dumazet wrote:
+>> Le mercredi 31 mars 2010 =E0 20:21 +0200, Jiri Pirko a =E9crit :
+>>> Okay, I see your point. How about this:
+>>>
+>>> Subject: [net-next-2.6 PATCH] netfilter: ctnetlink: compute message=
+ size properly V2
+>>>
+>>> Message size should be dependent on net->ct.sysctl_acct, not on
+>>> CONFIG_NF_CT_ACCT definition.
+>>>
+>>=20
+>> Then Changelog is not updated with the actual test :)
+>
+>I've fixed up the changelog and applied the patch, thanks.
 
-> On Thu, Apr 1, 2010 at 3:50 PM, Bart De Schuymer=20
-> <bdschuym@pandora.be> wrote:
-> > agashi shipora wrote:
-> >> The customizations in the linux kernel are provided as binary=20
-> >> modules(libraries) hence making CONFIG_BRIDGE_NETFILTER work is=20
-> >> been ruled out. =A0Thats why I am looking for L7 filter support=20
-> >> directly by ebtables.
-> >>
-> > What you're asking for isn't going to be included in the standard=20
-> > Linux distribution. So you'll either have to make the=20
-> > modifications yourself or pay someone else to do them for you.=20
-> > Feel free to contact me if the latter case applies.
+Cand I ask on which tree?
 
-On Thu, Apr 01, 2010 at 07:44:35PM +0530, agashi shipora wrote:
-> Bart , my boss says I will have to forgo my salary if we have to=20
-> get it done from someone else.
+thanks
 
-That sounds reasonable to me. If you can't do the job, you shouldn't=20
-collect the pay.
-
-> Let me keep my salary .
-
-That sounds like you are asking for volunteers to earn your salary=20
-for you. That's not so reasonable.
-
-http://sweet.nodns4.us/
---=20
-    Offlist mail to this address is discarded unless
-    "/dev/rob0" or "not-spam" is in Subject: header
+Jirka
