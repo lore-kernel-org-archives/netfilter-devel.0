@@ -1,44 +1,45 @@
-From: Jiri Pirko <jpirko@redhat.com>
-Subject: Re: [net-next-2.6 PATCH] netfilter: ctnetlink: compute message size
- properly
-Date: Thu, 1 Apr 2010 12:43:57 +0200
-Message-ID: <20100401104356.GD2879@psychotron.redhat.com>
-References: <20100331151102.GB8043@psychotron.lab.eng.brq.redhat.com>
- <4BB38A8A.9050501@trash.net>
- <20100331182116.GB2822@psychotron.redhat.com>
- <1270060543.1931.20.camel@edumazet-laptop>
- <4BB47817.4060902@trash.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: NetFlow / sFlow / IPFIX network probe proposal
+Date: Thu, 1 Apr 2010 18:56:27 +0200 (CEST)
+Message-ID: <alpine.LSU.2.01.1004011855430.788@obet.zrqbmnf.qr>
+References: <faefb3f11003300706x16b73a2coefe5079284583db2@mail.gmail.com> <alpine.LSU.2.01.1003301647320.19967@obet.zrqbmnf.qr> <4BB22952.2050305@trash.net> <n2yfaefb3f11003310647uef53fd2k518c4c8f0367adc5@mail.gmail.com> <4BB473CB.5030300@trash.net>
+ <20100401120536.GF19153@mail.eitzenberger.org> <4BB4ADB6.4080206@netfilter.org> <4BB4AEA6.5000102@trash.net> <20100401144617.GG19153@mail.eitzenberger.org> <4BB4B3CD.3010604@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Eric Dumazet <eric.dumazet@gmail.com>, netdev@vger.kernel.org,
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Roman Tsisyk <roman@tsisyk.com>,
+	Stig Thormodsrud <stig@vyatta.com>,
 	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	davem@davemloft.net, Krzysztof Oledzki <ole@ans.pl>
+	linux-net@vger.kernel.org,
+	Holger Eitzenberger <heitzenberger@astaro.com>
 To: Patrick McHardy <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4BB47817.4060902@trash.net>
-Sender: netdev-owner@vger.kernel.org
+Return-path: <linux-net-owner@vger.kernel.org>
+In-Reply-To: <4BB4B3CD.3010604@trash.net>
+Sender: linux-net-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Thu, Apr 01, 2010 at 12:40:23PM CEST, kaber@trash.net wrote:
->Eric Dumazet wrote:
->> Le mercredi 31 mars 2010 =E0 20:21 +0200, Jiri Pirko a =E9crit :
->>> Okay, I see your point. How about this:
->>>
->>> Subject: [net-next-2.6 PATCH] netfilter: ctnetlink: compute message=
- size properly V2
->>>
->>> Message size should be dependent on net->ct.sysctl_acct, not on
->>> CONFIG_NF_CT_ACCT definition.
->>>
->>=20
->> Then Changelog is not updated with the actual test :)
->
->I've fixed up the changelog and applied the patch, thanks.
+On Thursday 2010-04-01 16:55, Patrick McHardy wrote:
+>Holger Eitzenberger wrote:
+>> On Thu, Apr 01, 2010 at 04:33:10PM +0200, Patrick McHardy wrote:
+>>
+>>   
+>>>>> Some bits and pieces may be missing on the kernel side if you need to
+>>>>> classify your flows though.  E. g. some IPFIX Aggregrators require the
+>>>>> DSCP value for that.
+>>>>>         
+>>> Adding DSCP doesn't work since we don't distinguish connections
+>>> by that.
+>>>     
+>>
+>> That patch would be easy, but I was unsure at that time whether DSCP was a
+>> "flow characteristic" enough, especially as you have something like the
+>> Netfilter DSCP target to modify it, and that possibly be done not from
+>> the very start of a flow.
+>>   
+>We certainly can't add it to the conntrack tuple, so I'm not sure
+>how that patch would work. But I'll gladly review it in case someone
+>takes a stab at this :)
 
-Cand I ask on which tree?
+ -j CT --save-tos
 
-thanks
-
-Jirka
+*patsch* *patsch* *autsch* ;)
