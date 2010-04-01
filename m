@@ -1,49 +1,44 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [net-next-2.6 PATCH] netfilter: ctnetlink: compute message size
- properly
-Date: Thu, 01 Apr 2010 12:50:23 +0200
-Message-ID: <4BB47A6F.8000804@trash.net>
-References: <20100331151102.GB8043@psychotron.lab.eng.brq.redhat.com> <4BB38A8A.9050501@trash.net> <20100331182116.GB2822@psychotron.redhat.com> <1270060543.1931.20.camel@edumazet-laptop> <4BB47817.4060902@trash.net> <20100401104356.GD2879@psychotron.redhat.com>
+From: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+Subject: Re: [PATCH 1/5] netfilter: ipv6: move POSTROUTING invocation before
+ fragmentation
+Date: Thu, 01 Apr 2010 19:50:06 +0900
+Message-ID: <4BB47A5E.6090205@linux-ipv6.org>
+References: <1270031487-15094-1-git-send-email-jengelh@medozas.de> <1270031487-15094-2-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Eric Dumazet <eric.dumazet@gmail.com>, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	davem@davemloft.net, Krzysztof Oledzki <ole@ans.pl>
-To: Jiri Pirko <jpirko@redhat.com>
+Content-Type: text/plain; charset=ISO-2022-JP
+Content-Transfer-Encoding: 7bit
+Cc: kaber@trash.net, netfilter-devel@vger.kernel.org,
+	YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:49716 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755148Ab0DAKu1 (ORCPT
+Received: from 94.43.138.210.xn.2iij.net ([210.138.43.94]:55486 "EHLO
+	mail.st-paulia.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755186Ab0DAKul (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 1 Apr 2010 06:50:27 -0400
-In-Reply-To: <20100401104356.GD2879@psychotron.redhat.com>
+	Thu, 1 Apr 2010 06:50:41 -0400
+In-Reply-To: <1270031487-15094-2-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jiri Pirko wrote:
-> Thu, Apr 01, 2010 at 12:40:23PM CEST, kaber@trash.net wrote:
->> Eric Dumazet wrote:
->>> Le mercredi 31 mars 2010 =E0 20:21 +0200, Jiri Pirko a =E9crit :
->>>> Okay, I see your point. How about this:
->>>>
->>>> Subject: [net-next-2.6 PATCH] netfilter: ctnetlink: compute messag=
-e size properly V2
->>>>
->>>> Message size should be dependent on net->ct.sysctl_acct, not on
->>>> CONFIG_NF_CT_ACCT definition.
->>>>
->>> Then Changelog is not updated with the actual test :)
->> I've fixed up the changelog and applied the patch, thanks.
->=20
-> Cand I ask on which tree?
+Hello.
 
-Since this doesn't confirm to Dave's definition of crucial fixes,
-I've applied it to nf-next-2.6.git :)
+(2010/03/31 19:31), Jan Engelhardt wrote:
+> Patrick McHardy notes: "We used to invoke IPv4 POST_ROUTING after
+> fragmentation as well just to defragment the packets in conntrack
+> immediately afterwards, but that got changed during the
+> netfilter-ipsec integration. Ideally IPv6 would behave like IPv4."
+> 
+> This patch makes it so. Sending an oversized frame (e.g. `ping6
+> -s64000 -c1 ::1`) will now show up in POSTROUTING as a single skb
+> rather than multiple ones.
 
-git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+I am not in favor doing this
+because we theoretically make fragments __before__ routing
+in output path (as we reassemble __after__ routing in input path).
+
+IMHO, FORWARDING and POSTROUTING share similar semantics
+from routing POV.
+As we see "fragments" in FORWARDING, we should see
+fragments in POST_ROUTING, at least in IPv6.
+
+--yoshfuji
