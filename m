@@ -1,49 +1,54 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 5/5] netfilter: xt_TEE: have cloned packet travel through
- Xtables too
-Date: Thu, 01 Apr 2010 13:09:30 +0200
-Message-ID: <4BB47EEA.4020809@trash.net>
-References: <1270031934-15940-1-git-send-email-jengelh@medozas.de> <1270031934-15940-6-git-send-email-jengelh@medozas.de> <4BB47768.1050405@trash.net> <alpine.LSU.2.01.1004011258060.17429@obet.zrqbmnf.qr>
+Subject: Re: [PATCH 1/5] netfilter: ipv6: move POSTROUTING invocation before
+ fragmentation
+Date: Thu, 01 Apr 2010 13:17:26 +0200
+Message-ID: <4BB480C6.9080604@trash.net>
+References: <1270031487-15094-1-git-send-email-jengelh@medozas.de> <1270031487-15094-2-git-send-email-jengelh@medozas.de> <4BB47A5E.6090205@linux-ipv6.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	netfilter-devel@vger.kernel.org
+To: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:50058 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:50189 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754258Ab0DALJc (ORCPT
+	with ESMTP id S1755122Ab0DALR2 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 1 Apr 2010 07:09:32 -0400
-In-Reply-To: <alpine.LSU.2.01.1004011258060.17429@obet.zrqbmnf.qr>
+	Thu, 1 Apr 2010 07:17:28 -0400
+In-Reply-To: <4BB47A5E.6090205@linux-ipv6.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Thursday 2010-04-01 12:37, Patrick McHardy wrote:
+YOSHIFUJI Hideaki wrote:
+> Hello.
 > 
->> Jan Engelhardt wrote:
->>> Since Xtables is now reentrant/nestable, the cloned packet can also go
->>> through Xtables and be subject to rules itself.
->> That sounds dangerous if conntrack isn't used to prevent loops.
+> (2010/03/31 19:31), Jan Engelhardt wrote:
+>> Patrick McHardy notes: "We used to invoke IPv4 POST_ROUTING after
+>> fragmentation as well just to defragment the packets in conntrack
+>> immediately afterwards, but that got changed during the
+>> netfilter-ipsec integration. Ideally IPv6 would behave like IPv4."
+>>
+>> This patch makes it so. Sending an oversized frame (e.g. `ping6
+>> -s64000 -c1 ::1`) will now show up in POSTROUTING as a single skb
+>> rather than multiple ones.
 > 
-> Conntrack loops are prevented by using a dummy conntrack, just as 
-> NOTRACK does.
+> I am not in favor doing this
+> because we theoretically make fragments __before__ routing
+> in output path (as we reassemble __after__ routing in input path).
 
-My question was about the case without conntrack.
+That's true, but is symetry for fragment handling really something
+worth keeping? Besides avoiding one refragmentation pass in conntrack,
+its a lot easier to construct your ruleset when you don't have to
+take care of fragments.
 
->> Is that really useful? For filtering, you can simply apply the
->> rules before deciding to TEE the packet.
-> 
-> I can think of a handful of applications:
->  - CLASSIFY
+Granted, in IPv4 the main motivation for this change was to reduce
+stack usage by not using the "okfn" anymore, which isn't too important
+on the output path, and we don't fragment forwarded packets in IPv6.
 
-Good point, you should probably reset a couple of skb members
-after the skb_copy().
+> IMHO, FORWARDING and POSTROUTING share similar semantics
+> from routing POV.
+> As we see "fragments" in FORWARDING, we should see
+> fragments in POST_ROUTING, at least in IPv6.
 
->  - When the cloned packets gets XFRMed or tunneled, its status switches 
->    from "special" to "plain". Doing policy routing on them does not seem 
->    so far-fetched.
-
-Fair enough, provided we can also handle loops when conntrack
-isn't used.
+We'd still see them for forwarded packets.
