@@ -1,58 +1,67 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 5/5] netfilter: xt_TEE: have cloned packet travel through
- Xtables too
-Date: Thu, 01 Apr 2010 16:03:02 +0200
-Message-ID: <4BB4A796.8010708@trash.net>
-References: <1270031934-15940-1-git-send-email-jengelh@medozas.de> <1270031934-15940-6-git-send-email-jengelh@medozas.de> <4BB47768.1050405@trash.net> <alpine.LSU.2.01.1004011258060.17429@obet.zrqbmnf.qr> <4BB47EEA.4020809@trash.net> <alpine.LSU.2.01.1004011511180.1174@obet.zrqbmnf.qr> <4BB49E10.8080608@trash.net> <alpine.LSU.2.01.1004011543260.1174@obet.zrqbmnf.qr> <4BB4A41C.7030107@trash.net> <alpine.LSU.2.01.1004011557270.5368@obet.zrqbmnf.qr>
+From: agashi shipora <gashipo@gmail.com>
+Subject: Re: uisng L7 filter in ebtables commands
+Date: Thu, 1 Apr 2010 19:44:35 +0530
+Message-ID: <s2m861e3bca1004010714g502e3c9esaf8832979c0a8bbf@mail.gmail.com>
+References: <x2v861e3bca1003311124sa0aa2ab6y94fa42c650ef16f8@mail.gmail.com>
+	 <4BB4427A.3020706@pandora.be>
+	 <n2z861e3bca1004010050j7063cee8ya8c27ac73458b8bf@mail.gmail.com>
+	 <alpine.LSU.2.01.1004010958390.18225@obet.zrqbmnf.qr>
+	 <z2t861e3bca1004010248z4bbaf9b7ld414baa09a4153ff@mail.gmail.com>
+	 <4BB4737E.7000602@pandora.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
+To: Bart De Schuymer <bdschuym@pandora.be>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:53035 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752719Ab0DAODE (ORCPT
+Received: from mail-pz0-f201.google.com ([209.85.222.201]:50220 "EHLO
+	mail-pz0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754455Ab0DAOOh convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 1 Apr 2010 10:03:04 -0400
-In-Reply-To: <alpine.LSU.2.01.1004011557270.5368@obet.zrqbmnf.qr>
+	Thu, 1 Apr 2010 10:14:37 -0400
+In-Reply-To: <4BB4737E.7000602@pandora.be>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Thursday 2010-04-01 15:48, Patrick McHardy wrote:
->> Jan Engelhardt wrote:
->>> On Thursday 2010-04-01 15:22, Patrick McHardy wrote:
->>>>>>> Conntrack loops are prevented by using a dummy conntrack, just as 
->>>>>>> NOTRACK does.
->>>>>> [...]
->>>>>>>  - When the cloned packets gets XFRMed or tunneled, its status switches 
->>>>>>>    from "special" to "plain". Doing policy routing on them does not seem 
->>>>>>>    so far-fetched.
->>>>>> My question was about the case without conntrack.
->>>>> Hm. Do you have any suggestion in countering a case whereby a user
->>>>> does -I OUTPUT -j TEE without conntrack?
->>>>>
->>>>> Perhaps making nesting a feature that requires conntrack, such that the 
->>>>> non-CT case can't loop?
->>>> If we drop the reentrancy thing, what should work is to prevent
->>>> using loopback as output device and using something similar to
->>>> the recursion counters tunnel devices used to have.
->>> Nah. I'm going to pick a bit from struct skbuff to indicate the
->>> packet was teed so as to avoid that loop.
->> That's a bad idea, we shouldn't be adding new skb members for something
->> as peripheral as this module.
-> 
-> I would have done this, which does not add a member:
-> 
-> 	IP6CB(skb)->flags |= IPSKB_CLONED;
+Thanks Bart and Jan.
 
-This doesn't work, the CB is not preserved across layers
-(which f.i. matters if you allow loopback destinations).
-Its also not preserved for clones.
-
->> What's wrong with adding a reentrancy counter?
-> 
-> Sounds like a plan.
+Bart , my boss says I will have to forgo my salary  if we have to get
+it done from someone else.
+Let me keep my salary .
 
 
+
+On Thu, Apr 1, 2010 at 3:50 PM, Bart De Schuymer <bdschuym@pandora.be> =
+wrote:
+> agashi shipora wrote:
+>> Hi ,
+>>
+>> The customizations in the linux kernel are provided as binary
+>> modules(libraries) hence making CONFIG_BRIDGE_NETFILTER work is been
+>> ruled out. =A0Thats why I am looking for L7 filter support directly =
+by
+>> ebtables.
+>>
+>>
+> What you're asking for isn't going to be included in the standard Lin=
+ux
+> distribution. So you'll either have to make the modifications yoursel=
+f
+> or pay someone else to do them for you. Feel free to contact me if th=
+e
+> latter case applies.
+>
+> cheers,
+> Bart
+>
+> --
+> Bart De Schuymer
+> www.artinalgorithms.be
+>
+>
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
