@@ -1,55 +1,73 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/5] netfilter: ipv6: move POSTROUTING invocation before
- fragmentation
-Date: Thu, 01 Apr 2010 14:28:05 +0200
-Message-ID: <4BB49155.3000902@trash.net>
-References: <1270031487-15094-1-git-send-email-jengelh@medozas.de> <1270031487-15094-2-git-send-email-jengelh@medozas.de> <4BB47A5E.6090205@linux-ipv6.org> <4BB480C6.9080604@trash.net> <alpine.LSU.2.01.1004011340120.17429@obet.zrqbmnf.qr> <4BB489E7.6050109@trash.net> <alpine.LSU.2.01.1004011410250.17429@obet.zrqbmnf.qr>
+Subject: Re: [PATCH nf-next-2.6] xt_hashlimit: RCU conversion
+Date: Thu, 01 Apr 2010 14:36:54 +0200
+Message-ID: <4BB49366.4030001@trash.net>
+References: <4BA74950.6000305@infopact.nl> <4BA7A5D8.5080101@trash.net>	 <4BA8DAC5.6050002@infopact.nl> <1269364893.2983.296.camel@edumazet-laptop>	 <4BAA2DC5.7000409@infopact.nl>  <1269447674.3213.64.camel@edumazet-laptop>	 <1269509574.3626.9.camel@edumazet-laptop>  <4BAB3C8B.3030104@trash.net>	 <1269514928.3626.13.camel@edumazet-laptop>	 <1270038210.2103.23.camel@edumazet-laptop>  <4BB47D81.3060400@trash.net> <1270123804.2229.91.camel@edumazet-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>,
-	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Jorrit Kronjee <j.kronjee@infopact.nl>,
+	netfilter-devel@vger.kernel.org, netdev <netdev@vger.kernel.org>
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:51270 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:51402 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754468Ab0DAM2I (ORCPT
+	with ESMTP id S1752653Ab0DAMg4 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 1 Apr 2010 08:28:08 -0400
-In-Reply-To: <alpine.LSU.2.01.1004011410250.17429@obet.zrqbmnf.qr>
+	Thu, 1 Apr 2010 08:36:56 -0400
+In-Reply-To: <1270123804.2229.91.camel@edumazet-laptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Thursday 2010-04-01 13:56, Patrick McHardy wrote:
->>>>>> just to defragment the packets in conntrack
->>>>>> immediately afterwards
->> This was supposed to read "one more *de*fragmentation pass. In
->> IPv6 we don't have to refragment, but simply output the original
->> fragments.
->>
->>> Assuming [nf-packet-flow.png] as a base, there are two
->>> spots in which conntrack/defrag happens: PREROUTING and OUTPUT.
->>> [...]
->>> We never see fragments in the ruleset
->>>
->>>  a) for netif_rx received packets, defrag will be run early
->>>     (yes, there's raw, but that's special anyway)
->>>
->>>  b) locally-generated packets are fragmented only after all of
->>>     Netfilter is done.
->> You're assuming conntrack is used.
-> 
-> That was what your original message was about, was it not?
+Eric Dumazet wrote:
+> Le jeudi 01 avril 2010 =E0 13:03 +0200, Patrick McHardy a =E9crit :
+>>> -/* allocate dsthash_ent, initialize dst, put in htable and lock it=
+ */
+>>> -static struct dsthash_ent *
+>>> -dsthash_alloc_init(struct xt_hashlimit_htable *ht,
+>>> -		   const struct dsthash_dst *dst)
+>> Is there a reason for moving this function downwards in the file?
+>> That unnecessarily increases the diff and makes the patch harder to
+>> review. For review purposes I moved it back up, resulting in 42
+>> lines less diff.
+>> --
+>=20
+> Well, this is because I had to move inside this function various
+> initializations and these inits use user2credits() which was defined
+> after dsthash_alloc_init().
 
-Partially, but the ruleset construction point you replied to of
-course only applies when conntrack is not used.
+I thought I also tried to compile it after my change, but apparently
+I made some mistake :)
 
-> If there is no nf_defrag loaded, there is not much left besides
-> the standard IPv4 stack defrag on input, the fragmentation
-> on output, and the double-fragmentation on forward.
-> 
-> What did I miss?
+> But we can avoid this since we hold the entry spinlock, and before ha=
+sh
+> insertion.
+>=20
+> Only the lookup fields and the spinlock MUST be committed to memory
+> before the insert. Other fields can be initialized later by caller.
+>=20
+> Here is V2 of patch, I added locking as well in dl_seq_real_show()
+> because we call rateinfo_recalc(). htable main lock doesnt anymore
+> protects each entry rateinfo.
+>=20
+> Thanks
+>=20
+> [PATCH nf-next-2.6] xt_hashlimit: RCU conversion
+>=20
+> xt_hashlimit uses a central lock per hash table and suffers from
+> contention on some workloads. (Multiqueue NIC or if RPS is enabled)
+>=20
+> After RCU conversion, central lock is only used when a writer wants t=
+o
+> add or delete an entry.
+>=20
+> For 'readers', updating an existing entry, they use an individual loc=
+k
+> per entry.
 
-Now I seem to be missing something. Why are we suddenly talking
-about IPv4 and nf_defrag?
+Applied, thanks a lot Eric.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
