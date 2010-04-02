@@ -1,346 +1,445 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 1/2] netfilter: xtables: inclusion of xt_condition
-Date: Fri,  2 Apr 2010 15:23:17 +0200
-Message-ID: <1270214599-22734-2-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 2/2] netfilter: xtables: inclusion of xt_SYSRQ
+Date: Fri,  2 Apr 2010 15:23:18 +0200
+Message-ID: <1270214599-22734-3-git-send-email-jengelh@medozas.de>
 References: <1270214599-22734-1-git-send-email-jengelh@medozas.de>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:57516 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:57520 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752461Ab0DBNXY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1752553Ab0DBNXY (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Fri, 2 Apr 2010 09:23:24 -0400
 In-Reply-To: <1270214599-22734-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-xt_condition can be used by userspace to influence decisions in rules
-by means of togglable variables without having to reload the entire
-ruleset.
+The SYSRQ target will allow to remotely invoke sysrq on the local
+machine. Authentication is by means of a pre-shared key that can
+either be transmitted plaintext or digest-secured.
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/linux/netfilter/Kbuild         |    1 +
- include/linux/netfilter/xt_condition.h |   14 ++
- net/netfilter/Kconfig                  |    8 +
- net/netfilter/Makefile                 |    1 +
- net/netfilter/xt_condition.c           |  243 ++++++++++++++++++++++++++++++++
- 5 files changed, 267 insertions(+), 0 deletions(-)
- create mode 100644 include/linux/netfilter/xt_condition.h
- create mode 100644 net/netfilter/xt_condition.c
+ net/netfilter/Kconfig    |   12 ++
+ net/netfilter/Makefile   |    1 +
+ net/netfilter/xt_SYSRQ.c |  354 ++++++++++++++++++++++++++++++++++++++=
+++++++++
+ 3 files changed, 367 insertions(+), 0 deletions(-)
+ create mode 100644 net/netfilter/xt_SYSRQ.c
 
-diff --git a/include/linux/netfilter/Kbuild b/include/linux/netfilter/Kbuild
-index a5a63e4..60bf164 100644
---- a/include/linux/netfilter/Kbuild
-+++ b/include/linux/netfilter/Kbuild
-@@ -18,6 +18,7 @@ header-y += xt_TCPMSS.h
- header-y += xt_TCPOPTSTRIP.h
- header-y += xt_TPROXY.h
- header-y += xt_comment.h
-+header-y += xt_condition.h
- header-y += xt_connbytes.h
- header-y += xt_connlimit.h
- header-y += xt_connmark.h
-diff --git a/include/linux/netfilter/xt_condition.h b/include/linux/netfilter/xt_condition.h
-new file mode 100644
-index 0000000..4faf3ca
---- /dev/null
-+++ b/include/linux/netfilter/xt_condition.h
-@@ -0,0 +1,14 @@
-+#ifndef _XT_CONDITION_H
-+#define _XT_CONDITION_H
-+
-+#include <linux/types.h>
-+
-+struct xt_condition_mtinfo {
-+	char name[31];
-+	__u8 invert;
-+
-+	/* Used internally by the kernel */
-+	void *condvar __attribute__((aligned(8)));
-+};
-+
-+#endif /* _XT_CONDITION_H */
 diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 8055786..707d489 100644
+index 707d489..a1d03de 100644
 --- a/net/netfilter/Kconfig
 +++ b/net/netfilter/Kconfig
-@@ -605,6 +605,14 @@ config NETFILTER_XT_MATCH_COMMENT
- 	  If you want to compile it as a module, say M here and read
- 	  <file:Documentation/kbuild/modules.txt>.  If unsure, say `N'.
- 
-+config NETFILTER_XT_MATCH_CONDITION
-+	tristate '"condition" match support'
+@@ -502,6 +502,18 @@ config NETFILTER_XT_TARGET_RATEEST
+=20
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+=20
++config NETFILTER_XT_TARGET_SYSRQ
++	tristate '"SYSRQ" - remote sysrq invocation'
 +	depends on NETFILTER_ADVANCED
-+	depends on PROC_FS
 +	---help---
-+	This option allows you to match firewall rules against condition
-+	variables stored in the /proc/net/nf_condition directory.
++	This option enables the "SYSRQ" target which can be used to trigger
++	sysrq from a remote machine using a magic UDP packet with a pre-share=
+d
++	password. This is useful when the receiving host has locked up in an
++	Oops yet still can process incoming packets.
 +
- config NETFILTER_XT_MATCH_CONNBYTES
- 	tristate  '"connbytes" per-connection counter match support'
- 	depends on NF_CONNTRACK
++	Besides plaintext packets, digest-secured SYSRQ requests will be
++	supported when CONFIG_CRYPTO is enabled.
++
+ config NETFILTER_XT_TARGET_TPROXY
+ 	tristate '"TPROXY" target support (EXPERIMENTAL)'
+ 	depends on EXPERIMENTAL
 diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index cd31afe..bc5bb3f 100644
+index bc5bb3f..09c68c1 100644
 --- a/net/netfilter/Makefile
 +++ b/net/netfilter/Makefile
-@@ -64,6 +64,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_TRACE) += xt_TRACE.o
- # matches
- obj-$(CONFIG_NETFILTER_XT_MATCH_CLUSTER) += xt_cluster.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_COMMENT) += xt_comment.o
-+obj-$(CONFIG_NETFILTER_XT_MATCH_CONDITION) += xt_condition.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_CONNBYTES) += xt_connbytes.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_CONNLIMIT) += xt_connlimit.o
- obj-$(CONFIG_NETFILTER_XT_MATCH_CONNTRACK) += xt_conntrack.o
-diff --git a/net/netfilter/xt_condition.c b/net/netfilter/xt_condition.c
+@@ -56,6 +56,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_NFQUEUE) +=3D xt_NFQ=
+UEUE.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_NOTRACK) +=3D xt_NOTRACK.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_RATEEST) +=3D xt_RATEEST.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_SECMARK) +=3D xt_SECMARK.o
++obj-$(CONFIG_NETFILTER_XT_TARGET_SYSRQ) +=3D xt_SYSRQ.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_TPROXY) +=3D xt_TPROXY.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_TCPMSS) +=3D xt_TCPMSS.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_TCPOPTSTRIP) +=3D xt_TCPOPTSTRIP.o
+diff --git a/net/netfilter/xt_SYSRQ.c b/net/netfilter/xt_SYSRQ.c
 new file mode 100644
-index 0000000..d3dcaa4
+index 0000000..929b204
 --- /dev/null
-+++ b/net/netfilter/xt_condition.c
-@@ -0,0 +1,243 @@
++++ b/net/netfilter/xt_SYSRQ.c
+@@ -0,0 +1,354 @@
 +/*
-+ *	"condition" match extension for Xtables
++ *	"SYSRQ" target extension for Netfilter
++ *	Copyright =C2=A9 Jan Engelhardt <jengelh [at] medozas de>, 2008 - 2=
+010
 + *
-+ *	Description: This module allows firewall rules to match using
-+ *	condition variables available through procfs.
++ *	Based upon the ipt_SYSRQ idea by Marek Zalem <marek [at] terminus s=
+k>
 + *
-+ *	Authors:
-+ *	Stephane Ouellette <ouellettes [at] videotron ca>, 2002-10-22
-+ *	Massimiliano Hofer <max [at] nucleus it>, 2006-05-15
-+ *
-+ *	This program is free software; you can redistribute it and/or modify it
-+ *	under the terms of the GNU General Public License; either version 2
-+ *	or 3 of the License, as published by the Free Software Foundation.
++ *	This program is free software; you can redistribute it and/or
++ *	modify it under the terms of the GNU General Public License
++ *	version 2 or later as published by the Free Software Foundation.
 + */
 +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+#include <linux/kernel.h>
-+#include <linux/list.h>
++#include <linux/in.h>
++#include <linux/ip.h>
++#include <linux/ipv6.h>
 +#include <linux/module.h>
-+#include <linux/proc_fs.h>
-+#include <linux/spinlock.h>
-+#include <linux/string.h>
-+#include <linux/version.h>
++#include <linux/skbuff.h>
++#include <linux/sysrq.h>
++#include <linux/udp.h>
++#include <linux/netfilter_ipv4/ip_tables.h>
++#include <linux/netfilter_ipv6/ip6_tables.h>
 +#include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter/xt_condition.h>
-+#include <asm/uaccess.h>
++#include <linux/crypto.h>
++#include <linux/scatterlist.h>
++#include <net/ip.h>
 +
-+/* Defaults, these can be overridden on the module command-line. */
-+static unsigned int condition_list_perms = S_IRUSR | S_IWUSR;
-+static unsigned int condition_uid_perms;
-+static unsigned int condition_gid_perms;
++#if defined(CONFIG_CRYPTO) || defined(CRYPTO_CONFIG_MODULE)
++#	define WITH_CRYPTO 1
++#endif
++#if defined(CONFIG_IPV6) || defined(CONFIG_IPV6_MODULE)
++#	define WITH_IPV6 1
++#endif
 +
-+MODULE_AUTHOR("Stephane Ouellette <ouellettes@videotron.ca>");
-+MODULE_AUTHOR("Massimiliano Hofer <max@nucleus.it>");
-+MODULE_AUTHOR("Jan Engelhardt <jengelh@medozas.de>");
-+MODULE_DESCRIPTION("Allows rules to match against condition variables");
-+MODULE_LICENSE("GPL");
-+module_param(condition_list_perms, uint, S_IRUSR | S_IWUSR);
-+MODULE_PARM_DESC(condition_list_perms, "default permissions on /proc/net/nf_condition/* files");
-+module_param(condition_uid_perms, uint, S_IRUSR | S_IWUSR);
-+MODULE_PARM_DESC(condition_uid_perms, "default user owner of /proc/net/nf_condition/* files");
-+module_param(condition_gid_perms, uint, S_IRUSR | S_IWUSR);
-+MODULE_PARM_DESC(condition_gid_perms, "default group owner of /proc/net/nf_condition/* files");
-+MODULE_ALIAS("ipt_condition");
-+MODULE_ALIAS("ip6t_condition");
++static bool sysrq_once;
++static char sysrq_password[64];
++static char sysrq_hash[16] =3D "sha1";
++static long sysrq_seqno;
++static int sysrq_debug;
++module_param_string(password, sysrq_password, sizeof(sysrq_password),
++	S_IRUSR | S_IWUSR);
++module_param_string(hash, sysrq_hash, sizeof(sysrq_hash), S_IRUSR);
++module_param_named(seqno, sysrq_seqno, long, S_IRUSR | S_IWUSR);
++module_param_named(debug, sysrq_debug, int, S_IRUSR | S_IWUSR);
++MODULE_PARM_DESC(password, "password for remote sysrq");
++MODULE_PARM_DESC(hash, "hash algorithm, default sha1");
++MODULE_PARM_DESC(seqno, "sequence number for remote sysrq");
++MODULE_PARM_DESC(debug, "debugging: 0=3Doff, 1=3Don");
 +
-+struct condition_variable {
-+	struct list_head list;
-+	struct proc_dir_entry *status_proc;
-+	unsigned int refcount;
-+	bool enabled;
++#ifdef WITH_CRYPTO
++static struct crypto_hash *sysrq_tfm;
++static int sysrq_digest_size;
++static unsigned char *sysrq_digest_password;
++static unsigned char *sysrq_digest;
++static char *sysrq_hexdigest;
++
++/*
++ * The data is of the form "<requests>,<seqno>,<salt>,<hash>" where <r=
+equests>
++ * is a series of sysrq requests; <seqno> is a sequence number that mu=
+st be
++ * greater than the last sequence number; <salt> is some random bytes;=
+ and
++ * <hash> is the hash of everything up to and including the preceding =
+","
++ * together with the password.
++ *
++ * For example
++ *
++ *   salt=3D$RANDOM
++ *   req=3D"s,$(date +%s),$salt"
++ *   echo "$req,$(echo -n $req,secret | sha1sum | cut -c1-40)"
++ *
++ * You will want a better salt and password than that though :-)
++ */
++static unsigned int sysrq_tg(const void *pdata, uint16_t len)
++{
++	const char *data =3D pdata;
++	int i, n;
++	struct scatterlist sg[2];
++	struct hash_desc desc;
++	int ret;
++	long new_seqno =3D 0;
++
++	if (*sysrq_password =3D=3D '\0') {
++		if (!sysrq_once)
++			pr_info("No password set\n");
++		sysrq_once =3D true;
++		return NF_DROP;
++	}
++	if (len =3D=3D 0)
++		return NF_DROP;
++
++	for (i =3D 0; sysrq_password[i] !=3D '\0' &&
++	     sysrq_password[i] !=3D '\n'; ++i)
++		/* loop */;
++	sysrq_password[i] =3D '\0';
++
++	i =3D 0;
++	for (n =3D 0; n < len - 1; ++n) {
++		if (i =3D=3D 1 && '0' <=3D data[n] && data[n] <=3D '9')
++			new_seqno =3D 10L * new_seqno + data[n] - '0';
++		if (data[n] =3D=3D ',' && ++i =3D=3D 3)
++			break;
++	}
++	++n;
++	if (i !=3D 3) {
++		if (sysrq_debug)
++			pr_info("badly formatted request\n");
++		return NF_DROP;
++	}
++	if (sysrq_seqno >=3D new_seqno) {
++		if (sysrq_debug)
++			pr_info("old sequence number ignored\n");
++		return NF_DROP;
++	}
++
++	desc.tfm   =3D sysrq_tfm;
++	desc.flags =3D 0;
++	ret =3D crypto_hash_init(&desc);
++	if (ret !=3D 0)
++		goto hash_fail;
++	sg_init_table(sg, 2);
++	sg_set_buf(&sg[0], data, n);
++	strcpy(sysrq_digest_password, sysrq_password);
++	i =3D strlen(sysrq_digest_password);
++	sg_set_buf(&sg[1], sysrq_digest_password, i);
++	ret =3D crypto_hash_digest(&desc, sg, n + i, sysrq_digest);
++	if (ret !=3D 0)
++		goto hash_fail;
++
++	for (i =3D 0; i < sysrq_digest_size; ++i) {
++		sysrq_hexdigest[2*i] =3D
++			"0123456789abcdef"[(sysrq_digest[i] >> 4) & 0xf];
++		sysrq_hexdigest[2*i+1] =3D
++			"0123456789abcdef"[sysrq_digest[i] & 0xf];
++	}
++	sysrq_hexdigest[2*sysrq_digest_size] =3D '\0';
++	if (len - n < sysrq_digest_size) {
++		if (sysrq_debug)
++			pr_info("Short digest, expected %s\n",
++				sysrq_hexdigest);
++		return NF_DROP;
++	}
++	if (strncmp(data + n, sysrq_hexdigest, sysrq_digest_size) !=3D 0) {
++		if (sysrq_debug)
++			pr_info("Bad digest, expected %s\n", sysrq_hexdigest);
++		return NF_DROP;
++	}
++
++	/* Now we trust the requester */
++	sysrq_seqno =3D new_seqno;
++	for (i =3D 0; i < len && data[i] !=3D ','; ++i) {
++		pr_info("SysRq %c\n", data[i]);
++		handle_sysrq(data[i], NULL);
++	}
++	return NF_ACCEPT;
++
++ hash_fail:
++	pr_warning("digest failure\n");
++	return NF_DROP;
++}
++#else
++static unsigned int sysrq_tg(const void *pdata, uint16_t len)
++{
++	const char *data =3D pdata;
++	char c;
++
++	if (*sysrq_password =3D=3D '\0') {
++		if (!sysrq_once)
++			pr_info("No password set\n");
++		sysrq_once =3D true;
++		return NF_DROP;
++	}
++
++	if (len =3D=3D 0)
++		return NF_DROP;
++
++	c =3D *data;
++	if (strncmp(&data[1], sysrq_password, len - 1) !=3D 0) {
++		pr_warning("Failed attempt - password mismatch\n");
++		return NF_DROP;
++	}
++
++	handle_sysrq(c, NULL);
++	return NF_ACCEPT;
++}
++#endif
++
++static unsigned int
++sysrq_tg4(struct sk_buff *skb, const struct xt_target_param *par)
++{
++	const struct iphdr *iph;
++	const struct udphdr *udph;
++	uint16_t len;
++
++	if (skb_linearize(skb) < 0)
++		return NF_DROP;
++
++	iph =3D ip_hdr(skb);
++	if (iph->protocol !=3D IPPROTO_UDP && iph->protocol !=3D IPPROTO_UDPL=
+ITE)
++		return NF_DROP;
++
++	udph =3D (const void *)iph + ip_hdrlen(skb);
++	len  =3D ntohs(udph->len) - sizeof(struct udphdr);
++
++	if (sysrq_debug)
++		pr_info(": %pI4:%u -> :%u len=3D%u\n", &iph->saddr,
++			htons(udph->source), htons(udph->dest), len);
++	return sysrq_tg((void *)udph + sizeof(struct udphdr), len);
++}
++
++#ifdef WITH_IPV6
++static unsigned int
++sysrq_tg6(struct sk_buff *skb, const struct xt_target_param *par)
++{
++	const struct ipv6hdr *iph;
++	const struct udphdr *udph;
++	unsigned short frag_off;
++	unsigned int th_off;
++	uint16_t len;
++
++	if (skb_linearize(skb) < 0)
++		return NF_DROP;
++
++	iph =3D ipv6_hdr(skb);
++	if (ipv6_find_hdr(skb, &th_off, IPPROTO_UDP, &frag_off) < 0 ||
++	    frag_off > 0)
++		return NF_ACCEPT; /* sink it */
++
++	udph =3D (const void *)iph + th_off;
++	len  =3D ntohs(udph->len) - sizeof(struct udphdr);
++
++	if (sysrq_debug)
++		pr_info("%pI6:%hu -> :%hu len=3D%u\n", &iph->saddr,
++			ntohs(udph->source), ntohs(udph->dest), len);
++	return sysrq_tg(udph + sizeof(struct udphdr), len);
++}
++#endif
++
++static int sysrq_tg_check(const struct xt_tgchk_param *par)
++{
++	if (par->target->family =3D=3D NFPROTO_IPV4) {
++		const struct ipt_entry *entry =3D par->entryinfo;
++
++		if ((entry->ip.proto !=3D IPPROTO_UDP &&
++		    entry->ip.proto !=3D IPPROTO_UDPLITE) ||
++		    entry->ip.invflags & XT_INV_PROTO)
++			goto out;
++	} else if (par->target->family =3D=3D NFPROTO_IPV6) {
++		const struct ip6t_entry *entry =3D par->entryinfo;
++
++		if ((entry->ipv6.proto !=3D IPPROTO_UDP &&
++		    entry->ipv6.proto !=3D IPPROTO_UDPLITE) ||
++		    entry->ipv6.invflags & XT_INV_PROTO)
++			goto out;
++	}
++
++	return true;
++
++ out:
++	pr_info("only available for UDP and UDP-Lite");
++	return false;
++}
++
++static struct xt_target sysrq_tg_reg[] __read_mostly =3D {
++	{
++		.name       =3D "SYSRQ",
++		.revision   =3D 1,
++		.family     =3D NFPROTO_IPV4,
++		.target     =3D sysrq_tg4,
++		.checkentry =3D sysrq_tg_check,
++		.me         =3D THIS_MODULE,
++	},
++#ifdef WITH_IPV6
++	{
++		.name       =3D "SYSRQ",
++		.revision   =3D 1,
++		.family     =3D NFPROTO_IPV6,
++		.target     =3D sysrq_tg6,
++		.checkentry =3D sysrq_tg_check,
++		.me         =3D THIS_MODULE,
++	},
++#endif
 +};
 +
-+/* proc_lock is a user context only semaphore used for write access */
-+/*           to the conditions' list.                               */
-+static struct mutex proc_lock;
-+
-+static LIST_HEAD(conditions_list);
-+static struct proc_dir_entry *proc_net_condition;
-+
-+static int condition_proc_read(char __user *buffer, char **start, off_t offset,
-+			       int length, int *eof, void *data)
++static void sysrq_crypto_exit(void)
 +{
-+	const struct condition_variable *var = data;
-+
-+	buffer[0] = var->enabled ? '1' : '0';
-+	buffer[1] = '\n';
-+	if (length >= 2)
-+		*eof = true;
-+	return 2;
++#ifdef WITH_CRYPTO
++	if (sysrq_tfm)
++		crypto_free_hash(sysrq_tfm);
++	if (sysrq_digest)
++		kfree(sysrq_digest);
++	if (sysrq_hexdigest)
++		kfree(sysrq_hexdigest);
++	if (sysrq_digest_password)
++		kfree(sysrq_digest_password);
++#endif
 +}
 +
-+static int condition_proc_write(struct file *file, const char __user *buffer,
-+				unsigned long length, void *data)
++static int __init sysrq_crypto_init(void)
 +{
-+	struct condition_variable *var = data;
-+	char newval;
-+
-+	if (length > 0) {
-+		if (get_user(newval, buffer) != 0)
-+			return -EFAULT;
-+		/* Match only on the first character */
-+		switch (newval) {
-+		case '0':
-+			var->enabled = false;
-+			break;
-+		case '1':
-+			var->enabled = true;
-+			break;
-+		}
-+	}
-+	return length;
-+}
-+
-+static bool
-+condition_mt(const struct sk_buff *skb, const struct xt_match_param *par)
-+{
-+	const struct xt_condition_mtinfo *info = par->matchinfo;
-+	const struct condition_variable *var   = info->condvar;
-+	bool x;
-+
-+	rcu_read_lock();
-+	x = rcu_dereference(var->enabled);
-+	rcu_read_unlock();
-+
-+	return x ^ info->invert;
-+}
-+
-+static int condition_mt_check(const struct xt_mtchk_param *par)
-+{
-+	struct xt_condition_mtinfo *info = par->matchinfo;
-+	struct condition_variable *var;
-+
-+	/* Forbid certain names */
-+	if (*info->name == '\0' || *info->name == '.' ||
-+	    info->name[sizeof(info->name)-1] != '\0' ||
-+	    memchr(info->name, '/', sizeof(info->name)) != NULL) {
-+		pr_info("name not allowed or too long: \"%.*s\"\n",
-+			(unsigned int)sizeof(info->name), info->name);
-+		return -EINVAL;
-+	}
-+	/*
-+	 * Let's acquire the lock, check for the condition and add it
-+	 * or increase the reference counter.
-+	 */
-+	if (mutex_lock_interruptible(&proc_lock) != 0)
-+		return -EINTR;
-+
-+	list_for_each_entry(var, &conditions_list, list) {
-+		if (strcmp(info->name, var->status_proc->name) == 0) {
-+			++var->refcount;
-+			mutex_unlock(&proc_lock);
-+			info->condvar = var;
-+			return 0;
-+		}
-+	}
-+
-+	/* At this point, we need to allocate a new condition variable. */
-+	var = kmalloc(sizeof(struct condition_variable), GFP_KERNEL);
-+	if (var == NULL) {
-+		mutex_unlock(&proc_lock);
-+		return -ENOMEM;
-+	}
-+
-+	/* Create the condition variable's proc file entry. */
-+	var->status_proc = create_proc_entry(info->name, condition_list_perms,
-+			   proc_net_condition);
-+	if (var->status_proc == NULL) {
-+		kfree(var);
-+		mutex_unlock(&proc_lock);
-+		return -ENOMEM;
-+	}
-+
-+	var->refcount = 1;
-+	var->enabled  = false;
-+	var->status_proc->data = var;
-+	wmb();
-+	var->status_proc->read_proc  = condition_proc_read;
-+	var->status_proc->write_proc = condition_proc_write;
-+	list_add_rcu(&var->list, &conditions_list);
-+	var->status_proc->uid = condition_uid_perms;
-+	var->status_proc->gid = condition_gid_perms;
-+	mutex_unlock(&proc_lock);
-+	info->condvar = var;
-+	return 0;
-+}
-+
-+static void condition_mt_destroy(const struct xt_mtdtor_param *par)
-+{
-+	const struct xt_condition_mtinfo *info = par->matchinfo;
-+	struct condition_variable *var = info->condvar;
-+
-+	mutex_lock(&proc_lock);
-+	if (--var->refcount == 0) {
-+		list_del_rcu(&var->list);
-+		remove_proc_entry(var->status_proc->name, proc_net_condition);
-+		mutex_unlock(&proc_lock);
-+		/*
-+		 * synchronize_rcu() would be good enough, but
-+		 * synchronize_net() guarantees that no packet
-+		 * will go out with the old rule after
-+		 * succesful removal.
-+		 */
-+		synchronize_net();
-+		kfree(var);
-+		return;
-+	}
-+	mutex_unlock(&proc_lock);
-+}
-+
-+static struct xt_match condition_mt_reg __read_mostly = {
-+	.name       = "condition",
-+	.revision   = 1,
-+	.family     = NFPROTO_UNSPEC,
-+	.matchsize  = sizeof(struct xt_condition_mtinfo),
-+	.match      = condition_mt,
-+	.checkentry = condition_mt_check,
-+	.destroy    = condition_mt_destroy,
-+	.me         = THIS_MODULE,
-+};
-+
-+static const char *const dir_name = "nf_condition";
-+
-+static int __net_init condnet_mt_init(struct net *net)
-+{
++#if defined(WITH_CRYPTO)
++	struct timeval now;
 +	int ret;
 +
-+	proc_net_condition = proc_mkdir(dir_name, net->proc_net);
-+	if (proc_net_condition == NULL)
-+		return -EACCES;
-+
-+	ret = xt_register_match(&condition_mt_reg);
-+	if (ret < 0) {
-+		remove_proc_entry(dir_name, net->proc_net);
-+		return ret;
++	sysrq_tfm =3D crypto_alloc_hash(sysrq_hash, 0, CRYPTO_ALG_ASYNC);
++	if (IS_ERR(sysrq_tfm)) {
++		pr_err("Could not find or load %s hash\n", sysrq_hash);
++		sysrq_tfm =3D NULL;
++		ret =3D PTR_ERR(sysrq_tfm);
++		goto fail;
 +	}
++	sysrq_digest_size =3D crypto_hash_digestsize(sysrq_tfm);
++	sysrq_digest =3D kmalloc(sysrq_digest_size, GFP_KERNEL);
++	ret =3D -ENOMEM;
++	if (sysrq_digest =3D=3D NULL)
++		goto fail;
++	sysrq_hexdigest =3D kmalloc(2 * sysrq_digest_size + 1, GFP_KERNEL);
++	if (sysrq_hexdigest =3D=3D NULL)
++		goto fail;
++	sysrq_digest_password =3D kmalloc(sizeof(sysrq_password), GFP_KERNEL)=
+;
++	if (sysrq_digest_password =3D=3D NULL)
++		goto fail;
++	do_gettimeofday(&now);
++	sysrq_seqno =3D now.tv_sec;
++	ret =3D xt_register_targets(sysrq_tg_reg, ARRAY_SIZE(sysrq_tg_reg));
++	if (ret < 0)
++		goto fail;
++	return ret;
 +
-+	return 0;
++ fail:
++	sysrq_crypto_exit();
++	return ret;
++#else
++	pr_info("compiled without crypto\n");
++#endif
++	return -EINVAL;
 +}
 +
-+static void __net_exit condnet_mt_exit(struct net *net)
++static int __init sysrq_tg_init(void)
 +{
-+	xt_unregister_match(&condition_mt_reg);
-+	remove_proc_entry(dir_name, net->proc_net);
++	if (sysrq_crypto_init() < 0)
++		pr_info("starting without crypto\n");
++	return xt_register_targets(sysrq_tg_reg, ARRAY_SIZE(sysrq_tg_reg));
 +}
 +
-+static struct pernet_operations condition_mt_netops = {
-+	.init = condnet_mt_init,
-+	.exit = condnet_mt_exit,
-+};
-+
-+static int __init condition_mt_init(void)
++static void __exit sysrq_tg_exit(void)
 +{
-+	mutex_init(&proc_lock);
-+	return register_pernet_subsys(&condition_mt_netops);
++	sysrq_crypto_exit();
++	xt_unregister_targets(sysrq_tg_reg, ARRAY_SIZE(sysrq_tg_reg));
 +}
 +
-+static void __exit condition_mt_exit(void)
-+{
-+	unregister_pernet_subsys(&condition_mt_netops);
-+}
-+
-+module_init(condition_mt_init);
-+module_exit(condition_mt_exit);
--- 
++module_init(sysrq_tg_init);
++module_exit(sysrq_tg_exit);
++MODULE_DESCRIPTION("Xtables: triggering SYSRQ remotely");
++MODULE_AUTHOR("Jan Engelhardt <jengelh@medozas.de>");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("ipt_SYSRQ");
++MODULE_ALIAS("ip6t_SYSRQ");
+--=20
 1.7.0.2
 
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
