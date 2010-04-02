@@ -1,50 +1,49 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Network Acceleration Module vs Service
-Date: Fri, 2 Apr 2010 13:23:11 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1004021313001.18189@obet.zrqbmnf.qr>
-References: <m2g8363055a1004011716t4b1efccazdbc28910424ee93d@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Justin Yaple <yaplej@gmail.com>
+Subject: nf-next: xt_condition, xt_SYSRQ
+Date: Fri,  2 Apr 2010 15:23:16 +0200
+Message-ID: <1270214599-22734-1-git-send-email-jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:47203 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:57512 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932230Ab0DBLXQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 2 Apr 2010 07:23:16 -0400
-In-Reply-To: <m2g8363055a1004011716t4b1efccazdbc28910424ee93d@mail.gmail.com>
+	id S1752439Ab0DBNXX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 2 Apr 2010 09:23:23 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Friday 2010-04-02 02:16, Justin Yaple wrote:
->
->I have been working on a network accelerator, [...]
->Currently it can only compress/decompress the data field of the TCP
->segments.
+Hi,
 
-So, what makes it better than ipcomp?
 
->I want to add the ability for it to generate signatures for
->common data patterns, and then substitute the signature in place of
->that data pattern.  The other accelerator host would the reverse that
->and replace the signature with the actual data pattern.
 
-That is essentially the definition of coding/compression,
-which you already seem to have (minus one change that you don't
-throw away the dictionary).
+As reviewed previously in
+	http://marc.info/?l=netfilter-devel&m=126883196918488&w=2
+	http://marc.info/?t=126883205200011&r=1&w=2
 
->I am a little worried about the performance of the system overall
->assuming the only option is to move the majority of this to a user
->space service I would need to rewrite the module portion to QUEUE the
->packets to user space.  This might severely effect performance of the
->system in the number of packets per second that can be processed.
->Given that it could be doing database queries, and substituting TCP
->data for a signature or compressing the data the time it takes to move
->a packet from kernel to user space and back might be negligible.
+Please merge.
 
-If it is not the case already, devise a mechanism so that userspace gathers
-multiple nfqueued packets at once instead of one-at-a-time.
- - multi-threading the userspace process might be worth looking into
- - using NFQUEUE to deliver into separate queues per CPU
-   (so that one CPU does not have to wait for the lock of another)
+
+
+The following changes since commit 02e4eb75912a5c8babccc1acdc9cc913989be04e:
+  Eric Dumazet (1):
+        netfilter: xt_hashlimit: RCU conversion
+
+are available in the git repository at:
+
+  git://dev.medozas.de/linux master
+
+Jan Engelhardt (2):
+      netfilter: xtables: inclusion of xt_condition
+      netfilter: xtables: inclusion of xt_SYSRQ
+
+ include/linux/netfilter/Kbuild         |    1 +
+ include/linux/netfilter/xt_condition.h |   14 ++
+ net/netfilter/Kconfig                  |   20 ++
+ net/netfilter/Makefile                 |    2 +
+ net/netfilter/xt_SYSRQ.c               |  354 ++++++++++++++++++++++++++++++++
+ net/netfilter/xt_condition.c           |  243 ++++++++++++++++++++++
+ 6 files changed, 634 insertions(+), 0 deletions(-)
+ create mode 100644 include/linux/netfilter/xt_condition.h
+ create mode 100644 net/netfilter/xt_SYSRQ.c
+ create mode 100644 net/netfilter/xt_condition.c
