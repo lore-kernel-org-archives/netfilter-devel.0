@@ -1,42 +1,47 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: Re: br_netfilter post routing hook question...
-Date: Fri, 02 Apr 2010 19:50:57 +0200
-Message-ID: <4BB62E81.707@pandora.be>
-References: <CB2DD11991B27C4F99935E6229450D320566AC7B@STORK.scenix.com> <v2q861e3bca1004021026kc7bba6p1a4b615a46e48c29@mail.gmail.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 5/5] netfilter: xt_TEE: have cloned packet travel through
+ Xtables too
+Date: Fri, 2 Apr 2010 20:15:21 +0200 (CEST)
+Message-ID: <alpine.LSU.2.01.1004022013230.14322@obet.zrqbmnf.qr>
+References: <1270031934-15940-1-git-send-email-jengelh@medozas.de> <1270031934-15940-6-git-send-email-jengelh@medozas.de> <4BB47768.1050405@trash.net> <alpine.LSU.2.01.1004011258060.17429@obet.zrqbmnf.qr> <4BB47EEA.4020809@trash.net>
+ <alpine.LSU.2.01.1004011511180.1174@obet.zrqbmnf.qr> <4BB49E10.8080608@trash.net> <alpine.LSU.2.01.1004011543260.1174@obet.zrqbmnf.qr> <4BB4A41C.7030107@trash.net> <alpine.LSU.2.01.1004011557270.5368@obet.zrqbmnf.qr> <4BB4A796.8010708@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Gareth Williams <gwilliams@ubicom.com>,
-	netfilter-devel@vger.kernel.org
-To: agashi shipora <gashipo@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from jacques.telenet-ops.be ([195.130.132.50]:45612 "EHLO
-	jacques.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755726Ab0DBRvA (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 2 Apr 2010 13:51:00 -0400
-In-Reply-To: <v2q861e3bca1004021026kc7bba6p1a4b615a46e48c29@mail.gmail.com>
+Received: from borg.medozas.de ([188.40.89.202]:35683 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750735Ab0DBSPW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 2 Apr 2010 14:15:22 -0400
+In-Reply-To: <4BB4A796.8010708@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-agashi shipora wrote:
-> Hi,
-> 
-> I don't know if br_nf_post_routing can be assigned a priority
-> NF_BR_PRI_LAST-1. I couldn't find ip_refrag definition in 2.6.30.
-> 
 
-The comment about ip_refrag() is outdated. I sent a patch containing an
-updated comment to Patrick earlier this week. The priority still has to
-be NF_BR_PRI_LAST, because br_nf_post_routing() returns NF_STOLEN.
-This is because the function ip_fragment(), which can be called by
-br_nf_dev_queue_xmit(), will free the skb. If you won't use connection
-tracking, I guess you could alter the code so you can still look at it
-after br_nf_post_routing().
+On Thursday 2010-04-01 16:03, Patrick McHardy wrote:
+>>>>[detecting teed packets getting teed again by means of
+>>>> iptables -A OUTPUT -j TEE]
+>>>
+>>> What's wrong with adding a reentrancy counter?
+>> 
+>> Sounds like a plan.
 
-cheers,
-Bart
+Should we be using a percpu variable, or is a simplistic
+array ok too?
 
--- 
-Bart De Schuymer
-www.artinalgorithms.be
+static bool tee_active;
+
+target(...)
+{
+	if (tee_active[smp_processor_id()])
+		return XT_CONTINUE;
+	...
+	if (tee_tg4_route(...)) {
+		tee_active[cpu] = true;
+		ip_local_out(skb);
+		tee_active[cpu] = false;
+	}
+}
+
+
