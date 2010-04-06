@@ -1,33 +1,32 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Accessing sk_buf
-Date: Tue, 6 Apr 2010 12:57:03 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1004061255130.16293@obet.zrqbmnf.qr>
-References: <174890.36512.qm@web111003.mail.gq1.yahoo.com>
+From: Peter Gordon <peter@pg-consultants.com>
+Subject: arptables - bulk/fast insert
+Date: Tue, 06 Apr 2010 15:39:13 +0300
+Message-ID: <1270557553.2712.24.camel@qed>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Andrew Watts <akwatts@ymail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:36916 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752199Ab0DFK5F (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 6 Apr 2010 06:57:05 -0400
-In-Reply-To: <174890.36512.qm@web111003.mail.gq1.yahoo.com>
+Received: from gold.securenet-server.net ([207.45.186.66]:58778 "EHLO
+	gold.securenet-server.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753319Ab0DFMjV (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 6 Apr 2010 08:39:21 -0400
+Received: from [212.143.139.191] (helo=[10.1.20.106])
+	by gold.securenet-server.net with esmtpa (Exim 4.69)
+	(envelope-from <peter@pg-consultants.com>)
+	id 1Nz83r-0000e4-RQ
+	for netfilter-devel@vger.kernel.org; Tue, 06 Apr 2010 08:39:20 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Monday 2010-04-05 12:10, Andrew Watts wrote:
+Is there a fast way to add rules to arptables, like ebtables-restore or
+iptables-restore?
 
->Dear list:
->
->I am writing a "bump" message for a previous post of mine. I would like
->suggestions or advice on how to go about accessing packet skbuf->sk
->fields (inodes, for example), in userspace via NFQUEUE. My read is
->that this is currently not possible as these are not exported.
->
->Has anyone played with patches that achieve this? Any suggestions on
->where to look?
+arptables-restore is a perl script which runs arptables for each insert,
+so
+a) it is not atomic
+b) it is slow
 
-There is a bug report at 
-http://bugzilla.netfilter.org/show_bug.cgi?id=600 where I posted a 
-patch, but it has not seen acceptance yet. May need to push harder.
+Peter
+
