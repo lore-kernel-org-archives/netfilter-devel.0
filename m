@@ -1,31 +1,30 @@
-From: Peter Gordon <peter@pg-consultants.com>
-Subject: arptables - max number of entries
-Date: Tue, 06 Apr 2010 17:25:20 +0300
-Message-ID: <1270563920.2712.25.camel@qed>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 5/5] netfilter: xt_TEE: have cloned packet travel through
+ Xtables too
+Date: Tue, 6 Apr 2010 18:14:54 +0200 (CEST)
+Message-ID: <alpine.LSU.2.01.1004061814120.13186@obet.zrqbmnf.qr>
+References: <1270031934-15940-1-git-send-email-jengelh@medozas.de> <1270031934-15940-6-git-send-email-jengelh@medozas.de> <4BB47768.1050405@trash.net> <alpine.LSU.2.01.1004011258060.17429@obet.zrqbmnf.qr> <4BB47EEA.4020809@trash.net>
+ <alpine.LSU.2.01.1004011511180.1174@obet.zrqbmnf.qr> <4BB49E10.8080608@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from gold.securenet-server.net ([207.45.186.66]:53680 "EHLO
-	gold.securenet-server.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751617Ab0DFOZd (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 6 Apr 2010 10:25:33 -0400
-Received: from [212.143.139.191] (helo=[10.1.20.106])
-	by gold.securenet-server.net with esmtpa (Exim 4.69)
-	(envelope-from <peter@pg-consultants.com>)
-	id 1Nz9id-0003wR-6h
-	for netfilter-devel@vger.kernel.org; Tue, 06 Apr 2010 10:25:32 -0400
+Received: from borg.medozas.de ([188.40.89.202]:42898 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755528Ab0DFQO4 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 6 Apr 2010 12:14:56 -0400
+In-Reply-To: <4BB49E10.8080608@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Is there a maximum number of entries for arptables?
 
-If so, how is it calculated?
+On Thursday 2010-04-01 15:22, Patrick McHardy wrote:
+>> Or should we be using skb_alloc and copying the data portion over, like 
+>> ipt_REJECT does since v2.6.24-2931-g9ba99b0?
+>
+>I guess pskb_copy() would be most optimal since we can modify
+>the header, but the non-linear area could be shared
 
-Thanks,
-
-Peter
-
-
+Trying to improve my understanding: when doing skb_pull,
+does the skb->head that is relevant for pskb_copy move?
