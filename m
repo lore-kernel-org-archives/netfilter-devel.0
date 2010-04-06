@@ -1,38 +1,31 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: iptables pull: osf and misc
-Date: Tue, 06 Apr 2010 16:15:54 +0200
-Message-ID: <4BBB421A.3060703@trash.net>
-References: <1270551164-2945-1-git-send-email-jengelh@medozas.de>
+Subject: Re: arptables - bulk/fast insert
+Date: Tue, 06 Apr 2010 16:18:20 +0200
+Message-ID: <4BBB42AC.7030503@trash.net>
+References: <1270557553.2712.24.camel@qed>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Peter Gordon <peter@pg-consultants.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:58729 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:58781 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751320Ab0DFOPy (ORCPT
+	with ESMTP id S1751269Ab0DFOSZ (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 6 Apr 2010 10:15:54 -0400
-In-Reply-To: <1270551164-2945-1-git-send-email-jengelh@medozas.de>
+	Tue, 6 Apr 2010 10:18:25 -0400
+In-Reply-To: <1270557553.2712.24.camel@qed>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> The following changes since commit 21d1283750d9c4df7ca80165d2b9dc0b9bd214eb:
->   Jan Engelhardt (1):
->         iptables: correctly check for too-long chain/target/match names
+Peter Gordon wrote:
+> Is there a fast way to add rules to arptables, like ebtables-restore or
+> iptables-restore?
 > 
-> are available in the git repository at:
-> 
->   git://dev.medozas.de/iptables master
-> 
-> Jan Engelhardt (5):
->       doc: libxt_MARK: no longer restricted to mangle table
->       doc: remove claim that TCPMSS is limited to mangle
->       libxt_recent: add a missing space in output
->       doc: add manpage for libxt_osf
->       libxt_osf: import nfnl_osf program
+> arptables-restore is a perl script which runs arptables for each insert,
+> so
+> a) it is not atomic
+> b) it is slow
 
-This introduces a new dependency on libnfnetlink. I'd prefer if it would
-only build the osf utils when the library is present.
+Its certainly possible to write an atomic arptables-restore program,
+but so far nobody has done it.
