@@ -1,46 +1,36 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 1/5] netfilter: ipv6: move POSTROUTING invocation before
- fragmentation
-Date: Wed, 7 Apr 2010 15:24:59 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1004071524510.10827@obet.zrqbmnf.qr>
-References: <1270031487-15094-1-git-send-email-jengelh@medozas.de> <1270031487-15094-2-git-send-email-jengelh@medozas.de> <4BB47A5E.6090205@linux-ipv6.org> <4BB480C6.9080604@trash.net>
+Subject: Re: [PATCH 5/5] netfilter: xt_TEE: have cloned packet travel through
+ Xtables too
+Date: Wed, 7 Apr 2010 15:26:21 +0200 (CEST)
+Message-ID: <alpine.LSU.2.01.1004071526001.10943@obet.zrqbmnf.qr>
+References: <1270031934-15940-1-git-send-email-jengelh@medozas.de> <1270031934-15940-6-git-send-email-jengelh@medozas.de> <4BB47768.1050405@trash.net> <alpine.LSU.2.01.1004011258060.17429@obet.zrqbmnf.qr> <4BB47EEA.4020809@trash.net>
+ <alpine.LSU.2.01.1004011511180.1174@obet.zrqbmnf.qr> <4BB49E10.8080608@trash.net> <alpine.LSU.2.01.1004061814120.13186@obet.zrqbmnf.qr> <4BBB634D.6050109@trash.net>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>,
-	netfilter-devel@vger.kernel.org
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:55733 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:55761 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753355Ab0DGNZB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 7 Apr 2010 09:25:01 -0400
-In-Reply-To: <4BB480C6.9080604@trash.net>
+	id S1757916Ab0DGN0X (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 7 Apr 2010 09:26:23 -0400
+In-Reply-To: <4BBB634D.6050109@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 2010-04-01 13:17, Patrick McHardy wrote:
 
->YOSHIFUJI Hideaki wrote:
->> Hello.
+On Tuesday 2010-04-06 18:37, Patrick McHardy wrote:
+>Jan Engelhardt wrote:
+>> On Thursday 2010-04-01 15:22, Patrick McHardy wrote:
+>>>> Or should we be using skb_alloc and copying the data portion over, like 
+>>>> ipt_REJECT does since v2.6.24-2931-g9ba99b0?
+>>> I guess pskb_copy() would be most optimal since we can modify
+>>> the header, but the non-linear area could be shared
 >> 
->> (2010/03/31 19:31), Jan Engelhardt wrote:
->>> Patrick McHardy notes: "We used to invoke IPv4 POST_ROUTING after
->>> fragmentation as well just to defragment the packets in conntrack
->>> immediately afterwards, but that got changed during the
->>> netfilter-ipsec integration. Ideally IPv6 would behave like IPv4."
->>>
->>> This patch makes it so. Sending an oversized frame (e.g. `ping6
->>> -s64000 -c1 ::1`) will now show up in POSTROUTING as a single skb
->>> rather than multiple ones.
->> 
->> I am not in favor doing this
->> because we theoretically make fragments __before__ routing
->> in output path (as we reassemble __after__ routing in input path).
+>> Trying to improve my understanding: when doing skb_pull,
+>> does the skb->head that is relevant for pskb_copy move?
 >
->That's true, but is symetry for fragment handling really something
->worth keeping? Besides avoiding one refragmentation pass in conntrack,
->its a lot easier to construct your ruleset when you don't have to
->take care of fragments.
-[...]
+>skb_pull() only changes skb->data.
 
-So, drop the patch or not?
+But how does it interact, with, say, xt_TCPMSS which modifies not
+only the L3 header, but also the L4 header?
