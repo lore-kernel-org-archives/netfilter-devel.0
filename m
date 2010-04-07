@@ -1,84 +1,48 @@
-From: Valdis.Kletnieks@vt.edu
-Subject: Re: mmotm 2010-04-05-16-09 uploaded
-Date: Wed, 07 Apr 2010 14:01:49 -0400
-Message-ID: <13074.1270663309@localhost>
-References: <201004052336.o35NaeSE015814@imap1.linux-foundation.org>
-Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="==_Exmh_1270663309_3901P";
-	 micalg=pgp-sha1; protocol="application/pgp-signature"
-Content-Transfer-Encoding: 7bit
-Cc: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: Andrew Morton <akpm@linux-foundation.org>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Ingo Molnar <mingo@redhat.com>,
-	Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: nf-next: TEE/reentrancy 20100407
+Date: Wed,  7 Apr 2010 20:50:10 +0200
+Message-ID: <1270666217-27670-1-git-send-email-jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org,
+	YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from lennier.cc.vt.edu ([198.82.162.213]:56259 "EHLO
-	lennier.cc.vt.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753270Ab0DGSDs (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 7 Apr 2010 14:03:48 -0400
-In-Reply-To: Your message of "Mon, 05 Apr 2010 16:09:45 PDT."
-             <201004052336.o35NaeSE015814@imap1.linux-foundation.org>
+Received: from borg.medozas.de ([188.40.89.202]:50577 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755678Ab0DGSu1 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 7 Apr 2010 14:50:27 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
---==_Exmh_1270663309_3901P
-Content-Type: text/plain; charset=us-ascii
 
-On Mon, 05 Apr 2010 16:09:45 PDT, akpm@linux-foundation.org said:
-> The mm-of-the-moment snapshot 2010-04-05-16-09 has been uploaded to
-> 
->    http://userweb.kernel.org/~akpm/mmotm/
+The following changes since commit 02e4eb75912a5c8babccc1acdc9cc913989be04e:
+  Eric Dumazet (1):
+        netfilter: xt_hashlimit: RCU conversion
 
-Seen in dmesg, 2.6.34-rc2-mmotm0323 didn't do this. Tossing it at all the
-likely suspects, hopefully somebody will recognize it and save me the
-bisecting. ;)
+are available in the git repository at:
 
-[   11.488535] ctnetlink v0.93: registering with nfnetlink.
-[   11.488579] 
-[   11.488579] ===================================================
-[   11.489529] [ INFO: suspicious rcu_dereference_check() usage. ]
-[   11.489988] ---------------------------------------------------
-[   11.490494] net/netfilter/nf_conntrack_ecache.c:88 invoked rcu_dereference_check() without protection!
-[   11.491024] 
-[   11.491024] other info that might help us debug this:
-[   11.491025] 
-[   11.492834] 
-[   11.492835] rcu_scheduler_active = 1, debug_locks = 0
-[   11.494124] 1 lock held by swapper/1:
-[   11.494776]  #0:  (nf_ct_ecache_mutex){+.+...}, at: [<ffffffff8148c606>] nf_conntrack_register_notifier+0x1a/0x76
-[   11.495505] 
-[   11.495506] stack backtrace:
-[   11.496927] Pid: 1, comm: swapper Not tainted 2.6.34-rc3-mmotm0405 #1
-[   11.497668] Call Trace:
-[   11.498419]  [<ffffffff810638c5>] lockdep_rcu_dereference+0xaa/0xb2
-[   11.499185]  [<ffffffff8148c629>] nf_conntrack_register_notifier+0x3d/0x76
-[   11.499967]  [<ffffffff81b5dd7b>] ctnetlink_init+0x71/0xd5
-[   11.500775]  [<ffffffff81b5dd0a>] ? ctnetlink_init+0x0/0xd5
-[   11.501579]  [<ffffffff810001ef>] do_one_initcall+0x59/0x14e
-[   11.502396]  [<ffffffff81b3268a>] kernel_init+0x144/0x1ce
-[   11.503218]  [<ffffffff81003514>] kernel_thread_helper+0x4/0x10
-[   11.504047]  [<ffffffff8159cc00>] ? restore_args+0x0/0x30
-[   11.504882]  [<ffffffff81b32546>] ? kernel_init+0x0/0x1ce
-[   11.505715]  [<ffffffff81003510>] ? kernel_thread_helper+0x0/0x10
-[   11.506636] ip_tables: (C) 2000-2006 Netfilter Core Team
-[   11.507372] TCP bic registered
+  git://dev.medozas.de/linux master
 
+Jan Engelhardt (6):
+      netfilter: ipv6: move POSTROUTING invocation before fragmentation
+      netfilter: ipv6: add IPSKB_REROUTED exclusion to NF_HOOK/POSTROUTING invocation
+      netfilter: xtables: inclusion of xt_TEE
+      netfilter: xtables2: make ip_tables reentrant
+      netfilter: xt_TEE: have cloned packet travel through Xtables too
+      netfilter: xtables: remove old comments about reentrancy
 
---==_Exmh_1270663309_3901P
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-Comment: Exmh version 2.5 07/13/2001
-
-iD8DBQFLvMiNcC3lWbTT17ARAn4kAJ9/0RdAq3s0dOuASnNdracwxYzltACdFoxk
-awnQo03tntDhlr0YT0ahASU=
-=dQIQ
------END PGP SIGNATURE-----
-
---==_Exmh_1270663309_3901P--
-
+ include/linux/netfilter/Kbuild     |    1 +
+ include/linux/netfilter/x_tables.h |    7 +
+ include/linux/netfilter/xt_TEE.h   |    8 ++
+ net/ipv4/netfilter/arp_tables.c    |    6 +-
+ net/ipv4/netfilter/ip_tables.c     |   67 ++++++-----
+ net/ipv4/netfilter/ipt_REJECT.c    |    3 -
+ net/ipv6/ip6_output.c              |   50 ++++----
+ net/ipv6/netfilter/ip6_tables.c    |   58 ++++------
+ net/ipv6/netfilter/ip6t_REJECT.c   |    3 -
+ net/netfilter/Kconfig              |    7 +
+ net/netfilter/Makefile             |    1 +
+ net/netfilter/x_tables.c           |   79 ++++++++++++
+ net/netfilter/xt_TEE.c             |  229 ++++++++++++++++++++++++++++++++++++
+ 13 files changed, 417 insertions(+), 102 deletions(-)
+ create mode 100644 include/linux/netfilter/xt_TEE.h
+ create mode 100644 net/netfilter/xt_TEE.c
