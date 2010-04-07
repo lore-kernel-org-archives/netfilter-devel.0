@@ -1,40 +1,41 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: use idr instead of list to speed up packet
- 	lookup by id
-Date: Wed, 07 Apr 2010 16:41:36 +0200
-Message-ID: <4BBC99A0.1010408@trash.net>
-References: <4BBBFE21.9070507@gmail.com> <4BBC711E.7050602@trash.net> 	<y2m412e6f7f1004070630v14118231g13847965d7d44a54@mail.gmail.com> 	<4BBC8B44.30208@trash.net> <m2k412e6f7f1004070707sd456c5d1v567f9dca021397a2@mail.gmail.com> 	<4BBC93CA.4000207@trash.net> <y2u412e6f7f1004070733i3635487bh81cfac3e6a64474f@mail.gmail.com>
+Subject: Re: [PATCH v2] Add refcounts to LED target
+Date: Wed, 07 Apr 2010 18:15:19 +0200
+Message-ID: <4BBCAF97.6040806@trash.net>
+References: <4A18A70F.50808@shikadi.net> <alpine.LSU.2.00.0905240933050.18758@fbirervta.pbzchgretzou.qr> <4A1DC798.1090604@shikadi.net> <4A26418C.5090707@trash.net> <4A265891.4050201@shikadi.net> <4AF2E8A5.7020409@trash.net> <4AF34C03.7020907@shikadi.net> <4AF43916.5010408@trash.net> <4B11D1B5.2060306@shikadi.net> <alpine.LSU.2.00.0911291055020.24432@obet.zrqbmnf.qr> <4B125C18.7060802@shikadi.net> <alpine.LSU.2.00.0911291646380.6794@obet.zrqbmnf.qr> <4B14EA81.5030603@trash.net> <4B1B82D5.2070607@shikadi.net> <4B1BB086.3030700@trash.net> <4BAB6CB2.3050904@trash.net> <alpine.LSU.2.01.1003251504500.32573@obet.zrqbmnf.qr> <4BAB6E70.8090605@trash.net> <4BAD841A.9060103@shikadi.net> <alpine.LSU.2.01.1003271214440.13915@obet.zrqbmnf.qr> <4BADEE6A.5000103@shikadi.net> <alpine.LSU.2.01.100327125319
+ 0.1149@obet.zrqbmnf.qr> <4BAEB013.6060001@shikadi.net> <alpine.LSU.2.01.1004041327160.22215@obet.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Changli Gao <xiaosuo@gmail.com>
+Cc: Adam Nielsen <a.nielsen@shikadi.net>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:48758 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:50413 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932553Ab0DGOmC (ORCPT
+	with ESMTP id S1757916Ab0DGQPV (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 7 Apr 2010 10:42:02 -0400
-In-Reply-To: <y2u412e6f7f1004070733i3635487bh81cfac3e6a64474f@mail.gmail.com>
+	Wed, 7 Apr 2010 12:15:21 -0400
+In-Reply-To: <alpine.LSU.2.01.1004041327160.22215@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Changli Gao wrote:
-> On Wed, Apr 7, 2010 at 10:16 PM, Patrick McHardy <kaber@trash.net> wrote:
->> You only know that during runtime, so this will get more complicated
->> than necessary. Why not simply use a hash table with a size specified
->> by userspace in the queue creation command?  The default behaviour
->> would be a size of 1, which is equivalent to the currently used single
->> list.
->>
+Jan Engelhardt wrote:
+> On Sunday 2010-03-28 03:25, Adam Nielsen wrote:
 > 
-> We'd better not expose too many internal implementation details to
-> userspace. If we do so, we can't change its implementation easily
-> later. And letting user choose the size of hash table is much like the
-> orginal epoll(2) design, there will be security consern, such as too
-> much memory usage.
+>> Add reference counting to the LED target so that multiple targets sharing the
+>> same trigger don't cause any problems.
+> 
+> I also noticed one another thing: you don't increase the refcount while 
+> xt_led_mutex is held. That means it is theoretically possible that you 
+> do a lookup, then a destructor runs and frees the object, leading to 
+> ++ledinternal->refcnt dereference an illegal ledinternal.
 
-Userspace queueing is limited to root, so there's no concern about
-memory usage. Regarding implementation details: alternatively add
-a flag to specify out of order handling and size the hash table
-based on the maximum number of queue entries.
+Indeed, I also noticed this. Basically, you need to make sure that
+
+- the lookup and refcnt increase is atomic,
+- the refcnt decrease and list deletion is atomic
+- the lookup and list insertion is atomic (in case no trigger exists)
+
+The remaining parts look fine to me, thanks.
