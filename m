@@ -1,58 +1,46 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: use idr instead of list to speed up packet
- lookup by id
-Date: Wed, 07 Apr 2010 15:03:16 +0200
-Message-ID: <4BBC8294.50501@trash.net>
-References: <4BBBFE21.9070507@gmail.com>  <4BBC711E.7050602@trash.net> <1270643136.2091.1013.camel@edumazet-laptop>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 1/5] netfilter: ipv6: move POSTROUTING invocation before
+ fragmentation
+Date: Wed, 7 Apr 2010 15:24:59 +0200 (CEST)
+Message-ID: <alpine.LSU.2.01.1004071524510.10827@obet.zrqbmnf.qr>
+References: <1270031487-15094-1-git-send-email-jengelh@medozas.de> <1270031487-15094-2-git-send-email-jengelh@medozas.de> <4BB47A5E.6090205@linux-ipv6.org> <4BB480C6.9080604@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: xiaosuo@gmail.com, netfilter-devel@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>,
+	netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:47133 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753355Ab0DGNDU (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 7 Apr 2010 09:03:20 -0400
-In-Reply-To: <1270643136.2091.1013.camel@edumazet-laptop>
+Received: from borg.medozas.de ([188.40.89.202]:55733 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753355Ab0DGNZB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 7 Apr 2010 09:25:01 -0400
+In-Reply-To: <4BB480C6.9080604@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Dumazet wrote:
-> Le mercredi 07 avril 2010 =E0 13:48 +0200, Patrick McHardy a =E9crit =
-:
->> Changli Gao wrote:
->>> use idr instead of list to speed up packet lookup by id.
->>>
->>> The current implementations of nfnetlink_queue, ip_queue and ip6_qu=
-eue
->>> are all use list to save the packets queued. If the verdicts aren't
->>> received in order, the lookup for the corresponding packets isn't
->>> efficient. As the ids is generated and maintained in kernel, we can=
- use
->>> idr to speed up the lookup. The side effect of this patch is fixing=
- the
->>> potential id overlap in nfnetlink_queue.
->> I'm interested in how this affects performance for the vast majority
->> of users, which process messages in order. A simple hash table looks
->> like a better choice here since we know the maximum number of entrie=
-s
->> in advance and also could have the user specify the desired hash siz=
-e.
->=20
-> Yes, a hash table would be good, but cost 8 bytes per slot.
->=20
-> Changli, did you tried RBL tree ? It might fit better both your needs
-> and Patrick concerns...
+On Thursday 2010-04-01 13:17, Patrick McHardy wrote:
 
-RB-trees OTOH cost 8 bytes extra per element. If we'd use a hash,
-I think the size should be configurable by userspace and default
-to 1 (simple list as used currently). That way only those people
-actually processing packets out of order have to pay the price.
-But an RB-tree would be fine too I guess.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>YOSHIFUJI Hideaki wrote:
+>> Hello.
+>> 
+>> (2010/03/31 19:31), Jan Engelhardt wrote:
+>>> Patrick McHardy notes: "We used to invoke IPv4 POST_ROUTING after
+>>> fragmentation as well just to defragment the packets in conntrack
+>>> immediately afterwards, but that got changed during the
+>>> netfilter-ipsec integration. Ideally IPv6 would behave like IPv4."
+>>>
+>>> This patch makes it so. Sending an oversized frame (e.g. `ping6
+>>> -s64000 -c1 ::1`) will now show up in POSTROUTING as a single skb
+>>> rather than multiple ones.
+>> 
+>> I am not in favor doing this
+>> because we theoretically make fragments __before__ routing
+>> in output path (as we reassemble __after__ routing in input path).
+>
+>That's true, but is symetry for fragment handling really something
+>worth keeping? Besides avoiding one refragmentation pass in conntrack,
+>its a lot easier to construct your ruleset when you don't have to
+>take care of fragments.
+[...]
+
+So, drop the patch or not?
