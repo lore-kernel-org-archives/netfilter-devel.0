@@ -1,36 +1,86 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 5/5] netfilter: xt_TEE: have cloned packet travel through
- Xtables too
-Date: Wed, 7 Apr 2010 15:26:21 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1004071526001.10943@obet.zrqbmnf.qr>
-References: <1270031934-15940-1-git-send-email-jengelh@medozas.de> <1270031934-15940-6-git-send-email-jengelh@medozas.de> <4BB47768.1050405@trash.net> <alpine.LSU.2.01.1004011258060.17429@obet.zrqbmnf.qr> <4BB47EEA.4020809@trash.net>
- <alpine.LSU.2.01.1004011511180.1174@obet.zrqbmnf.qr> <4BB49E10.8080608@trash.net> <alpine.LSU.2.01.1004061814120.13186@obet.zrqbmnf.qr> <4BBB634D.6050109@trash.net>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: Re: [PATCH] netfilter: use idr instead of list to speed up packet
+	lookup by id
+Date: Wed, 7 Apr 2010 21:30:42 +0800
+Message-ID: <y2m412e6f7f1004070630v14118231g13847965d7d44a54@mail.gmail.com>
+References: <4BBBFE21.9070507@gmail.com> <4BBC711E.7050602@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:55761 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757916Ab0DGN0X (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 7 Apr 2010 09:26:23 -0400
-In-Reply-To: <4BBB634D.6050109@trash.net>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:59826 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756943Ab0DGNbF convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 7 Apr 2010 09:31:05 -0400
+Received: by pwj9 with SMTP id 9so913402pwj.19
+        for <netfilter-devel@vger.kernel.org>; Wed, 07 Apr 2010 06:31:03 -0700 (PDT)
+In-Reply-To: <4BBC711E.7050602@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-On Tuesday 2010-04-06 18:37, Patrick McHardy wrote:
->Jan Engelhardt wrote:
->> On Thursday 2010-04-01 15:22, Patrick McHardy wrote:
->>>> Or should we be using skb_alloc and copying the data portion over, like 
->>>> ipt_REJECT does since v2.6.24-2931-g9ba99b0?
->>> I guess pskb_copy() would be most optimal since we can modify
->>> the header, but the non-linear area could be shared
->> 
->> Trying to improve my understanding: when doing skb_pull,
->> does the skb->head that is relevant for pskb_copy move?
+On Wed, Apr 7, 2010 at 7:48 PM, Patrick McHardy <kaber@trash.net> wrote=
+:
+> Changli Gao wrote:
 >
->skb_pull() only changes skb->data.
+> This doesn't compile:
+>
+> net/netfilter/nfnetlink_queue.c:57: error: field 'idr' has incomplete=
+ type
+> net/netfilter/nfnetlink_queue.c: In function 'instance_create':
+> net/netfilter/nfnetlink_queue.c:112: error: implicit declaration of
+> function 'idr_init'
+> net/netfilter/nfnetlink_queue.c: In function 'instance_destroy_rcu':
+> net/netfilter/nfnetlink_queue.c:143: error: implicit declaration of
+> function 'idr_destroy'
+> net/netfilter/nfnetlink_queue.c: In function 'find_dequeue_entry':
+> net/netfilter/nfnetlink_queue.c:170: error: implicit declaration of
+> function 'idr_find'
+> net/netfilter/nfnetlink_queue.c:170: warning: assignment makes pointe=
+r
+> from integer without a cast
+> net/netfilter/nfnetlink_queue.c:172: error: implicit declaration of
+> function 'idr_remove'
+> net/netfilter/nfnetlink_queue.c: In function 'nfqnl_flush':
+> net/netfilter/nfnetlink_queue.c:188: error: implicit declaration of
+> function 'idr_get_next'
+> net/netfilter/nfnetlink_queue.c:188: warning: assignment makes pointe=
+r
+> from integer without a cast
+> net/netfilter/nfnetlink_queue.c: In function 'nfqnl_build_packet_mess=
+age':
+> net/netfilter/nfnetlink_queue.c:253: error: implicit declaration of
+> function 'idr_pre_get'
+> net/netfilter/nfnetlink_queue.c:254: error: implicit declaration of
+> function 'idr_get_new'
 
-But how does it interact, with, say, xt_TCPMSS which modifies not
-only the L3 header, but also the L4 header?
+I cooked this patch aginst linux-next. And I have noticed net-next
+wasn't synced with linux-next yet.
+
+>
+> I'm interested in how this affects performance for the vast majority
+> of users, which process messages in order. A simple hash table looks
+> like a better choice here since we know the maximum number of entries
+> in advance and also could have the user specify the desired hash size=
+=2E
+>
+
+If there aren't much packets queued, the packet ids will be around 0,
+and idr isn't much slower.
+
+>
+> You probably shouldn't be making the entry visible before the message
+> is successfully built and sent.
+
+I wanted to keep the changeset small. But it seems wrong.
+
+--=20
+Regards=EF=BC=8C
+Changli Gao(xiaosuo@gmail.com)
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
