@@ -1,27 +1,35 @@
 From: "mstrfixit" <mstrfixit@rogers.com>
 Subject: RE: NF_IP_POST ROUTING - Send packet back out on same interface it came in on
-Date: Thu, 8 Apr 2010 09:02:17 -0400
-Message-ID: <002701cad71b$b7b8a260$2729e720$@com>
+Date: Thu, 8 Apr 2010 09:19:30 -0400
+Message-ID: <002801cad71e$1f6d2dc0$5e478940$@com>
 References: <266849.47310.qm@web88106.mail.re2.yahoo.com> <alpine.LSU.2.01.1004081446220.28332@obet.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: text/plain;
 	charset="windows-1252"
 Content-Transfer-Encoding: 7bit
-Cc: <netfilter-devel@vger.kernel.org>
-To: "'Jan Engelhardt'" <jengelh@medozas.de>
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp104.rog.mail.re2.yahoo.com ([206.190.36.82]:29834 "HELO
-	smtp104.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1758731Ab0DHNI7 (ORCPT
+Received: from smtp108.rog.mail.re2.yahoo.com ([68.142.225.206]:24911 "HELO
+	smtp108.rog.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1758420Ab0DHN0L (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 8 Apr 2010 09:08:59 -0400
+	Thu, 8 Apr 2010 09:26:11 -0400
 In-Reply-To: <alpine.LSU.2.01.1004081446220.28332@obet.zrqbmnf.qr>
 Content-Language: en-us
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Like I said. I solved the problem and it works a treat. Yes I swapped the
-Mac addresses and the input/output devices.
+Error was simple logic:
+
+if (ethdr != NULL)
+
+Should have been 
+
+if (ethdr == NULL)
+
+I could not see the forest through the trees.
+
+Cheers
 
 -----Original Message-----
 From: Jan Engelhardt [mailto:jengelh@medozas.de] 
