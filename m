@@ -1,86 +1,134 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Prerouting hook doesn't "see" all packets
-Date: Wed, 7 Apr 2010 22:16:39 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1004072213170.30103@obet.zrqbmnf.qr>
-References: <y2yefcd93941004061610n9f6b0a90lec0209b794d5bc14@mail.gmail.com>  <alpine.LSU.2.01.1004070122000.31132@obet.zrqbmnf.qr> <y2pefcd93941004071302mc5ca51a8s4aa401c5c5fe64df@mail.gmail.com>
+From: Adam Nielsen <a.nielsen@shikadi.net>
+Subject: Re: [PATCH v3] Add refcounts to LED target
+Date: Thu, 08 Apr 2010 13:03:43 +1000
+Message-ID: <4BBD478F.4050208@shikadi.net>
+References: <4A18A70F.50808@shikadi.net> <alpine.LSU.2.00.0905240933050.18758@fbirervta.pbzchgretzou.qr> <4A1DC798.1090604@shikadi.net> <4A26418C.5090707@trash.net> <4A265891.4050201@shikadi.net> <4AF2E8A5.7020409@trash.net> <4AF34C03.7020907@shikadi.net> <4AF43916.5010408@trash.net> <4B11D1B5.2060306@shikadi.net> <alpine.LSU.2.00.0911291055020.24432@obet.zrqbmnf.qr> <4B125C18.7060802@shikadi.net> <alpine.LSU.2.00.0911291646380.6794@obet.zrqbmnf.qr> <4B14EA81.5030603@trash.net> <4B1B82D5.2070607@shikadi.net> <4B1BB086.3030700@trash.net> <4BAB6CB2.3050904@trash.net> <alpine.LSU.2.01.1003251504500.32573@obet.zrqbmnf.qr> <4BAB6E70.8090605@trash.net> <4BAD841A.9060103@shikadi.net> <alpine.LSU.2.01.1003271214440.13915@obet.zrqbmnf.qr> <4BADEE6A.5000103@shikadi.net> <alpine.LSU.2.01.100327125319
+ 0.1149@obet.zrqbmnf.qr> <4BAEB013.6060001@shikadi.net> <alpine.LSU.2.01.1004041327160.22215@obet.zrqbmnf.qr> <4BBCAF97.6040806@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: K-Gen <alphakgen@gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------080805060008010604000606"
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:37116 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750986Ab0DGUQl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 7 Apr 2010 16:16:41 -0400
-In-Reply-To: <y2pefcd93941004071302mc5ca51a8s4aa401c5c5fe64df@mail.gmail.com>
+Received: from vitalin.sorra.shikadi.net ([64.71.152.201]:34061 "EHLO
+	vitalin.sorra.shikadi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753145Ab0DHDDu (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 7 Apr 2010 23:03:50 -0400
+In-Reply-To: <4BBCAF97.6040806@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+This is a multi-part message in MIME format.
+--------------080805060008010604000606
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-On Wednesday 2010-04-07 22:02, K-Gen wrote:
+>> I also noticed one another thing: you don't increase the refcount while 
+>> xt_led_mutex is held. That means it is theoretically possible that you 
+>> do a lookup, then a destructor runs and frees the object, leading to 
+>> ++ledinternal->refcnt dereference an illegal ledinternal.
 
->Thanks for the response.
->
->Was nfcache "long gone" even in 2.6.8.1? If so, what took it's place?
+Thanks both for your comments and explanations.  I've attached an updated
+patch, I hope this one addresses these issues.
 
-Dunno about 2.6.8. You're really better off using something that's
-maintained.
-Nothing took its place AFAICS.
+> Indeed, I also noticed this. Basically, you need to make sure that
+> 
+> - the lookup and refcnt increase is atomic,
+> - the refcnt decrease and list deletion is atomic
+> - the lookup and list insertion is atomic (in case no trigger exists)
 
->As for the code, there you go :
->
->This is the hook registration (pardon the Object-Oriented C):
+I've moved the mutex around so that hopefully all these operations are now atomic.
 
-Well the kernel is in C, so using another language is next to gambling.
+> The remaining parts look fine to me, thanks.
 
->RC_t PREROUTING_HOOK_init(PREROUTING_HOOK_t * self)
->{
->  ...
->  ...
->  self->netfilter_ops_prerouting.hook = PREROUTING_HOOK_hook;
->  self->netfilter_ops_prerouting.pf = PF_INET;
->  self->netfilter_ops_prerouting.hooknum = NF_IP_PRE_ROUTING;
->  self->netfilter_ops_prerouting.priority = NF_IP_PRI_LAST;
->  ...
->  ...
+Great, I hope you're happy with this one!
 
-It's simpler to just use a
-static struct nf_hook_ops myops = {
-	.hook = NF_INET_PRE_ROUTING
-	.pf = NFPROTO_IPV4, /* not PF_INET */
-	.hooknum = ...
-	etc.
-};
+Cheers,
+Adam.
 
->  nf_retval = nf_register_hook(&(self->netfilter_ops_prerouting));
->  ...
->  ...
->}
->
->This is the hook function:
->
->unsigned int PREROUTING_HOOK_hook(unsigned int hooknum,
->				  struct sk_buff ** skb,
->				  const struct net_device * in,
->				  const struct net_device * out,
->				  int (* okfn)(struct sk_buff *))
->{
->  unsigned int verdict = NF_ACCEPT;
->  unsigned char * tcp_start = NULL;
->
->  if (NULL == (*skb)) {
->    goto done;
->  }
->
->  /* No IP header? */
->  if (NULL == (*skb)->nh.iph) {
->    goto done;
->  }
->
->  if (0x06 != (*skb)->nh.iph->protocol) {
->    goto done;
->  }
->
->  tcp_start = ((unsigned char *)((*skb)->nh.iph)) + ((*skb)->nh.iph->ihl * 4);
+--------------080805060008010604000606
+Content-Type: text/plain;
+ name="netfilter-leds-add_refcount_v3.patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="netfilter-leds-add_refcount_v3.patch"
 
-The TCP header may be fragmented; you need to use skb_header_pointer.
+ZGlmZiAtLWdpdCBhL25ldC9uZXRmaWx0ZXIveHRfTEVELmMgYi9uZXQvbmV0ZmlsdGVyL3h0
+X0xFRC5jCmluZGV4IGVmY2Y1NmQuLjE5NmJmMjYgMTAwNjQ0Ci0tLSBhL25ldC9uZXRmaWx0
+ZXIveHRfTEVELmMKKysrIGIvbmV0L25ldGZpbHRlci94dF9MRUQuYwpAQCAtMzEsMTIgKzMx
+LDE4IEBAIE1PRFVMRV9MSUNFTlNFKCJHUEwiKTsKIE1PRFVMRV9BVVRIT1IoIkFkYW0gTmll
+bHNlbiA8YS5uaWVsc2VuQHNoaWthZGkubmV0PiIpOwogTU9EVUxFX0RFU0NSSVBUSU9OKCJY
+dGFibGVzOiB0cmlnZ2VyIExFRCBkZXZpY2VzIG9uIHBhY2tldCBtYXRjaCIpOwogCitzdGF0
+aWMgTElTVF9IRUFEKHh0X2xlZF90cmlnZ2Vycyk7CitzdGF0aWMgREVGSU5FX01VVEVYKHh0
+X2xlZF9tdXRleCk7CisKIC8qCiAgKiBUaGlzIGlzIGRlY2xhcmVkIGluIGhlcmUgKHRoZSBr
+ZXJuZWwgbW9kdWxlKSBvbmx5LCB0byBhdm9pZCBoYXZpbmcgdGhlc2UKICAqIGRlcGVuZGVu
+Y2llcyBpbiB1c2Vyc3BhY2UgY29kZS4gIFRoaXMgaXMgd2hhdCB4dF9sZWRfaW5mby5pbnRl
+cm5hbF9kYXRhCiAgKiBwb2ludHMgdG8uCiAgKi8KIHN0cnVjdCB4dF9sZWRfaW5mb19pbnRl
+cm5hbCB7CisJc3RydWN0IGxpc3RfaGVhZCBsaXN0OworCWludCByZWZjbnQ7CisJY2hhciAq
+dHJpZ2dlcl9pZDsKIAlzdHJ1Y3QgbGVkX3RyaWdnZXIgbmV0ZmlsdGVyX2xlZF90cmlnZ2Vy
+OwogCXN0cnVjdCB0aW1lcl9saXN0IHRpbWVyOwogfTsKQEAgLTUzLDcgKzU5LDcgQEAgbGVk
+X3RnKHN0cnVjdCBza19idWZmICpza2IsIGNvbnN0IHN0cnVjdCB4dF90YXJnZXRfcGFyYW0g
+KnBhcikKIAkgKi8KIAlpZiAoKGxlZGluZm8tPmRlbGF5ID4gMCkgJiYgbGVkaW5mby0+YWx3
+YXlzX2JsaW5rICYmCiAJICAgIHRpbWVyX3BlbmRpbmcoJmxlZGludGVybmFsLT50aW1lcikp
+Ci0JCWxlZF90cmlnZ2VyX2V2ZW50KCZsZWRpbnRlcm5hbC0+bmV0ZmlsdGVyX2xlZF90cmln
+Z2VyLExFRF9PRkYpOworCQlsZWRfdHJpZ2dlcl9ldmVudCgmbGVkaW50ZXJuYWwtPm5ldGZp
+bHRlcl9sZWRfdHJpZ2dlciwgTEVEX09GRik7CiAKIAlsZWRfdHJpZ2dlcl9ldmVudCgmbGVk
+aW50ZXJuYWwtPm5ldGZpbHRlcl9sZWRfdHJpZ2dlciwgTEVEX0ZVTEwpOwogCkBAIC03NCwx
+MiArODAsMjQgQEAgbGVkX3RnKHN0cnVjdCBza19idWZmICpza2IsIGNvbnN0IHN0cnVjdCB4
+dF90YXJnZXRfcGFyYW0gKnBhcikKIAogc3RhdGljIHZvaWQgbGVkX3RpbWVvdXRfY2FsbGJh
+Y2sodW5zaWduZWQgbG9uZyBkYXRhKQogewotCXN0cnVjdCB4dF9sZWRfaW5mbyAqbGVkaW5m
+byA9IChzdHJ1Y3QgeHRfbGVkX2luZm8gKilkYXRhOwotCXN0cnVjdCB4dF9sZWRfaW5mb19p
+bnRlcm5hbCAqbGVkaW50ZXJuYWwgPSBsZWRpbmZvLT5pbnRlcm5hbF9kYXRhOworCXN0cnVj
+dCB4dF9sZWRfaW5mb19pbnRlcm5hbCAqbGVkaW50ZXJuYWwgPSAoc3RydWN0IHh0X2xlZF9p
+bmZvX2ludGVybmFsICopZGF0YTsKIAogCWxlZF90cmlnZ2VyX2V2ZW50KCZsZWRpbnRlcm5h
+bC0+bmV0ZmlsdGVyX2xlZF90cmlnZ2VyLCBMRURfT0ZGKTsKIH0KIAorc3RhdGljIHN0cnVj
+dCB4dF9sZWRfaW5mb19pbnRlcm5hbCAqbGVkX3RyaWdnZXJfbG9va3VwKGNvbnN0IGNoYXIg
+Km5hbWUpCit7CisJc3RydWN0IHh0X2xlZF9pbmZvX2ludGVybmFsICpsZWRpbnRlcm5hbDsK
+KworCWxpc3RfZm9yX2VhY2hfZW50cnkobGVkaW50ZXJuYWwsICZ4dF9sZWRfdHJpZ2dlcnMs
+IGxpc3QpIHsKKwkJaWYgKCFzdHJjbXAobmFtZSwgbGVkaW50ZXJuYWwtPm5ldGZpbHRlcl9s
+ZWRfdHJpZ2dlci5uYW1lKSkgeworCQkJbXV0ZXhfdW5sb2NrKCZ4dF9sZWRfbXV0ZXgpOwor
+CQkJcmV0dXJuIGxlZGludGVybmFsOworCQl9CisJfQorCXJldHVybiBOVUxMOworfQorCiBz
+dGF0aWMgaW50IGxlZF90Z19jaGVjayhjb25zdCBzdHJ1Y3QgeHRfdGdjaGtfcGFyYW0gKnBh
+cikKIHsKIAlzdHJ1Y3QgeHRfbGVkX2luZm8gKmxlZGluZm8gPSBwYXItPnRhcmdpbmZvOwpA
+QCAtOTEsMTEgKzEwOSwyNiBAQCBzdGF0aWMgaW50IGxlZF90Z19jaGVjayhjb25zdCBzdHJ1
+Y3QgeHRfdGdjaGtfcGFyYW0gKnBhcikKIAkJcmV0dXJuIC1FSU5WQUw7CiAJfQogCisJbXV0
+ZXhfbG9jaygmeHRfbGVkX211dGV4KTsKKworCWxlZGludGVybmFsID0gbGVkX3RyaWdnZXJf
+bG9va3VwKGxlZGluZm8tPmlkKTsKKwlpZiAobGVkaW50ZXJuYWwpIHsKKwkJbGVkaW50ZXJu
+YWwtPnJlZmNudCsrOworCQlnb3RvIG91dDsKKwl9CisKKwllcnIgPSAtRU5PTUVNOwogCWxl
+ZGludGVybmFsID0ga3phbGxvYyhzaXplb2Yoc3RydWN0IHh0X2xlZF9pbmZvX2ludGVybmFs
+KSwgR0ZQX0tFUk5FTCk7CiAJaWYgKCFsZWRpbnRlcm5hbCkKLQkJcmV0dXJuIC1FTk9NRU07
+CisJCWdvdG8gZXhpdF9tdXRleF9vbmx5OworCisJbGVkaW50ZXJuYWwtPnRyaWdnZXJfaWQg
+PSBremFsbG9jKHN0cmxlbihsZWRpbmZvLT5pZCkgKyAxLCBHRlBfS0VSTkVMKTsKKwlpZiAo
+IWxlZGludGVybmFsLT50cmlnZ2VyX2lkKQorCQlnb3RvIGV4aXRfaW50ZXJuYWxfYWxsb2M7
+CiAKLQlsZWRpbnRlcm5hbC0+bmV0ZmlsdGVyX2xlZF90cmlnZ2VyLm5hbWUgPSBsZWRpbmZv
+LT5pZDsKKwlsZWRpbnRlcm5hbC0+cmVmY250ID0gMTsKKwlzdHJjcHkobGVkaW50ZXJuYWwt
+PnRyaWdnZXJfaWQsIGxlZGluZm8tPmlkKTsKKwlsZWRpbnRlcm5hbC0+bmV0ZmlsdGVyX2xl
+ZF90cmlnZ2VyLm5hbWUgPSBsZWRpbnRlcm5hbC0+dHJpZ2dlcl9pZDsKIAogCWVyciA9IGxl
+ZF90cmlnZ2VyX3JlZ2lzdGVyKCZsZWRpbnRlcm5hbC0+bmV0ZmlsdGVyX2xlZF90cmlnZ2Vy
+KTsKIAlpZiAoZXJyKSB7CkBAIC0xMDgsMTMgKzE0MSwyNiBAQCBzdGF0aWMgaW50IGxlZF90
+Z19jaGVjayhjb25zdCBzdHJ1Y3QgeHRfdGdjaGtfcGFyYW0gKnBhcikKIAkvKiBTZWUgaWYg
+d2UgbmVlZCB0byBzZXQgdXAgYSB0aW1lciAqLwogCWlmIChsZWRpbmZvLT5kZWxheSA+IDAp
+CiAJCXNldHVwX3RpbWVyKCZsZWRpbnRlcm5hbC0+dGltZXIsIGxlZF90aW1lb3V0X2NhbGxi
+YWNrLAotCQkJICAgICh1bnNpZ25lZCBsb25nKWxlZGluZm8pOworCQkJICAgICh1bnNpZ25l
+ZCBsb25nKWxlZGludGVybmFsKTsKKworCWxpc3RfYWRkX3RhaWwoJmxlZGludGVybmFsLT5s
+aXN0LCAmeHRfbGVkX3RyaWdnZXJzKTsKKworb3V0OgorCW11dGV4X3VubG9jaygmeHRfbGVk
+X211dGV4KTsKIAogCWxlZGluZm8tPmludGVybmFsX2RhdGEgPSBsZWRpbnRlcm5hbDsKKwog
+CXJldHVybiAwOwogCiBleGl0X2FsbG9jOgorCWtmcmVlKGxlZGludGVybmFsLT50cmlnZ2Vy
+X2lkKTsKKworZXhpdF9pbnRlcm5hbF9hbGxvYzoKIAlrZnJlZShsZWRpbnRlcm5hbCk7CisK
+K2V4aXRfbXV0ZXhfb25seToKKwltdXRleF91bmxvY2soJnh0X2xlZF9tdXRleCk7CisKIAly
+ZXR1cm4gZXJyOwogfQogCkBAIC0xMjMsMTAgKzE2OSwyMyBAQCBzdGF0aWMgdm9pZCBsZWRf
+dGdfZGVzdHJveShjb25zdCBzdHJ1Y3QgeHRfdGdkdG9yX3BhcmFtICpwYXIpCiAJY29uc3Qg
+c3RydWN0IHh0X2xlZF9pbmZvICpsZWRpbmZvID0gcGFyLT50YXJnaW5mbzsKIAlzdHJ1Y3Qg
+eHRfbGVkX2luZm9faW50ZXJuYWwgKmxlZGludGVybmFsID0gbGVkaW5mby0+aW50ZXJuYWxf
+ZGF0YTsKIAorCW11dGV4X2xvY2soJnh0X2xlZF9tdXRleCk7CisKKwlpZiAoLS1sZWRpbnRl
+cm5hbC0+cmVmY250KSB7CisJCW11dGV4X3VubG9jaygmeHRfbGVkX211dGV4KTsKKwkJcmV0
+dXJuOworCX0KKworCWxpc3RfZGVsKCZsZWRpbnRlcm5hbC0+bGlzdCk7CisKIAlpZiAobGVk
+aW5mby0+ZGVsYXkgPiAwKQogCQlkZWxfdGltZXJfc3luYygmbGVkaW50ZXJuYWwtPnRpbWVy
+KTsKIAogCWxlZF90cmlnZ2VyX3VucmVnaXN0ZXIoJmxlZGludGVybmFsLT5uZXRmaWx0ZXJf
+bGVkX3RyaWdnZXIpOworCisJbXV0ZXhfdW5sb2NrKCZ4dF9sZWRfbXV0ZXgpOworCisJa2Zy
+ZWUobGVkaW50ZXJuYWwtPnRyaWdnZXJfaWQpOwogCWtmcmVlKGxlZGludGVybmFsKTsKIH0K
+IAo=
+--------------080805060008010604000606--
