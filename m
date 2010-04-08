@@ -1,166 +1,54 @@
-From: Robert SZABO <mstrfixit@rogers.com>
-Subject: Re: Netfilter queueing problems
-Date: Thu, 8 Apr 2010 05:20:33 -0700 (PDT)
-Message-ID: <990238.51686.qm@web88102.mail.re2.yahoo.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH/RFC 3/5] bridge-netfilter: simplify IP DNAT and fix IP
+ DNAT on encapsulated packets
+Date: Thu, 08 Apr 2010 14:31:39 +0200
+Message-ID: <4BBDCCAB.8050704@trash.net>
+References: <4BB207A8.6000608@pandora.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Stephen Hemminger <shemminger@linux-foundation.org>
+To: Bart De Schuymer <bdschuym@pandora.be>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from web88102.mail.re2.yahoo.com ([206.190.37.203]:30346 "HELO
-	web88102.mail.re2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1757656Ab0DHMbA (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:36338 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753940Ab0DHMbm (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 8 Apr 2010 08:31:00 -0400
+	Thu, 8 Apr 2010 08:31:42 -0400
+In-Reply-To: <4BB207A8.6000608@pandora.be>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Anyone have any input for me on this.. I have profiled all the code around this and cannot find anything wrong, all I can figure is that the queue is full and it takes time to clear. I have tried moving to a more recent kernel, modifying sysctl parameters but still no luck.
-
-
-
-
-
------ Original Message ----
-> From: Robert SZABO <mstrfixit@rogers.com>
-> To: netfilter-devel@vger.kernel.org
-> Sent: Thu, April 1, 2010 12:58:05 PM
-> Subject: Netfilter queueing problems
+Bart De Schuymer wrote:
+> bridge-netfilter: simplify IP DNAT and fix IP DNAT on encapsulated packets
 > 
-> Hi All,
+> - Add some code in br_device.c::br_dev_xmit() which enables the
+> removal of br_netfilter.c::br_nf_local_out(). The function
+> br_nf_local_out() was needed because the PF_BRIDGE::LOCAL_OUT hook
+> could be called when IP DNAT happens on to-be-bridged traffic. The
+> new scheme eliminates this mess.
+> - Speed up IP DNAT. To obtain the correct destination MAC address,
+> neigh_hh_output() or dst->neighbour->output() is called. In both
+> cases this results in the queueing of the packet. However, if dst->hh
+> is available, we already know the MAC address so we can just copy it
+> instead, removing the need for neigh_hh_output(). This MAC address is
+> copied in the new function neigh_hh_bridge().
+> - fix IP DNAT on vlan- or pppoe-encapsulated traffic: The functions
+> neigh_hh_output() or dst->neighbour->output() overwrite the complete
+> Ethernet header, although we only need the destination MAC address.
+> For encapsulated packets, they ended up overwriting the encapsulating
+> header. The new code copies the Ethernet source MAC address and
+> protocol number before calling dst->neighbour->output(). The Ethernet
+> source MAC and protocol number are copied back in place in 
+> br_nf_pre_routing_finish_bridge_slow(). This also makes the IP DNAT 
+> more transparent because in the old scheme the source MAC of the 
+> bridge was copied into the source address in the Ethernet header. We 
+> also let skb->protocol equal ETH_P_IP resp. ETH_P_IPV6 during the 
+> execution of the PF_INET resp. PF_INET6 hooks.
 
-
-I have built a simple kernel module that listens on the 
-> interfaces defined in a bridge (Created using bridge-utils) and when it receives 
-> a particular packet in the tcp stream, the hook queues that packet to user 
-> space.  
-
-In user space I then modify the payload, swap the 
-> source/destination ip addresses and ports, re-calculate the checksums and put it 
-> back out using 
-
-     nfq_set_verdict_mark(q_handle , id, 
-> NF_ACCEPT, BOOMERANG_NFMARK, datagramSize, datagram);
-
-I then have a hook 
-> that is invoked set as the last hook in the NF_IP_FORWARD chaing that checks the 
-> netfilter mark value and if correct, immediately, swaps source/destination mac 
-> address and the NIC assignments. The idea being that the modified packet is sent 
-> back to the client.
-
-
-Here is the hook and the final packet 
-> manipulation:
-
-
-unsigned int secondary_hook_cb(
-    
-> unsigned int hook,
-    struct sk_buff **pskb,
-    
-> const struct net_device *indev,
-    const struct net_device 
-> *outdev,
-    int (*okfn)(struct sk_buff *))
-{
-    
-> struct sk_buff *skb;
-    skb= *pskb;
-
-    // we 
-> skip all interogation and get out of the way
-    if (skb && 
-> skb->nh.iph)
-    {
-        switch( (int) 
-> ntohl(skb->nfmark))
-        {
-      
->       case  BOOMERANG_NFMARK:
-        
->         if (skb->nh.iph->protocol == 
-> IPPROTO_TCP)
-                
-> {
-                    
-> return swapAndQueuePacket(skb,ntohl(skb->nfmark));
-      
->           }
-          
->       break;
-            
-> default:
-                
-> break;
-        }
-    }
-    
-> return NF_ACCEPT;
-
-}
-
-int swapAndQueuePacket(struct sk_buff *skb, 
-> int mark)
-{
-    struct net_device *odev,*idev;
-    
-> struct ethhdr *ethdr;
-    u_char tmp[6];
-
-
-    
-> odev = dev_get_by_name(getIngresIf());
-    idev = 
-> dev_get_by_name(getEgresIf());
-
-    ethdr = (struct ethhdr 
-> *)skb->mac.raw;
-    if (ethdr != NULL)
-    
-> {
-        skb->nfmark = htonl(mark);
-    
->     skb->dev=odev;
-        
-> skb->input_dev=idev;
-        skb->pkt_type = 
-> PACKET_OTHERHOST;
-        skb->protocol = 
-> __constant_htons(ETH_P_IP);
-        skb->priority = 
-> 0;
-        skb->csum = skb_checksum (skb, 
-> skb->nh.iph->ihl*4, skb->len - skb->nh.iph->ihl * 4, 
-> 0);
-
-        
-> memcpy(tmp,ethdr->h_dest,ETH_ALEN);
-        memcpy 
-> (ethdr->h_dest, ethdr->h_source, ETH_ALEN);
-        
-> memcpy (ethdr->h_source, tmp, ETH_ALEN);
-    }
-
-  
->   return NF_ACCEPT;
-}
-
-
-This works a treat, however, the issue 
-> I am running into is that I can pass hundreds of transactions throught the 
-> system and the throughput is high, then for some reason throughput drops to a 
-> grinding pace. A few seconds later its as fast a lightning and the whole thing 
-> repeats itself.
-
-If I simpy use     nfq_set_verdict(q_handle , 
-> id, NF_ACCEPT, 0,NULL) and avoid not call this last hook, I do not see any 
-> performance issues, but obviously I do not get the desired 
-> result.
-
-
-Any ideas would be greatly 
-> appreciated..
-
-
-Cheers,
-
-Bob
+Besides patch 5 these all look fine to me. Regarding this one,
+the individual changes don't seem to strictly depend on each
+other. Would it be possible to split this up further to make
+review (and potentially bisections) easier?
