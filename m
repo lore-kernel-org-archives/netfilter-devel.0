@@ -1,46 +1,121 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH v3] Add refcounts to LED target
-Date: Thu, 08 Apr 2010 13:33:29 +0200
-Message-ID: <4BBDBF09.6070403@trash.net>
-References: <4A18A70F.50808@shikadi.net> <alpine.LSU.2.00.0905240933050.18758@fbirervta.pbzchgretzou.qr> <4A1DC798.1090604@shikadi.net> <4A26418C.5090707@trash.net> <4A265891.4050201@shikadi.net> <4AF2E8A5.7020409@trash.net> <4AF34C03.7020907@shikadi.net> <4AF43916.5010408@trash.net> <4B11D1B5.2060306@shikadi.net> <alpine.LSU.2.00.0911291055020.24432@obet.zrqbmnf.qr> <4B125C18.7060802@shikadi.net> <alpine.LSU.2.00.0911291646380.6794@obet.zrqbmnf.qr> <4B14EA81.5030603@trash.net> <4B1B82D5.2070607@shikadi.net> <4B1BB086.3030700@trash.net> <4BAB6CB2.3050904@trash.net> <alpine.LSU.2.01.1003251504500.32573@obet.zrqbmnf.qr> <4BAB6E70.8090605@trash.net> <4BAD841A.9060103@shikadi.net> <alpine.LSU.2.01.1003271214440.13915@obet.zrqbmnf.qr> <4BADEE6A.5000103@shikadi.net> <alpine.LSU.2.01.100327125319
- 0.1149@obet.zrqbmnf.qr> <4BAEB013.6060001@shikadi.net> <alpine.LSU.2.01.1004041327160.22215@obet.zrqbmnf.qr> <4BBCAF97.6040806@trash.net> <4BBD478F.4050208@shikadi.net>
+Subject: Re: mmotm 2010-04-05-16-09 uploaded
+Date: Thu, 08 Apr 2010 13:41:00 +0200
+Message-ID: <4BBDC0CC.7080305@trash.net>
+References: <201004052336.o35NaeSE015814@imap1.linux-foundation.org> <13074.1270663309@localhost>
 Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------030704070607030103010608"
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Ingo Molnar <mingo@redhat.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+To: Valdis.Kletnieks@vt.edu
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <13074.1270663309@localhost>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
+
+This is a multi-part message in MIME format.
+--------------030704070607030103010608
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Adam Nielsen <a.nielsen@shikadi.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:35430 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750771Ab0DHLdf (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 8 Apr 2010 07:33:35 -0400
-In-Reply-To: <4BBD478F.4050208@shikadi.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
 
-Adam Nielsen wrote:
->>> I also noticed one another thing: you don't increase the refcount while 
->>> xt_led_mutex is held. That means it is theoretically possible that you 
->>> do a lookup, then a destructor runs and frees the object, leading to 
->>> ++ledinternal->refcnt dereference an illegal ledinternal.
-> 
-> Thanks both for your comments and explanations.  I've attached an updated
-> patch, I hope this one addresses these issues.
-> 
->> Indeed, I also noticed this. Basically, you need to make sure that
+Valdis.Kletnieks@vt.edu wrote:
+> On Mon, 05 Apr 2010 16:09:45 PDT, akpm@linux-foundation.org said:
+>> The mm-of-the-moment snapshot 2010-04-05-16-09 has been uploaded to
 >>
->> - the lookup and refcnt increase is atomic,
->> - the refcnt decrease and list deletion is atomic
->> - the lookup and list insertion is atomic (in case no trigger exists)
+>>    http://userweb.kernel.org/~akpm/mmotm/
 > 
-> I've moved the mutex around so that hopefully all these operations are now atomic.
+> Seen in dmesg, 2.6.34-rc2-mmotm0323 didn't do this. Tossing it at all the
+> likely suspects, hopefully somebody will recognize it and save me the
+> bisecting. ;)
 > 
->> The remaining parts look fine to me, thanks.
-> 
-> Great, I hope you're happy with this one!
+> [   11.488535] ctnetlink v0.93: registering with nfnetlink.
+> [   11.488579] 
+> [   11.488579] ===================================================
+> [   11.489529] [ INFO: suspicious rcu_dereference_check() usage. ]
+> [   11.489988] ---------------------------------------------------
+> [   11.490494] net/netfilter/nf_conntrack_ecache.c:88 invoked rcu_dereference_check() without protection!
+> [   11.491024] 
+> [   11.491024] other info that might help us debug this:
+> [   11.491025] 
+> [   11.492834] 
+> [   11.492835] rcu_scheduler_active = 1, debug_locks = 0
+> [   11.494124] 1 lock held by swapper/1:
+> [   11.494776]  #0:  (nf_ct_ecache_mutex){+.+...}, at: [<ffffffff8148c606>] nf_conntrack_register_notifier+0x1a/0x76
+> [   11.495505] 
 
-Looks good to me, thanks. Jan, any further issues from your side?
-Otherwise I'll apply it.
+There are some unnecessary rcu_dereference() calls in the conntrack
+notifier registration and unregistration functions.
+
+Does this fix it?
+
+
+--------------030704070607030103010608
+Content-Type: text/plain;
+ name="x"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="x"
+
+diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
+index d5a9bcd..849614a 100644
+--- a/net/netfilter/nf_conntrack_ecache.c
++++ b/net/netfilter/nf_conntrack_ecache.c
+@@ -81,11 +81,9 @@ EXPORT_SYMBOL_GPL(nf_ct_deliver_cached_events);
+ int nf_conntrack_register_notifier(struct nf_ct_event_notifier *new)
+ {
+ 	int ret = 0;
+-	struct nf_ct_event_notifier *notify;
+ 
+ 	mutex_lock(&nf_ct_ecache_mutex);
+-	notify = rcu_dereference(nf_conntrack_event_cb);
+-	if (notify != NULL) {
++	if (nf_conntrack_event_cb != NULL) {
+ 		ret = -EBUSY;
+ 		goto out_unlock;
+ 	}
+@@ -101,11 +99,8 @@ EXPORT_SYMBOL_GPL(nf_conntrack_register_notifier);
+ 
+ void nf_conntrack_unregister_notifier(struct nf_ct_event_notifier *new)
+ {
+-	struct nf_ct_event_notifier *notify;
+-
+ 	mutex_lock(&nf_ct_ecache_mutex);
+-	notify = rcu_dereference(nf_conntrack_event_cb);
+-	BUG_ON(notify != new);
++	BUG_ON(nf_conntrack_event_cb != new);
+ 	rcu_assign_pointer(nf_conntrack_event_cb, NULL);
+ 	mutex_unlock(&nf_ct_ecache_mutex);
+ }
+@@ -114,11 +109,9 @@ EXPORT_SYMBOL_GPL(nf_conntrack_unregister_notifier);
+ int nf_ct_expect_register_notifier(struct nf_exp_event_notifier *new)
+ {
+ 	int ret = 0;
+-	struct nf_exp_event_notifier *notify;
+ 
+ 	mutex_lock(&nf_ct_ecache_mutex);
+-	notify = rcu_dereference(nf_expect_event_cb);
+-	if (notify != NULL) {
++	if (nf_expect_event_cb != NULL) {
+ 		ret = -EBUSY;
+ 		goto out_unlock;
+ 	}
+@@ -134,11 +127,8 @@ EXPORT_SYMBOL_GPL(nf_ct_expect_register_notifier);
+ 
+ void nf_ct_expect_unregister_notifier(struct nf_exp_event_notifier *new)
+ {
+-	struct nf_exp_event_notifier *notify;
+-
+ 	mutex_lock(&nf_ct_ecache_mutex);
+-	notify = rcu_dereference(nf_expect_event_cb);
+-	BUG_ON(notify != new);
++	BUG_ON(nf_expect_event_cb != new);
+ 	rcu_assign_pointer(nf_expect_event_cb, NULL);
+ 	mutex_unlock(&nf_ct_ecache_mutex);
+ }
+
+--------------030704070607030103010608--
