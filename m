@@ -1,60 +1,45 @@
-From: Valdis.Kletnieks@vt.edu
-Subject: Re: mmotm 2010-04-05-16-09 uploaded
-Date: Thu, 08 Apr 2010 20:50:06 -0400
-Message-ID: <8356.1270774206@localhost>
-References: <201004052336.o35NaeSE015814@imap1.linux-foundation.org> <13074.1270663309@localhost> <4BBDC0CC.7080305@trash.net> <6795.1270740197@localhost>
-            <4BBDF7E7.708@trash.net>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: [PATCH 1/3] flex_array: fix the panic issue when calling flex_array_alloc()
+ without __GFP_ZERO
+Date: Fri, 09 Apr 2010 12:05:46 +0800
+Message-ID: <4BBEA79A.3020307@gmail.com>
+Reply-To: xiaosuo@gmail.com
 Mime-Version: 1.0
-Content-Type: multipart/signed; boundary="==_Exmh_1270774206_4354P";
-	 micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=GB2312
 Content-Transfer-Encoding: 7bit
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Peter Zijlstra <peterz@infradead.org>,
-	Ingo Molnar <mingo@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org, xiaosuo <xiaosuo@gmail.com>
 To: Patrick McHardy <kaber@trash.net>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: Your message of "Thu, 08 Apr 2010 17:36:07 +0200."
-             <4BBDF7E7.708@trash.net>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:48820 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750896Ab0DIEFy (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 9 Apr 2010 00:05:54 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
---==_Exmh_1270774206_4354P
-Content-Type: text/plain; charset=us-ascii
+fix the panic issue when calling flex_array_alloc() without __GFP_ZERO.
 
-On Thu, 08 Apr 2010 17:36:07 +0200, Patrick McHardy said:
+memset is called with the wrong address, then kernel panics.
 
-> Valdis.Kletnieks@vt.edu wrote:
+Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+----
+lib/flex_array.c | 2 +-
+1 file changed, 1 insertion(+), 1 deletion(-)
 
-> > Well, it *changed* it.  Does the rcu_defererence_check() only fire on the
-> > first time it hits something, so we've fixed the first one and now we get to
-> > see the second one?
-> 
-> It appears that way, otherwise you should have seen a second warning in
-> nf_conntrack_ecache the last time.
-> 
-> > (For what it's worth, if this is going to be one-at-a-time whack-a-mole, I'm
-> > OK on that, just want to know up front.)
-> 
-> I went through the other files and I believe this should be it.
-> We already removed most of these incorrect rcu_dereference()
-> calls a while back.
+diff --git a/lib/flex_array.c b/lib/flex_array.c
+index 66eef2e..6fbb514 100644
+--- a/lib/flex_array.c
++++ b/lib/flex_array.c
+@@ -99,7 +99,7 @@ struct flex_array *flex_array_alloc(int element_size, unsigned int total,
+ 	ret->element_size = element_size;
+ 	ret->total_nr_elements = total;
+ 	if (elements_fit_in_base(ret) && !(flags & __GFP_ZERO))
+-		memset(ret->parts[0], FLEX_ARRAY_FREE,
++		memset(&ret->parts[0], FLEX_ARRAY_FREE,
+ 						FLEX_ARRAY_BASE_BYTES_LEFT);
+ 	return ret;
+ }
 
-Confirming - the second version of the patch fixes all the network-related
-RCU complaints I've been able to trigger...
 
---==_Exmh_1270774206_4354P
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-Comment: Exmh version 2.5 07/13/2001
-
-iD8DBQFLvnm+cC3lWbTT17ARAlV4AJ9LeqKJxNKJHopdR6TZztZiQKqb6wCfXlAs
-6+jWKabDR4mVLHFUHMYljSA=
-=guT+
------END PGP SIGNATURE-----
-
---==_Exmh_1270774206_4354P--
