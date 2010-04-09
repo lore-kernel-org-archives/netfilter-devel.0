@@ -1,126 +1,60 @@
-From: Adam Nielsen <a.nielsen@shikadi.net>
-Subject: Re: [PATCH v4] Add refcounts to LED target
-Date: Fri, 09 Apr 2010 09:06:00 +1000
-Message-ID: <4BBE6158.8040702@shikadi.net>
-References: <4A18A70F.50808@shikadi.net> <4A26418C.5090707@trash.net> <4A265891.4050201@shikadi.net> <4AF2E8A5.7020409@trash.net> <4AF34C03.7020907@shikadi.net> <4AF43916.5010408@trash.net> <4B11D1B5.2060306@shikadi.net> <alpine.LSU.2.00.0911291055020.24432@obet.zrqbmnf.qr> <4B125C18.7060802@shikadi.net> <alpine.LSU.2.00.0911291646380.6794@obet.zrqbmnf.qr> <4B14EA81.5030603@trash.net> <4B1B82D5.2070607@shikadi.net> <4B1BB086.3030700@trash.net> <4BAB6CB2.3050904@trash.net> <alpine.LSU.2.01.1003251504500.32573@obet.zrqbmnf.qr> <4BAB6E70.8090605@trash.net> <4BAD841A.9060103@shikadi.net> <alpine.LSU.2.01.1003271214440.13915@obet.zrqbmnf.qr> <4BADEE6A.5000103@shikadi.net> <alpine.LSU.2.01.1003271253190.1149@obet.zrqbmnf.qr> <4BAEB013.6060001@shikadi.net> <alpine.LSU.2.01.1004041327160.22215@obe
- t.zrqbmnf.qr> <4BBCAF97.6040806@trash.net> <4BBD478F.4050208@shikadi.net> <4BBDBF09.6070403@trash.net> <alpine.LSU.2.01.1004081444520.28332@obet.zrqbmnf.qr> <4BBDD2D4.2090205@trash.net>
+From: Valdis.Kletnieks@vt.edu
+Subject: Re: mmotm 2010-04-05-16-09 uploaded
+Date: Thu, 08 Apr 2010 20:50:06 -0400
+Message-ID: <8356.1270774206@localhost>
+References: <201004052336.o35NaeSE015814@imap1.linux-foundation.org> <13074.1270663309@localhost> <4BBDC0CC.7080305@trash.net> <6795.1270740197@localhost>
+            <4BBDF7E7.708@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------000902040900020708020404"
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from vitalin.sorra.shikadi.net ([64.71.152.201]:49656 "EHLO
-	vitalin.sorra.shikadi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933772Ab0DHXGH (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 8 Apr 2010 19:06:07 -0400
-In-Reply-To: <4BBDD2D4.2090205@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
-
-This is a multi-part message in MIME format.
---------------000902040900020708020404
-Content-Type: text/plain; charset=UTF-8
+Content-Type: multipart/signed; boundary="==_Exmh_1270774206_4354P";
+	 micalg=pgp-sha1; protocol="application/pgp-signature"
 Content-Transfer-Encoding: 7bit
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Ingo Molnar <mingo@redhat.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: Your message of "Thu, 08 Apr 2010 17:36:07 +0200."
+             <4BBDF7E7.708@trash.net>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Add reference counting to the netfilter LED target, to fix errors when
-multiple rules point to the same target ("LED trigger already exists").
+--==_Exmh_1270774206_4354P
+Content-Type: text/plain; charset=us-ascii
 
-Signed-off-by: Adam Nielsen <a.nielsen@shikadi.net>
+On Thu, 08 Apr 2010 17:36:07 +0200, Patrick McHardy said:
 
---
+> Valdis.Kletnieks@vt.edu wrote:
 
-Hopefully this is all you need.  Things like kstrdup() and the mutexes are a
-result of needing to remember LED trigger names, which in turn is due to the
-introduction of reference counting, so the description above should cover all
-changes.
+> > Well, it *changed* it.  Does the rcu_defererence_check() only fire on the
+> > first time it hits something, so we've fixed the first one and now we get to
+> > see the second one?
+> 
+> It appears that way, otherwise you should have seen a second warning in
+> nf_conntrack_ecache the last time.
+> 
+> > (For what it's worth, if this is going to be one-at-a-time whack-a-mole, I'm
+> > OK on that, just want to know up front.)
+> 
+> I went through the other files and I believe this should be it.
+> We already removed most of these incorrect rcu_dereference()
+> calls a while back.
 
-I have attached the patch as my mail client likes to reformat inline patches.
+Confirming - the second version of the patch fixes all the network-related
+RCU complaints I've been able to trigger...
 
-Cheers,
-Adam.
+--==_Exmh_1270774206_4354P
+Content-Type: application/pgp-signature
 
---------------000902040900020708020404
-Content-Type: text/plain;
- name="netfilter-leds-add_refcount_v4.patch"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="netfilter-leds-add_refcount_v4.patch"
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+Comment: Exmh version 2.5 07/13/2001
 
-ZGlmZiAtLWdpdCBhL25ldC9uZXRmaWx0ZXIveHRfTEVELmMgYi9uZXQvbmV0ZmlsdGVyL3h0
-X0xFRC5jCmluZGV4IGVmY2Y1NmQuLmJkMTAyYzcgMTAwNjQ0Ci0tLSBhL25ldC9uZXRmaWx0
-ZXIveHRfTEVELmMKKysrIGIvbmV0L25ldGZpbHRlci94dF9MRUQuYwpAQCAtMzEsMTIgKzMx
-LDE4IEBAIE1PRFVMRV9MSUNFTlNFKCJHUEwiKTsKIE1PRFVMRV9BVVRIT1IoIkFkYW0gTmll
-bHNlbiA8YS5uaWVsc2VuQHNoaWthZGkubmV0PiIpOwogTU9EVUxFX0RFU0NSSVBUSU9OKCJY
-dGFibGVzOiB0cmlnZ2VyIExFRCBkZXZpY2VzIG9uIHBhY2tldCBtYXRjaCIpOwogCitzdGF0
-aWMgTElTVF9IRUFEKHh0X2xlZF90cmlnZ2Vycyk7CitzdGF0aWMgREVGSU5FX01VVEVYKHh0
-X2xlZF9tdXRleCk7CisKIC8qCiAgKiBUaGlzIGlzIGRlY2xhcmVkIGluIGhlcmUgKHRoZSBr
-ZXJuZWwgbW9kdWxlKSBvbmx5LCB0byBhdm9pZCBoYXZpbmcgdGhlc2UKICAqIGRlcGVuZGVu
-Y2llcyBpbiB1c2Vyc3BhY2UgY29kZS4gIFRoaXMgaXMgd2hhdCB4dF9sZWRfaW5mby5pbnRl
-cm5hbF9kYXRhCiAgKiBwb2ludHMgdG8uCiAgKi8KIHN0cnVjdCB4dF9sZWRfaW5mb19pbnRl
-cm5hbCB7CisJc3RydWN0IGxpc3RfaGVhZCBsaXN0OworCWludCByZWZjbnQ7CisJY2hhciAq
-dHJpZ2dlcl9pZDsKIAlzdHJ1Y3QgbGVkX3RyaWdnZXIgbmV0ZmlsdGVyX2xlZF90cmlnZ2Vy
-OwogCXN0cnVjdCB0aW1lcl9saXN0IHRpbWVyOwogfTsKQEAgLTUzLDcgKzU5LDcgQEAgbGVk
-X3RnKHN0cnVjdCBza19idWZmICpza2IsIGNvbnN0IHN0cnVjdCB4dF90YXJnZXRfcGFyYW0g
-KnBhcikKIAkgKi8KIAlpZiAoKGxlZGluZm8tPmRlbGF5ID4gMCkgJiYgbGVkaW5mby0+YWx3
-YXlzX2JsaW5rICYmCiAJICAgIHRpbWVyX3BlbmRpbmcoJmxlZGludGVybmFsLT50aW1lcikp
-Ci0JCWxlZF90cmlnZ2VyX2V2ZW50KCZsZWRpbnRlcm5hbC0+bmV0ZmlsdGVyX2xlZF90cmln
-Z2VyLExFRF9PRkYpOworCQlsZWRfdHJpZ2dlcl9ldmVudCgmbGVkaW50ZXJuYWwtPm5ldGZp
-bHRlcl9sZWRfdHJpZ2dlciwgTEVEX09GRik7CiAKIAlsZWRfdHJpZ2dlcl9ldmVudCgmbGVk
-aW50ZXJuYWwtPm5ldGZpbHRlcl9sZWRfdHJpZ2dlciwgTEVEX0ZVTEwpOwogCkBAIC03NCwx
-MiArODAsMjMgQEAgbGVkX3RnKHN0cnVjdCBza19idWZmICpza2IsIGNvbnN0IHN0cnVjdCB4
-dF90YXJnZXRfcGFyYW0gKnBhcikKIAogc3RhdGljIHZvaWQgbGVkX3RpbWVvdXRfY2FsbGJh
-Y2sodW5zaWduZWQgbG9uZyBkYXRhKQogewotCXN0cnVjdCB4dF9sZWRfaW5mbyAqbGVkaW5m
-byA9IChzdHJ1Y3QgeHRfbGVkX2luZm8gKilkYXRhOwotCXN0cnVjdCB4dF9sZWRfaW5mb19p
-bnRlcm5hbCAqbGVkaW50ZXJuYWwgPSBsZWRpbmZvLT5pbnRlcm5hbF9kYXRhOworCXN0cnVj
-dCB4dF9sZWRfaW5mb19pbnRlcm5hbCAqbGVkaW50ZXJuYWwgPSAoc3RydWN0IHh0X2xlZF9p
-bmZvX2ludGVybmFsICopZGF0YTsKIAogCWxlZF90cmlnZ2VyX2V2ZW50KCZsZWRpbnRlcm5h
-bC0+bmV0ZmlsdGVyX2xlZF90cmlnZ2VyLCBMRURfT0ZGKTsKIH0KIAorc3RhdGljIHN0cnVj
-dCB4dF9sZWRfaW5mb19pbnRlcm5hbCAqbGVkX3RyaWdnZXJfbG9va3VwKGNvbnN0IGNoYXIg
-Km5hbWUpCit7CisJc3RydWN0IHh0X2xlZF9pbmZvX2ludGVybmFsICpsZWRpbnRlcm5hbDsK
-KworCWxpc3RfZm9yX2VhY2hfZW50cnkobGVkaW50ZXJuYWwsICZ4dF9sZWRfdHJpZ2dlcnMs
-IGxpc3QpIHsKKwkJaWYgKCFzdHJjbXAobmFtZSwgbGVkaW50ZXJuYWwtPm5ldGZpbHRlcl9s
-ZWRfdHJpZ2dlci5uYW1lKSkgeworCQkJcmV0dXJuIGxlZGludGVybmFsOworCQl9CisJfQor
-CXJldHVybiBOVUxMOworfQorCiBzdGF0aWMgaW50IGxlZF90Z19jaGVjayhjb25zdCBzdHJ1
-Y3QgeHRfdGdjaGtfcGFyYW0gKnBhcikKIHsKIAlzdHJ1Y3QgeHRfbGVkX2luZm8gKmxlZGlu
-Zm8gPSBwYXItPnRhcmdpbmZvOwpAQCAtOTEsMTEgKzEwOCwyNSBAQCBzdGF0aWMgaW50IGxl
-ZF90Z19jaGVjayhjb25zdCBzdHJ1Y3QgeHRfdGdjaGtfcGFyYW0gKnBhcikKIAkJcmV0dXJu
-IC1FSU5WQUw7CiAJfQogCisJbXV0ZXhfbG9jaygmeHRfbGVkX211dGV4KTsKKworCWxlZGlu
-dGVybmFsID0gbGVkX3RyaWdnZXJfbG9va3VwKGxlZGluZm8tPmlkKTsKKwlpZiAobGVkaW50
-ZXJuYWwpIHsKKwkJbGVkaW50ZXJuYWwtPnJlZmNudCsrOworCQlnb3RvIG91dDsKKwl9CisK
-KwllcnIgPSAtRU5PTUVNOwogCWxlZGludGVybmFsID0ga3phbGxvYyhzaXplb2Yoc3RydWN0
-IHh0X2xlZF9pbmZvX2ludGVybmFsKSwgR0ZQX0tFUk5FTCk7CiAJaWYgKCFsZWRpbnRlcm5h
-bCkKLQkJcmV0dXJuIC1FTk9NRU07CisJCWdvdG8gZXhpdF9tdXRleF9vbmx5OworCisJbGVk
-aW50ZXJuYWwtPnRyaWdnZXJfaWQgPSBrc3RyZHVwKGxlZGluZm8tPmlkLCBHRlBfS0VSTkVM
-KTsKKwlpZiAoIWxlZGludGVybmFsLT50cmlnZ2VyX2lkKQorCQlnb3RvIGV4aXRfaW50ZXJu
-YWxfYWxsb2M7CiAKLQlsZWRpbnRlcm5hbC0+bmV0ZmlsdGVyX2xlZF90cmlnZ2VyLm5hbWUg
-PSBsZWRpbmZvLT5pZDsKKwlsZWRpbnRlcm5hbC0+cmVmY250ID0gMTsKKwlsZWRpbnRlcm5h
-bC0+bmV0ZmlsdGVyX2xlZF90cmlnZ2VyLm5hbWUgPSBsZWRpbnRlcm5hbC0+dHJpZ2dlcl9p
-ZDsKIAogCWVyciA9IGxlZF90cmlnZ2VyX3JlZ2lzdGVyKCZsZWRpbnRlcm5hbC0+bmV0Zmls
-dGVyX2xlZF90cmlnZ2VyKTsKIAlpZiAoZXJyKSB7CkBAIC0xMDgsMTMgKzEzOSwyNiBAQCBz
-dGF0aWMgaW50IGxlZF90Z19jaGVjayhjb25zdCBzdHJ1Y3QgeHRfdGdjaGtfcGFyYW0gKnBh
-cikKIAkvKiBTZWUgaWYgd2UgbmVlZCB0byBzZXQgdXAgYSB0aW1lciAqLwogCWlmIChsZWRp
-bmZvLT5kZWxheSA+IDApCiAJCXNldHVwX3RpbWVyKCZsZWRpbnRlcm5hbC0+dGltZXIsIGxl
-ZF90aW1lb3V0X2NhbGxiYWNrLAotCQkJICAgICh1bnNpZ25lZCBsb25nKWxlZGluZm8pOwor
-CQkJICAgICh1bnNpZ25lZCBsb25nKWxlZGludGVybmFsKTsKKworCWxpc3RfYWRkX3RhaWwo
-JmxlZGludGVybmFsLT5saXN0LCAmeHRfbGVkX3RyaWdnZXJzKTsKKworb3V0OgorCW11dGV4
-X3VubG9jaygmeHRfbGVkX211dGV4KTsKIAogCWxlZGluZm8tPmludGVybmFsX2RhdGEgPSBs
-ZWRpbnRlcm5hbDsKKwogCXJldHVybiAwOwogCiBleGl0X2FsbG9jOgorCWtmcmVlKGxlZGlu
-dGVybmFsLT50cmlnZ2VyX2lkKTsKKworZXhpdF9pbnRlcm5hbF9hbGxvYzoKIAlrZnJlZShs
-ZWRpbnRlcm5hbCk7CisKK2V4aXRfbXV0ZXhfb25seToKKwltdXRleF91bmxvY2soJnh0X2xl
-ZF9tdXRleCk7CisKIAlyZXR1cm4gZXJyOwogfQogCkBAIC0xMjMsMTAgKzE2NywyMyBAQCBz
-dGF0aWMgdm9pZCBsZWRfdGdfZGVzdHJveShjb25zdCBzdHJ1Y3QgeHRfdGdkdG9yX3BhcmFt
-ICpwYXIpCiAJY29uc3Qgc3RydWN0IHh0X2xlZF9pbmZvICpsZWRpbmZvID0gcGFyLT50YXJn
-aW5mbzsKIAlzdHJ1Y3QgeHRfbGVkX2luZm9faW50ZXJuYWwgKmxlZGludGVybmFsID0gbGVk
-aW5mby0+aW50ZXJuYWxfZGF0YTsKIAorCW11dGV4X2xvY2soJnh0X2xlZF9tdXRleCk7CisK
-KwlpZiAoLS1sZWRpbnRlcm5hbC0+cmVmY250KSB7CisJCW11dGV4X3VubG9jaygmeHRfbGVk
-X211dGV4KTsKKwkJcmV0dXJuOworCX0KKworCWxpc3RfZGVsKCZsZWRpbnRlcm5hbC0+bGlz
-dCk7CisKIAlpZiAobGVkaW5mby0+ZGVsYXkgPiAwKQogCQlkZWxfdGltZXJfc3luYygmbGVk
-aW50ZXJuYWwtPnRpbWVyKTsKIAogCWxlZF90cmlnZ2VyX3VucmVnaXN0ZXIoJmxlZGludGVy
-bmFsLT5uZXRmaWx0ZXJfbGVkX3RyaWdnZXIpOworCisJbXV0ZXhfdW5sb2NrKCZ4dF9sZWRf
-bXV0ZXgpOworCisJa2ZyZWUobGVkaW50ZXJuYWwtPnRyaWdnZXJfaWQpOwogCWtmcmVlKGxl
-ZGludGVybmFsKTsKIH0KIAo=
---------------000902040900020708020404--
+iD8DBQFLvnm+cC3lWbTT17ARAlV4AJ9LeqKJxNKJHopdR6TZztZiQKqb6wCfXlAs
+6+jWKabDR4mVLHFUHMYljSA=
+=guT+
+-----END PGP SIGNATURE-----
+
+--==_Exmh_1270774206_4354P--
