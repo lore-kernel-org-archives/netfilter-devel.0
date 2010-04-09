@@ -1,35 +1,56 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: nf-next: TEE/reentrancy 20100407
-Date: Fri, 09 Apr 2010 16:53:09 +0200
-Message-ID: <4BBF3F55.4050308@trash.net>
-References: <1270666217-27670-1-git-send-email-jengelh@medozas.de> <alpine.LSU.2.01.1004091139330.17365@obet.zrqbmnf.qr>
+From: Hamid Nassiby <h.nassiby@gmail.com>
+Subject: Packet manipulation in user space, drop/reinject modified packets
+Date: Fri, 9 Apr 2010 21:23:21 +0430
+Message-ID: <r2tb3f13ff81004090953v4a7eeea7k9072c0e777292407@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=UTF-8
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60511 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753820Ab0DIOxK (ORCPT
+Received: from mail-fx0-f223.google.com ([209.85.220.223]:44172 "EHLO
+	mail-fx0-f223.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752869Ab0DIQxn (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 9 Apr 2010 10:53:10 -0400
-In-Reply-To: <alpine.LSU.2.01.1004091139330.17365@obet.zrqbmnf.qr>
+	Fri, 9 Apr 2010 12:53:43 -0400
+Received: by fxm23 with SMTP id 23so2972279fxm.21
+        for <netfilter-devel@vger.kernel.org>; Fri, 09 Apr 2010 09:53:41 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Wednesday 2010-04-07 20:50, Jan Engelhardt wrote:
->> Jan Engelhardt (6):
->>      netfilter: ipv6: move POSTROUTING invocation before fragmentation
->>      netfilter: ipv6: add IPSKB_REROUTED exclusion to NF_HOOK/POSTROUTING invocation
->>      netfilter: xtables: inclusion of xt_TEE
->>      netfilter: xtables2: make ip_tables reentrant
->>      netfilter: xt_TEE: have cloned packet travel through Xtables too
->>      netfilter: xtables: remove old comments about reentrancy
-> 
-> Is this submission ok?
+Hello,
 
-Not sure, I'm currently busy with other things. I'll review these
-patches this weekend.
+I'm working on a project which wants to port a Windows-based network
+protocol to Linux. The protocol works as a VPN/Firewall, on packets
+copied from Data-Link Layer to user space. In MS Windows
+WinpkFilter(C) does copying from kernel space (Data-Link layer)  to
+user space and then drops the original packet. In user space, our
+protocol does some operation on packet ( e.g. checks  the packet
+authority and/or encrypts/decrypts it, ...) and then injects the
+packet upward to application layer or downward or simply drops it. The injected
+modified packet may not be as the same size of original one.
+
+So our requirements are:
+
+1-Capture each packet which is coming inside or going outside the
+computer in Data-link Layer.
+2-Create a copy of the packet and drop the original one.
+3-Copy of packet must be available in user space to be manipulated by
+our protocol.
+4-After manipulation in user space, inject encrypted/decrypted version
+of the privileged (copy of) packets to the network or upward to the
+application layer.
+
+And of course we want to have the minimum changes to be made on our
+current protocol.
+
+I tried raw sockets and libnetfilter_queue  , but I didn't find a
+suitable solution (specially to let me inject packets upward
+to the application layer.)
+I need to know if it is possible to do this with libraries/interfaces currently
+available in user space or should I write a kernel module to do the
+above tasks for us?
+
+It is possible that I be overall in a mistake, so any guidance is pleased,
+
+Thanks in advance,
+
+Hamid.
