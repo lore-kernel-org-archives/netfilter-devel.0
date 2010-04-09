@@ -1,28 +1,35 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH v4] Add refcounts to LED target
-Date: Fri, 09 Apr 2010 16:52:19 +0200
-Message-ID: <4BBF3F23.2000103@trash.net>
-References: <4A18A70F.50808@shikadi.net> <4A265891.4050201@shikadi.net> <4AF2E8A5.7020409@trash.net> <4AF34C03.7020907@shikadi.net> <4AF43916.5010408@trash.net> <4B11D1B5.2060306@shikadi.net> <alpine.LSU.2.00.0911291055020.24432@obet.zrqbmnf.qr> <4B125C18.7060802@shikadi.net> <alpine.LSU.2.00.0911291646380.6794@obet.zrqbmnf.qr> <4B14EA81.5030603@trash.net> <4B1B82D5.2070607@shikadi.net> <4B1BB086.3030700@trash.net> <4BAB6CB2.3050904@trash.net> <alpine.LSU.2.01.1003251504500.32573@obet.zrqbmnf.qr> <4BAB6E70.8090605@trash.net> <4BAD841A.9060103@shikadi.net> <alpine.LSU.2.01.1003271214440.13915@obet.zrqbmnf.qr> <4BADEE6A.5000103@shikadi.net> <alpine.LSU.2.01.1003271253190.1149@obet.zrqbmnf.qr> <4BAEB013.6060001@shikadi.net> <alpine.LSU.2.01.1004041327160.22215@obet.zrqbmnf.qr> <4BBCAF97.60408
- 06@trash.net> <4BBD478F.4050208@shikadi.net> <4BBDBF09.6070403@trash.net> <alpine.LSU.2.01.1004081444520.28332@obet.zrqbmnf.qr> <4BBDD2D4.2090205@trash.net> <4BBE6158.8040702@shikadi.net>
+Subject: Re: nf-next: TEE/reentrancy 20100407
+Date: Fri, 09 Apr 2010 16:53:09 +0200
+Message-ID: <4BBF3F55.4050308@trash.net>
+References: <1270666217-27670-1-git-send-email-jengelh@medozas.de> <alpine.LSU.2.01.1004091139330.17365@obet.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Adam Nielsen <a.nielsen@shikadi.net>
+Cc: netfilter-devel@vger.kernel.org,
+	YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60494 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:60511 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753869Ab0DIOwT (ORCPT
+	with ESMTP id S1753820Ab0DIOxK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 9 Apr 2010 10:52:19 -0400
-In-Reply-To: <4BBE6158.8040702@shikadi.net>
+	Fri, 9 Apr 2010 10:53:10 -0400
+In-Reply-To: <alpine.LSU.2.01.1004091139330.17365@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Adam Nielsen wrote:
-> Add reference counting to the netfilter LED target, to fix errors when
-> multiple rules point to the same target ("LED trigger already exists").
+Jan Engelhardt wrote:
+> On Wednesday 2010-04-07 20:50, Jan Engelhardt wrote:
+>> Jan Engelhardt (6):
+>>      netfilter: ipv6: move POSTROUTING invocation before fragmentation
+>>      netfilter: ipv6: add IPSKB_REROUTED exclusion to NF_HOOK/POSTROUTING invocation
+>>      netfilter: xtables: inclusion of xt_TEE
+>>      netfilter: xtables2: make ip_tables reentrant
+>>      netfilter: xt_TEE: have cloned packet travel through Xtables too
+>>      netfilter: xtables: remove old comments about reentrancy
+> 
+> Is this submission ok?
 
-Applied, thanks everyone.
+Not sure, I'm currently busy with other things. I'll review these
+patches this weekend.
