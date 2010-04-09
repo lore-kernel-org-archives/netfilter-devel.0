@@ -1,269 +1,98 @@
 From: Changli Gao <xiaosuo@gmail.com>
-Subject: [PATCH 3/3] nfnetlink_queue: use hash table to speed up entry finding.
-Date: Fri, 09 Apr 2010 12:13:46 +0800
-Message-ID: <4BBEA97A.5020303@gmail.com>
+Subject: [PATCH 2/3] flex_array: export some symbols for nfnetlink_queue use
+Date: Fri, 09 Apr 2010 12:09:31 +0800
+Message-ID: <4BBEA87B.4040807@gmail.com>
 Reply-To: xiaosuo@gmail.com
 Mime-Version: 1.0
 Content-Type: text/plain; charset=GB2312
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, xiaosuo <xiaosuo@gmail.com>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org, xiaosuo <xiaosuo@gmail.com>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-iw0-f197.google.com ([209.85.223.197]:53543 "EHLO
-	mail-iw0-f197.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750806Ab0DIEN6 (ORCPT
+Received: from mail-yx0-f171.google.com ([209.85.210.171]:39280 "EHLO
+	mail-yx0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751127Ab0DIEQl (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 9 Apr 2010 00:13:58 -0400
-Received: by iwn35 with SMTP id 35so1983913iwn.21
-        for <netfilter-devel@vger.kernel.org>; Thu, 08 Apr 2010 21:13:56 -0700 (PDT)
+	Fri, 9 Apr 2010 00:16:41 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-use hash table to speed up entry finding.
+export some symbols for nfnetlink_queue use
 
-If verdicts aren't received in order, list isn't efficient, and hash
-table is better.
+export some symbols for nfnetlink_queue use.
 
 Signed-off-by: Changli Gao <xiaosuo@gmail.com>
 ----
-include/linux/netfilter/nfnetlink_queue.h | 1
-net/netfilter/nfnetlink_queue.c | 118 ++++++++++++++++++++++++++----
-2 files changed, 105 insertions(+), 14 deletions(-)
+lib/Makefile | 4 ++--
+lib/flex_array.c | 5 +++++
+2 files changed, 7 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/netfilter/nfnetlink_queue.h b/include/linux/netfilter/nfnetlink_queue.h
-index 2455fe5..77b1566 100644
---- a/include/linux/netfilter/nfnetlink_queue.h
-+++ b/include/linux/netfilter/nfnetlink_queue.h
-@@ -83,6 +83,7 @@ enum nfqnl_attr_config {
- 	NFQA_CFG_CMD,			/* nfqnl_msg_config_cmd */
- 	NFQA_CFG_PARAMS,		/* nfqnl_msg_config_params */
- 	NFQA_CFG_QUEUE_MAXLEN,		/* __u32 */
-+	NFQA_CFG_QUEUE_HTBLSIZ,		/* __u32 */
- 	__NFQA_CFG_MAX
- };
- #define NFQA_CFG_MAX (__NFQA_CFG_MAX-1)
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index e70a6ef..82bec94 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -28,6 +28,7 @@
- #include <linux/netfilter/nfnetlink.h>
- #include <linux/netfilter/nfnetlink_queue.h>
- #include <linux/list.h>
-+#include <linux/flex_array.h>
- #include <net/sock.h>
- #include <net/netfilter/nf_queue.h>
+diff --git a/lib/Makefile b/lib/Makefile
+index 0a6ab6f..0700e74 100644
+--- a/lib/Makefile
++++ b/lib/Makefile
+@@ -12,7 +12,7 @@ lib-y := ctype.o string.o vsprintf.o cmdline.o \
+ 	 idr.o int_sqrt.o extable.o prio_tree.o \
+ 	 sha1.o irq_regs.o reciprocal_div.o argv_split.o \
+ 	 proportions.o prio_heap.o ratelimit.o show_mem.o \
+-	 is_single_threaded.o plist.o decompress.o flex_array.o
++	 is_single_threaded.o plist.o decompress.o
  
-@@ -37,7 +38,8 @@
- #include "../bridge/br_private.h"
- #endif
+ lib-$(CONFIG_MMU) += ioremap.o
+ lib-$(CONFIG_SMP) += cpumask.o
+@@ -21,7 +21,7 @@ lib-y	+= kobject.o kref.o klist.o
  
--#define NFQNL_QMAX_DEFAULT 1024
-+#define NFQNL_QMAX_DEFAULT	1024
-+#define NFQNL_QHTBLSIZ_DEFAULT	1
+ obj-y += bcd.o div64.o sort.o parser.o halfmd4.o debug_locks.o random32.o \
+ 	 bust_spinlocks.o hexdump.o kasprintf.o bitmap.o scatterlist.o \
+-	 string_helpers.o gcd.o lcm.o list_sort.o
++	 string_helpers.o gcd.o lcm.o list_sort.o flex_array.o
  
- struct nfqnl_instance {
- 	struct hlist_node hlist;		/* global list of queues */
-@@ -49,6 +51,7 @@ struct nfqnl_instance {
- 	unsigned int queue_total;
- 	unsigned int queue_dropped;
- 	unsigned int queue_user_dropped;
-+	unsigned int queue_htblsiz;
+ ifeq ($(CONFIG_DEBUG_KOBJECT),y)
+ CFLAGS_kobject.o += -DDEBUG
+diff --git a/lib/flex_array.c b/lib/flex_array.c
+index 66eef2e..0e18e54 100644
+--- a/lib/flex_array.c
++++ b/lib/flex_array.c
+@@ -23,6 +23,7 @@
+ #include <linux/flex_array.h>
+ #include <linux/slab.h>
+ #include <linux/stddef.h>
++#include <linux/module.h>
  
- 	unsigned int id_sequence;		/* 'sequence' of pkt ids */
- 
-@@ -57,7 +60,7 @@ struct nfqnl_instance {
- 
- 	spinlock_t lock;
- 
--	struct list_head queue_list;		/* packets in queue */
-+	struct flex_array *fa;
- };
- 
- typedef int (*nfqnl_cmpfn)(struct nf_queue_entry *, unsigned long);
-@@ -91,7 +94,7 @@ static struct nfqnl_instance *
- instance_create(u_int16_t queue_num, int pid)
- {
- 	struct nfqnl_instance *inst;
--	unsigned int h;
-+	unsigned int h, i;
- 	int err;
- 
- 	spin_lock(&instances_lock);
-@@ -112,11 +115,24 @@ instance_create(u_int16_t queue_num, int pid)
- 	inst->copy_range = 0xfffff;
- 	inst->copy_mode = NFQNL_COPY_NONE;
- 	spin_lock_init(&inst->lock);
--	INIT_LIST_HEAD(&inst->queue_list);
-+	inst->queue_htblsiz = NFQNL_QHTBLSIZ_DEFAULT;
-+	inst->fa = flex_array_alloc(sizeof(struct list_head),
-+	                            inst->queue_htblsiz,
-+				    __GFP_ZERO | GFP_ATOMIC);
-+	if (inst->fa == NULL) {
-+		err = -ENOMEM;
-+		goto out_free_inst;
-+	}
-+	err = flex_array_prealloc(inst->fa, 0, inst->queue_htblsiz - 1,
-+				  __GFP_ZERO | GFP_ATOMIC);
-+	if (err != 0)
-+		goto out_free_fa;
-+	for (i = 0; i < inst->queue_htblsiz; i++)
-+		INIT_LIST_HEAD((struct list_head*)flex_array_get(inst->fa, i));
- 
- 	if (!try_module_get(THIS_MODULE)) {
- 		err = -EAGAIN;
--		goto out_free;
-+		goto out_free_fa;
- 	}
- 
- 	h = instance_hashfn(queue_num);
-@@ -126,7 +142,9 @@ instance_create(u_int16_t queue_num, int pid)
- 
- 	return inst;
- 
--out_free:
-+out_free_fa:
-+	flex_array_free(inst->fa);
-+out_free_inst:
- 	kfree(inst);
- out_unlock:
- 	spin_unlock(&instances_lock);
-@@ -143,6 +161,7 @@ instance_destroy_rcu(struct rcu_head *head)
- 						   rcu);
- 
- 	nfqnl_flush(inst, NULL, 0);
-+	flex_array_free(inst->fa);
- 	kfree(inst);
- 	module_put(THIS_MODULE);
- }
-@@ -162,21 +181,32 @@ instance_destroy(struct nfqnl_instance *inst)
- 	spin_unlock(&instances_lock);
- }
- 
-+static inline struct list_head *nfqnl_head_get(struct nfqnl_instance *queue,
-+					       unsigned int id)
-+{
-+	return flex_array_get(queue->fa, id % queue->queue_htblsiz);
-+}
-+
- static inline void
- __enqueue_entry(struct nfqnl_instance *queue, struct nf_queue_entry *entry)
- {
--       list_add_tail(&entry->list, &queue->queue_list);
--       queue->queue_total++;
-+	struct list_head *head;
-+
-+	head = nfqnl_head_get(queue, entry->id);
-+	list_add_tail(&entry->list, head);
-+	queue->queue_total++;
- }
- 
- static struct nf_queue_entry *
- find_dequeue_entry(struct nfqnl_instance *queue, unsigned int id)
- {
- 	struct nf_queue_entry *entry = NULL, *i;
-+	struct list_head *head;
- 
- 	spin_lock_bh(&queue->lock);
- 
--	list_for_each_entry(i, &queue->queue_list, list) {
-+	head = nfqnl_head_get(queue, id);
-+	list_for_each_entry(i, head, list) {
- 		if (i->id == id) {
- 			entry = i;
- 			break;
-@@ -197,13 +227,22 @@ static void
- nfqnl_flush(struct nfqnl_instance *queue, nfqnl_cmpfn cmpfn, unsigned long data)
- {
- 	struct nf_queue_entry *entry, *next;
-+	unsigned int i, total;
-+	struct list_head *head;
- 
- 	spin_lock_bh(&queue->lock);
--	list_for_each_entry_safe(entry, next, &queue->queue_list, list) {
--		if (!cmpfn || cmpfn(entry, data)) {
--			list_del(&entry->list);
--			queue->queue_total--;
--			nf_reinject(entry, NF_DROP);
-+	total = queue->queue_total;
-+	for (i = 0; i < queue->queue_htblsiz; i++) {
-+		if (total < 1)
-+			break;
-+		head = flex_array_get(queue->fa, i);
-+		list_for_each_entry_safe(entry, next, head, list) {
-+			if (!cmpfn || cmpfn(entry, data)) {
-+				list_del(&entry->list);
-+				queue->queue_total--;
-+				nf_reinject(entry, NF_DROP);
-+			}
-+			--total;
- 		}
- 	}
- 	spin_unlock_bh(&queue->lock);
-@@ -686,6 +725,46 @@ static const struct nf_queue_handler nfqh = {
- 	.outfn	= &nfqnl_enqueue_packet,
- };
- 
-+static int nfqnl_htbl_resize(struct nfqnl_instance *queue, unsigned int size)
-+{
-+	struct flex_array *fa;
-+	unsigned int i, total;
-+	struct list_head *h;
-+	struct nf_queue_entry *entry, *next;
-+
-+	if (size < 1)
-+		return -EINVAL;
-+	
-+	fa = flex_array_alloc(sizeof(struct list_head), size,
-+			      __GFP_ZERO | GFP_ATOMIC);
-+	if (fa == NULL)
-+		return -ENOMEM;
-+	if (flex_array_prealloc(fa, 0, size - 1, __GFP_ZERO | GFP_ATOMIC)) {
-+		flex_array_free(fa);
-+		return -ENOMEM;
-+	}
-+	for (i = 0; i < size; i++)
-+		INIT_LIST_HEAD((struct list_head*)flex_array_get(fa, i));
-+	spin_lock_bh(&queue->lock);
-+	swap(size, queue->queue_htblsiz);
-+	swap(fa, queue->fa);
-+	total = queue->queue_total;
-+	for (i = 0; i < size; i++) {
-+		if (total < 1)
-+			break;
-+		h = flex_array_get(fa, i);
-+		list_for_each_entry_safe(entry, next, h, list) {
-+			list_move_tail(&entry->list,
-+				       nfqnl_head_get(queue, entry->id));
-+			--total;
-+		}
-+	}
-+	spin_unlock_bh(&queue->lock);
-+	flex_array_free(fa);
-+
-+	return 0;
-+}
-+
- static int
- nfqnl_recv_config(struct sock *ctnl, struct sk_buff *skb,
- 		  const struct nlmsghdr *nlh,
-@@ -772,6 +851,17 @@ nfqnl_recv_config(struct sock *ctnl, struct sk_buff *skb,
- 		spin_unlock_bh(&queue->lock);
- 	}
- 
-+	if (nfqa[NFQA_CFG_QUEUE_HTBLSIZ]) {
-+		__be32 *htblsiz;
-+
-+		if (!queue) {
-+			ret = -ENODEV;
-+			goto err_out_unlock;
-+		}
-+		htblsiz = nla_data(nfqa[NFQA_CFG_QUEUE_HTBLSIZ]);
-+		ret = nfqnl_htbl_resize(queue, ntohl(*htblsiz));
-+	}
-+
- err_out_unlock:
- 	rcu_read_unlock();
+ struct flex_array_part {
+ 	char elements[FLEX_ARRAY_PART_SIZE];
+@@ -103,6 +104,7 @@ struct flex_array *flex_array_alloc(int element_size, unsigned int total,
+ 						FLEX_ARRAY_BASE_BYTES_LEFT);
  	return ret;
+ }
++EXPORT_SYMBOL(flex_array_alloc);
+ 
+ static int fa_element_to_part_nr(struct flex_array *fa,
+ 					unsigned int element_nr)
+@@ -132,6 +134,7 @@ void flex_array_free(struct flex_array *fa)
+ 	flex_array_free_parts(fa);
+ 	kfree(fa);
+ }
++EXPORT_SYMBOL(flex_array_free);
+ 
+ static unsigned int index_inside_part(struct flex_array *fa,
+ 					unsigned int element_nr)
+@@ -257,6 +260,7 @@ int flex_array_prealloc(struct flex_array *fa, unsigned int start,
+ 	}
+ 	return 0;
+ }
++EXPORT_SYMBOL(flex_array_prealloc);
+ 
+ /**
+  * flex_array_get - pull data back out of the array
+@@ -285,6 +289,7 @@ void *flex_array_get(struct flex_array *fa, unsigned int element_nr)
+ 	}
+ 	return &part->elements[index_inside_part(fa, element_nr)];
+ }
++EXPORT_SYMBOL(flex_array_get);
+ 
+ static int part_is_free(struct flex_array_part *part)
+ {
 
 
