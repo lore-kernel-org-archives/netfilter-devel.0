@@ -1,29 +1,69 @@
-From: "William Wilcox" <will.wilcox1@gmail.com>
-Subject: Re:
-Date: Sat, 10 Apr 2010 01:33:28 +0100 (BST)
-Message-ID: <89edf3017296c6fc46e6304358763d49.squirrel@mail.sabina-s.lv>
-Reply-To: william.wilcox98@gmail.com
+From: supercodeing35271 supercodeing35271 <supercodeing35271@gmail.com>
+Subject: A illogical problem with the tcphdr->syn!
+Date: Sun, 11 Apr 2010 20:56:40 +0800
+Message-ID: <m2q28efc0211004110556m6a038e4eja3744246a7bdae24@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: undisclosed-recipients:;
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from [94.101.233.3] ([94.101.233.3]:64042 "EHLO mail.sabina-s.lv"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1751135Ab0DJA70 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 9 Apr 2010 20:59:26 -0400
+Received: from mail-iw0-f197.google.com ([209.85.223.197]:56121 "EHLO
+	mail-iw0-f197.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751143Ab0DKM4l (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 11 Apr 2010 08:56:41 -0400
+Received: by iwn35 with SMTP id 35so337549iwn.21
+        for <netfilter-devel@vger.kernel.org>; Sun, 11 Apr 2010 05:56:40 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Good day!
-My name is Sir William Wilcox,I work with the Euro Lottery. I can help you
-win 4,528,000 GBP.But I charge 40% of the winning.Can we do this deal
-together? Email me; william.wilcox98@gmail.com
+Hi,i had written a kernel module with the netfilter.But i found a
+problem when i judged the value of tcphdr->syn.This is the main code:
 
+static unsigned int hook_func_in(unsigned int hooknum,
+		       struct sk_buff *skb,
+		       const struct net_device *in,
+		       const struct net_device *out,
+		       int (*okfn)(struct sk_buff *))
+{
+    struct tcphdr *tcp;
+    struct icmphdr *icmp;
+    struct udphdr *udp;
+    struct iphdr *ip;
+    char msgk_to_userspace[200];
+    char *pointer_mtu;
+    pointer_mtu = &msgk_to_userspace[0];
 
+    if(skb == NULL)
+    {
+	return NF_DROP;
+    }
+    if(ip_hdr(skb))
+    {
+	ip = ip_hdr(skb);
+	
+    }
+    else
+    {
+	return NF_DROP;
+    }
 
-
-
-
-
-
+    if((skb->dev != NULL) && (in != NULL))
+    {
+	if(skb->dev == in)
+	{
+	
+	    if(ip->protocol == IPPROTO_TCP)
+	    {
+		tcp = tcp_hdr(skb);
+		
+		
+		if(tcp->syn)
+		{
+		    printk("the syn flag is 1 \n");
+		    /*here,when i send a tcp packet from other machine which had set
+the syn flag by NMAP(command:nmap -sS myIP -p 6000),and i also used
+wireshark to confirm that the packet had set the syn flag,but the
+program didn't print "the syn flag is 1" to
+var/log/message.Otherwise,when i changed the code
+to"if(!(tcp->syn))","the syn flag is 1" could be print.Yes, it's
+opposite!Then i could not thought	of why this happened........	    */
