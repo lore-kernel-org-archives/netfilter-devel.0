@@ -1,25 +1,41 @@
-From: Patrick McHardy <kaber@trash.net>
+From: Jan Engelhardt <jengelh@medozas.de>
 Subject: Re: [PATCH 3/8] netfilter: xtables: inclusion of xt_TEE
-Date: Tue, 13 Apr 2010 18:33:45 +0200
-Message-ID: <4BC49CE9.4020606@trash.net>
-References: <1271162268-28131-1-git-send-email-jengelh@medozas.de> <1271162268-28131-4-git-send-email-jengelh@medozas.de> <4BC4756B.4090307@trash.net> <alpine.LSU.2.01.1004131801570.7914@obet.zrqbmnf.qr> <alpine.LSU.2.01.1004131816070.7914@obet.zrqbmnf.qr>
+Date: Tue, 13 Apr 2010 19:28:05 +0200 (CEST)
+Message-ID: <alpine.LSU.2.01.1004131919370.13701@obet.zrqbmnf.qr>
+References: <1271162268-28131-1-git-send-email-jengelh@medozas.de> <1271162268-28131-4-git-send-email-jengelh@medozas.de> <4BC4756B.4090307@trash.net> <alpine.LSU.2.01.1004131801570.7914@obet.zrqbmnf.qr> <4BC49C9D.9020902@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:52793 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753312Ab0DMQdq (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 Apr 2010 12:33:46 -0400
-In-Reply-To: <alpine.LSU.2.01.1004131816070.7914@obet.zrqbmnf.qr>
+Received: from borg.medozas.de ([188.40.89.202]:34763 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751583Ab0DMR2J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 13 Apr 2010 13:28:09 -0400
+In-Reply-To: <4BC49C9D.9020902@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Tuesday 2010-04-13 18:09, Jan Engelhardt wrote:
+
+On Tuesday 2010-04-13 18:32, Patrick McHardy wrote:
+
+>>>> +tee_tg_route4(struct sk_buff *skb, const struct xt_tee_tginfo *info)
+>>>> +{
+>>>> +	const struct iphdr *iph = ip_hdr(skb);
+>>>> +	struct rtable *rt;
+>>>> +	struct flowi fl;
+>>>> +
+>>>> +	memset(&fl, 0, sizeof(fl));
+>>>> +	fl.nl_u.ip4_u.daddr = info->gw.ip;
+>>>> +	fl.nl_u.ip4_u.tos   = RT_TOS(iph->tos);
+>>>> +	fl.nl_u.ip4_u.scope = RT_SCOPE_UNIVERSE;
+>>>> +
+>>>> +	if (ip_route_output_key(dev_net(skb->dev), &rt, &fl) != 0) {
+>>> You can't use skb->dev in modules that are valid to use in LOCAL_OUT.
+
+Let's use dev_net(skb_dst(skb)->dev). skb_dst seems fine,
+as __ip_local_out already makes use of it.
+
 >>>> +#ifdef WITH_CONNTRACK
 >>>> +	nf_conntrack_put(skb->nfct);
 >>>> +	skb->nfct     = &tee_track.ct_general;
@@ -28,10 +44,16 @@ Jan Engelhardt wrote:
 >>>> +#endif
 >>> Why do we still need this? I thought the reentrancy-counter should take
 >>> care of this?
+>> 
 >> Did I really delete that commit... it's done so that conntrack
 >> does not count the duplicated packets towards the original
 >> connection.
-> 
-> While at that, would retaining the old skb's nfctinfo make any sense?
+>
+>Simply untrack it perhaps?
 
-I don't think so.
+Well, that's what the four lines do, that's what NOTRACK does -
+assigning to a fake nfct, isn't it?
+
+
+thanks,
+Jan
