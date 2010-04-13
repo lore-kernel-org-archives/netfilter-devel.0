@@ -1,123 +1,62 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 1/8] netfilter: ipv6: move POSTROUTING invocation before fragmentation
-Date: Tue, 13 Apr 2010 14:37:40 +0200
-Message-ID: <1271162268-28131-2-git-send-email-jengelh@medozas.de>
-References: <1271162268-28131-1-git-send-email-jengelh@medozas.de>
+Subject: nf-next: reentrancy, new modules
+Date: Tue, 13 Apr 2010 14:37:39 +0200
+Message-ID: <1271162268-28131-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:44333 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:44332 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751072Ab0DMMhy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	id S1751201Ab0DMMhy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
 	Tue, 13 Apr 2010 08:37:54 -0400
-In-Reply-To: <1271162268-28131-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy notes: "We used to invoke IPv4 POST_ROUTING after
-fragmentation as well just to defragment the packets in conntrack
-immediately afterwards, but that got changed during the
-netfilter-ipsec integration. Ideally IPv6 would behave like IPv4."
 
-This patch makes it so. Sending an oversized frame (e.g. `ping6
--s64000 -c1 ::1`) will now show up in POSTROUTING as a single skb
-rather than multiple ones.
+Hi,
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- net/ipv6/ip6_output.c |   49 +++++++++++++++++++++++--------------------------
- 1 files changed, 23 insertions(+), 26 deletions(-)
 
-diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
-index 4535b7a..f314ba4 100644
---- a/net/ipv6/ip6_output.c
-+++ b/net/ipv6/ip6_output.c
-@@ -82,22 +82,6 @@ int ip6_local_out(struct sk_buff *skb)
- }
- EXPORT_SYMBOL_GPL(ip6_local_out);
- 
--static int ip6_output_finish(struct sk_buff *skb)
--{
--	struct dst_entry *dst = skb_dst(skb);
--
--	if (dst->hh)
--		return neigh_hh_output(dst->hh, skb);
--	else if (dst->neighbour)
--		return dst->neighbour->output(skb);
--
--	IP6_INC_STATS_BH(dev_net(dst->dev),
--			 ip6_dst_idev(dst), IPSTATS_MIB_OUTNOROUTES);
--	kfree_skb(skb);
--	return -EINVAL;
--
--}
--
- /* dev_loopback_xmit for use with netfilter. */
- static int ip6_dev_loopback_xmit(struct sk_buff *newskb)
- {
-@@ -111,8 +95,7 @@ static int ip6_dev_loopback_xmit(struct sk_buff *newskb)
- 	return 0;
- }
- 
--
--static int ip6_output2(struct sk_buff *skb)
-+static int ip6_finish_output2(struct sk_buff *skb)
- {
- 	struct dst_entry *dst = skb_dst(skb);
- 	struct net_device *dev = dst->dev;
-@@ -150,8 +133,15 @@ static int ip6_output2(struct sk_buff *skb)
- 				skb->len);
- 	}
- 
--	return NF_HOOK(NFPROTO_IPV6, NF_INET_POST_ROUTING, skb, NULL, skb->dev,
--		       ip6_output_finish);
-+	if (dst->hh)
-+		return neigh_hh_output(dst->hh, skb);
-+	else if (dst->neighbour)
-+		return dst->neighbour->output(skb);
-+
-+	IP6_INC_STATS_BH(dev_net(dst->dev),
-+			 ip6_dst_idev(dst), IPSTATS_MIB_OUTNOROUTES);
-+	kfree_skb(skb);
-+	return -EINVAL;
- }
- 
- static inline int ip6_skb_dst_mtu(struct sk_buff *skb)
-@@ -162,21 +152,28 @@ static inline int ip6_skb_dst_mtu(struct sk_buff *skb)
- 	       skb_dst(skb)->dev->mtu : dst_mtu(skb_dst(skb));
- }
- 
-+static int ip6_finish_output(struct sk_buff *skb)
-+{
-+	if ((skb->len > ip6_skb_dst_mtu(skb) && !skb_is_gso(skb)) ||
-+				dst_allfrag(skb_dst(skb)))
-+		return ip6_fragment(skb, ip6_finish_output2);
-+	else
-+		return ip6_finish_output2(skb);
-+}
-+
- int ip6_output(struct sk_buff *skb)
- {
-+	struct net_device *dev = skb_dst(skb)->dev;
- 	struct inet6_dev *idev = ip6_dst_idev(skb_dst(skb));
- 	if (unlikely(idev->cnf.disable_ipv6)) {
--		IP6_INC_STATS(dev_net(skb_dst(skb)->dev), idev,
-+		IP6_INC_STATS(dev_net(dev), idev,
- 			      IPSTATS_MIB_OUTDISCARDS);
- 		kfree_skb(skb);
- 		return 0;
- 	}
- 
--	if ((skb->len > ip6_skb_dst_mtu(skb) && !skb_is_gso(skb)) ||
--				dst_allfrag(skb_dst(skb)))
--		return ip6_fragment(skb, ip6_output2);
--	else
--		return ip6_output2(skb);
-+	return NF_HOOK(NFPROTO_IPV6, NF_INET_POST_ROUTING, skb, NULL, dev,
-+		       ip6_finish_output);
- }
- 
- /*
--- 
-1.7.0.4
+per request, the series reposted with fixes applied. I also tacked
+sysrq and condition on.
 
+
+The following changes since commit 9f93ff5be54108066372d1c4100c515d9d9acc1b:
+  Alexey Dobriyan (1):
+        Restore __ALIGN_MASK()
+
+are available in the git repository at:
+
+  git://dev.medozas.de/linux master
+
+Jan Engelhardt (8):
+      netfilter: ipv6: move POSTROUTING invocation before fragmentation
+      netfilter: ipv6: add IPSKB_REROUTED exclusion to NF_HOOK/POSTROUTING invocation
+      netfilter: xtables: inclusion of xt_TEE
+      netfilter: xtables2: make ip_tables reentrant
+      netfilter: xt_TEE: have cloned packet travel through Xtables too
+      netfilter: xtables: remove old comments about reentrancy
+      netfilter: xtables: inclusion of xt_SYSRQ
+      netfilter: xtables: inclusion of xt_condition
+
+ include/linux/netfilter/Kbuild         |    2 +
+ include/linux/netfilter/x_tables.h     |    7 +
+ include/linux/netfilter/xt_TEE.h       |    8 +
+ include/linux/netfilter/xt_condition.h |   14 ++
+ net/ipv4/netfilter/arp_tables.c        |    6 +-
+ net/ipv4/netfilter/ip_tables.c         |   67 +++---
+ net/ipv4/netfilter/ipt_REJECT.c        |    3 -
+ net/ipv6/ip6_output.c                  |   50 +++---
+ net/ipv6/netfilter/ip6_tables.c        |   58 ++----
+ net/ipv6/netfilter/ip6t_REJECT.c       |    3 -
+ net/netfilter/Kconfig                  |   27 +++
+ net/netfilter/Makefile                 |    3 +
+ net/netfilter/x_tables.c               |   77 +++++++
+ net/netfilter/xt_SYSRQ.c               |  354 ++++++++++++++++++++++++++++++++
+ net/netfilter/xt_TEE.c                 |  228 ++++++++++++++++++++
+ net/netfilter/xt_condition.c           |  243 ++++++++++++++++++++++
+ 16 files changed, 1048 insertions(+), 102 deletions(-)
+ create mode 100644 include/linux/netfilter/xt_TEE.h
+ create mode 100644 include/linux/netfilter/xt_condition.h
+ create mode 100644 net/netfilter/xt_SYSRQ.c
+ create mode 100644 net/netfilter/xt_TEE.c
+ create mode 100644 net/netfilter/xt_condition.c
