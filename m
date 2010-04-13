@@ -1,47 +1,123 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 4/6] netfilter: xtables2: make ip_tables reentrant
-Date: Tue, 13 Apr 2010 14:29:35 +0200
-Message-ID: <4BC463AF.1000106@trash.net>
-References: <1270666217-27670-1-git-send-email-jengelh@medozas.de> <1270666217-27670-5-git-send-email-jengelh@medozas.de> <4BC44009.4080206@trash.net> <alpine.LSU.2.01.1004131247580.11306@obet.zrqbmnf.qr> <4BC44CB8.4080405@trash.net> <alpine.LSU.2.01.1004131311330.16098@obet.zrqbmnf.qr> <4BC4525A.8000507@trash.net> <alpine.LSU.2.01.1004131342040.21259@obet.zrqbmnf.qr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: [PATCH 1/8] netfilter: ipv6: move POSTROUTING invocation before fragmentation
+Date: Tue, 13 Apr 2010 14:37:40 +0200
+Message-ID: <1271162268-28131-2-git-send-email-jengelh@medozas.de>
+References: <1271162268-28131-1-git-send-email-jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:48525 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750997Ab0DMM3h (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 Apr 2010 08:29:37 -0400
-In-Reply-To: <alpine.LSU.2.01.1004131342040.21259@obet.zrqbmnf.qr>
+Received: from borg.medozas.de ([188.40.89.202]:44333 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751072Ab0DMMhy (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 13 Apr 2010 08:37:54 -0400
+In-Reply-To: <1271162268-28131-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Tuesday 2010-04-13 13:15, Patrick McHardy wrote:
->> Developers can change it in the source code. Please remove the
->> parameter and hard code it.
->>
->> I'll then apply this patch if we can get rid of the ruleset
->> duplication for each CPU.
-> 
-> The following changes since commit e26c28e8bffe12b27df5b828404afed9e1949191:
->   Bart De Schuymer (1):
->         netfilter: bridge-netfilter: update a comment in br_forward.c about ip_fragment()
-> 
-> are available in the git repository at:
-> 
->   git://dev.medozas.de/linux master
-> 
-> Jan Engelhardt (6):
->       netfilter: ipv6: move POSTROUTING invocation before fragmentation
->       netfilter: ipv6: add IPSKB_REROUTED exclusion to NF_HOOK/POSTROUTING invocation
->       netfilter: xtables: inclusion of xt_TEE
->       netfilter: xtables2: make ip_tables reentrant
->       netfilter: xt_TEE: have cloned packet travel through Xtables too
->       netfilter: xtables: remove old comments about reentrancy
+Patrick McHardy notes: "We used to invoke IPv4 POST_ROUTING after
+fragmentation as well just to defragment the packets in conntrack
+immediately afterwards, but that got changed during the
+netfilter-ipsec integration. Ideally IPv6 would behave like IPv4."
 
-Again, please repost patches on updates. I want to see what I'm
-applying/pulling.
+This patch makes it so. Sending an oversized frame (e.g. `ping6
+-s64000 -c1 ::1`) will now show up in POSTROUTING as a single skb
+rather than multiple ones.
+
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ net/ipv6/ip6_output.c |   49 +++++++++++++++++++++++--------------------------
+ 1 files changed, 23 insertions(+), 26 deletions(-)
+
+diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
+index 4535b7a..f314ba4 100644
+--- a/net/ipv6/ip6_output.c
++++ b/net/ipv6/ip6_output.c
+@@ -82,22 +82,6 @@ int ip6_local_out(struct sk_buff *skb)
+ }
+ EXPORT_SYMBOL_GPL(ip6_local_out);
+ 
+-static int ip6_output_finish(struct sk_buff *skb)
+-{
+-	struct dst_entry *dst = skb_dst(skb);
+-
+-	if (dst->hh)
+-		return neigh_hh_output(dst->hh, skb);
+-	else if (dst->neighbour)
+-		return dst->neighbour->output(skb);
+-
+-	IP6_INC_STATS_BH(dev_net(dst->dev),
+-			 ip6_dst_idev(dst), IPSTATS_MIB_OUTNOROUTES);
+-	kfree_skb(skb);
+-	return -EINVAL;
+-
+-}
+-
+ /* dev_loopback_xmit for use with netfilter. */
+ static int ip6_dev_loopback_xmit(struct sk_buff *newskb)
+ {
+@@ -111,8 +95,7 @@ static int ip6_dev_loopback_xmit(struct sk_buff *newskb)
+ 	return 0;
+ }
+ 
+-
+-static int ip6_output2(struct sk_buff *skb)
++static int ip6_finish_output2(struct sk_buff *skb)
+ {
+ 	struct dst_entry *dst = skb_dst(skb);
+ 	struct net_device *dev = dst->dev;
+@@ -150,8 +133,15 @@ static int ip6_output2(struct sk_buff *skb)
+ 				skb->len);
+ 	}
+ 
+-	return NF_HOOK(NFPROTO_IPV6, NF_INET_POST_ROUTING, skb, NULL, skb->dev,
+-		       ip6_output_finish);
++	if (dst->hh)
++		return neigh_hh_output(dst->hh, skb);
++	else if (dst->neighbour)
++		return dst->neighbour->output(skb);
++
++	IP6_INC_STATS_BH(dev_net(dst->dev),
++			 ip6_dst_idev(dst), IPSTATS_MIB_OUTNOROUTES);
++	kfree_skb(skb);
++	return -EINVAL;
+ }
+ 
+ static inline int ip6_skb_dst_mtu(struct sk_buff *skb)
+@@ -162,21 +152,28 @@ static inline int ip6_skb_dst_mtu(struct sk_buff *skb)
+ 	       skb_dst(skb)->dev->mtu : dst_mtu(skb_dst(skb));
+ }
+ 
++static int ip6_finish_output(struct sk_buff *skb)
++{
++	if ((skb->len > ip6_skb_dst_mtu(skb) && !skb_is_gso(skb)) ||
++				dst_allfrag(skb_dst(skb)))
++		return ip6_fragment(skb, ip6_finish_output2);
++	else
++		return ip6_finish_output2(skb);
++}
++
+ int ip6_output(struct sk_buff *skb)
+ {
++	struct net_device *dev = skb_dst(skb)->dev;
+ 	struct inet6_dev *idev = ip6_dst_idev(skb_dst(skb));
+ 	if (unlikely(idev->cnf.disable_ipv6)) {
+-		IP6_INC_STATS(dev_net(skb_dst(skb)->dev), idev,
++		IP6_INC_STATS(dev_net(dev), idev,
+ 			      IPSTATS_MIB_OUTDISCARDS);
+ 		kfree_skb(skb);
+ 		return 0;
+ 	}
+ 
+-	if ((skb->len > ip6_skb_dst_mtu(skb) && !skb_is_gso(skb)) ||
+-				dst_allfrag(skb_dst(skb)))
+-		return ip6_fragment(skb, ip6_output2);
+-	else
+-		return ip6_output2(skb);
++	return NF_HOOK(NFPROTO_IPV6, NF_INET_POST_ROUTING, skb, NULL, dev,
++		       ip6_finish_output);
+ }
+ 
+ /*
+-- 
+1.7.0.4
+
