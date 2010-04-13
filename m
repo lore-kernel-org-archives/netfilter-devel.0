@@ -1,32 +1,29 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 5/6] netfilter: xt_TEE: have cloned packet travel through
- Xtables too
-Date: Tue, 13 Apr 2010 12:00:48 +0200
-Message-ID: <4BC440D0.9020500@trash.net>
-References: <1270666217-27670-1-git-send-email-jengelh@medozas.de> <1270666217-27670-6-git-send-email-jengelh@medozas.de>
+Subject: Re: [PATCH 3/3] nfnetlink_queue: use hash table to speed up entry
+ finding.
+Date: Tue, 13 Apr 2010 12:09:41 +0200
+Message-ID: <4BC442E5.8020001@trash.net>
+References: <4BBEA97A.5020303@gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: xiaosuo@gmail.com
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45984 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:46135 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752570Ab0DMKAt (ORCPT
+	with ESMTP id S1752862Ab0DMKJn (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 Apr 2010 06:00:49 -0400
-In-Reply-To: <1270666217-27670-6-git-send-email-jengelh@medozas.de>
+	Tue, 13 Apr 2010 06:09:43 -0400
+In-Reply-To: <4BBEA97A.5020303@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> --- a/net/netfilter/xt_TEE.c
-> +++ b/net/netfilter/xt_TEE.c
-> @@ -33,6 +33,7 @@ static struct nf_conn tee_track;
->  #endif
->  
->  static const union nf_inet_addr tee_zero_address;
-> +static bool tee_active[NR_CPUS];
+Changli Gao wrote:
+> use hash table to speed up entry finding.
+> 
+> If verdicts aren't received in order, list isn't efficient, and hash
+> table is better.
 
-DEFINE_PER_CPU?
+Any what is the advantage of using flex arrays compared to a simple
+open code hash table?
