@@ -1,24 +1,32 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Netfilter: Fix some coding styles and remove moduleparam.h
-Date: Tue, 13 Apr 2010 11:26:20 +0200
-Message-ID: <4BC438BC.6060701@trash.net>
-References: <20100326034415.GB30224@localhost.localdomain>
+Subject: Re: [PATCH:RFC 1/5] bridge-netfilter: cleanup br_netfilter.c
+Date: Tue, 13 Apr 2010 11:41:21 +0200
+Message-ID: <4BC43C41.9030305@trash.net>
+References: <4BB20790.6050300@pandora.be>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: wzt.wzt@gmail.com
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Stephen Hemminger <shemminger@linux-foundation.org>
+To: Bart De Schuymer <bdschuym@pandora.be>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:45423 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:45684 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751374Ab0DMJ0X (ORCPT
+	with ESMTP id S1751359Ab0DMJlY (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 Apr 2010 05:26:23 -0400
-In-Reply-To: <20100326034415.GB30224@localhost.localdomain>
+	Tue, 13 Apr 2010 05:41:24 -0400
+In-Reply-To: <4BB20790.6050300@pandora.be>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-wzt.wzt@gmail.com wrote:
-> Fix some coding styles and remove moduleparam.h
+Bart De Schuymer wrote:
+> bridge-netfilter: cleanup br_netfilter.c
+> 
+> - remove some of the graffiti at the head of br_netfilter.c
+> - remove __br_dnat_complain()
+> - remove KERN_INFO messages when CONFIG_NETFILTER_DEBUG is defined
 
-Applied.
+I've already applied this patch so you don't need to resend.
+Thanks Bart.
+
