@@ -1,53 +1,55 @@
-From: "Morgon J. Kanter" <morgon.j.kanter@dartmouth.edu>
-Subject: Re: Packet Injection within netfilter module
-Date: Tue, 13 Apr 2010 15:36:21 -0400
-Message-ID: <201004131536.21680.morgon.j.kanter@dartmouth.edu>
-Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: nf-next: TEE only
+Date: Wed, 14 Apr 2010 01:21:42 +0200
+Message-ID: <1271200907-5262-1-git-send-email-jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mailhub24.dartmouth.edu ([129.170.5.24]:40407 "EHLO
-	mailhub24.dartmouth.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752947Ab0DMUo4 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 13 Apr 2010 16:44:56 -0400
-Received: from mewtwo.localnet ([129.170.71.61])
-	(authenticated bits=0)
-	by mailhub24.dartmouth.edu (8.13.5/DND2.0/8.13.5) with ESMTP id o3DKb7gN005226
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <netfilter-devel@vger.kernel.org>; Tue, 13 Apr 2010 16:37:07 -0400
+Received: from borg.medozas.de ([188.40.89.202]:33999 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753044Ab0DMXVw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 13 Apr 2010 19:21:52 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> Is there any way to inject a newly created packet based on the
-> captured packet inside a netfilter hook call back function?
-> My Goal is to capture a packet change compress its tcp payload and
-> send it. i read ipcomp.c and i used its source. when i change skb size
-> (like len) and tail pointer kernel hangs. maybe the way to do, is to
-> create a new packet based on captured packet and ask kernel to send
-> it. I just don't know how to ask kernel to send a newly created
-> packet?
 
-I've been looking to do something similar, and running into my own questions.
+Hi,
 
-First, does your newly created packet completely replace the old, uncompressed 
-packet? Because then you should be able to just issue an ACCEPT verdict to the 
-packet, but pass along new payload data for said packet as part of issuing the 
-verdict.
 
-As I said, I've been looking to do something similar (and in fact just joined 
-this list with the hope of getting some answers) -- would you then have to go 
-and change, say, the TCP windows? At the very least it seems you'll need to 
-mangle the returning ACK numbers to the uncompressed value, so the original 
-packet's sender gets the correct acknowledgment. Is there a way to handle this 
-automatically in the Linux kernel? It seems like this would be a valuable 
-thing to implement as part of queue/conntrack if it's not implemented already 
--- is it?
+in this round:
+- use IP6SKB_REROUTED in v6 code
+- pick_net function: use skb->dev or skb->dst->dev when available
+  (or completely fall back to init_net in case there's something
+  going on)
 
-I ask because I will need to implement exactly this functionality if it's not 
-already around. I'm also trying to figure out the best place to put it.
+----
 
-Thanks,
--- Morgon
+The following changes since commit 9c6eb28aca52d562f3ffbaebaa56385df9972a43:
+  Jan Engelhardt (1):
+        netfilter: ipv6: add IPSKB_REROUTED exclusion to NF_HOOK/POSTROUTING invocation
+
+are available in the git repository at:
+
+  git://dev.medozas.de/linux master
+
+Jan Engelhardt (4):
+      netfilter: xtables: inclusion of xt_TEE
+      netfilter: xtables2: make ip_tables reentrant
+      netfilter: xt_TEE: have cloned packet travel through Xtables too
+      netfilter: xtables: remove old comments about reentrancy
+
+ include/linux/netfilter/Kbuild     |    1 +
+ include/linux/netfilter/x_tables.h |    7 +
+ include/linux/netfilter/xt_TEE.h   |    8 ++
+ net/ipv4/netfilter/arp_tables.c    |    6 +-
+ net/ipv4/netfilter/ip_tables.c     |   67 ++++++-----
+ net/ipv4/netfilter/ipt_REJECT.c    |    3 -
+ net/ipv6/netfilter/ip6_tables.c    |   58 ++++------
+ net/ipv6/netfilter/ip6t_REJECT.c   |    3 -
+ net/netfilter/Kconfig              |    7 +
+ net/netfilter/Makefile             |    1 +
+ net/netfilter/x_tables.c           |   77 ++++++++++++
+ net/netfilter/xt_TEE.c             |  228 ++++++++++++++++++++++++++++++++++++
+ 12 files changed, 390 insertions(+), 76 deletions(-)
+ create mode 100644 include/linux/netfilter/xt_TEE.h
+ create mode 100644 net/netfilter/xt_TEE.c
