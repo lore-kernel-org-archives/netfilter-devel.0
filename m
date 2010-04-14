@@ -1,24 +1,33 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Set pointer to TCP header in callback function
-Date: Wed, 14 Apr 2010 09:49:33 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1004140949010.1242@obet.zrqbmnf.qr>
-References: <i2p8363055a1004132040je747ad0avda68218c6cd6110e@mail.gmail.com>
+Subject: Re: [PATCH 1/4] netfilter: xtables: inclusion of xt_TEE
+Date: Wed, 14 Apr 2010 12:00:00 +0200 (CEST)
+Message-ID: <alpine.LSU.2.01.1004141159390.9499@obet.zrqbmnf.qr>
+References: <1271200907-5262-1-git-send-email-jengelh@medozas.de>  <1271200907-5262-2-git-send-email-jengelh@medozas.de> <1271224379.16881.610.camel@edumazet-laptop>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Justin Yaple <yaplej@gmail.com>
+Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:38592 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:54304 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753137Ab0DNHte (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 14 Apr 2010 03:49:34 -0400
-In-Reply-To: <i2p8363055a1004132040je747ad0avda68218c6cd6110e@mail.gmail.com>
+	id S1754850Ab0DNKAB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 14 Apr 2010 06:00:01 -0400
+In-Reply-To: <1271224379.16881.610.camel@edumazet-laptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Wednesday 2010-04-14 05:40, Justin Yaple wrote:
+On Wednesday 2010-04-14 07:52, Eric Dumazet wrote:
+>> +#ifdef WITH_CONNTRACK
+>> +	/* Avoid counting cloned packets towards the original connection. */
+>> +	nf_conntrack_put(skb->nfct);
+>> +	skb->nfct     = &nf_conntrack_untracked.ct_general;
+>> +	skb->nfctinfo = IP_CT_NEW;
+>> +	nf_conntrack_get(skb->nfct);
 >
->tcph = (struct tcphdr *) (((u_int32_t *)payload) + (iph->ihl * 4));
+>This atomic increment on a global variable worries me... Would it be
+>possible to avoid it (and the associated decrement and test if null)
+>
+>I would like to use this TEE facility but with xxx kpps for instance ;)
 
-You don't use both uint32_t and *4.
+Correctness before speed. You're free to send patches on top.
