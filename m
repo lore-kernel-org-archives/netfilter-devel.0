@@ -1,71 +1,61 @@
-From: Bart De Schuymer <bdschuym@pandora.be>
-Subject: [PATCH 3/3] bridge-netfilter: fix refragmenting IP traffic encapsulated
- in PPPoE traffic
-Date: Wed, 14 Apr 2010 15:14:28 +0200
-Message-ID: <4BC5BFB4.4080101@pandora.be>
+From: Ali Hamidi <ali.hamidi759@gmail.com>
+Subject: Re: Packet Injection within netfilter module
+Date: Wed, 14 Apr 2010 19:27:23 +0430
+Message-ID: <h2v6a3fa21004140757y68bb686g5f0a122b80df922@mail.gmail.com>
+References: <m2v6a3fa21004130113tbb35e00cp788616f0ae22a591@mail.gmail.com>
+	 <n2r8363055a1004130947r17b18e9dgf33b38f8648b3f82@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: Stephen Hemminger <shemminger@linux-foundation.org>
-To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Justin Yaple <yaplej@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from gerard.telenet-ops.be ([195.130.132.48]:36407 "EHLO
-	gerard.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754380Ab0DNNOa (ORCPT
+Received: from mail-bw0-f225.google.com ([209.85.218.225]:63842 "EHLO
+	mail-bw0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755918Ab0DNO50 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 14 Apr 2010 09:14:30 -0400
+	Wed, 14 Apr 2010 10:57:26 -0400
+Received: by mail-bw0-f225.google.com with SMTP id 25so267204bwz.28
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Apr 2010 07:57:25 -0700 (PDT)
+In-Reply-To: <n2r8363055a1004130947r17b18e9dgf33b38f8648b3f82@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-bridge-netfilter: fix refragmenting IP traffic encapsulated in PPPoE
-traffic
+Dear Justin,
+I just want to thank you for you good reply. Your code saved my life
+in a school project. It is well-written and I learned many things from
+it, because I am a newbie in netfilter kernel modules programming. Any
+way Thanks again for your reply. You gave me new hope to continue.
 
-The MTU for IP traffic encapsulated inside PPPoE traffic is smaller
-than the MTU of the Ethernet device (1500). Connection tracking
-gathers all IP packets and sometimes will refragment them in
-ip_fragment(). We then need to subtract the length of the
-encapsulating header from the mtu used in ip_fragment(). The check in
-br_nf_dev_queue_xmit() which determines if ip_fragment() has to be
-called is also updated for the PPPoE-encapsulated packets.
-nf_bridge_copy_header() is also updated to make sure the PPPoE data
-length field has the correct value.
-
-Signed-off-by: Bart De Schuymer <bdschuym@pandora.be>
-
---- nf-next-2.6/net/bridge/br_netfilter.c.ori3	2010-04-14 14:06:05.000000000 +0200
-+++ nf-next-2.6/net/bridge/br_netfilter.c	2010-04-14 14:11:34.000000000 +0200
-@@ -221,6 +221,8 @@ int nf_bridge_copy_header(struct sk_buff
- 	skb_copy_to_linear_data_offset(skb, -header_size,
- 				       skb->nf_bridge->data, header_size);
- 	__skb_push(skb, nf_bridge_encap_header_len(skb));
-+	if (unlikely(skb->protocol == htons(ETH_P_PPP_SES)))
-+		((struct pppoe_hdr *)skb->data)->length = htons(skb->len-sizeof(struct pppoe_hdr));
- 	return 0;
- }
- 
-@@ -744,7 +746,7 @@ static unsigned int br_nf_forward_arp(un
- static int br_nf_dev_queue_xmit(struct sk_buff *skb)
- {
- 	if (skb->nfct != NULL && skb->protocol == htons(ETH_P_IP) &&
--	    skb->len > skb->dev->mtu &&
-+	    skb->len + ((skb->nf_bridge->mask & BRNF_PPPoE) ? PPPOE_SES_HLEN:0) > skb->dev->mtu &&
- 	    !skb_is_gso(skb))
- 		return ip_fragment(skb, br_dev_queue_push_xmit);
- 	else
---- nf-next-2.6/net/ipv4/ip_output.c.ori	2010-04-14 14:01:28.000000000 +0200
-+++ nf-next-2.6/net/ipv4/ip_output.c	2010-04-14 14:02:41.000000000 +0200
-@@ -468,6 +468,10 @@ int ip_fragment(struct sk_buff *skb, int
- 
- 	hlen = iph->ihl * 4;
- 	mtu = dst_mtu(&rt->u.dst) - hlen;	/* Size of data space */
-+#ifdef CONFIG_BRIDGE_NETFILTER
-+	if (unlikely(skb->nf_bridge && (skb->nf_bridge->mask & BRNF_PPPoE)))
-+		mtu -= PPPOE_SES_HLEN;
-+#endif
- 	IPCB(skb)->flags |= IPSKB_FRAG_COMPLETE;
- 
- 	/* When frag_list is given, use it. First, check its validity:
-
--- 
-Bart De Schuymer
-www.artinalgorithms.be
+On 4/13/10, Justin Yaple <yaplej@gmail.com> wrote:
+> Ali,
+>
+> Are you sending this copied packet somewhere else?  If your goal is
+> just to modify the skb why make a copy before you modify it?  I have
+> written a kernel module that can compress/decompresses TCP payloads
+> for traffic between any number of hosts if the traffic is routed
+> through two systems running my module.  If you want to download the
+> source you can get it from
+> http://packetsqueezer.portal.codespaces.com.
+>
+> To send a new skb though you can do this.  It assumes all the required
+> fields are already populated correctly.
+> NF_HOOK(PF_INET, NF_IP_LOCAL_OUT, skb, NULL, skb->dst->dev,
+> dst_output); // Sent the packet.
+>
+>
+> On Tue, Apr 13, 2010 at 1:13 AM, Ali Hamidi <ali.hamidi759@gmail.com> wrote:
+>> Is there any way to inject a newly created packet based on the
+>> captured packet inside a netfilter hook call back function?
+>> My Goal is to capture a packet change compress its tcp payload and
+>> send it. i read ipcomp.c and i used its source. when i change skb size
+>> (like len) and tail pointer kernel hangs. maybe the way to do, is to
+>> create a new packet based on captured packet and ask kernel to send
+>> it. I just don't know how to ask kernel to send a newly created
+>> packet?
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe netfilter-devel"
+>> in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
