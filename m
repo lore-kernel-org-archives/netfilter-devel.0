@@ -1,81 +1,141 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 4/4] netfilter: xtables: remove old comments about reentrancy
-Date: Fri, 16 Apr 2010 01:25:08 +0200
-Message-ID: <1271373909-6959-5-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 3/4] netfilter: xt_TEE: have cloned packet travel through Xtables too
+Date: Fri, 16 Apr 2010 01:25:07 +0200
+Message-ID: <1271373909-6959-4-git-send-email-jengelh@medozas.de>
 References: <1271373909-6959-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:43258 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:43254 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752676Ab0DOXZS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Apr 2010 19:25:18 -0400
+	id S1753024Ab0DOXZQ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 15 Apr 2010 19:25:16 -0400
 In-Reply-To: <1271373909-6959-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Since Xtables is now reentrant/nestable, the cloned packet can also go
+through Xtables and be subject to rules itself.
+
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- net/ipv4/netfilter/ip_tables.c   |    2 --
- net/ipv4/netfilter/ipt_REJECT.c  |    3 ---
- net/ipv6/netfilter/ip6_tables.c  |    2 --
- net/ipv6/netfilter/ip6t_REJECT.c |    3 ---
- 4 files changed, 0 insertions(+), 10 deletions(-)
+ net/ipv4/ip_output.c   |    1 -
+ net/ipv6/ip6_output.c  |    1 -
+ net/netfilter/xt_TEE.c |   40 ++++++++++++++++++----------------------
+ 3 files changed, 18 insertions(+), 24 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 70900ec..bb5e0d9 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -434,8 +434,6 @@ ipt_do_table(struct sk_buff *skb,
- 			continue;
- 		}
+diff --git a/net/ipv4/ip_output.c b/net/ipv4/ip_output.c
+index 0abfdde..f09135e 100644
+--- a/net/ipv4/ip_output.c
++++ b/net/ipv4/ip_output.c
+@@ -309,7 +309,6 @@ int ip_output(struct sk_buff *skb)
+ 			    ip_finish_output,
+ 			    !(IPCB(skb)->flags & IPSKB_REROUTED));
+ }
+-EXPORT_SYMBOL_GPL(ip_output);
  
--		/* Targets which reenter must return
--		   abs. verdicts */
- 		tgpar.target   = t->u.kernel.target;
- 		tgpar.targinfo = t->data;
- 
-diff --git a/net/ipv4/netfilter/ipt_REJECT.c b/net/ipv4/netfilter/ipt_REJECT.c
-index b026014..038fa0b 100644
---- a/net/ipv4/netfilter/ipt_REJECT.c
-+++ b/net/ipv4/netfilter/ipt_REJECT.c
-@@ -139,9 +139,6 @@ reject_tg(struct sk_buff *skb, const struct xt_target_param *par)
+ int ip_queue_xmit(struct sk_buff *skb, int ipfragok)
  {
- 	const struct ipt_reject_info *reject = par->targinfo;
+diff --git a/net/ipv6/ip6_output.c b/net/ipv6/ip6_output.c
+index d09be7f..c10a38a 100644
+--- a/net/ipv6/ip6_output.c
++++ b/net/ipv6/ip6_output.c
+@@ -176,7 +176,6 @@ int ip6_output(struct sk_buff *skb)
+ 			    ip6_finish_output,
+ 			    !(IP6CB(skb)->flags & IP6SKB_REROUTED));
+ }
+-EXPORT_SYMBOL_GPL(ip6_output);
  
--	/* WARNING: This code causes reentry within iptables.
--	   This means that the iptables jump stack is now crap.  We
--	   must return an absolute verdict. --RR */
- 	switch (reject->with) {
- 	case IPT_ICMP_NET_UNREACHABLE:
- 		send_unreach(skb, ICMP_NET_UNREACH);
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 2a2770b..7afa117 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -451,8 +451,6 @@ ip6t_do_table(struct sk_buff *skb,
- 			continue;
- 		}
+ /*
+  *	xmit an sk_buff (used by TCP)
+diff --git a/net/netfilter/xt_TEE.c b/net/netfilter/xt_TEE.c
+index b3d7301..842e701 100644
+--- a/net/netfilter/xt_TEE.c
++++ b/net/netfilter/xt_TEE.c
+@@ -12,6 +12,7 @@
+  */
+ #include <linux/ip.h>
+ #include <linux/module.h>
++#include <linux/percpu.h>
+ #include <linux/route.h>
+ #include <linux/skbuff.h>
+ #include <net/checksum.h>
+@@ -32,6 +33,7 @@
+ #endif
  
--		/* Targets which reenter must return
--		   abs. verdicts */
- 		tgpar.target   = t->u.kernel.target;
- 		tgpar.targinfo = t->data;
+ static const union nf_inet_addr tee_zero_address;
++static DEFINE_PER_CPU(bool, tee_active);
  
-diff --git a/net/ipv6/netfilter/ip6t_REJECT.c b/net/ipv6/netfilter/ip6t_REJECT.c
-index 55b9b2d..dad9762 100644
---- a/net/ipv6/netfilter/ip6t_REJECT.c
-+++ b/net/ipv6/netfilter/ip6t_REJECT.c
-@@ -179,9 +179,6 @@ reject_tg6(struct sk_buff *skb, const struct xt_target_param *par)
- 	struct net *net = dev_net((par->in != NULL) ? par->in : par->out);
+ static struct net *pick_net(struct sk_buff *skb)
+ {
+@@ -91,6 +93,8 @@ tee_tg4(struct sk_buff *skb, const struct xt_target_param *par)
+ 	const struct xt_tee_tginfo *info = par->targinfo;
+ 	struct iphdr *iph;
  
- 	pr_debug("%s: medium point\n", __func__);
--	/* WARNING: This code causes reentry within ip6tables.
--	   This means that the ip6tables jump stack is now crap.  We
--	   must return an absolute verdict. --RR */
- 	switch (reject->with) {
- 	case IP6T_ICMP6_NO_ROUTE:
- 		send_unreach(net, skb, ICMPV6_NOROUTE, par->hooknum);
++	if (percpu_read(tee_active))
++		return XT_CONTINUE;
+ 	/*
+ 	 * Copy the skb, and route the copy. Will later return %XT_CONTINUE for
+ 	 * the original skb, which should continue on its way as if nothing has
+@@ -125,24 +129,13 @@ tee_tg4(struct sk_buff *skb, const struct xt_target_param *par)
+ 		--iph->ttl;
+ 	ip_send_check(iph);
+ 
+-	/*
+-	 * Xtables is not reentrant currently, so a choice has to be made:
+-	 * 1. return absolute verdict for the original and let the cloned
+-	 *    packet travel through the chains
+-	 * 2. let the original continue travelling and not pass the clone
+-	 *    to Xtables.
+-	 * #2 is chosen. Normally, we would use ip_local_out for the clone.
+-	 * Because iph->check is already correct and we don't pass it to
+-	 * Xtables anyway, a shortcut to dst_output [forwards to ip_output] can
+-	 * be taken. %IPSKB_REROUTED needs to be set so that ip_output does not
+-	 * invoke POSTROUTING on the cloned packet.
+-	 */
+-	IPCB(skb)->flags |= IPSKB_REROUTED;
+-	if (tee_tg_route4(skb, info))
+-		ip_output(skb);
+-	else
++	if (tee_tg_route4(skb, info)) {
++		percpu_write(tee_active, true);
++		ip_local_out(skb);
++		percpu_write(tee_active, false);
++	} else {
+ 		kfree_skb(skb);
+-
++	}
+ 	return XT_CONTINUE;
+ }
+ 
+@@ -177,6 +170,8 @@ tee_tg6(struct sk_buff *skb, const struct xt_target_param *par)
+ {
+ 	const struct xt_tee_tginfo *info = par->targinfo;
+ 
++	if (percpu_read(tee_active))
++		return XT_CONTINUE;
+ 	skb = pskb_copy(skb, GFP_ATOMIC);
+ 	if (skb == NULL)
+ 		return XT_CONTINUE;
+@@ -192,12 +187,13 @@ tee_tg6(struct sk_buff *skb, const struct xt_target_param *par)
+ 		struct ipv6hdr *iph = ipv6_hdr(skb);
+ 		--iph->hop_limit;
+ 	}
+-	IP6CB(skb)->flags |= IP6SKB_REROUTED;
+-	if (tee_tg_route6(skb, info))
+-		ip6_output(skb);
+-	else
++	if (tee_tg_route6(skb, info)) {
++		percpu_write(tee_active, true);
++		ip6_local_out(skb);
++		percpu_write(tee_active, false);
++	} else {
+ 		kfree_skb(skb);
+-
++	}
+ 	return XT_CONTINUE;
+ }
+ #endif /* WITH_IPV6 */
 -- 
 1.7.0.4
 
