@@ -1,36 +1,50 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Named/numbered queues in the kernel?
-Date: Thu, 15 Apr 2010 21:09:43 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1004152109001.825@obet.zrqbmnf.qr>
-References: <201004151302.40872.morgon.j.kanter@dartmouth.edu>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Subject: nf-next: TEE 20100215
+Date: Fri, 16 Apr 2010 01:25:04 +0200
+Message-ID: <1271373909-6959-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
-To: "Morgon J. Kanter" <morgon.j.kanter@dartmouth.edu>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:40438 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:43241 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756080Ab0DOTJo (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Apr 2010 15:09:44 -0400
-In-Reply-To: <201004151302.40872.morgon.j.kanter@dartmouth.edu>
+	id S1752059Ab0DOXZN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 15 Apr 2010 19:25:13 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 2010-04-15 19:02, Morgon J. Kanter wrote:
 
->I was poking around the libnetfilter_queue code in an attempt to 
->understand it, and was looking at the queue numbers. It looks like 
->these numbers are only part of an individual application, and are not 
->system-wide. Is there already a way to have system-wide numbers for 
->queues, or is that something that I'll have to implement myself?
+Hi,
 
-Queue numbers are per system.
 
->For example, when using iptables I can do a "-j QUEUE". It would be 
->cool if instead I could do a "-j QUEUE <name or number>", and then have 
->an individual application only listen to its own queue instead of the 
+xt_TEE now has routing by oif. Please review. Does it look right to you?
 
-See -j NFQUEUE --queue-num...
 
->entire system's worth of queued packets. Is there general interest in 
->this functionality beyond my own?
+The following changes since commit 9c6eb28aca52d562f3ffbaebaa56385df9972a43:
+  Jan Engelhardt (1):
+        netfilter: ipv6: add IPSKB_REROUTED exclusion to NF_HOOK/POSTROUTING invocation
+
+are available in the git repository at:
+
+  git://dev.medozas.de/linux master
+
+Jan Engelhardt (4):
+      netfilter: xtables: inclusion of xt_TEE
+      netfilter: xtables2: make ip_tables reentrant
+      netfilter: xt_TEE: have cloned packet travel through Xtables too
+      netfilter: xtables: remove old comments about reentrancy
+
+ include/linux/netfilter/Kbuild     |    1 +
+ include/linux/netfilter/x_tables.h |    7 +
+ include/linux/netfilter/xt_TEE.h   |    9 ++
+ net/ipv4/netfilter/arp_tables.c    |    6 +-
+ net/ipv4/netfilter/ip_tables.c     |   67 +++++-----
+ net/ipv4/netfilter/ipt_REJECT.c    |    3 -
+ net/ipv6/netfilter/ip6_tables.c    |   58 +++-----
+ net/ipv6/netfilter/ip6t_REJECT.c   |    3 -
+ net/netfilter/Kconfig              |    7 +
+ net/netfilter/Makefile             |    1 +
+ net/netfilter/x_tables.c           |   77 +++++++++++
+ net/netfilter/xt_TEE.c             |  252 ++++++++++++++++++++++++++++++++++++
+ 12 files changed, 415 insertions(+), 76 deletions(-)
+ create mode 100644 include/linux/netfilter/xt_TEE.h
+ create mode 100644 net/netfilter/xt_TEE.c
