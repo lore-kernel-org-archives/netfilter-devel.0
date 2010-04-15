@@ -1,57 +1,37 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 3/3] nfnetlink_queue: use hash table to speed up entry
- 	finding.
-Date: Thu, 15 Apr 2010 17:35:02 +0200
-Message-ID: <4BC73226.2030007@trash.net>
-References: <4BBEA97A.5020303@gmail.com> <1271164991.16881.346.camel@edumazet-laptop> 	<4BC470B3.4030007@trash.net> <h2n412e6f7f1004142353uac023edfqc59d076c0d8a1784@mail.gmail.com> 	<4BC6EC15.4070205@trash.net> <t2t412e6f7f1004150735l54619e32t3e7fcdce7b118bd9@mail.gmail.com> 	<4BC72572.1050507@trash.net> <4BC726B4.1030003@trash.net> 	<j2w412e6f7f1004150801m66503602wbd0296c09aa45e90@mail.gmail.com> 	<4BC72B2B.9010104@trash.net> <m2l412e6f7f1004150811p3009f238if492b139770a0ea8@mail.gmail.com>
+From: "Morgon J. Kanter" <morgon.j.kanter@dartmouth.edu>
+Subject: Named/numbered queues in the kernel?
+Date: Thu, 15 Apr 2010 13:02:40 -0400
+Message-ID: <201004151302.40872.morgon.j.kanter@dartmouth.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	netfilter-devel@vger.kernel.org
-To: Changli Gao <xiaosuo@gmail.com>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:33955 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752581Ab0DOPfH (ORCPT
+Received: from mailhub2.dartmouth.edu ([129.170.17.107]:32769 "EHLO
+	mailhub2.dartmouth.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751338Ab0DOSWj (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Apr 2010 11:35:07 -0400
-In-Reply-To: <m2l412e6f7f1004150811p3009f238if492b139770a0ea8@mail.gmail.com>
+	Thu, 15 Apr 2010 14:22:39 -0400
+Received: from mewtwo.localnet ([129.170.71.61])
+	(authenticated bits=0)
+	by mailhub2.dartmouth.edu (8.13.5/DND2.0/8.13.5) with ESMTP id o3FI3TLC005869
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <netfilter-devel@vger.kernel.org>; Thu, 15 Apr 2010 14:03:29 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Changli Gao wrote:
-> static int
-> nfqnl_rcv_nl_event(struct notifier_block *this,
->                    unsigned long event, void *ptr)
-> {
->         struct netlink_notify *n = ptr;
-> 
->         if (event == NETLINK_URELEASE && n->protocol == NETLINK_NETFILTER) {
->                 int i;
-> 
->                 /* destroy all instances for this pid */
->                 spin_lock(&instances_lock);
->                 for (i = 0; i < INSTANCE_BUCKETS; i++) {
->                         struct hlist_node *tmp, *t2;
->                         struct nfqnl_instance *inst;
->                         struct hlist_head *head = &instance_table[i];
-> 
->                         hlist_for_each_entry_safe(inst, tmp, t2, head, hlist) {
->                                 if ((n->net == &init_net) &&
->                                     (n->pid == inst->peer_pid))
->                                         __instance_destroy(inst);
->                         }
->                 }
->                 spin_unlock(&instances_lock);
->         }
->         return NOTIFY_DONE;
-> }
-> 
-> static struct notifier_block nfqnl_rtnl_notifier = {
->         .notifier_call  = nfqnl_rcv_nl_event,
-> };
->
+I was poking around the libnetfilter_queue code in an attempt to understand 
+it, and was looking at the queue numbers. It looks like these numbers are only 
+part of an individual application, and are not system-wide. Is there already a 
+way to have system-wide numbers for queues, or is that something that I'll 
+have to implement myself?
 
-Ah, right. So call nfnl_lock() or convert the spinlock to a
-mutex.
+For example, when using iptables I can do a "-j QUEUE". It would be cool if 
+instead I could do a "-j QUEUE <name or number>", and then have an individual 
+application only listen to its own queue instead of the entire system's worth 
+of queued packets. Is there general interest in this functionality beyond my 
+own?
+
+Thanks,
+-- Morgon
