@@ -1,65 +1,71 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: Re: [PATCH 3/3] nfnetlink_queue: use hash table to speed up entry
-	finding.
-Date: Thu, 15 Apr 2010 16:30:50 +0800
-Message-ID: <h2i412e6f7f1004150130mce8f443ao25c0d87a555f544@mail.gmail.com>
-References: <4BBEA97A.5020303@gmail.com> <4BC442E5.8020001@trash.net>
-	<n2n412e6f7f1004130406xfeb33397m666d36a49ba46661@mail.gmail.com>
-	<1271162669.16881.301.camel@edumazet-laptop> <r2q412e6f7f1004130609we90ce635u673ba882b8b50f50@mail.gmail.com>
-	<1271164991.16881.346.camel@edumazet-laptop> <4BC470B3.4030007@trash.net>
-	<h2n412e6f7f1004142353uac023edfqc59d076c0d8a1784@mail.gmail.com>
-	<1271319790.16881.2188.camel@edumazet-laptop>
+From: "Ondrej Slanina" <oslanina@kerio.com>
+Subject: Fw: Netfilter for Windows
+Date: Thu, 15 Apr 2010 11:02:56 +0200
+Message-ID: <E1065721E84E443C803CD31BFE864396@kerio.local>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Content-Type: text/plain;
+	format=flowed;
+	charset="iso-8859-1";
+	reply-type=original
+Content-Transfer-Encoding: 7bit
+To: <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-iw0-f178.google.com ([209.85.223.178]:55860 "EHLO
-	mail-iw0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756053Ab0DOIbL convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Apr 2010 04:31:11 -0400
-Received: by iwn8 with SMTP id 8so483439iwn.16
-        for <netfilter-devel@vger.kernel.org>; Thu, 15 Apr 2010 01:31:10 -0700 (PDT)
-In-Reply-To: <1271319790.16881.2188.camel@edumazet-laptop>
+Received: from mx1.kerio.com ([195.113.184.2]:59181 "EHLO mx1.kerio.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757393Ab0DOJDJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 15 Apr 2010 05:03:09 -0400
+Received: from localhost ([127.0.0.1])
+	by mx1.kerio.com
+	(using TLSv1/SSLv3 with cipher AES256-SHA (256 bits))
+	for netfilter-devel@vger.kernel.org;
+	Thu, 15 Apr 2010 11:03:07 +0200
+Received: from localhost ([127.0.0.1])
+	by lumpy.kerio.cz
+	(using TLSv1/SSLv3 with cipher RC4-MD5 (128 bits))
+	for netfilter-devel@vger.kernel.org;
+	Thu, 15 Apr 2010 11:03:00 +0200
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Apr 15, 2010 at 4:23 PM, Eric Dumazet <eric.dumazet@gmail.com> =
-wrote:
-> Le jeudi 15 avril 2010 =C3=A0 14:53 +0800, Changli Gao a =C3=A9crit :
->> On Tue, Apr 13, 2010 at 9:25 PM, Patrick McHardy <kaber@trash.net> w=
-rote:
->> >> Yes, that is why vmalloc() is perfect for this case. No extra mem=
-ory for
->> >> management, but one pointer for each page of memory.
->> >
->> > I agree, if it works for conntrack, it certainly also works for
->> > nfnetlink_queue.
->> >
->>
->> I need to allocate memory in atomic section, so vmalloc() can't be u=
-sed. :(
->>
->> does double check mechanism works?
->>
->
-> Allocate memory to setup a hash table in atomic section ?
->
-> Changli you can forget this right now, this is not serious.
->
-> We are not going to use this thing because your requirements are craz=
-y.
->
+Hi,
+I just created a basic 'port' of Linux netfilter core modules on MS Windows. 
+Now, it's implemented as a single kernel module (IM driver) and userspace 
+library which has the same API as libnetfilter_queue. Network filtering is 
+now performed only on pre_input and post_output sides. Kernel module now 
+includes packet queueing, processing, not as on Linux, where this tasks is 
+processed by separate modules. It will be distributed under GPL. I have some 
+questions:
 
-OK, I'll keep it myself. :)
+1, Can I use 'netfilter' and 'libnetfilter_queue' names for this? For 
+example kernel module named netfilter.sys, userspace library named 
+libnetfilter_queue.lib, project name netfilter, netfilter for windows or 
+something like it?
+2, Should I put some notice about origin into source code files ? Something 
+like: "Based on Linux netfilter/libnetfilter_queue"  ?
 
---=20
-Regards=EF=BC=8C
-Changli Gao(xiaosuo@gmail.com)
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+My implementation is now very primitive, but I want to extend it in the 
+future.
+Best Regards,
+
+
+Ondrej Slanina
+developer
+..................................................................
+Kerio Technologies s.r.o.
+Anglicke nabrezi 1, 301 49 Plzen
+Czech Republic
+http://www.kerio.com
+...................................................................
+Connect. Communicate. Collaborate. Securely. 
+
+
+__________ Informace od ESET NOD32 Antivirus, verze databaze 5029 (20100414) __________
+
+Tuto zpravu proveril ESET NOD32 Antivirus.
+
+http://www.eset.cz
+
+
+
+
+
