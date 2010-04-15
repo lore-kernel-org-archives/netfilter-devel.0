@@ -1,47 +1,33 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Fw: Netfilter for Windows
-Date: Thu, 15 Apr 2010 12:35:40 +0200
-Message-ID: <4BC6EBFC.3020204@trash.net>
-References: <E1065721E84E443C803CD31BFE864396@kerio.local>
+Subject: Re: [PATCH 3/3] nfnetlink_queue: use hash table to speed up entry
+ 	finding.
+Date: Thu, 15 Apr 2010 12:36:05 +0200
+Message-ID: <4BC6EC15.4070205@trash.net>
+References: <4BBEA97A.5020303@gmail.com> <4BC442E5.8020001@trash.net> 	<n2n412e6f7f1004130406xfeb33397m666d36a49ba46661@mail.gmail.com> 	<1271162669.16881.301.camel@edumazet-laptop> <r2q412e6f7f1004130609we90ce635u673ba882b8b50f50@mail.gmail.com> 	<1271164991.16881.346.camel@edumazet-laptop> <4BC470B3.4030007@trash.net> <h2n412e6f7f1004142353uac023edfqc59d076c0d8a1784@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Ondrej Slanina <oslanina@kerio.com>
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	netfilter-devel@vger.kernel.org
+To: Changli Gao <xiaosuo@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60706 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:60712 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752691Ab0DOKfn (ORCPT
+	with ESMTP id S1751855Ab0DOKgG (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Apr 2010 06:35:43 -0400
-In-Reply-To: <E1065721E84E443C803CD31BFE864396@kerio.local>
+	Thu, 15 Apr 2010 06:36:06 -0400
+In-Reply-To: <h2n412e6f7f1004142353uac023edfqc59d076c0d8a1784@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Ondrej Slanina wrote:
-> I just created a basic 'port' of Linux netfilter core modules on MS
-> Windows. Now, it's implemented as a single kernel module (IM driver) and
-> userspace library which has the same API as libnetfilter_queue. Network
-> filtering is now performed only on pre_input and post_output sides.
-> Kernel module now includes packet queueing, processing, not as on Linux,
-> where this tasks is processed by separate modules. It will be
-> distributed under GPL. I have some questions:
+Changli Gao wrote:
+> On Tue, Apr 13, 2010 at 9:25 PM, Patrick McHardy <kaber@trash.net> wrote:
+>>> Yes, that is why vmalloc() is perfect for this case. No extra memory for
+>>> management, but one pointer for each page of memory.
+>> I agree, if it works for conntrack, it certainly also works for
+>> nfnetlink_queue.
+>>
+> 
+> I need to allocate memory in atomic section, so vmalloc() can't be used. :(
 
-Cool. Finally those poor souls can use a proper firewall :)
-
-> 1, Can I use 'netfilter' and 'libnetfilter_queue' names for this? For
-> example kernel module named netfilter.sys, userspace library named
-> libnetfilter_queue.lib, project name netfilter, netfilter for windows or
-> something like it?
-
-I think using the same names is fine.
-
-> 2, Should I put some notice about origin into source code files ?
-> Something like: "Based on Linux netfilter/libnetfilter_queue"  ?
-Just keeping the original copyright and GPL headers is fine.
-
-> My implementation is now very primitive, but I want to extend it in the future. 
-
-Please keep us posted. I guess we could also host the source on
-one of the netfilter servers in case you're interested.
-
+Why?
