@@ -1,65 +1,37 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 3/3] nfnetlink_queue: use hash table to speed up entry
- 	finding.
-Date: Fri, 16 Apr 2010 17:30:26 +0200
-Message-ID: <4BC88292.1090203@trash.net>
-References: <4BBEA97A.5020303@gmail.com> <h2n412e6f7f1004142353uac023edfqc59d076c0d8a1784@mail.gmail.com> 	<4BC6EC15.4070205@trash.net> <t2t412e6f7f1004150735l54619e32t3e7fcdce7b118bd9@mail.gmail.com> 	<4BC72572.1050507@trash.net> <4BC726B4.1030003@trash.net> 	<j2w412e6f7f1004150801m66503602wbd0296c09aa45e90@mail.gmail.com> 	<4BC72B2B.9010104@trash.net> <m2l412e6f7f1004150811p3009f238if492b139770a0ea8@mail.gmail.com> 	<4BC73226.2030007@trash.net> <q2z412e6f7f1004160650vf55ed233n69d332c62593ceb8@mail.gmail.com>
+From: Justin Yaple <yaplej@gmail.com>
+Subject: Fetching multiple packets from the queue?
+Date: Fri, 16 Apr 2010 10:07:20 -0700
+Message-ID: <o2o8363055a1004161007k841dc4aehe26c1139d02b1fca@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	netfilter-devel@vger.kernel.org
-To: Changli Gao <xiaosuo@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:57996 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751710Ab0DPPa3 (ORCPT
+Received: from mail-yx0-f199.google.com ([209.85.210.199]:47509 "EHLO
+	mail-yx0-f199.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758653Ab0DPRHV (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Apr 2010 11:30:29 -0400
-In-Reply-To: <q2z412e6f7f1004160650vf55ed233n69d332c62593ceb8@mail.gmail.com>
+	Fri, 16 Apr 2010 13:07:21 -0400
+Received: by yxe37 with SMTP id 37so1561507yxe.21
+        for <netfilter-devel@vger.kernel.org>; Fri, 16 Apr 2010 10:07:20 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Changli Gao wrote:
-> On Thu, Apr 15, 2010 at 11:35 PM, Patrick McHardy <kaber@trash.net> wrote:
->> Changli Gao wrote:
->>> static int
->>> nfqnl_rcv_nl_event(struct notifier_block *this,
->>>                    unsigned long event, void *ptr)
->>> {
->>>         struct netlink_notify *n = ptr;
->>>
->>>         if (event == NETLINK_URELEASE && n->protocol == NETLINK_NETFILTER) {
->>>                 int i;
->>>
->>>                 /* destroy all instances for this pid */
->>>                 spin_lock(&instances_lock);
->>>                 for (i = 0; i < INSTANCE_BUCKETS; i++) {
->>>                         struct hlist_node *tmp, *t2;
->>>                         struct nfqnl_instance *inst;
->>>                         struct hlist_head *head = &instance_table[i];
->>>
->>>                         hlist_for_each_entry_safe(inst, tmp, t2, head, hlist) {
->>>                                 if ((n->net == &init_net) &&
->>>                                     (n->pid == inst->peer_pid))
->>>                                         __instance_destroy(inst);
->>>                         }
->>>                 }
->>>                 spin_unlock(&instances_lock);
->>>         }
->>>         return NOTIFY_DONE;
->>> }
->>>
->>> static struct notifier_block nfqnl_rtnl_notifier = {
->>>         .notifier_call  = nfqnl_rcv_nl_event,
->>> };
->>>
->> Ah, right. So call nfnl_lock() or convert the spinlock to a
->> mutex.
->>
-> 
-> We can't convert the spinlock to a mutex simply. The notifier chain is
-> an atomic notifier chain.
+Hello,
 
-Well, then use reference counting, redo the lookup, or whatever.
-Really, this isn't that hard.
+Iv been trying to figure out how to fetch multiple packets from the
+queue, and am not clear where, or what buffer I need to copy before
+fetching the next packet from the queue.
+
+Should I copy the contents of the buf[] each time I run recv(), or
+should I make a copy from the callback function?  The callback
+function its only passed a couple of pointers so I am not sure what
+data I should copy.  From the callback I could copy the packet using
+nfq_get_payload() to a new buffer, and save the id, and *hq.  Those
+are the only parameters required to use nfq_set_verdict(), but I would
+lose the ability to use the other functions like nfq_get_packet_hw(),
+and the rest.
+
+Should I just make copies of that data I need from the callback, and
+then get the next packet?
+
+Thank you.
