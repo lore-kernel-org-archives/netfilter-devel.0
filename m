@@ -1,27 +1,59 @@
-From: Benny Amorsen <benny+usenet@amorsen.dk>
-Subject: Re: "kernel:nf_ct_icmp: bad HW ICMP checksum" too noisy
-Date: Fri, 16 Apr 2010 15:36:50 +0200
-Message-ID: <m3mxx38qod.fsf@ursa.amorsen.dk>
-References: <m31vegztav.fsf@ursa.amorsen.dk> <4BC723EE.9090504@trash.net>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: Re: [PATCH 3/3] nfnetlink_queue: use hash table to speed up entry
+	finding.
+Date: Fri, 16 Apr 2010 21:50:50 +0800
+Message-ID: <q2z412e6f7f1004160650vf55ed233n69d332c62593ceb8@mail.gmail.com>
+References: <4BBEA97A.5020303@gmail.com> <h2n412e6f7f1004142353uac023edfqc59d076c0d8a1784@mail.gmail.com>
+	<4BC6EC15.4070205@trash.net> <t2t412e6f7f1004150735l54619e32t3e7fcdce7b118bd9@mail.gmail.com>
+	<4BC72572.1050507@trash.net> <4BC726B4.1030003@trash.net>
+	<j2w412e6f7f1004150801m66503602wbd0296c09aa45e90@mail.gmail.com>
+	<4BC72B2B.9010104@trash.net> <m2l412e6f7f1004150811p3009f238if492b139770a0ea8@mail.gmail.com>
+	<4BC73226.2030007@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netdev@vger.kernel.org,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: base64
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4BC723EE.9090504@trash.net> (Patrick McHardy's message of "Thu,
-	15 Apr 2010 16:34:22 +0200")
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:43486 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757599Ab0DPNvL (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 16 Apr 2010 09:51:11 -0400
+Received: by pwj9 with SMTP id 9so1940912pwj.19
+        for <netfilter-devel@vger.kernel.org>; Fri, 16 Apr 2010 06:51:10 -0700 (PDT)
+In-Reply-To: <4BC73226.2030007@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy <kaber@trash.net> writes:
-
-> You should only see that message when nf_conntrack_log_invalid is
-> active.
-
-True, I can disable that one as a work-around.
-
-
-/Benny
-
+T24gVGh1LCBBcHIgMTUsIDIwMTAgYXQgMTE6MzUgUE0sIFBhdHJpY2sgTWNIYXJkeSA8a2FiZXJA
+dHJhc2gubmV0PiB3cm90ZToKPiBDaGFuZ2xpIEdhbyB3cm90ZToKPj4gc3RhdGljIGludAo+PiBu
+ZnFubF9yY3ZfbmxfZXZlbnQoc3RydWN0IG5vdGlmaWVyX2Jsb2NrICp0aGlzLAo+PiDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoHVuc2lnbmVkIGxvbmcgZXZlbnQsIHZvaWQgKnB0cikKPj4g
+ewo+PiDCoCDCoCDCoCDCoCBzdHJ1Y3QgbmV0bGlua19ub3RpZnkgKm4gPSBwdHI7Cj4+Cj4+IMKg
+IMKgIMKgIMKgIGlmIChldmVudCA9PSBORVRMSU5LX1VSRUxFQVNFICYmIG4tPnByb3RvY29sID09
+IE5FVExJTktfTkVURklMVEVSKSB7Cj4+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIGludCBpOwo+
+Pgo+PiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCAvKiBkZXN0cm95IGFsbCBpbnN0YW5jZXMgZm9y
+IHRoaXMgcGlkICovCj4+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIHNwaW5fbG9jaygmaW5zdGFu
+Y2VzX2xvY2spOwo+PiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBmb3IgKGkgPSAwOyBpIDwgSU5T
+VEFOQ0VfQlVDS0VUUzsgaSsrKSB7Cj4+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIHN0cnVjdCBobGlzdF9ub2RlICp0bXAsICp0MjsKPj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+wqAgwqAgwqAgwqAgwqAgc3RydWN0IG5mcW5sX2luc3RhbmNlICppbnN0Owo+PiDCoCDCoCDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBzdHJ1Y3QgaGxpc3RfaGVhZCAqaGVhZCA9ICZpbnN0
+YW5jZV90YWJsZVtpXTsKPj4KPj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAg
+aGxpc3RfZm9yX2VhY2hfZW50cnlfc2FmZShpbnN0LCB0bXAsIHQyLCBoZWFkLCBobGlzdCkgewo+
+PiDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBpZiAoKG4t
+Pm5ldCA9PSAmaW5pdF9uZXQpICYmCj4+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIChuLT5waWQgPT0gaW5zdC0+cGVlcl9waWQpKQo+PiDCoCDC
+oCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCDCoCBf
+X2luc3RhbmNlX2Rlc3Ryb3koaW5zdCk7Cj4+IMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKgIMKg
+IMKgIMKgIH0KPj4gwqAgwqAgwqAgwqAgwqAgwqAgwqAgwqAgfQo+PiDCoCDCoCDCoCDCoCDCoCDC
+oCDCoCDCoCBzcGluX3VubG9jaygmaW5zdGFuY2VzX2xvY2spOwo+PiDCoCDCoCDCoCDCoCB9Cj4+
+IMKgIMKgIMKgIMKgIHJldHVybiBOT1RJRllfRE9ORTsKPj4gfQo+Pgo+PiBzdGF0aWMgc3RydWN0
+IG5vdGlmaWVyX2Jsb2NrIG5mcW5sX3J0bmxfbm90aWZpZXIgPSB7Cj4+IMKgIMKgIMKgIMKgIC5u
+b3RpZmllcl9jYWxsIMKgPSBuZnFubF9yY3ZfbmxfZXZlbnQsCj4+IH07Cj4+Cj4KPiBBaCwgcmln
+aHQuIFNvIGNhbGwgbmZubF9sb2NrKCkgb3IgY29udmVydCB0aGUgc3BpbmxvY2sgdG8gYQo+IG11
+dGV4Lgo+CgpXZSBjYW4ndCBjb252ZXJ0IHRoZSBzcGlubG9jayB0byBhIG11dGV4IHNpbXBseS4g
+VGhlIG5vdGlmaWVyIGNoYWluIGlzCmFuIGF0b21pYyBub3RpZmllciBjaGFpbi4KCi0tIApSZWdh
+cmRz77yMCkNoYW5nbGkgR2FvKHhpYW9zdW9AZ21haWwuY29tKQo=
