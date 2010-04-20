@@ -1,56 +1,63 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 4/4] netfilter: xtables: remove old comments about reentrancy
-Date: Tue, 20 Apr 2010 14:36:16 +0200
-Message-ID: <4BCD9FC0.1040303@trash.net>
-References: <1271373909-6959-1-git-send-email-jengelh@medozas.de> <1271373909-6959-5-git-send-email-jengelh@medozas.de> <4BCC63E1.6080808@trash.net> <4BCD9CEB.3040801@trash.net> <alpine.LSU.2.01.1004201426330.20518@obet.zrqbmnf.qr>
+Subject: Re: [PATCH 2/4] netfilter: xtables2: make ip_tables reentrant
+Date: Tue, 20 Apr 2010 15:18:52 +0200
+Message-ID: <4BCDA9BC.50201@trash.net>
+References: <1271373909-6959-1-git-send-email-jengelh@medozas.de> <1271373909-6959-3-git-send-email-jengelh@medozas.de> <4BCC4B19.7040805@trash.net> <alpine.LSU.2.01.1004191451100.9177@obet.zrqbmnf.qr> <4BCC636A.1080401@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:47527 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:48300 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754147Ab0DTMgT (ORCPT
+	with ESMTP id S1754488Ab0DTNSx (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 20 Apr 2010 08:36:19 -0400
-In-Reply-To: <alpine.LSU.2.01.1004201426330.20518@obet.zrqbmnf.qr>
+	Tue, 20 Apr 2010 09:18:53 -0400
+In-Reply-To: <4BCC636A.1080401@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Tuesday 2010-04-20 14:24, Patrick McHardy wrote:
-> 
->> Patrick McHardy wrote:
->>> Also applied, thanks Jan. I'll push everything out after
->>> some more intensive testing.
->> Not using oif was broken due to an incorrect check for a device
->> name, there also was a device reference leak. I took the
->> opportunity to convert it to notifier based device resolving.
+Patrick McHardy wrote:
+> Jan Engelhardt wrote:
+>>>> +/* Allow this many total (re)entries. */
+>>>> +static const unsigned int xt_jumpstack_multiplier = 2;
+>>>> +
+>>> Why aren't you using a define instead of saving the stack size
+>>> in the table info?
+>> I don't see how a define does any good here. Since you were quoting
+>> the multiplier line, I guess you could be confusing the multiplier
+>> with stored stacksize. FTR, the definition is:
 >>
->> If a oif is given, we register a netdevice notifier to resolve
->> the name on NETDEV_REGISTER or NETDEV_CHANGE and unresolve it
->> again on NETDEV_UNREGISTER or NETDEV_CHANGE (to a different name).
->> The behaviour should be equivalent to the runtime resolving.
+>> table->stacksize := number_of_user_chains(#UC) * multiplier;
 >>
->> Please review, if things are fine I'll commit the patch and
->> push everything out.
+>> Since #UC is variable, so is stacksize, and so stacksize cannot
+>> be replaced by a constant.
 > 
-> Seems good to me.
+> Right, thanks for the explanation. Applied.
 
-Thanks.
+I just noticed a problem with this patch:
 
->> +		priv = kmalloc(sizeof(*priv), GFP_KERNEL);
->> +		if (priv == NULL)
->> +			return -ENOMEM;
->> +
->> +		priv->tginfo  = info;
->> +		priv->oif     = -1;
->> +		priv->notifier.notifier_call = tee_netdev_event;
->> +
->> +		register_netdevice_notifier(&priv->notifier);
-> 
-> I take it tee_tg_event gets immediately called after the registration.
+[  428.295752] BUG: sleeping function called from invalid context at
+mm/slub.c:1705
+[  428.295762] in_atomic(): 1, irqs_disabled(): 0, pid: 9111, name: iptables
+[  428.295771] Pid: 9111, comm: iptables Not tainted 2.6.34-rc1 #2
+[  428.295776] Call Trace:
+[  428.295791]  [<c012138e>] __might_sleep+0xe5/0xed
+[  428.295801]  [<c019e8ca>] __kmalloc+0x92/0xfc
+[  428.295825]  [<f865b3bb>] ? xt_jumpstack_alloc+0x36/0xff [x_tables]
+[  428.295839]  [<f865b3bb>] xt_jumpstack_alloc+0x36/0xff [x_tables]
+[  428.295851]  [<f865abe1>] ? try_module_get+0x82/0x9b [x_tables]
+[  428.295864]  [<f865b4c0>] xt_replace_table+0x3c/0x5f [x_tables]
+[  428.295876]  [<f86b5dc3>] do_ipt_set_ctl+0x182/0x3d5 [ip_tables]
+[  428.295922]  [<c037388f>] nf_sockopt+0x167/0x17c
+[  428.295931]  [<c03738d8>] nf_setsockopt+0x1a/0x1f
+[  428.295940]  [<c037dda4>] ip_setsockopt+0x60/0x84
+[  428.295951]  [<c039260a>] raw_setsockopt+0x1f/0x62
+[  428.295960]  [<c034d909>] sock_common_setsockopt+0x18/0x1d
+[  428.295968]  [<c034bfb9>] sys_setsockopt+0x5e/0x79
+[  428.295977]  [<c034d0a0>] sys_socketcall+0x12d/0x190
+[  428.295987]  [<c0102a57>] sysenter_do_call+0x12/0x26
 
-Correct, its invoked once for each existing netdevice during
-registration.
+You probably shouldn't be allocating the jumpstack while BHs are
+disabled.
