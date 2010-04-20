@@ -1,33 +1,53 @@
-From: Nicola Padovano <nicola.padovano@gmail.com>
-Subject: Some questions about linux kernel networking
-Date: Tue, 20 Apr 2010 16:43:31 +0200
-Message-ID: <l2qede9a9eb1004200743p454d752ayc5fcb5d778f7145f@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] nfnetlink_queue: use hash table to speed up entry lookup
+Date: Tue, 20 Apr 2010 16:57:56 +0200
+Message-ID: <4BCDC0F4.5070904@trash.net>
+References: <1271773896-28246-1-git-send-email-xiaosuo@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel <netfilter-devel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org,
+	Eric Dumazet <eric.dumazet@gmail.com>
+To: Changli Gao <xiaosuo@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:39167 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754812Ab0DTOne (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:50436 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750724Ab0DTO56 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 20 Apr 2010 10:43:34 -0400
-Received: by wyb39 with SMTP id 39so3323779wyb.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 20 Apr 2010 07:43:32 -0700 (PDT)
+	Tue, 20 Apr 2010 10:57:58 -0400
+In-Reply-To: <1271773896-28246-1-git-send-email-xiaosuo@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi all. I am a (very very very) newbie in the linux kernel networking.
+Changli Gao wrote:
+> use hash table to speed up entry lookup
+> 
+> A hash table is used to speed up entry lookup when the verdicts aren't received
+> in order. The size of hash table can be specified by NFQA_CFG_QUEUE_HTBLSIZ.
+> Its default value is 1. Reciprocal division is used to lower the cost of
+> division, and the entry IDs are generated carefully to get fair entry
+> distribution in the buckets of the hash table.
 
-I have some problems in the understading two concepts:
+> +static u32 __get_uniq_id(struct nfqnl_instance *queue)
+> +{
+> +	u32 i;
+> +
+> +	for (i = 0; i < INT_MAX; i++) {
+> +		queue->id_sequence += queue->id_increment;
+> +		if (queue->id_sequence >= queue->id_limit) {
+> +			if (++queue->id_offset >= queue->id_increment)
+> +				queue->id_offset = 0;
+> +			queue->id_sequence = queue->id_offset;
+> +		}
+> +		if (__find_entry(queue, queue->id_sequence) == NULL)
+> +			return queue->id_sequence;
 
-1. what the "net_ratelimit()" function does?
-2. and the xrlim_allow(...)?
+No freaking way. So you want to lower the overhead for your case
+any everyone else has to pay the price? This means that every
+existing user will now have to walk the entire queue of queued
+packets for every new packet.
 
-3. what about the field "len" of the struct "sk_buff"? is it the sum
-of ip header len and tcp header len?
-4. and what about the field nfct?
-
-sorry for the questions. i've tried to find some information in the
-kernel source code, but nothing.
-
-Thank you
+How about you start with something simple and try to optimize
+later in case there are actually performance problems? That
+probably means use a simple modulo operation for cases where
+the hash table size is > 1.
