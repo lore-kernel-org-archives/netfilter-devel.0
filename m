@@ -1,83 +1,107 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: nf-next: two small ones
-Date: Wed, 21 Apr 2010 15:21:08 +0200
-Message-ID: <1271856071-32179-1-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 2/2] netfilter: rectify XT_FUNCTION_MAXNAMELEN usage
+Date: Wed, 21 Apr 2010 15:21:10 +0200
+Message-ID: <1271856071-32179-3-git-send-email-jengelh@medozas.de>
+References: <1271856071-32179-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:58565 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:58573 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754443Ab0DUNVN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 21 Apr 2010 09:21:13 -0400
+	id S1754515Ab0DUNVP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 21 Apr 2010 09:21:15 -0400
+In-Reply-To: <1271856071-32179-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+There has been quite a confusion in userspace about
+XT_FUNCTION_MAXNAMELEN. Change it to match the definition of
+XT_TABLE_MAXNAMELEN - being the size of the actual struct member.
 
-The following changes since commit d97a9e47ba148cfc41e354c5cd241f472273207c:
-  Jan Engelhardt (1):
-        netfilter: x_tables: move sleeping allocation outside BH-disabled region
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ include/linux/netfilter/x_tables.h |   19 ++++++++-----------
+ 1 files changed, 8 insertions(+), 11 deletions(-)
 
-are available in the git repository at:
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index 50c8672..1733b35 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -3,7 +3,7 @@
+ #include <linux/kernel.h>
+ #include <linux/types.h>
+ 
+-#define XT_FUNCTION_MAXNAMELEN 30
++#define XT_FUNCTION_MAXNAMELEN 29
+ #define XT_TABLE_MAXNAMELEN 32
+ 
+ struct xt_entry_match {
+@@ -12,8 +12,7 @@ struct xt_entry_match {
+ 			__u16 match_size;
+ 
+ 			/* Used by userspace */
+-			char name[XT_FUNCTION_MAXNAMELEN-1];
+-
++			char name[XT_FUNCTION_MAXNAMELEN];
+ 			__u8 revision;
+ 		} user;
+ 		struct {
+@@ -36,8 +35,7 @@ struct xt_entry_target {
+ 			__u16 target_size;
+ 
+ 			/* Used by userspace */
+-			char name[XT_FUNCTION_MAXNAMELEN-1];
+-
++			char name[XT_FUNCTION_MAXNAMELEN];
+ 			__u8 revision;
+ 		} user;
+ 		struct {
+@@ -70,8 +68,7 @@ struct xt_standard_target {
+ /* The argument to IPT_SO_GET_REVISION_*.  Returns highest revision
+  * kernel supports, if >= revision. */
+ struct xt_get_revision {
+-	char name[XT_FUNCTION_MAXNAMELEN-1];
+-
++	char name[XT_FUNCTION_MAXNAMELEN];
+ 	__u8 revision;
+ };
+ 
+@@ -291,7 +288,7 @@ struct xt_tgdtor_param {
+ struct xt_match {
+ 	struct list_head list;
+ 
+-	const char name[XT_FUNCTION_MAXNAMELEN-1];
++	const char name[XT_FUNCTION_MAXNAMELEN];
+ 	u_int8_t revision;
+ 
+ 	/* Return true or false: return FALSE and set *hotdrop = 1 to
+@@ -330,7 +327,7 @@ struct xt_match {
+ struct xt_target {
+ 	struct list_head list;
+ 
+-	const char name[XT_FUNCTION_MAXNAMELEN-1];
++	const char name[XT_FUNCTION_MAXNAMELEN];
+ 	u_int8_t revision;
+ 
+ 	/* Returns verdict. Argument order changed since 2.6.9, as this
+@@ -561,7 +558,7 @@ struct compat_xt_entry_match {
+ 	union {
+ 		struct {
+ 			u_int16_t match_size;
+-			char name[XT_FUNCTION_MAXNAMELEN - 1];
++			char name[XT_FUNCTION_MAXNAMELEN];
+ 			u_int8_t revision;
+ 		} user;
+ 		struct {
+@@ -577,7 +574,7 @@ struct compat_xt_entry_target {
+ 	union {
+ 		struct {
+ 			u_int16_t target_size;
+-			char name[XT_FUNCTION_MAXNAMELEN - 1];
++			char name[XT_FUNCTION_MAXNAMELEN];
+ 			u_int8_t revision;
+ 		} user;
+ 		struct {
+-- 
+1.7.0.5
 
-  git://dev.medozas.de/linux master
-
-Jan Engelhardt (2):
-      nefilter: use pr_devel instead of pr_debug
-      netfilter: rectify XT_FUNCTION_MAXNAMELEN usage
-
- include/linux/netfilter/x_tables.h             |   19 ++---
- net/bridge/netfilter/ebt_ulog.c                |    8 +-
- net/bridge/netfilter/ebt_vlan.c                |   14 ++--
- net/bridge/netfilter/ebtables.c                |    6 +-
- net/ipv4/netfilter/ipt_CLUSTERIP.c             |   12 ++--
- net/ipv4/netfilter/ipt_LOG.c                   |    4 +-
- net/ipv4/netfilter/ipt_MASQUERADE.c            |    4 +-
- net/ipv4/netfilter/ipt_NETMAP.c                |    4 +-
- net/ipv4/netfilter/ipt_REDIRECT.c              |    4 +-
- net/ipv4/netfilter/ipt_ULOG.c                  |   28 +++---
- net/ipv4/netfilter/ipt_ah.c                    |    8 +-
- net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    8 +-
- net/ipv4/netfilter/nf_conntrack_proto_icmp.c   |    8 +-
- net/ipv4/netfilter/nf_nat_core.c               |    6 +-
- net/ipv4/netfilter/nf_nat_ftp.c                |    4 +-
- net/ipv4/netfilter/nf_nat_h323.c               |   18 ++--
- net/ipv4/netfilter/nf_nat_helper.c             |   16 ++--
- net/ipv4/netfilter/nf_nat_irc.c                |    2 +-
- net/ipv4/netfilter/nf_nat_pptp.c               |   18 ++--
- net/ipv4/netfilter/nf_nat_proto_gre.c          |   10 +-
- net/ipv4/netfilter/nf_nat_rule.c               |    2 +-
- net/ipv4/netfilter/nf_nat_standalone.c         |    4 +-
- net/ipv6/netfilter/ip6t_LOG.c                  |    4 +-
- net/ipv6/netfilter/ip6t_REJECT.c               |   14 ++--
- net/ipv6/netfilter/ip6t_ah.c                   |   18 ++--
- net/ipv6/netfilter/ip6t_frag.c                 |   26 +++---
- net/ipv6/netfilter/ip6t_hbh.c                  |   26 +++---
- net/ipv6/netfilter/ip6t_mh.c                   |    4 +-
- net/ipv6/netfilter/ip6t_rt.c                   |   42 +++++-----
- net/ipv6/netfilter/nf_conntrack_l3proto_ipv6.c |    6 +-
- net/ipv6/netfilter/nf_conntrack_proto_icmpv6.c |    8 +-
- net/ipv6/netfilter/nf_conntrack_reasm.c        |   44 +++++-----
- net/netfilter/ipvs/ip_vs_proto.c               |    4 +-
- net/netfilter/ipvs/ip_vs_proto_ah_esp.c        |    4 +-
- net/netfilter/nf_conntrack_core.c              |   32 ++++----
- net/netfilter/nf_conntrack_ftp.c               |   48 ++++++------
- net/netfilter/nf_conntrack_h323_main.c         |  106 ++++++++++++------------
- net/netfilter/nf_conntrack_helper.c            |    2 +-
- net/netfilter/nf_conntrack_irc.c               |    8 +-
- net/netfilter/nf_conntrack_pptp.c              |   44 +++++-----
- net/netfilter/nf_conntrack_proto_gre.c         |   18 ++--
- net/netfilter/nf_conntrack_proto_sctp.c        |   44 +++++-----
- net/netfilter/nf_conntrack_proto_tcp.c         |   28 +++---
- net/netfilter/nf_conntrack_sane.c              |   10 +-
- net/netfilter/nf_conntrack_sip.c               |    8 +-
- net/netfilter/nf_conntrack_tftp.c              |    8 +-
- net/netfilter/nf_tproxy_core.c                 |    2 +-
- net/netfilter/x_tables.c                       |    4 +-
- net/netfilter/xt_TPROXY.c                      |    4 +-
- net/netfilter/xt_esp.c                         |    8 +-
- net/netfilter/xt_iprange.c                     |    4 +-
- net/netfilter/xt_multiport.c                   |    6 +-
- net/netfilter/xt_sctp.c                        |   12 ++--
- net/netfilter/xt_socket.c                      |    2 +-
- net/netfilter/xt_tcpudp.c                      |    8 +-
- 55 files changed, 405 insertions(+), 408 deletions(-)
