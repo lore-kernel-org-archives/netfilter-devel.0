@@ -1,50 +1,43 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: xtables: inclusion of xt_condition
-Date: Wed, 21 Apr 2010 15:39:41 +0200
-Message-ID: <4BCF001D.4090304@trash.net>
-References: <1271856792-20872-1-git-send-email-jengelh@medozas.de> <1271856792-20872-2-git-send-email-jengelh@medozas.de>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH] nfnetlink_queue: use hash table to speed up entry
+ lookup
+Date: Wed, 21 Apr 2010 21:04:24 +0200
+Message-ID: <1271876664.7895.3117.camel@edumazet-laptop>
+References: <1271773896-28246-1-git-send-email-xiaosuo@gmail.com>
+	 <4BCDC0F4.5070904@trash.net>
+	 <i2t412e6f7f1004201704ubf9a7018oaf385e0831382a12@mail.gmail.com>
+	 <4BCEF100.10006@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Changli Gao <xiaosuo@gmail.com>, netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:41355 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754476Ab0DUNjn (ORCPT
+Received: from mail-bw0-f209.google.com ([209.85.218.209]:65515 "EHLO
+	mail-bw0-f209.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753074Ab0DUTEd (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 21 Apr 2010 09:39:43 -0400
-In-Reply-To: <1271856792-20872-2-git-send-email-jengelh@medozas.de>
+	Wed, 21 Apr 2010 15:04:33 -0400
+Received: by bwz1 with SMTP id 1so10542995bwz.2
+        for <netfilter-devel@vger.kernel.org>; Wed, 21 Apr 2010 12:04:31 -0700 (PDT)
+In-Reply-To: <4BCEF100.10006@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> xt_condition can be used by userspace to influence decisions in rules
-> by means of togglable variables without having to reload the entire
-> ruleset.
+Le mercredi 21 avril 2010 =C3=A0 14:35 +0200, Patrick McHardy a =C3=A9c=
+rit :
 
-> +
-> +	var->refcount = 1;
-> +	var->enabled  = false;
-> +	var->status_proc->data = var;
-> +	wmb();
+> > I also think there are too much tricks in my code above, but Eric
+> > concerns the performance of modulo.
+>=20
+> Alternatively we could round the hash size to the next power of
+> two to avoid this.
 
-Jan, while I'm pretty patient, I don't appreciate having to repeat
-the same thing multiple times:
-
->> Please always comment the use of memory barriers.
+Sure, and my comments were about flex_array() abuse of divides ;)
 
 
-> +static int __net_init condnet_mt_init(struct net *net)
-> +{
-> +	int ret;
-> +
-> +	proc_net_condition = proc_mkdir(dir_name, net->proc_net);
-> +	if (proc_net_condition == NULL)
-> +		return -EACCES;
-> +
-> +	ret = xt_register_match(&condition_mt_reg);
-
-This is really starting to annoy me. Please read what I wrote,
-take your time, test the patch and then resend it.
-
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
