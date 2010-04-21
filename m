@@ -1,54 +1,50 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 1/2] netfilter: xtables: inclusion of xt_SYSRQ
-Date: Wed, 21 Apr 2010 15:35:45 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1004211533410.21020@obet.zrqbmnf.qr>
-References: <1271845618-28569-1-git-send-email-jengelh@medozas.de> <1271845618-28569-2-git-send-email-jengelh@medozas.de> <4BCEF6B4.8090105@trash.net> <alpine.LSU.2.01.1004211506280.10840@obet.zrqbmnf.qr> <4BCEFACC.7020804@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] netfilter: xtables: inclusion of xt_condition
+Date: Wed, 21 Apr 2010 15:39:41 +0200
+Message-ID: <4BCF001D.4090304@trash.net>
+References: <1271856792-20872-1-git-send-email-jengelh@medozas.de> <1271856792-20872-2-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Linux Netdev List <netdev@vger.kernel.org>,
-	John Haxby <john.haxby@oracle.com>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:44042 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754478Ab0DUNfq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 21 Apr 2010 09:35:46 -0400
-In-Reply-To: <4BCEFACC.7020804@trash.net>
+Received: from stinky.trash.net ([213.144.137.162]:41355 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754476Ab0DUNjn (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 21 Apr 2010 09:39:43 -0400
+In-Reply-To: <1271856792-20872-2-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Jan Engelhardt wrote:
+> xt_condition can be used by userspace to influence decisions in rules
+> by means of togglable variables without having to reload the entire
+> ruleset.
 
-On Wednesday 2010-04-21 15:17, Patrick McHardy wrote:
->Jan Engelhardt wrote:
->> On Wednesday 2010-04-21 14:59, Patrick McHardy wrote:
->> 
->>> Jan Engelhardt wrote:
->>>> The SYSRQ target will allow to remotely invoke sysrq on the local
->>>> machine. Authentication is by means of a pre-shared key that can
->>>> either be transmitted plaintext or digest-secured.
->>> I really think this is pushing what netfilter is meant for a bit
->>> far. Its basically abusing the firewall ruleset to offer a network
->>> service.
->>>
->>> I can see that its useful to have this in the kernel instead of
->>> userspace, but why isn't this implemented as a stand-alone module?
->>> That seems like a better design to me and also makes it more useful
->>> by not depending on netfilter.
->> 
->> That sort of diverts from the earlier what-seemed-to-be-consensus.
->> 
->> Oh well, I would not mind holding the single commit up as long as the 
->> rest isn't blocked too :-)
->
->Then lets skip this one for now.
+> +
+> +	var->refcount = 1;
+> +	var->enabled  = false;
+> +	var->status_proc->data = var;
+> +	wmb();
 
-Well you raised the concern before -- namely that kdboe would have
-the very same feature. And yet, kdboe was not part of the kernel.
-Neither is the magical stand-alone module.
-I really prefer to have it in rather than out, because I know
-that's going to mess up maintenance-here-and-there. I'm already
-having a big time with xtables-addons that still carries
-xt_condition and SYSRQ for a while, and it does have some different
-code lines than the kernel copy.
+Jan, while I'm pretty patient, I don't appreciate having to repeat
+the same thing multiple times:
+
+>> Please always comment the use of memory barriers.
+
+
+> +static int __net_init condnet_mt_init(struct net *net)
+> +{
+> +	int ret;
+> +
+> +	proc_net_condition = proc_mkdir(dir_name, net->proc_net);
+> +	if (proc_net_condition == NULL)
+> +		return -EACCES;
+> +
+> +	ret = xt_register_match(&condition_mt_reg);
+
+This is really starting to annoy me. Please read what I wrote,
+take your time, test the patch and then resend it.
+
