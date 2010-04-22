@@ -1,75 +1,91 @@
-From: James King <t.james.king@gmail.com>
+From: Justin Yaple <yaplej@gmail.com>
 Subject: Re: Recalculate checksums in netfilter queue
-Date: Thu, 22 Apr 2010 12:37:22 -0700
-Message-ID: <z2x38bcb3ec1004221237yde677868mfb3f87f11d9bb6f8@mail.gmail.com>
+Date: Thu, 22 Apr 2010 13:19:56 -0700
+Message-ID: <l2z8363055a1004221319q17cb25f8k8734736374747f99@mail.gmail.com>
 References: <l2z8363055a1004201802x47a250f3ya43e4bec4e79061c@mail.gmail.com>
 	 <x2t3fdd6ce01004201902x33440642rd1189d2852aa57a@mail.gmail.com>
 	 <z2o8363055a1004212015w2216df48s3074cdb2328c66db@mail.gmail.com>
+	 <20100422084313.jk0ntlfyss444g0o@webmail.dartmouth.edu>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Justin Yaple <yaplej@gmail.com>
+Cc: netfilter-devel@vger.kernel.org
+To: Morgon.J.Kanter@dartmouth.edu
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:40362 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756869Ab0DVThX convert rfc822-to-8bit (ORCPT
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:61278 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758324Ab0DVUT5 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 Apr 2010 15:37:23 -0400
-Received: by vws14 with SMTP id 14so130173vws.19
-        for <netfilter-devel@vger.kernel.org>; Thu, 22 Apr 2010 12:37:22 -0700 (PDT)
-In-Reply-To: <z2o8363055a1004212015w2216df48s3074cdb2328c66db@mail.gmail.com>
+	Thu, 22 Apr 2010 16:19:57 -0400
+Received: by gyg13 with SMTP id 13so4660520gyg.19
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Apr 2010 13:19:56 -0700 (PDT)
+In-Reply-To: <20100422084313.jk0ntlfyss444g0o@webmail.dartmouth.edu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Apr 21, 2010 at 8:15 PM, Justin Yaple <yaplej@gmail.com> wrote:
-> If I get it figured out I will let you know. =A0Im kind of supprised
-> that there isnt a function for this in libnetfilter_queue already. =A0=
-It
-> seems like it would be a pretty common requirement to recalculate the
-> tcp, and ip checksums. =A0I have spent two days trying to get somethi=
-ng
-> to work without much luck.
+> The RFC for IP contains C code that you can literally copy and paste for
+> this task.
 >
-> My understanding is that the one complement of each 16-bit word is
-> summed, and then the result of that is bitwise complemented.
->
-> So for each word we would do something like this.
-> for each word{
-> =A0 =A0 sum +=3D ~word;
-> }
->
-> then you would take the bitwise complement of that total.
-> sum =3D ~sum;
+> -- Morgon
 
-=46or TCP, it's a bit more complicated, as you need to construct an IP
-pseudo header first, calculate the checksum for the pseudo header +
-segment containing a zeroed checksum field, and then finally insert
-the checksum into the TCP header [1].  You also have to pad the
-segment into an even number of octets before doing the calculation,
-but not include this padding in the transmitted segment [2].  You may
-also need to recalculate the IP checksum, depending on what fields
-you're modifying.  The process is also slightly different for TCP over
-IPv6.
+Thanks.  I finally have both my tcp checksum, and ip checksum
+functions working.  I found where I was doing some calculations in
+reverse order than the example given in the RFC.  Would there be any
+reason not to add checksum functions to libnetfilter_queue?
 
-I found a thread on this list from last year that contains some helper
-functions extracted from tcpdump that may help you, titled "Re: Fwd:
-Modifying TCP packets with libnetfilter_queue" [3].
+unsigned short tcp_sum_calc(unsigned short len_tcp, unsigned short
+*src_addr, unsigned short *dest_addr, unsigned short *buff)
+{
+	unsigned short prot_tcp = 6;
+	long sum = 0;
+	int i = 0;
+	
+	/* Check if the tcp length is even or odd.  Add padding if odd. */
+	if((len_tcp % 2) == 1){
+		buff[len_tcp] = 0;  // Empty space in the ip buffer should be 0 anyway.
+      	len_tcp += 1; // increase length to make even.
+	}
+	
+	/* add the pseudo header */	
+	sum += ntohs(src_addr[0]);
+	sum += ntohs(src_addr[1]);
+	sum += ntohs(dest_addr[0]);
+	sum += ntohs(dest_addr[1]);
+	sum += len_tcp; // already in host format.
+	sum += prot_tcp; // already in host format.
 
-If this works for you, perhaps a patch to include them in
-libnetfilter_queue is in order.
+	/*
+	 * calculate the checksum for the tcp header and payload
+	 * len_tcp represents number of 8-bit bytes,
+	 * we are working with 16-bit words so divide len_tcp by 2.
+	 */
+	for(i=0;i<(len_tcp/2);i++){
+		sum += ntohs(buff[i]);
+	}
 
-[1] http://www.tcpipguide.com/free/t_TCPChecksumCalculationandtheTCPPse=
-udoHeader-2.htm
-[2] http://en.wikipedia.org/wiki/Transmission_Control_Protocol#TCP_chec=
-ksum_for_IPv4
-[3] http://markmail.org/message/auqvblfqenhy4hlz
+	// keep only the last 16 bits of the 32 bit calculated sum and add the carries
+	while (sum >> 16){
+		sum = (sum & 0xFFFF) + (sum >> 16);
+	}
+	
+	// Take the bitwise complement of sum
+	sum = ~sum;
 
+	return htons(((unsigned short) sum));
+}
 
-HTH,
-James
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+unsigned short ip_sum_calc(unsigned short len_ip_header, unsigned short *buff){
+	long sum = 0;
+	int i = 0;
+	
+	for (i=0;i<len_ip_header/2;i++){
+		sum += ntohs(buff[i]);
+	}
+	
+	while (sum >> 16){
+		sum = (sum & 0xFFFF) + (sum >> 16);
+	}
+	
+	sum = ~sum;
+	
+	return htons(((unsigned short) sum));
+}
