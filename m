@@ -1,52 +1,42 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH] netfilter: xtables: inclusion of xt_condition
-Date: Thu, 22 Apr 2010 13:33:06 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1004221331420.1232@obet.zrqbmnf.qr>
-References: <1271856792-20872-1-git-send-email-jengelh@medozas.de> <1271856792-20872-2-git-send-email-jengelh@medozas.de> <4BCF001D.4090304@trash.net> <alpine.LSU.2.01.1004220100530.6257@obet.zrqbmnf.qr> <4BD02FAA.7000207@trash.net>
- <alpine.LSU.2.01.1004221320300.1232@obet.zrqbmnf.qr> <4BD03333.3080705@trash.net>
+From: Morgon.J.Kanter@Dartmouth.edu
+Subject: Re: Recalculate checksums in netfilter queue
+Date: Thu, 22 Apr 2010 08:43:13 -0400
+Message-ID: <20100422084313.jk0ntlfyss444g0o@webmail.dartmouth.edu>
+References: <l2z8363055a1004201802x47a250f3ya43e4bec4e79061c@mail.gmail.com>
+	<x2t3fdd6ce01004201902x33440642rd1189d2852aa57a@mail.gmail.com>
+	<z2o8363055a1004212015w2216df48s3074cdb2328c66db@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+	charset=ISO-8859-1;
+	DelSp="Yes";
+	format="flowed"
+Content-Transfer-Encoding: 7bit
 Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+To: Justin Yaple <yaplej@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:45568 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753407Ab0DVLdH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 Apr 2010 07:33:07 -0400
-In-Reply-To: <4BD03333.3080705@trash.net>
+Received: from spruis.dartmouth.edu ([129.170.208.37]:39786 "EHLO
+	spruis.dartmouth.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754639Ab0DVM7n (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 22 Apr 2010 08:59:43 -0400
+In-Reply-To: <z2o8363055a1004212015w2216df48s3074cdb2328c66db@mail.gmail.com>
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
-On Thursday 2010-04-22 13:29, Patrick McHardy wrote:
->Jan Engelhardt wrote:
->> On Thursday 2010-04-22 13:14, Patrick McHardy wrote:
->> 
->>>> +static struct xt_match condition_mt_reg __read_mostly = {
->>>> +	.name       = "condition",
->>>> +	.revision   = 1,
->>> Why are we starting with revision 1?
->> 
->> So as to avoid collisions with previously-deployed extensions.
->> 
->> Debian once decided to patch their etch 2.6.18 kernel with
->> ipt_connlimit ("connlimit.0"). That subsequently backfired with the
->> etchnhalf upgrade where xt_connlimit (also known as "connlimit.0")
->> was introduced.
->> 
->> condition.0 was used by pom-ng.
->> 
->> For the same reason, xt_TEE-2.6.35 starts with TEE.1, because TEE.0
->> is already in use by the variant without oif in struct xt_tee_tginfo;
->> i.e. all the Xtables-addons installations to date, basically.
->> 
->> It is not a particularl hardship to pick a revision number that is
->> distinct from all revision numbers previously seen in the wild, so
->> I'm set to go this way.
+  My understanding is that the one complement of each 16-bit word is
+> summed, and then the result of that is bitwise complemented.
 >
->Fair enough, I guess we don't have to fear running out of revisions :)
->Thanks for the explanation.
+> So for each word we would do something like this.
+> for each word{
+>      sum += ~word;
+> }
+>
+> then you would take the bitwise complement of that total.
+> sum = ~sum;
 
-Well... the revision field is only 8 bit, so - maybe in 30 years
-we have a population as dense as /etc/protocols. Though I don't
-suspect we're still supporting iptables 1.2.x at that point.
+The RFC for IP contains C code that you can literally copy and paste  
+for this task.
+
+-- Morgon
