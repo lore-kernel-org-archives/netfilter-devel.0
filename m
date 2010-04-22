@@ -1,43 +1,31 @@
-From: Justin Yaple <yaplej@gmail.com>
-Subject: Re: Recalculate checksums in netfilter queue
-Date: Wed, 21 Apr 2010 20:15:34 -0700
-Message-ID: <z2o8363055a1004212015w2216df48s3074cdb2328c66db@mail.gmail.com>
-References: <l2z8363055a1004201802x47a250f3ya43e4bec4e79061c@mail.gmail.com>
-	 <x2t3fdd6ce01004201902x33440642rd1189d2852aa57a@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 1/2] nefilter: use pr_devel instead of pr_debug
+Date: Thu, 22 Apr 2010 12:46:44 +0200
+Message-ID: <4BD02914.9030100@trash.net>
+References: <1271856071-32179-1-git-send-email-jengelh@medozas.de> <1271856071-32179-2-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: unlisted-recipients:; (no To-header on input)
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yw0-f194.google.com ([209.85.211.194]:39478 "EHLO
-	mail-yw0-f194.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751426Ab0DVDPe (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:62828 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753621Ab0DVKqr (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 21 Apr 2010 23:15:34 -0400
-Received: by ywh32 with SMTP id 32so4537926ywh.33
-        for <netfilter-devel@vger.kernel.org>; Wed, 21 Apr 2010 20:15:34 -0700 (PDT)
-In-Reply-To: <x2t3fdd6ce01004201902x33440642rd1189d2852aa57a@mail.gmail.com>
+	Thu, 22 Apr 2010 06:46:47 -0400
+In-Reply-To: <1271856071-32179-2-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> If you solve this problem, I'll be too grateful, because I'm looking
-> for a solution since the last year in order to do NAT in userspace.
-> Good luck.
+Jan Engelhardt wrote:
+> Netfilter traditionally used debug prints that were omitted unless
+> someone explicitly defined DEBUG. Recently that has no longer been the
+> case (see explanation in commit v2.6.30-rc2-184-g4ccb457). Switch our
+> pr_debug calls to pr_devel.
 
+The intention of CONFIG_DYNAMIC_DEBUG is exactly to make those debug
+statements available dynamically. I presume the mentioned distribution
+had a reason to enable that option. Why should we undermine that by
+turning debug statements into "devel" statements?
 
-If I get it figured out I will let you know.  Im kind of supprised
-that there isnt a function for this in libnetfilter_queue already.  It
-seems like it would be a pretty common requirement to recalculate the
-tcp, and ip checksums.  I have spent two days trying to get something
-to work without much luck.
-
-My understanding is that the one complement of each 16-bit word is
-summed, and then the result of that is bitwise complemented.
-
-So for each word we would do something like this.
-for each word{
-     sum += ~word;
-}
-
-then you would take the bitwise complement of that total.
-sum = ~sum;
