@@ -1,41 +1,48 @@
-From: Jesper Dangaard Brouer <hawk@diku.dk>
-Subject: Re: DDoS attack causing bad effect on conntrack searches
-Date: Thu, 22 Apr 2010 23:28:15 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.1004222323020.11449@ask.diku.dk>
-References: <1271941082.14501.189.camel@jdb-workstation>
- <q2h412e6f7f1004220613m488c2ee4r6d24a8d1e65997d4@mail.gmail.com>
- <4BD04C74.9020402@trash.net> <1271946961.7895.5665.camel@edumazet-laptop>
- <1271948029.7895.5707.camel@edumazet-laptop>  <20100422155123.GA2524@linux.vnet.ibm.com>
-  <1271952128.7895.5851.camel@edumazet-laptop>  <Pine.LNX.4.64.1004222213290.10919@ask.diku.dk>
- <1271970199.7895.6482.camel@edumazet-laptop>
+From: Justin Yaple <yaplej@gmail.com>
+Subject: Re: Recalculate checksums in netfilter queue
+Date: Thu, 22 Apr 2010 15:12:41 -0700
+Message-ID: <q2q8363055a1004221512v530eccffr1d29eef2e9d55475@mail.gmail.com>
+References: <l2z8363055a1004201802x47a250f3ya43e4bec4e79061c@mail.gmail.com>
+	 <x2t3fdd6ce01004201902x33440642rd1189d2852aa57a@mail.gmail.com>
+	 <z2o8363055a1004212015w2216df48s3074cdb2328c66db@mail.gmail.com>
+	 <20100422084313.jk0ntlfyss444g0o@webmail.dartmouth.edu>
+	 <l2z8363055a1004221319q17cb25f8k8734736374747f99@mail.gmail.com>
+	 <z2o3fdd6ce01004221432yec6c907bz4124144d403be1b4@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: Patrick McHardy <kaber@trash.net>, hawk@comx.dk,
-	Linux Kernel Network Hackers <netdev@vger.kernel.org>,
-	Netfilter Developers <netfilter-devel@vger.kernel.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1271970199.7895.6482.camel@edumazet-laptop>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Bruno Moreira Guedes <thbmatrix@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:33521 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752656Ab0DVWMm (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 22 Apr 2010 18:12:42 -0400
+Received: by gwj19 with SMTP id 19so2331163gwj.19
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Apr 2010 15:12:41 -0700 (PDT)
+In-Reply-To: <z2o3fdd6ce01004221432yec6c907bz4124144d403be1b4@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 22 Apr 2010, Eric Dumazet wrote:
+> So, talking about the topic - implementing checksum functions on
+> netfilter_queue, it would be useful to nfq_set_verdict subcall a
+> function which check if the checksums(tcp, ip, udp, anything else) are
+> set to 0, and then(if it's 0) it change the ckecksum automatically -
+> something like the kernel does when we send a packet through a RAW
+> socket.
+>
+> --Bruno Moreira Guedes
 
-> What exact version of kernel are you running ?
+I think thats a great idea.  If the functions were included in the
+library you could have nfq_set_verdict call them if any of the
+checksums are set to 0.  This would give you the option of either
+calling the function yourself, or just setting the checksum to 0 then
+let the nfq_set_verdict call the functions to recalculate them.
 
-2.6.31.7-pvlan2G #3 SMP PREEMPT
-32-bit kernel with 2G kernel mem (you showed me that trick).
+So maybe it could be implemented like the checksum functions used in
+the kernel where the base checksum function is the same, but takes
+parameters to determine what protocol the checksum is being calculated
+for.  Then a wrapper function is made for each protocol type ip, tcp,
+udp...
 
-I have some patches on top (which are accepted upstream), but I originate 
-from commit f8ebcb2ebc49a Linux 2.6.31.7.
-
-
-Cheers,
-   Jesper Brouer
-
---
--------------------------------------------------------------------
-MSc. Master of Computer Science
-Dept. of Computer Science, University of Copenhagen
-Author of http://www.adsl-optimizer.dk
--------------------------------------------------------------------
+-Justin.
