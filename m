@@ -1,60 +1,34 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: DDoS attack causing bad effect on conntrack searches
-Date: Thu, 22 Apr 2010 16:53:49 +0200
-Message-ID: <1271948029.7895.5707.camel@edumazet-laptop>
-References: <1271941082.14501.189.camel@jdb-workstation>
-	 <q2h412e6f7f1004220613m488c2ee4r6d24a8d1e65997d4@mail.gmail.com>
-	 <4BD04C74.9020402@trash.net>  <1271946961.7895.5665.camel@edumazet-laptop>
+From: Bart De Schuymer <bdschuym@pandora.be>
+Subject: [RELEASE] bridge-netfilter patch version 13 for 2.4.37.9
+Date: Thu, 22 Apr 2010 17:41:39 +0200
+Message-ID: <4BD06E33.4050107@pandora.be>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Changli Gao <xiaosuo@gmail.com>, hawk@comx.dk,
-	Linux Kernel Network Hackers <netdev@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org,
-	Paul E McKenney <paulmck@linux.vnet.ibm.com>
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1271946961.7895.5665.camel@edumazet-laptop>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from georges.telenet-ops.be ([195.130.137.68]:35668 "EHLO
+	georges.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755545Ab0DVPlm (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 22 Apr 2010 11:41:42 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Le jeudi 22 avril 2010 =C3=A0 16:36 +0200, Eric Dumazet a =C3=A9crit :
+Hello,
 
-> If one hash slot is under attack, then there is a bug somewhere.
->=20
-> If we cannot avoid this, we can fallback to a secure mode at the seco=
-nd
-> retry, and take the spinlock.
->=20
-> Tis way, most of lookups stay lockless (one pass), and some might tak=
-e
-> the slot lock to avoid the possibility of a loop.
->=20
-> I suspect a bug elsewhere, quite frankly !
->=20
-> We have a chain that have an end pointer that doesnt match the expect=
-ed
-> one.
->=20
+I just release version 13 of the bridge-netfilter patch for kernel 2.4.
+It adds the following bugfix:
 
-On normal situation, we always finish the lookup :
+- fix leak in bridge netfilter if the packet tarverses more than one
+bridge on the host (fix by David Kimdon)
 
-1) If we found the thing we were looking at.
+See http://ebtables.sourceforge.net/downloads/latest.html
 
-2) We get the list end (item not found), we then check if it is the
-expected end.
-
-It is _not_ the expected end only if some writer deleted/inserted an
-element in _this_ chain during our lookup.
-
-Because our lookup is lockless, we then have to redo it because we migh=
-t
-miss the object we are looking for.
-
-If we can do the 'retry' a 10 times, it means the attacker was really
-clever enough to inject new packets (new conntracks) at the right
-moment, in the right hash chain, and this sounds so higly incredible
-that I cannot believe it at all :)
+cheers,
+Bart
 
 
-
+-- 
+Bart De Schuymer
+www.artinalgorithms.be
