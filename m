@@ -1,131 +1,73 @@
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Subject: Re: DDoS attack causing bad effect on conntrack searches
-Date: Thu, 22 Apr 2010 09:34:32 -0700
-Message-ID: <20100422163432.GE2524@linux.vnet.ibm.com>
-References: <1271941082.14501.189.camel@jdb-workstation>
- <q2h412e6f7f1004220613m488c2ee4r6d24a8d1e65997d4@mail.gmail.com>
- <4BD04C74.9020402@trash.net>
- <1271946961.7895.5665.camel@edumazet-laptop>
- <1271948029.7895.5707.camel@edumazet-laptop>
- <20100422155123.GA2524@linux.vnet.ibm.com>
- <1271952128.7895.5851.camel@edumazet-laptop>
-Reply-To: paulmck@linux.vnet.ibm.com
+From: James King <t.james.king@gmail.com>
+Subject: Re: Recalculate checksums in netfilter queue
+Date: Thu, 22 Apr 2010 12:37:22 -0700
+Message-ID: <z2x38bcb3ec1004221237yde677868mfb3f87f11d9bb6f8@mail.gmail.com>
+References: <l2z8363055a1004201802x47a250f3ya43e4bec4e79061c@mail.gmail.com>
+	 <x2t3fdd6ce01004201902x33440642rd1189d2852aa57a@mail.gmail.com>
+	 <z2o8363055a1004212015w2216df48s3074cdb2328c66db@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>, Changli Gao <xiaosuo@gmail.com>,
-	hawk@comx.dk,
-	Linux Kernel Network Hackers <netdev@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Justin Yaple <yaplej@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from e2.ny.us.ibm.com ([32.97.182.142]:58143 "EHLO e2.ny.us.ibm.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754109Ab0DVQeg (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 Apr 2010 12:34:36 -0400
-Content-Disposition: inline
-In-Reply-To: <1271952128.7895.5851.camel@edumazet-laptop>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:40362 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756869Ab0DVThX convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 22 Apr 2010 15:37:23 -0400
+Received: by vws14 with SMTP id 14so130173vws.19
+        for <netfilter-devel@vger.kernel.org>; Thu, 22 Apr 2010 12:37:22 -0700 (PDT)
+In-Reply-To: <z2o8363055a1004212015w2216df48s3074cdb2328c66db@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Apr 22, 2010 at 06:02:08PM +0200, Eric Dumazet wrote:
-> Le jeudi 22 avril 2010 =E0 08:51 -0700, Paul E. McKenney a =E9crit :
-> > On Thu, Apr 22, 2010 at 04:53:49PM +0200, Eric Dumazet wrote:
-> > > Le jeudi 22 avril 2010 =E0 16:36 +0200, Eric Dumazet a =E9crit :
-> > >=20
-> > > > If one hash slot is under attack, then there is a bug somewhere=
-=2E
-> > > >=20
-> > > > If we cannot avoid this, we can fallback to a secure mode at th=
-e second
-> > > > retry, and take the spinlock.
-> > > >=20
-> > > > Tis way, most of lookups stay lockless (one pass), and some mig=
-ht take
-> > > > the slot lock to avoid the possibility of a loop.
-> > > >=20
-> > > > I suspect a bug elsewhere, quite frankly !
-> > > >=20
-> > > > We have a chain that have an end pointer that doesnt match the =
-expected
-> > > > one.
-> > > >=20
-> > >=20
-> > > On normal situation, we always finish the lookup :
-> > >=20
-> > > 1) If we found the thing we were looking at.
-> > >=20
-> > > 2) We get the list end (item not found), we then check if it is t=
-he
-> > > expected end.
-> > >=20
-> > > It is _not_ the expected end only if some writer deleted/inserted=
- an
-> > > element in _this_ chain during our lookup.
-> >=20
-> > So this situation uses SLAB_DESTROY_BY_RCU to quickly recycle delet=
-ed
-> > elements?  (Not obvious from the code, but my ignorance of the netw=
-orking
-> > code is such that many things in that part of the kernel are not ob=
-vious
-> > to me, I am afraid.)
->=20
-> Yes, this uses SLAB_DESTROY_BY_RCU, like tcp/udp lookups.
+On Wed, Apr 21, 2010 at 8:15 PM, Justin Yaple <yaplej@gmail.com> wrote:
+> If I get it figured out I will let you know. =A0Im kind of supprised
+> that there isnt a function for this in libnetfilter_queue already. =A0=
+It
+> seems like it would be a pretty common requirement to recalculate the
+> tcp, and ip checksums. =A0I have spent two days trying to get somethi=
+ng
+> to work without much luck.
+>
+> My understanding is that the one complement of each 16-bit word is
+> summed, and then the result of that is bitwise complemented.
+>
+> So for each word we would do something like this.
+> for each word{
+> =A0 =A0 sum +=3D ~word;
+> }
+>
+> then you would take the bitwise complement of that total.
+> sum =3D ~sum;
 
-OK, that will do it!!!  ;-)
+=46or TCP, it's a bit more complicated, as you need to construct an IP
+pseudo header first, calculate the checksum for the pseudo header +
+segment containing a zeroed checksum field, and then finally insert
+the checksum into the TCP header [1].  You also have to pad the
+segment into an even number of octets before doing the calculation,
+but not include this padding in the transmitted segment [2].  You may
+also need to recalculate the IP checksum, depending on what fields
+you're modifying.  The process is also slightly different for TCP over
+IPv6.
 
-One way of throttling the bad effects of updates on readers is to
-periodically force updates through a grace period.  But this seems
-to be a very big hammer, and likely to have little practical effect.
+I found a thread on this list from last year that contains some helper
+functions extracted from tcpdump that may help you, titled "Re: Fwd:
+Modifying TCP packets with libnetfilter_queue" [3].
 
-Another approach would be to have multiple list pointers per element,
-so that a given element could be reused a small number of times without
-messing up concurrent readers (sort of like Herbert's resizable hash
-table).
+If this works for you, perhaps a patch to include them in
+libnetfilter_queue is in order.
 
-But as you say, if some other bug is really behind this, better to fix
-that bug than to work around it.
+[1] http://www.tcpipguide.com/free/t_TCPChecksumCalculationandtheTCPPse=
+udoHeader-2.htm
+[2] http://en.wikipedia.org/wiki/Transmission_Control_Protocol#TCP_chec=
+ksum_for_IPv4
+[3] http://markmail.org/message/auqvblfqenhy4hlz
 
-> > Otherwise, of course you would simply allow deleted elements to con=
-tinue
-> > pointing where they did previously, so that concurrent readers woul=
-d not
-> > miss anything.
->=20
-> > Of course, the same potential might arise on insertion, but it is u=
-sually
-> > OK to miss an element that was inserted after you started searching=
-=2E
-> >=20
-> > > Because our lookup is lockless, we then have to redo it because w=
-e might
-> > > miss the object we are looking for.
-> >=20
-> > Ah...  Is there also a resize operation?  Herbert did do a resizabl=
-e
-> > hash table recently, but I was under the impression that (1) it was=
- in
-> > some other part of the networking stack and (2) it avoided the need=
- to
-> > restart readers.
-> >=20
-> > > If we can do the 'retry' a 10 times, it means the attacker was re=
-ally
-> > > clever enough to inject new packets (new conntracks) at the right
-> > > moment, in the right hash chain, and this sounds so higly incredi=
-ble
-> > > that I cannot believe it at all :)
-> >=20
-> > Or maybe the DoS attack is injecting so many new conntracks that a =
-large
-> > fraction of the hash chains are being modified at any given time?
->=20
-> maybe hash table has one slot :)
 
-;-) ;-) ;-)
-
-							Thanx, Paul
+HTH,
+James
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
