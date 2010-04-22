@@ -1,31 +1,51 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/2] netfilter: rectify XT_FUNCTION_MAXNAMELEN usage
-Date: Thu, 22 Apr 2010 12:48:56 +0200
-Message-ID: <4BD02998.707@trash.net>
-References: <1271856071-32179-1-git-send-email-jengelh@medozas.de> <1271856071-32179-3-git-send-email-jengelh@medozas.de>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH 1/2] nefilter: use pr_devel instead of pr_debug
+Date: Thu, 22 Apr 2010 12:53:38 +0200 (CEST)
+Message-ID: <alpine.LSU.2.01.1004221248010.31972@obet.zrqbmnf.qr>
+References: <1271856071-32179-1-git-send-email-jengelh@medozas.de> <1271856071-32179-2-git-send-email-jengelh@medozas.de> <4BD02914.9030100@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:62854 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753379Ab0DVKs5 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 22 Apr 2010 06:48:57 -0400
-In-Reply-To: <1271856071-32179-3-git-send-email-jengelh@medozas.de>
+Received: from borg.medozas.de ([188.40.89.202]:44876 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754029Ab0DVKxk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 22 Apr 2010 06:53:40 -0400
+In-Reply-To: <4BD02914.9030100@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> There has been quite a confusion in userspace about
-> XT_FUNCTION_MAXNAMELEN. Change it to match the definition of
-> XT_TABLE_MAXNAMELEN - being the size of the actual struct member.
+On Thursday 2010-04-22 12:46, Patrick McHardy wrote:
+>Jan Engelhardt wrote:
+>> Netfilter traditionally used debug prints that were omitted unless
+>> someone explicitly defined DEBUG. Recently that has no longer been the
+>> case (see explanation in commit v2.6.30-rc2-184-g4ccb457). Switch our
+>> pr_debug calls to pr_devel.
+>
+>The intention of CONFIG_DYNAMIC_DEBUG is exactly to make those debug
+>statements available dynamically. I presume the mentioned distribution
+>had a reason to enable that option. Why should we undermine that by
+>turning debug statements into "devel" statements?
 
-iptables userspace uses XT_FUNCTION_MAXNAMELEN - 1 for checking
-the length of names. Changing the definition now will change
-the behaviour of userspace code.
+Once upon a time, most of the Netfilter debug statements read like:
 
-If you want to clean this up, I'd suggest to introduce a new
-define and use that.
+#ifdef TURNMEON
+#define duprintf(...) printk(...)
+#else
+#define duprintf(...)
+#endif
+
+So the intention was to have a behavior that requires a developer to 
+explicitly turn on debugging in source code. By adding a line like 
+#define IP_DEBUG_FIREWALL at the start. (I explicitly exclude 
+blocks like #ifdef CONFIG_ in this consideration.)
+
+When pr_debug became available, parts of the netfilter code moved to 
+pr_debug, as that behaved just the same - the only change was that the 
+variable was now named DEBUG across the entire kernel source rather than 
+IP_DEBUG_FIREWALL - whatever the actual name was.
+
+Enter pr_devel, which suddenly turned all pr_debug calls into pieces 
+that would expand despite DEBUG being undefined - and that seemed 
+contrary to the original intent.
