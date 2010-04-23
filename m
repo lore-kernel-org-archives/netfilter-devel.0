@@ -1,62 +1,60 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Cannot use iptables with kernel 2.6.30
-Date: Fri, 23 Apr 2010 09:30:41 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1004230927130.24961@obet.zrqbmnf.qr>
-References: <g2g21df6cb71004220358y9a5f23f1w1b7795a90fae82e2@mail.gmail.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: DDoS attack causing bad effect on conntrack searches
+Date: Fri, 23 Apr 2010 09:46:20 +0200
+Message-ID: <1272008780.7895.7746.camel@edumazet-laptop>
+References: <1271941082.14501.189.camel@jdb-workstation>
+	 <q2h412e6f7f1004220613m488c2ee4r6d24a8d1e65997d4@mail.gmail.com>
+	 <4BD04C74.9020402@trash.net> <1271946961.7895.5665.camel@edumazet-laptop>
+	 <1271948029.7895.5707.camel@edumazet-laptop>
+	 <20100422155123.GA2524@linux.vnet.ibm.com>
+	 <1271952128.7895.5851.camel@edumazet-laptop>
+	 <Pine.LNX.4.64.1004222213290.10919@ask.diku.dk>
+	 <1271970199.7895.6482.camel@edumazet-laptop>
+	 <Pine.LNX.4.64.1004222323020.11449@ask.diku.dk>
+	 <alpine.LSU.2.01.1004230922120.24961@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter@vger.kernel.org,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Elison Niven <elison.niven@gmail.com>
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <g2g21df6cb71004220358y9a5f23f1w1b7795a90fae82e2@mail.gmail.com>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Jesper Dangaard Brouer <hawk@diku.dk>,
+	Patrick McHardy <kaber@trash.net>, hawk@comx.dk,
+	Linux Kernel Network Hackers <netdev@vger.kernel.org>,
+	Netfilter Developers <netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-bw0-f225.google.com ([209.85.218.225]:65097 "EHLO
+	mail-bw0-f225.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756290Ab0DWHqd (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 23 Apr 2010 03:46:33 -0400
+In-Reply-To: <alpine.LSU.2.01.1004230922120.24961@obet.zrqbmnf.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
+
+Le vendredi 23 avril 2010 =C3=A0 09:23 +0200, Jan Engelhardt a =C3=A9cr=
+it :
+> On Thursday 2010-04-22 23:28, Jesper Dangaard Brouer wrote:
+>=20
+> > On Thu, 22 Apr 2010, Eric Dumazet wrote:
+> >
+> >> What exact version of kernel are you running ?
+> >
+> > 2.6.31.7-pvlan2G #3 SMP PREEMPT
+> > 32-bit kernel with 2G kernel mem (you showed me that trick).
+>=20
+> Since when is enabling 2G a trick? :)
+> There's CONFIG_VMSPLIT_2G (and 2G_OPT) for quite some time now.
+>=20
+
+Yes, when you know it, its not a trick anymore :)
+
+Years ago, we had to manually change PAGE_OFFSET, and I remember some
+machines with PAGE_OFFSET 0xA0000000  (1.5 GB LOWMEM),=20
+or 0xB0000000 (1.25 GB), (PAE off)
 
 
-On Thursday 2010-04-22 12:58, Elison Niven wrote:
->
->I am trying to install iptables on ARM platform running linux kernel
->2.6.30. I have enabled all the netfilter modules as enabled in the
->kernel.
->
->When statically building iptables-1.4.7, I get the following error:
-># iptables
->getsockopt failed strangely
 
-iptables without a command should display "no command specified",
-not getsockopt failed.
-
-What commands did you use for static compilation?
-
->When I build it dynamically, I am able to run iptables:
-># iptables -h
->(displays help)
-
->However, When I try to apply any rules, It says:
-># iptables -F
->Can't initialize table filter.
->Perhaps iptables or your kernel needs to be updated.
->
->This is strange because I have enabled all the netfilter options in my kernel.
-
-I have a vague idea it could be ARM's alignments..
-
->I also tried using iptables-1.4.4 and iptables-1.3.8 but am not able
->to run iptables.
->
->Searching a little more, It seems to be the bug reported here :
->
->https://lists.linux-foundation.org/pipermail/bugme-new/2009-April/021618.html
-
-This report mentions that versions before 2.6.30-rc1 (e.g. 2.6.29) were fine.
-Is that also the case for you?
-
->However this patch that claims to solve this is already applied in my
->kernel and I still get the same error:
->
->http://marc.info/?l=linux-crypto-vger&m=123924457316022&w=2
-
-Does it happen when iptable_filter.ko is loaded already before
-iptables is executed?
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
