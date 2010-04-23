@@ -1,56 +1,33 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: DDoS attack causing bad effect on conntrack searches
-Date: Fri, 23 Apr 2010 13:06:45 +0200
-Message-ID: <4BD17F45.3030802@trash.net>
-References: <1271941082.14501.189.camel@jdb-workstation>	 <q2h412e6f7f1004220613m488c2ee4r6d24a8d1e65997d4@mail.gmail.com>	 <4BD04C74.9020402@trash.net> <1271946961.7895.5665.camel@edumazet-laptop>	 <1271948029.7895.5707.camel@edumazet-laptop>	 <20100422155123.GA2524@linux.vnet.ibm.com>	 <1271952128.7895.5851.camel@edumazet-laptop>	 <Pine.LNX.4.64.1004222213290.10919@ask.diku.dk>	 <1271970199.7895.6482.camel@edumazet-laptop>  <4BD17CAA.4090708@trash.net> <1272020717.7895.7974.camel@edumazet-laptop>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: register an hook
+Date: Fri, 23 Apr 2010 14:25:34 +0200 (CEST)
+Message-ID: <alpine.LSU.2.01.1004231423530.11467@obet.zrqbmnf.qr>
+References: <z2uede9a9eb1004230155oe674c584m2ca2d0b4ba3490c0@mail.gmail.com>  <alpine.LSU.2.01.1004231227410.30678@obet.zrqbmnf.qr> <i2iede9a9eb1004230350gfa9279bej12902ff2b6522664@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Jesper Dangaard Brouer <hawk@diku.dk>, paulmck@linux.vnet.ibm.com,
-	Changli Gao <xiaosuo@gmail.com>, hawk@comx.dk,
-	Linux Kernel Network Hackers <netdev@vger.kernel.org>,
-	Netfilter Developers <netfilter-devel@vger.kernel.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Nicola Padovano <nicola.padovano@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55681 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756315Ab0DWLGu (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 23 Apr 2010 07:06:50 -0400
-In-Reply-To: <1272020717.7895.7974.camel@edumazet-laptop>
+Received: from borg.medozas.de ([188.40.89.202]:42644 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754464Ab0DWMZf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 23 Apr 2010 08:25:35 -0400
+In-Reply-To: <i2iede9a9eb1004230350gfa9279bej12902ff2b6522664@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Dumazet wrote:
-> Le vendredi 23 avril 2010 =E0 12:55 +0200, Patrick McHardy a =E9crit =
-:
->> Eric Dumazet wrote:
->>> OK but a lookup last a fraction of a micro second, unless interrupt=
-ed by
->>> hard irq.
->>>
->>> Probability of a change during a lookup should be very very small.
->>>
->>> Note that the scenario for a restart is :
->>>
->>> The lookup go through the chain.
->>> While it is examining one object, this object is deleted.
->>> The object is re-allocated by another cpu and inserted to a new cha=
-in.
->> I think another scenario that seems a bit more likely would be
->> that a new entry is added to the chain after it was fully searched.
->> Perhaps we could continue searching at the last position if the
->> last entry is not a nulls entry to improve this.
->=20
-> But the last entry is always a nulls entry, what do you mean exactly =
-?
->=20
-> When an unsert (of a fresh object, not a reused one) is done, this
-> doesnt affect lookups in any way, since its done at the head of list.
+On Friday 2010-04-23 12:50, Nicola Padovano wrote:
 
-Right, I missed that :)
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>what's the difference? what is a target?
+>I'm analyzing the tarpit patch
+>(http://enterprise.bih.harvard.edu/pub/tarpit-updates/tarpit-2.6.29.patch)
+>and i've found only the registration of that target. and so, how it
+>works, if there isn't an hook registration?
+>
+>help me, please :(
+
+Targets are invoked via Xtables which is a hook user.
+
+targets: http://en.wikipedia.org/wiki/Iptables
+tarpit: http://xtables-addons.sf.net/
+and subsequently: http://jengelh.medozas.de/documents/Netfilter_Modules.pdf
