@@ -1,33 +1,48 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: register an hook
-Date: Fri, 23 Apr 2010 14:25:34 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1004231423530.11467@obet.zrqbmnf.qr>
-References: <z2uede9a9eb1004230155oe674c584m2ca2d0b4ba3490c0@mail.gmail.com>  <alpine.LSU.2.01.1004231227410.30678@obet.zrqbmnf.qr> <i2iede9a9eb1004230350gfa9279bej12902ff2b6522664@mail.gmail.com>
+From: Jesper Dangaard Brouer <hawk@diku.dk>
+Subject: Re: DDoS attack causing bad effect on conntrack searches
+Date: Fri, 23 Apr 2010 14:45:59 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.1004231440190.840@ask.diku.dk>
+References: <1271941082.14501.189.camel@jdb-workstation>
+ <q2h412e6f7f1004220613m488c2ee4r6d24a8d1e65997d4@mail.gmail.com>
+ <4BD04C74.9020402@trash.net> <1271946961.7895.5665.camel@edumazet-laptop>
+ <4BD17CF9.4020502@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Nicola Padovano <nicola.padovano@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	Changli Gao <xiaosuo@gmail.com>, hawk@comx.dk,
+	Linux Kernel Network Hackers <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org,
+	Paul E McKenney <paulmck@linux.vnet.ibm.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:42644 "EHLO borg.medozas.de"
+Received: from mgw1.diku.dk ([130.225.96.91]:43080 "EHLO mgw1.diku.dk"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754464Ab0DWMZf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 23 Apr 2010 08:25:35 -0400
-In-Reply-To: <i2iede9a9eb1004230350gfa9279bej12902ff2b6522664@mail.gmail.com>
+	id S1754767Ab0DWMqH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 23 Apr 2010 08:46:07 -0400
+In-Reply-To: <4BD17CF9.4020502@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Friday 2010-04-23 12:50, Nicola Padovano wrote:
+On Fri, 23 Apr 2010, Patrick McHardy wrote:
 
->what's the difference? what is a target?
->I'm analyzing the tarpit patch
->(http://enterprise.bih.harvard.edu/pub/tarpit-updates/tarpit-2.6.29.patch)
->and i've found only the registration of that target. and so, how it
->works, if there isn't an hook registration?
->
->help me, please :(
+> That sounds like a good idea. But lets what for Jesper's test results
+> before we start fixing this problem :)
 
-Targets are invoked via Xtables which is a hook user.
+I will first have time to perform the tests Monday or Tuesday.
 
-targets: http://en.wikipedia.org/wiki/Iptables
-tarpit: http://xtables-addons.sf.net/
-and subsequently: http://jengelh.medozas.de/documents/Netfilter_Modules.pdf
+BUT I have just noticed there seems to be a corrolation between conntrack 
+early_drop and searches.  I have upload a new graph:
+
+  http://people.netfilter.org/hawk/DDoS/2010-04-12__001/conntrack_early_drop002.png
+
+I have not had time to checkout the code path yet...
+
+Cheers,
+   Jesper Brouer
+
+--
+-------------------------------------------------------------------
+MSc. Master of Computer Science
+Dept. of Computer Science, University of Copenhagen
+Author of http://www.adsl-optimizer.dk
+-------------------------------------------------------------------
