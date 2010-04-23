@@ -1,46 +1,50 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: DDoS attack causing bad effect on conntrack searches
-Date: Fri, 23 Apr 2010 11:23:22 +0200
-Message-ID: <1272014602.7895.7845.camel@edumazet-laptop>
-References: <1271941082.14501.189.camel@jdb-workstation>
-	 <q2h412e6f7f1004220613m488c2ee4r6d24a8d1e65997d4@mail.gmail.com>
-	 <4BD04C74.9020402@trash.net> <1271946961.7895.5665.camel@edumazet-laptop>
-	 <1271948029.7895.5707.camel@edumazet-laptop>
-	 <20100422155123.GA2524@linux.vnet.ibm.com>
-	 <1271952128.7895.5851.camel@edumazet-laptop>
-	 <Pine.LNX.4.64.1004222213290.10919@ask.diku.dk>
-	 <1271970199.7895.6482.camel@edumazet-laptop>
-	 <Pine.LNX.4.64.1004222323020.11449@ask.diku.dk>
-	 <alpine.LSU.2.01.1004230922120.24961@obet.zrqbmnf.qr>
-	 <1272008780.7895.7746.camel@edumazet-laptop>
-	 <alpine.LSU.2.01.1004230955030.26168@obet.zrqbmnf.qr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: register an hook
+Date: Fri, 23 Apr 2010 12:27:48 +0200 (CEST)
+Message-ID: <alpine.LSU.2.01.1004231227410.30678@obet.zrqbmnf.qr>
+References: <z2uede9a9eb1004230155oe674c584m2ca2d0b4ba3490c0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Jesper Dangaard Brouer <hawk@diku.dk>,
-	Patrick McHardy <kaber@trash.net>, hawk@comx.dk,
-	Linux Kernel Network Hackers <netdev@vger.kernel.org>,
-	Netfilter Developers <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <alpine.LSU.2.01.1004230955030.26168@obet.zrqbmnf.qr>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
+To: Nicola Padovano <nicola.padovano@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from borg.medozas.de ([188.40.89.202]:42763 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752163Ab0DWK1u (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 23 Apr 2010 06:27:50 -0400
+In-Reply-To: <z2uede9a9eb1004230155oe674c584m2ca2d0b4ba3490c0@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Le vendredi 23 avril 2010 =C3=A0 09:55 +0200, Jan Engelhardt a =C3=A9cr=
-it :
-> On Friday 2010-04-23 09:46, Eric Dumazet wrote:
-> >Years ago, we had to manually change PAGE_OFFSET, and I remember som=
-e
-> >machines with PAGE_OFFSET 0xA0000000  (1.5 GB LOWMEM),=20
-> >or 0xB0000000 (1.25 GB), (PAE off)
->=20
-> I notice that 0xB0000000, which is now known as LOWMEM_3G_OPT,
-> is only available when PAE is off. Would you know the reason for
-> that decision? Are some values unsuitable for PAE?
->=20
+On Friday 2010-04-23 10:55, Nicola Padovano wrote:
 
-If PAE was on, PAGE_OFFSET must be a 1GB multiple.
-This is because of hardware limitations.
+>hi all.
+>i've read how to register an hook in netfilter. and i found two ways.
+>
+>the first uses, this routines:
+>
+>
+> unsigned int my_hook(unsigned int hooknum,
+>                      struct sk_buff *skb,
+>                      const struct net_device *in,
+>                      const struct net_device *out,
+>                      int (*okfn)(struct sk_buff *))
+> {
+> }
+>
+>int nf_register_hook(struct nf_hook_ops *reg)
+>int nf_unregister_hook(struct nf_hook_ops *reg)
+>
+>the second instead:
+>
+>static unsigned int xt_tarpit_target(struct sk_buff *skb,
+>				     const struct xt_target_param *par)
+>
+>and:
+>xt_register_target(&xt_tarpit_reg);
+>xt_unregister_target(&xt_tarpit_reg);
+>
+>
+>which is the difference?
 
-
+That a target is not a hook.
