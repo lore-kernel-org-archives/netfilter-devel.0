@@ -1,40 +1,42 @@
-From: David Miller <davem@davemloft.net>
+From: Jesper Dangaard Brouer <hawk@diku.dk>
 Subject: Re: DDoS attack causing bad effect on conntrack searches
-Date: Fri, 23 Apr 2010 01:18:45 -0700 (PDT)
-Message-ID: <20100423.011845.254684857.davem@davemloft.net>
+Date: Fri, 23 Apr 2010 10:40:12 +0200 (CEST)
+Message-ID: <Pine.LNX.4.64.1004231037490.29869@ask.diku.dk>
 References: <20100422.164425.171794554.davem@davemloft.net>
-	<1272001478.7895.7545.camel@edumazet-laptop>
-	<20100423.011328.107238355.davem@davemloft.net>
+ <1272001478.7895.7545.camel@edumazet-laptop> <20100423.011328.107238355.davem@davemloft.net>
+ <20100423.011845.254684857.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: hawk@diku.dk, paulmck@linux.vnet.ibm.com, kaber@trash.net,
-	xiaosuo@gmail.com, hawk@comx.dk, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: eric.dumazet@gmail.com
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Cc: eric.dumazet@gmail.com, paulmck@linux.vnet.ibm.com,
+	Patrick McHardy <kaber@trash.net>, xiaosuo@gmail.com,
+	netdev <netdev@vger.kernel.org>,
+	Netfilter Developers <netfilter-devel@vger.kernel.org>
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:33001
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756738Ab0DWISk (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 23 Apr 2010 04:18:40 -0400
-In-Reply-To: <20100423.011328.107238355.davem@davemloft.net>
+Received: from mgw2.diku.dk ([130.225.96.92]:57762 "EHLO mgw2.diku.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753920Ab0DWIkU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 23 Apr 2010 04:40:20 -0400
+In-Reply-To: <20100423.011845.254684857.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: David Miller <davem@davemloft.net>
-Date: Fri, 23 Apr 2010 01:13:28 -0700 (PDT)
+On Fri, 23 Apr 2010, David Miller wrote:
 
-> I really can't see what might cause this behavior then.
+> This all reminds me of the namespace bug we dealt with
+> a month or two ago.
+>
+> Jesper, you don't happen to be using network namespaces are you?
 
-This all reminds me of the namespace bug we dealt with
-a month or two ago.
+No, I don't use network namespaces.
+(In .config CONFIG_NAMESPACES is not set.)
 
-Jesper, you don't happen to be using network namespaces are you?
-Because if so, the following might be your cure.
+Cheers,
+   Jesper Brouer
 
-commit 5b3501faa8741d50617ce4191c20061c6ef36cb3
-Author: Eric Dumazet <eric.dumazet@gmail.com>
-Date:   Mon Feb 8 11:16:56 2010 -0800
-
-    netfilter: nf_conntrack: per netns nf_conntrack_cachep
+--
+-------------------------------------------------------------------
+MSc. Master of Computer Science
+Dept. of Computer Science, University of Copenhagen
+Author of http://www.adsl-optimizer.dk
+-------------------------------------------------------------------
