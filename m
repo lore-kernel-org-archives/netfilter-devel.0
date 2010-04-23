@@ -1,42 +1,48 @@
-From: Jesper Dangaard Brouer <hawk@diku.dk>
-Subject: Re: DDoS attack causing bad effect on conntrack searches
-Date: Fri, 23 Apr 2010 10:40:12 +0200 (CEST)
-Message-ID: <Pine.LNX.4.64.1004231037490.29869@ask.diku.dk>
-References: <20100422.164425.171794554.davem@davemloft.net>
- <1272001478.7895.7545.camel@edumazet-laptop> <20100423.011328.107238355.davem@davemloft.net>
- <20100423.011845.254684857.davem@davemloft.net>
+From: Nicola Padovano <nicola.padovano@gmail.com>
+Subject: register an hook
+Date: Fri, 23 Apr 2010 10:55:24 +0200
+Message-ID: <z2uede9a9eb1004230155oe674c584m2ca2d0b4ba3490c0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
-Cc: eric.dumazet@gmail.com, paulmck@linux.vnet.ibm.com,
-	Patrick McHardy <kaber@trash.net>, xiaosuo@gmail.com,
-	netdev <netdev@vger.kernel.org>,
-	Netfilter Developers <netfilter-devel@vger.kernel.org>
-To: David Miller <davem@davemloft.net>
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mgw2.diku.dk ([130.225.96.92]:57762 "EHLO mgw2.diku.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753920Ab0DWIkU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 23 Apr 2010 04:40:20 -0400
-In-Reply-To: <20100423.011845.254684857.davem@davemloft.net>
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:34457 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755338Ab0DWIz0 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 23 Apr 2010 04:55:26 -0400
+Received: by wyb39 with SMTP id 39so5402002wyb.19
+        for <netfilter-devel@vger.kernel.org>; Fri, 23 Apr 2010 01:55:25 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Fri, 23 Apr 2010, David Miller wrote:
+hi all.
+i've read how to register an hook in netfilter. and i found two ways.
 
-> This all reminds me of the namespace bug we dealt with
-> a month or two ago.
->
-> Jesper, you don't happen to be using network namespaces are you?
+the first uses, this routines:
 
-No, I don't use network namespaces.
-(In .config CONFIG_NAMESPACES is not set.)
 
-Cheers,
-   Jesper Brouer
+ unsigned int my_hook(unsigned int hooknum,
+                      struct sk_buff *skb,
+                      const struct net_device *in,
+                      const struct net_device *out,
+                      int (*okfn)(struct sk_buff *))
+ {
+ }
 
---
--------------------------------------------------------------------
-MSc. Master of Computer Science
-Dept. of Computer Science, University of Copenhagen
-Author of http://www.adsl-optimizer.dk
--------------------------------------------------------------------
+int nf_register_hook(struct nf_hook_ops *reg)
+int nf_unregister_hook(struct nf_hook_ops *reg)
+
+the second instead:
+
+static unsigned int xt_tarpit_target(struct sk_buff *skb,
+				     const struct xt_target_param *par)
+
+and:
+xt_register_target(&xt_tarpit_reg);
+xt_unregister_target(&xt_tarpit_reg);
+
+
+which is the difference?
+
+thank you!
