@@ -1,50 +1,40 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: register an hook
-Date: Fri, 23 Apr 2010 12:27:48 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1004231227410.30678@obet.zrqbmnf.qr>
-References: <z2uede9a9eb1004230155oe674c584m2ca2d0b4ba3490c0@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: DDoS attack causing bad effect on conntrack searches
+Date: Fri, 23 Apr 2010 12:35:41 +0200
+Message-ID: <4BD177FD.9020904@trash.net>
+References: <1271941082.14501.189.camel@jdb-workstation>	 <q2h412e6f7f1004220613m488c2ee4r6d24a8d1e65997d4@mail.gmail.com> <1271943066.14501.194.camel@jdb-workstation>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel <netfilter-devel@vger.kernel.org>
-To: Nicola Padovano <nicola.padovano@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Changli Gao <xiaosuo@gmail.com>,
+	Eric Dumazet <eric.dumazet@gmail.com>,
+	Linux Kernel Network Hackers <netdev@vger.kernel.org>,
+	netfilter-devel@vger.kernel.org,
+	Paul E McKenney <paulmck@linux.vnet.ibm.com>
+To: Jesper Dangaard Brouer <jdb@comx.dk>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:42763 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752163Ab0DWK1u (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 23 Apr 2010 06:27:50 -0400
-In-Reply-To: <z2uede9a9eb1004230155oe674c584m2ca2d0b4ba3490c0@mail.gmail.com>
+Received: from stinky.trash.net ([213.144.137.162]:55155 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750757Ab0DWKfs (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 23 Apr 2010 06:35:48 -0400
+In-Reply-To: <1271943066.14501.194.camel@jdb-workstation>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Friday 2010-04-23 10:55, Nicola Padovano wrote:
+Jesper Dangaard Brouer wrote:
+> I have added a stats counter to prove my case, which I think we should add to the kernel (to detect the case in the future).
+> The DDoS attack has disappeared, so I guess I'll try to see if I can reproduce the problem in my testlab.
+> 
+> 
+> 
+> [PATCH] net: netfilter conntrack extended with extra stat counter.
+> 
+> From: Jesper Dangaard Brouer <hawk@comx.dk>
+> 
+> I suspect an unfortunatly series of events occuring under a DDoS
+> attack, in function __nf_conntrack_find() nf_contrack_core.c.
+> 
+> Adding a stats counter to see if the search is restarted too often.
 
->hi all.
->i've read how to register an hook in netfilter. and i found two ways.
->
->the first uses, this routines:
->
->
-> unsigned int my_hook(unsigned int hooknum,
->                      struct sk_buff *skb,
->                      const struct net_device *in,
->                      const struct net_device *out,
->                      int (*okfn)(struct sk_buff *))
-> {
-> }
->
->int nf_register_hook(struct nf_hook_ops *reg)
->int nf_unregister_hook(struct nf_hook_ops *reg)
->
->the second instead:
->
->static unsigned int xt_tarpit_target(struct sk_buff *skb,
->				     const struct xt_target_param *par)
->
->and:
->xt_register_target(&xt_tarpit_reg);
->xt_unregister_target(&xt_tarpit_reg);
->
->
->which is the difference?
-
-That a target is not a hook.
+Applied, thanks Jesper.
