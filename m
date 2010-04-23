@@ -1,45 +1,30 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
+From: Jan Engelhardt <jengelh@medozas.de>
 Subject: Re: DDoS attack causing bad effect on conntrack searches
-Date: Fri, 23 Apr 2010 07:44:38 +0200
-Message-ID: <1272001478.7895.7545.camel@edumazet-laptop>
-References: <Pine.LNX.4.64.1004222213290.10919@ask.diku.dk>
-	 <1271970199.7895.6482.camel@edumazet-laptop>
-	 <1271970893.7895.6507.camel@edumazet-laptop>
-	 <20100422.164425.171794554.davem@davemloft.net>
+Date: Fri, 23 Apr 2010 09:23:43 +0200 (CEST)
+Message-ID: <alpine.LSU.2.01.1004230922120.24961@obet.zrqbmnf.qr>
+References: <1271941082.14501.189.camel@jdb-workstation>  <q2h412e6f7f1004220613m488c2ee4r6d24a8d1e65997d4@mail.gmail.com>  <4BD04C74.9020402@trash.net> <1271946961.7895.5665.camel@edumazet-laptop>  <1271948029.7895.5707.camel@edumazet-laptop>
+ <20100422155123.GA2524@linux.vnet.ibm.com>  <1271952128.7895.5851.camel@edumazet-laptop>  <Pine.LNX.4.64.1004222213290.10919@ask.diku.dk> <1271970199.7895.6482.camel@edumazet-laptop> <Pine.LNX.4.64.1004222323020.11449@ask.diku.dk>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: hawk@diku.dk, paulmck@linux.vnet.ibm.com, kaber@trash.net,
-	xiaosuo@gmail.com, hawk@comx.dk, netdev@vger.kernel.org,
-	netfilter-devel@vger.kernel.org
-To: David Miller <davem@davemloft.net>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Eric Dumazet <eric.dumazet@gmail.com>,
+	Patrick McHardy <kaber@trash.net>, hawk@comx.dk,
+	Linux Kernel Network Hackers <netdev@vger.kernel.org>,
+	Netfilter Developers <netfilter-devel@vger.kernel.org>
+To: Jesper Dangaard Brouer <hawk@diku.dk>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20100422.164425.171794554.davem@davemloft.net>
+In-Reply-To: <Pine.LNX.4.64.1004222323020.11449@ask.diku.dk>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Le jeudi 22 avril 2010 =C3=A0 16:44 -0700, David Miller a =C3=A9crit :
-> Eric, I wonder if we run into some kind of issue on 32-bit systems
-> because we always lose a bit of the conntrack hash value when we stor=
-e
-> it into the 'nulls' area?
->=20
-> Wouldn't that make the "get_nulls_value(n) !=3D hash" fail?
-> --
+On Thursday 2010-04-22 23:28, Jesper Dangaard Brouer wrote:
 
+> On Thu, 22 Apr 2010, Eric Dumazet wrote:
+>
+>> What exact version of kernel are you running ?
+>
+> 2.6.31.7-pvlan2G #3 SMP PREEMPT
+> 32-bit kernel with 2G kernel mem (you showed me that trick).
 
-Well, 'hash' at this time is not the result of the jhash() transform [0
-- 0xFFFFFFFF], but a slot number in htable [0 - (300032-1)].
-
-
-And we can have a nulls_value up to 0x7FFFFFFF  (31 bits)
-
-static inline unsigned long get_nulls_value(const struct hlist_nulls_no=
-de *ptr)
-{
-        return ((unsigned long)ptr) >> 1;
-}
-
-
-
+Since when is enabling 2G a trick? :)
+There's CONFIG_VMSPLIT_2G (and 2G_OPT) for quite some time now.
 
