@@ -1,41 +1,28 @@
-From: David F <netfilter@meta-dynamic.com>
-Subject: Re: nfnetlink_queue: which userspace library?
-Date: Wed, 28 Apr 2010 23:21:25 -0400
-Message-ID: <4BD8FB35.10307@meta-dynamic.com>
-References: <4BD72377.8070400@meta-dynamic.com> <1272441583.29439.10.camel@khasse.inl.fr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: conntrack h323 reassembly
+Date: Thu, 29 Apr 2010 11:56:18 +0200 (CEST)
+Message-ID: <alpine.LSU.2.01.1004291154450.23971@obet.zrqbmnf.qr>
+References: <20100428165541.174eb58e@nehalam>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter <netfilter-devel@vger.kernel.org>
-To: Eric Leblond <eric@inl.fr>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
+To: Stephen Hemminger <shemminger@vyatta.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from troy.meta-dynamic.com ([204.11.35.233]:40113 "EHLO
-	mail.meta-dynamic.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750838Ab0D2DVb (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 28 Apr 2010 23:21:31 -0400
-In-Reply-To: <1272441583.29439.10.camel@khasse.inl.fr>
+Received: from borg.medozas.de ([188.40.89.202]:53511 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758233Ab0D3RAp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 30 Apr 2010 13:00:45 -0400
+In-Reply-To: <20100428165541.174eb58e@nehalam>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Leblond wrote:
-> libnetfilter_queue is the official and most used library.
-[...]
-> http://www.nufw.org/doc/libnetfilter_queue/ is the most accurate
-> libnetfilter_queue documentation.
-> An example program is available in the source :
-> http://git.netfilter.org/cgi-bin/gitweb.cgi?p=libnetfilter_queue.git;a=blob;f=utils/nfqnl_test.c
->
-> Real life example can be found in :
->       * suricata:
->         http://www.openinfosecfoundation.org/index.php/download-suricata
->       * NuFW:
->         http://www.nufw.org/projects/nufw/repository/revisions/master/entry/src/nufw/packetsrv.c
->
-> You can even use libnetfilter_queue with high-level langage:
-> http://www.nufw.org/projects/nfqueue-bindings
->   
+On Thursday 2010-04-29 01:55, Stephen Hemminger wrote:
 
-Thank you very much!  These are great resources.
--- David F.
+>It seems that h323 conntrack module can't handle TCP fragments.
+>Is this a problem for other modules, or is it unique to H323?
+>
+>More detail:
+>  https://bugzilla.vyatta.com/show_bug.cgi?id=5127
 
+Fragments should not normally happen, as nf_conntrack loads 
+nf_defrag.
