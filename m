@@ -1,56 +1,50 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [patch v2.2 3/4] [PATCH v2.1 3/4] IPVS: make FTP work with full
- NAT support
-Date: Sat, 01 May 2010 18:26:04 +0200
-Message-ID: <4BDC561C.8090102@trash.net>
-References: <20100501032014.406353538@vergenet.net> <20100501032120.998807955@vergenet.net>
+Subject: Re: conntrack h323 reassembly
+Date: Sat, 01 May 2010 18:27:43 +0200
+Message-ID: <4BDC567F.8080608@trash.net>
+References: <20100428165541.174eb58e@nehalam> <alpine.LSU.2.01.1004291154450.23971@obet.zrqbmnf.qr> <4BDC33BF.2060303@plouf.fr.eu.org>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, netfilter@vger.kernel.org,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julius Volz <julius.volz@gmail.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Hannes Eder <heder@google.com>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Simon Horman <horms@verge.net.au>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <20100501032120.998807955@vergenet.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	Stephen Hemminger <shemminger@vyatta.com>,
+	netfilter-devel@vger.kernel.org
+To: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:47541 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755070Ab0EAQ1p (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 1 May 2010 12:27:45 -0400
+In-Reply-To: <4BDC33BF.2060303@plouf.fr.eu.org>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Simon Horman wrote:
+Pascal Hambourg wrote:
+> Jan Engelhardt a =E9crit :
+>> On Thursday 2010-04-29 01:55, Stephen Hemminger wrote:
+>>
+>>> It seems that h323 conntrack module can't handle TCP fragments.
+>> Fragments should not normally happen, as nf_conntrack loads=20
+>> nf_defrag.
+>=20
+> What about IPv6 fragments ? IIUC the IPv6 conntrack only performs a
+> "virtual" reassembly. Can and do the conntrack helpers use the virtua=
+lly
+> reassembled datagrams ?
+>=20
+> (Although IIUC TCP fragmentation should be very unlikely, as the TCP
+> layer is informed about the path MTU and should adjust the segment si=
+ze
+> accordingly.)
 
-> +#define FMT_TUPLE	"%u.%u.%u.%u:%u->%u.%u.%u.%u:%u/%u"
-> +#define ARG_TUPLE(T)	NIPQUAD((T)->src.u3.ip), ntohs((T)->src.u.all), \
-> +			NIPQUAD((T)->dst.u3.ip), ntohs((T)->dst.u.all), \
-> +			(T)->dst.protonum
-> +
-> +#define FMT_CONN	"%u.%u.%u.%u:%u->%u.%u.%u.%u:%u->%u.%u.%u.%u:%u/%u:%u"
-> +#define ARG_CONN(C)	NIPQUAD((C)->caddr), ntohs((C)->cport), \
-> +			NIPQUAD((C)->vaddr), ntohs((C)->vport), \
-> +			NIPQUAD((C)->daddr), ntohs((C)->dport), \
-> +			(C)->protocol, (C)->state
->  
+Yes, the "virtual" reassembled packet is also passed to the helpers.
+The message is most likely a false positive caused by non-H.323 traffic=
+=2E
+I'll switch it to pr_debug().
 
-Please use the appropriate format string (%pI4) instead of NIPQUAD.
-
-> +		buf_len = sprintf(buf, "%u,%u,%u,%u,%u,%u", NIPQUAD(from.ip),
-> +				  (ntohs(port)>>8)&255, ntohs(port)&255);
-> +
-> +		ct = nf_ct_get(skb, &ctinfo);
-> +		ret = nf_nat_mangle_tcp_packet(skb,
-> +					       ct,
-> +					       ctinfo,
-> +					       start-data,
-> +					       end-start,
-> +					       buf,
-> +					       buf_len);
-> +
-> +		if (ct && ct != &nf_conntrack_untracked)
-
-ct is non-NULL, otherwise we'll crash in nf_nat_mangle_tcp_packet().
-Are you sure you want to mangle untracked packets above? That doesn't
-work when their are size changes.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
