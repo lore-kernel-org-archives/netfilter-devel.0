@@ -1,50 +1,39 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: conntrack h323 reassembly
-Date: Sat, 01 May 2010 18:27:43 +0200
-Message-ID: <4BDC567F.8080608@trash.net>
-References: <20100428165541.174eb58e@nehalam> <alpine.LSU.2.01.1004291154450.23971@obet.zrqbmnf.qr> <4BDC33BF.2060303@plouf.fr.eu.org>
+Subject: Re: [PATCH] nfnetlink_queue: use hash table to speed up entry lookup
+Date: Sat, 01 May 2010 18:42:29 +0200
+Message-ID: <4BDC59F5.90802@trash.net>
+References: <1271773896-28246-1-git-send-email-xiaosuo@gmail.com> 	<4BCDC0F4.5070904@trash.net> <i2t412e6f7f1004201704ubf9a7018oaf385e0831382a12@mail.gmail.com> 	<4BCEF100.10006@trash.net> <q2r412e6f7f1004301705pff7d9ba2ncb7251b50c885cc6@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	Stephen Hemminger <shemminger@vyatta.com>,
-	netfilter-devel@vger.kernel.org
-To: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org,
+	Eric Dumazet <eric.dumazet@gmail.com>
+To: Changli Gao <xiaosuo@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:47541 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:47713 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755070Ab0EAQ1p (ORCPT
+	with ESMTP id S1751444Ab0EAQmi (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 1 May 2010 12:27:45 -0400
-In-Reply-To: <4BDC33BF.2060303@plouf.fr.eu.org>
+	Sat, 1 May 2010 12:42:38 -0400
+In-Reply-To: <q2r412e6f7f1004301705pff7d9ba2ncb7251b50c885cc6@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Pascal Hambourg wrote:
-> Jan Engelhardt a =E9crit :
->> On Thursday 2010-04-29 01:55, Stephen Hemminger wrote:
+Changli Gao wrote:
+> On Wed, Apr 21, 2010 at 8:35 PM, Patrick McHardy <kaber@trash.net> wrote:
+>> All existing users I know of process packets in order, so there's
+>> no need to worry about duplicate IDs.
 >>
->>> It seems that h323 conntrack module can't handle TCP fragments.
->> Fragments should not normally happen, as nf_conntrack loads=20
->> nf_defrag.
->=20
-> What about IPv6 fragments ? IIUC the IPv6 conntrack only performs a
-> "virtual" reassembly. Can and do the conntrack helpers use the virtua=
-lly
-> reassembled datagrams ?
->=20
-> (Although IIUC TCP fragmentation should be very unlikely, as the TCP
-> layer is informed about the path MTU and should adjust the segment si=
-ze
-> accordingly.)
+>> Does it really matter in your case? I mean, how long do you intend
+>> to keep packets in userspace? Even with 10 Mpps (which you're *very*
+>> unlikely to reach with userspace queueing) it still won't wrap
+>> around for ~430s.
+> 
+> Although it may not happen, we'd better deal with it. I have found a
+> way to speed up duplicate IDs lookup. Since the IDs in a bucket are in
+> order, we can first check if the new ID is in the range of first_ID
+> and last_ID, and in most cases, we don't need to travel the whole
+> bucket.
 
-Yes, the "virtual" reassembled packet is also passed to the helpers.
-The message is most likely a false positive caused by non-H.323 traffic=
-=2E
-I'll switch it to pr_debug().
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+They are not necessarily in order since the ID counter will eventually
+wrap, but elements are always appened (at least currently).
