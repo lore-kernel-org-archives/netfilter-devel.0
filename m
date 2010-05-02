@@ -1,39 +1,75 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] nfnetlink_queue: use hash table to speed up entry lookup
-Date: Sat, 01 May 2010 18:42:29 +0200
-Message-ID: <4BDC59F5.90802@trash.net>
-References: <1271773896-28246-1-git-send-email-xiaosuo@gmail.com> 	<4BCDC0F4.5070904@trash.net> <i2t412e6f7f1004201704ubf9a7018oaf385e0831382a12@mail.gmail.com> 	<4BCEF100.10006@trash.net> <q2r412e6f7f1004301705pff7d9ba2ncb7251b50c885cc6@mail.gmail.com>
+From: Valdis.Kletnieks@vt.edu
+Subject: mmotm 2010-04-28 - RCU whinges
+Date: Sun, 02 May 2010 13:46:34 -0400
+Message-ID: <5702.1272822394@localhost>
+References: <201004290021.o3T0L04Y028017@imap1.linux-foundation.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: multipart/signed; boundary="==_Exmh_1272822394_4025P";
+	 micalg=pgp-sha1; protocol="application/pgp-signature"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	Eric Dumazet <eric.dumazet@gmail.com>
-To: Changli Gao <xiaosuo@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:47713 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751444Ab0EAQmi (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 1 May 2010 12:42:38 -0400
-In-Reply-To: <q2r412e6f7f1004301705pff7d9ba2ncb7251b50c885cc6@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+To: Andrew Morton <akpm@linux-foundation.org>,
+	Peter Zijlstra <peterz@infradead.org>,
+	Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: Your message of "Wed, 28 Apr 2010 16:53:32 PDT."
+             <201004290021.o3T0L04Y028017@imap1.linux-foundation.org>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Changli Gao wrote:
-> On Wed, Apr 21, 2010 at 8:35 PM, Patrick McHardy <kaber@trash.net> wrote:
->> All existing users I know of process packets in order, so there's
->> no need to worry about duplicate IDs.
->>
->> Does it really matter in your case? I mean, how long do you intend
->> to keep packets in userspace? Even with 10 Mpps (which you're *very*
->> unlikely to reach with userspace queueing) it still won't wrap
->> around for ~430s.
+--==_Exmh_1272822394_4025P
+Content-Type: text/plain; charset=us-ascii
+
+On Wed, 28 Apr 2010 16:53:32 PDT, akpm@linux-foundation.org said:
+> The mm-of-the-moment snapshot 2010-04-28-16-53 has been uploaded to
 > 
-> Although it may not happen, we'd better deal with it. I have found a
-> way to speed up duplicate IDs lookup. Since the IDs in a bucket are in
-> order, we can first check if the new ID is in the range of first_ID
-> and last_ID, and in most cases, we don't need to travel the whole
-> bucket.
+>    http://userweb.kernel.org/~akpm/mmotm/
 
-They are not necessarily in order since the ID counter will eventually
-wrap, but elements are always appened (at least currently).
+I thought we swatted all these, hit another one...
+
+[    9.131490] ctnetlink v0.93: registering with nfnetlink.
+[    9.131535]
+[    9.131535] ===================================================
+[    9.131704] [ INFO: suspicious rcu_dereference_check() usage. ]
+[    9.131794] ---------------------------------------------------
+[    9.131883] net/netfilter/nf_conntrack_ecache.c:88 invoked rcu_dereference_check() without protection!
+[    9.131977]
+[    9.131977] other info that might help us debug this:
+[    9.131978]
+[    9.132218]
+[    9.132219] rcu_scheduler_active = 1, debug_locks = 0
+[    9.132434] 1 lock held by swapper/1:
+[    9.132519]  #0:  (nf_ct_ecache_mutex){+.+...}, at: [<ffffffff8148922d>] nf_conntrack_register_notifier+0x1a/0x75
+[    9.132938]
+[    9.132939] stack backtrace:
+[    9.133129] Pid: 1, comm: swapper Tainted: G        W   2.6.34-rc5-mmotm0428 #1
+[    9.133220] Call Trace:
+[    9.133319]  [<ffffffff81064832>] lockdep_rcu_dereference+0xaa/0xb2
+[    9.133410]  [<ffffffff81489250>] nf_conntrack_register_notifier+0x3d/0x75
+[    9.133521]  [<ffffffff81b5a157>] ctnetlink_init+0x71/0xd5
+[    9.133627]  [<ffffffff81b5a0e6>] ? ctnetlink_init+0x0/0xd5
+[    9.133735]  [<ffffffff810001ef>] do_one_initcall+0x59/0x14e
+[    9.133843]  [<ffffffff81b2e68a>] kernel_init+0x144/0x1ce
+[    9.133949]  [<ffffffff81003414>] kernel_thread_helper+0x4/0x10
+[    9.134060]  [<ffffffff81598a40>] ? restore_args+0x0/0x30
+[    9.134196]  [<ffffffff81b2e546>] ? kernel_init+0x0/0x1ce
+[    9.134328]  [<ffffffff81003410>] ? kernel_thread_helper+0x0/0x10
+[    9.134530] ip_tables: (C) 2000-2006 Netfilter Core Team
+[    9.134655] TCP bic registered
+
+
+--==_Exmh_1272822394_4025P
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+Comment: Exmh version 2.5 07/13/2001
+
+iD8DBQFL3bp6cC3lWbTT17ARAlQ9AKCPdEUkjgTxgN/FDhI2IsgMQc4SQQCghz57
+bPOuH/bz2IQsitympyBwbWs=
+=yp5X
+-----END PGP SIGNATURE-----
+
+--==_Exmh_1272822394_4025P--
