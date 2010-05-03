@@ -1,13 +1,13 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
+From: Valdis.Kletnieks@vt.edu
 Subject: Re: mmotm 2010-04-28 - RCU whinges
-Date: Mon, 03 May 2010 16:58:46 +0200
-Message-ID: <1272898726.2226.47.camel@edumazet-laptop>
-References: <201004290021.o3T0L04Y028017@imap1.linux-foundation.org>
-	 <5702.1272822394@localhost> <1272865137.2173.179.camel@edumazet-laptop>
-	 <5933.1272897014@localhost>
+Date: Mon, 03 May 2010 11:29:50 -0400
+Message-ID: <5112.1272900590@localhost>
+References: <201004290021.o3T0L04Y028017@imap1.linux-foundation.org> <5702.1272822394@localhost> <1272865137.2173.179.camel@edumazet-laptop> <5933.1272897014@localhost>
+            <1272898726.2226.47.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: multipart/signed; boundary="==_Exmh_1272900590_4168P";
+	 micalg=pgp-sha1; protocol="application/pgp-signature"
+Content-Transfer-Encoding: 7bit
 Cc: Andrew Morton <akpm@linux-foundation.org>,
 	Peter Zijlstra <peterz@infradead.org>,
 	Patrick McHardy <kaber@trash.net>,
@@ -15,93 +15,86 @@ Cc: Andrew Morton <akpm@linux-foundation.org>,
 	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
 	netdev@vger.kernel.org,
 	"Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-To: Valdis.Kletnieks@vt.edu
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <5933.1272897014@localhost>
+In-Reply-To: Your message of "Mon, 03 May 2010 16:58:46 +0200."
+             <1272898726.2226.47.camel@edumazet-laptop>
 Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Le lundi 03 mai 2010 =C3=A0 10:30 -0400, Valdis.Kletnieks@vt.edu a =C3=A9=
-crit :
+--==_Exmh_1272900590_4168P
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-> [    9.128899] Netfilter messages via NETLINK v0.30.
-> [    9.128919] nf_conntrack version 0.5.0 (16384 buckets, 65536 max)
-> [    9.129108] CONFIG_NF_CT_ACCT is deprecated and will be removed so=
-on. Please use
-> [    9.129110] nf_conntrack.acct=3D1 kernel parameter, acct=3D1 nf_co=
-nntrack module option or
-> [    9.129113] sysctl net.netfilter.nf_conntrack_acct=3D1 to enable i=
-t.
-> [    9.129135] ctnetlink v0.93: registering with nfnetlink.
-> [    9.129452] ip_tables: (C) 2000-2006 Netfilter Core Team
-> [    9.129506]=20
-> [    9.129507] =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
+On Mon, 03 May 2010 16:58:46 +0200, Eric Dumazet said:
+> Le lundi 03 mai 2010 =E0 10:30 -0400, Valdis.Kletnieks=40vt.edu a =E9cr=
+it :
+
+> > =5B    9.129872=5D net/netfilter/nf_log.c:55 invoked rcu_dereference_=
+check() without protection=21
+
+> Thanks for the report =21
+>=20
+> =5BPATCH=5D net: nf_log RCU fixes
+>=20
+> nf_log_register() and nf_log_unregister() use a mutex to have exclusive=
+
+> access to nf_logers=5B=5D. Use appropriate rcu_dereference_protected()
+> lockdep annotation.
+
+Confirming that one fixed.  Now it lives a whole 36 seconds before whingi=
+ng:
+
+=5B   35.328729=5D =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=
 =3D=3D=3D=3D=3D=3D=3D=3D=3D
-> [    9.129683] [ INFO: suspicious rcu_dereference_check() usage. ]
-> [    9.129777] ---------------------------------------------------
-> [    9.129872] net/netfilter/nf_log.c:55 invoked rcu_dereference_chec=
-k() without protection!
-> [    9.129969]=20
-> [    9.129969] other info that might help us debug this:
-> [    9.129970]=20
-> [    9.130232]=20
-> [    9.130232] rcu_scheduler_active =3D 1, debug_locks =3D 0
-> [    9.130407] 1 lock held by swapper/1:
-> [    9.130525]  #0:  (nf_log_mutex){+.+...}, at: [<ffffffff81481154>]=
- nf_log_register+0x57/0x10f
-> [    9.130955]=20
-> [    9.130956] stack backtrace:
-> [    9.131162] Pid: 1, comm: swapper Tainted: G        W   2.6.34-rc5=
--mmotm0428 #2
-> [    9.131259] Call Trace:
-> [    9.131370]  [<ffffffff81064832>] lockdep_rcu_dereference+0xaa/0xb=
-2
-> [    9.131466]  [<ffffffff814811db>] nf_log_register+0xde/0x10f
-> [    9.131579]  [<ffffffff81b5ca28>] ? log_tg_init+0x0/0x29
-> [    9.131689]  [<ffffffff81b5ca4d>] log_tg_init+0x25/0x29
-> [    9.131800]  [<ffffffff810001ef>] do_one_initcall+0x59/0x14e
-> [    9.131912]  [<ffffffff81b2e68a>] kernel_init+0x144/0x1ce
-> [    9.132033]  [<ffffffff81003414>] kernel_thread_helper+0x4/0x10
-> [    9.132146]  [<ffffffff81598a40>] ? restore_args+0x0/0x30
-> [    9.132257]  [<ffffffff81b2e546>] ? kernel_init+0x0/0x1ce
-> [    9.132370]  [<ffffffff81003410>] ? kernel_thread_helper+0x0/0x10
-> [    9.132513] TCP bic registered
->=20
+=5B   35.328803=5D =5B INFO: suspicious rcu_dereference_check() usage. =
+=5D
+=5B   35.328837=5D ---------------------------------------------------
+=5B   35.328872=5D net/ipv6/addrconf.c:2977 invoked rcu_dereference_check=
+() without protection=21
+=5B   35.328926=5D=20
+=5B   35.328927=5D other info that might help us debug this:
+=5B   35.328928=5D=20
+=5B   35.329016=5D=20
+=5B   35.329016=5D rcu_scheduler_active =3D 1, debug_locks =3D 0
+=5B   35.329089=5D 2 locks held by ifconfig/2680:
+=5B   35.329120=5D  =230:  (&p->lock)=7B+.+.+.=7D, at: =5B<ffffffff810f5d=
+b8>=5D seq_read+0x3a/0x42d
+=5B   35.329217=5D  =231:  (rcu_read_lock_bh)=7B.+....=7D, at: =5B<ffffff=
+ff814eec68>=5D rcu_read_lock_bh+0x0/0x35
+=5B   35.329322=5D=20
+=5B   35.329323=5D stack backtrace:
+=5B   35.329380=5D Pid: 2680, comm: ifconfig Tainted: G        W   2.6.34=
+-rc5-mmotm0428 =233
+=5B   35.329439=5D Call Trace:
+=5B   35.329471=5D  =5B<ffffffff81064832>=5D lockdep_rcu_dereference+0xaa=
+/0xb2
+=5B   35.329514=5D  =5B<ffffffff814ef3ae>=5D if6_get_next+0x34/0x6d
+=5B   35.329554=5D  =5B<ffffffff814ef3f8>=5D if6_seq_next+0x11/0x18
+=5B   35.329595=5D  =5B<ffffffff810f6083>=5D seq_read+0x305/0x42d
+=5B   35.329635=5D  =5B<ffffffff810f5d7e>=5D ? seq_read+0x0/0x42d
+=5B   35.329676=5D  =5B<ffffffff81129e8c>=5D proc_reg_read+0x8d/0xac
+=5B   35.329717=5D  =5B<ffffffff810db7e0>=5D vfs_read+0xe0/0x140
+=5B   35.329758=5D  =5B<ffffffff810db8f6>=5D sys_read+0x45/0x69
+=5B   35.329799=5D  =5B<ffffffff810025eb>=5D system_call_fastpath+0x16/0x=
+1b
 
-Thanks for the report !
+Maybe I need to go and stick the =22RCU whinge multiple times=22 patch on=
+ this
+kernel and get it over with. :)
 
-[PATCH] net: nf_log RCU fixes
 
-nf_log_register() and nf_log_unregister() use a mutex to have exclusive
-access to nf_logers[]. Use appropriate rcu_dereference_protected()
-lockdep annotation.
+--==_Exmh_1272900590_4168P
+Content-Type: application/pgp-signature
 
-Reported-by: Valdis Kletnieks <Valdis.Kletnieks@vt.edu>
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
----
-diff --git a/net/netfilter/nf_log.c b/net/netfilter/nf_log.c
-index 015725a..7df37fd 100644
---- a/net/netfilter/nf_log.c
-+++ b/net/netfilter/nf_log.c
-@@ -52,7 +52,8 @@ int nf_log_register(u_int8_t pf, struct nf_logger *lo=
-gger)
- 	} else {
- 		/* register at end of list to honor first register win */
- 		list_add_tail(&logger->list[pf], &nf_loggers_l[pf]);
--		llog =3D rcu_dereference(nf_loggers[pf]);
-+		llog =3D rcu_dereference_protected(nf_loggers[pf],
-+						 lockdep_is_held(&nf_log_mutex));
- 		if (llog =3D=3D NULL)
- 			rcu_assign_pointer(nf_loggers[pf], logger);
- 	}
-@@ -70,7 +71,8 @@ void nf_log_unregister(struct nf_logger *logger)
-=20
- 	mutex_lock(&nf_log_mutex);
- 	for (i =3D 0; i < ARRAY_SIZE(nf_loggers); i++) {
--		c_logger =3D rcu_dereference(nf_loggers[i]);
-+		c_logger =3D rcu_dereference_protected(nf_loggers[i],
-+						     lockdep_is_held(&nf_log_mutex));
- 		if (c_logger =3D=3D logger)
- 			rcu_assign_pointer(nf_loggers[i], NULL);
- 		list_del(&logger->list[i]);
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+Comment: Exmh version 2.5 07/13/2001
+
+iD8DBQFL3uvucC3lWbTT17ARAuZxAKCk9ywIgNhKPIKqFAu0ppWMYSZnqACg63/W
+yGUHCD1JYszl3WwoVGHmh6g=
+=H+GJ
+-----END PGP SIGNATURE-----
+
+--==_Exmh_1272900590_4168P--
