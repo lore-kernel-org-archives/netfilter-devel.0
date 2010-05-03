@@ -1,98 +1,150 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 09/11] netfilter: ebtables: change ebt_basic_match to xt convention
-Date: Mon,  3 May 2010 11:51:34 +0200
-Message-ID: <1272880297-11198-10-git-send-email-jengelh@medozas.de>
-References: <1272880297-11198-1-git-send-email-jengelh@medozas.de>
+Subject: nf-next: a mixed bag
+Date: Mon,  3 May 2010 11:51:25 +0200
+Message-ID: <1272880297-11198-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:59494 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:59498 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752833Ab0ECJwA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 3 May 2010 05:52:00 -0400
-In-Reply-To: <1272880297-11198-1-git-send-email-jengelh@medozas.de>
+	id S1752495Ab0ECJwB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 3 May 2010 05:52:01 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-When this will become an xt_match, it needs the xt semantics;
-this mandates changing the return values from 1/0 to 0/1.
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- net/bridge/netfilter/ebtables.c |   22 +++++++++++-----------
- 1 files changed, 11 insertions(+), 11 deletions(-)
 
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 1f8256b..7f3ba94 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -122,7 +122,7 @@ ebt_dev_check(const char *entry, const struct net_device *device)
- 
- #define FWINV2(bool,invflg) ((bool) ^ !!(e->invflags & invflg))
- /* process standard matches */
--static inline int
-+static inline bool
- ebt_basic_match(const struct ebt_entry *e, const struct ethhdr *h,
-                 const struct net_device *in, const struct net_device *out)
- {
-@@ -130,21 +130,21 @@ ebt_basic_match(const struct ebt_entry *e, const struct ethhdr *h,
- 
- 	if (e->bitmask & EBT_802_3) {
- 		if (FWINV2(ntohs(h->h_proto) >= 1536, EBT_IPROTO))
--			return 1;
-+			return false;
- 	} else if (!(e->bitmask & EBT_NOPROTO) &&
- 	   FWINV2(e->ethproto != h->h_proto, EBT_IPROTO))
--		return 1;
-+		return false;
- 
- 	if (FWINV2(ebt_dev_check(e->in, in), EBT_IIN))
--		return 1;
-+		return false;
- 	if (FWINV2(ebt_dev_check(e->out, out), EBT_IOUT))
--		return 1;
-+		return false;
- 	if ((!in || !in->br_port) ? 0 : FWINV2(ebt_dev_check(
- 	   e->logical_in, in->br_port->br->dev), EBT_ILOGICALIN))
--		return 1;
-+		return false;
- 	if ((!out || !out->br_port) ? 0 : FWINV2(ebt_dev_check(
- 	   e->logical_out, out->br_port->br->dev), EBT_ILOGICALOUT))
--		return 1;
-+		return false;
- 
- 	if (e->bitmask & EBT_SOURCEMAC) {
- 		verdict = 0;
-@@ -152,7 +152,7 @@ ebt_basic_match(const struct ebt_entry *e, const struct ethhdr *h,
- 			verdict |= (h->h_source[i] ^ e->sourcemac[i]) &
- 			   e->sourcemsk[i];
- 		if (FWINV2(verdict != 0, EBT_ISOURCE) )
--			return 1;
-+			return false;
- 	}
- 	if (e->bitmask & EBT_DESTMAC) {
- 		verdict = 0;
-@@ -160,9 +160,9 @@ ebt_basic_match(const struct ebt_entry *e, const struct ethhdr *h,
- 			verdict |= (h->h_dest[i] ^ e->destmac[i]) &
- 			   e->destmsk[i];
- 		if (FWINV2(verdict != 0, EBT_IDEST) )
--			return 1;
-+			return false;
- 	}
--	return 0;
-+	return true;
- }
- 
- static inline __pure
-@@ -209,7 +209,7 @@ unsigned int ebt_do_table (unsigned int hook, struct sk_buff *skb,
- 	base = private->entries;
- 	i = 0;
- 	while (i < nentries) {
--		if (ebt_basic_match(point, eth_hdr(skb), in, out))
-+		if (!ebt_basic_match(point, eth_hdr(skb), in, out))
- 			goto letscontinue;
- 
- 		if (EBT_MATCH_ITERATE(point, ebt_do_match, skb, &acpar) != 0)
--- 
-1.7.0.5
+Hi,
 
+
+please leave comments (or merge if ok).
+
+Included:
+ - two fixes
+ - things that came up in between
+ - xt2 preparatory work
+
+
+thanks,
+Jan
+
+The following changes since commit 4b2cbd42bef5a22bb681acd607a7c3fbca1eeb3c:
+  Jan Engelhardt (1):
+        netfilter: x_tables: rectify XT_FUNCTION_MAXNAMELEN usage
+
+are available in the git repository at:
+
+  git://dev.medozas.de/linux master
+
+Jan Engelhardt (11):
+      netfilter: ip_tables: fix compilation when debug is enabled
+      netfilter: xtables: fix incorrect return code
+      netfilter: xtables: dissolve do_match function
+      netfilter: xtables: combine struct xt_match_param and xt_target_param
+      netfilter: xtables: substitute temporary defines by final name
+      netfilter: xtables: deconstify struct xt_action_param for matches
+      netfilter: xtables: change hotdrop pointer to direct modification
+      netfilter: xtables: combine built-in extension structs
+      netfilter: ebtables: change ebt_basic_match to xt convention
+      netfilter: xtables: move functions around
+      netfilter: xtables: convert basic nfproto match functions into xt matches
+
+ include/linux/netfilter/x_tables.h   |   49 ++---
+ net/bridge/netfilter/ebt_802_3.c     |    2 +-
+ net/bridge/netfilter/ebt_among.c     |    2 +-
+ net/bridge/netfilter/ebt_arp.c       |    2 +-
+ net/bridge/netfilter/ebt_arpreply.c  |    2 +-
+ net/bridge/netfilter/ebt_dnat.c      |    2 +-
+ net/bridge/netfilter/ebt_ip.c        |    2 +-
+ net/bridge/netfilter/ebt_ip6.c       |    2 +-
+ net/bridge/netfilter/ebt_limit.c     |    2 +-
+ net/bridge/netfilter/ebt_log.c       |    2 +-
+ net/bridge/netfilter/ebt_mark.c      |    2 +-
+ net/bridge/netfilter/ebt_mark_m.c    |    2 +-
+ net/bridge/netfilter/ebt_nflog.c     |    2 +-
+ net/bridge/netfilter/ebt_pkttype.c   |    2 +-
+ net/bridge/netfilter/ebt_redirect.c  |    2 +-
+ net/bridge/netfilter/ebt_snat.c      |    2 +-
+ net/bridge/netfilter/ebt_stp.c       |    2 +-
+ net/bridge/netfilter/ebt_ulog.c      |    2 +-
+ net/bridge/netfilter/ebt_vlan.c      |    2 +-
+ net/bridge/netfilter/ebtables.c      |  146 +++++++++------
+ net/ipv4/netfilter/arp_tables.c      |  224 ++++++++++++---------
+ net/ipv4/netfilter/arpt_mangle.c     |    2 +-
+ net/ipv4/netfilter/ip_tables.c       |  342 ++++++++++++++++----------------
+ net/ipv4/netfilter/ipt_CLUSTERIP.c   |    2 +-
+ net/ipv4/netfilter/ipt_ECN.c         |    2 +-
+ net/ipv4/netfilter/ipt_LOG.c         |    2 +-
+ net/ipv4/netfilter/ipt_MASQUERADE.c  |    2 +-
+ net/ipv4/netfilter/ipt_NETMAP.c      |    2 +-
+ net/ipv4/netfilter/ipt_REDIRECT.c    |    2 +-
+ net/ipv4/netfilter/ipt_REJECT.c      |    2 +-
+ net/ipv4/netfilter/ipt_ULOG.c        |    2 +-
+ net/ipv4/netfilter/ipt_addrtype.c    |    4 +-
+ net/ipv4/netfilter/ipt_ah.c          |    4 +-
+ net/ipv4/netfilter/ipt_ecn.c         |    4 +-
+ net/ipv4/netfilter/nf_nat_rule.c     |    4 +-
+ net/ipv6/netfilter/ip6_tables.c      |  354 +++++++++++++++++-----------------
+ net/ipv6/netfilter/ip6t_LOG.c        |    2 +-
+ net/ipv6/netfilter/ip6t_REJECT.c     |    2 +-
+ net/ipv6/netfilter/ip6t_ah.c         |    6 +-
+ net/ipv6/netfilter/ip6t_eui64.c      |    4 +-
+ net/ipv6/netfilter/ip6t_frag.c       |    6 +-
+ net/ipv6/netfilter/ip6t_hbh.c        |    6 +-
+ net/ipv6/netfilter/ip6t_ipv6header.c |    2 +-
+ net/ipv6/netfilter/ip6t_mh.c         |    6 +-
+ net/ipv6/netfilter/ip6t_rt.c         |    6 +-
+ net/netfilter/xt_CLASSIFY.c          |    2 +-
+ net/netfilter/xt_CONNSECMARK.c       |    2 +-
+ net/netfilter/xt_CT.c                |    2 +-
+ net/netfilter/xt_DSCP.c              |    8 +-
+ net/netfilter/xt_HL.c                |    4 +-
+ net/netfilter/xt_LED.c               |    2 +-
+ net/netfilter/xt_NFLOG.c             |    2 +-
+ net/netfilter/xt_NFQUEUE.c           |    4 +-
+ net/netfilter/xt_NOTRACK.c           |    2 +-
+ net/netfilter/xt_RATEEST.c           |    2 +-
+ net/netfilter/xt_SECMARK.c           |    2 +-
+ net/netfilter/xt_TCPMSS.c            |    4 +-
+ net/netfilter/xt_TCPOPTSTRIP.c       |    4 +-
+ net/netfilter/xt_TEE.c               |    4 +-
+ net/netfilter/xt_TPROXY.c            |    2 +-
+ net/netfilter/xt_TRACE.c             |    2 +-
+ net/netfilter/xt_cluster.c           |    2 +-
+ net/netfilter/xt_comment.c           |    2 +-
+ net/netfilter/xt_connbytes.c         |    2 +-
+ net/netfilter/xt_connlimit.c         |    6 +-
+ net/netfilter/xt_connmark.c          |    4 +-
+ net/netfilter/xt_conntrack.c         |    6 +-
+ net/netfilter/xt_dccp.c              |    6 +-
+ net/netfilter/xt_dscp.c              |    6 +-
+ net/netfilter/xt_esp.c               |    4 +-
+ net/netfilter/xt_hashlimit.c         |    4 +-
+ net/netfilter/xt_helper.c            |    2 +-
+ net/netfilter/xt_hl.c                |    4 +-
+ net/netfilter/xt_iprange.c           |    4 +-
+ net/netfilter/xt_length.c            |    4 +-
+ net/netfilter/xt_limit.c             |    2 +-
+ net/netfilter/xt_mac.c               |    2 +-
+ net/netfilter/xt_mark.c              |    4 +-
+ net/netfilter/xt_multiport.c         |    8 +-
+ net/netfilter/xt_osf.c               |    2 +-
+ net/netfilter/xt_owner.c             |    2 +-
+ net/netfilter/xt_physdev.c           |    2 +-
+ net/netfilter/xt_pkttype.c           |    2 +-
+ net/netfilter/xt_policy.c            |    2 +-
+ net/netfilter/xt_quota.c             |    2 +-
+ net/netfilter/xt_rateest.c           |    2 +-
+ net/netfilter/xt_realm.c             |    2 +-
+ net/netfilter/xt_recent.c            |    4 +-
+ net/netfilter/xt_sctp.c              |    6 +-
+ net/netfilter/xt_socket.c            |    6 +-
+ net/netfilter/xt_state.c             |    2 +-
+ net/netfilter/xt_statistic.c         |    2 +-
+ net/netfilter/xt_string.c            |    2 +-
+ net/netfilter/xt_tcpmss.c            |    4 +-
+ net/netfilter/xt_tcpudp.c            |   14 +-
+ net/netfilter/xt_time.c              |    2 +-
+ net/netfilter/xt_u32.c               |    2 +-
+ net/sched/act_ipt.c                  |    2 +-
+ 98 files changed, 730 insertions(+), 677 deletions(-)
