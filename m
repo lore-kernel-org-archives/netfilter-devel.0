@@ -1,623 +1,75 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 10/11] netfilter: xtables: move functions around
-Date: Mon,  3 May 2010 11:51:35 +0200
-Message-ID: <1272880297-11198-11-git-send-email-jengelh@medozas.de>
-References: <1272880297-11198-1-git-send-email-jengelh@medozas.de>
-Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:59478 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753496Ab0ECJwC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 3 May 2010 05:52:02 -0400
-In-Reply-To: <1272880297-11198-1-git-send-email-jengelh@medozas.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Hannes Eder <heder@google.com>
+Subject: Re: [patch v2.2 1/4] [PATCH v2.1 1/4] netfilter: xt_ipvs (netfilter
+	matcher for IPVS)
+Date: Mon, 3 May 2010 13:29:46 +0200
+Message-ID: <AANLkTikIzHuzxo4z1_8_fEGLBC2-0Uz0X8SOc8n2msuX@mail.gmail.com>
+References: <20100501032014.406353538@vergenet.net>
+	 <20100501032120.298829234@vergenet.net> <4BDC543F.7060500@trash.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Simon Horman <horms@verge.net.au>, lvs-devel@vger.kernel.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	netfilter@vger.kernel.org, Wensong Zhang <wensong@linux-vs.org>,
+	Julius Volz <julius.volz@gmail.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+In-Reply-To: <4BDC543F.7060500@trash.net>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-For the next patch, the builtin_mt object needs to be available ahead
-of ip6t_do_table if we want to do without predeclartions.
+Thank you for picking this series of patches up again and thanks for
+the feedback.
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- net/ipv4/netfilter/arp_tables.c |   77 +++++++-------
- net/ipv4/netfilter/ip_tables.c  |  192 ++++++++++++++++++------------------
- net/ipv6/netfilter/ip6_tables.c |  208 ++++++++++++++++++++-------------------
- 3 files changed, 241 insertions(+), 236 deletions(-)
+I'll send an updated version in the next days.
 
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 03352fc..7d6852e 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -223,6 +223,26 @@ static inline int arp_checkentry(const struct arpt_arp *arp)
- 	return 1;
- }
- 
-+#ifdef CONFIG_COMPAT
-+static void compat_standard_from_user(void *dst, const void *src)
-+{
-+	int v = *(compat_int_t *)src;
-+
-+	if (v > 0)
-+		v += xt_compat_calc_jump(NFPROTO_ARP, v);
-+	memcpy(dst, &v, sizeof(v));
-+}
-+
-+static int compat_standard_to_user(void __user *dst, const void *src)
-+{
-+	compat_int_t cv = *(int *)src;
-+
-+	if (cv > 0)
-+		cv -= xt_compat_calc_jump(NFPROTO_ARP, cv);
-+	return copy_to_user(dst, &cv, sizeof(cv)) ? -EFAULT : 0;
-+}
-+#endif
-+
- static unsigned int
- arpt_error(struct sk_buff *skb, const struct xt_action_param *par)
- {
-@@ -233,6 +253,25 @@ arpt_error(struct sk_buff *skb, const struct xt_action_param *par)
- 	return NF_DROP;
- }
- 
-+static struct xt_target arpt_builtin_tg[] __read_mostly = {
-+	{
-+		.name             = ARPT_STANDARD_TARGET,
-+		.targetsize       = sizeof(int),
-+		.family           = NFPROTO_ARP,
-+#ifdef CONFIG_COMPAT
-+		.compatsize       = sizeof(compat_int_t),
-+		.compat_from_user = compat_standard_from_user,
-+		.compat_to_user   = compat_standard_to_user,
-+#endif
-+	},
-+	{
-+		.name             = ARPT_ERROR_TARGET,
-+		.target           = arpt_error,
-+		.targetsize       = ARPT_FUNCTION_MAXNAMELEN,
-+		.family           = NFPROTO_ARP,
-+	},
-+};
-+
- static inline const struct arpt_entry_target *
- arpt_get_target_c(const struct arpt_entry *e)
- {
-@@ -826,24 +865,6 @@ static int copy_entries_to_user(unsigned int total_size,
- }
- 
- #ifdef CONFIG_COMPAT
--static void compat_standard_from_user(void *dst, const void *src)
--{
--	int v = *(compat_int_t *)src;
--
--	if (v > 0)
--		v += xt_compat_calc_jump(NFPROTO_ARP, v);
--	memcpy(dst, &v, sizeof(v));
--}
--
--static int compat_standard_to_user(void __user *dst, const void *src)
--{
--	compat_int_t cv = *(int *)src;
--
--	if (cv > 0)
--		cv -= xt_compat_calc_jump(NFPROTO_ARP, cv);
--	return copy_to_user(dst, &cv, sizeof(cv)) ? -EFAULT : 0;
--}
--
- static int compat_calc_entry(const struct arpt_entry *e,
- 			     const struct xt_table_info *info,
- 			     const void *base, struct xt_table_info *newinfo)
-@@ -1827,26 +1848,6 @@ void arpt_unregister_table(struct xt_table *table)
- 	xt_free_table_info(private);
- }
- 
--/* The built-in targets: standard (NULL) and error. */
--static struct xt_target arpt_builtin_tg[] __read_mostly = {
--	{
--		.name             = ARPT_STANDARD_TARGET,
--		.targetsize       = sizeof(int),
--		.family           = NFPROTO_ARP,
--#ifdef CONFIG_COMPAT
--		.compatsize       = sizeof(compat_int_t),
--		.compat_from_user = compat_standard_from_user,
--		.compat_to_user   = compat_standard_to_user,
--#endif
--	},
--	{
--		.name             = ARPT_ERROR_TARGET,
--		.target           = arpt_error,
--		.targetsize       = ARPT_FUNCTION_MAXNAMELEN,
--		.family           = NFPROTO_ARP,
--	},
--};
--
- static struct nf_sockopt_ops arpt_sockopts = {
- 	.pf		= PF_INET,
- 	.set_optmin	= ARPT_BASE_CTL,
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 49b9e4f..8de563c 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -164,6 +164,73 @@ ip_checkentry(const struct ipt_ip *ip)
- 	return true;
- }
- 
-+/* Returns 1 if the type and code is matched by the range, 0 otherwise */
-+static inline bool
-+icmp_type_code_match(u_int8_t test_type, u_int8_t min_code, u_int8_t max_code,
-+		     u_int8_t type, u_int8_t code,
-+		     bool invert)
-+{
-+	return ((test_type == 0xFF) ||
-+		(type == test_type && code >= min_code && code <= max_code))
-+		^ invert;
-+}
-+
-+static bool
-+icmp_match(const struct sk_buff *skb, struct xt_action_param *par)
-+{
-+	const struct icmphdr *ic;
-+	struct icmphdr _icmph;
-+	const struct ipt_icmp *icmpinfo = par->matchinfo;
-+
-+	/* Must not be a fragment. */
-+	if (par->fragoff != 0)
-+		return false;
-+
-+	ic = skb_header_pointer(skb, par->thoff, sizeof(_icmph), &_icmph);
-+	if (ic == NULL) {
-+		/* We've been asked to examine this packet, and we
-+		 * can't.  Hence, no choice but to drop.
-+		 */
-+		duprintf("Dropping evil ICMP tinygram.\n");
-+		par->hotdrop = true;
-+		return false;
-+	}
-+
-+	return icmp_type_code_match(icmpinfo->type,
-+				    icmpinfo->code[0],
-+				    icmpinfo->code[1],
-+				    ic->type, ic->code,
-+				    !!(icmpinfo->invflags&IPT_ICMP_INV));
-+}
-+
-+static int icmp_checkentry(const struct xt_mtchk_param *par)
-+{
-+	const struct ipt_icmp *icmpinfo = par->matchinfo;
-+
-+	/* Must specify no unknown invflags */
-+	return (icmpinfo->invflags & ~IPT_ICMP_INV) ? -EINVAL : 0;
-+}
-+
-+#ifdef CONFIG_COMPAT
-+static void compat_standard_from_user(void *dst, const void *src)
-+{
-+	int v = *(compat_int_t *)src;
-+
-+	if (v > 0)
-+		v += xt_compat_calc_jump(AF_INET, v);
-+	memcpy(dst, &v, sizeof(v));
-+}
-+
-+static int compat_standard_to_user(void __user *dst, const void *src)
-+{
-+	compat_int_t cv = *(int *)src;
-+
-+	if (cv > 0)
-+		cv -= xt_compat_calc_jump(AF_INET, cv);
-+	return copy_to_user(dst, &cv, sizeof(cv)) ? -EFAULT : 0;
-+}
-+#endif
-+
- static unsigned int
- ipt_error(struct sk_buff *skb, const struct xt_action_param *par)
- {
-@@ -173,6 +240,36 @@ ipt_error(struct sk_buff *skb, const struct xt_action_param *par)
- 	return NF_DROP;
- }
- 
-+static struct xt_target ipt_builtin_tg[] __read_mostly = {
-+	{
-+		.name             = IPT_STANDARD_TARGET,
-+		.targetsize       = sizeof(int),
-+		.family           = NFPROTO_IPV4,
-+#ifdef CONFIG_COMPAT
-+		.compatsize       = sizeof(compat_int_t),
-+		.compat_from_user = compat_standard_from_user,
-+		.compat_to_user   = compat_standard_to_user,
-+#endif
-+	},
-+	{
-+		.name             = IPT_ERROR_TARGET,
-+		.target           = ipt_error,
-+		.targetsize       = IPT_FUNCTION_MAXNAMELEN,
-+		.family           = NFPROTO_IPV4,
-+	},
-+};
-+
-+static struct xt_match ipt_builtin_mt[] __read_mostly = {
-+	{
-+		.name       = "icmp",
-+		.match      = icmp_match,
-+		.matchsize  = sizeof(struct ipt_icmp),
-+		.checkentry = icmp_checkentry,
-+		.proto      = IPPROTO_ICMP,
-+		.family     = NFPROTO_IPV4,
-+	},
-+};
-+
- /* Performance critical */
- static inline struct ipt_entry *
- get_entry(const void *base, unsigned int offset)
-@@ -1018,24 +1115,6 @@ copy_entries_to_user(unsigned int total_size,
- }
- 
- #ifdef CONFIG_COMPAT
--static void compat_standard_from_user(void *dst, const void *src)
--{
--	int v = *(compat_int_t *)src;
--
--	if (v > 0)
--		v += xt_compat_calc_jump(AF_INET, v);
--	memcpy(dst, &v, sizeof(v));
--}
--
--static int compat_standard_to_user(void __user *dst, const void *src)
--{
--	compat_int_t cv = *(int *)src;
--
--	if (cv > 0)
--		cv -= xt_compat_calc_jump(AF_INET, cv);
--	return copy_to_user(dst, &cv, sizeof(cv)) ? -EFAULT : 0;
--}
--
- static int compat_calc_entry(const struct ipt_entry *e,
- 			     const struct xt_table_info *info,
- 			     const void *base, struct xt_table_info *newinfo)
-@@ -2125,72 +2204,6 @@ void ipt_unregister_table(struct net *net, struct xt_table *table)
- 	xt_free_table_info(private);
- }
- 
--/* Returns 1 if the type and code is matched by the range, 0 otherwise */
--static inline bool
--icmp_type_code_match(u_int8_t test_type, u_int8_t min_code, u_int8_t max_code,
--		     u_int8_t type, u_int8_t code,
--		     bool invert)
--{
--	return ((test_type == 0xFF) ||
--		(type == test_type && code >= min_code && code <= max_code))
--		^ invert;
--}
--
--static bool
--icmp_match(const struct sk_buff *skb, struct xt_action_param *par)
--{
--	const struct icmphdr *ic;
--	struct icmphdr _icmph;
--	const struct ipt_icmp *icmpinfo = par->matchinfo;
--
--	/* Must not be a fragment. */
--	if (par->fragoff != 0)
--		return false;
--
--	ic = skb_header_pointer(skb, par->thoff, sizeof(_icmph), &_icmph);
--	if (ic == NULL) {
--		/* We've been asked to examine this packet, and we
--		 * can't.  Hence, no choice but to drop.
--		 */
--		duprintf("Dropping evil ICMP tinygram.\n");
--		par->hotdrop = true;
--		return false;
--	}
--
--	return icmp_type_code_match(icmpinfo->type,
--				    icmpinfo->code[0],
--				    icmpinfo->code[1],
--				    ic->type, ic->code,
--				    !!(icmpinfo->invflags&IPT_ICMP_INV));
--}
--
--static int icmp_checkentry(const struct xt_mtchk_param *par)
--{
--	const struct ipt_icmp *icmpinfo = par->matchinfo;
--
--	/* Must specify no unknown invflags */
--	return (icmpinfo->invflags & ~IPT_ICMP_INV) ? -EINVAL : 0;
--}
--
--static struct xt_target ipt_builtin_tg[] __read_mostly = {
--	{
--		.name             = IPT_STANDARD_TARGET,
--		.targetsize       = sizeof(int),
--		.family           = NFPROTO_IPV4,
--#ifdef CONFIG_COMPAT
--		.compatsize       = sizeof(compat_int_t),
--		.compat_from_user = compat_standard_from_user,
--		.compat_to_user   = compat_standard_to_user,
--#endif
--	},
--	{
--		.name             = IPT_ERROR_TARGET,
--		.target           = ipt_error,
--		.targetsize       = IPT_FUNCTION_MAXNAMELEN,
--		.family           = NFPROTO_IPV4,
--	},
--};
--
- static struct nf_sockopt_ops ipt_sockopts = {
- 	.pf		= PF_INET,
- 	.set_optmin	= IPT_BASE_CTL,
-@@ -2208,17 +2221,6 @@ static struct nf_sockopt_ops ipt_sockopts = {
- 	.owner		= THIS_MODULE,
- };
- 
--static struct xt_match ipt_builtin_mt[] __read_mostly = {
--	{
--		.name       = "icmp",
--		.match      = icmp_match,
--		.matchsize  = sizeof(struct ipt_icmp),
--		.checkentry = icmp_checkentry,
--		.proto      = IPPROTO_ICMP,
--		.family     = NFPROTO_IPV4,
--	},
--};
--
- static int __net_init ip_tables_net_init(struct net *net)
- {
- 	return xt_proto_init(net, NFPROTO_IPV4);
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 5678233..574557f 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -87,13 +87,13 @@ EXPORT_SYMBOL_GPL(ip6t_alloc_initial_table);
- int
- ip6t_ext_hdr(u8 nexthdr)
- {
--	return ( (nexthdr == IPPROTO_HOPOPTS)   ||
--		 (nexthdr == IPPROTO_ROUTING)   ||
--		 (nexthdr == IPPROTO_FRAGMENT)  ||
--		 (nexthdr == IPPROTO_ESP)       ||
--		 (nexthdr == IPPROTO_AH)        ||
--		 (nexthdr == IPPROTO_NONE)      ||
--		 (nexthdr == IPPROTO_DSTOPTS) );
-+	return nexthdr == IPPROTO_HOPOPTS ||
-+	       nexthdr == IPPROTO_ROUTING ||
-+	       nexthdr == IPPROTO_FRAGMENT ||
-+	       nexthdr == IPPROTO_ESP ||
-+	       nexthdr == IPPROTO_AH ||
-+	       nexthdr == IPPROTO_NONE ||
-+	       nexthdr == IPPROTO_DSTOPTS;
- }
- 
- /* Returns whether matches rule or not. */
-@@ -196,6 +196,73 @@ ip6_checkentry(const struct ip6t_ip6 *ipv6)
- 	return true;
- }
- 
-+/* Returns 1 if the type and code is matched by the range, 0 otherwise */
-+static inline bool
-+icmp6_type_code_match(u_int8_t test_type, u_int8_t min_code, u_int8_t max_code,
-+		     u_int8_t type, u_int8_t code,
-+		     bool invert)
-+{
-+	return (type == test_type && code >= min_code && code <= max_code)
-+		^ invert;
-+}
-+
-+static bool
-+icmp6_match(const struct sk_buff *skb, struct xt_action_param *par)
-+{
-+	const struct icmp6hdr *ic;
-+	struct icmp6hdr _icmph;
-+	const struct ip6t_icmp *icmpinfo = par->matchinfo;
-+
-+	/* Must not be a fragment. */
-+	if (par->fragoff != 0)
-+		return false;
-+
-+	ic = skb_header_pointer(skb, par->thoff, sizeof(_icmph), &_icmph);
-+	if (ic == NULL) {
-+		/* We've been asked to examine this packet, and we
-+		 * can't.  Hence, no choice but to drop.
-+		 */
-+		duprintf("Dropping evil ICMP tinygram.\n");
-+		par->hotdrop = true;
-+		return false;
-+	}
-+
-+	return icmp6_type_code_match(icmpinfo->type,
-+				     icmpinfo->code[0],
-+				     icmpinfo->code[1],
-+				     ic->icmp6_type, ic->icmp6_code,
-+				     !!(icmpinfo->invflags&IP6T_ICMP_INV));
-+}
-+
-+/* Called when user tries to insert an entry of this type. */
-+static int icmp6_checkentry(const struct xt_mtchk_param *par)
-+{
-+	const struct ip6t_icmp *icmpinfo = par->matchinfo;
-+
-+	/* Must specify no unknown invflags */
-+	return (icmpinfo->invflags & ~IP6T_ICMP_INV) ? -EINVAL : 0;
-+}
-+
-+#ifdef CONFIG_COMPAT
-+static void compat_standard_from_user(void *dst, const void *src)
-+{
-+	int v = *(compat_int_t *)src;
-+
-+	if (v > 0)
-+		v += xt_compat_calc_jump(AF_INET6, v);
-+	memcpy(dst, &v, sizeof(v));
-+}
-+
-+static int compat_standard_to_user(void __user *dst, const void *src)
-+{
-+	compat_int_t cv = *(int *)src;
-+
-+	if (cv > 0)
-+		cv -= xt_compat_calc_jump(AF_INET6, cv);
-+	return copy_to_user(dst, &cv, sizeof(cv)) ? -EFAULT : 0;
-+}
-+#endif
-+
- static unsigned int
- ip6t_error(struct sk_buff *skb, const struct xt_action_param *par)
- {
-@@ -205,6 +272,37 @@ ip6t_error(struct sk_buff *skb, const struct xt_action_param *par)
- 	return NF_DROP;
- }
- 
-+/* The built-in targets: standard (NULL) and error. */
-+static struct xt_target ip6t_builtin_tg[] __read_mostly = {
-+	{
-+		.name             = IP6T_STANDARD_TARGET,
-+		.targetsize       = sizeof(int),
-+		.family           = NFPROTO_IPV6,
-+#ifdef CONFIG_COMPAT
-+		.compatsize       = sizeof(compat_int_t),
-+		.compat_from_user = compat_standard_from_user,
-+		.compat_to_user   = compat_standard_to_user,
-+#endif
-+	},
-+	{
-+		.name             = IP6T_ERROR_TARGET,
-+		.target           = ip6t_error,
-+		.targetsize       = IP6T_FUNCTION_MAXNAMELEN,
-+		.family           = NFPROTO_IPV6,
-+	},
-+};
-+
-+static struct xt_match ip6t_builtin_mt[] __read_mostly = {
-+	{
-+		.name       = "icmp6",
-+		.match      = icmp6_match,
-+		.matchsize  = sizeof(struct ip6t_icmp),
-+		.checkentry = icmp6_checkentry,
-+		.proto      = IPPROTO_ICMPV6,
-+		.family     = NFPROTO_IPV6,
-+	},
-+};
-+
- static inline struct ip6t_entry *
- get_entry(const void *base, unsigned int offset)
- {
-@@ -1033,24 +1131,6 @@ copy_entries_to_user(unsigned int total_size,
- }
- 
- #ifdef CONFIG_COMPAT
--static void compat_standard_from_user(void *dst, const void *src)
--{
--	int v = *(compat_int_t *)src;
--
--	if (v > 0)
--		v += xt_compat_calc_jump(AF_INET6, v);
--	memcpy(dst, &v, sizeof(v));
--}
--
--static int compat_standard_to_user(void __user *dst, const void *src)
--{
--	compat_int_t cv = *(int *)src;
--
--	if (cv > 0)
--		cv -= xt_compat_calc_jump(AF_INET6, cv);
--	return copy_to_user(dst, &cv, sizeof(cv)) ? -EFAULT : 0;
--}
--
- static int compat_calc_entry(const struct ip6t_entry *e,
- 			     const struct xt_table_info *info,
- 			     const void *base, struct xt_table_info *newinfo)
-@@ -2142,73 +2222,6 @@ void ip6t_unregister_table(struct net *net, struct xt_table *table)
- 	xt_free_table_info(private);
- }
- 
--/* Returns 1 if the type and code is matched by the range, 0 otherwise */
--static inline bool
--icmp6_type_code_match(u_int8_t test_type, u_int8_t min_code, u_int8_t max_code,
--		     u_int8_t type, u_int8_t code,
--		     bool invert)
--{
--	return (type == test_type && code >= min_code && code <= max_code)
--		^ invert;
--}
--
--static bool
--icmp6_match(const struct sk_buff *skb, struct xt_action_param *par)
--{
--	const struct icmp6hdr *ic;
--	struct icmp6hdr _icmph;
--	const struct ip6t_icmp *icmpinfo = par->matchinfo;
--
--	/* Must not be a fragment. */
--	if (par->fragoff != 0)
--		return false;
--
--	ic = skb_header_pointer(skb, par->thoff, sizeof(_icmph), &_icmph);
--	if (ic == NULL) {
--		/* We've been asked to examine this packet, and we
--		 * can't.  Hence, no choice but to drop.
--		 */
--		duprintf("Dropping evil ICMP tinygram.\n");
--		par->hotdrop = true;
--		return false;
--	}
--
--	return icmp6_type_code_match(icmpinfo->type,
--				     icmpinfo->code[0],
--				     icmpinfo->code[1],
--				     ic->icmp6_type, ic->icmp6_code,
--				     !!(icmpinfo->invflags&IP6T_ICMP_INV));
--}
--
--/* Called when user tries to insert an entry of this type. */
--static int icmp6_checkentry(const struct xt_mtchk_param *par)
--{
--	const struct ip6t_icmp *icmpinfo = par->matchinfo;
--
--	/* Must specify no unknown invflags */
--	return (icmpinfo->invflags & ~IP6T_ICMP_INV) ? -EINVAL : 0;
--}
--
--/* The built-in targets: standard (NULL) and error. */
--static struct xt_target ip6t_builtin_tg[] __read_mostly = {
--	{
--		.name             = IP6T_STANDARD_TARGET,
--		.targetsize       = sizeof(int),
--		.family           = NFPROTO_IPV6,
--#ifdef CONFIG_COMPAT
--		.compatsize       = sizeof(compat_int_t),
--		.compat_from_user = compat_standard_from_user,
--		.compat_to_user   = compat_standard_to_user,
--#endif
--	},
--	{
--		.name             = IP6T_ERROR_TARGET,
--		.target           = ip6t_error,
--		.targetsize       = IP6T_FUNCTION_MAXNAMELEN,
--		.family           = NFPROTO_IPV6,
--	},
--};
--
- static struct nf_sockopt_ops ip6t_sockopts = {
- 	.pf		= PF_INET6,
- 	.set_optmin	= IP6T_BASE_CTL,
-@@ -2226,17 +2239,6 @@ static struct nf_sockopt_ops ip6t_sockopts = {
- 	.owner		= THIS_MODULE,
- };
- 
--static struct xt_match ip6t_builtin_mt[] __read_mostly = {
--	{
--		.name       = "icmp6",
--		.match      = icmp6_match,
--		.matchsize  = sizeof(struct ip6t_icmp),
--		.checkentry = icmp6_checkentry,
--		.proto      = IPPROTO_ICMPV6,
--		.family     = NFPROTO_IPV6,
--	},
--};
--
- static int __net_init ip6_tables_net_init(struct net *net)
- {
- 	return xt_proto_init(net, NFPROTO_IPV6);
--- 
-1.7.0.5
+Cheers, -Hannes
 
+On Sat, May 1, 2010 at 18:18, Patrick McHardy <kaber@trash.net> wrote:
+> Simon Horman wrote:
+>
+>> @@ -0,0 +1,25 @@
+>> +#ifndef _XT_IPVS_H
+>> +#define _XT_IPVS_H 1
+>
+> You don't need to define a value.
+>
+>> +config NETFILTER_XT_MATCH_IPVS
+>> + =A0 =A0 tristate '"ipvs" match support'
+>> + =A0 =A0 depends on IP_VS
+>> + =A0 =A0 depends on NETFILTER_ADVANCED
+>> + =A0 =A0 help
+>> + =A0 =A0 =A0 This option allows you to match against IPVS propertie=
+s of a packet.
+>> +
+>> + =A0 =A0 =A0 If unsure, say N.
+>
+> You're using conntrack symbols, so this seems to need a dependency
+> on NF_CONNTRACK.
+>
+>> +static bool ipvs_mt_check(const struct xt_mtchk_param *par)
+>
+> We've changed the signature to "int" in nf-next to be able to
+> return errno codes. Please rebase your patches onto nf-next-2.6.git.
+>
+> Please also CC netfilter-devel at least for those parts that affect
+> non-IPVS netfilter.
+>
+>> +{
+>> + =A0 =A0 if (par->family !=3D NFPROTO_IPV4
+>> +#ifdef CONFIG_IP_VS_IPV6
+>> + =A0 =A0 =A0 =A0 && par->family !=3D NFPROTO_IPV6
+>> +#endif
+>> + =A0 =A0 =A0 =A0 =A0 =A0 ) {
+>> + =A0 =A0 =A0 =A0 =A0 =A0 pr_info("protocol family %u not supported\=
+n", par->family);
+>> + =A0 =A0 =A0 =A0 =A0 =A0 return false;
+>> + =A0 =A0 }
+>> +
+>> + =A0 =A0 return true;
+>> +}
+>
+>
