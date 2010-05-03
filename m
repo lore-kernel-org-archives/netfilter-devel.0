@@ -1,75 +1,80 @@
-From: Hannes Eder <heder@google.com>
-Subject: Re: [patch v2.2 1/4] [PATCH v2.1 1/4] netfilter: xt_ipvs (netfilter
-	matcher for IPVS)
-Date: Mon, 3 May 2010 13:29:46 +0200
-Message-ID: <AANLkTikIzHuzxo4z1_8_fEGLBC2-0Uz0X8SOc8n2msuX@mail.gmail.com>
-References: <20100501032014.406353538@vergenet.net>
-	 <20100501032120.298829234@vergenet.net> <4BDC543F.7060500@trash.net>
+From: Thomas Jarosch <thomas.jarosch@intra2net.com>
+Subject: ipt_LOG: MAC address output
+Date: Mon, 3 May 2010 15:58:09 +0200
+Message-ID: <201005031558.09409.thomas.jarosch@intra2net.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Simon Horman <horms@verge.net.au>, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	netfilter@vger.kernel.org, Wensong Zhang <wensong@linux-vs.org>,
-	Julius Volz <julius.volz@gmail.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-In-Reply-To: <4BDC543F.7060500@trash.net>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from rs02.intra2net.com ([81.169.173.116]:39990 "EHLO
+	rs02.intra2net.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759033Ab0ECOQx (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 3 May 2010 10:16:53 -0400
+Received: from intranator.m.i2n (unknown [172.16.1.99])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by rs02.intra2net.com (Postfix) with ESMTP id 9104F963C
+	for <netfilter-devel@vger.kernel.org>; Mon,  3 May 2010 15:58:11 +0200 (CEST)
+Received: from localhost (intranator.m.i2n [127.0.0.1])
+	by localhost (Postfix) with ESMTP id 0C5112AC53
+	for <netfilter-devel@vger.kernel.org>; Mon,  3 May 2010 15:58:11 +0200 (CEST)
+Received: from storm.localnet (storm.m.i2n [172.16.1.2])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by intranator.m.i2n (Postfix) with ESMTPS id D6C452AC51
+	for <netfilter-devel@vger.kernel.org>; Mon,  3 May 2010 15:58:09 +0200 (CEST)
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Thank you for picking this series of patches up again and thanks for
-the feedback.
+Hello,
 
-I'll send an updated version in the next days.
+below is an ipt_LOG output from kernel 2.6.33.2:
 
-Cheers, -Hannes
+May  3 15:14:40 intratest kernel: REJECT IN=eth0 OUT=
+MAC=02:00:00:00:00:29:00:0c:76:28:3e:6c:08:00 SRC=172.16.1.1 DST=172.16.1.145 ...
 
-On Sat, May 1, 2010 at 18:18, Patrick McHardy <kaber@trash.net> wrote:
-> Simon Horman wrote:
->
->> @@ -0,0 +1,25 @@
->> +#ifndef _XT_IPVS_H
->> +#define _XT_IPVS_H 1
->
-> You don't need to define a value.
->
->> +config NETFILTER_XT_MATCH_IPVS
->> + =A0 =A0 tristate '"ipvs" match support'
->> + =A0 =A0 depends on IP_VS
->> + =A0 =A0 depends on NETFILTER_ADVANCED
->> + =A0 =A0 help
->> + =A0 =A0 =A0 This option allows you to match against IPVS propertie=
-s of a packet.
->> +
->> + =A0 =A0 =A0 If unsure, say N.
->
-> You're using conntrack symbols, so this seems to need a dependency
-> on NF_CONNTRACK.
->
->> +static bool ipvs_mt_check(const struct xt_mtchk_param *par)
->
-> We've changed the signature to "int" in nf-next to be able to
-> return errno codes. Please rebase your patches onto nf-next-2.6.git.
->
-> Please also CC netfilter-devel at least for those parts that affect
-> non-IPVS netfilter.
->
->> +{
->> + =A0 =A0 if (par->family !=3D NFPROTO_IPV4
->> +#ifdef CONFIG_IP_VS_IPV6
->> + =A0 =A0 =A0 =A0 && par->family !=3D NFPROTO_IPV6
->> +#endif
->> + =A0 =A0 =A0 =A0 =A0 =A0 ) {
->> + =A0 =A0 =A0 =A0 =A0 =A0 pr_info("protocol family %u not supported\=
-n", par->family);
->> + =A0 =A0 =A0 =A0 =A0 =A0 return false;
->> + =A0 =A0 }
->> +
->> + =A0 =A0 return true;
->> +}
->
->
+The MAC address really looks strange if you take
+the original data into consideration:
+
+Source: 172.16.1.1 (00:0C:76:28:3E:6C)
+Destination: 172.16.1.145 (02:00:00:00:00:29)
+
+The corresponding code in net/ipv4/netfilter/ipt_LOG.c:
+
+ipt_log_packet():
+        if (in && !out) {
+                /* MAC logging for input chain only. */
+                printk("MAC=");
+                if (skb->dev && skb->dev->hard_header_len
+                    && skb->mac_header != skb->network_header) {
+                        int i;
+                        const unsigned char *p = skb_mac_header(skb);
+                        for (i = 0; i < skb->dev->hard_header_len; i++,p++)
+                                printk("%02x%c", *p,
+                                       i==skb->dev->hard_header_len - 1
+                                       ? ' ':':');
+                } else
+                        printk(" ");
+
+
+The current code does the following:
+- Output the two MAC addresses separated by ":"
+  instead of something readable like " "
+
+- Output the destination MAC address first which
+  is a bit unexpected as the first shown IP is
+  the IP address of "SRC".
+ 
+  Idea: Maybe print "MACSRC= " and "MACDST= ". Leave out
+  the "MACxxx= " output if the MAC address is not known.
+
+- Output "08:00" garbage at the end.
+
+Could it be that "skb->dev->hard_header_len" is longer
+than the MAC address header field?
+
+Cheers,
+Thomas
