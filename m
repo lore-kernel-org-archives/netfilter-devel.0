@@ -1,40 +1,35 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net-next-2.6] net: if6_get_next() fix
-Date: Mon, 03 May 2010 13:24:42 -0700 (PDT)
-Message-ID: <20100503.132442.200112018.davem@davemloft.net>
-References: <1272916007.2407.75.camel@edumazet-laptop>
-	<20100503.130902.172620141.davem@davemloft.net>
-	<1272917635.2407.106.camel@edumazet-laptop>
+From: info <infweb113@singnet.com.sg>
+Subject: Irish 2010 Grant Winner
+Date: Tue, 04 May 2010 04:19:06 +0800 (SGT)
+Message-ID: <1272917946.4bdf2fba603cb@arrowana.singnet.com.sg>
+Reply-To: redeemprize2010@live.co.uk
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=iso-8859-1
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: paulmck@linux.vnet.ibm.com, shemminger@vyatta.com,
-	Valdis.Kletnieks@vt.edu, akpm@linux-foundation.org,
-	peterz@infradead.org, kaber@trash.net,
-	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: eric.dumazet@gmail.com
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <1272917635.2407.106.camel@edumazet-laptop>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: iri@uk.cc
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from comsmtp1.singnet.com.sg ([165.21.101.74]:55985 "EHLO
+	comsmtp1.singnet.com.sg" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754305Ab0ECUaB (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 3 May 2010 16:30:01 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-=46rom: Eric Dumazet <eric.dumazet@gmail.com>
-Date: Mon, 03 May 2010 22:13:55 +0200
+Your email address has won,=A31,000,000Pounds,in the on going UK.PROMO.=
+send your details:
+Names:_
+Tele:_
+Age:_
+Address:_
+occupation:_
+country:_
+Email:redeem_prize1122@live.co.uk
 
-> Le lundi 03 mai 2010 =E0 13:09 -0700, David Miller a =E9crit :
->> From: Eric Dumazet <eric.dumazet@gmail.com>
->> Date: Mon, 03 May 2010 21:46:47 +0200
->>=20
->> > Then, net-next-2.6 doesnt yet have your commit Paul to relax
->> > hlist_for_each_entry_rcu(), so its a bit difficult to continue the=
- work.
->>=20
->> Is that in Linus's tree yet?  If it propagates there I can make it
->> propagate to net-next-2.6, you just have to tell me you need it.
->=20
->=20
-> Hmm, it seems it's already in net-next-2.6, sorry for the confusion.
-
-No problem, just let me know in the future if something upstream needs
-to propagate.
+Agent Name: Mr. Mark Foster
+Tel:+44 704-571-0545
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
