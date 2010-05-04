@@ -1,56 +1,35 @@
-From: Simon Lodal <simonl@parknet.dk>
+From: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>
 Subject: Re: [PATCH] Document --state UNTRACKED
-Date: Tue, 4 May 2010 10:04:08 +0200
-Message-ID: <201005041004.08349.simonl@parknet.dk>
-References: <201005040832.00376.simonl@parknet.dk> <alpine.LSU.2.01.1005040913330.9626@obet.zrqbmnf.qr>
+Date: Tue, 04 May 2010 11:48:54 +0200
+Message-ID: <4BDFED86.5000408@plouf.fr.eu.org>
+References: <201005040832.00376.simonl@parknet.dk>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+To: Simon Lodal <simonl@parknet.dk>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cuda.parknet.dk ([84.238.112.40]:55787 "EHLO cuda.parknet.dk"
+Received: from poutre.nerim.net ([62.4.16.124]:59126 "EHLO poutre.nerim.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752789Ab0EDIEL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 4 May 2010 04:04:11 -0400
-In-Reply-To: <alpine.LSU.2.01.1005040913330.9626@obet.zrqbmnf.qr>
-Content-Disposition: inline
+	id S1755136Ab0EDJs6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 4 May 2010 05:48:58 -0400
+In-Reply-To: <201005040832.00376.simonl@parknet.dk>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Tirsdag 04 maj 2010 09:13:43 skrev Jan Engelhardt:
-> On Tuesday 2010-05-04 08:32, Simon Lodal wrote:
-> >--state UNTRACKED was missing in man page.
->
-> As is --ctstate UNTRACKED
+Hello,
 
-Were you aiming for this, or just making a remark?
+Simon Lodal a =E9crit :
+>=20
+> +.B UNTRACKED
+> +meaning that the packet is not tracked at all, which happens if you =
+use
+> +the NOTRACK target in mangle table.
 
-Signed-off-by: Simon Lodal <simonl@parknet.dk>
+s/mangle/raw/
 
-diff -ruNp a/extensions/libxt_conntrack.man b/extensions/libxt_conntrack.man
---- a/extensions/libxt_conntrack.man	2010-03-01 15:11:28.000000000 +0100
-+++ b/extensions/libxt_conntrack.man	2010-05-04 09:57:47.000000000 +0200
-@@ -55,6 +55,10 @@ in both directions,
- meaning that the packet is starting a new connection, but is associated with an
- existing connection, such as an FTP data transfer, or an ICMP error.
- .TP
-+\fBUNTRACKED\fR
-+meaning that the packet is not tracked at all, which happens if you use
-+the NOTRACK target in mangle table.
-+.TP
- \fBSNAT\fR
- A virtual state, matching if the original source address differs from the reply
- destination.
-diff -ruNp a/extensions/libxt_state.man b/extensions/libxt_state.man
---- a/extensions/libxt_state.man	2010-03-01 15:11:28.000000000 +0100
-+++ b/extensions/libxt_state.man	2010-05-04 09:57:47.000000000 +0200
-@@ -19,3 +19,6 @@ directions, and
- meaning that the packet is starting a new connection, but is
- associated with an existing connection, such as an FTP data transfer,
- or an ICMP error.
-+.B UNTRACKED
-+meaning that the packet is not tracked at all, which happens if you use
-+the NOTRACK target in mangle table.
-
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
