@@ -1,52 +1,38 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH net-next-2.6] net: if6_get_next() fix
-Date: Mon, 03 May 2010 15:54:11 -0700 (PDT)
-Message-ID: <20100503.155411.112816416.davem@davemloft.net>
-References: <20100503.132442.200112018.davem@davemloft.net>
-	<1272919814.2407.149.camel@edumazet-laptop>
-	<20100503225229.GO2597@linux.vnet.ibm.com>
+From: Simon Lodal <simonl@parknet.dk>
+Subject: [PATCH] Document --state UNTRACKED
+Date: Tue, 4 May 2010 08:32:00 +0200
+Message-ID: <201005040832.00376.simonl@parknet.dk>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Cc: eric.dumazet@gmail.com, shemminger@vyatta.com,
-	Valdis.Kletnieks@vt.edu, akpm@linux-foundation.org,
-	peterz@infradead.org, kaber@trash.net,
-	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: paulmck@linux.vnet.ibm.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:46779
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759431Ab0ECWyG (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 3 May 2010 18:54:06 -0400
-In-Reply-To: <20100503225229.GO2597@linux.vnet.ibm.com>
+Received: from cuda.parknet.dk ([84.238.112.40]:46870 "EHLO cuda.parknet.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755949Ab0EDGvw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 4 May 2010 02:51:52 -0400
+Received: from duen.parknet.dk (localhost [127.0.0.1])
+	by cuda.parknet.dk (Spam & Virus Firewall) with ESMTP id 3D5413F33702
+	for <netfilter-devel@vger.kernel.org>; Tue,  4 May 2010 08:32:01 +0200 (CEST)
+Received: from duen.parknet.dk (duen.parknet.dk [84.238.112.14]) by cuda.parknet.dk with ESMTP id f5d7TfYUQaRantj0 for <netfilter-devel@vger.kernel.org>; Tue, 04 May 2010 08:32:01 +0200 (CEST)
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
-Date: Mon, 3 May 2010 15:52:29 -0700
 
-> On Mon, May 03, 2010 at 10:50:14PM +0200, Eric Dumazet wrote:
->> Paul, David, here the patch I was thinking about :
->> 
->> Feel free to split it in two parts if you like, I am too tired and must
->> sleep now ;)
->> 
->> Thanks
->> 
->> [PATCH net-next-2.6] net: rcu fixes
->> 
->> Add hlist_for_each_entry_rcu_bh() and
->> hlist_for_each_entry_continue_rcu_bh() macros, and use them in
->> ipv6_get_ifaddr(), if6_get_first() and if6_get_next() to fix lockdeps
->> warnings.
-> 
-> Looks good!!!
-> 
-> It will collide with Arnd's sparse-based changes, but that will be
-> easy to fix, so no problem.
-> 
-> Reviewed-by: "Paul E. McKenney" <paulmck@linux.vnet.ibm.com>
+--state UNTRACKED was missing in man page.
 
-Applied, thanks!
+Signed-off-by: Simon Lodal <simonl@parknet.dk>
+
+diff -ruNp a/extensions/libxt_state.man b/extensions/libxt_state.man
+--- a/extensions/libxt_state.man        2010-03-01 15:11:28.000000000 +0100
++++ b/extensions/libxt_state.man        2010-05-04 08:20:27.000000000 +0200
+@@ -19,3 +19,6 @@ directions, and
+ meaning that the packet is starting a new connection, but is
+ associated with an existing connection, such as an FTP data transfer,
+ or an ICMP error.
++.B UNTRACKED
++meaning that the packet is not tracked at all, which happens if you use
++the NOTRACK target in mangle table.
+
