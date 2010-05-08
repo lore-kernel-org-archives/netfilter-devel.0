@@ -1,30 +1,28 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: nf-next: a mixed bag
-Date: Fri, 7 May 2010 22:11:09 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1005072209530.1334@obet.zrqbmnf.qr>
-References: <1272880297-11198-1-git-send-email-jengelh@medozas.de>
+From: "Rita Spencer" <info@McKenna.com>
+Subject: hello
+Date: Sat, 8 May 2010 14:31:49 +0200
+Message-ID: <20100508112722.M68461__14828.5146490254$1273321930$gmane$org@McKenna.com>
+Reply-To: rita19000@sify.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+Content-Type: text/plain;
+	charset=iso-8859-1
+To: undisclosed-recipients:;
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:47051 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754871Ab0EGULL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 7 May 2010 16:11:11 -0400
-In-Reply-To: <1272880297-11198-1-git-send-email-jengelh@medozas.de>
+Received: from [121.52.209.72] ([121.52.209.72]:3257 "EHLO www.parasaga.com"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1752194Ab0EHMb7 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 8 May 2010 08:31:59 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Monday 2010-05-03 11:51, Jan Engelhardt wrote:
->
->please leave comments (or merge if ok).
->
->Included:
-> - two fixes
-> - things that came up in between
-> - xt2 preparatory work
+Hello Friend, 
 
+I am Rita Spencer esq., a solicitor at law.the personal attorney /sole  executor to the 
+WILL of my late client ? I have a  message for you please return my mail for 
+details.Your Respond should be sent to my Private email:rita1900@sify.com
 
-Ping?
-Did the IPS definition upgrade attempt cut you off? :^)
+GodBless You and Your Family.
+Rita Spencer Esq.
+rita1900@sify.com
+
+***MESSAGE***
