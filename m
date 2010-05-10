@@ -1,87 +1,65 @@
-From: Joerg Marx <joerg.marx@secunet.com>
-Subject: Re: [PATCH] nf_conntrack_core.c: fix for dead connection after flushing
- conntrack cache
-Date: Mon, 10 May 2010 19:08:35 +0200
-Message-ID: <4BE83D93.8080909@secunet.com>
-References: <4BE3D31F.6000607@secunet.com> <4BE73DE3.6080304@netfilter.org> <4BE824EA.6000303@trash.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>,
-	Mail List - Netfilter <netfilter@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+From: kaber@trash.net
+Subject: [PATCH 02/84] netfilter: ebt_ip6: Use ipv6_masked_addr_cmp()
+Date: Mon, 10 May 2010 22:17:33 +0200
+Message-ID: <1273522735-24672-3-git-send-email-kaber@trash.net>
+References: <1273522735-24672-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from a.mx.secunet.com ([195.81.216.161]:56600 "EHLO a.mx.secunet.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755664Ab0EJRJF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 10 May 2010 13:09:05 -0400
-In-Reply-To: <4BE824EA.6000303@trash.net>
+Received: from stinky.trash.net ([213.144.137.162]:54500 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756566Ab0EJUS6 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 10 May 2010 16:18:58 -0400
+In-Reply-To: <1273522735-24672-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On 05/10/2010 05:23 PM, Patrick McHardy wrote:
+From: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
 
-...
-> 
-> I think this should be fine since the race you describe only affects
-> unconfirmed conntracks, but it took me a while to realize that all
-> the other spots where the DYING bit is set are fine without holding
-> the conntrack lock.
-> 
-> Could you please add a comment to the check in __nf_conntrack_confirm()
-> stating that the dying check is supposed to prevent races against
-> nf_ct_get_next_corpse()? The semantic of the DYING bit is unfortunately
-> a bit overloaded.
-> 
-> Also, since the condition unconfirmed + dying in nf_conntrack_confirm()
-> is highly unlikely, I'd suggest to remove the dying check there and only
-> perform it in __nf_conntrack_confirm().
-> 
+Signed-off-by: YOSHIFUJI Hideaki <yoshfuji@linux-ipv6.org>
+Signed-off-by: Bart De Schuymer <bdschuym@pandora.be>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+---
+ net/bridge/netfilter/ebt_ip6.c |   18 ++++--------------
+ 1 files changed, 4 insertions(+), 14 deletions(-)
 
-I hope the comment is clearly pointing to the (solved) problem now. I
-also removed the obsolete check in nf_conntrack_confirm.
-
-diff --git a/include/net/netfilter/nf_conntrack_core.h
-b/include/net/netfilter/nf_conntrack_core.h
-index dffde8e..3d7524f 100644
---- a/include/net/netfilter/nf_conntrack_core.h
-+++ b/include/net/netfilter/nf_conntrack_core.h
-@@ -61,7 +61,7 @@ static inline int nf_conntrack_confirm(struct sk_buff
-*skb)
- 	int ret = NF_ACCEPT;
-
- 	if (ct && ct != &nf_conntrack_untracked) {
--		if (!nf_ct_is_confirmed(ct) && !nf_ct_is_dying(ct))
-+		if (!nf_ct_is_confirmed(ct))
- 			ret = __nf_conntrack_confirm(skb);
- 		if (likely(ret == NF_ACCEPT))
- 			nf_ct_deliver_cached_events(ct);
-diff --git a/net/netfilter/nf_conntrack_core.c
-b/net/netfilter/nf_conntrack_core.c
-index 0c9bbe9..7ff9a40 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -422,6 +422,16 @@ __nf_conntrack_confirm(struct sk_buff *skb)
-
- 	spin_lock_bh(&nf_conntrack_lock);
-
-+	/* We have to check the DYING flag inside the lock to prevent
-+	   a race against nf_ct_get_next_corpse() possibly called from
-+	   user context, else we insert an already 'dead' hash, blocking
-+	   further use of that particular connection -JM */
-+
-+	if (unlikely(nf_ct_is_dying(ct))) {
-+		spin_unlock_bh(&nf_conntrack_lock);
-+		return NF_ACCEPT;
-+	}
-+
- 	/* See if there's one in the list already, including reverse:
- 	   NAT could have grabbed it without realizing, since we're
- 	   not in the hash.  If there is, we lost race. */
-
-
-
+diff --git a/net/bridge/netfilter/ebt_ip6.c b/net/bridge/netfilter/ebt_ip6.c
+index bbf2534..4644cc9 100644
+--- a/net/bridge/netfilter/ebt_ip6.c
++++ b/net/bridge/netfilter/ebt_ip6.c
+@@ -35,8 +35,6 @@ ebt_ip6_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+ 	struct ipv6hdr _ip6h;
+ 	const struct tcpudphdr *pptr;
+ 	struct tcpudphdr _ports;
+-	struct in6_addr tmp_addr;
+-	int i;
+ 
+ 	ih6 = skb_header_pointer(skb, 0, sizeof(_ip6h), &_ip6h);
+ 	if (ih6 == NULL)
+@@ -44,18 +42,10 @@ ebt_ip6_mt(const struct sk_buff *skb, const struct xt_match_param *par)
+ 	if (info->bitmask & EBT_IP6_TCLASS &&
+ 	   FWINV(info->tclass != ipv6_get_dsfield(ih6), EBT_IP6_TCLASS))
+ 		return false;
+-	for (i = 0; i < 4; i++)
+-		tmp_addr.in6_u.u6_addr32[i] = ih6->saddr.in6_u.u6_addr32[i] &
+-			info->smsk.in6_u.u6_addr32[i];
+-	if (info->bitmask & EBT_IP6_SOURCE &&
+-		FWINV((ipv6_addr_cmp(&tmp_addr, &info->saddr) != 0),
+-			EBT_IP6_SOURCE))
+-		return false;
+-	for (i = 0; i < 4; i++)
+-		tmp_addr.in6_u.u6_addr32[i] = ih6->daddr.in6_u.u6_addr32[i] &
+-			info->dmsk.in6_u.u6_addr32[i];
+-	if (info->bitmask & EBT_IP6_DEST &&
+-	   FWINV((ipv6_addr_cmp(&tmp_addr, &info->daddr) != 0), EBT_IP6_DEST))
++	if (FWINV(ipv6_masked_addr_cmp(&ih6->saddr, &info->smsk,
++				       &info->saddr), EBT_IP6_SOURCE) ||
++	    FWINV(ipv6_masked_addr_cmp(&ih6->daddr, &info->dmsk,
++				       &info->daddr), EBT_IP6_DEST))
+ 		return false;
+ 	if (info->bitmask & EBT_IP6_PROTO) {
+ 		uint8_t nexthdr = ih6->nexthdr;
 -- 
+1.7.0.4
 
