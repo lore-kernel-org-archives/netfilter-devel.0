@@ -1,32 +1,54 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: Karl Hiramoto <karl@hiramoto.org>
 Subject: Re: [PATCH] iptables: optionally disable largefile support.
-Date: Mon, 10 May 2010 10:00:13 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1005100959270.23890@obet.zrqbmnf.qr>
-References: <1273476638-31417-1-git-send-email-karl@hiramoto.org>
+Date: Mon, 10 May 2010 10:14:27 +0200
+Message-ID: <4BE7C063.5000302@hiramoto.org>
+References: <1273476638-31417-1-git-send-email-karl@hiramoto.org> <alpine.LSU.2.01.1005100959270.23890@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
-To: Karl Hiramoto <karl@hiramoto.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:42250 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752551Ab0EJIAO (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 10 May 2010 04:00:14 -0400
-In-Reply-To: <1273476638-31417-1-git-send-email-karl@hiramoto.org>
+Received: from caiajhbdcbhh.dreamhost.com ([208.97.132.177]:45009 "EHLO
+	homiemail-a34.g.dreamhost.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755304Ab0EJIOe (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 10 May 2010 04:14:34 -0400
+In-Reply-To: <alpine.LSU.2.01.1005100959270.23890@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Monday 2010-05-10 09:30, Karl Hiramoto wrote:
+On 05/10/2010 10:00 AM, Jan Engelhardt wrote:
+> What is the actual problem you are experiencing? If the toolchain does
+> not support largefiles, the -D macros should not do anything, so that
+> conversely, their presence is not harmful.
+>    
+Uclibc include headers do checking see:
 
->Many toolchains for embedded systems don't have largefile support.
->
->+AC_ARG_ENABLE([largefile],
->+	AS_HELP_STRING([--disable-largefile], [Do not build largefile support]),
->+	[enable_largefile="$enableval"],
->+	[enable_largefile="yes";
->+	largefile_cflags='-D_LARGEFILE_SOURCE=1 -D_LARGE_FILES -D_FILE_OFFSET_BITS=64'])
+http://git.uclibc.org/uClibc/tree/include/features.h#n216
 
-What is the actual problem you are experiencing? If the toolchain does 
-not support largefiles, the -D macros should not do anything, so that 
-conversely, their presence is not harmful.
 
+You get errors like:
+
+
+usr/include/features.h:383:4: error: #error It appears you have defined 
+_FILE_OFFSET_BITS=64. Unfortunately, uClibc was built without large file 
+support enabled.
+In file included from /build_armeb/staging_dir/usr/include/stdio.h:72,
+                  from libiptc/libip4tc.c:18:
+/build_armeb/staging_dir/usr/include/bits/uClibc_stdio.h:72:2: error: 
+#error Sorry... uClibc was built without large file support!
+In file included from libiptc/libip4tc.c:18:
+/build_armeb/staging_dir/usr/include/stdio.h:83: error: expected '=', 
+',', ';', 'asm' or '__attribute__' before 'fpos_t'
+In file included from libiptc/libip4tc.c:18:
+/build_armeb/staging_dir/usr/include/stdio.h:709: error: expected 
+declaration specifiers or '...' before 'fpos_t'
+/build_armeb/staging_dir/usr/include/stdio.h:711: error: expected ';', 
+',' or ')' before '*' token
+
+
+With this patch everything compiles and works fine.
+
+--
+Karl
