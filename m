@@ -1,47 +1,53 @@
-From: kaber@trash.net
-Subject: [PATCH 05/84] netfilter: xt_CT: par->family is an nfproto
-Date: Mon, 10 May 2010 22:17:36 +0200
-Message-ID: <1273522735-24672-6-git-send-email-kaber@trash.net>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: Re: [PATCH 72/84] netfilter: xtables: inclusion of xt_TEE
+Date: Mon, 10 May 2010 22:52:59 +0200
+Message-ID: <1273524779.2590.236.camel@edumazet-laptop>
 References: <1273522735-24672-1-git-send-email-kaber@trash.net>
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: davem@davemloft.net
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:54506 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756630Ab0EJUS7 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 10 May 2010 16:18:59 -0400
-In-Reply-To: <1273522735-24672-1-git-send-email-kaber@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+	 <1273522735-24672-73-git-send-email-kaber@trash.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+To: kaber@trash.net
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1273522735-24672-73-git-send-email-kaber@trash.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-From: Jan Engelhardt <jengelh@medozas.de>
+Le lundi 10 mai 2010 =C3=A0 22:18 +0200, kaber@trash.net a =C3=A9crit :
+> From: Jan Engelhardt <jengelh@medozas.de>
+>=20
+> xt_TEE can be used to clone and reroute a packet. This can for
+> example be used to copy traffic at a router for logging purposes
+> to another dedicated machine.
+>=20
+> References: http://www.gossamer-threads.com/lists/iptables/devel/6878=
+1
+> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+> Signed-off-by: Patrick McHardy <kaber@trash.net>
+> ---
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- net/netfilter/xt_CT.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+> +static bool tee_tg_route_oif(struct flowi *f, struct net *net,
+> +			     const struct xt_tee_tginfo *info)
+> +{
+> +	const struct net_device *dev;
+> +
+> +	if (*info->oif !=3D '\0')
+> +		return true;
+> +	dev =3D dev_get_by_name(net, info->oif);
+> +	if (dev =3D=3D NULL)
+> +		return false;
+> +	f->oif =3D dev->ifindex;
+> +	return true;
+> +}
+> +
 
-diff --git a/net/netfilter/xt_CT.c b/net/netfilter/xt_CT.c
-index 61c50fa..fda603e 100644
---- a/net/netfilter/xt_CT.c
-+++ b/net/netfilter/xt_CT.c
-@@ -37,13 +37,13 @@ static unsigned int xt_ct_target(struct sk_buff *skb,
- 
- static u8 xt_ct_find_proto(const struct xt_tgchk_param *par)
- {
--	if (par->family == AF_INET) {
-+	if (par->family == NFPROTO_IPV4) {
- 		const struct ipt_entry *e = par->entryinfo;
- 
- 		if (e->ip.invflags & IPT_INV_PROTO)
- 			return 0;
- 		return e->ip.proto;
--	} else if (par->family == AF_INET6) {
-+	} else if (par->family == NFPROTO_IPV6) {
- 		const struct ip6t_entry *e = par->entryinfo;
- 
- 		if (e->ipv6.invflags & IP6T_INV_PROTO)
--- 
-1.7.0.4
+This leaks a refcount on device.
+
+But I see patch 76/84 replaces the whole thing, so this is probably
+harmless.
+
+
+
 
