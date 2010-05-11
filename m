@@ -1,38 +1,33 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/84] netfilter: netfilter update for 2.6.35
-Date: Mon, 10 May 2010 23:14:27 -0700 (PDT)
-Message-ID: <20100510.231427.200101684.davem@davemloft.net>
-References: <1273522735-24672-1-git-send-email-kaber@trash.net>
+From: Michael Hakimi <yalakvar@gmail.com>
+Subject: libNetfilterQueue - Capturing all traffic
+Date: Tue, 11 May 2010 10:39:48 +0300
+Message-ID: <AANLkTinbYYmNT0eTbFV2NMtUlCr-eFojJaI0TffEZyTK@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: kaber@trash.net
+Content-Type: text/plain; charset=UTF-8
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:37499
-	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751187Ab0EKGOT (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:34342 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750824Ab0EKHju (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 11 May 2010 02:14:19 -0400
-In-Reply-To: <1273522735-24672-1-git-send-email-kaber@trash.net>
+	Tue, 11 May 2010 03:39:50 -0400
+Received: by fxm19 with SMTP id 19so43786fxm.19
+        for <netfilter-devel@vger.kernel.org>; Tue, 11 May 2010 00:39:48 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: kaber@trash.net
-Date: Mon, 10 May 2010 22:17:31 +0200
+Hi,
 
-> appologies for not sending this earlier in smaller batches, as mentioned
-> earlier I ran into some problems with git. Following is a first netfilter
-> update for 2.6.35, containing:
- ...
-> The patches won't apply cleanly because of some conflicts resolved during
-> merges, please pull from:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git master
+I have a "simple" question regarding libNetfilterQueue and can't find
+the answer for it.
+I am trying to create an application that captures ALL the incoming
+traffic using libNetfilterQueue. In the function nfq_bind_pf I need to
+supply the protocol family. If I set it to AF_INET I get only IP
+packets, if I set it to AF_PACKET the function fails.
+I have also tried AF_UNSPEC but that didn't help.
 
-Looks good, pulled, thanks Patrick.
+Is there any way to to this?
+Thank in advance for any help.
 
-Please double check that the device leak in xt_TEE pointed out by Eric
-really got fixed properly in the end.
-
-Thanks.
+Regards,
+Mickey
