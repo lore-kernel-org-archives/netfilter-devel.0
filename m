@@ -1,53 +1,131 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH 72/84] netfilter: xtables: inclusion of xt_TEE
-Date: Mon, 10 May 2010 22:52:59 +0200
-Message-ID: <1273524779.2590.236.camel@edumazet-laptop>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [PATCH 40/84] netfilter: ipvs: use NFPROTO values for NF_HOOK
+ invocation
+Date: Tue, 11 May 2010 12:07:06 +0900
+Message-ID: <20100511030703.GA7112@verge.net.au>
 References: <1273522735-24672-1-git-send-email-kaber@trash.net>
-	 <1273522735-24672-73-git-send-email-kaber@trash.net>
+ <1273522735-24672-41-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: text/plain; charset=us-ascii
 Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org,
 	netdev@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1273522735-24672-73-git-send-email-kaber@trash.net>
+Content-Disposition: inline
+In-Reply-To: <1273522735-24672-41-git-send-email-kaber@trash.net>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Le lundi 10 mai 2010 =C3=A0 22:18 +0200, kaber@trash.net a =C3=A9crit :
+On Mon, May 10, 2010 at 10:18:11PM +0200, kaber@trash.net wrote:
 > From: Jan Engelhardt <jengelh@medozas.de>
->=20
-> xt_TEE can be used to clone and reroute a packet. This can for
-> example be used to copy traffic at a router for logging purposes
-> to another dedicated machine.
->=20
-> References: http://www.gossamer-threads.com/lists/iptables/devel/6878=
-1
+> 
+> Semantic patch:
+> // <smpl>
+> @@
+> @@
+>  IP_VS_XMIT(
+> -PF_INET6,
+> +NFPROTO_IPV6,
+>  ...)
+> 
+> @@
+> @@
+>  IP_VS_XMIT(
+> -PF_INET,
+> +NFPROTO_IPV4,
+>  ...)
+> // </smpl>
+> 
 > Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
-> Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+FWIW
+
+Acked-by: Simon Horman <horms@verge.net.au>
+
 > ---
-
-> +static bool tee_tg_route_oif(struct flowi *f, struct net *net,
-> +			     const struct xt_tee_tginfo *info)
-> +{
-> +	const struct net_device *dev;
-> +
-> +	if (*info->oif !=3D '\0')
-> +		return true;
-> +	dev =3D dev_get_by_name(net, info->oif);
-> +	if (dev =3D=3D NULL)
-> +		return false;
-> +	f->oif =3D dev->ifindex;
-> +	return true;
-> +}
-> +
-
-This leaks a refcount on device.
-
-But I see patch 76/84 replaces the whole thing, so this is probably
-harmless.
-
-
-
-
+>  net/netfilter/ipvs/ip_vs_xmit.c |   16 ++++++++--------
+>  1 files changed, 8 insertions(+), 8 deletions(-)
+> 
+> diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
+> index 223b501..d0a7b7b 100644
+> --- a/net/netfilter/ipvs/ip_vs_xmit.c
+> +++ b/net/netfilter/ipvs/ip_vs_xmit.c
+> @@ -269,7 +269,7 @@ ip_vs_bypass_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+>  	/* Another hack: avoid icmp_send in ip_fragment */
+>  	skb->local_df = 1;
+>  
+> -	IP_VS_XMIT(PF_INET, skb, rt);
+> +	IP_VS_XMIT(NFPROTO_IPV4, skb, rt);
+>  
+>  	LeaveFunction(10);
+>  	return NF_STOLEN;
+> @@ -333,7 +333,7 @@ ip_vs_bypass_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+>  	/* Another hack: avoid icmp_send in ip_fragment */
+>  	skb->local_df = 1;
+>  
+> -	IP_VS_XMIT(PF_INET6, skb, rt);
+> +	IP_VS_XMIT(NFPROTO_IPV6, skb, rt);
+>  
+>  	LeaveFunction(10);
+>  	return NF_STOLEN;
+> @@ -409,7 +409,7 @@ ip_vs_nat_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+>  	/* Another hack: avoid icmp_send in ip_fragment */
+>  	skb->local_df = 1;
+>  
+> -	IP_VS_XMIT(PF_INET, skb, rt);
+> +	IP_VS_XMIT(NFPROTO_IPV4, skb, rt);
+>  
+>  	LeaveFunction(10);
+>  	return NF_STOLEN;
+> @@ -485,7 +485,7 @@ ip_vs_nat_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+>  	/* Another hack: avoid icmp_send in ip_fragment */
+>  	skb->local_df = 1;
+>  
+> -	IP_VS_XMIT(PF_INET6, skb, rt);
+> +	IP_VS_XMIT(NFPROTO_IPV6, skb, rt);
+>  
+>  	LeaveFunction(10);
+>  	return NF_STOLEN;
+> @@ -784,7 +784,7 @@ ip_vs_dr_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+>  	/* Another hack: avoid icmp_send in ip_fragment */
+>  	skb->local_df = 1;
+>  
+> -	IP_VS_XMIT(PF_INET, skb, rt);
+> +	IP_VS_XMIT(NFPROTO_IPV4, skb, rt);
+>  
+>  	LeaveFunction(10);
+>  	return NF_STOLEN;
+> @@ -837,7 +837,7 @@ ip_vs_dr_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+>  	/* Another hack: avoid icmp_send in ip_fragment */
+>  	skb->local_df = 1;
+>  
+> -	IP_VS_XMIT(PF_INET6, skb, rt);
+> +	IP_VS_XMIT(NFPROTO_IPV6, skb, rt);
+>  
+>  	LeaveFunction(10);
+>  	return NF_STOLEN;
+> @@ -911,7 +911,7 @@ ip_vs_icmp_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
+>  	/* Another hack: avoid icmp_send in ip_fragment */
+>  	skb->local_df = 1;
+>  
+> -	IP_VS_XMIT(PF_INET, skb, rt);
+> +	IP_VS_XMIT(NFPROTO_IPV4, skb, rt);
+>  
+>  	rc = NF_STOLEN;
+>  	goto out;
+> @@ -986,7 +986,7 @@ ip_vs_icmp_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
+>  	/* Another hack: avoid icmp_send in ip_fragment */
+>  	skb->local_df = 1;
+>  
+> -	IP_VS_XMIT(PF_INET6, skb, rt);
+> +	IP_VS_XMIT(NFPROTO_IPV6, skb, rt);
+>  
+>  	rc = NF_STOLEN;
+>  	goto out;
+> -- 
+> 1.7.0.4
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
