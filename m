@@ -1,63 +1,44 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 72/84] netfilter: xtables: inclusion of xt_TEE
-Date: Tue, 11 May 2010 13:42:02 +0200
-Message-ID: <4BE9428A.5090402@trash.net>
-References: <1273522735-24672-1-git-send-email-kaber@trash.net>	 <1273522735-24672-73-git-send-email-kaber@trash.net> <1273524779.2590.236.camel@edumazet-laptop>
+Subject: Re: [PATCH 11/11] netfilter: xtables: convert basic nfproto match
+ functions into xt matches
+Date: Tue, 11 May 2010 14:59:02 +0200
+Message-ID: <4BE95496.1000709@trash.net>
+References: <1272880297-11198-1-git-send-email-jengelh@medozas.de> <1272880297-11198-12-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:37302 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:39025 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751754Ab0EKLmE (ORCPT
+	with ESMTP id S1756665Ab0EKM7F (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 11 May 2010 07:42:04 -0400
-In-Reply-To: <1273524779.2590.236.camel@edumazet-laptop>
+	Tue, 11 May 2010 08:59:05 -0400
+In-Reply-To: <1272880297-11198-12-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Dumazet wrote:
-> Le lundi 10 mai 2010 =E0 22:18 +0200, kaber@trash.net a =E9crit :
->> From: Jan Engelhardt <jengelh@medozas.de>
->>
->> xt_TEE can be used to clone and reroute a packet. This can for
->> example be used to copy traffic at a router for logging purposes
->> to another dedicated machine.
->>
->> References: http://www.gossamer-threads.com/lists/iptables/devel/687=
-81
->> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
->> Signed-off-by: Patrick McHardy <kaber@trash.net>
->> ---
->=20
->> +static bool tee_tg_route_oif(struct flowi *f, struct net *net,
->> +			     const struct xt_tee_tginfo *info)
->> +{
->> +	const struct net_device *dev;
->> +
->> +	if (*info->oif !=3D '\0')
->> +		return true;
->> +	dev =3D dev_get_by_name(net, info->oif);
->> +	if (dev =3D=3D NULL)
->> +		return false;
->> +	f->oif =3D dev->ifindex;
->> +	return true;
->> +}
->> +
->=20
-> This leaks a refcount on device.
->=20
-> But I see patch 76/84 replaces the whole thing, so this is probably
-> harmless.
+Jan Engelhardt wrote:
+> Each table implementation has a private built-in hardwired match
+> function for its corresponding nfproto data (e.g. ip_tables: struct
+> ipt6_ip6 processed by ip6_packet_match to match against the IPv6
+> header, etc.)
+> 
+> Rewrite the functions so that they are independent xt_matches and can
+> be used from an nfproto-independent table.
 
-Correct, that patch replaces the per-packet lookup and uses
-netdevice notifiers to store the ifindex of the output device,
-without keeping a reference at all.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+No major objections, but I'd like to know where this is going
+and when, so far this doesn't provide any benefit.
+
+And as always, please format things like
+
+> +	ret = ifname_compare_aligned((par->in == NULL) ? nulldevname :
+> +	      par->in->name, ipinfo->iniface, ipinfo->iniface_mask);
+
+so the arguments are neatly aligned. F.i.
+
+	ret = ifname_compare_aligned(!par->in ? nulldevname : par->in->name,
+				     ipinfo->iniface, ipinfo->iniface_mask);
+
+would work nicely.
