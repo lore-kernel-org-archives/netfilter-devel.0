@@ -1,61 +1,121 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Whither xt_SYSRQ?
-Date: Tue, 11 May 2010 19:06:08 +0200
-Message-ID: <4BE98E80.2000804@trash.net>
-References: <4BE96A66.4040607@oracle.com>
+From: Joe Perches <joe@perches.com>
+Subject: [PATCH net-next] net/: (netfilter related) Remove unnecessary
+ returns from void function()s
+Date: Tue, 11 May 2010 10:52:26 -0700
+Message-ID: <1273600346.20514.247.camel@Joe-Laptop.home>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org,
-	Netfilter Core Team <coreteam@netfilter.org>
-To: John Haxby <john.haxby@oracle.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:43895 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751755Ab0EKRGJ (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 11 May 2010 13:06:09 -0400
-In-Reply-To: <4BE96A66.4040607@oracle.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-John Haxby wrote:
-> 
-> The earlier discussions about whether to include xt_SYSRQ in mainline
-> seem to have petered out with no clear consensus.  As I recall, there
-> were two suggestions as an alternative: use k(g)dboe and use a dedicated
-> standalone module.
-> 
-> The former suggestion, kdboe, doesn't seem to fly because it's not in
-> the kernel and also (unless I'm mistaken) provides little or no
-> concession to security.  It's great for development but in the case
-> where xt_SYSRQ can be used in a production environment, it doesn't seem
-> to work.  Providing the environment for the debugger to work in is also
-> likely to involve installing a lot on a production machine that wouldn't
-> normally be there.  (xt_SYSRQ is nice and light and would sit nicely
-> alongside, for example, netconsole.)
-> 
-> The standalone module is troublesome.  If I was starting from scratch
-> with that I'd be putting in filters and whatnot that match those
-> provides by xtables anyway.  If everything apart from the actual
-> function (sysrq) and password control is duplicated by xtables then
-> you'd have to ask "why isn't this part of xtables?".
+This patch removes from net/ netfilter files
+all the unnecessary return; statements that precede the
+last closing brace of void functions.
 
-The main point for putting it in a stand-alone module is that it
-is providing a network service. You could still use netfilter to
-filter packets of course. I don't see where the big trouble is,
-instead of using netfilter for receiving packets, you open up
-a socket. That's basically it.
+It does not remove the returns that are immediately
+preceded by a label as gcc doesn't like that.
 
-> I know xt_SYSRQ is used by quite a few people and it is seen as
-> generally useful, so what needs to be done to get this into the mainline
-> kernel?  Once it's there it stands a good chance of being backported to
-> some of the production kernels (RHEL6, I'm looking at you) but without
-> having some upstream commitment that seems a distant dream.
-> 
-> if xt_SYSRQ isn't acceptable, what is?  (Bearing in mind that I believe
-> that whatever it is needs to be acceptable to a production environment.)
+Done via:
+$ grep -rP --include=*.[ch] -l "return;\n}" net/ | \
+  xargs perl -i -e 'local $/ ; while (<>) { s/\n[ \t\n]+return;\n}/\n}/g; print; }'
 
-Lets see what other netfilter developers think, I'm easy to convince :)
-One thing I'd like to see in any case however is review of the crypto
-parts by the crypto people.
+Signed-off-by: Joe Perches <joe@perches.com>
+---
+ net/ipv4/netfilter/ip_queue.c                  |    1 -
+ net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c |    1 -
+ net/ipv4/netfilter/nf_nat_proto_gre.c          |    1 -
+ net/ipv6/netfilter/ip6_queue.c                 |    1 -
+ net/netfilter/nf_conntrack_netlink.c           |    1 -
+ net/netfilter/nf_queue.c                       |    1 -
+ net/netfilter/xt_time.c                        |    1 -
+ 7 files changed, 0 insertions(+), 7 deletions(-)
+
+diff --git a/net/ipv4/netfilter/ip_queue.c b/net/ipv4/netfilter/ip_queue.c
+index c838238..a4e5fc5 100644
+--- a/net/ipv4/netfilter/ip_queue.c
++++ b/net/ipv4/netfilter/ip_queue.c
+@@ -461,7 +461,6 @@ __ipq_rcv_skb(struct sk_buff *skb)
+ 
+ 	if (flags & NLM_F_ACK)
+ 		netlink_ack(skb, nlh, 0);
+-	return;
+ }
+ 
+ static void
+diff --git a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+index 2bb1f87..33cc9f2 100644
+--- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
++++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+@@ -452,6 +452,5 @@ module_exit(nf_conntrack_l3proto_ipv4_fini);
+ 
+ void need_ipv4_conntrack(void)
+ {
+-	return;
+ }
+ EXPORT_SYMBOL_GPL(need_ipv4_conntrack);
+diff --git a/net/ipv4/netfilter/nf_nat_proto_gre.c b/net/ipv4/netfilter/nf_nat_proto_gre.c
+index d7e8920..39efbe6 100644
+--- a/net/ipv4/netfilter/nf_nat_proto_gre.c
++++ b/net/ipv4/netfilter/nf_nat_proto_gre.c
+@@ -144,6 +144,5 @@ module_exit(nf_nat_proto_gre_fini);
+ 
+ void nf_nat_need_gre(void)
+ {
+-	return;
+ }
+ EXPORT_SYMBOL_GPL(nf_nat_need_gre);
+diff --git a/net/ipv6/netfilter/ip6_queue.c b/net/ipv6/netfilter/ip6_queue.c
+index 8656eb7..8c20174 100644
+--- a/net/ipv6/netfilter/ip6_queue.c
++++ b/net/ipv6/netfilter/ip6_queue.c
+@@ -462,7 +462,6 @@ __ipq_rcv_skb(struct sk_buff *skb)
+ 
+ 	if (flags & NLM_F_ACK)
+ 		netlink_ack(skb, nlh, 0);
+-	return;
+ }
+ 
+ static void
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 4e55403..354cee4 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -2109,7 +2109,6 @@ static void __exit ctnetlink_exit(void)
+ 
+ 	nfnetlink_subsys_unregister(&ctnl_exp_subsys);
+ 	nfnetlink_subsys_unregister(&ctnl_subsys);
+-	return;
+ }
+ 
+ module_init(ctnetlink_init);
+diff --git a/net/netfilter/nf_queue.c b/net/netfilter/nf_queue.c
+index c49ef21..0b1103c 100644
+--- a/net/netfilter/nf_queue.c
++++ b/net/netfilter/nf_queue.c
+@@ -279,7 +279,6 @@ void nf_reinject(struct nf_queue_entry *entry, unsigned int verdict)
+ 	}
+ 	rcu_read_unlock();
+ 	kfree(entry);
+-	return;
+ }
+ EXPORT_SYMBOL(nf_reinject);
+ 
+diff --git a/net/netfilter/xt_time.c b/net/netfilter/xt_time.c
+index d8556fd..328eb99 100644
+--- a/net/netfilter/xt_time.c
++++ b/net/netfilter/xt_time.c
+@@ -148,7 +148,6 @@ static void localtime_3(struct xtm *r, time_t time)
+ 	}
+ 
+ 	r->month    = i + 1;
+-	return;
+ }
+ 
+ static bool
+
+
