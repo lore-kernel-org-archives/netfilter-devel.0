@@ -1,33 +1,63 @@
-From: Michael Hakimi <yalakvar@gmail.com>
-Subject: libNetfilterQueue - Capturing all traffic
-Date: Tue, 11 May 2010 10:39:48 +0300
-Message-ID: <AANLkTinbYYmNT0eTbFV2NMtUlCr-eFojJaI0TffEZyTK@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 72/84] netfilter: xtables: inclusion of xt_TEE
+Date: Tue, 11 May 2010 13:42:02 +0200
+Message-ID: <4BE9428A.5090402@trash.net>
+References: <1273522735-24672-1-git-send-email-kaber@trash.net>	 <1273522735-24672-73-git-send-email-kaber@trash.net> <1273524779.2590.236.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org,
+	netdev@vger.kernel.org
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:34342 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750824Ab0EKHju (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:37302 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751754Ab0EKLmE (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 11 May 2010 03:39:50 -0400
-Received: by fxm19 with SMTP id 19so43786fxm.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 11 May 2010 00:39:48 -0700 (PDT)
+	Tue, 11 May 2010 07:42:04 -0400
+In-Reply-To: <1273524779.2590.236.camel@edumazet-laptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+Eric Dumazet wrote:
+> Le lundi 10 mai 2010 =E0 22:18 +0200, kaber@trash.net a =E9crit :
+>> From: Jan Engelhardt <jengelh@medozas.de>
+>>
+>> xt_TEE can be used to clone and reroute a packet. This can for
+>> example be used to copy traffic at a router for logging purposes
+>> to another dedicated machine.
+>>
+>> References: http://www.gossamer-threads.com/lists/iptables/devel/687=
+81
+>> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+>> Signed-off-by: Patrick McHardy <kaber@trash.net>
+>> ---
+>=20
+>> +static bool tee_tg_route_oif(struct flowi *f, struct net *net,
+>> +			     const struct xt_tee_tginfo *info)
+>> +{
+>> +	const struct net_device *dev;
+>> +
+>> +	if (*info->oif !=3D '\0')
+>> +		return true;
+>> +	dev =3D dev_get_by_name(net, info->oif);
+>> +	if (dev =3D=3D NULL)
+>> +		return false;
+>> +	f->oif =3D dev->ifindex;
+>> +	return true;
+>> +}
+>> +
+>=20
+> This leaks a refcount on device.
+>=20
+> But I see patch 76/84 replaces the whole thing, so this is probably
+> harmless.
 
-I have a "simple" question regarding libNetfilterQueue and can't find
-the answer for it.
-I am trying to create an application that captures ALL the incoming
-traffic using libNetfilterQueue. In the function nfq_bind_pf I need to
-supply the protocol family. If I set it to AF_INET I get only IP
-packets, if I set it to AF_PACKET the function fails.
-I have also tried AF_UNSPEC but that didn't help.
-
-Is there any way to to this?
-Thank in advance for any help.
-
-Regards,
-Mickey
+Correct, that patch replaces the per-packet lookup and uses
+netdevice notifiers to store the ifindex of the output device,
+without keeping a reference at all.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
