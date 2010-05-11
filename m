@@ -1,131 +1,38 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [PATCH 40/84] netfilter: ipvs: use NFPROTO values for NF_HOOK
- invocation
-Date: Tue, 11 May 2010 12:07:06 +0900
-Message-ID: <20100511030703.GA7112@verge.net.au>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/84] netfilter: netfilter update for 2.6.35
+Date: Mon, 10 May 2010 23:14:27 -0700 (PDT)
+Message-ID: <20100510.231427.200101684.davem@davemloft.net>
 References: <1273522735-24672-1-git-send-email-kaber@trash.net>
- <1273522735-24672-41-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: davem@davemloft.net, netfilter-devel@vger.kernel.org,
-	netdev@vger.kernel.org
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 To: kaber@trash.net
-Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <1273522735-24672-41-git-send-email-kaber@trash.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from 74-93-104-97-Washington.hfc.comcastbusiness.net ([74.93.104.97]:37499
+	"EHLO sunset.davemloft.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751187Ab0EKGOT (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 11 May 2010 02:14:19 -0400
+In-Reply-To: <1273522735-24672-1-git-send-email-kaber@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, May 10, 2010 at 10:18:11PM +0200, kaber@trash.net wrote:
-> From: Jan Engelhardt <jengelh@medozas.de>
-> 
-> Semantic patch:
-> // <smpl>
-> @@
-> @@
->  IP_VS_XMIT(
-> -PF_INET6,
-> +NFPROTO_IPV6,
->  ...)
-> 
-> @@
-> @@
->  IP_VS_XMIT(
-> -PF_INET,
-> +NFPROTO_IPV4,
->  ...)
-> // </smpl>
-> 
-> Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+From: kaber@trash.net
+Date: Mon, 10 May 2010 22:17:31 +0200
 
-FWIW
-
-Acked-by: Simon Horman <horms@verge.net.au>
-
-> ---
->  net/netfilter/ipvs/ip_vs_xmit.c |   16 ++++++++--------
->  1 files changed, 8 insertions(+), 8 deletions(-)
+> appologies for not sending this earlier in smaller batches, as mentioned
+> earlier I ran into some problems with git. Following is a first netfilter
+> update for 2.6.35, containing:
+ ...
+> The patches won't apply cleanly because of some conflicts resolved during
+> merges, please pull from:
 > 
-> diff --git a/net/netfilter/ipvs/ip_vs_xmit.c b/net/netfilter/ipvs/ip_vs_xmit.c
-> index 223b501..d0a7b7b 100644
-> --- a/net/netfilter/ipvs/ip_vs_xmit.c
-> +++ b/net/netfilter/ipvs/ip_vs_xmit.c
-> @@ -269,7 +269,7 @@ ip_vs_bypass_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
->  	/* Another hack: avoid icmp_send in ip_fragment */
->  	skb->local_df = 1;
->  
-> -	IP_VS_XMIT(PF_INET, skb, rt);
-> +	IP_VS_XMIT(NFPROTO_IPV4, skb, rt);
->  
->  	LeaveFunction(10);
->  	return NF_STOLEN;
-> @@ -333,7 +333,7 @@ ip_vs_bypass_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
->  	/* Another hack: avoid icmp_send in ip_fragment */
->  	skb->local_df = 1;
->  
-> -	IP_VS_XMIT(PF_INET6, skb, rt);
-> +	IP_VS_XMIT(NFPROTO_IPV6, skb, rt);
->  
->  	LeaveFunction(10);
->  	return NF_STOLEN;
-> @@ -409,7 +409,7 @@ ip_vs_nat_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
->  	/* Another hack: avoid icmp_send in ip_fragment */
->  	skb->local_df = 1;
->  
-> -	IP_VS_XMIT(PF_INET, skb, rt);
-> +	IP_VS_XMIT(NFPROTO_IPV4, skb, rt);
->  
->  	LeaveFunction(10);
->  	return NF_STOLEN;
-> @@ -485,7 +485,7 @@ ip_vs_nat_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
->  	/* Another hack: avoid icmp_send in ip_fragment */
->  	skb->local_df = 1;
->  
-> -	IP_VS_XMIT(PF_INET6, skb, rt);
-> +	IP_VS_XMIT(NFPROTO_IPV6, skb, rt);
->  
->  	LeaveFunction(10);
->  	return NF_STOLEN;
-> @@ -784,7 +784,7 @@ ip_vs_dr_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
->  	/* Another hack: avoid icmp_send in ip_fragment */
->  	skb->local_df = 1;
->  
-> -	IP_VS_XMIT(PF_INET, skb, rt);
-> +	IP_VS_XMIT(NFPROTO_IPV4, skb, rt);
->  
->  	LeaveFunction(10);
->  	return NF_STOLEN;
-> @@ -837,7 +837,7 @@ ip_vs_dr_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
->  	/* Another hack: avoid icmp_send in ip_fragment */
->  	skb->local_df = 1;
->  
-> -	IP_VS_XMIT(PF_INET6, skb, rt);
-> +	IP_VS_XMIT(NFPROTO_IPV6, skb, rt);
->  
->  	LeaveFunction(10);
->  	return NF_STOLEN;
-> @@ -911,7 +911,7 @@ ip_vs_icmp_xmit(struct sk_buff *skb, struct ip_vs_conn *cp,
->  	/* Another hack: avoid icmp_send in ip_fragment */
->  	skb->local_df = 1;
->  
-> -	IP_VS_XMIT(PF_INET, skb, rt);
-> +	IP_VS_XMIT(NFPROTO_IPV4, skb, rt);
->  
->  	rc = NF_STOLEN;
->  	goto out;
-> @@ -986,7 +986,7 @@ ip_vs_icmp_xmit_v6(struct sk_buff *skb, struct ip_vs_conn *cp,
->  	/* Another hack: avoid icmp_send in ip_fragment */
->  	skb->local_df = 1;
->  
-> -	IP_VS_XMIT(PF_INET6, skb, rt);
-> +	IP_VS_XMIT(NFPROTO_IPV6, skb, rt);
->  
->  	rc = NF_STOLEN;
->  	goto out;
-> -- 
-> 1.7.0.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git master
+
+Looks good, pulled, thanks Patrick.
+
+Please double check that the device leak in xt_TEE pointed out by Eric
+really got fixed properly in the end.
+
+Thanks.
