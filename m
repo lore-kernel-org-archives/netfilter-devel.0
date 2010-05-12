@@ -1,44 +1,61 @@
-From: Stephen Hemminger <shemminger@vyatta.com>
-Subject: Re: [PATCH 2/2] netfilter: cleanup printk messages
-Date: Wed, 12 May 2010 09:54:29 -0700
-Message-ID: <20100512095429.18b10af7@nehalam>
-References: <20100512162954.316178344@vyatta.com>
-	<20100512163030.114488325@vyatta.com>
-	<alpine.LSU.2.01.1005121851370.14663@obet.zrqbmnf.qr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: linux-next: Tree for May 12 (netfilter: xt_TEE)
+Date: Wed, 12 May 2010 22:11:35 +0200 (CEST)
+Message-ID: <alpine.LSU.2.01.1005122210180.11190@obet.zrqbmnf.qr>
+References: <20100512164638.75e6e111.sfr@canb.auug.org.au> <20100512085045.483f0e2d.randy.dunlap@oracle.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.vyatta.com ([76.74.103.46]:59267 "EHLO mail.vyatta.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751776Ab0ELQyb (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 12 May 2010 12:54:31 -0400
-In-Reply-To: <alpine.LSU.2.01.1005121851370.14663@obet.zrqbmnf.qr>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
+	netdev <netdev@vger.kernel.org>,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, linux-next@vger.kernel.org,
+	LKML <linux-kernel@vger.kernel.org>,
+	sebastian.classen@freenet.ag,
+	Randy Dunlap <randy.dunlap@oracle.com>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <20100512085045.483f0e2d.randy.dunlap@oracle.com>
+Sender: linux-next-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, 12 May 2010 18:52:02 +0200 (CEST)
-Jan Engelhardt <jengelh@medozas.de> wrote:
+On Wednesday 2010-05-12 17:50, Randy Dunlap wrote:
+>On Wed, 12 May 2010 16:46:38 +1000 Stephen Rothwell wrote:
+>
+>net/built-in.o: In function `tee_tg_route6':
+>xt_TEE.c:(.text+0x45ca5): undefined reference to `ip6_route_output'
+>net/built-in.o: In function `tee_tg6':
+>xt_TEE.c:(.text+0x45d79): undefined reference to `ip6_local_out'
 
-> 
-> On Wednesday 2010-05-12 18:29, Stephen Hemminger wrote:
-> 
-> >Make sure all printk messages have a severity level.
-> >
-> >--- a/net/netfilter/nf_conntrack_amanda.c	2010-05-12 09:28:26.447006714 -0700
-> >+++ b/net/netfilter/nf_conntrack_amanda.c	2010-05-12 09:28:44.287371327 -0700
-> >@@ -108,7 +108,7 @@ static int amanda_help(struct sk_buff *s
-> > 	dataoff = protoff + sizeof(struct udphdr);
-> > 	if (dataoff >= skb->len) {
-> > 		if (net_ratelimit())
-> >-			printk("amanda_help: skblen = %u\n", skb->len);
-> >+			printk(KERN_ERR "amanda_help: skblen = %u\n", skb->len);
-> 
-> A good idea, but perhaps we should just use pr_{err,andsoon} while at it.
+parent cba7a98a474a4f2a9316473734ba76829191a78a (v2.6.34-rc5-1489-gcba7a98)
+commit cff884ea0de4bf8729ac33bb5d98ac9d39d09019
+Author: Jan Engelhardt <jengelh@medozas.de>
+Date:   Wed May 12 22:10:03 2010 +0200
 
-I did some places, but code that was already using printk(KERN_XXX form,
-I just duplicated existing style in that file.
+netfilter: xtables: add missing depends for xt_TEE
 
+Aviod these link-time errors when IPV6=m, XT_TEE=y:
+
+net/built-in.o: In function `tee_tg_route6':
+xt_TEE.c:(.text+0x45ca5): undefined reference to `ip6_route_output'
+net/built-in.o: In function `tee_tg6':
+xt_TEE.c:(.text+0x45d79): undefined reference to `ip6_local_out'
+
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ net/netfilter/Kconfig |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 673a6c8..e223f47 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -505,6 +505,7 @@ config NETFILTER_XT_TARGET_RATEEST
+ config NETFILTER_XT_TARGET_TEE
+ 	tristate '"TEE" - packet cloning to alternate destiantion'
+ 	depends on NETFILTER_ADVANCED
++	depends on (IPV6 || IPV6=n)
+ 	---help---
+ 	This option adds a "TEE" target with which a packet can be cloned and
+ 	this clone be rerouted to another nexthop.
 -- 
+# Created with git-export-patch
