@@ -1,43 +1,58 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 2/2] netfilter: cleanup printk messages
-Date: Thu, 13 May 2010 15:03:13 +0200
-Message-ID: <4BEBF891.8080307@trash.net>
-References: <20100512162954.316178344@vyatta.com>	<20100512163030.114488325@vyatta.com>	<alpine.LSU.2.01.1005121851370.14663@obet.zrqbmnf.qr> <20100512095429.18b10af7@nehalam>
+Subject: Re: [PATCH net-next] net/: (netfilter related) Remove unnecessary
+ returns from void function()s
+Date: Thu, 13 May 2010 15:20:04 +0200
+Message-ID: <4BEBFC84.5020707@trash.net>
+References: <1273600346.20514.247.camel@Joe-Laptop.home>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	netfilter-devel@vger.kernel.org
-To: Stephen Hemminger <shemminger@vyatta.com>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org
+To: Joe Perches <joe@perches.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:54993 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:55325 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758527Ab0EMNDO (ORCPT
+	with ESMTP id S1752852Ab0EMNUF (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 May 2010 09:03:14 -0400
-In-Reply-To: <20100512095429.18b10af7@nehalam>
+	Thu, 13 May 2010 09:20:05 -0400
+In-Reply-To: <1273600346.20514.247.camel@Joe-Laptop.home>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Stephen Hemminger wrote:
-> On Wed, 12 May 2010 18:52:02 +0200 (CEST)
-> Jan Engelhardt <jengelh@medozas.de> wrote:
+Joe Perches wrote:
+> This patch removes from net/ netfilter files
+> all the unnecessary return; statements that precede the
+> last closing brace of void functions.
 > 
->> On Wednesday 2010-05-12 18:29, Stephen Hemminger wrote:
->>
->>> Make sure all printk messages have a severity level.
->>>
->>> --- a/net/netfilter/nf_conntrack_amanda.c	2010-05-12 09:28:26.447006714 -0700
->>> +++ b/net/netfilter/nf_conntrack_amanda.c	2010-05-12 09:28:44.287371327 -0700
->>> @@ -108,7 +108,7 @@ static int amanda_help(struct sk_buff *s
->>> 	dataoff = protoff + sizeof(struct udphdr);
->>> 	if (dataoff >= skb->len) {
->>> 		if (net_ratelimit())
->>> -			printk("amanda_help: skblen = %u\n", skb->len);
->>> +			printk(KERN_ERR "amanda_help: skblen = %u\n", skb->len);
->> A good idea, but perhaps we should just use pr_{err,andsoon} while at it.
+> It does not remove the returns that are immediately
+> preceded by a label as gcc doesn't like that.
 > 
-> I did some places, but code that was already using printk(KERN_XXX form,
-> I just duplicated existing style in that file.
+> Done via:
+> $ grep -rP --include=*.[ch] -l "return;\n}" net/ | \
+>   xargs perl -i -e 'local $/ ; while (<>) { s/\n[ \t\n]+return;\n}/\n}/g; print; }'
+> 
 
-We can clean this up in follow-up patches. Applied.
+Applied, but I changed the patch to keep the two return statements
+below in otherwise empty function bodies since I consider that more
+aesthetically pleasing.
+
+> --- a/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+> +++ b/net/ipv4/netfilter/nf_conntrack_l3proto_ipv4.c
+> @@ -452,6 +452,5 @@ module_exit(nf_conntrack_l3proto_ipv4_fini);
+>  
+>  void need_ipv4_conntrack(void)
+>  {
+> -	return;
+>  }
+>  EXPORT_SYMBOL_GPL(need_ipv4_conntrack);
+> diff --git a/net/ipv4/netfilter/nf_nat_proto_gre.c b/net/ipv4/netfilter/nf_nat_proto_gre.c
+> index d7e8920..39efbe6 100644
+> --- a/net/ipv4/netfilter/nf_nat_proto_gre.c
+> +++ b/net/ipv4/netfilter/nf_nat_proto_gre.c
+> @@ -144,6 +144,5 @@ module_exit(nf_nat_proto_gre_fini);
+>  
+>  void nf_nat_need_gre(void)
+>  {
+> -	return;
+>  }
