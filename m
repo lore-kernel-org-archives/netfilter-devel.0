@@ -1,29 +1,39 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: iptables-next/TEE extension
-Date: Thu, 13 May 2010 15:50:50 +0200
-Message-ID: <4BEC03BA.3090501@trash.net>
+From: Joe Perches <joe@perches.com>
+Subject: Re: [PATCH net-next] net/: (netfilter related) Remove unnecessary
+ returns from void function()s
+Date: Thu, 13 May 2010 08:52:24 -0700
+Message-ID: <1273765944.21514.35.camel@Joe-Laptop.home>
+References: <1273600346.20514.247.camel@Joe-Laptop.home>
+	 <4BEBFC84.5020707@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-To: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:55778 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752863Ab0EMNuz (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 May 2010 09:50:55 -0400
-Received: from [192.168.0.100] (unknown [78.42.107.241])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by stinky.trash.net (Postfix) with ESMTPSA id 86155B2C53
-	for <netfilter-devel@vger.kernel.org>; Thu, 13 May 2010 15:50:54 +0200 (MEST)
+Received: from mail.perches.com ([173.55.12.10]:2215 "EHLO mail.perches.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758777Ab0EMPw0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 13 May 2010 11:52:26 -0400
+In-Reply-To: <4BEBFC84.5020707@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-I've created a new branch "iptables-next" in the iptables git
-repository, containing support for new features in the net-next
-tree.
+On Thu, 2010-05-13 at 15:20 +0200, Patrick McHardy wrote:
+> Joe Perches wrote:
+> > This patch removes from net/ netfilter files
+> > all the unnecessary return; statements that precede the
+> > last closing brace of void functions.
+> > Done via:
+> > $ grep -rP --include=*.[ch] -l "return;\n}" net/ | \
+> >   xargs perl -i -e 'local $/ ; while (<>) { s/\n[ \t\n]+return;\n}/\n}/g; print; }'
+> > 
+> Applied, but I changed the patch to keep the two return statements
+> below in otherwise empty function bodies since I consider that more
+> aesthetically pleasing.
 
-Currently the only new feature requiring userspace support is
-the "TEE" target.
+No worries, thanks.
+The patch is just for taste and consistency.
+
+
