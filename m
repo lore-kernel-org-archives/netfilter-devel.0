@@ -1,95 +1,38 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: [PATCH] netfilter: Remove skb_is_nonlinear check from
-	nf_conntrack_sip
-Date: Thu, 13 May 2010 18:38:34 -0600
-Message-ID: <20100514003834.GY15969@obsidianresearch.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 00/12] netfilter: netfilter update
+Date: Thu, 13 May 2010 19:07:31 -0700 (PDT)
+Message-ID: <20100513.190731.258096719.davem@davemloft.net>
+References: <1273767385-18225-1-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from [139.142.54.143] ([139.142.54.143]:44732 "EHLO quartz.orcorp.ca"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1753025Ab0ENAij (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 13 May 2010 20:38:39 -0400
-Content-Disposition: inline
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: kaber@trash.net
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1273767385-18225-1-git-send-email-kaber@trash.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-At least the XEN net front driver always produces non linear skbs,
-so the SIP module does nothing at all when used with that NIC.
+From: kaber@trash.net
+Date: Thu, 13 May 2010 18:16:13 +0200
 
-Copy the hacky technique for accessing SKB data from the ftp conntrack,
-better than nothing..
+> following is a second netfilter update, containing:
+> 
+> - a compilation fix for ip_tables with CONFIG_NETFILTER_DEBUG=y, from Jan
+> 
+> - a fix for an invalid return value in the multiport match introduced in
+>   the last series, from Jan
+> 
+> - patches to combine the match and target parameters into a common structure,
+>   from Jan
+> 
+> - Bart's patch to fix the NULL pointer dereference in bridge netfilter
+>   reported by Stephen
+> 
+> - minor cleanups and improvements from Jan, Stephen and Joe
+> 
+> Please apply or pull from:
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git master
 
-Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
----
- net/netfilter/nf_conntrack_sip.c |   21 ++++++++++++++-------
- 1 files changed, 14 insertions(+), 7 deletions(-)
-
-diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
-index 4b57216..37dd7a4 100644
---- a/net/netfilter/nf_conntrack_sip.c
-+++ b/net/netfilter/nf_conntrack_sip.c
-@@ -30,6 +30,10 @@ MODULE_DESCRIPTION("SIP connection tracking helper");
- MODULE_ALIAS("ip_conntrack_sip");
- MODULE_ALIAS_NFCT_HELPER("sip");
- 
-+/* This is slow, but it's simple. --RR */
-+static char *sip_buffer;
-+static DEFINE_SPINLOCK(nf_sip_lock);
-+
- #define MAX_PORTS	8
- static unsigned short ports[MAX_PORTS];
- static unsigned int ports_c;
-@@ -1275,17 +1279,14 @@ static int sip_help(struct sk_buff *skb,
- 
- 	nf_ct_refresh(ct, skb, sip_timeout * HZ);
- 
--	if (!skb_is_nonlinear(skb))
--		dptr = skb->data + dataoff;
--	else {
--		pr_debug("Copy of skbuff not supported yet.\n");
--		return NF_ACCEPT;
--	}
--
- 	datalen = skb->len - dataoff;
- 	if (datalen < strlen("SIP/2.0 200"))
- 		return NF_ACCEPT;
- 
-+	spin_lock_bh(&nf_sip_lock);
-+	dptr = skb_header_pointer(skb, dataoff, datalen, sip_buffer);
-+	BUG_ON(dptr == NULL);
-+
- 	if (strnicmp(dptr, "SIP/2.0 ", strlen("SIP/2.0 ")) != 0)
- 		ret = process_sip_request(skb, &dptr, &datalen);
- 	else
-@@ -1297,6 +1298,7 @@ static int sip_help(struct sk_buff *skb,
- 			ret = NF_DROP;
- 	}
- 
-+	spin_unlock_bh(&nf_sip_lock);
- 	return ret;
- }
- 
-@@ -1329,6 +1331,7 @@ static void nf_conntrack_sip_fini(void)
- 			nf_conntrack_helper_unregister(&sip[i][j]);
- 		}
- 	}
-+	kfree(sip_buffer);
- }
- 
- static int __init nf_conntrack_sip_init(void)
-@@ -1336,6 +1339,10 @@ static int __init nf_conntrack_sip_init(void)
- 	int i, j, ret;
- 	char *tmpname;
- 
-+	sip_buffer = kmalloc(65536, GFP_KERNEL);
-+	if (!sip_buffer)
-+		return -ENOMEM;
-+
- 	if (ports_c == 0)
- 		ports[ports_c++] = SIP_PORT;
- 
--- 
-1.6.0.4
-
+Pulled, thanks Patrick.
