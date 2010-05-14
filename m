@@ -1,54 +1,54 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH -next] netfilter: xt_TEE depends on NF_CONNTRACK
-Date: Fri, 14 May 2010 19:20:16 +0200
-Message-ID: <4BED8650.5040808@trash.net>
-References: <20100514161407.740da901.sfr@canb.auug.org.au> <20100514101218.16cdb0ad.randy.dunlap@oracle.com>
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: [PATCHv2] netfilter: Remove skb_is_nonlinear check from
+	nf_conntrack_sip
+Date: Fri, 14 May 2010 12:01:38 -0600
+Message-ID: <20100514180138.GF15969@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
-	netdev <netdev@vger.kernel.org>,
-	Jan Engelhardt <jengelh@medozas.de>,
-	netfilter-devel@vger.kernel.org, linux-next@vger.kernel.org,
-	LKML <linux-kernel@vger.kernel.org>,
-	"David S. Miller" <davem@davemloft.net>
-To: Randy Dunlap <randy.dunlap@oracle.com>
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <20100514101218.16cdb0ad.randy.dunlap@oracle.com>
-Sender: linux-next-owner@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Patrick McHardy <kaber@trash.net>
+Return-path: <netdev-owner@vger.kernel.org>
+Content-Disposition: inline
+Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-Randy Dunlap wrote:
-> From: Randy Dunlap <randy.dunlap@oracle.com>
-> 
-> Fix xt_TEE build for the case of NF_CONNTRACK=m and
-> NETFILTER_XT_TARGET_TEE=y:
-> 
-> xt_TEE.c:(.text+0x6df5c): undefined reference to `nf_conntrack_untracked'
-> 4x
-> 
-> Built with all 4 m/y combinations.
-> 
-> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
-> Cc:	Patrick McHardy <kaber@trash.net>
-> Cc:	Jan Engelhardt <jengelh@medozas.de>
+At least the XEN net front driver always produces non linear skbs,
+so the SIP module does nothing at all when used with that NIC.
 
-Acked-by: Patrick McHardy <kaber@trash.net>
+Unconditionally linearize the skb..
 
-Dave, please apply directly. Thanks!
+Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+---
+ net/netfilter/nf_conntrack_sip.c |    9 +++------
+ 1 files changed, 3 insertions(+), 6 deletions(-)
 
-> ---
->  net/netfilter/Kconfig |    1 +
->  1 file changed, 1 insertion(+)
-> 
-> --- linux-next-20100514.orig/net/netfilter/Kconfig
-> +++ linux-next-20100514/net/netfilter/Kconfig
-> @@ -506,6 +506,7 @@ config NETFILTER_XT_TARGET_TEE
->  	tristate '"TEE" - packet cloning to alternate destiantion'
->  	depends on NETFILTER_ADVANCED
->  	depends on (IPV6 || IPV6=n)
-> +	depends on !NF_CONNTRACK || NF_CONNTRACK
->  	---help---
->  	This option adds a "TEE" target with which a packet can be cloned and
->  	this clone be rerouted to another nexthop.
-> 
+Patrick/Jan, thanks.. This is what I wanted to do in the first place,
+but I couldn't convince myself it was safe, as no other nf code does
+this..
+
+Unfortunately I can no longer test it :(
+ 
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index 4b57216..02d0b59 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -1275,13 +1275,10 @@ static int sip_help(struct sk_buff *skb,
+ 
+ 	nf_ct_refresh(ct, skb, sip_timeout * HZ);
+ 
+-	if (!skb_is_nonlinear(skb))
+-		dptr = skb->data + dataoff;
+-	else {
+-		pr_debug("Copy of skbuff not supported yet.\n");
+-		return NF_ACCEPT;
+-	}
++	if (unlikely(skb_linearize(skb)))
++		return NF_DROP;
+ 
++	dptr = skb->data + dataoff;
+ 	datalen = skb->len - dataoff;
+ 	if (datalen < strlen("SIP/2.0 200"))
+ 		return NF_ACCEPT;
+-- 
+1.6.0.4
+
