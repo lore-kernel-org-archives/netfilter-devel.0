@@ -1,105 +1,95 @@
-From: kaber@trash.net
-Subject: [PATCH 03/12] netfilter: xtables: dissolve do_match function
-Date: Thu, 13 May 2010 18:16:16 +0200
-Message-ID: <1273767385-18225-4-git-send-email-kaber@trash.net>
-References: <1273767385-18225-1-git-send-email-kaber@trash.net>
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: davem@davemloft.net
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1273767385-18225-1-git-send-email-kaber@trash.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
+Subject: [PATCH] netfilter: Remove skb_is_nonlinear check from
+	nf_conntrack_sip
+Date: Thu, 13 May 2010 18:38:34 -0600
+Message-ID: <20100514003834.GY15969@obsidianresearch.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+To: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from [139.142.54.143] ([139.142.54.143]:44732 "EHLO quartz.orcorp.ca"
+	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1753025Ab0ENAij (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 13 May 2010 20:38:39 -0400
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Jan Engelhardt <jengelh@medozas.de>
+At least the XEN net front driver always produces non linear skbs,
+so the SIP module does nothing at all when used with that NIC.
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+Copy the hacky technique for accessing SKB data from the ftp conntrack,
+better than nothing..
+
+Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
 ---
- net/ipv4/netfilter/ip_tables.c  |   22 +++++-----------------
- net/ipv6/netfilter/ip6_tables.c |   22 +++++-----------------
- 2 files changed, 10 insertions(+), 34 deletions(-)
+ net/netfilter/nf_conntrack_sip.c |   21 ++++++++++++++-------
+ 1 files changed, 14 insertions(+), 7 deletions(-)
 
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index f92818f..265cedf 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -173,21 +173,6 @@ ipt_error(struct sk_buff *skb, const struct xt_target_param *par)
- 	return NF_DROP;
+diff --git a/net/netfilter/nf_conntrack_sip.c b/net/netfilter/nf_conntrack_sip.c
+index 4b57216..37dd7a4 100644
+--- a/net/netfilter/nf_conntrack_sip.c
++++ b/net/netfilter/nf_conntrack_sip.c
+@@ -30,6 +30,10 @@ MODULE_DESCRIPTION("SIP connection tracking helper");
+ MODULE_ALIAS("ip_conntrack_sip");
+ MODULE_ALIAS_NFCT_HELPER("sip");
+ 
++/* This is slow, but it's simple. --RR */
++static char *sip_buffer;
++static DEFINE_SPINLOCK(nf_sip_lock);
++
+ #define MAX_PORTS	8
+ static unsigned short ports[MAX_PORTS];
+ static unsigned int ports_c;
+@@ -1275,17 +1279,14 @@ static int sip_help(struct sk_buff *skb,
+ 
+ 	nf_ct_refresh(ct, skb, sip_timeout * HZ);
+ 
+-	if (!skb_is_nonlinear(skb))
+-		dptr = skb->data + dataoff;
+-	else {
+-		pr_debug("Copy of skbuff not supported yet.\n");
+-		return NF_ACCEPT;
+-	}
+-
+ 	datalen = skb->len - dataoff;
+ 	if (datalen < strlen("SIP/2.0 200"))
+ 		return NF_ACCEPT;
+ 
++	spin_lock_bh(&nf_sip_lock);
++	dptr = skb_header_pointer(skb, dataoff, datalen, sip_buffer);
++	BUG_ON(dptr == NULL);
++
+ 	if (strnicmp(dptr, "SIP/2.0 ", strlen("SIP/2.0 ")) != 0)
+ 		ret = process_sip_request(skb, &dptr, &datalen);
+ 	else
+@@ -1297,6 +1298,7 @@ static int sip_help(struct sk_buff *skb,
+ 			ret = NF_DROP;
+ 	}
+ 
++	spin_unlock_bh(&nf_sip_lock);
+ 	return ret;
  }
  
--/* Performance critical - called for every packet */
--static inline bool
--do_match(const struct ipt_entry_match *m, const struct sk_buff *skb,
--	 struct xt_match_param *par)
--{
--	par->match     = m->u.kernel.match;
--	par->matchinfo = m->data;
--
--	/* Stop iteration if it doesn't match */
--	if (!m->u.kernel.match->match(skb, par))
--		return true;
--	else
--		return false;
--}
--
- /* Performance critical */
- static inline struct ipt_entry *
- get_entry(const void *base, unsigned int offset)
-@@ -379,9 +364,12 @@ ipt_do_table(struct sk_buff *skb,
- 			continue;
+@@ -1329,6 +1331,7 @@ static void nf_conntrack_sip_fini(void)
+ 			nf_conntrack_helper_unregister(&sip[i][j]);
  		}
- 
--		xt_ematch_foreach(ematch, e)
--			if (do_match(ematch, skb, &mtpar) != 0)
-+		xt_ematch_foreach(ematch, e) {
-+			mtpar.match     = ematch->u.kernel.match;
-+			mtpar.matchinfo = ematch->data;
-+			if (!mtpar.match->match(skb, &mtpar))
- 				goto no_match;
-+		}
- 
- 		ADD_COUNTER(e->counters, ntohs(ip->tot_len), 1);
- 
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 7afa117..f8ac4a0 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -205,21 +205,6 @@ ip6t_error(struct sk_buff *skb, const struct xt_target_param *par)
- 	return NF_DROP;
+ 	}
++	kfree(sip_buffer);
  }
  
--/* Performance critical - called for every packet */
--static inline bool
--do_match(const struct ip6t_entry_match *m, const struct sk_buff *skb,
--	 struct xt_match_param *par)
--{
--	par->match     = m->u.kernel.match;
--	par->matchinfo = m->data;
--
--	/* Stop iteration if it doesn't match */
--	if (!m->u.kernel.match->match(skb, par))
--		return true;
--	else
--		return false;
--}
--
- static inline struct ip6t_entry *
- get_entry(const void *base, unsigned int offset)
- {
-@@ -402,9 +387,12 @@ ip6t_do_table(struct sk_buff *skb,
- 			continue;
- 		}
+ static int __init nf_conntrack_sip_init(void)
+@@ -1336,6 +1339,10 @@ static int __init nf_conntrack_sip_init(void)
+ 	int i, j, ret;
+ 	char *tmpname;
  
--		xt_ematch_foreach(ematch, e)
--			if (do_match(ematch, skb, &mtpar) != 0)
-+		xt_ematch_foreach(ematch, e) {
-+			mtpar.match     = ematch->u.kernel.match;
-+			mtpar.matchinfo = ematch->data;
-+			if (!mtpar.match->match(skb, &mtpar))
- 				goto no_match;
-+		}
++	sip_buffer = kmalloc(65536, GFP_KERNEL);
++	if (!sip_buffer)
++		return -ENOMEM;
++
+ 	if (ports_c == 0)
+ 		ports[ports_c++] = SIP_PORT;
  
- 		ADD_COUNTER(e->counters,
- 			    ntohs(ipv6_hdr(skb)->payload_len) +
 -- 
-1.7.0.4
+1.6.0.4
 
