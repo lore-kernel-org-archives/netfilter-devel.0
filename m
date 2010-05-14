@@ -1,38 +1,31 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH 00/12] netfilter: netfilter update
-Date: Thu, 13 May 2010 19:07:31 -0700 (PDT)
-Message-ID: <20100513.190731.258096719.davem@davemloft.net>
-References: <1273767385-18225-1-git-send-email-kaber@trash.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH] netfilter: Remove skb_is_nonlinear check from
+ nf_conntrack_sip
+Date: Fri, 14 May 2010 08:50:24 +0200 (CEST)
+Message-ID: <alpine.LSU.2.01.1005140849500.28602@obet.zrqbmnf.qr>
+References: <20100514003834.GY15969@obsidianresearch.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: kaber@trash.net
+To: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1273767385-18225-1-git-send-email-kaber@trash.net>
+In-Reply-To: <20100514003834.GY15969@obsidianresearch.com>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: kaber@trash.net
-Date: Thu, 13 May 2010 18:16:13 +0200
+On Friday 2010-05-14 02:38, Jason Gunthorpe wrote:
 
-> following is a second netfilter update, containing:
+>At least the XEN net front driver always produces non linear skbs,
+>so the SIP module does nothing at all when used with that NIC.
+>
+>Copy the hacky technique for accessing SKB data from the ftp conntrack,
+>better than nothing..
+>
+>Signed-off-by: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
 > 
-> - a compilation fix for ip_tables with CONFIG_NETFILTER_DEBUG=y, from Jan
-> 
-> - a fix for an invalid return value in the multiport match introduced in
->   the last series, from Jan
-> 
-> - patches to combine the match and target parameters into a common structure,
->   from Jan
-> 
-> - Bart's patch to fix the NULL pointer dereference in bridge netfilter
->   reported by Stephen
-> 
-> - minor cleanups and improvements from Jan, Stephen and Joe
-> 
-> Please apply or pull from:
-> 
-> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git master
+>+/* This is slow, but it's simple. --RR */
+>+static char *sip_buffer;
+>+static DEFINE_SPINLOCK(nf_sip_lock);
+>+
 
-Pulled, thanks Patrick.
+skb_linearize seems simpler. (What about the cost?)
