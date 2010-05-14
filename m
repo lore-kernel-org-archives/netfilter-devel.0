@@ -1,35 +1,43 @@
-From: Jason Gunthorpe <jgunthorpe@obsidianresearch.com>
-Subject: Re: [PATCHv2] netfilter: Remove skb_is_nonlinear check from
-	nf_conntrack_sip
-Date: Fri, 14 May 2010 13:56:55 -0600
-Message-ID: <20100514195655.GK15969@obsidianresearch.com>
-References: <20100514180138.GF15969@obsidianresearch.com> <4BED92AF.50704@trash.net> <20100514182601.GJ15969@obsidianresearch.com> <4BED99A3.2050404@trash.net>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH -next] netfilter: xt_TEE depends on NF_CONNTRACK
+Date: Fri, 14 May 2010 13:52:39 -0700 (PDT)
+Message-ID: <20100514.135239.149842985.davem@davemloft.net>
+References: <20100514161407.740da901.sfr@canb.auug.org.au>
+	<20100514101218.16cdb0ad.randy.dunlap@oracle.com>
+	<4BED8650.5040808@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from [139.142.54.143] ([139.142.54.143]:58234 "EHLO quartz.orcorp.ca"
-	rhost-flags-FAIL-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1759673Ab0ENT44 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 14 May 2010 15:56:56 -0400
-Content-Disposition: inline
-In-Reply-To: <4BED99A3.2050404@trash.net>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: randy.dunlap@oracle.com, sfr@canb.auug.org.au,
+	netdev@vger.kernel.org, jengelh@medozas.de,
+	netfilter-devel@vger.kernel.org, linux-next@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+To: kaber@trash.net
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <4BED8650.5040808@trash.net>
+Sender: linux-next-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, May 14, 2010 at 08:42:43PM +0200, Patrick McHardy wrote:
+From: Patrick McHardy <kaber@trash.net>
+Date: Fri, 14 May 2010 19:20:16 +0200
 
-> > Should this be NF_DROP? As I understand it skb_linearize only failes
-> > if it runs out of memory, which probably means dropping is OK. But
-> > passing a packet that might need rewriting could be harmful..
+> Randy Dunlap wrote:
+>> From: Randy Dunlap <randy.dunlap@oracle.com>
+>> 
+>> Fix xt_TEE build for the case of NF_CONNTRACK=m and
+>> NETFILTER_XT_TARGET_TEE=y:
+>> 
+>> xt_TEE.c:(.text+0x6df5c): undefined reference to `nf_conntrack_untracked'
+>> 4x
+>> 
+>> Built with all 4 m/y combinations.
+>> 
+>> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+>> Cc:	Patrick McHardy <kaber@trash.net>
+>> Cc:	Jan Engelhardt <jengelh@medozas.de>
 > 
-> We so far also didn't rewrite the packet. But agreed, its
-> a corner case and dropping it is the safer choice.
+> Acked-by: Patrick McHardy <kaber@trash.net>
+> 
+> Dave, please apply directly. Thanks!
 
-I was just thinking that, say, a request goes out, gets rewritten but
-the reply comes back and does not get rewritten = bad. Better to drop.
-
-Looks OK to me..
-
-Jason
+Done, thanks everyone.
