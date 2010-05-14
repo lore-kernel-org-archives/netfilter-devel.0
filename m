@@ -1,55 +1,46 @@
-From: krunal patel <krunal.raj@gmail.com>
-Subject: ipset socket not closed
-Date: Fri, 14 May 2010 21:53:16 +0530
-Message-ID: <AANLkTilw1ljLMNAQtEthe7ErEX8R4jkGH1u9_r-fshFw@mail.gmail.com>
+From: Randy Dunlap <randy.dunlap@oracle.com>
+Subject: [PATCH -next] netfilter: xt_TEE depends on NF_CONNTRACK
+Date: Fri, 14 May 2010 10:12:18 -0700
+Message-ID: <20100514101218.16cdb0ad.randy.dunlap@oracle.com>
+References: <20100514161407.740da901.sfr@canb.auug.org.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pz0-f204.google.com ([209.85.222.204]:40372 "EHLO
-	mail-pz0-f204.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751422Ab0ENQXQ convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 14 May 2010 12:23:16 -0400
-Received: by pzk42 with SMTP id 42so1419721pzk.4
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 May 2010 09:23:16 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	Patrick McHardy <kaber@trash.net>
+To: Stephen Rothwell <sfr@canb.auug.org.au>,
+	netdev <netdev@vger.kernel.org>,
+	Jan Engelhardt <jengelh@medozas.de>,
+	netfilter-devel@vger.kernel.org
+Return-path: <linux-next-owner@vger.kernel.org>
+In-Reply-To: <20100514161407.740da901.sfr@canb.auug.org.au>
+Sender: linux-next-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Hi,
-I found a bug in=A0libipt_set.h. When iptables communicate with ipset,
-socket is created but not closed. I wanted to apply more then 700
-iptables rule in one shot and all are having -m set option. I did
-iptables-restore and found error "Can't open socket to ipset."
-After closing socket I am able to do iptables-restore.
-patch:
+From: Randy Dunlap <randy.dunlap@oracle.com>
 
---- iptables-1.4.2/extensions/libipt_set.h =A0 =A0 =A02010-05-14
-18:32:50.000000000 +0530
-+++ iptables-1.4.2/extensions/libipt_set.h =A0 =A0 =A02010-05-14
-18:44:49.000000000 +0530
-@@ -41,13 +41,14 @@
+Fix xt_TEE build for the case of NF_CONNTRACK=m and
+NETFILTER_XT_TARGET_TEE=y:
 
-=A0static int get_set_getsockopt(void *data, socklen_t * size)
-=A0{
-- =A0 =A0 =A0 int sockfd =3D -1;
-+ =A0 =A0 =A0 int sockfd =3D -1, res =3D -1;
-=A0=A0 =A0 =A0 =A0sockfd =3D socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
-=A0=A0 =A0 =A0 =A0if (sockfd < 0)
-=A0=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0exit_error(OTHER_PROBLEM,
-=A0=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "Can't open sock=
-et to ipset.\n");
-=A0=A0 =A0 =A0 =A0/* Send! */
-- =A0 =A0 =A0 return getsockopt(sockfd, SOL_IP, SO_IP_SET, data, size);
-+ =A0 =A0 =A0 res =3D getsockopt(sockfd, SOL_IP, SO_IP_SET, data, size)=
-;
-+ =A0 =A0 =A0 return res;
-=A0}
-Regards,
-Krunal
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+xt_TEE.c:(.text+0x6df5c): undefined reference to `nf_conntrack_untracked'
+4x
+
+Built with all 4 m/y combinations.
+
+Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
+Cc:	Patrick McHardy <kaber@trash.net>
+Cc:	Jan Engelhardt <jengelh@medozas.de>
+---
+ net/netfilter/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
+
+--- linux-next-20100514.orig/net/netfilter/Kconfig
++++ linux-next-20100514/net/netfilter/Kconfig
+@@ -506,6 +506,7 @@ config NETFILTER_XT_TARGET_TEE
+ 	tristate '"TEE" - packet cloning to alternate destiantion'
+ 	depends on NETFILTER_ADVANCED
+ 	depends on (IPV6 || IPV6=n)
++	depends on !NF_CONNTRACK || NF_CONNTRACK
+ 	---help---
+ 	This option adds a "TEE" target with which a packet can be cloned and
+ 	this clone be rerouted to another nexthop.
