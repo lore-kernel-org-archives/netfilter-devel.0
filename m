@@ -1,43 +1,82 @@
-From: David Miller <davem@davemloft.net>
-Subject: Re: [PATCH -next] netfilter: xt_TEE depends on NF_CONNTRACK
-Date: Fri, 14 May 2010 13:52:39 -0700 (PDT)
-Message-ID: <20100514.135239.149842985.davem@davemloft.net>
-References: <20100514161407.740da901.sfr@canb.auug.org.au>
-	<20100514101218.16cdb0ad.randy.dunlap@oracle.com>
-	<4BED8650.5040808@trash.net>
+From: krunal patel <krunal.raj@gmail.com>
+Subject: Re: ipset socket not closed
+Date: Sat, 15 May 2010 12:09:36 +0530
+Message-ID: <AANLkTiljvCa7GHjBleIfzAB5JyINVg3H1ivWkE5V8r5z@mail.gmail.com>
+References: <AANLkTilw1ljLMNAQtEthe7ErEX8R4jkGH1u9_r-fshFw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
-Cc: randy.dunlap@oracle.com, sfr@canb.auug.org.au,
-	netdev@vger.kernel.org, jengelh@medozas.de,
-	netfilter-devel@vger.kernel.org, linux-next@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-To: kaber@trash.net
-Return-path: <linux-next-owner@vger.kernel.org>
-In-Reply-To: <4BED8650.5040808@trash.net>
-Sender: linux-next-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-px0-f174.google.com ([209.85.212.174]:45918 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751980Ab0EOGjh convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 15 May 2010 02:39:37 -0400
+Received: by pxi5 with SMTP id 5so1724748pxi.19
+        for <netfilter-devel@vger.kernel.org>; Fri, 14 May 2010 23:39:36 -0700 (PDT)
+In-Reply-To: <AANLkTilw1ljLMNAQtEthe7ErEX8R4jkGH1u9_r-fshFw@mail.gmail.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Patrick McHardy <kaber@trash.net>
-Date: Fri, 14 May 2010 19:20:16 +0200
+sorry
+--- extensions/libipt_set.h     2010-05-15 12:38:08.000000000 +0530
++++ extensions/libipt_set.h     2010-05-15 12:38:53.000000000 +0530
+@@ -41,13 +41,15 @@
 
-> Randy Dunlap wrote:
->> From: Randy Dunlap <randy.dunlap@oracle.com>
->> 
->> Fix xt_TEE build for the case of NF_CONNTRACK=m and
->> NETFILTER_XT_TARGET_TEE=y:
->> 
->> xt_TEE.c:(.text+0x6df5c): undefined reference to `nf_conntrack_untracked'
->> 4x
->> 
->> Built with all 4 m/y combinations.
->> 
->> Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
->> Cc:	Patrick McHardy <kaber@trash.net>
->> Cc:	Jan Engelhardt <jengelh@medozas.de>
-> 
-> Acked-by: Patrick McHardy <kaber@trash.net>
-> 
-> Dave, please apply directly. Thanks!
+ static int get_set_getsockopt(void *data, socklen_t * size)
+ {
+-       int sockfd =3D -1;
++       int sockfd =3D -1, res =3D -1;
+        sockfd =3D socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
+        if (sockfd < 0)
+                exit_error(OTHER_PROBLEM,
+                           "Can't open socket to ipset.\n");
+        /* Send! */
+-       return getsockopt(sockfd, SOL_IP, SO_IP_SET, data, size);
++       res =3D getsockopt(sockfd, SOL_IP, SO_IP_SET, data, size);
++       close(sockfd);
++       return res;
+ }
 
-Done, thanks everyone.
+On Fri, May 14, 2010 at 9:53 PM, krunal patel <krunal.raj@gmail.com> wr=
+ote:
+> Hi,
+> I found a bug in=A0libipt_set.h. When iptables communicate with ipset=
+,
+> socket is created but not closed. I wanted to apply more then 700
+> iptables rule in one shot and all are having -m set option. I did
+> iptables-restore and found error "Can't open socket to ipset."
+> After closing socket I am able to do iptables-restore.
+> patch:
+>
+> --- iptables-1.4.2/extensions/libipt_set.h =A0 =A0 =A02010-05-14
+> 18:32:50.000000000 +0530
+> +++ iptables-1.4.2/extensions/libipt_set.h =A0 =A0 =A02010-05-14
+> 18:44:49.000000000 +0530
+> @@ -41,13 +41,14 @@
+>
+> =A0static int get_set_getsockopt(void *data, socklen_t * size)
+> =A0{
+> - =A0 =A0 =A0 int sockfd =3D -1;
+> + =A0 =A0 =A0 int sockfd =3D -1, res =3D -1;
+> =A0=A0 =A0 =A0 =A0sockfd =3D socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
+> =A0=A0 =A0 =A0 =A0if (sockfd < 0)
+> =A0=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0exit_error(OTHER_PROBLEM,
+> =A0=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "Can't open so=
+cket to ipset.\n");
+> =A0=A0 =A0 =A0 =A0/* Send! */
+> - =A0 =A0 =A0 return getsockopt(sockfd, SOL_IP, SO_IP_SET, data, size=
+);
+> + =A0 =A0 =A0 res =3D getsockopt(sockfd, SOL_IP, SO_IP_SET, data, siz=
+e);
+> + =A0 =A0 =A0 return res;
+> =A0}
+> Regards,
+> Krunal
+>
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
