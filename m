@@ -1,82 +1,87 @@
-From: krunal patel <krunal.raj@gmail.com>
-Subject: Re: ipset socket not closed
-Date: Sat, 15 May 2010 12:09:36 +0530
-Message-ID: <AANLkTiljvCa7GHjBleIfzAB5JyINVg3H1ivWkE5V8r5z@mail.gmail.com>
-References: <AANLkTilw1ljLMNAQtEthe7ErEX8R4jkGH1u9_r-fshFw@mail.gmail.com>
+From: Joerg Marx <joerg.marx@secunet.com>
+Subject: Re: [PATCH] nf_conntrack_core.c: fix for dead connection after flushing
+ conntrack cache
+Date: Mon, 17 May 2010 10:48:20 +0200
+Message-ID: <4BF102D4.9050304@secunet.com>
+References: <4BE3D31F.6000607@secunet.com> <4BE73DE3.6080304@netfilter.org> <4BE824EA.6000303@trash.net> <4BE83D93.8080909@secunet.com> <4BED2E93.1030004@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-px0-f174.google.com ([209.85.212.174]:45918 "EHLO
-	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751980Ab0EOGjh convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 15 May 2010 02:39:37 -0400
-Received: by pxi5 with SMTP id 5so1724748pxi.19
-        for <netfilter-devel@vger.kernel.org>; Fri, 14 May 2010 23:39:36 -0700 (PDT)
-In-Reply-To: <AANLkTilw1ljLMNAQtEthe7ErEX8R4jkGH1u9_r-fshFw@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>,
+	Mail List - Netfilter <netfilter@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <4BED2E93.1030004@trash.net>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-sorry
---- extensions/libipt_set.h     2010-05-15 12:38:08.000000000 +0530
-+++ extensions/libipt_set.h     2010-05-15 12:38:53.000000000 +0530
-@@ -41,13 +41,15 @@
+On 05/14/2010 01:05 PM, Patrick McHardy wrote:
 
- static int get_set_getsockopt(void *data, socklen_t * size)
- {
--       int sockfd =3D -1;
-+       int sockfd =3D -1, res =3D -1;
-        sockfd =3D socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
-        if (sockfd < 0)
-                exit_error(OTHER_PROBLEM,
-                           "Can't open socket to ipset.\n");
-        /* Send! */
--       return getsockopt(sockfd, SOL_IP, SO_IP_SET, data, size);
-+       res =3D getsockopt(sockfd, SOL_IP, SO_IP_SET, data, size);
-+       close(sockfd);
-+       return res;
- }
+...
+>>
+>> I hope the comment is clearly pointing to the (solved) problem now. I
+>> also removed the obsolete check in nf_conntrack_confirm.
+> 
+> Thanks, this looks fine. But I need a formal submission, including
+> a changelog and Signed-off-by: line. Thanks!
 
-On Fri, May 14, 2010 at 9:53 PM, krunal patel <krunal.raj@gmail.com> wr=
-ote:
-> Hi,
-> I found a bug in=A0libipt_set.h. When iptables communicate with ipset=
-,
-> socket is created but not closed. I wanted to apply more then 700
-> iptables rule in one shot and all are having -m set option. I did
-> iptables-restore and found error "Can't open socket to ipset."
-> After closing socket I am able to do iptables-restore.
-> patch:
->
-> --- iptables-1.4.2/extensions/libipt_set.h =A0 =A0 =A02010-05-14
-> 18:32:50.000000000 +0530
-> +++ iptables-1.4.2/extensions/libipt_set.h =A0 =A0 =A02010-05-14
-> 18:44:49.000000000 +0530
-> @@ -41,13 +41,14 @@
->
-> =A0static int get_set_getsockopt(void *data, socklen_t * size)
-> =A0{
-> - =A0 =A0 =A0 int sockfd =3D -1;
-> + =A0 =A0 =A0 int sockfd =3D -1, res =3D -1;
-> =A0=A0 =A0 =A0 =A0sockfd =3D socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
-> =A0=A0 =A0 =A0 =A0if (sockfd < 0)
-> =A0=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0exit_error(OTHER_PROBLEM,
-> =A0=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "Can't open so=
-cket to ipset.\n");
-> =A0=A0 =A0 =A0 =A0/* Send! */
-> - =A0 =A0 =A0 return getsockopt(sockfd, SOL_IP, SO_IP_SET, data, size=
-);
-> + =A0 =A0 =A0 res =3D getsockopt(sockfd, SOL_IP, SO_IP_SET, data, siz=
-e);
-> + =A0 =A0 =A0 return res;
-> =A0}
-> Regards,
-> Krunal
->
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>From 97913752bc65b2aa4a091a73c3569dc8221a1f25 Mon Sep 17 00:00:00 2001
+From: Joerg Marx <joerg.marx@secunet.com>
+Date: Mon, 10 May 2010 18:39:47 +0200
+Subject: [PATCH] Fix a race in __nf_conntrack_confirm against nf_ct_get_next_corpse()
+
+This race was triggered by a 'conntrack -F' command running in parallel
+to the insertion of a hash for a new connection.
+Losing this race led to a dead conntrack entry effectively blocking
+traffic for a particular connection until timeout or flushing the conntrack
+hashes again.
+Now the check for an already dying connection is done inside the lock.
+
+Signed-off-by: Joerg Marx <joerg.marx@secunet.com>
+---
+ include/net/netfilter/nf_conntrack_core.h |    2 +-
+ net/netfilter/nf_conntrack_core.c         |   10 ++++++++++
+ 2 files changed, 11 insertions(+), 1 deletions(-)
+
+diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
+index dffde8e..3d7524f 100644
+--- a/include/net/netfilter/nf_conntrack_core.h
++++ b/include/net/netfilter/nf_conntrack_core.h
+@@ -61,7 +61,7 @@ static inline int nf_conntrack_confirm(struct sk_buff *skb)
+ 	int ret = NF_ACCEPT;
+ 
+ 	if (ct && ct != &nf_conntrack_untracked) {
+-		if (!nf_ct_is_confirmed(ct) && !nf_ct_is_dying(ct))
++		if (!nf_ct_is_confirmed(ct))
+ 			ret = __nf_conntrack_confirm(skb);
+ 		if (likely(ret == NF_ACCEPT))
+ 			nf_ct_deliver_cached_events(ct);
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index 0c9bbe9..7ff9a40 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -422,6 +422,16 @@ __nf_conntrack_confirm(struct sk_buff *skb)
+ 
+ 	spin_lock_bh(&nf_conntrack_lock);
+ 
++	/* We have to check the DYING flag inside the lock to prevent
++	   a race against nf_ct_get_next_corpse() possibly called from
++	   user context, else we insert an already 'dead' hash, blocking
++	   further use of that particular connection -JM */
++
++	if (unlikely(nf_ct_is_dying(ct))) {
++		spin_unlock_bh(&nf_conntrack_lock);
++		return NF_ACCEPT;
++	}
++
+ 	/* See if there's one in the list already, including reverse:
+ 	   NAT could have grabbed it without realizing, since we're
+ 	   not in the hash.  If there is, we lost race. */
+-- 
+1.5.6.5
+
+
+
+-- 
