@@ -1,40 +1,88 @@
-From: Luciano Coelho <luciano.coelho@nokia.com>
-Subject: [PATCH] netfilter: fix description of expected checkentry return code on xt_target
-Date: Mon, 17 May 2010 23:00:30 +0300
-Message-ID: <1274126430-13744-1-git-send-email-luciano.coelho@nokia.com>
-Cc: kaber@trash.net
-To: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+From: "Dmitry V. Levin" <ldv@altlinux.org>
+Subject: [PATCH] MASQUERADE: fix --to-ports parser
+Date: Tue, 18 May 2010 00:09:55 +0400
+Message-ID: <20100517200955.GB17408@wo.int.altlinux.org>
+References: <20100219033019.GB25665@wo.int.altlinux.org> <4BED339D.60007@trash.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:43336 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751782Ab0EQUBF (ORCPT
+Received: from vint.altlinux.org ([194.107.17.35]:44595 "EHLO
+	vint.altlinux.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754852Ab0EQUR6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 May 2010 16:01:05 -0400
+	Mon, 17 May 2010 16:17:58 -0400
+Content-Disposition: inline
+In-Reply-To: <4BED339D.60007@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The text describing the return codes that are expected on calls to
-checkentry() was incorrect.  Instead of returning true or false, or an error
-code, it should return 0 or an error code.
+Rewrite port range validator to use xtables_strtoui() and
+xtables_param_act().  Original check failed to recognize
+such port range errors as "1a-2" and "1-2a".
+Also, original parser erroneously denied using port 0,
+which is now allowed.
 
-Signed-off-by: Luciano Coelho <luciano.coelho@nokia.com>
+Signed-off-by: Dmitry V. Levin <ldv@altlinux.org>
 ---
- include/linux/netfilter/x_tables.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ extensions/libipt_MASQUERADE.c |   32 ++++++++++++++++----------------
+ 1 files changed, 16 insertions(+), 16 deletions(-)
 
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index c2ee5d8..c00cc0c 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -333,7 +333,7 @@ struct xt_target {
- 	/* Called when user tries to insert an entry of this type:
-            hook_mask is a bitmask of hooks from which it can be
-            called. */
--	/* Should return true or false, or an error code (-Exxxx). */
-+	/* Should return 0 on success or an error code otherwise (-Exxxx). */
- 	int (*checkentry)(const struct xt_tgchk_param *);
+diff --git a/extensions/libipt_MASQUERADE.c b/extensions/libipt_MASQUERADE.c
+index 9d7fc17..3386ff3 100644
+--- a/extensions/libipt_MASQUERADE.c
++++ b/extensions/libipt_MASQUERADE.c
+@@ -38,34 +38,34 @@ static void MASQUERADE_init(struct xt_entry_target *t)
+ static void
+ parse_ports(const char *arg, struct nf_nat_multi_range *mr)
+ {
+-	const char *dash;
+-	int port;
++	char *end;
++	unsigned int port, maxport;
  
- 	/* Called when entry of this type deleted. */
+ 	mr->range[0].flags |= IP_NAT_RANGE_PROTO_SPECIFIED;
+ 
+-	port = atoi(arg);
+-	if (port <= 0 || port > 65535)
+-		xtables_error(PARAMETER_PROBLEM, "Port \"%s\" not valid\n", arg);
++	if (!xtables_strtoui(arg, &end, &port, 0, UINT16_MAX))
++		xtables_param_act(XTF_BAD_VALUE, "MASQUERADE", "--to-ports", arg);
+ 
+-	dash = strchr(arg, '-');
+-	if (!dash) {
++	switch (*end) {
++	case '\0':
+ 		mr->range[0].min.tcp.port
+ 			= mr->range[0].max.tcp.port
+ 			= htons(port);
+-	} else {
+-		int maxport;
++		return;
++	case '-':
++		if (!xtables_strtoui(end + 1, NULL, &maxport, 0, UINT16_MAX))
++			break;
+ 
+-		maxport = atoi(dash + 1);
+-		if (maxport == 0 || maxport > 65535)
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "Port `%s' not valid\n", dash+1);
+ 		if (maxport < port)
+-			/* People are stupid.  Present reader excepted. */
+-			xtables_error(PARAMETER_PROBLEM,
+-				   "Port range `%s' funky\n", arg);
++			break;
++
+ 		mr->range[0].min.tcp.port = htons(port);
+ 		mr->range[0].max.tcp.port = htons(maxport);
++		return;
++	default:
++		break;
+ 	}
++	xtables_param_act(XTF_BAD_VALUE, "MASQUERADE", "--to-ports", arg);
+ }
+ 
+ static int MASQUERADE_parse(int c, char **argv, int invert, unsigned int *flags,
 -- 
-1.6.3.3
-
+ldv
