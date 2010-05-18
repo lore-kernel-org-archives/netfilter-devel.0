@@ -1,88 +1,68 @@
-From: "Dmitry V. Levin" <ldv@altlinux.org>
-Subject: [PATCH] MASQUERADE: fix --to-ports parser
-Date: Tue, 18 May 2010 00:09:55 +0400
-Message-ID: <20100517200955.GB17408@wo.int.altlinux.org>
-References: <20100219033019.GB25665@wo.int.altlinux.org> <4BED339D.60007@trash.net>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Subject: Re: ipset socket not closed
+Date: Tue, 18 May 2010 15:18:02 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1005181511260.10084@blackhole.kfki.hu>
+References: <AANLkTilw1ljLMNAQtEthe7ErEX8R4jkGH1u9_r-fshFw@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: MULTIPART/MIXED; BOUNDARY="110391808-1244943010-1274188682=:10084"
 Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+To: krunal patel <krunal.raj@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from vint.altlinux.org ([194.107.17.35]:44595 "EHLO
-	vint.altlinux.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754852Ab0EQUR6 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 17 May 2010 16:17:58 -0400
-Content-Disposition: inline
-In-Reply-To: <4BED339D.60007@trash.net>
+Received: from smtp0.kfki.hu ([148.6.0.25]:38787 "EHLO smtp0.kfki.hu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757243Ab0ERN1h (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 18 May 2010 09:27:37 -0400
+In-Reply-To: <AANLkTilw1ljLMNAQtEthe7ErEX8R4jkGH1u9_r-fshFw@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Rewrite port range validator to use xtables_strtoui() and
-xtables_param_act().  Original check failed to recognize
-such port range errors as "1a-2" and "1-2a".
-Also, original parser erroneously denied using port 0,
-which is now allowed.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
 
-Signed-off-by: Dmitry V. Levin <ldv@altlinux.org>
----
- extensions/libipt_MASQUERADE.c |   32 ++++++++++++++++----------------
- 1 files changed, 16 insertions(+), 16 deletions(-)
+--110391808-1244943010-1274188682=:10084
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 
-diff --git a/extensions/libipt_MASQUERADE.c b/extensions/libipt_MASQUERADE.c
-index 9d7fc17..3386ff3 100644
---- a/extensions/libipt_MASQUERADE.c
-+++ b/extensions/libipt_MASQUERADE.c
-@@ -38,34 +38,34 @@ static void MASQUERADE_init(struct xt_entry_target *t)
- static void
- parse_ports(const char *arg, struct nf_nat_multi_range *mr)
- {
--	const char *dash;
--	int port;
-+	char *end;
-+	unsigned int port, maxport;
- 
- 	mr->range[0].flags |= IP_NAT_RANGE_PROTO_SPECIFIED;
- 
--	port = atoi(arg);
--	if (port <= 0 || port > 65535)
--		xtables_error(PARAMETER_PROBLEM, "Port \"%s\" not valid\n", arg);
-+	if (!xtables_strtoui(arg, &end, &port, 0, UINT16_MAX))
-+		xtables_param_act(XTF_BAD_VALUE, "MASQUERADE", "--to-ports", arg);
- 
--	dash = strchr(arg, '-');
--	if (!dash) {
-+	switch (*end) {
-+	case '\0':
- 		mr->range[0].min.tcp.port
- 			= mr->range[0].max.tcp.port
- 			= htons(port);
--	} else {
--		int maxport;
-+		return;
-+	case '-':
-+		if (!xtables_strtoui(end + 1, NULL, &maxport, 0, UINT16_MAX))
-+			break;
- 
--		maxport = atoi(dash + 1);
--		if (maxport == 0 || maxport > 65535)
--			xtables_error(PARAMETER_PROBLEM,
--				   "Port `%s' not valid\n", dash+1);
- 		if (maxport < port)
--			/* People are stupid.  Present reader excepted. */
--			xtables_error(PARAMETER_PROBLEM,
--				   "Port range `%s' funky\n", arg);
-+			break;
-+
- 		mr->range[0].min.tcp.port = htons(port);
- 		mr->range[0].max.tcp.port = htons(maxport);
-+		return;
-+	default:
-+		break;
- 	}
-+	xtables_param_act(XTF_BAD_VALUE, "MASQUERADE", "--to-ports", arg);
- }
- 
- static int MASQUERADE_parse(int c, char **argv, int invert, unsigned int *flags,
--- 
-ldv
+Hi,
+
+On Fri, 14 May 2010, krunal patel wrote:
+
+> I found a bug in=A0libipt_set.h. When iptables communicate with ipset,
+> socket is created but not closed. I wanted to apply more then 700
+> iptables rule in one shot and all are having -m set option. I did
+> iptables-restore and found error "Can't open socket to ipset."
+> After closing socket I am able to do iptables-restore.
+> patch:
+>=20
+> --- iptables-1.4.2/extensions/libipt_set.h =A0 =A0 =A02010-05-14
+> 18:32:50.000000000 +0530
+> +++ iptables-1.4.2/extensions/libipt_set.h =A0 =A0 =A02010-05-14
+> 18:44:49.000000000 +0530
+> @@ -41,13 +41,14 @@
+>=20
+> =A0static int get_set_getsockopt(void *data, socklen_t * size)
+> =A0{
+> - =A0 =A0 =A0 int sockfd =3D -1;
+> + =A0 =A0 =A0 int sockfd =3D -1, res =3D -1;
+> =A0=A0 =A0 =A0 =A0sockfd =3D socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
+> =A0=A0 =A0 =A0 =A0if (sockfd < 0)
+> =A0=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0exit_error(OTHER_PROBLEM,
+> =A0=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "Can't open socket=
+ to ipset.\n");
+> =A0=A0 =A0 =A0 =A0/* Send! */
+> - =A0 =A0 =A0 return getsockopt(sockfd, SOL_IP, SO_IP_SET, data, size);
+> + =A0 =A0 =A0 res =3D getsockopt(sockfd, SOL_IP, SO_IP_SET, data, size);
+> + =A0 =A0 =A0 return res;
+> =A0}
+
+This is an old iptables version, the bug had been fixed almost a year=20
+ago. Please check the recent version when reporting bugs.
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
+--110391808-1244943010-1274188682=:10084--
