@@ -1,46 +1,66 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: nf_ct_ipv6 doesn't like ICMPv6 MTU notices
-Date: Wed, 19 May 2010 21:50:18 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1005192138390.16764@obet.zrqbmnf.qr>
+From: Eric Leblond <eric@inl.fr>
+Subject: Re: libnetfilter_queue question
+Date: Wed, 19 May 2010 22:10:48 +0200
+Message-ID: <1274299848.21477.6.camel@ice-age>
+References: <4BF3BA47.7040109@inliniac.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: pablo@netfilter.org
+Content-Type: multipart/signed; micalg="pgp-sha1"; protocol="application/pgp-signature"; boundary="=-qQ7XbT2jLOikIihhCZwB"
+Cc: netfilter-devel@vger.kernel.org
+To: Victor Julien <lists@inliniac.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:57408 "EHLO borg.medozas.de"
+Received: from smtp3-g21.free.fr ([212.27.42.3]:52789 "EHLO smtp3-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751579Ab0ESTuU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 19 May 2010 15:50:20 -0400
+	id S1751522Ab0ESULC (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 19 May 2010 16:11:02 -0400
+In-Reply-To: <4BF3BA47.7040109@inliniac.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Heya,
 
+--=-qQ7XbT2jLOikIihhCZwB
+Content-Type: text/plain; charset="ISO-8859-15"
+Content-Transfer-Encoding: quoted-printable
 
-I notice that -m conntrack --ctstate INVALID marks what seems to be a 
-legitimate packet. StrongSWAN sends out fragmented and large packets for 
-PMTUD, and the returning ICMP packet too big from the tunnel provider 
-falls victim to ctstate INVALID.
+Hi Victor,
 
-Observed on the left side running 2.6.33.x:
-[1424176.051256] [v6-xinv] IN=sit1 OUT=
-MAC=00:24:21:a7:24:e1:00:21:59:c5:58:5f:08:00:45:00:05:14:00:00:40:00:fb:29:3c:6d:d8:42:50:1e:bc:28:59:ca
-TUNNEL=216.66.80.30->188.40.89.202 SRC=2001:0470:1f0a:0a59:0000:0000:0000:0001
-DST=2001:0470:1f0b:0a59:0000:0000:0000:0001 LEN=1280 TC=0 HOPLIMIT=64 FLOWLBL=0
-PROTO=ICMPv6 TYPE=2 CODE=0 [SRC=2001:0470:1f0b:0a59:0000:0000:0000:0001
-DST=2001:0470:1f0b:1129:0000:0000:0000:0005 LEN=1480 TC=0 HOPLIMIT=64 FLOWLBL=0
-FRAG:0 INCOMPLETE ID:0000003a PROTO=UDP SPT=4500 DPT=4500 LEN=2904 ] MTU=1430
+Le mercredi 19 mai 2010 =E0 12:15 +0200, Victor Julien a =E9crit :
+> Hi all,
+>=20
+> I'm using libnetfilter_queue for inline mode in the Suricata IDS/IPS
+> (www.openinfosecfoundation.org). I'm using a callback that makes the
+> packet(s) available to the detection engine. In some special cases the
+> call back could fail (only malloc failure atm).
+>=20
+> I was wondering what the proper response would be to such an event. I'm
+> assuming nfq_handle_packet() would return an (non zero) error code in
+> that case.
+>=20
+> Should I verdict the packet? (drop to be safe)
 
-And even on the other side running a 2.6.34-rc1:
-[v6-xinv] IN=sit1 OUT=
-MAC=00:14:4f:e1:d1:25:00:40:48:b1:5d:18:08:00:45:00:05:14:00:00:40:00:f7:29:7c:d8:d8:42:50:1e:86:4c:53:3b
-TUNNEL=216.66.80.30->134.76.83.59 SRC=2001:0470:1f0a:1129:0000:0000:0000:0001
-DST=2001:0470:1f0b:1129:0000:0000:0000:0005 LEN=1280 TC=0 HOPLIMIT=64 FLOWLBL=0
-PROTO=ICMPv6 TYPE=2 CODE=0 [SRC=2001:0470:1f0b:1129:0000:0000:0000:0005
-DST=2001:0470:1f0b:0a59:0000:0000:0000:0001 LEN=1480 TC=0 HOPLIMIT=64 FLOWLBL=0
-FRAG:0 INCOMPLETE ID:00000070 PROTO=UDP SPT=4500 DPT=4500 LEN=2424 ] MTU=1430
+Yes, clearly ! If you don't do this the packet will get stuck inside the
+kernel and nothing will released it (and free associated structures).
 
-21:44:07.473237 IP6 2001:470:1f0a:1129::1 > 2001:470:1f0b:1129::5: ICMP6,
-packet too big, mtu 1430, length 1240
+The only other mean to free queued packet is to unregister from the NF
+queue.
 
-An idea what's up in nf_conntrack_ipv6?
+BR,
+--=20
+Eric Leblond <eric@inl.fr>
+INL: http://www.inl.fr/
+NuFW: http://www.nufw.org/
+
+--=-qQ7XbT2jLOikIihhCZwB
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Ceci est une partie de message
+ =?ISO-8859-1?Q?num=E9riquement?= =?ISO-8859-1?Q?_sign=E9e?=
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (GNU/Linux)
+
+iD4DBQBL9EXFnxA7CdMWjzIRAp0TAJjadlwFa9Y2v4f49HSwUdgyI696AJ4088eW
+Zayrm052fb+1j+OcRShl5g==
+=+4w7
+-----END PGP SIGNATURE-----
+
+--=-qQ7XbT2jLOikIihhCZwB--
+
