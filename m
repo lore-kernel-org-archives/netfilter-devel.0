@@ -1,68 +1,201 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: ipset socket not closed
-Date: Tue, 18 May 2010 15:18:02 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1005181511260.10084@blackhole.kfki.hu>
-References: <AANLkTilw1ljLMNAQtEthe7ErEX8R4jkGH1u9_r-fshFw@mail.gmail.com>
+From: Simon Horman <horms@verge.net.au>
+Subject: [patch] IPVS: one-packet scheduling
+Date: Wed, 19 May 2010 12:14:08 +0900
+Message-ID: <20100519031408.GC18534@verge.net.au>
 Mime-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="110391808-1244943010-1274188682=:10084"
-Cc: netfilter-devel@vger.kernel.org
-To: krunal patel <krunal.raj@gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: Wensong Zhang <wensong@linux-vs.org>, Julian Anastasov <ja@ssi.bg>,
+	Patrick McHardy <kaber@trash.net>,
+	Nick Chalk <nick@loadbalancer.org>
+To: netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp0.kfki.hu ([148.6.0.25]:38787 "EHLO smtp0.kfki.hu"
+Received: from koto.vergenet.net ([210.128.90.7]:58305 "EHLO koto.vergenet.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757243Ab0ERN1h (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 18 May 2010 09:27:37 -0400
-In-Reply-To: <AANLkTilw1ljLMNAQtEthe7ErEX8R4jkGH1u9_r-fshFw@mail.gmail.com>
+	id S1753965Ab0ESDOL (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 18 May 2010 23:14:11 -0400
+Content-Disposition: inline
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+From: Nick Chalk <nick@loadbalancer.org>
 
---110391808-1244943010-1274188682=:10084
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+IPVS: one-packet scheduling
 
-Hi,
+Allow one-packet scheduling for UDP connections. When the fwmark-based or
+normal virtual service is marked with '-o' or '--ops' options all
+connections are created only to schedule one packet. Useful to schedule UDP
+packets from same client port to different real servers. Recommended with
+RR or WRR schedulers (the connections are not visible with ipvsadm -L).
 
-On Fri, 14 May 2010, krunal patel wrote:
+Signed-off-by: Nick Chalk <nick@loadbalancer.org>
+Signed-off-by: Simon Horman <horms@verge.net.au>
 
-> I found a bug in=A0libipt_set.h. When iptables communicate with ipset,
-> socket is created but not closed. I wanted to apply more then 700
-> iptables rule in one shot and all are having -m set option. I did
-> iptables-restore and found error "Can't open socket to ipset."
-> After closing socket I am able to do iptables-restore.
-> patch:
->=20
-> --- iptables-1.4.2/extensions/libipt_set.h =A0 =A0 =A02010-05-14
-> 18:32:50.000000000 +0530
-> +++ iptables-1.4.2/extensions/libipt_set.h =A0 =A0 =A02010-05-14
-> 18:44:49.000000000 +0530
-> @@ -41,13 +41,14 @@
->=20
-> =A0static int get_set_getsockopt(void *data, socklen_t * size)
-> =A0{
-> - =A0 =A0 =A0 int sockfd =3D -1;
-> + =A0 =A0 =A0 int sockfd =3D -1, res =3D -1;
-> =A0=A0 =A0 =A0 =A0sockfd =3D socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
-> =A0=A0 =A0 =A0 =A0if (sockfd < 0)
-> =A0=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0exit_error(OTHER_PROBLEM,
-> =A0=A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0 "Can't open socket=
- to ipset.\n");
-> =A0=A0 =A0 =A0 =A0/* Send! */
-> - =A0 =A0 =A0 return getsockopt(sockfd, SOL_IP, SO_IP_SET, data, size);
-> + =A0 =A0 =A0 res =3D getsockopt(sockfd, SOL_IP, SO_IP_SET, data, size);
-> + =A0 =A0 =A0 return res;
-> =A0}
+--- 
+U
+Up-port of http://www.ssi.bg/~ja/tmp/ops-2.4.32-1.diff
 
-This is an old iptables version, the bug had been fixed almost a year=20
-ago. Please check the recent version when reporting bugs.
+Patrick, please consider merging this
 
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
---110391808-1244943010-1274188682=:10084--
+Index: nf-next-2.6/include/linux/ip_vs.h
+===================================================================
+--- nf-next-2.6.orig/include/linux/ip_vs.h	2010-05-19 11:59:32.000000000 +0900
++++ nf-next-2.6/include/linux/ip_vs.h	2010-05-19 12:06:23.000000000 +0900
+@@ -19,6 +19,7 @@
+  */
+ #define IP_VS_SVC_F_PERSISTENT	0x0001		/* persistent port */
+ #define IP_VS_SVC_F_HASHED	0x0002		/* hashed entry */
++#define IP_VS_SVC_F_ONEPACKET	0x0004		/* one-packet scheduling */
+ 
+ /*
+  *      Destination Server Flags
+@@ -85,6 +86,7 @@
+ #define IP_VS_CONN_F_SEQ_MASK	0x0600		/* in/out sequence mask */
+ #define IP_VS_CONN_F_NO_CPORT	0x0800		/* no client port set yet */
+ #define IP_VS_CONN_F_TEMPLATE	0x1000		/* template, not connection */
++#define IP_VS_CONN_F_ONE_PACKET	0x2000		/* forward only one packet */
+ 
+ #define IP_VS_SCHEDNAME_MAXLEN	16
+ #define IP_VS_IFNAME_MAXLEN	16
+Index: nf-next-2.6/net/netfilter/ipvs/ip_vs_conn.c
+===================================================================
+--- nf-next-2.6.orig/net/netfilter/ipvs/ip_vs_conn.c	2010-05-19 11:59:32.000000000 +0900
++++ nf-next-2.6/net/netfilter/ipvs/ip_vs_conn.c	2010-05-19 12:06:23.000000000 +0900
+@@ -158,6 +158,9 @@ static inline int ip_vs_conn_hash(struct
+ 	unsigned hash;
+ 	int ret;
+ 
++	if (cp->flags & IP_VS_CONN_F_ONE_PACKET)
++		return 0;
++
+ 	/* Hash by protocol, client address and port */
+ 	hash = ip_vs_conn_hashkey(cp->af, cp->protocol, &cp->caddr, cp->cport);
+ 
+@@ -355,8 +358,9 @@ struct ip_vs_conn *ip_vs_conn_out_get
+  */
+ void ip_vs_conn_put(struct ip_vs_conn *cp)
+ {
+-	/* reset it expire in its timeout */
+-	mod_timer(&cp->timer, jiffies+cp->timeout);
++	unsigned long t = (cp->flags & IP_VS_CONN_F_ONE_PACKET) ?
++		0 : cp->timeout;
++	mod_timer(&cp->timer, jiffies+t);
+ 
+ 	__ip_vs_conn_put(cp);
+ }
+@@ -649,7 +653,7 @@ static void ip_vs_conn_expire(unsigned l
+ 	/*
+ 	 *	unhash it if it is hashed in the conn table
+ 	 */
+-	if (!ip_vs_conn_unhash(cp))
++	if (!ip_vs_conn_unhash(cp) && !(cp->flags & IP_VS_CONN_F_ONE_PACKET))
+ 		goto expire_later;
+ 
+ 	/*
+Index: nf-next-2.6/net/netfilter/ipvs/ip_vs_core.c
+===================================================================
+--- nf-next-2.6.orig/net/netfilter/ipvs/ip_vs_core.c	2010-05-19 11:59:32.000000000 +0900
++++ nf-next-2.6/net/netfilter/ipvs/ip_vs_core.c	2010-05-19 12:08:08.000000000 +0900
+@@ -194,6 +194,7 @@ ip_vs_sched_persist(struct ip_vs_service
+ 	struct ip_vs_dest *dest;
+ 	struct ip_vs_conn *ct;
+ 	__be16  dport;			/* destination port to forward */
++	__be16  flags;
+ 	union nf_inet_addr snet;	/* source network of the client,
+ 					   :wq
+					   :wqafter masking */
+ 
+@@ -340,6 +341,10 @@ ip_vs_sched_persist(struct ip_vs_service
+ 		dport = ports[1];
+ 	}
+ 
++	flags = (svc->flags & IP_VS_SVC_F_ONEPACKET
++		 && iph.protocol == IPPROTO_UDP)?
++		IP_VS_CONN_F_ONE_PACKET : 0;
++
+ 	/*
+ 	 *    Create a new connection according to the template
+ 	 */
+@@ -347,7 +352,7 @@ ip_vs_sched_persist(struct ip_vs_service
+ 			    &iph.saddr, ports[0],
+ 			    &iph.daddr, ports[1],
+ 			    &dest->addr, dport,
+-			    0,
++			    flags,
+ 			    dest);
+ 	if (cp == NULL) {
+ 		ip_vs_conn_put(ct);
+@@ -377,7 +382,7 @@ ip_vs_schedule(struct ip_vs_service *svc
+ 	struct ip_vs_conn *cp = NULL;
+ 	struct ip_vs_iphdr iph;
+ 	struct ip_vs_dest *dest;
+-	__be16 _ports[2], *pptr;
++	__be16 _ports[2], *pptr, flags;
+ 
+ 	ip_vs_fill_iphdr(svc->af, skb_network_header(skb), &iph);
+ 	pptr = skb_header_pointer(skb, iph.len, sizeof(_ports), _ports);
+@@ -407,6 +412,10 @@ ip_vs_schedule(struct ip_vs_service *svc
+ 		return NULL;
+ 	}
+ 
++	flags = (svc->flags & IP_VS_SVC_F_ONEPACKET
++		 && iph.protocol == IPPROTO_UDP)?
++		IP_VS_CONN_F_ONE_PACKET : 0;
++
+ 	/*
+ 	 *    Create a connection entry.
+ 	 */
+@@ -414,7 +423,7 @@ ip_vs_schedule(struct ip_vs_service *svc
+ 			    &iph.saddr, pptr[0],
+ 			    &iph.daddr, pptr[1],
+ 			    &dest->addr, dest->port ? dest->port : pptr[1],
+-			    0,
++			    flags,
+ 			    dest);
+ 	if (cp == NULL)
+ 		return NULL;
+@@ -464,6 +473,9 @@ int ip_vs_leave(struct ip_vs_service *sv
+ 	if (sysctl_ip_vs_cache_bypass && svc->fwmark && unicast) {
+ 		int ret, cs;
+ 		struct ip_vs_conn *cp;
++		__u16 flags = (svc->flags & IP_VS_SVC_F_ONEPACKET &&
++				iph.protocol == IPPROTO_UDP)?
++				IP_VS_CONN_F_ONE_PACKET : 0;
+ 		union nf_inet_addr daddr =  { .all = { 0, 0, 0, 0 } };
+ 
+ 		ip_vs_service_put(svc);
+@@ -474,7 +486,7 @@ int ip_vs_leave(struct ip_vs_service *sv
+ 				    &iph.saddr, pptr[0],
+ 				    &iph.daddr, pptr[1],
+ 				    &daddr, 0,
+-				    IP_VS_CONN_F_BYPASS,
++				    IP_VS_CONN_F_BYPASS | flags,
+ 				    NULL);
+ 		if (cp == NULL)
+ 			return NF_DROP;
+Index: nf-next-2.6/net/netfilter/ipvs/ip_vs_ctl.c
+===================================================================
+--- nf-next-2.6.orig/net/netfilter/ipvs/ip_vs_ctl.c	2010-05-19 11:59:32.000000000 +0900
++++ nf-next-2.6/net/netfilter/ipvs/ip_vs_ctl.c	2010-05-19 12:06:23.000000000 +0900
+@@ -1864,14 +1864,16 @@ static int ip_vs_info_seq_show(struct se
+ 					   svc->scheduler->name);
+ 			else
+ #endif
+-				seq_printf(seq, "%s  %08X:%04X %s ",
++				seq_printf(seq, "%s  %08X:%04X %s %s ",
+ 					   ip_vs_proto_name(svc->protocol),
+ 					   ntohl(svc->addr.ip),
+ 					   ntohs(svc->port),
+-					   svc->scheduler->name);
++					   svc->scheduler->name,
++					   (svc->flags & IP_VS_SVC_F_ONEPACKET)?"ops ":"");
+ 		} else {
+-			seq_printf(seq, "FWM  %08X %s ",
+-				   svc->fwmark, svc->scheduler->name);
++			seq_printf(seq, "FWM  %08X %s %s",
++				   svc->fwmark, svc->scheduler->name,
++				   (svc->flags & IP_VS_SVC_F_ONEPACKET)?"ops ":"");
+ 		}
+ 
+ 		if (svc->flags & IP_VS_SVC_F_PERSISTENT)
+
