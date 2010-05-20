@@ -1,54 +1,41 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
+From: Changli Gao <xiaosuo@gmail.com>
 Subject: Re: RFC: netfilter: synproxy iptables target
-Date: Thu, 20 May 2010 16:32:43 +0200
-Message-ID: <1274365963.4046.39.camel@edumazet-laptop>
+Date: Thu, 20 May 2010 22:33:10 +0800
+Message-ID: <AANLkTilHTb4MVSkq8wC6eee7hK4MgpANhWtzEfIbExLn@mail.gmail.com>
 References: <AANLkTimp6S7MpwDAT8l-M0ZWjs2HIcUEfL5f8j9-QDZh@mail.gmail.com>
-	 <4BF54310.6030004@trash.net>
-	 <AANLkTimjY_0yKfMtAUxI7He-QH5R5AdDCR3V8eKSgbGq@mail.gmail.com>
+	<4BF54310.6030004@trash.net> <AANLkTimjY_0yKfMtAUxI7He-QH5R5AdDCR3V8eKSgbGq@mail.gmail.com>
+	<4BF5464D.4090409@trash.net>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>,
-	Netfilter Developer Mailing List
+Cc: Netfilter Developer Mailing List
 	<netfilter-devel@vger.kernel.org>,
 	Linux Netdev List <netdev@vger.kernel.org>
-To: Changli Gao <xiaosuo@gmail.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:41461 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753355Ab0ETOct (ORCPT
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:38218 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755071Ab0ETOdb convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 May 2010 10:32:49 -0400
-In-Reply-To: <AANLkTimjY_0yKfMtAUxI7He-QH5R5AdDCR3V8eKSgbGq@mail.gmail.com>
+	Thu, 20 May 2010 10:33:31 -0400
+In-Reply-To: <4BF5464D.4090409@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le jeudi 20 mai 2010 =C3=A0 22:21 +0800, Changli Gao a =C3=A9crit :
+On Thu, May 20, 2010 at 10:25 PM, Patrick McHardy <kaber@trash.net> wro=
+te:
+>
+> I can't say much before seeing any code, but no general objections
+> from my side.
+>
 
->=20
-> pure synproxy can be used on firewall to protect the internal servers=
-,
-> which don't support neither syncookies and synproxy, from the attack
-> of SYN-flood.
->=20
-
-protecting servers using conntracking ?
-
-Thats seems very dangerous to me.
-
-> synproxy with defered connection relay acts as a layer 7 proxy, but
-> works in kernel space totally, unlike tcp splice tech., which needs
-> the applications in user space parse the requests, and establish the
-> connections.
->=20
-
-In the example given, only non persistent connections are handled...
-
-These days, browsers and servers dont establish one socket per http
-request...
+The code is on github. (http://github.com/xiaosuo/xiaosuo). As it
+isn't in good shape, and needs future modifications, I leave it there.
 
 
-
+--=20
+Regards=EF=BC=8C
+Changli Gao(xiaosuo@gmail.com)
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
 el" in
