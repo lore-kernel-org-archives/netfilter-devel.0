@@ -1,35 +1,29 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: iptables connlimit not works in RHEL 5.1
-Date: Thu, 20 May 2010 21:03:43 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1005202102080.23657@obet.zrqbmnf.qr>
-References: <AANLkTilspYQiScZyBROF-x9nh54ju_KXMH9gHVUKNTQ8@mail.gmail.com>
+From: Ladislav Hagara <ladislav.hagara@unob.cz>
+Subject: iptables  1.4.8
+Date: Fri, 21 May 2010 00:22:49 +0200
+Message-ID: <4BF5B639.6020309@unob.cz>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Narendra Choyal <narendrachoyal@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:40349 "EHLO borg.medozas.de"
+Received: from cedric.unob.cz ([160.216.40.10]:35140 "EHLO cedric.unob.cz"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751492Ab0ETTDp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 May 2010 15:03:45 -0400
-In-Reply-To: <AANLkTilspYQiScZyBROF-x9nh54ju_KXMH9gHVUKNTQ8@mail.gmail.com>
+	id S1755028Ab0ETW3W (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 20 May 2010 18:29:22 -0400
+Received: from [IPv6:::1] ([160.216.1.69])
+	by cedric.unob.cz (8.14.2/8.14.2) with ESMTP id o4KMMnoj002835
+	for <netfilter-devel@vger.kernel.org>; Fri, 21 May 2010 00:22:49 +0200
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 2010-05-20 21:00, Narendra Choyal wrote:
+Hi,
+I just installed new iptables 1.4.8 and seems it pretends it is only 1.4.7.
 
->connlimit doesn't work on RHEL 5.1
+$ iptables --version
+iptables v1.4.7
 
+Files in /usr/lib/pkgconfig also contains 1.4.7.
 
-And you get to that conclusion because of...?
-
-(Then again, RHEL is known to be, well, really dated.)
-
-
->and same command will works on all versions of Fedora
->
->My command is
->
->#iptables -A INPUT -p tcp --syn --dport -s X.X.X.X -m connlimit !
->--connlimit-above 2 -j REJECT --reject-with -tcp-reset
-
+-- 
+Ladislav Hagara
