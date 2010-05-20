@@ -1,69 +1,92 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: Re: RFC: netfilter: synproxy iptables target
-Date: Thu, 20 May 2010 22:42:25 +0800
-Message-ID: <AANLkTimLBc58O4FA2S5wsA0kDD6eP7je_OGapfhPQK1s@mail.gmail.com>
-References: <AANLkTimp6S7MpwDAT8l-M0ZWjs2HIcUEfL5f8j9-QDZh@mail.gmail.com>
-	<4BF54310.6030004@trash.net> <AANLkTimjY_0yKfMtAUxI7He-QH5R5AdDCR3V8eKSgbGq@mail.gmail.com>
-	<1274365963.4046.39.camel@edumazet-laptop>
+From: Patrick McHardy <kaber@trash.net>
+Subject: [ANNOUNCE]: Release of iptables-1.4.8
+Date: Thu, 20 May 2010 17:08:03 +0200
+Message-ID: <4BF55053.7040600@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Linux Netdev List <netdev@vger.kernel.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Content-Type: multipart/mixed;
+ boundary="------------070008080503000106060800"
+Cc: netfilter <netfilter@lists.netfilter.org>,
+	netfilter-announce@lists.netfilter.org,
+	Linux Netdev List <netdev@vger.kernel.org>,
+	netfilter-core@lists.netfilter.org
+To: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:45173 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750877Ab0ETOmv convert rfc822-to-8bit (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:54333 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750942Ab0ETPIF (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 May 2010 10:42:51 -0400
-In-Reply-To: <1274365963.4046.39.camel@edumazet-laptop>
+	Thu, 20 May 2010 11:08:05 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, May 20, 2010 at 10:32 PM, Eric Dumazet <eric.dumazet@gmail.com>=
- wrote:
-> Le jeudi 20 mai 2010 =C3=A0 22:21 +0800, Changli Gao a =C3=A9crit :
->
->>
->> pure synproxy can be used on firewall to protect the internal server=
-s,
->> which don't support neither syncookies and synproxy, from the attack
->> of SYN-flood.
->>
->
-> protecting servers using conntracking ?
->
-> Thats seems very dangerous to me.
+This is a multi-part message in MIME format.
+--------------070008080503000106060800
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
 
-If NAT is needed, conntracking is needed in any way. The conntrack
-won't be confirmed until the connection between firewall and client is
-established.
+The netfilter coreteam presents:
 
->
->> synproxy with defered connection relay acts as a layer 7 proxy, but
->> works in kernel space totally, unlike tcp splice tech., which needs
->> the applications in user space parse the requests, and establish the
->> connections.
->>
->
-> In the example given, only non persistent connections are handled...
->
-> These days, browsers and servers dont establish one socket per http
-> request...
->
->
+    iptables version 1.4.8
 
-Yea. But some users still use non persistent connections, as they want
-to fetch URLs in parallel.
+the iptables release for the 2.6.34 kernel. Changes include:
 
---=20
-Regards=EF=BC=8C
-Changli Gao(xiaosuo@gmail.com)
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+- support for the new CT target
+- port parsing fixes in the REDIRECT and MASQUERADE targets
+- iprange v0 parsing fixes
+- removal of MARK target restriction to the mangle table
+- documentation updates
+- inclusion of the nfnl_osf program for OS fingerprinting support
+
+See the Changelog for more details.
+
+Version 1.4.8 can be obtained from:
+
+http://www.netfilter.org/projects/iptables/downloads.html
+ftp://ftp.netfilter.org/pub/iptables/
+git://git.netfilter.org/iptables.git
+
+On behalf of the Netfilter Core Team.
+Happy firewalling!
+
+--------------070008080503000106060800
+Content-Type: text/plain;
+ name="changes-iptables-1.4.8.txt"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="changes-iptables-1.4.8.txt"
+
+Dmitry V. Levin (3):
+      extensions: REDIRECT: fix --to-ports parser
+      iptables: add noreturn attribute to exit_tryhelp()
+      extensions: MASQUERADE: fix --to-ports parser
+
+Jan Engelhardt (8):
+      libxt_comment: avoid use of IPv4-specific examples
+      libxt_CT: add a manpage
+      iptables: correctly check for too-long chain/target/match names
+      doc: libxt_MARK: no longer restricted to mangle table
+      doc: remove claim that TCPMSS is limited to mangle
+      libxt_recent: add a missing space in output
+      doc: add manpage for libxt_osf
+      libxt_osf: import nfnl_osf program
+
+Karl Hiramoto (1):
+      iptables: optionally disable largefile support
+
+Pablo Neira Ayuso (1):
+      CT: fix --ctevents parsing
+
+Patrick McHardy (3):
+      extensions: add CT extension
+      libxt_CT: print conntrack zone in ->print/->save
+      xtables: fix compilation when debugging is enabled
+
+Simon Lodal (1):
+      libxt_conntrack: document --ctstate UNTRACKED
+
+Vincent Bernat (1):
+      iprange: fix xt_iprange v0 parsing
+
+
+--------------070008080503000106060800--
