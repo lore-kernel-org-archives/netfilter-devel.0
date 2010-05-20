@@ -1,48 +1,25 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: RFC: netfilter: synproxy iptables target
-Date: Thu, 20 May 2010 17:46:06 +0800
-Message-ID: <AANLkTimp6S7MpwDAT8l-M0ZWjs2HIcUEfL5f8j9-QDZh@mail.gmail.com>
+From: Anand Raj Manickam <anandrm@gmail.com>
+Subject: Any Performance benchmark on a Million conntracks
+Date: Thu, 20 May 2010 18:21:45 +0530
+Message-ID: <AANLkTinGFeinOo2LfMU_6jcNewuFxXkZL1f9vAE-SXBe@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Linux Netdev List <netdev@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:45742 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752165Ab0ETJq0 convert rfc822-to-8bit (ORCPT
+Received: from mail-qy0-f171.google.com ([209.85.221.171]:52240 "EHLO
+	mail-qy0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753118Ab0ETMvr (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 May 2010 05:46:26 -0400
+	Thu, 20 May 2010 08:51:47 -0400
+Received: by qyk1 with SMTP id 1so11987577qyk.5
+        for <netfilter-devel@vger.kernel.org>; Thu, 20 May 2010 05:51:45 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-I have implemented a simple SYNPROXY iptables target. It is much like
-the SYNPROXY implementation in pf of OpenBSD, but won't have state
-until the first connection is established with the help of syncookies.
-The code is hosted at github:
-
-http://github.com/xiaosuo/xiaosuo/tree/master/synproxy/
-
-Currently, it can work with firewall and local socket.
-
-It is in the very early stage, and ugly. And I will add --timeout
-parameter to this target as TCP_DFER_ACCEPT, so I can do NAT basing on
-the request data.
-
-i.e.
-
-iptables -t nat -A OUTPUT -p tcp -m synproxy --http-url "*.jpg" -j
-DNAT --to-destination $image_http_server:80
-
-And is there any chance to merge it into mainline?
-
---=20
-Regards=EF=BC=8C
-Changli Gao(xiaosuo@gmail.com)
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi,
+Is there any performance bench mark on conntrack response to 1 million
+conntrack entries in the conntrack table.
+Since conntrack uses Hashing to lookup the entries i had some doubts
+on the scalability. Can someone shed some light please?
+Thanks,
+Anand
