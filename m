@@ -1,34 +1,73 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: iptables  1.4.8
-Date: Fri, 21 May 2010 12:58:30 +0200
-Message-ID: <4BF66756.9010803@trash.net>
-References: <4BF5B639.6020309@unob.cz> <4BF6639B.30401@trash.net>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Xtables 1.26 vs. Linux Kernel 2.6.34[.0] - Compile problem
+Date: Fri, 21 May 2010 13:41:08 +0200 (CEST)
+Message-ID: <alpine.LSU.2.01.1005211339410.12675@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Ladislav Hagara <ladislav.hagara@unob.cz>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: d.stussy@yahoo.com, Patrick McHardy <kaber@trash.net>,
+	adobriyan@gmail.com
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:37789 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752899Ab0EUK6b (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 May 2010 06:58:31 -0400
-In-Reply-To: <4BF6639B.30401@trash.net>
+Received: from borg.medozas.de ([188.40.89.202]:57405 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751637Ab0EULlK (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 21 May 2010 07:41:10 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy wrote:
-> Ladislav Hagara wrote:
->> Hi,
->> I just installed new iptables 1.4.8 and seems it pretends it is only 1.4.7.
->>
->> $ iptables --version
->> iptables v1.4.7
->>
->> Files in /usr/lib/pkgconfig also contains 1.4.7.
-> 
-> Oops crap, I thought my release script would commit the version
-> change. I'll fix it up.
 
-Should be fixed now.
+Forwarding to nf-dev for the records...
+
+
+Seems like we need #include <linux/kernel.h> in x_tables.h now.
+
+
+---------- Forwarded message ----------
+Date: Fri, 21 May 2010 02:35:12
+From: - <d.stussy@yahoo.com>
+To: jengelh@medozas.de
+Subject: Xtables 1.26 vs. Linux Kernel 2.6.34[.0] - Compile problem.
+
+(compiling against kernel headers - for modules):
+
+make[3]: Entering directory `/usr/src/xtables-addons-1.26/extensions'
+  CC     libxt_CHAOS.oo
+libxt_CHAOS.c:99: warning: implicit declaration of function `ALIGN'
+libxt_CHAOS.c:99: error: initializer element is not constant
+libxt_CHAOS.c:99: error: (near initialization for `chaos_tg_reg.size')
+libxt_CHAOS.c:100: error: initializer element is not constant
+libxt_CHAOS.c:100: error: (near initialization for `chaos_tg_reg.userspacesize')
+make[3]: *** [libxt_CHAOS.oo] Error 1
+make[3]: Leaving directory `/usr/src/xtables-addons-1.26/extensions'
+make[2]: *** [user-all-local] Error 2
+make[2]: Leaving directory `/usr/src/xtables-addons-1.26/extensions'
+make[1]: *** [all-recursive] Error 1
+make[1]: Leaving directory `/usr/src/xtables-addons-1.26'
+make: *** [all] Error 2
+
+
+The error is caused by this change in the kernel header files:
+
+--- /usr/include/linux/netfilter/x_tables.h - From Linux Kernel 2.6.33.4
++++ /tmp/include/linux/netfilter/x_tables.h - From Linux Kernel 2.6.34.0
+@@ -93,8 +93,7 @@
+        __u64 u64;
+ };
+ 
+-#define XT_ALIGN(s) (((s) + (__alignof__(struct _xt_align)-1))         \
+-                       & ~(__alignof__(struct _xt_align)-1))
++#define XT_ALIGN(s) ALIGN((s), __alignof__(struct _xt_align))
+ 
+ /* Standard return verdict, or do jump. */
+ #define XT_STANDARD_TARGET ""
+----------(end of diff )---------------
+
+Including the above header file did NOT help:
+
+# grep -r ALIGN /usr/include/linux/
+/usr/include/linux/linkage.h:#define ALIGN __ALIGN
+
+
+Using the 2.6.33.4 version of the header file allowed compilation.  Therefore, I have a working set of modules (using 2.6.33.4 headers).
+
+
