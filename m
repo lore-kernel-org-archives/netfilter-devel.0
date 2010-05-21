@@ -1,62 +1,60 @@
-From: Victor Julien <lists@inliniac.net>
-Subject: Re: libnetfilter_queue question
-Date: Fri, 21 May 2010 18:02:56 +0200
-Message-ID: <4BF6AEB0.1040303@inliniac.net>
-References: <4BF3BA47.7040109@inliniac.net> <1274299848.21477.6.camel@ice-age>
+From: - <d.stussy@yahoo.com>
+Subject: Re: Xtables 1.26 vs. Linux Kernel 2.6.34[.0] - Compile problem
+Date: Fri, 21 May 2010 12:14:03 -0700 (PDT)
+Message-ID: <798212.56589.qm@web84206.mail.re3.yahoo.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: text/plain; charset=iso-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Eric Leblond <eric@inl.fr>
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>, adobriyan@gmail.com
+To: Jan Engelhardt <jengelh@medozas.de>,
+	Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from static-27.netfusion.at ([83.215.238.27]:54317 "EHLO
-	tulpe.vuurmuur.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758461Ab0EUQDS (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 May 2010 12:03:18 -0400
-In-Reply-To: <1274299848.21477.6.camel@ice-age>
+Received: from n15.bullet.mail.mud.yahoo.com ([68.142.206.42]:37884 "HELO
+	n15.bullet.mail.mud.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1758168Ab0EUTOF convert rfc822-to-8bit
+	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 21 May 2010 15:14:05 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Leblond wrote:
-> Hi Victor,
->=20
-> Le mercredi 19 mai 2010 =E0 12:15 +0200, Victor Julien a =E9crit :
->> Hi all,
->>
->> I'm using libnetfilter_queue for inline mode in the Suricata IDS/IPS
->> (www.openinfosecfoundation.org). I'm using a callback that makes the
->> packet(s) available to the detection engine. In some special cases t=
-he
->> call back could fail (only malloc failure atm).
->>
->> I was wondering what the proper response would be to such an event. =
-I'm
->> assuming nfq_handle_packet() would return an (non zero) error code i=
-n
->> that case.
->>
->> Should I verdict the packet? (drop to be safe)
->=20
-> Yes, clearly ! If you don't do this the packet will get stuck inside =
-the
-> kernel and nothing will released it (and free associated structures).
->=20
-> The only other mean to free queued packet is to unregister from the N=
-=46
-> queue.
+Did commit a79ff731a1b277d0e92d9453bdf374e04cec717a make it into the 2.=
+6.34.0 kernel release?=A0 It appears not to have, at least when I looke=
+d at my source code archive....=A0 The kernel is dated 2010-05-16, yet =
+I did NOT see this patch in the changelog despite its April 13 date.
 
-Thanks Eric, I will implement the verdict in case of error.
+--- On Fri, 5/21/10, Patrick McHardy <kaber@trash.net> wrote:
+> To: "Jan Engelhardt" <jengelh@medozas.de>
+> Cc: "Netfilter Developer Mailing List" <netfilter-devel@vger.kernel.o=
+rg>, d.stussy@yahoo.com, adobriyan@gmail.com
+> Jan Engelhardt wrote:
+> > Forwarding to nf-dev for the records...
+> >=20
+> > Seems like we need #include <linux/kernel.h> in x_tables.h now.
+>=20
+>=20
+> This should be fixed by commit a79ff731, "netfilter: xtables: make
+> XT_ALIGN() usable in exported headers by exporting __ALIGN_KERNEL()"
+> > ---------- Forwarded message ----------
+> > From: - <d.stussy@yahoo.com>
+> > To: jengelh@medozas.de
+> >=20
+> > (compiling against kernel headers - for modules):
+> >=20
+> > make[3]: Entering directory `/usr/src/xtables-addons-1.26/extension=
+s'
+> >=A0=A0=A0CC=A0 =A0=A0=A0libxt_CHAOS.oo
+> > libxt_CHAOS.c:99: warning: implicit declaration of function `ALIGN'
+> > libxt_CHAOS.c:99: error: initializer element is not constant
+> > ...
+>=20
+> -----Inline Attachment Follows-----
+> commit a79ff731a1b277d0e92d9453bdf374e04cec717a
+> Author: Alexey Dobriyan <adobriyan@gmail.com>
+> Date:=A0=A0=A0Tue Apr 13 11:21:46 2010 +0200
+> ...
 
-Cheers,
-Victor
 
---=20
----------------------------------------------
-Victor Julien
-http://www.inliniac.net/
-PGP: http://www.inliniac.net/victorjulien.asc
----------------------------------------------
 
 --
 To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
