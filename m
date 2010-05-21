@@ -1,59 +1,36 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: Re: Any Performance benchmark on a Million conntracks
-Date: Fri, 21 May 2010 11:06:36 +0800
-Message-ID: <AANLkTilq025-870v_6hmTC82C_Ob2JA7tMSUDFfGgH1O@mail.gmail.com>
-References: <AANLkTinGFeinOo2LfMU_6jcNewuFxXkZL1f9vAE-SXBe@mail.gmail.com>
-	<1274360664.4046.36.camel@edumazet-laptop> <4BF5414B.4090609@trash.net>
-	<AANLkTikp7NU1cdAQHJkK9L14DsyRceaypO3ao_93raUu@mail.gmail.com>
-	<1274377493.2508.4.camel@edumazet-laptop> <AANLkTimp3nxDMgetLIB-aLhxAYrsLAT00enaBy0Fe4k-@mail.gmail.com>
-	<1274409281.4977.3.camel@edumazet-laptop>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/3] netfilter: netfilter fixes
+Date: Thu, 20 May 2010 23:12:30 -0700 (PDT)
+Message-ID: <20100520.231230.247122843.davem@davemloft.net>
+References: <1274371246-26760-1-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Anand Raj Manickam <anandrm@gmail.com>,
-	Patrick McHardy <kaber@trash.net>,
-	netfilter-devel@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pv0-f174.google.com ([74.125.83.174]:44626 "EHLO
-	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752661Ab0EUDPI convert rfc822-to-8bit (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 20 May 2010 23:15:08 -0400
-Received: by pvg3 with SMTP id 3so224410pvg.19
-        for <netfilter-devel@vger.kernel.org>; Thu, 20 May 2010 20:15:07 -0700 (PDT)
-In-Reply-To: <1274409281.4977.3.camel@edumazet-laptop>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: kaber@trash.net
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1274371246-26760-1-git-send-email-kaber@trash.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Fri, May 21, 2010 at 10:34 AM, Eric Dumazet <eric.dumazet@gmail.com>=
- wrote:
-> Le vendredi 21 mai 2010 =C3=A0 07:43 +0800, Changli Gao a =C3=A9crit =
-:
->>
->> and we have to do insertion and deletion in serial with rbtree, so
->> rbtree doesn't scales as well as hash tables for parallel processing=
-,
->> if there are many insertions and deletions operations.
->>
->>
->
-> Before saying such things, you should read the source code Changli,
-> because you only propagate wrong information.
->
-> conntrack uses a single lock, so inserts and deletes _are_ serialized=
-,
-> _even_ with hash table.
->
+From: kaber@trash.net
+Date: Thu, 20 May 2010 18:00:43 +0200
 
-Sorry. I should add "Off Topic", as I said that for common cases, not
-for conntracking.
+> following are three fixes for netfilter:
+> 
+> - handling of non-linear skbs in the SIP conntrack helper. This fixes tracking
+>   failures when running on the same machine as a SIP application that is
+>   producing non-linear skbs. Long term this should be fixed by using the string
+>   search API, but that is a bigger piece of work.
+> 
+> - fix for a race condition in nf_conntrack that might lead to conntrack entries
+>   marked as dead entering the hash tables, blocking new connections with similar
+>   keys.
+> 
+> - a fix for an incorrect comment about the checkentry return conventions.
+> 
+> Please apply or pull from:
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git master
 
---=20
-Regards=EF=BC=8C
-Changli Gao(xiaosuo@gmail.com)
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Pulled, thanks Patrick.
