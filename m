@@ -1,42 +1,65 @@
-From: Simon Lodal <simonl@parknet.dk>
-Subject: Re: Any Performance benchmark on a Million conntracks
-Date: Fri, 21 May 2010 16:05:47 +0200
-Message-ID: <201005211605.48047.simonl@parknet.dk>
-References: <AANLkTinGFeinOo2LfMU_6jcNewuFxXkZL1f9vAE-SXBe@mail.gmail.com>
+From: Victor Julien <lists@inliniac.net>
+Subject: Re: libnetfilter_queue question
+Date: Fri, 21 May 2010 18:02:56 +0200
+Message-ID: <4BF6AEB0.1040303@inliniac.net>
+References: <4BF3BA47.7040109@inliniac.net> <1274299848.21477.6.camel@ice-age>
 Mime-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: netfilter-devel@vger.kernel.org
-To: Anand Raj Manickam <anandrm@gmail.com>
+To: Eric Leblond <eric@inl.fr>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cuda.parknet.dk ([84.238.112.40]:44019 "EHLO cuda.parknet.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755884Ab0EUOFv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 May 2010 10:05:51 -0400
-In-Reply-To: <AANLkTinGFeinOo2LfMU_6jcNewuFxXkZL1f9vAE-SXBe@mail.gmail.com>
-Content-Disposition: inline
+Received: from static-27.netfusion.at ([83.215.238.27]:54317 "EHLO
+	tulpe.vuurmuur.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758461Ab0EUQDS (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 21 May 2010 12:03:18 -0400
+In-Reply-To: <1274299848.21477.6.camel@ice-age>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Eric Leblond wrote:
+> Hi Victor,
+>=20
+> Le mercredi 19 mai 2010 =E0 12:15 +0200, Victor Julien a =E9crit :
+>> Hi all,
+>>
+>> I'm using libnetfilter_queue for inline mode in the Suricata IDS/IPS
+>> (www.openinfosecfoundation.org). I'm using a callback that makes the
+>> packet(s) available to the detection engine. In some special cases t=
+he
+>> call back could fail (only malloc failure atm).
+>>
+>> I was wondering what the proper response would be to such an event. =
+I'm
+>> assuming nfq_handle_packet() would return an (non zero) error code i=
+n
+>> that case.
+>>
+>> Should I verdict the packet? (drop to be safe)
+>=20
+> Yes, clearly ! If you don't do this the packet will get stuck inside =
+the
+> kernel and nothing will released it (and free associated structures).
+>=20
+> The only other mean to free queued packet is to unregister from the N=
+=46
+> queue.
 
-FWIW, the load on my routers is regularly 400k conns, 5k inserts + 5k deletes, 
-and 280 kpps traffic (140 kpps in each direction). There are certain scalability 
-issues that I am investigating, but they do not seem related to conntracking 
-at all.
+Thanks Eric, I will implement the verdict in case of error.
 
-I have configured for 8 million entries (2m buckets).
+Cheers,
+Victor
 
-Torsdag 20 maj 2010 14:51:45 skrev Anand Raj Manickam:
-> Hi,
-> Is there any performance bench mark on conntrack response to 1 million
-> conntrack entries in the conntrack table.
-> Since conntrack uses Hashing to lookup the entries i had some doubts
-> on the scalability. Can someone shed some light please?
-> Thanks,
-> Anand
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel"
-> in the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+--=20
+---------------------------------------------
+Victor Julien
+http://www.inliniac.net/
+PGP: http://www.inliniac.net/victorjulien.asc
+---------------------------------------------
 
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
