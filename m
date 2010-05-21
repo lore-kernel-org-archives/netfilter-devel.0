@@ -1,55 +1,170 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Xtables 1.26 vs. Linux Kernel 2.6.34[.0] - Compile problem
-Date: Fri, 21 May 2010 21:17:43 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1005212114400.11870@obet.zrqbmnf.qr>
-References: <798212.56589.qm@web84206.mail.re3.yahoo.com>
+From: James Morris <jmorris@namei.org>
+Subject: [ANN] Linux Security Summit 2010 - Announcement and CFP
+Date: Sat, 22 May 2010 08:44:58 +1000 (EST)
+Message-ID: <alpine.LRH.2.00.1005220826560.10931@tundra.namei.org>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Patrick McHardy <kaber@trash.net>,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>, adobriyan@gmail.com
-To: - <d.stussy@yahoo.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:49384 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758223Ab0EUTRp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 21 May 2010 15:17:45 -0400
-In-Reply-To: <798212.56589.qm@web84206.mail.re3.yahoo.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: linux-kernel@vger.kernel.org, lwn@lwn.net,
+	fedora-selinux-list@redhat.com, selinux@tycho.nsa.gov,
+	"C. Craig Ross" <ccr@linuxfoundation.org>,
+	ubuntu-hardened@lists.ubuntu.com,
+	tomoyo-users-en@lists.sourceforge.jp,
+	netfilter-devel@vger.kernel.org, linux-crypto@vger.kernel.org,
+	Audit-ML <linux-audit@redhat.com>, lss-pc@ext.namei.org,
+	gentoo-hardened@gentoo.org
+To: linux-security-module@vger.kernel.org
+Return-path: <linux-crypto-owner@vger.kernel.org>
+Sender: linux-crypto-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Friday 2010-05-21 21:14, - wrote:
+==========================================================================
 
->Did commit a79ff731a1b277d0e92d9453bdf374e04cec717a make it into the 2=
-=2E6.34.0 kernel release?=C2=A0 It appears not to have, at least when I=
- looked at my source code archive....=C2=A0 The kernel is dated 2010-05=
--16, yet I did NOT see this patch in the changelog despite its April 13=
- date.
+                  ANNOUNCEMENT AND CALL FOR PARTICIPATION                
 
-Indeed:
+                        LINUX SECURITY SUMMIT 2010      
 
-21:14 borg:~/code/linux > git describe=20
-a79ff731a1b277d0e92d9453bdf374e04cec717a
-v2.6.34-rc1-1132-ga79ff73
+==========================================================================
 
-21:14 borg:~/code/linux > git describe --contains=20
-a79ff731a1b277d0e92d9453bdf374e04cec717a
-fatal: cannot describe 'a79ff731a1b277d0e92d9453bdf374e04cec717a'
 
-21:16 borg:~/code/linux > git tag XHEAD kabernext/master
-21:16 borg:~/code/linux > git describe --contains --match=3DXHEAD=20
-a79ff731a1b277d0e92d9453bdf374e04cec717a
-XHEAD~8^2~25
+DESCRIPTION
 
-Looks indeed like something only in 2.6.35. Especially when doing the=20
-much simpler
+  The Linux Security Summit is a technical forum for collaboration
+  between Linux developers, researchers, and end users.  Its primary aim
+  is to foster community efforts in analyzing and solving Linux security
+  challenges.
 
-git show v2.6.34:include/linux/netfilter/x_tables.h
+  The format of the summit will be:
+  
+    * Selected brief presentations
+    * Lightning talks
+    * Q&A panel sessions 
+  
 
-:-)
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+DATES / LOCATION
+
+  The Linux Security Summit for 2010 will be held on the 9th of August in
+  Boston, USA.  It will be co-located with LinuxCon [1], at the
+  Renaissance Boston Waterfront.
+  
+  Note that Linux Security Summit attendees must be registered to attend
+  LinuxCon.  See the LinuxCon site for details on registration, travel,
+  and accommodation.
+  
+    http://events.linuxfoundation.org/events/linuxcon
+
+  The CFP is currently open, and will close on 4th of June (see below).
+  
+  Accepted speakers will be notified by 9th of June.
+
+
+WHO SHOULD ATTEND
+
+  The event is open to all registered LinuxCon attendees.
+  
+  You do not have to be a "security person" to attend -- we're seeking a
+  diverse range of attendees, and welcome the participation of general
+  developers, researchers, operations, and end-users.
+
+  There will be several panel sessions in addition to brief, selected
+  presentations, with a strong focus on discussion.
+
+
+CALL FOR PARTICIPATION
+
+  The program committee currently seeks proposals for:
+
+  Presentations:
+  
+    Brief technical talks in 30 minute slots, including at least 10
+    minutes of discussion (i.e.  the maximum length of the presentation
+    alone is 20 minutes).  Papers are encouraged, and slides should be
+    minimal.
+    
+    Presentation abstracts should be approximately 150 words in length.
+
+
+  Panel discussion topics:
+  
+    If you'd like to see an issue discussed in a Q&A style panel, send it
+    in.  Note that this may result in you volunteering to participate in
+    a panel.
+
+    
+  Topic areas include, but are not limited to:
+  
+    * System hardening
+    * Access control
+    * Cryptography
+    * Integrity control
+    * Hardware security
+    * Networking
+    * Storage
+    * Virtualization
+    * Desktop
+    * Tools
+    * Management
+    * Case studies
+    * Emerging technologies, threats & techniques 
+    
+  Proposals must be submitted before the end of June 4th, 2010.
+  
+  (That's not far away!)
+  
+  Accepted speakers will be notified by June 9th, 2010.
+  
+  We will probably receive more proposals than can be accommodated.  If
+  your talk is not accepted, you may wish to give a lightning talk or
+  raise a topic in a discussion panel.
+  
+  Lightning talks and discussion panel agendas will be coordinated closer
+  to the event on the event mailing list, and on-site.
+
+  Proposals should be submitted in plain text via email to the program
+  committee at:  lss-pc (_at_) ext.namei.org
+
+
+MAILING LIST
+
+  Everyone planning to attend should join the event mailing list:
+  
+     https://ext.namei.org/mailman/listinfo/linux-security-summit
+     
+  Coordination of panel discussions and lightning talks will occur on the
+  list.  Updates and announcements about the event will also be sent to
+  the list.
+  
+
+WEB SITE
+
+  Please also note the Linux Security Summit web site:
+  
+    https://security.wiki.kernel.org/index.php/LinuxSecuritySummit2010  
+ 
+  which will be kept updated with all available information on the event.
+
+
+PROGRAM COMMITTEE
+
+  The Linux Security Summit for 2010 is organized by:
+
+    * James Morris, Red Hat
+    * Serge Hallyn, IBM
+    * Paul Moore, HP
+    * Stephen Smalley, NSA
+    * Joshua Brindle, Tresys
+    * Tetsuo Handa, NTT Data
+    * Herbert Xu, Red Hat
+    * John Johansen, Canonical
+    * Andrew G. Morgan, Google
+    * Kees Cook, Canonical
+    * Casey Schaufler, Smack Project 
+
+  
+  The program committee may be contacted as a group via email:
+
+     lss-pc (_at_) ext.namei.org
+   
+
+REFERENCES  
+
+  [1] LinuxCon: http://events.linuxfoundation.org/events/linuxcon
