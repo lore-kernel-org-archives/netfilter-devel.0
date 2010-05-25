@@ -1,11 +1,10 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 Subject: Re: [PATCH RFC] netfilter: iptables target SYNPROXY
-Date: Tue, 25 May 2010 13:50:52 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1005251347450.8202@obet.zrqbmnf.qr>
-References: <1274771218-3204-1-git-send-email-xiaosuo@gmail.com>  <alpine.LSU.2.01.1005251207450.1725@obet.zrqbmnf.qr> <AANLkTim2DrXuBPUBK0TseqVJ5lxPRQjK0P_QJVsbtYRC@mail.gmail.com>
+Date: Tue, 25 May 2010 14:17:43 +0200 (CEST)
+Message-ID: <alpine.DEB.2.00.1005251353370.20667@blackhole.kfki.hu>
+References: <1274771218-3204-1-git-send-email-xiaosuo@gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: Patrick McHardy <kaber@trash.net>,
 	"David S. Miller" <davem@davemloft.net>,
 	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
@@ -13,56 +12,42 @@ Cc: Patrick McHardy <kaber@trash.net>,
 	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 To: Changli Gao <xiaosuo@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:46338 "EHLO borg.medozas.de"
+Received: from smtp2.kfki.hu ([148.6.0.28]:58979 "EHLO smtp2.kfki.hu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750783Ab0EYLux (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 25 May 2010 07:50:53 -0400
-In-Reply-To: <AANLkTim2DrXuBPUBK0TseqVJ5lxPRQjK0P_QJVsbtYRC@mail.gmail.com>
+	id S1755305Ab0EYMRq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 25 May 2010 08:17:46 -0400
+In-Reply-To: <1274771218-3204-1-git-send-email-xiaosuo@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Hi,
 
-On Tuesday 2010-05-25 13:26, Changli Gao wrote:
->> On Tuesday 2010-05-25 09:06, Changli Gao wrote:
->>> net/ipv4/netfilter/Kconfig =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0| =C2=A0 12
->>> net/ipv4/netfilter/Makefile =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 | =C2=A0 =C2=A01
->>> net/ipv4/netfilter/ipt_SYNPROXY.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- | =C2=A0658 ++++++++++++++++++++++++++++
->>> net/ipv4/syncookies.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=
-=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 | =C2=A0 21
->>> net/ipv4/tcp_ipv4.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 | =C2=A0 =C2=A05
->>> net/netfilter/nf_conntrack_core.c =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
- | =C2=A0 44 +
->>
->> Please make this an Xtables extension.
->> There is excellent documentation ("Writing Netfilter Modules" to goo=
-gle)
->> on the details if needed.
->
->Hmm. I don't know IPv6 well. So I leave it as an iptables extension,
->and hope sb. comes on with IPv6 support after it gets merged.
+On Tue, 25 May 2010, Changli Gao wrote:
 
-This should still be xt even if it does not do ipv6.
+> iptables target SYNPROXY.
+> 
+> This patch implements an iptables target SYNPROXY, which works in the raw table
+> of the PREROUTING chain, before conntracking system. Syncookies is used, so no
+> new state is introduced into the conntracking system. In fact, until the first
+> connection is established, conntracking system doesn't see any packets. So when
+> there is a SYN-flood attack, conntracking system won't be busy on finding and
+> deleting the un-assured ct.
 
->>>+ =C2=A0 =C2=A0 =C2=A0th =3D skb_header_pointer(skb, iph->ihl * 4, s=
-izeof(_th), &_th);
->>>+ =C2=A0 =C2=A0 =C2=A0BUG_ON(th =3D=3D NULL);
->>
->> I wouldn't call that a bug. I think that can happen on an evil TCP t=
-inygram
->> (with proper IPV4 header).
->
->I copied the code from file nf_conntrack_proto_tcp.c. In fact, BUG_ON
->isn't useful at all, as tcp_error is called before this function
->is called.
+My main problem with your target is that by using it, important and useful 
+TCP options are lost: timestamp and SACK. That pushes back TCP by almost 
+twenty years.
 
-Ah I see it hard-depends on nf_conntrack_ipv4 (in Kconfig).
-That too could be done instead by using nf_ct_get_l3proto at runtime.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Here you reason for the target that it protects conntrack itself, but in 
+the Kconfig text you write that it protects the servers behind the 
+firewall. Both can be true, but if the real goal is to defend the servers 
+then your target could simply send a faked ACK to complete the three way 
+handshake and that way TCP would not be crippled (conntrack timeout 
+should still be adjusted).
+
+Best regards,
+Jozsef
+-
+E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+Address : KFKI Research Institute for Particle and Nuclear Physics
+          H-1525 Budapest 114, POB. 49, Hungary
