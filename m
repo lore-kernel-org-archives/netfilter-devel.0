@@ -1,58 +1,39 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Help: Cycle through iptables rules
-Date: Wed, 26 May 2010 11:47:40 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1005261142470.8695@obet.zrqbmnf.qr>
-References: <AANLkTiliv-YLViJ9hgnRY_rnFYYIfjnupo-NOE9tru1y@mail.gmail.com> <1274861468.2672.9.camel@edumazet-laptop>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [patch] Fwd: Troubles compiling iptables v1.4.8
+Date: Wed, 26 May 2010 12:28:45 +0200
+Message-ID: <4BFCF7DD.1060703@trash.net>
+References: <4BF74E78.1030805@lists.schang.net> <1274680413-25691-1-git-send-email-jengelh@medozas.de>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Felipe W Damasio <felipewd@gmail.com>,
-	netfilter-devel@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:38617 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756684Ab0EZJrl (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 May 2010 05:47:41 -0400
-In-Reply-To: <1274861468.2672.9.camel@edumazet-laptop>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	netfilter@lists.schang.net
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-owner@vger.kernel.org>
+In-Reply-To: <1274680413-25691-1-git-send-email-jengelh@medozas.de>
+Sender: netfilter-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-
-On Wednesday 2010-05-26 10:11, Eric Dumazet wrote:
->Le mardi 25 mai 2010 =C3=A0 21:31 -0300, Felipe W Damasio a =C3=A9crit=
- :
+Jan Engelhardt wrote:
+> Posted in the depths of netfilter@vger, Brian Schang wrote on
+> 2010-05-22 3:24:40:
+> 
+>> make[2]: Entering directory `/raida/packages/iptables/utils'
+>> gcc -DHAVE_CONFIG_H -I. -I..     -g -O2 -MT nfnl_osf.o -MD -MP -MF 
+>> .deps/nfnl_osf.Tpo -c -o nfnl_osf.o nfnl_osf.c
+>> nfnl_osf.c:48:36: error: linux/netfilter/xt_osf.h: No such file or directory
 >>
->>   So I'd like to know if I can cycle through all these rules based o=
-n
->> the number of connections.
->>=20
->>   Is it possible?
->>=20
->>   If it isn't currently, can this functionality be added? How can I =
-help?
->
->So all connections are coming from the NAT device, with a single IP, a=
-nd
->ports from say 30000 to 60000 (check your NAT device)
->
->iptables -t mangle -A PREROUTING -i eth0 -p tcp --dport 80 -m multipor=
-t=20
->--source-ports 30000:31000 -j TPROXY --tproxy-mark 0x1/0x1 --on-port 3=
-127
+>> I'm not sure where to turn next. Any insight would be appreciated.
+> 
+> 
+> The following changes since commit 8532c70fd182057b440b41f013d8021a95bd72b2:
+> 
+>   Revert "Revert "Merge branch 'iptables-next'"" (2010-05-21 12:57:23 +0200)
+> 
+> are available in the git repository at:
+>   git://dev.medozas.de/iptables master
+> 
+> Jan Engelhardt (1):
+>       utils: add missing include flags to Makefile
 
-There may be a non-uniform distribution so it may not be advisable.
-Instead perhaps,
-
--A PREROUTING -m conntrack --ctstate NEW -j extrachain
-for (I =3D 0; I < N; ++I)
-	-A extrachain -m statistic --mode nth --every I \
-		-j CONNMARK --set-mark I
-for (I =3D 0; I < N; ++I)
-	-A PREROUTING -m connmark --mark I -j TPROXY \
-		--tproxy-mark I/0xff --on-port I+3127
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Pulled, thanks Jan.
