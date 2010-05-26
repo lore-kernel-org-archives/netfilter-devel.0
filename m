@@ -1,174 +1,168 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH] netfilter: xt_statistic: remove nth_lock spinlock
-Date: Wed, 26 May 2010 14:29:54 +0200
-Message-ID: <1274876994.2672.215.camel@edumazet-laptop>
-References: <AANLkTiliv-YLViJ9hgnRY_rnFYYIfjnupo-NOE9tru1y@mail.gmail.com>
-	 <1274861468.2672.9.camel@edumazet-laptop>
-	 <alpine.LSU.2.01.1005261142470.8695@obet.zrqbmnf.qr>
-	 <1274874846.2672.192.camel@edumazet-laptop>
-	 <AANLkTilaed7xvxsrxYzub6-NogFHXKOlPtdnaXEgiYz5@mail.gmail.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: [PATCH] add nflog_snprintf_xml() to output a log in XML format
+Date: Wed, 26 May 2010 14:39:59 +0200
+Message-ID: <20100526123959.6039.31915.stgit@decadence>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	Patrick McHardy <kaber@trash.net>,
-	Felipe W Damasio <felipewd@gmail.com>,
-	netfilter-devel@vger.kernel.org
-To: Changli Gao <xiaosuo@gmail.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Cc: eleblond@edenwall.com
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:50826 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751740Ab0EZM37 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 26 May 2010 08:29:59 -0400
-Received: by fxm5 with SMTP id 5so4344590fxm.19
-        for <netfilter-devel@vger.kernel.org>; Wed, 26 May 2010 05:29:57 -0700 (PDT)
-In-Reply-To: <AANLkTilaed7xvxsrxYzub6-NogFHXKOlPtdnaXEgiYz5@mail.gmail.com>
+Received: from mail.us.es ([193.147.175.20]:42305 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754049Ab0EZMkE (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 26 May 2010 08:40:04 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le mercredi 26 mai 2010 =C3=A0 20:07 +0800, Changli Gao a =C3=A9crit :
-> On Wed, May 26, 2010 at 7:54 PM, Eric Dumazet <eric.dumazet@gmail.com=
-> wrote:
-> >
-> > Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
-> > ---
-> > diff --git a/net/netfilter/xt_statistic.c b/net/netfilter/xt_statis=
-tic.c
-> > index 96e62b8..0114d2b 100644
-> > --- a/net/netfilter/xt_statistic.c
-> > +++ b/net/netfilter/xt_statistic.c
-> > @@ -18,8 +18,8 @@
-> >  #include <linux/netfilter/x_tables.h>
-> >
-> >  struct xt_statistic_priv {
-> > -       uint32_t count;
-> > -};
-> > +       atomic_t count;
-> > +} ____cacheline_aligned_in_smp;
-> >
-> >  MODULE_LICENSE("GPL");
-> >  MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
-> > @@ -27,13 +27,12 @@ MODULE_DESCRIPTION("Xtables: statistics-based m=
-atching (\"Nth\", random)");
-> >  MODULE_ALIAS("ipt_statistic");
-> >  MODULE_ALIAS("ip6t_statistic");
-> >
-> > -static DEFINE_SPINLOCK(nth_lock);
-> > -
-> >  static bool
-> >  statistic_mt(const struct sk_buff *skb, struct xt_action_param *pa=
-r)
-> >  {
-> >        const struct xt_statistic_info *info =3D par->matchinfo;
-> >        bool ret =3D info->flags & XT_STATISTIC_INVERT;
-> > +       int nval, oval;
-> >
-> >        switch (info->mode) {
-> >        case XT_STATISTIC_MODE_RANDOM:
-> > @@ -41,12 +40,14 @@ statistic_mt(const struct sk_buff *skb, struct =
-xt_action_param *par)
-> >                        ret =3D !ret;
-> >                break;
-> >        case XT_STATISTIC_MODE_NTH:
-> > -               spin_lock_bh(&nth_lock);
-> > -               if (info->master->count++ =3D=3D info->u.nth.every)=
- {
-> > -                       info->master->count =3D 0;
-> > +               do {
-> > +                       oval =3D atomic_read(&info->master->count);
-> > +                       nval =3D oval + 1;
-> > +                       if (nval =3D=3D info->u.nth.every)
-> > +                               nval =3D 0;
->=20
-> these lines should be:
->                            if (oval =3D=3D info->u.nth.every)
->                                     nval =3D 0;
->                            else
->                                     nval =3D oval + 1;
+This patch adds a new function to output the packet in XML format.
 
-Good catch, this "every" counter is off by one...
-
-Thanks
-
-[PATCH v2] netfilter: xt_statistic: remove nth_lock spinlock
-
-Use atomic_cmpxchg() to avoid dirtying a shared location.
-
-xt_statistic_priv smp aligned to avoid sharing same cache line with
-other stuff.
-
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- net/netfilter/xt_statistic.c |   19 +++++++++----------
- 1 file changed, 9 insertions(+), 10 deletions(-)
+ include/libnetfilter_log/libnetfilter_log.h |   12 +++
+ src/libnetfilter_log.c                      |  113 +++++++++++++++++++++++++++
+ 2 files changed, 125 insertions(+), 0 deletions(-)
 
-diff --git a/net/netfilter/xt_statistic.c b/net/netfilter/xt_statistic.=
-c
-index 96e62b8..42ecb71 100644
---- a/net/netfilter/xt_statistic.c
-+++ b/net/netfilter/xt_statistic.c
-@@ -18,8 +18,8 @@
- #include <linux/netfilter/x_tables.h>
-=20
- struct xt_statistic_priv {
--	uint32_t count;
--};
-+	atomic_t count;
-+} ____cacheline_aligned_in_smp;
-=20
- MODULE_LICENSE("GPL");
- MODULE_AUTHOR("Patrick McHardy <kaber@trash.net>");
-@@ -27,13 +27,12 @@ MODULE_DESCRIPTION("Xtables: statistics-based match=
-ing (\"Nth\", random)");
- MODULE_ALIAS("ipt_statistic");
- MODULE_ALIAS("ip6t_statistic");
-=20
--static DEFINE_SPINLOCK(nth_lock);
--
- static bool
- statistic_mt(const struct sk_buff *skb, struct xt_action_param *par)
- {
- 	const struct xt_statistic_info *info =3D par->matchinfo;
- 	bool ret =3D info->flags & XT_STATISTIC_INVERT;
-+	int nval, oval;
-=20
- 	switch (info->mode) {
- 	case XT_STATISTIC_MODE_RANDOM:
-@@ -41,12 +40,12 @@ statistic_mt(const struct sk_buff *skb, struct xt_a=
-ction_param *par)
- 			ret =3D !ret;
- 		break;
- 	case XT_STATISTIC_MODE_NTH:
--		spin_lock_bh(&nth_lock);
--		if (info->master->count++ =3D=3D info->u.nth.every) {
--			info->master->count =3D 0;
-+		do {
-+			oval =3D atomic_read(&info->master->count);
-+			nval =3D (oval =3D=3D info->u.nth.every) ? 0 : oval + 1;
-+		} while (atomic_cmpxchg(&info->master->count, oval, nval) !=3D oval)=
-;
-+		if (nval =3D=3D 0)
- 			ret =3D !ret;
--		}
--		spin_unlock_bh(&nth_lock);
- 		break;
- 	}
-=20
-@@ -64,7 +63,7 @@ static int statistic_mt_check(const struct xt_mtchk_p=
-aram *par)
- 	info->master =3D kzalloc(sizeof(*info->master), GFP_KERNEL);
- 	if (info->master =3D=3D NULL)
- 		return -ENOMEM;
--	info->master->count =3D info->u.nth.count;
-+	atomic_set(&info->master->count, info->u.nth.count);
-=20
+diff --git a/include/libnetfilter_log/libnetfilter_log.h b/include/libnetfilter_log/libnetfilter_log.h
+index aa0da72..365b19d 100644
+--- a/include/libnetfilter_log/libnetfilter_log.h
++++ b/include/libnetfilter_log/libnetfilter_log.h
+@@ -67,4 +67,16 @@ extern int nflog_get_gid(struct nflog_data *nfad, u_int32_t *gid);
+ extern int nflog_get_seq(struct nflog_data *nfad, u_int32_t *seq);
+ extern int nflog_get_seq_global(struct nflog_data *nfad, u_int32_t *seq);
+ 
++enum {
++        NFLOG_XML_PREFIX	= (1 << 0),
++        NFLOG_XML_HW		= (1 << 1),
++        NFLOG_XML_MARK		= (1 << 2),
++        NFLOG_XML_DEV		= (1 << 3),
++        NFLOG_XML_PHYSDEV	= (1 << 4),
++        NFLOG_XML_PAYLOAD	= (1 << 5),
++        NFLOG_XML_ALL		= ~0U,
++};
++
++extern int nflog_snprintf_xml(char *buf, int len, struct nflog_data *tb, int flags);
++
+ #endif	/* __LIBNETFILTER_LOG_H */
+diff --git a/src/libnetfilter_log.c b/src/libnetfilter_log.c
+index ebb8a19..6978814 100644
+--- a/src/libnetfilter_log.c
++++ b/src/libnetfilter_log.c
+@@ -481,3 +481,116 @@ int nflog_get_seq_global(struct nflog_data *nfad, u_int32_t *seq)
+ 	*seq = ntohl(nfnl_get_data(nfad->nfa, NFULA_SEQ_GLOBAL, u_int32_t));
  	return 0;
  }
++
++#define SNPRINTF_FAILURE(size, len, offset)			\
++do {								\
++	if (size < 0 || (unsigned int) size >= len)		\
++		return size;					\
++	offset += size;						\
++	len -= size;						\
++} while (0)
++
++int nflog_snprintf_xml(char *buf, int len, struct nflog_data *tb, int flags)
++{
++	struct nfulnl_msg_packet_hdr *ph;
++	struct nfulnl_msg_packet_hw *hwph;
++	u_int32_t mark, ifi;
++	int size, offset = 0, ret;
++	char *data;
++
++	size = snprintf(buf + offset, len, "<log>");
++	SNPRINTF_FAILURE(size, len, offset);
++
++	data = nflog_get_prefix(tb);
++	if (data && (flags & NFLOG_XML_PREFIX)) {
++		size = snprintf(buf + offset, len, "<prefix>%s</prefix>", data);
++		SNPRINTF_FAILURE(size, len, offset);
++	}
++
++	ph = nflog_get_msg_packet_hdr(tb);
++	if (ph) {
++		size = snprintf(buf + offset, len, "<hook>%u</hook>", ph->hook);
++		SNPRINTF_FAILURE(size, len, offset);
++
++		hwph = nflog_get_packet_hw(tb);
++		if (hwph && (flags & NFLOG_XML_HW)) {
++			int i, hlen = ntohs(hwph->hw_addrlen);
++
++			size = snprintf(buf + offset, len, "<hw><proto>0x%04x"
++							   "</proto>",
++					ntohs(ph->hw_protocol));
++			SNPRINTF_FAILURE(size, len, offset);
++
++			size = snprintf(buf + offset, len, "<src>");
++			SNPRINTF_FAILURE(size, len, offset);
++
++			for (i=0; i<hlen-1; i++) {
++				size = snprintf(buf + offset, len, "%02x:",
++						ntohs(ph->hw_protocol));
++				SNPRINTF_FAILURE(size, len, offset);
++			}
++
++			size = snprintf(buf + offset, len, "</src></hw>");
++			SNPRINTF_FAILURE(size, len, offset);
++		} else if (flags & NFLOG_XML_HW) {
++			size = snprintf(buf + offset, len, "<hw><proto>0x%04x"
++						    "</proto></hw>",
++				 ntohs(ph->hw_protocol));
++			SNPRINTF_FAILURE(size, len, offset);
++		}
++	}
++
++	mark = nflog_get_nfmark(tb);
++	if (mark && (flags & NFLOG_XML_MARK)) {
++		size = snprintf(buf + offset, len, "<mark>%u</mark>", mark);
++		SNPRINTF_FAILURE(size, len, offset);
++	}
++
++	ifi = nflog_get_indev(tb);
++	if (ifi && (flags & NFLOG_XML_DEV)) {
++		size = snprintf(buf + offset, len, "<indev>%u</indev>", ifi);
++		SNPRINTF_FAILURE(size, len, offset);
++	}
++
++	ifi = nflog_get_outdev(tb);
++	if (ifi && (flags & NFLOG_XML_DEV)) {
++		size = snprintf(buf + offset, len, "<outdev>%u</outdev>", ifi);
++		SNPRINTF_FAILURE(size, len, offset);
++	}
++
++	ifi = nflog_get_physindev(tb);
++	if (ifi && (flags & NFLOG_XML_PHYSDEV)) {
++		size = snprintf(buf + offset, len,
++				"<physindev>%u</physindev>", ifi);
++		SNPRINTF_FAILURE(size, len, offset);
++	}
++
++	ifi = nflog_get_physoutdev(tb);
++	if (ifi && (flags & NFLOG_XML_PHYSDEV)) {
++		size = snprintf(buf + offset, len,
++				"<physoutdev>%u</physoutdev>", ifi);
++		SNPRINTF_FAILURE(size, len, offset);
++	}
++
++	ret = nflog_get_payload(tb, &data);
++	if (ret >= 0 && (flags & NFLOG_XML_PAYLOAD)) {
++		int i;
++
++		size = snprintf(buf + offset, len, "<payload>");
++		SNPRINTF_FAILURE(size, len, offset);
++
++		for (i=0; i<ret; i++) {
++			size = snprintf(buf + offset, len, "x%02x",
++					data[i] & 0xff);
++			SNPRINTF_FAILURE(size, len, offset);
++		}
++
++		size = snprintf(buf + offset, len, "</payload>");
++		SNPRINTF_FAILURE(size, len, offset);
++	}
++
++	size = snprintf(buf + offset, len, "</log>");
++	SNPRINTF_FAILURE(size, len, offset);
++
++	return size;
++}
 
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
