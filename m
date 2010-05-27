@@ -1,446 +1,230 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [PATCH] output: add new plugin XML to output logs in XML
-Date: Thu, 27 May 2010 14:56:17 +0200
-Message-ID: <20100527125617.13787.61243.stgit@decadence>
+Subject: Re: [PATCH] add nfq_snprintf_xml() to output a packet in XML format
+Date: Thu, 27 May 2010 15:14:13 +0200
+Message-ID: <4BFE7025.6000908@netfilter.org>
+References: <20100526123953.6016.65536.stgit@decadence> <alpine.LSU.2.01.1005261740270.1686@obet.zrqbmnf.qr> <4BFE5C7F.2030400@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Cc: eleblond@edenwall.com
-To: netfilter-devel@vger.kernel.org
+Content-Type: multipart/mixed;
+ boundary="------------060503030504050709090503"
+Cc: netfilter-devel@vger.kernel.org, eleblond@edenwall.com
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:56796 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36727 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754561Ab0E0M42 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 27 May 2010 08:56:28 -0400
+	id S1754641Ab0E0NOW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 27 May 2010 09:14:22 -0400
+In-Reply-To: <4BFE5C7F.2030400@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch adds XML that allows to log information in XML for
-ulogd2. It supports packet and flow-based accounting.
+This is a multi-part message in MIME format.
+--------------060503030504050709090503
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+
+New version of this patch including NFQ_XML_TIME.
+
+--------------060503030504050709090503
+Content-Type: text/x-patch;
+ name="xml.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="xml.patch"
+
+add nfq_snprintf_xml() to output a packet in XML format
+
+This patch adds a new function to output the packet in XML format.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- input/flow/ulogd_inpflow_NFCT.c   |   18 +++
- input/packet/ulogd_inppkt_NFLOG.c |    9 +
- output/Makefile.am                |    6 +
- output/ulogd_output_XML.c         |  240 +++++++++++++++++++++++++++++++++++++
- ulogd.conf.in                     |   11 ++
- 5 files changed, 282 insertions(+), 2 deletions(-)
- create mode 100644 output/ulogd_output_XML.c
+ include/libnetfilter_queue/libnetfilter_queue.h |   12 ++
+ src/libnetfilter_queue.c                        |  151 +++++++++++++++++++++++
+ 2 files changed, 163 insertions(+), 0 deletions(-)
 
-diff --git a/input/flow/ulogd_inpflow_NFCT.c b/input/flow/ulogd_inpflow_NFCT.c
-index 70f3940..5f85328 100644
---- a/input/flow/ulogd_inpflow_NFCT.c
-+++ b/input/flow/ulogd_inpflow_NFCT.c
-@@ -64,6 +64,7 @@ struct nfct_pluginstance {
- 	struct ulogd_timer ov_timer;	/* overrun retry timer */
- 	struct hashtable *ct_active;
- 	int nlbufsiz;			/* current netlink buffer size */
-+	struct nf_conntrack *ct;
- };
+diff --git a/include/libnetfilter_queue/libnetfilter_queue.h b/include/libnetfilter_queue/libnetfilter_queue.h
+index 88a9b8c..c33a134 100644
+--- a/include/libnetfilter_queue/libnetfilter_queue.h
++++ b/include/libnetfilter_queue/libnetfilter_queue.h
+@@ -106,6 +106,18 @@ extern struct nfqnl_msg_packet_hw *nfq_get_packet_hw(struct nfq_data *nfad);
+ /* return -1 if problem, length otherwise */
+ extern int nfq_get_payload(struct nfq_data *nfad, char **data);
  
- #define HTABLE_SIZE	(8192)
-@@ -158,6 +159,7 @@ enum nfct_keys {
- 	NFCT_FLOW_END_USEC,
- 	NFCT_OOB_FAMILY,
- 	NFCT_OOB_PROTOCOL,
-+	NFCT_CT,
- };
- 
- static struct ulogd_key nfct_okeys[] = {
-@@ -379,6 +381,11 @@ static struct ulogd_key nfct_okeys[] = {
- 		.flags	= ULOGD_RETF_NONE,
- 		.name	= "oob.protocol",
- 	},
-+	{
-+		.type	= ULOGD_RET_RAW,
-+		.flags	= ULOGD_RETF_NONE,
-+		.name	= "ct",
-+	},
- };
- 
- static uint32_t
-@@ -453,6 +460,8 @@ static int propagate_ct(struct ulogd_pluginstance *upi,
- 			struct ct_timestamp *ts)
- {
- 	struct ulogd_key *ret = upi->output.keys;
-+	struct nfct_pluginstance *cpi =
-+			(struct nfct_pluginstance *) upi->private;
- 
- 	okey_set_u32(&ret[NFCT_CT_EVENT], type);
- 	okey_set_u8(&ret[NFCT_OOB_FAMILY], nfct_get_attr_u8(ct, ATTR_L3PROTO));
-@@ -545,6 +554,8 @@ static int propagate_ct(struct ulogd_pluginstance *upi,
- 				     ts->time[STOP].tv_usec);
- 		}
- 	}
-+	memcpy(cpi->ct, ct, nfct_sizeof(ct));
-+	okey_set_ptr(&ret[NFCT_CT], cpi->ct);
- 
- 	ulogd_propagate_results(upi);
- 
-@@ -1006,6 +1017,10 @@ static int constructor_nfct_events(struct ulogd_pluginstance *upi)
- 
- 	ulogd_register_fd(&cpi->nfct_fd);
- 
-+	cpi->ct = nfct_new();
-+	if (cpi->ct == NULL)
-+		goto err_nfctobj;
++enum {
++	NFQ_XML_HW	= (1 << 0),
++	NFQ_XML_MARK	= (1 << 1),
++	NFQ_XML_DEV	= (1 << 2),
++	NFQ_XML_PHYSDEV	= (1 << 3),
++	NFQ_XML_PAYLOAD	= (1 << 4),
++	NFQ_XML_TIME	= (1 << 5),
++	NFQ_XML_ALL	= ~0U,
++};
 +
- 	if (usehash_ce(upi->config_kset).u.value != 0) {
- 		int family = AF_UNSPEC;
- 		struct nfct_handle *h;
-@@ -1071,6 +1086,8 @@ err_pgh:
- err_ovh:
- 	hashtable_destroy(cpi->ct_active);
- err_hashtable:
-+	nfct_destroy(cpi->ct);
-+err_nfctobj:
- 	ulogd_unregister_fd(&cpi->nfct_fd);
- 	nfct_close(cpi->cth);
- err_cth:
-@@ -1139,6 +1156,7 @@ static int destructor_nfct_events(struct ulogd_pluginstance *upi)
- 	if (rc < 0)
- 		return rc;
- 
-+	nfct_destroy(cpi->ct);
- 
- 	if (usehash_ce(upi->config_kset).u.value != 0) {
- 		ulogd_del_timer(&cpi->ov_timer);
-diff --git a/input/packet/ulogd_inppkt_NFLOG.c b/input/packet/ulogd_inppkt_NFLOG.c
-index 3fd866e..7e2f5a4 100644
---- a/input/packet/ulogd_inppkt_NFLOG.c
-+++ b/input/packet/ulogd_inppkt_NFLOG.c
-@@ -138,6 +138,7 @@ enum nflog_keys {
- 	NFLOG_KEY_RAW_TYPE,
- 	NFLOG_KEY_RAW_MAC_SADDR,
- 	NFLOG_KEY_RAW_MAC_ADDRLEN,
-+	NFLOG_KEY_RAW,
- };
- 
- static struct ulogd_key output_keys[] = {
-@@ -304,7 +305,11 @@ static struct ulogd_key output_keys[] = {
- 		.flags = ULOGD_RETF_NONE,
- 		.name = "raw.type",
- 	},
--
-+	[NFLOG_KEY_RAW] = {
-+		.type = ULOGD_RET_RAW,
-+		.flags = ULOGD_RETF_NONE,
-+		.name = "raw",
-+	},
- };
- 
- static inline int
-@@ -390,6 +395,8 @@ interp_packet(struct ulogd_pluginstance *upi, u_int8_t pf_family,
- 	if (nflog_get_seq_global(ldata, &seq) == 0)
- 		okey_set_u32(&ret[NFLOG_KEY_OOB_SEQ_GLOBAL], seq);
- 
-+	okey_set_ptr(&ret[NFLOG_KEY_RAW], ldata);
++extern int nfq_snprintf_xml(char *buf, size_t len, struct nfq_data *tb, int flags);
 +
- 	ulogd_propagate_results(upi);
- 	return 0;
+ #ifdef __cplusplus
+ } /* extern "C" */
+ #endif
+diff --git a/src/libnetfilter_queue.c b/src/libnetfilter_queue.c
+index cc19e6a..e16a0f7 100644
+--- a/src/libnetfilter_queue.c
++++ b/src/libnetfilter_queue.c
+@@ -1011,6 +1011,157 @@ int nfq_get_payload(struct nfq_data *nfad, char **data)
+ 	return -1;
  }
-diff --git a/output/Makefile.am b/output/Makefile.am
-index a4335c8..8aa8e08 100644
---- a/output/Makefile.am
-+++ b/output/Makefile.am
-@@ -5,7 +5,7 @@ SUBDIRS= pcap mysql pgsql sqlite3 dbi
  
- pkglib_LTLIBRARIES = ulogd_output_LOGEMU.la ulogd_output_SYSLOG.la \
- 		     ulogd_output_OPRINT.la ulogd_output_IPFIX.la \
--		     ulogd_output_NACCT.la
-+		     ulogd_output_NACCT.la ulogd_output_XML.la
- 
- ulogd_output_LOGEMU_la_SOURCES = ulogd_output_LOGEMU.c
- ulogd_output_LOGEMU_la_LDFLAGS = -avoid-version -module
-@@ -21,3 +21,7 @@ ulogd_output_IPFIX_la_LDFLAGS = -avoid-version -module
- 
- ulogd_output_NACCT_la_SOURCES = ulogd_output_NACCT.c
- ulogd_output_NACCT_la_LDFLAGS = -avoid-version -module
++#define SNPRINTF_FAILURE(size, len, offset)			\
++do {								\
++	if (size < 0 || (unsigned int) size >= len)		\
++		return size;					\
++	offset += size;						\
++	len -= size;						\
++} while (0)
 +
-+ulogd_output_XML_la_SOURCES = ulogd_output_XML.c
-+ulogd_output_XML_la_LDFLAGS = -avoid-version -module -lnetfilter_log \
-+			      -lnetfilter_conntrack
-diff --git a/output/ulogd_output_XML.c b/output/ulogd_output_XML.c
-new file mode 100644
-index 0000000..397258b
---- /dev/null
-+++ b/output/ulogd_output_XML.c
-@@ -0,0 +1,240 @@
-+/* ulogd_XML.c.
-+ *
-+ * ulogd output target for XML logging.
-+ *
-+ * (C) 2010 by Pablo Neira Ayuso <pablo@netfilter.org>
-+ *
-+ *  This program is free software; you can redistribute it and/or modify
-+ *  it under the terms of the GNU General Public License version 2 
-+ *  as published by the Free Software Foundation
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-+ */
-+
-+#include <libnetfilter_conntrack/libnetfilter_conntrack.h>
-+#include <libnetfilter_log/libnetfilter_log.h>
-+#include <ulogd/ulogd.h>
-+#include <sys/param.h>
-+#include <time.h>
-+#include <errno.h>
-+
-+#ifndef ULOGD_XML_DEFAULT_DIR
-+#define ULOGD_XML_DEFAULT_DIR "/var/log/"
-+#endif
-+
-+enum {
-+	KEY_CT,
-+	KEY_PCKT,
-+};
-+
-+static struct ulogd_key xml_inp[] = {
-+	[KEY_CT] = {
-+                .type = ULOGD_RET_RAW,
-+                .flags = ULOGD_RETF_NONE | ULOGD_KEYF_OPTIONAL,
-+                .name = "ct",
-+	},
-+	[KEY_PCKT] = {
-+                .type = ULOGD_RET_RAW,
-+                .flags = ULOGD_RETF_NONE | ULOGD_KEYF_OPTIONAL,
-+                .name = "raw",
-+	},
-+};
-+
-+enum {
-+	CFG_XML_DIR,
-+	CFG_XML_SYNC,
-+	CFG_XML_STDOUT,
-+};
-+
-+static struct config_keyset xml_kset = {
-+	.num_ces = 3,
-+	.ces = {
-+		[CFG_XML_DIR] = {
-+			.key = "directory", 
-+			.type = CONFIG_TYPE_STRING, 
-+			.options = CONFIG_OPT_NONE,
-+			.u = { .string = ULOGD_XML_DEFAULT_DIR },
-+		},
-+		[CFG_XML_SYNC] = {
-+			.key = "sync",
-+			.type = CONFIG_TYPE_INT,
-+			.options = CONFIG_OPT_NONE,
-+			.u = { .value = 0 },
-+		},
-+		[CFG_XML_STDOUT] = {
-+			.key = "stdout",
-+			.type = CONFIG_TYPE_INT,
-+			.options = CONFIG_OPT_NONE,
-+			.u = { .value = 0 },
-+		},
-+	},
-+};
-+
-+struct xml_priv {
-+        FILE *of;
-+};
-+
-+static int
-+xml_output_flow(struct ulogd_key *inp, char *buf, ssize_t size)
++int nfq_snprintf_xml(char *buf, size_t len, struct nfq_data *tb, int flags)
 +{
-+	struct nf_conntrack *ct = ikey_get_ptr(&inp[KEY_CT]);
-+	int tmp;
++	struct nfqnl_msg_packet_hdr *ph;
++	struct nfqnl_msg_packet_hw *hwph;
++	u_int32_t mark, ifi;
++	int size, offset = 0, ret;
++	char *data;
 +
-+	tmp = nfct_snprintf(buf, size, ct, 0, NFCT_O_XML,
-+			    NFCT_OF_SHOW_LAYER3 | NFCT_OF_ID | NFCT_OF_TIME);
-+	if (tmp < 0 || tmp >= size)
-+		return -1;
++	size = snprintf(buf + offset, len, "<pkt>");
++	SNPRINTF_FAILURE(size, len, offset);
 +
-+	return 0;
-+}
++	if (flags & NFQ_XML_TIME) {
++		time_t t;
++		struct tm tm;
 +
-+static int
-+xml_output_packet(struct ulogd_key *inp, char *buf, ssize_t size)
-+{
-+	struct nflog_data *ldata = ikey_get_ptr(&inp[KEY_PCKT]);
-+	int tmp;
-+
-+	tmp = nflog_snprintf_xml(buf, size, ldata, NFLOG_XML_ALL);
-+	if (tmp < 0 || tmp >= size)
-+		return -1;
-+
-+	return 0;
-+}
-+
-+static int xml_output(struct ulogd_pluginstance *upi)
-+{
-+	struct ulogd_key *inp = upi->input.keys;
-+	struct xml_priv *opi = (struct xml_priv *) &upi->private;
-+	static char buf[4096];
-+	int ret = -1;
-+
-+	if (pp_is_valid(inp, KEY_CT))
-+		ret = xml_output_flow(inp, buf, sizeof(buf));
-+	else if (pp_is_valid(inp, KEY_PCKT))
-+		ret = xml_output_packet(inp, buf, sizeof(buf));
-+
-+	if (ret < 0)
-+		return ULOGD_IRET_ERR;
-+
-+	fprintf(opi->of, "%s\n", buf);
-+	if (upi->config_kset->ces[CFG_XML_SYNC].u.value != 0)
-+		fflush(opi->of);
-+
-+	return ULOGD_IRET_OK;
-+}
-+
-+static int xml_configure(struct ulogd_pluginstance *upi,
-+			 struct ulogd_pluginstance_stack *stack)
-+{
-+	int ret;
-+
-+	ret = config_parse_file(upi->id, upi->config_kset);
-+	if (ret < 0)
-+		return ret;
-+
-+	return 0;
-+}
-+
-+static int xml_fini(struct ulogd_pluginstance *pi)
-+{
-+	struct xml_priv *op = (struct xml_priv *) &pi->private;
-+	struct ulogd_pluginstance *input_plugin =
-+		llist_entry(pi->stack->list.next,
-+			    struct ulogd_pluginstance, list);
-+
-+	/* the initial tag depends on the source. */
-+	if (input_plugin->plugin->output.type & ULOGD_DTYPE_FLOW)
-+		fprintf(op->of, "</conntrack>\n");
-+	else if (input_plugin->plugin->output.type & ULOGD_DTYPE_RAW)
-+		fprintf(op->of, "</packet>\n");
-+
-+	if (op->of != stdout)
-+		fclose(op->of);
-+
-+	return 0;
-+}
-+
-+static int xml_start(struct ulogd_pluginstance *upi)
-+{
-+	struct xml_priv *op = (struct xml_priv *) &upi->private;
-+	char buf[PATH_MAX], filename[FILENAME_MAX];
-+	time_t now;
-+	struct tm *tm;
-+	int ret;
-+
-+	if (upi->config_kset->ces[CFG_XML_STDOUT].u.value != 0) {
-+		op->of = stdout;
-+	} else {
-+		now = time(NULL);
-+		tm = localtime(&now);
-+		ret = snprintf(filename, sizeof(filename),
-+			       "ulogd-%.2d%.2d%.4d-%.2d%.2d%.2d.xml",
-+			       tm->tm_mday, tm->tm_mon + 1, 1900 + tm->tm_year,
-+			       tm->tm_hour, tm->tm_min, tm->tm_sec);
-+
-+		if (ret == -1 || ret >= (int)sizeof(filename))
++		t = time(NULL);
++		if (localtime_r(&t, &tm) == NULL)
 +			return -1;
 +
-+		ret = snprintf(buf, sizeof(buf), "%s/%s",
-+			       upi->config_kset->ces[CFG_XML_DIR].u.string,
-+			       filename);
-+		if (ret == -1 || ret >= (int)sizeof(buf))
-+			return -1;
++		size = snprintf(buf + offset, len, "<when>");
++		SNPRINTF_FAILURE(size, len, offset);
 +
-+		op->of = fopen(buf, "a");
-+		if (!op->of) {
-+			ulogd_log(ULOGD_FATAL, "can't open XML file: %s\n", 
-+				  strerror(errno));
-+			return -1;
++		size = snprintf(buf + offset, len,
++				"<hour>%d</hour>", tm.tm_hour);
++		SNPRINTF_FAILURE(size, len, offset);
++
++		size = snprintf(buf + offset,
++				len, "<min>%02d</min>", tm.tm_min);
++		SNPRINTF_FAILURE(size, len, offset);
++
++		size = snprintf(buf + offset,
++				len, "<sec>%02d</sec>", tm.tm_sec);
++		SNPRINTF_FAILURE(size, len, offset);
++
++		size = snprintf(buf + offset, len, "<wday>%d</wday>",
++				tm.tm_wday + 1);
++		SNPRINTF_FAILURE(size, len, offset);
++
++		size = snprintf(buf+offset, len, "<day>%d</day>", tm.tm_mday);
++		SNPRINTF_FAILURE(size, len, offset);
++
++		size = snprintf(buf+offset, len, "<month>%d</month>",
++				tm.tm_mon + 1);
++		SNPRINTF_FAILURE(size, len, offset);
++
++		size = snprintf(buf+offset, len, "<year>%d</year>",
++				1900 + tm.tm_year);
++		SNPRINTF_FAILURE(size, len, offset);
++
++		size = snprintf(buf+offset, len, "</when>");
++		SNPRINTF_FAILURE(size, len, offset);
++	}
++
++	ph = nfq_get_msg_packet_hdr(tb);
++	if (ph) {
++		size = snprintf(buf + offset, len,
++				"<hook>%u</hook><id>%u</id>",
++				ph->hook, ntohl(ph->packet_id));
++		SNPRINTF_FAILURE(size, len, offset);
++
++		hwph = nfq_get_packet_hw(tb);
++		if (hwph && (flags & NFQ_XML_HW)) {
++			int i, hlen = ntohs(hwph->hw_addrlen);
++
++			size = snprintf(buf + offset, len, "<hw><proto>0x%04x"
++							   "</proto>",
++					ntohs(ph->hw_protocol));
++			SNPRINTF_FAILURE(size, len, offset);
++
++			size = snprintf(buf + offset, len, "<src>");
++			SNPRINTF_FAILURE(size, len, offset);
++
++			for (i=0; i<hlen-1; i++) {
++				size = snprintf(buf + offset, len, "%02x:",
++						ntohs(ph->hw_protocol));
++				SNPRINTF_FAILURE(size, len, offset);
++			}
++
++			size = snprintf(buf + offset, len, "</src></hw>");
++			SNPRINTF_FAILURE(size, len, offset);
++		} else if (flags & NFQ_XML_HW) {
++			size = snprintf(buf + offset, len, "<hw><proto>0x%04x"
++						    "</proto></hw>",
++				 ntohs(ph->hw_protocol));
++			SNPRINTF_FAILURE(size, len, offset);
 +		}
 +	}
-+	fprintf(op->of, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
 +
-+	struct ulogd_pluginstance *input_plugin =
-+		llist_entry(upi->stack->list.next,
-+			    struct ulogd_pluginstance, list);
++	mark = nfq_get_nfmark(tb);
++	if (mark && (flags & NFQ_XML_MARK)) {
++		size = snprintf(buf + offset, len, "<mark>%u</mark>", mark);
++		SNPRINTF_FAILURE(size, len, offset);
++	}
 +
-+	if (input_plugin->plugin->output.type & ULOGD_DTYPE_FLOW)
-+		fprintf(op->of, "<conntrack>\n");
-+	else if (input_plugin->plugin->output.type & ULOGD_DTYPE_RAW)
-+		fprintf(op->of, "<packet>\n");
++	ifi = nfq_get_indev(tb);
++	if (ifi && (flags & NFQ_XML_DEV)) {
++		size = snprintf(buf + offset, len, "<indev>%u</indev>", ifi);
++		SNPRINTF_FAILURE(size, len, offset);
++	}
 +
-+	if (upi->config_kset->ces[CFG_XML_SYNC].u.value != 0)
-+		fflush(op->of);
++	ifi = nfq_get_outdev(tb);
++	if (ifi && (flags & NFQ_XML_DEV)) {
++		size = snprintf(buf + offset, len, "<outdev>%u</outdev>", ifi);
++		SNPRINTF_FAILURE(size, len, offset);
++	}
 +
-+	return 0;
++	ifi = nfq_get_physindev(tb);
++	if (ifi && (flags & NFQ_XML_PHYSDEV)) {
++		size = snprintf(buf + offset, len,
++				"<physindev>%u</physindev>", ifi);
++		SNPRINTF_FAILURE(size, len, offset);
++	}
++
++	ifi = nfq_get_physoutdev(tb);
++	if (ifi && (flags & NFQ_XML_PHYSDEV)) {
++		size = snprintf(buf + offset, len,
++				"<physoutdev>%u</physoutdev>", ifi);
++		SNPRINTF_FAILURE(size, len, offset);
++	}
++
++	ret = nfq_get_payload(tb, &data);
++	if (ret >= 0 && (flags & NFQ_XML_PAYLOAD)) {
++		int i;
++
++		size = snprintf(buf + offset, len, "<payload>");
++		SNPRINTF_FAILURE(size, len, offset);
++
++		for (i=0; i<ret; i++) {
++			size = snprintf(buf + offset, len, "\\x%02x",
++					data[i] & 0xff);
++			SNPRINTF_FAILURE(size, len, offset);
++		}
++
++		size = snprintf(buf + offset, len, "</payload>");
++		SNPRINTF_FAILURE(size, len, offset);
++	}
++
++	size = snprintf(buf + offset, len, "</pkt>");
++	SNPRINTF_FAILURE(size, len, offset);
++
++	return size;
 +}
 +
-+static struct ulogd_plugin xml_plugin = {
-+	.name = "XML",
-+	.input = {
-+		.keys = xml_inp,
-+		.num_keys = ARRAY_SIZE(xml_inp),
-+		.type = ULOGD_DTYPE_FLOW,
-+	},
-+	.output = {
-+		.type = ULOGD_DTYPE_SINK,
-+	},
-+	.config_kset	= &xml_kset,
-+	.priv_size	= sizeof(struct xml_priv),
-+	
-+	.configure	= &xml_configure,
-+	.start		= &xml_start,
-+	.stop		= &xml_fini,
-+	.interp		= &xml_output,
-+	.version	= ULOGD_VERSION,
-+};
-+
-+void __attribute__ ((constructor)) init(void);
-+
-+void init(void)
-+{
-+	ulogd_register_plugin(&xml_plugin);
-+}
-diff --git a/ulogd.conf.in b/ulogd.conf.in
-index b77d726..1101046 100644
---- a/ulogd.conf.in
-+++ b/ulogd.conf.in
-@@ -37,6 +37,7 @@ plugin="@libdir@/ulogd/ulogd_filter_PRINTFLOW.so"
- #plugin="@libdir@/ulogd/ulogd_filter_MARK.so"
- plugin="@libdir@/ulogd/ulogd_output_LOGEMU.so"
- plugin="@libdir@/ulogd/ulogd_output_SYSLOG.so"
-+plugin="@libdir@/ulogd/ulogd_output_XML.so"
- #plugin="@libdir@/ulogd/ulogd_output_OPRINT.so"
- #plugin="@libdir@/ulogd/ulogd_output_NACCT.so"
- #plugin="@libdir@/ulogd/ulogd_output_PCAP.so"
-@@ -63,6 +64,12 @@ plugin="@libdir@/ulogd/ulogd_raw2packet_BASE.so"
- # this is a stack for flow-based logging via OPRINT
- #stack=ct1:NFCT,op1:OPRINT
- 
-+# this is a stack for flow-based logging via XML
-+#stack=ct1:NFCT,xml1:XML
-+
-+# this is a stack for logging in XML
-+#stack=log1:NFLOG,xml1:XML
-+
- # this is a stack for NFLOG packet-based logging to PCAP
- #stack=log2:NFLOG,base1:BASE,pcap1:PCAP
- 
-@@ -146,6 +153,10 @@ sync=1
- file="/var/log/ulogd_oprint.log"
- sync=1
- 
-+[xml1]
-+directory="/var/log/"
-+sync=1
-+
- [pcap1]
- sync=1
- 
+ /**
+  * @}
+  */
 
+--------------060503030504050709090503--
