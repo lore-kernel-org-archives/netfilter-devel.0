@@ -1,77 +1,102 @@
-From: Felipe W Damasio <felipewd@gmail.com>
+From: Eric Dumazet <eric.dumazet@gmail.com>
 Subject: Re: Help: Cycle through iptables rules
-Date: Thu, 27 May 2010 17:35:37 -0300
-Message-ID: <AANLkTilYHBmR0XX2BY6NCZBdCpCUd0fi0oYDccJazqJj@mail.gmail.com>
+Date: Thu, 27 May 2010 22:40:13 +0200
+Message-ID: <1274992813.2446.22.camel@edumazet-laptop>
 References: <AANLkTiliv-YLViJ9hgnRY_rnFYYIfjnupo-NOE9tru1y@mail.gmail.com>
-	<1274861468.2672.9.camel@edumazet-laptop>
-	<alpine.LSU.2.01.1005261142470.8695@obet.zrqbmnf.qr>
-	<AANLkTilFXTT5kKPCTD7Re8Xzeg6UoKlDUJJvWPCGJXRd@mail.gmail.com>
-	<alpine.LSU.2.01.1005262215010.30857@obet.zrqbmnf.qr>
-	<1274905649.2542.1.camel@edumazet-laptop>
-	<AANLkTil_CCT7f8-Ih6v55tSf96gRtnRqs_lSuF07AyR4@mail.gmail.com>
-	<AANLkTinZzwWjDm003Emipfkit4ML4zsytR1i1w-aD700@mail.gmail.com>
-	<1274957271.2523.12.camel@edumazet-laptop>
+	 <1274861468.2672.9.camel@edumazet-laptop>
+	 <alpine.LSU.2.01.1005261142470.8695@obet.zrqbmnf.qr>
+	 <AANLkTilFXTT5kKPCTD7Re8Xzeg6UoKlDUJJvWPCGJXRd@mail.gmail.com>
+	 <alpine.LSU.2.01.1005262215010.30857@obet.zrqbmnf.qr>
+	 <1274905649.2542.1.camel@edumazet-laptop>
+	 <alpine.LSU.2.01.1005270008520.30857@obet.zrqbmnf.qr>
+	 <AANLkTilwGbJn20DXLtyDCHFQm8eS4g3_AUyLrI-huNi8@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Cc: =?ISO-8859-2?Q?Maciej_=AFenczykowski?= <zenczykowski@gmail.com>,
-	Jan Engelhardt <jengelh@medozas.de>,
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Jan Engelhardt <jengelh@medozas.de>,
 	netfilter-devel@vger.kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
+To: Felipe W Damasio <felipewd@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:47075 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755520Ab0E0Ufj (ORCPT
+Received: from mail-ww0-f46.google.com ([74.125.82.46]:35234 "EHLO
+	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756139Ab0E0UkT (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 27 May 2010 16:35:39 -0400
-Received: by fxm10 with SMTP id 10so210819fxm.19
-        for <netfilter-devel@vger.kernel.org>; Thu, 27 May 2010 13:35:38 -0700 (PDT)
-In-Reply-To: <1274957271.2523.12.camel@edumazet-laptop>
+	Thu, 27 May 2010 16:40:19 -0400
+Received: by wwb34 with SMTP id 34so339632wwb.19
+        for <netfilter-devel@vger.kernel.org>; Thu, 27 May 2010 13:40:18 -0700 (PDT)
+In-Reply-To: <AANLkTilwGbJn20DXLtyDCHFQm8eS4g3_AUyLrI-huNi8@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-  Hi Mr. Dumazet
+Le jeudi 27 mai 2010 =C3=A0 17:29 -0300, Felipe W Damasio a =C3=A9crit =
+:
+> Hi Mr. Engelhardt,
+>=20
+> I created a script using the instructions you gave me.
+>=20
+> The result was:
+>=20
+> Chain PREROUTING (policy ACCEPT)
+> target     prot opt source               destination
+> extrachain  all  --  0.0.0.0/0            0.0.0.0/0           ctstate=
+ NEW
+> TPROXY     tcp  --  0.0.0.0/0            0.0.0.0/0           tcp
+> dpt:80 connmark match 0x0 TPROXY redirect 0.0.0.0:3127 mark 0x1/0x1
+> TPROXY     tcp  --  0.0.0.0/0            0.0.0.0/0           tcp
+> dpt:80 connmark match 0x1 TPROXY redirect 0.0.0.0:3128 mark 0x1/0x1
+> TPROXY     tcp  --  0.0.0.0/0            0.0.0.0/0           tcp
+> dpt:80 connmark match 0x2 TPROXY redirect 0.0.0.0:3129 mark 0x1/0x1
+>=20
+> Chain extrachain (1 references)
+> target     prot opt source               destination
+> CONNMARK   all  --  0.0.0.0/0            0.0.0.0/0           statisti=
+c
+> mode nth every 3 CONNMARK and 0x0
+> CONNMARK   all  --  0.0.0.0/0            0.0.0.0/0           statisti=
+c
+> mode nth every 3 packet 1 CONNMARK xset 0x1/0xffffffff
+> CONNMARK   all  --  0.0.0.0/0            0.0.0.0/0           statisti=
+c
+> mode nth every 3 packet 2 CONNMARK xset 0x2/0xffffffff
+>=20
+>  This is for N=3D3 instances of squid.
+>=20
+>  The TPROXY rules make sense to me (forwarding to a port based on the
+> mark that was done in the extrachain). I just don't get the extrachai=
+n
+> rules regarding that "--every 3" bit yet. :-)
+>=20
+>  Are they right, though?
 
-2010/5/27 Eric Dumazet <eric.dumazet@gmail.com>:
-> Somebody setting up 48 squid instances must care about performance, or
-> something is wrong...
+Its right only if you have a single NIC, and a single queue one.
 
-  True, I do care, very much! :)
+Or else two SYN packets could flight in // in extrachain (using two
+cpus), and the logic would be wrong.
 
-  We're actually using the cache machine on a 300Mbps as kind of
-proof-of-concept: If it works well, we'll put on a 800Mbps network in
-june.
+I suggest using a first 'catch all' rule in extrachain, to make sure on=
+e
+CONNMARK is done.
 
-> I would expect maybe 10.000 new connections per second for such a
-> setup ?
+Or else, some connections would not go through any TPROXY rule.
 
-  Yep, something like this.
+Chain extrachain (1 references)
+target     prot opt source               destination
 
-> I personnally would use RPS (Remote Packet Steering) to distribute the
-> load on all available cpus, and one squid per available cpu too.
->
-> TPROXY selection would then use a match on selected CPU
->
-> echo ff >/sys/class/net/eth0/queues/rx-0/rps_cpus
->
-> -A extrachain -m cpu 0 -j TPROXY --tproxy-mark 0x01/0xff --on-port 3127
-> -A extrachain -m cpu 1 -j TPROXY --tproxy-mark 0x01/0xff --on-port 3128
-> -A extrachain -m cpu 2 -j TPROXY --tproxy-mark 0x01/0xff --on-port 3129
-> -A extrachain -m cpu 3 -j TPROXY --tproxy-mark 0x01/0xff --on-port 3130
-> -A extrachain -m cpu 4 -j TPROXY --tproxy-mark 0x01/0xff --on-port 3131
-> -A extrachain -m cpu 5 -j TPROXY --tproxy-mark 0x01/0xff --on-port 3132
-> -A extrachain -m cpu 6 -j TPROXY --tproxy-mark 0x01/0xff --on-port 3133
-> -A extrachain -m cpu 7 -j TPROXY --tproxy-mark 0x01/0xff --on-port 3134
+CONNMARK   all  --  0.0.0.0/0            0.0.0.0/0           CONNMARK
+xset 0x0/0xffffffff
 
-  That's a very good tip.
+CONNMARK   all  --  0.0.0.0/0            0.0.0.0/0           statistic
+mode nth every 3 packet 1 CONNMARK xset 0x1/0xffffffff
 
-  Although the squid people told me that kernels > 2.6.32 don't play
-nice with TPROXY.
+CONNMARK   all  --  0.0.0.0/0            0.0.0.0/0           statistic
+mode nth every 3 packet 2 CONNMARK xset 0x2/0xffffffff
 
-  I personally haven't tested them yet, I plan to do so this weekend.
-I'm currently using 2.6.29.6 on the production machine.
 
-  But if some of the newer kernel work, I'll definitely use this, thanks.
 
-  Cheers,
 
-Felipe Damasio
+
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
