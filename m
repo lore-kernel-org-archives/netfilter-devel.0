@@ -1,77 +1,77 @@
 From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] add nfq_snprintf_xml() to output a packet in XML format
-Date: Thu, 27 May 2010 15:14:13 +0200
-Message-ID: <4BFE7025.6000908@netfilter.org>
-References: <20100526123953.6016.65536.stgit@decadence> <alpine.LSU.2.01.1005261740270.1686@obet.zrqbmnf.qr> <4BFE5C7F.2030400@netfilter.org>
+Subject: Re: [PATCH] add nflog_snprintf_xml() to output a log in XML format
+Date: Thu, 27 May 2010 15:14:46 +0200
+Message-ID: <4BFE7046.7040802@netfilter.org>
+References: <20100526123959.6039.31915.stgit@decadence> <alpine.LSU.2.01.1005261744390.1686@obet.zrqbmnf.qr> <4BFE5DF9.4010200@netfilter.org>
 Mime-Version: 1.0
 Content-Type: multipart/mixed;
- boundary="------------060503030504050709090503"
+ boundary="------------090405010302080905090700"
 Cc: netfilter-devel@vger.kernel.org, eleblond@edenwall.com
 To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:36727 "EHLO mail.us.es"
+Received: from mail.us.es ([193.147.175.20]:36790 "EHLO mail.us.es"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754641Ab0E0NOW (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 27 May 2010 09:14:22 -0400
-In-Reply-To: <4BFE5C7F.2030400@netfilter.org>
+	id S1750831Ab0E0NO6 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 27 May 2010 09:14:58 -0400
+In-Reply-To: <4BFE5DF9.4010200@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 This is a multi-part message in MIME format.
---------------060503030504050709090503
+--------------090405010302080905090700
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 
-New version of this patch including NFQ_XML_TIME.
+New version including NFLOG_XML_TIME.
 
---------------060503030504050709090503
+--------------090405010302080905090700
 Content-Type: text/x-patch;
- name="xml.patch"
+ name="xml-log.patch"
 Content-Transfer-Encoding: 7bit
 Content-Disposition: inline;
- filename="xml.patch"
+ filename="xml-log.patch"
 
-add nfq_snprintf_xml() to output a packet in XML format
+add nflog_snprintf_xml() to output a log in XML format
 
 This patch adds a new function to output the packet in XML format.
 
 Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
 ---
- include/libnetfilter_queue/libnetfilter_queue.h |   12 ++
- src/libnetfilter_queue.c                        |  151 +++++++++++++++++++++++
- 2 files changed, 163 insertions(+), 0 deletions(-)
+ include/libnetfilter_log/libnetfilter_log.h |   13 ++
+ src/libnetfilter_log.c                      |  155 +++++++++++++++++++++++++++
+ 2 files changed, 168 insertions(+), 0 deletions(-)
 
-diff --git a/include/libnetfilter_queue/libnetfilter_queue.h b/include/libnetfilter_queue/libnetfilter_queue.h
-index 88a9b8c..c33a134 100644
---- a/include/libnetfilter_queue/libnetfilter_queue.h
-+++ b/include/libnetfilter_queue/libnetfilter_queue.h
-@@ -106,6 +106,18 @@ extern struct nfqnl_msg_packet_hw *nfq_get_packet_hw(struct nfq_data *nfad);
- /* return -1 if problem, length otherwise */
- extern int nfq_get_payload(struct nfq_data *nfad, char **data);
+diff --git a/include/libnetfilter_log/libnetfilter_log.h b/include/libnetfilter_log/libnetfilter_log.h
+index aa0da72..6b0d3b0 100644
+--- a/include/libnetfilter_log/libnetfilter_log.h
++++ b/include/libnetfilter_log/libnetfilter_log.h
+@@ -67,4 +67,17 @@ extern int nflog_get_gid(struct nflog_data *nfad, u_int32_t *gid);
+ extern int nflog_get_seq(struct nflog_data *nfad, u_int32_t *seq);
+ extern int nflog_get_seq_global(struct nflog_data *nfad, u_int32_t *seq);
  
 +enum {
-+	NFQ_XML_HW	= (1 << 0),
-+	NFQ_XML_MARK	= (1 << 1),
-+	NFQ_XML_DEV	= (1 << 2),
-+	NFQ_XML_PHYSDEV	= (1 << 3),
-+	NFQ_XML_PAYLOAD	= (1 << 4),
-+	NFQ_XML_TIME	= (1 << 5),
-+	NFQ_XML_ALL	= ~0U,
++	NFLOG_XML_PREFIX	= (1 << 0),
++	NFLOG_XML_HW		= (1 << 1),
++	NFLOG_XML_MARK		= (1 << 2),
++	NFLOG_XML_DEV		= (1 << 3),
++	NFLOG_XML_PHYSDEV	= (1 << 4),
++	NFLOG_XML_PAYLOAD	= (1 << 5),
++	NFLOG_XML_TIME		= (1 << 6),
++	NFLOG_XML_ALL		= ~0U,
 +};
 +
-+extern int nfq_snprintf_xml(char *buf, size_t len, struct nfq_data *tb, int flags);
++extern int nflog_snprintf_xml(char *buf, size_t len, struct nflog_data *tb, int flags);
 +
- #ifdef __cplusplus
- } /* extern "C" */
- #endif
-diff --git a/src/libnetfilter_queue.c b/src/libnetfilter_queue.c
-index cc19e6a..e16a0f7 100644
---- a/src/libnetfilter_queue.c
-+++ b/src/libnetfilter_queue.c
-@@ -1011,6 +1011,157 @@ int nfq_get_payload(struct nfq_data *nfad, char **data)
- 	return -1;
+ #endif	/* __LIBNETFILTER_LOG_H */
+diff --git a/src/libnetfilter_log.c b/src/libnetfilter_log.c
+index ebb8a19..d4fc0c2 100644
+--- a/src/libnetfilter_log.c
++++ b/src/libnetfilter_log.c
+@@ -481,3 +481,158 @@ int nflog_get_seq_global(struct nflog_data *nfad, u_int32_t *seq)
+ 	*seq = ntohl(nfnl_get_data(nfad->nfa, NFULA_SEQ_GLOBAL, u_int32_t));
+ 	return 0;
  }
- 
++
 +#define SNPRINTF_FAILURE(size, len, offset)			\
 +do {								\
 +	if (size < 0 || (unsigned int) size >= len)		\
@@ -80,18 +80,18 @@ index cc19e6a..e16a0f7 100644
 +	len -= size;						\
 +} while (0)
 +
-+int nfq_snprintf_xml(char *buf, size_t len, struct nfq_data *tb, int flags)
++int nflog_snprintf_xml(char *buf, size_t len, struct nflog_data *tb, int flags)
 +{
-+	struct nfqnl_msg_packet_hdr *ph;
-+	struct nfqnl_msg_packet_hw *hwph;
++	struct nfulnl_msg_packet_hdr *ph;
++	struct nfulnl_msg_packet_hw *hwph;
 +	u_int32_t mark, ifi;
 +	int size, offset = 0, ret;
 +	char *data;
 +
-+	size = snprintf(buf + offset, len, "<pkt>");
++	size = snprintf(buf + offset, len, "<log>");
 +	SNPRINTF_FAILURE(size, len, offset);
 +
-+	if (flags & NFQ_XML_TIME) {
++	if (flags & NFLOG_XML_TIME) {
 +		time_t t;
 +		struct tm tm;
 +
@@ -133,15 +133,19 @@ index cc19e6a..e16a0f7 100644
 +		SNPRINTF_FAILURE(size, len, offset);
 +	}
 +
-+	ph = nfq_get_msg_packet_hdr(tb);
++	data = nflog_get_prefix(tb);
++	if (data && (flags & NFLOG_XML_PREFIX)) {
++		size = snprintf(buf + offset, len, "<prefix>%s</prefix>", data);
++		SNPRINTF_FAILURE(size, len, offset);
++	}
++
++	ph = nflog_get_msg_packet_hdr(tb);
 +	if (ph) {
-+		size = snprintf(buf + offset, len,
-+				"<hook>%u</hook><id>%u</id>",
-+				ph->hook, ntohl(ph->packet_id));
++		size = snprintf(buf + offset, len, "<hook>%u</hook>", ph->hook);
 +		SNPRINTF_FAILURE(size, len, offset);
 +
-+		hwph = nfq_get_packet_hw(tb);
-+		if (hwph && (flags & NFQ_XML_HW)) {
++		hwph = nflog_get_packet_hw(tb);
++		if (hwph && (flags & NFLOG_XML_HW)) {
 +			int i, hlen = ntohs(hwph->hw_addrlen);
 +
 +			size = snprintf(buf + offset, len, "<hw><proto>0x%04x"
@@ -160,7 +164,7 @@ index cc19e6a..e16a0f7 100644
 +
 +			size = snprintf(buf + offset, len, "</src></hw>");
 +			SNPRINTF_FAILURE(size, len, offset);
-+		} else if (flags & NFQ_XML_HW) {
++		} else if (flags & NFLOG_XML_HW) {
 +			size = snprintf(buf + offset, len, "<hw><proto>0x%04x"
 +						    "</proto></hw>",
 +				 ntohs(ph->hw_protocol));
@@ -168,40 +172,40 @@ index cc19e6a..e16a0f7 100644
 +		}
 +	}
 +
-+	mark = nfq_get_nfmark(tb);
-+	if (mark && (flags & NFQ_XML_MARK)) {
++	mark = nflog_get_nfmark(tb);
++	if (mark && (flags & NFLOG_XML_MARK)) {
 +		size = snprintf(buf + offset, len, "<mark>%u</mark>", mark);
 +		SNPRINTF_FAILURE(size, len, offset);
 +	}
 +
-+	ifi = nfq_get_indev(tb);
-+	if (ifi && (flags & NFQ_XML_DEV)) {
++	ifi = nflog_get_indev(tb);
++	if (ifi && (flags & NFLOG_XML_DEV)) {
 +		size = snprintf(buf + offset, len, "<indev>%u</indev>", ifi);
 +		SNPRINTF_FAILURE(size, len, offset);
 +	}
 +
-+	ifi = nfq_get_outdev(tb);
-+	if (ifi && (flags & NFQ_XML_DEV)) {
++	ifi = nflog_get_outdev(tb);
++	if (ifi && (flags & NFLOG_XML_DEV)) {
 +		size = snprintf(buf + offset, len, "<outdev>%u</outdev>", ifi);
 +		SNPRINTF_FAILURE(size, len, offset);
 +	}
 +
-+	ifi = nfq_get_physindev(tb);
-+	if (ifi && (flags & NFQ_XML_PHYSDEV)) {
++	ifi = nflog_get_physindev(tb);
++	if (ifi && (flags & NFLOG_XML_PHYSDEV)) {
 +		size = snprintf(buf + offset, len,
 +				"<physindev>%u</physindev>", ifi);
 +		SNPRINTF_FAILURE(size, len, offset);
 +	}
 +
-+	ifi = nfq_get_physoutdev(tb);
-+	if (ifi && (flags & NFQ_XML_PHYSDEV)) {
++	ifi = nflog_get_physoutdev(tb);
++	if (ifi && (flags & NFLOG_XML_PHYSDEV)) {
 +		size = snprintf(buf + offset, len,
 +				"<physoutdev>%u</physoutdev>", ifi);
 +		SNPRINTF_FAILURE(size, len, offset);
 +	}
 +
-+	ret = nfq_get_payload(tb, &data);
-+	if (ret >= 0 && (flags & NFQ_XML_PAYLOAD)) {
++	ret = nflog_get_payload(tb, &data);
++	if (ret >= 0 && (flags & NFLOG_XML_PAYLOAD)) {
 +		int i;
 +
 +		size = snprintf(buf + offset, len, "<payload>");
@@ -217,14 +221,10 @@ index cc19e6a..e16a0f7 100644
 +		SNPRINTF_FAILURE(size, len, offset);
 +	}
 +
-+	size = snprintf(buf + offset, len, "</pkt>");
++	size = snprintf(buf + offset, len, "</log>");
 +	SNPRINTF_FAILURE(size, len, offset);
 +
 +	return size;
 +}
-+
- /**
-  * @}
-  */
 
---------------060503030504050709090503--
+--------------090405010302080905090700--
