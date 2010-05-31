@@ -1,52 +1,84 @@
-From: kaber@trash.net
-Subject: [PATCH 1/2] netfilter: don't xt_jumpstack_alloc twice in xt_register_table
-Date: Mon, 31 May 2010 18:14:46 +0200
-Message-ID: <1275322487-19026-2-git-send-email-kaber@trash.net>
-References: <1275322487-19026-1-git-send-email-kaber@trash.net>
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: davem@davemloft.net
+From: Luciano Coelho <luciano.coelho@nokia.com>
+Subject: Re: [RFC] netfilter: WIP: Xtables idletimer target implementation
+Date: Mon, 31 May 2010 22:12:59 +0300
+Message-ID: <1275333179.11744.23.camel@powerslave>
+References: <1274993689-23928-1-git-send-email-luciano.coelho@nokia.com>
+	 <alpine.LSU.2.01.1005280057190.14077@obet.zrqbmnf.qr>
+	 <1275024304.3754.45.camel@powerslave>
+	 <alpine.LSU.2.01.1005281001550.11570@obet.zrqbmnf.qr>
+	 <1275040724.24490.121.camel@chilepepper>  <4C03DCF3.1080001@trash.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: ext Jan Engelhardt <jengelh@medozas.de>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	Timo Teras <timo.teras@iki.fi>
+To: ext Patrick McHardy <kaber@trash.net>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1275322487-19026-1-git-send-email-kaber@trash.net>
+In-Reply-To: <4C03DCF3.1080001@trash.net>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-From: Xiaotian Feng <dfeng@redhat.com>
+On Mon, 2010-05-31 at 17:59 +0200, ext Patrick McHardy wrote:
+> Luciano Coelho wrote:
+> > On Fri, 2010-05-28 at 10:05 +0200, ext Jan Engelhardt wrote:
+> >> On Friday 2010-05-28 07:25, Luciano Coelho wrote:
+> >>> Do you have any other suggestion on how I can associate the rules to
+> >>> specific interfaces?
+> >> -A INPUT -i foo -j do
+> >> -A do -j idletimer
+> >>
+> >> A little funny, but actually this would allow me to keep a timer
+> >> for a group of interfaces rather than just per-if.
+> > 
+> > Yes, this is what our userspace apps are doing.  I've formulated my
+> > question in an unclear way.  If you check the rest of the code, I create
+> > sysfs files under the interface's directory and use it as an attribute
+> > to notify the userspace when the timer has expired.
+> > 
+> > In short, I need to figure out a way to associate each rule with an
+> > interface in sysfs, so I can notify the userspace when the timer has
+> > expired.  I couldn't figure out another way to do it.  Any suggestions?
+> 
+> How about just using an arbitrary user-supplied name? People can
+> name them after interfaces, or anything else.
 
-In xt_register_table, xt_jumpstack_alloc is called first, later
-xt_replace_table is used. But in xt_replace_table, xt_jumpstack_alloc
-will be used again. Then the memory allocated by previous xt_jumpstack_alloc
-will be leaked. We can simply remove the previous xt_jumpstack_alloc because
-there aren't any users of newinfo between xt_jumpstack_alloc and
-xt_replace_table.
+I considered this option, but then I didn't find a proper place where to
+include the attribute in sysfs, since I cannot add it as part of the
+interface (eg. /sys/class/net/wlan0/idletimer) as I was doing before.
+The other option would be to make the idletimer as part of the
+xt_IDLETIMER module object in sysfs
+(ie. /sys/module/xt_IDLETIMER/<user_supplied_name>), but it looks out of
+place.  And I think adding it as /sys/class/net/idletimer is most likely
+out of the question.
 
-Signed-off-by: Xiaotian Feng <dfeng@redhat.com>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Jan Engelhardt <jengelh@medozas.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
-Acked-By: Jan Engelhardt <jengelh@medozas.de>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
----
- net/netfilter/x_tables.c |    4 ----
- 1 files changed, 0 insertions(+), 4 deletions(-)
+The latest "solution" I came up with, is to associate the idletimer with
+every interface that it hits.  Whenever a packet arrives, I check which
+interface it came from and add the timer to it (eg.
+in /sys/class/net/wlan0/idletimer if the packet came via wlan0).  This
+causes a bit extra processing per packet, but in most cases there
+shouldn't be too many interfaces in the list, so the search should be
+fairly quick.  And if performance becomes a problem, it can be worked
+around by adding only one interface per ruleset, so the list will never
+grow bigger than one node.
 
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 445de70..47b1e79 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -844,10 +844,6 @@ struct xt_table *xt_register_table(struct net *net,
- 	struct xt_table_info *private;
- 	struct xt_table *t, *table;
- 
--	ret = xt_jumpstack_alloc(newinfo);
--	if (ret < 0)
--		return ERR_PTR(ret);
--
- 	/* Don't add one object to multiple lists. */
- 	table = kmemdup(input_table, sizeof(struct xt_table), GFP_KERNEL);
- 	if (!table) {
+I think these two solutions would work.  I prefer the second one,
+because we don't need to add the idletimer attribute in an artificial
+place in sysfs.
+
+The problem that remains with either solution is if the interface is
+already idle when the rule created.  In that case, the timer won't start
+(or at least will not be associated with that interface).  It will only
+start when the first packet hits.  The only solution I see for this is
+to add the interface name as an option to the target.  Maybe something
+like "--autostart=wlan0"?
+
+I'll send a new RFC patch soon with this ideas implemented, to better
+express what I mean (C code can be easier to read than English :P)
+
+
 -- 
-1.7.0.4
+Cheers,
+Luca.
 
