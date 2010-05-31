@@ -1,54 +1,52 @@
-From: Xiaotian Feng <dfeng@redhat.com>
-Subject: [PATCH] netfilter: don't xt_jumpstack_alloc twice in xt_register_table
-Date: Mon, 31 May 2010 19:06:38 +0800
-Message-ID: <1275303998-2435-1-git-send-email-dfeng@redhat.com>
-Cc: linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
-	Xiaotian Feng <dfeng@redhat.com>,
-	Patrick McHardy <kaber@trash.net>,
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: [PATCH] netfilter: don't xt_jumpstack_alloc twice in
+ xt_register_table
+Date: Mon, 31 May 2010 13:51:37 +0200 (CEST)
+Message-ID: <alpine.LSU.2.01.1005311350580.31799@obet.zrqbmnf.qr>
+References: <1275303998-2435-1-git-send-email-dfeng@redhat.com>
+Mime-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, Patrick McHardy <kaber@trash.net>,
 	"David S. Miller" <davem@davemloft.net>,
-	Jan Engelhardt <jengelh@medozas.de>,
 	Andrew Morton <akpm@linux-foundation.org>,
 	Rusty Russell <rusty@rustcorp.com.au>,
 	Alexey Dobriyan <adobriyan@gmail.com>
-To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+To: Xiaotian Feng <dfeng@redhat.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from borg.medozas.de ([188.40.89.202]:34031 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752436Ab0EaLvi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 31 May 2010 07:51:38 -0400
+In-Reply-To: <1275303998-2435-1-git-send-email-dfeng@redhat.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-In xt_register_table, xt_jumpstack_alloc is called first, later
-xt_replace_table is used. But in xt_replace_table, xt_jumpstack_alloc
-will be used again. Then the memory allocated by previous xt_jumpstack_alloc
-will be leaked. We can simply remove the previous xt_jumpstack_alloc because
-there aren't any users of newinfo between xt_jumpstack_alloc and
-xt_replace_table.
 
-Signed-off-by: Xiaotian Feng <dfeng@redhat.com>
-Cc: Patrick McHardy <kaber@trash.net>
-Cc: "David S. Miller" <davem@davemloft.net>
-Cc: Jan Engelhardt <jengelh@medozas.de>
-Cc: Andrew Morton <akpm@linux-foundation.org>
-Cc: Rusty Russell <rusty@rustcorp.com.au>
-Cc: Alexey Dobriyan <adobriyan@gmail.com>
----
- net/netfilter/x_tables.c |    4 ----
- 1 files changed, 0 insertions(+), 4 deletions(-)
+On Monday 2010-05-31 13:06, Xiaotian Feng wrote:
 
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 445de70..47b1e79 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -844,10 +844,6 @@ struct xt_table *xt_register_table(struct net *net,
- 	struct xt_table_info *private;
- 	struct xt_table *t, *table;
- 
--	ret = xt_jumpstack_alloc(newinfo);
--	if (ret < 0)
--		return ERR_PTR(ret);
--
- 	/* Don't add one object to multiple lists. */
- 	table = kmemdup(input_table, sizeof(struct xt_table), GFP_KERNEL);
- 	if (!table) {
--- 
-1.7.0.1
+>In xt_register_table, xt_jumpstack_alloc is called first, later
+>xt_replace_table is used. But in xt_replace_table, xt_jumpstack_alloc
+>will be used again. Then the memory allocated by previous xt_jumpstack_alloc
+>will be leaked. We can simply remove the previous xt_jumpstack_alloc because
+>there aren't any users of newinfo between xt_jumpstack_alloc and
+>xt_replace_table.
 
+Indeed that seems to be so.
+
+>diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+>index 445de70..47b1e79 100644
+>--- a/net/netfilter/x_tables.c
+>+++ b/net/netfilter/x_tables.c
+>@@ -844,10 +844,6 @@ struct xt_table *xt_register_table(struct net *net,
+> 	struct xt_table_info *private;
+> 	struct xt_table *t, *table;
+> 
+>-	ret = xt_jumpstack_alloc(newinfo);
+>-	if (ret < 0)
+>-		return ERR_PTR(ret);
+>-
+> 	/* Don't add one object to multiple lists. */
+> 	table = kmemdup(input_table, sizeof(struct xt_table), GFP_KERNEL);
+> 	if (!table) {
