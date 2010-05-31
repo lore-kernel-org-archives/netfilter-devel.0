@@ -1,67 +1,111 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC] netfilter: WIP: Xtables idletimer target implementation
-Date: Mon, 31 May 2010 17:59:47 +0200
-Message-ID: <4C03DCF3.1080001@trash.net>
-References: <1274993689-23928-1-git-send-email-luciano.coelho@nokia.com>	 <alpine.LSU.2.01.1005280057190.14077@obet.zrqbmnf.qr>	 <1275024304.3754.45.camel@powerslave>	 <alpine.LSU.2.01.1005281001550.11570@obet.zrqbmnf.qr> <1275040724.24490.121.camel@chilepepper>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
-Cc: ext Jan Engelhardt <jengelh@medozas.de>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	Timo Teras <timo.teras@iki.fi>
-To: Luciano Coelho <luciano.coelho@nokia.com>
+From: kaber@trash.net
+Subject: [PATCH 2/2] netfilter: xtables: stackptr should be percpu
+Date: Mon, 31 May 2010 18:14:47 +0200
+Message-ID: <1275322487-19026-3-git-send-email-kaber@trash.net>
+References: <1275322487-19026-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60564 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:60782 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756061Ab0EaP7t (ORCPT
+	with ESMTP id S1751839Ab0EaQOw (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 31 May 2010 11:59:49 -0400
-In-Reply-To: <1275040724.24490.121.camel@chilepepper>
+	Mon, 31 May 2010 12:14:52 -0400
+In-Reply-To: <1275322487-19026-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Luciano Coelho wrote:
-> On Fri, 2010-05-28 at 10:05 +0200, ext Jan Engelhardt wrote:
->> On Friday 2010-05-28 07:25, Luciano Coelho wrote:
->>> Do you have any other suggestion on how I can associate the rules to
->>> specific interfaces?
->> -A INPUT -i foo -j do
->> -A do -j idletimer
->>
->> A little funny, but actually this would allow me to keep a timer
->> for a group of interfaces rather than just per-if.
-> 
-> Yes, this is what our userspace apps are doing.  I've formulated my
-> question in an unclear way.  If you check the rest of the code, I create
-> sysfs files under the interface's directory and use it as an attribute
-> to notify the userspace when the timer has expired.
-> 
-> In short, I need to figure out a way to associate each rule with an
-> interface in sysfs, so I can notify the userspace when the timer has
-> expired.  I couldn't figure out another way to do it.  Any suggestions?
+From: Eric Dumazet <eric.dumazet@gmail.com>
 
-How about just using an arbitrary user-supplied name? People can
-name them after interfaces, or anything else.
+commit f3c5c1bfd4 (netfilter: xtables: make ip_tables reentrant)
+introduced a performance regression, because stackptr array is shared by
+all cpus, adding cache line ping pongs. (16 cpus share a 64 bytes cache
+line)
 
->>>>> +static int xt_idletimer_checkentry(const struct xt_tgchk_param *par)
->>>>> +{
->>>>> +	const struct xt_idletimer_info *info = par->targinfo;
->>>>> +	const struct ipt_entry *entryinfo = par->entryinfo;
->>>>> +	const struct ipt_ip *ip = &entryinfo->ip;
->>>> I'm not sure spying on ipt_ip is a long-term viable solution.
->>> Do you have any other suggestions on how I could get an interface
->>> associated with the rule? I thought about having the userspace pass the
->>> interface as an option to the rule (like I already do for the timeout
->>> value), but that looked ugly to me, since the interface can already be
->>> defined as part of the ruleset.
->> I have patches ready since a while that decouple ipt_ip
->> from a rule, so there is no guarantee that such will exist.
-> 
-> Okay, if that's the case, then I don't know how to associate the rule
-> with a specific net object in the kobject tree.  Maybe I have to figure
-> out a different way to notify the userspace, unless I add the target
-> option I mentioned above. :/
-> 
-> 
+Fix this using alloc_percpu()
+
+Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+Acked-By: Jan Engelhardt <jengelh@medozas.de>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+---
+ include/linux/netfilter/x_tables.h |    2 +-
+ net/ipv4/netfilter/ip_tables.c     |    2 +-
+ net/ipv6/netfilter/ip6_tables.c    |    2 +-
+ net/netfilter/x_tables.c           |   13 +++----------
+ 4 files changed, 6 insertions(+), 13 deletions(-)
+
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index c00cc0c..24e5d01 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -397,7 +397,7 @@ struct xt_table_info {
+ 	 * @stacksize jumps (number of user chains) can possibly be made.
+ 	 */
+ 	unsigned int stacksize;
+-	unsigned int *stackptr;
++	unsigned int __percpu *stackptr;
+ 	void ***jumpstack;
+ 	/* ipt_entry tables: one per CPU */
+ 	/* Note : this field MUST be the last one, see XT_TABLE_INFO_SZ */
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index 63958f3..4b6c5ca 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -336,7 +336,7 @@ ipt_do_table(struct sk_buff *skb,
+ 	cpu        = smp_processor_id();
+ 	table_base = private->entries[cpu];
+ 	jumpstack  = (struct ipt_entry **)private->jumpstack[cpu];
+-	stackptr   = &private->stackptr[cpu];
++	stackptr   = per_cpu_ptr(private->stackptr, cpu);
+ 	origptr    = *stackptr;
+ 
+ 	e = get_entry(table_base, private->hook_entry[hook]);
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 6f517bd..9d2d68f 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -363,7 +363,7 @@ ip6t_do_table(struct sk_buff *skb,
+ 	cpu        = smp_processor_id();
+ 	table_base = private->entries[cpu];
+ 	jumpstack  = (struct ip6t_entry **)private->jumpstack[cpu];
+-	stackptr   = &private->stackptr[cpu];
++	stackptr   = per_cpu_ptr(private->stackptr, cpu);
+ 	origptr    = *stackptr;
+ 
+ 	e = get_entry(table_base, private->hook_entry[hook]);
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 47b1e79..e34622f 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -699,10 +699,8 @@ void xt_free_table_info(struct xt_table_info *info)
+ 		vfree(info->jumpstack);
+ 	else
+ 		kfree(info->jumpstack);
+-	if (sizeof(unsigned int) * nr_cpu_ids > PAGE_SIZE)
+-		vfree(info->stackptr);
+-	else
+-		kfree(info->stackptr);
++
++	free_percpu(info->stackptr);
+ 
+ 	kfree(info);
+ }
+@@ -753,14 +751,9 @@ static int xt_jumpstack_alloc(struct xt_table_info *i)
+ 	unsigned int size;
+ 	int cpu;
+ 
+-	size = sizeof(unsigned int) * nr_cpu_ids;
+-	if (size > PAGE_SIZE)
+-		i->stackptr = vmalloc(size);
+-	else
+-		i->stackptr = kmalloc(size, GFP_KERNEL);
++	i->stackptr = alloc_percpu(unsigned int);
+ 	if (i->stackptr == NULL)
+ 		return -ENOMEM;
+-	memset(i->stackptr, 0, size);
+ 
+ 	size = sizeof(void **) * nr_cpu_ids;
+ 	if (size > PAGE_SIZE)
+-- 
+1.7.0.4
 
