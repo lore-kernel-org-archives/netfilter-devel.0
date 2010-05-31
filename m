@@ -1,10 +1,14 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: Eric Dumazet <eric.dumazet@gmail.com>
 Subject: Re: [PATCH] netfilter: xtables: stackptr should be percpu
-Date: Mon, 31 May 2010 15:22:24 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1005311519340.25402@obet.zrqbmnf.qr>
-References: <1275303998-2435-1-git-send-email-dfeng@redhat.com>  <alpine.LSU.2.01.1005311350580.31799@obet.zrqbmnf.qr> <1275311580.3291.44.camel@edumazet-laptop>
+Date: Mon, 31 May 2010 15:44:08 +0200
+Message-ID: <1275313448.3291.49.camel@edumazet-laptop>
+References: <1275303998-2435-1-git-send-email-dfeng@redhat.com>
+	 <alpine.LSU.2.01.1005311350580.31799@obet.zrqbmnf.qr>
+	 <1275311580.3291.44.camel@edumazet-laptop>
+	 <alpine.LSU.2.01.1005311519340.25402@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
 Cc: Xiaotian Feng <dfeng@redhat.com>, netfilter-devel@vger.kernel.org,
 	netfilter@vger.kernel.org, coreteam@netfilter.org,
 	linux-kernel@vger.kernel.org, netdev@vger.kernel.org,
@@ -13,35 +17,46 @@ Cc: Xiaotian Feng <dfeng@redhat.com>, netfilter-devel@vger.kernel.org,
 	Andrew Morton <akpm@linux-foundation.org>,
 	Rusty Russell <rusty@rustcorp.com.au>,
 	Alexey Dobriyan <adobriyan@gmail.com>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:34078 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754097Ab0EaNW0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 31 May 2010 09:22:26 -0400
-In-Reply-To: <1275311580.3291.44.camel@edumazet-laptop>
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:57771 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754850Ab0EaNoP (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 31 May 2010 09:44:15 -0400
+In-Reply-To: <alpine.LSU.2.01.1005311519340.25402@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Le lundi 31 mai 2010 =C3=A0 15:22 +0200, Jan Engelhardt a =C3=A9crit :
+> On Monday 2010-05-31 15:13, Eric Dumazet wrote:
+> >
+> >All cpus share a single cache line for their 'stackptr' storage,
+> >introduced in commit f3c5c1bfd4
+> >
+> >This is a stable candidate (2.6.34)
+>=20
+> Stackptr was first introduced for 2.6.35-rcX.
+>=20
 
-On Monday 2010-05-31 15:13, Eric Dumazet wrote:
->
->All cpus share a single cache line for their 'stackptr' storage,
->introduced in commit f3c5c1bfd4
->
->This is a stable candidate (2.6.34)
+Indeed, I was fooled by 'git describe'
 
-Stackptr was first introduced for 2.6.35-rcX.
+> >+	i->stackptr =3D alloc_percpu(unsigned int);
+> > 	if (i->stackptr =3D=3D NULL)
+> > 		return -ENOMEM;
+> >-	memset(i->stackptr, 0, size);
+> >=20
+> > 	size =3D sizeof(void **) * nr_cpu_ids;
+> > 	if (size > PAGE_SIZE)
+>=20
+> Are alloc_percpu areas cleared?
+>=20
 
->+	i->stackptr = alloc_percpu(unsigned int);
-> 	if (i->stackptr == NULL)
-> 		return -ENOMEM;
->-	memset(i->stackptr, 0, size);
-> 
-> 	size = sizeof(void **) * nr_cpu_ids;
-> 	if (size > PAGE_SIZE)
+Yes, allocated chunks are cleared.
 
-Are alloc_percpu areas cleared?
 
-Acked-By: Jan Engelhardt <jengelh@medozas.de>
-
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
