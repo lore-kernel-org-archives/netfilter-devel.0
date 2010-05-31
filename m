@@ -1,40 +1,67 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: scheduled removal of CONFIG_NF_CT_ACCT
-Date: Mon, 31 May 2010 17:56:03 +0200
-Message-ID: <4C03DC13.9080307@trash.net>
-References: <1275220311-12578-1-git-send-email-tobias.doerffel@gmail.com> <4C03D4BA.9070809@trash.net> <alpine.LSU.2.01.1005311751330.9888@obet.zrqbmnf.qr>
+Subject: Re: [RFC] netfilter: WIP: Xtables idletimer target implementation
+Date: Mon, 31 May 2010 17:59:47 +0200
+Message-ID: <4C03DCF3.1080001@trash.net>
+References: <1274993689-23928-1-git-send-email-luciano.coelho@nokia.com>	 <alpine.LSU.2.01.1005280057190.14077@obet.zrqbmnf.qr>	 <1275024304.3754.45.camel@powerslave>	 <alpine.LSU.2.01.1005281001550.11570@obet.zrqbmnf.qr> <1275040724.24490.121.camel@chilepepper>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
-Cc: Tobias Doerffel <tobias.doerffel@gmail.com>,
-	netfilter-devel@vger.kernel.org,
-	Krzysztof Piotr Oledzki <ole@ans.pl>
-To: Jan Engelhardt <jengelh@medozas.de>
+Cc: ext Jan Engelhardt <jengelh@medozas.de>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	Timo Teras <timo.teras@iki.fi>
+To: Luciano Coelho <luciano.coelho@nokia.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:60525 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:60564 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751610Ab0EaP4H (ORCPT
+	with ESMTP id S1756061Ab0EaP7t (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 31 May 2010 11:56:07 -0400
-In-Reply-To: <alpine.LSU.2.01.1005311751330.9888@obet.zrqbmnf.qr>
+	Mon, 31 May 2010 11:59:49 -0400
+In-Reply-To: <1275040724.24490.121.camel@chilepepper>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Monday 2010-05-31 17:24, Patrick McHardy wrote:
->> Tobias Doerffel wrote:
->>> Removal of the CONFIG_NF_CT_ACCT was already scheduled for 2.6.29,
->>> therefore remove it now and set nf_conntrack.acct depending on
->>> CONFIG_NETFILTER_XT_MATCH_CONNBYTES.
->> This has already been discussed multiple times. The connbytes
->> match needs accounting, so it needs to enable it when the first
->> rule containing a connbytes match is added. This needs to be
->> done in the namespace where the rule is added.
+Luciano Coelho wrote:
+> On Fri, 2010-05-28 at 10:05 +0200, ext Jan Engelhardt wrote:
+>> On Friday 2010-05-28 07:25, Luciano Coelho wrote:
+>>> Do you have any other suggestion on how I can associate the rules to
+>>> specific interfaces?
+>> -A INPUT -i foo -j do
+>> -A do -j idletimer
+>>
+>> A little funny, but actually this would allow me to keep a timer
+>> for a group of interfaces rather than just per-if.
 > 
-> If it is done as late as rule insertion, connbytes might match (or
-> not - and thus be a problem) when there are still CTs around without
-> a counter tuple. Hm.
+> Yes, this is what our userspace apps are doing.  I've formulated my
+> question in an unclear way.  If you check the rest of the code, I create
+> sysfs files under the interface's directory and use it as an attribute
+> to notify the userspace when the timer has expired.
+> 
+> In short, I need to figure out a way to associate each rule with an
+> interface in sysfs, so I can notify the userspace when the timer has
+> expired.  I couldn't figure out another way to do it.  Any suggestions?
 
-Yeah, we also discussed that part, but we can't do any better.
-The alternative for people is to manually enable it when loading
-conntrack.
+How about just using an arbitrary user-supplied name? People can
+name them after interfaces, or anything else.
+
+>>>>> +static int xt_idletimer_checkentry(const struct xt_tgchk_param *par)
+>>>>> +{
+>>>>> +	const struct xt_idletimer_info *info = par->targinfo;
+>>>>> +	const struct ipt_entry *entryinfo = par->entryinfo;
+>>>>> +	const struct ipt_ip *ip = &entryinfo->ip;
+>>>> I'm not sure spying on ipt_ip is a long-term viable solution.
+>>> Do you have any other suggestions on how I could get an interface
+>>> associated with the rule? I thought about having the userspace pass the
+>>> interface as an option to the rule (like I already do for the timeout
+>>> value), but that looked ugly to me, since the interface can already be
+>>> defined as part of the ruleset.
+>> I have patches ready since a while that decouple ipt_ip
+>> from a rule, so there is no guarantee that such will exist.
+> 
+> Okay, if that's the case, then I don't know how to associate the rule
+> with a specific net object in the kobject tree.  Maybe I have to figure
+> out a different way to notify the userspace, unless I add the target
+> option I mentioned above. :/
+> 
+> 
+
