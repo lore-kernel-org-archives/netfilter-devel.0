@@ -1,60 +1,118 @@
-From: Luciano Coelho <luciano.coelho@nokia.com>
-Subject: Re: [RFC] netfilter: WIP: Xtables idletimer target implementation
-Date: Tue, 01 Jun 2010 21:41:35 +0300
-Message-ID: <1275417695.14585.4.camel@powerslave>
-References: <1274993689-23928-1-git-send-email-luciano.coelho@nokia.com>
-	 <alpine.LSU.2.01.1005280057190.14077@obet.zrqbmnf.qr>
-	 <1275024304.3754.45.camel@powerslave>
-	 <alpine.LSU.2.01.1005281001550.11570@obet.zrqbmnf.qr>
-	 <1275040724.24490.121.camel@chilepepper>  <4C03DCF3.1080001@trash.net>
-	 <1275333179.11744.23.camel@powerslave>
-	 <alpine.LSU.2.01.1005312143470.23758@obet.zrqbmnf.qr>
-	 <1275417197.14585.2.camel@powerslave>
-	 <alpine.LSU.2.01.1006012035350.15461@obet.zrqbmnf.qr>
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: [PATCH nf-next-2.6] netfilter: vmalloc_node cleanup
+Date: Wed, 02 Jun 2010 07:02:30 +0200
+Message-ID: <1275454950.2638.121.camel@edumazet-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Cc: ext Patrick McHardy <kaber@trash.net>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	Timo Teras <timo.teras@iki.fi>
-To: ext Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <alpine.LSU.2.01.1006012035350.15461@obet.zrqbmnf.qr>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: netdev <netdev@vger.kernel.org>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ww0-f46.google.com ([74.125.82.46]:34068 "EHLO
+	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751901Ab0FBFCf (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 2 Jun 2010 01:02:35 -0400
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 2010-06-01 at 20:38 +0200, ext Jan Engelhardt wrote:
-> On Tuesday 2010-06-01 20:33, Luciano Coelho wrote:
-> >On Mon, 2010-05-31 at 21:51 +0200, ext Jan Engelhardt wrote:
-> >> On Monday 2010-05-31 21:12, Luciano Coelho wrote:
-> >> >
-> >> >I considered this option, but then I didn't find a proper place where to
-> >> >include the attribute in sysfs, since I cannot add it as part of the
-> >> >interface (eg. /sys/class/net/wlan0/idletimer) as I was doing before.
-> >> 
-> >> You couldn't have done that before either, because the interface name
-> >> in ipt_ip may refer to an interface that does not exist at all times.
-> >> 
-> >> >The other option would be to make the idletimer as part of the
-> >> >xt_IDLETIMER module object in sysfs
-> >> >(ie. /sys/module/xt_IDLETIMER/<user_supplied_name>), but it looks out of
-> >> >place.
-> >> 
-> >> I like it. It follows /proc/net/xt_{hashlimit,recent}/<user_supplied_name>.
-> >
-> >I'm starting to like this more and more too, as my code is getting much
-> >smaller ;)
-> >
-> >One quick question, though.  Do you have any ideas on how I can make
-> >sure that the user doesn't supply the same name twice (ie. two rules
-> >with the same user_supplied_name)?
-> 
-> What's so bad about multiple rules being able to reset the timer?
+Using vmalloc_node(size, numa_node_id()) for temporary storage is not
+needed. vmalloc(size) is more respectful of user NUMA policy.
 
-Ahhmm... Nothing! Thank you, I think I'm getting code-blind :)
+Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+---
+ net/ipv4/netfilter/arp_tables.c |    7 +++----
+ net/ipv4/netfilter/ip_tables.c  |    4 ++--
+ net/ipv6/netfilter/ip6_tables.c |    7 +++----
+ 3 files changed, 8 insertions(+), 10 deletions(-)
 
--- 
-Cheers,
-Luca.
+diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
+index 1ac01b1..16c0ba0 100644
+--- a/net/ipv4/netfilter/arp_tables.c
++++ b/net/ipv4/netfilter/arp_tables.c
+@@ -758,7 +758,7 @@ static struct xt_counters *alloc_counters(const struct xt_table *table)
+ 	 * about).
+ 	 */
+ 	countersize = sizeof(struct xt_counters) * private->number;
+-	counters = vmalloc_node(countersize, numa_node_id());
++	counters = vmalloc(countersize);
+ 
+ 	if (counters == NULL)
+ 		return ERR_PTR(-ENOMEM);
+@@ -1005,8 +1005,7 @@ static int __do_replace(struct net *net, const char *name,
+ 	struct arpt_entry *iter;
+ 
+ 	ret = 0;
+-	counters = vmalloc_node(num_counters * sizeof(struct xt_counters),
+-				numa_node_id());
++	counters = vmalloc(num_counters * sizeof(struct xt_counters));
+ 	if (!counters) {
+ 		ret = -ENOMEM;
+ 		goto out;
+@@ -1159,7 +1158,7 @@ static int do_add_counters(struct net *net, const void __user *user,
+ 	if (len != size + num_counters * sizeof(struct xt_counters))
+ 		return -EINVAL;
+ 
+-	paddc = vmalloc_node(len - size, numa_node_id());
++	paddc = vmalloc(len - size);
+ 	if (!paddc)
+ 		return -ENOMEM;
+ 
+diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
+index 63958f3..7c0b8ad 100644
+--- a/net/ipv4/netfilter/ip_tables.c
++++ b/net/ipv4/netfilter/ip_tables.c
+@@ -928,7 +928,7 @@ static struct xt_counters *alloc_counters(const struct xt_table *table)
+ 	   (other than comefrom, which userspace doesn't care
+ 	   about). */
+ 	countersize = sizeof(struct xt_counters) * private->number;
+-	counters = vmalloc_node(countersize, numa_node_id());
++	counters = vmalloc(countersize);
+ 
+ 	if (counters == NULL)
+ 		return ERR_PTR(-ENOMEM);
+@@ -1352,7 +1352,7 @@ do_add_counters(struct net *net, const void __user *user,
+ 	if (len != size + num_counters * sizeof(struct xt_counters))
+ 		return -EINVAL;
+ 
+-	paddc = vmalloc_node(len - size, numa_node_id());
++	paddc = vmalloc(len - size);
+ 	if (!paddc)
+ 		return -ENOMEM;
+ 
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index 6f517bd..82945ef 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -943,7 +943,7 @@ static struct xt_counters *alloc_counters(const struct xt_table *table)
+ 	   (other than comefrom, which userspace doesn't care
+ 	   about). */
+ 	countersize = sizeof(struct xt_counters) * private->number;
+-	counters = vmalloc_node(countersize, numa_node_id());
++	counters = vmalloc(countersize);
+ 
+ 	if (counters == NULL)
+ 		return ERR_PTR(-ENOMEM);
+@@ -1213,8 +1213,7 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
+ 	struct ip6t_entry *iter;
+ 
+ 	ret = 0;
+-	counters = vmalloc_node(num_counters * sizeof(struct xt_counters),
+-				numa_node_id());
++	counters = vmalloc(num_counters * sizeof(struct xt_counters));
+ 	if (!counters) {
+ 		ret = -ENOMEM;
+ 		goto out;
+@@ -1368,7 +1367,7 @@ do_add_counters(struct net *net, const void __user *user, unsigned int len,
+ 	if (len != size + num_counters * sizeof(struct xt_counters))
+ 		return -EINVAL;
+ 
+-	paddc = vmalloc_node(len - size, numa_node_id());
++	paddc = vmalloc(len - size);
+ 	if (!paddc)
+ 		return -ENOMEM;
+ 
+
 
