@@ -1,118 +1,475 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: [PATCH nf-next-2.6] netfilter: vmalloc_node cleanup
-Date: Wed, 02 Jun 2010 07:02:30 +0200
-Message-ID: <1275454950.2638.121.camel@edumazet-laptop>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: netdev <netdev@vger.kernel.org>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ww0-f46.google.com ([74.125.82.46]:34068 "EHLO
-	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751901Ab0FBFCf (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 2 Jun 2010 01:02:35 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Luciano Coelho <luciano.coelho@nokia.com>
+Subject: [PATCH] netfilter: Xtables: idletimer target implementation
+Date: Wed,  2 Jun 2010 14:58:17 +0300
+Message-ID: <1275479897-16779-1-git-send-email-luciano.coelho@nokia.com>
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net,
+	jengelh@medozas.de, Timo Teras <timo.teras@iki.fi>
+To: netdev@vger.kernel.org
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Using vmalloc_node(size, numa_node_id()) for temporary storage is not
-needed. vmalloc(size) is more respectful of user NUMA policy.
+This patch implements an idletimer Xtables target that can be used to
+identify when interfaces have been idle for a certain period of time.
 
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+Timers are identified by labels and are created when a rule is set with a new
+label.  The rules also take a timeout value (in seconds) as an option.  If
+more than one rule uses the same timer label, the timer will be restarted
+whenever any of the rules get a hit.
+
+One entry for each timer is created in sysfs.  This attribute contains the
+timer remaining for the timer to expire.  The attributes are located under
+the module's object:
+
+/sys/module/xt_IDLETIMER/idletimer/<label>
+
+When the timer expires, the target module sends a sysfs notification to the
+userspace, which can then decide what to do (eg. disconnect to save power).
+
+Cc: Timo Teras <timo.teras@iki.fi>
+Signed-off-by: Luciano Coelho <luciano.coelho@nokia.com>
 ---
- net/ipv4/netfilter/arp_tables.c |    7 +++----
- net/ipv4/netfilter/ip_tables.c  |    4 ++--
- net/ipv6/netfilter/ip6_tables.c |    7 +++----
- 3 files changed, 8 insertions(+), 10 deletions(-)
+ include/linux/netfilter/xt_IDLETIMER.h |   40 ++++
+ net/netfilter/Kconfig                  |   11 +
+ net/netfilter/Makefile                 |    1 +
+ net/netfilter/xt_IDLETIMER.c           |  347 ++++++++++++++++++++++++++++++++
+ 4 files changed, 399 insertions(+), 0 deletions(-)
+ create mode 100644 include/linux/netfilter/xt_IDLETIMER.h
+ create mode 100644 net/netfilter/xt_IDLETIMER.c
 
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 1ac01b1..16c0ba0 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -758,7 +758,7 @@ static struct xt_counters *alloc_counters(const struct xt_table *table)
- 	 * about).
- 	 */
- 	countersize = sizeof(struct xt_counters) * private->number;
--	counters = vmalloc_node(countersize, numa_node_id());
-+	counters = vmalloc(countersize);
+diff --git a/include/linux/netfilter/xt_IDLETIMER.h b/include/linux/netfilter/xt_IDLETIMER.h
+new file mode 100644
+index 0000000..5958b31
+--- /dev/null
++++ b/include/linux/netfilter/xt_IDLETIMER.h
+@@ -0,0 +1,40 @@
++/*
++ * linux/include/linux/netfilter/xt_IDLETIMER.h
++ *
++ * Header file for Xtables timer target module.
++ *
++ * Copyright (C) 2004, 2010 Nokia Corporation
++ * Written by Timo Teras <ext-timo.teras@nokia.com>
++ *
++ * Converted to x_tables and forward-ported to 2.6.34
++ * by Luciano Coelho <luciano.coelho@nokia.com>
++ *
++ * Contact: Luciano Coelho <luciano.coelho@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
++
++#ifndef _XT_IDLETIMER_H
++#define _XT_IDLETIMER_H
++
++#define MAX_LABEL_SIZE 32
++
++struct idletimer_tg_info {
++	unsigned int timeout;
++
++	char label[MAX_LABEL_SIZE];
++};
++
++#endif
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 8593a77..e891c61 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -424,6 +424,17 @@ config NETFILTER_XT_TARGET_HL
+ 	since you can easily create immortal packets that loop
+ 	forever on the network.
  
- 	if (counters == NULL)
- 		return ERR_PTR(-ENOMEM);
-@@ -1005,8 +1005,7 @@ static int __do_replace(struct net *net, const char *name,
- 	struct arpt_entry *iter;
++config NETFILTER_XT_TARGET_IDLETIMER
++	tristate  "IDLETIMER target support"
++	help
++
++	  This option adds the `IDLETIMER' target.  Each matching packet
++	  resets the timer associated with label specified when the rule is
++	  added.  When the timer expires, it triggers a sysfs notification.
++	  The remaining time for expiration can be read via sysfs.
++
++	  To compile it as a module, choose M here.  If unsure, say N.
++
+ config NETFILTER_XT_TARGET_LED
+ 	tristate '"LED" target support'
+ 	depends on LEDS_CLASS && LEDS_TRIGGERS
+diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
+index 14e3a8f..e28420a 100644
+--- a/net/netfilter/Makefile
++++ b/net/netfilter/Makefile
+@@ -61,6 +61,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_TCPMSS) += xt_TCPMSS.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_TCPOPTSTRIP) += xt_TCPOPTSTRIP.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_TEE) += xt_TEE.o
+ obj-$(CONFIG_NETFILTER_XT_TARGET_TRACE) += xt_TRACE.o
++obj-$(CONFIG_NETFILTER_XT_TARGET_IDLETIMER) += xt_IDLETIMER.o
  
- 	ret = 0;
--	counters = vmalloc_node(num_counters * sizeof(struct xt_counters),
--				numa_node_id());
-+	counters = vmalloc(num_counters * sizeof(struct xt_counters));
- 	if (!counters) {
- 		ret = -ENOMEM;
- 		goto out;
-@@ -1159,7 +1158,7 @@ static int do_add_counters(struct net *net, const void __user *user,
- 	if (len != size + num_counters * sizeof(struct xt_counters))
- 		return -EINVAL;
- 
--	paddc = vmalloc_node(len - size, numa_node_id());
-+	paddc = vmalloc(len - size);
- 	if (!paddc)
- 		return -ENOMEM;
- 
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 63958f3..7c0b8ad 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -928,7 +928,7 @@ static struct xt_counters *alloc_counters(const struct xt_table *table)
- 	   (other than comefrom, which userspace doesn't care
- 	   about). */
- 	countersize = sizeof(struct xt_counters) * private->number;
--	counters = vmalloc_node(countersize, numa_node_id());
-+	counters = vmalloc(countersize);
- 
- 	if (counters == NULL)
- 		return ERR_PTR(-ENOMEM);
-@@ -1352,7 +1352,7 @@ do_add_counters(struct net *net, const void __user *user,
- 	if (len != size + num_counters * sizeof(struct xt_counters))
- 		return -EINVAL;
- 
--	paddc = vmalloc_node(len - size, numa_node_id());
-+	paddc = vmalloc(len - size);
- 	if (!paddc)
- 		return -ENOMEM;
- 
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 6f517bd..82945ef 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -943,7 +943,7 @@ static struct xt_counters *alloc_counters(const struct xt_table *table)
- 	   (other than comefrom, which userspace doesn't care
- 	   about). */
- 	countersize = sizeof(struct xt_counters) * private->number;
--	counters = vmalloc_node(countersize, numa_node_id());
-+	counters = vmalloc(countersize);
- 
- 	if (counters == NULL)
- 		return ERR_PTR(-ENOMEM);
-@@ -1213,8 +1213,7 @@ __do_replace(struct net *net, const char *name, unsigned int valid_hooks,
- 	struct ip6t_entry *iter;
- 
- 	ret = 0;
--	counters = vmalloc_node(num_counters * sizeof(struct xt_counters),
--				numa_node_id());
-+	counters = vmalloc(num_counters * sizeof(struct xt_counters));
- 	if (!counters) {
- 		ret = -ENOMEM;
- 		goto out;
-@@ -1368,7 +1367,7 @@ do_add_counters(struct net *net, const void __user *user, unsigned int len,
- 	if (len != size + num_counters * sizeof(struct xt_counters))
- 		return -EINVAL;
- 
--	paddc = vmalloc_node(len - size, numa_node_id());
-+	paddc = vmalloc(len - size);
- 	if (!paddc)
- 		return -ENOMEM;
- 
-
+ # matches
+ obj-$(CONFIG_NETFILTER_XT_MATCH_CLUSTER) += xt_cluster.o
+diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
+new file mode 100644
+index 0000000..4a72b2f
+--- /dev/null
++++ b/net/netfilter/xt_IDLETIMER.c
+@@ -0,0 +1,347 @@
++/*
++ * linux/net/netfilter/xt_IDLETIMER.c
++ *
++ * Netfilter module to trigger a timer when packet matches.
++ * After timer expires a kevent will be sent.
++ *
++ * Copyright (C) 2004, 2010 Nokia Corporation
++ * Written by Timo Teras <ext-timo.teras@nokia.com>
++ *
++ * Converted to x_tables and reworked for upstream inclusion
++ * by Luciano Coelho <luciano.coelho@nokia.com>
++ *
++ * Contact: Luciano Coelho <luciano.coelho@nokia.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <linux/module.h>
++#include <linux/timer.h>
++#include <linux/list.h>
++#include <linux/spinlock.h>
++#include <linux/netfilter.h>
++#include <linux/netfilter/x_tables.h>
++#include <linux/netfilter/xt_IDLETIMER.h>
++#include <linux/kobject.h>
++#include <linux/workqueue.h>
++#include <linux/sysfs.h>
++
++struct idletimer_tg {
++	struct list_head entry;
++	struct timer_list timer;
++	struct work_struct work;
++
++	struct kobject *kobj;
++	struct idletimer_tg_attr *attr;
++
++	unsigned int refcnt;
++};
++
++/* Start with an empty group, we'll add attributes dynamically */
++static struct attribute *idletimer_tg_group_attrs[] = {
++	NULL,
++};
++
++static struct attribute_group idletimer_tg_group = {
++	.attrs = idletimer_tg_group_attrs,
++};
++
++struct idletimer_tg_attr {
++        struct attribute attr;
++	ssize_t	(*show)(struct kobject *kobj,
++			struct attribute *attr, char *buf);
++};
++
++static LIST_HEAD(idletimer_tg_list);
++static DEFINE_SPINLOCK(list_lock);
++
++static struct kobject *idletimer_tg_kobj;
++
++static
++struct idletimer_tg *__idletimer_tg_find_by_label(const char *label)
++{
++	struct idletimer_tg *entry;
++
++	BUG_ON(!label);
++
++	list_for_each_entry(entry, &idletimer_tg_list, entry) {
++		if (!strcmp(label, entry->attr->attr.name))
++			return entry;
++	}
++
++	return NULL;
++}
++
++static ssize_t idletimer_tg_show(struct kobject *kobj, struct attribute *attr,
++				 char *buf)
++{
++	struct idletimer_tg *timer;
++	unsigned long expires = 0;
++
++	spin_lock_bh(&list_lock);
++	timer =	__idletimer_tg_find_by_label(attr->name);
++	if (timer)
++		expires = timer->timer.expires;
++	spin_unlock_bh(&list_lock);
++
++	if (expires > jiffies)
++		return sprintf(buf, "%u\n",
++			       jiffies_to_msecs(expires - jiffies) / 1000);
++
++	return sprintf(buf, "0\n");
++}
++
++static void idletimer_tg_delete(const struct idletimer_tg_info *info)
++{
++	struct idletimer_tg *timer;
++
++	spin_lock_bh(&list_lock);
++	timer = __idletimer_tg_find_by_label(info->label);
++	if (!timer) {
++		spin_unlock_bh(&list_lock);
++		return;
++	}
++
++	if (--timer->refcnt == 0) {
++		pr_debug("deleting timer %s\n", info->label);
++
++		list_del(&timer->entry);
++		del_timer_sync(&timer->timer);
++		spin_unlock_bh(&list_lock);
++
++		sysfs_remove_file_from_group(idletimer_tg_kobj,
++					     &timer->attr->attr, NULL);
++		kfree(timer->attr->attr.name);
++		kfree(timer->attr);
++		kfree(timer);
++	}
++	else {
++		spin_unlock_bh(&list_lock);
++		pr_debug("decreased refcnt of timer %s to %u\n",
++			 info->label, timer->refcnt);
++	}
++}
++
++static void idletimer_tg_work(struct work_struct *work)
++{
++	struct idletimer_tg *timer = container_of(work, struct idletimer_tg,
++						  work);
++
++	sysfs_notify(idletimer_tg_kobj, NULL,
++		     timer->attr->attr.name);
++}
++
++static void idletimer_tg_expired(unsigned long data)
++{
++	struct idletimer_tg *timer = (struct idletimer_tg *) data;
++
++	pr_debug("timer %s expired\n",
++		 timer->attr->attr.name);
++
++	schedule_work(&timer->work);
++}
++
++static
++struct idletimer_tg *idletimer_tg_create(const struct idletimer_tg_info *info)
++{
++	struct idletimer_tg *timer;
++	struct idletimer_tg_attr *attr;
++
++	attr = kzalloc(sizeof(attr), GFP_KERNEL);
++	if (!attr) {
++		pr_debug("couldn't alloc attribute\n");
++		return NULL;
++	}
++
++	attr->attr.name = kstrdup(info->label, GFP_KERNEL);
++	attr->attr.mode = 0444;
++	attr->show = idletimer_tg_show;
++
++	if (sysfs_add_file_to_group(idletimer_tg_kobj, &attr->attr, NULL)) {
++		pr_debug("couldn't add attr to sysfs\n");
++		goto out_free;
++	}
++
++	timer = kmalloc(sizeof(struct idletimer_tg), GFP_KERNEL);
++	if (!timer) {
++		pr_debug("couldn't alloc timer\n");
++		goto out_free;
++	}
++
++	spin_lock_bh(&list_lock);
++	list_add(&timer->entry, &idletimer_tg_list);
++
++	init_timer(&timer->timer);
++	setup_timer(&timer->timer, idletimer_tg_expired, (unsigned long) timer);
++	mod_timer(&timer->timer,
++		  msecs_to_jiffies(info->timeout * 1000) + jiffies);
++
++	timer->attr = attr;
++	timer->refcnt = 0;
++
++	INIT_WORK(&timer->work, idletimer_tg_work);
++	spin_unlock_bh(&list_lock);
++
++	return timer;
++
++out_free:
++	kfree(attr->attr.name);
++	kfree(attr);
++	return NULL;
++}
++
++static void idletimer_tg_cleanup(void)
++{
++	struct idletimer_tg *timer;
++
++	sysfs_remove_group(idletimer_tg_kobj,
++			   &idletimer_tg_group);
++
++	spin_lock(&list_lock);
++	list_for_each_entry(timer, &idletimer_tg_list, entry) {
++		pr_debug("deleting timer %s\n", timer->attr->attr.name);
++
++		list_del(&timer->entry);
++		del_timer_sync(&timer->timer);
++		kfree(timer->attr->attr.name);
++		kfree(timer->attr);
++		kfree(timer);
++	}
++	spin_unlock(&list_lock);
++}
++
++/*
++ * The actual xt_tables plugin.
++ */
++static unsigned int idletimer_tg_target(struct sk_buff *skb,
++					 const struct xt_action_param *par)
++{
++	const struct idletimer_tg_info *info = par->targinfo;
++	struct idletimer_tg *timer;
++
++	pr_debug("resetting timer %s, timeout period %u\n",
++		 info->label, info->timeout);
++
++	spin_lock(&list_lock);
++	timer = __idletimer_tg_find_by_label(info->label);
++
++	BUG_ON(!timer);
++
++	mod_timer(&timer->timer,
++		  msecs_to_jiffies(info->timeout * 1000) + jiffies);
++	spin_unlock(&list_lock);
++
++	return XT_CONTINUE;
++}
++
++static int idletimer_tg_checkentry(const struct xt_tgchk_param *par)
++{
++	const struct idletimer_tg_info *info = par->targinfo;
++	struct idletimer_tg *timer;
++
++	pr_debug("checkentry targinfo %s\n", info->label);
++
++	if (info->timeout == 0) {
++		pr_debug("timeout value is zero\n");
++		return -EINVAL;
++	}
++
++	if (!info->label || strlen(info->label) == 0) {
++		pr_debug("label is missing\n");
++		return -EINVAL;
++	}
++
++	spin_lock(&list_lock);
++	timer = __idletimer_tg_find_by_label(info->label);
++	if (!timer) {
++		spin_unlock(&list_lock);
++		timer = idletimer_tg_create(info);
++		if (!timer) {
++			pr_debug("failed to create timer\n");
++			return -ENOMEM;
++		}
++		spin_lock(&list_lock);
++	}
++
++	timer->refcnt++;
++	mod_timer(&timer->timer,
++		  msecs_to_jiffies(info->timeout * 1000) + jiffies);
++	spin_unlock(&list_lock);
++
++	return 0;
++}
++
++static void idletimer_tg_destroy(const struct xt_tgdtor_param *par)
++{
++	const struct idletimer_tg_info *info = par->targinfo;
++
++	pr_debug("destroy targinfo %s\n", info->label);
++
++	idletimer_tg_delete(info);
++}
++
++static struct xt_target idletimer_tg __read_mostly = {
++	.name		= "IDLETIMER",
++	.family		= NFPROTO_IPV4,
++	.target		= idletimer_tg_target,
++	.targetsize     = sizeof(struct idletimer_tg_info),
++	.checkentry	= idletimer_tg_checkentry,
++	.destroy        = idletimer_tg_destroy,
++	.me		= THIS_MODULE,
++};
++
++static int __init idletimer_tg_init(void)
++{
++	int ret;
++
++	idletimer_tg_kobj = kobject_create_and_add("idletimer",
++						   &THIS_MODULE->mkobj.kobj);
++	if (!idletimer_tg_kobj)
++		return -ENOMEM;
++
++	/* FIXME: do we want to keep it in the module or in the net class? */
++	ret = sysfs_create_group(idletimer_tg_kobj,
++				 &idletimer_tg_group);
++	if (ret < 0) {
++		pr_debug("failed to create sysfs group");
++		return ret;
++	}
++
++	ret =  xt_register_target(&idletimer_tg);
++	if (ret < 0) {
++		kobject_put(idletimer_tg_kobj);
++		idletimer_tg_cleanup();
++		return ret;
++	}
++
++	return 0;
++}
++
++static void __exit idletimer_tg_exit(void)
++{
++	xt_unregister_target(&idletimer_tg);
++	kobject_put(idletimer_tg_kobj);
++	idletimer_tg_cleanup();
++}
++
++module_init(idletimer_tg_init);
++module_exit(idletimer_tg_exit);
++
++MODULE_AUTHOR("Timo Teras <ext-timo.teras@nokia.com>");
++MODULE_AUTHOR("Luciano Coelho <luciano.coelho@nokia.com>");
++MODULE_DESCRIPTION("Xtables: idle time monitor");
++MODULE_LICENSE("GPL v2");
+-- 
+1.6.3.3
 
