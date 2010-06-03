@@ -1,7 +1,7 @@
 From: Luciano Coelho <luciano.coelho@nokia.com>
 Subject: Re: [PATCH v2] netfilter: Xtables: idletimer target implementation
-Date: Thu, 03 Jun 2010 13:13:01 +0300
-Message-ID: <1275559981.10855.141.camel@chilepepper>
+Date: Thu, 03 Jun 2010 16:17:42 +0300
+Message-ID: <1275571062.10855.255.camel@chilepepper>
 References: <1275486062-23753-1-git-send-email-luciano.coelho@nokia.com>
 	 <alpine.LSU.2.01.1006021708370.27340@obet.zrqbmnf.qr>
 	 <1275503835.1574.0.camel@powerslave> <1275505553.2797.2.camel@powerslave>
@@ -10,6 +10,7 @@ References: <1275486062-23753-1-git-send-email-luciano.coelho@nokia.com>
 	 <1275512485.2797.46.camel@powerslave>
 	 <1275548660.10855.4.camel@chilepepper>
 	 <alpine.LSU.2.01.1006030956000.9308@obet.zrqbmnf.qr>
+	 <1275559981.10855.141.camel@chilepepper>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
@@ -18,40 +19,87 @@ Cc: "netdev@vger.kernel.org" <netdev@vger.kernel.org>,
 	"kaber@trash.net" <kaber@trash.net>, Timo Teras <timo.teras@iki.fi>
 To: ext Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <alpine.LSU.2.01.1006030956000.9308@obet.zrqbmnf.qr>
+In-Reply-To: <1275559981.10855.141.camel@chilepepper>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 2010-06-03 at 09:58 +0200, ext Jan Engelhardt wrote:
-> On Thursday 2010-06-03 09:04, Luciano Coelho wrote:
-> >
-> >Looking closer, it seems that it makes a bit of sense to add a kernel
-> >module to /sys/device/system.  I think it makes more sense than adding
-> >to the module class or to the net class, actually.  The idletimer is not
-> >a net device (so it doesn't fit in /sys/class/net) and it is not a
-> >module, even though it may be handled by the xt_IDLETIMER module.
-> >
-> >So we can look at the xt_idletimer as a system device, which is not a
-> >peripheral device in itself, but a software timer device (there are
-> >already similar components).
-> >
-> >I'll add the kernel object we need as a system class device, so it will
-> >go under /sys/devices/system/xt_idletimer.  Does that make sense to you?
+On Thu, 2010-06-03 at 12:13 +0200, Coelho Luciano (Nokia-D/Helsinki)
+wrote:
+> On Thu, 2010-06-03 at 09:58 +0200, ext Jan Engelhardt wrote:
+> > On Thursday 2010-06-03 09:04, Luciano Coelho wrote:
+> > >
+> > >Looking closer, it seems that it makes a bit of sense to add a kernel
+> > >module to /sys/device/system.  I think it makes more sense than adding
+> > >to the module class or to the net class, actually.  The idletimer is not
+> > >a net device (so it doesn't fit in /sys/class/net) and it is not a
+> > >module, even though it may be handled by the xt_IDLETIMER module.
+> > >
+> > >So we can look at the xt_idletimer as a system device, which is not a
+> > >peripheral device in itself, but a software timer device (there are
+> > >already similar components).
+> > >
+> > >I'll add the kernel object we need as a system class device, so it will
+> > >go under /sys/devices/system/xt_idletimer.  Does that make sense to you?
+> > 
+> > Mh.. somehow I'd pick /sys/devices/virtual/xt_idletimer.
+> > Or even create a /sys/net/xt_idletimer. (/sys has conceptual
+> > subsystems directly beneath it: devices, fs, kernel, ...)
 > 
-> Mh.. somehow I'd pick /sys/devices/virtual/xt_idletimer.
-> Or even create a /sys/net/xt_idletimer. (/sys has conceptual
-> subsystems directly beneath it: devices, fs, kernel, ...)
+> Yes, I think I'll use the /sys/device/virtual/misc class.  That seems to
+> be the place where, well, miscellaneous devices go. :) I think it fits
+> pretty nicely in that concept.
 
-Yes, I think I'll use the /sys/device/virtual/misc class.  That seems to
-be the place where, well, miscellaneous devices go. :) I think it fits
-pretty nicely in that concept.
+Argh, it seems that I'll never end this.  Pros and cons of a few
+different solutions:
 
-We could also have a /sys/net subsystem, but that's very high in the
-sysfs hierarchy and adding it in the xt_IDLETIMER module wouldn't make
-any sense.  This is something that should be added (if really needed) in
-the net core subsystem, I guess.
+1) /sys/devices/virtual/misc/xt_idletimer/<user_defined_label>
 
-I'll use the first option and resubmit the patch as v3.
+The misc class is a char device, so if I add the xt_idletimer there,
+I'll get lots of useless things, like file operation functions etc.  And
+a few attributes that make sense to char devices are also added
+automatically, but will never be used with the xt_idletimer.
+
+2) /sys/devices/virtual/xt_idletimer/
+
+This solution seems to be okay, basically I create a new virtual class
+called xt_idletimer.  This will automatically create a link
+to /sys/class/xt_idletimer, so the user doesn't need to know that this
+is a virtual device at all.  One problem is that we'll have a few more
+device attributes than we need such as ./power/wakeup and ./uevent,
+which we won't use.
+
+    2a) /sys/devices/virtual/xt_idletimer/<user_defined_label>/timer
+
+Each timer set by the user will be added as a new device named
+<user_defined_label> under the xt_idletimer class.  Each of these
+devices will have one more attribute called timer (plus the
+autogenerated wakeup and uevent attributes).  The drawback is that we
+use a more resources than we need, since we have more kobjects and more
+attributes than we need.
+
+    2b) /sys/devices/virtual/xt_idletimer/timers/<user_defined_label>
+
+This solution is similar to 2a, but uses less resources, since we have
+only one kobject with several attributes (one for each user defined
+label).  We still have the extra attributes, though.
+
+3) /sys/devices/system/xt_idletimer/<user_defined_label>/timer
+
+This solution uses less resources, because the system device class
+doesn't contain any implicit attributes.
+
+4) /sys/devices/{system,virtual}/xt_idletimer/<user_defined_label>
+
+I tried this one, by creating the xt_idletimer class and adding
+attributes directly to it.  But due to restrictions in sysfs, I didn't
+figure out a way to dynamically add attributes to the class.  Or, more
+specifically, show()ing and notify()ing those dynamic attributes don't
+seem to be possible for class attributes.
+
+So, I think the best proposals are 2b and 3.  I have a slight preference
+towards 3, but 2b is also fine with me.  What do you think?
+
+
 
 
 -- 
