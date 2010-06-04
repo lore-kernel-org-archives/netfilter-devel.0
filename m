@@ -1,31 +1,27 @@
-From: "Palmer frescoes" <john@lrcmx.euyansang.com>
-Subject: real estate agents optin e mail marketing list
-Date: Fri,  4 Jun 2010 00:21:37 +0800 (SGT)
-Message-ID: <20100603162137.6BEFEEE679D@lrcmx.euyansang.com>
-Reply-To: john@lrcmx.euyansang.com
-To: scuolacommercialisti@liuc.it, netfilter-devel@vger.kernel.org,
-	sslabsolutions@gmail.com
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH nf-next-2.6] netfilter: vmalloc_node cleanup
+Date: Fri, 04 Jun 2010 13:32:55 +0200
+Message-ID: <4C08E467.4010403@trash.net>
+References: <1275454950.2638.121.camel@edumazet-laptop>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: netdev <netdev@vger.kernel.org>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from lrcmx.euyansang.com ([58.185.105.82]:31230 "EHLO
-	lrcmx.euyansang.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751482Ab0FDEPU (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:48992 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752473Ab0FDLc6 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 4 Jun 2010 00:15:20 -0400
+	Fri, 4 Jun 2010 07:32:58 -0400
+In-Reply-To: <1275454950.2638.121.camel@edumazet-laptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Here's a list package on sale this week only:
+Eric Dumazet wrote:
+> Using vmalloc_node(size, numa_node_id()) for temporary storage is not
+> needed. vmalloc(size) is more respectful of user NUMA policy.
 
-Real Estate Agents - 1 million records with emails
-USA Lawyers Database - 269,787 records with 235,244 emails
-US New Business Database - 4.8 million records all with emails
-American Consumer Database - 1,300,000 records all with emails
-American Homeowners - 1 million Full Data Records all with emails
-
-All complete lists above: $389
-
-There are more list packages also available for consumer, healthcare, business and more. Contact me here for more info or to get samples: Matt.Schmitt@listnirvana.net
-  
-
-
-To invoke no further correspondence status please send an email to disappear@listnirvana.net
+Applied, thanks Eric.
