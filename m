@@ -1,150 +1,165 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: [PATCH nf-next-2.6 2/2] conntrack: per_cpu untracking
-Date: Fri, 04 Jun 2010 22:15:22 +0200
-Message-ID: <1275682522.2490.6.camel@edumazet-laptop>
-References: <1271941082.14501.189.camel@jdb-workstation>
-	 <q2h412e6f7f1004220613m488c2ee4r6d24a8d1e65997d4@mail.gmail.com>
-	 <4BD04C74.9020402@trash.net> <1271946961.7895.5665.camel@edumazet-laptop>
-	 <1271948029.7895.5707.camel@edumazet-laptop>
-	 <20100422155123.GA2524@linux.vnet.ibm.com>
-	 <1271952128.7895.5851.camel@edumazet-laptop>
-	 <Pine.LNX.4.64.1004222213290.10919@ask.diku.dk>
-	 <1272056237.4599.7.camel@edumazet-laptop>
-	 <Pine.LNX.4.64.1004241219280.32071@ask.diku.dk>
-	 <1272139861.20714.525.camel@edumazet-laptop>
-	 <1272292568.13192.43.camel@jdb-workstation>
-	 <1275340896.2478.26.camel@edumazet-laptop>
-	 <AANLkTikw3uonDB4nPXg8FVFN_07F_wq0SA_ayyAHL6VM@mail.gmail.com>
-	 <1275368732.2478.88.camel@edumazet-laptop> <4C04DE73.6050605@trash.net>
-	 <1275388310.2738.2.camel@edumazet-laptop> <4C04E3E2.7020209@trash.net>
-	 <1275409203.2738.227.camel@edumazet-laptop> <4C08E62A.9020607@trash.net>
-	 <AANLkTilKEpFTg5bH8d9UE3a3DVJNAGYz10Jgkt6lXtJ0@mail.gmail.com>
-	 <4C08F1A4.2050906@trash.net>  <1275654964.2482.150.camel@edumazet-laptop>
-	 <1275668732.2482.201.camel@edumazet-laptop>
+From: Adam Nielsen <a.nielsen@shikadi.net>
+Subject: [PATCH v5] iptables code for netfilter target to trigger LED devices
+Date: Sun, 06 Jun 2010 20:32:35 +1000
+Message-ID: <4C0B7943.1030009@shikadi.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: Changli Gao <xiaosuo@gmail.com>,
-	Netfilter Developers <netfilter-devel@vger.kernel.org>,
-	netdev <netdev@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: multipart/mixed;
+ boundary="------------070006000906010706040100"
+To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:62352 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754200Ab0FDUP2 (ORCPT
+Received: from vitalin.sorra.shikadi.net ([64.71.152.201]:34566 "EHLO
+	vitalin.sorra.shikadi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752307Ab0FFKjK (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 4 Jun 2010 16:15:28 -0400
-In-Reply-To: <1275668732.2482.201.camel@edumazet-laptop>
+	Sun, 6 Jun 2010 06:39:10 -0400
+Received: from berkeloid.vlook.shikadi.net ([172.16.255.5])
+	by vitalin.sorra.shikadi.net with esmtp (Exim 4.62)
+	(envelope-from <a.nielsen@shikadi.net>)
+	id 1OLD9g-0004oT-3I
+	for netfilter-devel@vger.kernel.org; Sun, 06 Jun 2010 20:32:37 +1000
+Received: from korath.teln.shikadi.net ([192.168.0.14])
+	by berkeloid.teln.shikadi.net with esmtp (Exim 4.68)
+	(envelope-from <a.nielsen@shikadi.net>)
+	id 1OLD9f-0001TT-B1
+	for netfilter-devel@vger.kernel.org; Sun, 06 Jun 2010 20:32:35 +1000
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-NOTRACK makes all cpus share a cache line on nf_conntrack_untracked
-twice per packet, slowing down performance.
+This is a multi-part message in MIME format.
+--------------070006000906010706040100
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 
-This patch converts it to a per_cpu variable.
+Hi all,
 
-We assume same cpu is used for a given packet, entering and exiting the
-NOTRACK state.
+At Patrick's request, here is the iptables code for the netfilter LED target,
+it applies cleanly for me against the latest git.
 
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
----
- include/net/netfilter/nf_conntrack.h |    5 +--
- net/netfilter/nf_conntrack_core.c    |   36 ++++++++++++++++++-------
- 2 files changed, 28 insertions(+), 13 deletions(-)
+No change since the last post, except sending as an attachment this time so
+there are no whitespace issues.
 
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index 3bc38c7..84a4b6f 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -261,11 +261,10 @@ extern s16 (*nf_ct_nat_offset)(const struct nf_conn *ct,
- 			       u32 seq);
- 
- /* Fake conntrack entry for untracked connections */
-+DECLARE_PER_CPU(struct nf_conn, nf_conntrack_untracked);
- static inline struct nf_conn *nf_ct_untracked_get(void)
- {
--	extern struct nf_conn nf_conntrack_untracked;
--
--	return &nf_conntrack_untracked;
-+	return &__raw_get_cpu_var(nf_conntrack_untracked);
- }
- extern void nf_ct_untracked_status_or(unsigned long bits);
- 
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 6c1da21..9c66141 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -62,8 +62,8 @@ EXPORT_SYMBOL_GPL(nf_conntrack_htable_size);
- unsigned int nf_conntrack_max __read_mostly;
- EXPORT_SYMBOL_GPL(nf_conntrack_max);
- 
--struct nf_conn nf_conntrack_untracked;
--EXPORT_SYMBOL_GPL(nf_conntrack_untracked);
-+DEFINE_PER_CPU(struct nf_conn, nf_conntrack_untracked);
-+EXPORT_PER_CPU_SYMBOL(nf_conntrack_untracked);
- 
- static int nf_conntrack_hash_rnd_initted;
- static unsigned int nf_conntrack_hash_rnd;
-@@ -1183,10 +1183,21 @@ static void nf_ct_release_dying_list(struct net *net)
- 	spin_unlock_bh(&nf_conntrack_lock);
- }
- 
-+static int untrack_refs(void)
-+{
-+	int cnt = 0, cpu;
-+
-+	for_each_possible_cpu(cpu) {
-+		struct nf_conn *ct = &per_cpu(nf_conntrack_untracked, cpu);
-+
-+		cnt += atomic_read(&ct->ct_general.use) - 1;
-+	}
-+	return cnt;
-+}
-+
- static void nf_conntrack_cleanup_init_net(void)
- {
--	/* wait until all references to nf_conntrack_untracked are dropped */
--	while (atomic_read(&nf_conntrack_untracked.ct_general.use) > 1)
-+	while (untrack_refs() > 0)
- 		schedule();
- 
- 	nf_conntrack_helper_fini();
-@@ -1323,14 +1334,17 @@ module_param_call(hashsize, nf_conntrack_set_hashsize, param_get_uint,
- 
- void nf_ct_untracked_status_or(unsigned long bits)
- {
--	nf_conntrack_untracked.status |= bits;
-+	int cpu;
-+
-+	for_each_possible_cpu(cpu)
-+		per_cpu(nf_conntrack_untracked, cpu).status |= bits;
- }
- EXPORT_SYMBOL_GPL(nf_ct_untracked_status_or);
- 
- static int nf_conntrack_init_init_net(void)
- {
- 	int max_factor = 8;
--	int ret;
-+	int ret, cpu;
- 
- 	/* Idea from tcp.c: use 1/16384 of memory.  On i386: 32MB
- 	 * machine has 512 buckets. >= 1GB machines have 16384 buckets. */
-@@ -1369,10 +1383,12 @@ static int nf_conntrack_init_init_net(void)
- 		goto err_extend;
- #endif
- 	/* Set up fake conntrack: to never be deleted, not in any hashes */
--#ifdef CONFIG_NET_NS
--	nf_conntrack_untracked.ct_net = &init_net;
--#endif
--	atomic_set(&nf_conntrack_untracked.ct_general.use, 1);
-+	for_each_possible_cpu(cpu) {
-+		struct nf_conn *ct = &per_cpu(nf_conntrack_untracked, cpu);
-+
-+		write_pnet(&ct->ct_net, &init_net);
-+		atomic_set(&ct->ct_general.use, 1);
-+	}
- 	/*  - and look it like as a confirmed connection */
- 	nf_ct_untracked_status_or(IPS_CONFIRMED | IPS_UNTRACKED);
- 	return 0;
+Cheers,
+Adam.
 
+--------------070006000906010706040100
+Content-Type: text/plain;
+ name="iptables-led_target.patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="iptables-led_target.patch"
 
+QWRkIGEgbmV3ICJMRUQiIHRhcmdldCB0byBpcHRhYmxlcywgd2hpY2ggYWxsb3dzIExFRHMg
+dG8gYmxpbmsgaW4gcmVzcG9uc2UgdG8KbWF0Y2hpbmcgcnVsZXMuCgpTaWduZWQtb2ZmLWJ5
+OiBBZGFtIE5pZWxzZW4gPGEubmllbHNlbkBzaGlrYWRpLm5ldD4KCi0tLQoKZGlmZiAtLWdp
+dCBhL2V4dGVuc2lvbnMvbGlieHRfTEVELmMgYi9leHRlbnNpb25zL2xpYnh0X0xFRC5jCm5l
+dyBmaWxlIG1vZGUgMTAwNjQ0CmluZGV4IDAwMDAwMDAuLjZlMDU2NmMKLS0tIC9kZXYvbnVs
+bAorKysgYi9leHRlbnNpb25zL2xpYnh0X0xFRC5jCkBAIC0wLDAgKzEsMTU4IEBACisvKgor
+ICogbGlieHRfTEVELmMgLSBzaGFyZWQgbGlicmFyeSBhZGQtb24gdG8gaXB0YWJsZXMgdG8g
+YWRkIGN1c3RvbWl6ZWQgTEVECisgKiAgICAgICAgICAgICAgIHRyaWdnZXIgc3VwcG9ydC4K
+KyAqCisgKiAoQykgMjAwOCBBZGFtIE5pZWxzZW4gPGEubmllbHNlbkBzaGlrYWRpLm5ldD4K
+KyAqCisgKiBUaGlzIHByb2dyYW0gaXMgZnJlZSBzb2Z0d2FyZTsgeW91IGNhbiByZWRpc3Ry
+aWJ1dGUgaXQgYW5kL29yIG1vZGlmeQorICogaXQgdW5kZXIgdGhlIHRlcm1zIG9mIHRoZSBH
+TlUgR2VuZXJhbCBQdWJsaWMgTGljZW5zZSB2ZXJzaW9uIDIgYXMKKyAqIHB1Ymxpc2hlZCBi
+eSB0aGUgRnJlZSBTb2Z0d2FyZSBGb3VuZGF0aW9uLgorICoKKyAqLworCisjaW5jbHVkZSA8
+c3RkaW8uaD4KKyNpbmNsdWRlIDxzdHJpbmcuaD4KKyNpbmNsdWRlIDxzdGRsaWIuaD4KKyNp
+bmNsdWRlIDxnZXRvcHQuaD4KKyNpbmNsdWRlIDxzdGRkZWYuaD4KKworI2luY2x1ZGUgPHh0
+YWJsZXMuaD4KKworI2luY2x1ZGUgPGxpbnV4L25ldGZpbHRlci94dF9MRUQuaD4KKworc3Rh
+dGljIGNvbnN0IHN0cnVjdCBvcHRpb24gTEVEX29wdHNbXSA9IHsKKwl7IC5uYW1lID0gImxl
+ZC10cmlnZ2VyLWlkIiwJLmhhc19hcmcgPSAxLCAudmFsID0gJ2knIH0sCisJeyAubmFtZSA9
+ICJsZWQtZGVsYXkiLAkJLmhhc19hcmcgPSAxLCAudmFsID0gJ2QnIH0sCisJeyAubmFtZSA9
+ICJsZWQtYWx3YXlzLWJsaW5rIiwJLmhhc19hcmcgPSAwLCAudmFsID0gJ2EnIH0sCisJeyAu
+bmFtZSA9IE5VTEwgfQorfTsKKworc3RhdGljIHZvaWQgTEVEX2hlbHAodm9pZCkKK3sKKwlw
+cmludGYoCisiTEVEIHRhcmdldCBvcHRpb25zOlxuIgorIi0tbGVkLXRyaWdnZXItaWQgbmFt
+ZSAgICAgICAgICAgc3VmZml4IGZvciBsZWQgdHJpZ2dlciBuYW1lXG4iCisiLS1sZWQtZGVs
+YXkgbXMgICAgICAgICAgICAgICAgICBsZWF2ZSB0aGUgTEVEIG9uIGZvciB0aGlzIG51bWJl
+ciBvZlxuIgorIiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgbWlsbGlzZWNvbmRz
+IGFmdGVyIHRyaWdnZXJpbmcuXG4iCisiLS1sZWQtYWx3YXlzLWJsaW5rICAgICAgICAgICAg
+ICBibGluayBvbiBhcnJpdmluZyBwYWNrZXRzLCBldmVuIGlmXG4iCisiICAgICAgICAgICAg
+ICAgICAgICAgICAgICAgICAgICB0aGUgTEVEIGlzIGFscmVhZHkgb24uXG4iCisJKTsKK30K
+Kworc3RhdGljIGludCBMRURfcGFyc2UoaW50IGMsIGNoYXIgKiphcmd2LCBpbnQgaW52ZXJ0
+LCB1bnNpZ25lZCBpbnQgKmZsYWdzLAorICAgICAgICAgICAgICAgICAgICAgY29uc3Qgdm9p
+ZCAqZW50cnksIHN0cnVjdCB4dF9lbnRyeV90YXJnZXQgKip0YXJnZXQpCit7CisJc3RydWN0
+IHh0X2xlZF9pbmZvICpsZWQgPSAoc3RydWN0IHh0X2xlZF9pbmZvICopKCp0YXJnZXQpLT5k
+YXRhOworCisJc3dpdGNoIChjKSB7CisJY2FzZSAnaSc6CisJCXh0YWJsZXNfcGFyYW1fYWN0
+KFhURl9OT19JTlZFUlQsICJMRUQiLCAiLS1sZWQtdHJpZ2dlci1pZCIsIGludmVydCk7CisK
+KwkJaWYgKHN0cmxlbigibmV0ZmlsdGVyLSIpICsgc3RybGVuKG9wdGFyZykgPiBzaXplb2Yo
+bGVkLT5pZCkpCisJCQl4dGFibGVzX2Vycm9yKFBBUkFNRVRFUl9QUk9CTEVNLAorCQkJCSIt
+LWxlZC10cmlnZ2VyLWlkIG11c3QgYmUgMTYgY2hhcnMgb3IgbGVzcyIpOworCisJCWlmIChv
+cHRhcmdbMF0gPT0gJ1wwJykKKwkJCXh0YWJsZXNfZXJyb3IoUEFSQU1FVEVSX1BST0JMRU0s
+CisJCQkJIi0tbGVkLXRyaWdnZXItaWQgY2Fubm90IGJlIGJsYW5rIik7CisKKwkJLyogIm5l
+dGZpbHRlci0iICsgMTYgY2hhciBpZCA9PSAyNiA9PSBzaXplb2YobGVkLT5pZCkgKi8KKwkJ
+c3RyY3B5KGxlZC0+aWQsICJuZXRmaWx0ZXItIik7CisJCXN0cmNhdChsZWQtPmlkLCBvcHRh
+cmcpOworCQkqZmxhZ3MgPSAxOworCQlyZXR1cm4gMTsKKworCWNhc2UgJ2QnOgorCQl4dGFi
+bGVzX3BhcmFtX2FjdChYVEZfTk9fSU5WRVJULCAiTEVEIiwgIi0tbGVkLWRlbGF5IiwgaW52
+ZXJ0KTsKKworCQlpZiAoc3RybmNhc2VjbXAob3B0YXJnLCAiaW5mIiwgMykgPT0gMCkKKwkJ
+CWxlZC0+ZGVsYXkgPSAtMTsKKwkJZWxzZQorCQkJbGVkLT5kZWxheSA9IHN0cnRvdWwob3B0
+YXJnLCBOVUxMLCAwKTsKKworCQlyZXR1cm4gMTsKKworCWNhc2UgJ2EnOgorCQlpZiAoIWlu
+dmVydCkKKwkJCWxlZC0+YWx3YXlzX2JsaW5rID0gMTsKKworCQlyZXR1cm4gMTsKKworCX0K
+KwlyZXR1cm4gMDsKK30KKworc3RhdGljIHZvaWQgTEVEX2ZpbmFsX2NoZWNrKHVuc2lnbmVk
+IGludCBmbGFncykKK3sKKwlpZiAoIWZsYWdzKQorCQl4dGFibGVzX2Vycm9yKFBBUkFNRVRF
+Ul9QUk9CTEVNLAorCQkJIi0tbGVkLXRyaWdnZXItaWQgbXVzdCBiZSBzcGVjaWZpZWQiKTsK
+K30KKworc3RhdGljIHZvaWQgTEVEX3ByaW50KGNvbnN0IHZvaWQgKmlwLCBjb25zdCBzdHJ1
+Y3QgeHRfZW50cnlfdGFyZ2V0ICp0YXJnZXQsCisgICAgICAgICAgICAgICAgICAgICAgaW50
+IG51bWVyaWMpCit7CisJY29uc3Qgc3RydWN0IHh0X2xlZF9pbmZvICpsZWQgPSAoY29uc3Qg
+c3RydWN0IHh0X2xlZF9pbmZvICopdGFyZ2V0LT5kYXRhOworCWNvbnN0IGNoYXIgKmlkID0g
+bGVkLT5pZCArIHN0cmxlbigibmV0ZmlsdGVyLSIpOyAvKiB0cmltIG9mZiBwcmVmaXggKi8K
+KworCXByaW50ZigibGVkLXRyaWdnZXItaWQ6XCIiKTsKKwkvKiBFc2NhcGUgZG91YmxlIHF1
+b3RlcyBhbmQgYmFja3NsYXNoZXMgaW4gdGhlIElEICovCisJd2hpbGUgKCppZCkgeworCQlp
+ZiAoKCppZCA9PSAnIicpIHx8ICgqaWQgPT0gJ1xcJykpCisJCQlwcmludGYoIlxcIik7CisJ
+CXByaW50ZigiJWMiLCAqaWQrKyk7CisJfQorCXByaW50ZigiXCIgIik7CisKKwlpZiAobGVk
+LT5kZWxheSA9PSAtMSkKKwkJcHJpbnRmKCJsZWQtZGVsYXk6aW5mICIpOworCWVsc2UKKwkJ
+cHJpbnRmKCJsZWQtZGVsYXk6JWRtcyAiLCBsZWQtPmRlbGF5KTsKKworCWlmIChsZWQtPmFs
+d2F5c19ibGluaykKKwkJcHJpbnRmKCJsZWQtYWx3YXlzLWJsaW5rICIpOworfQorCitzdGF0
+aWMgdm9pZCBMRURfc2F2ZShjb25zdCB2b2lkICppcCwgY29uc3Qgc3RydWN0IHh0X2VudHJ5
+X3RhcmdldCAqdGFyZ2V0KQoreworCWNvbnN0IHN0cnVjdCB4dF9sZWRfaW5mbyAqbGVkID0g
+KGNvbnN0IHN0cnVjdCB4dF9sZWRfaW5mbyAqKXRhcmdldC0+ZGF0YTsKKwljb25zdCBjaGFy
+ICppZCA9IGxlZC0+aWQgKyBzdHJsZW4oIm5ldGZpbHRlci0iKTsgLyogdHJpbSBvZmYgcHJl
+Zml4ICovCisKKwlwcmludGYoIi0tbGVkLXRyaWdnZXItaWQgXCIiKTsKKwkvKiBFc2NhcGUg
+ZG91YmxlIHF1b3RlcyBhbmQgYmFja3NsYXNoZXMgaW4gdGhlIElEICovCisJd2hpbGUgKCpp
+ZCkgeworCQlpZiAoKCppZCA9PSAnIicpIHx8ICgqaWQgPT0gJ1xcJykpCisJCQlwcmludGYo
+IlxcIik7CisJCXByaW50ZigiJWMiLCAqaWQrKyk7CisJfQorCXByaW50ZigiXCIgIik7CisK
+KwkvKiBPbmx5IHByaW50IHRoZSBkZWxheSBpZiBpdCdzIG5vdCB6ZXJvICh0aGUgZGVmYXVs
+dCkgKi8KKwlpZiAobGVkLT5kZWxheSA+IDApCisJCXByaW50ZigiLS1sZWQtZGVsYXkgJWQg
+IiwgbGVkLT5kZWxheSk7CisJZWxzZSBpZiAobGVkLT5kZWxheSA9PSAtMSkKKwkJcHJpbnRm
+KCItLWxlZC1kZWxheSBpbmYgIik7CisKKwkvKiBPbmx5IHByaW50IGFsd2F5c19ibGluayBp
+ZiBpdCdzIG5vdCBzZXQgdG8gdGhlIGRlZmF1bHQgKi8KKwlpZiAobGVkLT5hbHdheXNfYmxp
+bmspCisJCXByaW50ZigiLS1sZWQtYWx3YXlzLWJsaW5rICIpOworfQorCitzdGF0aWMgc3Ry
+dWN0IHh0YWJsZXNfdGFyZ2V0IGxlZF90Z19yZWcgPSB7CisJLmZhbWlseQkJPSBQRl9VTlNQ
+RUMsCisJLm5hbWUJCT0gIkxFRCIsCisJLnZlcnNpb24JPSBYVEFCTEVTX1ZFUlNJT04sCisJ
+LnNpemUJCT0gWFRfQUxJR04oc2l6ZW9mKHN0cnVjdCB4dF9sZWRfaW5mbykpLAorCS51c2Vy
+c3BhY2VzaXplCT0gb2Zmc2V0b2Yoc3RydWN0IHh0X2xlZF9pbmZvLCBpbnRlcm5hbF9kYXRh
+KSwKKwkuaGVscAkJPSBMRURfaGVscCwKKwkucGFyc2UJCT0gTEVEX3BhcnNlLAorCS5maW5h
+bF9jaGVjawk9IExFRF9maW5hbF9jaGVjaywKKwkuZXh0cmFfb3B0cwk9IExFRF9vcHRzLAor
+CS5wcmludAkJPSBMRURfcHJpbnQsCisJLnNhdmUJCT0gTEVEX3NhdmUsCit9OworCit2b2lk
+IF9pbml0KHZvaWQpCit7CisJeHRhYmxlc19yZWdpc3Rlcl90YXJnZXQoJmxlZF90Z19yZWcp
+OworfQpkaWZmIC0tZ2l0IGEvZXh0ZW5zaW9ucy9saWJ4dF9MRUQubWFuIGIvZXh0ZW5zaW9u
+cy9saWJ4dF9MRUQubWFuCm5ldyBmaWxlIG1vZGUgMTAwNjQ0CmluZGV4IDAwMDAwMDAuLmI2
+NWIzYzIKLS0tIC9kZXYvbnVsbAorKysgYi9leHRlbnNpb25zL2xpYnh0X0xFRC5tYW4KQEAg
+LTAsMCArMSwzMCBAQAorVGhpcyBjcmVhdGVzIGFuIExFRC10cmlnZ2VyIHRoYXQgY2FuIHRo
+ZW4gYmUgYXR0YWNoZWQgdG8gc3lzdGVtIGluZGljYXRvcgorbGlnaHRzLCB0byBibGluayBv
+ciBpbGx1bWluYXRlIHRoZW0gd2hlbiBjZXJ0YWluIHBhY2tldHMgcGFzcyB0aHJvdWdoIHRo
+ZQorc3lzdGVtLiAgT25lIGV4YW1wbGUgbWlnaHQgYmUgdG8gbGlnaHQgdXAgYW4gTEVEIGZv
+ciBhIGZldyBtaW51dGVzIGV2ZXJ5IHRpbWUKK2FuIFNTSCBjb25uZWN0aW9uIGlzIG1hZGUg
+dG8gdGhlIGxvY2FsIG1hY2hpbmUuICBUaGUgZm9sbG93aW5nIG9wdGlvbnMgY29udHJvbAor
+dGhlIHRyaWdnZXIgYmVoYXZpb3VyOgorLlRQCitcZkItLWxlZC10cmlnZ2VyLWlkXGZQIFxm
+SW5hbWVcZlAKK1RoaXMgaXMgdGhlIG5hbWUgZ2l2ZW4gdG8gdGhlIExFRCB0cmlnZ2VyLiAg
+VGhlIGFjdHVhbCBuYW1lIG9mIHRoZSB0cmlnZ2VyCit3aWxsIGJlIHByZWZpeGVkIHdpdGgg
+Im5ldGZpbHRlci0iLgorLlRQCitcZkItLWxlZC1kZWxheVxmUCBcZkltc1xmUAorVGhpcyBp
+bmRpY2F0ZXMgaG93IGxvbmcgKGluIG1pbGxpc2Vjb25kcykgdGhlIExFRCBzaG91bGQgYmUg
+bGVmdCBpbGx1bWluYXRlZAord2hlbiBhIHBhY2tldCBhcnJpdmVzIGJlZm9yZSBiZWluZyBz
+d2l0Y2hlZCBvZmYgYWdhaW4uICBUaGUgZGVmYXVsdCBpcyAwCisoYmxpbmsgYXMgZmFzdCBh
+cyBwb3NzaWJsZS4pICBUaGUgc3BlY2lhbCB2YWx1ZSBcZklpbmZcZlAgY2FuIGJlIGdpdmVu
+IHRvCitsZWF2ZSB0aGUgTEVEIG9uIHBlcm1hbmVudGx5IG9uY2UgYWN0aXZhdGVkLiAgKElu
+IHRoaXMgY2FzZSB0aGUgdHJpZ2dlciB3aWxsCituZWVkIHRvIGJlIG1hbnVhbGx5IGRldGFj
+aGVkIGFuZCByZWF0dGFjaGVkIHRvIHRoZSBMRUQgZGV2aWNlIHRvIHN3aXRjaCBpdAorb2Zm
+IGFnYWluLikKKy5UUAorXGZCLS1sZWQtYWx3YXlzLWJsaW5rXGZQCitBbHdheXMgbWFrZSB0
+aGUgTEVEIGJsaW5rIG9uIHBhY2tldCBhcnJpdmFsLCBldmVuIGlmIHRoZSBMRUQgaXMgYWxy
+ZWFkeSBvbi4KK1RoaXMgYWxsb3dzIG5vdGlmaWNhdGlvbiBvZiBuZXcgcGFja2V0cyBldmVu
+IHdpdGggbG9uZyBkZWxheSB2YWx1ZXMgKHdoaWNoCitvdGhlcndpc2Ugd291bGQgcmVzdWx0
+IGluIGEgc2lsZW50IHByb2xvbmdpbmcgb2YgdGhlIGRlbGF5IHRpbWUuKQorLlRQCitFeGFt
+cGxlOgorLlRQCitDcmVhdGUgYW4gTEVEIHRyaWdnZXIgZm9yIGluY29taW5nIFNTSCB0cmFm
+ZmljOgoraXB0YWJsZXMgLUEgSU5QVVQgLXAgdGNwIC0tZHBvcnQgMjIgLWogTEVEIC0tbGVk
+LXRyaWdnZXItaWQgc3NoCisuVFAKK1RoZW4gYXR0YWNoIHRoZSBuZXcgdHJpZ2dlciB0byBh
+biBMRUQ6CitlY2hvIG5ldGZpbHRlci1zc2ggPiAvc3lzL2NsYXNzL2xlZHMvPGxlZG5hbWU+
+L3RyaWdnZXIK
+--------------070006000906010706040100--
