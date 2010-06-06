@@ -1,58 +1,55 @@
 From: Shan Wei <shanwei@cn.fujitsu.com>
-Subject: [IPTABLES][PATCH 1/2] xt_sctp: Trace DATA chunk that supports SACK-IMMEDIATELY
- extension
-Date: Mon, 07 Jun 2010 02:08:08 +0800
-Message-ID: <4C0BE408.7070606@cn.fujitsu.com>
+Subject: [IPTABLES][PATCH 2/2] xt_sctp: support FORWARD_TSN chunk type
+Date: Mon, 07 Jun 2010 02:08:22 +0800
+Message-ID: <4C0BE416.4070503@cn.fujitsu.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, linux-sctp@vger.kernel.org
+Cc: linux-sctp@vger.kernel.org, netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:62198 "EHLO song.cn.fujitsu.com"
+Received: from cn.fujitsu.com ([222.73.24.84]:51331 "EHLO song.cn.fujitsu.com"
 	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1752724Ab0FGCIS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 6 Jun 2010 22:08:18 -0400
+	id S1752724Ab0FGCI2 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 6 Jun 2010 22:08:28 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-SACK-IMMEDIATELY extension has defined in: 
-http://tools.ietf.org/html/draft-tuexen-tsvwg-sctp-sack-immediately-03.
+The latest kernel has implemented Partial Reliability Extension
+that defined in RFC3758.
 
-And the latest kernel has added a I flag in DATA chunk to support this extension.
-So let iptables/netfilter can trace it.
+This patch adds FORWARD_TSN chunk for tracing.
 
 Signed-off-by: Shan Wei<shanwei@cn.fujitsu.com>
 ---
- extensions/libxt_sctp.c   |    2 +-
+ extensions/libxt_sctp.c   |    1 +
  extensions/libxt_sctp.man |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+ 2 files changed, 2 insertions(+), 1 deletions(-)
 
 diff --git a/extensions/libxt_sctp.c b/extensions/libxt_sctp.c
-index 441f12e..92bdb07 100644
+index 92bdb07..8f352fd 100644
 --- a/extensions/libxt_sctp.c
 +++ b/extensions/libxt_sctp.c
-@@ -97,7 +97,7 @@ struct sctp_chunk_names {
+@@ -114,6 +114,7 @@ static const struct sctp_chunk_names sctp_chunk_names[]
+     { .name = "SHUTDOWN_COMPLETE", .chunk_type = 14,  .valid_flags = "-------T"},
+     { .name = "ASCONF",		.chunk_type = 193,  .valid_flags = "--------"},
+     { .name = "ASCONF_ACK",	.chunk_type = 128,  .valid_flags = "--------"},
++    { .name = "FORWARD_TSN",	.chunk_type = 192,  .valid_flags = "--------"},
+ };
  
- /*'ALL' and 'NONE' will be treated specially. */
- static const struct sctp_chunk_names sctp_chunk_names[]
--= { { .name = "DATA", 		.chunk_type = 0,   .valid_flags = "-----UBE"},
-+= { { .name = "DATA", 		.chunk_type = 0,   .valid_flags = "----IUBE"},
-     { .name = "INIT", 		.chunk_type = 1,   .valid_flags = "--------"},
-     { .name = "INIT_ACK", 	.chunk_type = 2,   .valid_flags = "--------"},
-     { .name = "SACK",		.chunk_type = 3,   .valid_flags = "--------"},
+ static void
 diff --git a/extensions/libxt_sctp.man b/extensions/libxt_sctp.man
-index 1ecf05c..01a2e79 100644
+index 01a2e79..eefc850 100644
 --- a/extensions/libxt_sctp.man
 +++ b/extensions/libxt_sctp.man
-@@ -11,7 +11,7 @@ Chunk types: DATA INIT INIT_ACK SACK HEARTBEAT HEARTBEAT_ACK ABORT SHUTDOWN SHUT
+@@ -7,7 +7,7 @@
+ The flag letter in upper case indicates that the flag is to match if set,
+ in the lower case indicates to match if unset.
+ 
+-Chunk types: DATA INIT INIT_ACK SACK HEARTBEAT HEARTBEAT_ACK ABORT SHUTDOWN SHUTDOWN_ACK ERROR COOKIE_ECHO COOKIE_ACK ECN_ECNE ECN_CWR SHUTDOWN_COMPLETE ASCONF ASCONF_ACK
++Chunk types: DATA INIT INIT_ACK SACK HEARTBEAT HEARTBEAT_ACK ABORT SHUTDOWN SHUTDOWN_ACK ERROR COOKIE_ECHO COOKIE_ACK ECN_ECNE ECN_CWR SHUTDOWN_COMPLETE ASCONF ASCONF_ACK FORWARD_TSN
  
  chunk type            available flags      
- .br
--DATA                  U B E u b e         
-+DATA                  I U B E i u b e         
- .br
- ABORT                 T t                 
  .br
 -- 
 1.6.3.3
