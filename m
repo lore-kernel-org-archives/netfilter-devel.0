@@ -1,58 +1,35 @@
-From: Anand Raj Manickam <anandrm@gmail.com>
-Subject: Redundant calls to nf_ct_tuplehash_to_ctrack
-Date: Tue, 8 Jun 2010 19:48:42 +0530
-Message-ID: <AANLkTikuYXpQrc3MECpkj_h8E19D5ZM07Li_CpqRYc7k@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH nf-next-2.6 2/2] conntrack: per_cpu untracking
+Date: Tue, 08 Jun 2010 16:29:24 +0200
+Message-ID: <4C0E53C4.7090308@trash.net>
+References: <1271941082.14501.189.camel@jdb-workstation>	 <1271948029.7895.5707.camel@edumazet-laptop>	 <20100422155123.GA2524@linux.vnet.ibm.com>	 <1271952128.7895.5851.camel@edumazet-laptop>	 <Pine.LNX.4.64.1004222213290.10919@ask.diku.dk>	 <1272056237.4599.7.camel@edumazet-laptop>	 <Pine.LNX.4.64.1004241219280.32071@ask.diku.dk>	 <1272139861.20714.525.camel@edumazet-laptop>	 <1272292568.13192.43.camel@jdb-workstation>	 <1275340896.2478.26.camel@edumazet-laptop>	 <AANLkTikw3uonDB4nPXg8FVFN_07F_wq0SA_ayyAHL6VM@mail.gmail.com>	 <1275368732.2478.88.camel@edumazet-laptop> <4C04DE73.6050605@trash.net>	 <1275388310.2738.2.camel@edumazet-laptop> <4C04E3E2.7020209@trash.net>	 <1275409203.2738.227.camel@edumazet-laptop> <4C08E62A.9020607@trash.net>	 <AANLkTilKEpFTg5bH8d9UE3a3DVJNAGYz10Jgkt6lXtJ0@
+ mail.gmail.com>	 <4C08F1A4.2050906@trash.net>  <1275654964.2482.150.camel@edumazet-laptop>	 <1275668732.2482.201.camel@edumazet-laptop> <1275682522.2490.6.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 7bit
+Cc: Changli Gao <xiaosuo@gmail.com>,
+	Netfilter Developers <netfilter-devel@vger.kernel.org>,
+	netdev <netdev@vger.kernel.org>
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:43645 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755170Ab0FHOSp (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:44420 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755297Ab0FHO30 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 8 Jun 2010 10:18:45 -0400
-Received: by pwj5 with SMTP id 5so1307218pwj.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 08 Jun 2010 07:18:44 -0700 (PDT)
+	Tue, 8 Jun 2010 10:29:26 -0400
+In-Reply-To: <1275682522.2490.6.camel@edumazet-laptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This my observation ..
+On 04.06.2010 22:15, Eric Dumazet wrote:
+> NOTRACK makes all cpus share a cache line on nf_conntrack_untracked
+> twice per packet, slowing down performance.
+> 
+> This patch converts it to a per_cpu variable.
+> 
+> We assume same cpu is used for a given packet, entering and exiting the
+> NOTRACK state.
 
-There is a redundant call to nf_ct_tuplehash_to_ctrack() after every
-nf_conntrack_find_get() call .
-
-Why is ct not returned from nf_conntrack_find_get() , since in all the
-occurances of nf_conntrack_find_get() there is immediate call to
-nf_ct_tuplehash_to_ctrack() . Although  nf_ct_tuplehash_to_ctrack() is
-invoked to check the ct after we get a valid hash .
-
-Following the code snippet of nf_conntrack_find_get
-
-
-struct nf_conntrack_tuple_hash *
-nf_conntrack_find_get(struct net *net, u16 zone,
-                      const struct nf_conntrack_tuple *tuple)
-{
-        struct nf_conntrack_tuple_hash *h;
-        struct nf_conn *ct;
-
-        rcu_read_lock();
-begin:
-        h = __nf_conntrack_find(net, zone, tuple);
-        if (h) {
-                ct = nf_ct_tuplehash_to_ctrack(h);
-                if (unlikely(nf_ct_is_dying(ct) ||
-                             !atomic_inc_not_zero(&ct->ct_general.use)))
-                        h = NULL;
-                else {
-                        if (unlikely(!nf_ct_tuple_equal(tuple, &h->tuple) ||
-                                     nf_ct_zone(ct) != zone)) {
-                                nf_ct_put(ct);
-                                goto begin;
-                        }
-                }
-        }
-        rcu_read_unlock();
-
-        return h;
-}
+That doesn't seem to be a valid assumption, the conntrack entry is
+attached to the skb and processing in the output path might get
+preempted and rescheduled to a different CPU.
