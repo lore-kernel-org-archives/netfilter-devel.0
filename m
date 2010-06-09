@@ -1,12 +1,13 @@
 From: Luciano Coelho <luciano.coelho@nokia.com>
 Subject: Re: [PATCH v3] netfilter: Xtables: idletimer target implementation
-Date: Thu, 10 Jun 2010 00:00:12 +0300
-Message-ID: <1276117212.11199.25.camel@powerslave>
+Date: Thu, 10 Jun 2010 00:28:40 +0300
+Message-ID: <1276118920.11199.53.camel@powerslave>
 References: <1275592445-15555-1-git-send-email-luciano.coelho@nokia.com>
 	 <4C0F9B17.10504@trash.net> <1276096275.31892.117.camel@chilepepper>
 	 <alpine.LSU.2.01.1006091716170.30265@obet.zrqbmnf.qr>
 	 <1276105707.11199.12.camel@powerslave>
 	 <1276108939.11199.23.camel@powerslave>
+	 <alpine.LSU.2.01.1006092304270.16916@obet.zrqbmnf.qr>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
@@ -15,55 +16,48 @@ Cc: ext Patrick McHardy <kaber@trash.net>,
 	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
 	Timo Teras <timo.teras@iki.fi>
 To: ext Jan Engelhardt <jengelh@medozas.de>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1276108939.11199.23.camel@powerslave>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from smtp.nokia.com ([192.100.105.134]:34082 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753975Ab0FIVu6 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 9 Jun 2010 17:50:58 -0400
+In-Reply-To: <alpine.LSU.2.01.1006092304270.16916@obet.zrqbmnf.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 2010-06-09 at 20:42 +0200, Coelho Luciano (Nokia-D/Helsinki)
-wrote:
-> On Wed, 2010-06-09 at 19:48 +0200, Coelho Luciano (Nokia-D/Helsinki)
-> wrote:
-> > On Wed, 2010-06-09 at 17:18 +0200, ext Jan Engelhardt wrote:
-> > > >> > +	timer = __idletimer_tg_find_by_label(info->label);
-> > > >> > +	if (!timer) {
-> > > >> > +		spin_unlock(&list_lock);
-> > > >> > +		timer = idletimer_tg_create(info);
-> > > >> >   
-> > > >> 
-> > > >> How does this prevent creating the same timer twice?
-> > > >
-> > > >The timer will only be created if __idletimer_tg_find_by_label() returns
-> > > >NULL, which means that no timer with that label has been found.  "info"
-> > > >won't be the same if info->label is different, right? Or can it change
-> > > >on the fly?
-> > > 
-> > > One thing to be generally aware about is that things could potentially
-> > > be instantiated by another entity between the time a label was looked up
-> > > with negative result and the time one tries to add it.
-> > > It may thus be required to extend keeping the lock until after
-> > > idletimer_tg_create, in other words, lookup and create must be atomic
-> > > to the rest of the world.
-> > 
-> > Ahh, sure! I missed the actual point of Patrick's question.  I had the
-> > idletimer_tg_create() inside the lock, but when I added the
-> > sysfs_create_file() there (which can sleep), I screwed up with the
-> > locking.
-> > 
-> > I'll move the sysfs file creation to outside that function so I can keep
-> > the lock until after the timer is added to the list.  Thanks for
-> > clarifying!
+On Wed, 2010-06-09 at 23:05 +0200, ext Jan Engelhardt wrote:
+> On Wednesday 2010-06-09 20:42, Luciano Coelho wrote:
+> >
+> >> I'll move the sysfs file creation to outside that function so I can keep
+> >> the lock until after the timer is added to the list.  Thanks for
+> >> clarifying!
+> >
+> >Hmmm... after struggling with this for a while, I think it's not really
+> >possible to simply create the sysfs file outside of the lock, because if
+> >the sysfs creation fails, we will again risk a race condition.
 > 
-> Hmmm... after struggling with this for a while, I think it's not really
-> possible to simply create the sysfs file outside of the lock, because if
-> the sysfs creation fails, we will again risk a race condition.
-> 
-> I think the only way is to delay the sysfs file creation and do it in a
-> workqueue.
+> Well if sysfs_add can return an error code when a file already
+> exists (instead of adding it again), it's much easier. Try checking.
 
-Okay, I think I found a way to do it without using an extra workqueue.
-The patch is ready, but I still want to run some tests before sending it
-out.
+Unfortunately sysfs_add and sysfs_create will throw a kernel warning if
+we try to create a file that already exists.  But this was not really
+the problem.
+
+Now I just throw an WARN_ON if the sysfs file creation fails, the other
+sysfs functions I'm calling can handle this situation.  This shouldn't
+happen in normal cases and, if it does, the timer will run normally, but
+there won't be a sysfs file associated with it (and there won't be any
+notification).
+
+As I just wrote in another email, I thought I had figured out a way to
+do it without a workqueue.  But now that I looked into the code again, I
+think there might still be some race conditions... For example: If
+someone deletes the timer immediately after I released the lock and
+before I created the sysfs entry... The deletion won't cause problems if
+the file is not there, it will just nop.  But the creation of the file
+after the timer has been deleted will cause the file to be dangling in
+sysfs without any timer associated with it... :(
 
 
 -- 
