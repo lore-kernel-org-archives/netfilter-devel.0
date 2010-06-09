@@ -1,63 +1,116 @@
-From: John Haxby <john.haxby@oracle.com>
-Subject: [PATCH] Fix a couple of problems with xt_SYSRQ
-Date: Wed,  9 Jun 2010 16:36:55 +0100
-Message-ID: <1276097815-10116-1-git-send-email-john.haxby@oracle.com>
-Cc: John Haxby <john.haxby@oracle.com>
-To: netfilter-devel@vger.kernel.org
+From: Eric Dumazet <eric.dumazet@gmail.com>
+Subject: [PATCH nf-next-2.6] netfilter: nfnetlink_queue: some optimizations
+Date: Wed, 09 Jun 2010 17:29:14 +0200
+Message-ID: <1276097354.2442.189.camel@edumazet-laptop>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rcsinet10.oracle.com ([148.87.113.121]:26207 "EHLO
-	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932078Ab0FIPhL (ORCPT
+Received: from mail-wy0-f174.google.com ([74.125.82.174]:55647 "EHLO
+	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932275Ab0FIPhX (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Jun 2010 11:37:11 -0400
-Received: from acsinet15.oracle.com (acsinet15.oracle.com [141.146.126.227])
-	by rcsinet10.oracle.com (Switch-3.4.2/Switch-3.4.1) with ESMTP id o59Fb4KZ004525
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <netfilter-devel@vger.kernel.org>; Wed, 9 Jun 2010 15:37:09 GMT
+	Wed, 9 Jun 2010 11:37:23 -0400
+Received: by wyb40 with SMTP id 40so245314wyb.19
+        for <netfilter-devel@vger.kernel.org>; Wed, 09 Jun 2010 08:37:20 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The first problem is that the error response from crypto_alloc_hash()
-should be extracted from the pointer before setting the pointer to NULL.
+- Use an atomic_t for id_sequence to avoid a spin_lock/spin_unlock pair
 
-The second error is that only the first half of the password hash is
-checked which slightly weakens the password checking.
+- Group highly modified struct nfqnl_instance fields together
 
-Signed-off-by: John Haxby <john.haxby@oracle.com>
+Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
 ---
- extensions/xt_SYSRQ.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ net/netfilter/nfnetlink_queue.c |   33 ++++++++++++------------------
+ 1 file changed, 14 insertions(+), 19 deletions(-)
 
-diff --git a/extensions/xt_SYSRQ.c b/extensions/xt_SYSRQ.c
-index e0b6aa0..30fc112 100644
---- a/extensions/xt_SYSRQ.c
-+++ b/extensions/xt_SYSRQ.c
-@@ -135,13 +135,13 @@ static unsigned int sysrq_tg(const void *pdata, uint16_t len)
- 			"0123456789abcdef"[sysrq_digest[i] & 0xf];
+diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
+index 12e1ab3..d05605b 100644
+--- a/net/netfilter/nfnetlink_queue.c
++++ b/net/netfilter/nfnetlink_queue.c
+@@ -46,17 +46,19 @@ struct nfqnl_instance {
+ 	int peer_pid;
+ 	unsigned int queue_maxlen;
+ 	unsigned int copy_range;
+-	unsigned int queue_total;
+ 	unsigned int queue_dropped;
+ 	unsigned int queue_user_dropped;
+ 
+-	unsigned int id_sequence;		/* 'sequence' of pkt ids */
+ 
+ 	u_int16_t queue_num;			/* number of this queue */
+ 	u_int8_t copy_mode;
+-
+-	spinlock_t lock;
+-
++/*
++ * Following fields are dirtied for each queued packet,
++ * keep them in same cache line if possible.
++ */
++	spinlock_t	lock;
++	unsigned int	queue_total;
++	atomic_t	id_sequence;		/* 'sequence' of pkt ids */
+ 	struct list_head queue_list;		/* packets in queue */
+ };
+ 
+@@ -238,32 +240,24 @@ nfqnl_build_packet_message(struct nfqnl_instance *queue,
+ 
+ 	outdev = entry->outdev;
+ 
+-	spin_lock_bh(&queue->lock);
+-
+-	switch ((enum nfqnl_config_mode)queue->copy_mode) {
++	switch ((enum nfqnl_config_mode)ACCESS_ONCE(queue->copy_mode)) {
+ 	case NFQNL_COPY_META:
+ 	case NFQNL_COPY_NONE:
+ 		break;
+ 
+ 	case NFQNL_COPY_PACKET:
+ 		if (entskb->ip_summed == CHECKSUM_PARTIAL &&
+-		    skb_checksum_help(entskb)) {
+-			spin_unlock_bh(&queue->lock);
++		    skb_checksum_help(entskb))
+ 			return NULL;
+-		}
+-		if (queue->copy_range == 0
+-		    || queue->copy_range > entskb->len)
++
++		data_len = ACCESS_ONCE(queue->copy_range);
++		if (data_len == 0 || data_len > entskb->len)
+ 			data_len = entskb->len;
+-		else
+-			data_len = queue->copy_range;
+ 
+ 		size += nla_total_size(data_len);
+ 		break;
  	}
- 	sysrq_hexdigest[2*sysrq_digest_size] = '\0';
--	if (len - n < sysrq_digest_size) {
-+	if (len - n < sysrq_digest_size*2) {
- 		if (sysrq_debug)
- 			printk(KERN_INFO KBUILD_MODNAME ": Short digest,"
- 			       " expected %s\n", sysrq_hexdigest);
- 		return NF_DROP;
- 	}
--	if (strncmp(data + n, sysrq_hexdigest, sysrq_digest_size) != 0) {
-+	if (strncmp(data + n, sysrq_hexdigest, sysrq_digest_size*2) != 0) {
- 		if (sysrq_debug)
- 			printk(KERN_INFO KBUILD_MODNAME ": Bad digest,"
- 			       " expected %s\n", sysrq_hexdigest);
-@@ -324,8 +324,8 @@ static int __init sysrq_crypto_init(void)
- 		printk(KERN_WARNING KBUILD_MODNAME
- 			": Error: Could not find or load %s hash\n",
- 			sysrq_hash);
--		sysrq_tfm = NULL;
- 		ret = PTR_ERR(sysrq_tfm);
-+		sysrq_tfm = NULL;
- 		goto fail;
- 	}
- 	sysrq_digest_size = crypto_hash_digestsize(sysrq_tfm);
--- 
-1.7.0.1
+ 
+-	entry->id = queue->id_sequence++;
+-
+-	spin_unlock_bh(&queue->lock);
+ 
+ 	skb = alloc_skb(size, GFP_ATOMIC);
+ 	if (!skb)
+@@ -278,6 +272,7 @@ nfqnl_build_packet_message(struct nfqnl_instance *queue,
+ 	nfmsg->version = NFNETLINK_V0;
+ 	nfmsg->res_id = htons(queue->queue_num);
+ 
++	entry->id = atomic_inc_return(&queue->id_sequence);
+ 	pmsg.packet_id 		= htonl(entry->id);
+ 	pmsg.hw_protocol	= entskb->protocol;
+ 	pmsg.hook		= entry->hook;
+@@ -866,7 +861,7 @@ static int seq_show(struct seq_file *s, void *v)
+ 			  inst->peer_pid, inst->queue_total,
+ 			  inst->copy_mode, inst->copy_range,
+ 			  inst->queue_dropped, inst->queue_user_dropped,
+-			  inst->id_sequence, 1);
++			  atomic_read(&inst->id_sequence), 1);
+ }
+ 
+ static const struct seq_operations nfqnl_seq_ops = {
+
 
