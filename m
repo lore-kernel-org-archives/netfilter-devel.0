@@ -1,7 +1,7 @@
 From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: [PATCH nf-next-2.6] netfilter: nfnetlink_queue: some optimizations
-Date: Wed, 09 Jun 2010 17:29:14 +0200
-Message-ID: <1276097354.2442.189.camel@edumazet-laptop>
+Subject: [PATCH nf-next-2.6] netfilter: nfnetlink_log: RCU conversion
+Date: Wed, 09 Jun 2010 17:58:08 +0200
+Message-ID: <1276099088.2442.196.camel@edumazet-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
@@ -9,108 +9,185 @@ Cc: Netfilter Development Mailinglist
 	<netfilter-devel@vger.kernel.org>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:55647 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932275Ab0FIPhX (ORCPT
+Received: from mail-ww0-f46.google.com ([74.125.82.46]:34470 "EHLO
+	mail-ww0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750781Ab0FIQDy (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Jun 2010 11:37:23 -0400
-Received: by wyb40 with SMTP id 40so245314wyb.19
-        for <netfilter-devel@vger.kernel.org>; Wed, 09 Jun 2010 08:37:20 -0700 (PDT)
+	Wed, 9 Jun 2010 12:03:54 -0400
+Received: by wwb31 with SMTP id 31so386444wwb.19
+        for <netfilter-devel@vger.kernel.org>; Wed, 09 Jun 2010 09:03:53 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-- Use an atomic_t for id_sequence to avoid a spin_lock/spin_unlock pair
+- instances_lock becomes a spinlock
+- lockless lookups
 
-- Group highly modified struct nfqnl_instance fields together
+While nfnetlink_log probably not performance critical, using less
+rwlocks in our code is always welcomed...
 
 Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
 ---
- net/netfilter/nfnetlink_queue.c |   33 ++++++++++++------------------
- 1 file changed, 14 insertions(+), 19 deletions(-)
+ net/netfilter/nfnetlink_log.c |   49 +++++++++++++++++---------------
+ 1 file changed, 27 insertions(+), 22 deletions(-)
 
-diff --git a/net/netfilter/nfnetlink_queue.c b/net/netfilter/nfnetlink_queue.c
-index 12e1ab3..d05605b 100644
---- a/net/netfilter/nfnetlink_queue.c
-+++ b/net/netfilter/nfnetlink_queue.c
-@@ -46,17 +46,19 @@ struct nfqnl_instance {
- 	int peer_pid;
- 	unsigned int queue_maxlen;
- 	unsigned int copy_range;
--	unsigned int queue_total;
- 	unsigned int queue_dropped;
- 	unsigned int queue_user_dropped;
- 
--	unsigned int id_sequence;		/* 'sequence' of pkt ids */
- 
- 	u_int16_t queue_num;			/* number of this queue */
+diff --git a/net/netfilter/nfnetlink_log.c b/net/netfilter/nfnetlink_log.c
+index fc9a211..8ec23ec 100644
+--- a/net/netfilter/nfnetlink_log.c
++++ b/net/netfilter/nfnetlink_log.c
+@@ -66,9 +66,10 @@ struct nfulnl_instance {
+ 	u_int16_t group_num;		/* number of this queue */
+ 	u_int16_t flags;
  	u_int8_t copy_mode;
--
--	spinlock_t lock;
--
-+/*
-+ * Following fields are dirtied for each queued packet,
-+ * keep them in same cache line if possible.
-+ */
-+	spinlock_t	lock;
-+	unsigned int	queue_total;
-+	atomic_t	id_sequence;		/* 'sequence' of pkt ids */
- 	struct list_head queue_list;		/* packets in queue */
++	struct rcu_head rcu;
  };
  
-@@ -238,32 +240,24 @@ nfqnl_build_packet_message(struct nfqnl_instance *queue,
+-static DEFINE_RWLOCK(instances_lock);
++static DEFINE_SPINLOCK(instances_lock);
+ static atomic_t global_seq;
  
- 	outdev = entry->outdev;
+ #define INSTANCE_BUCKETS	16
+@@ -88,7 +89,7 @@ __instance_lookup(u_int16_t group_num)
+ 	struct nfulnl_instance *inst;
  
--	spin_lock_bh(&queue->lock);
--
--	switch ((enum nfqnl_config_mode)queue->copy_mode) {
-+	switch ((enum nfqnl_config_mode)ACCESS_ONCE(queue->copy_mode)) {
- 	case NFQNL_COPY_META:
- 	case NFQNL_COPY_NONE:
- 		break;
- 
- 	case NFQNL_COPY_PACKET:
- 		if (entskb->ip_summed == CHECKSUM_PARTIAL &&
--		    skb_checksum_help(entskb)) {
--			spin_unlock_bh(&queue->lock);
-+		    skb_checksum_help(entskb))
- 			return NULL;
--		}
--		if (queue->copy_range == 0
--		    || queue->copy_range > entskb->len)
-+
-+		data_len = ACCESS_ONCE(queue->copy_range);
-+		if (data_len == 0 || data_len > entskb->len)
- 			data_len = entskb->len;
--		else
--			data_len = queue->copy_range;
- 
- 		size += nla_total_size(data_len);
- 		break;
+ 	head = &instance_table[instance_hashfn(group_num)];
+-	hlist_for_each_entry(inst, pos, head, hlist) {
++	hlist_for_each_entry_rcu(inst, pos, head, hlist) {
+ 		if (inst->group_num == group_num)
+ 			return inst;
  	}
+@@ -106,22 +107,26 @@ instance_lookup_get(u_int16_t group_num)
+ {
+ 	struct nfulnl_instance *inst;
  
--	entry->id = queue->id_sequence++;
--
--	spin_unlock_bh(&queue->lock);
+-	read_lock_bh(&instances_lock);
++	rcu_read_lock_bh();
+ 	inst = __instance_lookup(group_num);
+ 	if (inst)
+ 		instance_get(inst);
+-	read_unlock_bh(&instances_lock);
++	rcu_read_unlock_bh();
  
- 	skb = alloc_skb(size, GFP_ATOMIC);
- 	if (!skb)
-@@ -278,6 +272,7 @@ nfqnl_build_packet_message(struct nfqnl_instance *queue,
- 	nfmsg->version = NFNETLINK_V0;
- 	nfmsg->res_id = htons(queue->queue_num);
- 
-+	entry->id = atomic_inc_return(&queue->id_sequence);
- 	pmsg.packet_id 		= htonl(entry->id);
- 	pmsg.hw_protocol	= entskb->protocol;
- 	pmsg.hook		= entry->hook;
-@@ -866,7 +861,7 @@ static int seq_show(struct seq_file *s, void *v)
- 			  inst->peer_pid, inst->queue_total,
- 			  inst->copy_mode, inst->copy_range,
- 			  inst->queue_dropped, inst->queue_user_dropped,
--			  inst->id_sequence, 1);
-+			  atomic_read(&inst->id_sequence), 1);
+ 	return inst;
  }
  
- static const struct seq_operations nfqnl_seq_ops = {
++static void nfulnl_instance_free_rcu(struct rcu_head *head)
++{
++	kfree(container_of(head, struct nfulnl_instance, rcu));
++	module_put(THIS_MODULE);
++}
++
+ static void
+ instance_put(struct nfulnl_instance *inst)
+ {
+-	if (inst && atomic_dec_and_test(&inst->use)) {
+-		kfree(inst);
+-		module_put(THIS_MODULE);
+-	}
++	if (inst && atomic_dec_and_test(&inst->use))
++		call_rcu_bh(&inst->rcu, nfulnl_instance_free_rcu);
+ }
+ 
+ static void nfulnl_timer(unsigned long data);
+@@ -132,7 +137,7 @@ instance_create(u_int16_t group_num, int pid)
+ 	struct nfulnl_instance *inst;
+ 	int err;
+ 
+-	write_lock_bh(&instances_lock);
++	spin_lock_bh(&instances_lock);
+ 	if (__instance_lookup(group_num)) {
+ 		err = -EEXIST;
+ 		goto out_unlock;
+@@ -169,12 +174,12 @@ instance_create(u_int16_t group_num, int pid)
+ 	hlist_add_head(&inst->hlist,
+ 		       &instance_table[instance_hashfn(group_num)]);
+ 
+-	write_unlock_bh(&instances_lock);
++	spin_unlock_bh(&instances_lock);
+ 
+ 	return inst;
+ 
+ out_unlock:
+-	write_unlock_bh(&instances_lock);
++	spin_unlock_bh(&instances_lock);
+ 	return ERR_PTR(err);
+ }
+ 
+@@ -200,9 +205,9 @@ __instance_destroy(struct nfulnl_instance *inst)
+ static inline void
+ instance_destroy(struct nfulnl_instance *inst)
+ {
+-	write_lock_bh(&instances_lock);
++	spin_lock_bh(&instances_lock);
+ 	__instance_destroy(inst);
+-	write_unlock_bh(&instances_lock);
++	spin_unlock_bh(&instances_lock);
+ }
+ 
+ static int
+@@ -672,7 +677,7 @@ nfulnl_rcv_nl_event(struct notifier_block *this,
+ 		int i;
+ 
+ 		/* destroy all instances for this pid */
+-		write_lock_bh(&instances_lock);
++		spin_lock_bh(&instances_lock);
+ 		for  (i = 0; i < INSTANCE_BUCKETS; i++) {
+ 			struct hlist_node *tmp, *t2;
+ 			struct nfulnl_instance *inst;
+@@ -684,7 +689,7 @@ nfulnl_rcv_nl_event(struct notifier_block *this,
+ 					__instance_destroy(inst);
+ 			}
+ 		}
+-		write_unlock_bh(&instances_lock);
++		spin_unlock_bh(&instances_lock);
+ 	}
+ 	return NOTIFY_DONE;
+ }
+@@ -861,19 +866,19 @@ static struct hlist_node *get_first(struct iter_state *st)
+ 
+ 	for (st->bucket = 0; st->bucket < INSTANCE_BUCKETS; st->bucket++) {
+ 		if (!hlist_empty(&instance_table[st->bucket]))
+-			return instance_table[st->bucket].first;
++			return rcu_dereference_bh(instance_table[st->bucket].first);
+ 	}
+ 	return NULL;
+ }
+ 
+ static struct hlist_node *get_next(struct iter_state *st, struct hlist_node *h)
+ {
+-	h = h->next;
++	h = rcu_dereference_bh(h->next);
+ 	while (!h) {
+ 		if (++st->bucket >= INSTANCE_BUCKETS)
+ 			return NULL;
+ 
+-		h = instance_table[st->bucket].first;
++		h = rcu_dereference_bh(instance_table[st->bucket].first);
+ 	}
+ 	return h;
+ }
+@@ -890,9 +895,9 @@ static struct hlist_node *get_idx(struct iter_state *st, loff_t pos)
+ }
+ 
+ static void *seq_start(struct seq_file *seq, loff_t *pos)
+-	__acquires(instances_lock)
++	__acquires(rcu_bh)
+ {
+-	read_lock_bh(&instances_lock);
++	rcu_read_lock_bh();
+ 	return get_idx(seq->private, *pos);
+ }
+ 
+@@ -903,9 +908,9 @@ static void *seq_next(struct seq_file *s, void *v, loff_t *pos)
+ }
+ 
+ static void seq_stop(struct seq_file *s, void *v)
+-	__releases(instances_lock)
++	__releases(rcu_bh)
+ {
+-	read_unlock_bh(&instances_lock);
++	rcu_read_unlock_bh();
+ }
+ 
+ static int seq_show(struct seq_file *s, void *v)
 
 
