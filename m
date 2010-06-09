@@ -1,53 +1,71 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH nf-next-2.6] netfilter: queue: rwlock to spinlock conversion
-Date: Wed, 09 Jun 2010 16:02:21 +0200
-Message-ID: <4C0F9EED.2020007@trash.net>
-References: <1276002860.2486.22.camel@edumazet-laptop>	 <4C0F9BCD.2040605@trash.net> <1276092053.2442.142.camel@edumazet-laptop>
+Subject: Re: no reassembly for outgoing packets on RAW socket
+Date: Wed, 09 Jun 2010 16:16:42 +0200
+Message-ID: <4C0FA24A.7060907@trash.net>
+References: <20100604112708.GA1958@jolsa.lab.eng.brq.redhat.com> <4C08EB85.3050900@trash.net> <20100607145558.GA1939@jolsa.lab.eng.brq.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailinglist
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org,
+	Netfilter Developer Mailing List
 	<netfilter-devel@vger.kernel.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+To: Jiri Olsa <jolsa@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:34962 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:35270 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755259Ab0FIOCT (ORCPT
+	with ESMTP id S1753719Ab0FIOQj (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Jun 2010 10:02:19 -0400
-In-Reply-To: <1276092053.2442.142.camel@edumazet-laptop>
+	Wed, 9 Jun 2010 10:16:39 -0400
+In-Reply-To: <20100607145558.GA1939@jolsa.lab.eng.brq.redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Dumazet wrote:
-> Le mercredi 09 juin 2010 =C3=A0 15:49 +0200, Patrick McHardy a =C3=A9=
-crit :
->  =20
->> Eric Dumazet wrote:
->>    =20
->>> Converts queue_lock rwlock to a spinlock.
+Jiri Olsa wrote:
+> On Fri, Jun 04, 2010 at 02:03:17PM +0200, Patrick McHardy wrote:
+>   
+>> Jiri Olsa wrote:
+>>     
+>>> hi,
 >>>
->>> (readlocked part can be changed by reads of integer values)
+>>> I'd like to be able to sendout a single IP packet with MF flag set.
 >>>
->>> One atomic operation instead of four per ipq_enqueue_packet() call.
->>>      =20
->> Looks fine to me, applied, thanks Eric.
+>>> When using RAW sockets the packet will get stuck in the
+>>> netfilter (NF_INET_LOCAL_OUT nf_defrag_ipv4 reassembly unit)
+>>> and wont ever make it out..
+>>>
+>>> I made a change which bypass the outgoing reassembly for
+>>> RAW sockets, but I'm not sure wether it's too invasive..
+>>>       
+>> That would break reassembly (and thus connection tracking) for cases
+>> where its really intended.
 >>
->> Just wondering since ip_queue is actually obsoleted, do you intend t=
-o
->> change ip6_queue and nfnetlink_queue in a similar fashion?
->>
->>    =20
+>>     
+>>> Is there any standard for RAW sockets behaviour?
+>>> Or another way around? :)
+>>>       
+>> You could use the NOTRACK target to bypass connection tracking.
+>>     
 >
-> Indeed, I started these yesterday but had to pause them, probably bef=
-ore
-> tomorrow, if no urgent stuff raise before ;)
->  =20
+> ok,
+>
+> I tried the NOTRACK target, but the packet is still going
+> throught reassembly, because the RAW filter has lower priority
+> then the connection track defragmentation..
+>   
 
-Cool, thanks.
+Right.
+> I was able to get it bypassed by attached patch and following
+> command:
+>
+> 	iptables -v -t raw -A OUTPUT -p icmp -j NOTRACK
+>
+> again, not sure if this is too invasive ;)
+>   
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Well, we can't change it in the mainline kernel.
+> If this is not the way, I'd appreciatte any hint..  my goal is
+> to put malformed packet on the wire (more frags bit set for a
+> non fragmented packet)
+
+I don't have any good suggestions besides adding a flag to the IPCB
+and skipping defragmentation based on that.
