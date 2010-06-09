@@ -1,211 +1,72 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH nf-next-2.6] netfilter: CLUSTERIP: RCU conversion
-Date: Wed, 09 Jun 2010 19:11:47 +0200
-Message-ID: <1276103507.2442.214.camel@edumazet-laptop>
-References: <1276099861.2442.199.camel@edumazet-laptop>
-	 <4C0FC1B6.2050605@trash.net>
+From: Luciano Coelho <luciano.coelho@nokia.com>
+Subject: Re: [PATCH v3] netfilter: Xtables: idletimer target implementation
+Date: Wed, 09 Jun 2010 20:48:27 +0300
+Message-ID: <1276105707.11199.12.camel@powerslave>
+References: <1275592445-15555-1-git-send-email-luciano.coelho@nokia.com>
+	 <4C0F9B17.10504@trash.net> <1276096275.31892.117.camel@chilepepper>
+	 <alpine.LSU.2.01.1006091716170.30265@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: ext Patrick McHardy <kaber@trash.net>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	Timo Teras <timo.teras@iki.fi>
+To: ext Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:58648 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755982Ab0FIRLv (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:21628 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753128Ab0FISE2 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Jun 2010 13:11:51 -0400
-Received: by wyb40 with SMTP id 40so328028wyb.19
-        for <netfilter-devel@vger.kernel.org>; Wed, 09 Jun 2010 10:11:49 -0700 (PDT)
-In-Reply-To: <4C0FC1B6.2050605@trash.net>
+	Wed, 9 Jun 2010 14:04:28 -0400
+In-Reply-To: <alpine.LSU.2.01.1006091716170.30265@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le mercredi 09 juin 2010 =C3=A0 18:30 +0200, Patrick McHardy a =C3=A9cr=
-it :
-> Eric Dumazet wrote:
-> > @@ -121,16 +128,14 @@ clusterip_config_find_get(__be32 clusterip, i=
-nt entry)
-> >  {
-> >  	struct clusterip_config *c;
-> > =20
-> > -	read_lock_bh(&clusterip_lock);
-> > +	rcu_read_lock_bh();
-> >  	c =3D __clusterip_config_find(clusterip);
-> > -	if (!c) {
-> > -		read_unlock_bh(&clusterip_lock);
-> > -		return NULL;
-> > +	if (c) {
-> > +		atomic_inc(&c->refcount);
-> > +		if (entry)
-> > +			atomic_inc(&c->entries);
-> >  =20
->=20
-> Shouldn't this be using atomic_inc_not_zero() to avoid races with
-> clusterip_config_entry_put()?
->=20
+Hi Jan,
 
-Ah yes, I should stop doing patches today !
+On Wed, 2010-06-09 at 17:18 +0200, ext Jan Engelhardt wrote:
+> On Wednesday 2010-06-09 17:11, Luciano Coelho wrote:
+> >Do you think it's okay to leave it like this for now and extend it for
+> >multiple namespace support with a future patch?
+> 
+> Yes. Least thing we need is one humongous patch. :)
 
-Hmm, I am not sure current code is correct ?
-
-clusterip_config_find_get() can return a struct clusterip_config pointe=
-r
-to an entry just that was given to clusterip_config_entry_put()
-(c->entries =3D=3D 0)
-
-Then we access c->dev, while clusterip_config_entry_put() did a
-dev_put(c->dev) on it ?
-
-So following 'standard rcu lookup' works, but race is still there ?
-
-static inline struct clusterip_config *
-clusterip_config_find_get(__be32 clusterip, int entry)
-{
-        struct clusterip_config *c;
-
-        rcu_read_lock_bh();
-        c =3D __clusterip_config_find(clusterip);
-        if (c) {
-                if (unlikely(!atomic_inc_not_zero(&c->refcount)))
-                        c  =3D NULL;
-                else if (entry)
-                        atomic_inc(&c->entries);
-        }
-        rcu_read_unlock_bh();
-
-        return c;
-}
+Thanks! That was my concern too.  One huge and very complex patch is not
+a nice thing to have. ;)
 
 
-updated patch for reference :
+> >> > +	timer = __idletimer_tg_find_by_label(info->label);
+> >> > +	if (!timer) {
+> >> > +		spin_unlock(&list_lock);
+> >> > +		timer = idletimer_tg_create(info);
+> >> >   
+> >> 
+> >> How does this prevent creating the same timer twice?
+> >
+> >The timer will only be created if __idletimer_tg_find_by_label() returns
+> >NULL, which means that no timer with that label has been found.  "info"
+> >won't be the same if info->label is different, right? Or can it change
+> >on the fly?
+> 
+> One thing to be generally aware about is that things could potentially
+> be instantiated by another entity between the time a label was looked up
+> with negative result and the time one tries to add it.
+> It may thus be required to extend keeping the lock until after
+> idletimer_tg_create, in other words, lookup and create must be atomic
+> to the rest of the world.
 
-diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ip=
-t_CLUSTERIP.c
-index f91c94b..ecd77b1 100644
---- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
-+++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
-@@ -53,12 +53,13 @@ struct clusterip_config {
- #endif
- 	enum clusterip_hashmode hash_mode;	/* which hashing mode */
- 	u_int32_t hash_initval;			/* hash initialization */
-+	struct rcu_head rcu;
- };
-=20
- static LIST_HEAD(clusterip_configs);
-=20
- /* clusterip_lock protects the clusterip_configs list */
--static DEFINE_RWLOCK(clusterip_lock);
-+static DEFINE_SPINLOCK(clusterip_lock);
-=20
- #ifdef CONFIG_PROC_FS
- static const struct file_operations clusterip_proc_fops;
-@@ -71,11 +72,17 @@ clusterip_config_get(struct clusterip_config *c)
- 	atomic_inc(&c->refcount);
- }
-=20
-+
-+static void clusterip_config_rcu_free(struct rcu_head *head)
-+{
-+	kfree(container_of(head, struct clusterip_config, rcu));
-+}
-+
- static inline void
- clusterip_config_put(struct clusterip_config *c)
- {
- 	if (atomic_dec_and_test(&c->refcount))
--		kfree(c);
-+		call_rcu_bh(&c->rcu, clusterip_config_rcu_free);
- }
-=20
- /* decrease the count of entries using/referencing this config.  If la=
-st
-@@ -84,10 +91,10 @@ clusterip_config_put(struct clusterip_config *c)
- static inline void
- clusterip_config_entry_put(struct clusterip_config *c)
- {
--	write_lock_bh(&clusterip_lock);
-+	spin_lock_bh(&clusterip_lock);
- 	if (atomic_dec_and_test(&c->entries)) {
- 		list_del(&c->list);
--		write_unlock_bh(&clusterip_lock);
-+		spin_unlock_bh(&clusterip_lock);
-=20
- 		dev_mc_del(c->dev, c->clustermac);
- 		dev_put(c->dev);
-@@ -100,7 +107,7 @@ clusterip_config_entry_put(struct clusterip_config =
-*c)
- #endif
- 		return;
- 	}
--	write_unlock_bh(&clusterip_lock);
-+	spin_unlock_bh(&clusterip_lock);
- }
-=20
- static struct clusterip_config *
-@@ -108,7 +115,7 @@ __clusterip_config_find(__be32 clusterip)
- {
- 	struct clusterip_config *c;
-=20
--	list_for_each_entry(c, &clusterip_configs, list) {
-+	list_for_each_entry_rcu(c, &clusterip_configs, list) {
- 		if (c->clusterip =3D=3D clusterip)
- 			return c;
- 	}
-@@ -121,16 +128,15 @@ clusterip_config_find_get(__be32 clusterip, int e=
-ntry)
- {
- 	struct clusterip_config *c;
-=20
--	read_lock_bh(&clusterip_lock);
-+	rcu_read_lock_bh();
- 	c =3D __clusterip_config_find(clusterip);
--	if (!c) {
--		read_unlock_bh(&clusterip_lock);
--		return NULL;
-+	if (c) {
-+		if (unlikely(!atomic_inc_not_zero(&c->refcount)))
-+			c  =3D NULL;
-+		else if (entry)
-+			atomic_inc(&c->entries);
- 	}
--	atomic_inc(&c->refcount);
--	if (entry)
--		atomic_inc(&c->entries);
--	read_unlock_bh(&clusterip_lock);
-+	rcu_read_unlock_bh();
-=20
- 	return c;
- }
-@@ -181,9 +187,9 @@ clusterip_config_init(const struct ipt_clusterip_tg=
-t_info *i, __be32 ip,
- 	}
- #endif
-=20
--	write_lock_bh(&clusterip_lock);
-+	spin_lock_bh(&clusterip_lock);
- 	list_add(&c->list, &clusterip_configs);
--	write_unlock_bh(&clusterip_lock);
-+	spin_unlock_bh(&clusterip_lock);
-=20
- 	return c;
- }
-@@ -733,6 +739,9 @@ static void __exit clusterip_tg_exit(void)
- #endif
- 	nf_unregister_hook(&cip_arp_ops);
- 	xt_unregister_target(&clusterip_tg_reg);
-+
-+	/* Wait for completion of call_rcu_bh()'s (clusterip_config_rcu_free)=
- */
-+	rcu_barrier_bh();
- }
-=20
- module_init(clusterip_tg_init);
+Ahh, sure! I missed the actual point of Patrick's question.  I had the
+idletimer_tg_create() inside the lock, but when I added the
+sysfs_create_file() there (which can sleep), I screwed up with the
+locking.
+
+I'll move the sysfs file creation to outside that function so I can keep
+the lock until after the timer is added to the list.  Thanks for
+clarifying!
 
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Cheers,
+Luca.
+
