@@ -1,27 +1,85 @@
-From: Mohit Mehta <mohit.mehta@vyatta.com>
-Subject: `conntrack -L --src-nat --dst-nat` doesn't work with version 0.9.14
-Date: Wed, 9 Jun 2010 17:30:17 -0700 (PDT)
-Message-ID: <1795331132.150261276129817743.JavaMail.root@tahiti.vyatta.com>
-References: <228485269.150241276129581116.JavaMail.root@tahiti.vyatta.com>
+From: Jiri Olsa <jolsa@redhat.com>
+Subject: Re: no reassembly for outgoing packets on RAW socket
+Date: Thu, 10 Jun 2010 08:56:31 +0200
+Message-ID: <20100610065631.GA1915@jolsa.lab.eng.brq.redhat.com>
+References: <20100604112708.GA1958@jolsa.lab.eng.brq.redhat.com>
+ <4C08EB85.3050900@trash.net>
+ <20100607145558.GA1939@jolsa.lab.eng.brq.redhat.com>
+ <4C0FA24A.7060907@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.vyatta.com ([76.74.103.46]:56761 "EHLO mail.vyatta.com"
+Received: from mx1.redhat.com ([209.132.183.28]:32668 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756410Ab0FJAb5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 9 Jun 2010 20:31:57 -0400
-In-Reply-To: <228485269.150241276129581116.JavaMail.root@tahiti.vyatta.com>
+	id S1752298Ab0FJG4h (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Jun 2010 02:56:37 -0400
+Content-Disposition: inline
+In-Reply-To: <4C0FA24A.7060907@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Everyone,
+On Wed, Jun 09, 2010 at 04:16:42PM +0200, Patrick McHardy wrote:
+> Jiri Olsa wrote:
+> > On Fri, Jun 04, 2010 at 02:03:17PM +0200, Patrick McHardy wrote:
+> >   
+> >> Jiri Olsa wrote:
+> >>     
+> >>> hi,
+> >>>
+> >>> I'd like to be able to sendout a single IP packet with MF flag set.
+> >>>
+> >>> When using RAW sockets the packet will get stuck in the
+> >>> netfilter (NF_INET_LOCAL_OUT nf_defrag_ipv4 reassembly unit)
+> >>> and wont ever make it out..
+> >>>
+> >>> I made a change which bypass the outgoing reassembly for
+> >>> RAW sockets, but I'm not sure wether it's too invasive..
+> >>>       
+> >> That would break reassembly (and thus connection tracking) for cases
+> >> where its really intended.
+> >>
+> >>     
+> >>> Is there any standard for RAW sockets behaviour?
+> >>> Or another way around? :)
+> >>>       
+> >> You could use the NOTRACK target to bypass connection tracking.
+> >>     
+> >
+> > ok,
+> >
+> > I tried the NOTRACK target, but the packet is still going
+> > throught reassembly, because the RAW filter has lower priority
+> > then the connection track defragmentation..
+> >   
+> 
+> Right.
+> > I was able to get it bypassed by attached patch and following
+> > command:
+> >
+> > 	iptables -v -t raw -A OUTPUT -p icmp -j NOTRACK
+> >
+> > again, not sure if this is too invasive ;)
+> >   
+> 
+> Well, we can't change it in the mainline kernel.
+> > If this is not the way, I'd appreciatte any hint..  my goal is
+> > to put malformed packet on the wire (more frags bit set for a
+> > non fragmented packet)
+> 
+> I don't have any good suggestions besides adding a flag to the IPCB
+> and skipping defragmentation based on that.
+ok,
 
-With previous versions of conntrack [for eg. version 0.9.6]; you could list conntrack entries and have them filtered for both source and destination NAT. This was great for looking at all NAT entries at the same time.
+I can see a way when I set this via setsockopt to the socket,
+and check the value before the defragmentation..  would such a new
+setsock option be acceptable?
 
-However, it seems that in the current version that doesn't work i.e. you cannot filter entries for both source and destination NAT together. Filtering on either of the two types still works fine. I'm not quite sure about the history of this if any; so can someone point out whether this change was intentional or an oversight?
+I'm not sure I can see a way via IPCB, AFAICS it's for skb bound flags
+which arise during the skb processing.
 
-Thanks,
-Mohit
+thanks,
+jirka
