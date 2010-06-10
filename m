@@ -1,84 +1,97 @@
-From: Luciano Coelho <luciano.coelho@nokia.com>
-Subject: Re: [PATCH v3] netfilter: Xtables: idletimer target implementation
-Date: Thu, 10 Jun 2010 15:42:13 +0300
-Message-ID: <1276173733.5453.1.camel@chilepepper>
-References: <1275592445-15555-1-git-send-email-luciano.coelho@nokia.com>
-	 <4C0F9B17.10504@trash.net> <1276096275.31892.117.camel@chilepepper>
-	 <alpine.LSU.2.01.1006091716170.30265@obet.zrqbmnf.qr>
-	 <1276105707.11199.12.camel@powerslave>
-	 <1276108939.11199.23.camel@powerslave>  <4C10B954.9080603@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: `conntrack -L --src-nat --dst-nat` doesn't work with version
+ 0.9.14
+Date: Thu, 10 Jun 2010 14:43:24 +0200
+Message-ID: <4C10DDEC.3030404@netfilter.org>
+References: <1795331132.150261276129817743.JavaMail.root@tahiti.vyatta.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: multipart/mixed;
+ boundary="------------030605030407000505020901"
+Cc: netfilter-devel@vger.kernel.org
+To: Mohit Mehta <mohit.mehta@vyatta.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:49504 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758780Ab0FJMnf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Jun 2010 08:43:35 -0400
+In-Reply-To: <1795331132.150261276129817743.JavaMail.root@tahiti.vyatta.com>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
+
+This is a multi-part message in MIME format.
+--------------030605030407000505020901
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Cc: ext Jan Engelhardt <jengelh@medozas.de>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	Timo Teras <timo.teras@iki.fi>
-To: ext Patrick McHardy <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <4C10B954.9080603@trash.net>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
 
-On Thu, 2010-06-10 at 12:07 +0200, ext Patrick McHardy wrote:
-> Luciano Coelho wrote:
-> > On Wed, 2010-06-09 at 19:48 +0200, Coelho Luciano (Nokia-D/Helsinki)
-> > wrote:
-> >   
-> >> On Wed, 2010-06-09 at 17:18 +0200, ext Jan Engelhardt wrote:
-> >>     
-> >>>>>> +	timer = __idletimer_tg_find_by_label(info->label);
-> >>>>>> +	if (!timer) {
-> >>>>>> +		spin_unlock(&list_lock);
-> >>>>>> +		timer = idletimer_tg_create(info);
-> >>>>>>   
-> >>>>>>             
-> >>>>> How does this prevent creating the same timer twice?
-> >>>>>           
-> >>>> The timer will only be created if __idletimer_tg_find_by_label() returns
-> >>>> NULL, which means that no timer with that label has been found.  "info"
-> >>>> won't be the same if info->label is different, right? Or can it change
-> >>>> on the fly?
-> >>>>         
-> >>> One thing to be generally aware about is that things could potentially
-> >>> be instantiated by another entity between the time a label was looked up
-> >>> with negative result and the time one tries to add it.
-> >>> It may thus be required to extend keeping the lock until after
-> >>> idletimer_tg_create, in other words, lookup and create must be atomic
-> >>> to the rest of the world.
-> >>>       
-> >> Ahh, sure! I missed the actual point of Patrick's question.  I had the
-> >> idletimer_tg_create() inside the lock, but when I added the
-> >> sysfs_create_file() there (which can sleep), I screwed up with the
-> >> locking.
-> >>
-> >> I'll move the sysfs file creation to outside that function so I can keep
-> >> the lock until after the timer is added to the list.  Thanks for
-> >> clarifying!
-> >>     
-> >
-> > Hmmm... after struggling with this for a while, I think it's not really
-> > possible to simply create the sysfs file outside of the lock, because if
-> > the sysfs creation fails, we will again risk a race condition.
-> >
-> > I think the only way is to delay the sysfs file creation and do it in a
-> > workqueue.
-> >   
+Mohit Mehta wrote:
+> Hi Everyone,
 > 
-> Why don't you simply use a mutex instead of the spinlock? It would be better
-> to only do the lookup once and store the timer pointer in the target
-> structure
-> anyways.
+> With previous versions of conntrack [for eg. version 0.9.6]; you could list conntrack entries and have them filtered for both source and destination NAT. This was great for looking at all NAT entries at the same time.
+> 
+> However, it seems that in the current version that doesn't work i.e. you cannot filter entries for both source and destination NAT together. Filtering on either of the two types still works fine. I'm not quite sure about the history of this if any; so can someone point out whether this change was intentional or an oversight?
 
-Wow! Again I have been totally blind and focusing only in a solution for
-the spinlock problem, while using a mutex would ease things up quite a
-lot! Thanks for the suggestion, I'll re-spin my patch (pun intended?)
-with a mutex.
+Could you test if this patch helps?
 
-I also agree that it makes more sense to lookup and store the timer in
-the targe.
+--------------030605030407000505020901
+Content-Type: text/x-patch;
+ name="nat.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="nat.patch"
 
--- 
-Cheers,
-Luca.
+conntrack: fix `-L --src-nat --dst-nat'
 
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+
+Since > 0.9.6, the conntrack listing with the options --src-nat
+and --dst-nat does not work. This patch fixes the problem.
+
+Reported-by: Mohit Mehta <mohit.mehta@vyatta.com>
+Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
+---
+ src/conntrack.c |   22 +++++++++-------------
+ 1 files changed, 9 insertions(+), 13 deletions(-)
+
+diff --git a/src/conntrack.c b/src/conntrack.c
+index eec3868..7d413c7 100644
+--- a/src/conntrack.c
++++ b/src/conntrack.c
+@@ -635,27 +635,23 @@ filter_nat(const struct nf_conntrack *obj, const struct nf_conntrack *ct)
+ 	uint32_t ip;
+ 
+ 	if (options & CT_OPT_SRC_NAT) {
+-		if (!nfct_getobjopt(ct, NFCT_GOPT_IS_SNAT))
+-		  	return 1;
+-
+ 		if (nfct_attr_is_set(obj, ATTR_SNAT_IPV4)) {
+ 			ip = nfct_get_attr_u32(obj, ATTR_SNAT_IPV4);
+-			if (ip != nfct_get_attr_u32(ct, ATTR_REPL_IPV4_DST))
+-				return 1;
+-		}
++			if (ip == nfct_get_attr_u32(ct, ATTR_REPL_IPV4_DST))
++				return 0;
++		} else if (nfct_getobjopt(ct, NFCT_GOPT_IS_SNAT))
++		  	return 0;
+ 	}
+ 	if (options & CT_OPT_DST_NAT) {
+-		if (!nfct_getobjopt(ct, NFCT_GOPT_IS_DNAT))
+-			return 1;
+-
+ 		if (nfct_attr_is_set(obj, ATTR_DNAT_IPV4)) {
+ 			ip = nfct_get_attr_u32(obj, ATTR_DNAT_IPV4);
+-			if (ip != nfct_get_attr_u32(ct, ATTR_REPL_IPV4_SRC))
+-				return 1;
+-		}
++			if (ip == nfct_get_attr_u32(ct, ATTR_REPL_IPV4_SRC))
++				return 0;
++		} else if (nfct_getobjopt(ct, NFCT_GOPT_IS_DNAT))
++			return 0;
+ 	}
+ 
+-	return 0;
++	return 1;
+ }
+ 
+ static int counter;
+
+--------------030605030407000505020901--
