@@ -1,38 +1,41 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH v3] netfilter: Xtables: idletimer target implementation
-Date: Thu, 10 Jun 2010 17:55:19 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1006101752280.15005@obet.zrqbmnf.qr>
-References: <1275592445-15555-1-git-send-email-luciano.coelho@nokia.com>  <4C0F9B17.10504@trash.net> <1276096275.31892.117.camel@chilepepper>  <alpine.LSU.2.01.1006091716170.30265@obet.zrqbmnf.qr>  <1276105707.11199.12.camel@powerslave>
- <1276108939.11199.23.camel@powerslave>  <4C10B954.9080603@trash.net>  <1276173733.5453.1.camel@chilepepper> <1276176776.5453.4.camel@chilepepper>
+From: Mohit Mehta <mohit.mehta@vyatta.com>
+Subject: Re: `conntrack -L --src-nat --dst-nat` doesn't work with version
+ 0.9.14
+Date: Thu, 10 Jun 2010 11:04:59 -0700 (PDT)
+Message-ID: <146038617.153911276193099494.JavaMail.root@tahiti.vyatta.com>
+References: <1746650726.153891276193083932.JavaMail.root@tahiti.vyatta.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: ext Patrick McHardy <kaber@trash.net>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	Timo Teras <timo.teras@iki.fi>
-To: Luciano Coelho <luciano.coelho@nokia.com>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:49146 "EHLO borg.medozas.de"
+Received: from mail.vyatta.com ([76.74.103.46]:53001 "EHLO mail.vyatta.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751580Ab0FJPzU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Jun 2010 11:55:20 -0400
-In-Reply-To: <1276176776.5453.4.camel@chilepepper>
+	id S1757215Ab0FJSGk (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Jun 2010 14:06:40 -0400
+In-Reply-To: <1746650726.153891276193083932.JavaMail.root@tahiti.vyatta.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+----- "Pablo Neira Ayuso" <pablo@netfilter.org> wrote:
 
-On Thursday 2010-06-10 15:32, Luciano Coelho wrote:
->
->> I also agree that it makes more sense to lookup and store the timer in
->> the targe.
->
->One quick question about this: did you mean to put it in the target info
->structure, in this case struct idletimer_tg_info? So is it okay to have
->internal data in this structure even though it is mostly for passing
->data from the userspace to the kernel?
+> Mohit Mehta wrote:
+> > Hi Everyone,
+> > 
+> > With previous versions of conntrack [for eg. version 0.9.6]; you
+> could list conntrack entries and have them filtered for both source
+> and destination NAT. This was great for looking at all NAT entries at
+> the same time.
+> > 
+> > However, it seems that in the current version that doesn't work i.e.
+> you cannot filter entries for both source and destination NAT
+> together. Filtering on either of the two types still works fine. I'm
+> not quite sure about the history of this if any; so can someone point
+> out whether this change was intentional or an oversight?
+> 
+> Could you test if this patch helps?
 
-You put a kernel-private pointer inside idletimer_tginfo,
-similar to what other modules do.
-That would also allow you to get a reference to the timer
-so that you do not have to call find_by_label on every
-idletimer_target invocation.
+Works Great! 
+
+Thanks Pablo.
