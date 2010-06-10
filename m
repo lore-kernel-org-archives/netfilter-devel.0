@@ -1,50 +1,62 @@
-From: Jiri Olsa <jolsa@redhat.com>
-Subject: Re: no reassembly for outgoing packets on RAW socket
-Date: Thu, 10 Jun 2010 08:57:02 +0200
-Message-ID: <20100610065702.GB1915@jolsa.lab.eng.brq.redhat.com>
-References: <20100604112708.GA1958@jolsa.lab.eng.brq.redhat.com>
- <4C08EB85.3050900@trash.net>
- <20100607145558.GA1939@jolsa.lab.eng.brq.redhat.com>
- <4C0FA24A.7060907@trash.net>
- <alpine.LSU.2.01.1006091713260.30265@obet.zrqbmnf.qr>
- <4C0FB068.9090700@trash.net>
- <alpine.LSU.2.01.1006091719010.30265@obet.zrqbmnf.qr>
+From: Shan Wei <shanwei@cn.fujitsu.com>
+Subject: [PATCH] netfilter: kill redundant check code in which setting ip_summed
+ value
+Date: Thu, 10 Jun 2010 16:14:37 +0800
+Message-ID: <4C109EED.2000405@cn.fujitsu.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:1282 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752324Ab0FJG5I (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Jun 2010 02:57:08 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LSU.2.01.1006091719010.30265@obet.zrqbmnf.qr>
+Received: from cn.fujitsu.com ([222.73.24.84]:57612 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1752064Ab0FJIOf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Jun 2010 04:14:35 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 09, 2010 at 05:20:37PM +0200, Jan Engelhardt wrote:
-> 
-> On Wednesday 2010-06-09 17:16, Patrick McHardy wrote:
-> >Jan Engelhardt wrote:
-> >> On Wednesday 2010-06-09 16:16, Patrick McHardy wrote:
-> >>>>> You could use the NOTRACK target to bypass connection tracking.
-> >>>>>         
-> >>>> I tried the NOTRACK target, but the packet is still going
-> >>>> throught reassembly, because the RAW filter has lower priority
-> >>>> then the connection track defragmentation..
-> >>>
-> >>> Right.
-> >>
-> >> Blech. That reminds me of
-> >> http://marc.info/?l=netfilter-devel&m=126581823826735&w=2
-> >
-> >We already fixed that.
-> 
-> I know, and I posted it for the understanding of the OP
-> as to why RAW is after DEFRAG.
+If the returned csum value is 0, We has set ip_summed with CHECKSUM_UNNECESSARY flag
+in __skb_checksum_complete_head(), 
 
-thanks, it's helpful
-jirka
+So this patch kills the check and changes to return to upper caller directly.
+
+Signed-off-by: Shan Wei<shanwei@cn.fujitsu.com>
+---
+ net/ipv4/netfilter.c |    4 +---
+ net/ipv6/netfilter.c |    4 +---
+ 2 files changed, 2 insertions(+), 6 deletions(-)
+
+diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
+index 07de855..acd1ea8 100644
+--- a/net/ipv4/netfilter.c
++++ b/net/ipv4/netfilter.c
+@@ -212,9 +212,7 @@ static __sum16 nf_ip_checksum_partial(struct sk_buff *skb, unsigned int hook,
+ 		skb->csum = csum_tcpudp_nofold(iph->saddr, iph->daddr, protocol,
+ 					       skb->len - dataoff, 0);
+ 		skb->ip_summed = CHECKSUM_NONE;
+-		csum = __skb_checksum_complete_head(skb, dataoff + len);
+-		if (!csum)
+-			skb->ip_summed = CHECKSUM_UNNECESSARY;
++		return __skb_checksum_complete_head(skb, dataoff + len);
+ 	}
+ 	return csum;
+ }
+diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
+index a74951c..7155b24 100644
+--- a/net/ipv6/netfilter.c
++++ b/net/ipv6/netfilter.c
+@@ -151,9 +151,7 @@ static __sum16 nf_ip6_checksum_partial(struct sk_buff *skb, unsigned int hook,
+ 							 protocol,
+ 							 csum_sub(0, hsum)));
+ 		skb->ip_summed = CHECKSUM_NONE;
+-		csum = __skb_checksum_complete_head(skb, dataoff + len);
+-		if (!csum)
+-			skb->ip_summed = CHECKSUM_UNNECESSARY;
++		return __skb_checksum_complete_head(skb, dataoff + len);
+ 	}
+ 	return csum;
+ };
+-- 
+1.6.3.3
+
