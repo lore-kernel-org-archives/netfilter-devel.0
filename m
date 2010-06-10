@@ -1,62 +1,47 @@
-From: Shan Wei <shanwei@cn.fujitsu.com>
-Subject: [PATCH] netfilter: kill redundant check code in which setting ip_summed
- value
-Date: Thu, 10 Jun 2010 16:14:37 +0800
-Message-ID: <4C109EED.2000405@cn.fujitsu.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: no reassembly for outgoing packets on RAW socket
+Date: Thu, 10 Jun 2010 11:14:04 +0200
+Message-ID: <4C10ACDC.6010108@trash.net>
+References: <20100604112708.GA1958@jolsa.lab.eng.brq.redhat.com> <4C08EB85.3050900@trash.net> <20100607145558.GA1939@jolsa.lab.eng.brq.redhat.com> <4C0FA24A.7060907@trash.net> <20100610065631.GA1915@jolsa.lab.eng.brq.redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Cc: netdev@vger.kernel.org,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jiri Olsa <jolsa@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cn.fujitsu.com ([222.73.24.84]:57612 "EHLO song.cn.fujitsu.com"
-	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
-	id S1752064Ab0FJIOf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 10 Jun 2010 04:14:35 -0400
+Received: from stinky.trash.net ([213.144.137.162]:55061 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758640Ab0FJJOA (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 10 Jun 2010 05:14:00 -0400
+In-Reply-To: <20100610065631.GA1915@jolsa.lab.eng.brq.redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-If the returned csum value is 0, We has set ip_summed with CHECKSUM_UNNECESSARY flag
-in __skb_checksum_complete_head(), 
+Jiri Olsa wrote:
+> On Wed, Jun 09, 2010 at 04:16:42PM +0200, Patrick McHardy wrote:
+>   
+>>> If this is not the way, I'd appreciatte any hint..  my goal is
+>>> to put malformed packet on the wire (more frags bit set for a
+>>> non fragmented packet)
+>>>       
+>> I don't have any good suggestions besides adding a flag to the IPCB
+>> and skipping defragmentation based on that.
+>>     
+> ok,
+>
+> I can see a way when I set this via setsockopt to the socket,
+> and check the value before the defragmentation..  would such a new
+> setsock option be acceptable?
+>
+> I'm not sure I can see a way via IPCB, AFAICS it's for skb bound flags
+> which arise during the skb processing.
+>   
 
-So this patch kills the check and changes to return to upper caller directly.
+Yes, a socket option is basically what I was suggesting, using the
+IPCB to mark the packet. But just marking the socket is fine of
+course.
 
-Signed-off-by: Shan Wei<shanwei@cn.fujitsu.com>
----
- net/ipv4/netfilter.c |    4 +---
- net/ipv6/netfilter.c |    4 +---
- 2 files changed, 2 insertions(+), 6 deletions(-)
-
-diff --git a/net/ipv4/netfilter.c b/net/ipv4/netfilter.c
-index 07de855..acd1ea8 100644
---- a/net/ipv4/netfilter.c
-+++ b/net/ipv4/netfilter.c
-@@ -212,9 +212,7 @@ static __sum16 nf_ip_checksum_partial(struct sk_buff *skb, unsigned int hook,
- 		skb->csum = csum_tcpudp_nofold(iph->saddr, iph->daddr, protocol,
- 					       skb->len - dataoff, 0);
- 		skb->ip_summed = CHECKSUM_NONE;
--		csum = __skb_checksum_complete_head(skb, dataoff + len);
--		if (!csum)
--			skb->ip_summed = CHECKSUM_UNNECESSARY;
-+		return __skb_checksum_complete_head(skb, dataoff + len);
- 	}
- 	return csum;
- }
-diff --git a/net/ipv6/netfilter.c b/net/ipv6/netfilter.c
-index a74951c..7155b24 100644
---- a/net/ipv6/netfilter.c
-+++ b/net/ipv6/netfilter.c
-@@ -151,9 +151,7 @@ static __sum16 nf_ip6_checksum_partial(struct sk_buff *skb, unsigned int hook,
- 							 protocol,
- 							 csum_sub(0, hsum)));
- 		skb->ip_summed = CHECKSUM_NONE;
--		csum = __skb_checksum_complete_head(skb, dataoff + len);
--		if (!csum)
--			skb->ip_summed = CHECKSUM_UNNECESSARY;
-+		return __skb_checksum_complete_head(skb, dataoff + len);
- 	}
- 	return csum;
- };
--- 
-1.6.3.3
 
