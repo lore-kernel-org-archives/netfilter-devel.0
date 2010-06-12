@@ -1,478 +1,428 @@
-From: Luciano Coelho <luciano.coelho@nokia.com>
-Subject: [PATCH v4] netfilter: Xtables: idletimer target implementation
-Date: Fri, 11 Jun 2010 17:13:34 +0300
-Message-ID: <1276265614-669-1-git-send-email-luciano.coelho@nokia.com>
-To: netfilter-devel@vger.kernel.org
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: [PATCH] tcp: unify tcp flag macros
+Date: Sat, 12 Jun 2010 13:59:32 +0800
+Message-ID: <1276322372-12584-1-git-send-email-xiaosuo@gmail.com>
+Cc: Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	"Pekka Savola (ipv6)" <pekkas@netcore.fi>,
+	James Morris <jmorris@namei.org>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, Changli Gao <xiaosuo@gmail.com>
+To: "David S. Miller" <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:44200 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752992Ab0FKONu (ORCPT
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:51611 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752922Ab0FLIAg (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 11 Jun 2010 10:13:50 -0400
-Received: from esebh105.NOE.Nokia.com (esebh105.ntc.nokia.com [172.21.138.211])
-	by mgw-mx06.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o5BEDOtT025955
-	for <netfilter-devel@vger.kernel.org>; Fri, 11 Jun 2010 17:13:47 +0300
-Received: from localhost.localdomain (chilepepper.research.nokia.com [172.21.50.167])
-	by mgw-da02.ext.nokia.com (Switch-3.3.3/Switch-3.3.3) with ESMTP id o5BEDZr0020752
-	for <netfilter-devel@vger.kernel.org>; Fri, 11 Jun 2010 17:13:35 +0300
+	Sat, 12 Jun 2010 04:00:36 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch implements an idletimer Xtables target that can be used to
-identify when interfaces have been idle for a certain period of time.
+unify tcp flag macros
 
-Timers are identified by labels and are created when a rule is set with a new
-label.  The rules also take a timeout value (in seconds) as an option.  If
-more than one rule uses the same timer label, the timer will be restarted
-whenever any of the rules get a hit.
+unify tcp flag macros: TH_FIN, TH_SYN, TH_RST, TH_PUSH, TH_ACK, TH_URG, TH_ECE
+and TH_CWR. TCBCB_FLAG_* are replaced with the corresponding TH_*.
 
-One entry for each timer is created in sysfs.  This attribute contains the
-timer remaining for the timer to expire.  The attributes are located under
-the xt_idletimer class:
-
-/sys/class/xt_idletimer/timers/<label>
-
-When the timer expires, the target module sends a sysfs notification to the
-userspace, which can then decide what to do (eg. disconnect to save power).
-
-Cc: Timo Teras <timo.teras@iki.fi>
-Signed-off-by: Luciano Coelho <luciano.coelho@nokia.com>
----
-v2: Fixed according to Jan's comments
-v3: Changed to a device class in the virtual bus in sysfs
-    Removed unnecessary attribute group
-    Fixed missing deallocation in some error cases
-v4: Fixed according to Jan's and Patrick's comments to v3
-    Changed to mutex locking instead of spin locks
-    Save the timer in the target info struct to avoid extra reads
-    Other small clean-ups
-
-I'm resending this patch to netfilter-devel mailing list only, since I sent it
-to the wrong mailing list earlier.  Sorry for the trouble.
-
-
- include/linux/netfilter/xt_IDLETIMER.h |   45 +++++
- net/netfilter/Kconfig                  |   12 ++
- net/netfilter/Makefile                 |    1 +
- net/netfilter/xt_IDLETIMER.c           |  322 ++++++++++++++++++++++++++++++++
- 4 files changed, 380 insertions(+), 0 deletions(-)
- create mode 100644 include/linux/netfilter/xt_IDLETIMER.h
- create mode 100644 net/netfilter/xt_IDLETIMER.c
-
-diff --git a/include/linux/netfilter/xt_IDLETIMER.h b/include/linux/netfilter/xt_IDLETIMER.h
-new file mode 100644
-index 0000000..9e95b98
---- /dev/null
-+++ b/include/linux/netfilter/xt_IDLETIMER.h
-@@ -0,0 +1,45 @@
-+/*
-+ * linux/include/linux/netfilter/xt_IDLETIMER.h
-+ *
-+ * Header file for Xtables timer target module.
-+ *
-+ * Copyright (C) 2004, 2010 Nokia Corporation
-+ * Written by Timo Teras <ext-timo.teras@nokia.com>
-+ *
-+ * Converted to x_tables and forward-ported to 2.6.34
-+ * by Luciano Coelho <luciano.coelho@nokia.com>
-+ *
-+ * Contact: Luciano Coelho <luciano.coelho@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ */
-+
-+#ifndef _XT_IDLETIMER_H
-+#define _XT_IDLETIMER_H
-+
-+#include <linux/types.h>
-+
-+#define MAX_IDLETIMER_LABEL_SIZE 32
-+
-+struct idletimer_tg_info {
-+	__u32 timeout;
-+
-+	char label[MAX_IDLETIMER_LABEL_SIZE];
-+
-+	/* for kernel module internal use only */
-+	struct idletimer_tg *timer __attribute((aligned(8)));
-+};
-+
-+#endif
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 8593a77..413ed24 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -424,6 +424,18 @@ config NETFILTER_XT_TARGET_HL
- 	since you can easily create immortal packets that loop
- 	forever on the network.
+Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+----
+ include/net/tcp.h                      |   24 +++++-------
+ net/ipv4/tcp.c                         |    8 ++--
+ net/ipv4/tcp_input.c                   |    2 -
+ net/ipv4/tcp_output.c                  |   62 +++++++++++++++------------------
+ net/netfilter/nf_conntrack_proto_tcp.c |   11 -----
+ net/netfilter/xt_TCPMSS.c              |    2 -
+ 6 files changed, 46 insertions(+), 63 deletions(-)
+diff --git a/include/net/tcp.h b/include/net/tcp.h
+index 5731664..238b636 100644
+--- a/include/net/tcp.h
++++ b/include/net/tcp.h
+@@ -602,6 +602,17 @@ extern u32	__tcp_select_window(struct sock *sk);
+  */
+ #define tcp_time_stamp		((__u32)(jiffies))
  
-+config NETFILTER_XT_TARGET_IDLETIMER
-+	tristate  "IDLETIMER target support"
-+	depends on NETFILTER_ADVANCED
-+	help
++#define tcp_flag_byte(th) (((u_int8_t *)th)[13])
 +
-+	  This option adds the `IDLETIMER' target.  Each matching packet
-+	  resets the timer associated with label specified when the rule is
-+	  added.  When the timer expires, it triggers a sysfs notification.
-+	  The remaining time for expiration can be read via sysfs.
++#define	TH_FIN	0x01
++#define	TH_SYN	0x02
++#define	TH_RST	0x04
++#define	TH_PUSH	0x08
++#define	TH_ACK	0x10
++#define	TH_URG	0x20
++#define	TH_ECE	0x40
++#define	TH_CWR	0x80
 +
-+	  To compile it as a module, choose M here.  If unsure, say N.
-+
- config NETFILTER_XT_TARGET_LED
- 	tristate '"LED" target support'
- 	depends on LEDS_CLASS && LEDS_TRIGGERS
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index 14e3a8f..e28420a 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -61,6 +61,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_TCPMSS) += xt_TCPMSS.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_TCPOPTSTRIP) += xt_TCPOPTSTRIP.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_TEE) += xt_TEE.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_TRACE) += xt_TRACE.o
-+obj-$(CONFIG_NETFILTER_XT_TARGET_IDLETIMER) += xt_IDLETIMER.o
+ /* This is what the send packet queuing engine uses to pass
+  * TCP per-packet control information to the transmission
+  * code.  We also store the host-order sequence numbers in
+@@ -620,19 +631,6 @@ struct tcp_skb_cb {
+ 	__u32		end_seq;	/* SEQ + FIN + SYN + datalen	*/
+ 	__u32		when;		/* used to compute rtt's	*/
+ 	__u8		flags;		/* TCP header flags.		*/
+-
+-	/* NOTE: These must match up to the flags byte in a
+-	 *       real TCP header.
+-	 */
+-#define TCPCB_FLAG_FIN		0x01
+-#define TCPCB_FLAG_SYN		0x02
+-#define TCPCB_FLAG_RST		0x04
+-#define TCPCB_FLAG_PSH		0x08
+-#define TCPCB_FLAG_ACK		0x10
+-#define TCPCB_FLAG_URG		0x20
+-#define TCPCB_FLAG_ECE		0x40
+-#define TCPCB_FLAG_CWR		0x80
+-
+ 	__u8		sacked;		/* State flags for SACK/FACK.	*/
+ #define TCPCB_SACKED_ACKED	0x01	/* SKB ACK'd by a SACK block	*/
+ #define TCPCB_SACKED_RETRANS	0x02	/* SKB retransmitted		*/
+diff --git a/net/ipv4/tcp.c b/net/ipv4/tcp.c
+index 49d0d2b..ada200d 100644
+--- a/net/ipv4/tcp.c
++++ b/net/ipv4/tcp.c
+@@ -511,7 +511,7 @@ int tcp_ioctl(struct sock *sk, int cmd, unsigned long arg)
  
- # matches
- obj-$(CONFIG_NETFILTER_XT_MATCH_CLUSTER) += xt_cluster.o
-diff --git a/net/netfilter/xt_IDLETIMER.c b/net/netfilter/xt_IDLETIMER.c
-new file mode 100644
-index 0000000..540020a
---- /dev/null
-+++ b/net/netfilter/xt_IDLETIMER.c
-@@ -0,0 +1,322 @@
-+/*
-+ * linux/net/netfilter/xt_IDLETIMER.c
-+ *
-+ * Netfilter module to trigger a timer when packet matches.
-+ * After timer expires a kevent will be sent.
-+ *
-+ * Copyright (C) 2004, 2010 Nokia Corporation
-+ * Written by Timo Teras <ext-timo.teras@nokia.com>
-+ *
-+ * Converted to x_tables and reworked for upstream inclusion
-+ * by Luciano Coelho <luciano.coelho@nokia.com>
-+ *
-+ * Contact: Luciano Coelho <luciano.coelho@nokia.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ */
-+
-+#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
-+
-+#include <linux/module.h>
-+#include <linux/timer.h>
-+#include <linux/list.h>
-+#include <linux/mutex.h>
-+#include <linux/netfilter.h>
-+#include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter/xt_IDLETIMER.h>
-+#include <linux/kobject.h>
-+#include <linux/workqueue.h>
-+#include <linux/sysfs.h>
-+
-+struct idletimer_tg_attr {
-+	struct attribute attr;
-+	ssize_t	(*show)(struct kobject *kobj,
-+			struct attribute *attr, char *buf);
-+};
-+
-+struct idletimer_tg {
-+	struct list_head entry;
-+	struct timer_list timer;
-+	struct work_struct work;
-+
-+	struct kobject *kobj;
-+	struct idletimer_tg_attr attr;
-+
-+	unsigned int refcnt;
-+};
-+
-+static LIST_HEAD(idletimer_tg_list);
-+static DEFINE_MUTEX(list_mutex);
-+
-+static struct kobject *idletimer_tg_kobj;
-+
-+static
-+struct idletimer_tg *__idletimer_tg_find_by_label(const char *label)
-+{
-+	struct idletimer_tg *entry;
-+
-+	BUG_ON(!label);
-+
-+	list_for_each_entry(entry, &idletimer_tg_list, entry) {
-+		if (!strcmp(label, entry->attr.attr.name))
-+			return entry;
-+	}
-+
-+	return NULL;
-+}
-+
-+static ssize_t idletimer_tg_show(struct kobject *kobj, struct attribute *attr,
-+				 char *buf)
-+{
-+	struct idletimer_tg *timer;
-+	unsigned long expires = 0;
-+
-+	mutex_lock(&list_mutex);
-+
-+	timer =	__idletimer_tg_find_by_label(attr->name);
-+	if (timer)
-+		expires = timer->timer.expires;
-+
-+	mutex_unlock(&list_mutex);
-+
-+	if (time_after(expires, jiffies))
-+		return sprintf(buf, "%u\n",
-+			       jiffies_to_msecs(expires - jiffies) / 1000);
-+
-+	return sprintf(buf, "0\n");
-+}
-+
-+static void idletimer_tg_work(struct work_struct *work)
-+{
-+	struct idletimer_tg *timer = container_of(work, struct idletimer_tg,
-+						  work);
-+
-+	sysfs_notify(idletimer_tg_kobj, NULL, timer->attr.attr.name);
-+}
-+
-+static void idletimer_tg_expired(unsigned long data)
-+{
-+	struct idletimer_tg *timer = (struct idletimer_tg *) data;
-+
-+	pr_debug("timer %s expired\n", timer->attr.attr.name);
-+
-+	schedule_work(&timer->work);
-+}
-+
-+static int idletimer_tg_create(struct idletimer_tg_info *info)
-+{
-+	int ret;
-+
-+	info->timer = kmalloc(sizeof(*info->timer), GFP_ATOMIC);
-+	if (!info->timer) {
-+		pr_debug("couldn't alloc timer\n");
-+		ret = -ENOMEM;
-+		goto out;
-+	}
-+
-+	info->timer->attr.attr.name = kstrdup(info->label, GFP_ATOMIC);
-+	if (!info->timer->attr.attr.name) {
-+		pr_debug("couldn't alloc attribute name\n");
-+		ret = -ENOMEM;
-+		goto out_free_timer;
-+	}
-+	info->timer->attr.attr.mode = S_IRUGO;
-+	info->timer->attr.show = idletimer_tg_show;
-+
-+	ret = sysfs_create_file(idletimer_tg_kobj, &info->timer->attr.attr);
-+	if (ret < 0) {
-+		pr_debug("couldn't add file to sysfs");
-+		goto out_free_attr;
-+	}
-+
-+	list_add(&info->timer->entry, &idletimer_tg_list);
-+
-+	setup_timer(&info->timer->timer, idletimer_tg_expired,
-+		    (unsigned long) info->timer);
-+	info->timer->refcnt = 1;
-+
-+	mod_timer(&info->timer->timer,
-+		  msecs_to_jiffies(info->timeout * 1000) + jiffies);
-+
-+	INIT_WORK(&info->timer->work, idletimer_tg_work);
-+
-+	return 0;
-+
-+out_free_attr:
-+	kfree(info->timer->attr.attr.name);
-+out_free_timer:
-+	kfree(info->timer);
-+out:
-+	return ret;
-+}
-+
-+/*
-+ * The actual xt_tables plugin.
-+ */
-+static unsigned int idletimer_tg_target(struct sk_buff *skb,
-+					 const struct xt_action_param *par)
-+{
-+	const struct idletimer_tg_info *info = par->targinfo;
-+
-+	pr_debug("resetting timer %s, timeout period %u\n",
-+		 info->label, info->timeout);
-+
-+	mutex_lock(&list_mutex);
-+
-+	BUG_ON(!info->timer);
-+
-+	mod_timer(&info->timer->timer,
-+		  msecs_to_jiffies(info->timeout * 1000) + jiffies);
-+
-+	mutex_unlock(&list_mutex);
-+
-+	return XT_CONTINUE;
-+}
-+
-+static int idletimer_tg_checkentry(struct xt_tgchk_param *par)
-+{
-+	struct idletimer_tg_info *info = par->targinfo;
-+	int ret;
-+
-+	pr_debug("checkentry targinfo%s\n", info->label);
-+
-+	if (info->timeout == 0) {
-+		pr_debug("timeout value is zero\n");
-+		return -EINVAL;
-+	}
-+
-+	if (info->label[0] == '\0' ||
-+	    strnlen(info->label,
-+		    MAX_IDLETIMER_LABEL_SIZE) == MAX_IDLETIMER_LABEL_SIZE) {
-+		pr_debug("label is empty or not nul-terminated\n");
-+		return -EINVAL;
-+	}
-+
-+	mutex_lock(&list_mutex);
-+
-+	info->timer = __idletimer_tg_find_by_label(info->label);
-+	if (info->timer) {
-+		info->timer->refcnt++;
-+		mod_timer(&info->timer->timer,
-+			  msecs_to_jiffies(info->timeout * 1000) + jiffies);
-+
-+		pr_debug("increased refcnt of timer %s to %u\n",
-+			 info->label, info->timer->refcnt);
-+	} else {
-+		ret = idletimer_tg_create(info);
-+		if (ret < 0) {
-+			pr_debug("failed to create timer\n");
-+			mutex_unlock(&list_mutex);
-+			return ret;
-+		}
-+	}
-+
-+	mutex_unlock(&list_mutex);
-+	return 0;
-+}
-+
-+static void idletimer_tg_destroy(const struct xt_tgdtor_param *par)
-+{
-+	const struct idletimer_tg_info *info = par->targinfo;
-+
-+	pr_debug("destroy targinfo %s\n", info->label);
-+
-+	mutex_lock(&list_mutex);
-+	if (!info->timer) {
-+		mutex_unlock(&list_mutex);
-+		return;
-+	}
-+
-+	if (--info->timer->refcnt == 0) {
-+		pr_debug("deleting timer %s\n", info->label);
-+
-+		list_del(&info->timer->entry);
-+		del_timer_sync(&info->timer->timer);
-+		sysfs_remove_file(idletimer_tg_kobj, &info->timer->attr.attr);
-+		kfree(info->timer->attr.attr.name);
-+		kfree(info->timer);
-+	} else {
-+		pr_debug("decreased refcnt of timer %s to %u\n",
-+			 info->label, info->timer->refcnt);
-+	}
-+
-+	mutex_unlock(&list_mutex);
-+}
-+
-+static struct xt_target idletimer_tg __read_mostly = {
-+	.name		= "IDLETIMER",
-+	.family		= NFPROTO_UNSPEC,
-+	.target		= idletimer_tg_target,
-+	.targetsize     = sizeof(struct idletimer_tg_info),
-+	.checkentry	= idletimer_tg_checkentry,
-+	.destroy        = idletimer_tg_destroy,
-+	.me		= THIS_MODULE,
-+};
-+
-+static struct class *idletimer_tg_class;
-+
-+static struct device *idletimer_tg_device;
-+
-+static int __init idletimer_tg_init(void)
-+{
-+	int err;
-+
-+	idletimer_tg_class = class_create(THIS_MODULE, "xt_idletimer");
-+	err = PTR_ERR(idletimer_tg_class);
-+	if (IS_ERR(idletimer_tg_class)) {
-+		pr_debug("couldn't register device class\n");
-+		goto out;
-+	}
-+
-+	idletimer_tg_device = device_create(idletimer_tg_class, NULL,
-+					    MKDEV(0, 0), NULL, "timers");
-+	err = PTR_ERR(idletimer_tg_device);
-+	if (IS_ERR(idletimer_tg_device)) {
-+		pr_debug("couldn't register system device\n");
-+		goto out_class;
-+	}
-+
-+	idletimer_tg_kobj = &idletimer_tg_device->kobj;
-+
-+	err =  xt_register_target(&idletimer_tg);
-+	if (err < 0) {
-+		pr_debug("couldn't register xt target\n");
-+		goto out_dev;
-+	}
-+
-+	return 0;
-+out_dev:
-+	device_destroy(idletimer_tg_class, MKDEV(0, 0));
-+out_class:
-+	class_destroy(idletimer_tg_class);
-+out:
-+	return err;
-+}
-+
-+static void __exit idletimer_tg_exit(void)
-+{
-+	xt_unregister_target(&idletimer_tg);
-+
-+	device_destroy(idletimer_tg_class, MKDEV(0, 0));
-+	class_destroy(idletimer_tg_class);
-+}
-+
-+module_init(idletimer_tg_init);
-+module_exit(idletimer_tg_exit);
-+
-+MODULE_AUTHOR("Timo Teras <ext-timo.teras@nokia.com>");
-+MODULE_AUTHOR("Luciano Coelho <luciano.coelho@nokia.com>");
-+MODULE_DESCRIPTION("Xtables: idle time monitor");
-+MODULE_LICENSE("GPL v2");
--- 
-1.6.3.3
-
+ static inline void tcp_mark_push(struct tcp_sock *tp, struct sk_buff *skb)
+ {
+-	TCP_SKB_CB(skb)->flags |= TCPCB_FLAG_PSH;
++	TCP_SKB_CB(skb)->flags |= TH_PUSH;
+ 	tp->pushed_seq = tp->write_seq;
+ }
+ 
+@@ -527,7 +527,7 @@ static inline void skb_entail(struct sock *sk, struct sk_buff *skb)
+ 
+ 	skb->csum    = 0;
+ 	tcb->seq     = tcb->end_seq = tp->write_seq;
+-	tcb->flags   = TCPCB_FLAG_ACK;
++	tcb->flags   = TH_ACK;
+ 	tcb->sacked  = 0;
+ 	skb_header_release(skb);
+ 	tcp_add_write_queue_tail(sk, skb);
+@@ -815,7 +815,7 @@ new_segment:
+ 		skb_shinfo(skb)->gso_segs = 0;
+ 
+ 		if (!copied)
+-			TCP_SKB_CB(skb)->flags &= ~TCPCB_FLAG_PSH;
++			TCP_SKB_CB(skb)->flags &= ~TH_PUSH;
+ 
+ 		copied += copy;
+ 		poffset += copy;
+@@ -1061,7 +1061,7 @@ new_segment:
+ 			}
+ 
+ 			if (!copied)
+-				TCP_SKB_CB(skb)->flags &= ~TCPCB_FLAG_PSH;
++				TCP_SKB_CB(skb)->flags &= ~TH_PUSH;
+ 
+ 			tp->write_seq += copy;
+ 			TCP_SKB_CB(skb)->end_seq += copy;
+diff --git a/net/ipv4/tcp_input.c b/net/ipv4/tcp_input.c
+index 548d575..fbadd66 100644
+--- a/net/ipv4/tcp_input.c
++++ b/net/ipv4/tcp_input.c
+@@ -3286,7 +3286,7 @@ static int tcp_clean_rtx_queue(struct sock *sk, int prior_fackets,
+ 		 * connection startup slow start one packet too
+ 		 * quickly.  This is severely frowned upon behavior.
+ 		 */
+-		if (!(scb->flags & TCPCB_FLAG_SYN)) {
++		if (!(scb->flags & TH_SYN)) {
+ 			flag |= FLAG_DATA_ACKED;
+ 		} else {
+ 			flag |= FLAG_SYN_ACKED;
+diff --git a/net/ipv4/tcp_output.c b/net/ipv4/tcp_output.c
+index b4ed957..011199a 100644
+--- a/net/ipv4/tcp_output.c
++++ b/net/ipv4/tcp_output.c
+@@ -294,9 +294,9 @@ static u16 tcp_select_window(struct sock *sk)
+ /* Packet ECN state for a SYN-ACK */
+ static inline void TCP_ECN_send_synack(struct tcp_sock *tp, struct sk_buff *skb)
+ {
+-	TCP_SKB_CB(skb)->flags &= ~TCPCB_FLAG_CWR;
++	TCP_SKB_CB(skb)->flags &= ~TH_CWR;
+ 	if (!(tp->ecn_flags & TCP_ECN_OK))
+-		TCP_SKB_CB(skb)->flags &= ~TCPCB_FLAG_ECE;
++		TCP_SKB_CB(skb)->flags &= ~TH_ECE;
+ }
+ 
+ /* Packet ECN state for a SYN.  */
+@@ -306,7 +306,7 @@ static inline void TCP_ECN_send_syn(struct sock *sk, struct sk_buff *skb)
+ 
+ 	tp->ecn_flags = 0;
+ 	if (sysctl_tcp_ecn == 1) {
+-		TCP_SKB_CB(skb)->flags |= TCPCB_FLAG_ECE | TCPCB_FLAG_CWR;
++		TCP_SKB_CB(skb)->flags |= TH_ECE | TH_CWR;
+ 		tp->ecn_flags = TCP_ECN_OK;
+ 	}
+ }
+@@ -361,7 +361,7 @@ static void tcp_init_nondata_skb(struct sk_buff *skb, u32 seq, u8 flags)
+ 	skb_shinfo(skb)->gso_type = 0;
+ 
+ 	TCP_SKB_CB(skb)->seq = seq;
+-	if (flags & (TCPCB_FLAG_SYN | TCPCB_FLAG_FIN))
++	if (flags & (TH_SYN | TH_FIN))
+ 		seq++;
+ 	TCP_SKB_CB(skb)->end_seq = seq;
+ }
+@@ -820,7 +820,7 @@ static int tcp_transmit_skb(struct sock *sk, struct sk_buff *skb, int clone_it,
+ 	tcb = TCP_SKB_CB(skb);
+ 	memset(&opts, 0, sizeof(opts));
+ 
+-	if (unlikely(tcb->flags & TCPCB_FLAG_SYN))
++	if (unlikely(tcb->flags & TH_SYN))
+ 		tcp_options_size = tcp_syn_options(sk, skb, &opts, &md5);
+ 	else
+ 		tcp_options_size = tcp_established_options(sk, skb, &opts,
+@@ -843,7 +843,7 @@ static int tcp_transmit_skb(struct sock *sk, struct sk_buff *skb, int clone_it,
+ 	*(((__be16 *)th) + 6)	= htons(((tcp_header_size >> 2) << 12) |
+ 					tcb->flags);
+ 
+-	if (unlikely(tcb->flags & TCPCB_FLAG_SYN)) {
++	if (unlikely(tcb->flags & TH_SYN)) {
+ 		/* RFC1323: The window in SYN & SYN/ACK segments
+ 		 * is never scaled.
+ 		 */
+@@ -866,7 +866,7 @@ static int tcp_transmit_skb(struct sock *sk, struct sk_buff *skb, int clone_it,
+ 	}
+ 
+ 	tcp_options_write((__be32 *)(th + 1), tp, &opts);
+-	if (likely((tcb->flags & TCPCB_FLAG_SYN) == 0))
++	if (likely((tcb->flags & TH_SYN) == 0))
+ 		TCP_ECN_send(sk, skb, tcp_header_size);
+ 
+ #ifdef CONFIG_TCP_MD5SIG
+@@ -880,7 +880,7 @@ static int tcp_transmit_skb(struct sock *sk, struct sk_buff *skb, int clone_it,
+ 
+ 	icsk->icsk_af_ops->send_check(sk, skb);
+ 
+-	if (likely(tcb->flags & TCPCB_FLAG_ACK))
++	if (likely(tcb->flags & TH_ACK))
+ 		tcp_event_ack_sent(sk, tcp_skb_pcount(skb));
+ 
+ 	if (skb->len != tcp_header_size)
+@@ -1023,7 +1023,7 @@ int tcp_fragment(struct sock *sk, struct sk_buff *skb, u32 len,
+ 
+ 	/* PSH and FIN should only be set in the second packet. */
+ 	flags = TCP_SKB_CB(skb)->flags;
+-	TCP_SKB_CB(skb)->flags = flags & ~(TCPCB_FLAG_FIN | TCPCB_FLAG_PSH);
++	TCP_SKB_CB(skb)->flags = flags & ~(TH_FIN | TH_PUSH);
+ 	TCP_SKB_CB(buff)->flags = flags;
+ 	TCP_SKB_CB(buff)->sacked = TCP_SKB_CB(skb)->sacked;
+ 
+@@ -1328,8 +1328,7 @@ static inline unsigned int tcp_cwnd_test(struct tcp_sock *tp,
+ 	u32 in_flight, cwnd;
+ 
+ 	/* Don't be strict about the congestion window for the final FIN.  */
+-	if ((TCP_SKB_CB(skb)->flags & TCPCB_FLAG_FIN) &&
+-	    tcp_skb_pcount(skb) == 1)
++	if ((TCP_SKB_CB(skb)->flags & TH_FIN) && tcp_skb_pcount(skb) == 1)
+ 		return 1;
+ 
+ 	in_flight = tcp_packets_in_flight(tp);
+@@ -1398,7 +1397,7 @@ static inline int tcp_nagle_test(struct tcp_sock *tp, struct sk_buff *skb,
+ 	 * Nagle can be ignored during F-RTO too (see RFC4138).
+ 	 */
+ 	if (tcp_urg_mode(tp) || (tp->frto_counter == 2) ||
+-	    (TCP_SKB_CB(skb)->flags & TCPCB_FLAG_FIN))
++	    (TCP_SKB_CB(skb)->flags & TH_FIN))
+ 		return 1;
+ 
+ 	if (!tcp_nagle_check(tp, skb, cur_mss, nonagle))
+@@ -1487,7 +1486,7 @@ static int tso_fragment(struct sock *sk, struct sk_buff *skb, unsigned int len,
+ 
+ 	/* PSH and FIN should only be set in the second packet. */
+ 	flags = TCP_SKB_CB(skb)->flags;
+-	TCP_SKB_CB(skb)->flags = flags & ~(TCPCB_FLAG_FIN | TCPCB_FLAG_PSH);
++	TCP_SKB_CB(skb)->flags = flags & ~(TH_FIN | TH_PUSH);
+ 	TCP_SKB_CB(buff)->flags = flags;
+ 
+ 	/* This packet was never sent out yet, so no SACK bits. */
+@@ -1518,7 +1517,7 @@ static int tcp_tso_should_defer(struct sock *sk, struct sk_buff *skb)
+ 	const struct inet_connection_sock *icsk = inet_csk(sk);
+ 	u32 send_win, cong_win, limit, in_flight;
+ 
+-	if (TCP_SKB_CB(skb)->flags & TCPCB_FLAG_FIN)
++	if (TCP_SKB_CB(skb)->flags & TH_FIN)
+ 		goto send_now;
+ 
+ 	if (icsk->icsk_ca_state != TCP_CA_Open)
+@@ -1644,7 +1643,7 @@ static int tcp_mtu_probe(struct sock *sk)
+ 
+ 	TCP_SKB_CB(nskb)->seq = TCP_SKB_CB(skb)->seq;
+ 	TCP_SKB_CB(nskb)->end_seq = TCP_SKB_CB(skb)->seq + probe_size;
+-	TCP_SKB_CB(nskb)->flags = TCPCB_FLAG_ACK;
++	TCP_SKB_CB(nskb)->flags = TH_ACK;
+ 	TCP_SKB_CB(nskb)->sacked = 0;
+ 	nskb->csum = 0;
+ 	nskb->ip_summed = skb->ip_summed;
+@@ -1669,7 +1668,7 @@ static int tcp_mtu_probe(struct sock *sk)
+ 			sk_wmem_free_skb(sk, skb);
+ 		} else {
+ 			TCP_SKB_CB(nskb)->flags |= TCP_SKB_CB(skb)->flags &
+-						   ~(TCPCB_FLAG_FIN|TCPCB_FLAG_PSH);
++						   ~(TH_FIN|TH_PUSH);
+ 			if (!skb_shinfo(skb)->nr_frags) {
+ 				skb_pull(skb, copy);
+ 				if (skb->ip_summed != CHECKSUM_PARTIAL)
+@@ -2020,7 +2019,7 @@ static void tcp_retrans_try_collapse(struct sock *sk, struct sk_buff *to,
+ 
+ 	if (!sysctl_tcp_retrans_collapse)
+ 		return;
+-	if (TCP_SKB_CB(skb)->flags & TCPCB_FLAG_SYN)
++	if (TCP_SKB_CB(skb)->flags & TH_SYN)
+ 		return;
+ 
+ 	tcp_for_write_queue_from_safe(skb, tmp, sk) {
+@@ -2112,7 +2111,7 @@ int tcp_retransmit_skb(struct sock *sk, struct sk_buff *skb)
+ 	 * since it is cheap to do so and saves bytes on the network.
+ 	 */
+ 	if (skb->len > 0 &&
+-	    (TCP_SKB_CB(skb)->flags & TCPCB_FLAG_FIN) &&
++	    (TCP_SKB_CB(skb)->flags & TH_FIN) &&
+ 	    tp->snd_una == (TCP_SKB_CB(skb)->end_seq - 1)) {
+ 		if (!pskb_trim(skb, 0)) {
+ 			/* Reuse, even though it does some unnecessary work */
+@@ -2301,7 +2300,7 @@ void tcp_send_fin(struct sock *sk)
+ 	mss_now = tcp_current_mss(sk);
+ 
+ 	if (tcp_send_head(sk) != NULL) {
+-		TCP_SKB_CB(skb)->flags |= TCPCB_FLAG_FIN;
++		TCP_SKB_CB(skb)->flags |= TH_FIN;
+ 		TCP_SKB_CB(skb)->end_seq++;
+ 		tp->write_seq++;
+ 	} else {
+@@ -2317,8 +2316,7 @@ void tcp_send_fin(struct sock *sk)
+ 		/* Reserve space for headers and prepare control bits. */
+ 		skb_reserve(skb, MAX_TCP_HEADER);
+ 		/* FIN eats a sequence byte, write_seq advanced by tcp_queue_skb(). */
+-		tcp_init_nondata_skb(skb, tp->write_seq,
+-				     TCPCB_FLAG_ACK | TCPCB_FLAG_FIN);
++		tcp_init_nondata_skb(skb, tp->write_seq, TH_ACK | TH_FIN);
+ 		tcp_queue_skb(sk, skb);
+ 	}
+ 	__tcp_push_pending_frames(sk, mss_now, TCP_NAGLE_OFF);
+@@ -2342,8 +2340,7 @@ void tcp_send_active_reset(struct sock *sk, gfp_t priority)
+ 
+ 	/* Reserve space for headers and prepare control bits. */
+ 	skb_reserve(skb, MAX_TCP_HEADER);
+-	tcp_init_nondata_skb(skb, tcp_acceptable_seq(sk),
+-			     TCPCB_FLAG_ACK | TCPCB_FLAG_RST);
++	tcp_init_nondata_skb(skb, tcp_acceptable_seq(sk), TH_ACK | TH_RST);
+ 	/* Send it off. */
+ 	TCP_SKB_CB(skb)->when = tcp_time_stamp;
+ 	if (tcp_transmit_skb(sk, skb, 0, priority))
+@@ -2363,11 +2360,11 @@ int tcp_send_synack(struct sock *sk)
+ 	struct sk_buff *skb;
+ 
+ 	skb = tcp_write_queue_head(sk);
+-	if (skb == NULL || !(TCP_SKB_CB(skb)->flags & TCPCB_FLAG_SYN)) {
++	if (skb == NULL || !(TCP_SKB_CB(skb)->flags & TH_SYN)) {
+ 		printk(KERN_DEBUG "tcp_send_synack: wrong queue state\n");
+ 		return -EFAULT;
+ 	}
+-	if (!(TCP_SKB_CB(skb)->flags & TCPCB_FLAG_ACK)) {
++	if (!(TCP_SKB_CB(skb)->flags & TH_ACK)) {
+ 		if (skb_cloned(skb)) {
+ 			struct sk_buff *nskb = skb_copy(skb, GFP_ATOMIC);
+ 			if (nskb == NULL)
+@@ -2381,7 +2378,7 @@ int tcp_send_synack(struct sock *sk)
+ 			skb = nskb;
+ 		}
+ 
+-		TCP_SKB_CB(skb)->flags |= TCPCB_FLAG_ACK;
++		TCP_SKB_CB(skb)->flags |= TH_ACK;
+ 		TCP_ECN_send_synack(tcp_sk(sk), skb);
+ 	}
+ 	TCP_SKB_CB(skb)->when = tcp_time_stamp;
+@@ -2459,8 +2456,7 @@ struct sk_buff *tcp_make_synack(struct sock *sk, struct dst_entry *dst,
+ 	/* Setting of flags are superfluous here for callers (and ECE is
+ 	 * not even correctly set)
+ 	 */
+-	tcp_init_nondata_skb(skb, tcp_rsk(req)->snt_isn,
+-			     TCPCB_FLAG_SYN | TCPCB_FLAG_ACK);
++	tcp_init_nondata_skb(skb, tcp_rsk(req)->snt_isn, TH_SYN | TH_ACK);
+ 
+ 	if (OPTION_COOKIE_EXTENSION & opts.options) {
+ 		if (s_data_desired) {
+@@ -2592,7 +2588,7 @@ int tcp_connect(struct sock *sk)
+ 	skb_reserve(buff, MAX_TCP_HEADER);
+ 
+ 	tp->snd_nxt = tp->write_seq;
+-	tcp_init_nondata_skb(buff, tp->write_seq++, TCPCB_FLAG_SYN);
++	tcp_init_nondata_skb(buff, tp->write_seq++, TH_SYN);
+ 	TCP_ECN_send_syn(sk, buff);
+ 
+ 	/* Send it off. */
+@@ -2698,7 +2694,7 @@ void tcp_send_ack(struct sock *sk)
+ 
+ 	/* Reserve space for headers and prepare control bits. */
+ 	skb_reserve(buff, MAX_TCP_HEADER);
+-	tcp_init_nondata_skb(buff, tcp_acceptable_seq(sk), TCPCB_FLAG_ACK);
++	tcp_init_nondata_skb(buff, tcp_acceptable_seq(sk), TH_ACK);
+ 
+ 	/* Send it off, this clears delayed acks for us. */
+ 	TCP_SKB_CB(buff)->when = tcp_time_stamp;
+@@ -2732,7 +2728,7 @@ static int tcp_xmit_probe_skb(struct sock *sk, int urgent)
+ 	 * end to send an ack.  Don't queue or clone SKB, just
+ 	 * send it.
+ 	 */
+-	tcp_init_nondata_skb(skb, tp->snd_una - !urgent, TCPCB_FLAG_ACK);
++	tcp_init_nondata_skb(skb, tp->snd_una - !urgent, TH_ACK);
+ 	TCP_SKB_CB(skb)->when = tcp_time_stamp;
+ 	return tcp_transmit_skb(sk, skb, 0, GFP_ATOMIC);
+ }
+@@ -2762,13 +2758,13 @@ int tcp_write_wakeup(struct sock *sk)
+ 		if (seg_size < TCP_SKB_CB(skb)->end_seq - TCP_SKB_CB(skb)->seq ||
+ 		    skb->len > mss) {
+ 			seg_size = min(seg_size, mss);
+-			TCP_SKB_CB(skb)->flags |= TCPCB_FLAG_PSH;
++			TCP_SKB_CB(skb)->flags |= TH_PUSH;
+ 			if (tcp_fragment(sk, skb, seg_size, mss))
+ 				return -1;
+ 		} else if (!tcp_skb_pcount(skb))
+ 			tcp_set_skb_tso_segs(sk, skb, mss);
+ 
+-		TCP_SKB_CB(skb)->flags |= TCPCB_FLAG_PSH;
++		TCP_SKB_CB(skb)->flags |= TH_PUSH;
+ 		TCP_SKB_CB(skb)->when = tcp_time_stamp;
+ 		err = tcp_transmit_skb(sk, skb, 1, GFP_ATOMIC);
+ 		if (!err)
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 9dd8cd4..8c65d62 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -736,15 +736,6 @@ static bool tcp_in_window(const struct nf_conn *ct,
+ 	return res;
+ }
+ 
+-#define	TH_FIN	0x01
+-#define	TH_SYN	0x02
+-#define	TH_RST	0x04
+-#define	TH_PUSH	0x08
+-#define	TH_ACK	0x10
+-#define	TH_URG	0x20
+-#define	TH_ECE	0x40
+-#define	TH_CWR	0x80
+-
+ /* table of valid flag combinations - PUSH, ECE and CWR are always valid */
+ static const u8 tcp_valid_flags[(TH_FIN|TH_SYN|TH_RST|TH_ACK|TH_URG) + 1] =
+ {
+@@ -803,7 +794,7 @@ static int tcp_error(struct net *net, struct nf_conn *tmpl,
+ 	}
+ 
+ 	/* Check TCP flags. */
+-	tcpflags = (((u_int8_t *)th)[13] & ~(TH_ECE|TH_CWR|TH_PUSH));
++	tcpflags = (tcp_flag_byte(th) & ~(TH_ECE|TH_CWR|TH_PUSH));
+ 	if (!tcp_valid_flags[tcpflags]) {
+ 		if (LOG_INVALID(net, IPPROTO_TCP))
+ 			nf_log_packet(pf, 0, skb, NULL, NULL, NULL,
+diff --git a/net/netfilter/xt_TCPMSS.c b/net/netfilter/xt_TCPMSS.c
+index 1841388..5bd203b 100644
+--- a/net/netfilter/xt_TCPMSS.c
++++ b/net/netfilter/xt_TCPMSS.c
+@@ -220,8 +220,6 @@ tcpmss_tg6(struct sk_buff *skb, const struct xt_action_param *par)
+ }
+ #endif
+ 
+-#define TH_SYN 0x02
+-
+ /* Must specify -p tcp --syn */
+ static inline bool find_syn_match(const struct xt_entry_match *m)
+ {
