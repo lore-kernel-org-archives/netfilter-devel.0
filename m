@@ -1,82 +1,55 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH xt-addons] xt_geoip: fix possible out-of-bounds access
-Date: Sat, 12 Jun 2010 10:59:51 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1006121037230.29158@obet.zrqbmnf.qr>
-References: <1275382302-8857-1-git-send-email-fwestphal@astaro.com>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: Re: [PATCH] tcp: unify tcp flag macros
+Date: Sat, 12 Jun 2010 17:21:09 +0800
+Message-ID: <AANLkTikZSn5zJYNPU2mdcBiyY7jfBOvq0f1khlbue4JD@mail.gmail.com>
+References: <1276322372-12584-1-git-send-email-xiaosuo@gmail.com>
+	<alpine.LSU.2.01.1006121017380.28286@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Florian Westphal <fwestphal@astaro.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:47312 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753261Ab0FLI7w (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 12 Jun 2010 04:59:52 -0400
-In-Reply-To: <1275382302-8857-1-git-send-email-fwestphal@astaro.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	"Pekka Savola (ipv6)" <pekkas@netcore.fi>,
+	James Morris <jmorris@namei.org>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <alpine.LSU.2.01.1006121017380.28286@obet.zrqbmnf.qr>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-
-On Tuesday 2010-06-01 10:51, Florian Westphal wrote:
-
->It is possible for geoip_bsearch() to pick mid == sizeof(subnets).
+On Sat, Jun 12, 2010 at 4:18 PM, Jan Engelhardt <jengelh@medozas.de> wr=
+ote:
 >
->Consider a set with a single entry and a "address to test"
->higher than the range:
+> On Saturday 2010-06-12 07:59, Changli Gao wrote:
+>>--- a/include/net/tcp.h
+>>+++ b/include/net/tcp.h
+>>@@ -602,6 +602,17 @@ extern u32 =A0 =A0 =A0 =A0__tcp_select_window(st=
+ruct sock *sk);
+>> =A0*/
+>> #define tcp_time_stamp =A0 =A0 =A0 =A0 =A0 =A0 =A0 =A0((__u32)(jiffi=
+es))
+>>
+>>+#define tcp_flag_byte(th) (((u_int8_t *)th)[13])
+>>+
+>>+#define =A0 =A0 =A0 TH_FIN =A00x01
+>>+#define =A0 =A0 =A0 TH_SYN =A00x02
+>>+#define =A0 =A0 =A0 TH_RST =A00x04
+>>+#define =A0 =A0 =A0 TH_PUSH 0x08
+>>+#define =A0 =A0 =A0 TH_ACK =A00x10
+>>+#define =A0 =A0 =A0 TH_URG =A00x20
+>>+#define =A0 =A0 =A0 TH_ECE =A00x40
+>>+#define =A0 =A0 =A0 TH_CWR =A00x80
 >
->1st call: lo = 0, hi = 1 -> mid will be 0
->2nd call: lo = 1, hi = 1 -> mid will be 1
+> I'd prefer something less generic, like TCPHDR_{FIN,SYN,etc}.
 >
->On the 2nd call, we'll examine random data.
+>
 
-Isn't this simpler?
+The same macros are definied by BSDs too. So I think it is better to
+keep them the same.
 
-diff --git a/extensions/xt_geoip.c b/extensions/xt_geoip.c
-index 4c6b29f..44e489d 100644
---- a/extensions/xt_geoip.c
-+++ b/extensions/xt_geoip.c
-@@ -126,13 +126,13 @@ static bool geoip_bsearch(const struct geoip_subnet *range,
- {
- 	int mid;
- 
--	if (hi < lo)
-+	if (hi <= lo)
- 		return false;
- 	mid = (lo + hi) / 2;
- 	if (range[mid].begin <= addr && addr <= range[mid].end)
- 		return true;
- 	if (range[mid].begin > addr)
--		return geoip_bsearch(range, addr, lo, mid - 1);
-+		return geoip_bsearch(range, addr, lo, mid);
- 	else if (range[mid].end < addr)
- 		return geoip_bsearch(range, addr, mid + 1, hi);
- 
-
-
-Seems to work on paper.
-
-bsearch(lo=0, hi=1)
-	inspects mid=0
-	bsearch(lo=0, hi=0) stops
-	bsearch(lo=1, hi=1) stops
-
-bsearch(lo=0, hi=2)
-	inspects mid=1
-	bsearch(lo=0, hi=1) as above
-	bsearch(lo=2, hi=2) stops
-
-bsearch(lo=0, hi=3)
-	inspects mid=1
-	bsearch(lo=0, hi=1) as above
-	bsearch(lo=2, hi=3)
-		inspects mid=2
-		bsearch(lo=2, hi=2) stops
-		bsearch(lo=3, hi=3) stops
-
-bsearch(lo=0, hi=4)
-	inspects mid=2
-	bsearch(lo=0, hi=2) as above
-	bsearch(lo=3, hi=4)
-		inspects mid=3
-		bsearch(lo=3, hi=3) stops
-		bsearch(lo=4, hi=4) stops
+--=20
+Regards,
+Changli Gao(xiaosuo@gmail.com)
