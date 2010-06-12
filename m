@@ -1,24 +1,45 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: RAWNAT: fix rawnat_ipv6_mask()
-Date: Sat, 12 Jun 2010 10:16:27 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1006121015001.28145@obet.zrqbmnf.qr>
-References: <1275120651-18360-1-git-send-email-xiaosuo@gmail.com>
+Subject: Re: [PATCH] tcp: unify tcp flag macros
+Date: Sat, 12 Jun 2010 10:18:12 +0200 (CEST)
+Message-ID: <alpine.LSU.2.01.1006121017380.28286@obet.zrqbmnf.qr>
+References: <1276322372-12584-1-git-send-email-xiaosuo@gmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: xiaosuo@gmail.com
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	"Pekka Savola (ipv6)" <pekkas@netcore.fi>,
+	James Morris <jmorris@namei.org>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Changli Gao <xiaosuo@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:39673 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:44949 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752682Ab0FLIQa (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 12 Jun 2010 04:16:30 -0400
-In-Reply-To: <1275120651-18360-1-git-send-email-xiaosuo@gmail.com>
+	id S1752682Ab0FLISN (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 12 Jun 2010 04:18:13 -0400
+In-Reply-To: <1276322372-12584-1-git-send-email-xiaosuo@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 
->fix rawnat_ipv6_mask()
->
->I really think it is a typo mistake. :)
+On Saturday 2010-06-12 07:59, Changli Gao wrote:
+>--- a/include/net/tcp.h
+>+++ b/include/net/tcp.h
+>@@ -602,6 +602,17 @@ extern u32	__tcp_select_window(struct sock *sk);
+>  */
+> #define tcp_time_stamp		((__u32)(jiffies))
+> 
+>+#define tcp_flag_byte(th) (((u_int8_t *)th)[13])
+>+
+>+#define	TH_FIN	0x01
+>+#define	TH_SYN	0x02
+>+#define	TH_RST	0x04
+>+#define	TH_PUSH	0x08
+>+#define	TH_ACK	0x10
+>+#define	TH_URG	0x20
+>+#define	TH_ECE	0x40
+>+#define	TH_CWR	0x80
 
-Applied.
+I'd prefer something less generic, like TCPHDR_{FIN,SYN,etc}.
+
