@@ -1,38 +1,54 @@
 From: Jan Engelhardt <jengelh@medozas.de>
 Subject: Re: xtables-addons build fails
-Date: Tue, 15 Jun 2010 01:05:55 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1006150105390.14214@obet.zrqbmnf.qr>
+Date: Tue, 15 Jun 2010 01:09:46 +0200 (CEST)
+Message-ID: <alpine.LSU.2.01.1006150107220.14214@obet.zrqbmnf.qr>
 References: <4C16A109.7050404@gmail.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Cc: netfilter-devel@vger.kernel.org
 To: martinbarrowcliff <martinbarrowcliff@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:60275 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:43172 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751882Ab0FNXF5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Jun 2010 19:05:57 -0400
+	id S1750784Ab0FNXJr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 Jun 2010 19:09:47 -0400
 In-Reply-To: <4C16A109.7050404@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
 On Monday 2010-06-14 23:37, martinbarrowcliff wrote:
 
-> A little compile problem here with xtables-addons-1.26 (and 1.27).
-> This is a new system. linux-2.6.34, Gcc-4.5. It runs fine otherwise.
-> Iptables is working. Networking is up.  Ipset compiles and works.
-> Kernel and modules all build. All other apps compile fine so far.
-> I have root access via a remote term.
-> The same xt-a source compiles and runs on my other systems but not here?
->
-> The source builds to this point, then compile fails as below:
->
-> make[3]: Leaving directory `/usr/src/kernels/linux-2.6.34'
-> make -f ../Makefile.iptrules all;
-> make[3]: Entering directory
-> `/usr/src/build/firewall/xtables-addons-1.27/extensions'
-> CC     libxt_IPMARK.oo
-> libxt_IPMARK.c:156:2: warning: implicit declaration of function 'ALIGN'
+> BTW, must mention, latest lzma says the 1.27.xz file
+> on sourceforge is corrupt. I used the git source instead.
+> Still failed.
 
-See http://marc.info/?t=127444218200001&r=1&w=2
+--2010-06-15 01:06:15--  http://sunet.dl.sourceforge.net/project/xtables-addons/Xtables-addons/1.27/xtables-addons-1.27.tar.xz
+Resolving sunet.dl.sourceforge.net... 194.71.11.73
+Connecting to sunet.dl.sourceforge.net|194.71.11.73|:80... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 331224 (323K) [application/x-tar]
+Saving to: `xtables-addons-1.27.tar.xz'
 
+100%[======================================>] 331,224     7.60K/s   in 31s     
+
+--2010-06-15 01:07:34--  http://heanet.dl.sourceforge.net/project/xtables-addons/Xtables-addons/1.27/xtables-addons-1.27.tar.xz.asc
+Resolving heanet.dl.sourceforge.net... *a193.1.193.66, 2001:770:18:aa40::c101:c142
+Connecting to heanet.dl.sourceforge.net|193.1.193.66|:80... sconnected.
+HTTP request sent, awaiting response... c 200 OK
+Length: 198 [text/plain]
+Saving to: `xtables-addons-1.27.tar.xz.asc'
+
+100%[======================================>] 198         --.-K/s   in 0s      
+
+$ gpg --verify *asc
+gpg: Signature made Sun May 16 22:20:44 2010 CEST using DSA key ID 844C4360
+gpg: Good signature from "Jan Engelhardt <jengelh@gmx.de>"
+
+$ sha1sum sf/xtables-addons-1.27.tar.xz local/xtables-addons-1.27.tar.xz 
+a0ac6a28de3258629c9020394f69bda5eae54e54  sf/xtables-addons-1.27.tar.xz
+a0ac6a28de3258629c9020394f69bda5eae54e54  local/xtables-addons-1.27.tar.xz
+
+$ xz -t sf/xtables-addons-1.27.tar.xz; echo $?
+0
+
+All is normal.
