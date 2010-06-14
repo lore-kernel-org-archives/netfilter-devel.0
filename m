@@ -1,76 +1,78 @@
-From: Narendra Choyal <narendrachoyal@gmail.com>
-Subject: Re: ip_conntrack fails to track Windows Vista TCP connection
-Date: Tue, 15 Jun 2010 01:37:16 +0530
-Message-ID: <AANLkTilcVU8BtrliadtrtJ1ad3GWMnFOqW5d77u68Shd@mail.gmail.com>
-References: <0199E0D51A61344794750DC57738F58E70B258E2B3@GVW1118EXC.americas.hpqcorp.net>
-	<4C165596.8020700@trash.net>
-	<alpine.LSU.2.01.1006141834280.7212@obet.zrqbmnf.qr>
-	<0199E0D51A61344794750DC57738F58E70B258E346@GVW1118EXC.americas.hpqcorp.net>
-	<alpine.LSU.2.01.1006141941160.23197@obet.zrqbmnf.qr>
-	<0199E0D51A61344794750DC57738F58E70B258E34D@GVW1118EXC.americas.hpqcorp.net>
+From: martinbarrowcliff <martinbarrowcliff@gmail.com>
+Subject: xtables-addons build fails
+Date: Mon, 14 Jun 2010 17:37:13 -0400
+Message-ID: <4C16A109.7050404@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	Patrick McHardy <kaber@trash.net>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: "Fischer, Anna" <anna.fischer@hp.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:50646 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754549Ab0FNUOV convert rfc822-to-8bit (ORCPT
+Received: from mail-gw0-f46.google.com ([74.125.83.46]:54017 "EHLO
+	mail-gw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756513Ab0FNVmM (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Jun 2010 16:14:21 -0400
-Received: by yxl31 with SMTP id 31so1572577yxl.19
-        for <netfilter-devel@vger.kernel.org>; Mon, 14 Jun 2010 13:14:20 -0700 (PDT)
-In-Reply-To: <0199E0D51A61344794750DC57738F58E70B258E34D@GVW1118EXC.americas.hpqcorp.net>
+	Mon, 14 Jun 2010 17:42:12 -0400
+Received: by gwj15 with SMTP id 15so2815415gwj.19
+        for <netfilter-devel@vger.kernel.org>; Mon, 14 Jun 2010 14:42:11 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-How can we make following changes as --
-Nagle =3D off and TCPNODelay =3D 1
+A little compile problem here with xtables-addons-1.26 (and 1.27).
+This is a new system. linux-2.6.34, Gcc-4.5. It runs fine otherwise.
+Iptables is working. Networking is up.  Ipset compiles and works.
+Kernel and modules all build. All other apps compile fine so far.
+I have root access via a remote term.
+The same xt-a source compiles and runs on my other systems but not here?
 
-On Mon, Jun 14, 2010 at 11:39 PM, Fischer, Anna <anna.fischer@hp.com> w=
-rote:
->> Subject: RE: ip_conntrack fails to track Windows Vista TCP connectio=
-n
->>
->>
->> On Monday 2010-06-14 19:34, Fischer, Anna wrote:
->>
->> >>>> [something about Vista and TCP Delayed ACK]
->> >>>>
->> >>>> Is this a known issue?
->> >>>
->> >>> You're mentioning ip_conntrack, which is obsoleted for multiple
->> >>> years now. Which kernel version are you using?
->> >>
->> >> By definition of ip_conntrack, that must be older than 2.6.20.
->> >
->> >Yes, this is a 2.6.18 Xen kernel that I am using. Even if it is
->> obsolete, can you let me know if you are aware of such a problem eve=
-r
->> having caused any issues? I just want to get a feeling if I am at le=
-ast
->> roughly on the right track while figuring out what the problem is.
->>
->> The 2.6.18 has a known problem with DSACK even when both
->> endpoints are Linux.
->
-> My problem is really very specific to connection tracking and so the =
-problem (bug?) is probably in the ip_conntrack_tcp module. TCP communic=
-ation actually works fine, also connection tracking on (slow, non-bulk =
-data) TCP traffic works. However, it fails with high throughput connect=
-ions coming from newer Windows (Vista / 7) machines. If I switch those =
-to TCP_NODELAY then it all works again.
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-d=
-evel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
->
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+The source builds to this point, then compile fails as below:
+
+make[3]: Leaving directory `/usr/src/kernels/linux-2.6.34'
+make -f ../Makefile.iptrules all;
+make[3]: Entering directory `/usr/src/build/firewall/xtables-addons-1.27/extensions'
+  CC     libxt_IPMARK.oo
+libxt_IPMARK.c:156:2: warning: implicit declaration of function 'ALIGN'
+libxt_IPMARK.c:156:19: error: initializer element is not constant
+libxt_IPMARK.c:156:19: error: (near initialization for 'ipmark_tg_reg.size')
+libxt_IPMARK.c:157:19: error: initializer element is not constant
+libxt_IPMARK.c:157:19: error: (near initialization for
+'ipmark_tg_reg.userspacesize')
+make[3]: *** [libxt_IPMARK.oo] Error 1
+make[3]: Leaving directory `/usr/src/build/firewall/xtables-addons-1.27/extensions'
+make[2]: *** [user-all-local] Error 2
+
+Here is where it fails in the source. Looks fine to me...
+(every extension fails the same way in same places)
+
+static struct xtables_target ipmark_tg_reg = {
+        .version       = XTABLES_VERSION,
+        .name          = "IPMARK",
+        .family        = NFPROTO_UNSPEC,
+        .revision      = 1,
+>>>>>        .size          = XT_ALIGN(sizeof(struct xt_ipmark_tginfo)),
+>>>>>        .userspacesize = XT_ALIGN(sizeof(struct xt_ipmark_tginfo)),
+        .help          = ipmark_tg_help,
+        .init          = ipmark_tg_init,
+        .parse         = ipmark_tg_parse,
+        .final_check   = ipmark_tg_check,
+        .print         = ipmark_tg_print,
+        .save          = ipmark_tg_save,
+        .extra_opts    = ipmark_tg_opts,
+};
+
+I don't really know why gcc is failing here; this is a new problem.
+The compiler passed all tests. Looks like a missing header, but
+I checked and have the whole API as far as I can tell.
+I must have goofed somewhere?  Can someone offer insight to this?
+
+BTW, must mention, latest lzma says the 1.27.xz file
+on sourceforge is corrupt. I used the git source instead.
+Still failed.
+
+Marty B.
+
+
+
+
+
+
+
