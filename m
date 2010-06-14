@@ -1,55 +1,51 @@
-From: GLAUME Vincent <vincent.glaume@cea.fr>
-Subject: Using conntrack to create new expectation entry
-Date: Mon, 14 Jun 2010 10:21:49 +0200
-Message-ID: <4C15E69D.3070400@cea.fr>
+From: AIJAZ BAIG <aijazbaig1@gmail.com>
+Subject: newbie seeking clarification between nf_conntrack_l3proto and
+	ip_conntrack*
+Date: Mon, 14 Jun 2010 19:17:49 +0530
+Message-ID: <AANLkTimdexfzRGpmBPLUCAmfE68rhkBE22mY_W68Rn_0@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=ISO-8859-1
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cirse-out.extra.cea.fr ([132.166.172.106]:48011 "EHLO
-	cirse-out.extra.cea.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755789Ab0FNJX2 (ORCPT
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:40851 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750813Ab0FNNru (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Jun 2010 05:23:28 -0400
-Received: from pisaure.intra.cea.fr (pisaure.intra.cea.fr [132.166.88.21])
-	by cirse.extra.cea.fr (8.14.2/8.14.2/CEAnet-Internet-out-2.0) with ESMTP id o5E8Lo7q004016
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NOT)
-	for <netfilter-devel@vger.kernel.org>; Mon, 14 Jun 2010 10:21:50 +0200
-Received: from muguet2.intra.cea.fr (muguet2.intra.cea.fr [132.166.192.7])
-	by pisaure.intra.cea.fr (8.14.4/8.14.4) with ESMTP id o5E8LoiD012845
-	for <netfilter-devel@vger.kernel.org>; Mon, 14 Jun 2010 10:21:50 +0200
-	(envelope-from vincent.glaume@cea.fr)
-Received: from zia.bruyeres.cea.fr (esteban.dam.intra.cea.fr [132.165.76.10])
-	by muguet2.intra.cea.fr (8.13.8/8.13.8/CEAnet-Intranet-out-1.1) with SMTP id o5E8Ln7J009111
-	for <netfilter-devel@vger.kernel.org>; Mon, 14 Jun 2010 10:21:49 +0200
+	Mon, 14 Jun 2010 09:47:50 -0400
+Received: by vws14 with SMTP id 14so686076vws.19
+        for <netfilter-devel@vger.kernel.org>; Mon, 14 Jun 2010 06:47:49 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi there,
+Hello people.
 
-I'm currently trying to figure out how the whole libnetfilter_conntrack 
-works, and more precisely the expect part of the lib.
-My aim is to be able to create new expectation entries with this lib in 
-an application that would inspect packets (either coming from a 
-pcap-based sniffer or from netfilter via the nfqueue mechanism) : thus 
-I'd like to allow connections related to the inspected (and already 
-allowed) connections.
+I have been trying to understand how the entire kernel side of
+conntracking actually works and I have been able to find this document
+which attempts to track the flow on the kernel
+side:http://blog.chinaunix.net/u/23353/showart_2188246.html
 
-My various tests make me think that to create such an expectation entry, 
-a kernel module related to the master connection is required: am I right?
-For instance, the "expect_create" app in the libnetfilter_conntrack 
-"utils" subdirectory works fine, unless I modify the destination port of 
-the master conntrack structure... then it's no longer related to the FTP 
-conntrack mechanism...
-Same thing happens when using the conntrack app. from the conntrack-tools.
+I am also been studying rusty's netfilter hacking how to. So here is
+what I have humbly understood till now. (Gurus i'd be indebted to you
+fellows if u'd correct me.)
 
-So, I'd like to know how to do this the right way, without coding the 
-whole inspection thing in a kernel module (if this is possible). Is 
-there any generic tcp conntrack system that could help here?
-As I'm not too sure to fully understand the whole mechanism of expected 
-connection creation, any hint is welcome!
-I hope this is not too confused... Thanks,
+Now following rusty's doc, I have a question. It looks like there is a
+framework which was present before the actual nf_conntrack gained
+ground and it seemed to be exclusively for ipv4. I feel this way
+because rusty has repeatedly referred to ip_conntrack_*. Like for
+instance, he talks about populating the ip_conntrack_protocol
+structure as against the nf_ct_l3proto array which is the global array
+which contain pointers to structures of type nf_conntrack_l3proto. On
+checking out nf_conntrack_l3proto.h it looks like this very struct
+viz. nf_conntrack_l3proto, is the present day default for how
+connection tracking code looks at a given L3 proto. It however seems
+to be 'derived' from include/netfilter_ipv4/ip_conntrack_protocol.h.
 
--- 
-V.
+Now this is seriously confusing me. If netfilter connection tracking
+is supposed to super-cede connection tracking related code exclusively
+for ipv4, why is it still being circulated? Or may be my amateurish
+brain fails to understand and links the dots together.
+
+I am keen to hear from you people
+
+Regards,
+Aijaz Baig.
