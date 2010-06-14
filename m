@@ -1,51 +1,62 @@
-From: AIJAZ BAIG <aijazbaig1@gmail.com>
-Subject: newbie seeking clarification between nf_conntrack_l3proto and
-	ip_conntrack*
-Date: Mon, 14 Jun 2010 19:17:49 +0530
-Message-ID: <AANLkTimdexfzRGpmBPLUCAmfE68rhkBE22mY_W68Rn_0@mail.gmail.com>
+From: Shan Wei <shanwei@cn.fujitsu.com>
+Subject: Re: [PATCH net-next-2.6] ip_frag: Remove some atomic ops
+Date: Mon, 14 Jun 2010 22:01:06 +0800
+Message-ID: <4C163622.7080003@cn.fujitsu.com>
+References: <1276506144.2478.40.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Cc: David Miller <davem@davemloft.net>,
+	netdev <netdev@vger.kernel.org>,
+	Patrick McHardy <kaber@trash.net>,
+	netfilter-devel@vger.kernel.org
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:40851 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750813Ab0FNNru (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Jun 2010 09:47:50 -0400
-Received: by vws14 with SMTP id 14so686076vws.19
-        for <netfilter-devel@vger.kernel.org>; Mon, 14 Jun 2010 06:47:49 -0700 (PDT)
+Received: from cn.fujitsu.com ([222.73.24.84]:63541 "EHLO song.cn.fujitsu.com"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1752657Ab0FNOBP (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 14 Jun 2010 10:01:15 -0400
+In-Reply-To: <1276506144.2478.40.camel@edumazet-laptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello people.
+Eric Dumazet wrote, at 06/14/2010 05:02 PM:
+> Instead of doing one atomic operation per frag, we can factorize them.
+> 
+> Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
 
-I have been trying to understand how the entire kernel side of
-conntracking actually works and I have been able to find this document
-which attempts to track the flow on the kernel
-side:http://blog.chinaunix.net/u/23353/showart_2188246.html
+IPv6 netfilter has implemented owns queue to manage/reassemble defragments.
+So, you miss this one.
 
-I am also been studying rusty's netfilter hacking how to. So here is
-what I have humbly understood till now. (Gurus i'd be indebted to you
-fellows if u'd correct me.)
+[PATCH 1/2] netfilter: defrag: remove one redundant atomic ops
 
-Now following rusty's doc, I have a question. It looks like there is a
-framework which was present before the actual nf_conntrack gained
-ground and it seemed to be exclusively for ipv4. I feel this way
-because rusty has repeatedly referred to ip_conntrack_*. Like for
-instance, he talks about populating the ip_conntrack_protocol
-structure as against the nf_ct_l3proto array which is the global array
-which contain pointers to structures of type nf_conntrack_l3proto. On
-checking out nf_conntrack_l3proto.h it looks like this very struct
-viz. nf_conntrack_l3proto, is the present day default for how
-connection tracking code looks at a given L3 proto. It however seems
-to be 'derived' from include/netfilter_ipv4/ip_conntrack_protocol.h.
+Instead of doing one atomic operation per frag, we can factorize them.
+Reported from Eric Dumazet.
 
-Now this is seriously confusing me. If netfilter connection tracking
-is supposed to super-cede connection tracking related code exclusively
-for ipv4, why is it still being circulated? Or may be my amateurish
-brain fails to understand and links the dots together.
+Signed-off-by: Shan Wei <shanwei@cn.fujitsu.com>
+---
+ net/ipv6/netfilter/nf_conntrack_reasm.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-I am keen to hear from you people
-
-Regards,
-Aijaz Baig.
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index 6fb8901..bc5b86d 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -442,7 +442,6 @@ nf_ct_frag6_reasm(struct nf_ct_frag6_queue *fq, struct net_device *dev)
+ 	skb_shinfo(head)->frag_list = head->next;
+ 	skb_reset_transport_header(head);
+ 	skb_push(head, head->data - skb_network_header(head));
+-	atomic_sub(head->truesize, &nf_init_frags.mem);
+ 
+ 	for (fp=head->next; fp; fp = fp->next) {
+ 		head->data_len += fp->len;
+@@ -452,8 +451,8 @@ nf_ct_frag6_reasm(struct nf_ct_frag6_queue *fq, struct net_device *dev)
+ 		else if (head->ip_summed == CHECKSUM_COMPLETE)
+ 			head->csum = csum_add(head->csum, fp->csum);
+ 		head->truesize += fp->truesize;
+-		atomic_sub(fp->truesize, &nf_init_frags.mem);
+ 	}
++	atomic_sub(head->truesize, &nf_init_frags.mem);
+ 
+ 	head->next = NULL;
+ 	head->dev = dev;
