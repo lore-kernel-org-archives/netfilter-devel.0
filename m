@@ -1,31 +1,43 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: kill redundant check code in which setting
- ip_summed value
-Date: Mon, 14 Jun 2010 16:22:20 +0200
-Message-ID: <4C163B1C.9010001@trash.net>
-References: <4C109EED.2000405@cn.fujitsu.com>
+Subject: Re: [PATCH net-next-2.6] ip_frag: Remove some atomic ops
+Date: Mon, 14 Jun 2010 16:30:21 +0200
+Message-ID: <4C163CFD.3050301@trash.net>
+References: <1276506144.2478.40.camel@edumazet-laptop>	 <4C163622.7080003@cn.fujitsu.com> <1276525084.2478.92.camel@edumazet-laptop>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Shan Wei <shanwei@cn.fujitsu.com>
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Shan Wei <shanwei@cn.fujitsu.com>,
+	David Miller <davem@davemloft.net>,
+	netdev <netdev@vger.kernel.org>, netfilter-devel@vger.kernel.org
+To: Eric Dumazet <eric.dumazet@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:51112 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:51274 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754189Ab0FNOWb (ORCPT
+	with ESMTP id S1754502Ab0FNOa0 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Jun 2010 10:22:31 -0400
-In-Reply-To: <4C109EED.2000405@cn.fujitsu.com>
+	Mon, 14 Jun 2010 10:30:26 -0400
+In-Reply-To: <1276525084.2478.92.camel@edumazet-laptop>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Shan Wei wrote:
-> If the returned csum value is 0, We has set ip_summed with CHECKSUM_UNNECESSARY flag
-> in __skb_checksum_complete_head(), 
+Eric Dumazet wrote:
+> Le lundi 14 juin 2010 =C3=A0 22:01 +0800, Shan Wei a =C3=A9crit :
+>  =20
+>> [PATCH 1/2] netfilter: defrag: remove one redundant atomic ops
+>>
+>> Instead of doing one atomic operation per frag, we can factorize the=
+m.
+>> Reported from Eric Dumazet.
+>>
+>> Signed-off-by: Shan Wei <shanwei@cn.fujitsu.com>
+>>    =20
 >
-> So this patch kills the check and changes to return to upper caller directly.
->
->   
+> Acked-by: Eric Dumazet <eric.dumazet@gmail.com>
+>  =20
 
 Applied, thanks.
-
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
