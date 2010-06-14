@@ -1,42 +1,29 @@
-From: Luciano Coelho <luciano.coelho@nokia.com>
-Subject: Re: [PATCH 1/1] extensions: add idletimer xt target extension
-Date: Mon, 14 Jun 2010 17:44:15 +0300
-Message-ID: <1276526655.2092.34.camel@chilepepper>
-References: <1276525990-7058-1-git-send-email-luciano.coelho@nokia.com>
-	 <1276525990-7058-2-git-send-email-luciano.coelho@nokia.com>
-	 <alpine.LSU.2.01.1006141639390.32450@obet.zrqbmnf.qr>
+From: "Fischer, Anna" <anna.fischer@hp.com>
+Subject: ip_conntrack fails to track Windows Vista TCP connection
+Date: Mon, 14 Jun 2010 15:25:00 +0000
+Message-ID: <0199E0D51A61344794750DC57738F58E70B258E2B3@GVW1118EXC.americas.hpqcorp.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: "kaber@trash.net" <kaber@trash.net>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"Rissanen Jukka (Nokia-D/Helsinki)" <Jukka.Rissanen@nokia.com>
-To: ext Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+To: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:32465 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753369Ab0FNOoq (ORCPT
+Received: from g5t0008.atlanta.hp.com ([15.192.0.45]:34761 "EHLO
+	g5t0008.atlanta.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751401Ab0FNP0Z convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Jun 2010 10:44:46 -0400
-In-Reply-To: <alpine.LSU.2.01.1006141639390.32450@obet.zrqbmnf.qr>
+	Mon, 14 Jun 2010 11:26:25 -0400
+Received: from G6W0640.americas.hpqcorp.net (g6w0640.atlanta.hp.com [16.230.34.76])
+	(using TLSv1 with cipher RC4-MD5 (128/128 bits))
+	(No client certificate requested)
+	by g5t0008.atlanta.hp.com (Postfix) with ESMTPS id E9E70243EF
+	for <netfilter-devel@vger.kernel.org>; Mon, 14 Jun 2010 15:26:24 +0000 (UTC)
+Content-Language: en-US
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, 2010-06-14 at 16:40 +0200, ext Jan Engelhardt wrote:
-> On Monday 2010-06-14 16:33, Luciano Coelho wrote:
-> >+#ifndef _XT_IDLETIMER_H
-> >+#define _XT_IDLETIMER_H
-> >+
-> >+#include <linux/types.h>
-> >+
-> >+#define MAX_IDLETIMER_LABEL_SIZE 32
-> 
-> I suggest we go down to 28 on this one, so that there won't
-> be a wasted padding hole on 64-bit.
+I am trying to track (and NAT) a TCP connection to a Windows Vista machine using ip_conntrack. However, Vista uses the Nagle algorithm combined with the TCP Delayed ACK mechanism which does not ACK every single packet, and it seems as if the connection tracking module has problems with this. Basically it fails to recognize Delayed ACK packets, and as these are not picked up by the connection tracking module, my NAT function does not work and so packets are not delivered properly because they are not rewritten by ip_nat. I am certain that the problem is the Vista TCP stack and its mechanisms as when I configure my Windows Vista machine with Nagle = off and TCPNODelay = 1, then actually connection tracking works fine. Also, all connections with Linux machines are tracked properly.
 
-Okay, I'll send v5 of my kernel patch and v2 of the extension.
+Is this a known issue?
 
--- 
-Cheers,
-Luca.
-
+Thanks,
+Anna
