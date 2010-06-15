@@ -1,36 +1,124 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: ip_conntrack fails to track Windows Vista TCP connection
-Date: Tue, 15 Jun 2010 04:23:01 +0200
-Message-ID: <4C16E405.40705@trash.net>
-References: <0199E0D51A61344794750DC57738F58E70B258E2B3@GVW1118EXC.americas.hpqcorp.net> <4C165596.8020700@trash.net> <alpine.LSU.2.01.1006141834280.7212@obet.zrqbmnf.qr> <0199E0D51A61344794750DC57738F58E70B258E346@GVW1118EXC.americas.hpqcorp.net>
+From: Jiri Olsa <jolsa@redhat.com>
+Subject: [PATCH] net: IP_NODEFRAG option for IPv4 socket
+Date: Tue, 15 Jun 2010 08:53:35 +0200
+Message-ID: <20100615065335.GA8840@jolsa.Belkin>
+References: <4C08EB85.3050900@trash.net>
+ <20100607145558.GA1939@jolsa.lab.eng.brq.redhat.com>
+ <4C0FA24A.7060907@trash.net>
+ <20100610065631.GA1915@jolsa.lab.eng.brq.redhat.com>
+ <4C10ACDC.6010108@trash.net>
+ <20100610095312.GC1915@jolsa.lab.eng.brq.redhat.com>
+ <4C10B8C8.2050201@trash.net>
+ <20100611081604.GA1739@jolsa.Belkin>
+ <alpine.LSU.2.01.1006111152230.30433@obet.zrqbmnf.qr>
+ <20100611131038.GB1739@jolsa.Belkin>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: "Fischer, Anna" <anna.fischer@hp.com>
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
+	Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:62609 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754806Ab0FOCXG (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 14 Jun 2010 22:23:06 -0400
-In-Reply-To: <0199E0D51A61344794750DC57738F58E70B258E346@GVW1118EXC.americas.hpqcorp.net>
+Received: from mx1.redhat.com ([209.132.183.28]:27936 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752085Ab0FOGxn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 15 Jun 2010 02:53:43 -0400
+Content-Disposition: inline
+In-Reply-To: <20100611131038.GB1739@jolsa.Belkin>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Fischer, Anna wrote:
->>> You're mentioning ip_conntrack, which is obsoleted for multiple
->>> years now. Which kernel version are you using?
->>>       
->> By definition of ip_conntrack, that must be older than 2.6.20.
->>     
->
-> Yes, this is a 2.6.18 Xen kernel that I am using. Even if it is obsolete, can you let me know if you are aware of such a problem ever having caused any issues? I just want to get a feeling if I am at least roughly on the right track while figuring out what the problem is.
->   
+hi,
 
-We've had a couple of problems related to related to
-acknowledgement numbers in TCP conntrack, I'd suggest
-you check the nf_conntrack_proto_tcp.c changelogs,
-basically everything in there should also apply to
-the old version.
+I prepared the patch implementing IP_NODEFRAG option for IPv4 socket.
+The reason is, there's no other way to send out the packet with user
+customized header of the reassembly part.
+
+wbr,
+jirka
+
+
+Signed-off-by: Jiri Olsa <jolsa@redhat.com>
+---
+diff --git a/include/linux/in.h b/include/linux/in.h
+index 583c76f..41d88a4 100644
+--- a/include/linux/in.h
++++ b/include/linux/in.h
+@@ -85,6 +85,7 @@ struct in_addr {
+ #define IP_RECVORIGDSTADDR   IP_ORIGDSTADDR
+ 
+ #define IP_MINTTL       21
++#define IP_NODEFRAG     22
+ 
+ /* IP_MTU_DISCOVER values */
+ #define IP_PMTUDISC_DONT		0	/* Never send DF frames */
+diff --git a/include/net/inet_sock.h b/include/net/inet_sock.h
+index 1653de5..1989cfd 100644
+--- a/include/net/inet_sock.h
++++ b/include/net/inet_sock.h
+@@ -137,7 +137,8 @@ struct inet_sock {
+ 				hdrincl:1,
+ 				mc_loop:1,
+ 				transparent:1,
+-				mc_all:1;
++				mc_all:1,
++				nodefrag:1;
+ 	int			mc_index;
+ 	__be32			mc_addr;
+ 	struct ip_mc_socklist	*mc_list;
+diff --git a/net/ipv4/af_inet.c b/net/ipv4/af_inet.c
+index 551ce56..84d2c8e 100644
+--- a/net/ipv4/af_inet.c
++++ b/net/ipv4/af_inet.c
+@@ -355,6 +355,8 @@ lookup_protocol:
+ 	inet = inet_sk(sk);
+ 	inet->is_icsk = (INET_PROTOSW_ICSK & answer_flags) != 0;
+ 
++	inet->nodefrag = 0;
++
+ 	if (SOCK_RAW == sock->type) {
+ 		inet->inet_num = protocol;
+ 		if (IPPROTO_RAW == protocol)
+diff --git a/net/ipv4/ip_sockglue.c b/net/ipv4/ip_sockglue.c
+index ce23178..d8196e1 100644
+--- a/net/ipv4/ip_sockglue.c
++++ b/net/ipv4/ip_sockglue.c
+@@ -449,7 +449,7 @@ static int do_ip_setsockopt(struct sock *sk, int level,
+ 			     (1<<IP_MTU_DISCOVER) | (1<<IP_RECVERR) |
+ 			     (1<<IP_ROUTER_ALERT) | (1<<IP_FREEBIND) |
+ 			     (1<<IP_PASSSEC) | (1<<IP_TRANSPARENT) |
+-			     (1<<IP_MINTTL))) ||
++			     (1<<IP_MINTTL) | (1<<IP_NODEFRAG))) ||
+ 	    optname == IP_MULTICAST_TTL ||
+ 	    optname == IP_MULTICAST_ALL ||
+ 	    optname == IP_MULTICAST_LOOP ||
+@@ -572,6 +572,13 @@ static int do_ip_setsockopt(struct sock *sk, int level,
+ 		}
+ 		inet->hdrincl = val ? 1 : 0;
+ 		break;
++	case IP_NODEFRAG:
++		if (sk->sk_type != SOCK_RAW) {
++			err = -ENOPROTOOPT;
++			break;
++		}
++		inet->nodefrag = val ? 1 : 0;
++		break;
+ 	case IP_MTU_DISCOVER:
+ 		if (val < IP_PMTUDISC_DONT || val > IP_PMTUDISC_PROBE)
+ 			goto e_inval;
+diff --git a/net/ipv4/netfilter/nf_defrag_ipv4.c b/net/ipv4/netfilter/nf_defrag_ipv4.c
+index cb763ae..eab8de3 100644
+--- a/net/ipv4/netfilter/nf_defrag_ipv4.c
++++ b/net/ipv4/netfilter/nf_defrag_ipv4.c
+@@ -66,6 +66,11 @@ static unsigned int ipv4_conntrack_defrag(unsigned int hooknum,
+ 					  const struct net_device *out,
+ 					  int (*okfn)(struct sk_buff *))
+ {
++	struct inet_sock *inet = inet_sk(skb->sk);
++
++	if (inet && inet->nodefrag)
++		return NF_ACCEPT;
++
+ #if defined(CONFIG_NF_CONNTRACK) || defined(CONFIG_NF_CONNTRACK_MODULE)
+ #if !defined(CONFIG_NF_NAT) && !defined(CONFIG_NF_NAT_MODULE)
+ 	/* Previously seen (loopback)?  Ignore.  Do this before
