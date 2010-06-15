@@ -1,38 +1,65 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH nf-next-2.6] netfilter: CLUSTERIP: RCU conversion
-Date: Tue, 15 Jun 2010 13:10:10 +0200
-Message-ID: <4C175F92.8010001@trash.net>
-References: <1276099861.2442.199.camel@edumazet-laptop>	 <4C0FC1B6.2050605@trash.net> <1276103507.2442.214.camel@edumazet-laptop>	 <4C1658CF.4040804@trash.net> <1276545574.2444.31.camel@edumazet-laptop>
+Subject: Re: [PATCH v5] netfilter: Xtables: idletimer target implementation
+Date: Tue, 15 Jun 2010 13:54:25 +0200
+Message-ID: <4C1769F1.40506@trash.net>
+References: <1276593679-9576-1-git-send-email-luciano.coelho@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	jengelh@medozas.de, Timo Teras <timo.teras@iki.fi>
+To: Luciano Coelho <luciano.coelho@nokia.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:37831 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:38566 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754849Ab0FOLKN (ORCPT
+	with ESMTP id S1757236Ab0FOLy0 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Jun 2010 07:10:13 -0400
-In-Reply-To: <1276545574.2444.31.camel@edumazet-laptop>
+	Tue, 15 Jun 2010 07:54:26 -0400
+In-Reply-To: <1276593679-9576-1-git-send-email-luciano.coelho@nokia.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Eric Dumazet wrote:
-> [PATCH nf-next-2.6 v2] netfilter: CLUSTERIP: RCU conversion
->
-> - clusterip_lock becomes a spinlock
-> - lockless lookups
-> - kfree() deferred after RCU grace period
-> - rcu_barrier_bh() inserted in clusterip_tg_exit()
->
-> v2) 
-> - As Patrick pointed out, we use atomic_inc_not_zero() in
-> clusterip_config_find_get().
-> - list_add_rcu() and list_del_rcu() variants are used.
-> - atomic_dec_and_lock() used in clusterip_config_entry_put()
+Two final comments:
+
+Luciano Coelho wrote:
+> diff --git a/include/linux/netfilter/xt_IDLETIMER.h b/include/linux/netfilter/xt_IDLETIMER.h
+> new file mode 100644
+> index 0000000..3e1aa1b
+> --- /dev/null
+> +++ b/include/linux/netfilter/xt_IDLETIMER.h
+
+This file needs to be added to Kbuild to make sure it gets installed
+during "make headers_install".
+
+> +static void idletimer_tg_destroy(const struct xt_tgdtor_param *par)
+> +{
+> +	const struct idletimer_tg_info *info = par->targinfo;
+> +
+> +	pr_debug("destroy targinfo %s\n", info->label);
+> +
+> +	mutex_lock(&list_mutex);
+> +	if (!info->timer) {
 >   
 
-Applied, thanks Eric.
+This doesn't seem to be possible.
+
+> +		mutex_unlock(&list_mutex);
+> +		return;
+> +	}
+> +
+> +	if (--info->timer->refcnt == 0) {
+> +		pr_debug("deleting timer %s\n", info->label);
+> +
+> +		list_del(&info->timer->entry);
+> +		del_timer_sync(&info->timer->timer);
+> +		sysfs_remove_file(idletimer_tg_kobj, &info->timer->attr.attr);
+> +		kfree(info->timer->attr.attr.name);
+> +		kfree(info->timer);
+> +	} else {
+> +		pr_debug("decreased refcnt of timer %s to %u\n",
+> +			 info->label, info->timer->refcnt);
+> +	}
+> +
+> +	mutex_unlock(&list_mutex);
+> +}
 
