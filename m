@@ -1,26 +1,55 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH v2] extensions: add idletimer xt target extension
-Date: Tue, 15 Jun 2010 16:55:20 +0200
-Message-ID: <4C179458.3040103@trash.net>
-References: <1276595320-10007-1-git-send-email-luciano.coelho@nokia.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org, jengelh@medozas.de,
-	Jukka Rissanen <jukka.rissanen@nokia.com>
-To: Luciano Coelho <luciano.coelho@nokia.com>
+From: kaber@trash.net
+Subject: [PATCH 01/17] netfilter: br_netfilter: use skb_set_noref()
+Date: Tue, 15 Jun 2010 17:38:27 +0200
+Message-ID: <1276616323-20880-2-git-send-email-kaber@trash.net>
+References: <1276616323-20880-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:41360 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:42164 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757921Ab0FOOq3 (ORCPT
+	with ESMTP id S1757587Ab0FOP3x (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Jun 2010 10:46:29 -0400
-In-Reply-To: <1276595320-10007-1-git-send-email-luciano.coelho@nokia.com>
+	Tue, 15 Jun 2010 11:29:53 -0400
+In-Reply-To: <1276616323-20880-1-git-send-email-kaber@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Luciano Coelho wrote:
-> Add the extension plugin for the IDLETIMER x_tables target.
+From: Eric Dumazet <eric.dumazet@gmail.com>
 
-Applied to the iptables-next branch, thanks.
+Avoid dirtying bridge_parent_rtable refcount, using new dst noref
+infrastructure.
+
+Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+---
+ net/bridge/br_netfilter.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
+
+diff --git a/net/bridge/br_netfilter.c b/net/bridge/br_netfilter.c
+index 4442099..cbea5af 100644
+--- a/net/bridge/br_netfilter.c
++++ b/net/bridge/br_netfilter.c
+@@ -244,8 +244,7 @@ static int br_nf_pre_routing_finish_ipv6(struct sk_buff *skb)
+ 		kfree_skb(skb);
+ 		return 0;
+ 	}
+-	dst_hold(&rt->u.dst);
+-	skb_dst_set(skb, &rt->u.dst);
++	skb_dst_set_noref(skb, &rt->u.dst);
+ 
+ 	skb->dev = nf_bridge->physindev;
+ 	nf_bridge_update_protocol(skb);
+@@ -396,8 +395,7 @@ bridged_dnat:
+ 			kfree_skb(skb);
+ 			return 0;
+ 		}
+-		dst_hold(&rt->u.dst);
+-		skb_dst_set(skb, &rt->u.dst);
++		skb_dst_set_noref(skb, &rt->u.dst);
+ 	}
+ 
+ 	skb->dev = nf_bridge->physindev;
+-- 
+1.7.0.4
 
