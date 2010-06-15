@@ -1,62 +1,25 @@
-From: Luciano Coelho <luciano.coelho@nokia.com>
-Subject: Re: [PATCH v6] netfilter: Xtables: idletimer target implementation
-Date: Tue, 15 Jun 2010 16:18:54 +0300
-Message-ID: <1276607934.1580.58.camel@powerslave>
-References: <1276605926-11598-1-git-send-email-luciano.coelho@nokia.com>
-	 <4C177A89.7060301@trash.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"jengelh@medozas.de" <jengelh@medozas.de>,
-	Timo Teras <timo.teras@iki.fi>
-To: ext Patrick McHardy <kaber@trash.net>
+From: kaber@trash.net
+Subject: [PATCH 0/1] netfilter: netfilter fixes
+Date: Tue, 15 Jun 2010 16:48:04 +0200
+Message-ID: <1276613285-4959-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:48842 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756630Ab0FONZc (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:41276 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932150Ab0FOOjP (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Jun 2010 09:25:32 -0400
-In-Reply-To: <4C177A89.7060301@trash.net>
+	Tue, 15 Jun 2010 10:39:15 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Tue, 2010-06-15 at 15:05 +0200, ext Patrick McHardy wrote:
-> Luciano Coelho wrote:
-> > This patch implements an idletimer Xtables target that can be used to
-> > identify when interfaces have been idle for a certain period of time.
-> >
-> > Timers are identified by labels and are created when a rule is set with a new
-> > label.  The rules also take a timeout value (in seconds) as an option.  If
-> > more than one rule uses the same timer label, the timer will be restarted
-> > whenever any of the rules get a hit.
-> >
-> > One entry for each timer is created in sysfs.  This attribute contains the
-> > timer remaining for the timer to expire.  The attributes are located under
-> > the xt_idletimer class:
-> >
-> > /sys/class/xt_idletimer/timers/<label>
-> >
-> > When the timer expires, the target module sends a sysfs notification to the
-> > userspace, which can then decide what to do (eg. disconnect to save power).
-> >   
-> 
-> Applied with a minor compiler warning fix:
-> 
->   CC [M]  net/netfilter/xt_IDLETIMER.o
-> net/netfilter/xt_IDLETIMER.c:255: warning: initialization from 
-> incompatible pointer type
-> 
-> The struct xt_tgchk_param argument to ->checkentry is const.
+Hi Dave,
 
-Oops, missed that one.  Thanks for fixing it.
+following is a single netfilter fix for IPVS from Sven Wegener, fixing a race
+condition that might result in an oops.
 
-And thanks a lot for bearing with a netfilter newbie, providing lots of
-good comments and generally helping me with this component! I really
-appreciate it.
+Please apply or pull from:
 
--- 
-Cheers,
-Luca.
+git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git master
 
+Thanks!
