@@ -1,57 +1,27 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: [PATCH] net: IP_NODEFRAG option for IPv4 socket
-Date: Tue, 15 Jun 2010 11:49:33 +0200
-Message-ID: <1276595373.2541.58.camel@edumazet-laptop>
-References: <4C0FA24A.7060907@trash.net>
-	 <20100610065631.GA1915@jolsa.lab.eng.brq.redhat.com>
-	 <4C10ACDC.6010108@trash.net>
-	 <20100610095312.GC1915@jolsa.lab.eng.brq.redhat.com>
-	 <4C10B8C8.2050201@trash.net> <20100611081604.GA1739@jolsa.Belkin>
-	 <alpine.LSU.2.01.1006111152230.30433@obet.zrqbmnf.qr>
-	 <20100611131038.GB1739@jolsa.Belkin> <20100615065335.GA8840@jolsa.Belkin>
-	 <1276586029.2541.12.camel@edumazet-laptop>
-	 <20100615091715.GB8840@jolsa.Belkin>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	Patrick McHardy <kaber@trash.net>, netdev@vger.kernel.org,
-	Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>
-To: Jiri Olsa <jolsa@redhat.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:65139 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751441Ab0FOJti (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Jun 2010 05:49:38 -0400
-Received: by wyb40 with SMTP id 40so4613372wyb.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 15 Jun 2010 02:49:37 -0700 (PDT)
-In-Reply-To: <20100615091715.GB8840@jolsa.Belkin>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: Jiri Olsa <jolsa-H+wXaHxf7aLQT0dZR+AlfA@public.gmane.org>
+Subject: [PATCH 0/2] net,man - IP_NODEFRAG option for IPv4 socket
+Date: Tue, 15 Jun 2010 13:07:30 +0200
+Message-ID: <1276600052-16499-1-git-send-email-jolsa@redhat.com>
+Cc: netdev-u79uwXL29TY76Z2rM5mHXA@public.gmane.org, netfilter-devel-u79uwXL29TY76Z2rM5mHXA@public.gmane.org,
+	linux-man-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+To: eric.dumazet-Re5JQEeQqe8AvxtiuMwx3w@public.gmane.org, jengelh-nopoi9nDyk+ELgA04lAiVw@public.gmane.org, kaber-dcUjhNyLwpNeoWH0uzbU5w@public.gmane.org
+Return-path: <linux-man-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org>
+Sender: linux-man-owner-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Le mardi 15 juin 2010 =C3=A0 11:18 +0200, Jiri Olsa a =C3=A9crit :
+hi,
 
-> > Hmm... what about cloning ?
->=20
-> I think as this is the property of the socket (not skb),
-> it has no affect for cloning
->=20
+this series contains patch for IP_NODEFRAG option for RAW sockets,
+and changes for man pages.
 
-Sorry, I was thinking of sk_clone(). I sometime forgets sock_copy() cop=
-y
-all fields.
+I'm sending this together, hope it's ok.
 
-This is a non issue for raw sockets, if IP_NODEFRAG is limited to RAW
-sockets now and in the future.
+1/2 - net - IP_NODEFRAG option for IPv4 socket
+2/2 - man - IP_NODEFRAG option for IPv4 socket
 
-
-
-
-
+wbr,
+jirka
 --
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
+To unsubscribe from this list: send the line "unsubscribe linux-man" in
+the body of a message to majordomo-u79uwXL29TY76Z2rM5mHXA@public.gmane.org
 More majordomo info at  http://vger.kernel.org/majordomo-info.html
