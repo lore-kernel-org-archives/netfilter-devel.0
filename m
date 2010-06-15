@@ -1,59 +1,48 @@
-From: kaber@trash.net
-Subject: [PATCH 04/17] netfilter: xt_rateest: Better struct xt_rateest layout
-Date: Tue, 15 Jun 2010 17:38:30 +0200
-Message-ID: <1276616323-20880-5-git-send-email-kaber@trash.net>
-References: <1276616323-20880-1-git-send-email-kaber@trash.net>
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: davem@davemloft.net
+From: "Fischer, Anna" <anna.fischer@hp.com>
+Subject: RE: ip_conntrack fails to track Windows Vista TCP connection
+Date: Tue, 15 Jun 2010 16:15:42 +0000
+Message-ID: <0199E0D51A61344794750DC57738F58E70B258E939@GVW1118EXC.americas.hpqcorp.net>
+References: <0199E0D51A61344794750DC57738F58E70B258E2B3@GVW1118EXC.americas.hpqcorp.net>
+ <4C165596.8020700@trash.net>
+ <alpine.LSU.2.01.1006141834280.7212@obet.zrqbmnf.qr>
+ <0199E0D51A61344794750DC57738F58E70B258E346@GVW1118EXC.americas.hpqcorp.net>
+ <4C16E405.40705@trash.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Cc: Jan Engelhardt <jengelh@medozas.de>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:42171 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757937Ab0FOP3x (ORCPT
+Received: from g4t0015.houston.hp.com ([15.201.24.18]:19884 "EHLO
+	g4t0015.houston.hp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754820Ab0FOQSU convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 15 Jun 2010 11:29:53 -0400
-In-Reply-To: <1276616323-20880-1-git-send-email-kaber@trash.net>
+	Tue, 15 Jun 2010 12:18:20 -0400
+In-Reply-To: <4C16E405.40705@trash.net>
+Content-Language: en-US
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Eric Dumazet <eric.dumazet@gmail.com>
+> Subject: Re: ip_conntrack fails to track Windows Vista TCP connection
+> 
+> Fischer, Anna wrote:
+> >>> You're mentioning ip_conntrack, which is obsoleted for multiple
+> >>> years now. Which kernel version are you using?
+> >>>
+> >> By definition of ip_conntrack, that must be older than 2.6.20.
+> >>
+> >
+> > Yes, this is a 2.6.18 Xen kernel that I am using. Even if it is
+> obsolete, can you let me know if you are aware of such a problem ever
+> having caused any issues? I just want to get a feeling if I am at least
+> roughly on the right track while figuring out what the problem is.
+> >
+> 
+> We've had a couple of problems related to related to
+> acknowledgement numbers in TCP conntrack, I'd suggest
+> you check the nf_conntrack_proto_tcp.c changelogs,
+> basically everything in there should also apply to
+> the old version.
 
-We currently dirty two cache lines in struct xt_rateest, this hurts SMP
-performance.
-
-This patch moves lock/bstats/rstats at beginning of structure so that
-they share a single cache line.
-
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
-Signed-off-by: Patrick McHardy <kaber@trash.net>
----
- include/net/netfilter/xt_rateest.h |   10 +++++++---
- 1 files changed, 7 insertions(+), 3 deletions(-)
-
-diff --git a/include/net/netfilter/xt_rateest.h b/include/net/netfilter/xt_rateest.h
-index ddbf37e..b1d780e 100644
---- a/include/net/netfilter/xt_rateest.h
-+++ b/include/net/netfilter/xt_rateest.h
-@@ -2,13 +2,17 @@
- #define _XT_RATEEST_H
- 
- struct xt_rateest {
-+	/* keep lock and bstats on same cache line to speedup xt_rateest_tg() */
-+	struct gnet_stats_basic_packed	bstats;
-+	spinlock_t			lock;
-+	/* keep rstats and lock on same cache line to speedup xt_rateest_mt() */
-+	struct gnet_stats_rate_est	rstats;
-+
-+	/* following fields not accessed in hot path */
- 	struct hlist_node		list;
- 	char				name[IFNAMSIZ];
- 	unsigned int			refcnt;
--	spinlock_t			lock;
- 	struct gnet_estimator		params;
--	struct gnet_stats_rate_est	rstats;
--	struct gnet_stats_basic_packed	bstats;
- };
- 
- extern struct xt_rateest *xt_rateest_lookup(const char *name);
--- 
-1.7.0.4
-
+Thanks for your advice. Why would the problem be in nf_conntrack_proto_tcp and not in ip_conntrack_proto_tcp?
