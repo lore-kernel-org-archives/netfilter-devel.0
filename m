@@ -1,43 +1,38 @@
-From: Jiri Olsa <jolsa@redhat.com>
-Subject: [PATCH 2/2] man - IP_NODEFRAG option for IPv4 socket
-Date: Tue, 15 Jun 2010 13:07:32 +0200
-Message-ID: <1276600052-16499-3-git-send-email-jolsa@redhat.com>
-References: <1276600052-16499-1-git-send-email-jolsa@redhat.com>
-Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
-	linux-man@vger.kernel.org, Jiri Olsa <jolsa@redhat.com>
-To: eric.dumazet@gmail.com, jengelh@medozas.de, kaber@trash.net
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1276600052-16499-1-git-send-email-jolsa@redhat.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH nf-next-2.6] netfilter: CLUSTERIP: RCU conversion
+Date: Tue, 15 Jun 2010 13:10:10 +0200
+Message-ID: <4C175F92.8010001@trash.net>
+References: <1276099861.2442.199.camel@edumazet-laptop>	 <4C0FC1B6.2050605@trash.net> <1276103507.2442.214.camel@edumazet-laptop>	 <4C1658CF.4040804@trash.net> <1276545574.2444.31.camel@edumazet-laptop>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:37831 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754849Ab0FOLKN (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 15 Jun 2010 07:10:13 -0400
+In-Reply-To: <1276545574.2444.31.camel@edumazet-laptop>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-hi,
+Eric Dumazet wrote:
+> [PATCH nf-next-2.6 v2] netfilter: CLUSTERIP: RCU conversion
+>
+> - clusterip_lock becomes a spinlock
+> - lockless lookups
+> - kfree() deferred after RCU grace period
+> - rcu_barrier_bh() inserted in clusterip_tg_exit()
+>
+> v2) 
+> - As Patrick pointed out, we use atomic_inc_not_zero() in
+> clusterip_config_find_get().
+> - list_add_rcu() and list_del_rcu() variants are used.
+> - atomic_dec_and_lock() used in clusterip_config_entry_put()
+>   
 
-this patch adds description for IP_NODEFRAG option for IPv4 socket.
+Applied, thanks Eric.
 
-wbr,
-jirka
-
-
-Signed-off-by: Jiri Olsa <jolsa@redhat.com>
----
- man7/ip.7 |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
-
-diff --git a/man7/ip.7 b/man7/ip.7
-index 34f7e80..12c0d5b 100644
---- a/man7/ip.7
-+++ b/man7/ip.7
-@@ -705,6 +705,12 @@ socket option (see
- .BR IP_TTL " (since Linux 1.0)"
- Set or retrieve the current time-to-live field that is used in every packet
- sent from this socket.
-+.TP
-+.BR IP_NODEFRAG " (since Linux 2.6)"
-+If enabled, the reassembly of outgoing packets is disabled in the netfilter layer.
-+Only valid for
-+.B SOCK_RAW
-+sockets.
- .\" FIXME Document IP_XFRM_POLICY
- .\" Since Linux 2.5.48
- .\" Needs CAP_NET_ADMIN
