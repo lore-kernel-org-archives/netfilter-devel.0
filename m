@@ -1,199 +1,171 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: [RFC PATCH] netfilter: nf_nat: support user-specified SNAT rules
- in LOCAL_IN
-Date: Wed, 16 Jun 2010 17:09:03 +0200
-Message-ID: <4C18E90F.30802@trash.net>
+From: James Morris <jmorris@namei.org>
+Subject: [ANNOUNCE] Linux Security Summit 2010 - Schedule Published
+Date: Thu, 17 Jun 2010 09:12:09 +1000 (EST)
+Message-ID: <alpine.LRH.2.00.1006170847470.9597@tundra.namei.org>
+References: <alpine.LRH.2.00.1005220826560.10931@tundra.namei.org>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------090004070503090300050304"
-Cc: Netfilter Core Team <coreteam@netfilter.org>
-To: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:41978 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758885Ab0FPPJF (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 16 Jun 2010 11:09:05 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: linux-kernel@vger.kernel.org, lwn@lwn.net,
+	fedora-selinux-list@redhat.com, selinux@tycho.nsa.gov,
+	"C. Craig Ross" <ccr@linuxfoundation.org>,
+	ubuntu-hardened@lists.ubuntu.com,
+	tomoyo-users-en@lists.sourceforge.jp,
+	netfilter-devel@vger.kernel.org, linux-crypto@vger.kernel.org,
+	Audit-ML <linux-audit@redhat.com>, lss-pc@ext.namei.org,
+	gentoo-hardened@gentoo.org,
+	Amanda McPherson <amanda.mcpherson@gmail.com>
+To: linux-security-module@vger.kernel.org
+Return-path: <linux-crypto-owner@vger.kernel.org>
+In-Reply-To: <alpine.LRH.2.00.1005220826560.10931@tundra.namei.org>
+Sender: linux-crypto-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-This is a multi-part message in MIME format.
---------------090004070503090300050304
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+==========================================================================
 
-The attached patch adds support for user-specified SNAT
-rules in nat/LOCAL_IN. One possible use case is explained
-in the changelog.
+                     LINUX SECURITY SUMMIT 2010 (BOSTON)
 
-The downside is a small performance penalty: NAT already
-registers a hook for LOCAL_IN, with this patch we invoke
-nf_nat_rule_find() for each new connection going through
-LOCAL_IN. It would be possible quite easily to make this
-behaviour controllable through a module parameter, but I'd
-prefer to keep those to the necessary minimum.
+                             PROGRAM SCHEDULE
 
-Any opinions or objections to this patch? Otherwise I'll
-queue it up in my nf-next tree.
+==========================================================================
 
+SUMMARY
 
-
---------------090004070503090300050304
-Content-Type: text/x-diff;
- name="01.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline;
- filename="01.diff"
-
-commit a9d252f5dbee323808b4356e9edcf41e2ea2d225
-Author: Patrick McHardy <kaber@trash.net>
-Date:   Wed Jun 16 16:55:44 2010 +0200
-
-    netfilter: nf_nat: support user-specified SNAT rules in LOCAL_IN
-    
-    2.6.34 introduced 'conntrack zones' to deal with cases where packets
-    from multiple identical networks are handled by conntrack/NAT. Packets
-    are looped through veth devices, during which they are NATed to private
-    addresses, after which they can continue normally through the stack
-    and possibly have NAT rules applied a second time.
-    
-    This works well, but is needlessly complicated for cases where only
-    a single SNAT/DNAT mapping needs to be applied to these packets. In that
-    case, all that needs to be done is to assign each network to a seperate
-    zone and perform NAT as usual. However this doesn't work for packets
-    destined for the machine performing NAT itself since its corrently not
-    possible to configure SNAT mappings for the LOCAL_IN chain.
-    
-    This patch adds a new INPUT chain to the NAT table and changes the
-    targets performing SNAT to be usable in that chain.
-    
-    Example usage with two identical networks (192.168.0.0/24) on eth0/eth1:
-    
-    # assign packets from each interface to a seperate zone and mark them for NAT
-    
-    iptables -t raw -A PREROUTING -i eth0 -j CT --zone 1
-    iptables -t raw -A PREROUTING -i eth0 -j MARK --set-mark 1
-    iptables -t raw -A PREROUTING -i eth1 -j CT --zone 2
-    iptabels -t raw -A PREROUTING -i eth1 -j MARK --set-mark 2
-    
-    # SNAT packets to private networks: eth0 -> 10.0.0.0/24, eth1 -> 10.0.1.0/24
-    
-    iptables -t nat -A INPUT       -m mark --mark 1 -j NETMAP --to 10.0.0.0/24
-    iptables -t nat -A POSTROUTING -m mark --mark 1 -j NETMAP --to 10.0.0.0/24
-    iptables -t nat -A INPUT       -m mark --mark 2 -j NETMAP --to 10.0.1.0/24
-    iptables -t nat -A POSTROUTING -m mark --mark 2 -j NETMAP --to 10.0.1.0/24
-    
-    # assign packets in the reverse direction to proper zone
-    
-    iptables -t raw -A PREROUTING -d 10.0.0.0/24 -j CT --zone 1
-    iptables -t raw -A OUTPUT     -d 10.0.0.0/24 -j CT --zone 1
-    iptables -t raw -A PREROUTING -d 10.0.1.0/24 -j CT --zone 2
-    iptables -t raw -A OUTPUT     -d 10.0.1.0/24 -j CT --zone 2
-    
-    # Optional: DNAT new connections in the reverse direction to the correct addresses.
-    
-    iptables -t nat -A PREROUTING -d 10.0.0.0/24 -j NETMAP --to 192.168.0.0/24
-    iptables -t nat -A OUTPUT     -d 10.0.0.0/24 -j NETMAP --to 192.168.0.0/24
-    iptables -t nat -A PREROUTING -d 10.0.1.0/24 -j NETMAP --to 192.168.0.0/24
-    iptables -t nat -A OUTPUT     -d 10.0.1.0/24 -j NETMAP --to 192.168.0.0/24
-    
-    Signed-off-by: Patrick McHardy <kaber@trash.net>
-
-diff --git a/include/net/netfilter/nf_nat_rule.h b/include/net/netfilter/nf_nat_rule.h
-index e4a18ae..2890bdc 100644
---- a/include/net/netfilter/nf_nat_rule.h
-+++ b/include/net/netfilter/nf_nat_rule.h
-@@ -12,6 +12,4 @@ extern int nf_nat_rule_find(struct sk_buff *skb,
- 			    const struct net_device *out,
- 			    struct nf_conn *ct);
+  This is to announce the program schedule for the upcoming Linux
+  Security Summit [1], to be held on Monday 9th August in Boston in
+  conjunction with LinuxCon [2].
  
--extern unsigned int
--alloc_null_binding(struct nf_conn *ct, unsigned int hooknum);
- #endif /* _NF_NAT_RULE_H */
-diff --git a/net/ipv4/netfilter/ipt_NETMAP.c b/net/ipv4/netfilter/ipt_NETMAP.c
-index 7c29582..25acd0c 100644
---- a/net/ipv4/netfilter/ipt_NETMAP.c
-+++ b/net/ipv4/netfilter/ipt_NETMAP.c
-@@ -48,7 +48,8 @@ netmap_tg(struct sk_buff *skb, const struct xt_target_param *par)
- 
- 	NF_CT_ASSERT(par->hooknum == NF_INET_PRE_ROUTING ||
- 		     par->hooknum == NF_INET_POST_ROUTING ||
--		     par->hooknum == NF_INET_LOCAL_OUT);
-+		     par->hooknum == NF_INET_LOCAL_OUT ||
-+		     par->hooknum == NF_INET_LOCAL_IN);
- 	ct = nf_ct_get(skb, &ctinfo);
- 
- 	netmask = ~(mr->range[0].min_ip ^ mr->range[0].max_ip);
-@@ -77,7 +78,8 @@ static struct xt_target netmap_tg_reg __read_mostly = {
- 	.table		= "nat",
- 	.hooks		= (1 << NF_INET_PRE_ROUTING) |
- 			  (1 << NF_INET_POST_ROUTING) |
--			  (1 << NF_INET_LOCAL_OUT),
-+			  (1 << NF_INET_LOCAL_OUT) |
-+			  (1 << NF_INET_LOCAL_IN),
- 	.checkentry 	= netmap_tg_check,
- 	.me 		= THIS_MODULE
- };
-diff --git a/net/ipv4/netfilter/nf_nat_rule.c b/net/ipv4/netfilter/nf_nat_rule.c
-index 26de2c1..bba3687 100644
---- a/net/ipv4/netfilter/nf_nat_rule.c
-+++ b/net/ipv4/netfilter/nf_nat_rule.c
-@@ -27,7 +27,8 @@
- 
- #define NAT_VALID_HOOKS ((1 << NF_INET_PRE_ROUTING) | \
- 			 (1 << NF_INET_POST_ROUTING) | \
--			 (1 << NF_INET_LOCAL_OUT))
-+			 (1 << NF_INET_LOCAL_OUT) | \
-+			 (1 << NF_INET_LOCAL_IN))
- 
- static const struct xt_table nat_table = {
- 	.name		= "nat",
-@@ -44,7 +45,8 @@ ipt_snat_target(struct sk_buff *skb, const struct xt_target_param *par)
- 	enum ip_conntrack_info ctinfo;
- 	const struct nf_nat_multi_range_compat *mr = par->targinfo;
- 
--	NF_CT_ASSERT(par->hooknum == NF_INET_POST_ROUTING);
-+	NF_CT_ASSERT(par->hooknum == NF_INET_POST_ROUTING ||
-+		     par->hooknum == NF_INET_LOCAL_IN);
- 
- 	ct = nf_ct_get(skb, &ctinfo);
- 
-@@ -98,7 +100,7 @@ static bool ipt_dnat_checkentry(const struct xt_tgchk_param *par)
- 	return true;
- }
- 
--unsigned int
-+static unsigned int
- alloc_null_binding(struct nf_conn *ct, unsigned int hooknum)
- {
- 	/* Force range to this IP; let proto decide mapping for
-@@ -140,7 +142,7 @@ static struct xt_target ipt_snat_reg __read_mostly = {
- 	.target		= ipt_snat_target,
- 	.targetsize	= sizeof(struct nf_nat_multi_range_compat),
- 	.table		= "nat",
--	.hooks		= 1 << NF_INET_POST_ROUTING,
-+	.hooks		= (1 << NF_INET_POST_ROUTING) | (1 << NF_INET_LOCAL_IN),
- 	.checkentry	= ipt_snat_checkentry,
- 	.family		= AF_INET,
- };
-diff --git a/net/ipv4/netfilter/nf_nat_standalone.c b/net/ipv4/netfilter/nf_nat_standalone.c
-index c39c9cf..5d5d9a7 100644
---- a/net/ipv4/netfilter/nf_nat_standalone.c
-+++ b/net/ipv4/netfilter/nf_nat_standalone.c
-@@ -131,13 +131,7 @@ nf_nat_fn(unsigned int hooknum,
- 		if (!nf_nat_initialized(ct, maniptype)) {
- 			unsigned int ret;
- 
--			if (hooknum == NF_INET_LOCAL_IN)
--				/* LOCAL_IN hook doesn't have a chain!  */
--				ret = alloc_null_binding(ct, hooknum);
--			else
--				ret = nf_nat_rule_find(skb, hooknum, in, out,
--						       ct);
--
-+			ret = nf_nat_rule_find(skb, hooknum, in, out, ct);
- 			if (ret != NF_ACCEPT) {
- 				return ret;
- 			}
+  Following a round of voting by the Program Committee, the following
+  proposals were selected as main talks:
+  
+    * "Recent Advances in the SELinux Sandbox"
+            Dan Walsh, Red Hat
+    
+    * "in ur webserver, writin ur logs"
+            Joshua Brindle, Tresys
+            
+    * "Integrating Security into Vyatta"
+            Stephen Hemminger, Vyatta
+            
+    * "MSF Security Framework Overview"
+            Elena Reshetova, Nokia
+            
+    * "Access Control in the MSF Security Framework"
+            Janne Karhunen, Nokia
 
---------------090004070503090300050304--
+    * "Linux Security in 10 Years"
+            Brad Spengler, grsecurity
+            
+    * "Using EVM to protect security extended attributes"
+            Mimi Zohar, IBM
+            
+    * "Secstate: Integrating SCAP and Puppet for System Lockdown"
+            Karl MacMillan, Tresys
+            
+    * "Widely Used But Out-Of-Tree"
+            Kees Cook, Canonical
+            
+    * "Linux Security Usability"
+            Z. Cliffe Schreuders, Murdoch University
+            
+    * "System Security Services Daemon (SSSD)"
+            Stephen Gallagher, Red Hat 
+
+  We will also hold a panel session, kicking off with a discussion on "The
+  Viability of a Standard Linux Security API", followed by open Q&A and
+  lightning talks.
+  
+  Full details of the program, including abstracts, may be found at:
+  
+    https://security.wiki.kernel.org/index.php/LinuxSecuritySummit2010/Schedule
+
+
+EVENT DESCRIPTION
+
+  The Linux Security Summit is a technical forum for collaboration
+  between Linux developers, researchers, and end users.  Its primary aim
+  is to foster community efforts in analyzing and solving Linux security
+  challenges.
+
+  The format of the summit will be:
+  
+    * Selected brief presentations
+    * Lightning talks
+    * Q&A panel sessions 
+  
+
+DATES / LOCATION
+
+  The Linux Security Summit for 2010 will be held on the 9th of August in
+  Boston, USA.  It will be co-located with LinuxCon [2], at the
+  Renaissance Boston Waterfront.
+  
+  Note that Linux Security Summit attendees must be registered to attend
+  LinuxCon.  See the LinuxCon site for details on registration, travel,
+  and accommodation.
+  
+    http://events.linuxfoundation.org/events/linuxcon
+
+
+WHO SHOULD ATTEND
+
+  The event is open to all registered LinuxCon attendees.
+  
+  You do not have to be a "security person" to attend -- we're seeking a
+  diverse range of attendees, and welcome the participation of general
+  developers, researchers, operations, and end-users.
+
+  There will be panel and lightning talks sessions in addition to brief,
+  selected presentations, with a strong focus on discussion.
+
+  Lightning talks and discussion panel agendas will be coordinated closer
+  to the event on the event mailing list, and on-site.
+
+
+MAILING LIST
+
+  Everyone planning to attend should join the event mailing list:
+  
+     https://ext.namei.org/mailman/listinfo/linux-security-summit
+     
+  Coordination of panel discussions and lightning talks will occur on the
+  list.  Updates and announcements about the event will also be sent to
+  the list.
+  
+
+WEB SITE
+
+  Please also note the Linux Security Summit web site:
+  
+    https://security.wiki.kernel.org/index.php/LinuxSecuritySummit2010  
+ 
+  which will be kept updated with all available information on the event.
+
+
+PROGRAM COMMITTEE
+
+  The Linux Security Summit for 2010 is organized by:
+
+    * James Morris, Red Hat
+    * Serge Hallyn, IBM
+    * Paul Moore, HP
+    * Stephen Smalley, NSA
+    * Joshua Brindle, Tresys
+    * Tetsuo Handa, NTT Data
+    * Herbert Xu, Red Hat
+    * John Johansen, Canonical
+    * Kees Cook, Canonical
+    * Casey Schaufler, Smack Project 
+
+  
+  The program committee may be contacted as a group via email:
+
+     lss-pc (_at_) ext.namei.org
+   
+
+REFERENCES  
+  
+  [1] LSS 2010: https://security.wiki.kernel.org/index.php/LinuxSecuritySummit2010
+  [2] LinuxCon: http://events.linuxfoundation.org/events/linuxcon
+
+
+==========================================================================
