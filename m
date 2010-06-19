@@ -1,42 +1,35 @@
-From: Randy Dunlap <randy.dunlap@oracle.com>
-Subject: [PATCH -next] netfilter: xt_IDLETIMER needs kdev_t.h
-Date: Fri, 18 Jun 2010 15:34:55 -0700
-Message-ID: <20100618153455.dd33948b.randy.dunlap@oracle.com>
-References: <20100618145443.77b7f8df.sfr@canb.auug.org.au>
+From: Andrew Beverley <andy@andybev.com>
+Subject: Accessing packet marking functions
+Date: Sat, 19 Jun 2010 17:42:19 +0100
+Message-ID: <1276965739.1476.35.camel@andybev>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Cc: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	netfilter-devel@vger.kernel.org
-To: Stephen Rothwell <sfr@canb.auug.org.au>,
-	netdev <netdev@vger.kernel.org>
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from rcsinet10.oracle.com ([148.87.113.121]:57867 "EHLO
-	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753585Ab0FRWgx (ORCPT
+Received: from earth.simplelists.com ([89.16.184.171]:60570 "EHLO
+	earth.simplelists.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751607Ab0FSRGW (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 18 Jun 2010 18:36:53 -0400
-In-Reply-To: <20100618145443.77b7f8df.sfr@canb.auug.org.au>
+	Sat, 19 Jun 2010 13:06:22 -0400
+Received: from [10.95.168.244] (unknown [82.132.248.168])
+	by earth.simplelists.com (Postfix) with ESMTP id 7DB181B3002D
+	for <netfilter-devel@vger.kernel.org>; Sat, 19 Jun 2010 17:42:28 +0100 (BST)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-From: Randy Dunlap <randy.dunlap@oracle.com>
+I am considering patching Squid proxy so that it retains a packet's mark
+value if it could not be fetched from the cache. Squid already has
+similar functionality for the TOS field, but I would like to extend this
+to netfilter's mark feature.
 
-Add header file to fix build error:
-net/netfilter/xt_IDLETIMER.c:276: error: implicit declaration of function 'MKDEV'
+Can somebody point me in the right direction for the correct way of
+setting and accessing the mark value of a packet? The TOS feature in
+Squid uses setsockopt(). Is there an equivalent for mark? Should I be
+using libnetfilter_queue?
 
-Signed-off-by: Randy Dunlap <randy.dunlap@oracle.com>
----
- net/netfilter/xt_IDLETIMER.c |    1 +
- 1 file changed, 1 insertion(+)
+Thanks in advance,
 
---- linux-next-20100618.orig/net/netfilter/xt_IDLETIMER.c
-+++ linux-next-20100618/net/netfilter/xt_IDLETIMER.c
-@@ -36,6 +36,7 @@
- #include <linux/netfilter.h>
- #include <linux/netfilter/x_tables.h>
- #include <linux/netfilter/xt_IDLETIMER.h>
-+#include <linux/kdev_t.h>
- #include <linux/kobject.h>
- #include <linux/workqueue.h>
- #include <linux/sysfs.h>
+Andy
+
+
