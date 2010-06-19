@@ -1,40 +1,43 @@
-From: Andrew Beverley <andy@andybev.com>
-Subject: Re: Accessing packet marking functions
-Date: Sat, 19 Jun 2010 21:50:00 +0100
-Message-ID: <1276980600.1476.82.camel@andybev>
-References: <1276965739.1476.35.camel@andybev>
-	 <alpine.LSU.2.01.1006192200300.21809@obet.zrqbmnf.qr>
+From: Jiri Olsa <jolsa@redhat.com>
+Subject: Re: [PATCH 0/2] net,man - IP_NODEFRAG option for IPv4 socket
+Date: Sun, 20 Jun 2010 01:32:41 +0200
+Message-ID: <20100619233241.GA1876@jolsa.colubris.lan>
+References: <1276600052-16499-1-git-send-email-jolsa@redhat.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=us-ascii
+Cc: netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	linux-man@vger.kernel.org
+To: eric.dumazet@gmail.com, jengelh@medozas.de, kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from earth.simplelists.com ([89.16.184.171]:50318 "EHLO
-	earth.simplelists.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751195Ab0FSUuM (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 19 Jun 2010 16:50:12 -0400
-In-Reply-To: <alpine.LSU.2.01.1006192200300.21809@obet.zrqbmnf.qr>
+Received: from mx1.redhat.com ([209.132.183.28]:40249 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753878Ab0FSXcx (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 19 Jun 2010 19:32:53 -0400
+Content-Disposition: inline
+In-Reply-To: <1276600052-16499-1-git-send-email-jolsa@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-> >Can somebody point me in the right direction for the correct way of
-> >setting and accessing the mark value of a packet? The TOS feature in
-> >Squid uses setsockopt(). Is there an equivalent for mark? Should I be
-> >using libnetfilter_queue?
+hi,
+any feedback?
+
+thanks,
+jirka
+
+On Tue, Jun 15, 2010 at 01:07:30PM +0200, Jiri Olsa wrote:
+> hi,
 > 
-> setsockopt(fd, SOL_SOCKET, SO_MARK, ...)
-
-Thanks Jan. I was honestly googling that for ages :-)
-
-Not really for discussion here, but the whole concept of having a proxy
-server in combination with traffic shaping rules makes things
-challenging. All my traffic shaping rules are based on source and
-destination interfaces, ports, and client addresses, so once a proxy is
-thrown in, that sort of information is unavailable, as all the traffic
-is no longer forwarded, but instead goes to and from the local host...
-
-Andy
-
-
+> this series contains patch for IP_NODEFRAG option for RAW sockets,
+> and changes for man pages.
+> 
+> I'm sending this together, hope it's ok.
+> 
+> 1/2 - net - IP_NODEFRAG option for IPv4 socket
+> 2/2 - man - IP_NODEFRAG option for IPv4 socket
+> 
+> wbr,
+> jirka
+> --
+> To unsubscribe from this list: send the line "unsubscribe netdev" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
