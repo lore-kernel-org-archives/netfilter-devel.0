@@ -1,51 +1,32 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: high latency with ipset-4.2 and 2.6.27.45 kernel.
-Date: Mon, 21 Jun 2010 18:46:51 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1006211846000.17820@obet.zrqbmnf.qr>
-References: <AANLkTimikytx8wGmEtC0gbOng_vAyDUPVHRJWMmnm6p9@mail.gmail.com> <alpine.DEB.2.00.1006211518090.32109@blackhole.kfki.hu> <AANLkTin1A2whIiaHWa4k0NZcdGqJhpk511hBSuLZd-pB@mail.gmail.com>
+From: tingwei liu <tingw.liu@gmail.com>
+Subject: multi-path route can't keep long time connections
+Date: Tue, 22 Jun 2010 09:48:09 +0800
+Message-ID: <AANLkTimeYhY-lgY2c5dfYQRDZ2oDLpB1U7TzkvyFQh_A@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@vger.kernel.org
-To: krunal patel <krunal.raj@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+To: netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:40158 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932633Ab0FUQqw (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 21 Jun 2010 12:46:52 -0400
-In-Reply-To: <AANLkTin1A2whIiaHWa4k0NZcdGqJhpk511hBSuLZd-pB@mail.gmail.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:41530 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752568Ab0FVBsK (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 21 Jun 2010 21:48:10 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Because route circularly flush route cache
+(/proc/net/sys/ipv4/route/secret_timeval),the multi-path route can't
+keep long time connections. The long time connections maybe interrupt
+every "secret_timeval" seconds.
+Such as:
+default nexthop via 192.168.0.1 weight 1
+                       via 192.168.1.1 weight 1
+                       via 192.168.2.1 weight 1
 
-On Monday 2010-06-21 17:18, krunal patel wrote:
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0iptables -A FORWARD -m set ! --set testi=
-p src
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0iptables -A FORWARD -m set ! --set testi=
-p src
->>> =C2=A0 =C2=A0 =C2=A0 =C2=A0iptables -A FORWARD -m set --set testip =
-src
->>
->> You do not measure ipset definitely. Because there is no target in t=
-he
->> rules, all of them are evaluated one after another, regardless of th=
-e
->> previous ones: netfilter just increases the packet/byte counters of =
-the
->> matching rules, but continues by processing the next rule(s).
->
->No, we are measuring only ipset. What we are suspecting is, as number
->of ipset matches increases in packet path latency is increasing.
->
->1000 msecs is just by adding 1 more rule. 3 rules took it to around
->3000 to 4000 msecs.
+With a connection cross 192.168.0.1 in the first time."secret_timeval"
+seconds later,this connection maybe cross 192.168.1.1,then this
+connection will be reconnect.
 
-No question that reevaluating the same thing over and over
-increases runtime...
+Anyone can help me?
 
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Your response is pleasure.
