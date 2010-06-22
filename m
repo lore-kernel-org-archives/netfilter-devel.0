@@ -1,67 +1,48 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [RFC PATCH] netfilter: nf_nat: support user-specified SNAT rules
- in LOCAL_IN
-Date: Tue, 22 Jun 2010 09:20:39 +0200
-Message-ID: <4C206447.2040900@trash.net>
-References: <4C18E90F.30802@trash.net> <alpine.LSU.2.01.1006170924040.12057@obet.zrqbmnf.qr> <4C19D257.5090101@trash.net> <alpine.LSU.2.01.1006170952010.15602@obet.zrqbmnf.qr> <4C19D4EE.3080906@trash.net> <alpine.LSU.2.01.1006171056080.23461@obet.zrqbmnf.qr> <4C1A3DA0.2060804@trash.net> <alpine.LSU.2.01.1006201007241.24800@obet.zrqbmnf.qr>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: high latency with ipset-4.2 and 2.6.27.45 kernel.
+Date: Tue, 22 Jun 2010 10:51:28 +0200 (CEST)
+Message-ID: <alpine.LSU.2.01.1006221046110.13935@obet.zrqbmnf.qr>
+References: <AANLkTimikytx8wGmEtC0gbOng_vAyDUPVHRJWMmnm6p9@mail.gmail.com> <alpine.DEB.2.00.1006211518090.32109@blackhole.kfki.hu> <AANLkTin1A2whIiaHWa4k0NZcdGqJhpk511hBSuLZd-pB@mail.gmail.com> <alpine.LSU.2.01.1006211846000.17820@obet.zrqbmnf.qr>
+ <AANLkTil7HS75O5WO3Bxz1S7CF5D4r1om0iWD8vSF3bF6@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	Netfilter Core Team <coreteam@netfilter.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: krunal patel <krunal.raj@gmail.com>,
+	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
+	netfilter-devel@vger.kernel.org
+To: Nishit Shah <nsshah.82@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:41858 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754417Ab0FVHUo (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Jun 2010 03:20:44 -0400
-In-Reply-To: <alpine.LSU.2.01.1006201007241.24800@obet.zrqbmnf.qr>
+Received: from borg.medozas.de ([188.40.89.202]:55395 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753938Ab0FVIv3 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 22 Jun 2010 04:51:29 -0400
+In-Reply-To: <AANLkTil7HS75O5WO3Bxz1S7CF5D4r1om0iWD8vSF3bF6@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Jan Engelhardt wrote:
-> On Thursday 2010-06-17 17:22, Patrick McHardy wrote:
->   
->>>  
->>>       
->>>> PREROUTING performs DNAT. The purpose is to map the two
->>>> identical networks to non-clashing networks. Just consider two
->>>> connections from the same source address and port number
->>>> to the same destination.
->>>>         
->>> If veth0 has 10.0.0.0/24 and veth1 has 10.0.0.0/24,
->>> wouldn't Linux's ARP mechanism already be confused, in
->>> that it only sends ARP to the first network matching
->>> the subnet?
->>>       
->> This patch is intended to be used *without* looping packets through
->> veth. But good point, I chose that example to simplify things, the
->> use case I'm interested in is actually tunnels. Apparently it wasn't
->> the best possible example :)
->>     
->
-> Now you completely lost me. Without separate namespaces and veth
-> to exchange packets between them,
->
-> # ip a
-> 8: iptnl1: <POINTOPOINT,NOARP,UP,LOWER_UP> mtu 1480 qdisc noqueue state UNKNOWN 
->     link/ipip 5.6.7.8 peer 1.2.3.4
->     inet 10.0.0.1/24 scope global iptnl1
-> 9: iptnl2: <POINTOPOINT,NOARP,UP,LOWER_UP> mtu 1480 qdisc noqueue state UNKNOWN 
->     link/ipip 5.6.7.8 peer 9.10.11.12
->     inet 10.0.0.1/24 scope global iptnl2
->
-> # ip r
-> 10.0.0.0/24 dev iptnl1  proto kernel  scope link  src 10.0.0.1 
-> 10.0.0.0/24 dev iptnl2  proto kernel  scope link  src 10.0.0.1 
->
-> will lead to exclusive delivery to iptnl1 for packets that originate
-> from the router itself.
-> ...
-> Seems sufficient.
->   
 
-How is that sufficient for talking to both networks?
+On Tuesday 2010-06-22 07:41, Nishit Shah wrote:
+>> On Monday 2010-06-21 17:18, krunal patel wrote:
+>>>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0iptables -A FORWARD -m set ! --set tes=
+tip src
+>>>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0iptables -A FORWARD -m set ! --set tes=
+tip src
+>>>>> =C2=A0 =C2=A0 =C2=A0 =C2=A0iptables -A FORWARD -m set --set testi=
+p src
+>>
+>> No question that reevaluating the same thing over and over
+>> increases runtime...
+>
+>Well, that is not the case. With 2.6.18.8 latency is same as 6 msecs.
 
+I think what you see could be noise.
+
+See commit 848484c08cb4ad161074262994410387585259ff in
+xtables-addons. There I needed 3000 ping packets (sent with ping -f)
+*and* a linear search of 10000 ranges to get above 2000 msec overhead
+for a single rule.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
