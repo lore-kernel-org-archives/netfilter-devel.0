@@ -1,26 +1,39 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] Fix simple typo in KConfig for netfiltert xt_TEE.
-Date: Tue, 22 Jun 2010 08:22:48 +0200
-Message-ID: <4C2056B8.3060109@trash.net>
-References: <1275403623-9133-1-git-send-email-hannemann@nets.rwth-aachen.de>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [patch v2.2 1/4] [PATCH v2.1 1/4] netfilter: xt_ipvs
+ (netfilter matcher for IPVS)
+Date: Tue, 22 Jun 2010 16:13:27 +0900
+Message-ID: <20100622071326.GB9928@verge.net.au>
+References: <20100501032014.406353538@vergenet.net>
+ <20100501032120.298829234@vergenet.net>
+ <4BDC543F.7060500@trash.net>
+ <AANLkTikIzHuzxo4z1_8_fEGLBC2-0Uz0X8SOc8n2msuX@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Arnd Hannemann <hannemann@nets.rwth-aachen.de>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:40949 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754098Ab0FVGWu (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Jun 2010 02:22:50 -0400
-In-Reply-To: <1275403623-9133-1-git-send-email-hannemann@nets.rwth-aachen.de>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>, lvs-devel@vger.kernel.org,
+	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
+	netfilter@vger.kernel.org, Wensong Zhang <wensong@linux-vs.org>,
+	Julius Volz <julius.volz@gmail.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Hannes Eder <heder@google.com>
+Return-path: <lvs-devel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <AANLkTikIzHuzxo4z1_8_fEGLBC2-0Uz0X8SOc8n2msuX@mail.gmail.com>
+Sender: lvs-devel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Arnd Hannemann wrote:
-> Destination was spelled wrong in KConfig.
->   
+On Mon, May 03, 2010 at 01:29:46PM +0200, Hannes Eder wrote:
+> Thank you for picking this series of patches up again and thanks for
+> the feedback.
+> 
+> I'll send an updated version in the next days.
 
+Hi Hanes,
 
-Applied, thanks Arnd.
+more than a few days seems to have passed.
+Do you have time to fix the patches up?
+If not, I'll take a stab at it.
+
+Thanks
+
