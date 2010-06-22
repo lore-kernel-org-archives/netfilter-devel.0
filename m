@@ -1,39 +1,67 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [patch v2.2 1/4] [PATCH v2.1 1/4] netfilter: xt_ipvs
- (netfilter matcher for IPVS)
-Date: Tue, 22 Jun 2010 16:13:27 +0900
-Message-ID: <20100622071326.GB9928@verge.net.au>
-References: <20100501032014.406353538@vergenet.net>
- <20100501032120.298829234@vergenet.net>
- <4BDC543F.7060500@trash.net>
- <AANLkTikIzHuzxo4z1_8_fEGLBC2-0Uz0X8SOc8n2msuX@mail.gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [RFC PATCH] netfilter: nf_nat: support user-specified SNAT rules
+ in LOCAL_IN
+Date: Tue, 22 Jun 2010 09:20:39 +0200
+Message-ID: <4C206447.2040900@trash.net>
+References: <4C18E90F.30802@trash.net> <alpine.LSU.2.01.1006170924040.12057@obet.zrqbmnf.qr> <4C19D257.5090101@trash.net> <alpine.LSU.2.01.1006170952010.15602@obet.zrqbmnf.qr> <4C19D4EE.3080906@trash.net> <alpine.LSU.2.01.1006171056080.23461@obet.zrqbmnf.qr> <4C1A3DA0.2060804@trash.net> <alpine.LSU.2.01.1006201007241.24800@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>, lvs-devel@vger.kernel.org,
-	netdev@vger.kernel.org, linux-kernel@vger.kernel.org,
-	netfilter@vger.kernel.org, Wensong Zhang <wensong@linux-vs.org>,
-	Julius Volz <julius.volz@gmail.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>
-To: Hannes Eder <heder@google.com>
-Return-path: <lvs-devel-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <AANLkTikIzHuzxo4z1_8_fEGLBC2-0Uz0X8SOc8n2msuX@mail.gmail.com>
-Sender: lvs-devel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	Netfilter Core Team <coreteam@netfilter.org>
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:41858 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754417Ab0FVHUo (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 22 Jun 2010 03:20:44 -0400
+In-Reply-To: <alpine.LSU.2.01.1006201007241.24800@obet.zrqbmnf.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, May 03, 2010 at 01:29:46PM +0200, Hannes Eder wrote:
-> Thank you for picking this series of patches up again and thanks for
-> the feedback.
-> 
-> I'll send an updated version in the next days.
+Jan Engelhardt wrote:
+> On Thursday 2010-06-17 17:22, Patrick McHardy wrote:
+>   
+>>>  
+>>>       
+>>>> PREROUTING performs DNAT. The purpose is to map the two
+>>>> identical networks to non-clashing networks. Just consider two
+>>>> connections from the same source address and port number
+>>>> to the same destination.
+>>>>         
+>>> If veth0 has 10.0.0.0/24 and veth1 has 10.0.0.0/24,
+>>> wouldn't Linux's ARP mechanism already be confused, in
+>>> that it only sends ARP to the first network matching
+>>> the subnet?
+>>>       
+>> This patch is intended to be used *without* looping packets through
+>> veth. But good point, I chose that example to simplify things, the
+>> use case I'm interested in is actually tunnels. Apparently it wasn't
+>> the best possible example :)
+>>     
+>
+> Now you completely lost me. Without separate namespaces and veth
+> to exchange packets between them,
+>
+> # ip a
+> 8: iptnl1: <POINTOPOINT,NOARP,UP,LOWER_UP> mtu 1480 qdisc noqueue state UNKNOWN 
+>     link/ipip 5.6.7.8 peer 1.2.3.4
+>     inet 10.0.0.1/24 scope global iptnl1
+> 9: iptnl2: <POINTOPOINT,NOARP,UP,LOWER_UP> mtu 1480 qdisc noqueue state UNKNOWN 
+>     link/ipip 5.6.7.8 peer 9.10.11.12
+>     inet 10.0.0.1/24 scope global iptnl2
+>
+> # ip r
+> 10.0.0.0/24 dev iptnl1  proto kernel  scope link  src 10.0.0.1 
+> 10.0.0.0/24 dev iptnl2  proto kernel  scope link  src 10.0.0.1 
+>
+> will lead to exclusive delivery to iptnl1 for packets that originate
+> from the router itself.
+> ...
+> Seems sufficient.
+>   
 
-Hi Hanes,
-
-more than a few days seems to have passed.
-Do you have time to fix the patches up?
-If not, I'll take a stab at it.
-
-Thanks
+How is that sufficient for talking to both networks?
 
