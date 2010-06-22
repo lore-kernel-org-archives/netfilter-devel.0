@@ -1,52 +1,46 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: Accessing packet marking functions
-Date: Tue, 22 Jun 2010 08:16:35 +0200
-Message-ID: <4C205543.9080902@trash.net>
-References: <1276965739.1476.35.camel@andybev>	 <alpine.LSU.2.01.1006192200300.21809@obet.zrqbmnf.qr>	 <1277032613.1476.93.camel@andybev>	 <alpine.LSU.2.01.1006201351490.23203@obet.zrqbmnf.qr> <1277037072.1476.107.camel@andybev>
+Subject: Re: [PATCH 0/2] net,man - IP_NODEFRAG option for IPv4 socket
+Date: Tue, 22 Jun 2010 08:21:20 +0200
+Message-ID: <4C205660.7050501@trash.net>
+References: <1276600052-16499-1-git-send-email-jolsa@redhat.com> <20100619233241.GA1876@jolsa.colubris.lan>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Jan Engelhardt <jengelh@medozas.de>,
-	netfilter-devel@vger.kernel.org
-To: Andrew Beverley <andy@andybev.com>
+Cc: eric.dumazet@gmail.com, jengelh@medozas.de, netdev@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, linux-man@vger.kernel.org
+To: Jiri Olsa <jolsa@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:40856 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:40928 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753159Ab0FVGQg (ORCPT
+	with ESMTP id S1750922Ab0FVGVV (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Jun 2010 02:16:36 -0400
-In-Reply-To: <1277037072.1476.107.camel@andybev>
+	Tue, 22 Jun 2010 02:21:21 -0400
+In-Reply-To: <20100619233241.GA1876@jolsa.colubris.lan>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Andrew Beverley wrote:
->>>>> Can somebody point me in the right direction for the correct way of
->>>>> setting and accessing the mark value of a packet? The TOS feature in
->>>>> Squid uses setsockopt(). Is there an equivalent for mark? Should I be
->>>>> using libnetfilter_queue?
->>>>>           
->>>> setsockopt(fd, SOL_SOCKET, SO_MARK, ...)
->>>>         
->>> I am getting the error "Operation not permitted" when trying to do this.
->>> Is this because the packet is not in a state where it can be marked, or
->>> am I doing something stupid? My code is:
->>>
->>> int nfmark = 255;
->>> setsockopt(fd, SOL_SOCKET, SO_MARK, (int *) &nfmark, sizeof(int));
->>>       
->
+Jiri Olsa wrote:
+> hi,
+> any feedback?
 >   
->> 1. Do away with the pointless casts.
->> 2. Needs root privileges.
+
+Your patch seems fine to me.
+
+Acked-by: Patrick McHardy <kaber@trash.net>
+
+> thanks,
+> jirka
+>
+> On Tue, Jun 15, 2010 at 01:07:30PM +0200, Jiri Olsa wrote:
+>   
+>> hi,
+>>
+>> this series contains patch for IP_NODEFRAG option for RAW sockets,
+>> and changes for man pages.
+>>
+>> I'm sending this together, hope it's ok.
+>>
+>> 1/2 - net - IP_NODEFRAG option for IPv4 socket
+>> 2/2 - man - IP_NODEFRAG option for IPv4 socket
 >>     
->
-> Thanks, that works now when running as root (with pointless casts
-> removed).
->
-> The problem is that Squid normally runs as a non-privileged user (I had
-> to remove the root checks from the code to get it to run as root). Is
-> there any way to mark packets when not root? Or is the only way to make
-> this work to run a small part of Squid as root?
 
-
-enter_suid()/leave_suid().
