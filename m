@@ -1,60 +1,35 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: Re: Utilization of Multi-core hardware by Netfilter
-Date: Tue, 22 Jun 2010 18:33:51 +0200
-Message-ID: <1277224431.3057.600.camel@edumazet-laptop>
-References: <AANLkTik76jQGjSbpXUo29e_75fUV_m8uQxLqEpW9jte5@mail.gmail.com>
-	 <alpine.LSU.2.01.1006221801230.1731@obet.zrqbmnf.qr>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Anand Raj Manickam <anandrm@gmail.com>,
-	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+From: tim.gardner@canonical.com
+Subject: [PATCH 0/3] nf-next-2.6 pull request, Complete deprecation of CONFIG_NF_CT_ACCT (V2)
+Date: Tue, 22 Jun 2010 10:44:32 -0600
+Message-ID: <1277225075-30428-1-git-send-email-tim.gardner@canonical.com>
+Cc: netfilter-devel@vger.kernel.org, ole@ans.pl
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-wy0-f174.google.com ([74.125.82.174]:48465 "EHLO
-	mail-wy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751942Ab0FVQd6 (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Jun 2010 12:33:58 -0400
-Received: by wyi11 with SMTP id 11so9871wyi.19
-        for <netfilter-devel@vger.kernel.org>; Tue, 22 Jun 2010 09:33:55 -0700 (PDT)
-In-Reply-To: <alpine.LSU.2.01.1006221801230.1731@obet.zrqbmnf.qr>
+Received: from mail.tpi.com ([70.99.223.143]:2226 "EHLO mail.tpi.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752374Ab0FVQpn (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 22 Jun 2010 12:45:43 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Le mardi 22 juin 2010 =C3=A0 18:01 +0200, Jan Engelhardt a =C3=A9crit :
-> On Tuesday 2010-06-22 16:38, Anand Raj Manickam wrote:
->=20
-> >Hi,
-> >I am  pumping data at a connection rate of 6000 connections per seco=
-nd
-> > on  a Dual Core CPU .
-> >But CPU 0 is the one which is always occupied  upto 100% and CPU 1 i=
-s
-> >always 98-100% idle  and after CPU0 reaches 100% connections starts =
-to
-> >fail.
-> >Any pointers other than RPS/RFS  to load balance the CPU utilization=
- ?
-> >I m using linux-2.6.26 kernel .
->=20
-> It's not in 2.6.26.
+The following changes since commit fe6fb552858f686f39e33d7b0a33fe56dacea0bf:
+  Arnd Hannemann (1):
+        netfilter: fix simple typo in KConfig for netfiltert xt_TEE
 
-I believe Anand was aware of this RFS/RPS thing not available in
-2.6.26 ;)
+are available in the git repository at:
 
-Anand, if you have two NICS, you can try to irq affine each NIC to each
-CPU.
+  git://kernel.ubuntu.com/rtg/nf-next-2.6 CONFIG_NF_CT_ACCT
 
-Other than that, you could try a multi queue NIC and fairly recent
-kernel.
+Tim Gardner (3):
+      netfilter: Expose connection tracking accounting toggles
+      netfilter: xt_connbytes: Force CT accounting to be enabled
+      netfilter: Complete the deprecation of CONFIG_NF_CT_ACCT
 
-2.6.26 has a lot of bottlenecks, I am not sure trying to use your two
-cores will actually help.
+ Documentation/feature-removal-schedule.txt |    9 ---------
+ Documentation/kernel-parameters.txt        |    3 +--
+ include/net/netfilter/nf_conntrack.h       |   12 ++++++++++++
+ net/netfilter/Kconfig                      |   22 ----------------------
+ net/netfilter/nf_conntrack_acct.c          |   10 ----------
+ net/netfilter/xt_connbytes.c               |   13 ++++++++++++-
+ 6 files changed, 25 insertions(+), 44 deletions(-)
 
-
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
