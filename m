@@ -1,42 +1,47 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: high latency with ipset-4.2 and 2.6.27.45 kernel.
-Date: Tue, 22 Jun 2010 12:36:16 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1006221235560.1327@obet.zrqbmnf.qr>
-References: <AANLkTimikytx8wGmEtC0gbOng_vAyDUPVHRJWMmnm6p9@mail.gmail.com> <alpine.DEB.2.00.1006211518090.32109@blackhole.kfki.hu> <AANLkTin1A2whIiaHWa4k0NZcdGqJhpk511hBSuLZd-pB@mail.gmail.com> <alpine.LSU.2.01.1006211846000.17820@obet.zrqbmnf.qr>
- <AANLkTil7HS75O5WO3Bxz1S7CF5D4r1om0iWD8vSF3bF6@mail.gmail.com> <alpine.LSU.2.01.1006221046110.13935@obet.zrqbmnf.qr> <alpine.DEB.2.00.1006221057510.2237@blackhole.kfki.hu> <alpine.DEB.2.00.1006221151050.2393@blackhole.kfki.hu>
+From: Tim Gardner <timg@tpi.com>
+Subject: Re: [PATCH] net-next-2.6, Complete deprecation of CONFIG_NF_CT_ACCT
+Date: Tue, 22 Jun 2010 06:40:56 -0600
+Message-ID: <4C20AF58.1070900@tpi.com>
+References: <20100618175206.2E1CBF88CE@sepang.rtg.net> <4C20545A.90405@trash.net>
+Reply-To: timg@tpi.com
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Nishit Shah <nsshah.82@gmail.com>,
-	krunal patel <krunal.raj@gmail.com>,
-	netfilter-devel@vger.kernel.org
-To: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, ole@ans.pl
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:51067 "EHLO borg.medozas.de"
+Received: from mail.tpi.com ([70.99.223.143]:3045 "EHLO mail.tpi.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755215Ab0FVKgS (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Jun 2010 06:36:18 -0400
-In-Reply-To: <alpine.DEB.2.00.1006221151050.2393@blackhole.kfki.hu>
+	id S1756595Ab0FVMlH (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 22 Jun 2010 08:41:07 -0400
+In-Reply-To: <4C20545A.90405@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-On Tuesday 2010-06-22 11:53, Jozsef Kadlecsik wrote:
->> > >Well, that is not the case. With 2.6.18.8 latency is same as 6 msecs.
->> > 
->> > I think what you see could be noise.
->> > 
->> > See commit 848484c08cb4ad161074262994410387585259ff in
->> > xtables-addons. There I needed 3000 ping packets (sent with ping -f)
->> > *and* a linear search of 10000 ranges to get above 2000 msec overhead
->> > for a single rule.
->> 
->> The impact of one more rule should be negligible. Something is bad there, 
->> but we know too little on the setup, the configuration: what kind of 
->> architecture, hardware you run the testing? What do you get when you 
->> replace the rules with similar ones but with pure "-s src" matching, i.e. 
->> without calling ipset? And it'd be good if you'd test a recent kernel as 
->> well. 2.6.27 is almost two years old.
+On 06/22/2010 12:12 AM, Patrick McHardy wrote:
+> Tim Gardner wrote:
+>> Hi,
+>>
+>> I noticed some noise in my server log, so I thought it might be time to
+>> finish this deprecation. One concern I have is about xt_connbytes. The
+>> Kconfig for NETFILTER_XT_MATCH_CONNBYTES used to 'SELECT NF_CT_ACCT'
+>> which forced nf_conntrack.acct=1. As long as the value of
+>> NF_CT_ACCT_DEFAULT
+>> remains 1, then xt_connbytes should be OK.
 >
->I meant by "you" the OP, that is Krunal. :-)
+> Yeah, but we need to take care of the other case anyways. As I've
+> repeatedly stated, connbytes needs to enable accounting when the
+> first rule using it is added.
+>
 
-I know but that does not stop me to add in related information anyway.
+I thought you might say that. Lemme see what I can come up with.
+
+> You also don't need to update the defconfigs, architecture maintainers
+> can take care of that.
+
+ack
+
+rtg
+-- 
+Tim Gardner timg@tpi.com www.tpi.com
+OR 503-601-0234 x102 MT 406-443-5357
