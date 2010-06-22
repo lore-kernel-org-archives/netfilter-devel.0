@@ -1,64 +1,47 @@
-From: Nishit Shah <nsshah.82@gmail.com>
-Subject: Re: high latency with ipset-4.2 and 2.6.27.45 kernel.
-Date: Tue, 22 Jun 2010 11:11:14 +0530
-Message-ID: <AANLkTil7HS75O5WO3Bxz1S7CF5D4r1om0iWD8vSF3bF6@mail.gmail.com>
-References: <AANLkTimikytx8wGmEtC0gbOng_vAyDUPVHRJWMmnm6p9@mail.gmail.com>
-	<alpine.DEB.2.00.1006211518090.32109@blackhole.kfki.hu>
-	<AANLkTin1A2whIiaHWa4k0NZcdGqJhpk511hBSuLZd-pB@mail.gmail.com>
-	<alpine.LSU.2.01.1006211846000.17820@obet.zrqbmnf.qr>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [patch nf-next-2.6] IPVS: one-packet scheduling
+Date: Tue, 22 Jun 2010 08:08:01 +0200
+Message-ID: <4C205341.4020904@trash.net>
+References: <20100622021405.GA19071@verge.net.au>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: krunal patel <krunal.raj@gmail.com>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netdev@vger.kernel.org, lvs-devel@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julian Anastasov <ja@ssi.bg>,
+	Nick Chalk <nick@loadbalancer.org>
+To: Simon Horman <horms@verge.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:52158 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751090Ab0FVFlP convert rfc822-to-8bit (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:40713 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754047Ab0FVGIE (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 22 Jun 2010 01:41:15 -0400
-Received: by vws9 with SMTP id 9so498436vws.19
-        for <netfilter-devel@vger.kernel.org>; Mon, 21 Jun 2010 22:41:14 -0700 (PDT)
-In-Reply-To: <alpine.LSU.2.01.1006211846000.17820@obet.zrqbmnf.qr>
+	Tue, 22 Jun 2010 02:08:04 -0400
+In-Reply-To: <20100622021405.GA19071@verge.net.au>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Mon, Jun 21, 2010 at 10:16 PM, Jan Engelhardt <jengelh@medozas.de> w=
-rote:
+Simon Horman wrote:
+> From: Nick Chalk <nick@loadbalancer.org>
 >
-> On Monday 2010-06-21 17:18, krunal patel wrote:
->>>> =A0 =A0 =A0 =A0iptables -A FORWARD -m set ! --set testip src
->>>> =A0 =A0 =A0 =A0iptables -A FORWARD -m set ! --set testip src
->>>> =A0 =A0 =A0 =A0iptables -A FORWARD -m set --set testip src
->>>
->>> You do not measure ipset definitely. Because there is no target in =
-the
->>> rules, all of them are evaluated one after another, regardless of t=
-he
->>> previous ones: netfilter just increases the packet/byte counters of=
- the
->>> matching rules, but continues by processing the next rule(s).
->>
->>No, we are measuring only ipset. What we are suspecting is, as number
->>of ipset matches increases in packet path latency is increasing.
->>
->>1000 msecs is just by adding 1 more rule. 3 rules took it to around
->>3000 to 4000 msecs.
+> IPVS: one-packet scheduling
 >
-> No question that reevaluating the same thing over and over
-> increases runtime...
+> Allow one-packet scheduling for UDP connections. When the fwmark-based or
+> normal virtual service is marked with '-o' or '--ops' options all
+> connections are created only to schedule one packet. Useful to schedule UDP
+> packets from same client port to different real servers. Recommended with
+> RR or WRR schedulers (the connections are not visible with ipvsadm -L).
+>
+> Signed-off-by: Nick Chalk <nick@loadbalancer.org>
+> Signed-off-by: Simon Horman <horms@verge.net.au>
+>
+> --- 
+> U
+> Up-port of http://www.ssi.bg/~ja/tmp/ops-2.4.32-1.diff
+>
+> Patrick, you asked me to repost this when nf-next was open again.
+> It seems to be open now.
 
-Well, that is not the case. With 2.6.18.8 latency is same as 6 msecs.
-i.e. it is not increasing with number of ipset rules. Also, if our
-traffic load is around 1 to 1.4 Gbps, even in 2.6.27.45 we are not
-experiencing the latency with increasing the number of rules.
+Yes, its open again. Applied, thanks Simon.
 
-Rgds,
-Nishit Shah.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
