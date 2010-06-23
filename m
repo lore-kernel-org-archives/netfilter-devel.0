@@ -1,70 +1,67 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: netfilter: ipt_LOG/ip6t_LOG: add option to print decoded MAC
- header
-Date: Wed, 23 Jun 2010 18:47:20 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1006231840180.21618@obet.zrqbmnf.qr>
-References: <4C22324E.2060404@trash.net>
+From: Pete Kay <petedao@gmail.com>
+Subject: need help with iptables and iptc
+Date: Thu, 24 Jun 2010 00:49:41 +0800
+Message-ID: <AANLkTillANcPYzAJiyaisqeoIpNxclSEqHUIIg3UvnRd@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:40231 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752112Ab0FWQrV (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Jun 2010 12:47:21 -0400
-In-Reply-To: <4C22324E.2060404@trash.net>
+Received: from mail-pv0-f174.google.com ([74.125.83.174]:49556 "EHLO
+	mail-pv0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752168Ab0FWQtn convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 23 Jun 2010 12:49:43 -0400
+Received: by pvg2 with SMTP id 2so1797pvg.19
+        for <netfilter-devel@vger.kernel.org>; Wed, 23 Jun 2010 09:49:43 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wednesday 2010-06-23 18:11, Patrick McHardy wrote:
+Hi,
 
->+	switch (dev->type) {
->+	case ARPHRD_ETHER:
->+		printk("MACSRC=%pM MACDST=%pM MACPROTO=%.4x ",
->+		       eth_hdr(skb)->h_source, eth_hdr(skb)->h_dest,
->+		       ntohs(eth_hdr(skb)->h_proto));
+I hope this is the right place to post.  I asked a few times in the
+user list but I thought maybe netfilter-devel is the one I should post
+on instead.
 
-Why not just the standard %04x? [Same applies to v6]
+I am trying to get my test program adopted from the how-to (
+http://www.faqs.org/docs/Linux-HOWTO/Querying-libiptc-HOWTO.html#HOWTOP=
+RG)
+to compile.
 
->+	printk("MAC=");
->+	if (dev->hard_header_len &&
->+	    skb->mac_header != skb->network_header) {
->+		const unsigned char *p = skb_mac_header(skb);
->+		unsigned int i;
->+
->+		for (i = 0; i < dev->hard_header_len; i++, p++)
->+			printk("%02x%c", *p,
->+			       i == dev->hard_header_len - 1 ? ' ' : ':');
+This is a very basic iptc sample program.  Does anyone know why I
+can't get the gcc to work?  Any suggestion will be greatly
+appreciated.
 
-		if (dev->hard_header_len > 0)
-			printk("%02x", *p++);
-		for (i = 1; i < dev->hard_header_len; ++i)
-			printk(":%02x", *p++);
+[root@test utils]# iptables --version
+iptables v1.4.7
+[root@test utils]# uname -a
+Linux test 2.6.33.1-24.fc13.x86_64 #1 SMP Tue Mar 30 18:21:22 UTC 2010
+x86_64 x86_64 x86_64 GNU/Linux
+[root@test utils]# gcc -Wall -Wunused  -I/usr/include
+-DNETFILTER_VERSION=3D\"1.4.7\"  -L/usr/lib64 -lip4tc -liptc  -o
+test_iptc test_iptc.c  -ldl
+test_iptc.c: In function =91main=92:
+test_iptc.c:19: error: =91iptc_handle=92 undeclared (first use in this =
+function)
+test_iptc.c:19: error: (Each undeclared identifier is reported only onc=
+e
+test_iptc.c:19: error: for each function it appears in.)
+test_iptc.c:19: error: expected =91;=92 before =91h=92
+test_iptc.c:26: error: =91h=92 undeclared (first use in this function)
+[root@test utils]# iptables --version
+iptables v1.4.7
 
-I like better for getting rid of the comparison inside the loop.
+# ls /lib64/libip
+libip4tc.so        libip4tc.so.0.0.0  libip6tc.so.0      libipq.so
+     libipq.so.0.0.0    libiptc.so.0
+libip4tc.so.0      libip6tc.so        libip6tc.so.0.0.0  libipq.so.0
+     libiptc.so         libiptc.so.0.0.0
 
->+	/* MAC logging for input chain only. */
 
-"input path".
-
->+	if (in && !out)
->+		dump_mac_header(loginfo, skb);
-> 
-> 	dump_packet(loginfo, skb, 0);
-
-# ipv6
-> 	printk("\n");
->+	if (dev->hard_header_len &&
->+	    skb->mac_header != skb->network_header) {
->+		const unsigned char *p = skb_mac_header(skb);
->+		unsigned int len = dev->hard_header_len;
->+		unsigned int i;
->+
->+		if (dev->type == ARPHRD_SIT &&
->+		    (p -= ETH_HLEN) < skb->head)
->+			p = NULL;
-
-What is the purpose of this? If the device is a sit, there is no
-guarantee that there's any ethernet header in the skb.
-
+Thanks,
+P
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
