@@ -1,7 +1,7 @@
 From: krunal patel <krunal.raj@gmail.com>
 Subject: Re: high latency with ipset-4.2 and 2.6.27.45 kernel.
-Date: Wed, 23 Jun 2010 18:13:43 +0530
-Message-ID: <AANLkTilEoFJ54j8kCmEebatbnoRoXF-ong5Hcl4yOIPV@mail.gmail.com>
+Date: Wed, 23 Jun 2010 18:20:12 +0530
+Message-ID: <AANLkTikImArabahGVnIWpLMQH3XsmUq60xLLhoprED5I@mail.gmail.com>
 References: <AANLkTimikytx8wGmEtC0gbOng_vAyDUPVHRJWMmnm6p9@mail.gmail.com>
 	<alpine.DEB.2.00.1006211518090.32109@blackhole.kfki.hu>
 	<AANLkTin1A2whIiaHWa4k0NZcdGqJhpk511hBSuLZd-pB@mail.gmail.com>
@@ -10,34 +10,25 @@ References: <AANLkTimikytx8wGmEtC0gbOng_vAyDUPVHRJWMmnm6p9@mail.gmail.com>
 	<alpine.LSU.2.01.1006221046110.13935@obet.zrqbmnf.qr>
 	<alpine.DEB.2.00.1006221057510.2237@blackhole.kfki.hu>
 	<alpine.DEB.2.00.1006221151050.2393@blackhole.kfki.hu>
-	<AANLkTimLe-21bu_kun2_H_o_QHltfrfx0QRjZHUeYaoX@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-iw0-f174.google.com ([209.85.214.174]:44479 "EHLO
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:43046 "EHLO
 	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751493Ab0FWMnp convert rfc822-to-8bit (ORCPT
+	with ESMTP id S1751367Ab0FWMuT convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Jun 2010 08:43:45 -0400
-Received: by iwn5 with SMTP id 5so675979iwn.19
-        for <netfilter-devel@vger.kernel.org>; Wed, 23 Jun 2010 05:43:44 -0700 (PDT)
-In-Reply-To: <AANLkTimLe-21bu_kun2_H_o_QHltfrfx0QRjZHUeYaoX@mail.gmail.com>
+	Wed, 23 Jun 2010 08:50:19 -0400
+Received: by iwn5 with SMTP id 5so681225iwn.19
+        for <netfilter-devel@vger.kernel.org>; Wed, 23 Jun 2010 05:50:18 -0700 (PDT)
+In-Reply-To: <alpine.DEB.2.00.1006221151050.2393@blackhole.kfki.hu>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, Jun 23, 2010 at 11:33 AM, krunal patel <krunal.raj@gmail.com> w=
-rote:
-> ---------- Forwarded message ----------
-> From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-> Date: Tue, Jun 22, 2010 at 3:23 PM
-> Subject: Re: high latency with ipset-4.2 and 2.6.27.45 kernel.
-> To: Jan Engelhardt <jengelh@medozas.de>
-> Cc: Nishit Shah <nsshah.82@gmail.com>, krunal patel
-> <krunal.raj@gmail.com>, netfilter-devel@vger.kernel.org
->
->
+On Tue, Jun 22, 2010 at 3:23 PM, Jozsef Kadlecsik
+<kadlec@blackhole.kfki.hu> wrote:
 > On Tue, 22 Jun 2010, Jozsef Kadlecsik wrote:
 >
 >> On Tue, 22 Jun 2010, Jan Engelhardt wrote:
@@ -83,6 +74,64 @@ l as
 > PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
 > Address : KFKI Research Institute for Particle and Nuclear Physics
 > =A0 =A0 =A0 =A0 =A0H-1525 Budapest 114, POB. 49, Hungary
+
+
+On Wed, Jun 23, 2010 at 11:33 AM, krunal patel <krunal.raj@gmail.com> w=
+rote:
+> ---------- Forwarded message ----------
+> From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> Date: Tue, Jun 22, 2010 at 3:23 PM
+> Subject: Re: high latency with ipset-4.2 and 2.6.27.45 kernel.
+> To: Jan Engelhardt <jengelh@medozas.de>
+> Cc: Nishit Shah <nsshah.82@gmail.com>, krunal patel
+> <krunal.raj@gmail.com>, netfilter-devel@vger.kernel.org
+>
+>
+> On Tue, 22 Jun 2010, Jozsef Kadlecsik wrote:
+>
+>> On Tue, 22 Jun 2010, Jan Engelhardt wrote:
+>>
+>> >
+>> > On Tuesday 2010-06-22 07:41, Nishit Shah wrote:
+>> > >> On Monday 2010-06-21 17:18, krunal patel wrote:
+>> > >>>>>        iptables -A FORWARD -m set ! --set testip src
+>> > >>>>>        iptables -A FORWARD -m set ! --set testip src
+>> > >>>>>        iptables -A FORWARD -m set --set testip src
+>> > >>
+>> > >> No question that reevaluating the same thing over and over
+>> > >> increases runtime...
+>> > >
+>> > >Well, that is not the case. With 2.6.18.8 latency is same as 6 ms=
+ecs.
+>> >
+>> > I think what you see could be noise.
+>> >
+>> > See commit 848484c08cb4ad161074262994410387585259ff in
+>> > xtables-addons. There I needed 3000 ping packets (sent with ping -=
+f)
+>> > *and* a linear search of 10000 ranges to get above 2000 msec overh=
+ead
+>> > for a single rule.
+>>
+>> The impact of one more rule should be negligible. Something is bad t=
+here,
+>> but we know too little on the setup, the configuration: what kind of
+>> architecture, hardware you run the testing? What do you get when you
+>> replace the rules with similar ones but with pure "-s src" matching,=
+ i.e.
+>> without calling ipset? And it'd be good if you'd test a recent kerne=
+l as
+>> well. 2.6.27 is almost two years old.
+>
+> I meant by "you" the OP, that is Krunal. :-)
+>
+> Best regards,
+> Jozsef
+> -
+> E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+> PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+> Address : KFKI Research Institute for Particle and Nuclear Physics
+>          H-1525 Budapest 114, POB. 49, Hungary
 >
 
 Sir,
@@ -154,17 +203,17 @@ Some of the information about hardware.
 
 
 # cat /proc/interrupts
-       CPU0   CPU1 CPU2  CPU3 CPU4 CPU5  CPU6  CPU7
+      CPU0   CPU1 CPU2  CPU3 CPU4 CPU5  CPU6  CPU7
  0:      69       0        0        0        0        0        0
  0   IO-APIC-edge     timer
  1:       0        1        0        1        0        0        0
-  0   IO-APIC-edge     i8042
+ 0   IO-APIC-edge     i8042
  2:       0        0        0        0        0        0        0
-  0    XT-PIC-XT       cascade
+ 0    XT-PIC-XT       cascade
  4:    6616    3980   3588   9144   4476   7268   8221  12631
 IO-APIC-edge   serial
  8:       0        0        1        0        0        0        0
-  0   IO-APIC-edge     rtc
+ 0   IO-APIC-edge     rtc
 12:      0        1        2        0        0        0        0
  0   IO-APIC-edge     i8042
 14:      0        0        0        0        0        0        0
