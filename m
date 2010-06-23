@@ -1,1042 +1,488 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: [PATCH] netfilter: xtables target SYNPROXY
-Date: Wed, 23 Jun 2010 15:06:29 +0800
-Message-ID: <1277276789-2881-1-git-send-email-xiaosuo@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
-	Jan Engelhardt <jengelh@medozas.de>,
-	Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>,
-	"Pekka Savola (ipv6)" <pekkas@netcore.fi>,
-	James Morris <jmorris@namei.org>,
-	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Changli Gao <xiaosuo@gmail.com>
-To: Patrick McHardy <kaber@trash.net>
+From: krunal patel <krunal.raj@gmail.com>
+Subject: Re: high latency with ipset-4.2 and 2.6.27.45 kernel.
+Date: Wed, 23 Jun 2010 18:13:43 +0530
+Message-ID: <AANLkTilEoFJ54j8kCmEebatbnoRoXF-ong5Hcl4yOIPV@mail.gmail.com>
+References: <AANLkTimikytx8wGmEtC0gbOng_vAyDUPVHRJWMmnm6p9@mail.gmail.com>
+	<alpine.DEB.2.00.1006211518090.32109@blackhole.kfki.hu>
+	<AANLkTin1A2whIiaHWa4k0NZcdGqJhpk511hBSuLZd-pB@mail.gmail.com>
+	<alpine.LSU.2.01.1006211846000.17820@obet.zrqbmnf.qr>
+	<AANLkTil7HS75O5WO3Bxz1S7CF5D4r1om0iWD8vSF3bF6@mail.gmail.com>
+	<alpine.LSU.2.01.1006221046110.13935@obet.zrqbmnf.qr>
+	<alpine.DEB.2.00.1006221057510.2237@blackhole.kfki.hu>
+	<alpine.DEB.2.00.1006221151050.2393@blackhole.kfki.hu>
+	<AANLkTimLe-21bu_kun2_H_o_QHltfrfx0QRjZHUeYaoX@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:48237 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751142Ab0FWHH7 (ORCPT
+Received: from mail-iw0-f174.google.com ([209.85.214.174]:44479 "EHLO
+	mail-iw0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751493Ab0FWMnp convert rfc822-to-8bit (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Jun 2010 03:07:59 -0400
+	Wed, 23 Jun 2010 08:43:45 -0400
+Received: by iwn5 with SMTP id 5so675979iwn.19
+        for <netfilter-devel@vger.kernel.org>; Wed, 23 Jun 2010 05:43:44 -0700 (PDT)
+In-Reply-To: <AANLkTimLe-21bu_kun2_H_o_QHltfrfx0QRjZHUeYaoX@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-xtables target SYNPROXY.
+On Wed, Jun 23, 2010 at 11:33 AM, krunal patel <krunal.raj@gmail.com> w=
+rote:
+> ---------- Forwarded message ----------
+> From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
+> Date: Tue, Jun 22, 2010 at 3:23 PM
+> Subject: Re: high latency with ipset-4.2 and 2.6.27.45 kernel.
+> To: Jan Engelhardt <jengelh@medozas.de>
+> Cc: Nishit Shah <nsshah.82@gmail.com>, krunal patel
+> <krunal.raj@gmail.com>, netfilter-devel@vger.kernel.org
+>
+>
+> On Tue, 22 Jun 2010, Jozsef Kadlecsik wrote:
+>
+>> On Tue, 22 Jun 2010, Jan Engelhardt wrote:
+>>
+>> >
+>> > On Tuesday 2010-06-22 07:41, Nishit Shah wrote:
+>> > >> On Monday 2010-06-21 17:18, krunal patel wrote:
+>> > >>>>> =A0 =A0 =A0 =A0iptables -A FORWARD -m set ! --set testip src
+>> > >>>>> =A0 =A0 =A0 =A0iptables -A FORWARD -m set ! --set testip src
+>> > >>>>> =A0 =A0 =A0 =A0iptables -A FORWARD -m set --set testip src
+>> > >>
+>> > >> No question that reevaluating the same thing over and over
+>> > >> increases runtime...
+>> > >
+>> > >Well, that is not the case. With 2.6.18.8 latency is same as 6 ms=
+ecs.
+>> >
+>> > I think what you see could be noise.
+>> >
+>> > See commit 848484c08cb4ad161074262994410387585259ff in
+>> > xtables-addons. There I needed 3000 ping packets (sent with ping -=
+f)
+>> > *and* a linear search of 10000 ranges to get above 2000 msec overh=
+ead
+>> > for a single rule.
+>>
+>> The impact of one more rule should be negligible. Something is bad t=
+here,
+>> but we know too little on the setup, the configuration: what kind of
+>> architecture, hardware you run the testing? What do you get when you
+>> replace the rules with similar ones but with pure "-s src" matching,=
+ i.e.
+>> without calling ipset? And it'd be good if you'd test a recent kerne=
+l as
+>> well. 2.6.27 is almost two years old.
+>
+> I meant by "you" the OP, that is Krunal. :-)
+>
+> Best regards,
+> Jozsef
+> -
+> E-mail =A0: kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
+> PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
+> Address : KFKI Research Institute for Particle and Nuclear Physics
+> =A0 =A0 =A0 =A0 =A0H-1525 Budapest 114, POB. 49, Hungary
+>
 
-This patch implements an xtables target SYNPROXY. As the connection to the
-TCP server won't be established until the ACK from the client is received, it
-can protect the TCP server from the SYN-flood attacks.
+Sir,
 
-It works in the raw table of the PREROUTING chain, before conntracking system.
-Syncookies is used, so no new state is introduced into the conntracking system.
-In fact, until the first connection is established, conntracking system doesn't
-see any packets. So when there is a SYN-flood attack, conntracking system won't
-be busy on finding and deleting the un-assured ct.
+I checked using "-s src"
+iptables -F PREROUTING -t raw
+iptables -F PREROUTING -t mangle
+iptables -F PREROUTING -t nat
+iptables -F FORWARD -t mangle
+iptables -F FORWARD -t filter
+iptables -F POSTROUTING -t mangle
+iptables -F POSTROUTING -t nat
 
-As the SYN-packet of the second connection request is sent locally, the DNAT
-rules which are in the PREROUTING chain should be moved to the OUTPUT chain.
 
-Signed-off-by: Changli Gao <xiaosuo@gmail.com>
-----
- include/net/netfilter/nf_conntrack.h        |   10 
- include/net/netfilter/nf_conntrack_core.h   |   21 
- include/net/netfilter/nf_conntrack_extend.h |    2 
- include/net/tcp.h                           |    7 
- net/ipv4/syncookies.c                       |   22 
- net/ipv4/tcp_ipv4.c                         |    9 
- net/netfilter/Kconfig                       |   17 
- net/netfilter/Makefile                      |    1 
- net/netfilter/nf_conntrack_core.c           |   42 +
- net/netfilter/xt_SYNPROXY.c                 |  678 ++++++++++++++++++++++++++++
- 10 files changed, 790 insertions(+), 19 deletions(-)
-diff --git a/include/net/netfilter/nf_conntrack.h b/include/net/netfilter/nf_conntrack.h
-index e624dae..5e6d8e4 100644
---- a/include/net/netfilter/nf_conntrack.h
-+++ b/include/net/netfilter/nf_conntrack.h
-@@ -311,5 +311,15 @@ do {							\
- #define MODULE_ALIAS_NFCT_HELPER(helper) \
-         MODULE_ALIAS("nfct-helper-" helper)
- 
-+#if defined(CONFIG_NETFILTER_XT_TARGET_SYNPROXY) || \
-+    defined(CONFIG_NETFILTER_XT_TARGET_SYNPROXY_MODULE)
-+extern unsigned int (*syn_proxy_pre_hook)(struct sk_buff *skb,
-+					  struct nf_conn *ct,
-+					  enum ip_conntrack_info ctinfo);
-+
-+extern unsigned int (*syn_proxy_post_hook)(struct sk_buff *skb,
-+					   struct nf_conn *ct,
-+					   enum ip_conntrack_info ctinfo);
-+#endif
- #endif /* __KERNEL__ */
- #endif /* _NF_CONNTRACK_H */
-diff --git a/include/net/netfilter/nf_conntrack_core.h b/include/net/netfilter/nf_conntrack_core.h
-index aced085..637b404 100644
---- a/include/net/netfilter/nf_conntrack_core.h
-+++ b/include/net/netfilter/nf_conntrack_core.h
-@@ -54,6 +54,23 @@ nf_conntrack_find_get(struct net *net, u16 zone,
- 
- extern int __nf_conntrack_confirm(struct sk_buff *skb);
- 
-+static inline unsigned int syn_proxy_post_call(struct sk_buff *skb,
-+					       struct nf_conn *ct,
-+					       enum ip_conntrack_info ctinfo)
-+{
-+	unsigned int ret = NF_ACCEPT;
-+#if defined(CONFIG_NETFILTER_XT_TARGET_SYNPROXY) || \
-+    defined(CONFIG_NETFILTER_XT_TARGET_SYNPROXY_MODULE)
-+	unsigned int (*syn_proxy)(struct sk_buff *, struct nf_conn *,
-+				  enum ip_conntrack_info);
-+	syn_proxy = rcu_dereference(syn_proxy_post_hook);
-+	if (syn_proxy)
-+		ret = syn_proxy(skb, ct, ctinfo);
-+#endif
-+
-+	return ret;
-+}
-+
- /* Confirm a connection: returns NF_DROP if packet must be dropped. */
- static inline int nf_conntrack_confirm(struct sk_buff *skb)
- {
-@@ -63,8 +80,10 @@ static inline int nf_conntrack_confirm(struct sk_buff *skb)
- 	if (ct && !nf_ct_is_untracked(ct)) {
- 		if (!nf_ct_is_confirmed(ct))
- 			ret = __nf_conntrack_confirm(skb);
--		if (likely(ret == NF_ACCEPT))
-+		if (likely(ret == NF_ACCEPT)) {
- 			nf_ct_deliver_cached_events(ct);
-+			ret = syn_proxy_post_call(skb, ct, skb->nfctinfo);
-+		}
- 	}
- 	return ret;
- }
-diff --git a/include/net/netfilter/nf_conntrack_extend.h b/include/net/netfilter/nf_conntrack_extend.h
-index 32d15bd..b2ae7e9 100644
---- a/include/net/netfilter/nf_conntrack_extend.h
-+++ b/include/net/netfilter/nf_conntrack_extend.h
-@@ -11,6 +11,7 @@ enum nf_ct_ext_id {
- 	NF_CT_EXT_ACCT,
- 	NF_CT_EXT_ECACHE,
- 	NF_CT_EXT_ZONE,
-+	NF_CT_EXT_SYNPROXY,
- 	NF_CT_EXT_NUM,
- };
- 
-@@ -19,6 +20,7 @@ enum nf_ct_ext_id {
- #define NF_CT_EXT_ACCT_TYPE struct nf_conn_counter
- #define NF_CT_EXT_ECACHE_TYPE struct nf_conntrack_ecache
- #define NF_CT_EXT_ZONE_TYPE struct nf_conntrack_zone
-+#define NF_CT_EXT_SYNPROXY_TYPE struct syn_proxy_state
- 
- /* Extensions: optional stuff which isn't permanently in struct. */
- struct nf_ct_ext {
-diff --git a/include/net/tcp.h b/include/net/tcp.h
-index 18c246c..e1fa5f9 100644
---- a/include/net/tcp.h
-+++ b/include/net/tcp.h
-@@ -460,8 +460,11 @@ extern int			tcp_disconnect(struct sock *sk, int flags);
- extern __u32 syncookie_secret[2][16-4+SHA_DIGEST_WORDS];
- extern struct sock *cookie_v4_check(struct sock *sk, struct sk_buff *skb, 
- 				    struct ip_options *opt);
--extern __u32 cookie_v4_init_sequence(struct sock *sk, struct sk_buff *skb, 
--				     __u16 *mss);
-+extern __u32 __cookie_v4_init_sequence(__be32 saddr, __be32 daddr,
-+				       __be16 sport, __be16 dport, __u32 seq,
-+				       __u16 *mssp);
-+extern int cookie_v4_check_sequence(const struct iphdr *iph,
-+				    const struct tcphdr *th, __u32 cookie);
- 
- extern __u32 cookie_init_timestamp(struct request_sock *req);
- extern bool cookie_check_timestamp(struct tcp_options_received *tcp_opt);
-diff --git a/net/ipv4/syncookies.c b/net/ipv4/syncookies.c
-index 51b5662..c6b5e84 100644
---- a/net/ipv4/syncookies.c
-+++ b/net/ipv4/syncookies.c
-@@ -160,26 +160,21 @@ static __u16 const msstab[] = {
-  * Generate a syncookie.  mssp points to the mss, which is returned
-  * rounded down to the value encoded in the cookie.
-  */
--__u32 cookie_v4_init_sequence(struct sock *sk, struct sk_buff *skb, __u16 *mssp)
-+__u32 __cookie_v4_init_sequence(__be32 saddr, __be32 daddr, __be16 sport,
-+				__be16 dport, __u32 seq, __u16 *mssp)
- {
--	const struct iphdr *iph = ip_hdr(skb);
--	const struct tcphdr *th = tcp_hdr(skb);
- 	int mssind;
- 	const __u16 mss = *mssp;
- 
--	tcp_synq_overflow(sk);
--
- 	for (mssind = ARRAY_SIZE(msstab) - 1; mssind ; mssind--)
- 		if (mss >= msstab[mssind])
- 			break;
- 	*mssp = msstab[mssind];
- 
--	NET_INC_STATS_BH(sock_net(sk), LINUX_MIB_SYNCOOKIESSENT);
--
--	return secure_tcp_syn_cookie(iph->saddr, iph->daddr,
--				     th->source, th->dest, ntohl(th->seq),
-+	return secure_tcp_syn_cookie(saddr, daddr, sport, dport, seq,
- 				     jiffies / (HZ * 60), mssind);
- }
-+EXPORT_SYMBOL(__cookie_v4_init_sequence);
- 
- /*
-  * This (misnamed) value is the age of syncookie which is permitted.
-@@ -192,10 +187,9 @@ __u32 cookie_v4_init_sequence(struct sock *sk, struct sk_buff *skb, __u16 *mssp)
-  * Check if a ack sequence number is a valid syncookie.
-  * Return the decoded mss if it is, or 0 if not.
-  */
--static inline int cookie_check(struct sk_buff *skb, __u32 cookie)
-+int cookie_v4_check_sequence(const struct iphdr *iph, const struct tcphdr *th,
-+			     __u32 cookie)
- {
--	const struct iphdr *iph = ip_hdr(skb);
--	const struct tcphdr *th = tcp_hdr(skb);
- 	__u32 seq = ntohl(th->seq) - 1;
- 	__u32 mssind = check_tcp_syn_cookie(cookie, iph->saddr, iph->daddr,
- 					    th->source, th->dest, seq,
-@@ -204,6 +198,7 @@ static inline int cookie_check(struct sk_buff *skb, __u32 cookie)
- 
- 	return mssind < ARRAY_SIZE(msstab) ? msstab[mssind] : 0;
- }
-+EXPORT_SYMBOL(cookie_v4_check_sequence);
- 
- static inline struct sock *get_cookie_sock(struct sock *sk, struct sk_buff *skb,
- 					   struct request_sock *req,
-@@ -283,7 +278,8 @@ struct sock *cookie_v4_check(struct sock *sk, struct sk_buff *skb,
- 		goto out;
- 
- 	if (tcp_synq_no_recent_overflow(sk) ||
--	    (mss = cookie_check(skb, cookie)) == 0) {
-+	    (mss = cookie_v4_check_sequence(ip_hdr(skb), tcp_hdr(skb),
-+					    cookie)) == 0) {
- 		NET_INC_STATS_BH(sock_net(sk), LINUX_MIB_SYNCOOKIESFAILED);
- 		goto out;
- 	}
-diff --git a/net/ipv4/tcp_ipv4.c b/net/ipv4/tcp_ipv4.c
-index 2e41e6f..3c4456d 100644
---- a/net/ipv4/tcp_ipv4.c
-+++ b/net/ipv4/tcp_ipv4.c
-@@ -1333,9 +1333,16 @@ int tcp_v4_conn_request(struct sock *sk, struct sk_buff *skb)
- 
- 	if (want_cookie) {
- #ifdef CONFIG_SYN_COOKIES
-+		struct tcphdr *th;
-+
- 		req->cookie_ts = tmp_opt.tstamp_ok;
-+		tcp_synq_overflow(sk);
-+		NET_INC_STATS_BH(sock_net(sk), LINUX_MIB_SYNCOOKIESSENT);
-+		th = tcp_hdr(skb);
-+		isn = __cookie_v4_init_sequence(saddr, daddr, th->source,
-+						th->dest, ntohl(th->seq),
-+						&req->mss);
- #endif
--		isn = cookie_v4_init_sequence(sk, skb, &req->mss);
- 	} else if (!isn) {
- 		struct inet_peer *peer = NULL;
- 
-diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
-index 413ed24..fd8ad8c 100644
---- a/net/netfilter/Kconfig
-+++ b/net/netfilter/Kconfig
-@@ -560,6 +560,23 @@ config NETFILTER_XT_TARGET_SECMARK
- 
- 	  To compile it as a module, choose M here.  If unsure, say N.
- 
-+config NETFILTER_XT_TARGET_SYNPROXY
-+	tristate '"SYNPROXY" target support (EXPERIMENTAL)'
-+	depends on EXPERIMENTAL
-+	depends on SYN_COOKIES
-+	depends on IP_NF_RAW
-+	depends on NF_CONNTRACK
-+	depends on NETFILTER_ADVANCED
-+	help
-+	  The SYNPROXY target allows a raw rule to specify that some TCP
-+	  connections are relayed to protect the TCP servers from the SYN-flood
-+	  DoS attacks. Syn cookies is used to save the initial state, so no
-+	  conntrack is needed until the client side connection is established.
-+	  It frees the connection tracking system from creating/deleting
-+	  conntracks when SYN-flood DoS attack acts.
-+
-+	  To compile it as a module, choose M here.  If unsure, say N.
-+
- config NETFILTER_XT_TARGET_TCPMSS
- 	tristate '"TCPMSS" target support'
- 	depends on (IPV6 || IPV6=n)
-diff --git a/net/netfilter/Makefile b/net/netfilter/Makefile
-index e28420a..4e32834 100644
---- a/net/netfilter/Makefile
-+++ b/net/netfilter/Makefile
-@@ -62,6 +62,7 @@ obj-$(CONFIG_NETFILTER_XT_TARGET_TCPOPTSTRIP) += xt_TCPOPTSTRIP.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_TEE) += xt_TEE.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_TRACE) += xt_TRACE.o
- obj-$(CONFIG_NETFILTER_XT_TARGET_IDLETIMER) += xt_IDLETIMER.o
-+obj-$(CONFIG_NETFILTER_XT_TARGET_SYNPROXY) += xt_SYNPROXY.o
- 
- # matches
- obj-$(CONFIG_NETFILTER_XT_MATCH_CLUSTER) += xt_cluster.o
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 16b41b4..011fa34 100644
---- a/net/netfilter/nf_conntrack_core.c
-+++ b/net/netfilter/nf_conntrack_core.c
-@@ -800,6 +800,26 @@ resolve_normal_ct(struct net *net, struct nf_conn *tmpl,
- 	return ct;
- }
- 
-+static inline unsigned int syn_proxy_pre_call(int protonum, struct sk_buff *skb,
-+					      struct nf_conn *ct,
-+					      enum ip_conntrack_info ctinfo)
-+{
-+	unsigned int ret = NF_ACCEPT;
-+#if defined(CONFIG_NETFILTER_XT_TARGET_SYNPROXY) || \
-+    defined(CONFIG_NETFILTER_XT_TARGET_SYNPROXY_MODULE)
-+	unsigned int (*syn_proxy)(struct sk_buff *, struct nf_conn *,
-+				  enum ip_conntrack_info);
-+
-+	if (protonum == IPPROTO_TCP) {
-+		syn_proxy = rcu_dereference(syn_proxy_pre_hook);
-+		if (syn_proxy)
-+			ret = syn_proxy(skb, ct, ctinfo);
-+	}
-+#endif
-+
-+	return ret;
-+}
-+
- unsigned int
- nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
- 		struct sk_buff *skb)
-@@ -855,8 +875,9 @@ nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
- 			       l3proto, l4proto, &set_reply, &ctinfo);
- 	if (!ct) {
- 		/* Not valid part of a connection */
--		NF_CT_STAT_INC_ATOMIC(net, invalid);
--		ret = NF_ACCEPT;
-+		ret = syn_proxy_pre_call(protonum, skb, NULL, ctinfo);
-+		if (ret == NF_ACCEPT)
-+			NF_CT_STAT_INC_ATOMIC(net, invalid);
- 		goto out;
- 	}
- 
-@@ -869,6 +890,9 @@ nf_conntrack_in(struct net *net, u_int8_t pf, unsigned int hooknum,
- 
- 	NF_CT_ASSERT(skb->nfct);
- 
-+	ret = syn_proxy_pre_call(protonum, skb, ct, ctinfo);
-+	if (ret != NF_ACCEPT)
-+		goto out;
- 	ret = l4proto->packet(ct, skb, dataoff, ctinfo, pf, hooknum);
- 	if (ret <= 0) {
- 		/* Invalid: inverse of the return code tells
-@@ -1476,6 +1500,17 @@ s16 (*nf_ct_nat_offset)(const struct nf_conn *ct,
- 			u32 seq);
- EXPORT_SYMBOL_GPL(nf_ct_nat_offset);
- 
-+#if defined(CONFIG_NETFILTER_XT_TARGET_SYNPROXY) || \
-+    defined(CONFIG_NETFILTER_XT_TARGET_SYNPROXY_MODULE)
-+unsigned int (*syn_proxy_pre_hook)(struct sk_buff *skb, struct nf_conn *ct,
-+				   enum ip_conntrack_info ctinfo);
-+EXPORT_SYMBOL(syn_proxy_pre_hook);
-+
-+unsigned int (*syn_proxy_post_hook)(struct sk_buff *skb, struct nf_conn *ct,
-+				    enum ip_conntrack_info ctinfo);
-+EXPORT_SYMBOL(syn_proxy_post_hook);
-+#endif
-+
- int nf_conntrack_init(struct net *net)
- {
- 	int ret;
-@@ -1496,6 +1531,9 @@ int nf_conntrack_init(struct net *net)
- 
- 		/* Howto get NAT offsets */
- 		rcu_assign_pointer(nf_ct_nat_offset, NULL);
-+
-+		rcu_assign_pointer(syn_proxy_pre_hook, NULL);
-+		rcu_assign_pointer(syn_proxy_post_hook, NULL);
- 	}
- 	return 0;
- 
-diff --git a/net/netfilter/xt_SYNPROXY.c b/net/netfilter/xt_SYNPROXY.c
-new file mode 100644
-index 0000000..5e05259
---- /dev/null
-+++ b/net/netfilter/xt_SYNPROXY.c
-@@ -0,0 +1,678 @@
-+/* (C) 2010- Changli Gao <xiaosuo@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * It bases on ipt_REJECT.c
-+ */
-+#define pr_fmt(fmt) "SYNPROXY: " fmt
-+#include <linux/module.h>
-+#include <linux/skbuff.h>
-+#include <linux/slab.h>
-+#include <linux/ip.h>
-+#include <linux/udp.h>
-+#include <linux/icmp.h>
-+#include <linux/unaligned/access_ok.h>
-+#include <net/icmp.h>
-+#include <net/ip.h>
-+#include <net/tcp.h>
-+#include <net/route.h>
-+#include <net/dst.h>
-+#include <net/netfilter/nf_conntrack.h>
-+#include <net/netfilter/nf_conntrack_extend.h>
-+#include <linux/netfilter/x_tables.h>
-+#include <linux/netfilter_ipv4/ip_tables.h>
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Changli Gao <xiaosuo@gmail.com>");
-+MODULE_DESCRIPTION("Xtables: \"SYNPROXY\" target for IPv4");
-+MODULE_ALIAS("ipt_SYNPROXY");
-+
-+enum {
-+	TCP_SEND_FLAG_NOTRACE	= 0x1,
-+	TCP_SEND_FLAG_SYNCOOKIE	= 0x2,
-+	TCP_SEND_FLAG_ACK2SYN	= 0x4,
-+};
-+
-+struct syn_proxy_state {
-+	u16	seq_inited;
-+	__be16	window;
-+	u32	seq_diff;
-+};
-+
-+static int get_mtu(const struct dst_entry *dst)
-+{
-+	int mtu;
-+
-+	mtu = dst_mtu(dst);
-+	if (mtu)
-+		return mtu;
-+
-+	return dst->dev ? dst->dev->mtu : 0;
-+}
-+
-+static int get_advmss(const struct dst_entry *dst)
-+{
-+	int advmss;
-+
-+	advmss = dst_metric(dst, RTAX_ADVMSS);
-+	if (advmss)
-+		return advmss;
-+	advmss = get_mtu(dst);
-+	if (advmss)
-+		return advmss - (sizeof(struct iphdr) + sizeof(struct tcphdr));
-+
-+	return TCP_MSS_DEFAULT;
-+}
-+
-+static int syn_proxy_route(struct sk_buff *skb, struct net *net, u16 *pmss)
-+{
-+	const struct iphdr *iph = ip_hdr(skb);
-+	struct rtable *rt;
-+	struct flowi fl = {};
-+	unsigned int type;
-+	int flags = 0;
-+	int err;
-+	u16 mss;
-+
-+	type = inet_addr_type(net, iph->saddr);
-+	if (type != RTN_LOCAL) {
-+		type = inet_addr_type(net, iph->daddr);
-+		if (type == RTN_LOCAL)
-+			flags |= FLOWI_FLAG_ANYSRC;
-+	}
-+
-+	if (type == RTN_LOCAL) {
-+		fl.nl_u.ip4_u.daddr = iph->daddr;
-+		fl.nl_u.ip4_u.saddr = iph->saddr;
-+		fl.nl_u.ip4_u.tos = RT_TOS(iph->tos);
-+		fl.flags = flags;
-+		err = ip_route_output_key(net, &rt, &fl);
-+		if (err)
-+			goto out;
-+
-+		skb_dst_set(skb, &rt->dst);
-+	} else {
-+		/* non-local src, find valid iif to satisfy
-+		 * rp-filter when calling ip_route_input. */
-+		fl.nl_u.ip4_u.daddr = iph->saddr;
-+		err = ip_route_output_key(net, &rt, &fl);
-+		if (err)
-+			goto out;
-+
-+		err = ip_route_input(skb, iph->daddr, iph->saddr,
-+				     RT_TOS(iph->tos), rt->dst.dev);
-+		if (err) {
-+			dst_release(&rt->dst);
-+			goto out;
-+		}
-+		if (pmss) {
-+			mss = get_advmss(&rt->dst);
-+			if (*pmss > mss)
-+				*pmss = mss;
-+		}
-+		dst_release(&rt->dst);
-+	}
-+
-+	err = skb_dst(skb)->error;
-+	if (!err && pmss) {
-+		mss = get_advmss(skb_dst(skb));
-+		if (*pmss > mss)
-+			*pmss = mss;
-+	}
-+
-+out:
-+	return err;
-+}
-+
-+static int tcp_send(__be32 src, __be32 dst, __be16 sport, __be16 dport,
-+		    u32 seq, u32 ack_seq, __be16 window, u16 mss, u8 tcp_flags,
-+		    u8 tos, struct net_device *dev, int flags,
-+		    struct sk_buff *oskb)
-+{
-+	struct sk_buff *skb;
-+	struct iphdr *iph;
-+	struct tcphdr *th;
-+	int err, len;
-+
-+	len = sizeof(*th);
-+	if (mss)
-+		len += TCPOLEN_MSS;
-+
-+	skb = NULL;
-+	/* caller must give me a large enough oskb */
-+	if (oskb) {
-+		unsigned char *odata = oskb->data;
-+
-+		if (skb_recycle_check(oskb, 0)) {
-+			oskb->data = odata;
-+			skb_reset_tail_pointer(oskb);
-+			skb = oskb;
-+			pr_debug("recycle skb\n");
-+		}
-+	}
-+	if (!skb) {
-+		skb = alloc_skb(LL_MAX_HEADER + sizeof(*iph) + len, GFP_ATOMIC);
-+		if (!skb) {
-+			err = -ENOMEM;
-+			goto out;
-+		}
-+		skb_reserve(skb, LL_MAX_HEADER);
-+	}
-+
-+	skb_reset_network_header(skb);
-+	if (!(flags & TCP_SEND_FLAG_ACK2SYN) || skb != oskb) {
-+		iph = (struct iphdr *)skb_put(skb, sizeof(*iph));
-+		iph->version	= 4;
-+		iph->ihl	= sizeof(*iph) / 4;
-+		iph->tos	= tos;
-+		/* tot_len is set in ip_local_out() */
-+		iph->id		= 0;
-+		iph->frag_off	= htons(IP_DF);
-+		iph->protocol	= IPPROTO_TCP;
-+		iph->saddr	= src;
-+		iph->daddr	= dst;
-+		th = (struct tcphdr *)skb_put(skb, len);
-+		th->source	= sport;
-+		th->dest	= dport;
-+	} else {
-+		iph = (struct iphdr *)skb->data;
-+		iph->id		= 0;
-+		iph->frag_off	= htons(IP_DF);
-+		skb_put(skb, iph->ihl * 4 + len);
-+		th = (struct tcphdr *)(skb->data + iph->ihl * 4);
-+	}
-+
-+	th->seq		= htonl(seq);
-+	th->ack_seq	= htonl(ack_seq);
-+	tcp_flag_byte(th) = tcp_flags;
-+	th->doff	= len / 4;
-+	th->window	= window;
-+	th->urg_ptr	= 0;
-+
-+	if ((flags & TCP_SEND_FLAG_SYNCOOKIE) && mss)
-+		err = syn_proxy_route(skb, dev_net(dev), &mss);
-+	else
-+		err = syn_proxy_route(skb, dev_net(dev), NULL);
-+	if (err)
-+		goto err_out;
-+
-+	if ((flags & TCP_SEND_FLAG_SYNCOOKIE)) {
-+		if (mss) {
-+			th->seq = htonl(__cookie_v4_init_sequence(dst, src,
-+								  dport, sport,
-+								  ack_seq - 1,
-+								  &mss));
-+		} else {
-+			mss = TCP_MSS_DEFAULT;
-+			th->seq = htonl(__cookie_v4_init_sequence(dst, src,
-+								  dport, sport,
-+								  ack_seq - 1,
-+								  &mss));
-+			mss = 0;
-+		}
-+	}
-+
-+	if (mss)
-+		* (__force __be32 *)(th + 1) = htonl((TCPOPT_MSS << 24) |
-+						     (TCPOLEN_MSS << 16) |
-+						     mss);
-+	skb->ip_summed = CHECKSUM_PARTIAL;
-+	th->check = ~tcp_v4_check(len, src, dst, 0);
-+	skb->csum_start = (unsigned char *)th - skb->head;
-+	skb->csum_offset = offsetof(struct tcphdr, check);
-+
-+	if (!(flags & TCP_SEND_FLAG_ACK2SYN) || skb != oskb)
-+		iph->ttl	= dst_metric(skb_dst(skb), RTAX_HOPLIMIT);
-+
-+	if (skb->len > get_mtu(skb_dst(skb))) {
-+		if (printk_ratelimit())
-+			pr_warning("%s has smaller mtu: %d\n",
-+				   skb_dst(skb)->dev->name,
-+				   get_mtu(skb_dst(skb)));
-+		err = -EINVAL;
-+		goto err_out;
-+	}
-+
-+	if ((flags & TCP_SEND_FLAG_NOTRACE)) {
-+		skb->nfct = &nf_ct_untracked_get()->ct_general;
-+		skb->nfctinfo = IP_CT_NEW;
-+		nf_conntrack_get(skb->nfct);
-+	}
-+
-+	pr_debug("ip_local_out: %pI4n:%hu -> %pI4n:%hu (seq=%u, "
-+		 "ack_seq=%u mss=%hu flags=%hhx)\n", &src, ntohs(th->source),
-+		 &dst, ntohs(th->dest), ntohl(th->seq), ack_seq, mss,
-+		 tcp_flags);
-+
-+	err = ip_local_out(skb);
-+	if (err > 0)
-+		err = net_xmit_errno(err);
-+
-+	pr_debug("ip_local_out: return with %d\n", err);
-+out:
-+	if (oskb && oskb != skb)
-+		kfree_skb(oskb);
-+
-+	return err;
-+
-+err_out:
-+	kfree_skb(skb);
-+	goto out;
-+}
-+
-+static int get_mss(u8 *data, int len)
-+{
-+	u8 olen;
-+
-+	while (len >= TCPOLEN_MSS) {
-+		switch (data[0]) {
-+		case TCPOPT_EOL:
-+			return 0;
-+		case TCPOPT_NOP:
-+			data++;
-+			len--;
-+			break;
-+		case TCPOPT_MSS:
-+			if (data[1] != TCPOLEN_MSS)
-+				return -EINVAL;
-+			return get_unaligned_be16(data + 2);
-+		default:
-+			olen = data[1];
-+			if (olen < 2 || olen > len)
-+				return -EINVAL;
-+			data += olen;
-+			len -= olen;
-+			break;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static DEFINE_PER_CPU(struct syn_proxy_state, syn_proxy_state);
-+
-+/* syn_proxy_pre isn't under the protection of nf_conntrack_proto_tcp.c */
-+static unsigned int syn_proxy_pre(struct sk_buff *skb, struct nf_conn *ct,
-+				  enum ip_conntrack_info ctinfo)
-+{
-+	struct syn_proxy_state *state;
-+	struct iphdr *iph;
-+	struct tcphdr *th, _th;
-+
-+	/* only support IPv4 now */
-+	iph = ip_hdr(skb);
-+	if (iph->version != 4)
-+		return NF_ACCEPT;
-+
-+	th = skb_header_pointer(skb, iph->ihl * 4, sizeof(_th), &_th);
-+	if (th == NULL)
-+		return NF_DROP;
-+
-+	if (!ct || !nf_ct_is_confirmed(ct)) {
-+		int ret;
-+
-+		if (!th->syn && th->ack) {
-+			u16 mss;
-+			struct sk_buff *rec_skb;
-+
-+			mss = cookie_v4_check_sequence(iph, th,
-+						       ntohl(th->ack_seq) - 1);
-+			if (!mss)
-+				return NF_ACCEPT;
-+
-+			pr_debug("%pI4n:%hu -> %pI4n:%hu(mss=%hu)\n",
-+				 &iph->saddr, ntohs(th->source),
-+				 &iph->daddr, ntohs(th->dest), mss);
-+
-+			if (skb_tailroom(skb) < TCPOLEN_MSS &&
-+			    skb->len < iph->ihl * 4 + sizeof(*th) + TCPOLEN_MSS)
-+				rec_skb = NULL;
-+			else
-+				rec_skb = skb;
-+
-+			local_bh_disable();
-+			state = &__get_cpu_var(syn_proxy_state);
-+			state->seq_inited = 1;
-+			state->window = th->window;
-+			state->seq_diff = ntohl(th->ack_seq) - 1;
-+			if (rec_skb)
-+				tcp_send(iph->saddr, iph->daddr, 0, 0,
-+					 ntohl(th->seq) - 1, 0, th->window,
-+					 mss, TCPHDR_SYN, 0, skb->dev,
-+					 TCP_SEND_FLAG_ACK2SYN, rec_skb);
-+			else
-+				tcp_send(iph->saddr, iph->daddr, th->source,
-+					 th->dest, ntohl(th->seq) - 1, 0,
-+					 th->window, mss, TCPHDR_SYN,
-+					 iph->tos, skb->dev, 0, NULL);
-+			state->seq_inited = 0;
-+			local_bh_enable();
-+
-+			if (!rec_skb)
-+				kfree_skb(skb);
-+
-+			return NF_STOLEN;
-+		}
-+
-+		if (!ct || !th->syn || th->ack)
-+			return NF_ACCEPT;
-+
-+		ret = NF_ACCEPT;
-+		local_bh_disable();
-+		state = &__get_cpu_var(syn_proxy_state);
-+		if (state->seq_inited) {
-+			struct syn_proxy_state *nstate;
-+
-+			nstate = nf_ct_ext_add(ct, NF_CT_EXT_SYNPROXY,
-+					       GFP_ATOMIC);
-+			if (nstate != NULL) {
-+				nstate->seq_inited = 0;
-+				nstate->window = state->window;
-+				nstate->seq_diff = state->seq_diff;
-+				pr_debug("seq_diff: %u\n", nstate->seq_diff);
-+			} else {
-+				ret = NF_DROP;
-+			}
-+		}
-+		local_bh_enable();
-+
-+		return ret;
-+	}
-+
-+	state = nf_ct_ext_find(ct, NF_CT_EXT_SYNPROXY);
-+	if (!state)
-+		return NF_ACCEPT;
-+
-+	if (CTINFO2DIR(ctinfo) == IP_CT_DIR_ORIGINAL) {
-+		__be32 newack;
-+
-+		/* don't need to mangle duplicate SYN packets */
-+		if (th->syn && !th->ack)
-+			return NF_ACCEPT;
-+		if (!skb_make_writable(skb, ip_hdrlen(skb) + sizeof(*th)))
-+			return NF_DROP;
-+		th = (struct tcphdr *)(skb->data + ip_hdrlen(skb));
-+		newack = htonl(ntohl(th->ack_seq) - state->seq_diff);
-+		inet_proto_csum_replace4(&th->check, skb, th->ack_seq, newack,
-+					 0);
-+		pr_debug("alter ack seq: %u -> %u\n",
-+			 ntohl(th->ack_seq), ntohl(newack));
-+		th->ack_seq = newack;
-+	} else {
-+		/* Simultaneous open ? Oh, no. The connection between
-+		 * client and us is established. */
-+		if (th->syn && !th->ack)
-+			return NF_DROP;
-+	}
-+
-+	return NF_ACCEPT;
-+}
-+
-+static unsigned int syn_proxy_mangle_pkt(struct sk_buff *skb, struct iphdr *iph,
-+					 struct tcphdr *th, u32 seq_diff)
-+{
-+	__be32 new;
-+	int olen;
-+
-+	if (skb->len < (iph->ihl + th->doff) * 4)
-+		return NF_DROP;
-+	if (!skb_make_writable(skb, (iph->ihl + th->doff) * 4))
-+		return NF_DROP;
-+	iph = (struct iphdr *)(skb->data);
-+	th = (struct tcphdr *)(skb->data + iph->ihl * 4);
-+
-+	new = tcp_flag_word(th) & (~TCP_FLAG_SYN);
-+	inet_proto_csum_replace4(&th->check, skb, tcp_flag_word(th), new, 0);
-+	tcp_flag_word(th) = new;
-+
-+	new = htonl(ntohl(th->seq) + seq_diff);
-+	inet_proto_csum_replace4(&th->check, skb, th->seq, new, 0);
-+	pr_debug("alter seq: %u -> %u\n", ntohl(th->seq), ntohl(new));
-+	th->seq = new;
-+
-+	olen = th->doff - sizeof(*th) / 4;
-+	if (olen) {
-+		__be32 *opt;
-+
-+		opt = (__force __be32 *)(th + 1);
-+#define TCPOPT_EOL_WORD ((TCPOPT_EOL << 24) + (TCPOPT_EOL << 16) + \
-+			 (TCPOPT_EOL << 8) + TCPOPT_EOL)
-+		inet_proto_csum_replace4(&th->check, skb, *opt, TCPOPT_EOL_WORD,
-+					 0);
-+		*opt = TCPOPT_EOL_WORD;
-+	}
-+
-+	return NF_ACCEPT;
-+}
-+
-+static unsigned int syn_proxy_post(struct sk_buff *skb, struct nf_conn *ct,
-+				   enum ip_conntrack_info ctinfo)
-+{
-+	struct syn_proxy_state *state;
-+	struct iphdr *iph;
-+	struct tcphdr *th;
-+
-+	/* untraced packets don't have NF_CT_EXT_SYNPROXY ext, as they don't
-+	 * enter syn_proxy_pre() */
-+	state = nf_ct_ext_find(ct, NF_CT_EXT_SYNPROXY);
-+	if (state == NULL)
-+		return NF_ACCEPT;
-+
-+	iph = ip_hdr(skb);
-+	if (!skb_make_writable(skb, iph->ihl * 4 + sizeof(*th)))
-+		return NF_DROP;
-+	th = (struct tcphdr *)(skb->data + iph->ihl * 4);
-+	if (!state->seq_inited) {
-+		if (th->syn) {
-+			/* It must be from original direction, as the ones
-+			 * from the other side are dropped in function
-+			 * syn_proxy_pre() */
-+			if (!th->ack)
-+				return NF_ACCEPT;
-+
-+			pr_debug("SYN-ACK %pI4n:%hu -> %pI4n:%hu "
-+				 "(seq=%u ack_seq=%u)\n",
-+				 &iph->saddr, ntohs(th->source), &iph->daddr,
-+				 ntohs(th->dest), ntohl(th->seq),
-+				 ntohl(th->ack_seq));
-+
-+			/* SYN-ACK from reply direction with the protection
-+			 * of conntrack */
-+			spin_lock_bh(&ct->lock);
-+			if (!state->seq_inited) {
-+				state->seq_inited = 1;
-+				pr_debug("update seq_diff %u -> %u\n",
-+					 state->seq_diff,
-+					 state->seq_diff - ntohl(th->seq));
-+				state->seq_diff -= ntohl(th->seq);
-+			}
-+			spin_unlock_bh(&ct->lock);
-+			tcp_send(iph->daddr, iph->saddr, th->dest, th->source,
-+				 ntohl(th->ack_seq),
-+				 ntohl(th->seq) + 1 + state->seq_diff,
-+				 state->window, 0, TCPHDR_ACK, iph->tos,
-+				 skb->dev, 0, NULL);
-+
-+			return syn_proxy_mangle_pkt(skb, iph, th,
-+						    state->seq_diff + 1);
-+		} else {
-+			__be32 newseq;
-+
-+			if (!th->rst)
-+				return NF_ACCEPT;
-+			newseq = htonl(state->seq_diff + 1);
-+			inet_proto_csum_replace4(&th->check, skb, th->seq,
-+						 newseq, 0);
-+			pr_debug("alter RST seq: %u -> %u\n",
-+				 ntohl(th->seq), ntohl(newseq));
-+			th->seq = newseq;
-+
-+			return NF_ACCEPT;
-+		}
-+	}
-+
-+	/* ct should be in ESTABLISHED state, but if the ack packets from
-+	 * us are lost. */
-+	if (th->syn) {
-+		if (!th->ack)
-+			return NF_ACCEPT;
-+
-+		tcp_send(iph->daddr, iph->saddr, th->dest, th->source,
-+			 ntohl(th->ack_seq),
-+			 ntohl(th->seq) + 1 + state->seq_diff,
-+			 state->window, 0, TCPHDR_ACK, iph->tos,
-+			 skb->dev, 0, NULL);
-+
-+		return syn_proxy_mangle_pkt(skb, iph, th, state->seq_diff + 1);
-+	}
-+
-+	if (CTINFO2DIR(ctinfo) == IP_CT_DIR_REPLY) {
-+		__be32 newseq;
-+
-+		newseq = htonl(ntohl(th->seq) + state->seq_diff);
-+		inet_proto_csum_replace4(&th->check, skb, th->seq, newseq, 0);
-+		pr_debug("alter seq: %u -> %u\n", ntohl(th->seq),
-+			 ntohl(newseq));
-+		th->seq = newseq;
-+	}
-+
-+	return NF_ACCEPT;
-+}
-+
-+static unsigned int tcp_process(struct sk_buff *skb)
-+{
-+	const struct iphdr *iph;
-+	const struct tcphdr *th;
-+	int err;
-+	u16 mss;
-+
-+	iph = ip_hdr(skb);
-+	if (iph->frag_off & htons(IP_OFFSET))
-+		goto out;
-+	if (!pskb_may_pull(skb, iph->ihl * 4 + sizeof(*th)))
-+		goto out;
-+	th = (const struct tcphdr *)(skb->data + iph->ihl * 4);
-+	if ((tcp_flag_byte(th) &
-+	     (TCPHDR_FIN | TCPHDR_RST | TCPHDR_ACK | TCPHDR_SYN)) != TCPHDR_SYN)
-+		goto out;
-+
-+	if (nf_ip_checksum(skb, NF_INET_PRE_ROUTING, iph->ihl * 4, IPPROTO_TCP))
-+		goto out;
-+	mss = 0;
-+	if (th->doff > sizeof(*th) / 4) {
-+		if (!pskb_may_pull(skb, (iph->ihl + th->doff) * 4))
-+			goto out;
-+		err = get_mss((u8 *)(th + 1), th->doff * 4 - sizeof(*th));
-+		if (err < 0)
-+			goto out;
-+		if (err != 0)
-+			mss = err;
-+	} else if (th->doff != sizeof(*th) / 4)
-+		goto out;
-+
-+	tcp_send(iph->daddr, iph->saddr, th->dest, th->source, 0,
-+		 ntohl(th->seq) + 1, 0, mss, TCPHDR_SYN | TCPHDR_ACK,
-+		 iph->tos, skb->dev,
-+		 TCP_SEND_FLAG_NOTRACE | TCP_SEND_FLAG_SYNCOOKIE, skb);
-+
-+	return NF_STOLEN;
-+
-+out:
-+	return NF_DROP;
-+}
-+
-+static unsigned int synproxy_tg(struct sk_buff *skb,
-+				const struct xt_action_param *par)
-+{
-+	struct nf_conn *ct;
-+	enum ip_conntrack_info ctinfo;
-+	int ret;
-+
-+	/* received from lo */
-+	ct = nf_ct_get(skb, &ctinfo);
-+	if (ct)
-+		return IPT_CONTINUE;
-+
-+	local_bh_disable();
-+	if (!__get_cpu_var(syn_proxy_state).seq_inited)
-+		ret = tcp_process(skb);
-+	else
-+		ret = IPT_CONTINUE;
-+	local_bh_enable();
-+
-+	return ret;
-+}
-+
-+static int synproxy_tg_check(const struct xt_tgchk_param *par)
-+{
-+	int ret;
-+
-+	ret = nf_ct_l3proto_try_module_get(par->family);
-+	if (ret < 0)
-+		pr_info("cannot load conntrack support for proto=%u\n",
-+			par->family);
-+
-+	return ret;
-+}
-+
-+static void synproxy_tg_destroy(const struct xt_tgdtor_param *par)
-+{
-+	nf_ct_l3proto_module_put(par->family);
-+}
-+
-+static struct xt_target synproxy_tg_reg __read_mostly = {
-+	.name		= "SYNPROXY",
-+	.family		= NFPROTO_IPV4,
-+	.target		= synproxy_tg,
-+	.table		= "raw",
-+	.hooks		= 1 << NF_INET_PRE_ROUTING,
-+	.proto		= IPPROTO_TCP,
-+	.checkentry	= synproxy_tg_check,
-+	.destroy	= synproxy_tg_destroy,
-+	.me		= THIS_MODULE,
-+};
-+
-+static struct nf_ct_ext_type syn_proxy_state_ext __read_mostly = {
-+	.len	= sizeof(struct syn_proxy_state),
-+	.align	= __alignof__(struct syn_proxy_state),
-+	.id	= NF_CT_EXT_SYNPROXY,
-+};
-+
-+static int __init synproxy_tg_init(void)
-+{
-+	int err;
-+
-+	rcu_assign_pointer(syn_proxy_pre_hook, syn_proxy_pre);
-+	rcu_assign_pointer(syn_proxy_post_hook, syn_proxy_post);
-+	err = nf_ct_extend_register(&syn_proxy_state_ext);
-+	if (err)
-+		goto err_out;
-+	err = xt_register_target(&synproxy_tg_reg);
-+	if (err)
-+		goto err_out2;
-+
-+	return err;
-+
-+err_out2:
-+	nf_ct_extend_unregister(&syn_proxy_state_ext);
-+err_out:
-+	rcu_assign_pointer(syn_proxy_post_hook, NULL);
-+	rcu_assign_pointer(syn_proxy_pre_hook, NULL);
-+	rcu_barrier();
-+
-+	return err;
-+}
-+
-+static void __exit synproxy_tg_exit(void)
-+{
-+	xt_unregister_target(&synproxy_tg_reg);
-+	nf_ct_extend_unregister(&syn_proxy_state_ext);
-+	rcu_assign_pointer(syn_proxy_post_hook, NULL);
-+	rcu_assign_pointer(syn_proxy_pre_hook, NULL);
-+	rcu_barrier();
-+}
-+
-+module_init(synproxy_tg_init);
-+module_exit(synproxy_tg_exit);
+iptables -A FORWARD -s 1.2.3.4
+iptables -A FORWARD -s 1.2.3.4
+iptables -A FORWARD -s ! 1.2.3.4
+iptables -A FORWARD -s 1.2.3.4
+iptables -A FORWARD -s 1.2.3.4
+iptables -A FORWARD -s ! 1.2.3.4
+
+Now response time is constant to 5msec. :).
+Next I will try to test using Oprofile and ipset.
+
+Some of the information about hardware.
+
+# lspci
+00:00.0 Class 0600: Device 8086:25d8 (rev b1)
+00:02.0 Class 0604: Device 8086:25f7 (rev b1)
+00:03.0 Class 0604: Device 8086:25e3 (rev b1)
+00:04.0 Class 0604: Device 8086:25e4 (rev b1)
+00:05.0 Class 0604: Device 8086:25e5 (rev b1)
+00:06.0 Class 0604: Device 8086:25e6 (rev b1)
+00:07.0 Class 0604: Device 8086:25e7 (rev b1)
+00:10.0 Class 0600: Device 8086:25f0 (rev b1)
+00:10.1 Class 0600: Device 8086:25f0 (rev b1)
+00:10.2 Class 0600: Device 8086:25f0 (rev b1)
+00:11.0 Class 0600: Device 8086:25f1 (rev b1)
+00:13.0 Class 0600: Device 8086:25f3 (rev b1)
+00:15.0 Class 0600: Device 8086:25f5 (rev b1)
+00:16.0 Class 0600: Device 8086:25f6 (rev b1)
+00:1c.0 Class 0604: Device 8086:2690 (rev 09)
+00:1d.0 Class 0c03: Device 8086:2688 (rev 09)
+00:1d.1 Class 0c03: Device 8086:2689 (rev 09)
+00:1e.0 Class 0604: Device 8086:244e (rev d9)
+00:1f.0 Class 0601: Device 8086:2670 (rev 09)
+00:1f.1 Class 0101: Device 8086:269e (rev 09)
+00:1f.2 Class 0101: Device 8086:2680 (rev 09)
+00:1f.3 Class 0c05: Device 8086:269b (rev 09)
+02:00.0 Class 0604: Device 8086:0329 (rev 09)
+02:00.2 Class 0604: Device 8086:032a (rev 09)
+05:00.0 Class 0200: Device 8086:105e (rev 06)
+05:00.1 Class 0200: Device 8086:105e (rev 06)
+06:00.0 Class 0200: Device 8086:105e (rev 06)
+06:00.1 Class 0200: Device 8086:105e (rev 06)
+07:00.0 Class 0200: Device 8086:105e (rev 06)
+07:00.1 Class 0200: Device 8086:105e (rev 06)
+08:00.0 Class 0200: Device 8086:105e (rev 06)
+08:00.1 Class 0200: Device 8086:105e (rev 06)
+0a:00.0 Class 0604: Device 8086:3500 (rev 01)
+0a:00.3 Class 0604: Device 8086:350c (rev 01)
+0c:00.0 Class 0604: Device 8086:3510 (rev 01)
+0c:01.0 Class 0604: Device 8086:3514 (rev 01)
+0c:02.0 Class 0604: Device 8086:3518 (rev 01)
+0d:00.0 Class 0200: Device 8086:1096 (rev 01)
+0d:00.1 Class 0200: Device 8086:1096 (rev 01)
+0f:00.0 Class 0200: Device 8086:105f (rev 06)
+0f:00.1 Class 0200: Device 8086:105f (rev 06)
+
+
+# cat /proc/interrupts
+       CPU0   CPU1 CPU2  CPU3 CPU4 CPU5  CPU6  CPU7
+ 0:      69       0        0        0        0        0        0
+ 0   IO-APIC-edge     timer
+ 1:       0        1        0        1        0        0        0
+  0   IO-APIC-edge     i8042
+ 2:       0        0        0        0        0        0        0
+  0    XT-PIC-XT       cascade
+ 4:    6616    3980   3588   9144   4476   7268   8221  12631
+IO-APIC-edge   serial
+ 8:       0        0        1        0        0        0        0
+  0   IO-APIC-edge     rtc
+12:      0        1        2        0        0        0        0
+ 0   IO-APIC-edge     i8042
+14:      0        0        0        0        0        0        0
+ 0   IO-APIC-edge     ata_piix
+15:      0        0        0        0        0        0        0
+ 0   IO-APIC-edge     ata_piix
+19:   1998    1914   1926   2150   1963   2130  2161   2276
+IO-APIC-fasteoi ata_piix
+202:     1   326209   2        1   549016   570250  0       0
+PCI-MSI-edge     PortH
+203:     0   325939   418403  1   651746   1       1        1
+PCI-MSI-edge     PortG
+204:     1        1       0  1524352    1        0        1        2
+PCI-MSI-edge     PortF
+205:     1        0  1490540   1        0        2        1        1
+PCI-MSI-edge     PortE
+206:     2  2025716   1        1        2        1        1        2
+PCI-MSI-edge     PortD
+207: 1881962 1        2        2        1        0        2        1
+PCI-MSI-edge     PortC
+208:     1    19336    18600   1    26054        1        1        0
+PCI-MSI-edge     PortB
+209:     3    23297    27551   2    31698        1        3        0
+PCI-MSI-edge     PortA
+210: 133213  48582  41595 179080  77845  86064  240070  556444
+PCI-MSI-edge     PortL
+211:     0       1   199112      1       2   520968   692707     1
+PCI-MSI-edge     PortK
+NMI:    0        0        0        0        0        0        0
+0   Non-maskable interrupts
+LOC: 591051  591001  590979  590957  590933  590912  590891  590869
+Local timer interrupts
+RES:    50       61      161      124      148      218       57
+162   Rescheduling interrupts
+CAL:   2281     2328     1789   2318    2154     1912     2355
+1789   function call interrupts
+TLB:    149      162      915      164      797      830      108
+1094   TLB shootdowns
+TRM:     0        0        0        0        0        0        0
+ 0   Thermal event interrupts
+SPU:     0        0        0        0        0        0        0
+ 0   Spurious interrupts
+ERR:     0
+MIS:      0
+
+
+
+# cat /proc/irq/202/smp_affinity
+32
+# cat /proc/irq/202/smp_affinity
+32
+# cat /proc/irq/203/smp_affinity
+16
+# cat /proc/irq/204/smp_affinity
+08
+# cat /proc/irq/205/smp_affinity
+04
+# cat /proc/irq/206/smp_affinity
+02
+# cat /proc/irq/207/smp_affinity
+01
+# cat /proc/irq/208/smp_affinity
+16
+# cat /proc/irq/209/smp_affinity
+16
+# cat /proc/irq/210/smp_affinity
+ff
+# cat /proc/irq/211/smp_affinity
+64
+
+
+
+# cat /proc/cpuinfo
+processor       : 0
+vendor_id       : GenuineIntel
+cpu family      : 6
+model           : 15
+model name      : Intel(R) Xeon(R) CPU           E5335  @ 2.00GHz
+stepping        : 11
+cpu MHz         : 1995.004
+cache size      : 4096 KB
+physical id     : 0
+siblings        : 4
+core id         : 0
+cpu cores       : 4
+apicid          : 0
+initial apicid  : 0
+fdiv_bug        : no
+hlt_bug         : no
+f00f_bug        : no
+coma_bug        : no
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : 10
+wp              : yes
+flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge
+mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe nx
+lm constant_tsc arch_perfmon pebs bts pni monitor ds_cpl vmx tm2 ssse3
+cx16 xtpr dca lahf_lm
+bogomips        : 3990.00
+clflush size    : 64
+power management:
+
+processor       : 1
+vendor_id       : GenuineIntel
+cpu family      : 6
+model           : 15
+model name      : Intel(R) Xeon(R) CPU           E5335  @ 2.00GHz
+stepping        : 11
+cpu MHz         : 1995.004
+cache size      : 4096 KB
+physical id     : 1
+siblings        : 4
+core id         : 0
+cpu cores       : 4
+apicid          : 4
+initial apicid  : 4
+fdiv_bug        : no
+hlt_bug         : no
+f00f_bug        : no
+coma_bug        : no
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : 10
+wp              : yes
+flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge
+mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe nx
+lm constant_tsc arch_perfmon pebs bts pni monitor ds_cpl vmx tm2 ssse3
+cx16 xtpr dca lahf_lm
+bogomips        : 3990.30
+clflush size    : 64
+power management:
+
+processor       : 2
+vendor_id       : GenuineIntel
+cpu family      : 6
+model           : 15
+model name      : Intel(R) Xeon(R) CPU           E5335  @ 2.00GHz
+stepping        : 11
+cpu MHz         : 1995.004
+cache size      : 4096 KB
+physical id     : 0
+siblings        : 4
+core id         : 1
+cpu cores       : 4
+apicid          : 1
+initial apicid  : 1
+fdiv_bug        : no
+hlt_bug         : no
+f00f_bug        : no
+coma_bug        : no
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : 10
+wp              : yes
+flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge
+mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe nx
+lm constant_tsc arch_perfmon pebs bts pni monitor ds_cpl vmx tm2 ssse3
+cx16 xtpr dca lahf_lm
+bogomips        : 3990.31
+clflush size    : 64
+power management:
+
+processor       : 3
+vendor_id       : GenuineIntel
+cpu family      : 6
+model           : 15
+model name      : Intel(R) Xeon(R) CPU           E5335  @ 2.00GHz
+stepping        : 11
+cpu MHz         : 1995.004
+cache size      : 4096 KB
+physical id     : 1
+siblings        : 4
+core id         : 1
+cpu cores       : 4
+apicid          : 5
+initial apicid  : 5
+fdiv_bug        : no
+hlt_bug         : no
+f00f_bug        : no
+coma_bug        : no
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : 10
+wp              : yes
+flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge
+mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe nx
+lm constant_tsc arch_perfmon pebs bts pni monitor ds_cpl vmx tm2 ssse3
+cx16 xtpr dca lahf_lm
+bogomips        : 3990.30
+clflush size    : 64
+power management:
+
+processor       : 4
+vendor_id       : GenuineIntel
+cpu family      : 6
+model           : 15
+model name      : Intel(R) Xeon(R) CPU           E5335  @ 2.00GHz
+stepping        : 11
+cpu MHz         : 1995.004
+cache size      : 4096 KB
+physical id     : 0
+siblings        : 4
+core id         : 2
+cpu cores       : 4
+apicid          : 2
+initial apicid  : 2
+fdiv_bug        : no
+hlt_bug         : no
+f00f_bug        : no
+coma_bug        : no
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : 10
+wp              : yes
+flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge
+mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe nx
+lm constant_tsc arch_perfmon pebs bts pni monitor ds_cpl vmx tm2 ssse3
+cx16 xtpr dca lahf_lm
+bogomips        : 3990.28
+clflush size    : 64
+power management:
+
+processor       : 5
+vendor_id       : GenuineIntel
+cpu family      : 6
+model           : 15
+model name      : Intel(R) Xeon(R) CPU           E5335  @ 2.00GHz
+stepping        : 11
+cpu MHz         : 1995.004
+cache size      : 4096 KB
+physical id     : 1
+siblings        : 4
+core id         : 2
+cpu cores       : 4
+apicid          : 6
+initial apicid  : 6
+fdiv_bug        : no
+hlt_bug         : no
+f00f_bug        : no
+coma_bug        : no
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : 10
+wp              : yes
+flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge
+mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe nx
+lm constant_tsc arch_perfmon pebs bts pni monitor ds_cpl vmx tm2 ssse3
+cx16 xtpr dca lahf_lm
+bogomips        : 3990.31
+clflush size    : 64
+power management:
+
+processor       : 6
+vendor_id       : GenuineIntel
+cpu family      : 6
+model           : 15
+model name      : Intel(R) Xeon(R) CPU           E5335  @ 2.00GHz
+stepping        : 11
+cpu MHz         : 1995.004
+cache size      : 4096 KB
+physical id     : 0
+siblings        : 4
+core id         : 3
+cpu cores       : 4
+apicid          : 3
+initial apicid  : 3
+fdiv_bug        : no
+hlt_bug         : no
+f00f_bug        : no
+coma_bug        : no
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : 10
+wp              : yes
+flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge
+mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe nx
+lm constant_tsc arch_perfmon pebs bts pni monitor ds_cpl vmx tm2 ssse3
+cx16 xtpr dca lahf_lm
+bogomips        : 3990.29
+clflush size    : 64
+power management:
+
+processor       : 7
+vendor_id       : GenuineIntel
+cpu family      : 6
+model           : 15
+model name      : Intel(R) Xeon(R) CPU           E5335  @ 2.00GHz
+stepping        : 11
+cpu MHz         : 1995.004
+cache size      : 4096 KB
+physical id     : 1
+siblings        : 4
+core id         : 3
+cpu cores       : 4
+apicid          : 7
+initial apicid  : 7
+fdiv_bug        : no
+hlt_bug         : no
+f00f_bug        : no
+coma_bug        : no
+fpu             : yes
+fpu_exception   : yes
+cpuid level     : 10
+wp              : yes
+flags           : fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge
+mca cmov pat pse36 clflush dts acpi mmx fxsr sse sse2 ss ht tm pbe nx
+lm constant_tsc arch_perfmon pebs bts pni monitor ds_cpl vmx tm2 ssse3
+cx16 xtpr dca lahf_lm
+bogomips        : 3990.31
+clflush size    : 64
+power management:
+
+
+Regards,
+Krunal
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
