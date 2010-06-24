@@ -1,44 +1,31 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: [PATCH 2/3] netfilter: xt_connbytes: Force CT accounting to be
- enabled
-Date: Thu, 24 Jun 2010 19:15:19 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1006241915040.324@obet.zrqbmnf.qr>
-References: <1277393257-15281-1-git-send-email-tim.gardner@canonical.com> <1277393257-15281-3-git-send-email-tim.gardner@canonical.com>
+Subject: Re: Where to post patches to xtables-addons?
+Date: Thu, 24 Jun 2010 19:19:37 +0200 (CEST)
+Message-ID: <alpine.LSU.2.01.1006241916270.324@obet.zrqbmnf.qr>
+References: <4C237E06.7060301@oracle.com>
 Mime-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: kaber@trash.net, netfilter-devel@vger.kernel.org
-To: Tim Gardner <tim.gardner@canonical.com>
+Cc: netfilter-devel@vger.kernel.org
+To: John Haxby <john.haxby@oracle.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:38576 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:54387 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751546Ab0FXRPU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 24 Jun 2010 13:15:20 -0400
-In-Reply-To: <1277393257-15281-3-git-send-email-tim.gardner@canonical.com>
+	id S1751799Ab0FXRTi (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 24 Jun 2010 13:19:38 -0400
+In-Reply-To: <4C237E06.7060301@oracle.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+On Thursday 2010-06-24 17:47, John Haxby wrote:
 
-On Thursday 2010-06-24 17:27, Tim Gardner wrote:
->diff --git a/net/netfilter/xt_connbytes.c b/net/netfilter/xt_connbytes.c
->index 7351783..b0cda8c 100644
->--- a/net/netfilter/xt_connbytes.c
->+++ b/net/netfilter/xt_connbytes.c
->@@ -112,6 +112,16 @@ static int connbytes_mt_check(const struct xt_mtchk_param *par)
-> 	if (ret < 0)
-> 		pr_info("cannot load conntrack support for proto=%u\n",
-> 			par->family);
->+
->+	/*
->+	 * This filter cannot function correctly unless connection tracking
->+	 * accounting is enabled, so complain in the hope that someone notices.
->+	 */
->+	if (nf_ct_acct_enabled(par) == false) {
+>Is this the right place to post patches for xtables-addons?
 
-	if (!nfct_acct_enabled(par)) {
+Patches? Patches always go to nf-dev. (Netfilter_Modules.pdf and the 
+Xt-a homepage also mention that, so that nobody goes trying looking for 
+a mailing list on Sourceforge.)
 
->+		pr_warning("Forcing CT accounting to be enabled\n");
->+		nf_ct_set_acct(par, true);
->+	}
->+
-> 	return ret;
-> }
+>Is that why my xt_SYSRQ patch seems to have been ignored?
+
+The last mail from you in my collections is "Whither xt_SYSRQ" from May 
+14. Whereever you sent it to, it was neither nf(-user) nor nf-dev, nor 
+was I cc'ed - that's the technical answer.
