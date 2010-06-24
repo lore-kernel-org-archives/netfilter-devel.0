@@ -1,51 +1,138 @@
-From: Jozsef Kadlecsik <kadlec@blackhole.kfki.hu>
-Subject: Re: high latency with ipset-4.2 and 2.6.27.45 kernel.
-Date: Wed, 23 Jun 2010 22:00:59 +0200 (CEST)
-Message-ID: <alpine.DEB.2.00.1006232157580.6811@blackhole.kfki.hu>
-References: <AANLkTimikytx8wGmEtC0gbOng_vAyDUPVHRJWMmnm6p9@mail.gmail.com> <alpine.DEB.2.00.1006211518090.32109@blackhole.kfki.hu> <AANLkTin1A2whIiaHWa4k0NZcdGqJhpk511hBSuLZd-pB@mail.gmail.com> <alpine.LSU.2.01.1006211846000.17820@obet.zrqbmnf.qr>
- <AANLkTil7HS75O5WO3Bxz1S7CF5D4r1om0iWD8vSF3bF6@mail.gmail.com> <alpine.LSU.2.01.1006221046110.13935@obet.zrqbmnf.qr> <alpine.DEB.2.00.1006221057510.2237@blackhole.kfki.hu> <alpine.DEB.2.00.1006221151050.2393@blackhole.kfki.hu>
- <AANLkTimLe-21bu_kun2_H_o_QHltfrfx0QRjZHUeYaoX@mail.gmail.com> <AANLkTilEoFJ54j8kCmEebatbnoRoXF-ong5Hcl4yOIPV@mail.gmail.com> <1277297436.2469.583.camel@edumazet-laptop> <AANLkTimOMu3h74XG1H6o5hsx_sbXMYppemqkFW8N3prW@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Eric Dumazet <eric.dumazet@gmail.com>,
-	netfilter-devel@vger.kernel.org
-To: krunal patel <krunal.raj@gmail.com>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: [PATCH 2/3] xtables: another try at chain name length checking
+Date: Thu, 24 Jun 2010 10:14:03 +0200
+Message-ID: <1277367245-14961-3-git-send-email-jengelh@medozas.de>
+References: <1277367245-14961-1-git-send-email-jengelh@medozas.de>
+Cc: netfilter-devel@vger.kernel.org
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp-in.kfki.hu ([148.6.0.28]:50490 "EHLO smtp2.kfki.hu"
+Received: from borg.medozas.de ([188.40.89.202]:37888 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750966Ab0FWUBA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 23 Jun 2010 16:01:00 -0400
-In-Reply-To: <AANLkTimOMu3h74XG1H6o5hsx_sbXMYppemqkFW8N3prW@mail.gmail.com>
+	id S1750991Ab0FXIOM (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 24 Jun 2010 04:14:12 -0400
+In-Reply-To: <1277367245-14961-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Wed, 23 Jun 2010, krunal patel wrote:
+Since XT_EXTENSION_MAXNAMELEN is now available, make use of it
+and clear the confusion.
 
-> On Wed, Jun 23, 2010 at 6:20 PM, Eric Dumazet <eric.dumazet@gmail.com> wrote:
-> > Le mercredi 23 juin 2010 ? 18:13 +0530, krunal patel a ?crit :
-> >
-> > These affinities are buggy.
-> >
-> > You put decimal values but kernel expect hexadecimal values.
-> >
-> > You should use following power of two values :
-> >
-> > 01, 02, 04, 08, 10, 20, 40, 80
-> >
-> Sorry for such a silly mistake. But after correcting affinities my
-> problem is not solved :(.
+Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
+---
+ ip6tables-restore.c |    4 ++--
+ ip6tables.c         |    4 ++--
+ iptables-restore.c  |    4 ++--
+ iptables.c          |    4 ++--
+ xtables.c           |   10 ++++------
+ 5 files changed, 12 insertions(+), 14 deletions(-)
 
-Then please report what kind of network hardware you have got (exact type, 
-version), the version of the network driver if that comes from outside of 
-the kernel source and *any* non-default network related kernel parameter 
-and setting.
+diff --git a/ip6tables-restore.c b/ip6tables-restore.c
+index f0725d1..008566c 100644
+--- a/ip6tables-restore.c
++++ b/ip6tables-restore.c
+@@ -253,11 +253,11 @@ int main(int argc, char *argv[])
+ 				exit(1);
+ 			}
+ 
+-			if (strlen(chain) > XT_FUNCTION_MAXNAMELEN - 1)
++			if (strlen(chain) >= XT_EXTENSION_MAXNAMELEN)
+ 				xtables_error(PARAMETER_PROBLEM,
+ 					   "Invalid chain name `%s' "
+ 					   "(%u chars max)",
+-					   chain, XT_FUNCTION_MAXNAMELEN - 1);
++					   chain, XT_EXTENSION_MAXNAMELEN - 1);
+ 
+ 			if (ip6tc_builtin(chain, handle) <= 0) {
+ 				if (noflush && ip6tc_is_chain(chain, handle)) {
+diff --git a/ip6tables.c b/ip6tables.c
+index 4e73d34..2fff21b 100644
+--- a/ip6tables.c
++++ b/ip6tables.c
+@@ -456,10 +456,10 @@ parse_target(const char *targetname)
+ 		xtables_error(PARAMETER_PROBLEM,
+ 			   "Invalid target name (too short)");
+ 
+-	if (strlen(targetname) > XT_FUNCTION_MAXNAMELEN - 1)
++	if (strlen(targetname) >= XT_EXTENSION_MAXNAMELEN)
+ 		xtables_error(PARAMETER_PROBLEM,
+ 			   "Invalid target name `%s' (%u chars max)",
+-			   targetname, XT_FUNCTION_MAXNAMELEN - 1);
++			   targetname, XT_EXTENSION_MAXNAMELEN - 1);
+ 
+ 	for (ptr = targetname; *ptr; ptr++)
+ 		if (isspace(*ptr))
+diff --git a/iptables-restore.c b/iptables-restore.c
+index 4a74485..8c6648e 100644
+--- a/iptables-restore.c
++++ b/iptables-restore.c
+@@ -259,11 +259,11 @@ main(int argc, char *argv[])
+ 				exit(1);
+ 			}
+ 
+-			if (strlen(chain) > XT_FUNCTION_MAXNAMELEN - 1)
++			if (strlen(chain) >= XT_EXTENSION_MAXNAMELEN)
+ 				xtables_error(PARAMETER_PROBLEM,
+ 					   "Invalid chain name `%s' "
+ 					   "(%u chars max)",
+-					   chain, XT_FUNCTION_MAXNAMELEN - 1);
++					   chain, XT_EXTENSION_MAXNAMELEN - 1);
+ 
+ 			if (iptc_builtin(chain, handle) <= 0) {
+ 				if (noflush && iptc_is_chain(chain, handle)) {
+diff --git a/iptables.c b/iptables.c
+index 19c2af5..efe993e 100644
+--- a/iptables.c
++++ b/iptables.c
+@@ -460,10 +460,10 @@ parse_target(const char *targetname)
+ 		xtables_error(PARAMETER_PROBLEM,
+ 			   "Invalid target name (too short)");
+ 
+-	if (strlen(targetname) > XT_FUNCTION_MAXNAMELEN - 1)
++	if (strlen(targetname) >= XT_EXTENSION_MAXNAMELEN)
+ 		xtables_error(PARAMETER_PROBLEM,
+ 			   "Invalid target name `%s' (%u chars max)",
+-			   targetname, XT_FUNCTION_MAXNAMELEN - 1);
++			   targetname, XT_EXTENSION_MAXNAMELEN - 1);
+ 
+ 	for (ptr = targetname; *ptr; ptr++)
+ 		if (isspace(*ptr))
+diff --git a/xtables.c b/xtables.c
+index 440b2e1..b4c4f6b 100644
+--- a/xtables.c
++++ b/xtables.c
+@@ -545,10 +545,10 @@ xtables_find_match(const char *name, enum xtables_tryload tryload,
+ 	struct xtables_match *ptr;
+ 	const char *icmp6 = "icmp6";
+ 
+-	if (strlen(name) > XT_FUNCTION_MAXNAMELEN - 1)
++	if (strlen(name) >= XT_EXTENSION_MAXNAMELEN)
+ 		xtables_error(PARAMETER_PROBLEM,
+ 			   "Invalid match name \"%s\" (%u chars max)",
+-			   name, XT_FUNCTION_MAXNAMELEN - 1);
++			   name, XT_EXTENSION_MAXNAMELEN - 1);
+ 
+ 	/* This is ugly as hell. Nonetheless, there is no way of changing
+ 	 * this without hurting backwards compatibility */
+@@ -741,8 +741,7 @@ void xtables_register_match(struct xtables_match *me)
+ 		exit(1);
+ 	}
+ 
+-	/* Revision field stole a char from name. */
+-	if (strlen(me->name) >= XT_FUNCTION_MAXNAMELEN-1) {
++	if (strlen(me->name) >= XT_EXTENSION_MAXNAMELEN) {
+ 		fprintf(stderr, "%s: target `%s' has invalid name\n",
+ 			xt_params->program_name, me->name);
+ 		exit(1);
+@@ -827,8 +826,7 @@ void xtables_register_target(struct xtables_target *me)
+ 		exit(1);
+ 	}
+ 
+-	/* Revision field stole a char from name. */
+-	if (strlen(me->name) >= XT_FUNCTION_MAXNAMELEN-1) {
++	if (strlen(me->name) >= XT_EXTENSION_MAXNAMELEN) {
+ 		fprintf(stderr, "%s: target `%s' has invalid name\n",
+ 			xt_params->program_name, me->name);
+ 		exit(1);
+-- 
+1.7.1
 
-And running oprofile could help as well.
-
-Best regards,
-Jozsef
--
-E-mail  : kadlec@blackhole.kfki.hu, kadlec@mail.kfki.hu
-PGP key : http://www.kfki.hu/~kadlec/pgp_public_key.txt
-Address : KFKI Research Institute for Particle and Nuclear Physics
-          H-1525 Budapest 114, POB. 49, Hungary
