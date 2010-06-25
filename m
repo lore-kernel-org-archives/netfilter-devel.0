@@ -1,38 +1,62 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Where to post patches to xtables-addons?
-Date: Fri, 25 Jun 2010 11:28:05 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1006251127050.2906@obet.zrqbmnf.qr>
-References: <4C237E06.7060301@oracle.com> <alpine.LSU.2.01.1006241916270.324@obet.zrqbmnf.qr> <4C24759F.8060008@oracle.com>
+From: John Haxby <john.haxby@oracle.com>
+Subject: [RESEND] [PATCH] Fix a couple of problems with xt_SYSRQ
+Date: Fri, 25 Jun 2010 10:38:03 +0100
+Message-ID: <4C2478FB.5080602@oracle.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: John Haxby <john.haxby@oracle.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:47278 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752563Ab0FYJ2J (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 25 Jun 2010 05:28:09 -0400
-In-Reply-To: <4C24759F.8060008@oracle.com>
+Received: from rcsinet10.oracle.com ([148.87.113.121]:43425 "EHLO
+	rcsinet10.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751821Ab0FYJjg (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 25 Jun 2010 05:39:36 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Friday 2010-06-25 11:23, John Haxby wrote:
-> On 24/06/10 18:19, Jan Engelhardt wrote:
->>> Is that why my xt_SYSRQ patch seems to have been ignored?
->>>     
->> The last mail from you in my collections is "Whither xt_SYSRQ" from May
->> 14. Whereever you sent it to, it was neither nf(-user) nor nf-dev, nor
->> was I cc'ed - that's the technical answer.
->
-> Some mail server somewhere doesn't like me :-(  I don't think I'm quite losing
-> my marbles though, at least not yet:
->
->    http://markmail.org/thread/4pe7wz34gxnt52hb
+The first problem is that the error response from crypto_alloc_hash()
+should be extracted from the pointer before setting the pointer to NULL.
 
-Seems so. marc did not get it - 
-http://marc.info/?l=netfilter-devel&r=3&b=201006&w=2
-fails your thread from June 09.
+The second error is that only the first half of the password hash is
+checked which slightly weakens the password checking.
 
-> Would you like me to re-send?
+Signed-off-by: John Haxby <john.haxby@oracle.com>
+---
+  extensions/xt_SYSRQ.c |    6 +++---
+  1 files changed, 3 insertions(+), 3 deletions(-)
 
-If you have a pullable url, even better :-)
+diff --git a/extensions/xt_SYSRQ.c b/extensions/xt_SYSRQ.c
+index e0b6aa0..30fc112 100644
+--- a/extensions/xt_SYSRQ.c
++++ b/extensions/xt_SYSRQ.c
+@@ -135,13 +135,13 @@ static unsigned int sysrq_tg(const void *pdata, 
+uint16_t len)
+  			"0123456789abcdef"[sysrq_digest[i] & 0xf];
+  	}
+  	sysrq_hexdigest[2*sysrq_digest_size] = '\0';
+-	if (len - n < sysrq_digest_size) {
++	if (len - n < sysrq_digest_size*2) {
+  		if (sysrq_debug)
+  			printk(KERN_INFO KBUILD_MODNAME ": Short digest,"
+  			       " expected %s\n", sysrq_hexdigest);
+  		return NF_DROP;
+  	}
+-	if (strncmp(data + n, sysrq_hexdigest, sysrq_digest_size) != 0) {
++	if (strncmp(data + n, sysrq_hexdigest, sysrq_digest_size*2) != 0) {
+  		if (sysrq_debug)
+  			printk(KERN_INFO KBUILD_MODNAME ": Bad digest,"
+  			       " expected %s\n", sysrq_hexdigest);
+@@ -324,8 +324,8 @@ static int __init sysrq_crypto_init(void)
+  		printk(KERN_WARNING KBUILD_MODNAME
+  			": Error: Could not find or load %s hash\n",
+  			sysrq_hash);
+-		sysrq_tfm = NULL;
+  		ret = PTR_ERR(sysrq_tfm);
++		sysrq_tfm = NULL;
+  		goto fail;
+  	}
+  	sysrq_digest_size = crypto_hash_digestsize(sysrq_tfm);
+-- 
+1.7.0.1
+
