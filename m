@@ -1,61 +1,52 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 2/2] libxt_conntrack: do print netmask
-Date: Fri, 25 Jun 2010 14:45:41 +0200
-Message-ID: <1277469942-26270-3-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 1/2] libxt_hashlimit: always print burst value
+Date: Fri, 25 Jun 2010 14:45:40 +0200
+Message-ID: <1277469942-26270-2-git-send-email-jengelh@medozas.de>
 References: <1277469942-26270-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
 To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:58083 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:58080 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752095Ab0FYMpr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 25 Jun 2010 08:45:47 -0400
+	id S1752095Ab0FYMpq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 25 Jun 2010 08:45:46 -0400
 In-Reply-To: <1277469942-26270-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-References: http://bugzilla.netfilter.org/show_bug.cgi?id=659
+iptables -L lists the burst value, and so should iptables -S. I was
+certainly surprised to see it gone even when explicitly specifying
+--hashlimit-burst 5 on the command line.
+
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- extensions/libxt_conntrack.c |   16 ++++++++++++----
- 1 files changed, 12 insertions(+), 4 deletions(-)
+ extensions/libxt_hashlimit.c |    6 ++----
+ 1 files changed, 2 insertions(+), 4 deletions(-)
 
-diff --git a/extensions/libxt_conntrack.c b/extensions/libxt_conntrack.c
-index e8225e6..5557d3e 100644
---- a/extensions/libxt_conntrack.c
-+++ b/extensions/libxt_conntrack.c
-@@ -842,9 +842,13 @@ conntrack_dump_addr(const union nf_inet_addr *addr,
- 			return;
- 		}
- 		if (numeric)
--			printf("%s ", xtables_ipaddr_to_numeric(&addr->in));
-+			printf("%s%s ",
-+			       xtables_ipaddr_to_numeric(&addr->in),
-+			       xtables_ipmask_to_numeric(&mask->in));
- 		else
--			printf("%s ", xtables_ipaddr_to_anyname(&addr->in));
-+			printf("%s%s ",
-+			       xtables_ipaddr_to_anyname(&addr->in),
-+			       xtables_ipmask_to_numeric(&mask->in));
- 	} else if (family == NFPROTO_IPV6) {
- 		if (!numeric && addr->ip6[0] == 0 && addr->ip6[1] == 0 &&
- 		    addr->ip6[2] == 0 && addr->ip6[3] == 0) {
-@@ -852,9 +856,13 @@ conntrack_dump_addr(const union nf_inet_addr *addr,
- 			return;
- 		}
- 		if (numeric)
--			printf("%s ", xtables_ip6addr_to_numeric(&addr->in6));
-+			printf("%s%s ",
-+			       xtables_ip6addr_to_numeric(&addr->in6),
-+			       xtables_ip6mask_to_numeric(&mask->in6));
- 		else
--			printf("%s ", xtables_ip6addr_to_anyname(&addr->in6));
-+			printf("%s%s ",
-+			       xtables_ip6addr_to_anyname(&addr->in6),
-+			       xtables_ip6mask_to_numeric(&mask->in6));
- 	}
- }
+diff --git a/extensions/libxt_hashlimit.c b/extensions/libxt_hashlimit.c
+index a8fe588..7442dfc 100644
+--- a/extensions/libxt_hashlimit.c
++++ b/extensions/libxt_hashlimit.c
+@@ -591,8 +591,7 @@ static void hashlimit_save(const void *ip, const struct xt_entry_match *match)
+ 	const struct xt_hashlimit_info *r = (const void *)match->data;
  
+ 	fputs("--hashlimit ", stdout); print_rate(r->cfg.avg);
+-	if (r->cfg.burst != XT_HASHLIMIT_BURST)
+-		printf("--hashlimit-burst %u ", r->cfg.burst);
++	printf("--hashlimit-burst %u ", r->cfg.burst);
+ 
+ 	fputs("--hashlimit-mode ", stdout);
+ 	print_mode(r->cfg.mode, ',');
+@@ -617,8 +616,7 @@ hashlimit_mt_save(const struct xt_hashlimit_mtinfo1 *info, unsigned int dmask)
+ 	else
+ 		fputs("--hashlimit-upto ", stdout);
+ 	print_rate(info->cfg.avg);
+-	if (info->cfg.burst != XT_HASHLIMIT_BURST)
+-		printf("--hashlimit-burst %u ", info->cfg.burst);
++	printf("--hashlimit-burst %u ", info->cfg.burst);
+ 
+ 	if (info->cfg.mode & (XT_HASHLIMIT_HASH_SIP | XT_HASHLIMIT_HASH_SPT |
+ 	    XT_HASHLIMIT_HASH_DIP | XT_HASHLIMIT_HASH_DPT)) {
 -- 
 1.7.1
 
