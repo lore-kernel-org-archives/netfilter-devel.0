@@ -1,38 +1,29 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH V4 1/2] netfilter: xt_connbytes: Force CT accounting to
- be enabled
-Date: Fri, 25 Jun 2010 14:44:42 +0200
-Message-ID: <4C24A4BA.9030402@trash.net>
-References: <1277469092-6247-1-git-send-email-tim.gardner@canonical.com> <1277469092-6247-2-git-send-email-tim.gardner@canonical.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: iptables: hashlimit & conntrack misc
+Date: Fri, 25 Jun 2010 14:45:39 +0200
+Message-ID: <1277469942-26270-1-git-send-email-jengelh@medozas.de>
 Cc: netfilter-devel@vger.kernel.org
-To: Tim Gardner <tim.gardner@canonical.com>
+To: kaber@trash.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:57598 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752095Ab0FYMov (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 25 Jun 2010 08:44:51 -0400
-In-Reply-To: <1277469092-6247-2-git-send-email-tim.gardner@canonical.com>
+Received: from borg.medozas.de ([188.40.89.202]:58077 "EHLO borg.medozas.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752095Ab0FYMpp (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 25 Jun 2010 08:45:45 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Tim Gardner wrote:
-> Check at rule install time that CT accounting is enabled. Force it
-> to be enabled if not while also emitting a warning since this is not
-> the default state.
->
-> This is in preparation for deprecating CONFIG_NF_CT_ACCT upon which
-> CONFIG_NETFILTER_XT_MATCH_CONNBYTES depended being set.
->
-> Added 2 CT accounting support functions:
->
-> nf_ct_acct_enabled() - Get CT accounting state.
-> nf_ct_set_acct() - Enable/disable CT accountuing.
->
->   
 
-Applied, thanks Tim.
+The following changes since commit 11c2dd54b69e06ae3f35dea130ecba3df3859243:
 
+  xtables: remove xtables_set_revision function (2010-06-07 12:00:24 +0200)
+
+are available in the git repository at:
+  git://dev.medozas.de/iptables master
+
+Jan Engelhardt (2):
+      libxt_hashlimit: always print burst value
+      libxt_conntrack: do print netmask
+
+ extensions/libxt_conntrack.c |   16 ++++++++++++----
+ extensions/libxt_hashlimit.c |    6 ++----
+ 2 files changed, 14 insertions(+), 8 deletions(-)
