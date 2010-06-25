@@ -1,52 +1,178 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 1/2] libxt_hashlimit: always print burst value
-Date: Fri, 25 Jun 2010 14:45:40 +0200
-Message-ID: <1277469942-26270-2-git-send-email-jengelh@medozas.de>
-References: <1277469942-26270-1-git-send-email-jengelh@medozas.de>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH V4 2/2] netfilter: Complete the deprecation of CONFIG_NF_CT_ACCT
+Date: Fri, 25 Jun 2010 14:48:13 +0200
+Message-ID: <4C24A58D.6070800@trash.net>
+References: <1277469092-6247-1-git-send-email-tim.gardner@canonical.com> <1277469092-6247-3-git-send-email-tim.gardner@canonical.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed;
+ boundary="------------000804040406060605090009"
 Cc: netfilter-devel@vger.kernel.org
-To: kaber@trash.net
+To: Tim Gardner <tim.gardner@canonical.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:58080 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752095Ab0FYMpq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 25 Jun 2010 08:45:46 -0400
-In-Reply-To: <1277469942-26270-1-git-send-email-jengelh@medozas.de>
+Received: from stinky.trash.net ([213.144.137.162]:57696 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754110Ab0FYMsT (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 25 Jun 2010 08:48:19 -0400
+In-Reply-To: <1277469092-6247-3-git-send-email-tim.gardner@canonical.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-iptables -L lists the burst value, and so should iptables -S. I was
-certainly surprised to see it gone even when explicitly specifying
---hashlimit-burst 5 on the command line.
+This is a multi-part message in MIME format.
+--------------000804040406060605090009
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
----
- extensions/libxt_hashlimit.c |    6 ++----
- 1 files changed, 2 insertions(+), 4 deletions(-)
+Tim Gardner wrote:
+> CONFIG_NF_CT_ACCT has been deprecated for awhile and
+> was originally scheduled for removal by 2.6.29.
+>
+> Removing support for this config option also stops
+> this deprecation warning message in the kernel log.
+>
+> [   61.669627] nf_conntrack version 0.5.0 (16384 buckets, 65536 max)
+> [   61.669850] CONFIG_NF_CT_ACCT is deprecated and will be removed soon. Please use
+> [   61.669852] nf_conntrack.acct=1 kernel parameter, acct=1 nf_conntrack module option or
+> [   61.669853] sysctl net.netfilter.nf_conntrack_acct=1 to enable it.
 
-diff --git a/extensions/libxt_hashlimit.c b/extensions/libxt_hashlimit.c
-index a8fe588..7442dfc 100644
---- a/extensions/libxt_hashlimit.c
-+++ b/extensions/libxt_hashlimit.c
-@@ -591,8 +591,7 @@ static void hashlimit_save(const void *ip, const struct xt_entry_match *match)
- 	const struct xt_hashlimit_info *r = (const void *)match->data;
- 
- 	fputs("--hashlimit ", stdout); print_rate(r->cfg.avg);
--	if (r->cfg.burst != XT_HASHLIMIT_BURST)
--		printf("--hashlimit-burst %u ", r->cfg.burst);
-+	printf("--hashlimit-burst %u ", r->cfg.burst);
- 
- 	fputs("--hashlimit-mode ", stdout);
- 	print_mode(r->cfg.mode, ',');
-@@ -617,8 +616,7 @@ hashlimit_mt_save(const struct xt_hashlimit_mtinfo1 *info, unsigned int dmask)
- 	else
- 		fputs("--hashlimit-upto ", stdout);
- 	print_rate(info->cfg.avg);
--	if (info->cfg.burst != XT_HASHLIMIT_BURST)
--		printf("--hashlimit-burst %u ", info->cfg.burst);
-+	printf("--hashlimit-burst %u ", info->cfg.burst);
- 
- 	if (info->cfg.mode & (XT_HASHLIMIT_HASH_SIP | XT_HASHLIMIT_HASH_SPT |
- 	    XT_HASHLIMIT_HASH_DIP | XT_HASHLIMIT_HASH_DPT)) {
--- 
-1.7.1
 
+Applied with the default changed to 0 (attached for reference).
+
+Thanks for taking care of this.
+
+--------------000804040406060605090009
+Content-Type: text/x-diff;
+ name="02.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="02.diff"
+
+commit d70a011dbbaa6335a19deb63ec3eb613f48faafd
+Author: Tim Gardner <tim.gardner@canonical.com>
+Date:   Fri Jun 25 14:46:56 2010 +0200
+
+    netfilter: complete the deprecation of CONFIG_NF_CT_ACCT
+    
+    CONFIG_NF_CT_ACCT has been deprecated for awhile and
+    was originally scheduled for removal by 2.6.29.
+    
+    Removing support for this config option also stops
+    this deprecation warning message in the kernel log.
+    
+    [   61.669627] nf_conntrack version 0.5.0 (16384 buckets, 65536 max)
+    [   61.669850] CONFIG_NF_CT_ACCT is deprecated and will be removed soon. Please use
+    [   61.669852] nf_conntrack.acct=1 kernel parameter, acct=1 nf_conntrack module option or
+    [   61.669853] sysctl net.netfilter.nf_conntrack_acct=1 to enable it.
+    
+    Signed-off-by: Tim Gardner <tim.gardner@canonical.com>
+    [Patrick: changed default value to 0]
+    Signed-off-by: Patrick McHardy <kaber@trash.net>
+
+diff --git a/Documentation/feature-removal-schedule.txt b/Documentation/feature-removal-schedule.txt
+index 672be01..92f021a 100644
+--- a/Documentation/feature-removal-schedule.txt
++++ b/Documentation/feature-removal-schedule.txt
+@@ -303,15 +303,6 @@ Who:	Johannes Berg <johannes@sipsolutions.net>
+ 
+ ---------------------------
+ 
+-What: CONFIG_NF_CT_ACCT
+-When: 2.6.29
+-Why:  Accounting can now be enabled/disabled without kernel recompilation.
+-      Currently used only to set a default value for a feature that is also
+-      controlled by a kernel/module/sysfs/sysctl parameter.
+-Who:  Krzysztof Piotr Oledzki <ole@ans.pl>
+-
+----------------------------
+-
+ What:	sysfs ui for changing p4-clockmod parameters
+ When:	September 2009
+ Why:	See commits 129f8ae9b1b5be94517da76009ea956e89104ce8 and
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index 1808f11..cee6251 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -1597,8 +1597,7 @@ and is between 256 and 4096 characters. It is defined in the file
+ 			[NETFILTER] Enable connection tracking flow accounting
+ 			0 to disable accounting
+ 			1 to enable accounting
+-			Default value depends on CONFIG_NF_CT_ACCT that is
+-			going to be removed in 2.6.29.
++			Default value is 0.
+ 
+ 	nfsaddrs=	[NFS]
+ 			See Documentation/filesystems/nfs/nfsroot.txt.
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 21be535..aa2f106 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -40,27 +40,6 @@ config NF_CONNTRACK
+ 
+ if NF_CONNTRACK
+ 
+-config NF_CT_ACCT
+-	bool "Connection tracking flow accounting"
+-	depends on NETFILTER_ADVANCED
+-	help
+-	  If this option is enabled, the connection tracking code will
+-	  keep per-flow packet and byte counters.
+-
+-	  Those counters can be used for flow-based accounting or the
+-	  `connbytes' match.
+-
+-	  Please note that currently this option only sets a default state.
+-	  You may change it at boot time with nf_conntrack.acct=0/1 kernel
+-	  parameter or by loading the nf_conntrack module with acct=0/1.
+-
+-	  You may also disable/enable it on a running system with:
+-	   sysctl net.netfilter.nf_conntrack_acct=0/1
+-
+-	  This option will be removed in 2.6.29.
+-
+-	  If unsure, say `N'.
+-
+ config NF_CONNTRACK_MARK
+ 	bool  'Connection mark tracking support'
+ 	depends on NETFILTER_ADVANCED
+@@ -630,7 +609,6 @@ config NETFILTER_XT_MATCH_CONNBYTES
+ 	tristate  '"connbytes" per-connection counter match support'
+ 	depends on NF_CONNTRACK
+ 	depends on NETFILTER_ADVANCED
+-	select NF_CT_ACCT
+ 	help
+ 	  This option adds a `connbytes' match, which allows you to match the
+ 	  number of bytes and/or packets for each direction within a connection.
+diff --git a/net/netfilter/nf_conntrack_acct.c b/net/netfilter/nf_conntrack_acct.c
+index ab81b38..5178c69 100644
+--- a/net/netfilter/nf_conntrack_acct.c
++++ b/net/netfilter/nf_conntrack_acct.c
+@@ -17,13 +17,7 @@
+ #include <net/netfilter/nf_conntrack_extend.h>
+ #include <net/netfilter/nf_conntrack_acct.h>
+ 
+-#ifdef CONFIG_NF_CT_ACCT
+-#define NF_CT_ACCT_DEFAULT 1
+-#else
+-#define NF_CT_ACCT_DEFAULT 0
+-#endif
+-
+-static int nf_ct_acct __read_mostly = NF_CT_ACCT_DEFAULT;
++static int nf_ct_acct __read_mostly;
+ 
+ module_param_named(acct, nf_ct_acct, bool, 0644);
+ MODULE_PARM_DESC(acct, "Enable connection tracking flow accounting.");
+@@ -114,12 +108,6 @@ int nf_conntrack_acct_init(struct net *net)
+ 	net->ct.sysctl_acct = nf_ct_acct;
+ 
+ 	if (net_eq(net, &init_net)) {
+-#ifdef CONFIG_NF_CT_ACCT
+-	printk(KERN_WARNING "CONFIG_NF_CT_ACCT is deprecated and will be removed soon. Please use\n");
+-		printk(KERN_WARNING "nf_conntrack.acct=1 kernel parameter, acct=1 nf_conntrack module option or\n");
+-		printk(KERN_WARNING "sysctl net.netfilter.nf_conntrack_acct=1 to enable it.\n");
+-#endif
+-
+ 		ret = nf_ct_extend_register(&acct_extend);
+ 		if (ret < 0) {
+ 			printk(KERN_ERR "nf_conntrack_acct: Unable to register extension\n");
+
+--------------000804040406060605090009--
