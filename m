@@ -1,52 +1,91 @@
-From: Michael Stapelberg <michael+netfilter@stapelberg.de>
-Subject: iptlog: tracing iptables packet flow
-Date: Fri, 25 Jun 2010 23:33:26 +0200
-Message-ID: <1277495925-sup-9790@midna.zekjur.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-To: netfilter-devel <netfilter-devel@vger.kernel.org>
+From: Michael Kerrisk <mtk.manpages@gmail.com>
+Subject: Re: [PATCH 2/2] man - IP_NODEFRAG option for IPv4 socket
+Date: Sat, 26 Jun 2010 15:01:03 +0200
+Message-ID: <AANLkTim4N5rc8Sn_uo5bXsb9vjvKd3GTQD3p-1uApbB8@mail.gmail.com>
+References: <1276600052-16499-1-git-send-email-jolsa@redhat.com>
+	<1276600052-16499-3-git-send-email-jolsa@redhat.com>
+Reply-To: mtk.manpages@gmail.com
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: eric.dumazet@gmail.com, jengelh@medozas.de, kaber@trash.net,
+	netdev@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	linux-man@vger.kernel.org
+To: Jiri Olsa <jolsa@redhat.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx2.twice-irc.de ([79.140.35.195]:50092 "EHLO twice-irc.de"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751895Ab0FYVnT (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 25 Jun 2010 17:43:19 -0400
-Received: from midna.zekjur.net (midna.zekjur.net [IPv6:2001:4d88:1008:4242:21c:c0ff:fe7e:4776])
-	by twice-irc.de (Postfix) with ESMTPSA id 82964166636
-	for <netfilter-devel@vger.kernel.org>; Fri, 25 Jun 2010 23:33:27 +0200 (CEST)
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:53145 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753153Ab0FZNB0 convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 26 Jun 2010 09:01:26 -0400
+In-Reply-To: <1276600052-16499-3-git-send-email-jolsa@redhat.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi everybody,
+Hi Jiri,
 
-recently I wondered why there is no way to trace packet flow in iptables like
-in pf (packet filter on BSD systems) with the pflog pseudo-interface (or can
-you?). So, I did some research for a proof-of-concept and found the TRACE
-target aswell as ulogd with the pcap-plugin. Then I defined a new format (like
-the pflog format), wrote a plugin for ulogd2 and a dissector for wireshark and
-there we go.
+Thanks for this patch. See below.
 
-So, the links to look up my work so far are:
-header description: 
-  http://code.stapelberg.de/git/tracetables/tree/HEADER
-the output plugin:
-  http://code.stapelberg.de/git/tracetables/tree/ulogd2-output-iptlog
-wireshark dissector:
-  http://code.stapelberg.de/git/tracetables/tree/0001-add-dissector-for-iptlog.patch
+On Tue, Jun 15, 2010 at 1:07 PM, Jiri Olsa <jolsa@redhat.com> wrote:
+> hi,
+>
+> this patch adds description for IP_NODEFRAG option for IPv4 socket.
+>
+> wbr,
+> jirka
+>
+>
+> Signed-off-by: Jiri Olsa <jolsa@redhat.com>
+> ---
+> =A0man7/ip.7 | =A0 =A06 ++++++
+> =A01 files changed, 6 insertions(+), 0 deletions(-)
+>
+> diff --git a/man7/ip.7 b/man7/ip.7
+> index 34f7e80..12c0d5b 100644
+> --- a/man7/ip.7
+> +++ b/man7/ip.7
+> @@ -705,6 +705,12 @@ socket option (see
+> =A0.BR IP_TTL " (since Linux 1.0)"
+> =A0Set or retrieve the current time-to-live field that is used in eve=
+ry packet
+> =A0sent from this socket.
+> +.TP
+> +.BR IP_NODEFRAG " (since Linux 2.6)"
 
-So, here comes my first question: Is this the right way to implement it? Am I
-missing some obvious better alternative?
+here, we'd write the exact version in which the flag is added. It
+looks like that might be 2.36, right?
 
-The question which is probably harder to answer:
-Because one wants to include the iptables rule in human readable format in the
-iptlog file aswell, I want to get the string representation of a rule somehow.
-iptables-save provides such a representation, but directly calls printf() when
-generating it. So, my first try was to just copy its code and adapt it to
-buffers and sprintf. However, I discovered that modules provide a save()
-callback which also directly calls printf. So, there is no way to capture the
-output of the save callback without modifying each module, right?
+Otherwise, this patch looks fine.
 
-So, what should I do about this? Change the API to tell the module to call my
-own function with the string instead of directly calling printf?
+Cheers,
 
-Best regards,
 Michael
+
+
+
+> +If enabled, the reassembly of outgoing packets is disabled in the ne=
+tfilter layer.
+> +Only valid for
+> +.B SOCK_RAW
+> +sockets.
+> =A0.\" FIXME Document IP_XFRM_POLICY
+> =A0.\" Since Linux 2.5.48
+> =A0.\" Needs CAP_NET_ADMIN
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-man" =
+in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at =A0http://vger.kernel.org/majordomo-info.html
+>
+
+
+
+--=20
+Michael Kerrisk
+Linux man-pages maintainer; http://www.kernel.org/doc/man-pages/
+Author of "The Linux Programming Interface" http://blog.man7.org/
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
