@@ -1,176 +1,173 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 16/56] netfilter: xtables2: make a copy of the ipv6_filter table
-Date: Tue, 29 Jun 2010 10:42:56 +0200
-Message-ID: <1277801017-30600-17-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 13/56] netfilter: xtables2: jumpstack (de)allocation functions
+Date: Tue, 29 Jun 2010 10:42:53 +0200
+Message-ID: <1277801017-30600-14-git-send-email-jengelh@medozas.de>
 References: <1277801017-30600-1-git-send-email-jengelh@medozas.de>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:44266 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:44259 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754212Ab0F2In5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Jun 2010 04:43:57 -0400
+	id S1754168Ab0F2Iny (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 29 Jun 2010 04:43:54 -0400
 In-Reply-To: <1277801017-30600-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-A "filter2" table is temporarily added for testing and patching, so
-as to not break bisection operations where ip6table_filter needs to
-remain fully functional. It is compiled unconditionally alongside
-"filter" for simplicity, only developers see it anyhow while it lives.
-
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/net/netns/x_tables.h          |    1 +
- net/ipv6/netfilter/Makefile           |    2 +-
- net/ipv6/netfilter/ip6table_filter2.c |  113 +++++++++++++++++++++++++++++++++
- 3 files changed, 115 insertions(+), 1 deletions(-)
- create mode 100644 net/ipv6/netfilter/ip6table_filter2.c
+ include/linux/netfilter/x_tables.h |   13 ++++++
+ net/netfilter/x_tables.c           |   73 +++++++++++++++++++++++++++++++++++-
+ 2 files changed, 85 insertions(+), 1 deletions(-)
 
-diff --git a/include/net/netns/x_tables.h b/include/net/netns/x_tables.h
-index 8a2d497..1e96a54 100644
---- a/include/net/netns/x_tables.h
-+++ b/include/net/netns/x_tables.h
-@@ -19,6 +19,7 @@ struct netns_xt {
- struct netns_xt2 {
- 	struct mutex table_lock;
- 	struct list_head table_list[NFPROTO_NUMPROTO];
-+	struct xt_table *ipv6_filter;
- };
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index 3849383..fcca7a6 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -512,6 +512,14 @@ enum {
+  * @chain_list:		list of chains (struct xt2_chain)
+  * @name:		name of this table
+  * @nfproto:		nfproto the table is used exclusively with
++ * @rq_stacksize:	Size of the jumpstack. This is usually set to the
++ * 			number of user chains -- since tables cannot have
++ * 			loops, at most that many jumps can possibly be made --
++ * 			or a value dependent thereof, such as when it is
++ * 			multiplied to allow for reentry.
++ * @stacksize:		current size of the stack (@stackptr, @jumpstack)
++ * @stackptr:		current stack pointer, one per CPU
++ * @jumpstack:		our stack, also one per CPU
+  * @entrypoint:		start chains for hooks
+  * @underflow:		base chain policy (rule)
+  * @net:		encompassing netns. To be set by xt2_table_new caller.
+@@ -521,6 +529,11 @@ struct xt2_table {
+ 	struct list_head chain_list;
+ 	char name[11];
+ 	uint8_t nfproto;
++
++	unsigned int rq_stacksize, stacksize;
++	unsigned int __percpu *stackptr;
++	const struct xt2_rule ***jumpstack;
++
+ 	const struct xt2_chain *entrypoint[NF_INET_NUMHOOKS];
+ 	const struct xt2_rule *underflow[NF_INET_NUMHOOKS];
+ 	struct net *net;
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 7126e28..c820bdc 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -1463,6 +1463,7 @@ struct xt2_chain *xt2_chain_new(struct xt2_table *table, const char *name)
+ 	if (chain == NULL)
+ 		return NULL;
  
- #endif
-diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
-index aafbba3..35fa80f 100644
---- a/net/ipv6/netfilter/Makefile
-+++ b/net/ipv6/netfilter/Makefile
-@@ -4,7 +4,7 @@
++	++table->rq_stacksize;
+ 	chain->table = table;
+ 	INIT_LIST_HEAD(&chain->anchor);
+ 	INIT_LIST_HEAD(&chain->rule_list);
+@@ -1491,11 +1492,76 @@ static void xt2_chain_free(struct xt2_chain *chain)
+ 	struct xt2_rule *rule, *next_rule;
  
- # Link order matters here.
- obj-$(CONFIG_IP6_NF_IPTABLES) += ip6_tables.o
--obj-$(CONFIG_IP6_NF_FILTER) += ip6table_filter.o
-+obj-$(CONFIG_IP6_NF_FILTER) += ip6table_filter.o ip6table_filter2.o
- obj-$(CONFIG_IP6_NF_MANGLE) += ip6table_mangle.o
- obj-$(CONFIG_IP6_NF_QUEUE) += ip6_queue.o
- obj-$(CONFIG_IP6_NF_RAW) += ip6table_raw.o
-diff --git a/net/ipv6/netfilter/ip6table_filter2.c b/net/ipv6/netfilter/ip6table_filter2.c
-new file mode 100644
-index 0000000..55750e4
---- /dev/null
-+++ b/net/ipv6/netfilter/ip6table_filter2.c
-@@ -0,0 +1,113 @@
-+/*
-+ * This is the 1999 rewrite of IP Firewalling, aiming for kernel 2.3.x.
-+ *
-+ * Copyright (C) 1999 Paul `Rusty' Russell & Michael J. Neuling
-+ * Copyright (C) 2000-2004 Netfilter Core Team <coreteam@netfilter.org>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
+ 	list_del(&chain->anchor);
++	--chain->table->rq_stacksize;
+ 	list_for_each_entry_safe(rule, next_rule, &chain->rule_list, anchor)
+ 		xt2_rule_free(rule);
+ 	kfree(chain);
+ }
+ 
++/**
++ * Allocate jumpstacks. This is normally called sometime after the chains
++ * have all been added to the table.
 + */
-+
-+#include <linux/module.h>
-+#include <linux/moduleparam.h>
-+#include <linux/netfilter_ipv6/ip6_tables.h>
-+#include <linux/slab.h>
-+
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.org>");
-+MODULE_DESCRIPTION("ip6tables filter table");
-+
-+#define FILTER_VALID_HOOKS ((1 << NF_INET_LOCAL_IN) | \
-+			    (1 << NF_INET_FORWARD) | \
-+			    (1 << NF_INET_LOCAL_OUT))
-+
-+static const struct xt_table packet_filter = {
-+	.name		= "filter2",
-+	.valid_hooks	= FILTER_VALID_HOOKS,
-+	.me		= THIS_MODULE,
-+	.af		= NFPROTO_IPV6,
-+	.priority	= NF_IP6_PRI_FILTER,
-+};
-+
-+/* The work comes in here from netfilter.c. */
-+static unsigned int
-+ip6table_filter_hook(unsigned int hook, struct sk_buff *skb,
-+		     const struct net_device *in, const struct net_device *out,
-+		     int (*okfn)(struct sk_buff *))
++static int xt2_jumpstack_alloc(struct xt2_table *table)
 +{
-+	const struct net *net = dev_net((in != NULL) ? in : out);
++	unsigned int size, cpu;
 +
-+	return ip6t_do_table(skb, hook, in, out, net->ipv6.ip6table_filter);
-+}
-+
-+static struct nf_hook_ops *filter_ops __read_mostly;
-+
-+/* Default to forward because I got too much mail already. */
-+static int forward = NF_ACCEPT;
-+module_param(forward, bool, 0000);
-+
-+static int __net_init ip6table_filter_net_init(struct net *net)
-+{
-+	struct ip6t_replace *repl;
-+
-+	repl = ip6t_alloc_initial_table(&packet_filter);
-+	if (repl == NULL)
++	table->stackptr = alloc_percpu(unsigned int);
++	if (table->stackptr == NULL)
 +		return -ENOMEM;
-+	/* Entry 1 is the FORWARD hook */
-+	((struct ip6t_standard *)repl->entries)[1].target.verdict =
-+		-forward - 1;
 +
-+	net->xt2.ipv6_filter =
-+		ip6t_register_table(net, &packet_filter, repl);
-+	kfree(repl);
-+	if (IS_ERR(net->xt2.ipv6_filter))
-+		return PTR_ERR(net->xt2.ipv6_filter);
++	size = sizeof(struct xt2_rule **) * nr_cpu_ids;
++	if (size > PAGE_SIZE)
++		table->jumpstack = vmalloc(size);
++	else
++		table->jumpstack = kmalloc(size, GFP_KERNEL);
++	if (table->jumpstack == NULL)
++		return -ENOMEM;
++	memset(table->jumpstack, 0, size);
++
++	table->stacksize = table->rq_stacksize * xt_jumpstack_multiplier;
++	size = sizeof(struct xt2_rule *) * table->stacksize;
++	for_each_possible_cpu(cpu) {
++		if (size > PAGE_SIZE)
++			table->jumpstack[cpu] = vmalloc_node(size,
++							     cpu_to_node(cpu));
++		else
++			table->jumpstack[cpu] = kmalloc_node(size,
++							     GFP_KERNEL,
++							     cpu_to_node(cpu));
++		if (table->jumpstack[cpu] == NULL)
++			/*
++			 * Freeing will be done later on by the callers. The
++			 * chain is: xt2_table_replace ->
++			 * ipt2_register_table -> xt2_table_destroy
++			 */
++			return -ENOMEM;
++	}
++
 +	return 0;
 +}
 +
-+static void __net_exit ip6table_filter_net_exit(struct net *net)
++static void xt2_jumpstack_free(struct xt2_table *table)
 +{
-+	ip6t_unregister_table(net, net->xt2.ipv6_filter);
++	unsigned int cpu;
++
++	if (table->jumpstack != NULL) {
++		if (sizeof(struct xt2_rule *) * table->stacksize > PAGE_SIZE) {
++			for_each_possible_cpu(cpu)
++				vfree(table->jumpstack[cpu]);
++		} else {
++			for_each_possible_cpu(cpu)
++				kfree(table->jumpstack[cpu]);
++		}
++		if (sizeof(struct xt2_rule **) * nr_cpu_ids > PAGE_SIZE)
++			vfree(table->jumpstack);
++		else
++			kfree(table->jumpstack);
++	}
++
++	free_percpu(table->stackptr);
 +}
 +
-+static struct pernet_operations ip6table_filter_net_ops = {
-+	.init = ip6table_filter_net_init,
-+	.exit = ip6table_filter_net_exit,
-+};
-+
-+static int __init ip6table_filter_init(void)
-+{
+ struct xt2_table *xt2_table_new(void)
+ {
+ 	struct xt2_table *table;
+@@ -1537,7 +1603,7 @@ EXPORT_SYMBOL_GPL(xt2_tlink_lookup);
+ int xt2_table_register(struct net *net, struct xt2_table *table)
+ {
+ 	struct xt2_table_link *link;
+-	int ret = 0;
 +	int ret;
-+
-+	if (forward < 0 || forward > NF_MAX_VERDICT) {
-+		pr_err("iptables forward must be 0 or 1\n");
-+		return -EINVAL;
-+	}
-+
-+	ret = register_pernet_subsys(&ip6table_filter_net_ops);
+ 
+ 	if (*table->name == '\0')
+ 		/* Empty names don't fly with our strcmp. */
+@@ -1550,6 +1616,10 @@ int xt2_table_register(struct net *net, struct xt2_table *table)
+ 		goto out;
+ 	}
+ 
++	ret = xt2_jumpstack_alloc(table);
 +	if (ret < 0)
-+		return ret;
++		goto out;
 +
-+	/* Register hooks */
-+	filter_ops = xt_hook_link(&packet_filter, ip6table_filter_hook);
-+	if (IS_ERR(filter_ops)) {
-+		ret = PTR_ERR(filter_ops);
-+		goto cleanup_table;
-+	}
-+
-+	return ret;
-+
-+ cleanup_table:
-+	unregister_pernet_subsys(&ip6table_filter_net_ops);
-+	return ret;
-+}
-+
-+static void __exit ip6table_filter_fini(void)
-+{
-+	xt_hook_unlink(&packet_filter, filter_ops);
-+	unregister_pernet_subsys(&ip6table_filter_net_ops);
-+}
-+
-+module_init(ip6table_filter_init);
-+module_exit(ip6table_filter_fini);
+ 	link = kmalloc(sizeof(*link), GFP_KERNEL);
+ 	if (link == NULL) {
+ 		ret = -ENOMEM;
+@@ -1633,6 +1703,7 @@ void xt2_table_destroy(struct net *net, struct xt2_table *table)
+ 	if (net != NULL)
+ 		xt2_table_unregister(net, table);
+ 
++	xt2_jumpstack_free(table);
+ 	list_for_each_entry_safe(chain, next_chain, &table->chain_list, anchor)
+ 		xt2_chain_free(chain);
+ 	kfree(table);
 -- 
 1.7.1
 
