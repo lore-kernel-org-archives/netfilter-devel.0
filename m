@@ -1,229 +1,188 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 11/56] netfilter: xtables2: per-rule target skeletal functions
-Date: Tue, 29 Jun 2010 10:42:51 +0200
-Message-ID: <1277801017-30600-12-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 14/56] netfilter: xtables2: table traversal
+Date: Tue, 29 Jun 2010 10:42:54 +0200
+Message-ID: <1277801017-30600-15-git-send-email-jengelh@medozas.de>
 References: <1277801017-30600-1-git-send-email-jengelh@medozas.de>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:44245 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:44262 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754026Ab0F2Inv (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Jun 2010 04:43:51 -0400
+	id S1754026Ab0F2Inz (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 29 Jun 2010 04:43:55 -0400
 In-Reply-To: <1277801017-30600-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-By using a list for targets, it becomes possible to use multiple
-targets in an xt2 rule.
-
-Loop detection and Origin Tracing is not included here yet. xt1
-modules, e.g. ip6_tables, will (continue to) do the loop checking and
-"comefrom" marking for the time being.
-
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/linux/netfilter/x_tables.h |   48 ++++++++++++++++++++++++
- net/netfilter/x_tables.c           |   72 +++++++++++++++++++++++++++++++++++-
- 2 files changed, 119 insertions(+), 1 deletions(-)
+ include/linux/netfilter/x_tables.h |    5 ++
+ net/netfilter/x_tables.c           |  115 ++++++++++++++++++++++++++++++++++++
+ 2 files changed, 120 insertions(+), 0 deletions(-)
 
 diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index 47951aa..335cdc4 100644
+index fcca7a6..a90b758 100644
 --- a/include/linux/netfilter/x_tables.h
 +++ b/include/linux/netfilter/x_tables.h
-@@ -404,6 +404,14 @@ struct xt_table_info {
- 	void *entries[1];
- };
- 
-+/*
-+ * The use of low negative numbers means we can use IS_ERR()
-+ * (See xt2_special_target below.)
-+ */
-+#define XT2_ACTION_JUMP   ((const struct xt_target *)(-2))
-+#define XT2_ACTION_GOTO   ((const struct xt_target *)(-3))
-+#define XT2_FINAL_VERDICT ((const struct xt_target *)(-4))
-+
- struct xt2_table;
- 
- enum {
-@@ -416,12 +424,14 @@ enum {
- /**
-  * @anchor:		list anchor for parent (xt2_chain.rule_list)
-  * @match_list:		list of called match extensions (xt2_entry_match)
-+ * @target_list:	list of called target extensions (xt2_entry_targets)
-  * @l4proto:		layer-4 protocol used (needed for xt_check_*)
-  * @flags:		extra flags (see above)
-  */
- struct xt2_rule {
- 	struct list_head anchor;
- 	struct list_head match_list;
-+	struct list_head target_list;
- 	struct xt2_chain *chain;
- 	uint8_t l4proto, flags;
- };
-@@ -440,6 +450,25 @@ struct xt2_entry_match {
- };
- 
- /**
-+ * @anchor:	list anchor for parent (xt2_rule.target_list)
-+ * @ext:	pointer to extension
-+ * @data:	parameter block for extension (aka. "targetinfo")
-+ * @r_jump:	jump target; requires that @ext is %XT2_ACTION_JUMP
-+ * @r_goto:	goto target; requires that @ext is %XT2_ACTION_GOTO
-+ * @verdict:	final verdict (%XT_* or %NF_*);
-+ * 		requires that @ext is %XT2_FINAL_VERDICT
-+ */
-+struct xt2_entry_target {
-+	struct list_head anchor;
-+	const struct xt_target *ext;
-+	union {
-+		void *data;
-+		const struct xt2_chain *r_jump, *r_goto;
-+		unsigned int verdict;
-+	};
-+};
-+
-+/**
-  * @anchor:	list anchor for parent (xt2_table.chain_list)
-  * @rule_list:	list of struct xt2_rule
-  * @name:	name of chain
-@@ -646,6 +675,8 @@ extern void xt_hook_unlink(const struct xt_table *, struct nf_hook_ops *);
- extern struct xt2_rule *xt2_rule_new(struct xt2_chain *);
- extern int xt2_rule_add_match(struct xt2_rule *, const char *, uint8_t,
- 			      const void *, unsigned int, bool);
-+extern int xt2_rule_add_target(struct xt2_rule *, const char *, uint8_t,
-+			       const void *, unsigned int, bool);
- 
- extern struct xt2_chain *xt2_chain_new(struct xt2_table *, const char *);
- extern void xt2_chain_append(struct xt2_rule *);
-@@ -657,6 +688,15 @@ extern int xt2_table_register(struct net *, struct xt2_table *);
+@@ -708,6 +708,11 @@ extern int xt2_table_register(struct net *, struct xt2_table *);
  extern struct xt2_table *xt2_table_replace(struct net *, struct xt2_table *);
  extern void xt2_table_destroy(struct net *, struct xt2_table *);
  
-+static inline bool xt2_special_target(const struct xt_target *t)
-+{
-+	/*
-+	 * We can reuse the error space [-4095..-1], as no pointers will ever
-+	 * have addresses in that range.
-+	 */
-+	return IS_ERR(t);
-+}
++extern unsigned int xt2_do_table(struct sk_buff *, unsigned int,
++				 const struct net_device *,
++				 const struct net_device *,
++				 const struct xt2_table *);
 +
- static inline int
- xt2_rule_add_oldmatch(struct xt2_rule *rule, const struct xt_entry_match *m)
+ static inline bool xt2_special_target(const struct xt_target *t)
  {
-@@ -664,6 +704,14 @@ xt2_rule_add_oldmatch(struct xt2_rule *rule, const struct xt_entry_match *m)
- 				  m->data, m->u.match_size - sizeof(*m), true);
- }
- 
-+static inline int
-+xt2_rule_add_oldtarget(struct xt2_rule *rule, const struct xt_entry_target *t)
-+{
-+	return xt2_rule_add_target(rule, t->u.user.name, t->u.user.revision,
-+				   t->data, t->u.target_size - sizeof(*t),
-+				   true);
-+}
-+
- static inline struct xt2_table *
- xt2_table_lookup(struct net *net, const char *name, uint8_t nfproto,
- 		 unsigned int lock_mask)
+ 	/*
 diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index b9d0d3f..bfa2fea 100644
+index c820bdc..f63587a 100644
 --- a/net/netfilter/x_tables.c
 +++ b/net/netfilter/x_tables.c
-@@ -1256,6 +1256,7 @@ struct xt2_rule *xt2_rule_new(struct xt2_chain *chain)
- 	rule->chain = chain;
- 	INIT_LIST_HEAD(&rule->anchor);
- 	INIT_LIST_HEAD(&rule->match_list);
-+	INIT_LIST_HEAD(&rule->target_list);
- 	return rule;
- }
- EXPORT_SYMBOL_GPL(xt2_rule_new);
-@@ -1358,14 +1359,83 @@ int xt2_rule_add_match(struct xt2_rule *rule, const char *ext_name,
- }
- EXPORT_SYMBOL_GPL(xt2_rule_add_match);
+@@ -56,6 +56,17 @@ struct xt_af {
  
-+int xt2_rule_add_target(struct xt2_rule *rule, const char *ext_name,
-+			uint8_t ext_rev, const void *data, unsigned int dsize,
-+			bool check_pad)
-+{
-+	const uint8_t nfproto = rule->chain->table->nfproto;
-+	struct xt2_entry_target *etarget;
-+	const struct xt_target *ext;
-+	struct xt_tgchk_param tgpar;
-+	int ret;
+ static struct xt_af *xt;
+ 
++/***
++ * xt2 internal decisions -
++ *
++ * %XT_START_CHAIN:	used to implement jump/goto after chain got switched
++ */
++enum {
++	XT_START_CHAIN = 0xFFFFFFF9,
++	/* XT_RETURN   = 0xFFFFFFFB, */ /* reminder (x_tables.h) */
++	/* XT_CONTINUE = 0xFFFFFFFF, */ /* reminder (x_tables.h) */
++};
 +
-+	ext = try_then_request_module(xt_find_target(nfproto, ext_name,
-+						     ext_rev),
-+				      "%st_%s", xt_prefix[nfproto], ext_name);
-+	if (ext == NULL)
-+		return -ENOENT;
-+	if (IS_ERR(ext))
-+		return PTR_ERR(ext);
-+
-+	ret = -ENOMEM;
-+	etarget = kmalloc(sizeof(*etarget), GFP_KERNEL);
-+	if (etarget == NULL)
-+		goto put_module;
-+	etarget->ext  = ext;
-+	etarget->data = kmemdup(data, dsize, GFP_KERNEL);
-+	if (etarget->data == NULL)
-+		goto free_etarget;
-+
-+	tgpar.net       = rule->chain->table->net;
-+	tgpar.table     = rule->chain->table->name;
-+	tgpar.target    = ext;
-+	tgpar.targinfo  = etarget->data;
-+	tgpar.hook_mask = rule->chain->comefrom;
-+	tgpar.family    = rule->chain->table->nfproto;
-+	ret = xt_check_target(&tgpar, dsize, rule->l4proto,
-+			      rule->flags & XT2_INV_L4PROTO, check_pad);
-+	if (ret < 0)
-+		goto free_edata;
-+
-+	INIT_LIST_HEAD(&etarget->anchor);
-+	list_add_tail(&etarget->anchor, &rule->target_list);
-+	return 0;
-+
-+ free_edata:
-+	kfree(etarget->data);
-+ free_etarget:
-+	kfree(etarget);
-+ put_module:
-+	module_put(ext->me);
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(xt2_rule_add_target);
-+
- static void xt2_rule_free(struct xt2_rule *rule)
+ static const char *const xt_prefix[NFPROTO_NUMPROTO] = {
+ 	[NFPROTO_UNSPEC] = "x",
+ 	[NFPROTO_IPV4]   = "ip",
+@@ -1649,6 +1660,7 @@ struct xt2_table *xt2_table_replace(struct net *net, struct xt2_table *table)
  {
-+	struct xt2_entry_target *etarget, *next_etarget;
- 	struct xt2_entry_match *ematch, *next_ematch;
- 	struct xt_mtdtor_param mtpar;
-+	struct xt_tgdtor_param tgpar;
+ 	struct xt2_table_link *link;
+ 	struct xt2_table *old_table;
++	int ret;
  
--	mtpar.family = rule->chain->table->nfproto;
-+	mtpar.family = tgpar.family = rule->chain->table->nfproto;
- 	list_del(&rule->anchor);
- 
-+	list_for_each_entry_safe(etarget, next_etarget,
-+	    &rule->target_list, anchor) {
-+		list_del(&etarget->anchor);
-+		if (!xt2_special_target(etarget->ext)) {
-+			if (etarget->ext->destroy != NULL) {
-+				tgpar.net      = rule->chain->table->net;
-+				tgpar.target   = etarget->ext;
-+				tgpar.targinfo = etarget->data;
-+				etarget->ext->destroy(&tgpar);
-+			}
-+			module_put(etarget->ext->me);
-+			kfree(etarget->data);
-+		}
-+		kfree(etarget);
+ 	if (*table->name == '\0')
+ 		return ERR_PTR(-EINVAL);
+@@ -1657,6 +1669,11 @@ struct xt2_table *xt2_table_replace(struct net *net, struct xt2_table *table)
+ 				XT2_KEEP_RCULOCK);
+ 	if (link == NULL)
+ 		return ERR_PTR(-ENOENT);
++	ret = xt2_jumpstack_alloc(table);
++	if (ret < 0) {
++		rcu_read_unlock();
++		return ERR_PTR(ret);
 +	}
- 	list_for_each_entry_safe(ematch, next_ematch,
- 	    &rule->match_list, anchor) {
- 		list_del(&ematch->anchor);
+ 
+ 	mutex_lock(&net->xt2.table_lock);
+ 	old_table = rcu_dereference(link->table);
+@@ -1710,6 +1727,104 @@ void xt2_table_destroy(struct net *net, struct xt2_table *table)
+ }
+ EXPORT_SYMBOL_GPL(xt2_table_destroy);
+ 
++static unsigned int
++xt2_do_actions(struct sk_buff *skb, struct xt_action_param *acpar,
++	       const struct xt2_rule *rule, const struct xt2_chain **chain_ptr,
++	       unsigned int *stackptr, unsigned int stacksize,
++	       const struct xt2_rule **jumpstack)
++{
++	const struct xt2_entry_target *etarget;
++	const struct xt2_entry_match *ematch;
++	/* For rules without targets: */
++	unsigned int verdict = XT_CONTINUE;
++	bool ret;
++
++	list_for_each_entry(ematch, &rule->match_list, anchor) {
++		acpar->match     = ematch->ext;
++		acpar->matchinfo = ematch->data;
++		ret = ematch->ext->match(skb, acpar);
++		if (acpar->hotdrop)
++			return NF_DROP;
++		else if (!ret)
++			return XT_CONTINUE;
++	}
++
++	list_for_each_entry(etarget, &rule->target_list, anchor) {
++		if (etarget->ext == XT2_ACTION_GOTO) {
++			*chain_ptr = etarget->r_goto;
++			return XT_START_CHAIN;
++		} else if (etarget->ext == XT2_ACTION_JUMP) {
++			if (*stackptr >= stacksize)
++				return NF_DROP;
++			jumpstack[(*stackptr)++] = rule;
++			*chain_ptr = etarget->r_jump;
++			return XT_START_CHAIN;
++		} else if (etarget->ext == XT2_FINAL_VERDICT) {
++			verdict = etarget->verdict;
++		} else {
++			acpar->target   = etarget->ext;
++			acpar->targinfo = etarget->data;
++			verdict = etarget->ext->target(skb, acpar);
++		}
++		if (verdict != XT_CONTINUE)
++			break;
++	}
++
++	return verdict;
++}
++
++unsigned int
++xt2_do_table(struct sk_buff *skb, unsigned int hook,
++	     const struct net_device *in, const struct net_device *out,
++	     const struct xt2_table *table)
++{
++	unsigned int cpu = smp_processor_id();
++	const struct xt2_rule **jumpstack = table->jumpstack[cpu];
++	unsigned int *stackptr = per_cpu_ptr(table->stackptr, cpu);
++	unsigned int verdict = NF_DROP;
++	const struct xt2_chain *chain;
++	const struct xt2_rule *rule;
++	struct xt_action_param acpar = {
++		.family  = table->nfproto,
++		.in      = in,
++		.out     = out,
++		.hooknum = hook,
++	};
++
++	chain = table->entrypoint[hook];
++ do_chain:
++	rule = list_first_entry(&chain->rule_list, typeof(*rule), anchor);
++ do_rule:
++	if (&rule->anchor == &chain->rule_list)
++		/* End of chain */
++		verdict = XT_RETURN;
++	else
++		verdict = xt2_do_actions(skb, &acpar, rule, &chain, stackptr,
++					 table->stacksize, jumpstack);
++
++	switch (verdict) {
++	case XT_START_CHAIN:
++		goto do_chain;
++	case XT_RETURN:
++		if (*stackptr == 0) {
++			rule = table->underflow[hook];
++			chain = rule->chain;
++			goto do_rule;
++		}
++		/* What was on the stack was where we left... */
++		--*stackptr;
++		rule  = jumpstack[*stackptr];
++		chain = rule->chain;
++		/* ...fallthru to advance */
++	case XT_CONTINUE:
++		rule = list_entry(rule->anchor.next, typeof(*rule), anchor);
++		goto do_rule;
++	}
++
++	return verdict;
++}
++EXPORT_SYMBOL_GPL(xt2_do_table);
++
+ int xt_proto_init(struct net *net, u_int8_t af)
+ {
+ #ifdef CONFIG_PROC_FS
 -- 
 1.7.1
 
