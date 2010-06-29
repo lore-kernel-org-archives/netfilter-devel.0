@@ -1,309 +1,201 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 24/56] netfilter: ip6tables: move mark_chains to xt1_perproto.c
-Date: Tue, 29 Jun 2010 10:43:04 +0200
-Message-ID: <1277801017-30600-25-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 20/56] netfilter: xtables2: xt1->xt2 translation - SET_REPLACE support
+Date: Tue, 29 Jun 2010 10:43:00 +0200
+Message-ID: <1277801017-30600-21-git-send-email-jengelh@medozas.de>
 References: <1277801017-30600-1-git-send-email-jengelh@medozas.de>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:44277 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:44268 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754238Ab0F2IoG (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Jun 2010 04:44:06 -0400
+	id S1754212Ab0F2IoB (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 29 Jun 2010 04:44:01 -0400
 In-Reply-To: <1277801017-30600-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-In xt2, the xt1compat blob is not translated into xt1 anymore, but
-directly to xt2. So we need a mark_chains that handles struct
-compat_ip6t_entry. (This merely moves the code around, no change.)
+Support table replacement from userspace. Currently without
+returning counters.
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- net/ipv6/netfilter/ip6_tables.c |  119 +--------------------------------------
- net/netfilter/xt1_translat.c    |  111 ++++++++++++++++++++++++++++++++++++-
- 2 files changed, 112 insertions(+), 118 deletions(-)
+ include/linux/netfilter/x_tables.h |    3 ++
+ net/ipv6/netfilter/ip6_tables.c    |    9 ++++++
+ net/netfilter/x_tables.c           |    3 +-
+ net/netfilter/xt1_support.c        |   32 +++++++++++++++++++++
+ net/netfilter/xt1_translat.c       |   53 ++++++++++++++++++++++++++++++++++++
+ 5 files changed, 99 insertions(+), 1 deletions(-)
 
+diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
+index 3d33a06..d905a44 100644
+--- a/include/linux/netfilter/x_tables.h
++++ b/include/linux/netfilter/x_tables.h
+@@ -577,6 +577,8 @@ struct xt2_table_link {
+ 	struct xt2_table *table;
+ };
+ 
++extern const char *const xt_prefix[NFPROTO_NUMPROTO];
++
+ #define XT_TABLE_INFO_SZ (offsetof(struct xt_table_info, entries) \
+ 			  + nr_cpu_ids * sizeof(char *))
+ extern int xt_register_target(struct xt_target *target);
+@@ -735,6 +737,7 @@ extern int xts_starget_to_xt1(void __user **, int *, unsigned int *,
+ 			      const struct xt1_xlat_info *);
+ extern int xts_target_to_xt1(void __user **, int *, unsigned int *,
+ 			     const struct xt2_entry_target *);
++extern int xts_table_replace(struct net *, struct xt2_table *);
+ 
+ extern struct xt2_rule *xt2_rule_new(struct xt2_chain *);
+ extern int xt2_rule_add_match(struct xt2_rule *, const char *, uint8_t,
 diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 14804f2..1aff1b0 100644
+index ddc0313..78dca6f 100644
 --- a/net/ipv6/netfilter/ip6_tables.c
 +++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -63,9 +63,6 @@ MODULE_DESCRIPTION("IPv6 packet filter");
- #define inline
- #endif
- 
--static int mark_source_chains(const struct xt_table_info *,
--			      unsigned int, void *);
--
+@@ -69,6 +69,7 @@ static int mark_source_chains(const struct xt_table_info *,
  #define xtsub_entry           ip6t_entry
  #define xtsub_replace         ip6t_replace
  #define xtsub_error_target    ip6t_error_target
-@@ -571,118 +568,6 @@ ip6t_do_table(struct sk_buff *skb,
- #endif
++#define XTSUB_NFPROTO         NFPROTO_IPV6
+ #define XTSUB_NFPROTO_IPV6    1
+ #define XTSUB(x)              ip6t_ ## x
+ #define XTSUB2(x)             ip6t2_ ## x
+@@ -1421,6 +1422,14 @@ do_replace(struct net *net, const void __user *user, unsigned int len)
+ 	if (copy_from_user(&tmp, user, sizeof(tmp)) != 0)
+ 		return -EFAULT;
+ 
++	/*
++	 * If the table goes away just moments later, no problem.
++	 * Just dispatching here.
++	 */
++	if (xt2_table_lookup(net, tmp.name,
++	    NFPROTO_IPV6, XT2_STD_RCULOCK) != NULL)
++		return ip6t2_do_replace(net, user, len);
++
+ 	/* overflow check */
+ 	if (tmp.num_counters >= INT_MAX / sizeof(struct xt_counters))
+ 		return -ENOMEM;
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index f4794db..5303ae3 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -67,13 +67,14 @@ enum {
+ 	/* XT_CONTINUE = 0xFFFFFFFF, */ /* reminder (x_tables.h) */
+ };
+ 
+-static const char *const xt_prefix[NFPROTO_NUMPROTO] = {
++const char *const xt_prefix[NFPROTO_NUMPROTO] = {
+ 	[NFPROTO_UNSPEC] = "x",
+ 	[NFPROTO_IPV4]   = "ip",
+ 	[NFPROTO_ARP]    = "arp",
+ 	[NFPROTO_BRIDGE] = "eb",
+ 	[NFPROTO_IPV6]   = "ip6",
+ };
++EXPORT_SYMBOL_GPL(xt_prefix);
+ 
+ /* Allow this many total (re)entries. */
+ static const unsigned int xt_jumpstack_multiplier = 2;
+diff --git a/net/netfilter/xt1_support.c b/net/netfilter/xt1_support.c
+index af58cff..04126d0 100644
+--- a/net/netfilter/xt1_support.c
++++ b/net/netfilter/xt1_support.c
+@@ -240,4 +240,36 @@ int xts_target_to_xt1(void __user **user_ptr, int *len, unsigned int *z,
  }
+ EXPORT_SYMBOL_GPL(xts_target_to_xt1);
  
--/* Figures out from what hook each rule can be called: returns 0 if
--   there are loops.  Puts hook bitmask in comefrom. */
--static int
--mark_source_chains(const struct xt_table_info *newinfo,
--		   unsigned int valid_hooks, void *entry0)
--{
--	unsigned int hook;
--
--	/* No recursion; use packet counter to save back ptrs (reset
--	   to 0 as we leave), and comefrom to save source hook bitmask */
--	for (hook = 0; hook < NF_INET_NUMHOOKS; hook++) {
--		unsigned int pos = newinfo->hook_entry[hook];
--		struct ip6t_entry *e = (struct ip6t_entry *)(entry0 + pos);
--
--		if (!(valid_hooks & (1 << hook)))
--			continue;
--
--		/* Set initial back pointer. */
--		e->counters.pcnt = pos;
--
--		for (;;) {
--			const struct ip6t_standard_target *t
--				= (void *)ip6t_get_target_c(e);
--			int visited = e->comefrom & (1 << hook);
--
--			if (e->comefrom & (1 << NF_INET_NUMHOOKS)) {
--				pr_err("iptables: loop hook %u pos %u %08X.\n",
--				       hook, pos, e->comefrom);
--				return 0;
--			}
--			e->comefrom |= ((1 << hook) | (1 << NF_INET_NUMHOOKS));
--
--			/* Unconditional return/END. */
--			if ((e->target_offset == sizeof(struct ip6t_entry) &&
--			     (strcmp(t->target.u.user.name,
--				     IP6T_STANDARD_TARGET) == 0) &&
--			     t->verdict < 0 &&
--			     unconditional(&e->ipv6)) || visited) {
--				unsigned int oldpos, size;
--
--				if ((strcmp(t->target.u.user.name,
--					    IP6T_STANDARD_TARGET) == 0) &&
--				    t->verdict < -NF_MAX_VERDICT - 1) {
--					duprintf("mark_source_chains: bad "
--						"negative verdict (%i)\n",
--								t->verdict);
--					return 0;
--				}
--
--				/* Return: backtrack through the last
--				   big jump. */
--				do {
--					e->comefrom ^= (1<<NF_INET_NUMHOOKS);
--#ifdef DEBUG_IP_FIREWALL_USER
--					if (e->comefrom
--					    & (1 << NF_INET_NUMHOOKS)) {
--						duprintf("Back unset "
--							 "on hook %u "
--							 "rule %u\n",
--							 hook, pos);
--					}
--#endif
--					oldpos = pos;
--					pos = e->counters.pcnt;
--					e->counters.pcnt = 0;
--
--					/* We're at the start. */
--					if (pos == oldpos)
--						goto next;
--
--					e = (struct ip6t_entry *)
--						(entry0 + pos);
--				} while (oldpos == pos + e->next_offset);
--
--				/* Move along one */
--				size = e->next_offset;
--				e = (struct ip6t_entry *)
--					(entry0 + pos + size);
--				e->counters.pcnt = pos;
--				pos += size;
--			} else {
--				int newpos = t->verdict;
--
--				if (strcmp(t->target.u.user.name,
--					   IP6T_STANDARD_TARGET) == 0 &&
--				    newpos >= 0) {
--					if (newpos > newinfo->size -
--						sizeof(struct ip6t_entry)) {
--						duprintf("mark_source_chains: "
--							"bad verdict (%i)\n",
--								newpos);
--						return 0;
--					}
--					/* This a jump; chase it. */
--					duprintf("Jump rule %u -> %u\n",
--						 pos, newpos);
--				} else {
--					/* ... this is a fallthru */
--					newpos = pos + e->next_offset;
--				}
--				e = (struct ip6t_entry *)
--					(entry0 + newpos);
--				e->counters.pcnt = pos;
--				pos = newpos;
--			}
--		}
--		next:
--		duprintf("Finished chain %u\n", hook);
--	}
--	return 1;
--}
--
- static void cleanup_match(struct ip6t_entry_match *m, struct net *net)
- {
- 	struct xt_mtdtor_param par;
-@@ -968,7 +853,7 @@ translate_table(struct net *net, struct xt_table_info *newinfo, void *entry0,
- 		}
- 	}
- 
--	if (!mark_source_chains(newinfo, repl->valid_hooks, entry0))
-+	if (!ip6t2_mark_chains(newinfo, repl->valid_hooks, entry0))
- 		return -ELOOP;
- 
- 	/* Finally, each sanity check must pass */
-@@ -1933,7 +1818,7 @@ translate_compat_table(struct net *net,
- 		goto free_newinfo;
- 
- 	ret = -ELOOP;
--	if (!mark_source_chains(newinfo, valid_hooks, entry1))
-+	if (!ip6t2_mark_chains(newinfo, valid_hooks, entry1))
- 		goto free_newinfo;
- 
- 	i = 0;
++/**
++ * Load table module, check hook masks, replace table.
++ */
++int xts_table_replace(struct net *net, struct xt2_table *table)
++{
++	struct xt2_table *old_table;
++
++	old_table = try_then_request_module(xt2_table_lookup(net,
++							     table->name,
++							     table->nfproto,
++							     XT2_KEEP_RCULOCK),
++					    "%stable_%s",
++					    xt_prefix[table->nfproto],
++					    table->name);
++	if (old_table == NULL)
++		return -ENOENT;
++	if (table->valid_hooks != old_table->valid_hooks) {
++		pr_err("Invalid hook mix: 0x%x (old) vs 0x%x (new)\n",
++		       old_table->valid_hooks, table->valid_hooks);
++		rcu_read_unlock();
++		return -EINVAL;
++	}
++	rcu_read_unlock();
++
++	old_table = xt2_table_replace(net, table);
++	if (IS_ERR(old_table))
++		return PTR_ERR(old_table);
++	xt2_table_destroy(NULL, old_table);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(xts_table_replace);
++
+ MODULE_LICENSE("GPL");
 diff --git a/net/netfilter/xt1_translat.c b/net/netfilter/xt1_translat.c
-index 159a6c5..fe6e4be 100644
+index bff55fc..669b2b2 100644
 --- a/net/netfilter/xt1_translat.c
 +++ b/net/netfilter/xt1_translat.c
-@@ -209,6 +209,115 @@ XTSUB2(rule_to_xt2)(struct xt2_chain *chain, const struct xtsub_entry *entry,
- 	return ERR_PTR(ret);
+@@ -434,3 +434,56 @@ XTSUB2(table_to_xt1)(void __user *user_ptr, int len, struct xt2_table *table,
+ 	mutex_unlock(&table->xt1_lock);
+ 	return ret;
  }
- 
-+/* Figures out from what hook each rule can be called: returns 0 if
-+   there are loops.  Puts hook bitmask in comefrom. */
++
 +static int
-+XTSUB2(mark_chains)(const struct xt_table_info *newinfo,
-+		    unsigned int valid_hooks, void *entry0)
++XTSUB2(do_replace)(struct net *net, const void __user *user, unsigned int len)
 +{
-+	unsigned int hook;
++	struct xtsub_replace repl;
++	struct xt2_table *table;
++	void *blob;
++	int ret;
 +
-+	/* No recursion; use packet counter to save back ptrs (reset
-+	   to 0 as we leave), and comefrom to save source hook bitmask */
-+	for (hook = 0; hook < NF_INET_NUMHOOKS; hook++) {
-+		unsigned int pos = newinfo->hook_entry[hook];
-+		struct xtsub_entry *e = (void *)(entry0 + pos);
++	if (copy_from_user(&repl, user, sizeof(repl)) != 0)
++		return -EFAULT;
 +
-+		if (!(valid_hooks & (1 << hook)))
-+			continue;
++	/* overflow check */
++	if (repl.num_counters >= INT_MAX / sizeof(struct xt_counters))
++		return -ENOMEM;
 +
-+		/* Set initial back pointer. */
-+		e->counters.pcnt = pos;
++#define SMP_ALIGN(x) (((x) + SMP_CACHE_BYTES-1) & ~(SMP_CACHE_BYTES-1))
++	/* Pedantry: prevent them from hitting BUG() in vmalloc.c --RR */
++	if ((SMP_ALIGN(repl.size) >> PAGE_SHIFT) + 2 > num_physpages)
++		return -ENOMEM;
++#undef SMP_ALIGN
 +
-+		for (;;) {
-+			const struct xt_standard_target *t
-+				= (void *)XTSUB2(get_target)(e);
-+			int visited = e->comefrom & (1 << hook);
-+
-+			if (e->comefrom & (1 << NF_INET_NUMHOOKS)) {
-+				printk("iptables: loop hook %u pos %u %08X.\n",
-+				       hook, pos, e->comefrom);
-+				return false;
-+			}
-+			e->comefrom |= ((1 << hook) | (1 << NF_INET_NUMHOOKS));
-+
-+			/* Unconditional return/END. */
-+			if ((e->target_offset == sizeof(struct xtsub_entry) &&
-+			    strcmp(t->target.u.user.name,
-+				       XT_STANDARD_TARGET) == 0 &&
-+			    t->verdict < 0 &&
-+			    XTSUB2(unconditional)(e)) || visited) {
-+				unsigned int oldpos, size;
-+
-+				if (strcmp(t->target.u.user.name,
-+					   XT_STANDARD_TARGET) == 0 &&
-+				    t->verdict < -NF_MAX_VERDICT - 1) {
-+					pr_devel("mark_chains: bad "
-+						"negative verdict (%i)\n",
-+								t->verdict);
-+					return false;
-+				}
-+
-+				/* Return: backtrack through the last
-+				   big jump. */
-+				do {
-+					e->comefrom ^= (1<<NF_INET_NUMHOOKS);
-+#ifdef DEBUG_IP_FIREWALL_USER
-+					if (e->comefrom
-+					    & (1 << NF_INET_NUMHOOKS)) {
-+						pr_devel("Back unset "
-+							 "on hook %u "
-+							 "rule %u\n",
-+							 hook, pos);
-+					}
-+#endif
-+					oldpos = pos;
-+					pos = e->counters.pcnt;
-+					e->counters.pcnt = 0;
-+
-+					/* We're at the start. */
-+					if (pos == oldpos)
-+						goto next;
-+
-+					e = (void *)(entry0 + pos);
-+				} while (oldpos == pos + e->next_offset);
-+
-+				/* Move along one */
-+				size = e->next_offset;
-+				e = (void *)(entry0 + pos + size);
-+				e->counters.pcnt = pos;
-+				pos += size;
-+			} else {
-+				int newpos = t->verdict;
-+
-+				if (strcmp(t->target.u.user.name,
-+					   XT_STANDARD_TARGET) == 0
-+				    && newpos >= 0) {
-+					if (newpos > newinfo->size -
-+						sizeof(struct xtsub_entry)) {
-+						pr_devel("mark_chains: "
-+							"bad verdict (%i)\n",
-+								newpos);
-+						return false;
-+					}
-+					/* This a jump; chase it. */
-+					pr_devel("Jump rule %u -> %u\n",
-+						 pos, newpos);
-+				} else {
-+					/* ... this is a fallthru */
-+					newpos = pos + e->next_offset;
-+				}
-+				e = (void *)(entry0 + newpos);
-+				e->counters.pcnt = pos;
-+				pos = newpos;
-+			}
-+		}
-+ next:
-+		pr_devel("Finished chain %u\n", hook);
++	table = xt2_table_new();
++	if (table == NULL)
++		return -ENOMEM;
++	table->net = net;
++	/* Need a writable copy for check_entry_and_size_hooks. */
++	ret  = -ENOMEM;
++	blob = vmalloc(repl.size);
++	if (blob == NULL)
++		goto out;
++	if (copy_from_user(blob, user + sizeof(repl), repl.size) != 0) {
++		ret = -EFAULT;
++		goto out;
 +	}
-+	return true;
-+}
++	strncpy(table->name, repl.name, sizeof(table->name));
++	table->name[sizeof(table->name)-1] = '\0';
++	table->valid_hooks = repl.valid_hooks;
++	table->nfproto     = XTSUB_NFPROTO;
 +
- /**
-  * @table:	new table
-  * @entry0:	blob of <struct ip6t_entry>s
-@@ -250,7 +359,7 @@ static int XTSUB2(table_to_xt2)(struct xt2_table *table, void *entry0,
- 	memcpy(mark_param.hook_entry, repl->hook_entry,
- 	       sizeof(repl->hook_entry));
- 	mark_param.size = repl->size;
--	if (!mark_source_chains(&mark_param, repl->valid_hooks, entry0))
-+	if (!XTSUB2(mark_chains)(&mark_param, repl->valid_hooks, entry0))
- 		return -ELOOP;
- 
- 	/* Now process rules. */
++	ret = XTSUB2(table_to_xt2)(table, blob, &repl);
++	vfree(blob);
++	if (ret < 0)
++		goto out;
++	ret = xts_table_replace(net, table);
++	if (ret < 0)
++		goto out;
++	return 0;
++
++ out:
++	xt2_table_destroy(NULL, table);
++	return ret;
++}
 -- 
 1.7.1
 
