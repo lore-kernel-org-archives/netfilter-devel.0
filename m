@@ -1,265 +1,176 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 10/56] netfilter: xtables2: per-rule match skeletal functions
-Date: Tue, 29 Jun 2010 10:42:50 +0200
-Message-ID: <1277801017-30600-11-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 16/56] netfilter: xtables2: make a copy of the ipv6_filter table
+Date: Tue, 29 Jun 2010 10:42:56 +0200
+Message-ID: <1277801017-30600-17-git-send-email-jengelh@medozas.de>
 References: <1277801017-30600-1-git-send-email-jengelh@medozas.de>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:44232 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:44266 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754122Ab0F2Inu (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Jun 2010 04:43:50 -0400
+	id S1754212Ab0F2In5 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 29 Jun 2010 04:43:57 -0400
 In-Reply-To: <1277801017-30600-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Sidenotes: In xt2 rules, the layer-2/3 match structure (e.g. struct
-ip6t_ip6) is now a standalone entry_match.
+A "filter2" table is temporarily added for testing and patching, so
+as to not break bisection operations where ip6table_filter needs to
+remain fully functional. It is compiled unconditionally alongside
+"filter" for simplicity, only developers see it anyhow while it lives.
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/linux/netfilter/x_tables.h |   39 ++++++++++++
- net/netfilter/x_tables.c           |  120 ++++++++++++++++++++++++++++++++++++
- 2 files changed, 159 insertions(+), 0 deletions(-)
+ include/net/netns/x_tables.h          |    1 +
+ net/ipv6/netfilter/Makefile           |    2 +-
+ net/ipv6/netfilter/ip6table_filter2.c |  113 +++++++++++++++++++++++++++++++++
+ 3 files changed, 115 insertions(+), 1 deletions(-)
+ create mode 100644 net/ipv6/netfilter/ip6table_filter2.c
 
-diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index 3fc0d9b..47951aa 100644
---- a/include/linux/netfilter/x_tables.h
-+++ b/include/linux/netfilter/x_tables.h
-@@ -406,12 +406,37 @@ struct xt_table_info {
+diff --git a/include/net/netns/x_tables.h b/include/net/netns/x_tables.h
+index 8a2d497..1e96a54 100644
+--- a/include/net/netns/x_tables.h
++++ b/include/net/netns/x_tables.h
+@@ -19,6 +19,7 @@ struct netns_xt {
+ struct netns_xt2 {
+ 	struct mutex table_lock;
+ 	struct list_head table_list[NFPROTO_NUMPROTO];
++	struct xt_table *ipv6_filter;
+ };
  
- struct xt2_table;
+ #endif
+diff --git a/net/ipv6/netfilter/Makefile b/net/ipv6/netfilter/Makefile
+index aafbba3..35fa80f 100644
+--- a/net/ipv6/netfilter/Makefile
++++ b/net/ipv6/netfilter/Makefile
+@@ -4,7 +4,7 @@
  
-+enum {
-+	XT2_INV_L4PROTO = 1 << 0,
+ # Link order matters here.
+ obj-$(CONFIG_IP6_NF_IPTABLES) += ip6_tables.o
+-obj-$(CONFIG_IP6_NF_FILTER) += ip6table_filter.o
++obj-$(CONFIG_IP6_NF_FILTER) += ip6table_filter.o ip6table_filter2.o
+ obj-$(CONFIG_IP6_NF_MANGLE) += ip6table_mangle.o
+ obj-$(CONFIG_IP6_NF_QUEUE) += ip6_queue.o
+ obj-$(CONFIG_IP6_NF_RAW) += ip6table_raw.o
+diff --git a/net/ipv6/netfilter/ip6table_filter2.c b/net/ipv6/netfilter/ip6table_filter2.c
+new file mode 100644
+index 0000000..55750e4
+--- /dev/null
++++ b/net/ipv6/netfilter/ip6table_filter2.c
+@@ -0,0 +1,113 @@
++/*
++ * This is the 1999 rewrite of IP Firewalling, aiming for kernel 2.3.x.
++ *
++ * Copyright (C) 1999 Paul `Rusty' Russell & Michael J. Neuling
++ * Copyright (C) 2000-2004 Netfilter Core Team <coreteam@netfilter.org>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+	/* The unspecified L4 proto */
-+	XT2_L4PROTO_UNSPEC = 0,
++#include <linux/module.h>
++#include <linux/moduleparam.h>
++#include <linux/netfilter_ipv6/ip6_tables.h>
++#include <linux/slab.h>
++
++MODULE_LICENSE("GPL");
++MODULE_AUTHOR("Netfilter Core Team <coreteam@netfilter.org>");
++MODULE_DESCRIPTION("ip6tables filter table");
++
++#define FILTER_VALID_HOOKS ((1 << NF_INET_LOCAL_IN) | \
++			    (1 << NF_INET_FORWARD) | \
++			    (1 << NF_INET_LOCAL_OUT))
++
++static const struct xt_table packet_filter = {
++	.name		= "filter2",
++	.valid_hooks	= FILTER_VALID_HOOKS,
++	.me		= THIS_MODULE,
++	.af		= NFPROTO_IPV6,
++	.priority	= NF_IP6_PRI_FILTER,
 +};
 +
- /**
-  * @anchor:		list anchor for parent (xt2_chain.rule_list)
-+ * @match_list:		list of called match extensions (xt2_entry_match)
-+ * @l4proto:		layer-4 protocol used (needed for xt_check_*)
-+ * @flags:		extra flags (see above)
-  */
- struct xt2_rule {
- 	struct list_head anchor;
-+	struct list_head match_list;
- 	struct xt2_chain *chain;
-+	uint8_t l4proto, flags;
++/* The work comes in here from netfilter.c. */
++static unsigned int
++ip6table_filter_hook(unsigned int hook, struct sk_buff *skb,
++		     const struct net_device *in, const struct net_device *out,
++		     int (*okfn)(struct sk_buff *))
++{
++	const struct net *net = dev_net((in != NULL) ? in : out);
++
++	return ip6t_do_table(skb, hook, in, out, net->ipv6.ip6table_filter);
++}
++
++static struct nf_hook_ops *filter_ops __read_mostly;
++
++/* Default to forward because I got too much mail already. */
++static int forward = NF_ACCEPT;
++module_param(forward, bool, 0000);
++
++static int __net_init ip6table_filter_net_init(struct net *net)
++{
++	struct ip6t_replace *repl;
++
++	repl = ip6t_alloc_initial_table(&packet_filter);
++	if (repl == NULL)
++		return -ENOMEM;
++	/* Entry 1 is the FORWARD hook */
++	((struct ip6t_standard *)repl->entries)[1].target.verdict =
++		-forward - 1;
++
++	net->xt2.ipv6_filter =
++		ip6t_register_table(net, &packet_filter, repl);
++	kfree(repl);
++	if (IS_ERR(net->xt2.ipv6_filter))
++		return PTR_ERR(net->xt2.ipv6_filter);
++	return 0;
++}
++
++static void __net_exit ip6table_filter_net_exit(struct net *net)
++{
++	ip6t_unregister_table(net, net->xt2.ipv6_filter);
++}
++
++static struct pernet_operations ip6table_filter_net_ops = {
++	.init = ip6table_filter_net_init,
++	.exit = ip6table_filter_net_exit,
 +};
 +
-+/**
-+ * @anchor:	list anchor for parent (xt2_rule.match_list)
-+ * @ext:	pointer to extension
-+ * @data:	parameter block for extension (aka. "matchinfo")
-+ * @dsize:	size of @data (since @ext->matchsize may be -1)
-+ */
-+struct xt2_entry_match {
-+	struct list_head anchor;
-+	const struct xt_match *ext;
-+	void *data;
-+	unsigned int dsize;
- };
- 
- /**
-@@ -419,12 +444,15 @@ struct xt2_rule {
-  * @rule_list:	list of struct xt2_rule
-  * @name:	name of chain
-  * @table:	back link to table chain is contained in
-+ * @comefrom:	bitmask from which hooks the chain is entered
-+ * 		(currently needed for xt_check_*)
-  */
- struct xt2_chain {
- 	struct list_head anchor;
- 	struct list_head rule_list;
- 	char name[XT_EXTENSION_MAXNAMELEN];
- 	struct xt2_table *table;
-+	unsigned int comefrom;
- };
- 
- /**
-@@ -450,6 +478,7 @@ enum {
-  * @nfproto:		nfproto the table is used exclusively with
-  * @entrypoint:		start chains for hooks
-  * @underflow:		base chain policy (rule)
-+ * @net:		encompassing netns. To be set by xt2_table_new caller.
-  * @owner:		encompassing module
-  */
- struct xt2_table {
-@@ -458,6 +487,7 @@ struct xt2_table {
- 	uint8_t nfproto;
- 	const struct xt2_chain *entrypoint[NF_INET_NUMHOOKS];
- 	const struct xt2_rule *underflow[NF_INET_NUMHOOKS];
-+	struct net *net;
- 	struct module *owner;
- };
- 
-@@ -614,6 +644,8 @@ extern struct nf_hook_ops *xt_hook_link(const struct xt_table *, nf_hookfn *);
- extern void xt_hook_unlink(const struct xt_table *, struct nf_hook_ops *);
- 
- extern struct xt2_rule *xt2_rule_new(struct xt2_chain *);
-+extern int xt2_rule_add_match(struct xt2_rule *, const char *, uint8_t,
-+			      const void *, unsigned int, bool);
- 
- extern struct xt2_chain *xt2_chain_new(struct xt2_table *, const char *);
- extern void xt2_chain_append(struct xt2_rule *);
-@@ -625,6 +657,13 @@ extern int xt2_table_register(struct net *, struct xt2_table *);
- extern struct xt2_table *xt2_table_replace(struct net *, struct xt2_table *);
- extern void xt2_table_destroy(struct net *, struct xt2_table *);
- 
-+static inline int
-+xt2_rule_add_oldmatch(struct xt2_rule *rule, const struct xt_entry_match *m)
++static int __init ip6table_filter_init(void)
 +{
-+	return xt2_rule_add_match(rule, m->u.user.name, m->u.user.revision,
-+				  m->data, m->u.match_size - sizeof(*m), true);
-+}
-+
- static inline struct xt2_table *
- xt2_table_lookup(struct net *net, const char *name, uint8_t nfproto,
- 		 unsigned int lock_mask)
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 1f4354f..b9d0d3f 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -1251,15 +1251,135 @@ struct xt2_rule *xt2_rule_new(struct xt2_chain *chain)
- 	if (rule == NULL)
- 		return NULL;
- 
-+	rule->l4proto = XT2_L4PROTO_UNSPEC;
-+	rule->flags = 0;
- 	rule->chain = chain;
- 	INIT_LIST_HEAD(&rule->anchor);
-+	INIT_LIST_HEAD(&rule->match_list);
- 	return rule;
- }
- EXPORT_SYMBOL_GPL(xt2_rule_new);
- 
-+/**
-+ * Find the struct ip6t_ip6 (or other appropriate for a particular L3 proto)
-+ * from an xt2 rule. xt_check_match needs this for now.
-+ * Returns %NULL if not found.
-+ */
-+static void *xt2_entryinfo_mt_get(const struct xt2_rule *rule)
-+{
-+	const struct xt2_entry_match *ematch;
-+
-+	if (list_empty(&rule->match_list))
-+		return NULL;
-+	ematch = list_first_entry(&rule->match_list, typeof(*ematch), anchor);
-+
-+	/* The entryinfo is always in first place in xt1-compat mode. */
-+	switch (rule->chain->table->nfproto) {
-+	case NFPROTO_IPV4:
-+		if (strcmp(ematch->ext->name, "ipv4") != 0)
-+			return NULL;
-+		break;
-+	case NFPROTO_IPV6:
-+		if (strcmp(ematch->ext->name, "ipv6") != 0)
-+			return NULL;
-+		break;
-+	case NFPROTO_ARP:
-+		if (strcmp(ematch->ext->name, "arp") != 0)
-+			return NULL;
-+		break;
-+	case NFPROTO_BRIDGE:
-+		if (strcmp(ematch->ext->name, "eth") != 0)
-+			return NULL;
-+		break;
-+	default:
-+		return NULL;
-+	}
-+
-+	return ematch->data;
-+}
-+
-+/**
-+ * @ext_name:	name of extension
-+ * @ext_rev:	requested revision
-+ * @data:	private extension data block (parameters, etc.)
-+ * @dsize:	size of supplied data
-+ */
-+int xt2_rule_add_match(struct xt2_rule *rule, const char *ext_name,
-+		       uint8_t ext_rev, const void *data, unsigned int dsize,
-+		       bool check_pad)
-+{
-+	const uint8_t nfproto = rule->chain->table->nfproto;
-+	struct xt2_entry_match *ematch;
-+	struct xt_mtchk_param mtpar;
-+	const struct xt_match *ext;
 +	int ret;
 +
-+	ext = try_then_request_module(xt_find_match(nfproto, ext_name,
-+						    ext_rev),
-+				      "%st_%s", xt_prefix[nfproto], ext_name);
-+	if (ext == NULL)
-+		return -ENOENT;
-+	if (IS_ERR(ext))
-+		return PTR_ERR(ext);
++	if (forward < 0 || forward > NF_MAX_VERDICT) {
++		pr_err("iptables forward must be 0 or 1\n");
++		return -EINVAL;
++	}
 +
-+	ret = -ENOMEM;
-+	ematch = kmalloc(sizeof(*ematch), GFP_KERNEL);
-+	if (ematch == NULL)
-+		goto put_module;
-+	ematch->ext   = ext;
-+	ematch->dsize = dsize;
-+	ematch->data  = kmemdup(data, dsize, GFP_KERNEL);
-+	if (ematch->data == NULL)
-+		goto free_ematch;
-+
-+	mtpar.net       = rule->chain->table->net;
-+	mtpar.table     = rule->chain->table->name;
-+	mtpar.match     = ext;
-+	mtpar.matchinfo = ematch->data;
-+	mtpar.hook_mask = rule->chain->comefrom;
-+	mtpar.family    = rule->chain->table->nfproto;
-+	mtpar.entryinfo = xt2_entryinfo_mt_get(rule);
-+	ret = xt_check_match(&mtpar, dsize, rule->l4proto,
-+			     rule->flags & XT2_INV_L4PROTO, check_pad);
++	ret = register_pernet_subsys(&ip6table_filter_net_ops);
 +	if (ret < 0)
-+		goto free_edata;
++		return ret;
 +
-+	INIT_LIST_HEAD(&ematch->anchor);
-+	list_add_tail(&ematch->anchor, &rule->match_list);
-+	return 0;
++	/* Register hooks */
++	filter_ops = xt_hook_link(&packet_filter, ip6table_filter_hook);
++	if (IS_ERR(filter_ops)) {
++		ret = PTR_ERR(filter_ops);
++		goto cleanup_table;
++	}
 +
-+ free_edata:
-+	kfree(ematch->data);
-+ free_ematch:
-+	kfree(ematch);
-+ put_module:
-+	module_put(ext->me);
++	return ret;
++
++ cleanup_table:
++	unregister_pernet_subsys(&ip6table_filter_net_ops);
 +	return ret;
 +}
-+EXPORT_SYMBOL_GPL(xt2_rule_add_match);
 +
- static void xt2_rule_free(struct xt2_rule *rule)
- {
-+	struct xt2_entry_match *ematch, *next_ematch;
-+	struct xt_mtdtor_param mtpar;
++static void __exit ip6table_filter_fini(void)
++{
++	xt_hook_unlink(&packet_filter, filter_ops);
++	unregister_pernet_subsys(&ip6table_filter_net_ops);
++}
 +
-+	mtpar.family = rule->chain->table->nfproto;
- 	list_del(&rule->anchor);
-+
-+	list_for_each_entry_safe(ematch, next_ematch,
-+	    &rule->match_list, anchor) {
-+		list_del(&ematch->anchor);
-+		/* Note: ematch->ext is never NULL. */
-+		if (ematch->ext->destroy != NULL) {
-+			mtpar.net       = rule->chain->table->net;
-+			mtpar.match     = ematch->ext;
-+			mtpar.matchinfo = ematch->data;
-+			ematch->ext->destroy(&mtpar);
-+		}
-+		module_put(ematch->ext->me);
-+		kfree(ematch->data);
-+		kfree(ematch);
-+	}
- 	kfree(rule);
- }
- 
++module_init(ip6table_filter_init);
++module_exit(ip6table_filter_fini);
 -- 
 1.7.1
 
