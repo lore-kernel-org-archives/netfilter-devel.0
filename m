@@ -1,34 +1,54 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: Accessing packet marking functions
-Date: Mon, 28 Jun 2010 23:45:34 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1006282345150.6939@obet.zrqbmnf.qr>
-References: <1276965739.1476.35.camel@andybev>  <alpine.LSU.2.01.1006192200300.21809@obet.zrqbmnf.qr>  <1277032613.1476.93.camel@andybev>  <alpine.LSU.2.01.1006201351490.23203@obet.zrqbmnf.qr>  <1277037072.1476.107.camel@andybev>  <4C205543.9080902@trash.net>
- <1277760075.1433.7.camel@andybev>
+From: tingwei liu <tingw.liu@gmail.com>
+Subject: Re: multi-path route can't keep long time connections
+Date: Tue, 29 Jun 2010 10:36:46 +0800
+Message-ID: <AANLkTil_yDjxhEJDfQRc-7I-eMIOU7w6mJj6TA3-KXDx@mail.gmail.com>
+References: <AANLkTimeYhY-lgY2c5dfYQRDZ2oDLpB1U7TzkvyFQh_A@mail.gmail.com>
+	<4C205531.2010402@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
-To: Andrew Beverley <andy@andybev.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+To: Patrick McHardy <kaber@trash.net>, netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:46069 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755197Ab0F1Vpf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 28 Jun 2010 17:45:35 -0400
-In-Reply-To: <1277760075.1433.7.camel@andybev>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:53808 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750948Ab0F2Cgr convert rfc822-to-8bit (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 28 Jun 2010 22:36:47 -0400
+Received: by vws5 with SMTP id 5so838569vws.19
+        for <netfilter-devel@vger.kernel.org>; Mon, 28 Jun 2010 19:36:46 -0700 (PDT)
+In-Reply-To: <4C205531.2010402@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Thank you very much.
 
-On Monday 2010-06-28 23:21, Andrew Beverley wrote:
-
->> > The problem is that Squid normally runs as a non-privileged user (I had
->> > to remove the root checks from the code to get it to run as root). Is
->> > there any way to mark packets when not root? Or is the only way to make
->> > this work to run a small part of Squid as root?
->> 
->> enter_suid()/leave_suid().
+2010/6/22 Patrick McHardy <kaber@trash.net>:
+> tingwei liu wrote:
+>>
+>> Because route circularly flush route cache
+>> (/proc/net/sys/ipv4/route/secret_timeval),the multi-path route can't
+>> keep long time connections. The long time connections maybe interrup=
+t
+>> every "secret_timeval" seconds.
+>> Such as:
+>> default nexthop via 192.168.0.1 weight 1
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 via 192.168.1.1 weight 1
+>> =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0 =C2=A0=
+ =C2=A0 via 192.168.2.1 weight 1
+>>
+>> With a connection cross 192.168.0.1 in the first time."secret_timeva=
+l"
+>> seconds later,this connection maybe cross 192.168.1.1,then this
+>> connection will be reconnect.
+>>
+>> Anyone can help me?
 >
->Thanks, although in the end I have decided to try and use the
->CAP_NET_ADMIN capability flag instead, to keep the use of root to a
->minimum.
-
-Hey, I've you're thatmuch worried, you'd be using selinux ;-)
+> Use CONNMARK to mark new connections, than use that mark
+> to bind them to a specific route.
+>
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
