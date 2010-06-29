@@ -1,157 +1,148 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 09/56] netfilter: xtables: alternate size checking in xt_check_target
-Date: Tue, 29 Jun 2010 10:42:49 +0200
-Message-ID: <1277801017-30600-10-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 07/56] netfilter: xtables2: initial rule skeletal functions
+Date: Tue, 29 Jun 2010 10:42:47 +0200
+Message-ID: <1277801017-30600-8-git-send-email-jengelh@medozas.de>
 References: <1277801017-30600-1-git-send-email-jengelh@medozas.de>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:44245 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:44226 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754118Ab0F2Int (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Jun 2010 04:43:49 -0400
+	id S1753845Ab0F2Inq (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 29 Jun 2010 04:43:46 -0400
 In-Reply-To: <1277801017-30600-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Same as before, but for targets.
+Whereas iptables and its derivates (collectively, Xtables1) used a
+serialized binary blob, Xtables2's internal layout will be linked
+lists. This makes it possible to easily edit single rules later on
+without userspace having to upload an entire table if it does not
+want to.
 
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/linux/netfilter/x_tables.h |    3 ++-
- net/bridge/netfilter/ebtables.c    |    8 ++++----
- net/ipv4/netfilter/arp_tables.c    |    3 ++-
- net/ipv4/netfilter/ip_tables.c     |    4 ++--
- net/ipv6/netfilter/ip6_tables.c    |    3 ++-
- net/netfilter/x_tables.c           |   11 +++++++----
- net/sched/act_ipt.c                |    3 ++-
- 7 files changed, 21 insertions(+), 14 deletions(-)
+ include/linux/netfilter/x_tables.h |   15 +++++++++++++++
+ net/netfilter/x_tables.c           |   35 +++++++++++++++++++++++++++++++++++
+ 2 files changed, 50 insertions(+), 0 deletions(-)
 
 diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index 7bdbecb..3fc0d9b 100644
+index a55d4a4..2d21185 100644
 --- a/include/linux/netfilter/x_tables.h
 +++ b/include/linux/netfilter/x_tables.h
-@@ -486,7 +486,8 @@ extern int xt_check_match(struct xt_mtchk_param *,
- 			  unsigned int size, u_int8_t proto, bool inv_proto,
- 			  bool check_pad);
- extern int xt_check_target(struct xt_tgchk_param *,
--			   unsigned int size, u_int8_t proto, bool inv_proto);
-+			   unsigned int size, u_int8_t proto, bool inv_proto,
-+			   bool check_pad);
+@@ -407,12 +407,22 @@ struct xt_table_info {
+ struct xt2_table;
  
- extern struct xt_table *xt_register_table(struct net *net,
- 					  const struct xt_table *table,
-diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-index 73c9cec..ab37e1c 100644
---- a/net/bridge/netfilter/ebtables.c
-+++ b/net/bridge/netfilter/ebtables.c
-@@ -433,8 +433,8 @@ ebt_check_watcher(struct ebt_entry_watcher *w, struct xt_tgchk_param *par,
+ /**
++ * @anchor:		list anchor for parent (xt2_chain.rule_list)
++ */
++struct xt2_rule {
++	struct list_head anchor;
++	struct xt2_chain *chain;
++};
++
++/**
+  * @anchor:	list anchor for parent (xt2_table.chain_list)
++ * @rule_list:	list of struct xt2_rule
+  * @name:	name of chain
+  * @table:	back link to table chain is contained in
+  */
+ struct xt2_chain {
+ 	struct list_head anchor;
++	struct list_head rule_list;
+ 	char name[XT_EXTENSION_MAXNAMELEN];
+ 	struct xt2_table *table;
+ };
+@@ -439,6 +449,7 @@ enum {
+  * @name:		name of this table
+  * @nfproto:		nfproto the table is used exclusively with
+  * @entrypoint:		start chains for hooks
++ * @underflow:		base chain policy (rule)
+  * @owner:		encompassing module
+  */
+ struct xt2_table {
+@@ -446,6 +457,7 @@ struct xt2_table {
+ 	char name[11];
+ 	uint8_t nfproto;
+ 	const struct xt2_chain *entrypoint[NF_INET_NUMHOOKS];
++	const struct xt2_rule *underflow[NF_INET_NUMHOOKS];
+ 	struct module *owner;
+ };
  
- 	par->target   = watcher;
- 	par->targinfo = w->data;
--	ret = xt_check_target(par, w->watcher_size,
--	      e->ethproto, e->invflags & EBT_IPROTO);
-+	ret = xt_check_target(par, w->watcher_size, e->ethproto,
-+			      e->invflags & EBT_IPROTO, true);
- 	if (ret < 0) {
- 		module_put(watcher->me);
- 		return ret;
-@@ -763,8 +763,8 @@ ebt_check_entry(struct ebt_entry *e, struct net *net,
+@@ -599,7 +611,10 @@ static inline unsigned long ifname_compare_aligned(const char *_a,
+ extern struct nf_hook_ops *xt_hook_link(const struct xt_table *, nf_hookfn *);
+ extern void xt_hook_unlink(const struct xt_table *, struct nf_hook_ops *);
  
- 	tgpar.target   = target;
- 	tgpar.targinfo = t->data;
--	ret = xt_check_target(&tgpar, t->target_size,
--	      e->ethproto, e->invflags & EBT_IPROTO);
-+	ret = xt_check_target(&tgpar, t->target_size, e->ethproto,
-+			      e->invflags & EBT_IPROTO, true);
- 	if (ret < 0) {
- 		module_put(target->me);
- 		goto cleanup_watchers;
-diff --git a/net/ipv4/netfilter/arp_tables.c b/net/ipv4/netfilter/arp_tables.c
-index 7f7752a..2fee4a5 100644
---- a/net/ipv4/netfilter/arp_tables.c
-+++ b/net/ipv4/netfilter/arp_tables.c
-@@ -554,7 +554,8 @@ static inline int check_target(struct arpt_entry *e, const char *name)
- 		.family    = NFPROTO_ARP,
- 	};
++extern struct xt2_rule *xt2_rule_new(struct xt2_chain *);
++
+ extern struct xt2_chain *xt2_chain_new(struct xt2_table *, const char *);
++extern void xt2_chain_append(struct xt2_rule *);
  
--	ret = xt_check_target(&par, t->u.target_size - sizeof(*t), 0, false);
-+	ret = xt_check_target(&par, t->u.target_size - sizeof(*t),
-+			      0, false, true);
- 	if (ret < 0) {
- 		duprintf("arp_tables: check failed for `%s'.\n",
- 			 t->u.kernel.target->name);
-diff --git a/net/ipv4/netfilter/ip_tables.c b/net/ipv4/netfilter/ip_tables.c
-index 43adafa..3809f38 100644
---- a/net/ipv4/netfilter/ip_tables.c
-+++ b/net/ipv4/netfilter/ip_tables.c
-@@ -749,8 +749,8 @@ static int check_target(struct ipt_entry *e, struct net *net, const char *name)
- 	};
- 	int ret;
- 
--	ret = xt_check_target(&par, t->u.target_size - sizeof(*t),
--	      e->ip.proto, e->ip.invflags & IPT_INV_PROTO);
-+	ret = xt_check_target(&par, t->u.target_size - sizeof(*t), e->ip.proto,
-+			      e->ip.invflags & IPT_INV_PROTO, true);
- 	if (ret < 0) {
- 		duprintf("check failed for `%s'.\n",
- 			 t->u.kernel.target->name);
-diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
-index 0602685..cd8a2f1 100644
---- a/net/ipv6/netfilter/ip6_tables.c
-+++ b/net/ipv6/netfilter/ip6_tables.c
-@@ -765,7 +765,8 @@ static int check_target(struct ip6t_entry *e, struct net *net, const char *name)
- 
- 	t = ip6t_get_target(e);
- 	ret = xt_check_target(&par, t->u.target_size - sizeof(*t),
--	      e->ipv6.proto, e->ipv6.invflags & IP6T_INV_PROTO);
-+			      e->ipv6.proto, e->ipv6.invflags & IP6T_INV_PROTO,
-+			      true);
- 	if (ret < 0) {
- 		duprintf("ip_tables: check failed for `%s'.\n",
- 			 t->u.kernel.target->name);
+ extern struct xt2_table *xt2_table_new(void);
+ extern struct xt2_table_link *xt2_tlink_lookup(struct net *, const char *,
 diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 0eef61a..1f4354f 100644
+index e807312..f23195e 100644
 --- a/net/netfilter/x_tables.c
 +++ b/net/netfilter/x_tables.c
-@@ -533,16 +533,19 @@ EXPORT_SYMBOL_GPL(xt_compat_match_to_user);
- #endif /* CONFIG_COMPAT */
+@@ -1238,6 +1238,26 @@ void xt_hook_unlink(const struct xt_table *table, struct nf_hook_ops *ops)
+ }
+ EXPORT_SYMBOL_GPL(xt_hook_unlink);
  
- int xt_check_target(struct xt_tgchk_param *par,
--		    unsigned int size, u_int8_t proto, bool inv_proto)
-+		    unsigned int size, u_int8_t proto, bool inv_proto,
-+		    bool check_pad)
++struct xt2_rule *xt2_rule_new(struct xt2_chain *chain)
++{
++	struct xt2_rule *rule;
++
++	rule = kmalloc(sizeof(*rule), GFP_KERNEL);
++	if (rule == NULL)
++		return NULL;
++
++	rule->chain = chain;
++	INIT_LIST_HEAD(&rule->anchor);
++	return rule;
++}
++EXPORT_SYMBOL_GPL(xt2_rule_new);
++
++static void xt2_rule_free(struct xt2_rule *rule)
++{
++	list_del(&rule->anchor);
++	kfree(rule);
++}
++
+ struct xt2_chain *xt2_chain_new(struct xt2_table *table, const char *name)
  {
-+	unsigned int required;
- 	int ret;
+ 	struct xt2_chain *chain;
+@@ -1248,6 +1268,7 @@ struct xt2_chain *xt2_chain_new(struct xt2_table *table, const char *name)
  
--	if (XT_ALIGN(par->target->targetsize) != size) {
-+	required = check_pad ? XT_ALIGN(par->target->targetsize) :
-+		   par->target->targetsize;
-+	if (required != size) {
- 		pr_err("%s_tables: %s.%u target: invalid size "
- 		       "%u (kernel) != (user) %u\n",
- 		       xt_prefix[par->family], par->target->name,
--		       par->target->revision,
--		       XT_ALIGN(par->target->targetsize), size);
-+		       par->target->revision, required, size);
- 		return -EINVAL;
- 	}
- 	if (par->target->table != NULL &&
-diff --git a/net/sched/act_ipt.c b/net/sched/act_ipt.c
-index c7e59e6..79223ec 100644
---- a/net/sched/act_ipt.c
-+++ b/net/sched/act_ipt.c
-@@ -58,7 +58,8 @@ static int ipt_init_target(struct ipt_entry_target *t, char *table, unsigned int
- 	par.hook_mask = hook;
- 	par.family    = NFPROTO_IPV4;
+ 	chain->table = table;
+ 	INIT_LIST_HEAD(&chain->anchor);
++	INIT_LIST_HEAD(&chain->rule_list);
+ 	if (name != NULL)
+ 		strncpy(chain->name, name, sizeof(chain->name));
+ 	else
+@@ -1258,9 +1279,23 @@ struct xt2_chain *xt2_chain_new(struct xt2_table *table, const char *name)
+ }
+ EXPORT_SYMBOL_GPL(xt2_chain_new);
  
--	ret = xt_check_target(&par, t->u.target_size - sizeof(*t), 0, false);
-+	ret = xt_check_target(&par, t->u.target_size - sizeof(*t),
-+			      0, false, true);
- 	if (ret < 0) {
- 		module_put(t->u.kernel.target->me);
- 		return ret;
++/**
++ * Rules are completely constructed first before appending to the chain,
++ * to avoid incomplete rules being run through in xt2_do_action.
++ */
++void xt2_chain_append(struct xt2_rule *rule)
++{
++	list_add_tail(&rule->anchor, &rule->chain->rule_list);
++}
++EXPORT_SYMBOL_GPL(xt2_chain_append);
++
+ static void xt2_chain_free(struct xt2_chain *chain)
+ {
++	struct xt2_rule *rule, *next_rule;
++
+ 	list_del(&chain->anchor);
++	list_for_each_entry_safe(rule, next_rule, &chain->rule_list, anchor)
++		xt2_rule_free(rule);
+ 	kfree(chain);
+ }
+ 
 -- 
 1.7.1
 
