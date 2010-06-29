@@ -1,173 +1,292 @@
 From: Jan Engelhardt <jengelh@medozas.de>
-Subject: [PATCH 13/56] netfilter: xtables2: jumpstack (de)allocation functions
-Date: Tue, 29 Jun 2010 10:42:53 +0200
-Message-ID: <1277801017-30600-14-git-send-email-jengelh@medozas.de>
+Subject: [PATCH 18/56] netfilter: xtables2: xt2->xt1 translation - GET_INFO support
+Date: Tue, 29 Jun 2010 10:42:58 +0200
+Message-ID: <1277801017-30600-19-git-send-email-jengelh@medozas.de>
 References: <1277801017-30600-1-git-send-email-jengelh@medozas.de>
 Cc: kaber@trash.net
 To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:44259 "EHLO borg.medozas.de"
+Received: from borg.medozas.de ([188.40.89.202]:44273 "EHLO borg.medozas.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754168Ab0F2Iny (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 29 Jun 2010 04:43:54 -0400
+	id S1754212Ab0F2IoA (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 29 Jun 2010 04:44:00 -0400
 In-Reply-To: <1277801017-30600-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Part 1 of the backwards translation. Calculates size and
+hook_entry/underflow points.
+
 Signed-off-by: Jan Engelhardt <jengelh@medozas.de>
 ---
- include/linux/netfilter/x_tables.h |   13 ++++++
- net/netfilter/x_tables.c           |   73 +++++++++++++++++++++++++++++++++++-
- 2 files changed, 85 insertions(+), 1 deletions(-)
+ include/linux/netfilter/x_tables.h |   29 ++++++++
+ net/ipv6/netfilter/ip6_tables.c    |   42 ++++++++++++-
+ net/netfilter/xt1_support.c        |  124 ++++++++++++++++++++++++++++++++++++
+ 3 files changed, 193 insertions(+), 2 deletions(-)
 
 diff --git a/include/linux/netfilter/x_tables.h b/include/linux/netfilter/x_tables.h
-index 3849383..fcca7a6 100644
+index 2adbae6..9e9876f 100644
 --- a/include/linux/netfilter/x_tables.h
 +++ b/include/linux/netfilter/x_tables.h
-@@ -512,6 +512,14 @@ enum {
-  * @chain_list:		list of chains (struct xt2_chain)
-  * @name:		name of this table
-  * @nfproto:		nfproto the table is used exclusively with
-+ * @rq_stacksize:	Size of the jumpstack. This is usually set to the
-+ * 			number of user chains -- since tables cannot have
-+ * 			loops, at most that many jumps can possibly be made --
-+ * 			or a value dependent thereof, such as when it is
-+ * 			multiplied to allow for reentry.
-+ * @stacksize:		current size of the stack (@stackptr, @jumpstack)
-+ * @stackptr:		current stack pointer, one per CPU
-+ * @jumpstack:		our stack, also one per CPU
-  * @entrypoint:		start chains for hooks
-  * @underflow:		base chain policy (rule)
-  * @net:		encompassing netns. To be set by xt2_table_new caller.
-@@ -521,6 +529,11 @@ struct xt2_table {
- 	struct list_head chain_list;
- 	char name[11];
- 	uint8_t nfproto;
-+
-+	unsigned int rq_stacksize, stacksize;
-+	unsigned int __percpu *stackptr;
-+	const struct xt2_rule ***jumpstack;
-+
- 	const struct xt2_chain *entrypoint[NF_INET_NUMHOOKS];
- 	const struct xt2_rule *underflow[NF_INET_NUMHOOKS];
- 	struct net *net;
-diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
-index 7126e28..c820bdc 100644
---- a/net/netfilter/x_tables.c
-+++ b/net/netfilter/x_tables.c
-@@ -1463,6 +1463,7 @@ struct xt2_chain *xt2_chain_new(struct xt2_table *table, const char *name)
- 	if (chain == NULL)
- 		return NULL;
- 
-+	++table->rq_stacksize;
- 	chain->table = table;
- 	INIT_LIST_HEAD(&chain->anchor);
- 	INIT_LIST_HEAD(&chain->rule_list);
-@@ -1491,11 +1492,76 @@ static void xt2_chain_free(struct xt2_chain *chain)
- 	struct xt2_rule *rule, *next_rule;
- 
- 	list_del(&chain->anchor);
-+	--chain->table->rq_stacksize;
- 	list_for_each_entry_safe(rule, next_rule, &chain->rule_list, anchor)
- 		xt2_rule_free(rule);
- 	kfree(chain);
- }
+@@ -411,6 +411,26 @@ struct xt_table_info {
+ 	void *entries[1];
+ };
  
 +/**
-+ * Allocate jumpstacks. This is normally called sometime after the chains
-+ * have all been added to the table.
++ * xt1 size definitions
++ *
++ * @marker_size:	size of a user-chain and end-of-ruleset marker
++ * @entry_hdr_size:	size of struct ip6t_entry
++ * @pmatch_size:	size of struct ip6t_ip6
++ * @first_match:	required name of the first match
++ * @ematch_size:	size of the ematch header
++ * @etarget_size:	size of the etarget header
++ * @standard_tgsize:	size of the complete standard target, includes
++ * 			etarget_size and alignment padding
 + */
-+static int xt2_jumpstack_alloc(struct xt2_table *table)
++struct xt1_xlat_info {
++	unsigned int marker_size;
++	unsigned int entry_hdr_size, pmatch_size;
++	unsigned int ematch_size, etarget_size;
++	unsigned int standard_tgsize;
++	const char *first_match;
++};
++
+ /*
+  * The use of low negative numbers means we can use IS_ERR()
+  * (See xt2_special_target below.)
+@@ -699,6 +719,10 @@ extern void xt_hook_unlink(const struct xt_table *, struct nf_hook_ops *);
+ 
+ extern struct xt2_chain *xts_lookup_chain(const struct xt2_table *,
+ 					  unsigned int);
++extern unsigned int xts_blob_prep_table(const struct xt2_table *,
++					const struct xt1_xlat_info *,
++					unsigned int *, unsigned int *,
++					unsigned int *);
+ 
+ extern struct xt2_rule *xt2_rule_new(struct xt2_chain *);
+ extern int xt2_rule_add_match(struct xt2_rule *, const char *, uint8_t,
+@@ -722,6 +746,11 @@ extern unsigned int xt2_do_table(struct sk_buff *, unsigned int,
+ 				 const struct net_device *,
+ 				 const struct xt2_table *);
+ 
++static inline bool xt2_builtin_chain(const struct xt2_chain *c)
 +{
-+	unsigned int size, cpu;
-+
-+	table->stackptr = alloc_percpu(unsigned int);
-+	if (table->stackptr == NULL)
-+		return -ENOMEM;
-+
-+	size = sizeof(struct xt2_rule **) * nr_cpu_ids;
-+	if (size > PAGE_SIZE)
-+		table->jumpstack = vmalloc(size);
-+	else
-+		table->jumpstack = kmalloc(size, GFP_KERNEL);
-+	if (table->jumpstack == NULL)
-+		return -ENOMEM;
-+	memset(table->jumpstack, 0, size);
-+
-+	table->stacksize = table->rq_stacksize * xt_jumpstack_multiplier;
-+	size = sizeof(struct xt2_rule *) * table->stacksize;
-+	for_each_possible_cpu(cpu) {
-+		if (size > PAGE_SIZE)
-+			table->jumpstack[cpu] = vmalloc_node(size,
-+							     cpu_to_node(cpu));
-+		else
-+			table->jumpstack[cpu] = kmalloc_node(size,
-+							     GFP_KERNEL,
-+							     cpu_to_node(cpu));
-+		if (table->jumpstack[cpu] == NULL)
-+			/*
-+			 * Freeing will be done later on by the callers. The
-+			 * chain is: xt2_table_replace ->
-+			 * ipt2_register_table -> xt2_table_destroy
-+			 */
-+			return -ENOMEM;
-+	}
-+
-+	return 0;
++	return *c->name == '\0';
 +}
 +
-+static void xt2_jumpstack_free(struct xt2_table *table)
-+{
-+	unsigned int cpu;
+ static inline bool xt2_special_target(const struct xt_target *t)
+ {
+ 	/*
+diff --git a/net/ipv6/netfilter/ip6_tables.c b/net/ipv6/netfilter/ip6_tables.c
+index d23f22a..d2d34b0 100644
+--- a/net/ipv6/netfilter/ip6_tables.c
++++ b/net/ipv6/netfilter/ip6_tables.c
+@@ -1187,10 +1187,37 @@ static int compat_table_info(const struct xt_table_info *info,
+ }
+ #endif
+ 
++static const struct xt1_xlat_info ip6t_xlat_info = {
++	.marker_size     = sizeof(struct ip6t_error_target),
++	.entry_hdr_size  = sizeof(struct ip6t_entry),
++	.pmatch_size     = sizeof(struct ip6t_ip6),
++	.first_match     = "ipv6",
++	.ematch_size     = sizeof(struct xt_entry_match),
++	.etarget_size    = sizeof(struct xt_entry_target),
++	.standard_tgsize = XT_ALIGN(sizeof(struct xt_entry_target) +
++	                   sizeof(int)),
++};
 +
-+	if (table->jumpstack != NULL) {
-+		if (sizeof(struct xt2_rule *) * table->stacksize > PAGE_SIZE) {
-+			for_each_possible_cpu(cpu)
-+				vfree(table->jumpstack[cpu]);
-+		} else {
-+			for_each_possible_cpu(cpu)
-+				kfree(table->jumpstack[cpu]);
++static int ip6t2_get_info(void __user *uptr, int len,
++			  const struct xt2_table *table)
++{
++	struct ip6t_getinfo info = {
++		.valid_hooks = table->valid_hooks,
++	};
++
++	strncpy(info.name, table->name,
++		min(sizeof(info.name), sizeof(table->name)));
++	info.size = xts_blob_prep_table(table, &ip6t_xlat_info,
++					info.hook_entry, info.underflow,
++					&info.num_entries);
++	return (copy_to_user(uptr, &info, sizeof(info)) != 0) ? -EFAULT : 0;
++}
++
+ static int get_info(struct net *net, void __user *user,
+                     const int *len, int compat)
+ {
+ 	char name[IP6T_TABLE_MAXNAMELEN];
++	struct xt2_table *xt2_table;
+ 	struct xt_table *t;
+ 	int ret;
+ 
+@@ -1204,12 +1231,23 @@ static int get_info(struct net *net, void __user *user,
+ 		return -EFAULT;
+ 
+ 	name[IP6T_TABLE_MAXNAMELEN-1] = '\0';
++	t = try_then_request_module(xt_find_table_lock(net, AF_INET6, name),
++				    "ip6table_%s", name);
++	xt2_table = xt2_table_lookup(net, name, NFPROTO_IPV6,
++				     XT2_KEEP_RCULOCK);
++	if (xt2_table != NULL) {
++		ret = ip6t2_get_info(user, *len, xt2_table);
++		rcu_read_unlock();
++		if (t != NULL)
++			module_put(t->me);
++		return ret;
++	}
++	rcu_read_unlock();
++
+ #ifdef CONFIG_COMPAT
+ 	if (compat)
+ 		xt_compat_lock(AF_INET6);
+ #endif
+-	t = try_then_request_module(xt_find_table_lock(net, AF_INET6, name),
+-				    "ip6table_%s", name);
+ 	if (t && !IS_ERR(t)) {
+ 		struct ip6t_getinfo info;
+ 		const struct xt_table_info *private = t->private;
+diff --git a/net/netfilter/xt1_support.c b/net/netfilter/xt1_support.c
+index d15bfb7..4b13f2f 100644
+--- a/net/netfilter/xt1_support.c
++++ b/net/netfilter/xt1_support.c
+@@ -7,7 +7,9 @@
+  *	the Free Software Foundation, either version 2 of the License, or
+  *	(at your option) any later version.
+  */
++#include <linux/list.h>
+ #include <linux/module.h>
++#include <linux/rcupdate.h>
+ #include <linux/netfilter/x_tables.h>
+ 
+ /**
+@@ -34,4 +36,126 @@ xts_lookup_chain(const struct xt2_table *table, unsigned int needle)
+ }
+ EXPORT_SYMBOL_GPL(xts_lookup_chain);
+ 
++/**
++ * get pointer to quota ematches
++ *
++ * Also used for the xt2->xt1 converter. Generalized matches run until the two
++ * last quota matches.
++ */
++static const struct xt2_entry_match *
++xts_rule_quota_ptr(const struct xt2_rule *rule)
++{
++	const struct xt2_entry_match *ematch;
++
++	/* Need at least two ematches */
++	if (list_empty(&rule->match_list) ||
++	    rule->match_list.next->next == &rule->match_list)
++		return NULL;
++
++	/* Now need exactly two trailing quota matches */
++	ematch = list_entry(rule->match_list.prev, typeof(*ematch), anchor);
++	if (strcmp(ematch->ext->name, "quota") != 0 &&
++	    ematch->ext->revision != 3)
++		return NULL;
++	ematch = list_entry(ematch->anchor.prev, typeof(*ematch), anchor);
++	if (strcmp(ematch->ext->name, "quota") != 0 &&
++	    ematch->ext->revision != 3)
++		return NULL;
++	return ematch;
++}
++
++static int
++xts_blob_prep_rule(const struct xt2_rule *rule, const struct xt1_xlat_info *io,
++		   unsigned int *underflow, unsigned int z)
++{
++	const struct xt2_table *table = rule->chain->table;
++	const struct xt2_entry_match *ematch, *quota_stop;
++	const struct xt2_entry_target *etarget;
++	unsigned int h;
++
++	/* Quota check implies ematch list empty check. */
++	quota_stop = xts_rule_quota_ptr(rule);
++	if (quota_stop == NULL)
++		return -EIO;
++
++	/* Must have exactly one target */
++	if (list_empty(&rule->target_list) ||
++	    rule->target_list.next->next != &rule->target_list)
++		return -EIO;
++
++	ematch = list_first_entry(&rule->match_list,
++				  typeof(*ematch), anchor);
++	if (strcmp(ematch->ext->name, io->first_match) != 0)
++		return -EIO;
++
++	/* Do underflow assign first before @z is increased. */
++	for (h = 0; h < ARRAY_SIZE(table->underflow); ++h)
++		if (rule == table->underflow[h])
++			underflow[h] = z;
++
++	/* Subtracting, because it will already be added in the loop. */
++	z += io->entry_hdr_size - io->ematch_size - io->pmatch_size;
++
++	list_for_each_entry(ematch, &rule->match_list, anchor) {
++		if (ematch == quota_stop)
++			/* quotas included in entry_hdr */
++			break;
++		z += io->ematch_size + ematch->dsize;
++	}
++
++	etarget = list_first_entry(&rule->target_list,
++				   typeof(*etarget), anchor);
++	z += xt2_special_target(etarget->ext) ? io->standard_tgsize :
++				io->etarget_size +
++				XT_ALIGN(etarget->ext->targetsize);
++	return z;
++}
++
++/**
++ * - calculate details for GETINFO ioctl from xt2 table
++ * @table:	the xt2 table
++ * @io:		info block on blob's field sizes
++ *
++ * Calculate the details for a GETINFO ioctl from the supplied xt2 table.
++ * Returns -1 if the table cannot be converted to an xt1 blob without
++ * loss of information.
++ */
++unsigned int
++xts_blob_prep_table(const struct xt2_table *table,
++		    const struct xt1_xlat_info *io,
++		    unsigned int *hook_entry, unsigned int *underflow,
++		    unsigned int *entries_ptr)
++{
++	const struct xt2_chain *chain;
++	const struct xt2_rule *rule;
++	unsigned int hook, entries = 0;
++	int z = 0;
++
++	rcu_read_lock();
++	list_for_each_entry(chain, &table->chain_list, anchor) {
++		for (hook = 0; hook < ARRAY_SIZE(table->entrypoint); ++hook)
++			if (table->entrypoint[hook] == chain)
++				hook_entry[hook] = z;
++
++		if (!xt2_builtin_chain(chain)) {
++			z += io->entry_hdr_size + io->marker_size;
++			++entries;
 +		}
-+		if (sizeof(struct xt2_rule **) * nr_cpu_ids > PAGE_SIZE)
-+			vfree(table->jumpstack);
-+		else
-+			kfree(table->jumpstack);
++
++		list_for_each_entry(rule, &chain->rule_list, anchor) {
++			++entries;
++			z = xts_blob_prep_rule(rule, io, underflow, z);
++			if (z < 0)
++				return z;
++		}
 +	}
++	rcu_read_unlock();
 +
-+	free_percpu(table->stackptr);
++	/* Table terminator */
++	z += io->entry_hdr_size + io->marker_size;
++	*entries_ptr = ++entries;
++	return z;
 +}
++EXPORT_SYMBOL_GPL(xts_blob_prep_table);
 +
- struct xt2_table *xt2_table_new(void)
- {
- 	struct xt2_table *table;
-@@ -1537,7 +1603,7 @@ EXPORT_SYMBOL_GPL(xt2_tlink_lookup);
- int xt2_table_register(struct net *net, struct xt2_table *table)
- {
- 	struct xt2_table_link *link;
--	int ret = 0;
-+	int ret;
- 
- 	if (*table->name == '\0')
- 		/* Empty names don't fly with our strcmp. */
-@@ -1550,6 +1616,10 @@ int xt2_table_register(struct net *net, struct xt2_table *table)
- 		goto out;
- 	}
- 
-+	ret = xt2_jumpstack_alloc(table);
-+	if (ret < 0)
-+		goto out;
-+
- 	link = kmalloc(sizeof(*link), GFP_KERNEL);
- 	if (link == NULL) {
- 		ret = -ENOMEM;
-@@ -1633,6 +1703,7 @@ void xt2_table_destroy(struct net *net, struct xt2_table *table)
- 	if (net != NULL)
- 		xt2_table_unregister(net, table);
- 
-+	xt2_jumpstack_free(table);
- 	list_for_each_entry_safe(chain, next_chain, &table->chain_list, anchor)
- 		xt2_chain_free(chain);
- 	kfree(table);
+ MODULE_LICENSE("GPL");
 -- 
 1.7.1
 
