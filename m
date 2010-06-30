@@ -1,57 +1,58 @@
-From: Sergei Zhirikov <sfzhi@yahoo.com>
-Subject: [PATCH] netfilter: LED: fix man page fragment inclusion
-Date: Wed, 30 Jun 2010 21:54:17 +0200
-Message-ID: <i0g7db$5e3$1@dough.gmane.org>
+From: =?UTF-8?B?U2lpbSBQw7VkZXI=?= <siim@p6drad-teel.net>
+Subject: Re: [Bug 16317] New: oops in nf_nat_setup_info
+Date: Wed, 30 Jun 2010 23:22:01 +0300
+Message-ID: <4C2BA769.6050101@p6drad-teel.net>
+References: <bug-16317-4010@https.bugzilla.kernel.org/> <4C2B3FCA.9000505@trash.net>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------060709090900060803000003"
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Cc: Netfilter Developer Mailing List
+	<netfilter-devel@vger.kernel.org>,
+	bugzilla-daemon@bugzilla.kernel.org
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:59815 "EHLO lo.gmane.org"
+Received: from p6drad-teel.net ([87.119.162.157]:51894 "EHLO p6drad-teel.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754691Ab0F3UKF (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jun 2010 16:10:05 -0400
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gnnd-netfilter-devel@m.gmane.org>)
-	id 1OU3bg-0001nq-Fg
-	for netfilter-devel@vger.kernel.org; Wed, 30 Jun 2010 22:10:04 +0200
-Received: from h20244.upc-h.chello.nl ([62.194.20.244])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Wed, 30 Jun 2010 22:10:04 +0200
-Received: from sfzhi by h20244.upc-h.chello.nl with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <netfilter-devel@vger.kernel.org>; Wed, 30 Jun 2010 22:10:04 +0200
+	id S1755219Ab0F3Uaf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 30 Jun 2010 16:30:35 -0400
+In-Reply-To: <4C2B3FCA.9000505@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------060709090900060803000003
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Patrick McHardy wrote:
+> bugzilla-daemon@bugzilla.kernel.org wrote:
+>> https://bugzilla.kernel.org/show_bug.cgi?id=16317
+>> [581172.269340] ------------[ cut here ]------------
+>> [581172.280485] kernel BUG at net/ipv4/netfilter/nf_nat_core.c:300!
+>>   
+> 
+> NAT is attempting to set up mappings a second time for an existing
+> conntrack.
+> 
+> So the failover node is purely passive and is not synchronizing connections
+> back to the one which is crashing? That would rule out a race condition
+> between creating a new conntrack using ctnetlink and the lookup done during
+> packet processing.
 
-The man page fragment of the recently added LED target does not get included into iptables.8 and ip6tables.8 produced during build. This patch fixes that.
+Syncing is done in both directions simultaneously so the described
+race is not ruled out.
 
---------------060709090900060803000003
-Content-Type: text/plain;
- name="LED-man.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="LED-man.patch"
+Coincidentally or not, but so far both crashes seemed to have occured
+on the 6th second of a minute, which is around where conntrackd -c
+usually finishes.
 
-diff --git a/extensions/libxt_LED.c b/extensions/libxt_LED.c
-index af0e091..9a08e89 100644
---- a/extensions/libxt_LED.c
-+++ b/extensions/libxt_LED.c
-@@ -137,7 +137,7 @@ static void LED_save(const void *ip, const struct xt_entry_target *target)
- static struct xtables_target led_tg_reg = {
- 	.version       = XTABLES_VERSION,
- 	.name          = "LED",
--	.family        = PF_UNSPEC,
-+	.family        = NFPROTO_UNSPEC,
- 	.revision      = 0,
- 	.size          = XT_ALIGN(sizeof(struct xt_led_info)),
- 	.userspacesize = offsetof(struct xt_led_info, internal_data),
+I'm a bit confused how the race might happen. It would mean that the
+src/dst ip:port gets reused or packet tranmitted by client after the
+conntrack has expired on the active box whilist the failover box
+synchronizes it back to the active one?
 
---------------060709090900060803000003--
+> I can't spot the problem right now, but it would be interesting whether
+> this still happens without running the (synchronizing) conntrack daemon.
 
+I can't keep this running in production so will have to try to
+reproduce it on a test setup. As I'm not sure about the scenario to
+test, I'll just create lots of SNAT/DNAT connections while syncing
+them with conntrackd (and conntrackd -c) running for a while hoping to
+recreate whatever triggers it?
+
+Siim
