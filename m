@@ -1,58 +1,76 @@
-From: =?UTF-8?B?U2lpbSBQw7VkZXI=?= <siim@p6drad-teel.net>
-Subject: Re: [Bug 16317] New: oops in nf_nat_setup_info
-Date: Wed, 30 Jun 2010 23:22:01 +0300
-Message-ID: <4C2BA769.6050101@p6drad-teel.net>
-References: <bug-16317-4010@https.bugzilla.kernel.org/> <4C2B3FCA.9000505@trash.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Developer Mailing List
-	<netfilter-devel@vger.kernel.org>,
-	bugzilla-daemon@bugzilla.kernel.org
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: [PATCH] nf_conntrack_reasm: add fast path for in-order fragments
+Date: Thu,  1 Jul 2010 11:58:30 +0800
+Message-ID: <1277956710-22313-1-git-send-email-xiaosuo@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	"Pekka Savola (ipv6)" <pekkas@netcore.fi>,
+	James Morris <jmorris@namei.org>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	Patrick McHardy <kaber@trash.net>,
+	Eric Dumazet <eric.dumazet@gmail.com>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Mitchell Erblich <erblichs@earthlink.net>,
+	Changli Gao <xiaosuo@gmail.com>
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from p6drad-teel.net ([87.119.162.157]:51894 "EHLO p6drad-teel.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755219Ab0F3Uaf (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Wed, 30 Jun 2010 16:30:35 -0400
-In-Reply-To: <4C2B3FCA.9000505@trash.net>
+Received: from mail-px0-f174.google.com ([209.85.212.174]:52585 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753192Ab0GAD7r (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 30 Jun 2010 23:59:47 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Patrick McHardy wrote:
-> bugzilla-daemon@bugzilla.kernel.org wrote:
->> https://bugzilla.kernel.org/show_bug.cgi?id=16317
->> [581172.269340] ------------[ cut here ]------------
->> [581172.280485] kernel BUG at net/ipv4/netfilter/nf_nat_core.c:300!
->>   
-> 
-> NAT is attempting to set up mappings a second time for an existing
-> conntrack.
-> 
-> So the failover node is purely passive and is not synchronizing connections
-> back to the one which is crashing? That would rule out a race condition
-> between creating a new conntrack using ctnetlink and the lookup done during
-> packet processing.
+nf_conntrack_reasm: add fast path for in-order fragments
 
-Syncing is done in both directions simultaneously so the described
-race is not ruled out.
+As the fragments are sent in order in most of OSes, such as Windows, Darwin and
+FreeBSD, it is likely the new fragments are at the end of the inet_frag_queue.
+In the fast path, we check if the skb at the end of the inet_frag_queue is the
+prev we expect.
 
-Coincidentally or not, but so far both crashes seemed to have occured
-on the 6th second of a minute, which is around where conntrackd -c
-usually finishes.
-
-I'm a bit confused how the race might happen. It would mean that the
-src/dst ip:port gets reused or packet tranmitted by client after the
-conntrack has expired on the active box whilist the failover box
-synchronizes it back to the active one?
-
-> I can't spot the problem right now, but it would be interesting whether
-> this still happens without running the (synchronizing) conntrack daemon.
-
-I can't keep this running in production so will have to try to
-reproduce it on a test setup. As I'm not sure about the scenario to
-test, I'll just create lots of SNAT/DNAT connections while syncing
-them with conntrackd (and conntrackd -c) running for a while hoping to
-recreate whatever triggers it?
-
-Siim
+Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+----
+ net/ipv6/netfilter/nf_conntrack_reasm.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
+diff --git a/net/ipv6/netfilter/nf_conntrack_reasm.c b/net/ipv6/netfilter/nf_conntrack_reasm.c
+index 9254008..098a050 100644
+--- a/net/ipv6/netfilter/nf_conntrack_reasm.c
++++ b/net/ipv6/netfilter/nf_conntrack_reasm.c
+@@ -269,6 +269,11 @@ static int nf_ct_frag6_queue(struct nf_ct_frag6_queue *fq, struct sk_buff *skb,
+ 	 * in the chain of fragments so far.  We must know where to put
+ 	 * this fragment, right?
+ 	 */
++	prev = fq->q.fragments_tail;
++	if (!prev || NFCT_FRAG6_CB(prev)->offset < offset) {
++		next = NULL;
++		goto found;
++	}
+ 	prev = NULL;
+ 	for (next = fq->q.fragments; next != NULL; next = next->next) {
+ 		if (NFCT_FRAG6_CB(next)->offset >= offset)
+@@ -276,6 +281,7 @@ static int nf_ct_frag6_queue(struct nf_ct_frag6_queue *fq, struct sk_buff *skb,
+ 		prev = next;
+ 	}
+ 
++found:
+ 	/* We found where to put this one.  Check for overlap with
+ 	 * preceding fragment, and, if needed, align things so that
+ 	 * any overlaps are eliminated.
+@@ -341,6 +347,8 @@ static int nf_ct_frag6_queue(struct nf_ct_frag6_queue *fq, struct sk_buff *skb,
+ 
+ 	/* Insert this fragment in the chain of fragments. */
+ 	skb->next = next;
++	if (!next)
++		fq->q.fragments_tail = skb;
+ 	if (prev)
+ 		prev->next = skb;
+ 	else
+@@ -464,6 +472,7 @@ nf_ct_frag6_reasm(struct nf_ct_frag6_queue *fq, struct net_device *dev)
+ 					  head->csum);
+ 
+ 	fq->q.fragments = NULL;
++	fq->q.fragments_tail = NULL;
+ 
+ 	/* all original skbs are linked into the NFCT_FRAG6_CB(head).orig */
+ 	fp = skb_shinfo(head)->frag_list;
