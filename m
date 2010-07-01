@@ -1,45 +1,38 @@
-From: Samuel Ortiz <sameo@linux.intel.com>
-Subject: [PATCH] extensions: libxt_quota.c: Support option negation
-Date: Thu, 1 Jul 2010 11:35:07 +0200
-Message-ID: <20100701093506.GA3309@sortiz-mobl>
+From: Luciano Coelho <luciano.coelho@nokia.com>
+Subject: Re: [PATCH] extensions: libxt_quota.c: Support option negation
+Date: Thu, 01 Jul 2010 14:10:22 +0300
+Message-ID: <1277982622.20531.3.camel@chilepepper>
+References: <20100701093506.GA3309@sortiz-mobl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: ext Samuel Ortiz <sameo@linux.intel.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mga01.intel.com ([192.55.52.88]:52866 "EHLO mga01.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754616Ab0GAJfJ (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 1 Jul 2010 05:35:09 -0400
-Content-Disposition: inline
+Received: from smtp.nokia.com ([192.100.122.230]:65400 "EHLO
+	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754554Ab0GALK6 (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 1 Jul 2010 07:10:58 -0400
+In-Reply-To: <20100701093506.GA3309@sortiz-mobl>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-The xt_quota_info flags should be set properly for the --quota option negation
-support.
+On Thu, 2010-07-01 at 11:35 +0200, ext Samuel Ortiz wrote:
+> The xt_quota_info flags should be set properly for the --quota option negation
+> support.
+> 
+> Signed-off-by: Samuel Ortiz <sameo@linux.intel.com>
+> ---
 
-Signed-off-by: Samuel Ortiz <sameo@linux.intel.com>
----
- extensions/libxt_quota.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+Nice catch! I was trying this yesterday after our discussion and
+couldn't get it to work.  Didn't have the time to investigate the
+problem, good that you did :)
 
-diff --git a/extensions/libxt_quota.c b/extensions/libxt_quota.c
-index 69d2746..bdfc92a 100644
---- a/extensions/libxt_quota.c
-+++ b/extensions/libxt_quota.c
-@@ -65,6 +65,10 @@ quota_parse(int c, char **argv, int invert, unsigned int *flags,
- 		if (!parse_quota(optarg, &info->quota))
- 			xtables_error(PARAMETER_PROBLEM,
- 				   "bad quota: '%s'", optarg);
-+
-+		if (invert)
-+			info->flags |= XT_QUOTA_INVERT;
-+
- 		break;
- 
- 	default:
--- 
-1.7.1
+Tested-by: Luciano Coelho <luciano.coelho@nokia.com>
+
 
 -- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+Cheers,
+Luca.
+
