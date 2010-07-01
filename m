@@ -1,38 +1,49 @@
 From: Luciano Coelho <luciano.coelho@nokia.com>
-Subject: Re: [PATCH] extensions: libxt_quota.c: Support option negation
-Date: Thu, 01 Jul 2010 14:10:22 +0300
-Message-ID: <1277982622.20531.3.camel@chilepepper>
-References: <20100701093506.GA3309@sortiz-mobl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH] extensions: libxt_rateest: fix typo in the man page
+Date: Thu,  1 Jul 2010 14:58:10 +0300
+Message-ID: <1277985490-26117-1-git-send-email-luciano.coelho@nokia.com>
 Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: ext Samuel Ortiz <sameo@linux.intel.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.230]:65400 "EHLO
-	mgw-mx03.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754554Ab0GALK6 (ORCPT
+Received: from smtp.nokia.com ([192.100.105.134]:53236 "EHLO
+	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751680Ab0GAL6c (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 1 Jul 2010 07:10:58 -0400
-In-Reply-To: <20100701093506.GA3309@sortiz-mobl>
+	Thu, 1 Jul 2010 07:58:32 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, 2010-07-01 at 11:35 +0200, ext Samuel Ortiz wrote:
-> The xt_quota_info flags should be set properly for the --quota option negation
-> support.
-> 
-> Signed-off-by: Samuel Ortiz <sameo@linux.intel.com>
-> ---
+There were a few typos in some options in the rateest match section of the
+man page: --rateest1-bps should be --rateest-bps1 and so on.
 
-Nice catch! I was trying this yesterday after our discussion and
-couldn't get it to work.  Didn't have the time to investigate the
-problem, good that you did :)
+Signed-off-by: Luciano Coelho <luciano.coelho@nokia.com>
+---
+ extensions/libxt_rateest.man |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-Tested-by: Luciano Coelho <luciano.coelho@nokia.com>
-
-
+diff --git a/extensions/libxt_rateest.man b/extensions/libxt_rateest.man
+index 24c0673..de064af 100644
+--- a/extensions/libxt_rateest.man
++++ b/extensions/libxt_rateest.man
+@@ -11,14 +11,14 @@ Name of the second rate estimator (if difference is to be calculated).
+ \fB\-\-rateest\-delta\fP
+ Compare difference(s) to given rate(s)
+ .TP
+-\fB\-\-rateest1\-bps\fP \fIvalue\fP
++\fB\-\-rateest\-bps1\fP \fIvalue\fP
+ .TP
+-\fB\-\-rateest2\-bps\fP \fIvalue\fP
++\fB\-\-rateest\-bps2\fP \fIvalue\fP
+ Compare bytes per second.
+ .TP
+-\fB\-\-rateest1\-pps\fP \fIvalue\fP
++\fB\-\-rateest\-pps1\fP \fIvalue\fP
+ .TP
+-\fB\-\-rateest2\-pps\fP \fIvalue\fP
++\fB\-\-rateest\-pps2\fP \fIvalue\fP
+ Compare packets per second.
+ .TP
+ [\fB!\fP] \fB\-\-rateest\-lt\fP
 -- 
-Cheers,
-Luca.
+1.7.0.4
 
