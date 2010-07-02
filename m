@@ -1,49 +1,48 @@
-From: Luciano Coelho <luciano.coelho@nokia.com>
-Subject: [PATCH] extensions: libxt_rateest: fix typo in the man page
-Date: Thu,  1 Jul 2010 14:58:10 +0300
-Message-ID: <1277985490-26117-1-git-send-email-luciano.coelho@nokia.com>
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+From: Simon Lodal <simonl@parknet.dk>
+Subject: Re: xt2 table core
+Date: Fri, 2 Jul 2010 05:32:12 +0200
+Message-ID: <201007020532.12596.simonl@parknet.dk>
+References: <1277801017-30600-1-git-send-email-jengelh@medozas.de>
+Mime-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, kaber@trash.net
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.105.134]:53236 "EHLO
-	mgw-mx09.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751680Ab0GAL6c (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 1 Jul 2010 07:58:32 -0400
+Received: from cuda.parknet.dk ([84.238.112.40]:38754 "EHLO cuda.parknet.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754941Ab0GBDoX (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 1 Jul 2010 23:44:23 -0400
+In-Reply-To: <1277801017-30600-1-git-send-email-jengelh@medozas.de>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-There were a few typos in some options in the rateest match section of the
-man page: --rateest1-bps should be --rateest-bps1 and so on.
+Tirsdag 29 juni 2010 10:42:40 skrev Jan Engelhardt:
+> Hi,
+> 
+> 
+> This patchset adds the xtables2 main proper, and incrementally
+> changes ip6_tables to use it. There are more patches for iptables
+> and arptables and, but to not make it larger than needed, just this
+> much for now.
+> 
+> Previously featured on http://lwn.net/Articles/345176/ .
+> 
+> The full piece is in the xt2-20100629 branch and would look like:
+>   38 files changed, 3361 insertions(+), 5644 deletions(-)
+>   [40% reduction; the remaining 10% were merged already]
+> 
+> 
+> Please leave some comments!
 
-Signed-off-by: Luciano Coelho <luciano.coelho@nokia.com>
----
- extensions/libxt_rateest.man |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+Nice to see some new development! Guess we all have a long wishlist that is 
+hard to implement in the current design, and this may make it easier.
 
-diff --git a/extensions/libxt_rateest.man b/extensions/libxt_rateest.man
-index 24c0673..de064af 100644
---- a/extensions/libxt_rateest.man
-+++ b/extensions/libxt_rateest.man
-@@ -11,14 +11,14 @@ Name of the second rate estimator (if difference is to be calculated).
- \fB\-\-rateest\-delta\fP
- Compare difference(s) to given rate(s)
- .TP
--\fB\-\-rateest1\-bps\fP \fIvalue\fP
-+\fB\-\-rateest\-bps1\fP \fIvalue\fP
- .TP
--\fB\-\-rateest2\-bps\fP \fIvalue\fP
-+\fB\-\-rateest\-bps2\fP \fIvalue\fP
- Compare bytes per second.
- .TP
--\fB\-\-rateest1\-pps\fP \fIvalue\fP
-+\fB\-\-rateest\-pps1\fP \fIvalue\fP
- .TP
--\fB\-\-rateest2\-pps\fP \fIvalue\fP
-+\fB\-\-rateest\-pps2\fP \fIvalue\fP
- Compare packets per second.
- .TP
- [\fB!\fP] \fB\-\-rateest\-lt\fP
--- 
-1.7.0.4
+But what about performance? I think all these lists must cause a huge amount 
+of jumps in hot path (eg. filtering packets). The packed blob format is hard to 
+work with, but once created it is efficient. Do you have any expectations or 
+even numbers on the performance?
 
+
+Simon
