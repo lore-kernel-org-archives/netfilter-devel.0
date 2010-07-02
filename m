@@ -1,30 +1,57 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: fix a dst leak in ipv6 REJECT
-Date: Fri, 02 Jul 2010 10:07:08 +0200
-Message-ID: <4C2D9E2C.8030607@trash.net>
-References: <1278054411.2597.13.camel@edumazet-laptop>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>, netdev <netdev@vger.kernel.org>,
-	stable@kernel.org
-To: Eric Dumazet <eric.dumazet@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:44705 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754233Ab0GBIHI (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 2 Jul 2010 04:07:08 -0400
-In-Reply-To: <1278054411.2597.13.camel@edumazet-laptop>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+From: kaber@trash.net
+Subject: [PATCH 0/9] netfilter: netfilter update
+Date: Fri,  2 Jul 2010 11:52:13 +0200
+Message-ID: <1278064342-19059-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: davem@davemloft.net
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Eric Dumazet wrote:
-> We should release dst if dst->error is set.
->
-> Bug introduced in 2.6.14 by commit e104411b82f5c
-> ([XFRM]: Always release dst_entry on error in xfrm_lookup)
->   
+Hi Dave,
 
-Applied, thanks Eric.
+following is a small netfilter update for net-next, containing:
+
+- a patch to support user-defined SNAT rules in the nat/INPUT chain,
+  from myself
+
+- one-packet scheduling for IPVS from Nick Chalk
+
+- missing kdev_t.h inclusion in xt_IDLETIMER from Randy Dunlap
+
+- the removal of CONFIG_NF_CT_ACCT, originally scheduled for 2.6.29,
+  from Tim Gardner
+
+- a patch to support MAC header decoding in the netfilter LOG targets,
+  from myself
+
+- a patch for per bridge device controls for iptables invocation, from
+  myself
+
+
+Please apply or pull from:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git master
+
+Thanks!
+
+
+Arnd Hannemann (1):
+      netfilter: fix simple typo in KConfig for netfiltert xt_TEE
+
+Nick Chalk (1):
+      IPVS: one-packet scheduling
+
+Patrick McHardy (4):
+      netfilter: nf_nat: support user-specified SNAT rules in LOCAL_IN
+      netfilter: ipt_LOG/ip6t_LOG: remove comparison within loop
+      netfilter: ipt_LOG/ip6t_LOG: add option to print decoded MAC header
+      bridge: add per bridge device controls for invoking iptables
+
+Randy Dunlap (1):
+      netfilter: xt_IDLETIMER needs kdev_t.h
+
+Tim Gardner (2):
+      netfilter: xt_connbytes: Force CT accounting to be enabled
+      netfilter: complete the deprecation of CONFIG_NF_CT_ACCT
+
