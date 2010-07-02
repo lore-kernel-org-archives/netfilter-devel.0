@@ -1,50 +1,26 @@
-From: Eric Dumazet <eric.dumazet@gmail.com>
-Subject: [PATCH] netfilter: fix a dst leak in ipv6 REJECT
-Date: Fri, 02 Jul 2010 09:06:51 +0200
-Message-ID: <1278054411.2597.13.camel@edumazet-laptop>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] extensions: libxt_rateest: fix typo in the man page
+Date: Fri, 02 Jul 2010 09:39:16 +0200
+Message-ID: <4C2D97A4.2010301@trash.net>
+References: <1277985490-26117-1-git-send-email-luciano.coelho@nokia.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset="UTF-8"
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: Netfilter Development Mailinglist
-	<netfilter-devel@vger.kernel.org>, netdev <netdev@vger.kernel.org>,
-	stable@kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Luciano Coelho <luciano.coelho@nokia.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:42395 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754000Ab0GBHGz (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:43808 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754340Ab0GBHjR (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 2 Jul 2010 03:06:55 -0400
+	Fri, 2 Jul 2010 03:39:17 -0400
+In-Reply-To: <1277985490-26117-1-git-send-email-luciano.coelho@nokia.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-We should release dst if dst->error is set.
+Luciano Coelho wrote:
+> There were a few typos in some options in the rateest match section of the
+> man page: --rateest1-bps should be --rateest-bps1 and so on.
+>   
 
-Bug introduced in 2.6.14 by commit e104411b82f5c
-([XFRM]: Always release dst_entry on error in xfrm_lookup)
-
-Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
----
- net/ipv6/netfilter/ip6t_REJECT.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/net/ipv6/netfilter/ip6t_REJECT.c b/net/ipv6/netfilter/ip6t_REJECT.c
-index 47d2277..2933396 100644
---- a/net/ipv6/netfilter/ip6t_REJECT.c
-+++ b/net/ipv6/netfilter/ip6t_REJECT.c
-@@ -97,9 +97,11 @@ static void send_reset(struct net *net, struct sk_buff *oldskb)
- 	fl.fl_ip_dport = otcph.source;
- 	security_skb_classify_flow(oldskb, &fl);
- 	dst = ip6_route_output(net, NULL, &fl);
--	if (dst == NULL)
-+	if (dst == NULL || dst->error) {
-+		dst_release(dst);
- 		return;
--	if (dst->error || xfrm_lookup(net, &dst, &fl, NULL, 0))
-+	}
-+	if (xfrm_lookup(net, &dst, &fl, NULL, 0))
- 		return;
- 
- 	hh_len = (dst->dev->hard_header_len + 15)&~15;
-
-
+Applied, thanks.
