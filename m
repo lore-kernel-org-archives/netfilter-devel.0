@@ -1,21 +1,24 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] xt_quota: also document negation
-Date: Fri, 02 Jul 2010 12:19:37 +0200
-Message-ID: <4C2DBD39.9020302@trash.net>
-References: <1278065703-22170-1-git-send-email-jengelh@medozas.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Jan Engelhardt <jengelh@medozas.de>
+From: kaber@trash.net
+Subject: [PATCH 0/1] netfilter: netfilter fix
+Date: Fri,  2 Jul 2010 13:40:04 +0200
+Message-ID: <1278070805-26278-1-git-send-email-kaber@trash.net>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: davem@davemloft.net
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:46768 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:47989 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752297Ab0GBKTi (ORCPT
+	with ESMTP id S1756584Ab0GBLkI (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 2 Jul 2010 06:19:38 -0400
-In-Reply-To: <1278065703-22170-1-git-send-email-jengelh@medozas.de>
+	Fri, 2 Jul 2010 07:40:08 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Applied, thanks.
+the following patch for 2.6.35 fixes a dst leak in ip6t_REJECT when
+dst->error is set, from Eric Dumazet.
+
+Please apply or pull from:
+
+git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git master
+
+Thanks!
+
