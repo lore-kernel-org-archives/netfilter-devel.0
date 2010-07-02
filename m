@@ -1,26 +1,39 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: LED: fix man page fragment inclusion
-Date: Fri, 02 Jul 2010 09:44:52 +0200
-Message-ID: <4C2D98F4.5050602@trash.net>
-References: <i0g7db$5e3$1@dough.gmane.org>
+Subject: Re: [PATCH] nf_conntrack_reasm: add fast path for in-order fragments
+Date: Fri, 02 Jul 2010 09:53:20 +0200
+Message-ID: <4C2D9AF0.3030208@trash.net>
+References: <1277956710-22313-1-git-send-email-xiaosuo@gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Sergei Zhirikov <sfzhi@yahoo.com>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	"Pekka Savola (ipv6)" <pekkas@netcore.fi>,
+	James Morris <jmorris@namei.org>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	Eric Dumazet <eric.dumazet@gmail.com>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Mitchell Erblich <erblichs@earthlink.net>
+To: Changli Gao <xiaosuo@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:44262 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:44394 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750973Ab0GBHox (ORCPT
+	with ESMTP id S1753257Ab0GBHxV (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 2 Jul 2010 03:44:53 -0400
-In-Reply-To: <i0g7db$5e3$1@dough.gmane.org>
+	Fri, 2 Jul 2010 03:53:21 -0400
+In-Reply-To: <1277956710-22313-1-git-send-email-xiaosuo@gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Sergei Zhirikov wrote:
-> The man page fragment of the recently added LED target does not get 
-> included into iptables.8 and ip6tables.8 produced during build. This 
-> patch fixes that.
+Changli Gao wrote:
+> nf_conntrack_reasm: add fast path for in-order fragments
+>
+> As the fragments are sent in order in most of OSes, such as Windows, Darwin and
+> FreeBSD, it is likely the new fragments are at the end of the inet_frag_queue.
+> In the fast path, we check if the skb at the end of the inet_frag_queue is the
+> prev we expect.
+>
+>   
 
-You seem to have attached a different patch, please resend.
+I'll apply this when merging with net-next the next time since this depends
+on your "fragment: add fast path for in-order fragments" patch.
