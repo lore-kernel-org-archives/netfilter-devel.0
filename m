@@ -1,24 +1,45 @@
 From: kaber@trash.net
-Subject: [PATCH 0/1] netfilter: netfilter fix
-Date: Fri,  2 Jul 2010 13:40:04 +0200
-Message-ID: <1278070805-26278-1-git-send-email-kaber@trash.net>
+Subject: [PATCH] netfilter: ip6t_REJECT: fix a dst leak in ipv6 REJECT
+Date: Fri,  2 Jul 2010 13:42:22 +0200
+Message-ID: <1278070942-26410-1-git-send-email-kaber@trash.net>
 Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
 To: davem@davemloft.net
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:47989 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756584Ab0GBLkI (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 2 Jul 2010 07:40:08 -0400
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Return-path: <netdev-owner@vger.kernel.org>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-the following patch for 2.6.35 fixes a dst leak in ip6t_REJECT when
-dst->error is set, from Eric Dumazet.
+From: Eric Dumazet <eric.dumazet@gmail.com>
 
-Please apply or pull from:
+We should release dst if dst->error is set.
 
-git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-2.6.git master
+Bug introduced in 2.6.14 by commit e104411b82f5c
+([XFRM]: Always release dst_entry on error in xfrm_lookup)
 
-Thanks!
+Signed-off-by: Eric Dumazet <eric.dumazet@gmail.com>
+Cc: stable@kernel.org
+Signed-off-by: Patrick McHardy <kaber@trash.net>
+---
+ net/ipv6/netfilter/ip6t_REJECT.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/net/ipv6/netfilter/ip6t_REJECT.c b/net/ipv6/netfilter/ip6t_REJECT.c
+index 47d2277..2933396 100644
+--- a/net/ipv6/netfilter/ip6t_REJECT.c
++++ b/net/ipv6/netfilter/ip6t_REJECT.c
+@@ -97,9 +97,11 @@ static void send_reset(struct net *net, struct sk_buff *oldskb)
+ 	fl.fl_ip_dport = otcph.source;
+ 	security_skb_classify_flow(oldskb, &fl);
+ 	dst = ip6_route_output(net, NULL, &fl);
+-	if (dst == NULL)
++	if (dst == NULL || dst->error) {
++		dst_release(dst);
+ 		return;
+-	if (dst->error || xfrm_lookup(net, &dst, &fl, NULL, 0))
++	}
++	if (xfrm_lookup(net, &dst, &fl, NULL, 0))
+ 		return;
+ 
+ 	hh_len = (dst->dev->hard_header_len + 15)&~15;
+-- 
+1.7.0.4
 
