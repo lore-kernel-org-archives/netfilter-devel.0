@@ -1,34 +1,61 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: xtables addons; mktemp
-Date: Sat, 3 Jul 2010 08:30:39 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1007030827100.20900@obet.zrqbmnf.qr>
-References: <4C2E9964.5030002@gmail.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 0/9] netfilter: netfilter update
+Date: Sat, 03 Jul 2010 11:06:30 +0200
+Message-ID: <4C2EFD96.1040907@trash.net>
+References: <1278064342-19059-1-git-send-email-kaber@trash.net>	<20100702.220408.112596216.davem@davemloft.net> <20100702.224434.226764333.davem@davemloft.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: martinbarrowcliff <martinbarrowcliff@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: David Miller <davem@davemloft.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:39381 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752865Ab0GCGak (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 3 Jul 2010 02:30:40 -0400
-In-Reply-To: <4C2E9964.5030002@gmail.com>
+Received: from stinky.trash.net ([213.144.137.162]:65250 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752396Ab0GCJGb (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Sat, 3 Jul 2010 05:06:31 -0400
+In-Reply-To: <20100702.224434.226764333.davem@davemloft.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Saturday 2010-07-03 03:59, martinbarrowcliff wrote:
-
-> With my embedded firewall system the busybox mktemp function
-> fails due to unsupported flags, so the xtables-addons build fails
-> on the native toolchain.
-> I think this issue should be considered, because so many appliances
-> do use busybox and some may even have a working toolchain...
+David Miller wrote:
+> From: David Miller <davem@davemloft.net>
+> Date: Fri, 02 Jul 2010 22:04:08 -0700 (PDT)
 >
-> make[1]: Leaving directory
-> `/usr/src/source/build/firewall/xtables-addons-1.27/extensions'
-> mktemp: invalid option -- u
+>   
+>> From: kaber@trash.net
+>> Date: Fri,  2 Jul 2010 11:52:13 +0200
+>>
+>>     
+>>> Please apply or pull from:
+>>>
+>>> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git master
+>>>       
+>> Looks good, pulled, thanks Patrick.
+>>     
+>
+> The br_netfilter changes don't build against net-next-2.6:
+>
+> net/bridge/br_netfilter.c: In function 'br_nf_pre_routing':
+> net/bridge/br_netfilter.c:558:6: error: 'const struct net_device' has no member named 'br_port'
+> net/bridge/br_netfilter.c:558:6: warning: type defaults to 'int' in declaration of '_________p1'
+> net/bridge/br_netfilter.c:558:6: error: 'const struct net_device' has no member named 'br_port'
+> net/bridge/br_netfilter.c:558:6: error: 'const struct net_device' has no member named 'br_port'
+> net/bridge/br_netfilter.c:558:2: warning: type defaults to 'int' in type name
+> net/bridge/br_netfilter.c:558:4: warning: assignment makes pointer from integer without a cast
+> net/bridge/br_netfilter.c: In function 'br_nf_forward_arp':
+> net/bridge/br_netfilter.c:730:6: error: 'const struct net_device' has no member named 'br_port'
+> net/bridge/br_netfilter.c:730:6: warning: type defaults to 'int' in declaration of '_________p1'
+>
+> The br_port accessors got changed in net-next-2.6, so you have to do it using
+> br_port_get_rcu(netdev) et al.
+>   
 
-The fact that $(shell mktemp -dtu) fails should not abort the 
-build. I can pick a standard system, add the unknown option -x, and 
-still have make succeed as long as you don't try to execute the make 
-tarball target.
+Sorry, I added that patch to my tree after testing based on a merge
+with net-next and forgot to retest.
+
+> I'll fix this up in the merge commit when I pull.
+>   
+
+Thanks!
+
