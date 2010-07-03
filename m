@@ -1,52 +1,23 @@
-From: martinbarrowcliff <martinbarrowcliff@gmail.com>
-Subject: xtables addons; mktemp
-Date: Fri, 02 Jul 2010 21:59:00 -0400
-Message-ID: <4C2E9964.5030002@gmail.com>
+From: David Miller <davem@davemloft.net>
+Subject: Re: [PATCH 0/9] netfilter: netfilter update
+Date: Fri, 02 Jul 2010 22:04:08 -0700 (PDT)
+Message-ID: <20100702.220408.112596216.davem@davemloft.net>
+References: <1278064342-19059-1-git-send-email-kaber@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
-To: netfilter-devel@vger.kernel.org
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:43080 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751982Ab0GCB5q (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 2 Jul 2010 21:57:46 -0400
-Received: by gxk23 with SMTP id 23so1913896gxk.19
-        for <netfilter-devel@vger.kernel.org>; Fri, 02 Jul 2010 18:57:45 -0700 (PDT)
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
+To: kaber@trash.net
+Return-path: <netdev-owner@vger.kernel.org>
+In-Reply-To: <1278064342-19059-1-git-send-email-kaber@trash.net>
+Sender: netdev-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-This is a small but annoying issue.
-With my embedded firewall system the busybox mktemp function
-fails due to unsupported flags, so the xtables-addons build fails
-on the native toolchain. This can be fixed.
-I hacked the code to make it work properly however I won't send
-a patch because it is a amateur hack, and not a proper fix.
-I think this issue should be considered, because so many appliances
-do use busybox and some may even have a working toolchain...
+From: kaber@trash.net
+Date: Fri,  2 Jul 2010 11:52:13 +0200
 
-make[1]: Leaving directory 
-`/usr/src/source/build/firewall/xtables-addons-1.27/extensions'
-mktemp: invalid option -- u
-BusyBox v1.16.2 (2010-06-30 20:04:07 EDT) multi-call binary.
+> Please apply or pull from:
+> 
+> git://git.kernel.org/pub/scm/linux/kernel/git/kaber/nf-next-2.6.git master
 
-Usage: mktemp [-dt] [-p DIR] [TEMPLATE]
-
-Create a temporary file with name based on TEMPLATE and print its name.
-TEMPLATE must end with XXXXXX (e.g. [/dir/]nameXXXXXX).
-
-Options:
-        -d      Make a directory instead of a file
-        -t      Generate a path rooted in temporary directory
-        -p DIR  Use DIR as a temporary directory (implies -t)
-
-For -t or -p, directory is chosen as follows:
-$TMPDIR if set, else -p DIR, else /tmp
-
-Thanks much,
-
-Marty B.
-
-
-
+Looks good, pulled, thanks Patrick.
