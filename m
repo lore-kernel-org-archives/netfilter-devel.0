@@ -1,25 +1,27 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH] netfilter: postpone the checksum calculation
-Date: Mon, 05 Jul 2010 10:39:42 +0200
-Message-ID: <4C319A4E.5080507@trash.net>
-References: <1278050577-3358-1-git-send-email-xiaosuo@gmail.com>
+Subject: Re: [PATCH nf-next-2.6] netfilter: ipt_REJECT: avoid touching dst
+ ref
+Date: Mon, 05 Jul 2010 10:40:32 +0200
+Message-ID: <4C319A80.4050305@trash.net>
+References: <1278076669.2530.33.camel@edumazet-laptop>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: "David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Changli Gao <xiaosuo@gmail.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1278050577-3358-1-git-send-email-xiaosuo@gmail.com>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: Netfilter Development Mailinglist
+	<netfilter-devel@vger.kernel.org>
+To: Eric Dumazet <eric.dumazet@gmail.com>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:39736 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752984Ab0GEIkb (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Mon, 5 Jul 2010 04:40:31 -0400
+In-Reply-To: <1278076669.2530.33.camel@edumazet-laptop>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Changli Gao wrote:
-> netfilter: postpone the checksum calculation.
->
-> postpone the checksum calculation, then if the output NIC supports checksum
-> offloading, we can utlize it. And though the output NIC doesn't support
-> checksum offloading, but we'll mangle this packet, this can free us from
-> updating the checksum, as the checksum calculation occurs later.
+Eric Dumazet wrote:
+> We can avoid a pair of atomic ops in ipt_REJECT send_reset()
+>   
 
 Applied, thanks.
