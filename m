@@ -1,97 +1,65 @@
-From: Bas van Sisseren <bas@quarantainenet.nl>
-Subject: Re: [PATCH] ipt_REDIRECT: only change dest-ip if not local ip
-Date: Fri, 16 Jul 2010 15:23:28 +0200
-Message-ID: <4C405D50.6020306@quarantainenet.nl>
-References: <4C402DBD.3010007@quarantainenet.nl> <4C40539A.6080607@plouf.fr.eu.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: netfilter-devel@vger.kernel.org
-To: Pascal Hambourg <pascal.mail@plouf.fr.eu.org>
+From: Changli Gao <xiaosuo@gmail.com>
+Subject: [PATCH v2] ipt_REJECT: can't work with bridges
+Date: Mon,  5 Jul 2010 15:16:54 +0800
+Message-ID: <1278314214-18469-1-git-send-email-xiaosuo@gmail.com>
+Cc: "David S. Miller" <davem@davemloft.net>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	"Pekka Savola (ipv6)" <pekkas@netcore.fi>,
+	James Morris <jmorris@namei.org>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
+	Changli Gao <xiaosuo@gmail.com>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.quarantaine.net ([217.114.102.88]:53092 "EHLO
-	main.qone.quarantainenet.nl" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965247Ab0GPNXg (ORCPT
+Received: from mail-px0-f174.google.com ([209.85.212.174]:60455 "EHLO
+	mail-px0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965234Ab0GPN3j (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Fri, 16 Jul 2010 09:23:36 -0400
-In-Reply-To: <4C40539A.6080607@plouf.fr.eu.org>
+	Fri, 16 Jul 2010 09:29:39 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hello Pascal,
+ipt_REJECT: can't work with bridges
 
-On 16/07/10 14:42, Pascal Hambourg wrote:
-> Bas van Sisseren a =E9crit :
->>
->> When redirecting, the destination address is replaced by the first
->> ip-address on the receiving interface.
->=20
-> As described in the iptables manpage.
->=20
->> If the packet originally was sent to the second ip-address (or third=
-,
->> fourth, etc..), this patch doesn't change the destination ip.
->=20
-> Is this patch in reaction to the recent thread "iptables not forwardi=
-ng
-> port 443" in the netfilter user list from someone who stumbled into t=
-his
-> issue ?
+ip_route_me_harder can't create the route cache when the outdev is the same with
+the indev for the skbs whichout a valid protocol set.
 
-I didn't read that thread. Although this patch would probably solve tha=
-t issue.
+__mkroute_input functions has this check:
+1998         if (skb->protocol != htons(ETH_P_IP)) {
+1999                 /* Not IP (i.e. ARP). Do not create route, if it is
+2000                  * invalid for proxy arp. DNAT routes are always valid.
+2001                  *
+2002                  * Proxy arp feature have been extended to allow, ARP
+2003                  * replies back to the same interface, to support
+2004                  * Private VLAN switch technologies. See arp.c.
+2005                  */
+2006                 if (out_dev == in_dev &&
+2007                     IN_DEV_PROXY_ARP_PVLAN(in_dev) == 0) {
+2008                         err = -EINVAL;
+2009                         goto cleanup;
+2010                 }
+2011         }
 
+This patch gives the new skb a valid protocol to bypass this check. In order to
+make ipt_REJECT work with bridges, you also need to enable ip_forward.
 
-> My thoughts :
-> 1) The iptables manpage would need to be updated accordingly.
->=20
-> 2) I wonder whether it is really useful. The purpose of REDIRECT is t=
-o
-> make sure a packet is redirected to the local machine itself without =
-the
-> need to care about the machine's address (just as MASQUERADE). If you
-> don't want to change the destination address or need finer control ov=
-er
-> it, I believe DNAT can be used instead. Can you provide a use case ?
+This patch also fixes a regression. When we used skb_copy_expand(), we didn't
+have this issue stated above, as the protocol was properly set. In fact, the
+regression also affects TC classification and packet sockets.
 
-It's a honeypot system with advanced routing and a lot of ip-addresses.=
- The
-honeypot is running as non-root, which complicates usage of ports < 102=
-4.
-The REDIRECT rule helps us to redirect the connection to higher
-port-numbers. With REDIRECT, we can request the original dst ip:port wi=
-th
-the SO_ORIG_DST sockopt. With DNAT the SO_ORIG_DST is not available.
-
-Besides that, we have to run some services on multiple port-numbers
-(sometimes even varying per ip-address). Using only one listening socke=
-t
-instead of 1000 sockets really helps then.
-
-We can redirect all those connections to the interface's first address.=
- In
-fact, this is what we do now. But now and then it is confusing (e.g whe=
-n
-building ip-range check rules in the filter INPUT chain), and we also s=
-eem
-to trigger routing problems (might be in combination with advanced rout=
-ing).
-
-
-
-> 3) Why restrict only to the addresses attached to the receiving
-> interface ? Why not extend to any address attached to a host's
-> interface, or even any local address (such as the whole 127.0.0.0/8
-> prefix) ?
-
-I don't see any use for that. :-)
-
-
---=20
-Bas van Sisseren <bas@quarantainenet.nl>
-Quarantainenet
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Signed-off-by: Changli Gao <xiaosuo@gmail.com>
+----
+ net/ipv4/netfilter/ipt_REJECT.c |    1 +
+ 1 file changed, 1 insertion(+)
+diff --git a/net/ipv4/netfilter/ipt_REJECT.c b/net/ipv4/netfilter/ipt_REJECT.c
+index bbbd273..60b8832 100644
+--- a/net/ipv4/netfilter/ipt_REJECT.c
++++ b/net/ipv4/netfilter/ipt_REJECT.c
+@@ -111,6 +111,7 @@ static void send_reset(struct sk_buff *oldskb, int hook)
+ 	/* ip_route_me_harder expects skb->dst to be set */
+ 	skb_dst_set_noref(nskb, skb_dst(oldskb));
+ 
++	nskb->protocol = htons(ETH_P_IP);
+ 	if (ip_route_me_harder(nskb, addr_type))
+ 		goto free_nskb;
+ 
