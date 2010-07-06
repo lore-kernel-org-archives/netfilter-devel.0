@@ -1,52 +1,31 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [patch v2.3 3/4] IPVS: make FTP work with full NAT support
-Date: Tue, 06 Jul 2010 13:43:44 +0200
-Message-ID: <4C3316F0.2030807@trash.net>
-References: <20100704113246.562399500@vergenet.net> <20100704114808.932594876@vergenet.net>
+From: Mistick Levi <gmistick@gmail.com>
+Subject: API...
+Date: Tue, 6 Jul 2010 19:22:11 +0300
+Message-ID: <AANLkTik7uuOECS03_U2Dk8tQVVba4DAgXl1aapKhMZpC@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
-Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
-	linux-kernel@vger.kernel.org, netfilter@vger.kernel.org,
-	netfilter-devel@vger.kernel.org,
-	Malcolm Turnbull <malcolm@loadbalancer.org>,
-	Wensong Zhang <wensong@linux-vs.org>,
-	Julius Volz <julius.volz@gmail.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Hannes Eder <heder@google.com>
-To: Simon Horman <horms@verge.net.au>
+Content-Type: text/plain; charset=ISO-8859-1
+To: netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:65085 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755009Ab0GFLno (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:58745 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753470Ab0GFQWP (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 6 Jul 2010 07:43:44 -0400
-In-Reply-To: <20100704114808.932594876@vergenet.net>
+	Tue, 6 Jul 2010 12:22:15 -0400
+Received: by bwz1 with SMTP id 1so3632878bwz.19
+        for <netfilter-devel@vger.kernel.org>; Tue, 06 Jul 2010 09:22:13 -0700 (PDT)
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Simon Horman wrote:
-> @@ -219,19 +358,23 @@ static int ip_vs_ftp_out(struct ip_vs_ap
->  
->  		buf_len = strlen(buf);
->  
-> +		ct = nf_ct_get(skb, &ctinfo);
-> +		ret = nf_nat_mangle_tcp_packet(skb,
-> +					       ct,
-> +					       ctinfo,
-> +					       start-data,
-> +					       end-start,
-> +					       buf,
-> +					       buf_len);
-> +
-> +		if (ct && ct != &nf_conntrack_untracked)
->   
-This does not make sense, you're already using the conntrack above
-in the call to nf_nat_mangle_tcp_packet(), so the check should
-probably happen before that. You also should be checking the
-return value of nf_nat_mangle_tcp_packet() before setting up the
-expectation.
+Hi,
 
-> +			ip_vs_expect_related(skb, ct, n_cp,
-> +					     IPPROTO_TCP, NULL, 0);
+Ofcourse there is a demand for an API as libiptc ( though libiptc is
+not an API )
+>From what i read on the list, the main reason libiptc is to be
+replaced is because it is too low-level.
+I was wondering if there is still a reason to try and create a
+"High Level API" for iptables, or because of nftables that idea is
+worthless?
 
+
+Kind regards
+Yechiel Levi
