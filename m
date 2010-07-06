@@ -1,48 +1,78 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: xt2 table core
-Date: Mon, 5 Jul 2010 12:34:39 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1007051230480.27078@obet.zrqbmnf.qr>
-References: <1277801017-30600-1-git-send-email-jengelh@medozas.de>  <201007020532.12596.simonl@parknet.dk>  <alpine.LSU.2.01.1007041440130.12356@obet.zrqbmnf.qr>  <1278322612.2877.21.camel@edumazet-laptop>  <alpine.LSU.2.01.1007051138480.18387@obet.zrqbmnf.qr>
- <1278325323.2877.27.camel@edumazet-laptop>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [patch v2.3 1/4] netfilter: xt_ipvs (netfilter matcher for IPVS)
+Date: Tue, 06 Jul 2010 13:32:48 +0200
+Message-ID: <4C331460.7050509@trash.net>
+References: <20100704113246.562399500@vergenet.net> <20100704114808.459045895@vergenet.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=UTF-8
-Content-Transfer-Encoding: QUOTED-PRINTABLE
-Cc: Simon Lodal <simonl@parknet.dk>, netfilter-devel@vger.kernel.org,
-	kaber@trash.net
-To: Eric Dumazet <eric.dumazet@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, netfilter@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Malcolm Turnbull <malcolm@loadbalancer.org>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julius Volz <julius.volz@gmail.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Hannes Eder <heder@google.com>
+To: Simon Horman <horms@verge.net.au>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:38095 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755305Ab0GEKel (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Mon, 5 Jul 2010 06:34:41 -0400
-In-Reply-To: <1278325323.2877.27.camel@edumazet-laptop>
+Received: from stinky.trash.net ([213.144.137.162]:64872 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752794Ab0GFLcs (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Tue, 6 Jul 2010 07:32:48 -0400
+In-Reply-To: <20100704114808.459045895@vergenet.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-
-On Monday 2010-07-05 12:22, Eric Dumazet wrote:
->Le lundi 05 juillet 2010 =C3=A0 11:42 +0200, Jan Engelhardt a =C3=A9cr=
-it :
+Simon Horman wrote:
+> From:	Hannes Eder <heder@google.com>
 >
->> If you see where this went awry, I'd be grateful. (The tests have be=
-en=20
->> run on a single CPU.)
->
->Oh well, thats huge, I could not load them on my (32bit, 8 cpus) dev
->machine :)
+> This implements the kernel-space side of the netfilter matcher xt_ipvs.
+>   
+> @@ -0,0 +1,25 @@
+> +#ifndef _XT_IPVS_H
+> +#define _XT_IPVS_H
+> +
+> +#define XT_IPVS_IPVS_PROPERTY	(1 << 0) /* all other options imply this one */
+> +#define XT_IPVS_PROTO		(1 << 1)
+> +#define XT_IPVS_VADDR		(1 << 2)
+> +#define XT_IPVS_VPORT		(1 << 3)
+> +#define XT_IPVS_DIR		(1 << 4)
+> +#define XT_IPVS_METHOD		(1 << 5)
+> +#define XT_IPVS_VPORTCTL	(1 << 6)
+> +#define XT_IPVS_MASK		((1 << 7) - 1)
+> +#define XT_IPVS_ONCE_MASK	(XT_IPVS_MASK & ~XT_IPVS_IPVS_PROPERTY)
+> +
+> +struct xt_ipvs_mtinfo {
+> +	union nf_inet_addr	vaddr, vmask;
+> +	__be16			vport;
+> +	__u16			l4proto;
+> +	__u16			fwd_method;
+>   
+It seems you could use __u8 for both l4proto and fwd_method
+and reduce the match size by 2 bytes.
 
-Wuss? I was able to load it into 64-bit VM configured with 1 GB RAM.
+> +	__be16			vportctl;
+> +
+> +	__u8			invert;
+> +	__u8			bitmask;
+> +};
+> +static bool
+> +ipvs_mt(const struct sk_buff *skb, struct xt_action_param *par)
+> +...
+>   
+> +	if (data->bitmask & XT_IPVS_DIR) {
+> +		enum ip_conntrack_info ctinfo;
+> +		struct nf_conn *ct = nf_ct_get(skb, &ctinfo);
+> +
+> +		if (ct == NULL || ct == &nf_conntrack_untracked) {
+>   
+We're using per-cpu structures for nf_conntrack_untracked in the
+current net-next/nf-next tree, so this doesn't work anymore. You
+need to use nf_ct_is_untracked() instead.
 
->[ 7838.882153] vmap allocation for size 19869696 failed: use
->vmalloc=3D<size> to increase size.
->
->I guess size of your rules, went from 20 Mbytes per cpu to say... 160
->MBytes on xt2 ?
+> +			match = false;
+> +			goto out_put_cp;
+> +		}
 
-As a side-effect of multiple allocations of non-blob structures,
-probably so.
---
-To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
-el" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
