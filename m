@@ -1,33 +1,58 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: API...
-Date: Tue, 6 Jul 2010 19:26:27 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1007061921410.1858@obet.zrqbmnf.qr>
-References: <AANLkTik7uuOECS03_U2Dk8tQVVba4DAgXl1aapKhMZpC@mail.gmail.com>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [patch v2.3 3/4] IPVS: make FTP work with full NAT support
+Date: Wed, 7 Jul 2010 15:53:24 +0900
+Message-ID: <20100707065324.GC20424@verge.net.au>
+References: <20100704113246.562399500@vergenet.net>
+ <20100704114808.932594876@vergenet.net>
+ <4C3316F0.2030807@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter-devel@vger.kernel.org
-To: Mistick Levi <gmistick@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:52941 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753638Ab0GFR02 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Tue, 6 Jul 2010 13:26:28 -0400
-In-Reply-To: <AANLkTik7uuOECS03_U2Dk8tQVVba4DAgXl1aapKhMZpC@mail.gmail.com>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: text/plain; charset=us-ascii
+Cc: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, netfilter@vger.kernel.org,
+	netfilter-devel@vger.kernel.org,
+	Malcolm Turnbull <malcolm@loadbalancer.org>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julius Volz <julius.volz@gmail.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Hannes Eder <heder@google.com>
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <4C3316F0.2030807@trash.net>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-On Tuesday 2010-07-06 18:22, Mistick Levi wrote:
+On Tue, Jul 06, 2010 at 01:43:44PM +0200, Patrick McHardy wrote:
+> Simon Horman wrote:
+> >@@ -219,19 +358,23 @@ static int ip_vs_ftp_out(struct ip_vs_ap
+> > 		buf_len = strlen(buf);
+> >+		ct = nf_ct_get(skb, &ctinfo);
+> >+		ret = nf_nat_mangle_tcp_packet(skb,
+> >+					       ct,
+> >+					       ctinfo,
+> >+					       start-data,
+> >+					       end-start,
+> >+					       buf,
+> >+					       buf_len);
+> >+
+> >+		if (ct && ct != &nf_conntrack_untracked)
+> This does not make sense, you're already using the conntrack above
+> in the call to nf_nat_mangle_tcp_packet(), so the check should
+> probably happen before that. You also should be checking the
+> return value of nf_nat_mangle_tcp_packet() before setting up the
+> expectation.
+> 
+> >+			ip_vs_expect_related(skb, ct, n_cp,
+> >+					     IPPROTO_TCP, NULL, 0);
 
->Hi,
->
->Ofcourse there is a demand for an API as libiptc ( though libiptc is
->not an API )
+Good point. Is this better?
 
-libiptc is of course an API. Just not one that's not advertised very 
-much.
-
->From what i read on the list, the main reason libiptc is to be
->replaced is because it is too low-level.
-
-How much higher level do you intend to go?
-_What exactly_ is missing from libiptc?
+		ct = nf_ct_get(skb, &ctinfo);
+		if (ct && !nf_ct_is_untracked()) {
+			ret = nf_nat_mangle_tcp_packet(skb, ct, ctinfo,
+						       start-data, end-start,
+						       buf, buf_len);
+			if (ret)
+				ip_vs_expect_related(skb, ct, n_cp,
+						     IPPROTO_TCP, NULL, 0);
+		}
