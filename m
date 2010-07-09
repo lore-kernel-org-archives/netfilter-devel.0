@@ -1,38 +1,50 @@
-From: Changli Gao <xiaosuo@gmail.com>
-Subject: [PATCH] tproxy: the length of lines should be within 80
-Date: Fri,  9 Jul 2010 13:31:20 +0800
-Message-ID: <1278653480-21304-1-git-send-email-xiaosuo@gmail.com>
-Cc: "David S. Miller" <davem@davemloft.net>,
-	netfilter-devel@vger.kernel.org, netdev@vger.kernel.org,
-	Changli Gao <xiaosuo@gmail.com>
-To: Patrick McHardy <kaber@trash.net>
-Return-path: <netdev-owner@vger.kernel.org>
-Sender: netdev-owner@vger.kernel.org
+From: Herbert Xu <herbert@gondor.apana.org.au>
+Subject: Re: [PATCH] netfilter: add CHECKSUM target
+Date: Fri, 9 Jul 2010 15:18:14 +0800
+Message-ID: <20100709071814.GA27964@gondor.apana.org.au>
+References: <20100708222913.GA4475@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Cc: Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
+	"Pekka Savola (ipv6)" <pekkas@netcore.fi>,
+	James Morris <jmorris@namei.org>,
+	Hideaki YOSHIFUJI <yoshfuji@linux-ipv6.org>,
+	linux-kernel@vger.kernel.org, netfilter-devel@vger.kernel.org,
+	netfilter@vger.kernel.org, coreteam@netfilter.org,
+	netdev@vger.kernel.org, kvm@vger.kernel.org
+To: "Michael S. Tsirkin" <mst@redhat.com>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+Content-Disposition: inline
+In-Reply-To: <20100708222913.GA4475@redhat.com>
+Sender: linux-kernel-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-tproxy: the length of lines should be within 80
+On Fri, Jul 09, 2010 at 01:29:13AM +0300, Michael S. Tsirkin wrote:
+> This adds a `CHECKSUM' target, which can be used in the iptables mangle
+> table.
+> 
+> You can use this target to compute and fill in the checksum in
+> an IP packet that lacks a checksum.  This is particularly useful,
+> if you need to work around old applications such as dhcp clients,
+> that do not work well with checksum offloads, but don't want to
+> disable checksum offload in your device.
+> 
+> The problem happens in the field with virtualized applications.
+> For reference, see Red Hat bz 605555, as well as
+> http://www.spinics.net/lists/kvm/msg37660.html
+> 
+> Typical expected use (helps old dhclient binary running in a VM):
+> iptables -A POSTROUTING -t mangle -p udp --dport 68 -j CHECKSUM
+> --checksum-fill
+> 
+> Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
 
-According to the Documentation/CodingStyle, the length of lines should be
-within 80.
+I'd think that this target would be protocol-agnostic, no?
 
-Signed-off-by: Changli Gao <xiaosuo@gmail.com>
-----
- net/netfilter/xt_TPROXY.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-diff --git a/net/netfilter/xt_TPROXY.c b/net/netfilter/xt_TPROXY.c
-index e1a0ded..c61294d 100644
---- a/net/netfilter/xt_TPROXY.c
-+++ b/net/netfilter/xt_TPROXY.c
-@@ -37,8 +37,10 @@ tproxy_tg(struct sk_buff *skb, const struct xt_action_param *par)
- 		return NF_DROP;
- 
- 	sk = nf_tproxy_get_sock_v4(dev_net(skb->dev), iph->protocol,
--				   iph->saddr, tgi->laddr ? tgi->laddr : iph->daddr,
--				   hp->source, tgi->lport ? tgi->lport : hp->dest,
-+				   iph->saddr,
-+				   tgi->laddr ? tgi->laddr : iph->daddr,
-+				   hp->source,
-+				   tgi->lport ? tgi->lport : hp->dest,
- 				   par->in, true);
- 
- 	/* NOTE: assign_sock consumes our sk reference */
+Cheers,
+-- 
+Email: Herbert Xu <herbert@gondor.apana.org.au>
+Home Page: http://gondor.apana.org.au/~herbert/
+PGP Key: http://gondor.apana.org.au/~herbert/pubkey.txt
