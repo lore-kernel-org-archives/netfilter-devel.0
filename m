@@ -1,12 +1,12 @@
-From: Jan Engelhardt <jengelh@medozas.de>
+From: Patrick McHardy <kaber@trash.net>
 Subject: Re: [PATCH] netfilter: add CHECKSUM target
-Date: Fri, 9 Jul 2010 11:56:26 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1007091154120.7235@obet.zrqbmnf.qr>
+Date: Fri, 09 Jul 2010 17:17:36 +0200
+Message-ID: <4C373D90.8070000@trash.net>
 References: <20100708222913.GA4475@redhat.com>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: Patrick McHardy <kaber@trash.net>,
-	"David S. Miller" <davem@davemloft.net>,
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
+Cc: "David S. Miller" <davem@davemloft.net>,
 	Alexey Kuznetsov <kuznet@ms2.inr.ac.ru>,
 	"Pekka Savola (ipv6)" <pekkas@netcore.fi>,
 	James Morris <jmorris@namei.org>,
@@ -15,26 +15,37 @@ Cc: Patrick McHardy <kaber@trash.net>,
 	netfilter@vger.kernel.org, coreteam@netfilter.org,
 	netdev@vger.kernel.org, herbert.xu@redhat.com, kvm@vger.kernel.org
 To: "Michael S. Tsirkin" <mst@redhat.com>
-Return-path: <linux-kernel-owner@vger.kernel.org>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from stinky.trash.net ([213.144.137.162]:38726 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751332Ab0GIPRj (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Fri, 9 Jul 2010 11:17:39 -0400
 In-Reply-To: <20100708222913.GA4475@redhat.com>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
+Am 09.07.2010 00:29, schrieb Michael S. Tsirkin:
+> This adds a `CHECKSUM' target, which can be used in the iptables mangle
+> table.
+> 
+> You can use this target to compute and fill in the checksum in
+> an IP packet that lacks a checksum.  This is particularly useful,
+> if you need to work around old applications such as dhcp clients,
+> that do not work well with checksum offloads, but don't want to
+> disable checksum offload in your device.
+> 
+> The problem happens in the field with virtualized applications.
+> For reference, see Red Hat bz 605555, as well as
+> http://www.spinics.net/lists/kvm/msg37660.html
+> 
+> Typical expected use (helps old dhclient binary running in a VM):
+> iptables -A POSTROUTING -t mangle -p udp --dport 68 -j CHECKSUM
+> --checksum-fill
 
-On Friday 2010-07-09 00:29, Michael S. Tsirkin wrote:
->
-> include/linux/netfilter_ipv4/ipt_CHECKSUM.h |   18 +++++++
-> net/ipv4/netfilter/Kconfig                  |   16 ++++++
-> net/ipv4/netfilter/Makefile                 |    1 +
-> net/ipv4/netfilter/ipt_CHECKSUM.c           |   72 +++++++++++++++++++++++++++
+I'm not sure this is something we want to merge upstream and
+support indefinitely. Dave suggested this as a temporary
+out-of-tree workaround until the majority of guest dhcp clients
+are fixed. Has anything changed that makes this course of
+action impractical?
 
-New modules should use xt.
-
->+static unsigned int
->+checksum_tg(struct sk_buff *skb, const struct xt_action_param *par)
->+{
->+	if (skb->ip_summed == CHECKSUM_PARTIAL) {
->+		skb_checksum_help(skb);
->+	}
-
-- {}
