@@ -1,79 +1,41 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: [ANNOUNCE] libnetfilter_queue 1.0.0 release
-Date: Sun, 11 Jul 2010 18:00:21 +0200
-Message-ID: <4C39EA95.2080806@netfilter.org>
+From: "Michael S. Tsirkin" <mst@redhat.com>
+Subject: Re: [PATCHv2] extensions: libxt_CHECKSUM extension
+Date: Sun, 11 Jul 2010 22:00:20 +0300
+Message-ID: <20100711190020.GA11244@redhat.com>
+References: <20100711151453.GA7563@redhat.com>
+ <alpine.LSU.2.01.1007111755250.22644@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: multipart/mixed;
- boundary="------------090803040406030006070300"
-Cc: netfilter-announce@lists.netfilter.org,
-	netfilter-devel@vger.kernel.org, lwn@lwn.net
-To: netfilter@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
+To: Jan Engelhardt <jengelh@medozas.de>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail.us.es ([193.147.175.20]:41856 "EHLO mail.us.es"
+Received: from mx1.redhat.com ([209.132.183.28]:62514 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751505Ab0GKQAm (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 11 Jul 2010 12:00:42 -0400
+	id S1754604Ab0GKTFh (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 11 Jul 2010 15:05:37 -0400
+Content-Disposition: inline
+In-Reply-To: <alpine.LSU.2.01.1007111755250.22644@obet.zrqbmnf.qr>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------090803040406030006070300
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+On Sun, Jul 11, 2010 at 05:57:07PM +0200, Jan Engelhardt wrote:
+> 
+> >This adds a `CHECKSUM' target, which can be used in the iptables mangle 
+> >table.
+> >
+> >You can use this target to compute and fill in the checksum in a packet 
+> >that lacks a checksum.  This is particularly useful, if you need to 
+> >work around old applications such as dhcp clients, that do not work 
+> >well with checksum offloads, but don't want to disable checksum offload 
+> >in your device.
+> >
+> >The problem happens in the field with virtualized applications. For 
+> >reference, see Red Hat bz 605555, as well as 
+> >http://www.spinics.net/lists/kvm/msg37660.html
+> 
+> Added to Xtables-addons.
 
-Hi!
+Please do not drop the explanation that bits were copied from ECN.c.
 
-The Netfilter proudly project presents:
-
-  * libnetfilter_queue-1.0.0
-
-libnetfilter_queue is a userspace library providing an API to packets
-that have been queued by the kernel packet filter. It is is part of a
-system that deprecates the old ip_queue / libipq mechanism.
-
-See ChangeLog (file attached) for more details on this release. You can
-download it from:
-
-http://www.netfilter.org/projects/libnetfilter_queue/downloads.html
-ftp://ftp.netfilter.org/pub/libnetfilter_queue/
-
-Cheers,
-Pablo (on behalf of the Netfilter Core Team)
-
---------------090803040406030006070300
-Content-Type: text/plain;
- name="changes-libnetfilter_queue-1.0.0.txt"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="changes-libnetfilter_queue-1.0.0.txt"
-
-Alessandro Vesely (1):
-      doc: document possible verdicts on packets and minor change in example
-
-David Fabro (4):
-      non-modified payload arguments are pointer-to-const
-      payload buffer datatypes are consistent
-      added .gitignore for base directory
-      doc: enhancements
-
-Holger Hans Peter Freyther (1):
-      doc: make doxygen.cfg.in work with doxygen 1.6.1
-
-Pablo Neira Ayuso (11):
-      nfq: add minor comment in the documentation to warn about privileges
-      nfq: deprecate nfq_set_verdict_mark() in favour of nfq_set_verdict2()
-      doc: remove references to deprecated nfq_set_verdict_mark()
-      add nfq_snprintf_xml() to output a packet in XML format
-      nfq: fix compilation warning in nfq_snprintf_xml()
-      nfq: consistent nfq_snprintf_xml() return value with snprintf()
-      nfq: fix HW address output in nfq_snprintf_xml()
-      nfq: remove `0x' from HW protocol in output of nfq_snprintf_xml()
-      nfq: remove libipq.h
-      build: add libtool m4 support
-      nfq: bump version to 1.0.0
-
-Patrick McHardy (1):
-      remove libipq_compat
-
-
---------------090803040406030006070300--
+-- 
+MST
