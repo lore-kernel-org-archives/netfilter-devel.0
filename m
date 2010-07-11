@@ -1,66 +1,83 @@
-From: Pete Kay <petedao@gmail.com>
-Subject: Problem with Too many levels of symbolic links
-Date: Sat, 10 Jul 2010 23:15:42 +0800
-Message-ID: <AANLkTinBc_6zISFzIpJU0WoWh21D3t37YfdZ9bJA6i2F@mail.gmail.com>
+From: Simon Horman <horms@verge.net.au>
+Subject: Re: [patch v2.5 3/4] IPVS: make FTP work with full NAT support
+Date: Sun, 11 Jul 2010 18:01:31 +0900
+Message-ID: <20100711085959.GA28199@verge.net.au>
+References: <20100710030057.731118760@vergenet.net>
+ <20100710030222.732009020@vergenet.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-To: netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: Malcolm Turnbull <malcolm@loadbalancer.org>,
+	Wensong Zhang <wensong@linux-vs.org>,
+	Julius Volz <julius.volz@gmail.com>,
+	Patrick McHardy <kaber@trash.net>,
+	"David S. Miller" <davem@davemloft.net>,
+	Hannes Eder <heder@google.com>
+To: lvs-devel@vger.kernel.org, netdev@vger.kernel.org,
+	linux-kernel@vger.kernel.org, netfilter@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:63026 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755587Ab0GJPPn (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:48769 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752566Ab0GKJBh (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Sat, 10 Jul 2010 11:15:43 -0400
-Received: by pzk26 with SMTP id 26so724984pzk.19
-        for <netfilter-devel@vger.kernel.org>; Sat, 10 Jul 2010 08:15:42 -0700 (PDT)
+	Sun, 11 Jul 2010 05:01:37 -0400
+Content-Disposition: inline
+In-Reply-To: <20100710030222.732009020@vergenet.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi,
+On Sat, Jul 10, 2010 at 12:01:00PM +0900, Simon Horman wrote:
+> From:	Hannes Eder <heder@google.com>
+> 
+> Use nf_conntrack/nf_nat code to do the packet mangling and the TCP
+> sequence adjusting.  The function 'ip_vs_skb_replace' is now dead
+> code, so it is removed.
+> 
+> To SNAT FTP, use something like:
+> 
+> % iptables -t nat -A POSTROUTING -m ipvs --vaddr 192.168.100.30/32 \
+> > --vport 21 -j SNAT --to-source 192.168.10.10
+> 
+> and for the data connections in passive mode:
+> 
+> % iptables -t nat -A POSTROUTING -m ipvs --vaddr 192.168.100.30/32 \
+> > --vportctl 21 -j SNAT --to-source 192.168.10.10
+> 
+> using '-m state --state RELATED' would also works.
+> 
+> Make sure the kernel modules ip_vs_ftp, nf_conntrack_ftp, and
+> nf_nat_ftp are loaded.
 
-I have written a very simple program to add iptables rule, but I am
-kept getting " Too many levels of symbolic links" .
+[snip]
 
-Does anyone know what is wrong?
+> Index: nf-next-2.6/net/netfilter/ipvs/ip_vs_ftp.c
+> ===================================================================
+> --- nf-next-2.6.orig/net/netfilter/ipvs/ip_vs_ftp.c	2010-07-10 11:48:54.000000000 +0900
+> +++ nf-next-2.6/net/netfilter/ipvs/ip_vs_ftp.c	2010-07-10 11:59:19.000000000 +0900
 
+[snip]
 
- int ret = 0;
-  iptc_handle_t   h = iptc_init("nat");
+> @@ -43,6 +57,16 @@
+>  #define SERVER_STRING "227 Entering Passive Mode ("
+>  #define CLIENT_STRING "PORT "
+>  
+> +#define FMT_TUPLE	"%pI4:%u->%pI4:%u/%u"
+> +#define ARG_TUPLE(T)	(T)->src.u3.ip, ntohs((T)->src.u.all), \
+> +			(T)->dst.u3.ip, ntohs((T)->dst.u.all), \
+> +			(T)->dst.protonum
+> +
+> +#define FMT_CONN	"%pI4:%u->%pI4:%u->%pI4:%u/%u:%u"
+> +#define ARG_CONN(C)	(C)->caddr, ntohs((C)->cport), \
+> +			(C)->vaddr, ntohs((C)->vport), \
+> +			(C)->daddr, ntohs((C)->dport), \
+> +			(C)->protocol, (C)->state
+>  
+>  /*
+>   * List of ports (up to IP_VS_APP_MAX_PORTS) to be handled by helper
 
-  struct ipt_entry_match *match;
-  struct ipt_udp *match_udp;
-  struct ipt_entry_target *target;
-  char callee_inhibitor_buf[IPTC_FULL_SIZE];
-  struct ipt_entry *entry = (struct ipt_entry *) callee_inhibitor_buf;
+The argument to the %pI4 needs to be a pointer
+so (T)->src.u3.ip should be &(T)->src.u3.ip and
+(C)->caddr should be &(C)->caddr.ip.
 
-
-    memset(entry, 0, IPTC_FULL_SIZE);
-    entry->ip.proto = IPPROTO_UDP;
-    entry->ip.src.s_addr = inet_addr("192.168.3.2");
-
-    memset(&entry->ip.smsk, 255, sizeof(struct in_addr));
- entry ->ip.smsk.s_addr =   0xffffffff;
-   entry->ip.dst.s_addr = inet_addr("200.168.3.3");
-        entry ->ip.dmsk.s_addr  = 0xffffffff;
-    entry->target_offset = IPTC_ENTRY_SIZE + IPTC_MATCH_SIZE;
-    entry->next_offset = IPTC_FULL_SIZE;
-    match = (struct ipt_entry_match *) entry->elems;
-  //    match = (struct ipt_entry_match *)entry->elems;
-        match->u.user.match_size = IPTC_MATCH_SIZE;
-    strcpy(match->u.user.name, "udp");
-    match_udp = (struct ipt_udp*) &match->data;
-    match_udp->spts[0] = 5060;match_udp->spts[1] = 5060;
-    match_udp->dpts[0] = 5070;match_udp->dpts[1] = 5070;
-    target = (struct ipt_entry_target*) (match + IPTC_MATCH_SIZE);
-
-    target->u.user.target_size = IPTC_TARGET_SIZE;
-    strcpy(target->u.user.name, "ACCEPT");
-    ret = iptc_append_entry ("PREROUTING", entry, h);
-        if (!ret) {
-                printf("append : %s\n", iptc_strerror(errno));
-        }
-        ret =iptc_commit(h);
-        printf("commit =[%i]\n", ret);
-        if (!ret) {
-                printf("commit: %s\n", iptc_strerror(errno));
-        }
+I'm not sure how this slipped through the cracks so far.
+I will repost.
