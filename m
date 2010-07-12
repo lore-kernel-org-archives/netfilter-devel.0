@@ -1,47 +1,46 @@
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Subject: Re: [PATCHv2] extensions: libxt_CHECKSUM extension
-Date: Sun, 11 Jul 2010 23:00:05 +0300
-Message-ID: <20100711200005.GD12202@redhat.com>
-References: <20100711151453.GA7563@redhat.com>
- <alpine.LSU.2.01.1007111755250.22644@obet.zrqbmnf.qr>
- <20100711190020.GA11244@redhat.com>
- <alpine.LSU.2.01.1007112141020.10108@obet.zrqbmnf.qr>
- <20100711195208.GB12202@redhat.com>
- <alpine.LSU.2.01.1007112158020.10108@obet.zrqbmnf.qr>
+From: Rusty Russell <rusty@rustcorp.com.au>
+Subject: Re: netfilter hook/tuple question
+Date: Mon, 12 Jul 2010 12:23:41 +0930
+Message-ID: <201007121223.42052.rusty@rustcorp.com.au>
+References: <AANLkTikanogevLAZ30XgK7oV4bijuTz5lZdkznWlisuC@mail.gmail.com>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Netfilter Developer Mailing List <netfilter-devel@vger.kernel.org>
-To: Jan Engelhardt <jengelh@medozas.de>
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
+To: Huascar Tejeda <htejeda@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57021 "EHLO mx1.redhat.com"
+Received: from ozlabs.org ([203.10.76.45]:60408 "EHLO ozlabs.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752835Ab0GKUFU (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Sun, 11 Jul 2010 16:05:20 -0400
-Content-Disposition: inline
-In-Reply-To: <alpine.LSU.2.01.1007112158020.10108@obet.zrqbmnf.qr>
+	id S1755677Ab0GLCxr (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Sun, 11 Jul 2010 22:53:47 -0400
+In-Reply-To: <AANLkTikanogevLAZ30XgK7oV4bijuTz5lZdkznWlisuC@mail.gmail.com>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Sun, Jul 11, 2010 at 10:03:44PM +0200, Jan Engelhardt wrote:
+On Fri, 9 Jul 2010 05:08:52 am Huascar Tejeda wrote:
+> Hello Rusty Russell,
 > 
-> On Sunday 2010-07-11 21:52, Michael S. Tsirkin wrote:
-> >> On Sunday 2010-07-11 21:00, Michael S. Tsirkin wrote:
-> >> >> >
-> >> >> >The problem happens in the field with virtualized applications. For 
-> >> >> >reference, see Red Hat bz 605555, as well as 
-> >> >> >http://www.spinics.net/lists/kvm/msg37660.html
-> >> >> 
-> >> >> Added to Xtables-addons.
-> >> >
-> >> >Please do not drop the explanation that bits were copied from ECN.c.
-> >> 
-> >> As far as I see it, there is nothing that deals with ECN in any way.
-> >
-> >No, the bits I copied deal with libxt boilerplate.
+> I'm starting to learn about netfilter hooks programming and I have a small
+> question. Is it possible to see the packets in my hook even if it already is
+> in a tuple?
+
+Hi Huascar,
+
+   Sorry for the delayed response.  This question might have been better
+directed at the netfilter-devel mailing list.
+
+> My hook reads HTTP requests looking for QueryStrings. it's running in a
+> linux gateway and I have these scenarios:
 > 
-> Falls into the category of triviality, doesn't reach a level of originality.
+>  - From a linux client: if I access google.com I can see the request for the
+> first time, but since Linux re-uses source-port I don't see it again in my
+> hook.
+>  - From a windows client: it works very well cause windows always use
+> different source-port so it is handled as a new connection every time.
+> 
+> Here is my code: http://codepad.org/T6SESSRg
 
-In that case the 2002 copyright doesn't need to be there as well?
+AFAICT, this should work...  It's pretty simple.
 
--- 
-MST
+Rusty.
