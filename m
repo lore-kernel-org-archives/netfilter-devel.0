@@ -1,56 +1,58 @@
-From: Pablo Neira Ayuso <pablo@netfilter.org>
-Subject: Re: [PATCH] netfilter: xtables: userspace notification target
-Date: Wed, 14 Jul 2010 18:34:29 +0200
-Message-ID: <4C3DE715.8070502@netfilter.org>
-References: <20100713001115.GA3751@sortiz-mobl>	 <AANLkTil2EgQbzUqYNHAYpIWJvyyE6AWq1TpvxrqVsD7k@mail.gmail.com>	 <4C3C28EC.2000302@netfilter.org> <1279016596.12673.11.camel@chilepepper>	 <4C3C9671.5090503@netfilter.org>  <4C3DA3F4.1060807@trash.net> <1279110169.20985.41.camel@chilepepper>
+From: Dan Carpenter <error27@gmail.com>
+Subject: [rfc] netfilter: copy less data to the user
+Date: Wed, 14 Jul 2010 23:04:30 +0200
+Message-ID: <20100714210430.GB5164@bicker>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
-Cc: ext Patrick McHardy <kaber@trash.net>,
-	Changli Gao <xiaosuo@gmail.com>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
-	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Luciano Coelho <luciano.coelho@nokia.com>
-Return-path: <netdev-owner@vger.kernel.org>
-In-Reply-To: <1279110169.20985.41.camel@chilepepper>
-Sender: netdev-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=us-ascii
+Cc: netfilter-devel@vger.kernel.org
+To: ebtables-devel@lists.sourceforge.net
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ew0-f46.google.com ([209.85.215.46]:41812 "EHLO
+	mail-ew0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757889Ab0GNVFz (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Wed, 14 Jul 2010 17:05:55 -0400
+Received: by ewy23 with SMTP id 23so53710ewy.19
+        for <netfilter-devel@vger.kernel.org>; Wed, 14 Jul 2010 14:05:52 -0700 (PDT)
+Content-Disposition: inline
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Hi Luciano,
+Smatch complains that we copy too much data to the user in ebtables.
+We copied EBT_FUNCTION_MAXNAMELEN (32) characters to the user here, but 
+"m->u.match->name" has XT_EXTENSION_MAXNAMELEN (29) characters.
 
-On 14/07/10 14:22, Luciano Coelho wrote:
-> On Wed, 2010-07-14 at 13:48 +0200, ext Patrick McHardy wrote:
->> If you're using connection tracking, you can use conntrack marks
->> to avoid sending more than a single message:
->>
->> iptables ... -m connmark --mark 0x1/0x1 -j RETURN
->> iptables ... -j NFLOG ...
->> iptables ... -j CONNMARK --set-mark 0x1/0x1
-> 
-> Cool, thanks.
-> 
-> It seems that there are lots of possibilities to get this to work, but
-> this is starting to get quite complex.  I would still prefer having the
-> NFNOTIF module included, since we would be able to do what we want in a
-> very simple way.  It's also probably much more efficient that using
-> several rules, which would increase the CPU usage considerably (in our
-> device we are already reaching the limit of a reasonable CPU resource
-> usage with high throughput WLAN connections).
-> 
-> While I agree that it is possible to achieve the NFNOTIF functionality
-> with existing modules, I still think there is a "niche" for such module,
-> because it is very simple, has a very clear purpose and would make the
-> ruleset simpler and more efficient.
-> 
-> Does this make any sense?
+I'm not sure if this is a bug where someone got confused with m->u.name
+which has 32 characters or if this is done for backwards compatability.
 
-I don't think that the NFNOTIF infrastructure fulfill the policy for
-inclusion. It seems to me like something quite specific for your needs.
-It is simple, yes, but we already have this feature into the kernel. I
-don't think that this will reduce CPU usage considerably with regards to
-the NFLOG way.
-
-I would still prefer adding the once-per-matching notification feature
-to NFLOG than these extra lines in the kernel, Patrick?
+diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+index 59ca00e..6bcb31d 100644
+--- a/net/bridge/netfilter/ebtables.c
++++ b/net/bridge/netfilter/ebtables.c
+@@ -1323,7 +1323,7 @@ static inline int ebt_make_matchname(const struct ebt_entry_match *m,
+     const char *base, char __user *ubase)
+ {
+ 	char __user *hlp = ubase + ((char *)m - base);
+-	if (copy_to_user(hlp, m->u.match->name, EBT_FUNCTION_MAXNAMELEN))
++	if (copy_to_user(hlp, m->u.match->name, XT_EXTENSION_MAXNAMELEN))
+ 		return -EFAULT;
+ 	return 0;
+ }
+@@ -1332,7 +1332,7 @@ static inline int ebt_make_watchername(const struct ebt_entry_watcher *w,
+     const char *base, char __user *ubase)
+ {
+ 	char __user *hlp = ubase + ((char *)w - base);
+-	if (copy_to_user(hlp , w->u.watcher->name, EBT_FUNCTION_MAXNAMELEN))
++	if (copy_to_user(hlp , w->u.watcher->name, XT_EXTENSION_MAXNAMELEN))
+ 		return -EFAULT;
+ 	return 0;
+ }
+@@ -1356,7 +1356,7 @@ ebt_make_names(struct ebt_entry *e, const char *base, char __user *ubase)
+ 	ret = EBT_WATCHER_ITERATE(e, ebt_make_watchername, base, ubase);
+ 	if (ret != 0)
+ 		return ret;
+-	if (copy_to_user(hlp, t->u.target->name, EBT_FUNCTION_MAXNAMELEN))
++	if (copy_to_user(hlp, t->u.target->name, XT_EXTENSION_MAXNAMELEN))
+ 		return -EFAULT;
+ 	return 0;
+ }
