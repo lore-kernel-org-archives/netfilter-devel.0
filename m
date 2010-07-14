@@ -1,31 +1,56 @@
-From: Simon Horman <horms@verge.net.au>
-Subject: Re: [patch] netfilter: default to NF_DROP in sip_help_tcp()
-Date: Wed, 14 Jul 2010 21:38:48 +0900
-Message-ID: <20100714123846.GA16045@verge.net.au>
-References: <20100710031604.GA26990@verge.net.au>
- <4C3DAC25.3050401@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH] netfilter: xtables: userspace notification target
+Date: Wed, 14 Jul 2010 18:34:29 +0200
+Message-ID: <4C3DE715.8070502@netfilter.org>
+References: <20100713001115.GA3751@sortiz-mobl>	 <AANLkTil2EgQbzUqYNHAYpIWJvyyE6AWq1TpvxrqVsD7k@mail.gmail.com>	 <4C3C28EC.2000302@netfilter.org> <1279016596.12673.11.camel@chilepepper>	 <4C3C9671.5090503@netfilter.org>  <4C3DA3F4.1060807@trash.net> <1279110169.20985.41.camel@chilepepper>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: netfilter-devel@vger.kernel.org, netdev@vger.kernel.org
-To: Patrick McHardy <kaber@trash.net>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Cc: ext Patrick McHardy <kaber@trash.net>,
+	Changli Gao <xiaosuo@gmail.com>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Luciano Coelho <luciano.coelho@nokia.com>
 Return-path: <netdev-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <4C3DAC25.3050401@trash.net>
+In-Reply-To: <1279110169.20985.41.camel@chilepepper>
 Sender: netdev-owner@vger.kernel.org
 List-Id: netfilter-devel.vger.kernel.org
 
-On Wed, Jul 14, 2010 at 02:23:01PM +0200, Patrick McHardy wrote:
-> On 10.07.2010 05:16, Simon Horman wrote:
-> > I initially noticed this because of the compiler warning below, but it does
-> > seem to be a valid concern in the case where ct_sip_get_header() returns 0
-> > in the first iteration of the while loop.
-> > 
-> > net/netfilter/nf_conntrack_sip.c: In function 'sip_help_tcp':
-> > net/netfilter/nf_conntrack_sip.c:1379: warning: 'ret' may be used uninitialized in this function
+Hi Luciano,
+
+On 14/07/10 14:22, Luciano Coelho wrote:
+> On Wed, 2010-07-14 at 13:48 +0200, ext Patrick McHardy wrote:
+>> If you're using connection tracking, you can use conntrack marks
+>> to avoid sending more than a single message:
+>>
+>> iptables ... -m connmark --mark 0x1/0x1 -j RETURN
+>> iptables ... -j NFLOG ...
+>> iptables ... -j CONNMARK --set-mark 0x1/0x1
 > 
-> Thanks Simon. I've applied the patch, but changed NF_DROP to
-> NF_ACCEPT since we should avoid dropping packets with unknown
-> contents (not SIP) if possible.
+> Cool, thanks.
+> 
+> It seems that there are lots of possibilities to get this to work, but
+> this is starting to get quite complex.  I would still prefer having the
+> NFNOTIF module included, since we would be able to do what we want in a
+> very simple way.  It's also probably much more efficient that using
+> several rules, which would increase the CPU usage considerably (in our
+> device we are already reaching the limit of a reasonable CPU resource
+> usage with high throughput WLAN connections).
+> 
+> While I agree that it is possible to achieve the NFNOTIF functionality
+> with existing modules, I still think there is a "niche" for such module,
+> because it is very simple, has a very clear purpose and would make the
+> ruleset simpler and more efficient.
+> 
+> Does this make any sense?
 
-Thanks, to be honest I was a bit unsure of what policy was best.
+I don't think that the NFNOTIF infrastructure fulfill the policy for
+inclusion. It seems to me like something quite specific for your needs.
+It is simple, yes, but we already have this feature into the kernel. I
+don't think that this will reduce CPU usage considerably with regards to
+the NFLOG way.
 
+I would still prefer adding the once-per-matching notification feature
+to NFLOG than these extra lines in the kernel, Patrick?
