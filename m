@@ -1,93 +1,71 @@
 From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCHv3] extensions: libxt_CHECKSUM extension
-Date: Thu, 15 Jul 2010 11:39:48 +0200
-Message-ID: <4C3ED764.3060301@trash.net>
-References: <20100711150623.GA7420@redhat.com> <20100711151453.GA7563@redhat.com>
+Subject: Re: [rfc] netfilter: copy less data to the user
+Date: Thu, 15 Jul 2010 11:48:09 +0200
+Message-ID: <4C3ED959.4080007@trash.net>
+References: <20100714210430.GB5164@bicker>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Jan Engelhardt <jengelh@medozas.de>,
-	Randy Dunlap <randy.dunlap@oracle.com>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, kvm@vger.kernel.org,
-	herbert@gondor.hengli.com.au
-To: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: ebtables-devel@lists.sourceforge.net,
+	netfilter-devel@vger.kernel.org
+To: Dan Carpenter <error27@gmail.com>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:40434 "EHLO
+Received: from stinky.trash.net ([213.144.137.162]:40600 "EHLO
 	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932842Ab0GOJjv (ORCPT
+	with ESMTP id S932874Ab0GOJsO (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Jul 2010 05:39:51 -0400
-In-Reply-To: <20100711151453.GA7563@redhat.com>
+	Thu, 15 Jul 2010 05:48:14 -0400
+In-Reply-To: <20100714210430.GB5164@bicker>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 11.07.2010 17:14, schrieb Michael S. Tsirkin:
-> diff --git a/extensions/libxt_CHECKSUM.c b/extensions/libxt_CHECKSUM.c
-> new file mode 100644
-> index 0000000..00fbd8f
-> --- /dev/null
-> +++ b/extensions/libxt_CHECKSUM.c
-> @@ -0,0 +1,99 @@
-> +/* Shared library add-on to xtables for CHECKSUM
-> + *
-> + * (C) 2002 by Harald Welte <laforge@gnumonks.org>
-> + * (C) 2010 by Red Hat, Inc
-> + * Author: Michael S. Tsirkin <mst@redhat.com>
-> + *
-> + * This program is distributed under the terms of GNU GPL v2, 1991
-> + *
-> + * libxt_CHECKSUM.c borrowed some bits from libipt_ECN.c
-> + *
-> + * $Id$
+Am 14.07.2010 23:04, schrieb Dan Carpenter:
+> Smatch complains that we copy too much data to the user in ebtables.
+> We copied EBT_FUNCTION_MAXNAMELEN (32) characters to the user here, but 
+> "m->u.match->name" has XT_EXTENSION_MAXNAMELEN (29) characters.
+> 
+> I'm not sure if this is a bug where someone got confused with m->u.name
+> which has 32 characters or if this is done for backwards compatability.
 
-Please no CVS IDs.
+Looking at ebtables.h, ebt_entry_match->name uses
+EBT_FUNCTION_MAXNAMELEN, which is 32 bytes. Where did you get
+XT_EXTENSION_MAXNAMELEN from?
 
-> + */
-> +#include <stdio.h>
-> +#include <string.h>
-> +#include <stdlib.h>
-> +#include <getopt.h>
-> +
-> +#include <xtables.h>
-> +#include <linux/netfilter/xt_CHECKSUM.h>
-> +
-> +static void CHECKSUM_help(void)
-> +{
-> +	printf(
-> +"CHECKSUM target options\n"
-> +"  --checksum-fill			Fill in packet checksum.\n");
-> +}
-> +
-> +static const struct option CHECKSUM_opts[] = {
-> +	{ "checksum-fill", 0, NULL, 'F' },
-> +	{ .name = NULL }
-> +};
-> +
-> +static int CHECKSUM_parse(int c, char **argv, int invert, unsigned int *flags,
-> +                     const void *entry, struct xt_entry_target **target)
-> +{
-> +	struct xt_CHECKSUM_info *einfo
-> +		= (struct xt_CHECKSUM_info *)(*target)->data;
-> +
-> +	switch (c) {
-> +	case 'F':
-> +		if (*flags)
-> +			xtables_error(PARAMETER_PROBLEM,
-> +			        "CHECKSUM target: Only use --checksum-fill ONCE!");
+> 
+> diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
+> index 59ca00e..6bcb31d 100644
+> --- a/net/bridge/netfilter/ebtables.c
+> +++ b/net/bridge/netfilter/ebtables.c
+> @@ -1323,7 +1323,7 @@ static inline int ebt_make_matchname(const struct ebt_entry_match *m,
+>      const char *base, char __user *ubase)
+>  {
+>  	char __user *hlp = ubase + ((char *)m - base);
+> -	if (copy_to_user(hlp, m->u.match->name, EBT_FUNCTION_MAXNAMELEN))
+> +	if (copy_to_user(hlp, m->u.match->name, XT_EXTENSION_MAXNAMELEN))
+>  		return -EFAULT;
+>  	return 0;
+>  }
+> @@ -1332,7 +1332,7 @@ static inline int ebt_make_watchername(const struct ebt_entry_watcher *w,
+>      const char *base, char __user *ubase)
+>  {
+>  	char __user *hlp = ubase + ((char *)w - base);
+> -	if (copy_to_user(hlp , w->u.watcher->name, EBT_FUNCTION_MAXNAMELEN))
+> +	if (copy_to_user(hlp , w->u.watcher->name, XT_EXTENSION_MAXNAMELEN))
+>  		return -EFAULT;
+>  	return 0;
+>  }
+> @@ -1356,7 +1356,7 @@ ebt_make_names(struct ebt_entry *e, const char *base, char __user *ubase)
+>  	ret = EBT_WATCHER_ITERATE(e, ebt_make_watchername, base, ubase);
+>  	if (ret != 0)
+>  		return ret;
+> -	if (copy_to_user(hlp, t->u.target->name, EBT_FUNCTION_MAXNAMELEN))
+> +	if (copy_to_user(hlp, t->u.target->name, XT_EXTENSION_MAXNAMELEN))
+>  		return -EFAULT;
+>  	return 0;
+>  }
+> --
+> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-There is a helper function called xtables_param_act for checking double
-arguments and printing a standarized error message.
-
-> +		einfo->operation = XT_CHECKSUM_OP_FILL;
-> +		*flags |= XT_CHECKSUM_OP_FILL;
-> +		break;
-> +	default:
-> +		return 0;
-> +	}
-> +
-> +	return 1;
-> +}
-> +
