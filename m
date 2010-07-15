@@ -1,173 +1,74 @@
-From: "Michael S. Tsirkin" <mst@redhat.com>
-Subject: [PATCHv4] extensions: libxt_CHECKSUM extension
-Date: Thu, 15 Jul 2010 14:52:29 +0300
-Message-ID: <20100715115229.GB6737@redhat.com>
-References: <20100715114434.GA6415@redhat.com>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 2/2] netfilter: nfnetlink_queue: add definition of	aligned_be64
+ for user-space apps
+Date: Thu, 15 Jul 2010 13:59:21 +0200
+Message-ID: <4C3EF819.8080801@netfilter.org>
+References: <20100712165241.4026.83949.stgit@decadence> <20100712170019.4026.55069.stgit@decadence> <4C3ED2A7.1090300@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: Patrick McHardy <kaber@trash.net>,
-	"Michael S. Tsirkin" <mst@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Jan Engelhardt <jengelh@medozas.de>,
-	Randy Dunlap <randy.dunlap@oracle.com>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org
-To: "Daniel P. Berrange" <berrange@redhat.com>,
-	Jes Sorensen <Jes.Sorensen@redhat.com>
-Return-path: <netfilter-owner@vger.kernel.org>
-Content-Disposition: inline
-In-Reply-To: <20100715114434.GA6415@redhat.com>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail.us.es ([193.147.175.20]:38142 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758410Ab0GOL70 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 15 Jul 2010 07:59:26 -0400
+In-Reply-To: <4C3ED2A7.1090300@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-This adds a `CHECKSUM' target, which can be used in the iptables mangle
-table.
+On 15/07/10 11:19, Patrick McHardy wrote:
+> Am 12.07.2010 19:00, schrieb Pablo Neira Ayuso:
+>> Currently, libnl and libnetfilter_queue include in one of their
+>> user-space header files an ad-hoc definition of aligned_be64.
+>> However, applications that use the BSD socket API to communicate
+>> via Netlink sockets (ie. those that do not use these libraries)
+>> would need to define this type by hand if they include the
+>> kernel-space header nfnetlink_queue.h.
+>>
+>> This patch adds the definition of aligned_bed64 for user-space
+>> applications in the kernel header. Otherwise, they have to define
+>> it to avoid the following compilation problem:
+>>
+>> /usr/include/linux/netfilter/nfnetlink_queue.h:28: error: expected s=
+pecifier-qualifier-list before =E2=80=98aligned_be64=E2=80=99
+>=20
+> Why can't these applications simply include linux/types.h?
 
-You can use this target to compute and fill in the checksum in
-a packet that lacks a checksum.  This is particularly useful,
-if you need to work around old applications such as dhcp clients,
-that do not work well with checksum offloads, but don't want to disable
-checksum offload in your device.
+Including it doesn't fix the problem here:
 
-The problem happens in the field with virtualized applications.
-For reference, see Red Hat bz 605555, as well as
-http://www.spinics.net/lists/kvm/msg37660.html
+#include <linux/types.h>
+#include <linux/netfilter/nfnetlink_queue.h>
 
-Typical expected use (helps old dhclient binary running in a VM):
-iptables -A POSTROUTING -t mangle -p udp --dport bootpc \
--j CHECKSUM --checksum-fill
+I still get:
 
-Signed-off-by: Michael S. Tsirkin <mst@redhat.com>
-Includes fixes by Jan Engelhardt <jengelh@medozas.de>
----
+/usr/include/linux/netfilter/nfnetlink_queue.h:28: error: expected
+specifier-qualifier-list before =E2=80=98aligned_be64=E2=80=99
 
-Changes from v3: fixed issues from review by Patrick McHardy
-Applied these fixes by Jan Engelhardt
-	Remove $$ cvs tags
-	Use xtables_param_act
+aligned_be64 is only define in the kernel (it's included under the
+__KERNEL__ definition).
 
- extensions/libxt_CHECKSUM.c   |   96 +++++++++++++++++++++++++++++++++++++++++
- extensions/libxt_CHECKSUM.man |    8 +++
- 2 files changed, 104 insertions(+), 0 deletions(-)
- create mode 100644 extensions/libxt_CHECKSUM.c
- create mode 100644 extensions/libxt_CHECKSUM.man
+>> I know, this is ugly but I think that user-space Netlink application=
+s
+>> should compile with the only need of including the kernel-space
+>> header that contains the protocol definitions.
+>=20
+> I disagree, it makes no sense to re-define this for every header file=
+=2E
+> They can either include linux/types.h, or we could automatically incl=
+ude
+> it in the files requiring it.
 
-diff --git a/extensions/libxt_CHECKSUM.c b/extensions/libxt_CHECKSUM.c
-new file mode 100644
-index 0000000..9a24443
---- /dev/null
-+++ b/extensions/libxt_CHECKSUM.c
-@@ -0,0 +1,96 @@
-+/* Shared library add-on to xtables for CHECKSUM
-+ *
-+ * (C) 2002 by Harald Welte <laforge@gnumonks.org>
-+ * (C) 2010 by Red Hat, Inc
-+ * Author: Michael S. Tsirkin <mst@redhat.com>
-+ *
-+ * This program is distributed under the terms of GNU GPL v2, 1991
-+ *
-+ * libxt_CHECKSUM.c borrowed some bits from libipt_ECN.c
-+ */
-+#include <stdio.h>
-+#include <string.h>
-+#include <stdlib.h>
-+#include <getopt.h>
-+
-+#include <xtables.h>
-+#include <linux/netfilter/xt_CHECKSUM.h>
-+
-+static void CHECKSUM_help(void)
-+{
-+	printf(
-+"CHECKSUM target options\n"
-+"  --checksum-fill			Fill in packet checksum.\n");
-+}
-+
-+static const struct option CHECKSUM_opts[] = {
-+	{ "checksum-fill", 0, NULL, 'F' },
-+	{ .name = NULL }
-+};
-+
-+static int CHECKSUM_parse(int c, char **argv, int invert, unsigned int *flags,
-+                     const void *entry, struct xt_entry_target **target)
-+{
-+	struct xt_CHECKSUM_info *einfo
-+		= (struct xt_CHECKSUM_info *)(*target)->data;
-+
-+	switch (c) {
-+	case 'F':
-+		xtables_param_act(XTF_ONLY_ONCE, "CHECKSUM", "--checksum-fill",
-+			*flags & XT_CHECKSUM_OP_FILL);
-+		einfo->operation = XT_CHECKSUM_OP_FILL;
-+		*flags |= XT_CHECKSUM_OP_FILL;
-+		break;
-+	default:
-+		return 0;
-+	}
-+
-+	return 1;
-+}
-+
-+static void CHECKSUM_check(unsigned int flags)
-+{
-+	if (!flags)
-+		xtables_error(PARAMETER_PROBLEM,
-+		           "CHECKSUM target: Parameter --checksum-fill is required");
-+}
-+
-+static void CHECKSUM_print(const void *ip, const struct xt_entry_target *target,
-+                      int numeric)
-+{
-+	const struct xt_CHECKSUM_info *einfo =
-+		(const struct xt_CHECKSUM_info *)target->data;
-+
-+	printf("CHECKSUM ");
-+
-+	if (einfo->operation & XT_CHECKSUM_OP_FILL)
-+		printf("fill ");
-+}
-+
-+static void CHECKSUM_save(const void *ip, const struct xt_entry_target *target)
-+{
-+	const struct xt_CHECKSUM_info *einfo =
-+		(const struct xt_CHECKSUM_info *)target->data;
-+
-+	if (einfo->operation & XT_CHECKSUM_OP_FILL)
-+		printf("--checksum-fill ");
-+}
-+
-+static struct xtables_target checksum_tg_reg = {
-+	.name		= "CHECKSUM",
-+	.version	= XTABLES_VERSION,
-+	.family		= NFPROTO_UNSPEC,
-+	.size		= XT_ALIGN(sizeof(struct xt_CHECKSUM_info)),
-+	.userspacesize	= XT_ALIGN(sizeof(struct xt_CHECKSUM_info)),
-+	.help		= CHECKSUM_help,
-+	.parse		= CHECKSUM_parse,
-+	.final_check	= CHECKSUM_check,
-+	.print		= CHECKSUM_print,
-+	.save		= CHECKSUM_save,
-+	.extra_opts	= CHECKSUM_opts,
-+};
-+
-+void _init(void)
-+{
-+	xtables_register_target(&checksum_tg_reg);
-+}
-diff --git a/extensions/libxt_CHECKSUM.man b/extensions/libxt_CHECKSUM.man
-new file mode 100644
-index 0000000..92ae700
---- /dev/null
-+++ b/extensions/libxt_CHECKSUM.man
-@@ -0,0 +1,8 @@
-+This target allows to selectively work around broken/old applications.
-+It can only be used in the mangle table.
-+.TP
-+\fB\-\-checksum\-fill\fP
-+Compute and fill in the checksum in a packet that lacks a checksum.
-+This is particularly useful, if you need to work around old applications
-+such as dhcp clients, that do not work well with checksum offloads,
-+but don't want to disable checksum offload in your device.
--- 
-1.7.2.rc0.14.g41c1c
+This is how it looks now in user-space:
+
+#include <...>
+#ifndef aligned_be64
+#define aligned_be64 u_int64_t __attribute__((aligned(8)))
+#endif
+#include <linux/netfilter/nfnetlink_queue.h>
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
