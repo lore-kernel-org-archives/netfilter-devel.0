@@ -1,125 +1,67 @@
-From: "MAI JIN" <Jin.Mai@alcatel-sbell.com.cn>
-Subject: 'HELP ME PLEASE.  libnetfilter_queue issue
-Date: Thu, 15 Jul 2010 16:08:31 +0800
-Message-ID: <1DB91DF937A4544C81E636468B91C21C06F1ECAF@CNSHGSMBS03.ad4.ad.alcatel.com>
-References: <1DB91DF937A4544C81E636468B91C21C06F1EC28@CNSHGSMBS03.ad4.ad.alcatel.com>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH] netfilter: xtables: userspace notification target
+Date: Thu, 15 Jul 2010 11:05:49 +0200
+Message-ID: <4C3ECF6D.50409@trash.net>
+References: <20100713001115.GA3751@sortiz-mobl>	 <AANLkTil2EgQbzUqYNHAYpIWJvyyE6AWq1TpvxrqVsD7k@mail.gmail.com>	 <4C3C28EC.2000302@netfilter.org> <1279016596.12673.11.camel@chilepepper>	 <4C3C9671.5090503@netfilter.org>  <4C3DA3F4.1060807@trash.net> <1279110169.20985.41.camel@chilepepper> <4C3DE715.8070502@netfilter.org>
 Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="US-ASCII"
-Content-Transfer-Encoding: 8BIT
-To: <netfilter-devel@vger.kernel.org>, <netfilter@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Cc: Luciano Coelho <luciano.coelho@nokia.com>,
+	Changli Gao <xiaosuo@gmail.com>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from cnshjsmin03.alcatel-sbell.com.cn ([211.144.215.47]:42302 "EHLO
-	cnshjsmin03.alcatel-sbell.com.cn" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932641Ab0GOIIc convert rfc822-to-8bit
-	(ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Jul 2010 04:08:32 -0400
-Content-class: urn:content-classes:message
-In-Reply-To: <1DB91DF937A4544C81E636468B91C21C06F1EC28@CNSHGSMBS03.ad4.ad.alcatel.com>
+Received: from stinky.trash.net ([213.144.137.162]:39792 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932755Ab0GOJFz (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 15 Jul 2010 05:05:55 -0400
+In-Reply-To: <4C3DE715.8070502@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
+Am 14.07.2010 18:34, schrieb Pablo Neira Ayuso:
+> Hi Luciano,
+> 
+> On 14/07/10 14:22, Luciano Coelho wrote:
+>> On Wed, 2010-07-14 at 13:48 +0200, ext Patrick McHardy wrote:
+>>> If you're using connection tracking, you can use conntrack marks
+>>> to avoid sending more than a single message:
+>>>
+>>> iptables ... -m connmark --mark 0x1/0x1 -j RETURN
+>>> iptables ... -j NFLOG ...
+>>> iptables ... -j CONNMARK --set-mark 0x1/0x1
+>>
+>> Cool, thanks.
+>>
+>> It seems that there are lots of possibilities to get this to work, but
+>> this is starting to get quite complex.  I would still prefer having the
+>> NFNOTIF module included, since we would be able to do what we want in a
+>> very simple way.  It's also probably much more efficient that using
+>> several rules, which would increase the CPU usage considerably (in our
+>> device we are already reaching the limit of a reasonable CPU resource
+>> usage with high throughput WLAN connections).
 
- Hi, 
+Its hard to believe that a connmark match filtering out notifications
+would require more CPU time than doing the same in a new target module.
 
-I'm a new user to libnetfilter_queue. I ran the test example of
-libnetfilter_queue-1.0.0 on a Debian x86 (Linux debian 2.6.26-1-686)
-host but I found that the pakcets queue in NFQUEUE were not dequeued
-after recv() was invoked. I ran the iptables command on the debain host:
-iptables -A INPUT -p udp --dport 8192:32000 -j NFQUEUE --queue-num 0
+>> While I agree that it is possible to achieve the NFNOTIF functionality
+>> with existing modules, I still think there is a "niche" for such module,
+>> because it is very simple, has a very clear purpose and would make the
+>> ruleset simpler and more efficient.
+>>
+>> Does this make any sense?
+> 
+> I don't think that the NFNOTIF infrastructure fulfill the policy for
+> inclusion. It seems to me like something quite specific for your needs.
+> It is simple, yes, but we already have this feature into the kernel. I
+> don't think that this will reduce CPU usage considerably with regards to
+> the NFLOG way.
+> 
+> I would still prefer adding the once-per-matching notification feature
+> to NFLOG than these extra lines in the kernel, Patrick?
 
-Then I send UDP packets from another machine with destination port in
-the range. By default, the libnetfilter_queue received 1000 packets on
-Debian host and stopped (blocked in recv()). Then I set the queue length
-to 12000 nfq_set_queue_maxlen(qh, 1200) . This time, the
-libnetfilter_queue received 1200 packets and stopped (blocked in
-recv()). 
-
-Looks like the pakcets were not dequeued from NFQUEUE? How can I fix
-this problem? 
-
-int main(int argc, char **argv) 
-{ 
-        struct nfq_handle *h; 
-        struct nfq_q_handle *qh; 
-        struct nfnl_handle *nh; 
-        int fd; 
-        int rv; 
-        char buf[4096] __attribute__ ((aligned)); 
-
-        printf("opening library handle\n"); 
-        h = nfq_open(); 
-        if (!h) { 
-                fprintf(stderr, "error during nfq_open()\n"); 
-                exit(1); 
-        } 
-
-        printf("unbinding existing nf_queue handler for AF_INET (if
-any)\n"); 
-        if (nfq_unbind_pf(h, AF_INET) < 0) { 
-                fprintf(stderr, "error during nfq_unbind_pf()\n"); 
-                exit(1); 
-        } 
-
-        printf("binding nfnetlink_queue as nf_queue handler for
-AF_INET\n"); 
-        if (nfq_bind_pf(h, AF_INET) < 0) { 
-                fprintf(stderr, "error during nfq_bind_pf()\n"); 
-                exit(1); 
-        } 
-
-        printf("binding this socket to queue '0'\n"); 
-        qh = nfq_create_queue(h,  0, &cb, NULL); 
-        if (!qh) { 
-                fprintf(stderr, "error during nfq_create_queue()\n"); 
-                exit(1); 
-        } 
-
-        printf("setting copy_packet mode\n"); 
-        if (nfq_set_mode(qh, NFQNL_COPY_PACKET, 0xffff) < 0) { 
-                fprintf(stderr, "can't set packet_copy mode\n"); 
-                exit(1); 
-        } 
-
-        if (nfq_set_queue_maxlen(qh, 1200) < 0) { 
-                fprintf(stderr, "can't set queue_maxlen\n"); 
-                exit(1); 
-        } 
-
-        fd = nfq_fd(h); 
-
-        while ((rv = recv(fd, buf, sizeof(buf), 0)) && rv >= 0) { 
-                nfq_handle_packet(h, buf, rv); 
-        } 
-
-        printf("unbinding from queue 0\n"); 
-        nfq_destroy_queue(qh); 
-
-#ifdef INSANE 
-        /* normally, applications SHOULD NOT issue this command, since 
-         * it detaches other programs/sockets from AF_INET, too ! */ 
-        printf("unbinding from AF_INET\n"); 
-        nfq_unbind_pf(h, AF_INET); 
-#endif 
-
-        printf("closing library handle\n"); 
-        nfq_close(h); 
-
-        exit(0); 
-} 
-
-
-Best regards 
-=========================== 
-Mai Jin 
-Alcatel Shanghai Bell (Nanjing) Co. Ltd. 
-Alcatel-Net: 2735-5011 
-Tel: (+86)-25-8473 1240-5011 
-Addr: 11F, Yangtse River Tech Park. 
-           Building No.40 of Nanchang Road, 
-           Gulou District, Nanjing, China 
-Zip: 210037 
-jin.mai@Alcatel-sbell.com.cn 
-ASB/MoAD/RDR/BSR APL 
-  
-
+I agree with Pablo.
