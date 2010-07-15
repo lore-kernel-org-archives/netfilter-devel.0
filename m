@@ -1,62 +1,72 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: packet flow - ebtables broute DROP target
-Date: Thu, 15 Jul 2010 16:34:15 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1007151616400.7169@obet.zrqbmnf.qr>
-References: <1DB91DF937A4544C81E636468B91C21C06F1EC28@CNSHGSMBS03.ad4.ad.alcatel.com>  <1DB91DF937A4544C81E636468B91C21C06F1ECAF@CNSHGSMBS03.ad4.ad.alcatel.com>  <AANLkTil_RodsXwi2y8-tOeLsZ8Cl3TN0WYfsAMrrx-VP@mail.gmail.com>
- <1279202558.5524.10.camel@aijazbaig1-desktop>
-Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: Aijaz Baig <aijazbaig1@gmail.com>
+From: Luciano Coelho <luciano.coelho@nokia.com>
+Subject: [PATCH iptables-next] extensions: libxt_IDLETIMER: use xtables_param_act when checking options
+Date: Thu, 15 Jul 2010 18:05:31 +0300
+Message-ID: <1279206331-6921-1-git-send-email-luciano.coelho@nokia.com>
+Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from borg.medozas.de ([188.40.89.202]:37220 "EHLO borg.medozas.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933361Ab0GOOeR (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Jul 2010 10:34:17 -0400
-In-Reply-To: <1279202558.5524.10.camel@aijazbaig1-desktop>
+Received: from smtp.nokia.com ([192.100.122.233]:33394 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933453Ab0GOPGG (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 15 Jul 2010 11:06:06 -0400
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 2010-07-15 16:02, Aijaz Baig wrote:
->unfamiliar with it, here are the links to the same:
->http://ebtables.sourceforge.net/br_fw_ia/br_fw_ia.html for the document
->and http://ebtables.sourceforge.net/br_fw_ia/PacketFlow.png for the
->picture.
+This patch changes custom error messages for illegal options into the
+default iptables messages, by using xtables_param_act().
 
-Use http://jengelh.medozas.de/images/nf-packet-flow.png
+Signed-off-by: Luciano Coelho <luciano.coelho@nokia.com>
+---
+ extensions/libxt_IDLETIMER.c   |   15 ++++++---------
+ extensions/libxt_IDLETIMER.man |    3 ++-
+ 2 files changed, 8 insertions(+), 10 deletions(-)
 
->Im trying to understand what happens to a packet which is DROPped in the
->BROUTING chain of the broute table. If I have understood correctly from
->the document above, it goes to L3 where the routing subsystem can decide
->where to send the packet to depending on L3 information in it isn't it?
+diff --git a/extensions/libxt_IDLETIMER.c b/extensions/libxt_IDLETIMER.c
+index 565f8e3..c931d0e 100644
+--- a/extensions/libxt_IDLETIMER.c
++++ b/extensions/libxt_IDLETIMER.c
+@@ -60,23 +60,20 @@ static int idletimer_tg_parse(int c, char **argv, int invert,
+ 
+ 	switch (c) {
+ 	case 't':
+-		if (*flags & IDLETIMER_TG_OPT_TIMEOUT)
+-			xtables_error(PARAMETER_PROBLEM,
+-				      "Cannot specify timeout more than once");
++		xtables_param_act(XTF_ONLY_ONCE, "IDLETIMER", "--timeout",
++				  *flags & IDLETIMER_TG_OPT_TIMEOUT);
+ 
+ 		info->timeout = atoi(optarg);
+ 		*flags |= IDLETIMER_TG_OPT_TIMEOUT;
+ 		break;
+ 
+ 	case 'l':
+-		if (*flags & IDLETIMER_TG_OPT_LABEL)
+-			xtables_error(PARAMETER_PROBLEM,
+-				      "Cannot specify label more than once");
++		xtables_param_act(XTF_ONLY_ONCE, "IDLETIMER", "--label",
++				  *flags & IDLETIMER_TG_OPT_TIMEOUT);
+ 
+ 		if (strlen(optarg) > MAX_IDLETIMER_LABEL_SIZE - 1)
+-			xtables_error(PARAMETER_PROBLEM,
+-				      "Maximum label length is %u for --label",
+-				      MAX_IDLETIMER_LABEL_SIZE - 1);
++			xtables_param_act(XTF_BAD_VALUE, "IDLETIMER", "--label",
++					 optarg);
+ 
+ 		strcpy(info->label, optarg);
+ 		*flags |= IDLETIMER_TG_OPT_LABEL;
+diff --git a/extensions/libxt_IDLETIMER.man b/extensions/libxt_IDLETIMER.man
+index 3266a44..e3c91ce 100644
+--- a/extensions/libxt_IDLETIMER.man
++++ b/extensions/libxt_IDLETIMER.man
+@@ -16,4 +16,5 @@ userspace, which can then decide what to do (eg. disconnect to save power).
+ This is the time in seconds that will trigger the notification.
+ .TP
+ \fB\-\-label\fP \fIstring\fP
+-This is a unique identifier for the timer.
++This is a unique identifier for the timer.  The maximum length for the
++label string is 27 characters.
+-- 
+1.7.0.4
 
-In net/core/dev.c, the packet is passed to all "taps". Taps include 
-raw sockets (think tcpdump), but also bridge and the IPvX layers 
-themselves. Each of them basically gets a copy, thus it is important to 
-not have an address on the ethernet interface (so that the IPvX tap 
-ignores it). Only the bridge interface should have an address, because 
-the bridge code will pass it to IPvX on its own.
-
-(You probably knew this, but this is a nice question plus answer for our 
-planned book(s).)
-
-So considering only bridge.c, the brouting chain can then be used to 
-either move the packet along the blue L2 path or the green L3 path.
-
-If a packet remains travelling in the blue domain (i.e. it is bridged), 
-the packet _must_ have the bridge's own dst mac address to go "upwards" 
-at the "bridging decision" (sort of Ethernet routing, if you want to 
-call it so) circle to reach IPvX routing.
-
->And then after that I checked the packet counters for both the rules
->viz. the one in the BROUTING chain and the one in the PREROUTING chain
->of the mangle table. The packet did hit the first rule and it is
->dropped. I cannot see it on br0, the bridge interface too. But the
->packet count in the latter rule is 0 which means that the packet didnt
->arrive in the mangle table's
-
-To be eligible for green traversal as a result of (bridge check), the 
-packet of course needs to be one of the supported protocols.
-Sending STP into the green domain has no bearing. IPX packets will be 
-conntracked, but of course you won't see them in iptables or ip6tables 
-(since they are not IPv4/IPv6, naturally).
