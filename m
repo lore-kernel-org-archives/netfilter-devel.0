@@ -1,48 +1,44 @@
-From: Dan Carpenter <error27@gmail.com>
-Subject: Re: [rfc] netfilter: copy less data to the user
-Date: Thu, 15 Jul 2010 12:16:45 +0200
-Message-ID: <20100715101645.GB17585@bicker>
-References: <20100714210430.GB5164@bicker> <4C3ED959.4080007@trash.net>
+From: Pablo Neira Ayuso <pablo@netfilter.org>
+Subject: Re: [PATCH 1/2] netfilter: nf_ct_tcp: fix flow recovery with TCP
+ window	tracking enabled
+Date: Thu, 15 Jul 2010 13:55:05 +0200
+Message-ID: <4C3EF719.6020208@netfilter.org>
+References: <20100712165241.4026.83949.stgit@decadence> <20100712165953.4026.90708.stgit@decadence> <4C3ED1F5.3050400@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Cc: ebtables-devel@lists.sourceforge.net,
-	netfilter-devel@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
+Cc: netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:45271 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932992Ab0GOKSI (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Jul 2010 06:18:08 -0400
-Received: by eya25 with SMTP id 25so118635eya.19
-        for <netfilter-devel@vger.kernel.org>; Thu, 15 Jul 2010 03:18:06 -0700 (PDT)
-Content-Disposition: inline
-In-Reply-To: <4C3ED959.4080007@trash.net>
+Received: from mail.us.es ([193.147.175.20]:34369 "EHLO mail.us.es"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758236Ab0GOLz0 (ORCPT <rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 15 Jul 2010 07:55:26 -0400
+In-Reply-To: <4C3ED1F5.3050400@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thu, Jul 15, 2010 at 11:48:09AM +0200, Patrick McHardy wrote:
-> Am 14.07.2010 23:04, schrieb Dan Carpenter:
-> > Smatch complains that we copy too much data to the user in ebtables.
-> > We copied EBT_FUNCTION_MAXNAMELEN (32) characters to the user here, but 
-> > "m->u.match->name" has XT_EXTENSION_MAXNAMELEN (29) characters.
-> > 
-> > I'm not sure if this is a bug where someone got confused with m->u.name
-> > which has 32 characters or if this is done for backwards compatability.
+On 15/07/10 11:16, Patrick McHardy wrote:
+> Am 12.07.2010 18:59, schrieb Pablo Neira Ayuso:
+>> This patch adds the missing bits to support the recovery of TCP flows
+>> without disabling window tracking (aka be_liberal). To ensure a
+>> successful recovery, we have to inject the window scale factor via
+>> ctnetlink.
+>>
+>> This patch has been tested with a development snapshot of conntrackd
+>> and the new clause `TCPWindowTracking' that allows to perform strict
+>> TCP window tracking recovery across fail-overs.
+>>
+>> With this patch, we don't update the receiver's window until it's not
+>> initiated. We require this to perform a successful recovery. Jozsef
+>> confirmed in a private email that this spotted a real issue since that
+>> should not happen.
 > 
-> Looking at ebtables.h, ebt_entry_match->name uses
-> EBT_FUNCTION_MAXNAMELEN, which is 32 bytes. Where did you get
-> XT_EXTENSION_MAXNAMELEN from?
-> 
+> Regarding the question whether to put this into nf-2.6.git or
+> nf-next.git, does this fix any bugs besides adding support for
+> using window tracking with synchronization? I'm not quite sure
+> what "a real issue" is supposed to mean in this case.
 
-Exactly.  ebt_entry_match->u.name uses EBT_FUNCTION_MAXNAMELEN but this is
-from ebt_entry_match->u.match->name which is type struct xt_match.
-
-But it looks like we're exporting struct ebt_match which also uses
-EBT_FUNCTION_MAXNAMELEN.  So maybe the fix is to copy ->u.name instead
-of ->u.match->name.
-
-regards,
-dan carpenter
-
-
+Hm, no. This is only useful for window tracking with synchronization (or
+any similar application using ctnetlink). Better push it into
+nf-next-2.6.git.
