@@ -1,72 +1,61 @@
-From: Luciano Coelho <luciano.coelho@nokia.com>
-Subject: [PATCH iptables-next] extensions: libxt_IDLETIMER: use xtables_param_act when checking options
-Date: Thu, 15 Jul 2010 18:05:31 +0300
-Message-ID: <1279206331-6921-1-git-send-email-luciano.coelho@nokia.com>
-Cc: "netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
-To: Patrick McHardy <kaber@trash.net>
+From: Patrick McHardy <kaber@trash.net>
+Subject: Re: [PATCH 2/2] netfilter: nfnetlink_queue: add definition of	aligned_be64
+ for user-space apps
+Date: Thu, 15 Jul 2010 17:07:00 +0200
+Message-ID: <4C3F2414.9090606@trash.net>
+References: <20100712165241.4026.83949.stgit@decadence> <20100712170019.4026.55069.stgit@decadence> <4C3ED2A7.1090300@trash.net> <4C3EF819.8080801@netfilter.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+Cc: netfilter-devel@vger.kernel.org, NetDev <netdev@vger.kernel.org>
+To: Pablo Neira Ayuso <pablo@netfilter.org>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([192.100.122.233]:33394 "EHLO
-	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933453Ab0GOPGG (ORCPT
+Received: from stinky.trash.net ([213.144.137.162]:46581 "EHLO
+	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933441Ab0GOPHD (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Jul 2010 11:06:06 -0400
+	Thu, 15 Jul 2010 11:07:03 -0400
+In-Reply-To: <4C3EF819.8080801@netfilter.org>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-This patch changes custom error messages for illegal options into the
-default iptables messages, by using xtables_param_act().
+Am 15.07.2010 13:59, schrieb Pablo Neira Ayuso:
+> On 15/07/10 11:19, Patrick McHardy wrote:
+>> Am 12.07.2010 19:00, schrieb Pablo Neira Ayuso:
+>>> Currently, libnl and libnetfilter_queue include in one of their
+>>> user-space header files an ad-hoc definition of aligned_be64.
+>>> However, applications that use the BSD socket API to communicate
+>>> via Netlink sockets (ie. those that do not use these libraries)
+>>> would need to define this type by hand if they include the
+>>> kernel-space header nfnetlink_queue.h.
+>>>
+>>> This patch adds the definition of aligned_bed64 for user-space
+>>> applications in the kernel header. Otherwise, they have to define
+>>> it to avoid the following compilation problem:
+>>>
+>>> /usr/include/linux/netfilter/nfnetlink_queue.h:28: error: expected =
+specifier-qualifier-list before =E2=80=98aligned_be64=E2=80=99
+>>
+>> Why can't these applications simply include linux/types.h?
+>=20
+> Including it doesn't fix the problem here:
+>=20
+> #include <linux/types.h>
+> #include <linux/netfilter/nfnetlink_queue.h>
+>=20
+> I still get:
+>=20
+> /usr/include/linux/netfilter/nfnetlink_queue.h:28: error: expected
+> specifier-qualifier-list before =E2=80=98aligned_be64=E2=80=99
+>=20
+> aligned_be64 is only define in the kernel (it's included under the
+> __KERNEL__ definition).
+>
 
-Signed-off-by: Luciano Coelho <luciano.coelho@nokia.com>
----
- extensions/libxt_IDLETIMER.c   |   15 ++++++---------
- extensions/libxt_IDLETIMER.man |    3 ++-
- 2 files changed, 8 insertions(+), 10 deletions(-)
-
-diff --git a/extensions/libxt_IDLETIMER.c b/extensions/libxt_IDLETIMER.c
-index 565f8e3..c931d0e 100644
---- a/extensions/libxt_IDLETIMER.c
-+++ b/extensions/libxt_IDLETIMER.c
-@@ -60,23 +60,20 @@ static int idletimer_tg_parse(int c, char **argv, int invert,
- 
- 	switch (c) {
- 	case 't':
--		if (*flags & IDLETIMER_TG_OPT_TIMEOUT)
--			xtables_error(PARAMETER_PROBLEM,
--				      "Cannot specify timeout more than once");
-+		xtables_param_act(XTF_ONLY_ONCE, "IDLETIMER", "--timeout",
-+				  *flags & IDLETIMER_TG_OPT_TIMEOUT);
- 
- 		info->timeout = atoi(optarg);
- 		*flags |= IDLETIMER_TG_OPT_TIMEOUT;
- 		break;
- 
- 	case 'l':
--		if (*flags & IDLETIMER_TG_OPT_LABEL)
--			xtables_error(PARAMETER_PROBLEM,
--				      "Cannot specify label more than once");
-+		xtables_param_act(XTF_ONLY_ONCE, "IDLETIMER", "--label",
-+				  *flags & IDLETIMER_TG_OPT_TIMEOUT);
- 
- 		if (strlen(optarg) > MAX_IDLETIMER_LABEL_SIZE - 1)
--			xtables_error(PARAMETER_PROBLEM,
--				      "Maximum label length is %u for --label",
--				      MAX_IDLETIMER_LABEL_SIZE - 1);
-+			xtables_param_act(XTF_BAD_VALUE, "IDLETIMER", "--label",
-+					 optarg);
- 
- 		strcpy(info->label, optarg);
- 		*flags |= IDLETIMER_TG_OPT_LABEL;
-diff --git a/extensions/libxt_IDLETIMER.man b/extensions/libxt_IDLETIMER.man
-index 3266a44..e3c91ce 100644
---- a/extensions/libxt_IDLETIMER.man
-+++ b/extensions/libxt_IDLETIMER.man
-@@ -16,4 +16,5 @@ userspace, which can then decide what to do (eg. disconnect to save power).
- This is the time in seconds that will trigger the notification.
- .TP
- \fB\-\-label\fP \fIstring\fP
--This is a unique identifier for the timer.
-+This is a unique identifier for the timer.  The maximum length for the
-+label string is 27 characters.
--- 
-1.7.0.4
-
+In that case I think we should export a __aligned_be64 in types.h
+and use that instead of aligned_be64.
+--
+To unsubscribe from this list: send the line "unsubscribe netfilter-dev=
+el" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
