@@ -1,71 +1,44 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [rfc] netfilter: copy less data to the user
-Date: Thu, 15 Jul 2010 11:48:09 +0200
-Message-ID: <4C3ED959.4080007@trash.net>
-References: <20100714210430.GB5164@bicker>
+From: Jan Engelhardt <jengelh@medozas.de>
+Subject: Re: several messages
+Date: Thu, 15 Jul 2010 12:17:46 +0200 (CEST)
+Message-ID: <alpine.LSU.2.01.1007151216170.19772@obet.zrqbmnf.qr>
+References: <20100711150623.GA7420@redhat.com> <20100711151453.GA7563@redhat.com> <4C3ED764.3060301@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
-Cc: ebtables-devel@lists.sourceforge.net,
-	netfilter-devel@vger.kernel.org
-To: Dan Carpenter <error27@gmail.com>
-Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:40600 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932874Ab0GOJsO (ORCPT
-	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Jul 2010 05:48:14 -0400
-In-Reply-To: <20100714210430.GB5164@bicker>
-Sender: netfilter-devel-owner@vger.kernel.org
-List-ID: <netfilter-devel.vger.kernel.org>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: "Michael S. Tsirkin" <mst@redhat.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Randy Dunlap <randy.dunlap@oracle.com>,
+	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
+	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
+	netdev@vger.kernel.org, kvm@vger.kernel.org,
+	herbert@gondor.hengli.com.au
+To: Patrick McHardy <kaber@trash.net>
+Return-path: <linux-kernel-owner@vger.kernel.org>
+In-Reply-To: <4C3ED764.3060301@trash.net>
+Sender: linux-kernel-owner@vger.kernel.org
+List-Id: netfilter-devel.vger.kernel.org
 
-Am 14.07.2010 23:04, schrieb Dan Carpenter:
-> Smatch complains that we copy too much data to the user in ebtables.
-> We copied EBT_FUNCTION_MAXNAMELEN (32) characters to the user here, but 
-> "m->u.match->name" has XT_EXTENSION_MAXNAMELEN (29) characters.
-> 
-> I'm not sure if this is a bug where someone got confused with m->u.name
-> which has 32 characters or if this is done for backwards compatability.
+On Thursday 2010-07-15 11:36, Patrick McHardy wrote:
+>> +struct xt_CHECKSUM_info {
+>> +	u_int8_t operation;	/* bitset of operations */
+>
+>Please use __u8 in public header files.
+>
+>> +#include <linux/in.h>
+>
+>Do you really need in.h?
+>
+>> + * $Id$
+>
+>Please no CVS IDs.
+>
+>> +	switch (c) {
+>> +	case 'F':
+>> +		if (*flags)
+>> +			xtables_error(PARAMETER_PROBLEM,
+>> +			        "CHECKSUM target: Only use --checksum-fill ONCE!");
+>
+>There is a helper function called xtables_param_act for checking double
+>arguments and printing a standarized error message.
 
-Looking at ebtables.h, ebt_entry_match->name uses
-EBT_FUNCTION_MAXNAMELEN, which is 32 bytes. Where did you get
-XT_EXTENSION_MAXNAMELEN from?
-
-> 
-> diff --git a/net/bridge/netfilter/ebtables.c b/net/bridge/netfilter/ebtables.c
-> index 59ca00e..6bcb31d 100644
-> --- a/net/bridge/netfilter/ebtables.c
-> +++ b/net/bridge/netfilter/ebtables.c
-> @@ -1323,7 +1323,7 @@ static inline int ebt_make_matchname(const struct ebt_entry_match *m,
->      const char *base, char __user *ubase)
->  {
->  	char __user *hlp = ubase + ((char *)m - base);
-> -	if (copy_to_user(hlp, m->u.match->name, EBT_FUNCTION_MAXNAMELEN))
-> +	if (copy_to_user(hlp, m->u.match->name, XT_EXTENSION_MAXNAMELEN))
->  		return -EFAULT;
->  	return 0;
->  }
-> @@ -1332,7 +1332,7 @@ static inline int ebt_make_watchername(const struct ebt_entry_watcher *w,
->      const char *base, char __user *ubase)
->  {
->  	char __user *hlp = ubase + ((char *)w - base);
-> -	if (copy_to_user(hlp , w->u.watcher->name, EBT_FUNCTION_MAXNAMELEN))
-> +	if (copy_to_user(hlp , w->u.watcher->name, XT_EXTENSION_MAXNAMELEN))
->  		return -EFAULT;
->  	return 0;
->  }
-> @@ -1356,7 +1356,7 @@ ebt_make_names(struct ebt_entry *e, const char *base, char __user *ubase)
->  	ret = EBT_WATCHER_ITERATE(e, ebt_make_watchername, base, ubase);
->  	if (ret != 0)
->  		return ret;
-> -	if (copy_to_user(hlp, t->u.target->name, EBT_FUNCTION_MAXNAMELEN))
-> +	if (copy_to_user(hlp, t->u.target->name, XT_EXTENSION_MAXNAMELEN))
->  		return -EFAULT;
->  	return 0;
->  }
-> --
-> To unsubscribe from this list: send the line "unsubscribe netfilter-devel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-
+I took care of these for Xt-a.
