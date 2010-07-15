@@ -1,40 +1,80 @@
-From: Patrick McHardy <kaber@trash.net>
-Subject: Re: [PATCH 1/2] netfilter: nf_ct_tcp: fix flow recovery with TCP
- window	tracking enabled
-Date: Thu, 15 Jul 2010 11:16:37 +0200
-Message-ID: <4C3ED1F5.3050400@trash.net>
-References: <20100712165241.4026.83949.stgit@decadence> <20100712165953.4026.90708.stgit@decadence>
+From: Luciano Coelho <luciano.coelho@nokia.com>
+Subject: Re: [PATCH] netfilter: xtables: userspace notification target
+Date: Thu, 15 Jul 2010 12:18:32 +0300
+Message-ID: <1279185512.2943.71.camel@powerslave>
+References: <20100713001115.GA3751@sortiz-mobl>
+	 <AANLkTil2EgQbzUqYNHAYpIWJvyyE6AWq1TpvxrqVsD7k@mail.gmail.com>
+	 <4C3C28EC.2000302@netfilter.org> <1279016596.12673.11.camel@chilepepper>
+	 <4C3C9671.5090503@netfilter.org>  <4C3DA3F4.1060807@trash.net>
+	 <1279110169.20985.41.camel@chilepepper> <4C3DE715.8070502@netfilter.org>
+	 <4C3ECF6D.50409@trash.net>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Cc: netfilter-devel@vger.kernel.org
-To: Pablo Neira Ayuso <pablo@netfilter.org>
+Cc: Pablo Neira Ayuso <pablo@netfilter.org>,
+	Changli Gao <xiaosuo@gmail.com>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	"netdev@vger.kernel.org" <netdev@vger.kernel.org>,
+	"netfilter-devel@vger.kernel.org" <netfilter-devel@vger.kernel.org>
+To: ext Patrick McHardy <kaber@trash.net>
 Return-path: <netfilter-devel-owner@vger.kernel.org>
-Received: from stinky.trash.net ([213.144.137.162]:39969 "EHLO
-	stinky.trash.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932804Ab0GOJQj (ORCPT
+Received: from smtp.nokia.com ([192.100.122.233]:54021 "EHLO
+	mgw-mx06.nokia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932802Ab0GOJS5 (ORCPT
 	<rfc822;netfilter-devel@vger.kernel.org>);
-	Thu, 15 Jul 2010 05:16:39 -0400
-In-Reply-To: <20100712165953.4026.90708.stgit@decadence>
+	Thu, 15 Jul 2010 05:18:57 -0400
+In-Reply-To: <4C3ECF6D.50409@trash.net>
 Sender: netfilter-devel-owner@vger.kernel.org
 List-ID: <netfilter-devel.vger.kernel.org>
 
-Am 12.07.2010 18:59, schrieb Pablo Neira Ayuso:
-> This patch adds the missing bits to support the recovery of TCP flows
-> without disabling window tracking (aka be_liberal). To ensure a
-> successful recovery, we have to inject the window scale factor via
-> ctnetlink.
+On Thu, 2010-07-15 at 11:05 +0200, ext Patrick McHardy wrote:
+> Am 14.07.2010 18:34, schrieb Pablo Neira Ayuso:
+> >> It seems that there are lots of possibilities to get this to work, but
+> >> this is starting to get quite complex.  I would still prefer having the
+> >> NFNOTIF module included, since we would be able to do what we want in a
+> >> very simple way.  It's also probably much more efficient that using
+> >> several rules, which would increase the CPU usage considerably (in our
+> >> device we are already reaching the limit of a reasonable CPU resource
+> >> usage with high throughput WLAN connections).
 > 
-> This patch has been tested with a development snapshot of conntrackd
-> and the new clause `TCPWindowTracking' that allows to perform strict
-> TCP window tracking recovery across fail-overs.
-> 
-> With this patch, we don't update the receiver's window until it's not
-> initiated. We require this to perform a successful recovery. Jozsef
-> confirmed in a private email that this spotted a real issue since that
-> should not happen.
+> Its hard to believe that a connmark match filtering out notifications
+> would require more CPU time than doing the same in a new target module.
 
-Regarding the question whether to put this into nf-2.6.git or
-nf-next.git, does this fix any bugs besides adding support for
-using window tracking with synchronization? I'm not quite sure
-what "a real issue" is supposed to mean in this case.
+Okay, you have convinced me. :) I studied connmark a bit more and now I
+realize that it won't take more CPU.  In the solution with connmark that
+you proposed the packets coming from a connection that is already marked
+will be quickly returned to normal processing, so it will be fairly
+efficient and certainly not more CPU hungry than the NFNOTIF.
+
+
+> >> While I agree that it is possible to achieve the NFNOTIF functionality
+> >> with existing modules, I still think there is a "niche" for such module,
+> >> because it is very simple, has a very clear purpose and would make the
+> >> ruleset simpler and more efficient.
+> >>
+> >> Does this make any sense?
+> > 
+> > I don't think that the NFNOTIF infrastructure fulfill the policy for
+> > inclusion. It seems to me like something quite specific for your needs.
+> > It is simple, yes, but we already have this feature into the kernel. I
+> > don't think that this will reduce CPU usage considerably with regards to
+> > the NFLOG way.
+> > 
+> > I would still prefer adding the once-per-matching notification feature
+> > to NFLOG than these extra lines in the kernel, Patrick?
+> 
+> I agree with Pablo.
+
+I have to admit that you're right here again.  I think that it will not
+be necessary to make this change in the NFLOG, since the connmark
+solution is actually pretty clear too.  If needed, I'll make this simple
+change in the NFLOG module and submit.
+
+Thanks for your help.
+
+
+-- 
+Cheers,
+Luca.
+
