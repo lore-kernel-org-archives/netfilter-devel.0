@@ -1,55 +1,55 @@
 From: Bart De Schuymer <bdschuym@pandora.be>
 Subject: Re: packet flow - ebtables broute DROP target
-Date: Thu, 15 Jul 2010 21:26:09 +0200
-Message-ID: <4C3F60D1.8040706@pandora.be>
-References: <1DB91DF937A4544C81E636468B91C21C06F1EC28@CNSHGSMBS03.ad4.ad.alcatel.com>	 <1DB91DF937A4544C81E636468B91C21C06F1ECAF@CNSHGSMBS03.ad4.ad.alcatel.com>	 <AANLkTil_RodsXwi2y8-tOeLsZ8Cl3TN0WYfsAMrrx-VP@mail.gmail.com> <1279202558.5524.10.camel@aijazbaig1-desktop>
+Date: Thu, 15 Jul 2010 21:26:33 +0200
+Message-ID: <4C3F60E9.3090106@pandora.be>
+References: <1DB91DF937A4544C81E636468B91C21C06F1EC28@CNSHGSMBS03.ad4.ad.alcatel.com>  <1DB91DF937A4544C81E636468B91C21C06F1ECAF@CNSHGSMBS03.ad4.ad.alcatel.com>  <AANLkTil_RodsXwi2y8-tOeLsZ8Cl3TN0WYfsAMrrx-VP@mail.gmail.com> <1279202558.5524.10.camel@aijazbaig1-desktop> <alpine.LSU.2.01.1007151616400.7169@obet.zrqbmnf.qr>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Cc: netfilter@vger.kernel.org, netfilter-devel@vger.kernel.org
-To: aijazbaig1@gmail.com
-Return-path: <netfilter-owner@vger.kernel.org>
-In-Reply-To: <1279202558.5524.10.camel@aijazbaig1-desktop>
-Sender: netfilter-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Cc: Aijaz Baig <aijazbaig1@gmail.com>, netfilter@vger.kernel.org,
+	netfilter-devel@vger.kernel.org
+To: Jan Engelhardt <jengelh@medozas.de>
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from jacques.telenet-ops.be ([195.130.132.50]:43533 "EHLO
+	jacques.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934428Ab0GOT0i (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 15 Jul 2010 15:26:38 -0400
+In-Reply-To: <alpine.LSU.2.01.1007151616400.7169@obet.zrqbmnf.qr>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-Aijaz Baig schreef:
-> Hello people,
+Jan Engelhardt schreef:
+> On Thursday 2010-07-15 16:02, Aijaz Baig wrote:
+>   
+>> unfamiliar with it, here are the links to the same:
+>> http://ebtables.sourceforge.net/br_fw_ia/br_fw_ia.html for the document
+>> and http://ebtables.sourceforge.net/br_fw_ia/PacketFlow.png for the
+>> picture.
+>>     
 >
-> Im relatively new to the ebtables + iptables firewalling architecture. I
-> have read the ebtables and iptables firewall interaction document and
-> also seen the GIF specified at the end of the document. For those
-> unfamiliar with it, here are the links to the same:
-> http://ebtables.sourceforge.net/br_fw_ia/br_fw_ia.html for the document
-> and http://ebtables.sourceforge.net/br_fw_ia/PacketFlow.png for the
-> picture.
->
-> Im trying to understand what happens to a packet which is DROPped in the
-> BROUTING chain of the broute table. If I have understood correctly from
-> the document above, it goes to L3 where the routing subsystem can decide
-> where to send the packet to depending on L3 information in it isn't it?
-> So i'm assuming that the first place it should be visible should be the
-> PREROUTING chain of the mangle table isn't it? But I tried with a LOG
-> target rule matching the criteria I used in constructing the DROP target
-> in the broute table's BROUTING chain. 
->
-> And then after that I checked the packet counters for both the rules
-> viz. the one in the BROUTING chain and the one in the PREROUTING chain
-> of the mangle table. The packet did hit the first rule and it is
-> dropped. I cannot see it on br0, the bridge interface too. But the
-> packet count in the latter rule is 0 which means that the packet didnt
-> arrive in the mangle table's
-> PREhttp://ebtables.sourceforge.net/br_fw_ia/PacketFlow.pngROUTING chain.
-> But this behavior is contrary to what the GIF above shows.
->
-> Im rather confused. Please do shed some light on it if people have had
-> similar experiences before.
+> Use http://jengelh.medozas.de/images/nf-packet-flow.png
 >
 >   
-Your traffic is probably dropped by the networking code because the 
-destination MAC address differs from that of the bridge port. You should 
-redirect the traffic with ebtables. See 
-http://ebtables.sourceforge.net/examples/basic.html#ex_brouter
+>> Im trying to understand what happens to a packet which is DROPped in the
+>> BROUTING chain of the broute table. If I have understood correctly from
+>> the document above, it goes to L3 where the routing subsystem can decide
+>> where to send the packet to depending on L3 information in it isn't it?
+>>     
+>
+> In net/core/dev.c, the packet is passed to all "taps". Taps include 
+> raw sockets (think tcpdump), but also bridge and the IPvX layers 
+> themselves. Each of them basically gets a copy, thus it is important to 
+> not have an address on the ethernet interface (so that the IPvX tap 
+> ignores it). Only the bridge interface should have an address, because 
+> the bridge code will pass it to IPvX on its own.
+>
+>   
+When using a brouter, you actually assign IP addresses to the bridge 
+ports (different subnets) instead of the virtual bridge interface 
+itself. IP traffic is then DROPped in the BROUTE chain, so it's not 
+bridged. See http://ebtables.sourceforge.net/examples/real.html#example1 
+for an example usage.
 
 cheers,
 Bart
