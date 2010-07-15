@@ -1,44 +1,48 @@
-From: Jan Engelhardt <jengelh@medozas.de>
-Subject: Re: several messages
-Date: Thu, 15 Jul 2010 12:17:46 +0200 (CEST)
-Message-ID: <alpine.LSU.2.01.1007151216170.19772@obet.zrqbmnf.qr>
-References: <20100711150623.GA7420@redhat.com> <20100711151453.GA7563@redhat.com> <4C3ED764.3060301@trash.net>
+From: Dan Carpenter <error27@gmail.com>
+Subject: Re: [rfc] netfilter: copy less data to the user
+Date: Thu, 15 Jul 2010 12:16:45 +0200
+Message-ID: <20100715101645.GB17585@bicker>
+References: <20100714210430.GB5164@bicker> <4C3ED959.4080007@trash.net>
 Mime-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
-Cc: "Michael S. Tsirkin" <mst@redhat.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Randy Dunlap <randy.dunlap@oracle.com>,
-	netfilter-devel@vger.kernel.org, netfilter@vger.kernel.org,
-	coreteam@netfilter.org, linux-kernel@vger.kernel.org,
-	netdev@vger.kernel.org, kvm@vger.kernel.org,
-	herbert@gondor.hengli.com.au
+Content-Type: text/plain; charset=us-ascii
+Cc: ebtables-devel@lists.sourceforge.net,
+	netfilter-devel@vger.kernel.org
 To: Patrick McHardy <kaber@trash.net>
-Return-path: <linux-kernel-owner@vger.kernel.org>
-In-Reply-To: <4C3ED764.3060301@trash.net>
-Sender: linux-kernel-owner@vger.kernel.org
-List-Id: netfilter-devel.vger.kernel.org
+Return-path: <netfilter-devel-owner@vger.kernel.org>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:45271 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932992Ab0GOKSI (ORCPT
+	<rfc822;netfilter-devel@vger.kernel.org>);
+	Thu, 15 Jul 2010 06:18:08 -0400
+Received: by eya25 with SMTP id 25so118635eya.19
+        for <netfilter-devel@vger.kernel.org>; Thu, 15 Jul 2010 03:18:06 -0700 (PDT)
+Content-Disposition: inline
+In-Reply-To: <4C3ED959.4080007@trash.net>
+Sender: netfilter-devel-owner@vger.kernel.org
+List-ID: <netfilter-devel.vger.kernel.org>
 
-On Thursday 2010-07-15 11:36, Patrick McHardy wrote:
->> +struct xt_CHECKSUM_info {
->> +	u_int8_t operation;	/* bitset of operations */
->
->Please use __u8 in public header files.
->
->> +#include <linux/in.h>
->
->Do you really need in.h?
->
->> + * $Id$
->
->Please no CVS IDs.
->
->> +	switch (c) {
->> +	case 'F':
->> +		if (*flags)
->> +			xtables_error(PARAMETER_PROBLEM,
->> +			        "CHECKSUM target: Only use --checksum-fill ONCE!");
->
->There is a helper function called xtables_param_act for checking double
->arguments and printing a standarized error message.
+On Thu, Jul 15, 2010 at 11:48:09AM +0200, Patrick McHardy wrote:
+> Am 14.07.2010 23:04, schrieb Dan Carpenter:
+> > Smatch complains that we copy too much data to the user in ebtables.
+> > We copied EBT_FUNCTION_MAXNAMELEN (32) characters to the user here, but 
+> > "m->u.match->name" has XT_EXTENSION_MAXNAMELEN (29) characters.
+> > 
+> > I'm not sure if this is a bug where someone got confused with m->u.name
+> > which has 32 characters or if this is done for backwards compatability.
+> 
+> Looking at ebtables.h, ebt_entry_match->name uses
+> EBT_FUNCTION_MAXNAMELEN, which is 32 bytes. Where did you get
+> XT_EXTENSION_MAXNAMELEN from?
+> 
 
-I took care of these for Xt-a.
+Exactly.  ebt_entry_match->u.name uses EBT_FUNCTION_MAXNAMELEN but this is
+from ebt_entry_match->u.match->name which is type struct xt_match.
+
+But it looks like we're exporting struct ebt_match which also uses
+EBT_FUNCTION_MAXNAMELEN.  So maybe the fix is to copy ->u.name instead
+of ->u.match->name.
+
+regards,
+dan carpenter
+
+
